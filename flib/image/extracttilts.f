@@ -17,29 +17,35 @@ c
       real*4, allocatable :: tilt(:), val2(:), array(:)
       integer*4, allocatable :: ixpiece(:),iypiece(:),izpiece(:)
 C       
-      CHARACTER*320 FILIN,filout
-      character*16 typeText(6) /'tilt angle', ' ', 'stage position',
-     &    'magnification', 'intensity value', 'exposure dose'/
+      CHARACTER*320 FILIN,filout,metafile
+      character*16 typeText(9) /'tilt angle', ' ', 'stage position',
+     &    'magnification', 'intensity value', 'exposure dose', 'pixel spacing',
+     &    'defocus', 'exposure time'/
 C       
       integer*4 nz, ierr, iftilt, ifmag, ifstage, npiece, i, nbyte, iflags
       integer*4 maxz, iunout, lenText, mode, itype, ifc2, ntilt, nbsym
-      integer*4 ntiltout, lnblnk, ifdose, ifwarn, ifall
+      integer*4 ntiltout, ifdose, ifwarn, ifall, ifexp, ifdef, ifpix, nfound
+      integer*4 ifAddMdoc, indAdoc, iTypeAdoc, numSect, montage, ifMdoc
+      integer*4 AdocOpenImageMetadata
       real*4 dmin, dmax, dmean
       EQUIVALENCE (Nz,NXYZ(3))
 c       
       logical pipinput
       integer*4 numOptArg, numNonOptArg
-      integer*4 PipGetBoolean, PipGetInOutFile
+      integer*4 PipGetBoolean, PipGetInOutFile, PipGetString
 c       
 c       fallbacks from ../../manpages/autodoc2man -2 2  extracttilts
 c       
       integer numOptions
-      parameter (numOptions = 10)
+      parameter (numOptions = 15)
       character*(40 * numOptions) options(1)
       options(1) =
-     &    'input:InputFile:FN:@output:OutputFile:FN:@tilts:TiltAngles:B:@'//
-     &    'stage:StagePositions:B:@mag:Magnifications:B:@'//
-     &    'intensities:Intensities:B:@exp:ExposureDose:B:@'//
+     &    'input:InputFile:FN:@output:OutputFile:FN:@'//
+     &    'mdoc:MdocMetadataFile:B:@other:OtherMetadataFile:FN:@'//
+     &    'tilts:TiltAngles:B:@stage:StagePositions:B:@'//
+     &    'mag:Magnifications:B:@intensities:Intensities:B:@'//
+     &    'exp:ExposureDose:B:@camera:CameraExposure:B:@'//
+     &    'pixel:PixelSpacing:B:@defocus:Defocus:B:@'//
      &    'warn:WarnIfTiltsSuspicious:B:@all:AllPieces:B:@help:usage:B:'
 C       
       filout = ' '
@@ -48,9 +54,14 @@ C
       ifC2 = 0
       iftilt = 0
       ifdose = 0
+      ifexp = 0
+      ifpix = 0
+      ifdef = 0
       ifwarn = 0
       npiece = 0
       ifall = 0
+      ifmdoc = 0
+      metafile = ' '
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
 c       
@@ -60,7 +71,7 @@ c
       pipinput = numOptArg + numNonOptArg .gt. 0
 
       if (PipGetInOutFile('InputFile', 1, 'Image input file', filin)
-     &    .ne. 0) call exitError('NO INPUT FILE SPECIFIED')
+     &    .ne. 0) call exitError('NO INPUT IMAGE FILE SPECIFIED')
       ierr = PipGetInOutFile('OutputFile', 2,
      &    'Name of output file, or return to print out values', filout)
 c       
@@ -71,15 +82,27 @@ c
         ierr = PipGetBoolean('StagePositions', ifstage)
         ierr = PipGetBoolean('Intensities', ifC2)
         ierr = PipGetBoolean('ExposureDose', ifdose)
+        ierr = PipGetBoolean('CameraExposure', ifexp)
+        ierr = PipGetBoolean('Defocus', ifdef)
+        ierr = PipGetBoolean('PixelSpacing', ifpix)
+        ierr = PipGetBoolean('MdocMetadataFile', ifmdoc)
         ierr = PipGetBoolean('WarnIfTiltsSuspicious', ifwarn)
-        if (iftilt + ifmag + ifstage + ifC2 + ifdose .eq. 0) iftilt = 1
-        if (iftilt + ifmag + ifstage + ifC2 + ifdose .ne. 1) call exitError(
+        ifAddMdoc = PipGetString('OtherMetadataFile', metafile)
+        ierr = iftilt + ifmag + ifstage + ifC2 + ifdose + ifdef + ifexp + ifpix
+        if (ierr .eq. 0) iftilt = 1
+        if (ierr .gt. 1) call exitError(
      &      'YOU MUST ENTER ONLY ONE OPTION FOR DATA TO EXTRACT')
         if (iftilt .ne. 0) itype = 1
         if (ifstage .ne. 0) itype = 3
         if (ifmag .ne. 0) itype = 4
         if (ifC2 .ne. 0) itype = 5
         if (ifdose .ne. 0) itype = 6
+        if (ifpix .ne. 0) itype = 7
+        if (ifdef .ne. 0) itype = 8
+        if (ifexp .ne. 0) itype = 9
+        if (itype .gt. 6 .and. ifmdoc .eq. 0 .and. metafile .eq. ' ')
+     &      call exitError('THIS KIND OF INFORMATION CAN '//
+     &      'BE OBTAINED ONLY FROM A METADATA FILE')
       else
         iftilt = 1
         itype = 1
@@ -97,13 +120,40 @@ C
       allocate(tilt(maxtilts), val2(maxtilts), array(maxextra/4), 
      &    ixpiece(maxpiece),iypiece(maxpiece),izpiece(maxpiece), stat = ierr)
 
-      if (ierr .ne. 0) call exitError(
-     &    'ALLOCATING ARRAYS FOR EXTRA HEADER DATA')
+      call memoryError(ierr, 'ARRAYS FOR EXTRA HEADER DATA')
 
       call irtsym(1,nbsym,array)
       call irtsymtyp(1,nbyte,iflags)
-      if (ifall .eq. 0) call get_extra_header_pieces (array,nbsym,nbyte,iflags,
-     &    nz,ixpiece,iypiece,izpiece,npiece,maxpiece)
+c
+c       Open the metafile and check for errors
+      if (ifmdoc .ne. 0 .or. metafile .ne. ' ') then
+        if (metafile .eq. ' ') metafile = filin
+        indAdoc = AdocOpenImageMetadata(metafile, ifAddMdoc, montage,
+     &      numSect, itypeAdoc)
+        if (indAdoc .eq. -1) call exitError(
+     &      'OPENING OR READING THE METADATA FILE')
+        if (indAdoc .eq. -2) call exitError(
+     &      'THE METADATA FILE DOES NOT EXIST')
+        if (indAdoc .eq. -3) call exitError('THE AUTODOC FILE IS NOT '//
+     &      'A RECOGNIZED FORM OF IMAGE METADATA FILE')
+        if (numSect .ne. nz) call exitError('THE IMAGE AND METADATA FILES'//
+     &      ' DO NOT HAVE THE SAME NUMBER OF SECTIONS')
+      endif
+c
+c       Get piece coordinates unless doing "all"
+      if (ifall .eq. 0) then
+        if (ifmdoc .eq. 0 .and. metafile .eq. ' ') then
+          call get_extra_header_pieces (array,nbsym,nbyte,iflags,
+     &        nz,ixpiece,iypiece,izpiece,npiece,maxpiece)
+        else
+          if (montage .ne. 0) then
+            call get_metadata_pieces(indAdoc, itypeAdoc, nz, ixpiece,iypiece,
+     &          izpiece, maxpiece, npiece)
+            if (npiece .lt. nz) call exitError('THE METADATA FILE DOES NOT '//
+     &          'HAVE PIECE COORDINATES FOR EVERY SECTION')
+          endif
+        endif
+      endif
       if(npiece.eq.0)then
         do i=1,nz
           izpiece(i)=i-1
@@ -122,14 +172,22 @@ c
         tilt(i)=-999.
       enddo
 c       
-      lenText = lnblnk(typeText(itype))
-      call get_extra_header_items (array,nbsym,nbyte,iflags,nz,itype,
-     &    tilt,val2,ntilt,maxtilts,izpiece)
-      if (ntilt.eq.0) then
-        print *
-        print *,'ERROR: EXTRACTTILTS - No ',typeText(itype)(1:lenText),
-     &      ' information in this image file'
-        call exit(1)
+      if (ifmdoc .eq. 0 .and. metafile .eq. ' ') then
+        call get_extra_header_items (array,nbsym,nbyte,iflags,nz,itype,
+     &      tilt,val2,ntilt,maxtilts,izpiece)
+        if (ntilt.eq.0) then
+          write(*,'(a,a,a)')'ERROR: EXTRACTTILTS - No ',trim(typeText(itype)),
+     &        ' information in this image file'
+          call exit(1)
+        endif
+      else
+        call get_metadata_items(indAdoc, iTypeAdoc, nz, itype, tilt, val2,
+     &      ntilt, nfound, maxtilts,izpiece)
+        if (nfound .ne. nz) then
+          write(*,'(a,a,a)')'ERROR: EXTRACTTILTS - ',trim(typeText(itype)),
+     &        ' is missing for all or some sections in metadata file'
+          call exit(1)
+        endif
       endif
 c       
 c       pack the tilts down
@@ -155,10 +213,12 @@ c
       if (ifstage .ne. 0)  write(iunout,'(2f9.2)')
      &    (tilt(i), val2(i), i=1,ntiltout)
       if (ifdose .ne. 0) write(iunout,'(f13.5)')(tilt(i),i=1,ntiltout)
+      if (ifdef .ne. 0 .or. ifpix .ne. 0 .or. ifexp .ne. 0)
+     &    write(iunout,'(f11.3)')(tilt(i),i=1,ntiltout)
 
       if (iunout.eq. 1) then
         close(1)
-        print *,ntiltout,' ',typeText(itype)(1:lenText),'s output to file'
+        print *,ntiltout,' ',trim(typeText(itype)),'s output to file'
       endif
 
       if (iftilt .gt. 0 .and. ifwarn .gt. 0) then
@@ -181,6 +241,9 @@ c
       END
 
 c       $Log$
+c       Revision 3.11  2009/10/14 23:50:41  mast
+c       allocate arrays for extra header data
+c
 c       Revision 3.10  2009/05/08 02:19:10  mast
 c       Add option to get items at all frames
 c
