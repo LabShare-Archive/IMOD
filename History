@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/31/10: Fixed problems with processchunks hanging when some machines have
+given errors (In 4.1).
+
 8/25/10: Fixed Newstack problem with a file list of output files and added
 -append option to specify extension on series of numbered files.
 
