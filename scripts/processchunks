@@ -691,7 +691,7 @@ EOF
                 #
                 if ($runflag == -1 && ! $syncing) then
                     @ nextsync = $num
-                    set nochunks = 1
+                    if ($foundchunks == 0) set nochunks = 1
                     break
                 endif
                 if ($undone == -1 && $runflag != 2) @ undone = $num
@@ -704,8 +704,8 @@ EOF
                 # error, and not all machines have done so
                 #
                 set chunkok = 1
-                if ($numchunkerr[$num] > 0 && $chunkerred[$name] == 1 && \
-                    $chunkerrtot < $#machines) then
+                if ($runflag <= 0 && $numchunkerr[$num] > 0 && \
+                    $chunkerred[$name] == 1 && $chunkerrtot < $#machines) then
                     set chunkok = 0
                     if ($syncing) break
                 endif
@@ -765,6 +765,7 @@ EOF
 
         # Set syncing flag to 1 to get it started
         set syncing = 1
+        @ firstundone = $nextsync
         @ nextsync = $#comlist + 2
         set nochunks = 0
     endif
@@ -936,6 +937,9 @@ exit 2
 
 #
 #  $Log$
+#  Revision 3.54  2010/08/19 01:48:24  mast
+#  Fixed test for no numbered com files
+#
 #  Revision 3.53  2010/06/14 20:42:37  mast
 #  Copy log from first non-sync chunk if any; report WARNINGS
 #
