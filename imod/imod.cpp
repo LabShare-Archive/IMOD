@@ -100,6 +100,7 @@ void imod_usage(char *name)
     "default=1).\n";
   qstr += "         -a <file name>  Load tilt angles from file.\n";
   qstr += "         -p <file name>  Load piece list file.\n";
+  qstr += "         -pm   Load piece list from .mdoc metadata file\n";
   qstr += "         -P nx,ny  Display images as montage in nx by ny array.\n";
   qstr += "         -o nx,ny  Set X and X overlaps for montage display.\n";
   qstr += "         -f    Load as frames even if image file has piece "
@@ -163,6 +164,7 @@ int main( int argc, char *argv[])
   int doImodv = 0;
   int rawSet = 0;
   int overEntered = 0;
+  int useMdoc = 0;
   bool useStdin = false;
   bool dataFromStdin = false;
   int argScan;
@@ -419,6 +421,10 @@ int main( int argc, char *argv[])
           break;
         
         case 'p':
+          if (argv[i][2] == 'm') {
+            useMdoc = 1;
+            break;
+          }
           plistfname = argv[++i];
           break;
         
@@ -722,7 +728,8 @@ int main( int argc, char *argv[])
     /* Or, check for piece coordinates in image header */
     if (!vi.li->plist && !frames && vi.image->file == IIFILE_MRC) {
       iiReopen(vi.image);
-      iiLoadPCoord(vi.image, vi.li, vi.hdr->nx, vi.hdr->ny, vi.hdr->nz);
+      iiLoadPCoord(vi.image, useMdoc, vi.li, vi.hdr->nx, vi.hdr->ny,
+                   vi.hdr->nz);
       iiClose(vi.image);
     }
           
@@ -970,6 +977,9 @@ bool imodDebug(char key)
 /*
 
 $Log$
+Revision 4.75  2009/03/31 23:48:10  mast
+Filter out tiff warnings on unrecognized tags
+
 Revision 4.74  2009/03/30 18:26:03  mast
 Raise all windows after starting on the Mac
 
