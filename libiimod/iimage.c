@@ -354,19 +354,28 @@ int iiWriteSection(ImodImageFile *inFile, char *buf, int inSection)
 
 /*!
  * Loads piece coordinates from an MRC file [inFile] of size [nx], [ny], [nz]
- * and places them in the LoadInfo structure [li].  Returns 0 regardless of
+ * and places them in the LoadInfo structure [li].  If no coordinates are found
+ * and [useMdoc] is non-zero, it then tries to load coordinates from a metadata
+ * file named as the image filename plus .mdoc.  Returns 0 regardless of
  * whether there are piece coordinates or errors.
  */
-int iiLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny, 
-                 int nz)
+int iiLoadPCoord(ImodImageFile *inFile, int useMdoc, IloadInfo *li, int nx,
+                 int ny, int nz)
 {
+  int err;
   if (iiMRCCheck(inFile))
     return (0);
-  return(iiMRCLoadPCoord(inFile, li, nx, ny, nz));
+  iiMRCLoadPCoord(inFile, li, nx, ny, nz);
+  if (!li->plist && useMdoc)
+    err = iiPlistFromMetadata(inFile->filename, 1, li, nx, ny, nz);
+  return 0;
 }
 
 /*
 $Log$
+Revision 3.17  2009/01/02 05:18:43  mast
+const char * for Qt 4 port
+
 Revision 3.16  2008/11/25 16:24:03  mast
 Allocating fmode was not a good idea
 
@@ -395,7 +404,7 @@ Revision 3.8  2005/05/19 23:51:05  mast
 Made iiOpen not go on checking if file is closed
 
 Revision 3.7  2004/12/02 21:50:33  mast
-Moved declaration for MRC check funxtion to iimage.h
+Moved declaration for MRC check function to iimage.h
 
 Revision 3.6  2004/11/30 03:46:44  mast
 Added ability to a caller to put an arbitrary file check and open function
