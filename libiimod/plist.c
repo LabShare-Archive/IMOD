@@ -2,6 +2,7 @@
 #include "mrcc.h"
 #include <stdlib.h>
 #include "b3dutil.h"
+#include "autodoc.h"
 
 static int plist_load(FILE *fin, IloadInfo *li, int nx, int ny, int nz);
 
@@ -145,7 +146,7 @@ int mrc_plist_proc(IloadInfo *li, int nx, int ny, int nz)
 int mrc_plist_create(IloadInfo *li, int nx, int ny, int nz,
                      int nfx, int nfy, int ovx, int ovy)
 {
-  int i, scanret;
+  int i;
   int x, y, z;
 
   li->plist = nz;
@@ -210,3 +211,56 @@ int iiPlistLoadF(FILE *fin, IloadInfo *li, int nx, int ny, int nz)
     return 1;
   return (plist_load(fin, li, nx, ny, nz));
 }
+
+/*!
+ * Reads a list of piece coordinates from an image metadata file if one exists.
+ * It looks for the file with the name in [filename], or with the extension 
+ * .mdoc added if [addMdoc] is non-zero.  If it finds the file, the file 
+ * describes a montage, and there are [nz] sections, it places the coordinates
+ * in the @@mrcfiles.html#IloadInfo structure@ [li], and processes it
+ * with @mrc_plist_proc given the image dimensions in [nx], [ny], and [nz].
+ * Returns -4 for bad arguments, -5 for a memory error, 1 if it is not a 
+ * montage or the number of sections does not match, 2 if there are not piece
+ * coordinates for every sections, and -3, -2, or -1 for an 
+ * error in @autodoc.html#AdocOpenImageMetadata .
+ */
+int iiPlistFromMetadata(char *filename, int addMdoc, IloadInfo *li, int nx, 
+                        int ny, int nz)
+{
+  int adocIndex, montage, numSect, sectType, i;
+  char *sectNames[2] = {"ZValue", "Image"};
+  
+
+  if (!filename || nx < 1 || ny < 1 || nz < 1)
+    return -4;
+  adocIndex = AdocOpenImageMetadata(filename, addMdoc, &montage, &numSect,
+                                    &sectType);
+  if (adocIndex < 0)
+    return adocIndex;
+
+  if (!montage || numSect != nz) {
+    AdocClear(adocIndex);
+    return 1;
+  }
+
+  li->pcoords = (int *)malloc(sizeof(int) * 3 * nz);
+  if (!li->pcoords) {
+    AdocClear(adocIndex);
+    return -5;
+  }
+  li->plist = nz;
+
+  for (i = 0; i < nz; i++) {
+    if (AdocGetThreeIntegers(sectNames[sectType-1], i, "PieceCoordinates",
+                             &li->pcoords[i*3], &li->pcoords[i*3+1], 
+                             &li->pcoords[i*3+2]))
+      break;
+  }
+  AdocClear(adocIndex);
+  if (i < nz) {
+    free(li->pcoords);
+    li->plist = 0;
+    return 2;
+  }
+  return(mrc_plist_proc(li, nx, ny, nz));
+}  
