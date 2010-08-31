@@ -159,8 +159,8 @@ extern "C" {
 
   int iiReadSection(ImodImageFile *inFile, char *buf, int inSection);
   int iiReadSectionByte(ImodImageFile *inFile, char *buf, int inSection);
-  int iiLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny, 
-                   int nz);
+  int iiLoadPCoord(ImodImageFile *inFile, int useMdoc, struct LoadInfo *li,
+                   int nx, int ny, int nz);
 
   /* Create and write support. */
   int iiInit(ImodImageFile *i, int xsize, int ysize, int zsize, 
@@ -198,6 +198,9 @@ extern "C" {
 
 /*
 $Log$
+Revision 3.17  2009/06/19 19:50:14  mast
+Add member for samples in RGB TIFF file
+
 Revision 3.16  2009/03/31 23:44:30  mast
 New TIFF functions
 
