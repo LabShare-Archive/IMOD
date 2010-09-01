@@ -33,6 +33,7 @@ ProcessHandler::ProcessHandler() {
   mRanContinueKillProcess = false;
   mVmstocsh = new QProcess(this);
   mKillProcess = new QProcess(this);
+  mKillProcess->setProcessChannelMode(QProcess::ForwardedChannels);
   QObject::connect(mKillProcess, SIGNAL(finished(int, QProcess::ExitStatus)),
       SLOT(handleKillFinished(int, QProcess::ExitStatus)));
   mProcess = NULL;
@@ -316,7 +317,6 @@ const bool ProcessHandler::isFinishedSignalReceived() {
 //Returns true if a last line of the log file starts with "CHUNK DONE"
 const bool ProcessHandler::isChunkDone() {
   if (!mLogFile->open(QIODevice::ReadOnly)) {
-    //If log file exists is run in start loop, ls can't be run
     if (logFileExists(true) && !mLogFile->open(QIODevice::ReadOnly)) {
       mProcesschunks->getOutStream() << "Warning: Unable to open "
           << mLogFile->fileName() << endl;
@@ -342,12 +342,15 @@ const bool ProcessHandler::isChunkDone() {
 
 //Reads the last 1000 characters of the file.  Returns all the text between
 //with "ERROR:" and the end of the file.
-void ProcessHandler::getErrorMessage(QString &errorMess) {
+void ProcessHandler::getErrorMessageFromLog(QString &errorMess) {
   if (!mLogFile->open(QIODevice::ReadOnly)) {
     return;
   }
   QTextStream stream(mLogFile);
   int size = mLogFile->size();
+  if (size == 0) {
+    return;
+  }
   int sizeToCheck = 1000;
   if (size > sizeToCheck) {
     stream.seek(size - sizeToCheck);
@@ -366,6 +369,46 @@ void ProcessHandler::getErrorMessage(QString &errorMess) {
   }
   else {
     errorMess.prepend("CHUNK ");
+  }
+}
+
+//Reads the last lines of stdout and stderr and appends then to errorMess..
+void ProcessHandler::getErrorMessageFromOutput(QString &errorMess) {
+  //Use the last lines of stdout and stderr as the error message if the log
+  //file is empty.
+  char eol;
+#ifdef _WIN32
+  eol = '\r\n';
+#else
+  eol = '\n';
+#endif
+  errorMess.append(eol);
+  //stdout
+  readAllStandardOutput();
+  QByteArray output = mStdout.trimmed();
+  int lastLineIndex;
+  if (!output.isEmpty()) {
+    lastLineIndex = output.lastIndexOf(eol);
+    if (lastLineIndex != -1) {
+      errorMess.append(output.mid(lastLineIndex));
+    }
+    else {
+      errorMess.append(mStdout);
+    }
+  }
+  //stderr
+  readAllStandardError();
+  output = mStderr.trimmed();
+  if (!output.isEmpty()) {
+    int lastLineIndex;
+    lastLineIndex = output.lastIndexOf(eol);
+    if (lastLineIndex != -1) {
+      errorMess.append(output.mid(lastLineIndex));
+      errorMess.append(eol);
+    }
+    else {
+      errorMess.append(mStderr);
+    }
   }
 }
 
@@ -456,15 +499,13 @@ void ProcessHandler::makeCshFile() {
   int i;
   mProcesschunks->getCurrentDir().remove(mCshFile->fileName());
   QTextStream writeStream(mCshFile);
+  if (!mCshFile->open(QIODevice::WriteOnly)) {
+    mProcesschunks->getOutStream() << "Warning: unable to open and create "
+        << mCshFile->fileName() << endl;
+    return;
+  }
   if (!mProcesschunks->isQueue()) {
-    if (mCshFile->open(QIODevice::WriteOnly)) {
-      writeStream << "nice +" << mProcesschunks->getNice() << endl;
-      mCshFile->close();
-    }
-    else {
-      mProcesschunks->getOutStream() << "Warning: unable to nice "
-          << mComFileName << endl;
-    }
+    writeStream << "nice +" << mProcesschunks->getNice() << endl;
   }
   //convert and add CHUNK DONE to all files
   mVmstocsh->setStandardInputFile(mComFileName);
@@ -491,16 +532,10 @@ void ProcessHandler::makeCshFile() {
         << mComFileName << " failed with exit code " << mVmstocsh->exitCode()
         << " " << mVmstocsh->readAllStandardError().data() << endl;
   }
-  if (mCshFile->open(QIODevice::WriteOnly)) {
-    writeStream << mVmstocsh->readAllStandardOutput().data()
-        << "echo CHUNK DONE >> " << mLogFile->fileName() << endl;
-    mCshFile->close();
-  }
-  else {
-    mProcesschunks->getOutStream()
-        << "Warning: unable to add CHUNK DONE message to "
-        << mCshFile->fileName() << endl;
-  }
+  writeStream << mVmstocsh->readAllStandardOutput().data()
+      << "echo CHUNK DONE >> " << mLogFile->fileName() << endl;
+
+  mCshFile->close();
 }
 
 void ProcessHandler::runProcess(MachineHandler *machine) {
@@ -520,7 +555,6 @@ void ProcessHandler::runProcess(MachineHandler *machine) {
       //Escape spaces in the directory path
       //Escaping the single quote shouldn't be necessary because this is not
       //being run from a shell.
-      //QString param = QString("'\"cd %1 && (csh -ef < %2 ; \\rm -f %3)\"'").arg(
       QString param = QString("\"cd %1 && (csh -ef < %2 ; \\rm -f %3)\"").arg(
           mEscapedRemoteDirPath, mCshFile->fileName(), mCshFile->fileName());
       paramList = new QStringList();

@@ -43,7 +43,7 @@ public:
   const QByteArray readAllLogFile();
   const bool isLogFileEmpty();
   const bool isStartProcessTimedOut(const int timeoutMillisec);
-  void getErrorMessage(QString &errorMess);
+  void getErrorMessageFromLog(QString &errorMess);
   void incrementNumChunkErr();
   const bool isComProcessDone();
   void printTooManyErrorsMessage(const int numErr);
@@ -60,6 +60,7 @@ public:
   void continueKillProcess(const bool asynchronous);
   void msgKillProcessTimeout();
   const bool isFinishedSignalReceived();
+  void getErrorMessageFromOutput(QString &errorMess);
 
 public slots:
   void handleError(const QProcess::ProcessError error);
