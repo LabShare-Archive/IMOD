@@ -78,6 +78,7 @@ EXPORTS
 	ilistTruncate
 	incompBeta
 	b3dFread
+	AdocOpenImageMetadata
 	ADOCGETFLOATARRAY
 	sumsToAvgSD
 	wallTime
@@ -115,6 +116,7 @@ EXPORTS
 	rsSortIndexedFloats
 	XCorrMeanZero
 	cmapInvertedRamp
+	stat64
 	sumsToAvgSDdbl
 	PIPSETMANPAGEOUTPUT
 	RSMADMEDIANOUTLIERS
@@ -129,6 +131,7 @@ EXPORTS
 	InsideContour
 	f2cString
 	SAMPLEMEANSD
+	AdocGetNumberOfKeys
 	amatToRotmagstr
 	lsqr
 	AdocGetFloat
@@ -231,6 +234,7 @@ EXPORTS
 	ADOCGETTHREEINTEGERS
 	PIPGETNONOPTIONARG
 	CONVEXBOUND
+	AdocAppendSection
 	ERRFUNC
 	ADOCDELETEKEYVALUE
 	LSFITPRED
@@ -306,6 +310,7 @@ EXPORTS
 	PIPGETSTRING
 	PipGetFloatArray
 	slicePutVal
+	ADOCOPENIMAGEMETADATA
 	b3dError
 	SUMS_TO_AVGSD8
 	circleThrough3Pts
