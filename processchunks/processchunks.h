@@ -78,7 +78,7 @@ private:
       MachineHandler *machine, const int processIndex);
   void handleDropOut(bool &noChunks, QString &dropMess,
       MachineHandler *machine, const int cpuIndex, const int processIndex,
-      const QString &errorMess);
+      QString &errorMess);
   const bool checkChunk(int &runFlag, bool &noChunks, int &undone,
       bool &foundChunks, bool &chunkOk, MachineHandler *machine,
       const int processIndex, const int chunkErrTot);
