@@ -418,6 +418,7 @@ void Processchunks::timerEvent(QTimerEvent *timerEvent) {
       }
       //Set syncing flag to 1 to get it started
       mSyncing = 1;
+      mFirstUndoneIndex = mNextSyncIndex;
       mNextSyncIndex = mSizeProcessArray + 2 - 1;
       noChunks = false;
     }
@@ -1168,8 +1169,8 @@ const bool Processchunks::handleChunkDone(MachineHandler *machine,
 //Return false the chunk has errored too many times
 const bool Processchunks::handleLogFileError(QString &errorMess,
     MachineHandler *machine, const int cpuIndex, const int processIndex) {
-  int numErr, i;
-  mProcessArray[processIndex].getErrorMessage(errorMess);
+  int numErr;
+  mProcessArray[processIndex].getErrorMessageFromLog(errorMess);
   mProcessArray[processIndex].incrementNumChunkErr();
   numErr = mProcessArray[processIndex].getNumChunkErr();
   machine->setChunkErred(true);
@@ -1179,9 +1180,7 @@ const bool Processchunks::handleLogFileError(QString &errorMess,
       || numErr >= 2))) {
     mProcessArray[processIndex].printTooManyErrorsMessage(numErr);
     if (!errorMess.isEmpty()) {
-      for (i = 0; i < errorMess.size(); i++) {
-        *mOutStream << errorMess.at(i) << endl;
-      }
+      *mOutStream << errorMess << endl;
     }
     mAns = 'E';
     //Unassign the CPU
@@ -1230,7 +1229,7 @@ void Processchunks::handleComProcessNotDone(bool &dropout, QString &dropMess,
 //skip this machine on this round
 void Processchunks::handleDropOut(bool &noChunks, QString &dropMess,
     MachineHandler *machine, const int cpuIndex, const int processIndex,
-    const QString &errorMess) {
+    QString &errorMess) {
   *mOutStream << mProcessArray[processIndex].getComFileName() << " failed on "
       << machine->getName() << " - need to restart" << endl;
   if (!errorMess.isEmpty()) {
@@ -1244,6 +1243,12 @@ void Processchunks::handleDropOut(bool &noChunks, QString &dropMess,
   noChunks = false;
   machine->incrementFailureCount();
   if (machine->getFailureCount() >= mDropCrit) {
+    if (errorMess.isEmpty()) {
+      mProcessArray[processIndex].getErrorMessageFromOutput(errorMess);
+      if (!errorMess.isEmpty()) {
+        *mOutStream << errorMess << endl;
+      }
+    }
     if (dropMess.isEmpty()) {
       dropMess = "it failed (with ";
       if (!machine->isChunkErred()) {
@@ -1274,7 +1279,9 @@ const bool Processchunks::checkChunk(int &runFlag, bool &noChunks,
   //But if the next com is a sync, record number and break loop
   if (runFlag == ProcessHandler::sync && !mSyncing) {
     mNextSyncIndex = processIndex;
-    noChunks = true;
+    if (!foundChunks) {
+      noChunks = true;
+    }
     return false;
   }
   if (undoneIndex == -1 && runFlag != ProcessHandler::done) {
@@ -1287,7 +1294,8 @@ const bool Processchunks::checkChunk(int &runFlag, bool &noChunks,
   //Skip a chunk if it has errored, if this machine has given chunk
   //error, and not all machines have done so
   chunkOk = true;
-  if (mProcessArray[processIndex].getNumChunkErr() > 0
+  if (runFlag == ProcessHandler::sync
+      && mProcessArray[processIndex].getNumChunkErr() > 0
       && machine->isChunkErred() && chunkErrTot < mNumCpus) {
     chunkOk = false;
     if (mSyncing) {
@@ -1494,6 +1502,10 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.5  2010/08/26 22:56:34  sueh
+ bug# 1364 Got -r and -w working.  Fixed problems will killing when a
+ computer is dead.  Other fixes.
+
  Revision 1.4  2010/08/20 21:37:14  sueh
  bug# 1364
 
