@@ -116,7 +116,6 @@ EXPORTS
 	rsSortIndexedFloats
 	XCorrMeanZero
 	cmapInvertedRamp
-	stat64
 	sumsToAvgSDdbl
 	PIPSETMANPAGEOUTPUT
 	RSMADMEDIANOUTLIERS
