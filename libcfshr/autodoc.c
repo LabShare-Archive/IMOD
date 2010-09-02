@@ -16,6 +16,10 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#ifndef _WIN32
+#include <unistd.h>
+#endif
 #include "b3dutil.h"
 
 /* A section has a name and holds the key-value pairs */
@@ -1208,6 +1212,9 @@ static int addComments(AdocSection *sect, char **comments, int *numComments,
 
 /*
   $Log$
+  Revision 1.6  2010/08/31 22:05:53  mast
+  New function to open image metadata
+
   Revision 1.5  2010/08/28 05:17:52  mast
   Added function to append last section
 
