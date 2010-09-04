@@ -90,7 +90,6 @@ Processchunks::Processchunks(int &argc, char **argv) :
   mTimerId = 0;
   mKillProcessMachineIndex = -1;
   mAllKillProcessesHaveStarted = false;
-  mKillTimerId = 0;
   mKill = false;
   mKillCounter = 0;
   mLsProcess = new QProcess(this);
@@ -233,6 +232,11 @@ void Processchunks::startLoop() {
 }
 
 void Processchunks::startTimers() {
+  //Make sure there isn't already a timer going
+  if (mTimerId != 0) {
+    killTimer(mTimerId);
+    mTimerId = 0;
+  }
   //The timer event function should be called immediately and then put on a timer
   QTimer::singleShot(0, this, SLOT(timerEvent()));
   if (mQueue) {
@@ -311,7 +315,7 @@ void Processchunks::timerEvent(QTimerEvent *timerEvent) {
     }
     exitIfDropped(minFail, failTot, assignTot);
 
-    //Loop on CPUs, if they have an assignment check if it is done
+    //Loop ondummy CPUs, if they have an assignment check if it is done
     i = -1;
     bool loopDone = false;
     while (++i < mMachineList.size() && !loopDone) {
@@ -521,7 +525,15 @@ void Processchunks::killProcesses(QStringList *dropList) {
   }
   mKill = true;
   killTimer(mTimerId);
-  mTimerId = 0;
+  //Slow down the timer for killing
+  if (!mQueue) {
+    //Start a time out for waiting for kill processes to finish
+    mTimerId = startTimer(15 * 1000);
+  }
+  else {
+    //for queue set timer to 1 sec intervals
+    mTimerId = startTimer(1000);
+  }
   killProcessOnNextMachines();
 }
 
@@ -553,23 +565,7 @@ void Processchunks::killProcessOnNextMachines() {
   //Clean up when all machines are completed
   if (mKillProcessMachineIndex >= mMachineList.size()
       && !mAllKillProcessesHaveStarted) {
-    //This code should only be executed once.  If there is no machines left to
-    //work on, then all machines have sent their kill requests, so start
-    //waiting for the processes to finish.
     mAllKillProcessesHaveStarted = true;
-    if (!mProcessesWithUnfinishedKillRequest.isEmpty()) {
-      if (!mQueue) {
-        //Start a time out for waiting for kill processes to finish
-        mKillTimerId = startTimer(15 * 1000);
-      }
-      else {
-        //for queue set timer to 1 sec intervals
-        mKillTimerId = startTimer(1000);
-      }
-    }
-    //Call cleanup in immediately to match the functionality of the original
-    //processchunks
-    cleanupKillProcesses(false);
   }
 }
 
@@ -660,13 +656,12 @@ void Processchunks::cleanupKillProcesses(const bool timeout) {
   if (!timeout && !mProcessesWithUnfinishedKillRequest.isEmpty()) {
     return;
   }
-
   //clean up
 
-  //Turn off kill timer
-  if (mKillTimerId != 0) {
-    killTimer(mKillTimerId);
-    mKillTimerId = 0;
+  //Kill the timer to clean up.  It will go back on for D and P.
+  if (mTimerId != 0) {
+    killTimer(mTimerId);
+    mTimerId = 0;
   }
   //Not all kill requests completed so send a timeout message to the processes
   int i;
@@ -741,11 +736,7 @@ void Processchunks::setupSshOpts() {
     }
   }
   if (mVerbose) {
-    *mOutStream << "mSshOpts:" << endl;
-    for (i = 0; i < mSshOpts.size(); i++) {
-      *mOutStream << mSshOpts.at(i) << endl;
-    }
-    *mOutStream << endl;
+    *mOutStream << "mSshOpts:" << mSshOpts.join(" ") << endl;
   }
 }
 
@@ -1394,11 +1385,7 @@ const int Processchunks::runProcessAndOutputLines(QProcess &process,
     const QString &command, const QStringList &params, const int numLines) {
   int i;
   if (mVerbose) {
-    *mOutStream << "command:" << command << " ";
-    for (i = 0; i < params.size(); ++i) {
-      *mOutStream << params.at(i) << " ";
-    }
-    *mOutStream << endl;
+    *mOutStream << "command:" << command << " " << params.join(" ") << endl;
   }
   process.start(command, params);
   if (process.waitForFinished()) {
@@ -1502,6 +1489,12 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.6  2010/09/01 00:53:11  sueh
+ bug# 1364 Duplicate changes in processchunks (script) to fix the problem
+ that nochunks can be set even when chunks have been found.  Also fix
+ problems with syncing.  Get the last line of stdout and stderr when no log
+ is available.
+
  Revision 1.5  2010/08/26 22:56:34  sueh
  bug# 1364 Got -r and -w working.  Fixed problems will killing when a
  computer is dead.  Other fixes.
