@@ -428,12 +428,12 @@ void ProcessHandler::printWarnings() {
     return;
   }
   QByteArray line = mLogFile->readLine();
-  while (!mLogFile->atEnd()) {
+  do {
+    line = mLogFile->readLine();
     if (line.indexOf("WARNING:") != -1) {
       mProcesschunks->getOutStream() << line;
     }
-    line = mLogFile->readLine();
-  }
+  } while (!mLogFile->atEnd());
   mLogFile->close();
 }
 
@@ -515,11 +515,8 @@ void ProcessHandler::makeCshFile() {
   QStringList paramList;
   paramList.append(mLogFile->fileName());
   if (mProcesschunks->isVerbose()) {
-    mProcesschunks->getOutStream() << "running: " << command << " ";
-    for (i = 0; i < paramList.size(); ++i) {
-      mProcesschunks->getOutStream() << paramList.at(i) << " ";
-    }
-    mProcesschunks->getOutStream() << endl << "input file: " << mComFileName
+    mProcesschunks->getOutStream() << "running: " << command << " "
+        << paramList.join(" ") << endl << "input file: " << mComFileName
         << endl;
   }
   mVmstocsh->start(command, paramList);
@@ -575,11 +572,7 @@ void ProcessHandler::runProcess(MachineHandler *machine) {
   if (command != NULL) {
     if (mProcesschunks->isVerbose()) {
       mProcesschunks->getOutStream() << "running remote command:" << endl
-          << *command << " ";
-      for (i = 0; i < paramList->size(); ++i) {
-        mProcesschunks->getOutStream() << paramList->at(i) << " ";
-      }
-      mProcesschunks->getOutStream() << endl;
+          << *command << " " << paramList->join(" ") << endl;
     }
     //Run on a remote machine
     mProcess->start(*command, *paramList);
@@ -588,11 +581,8 @@ void ProcessHandler::runProcess(MachineHandler *machine) {
   }
   else {
     if (mProcesschunks->isVerbose()) {
-      mProcesschunks->getOutStream() << "running:" << endl << mCommand << " ";
-      for (i = 0; i < mParamList.size(); ++i) {
-        mProcesschunks->getOutStream() << mParamList.at(i) << " ";
-      }
-      mProcesschunks->getOutStream() << endl;
+      mProcesschunks->getOutStream() << "running:" << endl << mCommand << " "
+          << mParamList.join(" ") << endl;
     }
     //Run on local machine
     mProcess->start(mCommand, mParamList);
@@ -713,9 +703,8 @@ void ProcessHandler::continueKillProcess(const bool asynchronous) {
       QStringList paramList;
       if (mMachine->getName() == mProcesschunks->getHostRoot()
           || mMachine->getName() == "localHost") {
-        //imodkillgroup $pid
-        command = "imodkillgroup";
-        paramList << mPid;
+        //local job
+        killLocalProcessAndDescendents(mPid);
       }
       else {
         //Kill a remote job in background
@@ -726,6 +715,10 @@ void ProcessHandler::continueKillProcess(const bool asynchronous) {
             << mMachine->getName() << "bash" << "--login" << "-c" << param;
       }
       mKillProcess->start(command, paramList);
+      if (mProcesschunks->isVerbose()) {
+        mProcesschunks->getOutStream() << "running " << command << " "
+            << paramList.join(" ") << endl;
+      }
       runningKillProcess = true;
     }
   }
@@ -747,6 +740,7 @@ void ProcessHandler::continueKillProcess(const bool asynchronous) {
 //machine.  If the process was killed, calls cleanupKillProcess.
 void ProcessHandler::handleFinished(const int exitCode,
     const QProcess::ExitStatus exitStatus) {
+  mFinishedSignalReceived = true;
   if (mProcesschunks->isVerbose()) {
     mProcesschunks->getOutStream() << "finished" << endl;
     readAllStandardOutput();
@@ -768,7 +762,6 @@ void ProcessHandler::handleFinished(const int exitCode,
     }
   }
   mMachine = NULL;
-  mFinishedSignalReceived = true;
 }
 
 void ProcessHandler::cleanupKillProcess() {
@@ -836,5 +829,134 @@ void ProcessHandler::handleError(const QProcess::ProcessError processError) {
 
 void ProcessHandler::handleStarted() {
   mStartedSignalReceived = true;
+}
+
+//Stop and then kill the process with process ID pid and all of its descendents.
+//Waits for kill commands to complete.
+void ProcessHandler::killLocalProcessAndDescendents(QString &pid) {
+  //immediately stop the process
+  stopProcess(pid);
+  if (mProcesschunks->isVerbose()) {
+    mProcesschunks->getOutStream() << "stopping " << pid << endl;
+  }
+  int i;
+  QStringList pidList;
+  pidList.append(pid.trimmed());
+  int pidIndex = -1;
+  int ppidIndex = -1;
+  QProcess ps;
+  QString command("ps");
+  QStringList paramList;
+  paramList.append("axl");
+  //Run ps and stop descendent processes until there is nothing left to stop.
+  bool foundNewChildPid = false;
+  do {
+    //Run ps axl
+    ps.start(command, paramList);
+    ps.waitForFinished(5000);
+    if (!ps.exitCode()) {
+      QTextStream stream(ps.readAllStandardOutput().trimmed());
+      if (!stream.atEnd()) {
+        //Find the pid and ppid columns if they haven't already been found.
+        QString header;
+        if (pidIndex == -1 || ppidIndex == -1) {
+          header = stream.readLine().trimmed();
+          if (mProcesschunks->isVerbose()) {
+            mProcesschunks->getOutStream() << "ps column header:" << endl
+                << header << endl;
+          }
+          QStringList headerList = header.split(QRegExp("\\s+"),
+              QString::SkipEmptyParts);
+          for (i = 0; i < headerList.size(); i++) {
+            if (headerList.at(i) == "PID") {
+              pidIndex = i;
+            }
+            else if (headerList.at(i) == "PPID") {
+              ppidIndex = i;
+            }
+            if (pidIndex != -1 && ppidIndex != -1) {
+              break;
+            }
+          }
+        }
+        //collect child pids
+        if (pidIndex != -1 && ppidIndex != -1) {
+          foundNewChildPid = false;
+          do {
+            QString line = stream.readLine().trimmed();
+            QStringList columns = line.split(QRegExp("\\s+"),
+                QString::SkipEmptyParts);
+            if (columns.size() < pidIndex || columns.size() < ppidIndex) {
+              break;
+            }
+            //Look for child processes of parent processes that have already been
+            //found.  Stop them and add them to the process ID list.  If
+            //the process ids are in order, all the descendent pids should be
+            //found during the first pass.
+            if (pidList.contains(columns.at(ppidIndex))) {
+              QString childPid = columns.at(pidIndex);
+              if (!pidList.contains(childPid)) {
+                stopProcess(childPid);
+                foundNewChildPid = true;
+                pidList.append(childPid);
+                if (mProcesschunks->isVerbose()) {
+                  mProcesschunks->getOutStream() << "stopping:" << endl << line
+                      << endl;
+                }
+              }
+            }
+          } while (!stream.atEnd());
+        }
+        else {
+          mProcesschunks->getOutStream()
+              << "Warning: May not have been able to kill all processes descendent from "
+              << mCommand << " " << mCshFile
+              << " on local machine.  Ps PID and PPID columns where not found in "
+              << header << "(" << command << " " << paramList.join(" ") << ")."
+              << endl;
+          return;
+        }
+      }
+      else {
+        mProcesschunks->getOutStream()
+            << "Warning: May not have been able to kill all processes descendent from "
+            << mCommand << " " << mCshFile
+            << " on local machine.  Ps command return nothing" << "("
+            << command << " " << paramList.join(" ") << ")." << endl;
+      }
+    }
+    else {
+      mProcesschunks->getOutStream()
+          << "Warning: May not have been able to kill all processes descendent from "
+          << mCommand << " " << mCshFile
+          << " on local machine.  Ps command failed" << "(" << command << " "
+          << paramList.join(" ") << ")." << endl;
+      return;
+    }
+  } while (foundNewChildPid);
+  //Kill everything in the process ID list.
+  for (i = 0; i < pidList.size(); i++) {
+    killProcess(pidList.at(i));
+  }
+}
+
+//Stop a single process.  Waits for process to complete.
+void ProcessHandler::stopProcess(const QString &pid) {
+  QProcess ps;
+  QString command("kill");
+  QStringList paramList;
+  paramList.append("-19");
+  paramList.append(pid);
+  ps.execute(command, paramList);
+}
+
+//Kill a single process.  Waits for process to complete.
+void ProcessHandler::killProcess(const QString &pid) {
+  QProcess ps;
+  QString command("kill");
+  QStringList paramList;
+  paramList.append("-9");
+  paramList.append(pid);
+  ps.execute(command, paramList);
 }
 
