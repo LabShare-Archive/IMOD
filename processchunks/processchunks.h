@@ -118,7 +118,7 @@ private:
 
   //killing processes
   bool mKill, mAllKillProcessesHaveStarted;
-  int mKillProcessMachineIndex, mKillTimerId, mKillCounter;
+  int mKillProcessMachineIndex, mKillCounter;
   QList<int> mProcessesWithUnfinishedKillRequest;
   QStringList mDropList;
 
