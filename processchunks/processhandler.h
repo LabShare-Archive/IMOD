@@ -81,8 +81,11 @@ private:
   const bool getPid(QTextStream *stream);
   const bool getSshError(QString &dropMess, QTextStream *stream);
   void resetSignalValues();
-  void readAllStandardError() ;
+  void readAllStandardError();
   void readAllStandardOutput();
+  void killLocalProcessAndDescendents(QString &pid);
+  void stopProcess(const QString &pid);
+  void killProcess(const QString &pid);
 
   QString mComFileName, mRoot;
   QFile *mLogFile, *mCshFile, *mJobFile, *mQidFile;
