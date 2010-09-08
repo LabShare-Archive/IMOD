@@ -25,6 +25,9 @@ import etomo.type.ToolType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2010/06/30 21:02:38  sueh
+ * <p> bug# 1387 Debuging btnRecon.
+ * <p>
  * <p> Revision 1.8  2010/03/27 05:05:48  sueh
  * <p> bug# 1316 Add volume flatten tool button to front page.
  * <p>
@@ -130,6 +133,10 @@ public final class FrontPageDialog {
 
   public boolean usingParallelProcessing() {
     return false;
+  }
+  
+  public void reconActionForAutomation() {
+    EtomoDirector.INSTANCE.openTomogramAndDoAutomation(true, AxisID.ONLY);
   }
 
   private void action(ActionEvent actionEvent) {
