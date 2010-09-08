@@ -165,6 +165,23 @@ public class EtomoDirector {
     }
   }
 
+  /**
+   * Do automation in a non-default manager.
+   * @param managerKey
+   */
+  private void doAutomation(final ManagerKey managerKey) {
+    if (managerList == null) {
+      return;
+    }
+    BaseManager manager = null;
+    if (managerKey != null) {
+      manager = (BaseManager) managerList.get(managerKey.getKey());
+    }
+    if (manager != null) {
+      manager.doAutomation();
+    }
+  }
+
   private void initialize() {
     // Get the HOME directory environment variable to find the program
     // configuration file
@@ -482,6 +499,13 @@ public class EtomoDirector {
         .getKey(), newWindow);
   }
 
+  /**
+   * Creates ApplicationManager and adds it to ManagerList.
+   * @param etomoDataFileName
+   * @param makeCurrent
+   * @param axisID
+   * @return
+   */
   private ManagerKey openTomogram(String etomoDataFileName,
       boolean makeCurrent, AxisID axisID) {
     ApplicationManager manager;
@@ -629,9 +653,14 @@ public class EtomoDirector {
     return managerKey;
   }
 
-  public ManagerKey openTomogram(boolean makeCurrent, AxisID axisID) {
+  public void openTomogram(boolean makeCurrent, AxisID axisID) {
     closeDefaultWindow(axisID);
-    return openTomogram(MetaData.getNewFileTitle(), makeCurrent, axisID);
+    openTomogram(MetaData.getNewFileTitle(), makeCurrent, axisID);
+  }
+
+  public void openTomogramAndDoAutomation(boolean makeCurrent, AxisID axisID) {
+    closeDefaultWindow(axisID);
+    doAutomation(openTomogram(MetaData.getNewFileTitle(), makeCurrent, axisID));
   }
 
   /**
@@ -657,27 +686,30 @@ public class EtomoDirector {
     }
   }
 
-  public ManagerKey openManager(File dataFile, boolean makeCurrent,
-      AxisID axisID) {
+  public void openManager(File dataFile, boolean makeCurrent, AxisID axisID) {
     if (dataFile == null) {
       throw new IllegalStateException("null dataFile");
     }
     closeDefaultWindow(axisID);
     EtomoFileFilter etomoFileFilter = new EtomoFileFilter();
     if (etomoFileFilter.accept(dataFile)) {
-      return openTomogram(dataFile, makeCurrent, axisID);
+      openTomogram(dataFile, makeCurrent, axisID);
+      return;
     }
     JoinFileFilter joinFileFilter = new JoinFileFilter();
     if (joinFileFilter.accept(dataFile)) {
-      return openJoin(dataFile, makeCurrent, axisID);
+      openJoin(dataFile, makeCurrent, axisID);
+      return;
     }
     ParallelFileFilter parallelFileFilter = new ParallelFileFilter();
     if (parallelFileFilter.accept(dataFile)) {
-      return openParallel(dataFile, makeCurrent, axisID);
+      openParallel(dataFile, makeCurrent, axisID);
+      return;
     }
     PeetFileFilter peetFileFilter = new PeetFileFilter();
     if (peetFileFilter.accept(dataFile)) {
-      return openPeet(dataFile, makeCurrent, axisID);
+      openPeet(dataFile, makeCurrent, axisID);
+      return;
     }
     UIHarness.INSTANCE.openMessageDialog(getCurrentManager(),
         "Unknown file type " + dataFile.getName() + ".", "Unknown File Type",
@@ -685,12 +717,14 @@ public class EtomoDirector {
     throw new IllegalStateException("unknown dataFile");
   }
 
-  public ManagerKey openTomogram(File etomoDataFile, boolean makeCurrent,
+  public void openTomogram(File etomoDataFile, boolean makeCurrent,
       AxisID axisID) {
     if (etomoDataFile == null) {
-      return openTomogram(makeCurrent, axisID);
+      openTomogram(makeCurrent, axisID);
     }
-    return openTomogram(etomoDataFile.getAbsolutePath(), makeCurrent, axisID);
+    else {
+      openTomogram(etomoDataFile.getAbsolutePath(), makeCurrent, axisID);
+    }
   }
 
   public boolean closeCurrentManager(AxisID axisID, boolean exiting) {
@@ -1167,6 +1201,10 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.99  2010/07/08 01:16:55  sueh
+ * <p> bug# 1387 Getting rid of the !%!@#% includes for resource printing
+ * <p> because it didn't compile on Windows.
+ * <p>
  * <p> Revision 1.98  2010/07/08 01:00:27  sueh
  * <p> bug# 1387 Removed resource print because it didn't compile.
  * <p>
