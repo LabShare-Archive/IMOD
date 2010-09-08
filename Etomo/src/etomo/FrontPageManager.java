@@ -39,6 +39,10 @@ import etomo.ui.ProcessDisplay;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2010/04/28 15:33:39  sueh
+ * <p> bug# 1344 Added getFileSubdirectoryName and getMetaData.  Using
+ * <p> ProcessSeries.Process to hold process information.
+ * <p>
  * <p> Revision 1.2  2010/02/17 04:40:39  sueh
  * <p> bug# 1301 Moved comScriptMgr and logPanel from BaseManager to child
  * <p> class.
@@ -66,6 +70,14 @@ public final class FrontPageManager extends BaseManager {
       openFrontPageDialog();
       uiHarness.toFront(this);
     }
+  }
+  
+  public void doAutomation() {
+    if (EtomoDirector.INSTANCE.getArguments().isReconAutomation()) {
+      frontPageDialog.reconActionForAutomation();
+    }
+    
+    super.doAutomation();
   }
 
   public ProcessResultDisplayFactoryInterface getProcessResultDisplayFactoryInterface(
