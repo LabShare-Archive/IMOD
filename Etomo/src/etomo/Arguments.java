@@ -23,6 +23,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2010/07/07 21:21:34  sueh
+ * <p> bug# 1387 Added debugLevel.
+ * <p>
  * <p> Revision 1.10  2010/06/04 20:00:55  sueh
  * <p> bug# 1380 Added --ignoreloc.
  * <p>
@@ -231,10 +234,15 @@ public final class Arguments {
   private boolean listen = false;
   private boolean autoClose3dmod = false;
   private boolean ignoreLoc = false;
+  private boolean reconAutomation = false;
 
   private final EtomoNumber fiducial = new EtomoNumber(EtomoNumber.Type.DOUBLE);
 
   Arguments() {
+  }
+
+  public boolean isReconAutomation() {
+    return reconAutomation;
   }
 
   public boolean isHeadless() {
@@ -399,12 +407,14 @@ public final class Arguments {
         newstuff = true;
       }
       else if (args[i].equals(DATASET_TAG)) {
+        reconAutomation=true;
         if (i < args.length - 1) {
           dataset = args[i + 1];
           i++;
         }
       }
       else if (args[i].equals(DIR_TAG)) {
+        reconAutomation=true;
         if (i < args.length - 1) {
           //the quotes will be stripped by the program
           dir = args[i + 1];
@@ -412,6 +422,7 @@ public final class Arguments {
         }
       }
       else if (args[i].equals(AXIS_TAG)) {
+        reconAutomation=true;
         if (i < args.length - 1) {
           axis = AxisType.fromString(args[i + 1]);
           if (axis != null) {
@@ -420,6 +431,7 @@ public final class Arguments {
         }
       }
       else if (args[i].equals(FRAME_TAG)) {
+        reconAutomation=true;
         if (i < args.length - 1) {
           frame = ViewType.fromString(args[i + 1]);
           if (frame != null) {
@@ -428,6 +440,7 @@ public final class Arguments {
         }
       }
       else if (args[i].equals(FIDUCIAL_TAG)) {
+        reconAutomation=true;
         if (i < args.length - 1) {
           fiducial.set(args[i + 1]);
           if (!fiducial.isNull()) {
@@ -436,15 +449,18 @@ public final class Arguments {
         }
       }
       else if (args[i].equals(SCAN_TAG)) {
+        reconAutomation=true;
         scan = true;
       }
       else if (args[i].equals(CREATE_TAG)) {
+        reconAutomation=true;
         create = true;
       }
       else if (args[i].equals(EXIT_TAG)) {
         exit = true;
       }
       else if (args[i].equals(FG_TAG)) {
+        reconAutomation=true;
         if (i > 0) {
           System.err
               .println("WARNING:  option --fg had no effect; must be the first option to have an effect.");
