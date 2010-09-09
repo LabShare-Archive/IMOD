@@ -40,6 +40,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.31  2010/04/28 16:21:14  sueh
+ * <p> bug# 1344 Removing FlipyzParam because it is no longer in use.
+ * <p>
  * <p> Revision 1.30  2009/12/08 02:41:26  sueh
  * <p> bug# 1286 Implemented Loggable in parameter classes.
  * <p>
@@ -325,8 +328,7 @@ public final class JoinProcessManager extends BaseProcessManager {
       state.setSampleProduced(true);
       manager.setMode();
       if (processDetails.getBooleanValue(StartJoinParam.Fields.ROTATE)) {
-        state.setTotalRows(processDetails
-            .getIntValue(StartJoinParam.Fields.TOTAL_ROWS));
+        state.setTotalRows(processDetails.getIntValue(StartJoinParam.Fields.TOTAL_ROWS));
         state.setRotationAnglesList(processDetails
             .getHashtable(StartJoinParam.Fields.ROTATION_ANGLES_LIST));
       }
@@ -344,7 +346,7 @@ public final class JoinProcessManager extends BaseProcessManager {
     }
     ProcessDetails processDetails = process.getProcessDetails();
     Command command = process.getCommand();
-    if (commandName.equals(ClipParam.PROCESS_NAME)) {
+    if (commandName.equals(ClipParam.PROCESS_NAME.toString())) {
       if (command == null) {
         return;
       }
