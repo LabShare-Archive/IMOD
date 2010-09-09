@@ -73,6 +73,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.86  2010/04/28 15:36:33  sueh
+ * <p> bug# 1344 Added getFileSubdirectoryName.  Passing params to process
+ * <p> manager functions, standardizing "3dmod is open" messages to always
+ * <p> use closeImod.  Using ProcessSeries.Process to hold process information.
+ * <p>
  * <p> Revision 1.85  2010/02/26 20:37:31  sueh
  * <p> Changing the complex popup titles are making it hard to complete the
  * <p> uitests.
@@ -1093,8 +1098,8 @@ public final class JoinManager extends BaseManager {
                 + xfFileName + ".",
             "Copy " + newXfFile.getName() + " to " + xfFileName,
             " and then rerun " + commandDescription + "." };
-        uiHarness.openMessageDialog(this, message, "Cannot Run Command"
-            , AxisID.ONLY);
+        uiHarness.openMessageDialog(this, message, "Cannot Run Command",
+            AxisID.ONLY);
         return false;
       }
     }
@@ -1466,7 +1471,7 @@ public final class JoinManager extends BaseManager {
   public ConstJoinMetaData getConstMetaData() {
     return (ConstJoinMetaData) metaData;
   }
-  
+
   public String getFileSubdirectoryName() {
     return null;
   }
@@ -1474,11 +1479,11 @@ public final class JoinManager extends BaseManager {
   public JoinMetaData getJoinMetaData() {
     return metaData;
   }
-  
+
   public LogInterface getLogInterface() {
     return logPanel;
   }
-  
+
   public LogPanel getLogPanel() {
     return logPanel;
   }
@@ -1486,10 +1491,10 @@ public final class JoinManager extends BaseManager {
   /**
    * Start the next process specified by the nextProcess string
    */
-  void startNextProcess(final AxisID axisID, final ProcessSeries.Process process,
+  void startNextProcess(final AxisID axisID,
+      final ProcessSeries.Process process,
       final ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries, DialogType dialogType,
-      ProcessDisplay display) {
+      ProcessSeries processSeries, DialogType dialogType, ProcessDisplay display) {
     if (debug) {
       System.err.println("startNextProcess:axisID=" + axisID + ",nextProcess="
           + process);
