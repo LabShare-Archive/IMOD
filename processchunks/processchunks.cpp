@@ -49,7 +49,9 @@ static char
         ":c:FN:Check file \"name\" for commands P, Q, and D",
         ":q:I:Run on cluster queue with given maximum # of jobs at once",
         ":Q:CH:Machine name to use for the queue (default queue)",
-        ":P:B:Output process ID", ":v:B:Print extra information",
+        ":P:B:Output process ID",
+        ":v:B:Print extra information.",
+        ":V:CH:Syntax:  class[,function[,function...]].  Optional.  Which class and functions(s) should print extra information.  Can be limited to a class and function(s).  Function(s) are optional.  Case insensitive.  No effect if '-v' is not used.",
         ":help:B:Print usage message" };
 static char *queueNameDefault = "queue";
 Processchunks *processchunksInstance;
@@ -94,6 +96,7 @@ Processchunks::Processchunks(int &argc, char **argv) :
   mKillCounter = 0;
   mLsProcess = new QProcess(this);
   mInterrupt = false;
+  mDecoratedClassName = typeid(*this).name();
 }
 
 Processchunks::~Processchunks() {
@@ -135,6 +138,22 @@ void Processchunks::loadParams(int &argc, char **argv) {
     mCheckFile = new QFile(checkFile);
   }
   PipGetBoolean("v", &mVerbose);
+  if (mVerbose) {
+    char *verboseClassFunctions = NULL;
+    PipGetString("V", &verboseClassFunctions);
+    if (verboseClassFunctions != NULL) {
+      QString param(verboseClassFunctions);
+      QStringList paramList = param.trimmed().split(",",
+          QString::SkipEmptyParts);
+      if (paramList.size() >= 1) {
+        mVerboseClass = paramList.at(0);
+        paramList.removeAt(0);
+      }
+      if (paramList.size() >= 1) {
+        mVerboseFunctionList = paramList;
+      }
+    }
+  }
   if (!PipGetInteger("q", &mQueue)) {
     mSkipProbe = true;
     mJustGo = 1;
@@ -687,7 +706,6 @@ void Processchunks::cleanupKillProcesses(const bool timeout) {
     //Reset kill values
     mKillCounter = 0;
     mDropList.clear();
-    mDropCrit = -1;
     mKill = false;
     mAllKillProcessesHaveStarted = false;
     mKillProcessMachineIndex = -1;
@@ -720,7 +738,6 @@ const bool Processchunks::askGo() {
 
 //Change mSshOpts if version is recent enough
 void Processchunks::setupSshOpts() {
-  int i;
   QProcess ssh(this);
   const QString command("ssh");
   const QStringList params("-V");
@@ -735,7 +752,7 @@ void Processchunks::setupSshOpts() {
       mSshOpts.prepend("-o ConnectTimeout=5 ");
     }
   }
-  if (mVerbose) {
+  if (isVerbose(mDecoratedClassName, __func__)) {
     *mOutStream << "mSshOpts:" << mSshOpts.join(" ") << endl;
   }
 }
@@ -807,7 +824,7 @@ void Processchunks::setupMachineList() {
       machine->setValues("localhost", localByNum);
     }
   }
-  if (mVerbose) {
+  if (isVerbose(mDecoratedClassName, __func__)) {
     *mOutStream << "mMachineList:" << endl;
   }
   //Setup machines.  Do this only once after the number of CPUs is finalized.
@@ -816,11 +833,11 @@ void Processchunks::setupMachineList() {
     machine = &(mMachineList)[i];
     machine->setup();
     mNumCpus += machine->getNumCpus();
-    if (mVerbose) {
+    if (isVerbose(mDecoratedClassName, __func__)) {
       *mOutStream << i << ":" << machine->getName() << endl;
     }
   }
-  if (mVerbose) {
+  if (isVerbose(mDecoratedClassName, __func__)) {
     *mOutStream << endl;
   }
 }
@@ -839,7 +856,7 @@ void Processchunks::setupHostRoot() {
     else {
       mHostRoot = temp;
     }
-    if (mVerbose) {
+    if (isVerbose(mDecoratedClassName, __func__)) {
       *mOutStream << "mHostRoot:" << mHostRoot << endl;
     }
   }
@@ -861,7 +878,7 @@ void Processchunks::setupEnvironment() {
 #endif
   pathReplace.append("\\1");
   mEnv.replaceInStrings(QRegExp("^PATH=(.*)", Qt::CaseInsensitive), pathReplace);
-  if (mVerbose) {
+  if (isVerbose(mDecoratedClassName, __func__)) {
     for (i = 0; i < mEnv.size(); ++i) {
       if (mEnv.at(i).contains(QRegExp("^PATH=(.*)", Qt::CaseInsensitive))) {
         *mOutStream << mEnv.at(i) << endl;
@@ -874,7 +891,7 @@ void Processchunks::setupEnvironment() {
 void Processchunks::setupProcessArray() {
   int i;
   QStringList comFileArray;
-  if (mVerbose) {
+  if (isVerbose(mDecoratedClassName, __func__)) {
     *mOutStream << "current path:" << QDir::currentPath() << endl;
   }
   //Make the list for a single file
@@ -939,7 +956,7 @@ void Processchunks::setupProcessArray() {
       exitError("There are no command files matching %s-nnn.com", mRootName);
     }
   }
-  if (mVerbose) {
+  if (isVerbose(mDecoratedClassName, __func__)) {
     *mOutStream << "comFileArray:" << endl;
     for (i = 0; i < comFileArray.size(); i++) {
       *mOutStream << i << ":" << comFileArray.at(i) << endl;
@@ -992,7 +1009,7 @@ void Processchunks::probeMachines() {
     //respond.
     bool status = -1;
     i = 0;
-    if (mVerbose) {
+    if (isVerbose(mDecoratedClassName, __func__)) {
       *mOutStream << "mMachineList.size():" << mMachineList.size() << endl;
     }
     while (i < mMachineList.size()) {
@@ -1010,7 +1027,7 @@ void Processchunks::probeMachines() {
       if (status != 0) {
         *mOutStream << "Dropping " << machName
             << " from list because it does not respond" << endl << endl;
-        if (mVerbose) {
+        if (isVerbose(mDecoratedClassName, __func__)) {
           *mOutStream << "status:" << status << endl;
         }
         //Drops failed machine from the machine list
@@ -1020,7 +1037,7 @@ void Processchunks::probeMachines() {
         i++;
       }
     }
-    if (mVerbose) {
+    if (isVerbose(mDecoratedClassName, __func__)) {
       *mOutStream << "end probe machines" << endl;
     }
   }
@@ -1073,11 +1090,18 @@ void Processchunks::exitIfDropped(const int minFail, const int failTot,
   if (minFail >= mDropCrit) {
     *mOutStream << "ERROR: ALL MACHINES HAVE BEEN DROPPED DUE TO FAILURES"
         << endl;
+    if (isVerbose(mDecoratedClassName, __func__)) {
+      *mOutStream << "minFail:" << minFail << ",mDropCrit:" << mDropCrit
+          << endl;
+    }
     cleanupAndExit(1);
   }
   if (failTot == mNumCpus && assignTot == 0 && mNumDone == 0) {
     *mOutStream << "ERROR: NO CHUNKS HAVE WORKED AND EVERY MACHINE HAS FAILED"
         << endl;
+    if (isVerbose(mDecoratedClassName, __func__)) {
+      *mOutStream << "failTot:" << failTot << ",mNumCpus:" << mNumCpus << endl;
+    }
     cleanupAndExit(1);
   }
   if (mPausing && assignTot == 0) {
@@ -1319,7 +1343,7 @@ void Processchunks::runProcess(MachineHandler *machine, const int cpuIndex,
 //mVersion.
 const int Processchunks::extractVersion(const QString &versionString) {
   int iversion = -1;
-  if (mVerbose) {
+  if (isVerbose(mDecoratedClassName, __func__)) {
     *mOutStream << "ssh sshOutput:" << versionString << endl;
   }
   const QRegExp regExp("[0-9]+\\.[0-9]+");
@@ -1345,7 +1369,7 @@ const int Processchunks::extractVersion(const QString &versionString) {
       }
     }
   }
-  if (mVerbose) {
+  if (isVerbose(mDecoratedClassName, __func__)) {
     *mOutStream << "ssh version:" << iversion << endl;
   }
   return iversion;
@@ -1360,7 +1384,7 @@ void Processchunks::buildFilters(const char *reg, const char *sync,
   QString filter2(mRootName);
   filter2.append(sync);
   filters.append(filter2);
-  if (mVerbose) {
+  if (isVerbose(mDecoratedClassName, __func__)) {
     *mOutStream << "filters:" << endl;
     for (i = 0; i < filters.size(); i++) {
       *mOutStream << i << ":" << filters.at(i) << endl;
@@ -1384,13 +1408,13 @@ void Processchunks::cleanupList(const char *remove, QStringList &list) {
 const int Processchunks::runProcessAndOutputLines(QProcess &process,
     const QString &command, const QStringList &params, const int numLines) {
   int i;
-  if (mVerbose) {
+  if (isVerbose(mDecoratedClassName, __func__)) {
     *mOutStream << "command:" << command << " " << params.join(" ") << endl;
   }
   process.start(command, params);
   if (process.waitForFinished()) {
     const QByteArray output = process.readAllStandardOutput();
-    if (mVerbose) {
+    if (isVerbose(mDecoratedClassName, __func__)) {
       const QByteArray errArray = process.readAllStandardError();
       if (!errArray.isEmpty()) {
         *mOutStream << "stderr:" << errArray << endl;
@@ -1443,8 +1467,24 @@ const QStringList &Processchunks::getQueueParamList() {
   return mQueueParamList;
 }
 
-const bool Processchunks::isVerbose() {
-  return mVerbose;
+const bool Processchunks::isVerbose(const QString &verboseClass,
+    const char *verboseFunction) {
+  if (!mVerbose) {
+    return false;
+  }
+  if (mVerboseClass.isEmpty()) {
+    return true;
+  }
+  if (!verboseClass.endsWith(mVerboseClass, Qt::CaseInsensitive)) {
+    return false;
+  }
+  if (mVerboseFunctionList.isEmpty()) {
+    return true;
+  }
+  if (!mVerboseFunctionList.contains(verboseFunction, Qt::CaseInsensitive)) {
+    return false;
+  }
+  return true;
 }
 
 const char Processchunks::getAns() {
@@ -1489,6 +1529,10 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.7  2010/09/04 00:08:44  sueh
+ bug# 1364 Making sure that the timer doesn't go off.  Using join() to print
+ QStringList.
+
  Revision 1.6  2010/09/01 00:53:11  sueh
  bug# 1364 Duplicate changes in processchunks (script) to fix the problem
  that nochunks can be set even when chunks have been found.  Also fix
