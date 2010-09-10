@@ -31,6 +31,7 @@ void MachineHandler::init() {
   mKillCpuIndex = -1;
   mDrop = false;
   mKill = false;
+  mDecoratedClassName=typeid(*this).name();
 }
 
 MachineHandler::~MachineHandler() {
@@ -132,6 +133,9 @@ const bool MachineHandler::killProcesses() {
           << endl;
     }
   }
+  if (!mKill) {
+    return true;
+  }
   return killNextProcesses();
 }
 
@@ -144,7 +148,7 @@ const bool MachineHandler::killProcesses() {
 const bool MachineHandler::killNextProcesses() {
   if (!mKill) {
     mProcesschunks->getOutStream()
-        << "Warning: MachineHandler::killNextProcess called when mKill is false"
+        << "Warning: MachineHandler::killNextProcesses called when mKill is false"
         << endl;
     return false;
   }

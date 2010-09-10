@@ -48,7 +48,7 @@ private:
   void cleanupKillProcess();
 
   int *mAssignedProcIndexList;
-  QString mName;
+  QString mName,mDecoratedClassName;
   int mNumCpus, mFailureCount;
   bool mKill,mChunkErred;
   Processchunks *mProcesschunks;

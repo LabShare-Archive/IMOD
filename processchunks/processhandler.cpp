@@ -40,6 +40,7 @@ ProcessHandler::ProcessHandler() {
   mKillFinishedSignalReceived = false;
   mKill = false;
   resetSignalValues();
+  mDecoratedClassName=typeid(*this).name();
 }
 
 ProcessHandler::~ProcessHandler() {
@@ -238,7 +239,7 @@ void ProcessHandler::readAllStandardError() {
   QByteArray err = mProcess->readAllStandardError();
   if (!err.isEmpty()) {
     mStderr.append(err);
-    if (mProcesschunks->isVerbose()) {
+    if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
       mProcesschunks->getOutStream() << err.data() << endl;
     }
   }
@@ -248,7 +249,7 @@ void ProcessHandler::readAllStandardOutput() {
   QByteArray out = mProcess->readAllStandardOutput();
   if (!out.isEmpty()) {
     mStdout.append(out);
-    if (mProcesschunks->isVerbose()) {
+    if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
       mProcesschunks->getOutStream() << out.data() << endl;
     }
   }
@@ -333,7 +334,7 @@ const bool ProcessHandler::isChunkDone() {
   }
   QByteArray lastPartOfFile = mLogFile->readAll();
   mLogFile->close();
-  if (mProcesschunks->isVerbose()) {
+  if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
     mProcesschunks->getOutStream() << "lastPartOfFile.trimmed():["
         << lastPartOfFile.trimmed() << "]" << endl;
   }
@@ -514,7 +515,7 @@ void ProcessHandler::makeCshFile() {
   QString command("vmstocsh");
   QStringList paramList;
   paramList.append(mLogFile->fileName());
-  if (mProcesschunks->isVerbose()) {
+  if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
     mProcesschunks->getOutStream() << "running: " << command << " "
         << paramList.join(" ") << endl << "input file: " << mComFileName
         << endl;
@@ -570,7 +571,7 @@ void ProcessHandler::runProcess(MachineHandler *machine) {
   //Run command
   resetSignalValues();
   if (command != NULL) {
-    if (mProcesschunks->isVerbose()) {
+    if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
       mProcesschunks->getOutStream() << "running remote command:" << endl
           << *command << " " << paramList->join(" ") << endl;
     }
@@ -580,7 +581,7 @@ void ProcessHandler::runProcess(MachineHandler *machine) {
     delete paramList;
   }
   else {
-    if (mProcesschunks->isVerbose()) {
+    if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
       mProcesschunks->getOutStream() << "running:" << endl << mCommand << " "
           << mParamList.join(" ") << endl;
     }
@@ -715,7 +716,7 @@ void ProcessHandler::continueKillProcess(const bool asynchronous) {
             << mMachine->getName() << "bash" << "--login" << "-c" << param;
       }
       mKillProcess->start(command, paramList);
-      if (mProcesschunks->isVerbose()) {
+      if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
         mProcesschunks->getOutStream() << "running " << command << " "
             << paramList.join(" ") << endl;
       }
@@ -741,7 +742,7 @@ void ProcessHandler::continueKillProcess(const bool asynchronous) {
 void ProcessHandler::handleFinished(const int exitCode,
     const QProcess::ExitStatus exitStatus) {
   mFinishedSignalReceived = true;
-  if (mProcesschunks->isVerbose()) {
+  if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
     mProcesschunks->getOutStream() << "finished" << endl;
     readAllStandardOutput();
     readAllStandardError();
@@ -836,7 +837,7 @@ void ProcessHandler::handleStarted() {
 void ProcessHandler::killLocalProcessAndDescendents(QString &pid) {
   //immediately stop the process
   stopProcess(pid);
-  if (mProcesschunks->isVerbose()) {
+  if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
     mProcesschunks->getOutStream() << "stopping " << pid << endl;
   }
   int i;
@@ -861,7 +862,7 @@ void ProcessHandler::killLocalProcessAndDescendents(QString &pid) {
         QString header;
         if (pidIndex == -1 || ppidIndex == -1) {
           header = stream.readLine().trimmed();
-          if (mProcesschunks->isVerbose()) {
+          if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
             mProcesschunks->getOutStream() << "ps column header:" << endl
                 << header << endl;
           }
@@ -899,7 +900,7 @@ void ProcessHandler::killLocalProcessAndDescendents(QString &pid) {
                 stopProcess(childPid);
                 foundNewChildPid = true;
                 pidList.append(childPid);
-                if (mProcesschunks->isVerbose()) {
+                if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
                   mProcesschunks->getOutStream() << "stopping:" << endl << line
                       << endl;
                 }

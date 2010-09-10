@@ -96,7 +96,7 @@ private:
   int mNumChunkErr;
   FlagType mFlag;
   QByteArray mStderr, mStdout;
-  QString mPid, mEscapedRemoteDirPath, mCommand;//queue or local command
+  QString mPid, mEscapedRemoteDirPath, mDecoratedClassName,mCommand;//queue or local command
   QStringList mParamList;//list of queue or local params
   Processchunks *mProcesschunks;
   QProcess *mProcess, *mVmstocsh;
