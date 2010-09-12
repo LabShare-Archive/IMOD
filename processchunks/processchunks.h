@@ -8,6 +8,10 @@
 #include <QDir>
 #include <processhandler.h>
 
+#ifndef __func__
+#define __func__ __FUNCTION__
+#endif
+
 class ProcessHandler;
 class QTextStream;
 class QProcess;
