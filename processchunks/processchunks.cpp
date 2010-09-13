@@ -987,14 +987,14 @@ void Processchunks::setupProcessArray() {
 //Probe machines by running the "w" command.  Drop machines that don't respond.
 void Processchunks::probeMachines() {
   int i;
+  //Remove the old checkfile
+  if (mCheckFile != NULL) {
+    if (mCheckFile->exists()) {
+      mCheckFile->remove();
+    }
+  }
   //probe machines and get all the verifications unless etomo is running it
   if (!mSkipProbe || !mJustGo) {
-    //Remove the old checkfile
-    if (mCheckFile != NULL) {
-      if (mCheckFile->exists()) {
-        mCheckFile->remove();
-      }
-    }
     *mOutStream << "Probing machine connections and loads..." << endl;
     QProcess w(this);
     const QString localCommand("w");
@@ -1529,6 +1529,9 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.8  2010/09/10 06:11:10  sueh
+ bug# 1364 Improved verbose functionality.  Fixed drop message bug - dropcrit was being reset.
+
  Revision 1.7  2010/09/04 00:08:44  sueh
  bug# 1364 Making sure that the timer doesn't go off.  Using join() to print
  QStringList.
