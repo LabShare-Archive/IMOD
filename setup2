@@ -422,6 +422,7 @@ switch($target_computer)
                 breaksw
 
 	case i386__Darwin__*__*:
+        case x86_64__Darwin__*__*:
                 echo $target_computer is Intel running OSX
                 set machine = macosx
                 goto intelosx
@@ -1012,6 +1013,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.61.2.4  2010/08/10 18:58:28  mast
+#  Add separate archive flags for fortran
+#
 #  Revision 1.61.2.3  2010/07/27 03:19:55  mast
 #  Provide separate openmp flags for fortran
 #
