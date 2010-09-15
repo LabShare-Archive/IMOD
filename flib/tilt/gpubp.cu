@@ -112,7 +112,8 @@ static void allocerr(char *mess, int *nplanes, int *firstNpl,
 
 // Offsets to positions in constant array
 // For some reason 6 separate arrays did not work for xtilt case
-#define DELTA_OFS  720
+// 7 arrays in 65536 bytes would allow 2340
+#define DELTA_OFS  2200
 #define MAX_TABLE (6 * DELTA_OFS)
 __constant__ float tables[MAX_TABLE];
 __constant__ int rpNumz[DELTA_OFS];
@@ -189,7 +190,9 @@ int gpuavailable(int *nGPU, float *memory, int *debug)
   int device_count = 0;
   float gflops;
   struct cudaDeviceProp device_properties, best_properties;
-  float max_gflops = 0;
+
+  // The Mac mini comes through with a clock rate of 0 so allow a 0 product
+  float max_gflops = -1.;
   *memory = 0;
   cudaGetDeviceCount( &device_count );
   if (*debug)
@@ -256,6 +259,12 @@ int gpuallocarrays(int *width, int *nyout, int *nxprj2, int *nyprj,
     return 1;
   }
   deviceSelected = 1;
+
+  if (*nviews > DELTA_OFS) {
+    allocerr("Too many views for the constant memory available on the GPU\n",
+             nplanes, firstNpl, lastNpl, 0);
+    return 1;
+  }
 
   // Allocate memory for slice or reprojected lines on device
   size_t sizetmp = *width * sizeof(float);
@@ -1829,6 +1838,9 @@ static void allocerr(char *mess, int *nplanes, int *firstNpl,
 /*
 
 $Log$
+Revision 3.5  2010/07/26 16:31:04  mast
+Changes for ncvv 3.1
+
 Revision 3.4  2010/02/26 16:56:37  mast
 Pass debug flag to gpuAvailable and return memory as a float
 
