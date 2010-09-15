@@ -1235,88 +1235,94 @@ c
             jrt=xrt
             if(jrt.eq.xrt)jrt=jrt-1
             jrt=min(jrt,maskedge(2,i))
-c               
-c             set up starting index and projection position
 c             
-            do ind = index + maskedge(1,i) - 1, index + jlft - 2
-              array(ind) = array(ind) + edgeFill
-            enddo                
-            index=index+(jlft-1)
-            x=jlft-xcen
-            if(interpfac.ne.0)then
+c             If the limits are now crossed, just skip to full fill at end
+            if (jlft .le. jrt) then
 c               
-c               Computation with prestretched data
+c               set up starting index and projection position
+c               
+              do ind = index + maskedge(1,i) - 1, index + jlft - 2
+                array(ind) = array(ind) + edgeFill
+              enddo                
+              index=index+(jlft-1)
+              x=jlft-xcen
+              if(interpfac.ne.0)then
 c                 
-              XPROJ8=interpfac*(zPART/CBETA + X - ofstretch(iv))
-              IPROJ=XPROJ8
-              XFRAC=XPROJ8-IPROJ
-              iproj=iproj + ipoint + indstretch(iv)
-              omxfrac=1.-xfrac
-              if(ifalpha.le.0)then
+c                 Computation with prestretched data
 c                 
-c                 interpolation in simple case of no x-axis tilt
-c                 
-                DO ind=index,index+jrt-jlft
-                  ARRAY(IND)=ARRAY(IND)+
-     &                omxfrac*ARRAY(IPROJ) +XFRAC*ARRAY(IPROJ+1) 
-                  iproj=iproj+interpfac
-                enddo
-                index=index+jrt+1-jlft
-              else
+                XPROJ8=interpfac*(zPART/CBETA + X - ofstretch(iv))
+                IPROJ=XPROJ8
+                XFRAC=XPROJ8-IPROJ
+                iproj=iproj + ipoint + indstretch(iv)
+                omxfrac=1.-xfrac
+                if(ifalpha.le.0)then
 c                   
-c                 If x-axis tilting, interpolate from two lines
-c                 
-                ip1=iproj+(jproj-lslice)*ipdel
-                ip2=ip1+ipdel
-                if(yproj.ge.1..and.yproj.le.nyprj.and.
-     &              ip1.ge.nbase.and.ip2.ge.nbase.and.ip1.lt.nstack
-     &              .and.ip2.lt.nstack)then
-                  
+c                   interpolation in simple case of no x-axis tilt
+c                   
                   DO ind=index,index+jrt-jlft
                     ARRAY(IND)=ARRAY(IND)+
-     &                  omxfrac*(omyfrac*ARRAY(IP1)+yFRAC*ARRAY(IP2)) +
-     &                  xfrac*(omyfrac*ARRAY(IP1+1)+yFRAC*ARRAY(IP2+1))
-                    ip1=ip1+interpfac
-                    ip2=ip2+interpfac
+     &                  omxfrac*ARRAY(IPROJ) +XFRAC*ARRAY(IPROJ+1) 
+                    iproj=iproj+interpfac
                   enddo
+                  index=index+jrt+1-jlft
                 else
-                  do ind = index, index + jrt+1-jlft-1
-                    array(ind) = array(ind) + edgeFill
-                  enddo                
-                endif
-                index=index+jrt+1-jlft
-              endif
-            else
-c                 
-c               Computation direct from projection data
-c               
-              XPROJ8=zPART+X*CBETA
-              if(ifalpha.le.0)then
-c                 
-c                 interpolation in simple case of no x-axis tilt
-c                 
-                call bpsumnox(array,index,ipoint,jrt+1-jlft, xproj8,cbeta)
-              else
 c                   
-c                 If x-axis tilting
+c                   If x-axis tilting, interpolate from two lines
 c                   
-                IPROJ=XPROJ8
-                ipbase=ipoint+(jproj-lslice)*ipdel
-                ip1=ipbase+iproj
-                ip2=ip1+ipdel
-                if(yproj.ge.1..and.yproj.le.nyprj.and.
-     &              ip1.ge.nbase.and.ip2.ge.nbase.and.ip1.lt.nstack
-     &              .and.ip2.lt.nstack)then
-                  
-                  call bpsumxtilt(array,index,ipbase,ipdel,jrt+1-jlft,
-     &                xproj8,cbeta,yfrac,omyfrac)
-                else
-                  do ind = index, index + jrt+1-jlft-1
-                    array(ind) = array(ind) + edgeFill
-                  enddo                
+                  ip1=iproj+(jproj-lslice)*ipdel
+                  ip2=ip1+ipdel
+                  if(yproj.ge.1..and.yproj.le.nyprj.and.
+     &                ip1.ge.nbase.and.ip2.ge.nbase.and.ip1.lt.nstack
+     &                .and.ip2.lt.nstack)then
+                    
+                    DO ind=index,index+jrt-jlft
+                      ARRAY(IND)=ARRAY(IND)+
+     &                    omxfrac*(omyfrac*ARRAY(IP1)+yFRAC*ARRAY(IP2)) +
+     &                    xfrac*(omyfrac*ARRAY(IP1+1)+yFRAC*ARRAY(IP2+1))
+                      ip1=ip1+interpfac
+                      ip2=ip2+interpfac
+                    enddo
+                  else
+                    do ind = index, index + jrt+1-jlft-1
+                      array(ind) = array(ind) + edgeFill
+                    enddo                
+                  endif
                   index=index+jrt+1-jlft
                 endif
+              else
+c                 
+c                 Computation direct from projection data
+c                 
+                XPROJ8=zPART+X*CBETA
+                if(ifalpha.le.0)then
+c                   
+c                   interpolation in simple case of no x-axis tilt
+c                   
+                  call bpsumnox(array,index,ipoint,jrt+1-jlft, xproj8,cbeta)
+                else
+c                   
+c                   If x-axis tilting
+c                   
+                  IPROJ=XPROJ8
+                  ipbase=ipoint+(jproj-lslice)*ipdel
+                  ip1=ipbase+iproj
+                  ip2=ip1+ipdel
+                  if(yproj.ge.1..and.yproj.le.nyprj.and.
+     &                ip1.ge.nbase.and.ip2.ge.nbase.and.ip1.lt.nstack
+     &                .and.ip2.lt.nstack)then
+                    
+                    call bpsumxtilt(array,index,ipbase,ipdel,jrt+1-jlft,
+     &                  xproj8,cbeta,yfrac,omyfrac)
+                  else
+                    do ind = index, index + jrt+1-jlft-1
+                      array(ind) = array(ind) + edgeFill
+                    enddo                
+                    index=index+jrt+1-jlft
+                  endif
+                endif
               endif
+            else
+              jrt = 0
             endif
             do ind = index, index + iwide - jrt - 1
               array(ind) = array(ind) + edgeFill
@@ -3532,17 +3538,17 @@ C
 53    format(/,'Scaling of local alignments by ',f8.3,
      &    ' determined from pixel sizes')
 101   FORMAT(/' Title:    ',20A4)
-201   FORMAT(/' Rows',I4,' to',I4,', (at intervals of',i4,') of the'
+201   FORMAT(/' Rows',I5,' to',I5,', (at intervals of',i4,') of the'
      &    ,' projection planes will be reconstructed.')
-301   FORMAT(/' Thickness of reconstructed slice is',I4,
-     &    ' divisions.')
+301   FORMAT(/' Thickness of reconstructed slice is',I5,
+     &    ' pixels.')
 401   FORMAT(/' Mask applied to edges of output slices with',i5,
      &    ' extra pixels masked')
-501   FORMAT(/' Radial weighting function parameters IRMAX =',I4,
-     &    '  IWIDE =',I4)
+501   FORMAT(/' Radial weighting function parameters IRMAX =',I5,
+     &    '  IWIDE =',I5)
 601   FORMAT(/' Output map rotated by',F6.1,' degrees about tilt axis',
      &    ' with respect to tilt origin'/
-     &    ' Tilt axis displaced by',F6.3,' grid units from centre'
+     &    ' Tilt axis displaced by',F9.2,' pixels from centre'
      &    ,' of projection')
 701   FORMAT(/' Output map densities incremented by',F8.2,
      &    ' and then multiplied by',F8.2)
@@ -3552,13 +3558,12 @@ C
      &    ,' zero tilt projection')
 1001  format(/' Data mode of output file is',i3)
 1301  format(/' Taking logarithm of input data plus',f10.3)
-1401  format(/' Replicate projection',i4,' times by',f6.1,' degrees')
 1701  format(/' Compression was confined to',f6.3,
      &    ' of the distance over which it was measured')
 1801  format(/' Weighting by tilt density computed to distance of'
      &    ,i3,' views',/,'  weighting factors:',(10f6.3))
 1802  format(/' No weighting by tilt density')
-2001  format(/,' Width of reconstruction is',i5,' pixels')
+2001  format(/,' Width of reconstruction is',i6,' pixels')
 2101  format(/,' Output slice shifted up',f7.1,' and to right',f7.1,
      &    ' pixels')
 2201  format(/,' Alpha tilting to be applied with angles from file')
@@ -5059,6 +5064,9 @@ c       Set to open contour, show values etc., and show sphere on section only
 
 c       
 c       $Log$
+c       Revision 3.61  2010/09/15 22:50:08  mast
+c       Fixed problems at tilt near 90 with X axis offsets
+c
 c       Revision 3.60  2010/08/17 18:32:43  mast
 c       Fixed memory allocation for fewer than 10 slices
 c
