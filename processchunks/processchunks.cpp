@@ -51,7 +51,7 @@ static char
         ":Q:CH:Machine name to use for the queue (default queue)",
         ":P:B:Output process ID",
         ":v:B:Print extra information.",
-        ":V:CH:Syntax:  class[,function[,function...]].  Optional.  Which class and functions(s) should print extra information.  Can be limited to a class and function(s).  Function(s) are optional.  Case insensitive.  No effect if '-v' is not used.",
+        ":V:CH:Syntax:  class,function,...,verbosity.  All elements are optional .  Which class and functions(s) should print extra information.  Verbosity (how much information to print): 1:normal, 2: a lot.  Can be limited to a class and function(s).  Case insensitive.  No effect if '-v' is not used.",
         ":help:B:Print usage message" };
 static char *queueNameDefault = "queue";
 Processchunks *processchunksInstance;
@@ -145,11 +145,19 @@ void Processchunks::loadParams(int &argc, char **argv) {
       QString param(verboseClassFunctions);
       QStringList paramList = param.trimmed().split(",",
           QString::SkipEmptyParts);
-      if (paramList.size() >= 1) {
+      if (!paramList.isEmpty()) {
+        bool ok;
+        int temp = paramList.at(paramList.size() - 1).toInt(&ok);
+        if (ok) {
+          mVerbose = temp;
+          paramList.removeAt(paramList.size() - 1);
+        }
+      }
+      if (!paramList.isEmpty()) {
         mVerboseClass = paramList.at(0);
         paramList.removeAt(0);
       }
-      if (paramList.size() >= 1) {
+      if (!paramList.isEmpty()) {
         mVerboseFunctionList = paramList;
       }
     }
@@ -393,6 +401,10 @@ void Processchunks::timerEvent(QTimerEvent *timerEvent) {
         int failCount = machine->getFailureCount();
         if (failCount >= mDropCrit || mPausing || (failCount && !mAnyDone
             && failTot >= mHoldCrit)) {
+          if (isVerbose(mDecoratedClassName, __func__, 2)) {
+            *mOutStream << machine->getName() << ":set dropout, failCount:"
+                << failCount << ",failTot:" << failTot << endl;
+          }
           dropout = true;
         }
         //If the current machine is unassigned, find next com to do and run it
@@ -495,20 +507,8 @@ void Processchunks::handleInterrupt() {
     mOutStream->flush();
     QTextStream inStream(stdin);
     inStream >> command;
-    command = command.trimmed();
+    command = command.trimmed().toUpper();
     mAns = command.at(0).toLatin1();
-    if (mAns == 'q') {
-      mAns = 'Q';
-    }
-    else if (mAns == 'c') {
-      mAns = 'C';
-    }
-    else if (mAns == 'p') {
-      mAns = 'P';
-    }
-    else if (mAns == 'd') {
-      mAns = 'D';
-    }
     if (mAns == 'D') {
       inStream >> command;
       command = command.trimmed();
@@ -1087,6 +1087,13 @@ const bool Processchunks::readCheckFile() {
 //Stop if all have now been dropped out or all have failed and none done
 void Processchunks::exitIfDropped(const int minFail, const int failTot,
     const int assignTot) {
+  if (isVerbose(mDecoratedClassName, __func__, 2)) {
+    *mOutStream << "minFail=" << minFail << ",failTot:" << failTot
+        << ",assignTot:" << assignTot << ",mDropCrit:" << mDropCrit
+        << ",mNumCpus:" << mNumCpus << ",mNumDone:" << mNumDone << ",mPausing:"
+        << mPausing << ",mSyncing:" << mSyncing << ",mQueue:" << mQueue
+        << ",mMachineList.size():" << mMachineList.size() << endl;
+  }
   if (minFail >= mDropCrit) {
     *mOutStream << "ERROR: ALL MACHINES HAVE BEEN DROPPED DUE TO FAILURES"
         << endl;
@@ -1096,20 +1103,48 @@ void Processchunks::exitIfDropped(const int minFail, const int failTot,
     }
     cleanupAndExit(1);
   }
-  if (failTot == mNumCpus && assignTot == 0 && mNumDone == 0) {
-    *mOutStream << "ERROR: NO CHUNKS HAVE WORKED AND EVERY MACHINE HAS FAILED"
-        << endl;
-    if (isVerbose(mDecoratedClassName, __func__)) {
-      *mOutStream << "failTot:" << failTot << ",mNumCpus:" << mNumCpus << endl;
-    }
-    cleanupAndExit(1);
-  }
   if (mPausing && assignTot == 0) {
     *mOutStream
         << "All previously running chunks are done - exiting as requested"
         << endl << "Rerun with -r to resume and retain existing results"
         << endl;
     cleanupAndExit(2);
+  }
+  if (assignTot == 0 && mNumDone == 0) {
+    if (failTot == mNumCpus) {
+      *mOutStream
+          << "ERROR: NO CHUNKS HAVE WORKED AND EVERY MACHINE HAS FAILED"
+          << endl;
+      if (isVerbose(mDecoratedClassName, __func__)) {
+        *mOutStream << "failTot:" << failTot << ",mNumCpus:" << mNumCpus
+            << endl;
+      }
+      cleanupAndExit(1);
+    }
+    //Handle the case where the start.com cannot be run.
+    else if (mSyncing) {
+      if (!mQueue) {
+        if (failTot == mMachineList.size()) {
+          *mOutStream
+              << "ERROR: NO CHUNKS HAVE WORKED AND EVERY MACHINE HAS FAILED"
+              << endl;
+          if (isVerbose(mDecoratedClassName, __func__)) {
+            *mOutStream << "failTot:" << failTot << ",mMachineList.size():"
+                << mMachineList.size() << endl;
+          }
+          cleanupAndExit(1);
+        }
+      }
+      else if (failTot == 1 && minFail == mQueue) {
+        *mOutStream
+            << "ERROR: NO CHUNKS HAVE WORKED AND EVERY MACHINE HAS FAILED"
+            << endl;
+        if (isVerbose(mDecoratedClassName, __func__)) {
+          *mOutStream << "failTot:" << failTot << ",mQueue:" << mQueue << endl;
+        }
+        cleanupAndExit(1);
+      }
+    }
   }
 }
 
@@ -1468,8 +1503,11 @@ const QStringList &Processchunks::getQueueParamList() {
 }
 
 const bool Processchunks::isVerbose(const QString &verboseClass,
-    const char *verboseFunction) {
+    const char *verboseFunction, const int verbosity) {
   if (!mVerbose) {
+    return false;
+  }
+  if (verbosity > mVerbose) {
     return false;
   }
   if (mVerboseClass.isEmpty()) {
@@ -1529,6 +1567,9 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.9  2010/09/13 19:59:48  sueh
+ bug# 1364 In probeMachines removing check file unconditionally.
+
  Revision 1.8  2010/09/10 06:11:10  sueh
  bug# 1364 Improved verbose functionality.  Fixed drop message bug - dropcrit was being reset.
 
