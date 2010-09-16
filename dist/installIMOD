@@ -450,9 +450,17 @@ else if (! $skipcopy) then
                     echo ""
                 endif
                 echo "Adding source of startup script $scripts[$ind] to $sysfil"
+		# OS X server 10.6 came with profile not writable, so fix it
+		set nowrite = 0
+		if (! -w $sysfil) then
+		    echo "Temporarily making $sysfil writable to do this"
+		    set nowrite = 1
+		    chmod u+w $sysfil
+		endif
                 echo "" >> $sysfil
                 echo "# Set environment for IMOD" >> $sysfil
                 tail -n 2 $scripts[$ind] >> $sysfil
+		if ($nowrite) chmod u-w $sysfil
             else
                 echo "Source command already exists in $sysfil"
             endif
@@ -620,6 +628,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.30  2010/05/21 18:13:47  mast
+#  But there is no 64-bit before Darwin 9
+#
 #  Revision 3.28.2.1  2010/05/20 23:37:53  mast
 #  backport
 #
