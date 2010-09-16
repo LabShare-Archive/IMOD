@@ -1,6 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-9/15/10: IMOD_4-1-5
+9/14/10: IMOD_4-1-5
+9/16/10: Installer makes system file temporarily writable if necessary; 
+/etc/profile on OS X 10.6 Server had no write permission
+
 9/15/10: Allowed use of GPU in Tilt with up to 2200 views and fixed problems
 with very high tilt angles together with tilt axis offsets.
 
