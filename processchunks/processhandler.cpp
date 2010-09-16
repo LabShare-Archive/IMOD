@@ -40,7 +40,7 @@ ProcessHandler::ProcessHandler() {
   mKillFinishedSignalReceived = false;
   mKill = false;
   resetSignalValues();
-  mDecoratedClassName=typeid(*this).name();
+  mDecoratedClassName = typeid(*this).name();
 }
 
 ProcessHandler::~ProcessHandler() {
@@ -306,7 +306,13 @@ const bool ProcessHandler::getSshError(QString &dropMess, QTextStream *stream) {
 //the log exists and the finished signal has been received
 const bool ProcessHandler::isComProcessDone() {
   if (mProcesschunks->isQueue()) {
-    return !cshFileExists() && logFileExists(true);
+    if (!cshFileExists() && logFileExists(true)) {
+      mMachine = NULL;
+      return true;
+    }
+    else {
+      return false;
+    }
   }
   return mFinishedSignalReceived && logFileExists(true);
 }
@@ -537,6 +543,11 @@ void ProcessHandler::makeCshFile() {
 }
 
 void ProcessHandler::runProcess(MachineHandler *machine) {
+  if (mProcesschunks->isVerbose(mDecoratedClassName, __func__) && machine
+      != NULL) {
+    mProcesschunks->getOutStream() << "runProcess:machine:"
+        << machine->getName() << endl;
+  }
   mMachine = machine;
   int i;
   //Build command if necessary
@@ -585,8 +596,11 @@ void ProcessHandler::runProcess(MachineHandler *machine) {
       mProcesschunks->getOutStream() << "running:" << endl << mCommand << " "
           << mParamList.join(" ") << endl;
     }
-    //Run on local machine
+    //Run on local machine or queue
     mProcess->start(mCommand, mParamList);
+    if (mProcesschunks->isQueue()) {
+      mProcess->waitForFinished(2000);
+    }
   }
   //Turn on running process boolean and record start time
   mStartingProcess = true;
@@ -688,8 +702,13 @@ void ProcessHandler::continueKillProcess(const bool asynchronous) {
     //$queuecom -w "$curdir" -a $action $comlist[$ind]:r
     //The second to last parameter is the action letter
     mParamList.replace(mParamList.size() - 2, action);
+    if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+      mProcesschunks->getOutStream() << mCommand << " " << mParamList.join(" ")
+          << endl;
+    }
     mKillProcess->start(mCommand, mParamList);
     runningKillProcess = true;
+    mProcess->waitForFinished(2000);
     //Put mParamList back to its regular form
     mParamList.replace(mParamList.size() - 2, "R");
   }
@@ -761,8 +780,8 @@ void ProcessHandler::handleFinished(const int exitCode,
     if (mKill) {
       cleanupKillProcess();
     }
+    mMachine = NULL;
   }
-  mMachine = NULL;
 }
 
 void ProcessHandler::cleanupKillProcess() {
@@ -810,16 +829,30 @@ void ProcessHandler::handleKillFinished(const int exitCode,
     const QProcess::ExitStatus exitStatus) {
   mKillFinishedSignalReceived = true;
   if (exitCode) {
-    mProcesschunks->getOutStream() << "kill process exitCode:" << exitCode
-        << endl;
-    QByteArray byteArray = mKillProcess->readAllStandardOutput();
-    if (!byteArray.isEmpty()) {
-      mProcesschunks->getOutStream() << byteArray << endl;
+    if (exitCode == 100) {
+      //Process finished before it could be killed
+      cleanupKillProcess();
     }
-    byteArray = mKillProcess->readAllStandardError();
-    if (!byteArray.isEmpty()) {
-      mProcesschunks->getOutStream() << byteArray << endl;
+    else if (exitCode == 101) {
+      //Unable to pause because the process had already started.
+      cleanupKillProcess();
     }
+    else {
+      mProcesschunks->getOutStream() << "kill process exitCode:" << exitCode
+          << endl;
+      QByteArray byteArray = mKillProcess->readAllStandardOutput();
+      if (!byteArray.isEmpty()) {
+        mProcesschunks->getOutStream() << byteArray << endl;
+      }
+      byteArray = mKillProcess->readAllStandardError();
+      if (!byteArray.isEmpty()) {
+        mProcesschunks->getOutStream() << byteArray << endl;
+      }
+    }
+  }
+  else {
+    //kill is completed
+    cleanupKillProcess();
   }
 }
 
