@@ -42,7 +42,8 @@ public:
   const QString &getQueueCommand();
   QDir &getCurrentDir();
   const QStringList &getQueueParamList();
-  const bool isVerbose(const QString &verboseClass,const char *verboseFunction);
+  const bool isVerbose(const QString &verboseClass,
+      const char *verboseFunction, const int verbosity = 1);
   QTextStream &getOutStream();
   const bool isSingleFile();
   const QString &getHostRoot();
@@ -106,12 +107,12 @@ private:
   char *mQueueName, *mRootName;
   QFile *mCheckFile;
   const QString *mRemoteDir;//was curdir
-  QString mCpuList,mVerboseClass;
+  QString mCpuList, mVerboseClass;
   QStringList mVerboseFunctionList;
 
   //setup
   int mCopyLogIndex, mNumCpus;
-  QString mHostRoot, mQueueCommand,mDecoratedClassName;
+  QString mHostRoot, mQueueCommand, mDecoratedClassName;
   QStringList mSshOpts, mQueueParamList, mEnv;
   QDir mCurrentDir;
 
