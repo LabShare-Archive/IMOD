@@ -9,6 +9,9 @@ IMOD History
 9/15/10: Allowed use of GPU in Tilt with up to 2200 views and fixed problems
 with very high tilt angles together with tilt axis offsets (In 4.1).
 
+9/8/10: Fixed ability to run automated setup comands in eTomo, broken when
+front page was added.
+
 8/31/10: Added ability to use a separate metadata file produced by SerialEM in
 Extracttilts and Extractpieces and when loading a montage with 3dmod.
 
