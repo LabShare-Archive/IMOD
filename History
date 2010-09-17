@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/16/10: Fixed 3dmod crash when an empty skip list is entered.
+
 9/14/10: IMOD_4-1-5
 9/16/10: Installer makes system file temporarily writable if necessary; 
 /etc/profile on OS X 10.6 Server had no write permission
