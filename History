@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/16/10: IMOD_4-2-6
 9/16/10: Fixed 3dmod crash when an empty skip list is entered (In 4.1).
 
 9/16/10: Installer makes system file temporarily writable if necessary; 
