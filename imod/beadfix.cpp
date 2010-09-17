@@ -1541,6 +1541,7 @@ void BeadFixer::newSkipList(QString list)
   }
   if (mSkipSecs) {
     free(mSkipSecs);
+    mSkipSecs = NULL;
     mNumSkip = 0;
   }
   if (list.isEmpty())
@@ -2677,6 +2678,7 @@ void BeadFixer::closeEvent ( QCloseEvent * e )
   mRunningAlign = false;
   if (mSkipSecs)
     free(mSkipSecs);
+  mSkipSecs = NULL;
 
   // Get geometry and save in settings and in structure for next time
   QRect pos = ivwRestorableGeometry(plug->window);
@@ -2794,6 +2796,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.69  2010/06/30 20:02:55  mast
+Fixed problem with pushing Move All button after readinglog with 0 residuals
+
 Revision 1.68  2010/04/19 23:51:24  mast
 Fixed some width issues
 
