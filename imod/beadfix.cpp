@@ -1671,9 +1671,9 @@ int BeadFixer::insertPoint(float imx, float imy, bool keypad)
   if (plug->showMode == GAP_MODE) {
 
     // If looking before and still not at Z = 0
-    if (mLastbefore && curz)
+    if (mLastbefore && curz && !inSkipList(curz - 1))
       makeUpDownArrow(mLastbefore);
-    else if (curz && curz <  zsize - 1) {
+    else if (curz && curz <  zsize - 1 && !inSkipList(curz + 1)) {
 
       // Otherwise need to look through points and see if next one exists
       pts = imodContourGetPoints(cont);
@@ -2796,6 +2796,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.71  2010/09/20 22:18:49  mast
+Don't make arrow on added point if it points to a skipped section
+
 Revision 1.70  2010/09/17 03:49:10  mast
 Fixed crash when entering empty skip list
 
