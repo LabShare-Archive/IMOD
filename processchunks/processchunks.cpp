@@ -290,12 +290,11 @@ void Processchunks::timerEvent(QTimerEvent *timerEvent) {
   }
   if (mKill) {
     //Handle the kill timer.
-    //This is a timeout if 15 seconds have gone by.  For a queue this means that
-    //this is the 15th timerEvent triggered by the kill timer
+    //This is a timeout if 150 seconds have gone by.  For a queue this means that
+    //this is the 150th timerEvent triggered by the kill timer
     //For a non-queue this happens the first time the kill timer goes off.
     if (mQueue) {
-      mKillCounter++;
-      checkQueueProcessesDone(mKillCounter >= 15);
+      checkQueueProcessesDone(mKillCounter >= 150);
     }
     else {
       cleanupKillProcesses(!mQueue);
@@ -627,6 +626,13 @@ void Processchunks::checkQueueProcessesDone(const bool timeout) {
         << endl;
     return;
   }
+  if (!mAllKillProcessesHaveStarted) {
+    //Don't start the counter or start cleaning up kill requests until all the
+    //ill requests have gone out.  Otherwise it will timeout and/or some request
+    //won't go out.
+    return;
+  }
+  mKillCounter++;
   //updating mProcessesWithUnfinishedKillRequest is not done by
   //ProcessHandler in the case of a queue.
   int index = 0;
@@ -1567,6 +1573,11 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.10  2010/09/16 03:45:05  sueh
+ bug# 1364 Added verbosity level to -V parameter.  In exitIfDropped
+ handling the situation with start.com fails and the number of machines is
+ less then 5.
+
  Revision 1.9  2010/09/13 19:59:48  sueh
  bug# 1364 In probeMachines removing check file unconditionally.
 
