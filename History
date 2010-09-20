@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/20/10: Stopped Bead Fixer from putting arrow on an added point if the next 
+view is on the skip list (In 4.1).
+
+9/20/10: Removed a sync from Queuechunk when killing jobs - it hung things up.
+
 9/16/10: IMOD_4-2-6
 9/16/10: Fixed 3dmod crash when an empty skip list is entered (In 4.1).
 
