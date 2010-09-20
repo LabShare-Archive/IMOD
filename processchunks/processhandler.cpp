@@ -112,9 +112,8 @@ void ProcessHandler::setup(Processchunks &processchunks,
     //finishes after putting things into the queue
     //$queuecom -w "$curdir" -a R $comname:r
     mCommand = mProcesschunks->getQueueCommand();
-    QString param = QString("'%1'").arg(mProcesschunks->getRemoteDir());
-    mParamList << mProcesschunks->getQueueParamList() << "-w" << param << "-a"
-        << "R" << mRoot;
+    mParamList << mProcesschunks->getQueueParamList() << "-w"
+        << mEscapedRemoteDirPath << "-a" << "R" << mRoot;
   }
   else {
     //Local host command
@@ -308,13 +307,23 @@ const bool ProcessHandler::isComProcessDone() {
   if (mProcesschunks->isQueue()) {
     if (!cshFileExists() && logFileExists(true)) {
       mMachine = NULL;
+      if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+        mProcesschunks->getOutStream() << mComFileName
+            << ":isComProcessDone returning true (mMachine set to NULL)"
+            << endl;
+      }
       return true;
     }
     else {
       return false;
     }
   }
-  return mFinishedSignalReceived && logFileExists(true);
+  bool done = mFinishedSignalReceived && logFileExists(true);
+  if (done && mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+    mProcesschunks->getOutStream() << mComFileName
+        << ":isComProcessDone returning " << done << endl;
+  }
+  return done;
 }
 
 const bool ProcessHandler::isFinishedSignalReceived() {
@@ -340,11 +349,13 @@ const bool ProcessHandler::isChunkDone() {
   }
   QByteArray lastPartOfFile = mLogFile->readAll();
   mLogFile->close();
-  if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-    mProcesschunks->getOutStream() << "lastPartOfFile.trimmed():["
-        << lastPartOfFile.trimmed() << "]" << endl;
+  lastPartOfFile = lastPartOfFile.trimmed();
+  bool done = lastPartOfFile.endsWith("CHUNK DONE");
+  if (done && mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+    mProcesschunks->getOutStream() << mComFileName << ":isChunkDone returning "
+        << done << ",lastPartOfFile:" << lastPartOfFile << endl;
   }
-  return lastPartOfFile.trimmed().endsWith("CHUNK DONE");
+  return done;
 }
 
 //Reads the last 1000 characters of the file.  Returns all the text between
@@ -708,7 +719,15 @@ void ProcessHandler::continueKillProcess(const bool asynchronous) {
     }
     mKillProcess->start(mCommand, mParamList);
     runningKillProcess = true;
-    mProcess->waitForFinished(2000);
+    if (!mKillProcess->waitForFinished(1000) && mProcesschunks->isVerbose(
+        mDecoratedClassName, __func__)) {
+      mProcesschunks->getOutStream() << "did not finish:error:"
+          << mKillProcess->error() << ",exitCode:" << mKillProcess->exitCode()
+          << ",exitStatus:" << mKillProcess->exitStatus() << ",state:"
+          << mKillProcess->state() << endl
+          << mKillProcess->readAllStandardError() << endl
+          << mKillProcess->readAllStandardOutput() << endl;
+    }
     //Put mParamList back to its regular form
     mParamList.replace(mParamList.size() - 2, "R");
   }
@@ -781,6 +800,9 @@ void ProcessHandler::handleFinished(const int exitCode,
       cleanupKillProcess();
     }
     mMachine = NULL;
+    if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+      mProcesschunks->getOutStream() << "machine set to NULL" << endl;
+    }
   }
 }
 
@@ -827,6 +849,10 @@ void ProcessHandler::msgKillProcessTimeout() {
 
 void ProcessHandler::handleKillFinished(const int exitCode,
     const QProcess::ExitStatus exitStatus) {
+  if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+    mProcesschunks->getOutStream() << "handleKillFinished: " << mComFileName
+        << ",exitCode:" << exitCode << ",exitStatus:" << exitStatus << endl;
+  }
   mKillFinishedSignalReceived = true;
   if (exitCode) {
     if (exitCode == 100) {
