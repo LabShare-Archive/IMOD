@@ -37,6 +37,7 @@
 #define MESSAGE_BEADFIX_OPERATION  6
 #define MESSAGE_BEADFIX_SKIPLIST   7
 #define MESSAGE_BEADFIX_DELALLSEC  8
+#define MESSAGE_BEADFIX_CLEARSKIP  9
 
 #include <qobject.h>
 #include <qstring.h>
@@ -93,6 +94,9 @@ class StdinThread : public QThread
 #endif /* IMOD_CLIENT_MESSAGE_H */
 /*
 $Log$
+Revision 3.23  2009/08/11 15:52:24  mast
+Message for delete on all sec
+
 Revision 3.22  2009/03/26 05:40:14  mast
 Changes for new ghost message
 
