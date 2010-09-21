@@ -176,6 +176,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.57  2010/04/28 16:19:45  sueh
+ * <p> $bug# 1344 Added getDatasetName.
+ * <p> $
  * <p> $Revision 1.56  2010/03/11 06:01:46  sueh
  * <p> $bug# 1311 Added setOpenModelView.
  * <p> $
@@ -752,6 +755,9 @@ public final class ImodState {
         if (deleteAllSections != null) {
           process.setDeleteAllSections(deleteAllSections.is());
           deleteAllSections.set(false);
+        }
+        if (skipList != null) {
+          process.setSkipList(skipList);
         }
       }
     }
