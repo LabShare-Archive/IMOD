@@ -234,7 +234,9 @@ elif [[ $action == "P" || $action == "K" ]] ; then
     # Exit with 0 if something successfully killed, with 100 if it is done
     # or 101 if pausing and it is running
     #
-    sync
+    # 9/20/10: on our PBS system the syncs would hang for a long time and
+    # they shouldn't be needed since .qid is written and read by head node
+    #sync
     getJobID
     getStatus
     if [ $jobStat == "D" ] ; then exit 100 ; fi
@@ -313,6 +315,12 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.7  2010/09/20 22:10:30  mast
+#  Comment out sync in the kill operation
+#
+#  Revision 3.6  2009/08/18 04:27:04  mast
+#  Add pbs-maui type for better load command
+#
 #  Revision 3.5  2009/04/11 00:44:28  mast
 #  At least report load as a number if no max is available
 #
