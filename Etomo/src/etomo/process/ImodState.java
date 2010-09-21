@@ -176,6 +176,12 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.58  2010/09/21 04:04:59  sueh
+ * <p> $bug# 1395 In open set skipList when process is already running.
+ * <p> $
+ * <p> $Revision 1.56  2010/03/11 06:01:46  sueh
+ * <p> $bug# 1311 Added setOpenModelView.
+ * <p> $
  * <p> $Revision 1.55  2010/02/17 04:49:20  sueh
  * <p> $bug# 1301 Using the manager instead of the manager key do pop up
  * <p> $messages.
@@ -749,6 +755,9 @@ public final class ImodState {
         if (deleteAllSections != null) {
           process.setDeleteAllSections(deleteAllSections.is());
           deleteAllSections.set(false);
+        }
+        if (skipList != null) {
+          process.setSkipList(skipList);
         }
       }
     }
