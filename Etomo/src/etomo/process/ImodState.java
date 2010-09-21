@@ -176,6 +176,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.58  2010/09/21 04:04:59  sueh
+ * <p> $bug# 1395 In open set skipList when process is already running.
+ * <p> $
  * <p> $Revision 1.57  2010/04/28 16:19:45  sueh
  * <p> $bug# 1344 Added getDatasetName.
  * <p> $
@@ -756,9 +759,7 @@ public final class ImodState {
           process.setDeleteAllSections(deleteAllSections.is());
           deleteAllSections.set(false);
         }
-        if (skipList != null) {
-          process.setSkipList(skipList);
-        }
+        process.setSkipList(skipList);
       }
     }
     //set mode
