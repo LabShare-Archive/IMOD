@@ -394,6 +394,10 @@ int BeadFixer::executeMessage(QStringList *strings, int *arg)
     plug->window->newSkipList((*strings)[++(*arg)]);
     plug->window->skipEdit->setText((*strings)[*arg]);
     return 0;
+  case MESSAGE_BEADFIX_CLEARSKIP:
+    plug->window->newSkipList(QString(""));
+    plug->window->skipEdit->setText("");
+    return 0;
   case MESSAGE_BEADFIX_DELALLSEC:
     plug->delOnAllSec = (*strings)[++(*arg)].toInt();
     if (threshSlider)
@@ -2796,6 +2800,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.71  2010/09/20 22:18:49  mast
+Don't make arrow on added point if it points to a skipped section
+
 Revision 1.70  2010/09/17 03:49:10  mast
 Fixed crash when entering empty skip list
 
