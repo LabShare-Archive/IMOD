@@ -90,6 +90,7 @@ Bead Fixer accepts the following commands:
         spaces.
    8  Set Delete on All Sections.  Follow with 1 to turn on, 0 to turn 
         off.
+   9  Clear the skip list.
 .P
 If 3dmod is run in standalone model-view mode (run as 3dmodv or 3dmod -view)
 it will accept the following commands:
