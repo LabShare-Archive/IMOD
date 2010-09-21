@@ -176,6 +176,13 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.59  2010/09/21 16:27:11  sueh
+ * <p> $bug# 1395 In open, when the process is already running and bead fixer is
+ * <p> $in use, always set skiplist.  Null skiplist is being handled by ImodProcess.
+ * <p> $
+ * <p> $Revision 1.56.2.1  2010/09/21 04:19:45  sueh
+ * <p> $bug# 1395 Merged change from head.
+ * <p> $
  * <p> $Revision 1.58  2010/09/21 04:04:59  sueh
  * <p> $bug# 1395 In open set skipList when process is already running.
  * <p> $
@@ -471,7 +478,7 @@ public final class ImodState {
   //should not be on for most situations.  This way I don't have to keep track
   //of when it is on.
   private EtomoBoolean2 deleteAllSections = null;
-  private String fileName=null;
+  private String fileName = null;
 
   //constructors
   //they can set final state variables
@@ -756,9 +763,7 @@ public final class ImodState {
           process.setDeleteAllSections(deleteAllSections.is());
           deleteAllSections.set(false);
         }
-        if (skipList != null) {
-          process.setSkipList(skipList);
-        }
+        process.setSkipList(skipList);
       }
     }
     //set mode
@@ -1210,8 +1215,8 @@ public final class ImodState {
   public void setWorkingDirectory(File workingDirectory) {
     process.setWorkingDirectory(workingDirectory);
   }
-  
-  public void setOpenModelView() throws IOException, SystemProcessException{
+
+  public void setOpenModelView() throws IOException, SystemProcessException {
     process.setOpenModelView();
   }
 

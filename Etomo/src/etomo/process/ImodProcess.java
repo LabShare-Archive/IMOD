@@ -37,6 +37,13 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.68  2010/09/21 16:25:42  sueh
+ * bug# 1395 Added BF_MESSAGE_REMOVE_SKIP_LIST to handle a null skip
+ * list.
+ *
+ * Revision 3.65  2010/03/11 06:01:28  sueh
+ * bug# 1311 Added setOpenModelView.  Added BeadFixerMode.
+ *
  * Revision 3.64  2010/02/17 04:49:20  sueh
  * bug# 1301 Using the manager instead of the manager key do pop up
  * messages.
@@ -602,6 +609,7 @@ public class ImodProcess {
   public static final String BF_MESSAGE_MODE = "6";
   public static final String BF_MESSAGE_SKIP_LIST = "7";
   public static final String BF_MESSAGE_DELETE_ALL_SECTIONS = "8";
+  public static final String BF_MESSAGE_REMOVE_SKIP_LIST = "9";
   public static final String MESSAGE_ON = "1";
   public static final String MESSAGE_OFF = "0";
   public static final String MESSAGE_STOP_LISTENING = "\n";
@@ -1199,13 +1207,18 @@ public class ImodProcess {
   public void setOpenBeadFixerMessage() {
     sendArguments.add(MESSAGE_OPEN_BEADFIXER);
   }
-  
+
   public void setOpenModelView() {
     sendArguments.add(MESSAGE_OPEN_MODEL_VIEW);
   }
 
   public void setSkipList(String skipList) {
-    addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_SKIP_LIST, skipList);
+    if (skipList != null) {
+      addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_SKIP_LIST, skipList);
+    }
+    else {
+      addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_REMOVE_SKIP_LIST);
+    }
   }
 
   public void setDeleteAllSections(boolean on) {
@@ -1291,6 +1304,12 @@ public class ImodProcess {
     sendArguments.add(plugin);
     sendArguments.add(message);
     sendArguments.add(value);
+  }
+
+  private void addPluginMessage(String plugin, String message) {
+    sendArguments.add(MESSAGE_PLUGIN_MESSAGE);
+    sendArguments.add(plugin);
+    sendArguments.add(message);
   }
 
   AxisID getAxisID() {
