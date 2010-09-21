@@ -37,6 +37,10 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.67  2010/05/16 17:41:24  sueh
+ * bug# 1358 In imodSendEvent stop throwing an exception just because
+ * messages was passed in as null.
+ *
  * Revision 3.66  2010/05/12 17:25:26  sueh
  * bug# 1358 In Mac keep getting an exception in MessageSender.readResponse.  Added more
  information to the exception.  Increased the timeout of readResponse.
@@ -604,6 +608,7 @@ public class ImodProcess {
   public static final String BF_MESSAGE_MODE = "6";
   public static final String BF_MESSAGE_SKIP_LIST = "7";
   public static final String BF_MESSAGE_DELETE_ALL_SECTIONS = "8";
+  public static final String BF_MESSAGE_REMOVE_SKIP_LIST = "9";
   public static final String MESSAGE_ON = "1";
   public static final String MESSAGE_OFF = "0";
   public static final String MESSAGE_STOP_LISTENING = "\n";
@@ -1206,7 +1211,12 @@ public class ImodProcess {
   }
 
   public void setSkipList(String skipList) {
-    addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_SKIP_LIST, skipList);
+    if (skipList != null) {
+      addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_SKIP_LIST, skipList);
+    }
+    else {
+      addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_REMOVE_SKIP_LIST);
+    }
   }
 
   public void setDeleteAllSections(boolean on) {
@@ -1292,6 +1302,12 @@ public class ImodProcess {
     sendArguments.add(plugin);
     sendArguments.add(message);
     sendArguments.add(value);
+  }
+  
+  private void addPluginMessage(String plugin, String message) {
+    sendArguments.add(MESSAGE_PLUGIN_MESSAGE);
+    sendArguments.add(plugin);
+    sendArguments.add(message);
   }
 
   AxisID getAxisID() {
