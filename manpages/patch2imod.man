@@ -72,7 +72,23 @@ computes the actual maximum value and the mean and SD, and then stores a
 maximum value that is limited to 10 SDs above the mean.  This stored value
 determines the maximum that is shown in the model view object edit window of
 3dmod.  This option is needed when there a very large numbers of zero values.
+.TP
+.B -l
+Read all lines in the file as lines with vectors.  By default, the program
+reads the first line to determine the number of lines, then reads that
+number of lines as vectors. 
 .SH FILES
+Unless the 
+.B -l
+option is given, the first line of the file must have the number of vectors in
+the file.  If this line contains "residuals", then each succeeding line
+should have five values: X, Y, Z, delta X and delta Y.  X and Y may be
+floating point values in this case, and Z must be an integer.  Other than the
+residual case, each line may have 6 to 8 values, where the first 6 are X, Y,
+Z, delta X, delta Y, and delta Z.  X, Y, and Z must all be integers in this
+case.  A seventh value is stored at a general value displayable in 3dmod,
+and an eighth value is stored as the second type of general value.
+.P
 If the model file already exists, it becomes a backup file with ~ added to its
 name.
 .SH AUTHOR
