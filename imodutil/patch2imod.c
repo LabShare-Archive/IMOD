@@ -18,7 +18,7 @@
 #define DEFAULT_SCALE 10.0
 
 Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
-                        int noflip, int ignoreZero);
+                        int noflip, int ignoreZero, int countLines);
 static void usage(char *prog)
 {
   imodVersion(prog);
@@ -32,6 +32,8 @@ static void usage(char *prog)
   printf("\t-c #\tSet up clipping planes enclosing area of given size\n");
   printf("\t-z\tIgnore zero values when using SD to limit stored "
          "maximum value\n");
+  printf("\t-l\Use all lines in file rather than getting line count from first"
+         " line\n");
   exit(1);
 }
 
@@ -44,6 +46,7 @@ int main( int argc, char *argv[])
   int clipSize = 0;
   int noflip = 0;
   int ignoreZero = 0;
+  int countLines = 0;
   char *name = NULL;
 
   /* This name is hard-coded because of the script wrapper needed in Vista */
@@ -78,6 +81,10 @@ int main( int argc, char *argv[])
         ignoreZero = 1;
         break;
 
+      case 'l':
+        countLines = 1;
+        break;
+
       default:
         exitError("Illegal argument %s\n", argv[i]);
         break;
@@ -103,7 +110,7 @@ int main( int argc, char *argv[])
   if (!fout)
     exitError("Could not open %s\n", argv[i]);
   Model = (Imod *)imod_from_patches(fin, scale, clipSize, name, noflip, 
-                                    ignoreZero);
+                                    ignoreZero, countLines);
      
   imodWrite(Model, fout);
 
@@ -118,7 +125,7 @@ int main( int argc, char *argv[])
 #define MAXLINE 128
 
 Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
-                        int noflip, int ignoreZero)
+                        int noflip, int ignoreZero, int countLines)
 {
   int len;
   int i, npatch, nread;
@@ -134,28 +141,42 @@ Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
   double valsum, sumsq, valsd, sdmax;
   int residuals = 0;
   int nvals = 0;
+  int dzvary = 0;
 
-  fgetline(fin,line,MAXLINE);
-  sscanf(line, "%d", &npatch);
-  if (npatch < 1)
-    exitError("Implausible number of patches = %d.\n", npatch);
+  if (countLines) {
+    npatch = 0;
+    while (1) {
+      ix = fgetline(fin,line,MAXLINE);
+      if (ix > 2)
+        npatch++;
+      else
+        break;
+    }
+    if (npatch < 1)
+      exitError("No usable lines in the file");
+    rewind(fin);
+  } else {
+    fgetline(fin,line,MAXLINE);
+    sscanf(line, "%d", &npatch);
+    if (npatch < 1)
+      exitError("Implausible number of patches = %d.", npatch);
 
-  if (strstr(line, "residuals") != NULL)
-    residuals = 1;
+    if (strstr(line, "residuals") != NULL)
+      residuals = 1;
+  }
 
   mod = imodNew();     
   if (!mod)
-    exitError("Could not get new model\n");
+    exitError("Could not get new model");
 
   if (imodNewObject(mod))
-    exitError("Could not get new object\n");
+    exitError("Could not get new object");
   obj = mod->obj;
   obj->contsize = npatch;
   obj->cont = imodContoursNew(npatch);
   if (!obj->cont)
-    exitError("Could not get contour array\n");
+    exitError("Could not get contour array");
   obj->flags |= IMOD_OBJFLAG_OPEN;
-  obj->symbol = IOBJ_SYM_CIRCLE;
   if (!residuals && !noflip)
     mod->flags |= IMODF_FLIPYZ;
   mod->pixsize = scale;
@@ -172,13 +193,13 @@ Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
   for (i = 0; i < npatch; i++) {
     pts = (Ipoint *)malloc(2 * sizeof(Ipoint));
     if (!pts)
-      exitError("Could not get new point array\n");
+      exitError("Could not get new point array");
 
     obj->cont[i].pts = pts;
     obj->cont[i].psize = 2;
     len = fgetline(fin,line, MAXLINE);
     if (len < 3)
-      exitError("Error reading file at line %d.\n", i + 1);
+      exitError("Error reading file at line %d.", i + 1);
 
     /* DNM 7/26/02: read in residuals as real coordinates, without a 
        flip */
@@ -218,6 +239,8 @@ Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
     xmax = B3DMAX(xmax, xx);
     ymax = B3DMAX(ymax, yy);
     zmax = B3DMAX(zmax, iz);
+    if (dz != 0.)
+      dzvary = 1;
 
     if (nread > 6) {
       valmin = B3DMIN(valmin, value);
@@ -273,6 +296,8 @@ Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
   mod->xmax = xmax + xmin;
   mod->ymax = ymax + ymin;
   mod->zmax = zmax + zmin;
+  if (dzvary)
+    obj->symbol = IOBJ_SYM_CIRCLE;
 
   /* Set current thicken contour flag to aid deleting patches */
   obj->flags |= IMOD_OBJFLAG_THICK_CONT | IMOD_OBJFLAG_MCOLOR;
@@ -299,6 +324,9 @@ Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
 /*
 
 $Log$
+Revision 3.14  2009/09/08 23:21:46  mast
+Added option to ignore zero values when computing limit to maximum
+
 Revision 3.13  2009/09/03 04:44:11  mast
 Added ability to store another column in general value 2
 
