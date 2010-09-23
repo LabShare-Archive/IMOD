@@ -263,6 +263,8 @@ public final class TiltalignParam extends ConstTiltalignParam implements
 
     rotationAngle.set(oldParam.getInitialImageRotation());
     separateGroup = oldParam.getSeparateViewGroups();
+    separateGroup.setKey(SEPARATE_GROUP_KEY);
+    separateGroup.setSuccessiveEntriesAccumulate();
     tiltAngleSpec.set(oldParam.getTiltAngleSpec());
     angleOffset.set(oldParam.getTiltAngleOffset());
     //Set RotationAngleSolutionType and RotationFixedView
@@ -373,8 +375,7 @@ public final class TiltalignParam extends ConstTiltalignParam implements
     ParamUtilities.updateScriptParameter(scriptCommand, EXCLUDE_LIST_KEY,
         excludeList);
     rotationAngle.updateComScript(scriptCommand);
-    ParamUtilities.updateScriptParameter(scriptCommand, SEPARATE_GROUP_KEY,
-        separateGroup);
+    separateGroup.updateComScript(scriptCommand);
     tiltAngleSpec.updateComScript(scriptCommand);
     angleOffset.updateComScript(scriptCommand);
     projectionStretch.updateComScript(scriptCommand);
@@ -950,6 +951,9 @@ public final class TiltalignParam extends ConstTiltalignParam implements
 
 /**
  * <p> $Log$
+ * <p> Revision 3.24  2010/07/19 04:31:10  sueh
+ * <p> bug# 1393 In parseComScriptCommand added parse of localTiltOption.
+ * <p>
  * <p> Revision 3.23  2008/07/16 20:14:27  sueh
  * <p> bug# 1126 In setRotationAngle changed parameter to String.
  * <p>
