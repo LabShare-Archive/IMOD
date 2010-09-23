@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.48  2010/05/21 20:57:25  sueh
+ * <p> bug# 1367 Added actionIfGPUFails.
+ * <p>
  * <p> Revision 3.47  2010/04/28 16:09:22  sueh
  * <p> bug# 1344 Added getOutputImageFileType functions.  Completed the list
  * <p> of modes.
@@ -789,8 +792,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       inputFile.parse(scriptCommand);
       outputFile.parse(scriptCommand);
       imageBinned.parse(scriptCommand);
-      excludeList.parse(scriptCommand, true);
-      excludeList2.parse(scriptCommand, true);
+      excludeList.parseString(scriptCommand.getValues(excludeList.getKey()));
+      excludeList2.parseString(scriptCommand.getValues(excludeList2.getKey()));
       tempFullImage.parse(scriptCommand);
       if (!tempFullImage.isEmpty()) {
         String[] params = tempFullImage.toString().split("\\s+", 2);
