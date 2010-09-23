@@ -187,10 +187,10 @@ c
       inpiece(0) = 0
       iunedge(1)=7
       iunedge(2)=8
-      indent(1)=5				!minimum indent short & long
-      indent(2)=5
-      intgrid(1)=10				!grid interval short & long
-      intgrid(2)=10
+      indent(1)=3				!minimum indent short & long
+      indent(2)=3
+      intgrid(1)=6				!grid interval short & long
+      intgrid(2)=6
       iboxsiz(1)=10				!box size short & long
       iboxsiz(2)=15
       iffloat = 0
@@ -1040,7 +1040,7 @@ c	  read(5,*)ifdiddle
 c         
 c         make smart defaults for grid parameters
 c         
-        gridScale = max(1., max(nxin, nyin) / 1024.)
+        gridScale = min(8., max(1., max(nxin, nyin) / 512.))
         do ixy = 1, 2
           iboxsiz(ixy) = nint(iboxsiz(ixy) * gridScale)
           indent(ixy) = nint(indent(ixy) * gridScale)
@@ -3362,6 +3362,9 @@ c      if (debug)write(*,'(a,i3,a,4f8.4)')'Active',nactivep,'  weights',wll,wlr,
 
 c       
 c       $Log$
+c       Revision 3.44  2010/09/23 05:00:34  mast
+c       Added patch output options
+c
 c       Revision 3.43  2010/06/23 23:09:55  mast
 c       Memory allocation, handling of excluded edges and disjoint edges,
 c       reorganization with internal subroutines, chunking in Y and use of
