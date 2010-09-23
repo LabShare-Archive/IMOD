@@ -35,6 +35,9 @@ import etomo.type.ScriptParameter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.30  2010/04/28 15:43:36  sueh
+ * <p> bug# 1344 Added getOutputImageFileType functions.
+ * <p>
  * <p> Revision 3.29  2010/03/12 03:57:16  sueh
  * <p> bug# 1325 Added isBeadDiameterSet.
  * <p>
@@ -270,6 +273,7 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
     rotationAngle = new ScriptParameter(EtomoNumber.Type.DOUBLE,
         IMAGE_ROTATION_KEY, requiredMap);
     additionalViewGroups.setKey(ADDITIONAL_VIEW_GROUPS_KEY);
+    additionalViewGroups.setSuccessiveEntriesAccumulate();
 
     tiltAngleSpec.setRangeMinKey("FirstTiltAngle", "first");
     tiltAngleSpec.setRangeStepKey("TiltIncrement", "increment");
@@ -514,9 +518,9 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
       pieceListFile = scriptCommand.getValue(PIECE_LIST_FILE_KEY);
       seedModelFile = scriptCommand.getValue(SEED_MODEL_FILE_KEY);
       outputModelFile = scriptCommand.getValue(OUTPUT_MODEL_FILE_KEY);
-      skipViews.parse(scriptCommand, false);
+      skipViews.parse(scriptCommand);
       rotationAngle.parse(scriptCommand);
-      additionalViewGroups.parse(scriptCommand, true);
+      additionalViewGroups.parse(scriptCommand);
       tiltAngleSpec.parse(scriptCommand);
       tiltDefaultGrouping.parse(scriptCommand);
       tiltAngleGroups = ParamUtilities.setParamIfPresent(scriptCommand,
@@ -608,8 +612,9 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
     ParamUtilities.updateScriptParameter(scriptCommand, skipViews.getKey(),
         skipViews);
     rotationAngle.updateComScript(scriptCommand);
-    ParamUtilities.updateScriptParameter(scriptCommand, additionalViewGroups
-        .getKey(), additionalViewGroups);
+    // ParamUtilities.updateScriptParameter(scriptCommand, additionalViewGroups
+    //    .getKey(), additionalViewGroups);
+    additionalViewGroups.updateComScript(scriptCommand);
     tiltAngleSpec.updateComScript(scriptCommand);
     tiltDefaultGrouping.updateComScript(scriptCommand);
     ParamUtilities.updateScriptParameter(scriptCommand, TILT_ANGLE_GROUPS_KEY,
@@ -866,6 +871,7 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
   public FileType getOutputImageFileType() {
     return null;
   }
+
   public FileType getOutputImageFileType2() {
     return null;
   }
