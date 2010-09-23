@@ -78,7 +78,7 @@ c
       integer*4 intgrcopy(2),intxgrbf(limedgbf),intygrbf(limedgbf)
       real*4, allocatable :: dxgrbf(:,:,:), dygrbf(:,:,:), ddengrbf(:,:,:)
       real*4, allocatable :: dxgrid(:,:), dygrid(:,:),ddengrid(:,:),sdgrid(:,:)
-      integer*4 jusedgct,needbyteswap
+      integer*4 jusedgct,needbyteswap,izUnsmoothedPatch, izSmoothedPatch
 c       
       parameter (lmField = 200, maxFields = 16)
       real*4 distDx(lmField,lmField),distDy(lmField,lmField)
