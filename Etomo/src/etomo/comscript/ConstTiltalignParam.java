@@ -333,6 +333,8 @@ public class ConstTiltalignParam implements CommandDetails {
     excludeList = new StringList();
     rotationAngle.reset();
     separateGroup = new StringList();
+    separateGroup.setKey(SEPARATE_GROUP_KEY);
+    separateGroup.setSuccessiveEntriesAccumulate();
     tiltAngleSpec.reset();
     angleOffset.reset();
     projectionStretch.reset();
@@ -1053,6 +1055,9 @@ public class ConstTiltalignParam implements CommandDetails {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.41  2010/04/28 15:51:44  sueh
+ * <p> bug# 1344 Added getOutputImageFileType functions.
+ * <p>
  * <p> Revision 3.40  2010/02/17 04:47:54  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
