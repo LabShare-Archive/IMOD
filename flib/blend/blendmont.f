@@ -227,6 +227,8 @@ c
       iyOutOffset = 0
       ifEdgeFuncOnly = 0
       edgename2 = ' '
+      izUnsmoothedPatch = -1
+      izsmoothedPatch = -1
 c       
 c       Xcorr parameters
 c       11/5/05: increased taper fraction 0.05->0.1 to protect against
@@ -649,6 +651,14 @@ c
           ierr = PipGetInteger('BinByFactor', iBinning)
           if (iBinning .lt. 1) call exitError('BINNING MUST BE POSITIVE')
           if (iBinning .gt. maxbin) call exitError('BINNING IS TOO LARGE')
+          if (PipGetString('UnsmoothedPatchFile', edgenam) .eq. 0) then
+            call dopen(10, edgenam, 'new', 'f')
+            izUnsmoothedPatch = 0
+          endif
+          if (PipGetString('SmoothedPatchFile', edgenam) .eq. 0) then
+            call dopen(11, edgenam, 'new', 'f')
+            izSmoothedPatch = 0
+          endif
         else
           write(*,'(1x,a,/,a,4i6,a,$)')'Enter Min X, Max X, Min Y, and'//
      &        ' Max Y coordinates of desired output section,'
@@ -1941,6 +1951,8 @@ c
           call imclose(2+ixy)
         endif
       enddo
+      if (izUnsmoothedPatch .ge. 0) close(10)
+      if (izSmoothedPatch .ge. 0) close(11)
 c       
       call exit(0)
 
@@ -3350,6 +3362,11 @@ c      if (debug)write(*,'(a,i3,a,4f8.4)')'Active',nactivep,'  weights',wll,wlr,
 
 c       
 c       $Log$
+c       Revision 3.43  2010/06/23 23:09:55  mast
+c       Memory allocation, handling of excluded edges and disjoint edges,
+c       reorganization with internal subroutines, chunking in Y and use of
+c       parallel writing routines
+c
 c       Revision 3.42  2010/04/29 23:22:47  mast
 c       Remove debug output
 c
