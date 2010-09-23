@@ -89,6 +89,14 @@ if ($ccomp == gcc) then
             if ($ifortversion > 10) set openmpfFlags = "-openmp"
         endif
     endif
+
+    if ($?MACOSX_DEPLOYMENT_TARGET) then
+	set sdkpath = `ls -d /Developer/SDKs/*${MACOSX_DEPLOYMENT_TARGET}*`
+	if ($#sdkpath == 1) then
+	    set macsdkFlags = "-isysroot $sdkpath"
+	    echo "Setting gcc compile flag  $macsdkFlags"
+	endif
+    endif
 endif
 
 # DNM 1/1/9/03: remove the defines for FILE_OFFSET_BITS=64 here and in the
@@ -260,7 +268,7 @@ set optimization = "-O3 -w"
 if ($compiler == ifort) set optimization = "-O2"
 if ($debug == true) set optimization = "-g -O0"
 
-set cflags = "$flags $m64flags $ccompFlags $optimization $defines $include_flags $c_includes"
+set cflags = "$flags $m64flags $ccompFlags $optimization $defines $include_flags $c_includes $macsdkFlags"
 set fflags = "$flags $m64flags $fcompFlags $fcmpldFlags $optimization $include_flags"
 
 echo "CFLAGS  = $cflags" >> $configure
