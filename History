@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/22/10: Fixed options to make build under 10.6 work fully under 10.5 (In 4.1).
+
+9/22/10: Added option to patch2imod to read a file without a line count at
+the beginning.
+
 9/20/10: Stopped Bead Fixer from putting arrow on an added point if the next 
 view is on the skip list (In 4.1).
 
