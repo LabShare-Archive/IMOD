@@ -101,6 +101,7 @@ set libtrackFlags   = '$(LIBFFLAGS)'
 set dllext          = '$(LIBEXT)'
 set moc             = '$(QTDIR)/bin/moc'
 set openmpfFlags    = '$(OPENMP)'
+set macsdkFlags     = ''
 set rgbprogs        = 
 set makestaticlib   = "ar ruv "
 set staticranlib    = ranlib
@@ -699,24 +700,20 @@ EOF
     foreach i ($qconf)
         if ($debug == true) then
             echo CONFIG += debug warn_on >> $i
-            if ($m64notIA == true) echo QMAKE_CXXFLAGS_DEBUG += -m64 >> $i
-            if ($m64notIA == true) echo QMAKE_CFLAGS_DEBUG += -m64 >> $i
-            if ($openmp == true) then
-                echo QMAKE_CXXFLAGS_DEBUG += $openmpFlags >> $i
-                echo QMAKE_CFLAGS_DEBUG += $openmpFlags >> $i
-                echo QMAKE_LFLAGS_DEBUG += $openmpFlags >> $i
-            endif
+	    set qmflag =  DEBUG
         else
             echo CONFIG += release warn_off >> $i
-            if ($m64notIA == true) echo QMAKE_CXXFLAGS_RELEASE += -m64 >> $i
-            if ($m64notIA == true) echo QMAKE_CFLAGS_RELEASE += -m64 >> $i
-            if ($compiler == intel) echo QMAKE_CXXFLAGS_RELEASE += -vec-report0 >> $i
-            if ($openmp == true) then
-                echo QMAKE_CXXFLAGS_RELEASE += $openmpFlags >> $i
-                echo QMAKE_CFLAGS_RELEASE += $openmpFlags >> $i
-                echo QMAKE_LFLAGS_RELEASE += $openmpFlags >> $i
-            endif
+	    set qmflag =  RELEASE
+	endif
+        if ($m64notIA == true) echo QMAKE_CXXFLAGS_$qmflag += -m64 >> $i
+        if ($m64notIA == true) echo QMAKE_CFLAGS_$qmflag += -m64 >> $i
+        if ($openmp == true) then
+            echo QMAKE_CXXFLAGS_$qmflag += $openmpFlags >> $i
+            echo QMAKE_CFLAGS_$qmflag += $openmpFlags >> $i
+            echo QMAKE_LFLAGS_$qmflag += $openmpFlags >> $i
         endif
+        if ("$macsdkFlags" != '') echo QMAKE_CFLAGS_$qmflag += $macsdkFlags >> $i
+        if ("$macsdkFlags" != '') echo QMAKE_CXXFLAGS_$qmflag += $macsdkFlags >> $i
         if ($qtthread == true) then
             echo CONFIG +=  thread >> $i
             echo DEFINES += QT_THREAD_SUPPORT >> $i
@@ -1013,6 +1010,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.61.2.5  2010/09/15 22:39:23  mast
+#  Add x86_64 as machine component for intel mac
+#
 #  Revision 1.61.2.4  2010/08/10 18:58:28  mast
 #  Add separate archive flags for fortran
 #
