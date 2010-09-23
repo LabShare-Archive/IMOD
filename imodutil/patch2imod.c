@@ -32,7 +32,7 @@ static void usage(char *prog)
   printf("\t-c #\tSet up clipping planes enclosing area of given size\n");
   printf("\t-z\tIgnore zero values when using SD to limit stored "
          "maximum value\n");
-  printf("\t-l\Use all lines in file rather than getting line count from first"
+  printf("\t-l\tUse all lines in file rather than getting line count from first"
          " line\n");
   exit(1);
 }
@@ -236,9 +236,9 @@ Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
     xmin = B3DMIN(xmin, xx);
     ymin = B3DMIN(ymin, yy);
     zmin = B3DMIN(zmin, iz);
-    xmax = B3DMAX(xmax, xx);
-    ymax = B3DMAX(ymax, yy);
-    zmax = B3DMAX(zmax, iz);
+    xmax = B3DMAX(xmax, xx + 1.);
+    ymax = B3DMAX(ymax, yy + 1.);
+    zmax = B3DMAX(zmax, iz + 1.);
     if (dz != 0.)
       dzvary = 1;
 
@@ -324,6 +324,9 @@ Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
 /*
 
 $Log$
+Revision 3.15  2010/09/22 22:24:37  mast
+Added option to read all lines, and added circle symbol only if not coplanar
+
 Revision 3.14  2009/09/08 23:21:46  mast
 Added option to ignore zero values when computing limit to maximum
 
