@@ -989,10 +989,30 @@ c     &      '  upper:',igrofs
      &        intxgrid,intygrid,iboxsiz(ixy),iboxsiz(3-ixy),intscan,
      &        dxgrid, dygrid,sdgrid, ddengrid,ixgdim,iygdim)
 c           
+          if (izUnsmoothedPatch .ge. 0) then
+            do iy=1,nygr
+              do ix=1,nxgr
+                write(10,'(3i6,3f9.2,f12.4)')igrstr(1)+(ix-1)*intxgrid,
+     &              igrstr(2)+(iy-1)*intygrid,izUnsmoothedPatch,dxgrid(ix,iy),
+     &              dygrid(ix,iy),0.,sdgrid(ix,iy)
+              enddo
+            enddo
+            izUnsmoothedPatch = izUnsmoothedPatch + 1
+          endif
           call smoothgrid(dxgrid,dygrid,sdgrid,ddengrid,ixgdim,
      &        iygdim,nxgr,nygr,sdcrit, devcrit,nfit(ixy),nfit(3-ixy),
      &        norder, nskip(ixy),nskip(3-ixy))
 c          write(*,'(a,f10.6)')'Edge function time',walltime()-wallstart
+          if (izSmoothedPatch .ge. 0) then
+            do iy=1,nygr
+              do ix=1,nxgr
+                write(11,'(3i6,3f9.2,f12.4)')igrstr(1)+(ix-1)*intxgrid,
+     &              igrstr(2)+(iy-1)*intygrid,izSmoothedPatch,dxgrid(ix,iy),
+     &              dygrid(ix,iy),0.,sdgrid(ix,iy)
+              enddo
+            enddo
+            izSmoothedPatch = izSmoothedPatch + 1
+          endif
         else
           dxgrid(1:nxgr,1:nygr) = 0.
           dygrid(1:nxgr,1:nygr) = 0.
@@ -3147,6 +3167,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.34  2010/07/16 03:41:46  mast
+c       Changed model scaling so model can be made at different binning
+c
 c       Revision 3.33  2010/06/30 04:39:02  mast
 c       Fix for shortcircuit assumption
 c
