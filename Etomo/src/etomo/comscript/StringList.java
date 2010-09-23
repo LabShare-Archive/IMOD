@@ -15,6 +15,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2006/05/16 21:30:23  sueh
+ * <p> bug# 856 Changed parseString() to handle a null newList.
+ * <p>
  * <p> Revision 3.2  2005/05/09 23:13:46  sueh
  * <p> bug# 658 Added a key for saving to a comscript.  Added
  * <p> StringList(String key).  Added a reset() function to remove data without
@@ -42,24 +45,24 @@ import java.util.ArrayList;
  */
 
 public class StringList {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
   String[] elements = null;
   String key;
+  private boolean successiveEntriesAccumulate = false;
 
   public StringList() {
     elements = new String[0];
   }
-  
+
   public StringList(String key) {
     elements = new String[0];
     this.key = key;
   }
-  
+
   public StringList(int nElements) {
     elements = new String[nElements];
   }
-  
+
   void reset() {
     if (elements == null) {
       elements = new String[0];
@@ -67,6 +70,10 @@ public class StringList {
     else {
       elements = new String[elements.length];
     }
+  }
+
+  void setSuccessiveEntriesAccumulate() {
+    successiveEntriesAccumulate = true;
   }
 
   /**
@@ -79,15 +86,15 @@ public class StringList {
     }
     key = src.key;
   }
-  
+
   public StringList(String[] stringArray) {
     parseString(stringArray);
   }
-  
+
   public void setKey(String key) {
     this.key = key;
   }
-  
+
   public String getKey() {
     return key;
   }
@@ -132,7 +139,7 @@ public class StringList {
     }
     elements = newList.split(" +");
   }
-  
+
   /**
    * Parse a space delimited string into the StringList
    */
@@ -159,10 +166,11 @@ public class StringList {
       elements[0] = (String) elementArray.get(0);
     }
     else {
-      elements = (String[]) elementArray.toArray(new String[elementArray.size()]);
+      elements = (String[]) elementArray
+          .toArray(new String[elementArray.size()]);
     }
   }
-  
+
   public void parseString(StringList stringList) {
     if (stringList != null) {
       int nElements = stringList.elements.length;
@@ -177,14 +185,32 @@ public class StringList {
       }
     }
   }
-  
-  public void parse(ComScriptCommand scriptCommand,
-      boolean successiveEntriesAccumulate) throws InvalidParameterException {
+
+  public void parse(ComScriptCommand scriptCommand)
+      throws InvalidParameterException {
     if (successiveEntriesAccumulate) {
       parseString(scriptCommand.getValues(key));
     }
     else {
       parseString(scriptCommand.getValue(key));
+    }
+  }
+
+  public void updateComScript(ComScriptCommand scriptCommand)
+      throws BadComScriptException {
+    if (key == null || key.matches("\\s*")) {
+      throw new IllegalArgumentException();
+    }
+    if (getNElements() > 0) {
+      if (successiveEntriesAccumulate && getNElements() > 1) {
+        scriptCommand.setValues(key, elements);
+      }
+      else {
+        scriptCommand.setValue(key, toString());
+      }
+    }
+    else {
+      scriptCommand.deleteKey(key);
     }
   }
 }
