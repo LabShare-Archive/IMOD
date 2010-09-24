@@ -19,6 +19,10 @@ import java.util.Vector;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2009/09/22 20:51:11  sueh
+ * <p> bug# 1259 In order to process nonstandard tilt.com, added
+ * <p> caseInsensitive and separateWithASpace.
+ * <p>
  * <p> Revision 3.5  2005/05/09 22:44:40  sueh
  * <p> bug# 658 Handling keyword equals null in hasKeyword() and findKey().
  * <p>
@@ -434,12 +438,15 @@ public class ComScriptCommand {
   /**
    * Delete the comScriptInputArg elements it contains the specified key 
    * @param keyword
+   * @return true if the keyword was found, false if it was not found
    */
-  public void deleteKey(String keyword) {
+  public boolean deleteKey(String keyword) {
     int idx = findKey(keyword);
     if (idx >= 0) {
       stdinArgs.remove(idx);
+      return true;
     }
+    return false;
   }
 
   /**
