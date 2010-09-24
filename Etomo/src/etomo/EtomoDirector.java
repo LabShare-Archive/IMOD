@@ -486,7 +486,7 @@ public class EtomoDirector {
   /**
    * Checks newCurrentManager, sets currentManagerKey, and sets the current
    * manager in UIHarness.
-   * @param key
+   * @param managerKey
    * @param newWindow
    */
   private void setCurrentManager(BaseManager newCurrentManager,
@@ -1201,6 +1201,10 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.100  2010/09/08 19:16:09  sueh
+ * <p> bug# 1401 Added doAutomation(ManagerKey).  Removed unnecessary
+ * <p> return value in openTomogram.
+ * <p>
  * <p> Revision 1.99  2010/07/08 01:16:55  sueh
  * <p> bug# 1387 Getting rid of the !%!@#% includes for resource printing
  * <p> because it didn't compile on Windows.
