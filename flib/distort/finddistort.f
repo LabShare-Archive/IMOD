@@ -793,10 +793,10 @@ c         Get the underlying rotation angle from 1 to 2
 c
         theta = sign(acosd(0.5 * (bb(1, 1) + bb(2, 2))), bb(1, 2) - bb(2, 1))
         bfac = (bb(2, 1) - bb(1, 2)) / sind(theta)
-        ssqr = 0.
         if (abs(bfac) .lt. 2.) then
           print *,'WARNING: |(a21-a12)/sin(theta)| < 2, cannot solve for'//
-     &        ' stretch'
+     &        ' stretch, assuming no stretch'
+          ssqr = -bfac / 2.
         else
           ssqr = (-bfac + sqrt(bfac**2 -4)) / 2.
         endif
@@ -1079,6 +1079,9 @@ c$$$      end
 
 c
 c       $Log$
+c       Revision 1.15  2010/06/23 23:35:15  mast
+c       Call lsqr with double 0. and use default btol
+c
 c       Revision 1.14  2008/12/30 04:45:16  mast
 c       Switched to using C library functions
 c
