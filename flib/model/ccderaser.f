@@ -25,7 +25,7 @@ c
       parameter (imsiz=8200, limdiff = 512, limpatchout=40000)
 c
 c       Keep isdim synchronized to limpatch, mxd sync'd to cleanarea mxd
-      parameter (mxd=200,limpatch=5000,limobj=1000,limptout=25*limpatchout)
+      parameter (mxd=300,limpatch=10000,limobj=1000,limptout=25*limpatchout)
       real*4 array(imsiz*imsiz),title(20)
       real*4 diffArr(limdiff, limdiff), exceedCrit(limpatchout)
       integer*4 nxyz(3),mxyz(3),nx,ny,nz
@@ -49,8 +49,7 @@ c
       real*4 dmin,dmax,dmean,tmin,tmax,tsum,dmint,dmaxt,dmeant,tmean
       real*4 zmin,zmax,xmin,xmax,ymin,ymax,diamMerge
       integer*4 izsect,nfix,linefix,ip1,ip2,ix1,ix2,iy1,iy2,kti,ninobj
-      integer*4 ierr,ierr2,ifflip,numPtOut, numPatchOut,numObjOrig,ifMerge
-      real*4 xyscal,zscale,xofs,yofs,zofs,ximscale, yimscale, zimscale
+      integer*4 ierr,ierr2,numPtOut, numPatchOut,numObjOrig,ifMerge
       real*4 critMain, critGrow, critScan, critDiff, radiusMax, outerRadius
       real*4 scanOverlap, annulusWidth, radSq, sizemax, size, xcen, ycen, dist
       integer*4 ifPeakSearch, iScanSize,ifVerbose,numPatch,numPixels,ifTouch
@@ -61,7 +60,7 @@ c
       integer*4 ixfmin, ixfmax, iyfmin, iyfmax
       logical*4 circleCont, allSecCont
       logical readw_or_imod, typeonlist, nearby
-      integer*4 getimodhead,getimodscales,getImodObjSize,getImodSizes
+      integer*4 getImodObjSize,getImodSizes
       integer*4 getContPointSizes
 c       
       logical pipinput
@@ -544,7 +543,7 @@ c                   add circle point to patch if on this Z
                   size = sizes(indSize(iobj) + loop - 1)
                   if (nint(p_coord(3, ipt)) .eq. izsect .and. size .gt. 0)
      &                call addCircleToPatch(iobj, loop, size, nx, ny, ixfix,
-     &                iyfix, ninobj, ixfmin, ixfmax, iyfmin, iyfmax)
+     &                iyfix, ninobj, ixfmin, ixfmax, iyfmin, iyfmax, limpatch)
                   diamMerge = mxd
                 else
 c                   
@@ -622,7 +621,7 @@ c                               Merge if touch and size not too big
                                 diamMerge = mxd
                                 call addCircleToPatch(i, ip1, size, nx, ny,
      &                              ixfix, iyfix, ninobj, ixfmin, ixfmax,
-     &                              iyfmin, iyfmax)
+     &                              iyfmin, iyfmax, limpatch)
                                 sizes(indSize(i) + ip1 - 1) = 0.
                                 ifGrew = 1
                               endif
@@ -1231,7 +1230,7 @@ c
       implicit none
       integer*4 ixdim,iydim,ix1,ix2,iy1,iy2,iBordLo,iBordHi
       real*4 array(ixdim,iydim)
-      integer*4 miny,maxy,iy,ix,minx,maxx
+      integer*4 iy,ix
       if (ix1.eq.ix2)then
         do iy=min(iy1,iy2),max(iy1,iy2)
           array(ix1,iy)=(array(ix1-iBordLo,iy)+array(ix1+iBordHi,iy))/2.
@@ -1254,8 +1253,8 @@ c
       integer mxd,isdim
 c       
 c       Keep isdim synchronized to limpatch, mxd syn'd to main
-      parameter (mxd=200)
-      parameter (isdim=5000)
+      parameter (mxd=300)
+      parameter (isdim=10000)
       integer*4 ixdim,iydim,nx,ny,ifVerbose
       real*4 array(ixdim,iydim)
       integer*4 ixfix(*), iyfix(*)
@@ -1271,6 +1270,8 @@ c
       integer*4 k,ixl,iyl,nbordm1,ixbordlo,ixbordhi,iybordlo,iybordhi
       integer*4 npixel,npnts,nindep,ix,iy,ixofs,iyofs
       real*4 c1,rsq,fra,xsum
+      logical warned/.false./
+      save warned
 c       
 c       initialize list
 c       
@@ -1330,11 +1331,17 @@ c
      &        (nearedge.or. .not.adjacent(ixofs,iyofs)))) then
             npnts=npnts+1
             if (nindep .gt. 0) then
-              call polyterm(ixofs,iyofs,iorder,xr(1,npnts))
-              xr(nindep+1,npnts)=array(ix,iy)
-            else
-              xsum = xsum + array(ix,iy)
+              if (npnts .gt. isdim) then
+                if (.not. warned) write(*,'(/,a)')'WARNING: CCDERASER - SOME '
+     &              //'PATCHES ARE TOO LARGE FOR POLYNOMIAL FITS, USING MEAN '
+     &              //'OF SURROUNDING PIXELS'
+                warned = .true.
+              else
+                call polyterm(ixofs,iyofs,iorder,xr(1,npnts))
+                xr(nindep+1,npnts)=array(ix,iy)
+              endif
             endif
+            xsum = xsum + array(ix,iy)
           endif
         enddo
       enddo
@@ -1343,11 +1350,10 @@ c       do regression or just get mean for order 0
 c       
       if (ifVerbose.gt.0)write (*,104)ninobj,ixcen,iycen,npnts
 104   format(/,i4,' points to fix at',2i6,',',i4,' points being fit')
-      if (nindep .gt. 0) then
+      if (nindep .gt. 0 .and. npnts .le. isdim) then
         call multr(xr,nindep+1,npnts,sx,ss,ssd,d,r,xm,sd,b,b1,c1,rsq ,fra)
-      else
-        xsum = xsum / npnts
       endif
+      xsum = xsum / npnts
 c       
 c       replace points on list with values calculated from fit
 c       cannot truncate range by nbordm1 because could be on edge of image
@@ -1357,7 +1363,7 @@ c
           ixofs=ix-ixcen
           iyofs=iy-iycen
           if(inlist(ixofs,iyofs))then
-            if (nindep .gt. 0) then
+            if (nindep .gt. 0 .and. npnts .le. isdim) then
               call polyterm(ixofs,iyofs,iorder,vect)
               xsum=c1
               do i=1,nindep
@@ -1427,13 +1433,13 @@ c       Look at all pixels in range, add to object at new base
       end
 
       subroutine addCircleToPatch(iobj, ipt, size, nx, ny, ixfix, iyfix,
-     &    ninobj, ixfmin, ixfmax, iyfmin, iyfmax)
+     &    ninobj, ixfmin, ixfmax, iyfmin, iyfmax, limpatch)
       implicit none
       include 'model.inc'
-      integer*4 ixfmin, ixfmax, iyfmin, iyfmax
+      integer*4 ixfmin, ixfmax, iyfmin, iyfmax, limpatch
       integer*4 iobj, ipt, ixfix(*), iyfix(*), ninobj, nx, ny
       real*4 size, xcen, ycen, xx, yy
-      integer*4 ip, ixStart, ixEnd, iyStart, iyEnd, ix, iy
+      integer*4 ip, ixStart, ixEnd, iyStart, iyEnd, ix, iy, ifin, ninstart
       ip = object(ibase_obj(iobj) + ipt)
       xcen = p_coord(1, ip)
       ycen = p_coord(2, ip)
@@ -1441,18 +1447,35 @@ c       Look at all pixels in range, add to object at new base
       ixEnd = min(nx, nint(xcen + size + 2.))
       iyStart = max(1, nint(ycen - size - 2.))
       iyEnd = min(ny, nint(ycen + size + 2.))
+      ninstart = ninobj
        do iy = iyStart, iyEnd
         do ix = ixStart, ixEnd
           xx = ix - 0.5
           yy = iy - 0.5
           if ((xx-xcen)**2 + (yy-ycen)**2 .le. size**2) then
-            ninobj = ninobj + 1
-            ixfix(ninobj) = ix
-            iyfix(ninobj) = iy
-            ixfmin = min(ixfmin, ix)
-            ixfmax = max(ixfmax, ix)
-            iyfmin = min(iyfmin, iy)
-            iyfmax = max(iyfmax, iy)
+            ifin = 0
+            if (ix .ge. ixfmin .and. ix .le. ixfmax .and. iy .ge. iyfmin .and.
+     &          iy .le. iyfmax) then
+              do ip = 1, ninstart
+                if (ix .eq. ixfix(ip) .and. iy .eq. iyfix(ip)) then
+                  ifin = 0
+                  exit
+                endif
+              enddo
+            endif
+            if (ifin .eq. 0) then
+              ninobj = ninobj + 1
+c
+c               This is not supposed to happen, but better to check...
+              if (ninobj .gt. limpatch) call exitError(
+     &            'TOO MANY POINTS IN PATCH TO MERGE ANOTHER CIRCLE IN')
+              ixfix(ninobj) = ix
+              iyfix(ninobj) = iy
+              ixfmin = min(ixfmin, ix)
+              ixfmax = max(ixfmax, ix)
+              iyfmin = min(iyfmin, iy)
+              iyfmax = max(iyfmax, iy)
+            endif
           endif
         enddo
       enddo
@@ -1473,6 +1496,10 @@ c       Look at all pixels in range, add to object at new base
       
 c       
 c       $Log$
+c       Revision 3.28  2010/06/26 18:09:03  mast
+c       Fixed radMaxSq not being defined for difference search if it never got
+c       defined in the peak search
+c
 c       Revision 3.27  2010/02/05 15:44:33  mast
 c       Ring SD needed to be computed with doubles
 c
