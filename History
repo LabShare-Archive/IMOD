@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/25/10: Increased allowed patch sizes in Ccderaser, made it fall back to
+taking mean when there are too many points for polynomial fit (In 4.1).
+
 9/22/10: Fixed Blendmont so it moves along the short dimension first when
 finding an edge function, and doubled the default box size values for frame
 sizes up to 4096, with a small increase in spacing and indentation too.
