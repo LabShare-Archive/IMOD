@@ -66,7 +66,9 @@ short = addgrad
 type = FP
 usage = Starting values for the mag and rotation gradients
 tooltip =
-manpage = This option provides starting values for the minimization.
+manpage = This option provides starting values for the minimization.  The
+reported gradient is not incremental to these values, unlike when a gradient
+file is entered.
 The magnification gradient correction is specified by
 two parameters: % of mag change per micron of Z height, and degrees of
 rotation per micron of Z height.  If -gradient has been entered, the values
