@@ -42,7 +42,7 @@ static char
         ":r:B:Resume, retaining existing finished files (the default is to remove all log files and redo everything)",
         ":s:B:Run a single command file named root_name or root_name.com",
         ":g:B:Go process, without asking for confirmation after probing machines",
-        ":n:I:Set the \"nice\" value to the given number (default 18, range 0-19)",
+        ":n:I:Set the \"nice\" value to the given number (default 18, range 0-19).  No effect when running on a queue.",
         ":w:FN:Full path to working directory on remote machines",
         ":d:I:Drop a machine after given number of failures in a row (default 5)",
         ":e:I:Quit after the given # of processing errors for a chunk (default 5)",
@@ -51,7 +51,7 @@ static char
         ":Q:CH:Machine name to use for the queue (default queue)",
         ":P:B:Output process ID",
         ":v:B:Print extra information.",
-        ":V:CH:Syntax:  class,function,...,verbosity.  All elements are optional .  Which class and functions(s) should print extra information.  Verbosity (how much information to print): 1:normal, 2: a lot.  Can be limited to a class and function(s).  Case insensitive.  No effect if '-v' is not used.",
+        ":V:CH:Syntax:  class,function,...,verbosity.  All elements are optional, except that if there is a function, then must be a class.  Which class and functions(s) should print extra information.  Verbosity (how much information to print): 1:normal, 2: a lot.  Can be limited to a class and function(s).  Case insensitive.  Class is matches if the current class ends with the class string entered here.  No effect if '-v' is not used.",
         ":help:B:Print usage message" };
 static char *queueNameDefault = "queue";
 Processchunks *processchunksInstance;
@@ -262,9 +262,15 @@ void Processchunks::startTimers() {
   //Make sure there isn't already a timer going
   if (mTimerId != 0) {
     killTimer(mTimerId);
+    if (isVerbose(mDecoratedClassName, __func__)) {
+      *mOutStream << "startTimers:The timer is off" << endl;
+    }
     mTimerId = 0;
   }
   //The timer event function should be called immediately and then put on a timer
+  if (isVerbose(mDecoratedClassName, __func__)) {
+    *mOutStream << "startTimers:Turning the timer on" << endl;
+  }
   QTimer::singleShot(0, this, SLOT(timerEvent()));
   if (mQueue) {
     //Must look at files instead of stdout/err.  Prevent program from being a hog.
@@ -289,16 +295,8 @@ void Processchunks::timerEvent(QTimerEvent *timerEvent) {
     handleInterrupt();
   }
   if (mKill) {
-    //Handle the kill timer.
-    //This is a timeout if 150 seconds have gone by.  For a queue this means that
-    //this is the 150th timerEvent triggered by the kill timer
-    //For a non-queue this happens the first time the kill timer goes off.
-    if (mQueue) {
-      checkQueueProcessesDone(mKillCounter >= 150);
-    }
-    else {
-      cleanupKillProcesses(!mQueue);
-    }
+    //If all the kill requests have gone out, start the timeout
+    killProcessTimeout();
     return;
   }
   //Handle the regular timer.
@@ -468,6 +466,9 @@ void Processchunks::timerEvent(QTimerEvent *timerEvent) {
 void Processchunks::cleanupAndExit(int exitCode) {
   if (mTimerId != 0) {
     killTimer(mTimerId);
+    if (isVerbose(mDecoratedClassName, __func__)) {
+      *mOutStream << "cleanupAndExit:The timer is off" << endl;
+    }
     mTimerId = 0;
   }
   if (exitCode == 0) {
@@ -541,17 +542,19 @@ void Processchunks::killProcesses(QStringList *dropList) {
     //Continue with timer loop
     return;
   }
+  if (isVerbose(mDecoratedClassName, __func__)) {
+    *mOutStream << "Turning on ProcessChunks::mKill" << endl;
+  }
   mKill = true;
   killTimer(mTimerId);
+  if (isVerbose(mDecoratedClassName, __func__)) {
+    *mOutStream << "killProcesses:The timer is off" << endl;
+  }
   //Slow down the timer for killing
-  if (!mQueue) {
-    //Start a time out for waiting for kill processes to finish
-    mTimerId = startTimer(15 * 1000);
+  if (isVerbose(mDecoratedClassName, __func__)) {
+    *mOutStream << "killProcesses:Turning the timer on" << endl;
   }
-  else {
-    //for queue set timer to 1 sec intervals
-    mTimerId = startTimer(1000);
-  }
+  mTimerId = startTimer(1000);
   killProcessOnNextMachines();
 }
 
@@ -581,8 +584,9 @@ void Processchunks::killProcessOnNextMachines() {
     }
   }
   //Clean up when all machines are completed
-  if (mKillProcessMachineIndex >= mMachineList.size()
-      && !mAllKillProcessesHaveStarted) {
+  //This assumes that msgKillProcessStarted has already been called for every
+  //kill request, including the ones that require waiting.
+  if (mKillProcessMachineIndex >= mMachineList.size()) {
     mAllKillProcessesHaveStarted = true;
   }
 }
@@ -605,8 +609,7 @@ void Processchunks::msgKillProcessStarted(const int processIndex) {
 //When a non-queue kill request was sent, this call originates in the slot
 //ProcessHandler::handleFinished.
 //
-//When a queue kill request was sent, this call originates in
-//Processchunks::checkQueueProcessesDone (called by timerEvent).
+//This is not used for queue kill requests.
 void Processchunks::msgKillProcessDone(const int processIndex) {
   mProcessesWithUnfinishedKillRequest.removeOne(processIndex);
   if (mAllKillProcessesHaveStarted
@@ -615,46 +618,57 @@ void Processchunks::msgKillProcessDone(const int processIndex) {
   }
 }
 
+//Cluster:
+//calculates the timeout and calls cleanupKillProcesses.
+//Queue:
+//Calculates the timeout.
 //Removes process indexes of finished queued chunks from
 //mProcessesWithUnfinishedKillRequest.
 //Calls clean up function if every kill is done or timeout is true.
 //Called by timerEvent.
-void Processchunks::checkQueueProcessesDone(const bool timeout) {
-  if (!mQueue) {
-    *mOutStream
-        << "Warning: Processchunks::checkQueueProcessesDone called when mQueue is false"
-        << endl;
-    return;
-  }
+void Processchunks::killProcessTimeout() {
   if (!mAllKillProcessesHaveStarted) {
-    //Don't start the counter or start cleaning up kill requests until all the
-    //ill requests have gone out.  Otherwise it will timeout and/or some request
-    //won't go out.
+    //Don't start the timeout counter or (for the queue) start cleaning up kill
+    //requests until all the kill requests have gone out.  Otherwise it will
+    //timeout and (for queue) its possible that some requests won't go out.
     return;
   }
   mKillCounter++;
-  //updating mProcessesWithUnfinishedKillRequest is not done by
-  //ProcessHandler in the case of a queue.
-  int index = 0;
-  //Remove indexes associated with finished queued chunks
-  //The size of mProcessesWithUnfinishedKillRequest may decrease while this
-  //loop is running.
-  while (index < mProcessesWithUnfinishedKillRequest.size()) {
-    int processIndex = mProcessesWithUnfinishedKillRequest.at(index);
-    //The .qid file is deleted when a queued chunk finishes
-    if (!mProcessArray[processIndex].qidFileExists()) {
-      //This call will cause processIndex to be removed from
-      //mProcessesWithUnfinishedKillRequest so don't increment index.
-      mProcessArray[processIndex].cleanupKillProcess();
-    }
-    else {
-      index++;
+  if (!mQueue) {
+    if (mKillCounter >= 15) {
+      //No need to call clean up until timeout.  msgKillProcessDone calls clean up.
+      cleanupKillProcesses(true);
     }
   }
-  //Move on to clean up if all kills have completed or kill processes has timed
-  //out.
-  if (timeout || mProcessesWithUnfinishedKillRequest.isEmpty()) {
-    cleanupKillProcesses(timeout);
+  else {
+    bool timeout = mKillCounter >= 150;
+    //updating mProcessesWithUnfinishedKillRequest is not done by
+    //ProcessHandler in the case of a queue.
+    int index = 0;
+    //Remove indexes associated with finished queued chunks
+    //The size of mProcessesWithUnfinishedKillRequest may decrease while this
+    //loop is running.
+    while (index < mProcessesWithUnfinishedKillRequest.size()) {
+      int processIndex = mProcessesWithUnfinishedKillRequest.at(index);
+      //The .qid file is deleted when a queued chunk finishes
+      if (!mProcessArray[processIndex].qidFileExists()) {
+        //This call will cause processIndex to be removed from
+        //mProcessesWithUnfinishedKillRequest so don't increment index.
+        if (isVerbose(mDecoratedClassName, __func__)) {
+          *mOutStream << "Calling cleanupKillProcess from killProcessTimeout"
+              << endl;
+        }
+        mProcessArray[processIndex].cleanupKillProcess();
+      }
+      else {
+        index++;
+      }
+    }
+    //Move on to clean up if all kills have completed or kill processes has timed
+    //out.
+    if (timeout || mProcessesWithUnfinishedKillRequest.isEmpty()) {
+      cleanupKillProcesses(timeout);
+    }
   }
 }
 
@@ -686,6 +700,9 @@ void Processchunks::cleanupKillProcesses(const bool timeout) {
   //Kill the timer to clean up.  It will go back on for D and P.
   if (mTimerId != 0) {
     killTimer(mTimerId);
+    if (isVerbose(mDecoratedClassName, __func__)) {
+      *mOutStream << "cleanupKillProcesses:The timer is off" << endl;
+    }
     mTimerId = 0;
   }
   //Not all kill requests completed so send a timeout message to the processes
@@ -712,6 +729,9 @@ void Processchunks::cleanupKillProcesses(const bool timeout) {
     //Reset kill values
     mKillCounter = 0;
     mDropList.clear();
+    if (isVerbose(mDecoratedClassName, __func__)) {
+      *mOutStream << "Turning off ProcessChunks::mKill" << endl;
+    }
     mKill = false;
     mAllKillProcessesHaveStarted = false;
     mKillProcessMachineIndex = -1;
@@ -1107,7 +1127,13 @@ void Processchunks::exitIfDropped(const int minFail, const int failTot,
       *mOutStream << "minFail:" << minFail << ",mDropCrit:" << mDropCrit
           << endl;
     }
-    cleanupAndExit(1);
+    if (!mQueue) {
+      cleanupAndExit(1);
+    }
+    else {
+      mAns = 'E';
+      killProcesses();
+    }
   }
   if (mPausing && assignTot == 0) {
     *mOutStream
@@ -1350,7 +1376,7 @@ const bool Processchunks::checkChunk(int &runFlag, bool &noChunks,
   //Skip a chunk if it has errored, if this machine has given chunk
   //error, and not all machines have done so
   chunkOk = true;
-  if (runFlag == ProcessHandler::sync
+  if ((runFlag == ProcessHandler::sync || runFlag == ProcessHandler::notDone)
       && mProcessArray[processIndex].getNumChunkErr() > 0
       && machine->isChunkErred() && chunkErrTot < mNumCpus) {
     chunkOk = false;
@@ -1573,6 +1599,14 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.11  2010/09/20 22:05:04  sueh
+ bug# 1364 In checkQueueProcessesDone prevent the kill counter from
+ starting until all kill requests have gone out.  Increase kill timeout to 150.
+ This handles queue that aren't killing properly.  The sync command is
+ being taken out of queuechunk, so this may not be necessary.  But its
+ important that processchunks being very unlikely to end until the chunks
+ are either killed or have finished.
+
  Revision 1.10  2010/09/16 03:45:05  sueh
  bug# 1364 Added verbosity level to -V parameter.  In exitIfDropped
  handling the situation with start.com fails and the number of machines is
