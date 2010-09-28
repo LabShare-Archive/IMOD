@@ -90,10 +90,10 @@ private:
   void runProcess(MachineHandler *machine, const int cpuIndex,
       const int processIndex);
   void cleanupAndExit(int exitCode = 0);
+  void killProcessTimeout();
   void killProcesses(QStringList *dropList = NULL);
   void startTimers();
   void cleanupKillProcesses(const bool timeout);
-  void checkQueueProcessesDone(const bool timeout);
 
   int mSizeProcessArray;
   ProcessHandler *mProcessArray;
