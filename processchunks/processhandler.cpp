@@ -433,7 +433,7 @@ void ProcessHandler::getErrorMessageFromOutput(QString &errorMess) {
 void ProcessHandler::printTooManyErrorsMessage(const int numErr) {
   mProcesschunks->getOutStream() << getComFileName()
       << " has given processing error " << numErr
-      << " times - giving up:  mExitCode:" << mExitCode << "mExitStatus:"
+      << " times - giving up:  mExitCode:" << mExitCode << ",mExitStatus:"
       << mExitStatus << endl;
 }
 
@@ -625,8 +625,13 @@ const bool ProcessHandler::killProcess() {
     //Nothing to do - no process is running
     return true;
   }
+  if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+    mProcesschunks->getOutStream() << mComFileName
+        << ":Turning on ProcessHandler::mKill" << endl;
+  }
   mKill = true;
   //Tell processchunks that a process is being killed
+  //This must be done before relinquishing control.
   mProcesschunks->msgKillProcessStarted(mProcessIndex);
   mFlag = notDone;
   mRanContinueKillProcess = false;
@@ -771,6 +776,10 @@ void ProcessHandler::continueKillProcess(const bool asynchronous) {
     //No kill request to wait for - go straight to clean up.
     //This happens when a queue receives a drop command or when the PID was
     //never received from a non-queue process.
+    if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+      mProcesschunks->getOutStream()
+          << "Calling cleanupKillProcess from continueKillProcess" << endl;
+    }
     cleanupKillProcess();
   }
 }
@@ -797,6 +806,10 @@ void ProcessHandler::handleFinished(const int exitCode,
       mProcesschunks->getCurrentDir().remove(mCshFile->fileName());
     }
     if (mKill) {
+      if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+        mProcesschunks->getOutStream()
+            << "Calling cleanupKillProcess from handleFinished" << endl;
+      }
       cleanupKillProcess();
     }
     mMachine = NULL;
@@ -809,8 +822,8 @@ void ProcessHandler::handleFinished(const int exitCode,
 void ProcessHandler::cleanupKillProcess() {
   if (!mKill) {
     mProcesschunks->getOutStream()
-        << "Warning: ProcessHandler::cleanupKillProcess called when mKill is false"
-        << endl;
+        << "Warning: ProcessHandler::cleanupKillProcess called for "
+        << mComFileName << " when mKill is false" << endl;
     return;
   }
   //Tell processchunks that a process is killed
@@ -821,6 +834,10 @@ void ProcessHandler::cleanupKillProcess() {
     mKillProcess->kill();
   }
   mKillFinishedSignalReceived = false;
+  if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+    mProcesschunks->getOutStream() << mComFileName
+        << ":Turning off ProcessHandler::mKill in cleanupKillProcess" << endl;
+  }
   mKill = false;
 }
 
@@ -844,6 +861,11 @@ void ProcessHandler::msgKillProcessTimeout() {
     mKillProcess->kill();
   }
   mKillFinishedSignalReceived = false;
+  if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+    mProcesschunks->getOutStream() << mComFileName
+        << ":Turning off ProcessHandler::mKill in msgKillProcessTimeout"
+        << endl;
+  }
   mKill = false;
 }
 
@@ -854,30 +876,33 @@ void ProcessHandler::handleKillFinished(const int exitCode,
         << ",exitCode:" << exitCode << ",exitStatus:" << exitStatus << endl;
   }
   mKillFinishedSignalReceived = true;
-  if (exitCode) {
-    if (exitCode == 100) {
-      //Process finished before it could be killed
-      cleanupKillProcess();
+  if (!mProcesschunks->isQueue()) {
+    return;
+  }
+  //The queue kill request is syncronous.
+  bool cleanup = true;
+  //exitCode == 0:  Kill is completed
+  //exitCode == 100:  Process finished before it could be killed
+  //exitCode == 101:  Unable to pause because the process had already started.
+  if (exitCode != 0 && exitCode != 100 && exitCode != 101) {
+    cleanup = false;
+    mProcesschunks->getOutStream() << "kill process exitCode:" << exitCode
+        << endl;
+    QByteArray byteArray = mKillProcess->readAllStandardOutput();
+    if (!byteArray.isEmpty()) {
+      mProcesschunks->getOutStream() << byteArray << endl;
     }
-    else if (exitCode == 101) {
-      //Unable to pause because the process had already started.
-      cleanupKillProcess();
-    }
-    else {
-      mProcesschunks->getOutStream() << "kill process exitCode:" << exitCode
-          << endl;
-      QByteArray byteArray = mKillProcess->readAllStandardOutput();
-      if (!byteArray.isEmpty()) {
-        mProcesschunks->getOutStream() << byteArray << endl;
-      }
-      byteArray = mKillProcess->readAllStandardError();
-      if (!byteArray.isEmpty()) {
-        mProcesschunks->getOutStream() << byteArray << endl;
-      }
+    byteArray = mKillProcess->readAllStandardError();
+    if (!byteArray.isEmpty()) {
+      mProcesschunks->getOutStream() << byteArray << endl;
     }
   }
-  else {
-    //kill is completed
+  if (cleanup) {
+    if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+      mProcesschunks->getOutStream()
+          << "Calling cleanupKillProcess from handleKillFinished with exitCode:"
+          << exitCode << endl;
+    }
     cleanupKillProcess();
   }
 }
