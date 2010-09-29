@@ -262,6 +262,8 @@ public final class TiltalignParam extends ConstTiltalignParam implements
 
     rotationAngle.set(oldParam.getInitialImageRotation());
     separateGroup = oldParam.getSeparateViewGroups();
+    separateGroup.setKey(SEPARATE_GROUP_KEY);
+    separateGroup.setSuccessiveEntriesAccumulate();
     tiltAngleSpec.set(oldParam.getTiltAngleSpec());
     angleOffset.set(oldParam.getTiltAngleOffset());
     //Set RotationAngleSolutionType and RotationFixedView
@@ -372,8 +374,7 @@ public final class TiltalignParam extends ConstTiltalignParam implements
     ParamUtilities.updateScriptParameter(scriptCommand, EXCLUDE_LIST_KEY,
         excludeList);
     rotationAngle.updateComScript(scriptCommand);
-    ParamUtilities.updateScriptParameter(scriptCommand, SEPARATE_GROUP_KEY,
-        separateGroup);
+    separateGroup.updateComScript(scriptCommand);
     tiltAngleSpec.updateComScript(scriptCommand);
     angleOffset.updateComScript(scriptCommand);
     projectionStretch.updateComScript(scriptCommand);
@@ -949,6 +950,12 @@ public final class TiltalignParam extends ConstTiltalignParam implements
 
 /**
  * <p> $Log$
+ * <p> Revision 3.25  2010/09/23 22:15:58  sueh
+ * <p> bug# 1404 Allowing separateGroup to have multiple entries.
+ * <p>
+ * <p> Revision 3.23  2008/07/16 20:14:27  sueh
+ * <p> bug# 1126 In setRotationAngle changed parameter to String.
+ * <p>
  * <p> Revision 3.22  2007/03/07 21:02:20  sueh
  * <p> bug# 981 Added beamTiltOption and fixedOrInitialBeamTilt.
  * <p>

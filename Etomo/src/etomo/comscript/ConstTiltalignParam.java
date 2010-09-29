@@ -332,6 +332,8 @@ public class ConstTiltalignParam implements CommandDetails {
     excludeList = new StringList();
     rotationAngle.reset();
     separateGroup = new StringList();
+    separateGroup.setKey(SEPARATE_GROUP_KEY);
+    separateGroup.setSuccessiveEntriesAccumulate();
     tiltAngleSpec.reset();
     angleOffset.reset();
     projectionStretch.reset();
@@ -1044,6 +1046,13 @@ public class ConstTiltalignParam implements CommandDetails {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.42  2010/09/23 21:05:19  sueh
+ * <p> bug# 1404 Allowing separateGroup to have multiple entries.
+ * <p>
+ * <p> Revision 3.40  2010/02/17 04:47:54  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 3.39  2010/01/11 23:49:01  sueh
  * <p> bug# 1299 Added isMessageReporter.
  * <p>

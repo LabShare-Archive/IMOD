@@ -11,6 +11,17 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.50  2010/09/24 00:55:28  sueh
+ * <p> bug# 1404 Changed excludelist and excludelist2 to load mutliple entries
+ * <p> and output one entry.
+ * <p>
+ * <p> Revision 3.49  2010/09/23 22:23:13  sueh
+ * <p> bug# 1404 Adapting to changes in StringList without changing the
+ * <p> functionality.
+ * <p>
+ * <p> Revision 3.45.2.1  2010/05/26 00:38:12  sueh
+ * <p> bug# 1367 Added actionIfGPUFails.
+ * <p>
  * <p> From Revision 3.48  2010/05/21 20:57:25  sueh
  * <p> bug# 1367 Added actionIfGPUFails.
  * <p>
@@ -352,7 +363,11 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     inputFile.set("");
     outputFile.set("");
     excludeList.setKey("EXCLUDELIST");
+    excludeList.setSuccessiveEntriesAccumulate();
+    excludeList.setConvertToSingleEntry();
     excludeList2.setKey("EXCLUDELIST2");
+    excludeList2.setSuccessiveEntriesAccumulate();
+    excludeList2.setConvertToSingleEntry();
     localAlignFile.set("");
     tiltFile.set("");
     xTiltFile.set("");
@@ -753,8 +768,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       inputFile.parse(scriptCommand);
       outputFile.parse(scriptCommand);
       imageBinned.parse(scriptCommand);
-      excludeList.parse(scriptCommand, true);
-      excludeList2.parse(scriptCommand, true);
+      excludeList.parse(scriptCommand);
+      excludeList2.parse(scriptCommand);
       tempFullImage.parse(scriptCommand);
       if (!tempFullImage.isEmpty()) {
         String[] params = tempFullImage.toString().split("\\s+", 2);
@@ -969,10 +984,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     inputFile.updateComScript(scriptCommand);
     outputFile.updateComScript(scriptCommand);
     imageBinned.updateComScript(scriptCommand);
-    ParamUtilities.updateScriptParameter(scriptCommand, excludeList.getKey(),
-        excludeList);
-    ParamUtilities.updateScriptParameter(scriptCommand, excludeList2.getKey(),
-        excludeList2);
+    excludeList.updateComScript(scriptCommand);
+    excludeList2.updateComScript(scriptCommand);
     if (fullImageX > Integer.MIN_VALUE) {
       tempFullImage.set(String.valueOf(fullImageX) + " "
           + String.valueOf(fullImageY));

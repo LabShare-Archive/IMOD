@@ -35,6 +35,12 @@ import etomo.type.ScriptParameter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.31  2010/09/23 21:05:00  sueh
+ * <p> bug# 1404 Allowing additionalViewGroups to have multiple entries.
+ * <p>
+ * <p> Revision 3.29  2010/03/12 03:57:16  sueh
+ * <p> bug# 1325 Added isBeadDiameterSet.
+ * <p>
  * <p> Revision 3.28  2010/02/17 04:47:54  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -267,6 +273,7 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
     rotationAngle = new ScriptParameter(EtomoNumber.Type.DOUBLE,
         IMAGE_ROTATION_KEY, requiredMap);
     additionalViewGroups.setKey(ADDITIONAL_VIEW_GROUPS_KEY);
+    additionalViewGroups.setSuccessiveEntriesAccumulate();
 
     tiltAngleSpec.setRangeMinKey("FirstTiltAngle", "first");
     tiltAngleSpec.setRangeStepKey("TiltIncrement", "increment");
@@ -451,7 +458,7 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
   public ConstEtomoNumber getPostFitRescueResidual() {
     return postFitRescueResidual;
   }
-  
+
   public boolean isBeadDiameterSet() {
     return !beadDiameter.isNull();
   }
@@ -511,9 +518,9 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
       pieceListFile = scriptCommand.getValue(PIECE_LIST_FILE_KEY);
       seedModelFile = scriptCommand.getValue(SEED_MODEL_FILE_KEY);
       outputModelFile = scriptCommand.getValue(OUTPUT_MODEL_FILE_KEY);
-      skipViews.parse(scriptCommand, false);
+      skipViews.parse(scriptCommand);
       rotationAngle.parse(scriptCommand);
-      additionalViewGroups.parse(scriptCommand, true);
+      additionalViewGroups.parse(scriptCommand);
       tiltAngleSpec.parse(scriptCommand);
       tiltDefaultGrouping.parse(scriptCommand);
       tiltAngleGroups = ParamUtilities.setParamIfPresent(scriptCommand,
@@ -605,8 +612,9 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
     ParamUtilities.updateScriptParameter(scriptCommand, skipViews.getKey(),
         skipViews);
     rotationAngle.updateComScript(scriptCommand);
-    ParamUtilities.updateScriptParameter(scriptCommand, additionalViewGroups
-        .getKey(), additionalViewGroups);
+    // ParamUtilities.updateScriptParameter(scriptCommand, additionalViewGroups
+    //    .getKey(), additionalViewGroups);
+    additionalViewGroups.updateComScript(scriptCommand);
     tiltAngleSpec.updateComScript(scriptCommand);
     tiltDefaultGrouping.updateComScript(scriptCommand);
     ParamUtilities.updateScriptParameter(scriptCommand, TILT_ANGLE_GROUPS_KEY,

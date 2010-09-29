@@ -15,6 +15,17 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2010/09/24 00:54:43  sueh
+ * <p> bug# 1404 Added mConvertToSingleEntry.
+ * <p>
+ * <p> Revision 3.4  2010/09/23 21:06:49  sueh
+ * <p> bug# 1404 Added boolean successiveEntriesAccumulate.  Added parse
+ * <p> ComScriptCommand).  Removed successiveEntriesAccumulate
+ * <p> parameter from updateComScript.
+ * <p>
+ * <p> Revision 3.3  2006/05/16 21:30:23  sueh
+ * <p> bug# 856 Changed parseString() to handle a null newList.
+ * <p>
  * <p> Revision 3.2  2005/05/09 23:13:46  sueh
  * <p> bug# 658 Added a key for saving to a comscript.  Added
  * <p> StringList(String key).  Added a reset() function to remove data without
@@ -42,80 +53,100 @@ import java.util.ArrayList;
  */
 
 public class StringList {
-  public static final String rcsid =
-    "$Id$";
-  String[] elements = null;
-  String key;
+  public static final String rcsid = "$Id$";
+  private String[] mElements = null;
+  private String mKey;
+  private boolean mSuccessiveEntriesAccumulate = false;
+  private boolean mConvertToSingleEntry = false;
 
   public StringList() {
-    elements = new String[0];
+    mElements = new String[0];
   }
-  
+
   public StringList(String key) {
-    elements = new String[0];
-    this.key = key;
+    mElements = new String[0];
+    this.mKey = key;
   }
-  
+
   public StringList(int nElements) {
-    elements = new String[nElements];
+    mElements = new String[nElements];
   }
-  
+
   void reset() {
-    if (elements == null) {
-      elements = new String[0];
+    if (mElements == null) {
+      mElements = new String[0];
     }
     else {
-      elements = new String[elements.length];
+      mElements = new String[mElements.length];
     }
+  }
+
+  /**
+  * MSuccessiveEntriesAccumulate defaults to false.  Turning on
+  * mSuccessiveEntriesAccumulate means that all entries matching mKey will be
+  * loaded.
+  */
+  void setSuccessiveEntriesAccumulate() {
+    mSuccessiveEntriesAccumulate = true;
+  }
+
+  /**
+   * MConvertToSingleEntry defaults to false.  Turning on mConvertToSingleEntry
+   * means that all entries matching mKey will be deleted and then mElement
+   * will be saved into one entry.  If mSuccessiveEntriesAccumulate is false,
+   * mConvertToSingleEntry will be ignored.
+   */
+  void setConvertToSingleEntry() {
+    mConvertToSingleEntry = true;
   }
 
   /**
    * Copy constructor
    */
   public StringList(StringList src) {
-    elements = new String[src.getNElements()];
-    for (int i = 0; i < elements.length; i++) {
-      elements[i] = src.get(i);
+    mElements = new String[src.getNElements()];
+    for (int i = 0; i < mElements.length; i++) {
+      mElements[i] = src.get(i);
     }
-    key = src.key;
+    mKey = src.mKey;
   }
-  
+
   public StringList(String[] stringArray) {
     parseString(stringArray);
   }
-  
+
   public void setKey(String key) {
-    this.key = key;
+    this.mKey = key;
   }
-  
+
   public String getKey() {
-    return key;
+    return mKey;
   }
 
   public void setNElements(int nElements) {
     //  Allocate a new string array
-    elements = new String[nElements];
+    mElements = new String[nElements];
   }
 
   public void set(int index, String value) {
-    elements[index] = value;
+    mElements[index] = value;
   }
 
   public String get(int index) {
-    return elements[index];
+    return mElements[index];
   }
 
   public int getNElements() {
-    return elements.length;
+    return mElements.length;
   }
 
   public String toString() {
-    if (elements == null || elements.length == 0) {
+    if (mElements == null || mElements.length == 0) {
       return "";
     }
     StringBuffer buffer = new StringBuffer();
-    for (int i = 0; i < elements.length; i++) {
-      buffer.append(elements[i]);
+    for (int i = 0; i < mElements.length; i++) {
+      buffer.append(mElements[i]);
       buffer.append(" ");
     }
     return buffer.toString();
@@ -127,19 +158,19 @@ public class StringList {
   public void parseString(String newList) {
     //  If the string is only white space set the StringList to the null set
     if (newList == null || newList.matches("\\s*")) {
-      elements = new String[0];
+      mElements = new String[0];
       return;
     }
-    elements = newList.split(" +");
+    mElements = newList.split(" +");
   }
-  
+
   /**
    * Parse a space delimited string into the StringList
    */
   public void parseString(String[] newList) {
     //  If the string is only white space set the StringList to the null set
     if (newList == null || newList.length == 0) {
-      elements = new String[0];
+      mElements = new String[0];
       return;
     }
     ArrayList elementArray = new ArrayList();
@@ -152,39 +183,64 @@ public class StringList {
       }
     }
     if (elementArray.size() == 0) {
-      elements = new String[0];
+      mElements = new String[0];
     }
     else if (elementArray.size() == 1) {
-      elements = new String[1];
-      elements[0] = (String) elementArray.get(0);
+      mElements = new String[1];
+      mElements[0] = (String) elementArray.get(0);
     }
     else {
-      elements = (String[]) elementArray.toArray(new String[elementArray.size()]);
+      mElements = (String[]) elementArray.toArray(new String[elementArray
+          .size()]);
     }
   }
-  
+
   public void parseString(StringList stringList) {
     if (stringList != null) {
-      int nElements = stringList.elements.length;
+      int nElements = stringList.mElements.length;
       if (nElements < 0) {
-        elements = new String[0];
+        mElements = new String[0];
       }
       else {
-        elements = new String[nElements];
+        mElements = new String[nElements];
         for (int i = 0; i < nElements; i++) {
-          elements[i] = stringList.elements[i];
+          mElements[i] = stringList.mElements[i];
         }
       }
     }
   }
-  
-  public void parse(ComScriptCommand scriptCommand,
-      boolean successiveEntriesAccumulate) throws InvalidParameterException {
-    if (successiveEntriesAccumulate) {
-      parseString(scriptCommand.getValues(key));
+
+  public void parse(ComScriptCommand scriptCommand)
+      throws InvalidParameterException {
+    if (mSuccessiveEntriesAccumulate) {
+      parseString(scriptCommand.getValues(mKey));
     }
     else {
-      parseString(scriptCommand.getValue(key));
+      parseString(scriptCommand.getValue(mKey));
+    }
+  }
+
+  public void updateComScript(ComScriptCommand scriptCommand)
+      throws BadComScriptException {
+    if (mKey == null || mKey.matches("\\s*")) {
+      throw new IllegalArgumentException();
+    }
+    if (mSuccessiveEntriesAccumulate && mConvertToSingleEntry) {
+      //Remove all entries before saving
+      while (scriptCommand.deleteKey(mKey)) {
+      }
+    }
+    if (mSuccessiveEntriesAccumulate && !mConvertToSingleEntry
+        && getNElements() > 1) {
+      //output separate entries
+      scriptCommand.setValues(mKey, mElements);
+    }
+    else if (getNElements() > 0) {
+      //output one entry
+      scriptCommand.setValue(mKey, toString());
+    }
+    else {
+      scriptCommand.deleteKey(mKey);
     }
   }
 }
