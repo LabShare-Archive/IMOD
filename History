@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/29/10: Fixed nad_eed_3d output when input has extra header data.
+
 9/25/10: Increased allowed patch sizes in Ccderaser, made it fall back to
 taking mean when there are too many points for polynomial fit.
 
