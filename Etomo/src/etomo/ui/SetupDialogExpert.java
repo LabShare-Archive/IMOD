@@ -41,6 +41,13 @@ import etomo.util.Montagesize;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2010/09/08 19:20:13  sueh
+ * <p> bug# 1401 In doAutomation handle dir equals ".".
+ * <p>
+ * <p> Revision 1.16  2010/04/08 18:04:01  sueh
+ * <p> bug# 1348 In scanHeaderAction, getting imageRotation as an
+ * <p> EtomoNumber.
+ * <p>
  * <p> Revision 1.15  2010/03/27 05:09:30  sueh
  * <p> bug# 1333 Added GPU checkbox.
  * <p>
@@ -129,18 +136,18 @@ public final class SetupDialogExpert {
     //build and set dataset
     StringBuffer buffer = new StringBuffer();
     String dir = arguments.getDir();
-    if (dir != null) {
+    if (dir != null && !dir.equals(".")) {
       buffer.append(dir);
     }
     String dataset = arguments.getDataset();
     if (dataset != null) {
-      if (dir != null && buffer.length() != 0
+      if (buffer.length() != 0
           && buffer.charAt(buffer.length() - 1) != File.separatorChar) {
         buffer.append(File.separatorChar);
       }
       buffer.append(dataset);
     }
-    if (dir != null || dataset != null) {
+    if (buffer.length() != 0) {
       dialog.setDataset(buffer.toString());
     }
     //check radio buttons

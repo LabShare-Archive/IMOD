@@ -127,6 +127,23 @@ public class EtomoDirector {
     }
   }
 
+  /**
+   * Do automation in a non-default manager.
+   * @param managerKey
+   */
+  private void doAutomation(final ManagerKey managerKey) {
+    if (managerList == null) {
+      return;
+    }
+    BaseManager manager = null;
+    if (managerKey != null) {
+      manager = (BaseManager) managerList.get(managerKey.getKey());
+    }
+    if (manager != null) {
+      manager.doAutomation();
+    }
+  }
+
   private void initialize() {
     // Get the HOME directory environment variable to find the program
     // configuration file
@@ -622,6 +639,11 @@ public class EtomoDirector {
   public ManagerKey openTomogram(boolean makeCurrent, AxisID axisID) {
     closeDefaultWindow(axisID);
     return openTomogram(MetaData.getNewFileTitle(), makeCurrent, axisID);
+  }
+  
+    public void openTomogramAndDoAutomation(boolean makeCurrent, AxisID axisID) {
+    closeDefaultWindow(axisID);
+    doAutomation(openTomogram(MetaData.getNewFileTitle(), makeCurrent, axisID));
   }
 
   /**
@@ -1143,6 +1165,14 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.100  2010/09/08 19:16:09  sueh
+ * <p> bug# 1401 Added doAutomation(ManagerKey).
+ * <p>
+ * <p> Revision 1.92  2010/02/17 04:40:16  sueh
+ * <p> bug# 1301 Getting rid of managerkey and using manager to pop up
+ * <p> messages.  Need to know what kind of manager we have to pick the right
+ * <p> frame.
+ * <p>
  * <p> Revision 1.91  2010/01/13 21:47:06  sueh
  * <p> bug# 1298 Do not open any file that doesn't have a dataset extension.
  * <p>

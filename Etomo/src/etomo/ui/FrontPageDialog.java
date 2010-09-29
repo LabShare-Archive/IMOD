@@ -25,6 +25,12 @@ import etomo.type.ToolType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2010/09/08 19:17:57  sueh
+ * <p> bug# 1401 Added reconActionForAutomation
+ * <p>
+ * <p> Revision 1.8  2010/03/27 05:05:48  sueh
+ * <p> bug# 1316 Add volume flatten tool button to front page.
+ * <p>
  * <p> Revision 1.7  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
@@ -127,6 +133,10 @@ public final class FrontPageDialog {
 
   public boolean usingParallelProcessing() {
     return false;
+  }
+
+  public void reconActionForAutomation() {
+    EtomoDirector.INSTANCE.openTomogramAndDoAutomation(true, AxisID.ONLY);
   }
 
   private void action(ActionEvent actionEvent) {

@@ -29,6 +29,12 @@ import etomo.type.ConstLogProperties;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2010/09/08 19:18:32  sueh
+ * <p> bug# 1401 In msgChanged changed refresh() to repaint().
+ * <p>
+ * <p> Revision 1.4  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 1.3  2009/09/29 00:05:51  sueh
  * <p> bug# 1228 Put all calls to repaint and pack in one function, so all the
  * <p> originations of these calls can be traced.
@@ -186,7 +192,8 @@ final class LogFrame extends JFrame {
   void msgChanged(LogPanel logPanel) {
     if (curLogPanel == logPanel) {
       setTitle(curLogPanel.getTitle());
-      refresh();
+      //refresh();
+      repaint();
     }
   }
 

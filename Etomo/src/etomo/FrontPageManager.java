@@ -39,6 +39,13 @@ import etomo.ui.ProcessDisplay;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2010/09/08 19:16:53  sueh
+ * <p> bug# 1401 Added doAutomation.
+ * <p>
+ * <p> Revision 1.2  2010/02/17 04:40:39  sueh
+ * <p> bug# 1301 Moved comScriptMgr and logPanel from BaseManager to child
+ * <p> class.
+ * <p>
  * <p> Revision 1.1  2009/10/27 20:38:42  sueh
  * <p> bug# 1275 A manager for the default dialog.
  * <p> </p>
@@ -62,6 +69,14 @@ public final class FrontPageManager extends BaseManager {
       openFrontPageDialog();
       uiHarness.toFront(this);
     }
+  }
+
+  public void doAutomation() {
+    if (EtomoDirector.INSTANCE.getArguments().isReconAutomation()) {
+      frontPageDialog.reconActionForAutomation();
+    }
+    
+    super.doAutomation();
   }
 
   public ProcessResultDisplayFactoryInterface getProcessResultDisplayFactoryInterface(
