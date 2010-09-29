@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/29/10: Etomo fiducial tracking page now updates the section skip list in the
+Bead Fixer for an open 3dmod when either View button is pressed (In 4.1).
+
+9/29/10: Etomo now puts multiple separate view lists in tracking and fine
+alignment on multiple lines in the com file, keeping them separate (In 4.1).
+
 9/29/10: Fixed nad_eed_3d output when input has extra header data (In 4.1).
 
 9/25/10: Increased allowed patch sizes in Ccderaser, made it fall back to
@@ -30,7 +36,7 @@ view is on the skip list (In 4.1).
 with very high tilt angles together with tilt axis offsets (In 4.1).
 
 9/8/10: Fixed ability to run automated setup comands in eTomo, broken when
-front page was added.
+front page was added (In 4.1).
 
 8/31/10: Added ability to use a separate metadata file produced by SerialEM in
 Extracttilts and Extractpieces and when loading a montage with 3dmod.
