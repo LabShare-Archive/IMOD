@@ -1144,6 +1144,13 @@ int main (int argc, char **argv)
     header.mode = outMode;
   }
 
+  // Fix things in header for an output file.  You have to set header size
+  // not just set next to 0
+  header.swapped = 0;
+  header.headerSize = 1024;
+  header.sectionSkip = 0;
+  header.next = 0;
+
   /* ---- process image ---- */
 
   nzout = 0;
@@ -1176,10 +1183,6 @@ int main (int argc, char **argv)
       header.amin = min;
       header.amax = max;
     
-      // Set extra bytes to 0, clear swapped flag
-      header.next = 0;
-      header.swapped = 0;
-  
       strncpy(outFile, argv[iarg + 1], STRING_MAX - 10);
       outFile[STRING_MAX - 10] = 0;
       if (nWrite && !oneSlice)
@@ -1265,6 +1268,9 @@ int main (int argc, char **argv)
 /*  
     
 $Log$
+Revision 3.14  2010/06/23 17:42:10  mast
+Switch to new pid function.  Couldn't figure out how this compiled in win
+
 Revision 3.13  2010/01/07 19:40:14  mast
 Add flush
 
