@@ -12,8 +12,7 @@ if.var.patch-tracking.return=
  set.var.seed-button=view-seed-model
 [[if = axis]]
 	if.equals.var.axis.return=b
-	rb.run-raptor-and-fix=
-	run.function.run-raptor=
+	if.exists.rb.run-raptor-and-fix.run.function.run-raptor=
 	set.var.seed-button=seed-fiducial-model
 	return.var.seed-button=
 [[]]
@@ -339,6 +338,7 @@ if.var.montage.return=
 
 
 [function = run-raptor]
+rb.run-raptor-and-fix=
 run.function.test-raptor-input=
 [[if = test-gui]]
 	#test values
