@@ -118,7 +118,7 @@ void Processchunks::printVersionWarning() {
 #ifndef _WIN32
   printf("<Esc> <Enter>");
 #else
-  printf("the -c option")
+  printf("the -c option");
 #endif
   printf(" instead.\n\n");
 }
@@ -1654,6 +1654,12 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.13  2010/10/04 05:15:56  sueh
+ bug# 1364 Added escapeEntered to replace the Ctrl-C interrupt.  Warn the
+ user that escapeEntered doesn't work on Windows.  Make a default check
+ file on Windows.  Don't print "all done - ... reassemble" when single file is
+ set.
+
  Revision 1.12  2010/09/28 22:24:52  sueh
  bug# 1364 Added -V - verbose instructions.  Put checkQueueProcessDone functionality into new function killProcessTimeout.  Starting cluster kill timeout after all kill requests have gone out.  In exitIfDropped when a queue is being used and minFail>=mDropCrit, killProcesses must be called because the queue represents multiple machines which may contain running processes.  In checkChunk corrected chunk skipping functionality.
 
