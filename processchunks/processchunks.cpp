@@ -22,6 +22,12 @@
 #include <QTimer>
 #include <stdio.h>
 
+#ifndef _WIN32
+#include <sys/select.h>
+#include <sys/time.h>
+#include <unistd.h>
+#endif
+
 static const int arraySize = 2;
 //Using a shorter sleep time then the processchunks script and not adjusting
 //the sleep depending on the number of machines.
@@ -46,12 +52,16 @@ static char
         ":w:FN:Full path to working directory on remote machines",
         ":d:I:Drop a machine after given number of failures in a row (default 5)",
         ":e:I:Quit after the given # of processing errors for a chunk (default 5)",
+#ifndef _WIN32
         ":c:FN:Check file \"name\" for commands P, Q, and D",
+#else
+        ":c:FN:Default processchunksinput.  Check file \"name\" for commands P, Q, and D",
+#endif
         ":q:I:Run on cluster queue with given maximum # of jobs at once",
         ":Q:CH:Machine name to use for the queue (default queue)",
         ":P:B:Output process ID",
-        ":v:B:Print extra information.",
-        ":V:CH:Syntax:  class,function,...,verbosity.  All elements are optional, except that if there is a function, then must be a class.  Which class and functions(s) should print extra information.  Verbosity (how much information to print): 1:normal, 2: a lot.  Can be limited to a class and function(s).  Case insensitive.  Class is matches if the current class ends with the class string entered here.  No effect if '-v' is not used.",
+        ":v:B:Verbose.",
+        ":V:CH:Syntax:  Verbose instructions:  class,function,...,verbosity.  All elements are optional, except that if there is a function, then must be a class.  Which class and functions(s) should print extra information.  Verbosity (how much information to print): 1:normal, 2: a lot.  Can be limited to a class and function(s).  Case insensitive.  Class is matches if the current class ends with the class string entered here.  No effect if '-v' is not used.",
         ":help:B:Print usage message" };
 static char *queueNameDefault = "queue";
 Processchunks *processchunksInstance;
@@ -60,6 +70,7 @@ int main(int argc, char **argv) {
   //Run processes
   Processchunks pc(argc, argv);
   processchunksInstance = &pc;
+  pc.printVersionWarning();
   pc.loadParams(argc, argv);
   pc.setup();
   if (!pc.askGo()) {
@@ -95,11 +106,21 @@ Processchunks::Processchunks(int &argc, char **argv) :
   mKill = false;
   mKillCounter = 0;
   mLsProcess = new QProcess(this);
-  mInterrupt = false;
   mDecoratedClassName = typeid(*this).name();
 }
 
 Processchunks::~Processchunks() {
+}
+
+void Processchunks::printVersionWarning() {
+  printf(
+      "\nWARNING:  Ctrl-C does not work with this version of processchunks.  Use ");
+#ifndef _WIN32
+  printf("<Esc> <Enter>");
+#else
+  printf("the -c option")
+#endif
+  printf(" instead.\n\n");
 }
 
 //Print usage statement
@@ -137,6 +158,11 @@ void Processchunks::loadParams(int &argc, char **argv) {
   if (checkFile != NULL) {
     mCheckFile = new QFile(checkFile);
   }
+#ifdef _WIN32
+  else {
+    mCheckFile = "processchunksinput";
+  }
+#endif
   PipGetBoolean("v", &mVerbose);
   if (mVerbose) {
     char *verboseClassFunctions = NULL;
@@ -286,20 +312,17 @@ void Processchunks::timerEvent() {
   timerEvent(NULL);
 }
 
-void Processchunks::setInterrupt() {
-  mInterrupt = true;
-}
-
 void Processchunks::timerEvent(QTimerEvent *timerEvent) {
-  if (mInterrupt) {
-    handleInterrupt();
-  }
   if (mKill) {
     //If all the kill requests have gone out, start the timeout
     killProcessTimeout();
     return;
   }
   //Handle the regular timer.
+  if (escapeEntered()) {
+    handleInterrupt();
+    return;
+  }
   int i, cpuIndex;
   bool endTimerEvent = false;
   while (!endTimerEvent) {
@@ -444,7 +467,8 @@ void Processchunks::timerEvent(QTimerEvent *timerEvent) {
     //If we have finished up to the sync file, then allow the loop to run it
     if (mNumDone - 1 >= mNextSyncIndex - 1) {
       QString endComName = QString("%1.com").arg(mRootName);
-      if (mProcessArray[mNextSyncIndex].getComFileName() == endComName) {
+      if (!mSingleFile && mProcessArray[mNextSyncIndex].getComFileName()
+          == endComName) {
         *mOutStream << "ALL DONE - going to run " << endComName
             << " to reassemble" << endl;
       }
@@ -490,8 +514,39 @@ void Processchunks::cleanupAndExit(int exitCode) {
   exit(exitCode);
 }
 
+int Processchunks::escapeEntered() {
+#ifndef _WIN32
+  static int numChar = 0;
+  static int gotEsc = 0;
+  fd_set readfds, writefds, exceptfds;
+  struct timeval timeout;
+  unsigned char charin;
+
+  FD_ZERO(&readfds);
+  FD_ZERO(&writefds);
+  FD_ZERO(&exceptfds);
+  FD_SET(fileno(stdin), &readfds);
+  timeout.tv_sec = 0;
+  timeout.tv_usec = 0;
+  while (select(1, &readfds, &writefds, &exceptfds, &timeout) > 0) {
+    read(fileno(stdin), &charin, 1);
+    if (charin == '\n') {
+      if (numChar == 1 && gotEsc == 1)
+        return 1;
+      numChar = 0;
+      gotEsc = 0;
+    }
+    else {
+      numChar++;
+      if (charin == 27)
+        gotEsc = 1;
+    }
+  }
+#endif
+  return 0;
+}
+
 void Processchunks::handleInterrupt() {
-  mInterrupt = false;
   *mOutStream << mSizeProcessArray - mNumDone << " chunks are still undone"
       << endl;
   QString command;
@@ -1599,6 +1654,9 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.12  2010/09/28 22:24:52  sueh
+ bug# 1364 Added -V - verbose instructions.  Put checkQueueProcessDone functionality into new function killProcessTimeout.  Starting cluster kill timeout after all kill requests have gone out.  In exitIfDropped when a queue is being used and minFail>=mDropCrit, killProcesses must be called because the queue represents multiple machines which may contain running processes.  In checkChunk corrected chunk skipping functionality.
+
  Revision 1.11  2010/09/20 22:05:04  sueh
  bug# 1364 In checkQueueProcessesDone prevent the kill counter from
  starting until all kill requests have gone out.  Increase kill timeout to 150.
