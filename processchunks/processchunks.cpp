@@ -1433,7 +1433,7 @@ const bool Processchunks::checkChunk(int &runFlag, bool &noChunks,
   chunkOk = true;
   if ((runFlag == ProcessHandler::sync || runFlag == ProcessHandler::notDone)
       && mProcessArray[processIndex].getNumChunkErr() > 0
-      && machine->isChunkErred() && chunkErrTot < mNumCpus) {
+      && machine->isChunkErred() && chunkErrTot < mMachineList.size()) {
     chunkOk = false;
     if (mSyncing) {
       return false;
@@ -1654,6 +1654,9 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.14  2010/10/04 16:34:42  sueh
+ bug# 1364 Fixing a Windows-only syntax error.
+
  Revision 1.13  2010/10/04 05:15:56  sueh
  bug# 1364 Added escapeEntered to replace the Ctrl-C interrupt.  Warn the
  user that escapeEntered doesn't work on Windows.  Make a default check
