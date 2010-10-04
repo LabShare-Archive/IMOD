@@ -25,17 +25,16 @@ public:
   Processchunks(int &argc, char **argv);
   ~Processchunks();
 
+  void printVersionWarning();
   void loadParams(int &argc, char **argv);
   void setup();
   const bool askGo();
   void startLoop();
-  void handleInterrupt();
   void killProcessOnNextMachines();
   ProcessHandler &getProcessHandler(const int processIndex);
   void msgKillProcessStarted(const int processIndex);
   void msgKillProcessDone(const int processIndex);
   void handleFileSystemBug();
-  void setInterrupt();
 
   const QStringList &getEnv();
   const bool isQueue();
@@ -89,6 +88,8 @@ private:
       const int processIndex, const int chunkErrTot);
   void runProcess(MachineHandler *machine, const int cpuIndex,
       const int processIndex);
+  int escapeEntered();
+  void handleInterrupt();
   void cleanupAndExit(int exitCode = 0);
   void killProcessTimeout();
   void killProcesses(QStringList *dropList = NULL);
@@ -119,7 +120,7 @@ private:
   //loop
   int mNumDone, mLastNumDone, mHoldCrit, mTimerId, mFirstUndoneIndex,
       mNextSyncIndex, mSyncing;
-  bool mPausing, mAnyDone, mInterrupt;
+  bool mPausing, mAnyDone;
   char mAns;
 
   //killing processes
