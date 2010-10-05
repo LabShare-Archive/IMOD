@@ -160,7 +160,7 @@ void Processchunks::loadParams(int &argc, char **argv) {
   }
 #ifdef _WIN32
   else {
-    mCheckFile = "processchunksinput";
+    mCheckFile = new QFile("processchunksinput");
   }
 #endif
   PipGetBoolean("v", &mVerbose);
@@ -389,16 +389,16 @@ void Processchunks::timerEvent(QTimerEvent *timerEvent) {
             else {
               //otherwise set flag to redo it
               dropout = true;
-              if (!mProcessArray[processIndex].isLogFileEmpty()) {
-                if (!handleLogFileError(errorMess, machine, cpuIndex,
-                    processIndex)) {
-                  return;
-                }
-              }
-              else if (!mQueue) {
-                //If log is zero length, check for something in .pid
-                checkPid = mProcessArray[processIndex].getPid();
-              }
+               if (!mProcessArray[processIndex].isLogFileEmpty()) {
+               if (!handleLogFileError(errorMess, machine, cpuIndex,
+               processIndex)) {
+               return;
+               }
+               }
+               else if (!mQueue) {
+               //If log is zero length, check for something in .pid
+               checkPid = mProcessArray[processIndex].getPid();
+               }
             }
           }
           else {
@@ -1654,6 +1654,10 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.15  2010/10/04 23:55:49  sueh
+ bug# 1364 In checkChunk fixed bug which prevented a machine from
+ running a failing chunk more then once.
+
  Revision 1.14  2010/10/04 16:34:42  sueh
  bug# 1364 Fixing a Windows-only syntax error.
 
