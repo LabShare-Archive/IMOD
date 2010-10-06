@@ -389,16 +389,16 @@ void Processchunks::timerEvent(QTimerEvent *timerEvent) {
             else {
               //otherwise set flag to redo it
               dropout = true;
-               if (!mProcessArray[processIndex].isLogFileEmpty()) {
-               if (!handleLogFileError(errorMess, machine, cpuIndex,
-               processIndex)) {
-               return;
-               }
-               }
-               else if (!mQueue) {
-               //If log is zero length, check for something in .pid
-               checkPid = mProcessArray[processIndex].getPid();
-               }
+              if (!mProcessArray[processIndex].isLogFileEmpty()) {
+                if (!handleLogFileError(errorMess, machine, cpuIndex,
+                    processIndex)) {
+                  return;
+                }
+              }
+              else if (!mQueue) {
+                //If log is zero length, check for something in .pid
+                checkPid = mProcessArray[processIndex].getPid();
+              }
             }
           }
           else {
@@ -550,21 +550,23 @@ void Processchunks::handleInterrupt() {
   *mOutStream << mSizeProcessArray - mNumDone << " chunks are still undone"
       << endl;
   QString command;
-  while (mAns != 'Q' && mAns != 'C' && mAns != 'P' && mAns != 'D') {
+  while (mAns != 'Q' && mAns != 'C' && mAns != 'P' && !(mAns == 'D' && !mQueue)) {
     mAns = ' ';
     command.clear();
     *mOutStream
         << "Enter Q to kill all jobs and quit, P to finish running jobs then exit,"
         << endl;
-    *mOutStream << " D machine_list to kill jobs and drop given machines,"
-        << endl;
+    if (!mQueue) {
+      *mOutStream << " D machine_list to kill jobs and drop given machines,"
+          << endl;
+    }
     *mOutStream << " or C to continue waiting: " << endl;
     mOutStream->flush();
     QTextStream inStream(stdin);
     inStream >> command;
     command = command.trimmed().toUpper();
     mAns = command.at(0).toLatin1();
-    if (mAns == 'D') {
+    if (mAns == 'D' && !mQueue) {
       inStream >> command;
       command = command.trimmed();
       if (command.isEmpty()) {
@@ -1654,6 +1656,9 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.16  2010/10/05 16:32:17  sueh
+ bug# 1364 Fixing a Windows-only syntax error.
+
  Revision 1.15  2010/10/04 23:55:49  sueh
  bug# 1364 In checkChunk fixed bug which prevented a machine from
  running a failing chunk more then once.
