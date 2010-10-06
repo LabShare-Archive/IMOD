@@ -208,7 +208,7 @@ const bool ProcessHandler::getPid(QTextStream *stream) {
   if (index != -1) {
     int endIndex;
 #ifdef _WIN32
-    endIndex = output.indexOf('\r\n', index);
+    endIndex = output.indexOf("\r\n", index);
 #else
     endIndex = output.indexOf('\n', index);
 #endif
@@ -231,6 +231,10 @@ const QByteArray ProcessHandler::readAllLogFile() {
 }
 
 const bool ProcessHandler::isLogFileEmpty() {
+  if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+    mProcesschunks->getOutStream() << "isLogFileEmpty:size:"
+        << mLogFile->size() << endl;
+  }
   return mLogFile->size() == 0;
 }
 
@@ -394,11 +398,11 @@ void ProcessHandler::getErrorMessageFromLog(QString &errorMess) {
 void ProcessHandler::getErrorMessageFromOutput(QString &errorMess) {
   //Use the last lines of stdout and stderr as the error message if the log
   //file is empty.
-  char eol;
+  char *eol;
 #ifdef _WIN32
-  eol = '\r\n';
+  eol = "\r\n";
 #else
-  eol = '\n';
+  eol = "\n";
 #endif
   errorMess.append(eol);
   //stdout
@@ -439,6 +443,10 @@ void ProcessHandler::printTooManyErrorsMessage(const int numErr) {
 
 void ProcessHandler::incrementNumChunkErr() {
   mNumChunkErr++;
+  if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+    mProcesschunks->getOutStream() << "incrementNumChunkErr:" << mNumChunkErr
+        << endl;
+  }
 }
 
 void ProcessHandler::printWarnings() {
