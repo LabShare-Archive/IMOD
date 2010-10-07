@@ -11,6 +11,7 @@ Version = 1.2
 	run.function.compute-z-shift-&-pitch-angles=
 	if.not.var.fidless.run.function.create-final-alignment=
 [[]]
+run.function.copy=
 bn.done =
 
 
@@ -40,11 +41,8 @@ wait.process.creating-sample-tomogram = done
 
 
 [function = compute-z-shift-&-pitch-angles]
-run.function.copy=
-sleep=
 bn.compute-z-shift-&-pitch-angles =
 wait.process.finding-sample-position = done
-
 [function = create-final-alignment]
 bn.create-final-alignment =
 wait.process.calculating-final-alignment = done
