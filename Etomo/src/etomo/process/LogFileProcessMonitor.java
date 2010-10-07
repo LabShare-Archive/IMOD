@@ -25,6 +25,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.36  2010/03/03 04:55:35  sueh
+ * <p> bug# 1311 Removed unnecessary ProcessName references.
+ * <p>
  * <p> Revision 3.35  2010/02/17 04:49:20  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -208,7 +211,7 @@ import etomo.util.Utilities;
 public abstract class LogFileProcessMonitor implements ProcessMonitor {
   public static final String rcsid = "$Id$";
 
-  private static final int STOP_WAITING = 10;
+  private static final int STOP_WAITING = 100;
   static final int UPDATE_PERIOD = 500;
 
   private long processStartTime;
