@@ -397,8 +397,17 @@ void Processchunks::timerEvent(QTimerEvent *timerEvent) {
                 }
               }
               else if (!mQueue) {
-                //If log is zero length, check for something in .pid
-                checkPid = mProcessArray[processIndex].getPid();
+                //Old: If log is zero length, check for something in .pid
+                //checkPid = mProcessArray[processIndex].getPid();
+                //If the com script issues a PID to standard error and nothing
+                //to standard out, it can't run the first real command in the
+                //file.
+                if (mProcessArray[processIndex].isPidInStderr()
+                    && !mProcessArray[processIndex].isPidInStdout()) {
+                  if (!handleError(NULL, machine, cpuIndex, processIndex)) {
+                    return;
+                  }
+                }
               }
             }
           }
@@ -1309,8 +1318,16 @@ const bool Processchunks::handleChunkDone(MachineHandler *machine,
 //Return false the chunk has errored too many times
 const bool Processchunks::handleLogFileError(QString &errorMess,
     MachineHandler *machine, const int cpuIndex, const int processIndex) {
-  int numErr;
   mProcessArray[processIndex].getErrorMessageFromLog(errorMess);
+  return handleError(&errorMess, machine, cpuIndex, processIndex);
+}
+
+//Print an error message.
+//If the chunk has errored too many times, set mAns to E and kill jobs
+//Return false the chunk has errored too many times
+const bool Processchunks::handleError(const QString *errorMess,
+    MachineHandler *machine, const int cpuIndex, const int processIndex) {
+  int numErr;
   mProcessArray[processIndex].incrementNumChunkErr();
   numErr = mProcessArray[processIndex].getNumChunkErr();
   machine->setChunkErred(true);
@@ -1319,8 +1336,8 @@ const bool Processchunks::handleLogFileError(QString &errorMess,
   if (numErr >= mMaxChunkErr || (mSyncing && (mMachineList.size() == 1
       || numErr >= 2))) {
     mProcessArray[processIndex].printTooManyErrorsMessage(numErr);
-    if (!errorMess.isEmpty()) {
-      *mOutStream << errorMess << endl;
+    if (errorMess != NULL && !errorMess->isEmpty()) {
+      *mOutStream << *errorMess << endl;
     }
     mAns = 'E';
     //Unassign the CPU
@@ -1666,6 +1683,11 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.18  2010/10/08 05:15:27  sueh
+ bug# 1364 In timerEvent incrementing chunkErrTot inside of cpuIndex
+ loop to match the old processchunks.  In checkChunk checking against
+ the number of CPUs to match the old processchunks.
+
  Revision 1.17  2010/10/06 05:41:31  sueh
  bug# 1364 Make the D interrupt command unavailable for queues.
 
