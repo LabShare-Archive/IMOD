@@ -350,11 +350,12 @@ void Processchunks::timerEvent(QTimerEvent *timerEvent) {
       if (failCount < minFail) {
         minFail = failCount;
       }
-      if (machine->isChunkErred()) {
-        chunkErrTot++;
-      }
       numCpus = machine->getNumCpus();
       for (cpuIndex = 0; cpuIndex < numCpus; cpuIndex++) {
+        //chunkerrtot must be incremented for each cpu.
+        if (machine->isChunkErred()) {
+          chunkErrTot++;
+        }
         if (machine->getAssignedProcIndex(cpuIndex) != -1) {
           assignTot++;
         }
@@ -1410,7 +1411,7 @@ void Processchunks::handleDropOut(bool &noChunks, QString &dropMess,
 }
 
 //See if a process can be run by the current machine
-//Return false when check fails and chunk should not be run
+//Return false when need to break out of the loop
 const bool Processchunks::checkChunk(int &runFlag, bool &noChunks,
     int &undoneIndex, bool &foundChunks, bool &chunkOk,
     MachineHandler *machine, const int processIndex, const int chunkErrTot) {
@@ -1428,17 +1429,26 @@ const bool Processchunks::checkChunk(int &runFlag, bool &noChunks,
   }
   //If any chunks found set that flag
   if (runFlag == ProcessHandler::sync || runFlag == ProcessHandler::notDone) {
+    if (isVerbose(mDecoratedClassName, __func__, 2)) {
+      *mOutStream << "checkChunk:"
+          << mProcessArray[processIndex].getComFileName() << ":runFlag:"
+          << runFlag << ":undoneIndex:" << undoneIndex << ",processIndex:"
+          << processIndex << endl
+          << ",mProcessArray[processIndex].getNumChunkErr():"
+          << mProcessArray[processIndex].getNumChunkErr()
+          << ",machine->isChunkErred():" << machine->isChunkErred() << endl
+          << ",chunkErrTot:" << chunkErrTot << ",mNumCpus:" << mNumCpus << endl;
+    }
     foundChunks = true;
-  }
-  //Skip a chunk if it has errored, if this machine has given chunk
-  //error, and not all machines have done so
-  chunkOk = true;
-  if ((runFlag == ProcessHandler::sync || runFlag == ProcessHandler::notDone)
-      && mProcessArray[processIndex].getNumChunkErr() > 0
-      && machine->isChunkErred() && chunkErrTot < mMachineList.size()) {
-    chunkOk = false;
-    if (mSyncing) {
-      return false;
+    //Skip a chunk if it has errored, if this machine has given chunk
+    //error, and not all machines have done so
+    chunkOk = true;
+    if (mProcessArray[processIndex].getNumChunkErr() > 0
+        && machine->isChunkErred() && chunkErrTot < mNumCpus) {
+      chunkOk = false;
+      if (mSyncing) {
+        return false;
+      }
     }
   }
   return true;
@@ -1656,6 +1666,9 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.17  2010/10/06 05:41:31  sueh
+ bug# 1364 Make the D interrupt command unavailable for queues.
+
  Revision 1.16  2010/10/05 16:32:17  sueh
  bug# 1364 Fixing a Windows-only syntax error.
 
