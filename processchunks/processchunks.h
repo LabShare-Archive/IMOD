@@ -95,6 +95,8 @@ private:
   void killProcesses(QStringList *dropList = NULL);
   void startTimers();
   void cleanupKillProcesses(const bool timeout);
+  const bool handleError(const QString *errorMess, MachineHandler *machine,
+      const int cpuIndex, const int processIndex);
 
   int mSizeProcessArray;
   ProcessHandler *mProcessArray;
