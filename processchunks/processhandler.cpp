@@ -178,22 +178,50 @@ const bool ProcessHandler::qidFileExists() {
 const QString &ProcessHandler::getPid() {
   if (!mProcesschunks->isQueue()) {
     readAllStandardError();
-    if (!getPid(new QTextStream(mStderr))) {
+    if (!getPid(new QTextStream(mStderr), true)) {
       readAllStandardOutput();
-      getPid(new QTextStream(mStdout));
+      getPid(new QTextStream(mStdout), true);
     }
   }
   else {
     if (!mQidFile->open(QIODevice::ReadOnly)) {
       return mPid;
     }
-    getPid(new QTextStream(mQidFile));
+    getPid(new QTextStream(mQidFile), true);
   }
   return mPid;
 }
 
-const bool ProcessHandler::getPid(QTextStream *stream) {
-  if (!mPid.isEmpty()) {
+/**
+ * Returns true if there is a pid in stderr.  Always returns fase if queue is
+ * set.
+ */
+const bool ProcessHandler::isPidInStderr() {
+  if (mProcesschunks->isQueue()) {
+    return false;
+  }
+  readAllStandardError();
+  return getPid(new QTextStream(mStderr), false);
+}
+
+/**
+ * Returns true if there is a pid in stdout.  Always returns fase if queue is
+ * set.
+ */
+const bool ProcessHandler::isPidInStdout() {
+  if (mProcesschunks->isQueue()) {
+    return false;
+  }
+  readAllStandardOutput();
+  return getPid(new QTextStream(mStdout), false);
+}
+
+/**
+ * return true if the pid is found in stream.  If save is true, save the pid
+ * to mPid; in this case only check for the pid if mPid is empty.
+ */
+const bool ProcessHandler::getPid(QTextStream *stream, const bool save) {
+  if (save && !mPid.isEmpty()) {
     //Don't look for the PID more then once
     return true;
   }
@@ -203,6 +231,9 @@ const bool ProcessHandler::getPid(QTextStream *stream) {
   //Don't set the PID unless the line is conplete (includes an EOL).  Process
   //may not be finished when this function runs.
   QString output = stream->readAll();
+  if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+    mProcesschunks ->getOutStream() << "getPid:output:" << output << endl;
+  }
   //Look for a PID entry with an EOL so the the complete PID is collected
   int index = output.lastIndexOf("PID:");
   if (index != -1) {
@@ -213,7 +244,9 @@ const bool ProcessHandler::getPid(QTextStream *stream) {
     endIndex = output.indexOf('\n', index);
 #endif
     if (endIndex != -1) {
-      mPid = output.mid(index + 4, endIndex - (index + 4));
+      if (save) {
+        mPid = output.mid(index + 4, endIndex - (index + 4));
+      }
       return true;
     }
   }

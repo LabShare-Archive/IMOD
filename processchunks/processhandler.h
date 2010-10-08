@@ -61,6 +61,8 @@ public:
   void msgKillProcessTimeout();
   const bool isFinishedSignalReceived();
   void getErrorMessageFromOutput(QString &errorMess);
+  const bool isPidInStderr();
+  const bool isPidInStdout();
 
 public slots:
   void handleError(const QProcess::ProcessError error);
@@ -78,7 +80,7 @@ protected:
 
 private:
   void initProcess();
-  const bool getPid(QTextStream *stream);
+  const bool getPid(QTextStream *stream, const bool save);
   const bool getSshError(QString &dropMess, QTextStream *stream);
   void resetSignalValues();
   void readAllStandardError();
@@ -96,7 +98,7 @@ private:
   int mNumChunkErr;
   FlagType mFlag;
   QByteArray mStderr, mStdout;
-  QString mPid, mEscapedRemoteDirPath, mDecoratedClassName,mCommand;//queue or local command
+  QString mPid, mEscapedRemoteDirPath, mDecoratedClassName, mCommand;//queue or local command
   QStringList mParamList;//list of queue or local params
   Processchunks *mProcesschunks;
   QProcess *mProcess, *mVmstocsh;
