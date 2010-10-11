@@ -41,6 +41,10 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.60  2010/07/19 04:31:57  sueh
+ * <p> bug# 1393 In setParameters(ConstMetaData) start setting the tracking type
+ * <p> radio buttons for the second axis.
+ * <p>
  * <p> Revision 3.59  2010/05/27 23:15:15  sueh
  * <p> bug# 1360 In constructor don't warn about missing RAPTOR unless RAPTOR_BIN has been
  * <p> set.
@@ -646,15 +650,13 @@ public final class FiducialModelDialog extends ProcessDialog implements
    * Right mouse button context menu
    */
   public void popUpContextMenu(final MouseEvent mouseEvent) {
-    String[] manPagelabel = { "Transferfid", "Beadtrack", "Tiltxcorr", "3dmod" };
-    String[] manPage = { "transferfid.html", "beadtrack.html",
-        "tiltxcorr.html", "3dmod.html" };
+    String[] manPagelabel = { "Transferfid", "Beadtrack", "3dmod" };
+    String[] manPage = { "transferfid.html", "beadtrack.html", "3dmod.html" };
 
-    String[] logFileLabel = { "Track", "Transferfid", "Xcorr_pt" };
-    String[] logFile = new String[3];
+    String[] logFileLabel = { "Track", "Transferfid" };
+    String[] logFile = new String[2];
     logFile[0] = "track" + axisID.getExtension() + ".log";
     logFile[1] = "transferfid.log";
-    logFile[2] = "xcorr_pt" + axisID.getExtension() + ".log";
 
     //    ContextPopup contextPopup =
     new ContextPopup(pnlFiducialModel.getContainer(), mouseEvent,
