@@ -68,6 +68,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.29  2010/04/28 16:38:06  sueh
+ * <p> bug# 1344 Removed the manager from the some of the
+ * <p> openMessageDialog calls so that they won't go into the project log.
+ * <p>
  * <p> Revision 1.28  2010/03/27 05:02:56  sueh
  * <p> Reformatted
  * <p>
@@ -169,7 +173,7 @@ import etomo.util.DatasetFiles;
  * <p> </p>
  */
 public final class FinalAlignedStackDialog extends ProcessDialog implements
-    ContextMenu, Expandable, Run3dmodButtonContainer, EraseGoldParent {
+    Expandable, Run3dmodButtonContainer, EraseGoldParent, ContextMenu {
   public static final String rcsid = "$Id$";
 
   private static final String MTF_FILE_LABEL = "MTF file: ";
@@ -925,42 +929,55 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   /**
    * Right mouse button context menu
    */
-  public void popUpContextMenu(MouseEvent mouseEvent) {
+  public void popUpContextMenu(final MouseEvent mouseEvent) {
     String alignManpageLabel;
     String alignManpage;
     String alignLogfileLabel;
     String alignLogfile;
-    if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
-      alignManpageLabel = "Blendmont";
-      alignManpage = "blendmont";
-      alignLogfileLabel = "Blend";
-      alignLogfile = "blend";
+    String anchor;
+    if (curTab == Tab.CTF_CORRECTION) {
+      String[] manPagelabel = { "Ctfplotter", "Ctfphaseflip", "3dmod" };
+      String[] manPage = { "ctfplotter.html", "ctfphaseflip.html", "3dmod.html" };
+      String[] logFileLabel = { "Ctfplotter", "Ctfcorrection" };
+      String[] logFile = new String[2];
+      logFile[0] = "ctfplotter" + axisID.getExtension() + ".log";
+      logFile[1] = "ctfcorrection" + axisID.getExtension() + ".log";
+      ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
+          "CorrectingCTF", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
+          logFileLabel, logFile, applicationManager, axisID);
+    }
+    else if (curTab == Tab.MTF_FILTER) {
+      String[] manPagelabel = { "Mtffilter", "3dmod" };
+      String[] manPage = { "mtffilter.html", "3dmod.html" };
+      String[] logFileLabel = { "Mtffilter" };
+      String[] logFile = new String[1];
+      logFile[0] = "mtffilter" + axisID.getExtension() + ".log";
+      ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
+          "Filtering2D", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
+          logFileLabel, logFile, applicationManager, axisID);
     }
     else {
-      alignManpageLabel = "Newstack";
-      alignManpage = "newstack";
-      alignLogfileLabel = "Newst";
-      alignLogfile = "newst";
+      if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
+        alignManpageLabel = "Blendmont";
+        alignManpage = "blendmont";
+        alignLogfileLabel = "Blend";
+        alignLogfile = "blend";
+      }
+      else {
+        alignManpageLabel = "Newstack";
+        alignManpage = "newstack";
+        alignLogfileLabel = "Newst";
+        alignLogfile = "newst";
+      }
+      String[] manPagelabel = { alignManpageLabel, "3dmod" };
+      String[] manPage = { alignManpage + ".html", "3dmod.html" };
+      String[] logFileLabel = { alignLogfileLabel };
+      String[] logFile = new String[1];
+      logFile[0] = alignLogfile + axisID.getExtension() + ".log";
+      ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
+          "FinalAligned", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
+          logFileLabel, logFile, applicationManager, axisID);
     }
-    String[] manPagelabel = { alignManpageLabel, "Ctfplotter", "Ctfphaseflip",
-        "Tilt", "Findbeads3d", "CcdEraser", "Mtffilter", "3dmod" };
-    String[] manPage = { alignManpage + ".html", "ctfplotter.html",
-        "ctfphaseflip.html", "tilt.html", "findbeads3d.html", "ccderaser.html",
-        "mtffilter.html", "3dmod.html" };
-    String[] logFileLabel = { alignLogfileLabel, "Ctfplotter", "Ctfcorrection",
-        alignLogfileLabel + "_3dfind", "Tilt_3dfind", "Findbeads3d",
-        "Mtffilter" };
-    String[] logFile = new String[7];
-    logFile[0] = alignLogfile + axisID.getExtension() + ".log";
-    logFile[1] = "ctfplotter" + axisID.getExtension() + ".log";
-    logFile[2] = "ctfcorrection" + axisID.getExtension() + ".log";
-    logFile[3] = alignLogfile + "_3dfind" + axisID.getExtension() + ".log";
-    logFile[4] = "tilt_3dfind" + axisID.getExtension() + ".log";
-    logFile[5] = "findbeads3d" + axisID.getExtension() + ".log";
-    logFile[6] = "mtffilter" + axisID.getExtension() + ".log";
-    ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
-        "FinalAligned", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
-        logFileLabel, logFile, applicationManager, axisID);
   }
 
   public void startingAndEndingZKeyReleased(KeyEvent event) {
