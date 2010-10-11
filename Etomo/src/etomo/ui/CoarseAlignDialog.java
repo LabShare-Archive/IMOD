@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.55  2010/03/08 21:02:51  sueh
+ * <p> bug# 1311 Moved the open coarse aligned stack button so that it is next to
+ * <p> its associated run button.
+ * <p>
  * <p> Revision 3.54  2010/03/03 05:03:22  sueh
  * <p> bug# 1311 Added TiltxcorrPanel and radio button for it.
  * <p>
@@ -317,7 +321,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements
     btnMidas = (MultiLineButton) displayFactory.getMidas();
     setToolTipText();
     tiltxcorrPanel = TiltxcorrPanel.getCrossCorrelationInstance(
-        applicationManager, axisID, dialogType, btnAdvanced);
+        applicationManager, axisID, dialogType, btnAdvanced, this);
     pnlPrenewst = new PrenewstPanel(applicationManager, axisID, dialogType,
         this, btnAdvanced);
     btnExecute.setText("Done");
