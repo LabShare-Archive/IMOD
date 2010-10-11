@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
@@ -45,6 +46,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2010/03/08 21:15:43  sueh
+ * <p> bug# 1311 Hooking the imod button to the run button.
+ * <p>
  * <p> Revision 1.3  2010/03/05 04:04:56  sueh
  * <p> bug# 1311 Fixed typo.
  * <p>
@@ -220,7 +224,7 @@ import etomo.type.TiltAngleSpec;
  * <p> </p>
  */
 final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
-    Run3dmodButtonContainer {
+    Run3dmodButtonContainer, ContextMenu {
   public static final String rcsid = "$Id$";
 
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance(true);
@@ -292,14 +296,17 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
   private final PanelHeader header;
   private final ApplicationManager applicationManager;
   private final PanelId panelId;
+  final ContextMenu contextMenu;
 
   private TiltxcorrPanel(final ApplicationManager applicationManager,
       final AxisID id, final DialogType dialogType,
-      final GlobalExpandButton globalAdvancedButton, final PanelId panelId) {
+      final GlobalExpandButton globalAdvancedButton, final PanelId panelId,
+      final ContextMenu contextMenu) {
     this.dialogType = dialogType;
     axisID = id;
     this.applicationManager = applicationManager;
     this.panelId = panelId;
+    this.contextMenu = contextMenu;
     header = PanelHeader.getAdvancedBasicInstance("Tiltxcorr", this,
         dialogType, globalAdvancedButton);
 
@@ -321,9 +328,12 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
 
   static TiltxcorrPanel getCrossCorrelationInstance(
       final ApplicationManager applicationManager, final AxisID id,
-      final DialogType dialogType, final GlobalExpandButton globalAdvancedButton) {
+      final DialogType dialogType,
+      final GlobalExpandButton globalAdvancedButton,
+      final ContextMenu contextMenu) {
     TiltxcorrPanel instance = new TiltxcorrPanel(applicationManager, id,
-        dialogType, globalAdvancedButton, PanelId.CROSS_CORRELATION);
+        dialogType, globalAdvancedButton, PanelId.CROSS_CORRELATION,
+        contextMenu);
     instance.createPanel();
     instance.setToolTipText();
     instance.addListeners();
@@ -334,7 +344,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       final ApplicationManager applicationManager, final AxisID id,
       final DialogType dialogType, final GlobalExpandButton globalAdvancedButton) {
     TiltxcorrPanel instance = new TiltxcorrPanel(applicationManager, id,
-        dialogType, globalAdvancedButton, PanelId.PATCH_TRACKING);
+        dialogType, globalAdvancedButton, PanelId.PATCH_TRACKING, null);
     instance.createPanel();
     instance.setToolTipText();
     instance.addListeners();
@@ -465,12 +475,34 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
   }
 
   private void addListeners() {
+    pnlRoot.addMouseListener(new GenericMouseAdapter(this));
     cbCumulativeCorrelation.addActionListener(actionListener);
     cbNoCosineStretch.addActionListener(actionListener);
     btnTiltxcorr.addActionListener(actionListener);
     btn3dmodPatchTracking.addActionListener(actionListener);
     cbBoundaryModel.addActionListener(actionListener);
     btn3dmodBoundaryModel.addActionListener(actionListener);
+  }
+
+  /**
+   * Right mouse button context menu
+   */
+  public void popUpContextMenu(final MouseEvent mouseEvent) {
+    if (panelId != PanelId.PATCH_TRACKING) {
+      if (contextMenu != null) {
+        contextMenu.popUpContextMenu(mouseEvent);
+      }
+      return;
+    }
+    String[] manPagelabel = { "Tiltxcorr", "3dmod" };
+    String[] manPage = { "tiltxcorr.html", "3dmod.html" };
+
+    String[] logFileLabel = { "Xcorr_pt" };
+    String[] logFile = new String[1];
+    logFile[0] = "xcorr_pt" + axisID.getExtension() + ".log";
+    new ContextPopup(pnlRoot.getContainer(), mouseEvent, "PatchTracking",
+        ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile,
+        applicationManager, axisID);
   }
 
   public PanelId getPanelId() {
