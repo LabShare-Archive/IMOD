@@ -49,7 +49,8 @@ public final class PostProcessingDialog extends ProcessDialog implements
 
   private PostProcessingDialog(ApplicationManager appMgr) {
     super(appMgr, AxisID.ONLY, DialogType.POST_PROCESSING);
-    flattenVolumePanel = FlattenVolumePanel.getPostInstance(appMgr, axisID, dialogType);
+    flattenVolumePanel = FlattenVolumePanel.getPostInstance(appMgr, axisID,
+        dialogType);
     squeezeVolPanel = SqueezeVolPanel.getInstance(appMgr, axisID, dialogType);
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(new BeveledBorder("Post Processing").getBorder());
@@ -115,9 +116,10 @@ public final class PostProcessingDialog extends ProcessDialog implements
     return Run3dmodButton.getDeferredToggle3dmodInstance("Trim Volume",
         DialogType.POST_PROCESSING);
   }
-  
+
   public static ProcessResultDisplay getSmoothingAssessmentButton() {
-    return SmoothingAssessmentPanel.getSmoothingAssessmentButton(DialogType.POST_PROCESSING);
+    return SmoothingAssessmentPanel
+        .getSmoothingAssessmentButton(DialogType.POST_PROCESSING);
   }
 
   public static ProcessResultDisplay getFlattenDisplay() {
@@ -193,9 +195,8 @@ public final class PostProcessingDialog extends ProcessDialog implements
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "Trimvol", "Flattenwarp", "Warpvol", "Squeezevol" };
-    String[] manPage = { "trimvol.html", "flattenwarp.html", "warpvol.html",
-        "squeezevol.html" };
+    String[] manPagelabel = { "Trimvol" };
+    String[] manPage = { "trimvol.html" };
 
     //    ContextPopup contextPopup =
     new ContextPopup(rootPanel, mouseEvent, "POST-PROCESSING",
@@ -256,6 +257,9 @@ public final class PostProcessingDialog extends ProcessDialog implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.48  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 3.47  2009/12/19 01:18:56  sueh
  * <p> bug# 1294 Added smoothingAssessmentPanel to FlattenWarpPanel.
  * <p>
