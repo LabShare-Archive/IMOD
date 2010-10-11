@@ -3,6 +3,7 @@ package etomo.ui;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -34,12 +35,15 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.1  2009/06/05 02:19:04  sueh
  * <p> bug# 1219 A panel that can run squeezevol.  Factored out of the post
  * <p> processing dialog.
  * <p> </p>
  */
-final class SqueezeVolPanel implements Run3dmodButtonContainer {
+final class SqueezeVolPanel implements Run3dmodButtonContainer, ContextMenu {
   public static final String rcsid = "$Id$";
 
   private final SqueezeVolPanelActionListener actionListener = new SqueezeVolPanelActionListener(
@@ -83,8 +87,20 @@ final class SqueezeVolPanel implements Run3dmodButtonContainer {
   }
 
   private void addListeners() {
+    pnlRoot.addMouseListener(new GenericMouseAdapter(this));
     btnSqueezeVolume.addActionListener(actionListener);
     btnImodSqueezedVolume.addActionListener(actionListener);
+  }
+
+  /**
+   * Right mouse button context menu
+   */
+  public void popUpContextMenu(MouseEvent mouseEvent) {
+    String[] manPagelabel = { "Squeezevol" };
+    String[] manPage = { "squeezevol.html" };
+
+    new ContextPopup(pnlRoot.getContainer(), mouseEvent, "Squeezing",
+        ContextPopup.TOMO_GUIDE, manPagelabel, manPage, manager, axisID);
   }
 
   private void createPanel() {
@@ -123,7 +139,8 @@ final class SqueezeVolPanel implements Run3dmodButtonContainer {
 
   private void setToolTipText() {
     rbInputFileTrimVol.setToolTipText("Choose the input file for squeezevol.");
-    rbInputFileFlattenWarp.setToolTipText("Choose the input file for squeezevol.");
+    rbInputFileFlattenWarp
+        .setToolTipText("Choose the input file for squeezevol.");
     ltfReductionFactorXY.setToolTipText("Factor to squeeze by in X and Y.");
     ltfReductionFactorZ.setToolTipText("Factor to squeeze by in Z.");
     cbLinearInterpolation

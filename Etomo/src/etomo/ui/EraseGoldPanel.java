@@ -3,6 +3,7 @@ package etomo.ui;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
@@ -26,6 +27,7 @@ import etomo.type.MetaData;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TomogramState;
+import etomo.type.ViewType;
 
 /**
  * <p>Description: </p>
@@ -41,6 +43,9 @@ import etomo.type.TomogramState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2010/03/27 04:59:52  sueh
+ * <p> Reformatted.
+ * <p>
  * <p> Revision 1.5  2010/03/19 02:39:28  sueh
  * <p> bug# 1325 Added setParameters(ConstTiltalignParam,boolean).  Changed
  * <p> a tool tip.
@@ -55,7 +60,7 @@ import etomo.type.TomogramState;
  * <p> bug# 1222
  * <p> </p>
  */
-final class EraseGoldPanel implements Beads3dFindParent {
+final class EraseGoldPanel implements Beads3dFindParent, ContextMenu {
   public static final String rcsid = "$Id$";
 
   static final String ERASE_GOLD_TAB_LABEL = "Erase Gold";
@@ -103,8 +108,44 @@ final class EraseGoldPanel implements Beads3dFindParent {
   }
 
   private void addListeners() {
+    pnlRoot.addMouseListener(new GenericMouseAdapter(this));
     rbModelUseFid.addActionListener(actionListener);
     rbModelUseFindBeads3d.addActionListener(actionListener);
+  }
+
+  /**
+   * Right mouse button context menu
+   */
+  public void popUpContextMenu(final MouseEvent mouseEvent) {
+    String alignManpageLabel;
+    String alignManpage;
+    String alignLogfileLabel;
+    String alignLogfile;
+    if (manager.getMetaData().getViewType() == ViewType.MONTAGE) {
+      alignManpageLabel = "Blendmont";
+      alignManpage = "blendmont";
+      alignLogfileLabel = "Blend";
+      alignLogfile = "blend";
+    }
+    else {
+      alignManpageLabel = "Newstack";
+      alignManpage = "newstack";
+      alignLogfileLabel = "Newst";
+      alignLogfile = "newst";
+    }
+    String[] manPagelabel = { alignManpageLabel, "Tilt", "Findbeads3d",
+        "CcdEraser", "3dmod" };
+    String[] manPage = { alignManpage + ".html", "tilt.html",
+        "findbeads3d.html", "ccderaser.html", "3dmod.html" };
+    String[] logFileLabel = { alignLogfileLabel + "_3dfind", "Tilt_3dfind",
+        "Findbeads3d", };
+    String[] logFile = new String[3];
+    logFile[0] = alignLogfile + "_3dfind" + axisID.getExtension() + ".log";
+    logFile[1] = "tilt_3dfind" + axisID.getExtension() + ".log";
+    logFile[2] = "findbeads3d" + axisID.getExtension() + ".log";
+    ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent,
+        "ErasingGold", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
+        logFileLabel, logFile, manager, axisID);
   }
 
   private void createPanel() {

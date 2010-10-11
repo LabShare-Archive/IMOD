@@ -3,6 +3,7 @@ package etomo.ui;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -49,6 +50,9 @@ import etomo.util.FrontEndLogic;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2010/03/27 05:04:25  sueh
+ * <p> bug# 1316 Check for rotated tomogram and conflicting dataset name.
+ * <p>
  * <p> Revision 1.1  2010/02/17 05:01:48  sueh
  * <p> bug# 1301 Incorporated flatten warp panel into FlattenVolumePanel.  Give this panel two panel ids so there can be two instances of it.
  * <p>
@@ -79,7 +83,7 @@ import etomo.util.FrontEndLogic;
  * <p> </p>
  */
 final class FlattenVolumePanel implements Run3dmodButtonContainer,
-    WarpVolDisplay, FlattenWarpDisplay, SmoothingAssessmentParent {
+    WarpVolDisplay, FlattenWarpDisplay, SmoothingAssessmentParent, ContextMenu {
   public static final String rcsid = "$Id$";
 
   private static final String OUTPUT_SIZE_Z_LABEL = "Output thickness in Z";
@@ -186,11 +190,26 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer,
   }
 
   private void addListeners() {
+    pnlRoot.addMouseListener(new GenericMouseAdapter(this));
     btnMakeSurfaceModel.addActionListener(actionListener);
     btnFlattenWarp.addActionListener(actionListener);
     btnFlatten.addActionListener(actionListener);
     btnImodFlatten.addActionListener(actionListener);
     ftfInputFile.addActionListener(actionListener);
+  }
+
+  /**
+   * Right mouse button context menu
+   */
+  public void popUpContextMenu(MouseEvent mouseEvent) {
+    String[] manPagelabel = { "Flattenwarp", "Warpvol" };
+    String[] manPage = { "flattenwarp.html", "warpvol.html", };
+    String[] logFileLabel = { "Flatten" };
+    String[] logFile = new String[1];
+    logFile[0] = "flatten" + ".log";
+    ContextPopup contextPopup = new ContextPopup(pnlRoot.getContainer(),
+        mouseEvent, "Flattening", ContextPopup.TOMO_GUIDE, manPagelabel,
+        manPage, logFileLabel, logFile, applicationManager, axisID);
   }
 
   void done() {

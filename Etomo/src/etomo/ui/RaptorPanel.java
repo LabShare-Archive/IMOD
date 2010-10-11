@@ -3,6 +3,7 @@ package etomo.ui;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -35,6 +36,10 @@ import etomo.type.ViewType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2010/03/12 04:25:16  sueh
+ * <p> bug# 1325 n setBeadtrackParams(BeadtrackParams) make sure that bead
+ * <p> diameter won't override the metadata value if it is empty.
+ * <p>
  * <p> Revision 1.2  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
@@ -42,7 +47,7 @@ import etomo.type.ViewType;
  * <p> bug# 1221 Factoring RAPTOR into RaptorPanel.
  * <p>
  */
-final class RaptorPanel implements Run3dmodButtonContainer {
+final class RaptorPanel implements Run3dmodButtonContainer, ContextMenu {
   public static final String rcsid = "$Id$";
 
   private static final String MARK_LABEL = "# of beads to choose";
@@ -97,10 +102,27 @@ final class RaptorPanel implements Run3dmodButtonContainer {
   }
 
   private void addListeners() {
+    pnlRoot.addMouseListener(new GenericMouseAdapter(this));
     btnOpenStack.addActionListener(actionListener);
     btnRaptor.addActionListener(actionListener);
     btnOpenRaptorResult.addActionListener(actionListener);
     btnUseRaptorResult.addActionListener(actionListener);
+  }
+
+  /**
+   * Right mouse button context menu
+   */
+  public void popUpContextMenu(final MouseEvent mouseEvent) {
+    String[] manPagelabel = { "Beadtrack", "3dmod" };
+    String[] manPage = { "beadtrack.html", "3dmod.html" };
+
+    String[] logFileLabel = { "Track" };
+    String[] logFile = new String[1];
+    logFile[0] = "track" + axisID.getExtension() + ".log";
+
+    new ContextPopup(pnlRoot.getContainer(), mouseEvent, "UsingRaptor",
+        ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile,
+        manager, axisID);
   }
 
   private void createPanel() {
