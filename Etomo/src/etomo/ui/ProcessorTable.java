@@ -53,7 +53,7 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
   private static final String STORE_PREPEND = "ProcessorTable";
 
   private final JPanel rootPanel = new JPanel();
-  private JPanel tablePanel;
+  private  JPanel tablePanel;
   private GridBagLayout layout = null;
   private GridBagConstraints constraints = null;
   private final HeaderCell header1Computer = new HeaderCell();
@@ -517,6 +517,7 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
 
   public void setComputerMap(final Map computerMap) {
     rowList.setComputerMap(computerMap);
+    parent.msgComputerMapSet();
   }
 
   public void msgDropped(final String computer, final String reason) {
@@ -571,7 +572,7 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
   }
 
   public void setLoad(final String computer, final double load1,
-      final double load5, final int users, String usersTooltip) {
+      final double load5, final int users, final String usersTooltip) {
     ((ProcessorTableRow) rowList.get(computer)).setLoad(load1, load5, users,
         usersTooltip);
   }
@@ -636,7 +637,7 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
     load(props, "");
   }
 
-  public void load(final Properties props, String prepend) {
+   void load(final Properties props, String prepend) {
     String group;
     if (prepend == "") {
       prepend = STORE_PREPEND;
@@ -739,7 +740,7 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
       list.add(row);
     }
 
-    private void display(boolean expanded, Viewport viewport) {
+    private void display(final boolean expanded,final  Viewport viewport) {
       for (int i = 0; i < size(expanded); i++) {
         ProcessorTableRow row;
         if (expanded) {
@@ -754,7 +755,7 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
       }
     }
 
-    private int size(boolean expanded) {
+    private int size(final boolean expanded) {
       if (expanded) {
         return size();
       }
@@ -869,6 +870,9 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.57  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 1.56  2010/01/11 23:59:01  sueh
  * <p> bug# 1299 Removed responsibility anything other then cpu.adoc from
  * <p> CpuAdoc.  Placed responsibility for information about the network in the
