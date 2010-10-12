@@ -23,7 +23,7 @@ import etomo.util.HashedArray;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2005</p>
+ * <p>Copyright: Copyright (c) 2005 - 2010</p>
  *
  * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
@@ -79,9 +79,9 @@ public final class ParallelPanel implements Expandable {
 
   private final boolean popupChunkWarnings;
 
-  public static ParallelPanel getInstance(final BaseManager manager,
+   static ParallelPanel getInstance(final BaseManager manager,
       final AxisID axisID, final PanelHeaderState state,
-      final AxisProcessPanel parent, boolean popupChunkWarnings) {
+      final AxisProcessPanel parent, final boolean popupChunkWarnings) {
     ParallelPanel instance = new ParallelPanel(manager, axisID, state, parent,
         popupChunkWarnings);
     instance.addListeners();
@@ -90,7 +90,7 @@ public final class ParallelPanel implements Expandable {
 
   private ParallelPanel(final BaseManager manager, final AxisID axisID,
       final PanelHeaderState state, final AxisProcessPanel parent,
-      boolean popupChunkWarnings) {
+      final   boolean popupChunkWarnings) {
     this.manager = manager;
     this.axisID = axisID;
     this.parent = parent;
@@ -343,15 +343,28 @@ public final class ParallelPanel implements Expandable {
       UIHarness.INSTANCE.pack(axisID, manager);
     }
     else if (header.equalsMoreLess(button)) {
-      boolean expanded = button.isExpanded();
-      btnSaveDefaults.setVisible(expanded);
-      queueTable.setExpanded(expanded);
-      computerTable.setExpanded(expanded);
-      buildTablePanel();
+      setMoreLess(button.isExpanded());
     }
     else {
       return;
     }
+  }
+
+  /**
+   * Handle changing which CPUs are checked in a contracted display.
+   */
+  void msgComputerMapSet() {
+    if (header.isLess()) {
+      setMoreLess(true);
+      setMoreLess(false);
+    }
+  }
+
+  private void setMoreLess(final boolean more) {
+    btnSaveDefaults.setVisible(more);
+    queueTable.setExpanded(more);
+    computerTable.setExpanded(more);
+    buildTablePanel();
   }
 
   void getHeaderState(final PanelHeaderState headerState) {
@@ -390,6 +403,9 @@ public final class ParallelPanel implements Expandable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.72  2010/07/02 03:19:06  sueh
+ * <p> bug# 1388 Added popupChunkWarnings.
+ * <p>
  * <p> Revision 1.71  2010/02/26 20:38:28  sueh
  * <p> Changing the complex popup titles are making it hard to complete the
  * <p> uitests.
