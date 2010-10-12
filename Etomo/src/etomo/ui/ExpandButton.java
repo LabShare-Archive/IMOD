@@ -37,6 +37,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.23  2009/10/08 20:58:58  sueh
+ * <p> bug# 1277 In setName change the name to mb.name.
+ * <p>
  * <p> Revision 1.22  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p>
@@ -136,7 +139,7 @@ import etomo.util.Utilities;
  * <p> tells the component it is displayed on when it has been pressed.
  * <p> </p>
  */
-public final class ExpandButton extends MultiLineButton {
+final class ExpandButton extends MultiLineButton {
   public static final String rcsid = "$Id$";
 
   private static final Type DEFAULT_TYPE = Type.MORE;
@@ -149,7 +152,8 @@ public final class ExpandButton extends MultiLineButton {
   private boolean expanded;
   private JPanel jpanelContainer = null;
 
-  static ExpandButton getInstance(Expandable expandable, ExpandButton.Type type) {
+  static ExpandButton getInstance(final Expandable expandable,
+      ExpandButton.Type type) {
     if (type == null) {
       type = DEFAULT_TYPE;
     }
@@ -157,8 +161,8 @@ public final class ExpandButton extends MultiLineButton {
     return instance;
   }
 
-  static ExpandButton getGlobalInstance(Expandable expandable1,
-      ExpandButton.Type type, GlobalExpandButton globalExpandButton) {
+  static ExpandButton getGlobalInstance(final Expandable expandable1,
+      ExpandButton.Type type, final GlobalExpandButton globalExpandButton) {
     if (type == null) {
       type = DEFAULT_TYPE;
     }
@@ -167,8 +171,8 @@ public final class ExpandButton extends MultiLineButton {
     return instance;
   }
 
-  static ExpandButton getExpandedInstance(Expandable expandable1,
-      Expandable expandable2, ExpandButton.Type type) {
+  static ExpandButton getExpandedInstance(final Expandable expandable1,
+      final Expandable expandable2, ExpandButton.Type type) {
     if (type == null) {
       type = DEFAULT_TYPE;
     }
@@ -185,14 +189,15 @@ public final class ExpandButton extends MultiLineButton {
    * The button can be used on any ui.
    * @param component
    */
-  private ExpandButton(Expandable expandable1, Expandable expandable2,
-      ExpandButton.Type type, GlobalExpandButton globalExpandButton) {
+  private ExpandButton(final Expandable expandable1,
+      final Expandable expandable2, final ExpandButton.Type type,
+      final GlobalExpandButton globalExpandButton) {
     this(expandable1, expandable2, type, false, globalExpandButton);
   }
 
-  private ExpandButton(Expandable expandable1, Expandable expandable2,
-      ExpandButton.Type type, boolean expanded,
-      GlobalExpandButton globalExpandButton) {
+  private ExpandButton(final Expandable expandable1,
+      final Expandable expandable2, final ExpandButton.Type type,
+      final boolean expanded, final GlobalExpandButton globalExpandButton) {
     super();
     this.expandable1 = expandable1;
     this.expandable2 = expandable2;
@@ -222,7 +227,7 @@ public final class ExpandButton extends MultiLineButton {
    * includes the mini-button tag.
    * @param label
    */
-  void setName(String associatedLabel) {
+  void setName(final String associatedLabel) {
     String name = Utilities.convertLabelToName(associatedLabel);
     getButton().setName(
         UITestFieldType.MINI_BUTTON.toString()
@@ -237,11 +242,11 @@ public final class ExpandButton extends MultiLineButton {
    * 
    * @return expanded
    */
-  public boolean isExpanded() {
+  boolean isExpanded() {
     return expanded;
   }
 
-  public static boolean isExpanded(JButton button) {
+  static boolean isExpanded(final JButton button) {
     return Type.isExpandedSymbol(button.getText());
   }
 
@@ -251,7 +256,7 @@ public final class ExpandButton extends MultiLineButton {
    * @param dialogType
    * @return
    */
-  String createButtonStateKey(DialogType dialogType) {
+  String createButtonStateKey(final DialogType dialogType) {
     String stateKey = dialogType.getStorableName() + '.' + getName() + '.'
         + type.getExpandedState();
     setStateKey(stateKey);
@@ -267,7 +272,7 @@ public final class ExpandButton extends MultiLineButton {
     return isExpanded();
   }
 
-  void setButtonState(boolean state) {
+  void setButtonState(final boolean state) {
     setOriginalProcessResultDisplayState(state);
     setExpanded(state);
   }
@@ -276,7 +281,7 @@ public final class ExpandButton extends MultiLineButton {
     return type.getState(expanded);
   }
 
-  void setState(String state) {
+  void setState(final String state) {
     if (state == null) {
       return;
     }
@@ -288,7 +293,8 @@ public final class ExpandButton extends MultiLineButton {
     }
   }
 
-  void add(JPanel panel, GridBagLayout layout, GridBagConstraints constraints) {
+  void add(final JPanel panel, final GridBagLayout layout,
+      final GridBagConstraints constraints) {
     layout.setConstraints(getComponent(), constraints);
     panel.add(getComponent());
     jpanelContainer = panel;
@@ -308,7 +314,7 @@ public final class ExpandButton extends MultiLineButton {
    * @param that
    * @return
    */
-  boolean equals(ExpandButton that) {
+  boolean equals(final ExpandButton that) {
     return equals((Object) that);
   }
 
@@ -317,7 +323,7 @@ public final class ExpandButton extends MultiLineButton {
    * value of the button isn't changed.  To allows the screen to be initialized.
    * @param expanded
    */
-  void setExpanded(boolean expanded) {
+  void setExpanded(final boolean expanded) {
     //prevent buttonAction from ignoring an unchanged button value
     if (this.expanded == expanded) {
       this.expanded = !expanded;
@@ -331,7 +337,7 @@ public final class ExpandButton extends MultiLineButton {
    * expanded.  Calls the expand(ExpandButton) for the three Expandables when
    * finished setting the expand state.
    */
-  void buttonAction() {
+  private void buttonAction() {
     expanded = !expanded;
     super.setText(type.getSymbol(expanded));
     setToolTipText(type.getToolTip(expanded));
@@ -350,21 +356,19 @@ public final class ExpandButton extends MultiLineButton {
   /**
    * Action listener for this class
    */
-  class ExpandButtonActionListener implements ActionListener {
+  private final class ExpandButtonActionListener implements ActionListener {
+    private final ExpandButton adaptee;
 
-    ExpandButton adaptee;
-
-    ExpandButtonActionListener(ExpandButton adaptee) {
+    private ExpandButtonActionListener(final ExpandButton adaptee) {
       this.adaptee = adaptee;
     }
 
-    public void actionPerformed(ActionEvent event) {
+    public void actionPerformed(final ActionEvent event) {
       adaptee.buttonAction();
     }
   }
 
   static final class Type {
-
     private static final String MORE_EXPANDED_SYMBOL = "<html>&lt";
     private static final String ADVANCED_EXPANDED_SYMBOL = "B";
     private static final String OPEN_EXPANDED_SYMBOL = "-";
@@ -385,9 +389,9 @@ public final class ExpandButton extends MultiLineButton {
     private final String contractedSymbol;
     private final String contractedToolTip;
 
-    private Type(String expandedState, String expandedSymbol,
-        String expandedToolTip, String contractedState,
-        String contractedSymbol, String contractedToolTip) {
+    private Type(final String expandedState, final String expandedSymbol,
+        final String expandedToolTip, final String contractedState,
+        final String contractedSymbol, final String contractedToolTip) {
       this.expandedState = expandedState;
       this.expandedSymbol = expandedSymbol;
       this.expandedToolTip = expandedToolTip;
@@ -396,7 +400,7 @@ public final class ExpandButton extends MultiLineButton {
       this.contractedToolTip = contractedToolTip;
     }
 
-    static boolean isExpandedSymbol(String symbol) {
+    private static boolean isExpandedSymbol(String symbol) {
       symbol = Utilities.convertLabelToName(symbol);
       return symbol.equals(Utilities.convertLabelToName(MORE_EXPANDED_SYMBOL))
           || symbol.equals(Utilities
@@ -404,7 +408,7 @@ public final class ExpandButton extends MultiLineButton {
           || symbol.equals(Utilities.convertLabelToName(OPEN_EXPANDED_SYMBOL));
     }
 
-    String getState(boolean expanded) {
+    private String getState(final boolean expanded) {
       if (expanded) {
         return expandedState;
       }
@@ -415,22 +419,22 @@ public final class ExpandButton extends MultiLineButton {
      * Backwards compatibility issue:  expandedState is a key in the .edf file.
      * @return expandedState
      */
-    String getExpandedState() {
+    private String getExpandedState() {
       return expandedState;
     }
 
-    String getContractedState() {
+    private String getContractedState() {
       return contractedState;
     }
 
-    String getSymbol(boolean expanded) {
+    private String getSymbol(final boolean expanded) {
       if (expanded) {
         return expandedSymbol;
       }
       return contractedSymbol;
     }
 
-    String getToolTip(boolean expanded) {
+    private String getToolTip(final boolean expanded) {
       if (expanded) {
         return expandedToolTip;
       }
