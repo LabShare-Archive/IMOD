@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/11/10: In eTomo, fixed a problem with the compact parallel processing table
+display when restarting a parallel process.
+
 10/11/10: In eTomo, improved the the context sensitivity of the pop up menus.
 
 9/29/10: Etomo fiducial tracking page now updates the section skip list in the
