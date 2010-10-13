@@ -23,6 +23,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2010/09/08 19:15:01  sueh
+ * <p> bug# 1401 Added reconAutomation.
+ * <p>
  * <p> Revision 1.11  2010/07/07 21:21:34  sueh
  * <p> bug# 1387 Added debugLevel.
  * <p>
@@ -83,22 +86,9 @@ public final class Arguments {
   private static final String LISTEN_TAG = "--listen";
   private static final String AUTO_CLOSE_3DMOD_TAG = "--autoclose3dmod";
   private static final String IGNORE_LOC_TAG = "--ignoreloc";
+  private static final String IGNORE_SETTINGS_TAG = "--ignoresettings";
 
   static final String HELP_MESSAGE = "Options:\n  "
-      + DEBUG_TAG
-      + " [level]"
-      + "\n\t\tSend extra information to standard error.  The "
-      + DEBUG_TAG
-      + " option"
-      + "\n\t\tincludes the following options:  "
-      + MEMORY_TAG
-      + " and "
-      + TIMESTAMP_TAG
-      + ".  Level can be 0 (debug is off), 1 (default) or 2 (more information)."
-      + "\n\n  "
-      + DEMO_TAG
-      + "\tDeprecated."
-      + "\n\n  "
       + HELP1_TAG
       + ", "
       + HELP2_TAG
@@ -106,27 +96,18 @@ public final class Arguments {
       + "\n\n  "
       + LISTEN_TAG
       + "\tForces all 3dmods to be run with the -L option.  This only has an "
-      + "\n\t\teffect on Windows computers because -L is always used on Linux"
+      + "\n\t\teffect on Windows computers because -L is always used on Linux "
       + "\n\t\tand Mac."
-      + "\n\n  "
-      + MEMORY_TAG
-      + " [interval]"
-      + "\n\t\tLog memory usage statements before and after processes are run."
-      + "\n\t\tThe interval is an integer which denotes the interval in minutes"
-      + "\n\t\tat which to send additional memory usage statements."
-      + "\n\n  "
-      + SELFTEST_TAG
-      + "\tCauses Etomo to do some internal testing.  Etomo may run more slowly."
       + "\n\n  "
       + TIMESTAMP_TAG
       + "\tSend timestamps to standard error before and after processes are run."
-      + "\n"
-      + "\nAutomation Options:\n  "
+      + "\n\n"
+      + "Automation Options:\n  "
       + FG_TAG
       + "\t\tUsed with automation.  Must be the first option.  Causes Etomo to "
-      + "\n\t\tbe run in the foreground rather then in the background.  This is"
-      + "\n\t\tuseful when running Etomo with automation from a script; a"
-      + "\n\t\tscript will not wait until Etomo is done unless Etomo is running"
+      + "\n\t\tbe run in the foreground rather then in the background.  This is "
+      + "\n\t\tuseful when running Etomo with automation from a script; a "
+      + "\n\t\tscript will not wait until Etomo is done unless Etomo is running "
       + "\n\t\tin the foreground."
       + "\n\n  "
       + AXIS_TAG
@@ -137,34 +118,34 @@ public final class Arguments {
       + "\n\t\tFor automation.  Sets the Axis Type in the Setup Tomogram dialog."
       + "\n\n  "
       + CREATE_TAG
-      + "\tFor automation.  Runs Create Com Scripts in the Setup Tomogram"
+      + "\tFor automation.  Runs Create Com Scripts in the Setup Tomogram "
       + "\n\t\tdialog."
       + "\n\n  "
       + DATASET_TAG
       + " tilt_series_file|dataset_name"
-      + "\n\t\tFor automation.  Sets Dataset Name in the Setup  Tomogram dialog."
-      + "\n\t\tCan be set to a file containing a tilt series or to the dataset"
-      + "\n\t\t name.  A dataset name is the root name of the tilt series file,"
-      + "\n\t\texcluding the extension (and the axis extension - \"a\" or \"b\""
-      + "\n\t\t - in the case of dual axis).  Must be in the local directory"
+      + "\n\t\tFor automation.  Sets Dataset Name in the Setup  Tomogram dialog.  "
+      + "\n\t\tCan be set to a file containing a tilt series or to the dataset "
+      + "\n\t\tname.  A dataset name is the root name of the tilt series file, "
+      + "\n\t\texcluding the extension - and the axis extension (\"a\" or \"b\") "
+      + "\n\t\tin the case of dual axis.  Must be in the local directory "
       + "\n\t\tunless the "
       + DIR_TAG
       + " option is used."
       + "\n\n  "
       + DIR_TAG
       + " \"directory_path\""
-      + "\n\t\tFor automation.  The absolute or relative directory containing"
+      + "\n\t\tFor automation.  The absolute or relative directory containing "
       + "\n\t\tthe file or dataset specified with the "
       + DATASET_TAG
       + " option."
       + "\n\n  "
       + EXIT_TAG
-      + "\tFor automation.  Causes Etomo to exit after the Setup Tomogram dialog"
-      + "\n\t\tis completed."
+      + "\tFor automation.  Causes Etomo to exit after the Setup Tomogram "
+      + "\n\t\tdialog is completed."
       + "\n\n  "
       + FIDUCIAL_TAG
       + " fiducial_diameter"
-      + "\n\t\tFor automation.  Sets the Fiducial Diameter (a double) in the"
+      + "\n\t\tFor automation.  Sets the Fiducial Diameter (a double) in the "
       + "\n\t\tSetup Tomogram dialog."
       + "\n\n  "
       + FRAME_TAG
@@ -172,32 +153,54 @@ public final class Arguments {
       + ViewType.SINGLE_VIEW.getValue()
       + "|"
       + ViewType.MONTAGE.getValue()
-      + "\n\t\tFor automation.  Sets the Frame Type in the Setup Tomogram"
+      + "\n\t\tFor automation.  Sets the Frame Type in the Setup Tomogram "
       + "\n\t\tdialog."
       + "\n\n  "
       + SCAN_TAG
       + "\tFor automation.  Runs Scan Header in the Setup Tomogram dialog."
-      + "\n"
-      + "\nDevelopment and Testing Options:\n  "
-      + AUTO_CLOSE_3DMOD_TAG
-      + "\n\t\tFor user interface testing.  Instead of popping up a message asking"
-      + "\n\t\tto close an open 3dmod instance, Etomo automatically closes the"
-      + "\n\t\t3dmod instance."
+      + "\n\n"
+      + "Diagnostic Options:\n  "
+      + DEBUG_TAG
+      + " [level]"
+      + "\n\t\tSend extra information to standard error.  The "
+      + DEBUG_TAG
+      + " option"
+      + "\n\t\tincludes the following options:  "
+      + MEMORY_TAG
+      + " and "
+      + TIMESTAMP_TAG
+      + ".\n\t\tLevel can be 0 (debug is off), 1 (default) or 2 (more "
+      + "\n\t\tinformation)."
       + "\n\n  "
-      + HEADLESS_TAG
+      + IGNORE_SETTINGS_TAG
+      + "\n\t\tPrevents the .etomo from loading from and saving to the .etomo "
+      + "\n\t\tconfiguration file."
+      + "\n\n  "
+      + MEMORY_TAG
+      + " [interval]"
+      + "\n\t\tLog memory usage statements before and after processes are run.  "
+      + "\n\t\tThe interval is an integer which denotes the interval in minutes "
+      + "\n\t\tat which to send additional memory usage statements."
+      + "\n\n  "
+      + SELFTEST_TAG
+      + "\tCauses Etomo to do some internal testing.  Etomo may run more slowly."
+      + "\n\n" + "Development and Testing Options:\n  " + AUTO_CLOSE_3DMOD_TAG
+      + "\n\t\tFor user interface testing.  Instead of popping up a message "
+      + "\n\t\tasking to close an open 3dmod instance, Etomo automatically "
+      + "\n\t\tcloses the 3dmod instance." + "\n\n  " + HEADLESS_TAG
       + "\tFor testing.  No window is created.  Used for unit testing."
-      + "\n\n  "
-      + IGNORE_LOC_TAG
-      + "\tFor user interface testing.  Keeps eTomo from using the last location"
-      + "\n\t\tinformation that is saved in .etomo."
-      + "\n\n  "
+      + "\n\n  " + IGNORE_LOC_TAG
+      + "\tFor user interface testing.  Keeps eTomo from using the last "
+      + "\n\t\tlocation information that is saved in .etomo." + "\n\n  "
       + NAMES_TAG
-      + "\tFor testing.  Send the names of screen elements to standard out.  For"
-      + "\n\t\twriting automated regression tests." + "\n\n  " + NEWSTUFF_TAG
+      + "\tFor testing.  Send the names of screen elements to standard out.  "
+      + "\n\t\tFor writing automated regression tests." + "\n\n  "
+      + NEWSTUFF_TAG
       + "\tMay cause Etomo to run with unreleased functionality." + "\n\n  "
       + TEST_TAG
-      + "\tFor testing.  Test mode used for unit testing and automated"
-      + "\n\t\tregression testing." + "\n\n  ";
+      + "\tFor testing.  Test mode used for unit testing and automated "
+      + "\n\t\tregression testing." + "\n\n" + "Deprecated Options:\n  "
+      + DEMO_TAG + "\tDeprecated.";
 
   private final ArrayList paramFileNameList = new ArrayList();
 
@@ -235,6 +238,7 @@ public final class Arguments {
   private boolean autoClose3dmod = false;
   private boolean ignoreLoc = false;
   private boolean reconAutomation = false;
+  private boolean ignoreSettings=false;
 
   private final EtomoNumber fiducial = new EtomoNumber(EtomoNumber.Type.DOUBLE);
 
@@ -329,6 +333,10 @@ public final class Arguments {
     return ignoreLoc;
   }
 
+  public boolean isIgnoreSettings() {
+    return ignoreSettings;
+  }
+
   /**
    * Parse the command line. This method will return a non-empty string if there
    * is a etomo data .
@@ -407,14 +415,14 @@ public final class Arguments {
         newstuff = true;
       }
       else if (args[i].equals(DATASET_TAG)) {
-        reconAutomation=true;
+        reconAutomation = true;
         if (i < args.length - 1) {
           dataset = args[i + 1];
           i++;
         }
       }
       else if (args[i].equals(DIR_TAG)) {
-        reconAutomation=true;
+        reconAutomation = true;
         if (i < args.length - 1) {
           //the quotes will be stripped by the program
           dir = args[i + 1];
@@ -422,7 +430,7 @@ public final class Arguments {
         }
       }
       else if (args[i].equals(AXIS_TAG)) {
-        reconAutomation=true;
+        reconAutomation = true;
         if (i < args.length - 1) {
           axis = AxisType.fromString(args[i + 1]);
           if (axis != null) {
@@ -431,7 +439,7 @@ public final class Arguments {
         }
       }
       else if (args[i].equals(FRAME_TAG)) {
-        reconAutomation=true;
+        reconAutomation = true;
         if (i < args.length - 1) {
           frame = ViewType.fromString(args[i + 1]);
           if (frame != null) {
@@ -440,7 +448,7 @@ public final class Arguments {
         }
       }
       else if (args[i].equals(FIDUCIAL_TAG)) {
-        reconAutomation=true;
+        reconAutomation = true;
         if (i < args.length - 1) {
           fiducial.set(args[i + 1]);
           if (!fiducial.isNull()) {
@@ -449,18 +457,18 @@ public final class Arguments {
         }
       }
       else if (args[i].equals(SCAN_TAG)) {
-        reconAutomation=true;
+        reconAutomation = true;
         scan = true;
       }
       else if (args[i].equals(CREATE_TAG)) {
-        reconAutomation=true;
+        reconAutomation = true;
         create = true;
       }
       else if (args[i].equals(EXIT_TAG)) {
         exit = true;
       }
       else if (args[i].equals(FG_TAG)) {
-        reconAutomation=true;
+        reconAutomation = true;
         if (i > 0) {
           System.err
               .println("WARNING:  option --fg had no effect; must be the first option to have an effect.");
@@ -474,6 +482,9 @@ public final class Arguments {
       }
       else if (args[i].equals(IGNORE_LOC_TAG)) {
         ignoreLoc = true;
+      }
+      else if (args[i].equals(IGNORE_SETTINGS_TAG)) {
+        ignoreSettings = true;
       }
       else {
         System.err.println("WARNING:  unknown argument, " + args[i]
