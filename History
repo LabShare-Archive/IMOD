@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/13/10: In eTomo - Settings dialog, filtering out font families with a "'" in
+their name because these names cause a Java failure.  Also added a paramter:
+--ignoresettings to help diagnose look and feel bugs.
+
 10/11/10: In eTomo, fixed a problem with the compact parallel processing table
 display when restarting a parallel process.
 
