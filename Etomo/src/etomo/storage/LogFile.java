@@ -116,7 +116,9 @@ public final class LogFile {
 
   public static LogFile getInstance(File file) throws LockException {
     if (file == null) {
-      throw new LockException("Cannot create LogFile, file is null.");
+      LockException e= new LockException("Cannot create LogFile, file is null.");
+      e.printStackTrace();
+      throw e;
     }
     LogFile logFile;
     String key = file.getAbsolutePath();
@@ -1398,6 +1400,9 @@ public final class LogFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.30  2010/05/12 21:13:44  sueh
+ * <p> bug# 1358 Win7 Problem with backing up tomopitch.log.  Adding stack dumps.
+ * <p>
  * <p> Revision 1.29  2010/02/17 04:49:31  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
