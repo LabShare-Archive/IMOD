@@ -326,7 +326,7 @@ public final class SettingsDialog extends JDialog {
    * @author sueh
    */
   private static final class FontFamilies {
-    private final Vector<String> usable = new Vector<String>();
+    private final Vector usable = new Vector();
 
     private int defaultIndex = -1;
 
@@ -355,7 +355,7 @@ public final class SettingsDialog extends JDialog {
      * Get the usable font families.
      * @return
      */
-    private Vector<String> getFontFamilies() {
+    private Vector getFontFamilies() {
       return usable;
     }
 
@@ -367,7 +367,7 @@ public final class SettingsDialog extends JDialog {
     private int getIndex(final String fontFamilyName) {
       // Find the font family index from the available fontFamilies
       for (int i = 0; i < usable.size(); i++) {
-        if (usable.get(i).compareToIgnoreCase(fontFamilyName) == 0) {
+        if (((String) usable.get(i)).compareToIgnoreCase(fontFamilyName) == 0) {
           return i;
         }
       }
@@ -375,7 +375,7 @@ public final class SettingsDialog extends JDialog {
     }
 
     private String getName(final int i) {
-      return usable.get(i);
+      return (String) usable.get(i);
     }
   }
 }
