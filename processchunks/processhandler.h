@@ -63,6 +63,8 @@ public:
   void getErrorMessageFromOutput(QString &errorMess);
   const bool isPidInStderr();
   const bool isPidInStdout();
+  void resetPausing();
+  bool isPausing();
 
 public slots:
   void handleError(const QProcess::ProcessError error);
@@ -95,7 +97,7 @@ private:
   //On when process is run, off when finished, kill finished signal received,
   //or when the kill timeout is handled.
   bool mStartingProcess;
-  int mNumChunkErr;
+  int mNumChunkErr,mPausing;
   FlagType mFlag;
   QByteArray mStderr, mStdout;
   QString mPid, mEscapedRemoteDirPath, mDecoratedClassName, mCommand;//queue or local command

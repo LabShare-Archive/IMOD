@@ -41,6 +41,7 @@ ProcessHandler::ProcessHandler() {
   mKill = false;
   resetSignalValues();
   mDecoratedClassName = typeid(*this).name();
+  mPausing = 0;
 }
 
 ProcessHandler::~ProcessHandler() {
@@ -232,7 +233,7 @@ const bool ProcessHandler::getPid(QTextStream *stream, const bool save) {
   //may not be finished when this function runs.
   QString output = stream->readAll();
   if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-    mProcesschunks ->getOutStream() << "getPid:output:" << output << endl;
+    mProcesschunks->getOutStream() << "getPid:output:" << output << endl;
   }
   //Look for a PID entry with an EOL so the the complete PID is collected
   int index = output.lastIndexOf("PID:");
@@ -395,6 +396,18 @@ const bool ProcessHandler::isChunkDone() {
   return done;
 }
 
+void ProcessHandler::resetPausing(){
+  mPausing = 0;
+}
+
+bool ProcessHandler::isPausing() {
+  if (mPausing > 10) {
+    return false;
+  }
+  mPausing++;
+  return true;
+}
+
 //Reads the last 1000 characters of the file.  Returns all the text between
 //with "ERROR:" and the end of the file.
 void ProcessHandler::getErrorMessageFromLog(QString &errorMess) {
@@ -555,7 +568,6 @@ void ProcessHandler::removeProcessFiles() {
 
 //Return if csh file is made
 void ProcessHandler::makeCshFile() {
-  int i;
   mProcesschunks->getCurrentDir().remove(mCshFile->fileName());
   QTextStream writeStream(mCshFile);
   if (!mCshFile->open(QIODevice::WriteOnly)) {
@@ -831,7 +843,8 @@ void ProcessHandler::handleFinished(const int exitCode,
     const QProcess::ExitStatus exitStatus) {
   mFinishedSignalReceived = true;
   if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-    mProcesschunks->getOutStream() << "finished" << endl;
+    mProcesschunks->getOutStream() << "finished:" << mComFileName
+        << ":exitCode" << exitCode << ",exitStatus:" << exitStatus << endl;
     readAllStandardOutput();
     readAllStandardError();
   }
@@ -949,6 +962,7 @@ void ProcessHandler::handleKillFinished(const int exitCode,
 }
 
 void ProcessHandler::handleError(const QProcess::ProcessError processError) {
+  mProcesschunks->getOutStream() << "tag D" << endl;
   mErrorSignalReceived = true;
   mProcessError = processError;
 }
