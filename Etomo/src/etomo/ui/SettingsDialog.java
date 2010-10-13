@@ -2,6 +2,8 @@ package etomo.ui;
 
 import java.awt.GraphicsEnvironment;
 import java.awt.event.*;
+import java.util.Vector;
+
 import javax.swing.*;
 
 import etomo.BaseManager;
@@ -22,9 +24,8 @@ public final class SettingsDialog extends JDialog {
   public static final String rcsid = "$Id$";
 
   // Font selection panel
-  private final String[] fontFamilies = GraphicsEnvironment
-      .getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
-  private final JList listFontFamily = new JList(fontFamilies);
+  private final FontFamilies fontFamilies = new FontFamilies();
+  private final JList listFontFamily = new JList(fontFamilies.getFontFamilies());
   private final LabeledTextField ltfFontSize = new LabeledTextField("Size: ");
   private final LabeledTextField ltfTooltipsInitialDelay = new LabeledTextField(
       "Tooltips initial delay: ");
@@ -64,12 +65,12 @@ public final class SettingsDialog extends JDialog {
 
   private final String propertyUserDir;
 
-  private SettingsDialog(String propertyUserDir) {
+  private SettingsDialog(final String propertyUserDir) {
     this.propertyUserDir = propertyUserDir;
   }
 
-  public static SettingsDialog getInstance(BaseManager manager,
-      String propertyUserDir) {
+  public static SettingsDialog getInstance(final BaseManager manager,
+      final String propertyUserDir) {
     SettingsDialog instance = new SettingsDialog(propertyUserDir);
     instance.buildDialog();
     instance.loadData(manager, propertyUserDir);
@@ -166,15 +167,15 @@ public final class SettingsDialog extends JDialog {
    * Get data from CpuAdoc.
    * @param propertyUserDir
    */
-  private void loadData(BaseManager manager, String propertyUserDir) {
+  private void loadData(final BaseManager manager, final String propertyUserDir) {
     //Disable parallel processing checkbox if it was enabled by a method that
     //takes precidence over this one (cpu.adoc or IMOD_PROCESSORS).
     cbParallelProcessing.setEnabled(!Network.isParallelProcessingSetExternally(
         manager, AxisID.ONLY, propertyUserDir));
     //Disable GPU processing checkbox if it was enabled by a method that takes
     //precidence over this one (cpu.adoc).
-    cbGpuProcessing.setEnabled(!Network.isGpuProcessingSetExternally(
-        manager,AxisID.ONLY, propertyUserDir));
+    cbGpuProcessing.setEnabled(!Network.isGpuProcessingSetExternally(manager,
+        AxisID.ONLY, propertyUserDir));
   }
 
   private void updateDisplay() {
@@ -190,7 +191,7 @@ public final class SettingsDialog extends JDialog {
     cbParallelProcessing.addActionListener(listener);
   }
 
-  public void setParameters(UserConfiguration userConfig) {
+  public void setParameters(final UserConfiguration userConfig) {
     //  Convert the tooltips times to seconds
     ltfTooltipsInitialDelay
         .setText(userConfig.getToolTipsInitialDelay() / 1000);
@@ -228,17 +229,12 @@ public final class SettingsDialog extends JDialog {
       }
     }
 
-    // Find the font family index from the fontFamilies
-    for (int i = 0; i < fontFamilies.length; i++) {
-      if (fontFamilies[i].compareToIgnoreCase(currentFontFamily) == 0) {
-        listFontFamily.setSelectedIndex(i);
-      }
-    }
+    listFontFamily.setSelectedIndex(fontFamilies.getIndex(currentFontFamily));
     ltfFontSize.setText(currentFontSize);
     updateDisplay();
   }
 
-  public void getParameters(UserConfiguration userConfig) {
+  public void getParameters(final UserConfiguration userConfig) {
     //  Convert the tooltips times to milliseconds
     float delay = Float.parseFloat(ltfTooltipsInitialDelay.getText());
     userConfig.setToolTipsInitialDelay((int) (delay * 1000));
@@ -250,7 +246,8 @@ public final class SettingsDialog extends JDialog {
     userConfig.setAdvancedDialogs(cbAdvancedDialogs.isSelected());
     userConfig.setCompactDisplay(cbCompactDisplay.isSelected());
     userConfig.setFontSize(Integer.parseInt(ltfFontSize.getText()));
-    userConfig.setFontFamily(fontFamilies[listFontFamily.getSelectedIndex()]);
+    userConfig.setFontFamily(fontFamilies.getName(listFontFamily
+        .getSelectedIndex()));
     userConfig.setSingleAxis(cbSingleAxis.isSelected());
     userConfig.setMontage(cbMontage.isSelected());
     userConfig.setNoParallelProcessing(cbNoParallelProcessing.isSelected());
@@ -264,7 +261,7 @@ public final class SettingsDialog extends JDialog {
     userConfig.setPeetTableSize(ltfPeetTableSize.getText());
   }
 
-  public boolean isAppearanceSettingChanged(UserConfiguration userConfig) {
+  public boolean isAppearanceSettingChanged(final UserConfiguration userConfig) {
     if (userConfig.getNativeLookAndFeel() != cbNativeLAF.isSelected()
         || userConfig.getCompactDisplay() != cbCompactDisplay.isSelected()
         || userConfig.getSingleAxis() != cbSingleAxis.isSelected()
@@ -276,7 +273,7 @@ public final class SettingsDialog extends JDialog {
         || userConfig.getSwapYAndZ() != cbSwapYAndZ.isSelected()
         || userConfig.getFontSize() != Integer.parseInt(ltfFontSize.getText())
         || !userConfig.getFontFamily().equals(
-            fontFamilies[listFontFamily.getSelectedIndex()])
+            fontFamilies.getName(listFontFamily.getSelectedIndex()))
         || userConfig.isParallelProcessing() != cbParallelProcessing
             .isSelected()
         || userConfig.isGpuProcessing() != cbGpuProcessing.isSelected()
@@ -309,7 +306,7 @@ public final class SettingsDialog extends JDialog {
     }
   }
 
-  private final class SettingsDialogListener implements ActionListener {
+  private static final class SettingsDialogListener implements ActionListener {
     private final SettingsDialog adaptee;
 
     private SettingsDialogListener(final SettingsDialog settingsDialog) {
@@ -318,6 +315,67 @@ public final class SettingsDialog extends JDialog {
 
     public void actionPerformed(final ActionEvent actionEvent) {
       adaptee.action(actionEvent.getActionCommand());
+    }
+  }
+
+  /**
+   * Gets the available font family name list, which may contain "'" (a
+   * character that caused a nasty Java look and feel failure).  Put the usable
+   * font families (ones that don't contain "'") into the usable font families
+   * list.
+   * @author sueh
+   */
+  private static final class FontFamilies {
+    private final Vector<String> usable = new Vector<String>();
+
+    private int defaultIndex = -1;
+
+    /**
+     * Creates the usable font family list from the available font family list.
+     * Does not use fonts with "'" in their name.  Sets the default font family
+     * to "Dialog".
+     */
+    private FontFamilies() {
+      String[] available = GraphicsEnvironment.getLocalGraphicsEnvironment()
+          .getAvailableFontFamilyNames();
+      for (int i = 0; i < available.length; i++) {
+        if (available[i].indexOf("'") == -1) {
+          usable.add(available[i]);
+          if (available[i].compareToIgnoreCase("dialog") == 0) {
+            defaultIndex = i;
+          }
+        }
+        else {
+          System.err.println("Removing unusable font family:" + available[i]);
+        }
+      }
+    }
+
+    /**
+     * Get the usable font families.
+     * @return
+     */
+    private Vector<String> getFontFamilies() {
+      return usable;
+    }
+
+    /**
+     * Gets an index to fontFamilyName in the usable font family list.  If not
+     * found, returns the default font index.
+     * @return
+     */
+    private int getIndex(final String fontFamilyName) {
+      // Find the font family index from the available fontFamilies
+      for (int i = 0; i < usable.size(); i++) {
+        if (usable.get(i).compareToIgnoreCase(fontFamilyName) == 0) {
+          return i;
+        }
+      }
+      return defaultIndex;
+    }
+
+    private String getName(final int i) {
+      return usable.get(i);
     }
   }
 }
