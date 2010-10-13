@@ -24,6 +24,10 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2010/02/17 04:49:31  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 3.11  2009/03/17 00:45:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -85,12 +89,12 @@ public final class ParameterStore {
   private final Properties properties = new Properties();
 
   //initialized in initialize()
-  private LogFile dataFile;
+  private LogFile dataFile = null;
 
   private boolean autoStore = true;
   private boolean debug = false;
 
-  private ParameterStore(File paramFile) {
+  private ParameterStore() {
   }
 
   /**
@@ -101,14 +105,23 @@ public final class ParameterStore {
     if (paramFile == null) {
       return null;
     }
-    ParameterStore instance = new ParameterStore(paramFile);
+    ParameterStore instance = new ParameterStore();
     instance.initialize(paramFile);
     return instance;
   }
 
+  public static ParameterStore getFilelessInstance()
+      throws LogFile.LockException {
+    ParameterStore instance = new ParameterStore();
+    instance.initialize(null);
+    return instance;
+  }
+
   private void initialize(File paramFile) throws LogFile.LockException {
-    dataFile = LogFile.getInstance(paramFile);
-    if (dataFile.exists()) {
+    if (paramFile != null) {
+      dataFile = LogFile.getInstance(paramFile);
+    }
+    if (dataFile != null && dataFile.exists()) {
       LogFile.InputStreamId inputStreamId = null;
       try {
         inputStreamId = dataFile.openInputStream();
@@ -133,16 +146,19 @@ public final class ParameterStore {
    * @throws IOException
    */
   public void storeProperties() throws LogFile.LockException, IOException {
-    synchronized (dataFile) {
-      if (!dataFile.isDirectory()) {
-        dataFile.backupOnce();
+    //If the file has not been set, don't save.
+    if (dataFile != null) {
+      synchronized (dataFile) {
+        if (!dataFile.isDirectory()) {
+          dataFile.backupOnce();
+        }
+        if (!dataFile.exists()) {
+          dataFile.create();
+        }
+        LogFile.OutputStreamId outputStreamId = dataFile.openOutputStream();
+        dataFile.store(properties, outputStreamId);
+        dataFile.closeOutputStream(outputStreamId);
       }
-      if (!dataFile.exists()) {
-        dataFile.create();
-      }
-      LogFile.OutputStreamId outputStreamId = dataFile.openOutputStream();
-      dataFile.store(properties, outputStreamId);
-      dataFile.closeOutputStream(outputStreamId);
     }
   }
 
@@ -157,9 +173,7 @@ public final class ParameterStore {
    * @param autoStore
    */
   public void setAutoStore(boolean autoStore) {
-    synchronized (dataFile) {
-      this.autoStore = autoStore;
-    }
+    this.autoStore = autoStore;
   }
 
   /**
@@ -169,15 +183,18 @@ public final class ParameterStore {
    * @throws IOException
    */
   public void save(Storable storable) throws LogFile.LockException, IOException {
-    synchronized (dataFile) {
-      //let the storable overwrite its values
-      storable.store(properties);
-      if (autoStore) {
-        storeProperties();
-      }
-      if (debug) {
-        System.err.println("save:JoinState.Join.Version="
-            + properties.getProperty("JoinState.Join.Version"));
+    //If the file has not been set, don't save.
+    if (dataFile != null) {
+      synchronized (dataFile) {
+        //let the storable overwrite its values
+        storable.store(properties);
+        if (autoStore) {
+          storeProperties();
+        }
+        if (debug) {
+          System.err.println("save:JoinState.Join.Version="
+              + properties.getProperty("JoinState.Join.Version"));
+        }
       }
     }
   }
@@ -189,7 +206,13 @@ public final class ParameterStore {
    * @throws IOException
    */
   public void load(Storable storable) throws LogFile.LockException {
-    synchronized (dataFile) {
+    if (dataFile != null) {
+      //If the file has been set, synchronize on it.
+      synchronized (dataFile) {
+        storable.load(properties);
+      }
+    }
+    else {
       storable.load(properties);
     }
   }
