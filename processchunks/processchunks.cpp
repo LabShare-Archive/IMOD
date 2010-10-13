@@ -388,6 +388,9 @@ void Processchunks::timerEvent(QTimerEvent *timerEvent) {
               }
             }
             else {
+              if (!mQueue && mProcessArray[processIndex].isPausing()) {
+                return;
+              }
               //otherwise set flag to redo it
               dropout = true;
               if (!mProcessArray[processIndex].isLogFileEmpty()) {
@@ -1475,6 +1478,7 @@ const bool Processchunks::checkChunk(int &runFlag, bool &noChunks,
 void Processchunks::runProcess(MachineHandler *machine, const int cpuIndex,
     const int processIndex) {
   machine->setAssignedProcIndex(cpuIndex, processIndex);
+  mProcessArray[processIndex].resetPausing();
   mProcessArray[processIndex].setFlag(ProcessHandler::assigned);
   //don't forget to start the timer
   mProcessArray[processIndex].backupLog();
@@ -1594,7 +1598,7 @@ const int Processchunks::runProcessAndOutputLines(QProcess &process,
 }
 
 void Processchunks::handleFileSystemBug() {
-  *mOutStream << "tag Z" << endl;
+  *mOutStream << "running ls" << endl;
   mLsProcess->start("ls", mLsParamList);
   mLsProcess->waitForFinished(10000);
 }
@@ -1683,6 +1687,10 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.19  2010/10/08 23:41:46  sueh
+ bug# 1364 Added handlerError.  Check for error where the stderr has a
+ PID and the stdout doesn't.
+
  Revision 1.18  2010/10/08 05:15:27  sueh
  bug# 1364 In timerEvent incrementing chunkErrTot inside of cpuIndex
  loop to match the old processchunks.  In checkChunk checking against
