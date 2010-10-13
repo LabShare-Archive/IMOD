@@ -220,7 +220,11 @@ public class EtomoDirector {
       System.exit(1);
     }
     try {
-      parameterStore = ParameterStore.getInstance(userConfigFile);
+      if (!arguments.isIgnoreSettings()) {
+        parameterStore = ParameterStore.getInstance(userConfigFile);
+      }else {
+        parameterStore = ParameterStore.getFilelessInstance();
+      }
       parameterStore.load(userConfig);
     }
     catch (LogFile.LockException except) {
@@ -1201,6 +1205,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.101  2010/09/24 00:53:35  sueh
+ * <p> bug# 1404 Correcting comment.
+ * <p>
  * <p> Revision 1.100  2010/09/08 19:16:09  sueh
  * <p> bug# 1401 Added doAutomation(ManagerKey).  Removed unnecessary
  * <p> return value in openTomogram.
