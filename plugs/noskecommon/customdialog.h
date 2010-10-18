@@ -101,7 +101,7 @@ using namespace std;
 #include <qcheckbox.h>
 #include <qlabel.h>
 #include <qcombobox.h>
-#include <qbuttongroup>
+#include <qbuttongroup.h>
 #include <qradiobutton.h>
 #include <qdialog.h>
 #include <qspinbox.h>
