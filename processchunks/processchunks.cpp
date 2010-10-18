@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
   //Run processes
   Processchunks pc(argc, argv);
   processchunksInstance = &pc;
-  pc.printVersionWarning();
+  pc.printOsInformation();
   pc.loadParams(argc, argv);
   pc.setup();
   if (!pc.askGo()) {
@@ -112,9 +112,9 @@ Processchunks::Processchunks(int &argc, char **argv) :
 Processchunks::~Processchunks() {
 }
 
-void Processchunks::printVersionWarning() {
+void Processchunks::printOsInformation() {
   printf(
-      "\nWARNING:  Ctrl-C does not work with this version of processchunks.  Use ");
+      "\nIMPORTANT:  Ctrl-C does not work with this version of processchunks.  Use ");
 #ifndef _WIN32
   printf("<Esc> <Enter>");
 #else
@@ -1687,6 +1687,9 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.21  2010/10/18 04:37:04  sueh
+ bug# 1364 Fixed options print.
+
  Revision 1.20  2010/10/13 22:01:14  sueh
  bug# 1364 In timerEvent pausing a for a count of ten when the process finishes but the chunk does not.  In runProcess reset the pause counter.
 
