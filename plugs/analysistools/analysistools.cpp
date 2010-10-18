@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.2  2010/10/18 22:28:37  tempuser
+    Improved and renamed qt_dialog_customizable to customdialog
+
     Revision 1.1  2009/11/02 08:45:41  tempuser
     first upload of AnalysisTools
 
@@ -325,8 +328,8 @@ QAction *AnalysisTools::addAction( QMenu *menu, const char *member,
 
 //## WINDOW CLASS CONSTRUCTOR:
 
-static char *buttonLabels[] = {"Done", "Help"};
-static char *buttonTips[] = {"Close Analysis Tools", "Open help window"};
+static char *buttonLabels[] = {(char*)"Done", (char*)"Help"};
+static char *buttonTips[] = {(char*)"Close Analysis Tools", (char*)"Open help window"};
 
 AnalysisTools::AnalysisTools(QWidget *parent, const char *name) :
   DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Analysis Tools", "", name)

@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.45  2010/10/18 19:57:08  tempuser
+    Improved dialog control and added pin-to-front
+
     Revision 1.43  2009/10/23 01:43:29  tempuser
     setZChange - wild problem
 
@@ -849,8 +852,8 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
 
 //## WINDOW CLASS CONSTRUCTOR:
 
-static char *buttonLabels[] = {"Done", "Help"};
-static char *buttonTips[] = {"Close Drawing Tools", "Open help window"};
+static char *buttonLabels[] = {(char*)"Done", (char *)"Help"};
+static char *buttonTips[] = {(char*)"Close Drawing Tools", (char*)"Open help window"};
 
 DrawingTools::DrawingTools(QWidget *parent, const char *name) :
   DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Drawing Tools", "", name)

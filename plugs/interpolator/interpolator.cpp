@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.4  2010/10/18 19:38:32  tempuser
+    improved dialog control
+
     Revision 1.3  2009/10/23 01:35:34  tempuser
     setZChange - wild problem
 
@@ -214,8 +217,8 @@ void imodPlugExecute(ImodView *inImodView)
 
 //## THE WINDOW CLASS CONSTRUCTOR
 
-static char *buttonLabels[] = {"Done", "Help"};
-static char *buttonTips[] = {"Close Interpolator", "Open help window"};
+static char *buttonLabels[] = {(char*)"Done", (char*)"Help"};
+static char *buttonTips[] = {(char*)"Close Interpolator", (char*)"Open help window"};
 
 Interpolator::Interpolator(QWidget *parent, const char *name)
 	: DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Interpolator", "", name)

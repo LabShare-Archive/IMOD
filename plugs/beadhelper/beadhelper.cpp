@@ -453,8 +453,8 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
 
 //## WINDOW CLASS CONSTRUCTOR:
 
-static char *buttonLabels[] = {"Done", "Help"};
-static char *buttonTips[] = {"Close Bead Helper", "Open help window"};
+static char *buttonLabels[] = {(char*)"Done", (char*)"Help"};
+static char *buttonTips[] = {(char*)"Close Bead Helper", (char*)"Open help window"};
 
 BeadHelper::BeadHelper(QWidget *parent, const char *name) :
       DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Bead Helper", "", name)
