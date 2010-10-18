@@ -42,7 +42,8 @@ class Interpolator : public DialogFrame
 	void buttonPressed(int);
   void loadSettings();
   void saveSettings();
- 
+  void keepOnTop(bool state);
+  
 	void interpolateContour();
   void deleteNearbyInterpolatedContours();
   void findNextIsolatedContour();

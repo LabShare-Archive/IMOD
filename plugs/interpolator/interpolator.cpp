@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.3  2009/10/23 01:35:34  tempuser
+    setZChange - wild problem
+
     Revision 1.2  2009/09/01 01:17:57  tempuser
     Changed second int i to j
 
@@ -50,11 +53,14 @@
 #include <qstringlist.h>
 #include <qmessagebox.h>
 #include <qinputdialog.h>
+#include <qtoolbutton.h>
+#include "../../imod/pegged.xpm"
+#include "../../imod/unpegged.xpm"
 
 #include <qdatetime.h>
 
 #include "_common_functions.h"
-#include "qt_dialog_customizable.h"
+#include "customdialog.h"
 #include "imodplugin.h"
 #include "dia_qtutils.h"
 #include "interpolator.h"
@@ -214,8 +220,8 @@ static char *buttonTips[] = {"Close Interpolator", "Open help window"};
 Interpolator::Interpolator(QWidget *parent, const char *name)
 	: DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Interpolator", "", name)
 {
-	const int LAYOUT_MARGIN = 4;
-	const int LAYOUT_SPACING = 4;
+	const int LAY_MARGIN = 4;
+	const int LAY_SPACING = 4;
 	const int GROUP_MARGIN = 1;
 	const int SPACER_HEIGHT   = 15;
   
@@ -249,8 +255,37 @@ Interpolator::Interpolator(QWidget *parent, const char *name)
   
 	changeTypeSelected( plug.interType );
   
-	mLayout->addWidget(typeGbox);
+	//mLayout->addWidget(typeGbox);
 	
+  
+  //## Pin-to-top Button:
+  QHBoxLayout* topLay = new QHBoxLayout();
+  topLay->setSpacing(LAY_SPACING);
+  topLay->setContentsMargins(0,0,0,0);
+  
+  QVBoxLayout* pinLay = new QVBoxLayout();
+  pinLay->setSpacing(0);
+  pinLay->setContentsMargins(0,0,0,0);
+  
+  QToolButton *toolBut = new QToolButton(this);
+  toolBut->setCheckable(true);
+  toolBut->setFocusPolicy(Qt::NoFocus);
+  QIcon iconSet;
+  iconSet.addPixmap(QPixmap((const char **)pegged), QIcon::Normal, QIcon::On);
+  iconSet.addPixmap(QPixmap((const char **)unpegged), QIcon::Normal, QIcon::Off);
+  toolBut->setIcon(iconSet);
+  toolBut->setChecked(false);
+  QSize hint = toolBut->sizeHint();
+  toolBut->setFixedWidth(hint.width());
+  toolBut->setFixedHeight(hint.height());
+  connect(toolBut, SIGNAL(toggled(bool)), this, SLOT(keepOnTop(bool)));
+  toolBut->setToolTip("Keep bead fixer window on top");
+  
+  pinLay->setAlignment( Qt::AlignTop );
+  pinLay->addWidget(toolBut);
+  topLay->addWidget(typeGbox);
+  topLay->addLayout(pinLay);
+  mLayout->addLayout(topLay);
 	
 	//## Interpolation Options:
 	
@@ -259,9 +294,10 @@ Interpolator::Interpolator(QWidget *parent, const char *name)
 	grpOptions->setMaximumHeight(75);
 	grpOptions->setContentsMargins(GROUP_MARGIN, GROUP_MARGIN, GROUP_MARGIN, GROUP_MARGIN);
 	
-	gridLayout1 = new QGridLayout(grpOptions);
-	gridLayout1->setSpacing(LAYOUT_SPACING);
-	gridLayout1->setMargin(LAYOUT_MARGIN);
+	//gridLayout1 = new QGridLayout();
+  gridLayout1 = new QGridLayout(grpOptions);
+	gridLayout1->setSpacing(LAY_SPACING);
+	gridLayout1->setMargin(LAY_MARGIN);
 	gridLayout1->addItem( new QSpacerItem(1,SPACER_HEIGHT), 0, 0);
 	
 	lblZBridge = new QLabel("Z Bridge:", grpOptions);
@@ -279,16 +315,16 @@ Interpolator::Interpolator(QWidget *parent, const char *name)
                 "but still 'connected' during interpolation");
 	gridLayout1->addWidget(zBridgeSpinner, 1, 1);
 	
-	applyLineTrackerCheckbox = new QCheckBox("Apply Line Tracker", grpOptions);
-	applyLineTrackerCheckbox->setFocusPolicy(Qt::NoFocus);
-  applyLineTrackerCheckbox->setChecked( plug.interLineTracker );
-	QObject::connect(applyLineTrackerCheckbox, SIGNAL(clicked()), this,
-                   SLOT(changeLineTracker()));
-	applyLineTrackerCheckbox->setToolTip("Not implemented **");
-	gridLayout1->addWidget(applyLineTrackerCheckbox, 2, 0);
+	//applyLineTrackerCheckbox = new QCheckBox("Apply Line Tracker", grpOptions);
+	//applyLineTrackerCheckbox->setFocusPolicy(Qt::NoFocus);
+  //applyLineTrackerCheckbox->setChecked( plug.interLineTracker );
+	//QObject::connect(applyLineTrackerCheckbox, SIGNAL(clicked()), this,
+  //                 SLOT(changeLineTracker()));
+	//applyLineTrackerCheckbox->setToolTip("Not implemented **");
+	//gridLayout1->addWidget(applyLineTrackerCheckbox, 2, 0);
 	
 	mLayout->addWidget(grpOptions);
-	
+	//mLayout->addLayout(gridLayout1);
   
 	//## Actions
 	
@@ -298,8 +334,8 @@ Interpolator::Interpolator(QWidget *parent, const char *name)
 	grpActions->setContentsMargins(GROUP_MARGIN, GROUP_MARGIN, GROUP_MARGIN, GROUP_MARGIN);
 	
 	vboxLayout1 = new QVBoxLayout(grpActions);
-	vboxLayout1->setSpacing(LAYOUT_SPACING);
-	vboxLayout1->setMargin(LAYOUT_MARGIN);
+	vboxLayout1->setSpacing(LAY_SPACING);
+	vboxLayout1->setMargin(LAY_MARGIN);
 	vboxLayout1->addItem( new QSpacerItem(1,SPACER_HEIGHT) );
 	
   
@@ -342,8 +378,8 @@ Interpolator::Interpolator(QWidget *parent, const char *name)
 	grpSurface->setContentsMargins(GROUP_MARGIN, GROUP_MARGIN, GROUP_MARGIN, GROUP_MARGIN);
 	
 	gridLayout2 = new QGridLayout(grpSurface);
-	gridLayout2->setSpacing(LAYOUT_SPACING);
-	gridLayout2->setMargin(LAYOUT_MARGIN);
+	gridLayout2->setSpacing(LAY_SPACING);
+	gridLayout2->setMargin(LAY_MARGIN);
 	gridLayout2->addItem( new QSpacerItem(1,SPACER_HEIGHT), 0, 0);
 	
   
@@ -447,8 +483,8 @@ Interpolator::Interpolator(QWidget *parent, const char *name)
   widget1 = new QWidget(this);
   
   gridLayout3 = new QGridLayout(widget1);
-  gridLayout3->setSpacing(LAYOUT_SPACING);
-  gridLayout3->setMargin(LAYOUT_MARGIN);
+  gridLayout3->setSpacing(LAY_SPACING);
+  gridLayout3->setMargin(LAY_MARGIN);
   
   moreActionsButton = new QPushButton("More Actions", widget1);
   connect(moreActionsButton, SIGNAL(clicked()), this, SLOT(moreActions()));
@@ -535,6 +571,31 @@ void Interpolator::saveSettings()
 
 
 
+//------------------------
+//-- Change to flag to keep on top or run timer as for info window
+void Interpolator::keepOnTop(bool state)
+{
+#ifdef STAY_ON_TOP_HACK
+  mStayOnTop = state;
+  // Start or kill the timer
+  if (state)  
+    mTopTimerID = startTimer(200);
+  else if (mTopTimerID) {
+    killTimer(mTopTimerID);
+    mTopTimerID = 0;
+  }
+#else
+  Qt::WindowFlags flags = windowFlags();
+  if (state)
+    flags |= Qt::WindowStaysOnTopHint;
+  else
+    flags ^= Qt::WindowStaysOnTopHint;
+  QPoint p2 = pos();
+  setWindowFlags(flags);
+  move(p2);
+  show();
+#endif
+}
 
 
 
@@ -896,20 +957,20 @@ void Interpolator::changeInterpContRange()
   int contMax             = nConts;
   static int interpolated = 0;
   
-	CustomDialog ds;
+	CustomDialog ds("Change Options", this);
   ds.addLabel   ( "contour range:" );
   ds.addSpinBox ( "min:", 1, nConts, &contMin, 1,
                   "Only contours AFTER this contour \n(inclusive) will be changed" );
   ds.addSpinBox ( "max:", 1, nConts, &contMax, 1,
                   "Only contours BEFORE this contour \n(inclusive) will be changed" );
 	ds.addRadioGrp( "mark as:",
-                  "key contours,"
+                  "key contours|"
                   "interpolated contours",
                   &interpolated );
   ds.addLabel   ( "... are you sure?" );
-	GuiDialogCustomizable dlg(&ds, "Change Options", this);
-	dlg.exec();
-	if( ds.cancelled )
+	
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   contMin -= 1;
   contMax -= 1;
@@ -961,7 +1022,7 @@ void Interpolator::findIsolatedContours()
   static bool listGaps     = true;
   static int  gapSize      = plug.maxGapSize;
   
-	CustomDialog ds;
+	CustomDialog ds("Find Isolated Contours", this);;
   ds.addLabel   ( "contour range:" );
 	ds.addCheckBox( "list isolated contours",
                   &plug.deselectAfterEnter,
@@ -975,9 +1036,9 @@ void Interpolator::findIsolatedContours()
                   "Checks for gaps in a surface over this many slices \n"
                   "(similar to 'Z Bride')" );
   ds.addLabel   ( "... NOTE: uses currently selected 'surf method'" );
-	GuiDialogCustomizable dlg(&ds, "Find Isolated Contours", this);
-	dlg.exec();
-	if( ds.cancelled )
+	
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   
@@ -1242,28 +1303,28 @@ void Interpolator::moreActions()
 {
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
-  CustomDialog ds;
+  CustomDialog ds("Perform Action", this);
   ds.addRadioGrp( "action:",
-                  "mark contour range as interpolated,"
-                  "find isolated contours,"
-                  "print model interpolation info,"
+                  "mark contour range as interpolated|"
+                  "find isolated contours|"
+                  "print model interpolation info|"
                   "print number contours each slice",
                   &plug.selectedAction,
                   "",
                   "Lets you select a range of contours within the current \n"
-                    "object to mark as interpolated contours or key contours.,"
+                    "object to mark as interpolated contours or key contours.|"
                   "Prints a list of contours in the current object which \n"
-                    "do not have a same-surface contours in the slice above or below.,"
+                    "do not have a same-surface contours in the slice above or below.|"
                   "Prints some simple interpolation information about \n"
                     "the current object including the number of interpolated \n"
-                    "contours; key contours and empty contours.,"
+                    "contours; key contours and empty contours.|"
                   "Prints a table showing the number of key contours and \n"
-                    "interpolated contours in the current object on EACH slice.,"
+                    "interpolated contours in the current object on EACH slice.|"
                   "Lets you select a range of contours within the current \n"
                     "object to mark as interpolated contours or key contours." );
-	GuiDialogCustomizable dlg(&ds, "Perform Action", this);
-	dlg.exec();
-	if( ds.cancelled )
+	
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   switch(plug.selectedAction)
@@ -1302,7 +1363,7 @@ void Interpolator::moreSettings()
   int interFractOverlap = plug.interFractOverlap * 100.0f;
   int interSepDistBetweenConts = plug.interSepDistBetweenConts;
   
-  CustomDialog ds;
+  CustomDialog ds("More Settings", this);
   ds.addLabel   ( "--- CONTOUR CONNECTION: ---");
   ds.addSpinBox ( "max distance:",
                   0, 1000, &interSepDistBetweenConts, 1,
@@ -1315,7 +1376,7 @@ void Interpolator::moreSettings()
                   "must overlap in X-Y to be connected \n"
                   "(if surface method is 'overlap')" );
   ds.addComboBox( "point resolve method:",
-                  "four pt,"
+                  "four pt|"
                   "all convex",
                   &plug.ptResolveMethod,
                   "This is the method which will be used to find \n"
@@ -1344,9 +1405,8 @@ void Interpolator::moreSettings()
                   "you ready to immediately draw another contour. \n"
                   "\nRECOMMENDED VALUE: on" );
   
-  GuiDialogCustomizable dlg(&ds, "More Settings", this);
-	dlg.exec();
-	if( ds.cancelled )
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   plug.interFractOverlap         = (float)interFractOverlap / 100.0f;
@@ -1454,6 +1514,7 @@ void Interpolator::changeZBridge( int value ) {
 
 void Interpolator::changeLineTracker()  {
 	plug.interLineTracker = applyLineTrackerCheckbox->isChecked();
+  MsgBox( "This option has not been implemented yet sorry" );
 }
 
 //------------------------
@@ -4237,24 +4298,23 @@ void test_selector()
   
   static int selectedTest = 8;
   
-  CustomDialog ds;
+  CustomDialog ds("PERFORM TEST", NULL);
   ds.addRadioGrp( "test to run:",
-                  "show interpolation between contours,"
-                  "show interpolated lines for publication,"
-                  "make contour set number of points (crude),"
-                  "cut surface through Z,"
-                  "show concave points,"
-                  "randomly shift contours,"
-                  "copy contour to nearest end,"
-                  "output analysis number of concave points,"
-                  "output analysis of branches,"
-                  "output analysis of tubes,"
-                  "TEST: performance of tiling methods,"
+                  "show interpolation between contours|"
+                  "show interpolated lines for publication|"
+                  "make contour set number of points (crude)|"
+                  "cut surface through Z|"
+                  "show concave points|"
+                  "randomly shift contours|"
+                  "copy contour to nearest end|"
+                  "output analysis number of concave points|"
+                  "output analysis of branches|"
+                  "output analysis of tubes|"
+                  "TEST: performance of tiling methods|"
                   "TEST: performance over rand contours",
                   &selectedTest );
-  GuiDialogCustomizable dlg(&ds, "PERFORM TEST", NULL);
-  dlg.exec();
-  if( ds.cancelled )
+  ds.exec();
+  if( ds.wasCancelled() )
     return;
   
   
@@ -4343,7 +4403,7 @@ void test_showInterpolationBetweenConts()
   bool flattenLines  = false;
   int zToFlattenTo   = 1;
   
-  CustomDialog ds;
+  CustomDialog ds("TEST", NULL);
   ds.addSpinBox ( "LOWER cont idx:", 1, csize(obj), &clIdx, 1 );
   ds.addSpinBox ( "UPPER cont idx:", 1, csize(obj), &cuIdx, 1 );
 	ds.addCheckBox ( "add connecting lines into obj", &makeNewObj );
@@ -4351,9 +4411,8 @@ void test_showInterpolationBetweenConts()
   ds.addCheckBox ( "show first line with spheres",  &startSpheres );
 	ds.addCheckBox ( "flatten all lines in this obj", &flattenLines );
   ds.addSpinBox  ( "slice to flatten lines to:", 1, plug.zsize, &zToFlattenTo, 1 );
-  GuiDialogCustomizable dlg(&ds, "TEST", NULL);
-	dlg.exec();
-	if( ds.cancelled )
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   clIdx--;
   cuIdx--;
@@ -4452,7 +4511,7 @@ void test_showInterpolatedContoursNicely()
   static bool interLinesOnly    = false;
   zToFlattenTo += 1;
   
-	CustomDialog ds;
+	CustomDialog ds("TEST", NULL);
   ds.addSpinBox ( "object for lines:", 1, osize(imod),  &objForLinesIdx, 1 );
 	ds.addCheckBox( "clear destination obj first", &clearLineObj );
 	ds.addCheckBox( "copy interpolated lines only", &interLinesOnly );
@@ -4466,9 +4525,8 @@ void test_showInterpolatedContoursNicely()
   ds.addCheckBox( "stipple along X only", &stippleAlongX );
   ds.addSpinBox ( "stippled on length:", 1, 200, &stippleLenOn, 1 );
   ds.addSpinBox( "stippled off length:", 1, 200, &stippleLenOff, 1 );
-  GuiDialogCustomizable dlg(&ds, "TEST", NULL);
-	dlg.exec();
-	if( ds.cancelled )
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   objForLinesIdx    -= 1;
@@ -4612,7 +4670,7 @@ void test_showCurrContConcaveRegions()
   static bool printContInfo   = true;
   static bool showUnits       = true;
   
-  CustomDialog ds;
+  CustomDialog ds("TEST", NULL);;
   ds.addCheckBox( "show concave points", &showConPts );
   ds.addSpinBox ( " ...  (scattered) object for concave points:",
                   1, osize(imod), &objIdxConPts, 1 );
@@ -4624,9 +4682,8 @@ void test_showCurrContConcaveRegions()
                   1, osize(imod), &objIdxConvexHull, 1 );
   ds.addCheckBox( "print contour info", &printContInfo );
   ds.addCheckBox( "show units", &printContInfo );
-  GuiDialogCustomizable dlg(&ds, "TEST", NULL);
-  dlg.exec();
-  if( ds.cancelled )
+  ds.exec();
+  if( ds.wasCancelled() )
     return;
   objIdxConRegions--;
   objIdxConvexHull--;
@@ -4766,12 +4823,11 @@ void test_makeContSetNumPoints()
   int numPts = nPtsBefore;
   bool copy  = false;
   
-  CustomDialog ds;
+  CustomDialog ds("TEST", NULL);
   ds.addSpinBox ( "number of points to make:", 1, 10000, &numPts, 1 );
   ds.addCheckBox( "make a copy", &copy );
-  GuiDialogCustomizable dlg(&ds, "TEST", NULL);
-  dlg.exec();
-  if( ds.cancelled )
+  ds.exec();
+  if( ds.wasCancelled() )
     return;
   
   
@@ -4822,7 +4878,7 @@ void test_makeContSegmentsEqualDistance()
   static int distBetweenPts  = 5.0f;
   static int minAreaForConts = 0.0f;
   
-  CustomDialog ds;
+  CustomDialog ds("TEST", NULL);
   ds.addLabel   ( "contour range:" );
   ds.addSpinBox ( "min:", 1, nConts, &contMin, 1,
                   "Only contours AFTER this contour \n(inclusive) will be changed" );
@@ -4830,9 +4886,8 @@ void test_makeContSegmentsEqualDistance()
                   "Only contours BEFORE this contour \n(inclusive) will be changed" );
   ds.addSpinBox ( "distance between conts:", 1, 10000, &distBetweenPts, 1 );
   ds.addSpinBox ( "min area for conts, to reduce pts", 1, 10000, &minAreaForConts, 1 );
-  GuiDialogCustomizable dlg(&ds, "TEST", NULL);
-  dlg.exec();
-  if( ds.cancelled )
+  ds.exec();
+  if( ds.wasCancelled() )
     return;
   
   contMin--;
@@ -4882,13 +4937,12 @@ void test_moveCurrContToObjAndInterpolate( bool specifyObj )
   if( specifyObj || objDestIdx < 0 || objDestIdx >= osize(imod) )
   {
     objDestIdx = MAX(objDestIdx+1,1);
-    CustomDialog ds;
+    CustomDialog ds("TEST", NULL);;
     ds.addSpinBox ( "object to move contour to:", 1, osize(imod), &objDestIdx, 1 );
     ds.addCheckBox( "make a copy", &copy );
-    GuiDialogCustomizable dlg(&ds, "TEST", NULL);
-    dlg.exec();
+    ds.exec();
     objDestIdx -= 1;
-    if( ds.cancelled )
+    if( ds.wasCancelled() )
       return;
   }
   
@@ -5010,16 +5064,15 @@ void test_cutSurfThroughZ()
   int objLinesIdx  = osize(imod);
   bool join        = false;
   
-	CustomDialog ds;
+	CustomDialog ds("TEST", NULL);
   ds.addSpinBox ( "X start:", -100, 100000, &x1, 1 );
   ds.addSpinBox ( "X end:",   -100, 100000, &x2, 1 );
   ds.addSpinBox ( "Y start:", -100, 100000, &y1, 1 );
   ds.addSpinBox ( "Y end:",   -100, 100000, &y2, 1 );
   ds.addSpinBox ( "obj new conts:", 1, osize(imod), &objLinesIdx, 1 );
 	ds.addCheckBox( "try to join", &join );
-  GuiDialogCustomizable dlg(&ds, "TEST", NULL);
-	dlg.exec();
-	if( ds.cancelled )
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   objLinesIdx -= 1;
@@ -5133,16 +5186,15 @@ void test_randomlyOffsetContours()
   static bool  dontShiftKey      = false;
   static bool  outputValsToCon   = true;
   
-	CustomDialog ds;
-  ds.addLineEditF ( "max offset X:", &xMaxOffset, 0, 10, 3 );
-  ds.addLineEditF ( "max offset Y:", &yMaxOffset, 0, 10, 3 );
+	CustomDialog ds("Randomly Shift Contours", NULL);
+  ds.addLineEditF ( "max offset X:", 0, 10, &xMaxOffset, 3 );
+  ds.addLineEditF ( "max offset Y:", 0, 10, &yMaxOffset, 3 );
   ds.addSpinBox ( "min area:", 1, 999999999, &minArea, 1,
                   "contours with < this area will NOT be randomly offset" );
 	ds.addCheckBox( "don't shift key contours", &dontShiftKey );
   ds.addCheckBox( "print offsets to console", &outputValsToCon );
-  GuiDialogCustomizable dlg(&ds, "Randomly Shift Contours", NULL);
-	dlg.exec();
-	if( ds.cancelled )
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   //## FIND INTERSECTIONS OF LINE WITH CONTOURS:
@@ -5206,12 +5258,11 @@ void test_copyContourToEnd()
   static float scaleRate     = 0.9f;
   static bool  reduceScale   = false;
   
-	CustomDialog ds;
-  ds.addLineEditF ( "scale rate:", &scaleRate, 0, 10, 3 );
+	CustomDialog ds("Copy Contour To End", NULL);;
+  ds.addLineEditF ( "scale rate:", 0, 10, &scaleRate, 3 );
 	ds.addCheckBox  ( "reduce scale subsequent slices", &reduceScale );
-  GuiDialogCustomizable dlg(&ds, "Copy Contour To End", NULL);
-	dlg.exec();
-	if( ds.cancelled )
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   //## FIND INTERSECTIONS OF LINE WITH CONTOURS:
@@ -5255,13 +5306,12 @@ void test_outputAnalysisOfConcavePoints()
   int minObj         = 1;
   int maxObj         = osize(imod);
   
-	CustomDialog ds;
+	CustomDialog ds("TEST", NULL);;
   ds.addSpinBox ( "min object:",1,osize(imod),&minObj,1 );
   ds.addSpinBox ( "max object:",1,osize(imod),&maxObj,1 );
  	ds.addCheckBox( "print all contours", &printAllConts );
-  GuiDialogCustomizable dlg(&ds, "TEST", NULL);
-	dlg.exec();
-	if( ds.cancelled )
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   minObj--;
@@ -5462,7 +5512,7 @@ void test_outputAnalysisOfBranches()
   static bool showMatches       = true;
   static int  outputToFile      = 0;
   
-	CustomDialog ds;
+	CustomDialog ds("TEST - BRANCH ANALYSIS", NULL);
   ds.addSpinBox ( "object to analyse:",1,osize(imod),&objMainLen,1,
                   "The object containing 'root contours' - which we want to \n"
                   "find branches off" );
@@ -5495,12 +5545,11 @@ void test_outputAnalysisOfBranches()
                   "Prints a list of all contours in 'object containing branches' \n"
                   "showing how many times each was detected as a branch" );
   ds.addRadioGrp( "output to:",
-                  "console,"
+                  "console|"
                   "3dmod window",
                   &outputToFile );
-  GuiDialogCustomizable dlg(&ds, "TEST - BRANCH ANALYSIS", NULL);
-	dlg.exec();
-	if( ds.cancelled )
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   objMainLen--;
@@ -5787,18 +5836,17 @@ void test_outputAnalysisOfTubes()
   static bool convertUnits      = true;
   static int  outputToFile      = 0;
   
-	CustomDialog ds;
+	CustomDialog ds("TEST - TUBE ANALYSIS", NULL);
   ds.addSpinBox ( "min object:",1,osize(imod),&minObj,1 );
   ds.addSpinBox ( "max object:",1,osize(imod),&maxObj,1 );
  	ds.addCheckBox( "print all open contours", &printAllConts );
   ds.addCheckBox( "convert to appripriate units", &convertUnits );
   ds.addRadioGrp( "output to:",
-                  "console,"
+                  "console|"
                   "csv file",
                   &outputToFile );
-  GuiDialogCustomizable dlg(&ds, "TEST - TUBE ANALYSIS", NULL);
-	dlg.exec();
-	if( ds.cancelled )
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   minObj--;
@@ -6099,7 +6147,7 @@ void test_testTimesTilingMethodsNPoints()
   static int maxPts          = 100;
   static int incrementPts    = 1;  
   
-	CustomDialog ds;
+	CustomDialog ds("TEST", NULL);
   ds.addSpinBox ( "LOWER cont idx:",1,csize(obj),&clIdxOrig,1);
   ds.addSpinBox ( "UPPER cont idx:",1,csize(obj),&cuIdxOrig,1 );
   ds.addSpinBox ( "iterations:",1,1000000000,&iterations,100);
@@ -6107,8 +6155,8 @@ void test_testTimesTilingMethodsNPoints()
  	ds.addCheckBox( "select start points randomly", &randomStartPts );
  	ds.addCheckBox( "omit surface area metric", &omitSA );
   ds.addRadioGrp( "test contours:",
-                  "as they are,"
-                  "adjust # of points using preset,"
+                  "as they are|"
+                  "adjust # of points using preset|"
                   "adjust # of points as below:",
                   &testStrategy );
   ds.addLabel   ( "-----\n"
@@ -6116,9 +6164,8 @@ void test_testTimesTilingMethodsNPoints()
   ds.addSpinBox ( "min # points each key", 1,10000, &minPts, 1 );
   ds.addSpinBox ( "max # points each key", 1,10000, &maxPts, 1 );
   ds.addSpinBox ( "# points increment",    1,10000, &incrementPts,1);
-  GuiDialogCustomizable dlg(&ds, "TEST", NULL);
-	dlg.exec();
-	if( ds.cancelled )
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   clIdxOrig    -= 1;
@@ -6303,7 +6350,7 @@ void test_testTimesTilingMethodsDiffConts()
   static int numTests        = 10;
   static int MINPTS          = 5;
   
-	CustomDialog ds;
+	CustomDialog ds("TEST", NULL);
   ds.addSpinBox ( "iterations:",1,1000000000,&iterations,100);
   ds.addSpinBox ( "timeout in seconds:",1,6000,&timeoutS,10 );
  	ds.addCheckBox( "use all objects", &useAllObjs );
@@ -6312,9 +6359,8 @@ void test_testTimesTilingMethodsDiffConts()
   ds.addSpinBox ( "min sep Z", 1,10000, &minSepZ, 1 );
   ds.addSpinBox ( "max sep Z", 1,10000, &maxSepZ, 1 );
   ds.addSpinBox ( "# test (contour pairs)",    1,10000, &numTests,1);
-  GuiDialogCustomizable dlg(&ds, "TEST", NULL);
-	dlg.exec();
-	if( ds.cancelled )
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   //## PERFORM TESTS ON CONTOURS BY MODIFYING NUMBER OF POINTS EACH ROUND:
