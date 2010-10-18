@@ -10,12 +10,12 @@ CXXFLAGS = $(LIBCFLAGS)  $(QTFLAGS)
 PLUGS = $(MODULE).$(DLLEXT)
 
 IMODINCLUDES = imod.h imodview.h imodplug.h control.h undoredo.h
-COMMINCLUDES = icontextra.h _common_functions.h qt_dialog_customizable.h
+COMMINCLUDES = icontextra.h _common_functions.h customdialog.h
 IMODREALINCLUDES = ../../imod/imod.h ../../imod/imodview.h \
 	../../imod/imodplug.h ../../imod/control.h ../../imod/undoredo.h
 
 CONTEXTRA = ../noskecommon/icontextra
-QTDIALOG = ../noskecommon/qt_dialog_customizable
+QTDIALOG = ../noskecommon/customdialog
 COMMFUNC = ../noskecommon/_common_functions.h
 
 all : $(PLUGS)
@@ -46,7 +46,7 @@ $(CONTEXTRA).$(O) : $(CONTEXTRA).cpp $(IMODREALINCLUDES) $(COMMFUNC) \
 	(cd ../noskecommon ; $(MAKE) icontextra.$(O))
 
 $(QTDIALOG).$(O) : $(QTDIALOG).cpp $(IMODREALINCLUDES) $(QTDIALOG).h
-	(cd ../noskecommon ; $(MAKE) qt_dialog_customizable.$(O))
+	(cd ../noskecommon ; $(MAKE) customdialog.$(O))
 
 
 # Copy IMOD includes
@@ -68,7 +68,7 @@ _common_functions.h : $(COMMFUNC)
 	$(CP) -f $(COMMFUNC) .
 icontextra.h : $(CONTEXTRA).h
 	$(CP) -f $(CONTEXTRA).h .
-qt_dialog_customizable.h : $(QTDIALOG).h
+customdialog.h : $(QTDIALOG).h
 	$(CP) -f $(QTDIALOG).h .
 
 
@@ -85,8 +85,8 @@ clean :
 	$(RM) _common_functions.h;
 	$(RM) icontextra.h;
 	$(RM) icontextra.cpp;
-	$(RM) qt_dialog_customizable.h;
-	$(RM) qt_dialog_customizable.cpp;
+	$(RM) customdialog.h;
+	$(RM) customdialog.cpp;
 
 
 

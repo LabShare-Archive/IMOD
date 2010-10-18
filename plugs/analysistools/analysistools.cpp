@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1  2009/11/02 08:45:41  tempuser
+    first upload of AnalysisTools
+
     
     Revision 0.0  2008/07/20 15:45:41  noske
     Made special module to be used in IMOD
@@ -58,7 +61,7 @@
 #include <QMenu>
 
 #include "_common_functions.h"
-#include "qt_dialog_customizable.h"
+#include "customdialog.h"
 #include "imodplugin.h"
 #include "dia_qtutils.h"
 #include "analysistools.h"
@@ -328,8 +331,8 @@ static char *buttonTips[] = {"Close Analysis Tools", "Open help window"};
 AnalysisTools::AnalysisTools(QWidget *parent, const char *name) :
   DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Analysis Tools", "", name)
 {
-  const int LAYOUT_MARGIN   = 4;
-  const int LAYOUT_SPACING  = 4;
+  const int LAY_MARGIN   = 4;
+  const int LAY_SPACING  = 4;
   const int GROUP_MARGIN    = 1;
   const int SPACER_HEIGHT   = 15;
   
@@ -427,9 +430,8 @@ AnalysisTools::AnalysisTools(QWidget *parent, const char *name) :
   widget1 = new QWidget(this);
     
   gridLayout2 = new QGridLayout(widget1);
-  gridLayout2->setSpacing(LAYOUT_SPACING);
-  gridLayout2->setContentsMargins(LAYOUT_MARGIN, LAYOUT_MARGIN,
-                                  LAYOUT_MARGIN, LAYOUT_MARGIN);
+  gridLayout2->setSpacing(LAY_SPACING);
+  gridLayout2->setContentsMargins(LAY_MARGIN, LAY_MARGIN, LAY_MARGIN, LAY_MARGIN);
   
   moreActionsButton = new QPushButton("Actions", widget1);
   connect(moreActionsButton, SIGNAL(clicked()), this, SLOT(moreActions()));
@@ -869,7 +871,7 @@ void AnalysisTools::estimateZScale()
   static bool  printOnlyAccepted   = false;
   static bool  showCenters         = true;
   
-  CustomDialog ds;
+  CustomDialog ds( "Estimate Z Scale", this );
   ds.addLabel      ( "NOTE: Before running this you should first run \n"
                      "'Drawing Tools > Reduce All' (to ensure evenly spaced \n"
                      "points) then run 'imodmesh -p 10' and 'imodsortsurf' \n"
@@ -890,9 +892,8 @@ void AnalysisTools::estimateZScale()
   ds.addCheckBox   ( "append summary to csv file", &summaryCSV, "prints a summary to the file '_z_scale_summary.csv' " );
   ds.addCheckBox   ( "print accepted surfaces only", &printOnlyAccepted, "does not outputs information for rejected surfaces" );
   ds.addCheckBox   ( "show center of surfaces", &showCenters, "shows center of each surface" );
-  GuiDialogCustomizable dlg(&ds, "Estimate Z Scale", this);
-  dlg.exec();
-  if( ds.cancelled )
+  ds.exec();
+  if( ds.wasCancelled() )
     return;
   
   
@@ -935,14 +936,13 @@ void AnalysisTools::outputConcavePtsAnalysis()
   int maxObj                    = osize(imod);
   static int  outputOption      = 0;
   
-  CustomDialog ds;
+  CustomDialog ds("Analysis of Concave Points", this );
   ds.addSpinBox ( "min object:",1,osize(imod),&minObj,1 );
   ds.addSpinBox ( "max object:",1,osize(imod),&maxObj,1 );
   ds.addCheckBox( "print all contours", &printAllConts );
-  ds.addRadioGrp( "output to:", "imod window,console,csv file", &outputOption );
-  GuiDialogCustomizable dlg(&ds, "Analysis of Concave Points", NULL);
-  dlg.exec();
-  if( ds.cancelled )
+  ds.addRadioGrp( "output to:", "imod window|console|csv file", &outputOption );
+  ds.exec();
+  if( ds.wasCancelled() )
     return;
   
   minObj--;
@@ -977,15 +977,14 @@ void AnalysisTools::outputTubeSizeAnalysis()
   static bool convertUnits      = true;
   static int  outputOption      = 0;
   
-  CustomDialog ds;
+  CustomDialog ds( "Tube Analysis", this );
   ds.addSpinBox ( "min object:",1,osize(imod),&minObj,1 );
   ds.addSpinBox ( "max object:",1,osize(imod),&maxObj,1 );
    ds.addCheckBox( "print all open contours", &printAllConts );
   ds.addCheckBox( "convert to appripriate units", &convertUnits );
-  ds.addRadioGrp( "output to:", "imod window,console,csv file", &outputOption );
-  GuiDialogCustomizable dlg(&ds, "Tube Analysis", NULL);
-  dlg.exec();
-  if( ds.cancelled )
+  ds.addRadioGrp( "output to:", "imod window|console|csv file", &outputOption );
+  ds.exec();
+  if( ds.wasCancelled() )
     return;
   
   minObj--;
@@ -1021,7 +1020,7 @@ void AnalysisTools::outputBranchingAnalysis()
   static bool showMatches       = true;
   static int  outputOption      = 0;
   
-  CustomDialog ds;
+  CustomDialog ds("Branch Analysis", this);
   ds.addSpinBox ( "object to analyze:",1,osize(imod),&objMainLen,1,
                  "The object containing 'root contours' - which we want to \n"
                  "find branches off" );
@@ -1053,10 +1052,9 @@ void AnalysisTools::outputBranchingAnalysis()
   ds.addCheckBox( "show matches", &showMatches,
                  "Prints a list of all contours in 'object containing branches' \n"
                  "showing how many times each was detected as a branch" );
-  ds.addRadioGrp( "output to:", "imod window,console,csv file", &outputOption );
-  GuiDialogCustomizable dlg(&ds, "Branch Analysis", NULL);
-  dlg.exec();
-  if( ds.cancelled )
+  ds.addRadioGrp( "output to:", "imod window|console|csv file", &outputOption );
+  ds.exec();
+  if( ds.wasCancelled() )
   return;
   
   objMainLen--;
@@ -1098,7 +1096,7 @@ void AnalysisTools::outputVolumeWithinXAnalysis()
   static bool addPtsNewObj = true;
   static int  outputOption = 1;
     
-  CustomDialog ds;
+  CustomDialog ds( "Volume within X distance analysis", this);
   ds.addLabel   ( "Objects to use:" );
   ds.addSpinBox ( "> object for analysis:",1,osize(imod),&objToAnalyse,1,
                   "The object containing contours we want to compare against" );
@@ -1123,10 +1121,9 @@ void AnalysisTools::outputVolumeWithinXAnalysis()
                   "expanded to include a gutter equal to the distance threshold" );
   ds.addCheckBox( "add points to new object", &addPtsNewObj,
                   "Allows you to see the result of random point distance analysis" );
-  ds.addRadioGrp( "output to:", "imod window,console,csv file", &outputOption );
-  GuiDialogCustomizable dlg(&ds, "Volume within X distance analysis", NULL);
-  dlg.exec();
-  if( ds.cancelled )
+  ds.addRadioGrp( "output to:", "imod window|console|csv file", &outputOption );
+  ds.exec();
+  if( ds.wasCancelled() )
     return;
   
   //## PERFORM ANALYSIS AND OUTPUT RESULTS:
@@ -1188,16 +1185,15 @@ void AnalysisTools::generateDefGrid()
   
   static bool applyCumulativeTransforms = true;
   
-  CustomDialog ds;
+  CustomDialog ds( "Generate Deformation Grid", this);
   ds.addSpinBox  ( "columns (x):  ", 1, 1000, &plug.grid_colsX, 1 );
   ds.addSpinBox  ( "rows    (y):  ", 1, 1000, &plug.grid_rowsY, 1 );
   ds.addCheckBox( "show grid",  &plug.grid_showGrid );
   ds.addCheckBox( "applyCumulativeTransforms",  &applyCumulativeTransforms );
   ds.addDblSpinBoxF( "power used in deform:  ", 0.05, 25.0, &plug.grid_power, 1, 0.1,
                     "Used in formula 1/(distance^power) used to weight vectors" );
-  GuiDialogCustomizable dlg(&ds, "Generate Deformation Grid", this);
-  dlg.exec();
-  if( ds.cancelled )
+  ds.exec();
+  if( ds.wasCancelled() )
     return;
   
   //## CREATE DEFORMATION GRID:
@@ -1232,7 +1228,7 @@ void AnalysisTools::deformObjectsUsingDefGrid()
   static bool useInverse     = false;
   static bool skipDefPtsObj  = false;
   
-  CustomDialog ds;
+  CustomDialog ds( "Deform Objects Using Deformation Grid", this);
   ds.addLabel   ( "object range:" );
   ds.addSpinBox ( "min object:", 1, nObjects, &objMin, 1 );
   ds.addSpinBox ( "max object:", 1, nObjects, &objMax, 1 );
@@ -1240,9 +1236,8 @@ void AnalysisTools::deformObjectsUsingDefGrid()
                   "point-wise options:" );
   ds.addCheckBox( "skip 'deformation_points' object",  &skipDefPtsObj );
   ds.addCheckBox( "use inverse of grid (not recommended)",  &useInverse );  
-  GuiDialogCustomizable dlg(&ds, "Deform Objects Using Deformation Grid", this);
-  dlg.exec();
-  if( ds.cancelled )
+  ds.exec();
+  if( ds.wasCancelled() )
     return;
   
   objMin--;
@@ -1293,12 +1288,11 @@ void AnalysisTools::analyzeDefPoints()
   static bool convertUnits      = true;
   static int  outputOption      = 0;
   
-  CustomDialog ds;
+  CustomDialog ds("Tube Analysis", this);
   ds.addCheckBox( "convert to appripriate units", &convertUnits );
-  ds.addRadioGrp( "output to:", "imod window,console,csv file", &outputOption );
-  GuiDialogCustomizable dlg(&ds, "Tube Analysis", NULL);
-  dlg.exec();
-  if( ds.cancelled )
+  ds.addRadioGrp( "output to:", "imod window|console|csv file", &outputOption );
+  ds.exec();
+  if( ds.wasCancelled() )
     return;
   
   
@@ -1391,11 +1385,11 @@ void AnalysisTools::delimitSectionBoundaries()
   static float minOverlap = 0.999;
   static bool  printProgress = true;
   
-  CustomDialog ds;
+  CustomDialog ds("Generate Deformation Grid", this);
   ds.addSpinBox  ( "min z:  ", 1, plug.zsize, &minZ, 1 );
   ds.addSpinBox  ( "max z:  ", 1, plug.zsize, &maxZ, 1 );
   ds.addLineEditF( "min overlap to \nfor section boundaries:  ",
-                   &minOverlap, 0.000, 1.000, 8,
+                   0.000, 1.000, &minOverlap, 8,
                    "If two adjacent section boundary contours overlap by more \n"
                    "than this amount they will be classified as being part of \n"
                    "the same section - otherwise they form a section boundary!" );
@@ -1415,9 +1409,8 @@ void AnalysisTools::delimitSectionBoundaries()
                    "material on every selected slice using \n "
                    "the 'tomogram_boundaries' object, and \n "
                    "uses these to determine section boundaries" );
-  GuiDialogCustomizable dlg(&ds, "Generate Deformation Grid", this);
-  dlg.exec();
-  if( ds.cancelled )
+  ds.exec();
+  if( ds.wasCancelled() )
     return;
   
   minZ--;
@@ -1594,10 +1587,10 @@ void AnalysisTools::fillInRangeOfPixelValues()
   if( !isObjClosed(obj) )
     outputType = 0;
   
-  CustomDialog ds;
+  CustomDialog ds("Generate Deformation Grid", this);
   
   ds.addRadioGrp( "output:",
-                  "scattered points,"
+                  "scattered points|"
                   "contours around on regions",
                   &outputType );
   
@@ -1629,9 +1622,9 @@ void AnalysisTools::fillInRangeOfPixelValues()
                    "Will put the pixel values into the current slice" );
   
   
-  GuiDialogCustomizable dlg(&ds, "Generate Deformation Grid", this);
-  dlg.exec();
-  if( ds.cancelled )
+  
+  ds.exec();
+  if( ds.wasCancelled() )
     return;
   
   minZ--;
@@ -1658,7 +1651,7 @@ void AnalysisTools::fillInRangeOfPixelValues()
   
   if( outputType == 1 )
   {
-    CustomDialog ds2;
+    CustomDialog ds2("Contours From Image", this);;
     ds2.addLabel    ( "-- Processing Options --" );
     ds2.addCheckBox ( "diagonal",   &diagonal, "Will chamfer sharp corners" );
     ds2.addDblSpinBoxF( "threshold", 0, 255, &threshold, 1,1, "No idea" );
@@ -1670,9 +1663,8 @@ void AnalysisTools::fillInRangeOfPixelValues()
                       "Min number of points contour must have to be added" );
     ds2.addSpinBox  ( "min area", 0, MAX_INT, &minAreaLimit, 1,
                       "Min area a contour must have to be added" );
-    GuiDialogCustomizable dlg2(&ds2, "Contours From Image", this);
-    dlg2.exec();
-    if( ds2.cancelled )
+    ds2.exec();
+    if( ds2.wasCancelled() )
       return;
   }
   
@@ -1866,7 +1858,7 @@ void AnalysisTools::deleteSlice()
   directionToShift = (directionToShift==1) ? 0 : 1;
   
   
-  CustomDialog ds;
+  CustomDialog ds("Delete Slices", this);
   
   ds.addLabel    ( "slices to delete (i.e. remove points):" );
   ds.addSpinBox  ( " > min val:  ", 0, plug.zsize, &minSliceDel, 1 );
@@ -1878,7 +1870,7 @@ void AnalysisTools::deleteSlice()
   
   ds.addLabel    ( "-----" );
   ds.addRadioGrp( "direction to shift (kept) points:",
-                  "up,"
+                  "up|"
                   "down",
                   &directionToShift );
   ds.addLabel    ( "-----" );
@@ -1887,9 +1879,8 @@ void AnalysisTools::deleteSlice()
   ds.addLabel    ( "WARNING: Save first as you \n"
                    "can't undo this operation" );
   
-  GuiDialogCustomizable dlg(&ds, "Delete Slices", this);
-  dlg.exec();
-  if( ds.cancelled )
+  ds.exec();
+  if( ds.wasCancelled() )
     return;
   
   //## ASSESS IMPUT:
@@ -1999,32 +1990,31 @@ void AnalysisTools::moreActions()
   /*
   //## GET USER INPUT FROM CUSTOM DIALOG:
    
-  CustomDialog ds;
+  CustomDialog ds("Perform Action", this);
   int ID_ACTION = ds.addRadioGrp( "action:",
-                                  "generate deformation grid,"
-                                  "deform objects using deformation grid,"
-                                  "fill range of pixel values,"
-                                  "delimit section boundaries,"
-                                  "delete contours from slices,"
-                                  "duplicate objects,"
-                                  "generate deformation grid,"
+                                  "generate deformation grid|"
+                                  "deform objects using deformation grid|"
+                                  "fill range of pixel values|"
+                                  "delimit section boundaries|"
+                                  "delete contours from slices|"
+                                  "duplicate objects|"
+                                  "generate deformation grid|"
                                   "print section information",
                                   &plug.selectedAction,
                                   "",
-                                  "Generates a deformation grid using current object,"
+                                  "Generates a deformation grid using current object|"
                                   "Uses the current deformation grid to shift all"
-                                    "contours/points over a range of objects,"
+                                    "contours/points over a range of objects|"
                                   "Lets you specify where section boundaries "
-                                    "start,"
+                                    "start|"
                                   "Uses the grey values to try and determine the "
-                                    "boundary of sections on every slice,"
-                                  "Deletes contours from specified slices,"
-                                  "Duplicates an entire range of objects,"
+                                    "boundary of sections on every slice|"
+                                  "Deletes contours from specified slices|"
+                                  "Duplicates an entire range of objects|"
                                   "Prints information about the sections within "
-                                    "the tomogram," );
-  GuiDialogCustomizable dlg(&ds, "Perform Action", this);
-  dlg.exec();
-  if( ds.cancelled )
+                                    "the tomogram" );
+  ds.exec();
+  if( ds.wasCancelled() )
     return;
   
   switch(plug.selectedAction)
@@ -2062,7 +2052,7 @@ void AnalysisTools::moreSettings()
 {
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
-  CustomDialog ds;
+  CustomDialog ds( "More Settings", this );
   ds.addLabel   ( "--- SETTINGS ---" );
   ds.addCheckBox( "use arrow keys to change sections", 
                                           &plug.arrowKeysSections );
@@ -2077,10 +2067,8 @@ void AnalysisTools::moreSettings()
                   "The sphere size for grid lines" );
   ds.addSpinBox ( "grid line display width dotted:",1, 50, &plug.grid_displayLineWDot, 1,
                   "The thickness of lines used for dotted grid lines" );
-  
-  GuiDialogCustomizable dlg(&ds, "More Settings", this);
-  dlg.exec();
-  if( ds.cancelled )
+  ds.exec();
+  if( ds.wasCancelled() )
     return;
   
   drawExtraObject(true);
