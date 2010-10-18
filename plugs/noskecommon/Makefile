@@ -7,7 +7,7 @@ CXXFLAGS = $(LIBCFLAGS)  $(QTFLAGS)
 
 IMODINCLUDES = imod.h imodview.h imodplug.h control.h undoredo.h
 
-all : icontextra.$(O) qt_dialog_customizable.$(O)
+all : icontextra.$(O) customdialog.$(O)
 
 install : 
 
@@ -16,8 +16,8 @@ install :
 icontextra.$(O) : icontextra.cpp $(IMODINCLUDES) _common_functions.h \
 	icontextra.h
 
-qt_dialog_customizable.$(O) : qt_dialog_customizable.cpp $(IMODINCLUDES) \
-	qt_dialog_customizable.h
+customdialog.$(O) : customdialog.cpp $(IMODINCLUDES) \
+	customdialog.h
 
 
 imod.h : ../../imod/imod.h
