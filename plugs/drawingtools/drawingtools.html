@@ -46,7 +46,7 @@ of points <i>[second_button]</i> and then end the contour by pressing
 [space] or connecting the end of the contour to the beginning. To disconnect
 from the selected contour without adjustment press [n].</li>
 </ol>
-<br><br>
+<p>
 <b>Hot Key Summary</b><br>
 ---------------------<br>
 <b>[1]-[5]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -69,7 +69,7 @@ Find next intersecting contour edge<br>
 <b>[i]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Invert points in current contour<br>
 <b>[I]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Reorder points in current contout to start at selected point<br>
+Reorder points in current contour to start at selected point<br>
 <br>
 <b>[y]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Go to next largest value using find property
@@ -145,8 +145,7 @@ useful drawing tools you might not know about:
 the Zap "contour transform mode" with [P] - this mode is
 similar to the "transform" drawing tool.</li>
 </ol>
-<br>
-<br>
+<p>
 <b>More Actions</b><br>
 ---------------------<br>
 <br>
@@ -170,8 +169,8 @@ into the final mesh model. One of the options is to automatically 'delete
 intersecting contours in current object', but I'd suggest you leave it on 
 'list all intersecting edges' then use [a] to check them all individually.</li>
 <li><b>sort contours</b> - Physically sorts contours using the criteria you
-select. Amoung the many optons you can sort a range (by default all) of 
-contours by: <i>surface number, number points, contour lengh, area, max segment 
+select. Among the many options you can sort a range (by default all) of 
+contours by: <i>surface number, number points, contour length, area, max segment 
 length, avg gray value, interpolated, random, mean value in x/y/z or min
 value x/y/z</i>!</li>
 <li><b>find contours [y]</b> - Use [y] to find the contour or point with the 
@@ -186,8 +185,8 @@ the current object, or ALL contours in a range of objects. The 'criteria
 for deletion' you can chose from include 'slices / z value' and/or 
 'number of points'... but keep in mind this delete feature can be 
 used to delete a range of contours after you've sorted them using some 
-other criteria. This options was origionally created to allow easy deletion 
-of contours off every Nnd slice etc.</li>
+other criteria. This tool was originally created to allow easy deletion 
+of contours off every Nth slice etc.</li>
 <li><b>crop contours</b> - Will crop and 'cut open' contours in the current
 object which go outside the tomogram boundaries or rubber band area. This 
 feature can be VERY HANDY. The edges of tomograms typically look messy after
@@ -195,7 +194,7 @@ manual segmentation AND it's a pain to manually mark individual membranes
 which intersect the edge as open. I suggest use Interpolator plugin and the
 sculpt tool and just allow all your contours to go outside the boundary. 
 THEN, when you're done (and maybe saved a backup!), run this tool and it
-will automatically caculate intersection points and cut open all the relevant 
+will automatically calculate intersection points and cut open all the relevant 
 segments of contour!
 </li>
 <li><b>copy contours</b> - Use this to copy or move a range of contours from

@@ -1,5 +1,5 @@
 /*
- *  drawingtools.c -- Special plugin for contour drawing tools
+ *  drawingtools.cpp -- Special plugin for contour drawing tools
  *
  */
 
@@ -140,7 +140,6 @@
 #include <qstringlist.h>
 #include <qmessagebox.h>
 #include <qinputdialog.h>
-//Added by qt3to4:
 #include <QVBoxLayout>
 #include <QWheelEvent>
 #include <QMouseEvent>
@@ -149,9 +148,12 @@
 #include <QKeyEvent>
 #include <QEvent>
 #include <QHBoxLayout>
+#include <qtoolbutton.h>
+#include "../../imod/pegged.xpm"
+#include "../../imod/unpegged.xpm"
 
 #include "_common_functions.h"
-#include "qt_dialog_customizable.h"
+#include "customdialog.h"
 #include "imodplugin.h"
 #include "dia_qtutils.h"
 #include "drawingtools.h"
@@ -391,6 +393,9 @@ void imodPlugExecute(ImodView *inImodView)
   
   imodDialogManager.add((QWidget *)plug.window, IMOD_DIALOG);
   adjustGeometryAndShow((QWidget *)plug.window, IMOD_DIALOG );
+  
+  plug.window->checkForNamelessObjects(false);    // check for objects without names
+  
   //plug.window->show();
 }
 
@@ -850,40 +855,42 @@ static char *buttonTips[] = {"Close Drawing Tools", "Open help window"};
 DrawingTools::DrawingTools(QWidget *parent, const char *name) :
   DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Drawing Tools", "", name)
 {
-  const int LAYOUT_MARGIN   = 4;
-  const int LAYOUT_SPACING  = 4;
+  const int LAY_MARGIN   = 4;
+  const int LAY_SPACING  = 4;
   const int GROUP_MARGIN    = 1;
   const int SPACER_HEIGHT   = 15;
   
   
+  
   //## Type:
-
+  
   QGroupBox *typeGbox = new QGroupBox("Drawing Mode:", this);
   typeButtonGroup = new QButtonGroup(this);
   QVBoxLayout *gbLayout = new QVBoxLayout(typeGbox);
   gbLayout->setSpacing(0);
-  gbLayout->setContentsMargins(5, 2, 5, 5);
+  gbLayout->setContentsMargins(2, 2, 2, 2);
   //typeButtonGroup->setMargin(GROUP_MARGIN);
   connect(typeButtonGroup, SIGNAL(buttonClicked(int)), this, SLOT(changeType(int)));
   
-  typeRadio_Normal = diaRadioButton("Normal        [1]", typeGbox, typeButtonGroup,
-                                    gbLayout, 0, "Contours are drawn normally");
+  typeRadio_Normal = diaRadioButton
+    ("Normal        [1]", typeGbox, typeButtonGroup, gbLayout, 0,
+     "Contours are drawn normally");
   
   typeRadio_Sculpt = diaRadioButton
-    ("Sculpt        [2]", typeGbox, typeButtonGroup, gbLayout, 1, 
+    ("Sculpt         [2]", typeGbox, typeButtonGroup, gbLayout, 1, 
      "Draw and modify closed contours "
      "quickly using the sculpt circle to push or pinch lines");
   
   typeRadio_Join = diaRadioButton
-    ("Join              [3]", typeGbox, typeButtonGroup, gbLayout, 2, 
+    ("Join             [3]", typeGbox, typeButtonGroup, gbLayout, 2, 
      "Join or split contours quickly by making overlaps");
   
   typeRadio_Transform = diaRadioButton
-    ("Transform    [4]", typeGbox, typeButtonGroup, gbLayout, 3, 
+    ("Transform  [4]", typeGbox, typeButtonGroup, gbLayout, 3, 
      "Allows you to move, rotate and scale the selected contour");
   
   typeRadio_Eraser = diaRadioButton
-    ("Eraser          [5]", typeGbox, typeButtonGroup, gbLayout, 4,
+    ("Eraser         [5]", typeGbox, typeButtonGroup, gbLayout, 4,
      "Erase contours instantly by clicking them");
   
   typeRadio_Warp = diaRadioButton
@@ -891,28 +898,52 @@ DrawingTools::DrawingTools(QWidget *parent, const char *name) :
      "Quickly correct bad regions of contour by dragging/warping the edges");
   
   typeRadio_Curve = diaRadioButton
-    ("Curve        [7]", typeGbox, typeButtonGroup, gbLayout, 6,
+    ("Curve          [7]", typeGbox, typeButtonGroup, gbLayout, 6,
      "Quickly correct bad regions of contour by dragging/warping the edges");
   
   changeTypeSelected( plug.drawMode );
   
-  mLayout->addWidget(typeGbox);
+  
+  //## Pin-to-top Button:
+  QHBoxLayout* topLay = new QHBoxLayout();
+  topLay->setSpacing(LAY_SPACING);
+  topLay->setContentsMargins(0,0,0,0);
+  
+  QVBoxLayout* pinLay = new QVBoxLayout();
+  pinLay->setSpacing(0);
+  pinLay->setContentsMargins(0,0,0,0);
+  
+  QToolButton *toolBut = new QToolButton(this);
+  toolBut->setCheckable(true);
+  toolBut->setFocusPolicy(Qt::NoFocus);
+  QIcon iconSet;
+  iconSet.addPixmap(QPixmap((const char **)pegged), QIcon::Normal, QIcon::On);
+  iconSet.addPixmap(QPixmap((const char **)unpegged), QIcon::Normal, QIcon::Off);
+  toolBut->setIcon(iconSet);
+  toolBut->setChecked(false);
+  QSize hint = toolBut->sizeHint();
+  toolBut->setFixedWidth(hint.width());
+  toolBut->setFixedHeight(hint.height());
+  connect(toolBut, SIGNAL(toggled(bool)), this, SLOT(keepOnTop(bool)));
+  toolBut->setToolTip("Keep bead fixer window on top");
+  
+  pinLay->setAlignment( Qt::AlignTop );
+  pinLay->addWidget(toolBut);
+  topLay->addWidget(typeGbox);
+  topLay->addLayout(pinLay);
+  mLayout->addLayout(topLay);
   
   //## Actions
   
-  grpActions = new QGroupBox("Actions:", this);
+  grpActions = new QGroupBox("Modify Contours:", this);
   //grpActions->setFocusPolicy(Qt::NoFocus);
   //grpActions->setMargin(GROUP_MARGIN);
   
-
   vboxLayout1 = new QVBoxLayout(grpActions);
-  vboxLayout1->setSpacing(LAYOUT_SPACING);
-  vboxLayout1->setContentsMargins(LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN,
-                                  LAYOUT_MARGIN);
-  // DNM: DITTO TO ABOVE
-  //vboxLayout1->addItem( new QSpacerItem(1,SPACER_HEIGHT) );
+  vboxLayout1->setSpacing(LAY_SPACING);
+  vboxLayout1->setContentsMargins(LAY_MARGIN, LAY_MARGIN, LAY_MARGIN, LAY_MARGIN);
   
-  reduceContsButton = new QPushButton("Reduce Contours [r]", grpActions);
+  reduceContsButton = new QPushButton("Reduce [r]", grpActions);
   reduceContsButton->setFocusPolicy(Qt::NoFocus);
   connect(reduceContsButton, SIGNAL(clicked()), this, SLOT(reduceConts()));
   reduceContsButton->setToolTip(
@@ -920,7 +951,7 @@ DrawingTools::DrawingTools(QWidget *parent, const char *name) :
                 "\nin the current object");
   vboxLayout1->addWidget(reduceContsButton);
   
-  smoothContsButton = new QPushButton("Smooth Contours [e]", grpActions);
+  smoothContsButton = new QPushButton("Smooth [e]", grpActions);
   smoothContsButton->setFocusPolicy(Qt::NoFocus);
   connect(smoothContsButton, SIGNAL(clicked()), this, SLOT(smoothConts()));
   smoothContsButton->setToolTip(
@@ -936,23 +967,23 @@ DrawingTools::DrawingTools(QWidget *parent, const char *name) :
   widget1 = new QWidget(this);
   
   gridLayout2 = new QGridLayout(widget1);
-  gridLayout2->setSpacing(LAYOUT_SPACING);
-  gridLayout2->setContentsMargins(LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN,
-                                  LAYOUT_MARGIN);
+  gridLayout2->setSpacing(LAY_SPACING);
+  gridLayout2->setContentsMargins(LAY_MARGIN, LAY_MARGIN, LAY_MARGIN,
+                                  LAY_MARGIN);
   
-  keyboardSettingsButton = new QPushButton("Mouse and Keyboard", widget1);
+  keyboardSettingsButton = new QPushButton("Mouse / Keyboard", widget1);
   connect(keyboardSettingsButton, SIGNAL(clicked()), this, SLOT(keyboardSettings()));
   keyboardSettingsButton->setToolTip( "Contains several mouse & keyboard "
                                       "related settings");
   gridLayout2->addWidget(keyboardSettingsButton, 0, 0, 1, 2);
   
-  moreActionsButton = new QPushButton("More Actions", widget1);
+  moreActionsButton = new QPushButton("Actions", widget1);
   connect(moreActionsButton, SIGNAL(clicked()), this, SLOT(moreActions()));
   moreActionsButton->setToolTip( "Contains several other actions I didn't "
                                  "want to sqeeze into this window");
   gridLayout2->addWidget(moreActionsButton, 1, 0);
   
-  moreSettingsButton = new QPushButton("More Settings", widget1);
+  moreSettingsButton = new QPushButton("Settings", widget1);
   connect(moreSettingsButton, SIGNAL(clicked()), this, SLOT(moreSettings()));
   moreSettingsButton->setToolTip(
                 "Contains several other settings I didn't want to sqeeze "
@@ -960,7 +991,6 @@ DrawingTools::DrawingTools(QWidget *parent, const char *name) :
   gridLayout2->addWidget(moreSettingsButton, 1, 1); 
   
   mLayout->addWidget(widget1);
-  
   
   mLayout->addStretch();
   this->adjustSize();
@@ -1377,6 +1407,7 @@ void DrawingTools::initValues()
   plug.selectedAction         = 0;
   plug.sortCriteria           = SORT_NUMPTS;
   plug.findCriteria           = SORT_NUMPTS;
+  plug.warningIfNoNameObjs    = true;
   
   plug.sortCriteriaOfVals     = -1;
 }
@@ -1433,6 +1464,7 @@ void DrawingTools::loadSettings()
   plug.selectedAction             = savedValues[27];
   plug.testIntersetAllObjs        = savedValues[28];
   plug.selectedAction             = savedValues[29];
+  plug.warningIfNoNameObjs        = savedValues[30];
 }
 
 
@@ -1475,10 +1507,38 @@ void DrawingTools::saveSettings()
   saveValues[27]  = plug.selectedAction;
   saveValues[28]  = plug.testIntersetAllObjs;
   saveValues[29]  = plug.selectedAction;
+  saveValues[30]  = plug.warningIfNoNameObjs;
   
   prefSaveGenericSettings("DrawingTools",NUM_SAVED_VALS,saveValues);
 }
 
+
+
+//------------------------
+//-- Change to flag to keep on top or run timer as for info window
+void DrawingTools::keepOnTop(bool state)
+{
+#ifdef STAY_ON_TOP_HACK
+  mStayOnTop = state;
+  // Start or kill the timer
+  if (state)  
+    mTopTimerID = startTimer(200);
+  else if (mTopTimerID) {
+    killTimer(mTopTimerID);
+    mTopTimerID = 0;
+  }
+#else
+  Qt::WindowFlags flags = windowFlags();
+  if (state)
+    flags |= Qt::WindowStaysOnTopHint;
+  else
+    flags ^= Qt::WindowStaysOnTopHint;
+  QPoint p2 = pos();
+  setWindowFlags(flags);
+  move(p2);
+  show();
+#endif
+}
 
 
 //------------------------
@@ -1594,21 +1654,20 @@ void DrawingTools::reduceConts()
     "\nany 3 consequtive points, else the middle point be deleted. "
     "\nA value of >5.0 is not recommended for reducing large numbers of contours";
   
-	CustomDialog ds;
+	CustomDialog ds("Reduce Contours",this);
   ds.addLabel   ( "contour range:" );
   ds.addSpinBox ( "min:", 1, nConts, &contMin, 1,
                   "Only contours AFTER this contour (inclusive) will be changed" );
   ds.addSpinBox ( "max:", 1, nConts, &contMax, 1,
                   "Only contours BEFORE this contour (inclusive) will be changed" );
   ds.addComboBox( "include:",
-                  "all contours,"
-                  "only key contours,"
+                  "all contours|"
+                  "only key contours|"
                   "only interpolated",
                   &includeCType );
-  ds.addLabel   ( msg.c_str(), toolStr );
-	GuiDialogCustomizable dlg(&ds, "Reduce Contours",false);
-	dlg.exec();
-	if( ds.cancelled )
+  ds.addLabel   ( msg.c_str(), false, toolStr );
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   contMin -= 1;
@@ -1714,20 +1773,20 @@ void DrawingTools::smoothConts()
   int contMin         = 1;
   int contMax         = nConts;
   
-  CustomDialog ds;
+  CustomDialog ds("Smooth Contours",this);
   ds.addLabel   ( "contour range:" );
   ds.addSpinBox ( "min:", 1, nConts, &contMin, 1,
                   "Only contours AFTER this contour (inclusive) will be changed" );
   ds.addSpinBox ( "max:", 1, nConts, &contMax, 1,
                   "Only contours BEFORE this contour (inclusive) will be changed" );
   ds.addComboBox( "include:",
-                  "all contours,"
-                  "only key contours,"
+                  "all contours|"
+                  "only key contours|"
                   "only interpolated",
                   &includeCType );
 	ds.addCheckBox( "round Z values (for open contours)", &roundZOpenPts );
   ds.addCheckBox( "add pt every Z (for open contours)", &addPtEveryZ );
-  ds.addLabel   ( msg.c_str(), toolStr );
+  ds.addLabel   ( msg.c_str(), false, toolStr );
   ds.addLabel   ( "----" );
   ds.addCheckBox( "ALLOW POINTS TO BE MOVED.... using:", &movePts, 
                   "NOT TICKED: additional points will be added \n"
@@ -1741,9 +1800,8 @@ void DrawingTools::smoothConts()
   ds.addDblSpinBoxF ( "min distance to move:", 0.001, 10.0, &minDistToMove, 3, 0.01,
                       "Points closer than this distance to their 'average pos' \n"
                       "will NOT be moved." );
-	GuiDialogCustomizable dlg(&ds, "Smooth Contours",false);
-	dlg.exec();
-	if( ds.cancelled )
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   
@@ -1945,19 +2003,19 @@ void DrawingTools::selectNextOverlappingContour()
   
   static int  overlapAction          = 1;
   
-	CustomDialog ds;
+	CustomDialog ds("Find Intersecting Contours", this);
   ds.addRadioGrp( "action:",
-                  "find next intersecting edge [a],"
-                  "list all intersecting edges,"
+                  "find next intersecting edge [a]|"
+                  "list all intersecting edges|"
                   "delete intersecting contours in current object",
                   &overlapAction,
                   "",
                   "Selects the first non-simple contour or \n"
                   "first contour intersecting another contour \n"
                   "beyond the currently selected contour - \n"
-                  "searching all objects,"
+                  "searching all objects|"
                   "Prints out all contours in the model \n"
-                  "which have edges intersecting some other contour,"
+                  "which have edges intersecting some other contour|"
                   "Deletes any contour in the current object \n"
                   "which overlaps another contour in the \n"
                   "SAME object"
@@ -1980,9 +2038,8 @@ void DrawingTools::selectNextOverlappingContour()
                   " > A contour 'intersects' another only if their edges \n"
                   "    cross - not if one is completely inside the other\n"
                   " > Testing may take several minutes for large models" );
-	GuiDialogCustomizable dlg(&ds, "Find Intersecting Contours", this);
-	dlg.exec();
-	if( ds.cancelled )
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   
@@ -2222,7 +2279,7 @@ void DrawingTools::printContourDetailedInfo()
   static int  printID      = 1;
   static bool usePixelLen  = true;
   
-	CustomDialog ds;
+	CustomDialog ds("Contour Printing", this);
   ds.addLabel   ( "contours to sort (inclusive):" );
   ds.addSpinBox ( "min:", 1, nConts, &contMin, 1,
                   "Only contours after this contour "
@@ -2231,22 +2288,21 @@ void DrawingTools::printContourDetailedInfo()
                   "Only contours BEFORE this contour "
                   "(inclusive) will be reordered" );
   ds.addRadioGrp( "print:",
-                  "summary only,"
-                  "points,"
+                  "summary only|"
+                  "points|"
                   "segment lengths",
                   &printID,
                   "",
-                  "Only prints basic info (area, length etc),"
-                  "Lists the position of all points,"
+                  "Only prints basic info (area, length etc)|"
+                  "Lists the position of all points|"
                   "List the line segment distance for every point"
                   "to the next point"
                   );
 	ds.addCheckBox( "show distances in pixels", &usePixelLen,
                   "If true measures all lengths etc in pixels \n"
                   "Else use the units in the model header." );
-	GuiDialogCustomizable dlg(&ds, "Contour Printing", this);
-	dlg.exec();
-	if( ds.cancelled )
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   contMin  -= 1;
@@ -2426,66 +2482,65 @@ void DrawingTools::moreActions()
 {
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
-	CustomDialog ds;
+	CustomDialog ds("Perform Action", this);
   ds.addRadioGrp( "action:",
-                  "clean model and fix contours,"
-                  "find intersecting edges [a],"
-                  "sort contours,"
-                  "find contours [y],"
-                  "delete contours,"
-                  "crop contours,"
-                  "copy contours,"
-                  "transform contours,"
-                  "modify contours,"
-                  "move point,"
-                  "expand contours,"
-                  "print basic model info,"
-                  "print detailed object info,"
-                  "print detailed contour info,"
+                  "clean model and fix contours|"
+                  "find intersecting edges [a]|"
+                  "sort contours|"
+                  "find contours [y]|"
+                  "delete contours|"
+                  "crop contours|"
+                  "copy contours|"
+                  "transform contours|"
+                  "modify contours|"
+                  "move point|"
+                  "expand contours|"
+                  "print basic model info|"
+                  "print detailed object info|"
+                  "print detailed contour info|"
                   "reset values",
                   &plug.selectedAction,
                   "",
                   "Contains a number of options to clean multiple \n"
                     "objects and 'fix' contours by removing bad; \n"
-                    "redundant or out-of-bounds points etc,"
+                    "redundant or out-of-bounds points etc|"
                   "Finds closed contours which cross their own \n"
                     "path or the path of other contours. \n"
                     "In most situations (eg: closed membranes) \n"
                     "no two lines should ever intersect; \n"
                     "especially a line crossing itself; \n"
                     "so it's a good idea to use this tool before \n"
-                    "converting your contours into the final mesh model.,"
-                  "Physically sorts contours using the criteria you select,"
+                    "converting your contours into the final mesh model|"
+                  "Physically sorts contours using the criteria you select|"
                   "Use [y] to find the contour or point with the \n"
                     "next biggest value based on the criteria you \n"
-                    "select,"
+                    "select|"
                   "Allows you to delete any contours which meet \n"
-                    "your specified criteria,"
+                    "your specified criteria|"
                   "Will crop and 'cut open' contours in the current \n"
                     "object which go outside the tomogram boundaries \n"
-                    "or rubber band area,"
+                    "or rubber band area|"
                   "Use this to copy or move a range of contours from \n"
-                    "the current object to another object,"
+                    "the current object to another object|"
                   "Use this to precisely translate; scale and/or rotate \n"
-                    "a range of contours in the current object,"
+                    "a range of contours in the current object|"
                   "Allows you to modify contour properties over \n"
-                    "a range of contours in the current object,"
+                    "a range of contours in the current object|"
                   "Use this to move the current point or the current \n"
-                    "contour to a precise position,"
+                    "contour to a precise position|"
                   "Use this to expand a ring around a range of \n"
-                    "open or closed contours within the current object,"
+                    "open or closed contours within the current object|"
                   "Prints some basic information about the current \n"
                     "object including the average distance between \n"
                     "points; average points contour; and number of \n"
-                    "empty contours.,"
+                    "empty contours|"
                   "Prints detailed information about the \n"
-                    "current object,"
+                    "current object|"
                   "Prints detailed information about the \n"
-                    "current contour; or a range of them,"
+                    "current contour; or a range of them|"
                   "Resets all setting (for this plugin) to default" );
-	GuiDialogCustomizable dlg(&ds, "Perform Action", this);
-	dlg.exec();
-	if( ds.cancelled )
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   //## EXECUTE ACTION:
@@ -2552,14 +2607,14 @@ void DrawingTools::keyboardSettings()
 {
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
-	CustomDialog ds;
+	CustomDialog ds("Mouse and Keyboard Settings", this);
   ds.addLabel   ( "--- MOUSE ---" );
   ds.addComboBox( "wheel behavior:",
-                  "none,"
-                  "resize sculpt circle,"
-                  "scroll slices,"
-                  "scroll contours,"
-                  "scroll pts,"
+                  "none|"
+                  "resize sculpt circle|"
+                  "scroll slices|"
+                  "scroll contours|"
+                  "scroll pts|"
                   "resize curr point", &plug.wheelBehav,
                   "The action performed by the mouse wheel" );
   ds.addSpinBox ( "wheel resistance:",
@@ -2600,13 +2655,13 @@ void DrawingTools::keyboardSettings()
                   " as per normal... but mode can still be change with \n"
                   " the normal number keys");
   ds.addComboBox( "on [d] remove:",
-                  "do nothing,"
-                  "pts to end,"
-                  "to nearest end,"
-                  "current pt,"
-                  "current contour,"
-                  "pt size current pt,"
-                  "pt sizes current cont,"
+                  "do nothing|"
+                  "pts to end|"
+                  "to nearest end|"
+                  "current pt|"
+                  "current contour|"
+                  "pt size current pt|"
+                  "pt sizes current cont|"
                   "move pt", &plug.dKeyBehav,
                   "Action performed when [d] is pressed. \n"
                   "\n"
@@ -2630,10 +2685,8 @@ void DrawingTools::keyboardSettings()
                   "NOTE: Holding [Shift] when you press \n"
                   "[Page Up] or [Page Down] will cause it \n"
                   "to increment one slice (as normal)" );
-  
-	GuiDialogCustomizable dlg(&ds, "Mouse and Keyboard Settings", this);
-	dlg.exec();
-	if( ds.cancelled )
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   ivwRedraw( plug.view );  
@@ -2646,7 +2699,7 @@ void DrawingTools::moreSettings()
 {
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
-	CustomDialog ds;
+	CustomDialog ds("More Settings", this);
   
   ds.addLabel   ( "--- SCULPT CIRCLE ---" );
   ds.addCheckBox( "mark contours as key after sculpt", 
@@ -2659,14 +2712,14 @@ void DrawingTools::moreSettings()
                   "If off: the size of the warp circle will always be equal"
                   "\nto the size of the sculpt circle." );
   ds.addLineEditF( "sculpt circle radius:",
-                  &plug.sculptRadius, 0.01, 200, 3,
+                  0.01, 200, &plug.sculptRadius, 3,
                   "The radius (in pixels) of the circle used "
                   "in sculpt and join drawing mode. \n"
                   "NOTE: Change this using [q] and [w] or (better yet) use the \n"
                   "   mouse wheel (so long as 'mouse behavior' is set correctly).");
   ds.addComboBox( "sculpt resize scheme:",
-                  "normal,"
-                  "linear,"
+                  "normal|"
+                  "linear|"
                   "log",
                   &plug.sculptResizeScheme,
                   "The method used to resize the sculpt circle using the mouse wheel \n"
@@ -2679,8 +2732,8 @@ void DrawingTools::moreSettings()
                   "TIP: Adjust 'wheel resistant' to make the circle reize "
                   "    faster or slower as you scroll the mouse" );
   ds.addComboBox( "warp tool behavior:",
-                  "auto,"
-                  "contort line,"
+                  "auto|"
+                  "contort line|"
                   "warp area",
                   &plug.warpBehavior,
                   "The method used to warp the contour with the warp tool.\n"
@@ -2699,7 +2752,7 @@ void DrawingTools::moreSettings()
                   "Automatically applies smoothing to any contour drawn with the \n"
                   "'sculpt' and 'join' tools upon release of the mouse button" );
   ds.addComboBox( "reduction method:",
-                  "segment threshold,"
+                  "segment threshold|"
                   "min area",
                   &plug.reducePtsOpt,
                   "The method used when [r] or 'Reduce Contours' "
@@ -2771,9 +2824,8 @@ void DrawingTools::moreSettings()
                   "The thickness of lines used to display "
                   "contours as lines" );
   
-	GuiDialogCustomizable dlg(&ds, "More Settings", this);
-	dlg.exec();
-	if( ds.cancelled )
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   Iobj *xobj = ivwGetAnExtraObject(plug.view, plug.extraObjNum);
@@ -2810,7 +2862,7 @@ void DrawingTools::sortContours()
   if( nConts > 100 )
     printVals = false;
   
-	CustomDialog ds;
+	CustomDialog ds("Sorting Options", this);
   ds.addLabel   ( "contours to sort (inclusive):" );
   ds.addSpinBox ( "min:", 1, nConts, &contMin, 1,
                   "Only contours after this contour "
@@ -2819,40 +2871,40 @@ void DrawingTools::sortContours()
                   "Only contours BEFORE this contour "
                   "(inclusive) will be reordered" );
   ds.addRadioGrp( "sort contours by:      (sort criteria)",
-                  "surface number,"
-                  "number points,"
-                  "contour length,"
-                  "area,"
-                  "clockwise area,"
-                  "avg segment length,"
-                  "max segment length,"
-                  "avg point size,"
-                  "avg gray value,"
-                  "interpolated,"
-                  "random,"
-                  "mean x,"
-                  "mean y,"
-                  "mean z,"
-                  "min x,"
-                  "min y,"
+                  "surface number|"
+                  "number points|"
+                  "contour length|"
+                  "area|"
+                  "clockwise area|"
+                  "avg segment length|"
+                  "max segment length|"
+                  "avg point size|"
+                  "avg gray value|"
+                  "interpolated|"
+                  "random|"
+                  "mean x|"
+                  "mean y|"
+                  "mean z|"
+                  "min x|"
+                  "min y|"
                   "min z",
                   &plug.sortCriteria,
                   "",
                   "Sorts contours by their surface number... "
-                    "(helps to run imodmesh first!),"
-                  "Sorts by the number of points (empty first),"
-                  "Length of the contours (open or closed - depending on object/contour),"
-                  "Area of the contour (smallest first),"
-                  "From largest anti-clockwise to no area to largest clockwise area,"
-                  "From contour with least (average) distance between points to largest,"
-                  "From contour with smallest max distance between points to largest,"
+                    "(helps to run imodmesh first!)|"
+                  "Sorts by the number of points (empty first)|"
+                  "Length of the contours (open or closed - depending on object/contour)|"
+                  "Area of the contour (smallest first)|"
+                  "From largest anti-clockwise to no area to largest clockwise area|"
+                  "From contour with least (average) distance between points to largest|"
+                  "From contour with smallest max distance between points to largest|"
                   "Average point size over all points in the contour "
-                    "(using object default if not set),"
-                  "Uses the average gray value of the pixel closest to each point,"
-                  "Stippled contours first,"
-                  "Uses a random number for each contour,"
-                  "Contour's center of mass in X,"
-                  "Contour's center of mass in Y,"
+                    "(using object default if not set)|"
+                  "Uses the average gray value of the pixel closest to each point|"
+                  "Stippled contours first|"
+                  "Uses a random number for each contour|"
+                  "Contour's center of mass in X|"
+                  "Contour's center of mass in Y|"
                   "Contour's center of mass in Z"
                   );
   ds.addCheckBox( "calc values only (don't reorder)",
@@ -2863,9 +2915,9 @@ void DrawingTools::sortContours()
                   "by pressing [y]" );
   ds.addCheckBox( "reverse order", &reverseOrder );
   ds.addCheckBox( "print values", &printVals );
-	GuiDialogCustomizable dlg(&ds, "Sorting Options", this);
-	dlg.exec();
-	if( ds.cancelled )
+  
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   contMin -= 1;
@@ -2907,29 +2959,29 @@ void DrawingTools::findContours()
   static bool   useStartVal = true;
   static float  startVal = 0;
   
-  CustomDialog ds;
+  CustomDialog ds("Find Options", this);
   ds.addComboBox( "Find property:",
-                  "contour surface number,"
-                  "contour number of points,"
-                  "contour length,"
-                  "contour area,"
-                  "contour clockwise area,"
-                  "contour avg segment length,"
-                  "contour max segment length,"
-                  "contour avg point size,"
-                  "contour avg gray value,"
-                  "contour interpolated,"
-                  "contour random,"
-                  "contour mean x value,"
-                  "contour mean y value,"
-                  "contour mean z value,"
-                  "contour min x value,"
-                  "contour min y value,"
-                  "contour min z value,"
-                  "point x value,"
-                  "point y value,"
-                  "point z value,"
-                  "point size,"
+                  "contour surface number|"
+                  "contour number of points|"
+                  "contour length|"
+                  "contour area|"
+                  "contour clockwise area|"
+                  "contour avg segment length|"
+                  "contour max segment length|"
+                  "contour avg point size|"
+                  "contour avg gray value|"
+                  "contour interpolated|"
+                  "contour random|"
+                  "contour mean x value|"
+                  "contour mean y value|"
+                  "contour mean z value|"
+                  "contour min x value|"
+                  "contour min y value|"
+                  "contour min z value|"
+                  "point x value|"
+                  "point y value|"
+                  "point z value|"
+                  "point size|"
                   "point gray value",
                   &plug.findCriteria,
                   "The criteria used to advance through contours"
@@ -2939,7 +2991,7 @@ void DrawingTools::findContours()
                   "If not ticked will use the (find value) "
                   "of the selected contour/point instead." );
   ds.addLineEditF( "Value to find:               ",
-                  &startVal, INT_MIN, INT_MAX, 5,
+                  INT_MIN, INT_MAX, &startVal, 5,
                   "The value to start searching for" );
   ds.addLabel   ( "-----\n"
                   "NOTE: Use [y] and [Y] to advance through\n"
@@ -2948,9 +3000,8 @@ void DrawingTools::findContours()
                   "   'find property' - compared to the\n"
                   "   currently selected point/contour." );
   
-  GuiDialogCustomizable dlg(&ds, "Find Options", this);
-	dlg.exec();
-	if( ds.cancelled )
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   edit_goToContNextBiggestFindVal( false, true, !useStartVal, startVal );
@@ -2990,7 +3041,7 @@ void DrawingTools::modifyRangeContours()
   static bool roundToInc      = false;
   static float roundIncrement = 1.0f;
   
-	CustomDialog ds;
+	CustomDialog ds("Modify Contour Range",this);
   ds.addLabel   ( "contour range:" );
   ds.addSpinBox ( "min:", 1, nConts, &contMin, 1,
                   "Only contours AFTER this contour (inclusive) will be changed" );
@@ -3009,9 +3060,9 @@ void DrawingTools::modifyRangeContours()
   ds.addCheckBox( "make unstippled", &makeUnstippled );
   ds.addCheckBox( "round all pts to ", &roundToInc );
   ds.addDblSpinBoxF( "   nearest increment:", 0.01, 999, &roundIncrement, 3, 0.5 );
-	GuiDialogCustomizable dlg(&ds, "Modify Contour Range",false);
-	dlg.exec();
-	if( ds.cancelled )
+	
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   contMin  -= 1;
@@ -3164,16 +3215,16 @@ void DrawingTools::deleteRangeContours()
   static bool criteriaSlice   = true;
   static bool criteriaPoints  = false;
   
-	CustomDialog ds;
+	CustomDialog ds("Contours to Delete",this);
   ds.addLabel   ( "-----\n"
                   "contours to consider:" );
   ds.addComboBox( "include:",
-                  "all contours (in range),"
-                  "only key contours,"
+                  "all contours (in range)|"
+                  "only key contours|"
                   "only interpolated",
                   &includeCType );
   ds.addRadioGrp( "include:",
-                  "(1) object range;  all contours,"
+                  "(1) object range;  all contours|"
                   "(2) contour range; current object",
                   &includeRange );
   ds.addLabel   ( "(1) object range:" );
@@ -3189,9 +3240,9 @@ void DrawingTools::deleteRangeContours()
   ds.addLabel   ( "-----\n"
                   "(*) = if ticked, a new window \n"
                   "will appear for more input" );
-  GuiDialogCustomizable dlg(&ds, "Contours to Delete",false);
-	dlg.exec();
-	if( ds.cancelled )
+  
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   contMin -= 1;
@@ -3225,16 +3276,15 @@ void DrawingTools::deleteRangeContours()
     int         sliceMin          = 1;
     int         sliceMax          = plug.zsize;
     
-    CustomDialog ds1;
+    CustomDialog ds1("Slices to Delete Contours",this);
     ds1.addLabel    ( "delete contours on these slices:" );
     ds1.addSpinBox ( "min:", -10, plug.zsize, &sliceMin, 1 );
     ds1.addSpinBox ( "max:", 1, plug.zsize+10, &sliceMax, 1 );
     ds1.addCheckBox( "ignore top and bottom slice", &sliceIgnoreEnds );
     ds1.addCheckBox( "skip every Nth slice", &sliceSkipN );
     ds1.addSpinBox ( "  where N = ", 2, 100, &sliceN, 1 );
-    GuiDialogCustomizable dlg1(&ds1, "Slices to Delete Contours",false);
-    dlg1.exec();
-    if( ds1.cancelled )
+    ds1.exec();
+    if( ds1.wasCancelled() )
       return;
     
     sliceMin -= 1;
@@ -3271,14 +3321,13 @@ void DrawingTools::deleteRangeContours()
   
   if( criteriaPoints )
   {
-    CustomDialog ds2;
+    CustomDialog ds2("Contours to Delete - Number Points",this);
                            ds2.addLabel   ( "delete contours with" );
     int ID_PTSMIN        = ds2.addSpinBox ( "between:", 0, 999999, &pointsMin, 1 );
     int ID_PTSMAX        = ds2.addSpinBox ( "and:",     0, 999999, &pointsMax, 1 );
                            ds2.addLabel   ( "points (inclusive)" );
-    GuiDialogCustomizable dlg2(&ds2, "Contours to Delete - Number Points",false);
-    dlg2.exec();
-    if( ds2.cancelled )
+    ds2.exec();
+    if( ds2.wasCancelled() )
       return;
   }
   
@@ -3358,12 +3407,12 @@ void DrawingTools::cropRangeContours()
   static int  maxY            = plug.ysize;
   static bool delOutside      = true;
   
-	CustomDialog ds;
+	CustomDialog ds("Contours to Trim",this);
   ds.addLabel   ( "-----\n"
                   "contours to consider:" );
   ds.addComboBox( "include:",
-                  "all contours (in range),"
-                  "only key contours,"
+                  "all contours (in range)|"
+                  "only key contours|"
                   "only interpolated",
                   &includeCType );
   ds.addLabel   ( "contour range:" );
@@ -3381,9 +3430,8 @@ void DrawingTools::cropRangeContours()
                   "If true: will break contours intersecting the crop area then \n"
                   "          delete contours and contour segments outside this area."
                   "If false: as above, but without deleting segments outside the area" );
-  GuiDialogCustomizable dlg(&ds, "Contours to Trim",false);
-	dlg.exec();
-	if( ds.cancelled )
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   contMin -= 1;
@@ -3520,15 +3568,15 @@ void DrawingTools::copyOrMoveContourRange()
   char *objName = imodObjectGetName(obj); 
   string newObjStr = toString(objName) + " 2";
   
-	CustomDialog ds;
+	CustomDialog ds("Copy or Move Contour Range",this);
   ds.addLabel   ( "contour range:" );
   ds.addSpinBox ( "min:", 1, nConts, &contMin, 1,
                   "Only contours AFTER this contour (inclusive) will be changed" );
   ds.addSpinBox ( "max:", 1, nConts, &contMax, 1,
                   "Only contours BEFORE this contour (inclusive) will be changed" );
   ds.addComboBox( "include:",
-                  "all contours,"
-                  "only key contours,"
+                  "all contours|"
+                  "only key contours|"
                   "only interpolated",
                   &includeCType );
   ds.addLabel   ( "-----\n" );
@@ -3540,9 +3588,9 @@ void DrawingTools::copyOrMoveContourRange()
   ds.addLineEdit( "duplicate object name:", &newObjStr,
                   "if a new object is created, this name will \n"
                   "be used in the duplicated object" );
-	GuiDialogCustomizable dlg(&ds, "Copy or Move Contour Range",false);
-	dlg.exec();
-	if( ds.cancelled )
+	
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   contMin  -= 1;
@@ -3692,7 +3740,7 @@ void DrawingTools::tranformContourRange()
   static bool copy          = true;
   static bool useMBRcenter  = false;
   
-	CustomDialog ds;
+	CustomDialog ds("Copy or Move Contour Range",this);
   ds.addLabel   ( "contour range:" );
   ds.addSpinBox ( "min:", 1, nConts, &contMin, 1,
                   "Only contours AFTER this contour \n"
@@ -3702,24 +3750,23 @@ void DrawingTools::tranformContourRange()
                   "(inclusive) will be changed" );
   ds.addLabel   ( "-----\n"
                   "translate:" );
-  ds.addLineEditF( "x:", &translateX, INT_MIN, INT_MAX, 10 );
-  ds.addLineEditF( "y:", &translateY, INT_MIN, INT_MAX, 10  );
-  ds.addLineEditF( "z:", &translateZ, INT_MIN, INT_MAX, 10  );
+  ds.addLineEditF( "x:", INT_MIN, INT_MAX, &translateX, 10 );
+  ds.addLineEditF( "y:", INT_MIN, INT_MAX, &translateY, 10  );
+  ds.addLineEditF( "z:", INT_MIN, INT_MAX, &translateZ, 10  );
   ds.addLabel   ( "-----\n"
                   "scale:" );
-  ds.addLineEditF( "x:", &scaleX, INT_MIN, INT_MAX, 10  );
-  ds.addLineEditF( "y:", &scaleY, INT_MIN, INT_MAX, 10  );
+  ds.addLineEditF( "x:", INT_MIN, INT_MAX, &scaleX, 10  );
+  ds.addLineEditF( "y:", INT_MIN, INT_MAX, &scaleY, 10  );
   ds.addLabel   ( "-----\n"
                   "rotate:" );
-  ds.addLineEditF( "degrees:", &rotateDegrees, INT_MIN, INT_MAX, 10  );
+  ds.addLineEditF( "degrees:", INT_MIN, INT_MAX, &rotateDegrees, 10  );
   ds.addLabel   ( "-----\n"
                   "other options:" );
   ds.addCheckBox( "copy contours",  &copy );
   ds.addCheckBox( "scale and translate around MBR center", &useMBRcenter);
-  
-	GuiDialogCustomizable dlg(&ds, "Copy or Move Contour Range",false);
-	dlg.exec();
-	if( ds.cancelled )
+	
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   contMin    -= 1;
@@ -3831,21 +3878,21 @@ void DrawingTools::movePoint()
   float posZ = (moveRelative) ? 0 : pt->z;
   
   
-	CustomDialog ds;
-  ds.addLabel   ( "point position:" );
-  ds.addLineEditF( "x:", &posX, INT_MIN, INT_MAX, 5 );
-  ds.addLineEditF( "y:", &posY, INT_MIN, INT_MAX, 5 );
-  ds.addLineEditF( "z:", &posZ, INT_MIN, INT_MAX, 5 );
-  ds.addLabel   ( "-----\n"
-                  "other options:" );
-  ds.addCheckBox( "move relative to"
-                  "\ncurrent position",  &moveRelative );
-  ds.addCheckBox( "move whole contour",  &moveWholeCont );
-  ds.addCheckBox( "move contour's MBR to here", &moveMBRcenter );
-  ds.addLabel   ( msg.c_str() );
-	GuiDialogCustomizable dlg(&ds, "Move Point(s)",false);
-	dlg.exec();
-	if( ds.cancelled )
+	CustomDialog ds("Move Point(s)",this);
+  ds.addLabel    ( "point position:" );
+  ds.addLineEditF( "x:", INT_MIN, INT_MAX, &posX, 5 );
+  ds.addLineEditF( "y:", INT_MIN, INT_MAX, &posY, 5 );
+  ds.addLineEditF( "z:", INT_MIN, INT_MAX, &posZ, 5 );
+  ds.addLabel    ( "-----\n"
+                   "other options:" );
+  ds.addCheckBox ( "move relative to"
+                   "\ncurrent position",  &moveRelative );
+  ds.addCheckBox ( "move whole contour",  &moveWholeCont );
+  ds.addCheckBox ( "move contour's MBR to here", &moveMBRcenter );
+  ds.addLabel    ( msg.c_str() );
+	
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   
@@ -3930,7 +3977,7 @@ void DrawingTools::expandContourRange()
   
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
-	CustomDialog ds;
+	CustomDialog ds("Expand Contours",this);
   ds.addLabel   ( "contour range:" );
   ds.addSpinBox ( "min:", 1, nConts, &contMin, 1,
                   "Only contours AFTER this contour (inclusive) will be changed" );
@@ -3938,13 +3985,13 @@ void DrawingTools::expandContourRange()
                   "Only contours BEFORE this contour (inclusive) will be changed" );
   ds.addLabel   ( "-----\n"
                   "options:" );
-  ds.addLineEditF( "radius to expand by:", &radius, 0, INT_MAX, 5 );
-  ds.addSpinBox( "min angle for chamfers:",1,360,&minAngleChamfers,1 );
-  ds.addCheckBox( "treat contours as open", &open );
-  ds.addSpinBox ( "object for new contours", 1, osize(imod),&objToIdx, 1 );
-  GuiDialogCustomizable dlg(&ds, "Expand Contours",false);
-  dlg.exec();
-  if( ds.cancelled )
+  ds.addLineEditF( "radius to expand by:", 0, INT_MAX, &radius, 5 );
+  ds.addSpinBox  ( "min angle for chamfers:",1,360,&minAngleChamfers,1 );
+  ds.addCheckBox ( "treat contours as open", &open );
+  ds.addSpinBox  ( "object for new contours", 1, osize(imod),&objToIdx, 1 );
+  
+  ds.exec();
+  if( ds.wasCancelled() )
     return;
   
   contMin    -= 1;
@@ -4025,7 +4072,7 @@ void DrawingTools::cleanModelAndFixContours()
   static bool makeSimple     = false;
   static bool killVertSegs   = false;
   
-	CustomDialog ds;
+	CustomDialog ds("Clean Model Options",this);
   ds.addLabel   ( "object range:" );
   ds.addSpinBox ( "min object:", 1, nObjects, &objMin, 1 );
   ds.addSpinBox ( "max object:", 1, nObjects, &objMax, 1 );
@@ -4073,9 +4120,8 @@ void DrawingTools::cleanModelAndFixContours()
                   "eliminate any perfectly horizontal or vertical line segments.\n"
                   "USE CAREFULLY\n" );
   
-	GuiDialogCustomizable dlg(&ds, "Clean Model Options",false);
-	dlg.exec();
-	if( ds.cancelled )
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   objMin    -= 1;
@@ -4219,9 +4265,131 @@ void DrawingTools::cleanModelAndFixContours()
   if(makeSimple)   wprint("  %d non-simple contours fixed\n", totContsMadeSimp );
   if(killVertSegs) wprint("  %d points nudged to prevent vert or horz segments\n",
                           totPtsShiftedXY );
+  
+  checkForNamelessObjects(true);
 }
 
 
+//------------------------
+//-- Checks for nameless objects and generates a warning label if one or more
+//-- objects in the model are missing names, and there are more than two objects.
+//-- If "warningIfNoNameObjs" is true a message box is generated, otherwise
+//-- the message just appears in the IMOD window.
+
+void DrawingTools::checkForNamelessObjects( bool forceMessageBox )
+{
+  Imod *imod  = ivwGetModel(plug.view);
+  
+  if( osize(imod) <= 2 )     // if there is only one or two objects don't worry about 
+    return;                  // enforcing names
+  
+  //## COUNT NUMBER OF OBJECTS WITH NO NAME
+  
+  int numObjsNoName = 0;
+  string listObjsNoName = "";
+  
+  for( int o=0; o<osize(imod); o++ )
+  {
+    Iobj *obj = getObj(imod,o);
+    string objName = toString( imodObjectGetName(obj) );
+    if( objName.length() == 0 )
+    {
+      listObjsNoName += (numObjsNoName) ? "," + toString(o+1) : toString(o+1);
+      numObjsNoName++;
+    }
+  }
+  
+  //## IF OBJECTS WITH NO NAME WERE FOUND: GENERATE WARNING
+  
+  if( numObjsNoName > 0)
+  {
+    QString warningStr = "WARNING: " + QStr(numObjsNoName) + " objects have no name! ";
+    if(numObjsNoName==1)
+      warningStr = "WARNING: one of your objects has no name! ";
+    
+    wprint("");
+    wprint("\a" + warningStr.toLatin1() );//+ "\n... objects: " + listObjsNoName.c_str() );
+    
+    if( !forceMessageBox && !plug.warningIfNoNameObjs )
+      return;
+    
+    //## GET USER INPUT:
+    
+    bool dontShowAgain = !plug.warningIfNoNameObjs;
+    int action = 0;
+    CustomDialog ds("Missing Labels",this);
+    ds.addLabel   ( warningStr, true );
+    ds.addLabel   ( "It's important to label objects with PROPER names\n"
+                    "(e.g. 'microtubules','nucleus', 'mitochondria') so\n"
+                    "others can analyze, understand & reuse your models.");
+    ds.addLabel   ( "-----" );
+    ds.addRadioGrp( "action:",
+                    "let me fix this now|"
+                    "visit NIF site to learn more and get proper names",
+                    &action,
+                    "",
+                    "Takes you through all un-named objects and give\n"
+                      "them names, one at a time.|"
+                    "Takes you to the 'Neuroscience Information Framework' website\n"
+                      "where you can type in the names of organelles and it will\n"
+                      "autocomplete your entries and show you examples/information\n"
+                      "about each organelle - helping you correctly identify and\n"
+                      "name of subcellular compoments.\n"
+                      "WEBSITE: http://www.neuinfo.org/nif/"
+                    );
+    ds.addCheckBox( "do not show again", &dontShowAgain,
+                    "If checked, this warning dialog will not appear \n"
+                    "when you open DrawinTools, but will still appear \n"
+                    "(and can be turned on again) if you run \n"
+                    "'More Actions > clean model and fix contours'" );
+    
+    ds.exec();
+    if( ds.wasCancelled() )
+      return;
+    
+    plug.warningIfNoNameObjs = !dontShowAgain;
+    if( action == 0 )
+    {
+      for( int o=0; o<osize(imod); o++ )
+      {
+        Iobj *obj = getObj(imod,o);
+        string objName = toString( imodObjectGetName(obj) );
+        if( objName.length() == 0 )
+        {
+          float red, green, blue;
+          imodObjectGetColor( obj, &red, &green, &blue );
+          string colorStr = "background-color: rgb(" + toString(red*255) + ","
+                            + toString(green*255) + "," + toString(blue*255) + ");";
+          wprint( colorStr.c_str() );
+          string name = "";
+          QColor color(red*255,green*255,blue*255);
+          
+          CustomDialog ds1("Fix Object Names",this);
+          ds1.addLabel   ( "Object " + QStr(o+1) + ":", true );
+          ds1.addLineEdit( " name: ", &name );
+          ds1.addColorSel( " color: ", &color );
+          //ds1.setStylePrev( colorStr, false );
+          ds1.addLabel   ( "-----", false );
+          ds1.addLabel   ( "TIP: To find proper names & examples \n"
+                           "visit: www.neuinfo.org/nif/" );
+          ds1.exec();
+          if( !ds1.wasCancelled() )
+          {
+            //imodObjectSetColor(obj,color.red()/255,color.green()/255,color.blue()/255);
+            imodObjectSetName( obj, (char *)name.c_str() );
+          }
+        }
+      }
+    }
+    else if( action == 1 )
+    {
+      QString str = QString(getenv("IMOD_DIR"));
+      str += QString("/lib/imodplug/naming_help.html");
+      imodShowHelpPage((const char *)str.toLatin1());
+      //imodShowHelpPage("naming_help.html");
+    }
+  }
+}
 
 
 //------------------------
@@ -6990,7 +7158,7 @@ float edit_getSortValue( int sortCriteria, Iobj *obj, Icont *cont, int ptIdx )
       
       
     case(SORT_PTSIZE):
-      returnValue = imodPointGetSize(obj,cont,ptIdx);;
+      returnValue = imodPointGetSize(obj,cont,ptIdx);
       break;
       
     case(SORT_PTGREY):

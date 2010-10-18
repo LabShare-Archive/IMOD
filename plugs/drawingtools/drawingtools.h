@@ -1,5 +1,4 @@
 #include "dialog_frame.h"
-//Added by qt3to4:
 #include <QKeyEvent>
 #include <QLabel>
 #include <QEvent>
@@ -49,6 +48,7 @@ public slots:
   void saveSettings();
 
   bool drawExtraObject( bool redraw );
+  void keepOnTop( bool state );
   void reduceCurrentContour();
   void smoothCurrentContour( bool moveExistingPts );
   void reduceConts();
@@ -71,6 +71,7 @@ public slots:
   void movePoint();
   void expandContourRange();
   void cleanModelAndFixContours();
+  void checkForNamelessObjects( bool forceMessageBox );
   void test();
   void cut();
   void copy();
@@ -133,7 +134,7 @@ enum sortcriteria   { SORT_SURFACENUM,
                       SORT_PTX, SORT_PTY, SORT_PTZ,
                       SORT_PTSIZE, SORT_PTGREY, SORT_NUMOPTIONS };
 
-const int NUM_SAVED_VALS = 30;
+const int NUM_SAVED_VALS = 31;
 
 //-------------------------------
 //## DRAWINGTOOLS DATA STRUCTURE:
@@ -207,9 +208,12 @@ struct DrawingToolsData   // contains all local plugin data
   
   int    selectedAction;        // the last selected action under "More Actions"
   int    sortCriteria;          // the lat sort criteria selected via:
-                                // "More Actions >> sort ... " (see: sortcriteria)
+                                //  "More Actions >> sort ... " (see: sortcriteria)
   int    findCriteria;          // the lat find criteria selected via:
-                                // "More Actions >> sort ... " (see: sortcriteria)
+                                //  "More Actions >> sort ... " (see: sortcriteria)
+  
+  bool   warningIfNoNameObjs;   // if true: generates warning box when the plugin loads
+                                //  if some of the objects have no names
   
   //int    numSavedAction;        // is set to NUM_SAVED_VALS and helps ensure correct
   //                              //  number of values are saved/loaded

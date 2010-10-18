@@ -42,7 +42,10 @@
 #include <qstringlist.h>
 #include <qmessagebox.h>
 #include <qinputdialog.h>
-//Added by qt3to4:
+#include <qtoolbutton.h>
+#include "../../imod/pegged.xpm"
+#include "../../imod/unpegged.xpm"
+
 #include <QWheelEvent>
 #include <QMouseEvent>
 #include <QCloseEvent>
@@ -52,7 +55,7 @@
 #include <QVBoxLayout>
 
 #include "_common_functions.h"
-#include "qt_dialog_customizable.h"
+#include "customdialog.h"
 #include "imodplugin.h"
 #include "dia_qtutils.h"
 #include "beadhelper.h"
@@ -170,7 +173,8 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       break;
       
     case Qt::Key_U:                  // toggle contour as checked/unchecked
-      if(shift)
+    case Qt::Key_Q:
+    if(shift)
       {
         if(plug.uKeyBehav == UK_PRINTINFO)
           plug.window->printContourCheckedInfo();
@@ -455,8 +459,8 @@ static char *buttonTips[] = {"Close Bead Helper", "Open help window"};
 BeadHelper::BeadHelper(QWidget *parent, const char *name) :
       DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Bead Helper", "", name)
 {
-  const int LAYOUT_MARGIN   = 4;
-  const int LAYOUT_SPACING  = 4;
+  const int LAY_MARGIN   = 4;
+  const int LAY_SPACING  = 4;
   const int GROUP_MARGIN    = 1;
   const int SPACER_HEIGHT   = 15;
   
@@ -469,26 +473,25 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   grpActions->setFocusPolicy(Qt::NoFocus);
   
   vboxLayout1 = new QVBoxLayout(grpActions);
-  vboxLayout1->setSpacing(LAYOUT_SPACING);
-  vboxLayout1->setContentsMargins(LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN,
-                                  LAYOUT_MARGIN);
+  vboxLayout1->setSpacing(LAY_SPACING);
+  vboxLayout1->setContentsMargins(LAY_MARGIN, LAY_MARGIN, LAY_MARGIN, LAY_MARGIN);
   //vboxLayout1->addItem( new QSpacerItem(1,SPACER_HEIGHT) );
   
-  deletePtsButton = new QPushButton("Delete Points in Range [d]", grpActions);
+  deletePtsButton = new QPushButton("Delete points in range [d]", grpActions);
   connect(deletePtsButton, SIGNAL(clicked()), this, SLOT(deletePtsInRange()));
   deletePtsButton->setToolTip(
                 "Deletes all points on the specified views from the specified "
                 "range of contours");
   vboxLayout1->addWidget(deletePtsButton);
   
-  reduceContsToSeedButton = new QPushButton("Reduce Contours to Seed  [r]", grpActions);
+  reduceContsToSeedButton = new QPushButton("Reduce contours to seed  [r]", grpActions);
   QObject::connect(reduceContsToSeedButton, SIGNAL(clicked()), this,
                    SLOT(reduceContsToSeed()));
   reduceContsToSeedButton->setToolTip(
                 "Deletes all points in the current contour except on the seed view");
   vboxLayout1->addWidget(reduceContsToSeedButton);
   
-  movePtsToEstButton = new QPushButton("Move Pts to Estimated Pos [e]", grpActions);
+  movePtsToEstButton = new QPushButton("Move pts to estimated [e]", grpActions);
   QObject::connect(movePtsToEstButton, SIGNAL(clicked()), this,
                    SLOT(movePtsToEstimatedPosOptions()));
   movePtsToEstButton->setToolTip(
@@ -496,14 +499,14 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
                 "(provides several different methods to achieve this)");
   vboxLayout1->addWidget(movePtsToEstButton);
   
-  fillMissingPtsButton = new QPushButton("Fill Missing Points   [f]", grpActions);
+  fillMissingPtsButton = new QPushButton("Fill missing points   [f]", grpActions);
   QObject::connect(fillMissingPtsButton, SIGNAL(clicked()), this,
                    SLOT(fillMissingPts()));
   fillMissingPtsButton->setToolTip(
                 "Fills in missing points");
   vboxLayout1->addWidget(fillMissingPtsButton);
   
-  reorderContsButton = new QPushButton("Reorder Contours   [o]", grpActions);
+  reorderContsButton = new QPushButton("Reorder contours   [o]", grpActions);
   connect(reorderContsButton, SIGNAL(clicked()), this, SLOT(reorderContours()));
   reorderContsButton->setToolTip(
                 "Reorders the specified range of contours by one of several crititeria");
@@ -519,9 +522,8 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   //grpDisplay->setMargin(GROUP_MARGIN);
   
   gridLayout2 = new QGridLayout(grpDisplay);
-  gridLayout2->setSpacing(LAYOUT_SPACING);
-  gridLayout2->setContentsMargins(LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN,
-                                  LAYOUT_MARGIN);
+  gridLayout2->setSpacing(LAY_SPACING);
+  gridLayout2->setContentsMargins(LAY_MARGIN, LAY_MARGIN, LAY_MARGIN, LAY_MARGIN);
   //gridLayout2->addItem( new QSpacerItem(1,SPACER_HEIGHT), 0, 0);
   
   showEstimatedPosCheckbox = new QCheckBox("show estimated position", grpDisplay);
@@ -531,7 +533,29 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   showEstimatedPosCheckbox->setToolTip( 
                 "Shows the estimated position of the current point based on "
                 "position of points either side");
-  gridLayout2->addWidget(showEstimatedPosCheckbox, 1, 0, 1, 2);
+  
+  //## Pin-to-top Button:
+  QHBoxLayout* topLay = new QHBoxLayout();
+  topLay->setSpacing(0);
+  topLay->setContentsMargins(0,0,0,0);
+  QToolButton *toolBut = new QToolButton(this);
+  toolBut->setCheckable(true);
+  toolBut->setFocusPolicy(Qt::NoFocus);
+  QIcon iconSet;
+  iconSet.addPixmap(QPixmap((const char **)pegged), QIcon::Normal, QIcon::On);
+  iconSet.addPixmap(QPixmap((const char **)unpegged), QIcon::Normal, QIcon::Off);
+  toolBut->setIcon(iconSet);
+  toolBut->setChecked(false);
+  QSize hint = toolBut->sizeHint();
+  toolBut->setFixedWidth(hint.width());
+  toolBut->setFixedHeight(hint.height());
+  connect(toolBut, SIGNAL(toggled(bool)), this, SLOT(keepOnTop(bool)));
+  toolBut->setToolTip("Keep bead fixer window on top");
+  topLay->addWidget(showEstimatedPosCheckbox);
+  topLay->addWidget(toolBut);
+  
+  gridLayout2->addLayout(topLay, 1, 0, 1, 2);
+  //gridLayout2->addWidget(showEstimatedPosCheckbox, 1, 0, 1, 2);
   
   showSpheresCheckbox = new QCheckBox("sphere size:", grpDisplay);
   showSpheresCheckbox->setChecked( plug.showSpheres );
@@ -630,9 +654,8 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   grpOptions = new QGroupBox("Options:", this);
   
   gridLayout3 = new QGridLayout(grpOptions);
-  gridLayout3->setSpacing(LAYOUT_SPACING);
-  gridLayout3->setContentsMargins(LAYOUT_MARGIN, LAYOUT_MARGIN, LAYOUT_MARGIN,
-                                  LAYOUT_MARGIN);
+  gridLayout3->setSpacing(LAY_SPACING);
+  gridLayout3->setContentsMargins(LAY_MARGIN, LAY_MARGIN, LAY_MARGIN, LAY_MARGIN);
   
   lblEstMethod = new QLabel("estimation meth:", grpOptions);
   lblEstMethod->setToolTip( 
@@ -1343,6 +1366,35 @@ void BeadHelper::saveSettings()
 
 
 //------------------------
+//-- Change to flag to keep on top or run timer as for info window
+void BeadHelper::keepOnTop(bool state)
+{
+#ifdef STAY_ON_TOP_HACK
+  mStayOnTop = state;
+  // Start or kill the timer
+  if (state)  
+    mTopTimerID = startTimer(200);
+  else if (mTopTimerID) {
+    killTimer(mTopTimerID);
+    mTopTimerID = 0;
+  }
+#else
+  Qt::WindowFlags flags = windowFlags();
+  if (state)
+    flags |= Qt::WindowStaysOnTopHint;
+  else
+    flags ^= Qt::WindowStaysOnTopHint;
+  QPoint p2 = pos();
+  setWindowFlags(flags);
+  move(p2);
+  show();
+#endif
+}
+
+
+
+
+//------------------------
 //-- Deletes all points within the specified range of views from the specified range
 //-- of contours.
 
@@ -1363,8 +1415,8 @@ void BeadHelper::deletePtsInRange()
   static bool skipCheckedPts   = true;
   static bool skipSeedView     = true;
   
-  CustomDialog ds;
-  ds.addLabel   ( "----- RANGE: -----" );
+  CustomDialog ds(QString("Delete Points"), this);
+  ds.addLabel   ( "----- RANGE: -----", true );
   ds.addLabel   ( "contours (inclusive):" );
   ds.addSpinBox ( "  min:", 1, nConts, &plug.contMinN, 1,
                   "Points will only be deleted from contours "
@@ -1379,7 +1431,7 @@ void BeadHelper::deletePtsInRange()
   ds.addSpinBox ( "  max:", 1, plug.zsize, &plug.viewMaxN, 1,
                   "Points will only be deleted from views "
                   "BEFORE this view (inclusive)" );
-  ds.addLabel   ( "-----" );
+  ds.addLabel   ( "-----", true );
   ds.addCheckBox( "skip checked contours", &skipCheckedConts,
                   "Will not delete any points from checked /n"
                   "(stippled) contours (marked with [u])" );
@@ -1387,9 +1439,8 @@ void BeadHelper::deletePtsInRange()
                   "Will not delete checked points (marked with [U]) " );
   ds.addCheckBox( "skip middle (seed) view",  &skipSeedView,
                   "Will not delete any seed points (points on the seed view)" );
-  GuiDialogCustomizable dlg(&ds, "Delete Points", this);
-  dlg.exec();
-  if( ds.cancelled )
+  ds.exec();
+  if( ds.wasCancelled() )
     return;
   
   if( !verifyAndUpdateEnteredRangeValues() )
@@ -1538,8 +1589,8 @@ void BeadHelper::reduceContsToSeed()
   static bool skipCheckedConts = true;
   static bool skipCheckedPts   = true;
   
-  CustomDialog ds;
-  ds.addLabel   ( "----- RANGE: -----" );
+  CustomDialog ds("Reduce Contours to Seed Point", this);
+  ds.addLabel   ( "----- RANGE: -----", true );
   ds.addLabel   ( "contours to reduce (inclusive):" );
   ds.addSpinBox ( "  min:", 1, nConts, &plug.contMinN, 1,
                   "Only contours AFTER this contour # (inclusive)"
@@ -1547,7 +1598,7 @@ void BeadHelper::reduceContsToSeed()
   ds.addSpinBox ( "  max:", 1, nConts, &plug.contMaxN, 1,
                   "Only contours BEFORE this contour # (inclusive)"
                   "will be reduce to a seed point" );
-  ds.addLabel   ( "-----" );
+  ds.addLabel   ( "-----", true );
   ds.addLabel   ( "views to fill (inclusive):" );
   
   ds.addCheckBox( "skip checked contours", &skipCheckedConts,
@@ -1556,9 +1607,8 @@ void BeadHelper::reduceContsToSeed()
   ds.addCheckBox( "skip checked points", &skipCheckedPts,
                   "Will not delete checked points "
                   "(marked with [U]) " );
-  GuiDialogCustomizable dlg(&ds, "Reduce Contours to Seed Point", this);
-  dlg.exec();
-  if( ds.cancelled )
+  ds.exec();
+  if( ds.wasCancelled() )
     return;
 
   if( !verifyAndUpdateEnteredRangeValues() )
@@ -1646,10 +1696,10 @@ void BeadHelper::movePtsToEstimatedPosOptions()
   int smoothMoveFract  = plug.smoothMoveFract * 10;
   int smoothMinResid   = plug.smoothMinResid  * 10;
   
-  CustomDialog ds;
+  CustomDialog ds("Smoothing Options", this);
   ds.addRadioGrp( "apply smoothing to:",
-                  "specified range of contours,"
-                  "current contour only [E],"
+                  "specified range of contours|"
+                  "current contour only [E]|"
                   "update values only (no action)",
                   &plug.smoothCurrContOnly );
   ds.addCheckBox( "fill gaps", &plug.smoothFillGaps,
@@ -1680,7 +1730,7 @@ void BeadHelper::movePtsToEstimatedPosOptions()
   ds.addSpinBox ( "iterations:", 1, 10, &plug.smoothIterations, 1,
                   "The more iterations, the further points "
                   "will be moved" );
-  ds.addLabel   ("--------");
+  ds.addLabel   ("--------", true);
   ds.addCheckBox( "only smooth adjacent views", &plug.smoothAdjacentV,
                   "Only the specified number of view above and "
                   "below the current view will be smoothed" );
@@ -1691,9 +1741,8 @@ void BeadHelper::movePtsToEstimatedPosOptions()
                   "will not shift any points in the current view "
                   "in the top most ZAP window" );
   
-	GuiDialogCustomizable dlg(&ds, "Smoothing Options", this);
-	dlg.exec();
-	if( ds.cancelled )
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   plug.smoothMoveFract          = float( smoothMoveFract ) * 0.1f;
@@ -1726,8 +1775,8 @@ void BeadHelper::movePtsToEstimatedPosRange()
   
   static bool fillPastEnds = false;
   
-	CustomDialog ds;
-  ds.addLabel   ( "----- RANGE: -----" );
+	CustomDialog ds("Move Points", this);
+  ds.addLabel   ( "----- RANGE: -----", this );
   ds.addLabel   ( "contours to smooth (inclusive):" );
   ds.addSpinBox ( "  min:", 1, nConts, &plug.contMinN, 1,
                   "Points will only be moved in contours "
@@ -1742,11 +1791,11 @@ void BeadHelper::movePtsToEstimatedPosRange()
   ds.addSpinBox ( "  max:", 1, plug.zsize, &plug.viewMaxN, 1,
                   "Points will only be moved in views "
                   "BEFORE this number (inclusive)" );
-  ds.addLabel   ( "-----" );
+  ds.addLabel   ( "-----", true );
   ds.addLabel   ( "Are you sure you want to move ALL points in this range?!" );
-	GuiDialogCustomizable dlg(&ds, "Move Points", this);
-	dlg.exec();
-	if( ds.cancelled )
+	
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   if( !verifyAndUpdateEnteredRangeValues() )
@@ -1866,8 +1915,8 @@ void BeadHelper::fillMissingPts()
   
   static bool fillPastEnds = false;
   
-	CustomDialog ds;
-  ds.addLabel   ( "----- RANGE: -----" );
+	CustomDialog ds("Fill Missing Points", this);
+  ds.addLabel   ( "----- RANGE: -----", true );
   ds.addLabel   ( "contours to fill (inclusive):" );
   ds.addSpinBox ( "  min:", 1, nConts, &plug.contMinN, 1,
                   "Points will only be added to contours "
@@ -1882,14 +1931,14 @@ void BeadHelper::fillMissingPts()
   ds.addSpinBox ( "  max:", 1, plug.zsize+1, &plug.viewMaxN, 1,
                   "Points will only be added to views "
                   "BEFORE this number (inclusive)" );
-  ds.addLabel   ( "-----" );
+  ds.addLabel   ( "-----", true );
   ds.addCheckBox( "fill past ends",
                   &fillPastEnds,
                   "Will add points past the start and end point of \n"
                   "each contour based on their estimated postions" );
-	GuiDialogCustomizable dlg(&ds, "Fill Missing Points", this);
-	dlg.exec();
-	if( ds.cancelled )
+	
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   if( !verifyAndUpdateEnteredRangeValues() )
@@ -1952,58 +2001,58 @@ void BeadHelper::moreActions()
   
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
-	CustomDialog ds;
+	CustomDialog ds("Perform Action", this);
   ds.addRadioGrp( "action (for current object):",
-                  "calculate tilt axis angle,"
-                  "show fiducials on bottom as purple,"
-                  "show contour turning points,"
-                  "show grid,"
-                  "clear purple object,"
-                  "move contour range to another object,"
-                  "split or merge contours between objects **,"
+                  "calculate tilt axis angle|"
+                  "show fiducials on bottom as purple|"
+                  "show contour turning points|"
+                  "show grid|"
+                  "clear purple object|"
+                  "move contour range to another object|"
+                  "split or merge contours between objects **|"
                   "verify contours"
-                     "\n(reorders pts and removes duplicates),"
-                  "mark contours as checked/unchecked **,"
-                  "mark points as checked/unchecked,"
-                  "print contour info,"
-                  "load tilt angles,"
+                     "\n(reorders pts and removes duplicates)|"
+                  "mark contours as checked/unchecked **|"
+                  "mark points as checked/unchecked|"
+                  "print contour info|"
+                  "load tilt angles|"
                   "reset values",
                   &plug.selectedAction,
                   "",
                   "Estimates the angle of the tilt axis by averaging the \n"
-                    "angles for the 'line of best' for each contour,"
+                    "angles for the 'line of best' for each contour|"
                   "Uses the direction of movement of fiducials to \n"
                     "guess which fidicials are on the bottom and \n"
-                    "shows these in purple using the 'purple object',"
+                    "shows these in purple using the 'purple object'|"
                   "Uses the 'purple object' to show the point in each \n"
                     "contour where the line changes direction.... \n"
-                    "which turns out to a fairly useless feature,"
+                    "which turns out to a fairly useless feature|"
                   "Uses the 'purple object' to display a grid \n"
-                    "with your desired number of rows and columns,"
+                    "with your desired number of rows and columns|"
                   "Clears the infamous 'purple object' after you've \n"
-                    "applied one of three actions above,"
+                    "applied one of three actions above|"
                   "Use this to move/copy a range of contours/seeds in \n"
                     "the current object to another object. "
                     "This is useful because each object is tracked \n"
                     "seperately and you'll often yeild better results \n"
                     "for a set of points if you first track a subset \n"
-                    "and then later move the other points back,"
+                    "and then later move the other points back|"
                   "Use this to split a large number of contours \n"
                     "across multiple objects... or to merge all contours "
-                    "into the first object,"
+                    "into the first object|"
                   "Can be used to quickly fix the common problems \n"
                     "whereby you've accidently added two points \n"
-                    "in the same view or they are not in order,"
-                  "Use this to change the checked/unchecked value of your contours,"
+                    "in the same view or they are not in order|"
+                  "Use this to change the checked/unchecked value of your contours|"
                   "Prints some basic numbers including the number of \n"
                     "complete contours; incomplete contours; \n"
-                    "checked contours and also number of missing points,"
+                    "checked contours and also number of missing points|"
                   "Loads the calculated tilt angle of all views from \n"
-                    "the appropriate a .tlt file,"
+                    "the appropriate a .tlt file|"
                   "Resets all setting (for this plugin) to default");
-	GuiDialogCustomizable dlg(&ds, "Perform Action", this);
-	dlg.exec();
-	if( ds.cancelled )
+	
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   
@@ -2030,7 +2079,7 @@ void BeadHelper::moreActions()
     
     case(1):      // show fiducials on bottom as purple
     {
-      CustomDialog dsB;
+      CustomDialog dsB("Show Bottom Contours", this);
       
       int static minViewR = plug.seedView;
       int static maxViewR = plug.seedView + 5;
@@ -2040,9 +2089,8 @@ void BeadHelper::moreActions()
                        "opposite directions (suggest a range of ~5):" );
       dsB.addSpinBox ( "min view:", 1, plug.zsize, &minViewR, 1 );
       dsB.addSpinBox ( "max view:", 1, plug.zsize, &maxViewR, 1 );
-      GuiDialogCustomizable dlgB(&dsB, "Show Bottom Contours", this);
-      dlgB.exec();
-      if( dsB.cancelled )
+      dsB.exec();
+      if( dsB.wasCancelled() )
         return;
       
       if( minViewR >= maxViewR )
@@ -2113,8 +2161,7 @@ void BeadHelper::moreSettings()
 {
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
-	CustomDialog ds;
-  
+	CustomDialog ds("More Settings", this);
   
   float newTiltIncrement = plug.tiltIncrement;
   float newTiltAxisAngle = plug.tiltAxisAngle;
@@ -2124,7 +2171,7 @@ void BeadHelper::moreSettings()
   int biggestHoleInset = plug.biggestHoleInset;
   int biggestHoleGrid = plug.biggestHoleGrid;
   
-  ds.addLabel   ("----- TILT STACK: -----");
+  ds.addLabel   ("----- TILT STACK: -----", true);
   
   ds.addSpinBox ( "seed view:",
                   1, plug.zsize+1, &seedView, 1,
@@ -2132,12 +2179,12 @@ void BeadHelper::moreSettings()
                   "the middle-most view, but not in all cases \n"
                   "NOTE: This settings is not saved on exit \n\n"
                   "NOTE: You'll often have to reduce this value by 1 on b axis stacks" );
-  ds.addLineEditF( "tilt increment:           ", &newTiltIncrement, INT_MIN, INT_MAX, 5,
+  ds.addLineEditF( "tilt increment:           ", INT_MIN, INT_MAX, &newTiltIncrement, 5,
                   "The angle (in degrees) the specimen was tilted "
                   "between subsequent views \n"
                   "NOTE: This value becomes irrelevant after loading the calculated "
                   "tilt angles via 'More Actions' > 'load tilt angles'" );
-  ds.addLineEditF( "tilt axis angle:           ", &newTiltAxisAngle, INT_MIN, INT_MAX, 5,
+  ds.addLineEditF( "tilt axis angle:           ", INT_MIN, INT_MAX, &newTiltAxisAngle, 5,
                   "The angle (in degrees) clockwise from "
                   "vertical about which the views rotate \n"
                   "NOTE: This can be calculated in "
@@ -2159,11 +2206,11 @@ void BeadHelper::moreSettings()
                   "as you press 'h'.\n\n"
                   "Set 'tilt display' to '[h] grid' to see the effect");
   
-  ds.addLabel   ("\n----- DISPLAY: -----");
+  ds.addLabel   ("\n----- DISPLAY: -----", true);
   
   ds.addComboBox( "estimated pt display:",
-                  "cross,"
-                  "diamond,"
+                  "cross|"
+                  "diamond|"
                   "arrow", &plug.expPtDisplayType,
                   "Symbol used to display the estimated point" );
   ds.addSpinBox ( "estimated pt size:",
@@ -2184,7 +2231,7 @@ void BeadHelper::moreSettings()
                   1, 20, &sizeCheckedPts, 1,
                   "The size of points which have been checked by pressing [U]" );
   
-  ds.addLabel   ("\n----- OTHER: -----");
+  ds.addLabel   ("\n----- OTHER: -----", true);
   
   ds.addCheckBox( "save settings on close", 
                   &plug.autoSaveSettings,
@@ -2193,9 +2240,8 @@ void BeadHelper::moreSettings()
                   "when you close 3dmod, so they will load "
                   "next time you open 3dmod");
   
-	GuiDialogCustomizable dlg(&ds, "More Settings", this);
-	dlg.exec();
-	if( ds.cancelled )
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   plug.tiltOffsetX       = tiltOffsetX;
@@ -2244,16 +2290,16 @@ void BeadHelper::keyboardSettings()
 {
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
-	CustomDialog ds;
-  
   int wheelResistance = plug.wheelResistance;
   
-  ds.addLabel   ("----- MOUSE: -----");
+	CustomDialog ds("Mouse and Keyboard Settings", this);
+  
+  ds.addLabel   ("----- MOUSE: -----", true);
   
   ds.addComboBox( "wheel behavior:",
-                  "none,"
-                  "scroll points,"
-                  "scroll views,"
+                  "none|"
+                  "scroll points|"
+                  "scroll views|"
                   "smart scroll", &plug.wheelBehav,
                   "Allows you to use the mouse wheel to "
                   "scroll through points and/or views" ); 
@@ -2266,7 +2312,7 @@ void BeadHelper::keyboardSettings()
                   "Keeps ZAP centered on the point or estimated pos \n"
                   "as you scroll with the mouse wheel");
   
-  ds.addLabel   ("----- KEYBOARD: -----");
+  ds.addLabel   ("----- KEYBOARD: -----", true);
   
   ds.addCheckBox( "disable all hot keys", 
                   &plug.disableHotKeys,
@@ -2291,8 +2337,8 @@ void BeadHelper::keyboardSettings()
                   "\n\nNOTE: this value is not saved on exit "
                   "and defaults to off");
   ds.addComboBox( "[y],[b]&[o] searches: ",
-                  "all contours,"
-                  "unchecked only,"
+                  "all contours|"
+                  "unchecked only|"
                   "checked only", &plug.contsToSearch,
                   "Which contours are searched when [y] "
                   "(biggest y jump), [b] (biggest deviation "
@@ -2314,9 +2360,9 @@ void BeadHelper::keyboardSettings()
                   "\n\nRECOMMEDED VALUE: 15" );
   
   ds.addComboBox( "on [d] delete pts:",
-                  "do nothing,"
-                  "opposite seed,"
-                  "to nearest end,"
+                  "do nothing|"
+                  "opposite seed|"
+                  "to nearest end|"
                   "specified range", &plug.dKeyBehav,
                   "Action performed when [d] is pressed."
                   "\n"
@@ -2332,9 +2378,9 @@ void BeadHelper::keyboardSettings()
                   "above from the current contour");
   
   ds.addComboBox( "on [m]:",
-                  "normal,"
-                  "go to middle pt,"
-                  "smooth local,"
+                  "normal|"
+                  "go to middle pt|"
+                  "smooth local|"
                   "smooth y local",
                   &plug.mKeyBehav,
                   "Action performed when [m] is pressed."
@@ -2349,8 +2395,8 @@ void BeadHelper::keyboardSettings()
                   "moves points in Y only" );
   
   ds.addComboBox( "on [U]:",
-                  "print object info,"
-                  "check current pt,"
+                  "print object info|"
+                  "check current pt|"
                   "check contour pts",
                   &plug.uKeyBehav,
                   "Action performed when [U] is pressed."
@@ -2369,10 +2415,10 @@ void BeadHelper::keyboardSettings()
   ds.addLabel   ("");
   
   ds.addComboBox( "on [Enter] go to:",
-                  "do nothing,"
-                  "next unchecked,"
-                  "prev uncheced,"
-                  "next checked,"
+                  "do nothing|"
+                  "next unchecked|"
+                  "prev uncheced|"
+                  "next checked|"
                   "next contour", &plug.enterAction,
                   "Action performed when [Enter] is pressed "
                   "\n\nNOTE: If you don't use enter you may, "
@@ -2396,9 +2442,8 @@ void BeadHelper::keyboardSettings()
                    "Prints the number of contours matching the "
                    "above criteria each time enter is pressed" );
   
-	GuiDialogCustomizable dlg(&ds, "Mouse and Keyboard Settings", this);
-	dlg.exec();
-	if( ds.cancelled )
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   plug.wheelResistance = wheelResistance;
@@ -2432,7 +2477,7 @@ void BeadHelper::reorderContours()
   static bool printVals    = true;
   static bool calcValsOnly = false;
   
-	CustomDialog ds;
+	CustomDialog ds("Sorting Options", this);
   ds.addLabel   ( "contours to sort (inclusive):" );
   ds.addSpinBox ( "  min:", 1, nConts, &plug.contMinN, 1,
                   "Only contours after this contour "
@@ -2441,25 +2486,25 @@ void BeadHelper::reorderContours()
                   "Only contours BEFORE this contour "
                   "(inclusive) will be reordered" );
 	 ds.addRadioGrp( "sort by:         (sort criteria)",
-                   "y jumps (asc),"
-                   "deviation (asc),"
-                   "avg grey value (desc),"
-                   "dist from middle (asc),"
-                   "num missing pts (asc),"
-                   "checked first,"
-                   "random,",
+                   "y jumps (asc)|"
+                   "deviation (asc)|"
+                   "avg grey value (desc)|"
+                   "dist from middle (asc)|"
+                   "num missing pts (asc)|"
+                   "checked first|"
+                   "random",
                    &plug.sortCriteria,
                    "",
-                   "Sorts based on how far points jump in Y,"
+                   "Sorts based on how far points jump in Y|"
                    "Uses a weighted score of how far points are "
-                   "from their estimated positions,"
-                   "Average the grey value closest to each point,"
+                   "from their estimated positions|"
+                   "Average the grey value closest to each point|"
                    "The distance of the seed point from the "
-                   "dead center of the tomogram in X an Y,"
+                   "dead center of the tomogram in X an Y|"
                    "Contours with the least points will be moved "
-                   "to the end,"
+                   "to the end|"
                    "Moves checked (stippled) contours to the start "
-                   "and unchecked to the end,"
+                   "and unchecked to the end|"
                    "Uses a random number for each contour" );
    ds.addCheckBox( "calc values only (don't reorder)",
                    &calcValsOnly,
@@ -2469,9 +2514,9 @@ void BeadHelper::reorderContours()
                    "by pressing 'o'" );
 	 ds.addCheckBox( "reverse order", &reverseOrder );
    ds.addCheckBox( "print values",  &printVals );
-   GuiDialogCustomizable dlg(&ds, "Sorting Options", this);
-   dlg.exec();
-	if( ds.cancelled )
+   
+   ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   if( !verifyAndUpdateEnteredRangeValues() )
@@ -2555,16 +2600,16 @@ void BeadHelper::moveMultipleContours()
   static bool deleteMatch  = false;
   static bool copy         = false;
   
-	CustomDialog ds;
+	CustomDialog ds("Move Options", this);
   ds.addSpinBox ( "min cont:", 1, maxContIdx+1, &plug.contMinN, 1 );
   ds.addSpinBox ( "max cont:", 1, maxContIdx+1, &plug.contMaxN, 1 );  
 	ds.addSpinBox ( "move to object:", 1, numObjs, &objToIdx, 1 );
 	ds.addCheckBox( "seed pt only", &seedOnly );
   ds.addCheckBox( "delete matching seeds", &deleteMatch );
   ds.addCheckBox( "copy", &copy );
-	GuiDialogCustomizable dlg(&ds, "Move Options", this);
-	dlg.exec();
-	if( ds.cancelled )
+	
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   if( !verifyAndUpdateEnteredRangeValues() )
@@ -2659,22 +2704,22 @@ void BeadHelper::splitOrMergeContours()
   static int  numContsToLeave    = 0;
   static bool randomizeOrder     = false;
   
-	CustomDialog ds;
+	CustomDialog ds("Split Contours Options", this);
   ds.addCheckBox( "MERGE ALL CONTOUR INTO FIRST OBJECT ONLY", &mergeOnly,
                   "Will ignore the value immediately below and move all contours "
                   "into object 1" );
   ds.addSpinBox ( "number of contours per object:", 1, 1000, &numContsPerObj, 5,
                   "The number of contours to place in each object" );
-  ds.addLabel   ( "-----" );
+  ds.addLabel   ( "-----", true );
   ds.addCheckBox( "randomize contour order:", &randomizeOrder,
                   "Will randomize contours (excluding the range below) before splitting "
                   "them between objects" );
   ds.addSpinBox ( "contours to leave at the start:", 0, 9999, &numContsToLeave, 1,
                   "This many contours at the start of object 1 will not be moved "
                   "or reordered" );
-	GuiDialogCustomizable dlg(&ds, "Split Contours Options", this);
-	dlg.exec();
-	if( ds.cancelled )
+	
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   Imod *imod = ivwGetModel(plug.view);
@@ -2836,7 +2881,7 @@ void BeadHelper::correctCurrentObject()
   static bool deleteMatchSeeds = true;
   static bool correctPtOrder   = true;
   
-	CustomDialog ds;
+	CustomDialog ds("Correction Options", this);
 	ds.addCheckBox( "delete duplicate pts on same view", &deleteExtraPts,
                   "If two (or more) points lie on the same view \n"
                   "of the same contour delete the second" );
@@ -2847,9 +2892,9 @@ void BeadHelper::correctCurrentObject()
                   "If you somehow managed to put contour point in \n"
                   "the wrong order this will reorder the points in \n"
                   "ascending Z value" );
-	GuiDialogCustomizable dlg(&ds, "Correction Options", this);
-	dlg.exec();
-	if( ds.cancelled )
+	
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   Imod *imod = ivwGetModel(plug.view);
@@ -3120,23 +3165,23 @@ void BeadHelper::markRangeAsStippled()
   
   static int checked = 1;
   
-	CustomDialog ds;
-  ds.addLabel   ( "-- RANGE: --" );
+	CustomDialog ds("Mark Contours as Checked", this);
+  ds.addLabel   ( "-- RANGE: --", true );
   ds.addLabel   ( "contours to change:" );
   ds.addSpinBox ( "  min:", 1, nConts, &plug.contMinN, 1,
                   "Only contours after this contour (inclusive) will be changed" );
   ds.addSpinBox ( "  max:", 1, nConts, &plug.contMaxN, 1,
                   "Only contours BEFORE this contour (inclusive) will be changed" );
   ds.addRadioGrp( "mark as:",
-                  "unchecked (unstippled),"
+                  "unchecked (unstippled)|"
                   "checked (stippled)", &checked );
   ds.addLabel   ( "NOTE: Use [Enter] to iterate through \n"
                   "unchecked (unstippled) contours and \n"
                   "[u] to toggle current contour between \n"
                   "checked and unchecked" );
-	GuiDialogCustomizable dlg(&ds, "Mark Contours as Checked", this);
-	dlg.exec();
-	if( ds.cancelled )
+	
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   if( !verifyAndUpdateEnteredRangeValues() )
@@ -3179,8 +3224,8 @@ void BeadHelper::markRangePtsAsChecked()
   
   static int checked  = 1;
   
-	CustomDialog ds;
-  ds.addLabel   ( "RANGE:" );
+	CustomDialog ds("Mark Points as Checked", this);
+  ds.addLabel   ( "RANGE:", true );
   ds.addLabel   ( "contours to change:" );
   ds.addSpinBox ( "  min:", 1, nConts, &plug.contMinN, 1,
                   "Only contours after this contour (inclusive) will be reordered" );
@@ -3191,13 +3236,13 @@ void BeadHelper::markRangePtsAsChecked()
                   "Only pts on view after this (inclusive) will be changed" );
   ds.addSpinBox ( "  max:", 1, plug.zsize, &plug.viewMaxN, 1,
                   "Only pts on view BEFORE this (inclusive) will be changed" );
-  ds.addLabel   ( "------" );
+  ds.addLabel   ( "------", true );
   ds.addRadioGrp( "mark as:",
-                  "unchecked (no sphere),"
+                  "unchecked (no sphere)|"
                   "checked   (little sphere)", &checked );
-	GuiDialogCustomizable dlg(&ds, "Mark Points as Checked", this);
-	dlg.exec();
-	if( ds.cancelled )
+	
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   if( !verifyAndUpdateEnteredRangeValues() )
@@ -5379,7 +5424,7 @@ void bead_reorderConts( int sortCriteria, int minCont, int maxCont,
 
 bool bead_calcLineOfBestFit( Icont *cont, float *gradient, float *offset, int minPts )
 {
-  if( isEmpty(cont) || psize(cont) < MAX(2,minPts) )
+  if( isEmpty(cont) || psize(cont) < 2 || psize(cont) < minPts )
     return false;
   
   
@@ -5388,8 +5433,8 @@ bool bead_calcLineOfBestFit( Icont *cont, float *gradient, float *offset, int mi
     return line_getLineEquation( getPt(cont,0), getPt(cont,1), gradient, offset );
   }
   
-  float n = (float) psize(cont);
-  
+  float n = (float)psize(cont);
+    
   float sumX    = 0;
   float sumXSq  = 0;
   float sumY    = 0;
@@ -5408,12 +5453,19 @@ bool bead_calcLineOfBestFit( Icont *cont, float *gradient, float *offset, int mi
   
   float avgX = sumX / n;
   float avgY = sumY / n;
+  double divisor = (sumXSq - (n*SQ(avgX)));
+  if(divisor == 0)
+    divisor = 0.0001;
   
-  *gradient = ( sumXY - (n*avgX*avgY) ) / ( sumXSq - (n*SQ(avgX)) );
-  *offset   = ( (avgY*sumXSq) - (avgX*sumXY) ) / ( sumXSq - (n*SQ(avgX)) );
+  //float a   = ( sumXY - (n*avgX*avgY) ) / ( sumXSq - (n*SQ(avgX)) );
+  //float b   = ( (avgY*sumXSq) - (avgX*sumXY) ) / ( sumXSq - (n*SQ(avgX)) );
   
-  float a   = ( sumXY - (n*avgX*avgY) ) / ( sumXSq - (n*SQ(avgX)) );
-  float b   = ( (avgY*sumXSq) - (avgX*sumXY) ) / ( sumXSq - (n*SQ(avgX)) );
+  //*gradient = a;
+  
+  *gradient = ( sumXY - (n*avgX*avgY) )        / divisor;
+  *offset   = ( (avgY*sumXSq) - (avgX*sumXY) ) / divisor;
+  
+  
   
   return true;
 }
@@ -6161,20 +6213,19 @@ void bead_showGrid()
   static bool rotateByAngle = false;
   static bool dottedLines   = false;
   
-	CustomDialog ds;
+	CustomDialog ds("Grid Options");
   ds.addSpinBox ( "columns (x):", 1, 500, &colsX, 1, "Number of columns to display" );
   ds.addSpinBox ( "rows    (y):", 1, 500, &rowsY, 1, "Number of rows to display" );
 	ds.addRadioGrp( "show grid as:",
-                  "lines,"
+                  "lines|"
                   "spheres only",
                   &showStyle );
   ds.addCheckBox( "rotate by tilt axis angle",
                   &rotateByAngle,
                   "Tilt the grid by the tilt axis angle" );
   ds.addCheckBox( "use dotted lines", &dottedLines );
-	GuiDialogCustomizable dlg(&ds, "Grid Options");
-	dlg.exec();
-	if( ds.cancelled )
+	ds.exec();
+	if( ds.wasCancelled() )
 		return;
   
   

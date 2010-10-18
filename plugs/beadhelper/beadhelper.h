@@ -43,9 +43,10 @@ class BeadHelper : public DialogFrame
   
  public slots:
   void buttonPressed(int);
-   void initValues();
+  void initValues();
   void loadSettings();
   void saveSettings();
+  void keepOnTop(bool state);
   
   bool drawExtraObject( bool redraw );
   void deletePtsInRange();
