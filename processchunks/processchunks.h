@@ -25,7 +25,7 @@ public:
   Processchunks(int &argc, char **argv);
   ~Processchunks();
 
-  void printVersionWarning();
+  void printOsInformation();
   void loadParams(int &argc, char **argv);
   void setup();
   const bool askGo();
