@@ -35,7 +35,7 @@ static const int sleepMillisec = 100;
 static const int maxLocalByNum = 32;
 //converting old timeout counter to milliseconds
 static const int runProcessTimeout = 30 * 2 * 1000;
-static const int numOptions = 13;
+static const int numOptions = 14;
 
 static char *commandName = "processchunks";
 using namespace std;
@@ -61,7 +61,7 @@ static char
         ":Q:CH:Machine name to use for the queue (default queue)",
         ":P:B:Output process ID",
         ":v:B:Verbose.",
-        ":V:CH:Syntax:  Verbose instructions:  class,function,...,verbosity.  All elements are optional, except that if there is a function, then must be a class.  Which class and functions(s) should print extra information.  Verbosity (how much information to print): 1:normal, 2: a lot.  Can be limited to a class and function(s).  Case insensitive.  Class is matches if the current class ends with the class string entered here.  No effect if '-v' is not used.",
+        ":V:CH:[class,[function,[...]]],[2]  Verbose instructions.  2 means more verbose.  Case insensitive.  No effect if \"-v\" is not used.",
         ":help:B:Print usage message" };
 static char *queueNameDefault = "queue";
 Processchunks *processchunksInstance;
@@ -1687,6 +1687,9 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.20  2010/10/13 22:01:14  sueh
+ bug# 1364 In timerEvent pausing a for a count of ten when the process finishes but the chunk does not.  In runProcess reset the pause counter.
+
  Revision 1.19  2010/10/08 23:41:46  sueh
  bug# 1364 Added handlerError.  Check for error where the stderr has a
  PID and the stdout doesn't.
