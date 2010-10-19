@@ -151,7 +151,7 @@ if ($newsize == "" && $version > 1) set newsize = "$info1[3],$info1[4]"
 if ($version < 3) then
     set matlist = `head -n 2 $joinroot.info | tail -n 1 | sed '/[[:cntrl:]]/s///g'`
     set invertlist = `head -n 3 $joinroot.info | tail -n 1 | sed '/[[:cntrl:]]/s///g'`
-    set scalelist = ""
+    set scalelist = ()
 else
 
 # Later versions have lines of information for all tomos, then tomo file names
@@ -343,7 +343,7 @@ echo -n >! "$newstin"
 while ($itomo <= $ntomo)
     echo "InputFile $matlist[$itomo]" >> "$newstin"
     echo "SectionsToRead $rangelist[$itomo]" >> "$newstin"
-    if ("$scalelist" != "") then
+    if ($#scalelist != 0) then
         echo "MultiplyAndAdd $scalelist[$itomo]" >> "$newstin"
     endif
     @ itomo++
@@ -381,6 +381,9 @@ exit 1
 
 #
 #  $Log$
+#  Revision 3.23  2009/02/17 05:44:04  mast
+#  Changing directory or copied file modes for Vista
+#
 #  Revision 3.22  2008/05/20 22:45:49  mast
 #  Added option to do local fits with xftoxg
 #
