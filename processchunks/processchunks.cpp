@@ -542,7 +542,8 @@ int Processchunks::escapeEntered() {
   timeout.tv_sec = 0;
   timeout.tv_usec = 0;
   while (select(1, &readfds, &writefds, &exceptfds, &timeout) > 0) {
-    read(fileno(stdin), &charin, 1);
+    if (!read(fileno(stdin), &charin, 1))
+      return 0;
     if (charin == '\n') {
       if (numChar == 1 && gotEsc == 1)
         return 1;
@@ -1687,6 +1688,10 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.22  2010/10/18 23:17:11  sueh
+ bug# 1364 Changed printVersionWarning to printOsInformation.  Using
+ INFORMATION: instead of WARNING: for a message that is always printed.
+
  Revision 1.21  2010/10/18 04:37:04  sueh
  bug# 1364 Fixed options print.
 
