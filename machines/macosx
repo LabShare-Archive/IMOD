@@ -181,7 +181,7 @@ else
     if (-e /usr/lib/libgfortran.dylib) set dllsourcedir1 = "/usr/lib"
     echo "DLLSOURCEDIR1 = $dllsourcedir1" >> $configure
 endif
-if ($wrapintel == true) then
+if ($wrapintel == true && $compiler == ifort) then
     echo "DLLDESTDIR = qtlib" >> $configure
 else
     echo "DLLDESTDIR = lib" >> $configure
