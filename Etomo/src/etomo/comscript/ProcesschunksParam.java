@@ -47,7 +47,8 @@ public final class ProcesschunksParam implements DetachedCommandDetails,
   public static final int NICE_CEILING = 19;
   public static final int DROP_VALUE = 5;
   public static final String WORKING_DIR_OPTION = "-w";
-
+  public static final boolean IS_SCRIPT = true;
+  
   private final EtomoBoolean2 resume = new EtomoBoolean2();
   private final EtomoNumber nice = new EtomoNumber();
   private final List machineNames = new ArrayList();
@@ -365,14 +366,18 @@ public final class ProcesschunksParam implements DetachedCommandDetails,
     return null;
   }
 
-  public boolean isSecondCommandLine() {
+  /**
+   * Niced when running on a queue.  CommandNice is not the same as the nice
+   * parameter
+   */
+  public boolean isCommandNiced() {
     return queueCommand != null;
   }
 
   /**
-   * Use the second command line to  nice processchunks when it runs on a queue.
+   * Returns nice command for a queue.
    */
-  public String getSecondCommandLine() {
+  public String getNiceCommand() {
     if (queueCommand == null) {
       return "";
     }
@@ -382,10 +387,15 @@ public final class ProcesschunksParam implements DetachedCommandDetails,
   private void buildCommand() {
     valid = true;
     ArrayList command = new ArrayList();
-    command.add("tcsh");
-    command.add("-f");
-    command.add("'" + BaseManager.getIMODBinPath() + PROCESS_NAME.toString()
-        + "'");
+    if (IS_SCRIPT) {
+      command.add("tcsh");
+      command.add("-f");
+      command.add("'" + BaseManager.getIMODBinPath() + PROCESS_NAME.toString()
+          + "'");
+    }
+    else {
+      command.add(BaseManager.getIMODBinPath() + PROCESS_NAME.toString());
+    }
     if (resume.is()) {
       command.add("-r");
     }
@@ -537,6 +547,9 @@ public final class ProcesschunksParam implements DetachedCommandDetails,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.44  2010/04/28 16:05:38  sueh
+ * <p> bug# 1344 Added getOutputImageFileType functions.
+ * <p>
  * <p> Revision 1.43  2010/02/17 04:47:54  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
