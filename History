@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/19/10: "Fixed" linklibs-mac for 64-bit Intel (In 4.1).
+
+10/19/10: Changed finishjoin to allow bigger scalelist (In 4.1).
+
 10/13/10: In eTomo - Settings dialog, filtering out font families with a "'" in
 their name because these names cause a Java failure.  Also added a paramter:
 --ignoresettings to help diagnose look and feel bugs.
