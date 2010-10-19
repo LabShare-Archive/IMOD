@@ -181,7 +181,11 @@ else
     if (-e /usr/lib/libgfortran.dylib) set dllsourcedir1 = "/usr/lib"
     echo "DLLSOURCEDIR1 = $dllsourcedir1" >> $configure
 endif
-echo "DLLDESTDIR = lib" >> $configure
+if ($wrapintel == true) then
+    echo "DLLDESTDIR = qtlib" >> $configure
+else
+    echo "DLLDESTDIR = lib" >> $configure
+endif
 
 # Needed under tcsh 6.12 in RH 8.0 to avoid getting two \ out
 cat << EOF >> $configure
@@ -348,7 +352,8 @@ while ($i < 4)
     @ i++
 cat <<EOF >! $qdir[$i]/$qrun[$i]
 #!/bin/sh
-export $ld_lib_var="\${IMOD_QTLIBDIR}:\$$ld_lib_var"
+export DYLD_LIBRARY_PATH="\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
+export DYLD_FRAMEWORK_PATH="\${IMOD_QTLIBDIR}:\$DYLD_FRAMEWORK_PATH"
 \$IMOD_DIR/bin/${qtarget[$i]} "\$@"
 EOF
 chmod a+x $qdir[$i]/$qrun[$i]
@@ -356,7 +361,8 @@ end
 
 cat <<EOF >! $imod_dir/runimod
 #!/bin/sh
-export $ld_lib_var="\${IMOD_QTLIBDIR}:\$$ld_lib_var"
+export DYLD_LIBRARY_PATH="\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
+export DYLD_FRAMEWORK_PATH="\${IMOD_QTLIBDIR}:\$DYLD_FRAMEWORK_PATH"
 background=1
 for i
 do
@@ -373,7 +379,8 @@ EOF
 
 cat <<EOF >! $imod_dir/runimodv
 #!/bin/sh
-export $ld_lib_var="\${IMOD_QTLIBDIR}:\$$ld_lib_var"
+export DYLD_LIBRARY_PATH="\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
+export DYLD_FRAMEWORK_PATH="\${IMOD_QTLIBDIR}:\$DYLD_FRAMEWORK_PATH"
 background=1
 for i
 do
@@ -390,7 +397,8 @@ EOF
 
 cat <<EOF >! $midas_dir/runmidas
 #!/bin/sh
-export $ld_lib_var="\${IMOD_QTLIBDIR}:\$$ld_lib_var"
+export DYLD_LIBRARY_PATH="\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
+export DYLD_FRAMEWORK_PATH="\${IMOD_QTLIBDIR}:\$DYLD_FRAMEWORK_PATH"
 background=1
 for i
 do
@@ -434,7 +442,8 @@ foreach i ($fortqtprogs)
     set gen_scripts = ($gen_scripts run$i)
     cat <<EOF >! $scripts_dir/run$i
 #!/bin/sh
-export $ld_lib_var="\${IMOD_QTLIBDIR}:\$$ld_lib_var"
+export DYLD_LIBRARY_PATH="\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
+export DYLD_FRAMEWORK_PATH="\${IMOD_QTLIBDIR}:\$DYLD_FRAMEWORK_PATH"
 \$IMOD_DIR/bin/$i.app/Contents/MacOS/$i "\$@"
 EOF
     chmod a+x $scripts_dir/run$i
