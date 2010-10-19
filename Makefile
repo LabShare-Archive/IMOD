@@ -324,7 +324,7 @@ csrc : ALWAYS
 	html/ctfHelp html/midasHelp html/libdoc/Makefile html/libdoc/*.html \
 	dist scripts pysrc com manpages autodoc \
 	plugs/*/*.[chf] plugs/*/*.cpp plugs/*/*.html plugs/*/Makefile \
-	plugs/Makefile.unix plugs/Makefile.dummy \
+	plugs/*/*.png plugs/Makefile.unix plugs/Makefile.dummy \
 	include/*.h include/*.inc | (cd $(ARCDIR)_src; tar xBf -)
 
 #
@@ -365,6 +365,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.82  2010/07/27 15:43:10  mast
+#  Remove usfft from make src
+#
 #  Revision 3.81  2010/06/23 21:22:06  mast
 #  Added processchunks to make and clean, not to install
 #
