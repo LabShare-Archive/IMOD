@@ -64,7 +64,8 @@ set imodlibs = (libdiaqt.dylib libimod.dylib libiimod.dylib libdtrigs.dylib \
 libtrack.dylib libifft.dylib libb3dcmpt.dylib libimesh.dylib libcfshr.dylib \
 libgfortran.dylib libgfortran.2.dylib libgfortran.2.0.0.dylib)
 set intellibs = (libsvml.dylib libifport.dylib libifcore.dylib libimf.dylib \
-libirc.dylib libifcoremt.dylib libifportmt.dylib libintlc.dylib libguide.dylib)
+libirc.dylib libifcoremt.dylib libifportmt.dylib libintlc.dylib \
+libiomp5.dylib libguide.dylib)
 if (-e $IMOD_DIR/lib/$intellibs[1]) set imodlibs = ($imodlibs $intellibs)
 
 # Look for imod libs in /usr/lib
@@ -169,6 +170,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 1.11  2010/10/19 23:18:30  mast
+#  Add libiomp5.  It should work for wrapped libraries.  This is a bad script
+#
 #  Revision 1.10  2010/05/21 18:40:34  mast
 #  add libgfortran explicitly by each version
 #
