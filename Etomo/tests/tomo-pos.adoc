@@ -3,15 +3,16 @@ Version = 1.2
 [function = build]
 [[if = test-gui]]
 	run.function.test-create-sample-tomograms=
+	run.function.copy=
 	run.function.test-compute-z-shift-&-pitch-angles=
 	if.not.var.fidless.run.function.test-create-final-alignment=
 [[]]
 [[ifnot = test-gui]]
 	run.function.create-sample-tomograms=
+	run.function.copy=
 	run.function.compute-z-shift-&-pitch-angles=
 	if.not.var.fidless.run.function.create-final-alignment=
 [[]]
-run.function.copy=
 bn.done =
 
 
