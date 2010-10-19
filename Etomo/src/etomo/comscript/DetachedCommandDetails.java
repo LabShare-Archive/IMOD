@@ -22,11 +22,14 @@ public interface DetachedCommandDetails extends CommandDetails {
    */
   public String getCommandString();
   public boolean isValid();
-  public boolean isSecondCommandLine();
-  public String getSecondCommandLine();
+  public boolean isCommandNiced();
+  public String getNiceCommand();
 }
 /**
 * <p> $Log$
+* <p> Revision 3.1  2009/09/01 03:17:47  sueh
+* <p> bug# 1222
+* <p>
 * <p> Revision 1.3  2007/12/17 18:34:48  sueh
 * <p> bug# 1061 Added isSecondCommandLine and getSecondCommandLine.
 * <p>
