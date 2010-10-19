@@ -36,6 +36,7 @@ final class DetachedProcess extends BackgroundProcess {
   private final BaseManager manager;
   private final OutfileProcessMonitor monitor;
   private final BaseProcessManager processManager;
+  private final boolean runInBackground;
 
   /**
    * If subdirName is set then multiple processes may be able to run in the same
@@ -51,13 +52,14 @@ final class DetachedProcess extends BackgroundProcess {
       BaseProcessManager processManager, AxisID axisID,
       OutfileProcessMonitor monitor, ProcessResultDisplay processResultDisplay,
       ProcessName processName, ConstProcessSeries processSeries,
-      boolean popupChunkWarnings) {
+      boolean popupChunkWarnings, boolean runInBackground) {
     super(manager, commandDetails, processManager, axisID, processName,
         processSeries, popupChunkWarnings);
     this.axisID = axisID;
     this.manager = manager;
     this.monitor = monitor;
     this.processManager = processManager;
+    this.runInBackground = runInBackground;
     setProcessResultDisplay(processResultDisplay);
     if (monitor != null) {
       getProcessData().setSubProcessName(monitor.getSubProcessName());
@@ -145,13 +147,16 @@ final class DetachedProcess extends BackgroundProcess {
       bufferedWriter.newLine();
     }
     DetachedCommandDetails detachedCommandDetails = getDetachedCommand();
-    bufferedWriter.write(detachedCommandDetails.getCommandString() + " >& ");
-    bufferedWriter.write(monitor.getProcessOutputFileName() + "&");
-    bufferedWriter.newLine();
-    if (detachedCommandDetails.isSecondCommandLine()) {
-      bufferedWriter.write(detachedCommandDetails.getSecondCommandLine());
+    if (detachedCommandDetails.isCommandNiced()) {
+      bufferedWriter.write(detachedCommandDetails.getNiceCommand());
       bufferedWriter.newLine();
     }
+    bufferedWriter.write(detachedCommandDetails.getCommandString() + " >& ");
+    bufferedWriter.write(monitor.getProcessOutputFileName());
+    if (runInBackground) {
+      bufferedWriter.write("&");
+    }
+    bufferedWriter.newLine();
     bufferedWriter.close();
     if (getWorkingDirectory() == null) {
       setWorkingDirectory(new File(manager.getPropertyUserDir()));
@@ -255,6 +260,9 @@ final class DetachedProcess extends BackgroundProcess {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.23  2010/07/02 03:17:47  sueh
+ * <p> bug# 1388 Added popupChunkWarnings to the constructor.
+ * <p>
  * <p> Revision 1.22  2010/02/26 20:37:59  sueh
  * <p> Changing the complex popup titles are making it hard to complete the
  * <p> uitests.
