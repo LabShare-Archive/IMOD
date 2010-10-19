@@ -146,8 +146,6 @@ if ("$dllrenlist" != "") then
 endif
 
 # If the destination dir was qtlib, then all programs need wrapper scripts
-# This should work for Mac too - but (4/7/09) the existing wrappers for Qt 4.5
-# need to have both DYLD_LIBRARY_PATH and DYLD_FRAMEWORK_PATH set
 #
 if ("$dlldestorig" == "qtlib") then
     pushd $instdir/bin
@@ -155,7 +153,7 @@ if ("$dlldestorig" == "qtlib") then
     if ("$dllext" == "dylib") set envar = DYLD_LIBRARY_PATH
     mkdir -p realbin
     foreach i (*)
-        file $i | grep '\-bit.*executable' >& /dev/null
+        file $i | grep '\-bit.*executable\|Mach-O.*executable' >& /dev/null
         if (! $status) then
             mv $i realbin
             cat << EOF > $i
@@ -261,6 +259,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.48  2010/03/01 23:43:01  mast
+#  Switched to cp -R which was needed with -L on Mac
+#
 #  Revision 3.47  2009/11/06 19:36:55  mast
 #  Chnage to use only to install qt plugins
 #
