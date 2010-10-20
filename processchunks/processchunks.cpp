@@ -221,7 +221,6 @@ void Processchunks::setup() {
   //Get current directory if the -w option was not used
   if (mRemoteDir == NULL) {
     mRemoteDir = new QString(mCurrentDir.absolutePath().toLatin1().data());
-    mRemoteDir->replace("/localscratch/", QString("/scratch/%1/").arg(mHostRoot));
   }
   setupEnvironment();
   setupProcessArray();
@@ -1692,6 +1691,10 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.24  2010/10/20 20:38:39  sueh
+ bug# 1364 In setup replacing localscratch with scratch/hostname in
+ mRemoteDir.
+
  Revision 1.23  2010/10/19 18:29:43  sueh
  bug# 1364 In escapeEntered returning 0 if no character read.
 
