@@ -109,8 +109,7 @@ private:
   bool mSkipProbe;
   char *mQueueName, *mRootName;
   QFile *mCheckFile;
-  const QString *mRemoteDir;//was curdir
-  QString mCpuList, mVerboseClass;
+  QString mCpuList, mVerboseClass, *mRemoteDir;//was curdir;
   QStringList mVerboseFunctionList;
 
   //setup
