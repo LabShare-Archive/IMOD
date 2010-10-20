@@ -45,6 +45,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.93  2010/10/19 06:36:24  sueh
+ * <p> bug# 1364 Passing ProcesschunksParam.IS_SCRIPT to DetachedProcess.
+ * <p>
  * <p> Revision 1.92  2010/07/02 03:17:30  sueh
  * <p> bug# 1388 Added popupChunkWarnings.
  * <p>
@@ -609,14 +612,14 @@ public abstract class BaseProcessManager {
     if (param.isSubdirNameEmpty()) {
       process = startDetachedProcess(param, axisID, monitor,
           processResultDisplay, ProcessName.PROCESSCHUNKS, processSeries,
-          popupChunkWarnings, ProcesschunksParam.IS_SCRIPT);
+          popupChunkWarnings);
     }
     else {
       monitor.setSubdirName(param.getSubdirName());
       process = startDetachedProcess(param, axisID, monitor,
           processResultDisplay, ProcessName.PROCESSCHUNKS, param
               .getSubdirName(), param.getShortCommandName(), processSeries,
-          popupChunkWarnings, ProcesschunksParam.IS_SCRIPT);
+          popupChunkWarnings);
     }
     return process.getName();
   }
@@ -1608,11 +1611,11 @@ public abstract class BaseProcessManager {
       final OutfileProcessMonitor monitor,
       final ProcessResultDisplay processResultDisplay,
       final ProcessName processName, final ConstProcessSeries processSeries,
-      boolean popupChunkWarnings, boolean runInBackground)
+      boolean popupChunkWarnings)
       throws SystemProcessException {
     DetachedProcess detachedProcess = new DetachedProcess(manager,
         detachedCommandDetails, this, axisID, monitor, processResultDisplay,
-        processName, processSeries, popupChunkWarnings, runInBackground);
+        processName, processSeries, popupChunkWarnings);
     if (monitor != null) {
       monitor.setProcess(detachedProcess);
     }
@@ -1626,11 +1629,11 @@ public abstract class BaseProcessManager {
       final ProcessResultDisplay processResultDisplay,
       final ProcessName processName, final String subdirName,
       final String shortCommandName, final ConstProcessSeries processSeries,
-      boolean popupChunkWarnings, boolean runInBackground)
+      boolean popupChunkWarnings)
       throws SystemProcessException {
     DetachedProcess detachedProcess = new DetachedProcess(manager,
         detachedCommandDetails, this, axisID, monitor, processResultDisplay,
-        processName, processSeries, popupChunkWarnings, runInBackground);
+        processName, processSeries, popupChunkWarnings);
     detachedProcess.setSubdirName(subdirName);
     detachedProcess.setShortCommandName(shortCommandName);
     if (monitor != null) {
