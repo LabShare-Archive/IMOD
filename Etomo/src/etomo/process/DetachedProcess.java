@@ -36,7 +36,6 @@ final class DetachedProcess extends BackgroundProcess {
   private final BaseManager manager;
   private final OutfileProcessMonitor monitor;
   private final BaseProcessManager processManager;
-  private final boolean runInBackground;
 
   /**
    * If subdirName is set then multiple processes may be able to run in the same
@@ -52,14 +51,13 @@ final class DetachedProcess extends BackgroundProcess {
       BaseProcessManager processManager, AxisID axisID,
       OutfileProcessMonitor monitor, ProcessResultDisplay processResultDisplay,
       ProcessName processName, ConstProcessSeries processSeries,
-      boolean popupChunkWarnings, boolean runInBackground) {
+      boolean popupChunkWarnings) {
     super(manager, commandDetails, processManager, axisID, processName,
         processSeries, popupChunkWarnings);
     this.axisID = axisID;
     this.manager = manager;
     this.monitor = monitor;
     this.processManager = processManager;
-    this.runInBackground = runInBackground;
     setProcessResultDisplay(processResultDisplay);
     if (monitor != null) {
       getProcessData().setSubProcessName(monitor.getSubProcessName());
@@ -153,9 +151,7 @@ final class DetachedProcess extends BackgroundProcess {
     }
     bufferedWriter.write(detachedCommandDetails.getCommandString() + " >& ");
     bufferedWriter.write(monitor.getProcessOutputFileName());
-    if (runInBackground) {
-      bufferedWriter.write("&");
-    }
+    bufferedWriter.write("&");
     bufferedWriter.newLine();
     bufferedWriter.close();
     if (getWorkingDirectory() == null) {
@@ -260,6 +256,9 @@ final class DetachedProcess extends BackgroundProcess {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.24  2010/10/19 06:38:09  sueh
+ * <p> bug# 1364 Added runInBackground.
+ * <p>
  * <p> Revision 1.23  2010/07/02 03:17:47  sueh
  * <p> bug# 1388 Added popupChunkWarnings to the constructor.
  * <p>
