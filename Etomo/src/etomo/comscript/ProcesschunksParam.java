@@ -47,8 +47,7 @@ public final class ProcesschunksParam implements DetachedCommandDetails,
   public static final int NICE_CEILING = 19;
   public static final int DROP_VALUE = 5;
   public static final String WORKING_DIR_OPTION = "-w";
-  public static final boolean IS_SCRIPT = true;
-  
+
   private final EtomoBoolean2 resume = new EtomoBoolean2();
   private final EtomoNumber nice = new EtomoNumber();
   private final List machineNames = new ArrayList();
@@ -387,15 +386,8 @@ public final class ProcesschunksParam implements DetachedCommandDetails,
   private void buildCommand() {
     valid = true;
     ArrayList command = new ArrayList();
-    if (IS_SCRIPT) {
-      command.add("tcsh");
-      command.add("-f");
-      command.add("'" + BaseManager.getIMODBinPath() + PROCESS_NAME.toString()
-          + "'");
-    }
-    else {
-      command.add(BaseManager.getIMODBinPath() + PROCESS_NAME.toString());
-    }
+    //command.add("'" + BaseManager.getIMODBinPath() + PROCESS_NAME.toString() + "'");
+    command.add(PROCESS_NAME.toString());
     if (resume.is()) {
       command.add("-r");
     }
@@ -547,6 +539,9 @@ public final class ProcesschunksParam implements DetachedCommandDetails,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.45  2010/10/19 06:35:40  sueh
+ * <p> bug# 1364 Make second command specific for nicing.
+ * <p>
  * <p> Revision 1.44  2010/04/28 16:05:38  sueh
  * <p> bug# 1344 Added getOutputImageFileType functions.
  * <p>
