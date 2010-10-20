@@ -215,13 +215,14 @@ void Processchunks::loadParams(int &argc, char **argv) {
 //Setup mSshOpts, mCpuArray, mProcessArray, mHostRoot, mRemoteDir.  Probe
 //machines.
 void Processchunks::setup() {
-  //Get current directory if the -w option was not used
-  if (mRemoteDir == NULL) {
-    mRemoteDir = new QString(mCurrentDir.absolutePath().toLatin1().data());
-  }
   setupSshOpts();
   setupMachineList();
   setupHostRoot();
+  //Get current directory if the -w option was not used
+  if (mRemoteDir == NULL) {
+    mRemoteDir = new QString(mCurrentDir.absolutePath().toLatin1().data());
+    mRemoteDir->replace("/localscratch/", QString("/scratch/%1/").arg(mHostRoot));
+  }
   setupEnvironment();
   setupProcessArray();
   probeMachines();
@@ -545,8 +546,11 @@ int Processchunks::escapeEntered() {
     if (!read(fileno(stdin), &charin, 1))
       return 0;
     if (charin == '\n') {
-      if (numChar == 1 && gotEsc == 1)
+      if (numChar == 1 && gotEsc == 1) {
+        numChar = 0;
+        gotEsc = 0;
         return 1;
+      }
       numChar = 0;
       gotEsc = 0;
     }
@@ -1688,6 +1692,9 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.23  2010/10/19 18:29:43  sueh
+ bug# 1364 In escapeEntered returning 0 if no character read.
+
  Revision 1.22  2010/10/18 23:17:11  sueh
  bug# 1364 Changed printVersionWarning to printOsInformation.  Using
  INFORMATION: instead of WARNING: for a message that is always printed.
