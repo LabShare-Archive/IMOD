@@ -89,6 +89,9 @@ extern "C" {
   int fitSphere(float *xpt, float *ypt, float *zpt, int numPts,
                      float *rad, float *xcen, float *ycen, float *zcen,
                      float *rmsErr);
+  int fitSphereWgt(float *xpt, float *ypt, float *zpt, float *weights,
+                   int numPts, float *rad, float *xcen, float *ycen,
+                   float *zcen, float *rmsErr);
 
   /* insidecontour.c */
   int InsideContour(float *ptX, float *ptY, int np, float x, float y);
@@ -195,6 +198,9 @@ extern "C" {
 /*
 
 $Log$
+Revision 3.21  2010/06/19 23:40:06  mast
+Added find_piece_shifts
+
 Revision 3.20  2010/06/06 21:14:34  mast
 Added gaussj
 

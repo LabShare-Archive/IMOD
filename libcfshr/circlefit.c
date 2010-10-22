@@ -14,6 +14,8 @@
 
 static void circleErr(float *y, float *error);
 static void sphereErr(float *y, float *error);
+static void circleErrWgt(float *y, float *error);
+static void sphereErrWgt(float *y, float *error);
 
 /* Determinant of 3x3 matrix */
 #define determ3(a1,a2,a3,b1,b2,b3,c1,c2,c3) ((a1)*(b2)*(c3) - (a1)*(b3)*(c2) +\
@@ -59,19 +61,37 @@ int circleThrough3Pts(float x1, float y1, float x2, float y2, float x3,
 static float *xp;
 static float *yp;
 static float *zp;
+static float *wgt;
 static int numpt;
 #define MAXVAR 5
 
 /*! 
  * Fit a circle or sphere to a set of points using a simplex search with
- * the @amoeba routine.
+ * the @amoeba routine. ^
  * Inputs: X and Y coordinates in arrays [xpt], [ypt]; [zpt] is NULL for a 
- * circle fit or has the array of Z coordinate; number of points in [numPts].  
+ * circle fit or has the array of Z coordinate; number of points in [numPts]. ^
  * Outputs: radius in [rad], center coordinate in [xcen], [ycen], and [zcen]
  * for a sphere fit, and RMS error in [rmsErr].  Returns 0.
  */
 int fitSphere(float *xpt, float *ypt, float *zpt, int numPts, float *rad, 
               float *xcen, float *ycen, float *zcen, float *rmsErr)
+{
+  return fitSphereWgt(xpt, ypt, zpt, NULL, numPts, rad, xcen, ycen, zcen,
+                      rmsErr);
+}
+
+/*! 
+ * Fit a circle or sphere to a set of points with weighting of errors using a 
+ * simplex search with the @amoeba routine. ^
+ * Inputs: X and Y coordinates in arrays [xpt], [ypt]; [zpt] is NULL for a 
+ * circle fit or has the array of Z coordinate; [weights] has an array of 
+ * weights or is NULL for no weighting; the number of points is in [numPts]. ^
+ * Outputs: radius in [rad], center coordinate in [xcen], [ycen], and [zcen]
+ * for a sphere fit, and RMS error in [rmsErr].  Returns 0.
+ */
+int fitSphereWgt(float *xpt, float *ypt, float *zpt, float *weights, 
+                 int numPts, float *rad, float *xcen, float *ycen, float *zcen,
+                 float *rmsErr)
 {
   float pp[MAXVAR + 1][MAXVAR + 1], yy[MAXVAR + 1];
   float ptol[MAXVAR], a[MAXVAR];
@@ -79,6 +99,10 @@ int fitSphere(float *xpt, float *ypt, float *zpt, int numPts, float *rad,
   float errmin, ftol1, ftol2, delfac, ptol1, ptol2;
   float da[MAXVAR] = {2., 2., 2., 2.};
   void (*funk)(float *, float *) = circleErr;
+  if (weights) {
+    funk = circleErrWgt;
+    wgt = weights;
+  }
   
   delfac = 2.;
   ftol2 = 5.e-4f;
@@ -98,6 +122,8 @@ int fitSphere(float *xpt, float *ypt, float *zpt, int numPts, float *rad,
     zp = zpt;
     a[3] = *zcen;
     funk = sphereErr;
+    if (weights)
+      funk = sphereErrWgt;
     nvar = 4;
   }
 
@@ -147,6 +173,28 @@ static void circleErr(float *y, float *error)
   *error = (float)(err / numpt);
 }
 
+/* Function to compute the error of the circle fit for given vector y with 
+   weighting */
+static void circleErrWgt(float *y, float *error)
+{
+  float xcen, ycen, rad;
+  double delx, dely, delrad, err;
+  int i;
+
+  rad = y[0];
+  xcen = y[1];
+  ycen = y[2];
+  err = 0.;
+  for (i = 0; i < numpt; i++) {
+    delx = xp[i] - xcen;
+    dely = yp[i] - ycen;
+    delrad = sqrt(delx * delx + dely * dely) - rad;
+    err += delrad * delrad * wgt[i];
+  }
+
+  *error = (float)(err / numpt);
+}
+
 /* Function to compute the error of the sphere fit for given vector y */
 static void sphereErr(float *y, float *error)
 {
@@ -170,8 +218,35 @@ static void sphereErr(float *y, float *error)
   *error = (float)(err / numpt);
 }
 
+/* Function to compute the error of the sphere fit for given vector y with 
+   weights*/
+static void sphereErrWgt(float *y, float *error)
+{
+  float xcen, ycen, zcen, rad;
+  double delx, dely, delz, delrad, err;
+  int i;
+
+  rad = y[0];
+  xcen = y[1];
+  ycen = y[2];
+  zcen = y[3];
+  err = 0.;
+  for (i = 0; i < numpt; i++) {
+    delx = xp[i] - xcen;
+    dely = yp[i] - ycen;
+    delz = zp[i] - zcen;
+    delrad = sqrt(delx * delx + dely * dely + delz * delz) - rad;
+    err += delrad * delrad * wgt[i];
+  }
+
+  *error = (float)(err / numpt);
+}
+
 /*
   $Log$
+  Revision 1.2  2007/10/19 19:43:40  mast
+  Document
+
   Revision 1.1  2007/10/01 15:26:09  mast
   *** empty log message ***
   
