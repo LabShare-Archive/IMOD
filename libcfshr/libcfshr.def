@@ -78,6 +78,7 @@ EXPORTS
 	ilistTruncate
 	incompBeta
 	b3dFread
+	ROTMAGSTR_TO_AMAT
 	AdocOpenImageMetadata
 	ADOCGETFLOATARRAY
 	sumsToAvgSD
@@ -116,6 +117,7 @@ EXPORTS
 	rsSortIndexedFloats
 	XCorrMeanZero
 	cmapInvertedRamp
+	stat64
 	sumsToAvgSDdbl
 	PIPSETMANPAGEOUTPUT
 	RSMADMEDIANOUTLIERS
@@ -213,6 +215,7 @@ EXPORTS
 	amoeba
 	SETCTFWSR
 	ADOCGETSECTIONNAME
+	fitSphereWgt
 	CONJUGATEPRODUCT
 	XCORRPEAKFIND
 	rsMedian
@@ -302,6 +305,7 @@ EXPORTS
 	AdocDone
 	imodVersion
 	SMOOTHOUTPAD
+	rotmagstrToAmat
 	INCOMPBETA
 	SCALEDSOBEL
 	AdocAddSection

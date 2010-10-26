@@ -246,6 +246,9 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\convexbound.c">
+			</File>
+			<File
 				RelativePath="cubinterp.c">
 				<FileConfiguration
 					Name="Release|Win32">
@@ -284,6 +287,9 @@
 						PreprocessorDefinitions=""
 						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\gaussj.c">
 			</File>
 			<File
 				RelativePath="histogram.c">
@@ -458,6 +464,9 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\robuststat.c">
+			</File>
+			<File
 				RelativePath="samplemeansd.c">
 				<FileConfiguration
 					Name="Release|Win32">
@@ -519,6 +528,12 @@
 			</File>
 			<File
 				RelativePath=".\sparselsqr.c">
+			</File>
+			<File
+				RelativePath=".\statfuncs.c">
+			</File>
+			<File
+				RelativePath=".\surfacesort.c">
 			</File>
 			<File
 				RelativePath="taperatfill.c">
