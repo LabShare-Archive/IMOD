@@ -140,6 +140,8 @@ extern "C" {
   /* amat_to_rotamgstr.c */
   void amatToRotmagstr(float a11, float a12, float a21, float a22, 
                          float *theta, float *smag, float *str, float *phi);
+  void rotmagstrToAmat(float theta, float smag, float str, float phi,
+                       float *a11, float *a12, float *a21, float *a22);
 
   /* percentile.c */
   float percentileFloat(int s, float *r, int num);
@@ -198,6 +200,9 @@ extern "C" {
 /*
 
 $Log$
+Revision 3.22  2010/10/22 05:36:21  mast
+Add weighting to circle fits
+
 Revision 3.21  2010/06/19 23:40:06  mast
 Added find_piece_shifts
 
