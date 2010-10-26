@@ -4,6 +4,9 @@
  * $Id$
 
  * $Log$
+ * Revision 1.1  2008/11/18 22:42:37  mast
+ * Moved to libcfshr
+ *
  * Revision 3.2  2006/05/20 16:07:24  mast
  * Fixed to handle negative stretch/mirroring
  *
@@ -17,11 +20,14 @@
 
 #ifdef F77FUNCAP
 #define amat_to_rotmagstr AMAT_TO_ROTMAGSTR
+#define rotmagstr_to_amat ROTMAGSTR_TO_AMAT
 #else
 #ifdef G77__HACK
 #define amat_to_rotmagstr amat_to_rotmagstr__
+#define rotmagstr_to_amat rotmagstr_to_amat__
 #else
 #define amat_to_rotmagstr amat_to_rotmagstr_
+#define rotmagstr_to_amat rotmagstr_to_amat_
 #endif
 #endif
 
@@ -173,3 +179,42 @@ void amat_to_rotmagstr(float *amat, float *theta, float *smag, float *str,
 {
   amatToRotmagstr(amat[0], amat[1], amat[2], amat[3], theta, smag, str, phi);
 }
+
+/*!
+ * Obtains a 2 by 2 transformation from four parameters of image 
+ * transformation: [theta] is overall rotation, [smag] is overall
+ * magnification, [str] is a unidirectional stretch, and [phi] is the angle
+ * of the stretch axis, where angles are in degrees.  The transformation is 
+ * returned in [a11], [a12], [a21], and [a22].
+ */
+void rotmagstrToAmat(float theta, float smag, float str, float phi, float *a11,
+                     float *a12, float *a21, float *a22)
+{
+  double ator = 0.0174532925;
+  float sinth, costh, sinphi, cosphi, sinphisq, cosphisq, f1, f2, f3;
+
+  costh = (float)cos(ator * theta);
+  sinth = (float)sin(ator * theta);
+  cosphi = (float)cos(ator * phi);
+  sinphi = (float)sin(ator * phi);
+  cosphisq = cosphi * cosphi;
+  sinphisq = sinphi * sinphi;
+  f1 = smag * (str * cosphisq + sinphisq);
+  f2 = smag * (str - 1.) * cosphi * sinphi;
+  f3 = smag * (str * sinphisq + cosphisq);
+  *a11 = f1 * costh - f2 * sinth;
+  *a12 = f2 * costh - f3 * sinth;
+  *a21 = f1 * sinth + f2 * costh;
+  *a22 = f2 * sinth + f3 * costh;
+}
+
+/*!
+ * Fortran wrapper to @rotmagstrToAmat, where [amat] is dimensioned (2,*)
+ * or otherwise has elements in the order [a11], [a12], [a21], [a22].
+ */
+void rotmagstr_to_amat(float *theta, float *smag, float *str, float *phi,
+                       float *amat)
+{
+  rotmagstrToAmat(*theta, *smag, *str, *phi, amat, amat+1, amat+2, amat+3);
+}
+
