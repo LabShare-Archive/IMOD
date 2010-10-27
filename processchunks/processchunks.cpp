@@ -73,9 +73,11 @@ int main(int argc, char **argv) {
   pc.printOsInformation();
   pc.loadParams(argc, argv);
   pc.setup();
+#ifndef _WIN32
   if (!pc.askGo()) {
     return 0;
   }
+#endif
   pc.startLoop();
 }
 
@@ -1694,6 +1696,9 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.26  2010/10/27 21:33:44  sueh
+ bug# 1364 Don't probe machines on Windows.
+
  Revision 1.25  2010/10/20 22:36:31  sueh
  bug# 1364 Removing convert from localscratch to scratch/host.  This was
  in the old processchunks to solve a problem that doesn't exist anymore.
