@@ -37,7 +37,7 @@ if ($compiler == intel) then
     set fcmpNoportFlags = "/C90"
     set fcomp = ifl
     set fcompFlags = "/4L132 /Qvec-report:0"
-    set ccompFlags = "/Qvec-report:0"
+    set ccompFlags = "/Qvec-report:0 -D_CRT_SECURE_NO_WARNINGS"
     
     # Get the version from icl, assuming we have matched c++/fortran compilers
     #
@@ -364,6 +364,7 @@ while ($i < $#qdir)
             echo QMAKE_CXXFLAGS_DEBUG += $openmpFlags >> $qdir[$i]/qconfigure
             echo QMAKE_CFLAGS_DEBUG += $openmpFlags >> $qdir[$i]/qconfigure
         endif
+        echo QMAKE_CXXFLAGS_DEBUG += -D_CRT_SECURE_NO_WARNINGS >> $qdir[$i]/qconfigure
     else
         echo CONFIG += thread release $warn[$i] >> $qdir[$i]/qconfigure
         echo CONFIG -= debug_and_release debug >> $qdir[$i]/qconfigure
@@ -372,6 +373,7 @@ while ($i < $#qdir)
             echo QMAKE_CXXFLAGS_RELEASE += $openmpFlags >> $qdir[$i]/qconfigure
             echo QMAKE_CFLAGS_RELEASE += $openmpFlags >> $qdir[$i]/qconfigure
         endif
+        echo QMAKE_CXXFLAGS_RELEASE += -D_CRT_SECURE_NO_WARNINGS >> $qdir[$i]/qconfigure
     endif
 
     if ($compiler == intel) then
