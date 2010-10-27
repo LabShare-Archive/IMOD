@@ -1086,6 +1086,8 @@ void Processchunks::setupProcessArray() {
 
 //Probe machines by running the "w" command.  Drop machines that don't respond.
 void Processchunks::probeMachines() {
+//Windows processchunks only runs on the local machine.
+#ifndef _WIN32
   int i;
   //Remove the old checkfile
   if (mCheckFile != NULL) {
@@ -1123,7 +1125,7 @@ void Processchunks::probeMachines() {
         status = runProcessAndOutputLines(w, remoteCommand, remoteParams, 2);
       }
       //status can also be set to 1 on the local machine if it times out.
-      //No longer testing for 141 before no longer supporting SGI
+      //No longer testing for 141 because no longer supporting SGI
       if (status != 0) {
         *mOutStream << "Dropping " << machName
             << " from list because it does not respond" << endl << endl;
@@ -1141,6 +1143,7 @@ void Processchunks::probeMachines() {
       *mOutStream << "end probe machines" << endl;
     }
   }
+#endif
 }
 
 //Look for commands in mCheckFile.  CheckFile is kept open so already processed
@@ -1691,6 +1694,10 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.25  2010/10/20 22:36:31  sueh
+ bug# 1364 Removing convert from localscratch to scratch/host.  This was
+ in the old processchunks to solve a problem that doesn't exist anymore.
+
  Revision 1.24  2010/10/20 20:38:39  sueh
  bug# 1364 In setup replacing localscratch with scratch/hostname in
  mRemoteDir.
