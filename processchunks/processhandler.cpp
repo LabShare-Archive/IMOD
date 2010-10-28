@@ -396,7 +396,7 @@ const bool ProcessHandler::isChunkDone() {
   return done;
 }
 
-void ProcessHandler::resetPausing(){
+void ProcessHandler::resetPausing() {
   mPausing = 0;
 }
 
@@ -628,6 +628,10 @@ void ProcessHandler::runProcess(MachineHandler *machine) {
       //Escape spaces in the directory path
       //Escaping the single quote shouldn't be necessary because this is not
       //being run from a shell.
+      if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+        mProcesschunks->getOutStream() << "mCshFile->fileName():"
+            << mCshFile->fileName() << endl;
+      }
       QString param = QString("\"cd %1 && (csh -ef < %2 ; \\rm -f %3)\"").arg(
           mEscapedRemoteDirPath, mCshFile->fileName(), mCshFile->fileName());
       paramList = new QStringList();
