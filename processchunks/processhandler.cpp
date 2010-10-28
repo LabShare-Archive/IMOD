@@ -119,7 +119,11 @@ void ProcessHandler::setup(Processchunks &processchunks,
   else {
     //Local host command
     //csh -ef < $cshname >& $pidname ; \rm -f $cshname &
+#ifndef _WIN32
     mCommand = "csh";
+#else
+    mCommand = "tcsh";
+#endif
     mParamList << "-ef";
   }
   initProcess();
@@ -618,6 +622,7 @@ void ProcessHandler::runProcess(MachineHandler *machine) {
   QString *command = NULL;
   QStringList *paramList = NULL;
   if (!mProcesschunks->isQueue()) {
+    //It is not working to run processes using csh on Windows.
     if (mMachine->getName() != mProcesschunks->getHostRoot()
         && mMachine->getName() != "localhost") {
       //Create remove command
@@ -639,10 +644,6 @@ void ProcessHandler::runProcess(MachineHandler *machine) {
       *paramList << mMachine->getName() << "bash" << "--login" << "-c" << param;
     }
     else {
-      if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-        mProcesschunks->getOutStream() << "mCshFile->fileName():"
-            << mCshFile->fileName() << endl;
-      }
       //Use local command - which doesn't contain a remove command.
       mProcess->setStandardInputFile(mCshFile->fileName());
     }
