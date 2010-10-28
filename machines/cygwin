@@ -536,7 +536,7 @@ echo VCEXEDIR = $vcexedir >> $configure
 
 # 5/20/10: removed Workaround for vista w/o manifest, i.e. imod2vatch etc.
 #
-echo "GENERATED_SCRIPTS = 3dmodbg 3dmodv" >> $configure
+echo "GENERATED_SCRIPTS = 3dmodbg 3dmodv processchunksbg" >> $configure
 
 # Set up to copy qt lib to bin dir for a distribution
 #
