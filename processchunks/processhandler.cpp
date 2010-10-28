@@ -641,7 +641,7 @@ void ProcessHandler::runProcess(MachineHandler *machine) {
     else {
       if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
         mProcesschunks->getOutStream() << "mCshFile->fileName():"
-            << mCshFile->fileName() << mCshFile->fileName() << endl;
+            << mCshFile->fileName() << endl;
       }
       //Use local command - which doesn't contain a remove command.
       mProcess->setStandardInputFile(mCshFile->fileName());
