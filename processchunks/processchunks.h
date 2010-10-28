@@ -42,7 +42,7 @@ public:
   QDir &getCurrentDir();
   const QStringList &getQueueParamList();
   const bool isVerbose(const QString &verboseClass,
-      const char *verboseFunction, const int verbosity = 1);
+      const QString verboseFunction, const int verbosity = 1);
   QTextStream &getOutStream();
   const bool isSingleFile();
   const QString &getHostRoot();

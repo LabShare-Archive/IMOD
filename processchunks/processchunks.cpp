@@ -973,6 +973,9 @@ void Processchunks::setupEnvironment() {
   mEnv = QProcess::systemEnvironment();
   QString pathReplace("PATH=");
   pathReplace.append(getenv("IMOD_DIR"));
+  if (isVerbose(mDecoratedClassName, __func__)) {
+    *mOutStream << "pathReplace:" << pathReplace << endl;
+  }
 #ifdef _WIN32
   pathReplace.append(";");
 #else
@@ -1088,7 +1091,7 @@ void Processchunks::setupProcessArray() {
 
 //Probe machines by running the "w" command.  Drop machines that don't respond.
 void Processchunks::probeMachines() {
-//Windows processchunks only runs on the local machine.
+  //Windows processchunks only runs on the local machine.
 #ifndef _WIN32
   int i;
   //Remove the old checkfile
@@ -1632,7 +1635,8 @@ const QStringList &Processchunks::getQueueParamList() {
 }
 
 const bool Processchunks::isVerbose(const QString &verboseClass,
-    const char *verboseFunction, const int verbosity) {
+    const QString verboseFunction, const int verbosity) {
+  int i;
   if (!mVerbose) {
     return false;
   }
@@ -1648,10 +1652,20 @@ const bool Processchunks::isVerbose(const QString &verboseClass,
   if (mVerboseFunctionList.isEmpty()) {
     return true;
   }
-  if (!mVerboseFunctionList.contains(verboseFunction, Qt::CaseInsensitive)) {
-    return false;
+  //#ifdef _WIN32
+  for (i = 0; i < mVerboseFunctionList.size(); i++) {
+    if (verboseFunction.endsWith(mVerboseFunctionList.at(i),
+        Qt::CaseInsensitive)) {
+      return true;
+    }
   }
-  return true;
+  return false;
+  //#else
+  //if (!mVerboseFunctionList.contains(verboseFunction, Qt::CaseInsensitive)) {
+  //  return false;
+  //}
+  //return true;
+  //#endif
 }
 
 const char Processchunks::getAns() {
@@ -1696,6 +1710,9 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.27  2010/10/27 21:45:08  sueh
+ bug# 1364 Only call askGo if not on Windows.
+
  Revision 1.26  2010/10/27 21:33:44  sueh
  bug# 1364 Don't probe machines on Windows.
 
