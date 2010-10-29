@@ -118,9 +118,9 @@ void Processchunks::printOsInformation() {
   printf(
       "\nIMPORTANT:  Ctrl-C does not work with this version of processchunks.  Use ");
 #ifndef _WIN32
-  printf("<Esc> <Enter>.");
+  printf("<Esc> <Enter>.\n\n");
 #else
-  printf("the -c option (-c defaults to \"-c processchunksinput\").");
+  printf("the -c option (-c defaults to \"-c processchunksinput\").\n\n");
 #endif
 }
 
@@ -1709,6 +1709,9 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.29  2010/10/29 00:46:24  sueh
+ bug# 1363 In printOsInformation improved Windows message.
+
  Revision 1.28  2010/10/28 00:17:55  sueh
  bug# 1364 In isVerbose handling window - the function description is
  different there.
