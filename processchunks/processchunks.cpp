@@ -1090,8 +1090,6 @@ void Processchunks::setupProcessArray() {
 
 //Probe machines by running the "w" command.  Drop machines that don't respond.
 void Processchunks::probeMachines() {
-  //Windows processchunks only runs on the local machine.
-#ifndef _WIN32
   int i;
   //Remove the old checkfile
   if (mCheckFile != NULL) {
@@ -1099,6 +1097,8 @@ void Processchunks::probeMachines() {
       mCheckFile->remove();
     }
   }
+  //Windows processchunks only runs on the local machine.
+#ifndef _WIN32
   //probe machines and get all the verifications unless etomo is running it
   if (!mSkipProbe || !mJustGo) {
     *mOutStream << "Probing machine connections and loads..." << endl;
@@ -1709,6 +1709,9 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.30  2010/10/29 00:53:23  sueh
+ bug# 1363 In printOsInformation improved Windows message.
+
  Revision 1.29  2010/10/29 00:46:24  sueh
  bug# 1363 In printOsInformation improved Windows message.
 
