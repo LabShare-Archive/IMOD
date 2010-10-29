@@ -1650,8 +1650,8 @@ const bool Processchunks::isVerbose(const QString &verboseClass,
 }
 
 //Returns true if its parameters match the verbose member variables.  If print
-//is true, may print this function's verbose message (uses the verbosity level
-//from the calling function).
+//is true, will print this function's verbose message only if class and
+//function match (uses the verbosity level from the calling function).
 const bool Processchunks::isVerbose(const QString &verboseClass,
     const QString verboseFunction, const int verbosity, const bool print) {
   int i;
@@ -1661,14 +1661,14 @@ const bool Processchunks::isVerbose(const QString &verboseClass,
   if (verbosity > mVerbose) {
     return false;
   }
-  if (print) {
+  if (mVerboseClass.isEmpty()) {
+    return true;
+  }
+  if (!mVerboseFunctionList.isEmpty() && print) {
     if (isVerbose(mDecoratedClassName, __func__, 1, false)) {
       *mOutStream << "verboseClass:" << verboseClass << ",verboseFunction:"
           << verboseFunction << ",verbosity:" << verbosity << endl;
     }
-  }
-  if (mVerboseClass.isEmpty()) {
-    return true;
   }
   if (!verboseClass.endsWith(mVerboseClass, Qt::CaseInsensitive)) {
     return false;
@@ -1727,6 +1727,9 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.33  2010/10/29 21:51:15  sueh
+ bug# 1363 In printOsInformation improved Windows message.
+
  Revision 1.32  2010/10/29 16:42:37  sueh
  bug# 1364 Added a ? option for the -V parameter.
 
