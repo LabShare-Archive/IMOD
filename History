@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/29/10: Chnaged Edpiecepoint to allow making up a piece list with pieces in
+any order.
+
 10/22/10: IMOD_4-2-7
 10/19/10: Switch to running programs with script wrappers on Intel Macs to 
 avoid conflicts with Intel libraries used by other packages.
