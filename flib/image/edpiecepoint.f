@@ -16,15 +16,19 @@ c
 c       $Id$
 c       
 c       $Log$
+c       Revision 3.2  2008/01/09 06:32:53  mast
+c       Extended dummy list to make a list for a montage
+c
 c       
       implicit none
       integer limpcl, limsec
-      parameter (limpcl=1000000,limsec=1000000)
-      character*160 pclfil
+      parameter (limpcl=10000000,limsec=10000000)
+      character*320 pclfil
       integer*4 ixpclist(limpcl),iypclist(limpcl),izpclist(limpcl)
       integer*4 listz(limsec),newlist(limsec),indxzlst(limsec)
       integer*4 npclist, nxframe, nyframe, nxdelta, nydelta,nzdummy, ix, iy, iz
-      integer*4 i, nlistz,nnew,ixadd,iyadd,izadd,ipc,newzval,indmov
+      integer*4 i, nlistz,nnew,ixadd,iyadd,izadd,ipc,newzval,indmov, ifcol
+      integer*4 ixbase, iybase, inner, iouter, ninner, nouter
 c       
       nxframe = 1
       nyframe = 1
@@ -44,16 +48,34 @@ c
         read(*,*)nzdummy
         write(*,'(1x,a,$)')'# of montage pieces in X and in Y (/ for 1,1): '
         read(5,*)nxframe, nyframe
-        write(*,'(1x,a,$)')
-     &      'Spacing between pieces in X and Y (size minus overlap): '
+        write(*,'(1x,a,$)') 'Spacing between pieces in X and Y '//'
+     &      (- for pieces in inverse order): '
         read(5,*)nxdelta, nydelta
+        write(*,'(1x,a,$)')'0 for pieces in rows, 1 for pieces in columns: '
+        read(5,*)ifcol
+        ninner = nxframe
+        nouter = nyframe
+        if (ifcol .ne. 0) then
+          ninner = nyframe
+          nouter = nxframe
+        endif
         i = 0
+        ixbase = 0
+        iybase = 0
+        if (nxdelta .lt. 0) ixbase = -(nxframe - 1) * nxdelta
+        if (nydelta .lt. 0) iybase = -(nyframe - 1) * nydelta
         do iz=1,nzdummy
-          do iy = 1, nyframe
-            do ix = 1, nxframe
+          do iouter = 1, nouter
+            do inner = 1, ninner
+              ix = inner
+              iy = iouter
+              if (ifcol .ne. 0) then
+                ix = iouter
+                iy = inner
+              endif
               i = i + 1
-              ixpclist(i)=(ix - 1) * nxdelta
-              iypclist(i)=(iy - 1) * nydelta
+              ixpclist(i) = ixbase + (ix - 1) * nxdelta
+              iypclist(i) = iybase + (iy - 1) * nydelta
               izpclist(i)=iz-1
             enddo
           enddo
