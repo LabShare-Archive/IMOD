@@ -118,11 +118,10 @@ void Processchunks::printOsInformation() {
   printf(
       "\nIMPORTANT:  Ctrl-C does not work with this version of processchunks.  Use ");
 #ifndef _WIN32
-  printf("<Esc> <Enter>");
+  printf("<Esc> <Enter>.");
 #else
-  printf("the -c option");
+  printf("the -c option (-c defaults to \"-c processchunksinput\").");
 #endif
-  printf(" instead.\n\n");
 }
 
 //Print usage statement
@@ -1710,6 +1709,10 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.28  2010/10/28 00:17:55  sueh
+ bug# 1364 In isVerbose handling window - the function description is
+ different there.
+
  Revision 1.27  2010/10/27 21:45:08  sueh
  bug# 1364 Only call askGo if not on Windows.
 
