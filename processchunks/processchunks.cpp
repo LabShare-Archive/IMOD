@@ -120,7 +120,7 @@ void Processchunks::printOsInformation() {
 #ifndef _WIN32
   printf("<Esc> <Enter>.\n\n");
 #else
-  printf("the -c option (-c defaults to \"-c processchunksinput\").\n\n");
+  printf("the -c option (-c defaults to processchunksinput).\n\n");
 #endif
 }
 
@@ -1727,6 +1727,9 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.32  2010/10/29 16:42:37  sueh
+ bug# 1364 Added a ? option for the -V parameter.
+
  Revision 1.31  2010/10/29 01:00:10  sueh
  bug# 1364 In probeMachines remove check file in Windows.
 
