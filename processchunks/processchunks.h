@@ -97,6 +97,8 @@ private:
   void cleanupKillProcesses(const bool timeout);
   const bool handleError(const QString *errorMess, MachineHandler *machine,
       const int cpuIndex, const int processIndex);
+  const bool isVerbose(const QString &verboseClass,
+      const QString verboseFunction, const int verbosity, const bool print);
 
   int mSizeProcessArray;
   ProcessHandler *mProcessArray;

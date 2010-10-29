@@ -61,7 +61,7 @@ static char
         ":Q:CH:Machine name to use for the queue (default queue)",
         ":P:B:Output process ID",
         ":v:B:Verbose.",
-        ":V:CH:[class,[function,[...]]],[2]  Verbose instructions.  2 means more verbose.  Case insensitive.  No effect if \"-v\" is not used.",
+        ":V:CH:class[,function[,...]][,2]|2|?|?,2  Verbose instructions.  2 means more verbose.  Case insensitive.  No effect if \"-v\" is not used.",
         ":help:B:Print usage message" };
 static char *queueNameDefault = "queue";
 Processchunks *processchunksInstance;
@@ -167,25 +167,36 @@ void Processchunks::loadParams(int &argc, char **argv) {
   PipGetBoolean("v", &mVerbose);
   if (mVerbose) {
     char *verboseClassFunctions = NULL;
+    //Set verbose instructions.
     PipGetString("V", &verboseClassFunctions);
     if (verboseClassFunctions != NULL) {
       QString param(verboseClassFunctions);
       QStringList paramList = param.trimmed().split(",",
           QString::SkipEmptyParts);
       if (!paramList.isEmpty()) {
+        //Set verbosity level.
         bool ok;
         int temp = paramList.at(paramList.size() - 1).toInt(&ok);
         if (ok) {
           mVerbose = temp;
           paramList.removeAt(paramList.size() - 1);
         }
-      }
-      if (!paramList.isEmpty()) {
-        mVerboseClass = paramList.at(0);
-        paramList.removeAt(0);
-      }
-      if (!paramList.isEmpty()) {
-        mVerboseFunctionList = paramList;
+        bool help = false;
+        if (!paramList.isEmpty()) {
+          //Set the verbose class.
+          mVerboseClass = paramList.at(0);
+          paramList.removeAt(0);
+          if (mVerboseClass == "?") {
+            help = true;
+            //If the param is a question mark, print messages from Processchunks::isVerbose.
+            mVerboseClass = "processchunks";
+            mVerboseFunctionList.append("isverbose");
+          }
+        }
+        if (!help && !paramList.isEmpty()) {
+          //Set the verbose function list.
+          mVerboseFunctionList = paramList;
+        }
       }
     }
   }
@@ -1635,12 +1646,26 @@ const QStringList &Processchunks::getQueueParamList() {
 
 const bool Processchunks::isVerbose(const QString &verboseClass,
     const QString verboseFunction, const int verbosity) {
+  return isVerbose(verboseClass, verboseFunction, verbosity, true);
+}
+
+//Returns true if its parameters match the verbose member variables.  If print
+//is true, may print this function's verbose message (uses the verbosity level
+//from the calling function).
+const bool Processchunks::isVerbose(const QString &verboseClass,
+    const QString verboseFunction, const int verbosity, const bool print) {
   int i;
   if (!mVerbose) {
     return false;
   }
   if (verbosity > mVerbose) {
     return false;
+  }
+  if (print) {
+    if (isVerbose(mDecoratedClassName, __func__, 1, false)) {
+      *mOutStream << "verboseClass:" << verboseClass << ",verboseFunction:"
+          << verboseFunction << ",verbosity:" << verbosity << endl;
+    }
   }
   if (mVerboseClass.isEmpty()) {
     return true;
@@ -1651,7 +1676,6 @@ const bool Processchunks::isVerbose(const QString &verboseClass,
   if (mVerboseFunctionList.isEmpty()) {
     return true;
   }
-  //#ifdef _WIN32
   for (i = 0; i < mVerboseFunctionList.size(); i++) {
     if (verboseFunction.endsWith(mVerboseFunctionList.at(i),
         Qt::CaseInsensitive)) {
@@ -1659,12 +1683,6 @@ const bool Processchunks::isVerbose(const QString &verboseClass,
     }
   }
   return false;
-  //#else
-  //if (!mVerboseFunctionList.contains(verboseFunction, Qt::CaseInsensitive)) {
-  //  return false;
-  //}
-  //return true;
-  //#endif
 }
 
 const char Processchunks::getAns() {
@@ -1709,6 +1727,9 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.31  2010/10/29 01:00:10  sueh
+ bug# 1364 In probeMachines remove check file in Windows.
+
  Revision 1.30  2010/10/29 00:53:23  sueh
  bug# 1363 In printOsInformation improved Windows message.
 
