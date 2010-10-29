@@ -45,6 +45,7 @@ using namespace std;
  */
 static char
     *options[] = {
+        ":help:B:Print usage message",
         ":r:B:Resume, retaining existing finished files (the default is to remove all log files and redo everything)",
         ":s:B:Run a single command file named root_name or root_name.com",
         ":g:B:Go process, without asking for confirmation after probing machines",
@@ -61,8 +62,7 @@ static char
         ":Q:CH:Machine name to use for the queue (default queue)",
         ":P:B:Output process ID",
         ":v:B:Verbose.",
-        ":V:CH:class[,function[,...]][,2]|2|?|?,2  Verbose instructions.  2 means more verbose.  Case insensitive.  No effect if \"-v\" is not used.",
-        ":help:B:Print usage message" };
+        ":V:CH:?|?,2|class[,function[,...]][,2]|2  Verbose instructions:  case insensitive, matches from the end of the class or function name." };
 static char *queueNameDefault = "queue";
 Processchunks *processchunksInstance;
 
@@ -1666,8 +1666,8 @@ const bool Processchunks::isVerbose(const QString &verboseClass,
   }
   if (!mVerboseFunctionList.isEmpty() && print) {
     if (isVerbose(mDecoratedClassName, __func__, 1, false)) {
-      *mOutStream << "verboseClass:" << verboseClass << ",verboseFunction:"
-          << verboseFunction << ",verbosity:" << verbosity << endl;
+      *mOutStream << verboseClass << "," << verboseFunction << "," << verbosity
+          << endl;
     }
   }
   if (!verboseClass.endsWith(mVerboseClass, Qt::CaseInsensitive)) {
@@ -1727,6 +1727,9 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.34  2010/10/29 23:42:39  sueh
+ bug# 1364 Exclude isVerbose print when ? is not used.
+
  Revision 1.33  2010/10/29 21:51:15  sueh
  bug# 1363 In printOsInformation improved Windows message.
 
