@@ -982,13 +982,22 @@ void Processchunks::setupEnvironment() {
   int i;
   mEnv = QProcess::systemEnvironment();
   QString pathReplace("PATH=");
-  char *env=getenv("IMOD_DIR");
-  char *copyOfEnv=NULL;
-  strcpy(copyOfEnv, env);
+  char *env = getenv("IMOD_DIR");
+  //Avoiding buffer overflow vulnerability
+  int bufferLength = 100;
+  char copyOfEnv[bufferLength];
+  memcpy(copyOfEnv, env, bufferLength);
   pathReplace.append(copyOfEnv);
-  if (isVerbose(mDecoratedClassName, __func__)) {
-    *mOutStream << "pathReplace:" << pathReplace << endl;
+  QString divider;
+#ifdef _WIN32
+  divider = "\\";
+#else
+  divider = "/";
+#endif
+  if (!pathReplace.endsWith(divider)) {
+    pathReplace.append(divider);
   }
+  pathReplace.append("bin");
 #ifdef _WIN32
   pathReplace.append(";");
 #else
@@ -1730,6 +1739,9 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.37  2010/10/30 00:20:32  sueh
+ bug# 1364 Fixed Windows warning.
+
  Revision 1.36  2010/10/30 00:19:02  sueh
  bug# 1364 Making a copy of the output of getenv before using it.
 
