@@ -982,7 +982,10 @@ void Processchunks::setupEnvironment() {
   int i;
   mEnv = QProcess::systemEnvironment();
   QString pathReplace("PATH=");
-  pathReplace.append(getenv("IMOD_DIR"));
+  char *env=getenv("IMOD_DIR");
+  char *copyOfEnv;
+  strcpy(copyOfEnv, env);
+  pathReplace.append(copyOfEnv);
   if (isVerbose(mDecoratedClassName, __func__)) {
     *mOutStream << "pathReplace:" << pathReplace << endl;
   }
@@ -1727,6 +1730,9 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.35  2010/10/29 23:55:49  sueh
+ bug# 1364 Improved isVerbose.
+
  Revision 1.34  2010/10/29 23:42:39  sueh
  bug# 1364 Exclude isVerbose print when ? is not used.
 
