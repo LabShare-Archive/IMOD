@@ -983,7 +983,7 @@ void Processchunks::setupEnvironment() {
   mEnv = QProcess::systemEnvironment();
   QString pathReplace("PATH=");
   char *env=getenv("IMOD_DIR");
-  char *copyOfEnv;
+  char *copyOfEnv=NULL;
   strcpy(copyOfEnv, env);
   pathReplace.append(copyOfEnv);
   if (isVerbose(mDecoratedClassName, __func__)) {
@@ -1730,6 +1730,9 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.36  2010/10/30 00:19:02  sueh
+ bug# 1364 Making a copy of the output of getenv before using it.
+
  Revision 1.35  2010/10/29 23:55:49  sueh
  bug# 1364 Improved isVerbose.
 
