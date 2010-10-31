@@ -72,8 +72,6 @@ void ProcessHandler::initProcess() {
       SLOT(handleReadyReadStandardError()));
   QObject::connect(mProcess, SIGNAL(readyReadStandardOutput()),
       SLOT(handleReadyReadStandardOutput()));
-  //Add $IMOD_DIR to the processes path
-  mProcess->setEnvironment(mProcesschunks->getEnv());
 }
 
 //Set mFlag to -1 for sync com files.
