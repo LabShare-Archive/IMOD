@@ -234,7 +234,6 @@ void Processchunks::setup() {
   if (mRemoteDir == NULL) {
     mRemoteDir = new QString(mCurrentDir.absolutePath().toLatin1().data());
   }
-  setupEnvironment();
   setupProcessArray();
   probeMachines();
 }
@@ -977,39 +976,6 @@ void Processchunks::setupHostRoot() {
   }
 }
 
-//Add $IMOD_DIR to the path
-void Processchunks::setupEnvironment() {
-  int i;
-  mEnv = QProcess::systemEnvironment();
-  QString pathReplace("PATH=");
-  char *env = getenv("IMOD_DIR");
-  pathReplace.append(env);
-  QString divider;
-#ifdef _WIN32
-  divider = "\\";
-#else
-  divider = "/";
-#endif
-  if (!pathReplace.endsWith(divider)) {
-    pathReplace.append(divider);
-  }
-  pathReplace.append("bin");
-#ifdef _WIN32
-  pathReplace.append(";");
-#else
-  pathReplace.append(":");
-#endif
-  pathReplace.append("\\1");
-  mEnv.replaceInStrings(QRegExp("^PATH=(.*)", Qt::CaseInsensitive), pathReplace);
-  if (isVerbose(mDecoratedClassName, __func__)) {
-    for (i = 0; i < mEnv.size(); ++i) {
-      if (mEnv.at(i).contains(QRegExp("^PATH=(.*)", Qt::CaseInsensitive))) {
-        *mOutStream << mEnv.at(i) << endl;
-      }
-    }
-  }
-}
-
 //Sets up mProcessArray for single file or multi-file processing
 void Processchunks::setupProcessArray() {
   int i;
@@ -1633,10 +1599,6 @@ void Processchunks::handleFileSystemBug() {
   mLsProcess->waitForFinished(10000);
 }
 
-const QStringList &Processchunks::getEnv() {
-  return mEnv;
-}
-
 const bool Processchunks::isQueue() {
   return mQueue;
 }
@@ -1735,6 +1697,9 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.39  2010/10/31 03:14:48  sueh
+ bug# 1364 Using QT::QString should be fine.
+
  Revision 1.38  2010/10/30 00:49:26  sueh
  bug# In setupEnvironment avoid the buffer overflow vulnerability and add "bin" onto the end of IMOD_DIR in the path.
 

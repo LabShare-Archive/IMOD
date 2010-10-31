@@ -36,7 +36,6 @@ public:
   void msgKillProcessDone(const int processIndex);
   void handleFileSystemBug();
 
-  const QStringList &getEnv();
   const bool isQueue();
   const QString &getQueueCommand();
   QDir &getCurrentDir();
@@ -68,7 +67,6 @@ private:
   void setupSshOpts();
   void setupMachineList();
   void setupHostRoot();
-  void setupEnvironment();
   void setupProcessArray();
   void probeMachines();
   const bool readCheckFile();
@@ -117,7 +115,7 @@ private:
   //setup
   int mCopyLogIndex, mNumCpus;
   QString mHostRoot, mQueueCommand, mDecoratedClassName;
-  QStringList mSshOpts, mQueueParamList, mEnv;
+  QStringList mSshOpts, mQueueParamList;
   QDir mCurrentDir;
 
   //loop
