@@ -983,11 +983,7 @@ void Processchunks::setupEnvironment() {
   mEnv = QProcess::systemEnvironment();
   QString pathReplace("PATH=");
   char *env = getenv("IMOD_DIR");
-  //Avoiding buffer overflow vulnerability
-  int bufferLength = 100;
-  char copyOfEnv[bufferLength];
-  memcpy(copyOfEnv, env, bufferLength);
-  pathReplace.append(copyOfEnv);
+  pathReplace.append(env);
   QString divider;
 #ifdef _WIN32
   divider = "\\";
@@ -1739,6 +1735,9 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.38  2010/10/30 00:49:26  sueh
+ bug# In setupEnvironment avoid the buffer overflow vulnerability and add "bin" onto the end of IMOD_DIR in the path.
+
  Revision 1.37  2010/10/30 00:20:32  sueh
  bug# 1364 Fixed Windows warning.
 
