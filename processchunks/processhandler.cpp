@@ -965,7 +965,6 @@ void ProcessHandler::handleKillFinished(const int exitCode,
 }
 
 void ProcessHandler::handleError(const QProcess::ProcessError processError) {
-  mProcesschunks->getOutStream() << "tag D" << endl;
   mErrorSignalReceived = true;
   mProcessError = processError;
 }
