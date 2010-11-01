@@ -802,7 +802,7 @@ void ProcessHandler::continueKillProcess(const bool asynchronous) {
       QString command;
       QStringList paramList;
       if (mMachine->getName() == mProcesschunks->getHostRoot()
-          || mMachine->getName() == "localHost") {
+          || mMachine->getName() == "localhost") {
         //local job
         killLocalProcessAndDescendents(mPid);
       }
