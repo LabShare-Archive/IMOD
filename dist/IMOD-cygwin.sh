@@ -1,4 +1,4 @@
-# IMOD 4.0.29
+# IMOD 4.1.8
 #
 # Startup file for bash users of IMOD under Cygwin
 #

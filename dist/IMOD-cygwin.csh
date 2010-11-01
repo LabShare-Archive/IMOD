@@ -1,4 +1,4 @@
-# IMOD 4.0.29
+# IMOD 4.1.8
 #
 # Startup file for tcsh users of IMOD under Cygwin
 #
@@ -55,6 +55,7 @@ alias subm 'submfg \!* &'
 alias imod 3dmodbg
 alias 3dmod 3dmodbg
 alias imodv 3dmodv
+alias processchunks processchunksbg
 
 # Aliases to run Python programs with the Python on the path, not just Cygwin's
 # Python
