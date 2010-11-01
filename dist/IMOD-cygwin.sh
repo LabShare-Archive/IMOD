@@ -53,6 +53,7 @@ function subm () { submfg $* & }
 alias imod=3dmodbg
 alias 3dmod=3dmodbg
 alias imodv=3dmodv
+alias processchunks processchunksbg
 
 # Aliases to run Python programs with the Python on the path not just Cygwin's
 # Python
