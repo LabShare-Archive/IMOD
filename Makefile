@@ -98,6 +98,7 @@ install : configure man sourcedoc
 	cd sendevent  ; $(MAKE) $@
 	cd qtassist   ; $(MAKE) $@
 	cd ctfplotter ; $(MAKE) $@
+	cd mprocesschunks        ; $(MAKE) $@
 	cd mrc        ; $(MAKE) $@
 	cd midas      ; $(MAKE) $@
 	cd pysrc      ; $(MAKE) $@
@@ -365,6 +366,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.83  2010/10/19 14:31:47  mast
+#  Add png files in plugs directories to src
+#
 #  Revision 3.82  2010/07/27 15:43:10  mast
 #  Remove usfft from make src
 #
