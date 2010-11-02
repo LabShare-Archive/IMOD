@@ -5,7 +5,12 @@ Version = 1.2
 if.var.test-gui.run.function.test1=
 #tiltxcorr
 mb.tiltxcorr = +
-run.function.tiltxcorr=
+[[ifnot = montage]]
+  run.function.tiltxcorr=
+[[]]
+[[if = montage]]
+  run.function.tiltxcorr-blendmont=
+[[]]
 [[if = test-gui]]
 assert.exists.file = xcorr%{axis}.log
 run.function.tiltxcorr=
@@ -40,6 +45,10 @@ bn.done =
 [function = tiltxcorr]
 bn.calculate-cross-correlation =
 wait.process.cross-correlating-stack = done
+
+[function = tiltxcorr-blendmont]
+bn.calculate-cross-correlation =
+wait.process.cross-correlation = done
 
 [function = newstack]
 bn.generate-coarse-aligned-stack =
