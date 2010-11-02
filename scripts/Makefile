@@ -7,7 +7,7 @@ SCRIPTS = copytomocoms finishjoin makejoincom matchorwarp matchshifts\
  newst onepatchcorr patchcorr3d patchcrawl3d recombine reduceby2 selfalign\
  setupcombine setupcoms setuplong splitmrc squeezevol trimvol xf2xg xfalign\
  dm2mrc alignlog transferfid submfg imodpsview settmpdir matchrotpairs\
- chunksetup processchunks splittilt splitcombine tomosnapshot clipflipyz\
+ chunksetup splittilt splitcombine tomosnapshot clipflipyz\
  archiveorig imodkillgroup collectmmm sampletilt runpyscript imodhelp\
  queuechunk splitcorrection runraptor $(GENERATED_SCRIPTS)
 
@@ -23,6 +23,9 @@ clean:
 	$(FIND) . -type f -name "*~"   -exec rm "{}" \;
 
 #  $Log$
+#  Revision 3.29  2010/02/22 06:15:58  mast
+#  Removed managesirt and sirtsetup (convert to python)
+#
 #  Revision 3.28  2009/05/01 02:57:31  mast
 #  Added runraptor
 #
