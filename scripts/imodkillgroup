@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2010/11/02 16:35:01  mast
+#  Fix for cygwin killing suspended process
+#
 #  Revision 3.2  2006/10/09 19:33:20  mast
 #  Remove ERROR: tag when it can't find the process
 #
