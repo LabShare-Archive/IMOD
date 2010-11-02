@@ -98,7 +98,7 @@ install : configure man sourcedoc
 	cd sendevent  ; $(MAKE) $@
 	cd qtassist   ; $(MAKE) $@
 	cd ctfplotter ; $(MAKE) $@
-	cd mprocesschunks        ; $(MAKE) $@
+	cd processchunks ; $(MAKE) $@
 	cd mrc        ; $(MAKE) $@
 	cd midas      ; $(MAKE) $@
 	cd pysrc      ; $(MAKE) $@
@@ -366,6 +366,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.84  2010/11/01 19:05:14  mast
+#  Install processchunks
+#
 #  Revision 3.83  2010/10/19 14:31:47  mast
 #  Add png files in plugs directories to src
 #
