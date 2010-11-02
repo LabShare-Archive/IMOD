@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2  2006/10/09 19:33:20  mast
+#  Remove ERROR: tag when it can't find the process
+#
 #  Revision 3.1  2005/08/24 16:04:38  mast
 #  Addition to package
 #
@@ -33,7 +36,9 @@ switch ($system)
         set proclist = `ps -eo "%p %r" | grep $pid`
         breaksw
     case *CYGWIN*:
-        set proclist = `ps -el | grep $pid | awk '{print $1, $3}'`
+
+        # Strip any leading characters like S for suspended
+        set proclist = `ps -el | sed -n -e '/^[^ ]/s///' -e "/$pid/p" | awk '{print $1, $3}'`
         breaksw
     case *Darwin*:
         set proclist = `ps -jA | grep $pid | awk '{print $2, $4}'`
