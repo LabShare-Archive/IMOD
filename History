@@ -1,6 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-10/29/10: Chnaged Edpiecepoint to allow making up a piece list with pieces in
+11/2/10: Fixed imodkillgroup on Windows for killing a suspended process.
+
+10/29/10: Changed Edpiecepoint to allow making up a piece list with pieces in
 any order.
 
 10/22/10: IMOD_4-2-7
