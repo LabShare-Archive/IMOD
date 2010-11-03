@@ -23,7 +23,6 @@ all : $(PLUGS)
 install : $(PLUGS)
 	$(CP) -f $(PLUGS) $(MODULE).html $(IMOD_PLUGIN_DIR)
 	$(CP) -f $(PLUGS) naming_help.html $(IMOD_PLUGIN_DIR)
-	$(CP) -f $(PLUGS) nif_instructions.png $(IMOD_PLUGIN_DIR)
 
 $(PLUGS) : $(CONTEXTRA).$(O) $(QTDIALOG).$(O) $(MODULE).$(O) \
 	moc_$(MODULE).$(O) $(COMMINCLUDES)

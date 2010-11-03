@@ -18,10 +18,12 @@ class QVBoxLayout;
 class QSpacerItem;
 class QEvent;
 class QDoubleSpinBox;
+class QColorDialog;
 
 #include "imodplugin.h"
 #include "dia_qtutils.h"
 #include "icontextra.h"
+#include "customdialog.h"
 
 #include <qstring.h>
 #include <vector>
@@ -31,13 +33,13 @@ using namespace std;
 
 
 //-------------------------------
-//## INTERPOLATOR WINDOW:
+//## DRAWINGTOOLS WINDOW:
 
 class DrawingTools : public DialogFrame
 {
   Q_OBJECT
 
- public:
+public:
   DrawingTools(QWidget *parent, const char *name = NULL);
   ~DrawingTools() {};
   
@@ -72,6 +74,7 @@ public slots:
   void expandContourRange();
   void cleanModelAndFixContours();
   void checkForNamelessObjects( bool forceMessageBox );
+  int  promptRenameObject( int objIdx );
   void test();
   void cut();
   void copy();
@@ -83,12 +86,12 @@ public slots:
   void changeSculptCircleRadius( float value, bool accel=false );
   void clearExtraObj();
   
- protected:
+protected:
   void closeEvent ( QCloseEvent * e );
   void keyPressEvent ( QKeyEvent * e );
   void keyReleaseEvent ( QKeyEvent * e );
   
- private:
+private:
   
   QButtonGroup *typeButtonGroup;
   QRadioButton *typeRadio_Normal;
@@ -110,6 +113,7 @@ public slots:
   QPushButton  *moreActionsButton;
   QPushButton  *moreSettingsButton;
 };
+
 
 //-------------------------------
 //## CONSTANTS:
@@ -261,9 +265,7 @@ struct DrawingToolsData   // contains all local plugin data
 
 
 
-
 //############################################################
-
 
 
 //-------------------------------

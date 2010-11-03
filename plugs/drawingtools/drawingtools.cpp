@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.46  2010/10/18 22:41:56  tempuser
+    Minor changes only
+
     Revision 1.45  2010/10/18 19:57:08  tempuser
     Improved dialog control and added pin-to-front
 
@@ -152,6 +155,9 @@
 #include <QEvent>
 #include <QHBoxLayout>
 #include <qtoolbutton.h>
+#include <QDesktopServices>
+#include <QUrl>
+#include <qcompleter.h>
 #include "../../imod/pegged.xpm"
 #include "../../imod/unpegged.xpm"
 
@@ -160,6 +166,7 @@
 #include "imodplugin.h"
 #include "dia_qtutils.h"
 #include "drawingtools.h"
+
 
 //############################################################
 
@@ -861,9 +868,6 @@ DrawingTools::DrawingTools(QWidget *parent, const char *name) :
   const int LAY_MARGIN   = 4;
   const int LAY_SPACING  = 4;
   const int GROUP_MARGIN    = 1;
-  const int SPACER_HEIGHT   = 15;
-  
-  
   
   //## Type:
   
@@ -908,6 +912,7 @@ DrawingTools::DrawingTools(QWidget *parent, const char *name) :
   
   
   //## Pin-to-top Button:
+  
   QHBoxLayout* topLay = new QHBoxLayout();
   topLay->setSpacing(LAY_SPACING);
   topLay->setContentsMargins(0,0,0,0);
@@ -936,7 +941,7 @@ DrawingTools::DrawingTools(QWidget *parent, const char *name) :
   topLay->addLayout(pinLay);
   mLayout->addLayout(topLay);
   
-  //## Actions
+  //## Actions:
   
   grpActions = new QGroupBox("Modify Contours:", this);
   //grpActions->setFocusPolicy(Qt::NoFocus);
@@ -965,14 +970,13 @@ DrawingTools::DrawingTools(QWidget *parent, const char *name) :
   mLayout->addWidget(grpActions);
   
   
-  //## Extra Buttons
+  //## Extra Buttons:
   
   widget1 = new QWidget(this);
   
   gridLayout2 = new QGridLayout(widget1);
   gridLayout2->setSpacing(LAY_SPACING);
-  gridLayout2->setContentsMargins(LAY_MARGIN, LAY_MARGIN, LAY_MARGIN,
-                                  LAY_MARGIN);
+  gridLayout2->setContentsMargins(LAY_MARGIN, LAY_MARGIN, LAY_MARGIN, LAY_MARGIN);
   
   keyboardSettingsButton = new QPushButton("Mouse / Keyboard", widget1);
   connect(keyboardSettingsButton, SIGNAL(clicked()), this, SLOT(keyboardSettings()));
@@ -3325,10 +3329,10 @@ void DrawingTools::deleteRangeContours()
   if( criteriaPoints )
   {
     CustomDialog ds2("Contours to Delete - Number Points",this);
-                           ds2.addLabel   ( "delete contours with" );
-    int ID_PTSMIN        = ds2.addSpinBox ( "between:", 0, 999999, &pointsMin, 1 );
-    int ID_PTSMAX        = ds2.addSpinBox ( "and:",     0, 999999, &pointsMax, 1 );
-                           ds2.addLabel   ( "points (inclusive)" );
+    ds2.addLabel   ( "delete contours with" );
+    ds2.addSpinBox ( "between:", 0, 999999, &pointsMin, 1 );
+    ds2.addSpinBox ( "and:",     0, 999999, &pointsMax, 1 );
+    ds2.addLabel   ( "points (inclusive)" );
     ds2.exec();
     if( ds2.wasCancelled() )
       return;
@@ -4273,6 +4277,7 @@ void DrawingTools::cleanModelAndFixContours()
 }
 
 
+
 //------------------------
 //-- Checks for nameless objects and generates a warning label if one or more
 //-- objects in the model are missing names, and there are more than two objects.
@@ -4280,7 +4285,7 @@ void DrawingTools::cleanModelAndFixContours()
 //-- the message just appears in the IMOD window.
 
 void DrawingTools::checkForNamelessObjects( bool forceMessageBox )
-{
+{    
   Imod *imod  = ivwGetModel(plug.view);
   
   if( osize(imod) <= 2 )     // if there is only one or two objects don't worry about 
@@ -4321,24 +4326,24 @@ void DrawingTools::checkForNamelessObjects( bool forceMessageBox )
     bool dontShowAgain = !plug.warningIfNoNameObjs;
     int action = 0;
     CustomDialog ds("Missing Labels",this);
+    ds.addLabel   ( "" );
     ds.addLabel   ( warningStr, true );
+    ds.setStylePrev( "color: rgb(255, 0, 0); background-color: rgba(255, 255, 255);", true );
+    ds.addLabel   ( "" );
     ds.addLabel   ( "It's important to label objects with PROPER names\n"
-                    "(e.g. 'microtubules','nucleus', 'mitochondria') so\n"
-                    "others can analyze, understand & reuse your models.");
+                    "(e.g. 'Microtubules', 'Nucleus', etc) so others\n"
+                    "can analyze, understand and reuse your models.");
     ds.addLabel   ( "-----" );
     ds.addRadioGrp( "action:",
                     "let me fix this now|"
-                    "visit NIF site to learn more and get proper names",
+                    "learn more and get proper names",
                     &action,
                     "",
                     "Takes you through all un-named objects and give\n"
                       "them names, one at a time.|"
-                    "Takes you to the 'Neuroscience Information Framework' website\n"
-                      "where you can type in the names of organelles and it will\n"
-                      "autocomplete your entries and show you examples/information\n"
-                      "about each organelle - helping you correctly identify and\n"
-                      "name of subcellular compoments.\n"
-                      "WEBSITE: http://www.neuinfo.org/nif/"
+                    "Takes you to the short webpage with information about good \n"
+                      "naming protocol and a list of common organelles to help you \n"
+                      "correctly identify and name of subcellular compoments."
                     );
     ds.addCheckBox( "do not show again", &dontShowAgain,
                     "If checked, this warning dialog will not appear \n"
@@ -4359,28 +4364,9 @@ void DrawingTools::checkForNamelessObjects( bool forceMessageBox )
         string objName = toString( imodObjectGetName(obj) );
         if( objName.length() == 0 )
         {
-          float red, green, blue;
-          imodObjectGetColor( obj, &red, &green, &blue );
-          string colorStr = "background-color: rgb(" + toString(red*255) + ","
-                            + toString(green*255) + "," + toString(blue*255) + ");";
-          wprint( colorStr.c_str() );
-          string name = "";
-          QColor color(red*255,green*255,blue*255);
-          
-          CustomDialog ds1("Fix Object Names",this);
-          ds1.addLabel   ( "Object " + QStr(o+1) + ":", true );
-          ds1.addLineEdit( " name: ", &name );
-          ds1.addColorSel( " color: ", &color );
-          //ds1.setStylePrev( colorStr, false );
-          ds1.addLabel   ( "-----", false );
-          ds1.addLabel   ( "TIP: To find proper names & examples \n"
-                           "visit: www.neuinfo.org/nif/" );
-          ds1.exec();
-          if( !ds1.wasCancelled() )
-          {
-            //imodObjectSetColor(obj,color.red()/255,color.green()/255,color.blue()/255);
-            imodObjectSetName( obj, (char *)name.c_str() );
-          }
+          int renamed = promptRenameObject( o );
+          if(!renamed)
+            return;
         }
       }
     }
@@ -4391,6 +4377,271 @@ void DrawingTools::checkForNamelessObjects( bool forceMessageBox )
       imodShowHelpPage((const char *)str.toLatin1());
       //imodShowHelpPage("naming_help.html");
     }
+  }
+}
+
+
+//------------------------
+//-- Presents a dialog which allows the user to rename an object using an autocomplete
+//-- textbox which is populated with the name of common cellular and 
+//-- subcellular compartments. Returns 1 if the user clicks "Okay" (to make changes
+//-- or 0 if the user hits "Cancel".
+
+int DrawingTools::promptRenameObject( int objIdx )
+{  
+  //## IF FIRST TIME OPENING DIALOG GENERATE WORDS FOR AUTOCOMPLETE:
+  
+  static QStringList wordList;
+  if( wordList.size() == 0 )
+  {
+    wordList
+    
+          //## ADD WORDS FROM http://neurolex.org/wiki/Subcellular_Parts_Table
+    
+                        // A:
+    << "Actin Filament"
+    << "Active Zone Cytomatrix" 
+    << "Active Zone Dense Projection" 
+    << "Active Zone Plasma Membrane" 
+    << "Age Associated"     // ??
+    << "Amorphous Vesicle" 
+    << "Autolysosome" 
+    << "Autophagosome" 
+    << "Axolemma" 
+    
+                        // B:
+    << "Barr Body" 
+    << "Basal Body" 
+    << "Bunina Body" 
+    
+                        // C:
+    << "Cajal Body" 
+    << "Cellular Inclusion" 
+    << "Cellular Membrane" 
+    << "Cellular Subcomponent" 
+    << "Centriole" 
+    << "Chromatin" 
+    << "Cilium" 
+    << "Classical Lewy Body" 
+    << "Clathrin Coat" 
+    << "Clathrin Coated Endocytic Vesicle" 
+    << "Coated Pit" 
+    << "Coated Tip" 
+    << "Condensed Chromatin" 
+    << "Contractile vacuole" 
+    << "Cortical Lewy Body" 
+    << "Cytoplasmic Vesicle" 
+    << "Cytoskeletal Element" 
+    << "Cytosol" 
+    
+                        // D:
+    << "Dendritic Microtubule" 
+    << "Dense Body" 
+    << "Dense Core Vesicle" 
+    << "Docked Vesicle" 
+    
+                        // E:
+    << "Early Endosome" 
+    << "Endocytic Vesicle" 
+    << "Endoplasmic Reticulum" 
+    << "Endosomal Membrane" 
+    << "Endosomal Subcomponent" 
+    << "Endosome" 
+    << "Extended Chromatin" 
+    
+                        // F:
+    << "Fibrillary Inclusion" 
+    << "Flame-shaped Neurofibrillary Tangle" 
+    << "Free Ribosome" 
+    
+                        // G:
+    << "Glial Cytoplasmic Inclusion" 
+    << "Glial Filament" 
+    << "Glial Inclusion" 
+    << "Glycogen Granule" 
+    << "Golgi Apparatus" 
+    << "Golgi Lamellae" 
+    << "Golgi Subcomponent" 
+    << "Golgi-associated Vesicle" 
+    << "Granular Vesicle" 
+    
+                        // H:
+    << "Hyaline Inclusion" 
+    
+                        // I:
+    << "Inter-Golgi Transport Vesicle" 
+    << "Interchromatin Granule" 
+    << "Intermediate Filament" 
+    << "Intermediate Filament"        // sao952483289
+    << "Intracellular Membrane" 
+    
+                        // L:
+    << "Lamellar Body" 
+    << "Laminated Body" 
+    << "Large Vesicle" 
+    << "Late Endosome" 
+    << "Lewy Body" 
+    << "Lewy Body-like Hyaline Inclusion" 
+    << "Lipofuscin" 
+    << "Lumen Cargo" 
+    << "Lysosome" 
+    << "Lytic vacuole" 
+    
+                        // M:
+    << "Membrane Bound Organelle" 
+    << "Membrane Bound Ribosome" 
+    << "Membrane Cargo" 
+    << "Microfilament"                // sao2006047981
+    << "Microtubule"                  // sao1846835077
+    << "Mitochondrial Adhaerens Complex" 
+    << "Mitochondrial Chromosome" 
+    << "Mitochondrial Matrix" 
+    << "Mitochondrial Membrane" 
+    << "Mitochondrial Membrane Inner" 
+    << "Mitochondrial Membrane Outer" 
+    << "Mitochondrial Subcomponent" 
+    << "Mitochondrion" 
+    << "Multivesicular Body" 
+    
+                        // N:
+    << "Nematosome" 
+    << "Neurofibrillary Tangle" 
+    << "Neurofilament"                // sao1316272517
+    << "Neuromelanin" 
+    << "Neuronal Cytoplasmic Inclusion" 
+    << "Neurosecretory Vesicle" 
+    << "Neurotubule" 
+    << "Non Membrane Bound Organelle" 
+    << "Nuclear Body" 
+    << "Nuclear Inner Membrane" 
+    << "Nuclear Lamina" 
+    << "Nuclear Membrane" 
+    << "Nuclear Outer Membrane" 
+    << "Nuclear Pore" 
+    << "Nuclear Subcomponent" 
+    << "Nucleolus" 
+    << "Nucleolus-associated Heterochromatin" 
+    << "Nucleoplasm" 
+    << "Nucleus" 
+    
+                        // O:
+    << "Organelle" 
+    
+                        // P:
+    << "Peroxisome" 
+    << "Pick Body" 
+    << "Pigment" 
+    << "Pinocytic Vesicle" 
+    << "Plasma Membrane" 
+    << "Plasmalemmal precursor vesicle" 
+    << "Post-lysosomal vacuole" 
+    << "Post-synaptic Component" 
+    << "Post-synaptic Density" 
+    << "Pre-synaptic Active Zone Component" 
+    << "Pre-synaptic Component" 
+    << "Pre-synaptic Dense Body" 
+    << "Pre-synaptic Grid" 
+    << "Pre-synaptic Ribbon" 
+    << "Primary Lysosome" 
+    
+                        // R:
+    << "RER Membrane"
+    << "Ribosome"
+    << "Rough Endoplasmic Reticulum"
+    
+                        // S:
+    << "SER Membrane"
+    << "SER Subcomponent"
+    << "Secondary Lysosome"
+    << "Skein-like Inclusion"
+    << "Skein-like inclusion"
+    << "Smooth Endoplasmic Reticulum" 
+    << "Smooth Membrane" 
+    << "Sorting Endosome" 
+    << "Spine Apparatus" 
+    << "Star-shaped Neurofibrillary Tangle" 
+    << "Storage vacuole" 
+    << "Subplasmalemmal Coating" 
+    << "Synaptic Component" 
+    << "Synaptic Vesicle" 
+    
+                        // T:
+    << "Taxi body" 
+    << "Transport Vesicle" 
+    << "Tubular Endosome" 
+    
+                        // V:
+    << "Vacuole" 
+    << "Vesicle" 
+    << "Vesicle Cargo" 
+    << "Vesicle Coat" 
+    << "Vesicle Membrane" 
+    << "Vesicle Other" 
+    << "Vesicle Subcomponent"
+    
+    //## EXTRA LABELS:
+    << "Axon"
+    << "Crinophagic Body"
+    << "Dendrite"
+    << "Golgi C1"
+    << "Golgi C2"
+    << "Golgi C3"
+    << "Golgi C4"
+    << "Golgi C5"
+    << "Golgi C6"
+    << "Golgi C7"
+    << "Golgi C8"
+    << "Immature Insulin Granule"
+    << "Mature Insulin Granule"
+    << "Golgi Trans-most Cisternae"
+    
+    << "UNKNOWN"
+    << "POINT OF INTEREST"
+    << "RULER"
+    << "TOMOGRAM BOUNDARIES";
+  }
+  
+  //## CHECK OBJECT EXISTS:
+  
+  Imod *imod  = ivwGetModel(plug.view);
+  if( objIdx >= osize(imod) || objIdx < 0 )
+    return 0;
+  Iobj *obj   = getObj(imod,objIdx);
+  
+  
+  //## CREATE A DIALOG FOR OBJECT RENAMING:
+  
+  float red, green, blue;
+  imodObjectGetColor( obj, &red, &green, &blue );
+  string colorStr = "background-color: rgb(" + toString(red*255) + ","
+    + toString(green*255) + "," + toString(blue*255) + ");";
+  
+  string objName = toString( imodObjectGetName(obj) );
+  QColor color(red*255,green*255,blue*255);
+  QString objectType = isObjClosed(obj) ? " closed contours " : " open contours ";
+  
+  CustomDialog ds1("Fix Object Names",this);
+  ds1.addLabel   ( "Object " + QStr(objIdx+1) + ":", true );
+  ds1.addLineEdit( " name: ", &objName );
+  ds1.addAutoCompletePrev(wordList, false);
+  
+  ds1.addColorSel( " contains: " + QStr( csize(obj) ) + objectType +
+                   "                  color: ", &color );
+  ds1.addLabel   ( "-----", false );
+  ds1.addHtmlLabel   ( "<i>TIP: To find proper names & examples visit:<br>"
+                       " <a href='http://neurolex.org/wiki/Subcellular_Parts_Table'>www.neurolex.org</a>"
+                       " or use <b>'Special > Name Wizard'</b></i>" );
+  ds1.exec();
+  
+  if( ds1.wasCancelled() )
+  {
+    return 0;
+  }
+  else
+  {
+    imodObjectSetColor(obj,color.red()/255,color.green()/255,color.blue()/255);
+    imodObjectSetName( obj, (char *)objName.c_str() );
+    return 1;
   }
 }
 
@@ -4409,11 +4660,10 @@ void DrawingTools::test()
     return;
   }
   
-  //int ptsAdded = cont_addPtsAtIntersection( getCont(obj,0), getCont(obj,1) );
-  //wprint("%d points added\n", ptsAdded);
   
   /*
-  Iobj *obj = getCurrObj();
+  int ptsAdded = cont_addPtsAtIntersection( getCont(obj,0), getCont(obj,1) );
+  wprint("%d points added\n", ptsAdded);
   
   if( csize(obj) < 3 )
   {
@@ -4725,10 +4975,6 @@ void DrawingTools::keyReleaseEvent ( QKeyEvent * e )
 {
   ivwControlKey(1, e);
 }
-
-
-
-
 
 
 //############################################################
