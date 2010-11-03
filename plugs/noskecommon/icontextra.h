@@ -156,6 +156,7 @@ void mbr_addPt( Ipoint *pt, Ipoint *ll, Ipoint *ur );
 float mbr_distToNearestEdge(float val, float min, float max);
 float mbr_distToNearestEdge(float min1, float max1, float min2, float max2);
 float mbr_distBetweenBBoxes2D(Ipoint *ll1, Ipoint *ur1, Ipoint *ll2, Ipoint *ur2);
+float mbr_distBetweenBBoxes3D(Ipoint *ll1, Ipoint *ur1, Ipoint *ll2, Ipoint *ur2, float zScale); // NEW
 bool mbr_distToBBox2D(Ipoint *pt, Ipoint *ll, Ipoint *ur);                  // NEW
 bool mbr_isPtInsideBBox(Ipoint *pt, Ipoint *ll, Ipoint *ur);                  // NEW
 bool mbr_isPtInsideBBox2D(Ipoint *pt, Ipoint *ll, Ipoint *ur);                // NEW
@@ -211,6 +212,7 @@ void cont_findMinMaxAndAvgDistFromPt( Ipoint *pt, Icont *cont, float zScale, flo
 bool  cont_doContsTouch( Icont *cont1, Icont *cont2 );
 float cont_minDistPtAndContourPts2D( Ipoint *pt, Icont *cont, bool returnZeroIfPtInside );
 float cont_minDistBetweenContPts2D( Icont *cont1, Icont *cont2, bool returnZeroIfTouch );
+float cont_minDistBetweenContPts3D( Icont *cont1, Icont *cont2, float zScale, Ipoint *pt1, Ipoint *pt2 );
 void  cont_reorderPtsToStartAtIdx( Icont *c, int idxNewFirstPt );
 int   cont_removePointsInCircle( Icont *cont, Ipoint *center, float radius, bool checkZEachPoint );      //NEW
 

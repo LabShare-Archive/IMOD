@@ -111,6 +111,7 @@ using namespace std;
 #include <qstringlist.h>
 #include <qmessagebox.h>
 #include <qinputdialog.h>
+#include <qcompleter.h>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QVBoxLayout>
@@ -132,11 +133,12 @@ enum chkbehaviour { CB_NONE, CB_DISABLE, CB_ENABLE,
 
 class ColorButton : public QPushButton    // used to create a "pick colour" button
 {
-  //Q_OBJECT      // NOTE: For Qt version 4.3 I have to comment these out
+  Q_OBJECT      // NOTE: To compile on my version of IMOD I have to comment these out?
   
 public:
   QColor color;
   ColorButton(QColor _color, QWidget *parent=0);
+  void setColor(QColor _color);
 public slots:
   void pickColor();
 };
@@ -181,7 +183,7 @@ struct DialogElement
 
 class CustomDialog : public QDialog                                              
 {
-  //Q_OBJECT
+  Q_OBJECT
   
 public:     //## METHODS:
   
@@ -192,6 +194,7 @@ public:     //## METHODS:
   
   DialogElement& addNewElement(DlgType _type, QString caption, QString tooltip, bool makeLabel);
   int addLabel( QString caption, bool bold=false, QString tooltip=0 );
+  int addHtmlLabel( QString caption, QString tooltip=0 );
   int addCheckBox( QString caption, bool *checked, QString tooltip=0 );
   int addLineEdit( QString caption, string *stringValue, QString tooltip=0 );
   int addLineEditF( QString caption, float min, float max, float *value, float decimals,  QString tooltip=0 );
@@ -203,6 +206,7 @@ public:     //## METHODS:
   int beginGroupBox( QString caption, bool flat, QString tooltip=0, bool checkable=false, bool *checked=0 );
   void endGroupBox();
   int addCheckPrev( QString caption, bool *checked, chkbehaviour chkBeh, bool removeLabel, QString tooltip=0 );
+  int addAutoCompletePrev( QStringList wordList, bool caseSensitive=false );
   bool setStyleElem( int idx, string styleStr, bool bold=false );
   int setStylePrev( string styleStr, bool bold=false );
   //int setStyleElem( string styleStr, DlgType=DLG_ALL, int startIdx=0, int endIdx=INT_MAX );

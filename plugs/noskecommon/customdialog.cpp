@@ -18,7 +18,13 @@ ColorButton::ColorButton(QColor _color, QWidget *parent) : QPushButton(parent)
   color = _color;
   this->setStyleSheet( "background-color: " + color.name() );
   this->setMaximumSize(20,20);
-  //connect( this, SIGNAL(clicked()), this, SLOT(pickColor()) );  // won't work in Qt 4.3
+  QObject::connect( this, SIGNAL(clicked()), this, SLOT(pickColor()) );  // won't work in Qt 4.3
+}
+
+void ColorButton::setColor( QColor _color )
+{
+  color = _color;
+  this->setStyleSheet( "background-color: " + color.name() );
 }
 
 void ColorButton::pickColor()
@@ -108,7 +114,7 @@ DialogElement& CustomDialog::addNewElement( DlgType _type, QString caption,
 }
 
 //------------------------
-//-- Adds a label to the next row of the dialog
+//-- Adds a plain text label to the next row of the dialog
 //-- @ caption  = the caption for the string
 //-- @ bold     = set to true if you want the text to be bold
 //-- @ tooltip  = optional tooltip
@@ -118,6 +124,26 @@ int CustomDialog::addLabel( QString caption, bool bold, QString tooltip )
   DialogElement &e = addNewElement( DLG_LABEL, caption, tooltip, true );
   
   setBold( e.label, bold );
+  e.label->setTextFormat( Qt::PlainText );
+  e.layout->addWidget( e.label );
+  //setTextColor(e.label,0,0,255);      // makes labels blue
+  layoutNextElement->addLayout( e.layout );
+  return elements.size();
+}
+
+
+//------------------------
+//-- Adds a html/rich text and hyperlink enabled label to the next row of the dialog
+//-- @ caption  = the html/rich text caption for the string
+//--              (eg: "<i>Made by</i>: <a href='www.andrewnoske.com'>Andrew<a>")
+//-- @ tooltip  = optional tooltip
+
+int CustomDialog::addHtmlLabel( QString caption, QString tooltip )
+{
+  DialogElement &e = addNewElement( DLG_LABEL, caption, tooltip, true );
+  
+  e.label->setTextFormat( Qt::RichText );
+  e.label->setOpenExternalLinks(true);
   e.layout->addWidget( e.label );
   //setTextColor(e.label,0,0,255);      // makes labels blue
   layoutNextElement->addLayout( e.layout );
@@ -518,10 +544,38 @@ int CustomDialog::addCheckPrev( QString caption, bool *checked,
 }
 
 //------------------------
+//-- Adds an autocomplete feature to the previous added element, where the previously
+//-- added element must be a line edit box.
+//-- Will return the index of the element or -1 if the element was not a line edit.
+//-- 
+//-- @ wordList      = the list of words that comprise the auto complete
+//-- @ caseSensitive = if true, the autocomplete is case sensitive
+
+int CustomDialog::addAutoCompletePrev( QStringList wordList, bool caseSensitive )
+{
+  DialogElement &e = elements.back();
+  if (e.type != DLG_LINEEDIT)
+  {
+    cerr << "ERROR: addAutoCompletePrev() must proceed addLineEdit()" << endl;
+    return 01;
+  }
+  
+  QCompleter *completer = new QCompleter(wordList, this);
+  if( caseSensitive )
+    completer->setCaseSensitivity( Qt::CaseSensitive );
+  else
+    completer->setCaseSensitivity( Qt::CaseInsensitive );
+  e.lineEdit->setCompleter(completer);
+  
+  return elements.size();
+}
+
+
+//------------------------
 //-- Sets the style sheet to the element at the given index in the elements vector
 //-- @ idx     = the index of the element to apply the stylesheet to
 //-- @ syleStr = the style sheet to apply 
-//--             eg: "color: rgb(0, 0, 0); background-color: rgba(255, 255, 255, 0);
+//--             eg: "color: rgb(0, 0, 0); background-color: rgba(255, 255, 255, 0);"
 //-- @ bold    = if true: the font for the element will be made bold
 
 bool CustomDialog::setStyleElem( int idx, string styleStr, bool bold )
@@ -557,19 +611,6 @@ bool CustomDialog::setStyleElem( int idx, string styleStr, bool bold )
     case( DLG_COLOR ):      break;
     case( DLG_GRPBOX ):     e.grpBox->setStyleSheet( styleQStr );     break;
   }
-
-  
-  //if(e.label)         e.label->setStyleSheet( styleQStr );
-  //if(e.chkBox != NULL)      e.chkBox->setStyleSheet( styleQStr );
-  //if(e.lineEdit)    e.lineEdit->setStyleSheet( styleQStr );
-  //if(e.spnBox)      e.spnBox->setStyleSheet( styleQStr );
-  //if(e.dblSpnBox)   e.dblSpnBox->setStyleSheet( styleQStr );
-  //if(e.cmbBox)      e.cmbBox->setStyleSheet( styleQStr );
-  //if(e.radBtn.size())
-  //  for(int i=0; i<e.radBtn.size(); i++)
-  //    e.radBtn[i]->setStyleSheet( styleQStr );
-  //if(e.grpBox)      e.grpBox->setStyleSheet( styleQStr );
-  //if(e.chkExtra)    e.chkExtra->setStyleSheet( styleQStr );
   
   return true;
 }
@@ -578,7 +619,7 @@ bool CustomDialog::setStyleElem( int idx, string styleStr, bool bold )
 //------------------------
 //-- Sets the style sheet for the previously added element
 //-- @ syleStr = the style sheet to apply 
-//--             eg: "color: rgb(0, 0, 0); background-color: rgba(255, 255, 255, 0);
+//--             eg: "color: rgb(0, 0, 0); background-color: rgba(255, 255, 255, 0);"
 //-- @ bold    = if true: the font for the element will be made bold
 
 int CustomDialog::setStylePrev( string styleStr, bool bold )

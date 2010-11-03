@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.21  2009/10/23 01:36:11  tempuser
+    setZChange - wild problem
+
     Revision 1.20  2009/06/05 09:20:50  tempuser
     Minor
 
@@ -725,19 +728,32 @@ float mbr_distToNearestEdge(float min1, float max1, float min2, float max2)
 }
 
 //------------------------
-//-- Used to calculate minimum distance between two edges (which may overlap).
+//-- Used to calculate minimum distance between two bounding boxes (which may overlap)
+//-- in X and Y
 
 float mbr_distBetweenBBoxes2D(Ipoint *ll1, Ipoint *ur1, Ipoint *ll2, Ipoint *ur2)
 {
   float distX = mbr_distToNearestEdge(ll1->x,ur1->x,ll2->x,ur2->x);
-  float distY = mbr_distToNearestEdge(ll1->x,ur1->x,ll2->x,ur2->x);
+  float distY = mbr_distToNearestEdge(ll1->y,ur1->y,ll2->y,ur2->y);
   return sqrt( distX*distX + distY*distY );
 }
 
 
 //------------------------
-//-- Used to calculate minimum distance between a point and 2 edges.
-//--(but does NOT check wrap around)
+//-- Used to calculate minimum distance between two bounding boxes (which may overlap)
+//-- in 3D
+
+float mbr_distBetweenBBoxes3D(Ipoint *ll1, Ipoint *ur1, Ipoint *ll2, Ipoint *ur2, float zScale)
+{
+  float distX = mbr_distToNearestEdge(ll1->x,ur1->x,ll2->x,ur2->x);
+  float distY = mbr_distToNearestEdge(ll1->y,ur1->y,ll2->y,ur2->y);
+  float distZ = mbr_distToNearestEdge(ll1->z,ur1->z,ll2->z,ur2->z) * zScale;
+  float distXY = sqrt( distX*distX + distY*distY );
+  return sqrt( distXY*distXY + distZ*distZ );
+}
+
+//------------------------
+//-- Used to calculate minimum distance between a point and a bounding boxing X and Y
 
 bool mbr_distToBBox2D(Ipoint *pt, Ipoint *ll, Ipoint *ur)
 {
@@ -1644,6 +1660,39 @@ float cont_minDistBetweenContPts2D( Icont *cont1, Icont *cont2, bool returnZeroI
   return sqrt(closestDist2);
 }
 
+
+//------------------------
+//-- Returns the closest distance between any two points in 3D and also
+//-- returns the corrdinates of those points in pt1 and pt2.
+//-- but note that this is NOT necessarily the closest distance between
+//-- the lines formed by both contours.
+
+float cont_minDistBetweenContPts3D( Icont *cont1, Icont *cont2, float zScale,
+                                    Ipoint *pt1, Ipoint *pt2 )
+{
+	Ipoint scalePt;
+  setPt( &scalePt, 1,1,zScale );
+  
+  float closestDist2 = FLOAT_MAX;
+  
+  for(int i=0; i<psize(cont1); i++ )
+    for(int j=0; j<psize(cont2); j++ )
+    {
+      float distX = getPt(cont1,i)->x - getPt(cont2,j)->x;
+      float distY = getPt(cont1,i)->y - getPt(cont2,j)->y;
+      float distZ = (getPt(cont1,i)->z - getPt(cont2,j)->z) * zScale;
+      float distXZ = sqrt( distX*distX + distY*distY );
+      float dist2 = (distXZ*distXZ + distZ*distZ);
+      if( dist2 < closestDist2 )
+      {
+        closestDist2 = dist2;
+        copyPt( pt1, getPt(cont1,i) );
+        copyPt( pt2, getPt(cont2,j) );
+      }
+    }
+  
+  return sqrt(closestDist2);
+}
 
 
 
