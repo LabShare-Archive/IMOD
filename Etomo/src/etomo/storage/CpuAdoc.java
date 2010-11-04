@@ -47,7 +47,7 @@ public class CpuAdoc {
   public static final String QUEUE_SECTION_TYPE = "Queue";
   public static final String UNITS_KEY = "units";
 
-  private static final int MIN_NICE_DEFAULT = 4;
+  private static final int MIN_NICE_DEFAULT = 0;
 
   public static final CpuAdoc INSTANCE = new CpuAdoc();
 
@@ -358,6 +358,10 @@ public class CpuAdoc {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.18  2010/02/17 04:49:31  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.17  2010/01/11 23:56:47  sueh
  * <p> bug# 1299 Removed responsibility anything other then cpu.adoc from
  * <p> CpuAdoc.  Placed responsibility for information about the network in the
