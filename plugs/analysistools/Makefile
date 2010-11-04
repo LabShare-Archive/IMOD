@@ -17,16 +17,17 @@ IMODREALINCLUDES = ../../imod/imod.h ../../imod/imodview.h \
 CONTEXTRA = ../noskecommon/icontextra
 QTDIALOG = ../noskecommon/customdialog
 COMMFUNC = ../noskecommon/_common_functions.h
+QTDLGMOC = ../noskecommon/moc_customdialog
 
 all : $(PLUGS)
 
 install : $(PLUGS)
 	$(CP) -f $(PLUGS) $(MODULE).html $(IMOD_PLUGIN_DIR)
 
-$(PLUGS) : ivector.$(O) idgrid.$(O) $(CONTEXTRA).$(O) $(QTDIALOG).$(O) $(MODULE).$(O) \
-	moc_$(MODULE).$(O) $(COMMINCLUDES)
-	$(MAKELIBSO)$(PLUGS) ivector.$(O) idgrid.$(O) $(CONTEXTRA).$(O) $(QTDIALOG).$(O) \
-	$(MODULE).$(O) moc_$(MODULE).$(O)
+$(PLUGS) : ivector.$(O) idgrid.$(O) $(CONTEXTRA).$(O) $(QTDIALOG).$(O) \
+	$(MODULE).$(O) moc_$(MODULE).$(O) $(COMMINCLUDES) $(QTDLGMOC).$(O)
+	$(MAKELIBSO)$(PLUGS) ivector.$(O) idgrid.$(O) $(CONTEXTRA).$(O) \
+	$(QTDIALOG).$(O) $(MODULE).$(O) moc_$(MODULE).$(O) $(QTDLGMOC).$(O)
 
 
 moc_$(MODULE).cpp : $(MODULE).h
@@ -47,6 +48,12 @@ $(CONTEXTRA).$(O) : $(CONTEXTRA).cpp $(IMODREALINCLUDES) $(COMMFUNC) \
 
 $(QTDIALOG).$(O) : $(QTDIALOG).cpp $(IMODREALINCLUDES) $(QTDIALOG).h
 	(cd ../noskecommon ; $(MAKE) customdialog.$(O))
+
+$(QTDLGMOC).$(O) : $(QTDLGMOC).cpp
+	(cd ../noskecommon ; $(MAKE) moc_customdialog.$(O))
+
+$(QTDLGMOC).cpp : $(QTDIALOG).h
+	(cd ../noskecommon ; $(MAKE) customdialog.cpp)
 
 
 # Copy IMOD includes

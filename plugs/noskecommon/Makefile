@@ -19,6 +19,10 @@ icontextra.$(O) : icontextra.cpp $(IMODINCLUDES) _common_functions.h \
 customdialog.$(O) : customdialog.cpp $(IMODINCLUDES) \
 	customdialog.h
 
+moc_customdialog.$(O) : moc_customdialog.cpp
+
+moc_customdialog.cpp : customdialog.h
+	$(MOC) customdialog.h -o moc_customdialog.cpp
 
 imod.h : ../../imod/imod.h
 	$(CP) -f ../../imod/imod.h .
