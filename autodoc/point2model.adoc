@@ -37,7 +37,7 @@ manpage =
 
 [Field = PointsPerContour]
 short = number
-type = B
+type = I
 usage = Maximum number of points per contour
 tooltip = 
 manpage = Maximum number of points per contour.  The default is to put all 

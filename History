@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/3/10: Fixed -number option for Point2model.
+
 11/2/10: Fixed imodkillgroup on Windows for killing a suspended process.
 
 10/29/10: Changed Edpiecepoint to allow making up a piece list with pieces in
