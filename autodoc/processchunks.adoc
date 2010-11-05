@@ -1,0 +1,117 @@
+Version = 1.0
+Pip = 1
+
+[Field = r]
+type = B
+usage = Resume, retaining existing finished files (the default is to remove
+all log files and redo everything)
+tooltip = 
+manpage = Resume processing and retain all existing log files.  The default is
+to remove all existing log files, run rootname-start.com if it exists, and
+then run all of the individual command files, finishing with
+rootname-finish.com if it exists.  With this option, the program
+will not rerun any command files whose corresponding log files end with "CHUNK
+DONE", including the start and finish files.
+
+[Field = s]
+type = B
+usage = Run a single command file named root_name or root_name.com
+tooltip = 
+manpage = Run a single command file on a remote machine (i.e., the first
+machine in machine list).  The command file is not required to be numbered.
+The rootname given on the command line can be either the full name or the name
+excluding ".com".
+
+[Field = g]
+type = B
+usage = Go process, without asking for confirmation after probing machines
+tooltip = 
+manpage = Go start processing after probing the machines, without waiting for
+confirmation from the user.
+
+[Field = n]
+type = I
+usage = Set the "nice" value to the given number (default 18, range 0-19)
+tooltip = 
+manpage = Run jobs with "niceness" set to the given value, which can range
+from 0 for no reduction in priority to 19 for maximum reduction.  The default
+nice value is 18.
+
+[Field = w]
+type = FN
+usage = Full path to working directory on remote machines
+tooltip = 
+manpage = The full path for reaching the current directory on the remote
+machines.  This
+entry is needed when working on a local disk whose mounted path on the other
+machines is different from its path (as given by pwd) on the local machine.
+
+[Field = d]
+type = I
+usage = Drop a machine after given number of failures in a row (default 5)
+tooltip = 
+manpage = Drop a machine from the list if it fails this number of times in a
+row.  The default criterion is 5.
+
+[Field = e]
+type = I
+usage = Quit after the given # of processing errors for a chunk (default 5)
+tooltip = 
+manpage = Quit if a chunk gives a processing error (as opposed to failing to
+start) this number of times.  All running jobs will be killed.  The
+default limit is 5.
+
+[Field = c]
+type = FN
+usage = Check the given file for commands P, Q, and D (default 
+"processchunks.input")
+tooltip = 
+manpage = Check the given file periodically for lines with commands to quit,
+pause, or drop a machine (Q, P, or D machine_name).  The default name of this
+file is "processchunks.input".
+
+[Field = q]
+type = I
+usage = Run on cluster queue with given maximum # of jobs at once
+tooltip = 
+manpage = Put chunks on a cluster queue instead of sending them to individual
+machines via ssh.  The given value indicates the maximum number of chunks to
+submit at any one time.  With this option, the list of machine names must be
+replaced by the command needed to interact with the queue.
+
+[Field = Q]
+type = CH
+usage = Machine name to use for the queue (default queue)
+tooltip = 
+manpage = When running on a queue, this option can be used to specify the name
+that
+Processchunks will use when it reports chunks being started and
+finishing.  The entry must be a single word with no embedded spaces.  It need
+not match the actual name of the queue; the default is "queue".
+
+[Field = P]
+type = B
+usage = Output process ID
+tooltip = 
+manpage = Output process ID.  When this option is entered together with "-g",
+the program will skip probing machine loads.
+
+[Field = v]
+type = B
+usage = Verbose output
+tooltip = 
+manpage =
+
+[Field = V]
+type = CH
+usage = [class,[function,[...]]],[2]  Debugging output from specific function.
+tooltip = 
+manpage = This option enables debugging output from a specific class or
+function.  It has no effect if "-v" is not entered too.  The entry has the
+form "[class,[function,[...]]],[2]" where 2 means more verbose.
+
+[Field = help]
+type = B
+usage = Print usage message
+tooltip = 
+manpage =

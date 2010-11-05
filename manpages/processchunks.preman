@@ -1,0 +1,230 @@
+.na
+.nh
+.TH processchunks 1 3.2.22 BL3DEMC
+.SH NAME
+processchunks \- Run command files in parallel on multiple processors
+.SH SYNOPSIS
+processchunks [options] <machine list> <root name of command files>
+
+processchunks [options] -q # <queue command and arguments> <root name>
+.SH DESCRIPTION
+processchunks will process a set of command files in parallel on multiple
+machines or processors that have access to a common filesystem.  It can also
+be used to run a single command file on a remote machine.
+
+.SS Command Files
+The command
+files should be in the format runnable with Vmstocsh(1) (e.g., using subm)
+and be named like files produced by Chunksetup(1).  Specifically, the files
+for processing individual components should be named
+rootname-001.com, rootname-002.com, etc., where "rootname" is the root name
+of the command files, entered as the last command line argument.
+If the command
+files create temporary files, they must be named uniquely, such as by ending
+their names in .$$ and placing them in /usr/tmp.  (See Chunksetup(1) for an
+alternative using hostnames).  The temporary files should be removed by the
+individual command files with statements like
+.br
+$if (-e /usr/tmp/tmpfil.$$) rm -f /usr/tmp/tmpfil.$$
+
+In addition to the files for individual chunks, there may
+also be two additional files: rootname-start.com, to perform initial
+tasks, and rootname-finish.com, for final assembly and cleanup.
+If the start file exists, Processchunks will run this on the first
+machine before starting to distribute the chunks; and if the finish file
+exists, it will also be run on the first machine when all chunks are
+finished.
+
+It is also possible to execute groups of command files in parallel, then run
+one command file when all of these are done, then go on to another group of
+files in parallel.  This is done by adding "-sync" after the number for each
+file to be run for synchronization.  The files should all still have unique,
+sequential numbers.  For example, if the 10th and 20th files are named
+rootname-010-sync.com and rootname-020-sync.com, then files 1 to 9 will be run
+to completion in parallel, then rootname-010-sync.com will be run alone on the
+first machine, then 11 to 19 will be run in parallel, then
+rootname-020-sync.com will be run alone, then all remaining files will be run
+in parallel.
+
+To run any single command file on a remote machine, simply use the
+.B -s
+option and provide the machine name and the name of the command file.
+
+.SS Running Processchunks
+The machine list provided on the command line should be a list of machine
+names or IP addresses, separated by commas and with no embedded spaces.
+Machines with multiple processors should be entered as many times as the
+number of processors that you want to use.  The local machine on which you are
+running Processchunks can be identified by its hostname or as "localhost"; in
+either case the command will be run directly on the machine.  If this is the
+only machine, then it can be identified by a single number specifying the
+number of processors to use.  For example, you can enter "4" instead of
+"localhost,localhost,localhost,localhost".  For all other
+machines, the command will be run with ssh.  You must be set up to log into
+each of the machines with ssh without having to enter a password (see below).
+Each machine must have access to the current directory.  The 
+.B
+-w
+option can be used to specify the path by which remote machines can access the
+current directory.
+
+Processchunks first probes all of the machines to see if connections can be
+established and to show you the first line of the "w" output on each machine
+(except on Windows).
+This will also allow you to provide any one-time interactive confirmation
+needed by ssh, such as when you first log in to the machine.
+If the "w" command cannot be run on a machine, it is automatically removed
+from the list.  After this probe, the program asks you to confirm that you
+want to proceed with this list of machines (unless you use the 
+.B -g
+option to skip this confirmation).  Thus, you could run Processchunks
+with a large list of machines, examine this output,
+then exit and restart after eliminating machines with too much load.
+
+After the confirmation, Processchunks starts jobs on all of the machines and
+watches for completion.  It detects successful completion by adding a command
+to the end of each file to write "CHUNK DONE" into the log.  Jobs are started
+with "nice".  When the job on a
+machine finishes, that machine is given another job and the program reports
+the total number of chunks done so far.  When a job appears to have failed,
+the job is started again.  Initially the job may tend to be restarted on the
+same machine where it failed, but near the end when there are other machines
+free, it will be sent to another machine.
+
+Except on Windows, if you type "Esc" and "Enter" at the beginning of a line,
+the program will give you four choices: killing any
+running jobs and terminating, stopping after letting any running jobs finish,
+attempting to restart with the current list of machines, or 
+just continuing.
+If you choose to terminate or restart, existing jobs will first be killed
+to avoid having the same job running twice at the same time.  When you rerun
+this program after stopping in this way, be sure to use the 
+.B -r
+option so that existing results will be retained.  This method of interacting
+with the program replaces the use of Ctrl-C with the earlier script version of
+processchunks.
+
+On Windows, interaction in the terminal running the program is not possible,
+and the program is automatically run in the background via an alias to
+protect it from being interrupted with Ctrl-C.  Thus the only way to issue
+instructions to it is by entering them into a file that the program watches.
+The default name of this file is "processchunks.input" but you can set a
+different name with the 
+.B -c
+option.
+
+.SS Running on a Cluster Queue
+Processchunks can submit all command files to a cluster queue instead of
+running them on specific machines with ssh, provided that there is a program
+that can perform the operations needed to place a chunk on the queue and kill
+jobs.  IMOD contains a script, Queuechunk(1), which can do these operations
+for some specific queue types.  For other queues or variations, this script
+would have to be modified or replaced.  To use a queue, enter the
+.B -q
+option with the maximum number of jobs to be placed on the queue at any time,
+and replace the list of machine name with the command that Processchunks needs
+to issue, e.g.:
+   "queuechunk -t pbs -q fast"
+.br
+Note that the command will contain multiple words and must be enclosed in
+quotes as above.  With the version distributed in IMOD, the type must be
+specified with
+.B -t,
+and there is an option 
+.B -q
+to specify the name of the queue, and an option
+.B -h
+to specify the name of the head node, which would then be contacted via ssh.
+
+.SS Initial Configuration
+To set up ssh keys for access without passwords, simply run 
+   ssh-keygen -t dsa
+.br
+and type Enter for all of the queries.  Then enter:
+   cp $HOME/.ssh/id_dsa.pub $HOME/.ssh/authorized_keys
+.br
+If necessary, distribute this authorized_keys file to the .ssh directories
+on other machines that do not have the same home directory.  The three 
+different kinds of platforms (Linux/Unix, Mac OSX, Windows) may require
+separately generated keys.  If this seems to be the case, run ssh-keygen once
+on each type of machine then
+combine the .ssh/id_dsa.pub files from each into one authorized_keys file.
+Distribute this combined authorized_keys file to the .ssh directories.
+
+Processchunks runs jobs via ssh by starting a non-interactive bash login shell
+on the remote computer.  Any programs to be run must be on your path when
+logging in as a bash user.  If you use only IMOD programs in the command file
+and IMOD has been installed by the default method, there should be no problem.
+However, if you set up the IMOD environment in your own startup files instead
+of in the default way, you need to make sure that the environment is defined
+when running this bash shell.  Specifically, you need to set the IMOD_DIR
+environment variable then source $IMOD_DIR/IMOD-....sh in your ~/.bash_profile
+and not just in your ~/.bashrc, since the latter is not run by the
+non-interactive shell.  Similarly, if you are running programs outside IMOD
+whose environment is set up in your own startup files, you need to do that in
+.bash_profile. However, we have found that in other contexts it does not work
+to set environment only in ~/.bash_profile.  Thus, the recommended approach is
+to set the environment in ~/.bashrc and source that file from
+~/.bash_profile.
+
+To diagnose problems, there are a few tests that you can run by issuing the
+same kind of command that Processchunks uses to run jobs, of the form:
+   ssh -x machine bash --login -c \\'"command"\\'
+.br
+where the command can be relatively complex because of the quoting; but the
+quoting can be omitted for simple commands.  Specifically, use
+   ssh -x machine bash --login -c \\'"cd directory"\\'
+.br
+to test if you can change to the given directory.  Use
+   ssh -x machine bash --login -c imodinfo
+.br
+to test if the remote machine can run IMOD this way, and use
+   ssh -x machine bash --login -c env > env.out
+.br
+to collect the environment if there is trouble running IMOD.
+
+Parallel processing through eTomo uses Processchunks.  The available machines
+are generally defined in a file "cpu.adoc" that is located in the directory
+pointed to by the environment variable IMOD_CALIB_DIR (default
+/usr/local/ImodCalib).  See the example cpu.adoc file in $IMOD_DIR/autodoc and
+the manual page for cpuadoc(1) for full details on
+configuring this file.  For a single machine with multiple CPUs,
+there are three simple options for enabling the parallel processing: 
+   1) In eTomo, open the Settings dialog from the Options menu, check 
+"Enable Parallel processing" and enter the number of processors.
+.br
+   2) Make a file /usr/local/ImodCalib/cpu.adoc with these two lines:
+       [Computer = localhost]
+       number = 4
+.br
+where the number should be set to the number of processors.
+    3) set the
+environment variable IMOD_PROCESSORS to the number of processors, e.g.,
+    setenv IMOD_PROCESSORS 4     (for tcsh users)
+    export IMOD_PROCESSORS=4     (for bash users)
+
+.SS Options
+Processchunks uses the PIP package for input (see the manual page for pip(1)).
+Options can be specified either as command line arguments (with the -)
+or one per line in a command file (without the -):
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input
+
+.SH FILES
+Log files will be generated for all command files that are run.  The C-shell
+script produced by Vmstocsh for rootname-nnn.com is saved to rootname-nnn.csh.
+This file is removed after the command file completes.
+.SH BUGS
+Ctrl-C cannot be blocked on Windows, so the program needs to be run in the
+background to protect it from being killed inadvertently.
+The command for probing machine status and loads is not run on Windows.
+
+.SH AUTHOR
+Sue Held  <sueh@colorado.edu>
+.SH HISTORY
+Up until IMOD 4.2.8, processchunks was a script written in C shell.  It is now
+a program in C++ using Qt.
+.SH SEE ALSO
+chunksetup(1), vmstocsh(1), queuechunk(1), cpuadoc(1)

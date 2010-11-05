@@ -31,10 +31,6 @@ Memory limit for running etomo.  Define this as a number of megabytes followed
 by the letter "m".  The default of 128m is set in the etomo startup script.
 Larger values will allow larger final alignment logs to be displayed.
 .TP
-.B IMOD_ALL_MACHINES
-Comma-separated line of machine names that will be used by processchunks
-when it is given ALL instead of a machine list.
-.TP
 .B IMOD_AUTOSAVE
 Interval at which 3dmod should autosave the model, in minutes (superceded by
 setting in 3dmod preferences).
