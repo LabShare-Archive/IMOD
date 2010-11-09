@@ -56,7 +56,7 @@ static char
 #ifndef _WIN32
         ":c:FN:Check file \"name\" for commands P, Q, and D",
 #else
-        ":c:FN:Default processchunksinput.  Check file \"name\" for commands P, Q, and D",
+        ":c:FN:Default processchunks.input.  Check file \"name\" for commands P, Q, and D",
 #endif
         ":q:I:Run on cluster queue with given maximum # of jobs at once",
         ":Q:CH:Machine name to use for the queue (default queue)",
@@ -119,7 +119,7 @@ void Processchunks::printOsInformation() {
 #ifndef _WIN32
   printf("<Esc> <Enter>.\n\n");
 #else
-  printf("the -c option (-c defaults to processchunksinput).\n\n");
+  printf("the -c option (-c defaults to processchunks.input).\n\n");
 #endif
 }
 
@@ -160,7 +160,7 @@ void Processchunks::loadParams(int &argc, char **argv) {
   }
 #ifdef _WIN32
   else {
-    mCheckFile = new QFile("processchunksinput");
+    mCheckFile = new QFile("processchunks.input");
   }
 #endif
   PipGetBoolean("v", &mVerbose);
@@ -1703,6 +1703,10 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.41  2010/11/09 01:13:25  sueh
+ bug# 1364 Changed killProcessOnNextMachines to
+ killProcessOnNextMachine.  Fixed comments.
+
  Revision 1.40  2010/10/31 03:45:33  sueh
  bug# 1364 Removing mEnv and setupEnvironment.
 
