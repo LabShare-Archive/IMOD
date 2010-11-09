@@ -335,13 +335,15 @@ void InfoWindow::editModelSlot(int item)
       detach = 0;
       for (ob = imod->objsize - 1; ob >= 0; ob--){
         /* Check if object has any contours with points; but don't
-           delete the last object */
-        hasdata = (imod->objsize == 1);
+           delete the last object or isosurface objects */
         obj = &imod->obj[ob];
-        for (co = 0; co < (int)obj->contsize; co++){
-          if (obj->cont[co].psize) {
-            hasdata = 1;
-            break;
+        hasdata = (imod->objsize == 1 || obj->meshsize > 0) ? 1 : 0;
+        if (!hasdata) {
+          for (co = 0; co < (int)obj->contsize; co++){
+            if (obj->cont[co].psize) {
+              hasdata = 1;
+              break;
+            }
           }
         }
         if (!hasdata) {
@@ -1291,6 +1293,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 /*
 
 $Log$
+Revision 4.56  2010/04/01 02:24:37  mast
+Eliminated bogus object info output, added entry to save info text
+
 Revision 4.55  2009/11/11 19:28:46  mast
 Changes for hot key to break contour
 

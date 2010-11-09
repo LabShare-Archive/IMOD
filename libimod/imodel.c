@@ -1267,7 +1267,7 @@ int imodel_model_clean(Imod *mod, int keepEmptyObjs)
   for(ob = 0 ; ob < mod->objsize; ob++){
     obj = &(mod->obj[ob]);
     /*    printf("ob = %d, size = %d\n", ob, mod->objsize); */
-    if (!obj->contsize && !keepEmptyObjs){
+    if (!obj->contsize && !obj->meshsize && !keepEmptyObjs){
       mod->cindex.object = ob;
       imodDeleteObject(mod, ob);
       ob--;
@@ -1816,6 +1816,9 @@ int   imodGetFlipped(Imod *imod)
 
 /*
 $Log$
+Revision 3.32  2008/03/03 18:24:04  mast
+Fixed bum checkin
+
 Revision 3.30  2008/01/27 06:19:51  mast
 Changes for object groups
 
