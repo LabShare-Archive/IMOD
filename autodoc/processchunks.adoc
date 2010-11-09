@@ -104,11 +104,12 @@ manpage =
 
 [Field = V]
 type = CH
-usage = [class,[function,[...]]],[2]  Debugging output from specific function.
+usage = ?|?,2|class,[function,[...]][,2]|2  Debugging output from specific function.
 tooltip = 
 manpage = This option enables debugging output from a specific class or
 function.  It has no effect if "-v" is not entered too.  The entry has the
-form "[class,[function,[...]]],[2]" where 2 means more verbose.
+form "?|?,2|class,[function,[...]][,2]|2" where 2 means more verbose and ? lists
+the functions that have information to print.
 
 [Field = help]
 type = B
