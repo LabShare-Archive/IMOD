@@ -67,6 +67,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.38  2010/06/12 00:50:36  sueh
+ * <p> bug# 1383 Try a REDRAW_WAIT of 3.
+ * <p>
  * <p> Revision 1.37  2010/06/10 21:58:45  sueh
  * <p> bug# 1383 Added REDRAW_WAIT.  Using it with fields that may require a
  * <p> panel to be redrawn.
@@ -112,6 +115,9 @@ import etomo.util.Utilities;
  * <p>being fooled when kill button is disabled for a second.
  * <p>
  * $Log$
+ * Revision 1.38  2010/06/12 00:50:36  sueh
+ * bug# 1383 Try a REDRAW_WAIT of 3.
+ *
  * Revision 1.37  2010/06/10 21:58:45  sueh
  * bug# 1383 Added REDRAW_WAIT.  Using it with fields that may require a
  * panel to be redrawn.
@@ -715,8 +721,14 @@ final class AutodocTester extends Assert implements VariableList {
           assertTrue("file does not exist - " + value + " (" + command + ")",
               file.exists());
         }
+        //TODO
         //assert.not-exists.file = file_name
         else if (modifierType == UITestModifierType.NOT_EXISTS) {
+          try {
+            Thread.sleep(1);
+          }
+          catch (InterruptedException e) {
+          }
           assertFalse("file exists - " + value + " (" + command + ")", file
               .exists());
         }
