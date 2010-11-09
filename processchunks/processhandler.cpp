@@ -823,10 +823,10 @@ void ProcessHandler::continueKillProcess(const bool asynchronous) {
     }
   }
   if (asynchronous) {
-    //MachineHandler::killNextProcesses is not currently running because a wait
+    //MachineHandler::killNextProcess is not currently running because a wait
     //for a signal or event was done.  Run this function to get to the next
     //process.
-    mMachine->killNextProcesses();
+    mMachine->killNextProcess();
   }
   if (!runningKillProcess) {
     //No kill request to wait for - go straight to clean up.
