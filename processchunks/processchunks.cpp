@@ -53,11 +53,7 @@ static char
         ":w:FN:Full path to working directory on remote machines",
         ":d:I:Drop a machine after given number of failures in a row (default 5)",
         ":e:I:Quit after the given # of processing errors for a chunk (default 5)",
-#ifndef _WIN32
-        ":c:FN:Check file \"name\" for commands P, Q, and D",
-#else
-        ":c:FN:Default processchunks.input.  Check file \"name\" for commands P, Q, and D",
-#endif
+        ":c:FN:Check file \"name\" for commands P, Q, and D (default processchunks.input)",
         ":q:I:Run on cluster queue with given maximum # of jobs at once",
         ":Q:CH:Machine name to use for the queue (default queue)",
         ":P:B:Output process ID",
@@ -117,10 +113,9 @@ void Processchunks::printOsInformation() {
   printf(
       "\nIMPORTANT:  Ctrl-C does not work with this version of processchunks.  Use ");
 #ifndef _WIN32
-  printf("<Esc> <Enter>.\n\n");
-#else
-  printf("the -c option (-c defaults to processchunks.input).\n\n");
+  printf("<Esc> <Enter> or ");
 #endif
+  printf("the -c option (-c defaults to processchunks.input).\n\n");
 }
 
 //Print usage statement
@@ -158,11 +153,9 @@ void Processchunks::loadParams(int &argc, char **argv) {
   if (checkFile != NULL) {
     mCheckFile = new QFile(checkFile);
   }
-#ifdef _WIN32
   else {
     mCheckFile = new QFile("processchunks.input");
   }
-#endif
   PipGetBoolean("v", &mVerbose);
   if (mVerbose) {
     char *verboseClassFunctions = NULL;
@@ -1703,6 +1696,9 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.42  2010/11/09 01:48:54  sueh
+ bug# 1364 Changed processchunksinput to processchunks.input.
+
  Revision 1.41  2010/11/09 01:13:25  sueh
  bug# 1364 Changed killProcessOnNextMachines to
  killProcessOnNextMachine.  Fixed comments.
