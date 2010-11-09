@@ -67,7 +67,6 @@ static char *queueNameDefault = "queue";
 Processchunks *processchunksInstance;
 
 int main(int argc, char **argv) {
-  //Run processes
   Processchunks pc(argc, argv);
   processchunksInstance = &pc;
   pc.printOsInformation();
@@ -270,7 +269,8 @@ void Processchunks::startLoop() {
     mFirstUndoneIndex = 0;
   }
 
-  //remove logs if not restarting
+  //OLD:remove logs if not restarting
+  //remove logs if not resuming
   if (!mRetain) {
     for (i = 0; i < mSizeProcessArray; i++) {
       mProcessArray[i].removeFiles();
@@ -374,7 +374,7 @@ void Processchunks::timerEvent(QTimerEvent *timerEvent) {
     }
     exitIfDropped(minFail, failTot, assignTot);
 
-    //Loop ondummy CPUs, if they have an assignment check if it is done
+    //Loop on machines and CPUs, if they have an assignment check if it is done
     i = -1;
     bool loopDone = false;
     while (++i < mMachineList.size() && !loopDone) {
@@ -389,7 +389,8 @@ void Processchunks::timerEvent(QTimerEvent *timerEvent) {
           QString errorMess;
           if (mProcessArray[processIndex].isComProcessDone()) {
             //Handle the comscript ran and finished
-            // If the log is present and the process's finished signal has been caught
+            //OLD:If the log is present and the .csh is gone, it has exited
+            //If the log is present and the process's finished signal has been caught
             if (mProcessArray[processIndex].isChunkDone()) {
               //If mSingleFile is true, set loopDone to end outer loop, and break
               //out of inner loop.
@@ -411,8 +412,7 @@ void Processchunks::timerEvent(QTimerEvent *timerEvent) {
                 }
               }
               else if (!mQueue) {
-                //Old: If log is zero length, check for something in .pid
-                //checkPid = mProcessArray[processIndex].getPid();
+                //OLD: If log is zero length, check for something in .pid
                 //If the com script issues a PID to standard error and nothing
                 //to standard out, it can't run the first real command in the
                 //file.
@@ -434,7 +434,8 @@ void Processchunks::timerEvent(QTimerEvent *timerEvent) {
             handleDropOut(noChunks, dropMess, machine, cpuIndex, processIndex,
                 errorMess);
           }
-          //Clean up .job and .qid if no longer assigned
+          //OLD:Clean up .ssh and .pid if no longer assigned
+          //For queue only:  clean up .job and .qid if no longer assigned
           if (machine->getAssignedProcIndex(cpuIndex) == -1 && mQueue) {
             mProcessArray[processIndex].removeProcessFiles();
           }
@@ -640,7 +641,7 @@ void Processchunks::killProcesses(QStringList *dropList) {
     *mOutStream << "killProcesses:Turning the timer on" << endl;
   }
   mTimerId = startTimer(1000);
-  killProcessOnNextMachines();
+  killProcessOnNextMachine();
 }
 
 //Tells machines to send kill requests.  Stops when a machine has to give up
@@ -649,7 +650,7 @@ void Processchunks::killProcesses(QStringList *dropList) {
 //This is called the first time by Processchunks::killProcesses.
 //If that call can't get though all the machines because of a signal or event
 //wait, it is called by MachineHandler::killNextProcess.
-void Processchunks::killProcessOnNextMachines() {
+void Processchunks::killProcessOnNextMachine() {
   if (!mKill) {
     *mOutStream
         << "Warning: Processchunks::killProcessOnNextMachine called when mKill is false"
@@ -874,7 +875,8 @@ void Processchunks::setupMachineList() {
   //Not implementing $IMOD_ALL_MACHINES since no one seems to have used it.
   MachineHandler *machine;
   if (mQueue) {
-    //For a queue, make a CPU list that is all the same name
+    //OLD: For a queue, make a CPU list that is all the same name
+    //For a queue, create a single MachineHandler instance.
     machine = new MachineHandler(*this, mQueueName, mQueue);
     mMachineList.append(*machine);
     //Parse mCpuList into mQueueComand and mQueueParamList
@@ -922,7 +924,8 @@ void Processchunks::setupMachineList() {
   if (size < 1) {
     exitError("No machines specified");
   }
-  //Translate a single number into a list of localhost entries
+  //OLD:Translate a single number into a list of localhost entries
+  //Set the single number as the number of CPUs in the one instance of MachineHandler.
   if (size == 1) {
     bool ok;
     machine = &(mMachineList)[0];
@@ -983,7 +986,8 @@ void Processchunks::setupProcessArray() {
   if (isVerbose(mDecoratedClassName, __func__)) {
     *mOutStream << "current path:" << QDir::currentPath() << endl;
   }
-  //Make the list for a single file
+  //OLD:Make the list for a single file
+  //For a single file, one element is added to comFileArray.
   if (mSingleFile) {
     QString rootName(mRootName);
     const int extIndex = rootName.lastIndexOf(".");
@@ -1361,8 +1365,10 @@ void Processchunks::handleComProcessNotDone(bool &dropout, QString &dropMess,
   }
   else if (!mQueue) {
     //Either there is no log file or the .csh is still present:
-    //check the ssh file and accumulate timeout
-    //If the ssh file is non empty check for errors there
+    //OLD:check the ssh file and accumulate timeout
+    //OLD:If the ssh file is non empty check for errors there
+    //Look for cd or ssh errors in stdout and stderr.  For a queue check the
+    //.job file.
     if (mProcessArray[processIndex].getSshError(dropMess)) {
       //A cd or ssh error is very serious - stop using this machine.
       dropout = true;
@@ -1372,8 +1378,9 @@ void Processchunks::handleComProcessNotDone(bool &dropout, QString &dropMess,
       dropout = true;
     }
     else if (!dropout) {
-      //if log file doesn't exist, check the pid
-      //and give up after timeout
+      //OLD:if log file doesn't exist, check the pid
+      //OLD:and give up after timeout
+      //Check for timeout
       if (mProcessArray[processIndex].isStartProcessTimedOut(runProcessTimeout)) {
         dropout = true;
       }
@@ -1476,7 +1483,6 @@ void Processchunks::runProcess(MachineHandler *machine, const int cpuIndex,
   machine->setAssignedProcIndex(cpuIndex, processIndex);
   mProcessArray[processIndex].resetPausing();
   mProcessArray[processIndex].setFlag(ProcessHandler::assigned);
-  //don't forget to start the timer
   mProcessArray[processIndex].backupLog();
   mProcessArray[processIndex].removeProcessFiles();
   *mOutStream << "Running " << mProcessArray[processIndex].getComFileName()
@@ -1554,7 +1560,7 @@ void Processchunks::cleanupList(const char *remove, QStringList &list) {
   }
 }
 
-//Runs process, outputs first line, and returns the exit code
+//Runs process, outputs first numLines lines, and returns the exit code
 //lineNum - line number (from 1)
 const int Processchunks::runProcessAndOutputLines(QProcess &process,
     const QString &command, const QStringList &params, const int numLines) {
@@ -1697,6 +1703,9 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.40  2010/10/31 03:45:33  sueh
+ bug# 1364 Removing mEnv and setupEnvironment.
+
  Revision 1.39  2010/10/31 03:14:48  sueh
  bug# 1364 Using QT::QString should be fine.
 
