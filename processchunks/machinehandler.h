@@ -38,7 +38,7 @@ public:
   void setAssignedProcIndex(const int index, const int assignedProcIndex);
   const bool killProcesses();
   void msgKillProcessTimeout();
-  const bool killNextProcesses();
+  const bool killNextProcess();
 
   MachineHandler &operator=(const MachineHandler &machineHandler);
   const bool operator==(const QString &other);

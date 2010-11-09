@@ -136,19 +136,19 @@ const bool MachineHandler::killProcesses() {
   if (!mKill) {
     return true;
   }
-  return killNextProcesses();
+  return killNextProcess();
 }
 
 //Tells processes to send kill requests.  Stops when a process has to give up
 //control to the event loop.  If there are no more processes, starts
 //cleaning up.
-//This is called the first time by Processchunks::killProcessOnNextMachines.
+//This is called the first time by Processchunks::killProcessOnNextMachine.
 //If that call can't get though all the processes because of a signal or event
 //wait, it returns false and is then called by ProcessHandler::killNextProcess.
-const bool MachineHandler::killNextProcesses() {
+const bool MachineHandler::killNextProcess() {
   if (!mKill) {
     mProcesschunks->getOutStream()
-        << "Warning: MachineHandler::killNextProcesses called when mKill is false"
+        << "Warning: MachineHandler::killNextProcess called when mKill is false"
         << endl;
     return false;
   }
@@ -172,7 +172,7 @@ const bool MachineHandler::killNextProcesses() {
   }
   if (mKillCpuIndex >= mNumCpus) {
     //This machine is done - go on to the next machine
-    mProcesschunks->killProcessOnNextMachines();
+    mProcesschunks->killProcessOnNextMachine();
     cleanupKillProcess();
   }
   return true;
