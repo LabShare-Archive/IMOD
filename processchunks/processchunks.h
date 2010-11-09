@@ -30,7 +30,7 @@ public:
   void setup();
   const bool askGo();
   void startLoop();
-  void killProcessOnNextMachines();
+  void killProcessOnNextMachine();
   ProcessHandler &getProcessHandler(const int processIndex);
   void msgKillProcessStarted(const int processIndex);
   void msgKillProcessDone(const int processIndex);
