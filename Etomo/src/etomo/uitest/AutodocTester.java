@@ -67,6 +67,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.40  2010/11/09 21:54:53  sueh
+ * <p> In executeCommand slowing down assert.exists.file.  In Windows it
+ * <p> may have run too fast to avoid file locks.
+ * <p>
  * <p> Revision 1.39  2010/11/09 01:33:07  sueh
  * <p> In executeCommand slowing down assert.not-exists.file.  In Windows it
  * <p> may have run too fast to avoid file locks.
@@ -119,6 +123,10 @@ import etomo.util.Utilities;
  * <p>being fooled when kill button is disabled for a second.
  * <p>
  * $Log$
+ * Revision 1.40  2010/11/09 21:54:53  sueh
+ * In executeCommand slowing down assert.exists.file.  In Windows it
+ * may have run too fast to avoid file locks.
+ *
  * Revision 1.39  2010/11/09 01:33:07  sueh
  * In executeCommand slowing down assert.not-exists.file.  In Windows it
  * may have run too fast to avoid file locks.
@@ -727,7 +735,7 @@ final class AutodocTester extends Assert implements VariableList {
         //assert.exists.file = file_name
         else if (modifierType == UITestModifierType.EXISTS) {
           try {
-            Thread.sleep(1);
+            Thread.sleep(2);
           }
           catch (InterruptedException e) {
           }
