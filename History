@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/10/10: Created a new implementation of processchunks, written in C++.
+
 11/8/10: Prevented Edit-Model-Clean from removing saved isosurface objects.
 
 11/3/10: Fixed -number option for Point2model.
