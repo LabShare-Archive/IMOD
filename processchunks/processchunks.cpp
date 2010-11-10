@@ -68,11 +68,9 @@ int main(int argc, char **argv) {
   pc.printOsInformation();
   pc.loadParams(argc, argv);
   pc.setup();
-#ifndef _WIN32
   if (!pc.askGo()) {
     return 0;
   }
-#endif
   pc.startLoop();
 }
 
@@ -1080,19 +1078,30 @@ void Processchunks::probeMachines() {
     }
   }
   //Windows processchunks only runs on the local machine.
-#ifndef _WIN32
   //probe machines and get all the verifications unless etomo is running it
   if (!mSkipProbe || !mJustGo) {
     *mOutStream << "Probing machine connections and loads..." << endl;
     QProcess w(this);
+#ifndef _WIN32
     const QString localCommand("w");
+#else
+    const QString localCommand("imodwincpu");
+#endif
     const QStringList localParams;
     const QString remoteCommand("ssh");
     QStringList remoteParams("-x");
+    QStringList remoteWinParams("-x");
+    QStringList unameParams("-x");
     for (i = 0; i < mSshOpts.size(); i++) {
       remoteParams.append(mSshOpts.at(i));
+      remoteWinParams.append(mSshOpts.at(i));
+      unameParams.append(mSshOpts.at(i));
     }
-    remoteParams << "dummy" << "hostname ; w";
+    remoteParams << "placeholder" << "hostname ; w";
+    remoteWinParams << "placeholder" << "bash" << "--login" << "-c"
+        << "\"hostname ; imodwincpu\"";
+    unameParams << "placeholder" << "uname -s";
+
     //Probing the machines and building a new cpu array from the ones that
     //respond.
     bool status = -1;
@@ -1102,13 +1111,30 @@ void Processchunks::probeMachines() {
     }
     while (i < mMachineList.size()) {
       const QString machName = (mMachineList)[i].getName();
+      QByteArray output;
       if (machName == mHostRoot || machName == "localhost") {
         *mOutStream << machName << endl;
-        status = runProcessAndOutputLines(w, localCommand, localParams, 1);
+        status = runGenericProcess(output, w, localCommand, localParams, 1);
       }
       else {
-        remoteParams.replace(mSshOpts.size() + 1, machName);
-        status = runProcessAndOutputLines(w, remoteCommand, remoteParams, 2);
+        //Use uname to find out whether machName is a Windows system.  Use
+        //imodwincpu instead of w for Windows systems.
+        unameParams.replace(mSshOpts.size() + 1, machName);
+        int unameStatus = runGenericProcess(output, w, remoteCommand,
+            unameParams, 0);
+        QStringList *params = &remoteParams;
+        if (unameStatus == 0 && !output.isEmpty()) {
+          QString unameOutput = output;
+          if (isVerbose(mDecoratedClassName, __func__)) {
+            *mOutStream << "unameOutput:" << unameOutput << endl;
+          }
+          if (unameOutput.contains("cygwin", Qt::CaseInsensitive)
+              || unameOutput.contains("nt", Qt::CaseInsensitive)) {
+            params = &remoteWinParams;
+          }
+        }
+        params->replace(mSshOpts.size() + 1, machName);
+        status = runGenericProcess(output, w, remoteCommand, *params, 2);
       }
       //status can also be set to 1 on the local machine if it times out.
       //No longer testing for 141 because no longer supporting SGI
@@ -1129,7 +1155,6 @@ void Processchunks::probeMachines() {
       *mOutStream << "end probe machines" << endl;
     }
   }
-#endif
 }
 
 //Look for commands in mCheckFile.  CheckFile is kept open so already processed
@@ -1553,28 +1578,30 @@ void Processchunks::cleanupList(const char *remove, QStringList &list) {
   }
 }
 
-//Runs process, outputs first numLines lines, and returns the exit code
-//lineNum - line number (from 1)
-const int Processchunks::runProcessAndOutputLines(QProcess &process,
-    const QString &command, const QStringList &params, const int numLines) {
+//Runs process, outputs first numLinesToPrint lines, and returns the exit code
+//If numLinesToPrint to is zero, no lines with be printed.
+//Places stdout into the output parameter.
+const int Processchunks::runGenericProcess(QByteArray &output,
+    QProcess &process, const QString &command, const QStringList &params,
+    const int numLinesToPrint) {
   int i;
   if (isVerbose(mDecoratedClassName, __func__)) {
     *mOutStream << "command:" << command << " " << params.join(" ") << endl;
   }
   process.start(command, params);
   if (process.waitForFinished()) {
-    const QByteArray output = process.readAllStandardOutput();
+    output = process.readAllStandardOutput();
     if (isVerbose(mDecoratedClassName, __func__)) {
       const QByteArray errArray = process.readAllStandardError();
       if (!errArray.isEmpty()) {
         *mOutStream << "stderr:" << errArray << endl;
       }
     }
-    //Output first lines up to numLines
+    //Output first lines up to numLinesToPrint
     int startIndex = 0;
     int endIndex = -1;
     int temp;
-    for (i = 0; i < numLines; i++) {
+    for (i = 0; i < numLinesToPrint; i++) {
       temp = endIndex;
       endIndex = output.indexOf('\n', endIndex + 1);
       startIndex = temp + 1;
@@ -1696,6 +1723,9 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.43  2010/11/09 18:07:02  sueh
+ bug# 1364 Defaulting -c in every OS.
+
  Revision 1.42  2010/11/09 01:48:54  sueh
  bug# 1364 Changed processchunksinput to processchunks.input.
 
