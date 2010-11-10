@@ -62,8 +62,9 @@ private:
   const int extractVersion(const QString &versionString);
   void buildFilters(const char *reg, const char *sync, QStringList &filters);
   void cleanupList(const char *remove, QStringList &list);
-  const int runProcessAndOutputLines(QProcess &process, const QString &command,
-      const QStringList &params, const int numLines);
+  const int runGenericProcess(QByteArray &output,
+      QProcess &process, const QString &command, const QStringList &params,
+      const int numLinesToPrint);
   void setupSshOpts();
   void setupMachineList();
   void setupHostRoot();
