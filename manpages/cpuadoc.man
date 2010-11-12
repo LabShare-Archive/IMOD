@@ -197,7 +197,7 @@ value other than 0 activates the feature.
 
 .TP
 .B min.nice = \fIminimum_nice_value
-The minimum value of the Nice spinner.  The default is 4.
+The minimum value of the Nice spinner.  The default is 0.
 
 .TP
 .B users-column = \fR[\fB0\fR|\fB1\fR]
