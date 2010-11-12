@@ -1,12 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-11/10/10: Created a new implementation of processchunks, written in C++.
-
 11/8/10: Prevented Edit-Model-Clean from removing saved isosurface objects.
 
 11/3/10: Fixed -number option for Point2model.
 
 11/2/10: Fixed imodkillgroup on Windows for killing a suspended process.
+
+11/1/10: Switched to new implementation of processchunks written in C++/Qt.
 
 10/29/10: Changed Edpiecepoint to allow making up a piece list with pieces in
 any order.
@@ -20,7 +20,7 @@ avoid conflicts with Intel libraries used by other packages.
 10/19/10: Changed finishjoin to allow bigger scalelist (In 4.1).
 
 10/13/10: In eTomo - Settings dialog, filtering out font families with a "'" in
-their name because these names cause a Java failure.  Also added a paramter:
+their name because these names cause a Java failure.  Also added a parameter:
 --ignoresettings to help diagnose look and feel bugs.
 
 10/11/10: In eTomo, fixed a problem with the compact parallel processing table

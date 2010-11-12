@@ -70,11 +70,12 @@ current directory.
 
 Processchunks first probes all of the machines to see if connections can be
 established and to show you the first line of the "w" output on each machine
-(except on Windows).
+(or the output of "imodwincpu" on a Windows machine).
 This will also allow you to provide any one-time interactive confirmation
 needed by ssh, such as when you first log in to the machine.
-If the "w" command cannot be run on a machine, it is automatically removed
-from the list.  After this probe, the program asks you to confirm that you
+If the "w" or "imodwincpu" command cannot be run on a machine, it is
+automatically removed from the list.  After this probe, the program asks you
+to confirm that you
 want to proceed with this list of machines (unless you use the 
 .B -g
 option to skip this confirmation).  Thus, you could run Processchunks
@@ -219,7 +220,6 @@ This file is removed after the command file completes.
 .SH BUGS
 Ctrl-C cannot be blocked on Windows, so the program needs to be run in the
 background to protect it from being killed inadvertently.
-The command for probing machine status and loads is not run on Windows.
 
 .SH AUTHOR
 Sue Held  <sueh@colorado.edu>
