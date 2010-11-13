@@ -1,7 +1,7 @@
 package etomo.type;
 
 import etomo.storage.Storable;
-import etomo.ui.LogProperties;
+import etomo.ui.swing.LogProperties;
 import etomo.util.CircularBuffer;
 
 import java.awt.Point;
@@ -20,6 +20,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2010/06/02 21:44:48  sueh
+ * <p> bug# 1380 Added lastLocationX and Y.
+ * <p>
  * <p> Revision 3.12  2010/03/09 01:41:54  sueh
  * <p> bug# 1323 Doing backwards compatibility for parameters which had been saved with a key that started with a ".".
  * <p>

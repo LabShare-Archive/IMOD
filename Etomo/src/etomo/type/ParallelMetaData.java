@@ -2,7 +2,7 @@ package etomo.type;
 
 import java.util.Properties;
 
-import etomo.ui.AnisotropicDiffusionDialog;
+import etomo.ui.swing.AnisotropicDiffusionDialog;
 import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
 
@@ -345,6 +345,9 @@ public final class ParallelMetaData extends BaseMetaData {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2010/01/21 21:30:22  sueh
+ * <p> bug# 1305 Added overlapTimesFour.
+ * <p>
  * <p> Revision 1.8  2009/10/23 19:44:45  sueh
  * <p> bug# 1275 Separate generic parallel process and NAD but continue to use
  * <p> the same file type for both.

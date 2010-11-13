@@ -18,12 +18,12 @@ import etomo.type.FrontPageMetaData;
 import etomo.type.InterfaceType;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
-import etomo.ui.FrontPageDialog;
-import etomo.ui.LogPanel;
-import etomo.ui.LogInterface;
-import etomo.ui.MainFrontPagePanel;
-import etomo.ui.MainPanel;
-import etomo.ui.ProcessDisplay;
+import etomo.ui.swing.FrontPageDialog;
+import etomo.ui.swing.LogInterface;
+import etomo.ui.swing.LogPanel;
+import etomo.ui.swing.MainFrontPagePanel;
+import etomo.ui.swing.MainPanel;
+import etomo.ui.swing.ProcessDisplay;
 
 /**
  * <p>Description: </p>
@@ -39,6 +39,9 @@ import etomo.ui.ProcessDisplay;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2010/09/08 19:16:53  sueh
+ * <p> bug# 1401 Added doAutomation.
+ * <p>
  * <p> Revision 1.3  2010/04/28 15:33:39  sueh
  * <p> bug# 1344 Added getFileSubdirectoryName and getMetaData.  Using
  * <p> ProcessSeries.Process to hold process information.

@@ -20,7 +20,7 @@ import etomo.type.ImageFileType;
 import etomo.type.JoinMetaData;
 import etomo.type.ParallelMetaData;
 import etomo.type.Run3dmodMenuOptions;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.UIHarness;
 import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
 
@@ -40,6 +40,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.79  2010/04/28 16:19:03  sueh
+ * <p> bug# 1344 Added functions to find a specific ImodState in a Vector instead
+ * <p> of always getting the first one:  get(String,AxisID,String), isOpen
+ * <p> (String,AxisID,String), quit(String,AxisID,String).  Commented warnStaleFile.
+ * <p>
  * <p> Revision 3.78  2010/03/11 06:00:42  sueh
  * <p> bug# 1311 Added setOpenModelView.
  * <p>

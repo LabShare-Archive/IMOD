@@ -16,7 +16,7 @@ import etomo.type.AxisType;
 import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.UIHarness;
 import etomo.util.Utilities;
 
 /**
@@ -34,6 +34,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.63  2010/04/28 15:49:07  sueh
+ * <p> bug# 1344 Reformatted.
+ * <p>
  * <p> Revision 3.62  2010/03/12 03:58:35  sueh
  * <p> bug# 1325 Added CommandMode to CCDEraserParam constructor.
  * <p>

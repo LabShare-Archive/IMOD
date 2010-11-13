@@ -3,7 +3,7 @@ package etomo.storage.autodoc;
 import etomo.BaseManager;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
-import etomo.ui.Token;
+import etomo.ui.swing.Token;
 import etomo.util.DatasetFiles;
 import etomo.util.EnvironmentVariable;
 import etomo.util.Utilities;
@@ -771,6 +771,10 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.36  2010/05/28 18:48:29  sueh
+ *<p> $bug# 1360 In initializeCpu changed the error message for a missing ImodCalib directory
+ *<p> $to mention setting up parallel processing using Settings dialog.
+ *<p> $
  *<p> $Revision 1.35  2010/05/20 23:50:59  sueh
  *<p> $bug# 1360 In initializeCpu using a custom failure message.  Changing file
  *<p> $load functions to allow the custom message.

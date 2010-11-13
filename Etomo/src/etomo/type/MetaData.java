@@ -12,7 +12,7 @@ import etomo.comscript.SqueezevolParam;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
-import etomo.ui.FiducialModelDialog;
+import etomo.ui.swing.FiducialModelDialog;
 import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
 
@@ -29,6 +29,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.63  2010/05/27 16:49:48  sueh
+ * <p> bug# 1378 Added isLambdaForSmoothingListEmpty.
+ * <p>
  * <p> Revision 3.62  2010/04/28 16:31:27  sueh
  * <p> bug# 1344 Constructing TrimvolParam with mode.
  * <p>

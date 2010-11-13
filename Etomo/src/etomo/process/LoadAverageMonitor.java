@@ -2,7 +2,7 @@ package etomo.process;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
-import etomo.ui.LoadDisplay;
+import etomo.ui.swing.LoadDisplay;
 import etomo.util.Utilities;
 
 /**
@@ -114,6 +114,9 @@ public class LoadAverageMonitor extends LoadMonitor {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.26  2009/04/13 22:31:31  sueh
+ * <p> bug# 1207 Made FailureReason available to other classes.
+ * <p>
  * <p> Revision 1.25  2007/09/27 20:24:56  sueh
  * <p> bug# 1044 Added QueuechunkLoadMonitor, which has mostly the same functionality as LoadAverageMonitor, except for the output and how it is used.  Factoring out common functionality into a new parent class, LoadMonitor.
  * <p>

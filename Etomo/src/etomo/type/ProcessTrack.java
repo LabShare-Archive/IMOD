@@ -1,7 +1,7 @@
 package etomo.type;
 
 import etomo.process.ProcessState;
-import etomo.ui.AbstractParallelDialog;
+import etomo.ui.swing.AbstractParallelDialog;
 
 import java.util.Properties;
 
@@ -18,6 +18,9 @@ import java.util.Properties;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2009/06/11 16:49:11  sueh
+ * <p> bug# 1221 Formatted.
+ * <p>
  * <p> Revision 3.9  2008/10/16 21:00:00  sueh
  * <p> bug# 1141 Created FinalAlignedStack dialog to run full aligned stack and mtf filter.
  * <p>

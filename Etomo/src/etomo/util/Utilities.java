@@ -12,6 +12,10 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.75  2010/05/20 23:55:19  sueh
+ * <p> $bug# 1360 Adding new versions off checkExistingDir and getExistingDir
+ * <p> $that allow a custom failure message.
+ * <p> $
  * <p> $Revision 3.74  2010/04/28 16:51:17  sueh
  * <p> $bug# 1344 Added backFile.
  * <p> $
@@ -324,8 +328,8 @@ import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
-import etomo.ui.Token;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.Token;
+import etomo.ui.swing.UIHarness;
 import etomo.comscript.ComScript;
 
 public class Utilities {

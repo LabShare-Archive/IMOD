@@ -9,7 +9,7 @@ import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.UIHarness;
 
 /**
  * <p>Description: </p>
@@ -24,6 +24,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2010/04/28 15:45:00  sueh
+ * <p> bug# 1344 Added getOutputImageFileType functions.
+ * <p>
  * <p> Revision 3.10  2010/03/12 03:57:53  sueh
  * <p> bug# 1325 Implemented Command and added Modes.
  * <p>

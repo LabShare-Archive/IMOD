@@ -1,6 +1,6 @@
 package etomo.storage.autodoc;
 
-import etomo.ui.Token;
+import etomo.ui.swing.Token;
 
 /**
 * <p>Description: </p>
@@ -27,6 +27,10 @@ abstract class WriteOnlyStatementList extends WriteOnlyAttributeList {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2007/04/11 22:14:49  sueh
+* <p> bug# 964 Removed NameValuePair.getDelimiterChangeInstance and added
+* <p> setDelimiterChange.
+* <p>
 * <p> Revision 1.1  2007/04/09 20:57:32  sueh
 * <p> bug# 964 Changed NameValuePair to an abstract class called Statement and
 * <p> child classes representing name/value pair, comment, empty line, and

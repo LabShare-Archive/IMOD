@@ -13,7 +13,7 @@ import etomo.type.ConstProcessSeries;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.UIHarness;
 import etomo.util.DatasetFiles;
 
 /**
@@ -256,6 +256,9 @@ final class DetachedProcess extends BackgroundProcess {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.25  2010/10/20 23:04:20  sueh
+ * <p> bug# 1364 Removing unnecessary variable runInBackground.
+ * <p>
  * <p> Revision 1.24  2010/10/19 06:38:09  sueh
  * <p> bug# 1364 Added runInBackground.
  * <p>

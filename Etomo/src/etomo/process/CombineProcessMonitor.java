@@ -13,7 +13,7 @@ import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessResultDisplayFactory;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.UIHarness;
 import etomo.util.Utilities;
 
 /**
@@ -33,6 +33,10 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.31  2010/02/17 04:49:20  sueh
+ * <p> $bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> $messages.
+ * <p> $
  * <p> $Revision 1.30  2010/01/11 23:51:04  sueh
  * <p> $bug# 1299 Added useMessageReporter.
  * <p> $

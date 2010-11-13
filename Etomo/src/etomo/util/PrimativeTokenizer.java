@@ -11,7 +11,7 @@ import java.io.StreamTokenizer;
 import java.io.FileNotFoundException;
 
 import etomo.storage.LogFile;
-import etomo.ui.Token;
+import etomo.ui.swing.Token;
 
 /**
  * <p>Description:
@@ -53,6 +53,11 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.14  2009/09/05 00:06:14  sueh
+ * <p> $bug# 1256 Added separateAlphabeticAndNumeric() to divide ALPHANUM
+ * <p> $tokens into ALPHABETIC and NUMERIC tokens without changing the next()
+ * <p> $function.
+ * <p> $
  * <p> $Revision 1.13  2009/02/04 23:38:24  sueh
  * <p> $bug# 1158 Changed id and exception classes in LogFile.
  * <p> $

@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import etomo.storage.LogFile;
-import etomo.ui.Token;
+import etomo.ui.swing.Token;
 
 /**
  * <p>Description:</p>
@@ -26,6 +26,9 @@ import etomo.ui.Token;
  * @notthreadsafe
  *
  * <p> $$Log$
+ * <p> $Revision 1.19  2009/02/04 23:30:00  sueh
+ * <p> $bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p> $
  * <p> $Revision 1.18  2009/01/20 19:39:51  sueh
  * <p> $bug# 1102 Added sectionList and subSectionMap.  Added getSection, getSectionLocation, nextSection, and setDebug.
  * <p> $

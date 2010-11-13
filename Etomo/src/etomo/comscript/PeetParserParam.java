@@ -17,7 +17,7 @@ import etomo.type.FileType;
 import etomo.type.IteratorElementList;
 
 import etomo.type.ProcessName;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.UIHarness;
 import etomo.util.EnvironmentVariable;
 
 /**
@@ -34,6 +34,9 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2010/04/28 16:05:12  sueh
+ * <p> bug# 1344 Added getOutputImageFileType functions.
+ * <p>
  * <p> Revision 1.15  2010/02/17 04:47:54  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.

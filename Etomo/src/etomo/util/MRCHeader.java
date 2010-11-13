@@ -12,7 +12,7 @@ import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.FileType;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.UIHarness;
 
 /**
  * <p>Description: An interface to the header information in a MRC Image 
@@ -28,6 +28,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.35  2010/04/08 18:09:31  sueh
+ * <p> bug# 1348 Whoops... do need to trim.
+ * <p>
  * <p> Revision 3.34  2010/04/08 18:07:44  sueh
  * <p> bug# 1348 In parseTiltAxis removed unnecessary trim command.
  * <p>

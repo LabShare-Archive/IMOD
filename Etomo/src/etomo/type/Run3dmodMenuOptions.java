@@ -1,6 +1,6 @@
 package etomo.type;
 
-import etomo.ui.UIHarness;
+import etomo.ui.swing.UIHarness;
 
 /**
  * <p>Description: </p>
@@ -83,6 +83,10 @@ public class Run3dmodMenuOptions {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2008/05/03 00:46:02  sueh
+ * <p> bug# 847 Renamed setOptions to orGlobalOptions, which is a better
+ * <p> description of its functionality.
+ * <p>
  * <p> Revision 1.2  2005/08/12 00:21:16  sueh
  * <p> bug# 711 changed StartUpWindow to StartupWindow.
  * <p>

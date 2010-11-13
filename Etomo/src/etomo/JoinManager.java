@@ -49,13 +49,13 @@ import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.SlicerAngles;
-import etomo.ui.Deferred3dmodButton;
-import etomo.ui.JoinDialog;
-import etomo.ui.LogInterface;
-import etomo.ui.LogPanel;
-import etomo.ui.MainJoinPanel;
-import etomo.ui.MainPanel;
-import etomo.ui.ProcessDisplay;
+import etomo.ui.swing.Deferred3dmodButton;
+import etomo.ui.swing.JoinDialog;
+import etomo.ui.swing.LogInterface;
+import etomo.ui.swing.LogPanel;
+import etomo.ui.swing.MainJoinPanel;
+import etomo.ui.swing.MainPanel;
+import etomo.ui.swing.ProcessDisplay;
 import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
 
@@ -73,6 +73,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.87  2010/09/09 17:06:15  sueh
+ * <p> bug# 1402 Reformatted.
+ * <p>
  * <p> Revision 1.86  2010/04/28 15:36:33  sueh
  * <p> bug# 1344 Added getFileSubdirectoryName.  Passing params to process
  * <p> manager functions, standardizing "3dmod is open" messages to always

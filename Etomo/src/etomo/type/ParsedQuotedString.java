@@ -3,7 +3,7 @@ package etomo.type;
 import java.io.IOException;
 
 import etomo.storage.autodoc.ReadOnlyAttribute;
-import etomo.ui.Token;
+import etomo.ui.swing.Token;
 import etomo.util.PrimativeTokenizer;
 
 /**
@@ -28,6 +28,13 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2008/09/10 21:33:07  sueh
+ * <p> bug# 1135 Check for null when calling ParsedElementList.get(int).  Check
+ * <p> for null when calling ParsedElement.getElement or getRawNumber.
+ * <p> arsedElementList will no longer create an empty element, so null returns
+ * <p> will happen.  Do not create an empty ParsedQuotedString just to return the
+ * <p> correct empty value; just return null.
+ * <p>
  * <p> Revision 1.13  2008/04/15 21:29:23  sueh
  * <p> bug# 1105 Added debug and to constructor.  Move setDebug() to child
  * <p> classes.

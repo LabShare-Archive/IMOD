@@ -7,8 +7,8 @@ import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
-import etomo.ui.Deferred3dmodButton;
-import etomo.ui.ProcessDisplay;
+import etomo.ui.swing.Deferred3dmodButton;
+import etomo.ui.swing.ProcessDisplay;
 
 /**
  * <p>Description: Represents a series of processes to be executed.</p>
@@ -113,6 +113,10 @@ import etomo.ui.ProcessDisplay;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2010/04/28 15:38:58  sueh
+ * <p> bug# 1344 Using ProcessSeries.Process to hold next process and last
+ * <p> process information, including outputImageFIleType.
+ * <p>
  * <p> Revision 1.8  2009/09/01 03:17:35  sueh
  * <p> bug# 1222
  * <p>

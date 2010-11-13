@@ -17,6 +17,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.40  2010/02/17 04:49:20  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 3.39  2009/03/31 22:33:31  sueh
  * <p> bug# 1204 Porting from 3-13.
  * <p>
@@ -279,7 +283,7 @@ import java.util.Date;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.UIHarness;
 import etomo.util.Utilities;
 
 public class SystemProgram implements Runnable {
@@ -555,8 +559,8 @@ public class SystemProgram implements Runnable {
             "System Error");
       }
     }
-    processMessages.addProcessOutput(manager, stdout);
-    processMessages.addProcessOutput(manager, stderr);
+    processMessages.addProcessOutput(stdout);
+    processMessages.addProcessOutput(stderr);
 
     if (debug) {
       if (stdout != null && stdout.size() > 0) {

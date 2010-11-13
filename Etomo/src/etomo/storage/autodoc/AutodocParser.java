@@ -6,7 +6,7 @@ import java.io.FileNotFoundException;
 import java.util.Vector;
 
 import etomo.storage.LogFile;
-import etomo.ui.Token;
+import etomo.ui.swing.Token;
 
 /**
  * <p>Description:
@@ -150,6 +150,12 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.22  2009/03/09 17:30:25  sueh
+ * <p> $bug# 1199 Updated comments to show that the last value of duplicate
+ * <p> $attributes is retrieved as the default.  Also got rid of the keyword
+ * <p> $"CommandLanguage", which was never used and is unnecessary since
+ * <p> $autodocs are always stored in both a tree structure and sequentially.
+ * <p> $
  * <p> $Revision 1.21  2009/02/04 23:30:00  sueh
  * <p> $bug# 1158 Changed id and exceptions classes in LogFile.
  * <p> $

@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.50  2010/09/24 00:55:28  sueh
+ * <p> bug# 1404 Changed excludelist and excludelist2 to load mutliple entries
+ * <p> and output one entry.
+ * <p>
  * <p> Revision 3.49  2010/09/23 22:23:13  sueh
  * <p> bug# 1404 Adapting to changes in StringList without changing the
  * <p> functionality.
@@ -265,8 +269,8 @@ import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
 import etomo.type.StringParameter;
-import etomo.ui.UIExpertUtilities;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.UIExpertUtilities;
+import etomo.ui.swing.UIHarness;
 import etomo.util.DatasetFiles;
 import etomo.util.Goodframe;
 import etomo.util.MRCHeader;

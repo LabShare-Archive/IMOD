@@ -8,7 +8,7 @@ import java.util.List;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.UIHarness;
 
 /**
  * <p>Description: Represents a file with a list of file names.  The last file
@@ -25,6 +25,10 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2010/02/17 04:49:31  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.1  2010/01/13 21:53:36  sueh
  * <p> bug# 1298 Reads averagedFilenames.txt.
  * <p> </p>

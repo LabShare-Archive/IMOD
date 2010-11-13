@@ -3,15 +3,15 @@ package etomo.type;
 import java.util.Vector;
 
 import etomo.process.ProcessResultDisplayFactoryInterface;
-import etomo.ui.AlignmentEstimationDialog;
-import etomo.ui.CoarseAlignDialog;
-import etomo.ui.FiducialModelDialog;
-import etomo.ui.FinalAlignedStackDialog;
-import etomo.ui.PostProcessingDialog;
-import etomo.ui.PreProcessingDialog;
-import etomo.ui.TomogramCombinationDialog;
-import etomo.ui.TomogramGenerationDialog;
-import etomo.ui.TomogramPositioningExpert;
+import etomo.ui.swing.AlignmentEstimationDialog;
+import etomo.ui.swing.CoarseAlignDialog;
+import etomo.ui.swing.FiducialModelDialog;
+import etomo.ui.swing.FinalAlignedStackDialog;
+import etomo.ui.swing.PostProcessingDialog;
+import etomo.ui.swing.PreProcessingDialog;
+import etomo.ui.swing.TomogramCombinationDialog;
+import etomo.ui.swing.TomogramGenerationDialog;
+import etomo.ui.swing.TomogramPositioningExpert;
 
 /**
  * <p>Description: </p>
@@ -579,6 +579,9 @@ public final class ProcessResultDisplayFactory implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2010/03/03 04:59:07  sueh
+ * <p> bug# 1311 Added patchTracking.
+ * <p>
  * <p> Revision 1.14  2009/12/19 01:11:16  sueh
  * <p> bug# 1294 Added smoothingAssessment.
  * <p>

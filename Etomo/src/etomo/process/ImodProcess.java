@@ -12,7 +12,7 @@ import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.Run3dmodMenuOptions;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.UIHarness;
 import etomo.util.Utilities;
 
 /**
@@ -37,6 +37,10 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.68  2010/09/21 16:25:42  sueh
+ * bug# 1395 Added BF_MESSAGE_REMOVE_SKIP_LIST to handle a null skip
+ * list.
+ *
  * Revision 3.67  2010/05/16 17:41:24  sueh
  * bug# 1358 In imodSendEvent stop throwing an exception just because
  * messages was passed in as null.

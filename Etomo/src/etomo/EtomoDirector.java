@@ -35,10 +35,10 @@ import etomo.type.ParallelMetaData;
 import etomo.type.PeetMetaData;
 import etomo.type.ToolType;
 import etomo.type.UserConfiguration;
-import etomo.ui.MainFrame;
-import etomo.ui.SettingsDialog;
-import etomo.ui.UIHarness;
-import etomo.ui.UIParameters;
+import etomo.ui.swing.MainFrame;
+import etomo.ui.swing.SettingsDialog;
+import etomo.ui.swing.UIHarness;
+import etomo.ui.swing.UIParameters;
 import etomo.util.DatasetFiles;
 import etomo.util.EnvironmentVariable;
 import etomo.util.UniqueHashedArray;
@@ -1205,6 +1205,10 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.102  2010/10/13 20:17:58  sueh
+ * <p> bug# 1392 Handling the ignoresettings parameter by loading userconfig
+ * <p> with a file.
+ * <p>
  * <p> Revision 1.101  2010/09/24 00:53:35  sueh
  * <p> bug# 1404 Correcting comment.
  * <p>

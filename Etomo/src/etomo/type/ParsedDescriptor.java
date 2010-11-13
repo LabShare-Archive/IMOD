@@ -2,7 +2,7 @@ package etomo.type;
 
 import java.io.IOException;
 
-import etomo.ui.Token;
+import etomo.ui.swing.Token;
 import etomo.util.PrimativeTokenizer;
 
 /**
@@ -19,6 +19,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2009/09/05 00:32:23  sueh
+ * <p> bug# 1256 Removed ParsedIteratorDescriptor.
+ * <p>
  * <p> Revision 1.6  2008/09/10 21:05:17  sueh
  * <p> bug# 1135 Check for null when calling ParsedElementList.get(int).  Check
  * <p> for null when calling ParsedElement.getElement or getRawNumber.

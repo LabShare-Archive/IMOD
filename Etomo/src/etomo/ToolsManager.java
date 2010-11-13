@@ -29,15 +29,15 @@ import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.ToolType;
 import etomo.type.ToolsMetaData;
-import etomo.ui.Deferred3dmodButton;
-import etomo.ui.FlattenWarpDisplay;
-import etomo.ui.LogPanel;
-import etomo.ui.LogInterface;
-import etomo.ui.MainPanel;
-import etomo.ui.MainToolsPanel;
-import etomo.ui.ProcessDisplay;
-import etomo.ui.ToolsDialog;
-import etomo.ui.WarpVolDisplay;
+import etomo.ui.swing.Deferred3dmodButton;
+import etomo.ui.swing.FlattenWarpDisplay;
+import etomo.ui.swing.LogInterface;
+import etomo.ui.swing.LogPanel;
+import etomo.ui.swing.MainPanel;
+import etomo.ui.swing.MainToolsPanel;
+import etomo.ui.swing.ProcessDisplay;
+import etomo.ui.swing.ToolsDialog;
+import etomo.ui.swing.WarpVolDisplay;
 import etomo.util.DatasetFiles;
 import etomo.util.MRCHeader;
 
@@ -55,6 +55,11 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2010/04/28 15:39:23  sueh
+ * <p> bug# 1344 Added getFileSubdirectoryName.  Passing params to process
+ * <p> manager functions, standardizing "3dmod is open" messages to always
+ * <p> use closeImod.  Using ProcessSeries.Process to hold process information.
+ * <p>
  * <p> Revision 1.3  2010/03/27 04:45:53  sueh
  * <p> bug# 1316 Checking for conflicting dataset files.
  * <p>

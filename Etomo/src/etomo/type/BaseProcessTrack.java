@@ -2,7 +2,7 @@ package etomo.type;
 
 import etomo.process.ProcessState;
 import etomo.storage.Storable;
-import etomo.ui.AbstractParallelDialog;
+import etomo.ui.swing.AbstractParallelDialog;
 
 /**
 * <p>Description: </p>
@@ -18,6 +18,9 @@ import etomo.ui.AbstractParallelDialog;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2006/03/20 17:54:40  sueh
+* <p> bug# 835 Changed the interface ParallelDialog to AbstractParallelDialog.
+* <p>
 * <p> Revision 1.4  2005/09/21 16:11:38  sueh
 * <p> bug# 532 Added setState(ProcessState, AxisID, ParallelDialog) so that
 * <p> one processchunks function in BaseManager can handle multiple dialogs.

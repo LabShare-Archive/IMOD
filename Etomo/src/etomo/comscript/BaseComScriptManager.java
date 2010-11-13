@@ -7,7 +7,7 @@ import javax.swing.JOptionPane;
 import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.FileType;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.UIHarness;
 import etomo.util.Utilities;
 
 /**
@@ -23,7 +23,11 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 3.1  2010/02/17 04:47:54  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p> </p>
  */
 public abstract class BaseComScriptManager {
   public static final String rcsid = "$Id$";

@@ -7,7 +7,7 @@ import etomo.storage.LogFile;
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.storage.autodoc.ReadOnlySection;
-import etomo.ui.Token;
+import etomo.ui.swing.Token;
 import etomo.util.PrimativeTokenizer;
 
 /**
@@ -261,6 +261,9 @@ public class EtomoAutodoc {
 
 /**
  * <p> $Log$
+ * <p> Revision 1.19  2009/06/05 02:04:12  sueh
+ * <p> bug# 1219 Added the autodocName (the file name minus the extension).
+ * <p>
  * <p> Revision 1.18  2009/02/04 23:30:30  sueh
  * <p> bug# 1158 Changed id and exception classes in LogFile.
  * <p>

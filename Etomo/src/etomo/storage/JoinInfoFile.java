@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import etomo.BaseManager;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoBoolean2;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.UIHarness;
 import etomo.util.DatasetFiles;
 
 /**
@@ -127,6 +127,10 @@ public class JoinInfoFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2010/02/26 20:38:11  sueh
+ * <p> Changing the complex popup titles are making it hard to complete the
+ * <p> uitests.
+ * <p>
  * <p> Revision 1.7  2010/02/17 04:49:31  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.

@@ -3,7 +3,7 @@ package etomo.type;
 import java.io.IOException;
 
 import etomo.storage.LogFile;
-import etomo.ui.Token;
+import etomo.ui.swing.Token;
 import etomo.util.PrimativeTokenizer;
 
 /**
@@ -20,6 +20,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2009/02/04 23:30:30  sueh
+ * <p> bug# 1158 Changed id and exception classes in LogFile.
+ * <p>
  * <p> Revision 1.14  2008/09/10 21:06:34  sueh
  * <p> bug# 1135 Check for null when calling ParsedElementList.get(int).  Check
  * <p> for null when calling ParsedElement.getElement or getRawNumber.

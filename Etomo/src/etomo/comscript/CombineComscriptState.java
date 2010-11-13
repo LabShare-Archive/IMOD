@@ -3,7 +3,7 @@ package etomo.comscript;
 import etomo.EtomoDirector;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
-import etomo.ui.TomogramCombinationDialog;
+import etomo.ui.swing.TomogramCombinationDialog;
 import etomo.util.DatasetFiles;
 
 /**
@@ -22,6 +22,9 @@ import etomo.util.DatasetFiles;
  * @version $$Revision$$
  *
  * <p> $Log$
+ * <p> Revision 1.13  2010/05/21 00:10:36  sueh
+ * <p> bug# 1374 Removed some dead code.
+ * <p>
  * <p> Revision 1.12  2010/04/28 15:46:15  sueh
  * <p> bug# 1344 Added getOutputImageFileType functions.
  * <p>

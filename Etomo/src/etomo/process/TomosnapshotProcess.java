@@ -2,7 +2,7 @@ package etomo.process;
 
 import etomo.comscript.TomosnapshotParam;
 import etomo.type.AxisID;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.UIHarness;
 
 /**
  * <p>Description: </p>
@@ -18,6 +18,10 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2010/02/17 04:49:20  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.2  2009/04/10 22:47:46  sueh
  * <p> bug# 1206 Put the right symbol on the success popup.
  * <p>

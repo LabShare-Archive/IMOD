@@ -18,6 +18,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.59  2010/04/28 16:17:04  sueh
+ * bug# 1344 Added closeOutputImageFile.  Changed a constructor to take a
+ * Command parameter.
+ *
  * Revision 3.58  2010/03/12 04:02:09  sueh
  * bug# 1325 Added a ComScriptProcess constructor with a Command
  * parameter.
@@ -444,7 +448,7 @@ import etomo.type.FileType;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.UIHarness;
 
 public class ComScriptProcess extends Thread implements SystemProcessInterface {
 
@@ -1095,7 +1099,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     if (!logFileToParse.exists() && !mustExist) {
       return;
     }
-    processMessages.addProcessOutput(manager, logFileToParse);
+    processMessages.addProcessOutput(logFileToParse);
     processMessages.print();
   }
 

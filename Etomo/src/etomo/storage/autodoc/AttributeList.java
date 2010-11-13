@@ -7,7 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import etomo.ui.Token;
+import etomo.ui.swing.Token;
 
 /**
  * <p>Description: The Autodoc and each Section contain an AttributeList which holds
@@ -114,6 +114,9 @@ final class AttributeList {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2009/01/20 19:31:49  sueh
+ * <p> bug# 1102 Added list and getFirstAttribute.
+ * <p>
  * <p> Revision 1.2  2007/04/11 21:49:56  sueh
  * <p> bug# 964 Removed list because it was not being used.  In addAttribute, when an
  * <p> attribute already exists, increment Attribute.occurrences by calling

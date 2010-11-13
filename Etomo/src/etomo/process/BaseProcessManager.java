@@ -24,8 +24,8 @@ import etomo.type.FileType;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
-import etomo.ui.ParallelProgressDisplay;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.ParallelProgressDisplay;
+import etomo.ui.swing.UIHarness;
 import etomo.util.Utilities;
 
 /**
@@ -45,6 +45,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.94  2010/10/20 23:04:57  sueh
+ * <p> bug# 1364 In DetachedProcess removed unnecessary variable
+ * <p> runInBackground.
+ * <p>
  * <p> Revision 1.93  2010/10/19 06:36:24  sueh
  * <p> bug# 1364 Passing ProcesschunksParam.IS_SCRIPT to DetachedProcess.
  * <p>

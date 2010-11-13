@@ -7,7 +7,7 @@ import etomo.BaseManager;
 import etomo.comscript.IntermittentCommand;
 import etomo.storage.CpuAdoc;
 import etomo.type.AxisID;
-import etomo.ui.LoadDisplay;
+import etomo.ui.swing.LoadDisplay;
 import etomo.util.HashedArray;
 
 /**
@@ -24,6 +24,10 @@ import etomo.util.HashedArray;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2010/02/17 04:49:20  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.5  2010/01/11 23:55:49  sueh
  * <p> bug# 1299 Made CpuAdoc a singleton without knowledge of manager or
  * <p> axis.

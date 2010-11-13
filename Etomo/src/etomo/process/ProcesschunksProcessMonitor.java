@@ -12,8 +12,8 @@ import etomo.type.ConstStringProperty;
 import etomo.type.EtomoNumber;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
-import etomo.ui.ParallelProgressDisplay;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.ParallelProgressDisplay;
+import etomo.ui.swing.UIHarness;
 import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
 
@@ -345,7 +345,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       if (debug) {
         System.err.println(line);
       }
-      messages.addProcessOutput(manager, line);
+      messages.addProcessOutput(line);
       if (messages.isError()) {
         //Set failure boolean but continue to add all the output lines to
         //messages.
@@ -609,6 +609,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.52  2010/03/03 04:55:35  sueh
+ * <p> bug# 1311 Removed unnecessary ProcessName references.
+ * <p>
  * <p> Revision 1.51  2010/02/18 01:15:08  sueh
  * <p> bub# 1283 Removed "no match" from tcsh error string list.  Performing a
  * <p> countdown to allow processchunks to fail normally before popping up the

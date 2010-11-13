@@ -4,8 +4,8 @@ import java.io.IOException;
 
 import etomo.BaseManager;
 import etomo.storage.autodoc.ReadOnlyAttribute;
-import etomo.ui.Token;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.Token;
+import etomo.ui.swing.UIHarness;
 import etomo.util.PrimativeTokenizer;
 
 /**
@@ -31,6 +31,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.24  2010/05/20 23:51:30  sueh
+ * <p> bug# 1368 Added setDefault(boolean).
+ * <p>
  * <p> Revision 1.23  2010/02/17 04:52:36  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.

@@ -1,6 +1,6 @@
 package etomo.storage.autodoc;
 
-import etomo.ui.Token;
+import etomo.ui.swing.Token;
 
 /**
 * <p>Description: </p>
@@ -24,6 +24,9 @@ abstract class WriteOnlyAttributeList {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.1  2007/04/09 20:56:56  sueh
+* <p> bug# 964 Changed AttributeMap to AttributeList.
+* <p>
 * <p> Revision 1.3  2006/06/14 21:24:59  sueh
 * <p> bug# 852 Added isAttribute().
 * <p>

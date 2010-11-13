@@ -10,7 +10,7 @@ import etomo.process.ProcessTests;
 import etomo.storage.StorageTests;
 import etomo.storage.autodoc.AutodocTests;
 import etomo.type.TypeTests;
-import etomo.ui.UITests;
+import etomo.ui.swing.UITests;
 import etomo.util.UtilTests;
 import etomo.util.Utilities;
 
@@ -116,6 +116,9 @@ public class JUnitTests {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2009/08/24 20:23:01  sueh
+ * <p> bug# 1254 Setting java.awt.headless during unit tests.
+ * <p>
  * <p> Revision 1.11  2007/12/26 21:57:25  sueh
  * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
  * <p>

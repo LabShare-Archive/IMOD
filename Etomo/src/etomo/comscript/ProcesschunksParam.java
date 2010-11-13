@@ -20,7 +20,7 @@ import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.UIHarness;
 import etomo.util.DatasetFiles;
 import etomo.util.RemotePath;
 import etomo.util.RemotePath.InvalidMountRuleException;
@@ -539,6 +539,11 @@ public final class ProcesschunksParam implements DetachedCommandDetails,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.46  2010/10/20 23:03:48  sueh
+ * <p> bug# 1364 In buildCommand removing unecessary "tcsh -f".  The
+ * <p> command is being run from inside of a .csh file.  Removing IS_SCRIPT
+ * <p> because the script and app run command is now the same.
+ * <p>
  * <p> Revision 1.45  2010/10/19 06:35:40  sueh
  * <p> bug# 1364 Make second command specific for nicing.
  * <p>

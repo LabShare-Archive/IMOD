@@ -44,13 +44,13 @@ import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.UserConfiguration;
-import etomo.ui.FileChooser;
-import etomo.ui.LogPanel;
-import etomo.ui.LogInterface;
-import etomo.ui.MainPanel;
-import etomo.ui.ParallelPanel;
-import etomo.ui.ProcessDisplay;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.FileChooser;
+import etomo.ui.swing.LogInterface;
+import etomo.ui.swing.LogPanel;
+import etomo.ui.swing.MainPanel;
+import etomo.ui.swing.ParallelPanel;
+import etomo.ui.swing.ProcessDisplay;
+import etomo.ui.swing.UIHarness;
 import etomo.util.UniqueKey;
 import etomo.util.Utilities;
 
@@ -1761,6 +1761,9 @@ public abstract class BaseManager {
 /**
  * <p>
  * $Log$
+ * Revision 1.135  2010/07/02 03:13:43  sueh
+ * bug# 1388 Added popupChunkWarnings to processchunks and resume.
+ *
  * Revision 1.134  2010/05/15 17:40:18  sueh
  * bug# 1358 For Windows XP giving more time to release file (releaseFile()).
  *

@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 import etomo.storage.autodoc.ReadOnlyAttribute;
-import etomo.ui.Token;
+import etomo.ui.swing.Token;
 import etomo.util.PrimativeTokenizer;
 
 /**
@@ -32,6 +32,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2009/11/20 16:56:46  sueh
+ * <p> bug# 1282 Added addElement(ParsedElement).
+ * <p>
  * <p> Revision 1.20  2009/09/05 00:31:59  sueh
  * <p> bug# 1256 Removed instance types associated with non-matlab iterator
  * <p> arrays.

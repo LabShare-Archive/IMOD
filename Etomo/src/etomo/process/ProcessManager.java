@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.152  2010/05/10 21:36:45  sueh
+ * bug# 1372 In modelToPatch removing the imod2vatch command.
+ *
  * Revision 3.151  2010/04/29 02:03:17  sueh
  * bug# 1359 Added AxisID to clipStats.
  *
@@ -970,8 +973,8 @@ import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.type.ConstMetaData;
-import etomo.ui.TextPageWindow;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.TextPageWindow;
+import etomo.ui.swing.UIHarness;
 import etomo.util.DatasetFiles;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;

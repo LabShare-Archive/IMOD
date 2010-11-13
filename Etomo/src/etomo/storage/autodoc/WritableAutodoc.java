@@ -3,7 +3,7 @@ package etomo.storage.autodoc;
 import java.io.IOException;
 
 import etomo.storage.LogFile;
-import etomo.ui.Token;
+import etomo.ui.swing.Token;
 
 /**
  * <p>Description: </p>
@@ -19,6 +19,10 @@ import etomo.ui.Token;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2010/02/17 04:49:43  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.4  2009/02/04 23:30:00  sueh
  * <p> bug# 1158 Changed id and exceptions classes in LogFile.
  * <p>

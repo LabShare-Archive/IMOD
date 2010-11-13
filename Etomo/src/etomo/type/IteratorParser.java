@@ -6,8 +6,8 @@ import java.util.Formatter;
 
 import etomo.BaseManager;
 import etomo.storage.LogFile;
-import etomo.ui.Token;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.Token;
+import etomo.ui.swing.UIHarness;
 import etomo.util.PrimativeTokenizer;
 
 /**
@@ -52,6 +52,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2010/02/17 04:52:36  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.1  2009/09/05 00:10:52  sueh
  * <p> bug# 1256 Simple parser that parses iterator lists.
  * <p></p>

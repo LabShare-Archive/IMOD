@@ -13,7 +13,7 @@ import etomo.type.ConstProcessSeries;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.UIHarness;
 
 /**
  * <p>Description: Process for running non-comscript processes.</p>
@@ -28,6 +28,10 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.48  2010/07/15 03:38:36  sueh
+ * <p> bug# 1390 Made a new constructor which takes CommandDetails so that
+ * <p> ProcessDetails will be set.
+ * <p>
  * <p> Revision 3.47  2010/07/02 03:14:48  sueh
  * <p> bug# 1388 Added popupChunkWarnings.
  * <p>
@@ -804,7 +808,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
           errorMessage.addError(monitorMessages);
         }
       }
-      errorMessage.addProcessOutput(manager, stdOutput);
+      errorMessage.addProcessOutput(stdOutput);
       //make sure script knows about failure
       setProcessEndState(ProcessEndState.FAILED);
       //popup error messages

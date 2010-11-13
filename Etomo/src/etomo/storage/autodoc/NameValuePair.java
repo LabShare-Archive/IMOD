@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.Vector;
 
 import etomo.storage.LogFile;
-import etomo.ui.Token;
+import etomo.ui.swing.Token;
 
 /**
  * <p>Description: </p>
@@ -183,6 +183,9 @@ final class NameValuePair extends Statement {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2009/02/04 23:30:00  sueh
+ * <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p>
  * <p> Revision 1.11  2009/01/20 19:35:33  sueh
  * <p> bug# 1102 Added getSubsection and toString.
  * <p>

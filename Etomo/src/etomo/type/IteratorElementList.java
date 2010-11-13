@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Properties;
 
 import etomo.BaseManager;
-import etomo.ui.AnisotropicDiffusionDialog;
+import etomo.ui.swing.AnisotropicDiffusionDialog;
 
 /**
  * <p>Description: List of positive whole numbers including descriptions of lists:
@@ -33,7 +33,10 @@ import etomo.ui.AnisotropicDiffusionDialog;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/09/05 00:10:21  sueh
+ * <p> bug# 1256 Parsed by IteratorParser.  Contains IteratorElements.
+ * <p> </p>
  */
 public final class IteratorElementList {
   public static final String rcsid = "$Id$";

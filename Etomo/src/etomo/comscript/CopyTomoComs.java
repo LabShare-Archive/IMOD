@@ -18,6 +18,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.27  2010/02/17 04:47:54  sueh
+ * bug# 1301 Using the manager instead of the manager key do pop up
+ * messages.
+ *
  * Revision 3.26  2009/08/20 23:36:54  sueh
  * bug# 1255 Ported from 3.13.
  *
@@ -232,7 +236,7 @@ import etomo.type.DataSource;
 import etomo.type.EtomoNumber;
 import etomo.type.TiltAngleType;
 import etomo.type.ViewType;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.UIHarness;
 
 public final class CopyTomoComs {
   public static final String rcsid = "$Id$";

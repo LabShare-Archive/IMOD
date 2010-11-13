@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.lang.IllegalStateException;
 
 import etomo.storage.LogFile;
-import etomo.ui.Token;
+import etomo.ui.swing.Token;
 import etomo.util.PrimativeTokenizer;
 
 /**
@@ -66,6 +66,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.13  2009/03/09 17:30:54  sueh
+ * <p> $bug# 1199 Got rid of the keyword "CommandLanguage", which was
+ * <p> $never used.
+ * <p> $
  * <p> $Revision 1.12  2009/02/04 23:30:00  sueh
  * <p> $bug# 1158 Changed id and exceptions classes in LogFile.
  * <p> $

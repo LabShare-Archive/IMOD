@@ -40,14 +40,14 @@ import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
-import etomo.ui.LogPanel;
-import etomo.ui.LogInterface;
-import etomo.ui.MainPanel;
-import etomo.ui.MainPeetPanel;
-import etomo.ui.ParallelPanel;
-import etomo.ui.PeetDialog;
-import etomo.ui.ProcessDisplay;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.LogInterface;
+import etomo.ui.swing.LogPanel;
+import etomo.ui.swing.MainPanel;
+import etomo.ui.swing.MainPeetPanel;
+import etomo.ui.swing.ParallelPanel;
+import etomo.ui.swing.PeetDialog;
+import etomo.ui.swing.ProcessDisplay;
+import etomo.ui.swing.UIHarness;
 import etomo.util.DatasetFiles;
 import etomo.util.EnvironmentVariable;
 
@@ -65,6 +65,9 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.65  2010/07/02 03:14:14  sueh
+ * <p> bug# 1388 Calling processchunks with popupChunkWarnings equals to false.
+ * <p>
  * <p> Revision 1.64  2010/04/28 15:37:21  sueh
  * <p> bug# 1344 Added getFileSubdirectoryName.  Passing params to process
  * <p> manager functions, standardizing "3dmod is open" messages to always

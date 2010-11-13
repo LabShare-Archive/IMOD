@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 import etomo.BaseManager;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.UIHarness;
 import etomo.util.DatasetFiles;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
@@ -32,6 +32,10 @@ import etomo.util.MRCHeader;
  * </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2010/02/17 04:52:36  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.18  2009/03/17 00:46:15  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>

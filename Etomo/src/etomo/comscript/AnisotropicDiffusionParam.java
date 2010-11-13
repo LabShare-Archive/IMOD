@@ -20,7 +20,7 @@ import etomo.type.FileType;
 import etomo.type.IteratorElementList;
 import etomo.type.ParsedArray;
 import etomo.type.ProcessName;
-import etomo.ui.AnisotropicDiffusionDialog;
+import etomo.ui.swing.AnisotropicDiffusionDialog;
 import etomo.util.DatasetFiles;
 
 /**
@@ -37,6 +37,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2010/04/28 15:42:47  sueh
+ * <p> bug# 1344 Added the mode to the constructor.  Completed the list of
+ * <p> modes.  Added getOutputImageFileType functions.
+ * <p>
  * <p> Revision 1.17  2010/02/17 04:47:45  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.

@@ -48,9 +48,9 @@ import etomo.type.EtomoNumber;
 import etomo.type.UITestActionType;
 import etomo.type.UITestFieldType;
 import etomo.type.UITestSubjectType;
-import etomo.ui.AxisProcessPanel;
-import etomo.ui.ProgressPanel;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.AxisProcessPanel;
+import etomo.ui.swing.ProgressPanel;
+import etomo.ui.swing.UIHarness;
 import etomo.util.Utilities;
 
 /**
@@ -67,6 +67,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.41  2010/11/10 20:56:59  sueh
+ * <p> In executeCommand slowing down assert.exists.file.  In Windows it
+ * <p> may have run too fast to avoid file locks.
+ * <p>
  * <p> Revision 1.40  2010/11/09 21:54:53  sueh
  * <p> In executeCommand slowing down assert.exists.file.  In Windows it
  * <p> may have run too fast to avoid file locks.
@@ -123,6 +127,10 @@ import etomo.util.Utilities;
  * <p>being fooled when kill button is disabled for a second.
  * <p>
  * $Log$
+ * Revision 1.41  2010/11/10 20:56:59  sueh
+ * In executeCommand slowing down assert.exists.file.  In Windows it
+ * may have run too fast to avoid file locks.
+ *
  * Revision 1.40  2010/11/09 21:54:53  sueh
  * In executeCommand slowing down assert.exists.file.  In Windows it
  * may have run too fast to avoid file locks.

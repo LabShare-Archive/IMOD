@@ -17,7 +17,7 @@ import java.util.Properties;
 import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.UIHarness;
 import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
 
@@ -1400,6 +1400,9 @@ public final class LogFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.31  2010/10/13 20:18:34  sueh
+ * <p> bug# 1392 In getInstance making sure that the exception stack is printed.
+ * <p>
  * <p> Revision 1.30  2010/05/12 21:13:44  sueh
  * <p> bug# 1358 Win7 Problem with backing up tomopitch.log.  Adding stack dumps.
  * <p>

@@ -33,17 +33,17 @@ import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
-import etomo.ui.AnisotropicDiffusionDialog;
-import etomo.ui.Deferred3dmodButton;
-import etomo.ui.LogPanel;
-import etomo.ui.LogInterface;
-import etomo.ui.MainPanel;
-import etomo.ui.MainParallelPanel;
-import etomo.ui.ParallelChooser;
-import etomo.ui.ParallelDialog;
-import etomo.ui.ParallelPanel;
-import etomo.ui.ProcessDisplay;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.AnisotropicDiffusionDialog;
+import etomo.ui.swing.Deferred3dmodButton;
+import etomo.ui.swing.LogInterface;
+import etomo.ui.swing.LogPanel;
+import etomo.ui.swing.MainPanel;
+import etomo.ui.swing.MainParallelPanel;
+import etomo.ui.swing.ParallelChooser;
+import etomo.ui.swing.ParallelDialog;
+import etomo.ui.swing.ParallelPanel;
+import etomo.ui.swing.ProcessDisplay;
+import etomo.ui.swing.UIHarness;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
 
@@ -823,6 +823,9 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.45  2010/07/02 03:13:56  sueh
+ * <p> bug# 1388 Calling processchunks with popupChunkWarnings equals to true.
+ * <p>
  * <p> Revision 1.44  2010/04/28 15:37:05  sueh
  * <p> bug# 1344 Added getFileSubdirectoryName.  Passing params to process
  * <p> manager functions, standardizing "3dmod is open" messages to always

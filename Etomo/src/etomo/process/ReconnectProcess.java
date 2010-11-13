@@ -14,7 +14,7 @@ import etomo.type.ConstStringProperty;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.UIHarness;
 
 /**
  * <p>Description: </p>
@@ -148,7 +148,7 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
     }
     ProcessName processName = processData.getProcessName();
     try {
-      messages.addProcessOutput(manager, logFile);
+      messages.addProcessOutput(logFile);
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
@@ -295,6 +295,10 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2010/02/17 04:49:20  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.11  2009/04/20 20:05:46  sueh
  * <p> bug# 1192 Added a empty setComputerMap function.  The process is not
  * <p> the source of process information so setComputerMap shouldn't do

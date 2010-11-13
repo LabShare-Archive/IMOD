@@ -7,7 +7,7 @@ import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.type.ProcessName;
-import etomo.ui.UIExpertUtilities;
+import etomo.ui.swing.UIExpertUtilities;
 import etomo.util.DatasetFiles;
 
 /**
@@ -24,6 +24,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/06/05 01:49:00  sueh
+ * <p> bug# 1219 Removed unused getCommandMode.
+ * <p>
  * <p> Revision 1.2  2009/06/01 18:46:38  sueh
  * <p> bug# 1216 Validation:  preventing null parameters.
  * <p>

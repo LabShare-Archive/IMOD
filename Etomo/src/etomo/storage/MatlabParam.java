@@ -27,7 +27,7 @@ import etomo.type.ParsedElement;
 import etomo.type.ParsedList;
 import etomo.type.ParsedNumber;
 import etomo.type.ParsedQuotedString;
-import etomo.ui.UIHarness;
+import etomo.ui.swing.UIHarness;
 import etomo.util.DatasetFiles;
 
 /**
@@ -44,6 +44,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.41  2010/05/27 05:35:12  sueh
+ * <p> bug# 1368 Fixed bug number in a comment.
+ * <p>
  * <p> Revision 1.40  2010/05/20 23:49:29  sueh
  * <p> bug# 1368 Deprecated flgMeanFill.  Defaulted it to 1.  No longer loading it
  * <p> from the .prm file.  Removed meanFill.

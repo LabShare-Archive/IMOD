@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.Vector;
 
 import etomo.storage.LogFile;
-import etomo.ui.Token;
+import etomo.ui.swing.Token;
 
 /**
  * <p>Description:</p>
@@ -20,6 +20,10 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.14  2009/03/09 17:26:02  sueh
+ * <p> $bug# 1199 Returning the last nameValuePair (duplicate attribute) all
+ * <p> $functions that get the value, except print() which prints them all.
+ * <p> $
  * <p> $Revision 1.13  2009/02/04 23:30:00  sueh
  * <p> $bug# 1158 Changed id and exceptions classes in LogFile.
  * <p> $

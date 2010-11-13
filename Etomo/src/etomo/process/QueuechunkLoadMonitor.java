@@ -2,7 +2,7 @@ package etomo.process;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
-import etomo.ui.LoadDisplay;
+import etomo.ui.swing.LoadDisplay;
 
 /**
 * <p>Description: </p>
@@ -17,7 +17,10 @@ import etomo.ui.LoadDisplay;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2007/09/27 20:27:25  sueh
+* <p> bug# 1044 Added QueuechunkLoadMonitor, which has mostly the same functionality as LoadAverageMonitor, except for the output and how it is used.  Factoring out common functionality into a new parent class, LoadMonitor.
+* <p> </p>
 */
 public final class QueuechunkLoadMonitor extends LoadMonitor {
   public static  final String  rcsid =  "$Id$";
