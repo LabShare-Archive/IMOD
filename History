@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/15/10: Fixed initialization bug in Blendmont.
+
 11/11/10: IMOD_4-2-8
 11/8/10: Prevented Edit-Model-Clean from removing saved isosurface objects.
 
