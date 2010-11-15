@@ -227,6 +227,7 @@ c
       iyOutOffset = 0
       ifEdgeFuncOnly = 0
       edgename2 = ' '
+      boundFile = ' '
       izUnsmoothedPatch = -1
       izsmoothedPatch = -1
 c       
@@ -3362,6 +3363,10 @@ c      if (debug)write(*,'(a,i3,a,4f8.4)')'Active',nactivep,'  weights',wll,wlr,
 
 c       
 c       $Log$
+c       Revision 3.45  2010/09/23 05:45:32  mast
+c       Set new defaults to double box size, increase indent and interval a
+c       bit, start increase at 512 and limit it at 4096 pixels
+c
 c       Revision 3.44  2010/09/23 05:00:34  mast
 c       Added patch output options
 c
