@@ -106,10 +106,12 @@ echo "CC        = $ccomp"              >> $configure
 echo "CXX       = $cxx"              >> $configure
 
 # Figure out if 64-bit from Qt moc program and set name of LD_LIBRARY variable
+# Set -m32 as a default for gcc compiles (m32/m64 could be set for Intel too?)
 #
 set filetext = `file $QTDIR/bin/moc | grep 64-bit`
 set m64flags = ""
 set ld_lib_var      = DYLD_LIBRARY_PATH
+if ($ccomp == gcc) set m64flags = '-m32'
 if ("$filetext" != "") then
     set m64bit = true
     set m64notIA = true
