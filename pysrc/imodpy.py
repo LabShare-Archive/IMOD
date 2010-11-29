@@ -22,6 +22,8 @@ This module provides the following functions:
   parselist(line)      -  convert list entry in <line> into list of integers
   readTextFile(filename[ , descrip])  - reads in text file, strips line endings
                                         returns a list of strings
+  optionValue(linelist, option, type, ignorecase = False) - finds option value
+                                                              in list of lines
 """
 
 # other modules needed by imodpy
@@ -31,9 +33,10 @@ from pip import exitError
 
 # Use the subprocess module if available except on cygwin where broken
 # pipes occurred occasionally; require it on win32
+# but in 2.6 on cygwin is complains that this popen2 is deprecated, so try it
 useSubprocess = True
-if sys.platform.find('cygwin') < 0 and (sys.version_info[0] > 2 or \
-      (sys.version_info[0] == 2  and sys.version_info[1] > 3)):
+pyversion = 100 * sys.version_info[0] + 10 * sys.version_info[1]
+if (sys.platform.find('cygwin') < 0 and pyversion >= 240) or pyversion >= 260:
    from subprocess import *
 else:
    useSubprocess = False
@@ -365,6 +368,9 @@ def optionValue(linelist, option, type, ignorecase = False):
 
 
 #  $Log$
+#  Revision 1.6  2010/02/22 06:22:06  mast
+#  Added optionValue
+#
 #  Revision 1.5  2009/10/22 05:46:30  mast
 #  Add readTextFile
 #
