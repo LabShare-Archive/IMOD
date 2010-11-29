@@ -10,54 +10,33 @@ c       the two FFT files.
 c       
 c       See man page for more details.
 c       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
-c       $Log$
-c       Revision 3.4  2004/10/22 00:41:30  mast
-c       Changed to shells with interzone reduction as new default
-c	
-c       Revision 3.3  2004/08/22 14:58:48  mast
-c       Used line_is_filename as workaround to Windows problem
-c	
-c       Revision 3.2  2004/07/22 23:45:58  mast
-c       Activated interzone option and allowed reduction > 1
-c	
-c       Revision 3.1  2004/07/13 18:13:54  mast
-c       Converted to PIP input, did declarations and error exits, 
-c       incorporated old weighting stuff and added missing-wedge reduction
-c       options
-c	
+c       $Id$
+c       Log at end
 c       
 c       David Mastronarde, November 1995
 c       
       implicit none
-      integer idim, numlook, limview, limring,limslab
-      parameter (idim=5000*400)
+      integer numlook, limview, limring,limslab
       parameter (numlook=16000, limview = 1440, limring = 100, limslab = 100)
 C       
-      integer*4 NXYZ(3),MXYZ(3),NXYZST(3),nxyz2(3),NX,NY,NZ
-      complex ARRAY(idim),BRRAY(idim),crray(idim),aVal
+      integer*4 NXYZ(3),MXYZ(3),NXYZST(3),nxyz2(3),NX,NY,NZ,MXYZ2(3)
+      real*4, allocatable :: work(:)
+      complex, allocatable :: ARRAY(:),BRRAY(:)
+      complex aVal
 C       
       real*4 minv(3,3)
       real*4 tilta(limview),tiltb(limview),densa(limview),densb(limview)
       integer*4 looka(-numlook:numlook),lookb(-numlook:numlook)
       integer*4 numInRing(limring,limslab,3)
       real*4 ringSum(limring,limslab,3)
+      real*4 CELL2(6),origx,origy,origz
 
-      COMMON //NX,NY,NZ
-      CHARACTER*120 FILIN,FILOUT
+      CHARACTER*320 FILIN,FILOUT
 C       
-      EQUIVALENCE (NX,NXYZ)
+      EQUIVALENCE (NX,NXYZ(1)),(NY,NXYZ(2)),(NZ,NXYZ(3))
       character dat*9,tim*8
-c       
-c       7/7/00 CER: remove the encode's; titlech is the temp space
-c       
       character*80 titlech
-      logical ina,inb,verbose,interZone,independent,jointZone
+      logical ina,inb,verbose,interZone,independent,jointZone,realInput
       real*4 dmin,dmax,dmean,acritlo,acrithi,bcritlo,bcrithi
       integer*4 ierr,mode,iunout,i,j,nviewa,nviewb,iz,ind,iy,ix,ilook
       real*4 tsum,tmin,tmax,delx,dely,delz,za,ya,yasq,xa,xasq,xp,yp,zp,ra,rb
@@ -66,7 +45,10 @@ c
       integer*4 numSlabs, numRings,iSlab,iRing,iZone,minInRing,nextRing
       real*4 radiusMin,ringWidth,reduceFrac,bothMean, oneMean, target,ring
       integer*4 nextSlab, numInZero
-      real*4 radsq, bothRad, bothRadSq, zasq
+      real*4 radsq, bothRad, bothRadSq, zasq, dmean2, yaOffset, zaOffset
+      real*4 yaOffInit, zaOffInit
+      integer*4 ixlo,iylo,izlo,ixhi,izhi,iyhi,nxbox,nybox,nzbox, idim
+      integer*4 nx3,ny3,nz3, mode2
 c       
       logical pipinput
       integer*4 numOptArg, numNonOptArg
@@ -99,8 +81,11 @@ c
       verbose = .false.
       jointZone = .false.
       independent = .false.
+      realInput = .false.
       bothRad = 0.0
       numInZero = 0
+      zaOffInit = -0.5
+      yaOffInit = -0.5
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
 c       
@@ -123,16 +108,58 @@ c
      &    'Name of output file, or Return to put in 2nd file', filout)
 c       
       call irdhdr(1,nxyz,mxyz,mode,dmin,dmax,dmean)
-      call irdhdr(2,nxyz2,mxyz,mode,dmin,dmax,dmean)
-      if(nx*ny.ge.idim)call exitError('IMAGE TOO LARGE FOR ARRAYS')
+      call irdhdr(2,nxyz2,mxyz,mode2,dmin,dmax,dmean2)
       if (nx .ne. nxyz2(1) .or. ny .ne. nxyz2(2) .or. nz .ne. nxyz2(3))
      &    call exitError('THE TWO FILES ARE NOT THE SAME SIZE')
-      
+c
+      if (mode .ne. 4 .or. mode2 .ne. 4) then
+        realInput = .true.
+        if (mode .eq. 4 .or. mode2 .eq. 4) call exitError(
+     &      'BOTH FILES MUST BE EITHER REAL DATA OR FFTS')
+        if (filout .eq. ' ') call exitError(
+     &      'YOU MUST ENTER AN OUTPUT FILE FOR REAL INPUT DATA')
+        if (.not. pipinput) call exitError(
+     &      'YOU CAN USE REAL DATA ONLY WITH PIP INPUT')
+        call taperprep(pipinput, .false., nxyz, ixlo, ixhi, iylo, iyhi, izlo,
+     &      izhi, nxbox, nybox, nzbox, nx3, ny3, nz3, nxyz2, mxyz2, cell2,
+     &    origx, origy, origz)
+c         
+c         these sizes below must be the same as if using FFT input
+        nx = nx3 / 2 + 1
+        ny = ny3
+        nz = nz3
+        zaOffInit = 0.
+        yaOffInit = 0.
+      endif
+      if (float(nx * ny) * nz .gt. 1.e9) call exitError(
+     &    'VOLUME TO BE COMBINED IS TOO LARGE')
+      idim = nx * ny * nz
+      allocate(array(idim), brray(idim), work(2 * nx * nz), stat = ierr)
+      call memoryError(ierr, 'ARRAYS FOR VOLUMES OF DATA')
+      print *,'allocation in reals:',2*idim
+c       
+c       Set up the output file
       iunout=2
       if(filout.ne.' ')then
         call imopen(3,filout,'new')
         iunout=3
         call itrhdr(3,1)
+        if (realInput) then
+c           
+c           Promote the mode
+          if (mode .eq. 2 .or. mode2 .eq. 2) then
+            mode = 2
+          elseif (mode .eq. 0 .or. mode2 .eq. 0) then
+            mode = max(mode, mode2)
+          endif
+c         
+          nxyzst = 0
+          call ialsiz(3, nxyz2, nxyzst)
+          call ialsam(3, mxyz2)
+          call ialmod(3, mode)
+          CALL IALCEL(3,CELL2)
+          call ialorg(3, origx, origy, origz)
+        endif
       endif
 
       filin = ' '
@@ -157,7 +184,6 @@ c
       call gettilts(pipinput, 'BHighestTilts', 'BTiltFile', 'second',
      &    nviewb, tiltb, limview, lookb, numlook, facLookB, densb,
      &    bcritlo, bcrithi)
-
       if (pipinput) then
         ierr = PipGetFloat('WeightingPower', weightPower)
         ierr = PipGetFloat('ReductionFraction', reduceFrac)
@@ -209,22 +235,40 @@ c
       delz=1./nz
       bothRadSq = bothRad**2
 c       
+c       read real data (supply volume mean for testing to see if it comes out
+c       the same as from taperoutvol)
+      if (realInput) then
+        call readTaperTransform(1, array, work, ixlo, ixhi, iylo, iyhi,
+     &    izlo, izhi, nxbox, nybox, nzbox, nx3, ny3, nz3, 0, dmean)
+        call readTaperTransform(2, brray, work, ixlo, ixhi, iylo, iyhi,
+     &      izlo, izhi, nxbox, nybox, nzbox, nx3, ny3, nz3, 0, dmean2)
+      endif
+c       
+c       Loop on Z, get index of start of plane in arrays
+      zaOffset = zaOffInit
       do iz=1,nz
-        call irdsec(1,array,*99)
-        call imposn(2,iz-1,0)
-        call irdsec(2,brray,*99)
-        ind=1
+        ind = 1 + nx * ny * (iz - 1)
 c         
-c         this assumes Z has been reordered to be sequential in 3-D FFT
-c         
-        za=delz*(iz-1.)-0.5
+c         Still read FFT data plane by plane
+        if (.not. realInput) then
+          call irdsec(1,array(ind),*99)
+          call imposn(2,iz-1,0)
+          call irdsec(2,brray(ind),*99)
+        endif
+        if (realInput .and. iz .gt. nz / 2) zaOffset = -1.
+c         DO THIS IN MTFFLITER
+c          if (iz .gt. nz / 2) za = za - 1.
+        za=delz * (iz-1.) + zaOffset
         zasq = za**2
+c         
+c         Loop on Y
+        yaOffset = yaOffInit
         do iy=1,ny
-c	    
-c	    this assumes Y has been reordered to be sequential in 2-D FFT
-c           
-          ya=dely*(iy-1.)-0.5
+          if (realInput .and. iy .gt. ny / 2) yaOffset = -1.
+          ya=dely * (iy-1.) + yaOffset
           yasq=ya**2
+c           
+c           Loop on X
           do ix=1,nx
             xa=delx*(ix-1.)
             xasq=xa**2
@@ -272,7 +316,7 @@ c               in both: need to mix in selected way
 c               
               wa=0.5
               wb=0.5
-              if (weightPower .gt. 0.001) then
+              if (weightPower .gt. 0.001 .and. radsq .ge. bothRadSq) then
 c                 
 c                 weighting by local density:  Find radius in A and B.
 c                 get change in magnitude and make the magnitude change by
@@ -289,6 +333,7 @@ c                 find tilt density and
 c                 effectively divide by radius (multiply by other radius)
 c                 
                 ilook=nint(facLookA*rata)
+                if (abs(ilook) .gt. numlook) print *,rata,xa,ya,za,xp,yp
                 dra=(rb*densa(looka(ilook)))**weightPower
                 ilook=nint(facLookB*ratb)
                 drb=(ra*densb(lookb(ilook)))**weightPower
@@ -344,12 +389,6 @@ c
             ind=ind+1
           enddo
         enddo
-        call iclcdn(array,nx,ny,1,nx,1,ny,dmin,dmax,dmean)
-        tmin=min(tmin,dmin)
-        tmax=max(tmax,dmax)
-        tsum=tsum+dmean
-        call imposn(iunout,iz-1,0)
-        call iwrsec(iunout,array)
       enddo
 c       
 c       If reducing, first get the scaling factors for the rings
@@ -386,19 +425,17 @@ c
           enddo
         enddo
 c         
-c         Now run through the file again 
+c         Now run through the volume again 
 c         
-        tsum=0.
-        tmin=1.e30
-        tmax=-1.e30
-c         
+        zaOffset = zaOffInit
         do iz=1,nz
-          call imposn(iunout,iz-1,0)
-          call irdsec(iunout,array,*99)
-          ind=1
-          za=delz*(iz-1.)-0.5
+          ind = 1 + nx * ny * (iz - 1)
+          if (realInput .and. iz .gt. nz / 2) zaOffset = -1.
+          za=delz * (iz-1.) + zaOffset
+          yaOffset = yaOffInit
           do iy=1,ny
-            ya=dely*(iy-1.)-0.5
+            if (realInput .and. iy .gt. ny / 2) yaOffset = -1.
+            ya=dely * (iy-1.) + yaOffset
             yasq=ya**2
             ySlab = (ya + 0.5) * numSlabs
             iSlab = int(ySlab + 0.5)
@@ -445,29 +482,37 @@ c
               ind=ind+1
             enddo
           enddo
-          call iclcdn(array,nx,ny,1,nx,1,ny,dmin,dmax,dmean)
-          tmin=min(tmin,dmin)
-          tmax=max(tmax,dmax)
-          tsum=tsum+dmean
-          call imposn(iunout,iz-1,0)
-          call iwrsec(iunout,array)
         enddo
       endif
+c       
+c       Write the data out, taking inverse FFT and repacking real data first
+      if (realInput) call thrdfft(array, work, nx3, ny3, nz3, -1)
+
+      do iz = 1, nz
+        ind = 1 + nx * ny * (iz - 1)
+        if (realInput) then
+          call irepak(array(ind), array(ind), nx3 + 2, ny, 0, nx3-1, 0, ny-1)
+          call iclden(array(ind),nx3,ny, 1, nx3, 1, ny, dmin,dmax,dmean)
+        else
+          call iclcdn(array(ind),nx,ny,1,nx,1,ny,dmin,dmax,dmean)
+        endif
+        tmin=min(tmin,dmin)
+        tmax=max(tmax,dmax)
+        tsum=tsum+dmean
+        call imposn(iunout,iz-1,0)
+        call iwrsec(iunout,array(ind))
+      enddo
 
       tmean=tsum/nz
       call date(dat)
       call time(tim)
 c       
-c       7/7/00 CER: remove the encodes.  DNM 7/8/04 use iwrhdrc
-c       
-C       encode ( 80, 3000, title ) dat, tim
       write(titlech,3000) dat,tim
       call iwrhdrc(iunout,titlech,1,tmin,tmax,tmean)
       call imclose(iunout)
 c      print *,numInZero,' points added to joint area near zero radius'
       call exit(0)
-3000  format ( 'COMBINEFFT: Combined FFT from two tomograms',t57,a9,
-     &    2x,a8)
+3000  format ( 'COMBINEFFT: Combined FFT from two tomograms',t57,a9, 2x,a8)
 99    call exitError( 'READING FFT FILE')
       end
 
@@ -647,3 +692,103 @@ c
       return
 25    call exitError('READING TILT ANGLE FILE')
       end
+
+
+c       readTaperTransform reads a subvolume from a file, pads and tapers it
+c       outside into a larger volume, and takes the FFT
+c       IUNIT is the unit number
+c       ARRAY is the array for the volume
+c       WORK is a work array for 3D FFTs
+c       IXLO, IXHI, IYLO, IYHI, IZLO, IZHI are the index coordinates of the
+c       subvolume in the file
+c       NXBOX, NYBOX, NZBOX are the size of the box being read in
+c       NX3, NY3, NZ3 are the size of the padded volume
+c       if IFMEAN is 1 it will taper to DMEANIN, otherwise it will use the
+c       mean of the faces of the subvolume
+c       Planes of the FFT consist of (NX3 + 2) * NY floats consecutively
+      subroutine readTaperTransform(iunit, array, work, ixlo, ixhi, iylo, iyhi,
+     &    izlo, izhi, nxbox, nybox, nzbox, nx3, ny3, nz3, ifmean, dmeanin)
+      implicit none
+      real*4 array(*), work(*), atten, dmin, dmax, dmean, base, dmeanin
+      integer*4 iunit, ixlo, ixhi, iylo, iyhi, izlo, izhi, nxbox, nybox
+      integer*4 nzbox, nx3, ny3, nz3, nxdim, izst, iznd, iz, izread, ibase
+      integer*4 iy, ix, ixbase, i, numpix, ifmean, ioffset
+      real*8 edgeMean, edgeSum
+      real*8 sliceEdgeMean
+      nxdim = nx3 + 2
+      izst = izlo -((nz3 - nzbox) / 2)
+      iznd = izst + nz3 - 1
+c       
+c       Read all the data first to get the mean
+      edgeSum = 0.
+      numpix = 0
+      do iz = izlo, izhi
+        ibase = nxdim * ny3 * (iz - izst)
+        call imposn(iunit,iz,0)
+        call irdpas(iunit,array(ibase+1),nxbox,nybox,ixlo,ixhi,iylo,iyhi, *99)
+        if (iz .eq. izlo .or. iz. eq. izhi) then
+          call iclden(array(ibase+1),nxbox,nybox, 1, nxbox, 1, nybox, dmin,
+     &        dmax, dmean)
+          numpix = numpix + nxbox * nybox
+          edgeSum = edgeSum + nxbox * nybox * dmean
+        else
+          edgeMean = sliceEdgeMean(array(ibase+1), nxbox, 1, nxbox, 1, nybox)
+          numpix = numpix + 2 * (nxbox + nybox) - 4
+          edgeSum = edgeSum + edgeMean * (2 * (nxbox + nybox) - 4)
+        endif
+      enddo
+      dmean = edgeSum / numpix
+      print *,'file mean',dmeanin,'    edge mean',dmean
+      if (ifmean .eq. 0) dmeanin = dmean
+c       
+c       taper now that mean is known
+      do iz = izlo, izhi
+        ibase = nxdim * ny3 * (iz - izst)
+        call taperoutpad(array(ibase+1),nxbox,nybox,array(ibase+1),nxdim,nx3,
+     &      ny3,1,dmeanin)
+      enddo
+      do iz = izst,iznd
+        izread = max(izlo,min(izhi,iz))
+        ibase = nxdim * ny3 * (iz - izst)
+        ioffset = nxdim * ny3 * (izread - iz)
+        if(iz.lt.izlo.or.iz.gt.izhi)then
+          if(iz.lt.izlo)then
+            atten=float(iz-izst)/(izlo-izst)
+          else
+            atten=float(iznd-iz)/(iznd-izhi)
+          endif
+          base=(1.-atten)*dmeanin
+          do iy = 1, ny3
+            ixbase = ibase + (iy - 1) * nxdim
+            do i=ixbase+1,ixbase+nx3
+              array(i)=base+atten*array(i + ioffset)
+            enddo
+          enddo
+        endif
+      enddo
+c         
+c         Take fft
+      call thrdfft(array, work, nx3, ny3, nz3, 0)
+      return
+99    call exitError('READING IMAGE FILE')
+      end
+
+c       
+c       $Log$
+c       Revision 3.5  2006/09/13 22:32:02  mast
+c       Added option to take low frequencies from both tomograms
+c
+c       Revision 3.4  2004/10/22 00:41:30  mast
+c       Changed to shells with interzone reduction as new default
+c	
+c       Revision 3.3  2004/08/22 14:58:48  mast
+c       Used line_is_filename as workaround to Windows problem
+c	
+c       Revision 3.2  2004/07/22 23:45:58  mast
+c       Activated interzone option and allowed reduction > 1
+c	
+c       Revision 3.1  2004/07/13 18:13:54  mast
+c       Converted to PIP input, did declarations and error exits, 
+c       incorporated old weighting stuff and added missing-wedge reduction
+c       options
+c	

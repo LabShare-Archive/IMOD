@@ -17,8 +17,8 @@ c
       integer idim,NX,NY,NZ
       COMMON //NX,NY,NZ
 C       
-      integer*4 NXYZ(3),MXYZ(3),NXYZST(3),NXYZ2(3),MXYZ2(3)
-      real*4 TITLE(20), CELL2(6),delta(3)
+      integer*4 NXYZ(3),MXYZ(3),NXYZ2(3),MXYZ2(3)
+      real*4 TITLE(20), CELL2(6)
       real*4, allocatable :: ARRAY(:)
 C       
       CHARACTER*320 FILIN,FILOUT
@@ -29,13 +29,11 @@ C
       EQUIVALENCE (NX,NXYZ)
 C       
       integer*4 ixlo,iylo,izlo,ixhi,izhi,iyhi,nxbox,nybox,nzbox
-      integer*4 nx3,ny3,nz3,npadx,npady,npadz,izst,iznd,mode,kti
+      integer*4 nx3,ny3,nz3,izst,iznd,mode,kti
       integer*4 iz,izread,i,ierr
       real*4 dmin2,dmax2,dmean2,dmin,dmax,dmean,tmin,tmax,tmean
       real*4 atten,base,tmpmn,origx,origy,origz
       logical*4 pipinput, noFFT
-      integer*4 niceframe
-      DATA NXYZST/0,0,0/
 c       
 c       fallbacks from ../../manpages/autodoc2man -2 2  taperoutvol
 c       
@@ -69,70 +67,15 @@ C
       if (PipGetInOutFile('OutputFile', 2, 'Name of output file', filout)
      &    .ne. 0) call exiterror('NO OUTPUT FILE SPECIFIED')
 c       
-      ixlo=0
-      iylo=0
-      izlo=0
-      ixhi=nx-1
-      iyhi=ny-1
-      izhi=nz-1
-      npadx = 0
-      npady = 0
-      npadz = 0
-      if (pipinput) then
-        ierr = PipGetTwoIntegers('XMinAndMax', ixlo, ixhi)
-        ierr = PipGetTwoIntegers('YMinAndMax', iylo, iyhi)
-        ierr = PipGetTwoIntegers('ZMinAndMax', izlo, izhi)
-        ierr = PipGetThreeIntegers('TaperPadsInXYZ', npadx,npady,npadz)
-        ierr = PipGetLogical('NoFFTSizes', noFFT)
-      else
-        write(*,'(1x,a,/,a,$)')'Starting and ending X, then Y, then '//
-     &      'Z index coordinates to extract',' (/ for whole volume): '
-        read(5,*)ixlo,ixhi,iylo,iyhi,izlo,izhi
-        write(*,'(1x,a,$)')'Width of pad/taper borders in X, Y, and Z: '
-        read(5,*)npadx,npady,npadz
-      endif
-c       
-      if(ixlo.lt.0.or.ixhi.ge.nx.or.iylo.lt.0.or.iyhi.ge.ny
-     &    .or.izlo.lt.0.or.izhi.ge.nz)call exitError(
-     &    'BLOCK NOT ALL INSIDE VOLUME')
-      nxbox=ixhi+1-ixlo
-      nybox=iyhi+1-iylo
-      nzbox=izhi+1-izlo
-c       
-      if (noFFT) then
-        nx3 = nxbox + 2 * npadx
-        ny3 = nybox + 2 * npady
-        nz3 = nzbox + 2 * npadz
-      else
-        nx3=niceframe(2*((nxbox+1)/2+npadx),2,19)
-        ny3=niceframe(2*((nybox+1)/2+npady),2,19)
-        nz3 = nzbox
-        if (nz3 .gt. 1 .or. npadz .gt. 0)
-     &      nz3=niceframe(2*((nzbox+1)/2+npadz),2,19)
-      endif
+      if (pipinput) ierr = PipGetLogical('NoFFTSizes', noFFT)
+      call taperprep(pipinput, noFFT, nxyz, ixlo, ixhi, iylo, iyhi, izlo,
+     &    izhi, nxbox, nybox, nzbox, nx3, ny3, nz3, nxyz2, mxyz2, cell2,
+     &    origx, origy, origz)
 c
       allocate(array(nx3*ny3), stat = ierr)
       if (ierr .ne. 0) call exitError('ALLOCATING ARRAY FOR IMAGE PLANE')
 c       
       CALL IMOPEN(2,FILOUT,'NEW')
-      call irtdel(1,delta)
-      call irtorg(1, origx, origy, origz)
-      NXYZ2(1)=NX3
-      NXYZ2(2)=NY3
-      NXYZ2(3)=nz3
-      MXYZ2(1)=NX3
-      MXYZ2(2)=NY3
-      MXYZ2(3)=nz3
-      CELL2(1)=NX3*delta(1)
-      CELL2(2)=NY3*delta(2)
-      CELL2(3)=nz3*delta(3)
-      CELL2(4)=90.
-      CELL2(5)=90.
-      CELL2(6)=90.
-      origx = origx - delta(1) * (ixlo - (nx3 - nxbox) / 2)
-      origy = origy - delta(2) * (iylo - (ny3 - nybox) / 2)
-      origz = origz - delta(3) * (izlo - (nz3 - nzbox) / 2)
-C       
       call time(tim)
       call date(dat)
       write(titlech,301) dat,tim
@@ -178,6 +121,9 @@ c
       end
 c
 c       $Log$
+c       Revision 3.6  2010/06/26 18:15:53  mast
+c       Fixed initialization of mean sum
+c
 c       Revision 3.5  2010/01/08 19:06:00  mast
 c       Converted to PIP, added nofft option
 c

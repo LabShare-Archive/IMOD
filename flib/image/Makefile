@@ -51,8 +51,9 @@ calc.$(O): calc.f
 checkxforms$(E): checkxforms.$(O)
 	$(FC) -o checkxforms checkxforms.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-combinefft$(E): combinefft.$(O)
-	$(FC) -o combinefft combinefft.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+combinefft$(E): combinefft.$(O) taperprep.$(O)
+	$(FC) -o combinefft combinefft.$(O) taperprep.$(O) $(LDFLG) \
+	$(IMLIBS) $(LIBS)
 
 densmatch$(E): densmatch.$(O)
 	$(FC) -o densmatch densmatch.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
@@ -159,8 +160,9 @@ subimanova$(E): subimanova.$(O)
 subimstat$(E): subimstat.$(O)
 	$(FC) -o subimstat subimstat.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-taperoutvol$(E): taperoutvol.$(O)
-	$(FC) -o taperoutvol taperoutvol.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+taperoutvol$(E): taperoutvol.$(O) taperprep.$(O)
+	$(FC) -o taperoutvol taperoutvol.$(O) taperprep.$(O) $(LDFLG) \
+	$(IMLIBS) $(LIBS)
 
 tapervoledge$(E): tapervoledge.$(O)
 	$(FC) -o tapervoledge tapervoledge.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
@@ -212,6 +214,9 @@ enhance.$(O): $(INCDIR)/ftbuf.inc
 fftrans.$(O): $(INCDIR)/ftbuf.inc
 
 #  $Log$
+#  Revision 3.24  2010/07/26 19:29:51  mast
+#  Changed for separate opnemp flag for fortran
+#
 #  Revision 3.23  2010/07/02 17:05:23  mast
 #  Removed edmont, it went to model
 #
