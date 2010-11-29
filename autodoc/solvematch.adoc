@@ -33,8 +33,9 @@ tooltip = Enter the list of fiducials in A for which you know the corresponding
 fiducial in B.  Use the point number in *fid.xyz, not the contour number.
 manpage = A list of the points in series 1 for which a corresponding point in
 series 2 is known with confidence.  Ranges may be entered
-(e.g. 1-5,7,6,12).  The default is that all points correspond between the two
-series.
+(e.g. 1-5,7,6,12).  This entry and the following one are not needed when a
+coordinate file from transferfid is available.  The default is that all points
+correspond between the two series.
 
 [Field = BCorrespondenceList]
 short = blist
