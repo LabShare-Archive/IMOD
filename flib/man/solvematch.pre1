@@ -35,7 +35,7 @@ Using Fiducial Coordinates
   model after running Transferfid(1) without having to keep track of how
   this affects the correspondence between points.  This option requires
   that both fiducial models be supplied to Solvematch.  Also, it is
-  essential that Solvematch be informed if the A axis being matched to the
+  essential that Solvematch be informed if the A axis is being matched to the
   B axis, with the -atob option.
 
   In the absence of a transfer coordinate file, the program needs lists of
@@ -62,9 +62,11 @@ Using Fiducial Coordinates
   (typically but not necessarily on two surfaces).  If there is gold on
   only one surface, you must determine whether the two tomograms are
   inverted in Y (Z in flipped orientation); i.e. whether the gold is on
-  the "top" of the section in one tomogram and the "bottom" in the other.
-  The program needs to know this because there is no reliable information
-  about this polarity in the fiducial coordinates.
+  the "top" of the section in one tomogram and the "bottom" in the other even
+  though they can be superimposed by a rotation.  The program needs to know
+  this because there is no reliable information about this polarity in the
+  fiducial coordinates.  However, such an inversion should be impossible when
+  data are acquired with a CCD camera.
 
 Using Matching Models
   When fiducial points from Tiltalign(1) are not available, you can use
