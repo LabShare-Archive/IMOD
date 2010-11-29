@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/19/10: Switch to running programs with script wrappers on Intel Macs to
+avoid conflicts with Intel libraries used by other packages.
+
+10/19/10: "Fixed" linklibs-mac for 64-bit Intel.
+
+10/19/10: Changed finishjoin to allow bigger scalelist.
+
 9/30/10: IMOD_4-1-6
 9/29/10: Etomo fiducial tracking page now updates the section skip list in the
 Bead Fixer for an open 3dmod when either View button is pressed.
