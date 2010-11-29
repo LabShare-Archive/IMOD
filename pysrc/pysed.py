@@ -6,6 +6,10 @@
 # $Id$
 #
 #  $Log$
+#  Revision 1.3  2010/02/22 06:21:28  mast
+#  Added ability to pass in strings instead of filename and flag for
+#  case-insensitivity, fixed append to handle multiple lines
+#
 #  Revision 1.2  2009/10/22 05:47:22  mast
 #  Fixed writing to file
 #
@@ -15,15 +19,16 @@
 #
 
 import sys, re
+escslash = '#escSlash^'
 
 def pysed(sedregsIn, src, dstfile = None, nocase = False, delim = '/'):
    """A module to take one or more sed regular expressions and apply them to 
 the list of strings in src, or, if src is a single string, to all lines of the
 file whose name is given in src.  The result is written 
 to the file whose name is given in dstfile, if any, or returned as a list of
-strings including line endings.  nocase can be used to have searches be
-case-insensitive, and delim can be used to provide an alternate 
-delimiter, since this function will not handle escaped slashes.
+strings excluding line endings.  nocase can be used to have searches be
+case-insensitive, and delim can be used to provide an alternate delimiter,
+which is unneeded since this function will now handle escaped slashes.
 sedregsIn can be a single string or a list of strings.
 
 Handles constructs of the following form:
@@ -91,7 +96,13 @@ converted to ( and ), ( and ) need to be converted to \( and \), and
 
    # Loop on expressions, parsing them for action, pattern, etc
    for i in range(len(sedregs)):
-      splt = sedregs[i].split(delim)
+      if delim == '/':
+         line = sedregs[i].replace('\/', escslash)
+         splt = line.split(delim)
+         for i in range(len(splt)):
+            splt[i] = splt[i].replace(escslash, '/')
+      else:
+         splt = sedregs[i].split(delim)
       if len(splt) < 3 or len(splt) > 6:
          print "%s Expression too short or too long: %s" % \
              (prefix, sedregs[i])
