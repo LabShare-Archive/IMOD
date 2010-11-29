@@ -15,7 +15,16 @@ DDEESSCCRRIIPPTTIIOONN
   a location in Fourier space where there is data from one tilt series
   but not the other, it takes the Fourier value from just the one
   appropriate FFT; everywhere else it averages the Fourier values from
-  the two FFT files.
+  the two FFTs.
+
+  The program can take input files that are either both FFTs or both matching
+  tomograms.  The FFTs would generally be from a subvolume of the tomogram;
+  and if the tomograms are used as input, a subvolume would generally be
+  processed.  The program will consume 8 times as much memory as the number of
+  voxels being processed in either case.  It uses dynamic memory allocation
+  but will refuse to process subvolumes bigger than 1 gigavoxel.  On 32-bit
+  systems, the allocation will fail for size above 250-370 megavoxels,
+  depending on the operating system.
 
   There is an option (-reduce) to reduce amplitudes in regions of the FFT
   derived from only one tomogram to match the reduction in amplitudes in
