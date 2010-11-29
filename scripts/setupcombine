@@ -10,7 +10,7 @@ set PATCHZ = (32 40 50)
 set DELPATCHXY = 100
 set NZPATCH3 = 75      # Thickness at which to do 3 patches in Z
 set NZPATCH4 = 150     # Thickness at which to do 4 patches in Z
-set MAXPIXELS = 20000  # KPixels for maximum FFT - check FFT3D if increase
+set MAXPIXELS = 50000  # KPixels for maximum FFT 
 set TAPERPADXZ = 8       # Size of taper/pad for 3D ffts in X and Z
 set TAPERPADY = 4       # Size of taper/pad for 3D ffts in Y
 set MAXPIECEY = 1       # Maximum pieces in Y
@@ -18,9 +18,6 @@ set MINOVERLAP = 10     # Minimum overlap between pieces
 set MATCHSHIFTXZ = 100   # size of 3-D box in X and Z for matchshifts
 set MATCHSHIFTY  = (40 60 76 90)      # Y sizes per increment of Y dimension
 set MATCHSHIFTINC = 100
-
-# Set this to "clip fft" if MAXPIXELS is increased near to value in ftbuf.inc
-set FFT3D = "fftrans -q"   # Command to get get fft - assumes -3d argument
 
 set pn = setupcombine
 
@@ -243,12 +240,9 @@ set origfile = $fromname.rec
 set invfile = "inverse.xf"
 set atlt = $toname.tlt
 set btlt = $fromname.tlt
-set mode = 1
 
 if (-e $recfile) then
     set size = `header -si $recfile | sed '/[[:cntrl:]]/s///g'`
-    set modeline = `header -mo $recfile | sed '/[[:cntrl:]]/s///g'`
-    if ("$modeline" == 2) set mode = 2
 else
     set size = `echo "1024 60 1024"`
     echo " "
@@ -644,7 +638,7 @@ sed -e s/$from_srcname/$fromname/g\
     -e "/^UsePoints/s/[ 	].*/	$uselist/"\
     -e "/^MatchingAtoB/s/[ 	].*/	$matchatob/"\
     -e "/matchshifts.*64 32 64/s/64 32 64/$msxz $msy $msxz/"\
-	< "$srcdir/$matchshift" | cat >$matchshift
+	< "$srcdir/$matchshift" >$matchshift
 
 sed -e s/$from_srcname/$fromname/g\
     -e s/$to_srcname/$toname/g\
@@ -654,7 +648,7 @@ sed -e s/$from_srcname/$fromname/g\
     -e "/$sedtempkey/s/\#//"\
     -e "/OutputSizeXYZ/s/\//$size/g"\
     -e "/savework-file/s//$backupsed/g"\
-	< "$srcdir/$matchvol1" | cat >$matchvol1
+	< "$srcdir/$matchvol1" >$matchvol1
 
 sed -e s/$from_srcname/$fromname/g\
     -e s/$to_srcname/$toname/g\
@@ -663,7 +657,7 @@ sed -e s/$from_srcname/$fromname/g\
     -e s/$matfile/$sedmatfile/g\
     -e "/$sedtempkey/s/\#//"\
     -e "/OutputSizeXYZ/s/\//$size/g"\
-	< "$srcdir/$matchvol2" | cat >$matchvol2
+	< "$srcdir/$matchvol2" >$matchvol2
 
 sed -e s/$from_srcname/$fromname/g\
     -e s/$to_srcname/$toname/g\
@@ -672,7 +666,7 @@ sed -e s/$from_srcname/$fromname/g\
     -e s/$matfile/$sedmatfile/g\
     -e "/$sedtempkey/s/\#//"\
     -e "/OutputSizeXYZ/s/\//$size/g"\
-	< "$srcdir/$warpvol" | cat >$warpvol
+	< "$srcdir/$warpvol" >$warpvol
 
 sed -e s/$from_srcname/$fromname/g\
     -e s/$to_srcname/$toname/g\
@@ -685,7 +679,7 @@ sed -e s/$from_srcname/$fromname/g\
     -e "/^BSourceBorder/s/[ 	].*/	$xyborder,$xyborder/"\
     -e "/^RegionModel/s/[ 	].*/	$regionmod/"\
     -e "/^$delregion/d"\
-	< "$srcdir/$patchcorr" | cat >$patchcorr
+	< "$srcdir/$patchcorr" >$patchcorr
 
 sed -e s/$from_srcname/$fromname/g\
     -e s/$to_srcname/$toname/g\
@@ -694,14 +688,14 @@ sed -e s/$from_srcname/$fromname/g\
     -e s/$matfile/$sedmatfile/g\
     -e "/$modeltext/s/$modeltext/matchorwarp -modelfile $regionmod -size/"\
     -e "/$tempdirarg/s///"\
-	< "$srcdir/$matchorwarp" | cat >$matchorwarp
+	< "$srcdir/$matchorwarp" >$matchorwarp
 
 sed -e s/$from_srcname/$fromname/g\
     -e s/$to_srcname/$toname/g\
     -e "s/$tmp_srcname/$sedtmpdir/g"\
     -e s/$matfile/$sedmatfile/g\
     -e "/savework-file/s//$backupsed/g"\
-    	< "$srcdir/$volcombine" | cat >$volcombine
+    	< "$srcdir/$volcombine" >$volcombine
 
 \cp "$srcdir/combine.com" .
 
@@ -716,7 +710,7 @@ if ($status) then
 endif
 
 
-cat <<EOF | cat >> $volcombine
+cat <<EOF >> $volcombine
 \$set nonomatch
 \$\\rm -f ${tmppath}*.mat~ ${tmppath}mat.fft* ${tmppath}rec.fft* ${tmppath}sum.fft* $sumname* ${tmppath}sum[1-9]*.rec*
 #
@@ -750,44 +744,33 @@ while ($znum < $npiecez)
         while ($xnum < $npiecex)
             @ xnum++
             @ sumnum++
-            cat <<EOCAT | cat >> $volcombine
+            set ixyz = `echo $ranlist[1] | sed '/,/s// /g'`
+            cat <<EOCAT >> $volcombine
 #
 \$dopiece${sumnum}:
 \$echo STATUS: EXTRACTING AND COMBINING PIECE  $sumnum  of $npiecetot
 \$echo
 #
-\$taperoutvol
-$recfile
-${tmppath}rec.st
-$ranlist[1]
-$TAPERPADXZ,$TAPERPADY,$TAPERPADXZ
-\$$FFT3D -3d ${tmppath}rec.st ${tmppath}rec.fft
-\$\\rm ${tmppath}rec.st
-\$taperoutvol
-$tmpmatfile
-${tmppath}mat.st
-$ranlist[1]
-$TAPERPADXZ,$TAPERPADY,$TAPERPADXZ
-\$$FFT3D -3d ${tmppath}mat.st ${tmppath}mat.fft
-\$\\rm ${tmppath}mat.st
 \$combinefft -StandardInput
-AInputFFT	${tmppath}rec.fft
-BInputFFT	${tmppath}mat.fft
+AInputFFT	$recfile
+BInputFFT	$tmpmatfile
+OutputFFT	${tmppath}sum$sumnum.rec
+XMinAndMax	$ixyz[1],$ixyz[2]
+YMinAndMax	$ixyz[3],$ixyz[4]
+ZMinAndMax	$ixyz[5],$ixyz[6]
+TaperPadsInXYZ	$TAPERPADXZ,$TAPERPADY,$TAPERPADXZ
 InverseTransformFile	$invfile
 ATiltFile	$atlt
 BTiltFile	$btlt
 ReductionFraction	\$combinefft_reduce
 LowFromBothRadius	\$combinefft_lowboth
-\$\\rm ${tmppath}rec.fft
-\$$FFT3D -3d -m $mode ${tmppath}mat.fft ${tmppath}sum$sumnum.rec
-\$\\rm ${tmppath}mat.fft
 EOCAT
             shift ranlist
         end
     end
 end
 
-cat <<EOCAT | cat >> $volcombine
+cat <<EOCAT >> $volcombine
 #
 \$echo STATUS: REASSEMBLING PIECES
 \$echo
@@ -799,21 +782,21 @@ EOCAT
 
 @ xnum = 0
 while ($xnum < $npiecex)
-    echo $ranlist[1] | cat >> $volcombine
+    echo $ranlist[1] >> $volcombine
     shift ranlist
     @ xnum++
 end
 
 @ ynum = 0
 while ($ynum < $npiecey)
-    echo $ranlist[1] | cat >> $volcombine
+    echo $ranlist[1] >> $volcombine
     shift ranlist
     @ ynum++
 end
 
 @ znum = 0
 while ($znum < $npiecez)
-    echo $ranlist[1] | cat >> $volcombine
+    echo $ranlist[1] >> $volcombine
     shift ranlist
     @ znum++
 end
@@ -821,9 +804,9 @@ end
 @ sumnum = 0
 while ($sumnum < $npiecetot)
   @ sumnum++
-  echo ${tmppath}sum$sumnum.rec | cat >> $volcombine
+  echo ${tmppath}sum$sumnum.rec >> $volcombine
 end
-cat <<EOCAT | cat >> $volcombine
+cat <<EOCAT >> $volcombine
 #
 \$echo 
 \$echo STATUS: RUNNING FILLTOMO ON FINAL VOLUME
@@ -840,12 +823,12 @@ EOCAT
 
 
 if ($tmpdir != "" && $handclean == "0") then
-cat <<EOCAT | cat >> $volcombine
+cat <<EOCAT >> $volcombine
 \$\\rm -r $tmpdir
 EOCAT
 endif
 
-echo '$'"if (-e $backupname) $backupname" | cat >> $volcombine
+echo '$'"if (-e $backupname) $backupname" >> $volcombine
 exit 0
 
 usage:
@@ -877,6 +860,9 @@ EOF
 
 #
 #  $Log$
+#  Revision 3.40  2009/10/30 17:45:59  mast
+#  Better fix for the rm problem
+#
 #  Revision 3.39  2009/10/28 00:22:54  mast
 #  Changed the cleanup statements to use find instead of rm due to change in tcsh
 #
