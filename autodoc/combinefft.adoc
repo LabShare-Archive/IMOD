@@ -4,24 +4,64 @@ Pip=1
 [Field = AInputFFT]
 short = ainput
 type = FN
-usage = Input file with FFT of first tomogram (the one being matched to)
+usage = Input file from first tomogram (the one being matched to)
 tooltip =
-manpage = 
+manpage = Input file from the first tomogram (the one being matched to):
+either the FFT of a chunk from the tomogram, or the tomogram itself, from
+which a chunk can be extracted with the 'MinAndMax' options
 
 [Field = BInputFFT]
 short = binput
 type = FN
-usage = Input file with FFT of second tomogram (the transformed one)
+usage = Input file from second tomogram (the transformed one)
 tooltip =
-manpage = 
+manpage = Input file from the second tomogram (the transformed one):
+either the FFT of a chunk from the tomogram, or the tomogram itself, from
+which a chunk can be extracted with the 'MinAndMax' options
 
 [Field = OutputFFT]
 short = output
 type = FN
-usage = Output file for combined FFT (omit to rewrite second input file)
+usage = Output file for combined data (omit to rewrite second input FFT file)
 tooltip =
-manpage = Output file for the combined FFT.  If this file is omitted, the
-program will write the combined back to the second input file.
+manpage = Output file for the combined FFTs or real-space volumes.  An output
+file must be entered with real-space input, but the file can be omitted for
+FFT input, in which case the program will write the combined FFT back to the
+second input file.
+
+[Field = XMinAndMax]
+short = xminmax
+type = IP
+usage = Starting & ending X coordinates to extract from tomogram, numbered
+from 0
+tooltip = 
+manpage = Starting and ending X index coordinates to extract from the
+tomograms, numbered from 0.  The default is the whole width in X.
+
+[Field = YMinAndMax]
+short = yminmax
+type = IP
+usage = Starting and ending Y coordinates to extract, numbered from 0
+tooltip = 
+manpage = Starting and ending Y index coordinates to extract from the
+tomograms, numbered from 0.  The default is the whole height in Y.
+
+[Field = ZMinAndMax]
+short = zminmax
+type = IP
+usage = Starting and ending Z coordinates to extract, numbered from 0
+tooltip = 
+manpage = Starting and ending Z index coordinates to extract from the
+tomograms, numbered from 0.  The default is the whole depth in Z.
+
+[Field = TaperPadsInXYZ]
+short = taper
+type = IT
+usage = Number of pixels over which to taper the patches in X, Y and Z
+tooltip = 
+manpage = Number of pixels over which to taper and pad the patches in X, Y and
+Z.  The default is 0.  The amount of tapering in any dimension may be
+increased to make that dimension suitable for taking an FFT.
 
 [Field = ATiltFile]
 short = atiltfile
@@ -62,7 +102,7 @@ type = FN
 usage = File with inverse of matching transformation (output by Matchvol)
 tooltip = 
 manpage = Name of file with inverse of transformation used to match the two
-tomograms (output by Matchvol)
+tomograms (output by Matchvol).  This entry is required.
 
 [Field = ReductionFraction]
 short = reduce
