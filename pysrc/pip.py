@@ -283,7 +283,7 @@ def PipGetNonOptionArg(argNo):
    pipErrno = 0
    if (argNo >= optTable[nonOptInd].count):
       PipSetError("Requested a non-option argument beyond the number" + \
-                  "available")
+                  " available")
       pipErrno =  -1
       return None
    return optTable[nonOptInd].values[argNo]
@@ -521,7 +521,8 @@ def PipPrintEntries():
          if not len(lname):
             name = sname
          for j in range(optTable[i].count):
-            sys.stdout.write("  " + name + " = " + optTable[i].values[j] + "\n")
+            sys.stdout.write("  " + name + " = " + optTable[i].values[j] + \
+                             "\n")
    if optTable[nonOptInd].count:
       sys.stdout.write("  Non-option arguments:")
       for j in range(optTable[nonOptInd].count):
@@ -867,7 +868,8 @@ def PipReadOrParseOptions(argv, options, progName, minArgs, numInFiles,
       if (not options or not len(options)):
          PipSetError(errString)
       if (errString):
-          sys.stdout.write("PIP WARNING: " + errString + "\nUsing fallback options in script\n\n")
+          sys.stdout.write("PIP WARNING: " + errString + \
+                           "\nUsing fallback options in script\n\n")
 
       (numOptArgs, numNonOptArgs) = PipParseInput(argv, options)
 
@@ -1081,8 +1083,8 @@ def PipGetLineOfValues(option, strPtr, valType, numToGet):
                numGot = numToGet
                break
       
-            tempStr = "Default entry with a / is not allowed in value entry:  "+ \
-                      option + "  " + fullStr
+            tempStr = "Default entry with a / is not allowed in value entry" +\
+                      ":  "+ option + "  " + fullStr
             PipSetError(tempStr)
             pipErrno =  -1
             return None
@@ -1098,8 +1100,8 @@ def PipGetLineOfValues(option, strPtr, valType, numToGet):
                   if (numGot >= numToGet):
                      break
                else:
-                  tempStr = "Default entries with commas are not allowed in value entry:  " + \
-                      option + "  " + fullStr
+                  tempStr = "Default entries with commas are not allowed " +\
+                            "in value entry:  " + option + "  " + fullStr
                   PipSetError(tempStr)
                   pipErrno =  -1
                   return None
@@ -1285,6 +1287,9 @@ def CheckKeyword(line, keyword, index):
    return (line[valStart:], index)
 
 # $Log$
+# Revision 1.5  2010/12/01 21:02:03  mast
+# Modifications for python 2/3 compatibility
+#
 # Revision 1.4  2009/12/04 20:46:02  mast
 # Added print entries and changed indent to 3
 #
