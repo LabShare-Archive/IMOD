@@ -103,10 +103,10 @@ c
 c               to get starting dx, dy, search for and average from neighbors
 c               
 
-              ixbox0=ixgridstr+(ixgrid-1)*intxgrid-ixboxsiz/2
-              ixbox1=ixbox0+ixboxsiz-1
-              iybox0=iygridstr+(iygrid-1)*intygrid-iyboxsiz/2
-              iybox1=iybox0+iyboxsiz-1
+              ixbox0=max(1, ixgridstr+(ixgrid-1)*intxgrid-ixboxsiz/2)
+              ixbox1=min(nx-1, ixbox0+ixboxsiz-1)
+              iybox0=max(1, iygridstr+(iygrid-1)*intygrid-iyboxsiz/2)
+              iybox1=min(ny-1, iybox0+iyboxsiz-1)
               call localmean(dxgrid,dygrid,sdgrid,ddengrid,ixgdim,
      &            iygdim,nxgrid, nygrid, ixgrid,iygrid, dxmean ,
      &            dymean,ddenmean,nsum)
@@ -280,6 +280,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.5  2010/09/23 04:59:10  mast
+c       Made it go along short dimension in inner loop
+c
 c       Revision 3.4  2007/04/10 15:50:33  mast
 c       Modified setgridchars to take data limits in the long dimension
 c       
