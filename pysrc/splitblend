@@ -10,18 +10,6 @@
 progname = 'splitblend'
 prefix = 'ERROR: ' + progname + ' - '
 
-def writeTextFile(comname, strings):
-   try:
-      action = 'Opening'
-      comf = open(comname, 'w')
-      action = 'Writing to'
-      for line in strings:
-         print >> comf, line
-      comf.close()
-   except:
-      exitError(action + " file: " + comname)
-
-
 #### MAIN PROGRAM  ####
 #
 # load System Libraries
@@ -40,7 +28,7 @@ if os.getenv('IMOD_DIR') != None:
    sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
    os.environ['PIP_PRINT_ENTRIES'] = '0'
 else:
-   print prefix + " IMOD_DIR is not defined!"
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
    sys.exit(1)
 
 #
@@ -49,19 +37,11 @@ from imodpy import *
 from pip import *
 from pysed import *
 
-options = [":n:I:Expected number of machines or processors (default 4)",
-           ":t:I:Target number of chunks",
-           ":y:B:Do chunks in Y instead of in Z",
-           ":e:B:Do edge functions only, do not blend images",
-           ":u:B:Use old edge functions and displacements; just blend images",
-           ":r:B:Recompute edge functions but use existing displacements",
-           ":b:I:Number of boundary pixels between chunks (default 2048)"]
+# Fallbacks from ../manpages/autodoc2man 3 1 splitblend
+options = [":n:I:", ":t:I:", ":y:B:", ":e:B:", ":u:B:", ":r:B:", ":b:I:"]
 
-status = PipExitOnError(0, "ERROR: splitblend - ")
-(numOptArgs, numNonOptArgs) = PipParseInput(sys.argv, options)
-if not numNonOptArgs:
-   status = PipPrintHelp("splitblend", 0, 1, 0)
-   sys.exit(1)
+(numOptArgs, numNonOptArgs) = PipReadOrParseOptions(sys.argv, options, \
+                                                    progname, 1, 1, 0)
 
 # Get the com file name, derive a root name and new com file name, check exists
 comfile = PipGetNonOptionArg(0)
@@ -144,20 +124,20 @@ try:
          nz = int(lsplit[6])
          if nz == 1 and not yChunks:
             yChunks = 1
-            print 'Setting up chunks in Y because the Z size is only 1'
+            prnstr('Setting up chunks in Y because the Z size is only 1')
 
-except ImodpyError, errout:
-   exitFromImodError(progname, errout)
+except ImodpyError:
+   exitFromImodError(progname)
 
 # Run blendmont to determine chunking
 if not edgeFuncOnly:
    runLines = copy.deepcopy(blendLines[1:])
-   runLines.append('ParallelMode %d %d' % (targetChunks, yChunks))
+   runLines.append(fmtstr('ParallelMode {} {}', targetChunks, yChunks))
    try:
       queryOut = runcmd('blendmont -StandardInput', runLines)
-   except ImodpyError, errout:
-      print 'ERROR: running blendmont to determine chunk extents'
-      exitFromImodError(progname, errout)
+   except ImodpyError:
+      prnstr('ERROR: running blendmont to determine chunk extents')
+      exitFromImodError(progname)
 
    # get the entry lines and other chunk information
    subsetLines = []
@@ -208,33 +188,33 @@ if not useOldFunc:
       sedlist.append(r'/^\s*ReadInXcorrs.*/s//ReadInXcorrs  1/')
    for axis in (1, 2):
       comnum += 1
-      comname = rootname + '-%03d.com' % (comnum)
+      comname = rootname + fmtstr('-{:03d}.com', comnum)
       runLines = copy.deepcopy(blendLines)
-      runLines.append('EdgeFunctionsOnly  %d' % (axis))
+      runLines.append(fmtstr('EdgeFunctionsOnly  {}', axis))
       pysed(sedlist, runLines, comname, True)
 
-   combineLines = ['$if (-e %s.ecd) \\mv -f %s.ecd %s.ecd~' % \
-                   (blendroot, blendroot, blendroot),
-                   '$(cat %s.xecd %s.yecd >! %s.ecd)' % \
-                   (blendroot, blendroot, blendroot)]
+   combineLines = [fmtstr('$if (-e {0}.ecd) \\mv -f {0}.ecd {0}.ecd~', \
+                          blendroot),
+                   fmtstr('$if (-e {0}.xecd && -e {0}.yecd) (cat {0}.xecd ' +\
+                          '{0}.yecd >! {0}.ecd)', blendroot)]
 
 if edgeFuncOnly:
    comnum += 1
-   comname = rootname + '-%03d-sync.com' % (comnum)
+   comname = rootname + fmtstr('-{:03d}-sync.com', comnum)
    writeTextFile(comname, combineLines)
 
 else:
 
    # Put out the file to set up the output file
    comnum += 1
-   comname = rootname + '-%03d-sync.com' % (comnum)
+   comname = rootname + fmtstr('-{:03d}-sync.com', comnum)
    runLines = []
    if beforeInd >= 0 and useOldFunc:
       runLines.extend(comlines[0:blendInd])
    if combineLines:
       runLines.extend(combineLines)
    runLines.extend(blendLines)
-   runLines.append('ParallelMode  -1 %d' % (yChunks))
+   runLines.append(fmtstr('ParallelMode  -1 {}', yChunks))
    if not oldfuncArr:
       runLines.append('OldEdgeFunctions  1')
    sedlist = [r'/^\s*ReadInXcorrs.*/s//ReadInXcorrs  1/',
@@ -242,22 +222,22 @@ else:
    pysed(sedlist, runLines, comname, True)
 
    # Figure out the boundary lines
-   boundLines = (nxout + boundPixels - 1) / nxout
-   infoLines = ["1 %d %d %d %d" % (yChunks, nxout, boundLines, numChunks)]
+   boundLines = (nxout + boundPixels - 1) // nxout
+   infoLines = [fmtstr('1 {} {} {} {}', yChunks, nxout, boundLines, numChunks)]
    boundFile = rootname + '-bound.info'
 
    # Make the com files for chunks and accumulate boundary info
    for ind in range(numChunks):
       comnum += 1
-      comname = rootname + '-%03d.com' % (comnum)
+      comname = rootname + fmtstr('-{:03d}.com', comnum)
       runLines = copy.deepcopy(blendLines)
-      runLines.append('ParallelMode  -2 %d' % (yChunks))
+      runLines.append(fmtstr('ParallelMode  -2 {}', yChunks))
       runLines.append(subsetLines[ind])
       runLines.append('BoundaryInfoFile  ' + boundFile)
       if not oldfuncArr:
          runLines.append('OldEdgeFunctions  1')
       pysed(sedlist, runLines, comname, True)
-      infoLines.append(setname + '-%03d.bound' % (ind + 1))
+      infoLines.append(setname + fmtstr('-{:03d}.bound', ind + 1))
       start = boundStarts[ind]
       if not ind:
          start = -1
@@ -265,31 +245,34 @@ else:
          end = boundEnds[ind] + 1 - boundLines
          if ind == numChunks - 1:
             end = -1
-         infoLines.append('-1 %d -1 %d' % (start, end))
+         infoLines.append(fmtstr('-1 {} -1 {}', start, end))
       else:
          end = boundEnds[ind]
          if ind == numChunks - 1:
             end = -1
-         infoLines.append('%d 0 %d -1' % (start, end))
+         infoLines.append(fmtstr('{} 0 {} -1', start, end))
 
    # Write the info file and the finishing operations
    writeTextFile(boundFile, infoLines)
-   runLines = ['$fixboundaries  %s %s' % (outputFile, boundFile),
-               '$collectmmm pixels= %s %d %s %d' %
-               (rootname, numChunks, outputFile, comnum + 1 - numChunks)]
+   runLines = [fmtstr('$fixboundaries  {} {}', outputFile, boundFile),
+               fmtstr('$collectmmm pixels= {} {} {} {}',
+                      rootname, numChunks, outputFile, comnum + 1 - numChunks)]
    if afterInd > 0:
       runLines.extend(comlines[afterInd:])
    runLines.append('$\\rm -f ' + rootname + '-[0-9][0-9][0-9]*.com* ' + \
                    rootname + '-[0-9][0-9][0-9]*.log* ' + rootname + \
-                   '-finish*.* ' + setname + '-[0-9][0-9][0-9]*.bound* ' + \
+                   '-finish.com ' + setname + '-[0-9][0-9][0-9]*.bound* ' + \
                    boundFile)
    writeTextFile(rootname + '-finish.com', runLines)
    comnum += 1
 
-print comnum, 'command files output and ready to run with'
-print '   processchunks machine_list ' + rootname
+prnstr(fmtstr('{} command files output and ready to run with', comnum))
+prnstr('   processchunks machine_list ' + rootname)
 sys.exit(0)
 
 
 #
 #  $Log$
+#  Revision 1.1  2010/06/23 23:21:26  mast
+#  Added to package
+#
