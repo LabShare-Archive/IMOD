@@ -1,5 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/27/10  Modified Setupcombine to use new Combinefft, increased the chunks
+size, and stopped it from piping command files through cat, which might have
+caused problems on Windows.
+
+11/27/10: Made Combinefft able to extract chunks from each tomogram, take 
+their FFTs, combine the FFTs, and produce the sumnnn.rec directly, which runs
+faster and saves a lot of I/O.
+
 11/15/10: Fixed initialization bug in Blendmont.
 
 11/11/10: IMOD_4-2-8
