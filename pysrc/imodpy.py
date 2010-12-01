@@ -24,33 +24,44 @@ This module provides the following functions:
                                         returns a list of strings
   optionValue(linelist, option, type, ignorecase = False) - finds option value
                                                               in list of lines
+  fmtstr(string, *args) - formats a string with replacement fields
+  prnstr(string, file = sys.stdout, end = '\n') - replaces print function
 """
 
 # other modules needed by imodpy
-import sys, os, exceptions, re
+import sys, os, re#, exceptions
 from pip import exitError
 
+pyVersion = 100 * sys.version_info[0] + 10 * sys.version_info[1]
+
+if pyVersion < 300:
+   from exceptions import *
+
+errStrings = []
 
 # Use the subprocess module if available except on cygwin where broken
 # pipes occurred occasionally; require it on win32
 # but in 2.6 on cygwin is complains that this popen2 is deprecated, so try it
 useSubprocess = True
-pyversion = 100 * sys.version_info[0] + 10 * sys.version_info[1]
-if (sys.platform.find('cygwin') < 0 and pyversion >= 240) or pyversion >= 260:
+if (sys.platform.find('cygwin') < 0 and pyVersion >= 240) or pyVersion >= 260:
    from subprocess import *
 else:
    useSubprocess = False
    if sys.platform.find('win32') >= 0:
-      print "ERROR: imodpy - Windows Python must be at least version 2.4"
+      prnstr("ERROR: imodpy - Windows Python must be at least version 2.4")
       sys.exit(1)
 
 # define a new exception class so our caller can more easily catch errors
 # raised here
-class ImodpyError(exceptions.Exception):
-   def __init__(self, args=None):
+class ImodpyError(Exception):
+   def __init__(self, args=[]):
       self.args = args
 #   def __str__(self):
 #      return repr(self.args)
+
+# Use this call to get the error strings from the exception
+def getErrStrings():
+   return errStrings
 
 # output_lines = imodpy.runcmd(cmd, input_lines, output_file)
 #  output_lines, input_lines are ARRAYs; output_lines is None if output_file
@@ -63,6 +74,8 @@ def runcmd(cmd, input=None, outfile=None):
        outfile or return its output in an array of strings.
        cmd is a string; input is an array; outfile is a file object or
        the string 'stdout' to send output to standard out"""
+
+   global errStrings
 
    # Set up flags for whether to collect output or send to stderr
    collect = 1
@@ -86,13 +99,17 @@ def runcmd(cmd, input=None, outfile=None):
          else:
             input = str(None)
 
+         if pyVersion >= 300:
+            input = input.encode()
+            
          # Run it three different ways depending on where output goes
          if collect:
             p = Popen(cmd, shell=True, stdout=PIPE, stdin=PIPE)
             kout, kerr = p.communicate(input)
+            if pyVersion >= 300:
+               kout = kout.decode()
             if kout:
-               output = kout.splitlines(1)
-
+               output = kout.splitlines(True)
          elif toStdout:
             p = Popen(cmd, shell=True, stdin=PIPE)
             p.communicate(input)
@@ -109,13 +126,13 @@ def runcmd(cmd, input=None, outfile=None):
             kin = os.popen(cmd, 'w')
             if input:
                for l in input:
-                  print >> kin, l
+                  prnstr(l, file=kin)
             ec = kin.close()
          else:
             (kin, kout) = os.popen2(cmd)
             if input:
                for l in input:
-                  print >> kin, l
+                  prnstr(l, file=kin)
             kin.close()
             output = kout.readlines()
             kout.close()
@@ -124,41 +141,45 @@ def runcmd(cmd, input=None, outfile=None):
                outfile.writelines(output)
             
    except:
-      err = "command " + cmd + ": " + str(sys.exc_info()[0]) + "\n"
-      raise ImodpyError, [err]
+      errStrings = ["command " + cmd + ": " + str(sys.exc_info()[1]) + "\n"]
+      raise ImodpyError(errStrings)
 
    if ec:
       # look thru the output for 'ERROR' line(s) and put them before this
-      errstr = cmd + ": exited with status %d %d\n" % ((ec >> 8), (ec & 255))
-      err = []
+      errstr = cmd + fmtstr(": exited with status {} {}\n", (ec >> 8),
+                            (ec & 255))
+      errStrings = []
       if collect and output:
-         err = [l for l in output
+         errStrings = [l for l in output
                if l.find('ERROR:') >= 0]
-      err.append(errstr)
-      raise ImodpyError, err
+      errStrings.append(errstr)
+      raise ImodpyError
 
    if collect:
       return output
    return None
 
+
+# Get essential data from the header of an MRC file
 def getmrc(file):
    """getmrc(file)     - run the 'header' command on <file>
     
     Returns a tuple with seven elements (x,y,z,mode,px,py,pz)
     (x,y,z are size in int, mode is int, px,py,pz are pixelsize in float."""
 
+   global errStrings
    input = ["InputFile " + file]
    hdrout = runcmd("header -si -mo -pi -StandardInput", input)
 
    if len(hdrout) < 3:
-      err = "header " + file + ": too few lines of output"
-      raise ImodpyError, [err]
+      errStrings = ["header " + file + ": too few lines of output"]
+      raise ImodpyError(errStrings)
 
    nxyz = hdrout[0].split()
    pxyz = hdrout[2].split()
    if len(nxyz) < 3 or len(pxyz) < 3:
-      err = "header " + file + ": too few numbers on lines"
-      raise ImodpyError, [err]
+      errStrings = ["header " + file + ": too few numbers on lines"]
+      raise ImodpyError(errStrings)
    ix = int(nxyz[0])
    iy = int(nxyz[1])
    iz = int(nxyz[2])
@@ -170,6 +191,7 @@ def getmrc(file):
    return (ix,iy,iz,mode,px,py,pz)
 
 
+# Get size from an MRC file
 def getmrcsize(file):
    """getmrcsize(file)    - run the 'header' command on <file>
    
@@ -178,6 +200,7 @@ def getmrcsize(file):
    return(ix,iy,iz)
 
 
+# Make a backup file
 def makeBackupFile(filename):
    """makeBackupFile(file)   - rename file to file~, deleting old file~"""
    if os.path.exists(filename):
@@ -187,21 +210,24 @@ def makeBackupFile(filename):
             os.remove(backname)
          os.rename(filename, backname)
       except:
-         print 'WARNING: Failed to rename existing file %s to %s' % \
-               (filename, backname)
+         prnstr(fmtstr('WARNING: Failed to rename existing file {} to {}',
+                       filename, backname))
 
-def exitFromImodError(pn, errout):
-   """exitFromImodError(pn, errout) - prints the error strings in errout
+
+# Print error strings in appropriate format after ImodpyError
+def exitFromImodError(pn):
+   """exitFromImodError(pn) - prints the error strings in the global errStrings
       and prepends 'ERROR: pn - ' to the last one"""
    line = None
-   for l in errout:
+   for l in errStrings:
       if line:
-         print line,
+         prnstr(line, end='')
       line = l
-   print "ERROR: " + pn + " - " + line,
+   prnstr("ERROR: " + pn + " - " + line, end='')
    sys.exit(1)
 
 
+# Funtion to parse list of comma-separated ranges
 def parselist (line):
    """parselist(line)   - convert list entry in <line> into list of integers
  
@@ -284,6 +310,7 @@ def parselist (line):
 
    return list;
 
+
 # Function to read in a text file and strip line endings
 def readTextFile(filename, descrip = None):
    """readTextFile(filename[ , descrip])  - read in text file, strip endings
@@ -300,19 +327,18 @@ def readTextFile(filename, descrip = None):
       textfile = open(filename, 'r')
       errString = "Reading"
       lines = textfile.readlines()
-   except IOError, (errno, strerror):
-      exitError("%s %s %s: %s" % (errString, descrip, filename, strerror))
-   except:
-      exitError("%s %s %s: %s" % (errString, descrip, filename, \
-                           sys.exc_info()[0]))
+   except IOError:
+      exitError(fmtstr("{} {} {}: {}", errString, descrip, filename, \
+                       sys.exc_info()[1]))
    textfile.close()
    for i in range(len(lines)):
       lines[i] = lines[i].rstrip(' \t\r\n')
    return lines
 
+
 # Function to find an option value from a list of strings
 def optionValue(linelist, option, type, ignorecase = False):
-   """optionValue(linelist, option, type[, nocase] - find option value in strings
+   """optionValue(linelist, option, type[, nocase]) - get option value in strings
 
    Given a list of strings in <linelist>, searches for one(s) that contain the
    text in <option> and that are not commented out.  The search is
@@ -344,11 +370,11 @@ def optionValue(linelist, option, type, ignorecase = False):
                    or bval == "":
                retval = True
             else:
-               print "WARNING: optionValue - Boolean entry found with " + \
-                     "improper value in: " + line
+               prnstr("WARNING: optionValue - Boolean entry found with " + \
+                     "improper value in: " + line)
                
          elif valstr == "":
-            print "WARNING: optionValue - No value for option in: " + line
+            prnstr("WARNING: optionValue - No value for option in: " + line)
          elif type <= 0:
             retval = valstr
          else:
@@ -361,13 +387,129 @@ def optionValue(linelist, option, type, ignorecase = False):
                   else:
                      retval.append(float(val))
             except:
-               print "WARNING: optionValue - Bad character in numeric " + \
-                     + "entry in: " + line
+               prnstr("WARNING: optionValue - Bad character in numeric " + \
+                     + "entry in: " + line)
                
    return retval
 
 
+# Function to format a string in new format for earlier versions of python
+def fmtstr(stringIn, *args):
+   """fmtstr(string, *args) - formats a string with replacement fields
+   fmtstr(string, arg list) is equivalent to string.format(arg list) in Python
+   2.7/3.1 or higher provided that the replacement fields all contain either
+   no numeric index or a simple numeric index.  Fields can also contain a
+   format specifier after a : character.  In Python 2.6 or 3.0, missing
+   numeric indices are inserted and the format function is run on the string.
+   For earlier versions of python, the replacement fields are turned into
+   %-style formatting entries, and then the string is formatted with the %
+   operator.  Double braces become single ones, and a % is allowed in the
+   string without being doubled.
+   """
+   string = stringIn
+
+   # The numeric indices did not become optional until 3.1/2.7
+   if pyVersion >= 310 or (pyVersion < 300 and pyVersion >= 270):
+      return string.format(*args)
+
+   # Insert numeric indices if needed and make sure all have them or need them
+   numToAdd = 0
+   ind = 0
+   while True:
+      ind = string.find('{', ind) + 1
+      if ind == 0 or ind == len(string):
+         break
+      next = string[ind]
+      if next == '{':
+         ind += 1
+         continue
+      if next == '}' or next == ':':
+         if numToAdd < 0:
+            prnstr('ERROR: imodpy.fmtstr - Bad unnumbered replacement field '+\
+                   'in:' + stringIn)
+            sys.exit(1)
+         string = string[0:ind] + str(numToAdd) + string[ind:]
+         numToAdd += 1
+      else:
+         if numToAdd > 0:
+            prnstr('ERROR: imodpy.fmtstr - Bad numbered replacement field '+\
+                   'in:' + stringIn)
+            sys.exit(1)
+         numToAdd = -1
+
+   if pyVersion >= 260:
+      return string.format(*args)
+
+   # Now have to convert to old style.  First escape any %
+   string = string.replace('%', '%%')
+   ind = 0
+   arglist = []
+   while True:
+      ind = string.find('{', ind) + 1
+      if ind == 0 or ind == len(string):
+         break
+      next = string[ind]
+      if next == '{':
+         ind += 1
+         continue
+
+      # find the end of the number
+      colon = string.find(':', ind)
+      brace = string.find('}', ind)
+      if brace < 0:
+         prnstr('ERROR: imodpy.fmtstr - Unclosed brace in: ' + stringIn)
+         sys.exit(1)
+      if colon < 0:
+         numend = brace
+      else:
+         numend = min(colon, brace)
+
+      # convert number and get argument on list
+      argnum = int(string[ind:numend])
+      if numend == brace and not isinstance(args[argnum], str):
+         arglist.append(str(args[argnum]))
+      else:
+         arglist.append(args[argnum])
+
+      # Collect start and end strings if any
+      basestr = ''
+      endstr = ''
+      if ind > 1:
+         basestr = string[0:ind-1]
+      if brace < len(string) - 1:
+         endstr = string[brace+1:]
+      
+      # If there is no :, replace brace and number with %s
+      # If there is a :, add a % and take the format string
+      if numend == brace:
+         string = basestr + '%s' + endstr
+      else:
+         string = basestr + '%' + string[colon+1:brace] + endstr
+
+   return string % tuple(arglist)
+      
+
+# Function to replace print, with same format as new print function
+def prnstr(string, file = sys.stdout, end = '\n'):
+   """prnstr(string, file = sys.stdout, end = '\n') - replaces print function
+   This function can be called like the new print function to write to a file,
+   or to stdout by default, and add a line ending by default.  If end='',
+   then it will not write a space after writing the line, so it can be used to
+   write strings with line endings as the old print did.  If end=' ' it will
+   write a space after the string as the new print function does.
+   """
+   if end == '':
+      file.write(string)
+   else:
+      file.write(string + end)
+   
+   
+
+
 #  $Log$
+#  Revision 1.7  2010/11/29 03:53:18  mast
+#  Try to use subProcess in cygwin python 2.6
+#
 #  Revision 1.6  2010/02/22 06:22:06  mast
 #  Added optionValue
 #
