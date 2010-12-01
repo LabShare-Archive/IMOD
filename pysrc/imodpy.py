@@ -22,6 +22,7 @@ This module provides the following functions:
   parselist(line)      -  convert list entry in <line> into list of integers
   readTextFile(filename[ , descrip])  - reads in text file, strips line endings
                                         returns a list of strings
+  writeTextFile(filename, strings) - writes set of strings to a text file
   optionValue(linelist, option, type, ignorecase = False) - finds option value
                                                               in list of lines
   fmtstr(string, *args) - formats a string with replacement fields
@@ -316,9 +317,9 @@ def readTextFile(filename, descrip = None):
    """readTextFile(filename[ , descrip])  - read in text file, strip endings
 
    Reads in the text file in <filename>, strips the line endings and blanks
-   from the end of each line, and returns a list of strings.  Exits on an
-   error opening or reading the file, and adds the optional description in
-   <descrip> to the error message
+   from the end of each line, and returns a list of strings.  Exits with
+   exitError on an error opening or reading the file, and adds the optional
+   description in <descrip> to the error message
    """
    if not descrip:
       descrip = " "
@@ -334,6 +335,23 @@ def readTextFile(filename, descrip = None):
    for i in range(len(lines)):
       lines[i] = lines[i].rstrip(' \t\r\n')
    return lines
+
+# Function to write a text file with lines that have no endings
+def writeTextFile(filename, strings):
+   """writeTextFile(filename, strings) - write set of strings to a text file
+   Opens the file <filename> and writes the set of strings in the list
+   <strings>, adding a line ending to each.  Exits with exitError upon error.
+   """
+   try:
+      action = 'Opening'
+      comf = open(filename, 'w')
+      action = 'Writing to'
+      for line in strings:
+         prnstr(line, file=comf)
+      comf.close()
+   except IOError:
+      exitError(action + " file: " + filename + "  - " + sys.exc_info()[1])
+
 
 
 # Function to find an option value from a list of strings
@@ -507,6 +525,9 @@ def prnstr(string, file = sys.stdout, end = '\n'):
 
 
 #  $Log$
+#  Revision 1.8  2010/12/01 20:42:54  mast
+#  Changes for python 2/3 compatibility
+#
 #  Revision 1.7  2010/11/29 03:53:18  mast
 #  Try to use subProcess in cygwin python 2.6
 #
