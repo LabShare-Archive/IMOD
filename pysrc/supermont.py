@@ -58,7 +58,7 @@ def changeExtension(name, newext):
 def convertValues(line, value, numVal, func, defaultLast):
    value = re.sub(' +', ' ', value.strip()).split(' ')
    if len(value) < numVal - 1 or (not defaultLast and len(value) < numVal):
-      print "%s Too few values in entry: %s" % (smpref, line)
+      prnstr(fmtstr("{} Too few values in entry: {}", smpref, line))
       sys.exit(1)
    retval = []
    for i in range(min(numVal, len(value))):
@@ -69,8 +69,9 @@ def convertValues(line, value, numVal, func, defaultLast):
 
 # Function to check for duplicate entries under a key
 def checkDuplicate(dicty, key, message):
-   if dicty.has_key(key):
-      print "%s More than one entry for %s in %s" % (smpref, key, message)
+   if key in dicty:
+      prnstr(fmtstr("{} More than one entry for {} in {}", smpref, key,
+                    message))
       sys.exit(1)
 
 # Function to update a patch file from a model as long as the model has fewer
@@ -81,15 +82,15 @@ def updatePatchFromModel(patchname, modelname):
       tmpname = changeExtension(patchname, ".tmppatch")
       try:
          runcmd('imod2patch ' + modelname + ' ' + tmpname, None)
-      except ImodpyError, errout:
-         exitFromImodError(progname, errout)
+      except ImodpyError:
+         exitFromImodError(progname)
 
       try:
          patchfile = open(patchname, 'r')
          patchline = patchfile.readline()
          patchfile.close()
       except:
-         print "Opening or reading from " + patchname
+         prnstr("Opening or reading from " + patchname)
          sys.exit(1)
 
       try:
@@ -97,7 +98,7 @@ def updatePatchFromModel(patchname, modelname):
          tmpline = tmpfile.readline()
          tmpfile.close()
       except:
-         print "Opening or reading from " + tmpname
+         prnstr("Opening or reading from " + tmpname)
          sys.exit(1)
 
       # Use split without an argument to throw away separators
@@ -110,11 +111,11 @@ def updatePatchFromModel(patchname, modelname):
          try:
             os.rename(tmpname, patchname)
          except:
-            print "Renaming " + tmpname + " to " + patchname
+            prnstr("Renaming " + tmpname + " to " + patchname)
             sys.exit(1)
             
-         print "Replaced %s from model: the model has %d fewer vectors" %\
-               (patchname, oldnum - newnum)
+         prnstr(fmtstr("Replaced {} from model: the model has {} fewer" +\
+                       " vectors", patchname, oldnum - newnum))
          retval = 1
       else:
          os.remove(tmpname)
@@ -129,17 +130,14 @@ def readMontInfo(filename, predata, slices, pieces, edges):
    inSlice = 0
    try:
       infile = open(filename)
-   except IOError, (errno, strerror):
-      print "%s Opening %s: %s" % (smpref, filename, strerror)
-      sys.exit(1)
-   except:
-      print "%s Opening %s: %s" % (smpref, filename, sys.exc_info()[0])
+   except IOError:
+      prnstr(fmtstr("{} Opening {}: {}", smpref, filename, sys.exc_info()[1]))
       sys.exit(1)
       
    secMatch = re.compile('^\[(\S+) *= *(.*\S) *\]')
    keyMatch = re.compile('^(\S+) *= *(.*\S) *$')
    nozvals = "0"
-   if predata.has_key(kNoZvals):
+   if kNoZvals in predata:
       nozvals = predata[kNoZvals] 
    for line in infile.readlines():
       line = re.sub('[\r\n]', '', line)
@@ -149,18 +147,18 @@ def readMontInfo(filename, predata, slices, pieces, edges):
          value = re.sub(secMatch, '\\2', line).strip()
 
          # Test for whether conditions are met in section just entered
-         if inPiece and not piece.has_key(kFrame):
-            print "%s Piece %s must have a %s entry" % \
-                  (smpref, piece["file"], kFrame)
+         if inPiece and not kFrame in piece:
+            prnstr(fmtstr("{} Piece {} must have a {} entry", 
+                  smpref, piece["file"], kFrame))
             sys.exit(1)
-         if inEdge and not (edge.has_key(kShift) and edge.has_key(kLower)\
-            and edge.has_key(kXorY)):
-            print "%s Edge %s is missing %s, %s, or %s entry" % \
-                 (smpref, edge["name"], kLower, kXorY, kShift)
+         if inEdge and not (kShift in edge and kLower in edge\
+            and kXorY in edge):
+            prnstr(fmtstr("{} Edge {} is missing {}, {}, or {} entry", \
+                 smpref, edge["name"], kLower, kXorY, kShift))
             sys.exit(1)
-         if inSlice and not slice.has_key(kZvalue):
-            print "%s Section %s must have a %s entry" % \
-                 (smpref, slice["name"], kZvalue)
+         if inSlice and not kZvalue in slice:
+            prnstr(fmtstr("{} Section {} must have a {} entry", \
+                 smpref, slice["name"], kZvalue))
             sys.exit(1)
 
          inPiece = 0
@@ -236,58 +234,63 @@ def writeMontInfo(filename, predata, slices, pieces, edges):
    try:
       out = open(filename, 'w')
    except:
-      print >> out, '%s Opening output file %s' % (smpref, filename)
+      prnstr(fmtstr('{} Opening output file {}: {}', smpref, filename,
+                    sys.exc_info()[1]))
       sys.exit(1)
    
    for key in predata.keys():
-      print >> out, key + ' = ' + predata[key]
+      prnstr(key + ' = ' + predata[key], file=out)
 
-   print >> out, ''
+   prnstr('', file=out)
 
    for slice in slices:
-      print >> out, '[Section = %s]' % slice['name']
+      prnstr(fmtstr('[Section = {}]', slice['name']), file=out)
       for key in slice.keys():
          val = slice[key]
          if key == 'name':
             pass
          elif key == kOutsize:
-            print >> out, '%s = %d %d %d' % (key, val[0], val[1], val[2])
+            prnstr(fmtstr('{} = {} {} {}', key, val[0], val[1], val[2]),
+                   file=out)
          elif key == kSpacing or key == kXstacked or key == kYstacked:
-            print >> out, '%s = %d %d' % (key, val[0], val[1])
+            prnstr(fmtstr('{} = {} {}', key, val[0], val[1]), file=out)
          else:
-            print >> out, '%s = %s' % (key, val)
+            prnstr(fmtstr('{} = {}', key, val), file=out)
 
-   print >> out, ''
+   prnstr('', file=out)
 
    for piece in pieces:
-      print >> out, '[Piece = %s]' % piece['file']
+      prnstr(fmtstr('[Piece = {}]', piece['file']), file=out)
       for key in piece.keys():
          val = piece[key]
          if key == 'file':
             pass
          elif key == kFrame or key == kSize:
-            print >> out, '%s = %d %d %d' % (key, val[0], val[1], val[2])
+            prnstr(fmtstr('{} = {} {} {}', key, val[0], val[1], val[2]),
+                   file=out)
          elif key == kZlimit:
-            print >> out, '%s = %d %d' % (key, val[0], val[1])
+            prnstr(fmtstr('{} = {} {}', key, val[0], val[1]), file=out)
          else:
-            print >> out, '%s = %s' % (key, val)
+            prnstr(fmtstr('{} = {}', key, val), file=out)
 
-   print >> out, ''
+   prnstr('', file=out)
 
    for edge in edges:
-      print >> out, '[Edge = %s]' % edge['name']
+      prnstr(fmtstr('[Edge = {}]', edge['name']), file=out)
       for key in edge.keys():
          val = edge[key]
          if key == 'name':
             pass
          elif key == kLower:
-            print >> out, '%s = %d %d %d' % (key, val[0], val[1], val[2])
+            prnstr(fmtstr('{} = {} {} {}', key, val[0], val[1], val[2]),
+                   file=out)
          elif key == kShift:
-            print >> out, '%s = %f %f %f' % (key, val[0], val[1], val[2])
+            prnstr(fmtstr('{} = {:f} {:f} {:f}', key, val[0], val[1], val[2]),
+                   file=out)
          elif key == kZlimit:
-            print >> out, '%s = %d %d' % (key, val[0], val[1])
+            prnstr(fmtstr('{} = {} {}', key, val[0], val[1]), file=out)
          else:
-            print >> out, '%s = %s' % (key, val)
+            prnstr(fmtstr('{} = {}', key, val), file=out)
 
 # Function to get min and max of pieces, and list of Z values
 def montMinMax(pieces):
@@ -307,6 +310,9 @@ def montMinMax(pieces):
 
 #
 #  $Log$
+#  Revision 1.5  2009/12/10 21:26:05  mast
+#  Added the update patch from model function
+#
 #  Revision 1.4  2009/09/08 23:28:29  mast
 #  Added some keys, added extension function, made it backup file only once
 #

@@ -19,6 +19,7 @@
 #
 
 import sys, re
+from imodpy import *
 escslash = '#escSlash^'
 
 def pysed(sedregsIn, src, dstfile = None, nocase = False, delim = '/'):
@@ -57,12 +58,9 @@ converted to ( and ), ( and ) need to be converted to \( and \), and
          sedin = open(src)
          srclines = sedin.readlines()
          sedin.close()
-      except IOError, (errno, strerror):
-         print "%s Opening or reading from %s: %s" % (prefix, src, strerror)
-         sys.exit(1)
-      except:
-         print "%s Opening or reading from %s: %s" % (prefix, src, \
-                                                      sys.exc_info()[0])
+      except IOError:
+         prnstr(fmtstr("{} Opening or reading from {}: {}", prefix, src, \
+                       sys.exc_info()[1]))
          sys.exit(1)
    else:
       srclines = src
@@ -71,11 +69,8 @@ converted to ( and ), ( and ) need to be converted to \( and \), and
    if (dstfile) :
       try:
          sedout = open(dstfile, 'w')
-      except IOError, (errno, strerror):
-         print "%s Opening %s: %s" % (prefix, dstfile, strerror)
-         sys.exit(1)
-      except:
-         print "%s Opening %s: %s" % (prefix, dstfile, sys.exc_info()[0])
+      except IOError:
+         prnstr(fmtstr("{} Opening {}: {}", prefix, dstfile, sys.exc_info()[1]))
          sys.exit(1)
 
    if isinstance(sedregsIn, str):
@@ -104,8 +99,8 @@ converted to ( and ), ( and ) need to be converted to \( and \), and
       else:
          splt = sedregs[i].split(delim)
       if len(splt) < 3 or len(splt) > 6:
-         print "%s Expression too short or too long: %s" % \
-             (prefix, sedregs[i])
+         prnstr(fmtstr("{} Expression too short or too long: {}", \
+             prefix, sedregs[i]))
          sys.exit(1)
 
       # Initialize entries for this expression
@@ -115,7 +110,7 @@ converted to ( and ), ( and ) need to be converted to \( and \), and
       nsub = 1
       if (splt[0] == 's'):
          if len(splt) != 4 or (splt[3] and splt[3] != 'g'):
-            print '%s Incorrect s/// entry: %s' % (prefix, sedregs[i])
+            prnstr(fmtstr('{} Incorrect s/// entry: {}', prefix, sedregs[i]))
             sys.exit(1)
 
          sea = re.compile(splt[1], flags)
@@ -125,19 +120,20 @@ converted to ( and ), ( and ) need to be converted to \( and \), and
             nsub = 0
 
       elif splt[0] :
-         print "%s Only s can preceed patterns: %s" % (prefix, sedregs[i])
+         prnstr(fmtstr("{} Only s can preceed patterns: {}", prefix,
+                       sedregs[i]))
          sys.exit(1)
 
       else:
          act = splt[2]
          if len(act) > 1 :
-            print "%s Action must be a single letter: %s" % \
-                 (prefix, sedregs[i])
+            prnstr(fmtstr("{} Action must be a single letter: {}", \
+                 prefix, sedregs[i]))
             sys.exit(1)
          if act == 'd' or act == 'p':
             if len(splt) > 3 :
-               print "%s d or p must not be followed by pattern: %s" % \
-                    (prefix, sedregs[i])
+               prnstr(fmtstr("{} d or p must not be followed by pattern: {}", \
+                    prefix, sedregs[i]))
                sys.exit(1)
             pat = re.compile(splt[1], flags)
             if act == 'p' :
@@ -145,15 +141,15 @@ converted to ( and ), ( and ) need to be converted to \( and \), and
 
          elif act == 'a':
             if len(splt) != 5 or splt[4] :
-               print "%s Incorrect 'a' entry: %s" % (prefix, sedregs[i])
+               prnstr(fmtstr("{} Incorrect 'a' entry: {}", prefix, sedregs[i]))
                sys.exit(1)
             pat = re.compile(splt[1], flags)
             rep = splt[3]
             
          elif act == 's':
             if len(splt) < 6 :
-               print "%s Too few elements for s command: %s" % \
-                   (prefix, sedregs[i])
+               prnstr(fmtstr("{} Too few elements for s command: {}", \
+                   prefix, sedregs[i]))
                sys.exit(1)
             rep = splt[4]
             for mod in splt[5] :
@@ -162,8 +158,8 @@ converted to ( and ), ( and ) need to be converted to \( and \), and
                elif mod == 'p' :
                   printind = i
                else:
-                  print "%s Only p and g are allowed modifiers: %s" % \
-                      (prefix, sedregs[i])
+                  prnstr(fmtstr("{} Only p and g are allowed modifiers: {}", \
+                      prefix, sedregs[i]))
                   sys.exit(1)
 
             rep = splt[4]
@@ -176,8 +172,8 @@ converted to ( and ), ( and ) need to be converted to \( and \), and
                pat = re.compile(splt[1], flags)
 
          else:
-            print "%s Only s, d, a, and p are allowed actions: %s" % \
-                (prefix, sedregs[i])
+            prnstr(fmtstr("{} Only s, d, a, and p are allowed actions: {}", \
+                prefix, sedregs[i]))
             sys.exit(1)
                
       pattern.append(pat)
@@ -214,9 +210,9 @@ converted to ( and ), ( and ) need to be converted to \( and \), and
    if dstfile :
       try:
          for line in outlines:
-            print >> sedout, line
+            prnstr(line, file=sedout)
       except:
-         print "%s Writing to output file" % prefix
+         prnstr(fmtstr("{} Writing to output file", prefix))
          sys.exit(1)
       sedout.close()
       return None

@@ -29,7 +29,7 @@ if os.getenv('IMOD_DIR') != None:
                         os.pathsep + os.environ['PATH']
    sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
 else:
-   print prefix + " IMOD_DIR is not defined!"
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
    sys.exit(1)
 
 #
@@ -56,12 +56,10 @@ options = ["info:InfoFile:FN:", "xrun:XRunStartEnd:IP:",
                                               1, 0)
 infofile = PipGetInOutFile('InfoFile', 0)
 if not infofile:
-   print prefix + " Info file name must be entered"
-   sys.exit(1)
+   exitError(" Info file name must be entered")
 
 if not os.path.exists(infofile):
-   print prefix + " Info file %s does not exist" % (infofile)
-   sys.exit(1)
+   exitError(fmtstr(" Info file {} does not exist", infofile))
 
 # Initialize dictionary arrays, then read existing info file 
 predata = {}
@@ -101,29 +99,29 @@ for z in range(zrunStart, zrunEnd + 1):
             for edge in edges:
                if edge[kXorY] == xory and edge[kLower][0] == x \
                   and edge[kLower][1] == y and edge[kLower][2] == z and \
-                  edge.has_key(kPatch):
+                  kPatch in edge:
 
-                  print "\n\nPROCESSING PATCH FILES FOR EDGE " + edge['name']
+                  prnstr("\n\nPROCESSING PATCH FILES FOR EDGE " + edge['name'])
                   madeReduced = 0
 
                   # Update the patch files from the models
                   modname = changeExtension(edge[kPatch], "_ccc.mod")
                   updatedOrig = updatePatchFromModel(edge[kPatch], modname)
                   updatedReduce = 0
-                  if edge.has_key(kReduce):
+                  if kReduce in edge:
                      modname = changeExtension(edge[kReduce], ".mod")
                      updatedReduce = updatePatchFromModel(edge[kReduce],
                                                           modname)
                      if updatedReduce:
-                        if not edge.has_key(kRedEdit):
+                        if not kRedEdit in edge:
                            addedKeys = 1
                         edge[kRedEdit] = 1
                   updatedResid = 0
-                  if edge.has_key(kResid):
+                  if kResid in edge:
                      modname = changeExtension(edge[kResid], ".mod")
                      updatedResid = updatePatchFromModel(edge[kResid], modname)
                      if updatedResid:
-                        if not edge.has_key(kResEdit):
+                        if not kResEdit in edge:
                            addedKeys = 1
                         edge[kResEdit] = 1
 
@@ -132,32 +130,32 @@ for z in range(zrunStart, zrunEnd + 1):
                      # Process original to reduced if reduced wasn't ever
                      # edited and original was updated, or if reduced doesn't
                      # exist
-                     if (updatedOrig and not edge.has_key(kRedEdit)) or \
-                            not edge.has_key(kReduce):
+                     if (updatedOrig and not kRedEdit in edge) or \
+                            not kReduce in edge:
                         reduceName = edge['name'] + "_reduce.patch"
                         input = ['PatchFile ' + edge[kPatch],
                                  'VolumeOrSizeXYZ 6000 6000 200',
                                  'ReducedVectorOutput ' + reduceName,
                                  'MeanResidualLimit 1000']
-                        print "\nRunning Refinematch to make reduced vector "+\
-                              "patches with CCC values"
+                        prnstr("\nRunning Refinematch to make reduced vector"+\
+                              " patches with CCC values")
                         runcmd('refinematch -StandardInput', input)
-                        if not edge.has_key(kReduce):
+                        if not kReduce in edge:
                            addedKeys = 1
                         edge[kReduce] = reduceName
                         madeReduced = 1
 
                      elif updatedOrig and not updatedReduce:
-                        print "Not updating reduced patches from original " +\
+                        prnstr("Not updating reduced patches from original " +\
                               "patches because\n reduced patches were " + \
-                              "edited previously"
+                              "edited previously")
 
                      if madeReduced or rescale:
                         modname = edge['name'] + '_reduce.mod'
-                        patchcom = 'patch2imod -s %f -c %d -f -n ' % \
-                                   (scale, clipsize) + \
-                                   '"Values are CCCs; clip planes exist" ' + \
-                                   '%s %s' % (edge[kReduce], modname)
+                        patchcom = fmtstr('patch2imod -s {:f} -c {} -f -n ' +\
+                                          '"Values are CCCs; clip planes ' +\
+                                          'exist" {} {}', scale, clipsize,
+                                          edge[kReduce], modname)
                         runcmd(patchcom, None)
 
                      # We are going to run findwarp regardless - set up to run
@@ -166,49 +164,49 @@ for z in range(zrunStart, zrunEnd + 1):
                      residInFile = edge['name'] + "_resid.patch"
                      residname = residInFile
                      if (((updatedOrig and madeReduced) or updatedReduce) and \
-                         not edge.has_key(kResEdit)) or \
-                         not edge.has_key(kResid):
+                         not kResEdit in edge) or \
+                         not kResid in edge:
                         residInFile = edge['name'] + "_reduce.patch"
                      elif ((updatedOrig and madeReduced) or updatedReduce) \
                           and not updatedResid:
-                        print "Not updating residual patches from reduced " +\
+                        prnstr("Not updating residual patches from reduced " +\
                               "patches because\n residual patches were " +\
-                              "edited previously"
+                              "edited previously")
                           
                      tmpname = edge['name'] + "_resid.tmppatch"
                      input = ['PatchFile ' + residInFile,
                               'VolumeOrSizeXYZ 6000 6000 200',
                               'ResidualPatchOutput ' + tmpname,
                               'TargetMeanResidual ' + targets]
-                     print '\nRunning Findwarp on patches in ' + residInFile +\
-                           " to make new patches with residual values"
+                     prnstr('\nRunning Findwarp on patches in ' + residInFile+\
+                           " to make new patches with residual values")
                      try:
                         fwout = runcmd('findwarp -StandardInput', input, \
                                        'stdout')
-                     except ImodpyError, errout:
-                        print " "
+                     except ImodpyError:
+                        prnstr(" ")
 
                      # And now we rename the temp file and make a new model
                      makeBackupFile(residname)
                      try:
                         os.rename(tmpname, residname)
                      except:
-                        print "Error renaming " + tmpname + " to " + residname
-                        sys.exit(1)
+                        exitError("Error renaming " + tmpname + " to " +\
+                                  residname)
 
-                     if not edge.has_key(kResid):
+                     if not kResid in edge:
                         addedKeys = 1
                      edge[kResid] = residname
                      modname = edge['name'] + '_resid.mod'
-                     patchcom = 'patch2imod -s %f -c %d -f -n ' % \
-                                (scale, clipsize) + \
-                                '"Values are residuals; clip planes exist" ' +\
-                                '%s %s' % (residname, modname)
+                     patchcom = fmtstr('patch2imod -s {:f} -c {} -f -n ' +\
+                                       '"Values are residuals; clip planes ' +\
+                                       'exist" {} {}', scale, clipsize,
+                                       residname, modname)
                      runcmd(patchcom, None)
 
 
-                  except ImodpyError, errout:
-                     exitFromImodError(progname, errout)
+                  except ImodpyError:
+                     exitFromImodError(progname)
 
             if addedKeys:
                writeMontInfo(infofile, predata, slices, pieces, edges)
@@ -220,10 +218,13 @@ for z in range(zrunStart, zrunEnd + 1):
 
 
 if wroteFile:
-   print '\nNew info file written'
+   prnstr('\nNew info file written')
 
 #
 #  $Log$
+#  Revision 1.2  2009/12/10 21:26:26  mast
+#  Move update patch function to supermont.py
+#
 #  Revision 1.1  2009/09/08 23:26:12  mast
 #  Added to package
 #

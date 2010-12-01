@@ -197,10 +197,10 @@ def PipAddOption(optionString):
          PipStartsWith(parts[1], oldShort) or \
          PipStartsWith(oldLong, parts[1]) or \
          PipStartsWith(parts[1], oldLong)):
-         tempStr = "Option %s  %s is ambiguous with option %s  %s" % \
-                   (parts[0], parts[1], oldShort, oldLong)
+         tempStr = "Option " + parts[0] + "  " + parts[1] + \
+                   " is ambiguous with option " + oldShort + "  " + oldLong
          PipSetError(tempStr)
-         print tempStr
+         sys.stdout.write(tempStr + "\n")
          return -1
 
    nextOption += 1
@@ -221,7 +221,7 @@ def PipNextArg(argString):
          try:
             paramFile = open(argString, "r")
          except:
-            tempStr = "Error opening parameter file %s" % argString
+            tempStr = "Error opening parameter file " + argString
             PipSetError(tempStr)
             return -1
 
@@ -320,7 +320,7 @@ def PipGetBoolean(option, val):
           strPtr == "off"):
       return 0
    else:
-      tempStr = "Illegal entry for boolean option %s: %s" % (option, strPtr)
+      tempStr = "Illegal entry for boolean option " + option + ": " + strPtr
       PipSetError(tempStr)
       pipErrno =  -1
       return None
@@ -426,7 +426,7 @@ def PipPrintHelp(progName, useStdErr, inputFiles, outputFiles):
          numReal += 1
    
    if (not outputManpage):
-      out.write("Usage: %s " % progName)
+      out.write("Usage: " + progName + " ")
       if (numOptions):
          out.write("[Options]")
       if (inputFiles):
@@ -455,11 +455,11 @@ def PipPrintHelp(progName, useStdErr, inputFiles, outputFiles):
 
          out.write(" ")
          if len(sname):
-            out.write("-%s" % sname)
+            out.write("-" + sname)
          if len(sname) and len(lname):
             out.write(" OR ")
          if len(lname):
-            out.write("-%s" % lname)
+            out.write("-" + lname)
          for j in range(numTypes):
             jj = j
             if (optTable[i].type == types[j]):
@@ -486,15 +486,15 @@ def PipPrintHelp(progName, useStdErr, inputFiles, outputFiles):
                if (j < 0):
                   j = 0
 
-            out.write("%s%s\n" % (indentStr, sname[0:j]))
+            out.write(indentStr + sname[0:j] + "\n")
             sname = sname[j+1:]
             newLinePt = sname.find('\n')
             optLen -= j + 1
 
-         out.write("%s%s\n" % (indentStr, sname))
+         out.write(indentStr + sname + "\n")
 
       if (optTable[i].multiple):
-         out.write("%s(Successive entries accumulate)\n" % indentStr)
+         out.write(indentStr + "(Successive entries accumulate)\n")
 
    return 0
 
@@ -512,7 +512,7 @@ def PipPrintEntries():
             printEntries = 0
    if not printEntries:
       return
-   print "\n*** Entries to program %s ***" % (programName)
+   sys.stdout.write("\n*** Entries to program " + programName + " ***" + "\n")
    for i in range(numOptions):
       sname = optTable[i].shortName
       lname = optTable[i].longName
@@ -521,13 +521,13 @@ def PipPrintEntries():
          if not len(lname):
             name = sname
          for j in range(optTable[i].count):
-            print "  %s = %s" % (name, optTable[i].values[j])
+            sys.stdout.write("  " + name + " = " + optTable[i].values[j] + "\n")
    if optTable[nonOptInd].count:
-      print "  Non-option arguments:" ,
+      sys.stdout.write("  Non-option arguments:")
       for j in range(optTable[nonOptInd].count):
-         print "   " +  optTable[nonOptInd].values[j] ,
-      print
-   print "*** End of entries ***\n"
+         sys.stdout.write("   " +  optTable[nonOptInd].values[j])
+      sys.stdout.write('\n')
+   sys.stdout.write("*** End of entries ***\n\n")
    
 
 # Return the error string, or an empty string and an error if there is none
@@ -617,7 +617,7 @@ def PipReadOptionFile(progName, helpLevel, localDir):
    if (not localDir):
       pipDir = os.getenv(OPTDIR_VARIABLE)
       if (pipDir):
-         bigStr = "%s%c%s.%s" % (pipDir, PATH_SEPARATOR, progName, OPTFILE_EXT)
+         bigStr = pipDir + PATH_SEPARATOR + progName + "." + OPTFILE_EXT
          try:
             # print "Looking for file " + bigStr
             optFile = open(bigStr, "r")
@@ -627,8 +627,8 @@ def PipReadOptionFile(progName, helpLevel, localDir):
       if (not optFile):
          pipDir = os.getenv("IMOD_DIR")
          if (pipDir):
-            bigStr = "%s%c%s%c%s.%s" % (pipDir, PATH_SEPARATOR, OPTFILE_DIR,
-                                        PATH_SEPARATOR, progName, OPTFILE_EXT)
+            bigStr = pipDir + PATH_SEPARATOR + OPTFILE_DIR +\
+                     PATH_SEPARATOR + progName + "." + OPTFILE_EXT
             try:
                #print "Looking for file " + bigStr
                optFile = open(bigStr, "r")
@@ -642,8 +642,7 @@ def PipReadOptionFile(progName, helpLevel, localDir):
       for i in range(localDir):
          bigStr += ".." + PATH_SEPARATOR
          
-         bigStr += "%s%c%s.%s" % (OPTFILE_DIR, PATH_SEPARATOR, progName, \
-                                  OPTFILE_EXT)
+         bigStr += OPTFILE_DIR + PATH_SEPARATOR + progName + "." + OPTFILE_EXT
          try:
             # print "Looking for file " + bigStr
             optFile = open(bigStr, "r")
@@ -653,7 +652,7 @@ def PipReadOptionFile(progName, helpLevel, localDir):
    
    # If there is still no file, look in current directory
    if (not optFile):
-      bigStr = "%s.%s" % (progName, OPTFILE_EXT)
+      bigStr = progName + "." + OPTFILE_EXT
       try:
          # print "Looking for file " + bigStr
          optFile = open(bigStr, "r")
@@ -728,7 +727,8 @@ def PipReadOptionFile(progName, helpLevel, localDir):
          if (isSection):
             longName = shortName = ''
 
-         optStr = "%s:%s:%s:%s" % (shortName, longName, type, helpStr[helpInd])
+         optStr = shortName + ":" + longName + ":" + type + ":" + \
+                  helpStr[helpInd]
          optList.append(optStr)
 
          # Clean up 
@@ -859,7 +859,7 @@ def PipReadOrParseOptions(argv, options, progName, minArgs, numInFiles,
    
    # Startup with fallback
    ierr = PipReadOptionFile(progName, 0, 0)
-   PipExitOnError(0, "ERROR: %s - " % progName)
+   PipExitOnError(0, "ERROR: " + progName + " - ")
    if (not ierr):
       (numOptArgs, numNonOptArgs) = PipParseEntries(argv)
    else:
@@ -867,8 +867,7 @@ def PipReadOrParseOptions(argv, options, progName, minArgs, numInFiles,
       if (not options or not len(options)):
          PipSetError(errString)
       if (errString):
-          print "PIP WARNING: %s\nUsing fallback options in script\n" % \
-                errString
+          sys.stdout.write("PIP WARNING: " + errString + "\nUsing fallback options in script\n\n")
 
       (numOptArgs, numNonOptArgs) = PipParseInput(argv, options)
 
@@ -1082,8 +1081,8 @@ def PipGetLineOfValues(option, strPtr, valType, numToGet):
                numGot = numToGet
                break
       
-            tempStr = "Default entry with a / is not allowed in value entry:  %s  %s" % \
-                      (option, fullStr)
+            tempStr = "Default entry with a / is not allowed in value entry:  "+ \
+                      option + "  " + fullStr
             PipSetError(tempStr)
             pipErrno =  -1
             return None
@@ -1099,8 +1098,8 @@ def PipGetLineOfValues(option, strPtr, valType, numToGet):
                   if (numGot >= numToGet):
                      break
                else:
-                  tempStr = "Default entries with commas are not allowed in value entry:  %s  %s" % \
-                            (option, fullStr)
+                  tempStr = "Default entries with commas are not allowed in value entry:  " + \
+                      option + "  " + fullStr
                   PipSetError(tempStr)
                   pipErrno =  -1
                   return None
@@ -1122,8 +1121,8 @@ def PipGetLineOfValues(option, strPtr, valType, numToGet):
             array.append(float(strPtr[0:endPtr]))
          numGot += 1
       except:
-         tempStr = "Illegal character in value entry:  %s  %s" % \
-                   (option, fullStr)
+         tempStr = "Illegal character in value entry:  " + \
+                   option + "  " + fullStr
          PipSetError(tempStr)
          pipErrno =  -1
          return None
@@ -1141,8 +1140,8 @@ def PipGetLineOfValues(option, strPtr, valType, numToGet):
 
    # If not enough values found, return error
    if (numToGet > 0 and numGot < numToGet):
-      tempStr = "%d values expected but only %d values found in value entry:  %s %s" % \
-                (numToGet, numGot, option, fullStr)
+      tempStr = str(numToGet) + " values expected but only " + str(numGot) + \
+                " values found in value entry:  " + option + "  " + fullStr
       PipSetError(tempStr)
       pipErrno =  -1
       return None
@@ -1214,15 +1213,16 @@ def LookupOption(option, maxLookup):
          if (found == LOOKUP_NOT_FOUND):
             found = i
          else:
-            tempStr = "An option specified by \"%s\" is ambiguous between option %s -  %s  and option %s -  %s" % \
-                      (option, sname, lname, optTable[found].shortName, \
-                       optTable[found].longName)
+            tempStr = "An option specified by \"" + option + \
+                      "\" is ambiguous between option " + sname + " -  " + \
+                      lname + "  and option " +  optTable[found].shortName + \
+                      " -  " + optTable[found].longName
             PipSetError(tempStr)
             return LOOKUP_AMBIGUOUS
          
    # Set error string unless flag set that non-options are OK 
    if (found == LOOKUP_NOT_FOUND and not notFoundOK):
-      tempStr = "Illegal option: %s" % option
+      tempStr = "Illegal option: " + option
       PipSetError(tempStr)
    return found
 
@@ -1285,6 +1285,9 @@ def CheckKeyword(line, keyword, index):
    return (line[valStart:], index)
 
 # $Log$
+# Revision 1.4  2009/12/04 20:46:02  mast
+# Added print entries and changed indent to 3
+#
 # Revision 1.3  2009/10/08 22:49:40  mast
 # Removed OR from usage output if only one option name
 #

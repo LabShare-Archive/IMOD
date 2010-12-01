@@ -14,15 +14,15 @@
 def runDensmatch(args):
    denscom = 'densmatch -report ' + args
    if verbose:
-      print denscom
+      prnstr(denscom)
    try:
       densout = runcmd(denscom, None)
-   except ImodpyError, errout:
-      exitFromImodError(progname, errout)
+   except ImodpyError:
+      exitFromImodError(progname)
             
    for l in densout:
       if l.find('SD =') >= 0:
-         print l,
+         prnstr(l, end = '')
       indcolon = l.find(':')
       if indcolon >= 0 and l.startswith('Scale factor'):
          scaling = l[indcolon + 1:].split()
@@ -64,7 +64,7 @@ if os.getenv('IMOD_DIR') != None:
                         os.pathsep + os.environ['PATH']
    sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
 else:
-   print prefix + " IMOD_DIR is not defined!"
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
    sys.exit(1)
 
 #
@@ -146,8 +146,8 @@ for i in range(len(slices)):
    if int(slices[i][kZvalue]) == zrun:
       slice = slices[i]
       indSlice = i
-      if not (slice.has_key(kSpacing) and slice.has_key(kOutsize) and \
-              slice.has_key(kSample)):
+      if not (kSpacing in slice and kOutsize in slice and \
+              kSample in slice):
          exitError("The info file is missing spacing, output size, " \
                + " or interval factor data for this section")
       xoutSize = slice[kOutsize][0]
@@ -236,17 +236,16 @@ for i in range(len(pieces)):
 # Run findwarp
 if dofind:
    failed = []
-   print 'Running findwarp with min and max ratios of measured to unknowns' \
-         ' of: %.1f  %1.f' % (minRatio, maxRatio)
+   prnstr('Running findwarp with min and max ratios of measured to unknowns' +\
+         fmtstr(' of: {:.1f}  {:.1f}', minRatio, maxRatio))
    for y in range(yrunStart, yrunEnd + 1):
       for x in range(xrunStart, xrunEnd + 1):
          ind = pieceMap[x - xmin + xdim * (y - ymin)]
          if ind >= 0:
-            if not (pieces[ind].has_key(kVectors) and \
-                    pieces[ind].has_key(kMatxf)):
-               print '%s Frame %d %d is missing an initial transform or '\
-                     'warping vectors' % (prefix, x, y)
-               sys.exit(1)
+            if not (kVectors in pieces[ind] and \
+                    kMatxf in pieces[ind]):
+               exitError(fmtstr('Frame {} {} is missing an initial transform'+\
+                     ' or warping vectors', x, y))
             patname = pieces[ind][kVectors]
             xfname = pieces[ind][kMatxf]
             warpname = changeExtension(xfname, '.warpxf')
@@ -261,32 +260,34 @@ if dofind:
             volz = zoutSize
             if scaleEntered and zEntered and not applyScale:
                volz = mynint(zoutSize / scaleFactor)
-            input = ['VolumeOrSizeXYZ %d %d %d' % (xoutSize, youtSize, volz),
+            input = [fmtstr('VolumeOrSizeXYZ {} {} {}', xoutSize, youtSize, \
+                            volz),
                      'TargetMeanResidual ' + targets,
-                     'DiscountIfZeroVectors %f' % discount,
-                     'MeasuredRatioMinAndMax %f %f' % (minRatio, maxRatio),
+                     fmtstr('DiscountIfZeroVectors {:f}', discount),
+                     fmtstr('MeasuredRatioMinAndMax {:f} {:f}', minRatio, \
+                            maxRatio),
                      'PatchFile ' + patname,
                      'OutputFile ' + warpname,
                      'InitialTransformFile ' + xfname,
                      'ResidualPatchOutput ' + resname]
             try:
-               print '\nRunning findwarp on frame %d %d\n' % (x, y)
+               prnstr(fmtstr('\nRunning findwarp on frame {} {}\n', x, y))
                fwout = runcmd('findwarp -StandardInput', input, 'stdout')
 
-               print " "
-            except ImodpyError, errout:
+               prnstr(" ")
+            except ImodpyError:
                failed.append((x, y))
 
             if os.path.exists(resname):
-               patchcom = 'patch2imod -s 5 -f -c %d -n  ' % (clipsize) +\
+               patchcom = fmtstr('patch2imod -s 5 -f -c {} -n  ', clipsize) +\
                           '"Values are residuals; clip planes exist" ' + \
-                          '-z %s %s' % (resname, resmod)
+                          fmtstr('-z {} {}', resname, resmod)
                runcmd(patchcom, None)
 
    if len(failed):
-      print '\n\nTo summarize, Findwarp failed on frames:'
+      prnstr('\n\nTo summarize, Findwarp failed on frames:')
       for frames in failed:
-         print '      x %d  y %d' % frames
+         prnstr(fmtstr('      x {}  y {}', frames[0], frames[1]))
       exitError('Findwarp did not succeed on all frames')
 
 # Run warpvol
@@ -295,17 +296,15 @@ if dowarp:
       for x in range(xrunStart, xrunEnd + 1):
          ind = pieceMap[x - xmin + xdim * (y - ymin)]
          if ind >= 0:
-            if not pieces[ind].has_key(kMatxf):
-               print '%s No initial transform has been computed for ' \
-                     'frame %d %d' % (prefix, x, y)
-               sys.exit(1)
+            if not kMatxf in pieces[ind]:
+               exitError('No initial transform has been computed for ' + \
+                     fmtstr('frame {} {}', x, y))
             xfname = pieces[ind][kMatxf]
             warpname = changeExtension(xfname, '.warpxf')
             aliname = changeExtension(xfname, '.warped')
             if not os.path.exists(warpname):
-               print '%s No warping transform file is found for ' \
-                     'frame %d %d' % (prefix, x, y)
-               sys.exit(1)
+               exitError('No warping transform file is found for ' + \
+                     fmtstr('frame {} {}', x, y))
 
             (outx, outy, outz) = (xoutSize, youtSize, zoutSize)
             if scaleEntered:
@@ -313,22 +312,22 @@ if dowarp:
                outy = mynint(youtSize * scaleFactor)
                if applyScale or not zEntered:
                   outz = mynint(zoutSize * scaleFactor)
-            input = ['OutputSizeXYZ %d %d %d' % (outx, outy, outz),
+            input = [fmtstr('OutputSizeXYZ {} {} {}', outx, outy, outz),
                      'InputFile ' + pieces[ind]['file'],
                      'OutputFile ' + aliname,
                      'TransformFile ' + warpname]
             if tempdir != ' ':
                input.append('TemporaryDirectory ' + tempdir)
             if scaleEntered:
-               input.append('ScaleTransforms %f' % scaleFactor)
+               input.append(fmtstr('ScaleTransforms {:f}', scaleFactor))
             if verbose:
-               print input
+               prnstr(input)
             try:
-               print '\nRunning warpvol on frame %d %d\n' % (x, y)
+               prnstr(fmtstr('\nRunning warpvol on frame {} {}\n', x, y))
                runcmd('warpvol -StandardInput', input)
 
-            except ImodpyError, errout:
-               exitFromImodError(progname, errout)
+            except ImodpyError:
+               exitFromImodError(progname)
 
 # Densmatch and stack volumes and make piece list: first check size and number
 if dostack:
@@ -344,21 +343,19 @@ if dostack:
       for x in range(xrunStart, xrunEnd + 1):
          ind = pieceMap[x - xmin + xdim * (y - ymin)]
          if ind >= 0:
-            if not pieces[ind].has_key(kMatxf):
-               print '%s No initial transform has been computed for ' \
-                     'frame %d %d' % (prefix, x, y)
-               sys.exit(1)
+            if not kMatxf in pieces[ind]:
+               exitError('No initial transform has been computed for ' +\
+                     fmtstr('frame {} {}', x, y))
             xfname = pieces[ind][kMatxf]
             aliname = changeExtension(xfname, '.warped')
             if not os.path.exists(aliname):
-               print '%s No aligned volume is found for ' \
-                    'frame %d %d' % (prefix, x, y)
-               sys.exit(1)
+               exitError('No aligned volume is found for ' + \
+                    fmtstr('frame {} {}', x, y))
             
             try:
                xstmp, ystmp, zstmp = getmrcsize(aliname)
-            except ImodpyError, errout:
-               exitFromImodError(progname, errout)
+            except ImodpyError:
+               exitFromImodError(progname)
 
             # First stack, record size and reference if not specified,
             # otherwise check for size match
@@ -381,7 +378,7 @@ if dostack:
             xcoord = (x - xrunStart) * xSpacing
             ycoord = (y - yrunStart) * ySpacing
             for i in range(zsize):
-               line = '%d  %d  %d\n' % (xcoord, ycoord, i)
+               line = fmtstr('{}  {}  {}\n', xcoord, ycoord, i)
                plist.append(line)
 
    if refNum < 0:
@@ -396,7 +393,7 @@ if dostack:
    if matchWidthX == 0 or matchWidthY == 0:
       for i in range(numStack):
          if i != refNum:
-            print 'Running densmatch on ' + aliList[i]
+            prnstr('Running densmatch on ' + aliList[i])
             scaling = runDensmatch(aliList[refNum] + ' ' + aliList[i])
             sclList.append(scaling[0] + ',' + scaling[1])
          else:
@@ -442,11 +439,11 @@ if dostack:
                         length = mynint(matchLengthY * scaleFactor)
                      iymin = int(ysize / 2 - length / 2)
                      iymax = int(iymin + length - 1)
-                     args = '-xminmax %d,%d -yminmax %d,%d -offset ' % \
-                            (ixmin, ixmax, iymin, iymax) + '%d,0,0 %s %s' % \
-                            (-xSpacing, aliList[loInd], aliList[pcInd])
-                     print 'Running densmatch in overlap between piece'\
-                           + ' %d %d and piece %d %d' % (x-1, y, x, y)
+                     args = fmtstr('-xminmax {},{} -yminmax {},{} -offset ' +\
+                                   '{},0,0 {} {}', ixmin, ixmax, iymin, iymax,\
+                                   -xSpacing, aliList[loInd], aliList[pcInd])
+                     prnstr('Running densmatch in overlap between piece'\
+                           + fmtstr(' {} {} and piece {} {}', x-1, y, x, y))
                      scaling = runDensmatch(args)
                      loScl = (float(scaling[0]), float(scaling[1]))
                      
@@ -483,11 +480,11 @@ if dostack:
                         length = mynint(matchLengthX * scaleFactor)
                      ixmin = int(xsize / 2 - length / 2)
                      ixmax = int(ixmin + length - 1)
-                     args = '-xminmax %d,%d -yminmax %d,%d -offset ' % \
-                            (ixmin, ixmax, iymin, iymax) + '0,%d,0 %s %s' % \
-                            (-ySpacing, aliList[loInd], aliList[pcInd])
-                     print 'Running densmatch in overlap between piece'\
-                           + ' %d %d and piece %d %d' % (x, y-1, x, y)
+                     args = fmtstr('-xminmax {},{} -yminmax {},{} -offset ' +\
+                                   '0,{},0 {} {}', ixmin, ixmax, iymin, iymax,\
+                                   -ySpacing, aliList[loInd], aliList[pcInd])
+                     prnstr('Running densmatch in overlap between piece'\
+                           + fmtstr(' {} {} and piece {} {}', x, y-1, x, y))
                      scaling = runDensmatch(args)
                      loScl = (float(scaling[0]), float(scaling[1]))
 
@@ -512,7 +509,7 @@ if dostack:
          verbout = (verbose and (iter < 4 or iter >= numMatchIter - 2)) or \
                  verbose == 2
          if verbout:
-            print '\nIteration %d:' % (iter + 1)
+            prnstr(fmtstr('\nIteration {}:', iter + 1))
          while addedScale:
             addedScale = False
             newScalings = { }
@@ -530,9 +527,9 @@ if dostack:
                   numScales += 1
                   if verbout:
                      if numScales == 1:
-                        print ''
-                     print 'Piece %d from lower X, net scale %.5f %.2f'\
-                           % (i, netscl[0], netscl[1])
+                        prnstr('')
+                     prnstr(fmtstr('Piece {} from lower X, net scale {:.5f}' +\
+                                   ' {:.2f}', i, netscl[0], netscl[1]))
 
                loInd = lowerPcY[i]
                if loInd >= 0 and pcScalings[loInd] != None:
@@ -542,9 +539,9 @@ if dostack:
                   numScales += 1
                   if verbout:
                      if numScales == 1:
-                        print ''
-                     print 'Piece %d from lower Y, net scale %.5f %.2f'\
-                          % (i, netscl[0], netscl[1])
+                        prnstr('')
+                     prnstr(fmtstr('Piece {} from lower Y, net scale {:.5f}' +\
+                                   ' {:.2f}', i, netscl[0], netscl[1]))
 
                upInd = upperPcX[i]
                if upInd >= 0 and pcScalings[upInd] != None:
@@ -555,9 +552,9 @@ if dostack:
                   numScales += 1
                   if verbout:
                      if numScales == 1:
-                        print ''
-                     print 'Piece %d from upper X, net scale %.5f %.2f'\
-                           % (i, netscl[0], netscl[1])
+                        prnstr('')
+                     prnstr(fmtstr('Piece {} from upper X, net scale {:.5f}' +\
+                                   ' {:.2f}', i, netscl[0], netscl[1]))
 
                upInd = upperPcY[i]
                if upInd >= 0 and pcScalings[upInd] != None:
@@ -568,16 +565,16 @@ if dostack:
                   numScales += 1
                   if verbout:
                      if numScales == 1:
-                        print ''
-                     print 'Piece %d from upper Y, net scale %.5f %.2f'\
-                           % (i, netscl[0], netscl[1])
+                        prnstr('')
+                     prnstr(fmtstr('Piece {} from upper Y, net scale {:.5f}' +\
+                                   ' {:.2f}', i, netscl[0], netscl[1]))
 
                if numScales:
                   newScalings[i] = (multsum / numScales, addsum / numScales) 
                   addedScale = True
                   if numScales > 1 and verbout:
-                     print 'Piece %d mean scale %.5f  %.2f' % \
-                           (i, newScalings[i][0], newScalings[i][1])
+                     prnstr(fmtstr('Piece {} mean scale {:.5f}  {:.2f}', \
+                                   i, newScalings[i][0], newScalings[i][1]))
 
             # Now if any were added, set them into the array of scales
             if addedScale:
@@ -589,33 +586,33 @@ if dostack:
 
       # Now just convert the scalings into strings
       for i in range(numStack):
-         sclList.append('%f,%f' % (pcScalings[i][0], pcScalings[i][1]))
+         sclList.append(fmtstr('{:f},{:f}', pcScalings[i][0], pcScalings[i][1]))
 
 
    # Compose the newstack command, report scaling, and run newstack
    newstcom = 'newstack'
-   print ''
+   prnstr('')
    for y in range(yrunStart, yrunEnd + 1):
       for x in range(xrunStart, xrunEnd + 1):
          ind = pieceMap[x - xmin + xdim * (y - ymin)]
          if ind >= 0:
             i = listMap[ind]
             scaling = sclList[i].split(',')
-            print 'Piece %d %d: multiply by %.5f, add %.2f' % \
-                  (x, y, float(scaling[0]), float(scaling[1]))
+            prnstr(fmtstr('Piece {} {}: multiply by {:.5f}, add {:.2f}', \
+                          x, y, float(scaling[0]), float(scaling[1])))
             newstcom += ' -multadd ' + sclList[i] + ' ' + aliList[i] 
 
    newstcom += ' ' + slicename + '.st'
-   print '\nStacking the volumes into ' + slicename + '.st'
+   prnstr('\nStacking the volumes into ' + slicename + '.st')
    if verbose:
-      print newstcom
+      prnstr(newstcom)
    try:
       newstout = runcmd(newstcom, None)
-   except ImodpyError, errout:
-      exitFromImodError(progname, errout)
+   except ImodpyError:
+      exitFromImodError(progname)
    l = newstout[len(newstout) - 1]
    if l.find('TRUNCATIONS') >= 0:
-      print l
+      prnstr(l)
    
    # Make the piece list file
    try:
@@ -654,40 +651,42 @@ if doblend:
    if xblDefault:
       xstnd = '/'
    else:
-      xstnd = "%d %d" % (xblst, xblnd)
+      xstnd = fmtstr('{} {}', xblst, xblnd)
    if yblDefault:
       ystnd = '/'
    else:
-      ystnd = "%d %d" % (yblst, yblnd)
+      ystnd = fmtstr('{} {}', yblst, yblnd)
       
    input = ['ImageInputFile\t' + slicename + '.st',
             'PieceListInput\t' + slicename + '.pl',
             'ImageOutputFile\t' + slicename + '.bl',
             'RootNameForEdges\t' + slicename,
-            'OldEdgeFunctions\t%d' % oldedges,
+            fmtstr('OldEdgeFunctions\t{}', oldedges),
             'StartingAndEndingX\t' + xstnd,
             'StartingAndEndingY\t' + ystnd,
-            'ExcludeFillFromEdges\t%d' % excludeFill]
+            fmtstr('ExcludeFillFromEdges\t{}', excludeFill)]
    if binFactor > 1:
-      input.append('BinByFactor\t %d' % binFactor)
+      input.append(fmtstr('BinByFactor\t {}', binFactor))
    if blendWidthX > 1 and blendWidthY > 1:
-      input.append('BlendingWidthXandY\t%d %d' % (blendWidthX, blendWidthY))
+      input.append(fmtstr('BlendingWidthXandY\t{} {}', blendWidthX, \
+                          blendWidthY))
    if boxShort > 1 and boxLong > 1:
-      input.append('BoxSizeShortAndLong\t%d %d' % (boxShort, boxLong))
+      input.append(fmtstr('BoxSizeShortAndLong\t{} {}', boxShort, boxLong))
    if indentShort > 1 and indentLong > 1:
-      input.append('IndentShortAndLong\t%d %d' % (indentShort, indentLong))
+      input.append(fmtstr('IndentShortAndLong\t{} {}', indentShort,indentLong))
    if goodLowZ > 0 and goodHiZ > 0:
-      input.append('GoodEdgeLowAndHighZ\t%d %d' % (goodLowZ - 1, goodHiZ - 1))
+      input.append(fmtstr('GoodEdgeLowAndHighZ\t{} {}', goodLowZ - 1, \
+                          goodHiZ - 1))
 
    # Get range of slices to look over for edge limits
    xlo = xmin
    xhi = xmax
    ylo = ymin
    yhi = ymax
-   if slices[indSlice].has_key(kXstacked):
+   if kXstacked in slices[indSlice]:
       xlo = slices[indSlice][kXstacked][0]
       xhi = slices[indSlice][kXstacked][1]
-   if slices[indSlice].has_key(kYstacked):
+   if kYstacked in slices[indSlice]:
       ylo = slices[indSlice][kYstacked][0]
       yhi = slices[indSlice][kYstacked][1]
 
@@ -705,7 +704,7 @@ if doblend:
 
          
          # If and edge has lower piece in range and has a limit, take it
-         if edge.has_key(kGoodlim):
+         if kGoodlim in edge:
             zlo = edge[kGoodlim][0]
             zhi = edge[kGoodlim][1]
 
@@ -722,9 +721,8 @@ if doblend:
                zlo = mynint((zlo - 1) * scaleFactor) + 1
                zhi = max((1, mynint(zhi * scaleFactor)))
                
-            input.append('OneGoodEdgeLimits\t%d %d %d %d %d' % \
-                         (xpc + 1 - xlo, ypc + 1 - ylo, xory, zlo - 1, \
-                          zhi - 1))
+            input.append(fmtstr('OneGoodEdgeLimits\t{} {} {} {} {}', \
+                         xpc + 1 - xlo, ypc + 1 - ylo, xory, zlo - 1, zhi - 1))
 
    # Output a command file before running it
    comlist = ['$blendmont -StandardInput\n']
@@ -736,20 +734,23 @@ if doblend:
       comfile = open(comname, 'w')
       comfile.writelines(comlist)
       comfile.close()
-      print 'Command file to run blendmont output to ' + comname
+      prnstr('Command file to run blendmont output to ' + comname)
    except:
-      print 'WARNING: unable to open or write new command file' + comname
+      prnstr('WARNING: unable to open or write new command file' + comname)
 
-   print 'Running blendmont to build ' + slicename + '.bl'
+   prnstr('Running blendmont to build ' + slicename + '.bl')
    try:
       runcmd('blendmont -StandardInput', input, 'stdout')
-   except ImodpyError, errout:
-      exitFromImodError(progname, errout)
+   except ImodpyError:
+      exitFromImodError(progname)
 
 sys.exit(0)
 
 #
 # $Log$
+# Revision 1.11  2009/12/10 21:25:45  mast
+# Added ability to stitch unbinned with binned parameters, and indent option
+#
 # Revision 1.10  2009/09/08 23:33:16  mast
 # Added clipping plane box and new option to patch2imod
 #
