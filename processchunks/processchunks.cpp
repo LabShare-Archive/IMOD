@@ -316,6 +316,9 @@ void Processchunks::timerEvent() {
 
 void Processchunks::timerEvent(QTimerEvent *timerEvent) {
   if (mKill) {
+    if (isVerbose(mDecoratedClassName, __func__, 2)) {
+      *mOutStream << "timerEvent with mKill true" << endl;
+    }
     //If all the kill requests have gone out, start the timeout
     killProcessTimeout();
     return;
@@ -665,6 +668,16 @@ void Processchunks::killProcessOnNextMachine() {
   //kill request, including the ones that require waiting.
   if (mKillProcessMachineIndex >= mMachineList.size()) {
     mAllKillProcessesHaveStarted = true;
+    if (isVerbose(mDecoratedClassName, __func__)) {
+      *mOutStream << "mAllKillProcessesHaveStarted set to true" << endl;
+    }
+    //do this in case there where no assigned processes
+    if (mProcessesWithUnfinishedKillRequest.isEmpty()) {
+      if (isVerbose(mDecoratedClassName, __func__)) {
+        *mOutStream << "no assigned processes" << endl;
+      }
+      cleanupKillProcesses(false);
+    }
   }
 }
 
@@ -674,6 +687,10 @@ void Processchunks::killProcessOnNextMachine() {
 //command.
 void Processchunks::msgKillProcessStarted(const int processIndex) {
   mProcessesWithUnfinishedKillRequest.append(processIndex);
+  if (isVerbose(mDecoratedClassName, __func__)) {
+    *mOutStream << "mProcessesWithUnfinishedKillRequest size:"
+        << mProcessesWithUnfinishedKillRequest.size() << endl;
+  }
 }
 
 //Removes the processIndex from the list of unfinished kill requests.  Calls
@@ -1309,7 +1326,9 @@ const bool Processchunks::handleChunkDone(MachineHandler *machine,
   //copy the log for the first non-sync chunk
   if (processIndex == mCopyLogIndex) {
     QString rootLogName = QString("%1.log").arg(mRootName);
-    *mOutStream << "rootLogName:" << rootLogName << endl;
+    if (isVerbose(mDecoratedClassName, __func__)) {
+      *mOutStream << "rootLogName:" << rootLogName << endl;
+    }
     //Backup the root log if it exists
     imodBackupFile(rootLogName.toLatin1().data());
     QFile rootLog(rootLogName);
@@ -1723,6 +1742,12 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.44  2010/11/10 16:29:10  sueh
+ bug# 1364 Changed runProcessAndOutputLines to runGenericProcess.
+ Probe machines in Windows.  In probeMachines use imodwincpu to probe
+ machines in Windows.  Check the OS type of remote computers and
+ probe them with the appropriate command.
+
  Revision 1.43  2010/11/09 18:07:02  sueh
  bug# 1364 Defaulting -c in every OS.
 
