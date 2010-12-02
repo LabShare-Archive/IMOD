@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/1/10: Fixed a problem where processchunks was timing out when a sync fails
+and there is no process to kill.
+
 12/1/10: Fixed array index out of range bug in Blendmont.
 
 11/27/10  Modified Setupcombine to use new Combinefft, increased the chunks
