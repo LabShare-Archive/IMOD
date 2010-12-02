@@ -1,0 +1,130 @@
+Version = 1.0
+Pip = 1
+
+[Field = RootName]
+short = name
+type = FN
+usage =  Root name of dataset, excluding a and b
+tooltip =
+manpage =
+
+[Field = MatchAtoB]
+short = atob
+type = B
+usage = Match A to B instead of B to A
+tooltip =
+manpage =
+
+[Field = ToVolPointList]
+short = tolist
+type = LI
+usage =  List of points in tomogram being matched to that have corresponding 
+points
+tooltip =
+manpage = List of points in tomogram being matched to that have corresponding 
+points, used to provide the entry to Solvematch for ACorrespondenceList.
+
+[Field = FromVolPointList]
+short = fromlist
+type = LI
+usage = List of corresponding points in tomogram being transformed to match
+tooltip =
+manpage = List of corresponding points in tomogram being transformed to match,
+used to provide the entry to Solvematch for BCorrespondenceList.
+
+[Field = TransferPointFile]
+short = transfer
+type = FN
+usage = File with matching fiducial coordinates from transferfid
+tooltip =
+manpage = File of matching fiducial coordinates produced by running 
+transferfid with the -c option.
+
+[Field = UsePointList]
+short = uselist
+type = LI
+usage = List of starting points to use from the A axis in Solvematch
+tooltip =
+manpage =
+
+[Field = SurfaceModelType]
+short = surfaces
+type = I
+usage = -2 to 2 indicating fiducial distribution and matching model use
+tooltip =
+manpage = This entry provides the SurfacesOrUseModels entry for Solvematch.
+Enter 0 to use matching models and fiducials if any, 2 for
+fiducials distributed in Z (e.g. on two surfaces), 1 or -1 for fiducials on
+one surface (-1 if tomograms are inverted in Z with respect to each other),
+or -2 to use matching models only.
+
+[Field = PatchTypeOrXYZ]
+short = patchsize
+type = CH
+usage = S, M, L, E for small, medium, large, extra large patches or size in X,
+Y, and Z
+tooltip =
+manpage = Enter a letter to indicate the size of patches, or three numbers for
+the desired size in X, Y, and Z.  The sizes available by letter are S for
+small (64x32x64), M for medium (80x40x80), L for large (100x50x100), or E for
+extra large (120x60x120).
+
+[Field = XLowerAndUpper]
+short = xlimits
+type = IP
+usage = Lower and upper coordinate limits of patches in X
+tooltip =
+manpage = Lower and upper coordinate limits of patches in X.  The default
+limits exclude a border that varies from 24 pixels for the shorter tomogram
+dimension under 1000 pixels to 80 pixels for the shorter tomogram dimension
+above 4000 pixels.
+
+[Field = YLowerAndUpper]
+short = ylimits
+type = IP
+usage = Lower and upper coordinate limits of patches in Y
+tooltip =
+manpage = Lower and upper coordinate limits of patches in Y.  The default
+limits exclude a border that is the same as for the X limits just described.
+
+[Field = ZLowerAndUpper]
+short = zlimits
+type = IP
+usage = Lower and upper coordinate limits of patches in Z
+tooltip =
+manpage = Lower and upper coordinate limits of patches in Z.  There is no
+default; these limits must be entered.
+
+[Field = PatchRegionModel]
+short = regionmod
+type = FN
+usage = Model with contours enclosing regions to do patch correlations in
+tooltip =
+manpage = Model with contours enclosing regions to do patch correlations in.
+The same model will be supplied to Matchorwarp.
+
+[Field = TemporaryDirectory]
+short = tempdir
+type = FN
+usage = Location to create a temporary local directory
+tooltip =
+manpage = Location to create a temporary local directory.  This directory will
+be used for the transformed volumes, the temporary files created during volume
+transformations, and the chunks of the combined volume.
+
+[Field = NoTempCleanup]
+short = noclean
+type = B
+usage = Do not clean up the temporary directory when finished
+tooltip =
+manpage = Do not clean up the temporary directory when finished.  This option
+allows you to examine the transformed volume after the operation is
+completed.  The default is to remove the temporary directory and its contents
+when the combine operation completes.
+
+[Field = usage]
+short = help
+type = B
+usage = Print help output
+tooltip = 
+manpage = 
