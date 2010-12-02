@@ -671,13 +671,6 @@ void Processchunks::killProcessOnNextMachine() {
     if (isVerbose(mDecoratedClassName, __func__)) {
       *mOutStream << "mAllKillProcessesHaveStarted set to true" << endl;
     }
-    //do this in case there where no assigned processes
-    if (mProcessesWithUnfinishedKillRequest.isEmpty()) {
-      if (isVerbose(mDecoratedClassName, __func__)) {
-        *mOutStream << "no assigned processes" << endl;
-      }
-      cleanupKillProcesses(false);
-    }
   }
 }
 
@@ -732,6 +725,15 @@ void Processchunks::killProcessTimeout() {
     if (mKillCounter >= 15) {
       //No need to call clean up until timeout.  msgKillProcessDone calls clean up.
       cleanupKillProcesses(true);
+    }
+    //do this after a shorter wait in case there where no assigned processes
+    else if (mKillCounter == 2) {
+      if (mProcessesWithUnfinishedKillRequest.isEmpty()) {
+        if (isVerbose(mDecoratedClassName, __func__)) {
+          *mOutStream << "kill request array is empty at 2 seconds" << endl;
+        }
+        cleanupKillProcesses(false);
+      }
     }
   }
   else {
@@ -1742,6 +1744,10 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.45  2010/12/02 05:06:24  sueh
+ bug# 1418 In killProcessOnNextMachine once all processes have started
+ check the kill request array and cleanup if it is empty.
+
  Revision 1.44  2010/11/10 16:29:10  sueh
  bug# 1364 Changed runProcessAndOutputLines to runGenericProcess.
  Probe machines in Windows.  In probeMachines use imodwincpu to probe
