@@ -484,9 +484,12 @@ void ProcessHandler::getErrorMessageFromOutput(QString &errorMess) {
 
 void ProcessHandler::printTooManyErrorsMessage(const int numErr) {
   mProcesschunks->getOutStream() << getComFileName()
-      << " has given processing error " << numErr
-      << " times - giving up:  mExitCode:" << mExitCode << ",mExitStatus:"
-      << mExitStatus << endl;
+      << " has given processing error " << numErr << " times - giving up"
+      << endl;
+  if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+    mProcesschunks->getOutStream() << "mExitCode:" << mExitCode
+        << ",mExitStatus:" << mExitStatus << endl;
+  }
 }
 
 void ProcessHandler::incrementNumChunkErr() {
@@ -826,7 +829,7 @@ void ProcessHandler::continueKillProcess(const bool asynchronous) {
     //MachineHandler::killNextProcess is not currently running because a wait
     //for a signal or event was done.  Run this function to get to the next
     //process.
-    mMachine->killNextProcess();
+    mMachine->killNextProcess(true);
   }
   if (!runningKillProcess) {
     //No kill request to wait for - go straight to clean up.
