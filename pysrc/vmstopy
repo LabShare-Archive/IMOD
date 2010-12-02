@@ -13,7 +13,7 @@ import os, sys, os.path, re
 if os.getenv('IMOD_DIR') != None:
    sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
 else:
-   print prefix + " IMOD_DIR is not defined!"
+   sys.stdout.write("ERROR: vmstopy - IMOD_DIR is not defined!\n")
    sys.exit(1)
 
 from imodpy import *
@@ -38,10 +38,10 @@ execute = 0
 usetemp = 0
 quiet = 0
 if lenarg < 2:
-   print "Usage: vmstopy [-x|-q] comfile logfile [pyscript]"
-   print "  Converts an IMOD command file to a python script"
-   print '  Outputs script on standard out if "pyscript" is not given'
-   print '  Option -x will execute the script; -q will suppress messages'
+   prnstr("Usage: vmstopy [-x|-q] comfile logfile [pyscript]")
+   prnstr("  Converts an IMOD command file to a python script")
+   prnstr('  Outputs script on standard out if "pyscript" is not given')
+   prnstr('  Option -x will execute the script; -q will suppress messages')
    sys.exit(0)
 
 while lenarg - argind > 2:
@@ -52,14 +52,14 @@ while lenarg - argind > 2:
       elif oarg == '-q':
          quiet = 1
       else:
-         print "ERROR: vmstopy - Unrecognized argument " + oarg
+         prnstr("ERROR: vmstopy - Unrecognized argument " + oarg)
          sys.exit(1)
       argind += 1
    else:
       break
 
 if lenarg - argind < 2:
-   print "ERROR: vmstopy - command file and log file name are required"
+   prnstr("ERROR: vmstopy - command file and log file name are required")
    sys.exit(1)
 
 # Open the com file and possibly output file
@@ -68,7 +68,7 @@ logname = sys.argv[argind + 1]
 try:
    com = open(sys.argv[argind])
 except:
-   print "ERROR: vmstopy - Opening command file" + sys.argv[argind]
+   prnstr("ERROR: vmstopy - Opening command file" + sys.argv[argind])
    sys.exit(1)
 try:
    if execute or lenarg - argind > 2:
@@ -85,38 +85,38 @@ try:
       out = sys.stdout
 
 except:
-   print "ERROR: vmstopy - Opening file for Python script"
+   prnstr("ERROR: vmstopy - Opening file for Python script")
    com.close();
    sys.exit(1)
 
 # Output the boilerplate.  Log must be opened binary to keep cygwin from
 # double-converting \r\n to \r\r\n
 #
-print >> out, "#!/usr/bin/python -u"
-print >> out, "# Set up environment: NOHUP, IMOD on path"
-print >> out, "import os, sys, os.path, signal"
-print >> out, "if sys.platform.find('win32') < 0:"
-print >> out, "  try:"
-print >> out, "    signal.signal(signal.SIGHUP, signal.SIG_IGN)"
-print >> out, "  except:"
-print >> out, "    pass"
-print >> out, "if os.getenv('IMOD_DIR') != None:"
-print >> out, "  os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + os.pathsep + os.environ['PATH']"
-print >> out, "  sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))"
-print >> out, "else:"
-print >> out, "  print >> log, 'ERROR: IMOD_DIR is not defined'"
-print >> out, "  sys.exit(1)"
-print >> out, "if os.getenv('IMOD_QTLIBDIR') != None and os.getenv['LD_LIBRARY_PATH'] != None:"
-print >> out, "  os.environ['LD_LIBRARY_PATH'] = os.environ['IMOD_QTLIBDIR'] + os.pathsep + os.environ['LD_LIBRARY_PATH']"
-print >> out, "os.environ['PIP_PRINT_ENTRIES'] = '1'"
-print >> out, "from imodpy import *"
-print >> out, "# Back up and open log file"
-print >> out, "makeBackupFile('" + logname + "')"
-print >> out, "try:"
-print >> out, "  log = open('" + logname + "', 'wb')"
-print >> out, "except:"
-print >> out, "  print 'ERROR: Cannot open log file " + logname + " for writing'"
-print >> out, "  sys.exit(1)"
+prnstr("#!/usr/bin/python -u", file=out)
+prnstr("# Set up environment: NOHUP, IMOD on path", file=out)
+prnstr("import os, sys, os.path, signal", file=out)
+prnstr("if sys.platform.find('win32') < 0:", file=out)
+prnstr("  try:", file=out)
+prnstr("    signal.signal(signal.SIGHUP, signal.SIG_IGN)", file=out)
+prnstr("  except:", file=out)
+prnstr("    pass", file=out)
+prnstr("if os.getenv('IMOD_DIR') != None:", file=out)
+prnstr("  os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + os.pathsep + os.environ['PATH']", file=out)
+prnstr("  sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))", file=out)
+prnstr("else:", file=out)
+prnstr("  log.write('ERROR: IMOD_DIR is not defined\\n')", file=out)
+prnstr("  sys.exit(1)", file=out)
+prnstr("if os.getenv('IMOD_QTLIBDIR') != None and os.getenv['LD_LIBRARY_PATH'] != None:", file=out)
+prnstr("  os.environ['LD_LIBRARY_PATH'] = os.environ['IMOD_QTLIBDIR'] + os.pathsep + os.environ['LD_LIBRARY_PATH']", file=out)
+prnstr("os.environ['PIP_PRINT_ENTRIES'] = '1'", file=out)
+prnstr("from imodpy import *", file=out)
+prnstr("# Back up and open log file", file=out)
+prnstr("makeBackupFile('" + logname + "')", file=out)
+prnstr("try:", file=out)
+prnstr("  log = open('" + logname + "', 'wb')", file=out)
+prnstr("except:", file=out)
+prnstr("  prnstr('ERROR: Cannot open log file " + logname + " for writing')", file=out)
+prnstr("  sys.exit(1)", file=out)
 
 # Read the file, throwing away comments, labels, or all lines while seeking a
 # label.  Keep blank lines, they could be input lines
@@ -150,7 +150,7 @@ try:
          lines.append(line)
       line = com.readline()
 except:
-   print "ERROR: vmstopy - Reading from command file"
+   prnstr("ERROR: vmstopy - Reading from command file")
    out.close()
    com.close()
    if usetemp:
@@ -158,7 +158,7 @@ except:
    sys.exit(1)
 
 com.close()
-print >> out, "try:"
+prnstr("try:", file=out)
 
 ind = 0
 echoMatch = re.compile('^\$( *)echo ')
@@ -189,18 +189,19 @@ while ind < len(lines):
       lines.insert(ind, addline)
       line = re.sub(existMatch,  r'>\1if os.path.exists("\2"):', line)
 
-   # Python line: just replace print with print >> log,
+   # Python line: just replace print with prnstr( and put file=log at end
    if line.startswith('>'):
       if re.search(r'\bprint +[^>]', line):
-         line = re.sub(r'\bprint ', 'print >> log, ', line)
-      print >> out, "  " + re.sub('^>', '', line)
+         line = re.sub(r'\bprint ', 'prnstr(', line)
+         line += ', file=log)'
+      prnstr("  " + re.sub('^>', '', line), file=out)
 
    elif line.startswith('$'):
 
       # First gather continuation lines
       while re.search(continueMatch, line):
          if ind >= len(lines):
-            print "ERROR: vmstopy - continued line at end of command file"
+            prnstr("ERROR: vmstopy - continued line at end of command file")
             out.close()
             if usetemp:
                os.remove(outfile)
@@ -215,44 +216,44 @@ while ind < len(lines):
          line = line.replace('\\rm ', 'rm -f ')
          line = line.replace('\\mv ', 'mv -f ')
       line = quoteSubstitute(line)
-      print >> out, "  " + indent + "command = " + line
+      prnstr("  " + indent + "command = " + line, file=out)
 
       # gather input if any
-      print >> out, "  " + indent + 'input = [',
+      prnstr("  " + indent + 'input = [', end='', file=out)
       inputout = 0
       while ind < len(lines) and not \
          (lines[ind].startswith('$') or lines[ind].startswith('>')):
          line = quoteSubstitute(lines[ind])
          ind += 1
          if inputout:
-            print >> out, ',\n' + indent + ' '*11,
-         print >> out, line,
+            prnstr(',\n' + indent + ' '*11, end='', file=out)
+         prnstr(line, end='', file=out)
          inputout = 1
 
-      print >> out, ']'
-      print >> out, "  " + indent + 'runcmd(command, input, log)'
+      prnstr(']', file=out)
+      prnstr("  " + indent + 'runcmd(command, input, log)', file=out)
       
 
    # skip blank lines, object to anything else
    elif line:
-      print "ERROR: vmstopy - Expected command or Python line: " + line
+      prnstr("ERROR: vmstopy - Expected command or Python line: " + line)
       out.close()
       if usetemp:
          os.remove(outfile)
       sys.exit(1)
 
-print >> out, "except ImodpyError, errout:"
-print >> out, "  for l in errout:"
-print >> out, "    print >> log, 'ERROR: ' + l,"
-print >> out, "  log.close()"
-print >> out, "  sys.exit(1)"
-print >> out, "except:"
-print >> out, "  print >> log, 'ERROR: Unknown error running commands: ' +  str(sys.exc_info()[0])"
-print >> out, "  log.close()"
-print >> out, "  sys.exit(1)"
-print >> out, "print >> log, 'SUCCESSFULLY COMPLETED'"
-print >> out, "log.close()"
-print >> out, "sys.exit(0)"
+prnstr("except ImodpyError:", file=out)
+prnstr("  for l in getErrStrings():", file=out)
+prnstr("    prnstr('ERROR: ' + l, end='', file=log)", file=out)
+prnstr("  log.close()", file=out)
+prnstr("  sys.exit(1)", file=out)
+prnstr("except:", file=out)
+prnstr("  prnstr('ERROR: Unknown error running commands: ' +  str(sys.exc_info()[1]), file=log)", file=out)
+prnstr("  log.close()", file=out)
+prnstr("  sys.exit(1)", file=out)
+prnstr("prnstr('SUCCESSFULLY COMPLETED', file=log)", file=out)
+prnstr("log.close()", file=out)
+prnstr("sys.exit(0)", file=out)
 out.close()
 
 retval = 0
@@ -265,27 +266,27 @@ try:
          mode |= stat.S_IXOTH
       os.chmod(outfile, mode)
 except:
-   print "ERROR: vmstopy - Making script file executable"
+   prnstr("ERROR: vmstopy - Making script file executable")
    retval = 1
 
 try:
    if execute:
       if not quiet:
-         print "Executing Python script...  "
+         prnstr("Executing Python script...  ", end='')
       runcmd("python -u " + outfile)
       if not quiet:
-         print "DONE!",
-except ImodpyError, errout:
-   for l in errout:
+         prnstr("DONE!")
+except ImodpyError:
+   for l in getErrStrings():
       if l.find(outfile) < 0:
-         print l,
+         prnstr(l, end='')
    retval = 1
 
 try:
    if usetemp:
       os.remove(outfile)
 except:
-   print "ERROR: vmstopy - Removing temporary file " + outfile
+   prnstr("ERROR: vmstopy - Removing temporary file " + outfile)
    retval = 1   
 
 sys.exit(retval)
@@ -293,6 +294,9 @@ sys.exit(retval)
 
 #
 #  $Log$
+#  Revision 1.6  2009/12/04 20:48:56  mast
+#  Set entry printing variable, added succes statement at end
+#
 #  Revision 1.5  2008/02/28 00:27:34  mast
 #  Oops, to use imodpy, have to put the pylib on the path
 #
