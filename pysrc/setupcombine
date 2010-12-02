@@ -1,0 +1,514 @@
+#!/usr/bin/python -u
+# setupcombine - program to set up command files for combine
+#
+# Author: David Mastronarde
+#
+# $Id$
+# Log at end
+#
+progname = 'setupcombine'
+prefix = 'ERROR: ' + progname + ' - '
+XYBORDERS = (24, 36, 54, 68, 80)    # border sizes per increment of minimum
+BORDERINC = 1000                # dimension
+PATCHXY = (64, 80, 100, 120)
+PATCHZ = (32, 40, 50, 60)
+DELPATCHXY = 100
+NZPATCH3 = 75      # Thickness at which to do 3 patches in Z
+NZPATCH4 = 150     # Thickness at which to do 4 patches in Z
+MAXPIXELS = 50000  # KPixels for maximum FFT 
+TAPERPADXZ = 8       # Size of taper/pad for 3D ffts in X and Z
+TAPERPADY = 4       # Size of taper/pad for 3D ffts in Y
+MAXPIECEY = 1       # Maximum pieces in Y
+MINOVERLAP = 10     # Minimum overlap between pieces
+MATCHSHIFTXZ = 100   # size of 3-D box in X and Z for matchshifts
+MATCHSHIFTY  = (40, 60, 76, 90)      # Y sizes per increment of Y dimension
+MATCHSHIFTINC = 100
+
+# Read needed values from one tilt.com
+def readTiltOptions(tilt):
+   comlines = readTextFile(tilt, 'tilt command file')
+   tiltarr = optionValue(comlines, 'xaxistilt', 2, True)
+   xaxis = 0.
+   if tiltarr:
+      xaxis = tiltarr[0]
+   tiltarr = optionValue(comlines, 'offset', 2, True)
+   offset = 0.
+   if tiltarr:
+      offset = tiltarr[0]
+   tiltarr = optionValue(comlines, 'shift', 2, True)
+   zshift = 0.
+   if tiltarr:
+      zshift = tiltarr[1]
+   tiltarr = optionValue(comlines, 'imagebinned', 1, True)
+   if tiltarr:
+      zshift *= tiltarr[1]
+   return (xaxis, offset, zshift)
+
+def warning(text):
+   prnstr(' ', file=sys.stderr)
+   prnstr('WARNING: ' + text, file=sys.stderr)
+   
+
+
+#### MAIN PROGRAM  ####
+#
+# load System Libraries
+import os, sys, os.path, signal, shutil
+
+#
+# Setup runtime environment
+if sys.platform.find("win32") < 0:
+   try:
+      signal.signal(signal.SIGHUP, signal.SIG_IGN)
+   except:
+      pass
+if os.getenv('IMOD_DIR') != None:
+   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
+                        os.pathsep + os.environ['PATH']
+   sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import *
+from pysed import *
+
+to_srcname = "g5a"
+from_srcname = "g5b"
+tmp_srcname = "g5tmpdir"
+backupname = "./savework"
+backupsed = ".\/savework"
+
+matchshift = "solvematch.com"
+matchvol1 = "matchvol1.com"
+patchcorr = "patchcorr.com"
+matchorwarp = "matchorwarp.com"
+warpvol = "warpvol.com"
+matchvol2 = "matchvol2.com"
+volcombine = "volcombine.com"
+
+srcdir = os.path.join(os.environ['IMOD_DIR'], 'com')
+if not os.path.exists(srcdir):
+   exitError("Source directory for command files, " + srcdir + ", not found")
+
+sedtranskey = "gibberish"
+fromlet = "b"
+tolet = "a"
+delregion = "RegionModel"
+modeltext = "gibberish"
+
+# Fallbacks from ../manpages/autodoc2man 3 1 setupcombine
+options = ["name:RootName:FN:", "atob:MatchAtoB:B:",
+           "tolist:ToVolPointList:LI:", "fromlist:FromVolPointList:LI:",
+           "transfer:TransferPointFile:FN:", "uselist:UsePointList:LI:",
+           "surfaces:SurfaceModelType:I:", "patchsize:PatchTypeOrXYZ:CH:",
+           "xlimits:XLowerAndUpper:IP:", "ylimits:YLowerAndUpper:IP:",
+           "zlimits:ZLowerAndUpper:IP:", "regionmod:PatchRegionModel:FN:",
+           "tempdir:TemporaryDirectory:FN:", "noclean:NoTempCleanup:B:"]
+
+(numOpts, numNonOpts) = PipReadOrParseOptions(sys.argv, options, progname, 1, \
+                                              0, 0)
+
+# Get options
+rootname = PipGetString("RootName", "")
+if not rootname:
+   exitError("A root name must be entered")
+
+matchatob = PipGetBoolean('MatchAtoB', 0)
+if matchatob:
+   fromlet = 'a'
+   tolet = 'b'
+
+corrlist1 = PipGetString('ToVolPointList', '/')
+corrlist2 = PipGetString('FromVolPointList', '/')
+
+transfile = PipGetString('TransferPointFile', '')
+if transfile:
+   sedtranskey = "#TransferCoordinateFile"
+
+uselist = PipGetString('UsePointList', '/')
+
+# All lists must have / converted to \/ to be used in sed commands
+corrlist1 = corrlist1.replace('/', '\/')
+corrlist2 = corrlist2.replace('/', '\/')
+uselist = uselist.replace('/', '\/')
+
+modsurf = PipGetInteger('SurfaceModelType', -10)
+if modsurf < -2 or modsurf > 2:
+   exitError('You must enter the -surface option with a value between -2 and 2')
+
+patchin = PipGetString('PatchTypeOrXYZ', 'M')
+indpatch = 'SMLE'.find(patchin.upper())
+if indpatch >= 0 and len(patchin) == 1:
+   patchnx = patchny = PATCHXY[indpatch]
+   patchnz = PATCHZ[indpatch]
+else:
+   psplit = patchin.split(',')
+   err = 1
+   if len(psplit) == 3:
+      try:
+         patchnx = int(psplit[0])
+         patchny = int(psplit[1])
+         patchnz = int(psplit[2])
+         err = 0
+      except:
+         err = 1
+   if err:
+      exitError('You must enter one of S, M, L, or E or sizes in X,Y,Z for ' +\
+                'the -patchsize option')
+
+# Limits
+(patchxl, patchxu) = PipGetTwoIntegers('XLowerAndUpper', 0, 0)
+noxlim = PipGetErrNo()
+(patchyl, patchyu) = PipGetTwoIntegers('YLowerAndUpper', 0, 0)
+noylim = PipGetErrNo()
+(patchzl, patchzu) = PipGetTwoIntegers('ZLowerAndUpper', 0, 0)
+if PipGetErrNo():
+   exitError('You must enter the -zlimits option')
+
+# Region model
+regionmod = PipGetString('PatchRegionModel', '')
+if regionmod:
+   delregion = 'gibberish'
+   modeltext = "matchorwarp -size"
+   if not os.path.exists(regionmod):
+      warning('file ' + regionmod + ' does not yet exist.')
+
+# Temp directory and cleanup
+tmproot = PipGetString('TemporaryDirectory', '')
+handclean = PipGetBoolean('NoTempCleanup', 0)
+
+# Get tilt.com filenames and values from them
+toname = rootname + tolet
+fromname = rootname + fromlet
+tilta = "tilt" + tolet + ".com"
+tiltb = "tilt" + fromlet + ".com"
+
+if os.path.exists(tilta) and os.path.exists(tiltb):
+   (xaxisa, angoffa, zshifta) = readTiltOptions(tilta)
+   (xaxisb, angoffb, zshiftb) = readTiltOptions(tiltb)
+else:
+   xaxisa = xaxisb = angoffa = angoffb = zshifta = zshiftb = 0.
+   warning("CANNOT FIND tilta.com or tiltb.com; CANNOT SET X-AXIS "+\
+           "TILTS CORRECTLY")
+
+# set up some filenames
+recfile = toname + ".rec"
+matfile = fromname + ".mat"
+origfile = fromname + ".rec"
+invfile = "inverse.xf"
+atlt = toname + ".tlt"
+btlt = fromname + ".tlt"
+
+# Get file size
+if os.path.exists(recfile):
+   try:
+      (nx, nz, ny) = getmrcsize(recfile)
+   except ImodpyError:
+      exitFromImodError(progname)
+
+else:
+   (nx, nz, ny) = (1024, 60, 1024)
+   warning(recfile + " NOT FOUND; SETTING SIZE TO " + \
+         fmtstr("{} {} {} FOR TEST PURPOSES", nx, nz, ny))
+
+# Get the default border size and process the patch limits
+minsize = min(nx, ny)
+borderindex = min(minsize // BORDERINC, len(XYBORDERS) - 1)
+xyborder = min(XYBORDERS[borderindex], minsize // 4)
+
+if noxlim:
+   patchxl = xyborder
+   patchxu = nx - xyborder
+if patchxl < 0 or patchxl > nx or patchxl >= patchxu:
+   exitError(fmtstr('X limits ({}, {}) out of range or out of order', \
+                    patchxl, patchxu))
+if noylim:
+   patchyl = xyborder
+   patchyu = ny - xyborder
+if patchyl < 0 or patchyl > ny or patchyl >= patchyu:
+   exitError(fmtstr('Y limits ({}, {}) out of range or out of order', \
+                    patchyl, patchyu))
+
+# NEW: make Z positive
+if not patchzl:
+   patchzl = 1
+if patchzl <= 0 or patchzl > nz or patchzl >= patchzu:
+   exitError(fmtstr('Z limits ({}, {}) out of range or out of order', \
+                    patchzl, patchzu))
+
+# figure out a size in Y for matchshift block
+msyindex = nz // MATCHSHIFTINC - 1
+if msyindex < 0:
+    msy = min(nz, MATCHSHIFTY[0])
+elif msyindex >= len(MATCHSHIFTY) - 1:
+    msy = MATCHSHIFTY[len(MATCHSHIFTY) - 1]
+else:
+    deltay = nz - (msyindex + 1) * MATCHSHIFTINC
+    msy1 = MATCHSHIFTY[msyindex]
+    msy2 = MATCHSHIFTY[msyindex+1]
+    msy = msy1 + (deltay * (msy2 - msy1)) // MATCHSHIFTINC
+
+# Set the size in X and Z, not bigger than 1/4 of min (was X) dimension
+msxz = min(MATCHSHIFTXZ, minsize // 4)
+
+npatchx = (patchxu + DELPATCHXY // 2 - patchxl) // DELPATCHXY
+npatchy = (patchyu + DELPATCHXY // 2 - patchyl) // DELPATCHXY
+
+# set number of patches in Z based on criteria, but if patch thickness
+# is greater than two-thirds of extent, do only one row of patches
+npatchz = 2
+if patchzu - patchzl >= NZPATCH3:
+   npatchz = 3
+if patchzu - patchzl >= NZPATCH4:
+   npatchz = 4
+if patchnz > (2 * (patchzu - patchzl)) / 3:
+   npatchz = 1
+   warning("Only one layer of patches will be computed in Z")
+
+# If patch thickness is greater than extent cut it down
+if patchnz > patchzu + 1 - patchzl:
+   patchnz = patchzu + 1 - patchzl
+   warning(fmtstr("Patch thickness set to {} to fit within Z limits",
+                  patchnz))
+
+kpixel = (((nx * nz) // 100) * ny) // 10
+mbytes = ((6 * kpixel) + (kpixel // 2)) // 1000
+lim1 = ((4 * kpixel) + (kpixel // 2) + (8 * MAXPIXELS)) // 1000
+lim2 = ((2 * kpixel) + (10 * MAXPIXELS)) // 1000
+mbytes = max(mbytes, lim1, lim2)
+
+prnstr(fmtstr('{} MBytes of disk space will be needed for combining',
+              mbytes))
+
+if tmproot:
+   if not os.path.isdir(tmproot):
+      exitError(tmproot + 'does not exist or is not a directory')
+   if not os.access(tmproot, os.W_OK):
+      exitError(' You do not have permission to write in ' + tmproot)
+   tmpdir = tmproot + '/combine.' + fmtstr('{}', os.getpid())
+   tmppath = tmpdir + '/'
+   ifmkdir = '$if'
+   tempdirarg = "gibberish"
+   tmpmatfile = tmppath + matfile
+   sedtmpdir = tmpdir.replace('/','\/')
+   sedmatfile = sedtmpdir + '\/' + matfile
+   sedtempkey = "TemporaryDir"
+
+else:
+   tmpdir = ""
+   tmppath = ""
+   ifmkdir = '#$if'
+   tempdirarg = " -tempdir "
+   tmpmatfile = matfile
+   sedtmpdir = ""
+   sedmatfile = matfile
+   sedtempkey = "gibberish"
+
+sumname = 'sum.rec'
+
+# If there is an existing link to sum.rec, remove it
+if os.path.islink(sumname):
+   os.remove(sumname)
+
+# BUT NO LONGER MAKE sum.rec in the temporary directory
+if tmpdir:
+   if handclean:
+      prnstr("sum.rec will be assembled in the current directory.\n" + \
+             matfile +" will be left in " + tmpdir + \
+             "\nYou are responsible for deleting $tmpdir and its contents\n" +\
+             " when you are done with these files.")
+   else:
+      prnstr("Your temporary directory is " + tmpdir + \
+             "\nIt and its contents will be deleted when combine.com " +\
+             "finishes successfully.")
+
+prnstr(" ")
+prnstr("The number of patches for PATCHCRAWL3D is "+\
+      fmtstr("{} in X, {} in Y, and {} in Z", npatchx, npatchz, npatchy))
+prnstr("   (Y and Z are not flipped on the PATCHCRAWL3D command line)")
+
+makeBackupFile("combine.com")
+makeBackupFile(matchshift)
+makeBackupFile(matchvol1)
+makeBackupFile(matchvol2)
+makeBackupFile(warpvol)
+makeBackupFile(patchcorr)
+makeBackupFile(matchorwarp)
+makeBackupFile(volcombine)
+
+sedcom = ['s/' + from_srcname + '/' + fromname + '/g',
+          's/' + to_srcname + '/' + toname + '/g',
+          "/^ACorrespondenceList/s/[ 	].*/	" + corrlist1 + "/",
+          "/^BCorrespondenceList/s/[ 	].*/	" + corrlist2 + "/",
+          fmtstr("/^XAxisTilts/s/[ 	].*/	{},{}/", xaxisa, xaxisb),
+          fmtstr("/^AngleOffsets/s/[ 	].*/	{},{}/", angoffa, angoffb),
+          fmtstr("/^ZShifts/s/[ 	].*/	{},{}/", zshifta, zshiftb),
+          fmtstr("/^SurfacesOrUseModel/s/[ 	].*/	{}/", modsurf),
+          fmtstr("/{}/s/.*/TransferCoordinateFile	{}/", sedtranskey, transfile),
+          fmtstr("/^UsePoints/s/[ 	].*/	" + uselist + "/",
+          "/^MatchingAtoB/s/[ 	].*/	{}/", matchatob),
+          fmtstr("/matchshifts.*64 32 64/s/64 32 64/{} {} {}/", msxz, msy, msxz)]
+pysed(sedcom, srcdir + '/' + matchshift, matchshift)
+
+sedcom = [fmtstr("s/{}/{}/g", from_srcname, fromname),
+          fmtstr("s/{}/{}/g", to_srcname, toname),
+          fmtstr("s/{}/{}/g", tmp_srcname, sedtmpdir),
+          fmtstr("/mkdir/s/.*if/{}/", ifmkdir),
+          fmtstr("s/{}/{}/g", matfile, sedmatfile),
+          fmtstr("/{}/s/#//", sedtempkey),
+          fmtstr("/OutputSizeXYZ/s/\//{} {} {}/g", nx,nz,ny)]
+pysed(sedcom, srcdir + '/' + matchvol2, matchvol2)
+
+pysed(sedcom, srcdir + '/' + warpvol, warpvol)
+
+sedcom.append(fmtstr("/savework-file/s//{}/g", backupsed))
+pysed(sedcom, srcdir + '/' + matchvol1, matchvol1)
+
+sedcom = [fmtstr("s/{}/{}/g", from_srcname, fromname),
+          fmtstr("s/{}/{}/g", to_srcname, toname),
+          fmtstr("s/{}/{}/g", matfile, sedmatfile),
+          fmtstr("/^PatchSizeXYZ/s/[ 	].*/	{},{},{}/", patchnx, patchnz, patchny),
+          fmtstr("/^NumberOfPatchesXYZ/s/[ 	].*/	{},{},{}/", npatchx, npatchz, npatchy),
+          fmtstr("/^XMinAndMax/s/[ 	].*/	{},{}/", patchxl, patchxu),
+          fmtstr("/^YMinAndMax/s/[ 	].*/	{},{}/", patchzl, patchzu),
+          fmtstr("/^ZMinAndMax/s/[ 	].*/	{},{}/", patchyl, patchyu),
+          fmtstr("/^BSourceBorder/s/[ 	].*/	{},{}/", xyborder, xyborder),
+          fmtstr("/^RegionModel/s/[ 	].*/	{}/", regionmod),
+          fmtstr("/^{}/d", delregion)]
+pysed(sedcom, srcdir + '/' + patchcorr, patchcorr)
+
+sedcom = [fmtstr("s/{}/{}/g", from_srcname, fromname),
+          fmtstr("s/{}/{}/g", to_srcname, toname),
+          fmtstr("s/{}/{}/g", tmp_srcname, sedtmpdir),
+          fmtstr("/mkdir/s/.*if/{}/", ifmkdir),
+          fmtstr("s/{}/{}/g", matfile, sedmatfile),
+          fmtstr("/{}/s/{}/matchorwarp -modelfile {} -size/", modeltext, modeltext, regionmod),
+          fmtstr("/{}/s///", tempdirarg)]
+pysed(sedcom, srcdir + '/' + matchorwarp, matchorwarp)
+
+sedcom = [fmtstr("s/{}/{}/g", from_srcname, fromname),
+          fmtstr("s/{}/{}/g", to_srcname, toname),
+          fmtstr("s/{}/{}/g", tmp_srcname, sedtmpdir),
+          fmtstr("s/{}/{}/g", matfile, sedmatfile),
+          fmtstr("/savework-file/s//{}/g", backupsed)]
+voltext = pysed(sedcom, srcdir + '/' + volcombine)
+
+shutil.copy(srcdir + '/combine.com', 'combine.com')
+
+# If we really want this to run with no recfile, supply the test size to -tomo
+megamax = MAXPIXELS // 1000
+tomocom = fmtstr("tomopieces -tomo {} -mega {} -xpad {} -ypad {} " +\
+                 "-zpad {}  -min {} -ymax {}", recfile, megamax,
+                 TAPERPADXZ, TAPERPADY, TAPERPADXZ, MINOVERLAP, MAXPIECEY)
+try:
+   ranlist = runcmd(tomocom)
+except ImodpyError:
+   exitFromImodError(progname)
+
+for i in range(len(ranlist)):
+   ranlist[i] = str(ranlist[i]).rstrip('\r\n')
+
+voltext += ['$set nonomatch',
+            '$\\rm -f ' + tmppath + '*.mat~ ' + tmppath + 'mat.fft* ' + \
+            tmppath + 'rec.fft* ' + tmppath + 'sum.fft* ' + sumname + '* ' +\
+            tmppath + 'sum[1-9]*.rec*',
+            '#',
+            '$echo STATUS: RUNNING FILLTOMO TO FILL IN GRAY AREAS IN ' +\
+            'THE .MAT FILE',
+            '$echo ',
+            '#',
+            '$filltomo',
+            tmpmatfile,
+            recfile,
+            origfile,
+            invfile,
+            '/']
+line = ranlist[0].split()
+npiecex = int(line[0])
+npiecey = int(line[1])
+npiecez = int(line[2])
+ranind = 1
+
+sumnum = 0
+npiecetot = npiecex * npiecey * npiecez
+for znum in range(npiecez):
+   for ynum in range(npiecey):
+      for xnum in range(npiecex):
+         sumnum += 1
+         ixyz = ranlist[ranind].split(',')
+         ranind += 1
+         voltext += \
+         ['#',
+          fmtstr('$dopiece{}:', sumnum),
+          '$echo STATUS: EXTRACTING AND COMBINING PIECE ' +\
+          fmtstr(' {}  of {}', sumnum, npiecetot),
+          '$echo',
+          '#',
+          '$combinefft -StandardInput',
+          'AInputFFT	' + recfile,
+          'BInputFFT	' + tmpmatfile,
+          fmtstr('OutputFFT	{}sum{}.rec', tmppath, sumnum),
+          fmtstr('XMinAndMax	{},{}', ixyz[0], ixyz[1]),
+          fmtstr('YMinAndMax	{},{}', ixyz[2], ixyz[3]),
+          fmtstr('ZMinAndMax	{},{}', ixyz[4], ixyz[5]),
+          fmtstr('TaperPadsInXYZ	{},{},{}', TAPERPADXZ, TAPERPADY,
+                 TAPERPADXZ),
+          'InverseTransformFile	' + invfile,
+          'ATiltFile	' + atlt,
+          'BTiltFile	' + btlt,
+          'ReductionFraction	$combinefft_reduce',
+          'LowFromBothRadius	$combinefft_lowboth']
+         
+voltext += ['#',
+            '$echo STATUS: REASSEMBLING PIECES',
+            '$echo',
+            '#',
+            '$assemblevol',
+            sumname,
+            fmtstr('{},{},{}', npiecex, npiecey, npiecez)]
+
+for xnum in range(npiecex):
+   voltext.append(ranlist[ranind])
+   ranind += 1
+for ynum in range(npiecey):
+   voltext.append(ranlist[ranind])
+   ranind += 1
+for znum in range(npiecez):
+   voltext.append(ranlist[ranind])
+   ranind += 1
+
+for sumnum in range(npiecetot):
+   voltext.append(fmtstr('{}sum{}.rec', tmppath, sumnum + 1))
+
+voltext += ['#',
+            '$echo ',
+            '$echo STATUS: RUNNING FILLTOMO ON FINAL VOLUME',
+            '$echo ',
+            '#', 
+            '$\\rm ' + tmppath + 'sum[1-9]*.rec',
+            '$filltomo',
+            sumname,
+            recfile,
+            origfile,
+            invfile,
+            '/']
+
+if tmpdir and not handclean:
+   voltext.append('$\\rm -r ' + tmpdir)
+voltext.append(fmtstr('$if (-e {0}) {0}', backupname))
+
+try:
+   volout = open(volcombine, 'w')
+   for line in voltext:
+      prnstr(line, file=volout)
+except:
+   exitError('Opening or writing to ' + volcombine)
+
+sys.exit(0)
+
+#
+# $Log$
