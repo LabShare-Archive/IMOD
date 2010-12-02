@@ -1,0 +1,40 @@
+.na
+.nh
+.TH setupcombine 1 4.2.9 BL3DEMC
+.SH NAME
+setupcombine \- Create command files for combining dual-axis tomograms
+.SH SYNOPSIS
+setupcombine [options] -name rootname
+
+.SH DESCRIPTION
+Setupcombine generates the command files needed to combine two single-axis
+tomograms into one.  These files include solvematch.com, matchvol1.com,
+patchcorr.com, matchorwarp.com, volcombine.com, and combine.com, which are all
+used for processing in eTomo.  Files matchvol2.com and warpvol.com are also
+created and could be used at the command line instead of the matchorwarp
+step.
+
+.SS Options
+Processchunks uses the PIP package for input (see the manual page for pip(1)).
+Options can be specified either as command line arguments (with the -)
+or one per line in a command file (without the -):
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input
+
+.SH FILES
+All files are modified from the master files in the $IMOD_DIR/com directory.
+Existing copies of the command files will be made into backup files by adding
+the extension ~.
+
+.SH AUTHOR
+David Mastronarde
+.SH BUGS
+Email bug reports to mast@colorado.edu
+.SH SEE ALSO
+solvematch(1), corrsearch3d(1), matchorwarp(1), combinefft(1), densmatch(1), 
+filltomo(1)
+.SH HISTORY
+Setupcombine was a original a C-shell script.  In December 2010 it was
+converted to Python.
