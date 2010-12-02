@@ -30,13 +30,13 @@ This module provides the following functions:
 """
 
 # other modules needed by imodpy
-import sys, os, re, io
+import sys, os, re
 from pip import exitError
 
 pyVersion = 100 * sys.version_info[0] + 10 * sys.version_info[1]
 
 if pyVersion < 300:
-   from exceptions import *
+   import exceptions
 
 errStrings = []
 
@@ -516,11 +516,10 @@ def prnstr(string, file = sys.stdout, end = '\n'):
    write strings with line endings as the old print did.  If end=' ' it will
    write a space after the string as the new print function does.
    """
-   binary = False
-   if file != sys.stdout and not isinstance(file, io.TextIOBase):
+   binary = 'b' in str(file.mode)
+   if pyVersion >= 300 and binary:
       string = string.encode()
       end = end.encode()
-      binary = True
    if end == '':
       file.write(string)
    else:
@@ -531,6 +530,9 @@ def prnstr(string, file = sys.stdout, end = '\n'):
 
 
 #  $Log$
+#  Revision 1.10  2010/12/02 00:37:59  mast
+#  Made prnstr encode for a binary output file and flush it, for vmstopy
+#
 #  Revision 1.9  2010/12/01 23:03:43  mast
 #  Added writeTextFile
 #
