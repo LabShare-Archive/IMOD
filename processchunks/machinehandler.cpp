@@ -31,7 +31,7 @@ void MachineHandler::init() {
   mKillCpuIndex = -1;
   mDrop = false;
   mKill = false;
-  mDecoratedClassName=typeid(*this).name();
+  mDecoratedClassName = typeid(*this).name();
 }
 
 MachineHandler::~MachineHandler() {
@@ -136,7 +136,7 @@ const bool MachineHandler::killProcesses() {
   if (!mKill) {
     return true;
   }
-  return killNextProcess();
+  return killNextProcess(false);
 }
 
 //Tells processes to send kill requests.  Stops when a process has to give up
@@ -145,7 +145,8 @@ const bool MachineHandler::killProcesses() {
 //This is called the first time by Processchunks::killProcessOnNextMachine.
 //If that call can't get though all the processes because of a signal or event
 //wait, it returns false and is then called by ProcessHandler::killNextProcess.
-const bool MachineHandler::killNextProcess() {
+//asynchronous is true if it is called by processhandler.
+const bool MachineHandler::killNextProcess(const bool asynchronous) {
   if (!mKill) {
     mProcesschunks->getOutStream()
         << "Warning: MachineHandler::killNextProcess called when mKill is false"
@@ -158,6 +159,10 @@ const bool MachineHandler::killNextProcess() {
     while (mKillCpuIndex < mNumCpus) {
       if (mAssignedProcIndexList[mKillCpuIndex] != -1) {
         int processIndex = mAssignedProcIndexList[mKillCpuIndex];
+        if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+          mProcesschunks->getOutStream() << "killNextProcess:processIndex:"
+              << processIndex << endl;
+        }
         if (mDrop) {
           mAssignedProcIndexList[mKillCpuIndex] = -1;
         }
@@ -171,8 +176,11 @@ const bool MachineHandler::killNextProcess() {
     }
   }
   if (mKillCpuIndex >= mNumCpus) {
-    //This machine is done - go on to the next machine
-    mProcesschunks->killProcessOnNextMachine();
+    if (asynchronous) {
+      //This machine is done and this was called by processhandler - must tell
+      //processchunks to go on to the next machine.
+      mProcesschunks->killProcessOnNextMachine();
+    }
     cleanupKillProcess();
   }
   return true;
