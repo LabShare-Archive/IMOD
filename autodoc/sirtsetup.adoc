@@ -30,6 +30,15 @@ manpage = Do an initial reconstruction, numbered 00, even if it or later
 reconstructions already exist.  The default is to iterate from the last
 existing reconstruction.
 
+[Field = ResumeFromIteration]
+short = re
+type = I
+usage = Resume from the given iteration rather than from the last one
+tooltip =
+manpage = Resume from the given iteration rather than from the last one.  You
+can resume from any iteration that has a .srec file, but not from ones for
+which there is only a scaled integer or trimmed file.
+
 [Field = IterationsToRun]
 short = it
 type = I
@@ -53,6 +62,39 @@ reconstructions named setname.srec14, setname.srec17, etc, produced at the
 final iteration is always retained.  If you have cryoEM data with an X-axis
 tilt, oscillations could build up if you leave too many reconstructions, so
 leave only what you need (see above).
+
+[Field = CleanUpPastStart]
+short = cl
+type = B
+usage = Remove all existing reconstructions past the starting point of this run
+tooltip =
+manpage = Remove all existing reconstructions past the starting point of this
+run; namely, files with extensions containing .srec, .sint, and .strm.
+Sirtsetup does not remove the files; rather, it places 
+a command to remove them into the first command file to be run and outputs a
+list of the files that will be deleted.  If you resume at, say, iteration 5,
+hen the list will include all files numbered 06 and above.  If you restart at
+the beginning, the list will include all existing files.
+
+[Field = SubareaSize]
+short = su
+type = IP
+usage = Size in X and Y of subarea to use from aligned stack, in binned pixels
+tooltip =
+manpage = Size in X and Y of a subarea to use from the aligned stack, in
+actual pixels of that stack, which might be binned relative to the original
+tilt series.
+
+[Field = YOffsetOfSubarea]
+short = yo
+type = I
+usage = Offset in Y from center of aligned image to center of subarea
+tooltip =
+manpage = Offset in Y from center of aligned image to center of subarea
+whose size is specified with the -su option.  The shifted subarea must lie
+completely within the image area.  Enter a value in actual pixels of the
+aligned stack.  If you want to do more iterations, you need to enter the same
+subarea size and offset as when you started.
 
 [Field = ScaleToInteger]
 short = sc
