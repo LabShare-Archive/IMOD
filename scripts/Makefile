@@ -5,7 +5,7 @@ include ../configure
 
 SCRIPTS = copytomocoms finishjoin makejoincom matchorwarp matchshifts\
  newst onepatchcorr patchcorr3d patchcrawl3d recombine reduceby2 selfalign\
- setupcombine setupcoms setuplong splitmrc squeezevol trimvol xf2xg xfalign\
+ setupcoms setuplong splitmrc squeezevol trimvol xf2xg xfalign\
  dm2mrc alignlog transferfid submfg imodpsview settmpdir matchrotpairs\
  chunksetup splittilt splitcombine tomosnapshot clipflipyz\
  archiveorig imodkillgroup collectmmm sampletilt runpyscript imodhelp\
@@ -23,6 +23,9 @@ clean:
 	$(FIND) . -type f -name "*~"   -exec rm "{}" \;
 
 #  $Log$
+#  Revision 3.30  2010/11/02 16:41:33  mast
+#  Take out processchunks, now a compiled program
+#
 #  Revision 3.29  2010/02/22 06:15:58  mast
 #  Removed managesirt and sirtsetup (convert to python)
 #
