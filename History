@@ -1,6 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-12/1/10: Modidified eTomo to run the python version of setupcombine.
+12/3/10: Modified eTomo to run the python version of setupcombine.
+
+12/3/10: Fixed problem with splittilt using size from aligned stack when it
+is told a size by sirtsetup.
+
+12/3/10: Modified all python programs and modules to be compatible with both 
+Python 2 and Python 3.
+
+12/3/10: Setupcombine converted to python.  It even has a man page now.
 
 12/1/10: Fixed a problem where processchunks was timing out when a sync fails
 and there is no process to kill.
