@@ -46,7 +46,7 @@ def readTiltOptions(tilt):
 
 def warning(text):
    prnstr(' ', file=sys.stderr)
-   prnstr('WARNING: ' + text, file=sys.stderr)
+   prnstr('WARNING: ' + text + '\n', file=sys.stderr)
    
 
 
@@ -138,7 +138,8 @@ uselist = uselist.replace('/', '\/')
 
 modsurf = PipGetInteger('SurfaceModelType', -10)
 if modsurf < -2 or modsurf > 2:
-   exitError('You must enter the -surface option with a value between -2 and 2')
+   exitError('You must enter the -surface option with a value between -2 ' +\
+             'and 2')
 
 patchin = PipGetString('PatchTypeOrXYZ', 'M')
 indpatch = 'SMLE'.find(patchin.upper())
@@ -348,10 +349,12 @@ sedcom = ['s/' + from_srcname + '/' + fromname + '/g',
           fmtstr("/^AngleOffsets/s/[ 	].*/	{},{}/", angoffa, angoffb),
           fmtstr("/^ZShifts/s/[ 	].*/	{},{}/", zshifta, zshiftb),
           fmtstr("/^SurfacesOrUseModel/s/[ 	].*/	{}/", modsurf),
-          fmtstr("/{}/s/.*/TransferCoordinateFile	{}/", sedtranskey, transfile),
-          fmtstr("/^UsePoints/s/[ 	].*/	" + uselist + "/",
-          "/^MatchingAtoB/s/[ 	].*/	{}/", matchatob),
-          fmtstr("/matchshifts.*64 32 64/s/64 32 64/{} {} {}/", msxz, msy, msxz)]
+          fmtstr("/{}/s/.*/TransferCoordinateFile	{}/", sedtranskey,
+                 transfile),
+          "/^UsePoints/s/[ 	].*/	" + uselist + "/",
+          fmtstr("/^MatchingAtoB/s/[ 	].*/	{}/", matchatob),
+          fmtstr("/matchshifts.*64 32 64/s/64 32 64/{} {} {}/", msxz, msy,
+                 msxz)]
 pysed(sedcom, srcdir + '/' + matchshift, matchshift)
 
 sedcom = [fmtstr("s/{}/{}/g", from_srcname, fromname),
@@ -371,8 +374,10 @@ pysed(sedcom, srcdir + '/' + matchvol1, matchvol1)
 sedcom = [fmtstr("s/{}/{}/g", from_srcname, fromname),
           fmtstr("s/{}/{}/g", to_srcname, toname),
           fmtstr("s/{}/{}/g", matfile, sedmatfile),
-          fmtstr("/^PatchSizeXYZ/s/[ 	].*/	{},{},{}/", patchnx, patchnz, patchny),
-          fmtstr("/^NumberOfPatchesXYZ/s/[ 	].*/	{},{},{}/", npatchx, npatchz, npatchy),
+          fmtstr("/^PatchSizeXYZ/s/[ 	].*/	{},{},{}/", patchnx, patchnz,
+                 patchny),
+          fmtstr("/^NumberOfPatchesXYZ/s/[ 	].*/	{},{},{}/", npatchx, \
+                 npatchz, npatchy),
           fmtstr("/^XMinAndMax/s/[ 	].*/	{},{}/", patchxl, patchxu),
           fmtstr("/^YMinAndMax/s/[ 	].*/	{},{}/", patchzl, patchzu),
           fmtstr("/^ZMinAndMax/s/[ 	].*/	{},{}/", patchyl, patchyu),
@@ -512,3 +517,6 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.1  2010/12/02 02:27:27  mast
+# Initial checkin
+#
