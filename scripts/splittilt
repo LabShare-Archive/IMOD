@@ -208,18 +208,18 @@ if ($startnum <= 1) then
     \rm -f $rootname-start.com $rootname-finish.com
 endif
 
-# Get the size from the aligned stack instead of relying on FULLIMAGE if
-# possible, and scale them up by binning
+# Get the size from the supplied dimension or from the aligned stack instead 
+# of relying on FULLIMAGE if possible, and scale them up by binning
 #
 if (-e $alifile || "$dimens" != "" ) then
-    if (-e $alifile) then
+    if ("$dimens" != "") then
+        set fullimage = ($dimens)
+    else
         set fullimage = `header -s $alifile | sed '/[[:cntrl:]]/s///g'`
         if ($#fullimage < 3) then
             echo "ERROR: $pn - Reading header of $alifile"
             exit 1
         endif
-    else
-        set fullimage = ($dimens)
     endif
     @ num = $fullimage[1]
     @ num *= $binval
@@ -476,6 +476,9 @@ echo "Command files for $numslabs chunks created and ready to run with:"
 echo "  processchunks machine_list $rootname"
 
 #  $Log$
+#  Revision 3.23  2010/07/30 19:58:24  mast
+#  Fixed problem with slice in dataset name
+#
 #  Revision 3.22  2010/05/25 03:35:53  mast
 #  Get rid of backup coms and logs too
 #
