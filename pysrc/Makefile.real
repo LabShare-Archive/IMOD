@@ -7,7 +7,8 @@ include ../configure
 #
 
 # IS THIS Makefile.real?  IF NOT, DON't MODIFY IT!
-SCRIPTS = vmstopy tomostitch edgepatches fitpatches sirtsetup splitblend
+SCRIPTS = vmstopy tomostitch edgepatches fitpatches sirtsetup splitblend \
+setupcombine
 MODULES = imodpy.py pysed.py supermont.py pip.py
 
 all:
@@ -25,6 +26,9 @@ clean:
 
 #
 #  $Log$
+#  Revision 1.7  2010/06/23 23:21:46  mast
+#  Added splitblend
+#
 #  Revision 1.6  2010/02/22 06:20:08  mast
 #  Added sirtsetup
 #
