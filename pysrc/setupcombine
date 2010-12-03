@@ -41,7 +41,7 @@ def readTiltOptions(tilt):
       zshift = tiltarr[1]
    tiltarr = optionValue(comlines, 'imagebinned', 1, True)
    if tiltarr:
-      zshift *= tiltarr[1]
+      zshift /= tiltarr[0]
    return (xaxis, offset, zshift)
 
 def warning(text):
@@ -517,6 +517,9 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.2  2010/12/03 01:02:25  mast
+# Fixed matchatob output, fixed line wraps
+#
 # Revision 1.1  2010/12/02 02:27:27  mast
 # Initial checkin
 #
