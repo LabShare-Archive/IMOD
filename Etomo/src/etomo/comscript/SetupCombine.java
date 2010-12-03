@@ -18,6 +18,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.22  2010/02/17 04:47:54  sueh
+ * bug# 1301 Using the manager instead of the manager key do pop up
+ * messages.
+ *
  * Revision 3.21  2009/12/28 20:37:40  sueh
  * bug# 1300 Added -v option to tcsh when debug is on.
  *
@@ -239,11 +243,11 @@ public class SetupCombine {
     // Do not use the -e flag for tcsh since David's scripts handle the failure 
     // of commands and then report appropriately.  The exception to this is the
     // com scripts which require the -e flag.  RJG: 2003-11-06 
-    command.add("tcsh");
-    command.add("-f");
-    if (debug) {
-      command.add("-v");
-    }
+    command.add("python");
+    command.add("-u");
+    //if (debug) {
+    //  command.add("-v");
+    //}
     command.add(ApplicationManager.getIMODBinPath() + "setupcombine");
     //StringBuffer commandLine = new StringBuffer("tcsh -f "
     //    + ApplicationManager.getIMODBinPath() + "setupcombine");
