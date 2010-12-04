@@ -93,8 +93,9 @@ tooltip =
 manpage = Offset in Y from center of aligned image to center of subarea
 whose size is specified with the -su option.  The shifted subarea must lie
 completely within the image area.  Enter a value in actual pixels of the
-aligned stack.  If you want to do more iterations, you need to enter the same
-subarea size and offset as when you started.
+aligned stack (positive for an area above the center).  If you want to do more
+iterations, you need to enter the same subarea size and offset as when you
+started.
 
 [Field = ScaleToInteger]
 short = sc
