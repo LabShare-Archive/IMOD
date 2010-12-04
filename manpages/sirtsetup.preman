@@ -38,7 +38,7 @@ and the new reconstruction must be written to file again.
 Thus, on each iteration a file is produced by step 5, named
 setname.srec00, setname.srec01, etc.  
 
-After running some iterations or SIRT, it is easy to
+After running some iterations of SIRT, it is easy to
 do additional iterations simply by running this script again.
 
 For cryoEM data sets with X-axis tilt (but no correction for beam tilt), the
@@ -73,28 +73,21 @@ should particularly avoid leaving reconstructions in the first 5 iterations.
 
 Sirtsetup is meant to be used with a command file for running Tilt(1) that has
 all of the entries produced when running through eTomo.  There is one main
-restriction on this file.  The reconstruction must be the
-same size in X and Y as the aligned stack; i.e., SLICE and WIDTH entries are
-not allowed.  This means that if you want to do a trial reconstruction on a
-subarea, you need to make the aligned stack smaller, either by copying it to a
-smaller size with Newstack(1) or by modifying the command used to make it in
-newst.com or blend.com.  In addition, you need to change the SUBSETSTART entry
-in the tilt command file to indicate the starting coordinates of this subarea.
-Typically the starting coordinate would be (full size - trimmed size) / 2.
-For example, if the original size of the aligned stack would be 2048x2048 and
-you make a 512x512 subarea, the SUBSETSTART entry would be 768 768.  The
-SUBSETSTART entry must be in unbinned pixels, if binning was used.  The
-FULLIMAGESIZE entry would stay the same.  These changes are all handled when
-making a subset aligned stack in eTomo.
+restriction on this file.  The reconstruction must be the same size in X and Y
+as the aligned stack; this means a SLICE entry will be ignored and a WIDTH
+entry, if present, must match the size of the aligned stack being used for
+reconstruction.  Sirtsetup does allow you to reconstruct a subarea that can be
+offset in Y (along the tilt axis) but must be centered in X.  It extracts the
+specified subarea from the full aligned stack into a new stack that is used
+for the reconstruction, and adjusts the SUBSETSTART entry in the tilt command
+file to indicate the starting coordinates of this subarea.
 
-It would also be straightforward to create a subset displaced vertically along
-the tilt axis of the aligned, by adding the -offset option to the
-Newstack(1) command for making the aligned stack and adjusting SUBSETSTART in
-the Tilt(1) command file.  Displacing a subset laterally is more complicated
-and requires: 1) running Tiltalign(1) with the AxisXShift option specifying the
-offset; 2) using the same X offset in the -offset option to Newstack(1); 3)
-adding the same offset as a second number in the OFFSET entry to Tilt(1), as
-well as adjusting the X component of SUBSETSTART.
+Displacing a subset laterally is more complicated because it would require:
+1) running Tiltalign(1) with the AxisXShift option specifying the offset;
+2) making the subarea from the raw stack with Newstack(1), using the same X
+offset in the -offset option; 3) adding the same offset as a second number in
+the OFFSET entry to Tilt(1), as well as adjusting the X component of
+SUBSETSTART.
 
 If the tilt command file takes the log of the projection data and the
 iterations are not being done internally in Tilt(1), then the
@@ -154,36 +147,33 @@ fiducials.
 If the number of desired iterations is not known in advance, a subarea can be
 reconstructed with the following steps:
 
-Set the Size to output in Advanced mode in the Newstack/Blendmont section of
-the Tomogram Generation panel in eTomo.  Generate the aligned stack.  Apply
-2D filter if desired.
+Prepare the full aligned stack as usual in eTomo.  Examine the aligned stack
+and select the size of the subarea, and an offset in Y if desired.
 
 If you are using local alignments and do not have a GPU, you can turn off the
 local alignments to speed up this test.
-Generate a reconstruction by standard back-projection.
+
+Set parameters in the Tomogram Generation panel of eTomo then 
+press Postpone to get the command file saved.
 
 Run sirtsetup with the needed number of iterations, and retaining as many
 reconstructions as might be needed.  For example, if you are confident that at
 least 15 iterations are needed and want to run 25, you might use
-   sirtsetup -it 25 -le 15,17,19,21,23 tilt.com
+   sirtsetup -su 512,256 -yo 600 -it 25 -le 15,17,19,21,23 tilt.com
 
 If storage space is an issue, also use "-sc -20000,20000".
 
 Run processchunks on "tilt_sirt".
 
 Load the trial reconstructions into 3dmod
-   3dmod -Y setname.srec* setname.rec
+   3dmod -Y setname.srec*
 .br
 for one axis of a dual axis set, or for a single axis set:
-   3dmod -Y setname_full.srec* setname_full.rec
+   3dmod -Y setname_full.srec*
 
 If you need to do more iterations, just rerun sirtsetup and process some more.
-Once you have decided on the right number of iterations, you should remove or
-rename all of the .srec and/or .sint files:
-   rm -f setname*.srec* setname*.sint*
-
-Remove the "Size to output" entry in eTomo and regenerate the aligned stack.
-Apply 2D filter if desired.
+Once you have decided on the right number of iterations, you should 
+rename any of the .srec and/or .sint files that you want to keep.
 
 Turn local alignments back on if they were turned off.
 Generate a reconstruction by standard back-projection if desired.  If not, be
@@ -191,7 +181,10 @@ sure to press Postpone or Done in the Tomogram Generation panel to ensure that
 tilt.com is saved.
 
 Run sirtsetup with the needed number of iterations, e.g.,
-   sirtsetup -it 17 tilt.com
+   sirtsetup -st -it 17 -cl tilt.com
+
+The "-st" option makes it start from the beginning and the "-cl" option will
+remove all the previous trial reconstructions.
 
 If you still want to leave more than one iteration, then disk space becomes a
 serious issue.  For a single axis data set, the best approach would be to run
@@ -211,6 +204,7 @@ This procedure creates many large files, so it generally purges a previous
 version of each file before a new one is created.  The files produced
 during the procedure are:
 .nf
+setname.alisub      Subarea of aligned stack if any
 setname.alilog10    Log of projections if the tilt command file contains
                          a LOG entry
 setname.srec00      Initial reconstruction

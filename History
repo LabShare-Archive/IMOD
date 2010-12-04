@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/3/10: Added options to Sirtsetup for reconstructing from a subarea of the
+aligned stack that can be displaced along the tilt axis; for resuming from an
+intermediate iteration, and for cleaning up files from previous runs.
+
 12/3/10: Modified eTomo to run the python version of setupcombine.
 
 12/3/10: Fixed problem with splittilt using size from aligned stack when it
