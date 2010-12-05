@@ -19,7 +19,6 @@ import etomo.type.EnumeratedType;
 import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.type.MetaData;
-import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.util.DatasetFiles;
@@ -38,6 +37,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.5  2010/04/28 16:33:47  sueh
  * <p> bug# 1344 In getParameters(CCDeraserParam) passing the FileType to
  * <p> setOutputFile.
