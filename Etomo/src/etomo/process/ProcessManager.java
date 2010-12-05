@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.153  2010/11/13 16:03:45  sueh
+ * bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ *
  * Revision 3.152  2010/05/10 21:36:45  sueh
  * bug# 1372 In modelToPatch removing the imod2vatch command.
  *
@@ -2170,7 +2173,7 @@ public class ProcessManager extends BaseProcessManager {
             .getBooleanValue(TiltalignParam.Fields.USE_OUTPUT_Z_FACTOR_FILE));
         state.setUsedLocalAlignments(axisID, processDetails
             .getBooleanValue(TiltalignParam.Fields.LOCAL_ALIGNMENTS));
-        appManager.setEnabledTiltParameters(script.getAxisID());
+        appManager.setTiltState(script.getAxisID());
         state.setAlignAxisZShift(axisID, processDetails
             .getDoubleValue(TiltalignParam.Fields.AXIS_Z_SHIFT));
         state.setAlignAngleOffset(axisID, processDetails
@@ -2198,7 +2201,7 @@ public class ProcessManager extends BaseProcessManager {
         if (commandDetails.getCommandMode() == NewstParam.Mode.FULL_ALIGNED_STACK) {
           state.setNewstFiducialessAlignment(axisID, commandDetails
               .getBooleanValue(NewstParam.Field.FIDUCIALESS_ALIGNMENT));
-          appManager.setEnabledTiltParameters(axisID);
+          appManager.setTiltState(axisID);
           state.setStackUseLinearInterpolation(axisID, commandDetails
               .getBooleanValue(NewstParam.Field.USE_LINEAR_INTERPOLATION));
           state.setStackUserSizeToOutputInXandY(axisID, commandDetails
