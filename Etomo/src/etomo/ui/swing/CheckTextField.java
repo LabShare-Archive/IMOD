@@ -29,6 +29,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.2  2010/03/05 04:02:32  sueh
  * <p> bug# 1319 Added setLabel.
  * <p>
@@ -57,7 +60,7 @@ final class CheckTextField {
     instance.addListeners();
     return instance;
   }
-  
+
   void setLabel(final String label) {
     checkBox.setText(label);
     String name = Utilities.convertLabelToName(label);
@@ -67,6 +70,11 @@ final class CheckTextField {
       System.out.println(textField.getName() + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
+  }
+
+  void setEnabled(final boolean enable) {
+    checkBox.setEnabled(enable);
+    textField.setEnabled(enable);
   }
 
   private void createPanel() {
