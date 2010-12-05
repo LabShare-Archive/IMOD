@@ -44,6 +44,9 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.47  2010/07/02 20:17:59  sueh
  * <p> bug# 1387 System information should always be printed during a failure.
  * <p> Removed it from here.
@@ -243,6 +246,7 @@ class MultiLineButton implements ProcessResultDisplay {
   private Color buttonForeground = null;
   private Color buttonHighlightForeground = null;
   private boolean debug = false;
+  private String unformattedLabel = null;
 
   MultiLineButton() {
     this(null, false, null, false);
@@ -276,6 +280,7 @@ class MultiLineButton implements ProcessResultDisplay {
     this.toggleButton = toggleButton;
     this.dialogType = dialogType;
     this.debug = debug;
+    unformattedLabel = label;
     if (toggleButton) {
       button = new JToggleButton(format(label));
     }
@@ -422,6 +427,7 @@ class MultiLineButton implements ProcessResultDisplay {
     if (!manualName) {
       setName(label);
     }
+    unformattedLabel = label;
     button.setText(format(label));
   }
 
@@ -441,6 +447,10 @@ class MultiLineButton implements ProcessResultDisplay {
 
   public String toString() {
     return getText();
+  }
+
+  String getUnformattedLabel() {
+    return unformattedLabel;
   }
 
   final void addActionListener(ActionListener actionListener) {
