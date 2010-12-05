@@ -29,6 +29,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.64  2010/11/13 16:06:53  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.63  2010/05/27 16:49:48  sueh
  * <p> bug# 1378 Added isLambdaForSmoothingListEmpty.
  * <p>
@@ -575,6 +578,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       POST_KEY + "." + SQUEEZE_VOL_KEY + "." + INPUT_KEY + TRIM_VOL_KEY);
 
   private final EtomoNumber postCurTab = new EtomoNumber(POST_KEY + ".CurTab");
+  private final EtomoNumber genCurTab = new EtomoNumber(GEN_KEY + ".CurTab");
+
   /**
    * postExists is true if the post processing dialog has opened at least once.
    */
@@ -870,6 +875,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
 
   public void setPostCurTab(int input) {
     postCurTab.set(input);
+  }
+  
+  public void setGenCurTab(int input) {
+    genCurTab.set(input);
   }
 
   public void setPostExists(boolean input) {
@@ -1201,6 +1210,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     stack3dFindBinningA.reset();
     stack3dFindBinningB.reset();
     postCurTab.reset();
+    genCurTab.reset();
     postExists.reset();
     lambdaForSmoothing.reset();
     lambdaForSmoothingList.reset();
@@ -1408,6 +1418,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     stack3dFindBinningA.load(props, prepend);
     stack3dFindBinningB.load(props, prepend);
     postCurTab.load(props, prepend);
+    genCurTab.load(props, prepend);
     postExists.load(props, prepend);
     lambdaForSmoothing.load(props, prepend);
     lambdaForSmoothingList.load(props, prepend);
@@ -1679,6 +1690,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     stack3dFindBinningA.store(props, prepend);
     stack3dFindBinningB.store(props, prepend);
     postCurTab.store(props, prepend);
+    genCurTab.store(props, prepend);
     postExists.store(props, prepend);
     lambdaForSmoothing.store(props, prepend);
     lambdaForSmoothingList.store(props, prepend);
@@ -2109,7 +2121,11 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   public ConstEtomoNumber getPostCurTab() {
     return postCurTab;
   }
-
+  
+  public ConstEtomoNumber getGenCurTab() {
+    return genCurTab;
+  }
+  
   public boolean isPostExists() {
     return postExists.is();
   }
