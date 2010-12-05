@@ -29,7 +29,6 @@ import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.MatchMode;
 import etomo.type.MetaData;
-import etomo.type.ProcessResultDisplay;
 import etomo.type.ReconScreenState;
 import etomo.type.TomogramState;
 
@@ -47,6 +46,9 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.66  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
@@ -473,40 +475,6 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     pnlSetup.setDeferred3dmodButtons();
     pnlInitial.setDeferred3dmodButtons();
     updateDisplay();
-  }
-
-  public static ProcessResultDisplay getCreateCombineDisplay() {
-    return SetupCombinePanel
-        .getCreateCombineDisplay(DialogType.TOMOGRAM_COMBINATION);
-  }
-
-  public static ProcessResultDisplay getCombineDisplay() {
-    return SetupCombinePanel.getCombineDisplay(DialogType.TOMOGRAM_COMBINATION);
-  }
-
-  public static ProcessResultDisplay getRestartCombineDisplay() {
-    return InitialCombinePanel
-        .getRestartCombineDisplay(DialogType.TOMOGRAM_COMBINATION);
-  }
-
-  public static ProcessResultDisplay getRestartMatchvol1Display() {
-    return InitialCombinePanel
-        .getRestartMatchvol1Display(DialogType.TOMOGRAM_COMBINATION);
-  }
-
-  public static ProcessResultDisplay getRestartPatchcorrDisplay() {
-    return FinalCombinePanel
-        .getRestartPatchcorrDisplay(DialogType.TOMOGRAM_COMBINATION);
-  }
-
-  public static ProcessResultDisplay getRestartMatchorwarpDisplay() {
-    return FinalCombinePanel
-        .getRestartMatchorwarpDisplay(DialogType.TOMOGRAM_COMBINATION);
-  }
-
-  public static ProcessResultDisplay getRestartVolcombineDisplay() {
-    return FinalCombinePanel
-        .getRestartVolcombineDisplay(DialogType.TOMOGRAM_COMBINATION);
   }
 
   /**

@@ -20,7 +20,6 @@ import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.FiducialMatch;
 import etomo.type.MatchMode;
-import etomo.type.ProcessResultDisplay;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.util.DatasetFiles;
@@ -40,6 +39,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.43  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
@@ -390,18 +392,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
   public void setUseCorrespondingPoints(boolean use) {
     pnlSolvematch.setUseCorrespondingPoints(use);
   }
-
-  public static ProcessResultDisplay getRestartCombineDisplay(
-      DialogType dialogType) {
-    return SolvematchPanel.getRestartCombineDisplay(dialogType);
-  }
-
-  public static ProcessResultDisplay getRestartMatchvol1Display(
-      DialogType dialogType) {
-    return Run3dmodButton.getDeferredToggle3dmodInstance(
-        "Restart at Matchvol1", dialogType);
-  }
-
+  
   public Container getContainer() {
     return pnlRoot;
   }

@@ -50,6 +50,9 @@ import etomo.util.FrontEndLogic;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.3  2010/10/11 20:38:59  sueh
  * <p> bug# 1379 Implemented ContextMenu.
  * <p>
@@ -90,11 +93,11 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer,
   public static final String rcsid = "$Id$";
 
   private static final String OUTPUT_SIZE_Z_LABEL = "Output thickness in Z";
-  private static final String FLATTEN_LABEL = "Flatten";
+  static final String FLATTEN_LABEL = "Flatten";
   static final String WARP_SPACING_X_LABEL = "Spacing in X";
   static final String WARP_SPACING_Y_LABEL = "and Y";
   private static final String LAMBDA_FOR_SMOOTHING_LABEL = "Smoothing factor";
-  private static final String FLATTEN_WARP_LABEL = "Run Flattenwarp";
+  static final String FLATTEN_WARP_LABEL = "Run Flattenwarp";
 
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
   private final BinnedXY3dmodButton btnMakeSurfaceModel = new BinnedXY3dmodButton(
@@ -181,15 +184,6 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer,
     instance.setToolTipText();
     instance.addListeners();
     return instance;
-  }
-
-  static MultiLineButton getFlattenWarpButton() {
-    return new MultiLineButton(FLATTEN_WARP_LABEL);
-  }
-
-  static Run3dmodButton getFlattenDisplay(final DialogType dialogType) {
-    return Run3dmodButton.getDeferredToggle3dmodInstance(FLATTEN_LABEL,
-        dialogType);
   }
 
   private void addListeners() {

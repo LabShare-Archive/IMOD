@@ -26,7 +26,6 @@ import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.FiducialMatch;
-import etomo.type.ProcessResultDisplay;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 
@@ -44,6 +43,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:35  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.40  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
@@ -331,12 +333,6 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
         headerGroup, dialogType);
     instance.addListeners();
     return instance;
-  }
-
-  public static ProcessResultDisplay getRestartCombineDisplay(
-      DialogType dialogType) {
-    return Run3dmodButton.getDeferredToggle3dmodInstance("Restart Combine",
-        dialogType);
   }
 
   void show() {

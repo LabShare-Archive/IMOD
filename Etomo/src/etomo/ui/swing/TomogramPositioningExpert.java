@@ -181,18 +181,6 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     metaData.setPosExists(axisID, true);
   }
 
-  public static ProcessResultDisplay getSampleTomogramDisplay() {
-    return TomogramPositioningDialog.getSampleTomogramDisplay();
-  }
-
-  public static ProcessResultDisplay getComputePitchDisplay() {
-    return TomogramPositioningDialog.getComputePitchDisplay();
-  }
-
-  public static ProcessResultDisplay getFinalAlignmentDisplay() {
-    return TomogramPositioningDialog.getFinalAlignmentDisplay();
-  }
-
   private void setButtonState(ReconScreenState screenState) {
     if (dialog == null) {
       return;
@@ -964,6 +952,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.41  2010/04/28 16:48:25  sueh
  * <p> bug# 1344 In startNextProcess changed the process parameter into a
  * <p> ProcessSeries.Process.

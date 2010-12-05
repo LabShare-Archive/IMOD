@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.33  2010/03/08 21:12:29  sueh
  * <p> bug# 1311 Hooking the imod button to the run button.
  * <p>
@@ -155,7 +158,6 @@ import etomo.type.BaseScreenState;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.DialogType;
 import etomo.type.ProcessName;
-import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.ViewType;
 
@@ -263,11 +265,6 @@ final class PrenewstPanel implements ContextMenu, Expandable,
     spinBinning.setVisible(state);
     cbByteModeToOutput.setVisible(state);
     cbMeanFloatDensities.setVisible(state);
-  }
-
-  public static ProcessResultDisplay getCoarseAlignDisplay(DialogType dialogType) {
-    return Run3dmodButton.getDeferredToggle3dmodInstance(
-        "Generate Coarse Aligned Stack", dialogType);
   }
 
   public void done() {

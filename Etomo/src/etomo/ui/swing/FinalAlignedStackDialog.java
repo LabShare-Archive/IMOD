@@ -46,8 +46,6 @@ import etomo.type.EtomoAutodoc;
 import etomo.type.MetaData;
 import etomo.type.PanelHeaderState;
 import etomo.type.ProcessName;
-import etomo.type.ProcessResultDisplay;
-import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TomogramState;
@@ -68,6 +66,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.30  2010/10/11 20:38:44  sueh
  * <p> bug# 1379 Removed erase beads items from pop menu.  Varying the
  * <p> menu based on the tab.
@@ -177,7 +178,7 @@ import etomo.util.DatasetFiles;
  * <p> </p>
  */
 public final class FinalAlignedStackDialog extends ProcessDialog implements
-    Expandable, Run3dmodButtonContainer, EraseGoldParent, ContextMenu {
+    Expandable, Run3dmodButtonContainer, ParallelProcessEnabledDialog, ContextMenu {
   public static final String rcsid = "$Id$";
 
   private static final String MTF_FILE_LABEL = "MTF file: ";
@@ -356,63 +357,12 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     return ReprojectModelPanel.REPROJECT_MODEL_LABEL;
   }
 
-  public static ProcessResultDisplay getFullAlignedStackDisplay() {
-    return Run3dmodButton.getDeferredToggle3dmodInstance(
-        NewstackOrBlendmontPanel.RUN_BUTTON_LABEL, DIALOG_TYPE);
-  }
-
-  public static ProcessResultDisplay getXfModelDisplay() {
-    return Run3dmodButton.getDeferredToggle3dmodInstance(
-        "Transform Fiducial Model", DIALOG_TYPE);
-  }
-
-  public static ProcessResultDisplay getTilt3dFindButton() {
-    return Tilt3dFindPanel.getTilt3dFindButton(DIALOG_TYPE);
-  }
-
-  public static ProcessResultDisplay getFindBeads3dButton() {
-    return FindBeads3dPanel.getFindBeads3dButton(DIALOG_TYPE);
-  }
-
-  public static ProcessResultDisplay getReprojectModelDisplay() {
-    return ReprojectModelPanel.getReprojectModelDisplay(DIALOG_TYPE);
-  }
-
-  public static ProcessResultDisplay getCcdEraserButton() {
-    return Run3dmodButton.getDeferredToggle3dmodInstance(
-        CcdEraserBeadsPanel.CCD_ERASER_LABEL, DIALOG_TYPE);
-  }
-
-  public static ProcessResultDisplay getUseCcdEraserDisplay() {
-    return Run3dmodButton.getDeferredToggle3dmodInstance(
-        CcdEraserBeadsPanel.USE_ERASED_STACK_LABEL, DIALOG_TYPE);
-  }
-
   public static String getUseErasedStackLabel() {
     return CcdEraserBeadsPanel.USE_ERASED_STACK_LABEL;
   }
 
   public static String getErasedStackTabLabel() {
     return EraseGoldPanel.ERASE_GOLD_TAB_LABEL;
-  }
-
-  public static ProcessResultDisplay getFilterDisplay() {
-    return Run3dmodButton.getDeferredToggle3dmodInstance("Filter", DIALOG_TYPE);
-  }
-
-  public static ProcessResultDisplay getUseFilteredStackDisplay() {
-    return MultiLineButton.getToggleButtonInstance(USE_FILTERED_STACK_LABEL,
-        DIALOG_TYPE);
-  }
-
-  public static ProcessResultDisplay getCtfCorrectionDisplay() {
-    return Run3dmodButton.getDeferredToggle3dmodInstance(CTF_CORRECTION_LABEL,
-        DIALOG_TYPE);
-  }
-
-  public static ProcessResultDisplay getUseCtfCorrectionDisplay() {
-    return MultiLineButton.getToggleButtonInstance(USE_CTF_CORRECTION_LABEL,
-        DIALOG_TYPE);
   }
 
   void setFilterButtonEnabled(boolean enable) {
@@ -469,9 +419,9 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     return ltfDefocusTol.getText();
   }
 
-  public void setEnabledTiltParameters(TomogramState state,
+  public void setTiltState(TomogramState state,
       ConstMetaData metaData) {
-    eraseGoldPanel.setEnabledTiltParameters(state, metaData);
+    eraseGoldPanel.setTiltState(state, metaData);
   }
 
   String getExpectedDefocus() {

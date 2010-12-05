@@ -24,7 +24,6 @@ import etomo.type.EtomoAutodoc;
 import etomo.type.FileType;
 import etomo.type.MetaData;
 import etomo.type.PanelId;
-import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
 
 /**
@@ -41,6 +40,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.4  2010/05/27 16:52:07  sueh
  * <p> bug# 1378 Changed LAMBDA_FOR_SMOOTHING_LABEL.  In createPanel set ltfLambdaForSmoothing to its default.  In setParameters checking that metaData.lambdaForSmoothing is not empty before using it.
  * <p>
@@ -60,7 +62,7 @@ final class SmoothingAssessmentPanel implements FlattenWarpDisplay,
   public static final String rcsid = "$Id$";
 
   private static final String LAMBDA_FOR_SMOOTHING_LABEL = "Smoothing factors to try";
-  private static final String FLATTEN_WARP_LABEL = "Run Flattenwarp to Assess Smoothing";
+  static final String FLATTEN_WARP_LABEL = "Run Flattenwarp to Assess Smoothing";
 
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
   private final LabeledTextField ltfLambdaForSmoothing = new LabeledTextField(
@@ -130,12 +132,6 @@ final class SmoothingAssessmentPanel implements FlattenWarpDisplay,
     instance.setTooltips();
     instance.addListeners();
     return instance;
-  }
-
-  public static ProcessResultDisplay getSmoothingAssessmentButton(
-      final DialogType dialogType) {
-    return Run3dmodButton.getDeferredToggle3dmodInstance(FLATTEN_WARP_LABEL,
-        dialogType);
   }
 
   private void addListeners() {

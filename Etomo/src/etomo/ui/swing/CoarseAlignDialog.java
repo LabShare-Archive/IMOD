@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:35  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.56  2010/10/11 20:34:46  sueh
  * <p> bug# 1379 In constructor, passing this to TiltxcorrPanel so can call this class's pop up menu function.
  * <p>
@@ -285,8 +288,6 @@ import etomo.type.AxisID;
 import etomo.type.BaseScreenState;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
-import etomo.type.ProcessResultDisplay;
-import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.ViewType;
@@ -388,29 +389,6 @@ public final class CoarseAlignDialog extends ProcessDialog implements
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     pnlCoarseAlign.addMouseListener(mouseAdapter);
-  }
-
-  public static ProcessResultDisplay getCoarseAlignDisplay() {
-    return PrenewstPanel.getCoarseAlignDisplay(DialogType.COARSE_ALIGNMENT);
-  }
-
-  public static ProcessResultDisplay getCrossCorrelateDisplay() {
-    return TiltxcorrPanel.getCrossCorrelateDisplay(DialogType.COARSE_ALIGNMENT);
-  }
-
-  public static ProcessResultDisplay getDistortionCorrectedStackDisplay() {
-    return MultiLineButton.getToggleButtonInstance(
-        "Make Distortion Corrected Stack", DialogType.COARSE_ALIGNMENT);
-  }
-
-  public static ProcessResultDisplay getFixEdgesMidasDisplay() {
-    return MultiLineButton.getToggleButtonInstance("Fix Edges With Midas",
-        DialogType.COARSE_ALIGNMENT);
-  }
-
-  public static ProcessResultDisplay getMidasDisplay() {
-    return MultiLineButton.getToggleButtonInstance("Fix Alignment With Midas",
-        DialogType.COARSE_ALIGNMENT);
   }
 
   /**

@@ -17,8 +17,6 @@ import etomo.type.DialogType;
 import etomo.type.EnumeratedType;
 import etomo.type.EtomoNumber;
 import etomo.type.MetaData;
-import etomo.type.ProcessResultDisplay;
-import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.util.DatasetFiles;
@@ -41,6 +39,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.61  2010/10/11 20:38:04  sueh
  * <p> bug# 1379 Removed patch tracking and raptor items from pop menu.
  * <p>
@@ -355,7 +356,7 @@ public final class FiducialModelDialog extends ProcessDialog implements
     ContextMenu, Run3dmodButtonContainer, RaptorPanelParent {
   public static final String rcsid = "$Id$";
 
-  private static final String SEEDING_NOT_DONE_LABEL = "Seed Fiducial Model";
+  static final String SEEDING_NOT_DONE_LABEL = "Seed Fiducial Model";
   private static final String SEEDING_DONE_LABEL = "View Seed Model";
 
   private final SpacedPanel pnlFiducialModel = SpacedPanel.getInstance();
@@ -491,20 +492,6 @@ public final class FiducialModelDialog extends ProcessDialog implements
     btnSeed.addActionListener(actionListener);
   }
 
-  public static ProcessResultDisplay getRaptorDisplay() {
-    return Run3dmodButton.getDeferredToggle3dmodInstance(
-        RaptorPanel.RUN_RAPTOR_LABEL, DialogType.FIDUCIAL_MODEL);
-  }
-
-  public static ProcessResultDisplay getPatchTrackingButton() {
-    return TiltxcorrPanel.getPatchTrackingButton(DialogType.FIDUCIAL_MODEL);
-  }
-
-  public static ProcessResultDisplay getUseRaptorDisplay() {
-    return MultiLineButton.getToggleButtonInstance(
-        RaptorPanel.USE_RAPTOR_RESULT_LABEL, DialogType.FIDUCIAL_MODEL);
-  }
-
   public static String getUseRaptorResultLabel() {
     return RaptorPanel.USE_RAPTOR_RESULT_LABEL;
   }
@@ -516,25 +503,6 @@ public final class FiducialModelDialog extends ProcessDialog implements
     else {
       btnSeed.setText(SEEDING_NOT_DONE_LABEL);
     }
-  }
-
-  public static ProcessResultDisplay getTransferFiducialsDisplay() {
-    return TransferfidPanel
-        .getTransferFiducialsDisplay(DialogType.FIDUCIAL_MODEL);
-  }
-
-  public static ProcessResultDisplay getSeedFiducialModelDisplay() {
-    return Run3dmodButton.getToggle3dmodInstance(SEEDING_NOT_DONE_LABEL,
-        DialogType.FIDUCIAL_MODEL);
-  }
-
-  public static ProcessResultDisplay getTrackFiducialsDisplay() {
-    return BeadtrackPanel.getTrackFiducialsDisplay(DialogType.FIDUCIAL_MODEL);
-  }
-
-  public static ProcessResultDisplay getFixFiducialModelDisplay() {
-    return Run3dmodButton.getToggle3dmodInstance("Fix Fiducial Model",
-        DialogType.FIDUCIAL_MODEL);
   }
 
   /**

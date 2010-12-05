@@ -59,6 +59,9 @@ import etomo.util.DatasetFiles;
  * 
  * <p>
  * $Log$
+ * Revision 1.1  2010/11/13 16:07:35  sueh
+ * bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ *
  * Revision 3.74  2010/02/17 05:03:12  sueh
  * bug# 1301 Using manager instead of manager key for popping up messages.
  *
@@ -754,24 +757,6 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     pnlRoot.addMouseListener(mouseAdapter);
     setToolTipText();
-  }
-
-  public static ProcessResultDisplay getRestartPatchcorrDisplay(
-      DialogType dialogType) {
-    return Run3dmodButton.getDeferredToggle3dmodInstance(
-        "Restart at Patchcorr", dialogType);
-  }
-
-  public static ProcessResultDisplay getRestartMatchorwarpDisplay(
-      DialogType dialogType) {
-    return Run3dmodButton.getDeferredToggle3dmodInstance(
-        "Restart at Matchorwarp", dialogType);
-  }
-
-  public static ProcessResultDisplay getRestartVolcombineDisplay(
-      DialogType dialogType) {
-    return Run3dmodButton.getDeferredToggle3dmodInstance(
-        "Restart at Volcombine", dialogType);
   }
 
   void updateAdvanced(boolean state) {

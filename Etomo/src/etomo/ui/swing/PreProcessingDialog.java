@@ -10,7 +10,6 @@ import etomo.ApplicationManager;
 import etomo.comscript.ConstCCDEraserParam;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
-import etomo.type.ProcessResultDisplay;
 import etomo.type.ReconScreenState;
 
 /**
@@ -27,6 +26,9 @@ import etomo.type.ReconScreenState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.20  2010/03/12 04:16:18  sueh
  * <p> bug# 1325 Made bead erasing labels public.
  * <p>
@@ -191,20 +193,6 @@ public final class PreProcessingDialog extends ProcessDialog {
 
     //  Set the default advanced state for the window, this also executes
     updateAdvanced();
-  }
-
-  public static ProcessResultDisplay getFindXRaysDisplay() {
-    return CcdEraserXRaysPanel.getFindXRaysDisplay(DialogType.PRE_PROCESSING);
-  }
-
-  public static ProcessResultDisplay getCreateFixedStackDisplay() {
-    return CcdEraserXRaysPanel
-        .getCreateFixedStackDisplay(DialogType.PRE_PROCESSING);
-  }
-
-  public static ProcessResultDisplay getUseFixedStackDisplay() {
-    return CcdEraserXRaysPanel
-        .getUseFixedStackDisplay(DialogType.PRE_PROCESSING);
   }
   
   public static String getUseFixedStackLabel() {

@@ -19,7 +19,6 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
-import etomo.type.ProcessResultDisplay;
 import etomo.type.ReconScreenState;
 
 /**
@@ -105,29 +104,6 @@ public final class PostProcessingDialog extends ProcessDialog implements
       panel.add(squeezeVolPanel.getComponent());
     }
     UIHarness.INSTANCE.pack(axisID, applicationManager);
-  }
-
-  public static ProcessResultDisplay getSqueezeVolumeDisplay() {
-    return Run3dmodButton.getDeferredToggle3dmodInstance("Squeeze Volume",
-        DialogType.POST_PROCESSING);
-  }
-
-  public static ProcessResultDisplay getTrimVolumeDisplay() {
-    return Run3dmodButton.getDeferredToggle3dmodInstance("Trim Volume",
-        DialogType.POST_PROCESSING);
-  }
-
-  public static ProcessResultDisplay getSmoothingAssessmentButton() {
-    return SmoothingAssessmentPanel
-        .getSmoothingAssessmentButton(DialogType.POST_PROCESSING);
-  }
-
-  public static ProcessResultDisplay getFlattenDisplay() {
-    return FlattenVolumePanel.getFlattenDisplay(DialogType.POST_PROCESSING);
-  }
-
-  public static ProcessResultDisplay getFlattenWarpButton() {
-    return FlattenVolumePanel.getFlattenWarpButton();
   }
 
   /**
@@ -257,6 +233,9 @@ public final class PostProcessingDialog extends ProcessDialog implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.49  2010/10/11 20:39:46  sueh
  * <p> bug# 1379 Removed flatten and squeezevol items from popup menu.
  * <p>

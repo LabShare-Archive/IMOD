@@ -36,8 +36,6 @@ import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.FileType;
-import etomo.type.ProcessResultDisplay;
-import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 
@@ -45,7 +43,7 @@ final class CcdEraserXRaysPanel implements ContextMenu,
     Run3dmodButtonContainer, CcdEraserDisplay, Expandable {
   public static final String rcsid = "$Id$";
 
-  private static final String ERASE_LABEL = "Create Fixed Stack";
+  static final String ERASE_LABEL = "Create Fixed Stack";
   static final String USE_FIXED_STACK_LABEL = "Use Fixed Stack";
 
   private final JPanel pnlCCDEraser = new JPanel();
@@ -241,23 +239,6 @@ final class CcdEraserXRaysPanel implements ContextMenu,
         dialogType, globalAdvancedButton);
     instance.addListeners();
     return instance;
-  }
-
-  static ProcessResultDisplay getFindXRaysDisplay(final DialogType dialogType) {
-    return Run3dmodButton.getDeferredToggle3dmodInstance(
-        "Find X-rays (Trial Mode)", dialogType);
-  }
-
-  static ProcessResultDisplay getCreateFixedStackDisplay(
-      final DialogType dialogType) {
-    return Run3dmodButton.getDeferredToggle3dmodInstance(ERASE_LABEL,
-        dialogType);
-  }
-
-  static ProcessResultDisplay getUseFixedStackDisplay(
-      final DialogType dialogType) {
-    return MultiLineButton.getToggleButtonInstance(USE_FIXED_STACK_LABEL,
-        dialogType);
   }
 
   private void addListeners() {
@@ -585,6 +566,9 @@ final class CcdEraserXRaysPanel implements ContextMenu,
 
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.7  2010/04/28 16:35:59  sueh
  * <p> bug# 1344 In buttonAction fixed the output file passed to clipStats:
  * <p> changed it from CCD_ERASER_OUTPUT to FIXED_XRAYS_STACK.

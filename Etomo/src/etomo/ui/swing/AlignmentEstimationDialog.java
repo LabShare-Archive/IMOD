@@ -21,7 +21,6 @@ import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.FileType;
 import etomo.type.MetaData;
-import etomo.type.ProcessResultDisplay;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 
@@ -38,6 +37,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.41  2010/03/11 06:02:45  sueh
  * <p> bug# 1311 Setting patchTracking in this class so the right residual mode
  * <p> can be passed to ApplicationManager.imodFixFiducials.
@@ -394,11 +396,6 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     updateAdvanced();
     pnlTiltalign.setFirstTab();
     setToolTipText();
-  }
-
-  public static ProcessResultDisplay getComputeAlignmentDisplay() {
-    return MultiLineButton.getToggleButtonInstance("Compute Alignment",
-        DialogType.FINE_ALIGNMENT);
   }
 
   public void setParameters(ReconScreenState screenState) {

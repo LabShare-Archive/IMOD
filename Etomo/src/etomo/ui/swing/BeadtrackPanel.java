@@ -24,7 +24,6 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.InvalidEtomoNumberException;
-import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
 
 /**
@@ -40,6 +39,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.34  2010/03/11 06:03:19  sueh
  * <p> bug# 1311 Added ImodProcess.BeadFixerMode instead of using strings.
  * <p>
@@ -405,11 +407,6 @@ public final class BeadtrackPanel implements Expandable,
 
   void setVisible(final boolean visible) {
     panelBeadtrack.setVisible(visible);
-  }
-
-  public static ProcessResultDisplay getTrackFiducialsDisplay(
-      DialogType dialogType) {
-    return MultiLineButton.getToggleButtonInstance(TRACK_LABEL, dialogType);
   }
 
   public void expand(GlobalExpandButton button) {

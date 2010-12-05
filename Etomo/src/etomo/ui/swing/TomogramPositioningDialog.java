@@ -17,8 +17,6 @@ import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.DialogType;
 import etomo.type.EtomoNumber;
-import etomo.type.ProcessResultDisplay;
-import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 
@@ -35,6 +33,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.68  2010/03/30 00:05:47  sueh
  * <p> bug# 1331 Added useGpu checkbox.
  * <p>
@@ -489,22 +490,6 @@ final class TomogramPositioningDialog extends ProcessDialog implements
     btnAlign.addActionListener(localActionListener);
     //  Mouse adapter for context menu
     rootPanel.addMouseListener(new GenericMouseAdapter(this));
-  }
-
-  static ProcessResultDisplay getSampleTomogramDisplay() {
-    return Run3dmodButton.getDeferredToggle3dmodInstance(
-        TomogramPositioningExpert.SAMPLE_TOMOGRAMS_LABEL,
-        DialogType.TOMOGRAM_POSITIONING);
-  }
-
-  static ProcessResultDisplay getComputePitchDisplay() {
-    return MultiLineButton.getToggleButtonInstance(
-        "Compute Z Shift & Pitch Angles", DialogType.TOMOGRAM_POSITIONING);
-  }
-
-  static ProcessResultDisplay getFinalAlignmentDisplay() {
-    return MultiLineButton.getToggleButtonInstance("Create Final Alignment",
-        DialogType.TOMOGRAM_POSITIONING);
   }
 
   public void setFiducialessAlignment(boolean fiducialess) {

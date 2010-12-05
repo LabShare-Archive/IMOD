@@ -16,7 +16,6 @@ import etomo.comscript.TransferfidParam;
 import etomo.type.AxisID;
 import etomo.type.BaseScreenState;
 import etomo.type.DialogType;
-import etomo.type.ProcessResultDisplay;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 
@@ -166,11 +165,6 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
     UIHarness.INSTANCE.pack(axisID, manager);
   }
 
-  static ProcessResultDisplay getTransferFiducialsDisplay(DialogType dialogType) {
-    return Run3dmodButton.getDeferredToggle3dmodInstance(
-        "Transfer Fiducials From Other Axis", dialogType);
-  }
-
   private void setup() {
   }
 
@@ -313,6 +307,9 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
 
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.21  2010/03/03 05:10:14  sueh
  * <p> bug# 1311 Added setVisible.
  * <p>

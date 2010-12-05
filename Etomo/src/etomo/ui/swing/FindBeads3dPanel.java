@@ -25,7 +25,6 @@ import etomo.type.EnumeratedType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.EtomoNumber;
 import etomo.type.FileType;
-import etomo.type.ProcessResultDisplay;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 
@@ -43,6 +42,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.4  2010/03/19 02:42:03  sueh
  * <p> bug# 1325 Changed tool tips and labels.
  * <p>
@@ -117,11 +119,6 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
     instance.setToolTipText();
     instance.addListeners();
     return instance;
-  }
-
-  static ProcessResultDisplay getFindBeads3dButton(DialogType dialogType) {
-    return Run3dmodButton.getDeferredToggle3dmodInstance("Run Findbeads3d",
-        dialogType);
   }
 
   private void addListeners() {
