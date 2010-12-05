@@ -19,7 +19,6 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
-import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.ViewType;
 
@@ -36,6 +35,9 @@ import etomo.type.ViewType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.4  2010/10/11 20:39:57  sueh
  * <p> bug# 1379 Implemented ContextMenu.
  * <p>
