@@ -29,7 +29,6 @@ import etomo.type.EtomoAutodoc;
 import etomo.type.FileType;
 import etomo.type.MetaData;
 import etomo.type.PanelId;
-import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TiltAngleSpec;
 
@@ -46,6 +45,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:35  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.5  2010/10/11 20:43:37  sueh
  * <p> bug# 1379 Implemented ContextMenu.  Use own popup for patch
  * <p> tracking.  Otherwise use the parents.
@@ -314,19 +316,12 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
     header = PanelHeader.getAdvancedBasicInstance("Tiltxcorr", this,
         dialogType, globalAdvancedButton);
 
-    if (panelId == PanelId.CROSS_CORRELATION) {
-      btnTiltxcorr = (MultiLineButton) applicationManager
-          .getProcessResultDisplayFactory(axisID).getCrossCorrelate();
-    }
-    else if (panelId == PanelId.PATCH_TRACKING) {
-      btnTiltxcorr = (MultiLineButton) applicationManager
-          .getProcessResultDisplayFactory(axisID).getPatchTracking();
+    btnTiltxcorr = (MultiLineButton) applicationManager
+        .getProcessResultDisplayFactory(axisID).getTiltxcorr(dialogType);
+    if (panelId == PanelId.PATCH_TRACKING && btnTiltxcorr != null) {
       ((Run3dmodButton) btnTiltxcorr)
           .setDeferred3dmodButton(btn3dmodPatchTracking);
       ((Run3dmodButton) btnTiltxcorr).setContainer(this);
-    }
-    else {
-      btnTiltxcorr = null;
     }
   }
 
@@ -355,21 +350,11 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
     return instance;
   }
 
-  static ProcessResultDisplay getCrossCorrelateDisplay(
-      final DialogType dialogType) {
-    return MultiLineButton.getToggleButtonInstance(
-        "Calculate Cross- Correlation", dialogType);
-  }
-
-  public static ProcessResultDisplay getPatchTrackingButton(
-      DialogType dialogType) {
-    return Run3dmodButton.getDeferredToggle3dmodInstance("Track Patches",
-        dialogType);
-  }
-
   private void createPanel() {
     //initialize
-    btnTiltxcorr.setSize();
+    if (btnTiltxcorr != null) {
+      btnTiltxcorr.setSize();
+    }
     //root panel
     pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
     // Construct the min and max subpanels
@@ -404,7 +389,9 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       pnlBody.add(Box.createRigidArea(FixedDim.x0_y5));
       pnlBody.add(pnlAdvanced);
       pnlBody.add(Box.createRigidArea(FixedDim.x0_y5));
-      pnlBody.add(btnTiltxcorr.getComponent());
+      if (btnTiltxcorr != null) {
+        pnlBody.add(btnTiltxcorr.getComponent());
+      }
       pnlBody.add(Box.createRigidArea(FixedDim.x0_y5));
       UIUtilities.alignComponentsX(pnlBody, Component.CENTER_ALIGNMENT);
       UIUtilities.alignComponentsX(pnlAdvanced, Component.LEFT_ALIGNMENT);
@@ -470,7 +457,9 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       //button panel
       pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
       pnlButtons.add(Box.createHorizontalGlue());
-      pnlButtons.add(btnTiltxcorr.getComponent());
+      if (btnTiltxcorr != null) {
+        pnlButtons.add(btnTiltxcorr.getComponent());
+      }
       pnlButtons.add(Box.createHorizontalGlue());
       pnlButtons.add(btn3dmodPatchTracking.getComponent());
       pnlButtons.add(Box.createHorizontalGlue());
@@ -482,7 +471,9 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
     pnlRoot.addMouseListener(new GenericMouseAdapter(this));
     cbCumulativeCorrelation.addActionListener(actionListener);
     cbNoCosineStretch.addActionListener(actionListener);
-    btnTiltxcorr.addActionListener(actionListener);
+    if (btnTiltxcorr != null) {
+      btnTiltxcorr.addActionListener(actionListener);
+    }
     btn3dmodPatchTracking.addActionListener(actionListener);
     cbBoundaryModel.addActionListener(actionListener);
     btn3dmodBoundaryModel.addActionListener(actionListener);
@@ -514,7 +505,9 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
   }
 
   void done() {
-    btnTiltxcorr.removeActionListener(actionListener);
+    if (btnTiltxcorr != null) {
+      btnTiltxcorr.removeActionListener(actionListener);
+    }
   }
 
   void updateAdvanced(final boolean state) {
@@ -793,7 +786,8 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
   void buttonAction(final String actionCommand,
       final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    if (actionCommand.equals(btnTiltxcorr.getActionCommand())) {
+    if (btnTiltxcorr != null
+        && actionCommand.equals(btnTiltxcorr.getActionCommand())) {
       if (panelId == PanelId.CROSS_CORRELATION) {
         applicationManager.preCrossCorrelate(axisID, btnTiltxcorr, null,
             dialogType, this);
@@ -891,9 +885,11 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
         "ExcludeCentralPeak"));
     ltfAngleOffset.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         "AngleOffset"));
-    btnTiltxcorr
-        .setToolTipText("Find alignment transformations between successive "
-            + "images by cross-correlation.");
+    if (btnTiltxcorr != null) {
+      btnTiltxcorr
+          .setToolTipText("Find alignment transformations between successive "
+              + "images by cross-correlation.");
+    }
     btn3dmodPatchTracking
         .setToolTipText("Open the pre-aligned stack with the patch tracking "
             + "fiducial model.");
