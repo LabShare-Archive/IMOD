@@ -44,6 +44,9 @@ import etomo.type.ViewType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.6  2010/04/09 03:01:16  sueh
  * <p> bug# 1352 Passing the ProcessResultDisplay via parameter instead of retrieving it with a function so that it always be passed.
  * <p>
@@ -79,15 +82,14 @@ final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
   private final AxisID axisID;
   private final DialogType dialogType;
   private final PanelHeader header;
-  private final Beads3dFindParent parent;
 
-  Beads3dFindPanel(ApplicationManager manager, AxisID axisID,
-      DialogType dialogType, Beads3dFindParent parent,
-      GlobalExpandButton globalAdvancedButton) {
+  Beads3dFindPanel(final ApplicationManager manager, final AxisID axisID,
+      final DialogType dialogType,
+      final ParallelProcessEnabledDialog parentDialog,
+      final GlobalExpandButton globalAdvancedButton) {
     this.manager = manager;
     this.axisID = axisID;
     this.dialogType = dialogType;
-    this.parent = parent;
     header = PanelHeader.getInstance("Align Stack and Create Tomogram", this,
         dialogType);
     if (manager.getMetaData().getViewType() == ViewType.MONTAGE) {
@@ -99,18 +101,19 @@ final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
           axisID, dialogType, this);
     }
     tilt3dFindPanel = Tilt3dFindPanel.getInstance(manager, axisID, dialogType,
-        this, newstackOrBlendmont3dFindPanel.get3dmodButton());
+        parentDialog, this, newstackOrBlendmont3dFindPanel.get3dmodButton());
     findBeads3dPanel = FindBeads3dPanel.getInstance(manager, axisID,
         dialogType, globalAdvancedButton);
     reprojectModelPanel = ReprojectModelPanel.getInstance(manager, axisID,
         dialogType);
   }
 
-  static Beads3dFindPanel getInstance(ApplicationManager manager,
-      AxisID axisID, DialogType dialogType, Beads3dFindParent parent,
-      GlobalExpandButton globalAdvancedButton) {
+  static Beads3dFindPanel getInstance(final ApplicationManager manager,
+      final AxisID axisID, final DialogType dialogType,
+      final ParallelProcessEnabledDialog parentDialog,
+      final GlobalExpandButton globalAdvancedButton) {
     Beads3dFindPanel instance = new Beads3dFindPanel(manager, axisID,
-        dialogType, parent, globalAdvancedButton);
+        dialogType, parentDialog, globalAdvancedButton);
     instance.createPanel();
     return instance;
   }
@@ -153,15 +156,11 @@ final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
     pnlGenerateTomogramBody.setLayout(new BoxLayout(pnlGenerateTomogramBody,
         BoxLayout.Y_AXIS));
     pnlGenerateTomogramBody.add(newstackOrBlendmont3dFindPanel.getComponent());
-    pnlGenerateTomogramBody.add(tilt3dFindPanel.getComponent());
+    pnlGenerateTomogramBody.add(tilt3dFindPanel.getRoot());
   }
 
   Component getComponent() {
     return pnlRoot.getContainer();
-  }
-
-  public void updateParallelProcess() {
-    parent.updateParallelProcess();
   }
 
   boolean isAdvanced() {
@@ -194,9 +193,9 @@ final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
     return tilt3dFindPanel.usingParallelProcessing();
   }
 
-  public void setEnabledTiltParameters(TomogramState state,
+  public void setTiltState(TomogramState state,
       ConstMetaData metaData) {
-    tilt3dFindPanel.setEnabledTiltParameters(state, metaData);
+    tilt3dFindPanel.setState(state, metaData);
   }
 
   void setParameters(ConstTiltParam param, boolean initialize)
