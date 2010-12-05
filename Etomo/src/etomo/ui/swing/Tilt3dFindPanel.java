@@ -39,6 +39,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.10  2010/04/28 16:46:09  sueh
  * <p> bug# 1344 In getParameters(TiltParam) calling param.setCommandMode.
  * <p>
@@ -93,9 +96,10 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
   private final Component extraButton;
 
   private Tilt3dFindPanel(final ApplicationManager manager,
-      final AxisID axisID, DialogType dialogType, Tilt3dFindParent parent,
-      Component extraButton) {
-    super(manager, axisID, dialogType, parent, null, PANEL_ID);
+      final AxisID axisID, final DialogType dialogType,
+      final ParallelProcessEnabledDialog parentDialog,
+      final Tilt3dFindParent parent, final Component extraButton) {
+    super(manager, axisID, dialogType, parentDialog, null, PANEL_ID);
     this.parent = parent;
     this.extraButton = extraButton;
     //Change some labels.
@@ -104,28 +108,15 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
   }
 
   static Tilt3dFindPanel getInstance(final ApplicationManager manager,
-      final AxisID axisID, DialogType dialogType, Tilt3dFindParent parent,
+      final AxisID axisID, DialogType dialogType,
+      final ParallelProcessEnabledDialog parentDialog, Tilt3dFindParent parent,
       Component extraButton) {
     Tilt3dFindPanel instance = new Tilt3dFindPanel(manager, axisID, dialogType,
-        parent, extraButton);
+        parentDialog, parent, extraButton);
     instance.createPanel();
     instance.setToolTipText();
     instance.addListeners();
     return instance;
-  }
-
-  /**
-   * Get the correction tilt buttn 
-   */
-  Run3dmodButton getTiltButton(final ApplicationManager manager,
-      final AxisID axisID) {
-    return (Run3dmodButton) manager.getProcessResultDisplayFactory(axisID)
-        .getTilt3dFind();
-  }
-
-  static Run3dmodButton getTilt3dFindButton(final DialogType dialogType) {
-    return Run3dmodButton.getDeferredToggle3dmodInstance(TILT_3D_FIND_LABEL,
-        dialogType);
   }
 
   /**
@@ -165,11 +156,17 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
     pnlA.add(ltfTomoThickness);
     pnlA.add(ltfZShift);
     //Buttons panel
-    pnlButtons.add(getTiltButton());
+    Component button = getTiltButton();
+    if (button != null) {
+      pnlButtons.add(button);
+    }
     if (extraButton != null) {
       pnlButtons.add(extraButton);
     }
-    pnlButtons.add(get3dmodTomogramButton());
+    button = get3dmodTomogramButton();
+    if (button != null) {
+      pnlButtons.add(button);
+    }
   }
 
   /**
@@ -242,10 +239,13 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
     }
   }
 
-  /**
-   * This function in AbstractTiltPanel is oriented towards the TomoGen dialog
-   * so override it.
-   */
+  void updateDisplay() {
+    boolean enabled = getEnabled();
+    ltfCenterToCenterThickness.setEnabled(enabled);
+    ltfAdditionalDiameters.setEnabled(enabled);
+    extraButton.setEnabled(enabled);
+  }
+
   void getParameters(final MetaData metaData)
       throws FortranInputSyntaxException {
     metaData.setTiltParallel(axisID, PANEL_ID, isParallelProcess());
@@ -259,10 +259,11 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
     return true;
   }
 
-  void tilt3dFindAction(ProcessResultDisplay processResultDisplay,final Deferred3dmodButton deferred3dmodButton,
+  void tilt3dFindAction(ProcessResultDisplay processResultDisplay,
+      final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    manager.tilt3dFindAction( processResultDisplay, null,
-        deferred3dmodButton, run3dmodMenuOptions, this, axisID, dialogType);
+    manager.tilt3dFindAction(processResultDisplay, null, deferred3dmodButton,
+        run3dmodMenuOptions, this, axisID, dialogType);
   }
 
   void tiltAction(final ProcessResultDisplay processResultDisplay,

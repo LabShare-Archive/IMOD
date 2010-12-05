@@ -1,5 +1,11 @@
 package etomo.ui.swing;
 
+import java.awt.Component;
+import java.awt.event.MouseEvent;
+
+import javax.swing.BoxLayout;
+import javax.swing.JPanel;
+
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
@@ -21,6 +27,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.4  2010/04/09 03:02:21  sueh
  * <p> bug# 1352 Passing the ProcessResultDisplay via parameter instead of retrieving it with a function so that it always be passed.
  * <p>
@@ -37,41 +46,52 @@ import etomo.type.Run3dmodMenuOptions;
 final class TiltPanel extends AbstractTiltPanel {
   public static final String rcsid = "$Id$";
 
+  private final JPanel pnlTiltPanelRoot = new JPanel();
+
   //backward compatibility functionality - if the metadata binning is missing
   //get binning from newst
-  private TiltPanel(ApplicationManager manager, AxisID axisID,
-      DialogType dialogType, TiltParent parent,
-      GlobalExpandButton globalAdvancedButton) {
-    super(manager, axisID, dialogType, parent, globalAdvancedButton,
-        PanelId.TILT);
+  private TiltPanel(final ApplicationManager manager, final AxisID axisID,
+      final DialogType dialogType,
+      final ParallelProcessEnabledDialog parentDialog,
+      final GlobalExpandButton globalAdvancedButton, final PanelId panelId) {
+    super(manager, axisID, dialogType, parentDialog, globalAdvancedButton,
+        panelId);
   }
 
-  static TiltPanel getInstance(ApplicationManager manager, AxisID axisID,
-      DialogType dialogType, TiltParent parent,
-      GlobalExpandButton globalAdvancedButton) {
-    TiltPanel instance = new TiltPanel(manager, axisID, dialogType, parent,
-        globalAdvancedButton);
+  static TiltPanel getBackProjectionInstance(final ApplicationManager manager,
+      final AxisID axisID, final DialogType dialogType,
+      final ParallelProcessEnabledDialog parentDialog,
+      final GlobalExpandButton globalAdvancedButton) {
+    TiltPanel instance = new TiltPanel(manager, axisID, dialogType,
+        parentDialog, globalAdvancedButton, PanelId.TILT);
     instance.createPanel();
     instance.setToolTipText();
     instance.addListeners();
     return instance;
   }
 
-  Run3dmodButton getTiltButton(ApplicationManager manager, AxisID axisID) {
-    return (Run3dmodButton) manager.getProcessResultDisplayFactory(axisID)
-        .getGenerateTomogram();
+  static TiltPanel getSirtInstance(final ApplicationManager manager,
+      final AxisID axisID, final DialogType dialogType,
+      final ParallelProcessEnabledDialog parentDialog,
+      GlobalExpandButton globalAdvancedButton) {
+    TiltPanel instance = new TiltPanel(manager, axisID, dialogType,
+        parentDialog, globalAdvancedButton, PanelId.TILT_SIRT);
+    instance.createPanel();
+    instance.setToolTipText();
+    instance.addListeners();
+    return instance;
   }
 
-  public static ProcessResultDisplay getGenerateTomogramResultDisplay(
-      DialogType dialogType) {
-    return Run3dmodButton.getDeferredToggle3dmodInstance("Generate Tomogram",
-        dialogType);
+  void createPanel() {
+    super.createPanel();
+    pnlTiltPanelRoot
+        .setLayout(new BoxLayout(pnlTiltPanelRoot, BoxLayout.Y_AXIS));
+    UIUtilities.addWithYSpace(pnlTiltPanelRoot, super.getRoot());
+    UIUtilities.alignComponentsX(pnlTiltPanelRoot, Component.CENTER_ALIGNMENT);
   }
 
-  public static ProcessResultDisplay getDeleteAlignedStackResultDisplay(
-      DialogType dialogType) {
-    return MultiLineButton.getToggleButtonInstance(
-        "Delete Intermediate Image Stacks", dialogType);
+  Component getRoot() {
+    return pnlTiltPanelRoot;
   }
 
   /**
@@ -92,5 +112,17 @@ final class TiltPanel extends AbstractTiltPanel {
   void imodTomogramAction(final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     manager.imodFullVolume(axisID, run3dmodMenuOptions);
+  }
+
+  void popUpContextMenu(final String anchor, final Component rootPanel,
+      final MouseEvent mouseEvent) {
+    String[] manPagelabel = { "Tilt", "3dmod" };
+    String[] manPage = { "tilt.html", "3dmod.html" };
+    String[] logFileLabel = { "Tilt" };
+    String[] logFile = new String[1];
+    logFile[0] = "tilt" + axisID.getExtension() + ".log";
+    ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent, anchor,
+        ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile,
+        manager, axisID);
   }
 }
