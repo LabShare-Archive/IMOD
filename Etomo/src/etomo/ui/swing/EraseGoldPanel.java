@@ -43,6 +43,9 @@ import etomo.type.ViewType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.7  2010/10/11 20:37:27  sueh
  * <p> bug# 1379 Implemented ContextMenu.
  * <p>
@@ -63,7 +66,7 @@ import etomo.type.ViewType;
  * <p> bug# 1222
  * <p> </p>
  */
-final class EraseGoldPanel implements Beads3dFindParent, ContextMenu {
+final class EraseGoldPanel implements ContextMenu {
   public static final String rcsid = "$Id$";
 
   static final String ERASE_GOLD_TAB_LABEL = "Erase Gold";
@@ -83,27 +86,28 @@ final class EraseGoldPanel implements Beads3dFindParent, ContextMenu {
   private final ApplicationManager manager;
   private final AxisID axisID;
   private final DialogType dialogType;
-  private final EraseGoldParent parent;
+  final ParallelProcessEnabledDialog parentDialog;
 
-  private EraseGoldPanel(ApplicationManager manager, AxisID axisID,
-      DialogType dialogType, EraseGoldParent parent,
-      GlobalExpandButton globalAdvancedButton) {
+  private EraseGoldPanel(final ApplicationManager manager, final AxisID axisID,
+      final DialogType dialogType,
+      final ParallelProcessEnabledDialog parentDialog,
+      final GlobalExpandButton globalAdvancedButton) {
     this.manager = manager;
     this.axisID = axisID;
     this.dialogType = dialogType;
-    this.parent = parent;
+    this.parentDialog = parentDialog;
     xfModelPanel = XfModelPanel.getInstance(manager, axisID, dialogType);
     beads3dFindPanel = Beads3dFindPanel.getInstance(manager, axisID,
-        dialogType, this, globalAdvancedButton);
+        dialogType, parentDialog, globalAdvancedButton);
     ccdEraserBeadsPanel = CcdEraserBeadsPanel.getInstance(manager, axisID,
         dialogType);
   }
 
   static EraseGoldPanel getInstance(ApplicationManager manager, AxisID axisID,
-      DialogType dialogType, EraseGoldParent parent,
+      DialogType dialogType, final ParallelProcessEnabledDialog parentDialog,
       GlobalExpandButton globalAdvancedButton) {
     EraseGoldPanel instance = new EraseGoldPanel(manager, axisID, dialogType,
-        parent, globalAdvancedButton);
+        parentDialog, globalAdvancedButton);
     instance.createPanel();
     instance.addListeners();
     instance.setToolTipText();
@@ -174,7 +178,7 @@ final class EraseGoldPanel implements Beads3dFindParent, ContextMenu {
   }
 
   public void updateParallelProcess() {
-    parent.updateParallelProcess();
+    parentDialog.updateParallelProcess();
   }
 
   void updateAdvanced(boolean advanced) {
@@ -233,9 +237,9 @@ final class EraseGoldPanel implements Beads3dFindParent, ContextMenu {
     beads3dFindPanel.getParameters(screenState);
   }
 
-  public void setEnabledTiltParameters(TomogramState state,
+  public void setTiltState(TomogramState state,
       ConstMetaData metaData) {
-    beads3dFindPanel.setEnabledTiltParameters(state, metaData);
+    beads3dFindPanel.setTiltState(state, metaData);
   }
 
   void setParameters(BlendmontParam param) {
