@@ -51,6 +51,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.25  2010/04/28 16:40:35  sueh
  * <p> bug# 1344 Removed the manager from the some of the
  * <p> openMessageDialog calls so that they won't go into the project log.
@@ -295,7 +298,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     // From updateFiducialessParams
     dialog.setFiducialessAlignment(metaData.isFiducialessAlignment(axisID));
     dialog.setImageRotation(metaData.getImageRotation(axisID));
-    dialog.setEnabledTiltParameters(state, metaData);
+    dialog.setTiltState(state, metaData);
     openDialog(dialog);
   }
 
@@ -841,11 +844,11 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     param.setConfigFile(dialog.getConfigFile());
   }
 
-  public void setEnabledTiltParameters() {
+  public void setTiltState() {
     if (dialog == null) {
       return;
     }
-    dialog.setEnabledTiltParameters(state, metaData);
+    dialog.setTiltState(state, metaData);
   }
 
   private void setParameters(ConstCtfPhaseFlipParam param) {
