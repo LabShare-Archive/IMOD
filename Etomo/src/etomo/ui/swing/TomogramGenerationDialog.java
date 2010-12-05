@@ -1,23 +1,24 @@
 package etomo.ui.swing;
 
-import java.awt.Component;
+import java.awt.Container;
 import java.awt.event.MouseEvent;
-import java.io.IOException;
 
 import javax.swing.BoxLayout;
+import javax.swing.JPanel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
 import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.FortranInputSyntaxException;
-import etomo.comscript.TiltParam;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
-import etomo.type.ProcessResultDisplay;
 import etomo.type.ReconScreenState;
 import etomo.type.TomogramState;
-import etomo.type.ViewType;
-import etomo.util.InvalidParameterException;
 
 /**
  * <p>
@@ -25,7 +26,7 @@ import etomo.util.InvalidParameterException;
  * </p>
  * 
  * <p>
- * Copyright: Copyright (c) 2002 - 2006</p>
+ * Copyright: Copyright (c) 2002 - 2010</p>
  * 
  * <p>
  * Organization: Boulder Laboratory for 3D Fine Structure, University of 
@@ -38,6 +39,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 1.1  2010/11/13 16:07:34  sueh
+ * bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ *
  * Revision 3.125  2010/03/05 04:05:48  sueh
  * bug# 1319 Added boolean initialize to setParameters(ConstTiltParam).
  *
@@ -651,7 +655,7 @@ import etomo.util.InvalidParameterException;
  */
 
 public class TomogramGenerationDialog extends ProcessDialog implements
-    ContextMenu, TiltParent {
+    ContextMenu, ParallelProcessEnabledDialog {
   public static final String rcsid = "$Id$";
 
   public static final String X_AXIS_TILT_TOOLTIP = "This line allows one to rotate the reconstruction around the X axis, so "
@@ -659,63 +663,127 @@ public class TomogramGenerationDialog extends ProcessDialog implements
       + "made flat to fit into a smaller volume.";
 
   private final EtomoPanel pnlTilt = new EtomoPanel();
+  private final TabbedPane tabbedPane = new TabbedPane();
 
   private final TiltPanel tiltPanel;
-
   private final TomogramGenerationExpert expert;
+  private final SirtPanel sirtPanel;
 
-  public TomogramGenerationDialog(ApplicationManager appMgr,
+  private Tab curTab = Tab.DEFAULT;
+
+  private TomogramGenerationDialog(ApplicationManager appMgr,
       TomogramGenerationExpert expert, AxisID axisID) {
     super(appMgr, axisID, DialogType.TOMOGRAM_GENERATION);
     this.expert = expert;
-    tiltPanel = TiltPanel.getInstance(appMgr, axisID, dialogType, this,
-        btnAdvanced);
+    tiltPanel = TiltPanel.getBackProjectionInstance(appMgr, axisID, dialogType,
+        this, btnAdvanced);
+    if (EtomoDirector.INSTANCE.getArguments().isNewstuff()) {
+      sirtPanel = SirtPanel.getInstance(appMgr, axisID, dialogType, this,
+          btnAdvanced);
+    }
+    else {
+      sirtPanel = null;
+    }
+  }
+
+  static TomogramGenerationDialog getInstance(ApplicationManager appMgr,
+      TomogramGenerationExpert expert, AxisID axisID) {
+    TomogramGenerationDialog instance = new TomogramGenerationDialog(appMgr,
+        expert, axisID);
+    instance.createPanel();
+    instance.updateParallelProcess();
+    instance.updateAdvanced();
+    instance.initTab();
+    instance.addListeners();
+    return instance;
+  }
+
+  private void createPanel() {
+    //root panel
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
+    rootPanel.setBorder(new BeveledBorder("Tomogram Generation").getBorder());
+    if (EtomoDirector.INSTANCE.getArguments().isNewstuff()) {
+      rootPanel.add(tabbedPane);
+    }
+    else {
+      rootPanel.add(tiltPanel.getRoot());
+    }
+    //tabbed pane
+    tabbedPane.addTab(Tab.BACK_PROJECTION.getLabel(), new JPanel());
+    tabbedPane.addTab(Tab.SIRT.getLabel(), new JPanel());
+    //buttons
     btnExecute.setText("Done");
-    // Layout the main panel (and sub panels) and add it to the root panel
-    pnlTilt.setBorder(new BeveledBorder("Tomogram Generation").getBorder());
-    pnlTilt.setLayout(new BoxLayout(pnlTilt, BoxLayout.Y_AXIS));
-    UIUtilities.addWithYSpace(pnlTilt, tiltPanel.getComponent());
-    UIUtilities.alignComponentsX(pnlTilt, Component.CENTER_ALIGNMENT);
-    rootPanel.add(pnlTilt);
     addExitButtons();
-    //  Mouse adapter for context menu
+  }
+
+  private void addListeners() {
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     rootPanel.addMouseListener(mouseAdapter);
-    // Set the default advanced dialog state
-    updateAdvanced();
+    tabbedPane.addMouseListener(mouseAdapter);
+    tabbedPane.addChangeListener(new TabChangeListener(this));
   }
 
-  public static ProcessResultDisplay getUseTrialTomogramResultDisplay() {
-    return TrialTiltPanel
-        .getUseTrialTomogramResultDisplay(DialogType.TOMOGRAM_GENERATION);
+  private void initTab() {
+    if (!EtomoDirector.INSTANCE.getArguments().isNewstuff()) {
+      return;
+    }
+    tabbedPane.setSelectedIndex(curTab.getIndex());
+    setTab((Container) tabbedPane.getSelectedComponent());
   }
 
-  public static ProcessResultDisplay getGenerateTomogramResultDisplay() {
-    return TiltPanel
-        .getGenerateTomogramResultDisplay(DialogType.TOMOGRAM_GENERATION);
+  private void changeTab(final ConstEtomoNumber index) {
+    if (!EtomoDirector.INSTANCE.getArguments().isNewstuff()) {
+      return;
+    }
+    if (index != null && !index.isNull()) {
+      tabbedPane.setSelectedIndex(index.getInt());
+    }
   }
 
-  public static ProcessResultDisplay getDeleteAlignedStackResultDisplay() {
-    return TiltPanel
-        .getDeleteAlignedStackResultDisplay(DialogType.TOMOGRAM_GENERATION);
+  private void changeTab() {
+    if (!EtomoDirector.INSTANCE.getArguments().isNewstuff()) {
+      return;
+    }
+    ((Container) tabbedPane.getComponentAt(curTab.getIndex())).removeAll();
+    curTab = Tab.getInstance(tabbedPane.getSelectedIndex());
+    setTab((Container) tabbedPane.getSelectedComponent());
+  }
+
+  private void setTab(final Container panel) {
+    if (!EtomoDirector.INSTANCE.getArguments().isNewstuff()) {
+      return;
+    }
+    if (curTab == Tab.BACK_PROJECTION) {
+      panel.add(tiltPanel.getRoot());
+    }
+    else if (curTab == Tab.SIRT) {
+      panel.add(sirtPanel.getRoot());
+    }
+    updateParallelProcess();
+    UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
   void getParameters(MetaData metaData) throws FortranInputSyntaxException {
     tiltPanel.getParameters(metaData);
-  }
-
-  boolean getParameters(TiltParam tiltParam) throws NumberFormatException,
-      InvalidParameterException, IOException {
-    return tiltPanel.getParameters(tiltParam);
+    if (sirtPanel != null) {
+      sirtPanel.getParameters(metaData);
+    }
+    metaData.setGenCurTab(curTab.getIndex());
   }
 
   void getParameters(ReconScreenState screenState) {
     tiltPanel.getParameters(screenState);
+    if (sirtPanel != null) {
+      sirtPanel.getParameters(screenState);
+    }
   }
 
   void setParameters(ConstMetaData metaData) {
     tiltPanel.setParameters(metaData);
+    if (sirtPanel != null) {
+      sirtPanel.setParameters(metaData);
+    }
+    changeTab(metaData.getGenCurTab());
   }
 
   /**
@@ -728,63 +796,64 @@ public class TomogramGenerationDialog extends ProcessDialog implements
    */
   void setParameters(ConstTiltParam tiltParam, boolean initialize) {
     tiltPanel.setParameters(tiltParam, initialize);
+    if (sirtPanel != null) {
+      sirtPanel.setParameters(tiltParam, initialize);
+    }
   }
 
   final void setParameters(ReconScreenState screenState) {
     tiltPanel.setParameters(screenState);
+    if (sirtPanel != null) {
+      sirtPanel.setParameters(screenState);
+    }
   }
 
   /**
    * Update the dialog with the current advanced state
    */
-  public void updateAdvanced() {
+  private void updateAdvanced() {
     tiltPanel.updateAdvanced(isAdvanced());
+    if (sirtPanel != null) {
+      sirtPanel.updateAdvanced(isAdvanced());
+    }
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
   public boolean usingParallelProcessing() {
-    return tiltPanel.usingParallelProcessing();
+    if (curTab == Tab.BACK_PROJECTION) {
+      return tiltPanel.usingParallelProcessing();
+    }
+    else if (curTab == Tab.SIRT) {
+      sirtPanel.usingParallelProcessing();
+    }
+    return false;
   }
 
   /**
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String alignManpageLabel;
-    String alignManpage;
-    String alignLogfileLabel;
-    String alignLogfile;
-    if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
-      alignManpageLabel = "Blendmont";
-      alignManpage = "blendmont";
-      alignLogfileLabel = "Blend";
-      alignLogfile = "blend";
+    if (curTab == Tab.BACK_PROJECTION) {
+      tiltPanel.popUpContextMenu("TOMOGRAM GENERATION", rootPanel, mouseEvent);
     }
-    else {
-      alignManpageLabel = "Newstack";
-      alignManpage = "newstack";
-      alignLogfileLabel = "Newst";
-      alignLogfile = "newst";
+    else if (curTab == Tab.SIRT) {
+      sirtPanel.popUpContextMenu("TOMOGRAM GENERATION", rootPanel, mouseEvent);
     }
-    String[] manPagelabel = { alignManpageLabel, "Tilt", "3dmod" };
-    String[] manPage = { alignManpage + ".html", "tilt.html", "3dmod.html" };
-    String[] logFileLabel = { alignLogfileLabel, "Tilt" };
-    String[] logFile = new String[2];
-    logFile[0] = alignLogfile + axisID.getExtension() + ".log";
-    logFile[1] = "tilt" + axisID.getExtension() + ".log";
-    ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
-        "TOMOGRAM GENERATION", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
-        logFileLabel, logFile, applicationManager, axisID);
   }
 
-  public void setEnabledTiltParameters(TomogramState state,
-      ConstMetaData metaData) {
-    tiltPanel.setEnabledTiltParameters(state, metaData);
+  public void setTiltState(TomogramState state, ConstMetaData metaData) {
+    tiltPanel.setState(state, metaData);
+    if (sirtPanel != null) {
+      sirtPanel.setTiltState(state, metaData);
+    }
   }
 
   void done() {
     expert.doneDialog();
     tiltPanel.done();
+    if (sirtPanel != null) {
+      sirtPanel.done();
+    }
     setDisplayed(false);
   }
 
@@ -792,7 +861,63 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     return tiltPanel;
   }
 
+  TiltDisplay getSirtTiltDisplay() {
+    if (sirtPanel != null) {
+      return sirtPanel.getTiltDisplay();
+    }
+    return null;
+  }
+
   public void updateParallelProcess() {
     applicationManager.setParallelDialog(axisID, usingParallelProcessing());
+  }
+
+  private static final class TabChangeListener implements ChangeListener {
+    private final TomogramGenerationDialog adaptee;
+
+    private TabChangeListener(final TomogramGenerationDialog dialog) {
+      adaptee = dialog;
+    }
+
+    public void stateChanged(final ChangeEvent event) {
+      adaptee.changeTab();
+    }
+  }
+
+  private static final class Tab {
+    private static final Tab BACK_PROJECTION = new Tab(0, "Back Projection");
+    private static final Tab SIRT = new Tab(1, "SIRT");
+
+    private static final Tab DEFAULT = BACK_PROJECTION;
+
+    private final int index;
+    private final String label;
+
+    private Tab(final int index, final String label) {
+      this.index = index;
+      this.label = label;
+    }
+
+    private static Tab getInstance(final int index) {
+      if (index == BACK_PROJECTION.index) {
+        return BACK_PROJECTION;
+      }
+      if (index == SIRT.index) {
+        return SIRT;
+      }
+      return DEFAULT;
+    }
+
+    private int getIndex() {
+      return index;
+    }
+
+    public String toString() {
+      return label;
+    }
+
+    private String getLabel() {
+      return label;
+    }
   }
 }
