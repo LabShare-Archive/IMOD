@@ -15,6 +15,9 @@ package etomo.type;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2010/03/27 04:51:56  sueh
+ * <p> bug# 1333 Added panel IDs for AbstractTiltPanel.
+ * <p>
  * <p> Revision 3.2  2010/03/03 04:58:31  sueh
  * <p> bug# 1311 Added panel IDs for the tiltxcorr panel.
  * <p>
@@ -32,4 +35,5 @@ public final class PanelId {
   public static final PanelId PATCH_TRACKING = new PanelId();
   public static final PanelId TILT_3D_FIND = new PanelId();
   public static final PanelId TILT = new PanelId();
+  public static final PanelId TILT_SIRT = new PanelId();
 }
