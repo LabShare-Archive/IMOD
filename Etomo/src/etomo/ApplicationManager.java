@@ -104,7 +104,6 @@ import etomo.type.ProcessResult;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
-import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.ProcessTrack;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
@@ -137,6 +136,7 @@ import etomo.ui.swing.PostProcessingDialog;
 import etomo.ui.swing.PreProcessingDialog;
 import etomo.ui.swing.ProcessDialog;
 import etomo.ui.swing.ProcessDisplay;
+import etomo.ui.swing.ProcessResultDisplayFactory;
 import etomo.ui.swing.SetupDialogExpert;
 import etomo.ui.swing.TiltDisplay;
 import etomo.ui.swing.TiltXcorrDisplay;
@@ -3672,11 +3672,11 @@ public final class ApplicationManager extends BaseManager implements
         axisID)).setTomopitchOutput();
   }
 
-  public void setEnabledTiltParameters(AxisID axisID) {
+  public void setTiltState(AxisID axisID) {
     ((FinalAlignedStackExpert) getUIExpert(DialogType.FINAL_ALIGNED_STACK,
-        axisID)).setEnabledTiltParameters();
+        axisID)).setTiltState();
     ((TomogramGenerationExpert) getUIExpert(DialogType.TOMOGRAM_GENERATION,
-        axisID)).setEnabledTiltParameters();
+        axisID)).setTiltState();
   }
 
   /**
@@ -8139,6 +8139,9 @@ public final class ApplicationManager extends BaseManager implements
 /**
  * <p>
  * $Log$
+ * Revision 3.363  2010/11/13 16:02:54  sueh
+ * bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ *
  * Revision 3.362  2010/07/02 03:12:55  sueh
  * bug# 1388 Calling processchunks with popupChunkWarnings equals to true.
  *
