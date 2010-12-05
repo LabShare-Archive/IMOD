@@ -12,7 +12,7 @@ import etomo.type.CombineProcessType;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
-import etomo.type.ProcessResultDisplayFactory;
+import etomo.ui.swing.ProcessResultDisplayFactory;
 import etomo.ui.swing.UIHarness;
 import etomo.util.Utilities;
 
@@ -33,6 +33,9 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.32  2010/11/13 16:03:45  sueh
+ * <p> $bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p> $
  * <p> $Revision 1.31  2010/02/17 04:49:20  sueh
  * <p> $bug# 1301 Using the manager instead of the manager key do pop up
  * <p> $messages.
