@@ -1,7 +1,5 @@
 package etomo.ui.swing;
 
-import java.io.IOException;
-
 import etomo.ApplicationManager;
 import etomo.ProcessSeries;
 import etomo.comscript.ComScriptManager;
@@ -14,13 +12,13 @@ import etomo.type.ConstMetaData;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
+import etomo.type.PanelId;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessTrack;
 import etomo.type.ReconScreenState;
 import etomo.type.TomogramState;
 import etomo.type.ViewType;
-import etomo.util.InvalidParameterException;
 import etomo.util.Utilities;
 
 /**
@@ -69,7 +67,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     //Create the dialog and show it.
     Utilities.timestamp("new", "TomogramGenerationDialog",
         Utilities.STARTED_STATUS);
-    dialog = new TomogramGenerationDialog(manager, this, axisID);
+    dialog = TomogramGenerationDialog.getInstance(manager, this, axisID);
     Utilities.timestamp("new", "TomogramGenerationDialog",
         Utilities.FINISHED_STATUS);
     // no longer managing image size
@@ -87,7 +85,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     boolean genExists = metaData.isGenExists(axisID);
     setParameters(tiltParam, !genExists);
     // Set the fidcialess state and tilt axis angle
-    setEnabledTiltParameters();
+    setTiltState();
     metaData.setGenExists(axisID, true);
     openDialog(dialog);
   }
@@ -106,16 +104,16 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 
   public boolean reconnectTilt(ProcessName processName) {
     ProcessResultDisplay display = manager.getProcessResultDisplayFactory(
-        axisID).getGenerateTomogram();
+        axisID).getTilt(DialogType.TOMOGRAM_GENERATION, PanelId.TILT);
     sendMsgProcessStarting(display);
     return manager.reconnectTilt(axisID, processName, display);
   }
 
-  public void setEnabledTiltParameters() {
+  public void setTiltState() {
     if (dialog == null) {
       return;
     }
-    dialog.setEnabledTiltParameters(state, metaData);
+    dialog.setTiltState(state, metaData);
   }
 
   void doneDialog() {
@@ -201,20 +199,12 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     }
     dialog.setParameters(tiltParam, initialize);
   }
-
-  /**
-   * Get the tilt parameters from the requested axis panel
-   */
-  private boolean getParameters(TiltParam tiltParam)
-      throws NumberFormatException, InvalidParameterException, IOException {
-    if (dialog == null) {
-      return false;
-    }
-    return dialog.getParameters(tiltParam);
-  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.35  2010/04/28 16:47:02  sueh
  * <p> bug# 1344 In startNextProcessing passing
  * <p> process.getOutputImageFileType to processchunks.
