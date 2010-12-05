@@ -22,6 +22,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1  2010/11/13 16:07:35  sueh
+* <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+* <p>
 * <p> Revision 3.2  2009/11/20 17:02:34  sueh
 * <p> bug# 1282 Added prefixes to all of the field names, so that the fields that
 * <p> are actually abstract buttons (radio buttons, etc) won't be activated by a
@@ -34,6 +37,10 @@ import etomo.util.Utilities;
 
 final class ComboBox extends JComboBox{
   public static  final String  rcsid =  "$Id$";
+  
+  ComboBox(String label){
+    setName(label);
+  }
   
   ComboBox(JLabel label){
     setName(label.getText());
