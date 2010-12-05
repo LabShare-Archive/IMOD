@@ -19,8 +19,6 @@ import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.IntKeyList;
 import etomo.type.MetaData;
-import etomo.type.ProcessResultDisplay;
-import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.util.InvalidParameterException;
@@ -39,6 +37,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.2  2010/04/28 16:48:38  sueh
  * <p> bug# 1344 In getParameters(TiltParam) calling param.setCommandMode.
  * <p>
@@ -73,6 +74,7 @@ final class TrialTiltPanel implements Expandable, Run3dmodButtonContainer,
   //A way to know what items are currently in the trial tomogram combo box.
   //It is set from MetaData, which is assumed to be not null.
   private IntKeyList trialTomogramList = null;
+  private boolean enabled = true;
 
   private TrialTiltPanel(ApplicationManager manager, AxisID axisID,
       DialogType dialogType, TrialTiltParent parent) {
@@ -91,15 +93,10 @@ final class TrialTiltPanel implements Expandable, Run3dmodButtonContainer,
     TrialTiltPanel instance = new TrialTiltPanel(manager, axisID, dialogType,
         parent);
     instance.createPanel();
+    instance.updateDisplay();
     instance.setToolTipText();
     instance.addListeners();
     return instance;
-  }
-
-  public static ProcessResultDisplay getUseTrialTomogramResultDisplay(
-      DialogType dialogType) {
-    return MultiLineButton.getToggleButtonInstance(
-        "Use Current Trial Tomogram", dialogType);
   }
 
   /**
@@ -151,6 +148,19 @@ final class TrialTiltPanel implements Expandable, Run3dmodButtonContainer,
 
   void setVisible(boolean visible) {
     pnlRoot.setVisible(visible);
+  }
+
+  public final void setEnabled(boolean enable) {
+    enabled = enable;
+    updateDisplay();
+  }
+
+  private void updateDisplay() {
+    lblTrialTomogramName.setEnabled(enabled);
+    cmboTrialTomogramName.setEnabled(enabled);
+    btnTrial.setEnabled(enabled);
+    btn3dmodTrial.setEnabled(enabled);
+    btnUseTrial.setEnabled(enabled);
   }
 
   void setTrialTomogramNameList(ConstIntKeyList input) {
@@ -214,7 +224,7 @@ final class TrialTiltPanel implements Expandable, Run3dmodButtonContainer,
     btnUseTrial.setButtonState(screenState.getButtonState(btnUseTrial
         .getButtonStateKey()));
   }
-  
+
   public void expand(final GlobalExpandButton button) {
   }
 
