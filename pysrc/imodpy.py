@@ -25,6 +25,7 @@ This module provides the following functions:
   writeTextFile(filename, strings) - writes set of strings to a text file
   optionValue(linelist, option, type, ignorecase = False) - finds option value
                                                               in list of lines
+  completeAndCheckComFile(comfile) - returns complete com file name and root
   fmtstr(string, *args) - formats a string with replacement fields
   prnstr(string, file = sys.stdout, end = '\n') - replaces print function
 """
@@ -38,13 +39,21 @@ pyVersion = 100 * sys.version_info[0] + 10 * sys.version_info[1]
 if pyVersion < 300:
    import exceptions
 
+# popen2 is deprecated in 2.6 onward but subProcess STILL doesn't work
+# reliably in Cygwin: on Vista 64-bit it gave sporadic "unable to remap ...dll
+# to same address as parent" despite trying rebaseall.  So do this!
+if pyVersion >= 260:
+   import warnings
+   warnings.simplefilter("ignore", DeprecationWarning)
+
+# The global place to stash error strings
 errStrings = []
 
 # Use the subprocess module if available except on cygwin where broken
-# pipes occurred occasionally; require it on win32
-# but in 2.6 on cygwin is complains that this popen2 is deprecated, so try it
+# pipes (early on) and remap problems (later) occurred occasionally
+# require it on win32
 useSubprocess = True
-if (sys.platform.find('cygwin') < 0 and pyVersion >= 240) or pyVersion >= 260:
+if (sys.platform.find('cygwin') < 0 and pyVersion >= 240):
    from subprocess import *
 else:
    useSubprocess = False
@@ -411,6 +420,30 @@ def optionValue(linelist, option, type, ignorecase = False):
    return retval
 
 
+# Given a com file entry with optional extension, get the rootname and its
+# complete name and check for existence
+def completeAndCheckComFile(comfile):
+   """completeAndCheckComFile(comfile) - return complete com file name and root
+   Given a com file file name that can be file, file., or file.com, compose
+   the complete name and the root name and exit with error if file does not
+   exist.
+   """
+   if not comfile:
+      exitError("A command file must be entered")
+
+   if comfile.endswith('.com'):
+      rootname = comfile[0 : len(comfile) - 4]
+   elif comfile.endswith('.'):
+      rootname = comfile.rstrip('.')
+   else:
+      rootname = comfile
+
+   comfile = rootname + '.com'
+   if not os.path.exists(comfile):
+      exitError("Command file " + comfile + " does not exist")
+   return (comfile, rootname)
+
+
 # Function to format a string in new format for earlier versions of python
 def fmtstr(stringIn, *args):
    """fmtstr(string, *args) - formats a string with replacement fields
@@ -530,6 +563,9 @@ def prnstr(string, file = sys.stdout, end = '\n'):
 
 
 #  $Log$
+#  Revision 1.11  2010/12/02 02:21:49  mast
+#  Fixed test for binary file, encode only for python 3
+#
 #  Revision 1.10  2010/12/02 00:37:59  mast
 #  Made prnstr encode for a binary output file and flush it, for vmstopy
 #
