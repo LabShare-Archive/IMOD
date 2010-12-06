@@ -45,17 +45,7 @@ options = [":n:I:", ":t:I:", ":y:B:", ":e:B:", ":u:B:", ":r:B:", ":b:I:"]
 
 # Get the com file name, derive a root name and new com file name, check exists
 comfile = PipGetNonOptionArg(0)
-
-if comfile.endswith('.com'):
-   rootname = comfile[0 : len(comfile) - 4]
-elif comfile.endswith('.'):
-   rootname = comfile.rstrip('.')
-else:
-   rootname = comfile
-
-comfile = rootname + '.com'
-if not os.path.exists(comfile):
-   exitError("Command file " + comfile + " does not exist")
+(comfile, rootname) = completeAndCheckComFile(comfile)
 
 # Get options
 boundPixels = 2048
@@ -273,6 +263,10 @@ sys.exit(0)
 
 #
 #  $Log$
+#  Revision 1.2  2010/12/01 23:02:47  mast
+#  Modified for python 2/3; fixed problem with catting ecd files that don't
+#  exist; stopped removing finish.log in finish.com
+#
 #  Revision 1.1  2010/06/23 23:21:26  mast
 #  Added to package
 #
