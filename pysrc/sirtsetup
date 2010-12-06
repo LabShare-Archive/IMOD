@@ -108,19 +108,7 @@ options = ["co:CommandFile:FN:", "nu:NumberOfProcessors:I:",
 
 # Get the com file name, derive a root name and new com file name, check exists
 comfile = PipGetInOutFile('CommandFile', 0)
-if not comfile:
-   exitError("A command file must be entered")
-
-if comfile.endswith('.com'):
-   rootname = comfile[0 : len(comfile) - 4]
-elif comfile.endswith('.'):
-   rootname = comfile.rstrip('.')
-else:
-   rootname = comfile
-
-comfile = rootname + '.com'
-if not os.path.exists(comfile):
-   exitError("Command file " + comfile + " does not exist")
+(comfile, rootname) = completeAndCheckComFile(comfile)
 
 # Get options
 numproc = PipGetInteger('NumberOfProcessors', 8)
@@ -702,6 +690,11 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.6  2010/12/03 23:50:13  mast
+# Added options for subarea size and offset, resuming from an intermediate
+# iteration, and cleaning up past the point of resumption before starting.
+# Changed for Python 2/3 compatibility
+#
 # Revision 1.5  2010/06/22 02:07:35  mast
 # Didn't need supermont import
 #
