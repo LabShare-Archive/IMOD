@@ -1,0 +1,406 @@
+#!/usr/bin/python -u
+# splittilt - program to set up command files for parallel reconstruction
+#
+# Author: David Mastronarde
+#
+# $Id$
+# Log at end
+#
+
+progname = 'splittilt'
+prefix = 'ERROR: ' + progname + ' - '
+penalty = 1.33
+maxextrapct = 102
+numproc = 8
+minslices = 50
+minratio = 2
+targetratio = 5
+boundpixels = 2048
+
+#### MAIN PROGRAM  ####
+#
+# load System Libraries
+import os, sys, os.path, signal, math, re, glob
+
+#
+# Setup runtime environment
+if sys.platform.find("win32") < 0:
+   try:
+      signal.signal(signal.SIGHUP, signal.SIG_IGN)
+   except:
+      pass
+if os.getenv('IMOD_DIR') != None:
+   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
+                        os.pathsep + os.environ['PATH']
+   sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import *
+from pysed import *
+
+
+# Initializations (defaults are above or in Pip calls)
+oldstyle = "#"
+boundext = 'rbound'
+
+# Fallbacks from ../manpages/autodoc2man 3 1 splittilt
+options = [":CommandFile:FN:", "n:ProcessorNumber:I:", "s:SliceMinimum:I:",
+           "t:TargetChunks:I:", "m:ChunkMininum:I:",
+           "p:OldStyleXtiltPenalty:F:", "v:VerticalSlices:B:",
+           "c:SeparateChunks:B:", "b:BoundaryPixels:I:",
+           "i:InitialComNumber:I:", "o:OpenForMoreComs:B:",
+           "d:DimensionsOfStack:IP:"]
+
+(numOpts, numNonOpts) = PipReadOrParseOptions(sys.argv, options, progname, 1, \
+                                              1, 0)
+
+# Get the com file name, derive a root name and new com file name, check exists
+comfile = PipGetInOutFile('CommandFile', 0)
+(comfile, rootname) = completeAndCheckComFile(comfile)
+
+# Get options
+numproc = PipGetInteger('ProcessorNumber', numproc)
+minslices = PipGetInteger('SliceMinimum', minslices)
+penalty = PipGetFloat('OldStyleXtiltPenalty', penalty)
+targetslabs = PipGetInteger('TargetChunks', 0)
+minslabs = PipGetInteger('ChunkMininum', 0)
+vertical = PipGetBoolean('VerticalSlices', 0)
+direct = PipGetBoolean('SeparateChunks', 0) == 0
+boundpixels = PipGetInteger('BoundaryPixels', boundpixels)
+startnum = PipGetInteger('InitialComNumber', 1)
+ifstartnum = 1 - PipGetErrNo()
+leaveopen = PipGetBoolean('OpenForMoreComs', 0)
+dimens = PipGetTwoIntegers('DimensionsOfStack', 0, 0)
+ifDimens = 1 - PipGetErrNo()
+
+# Set min and target slabs if not entered
+if minslabs == 0:
+   minslabs = minratio * numproc
+if targetslabs == 0:
+   targetslabs = targetratio * numproc
+targetslabs = max(minslabs, targetslabs)
+
+# Collect info from command file
+comlines = readTextFile(comfile, 'tilt command file')
+xtiltArr = optionValue(comlines, 'xaxistilt', 2, 1)
+fullimage = optionValue(comlines, 'fullimage', 1, 1)
+thickArr = optionValue(comlines, 'thickness', 1, 1)
+slices = optionValue(comlines, 'slice', 1, 1)
+local = optionValue(comlines, 'localfile', 0, 1)
+binningArr = optionValue(comlines, 'imagebinned', 1, 1)
+alifile = optionValue(comlines, 'inputproj', 0, 1)
+recfile = optionValue(comlines, 'outputfile', 0, 1)
+rectoproj = optionValue(comlines, 'recfiletoreproj', 0, 1)
+sliceproj = optionValue(comlines, 'reproject', 2, 1)
+widthArr = optionValue(comlines, 'width', 1, 1)
+intsirt = optionValue(comlines, 'sirtiterations', 1, 1)
+xtiltFile = optionValue(comlines, 'xtiltfile', 0, 1)
+zfactors = optionValue(comlines, 'zfactorfile', 0, 1)
+
+binval = 1
+if binningArr:
+   binval = binningArr[0]
+xaxistilt = 0.
+if xtiltArr:
+   xaxistilt = xtiltArr[0]
+
+zfactors = optionValue(comlines, 'zfactorfile', 0, 1)
+localali = optionValue(comlines, 'localfile', 0, 1)
+substart = optionValue(comlines, 'subsetstart', 1, 1)
+binningArr = optionValue(comlines, 'imagebinned', 1, 1)
+binning = 1
+if binningArr:
+   binning = binningArr[0]
+xtilt = 0.
+if xtiltArr:
+   xtilt = xtiltArr[0]
+   
+reproj = intsirt == None and (rectoproj or sliceproj)
+
+# Figure out if vertical slices are even possible
+vertPossible = localali == None and zfactors == None and not reproj
+if vertPossible and xtiltFile:
+   xtlines = readTextFile(xtiltFile, 'X-tilt file')
+   firstxt = float(xtlines[0])
+   for i in range(len(xtlines)):
+      if math.fabs(float(xtlines[i]) - firstxt) > 1.e-5:
+         vertPossible = False
+         break
+   else:
+      xaxistilt += firstxt
+
+# Get the input and output image file names from the command file if necessary
+# DUPLICATE OF SIRTSETUP
+if alifile == None:
+   for ind in range(len(comlines)):
+      if re.search(r'^\s*\$\s*tilt\s', comlines[ind]) or \
+             re.search(r'^\s*\$\s*tilt$', comlines[ind]):
+         break
+   else:
+      exitError("tilt command not found in com file " + comfile)
+   while ind < len(comlines) - 1:
+      ind += 1
+      if not comlines[ind].strip().startswith('#'):
+         alifile = comlines[ind].strip()
+         break
+   if recfile == None:
+      while ind < len(comlines) - 1:
+         ind += 1
+         if not comlines[ind].strip().startswith('#'):
+            recfile = comlines[ind].strip()
+            break
+   if alifile == None or recfile == None:
+      exitError("Cannot find input and output file names in command file")
+
+
+noali = not os.path.exists(alifile)
+if noali and not ifDimens and not fullimage and not slices:
+   exitError('Command file has neither a SLICE nor a FULLIMAGE entry and ' +\
+             'image file does not exist yet')
+
+if direct and noali and not ifDimens and not fullimage and not widthArr:
+   exitError('Command file has neither a WIDTH nor a FULLIMAGE entry and ' +\
+             'image file does not exist yet')
+
+# Divide thickness by the binning for computations
+if thickArr:
+   thickness = thickArr[0] / binval
+else:
+   exitError('Command file has no THICKNESS entry')
+
+ind = recfile.rfind('.')
+recext = ''
+recroot = recfile
+if ind >= 0 and ind < len(recfile) - 1:
+   recext = recfile[ind+1:]
+   recroot = recfile[0:ind]
+
+# Remove any previous files now in case the number has changed or 
+# direct/indirect mode.  Processchunks takes care of other files
+oldlist = glob.glob(rootname + '-[0-9][0-9][0-9]*.log')
+if startnum <= 1:
+   oldlist += glob.glob(rootname + '-[0-9][0-9][0-9]*.com')
+   oldlist.append(rootname + '-start.com')
+   oldlist.append(rootname + '-finish.com')
+try:
+   for f in oldlist:
+      os.remove(f)
+except:
+   pass
+
+# Get the size from the supplied dimension or from the aligned stack instead 
+# of relying on FULLIMAGE if possible, and scale them up by binning
+#
+if not noali or ifDimens:
+   if ifDimens:
+      fullimage = [dimens[0], dimens[1]]
+   else:
+      try:
+         fullimage = list(getmrcsize(alifile))
+      except ImodpyError:
+         exitFromImodError(progname)
+
+   fullimage[0] *= binval
+   fullimage[1] *= binval
+else:
+    prnstr("WARNING: " + progname + " - aligned stack not found; sizes will" +\
+           " be taken from FULLIMAGE entry")
+
+if fullimage:
+   firstslice = 0
+   numslices = (fullimage[1] + binval - 1) // binval
+
+if slices:
+   firstslice = slices[0] // binval
+   numslices = slices[1] // binval + 1 - firstslice
+
+# If reprojecting from tomo, need to get real number of slices and starting one
+slicedel = 'SLICE'
+if reproj and rectoproj:
+   slicedel = 'ZMinAndMax'
+   slices = optionValue(comlines, 'ZMinAndMax', 1, 1)
+   firstslice = 0
+   if slices:
+      firstslice = slices[0]
+      numslices = slices[1] + 1 - firstslice
+   binval = 1
+
+# Start with target size, make sure bigger than minimum
+slabsize = max(minslices, numslices // targetslabs)
+
+if vertPossible and xaxistilt:
+
+    # If no locals or Z factors and X axis tilt, go for maximum # of slabs 
+    # that has a percentage of extra slices within a minimal limit, down to the
+    # "min" # of slabs
+    nslabs = targetslabs
+    extrathick = math.fabs(thickness * math.sin(0.01745329 * xaxistilt))
+    while nslabs >= minslabs:
+        slabsize = max(minslices, numslices // nslabs)
+        nslabs -= 1
+        
+        # Get percent of extra slices required
+        extranum = int(100. * (slabsize + extrathick) / slabsize)
+        if extranum <= maxextrapct:
+           break
+
+    pennum = int(100. * penalty)
+
+    # If extra is less than penalty, proceed
+    # Otherwise, drop to old-style tilting unless vertical specified
+    if extranum > pennum:
+       if not vertical:
+          oldstyle = "XTILTINTERP 0"
+       else:
+
+          # If vertical specified, compute optimum size that just breaks
+          # even with penalty for old-style tilting, but limit it
+          slabsize = int(extrathick / (penalty - 1.))
+          maxsize = numproc // minslabs
+          slabsize = max(minslices, min(maxsize, slabsize))
+
+numslabs = (numslices + slabsize // 2) // slabsize
+slabsize = numslices // numslabs
+remainder = numslices % numslabs
+
+# Now that slab size is known, get binned width and # of bound lines
+#
+if widthArr:
+   widthnum = widthArr[0] // binval
+else:
+   widthnum = fullimage[0] // binval
+
+boundlines = (boundpixels + widthnum - 1) // widthnum
+if reproj:
+   boundlines = min(boundlines, slabsize // 2 + 1)
+elif slabsize == 1:
+   boundlines = min(boundlines, thickness // 2 + 1)
+else:
+   boundlines = min(boundlines, thickness - 1)
+
+templist = []
+recsed = recfile
+mintotslice = binval * firstslice
+maxtotslice = binval * (firstslice + numslices - 1)
+totsed = 'gibberish'
+boundsed = 'gibberish'
+boundfile = rootname + '-bound.info'
+if reproj:
+   boundfile = rootname + '-rpbound.info'
+if direct:
+    totsed = 'THICKNESS'
+    recsed = 'gibberish'
+    boundsed = 'THICKNESS'
+    thiscom = rootname + '-start.com'
+    if startnum > 1:
+       thiscom = fmtstr(rootname + '-{:03d}-sync.com', startnum)
+       startnum += 1
+
+    sedcom = ["/" + slicedel + "/d",
+              '/savework/d',
+              '/^ *THICKNESS/a/' + slicedel + ' -1 -1/',
+              fmtstr("/^ *THICKNESS/a/TOTALSLICES {} {}/", mintotslice,
+                     maxtotslice)]
+    sedlines = pysed(sedcom, comlines, None, True)
+    sedlines.append('$sync')
+    writeTextFile(thiscom, sedlines)
+
+    boundtext = [fmtstr("1 {} {} {} {}", reproj, widthnum, boundlines,
+                         numslabs)]
+
+firstofall = firstslice
+for num in range(1, numslabs+1):
+   numrec = num + startnum - 1
+   numtext = fmtstr('{:03d}', numrec)
+   thiscom = rootname + '-' + numtext + '.com'
+   tempname = recroot + '-' + numtext + '.' + recext
+   templist.append(tempname)
+   lastslice = firstslice + slabsize - 1
+   if num <= remainder:
+      lastslice += 1
+
+   # Get unbinned first and last slices for output
+   ubfirst = firstslice * binval
+   ublast = lastslice * binval
+
+   # Modify the command file: delete existing slice, get rid of savework,
+   # Set the new slice command and the xtiltinterp control
+   sedcom = ["/" + recsed + "/s//" + tempname + "/",
+             "/" + slicedel + "/d",
+             '/savework/d',
+             fmtstr("/^ *THICKNESS/a/{} {} {}/", slicedel, ubfirst, ublast),
+             "/^ *THICKNESS/a/" + oldstyle + "/",
+             fmtstr("/{}/a/TOTALSLICES {} {}/", totsed, mintotslice,
+                    maxtotslice),
+             "/" + boundsed + "/a/BoundaryInfoFile " + boundfile + "/"]
+   sedlines = pysed(sedcom, comlines, None, True)
+   sedlines.insert(0, '$sync')
+   writeTextFile(thiscom, sedlines)
+   if direct:
+      boundtext.append(recroot + '-' + numtext + '.' + boundext)
+      boundstart = firstslice - firstofall
+      boundend = lastslice - firstofall
+      if reproj:
+         boundend -= boundlines - 1
+      if num == 1:
+         boundstart = -1
+      if num == numslabs:
+         boundend = -1
+      if reproj:
+         boundtext.append(fmtstr("-1 {} -1 {}", boundstart, boundend))
+      else:
+         boundtext.append(fmtstr("{} 0 {} -1", boundstart, boundend))
+   firstslice = lastslice + 1
+
+finish = rootname + '-finish.com'
+cleanup = '$\\rm -f ' + rootname + '-[0-9][0-9][0-9]*.com* ' + rootname +\
+          '-[0-9][0-9][0-9]*.log* '
+cleanbound = boundfile
+if leaveopen:
+   finish = fmtstr(rootname + '-{:03d}-sync.com', num + startnum);
+   cleanup = '$\\rm -f '
+   cleanbound = ""
+
+if not direct and not reproj:
+   finishlines = ['$newstack -StandardInput',
+                  'OutputFile ' + recfile]
+   for num in range(numslabs):
+      finishlines.append('InputFile ' + templist[num])
+   finishlines.append(cleanup + recroot + '-[0-9][0-9][0-9]*.' + recext)
+elif not direct:
+   finishlines = ['$assemblevol', 
+                  recfile,
+                  fmtstr('1,{},1', numslabs),
+                  '0,0']
+
+    # Write the 0,0 for each slab then the one for Z
+   for num in range(numslabs):
+      finishlines.append("0,0")
+   for num in range(numslabs):
+      finishlines.append(templist[num])
+   
+   finishlines.append(cleanup + recroot + '-[0-9][0-9][0-9]*.' + recext)
+else:
+
+   finishlines = ['$fixboundaries ' + recfile + ' ' + boundfile,
+                  fmtstr('$collectmmm pixels= {} {} {} {}', rootname,
+                         numslabs, recfile, startnum),
+                  cleanup + recroot + '-[0-9][0-9][0-9]*.' + boundext + ' ' +\
+                  cleanbound]
+
+
+writeTextFile(finish, finishlines)
+if direct:
+   writeTextFile(boundfile, boundtext)
+
+prnstr(fmtstr("Command files for {} chunks created and ready to run with:",
+              numslabs))
+prnstr("  processchunks machine_list " + rootname)
+
+#  $Log$
+    
