@@ -1,0 +1,103 @@
+Version = 1.0
+Pip = 1
+
+[Field = CommandFile]
+type = FN
+usage =  Tilt command file, with or without extension
+tooltip =
+manpage = Tilt command file.  It can be entered with or without extension,
+i.e., as "tilt", "tilt.", or "tilt.com".
+
+[Field = ProcessorNumber]
+short = n
+type = I
+usage = Target or expected number of machines (default 8)
+tooltip =
+manpage = The number of machines that you expect to run
+the command files on.  The default is 8
+
+[Field = SliceMinimum]
+short = s
+type = I
+usage = Minimum number of slices per chunk (default 50)
+tooltip =
+manpage =
+
+[Field = TargetChunks]
+short = t
+type = I
+usage = Target number of chunks (default 5 times expected # of machines)
+tooltip =
+manpage =
+
+[Field = ChunkMininum]
+short = m
+type = I
+usage = Minimum number of chunks (default 2 times expected # of machines)
+tooltip =
+manpage =
+
+[Field = OldStyleXtiltPenalty]
+short = p
+type = F
+usage = Computational penalty for old-style X-axis tilting (default 1.33)
+tooltip =
+manpage =
+
+[Field = VerticalSlices]
+short = v
+type = B
+usage = Do vertical slices instead of old-style X-axis tilting
+tooltip =
+manpage = Do vertical slices instead of old-style X-axis tilting, regardless
+of the penalty.
+
+[Field = SeparateChunks]
+short = c
+type = B
+usage = Write chunks to separate files, not directly to single output file
+tooltip =
+manpage = Write chunks to separate files named setname-nnn.rec and assemble
+the output file from these at the end.  The default is to write directly to
+the output file.
+
+[Field = BoundaryPixels]
+short = b
+type = I
+usage = Number of boundary pixels for direct writing
+tooltip =
+manpage = Number of pixels at each boundary between chunks to save in separate
+boundary files (named setname-nnn.rbound) and rewrite to the output file in
+the -finish.com file, when directly writing to the output file.  The default
+is 2048.  This capability to rewrite lines at the boundary should make it
+unnecessary to write chunks to separate files.
+
+[Field = InitialComNumber]
+short = i
+type = I
+usage = Initial command file number
+tooltip =
+manpage = Start with given command file number instead of 1.  When this option
+is entered, the program will not delete any existing command files.  If data
+are being written directly to output file, the first file is named
+-nnn-sync.com instead of -start.com.
+
+[Field = OpenForMoreComs]
+short = o
+type = B
+usage = Leave command file set open, finish with -sync instead of -finish
+tooltip =
+manpage = Leave the command file set open by naming the command file for
+reassembly -nnn-sync.com instead of -finish.com, and by not cleaning up
+command and log files in the reassembly file.
+
+[Field = DimensionsOfStack]
+short = d
+type = IP
+usage = X and Y size of aligned stack
+tooltip =
+manpage = Use the given values as the dimensions of the aligned stack.
+This option is needed when calling from Sirtsetup(1) if the log
+of the stack is being used or if a subarea is being done.
+
+
