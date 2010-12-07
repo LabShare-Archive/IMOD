@@ -50,8 +50,8 @@ public class SplittiltParam {
   
   private final void buildCommand() {
     ArrayList command = new ArrayList();
-    command.add("tcsh");
-    command.add("-f");
+    command.add("python");
+    command.add("-u");
     command.add(BaseManager.getIMODBinPath() + COMMAND_NAME);
     command.add("-n");
     command.add(numMachines.toString());
@@ -80,6 +80,9 @@ public class SplittiltParam {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.4  2010/01/11 23:49:01  sueh
+* <p> bug# 1299 Added isMessageReporter.
+* <p>
 * <p> Revision 1.3  2009/09/01 03:17:46  sueh
 * <p> bug# 1222
 * <p>
