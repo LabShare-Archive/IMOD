@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/7/10: Fixed uninitialized variable in tomopieces.
+
 12/3/10: Added options to Sirtsetup for reconstructing from a subarea of the
 aligned stack that can be displaced along the tilt axis; for resuming from an
 intermediate iteration, and for cleaning up files from previous runs.
