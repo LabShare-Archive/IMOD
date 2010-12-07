@@ -39,21 +39,15 @@ pyVersion = 100 * sys.version_info[0] + 10 * sys.version_info[1]
 if pyVersion < 300:
    import exceptions
 
-# popen2 is deprecated in 2.6 onward but subProcess STILL doesn't work
-# reliably in Cygwin: on Vista 64-bit it gave sporadic "unable to remap ...dll
-# to same address as parent" despite trying rebaseall.  So do this!
-if pyVersion >= 260:
-   import warnings
-   warnings.simplefilter("ignore", DeprecationWarning)
-
 # The global place to stash error strings
 errStrings = []
 
 # Use the subprocess module if available except on cygwin where broken
-# pipes (early on) and remap problems (later) occurred occasionally
-# require it on win32
+# pipes (early on) occurred occasionally; require it on win32
+# popen2 is deprecated in 2.6 onward, and subprocess seems to work now in
+# cygwin, so try using it.
 useSubprocess = True
-if (sys.platform.find('cygwin') < 0 and pyVersion >= 240):
+if (sys.platform.find('cygwin') < 0 and pyVersion >= 240) or pyVersion >= 260:
    from subprocess import *
 else:
    useSubprocess = False
@@ -563,6 +557,10 @@ def prnstr(string, file = sys.stdout, end = '\n'):
 
 
 #  $Log$
+#  Revision 1.12  2010/12/06 22:30:10  mast
+#  Added com file name completion routine (maybe temporarily), switched back
+#  to popen2 for cygwin python 2.6+ and set up to ignore deprecation warnings
+#
 #  Revision 1.11  2010/12/02 02:21:49  mast
 #  Fixed test for binary file, encode only for python 3
 #
