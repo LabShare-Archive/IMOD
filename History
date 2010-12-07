@@ -1,6 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-12/7/10: Fixed uninitialized variable in tomopieces.
+12/7/10: Fixed uninitialized variable in tomopieces (In 4.1).
 
 12/3/10: Added options to Sirtsetup for reconstructing from a subarea of the
 aligned stack that can be displaced along the tilt axis; for resuming from an
@@ -36,7 +36,7 @@ faster and saves a lot of I/O.
 
 11/5/10: Changed default minimum nice value for parallel processing to 0.
 
-11/3/10: Fixed -number option for Point2model.
+11/3/10: Fixed -number option for Point2model (In 4.1).
 
 11/2/10: Fixed imodkillgroup on Windows for killing a suspended process.
 
@@ -47,7 +47,7 @@ any order.
 
 10/22/10: IMOD_4-2-7
 10/19/10: Switch to running programs with script wrappers on Intel Macs to 
-avoid conflicts with Intel libraries used by other packages.
+avoid conflicts with Intel libraries used by other packages (In 4.1).
 
 10/19/10: "Fixed" linklibs-mac for 64-bit Intel (In 4.1).
 
