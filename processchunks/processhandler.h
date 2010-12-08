@@ -97,9 +97,11 @@ private:
   //On when process is run, off when finished, kill finished signal received,
   //or when the kill timeout is handled.
   bool mStartingProcess;
-  int mNumChunkErr,mPausing;
+  int mNumChunkErr, mPausing;
   FlagType mFlag;
   QByteArray mStderr, mStdout;
+  QTextStream *mStderrTextStream, *mStdoutTextStream, *mJobFileTextStream,
+      *mQidFileTextStream;
   QString mPid, mEscapedRemoteDirPath, mDecoratedClassName, mCommand;//queue or local command
   QStringList mParamList;//list of queue or local params
   Processchunks *mProcesschunks;
