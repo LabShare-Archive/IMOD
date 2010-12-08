@@ -511,43 +511,44 @@ while loopIter < iterations:
 
    # Put out a sync file that subtracts diff reconstruction from last recon
    # if appropriate and manages conversions and leaving
-   comname = '%s-%03d-sync.com' % (sirtname, comnum)
-   
-   if loopIter == iterations:
-      comname = sirtname + '-finish.com'
-   try:
-      action = 'Opening'
-      comf = open(comname, 'w')
-      action = 'Writing to'
-      if not simpleBP:
-         deldiff = diffname
-         if testmode:
-            deldiff = ""
-         print >> comf, '$\\rm -f %s %s~' %  (deldiff, lastname)
-
-      # Delete something not on the leave list unconditionally, or delete
-      # something on the list if it got converted
-      if not leaveList.count(lastnum):
-         print >> comf, '$\\rm -f ' + lastname
-      elif scMinMax or trimarg:
-         lastconv = '%s.%s%02d' % (setname, intext, lastnum)
-         if trimarg:
-            lastconv = '%s.%s%02d' % (setname, trimext, lastnum)
-         print >> comf, '$if (-e ' + lastconv + ') \\rm -f ' + lastname
-
-      # Set up conversion if requested
-      if scMinMax or trimarg:
-         outputScalingLines(comf, recnum)
-
+   if loopIter == iterations or  not simpleBP or scMinMax or trimarg:
+      comname = '%s-%03d-sync.com' % (sirtname, comnum)
+      
       if loopIter == iterations:
-         commandsForFinish(comf, sirtname, testmode)
-      else:
-         comnum += 1
-         
-      comf.close()
+         comname = sirtname + '-finish.com'
+      try:
+         action = 'Opening'
+         comf = open(comname, 'w')
+         action = 'Writing to'
+         if not simpleBP:
+            deldiff = diffname
+            if testmode:
+               deldiff = ""
+            print >> comf, '$\\rm -f %s %s~' %  (deldiff, lastname)
 
-   except:
-      exitError(action + " file: " + comname)
+         # Delete something not on the leave list unconditionally, or delete
+         # something on the list if it got converted
+         if lastnum not in leaveList:
+            print >> comf, '$\\rm -f ' + lastname
+         elif scMinMax or trimarg:
+            lastconv = '%s.%s%02d' % (setname, intext, lastnum)
+            if trimarg:
+               lastconv = '%s.%s%02d' % (setname, trimext, lastnum)
+            print >> comf, '$if (-e ' + lastconv + ') \\rm -f ' + lastname
+
+         # Set up conversion if requested
+         if recnum in leaveList and (scMinMax or trimarg):
+            outputScalingLines(comf, recnum)
+
+         if loopIter == iterations:
+            commandsForFinish(comf, sirtname, testmode)
+         else:
+            comnum += 1
+            
+         comf.close()
+
+      except:
+         exitError(action + " file: " + comname)
 
    # End of loop at last
    lastnum = recnum
@@ -564,6 +565,9 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.4  2010/03/19 22:26:28  mast
+# Fixed conversion for first simple run, output subm command too
+#
 # Revision 1.3  2010/02/26 16:54:44  mast
 # Changes for doing all subtractions inside Tilt and for getting the
 # statistics for each iteration
