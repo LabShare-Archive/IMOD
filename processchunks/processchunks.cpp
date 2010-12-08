@@ -105,6 +105,14 @@ Processchunks::Processchunks(int &argc, char **argv) :
 }
 
 Processchunks::~Processchunks() {
+  if (mRootName != NULL) {
+    free(mRootName);
+  }
+  delete mLsProcess;
+  delete mOutStream;
+  delete mRemoteDir;
+  delete mCheckFile;
+  delete[] mProcessArray;
 }
 
 void Processchunks::printOsInformation() {
@@ -206,6 +214,7 @@ void Processchunks::loadParams(int &argc, char **argv) {
   PipGetNonOptionArg(0, &cpuList);
   if (cpuList != NULL) {
     mCpuList = cpuList;
+    free(cpuList);
   }
   PipGetNonOptionArg(1, &mRootName);
   //Error check
@@ -314,7 +323,7 @@ void Processchunks::timerEvent() {
   timerEvent(NULL);
 }
 
-void Processchunks::timerEvent(QTimerEvent *timerEvent) {
+void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
   if (mKill) {
     if (isVerbose(mDecoratedClassName, __func__, 2)) {
       *mOutStream << "timerEvent with mKill true" << endl;
@@ -1744,6 +1753,10 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.46  2010/12/02 05:46:08  sueh
+ bug# 1418 Moving cleanup on an empty kill request array behind a 2
+ second wait because of the lag in filling this array.
+
  Revision 1.45  2010/12/02 05:06:24  sueh
  bug# 1418 In killProcessOnNextMachine once all processes have started
  check the kill request array and cleanup if it is empty.

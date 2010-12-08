@@ -32,9 +32,11 @@ void MachineHandler::init() {
   mDrop = false;
   mKill = false;
   mDecoratedClassName = typeid(*this).name();
+  mAssignedProcIndexList = NULL;
 }
 
 MachineHandler::~MachineHandler() {
+  delete mAssignedProcIndexList;
 }
 
 MachineHandler &MachineHandler::operator=(const MachineHandler &otherInstance) {
@@ -43,6 +45,10 @@ MachineHandler &MachineHandler::operator=(const MachineHandler &otherInstance) {
   mNumCpus = otherInstance.mNumCpus;
   mFailureCount = otherInstance.mFailureCount;
   mChunkErred = otherInstance.mChunkErred;
+  if (mAssignedProcIndexList != NULL) {
+    delete[] mAssignedProcIndexList;
+    mAssignedProcIndexList = NULL;
+  }
   mAssignedProcIndexList = otherInstance.mAssignedProcIndexList;
   mKillCpuIndex = otherInstance.mKillCpuIndex;
   mKill = otherInstance.mKill;
@@ -63,6 +69,10 @@ void MachineHandler::incrementNumCpus() {
 //Sets the arrays based on mNumCpus
 //Call this once when mNumCpus will no long change
 void MachineHandler::setup() {
+  if (mAssignedProcIndexList != NULL) {
+    delete[] mAssignedProcIndexList;
+    mAssignedProcIndexList = NULL;
+  }
   mAssignedProcIndexList = new int[mNumCpus];
   int i;
   for (i = 0; i < mNumCpus; i++) {
