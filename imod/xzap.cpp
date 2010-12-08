@@ -3255,6 +3255,8 @@ QString zapPrintInfo(ZapStruct *zap, bool toInfoWindow)
     if (!toInfoWindow)
       return "";
   }
+  lowSection = zap->vi->zbin * (lowSection - 1) + 1;
+  highSection *= zap->vi->zbin;
   
   QString trimvol;
   trimvol.sprintf("  trimvol -x %d,%d %s %d,%d %s %d,%d", ixl + 1, ixr + 1, 
@@ -3521,7 +3523,8 @@ void zapReportRubberband()
   int lowSection, highSection;
   if (getLowHighSection(zap, lowSection, highSection)) {
     imodPrintStderr("Rubberband: %d %d %d %d %d %d\n", ixl + 1, iyb + 1,
-                    ixr + 1, iyt + 1, lowSection, highSection);
+                    ixr + 1, iyt + 1, zap->vi->zbin * (lowSection - 1) + 1,
+                     zap->vi->zbin * highSection);
   }
   else {
     imodPrintStderr("Rubberband: %d %d %d %d\n", ixl + 1, iyb + 1, ixr + 1,
@@ -4752,6 +4755,9 @@ static void setDrawCurrentOnly(ZapStruct *zap, int value)
 /*
 
 $Log$
+Revision 4.155  2010/12/08 05:34:16  mast
+Fixed rubberband Z limits when there is Z binning for message and trimvol
+
 Revision 4.154  2010/04/21 22:47:54  mast
 Allowed full size piece for panel with scale bar in montage snapshot
 
