@@ -1,8 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-12/7/10: In Etomo handling python version of splittilt.
+12/7/10: Stopped Sirtsetup from putting out empty com files and doing scaling
+on iterations not being left (In 4.1).
 
-12/7/10: Converted Splittilt to python.
+12/7/10: Converted Splittilt to python and changed eTomo to handle it.
 
 12/7/10: Fixed uninitialized variable in tomopieces (In 4.1).
 
