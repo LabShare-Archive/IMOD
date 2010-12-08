@@ -1,6 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 12/7/10: IMOD_4-1-8
+12/7/10: Fixed section range output from rubberband when there is binning in
+Z, which was wrong for trimvol extraction and messages to eTomo (In 4.1).
+
 12/7/10: Stopped Sirtsetup from putting out empty com files and doing scaling
 on iterations not being left.
 
