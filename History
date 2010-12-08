@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/7/10: Removed timeout for vmstocsh from processchunks.
+
 12/7/10: Fixed section range output from rubberband when there is binning in
 Z, which was wrong for trimvol extraction and messages to eTomo (In 4.1).
 
