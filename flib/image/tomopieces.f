@@ -55,6 +55,7 @@ c
       maxpiecey=0                               !MAX PIECES IN X
       maxpiecez=-1                              !MAX PIECES IN X
       maxLayerPieces = 19
+      noFFT = .false.
 c       
 c       Pip startup: set error, parse options, do help output, get the
 c       one obligatory argument to get size
@@ -147,11 +148,8 @@ c           print *,nxp, nyp, nzp, perim, piecePerim, nxout, nyout, nzout
         enddo
       enddo
 
-      if (nxpmin .eq. 0) then
-        print *,'ERROR: TOMOPIECES - PIECES ARE ALL TOO LARGE WITH ',
-     &      'GIVEN MAXIMUM NUMBERS'
-        call exit(1)
-      endif
+      if (nxpmin .eq. 0) call exitError(
+     &    'PIECES ARE ALL TOO LARGE WITH GIVEN MAXIMUM NUMBERS')
       nxp=nxpmin
       nzp=nzpmin
       nyp = nypmin
@@ -271,6 +269,12 @@ c
       end
 c
 c       $Log$
+c       Revision 3.4  2010/12/07 16:14:43  mast
+c       Fixed initialization of noFFT
+c
+c       Revision 3.3  2010/01/08 19:06:52  mast
+c       Added nofft option
+c
 c       Revision 3.2  2009/12/28 20:39:08  mast
 c       Suppress entry output
 c
