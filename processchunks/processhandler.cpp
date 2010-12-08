@@ -278,9 +278,7 @@ void ProcessHandler::readAllStandardError() {
   QByteArray err = mProcess->readAllStandardError();
   if (!err.isEmpty()) {
     mStderr.append(err);
-    if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-      mProcesschunks->getOutStream() << err.data() << endl;
-    }
+    mProcesschunks->getOutStream() << err.data() << endl;
   }
 }
 
@@ -596,7 +594,7 @@ void ProcessHandler::makeCshFile() {
         << endl;
   }
   mVmstocsh->start(command, paramList);
-  if (!mVmstocsh->waitForFinished(15 * 1000)) {
+  if (!mVmstocsh->waitForFinished(/*15 * 1000*/)) {
     mProcesschunks->getOutStream() << "Warning: vmstocsh conversion of "
         << mComFileName << " did not finish " << endl;
   }
