@@ -120,7 +120,9 @@ xtilt = 0.
 if xtiltArr:
    xtilt = xtiltArr[0]
    
-reproj = intsirt == None and (rectoproj or sliceproj)
+reproj = 0
+if intsirt == None and (rectoproj or sliceproj):
+   reproj = 1
 
 # Figure out if vertical slices are even possible
 vertPossible = localali == None and zfactors == None and not reproj
@@ -403,4 +405,7 @@ prnstr(fmtstr("Command files for {} chunks created and ready to run with:",
 prnstr("  processchunks machine_list " + rootname)
 
 #  $Log$
+#  Revision 1.1  2010/12/07 21:38:38  mast
+#  Converted to python
+#
     
