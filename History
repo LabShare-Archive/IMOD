@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/8/10: Added Imodcpuload to report load and summed CPU usage or run 
+imodwincpu on Windows.
+
 12/8/10: In processchunks, fixed vmstocsh call so it can display error
 messages.  Fixed memory leaks.
 
