@@ -58,10 +58,12 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  combinefft
 c       
       integer numOptions
-      parameter (numOptions = 20)
+      parameter (numOptions = 24)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'ainput:AInputFFT:FN:@binput:BInputFFT:FN:@output:OutputFFT:FN:@'//
+     &    'xminmax:XMinAndMax:IP:@yminmax:YMinAndMax:IP:@'//
+     &    'zminmax:ZMinAndMax:IP:@taper:TaperPadsInXYZ:IT:@'//
      &    'atiltfile:ATiltFile:FN:@btiltfile:BTiltFile:FN:@'//
      &    'ahighest:AHighestTilts:FP:@bhighest:BHighestTilts:FP:@'//
      &    'inverse:InverseTransformFile:FN:@reduce:ReductionFraction:F:@'//
@@ -775,6 +777,9 @@ c         Take fft
 
 c       
 c       $Log$
+c       Revision 3.6  2010/11/29 02:28:53  mast
+c       split out common functions for taperoutvol/combinefft
+c
 c       Revision 3.5  2006/09/13 22:32:02  mast
 c       Added option to take low frequencies from both tomograms
 c
