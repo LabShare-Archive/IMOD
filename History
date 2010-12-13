@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/12/10: Switched back to old script processchunks for now.
+
 12/8/10: Added Imodcpuload to report load and summed CPU usage or run 
 imodwincpu on Windows.
 
