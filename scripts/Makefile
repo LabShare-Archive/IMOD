@@ -7,7 +7,7 @@ SCRIPTS = copytomocoms finishjoin makejoincom matchorwarp matchshifts\
  newst onepatchcorr patchcorr3d patchcrawl3d recombine reduceby2 selfalign\
  setupcoms setuplong splitmrc squeezevol trimvol xf2xg xfalign\
  dm2mrc alignlog transferfid submfg imodpsview settmpdir matchrotpairs\
- chunksetup splitcombine tomosnapshot clipflipyz\
+ chunksetup splitcombine tomosnapshot clipflipyz processchunks\
  archiveorig imodkillgroup collectmmm sampletilt runpyscript imodhelp\
  queuechunk splitcorrection runraptor $(GENERATED_SCRIPTS)
 
@@ -23,6 +23,9 @@ clean:
 	$(FIND) . -type f -name "*~"   -exec rm "{}" \;
 
 #  $Log$
+#  Revision 3.32  2010/12/08 23:44:06  mast
+#  Remove splittilt
+#
 #  Revision 3.31  2010/12/03 19:47:11  mast
 #  Take out setupcombine, converted to python
 #
