@@ -98,7 +98,7 @@ install : configure man sourcedoc
 	cd sendevent  ; $(MAKE) $@
 	cd qtassist   ; $(MAKE) $@
 	cd ctfplotter ; $(MAKE) $@
-	cd processchunks ; $(MAKE) $@
+#	cd processchunks ; $(MAKE) $@
 	cd mrc        ; $(MAKE) $@
 	cd midas      ; $(MAKE) $@
 	cd pysrc      ; $(MAKE) $@
@@ -366,6 +366,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.85  2010/11/02 14:30:37  mast
+#  Silly misprint
+#
 #  Revision 3.84  2010/11/01 19:05:14  mast
 #  Install processchunks
 #
