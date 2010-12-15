@@ -146,7 +146,7 @@ const bool MachineHandler::killProcesses() {
   if (!mKill) {
     return true;
   }
-  return killNextProcess(false);
+  return killNextProcess();
 }
 
 //Tells processes to send kill requests.  Stops when a process has to give up
@@ -155,8 +155,7 @@ const bool MachineHandler::killProcesses() {
 //This is called the first time by Processchunks::killProcessOnNextMachine.
 //If that call can't get though all the processes because of a signal or event
 //wait, it returns false and is then called by ProcessHandler::killNextProcess.
-//asynchronous is true if it is called by processhandler.
-const bool MachineHandler::killNextProcess(const bool asynchronous) {
+const bool MachineHandler::killNextProcess() {
   if (!mKill) {
     mProcesschunks->getOutStream()
         << "Warning: MachineHandler::killNextProcess called when mKill is false"
@@ -167,6 +166,10 @@ const bool MachineHandler::killNextProcess(const bool asynchronous) {
   mKillCpuIndex++;
   if (mKillCpuIndex < mNumCpus) {
     while (mKillCpuIndex < mNumCpus) {
+      if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+        mProcesschunks->getOutStream() << "killNextProcess:mKillCpuIndex:"
+            << mKillCpuIndex << endl;
+      }
       if (mAssignedProcIndexList[mKillCpuIndex] != -1) {
         int processIndex = mAssignedProcIndexList[mKillCpuIndex];
         if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
@@ -179,6 +182,11 @@ const bool MachineHandler::killNextProcess(const bool asynchronous) {
         //Get the process handler using the assigned process index and to it to
         //kill its process.
         if (!mProcesschunks->getProcessHandler(processIndex).killProcess()) {
+          if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+            mProcesschunks->getOutStream() << "killNextProcess:mKillCpuIndex:"
+                << mKillCpuIndex << ",processIndex:" << processIndex
+                << ",killProcess:false" << endl;
+          }
           return false;
         }
       }
@@ -186,11 +194,8 @@ const bool MachineHandler::killNextProcess(const bool asynchronous) {
     }
   }
   if (mKillCpuIndex >= mNumCpus) {
-    if (asynchronous) {
-      //This machine is done and this was called by processhandler - must tell
-      //processchunks to go on to the next machine.
+    //This machine is done - go on to the next machine
       mProcesschunks->killProcessOnNextMachine();
-    }
     cleanupKillProcess();
   }
   return true;
