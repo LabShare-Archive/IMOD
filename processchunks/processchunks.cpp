@@ -101,6 +101,7 @@ Processchunks::Processchunks(int &argc, char **argv) :
   mKill = false;
   mKillCounter = 0;
   mLsProcess = new QProcess(this);
+  mVmstocsh = new QProcess(this);
   mDecoratedClassName = typeid(*this).name();
 }
 
@@ -113,6 +114,7 @@ Processchunks::~Processchunks() {
   delete mRemoteDir;
   delete mCheckFile;
   delete[] mProcessArray;
+  delete mVmstocsh;
 }
 
 void Processchunks::printOsInformation() {
@@ -419,8 +421,7 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
                 //If the com script issues a PID to standard error and nothing
                 //to standard out, it can't run the first real command in the
                 //file.
-                if (mProcessArray[processIndex].isPidInStderr()
-                    && !mProcessArray[processIndex].isPidInStdout()) {
+                if (mProcessArray[processIndex].isPidInStderr()) {
                   if (!handleError(NULL, machine, cpuIndex, processIndex)) {
                     return;
                   }
@@ -664,7 +665,15 @@ void Processchunks::killProcessOnNextMachine() {
   mKillProcessMachineIndex++;
   if (mKillProcessMachineIndex < mMachineList.size()) {
     while (mKillProcessMachineIndex < mMachineList.size()) {
+      if (isVerbose(mDecoratedClassName, __func__)) {
+        *mOutStream << "killProcessOnNextMachine:mKillProcessMachineIndex:"
+            << mKillProcessMachineIndex << endl;
+      }
       if (!mMachineList[mKillProcessMachineIndex].killProcesses()) {
+        if (isVerbose(mDecoratedClassName, __func__)) {
+          *mOutStream << "killProcessOnNextMachine:mKillProcessMachineIndex:"
+              << mKillProcessMachineIndex << ",killProcesses:false" << endl;
+        }
         //Can't go on to the next machine because the current machine has to wait
         //for a signal or event.
         return;
@@ -735,16 +744,7 @@ void Processchunks::killProcessTimeout() {
       //No need to call clean up until timeout.  msgKillProcessDone calls clean up.
       cleanupKillProcesses(true);
     }
-    //do this after a shorter wait in case there where no assigned processes
-    else if (mKillCounter == 2) {
-      if (mProcessesWithUnfinishedKillRequest.isEmpty()) {
-        if (isVerbose(mDecoratedClassName, __func__)) {
-          *mOutStream << "kill request array is empty at 2 seconds" << endl;
         }
-        cleanupKillProcesses(false);
-      }
-    }
-  }
   else {
     bool timeout = mKillCounter >= 150;
     //updating mProcessesWithUnfinishedKillRequest is not done by
@@ -1535,7 +1535,7 @@ void Processchunks::runProcess(MachineHandler *machine, const int cpuIndex,
   mProcessArray[processIndex].removeProcessFiles();
   *mOutStream << "Running " << mProcessArray[processIndex].getComFileName()
       << " on " << machine->getName() << " ..." << endl;
-  mProcessArray[processIndex].makeCshFile();
+  makeCshFile(mProcessArray[processIndex]);
   //If running a sync, set the syncing flag to 2
   if (mSyncing) {
     mSyncing = 2;
@@ -1655,6 +1655,50 @@ void Processchunks::handleFileSystemBug() {
   mLsProcess->waitForFinished(10000);
 }
 
+//Return if csh file is made
+void Processchunks::makeCshFile(ProcessHandler &process) {
+  QFile * cshFile = process.getCshFile();
+  mCurrentDir.remove(cshFile->fileName());
+  QTextStream writeStream(cshFile);
+  if (!cshFile->open(QIODevice::WriteOnly)) {
+    *mOutStream << "Warning: unable to open and create " << cshFile->fileName()
+        << endl;
+    return;
+  }
+  if (!mQueue) {
+    writeStream << "nice +" << mNice << endl;
+  }
+  //convert and add CHUNK DONE to all files
+  QString comFileName = process.getComFileName();
+  mVmstocsh->setStandardInputFile(comFileName);
+  //This does not work:
+  //mVmstocsh->setStandardOutputFile(mCshFile->fileName(), QIODevice::Append);
+  QString command("vmstocsh");
+  QStringList paramList;
+  paramList.append(process.getLogFileName());
+  if (isVerbose(mDecoratedClassName, __func__)) {
+    *mOutStream << "running: " << command << " " << paramList.join(" ") << endl
+        << "input file: " << comFileName << endl;
+  }
+  mVmstocsh->start(command, paramList);
+  if (!mVmstocsh->waitForFinished()) {
+    if (mVmstocsh->exitStatus() == QProcess::CrashExit) {
+      *mOutStream << "Warning: vmstocsh conversion of " << comFileName
+          << " failed with exit code " << mVmstocsh->exitCode() << " "
+          << mVmstocsh->readAllStandardError().data() << endl;
+    }
+    else {
+      *mOutStream << "Warning: vmstocsh conversion of " << comFileName
+          << " timed out after 30 seconds: "
+          << mVmstocsh->readAllStandardError().data() << endl;
+    }
+  }
+  writeStream << mVmstocsh->readAllStandardOutput().data()
+      << "echo CHUNK DONE >> " << process.getLogFileName() << endl;
+
+  cshFile->close();
+}
+
 const bool Processchunks::isQueue() {
   return mQueue;
 }
@@ -1753,6 +1797,9 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.47  2010/12/08 22:56:17  sueh
+ bug# 1423 Deleting new'd objects.
+
  Revision 1.46  2010/12/02 05:46:08  sueh
  bug# 1418 Moving cleanup on an empty kill request array behind a 2
  second wait because of the lag in filling this array.
