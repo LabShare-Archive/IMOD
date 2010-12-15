@@ -56,7 +56,6 @@ void BehaviorForm::languageChange()
 void BehaviorForm::init()
 {
   mPrefs = ImodPrefs->getDialogPrefs();
-  formatComboBox->addItems(ImodPrefs->snapFormatList());
   setFontDependentWidths();
   update();
 }
@@ -86,15 +85,6 @@ void BehaviorForm::update()
   diaSetChecked(imageIconifyBox, mPrefs->iconifyImageWin);
   diaSetChecked(imodDlgIconifyBox, mPrefs->iconifyImodDlg);
   diaSetChecked(imodvDlgIconifyBox, mPrefs->iconifyImodvDlg);
-    
-  // Look up the snapshot format in the list of output formats to set combo box
-  int item = 0;
-  QStringList formats = ImodPrefs->snapFormatList();
-  for (int i = 0; i < formats.count(); i++)
-    if (formats[i] == mPrefs->snapFormat)
-      item = i;
-  formatComboBox->setCurrentIndex(item);
-  diaSetSpinBox(qualitySpinBox, mPrefs->snapQuality);
 }
 
 // Get state of widgets other than zoom-related and put in structure
@@ -118,8 +108,6 @@ void BehaviorForm::unload()
   QDir *curdir = new QDir();
   mPrefs->autosaveDir = curdir->cleanPath(autosaveDirEdit->text());
   delete curdir;
-  mPrefs->snapFormat = formatComboBox->currentText();
-  mPrefs->snapQuality = qualitySpinBox->value();
 }
 /*
 void BehaviorForm::toolTipsToggled( bool state )
@@ -131,6 +119,9 @@ void BehaviorForm::toolTipsToggled( bool state )
 /*
 
 $Log$
+Revision 4.3  2009/11/21 23:06:43  mast
+Setting to control slicer new surfaces
+
 Revision 4.2  2009/02/26 20:03:32  mast
 Add paging by big steps
 

@@ -6,7 +6,7 @@
     <x>0</x>
     <y>0</y>
     <width>378</width>
-    <height>589</height>
+    <height>501</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -337,69 +337,6 @@
          <string>3dmodv dialogs iconify with Model View Window</string>
         </property>
        </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox7" >
-     <property name="title" >
-      <string>Snapshots</string>
-     </property>
-     <layout class="QVBoxLayout" >
-      <item>
-       <layout class="QHBoxLayout" >
-        <item>
-         <widget class="QLabel" name="textLabel1" >
-          <property name="text" >
-           <string>File format for non-TIFF snapshots</string>
-          </property>
-          <property name="wordWrap" >
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QComboBox" name="formatComboBox" >
-          <property name="toolTip" >
-           <string>Select file format for "RGB" snapshots</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" >
-        <item>
-         <widget class="QLabel" name="textLabel2" >
-          <property name="toolTip" >
-           <string>Factor determining compression/quality of JPEG images</string>
-          </property>
-          <property name="text" >
-           <string>Quality factor for JPEG images (%)</string>
-          </property>
-          <property name="wordWrap" >
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QSpinBox" name="qualitySpinBox" >
-          <property name="toolTip" >
-           <string>Factor determining compression/quality of JPEG images (-1 for default)</string>
-          </property>
-          <property name="minimum" >
-           <number>-1</number>
-          </property>
-          <property name="maximum" >
-           <number>100</number>
-          </property>
-          <property name="value" >
-           <number>80</number>
-          </property>
-         </widget>
-        </item>
-       </layout>
       </item>
      </layout>
     </widget>

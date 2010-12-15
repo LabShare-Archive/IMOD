@@ -94,6 +94,7 @@ HEADERS	+= autox.h \
 	form_autox.h \
 	form_cont_edit.h \
 	form_behavior.h \
+	form_snapshot.h \
 	form_mouse.h \
 	form_startup.h \
 	form_rawimage.h \
@@ -182,6 +183,7 @@ SOURCES	+= autox.cpp \
 	form_autox.cpp \
 	form_cont_edit.cpp \
 	form_behavior.cpp \
+	form_snapshot.cpp \
 	form_mouse.cpp \
 	form_startup.cpp \
 	form_rawimage.cpp \
@@ -202,8 +204,9 @@ FORMS	= form_object_edit.ui \
 	form_moviecon.ui \
 	form_autox.ui \
 	form_cont_edit.ui \
-	form_behavior.ui \
+	form_snapshot.ui \
 	form_mouse.ui \
+	form_behavior.ui \
 	form_startup.ui \
 	form_rawimage.ui \
 	form_finegrain.ui \
