@@ -51,6 +51,7 @@ public:
   QStringList &getDropList();
   const int getDropCrit();
   const QString &getRemoteDir();
+  void makeCshFile(ProcessHandler &process);
 
 public slots:
   void timerEvent();
@@ -62,8 +63,8 @@ private:
   const int extractVersion(const QString &versionString);
   void buildFilters(const char *reg, const char *sync, QStringList &filters);
   void cleanupList(const char *remove, QStringList &list);
-  const int runGenericProcess(QByteArray &output,
-      QProcess &process, const QString &command, const QStringList &params,
+  const int runGenericProcess(QByteArray &output, QProcess &process,
+      const QString &command, const QStringList &params,
       const int numLinesToPrint);
   void setupSshOpts();
   void setupMachineList();
@@ -132,7 +133,7 @@ private:
   QStringList mDropList;
 
   //handling file system bug
-  QProcess *mLsProcess;
+  QProcess *mLsProcess, *mVmstocsh;
   QStringList mLsParamList;
 };
 
