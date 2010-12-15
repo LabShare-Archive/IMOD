@@ -3841,6 +3841,7 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
     fileno = 0;
   if (snaptype > 2)
     ImodPrefs->set2ndSnapFormat();
+  b3dSetDpiScaling((float)factor);
   fname = b3dGetSnapshotName("zap", snaptype > 1 ? SnapShot_RGB : SnapShot_TIF,
                              3, fileno);
   sname = b3dShortSnapName(fname);
@@ -3852,6 +3853,7 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
   if (snaptype > 2)
     ImodPrefs->restoreSnapFormat();
   imodPuts("");
+  b3dSetDpiScaling(1.);
 
   *barReal = barSaved;
   zap->xtrans = xTransSave;
@@ -4755,6 +4757,9 @@ static void setDrawCurrentOnly(ZapStruct *zap, int value)
 /*
 
 $Log$
+Revision 4.155  2010/12/08 05:34:16  mast
+Fixed rubberband Z limits when there is Z binning for message and trimvol
+
 Revision 4.154  2010/04/21 22:47:54  mast
 Allowed full size piece for panel with scale bar in montage snapshot
 

@@ -45,6 +45,7 @@
 #include "dia_qtutils.h"
 #include "form_appearance.h"
 #include "form_behavior.h"
+#include "form_snapshot.h"
 #include "form_mouse.h"
 #include "imod.h"
 #include "imodv.h"
@@ -171,6 +172,8 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->snapFormatDflt = "JPEG";
 #endif
   prefs->snapQualityDflt = 80;
+  prefs->snapDPIDflt = 0;
+  prefs->scaleSnapDPI = false;
   prefs->slicerPanKbDflt = 3000;
   prefs->speedupSliderDflt = false;
 
@@ -205,6 +208,8 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->snapFormat = settings->value("snapFormat",
                                       prefs->snapFormatDflt).toString();
   READNUM(snapQuality);
+  READNUM(snapDPI);
+  READBOOL(scaleSnapDPI);
   READNUM(slicerPanKb);
   READBOOL(speedupSlider);
 
@@ -505,6 +510,8 @@ void ImodPreferences::saveSettings(int modvAlone)
   WRITE_IF_CHANGED(autoTargetSD);
   WRITE_IF_CHANGED(snapFormat);
   WRITE_IF_CHANGED(snapQuality);
+  WRITE_IF_CHANGED(snapDPI);
+  WRITE_IF_CHANGED(scaleSnapDPI);
   WRITE_IF_CHANGED(slicerPanKb);
   WRITE_IF_CHANGED(speedupSlider);
 
@@ -617,6 +624,7 @@ void ImodPreferences::donePressed()
   bool autosaveChanged = false;
   mTabDlg->mBehaveForm->unload();
   mTabDlg->mAppearForm->unload();
+  mTabDlg->mSnapForm->unload();
   mCurrentPrefs = mDialogPrefs;
 
   curp->hotSliderKeyChgd |= newp->hotSliderKey != oldp->hotSliderKey;
@@ -652,6 +660,8 @@ void ImodPreferences::donePressed()
   curp->autoTargetSDChgd |= newp->autoTargetSD != oldp->autoTargetSD;
   curp->snapFormatChgd |= newp->snapFormat != oldp->snapFormat;
   curp->snapQualityChgd |= newp->snapQuality != oldp->snapQuality;
+  curp->snapDPIChgd |= newp->snapDPI != oldp->snapDPI;
+  curp->scaleSnapDPIChgd |= !equiv(newp->scaleSnapDPI, oldp->scaleSnapDPI);
   curp->slicerPanKbChgd |= newp->slicerPanKb != oldp->slicerPanKb;
   curp->speedupSliderChgd |= !equiv(newp->speedupSlider, 
                                      oldp->speedupSlider);
@@ -741,7 +751,15 @@ void ImodPreferences::defaultPressed()
     mTabDlg->mAppearForm->update();
     break;
 
-  case 1: 
+  case 1:
+    prefs->snapFormat = prefs->snapFormatDflt;
+    prefs->snapQuality = prefs->snapQualityDflt;
+    prefs->snapDPI = prefs->snapDPIDflt;
+    prefs->scaleSnapDPI =  prefs->scaleSnapDPIDflt;
+    mTabDlg->mSnapForm->update();
+    break;
+
+  case 2: 
     prefs->silentBeep = prefs->silentBeepDflt;
     //prefs->tooltipsOn = prefs->tooltipsOnDflt;
     prefs->autoConAtStart = prefs->autoConAtStartDflt;
@@ -758,12 +776,10 @@ void ImodPreferences::defaultPressed()
     prefs->autosaveOn = prefs->autosaveOnDflt;
     prefs->autosaveDir = prefs->autosaveDirDflt;
     //QToolTip::setGloballyEnabled(prefs->tooltipsOn);
-    prefs->snapFormat = prefs->snapFormatDflt;
-    prefs->snapQuality = prefs->snapQualityDflt;
     mTabDlg->mBehaveForm->update();
     break;
 
-  case 2: 
+  case 3: 
     prefs->hotSliderKey = prefs->hotSliderKeyDflt;    
     prefs->hotSliderFlag = prefs->hotSliderFlagDflt;
     prefs->mouseMapping = prefs->mouseMappingDflt;
@@ -869,11 +885,14 @@ bool ImodPreferences::hotSliderActive(int ctrlPressed)
 
 // Return the second snap format: return PNG if the first one is not PNG, or
 // JPEG if first one is PNG; but return empty if selected one doesn't exist
-QString ImodPreferences::snapFormat2()
+QString ImodPreferences::snapFormat2(QString *curFormat)
 {
   QStringList formats = snapFormatList();
   QString format2 = "PNG";
-  if (snapFormat() == "PNG")
+  QString current = snapFormat();
+  if (curFormat)
+    current = *curFormat;
+  if (current == "PNG")
     format2 = "JPEG";
   for (int i = 0; i < formats.count(); i++)
     if (formats[i] == format2)
@@ -1173,6 +1192,8 @@ PrefsDialog::PrefsDialog(QWidget *parent)
   mTabWidget = new QTabWidget();
   mAppearForm = new AppearanceForm();
   mTabWidget->addTab(mAppearForm, "Appearance");
+  mSnapForm = new SnapshotForm();
+  mTabWidget->addTab(mSnapForm, "Snapshots");
   mBehaveForm = new BehaviorForm();
   mTabWidget->addTab(mBehaveForm, "Behavior");
   mMouseForm = new MouseForm();
@@ -1206,6 +1227,9 @@ void PrefsDialog::closeEvent ( QCloseEvent * e )
 
 /*
 $Log$
+Revision 1.44  2010/03/01 23:46:02  mast
+Prevent dialog opening twice on Mac
+
 Revision 1.43  2009/11/21 23:06:43  mast
 Setting to control slicer new surfaces
 

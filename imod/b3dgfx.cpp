@@ -1447,6 +1447,13 @@ void b3dSetMovieSnapping(bool snapping)
   movieSnapping = snapping;
 }
 
+// So that montage snapshots can multiply the resolution value if desired
+static float DpiScaling = 1.;
+void b3dSetDpiScaling(float factor)
+{
+  DpiScaling = ImodPrefs->scaleSnapDPI() ? factor : 1.;
+}
+
 /*
  * Set the snapshot directory, starting in previous one if any
  */
@@ -1639,6 +1646,7 @@ int b3dSnapshot_NonTIF(QString fname, int rgbmode, int *limits,
   int rpWidth = CurWidth;
   int rpHeight = CurHeight;
   QString format = ImodPrefs->snapFormat();
+  int resolution = B3DNINT(DpiScaling * ImodPrefs->snapDPI() / 0.0254);
 
   errno = 0;
 
@@ -1772,6 +1780,8 @@ int b3dSnapshot_NonTIF(QString fname, int rgbmode, int *limits,
 
     // Save the image with the given format and quality (JPEG only)
     QImage *qim = new QImage(pixels, rpWidth, rpHeight, QImage::Format_RGB32);
+    qim->setDotsPerMeterX(resolution);
+    qim->setDotsPerMeterY(resolution);
     j = format == "JPEG" ? ImodPrefs->snapQuality() : -1;
     imret = qim->save(fname, LATIN1(format), j);
     delete qim;
@@ -1795,10 +1805,10 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
   int i, j;
   unsigned char *pixels = NULL;
   int *lpixels;
-  int xysize, xsize, ysize, step, samples;
+  int xysize, xsize, ysize, step, samples, resolution;
   unsigned int pixel;
   unsigned int ifd;
-  unsigned int colortable;
+  unsigned int colortable, bitsPerSample, resOffset;
   unsigned char bpix,rpix,gpix;
   unsigned short tenum;
   unsigned short color[3];
@@ -1827,6 +1837,7 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
 
   if (checkConvert && rgbmode)
     convertRGB = App->convertSnap;
+  resolution = B3DNINT(1000. * DpiScaling * ImodPrefs->snapDPI());
 
   if (limits) {
     rpx = limits[0];
@@ -1975,12 +1986,20 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
   fseek(fout, (int)ifd, SEEK_SET);
   if (depth > 8 || rgbmode){
     tenum = 11;
-    samples = convertRGB ? 1 : 3;
-    colortable = convertRGB ? 8 : ifd + 2 + (tenum * 12) + 7;
+    if (resolution > 0)
+      tenum += 3;
+    resOffset = ifd + 2 + (tenum * 12) + 7;
+    samples = 1;
+    bitsPerSample = 8;
+    if (!convertRGB) {
+      samples = 3;
+      bitsPerSample = resOffset;
+      resOffset += 6;
+    }
     fwrite(&tenum, 2, 1, fout);
     puttiffentry(256, 3, 1, xsize, fout);
     puttiffentry(257, 3, 1, ysize, fout);
-    puttiffentry(258, 3, samples, colortable, fout);
+    puttiffentry(258, 3, samples, bitsPerSample, fout);
     puttiffentry(259, 3, 1, 1, fout);
     puttiffentry(262, 3, 1, convertRGB ? 1 : 2, fout);
     puttiffentry(273, 4, 1, 8, fout);
@@ -1988,13 +2007,18 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
     puttiffentry(277, 3, 1, samples, fout);
     puttiffentry(278, 4, 1, ysize, fout);
     puttiffentry(279, 4, 1, xysize * samples, fout);
+    if (resolution > 0) {
+      puttiffentry(282, 5, 1, resOffset, fout);
+      puttiffentry(283, 5, 1, resOffset + 8, fout);
+    }
     puttiffentry(284, 3, 1, 1, fout);  /* plane config */
-
+    if (resolution > 0)
+      puttiffentry(296, 3, 1, 2, fout);   /* Resolution units inches */
     ifd = 0;
     fwrite(&ifd, 4, 1, fout);
 
     if (!convertRGB) {
-      fseek(fout, (int)colortable, SEEK_SET);
+      fseek(fout, (int)bitsPerSample, SEEK_SET);
       color[0] = 8;
       fwrite(color, 2, 1, fout);
       fwrite(color, 2, 1, fout);
@@ -2002,6 +2026,10 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
     }
   }else{
     tenum = 12;
+    if (resolution > 0)
+      tenum += 3;
+    colortable = ifd + 2 + (tenum * 12) + 7;
+    resOffset = colortable + 768;
     fwrite(&tenum, 2, 1, fout);
          
     puttiffentry(256, 3, 1, xsize, fout);
@@ -2015,9 +2043,14 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
     puttiffentry(277, 3, 1, 1, fout);  /* samples / pixel */
     puttiffentry(278, 4, 1, ysize, fout); 
     puttiffentry(279, 4, 1, xysize, fout);
+    if (resolution > 0) {
+      puttiffentry(282, 5, 1, resOffset, fout);
+      puttiffentry(283, 5, 1, resOffset + 8, fout);
+    }
     puttiffentry(284, 3, 1, 1, fout);  /* plane config */
+    if (resolution > 0.)
+      puttiffentry(296, 3, 1, 2, fout);   /* Resolution units inches */
          
-    colortable = ifd + 2 + (tenum * 12) + 7;
     puttiffentry(320, 3, 768, colortable, fout);
     ifd = 0;
     fwrite(&ifd, 4, 1, fout);
@@ -2035,6 +2068,14 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
       color[0] = fcmapb[i]*256;
       fwrite(color, 2, 1, fout);
     }
+  }
+  if (resolution > 0) {
+    fseek(fout, (int)resOffset, SEEK_SET);
+    ifd = 1000;
+    fwrite(&resolution, 4, 1, fout);
+    fwrite(&ifd, 4, 1, fout);
+    fwrite(&resolution, 4, 1, fout);
+    fwrite(&ifd, 4, 1, fout);
   }
   fclose(fout);
   if (!rgbmode) {
@@ -2061,6 +2102,9 @@ int b3dSnapshot(QString fname)
 
 /*
 $Log$
+Revision 4.44  2010/01/06 16:57:58  mast
+Shifted subarea viewport too
+
 Revision 4.43  2010/01/06 01:19:00  mast
 Shift viewport a bit to avoid lines being drawn in wrong place
 

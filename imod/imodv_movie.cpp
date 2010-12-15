@@ -591,6 +591,7 @@ static void imodvMakeMontage(int frames, int overlap)
       limits[3] = yFullSize;
       if (movie->file_format == 2)
         ImodPrefs->set2ndSnapFormat();
+      b3dSetDpiScaling(zoom);
       fname = b3dGetSnapshotName("modv", movie->file_format ? SnapShot_RGB : 
                                  SnapShot_TIF, 4, a->snap_fileno);
       sname = b3dShortSnapName(fname);
@@ -602,6 +603,7 @@ static void imodvMakeMontage(int frames, int overlap)
       if (movie->file_format == 2)
         ImodPrefs->restoreSnapFormat();
       imodPuts("");
+      b3dSetDpiScaling(1.);
     }
 
     free(framePix);
@@ -624,6 +626,9 @@ static void imodvMakeMontage(int frames, int overlap)
 
 /*
     $Log$
+    Revision 4.22  2010/01/22 03:06:03  mast
+    Call new function to make scale bar work when doing montage snapshot
+
     Revision 4.21  2009/03/22 19:54:25  mast
     Show with new geometry adjust routine for Mac OS X 10.5/cocoa
 

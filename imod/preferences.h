@@ -23,6 +23,7 @@
 class AppearanceForm;
 class BehaviorForm;
 class MouseForm;
+class SnapshotForm;
 class QSettings;
 class QDialogButtonBox;
 class QTabWidget;
@@ -93,6 +94,8 @@ typedef struct imod_pref_struct
   bool namedColorChgd[MAX_NAMED_COLORS];
   TRIPLET(QString, snapFormat);     // Format for non-tif snapshot
   TRIPLET(int, snapQuality);        // Quality factor, controls compression
+  TRIPLET(int, snapDPI);            // DPI value to set in snapshots
+  TRIPLET(bool, scaleSnapDPI);      // Scale the DPI value up when montaging
   TRIPLET(int, slicerPanKb);        // Maximum KB for slicer panning
   TRIPLET(bool, speedupSlider);     // Apply limit when using sliders too
 
@@ -108,6 +111,7 @@ class PrefsDialog : public QDialog
   AppearanceForm *mAppearForm;
   BehaviorForm *mBehaveForm;
   MouseForm *mMouseForm;
+  SnapshotForm *mSnapForm;
 
  protected:
   void closeEvent ( QCloseEvent * e );
@@ -171,10 +175,12 @@ class ImodPreferences : public QObject
   bool getRoundedStyle();
   QString snapFormat() {return mCurrentPrefs.snapFormat;};
   int snapQuality() {return mCurrentPrefs.snapQuality;};
+  int snapDPI() {return mCurrentPrefs.snapDPI;};
+  bool scaleSnapDPI() {return mCurrentPrefs.scaleSnapDPI;};
   void setSnapQuality(int value);
   int slicerPanKb() {return mCurrentPrefs.slicerPanKb;};
   bool speedupSlider() {return mCurrentPrefs.speedupSlider;};
-  QString snapFormat2();
+  QString snapFormat2(QString *curFormat = NULL);
   void set2ndSnapFormat();
   void restoreSnapFormat();
   QStringList snapFormatList();
@@ -215,6 +221,9 @@ extern ImodPreferences *ImodPrefs;
 
 /*
 $Log$
+Revision 1.24  2009/11/21 23:06:43  mast
+Setting to control slicer new surfaces
+
 Revision 1.23  2009/03/22 19:44:46  mast
 Switched to taking all styles that exist
 

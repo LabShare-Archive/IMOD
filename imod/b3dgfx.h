@@ -144,6 +144,7 @@ void b3dDrawGreyScalePixelsSubArea(B3dCIImage *image,
 void b3dSetSnapDirectory(void);
 QString b3dShortSnapName(QString fname);
 void b3dSetMovieSnapping(bool snapping);     
+void b3dSetDpiScaling(float factor);
 int b3dSnapshot(QString fname);
 
 QString b3dGetSnapshotName(char *name, int format_type, int digits,
@@ -163,6 +164,9 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
 
 /*
     $Log$
+    Revision 3.16  2008/05/27 05:37:28  mast
+    Changed snapshot calls
+
     Revision 3.15  2008/05/23 04:31:21  mast
     Changed to allow nontiff montage snapshots
 
