@@ -54,7 +54,6 @@ public:
   void setFlagNotDone();
   void backupLog();
   const FlagType getFlag();
-  void makeCshFile();
   void runProcess(MachineHandler *machine);
   const bool killProcess();
   void continueKillProcess(const bool asynchronous);
@@ -62,9 +61,9 @@ public:
   const bool isFinishedSignalReceived();
   void getErrorMessageFromOutput(QString &errorMess);
   const bool isPidInStderr();
-  const bool isPidInStdout();
   void resetPausing();
   bool isPausing();
+  QFile *getCshFile();
 
 public slots:
   void handleError(const QProcess::ProcessError error);
@@ -72,7 +71,6 @@ public slots:
   void
   handleFinished(const int exitCode, const QProcess::ExitStatus exitStatus);
   void handleReadyReadStandardError();
-  void handleReadyReadStandardOutput();
   void handleKillFinished(const int exitCode,
       const QProcess::ExitStatus exitStatus);
   void cleanupKillProcess();
@@ -86,7 +84,6 @@ private:
   const bool getSshError(QString &dropMess, QTextStream *stream);
   void resetSignalValues();
   void readAllStandardError();
-  void readAllStandardOutput();
   void killLocalProcessAndDescendents(QString &pid);
   void stopProcess(const QString &pid);
   void killProcess(const QString &pid);
@@ -99,13 +96,12 @@ private:
   bool mStartingProcess;
   int mNumChunkErr, mPausing;
   FlagType mFlag;
-  QByteArray mStderr, mStdout;
-  QTextStream *mStderrTextStream, *mStdoutTextStream, *mJobFileTextStream,
-      *mQidFileTextStream;
+  QByteArray mStderr;
+  QTextStream *mStderrTextStream, *mJobFileTextStream, *mQidFileTextStream;
   QString mPid, mEscapedRemoteDirPath, mDecoratedClassName, mCommand;//queue or local command
   QStringList mParamList;//list of queue or local params
   Processchunks *mProcesschunks;
-  QProcess *mProcess, *mVmstocsh;
+  QProcess *mProcess;
   QTime mStartTime;
 
   //Kill process variables

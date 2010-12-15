@@ -30,7 +30,6 @@ ProcessHandler::ProcessHandler() {
   mStartTime.start();
   mStartingProcess = false;
   mRanContinueKillProcess = false;
-  mVmstocsh = new QProcess(this);
   mKillProcess = new QProcess(this);
   mKillProcess->setProcessChannelMode(QProcess::ForwardedChannels);
   QObject::connect(mKillProcess, SIGNAL(finished(int, QProcess::ExitStatus)),
@@ -40,18 +39,15 @@ ProcessHandler::ProcessHandler() {
   resetSignalValues();
   mDecoratedClassName = typeid(*this).name();
   mPausing = 0;
-  mStderrTextStream = new QTextStream(mStderr);
-  mStdoutTextStream = new QTextStream(mStdout);
+  mStderrTextStream = NULL;
   mJobFileTextStream = NULL;
   mLogFile = NULL;
   mCshFile = NULL;
 }
 
 ProcessHandler::~ProcessHandler() {
-  delete mVmstocsh;
   delete mKillProcess;
   delete mStderrTextStream;
-  delete mStdoutTextStream;
   delete mProcess;
   delete mLogFile;
   delete mCshFile;
@@ -68,14 +64,13 @@ void ProcessHandler::initProcess() {
         SLOT(handleFinished(int, QProcess::ExitStatus)));
     disconnect(mProcess, SIGNAL(readyReadStandardError()), this,
         SLOT(handleReadyReadStandardError()));
-    disconnect(mProcess, SIGNAL(readyReadStandardOutput()), this,
-        SLOT(handleReadyReadStandardOutput()));
     disconnect(mKillProcess, SIGNAL(finished(int, QProcess::ExitStatus)), this,
         SLOT(handleKillFinished(int, QProcess::ExitStatus)));
     delete mProcess;
     mProcess = NULL;
   }
   mProcess = new QProcess(this);
+  //mProcess->setProcessChannelMode(QProcess::MergedChannels);
   QObject::connect(mProcess, SIGNAL(error(QProcess::ProcessError)),
       SLOT(handleError(QProcess::ProcessError)));
   QObject::connect(mProcess, SIGNAL(started()), SLOT(handleStarted()));
@@ -83,8 +78,6 @@ void ProcessHandler::initProcess() {
       SLOT(handleFinished(int, QProcess::ExitStatus)));
   QObject::connect(mProcess, SIGNAL(readyReadStandardError()),
       SLOT(handleReadyReadStandardError()));
-  QObject::connect(mProcess, SIGNAL(readyReadStandardOutput()),
-      SLOT(handleReadyReadStandardOutput()));
 }
 
 //Set mFlag to -1 for sync com files.
@@ -137,7 +130,7 @@ void ProcessHandler::setup(Processchunks &processchunks,
 #else
     mCommand = "tcsh";
 #endif
-    mParamList << "-ef";
+    mParamList << "-ef" << mCshFile->fileName();
   }
   initProcess();
 }
@@ -196,10 +189,10 @@ const bool ProcessHandler::qidFileExists() {
 const QString &ProcessHandler::getPid() {
   if (!mProcesschunks->isQueue()) {
     readAllStandardError();
-    if (!getPid(mStderrTextStream, true)) {
-      readAllStandardOutput();
-      getPid(mStdoutTextStream, true);
-    }
+    mStderrTextStream = new QTextStream(mStderr);
+    getPid(mStderrTextStream, true);
+    delete mStderrTextStream;
+    mStderrTextStream = NULL;
   }
   else {
     if (!mQidFile->open(QIODevice::ReadOnly)) {
@@ -219,19 +212,10 @@ const bool ProcessHandler::isPidInStderr() {
     return false;
   }
   readAllStandardError();
+  mStderrTextStream = new QTextStream(mStderr);
   return getPid(mStderrTextStream, false);
-}
-
-/**
- * Returns true if there is a pid in stdout.  Always returns fase if queue is
- * set.
- */
-const bool ProcessHandler::isPidInStdout() {
-  if (mProcesschunks->isQueue()) {
-    return false;
-  }
-  readAllStandardOutput();
-  return getPid(mStdoutTextStream, false);
+  delete mStderrTextStream;
+  mStderrTextStream = NULL;
 }
 
 /**
@@ -299,16 +283,6 @@ void ProcessHandler::readAllStandardError() {
   }
 }
 
-void ProcessHandler::readAllStandardOutput() {
-  QByteArray out = mProcess->readAllStandardOutput();
-  if (!out.isEmpty()) {
-    mStdout.append(out);
-    if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-      mProcesschunks->getOutStream() << out.data() << endl;
-    }
-  }
-}
-
 //Looks for cd or ssh error in either stdout/stderr (non-queue) or
 //.job file (queue).
 //Returns true if found
@@ -316,11 +290,10 @@ const bool ProcessHandler::getSshError(QString &dropMess) {
   bool found = false;
   if (!mProcesschunks->isQueue()) {
     readAllStandardError();
+    mStderrTextStream = new QTextStream(mStderr);
     found = getSshError(dropMess, mStderrTextStream);
-    if (!found) {
-      readAllStandardOutput();
-      found = getSshError(dropMess, mStdoutTextStream);
-    }
+    delete mStderrTextStream;
+    mStderrTextStream = NULL;
   }
   else {
     if (!mProcesschunks->getCurrentDir().exists(mJobFile->fileName())) {
@@ -457,9 +430,9 @@ void ProcessHandler::getErrorMessageFromLog(QString &errorMess) {
   }
 }
 
-//Reads the last lines of stdout and stderr and appends then to errorMess..
+//Reads the last lines of and stderr and appends then to errorMess..
 void ProcessHandler::getErrorMessageFromOutput(QString &errorMess) {
-  //Use the last lines of stdout and stderr as the error message if the log
+  //Use the last lines of and stderr as the error message if the log
   //file is empty.
   char *eol;
 #ifdef _WIN32
@@ -468,22 +441,9 @@ void ProcessHandler::getErrorMessageFromOutput(QString &errorMess) {
   eol = "\n";
 #endif
   errorMess.append(eol);
-  //stdout
-  readAllStandardOutput();
-  QByteArray output = mStdout.trimmed();
-  int lastLineIndex;
-  if (!output.isEmpty()) {
-    lastLineIndex = output.lastIndexOf(eol);
-    if (lastLineIndex != -1) {
-      errorMess.append(output.mid(lastLineIndex));
-    }
-    else {
-      errorMess.append(mStdout);
-    }
-  }
   //stderr
   readAllStandardError();
-  output = mStderr.trimmed();
+  QByteArray output = mStderr.trimmed();
   if (!output.isEmpty()) {
     int lastLineIndex;
     lastLineIndex = output.lastIndexOf(eol);
@@ -581,52 +541,12 @@ void ProcessHandler::removeProcessFiles() {
   }
   else {
     mStderr.clear();
-    mStdout.clear();
     mPid.clear();
   }
 }
 
-//Return if csh file is made
-void ProcessHandler::makeCshFile() {
-  mProcesschunks->getCurrentDir().remove(mCshFile->fileName());
-  QTextStream writeStream(mCshFile);
-  if (!mCshFile->open(QIODevice::WriteOnly)) {
-    mProcesschunks->getOutStream() << "Warning: unable to open and create "
-        << mCshFile->fileName() << endl;
-    return;
-  }
-  if (!mProcesschunks->isQueue()) {
-    writeStream << "nice +" << mProcesschunks->getNice() << endl;
-  }
-  //convert and add CHUNK DONE to all files
-  mVmstocsh->setStandardInputFile(mComFileName);
-  //This does not work:
-  //mVmstocsh->setStandardOutputFile(mCshFile->fileName(), QIODevice::Append);
-  QString command("vmstocsh");
-  QStringList paramList;
-  paramList.append(mLogFile->fileName());
-  if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-    mProcesschunks->getOutStream() << "running: " << command << " "
-        << paramList.join(" ") << endl << "input file: " << mComFileName
-        << endl;
-  }
-  mVmstocsh->start(command, paramList);
-  if (!mVmstocsh->waitForFinished()) {
-    if (mVmstocsh->exitStatus() == QProcess::CrashExit) {
-      mProcesschunks->getOutStream() << "Warning: vmstocsh conversion of "
-          << mComFileName << " failed with exit code " << mVmstocsh->exitCode()
-          << " " << mVmstocsh->readAllStandardError().data() << endl;
-    }
-    else {
-      mProcesschunks->getOutStream() << "Warning: vmstocsh conversion of "
-          << mComFileName << " timed out after 30 seconds: "
-          << mVmstocsh->readAllStandardError().data() << endl;
-    }
-  }
-  writeStream << mVmstocsh->readAllStandardOutput().data()
-      << "echo CHUNK DONE >> " << mLogFile->fileName() << endl;
-
-  mCshFile->close();
+QFile *ProcessHandler::getCshFile() {
+  return mCshFile;
 }
 
 void ProcessHandler::runProcess(MachineHandler *machine) {
@@ -662,10 +582,10 @@ void ProcessHandler::runProcess(MachineHandler *machine) {
       }
       *paramList << mMachine->getName() << "bash" << "--login" << "-c" << param;
     }
-    else {
-      //Use local command - which doesn't contain a remove command.
-      mProcess->setStandardInputFile(mCshFile->fileName());
-    }
+    //hook stdin to something to avoid excessive pipes
+    mProcess->setStandardOutputFile(QString("%1.stdout").arg(
+        mCshFile->fileName()), QProcess::Truncate);
+    mProcess->setStandardInputFile(mCshFile->fileName());
   }
   //Run command
   resetSignalValues();
@@ -676,6 +596,7 @@ void ProcessHandler::runProcess(MachineHandler *machine) {
     }
     //Run on a remote machine
     mProcess->start(*command, *paramList);
+    mProcess->closeWriteChannel();
   }
   else {
     if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
@@ -684,6 +605,7 @@ void ProcessHandler::runProcess(MachineHandler *machine) {
     }
     //Run on local machine or queue
     mProcess->start(mCommand, mParamList);
+    mProcess->closeWriteChannel();
     if (mProcesschunks->isQueue()) {
       mProcess->waitForFinished(2000);
     }
@@ -744,18 +666,8 @@ void ProcessHandler::handleReadyReadStandardError() {
   }
 }
 
-void ProcessHandler::handleReadyReadStandardOutput() {
-  if (mKill && mPidTimerId != 0) {
-    //If killing, check for pid
-    getPid();
-    if (!mPid.isEmpty()) {
-      continueKillProcess(true);
-    }
-  }
-}
-
 //Pid timer event
-void ProcessHandler::timerEvent(const QTimerEvent *timerEvent) {
+void ProcessHandler::timerEvent(const QTimerEvent */*timerEvent*/) {
   //timer should only go off once
   if (mPidTimerId != 0) {
     killTimer(mPidTimerId);
@@ -808,7 +720,7 @@ void ProcessHandler::continueKillProcess(const bool asynchronous) {
           << ",exitStatus:" << mKillProcess->exitStatus() << ",state:"
           << mKillProcess->state() << endl
           << mKillProcess->readAllStandardError() << endl
-          << mKillProcess->readAllStandardOutput() << endl;
+      /* << mKillProcess->readAllStandardOutput()*/<< endl;
     }
     //Put mParamList back to its regular form
     mParamList.replace(mParamList.size() - 2, "R");
@@ -847,7 +759,7 @@ void ProcessHandler::continueKillProcess(const bool asynchronous) {
     //MachineHandler::killNextProcess is not currently running because a wait
     //for a signal or event was done.  Run this function to get to the next
     //process.
-    mMachine->killNextProcess(true);
+    mMachine->killNextProcess();
   }
   if (!runningKillProcess) {
     //No kill request to wait for - go straight to clean up.
@@ -869,7 +781,7 @@ void ProcessHandler::handleFinished(const int exitCode,
   if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
     mProcesschunks->getOutStream() << "finished:" << mComFileName
         << ":exitCode" << exitCode << ",exitStatus:" << exitStatus << endl;
-    readAllStandardOutput();
+    //readAllStandardOutput();
     readAllStandardError();
   }
   mStartingProcess = false;
@@ -966,11 +878,7 @@ void ProcessHandler::handleKillFinished(const int exitCode,
     cleanup = false;
     mProcesschunks->getOutStream() << "kill process exitCode:" << exitCode
         << endl;
-    QByteArray byteArray = mKillProcess->readAllStandardOutput();
-    if (!byteArray.isEmpty()) {
-      mProcesschunks->getOutStream() << byteArray << endl;
-    }
-    byteArray = mKillProcess->readAllStandardError();
+    QByteArray byteArray = mKillProcess->readAllStandardError();
     if (!byteArray.isEmpty()) {
       mProcesschunks->getOutStream() << byteArray << endl;
     }
@@ -988,6 +896,8 @@ void ProcessHandler::handleKillFinished(const int exitCode,
 void ProcessHandler::handleError(const QProcess::ProcessError processError) {
   mErrorSignalReceived = true;
   mProcessError = processError;
+  mProcesschunks->getOutStream() << mComFileName << ":process error:"
+      << processError << "," << mProcess->errorString() << endl;
 }
 
 void ProcessHandler::handleStarted() {
