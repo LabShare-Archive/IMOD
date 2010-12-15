@@ -184,7 +184,7 @@ extern "C" {
   void tiffFilterWarnings(void);
   int tiffOpenNew(ImodImageFile *inFile);
   int tiffWriteSection(ImodImageFile *inFile, void *buf, int compression, 
-                       int inverted);
+                       int inverted, int resolution);
   int iiLikeMRCCheck(ImodImageFile *inFile);
   void iiLikeMRCDelete(ImodImageFile *inFile);
   int iiSetupRawHeaders(ImodImageFile *inFile, RawImageInfo *info);
@@ -198,6 +198,9 @@ extern "C" {
 
 /*
 $Log$
+Revision 3.18  2010/08/31 22:04:44  mast
+New arg for piece list function
+
 Revision 3.17  2009/06/19 19:50:14  mast
 Add member for samples in RGB TIFF file
 
