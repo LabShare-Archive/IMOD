@@ -39,6 +39,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2010/12/05 05:19:33  sueh
+ * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.  Getting rid of some of the panel parents by handling common needs with generic
+ * <p> interfaces:  ParallelProcessEnabledDialog.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -240,6 +244,7 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
   }
 
   void updateDisplay() {
+    super.updateDisplay();
     boolean enabled = getEnabled();
     ltfCenterToCenterThickness.setEnabled(enabled);
     ltfAdditionalDiameters.setEnabled(enabled);
