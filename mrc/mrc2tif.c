@@ -28,12 +28,14 @@ int main(int argc, char *argv[])
   MrcHeader hdata;
   FILE *fpTiff = NULL;
   Islice slice;
-  int xsize, ysize, zsize, psize, xysize;
-  int i, slmode, z, iarg = 1, stack = 0;
-  int oldcode = 0;
-  int compression = 1;
+  int xsize, ysize, zsize, psize, xysize, filenum;
+  int i, j, slmode, z, iarg = 1, stack = 0, resolution = 0, initialNum = -1;
+  int oldcode = 0, convert = 0;
+  int compression = 1, black = 0, white = 255, zmin = -1, zmax = -1;
   b3dUInt32 ifdOffset = 0, dataOffset = 0;
-  float dmin, dmax;
+  float dmin, dmax, smin =0., smax = 0.;
+  float val[3];
+  float scale, offset;
   char prefix[100];
   ImodImageFile *iifile = iiNew();
   char *iname;
@@ -74,6 +76,28 @@ int main(int argc, char *argv[])
           exitError("Compression value %d not allowed", compression);
         break;
 
+      case 'r':
+        resolution = atoi(argv[++iarg]);
+        break;
+
+      case 'S':
+        sscanf(argv[++iarg], "%f%*c%f", &smin, &smax);
+        convert = 1;
+        break;
+
+      case 'C':
+        sscanf(argv[++iarg], "%d%*c%d", &black, &white);
+        convert = 1;
+        break;
+
+      case 'z':
+        sscanf(argv[++iarg], "%d%*c%d", &zmin, &zmax);
+        break;
+
+      case 'i':
+        initialNum = atoi(argv[++iarg]);
+        break;
+
       default:
         break;
       }
@@ -86,6 +110,8 @@ int main(int argc, char *argv[])
 
   if (oldcode && compression != 1)
     exitError("Compression not available with old writing code");
+  if (oldcode && resolution > 0)
+    exitError("Resolution setting is not available with old writing code");
 
 
   if (argc - iarg != 2){
@@ -95,11 +121,19 @@ int main(int argc, char *argv[])
     printf(" Without -s, a series of tiff files will be created "
             "with the\n prefix [tiff root name] and with the suffix nnn.tif, "
            "where nnn is the z number. \n  Options:\n");
-    printf("    -s      Stack all images in the mrc file into a single tiff "
-           "file\n");
-    printf("    -c val  Compress data; val can be lzw, zip, jpeg, or numbers "
-           "defined\n\t\t in libtiff\n");
-    printf("    -o      Write file with old IMOD code instead of libtiff\n");
+    printf("    -s         Stack all images in the mrc file into a single tiff"
+           " file\n");
+    printf("    -c val     Compress data; val can be lzw, zip, jpeg, or "
+           "numbers defined\n\t\t in libtiff\n");
+    printf("    -S min,max Initial scaling limits for conversion to bytes\n");
+    printf("    -C b,w     Contrast black/white values for conversion to "
+           "bytes\n");
+    printf("    -z min,max Starting and ending Z (from 0) to output\n");
+    printf("    -i #       Initial file number (default is starting Z)\n");
+    printf("    -r #       Resolution setting in dots per inch\n");
+
+    printf("    -o         Write file with old IMOD code instead of libtiff"
+           "\n");
     exit(1);
   }
 
@@ -109,6 +143,18 @@ int main(int argc, char *argv[])
   if (mrc_head_read(fin, &hdata))
     exitError("Can't Read Input Header from %s", argv[iarg]);
   iarg++;
+
+  if (zmin == -1 && zmax == -1) {
+    zmin = 0;
+    zmax = hdata.nz - 1;
+  } else if (zmin < 0 || zmax >= hdata.nz || zmin > zmax)
+    exitError("zmin,zmax values are reversed or out of the range 0 to %d\n",
+              hdata.nz - 1);
+  if (initialNum < 0)
+    filenum = zmin;
+  else
+    filenum = initialNum;
+
   iifile->format = IIFORMAT_LUMINANCE;
   iifile->file = IIFILE_TIFF;
   iifile->type = IITYPE_UBYTE;
@@ -145,12 +191,18 @@ int main(int argc, char *argv[])
   xysize = xsize * ysize;
   dmin = hdata.amin;
   dmax = hdata.amax;
+  slmode = sliceModeIfReal(hdata.mode);
+  if (convert) {
+    mrcContrastScaling(&hdata, smin, smax, black, white, MRC_RAMP_LIN, &scale, 
+                       &offset);
+    if (slmode > 0)
+      iifile->type = IITYPE_UBYTE;
+  }
      
-  buf = (unsigned char *)malloc(xsize * ysize * psize);
   iname = (char *)malloc(strlen(argv[iarg]) + 20);
 
-  if (!buf || !iname)
-    exitError("Failed to allocate memory for slice");
+  if (!iname)
+    exitError("Failed to allocate memory for name");
 
   if (stack) {
     sprintf(iname, "%s", argv[iarg]);
@@ -158,17 +210,21 @@ int main(int argc, char *argv[])
   }    
 
   printf("Writing TIFF images. ");
-  for (z = 0; z < zsize; z++){
+  for (z = zmin; z <= zmax; z++){
     int tiferr;
+    if (z == zmin || (convert && slmode > 0))
+      buf = (unsigned char *)malloc(xsize * ysize * psize);
+    if (!buf)
+      exitError("Failed to allocate memory for slice");
 
     printf(".");
     fflush(stdout);
 
     if (!stack) {
-      sprintf(iname, "%s.%3.3d.tif", argv[iarg], z);
+      sprintf(iname, "%s.%3.3d.tif", argv[iarg], filenum++);
       if (zsize == 1)
         sprintf(iname, "%s", argv[iarg]);
-      if (z)
+      if (z > zmin)
         free(iifile->filename);
       fpTiff = openEitherWay(iifile, iname, progname, oldcode);
       ifdOffset = 0;
@@ -181,23 +237,44 @@ int main(int argc, char *argv[])
       perror("mrc2tif ");
       exitError("Reading section %d", z);
     }
+    sliceInit(&slice, xsize, ysize, hdata.mode, buf);
 
+    /* Scale the slice and convert it to bytes */
+    if (convert) {
+      for (j = 0; j < ysize; j++) {
+        for (i = 0; i < xsize; i++) {
+          sliceGetVal(&slice, i, j, val);
+          val[0] = val[0] * scale + offset;
+          val[0] = B3DMAX(0., B3DMIN(255., val[0]));
+          if (psize == 3) {
+            val[1] = val[1] * scale + offset;
+            val[1] = B3DMAX(0., B3DMIN(255., val[1]));
+            val[2] = val[2] * scale + offset;
+            val[2] = B3DMAX(0., B3DMIN(255., val[2]));
+          }
+          slicePutVal(&slice, i, j, val);
+        }
+      }
+      if (slmode > 0 && sliceNewMode(&slice, SLICE_MODE_BYTE))
+        exitError("Converting slice %d to bytes", z);
+      buf = slice.data.b;
+    }
+    
     /* Get min/max for int/float images, those are the only ones the write
        routine will put out min/max for */
-    slmode = sliceModeIfReal(hdata.mode);
-    if (!stack && slmode > 0) {
-      sliceInit(&slice, xsize, ysize, slmode, buf);
+    if (!stack && slmode > 0 && !convert) {
       sliceMMM(&slice);
       iifile->amin = slice.min;
       iifile->amax = slice.max;
     }
     iifile->nx = xsize;
     iifile->ny = ysize;
+
     if (fpTiff)
       tiferr = tiff_write_image(fpTiff, xsize, ysize, hdata.mode, buf, 
                                 &ifdOffset, &dataOffset, dmin, dmax);
     else
-      tiferr = tiffWriteSection(iifile, buf, compression, 0);
+      tiferr = tiffWriteSection(iifile, buf, compression, 0, resolution);
     if (tiferr){
       perror("mrc2tif ");
       exitError("Error (%d) writing section %d to %s", tiferr, z, iname);
@@ -210,6 +287,8 @@ int main(int argc, char *argv[])
       } else
         iiClose(iifile);
     }
+    if (convert && slmode > 0)
+      free(slice.data.b);
   }
 
   printf("\r\n");
@@ -220,7 +299,6 @@ int main(int argc, char *argv[])
       iiClose(iifile);
   }
   fclose(fin);
-  free(buf);
   exit(0);
 }
 
@@ -248,6 +326,9 @@ static FILE *openEitherWay(ImodImageFile *iifile, char *iname, char *progname,
 /*
 
 $Log$
+Revision 3.12  2009/11/27 16:38:09  mast
+Added include to fix warnings
+
 Revision 3.11  2009/04/01 00:20:34  mast
 Call new writing routine with libtiff and add compression option
 
