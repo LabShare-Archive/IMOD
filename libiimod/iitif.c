@@ -809,10 +809,11 @@ int tiffOpenNew(ImodImageFile *inFile)
 
 /*
  * Write next section to file with the given compression value; set inverted
- * non-zero if image is already inverted and does not need copying
+ * non-zero if image is already inverted and does not need copying.  Set 
+ * resolution >0 to set a resolution in DPI in the file
  */
 int tiffWriteSection(ImodImageFile *inFile, void *buf, int compression, 
-                     int inverted)
+                     int inverted, int resolution)
 {
   int stripTarget = 8192;
   uint32 rowsPerStrip, lineBytes, stripBytes;
@@ -840,7 +841,12 @@ int tiffWriteSection(ImodImageFile *inFile, void *buf, int compression,
   TIFFSetField(tif, TIFFTAG_IMAGELENGTH, inFile->ny);
   TIFFSetField(tif, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
   TIFFSetField(tif, TIFFTAG_COMPRESSION, compression);
-  TIFFSetField(tif, TIFFTAG_RESOLUTIONUNIT, RESUNIT_NONE);
+  TIFFSetField(tif, TIFFTAG_RESOLUTIONUNIT, 
+               resolution > 0 ? RESUNIT_INCH : RESUNIT_NONE);
+  if (resolution > 0) {
+    TIFFSetField(tif, TIFFTAG_XRESOLUTION, (float)resolution);
+    TIFFSetField(tif, TIFFTAG_YRESOLUTION, (float)resolution);
+  }
   if (inFile->format == IIFORMAT_RGB) {
     samples = 3;
     photometric = PHOTOMETRIC_RGB;
@@ -940,6 +946,9 @@ int tiffWriteSection(ImodImageFile *inFile, void *buf, int compression,
 
 /*
   $Log$
+  Revision 3.21  2010/07/06 03:20:00  mast
+  Put out module too, which sometimes has the filename!
+
   Revision 3.20  2010/07/05 20:01:19  mast
   Fixed warning handler to not try to call TIFF handler
 
