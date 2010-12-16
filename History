@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/16/10: Fixed behavior of 3dmod toolbar edit fields when they lose focus.
+
 12/15/10: Added options to 3dmod preferences to set the DPI of TIFF and JPEG
 snapshots and to control whether montage snapshots get a scaled-up DPI.
 
