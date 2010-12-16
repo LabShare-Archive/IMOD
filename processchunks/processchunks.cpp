@@ -21,6 +21,7 @@
 #include <QSet>
 #include <QTimer>
 #include <stdio.h>
+#include <typeinfo>
 
 #ifndef _WIN32
 #include <sys/select.h>
@@ -1797,6 +1798,10 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.48  2010/12/15 23:48:54  sueh
+ bug# 1426 Roll back kill functions to a previous version.  Moved vmstocsh
+ call from ProcessHandler to Processchunks.
+
  Revision 1.47  2010/12/08 22:56:17  sueh
  bug# 1423 Deleting new'd objects.
 

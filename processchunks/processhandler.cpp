@@ -10,6 +10,7 @@
 #include <parse_params.h>
 #include <QFile>
 #include "b3dutil.h"
+#include <typeinfo>
 
 const static QString pidTag = "PID:";
 

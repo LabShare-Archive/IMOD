@@ -8,6 +8,7 @@
 #include <machinehandler.h>
 #include <QString>
 #include <QTextStream>
+#include <typeinfo>
 
 MachineHandler::MachineHandler(Processchunks &processchunks,
     const char *machineName, const int numCpus) {
