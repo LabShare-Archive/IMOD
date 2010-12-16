@@ -147,7 +147,8 @@ all sections
 tooltip = 
 manpage = X and Y center offsets for each section.  This is an offset to the
 center of the area from which image will be taken, so a positive offset in X
-will move images to the left.  Enter one X,Y pair to apply a single offset to
+will move images to the left.  If images are being binned, the entry should be
+in unbinned pixels.  Enter one X,Y pair to apply a single offset to
 all sections.
 
 [Field = ApplyOffsetsFirst]
