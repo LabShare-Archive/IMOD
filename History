@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/15/10: Added options to 3dmod preferences to set the DPI of TIFF and JPEG
+snapshots and to control whether montage snapshots get a scaled-up DPI.
+
+12/15/10: Added options to mrc2tif for setting the DPI of the output file,
+controlling byte scaling and converting to bytes, doing a subset in Z and 
+setting the starting file number.
+
 12/15/10: In eTomo fixed a problem where Erase Beads was always looking for
 local alignments when it built a tomogram.
 
