@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2009/01/15 16:31:02  mast
+Qt 4 port
+
 Revision 3.4  2004/06/04 03:00:42  mast
 Implement export/import macro for making libdiaqt be a DLL
 
@@ -51,8 +54,10 @@ class DLL_IM_EX ToolEdit : public QLineEdit
  signals:
   void focusLost();
 
+ public slots:
+  void doneEditing();
+
  protected:
-  void focusOutEvent(QFocusEvent *event);
   void fontChange(const QFont &oldFont);
 
  private:
