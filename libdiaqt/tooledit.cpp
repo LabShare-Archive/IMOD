@@ -33,14 +33,17 @@ ToolEdit::~ToolEdit()
 {
 }
 
-void ToolEdit::focusOutEvent(QFocusEvent *event)
-{
-  emit focusLost();
-}
 void ToolEdit::fontChange(const QFont &oldFont)
 {
   setColumnWidth();
   QLineEdit::fontChange(oldFont);
+}
+
+// Pass on the editingFinished signal for compatibility.  It was blocked
+// by catching the focusOut event
+void ToolEdit::doneEditing()
+{
+  emit focusLost();
 }
 
 /*!
@@ -62,11 +65,15 @@ void ToolEdit::setColumnWidth(int columns)
     width = ((2 * columns + 3) * fontMetrics().width(str) ) / (2 * columns);
     setFixedWidth(width);
   }
+  connect(this, SIGNAL(editingFinished()), this, SLOT(doneEditing()));
 }
 
 /*
 
 $Log$
+Revision 1.7  2009/01/15 16:30:26  mast
+Qt 4 port
+
 Revision 1.6  2008/01/13 22:21:35  mast
 Added documentation for column setting
 
