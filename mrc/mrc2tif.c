@@ -28,7 +28,8 @@ int main(int argc, char *argv[])
   MrcHeader hdata;
   FILE *fpTiff = NULL;
   Islice slice;
-  int xsize, ysize, zsize, psize, xysize, filenum;
+  int xsize, ysize, zsize, psize, filenum, outPsize;
+  size_t xysize;
   int i, j, slmode, z, iarg = 1, stack = 0, resolution = 0, initialNum = -1;
   int oldcode = 0, convert = 0;
   int compression = 1, black = 0, white = 255, zmin = -1, zmax = -1;
@@ -188,16 +189,25 @@ int main(int argc, char *argv[])
   xsize = hdata.nx;
   ysize = hdata.ny;
   zsize = hdata.nz;
-  xysize = xsize * ysize;
+  xysize = (size_t)xsize * (size_t)ysize;
+  if (xysize * psize < ((double)xsize * ysize) * psize - 20)
+    exitError("The image is too large in X/Y to convert on a 32-bit system");
   dmin = hdata.amin;
   dmax = hdata.amax;
   slmode = sliceModeIfReal(hdata.mode);
+  outPsize = psize;
   if (convert) {
     mrcContrastScaling(&hdata, smin, smax, black, white, MRC_RAMP_LIN, &scale, 
                        &offset);
-    if (slmode > 0)
+    if (slmode > 0) {
       iifile->type = IITYPE_UBYTE;
+      outPsize = 1;
+    }
   }
+  if ((double)xysize * outPsize >  4.294e9)
+    exitError("The image is too large in X/Y to save in a TIFF file");
+  if (stack && (zmax + 1 - zmin) * xysize * (double)outPsize >  4.294e9)
+    exitError("The volume is too large to save in a TIFF stack");
      
   iname = (char *)malloc(strlen(argv[iarg]) + 20);
 
@@ -213,7 +223,7 @@ int main(int argc, char *argv[])
   for (z = zmin; z <= zmax; z++){
     int tiferr;
     if (z == zmin || (convert && slmode > 0))
-      buf = (unsigned char *)malloc(xsize * ysize * psize);
+      buf = (unsigned char *)malloc(xysize * psize);
     if (!buf)
       exitError("Failed to allocate memory for slice");
 
@@ -326,6 +336,10 @@ static FILE *openEitherWay(ImodImageFile *iifile, char *iname, char *progname,
 /*
 
 $Log$
+Revision 3.13  2010/12/15 06:21:24  mast
+Added options for setting resolution, controlling scaling, setting file
+number and doing a subset in Z
+
 Revision 3.12  2009/11/27 16:38:09  mast
 Added include to fix warnings
 
