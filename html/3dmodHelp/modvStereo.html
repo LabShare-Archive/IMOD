@@ -26,18 +26,38 @@ environment variable IMOD_STEREO_TBOFFSET to have this value, and this offset
 will be applied automatically in the future.
 <DT>HARDWARE
 <DD>This mode is available only if the display hardware supports left and right
-stereo buffers in OpenGL.  When the mode is activated, the command defined in
+stereo buffers in OpenGL, such as with NVIDIA Quadro cards. 
+When the mode is activated, the command defined in
 the environment variable IMOD_STEREO_COMMAND is executed.  The two images are
 then drawn into the left and right buffers.  When the mode is turned off, the
 command defined in the environment variable IMOD_STEREO_RESTORE is executed.
-This mode is known to work only on an SGI, where the proper specialized calls
-are made to use the stereo buffers, and the proper commands are built in to call
-setmon and change the monitor mode.
+These ancillary commands are unnecessary when activating stereo with an NVIDIA
+card.
 </DL>
 <H3>Hot Keys</H3>
 Stereo is toggled with the [s] hot key.  The first time this is used, the
 program will go into Top/Bottom mode if IMOD_STEREO_TBOFFSET is defined,
 otherwise into Hardware mode if stereo buffers are available, otherwise into
 Side-by-side mode.
+<P>
+<H3>Stereo Image Display Controls</H3>
+It is possible to display image pairs in stereo in the model view window using
+the controls at the bottom of this dialog.  They are enabled when <B>View
+Z image</B> is selected in the <B>Image View</B> dialog.  The image data can
+consist of a single tilt series, or of consecutive sets of tilted views of
+different areas.  In the simplest case, the image stack would consist of
+consecutive stereo pairs.  Before activating stereo, 
+adjust the <B>Tilted views per area</B> spin box to the correct value.  For a
+tilt series, set this to the number of images in the series.
+<P>
+Turn on <B>Show images as stereo pairs</B> to activate the image display
+mode.  In this mode, the model and image will not be drawn at different angles
+in the left and right displays; rather, two different images will be drawn in
+the left and right buffers if possible.  The current section will be drawn in
+the left buffer and a higher section in the right buffer, but only if the
+higher section is a view of the same area.
+<P>
+If you have more than 2 views of each area, adjust
+<B>Sections between pairs</B> to select a pair with a different stereo angle.
 <P>
 <A HREF="index.html">Help Index<A>
