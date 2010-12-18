@@ -713,7 +713,11 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
   sshq = meanOnly ? 0 : ss->hq;
   ss->noPixelZoom = (sshq || izoom != ss->zoom) &&
     (!ss->fftMode || ss->zoom < 1.);
-  shortcut = (sshq && (zoom == izoom) && (zoom > 1.0) && !ss->fftMode) ? 1 : 0;
+
+  // 12/16/10: There seems to be nothing wrong with doing the shortcut for
+  // non-integer zooms!  And it looks a lot nicer
+  shortcut = (sshq && (zoom == izoom || zoom > 2.0) &&  (zoom > 1.0) && 
+              !ss->fftMode) ? 1 : 0;
   ksize = (ss->vi->colormapImage || meanOnly) ? 1 : ss->nslice;
  
   // Set up number of threads early so pan limit can be modified
@@ -1502,6 +1506,9 @@ static void fillArraySegment(int jstart, int jlimit)
 /*
 
 $Log$
+Revision 4.34  2010/03/17 21:30:30  mast
+Fixed crash when rotated in Z to -180 for some window sizes/shifts
+
 Revision 4.33  2009/11/21 23:03:42  mast
 Chnaged it to use ideal thread count
 
