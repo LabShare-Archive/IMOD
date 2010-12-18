@@ -39,7 +39,6 @@ static void swap(char *ptr, unsigned size)
   unsigned char *end;
   unsigned char tmp;
   int           i;
-  int           len;
 
   if ((size % 2) != 0)
     size--;
@@ -118,9 +117,7 @@ unsigned char *tiff_read_mrc(FILE *fp, struct MRCheader *hdata)
 
 unsigned char *tiff_read_section(FILE *fp, Tf_info *tiff, int section)
 {
-  b3dInt32    tiff_size;
-  b3dInt32    data_size;
-  struct  Image_data image;
+  size_t    data_size;
   int dpos = 0;
   int i;
   int pixSize = 1;
@@ -146,7 +143,7 @@ unsigned char *tiff_read_section(FILE *fp, Tf_info *tiff, int section)
      
   xsize = tiff->directory[WIDTHINDEX].value;
   ysize = tiff->directory[LENGTHINDEX].value;
-  data_size = xsize * ysize;
+  data_size = (size_t)xsize * (size_t)ysize;
 
   pixSize = tiff->BitsPerSample / 8;
 
@@ -162,7 +159,7 @@ unsigned char *tiff_read_section(FILE *fp, Tf_info *tiff, int section)
     return(NULL);
 
   if (tiff->iifile) {
-    if (tiffReadSection(tiff->iifile, tiff->data, section))
+    if (tiffReadSection(tiff->iifile, (char *)tiff->data, section))
       return NULL;
 
     return (tiff->data);
@@ -172,7 +169,6 @@ unsigned char *tiff_read_section(FILE *fp, Tf_info *tiff, int section)
   if (tiff->BitsPerSample == 1){
     char *bitdata = malloc(data_size);
     int cbyte, cbit;
-    int bits, b;
     dpos = 0;
           
     for(i = 0; i < tiff->nstrip; i++){
@@ -243,14 +239,6 @@ unsigned char *tiff_read_section(FILE *fp, Tf_info *tiff, int section)
 unsigned char *tiff_read_file(FILE *fp, Tf_info *tiff)
 {
 
-  b3dInt32    tiff_size;
-  b3dInt32    data_size;
-  struct  Image_data image;
-  int dpos = 0;
-  int i;
-  int pixSize = 1;
-  int xsize, ysize;
-
   if (tiff->iifile)
     return(tiff_read_section(fp, tiff, 0));
 
@@ -279,11 +267,14 @@ int tiff_open_file(char *filename, char *mode, Tf_info *tiff)
 
       /* If this fails, reset the iifile entry to indicate that, 
          and reopen the file for use by old routines */
+      if (tiff->iifile->fp)
+        tiff->fp = tiff->iifile->fp;
+      else
+        tiff->fp = fopen(filename, mode);
       if (tiff->iifile->filename)
         free(tiff->iifile->filename);
       free(tiff->iifile);
       tiff->iifile = NULL;
-      tiff->fp = fopen(filename, "rb");
       if (!tiff->fp)
         return 1;
       /* This is needed to set swapping correctly */
@@ -546,7 +537,7 @@ int read_tiffentries(FILE *fp, Tf_info *tiff)
           tiff->mode = 2;
       }
       if (len == 3){
-        int pos = ftell(fp);
+        pos = ftell(fp);
         short red,green,blue;
 
         fseek(fp, value, SEEK_SET);
@@ -588,7 +579,7 @@ int read_tiffentries(FILE *fp, Tf_info *tiff)
           break;
         }
         printf("ERROR: read_tiffentries - %s compressed tiff data "
-                "not supported without tifflib.so. (%d)\n", compType, value);
+                "not supported without tifflib.so. (%u)\n", compType, value);
         return(0);
       }
       break;
@@ -865,6 +856,9 @@ int tiff_write_image(FILE *fout, int xsize, int ysize, int mode,
 /*
 
 $Log$
+Revision 3.9  2009/06/19 20:48:10  mast
+Added support for integer files
+
 Revision 3.8  2008/05/23 22:23:50  mast
 Error standardization and cleanup
 
