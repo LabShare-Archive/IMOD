@@ -317,6 +317,14 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
     imcSetScaleSizes(width != 0);
     imcSetSizeScaling(position);
   }
+  if (settings->contains("slicerMontSnapshots")) {
+    str = settings->value("slicerMontSnapshots").toString();
+    sscanf(LATIN1(str), "%d,%d,%d,%d", &left, &top, &width, &position);
+    imcSetSlicerMontage(left != 0);
+    imcSetSlicerMontFactor(top);
+    imcSetScaleThicks(width != 0);
+    imcSetThickScaling(position);
+  }
 
   READNUM(autosaveInterval);
   prefs->autosaveDirChgd = settings->contains("autosaveDir");
@@ -376,6 +384,8 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   for (i = 0; i < MAX_STYLES; i++)
     styleStatus[i] = 0;
 
+  mCurrentTab = settings->value("currentPrefsTab").toInt();
+  mCurrentTab = B3DMAX(0, B3DMIN(3, mCurrentTab));
   delete settings;
 }
 
@@ -546,6 +556,10 @@ void ImodPreferences::saveSettings(int modvAlone)
               imcGetMontageFactor(), imcGetSnapWholeMont() ? 1: 0,
               imcGetScaleSizes() ? 1 : 0, imcGetSizeScaling());
   settings->setValue("montageSnapshots", str);
+  str.sprintf("%d,%d,%d,%d", imcGetSlicerMontage(false) ? 1 : 0, 
+              imcGetSlicerMontFactor(), 
+              imcGetScaleThicks() ? 1 : 0, imcGetThickScaling());
+  settings->setValue("slicerMontSnapshots", str);
 
   WRITE_IF_CHANGED(autosaveInterval);
   WRITE_IF_CHANGED(autosaveDir);
@@ -568,6 +582,7 @@ void ImodPreferences::saveSettings(int modvAlone)
       listSet = (GenericSettings *)ilistNext(mGenericList);
     }
   }
+  settings->setValue("currentPrefsTab", mCurrentTab);
 
   delete settings;
 }
@@ -1227,6 +1242,9 @@ void PrefsDialog::closeEvent ( QCloseEvent * e )
 
 /*
 $Log$
+Revision 1.45  2010/12/15 06:14:41  mast
+Changes for setting resolution in image snapshots
+
 Revision 1.44  2010/03/01 23:46:02  mast
 Prevent dialog opening twice on Mac
 
