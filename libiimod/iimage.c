@@ -113,6 +113,9 @@ ImodImageFile *iiNew()
   ofile->urx = -1;
   ofile->ury = -1;
   ofile->urz = -1;
+  ofile->nx = 0;
+  ofile->ny = 0;
+  ofile->nz = 0;
   return(ofile);
 }
 
@@ -373,6 +376,9 @@ int iiLoadPCoord(ImodImageFile *inFile, int useMdoc, IloadInfo *li, int nx,
 
 /*
 $Log$
+Revision 3.18  2010/08/31 21:55:48  mast
+Load piece coordinates from image file or from metadata file
+
 Revision 3.17  2009/01/02 05:18:43  mast
 const char * for Qt 4 port
 
