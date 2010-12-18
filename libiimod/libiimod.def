@@ -48,6 +48,7 @@ EXPORTS
 	mrc_get_scale
 	iiSetupRawHeaders
 	allocate2D_float
+	tiffVersion
 	tiffReadSection
 	iiReopen
 	tiffReadSectionByte
@@ -65,6 +66,7 @@ EXPORTS
 	get_short_map
 	iiMRCreadSectionByte
 	sliceBox
+	stat64
 	mrc_mread_slice
 	iiMRCCheck
 	tiffClose
@@ -82,6 +84,7 @@ EXPORTS
 	mrcReadSection
 	sliceAnisoDiff
 	mrcComplexSminSmax
+	tiffSetMapping
 	iiLikeMRCDelete
 	corr_conj
 	tiffSuppressErrors
@@ -115,6 +118,7 @@ EXPORTS
 	mrcReadSectionByte
 	iiDelete
 	mrc_default_status
+	tiffWriteStrip
 	sliceGaussianKernel
 	mrc_coord_cp
 	mrc_read_slice
@@ -132,6 +136,7 @@ EXPORTS
 	mrc_byte_mmm
 	sliceReadFloat
 	sliceGradient
+	tiffWriteFinish
 	mrc_slice_getvol
 	sliceByteEdgePrewitt
 	sliceNewMode
@@ -156,4 +161,5 @@ EXPORTS
 	iiPlistLoadF
 	sliceComplexFloat
 	sliceMultConst
+	tiffWriteSetup
 	mrc_test_size
