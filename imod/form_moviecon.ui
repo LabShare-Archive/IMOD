@@ -5,14 +5,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>217</width>
-    <height>518</height>
+    <width>218</width>
+    <height>561</height>
    </rect>
   </property>
   <property name="windowTitle" >
    <string>3dmod Movie Controller</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_4" >
+  <layout class="QVBoxLayout" name="verticalLayout_5" >
    <item>
     <widget class="QGroupBox" name="groupBox" >
      <property name="title" >
@@ -353,6 +353,9 @@
         </property>
         <item>
          <widget class="QRadioButton" name="endRadioButton" >
+          <property name="focusPolicy" >
+           <enum>Qt::NoFocus</enum>
+          </property>
           <property name="toolTip" >
            <string>Start snapshots at starting or ending limit for axis</string>
           </property>
@@ -363,6 +366,9 @@
         </item>
         <item>
          <widget class="QRadioButton" name="hereRadioButton" >
+          <property name="focusPolicy" >
+           <enum>Qt::NoFocus</enum>
+          </property>
           <property name="toolTip" >
            <string>Start snapshots at current coordinates</string>
           </property>
@@ -382,6 +388,9 @@
       <string>Zap montage snapshots</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3" >
+      <property name="spacing" >
+       <number>2</number>
+      </property>
       <property name="leftMargin" >
        <number>5</number>
       </property>
@@ -398,6 +407,9 @@
        <layout class="QHBoxLayout" >
         <item>
          <widget class="QCheckBox" name="montageCheckBox" >
+          <property name="focusPolicy" >
+           <enum>Qt::StrongFocus</enum>
+          </property>
           <property name="toolTip" >
            <string>Make snapshot of Zap window that is montage of zoomed image</string>
           </property>
@@ -424,7 +436,7 @@
            <number>2</number>
           </property>
           <property name="maximum" >
-           <number>30</number>
+           <number>50</number>
           </property>
          </widget>
         </item>
@@ -432,6 +444,9 @@
       </item>
       <item>
        <widget class="QCheckBox" name="wholeCheckBox" >
+        <property name="focusPolicy" >
+         <enum>Qt::NoFocus</enum>
+        </property>
         <property name="toolTip" >
          <string>Snapshot entire image at zoom of 1</string>
         </property>
@@ -444,6 +459,9 @@
        <layout class="QHBoxLayout" >
         <item>
          <widget class="QCheckBox" name="scaleCheckBox" >
+          <property name="focusPolicy" >
+           <enum>Qt::NoFocus</enum>
+          </property>
           <property name="toolTip" >
            <string>Increase line thickness and symbol sizes for montage snapshot</string>
           </property>
@@ -454,8 +472,113 @@
         </item>
         <item>
          <widget class="QSpinBox" name="scaleSpinBox" >
+          <property name="focusPolicy" >
+           <enum>Qt::ClickFocus</enum>
+          </property>
           <property name="toolTip" >
            <string>Amount to scale sizes by (Auto is montage factor, or zoom * factor for zoom &lt; 1)</string>
+          </property>
+          <property name="specialValueText" >
+           <string>Auto</string>
+          </property>
+          <property name="keyboardTracking" >
+           <bool>false</bool>
+          </property>
+          <property name="minimum" >
+           <number>1</number>
+          </property>
+          <property name="maximum" >
+           <number>30</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_6" >
+     <property name="title" >
+      <string>Slicer montage snapshots</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_4" >
+      <property name="spacing" >
+       <number>2</number>
+      </property>
+      <property name="leftMargin" >
+       <number>5</number>
+      </property>
+      <property name="topMargin" >
+       <number>2</number>
+      </property>
+      <property name="rightMargin" >
+       <number>5</number>
+      </property>
+      <property name="bottomMargin" >
+       <number>5</number>
+      </property>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_4" >
+        <item>
+         <widget class="QCheckBox" name="slicerMontCheckBox" >
+          <property name="focusPolicy" >
+           <enum>Qt::NoFocus</enum>
+          </property>
+          <property name="toolTip" >
+           <string>Make snapshot of Slicer window that is montage of zoomed image</string>
+          </property>
+          <property name="text" >
+           <string>Montage        by</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="slicerMontSpinBox" >
+          <property name="focusPolicy" >
+           <enum>Qt::ClickFocus</enum>
+          </property>
+          <property name="toolTip" >
+           <string>Factor to zoom by in composing slicer montage snapshot</string>
+          </property>
+          <property name="specialValueText" >
+           <string/>
+          </property>
+          <property name="keyboardTracking" >
+           <bool>false</bool>
+          </property>
+          <property name="minimum" >
+           <number>2</number>
+          </property>
+          <property name="maximum" >
+           <number>30</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_5" >
+        <item>
+         <widget class="QCheckBox" name="slicerScaleCheckBox" >
+          <property name="focusPolicy" >
+           <enum>Qt::NoFocus</enum>
+          </property>
+          <property name="toolTip" >
+           <string>Increase line thickness for slicer montage snapshot</string>
+          </property>
+          <property name="text" >
+           <string>Scale thickness by</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="slicerScaleSpinBox" >
+          <property name="focusPolicy" >
+           <enum>Qt::ClickFocus</enum>
+          </property>
+          <property name="toolTip" >
+           <string>Amount to scale line thickness by (Auto is montage factor, or zoom * factor for zoom &lt; 1)</string>
           </property>
           <property name="specialValueText" >
            <string>Auto</string>
@@ -671,9 +794,9 @@
   </connection>
   <connection>
    <sender>montageCheckBox</sender>
-   <signal>stateChanged(int)</signal>
+   <signal>toggled(bool)</signal>
    <receiver>MovieController</receiver>
-   <slot>montageToggled(int)</slot>
+   <slot>montageToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel" >
      <x>20</x>

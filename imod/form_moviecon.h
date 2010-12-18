@@ -2,6 +2,9 @@
  *
  *  $Id$
  *  $Log$
+ *  Revision 4.1  2009/01/15 16:33:17  mast
+ *  Qt 4 port
+ *
  *
  */
 #ifndef MOVIECONTROLLER_H
@@ -35,7 +38,7 @@ public slots:
     virtual void snapshotSelected( int which );
     virtual void extentSelected( int which );
     virtual void startHereSelected( int which );
-    virtual void montageToggled( int state );
+    virtual void montageToggled( bool state );
     virtual void newMontageValue( int value );
     virtual void wholeImageToggled( bool state );
     virtual void scaleThickToggled( bool state );
@@ -51,6 +54,10 @@ public slots:
     virtual void keyPressEvent( QKeyEvent * e );
     virtual void keyReleaseEvent( QKeyEvent * e );
     virtual void fontChange( const QFont & oldFont );
+    virtual void scaleThickChanged( int value );
+    virtual void scaleSlicerThickToggled( bool state );
+    virtual void newSlicerMontValue( int value );
+    virtual void slicerMontToggled(bool state );
 
 protected:
     MultiSlider *mSliders;
