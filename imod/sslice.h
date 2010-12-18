@@ -143,6 +143,7 @@ void slicerCheckMovieLimits(SlicerStruct *ss);
 int setTopSlicerAngles(float angles[3], Ipoint *center, bool draw);
 int getTopSlicerAngles(float angles[3], Ipoint *center, int &time);
 int getTopSlicerTime(bool &continuous);
+int getSlicerThicknessScaling();
 int slicerAnglesOpen();
 void slicerAnglesClosing();
 void slicerNewTime(bool refresh);
@@ -153,6 +154,9 @@ int setTopSlicerFromModelView(Ipoint *rot);
 
 /*
     $Log$
+    Revision 3.22  2009/01/15 16:33:18  mast
+    Qt 4 port
+
     Revision 3.21  2008/11/29 22:10:29  mast
     Added ability to link slicers
 
