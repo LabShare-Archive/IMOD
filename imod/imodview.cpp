@@ -1384,7 +1384,8 @@ float ivwGetFileValue(ImodView *vi, int cx, int cy, int cz)
 }
 
 
-/* Routine to copy a portion of one buffer into another */
+/* Routine to copy a portion of one buffer into another 
+   tskip = to_xsize - xcpy, fskip = from_xsize - xcpy*/
 void memreccpy
 (unsigned char *tb,             /* copy data to buffer */
  unsigned char *fb,             /* copy data from buffer */
@@ -1411,7 +1412,27 @@ void memreccpy
     tb+=tskip;
     fb+=fskip;
   }
-  return;
+}
+
+/* Copy a portion of one buffer into another described by line pointers */
+void memLineCpy
+(unsigned char **tlines,        /* line pointers to copy data to */
+ unsigned char *fb,             /* copy data from buffer */
+ int xcpy, int ycpy, int psize, /* amount / byte size of data to copy */
+ int tox, int toy,              /* to buffer offsets */
+ int fxsize, int fox, int foy)  /* from buffer X size and offsets */
+{
+  unsigned char *tb;
+  int y;
+
+  /* initialize from buffer pointer */
+  fb += (fox + fxsize * foy) * psize;
+  xcpy *= psize;
+  for (y = 0; y < ycpy; y++){
+    tb = tlines[y + toy] + tox * psize;
+    memcpy(tb, fb, xcpy);
+    fb += fxsize * psize;
+  }
 }
 
 /* DNM: scan through all contours and set wild flag if Z is not the 
@@ -2831,6 +2852,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 /*
 
 $Log$
+Revision 4.83  2009/08/19 21:31:16  mast
+Switched to having a variable to enable dumping FS cache
+
 Revision 4.82  2009/04/28 15:46:13  mast
 Added functions to get and set top zap center
 

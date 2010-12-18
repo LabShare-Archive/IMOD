@@ -55,6 +55,12 @@ void memreccpy
  int xcpy, int ycpy, int psize, /* amount/size of data to copy. */
  int tskip, int tox, int toy,   /* to buffer offsets, skip. */
  int fskip, int fox, int foy);   /* from buffer offsets, skip. */
+void memLineCpy
+(unsigned char **tlines,        /* line pointers to copy data to */
+ unsigned char *fb,             /* copy data from buffer */
+ int xcpy, int ycpy, int psize, /* amount / byte size of data to copy */
+ int tox, int toy,              /* to buffer offsets */
+ int fxsize, int fox, int foy);  /* from buffer X size and offsets */
 
 bool ivwTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont);
 int ivwRegisterInsertPoint(ImodView *vi, Icont *cont, Ipoint *pt, int index);
@@ -65,6 +71,9 @@ void startExtraObjectIfNone(ImodView *vi);
 /*
 
 $Log$
+Revision 1.12  2008/12/01 15:42:01  mast
+Changes for undo/redo and selection in 3dmodv standalone
+
 Revision 1.11  2008/11/28 06:39:12  mast
 Made extra object function global
 
