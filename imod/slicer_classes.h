@@ -123,6 +123,7 @@ class SlicerGL : public QGLWidget
  public:
   SlicerGL(SlicerStruct *slicer, QGLFormat format, QWidget * parent = 0);
   ~SlicerGL() {};
+  void setBufferSwapAuto(bool state) { setAutoBufferSwap(state); };
  
 protected:
   void initializeGL() {};
@@ -182,6 +183,9 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly);
 
 /*
 $Log$
+Revision 4.13  2009/01/15 16:33:18  mast
+Qt 4 port
+
 Revision 4.12  2008/11/29 22:10:30  mast
 Added ability to link slicers
 
