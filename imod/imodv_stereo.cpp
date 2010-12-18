@@ -21,6 +21,8 @@
 #include <QCloseEvent>
 #include <QKeyEvent>
 #include <QDesktopWidget>
+#include <QCheckBox>
+#include <QSpinBox>
 #include "multislider.h"
 #include "dialog_frame.h"
 #include "dia_qtutils.h"
@@ -30,6 +32,7 @@
 #include "imod_display.h"
 #include "imodv_gfx.h"
 #include "imodv_input.h"
+#include "imodv_image.h"
 #include "imodv_stereo.h"
 #include "preferences.h"
 #include "control.h"
@@ -357,6 +360,8 @@ ImodvStereo::ImodvStereo(QWidget *parent, const char *name)
   : DialogFrame(parent, 2, 1, buttonLabels, buttonTips, true,
                 ImodPrefs->getRoundedStyle(), "3dmodv Stereo", "", name)
 {
+  QHBoxLayout *hLayout;
+
   // Make combo box, with just the 2 software options
   mCtrlPressed = false;
   mComboBox = new QComboBox(this);
@@ -375,6 +380,28 @@ ImodvStereo::ImodvStereo(QWidget *parent, const char *name)
   mSlider->setValue(1, imodvStereoData.tbVoffset);
   connect(mSlider, SIGNAL(sliderChanged(int, int, bool)), this, 
           SLOT(sliderMoved(int, int, bool)));
+
+  if (imodvByteImagesExist() != 0) {
+    mImageBox = diaCheckBox("Show images as stereo pairs", this, mLayout);
+    diaSetChecked(mImageBox, Imodv->imageStereo != 0);
+    connect(mImageBox, SIGNAL(toggled(bool)), this, SLOT(imageToggled(bool)));
+
+    hLayout = diaHBoxLayout(mLayout);
+    mViewsAreaSpin = (QSpinBox *)diaLabeledSpin
+      (0, 2, App->cvi->zsize, 1, "Tilted views per area", this, hLayout);
+    diaSetSpinBox(mViewsAreaSpin, Imodv->imagesPerArea);
+    connect(mViewsAreaSpin, SIGNAL(valueChanged(int)), this, 
+            SLOT(viewsChanged(int)));
+
+    hLayout = diaHBoxLayout(mLayout);
+    mDeltaZspin = (QSpinBox *)diaLabeledSpin(0, 1, Imodv->imagesPerArea - 1, 
+                                             1, "Sections between pairs", 
+                                             this, hLayout);
+    Imodv->imageDeltaZ = B3DMIN(Imodv->imageDeltaZ, Imodv->imagesPerArea - 1);
+    diaSetSpinBox(mDeltaZspin, Imodv->imageDeltaZ);
+    connect(mDeltaZspin, SIGNAL(valueChanged(int)), this, 
+            SLOT(deltaChanged(int)));
+  }
 
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
 }
@@ -395,6 +422,28 @@ void ImodvStereo::sliderMoved(int which, int value, bool dragging)
     Imodv->plax = (float)(value / 10.);
   if (!dragging || ImodPrefs->hotSliderActive(mCtrlPressed))
     imodvDraw(Imodv);
+}
+
+void ImodvStereo::imageToggled(bool state)
+{
+  Imodv->imageStereo = state ? 1 : 0;
+  imodvImageUpdate(Imodv);
+  update();
+  imodvDraw(Imodv);
+}
+
+void ImodvStereo::viewsChanged(int value)
+{
+  Imodv->imagesPerArea = value;
+  Imodv->imageDeltaZ = B3DMIN(Imodv->imagesPerArea - 1, Imodv->imageDeltaZ);
+  diaSetSpinMMVal(mDeltaZspin, 1, Imodv->imagesPerArea-1, Imodv->imageDeltaZ);
+  imodvDraw(Imodv);
+}
+ 
+void ImodvStereo::deltaChanged(int value)
+{
+  Imodv->imageDeltaZ = value;
+  imodvDraw(Imodv);
 }
 
 void ImodvStereo::buttonPressed(int which)
@@ -427,6 +476,13 @@ void ImodvStereo::update()
 
   // Set the combo box
   mComboBox->setCurrentIndex(Imodv->stereo);
+
+  if (imodvByteImagesExist() != 0) {
+    mImageBox->setEnabled(Imodv->texMap != 0);
+    mViewsAreaSpin->setEnabled(Imodv->texMap != 0);
+    mDeltaZspin->setEnabled(Imodv->texMap != 0);
+    mSlider->setEnabled(0, Imodv->texMap == 0 && !Imodv->imageStereo);
+  }
 }
 
 void ImodvStereo::fontChange( const QFont & oldFont )
@@ -471,6 +527,9 @@ void ImodvStereo::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.18  2010/04/01 02:41:48  mast
+Called function to test for closing keys, or warning cleanup
+
 Revision 4.17  2009/03/22 19:54:25  mast
 Show with new geometry adjust routine for Mac OS X 10.5/cocoa
 

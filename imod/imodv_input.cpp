@@ -392,6 +392,7 @@ void imodvKeyPress(QKeyEvent *event)
     else if (!a->standalone) {
       a->texMap = 1 - a->texMap;
       imodvImageUpdate(a);
+      imodvStereoUpdate();
       imodvDraw(a);
     }
     break;
@@ -1305,6 +1306,9 @@ void imodvMovieTimeout()
 /*
 
 $Log$
+Revision 4.50  2010/04/01 02:41:48  mast
+Called function to test for closing keys, or warning cleanup
+
 Revision 4.49  2009/09/08 23:52:20  mast
 Added hot key to toggle clipping plane
 

@@ -323,19 +323,23 @@ static void imodvSetModelTrans(Imod *imod)
 // Set up the projection matrix properly for the current stereo mode
 static void setStereoProjection(ImodvApp *a)
 {
+  float angle = a->plax * 0.5f;
+  if (a->texMap && a->imageStereo)
+    angle = 0.;
+
   glMatrixMode(GL_PROJECTION);
 
   switch (a->stereo){
   case -IMODV_STEREO_RL:
     glViewport(0, 0, a->winx, a->winy);
     glTranslatef(a->winx/2, a->winy/2, 0.0f);
-    glRotatef(a->plax * 0.5f, 0.0f, 1.0f, 0.0f);
+    glRotatef(angle, 0.0f, 1.0f, 0.0f);
     glTranslatef(-a->winx/2, -a->winy/2, 0.0f);
     break;
 
   case IMODV_STEREO_RL:
     glTranslatef(a->winx/2, a->winy/2, 0.0f);
-    glRotatef(-a->plax * 0.5f, 0.0f, 1.0f, 0.0f);
+    glRotatef(-angle, 0.0f, 1.0f, 0.0f);
     glTranslatef(-a->winx/2, -a->winy/2, 0.0f);
     glViewport(a->winx, 0, a->winx, a->winy);
     break;
@@ -343,14 +347,14 @@ static void setStereoProjection(ImodvApp *a)
   case -IMODV_STEREO_TB:
     glViewport(0, -(imodvStereoVoffset() / 2), a->winx, a->winy);
     glTranslatef(a->winx/2, a->winy/2, 0.0f);
-    glRotatef(a->plax * 0.5f, 0.0f, 1.0f, 0.0f);
+    glRotatef(angle, 0.0f, 1.0f, 0.0f);
     glTranslatef(-a->winx/2, -a->winy/2, 0.0f);
     glScalef(1.0f, 0.5f, 0.5f);
     break;
 
   case IMODV_STEREO_TB:
     glTranslatef(a->winx/2, a->winy/2, 0.0f);
-    glRotatef(-a->plax * 0.5f, 0.0f, 1.0f, 0.0f);
+    glRotatef(-angle, 0.0f, 1.0f, 0.0f);
     glTranslatef(-a->winx/2, -a->winy/2, 0.0f);
     glScalef(1.0f, 0.5f, 0.5f);
     glViewport(0, a->winy + imodvStereoVoffset() - (imodvStereoVoffset() / 2),
@@ -358,7 +362,7 @@ static void setStereoProjection(ImodvApp *a)
     break;
 
   case -IMODV_STEREO_HW:
-    glRotatef(-a->plax * 0.5f, 0.0f, 1.0f, 0.0f);
+    glRotatef(-angle, 0.0f, 1.0f, 0.0f);
 #ifdef __sgi
     /* DNM: cut these values in half to get model at same zoom relative
        to the size of the window */
@@ -367,7 +371,7 @@ static void setStereoProjection(ImodvApp *a)
     break;
 
   case IMODV_STEREO_HW:
-    glRotatef(a->plax * 0.5f, 0.0f, 1.0f, 0.0f);
+    glRotatef(angle, 0.0f, 1.0f, 0.0f);
 #ifdef __sgi
     glScalef(1.0f, 0.5f, 0.5f);
 #endif
@@ -2554,6 +2558,9 @@ static void drawCurrentClipPlane(ImodvApp *a)
 /*
 
 $Log$
+Revision 4.47  2010/02/15 06:33:35  mast
+Turn points off when value out of range
+
 Revision 4.46  2009/03/10 04:39:33  mast
 Fix handling of current point display to stay on model point in model mode
 

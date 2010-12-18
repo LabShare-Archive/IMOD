@@ -36,6 +36,8 @@ int imodvStereoVoffset(void);
 #include "dialog_frame.h"
 class MultiSlider;
 class QComboBox;
+class QCheckBox;
+class QSpinBox;
 
 class ImodvStereo : public DialogFrame
 {
@@ -48,10 +50,16 @@ class ImodvStereo : public DialogFrame
   void update();
   QComboBox *mComboBox;
   MultiSlider *mSlider;
+  QCheckBox *mImageBox;
+  QSpinBox *mViewsAreaSpin;
+  QSpinBox *mDeltaZspin;
 
   public slots:
     void newOption(int item);
   void sliderMoved(int which, int value, bool dragging);
+  void imageToggled(bool state);
+  void viewsChanged(int value);
+  void deltaChanged(int value);
   void buttonPressed(int which);
 
  protected:
@@ -68,6 +76,9 @@ class ImodvStereo : public DialogFrame
 /*
 
 $Log$
+Revision 4.6  2009/01/15 16:33:18  mast
+Qt 4 port
+
 Revision 4.5  2004/11/04 23:30:55  mast
 Changes for rounded button style
 

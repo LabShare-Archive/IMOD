@@ -127,6 +127,9 @@ static int imodv_init(ImodvApp *a, struct Mod_Draw *md)
   a->stereo = IMODV_STEREO_OFF;
   a->clearAfterStereo = 0;
   a->plax = 5.0f;
+  a->imageStereo = 0;
+  a->imagesPerArea = 2;
+  a->imageDeltaZ = 1;
   a->lightx = a->lighty = 0;
   a->winx = DEFAULT_XSIZE;
   a->winy = DEFAULT_YSIZE;
@@ -775,6 +778,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.48  2010/04/01 02:41:48  mast
+Called function to test for closing keys, or warning cleanup
+
 Revision 4.47  2010/03/31 03:43:34  mast
 Just raise main window, general raise call crashed
 

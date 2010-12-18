@@ -20,12 +20,14 @@
 //Added by qt3to4:
 #include <QKeyEvent>
 #include <QCloseEvent>
+#include <QTime>
 #include "preferences.h"
 #include "multislider.h"
 #include "dia_qtutils.h"
 #include "imodv.h"
 #include "imod.h"
 #include "imodv_gfx.h"
+#include "imodv_stereo.h"
 #include "imodv_image.h"
 #include "imodv_input.h"
 #include "imod_display.h"
@@ -49,7 +51,7 @@ static void setSliceLimits(int ciz, int miz, bool invertZ, int drawTrans,
 static void setCoordLimits(int cur, int maxSize, int drawSize, 
                            int &str, int &end);
 
-static GLubyte tdata[TexImageSize][TexImageSize][3];
+static GLubyte tdata[TexImageSize+2][TexImageSize+2][3];
 static GLubyte Cmap[3][256];
 static int BlackLevel = 0;
 static int WhiteLevel = 255;
@@ -99,6 +101,7 @@ void imodvImageEditDialog(ImodvApp *a, int state)
   mkcmap();
   imodvDialogManager.add((QWidget *)imodvImageData.dia, IMODV_DIALOG);
   adjustGeometryAndShow((QWidget *)imodvImageData.dia, IMODV_DIALOG);
+  imodvImageUpdate(a);
 }
 
 // Update the dialog box (just the view flag for now)
@@ -115,6 +118,12 @@ void imodvImageUpdate(ImodvApp *a)
       diaSetChecked(imodvImageData.dia->mViewYBox, false);
       diaSetChecked(imodvImageData.dia->mViewZBox, false);
     }
+  }
+  if (imodvImageData.dia) {
+    imodvImageData.dia->mViewXBox->setEnabled(!(a->stereo && a->imageStereo));
+    imodvImageData.dia->mViewYBox->setEnabled(!(a->stereo && a->imageStereo));
+    imodvImageData.dia->mSliders->setEnabled(IIS_SLICES, 
+                                             !(a->stereo && a->imageStereo));
   }
 }
 
@@ -218,14 +227,16 @@ static void imodvDrawTImage(Ipoint *p1, Ipoint *p2, Ipoint *p3, Ipoint *p4,
   yclamp = clamp->x;
 
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-  glTexImage2D(GL_TEXTURE_2D, 0, 3, width, height, 
-	       0, GL_RGB, GL_UNSIGNED_BYTE,
+  glTexImage2D(GL_TEXTURE_2D, 0, 3, width+2, height+2, 
+	       1, GL_RGB, GL_UNSIGNED_BYTE,
 	       data);
 
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+  // To use linear we need to provide border pixels and different tex coords
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-		  GL_NEAREST);
+		  GL_LINEAR);
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
 		  GL_NEAREST);
   
@@ -279,13 +290,9 @@ static void setCoordLimits(int cur, int maxSize, int drawSize,
                            int &str, int &end)
 {
   str = cur - drawSize / 2;
-  if (str < 0)
-    str = 0;
-  end = str + drawSize;
-  if (end > maxSize) {
-    end = maxSize;
-    str = end - drawSize;
-  }
+  str = B3DMAX(1, str);
+  end = B3DMIN(str + drawSize, maxSize - 1);
+  str = B3DMAX(1, end - drawSize);
 }
 
 // Set the alpha factor based on transparency, number of images and which image
@@ -319,12 +326,14 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   unsigned char pix;
   int i, mi, j, mj;
   int u, v;
-  int ix, iy, iz, idir;
+  int ix, iy, iz, idir, numSave;
   int cacheSum, curtime;
   unsigned char **imdata;
   bool flipped, invertX, invertY, invertZ;
   Imat *mat;
   Ipoint inp, outp;
+  QTime drawTime;
+  drawTime.start();
      
   mix = a->vi->xsize;
   miy = a->vi->ysize;
@@ -350,9 +359,17 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
     zDrawSize = miz;
   }
 
+  // If doing stereo pairs, draw the pair as long as the step up stays in the
+  // same set of images for an area
+  if (a->imageStereo && a->stereo < 0) {
+    iz = ciz + a->imageDeltaZ;
+    if (ciz % a->imagesPerArea < iz % a->imagesPerArea)
+      ciz = iz;
+  }
 
   // Get data pointers if doing X or Y planes
-  if (imodvImageData.flags & (IMODV_DRAW_CX | IMODV_DRAW_CY)) {
+  if ((imodvImageData.flags & (IMODV_DRAW_CX | IMODV_DRAW_CY)) &&
+       !(a->imageStereo && a->stereo)) {
     if (ivwSetupFastAccess(a->vi, &imdata, 0, &cacheSum))
       return;
     flipped = (!a->vi->vmSize || a->vi->fullCacheFlipped) && 
@@ -366,6 +383,9 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
     if (imodvImageData.dia)
       imodvImageData.dia->mSliders->setValue(IIS_SLICES, numSlices);
   }
+  numSave = numSlices;
+  if (a->imageStereo && a->stereo)
+    numSlices = 1;
 
   if (numSlices > 1) {
     mat = imodMatNew(3);
@@ -424,10 +444,10 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
           ul.y = ur.y = mj;
           
           // Fill the data for one patch then draw the patch
-          for (i = ix; i < mi; i++){
-            u = i - ix;
-            for (j = iy; j < mj; j++){
-              v = (j - iy);
+          for (i = ix-1; i < mi+1; i++){
+            u = i - (ix-1);
+            for (j = iy-1; j < mj+1; j++){
+              v = (j - (iy-1));
               pix = idata[j][i];
               
               tdata[u][v][0] = Cmap[0][pix];
@@ -445,7 +465,8 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   glDisable(GL_BLEND);
 
   /* Draw Current X image. */
-  if (imodvImageData.flags & IMODV_DRAW_CX) {
+  if ((imodvImageData.flags & IMODV_DRAW_CX) && 
+      !(a->stereo && a->imageStereo)) {
 
     setSliceLimits(cix, mix, invertX, drawTrans, xstr, xend, idir);
     setCoordLimits(ciy, miy, yDrawSize, ystr, yend);
@@ -478,19 +499,19 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
           // Handle cases of flipped or not with different loops to put test
           // on presence of data in the outer loop
           if (flipped) {
-            for (i = iy; i < mi; i++) {
-              u = i - iy;
+            for (i = iy-1; i < mi+1; i++) {
+              u = i - (iy-1);
               if (imdata[i]) {
-                for (j = iz; j < mj; j++) {
-                  v = (j - iz);
+                for (j = iz-1; j < mj+1; j++) {
+                  v = j - (iz-1);
                   pix = imdata[i][ix + (j * mix)];
                   tdata[u][v][0] = Cmap[0][pix];
                   tdata[u][v][1] = Cmap[1][pix];
                   tdata[u][v][2] = Cmap[2][pix];
                 }
               } else {
-                for (j = iz; j < mj; j++) {
-                  v = (j - iz);
+                for (j = iz-1; j < mj+1; j++) {
+                  v = j - (iz-1);
                   tdata[u][v][0] = Cmap[0][0];
                   tdata[u][v][1] = Cmap[1][0];
                   tdata[u][v][2] = Cmap[2][0];
@@ -498,19 +519,19 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
               }
             }
           } else {
-            for (j = iz; j < mj; j++) {
-              v = (j - iz);
+            for (j = iz-1; j < mj+1; j++) {
+              v = j - (iz-1);
               if (imdata[j]) {
-                for (i = iy; i < mi; i++) {
-                  u = i - iy;
+                for (i = iy-1; i < mi+1; i++) {
+                  u = i - (iy-1);
                   pix = imdata[j][ix + (i * mix)];
                   tdata[u][v][0] = Cmap[0][pix];
                   tdata[u][v][1] = Cmap[1][pix];
                   tdata[u][v][2] = Cmap[2][pix];
                 }
               } else {
-                for (i = iy; i < mi; i++) {
-                  u = i - iy;
+                for (i = iy-1; i < mi+1; i++) {
+                  u = i - (iy-1);
                   tdata[u][v][0] = Cmap[0][0];
                   tdata[u][v][1] = Cmap[1][0];
                   tdata[u][v][2] = Cmap[2][0];
@@ -528,7 +549,8 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   glDisable(GL_BLEND);
 
   /* Draw Current Y image. */
-  if (imodvImageData.flags & IMODV_DRAW_CY) {
+  if ((imodvImageData.flags & IMODV_DRAW_CY) && 
+      !(a->stereo && a->imageStereo)) {
     setSliceLimits(ciy, miy, invertY, drawTrans, ystr, yend, idir);
     setCoordLimits(cix, mix, xDrawSize, xstr, xend);
     setCoordLimits(ciz, miz, zDrawSize, zstr, zend);
@@ -559,27 +581,27 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
 
           // This one is easier, one outer loop and flipped, non-flipped, or
           // no data cases for inner loop
-          for (j = iz; j < mj; j++) {
-            v = (j - iz);
+          for (j = iz-1; j < mj+1; j++) {
+            v = j - (iz-1);
             if (flipped && imdata[iy]) {
-              for (i = ix; i < mi; i++) {
-                u = i - ix;
+              for (i = ix-1; i < mi+1; i++) {
+                u = i - (ix-1);
                 pix = imdata[iy][i + (j * mix)];
                 tdata[u][v][0] = Cmap[0][pix];
                 tdata[u][v][1] = Cmap[1][pix];
                 tdata[u][v][2] = Cmap[2][pix];
               }
             } else if (!flipped && imdata[j]) {
-              for (i = ix; i < mi; i++) {
-                u = i - ix;
+              for (i = ix-1; i < mi+1; i++) {
+                u = i - (ix-1);
                 pix = imdata[j][i + (iy * mix)];
                 tdata[u][v][0] = Cmap[0][pix];
                 tdata[u][v][1] = Cmap[1][pix];
                 tdata[u][v][2] = Cmap[2][pix];
               }
             } else {
-              for (i = ix; i < mi; i++) {
-                u = i - ix;
+              for (i = ix-1; i < mi+1; i++) {
+                u = i - (ix-1);
                 tdata[u][v][0] = Cmap[0][0];
                 tdata[u][v][1] = Cmap[1][0];
                 tdata[u][v][2] = Cmap[2][0];
@@ -595,6 +617,9 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   }
 
   glDisable(GL_BLEND);
+  numSlices = numSave;
+  if (imodDebug('v'))
+      imodPrintStderr("Draw time %d\n", drawTime.elapsed());
 }
 
 
@@ -728,6 +753,7 @@ void ImodvImage::viewToggled(bool state, int flag)
     imodvImageData.flags |= flag;
     Imodv->texMap = 1;
   }
+  imodvStereoUpdate();
   imodvDraw(Imodv);
 }
 
@@ -843,6 +869,9 @@ void ImodvImage::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.22  2010/08/23 02:55:43  mast
+Try setting max slices to 1024
+
 Revision 4.21  2010/04/01 02:41:48  mast
 Called function to test for closing keys, or warning cleanup
 

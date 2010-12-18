@@ -79,6 +79,9 @@ typedef struct __imodv_struct
                    /* 4 = display hardware stereo.            */
   int clearAfterStereo;   /* Flag to clear right buffer after leaving stereo */
   float plax;      /* parallax for stereo separation.         */
+  int imageStereo;    /* draw images as stereo pairs             */
+  int imagesPerArea;  /* Number of images of same item         */
+  int imageDeltaZ;    /* Step in Z between stereo pairs        */
   int movie;       /* allow movies.                           */
   int drawall;     /* draw all models at once.                */
   int alpha;       /* number of alpha planes.                 */
@@ -147,6 +150,9 @@ void imodvNewModelAngles(Ipoint *rot);
 /*
 
 $Log$
+Revision 3.26  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 3.25  2008/12/15 21:23:22  mast
 Variables for seperate stereo widgets
 
