@@ -537,8 +537,8 @@ int read_tiffentries(FILE *fp, Tf_info *tiff)
           tiff->mode = 2;
       }
       if (len == 3){
-        pos = ftell(fp);
         short red,green,blue;
+        pos = ftell(fp);
 
         fseek(fp, value, SEEK_SET);
         fread(&red, 2, 1, fp);
@@ -856,6 +856,9 @@ int tiff_write_image(FILE *fout, int xsize, int ysize, int mode,
 /*
 
 $Log$
+Revision 3.10  2010/12/18 18:47:48  mast
+Fixes for large file usage through libtiff
+
 Revision 3.9  2009/06/19 20:48:10  mast
 Added support for integer files
 
