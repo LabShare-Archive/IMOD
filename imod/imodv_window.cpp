@@ -77,7 +77,7 @@ ImodvWindow::ImodvWindow(ImodvApp *a,
   ADD_ACTION(file, "Snap &NonT As...", VFILE_MENU_SNAPRGB);
   ADD_ACTION(file, "&Zero Snap File #", VFILE_MENU_ZEROSNAP);
   ADD_ACTION(file, "S&et Snap Dir...", VFILE_MENU_SNAPDIR);
-  ADD_ACTION_KEY(file, "&Movie...", VFILE_MENU_MOVIE, Qt::Key_M);
+  ADD_ACTION_KEY(file, "&Movie/Montage...", VFILE_MENU_MOVIE, Qt::Key_M);
 
   ADD_ACTION_KEY(file, a->standalone ? "&Quit" : "&Close", VFILE_MENU_QUIT,
                  Qt::CTRL + Qt::Key_Q);
@@ -407,6 +407,9 @@ void ImodvGL::wheelEvent ( QWheelEvent * e)
 /*
 
 $Log$
+Revision 4.25  2010/03/02 01:31:21  mast
+Tried to stabilize the 3dmod menu bar with Cocoa Mac Qt
+
 Revision 4.24  2009/03/10 23:27:52  mast
 Prevent two close events from being processed
 
