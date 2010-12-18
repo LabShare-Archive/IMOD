@@ -43,6 +43,10 @@ static bool scaleSizes = 0;
 static int sizeScaling = 1;
 static bool wholeMont = false;
 static bool snapMontage = false;
+static int slicerMontFac = 2;
+static bool scaleThicks = 0;
+static int thickScaling = 1;
+static bool slicerMontage = false;
 
 #define BASEINT 50.0
 #define RATEFAC 1.25992
@@ -214,6 +218,45 @@ int imcGetSizeScaling(void)
 void imcSetSizeScaling(int value)
 {
   sizeScaling = value;
+}
+
+bool imcGetSlicerMontage(bool forDoing)
+{
+  return slicerMontage && (!forDoing || dia != NULL);
+}
+void imcSetSlicerMontage(bool state)
+{
+  slicerMontage = state;
+}
+
+int imcGetSlicerMontFactor()
+{
+  return slicerMontFac;
+}
+
+void imcSetSlicerMontFactor(int val)
+{
+  slicerMontFac = val;
+}
+
+bool imcGetScaleThicks(void)
+{
+  return scaleThicks;
+}
+
+void imcSetScaleThicks(bool state)
+{
+  scaleThicks = state;
+}
+
+int imcGetThickScaling(void)
+{
+  return thickScaling;
+}
+
+void imcSetThickScaling(int value)
+{
+  thickScaling = value;
 }
 
 void imcSetSpecialLimits(int axis, int inStart, int inEnd)
@@ -398,6 +441,9 @@ void imcIncrementRate(int dir)
 
 /*
 $Log$
+Revision 4.10  2009/03/22 19:54:25  mast
+Show with new geometry adjust routine for Mac OS X 10.5/cocoa
+
 Revision 4.9  2009/01/15 16:33:17  mast
 Qt 4 port
 
