@@ -100,10 +100,11 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, Qt::WFlags f)
   ADD_ACTION(file, "S&ave Model As...", FILE_MENU_SAVEAS);
   QMenu *fWriteMenu = fileMenu->addMenu("&Write Model As");
   ADD_ACTION(file, "S&et Snap Dir...", FILE_MENU_SNAPDIR);
+  ADD_ACTION(file,  "&Movie/Montage...", FILE_MENU_MOVIEMONT);
   ADD_ACTION(file, "&Gray TIF snaps", FILE_MENU_SNAPGRAY);
   mActions[FILE_MENU_SNAPGRAY]->setCheckable(true);
-  ADD_ACTION(file, "&JPEG Quality...", FILE_MENU_SNAPQUALITY);
-  ADD_ACTION(file, "&Memory to TIF...", FILE_MENU_TIFF);
+  //ADD_ACTION(file, "&JPEG Quality...", FILE_MENU_SNAPQUALITY);
+  ADD_ACTION(file, "Memory to &TIF...", FILE_MENU_TIFF);
   ADD_ACTION(file, "E&xtract File...", FILE_MENU_EXTRACT);
   ADD_ACTION(file, "Save &Info Text...", FILE_MENU_SAVEINFO);
   ADD_ACTION(file, "&Quit", FILE_MENU_QUIT);
@@ -121,7 +122,7 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, Qt::WFlags f)
   QMenu *eContourMenu = editMenu->addMenu("&Contour");
   QMenu *ePointMenu = editMenu->addMenu("&Point");  
   QMenu *eImageMenu = editMenu->addMenu("&Image");
-  ADD_ACTION(edit, "M&ovies...", EDIT_MENU_MOVIES);
+  //ADD_ACTION(edit, "M&ovies...", EDIT_MENU_MOVIES);
   ADD_ACTION(edit, "&Fine Grain...", EDIT_MENU_GRAIN);
   ADD_ACTION(edit, "&Angles...", EDIT_MENU_ANGLES);
   ADD_ACTION(edit, "Scale &Bar...", EDIT_MENU_SCALEBAR);
@@ -571,7 +572,7 @@ void InfoWindow::openSelectedWindows(char *keys)
   if (strchr(keys, 'm') && imageOK)
     imageSlot(IMAGE_MENU_LOCATOR);
   if (strchr(keys, 'n'))
-    editSlot(EDIT_MENU_MOVIES);
+    fileSlot(FILE_MENU_MOVIEMONT);
   if (strchr(keys, 'o'))
     editModelSlot(EMODEL_MENU_OFFSETS);
   if (strchr(keys, 'p') && imageOK)
@@ -706,6 +707,9 @@ static char *truncate_name(char *name, int limit)
 /*
 
 $Log$
+Revision 4.57  2010/05/28 22:14:37  mast
+Need to set model name after show for it to work
+
 Revision 4.56  2010/04/01 02:28:46  mast
 Changes for Apple-Q to quit on Mac, extracting without rubberband, and
 not truncating model name
