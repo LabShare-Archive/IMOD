@@ -1805,9 +1805,9 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
   int i, j;
   unsigned char *pixels = NULL;
   int *lpixels;
-  int xysize, xsize, ysize, step, samples, resolution;
+  int step, samples, resolution, extra;
   unsigned int pixel;
-  unsigned int ifd;
+  unsigned int xsize, ysize, xysize, ifd;
   unsigned int colortable, bitsPerSample, resOffset;
   unsigned char bpix,rpix,gpix;
   unsigned short tenum;
@@ -1848,6 +1848,25 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
   xysize = rpWidth * rpHeight;
   xsize = rpWidth;
   ysize = rpHeight;
+
+  ifd = xysize;
+  if (ifd < ((double)xsize * ysize) - 20.) {
+    imodPrintStderr("The image is too large to save into a TIFF file");
+    return 1;
+  }
+  if ((depth > 8 || rgbmode) && !convertRGB) {
+    ifd *= 3;
+    if (ifd < ((double)xsize * ysize) * 3 - 20.) {
+      imodPrintStderr("The color image is too large to save into a TIFF file");
+      return 1;
+    }
+  }
+
+  // 11/1/04: fix to allow 3 more words (2 front of the image, 1 after)
+  i = ifd + 12;
+  ifd = 4 * ((ifd + 3) / 4 + 3);
+  extra = ifd - i;
+
   if (!data) {
     pixels = (unsigned char *)malloc(rpWidth * rpHeight * 4);
     lpixels = (int *)pixels;
@@ -1907,12 +1926,6 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
     return 1;
   }
 
-
-  // 11/1/04: fix to allow 3 more words (2 front of the image, 1 after)
-  ifd = xysize;
-  if ((depth > 8 || rgbmode) && !convertRGB)
-    ifd *= 3;
-  ifd = 4 * ((ifd + 3) / 4 + 3);
 
   if (!fwrite(&ifd, 4, 1, fout)){
     fclose(fout);
@@ -1983,12 +1996,20 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
   }
   pixel = 0;
   fwrite(&pixel, 4, 1, fout);
-  fseek(fout, (int)ifd, SEEK_SET);
+
+  /* Instead of seeking, which is limited to signed offsets, just get the
+     offsets right and keep on writing.  Note that b3dFseek/mrc_big_seek did
+     NOT work to seek past the end of the file the way fseek does (at least on
+     Windows. */
+  if (extra > 0)
+    fwrite(&pixel, extra, 1, fout);
+  //imodPrintStderr("Tell %d  ifd %u\n", ftell(fout), ifd);
+  //fseek(fout, (int)ifd, SEEK_SET);
   if (depth > 8 || rgbmode){
     tenum = 11;
     if (resolution > 0)
       tenum += 3;
-    resOffset = ifd + 2 + (tenum * 12) + 7;
+    resOffset = ifd + 2 + (tenum * 12) + 4;   // Was + 7 for unknown reason
     samples = 1;
     bitsPerSample = 8;
     if (!convertRGB) {
@@ -2018,7 +2039,8 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
     fwrite(&ifd, 4, 1, fout);
 
     if (!convertRGB) {
-      fseek(fout, (int)bitsPerSample, SEEK_SET);
+      //imodPrintStderr("Tell %d  bits %u\n", ftell(fout), bitsPerSample);
+      //fseek(fout, (int)bitsPerSample, SEEK_SET);
       color[0] = 8;
       fwrite(color, 2, 1, fout);
       fwrite(color, 2, 1, fout);
@@ -2028,7 +2050,7 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
     tenum = 12;
     if (resolution > 0)
       tenum += 3;
-    colortable = ifd + 2 + (tenum * 12) + 7;
+    colortable = ifd + 2 + (tenum * 12) + 4;   // Again, was 7
     resOffset = colortable + 768;
     fwrite(&tenum, 2, 1, fout);
          
@@ -2055,7 +2077,7 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
     ifd = 0;
     fwrite(&ifd, 4, 1, fout);
          
-    fseek(fout, (int)colortable, SEEK_SET);
+    //fseek(fout, (int)colortable, SEEK_SET);
     for(i = 0; i < 256; i++){
       color[0] = fcmapr[i]*256;
       fwrite(color, 2, 1, fout);
@@ -2070,7 +2092,8 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
     }
   }
   if (resolution > 0) {
-    fseek(fout, (int)resOffset, SEEK_SET);
+    //imodPrintStderr("Tell %d  res %u\n", ftell(fout), resOffset);
+    //fseek(fout, (int)resOffset, SEEK_SET);
     ifd = 1000;
     fwrite(&resolution, 4, 1, fout);
     fwrite(&ifd, 4, 1, fout);
@@ -2102,6 +2125,9 @@ int b3dSnapshot(QString fname)
 
 /*
 $Log$
+Revision 4.45  2010/12/15 06:14:41  mast
+Changes for setting resolution in image snapshots
+
 Revision 4.44  2010/01/06 16:57:58  mast
 Shifted subarea viewport too
 
