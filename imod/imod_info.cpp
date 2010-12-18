@@ -99,8 +99,8 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, Qt::WFlags f)
   ADD_ACTION_KEY(file, "&Save Model", FILE_MENU_SAVE, Qt::Key_S);
   ADD_ACTION(file, "S&ave Model As...", FILE_MENU_SAVEAS);
   QMenu *fWriteMenu = fileMenu->addMenu("&Write Model As");
-  ADD_ACTION(file, "S&et Snap Dir...", FILE_MENU_SNAPDIR);
   ADD_ACTION(file,  "&Movie/Montage...", FILE_MENU_MOVIEMONT);
+  ADD_ACTION(file, "S&et Snap Dir...", FILE_MENU_SNAPDIR);
   ADD_ACTION(file, "&Gray TIF Snaps", FILE_MENU_SNAPGRAY);
   mActions[FILE_MENU_SNAPGRAY]->setCheckable(true);
   //ADD_ACTION(file, "&JPEG Quality...", FILE_MENU_SNAPQUALITY);
@@ -707,6 +707,9 @@ static char *truncate_name(char *name, int limit)
 /*
 
 $Log$
+Revision 4.59  2010/12/18 15:01:42  mast
+Capitalize
+
 Revision 4.58  2010/12/18 05:40:49  mast
 Move movie to file menu, make it movie/montage
 
