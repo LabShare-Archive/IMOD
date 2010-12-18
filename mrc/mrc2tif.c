@@ -28,16 +28,19 @@ int main(int argc, char *argv[])
   MrcHeader hdata;
   FILE *fpTiff = NULL;
   Islice slice;
-  int xsize, ysize, zsize, psize, filenum, outPsize;
-  size_t xysize;
+  int xsize, ysize, zsize, psize, filenum, outPsize, numChunks, chunk;
+  int lines, linesDone, version, linesPerChunk, doChunks = 0;
+  size_t xysize, allocSize;
   int i, j, slmode, z, iarg = 1, stack = 0, resolution = 0, initialNum = -1;
   int oldcode = 0, convert = 0;
   int compression = 1, black = 0, white = 255, zmin = -1, zmax = -1;
   b3dUInt32 ifdOffset = 0, dataOffset = 0;
-  float dmin, dmax, smin =0., smax = 0.;
+  float chunkCriterion = 100.;
+  float savecrit, dmin, dmax, smin =0., smax = 0.;
   float val[3];
   float scale, offset;
   char prefix[100];
+  IloadInfo li;
   ImodImageFile *iifile = iiNew();
   char *iname;
   unsigned char *buf;
@@ -99,6 +102,10 @@ int main(int argc, char *argv[])
         initialNum = atoi(argv[++iarg]);
         break;
 
+      case 't':
+        chunkCriterion = atof(argv[++iarg]);
+        break;
+
       default:
         break;
       }
@@ -132,7 +139,8 @@ int main(int argc, char *argv[])
     printf("    -z min,max Starting and ending Z (from 0) to output\n");
     printf("    -i #       Initial file number (default is starting Z)\n");
     printf("    -r #       Resolution setting in dots per inch\n");
-
+    printf("    -t #       Criterion image size in megabytes for processing "
+           "file in strips\n");
     printf("    -o         Write file with old IMOD code instead of libtiff"
            "\n");
     exit(1);
@@ -190,8 +198,14 @@ int main(int argc, char *argv[])
   ysize = hdata.ny;
   zsize = hdata.nz;
   xysize = (size_t)xsize * (size_t)ysize;
-  if (xysize * psize < ((double)xsize * ysize) * psize - 20)
-    exitError("The image is too large in X/Y to convert on a 32-bit system");
+  allocSize = xysize * psize;
+  iifile->nx = xsize;
+  iifile->ny = ysize;
+  iifile->nz = 1;
+  li.xmin = 0;
+  li.xmax = xsize - 1;
+  li.ymin = 0;
+  li.ymax = ysize - 1;
   dmin = hdata.amin;
   dmax = hdata.amax;
   slmode = sliceModeIfReal(hdata.mode);
@@ -204,32 +218,42 @@ int main(int argc, char *argv[])
       outPsize = 1;
     }
   }
-  if ((double)xysize * outPsize >  4.294e9)
-    exitError("The image is too large in X/Y to save in a TIFF file");
-  if (stack && (zmax + 1 - zmin) * xysize * (double)outPsize >  4.294e9)
-    exitError("The volume is too large to save in a TIFF stack");
-     
-  iname = (char *)malloc(strlen(argv[iarg]) + 20);
+  version = tiffVersion(&j);
+  /* printf("Version %d.%d\n", version,j); */
+  if (version < 4) {
+    savecrit =  4.292e9;
+    if (!version || oldcode)
+      savecrit =  2.146e9;
+    if ((double)xysize * outPsize >  savecrit)
+      exitError("The image is too large in X/Y to save with TIFF version"
+                " %d.%d", version, j);
+    if (stack && (zmax + 1 - zmin) * xysize * (double)outPsize >  savecrit)
+      exitError("The volume is too large to save in a stack with TIFF version"
+                " %d.%d", version, j);
+  }
 
+  if (version > 0 && !oldcode && 
+      ((double)xsize * ysize) * psize > chunkCriterion * 1024. * 1024.)
+    doChunks = 1;
+
+  iname = (char *)malloc(strlen(argv[iarg]) + 20);
   if (!iname)
     exitError("Failed to allocate memory for name");
 
+  /* Open new file for stack */
   if (stack) {
     sprintf(iname, "%s", argv[iarg]);
     fpTiff = openEitherWay(iifile, iname, progname, oldcode);
+    iifile->nz = zmax + 1 - zmin;
   }    
 
   printf("Writing TIFF images. ");
   for (z = zmin; z <= zmax; z++){
     int tiferr;
-    if (z == zmin || (convert && slmode > 0))
-      buf = (unsigned char *)malloc(xysize * psize);
-    if (!buf)
-      exitError("Failed to allocate memory for slice");
-
     printf(".");
     fflush(stdout);
 
+    /* Get filename and open new file for non-stack */
     if (!stack) {
       sprintf(iname, "%s.%3.3d.tif", argv[iarg], filenum++);
       if (zsize == 1)
@@ -240,55 +264,87 @@ int main(int argc, char *argv[])
       ifdOffset = 0;
       dataOffset = 0;
     }
-
-    /* DNM: switch to calling a routine that takes care of swapping and
-       big seeks */
-    if (mrc_read_slice(buf, fin, &hdata, z, 'Z')) {
-      perror("mrc2tif ");
-      exitError("Reading section %d", z);
+    if (!stack && slmode > 0 && !convert) {
+      iifile->amin = 1.e30;
+      iifile->amax = -1.e30;
     }
-    sliceInit(&slice, xsize, ysize, hdata.mode, buf);
 
-    /* Scale the slice and convert it to bytes */
-    if (convert) {
-      for (j = 0; j < ysize; j++) {
-        for (i = 0; i < xsize; i++) {
-          sliceGetVal(&slice, i, j, val);
-          val[0] = val[0] * scale + offset;
-          val[0] = B3DMAX(0., B3DMIN(255., val[0]));
-          if (psize == 3) {
-            val[1] = val[1] * scale + offset;
-            val[1] = B3DMAX(0., B3DMIN(255., val[1]));
-            val[2] = val[2] * scale + offset;
-            val[2] = B3DMAX(0., B3DMIN(255., val[2]));
-          }
-          slicePutVal(&slice, i, j, val);
-        }
-      }
-      if (slmode > 0 && sliceNewMode(&slice, SLICE_MODE_BYTE))
-        exitError("Converting slice %d to bytes", z);
-      buf = slice.data.b;
+    /* If doing chunks, set up chunk loop */
+    numChunks = 1;
+    if (doChunks) {
+      tiffWriteSetup(iifile, compression, 0, resolution, &linesPerChunk, 
+                     &numChunks);
+      allocSize = xsize * linesPerChunk * psize;
+      linesDone = 0;
     }
     
-    /* Get min/max for int/float images, those are the only ones the write
-       routine will put out min/max for */
-    if (!stack && slmode > 0 && !convert) {
-      sliceMMM(&slice);
-      iifile->amin = slice.min;
-      iifile->amax = slice.max;
-    }
-    iifile->nx = xsize;
-    iifile->ny = ysize;
+    for (chunk = 0; chunk < numChunks; chunk++) {
 
-    if (fpTiff)
-      tiferr = tiff_write_image(fpTiff, xsize, ysize, hdata.mode, buf, 
-                                &ifdOffset, &dataOffset, dmin, dmax);
-    else
-      tiferr = tiffWriteSection(iifile, buf, compression, 0, resolution);
-    if (tiferr){
-      perror("mrc2tif ");
-      exitError("Error (%d) writing section %d to %s", tiferr, z, iname);
+      /* Allocate memory first time or every time */
+      if ((!chunk && z == zmin) || (convert && slmode > 0))
+        buf = (unsigned char *)malloc(allocSize);
+      if (!buf)
+        exitError("Failed to allocate memory for slice");
+
+      lines = ysize;
+      if (doChunks) {
+        lines = B3DMIN(linesPerChunk, ysize - linesDone);
+        li.ymin = ysize - (linesDone + lines);
+        li.ymax = li.ymin + lines - 1;
+        linesDone += lines;
+      }
+
+      if (mrcReadZ(&hdata, &li, buf, z)) {
+        perror("mrc2tif ");
+        exitError("Reading section %d", z);
+      }
+      sliceInit(&slice, xsize, lines, hdata.mode, buf);
+      
+      /* Scale the slice and convert it to bytes */
+      if (convert) {
+        for (j = 0; j < lines; j++) {
+          for (i = 0; i < xsize; i++) {
+            sliceGetVal(&slice, i, j, val);
+            val[0] = val[0] * scale + offset;
+            val[0] = B3DMAX(0., B3DMIN(255., val[0]));
+            if (psize == 3) {
+              val[1] = val[1] * scale + offset;
+              val[1] = B3DMAX(0., B3DMIN(255., val[1]));
+              val[2] = val[2] * scale + offset;
+              val[2] = B3DMAX(0., B3DMIN(255., val[2]));
+            }
+            slicePutVal(&slice, i, j, val);
+          }
+        }
+        if (slmode > 0 && sliceNewMode(&slice, SLICE_MODE_BYTE))
+          exitError("Converting slice %d to bytes", z);
+        buf = slice.data.b;
+      }
+    
+      /* Get min/max for int/float images, those are the only ones the write
+         routine will put out min/max for */
+      if (!stack && slmode > 0 && !convert) {
+        sliceMMM(&slice);
+        iifile->amin = B3DMIN(iifile->amin, slice.min);
+        iifile->amax = B3DMAX(iifile->amax, slice.max);
+      }
+
+      if (fpTiff)
+        tiferr = tiff_write_image(fpTiff, xsize, ysize, hdata.mode, buf, 
+                                  &ifdOffset, &dataOffset, dmin, dmax);
+      else if (!doChunks)
+        tiferr = tiffWriteSection(iifile, buf, compression, 0, resolution);
+      else
+        tiferr = tiffWriteStrip(iifile, chunk, buf);
+      if (tiferr){
+        perror("mrc2tif ");
+        exitError("Error (%d) writing section %d to %s", tiferr, z, iname);
+      }
+      if (convert && slmode > 0)
+        free(slice.data.b);
     }
+    if (doChunks)
+      tiffWriteFinish(iifile);
     
     if (!stack) {
       if (fpTiff) {
@@ -297,8 +353,6 @@ int main(int argc, char *argv[])
       } else
         iiClose(iifile);
     }
-    if (convert && slmode > 0)
-      free(slice.data.b);
   }
 
   printf("\r\n");
@@ -336,6 +390,9 @@ static FILE *openEitherWay(ImodImageFile *iifile, char *iname, char *progname,
 /*
 
 $Log$
+Revision 3.14  2010/12/17 06:20:51  mast
+Maybe it will work with > 2 GB of data
+
 Revision 3.13  2010/12/15 06:21:24  mast
 Added options for setting resolution, controlling scaling, setting file
 number and doing a subset in Z
