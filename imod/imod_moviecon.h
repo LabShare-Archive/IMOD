@@ -38,6 +38,14 @@ void imcSetStarterID(int value);
 void imcSetSpecialLimits(int axis, int inStart, int inEnd);
 void imcStartTimer(void);
 void imcReadTimer(void);
+bool imcGetSlicerMontage(bool forDoing);
+void imcSetSlicerMontage(bool state);
+int imcGetSlicerMontFactor();
+void imcSetSlicerMontFactor(int val);
+bool imcGetScaleThicks(void);
+void imcSetScaleThicks(bool state);
+int imcGetThickScaling(void);
+void imcSetThickScaling(int value);
 
 void imcHelp();
 void imcClosing();
@@ -54,6 +62,9 @@ void imcIncrementRate(int dir);
 /*
 
 $Log$
+Revision 4.5  2008/12/08 17:24:19  mast
+More functions for montage snapshots
+
 Revision 4.4  2005/09/15 14:25:25  mast
 Added zap montage factor functions
 
