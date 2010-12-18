@@ -108,8 +108,8 @@ void MovieController::init()
           SLOT(sliderChanged(int, int, bool)));
   mSliders->getSlider(0)->setToolTip("Set starting section of movie range");
   mSliders->getSlider(1)->setToolTip("Set ending section of movie range");
-  mSliders->getSlider(2)->setToolTip(
-                                     "Set spacing between sections shown during movie");
+  mSliders->getSlider(2)->setToolTip
+    ("Set spacing between sections shown during movie");
   setNonTifLabel();
   bool mont = imcGetSnapMontage(false);
   montageSpinBox->setEnabled(mont && !imcGetSnapWholeMont());
@@ -121,6 +121,24 @@ void MovieController::init()
   diaSetChecked(wholeCheckBox, imcGetSnapWholeMont());
   diaSetChecked(scaleCheckBox, imcGetScaleSizes());
   diaSetSpinBox(scaleSpinBox, imcGetSizeScaling());
+
+  // Connections above are in the .ui file, have to add new ones by hand
+  connect(slicerMontCheckBox, SIGNAL(toggled(bool)), this, 
+          SLOT(slicerMontToggled(bool)));
+  connect(slicerScaleCheckBox, SIGNAL(toggled(bool)), this, 
+          SLOT(scaleSlicerThickToggled(bool)));
+  connect(slicerMontSpinBox, SIGNAL(valueChanged(int)), this, 
+          SLOT(newSlicerMontValue(int)));
+  connect(slicerScaleSpinBox, SIGNAL(valueChanged(int)), this, 
+          SLOT(scaleThickChanged(int)));
+  mont = imcGetSlicerMontage(false);
+  slicerMontSpinBox->setEnabled(mont);
+  slicerScaleSpinBox->setEnabled(mont && imcGetScaleThicks());
+  slicerScaleCheckBox->setEnabled(mont);
+  diaSetChecked(slicerMontCheckBox, mont);
+  diaSetSpinBox(slicerMontSpinBox, imcGetSlicerMontFactor());
+  diaSetChecked(slicerScaleCheckBox, imcGetScaleThicks());
+  diaSetSpinBox(slicerScaleSpinBox, imcGetThickScaling());
   setFontDependentWidths();
 }
 
@@ -189,13 +207,13 @@ void MovieController::startHereSelected( int which )
   imcStartHereSelected(which);
 }
 
-void MovieController::montageToggled(int state )
+void MovieController::montageToggled(bool state )
 {
-  montageSpinBox->setEnabled(state != 0 && !imcGetSnapWholeMont());
-  scaleSpinBox->setEnabled(state != 0 && imcGetScaleSizes());
-  scaleCheckBox->setEnabled(state != 0);
-  wholeCheckBox->setEnabled(state != 0);
-  imcSetSnapMontage(state != 0);
+  montageSpinBox->setEnabled(state && !imcGetSnapWholeMont());
+  scaleSpinBox->setEnabled(state && imcGetScaleSizes());
+  scaleCheckBox->setEnabled(state);
+  wholeCheckBox->setEnabled(state);
+  imcSetSnapMontage(state);
 }
 
 void MovieController::newMontageValue( int value )
@@ -218,6 +236,30 @@ void MovieController::scaleThickToggled( bool state )
 void MovieController::scalingChanged( int value )
 {
   imcSetSizeScaling(value);
+}
+
+void MovieController::slicerMontToggled(bool state )
+{
+  slicerMontSpinBox->setEnabled(state);
+  slicerScaleSpinBox->setEnabled(state && imcGetScaleThicks());
+  slicerScaleCheckBox->setEnabled(state);
+  imcSetSlicerMontage(state);
+}
+
+void MovieController::newSlicerMontValue( int value )
+{
+  imcSetSlicerMontFactor(value);
+}
+
+void MovieController::scaleSlicerThickToggled( bool state )
+{
+  imcSetScaleThicks(state);
+  slicerScaleSpinBox->setEnabled(state);
+}
+
+void MovieController::scaleThickChanged( int value )
+{
+  imcSetThickScaling(value);
 }
 
 void MovieController::donePressed()
@@ -296,6 +338,9 @@ void MovieController::fontChange( const QFont & oldFont )
 /*
 
 $Log$
+Revision 4.3  2010/04/01 02:41:48  mast
+Called function to test for closing keys, or warning cleanup
+
 Revision 4.2  2009/11/21 23:08:11  mast
 Fixed width setting
 
