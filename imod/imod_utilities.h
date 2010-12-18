@@ -24,6 +24,8 @@ class QMouseEvent;
 class QKeyEvent;
 
 typedef struct ViewInfo ImodView;
+typedef struct scale_bar ScaleBar;
+
 void utilDrawSymbol(int mx, int my, int sym, int size, int flags);
 void utilCurrentPointSize(Iobj *obj, int *modPtSize, int *backupSize,
                           int *imPtSize);
@@ -54,6 +56,17 @@ QAction *utilSetupToggleButton(QWidget *parent, QToolBar *toolBar,
 void utilRaiseIfNeeded(QWidget *window, QMouseEvent *event);
 bool utilNeedToSetCursor();
 bool utilCloseKey(QKeyEvent *e);
+bool utilStartMontSnap(int winx, int winy, int xFullSize, int yFullSize,
+                       float factor, ScaleBar &barSaved, int &numChunks,
+                       unsigned char **framePix, unsigned char ***fullPix,
+                       unsigned char ***linePtrs);
+void utilMontSnapScaleBar(int ix, int iy, int frames, int winx, int winy, 
+                          float scale, bool savedDraw);
+void utilFinishMontSnap(unsigned char **linePtrs,
+                        int xFullSize, int yFullSize, int format, int &fileno,
+                        int digits, float zoom, char *prefix, char *message);
+void utilFreeMontSnapArrays(unsigned char **fullPix, int numChunks, 
+                            unsigned char *framePix, unsigned char **linePtrs);
 char *imodwfname(const char *intro);
 char *imodwEithername(const char *intro, const char *filein, int modelFirst);
 char *imodwGivenName(const char *intro, const char *filein);
@@ -63,6 +76,9 @@ QString imodCaption(const char *intro);
 /*
  *
  *  $Log$
+ *  Revision 1.10  2010/04/01 02:41:48  mast
+ *  Called function to test for closing keys, or warning cleanup
+ *
  *  Revision 1.9  2009/04/06 19:36:52  mast
  *  Added function to give flag for needing  to fix cursor
  *

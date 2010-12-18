@@ -35,6 +35,7 @@
 #include "dia_qtutils.h"  
 #include "tooledit.h"
 #include "arrowbutton.h"
+#include "scalebar.h"
 
 #define TOOLBUT_SIZE 20
 #define BM_WIDTH 16
@@ -392,6 +393,127 @@ bool utilCloseKey(QKeyEvent *e)
   return false;
 }
 
+/*
+ * Does common initial tasks for a montage snapshot: allocates the arrays,
+ * (returns true for an error), and saves and adjusts the scale bar data 
+ */
+bool utilStartMontSnap(int winx, int winy, int xFullSize, int yFullSize,
+                       float factor, ScaleBar &barSaved, int &numChunks,
+                       unsigned char **framePix, unsigned char ***fullPix,
+                       unsigned char ***linePtrs)
+{
+  int iy, maxLines, line, ch, ndo;
+  int chunkMax = 10000000;    // This was needed to get to 2.9 GB on WinXP
+  ScaleBar *barReal = scaleBarGetParams();
+
+  maxLines = B3DMAX(1, chunkMax / (4 * xFullSize));
+  numChunks = (yFullSize + maxLines - 1) / maxLines;
+  *fullPix = (unsigned char **)malloc(numChunks * sizeof (unsigned char *));
+  if (!*fullPix)
+    return true;
+  for (ch = 0; ch < numChunks; ch++)
+    (*fullPix)[ch] = NULL;
+  *linePtrs = NULL;
+  *framePix = NULL;
+  *framePix = (unsigned char *)malloc(4 * winx * winy);
+  *linePtrs = (unsigned char **)malloc(yFullSize * sizeof(unsigned char *));
+  if (!*framePix || !*linePtrs) {
+    utilFreeMontSnapArrays(*fullPix, numChunks, *framePix, *linePtrs);
+    return true;
+  }
+  
+  line = 0;
+  for (ch = 0; ch < numChunks; ch++) {
+    ndo = B3DMIN(yFullSize - line, maxLines);
+    (*fullPix)[ch] = (unsigned char *)malloc(ndo * 4 * xFullSize);
+    if (!(*fullPix)[ch]) {
+      imodPrintStderr("Failed on chunk %d, after %u\n", ch, (unsigned int)ch * ndo * 4 * xFullSize);
+      utilFreeMontSnapArrays(*fullPix, numChunks, *framePix, *linePtrs);
+      return true;
+    }
+    for (iy = 0; iy < ndo; iy++)
+      (*linePtrs)[iy+line] = (*fullPix)[ch] + 4 * xFullSize * iy;
+    line += ndo;
+  }
+
+  // Save and modify scale bar directives
+  barSaved = *barReal;
+  barReal->minLength = B3DNINT(factor * barReal->minLength);
+  barReal->thickness = B3DNINT(factor * barReal->thickness);
+  barReal->indentX = B3DNINT(factor * barReal->indentX);
+  barReal->indentY = B3DNINT(factor * barReal->indentY);
+  return false;
+}
+
+/*
+ * Frees the array of chunks and the other arrays if they are allocated
+ */
+void utilFreeMontSnapArrays(unsigned char **fullPix, int numChunks, 
+                            unsigned char *framePix, unsigned char **linePtrs)
+{
+  for (int i = 0; i < numChunks; i++)
+    if (fullPix[i])
+      free(fullPix[i]);
+  free(fullPix);
+  if (framePix)
+    free(framePix);
+  if (linePtrs)
+    free(linePtrs);
+}
+
+
+/*
+ * Manages scale bar drawing during a montage snapshot 
+ */
+void utilMontSnapScaleBar(int ix, int iy, int frames, int winx, int winy, 
+                          float scale, bool savedDraw)
+{
+  ScaleBar *barReal = scaleBarGetParams();
+  int barpos = barReal->position;
+
+  // Set up for scale bar if it is the right corner
+  barReal->draw = false;
+  if ((((barpos == 0 || barpos == 3) && ix == frames - 1) ||
+       ((barpos == 1 || barpos == 2) && !ix)) &&
+      (((barpos == 2 || barpos == 3) && iy == frames - 1) ||
+       ((barpos == 0 || barpos == 1) && !iy))) {
+    barReal->draw = savedDraw;
+    scaleBarTestAdjust(winx, winy, scale);
+  }
+}
+
+/*
+ * Performs final tasks for a montage snapshot: sets up line pointers, composes
+ * the filename, and performs the right kind of snapshot.
+ */
+void utilFinishMontSnap(unsigned char **linePtrs,
+                        int xFullSize, int yFullSize, int format, int &fileno,
+                        int digits, float zoom, char *prefix, char *message)
+{
+  int limits[4];
+  QString fname, sname;
+
+  limits[0] = limits[1] = 0;
+  limits[2] = xFullSize;
+  limits[3] = yFullSize;
+  if (format == 2)
+    ImodPrefs->set2ndSnapFormat();
+  b3dSetDpiScaling(zoom);
+  fname = b3dGetSnapshotName(prefix, format ? SnapShot_RGB : SnapShot_TIF, 
+                             digits, fileno);
+  sname = b3dShortSnapName(fname);
+  imodPrintStderr("%s montage to %s", message, LATIN1(sname));
+  if (format)
+    b3dSnapshot_NonTIF(fname, 4, limits, linePtrs);
+  else
+    b3dSnapshot_TIF(fname, 4, limits, linePtrs, strcmp(prefix, "modv") != 0);
+  if (format == 2)
+    ImodPrefs->restoreSnapFormat();
+  imodPuts("");
+  b3dSetDpiScaling(1.);
+}
+
+
 /* Appends either the model or file name to the window name, giving
    first priority to the model name if "modelFirst" is set */
 char *imodwEithername(const char *intro, const char *filein, int modelFirst)
@@ -593,6 +715,9 @@ int imodColorValue(int inColor)
 /*
 
 $Log$
+Revision 1.13  2010/04/01 02:41:48  mast
+Called function to test for closing keys, or warning cleanup
+
 Revision 1.12  2009/04/06 19:36:52  mast
 Added function to give flag for needing  to fix cursor
 
