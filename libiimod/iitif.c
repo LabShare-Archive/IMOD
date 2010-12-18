@@ -57,8 +57,6 @@ Additional documentation is at <ftp://ftp.sgi.com/graphics/tiff/doc>
 #define vsnprintf _vsnprintf
 #endif
 
-int tiffReopen(ImodImageFile *inFile);
-void tiffDelete(ImodImageFile *inFile);
 static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
                        int byte);
 static void copyLine(unsigned char *bdata, unsigned char *obuf, int xout,
@@ -73,6 +71,7 @@ typedef void (*TIFFWarningHandler)(const char *module, const char *fmt,
 
 static TIFFWarningHandler oldHandler = NULL;
 static void warningHandler(const char *module, const char *fmt, va_list ap);
+static int useMapping = 1;
 
 int iiTIFFCheck(ImodImageFile *inFile)
 {
@@ -80,7 +79,6 @@ int iiTIFFCheck(ImodImageFile *inFile)
   FILE *fp;
   b3dUInt16 buf;
   int dirnum = 1;
-  uint32 val;
   uint16 bits, samples, photometric, sampleformat, planarConfig;
   uint16 bitsIm, samplesIm, photoIm, formatIm, planarIm;
   int nxim, nyim, formatDef;
@@ -101,7 +99,7 @@ int iiTIFFCheck(ImodImageFile *inFile)
     err = IIERR_NOT_FORMAT;
   if (!err && fread(&buf, sizeof(b3dUInt16), 1, fp) < 1)
     err = IIERR_IO_ERROR;
-  if (!err && (buf != 0x002a) && (buf != 0x2a00))
+  if (!err && buf != 0x002a && buf != 0x2a00 && buf != 0x002b && buf != 0x2b00)
     err = IIERR_NOT_FORMAT;
   if (err) {
     if (err == IIERR_IO_ERROR)
@@ -112,6 +110,7 @@ int iiTIFFCheck(ImodImageFile *inFile)
 
   /* Close file now, but reopen it if there is a TIFF failure */
   fclose(fp);
+  inFile->fp = NULL;
   tif = openWithoutBMode(inFile);
   if (!tif){
     inFile->fp = fopen(inFile->filename, inFile->fmode);
@@ -397,6 +396,11 @@ void tiffFilterWarnings(void)
   oldHandler = TIFFSetWarningHandler(warningHandler);
 }
 
+void tiffSetMapping(int value)
+{
+  useMapping = value;
+}
+
 /* Mode 'b' means something completely different for TIFF, so strip it */
 static TIFF *openWithoutBMode(ImodImageFile *inFile)
 {
@@ -409,12 +413,19 @@ static TIFF *openWithoutBMode(ImodImageFile *inFile)
   if (!len)
     return NULL;
 
-  if (inFile->fmode[len - 1] == 'b') {
+  if (!useMapping || inFile->fmode[len - 1] == 'b') {
     stripped = 1;
-    tmpmode = strdup(inFile->fmode);
+    tmpmode = (char *)malloc(len + 4);
     if (!tmpmode)
       return NULL;
-    tmpmode[len - 1] = 0x00;
+    strcpy(tmpmode, inFile->fmode);
+    if (inFile->fmode[len - 1] == 'b')
+      tmpmode[len - 1] = 0x00;
+    if (!useMapping) {
+      len = strlen(tmpmode);
+      tmpmode[len] = 'm';
+      tmpmode[len+1] = 0x00;
+    }
   }
   tif = TIFFOpen(inFile->filename, tmpmode);
   if (stripped)
@@ -462,7 +473,8 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
   int ysize = inFile->ny;
   int samples = inFile->contigSamples;
   int row;
-  int i, pixel, xstart, xend, ystart, yend, y, ofsin, ofsout;
+  int xstart, xend, ystart, yend, y, ofsin;
+  size_t ofsout;
   int doscale;
   float slope = inFile->slope;
   float offset = inFile->offset;
@@ -475,8 +487,6 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
   unsigned char *obuf;
   unsigned char *tmp = NULL;
   unsigned char *bdata;
-  b3dUInt16 *usdata;
-  b3dFloat *fdata;
   unsigned char *map = NULL;
   int freeMap = 0;
   uint32 rowsperstrip;
@@ -574,14 +584,14 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
                
       /* Read the strip if necessary */
       nread = TIFFReadEncodedStrip(tif, si + plane * nstrip, tmp, stripsize);
-      /* printf("%d %d %d %d\n", nread, si, ystart, yend); */
+      /* printf("\n%d %d %d %d\n", nread, si, ystart, yend); */
       for (y = ystart; y <= yend; y++) {
 
         /* for each y, compute back to row, and get offsets into
            input and output arrays */
         row = ysize - 1 - y - rowsperstrip * si;
         ofsin = samples * pixsize * (row * xsize + xmin) + sampOffset *pixsize;
-        ofsout = movesize * (y - ymin) * xout;
+        ofsout = movesize * (size_t)(y - ymin) * (size_t)xout;
         obuf = (unsigned char *)buf + ofsout;
         bdata = tmp + ofsin;
         copyLine(bdata, obuf, xout, byte, pixsize, inFile->type, 
@@ -643,7 +653,7 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
           ofsin = pixsize * samples *
             (row * tilewidth + xstart - xti * tilewidth) + sampOffset *pixsize;
           ofsout = movesize * 
-            ((y - ymin) * xout + xstart - xmin);
+            ((size_t)(y - ymin) * (size_t)xout + xstart - xmin);
           obuf = (unsigned char *)buf + ofsout;
           bdata = tmp + ofsin;
           copyLine(bdata, obuf, xcopy, byte, pixsize, inFile->type,
@@ -796,7 +806,15 @@ int tiffReadSection(ImodImageFile *inFile, char *buf, int inSection)
  */
 int tiffOpenNew(ImodImageFile *inFile)
 {
-  TIFF *tif = TIFFOpen(inFile->filename, "w");
+  TIFF *tif;
+  int minor;
+  
+  /* Try to open a big file in version 4 */
+  if (tiffVersion(&minor) > 3 && ((double)inFile->nx * inFile->ny * inFile->nz)
+      > 4.0e9)
+    tif = TIFFOpen(inFile->filename, "w8");
+  else
+    tif = TIFFOpen(inFile->filename, "w");
   if (!tif)
     return IIERR_IO_ERROR;
   inFile->header = (char *)tif;
@@ -807,6 +825,10 @@ int tiffOpenNew(ImodImageFile *inFile)
   return 0;
 }
 
+static uint32 rowsPerStrip, lineBytes, stripBytes;
+static int linesDone, numStrips, alreadyInverted;
+static char *tmpbuf;
+
 /*
  * Write next section to file with the given compression value; set inverted
  * non-zero if image is already inverted and does not need copying.  Set 
@@ -815,13 +837,33 @@ int tiffOpenNew(ImodImageFile *inFile)
 int tiffWriteSection(ImodImageFile *inFile, void *buf, int compression, 
                      int inverted, int resolution)
 {
-  int stripTarget = 8192;
-  uint32 rowsPerStrip, lineBytes, stripBytes;
+  int strip, lines, err;
+  char *sbuf;
+  err = tiffWriteSetup(inFile, compression, inverted, resolution, &strip,
+                       &lines);
+  if (err)
+    return err;
+  for (strip = 0; strip < numStrips; strip++) {
+    lines = B3DMIN(rowsPerStrip, inFile->ny - linesDone);
+    if (inverted)
+      sbuf = (char *)buf + strip * stripBytes;
+    else
+      sbuf = (char *)buf + (inFile->ny - (linesDone + lines)) * lineBytes;
+    err = tiffWriteStrip(inFile, strip, (void *)sbuf);
+    if (err)
+      return err;
+  }
+  tiffWriteFinish(inFile);
+  return 0;
+}
+
+int tiffWriteSetup(ImodImageFile *inFile, int compression, 
+                   int inverted, int resolution, int *outRows, int *outNum)
+{
+  uint32 stripTarget = 8192;
+  int maxStrips = 4096;
   uint16 bits, samples, photometric, sampleformat;
   double dmin, dmax;
-  int lines, linesDone, numStrips, strip, i;
-  char *tmp;
-  char *inbuf;
   time_t curtime;
   struct tm *tm;
   char datetime[40];
@@ -891,7 +933,11 @@ int tiffWriteSection(ImodImageFile *inFile, void *buf, int compression,
   TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, photometric);
   TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, samples);
   
+  /* Increase the strip target size to avoid having too many strips, as per
+     recommendations that go with libtiff4 */
   lineBytes = (samples * bits / 8) * inFile->nx;
+  if (inFile->ny > maxStrips)
+    stripTarget = (1 + inFile->ny / maxStrips) * lineBytes;
   rowsPerStrip = B3DMAX(1, (stripTarget + lineBytes / 2) / lineBytes);
 
   /* For JPEG compression, rows must be multiple of 8 */
@@ -912,40 +958,67 @@ int tiffWriteSection(ImodImageFile *inFile, void *buf, int compression,
   stripBytes = rowsPerStrip * lineBytes;
   numStrips = (inFile->ny + rowsPerStrip - 1) / rowsPerStrip;
   if (!inverted) {
-    tmp = (char *)_TIFFmalloc(stripBytes);
-    if (!tmp)
+    tmpbuf = (char *)_TIFFmalloc(stripBytes);
+    if (!tmpbuf)
       return IIERR_MEMORY_ERR;
   }
-  
   linesDone = 0;
-  for (strip = 0; strip < numStrips; strip++) {
-    lines = B3DMIN(rowsPerStrip, inFile->ny - linesDone);
-    if (inverted) {
-      tmp = (char *)buf + linesDone * lineBytes;
-    } else {
-
-      for (i = 0; i < lines; i++) {
-        inbuf = (char *)buf + (inFile->ny - (linesDone + i + 1)) * lineBytes;
-        memcpy(tmp + i * lineBytes, inbuf, lineBytes);
-      }
-    }
-    if (TIFFWriteEncodedStrip(tif, strip, tmp, lineBytes * lines) < 0) {
-      if (!inverted)
-        free(tmp);
-      return IIERR_IO_ERROR;
-    }
-    linesDone += lines;
-  }
-  inFile->state = IISTATE_BUSY;
-  if (!inverted)
-    _TIFFfree(tmp);
+  alreadyInverted = inverted;
+  *outRows = rowsPerStrip;
+  *outNum = numStrips;
   return 0;
 }
+
+int tiffWriteStrip(ImodImageFile *inFile, int strip, void *buf)
+{
+  int lines, i;
+  char *inbuf;
+  TIFF *tif = (TIFF *)inFile->header;
+  lines = B3DMIN(rowsPerStrip, inFile->ny - linesDone);
+  if (alreadyInverted) {
+    tmpbuf = (char *)buf;
+  } else {
+    for (i = 0; i < lines; i++) {
+      inbuf = (char *)buf + (lines - (i + 1)) * lineBytes;
+      memcpy(tmpbuf + i * lineBytes, inbuf, lineBytes);
+    }
+  }
+  if (TIFFWriteEncodedStrip(tif, strip, tmpbuf, lineBytes * lines) < 0) {
+    if (!alreadyInverted)
+      free(tmpbuf);
+    return IIERR_IO_ERROR;
+  }
+  linesDone += lines;
+  return 0;
+}
+
+void tiffWriteFinish(ImodImageFile *inFile)
+{
+  inFile->state = IISTATE_BUSY;
+  if (!alreadyInverted)
+    _TIFFfree(tmpbuf);
+}
   
-    
+int tiffVersion(int *minor)
+{
+  const char *verstrng = TIFFGetVersion();
+  char *substr;
+  int update, version;
+  *minor = 0;
+  if (strstr(verstrng, "IMOD"))
+    return 0;
+  substr = strstr(verstrng, "ersion");
+  if (!substr)
+    return 0;
+  sscanf(substr + 7, "%d.%d.%d", &version, minor, &update);
+  return version;
+}    
 
 /*
   $Log$
+  Revision 3.22  2010/12/15 06:21:58  mast
+  Added ability to set resolution when writing
+
   Revision 3.21  2010/07/06 03:20:00  mast
   Put out module too, which sometimes has the filename!
 
