@@ -185,6 +185,14 @@ extern "C" {
   int tiffOpenNew(ImodImageFile *inFile);
   int tiffWriteSection(ImodImageFile *inFile, void *buf, int compression, 
                        int inverted, int resolution);
+  int tiffWriteSetup(ImodImageFile *inFile, int compression, 
+                     int inverted, int resolution, int *outRows, int *outNum);
+  int tiffWriteStrip(ImodImageFile *inFile, int strip, void *buf);
+  void tiffWriteFinish(ImodImageFile *inFile);
+  int tiffVersion(int *minor);
+  int tiffReopen(ImodImageFile *inFile);
+  void tiffDelete(ImodImageFile *inFile);
+  void tiffSetMapping(int value);
   int iiLikeMRCCheck(ImodImageFile *inFile);
   void iiLikeMRCDelete(ImodImageFile *inFile);
   int iiSetupRawHeaders(ImodImageFile *inFile, RawImageInfo *info);
@@ -198,6 +206,9 @@ extern "C" {
 
 /*
 $Log$
+Revision 3.19  2010/12/15 06:22:17  mast
+New arg fro tiff writing
+
 Revision 3.18  2010/08/31 22:04:44  mast
 New arg for piece list function
 
