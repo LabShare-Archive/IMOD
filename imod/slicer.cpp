@@ -76,7 +76,8 @@ static void setMovieLimits(SlicerStruct *ss, int axis);
 static void findMovieAxis(SlicerStruct *ss, int *xmovie, int *ymovie, 
                           int *zmovie, int dir, int *axis);
 static void setInverseMatrix(SlicerStruct *ss);
-static int translateByRotatedVec(SlicerStruct *ss, Ipoint *vec);
+static int translateByRotatedVec(SlicerStruct *ss, Ipoint *vec, 
+                                 bool outsideOK = false);
 static void setClassicMode(SlicerStruct *ss, int state);
 static void notifySlicersOfAngDia(bool open);
 static void setAngleToolbarState(SlicerWindow *ss, bool open);
@@ -86,6 +87,10 @@ static void getWindowCoords(SlicerStruct *ss, float xcur, float ycur,
 static void setViewAxisRotation(SlicerStruct *ss, float x, float y, float z);
 static void changeCenterIfLinked(SlicerStruct *ss);
 static int synchronizeSlicers(SlicerStruct *ss, bool draw = false);
+static void getMontageShifts(SlicerStruct *ss, int factor, float scaleFactor,
+                             int win, int &overlap, float &transStart,
+                             float &transDelta, int &copyDelta, int &fullSize);
+static void montageSnapshot(SlicerStruct *ss, int snaptype);
 
 /* DNM: maximum angles for sliders */
 static float maxAngle[3] = {90.0, 180.0, 180.0};
@@ -100,6 +105,8 @@ static int mouseRotating = 0;
 static bool mousePressed = false;
 static float viewAxisSteps[] = {0.1f, 0.3f, 1., 3., 10., 0.};
 static int viewAxisIndex = 2;
+static bool doingMontage = false;
+static int scaleThick = 1;
 
 /*
  * Open up slicer help dialog.
@@ -929,10 +936,14 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
 
   case Qt::Key_S:
     if (shift || ctrl){
+      if (imcGetSlicerMontage(true)) {
+        montageSnapshot(ss, (ctrl ? 1 : 0) + (shift ? 2 : 0));
+      } else {
 
-      // Snapshots: need to update just the image window
-      ss->glw->updateGL();
-      b3dKeySnapshot("slicer", shift, ctrl, NULL);
+        // Snapshots: need to update just the image window
+        ss->glw->updateGL();
+        b3dKeySnapshot("slicer", shift, ctrl, NULL);
+      }
     }else
       inputSaveModel(vi);
     dodraw = 0;
@@ -1616,6 +1627,176 @@ static void startMovieCheckSnap(SlicerStruct *ss, int dir)
   imodDraw(vi, IMOD_DRAW_XYZ);
 }
 
+/*
+ * Take a snapshot by montaging at higher zoom
+ */
+static void montageSnapshot(SlicerStruct *ss, int snaptype)
+{
+  int ix, iy, xFullSize, yFullSize,  xCopyDelta, yCopyDelta, hqSave;
+  int xOverlap, yOverlap, numChunks;
+  float xTransStart, yTransStart, xTransDelta, yTransDelta;
+  int fromXoff, fromYoff, toXoff, toYoff, overhalf,xCopy,yCopy;
+  float cxSave, cySave, czSave, scaleFactor;
+  unsigned char *framePix, **fullPix, **linePtrs;
+  double zoomSave;
+  static int fileno = 0;
+  Ipoint vec;
+  int factor = imcGetSlicerMontFactor();
+  ScaleBar *barReal = scaleBarGetParams();
+  ScaleBar barSaved;
+
+  // Save center and zoom 
+  cxSave = ss->cx;
+  cySave = ss->cy;
+  czSave = ss->cz;
+  zoomSave = ss->zoom;
+  hqSave = ss->hq;
+  vec.z = 0.;
+
+  // Start out with an overlap big enough to avoid quadratic interpolated areas
+  xOverlap = yOverlap = (int)ceil(3. * ss->zoom * factor);
+  if (xOverlap > ss->winx / 4 || yOverlap > ss->winy / 4) {
+    wprint("\aThe window is not big enough to take a montage with the "
+           "required amount of overlap between frames.\n");
+    return;
+  }
+
+  // Reduce the zoom so that the panels will cover the full area after overlap
+  // is taken out, take the larger of factor for X and Y to avoid anything
+  // outside the current window
+  scaleFactor = factor - ((factor-1.) * xOverlap) / B3DMAX(ss->winx, ss->winy);
+
+  // Get coordinate offsets and revised offsets and arrays
+  getMontageShifts(ss, factor, scaleFactor, ss->winx, xOverlap, xTransStart, 
+                   xTransDelta, xCopyDelta, xFullSize);
+  getMontageShifts(ss, factor, scaleFactor, ss->winy, yOverlap, yTransStart,
+                   yTransDelta, yCopyDelta, yFullSize);
+
+  if (utilStartMontSnap(ss->winx, ss->winy, xFullSize, yFullSize,
+                        scaleFactor, barSaved, numChunks, &framePix, &fullPix, 
+                        &linePtrs)) {
+    wprint("\aFailed to get memory for snapshot buffers.\n");
+    return;
+  }
+
+  // On Quadro card (?), it is necessary to defer the autoswap for montaging
+  // It's not clear why this isn't needed for other snapshots
+  // NEED TO CHECK THIS!!!
+  if (App->doublebuffer) {
+    ss->glw->setBufferSwapAuto(false);
+    glReadBuffer(GL_BACK);
+  }
+
+  // Set up scaling
+  if (imcGetScaleThicks()) {
+    scaleThick = imcGetThickScaling();
+    if (scaleThick == 1)
+      scaleThick = factor;
+  }
+
+  // Loop on frames, getting pixels and copying them
+  ss->zoom *= scaleFactor;
+  ss->hq = 1;
+  doingMontage = true;
+  for (iy = 0; iy < factor; iy++) {
+    for (ix = 0; ix < factor; ix++) {
+
+      // Set up for scale bar if it is the right corner
+      utilMontSnapScaleBar(ix, iy, factor, ss->winx - 4, ss->winy - 4, 
+                           ss->zoom, barSaved.draw);
+      
+      ss->cx = cxSave;
+      ss->cy = cySave;
+      ss->cz = czSave;
+      vec.x = xTransStart + ix * xTransDelta;
+      vec.y = yTransStart + iy * yTransDelta;
+      translateByRotatedVec(ss, &vec, true);
+      ss->glw->updateGL();
+
+      // Print scale bar length if it was drawn
+      if (ss->scaleBarSize > 0)
+        imodPrintStderr("Scale bar for montage is %g %s\n", ss->scaleBarSize,
+                        imodUnits(ss->vi->imod));
+
+      glReadPixels(0, 0, ss->winx, ss->winy, GL_RGBA, GL_UNSIGNED_BYTE, 
+                   framePix);
+      glFlush();
+
+      // Set up copy of middle pieces then adjust for first or last piece
+      overhalf = xOverlap / 2;
+      xCopy = ss->winx - xOverlap;
+      fromXoff = overhalf;
+      toXoff = ix * xCopyDelta + overhalf;
+      if (!ix) {
+        xCopy += overhalf;
+        toXoff -= overhalf;
+        fromXoff -= overhalf;
+      }
+      if (ix == factor - 1)
+        xCopy += xOverlap - overhalf;
+      overhalf = yOverlap / 2;
+      yCopy = ss->winy - yOverlap;
+      fromYoff = overhalf;
+      toYoff = iy * yCopyDelta + overhalf;
+      if (!iy) {
+        yCopy += overhalf;
+        toYoff -= overhalf;
+        fromYoff -= overhalf;
+      }
+      if (iy == factor - 1)
+        yCopy += yOverlap - overhalf;
+      memLineCpy(linePtrs, framePix, xCopy, yCopy, 4,
+                 toXoff, toYoff, ss->winx, fromXoff, fromYoff);
+      if (App->doublebuffer) 
+        ss->glw->swapBuffers();
+    }
+  }
+
+  if (App->doublebuffer)
+    ss->glw->setBufferSwapAuto(true);
+
+  // Reset the file number to zero unless doing movie, then get name and save
+  if (!ss->movieSnapCount)
+    fileno = 0;
+
+  // Save the image then restore display
+  utilFinishMontSnap(linePtrs, xFullSize, yFullSize, snaptype - 1,
+                     fileno, 3, scaleFactor, "slicer", 
+                     "3dmod: Saving slicer");
+
+  *barReal = barSaved;
+  ss->hq = hqSave;
+  ss->zoom = zoomSave;
+  ss->cx = cxSave;
+  ss->cy = cySave;
+  ss->cz = czSave;
+  doingMontage = false;
+  scaleThick = 1;
+  sslice_draw(ss);
+  utilFreeMontSnapArrays(fullPix, numChunks, framePix, linePtrs);
+}
+
+// COmpute the shifts for one axis of the montage
+static void getMontageShifts(SlicerStruct *ss, int factor, float scaleFactor,
+                             int win, int &overlap, float &transStart,
+                             float &transDelta, int &copyDelta, int &fullSize)
+{
+
+  // Increase overlap so that the spacing between panels is a multiple of the
+  // zoom factor, so that the computed grid points match between panels
+  int izoom = B3DMAX(1, (int)(ss->zoom * scaleFactor));
+  overlap += (win - overlap) % izoom;
+  transDelta = (win - overlap) / (ss->zoom * scaleFactor);
+  transStart = - transDelta * (factor - 1.) / 2.;
+  copyDelta = win - overlap;
+  fullSize = win * factor - (factor - 1) * overlap;
+}
+
+int getSlicerThicknessScaling()
+{
+  return scaleThick;
+}
+
 // Get the Z scale of the volume before slicing: it is the product of
 // an implicit Z scale from the ratio of Z to XY binning, and actual z scale
 // if zscale before is selected 
@@ -1778,7 +1959,8 @@ static void setInverseMatrix(SlicerStruct *ss)
    back-rotating it is sclaed downinto original pixel space.  Lateral moves
    are correct for the panning motion in the window, but vertical moves need
    to be normalized */
-static int translateByRotatedVec(SlicerStruct *ss, Ipoint *vec)
+ static int translateByRotatedVec(SlicerStruct *ss, Ipoint *vec, 
+                                  bool outsideOK)
 {
   Ipoint vrot;
   setInverseMatrix(ss);
@@ -1790,9 +1972,10 @@ static int translateByRotatedVec(SlicerStruct *ss, Ipoint *vec)
       imodPrintStderr("vec %.2f %.2f %.2f vrot %.4f %.4f %.4f\n", vec->x, 
                       vec->y, vec->z, vrot.x, vrot.y, vrot.z);
   }
-  if (ss->cx + vrot.x >= 0 && ss->cx + vrot.x < ss->vi->xsize && 
-      ss->cy + vrot.y >= 0 && ss->cy + vrot.y < ss->vi->ysize && 
-      ss->cz + vrot.z >= 0 && ss->cz + vrot.z < ss->vi->zsize - 0.5) {
+  if ((ss->cx + vrot.x >= 0 && ss->cx + vrot.x < ss->vi->xsize && 
+       ss->cy + vrot.y >= 0 && ss->cy + vrot.y < ss->vi->ysize && 
+       ss->cz + vrot.z >= 0 && ss->cz + vrot.z < ss->vi->zsize - 0.5) || 
+      outsideOK) {
     ss->cx += vrot.x;
     ss->cy += vrot.y;
     ss->cz += vrot.z;
@@ -2302,8 +2485,11 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
 
       // Get snapshots if there is a count for doing so
       if (imcGetSnapshot(vi) && ss->movieSnapCount) {
-        b3dKeySnapshot("slicer", imcGetSnapshot(vi) - 1, 
-                       imcGetSnapshot(vi) % 2, NULL);
+        if (imcGetSlicerMontage(true))
+          montageSnapshot(ss, imcGetSnapshot(vi));
+        else
+          b3dKeySnapshot("slicer", imcGetSnapshot(vi) - 1, 
+                         imcGetSnapshot(vi) % 2, NULL);
         ss->movieSnapCount--;
 
         /* When count expires, stop movie */
@@ -2553,7 +2739,8 @@ static void drawCurrentPoint(SlicerStruct *ss)
   // Draw crosshairs in center regardless; and draw current
   // point in movie mode non-classic.  Draw it dimmer if it is off plane
   b3dColorIndex(App->endpoint);
-  b3dDrawPlus((int)(ss->winx * 0.5f), (int)(ss->winy * 0.5f), 5);
+  if (!doingMontage)
+    b3dDrawPlus((int)(ss->winx * 0.5f), (int)(ss->winy * 0.5f), 5);
   if (ss->mousemode == IMOD_MMOVIE || !pnt || !cont) {
     if (!ss->classic) {
       delta = norm.x * (ss->vi->xmouse - ss->cx) + norm.y * 
@@ -2797,6 +2984,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.73  2010/04/01 02:41:48  mast
+Called function to test for closing keys, or warning cleanup
+
 Revision 4.72  2010/03/25 21:24:11  mast
 Prevent cube paint if closing, stops crash on Qt 4.6/Cocoa Mac
 
