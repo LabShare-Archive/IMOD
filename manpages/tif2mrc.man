@@ -55,6 +55,18 @@ lacks a tag indicating that it is unsigned but the numbers do range above
 6 with the 
 .B -k
 option.  
+.P
+If the program is run with version 4 of the TIFF library, it will read TIFF
+files bigger than 2 GB, including ones in the BigTIFF format.
+In Linux, it is not necessary to have the program
+built against the version 4 library; the standard distributed program will run
+with this library, provided that libtiff.so.3 is a link to the
+version 4 library and is located in a directory on the LD_LIBRARY_PATH.  For
+example, if the directory with the version 4 library is on LD_LIBRARY_PATH,
+you can make a link in that directory with:
+.br
+   ln -s libtiff.so.5 libtiff.so.3
+
 .SS Options
 .TP
 .B -g
@@ -120,6 +132,28 @@ If a background file is loaded its values are subtracted from
 the values in the rest of the files.
 The background file must have the same data type as the images from which
 it is being subtracted (8-bit or 16-bit grayscale).
+.TP
+.B -m
+Turn off file-to-memory mapping in the TIFF library.  This mapping could be a
+problem working with large files on some systems.  If you experience
+performance issues such as excessive disk swapping, you can experiment
+with this setting.  With mapping on, the virtual memory
+usage of the program is alarming and the resident memory size continually 
+increases as the file is read, even though it
+is being processed in chunks.  However, in tests on Red Hat Enterprise Linux
+5, reading and writing a file had the
+same potential to cause other programs' memory to be swapped to disk
+regardless of whether mapping was on or off, apparently because the mapped
+memory is coincident with file system cache.
+.TP
+.B -t <value>
+Set the criterion for processing each file in chunks to the given value in
+megabytes (fractional values are allowed).  Whole images will be 
+read in, processed, and saved as a unit if they are less than this criterion
+(default 100 MB).  Above the criterion, images will be read, processed, and
+saved in chunks of about this size, with much lower memory requirements, as
+long as the image matches the size of the output file and there is no
+background subtraction.
 .SH FILES
 If the output file already exists, it will be made a backup file by adding ~
 to its name.

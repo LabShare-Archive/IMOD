@@ -44,6 +44,19 @@ the dynamic range for that subset of the image data, and enter the contrast
 settings withs the 
 .B -C
 option.
+.P
+If the program is run with version 4 of the TIFF library, it will write files
+bigger than 4 GB in the BigTIFF format, and continue to write smaller files
+in classical TIFF format.  Running with version 3 of the TIFF library, it will
+write valid files up to 4 GB, although the library cannot read such files if
+they are bigger than 2 GB.  In Linux, it is not necessary to have the program
+built against the version 4 library; the standard distributed program will run
+with this library, provided that libtiff.so.3 is a link to the
+version 4 library and is located in a directory on the LD_LIBRARY_PATH.  For
+example, if the directory with the version 4 library is on LD_LIBRARY_PATH,
+you can make a link in that directory with:
+.br
+   ln -s libtiff.so.5 libtiff.so.3
 .SS Options
 .TP
 .B -s
