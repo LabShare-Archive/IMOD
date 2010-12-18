@@ -101,7 +101,7 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, Qt::WFlags f)
   QMenu *fWriteMenu = fileMenu->addMenu("&Write Model As");
   ADD_ACTION(file, "S&et Snap Dir...", FILE_MENU_SNAPDIR);
   ADD_ACTION(file,  "&Movie/Montage...", FILE_MENU_MOVIEMONT);
-  ADD_ACTION(file, "&Gray TIF snaps", FILE_MENU_SNAPGRAY);
+  ADD_ACTION(file, "&Gray TIF Snaps", FILE_MENU_SNAPGRAY);
   mActions[FILE_MENU_SNAPGRAY]->setCheckable(true);
   //ADD_ACTION(file, "&JPEG Quality...", FILE_MENU_SNAPQUALITY);
   ADD_ACTION(file, "Memory to &TIF...", FILE_MENU_TIFF);
@@ -707,6 +707,9 @@ static char *truncate_name(char *name, int limit)
 /*
 
 $Log$
+Revision 4.58  2010/12/18 05:40:49  mast
+Move movie to file menu, make it movie/montage
+
 Revision 4.57  2010/05/28 22:14:37  mast
 Need to set model name after show for it to work
 
