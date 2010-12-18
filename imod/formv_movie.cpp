@@ -297,6 +297,7 @@ void imodvMovieForm::manageSensitivities( int movieMont )
   longWayBox->setEnabled(!movieMont);
   reverseBox->setEnabled(!movieMont);
   montageFramesBox->setEnabled(movieMont);
+  writeBox->setEnabled(!movieMont);
 }
 
 void imodvMovieForm::closeEvent( QCloseEvent * e )
@@ -322,6 +323,9 @@ void imodvMovieForm::keyReleaseEvent( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.2  2010/04/01 02:41:48  mast
+Called function to test for closing keys, or warning cleanup
+
 Revision 4.1  2009/01/15 16:33:17  mast
 Qt 4 port
 
