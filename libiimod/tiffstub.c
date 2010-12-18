@@ -1,6 +1,8 @@
 #include "notiffio.h"
 #include <stdarg.h>
 
+char *version = "IMODSTUB";
+
 int TIFFSetDirectory(TIFF *d, tdir_t t)
 {
     return -1;
@@ -81,4 +83,9 @@ typedef void (*TIFFErrorHandler)(const char *module, const char *fmt,
 TIFFErrorHandler TIFFSetErrorHandler(TIFFErrorHandler handler)
 {
   return NULL;
+}
+
+const char* TIFFGetVersion(void)
+{
+  return version;
 }
