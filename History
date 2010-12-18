@@ -1,5 +1,20 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/18/10: Made mrc2tif and tif2mrc able to operate on images in chunks or
+strips to reduce memory requirements, and made them able to work with 
+files/images > 2 GB.  Programs (including 3dmod) in the Linux distribution 
+will work with version 4 of libtiff to access large files.
+
+12/18/10: Added ability to show image pairs in stereo in the Model View
+window, with controls in the View-Stereo dialog.
+
+12/17/10: Added ability to do Slicer montage snapshots including when
+movieing.  This is controlled from the Movie dialog which is now opened with
+File-Movie/Montage instead of Edit-Movies.
+
+12/17/10: Reduced memory allocation problems when doing large montage
+snapshots and fixed the saving of TIFF snapshots between 2 and 4 GB.
+
 12/16/10: Fixed processchunks compile problem on Fedora 12.
 
 12/16/10: Fixed behavior of 3dmod toolbar edit fields when they lose focus.
@@ -7,7 +22,7 @@ IMOD History
 12/15/10: Added options to 3dmod preferences to set the DPI of TIFF and JPEG
 snapshots and to control whether montage snapshots get a scaled-up DPI.
 
-12/15/10: Added options to mrc2tif for setting the DPI of the output file,
+12/15/10: Added options to Mrc2tif for setting the DPI of the output file,
 controlling byte scaling and converting to bytes, doing a subset in Z and 
 setting the starting file number.
 
