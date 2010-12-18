@@ -142,6 +142,10 @@ void InfoWindow::fileSlot(int item)
     imod_info_enable();
     break;
 
+  case FILE_MENU_MOVIEMONT:
+    imodMovieConDialog(App->cvi);
+    break;
+
   case FILE_MENU_SNAPDIR:
       imod_info_forbid();
       imod_info_input();
@@ -150,7 +154,8 @@ void InfoWindow::fileSlot(int item)
       imod_info_enable();
       break;
 
-  case FILE_MENU_SNAPQUALITY:
+      // 12/16/10: If preferences is easy to get to, this shouldn't be here
+      /* case FILE_MENU_SNAPQUALITY:
       imod_info_forbid();
       imod_info_input();
       releaseKeyboard();
@@ -159,7 +164,7 @@ void InfoWindow::fileSlot(int item)
                      "Quality factor for JPEG snapshots (%)"))
         ImodPrefs->setSnapQuality(quality);
       imod_info_enable();
-      break;
+      break; */
 
   case FILE_MENU_SNAPGRAY:
     App->convertSnap = 1 - App->convertSnap;
@@ -286,9 +291,9 @@ void InfoWindow::fileWriteSlot(int item)
 void InfoWindow::editSlot(int item)
 {
   switch(item){
-  case EDIT_MENU_MOVIES:
+    /*case EDIT_MENU_MOVIES:
     imodMovieConDialog(App->cvi);
-    break;
+    break; */
   case EDIT_MENU_GRAIN:
     fineGrainOpen(App->cvi);
     break;
@@ -1293,6 +1298,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 /*
 
 $Log$
+Revision 4.57  2010/11/09 00:25:03  mast
+Fix model clean to not remove isosurface objects
+
 Revision 4.56  2010/04/01 02:24:37  mast
 Eliminated bogus object info output, added entry to save info text
 
