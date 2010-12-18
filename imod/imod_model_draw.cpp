@@ -16,6 +16,7 @@
 #include "imod_display.h"
 #include "b3dgfx.h"
 #include "istore.h"
+#include "sslice.h"
 #include "finegrain.h"
 
 static void imodDrawContourLines(ImodView * vi, Iobj *obj, int co,
@@ -126,6 +127,7 @@ static void imodDrawContourLines(ImodView * vi, Iobj *obj, int co, GLenum mode)
   int pt, lpt;
   int nextChange, stateFlags, changeFlags;
   int handleFlags = HANDLE_LINE_COLOR | HANDLE_2DWIDTH;
+  int scaleSizes = getSlicerThicknessScaling();
      
   if (ifgGetValueSetupState())
     handleFlags |= HANDLE_VALUE1;
@@ -133,7 +135,7 @@ static void imodDrawContourLines(ImodView * vi, Iobj *obj, int co, GLenum mode)
   point = cont->pts;
   lpt = cont->psize;
   nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, &stateFlags,
-                                   handleFlags, 0);
+                                   handleFlags, 0, scaleSizes);
   if (contProps.gap)
     return;
 
@@ -145,8 +147,8 @@ static void imodDrawContourLines(ImodView * vi, Iobj *obj, int co, GLenum mode)
     ptProps.gap = 0;
     if (nextChange == pt)
       nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
-                                       &ptProps, &stateFlags, 
-                                       &changeFlags, handleFlags, 0);
+                                       &ptProps, &stateFlags, &changeFlags,
+                                       handleFlags, 0, scaleSizes);
     if (ptProps.gap) {
       glEnd();
       glBegin(GL_LINE_STRIP);
@@ -401,6 +403,9 @@ void imodDrawSymbol(Ipoint *point, int sym, int size, int flags, int linewidth)
 
 /*
 $Log$
+Revision 4.18  2010/02/22 21:34:06  mast
+Stop drawing points below threshold
+
 Revision 4.17  2008/05/28 15:00:33  mast
 Counteract z scaling when drawing spheres so they come out round
 
