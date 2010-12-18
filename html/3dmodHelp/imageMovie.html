@@ -6,7 +6,7 @@ This window allows you to control the starting and ending
 coordinates within which a movie will run, the increment between 
 successive frames, and the frame rate.  There are also controls for
 automatically taking snapshots through the range of movie, and for
-taking a high-resolution (montaged) snapshot of the Zap window.
+taking a high-resolution (montaged) snapshot of the Zap or Slicer window.
 <P>
 Use the axis radio buttons to select whether the sliders will adjust 
 the start, end, and increment for X, Y, Z or Time.  The initial 
@@ -59,6 +59,7 @@ reaches the opposite end if <B>One Way</B> is selected; otherwise it
 will loop back to the end at which it started.
 <LI>If <B>Current pt</B> is 
 selected, the movie will start at the currently displayed section and 
+top
 come back to that point in a full round trip; in this case <B>One way</B> 
 will not give useful results.
 </UL>
@@ -67,27 +68,42 @@ If you stop the movie before it is done,
 then another mouse click in that or a different window will 
 start a completely new movie.
 <P>
-<H4>Zap Montage Snapshots</H4>
+<H4>Montage Snapshots</H4>
 This capability can be used to get a snapshot of a display larger
-than what will fit in the Zap window.
+than what will fit in the Zap or Slicer window.
 <P>
-If <B>Zap montage</B> is selected and this dialog is open, then a snapshot of 
-a Zap window (via any
-of the S hot keys) will be taken as a montage of frames at a higher zoom. 
+If <B>Montage</B> is selected for one of the two window types and this dialog
+is open, then a snapshot of the window (via any
+of the S hot keys) will be taken as a montage of frames at a higher zoom.
+High-resolution display is automatically used for these frames.
 The montage is assembled in memory and
 saved as a single TIFF or non-TIFF image, depending on which hot key was used
 for the snapshot.  In addition, if you start a movie in the
-Zap window when one of the  <B>Snapshot</B> buttons is on, a montage
+Zap or Slicer window when one of the  <B>Snapshot</B> buttons is on, a montage
 will be taken at each section in the movie range and saved as a TIFF or
 non-TIFF image, depending on which snapshot type is selected. 
 <P>
+In the Snapshot tab of the 3dmod Preferences dialog, you can set a resolution
+in dots per inch (DPI) to be stored in a TIFF or JPEG snapshot file.  That tab
+also has an option to have your specified resolution scaled up by the
+zoom factor of the montage.  With that option selected, montages based on
+different numbers of frames will all appear at the same size as an ordinary
+snapshot in viewers that pay attention to the DPI setting (e.g., Adobe
+products).
+<P>
+On some machines you may need to make sure that there are no other windows on
+top of the Zap or Slicer window.  The settings in this section are
+saved across sessions of 3dmod, including whether to take montage snapshots
+when the dialog is open.
+<P>
+<H4>Zap Montage Snapshots</H4>
+The <B>Montage</B> button in this section of the dialog controls whether a
+montage snapshot is taken of a Zap window.
 If <B>Whole image at 1:1 zoom</B> is <I>not</I> selected, then the
 <B>by</B> spin box is used to select the amount that
-the image is zoomed up from its current zoom for the snapshot.  If the
-resulting zoom is higher than 1, 
-you need to turn on high-resolution display in the Zap window to get
-an interpolated image.  Just the area of the image showing in the Zap
-window will be captured.
+the image is zoomed up from its current zoom for the snapshot.
+Just the area of the image showing in the Zap
+window will be captured; i.e., borders are eliminated.
 <P>Select <B>Whole image at 1:1 zoom</B> to get a snapshot of the entire image
 at a zoom of 1.  The program selects a montaging factor that will work for
 capturing the whole image at zoom 1.  This feature is useful, for example, for
@@ -107,12 +123,30 @@ factor for zooms below 1, otherwise by the montaging factor.  This will
 produce no scaling when taking a whole image at 1:1 zoom, and scaling by the
 montaging factor in most other cases.
 <P>
-To get a montage snapshot,
+To get a Zap montage snapshot,
 the rubberband must be off, otherwise an
-ordinary snaphot of the enclosed subarea will be taken.  On some machines you
-may need to make sure that there are no other windows on top of the Zap
-window.  The settings in this section are
-saved across sessions of 3dmod, including whether to take montage snapshots
-when the dialog is open.
+ordinary snapshot of the enclosed subarea will be taken.  
+<P>
+<H4>Slicer Montage Snapshots</H4>
+The <B>Montage</B> button in the bottom section of the dialog controls whether
+a montage snapshot is taken of a Slicer window.
+The <B>by</B> spin box is used to select the amount that
+the image is zoomed up from its current zoom for the snapshot.
+The whole area of the slicer 
+window will be captured, including any borders.
+<P>
+If <B>Scale thickness by</B> is selected during a montage snapshot, 
+then the thicknesses of all model
+lines will be scaled up by the amount selected in
+the spin box.  (The methods used to draw the model in a Slicer automatically
+scale Symbols and spheres by the absolute zoom factor.)
+These thicker, larger lines will then show up well if the image is scaled
+back down to the original size, such as when it is embedded in a figure.
+You can select either a specific scaling or <B>Auto</B> scaling
+by selecting the value below 2 in the spin box.  With auto-scaling, the sizes
+will be scaled by the product of the zoom before montaging and the montaging
+factor for zooms below 1, otherwise by the montaging factor.  This will
+produce a scaling that is appropriate when the output image is scaled back to
+the size that original image would have at 1:1 zoom.
 <P>
 <A HREF="index.html">Help Index<A>
