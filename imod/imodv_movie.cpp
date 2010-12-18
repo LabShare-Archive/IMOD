@@ -421,15 +421,13 @@ static void imodvMakeMontage(int frames, int overlap)
   Imat *mat;
   Ipoint ipt, spt, xunit, yunit;
   float scrnscale, radsave;
-  int ix, iy, xFullSize, yFullSize, barpos;
+  int ix, iy, xFullSize, yFullSize, numChunks;
   float zoom, yzoom;
   unsigned char *framePix = NULL;
-  unsigned char *fullPix = NULL;
+  unsigned char **fullPix = NULL;
   unsigned char **linePtrs = NULL;
-  int limits[4];
   ScaleBar *barReal = scaleBarGetParams();
   ScaleBar barSaved;
-  QString fname, sname;
 
   /* limit the overlap */
   if (frames <= 1)
@@ -452,20 +450,6 @@ static void imodvMakeMontage(int frames, int overlap)
     return;
   }
 
-  if (movie->saved) {
-    framePix = (unsigned char *)malloc(4 * a->winx * a->winy);
-    fullPix = (unsigned char *)malloc(4 * xFullSize * yFullSize);
-    linePtrs = (unsigned char **)malloc(yFullSize * sizeof(unsigned char *));
-    if (!framePix || !fullPix || !linePtrs) {
-      if (framePix)
-        free(framePix);
-      if (fullPix)
-        free(fullPix);
-      imodError(NULL, "Failed to get memory for snapshot buffers.\n");
-      return;
-    }
-  }
-
   a->md->xrotm = a->md->yrotm = a->md->zrotm = 0;
   a->movie = 0;
   a->moveall = 0;
@@ -481,6 +465,13 @@ static void imodvMakeMontage(int frames, int overlap)
   if (zoom > yzoom)
     zoom = yzoom;
   vw->rad /= zoom;
+
+  // Set up memory allocations and scale bar stuff now that zoom is known
+  if (utilStartMontSnap(a->winx, a->winy, xFullSize, yFullSize, zoom, barSaved,
+                        numChunks, &framePix, &fullPix, &linePtrs)) {
+    imodError(NULL, "Failed to get memory for snapshot buffers.\n");
+    return;
+  }
 
   /* Compute translation offsets implied by the given pixel shifts in X and
      Y in the display, using same code as imodv_translated */
@@ -526,40 +517,24 @@ static void imodvMakeMontage(int frames, int overlap)
     a->mainWin->mCurGLw->setBufferSwapAuto(false);
   glReadBuffer(a->db ? GL_BACK : GL_FRONT);
 
-  // Save and modify scale bar directives
-  barSaved = *barReal;
-  barReal->minLength = B3DNINT(zoom * barReal->minLength);
-  barReal->thickness = B3DNINT(zoom * barReal->thickness);
-  barReal->indentX = B3DNINT(zoom * barReal->indentX);
-  barReal->indentY = B3DNINT(zoom * barReal->indentY);
-  barpos = barReal->position;
-
   for (iy = 0; iy < frames; iy++) {
     for (ix = 0; ix < frames; ix++) {
 
       // Set up for scale bar if it is the right corner
-      barReal->draw = false;
-      if ((((barpos == 0 || barpos == 3) && ix == frames - 1) ||
-           ((barpos == 1 || barpos == 2) && !ix)) &&
-          (((barpos == 2 || barpos == 3) && iy == frames - 1) ||
-           ((barpos == 0 || barpos == 1) && !iy))) {
-        barReal->draw = barSaved.draw;
-        scaleBarTestAdjust(a->winx, a->winy, scrnscale);
-      }
+      utilMontSnapScaleBar(ix, iy, frames, a->winx, a->winy, scrnscale,
+                           barSaved.draw);
       imodvDraw(a);
 
       // Print scale bar length if it was drawn
       if (a->scaleBarSize > 0)
         imodPrintStderr("Scale bar for montage is %g %s\n", a->scaleBarSize,
                         imodUnits(a->imod));
-      if (movie->saved) {
-        glReadPixels(0, 0, a->winx, a->winy, GL_RGBA, GL_UNSIGNED_BYTE, 
-                     framePix);
-        glFlush();
-        memreccpy(fullPix, framePix, a->winx, a->winy, 4, xFullSize - a->winx,
-                  ix * (a->winx - overlap), iy * (a->winy - overlap), 0, 0, 0);
+      glReadPixels(0, 0, a->winx, a->winy, GL_RGBA, GL_UNSIGNED_BYTE, 
+                   framePix);
+      glFlush();
+      memLineCpy(linePtrs, framePix, a->winx, a->winy, 4, ix * 
+                 (a->winx - overlap), iy * (a->winy - overlap), a->winx, 0, 0);
         
-      }
       xinput(); 
       if (ImodvClosed)
         return;
@@ -581,36 +556,14 @@ static void imodvMakeMontage(int frames, int overlap)
       break;
   }
 
-  /* If saving, and not aborted, then get snapshot name and save data */
-  if (movie->saved) {
-    if (!movie->abort) {
-      for (iy = 0; iy < yFullSize; iy++)
-        linePtrs[iy] = fullPix + 4 * xFullSize * iy;
-      limits[0] = limits[1] = 0;
-      limits[2] = xFullSize;
-      limits[3] = yFullSize;
-      if (movie->file_format == 2)
-        ImodPrefs->set2ndSnapFormat();
-      b3dSetDpiScaling(zoom);
-      fname = b3dGetSnapshotName("modv", movie->file_format ? SnapShot_RGB : 
-                                 SnapShot_TIF, 4, a->snap_fileno);
-      sname = b3dShortSnapName(fname);
-      imodPrintStderr("3dmodv: Saving montage to %s", LATIN1(sname));
-      if (movie->file_format)
-        b3dSnapshot_NonTIF(fname, 4, limits, linePtrs);
-      else
-        b3dSnapshot_TIF(fname, 4, limits, linePtrs, false);
-      if (movie->file_format == 2)
-        ImodPrefs->restoreSnapFormat();
-      imodPuts("");
-      b3dSetDpiScaling(1.);
-    }
-
-    free(framePix);
-    free(fullPix);
-    free(linePtrs);
-  }
-
+  /* If not aborted, then get snapshot name and save data */
+  if (!movie->abort)
+    utilFinishMontSnap(linePtrs, xFullSize, yFullSize, 
+                       movie->file_format, a->snap_fileno, 4, zoom,
+                       "modv", "3dmodv: Saving");
+  
+  utilFreeMontSnapArrays(fullPix, numChunks, framePix, linePtrs);
+  
   if (a->db) {
     imodv_swapbuffers(a);
     a->mainWin->mCurGLw->setBufferSwapAuto(true);
@@ -626,6 +579,9 @@ static void imodvMakeMontage(int frames, int overlap)
 
 /*
     $Log$
+    Revision 4.23  2010/12/15 06:14:41  mast
+    Changes for setting resolution in image snapshots
+
     Revision 4.22  2010/01/22 03:06:03  mast
     Call new function to make scale bar work when doing montage snapshot
 

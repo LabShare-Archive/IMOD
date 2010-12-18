@@ -3679,12 +3679,11 @@ void zapReportBiggestMultiZ()
 static void montageSnapshot(ZapStruct *zap, int snaptype)
 {
   int ix, iy, xFullSize, yFullSize, xTransStart, yTransStart, xTransDelta;
-  int yTransDelta, xCopyDelta, yCopyDelta, xTransSave, yTransSave, barpos;
-  int showSlice, limits[4];
-  int fromSkip,fromXoff, fromYoff, toSkip,toXoff, toYoff, overhalf,xCopy,yCopy;
-  unsigned char *framePix, *fullPix, **linePtrs;
+  int yTransDelta, xCopyDelta, yCopyDelta, xTransSave, yTransSave, hqSave;
+  int showSlice, numChunks;
+  int fromXoff, fromYoff, toXoff, toYoff, overhalf,xCopy,yCopy;
+  unsigned char *framePix, **fullPix, **linePtrs;
   double zoomSave;
-  QString fname, sname;
   static int fileno = 0;
   int factor = imcGetMontageFactor();
   float scalingFactor = factor;
@@ -3695,6 +3694,7 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
   xTransSave = zap->xtrans;
   yTransSave = zap->ytrans;
   zoomSave = zap->zoom;
+  hqSave = zap->hqgfx;
 
   if (imcGetSnapWholeMont()) {
     for (factor = 1; factor < 31; factor++) {
@@ -3727,16 +3727,9 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
     wprint("\aThere is too much border around image for montage snapshot.\n");
     return;
   }
-  framePix = (unsigned char *)malloc(4 * zap->winx * zap->winy);
-  fullPix = (unsigned char *)malloc(4 * xFullSize * yFullSize);
-  linePtrs = (unsigned char **)malloc(yFullSize * sizeof(unsigned char *));
-  if (!framePix || !fullPix || !linePtrs) {
-    if (framePix)
-      free(framePix);
-    if (fullPix)
-      free(fullPix);
-    if (linePtrs)
-      free(linePtrs);
+  if (utilStartMontSnap(zap->winx, zap->winy, xFullSize, yFullSize,
+                        scalingFactor, barSaved, numChunks, &framePix,
+                        &fullPix, &linePtrs)) {
     wprint("\aFailed to get memory for snapshot buffers.\n");
     return;
   }
@@ -3748,14 +3741,6 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
     glReadBuffer(GL_BACK);
   }
 
-  // Save and modify scale bar directives
-  barSaved = *barReal;
-  barReal->minLength = B3DNINT(scalingFactor * barReal->minLength);
-  barReal->thickness = B3DNINT(scalingFactor * barReal->thickness);
-  barReal->indentX = B3DNINT(scalingFactor * barReal->indentX);
-  barReal->indentY = B3DNINT(scalingFactor * barReal->indentY);
-  barpos = barReal->position;
-
   // Set up scaling
   if (imcGetScaleSizes()) {
     scaleSizes = imcGetSizeScaling();
@@ -3764,20 +3749,15 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
   }
 
   // Loop on frames, getting pixels and copying them
+  zap->hqgfx = 1;
   zap->zoom *= factor;
   showSlice = zap->showslice;
   for (iy = 0; iy < factor; iy++) {
     for (ix = 0; ix < factor; ix++) {
 
       // Set up for scale bar if it is the right corner
-      barReal->draw = false;
-      if ((((barpos == 0 || barpos == 3) && ix == factor - 1) ||
-           ((barpos == 1 || barpos == 2) && !ix)) &&
-          (((barpos == 2 || barpos == 3) && iy == factor - 1) ||
-           ((barpos == 0 || barpos == 1) && !iy))) {
-        barReal->draw = barSaved.draw;
-        scaleBarTestAdjust(zap->winx - 4, zap->winy - 4, zap->zoom);
-      }
+      utilMontSnapScaleBar(ix, iy, factor, zap->winx - 4, zap->winy - 4, 
+                           zap->zoom, barSaved.draw);
       
       zap->xtrans = -(xTransStart + ix * xTransDelta);
       zap->ytrans = -(yTransStart + iy * yTransDelta);
@@ -3797,17 +3777,15 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
       // after the first piece unless doing panel with bar
       xCopy = zap->winx;
       yCopy = zap->winy;
-      toSkip = xFullSize - zap->winx;
       toXoff = ix * xCopyDelta;
       toYoff = iy * yCopyDelta;
-      fromSkip = fromXoff = fromYoff = 0;
+      fromXoff = fromYoff = 0;
       if (ix && !(barReal->draw && ix == factor - 1)) {
         overhalf = zap->winx - xCopyDelta - 2;
         if (overhalf > 2 && overhalf < xCopy) {
-          fromSkip = fromXoff = overhalf;
+          fromXoff = overhalf;
           toXoff += overhalf;
           xCopy -= overhalf;
-          toSkip += overhalf;
         }
       }
       if (iy && !(barReal->draw && iy == factor - 1)) {
@@ -3819,8 +3797,8 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
         }
       }
 
-      memreccpy(fullPix, framePix, xCopy, yCopy, 4,
-                toSkip, toXoff, toYoff, fromSkip, fromXoff, fromYoff);
+      memLineCpy(linePtrs, framePix, xCopy, yCopy, 4,
+               toXoff, toYoff, zap->winx, fromXoff, fromYoff);
       if (App->doublebuffer) 
         zap->gfx->swapBuffers();
     }
@@ -3829,42 +3807,22 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
   if (App->doublebuffer)
     zap->gfx->setBufferSwapAuto(true);
 
-  // Save the image then restore display
-  for (iy = 0; iy < yFullSize; iy++)
-    linePtrs[iy] = fullPix + 4 * xFullSize * iy;
-  limits[0] = limits[1] = 0;
-  limits[2] = xFullSize;
-  limits[3] = yFullSize;
-
   // Reset the file number to zero unless doing movie, then get name and save
   if (!zap->movieSnapCount)
     fileno = 0;
-  if (snaptype > 2)
-    ImodPrefs->set2ndSnapFormat();
-  b3dSetDpiScaling((float)factor);
-  fname = b3dGetSnapshotName("zap", snaptype > 1 ? SnapShot_RGB : SnapShot_TIF,
-                             3, fileno);
-  sname = b3dShortSnapName(fname);
-  imodPrintStderr("3dmod: Saving zap montage to %s", LATIN1(sname));
-  if (snaptype == 1)
-    b3dSnapshot_TIF(fname, 4, limits, linePtrs, true);
-  else
-    b3dSnapshot_NonTIF(fname, 4, limits, linePtrs);
-  if (snaptype > 2)
-    ImodPrefs->restoreSnapFormat();
-  imodPuts("");
-  b3dSetDpiScaling(1.);
+
+  // Save the image then restore display
+  utilFinishMontSnap(linePtrs, xFullSize, yFullSize, snaptype - 1,
+                     fileno, 3, (float)factor, "zap", "3dmod: Saving zap");
 
   *barReal = barSaved;
   zap->xtrans = xTransSave;
   zap->ytrans = yTransSave;
   zap->zoom = zoomSave;
   scaleSizes = 1;
+  zap->hqgfx = hqSave;
   zapDraw(zap);
-    
-  free(framePix);
-  free(fullPix);
-  free(linePtrs);
+  utilFreeMontSnapArrays(fullPix, numChunks, framePix, linePtrs);
 }
 
 /*
@@ -4757,6 +4715,9 @@ static void setDrawCurrentOnly(ZapStruct *zap, int value)
 /*
 
 $Log$
+Revision 4.156  2010/12/15 06:14:41  mast
+Changes for setting resolution in image snapshots
+
 Revision 4.155  2010/12/08 05:34:16  mast
 Fixed rubberband Z limits when there is Z binning for message and trimvol
 
