@@ -198,6 +198,7 @@ typedef struct Mod_Planes
 
 #define WORLD_KICKOUT_CLIPS (1l << 11)  /* Push Z clipping planes far out */
 #define WORLD_MOVE_ALL_CLIP (1l << 12)  /* Move all clipping planes together */
+#define VIEW_WORLD_INVERT_Z (1l << 13)  /* Invert Z in model view */
 /* END_CODE */
 
 #ifndef IMODELP_H
@@ -254,7 +255,7 @@ typedef struct
   /* World OpenGL transformation matrix (unused 8/21/07). */
   b3dFloat mat[16];
 
-  b3dInt32 world;       /* flags */
+  b3dUInt32 world;       /* flags */
   b3dByte  label[32];   /* Label for view */
 
   b3dFloat dcstart, dcend;  /* Depth cue start and end */
@@ -701,6 +702,9 @@ extern "C" {
 
 /*    
     $Log$
+    Revision 3.46  2010/03/10 05:30:45  mast
+    Added runtime value entry for contour
+
     Revision 3.45  2009/01/14 20:03:19  mast
     Adding a const
 
