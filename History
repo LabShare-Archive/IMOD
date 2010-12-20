@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/19/10: Added abiity to invert model display in Z, stored as a flag in the 
+model.
+
 12/18/10: Made mrc2tif and tif2mrc able to operate on images in chunks or
 strips to reduce memory requirements, and made them able to work with 
 files/images > 2 GB.  Programs (including 3dmod) in the Linux distribution 
