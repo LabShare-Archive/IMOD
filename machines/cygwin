@@ -285,11 +285,20 @@ echo 'MARCORLIBS = user32.lib Advapi32.lib' >> $configure
 #   default is to assume tifflib exists
 #
 if ($tifflibs == default) set tifflibs = true
-\cp sysdep/win/tiff*.h include
-if ($m64bit == true) then
-    \cp sysdep/win/libtiff64.lib buildlib/libtiff.lib
+if ($?TIFF_JPEG_ZLIB) then
+    set libtiff = "$TIFF_JPEG_ZLIB/tiff/libtiff"
+    \cp "$libtiff/tiff.h" include
+    \cp "$libtiff/tiffio.h" include
+    if (-e "$libtiff/tiffvers.h") \cp "$libtiff/tiffvers.h" include
+    if (-e "$libtiff/tiffconf.h") \cp "$libtiff/tiffconf.h" include
+    \cp "$libtiff/libtiff_i.lib" buildlib/libtiff.lib
 else
-    \cp sysdep/win/libtiff.lib buildlib
+    \cp sysdep/win/tiff*.h include
+    if ($m64bit == true) then
+        \cp sysdep/win/libtiff64.lib buildlib/libtiff.lib
+    else
+        \cp sysdep/win/libtiff.lib buildlib
+    endif
 endif
 
 set binext = .exe
@@ -452,30 +461,48 @@ if ($compiler == intel) then
 
     # Output variables for libraries to copy to bin
     #
-    @ dllnum = 3
+    @ dllnum = 2
     if ($m64bit == true) then
         if ($distname == "") set distname = _win64
         set strip = true
-        echo "DLLSOURCEDIR1 = $SYSTEMDRIVE/Program Files (x86)/GnuWin32/bin" >> $configure
-        echo 'DLLSTOCOPY1 = libtiff' >> $configure
     else
         if ($distname == "") set distname = _win
-        echo "DLLSOURCEDIR1 = $SYSTEMDRIVE/Program Files/GnuWin32/bin" >> $configure
-        echo 'DLLSTOCOPY1 = libtiff libjpeg zlib' >> $configure
+    endif
+    if ($?TIFF_JPEG_ZLIB) then
+        echo "DLLSOURCEDIR1 = $libtiff" >> $configure
+        set dlltocopy = `ls "$libtiff"/*.dll`
+        echo "DLLSTOCOPY1 = $dlltocopy:t:r" >> $configure
+        echo "DLLSOURCEDIR2 = $TIFF_JPEG_ZLIB/jpeg" >> $configure
+        set dlltocopy = `ls "$TIFF_JPEG_ZLIB"/jpeg/*.dll`
+        echo "DLLSTOCOPY2 = $dlltocopy:t:r" >> $configure
+        echo "DLLSOURCEDIR3 = $TIFF_JPEG_ZLIB/zlib" >> $configure
+        set dlltocopy = `ls "$TIFF_JPEG_ZLIB"/zlib/*.dll`
+        echo "DLLSTOCOPY3 = $dlltocopy:t:r" >> $configure
+        @ dllnum = 4
+    else
+        if ($m64bit == true) then
+            echo "DLLSOURCEDIR1 = $SYSTEMDRIVE/Program Files (x86)/GnuWin32/bin" >> $configure
+            echo 'DLLSTOCOPY1 = libtiff' >> $configure
+        else
+            echo "DLLSOURCEDIR1 = $SYSTEMDRIVE/Program Files/GnuWin32/bin" >> $configure
+            echo 'DLLSTOCOPY1 = libtiff libjpeg zlib' >> $configure
+        endif
     endif
     if ($iclversion == 7) then
-        echo "DLLSOURCEDIR2 = $SYSTEMDRIVE/Program Files/Intel/Compiler70/IA32/Bin" >> $configure
-        echo 'DLLSTOCOPY2 = libCEPCF90MD libF90MD libIEPCF90MD libPCEPCF90MD libintrinsMD libmmd' >> $configure
+        echo "DLLSOURCEDIR$dllnum = $SYSTEMDRIVE/Program Files/Intel/Compiler70/IA32/Bin" >> $configure
+        echo "DLLSTOCOPY$dllnum = libCEPCF90MD libF90MD libIEPCF90MD libPCEPCF90MD libintrinsMD libmmd" >> $configure
+        @ dllnum++
     else
 
         # Version 8 or higher has different libraries, and also needs to
         # include msvcr71.dll from .NET for Win2K, or more complicated stuff
         #
         set fortbin = `which ifort | sed '/\/[^\/]*$/s///'`
-        echo "DLLSOURCEDIR2 = $fortbin" >> $configure
+        echo "DLLSOURCEDIR$dllnum = $fortbin" >> $configure
         set dllstocopy2 = "libifcoremd libifportmd libmmd"
         if ($openmp == true) set dllstocopy2 = "$dllstocopy2 libguide40"
-        echo "DLLSTOCOPY2 = $dllstocopy2" >> $configure
+        echo "DLLSTOCOPY$dllnum = $dllstocopy2" >> $configure
+        @ dllnum++
 
         # If this variable is set, we need to copy a redist directory and 
         # install manifests in executables.  The variable is the dir
@@ -492,9 +519,9 @@ if ($compiler == intel) then
             # Older 32-bit compilations
             if ($m64bit == false) then
                 set dllsrc3 = `cygpath $SYSTEMROOT/system32`
-                echo "DLLSOURCEDIR3 = $dllsrc3" >> $configure
-                echo 'DLLSTOCOPY3 = msvcr71 msvcp71' >> $configure
-                @ dllnum = 4
+                echo "DLLSOURCEDIR$dllnum = $dllsrc3" >> $configure
+                echo "DLLSTOCOPY$dllnum = msvcr71 msvcp71" >> $configure
+                @ dllnum++
             endif
         endif
     endif
