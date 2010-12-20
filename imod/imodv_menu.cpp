@@ -42,6 +42,7 @@
 #include "scalebar.h"
 
 static ImodvBkgColor bkgColor;
+static void toggleWorldFlag(int &globalVal, b3dUInt32 mask, int menuID);
 
 /* DNM 12/1/02: make this the single path to opening the window, and have
    it keep track of whether window is open or not, and return if it is */
@@ -355,6 +356,7 @@ void imodvFileMenu(int item)
   }
 } 
 
+
 /****************************************************************************/
 // The view menu dispatch function
 void imodvViewMenu(int item)
@@ -368,40 +370,20 @@ void imodvViewMenu(int item)
     imodv_setbuffer(a, 1 - a->db, -1);
     break;
 
+  case VVIEW_MENU_INVERTZ:
+    toggleWorldFlag(a->invertZ, VIEW_WORLD_INVERT_Z, VVIEW_MENU_INVERTZ);
+    break;
+
   case VVIEW_MENU_LIGHTING:
-    imodvRegisterModelChg();
-    imodvFinishChgUnit();
-    if (a->lighting)
-      a->imod->view->world &= ~VIEW_WORLD_LIGHT;
-    else
-      a->imod->view->world |= VIEW_WORLD_LIGHT;
-    a->lighting = 1 - a->lighting;
-    a->mainWin->setCheckableItem(VVIEW_MENU_LIGHTING, a->lighting);
-    imodvDraw(a);
+    toggleWorldFlag(a->lighting, VIEW_WORLD_LIGHT, VVIEW_MENU_LIGHTING);
     break;
 
   case VVIEW_MENU_WIREFRAME:
-    imodvRegisterModelChg();
-    imodvFinishChgUnit();
-    if (a->wireframe)
-      a->imod->view->world &= ~VIEW_WORLD_WIREFRAME;
-    else 
-      a->imod->view->world |= VIEW_WORLD_WIREFRAME;
-    a->wireframe = 1 - a->wireframe;
-    a->mainWin->setCheckableItem(VVIEW_MENU_WIREFRAME, a->wireframe);
-    imodvDraw(a);
+    toggleWorldFlag(a->wireframe, VIEW_WORLD_WIREFRAME, VVIEW_MENU_WIREFRAME);
     break;
  
   case VVIEW_MENU_LOWRES:
-    imodvRegisterModelChg();
-    imodvFinishChgUnit();
-    if (a->lowres)
-      a->imod->view->world &= ~VIEW_WORLD_LOWRES;
-    else 
-      a->imod->view->world |= VIEW_WORLD_LOWRES;
-    a->lowres = 1 - a->lowres;
-    a->mainWin->setCheckableItem(VVIEW_MENU_LOWRES, a->lowres);
-    imodvDraw(a);
+    toggleWorldFlag(a->lowres, VIEW_WORLD_LOWRES, VVIEW_MENU_LOWRES);
     break;
 
   case VVIEW_MENU_STEREO:
@@ -488,6 +470,17 @@ void imodvViewMenu(int item)
     imodvDraw(a);
     break;
   }
+}
+
+// Toggle a flag in the world structure that corresponds to a checkable item
+static void toggleWorldFlag(int &globalVal, b3dUInt32 mask, int menuID)
+{
+  imodvRegisterModelChg();
+  imodvFinishChgUnit();
+  globalVal = 1 - globalVal;
+  setOrClearFlags(&Imodv->imod->view->world, mask, globalVal);
+  Imodv->mainWin->setCheckableItem(menuID, globalVal);
+  imodvDraw(Imodv);
 }
 
 
@@ -648,6 +641,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.33  2009/03/22 19:54:25  mast
+Show with new geometry adjust routine for Mac OS X 10.5/cocoa
+
 Revision 4.32  2009/01/24 00:24:31  mast
 *** empty log message ***
 

@@ -122,13 +122,9 @@ ImodvWindow::ImodvWindow(ImodvApp *a,
   ADD_ACTION(view, "&Depth Cue...", VVIEW_MENU_DEPTH);
   ADD_ACTION(view, "Scale &Bar...", VVIEW_MENU_SCALEBAR);
 
-  ADD_ACTION(view, "Do&uble Buffer", VVIEW_MENU_DB);
-
-  // This made it act on a shifted D only and steal it from imodv_input
-  //mViewMenu->setAccel(Qt::Key_D, VVIEW_MENU_DB);
-  mActions[VVIEW_MENU_DB]->setCheckable(true);
-  mActions[VVIEW_MENU_DB]->setChecked(a->db > 0);
-  mActions[VVIEW_MENU_DB]->setEnabled(a->db > 0 && a->enableDepthSB >= 0);
+  ADD_ACTION(view, "&Invert Z", VVIEW_MENU_INVERTZ);
+  mActions[VVIEW_MENU_INVERTZ]->setCheckable(true);
+  mActions[VVIEW_MENU_INVERTZ]->setChecked(a->invertZ);
 
   ADD_ACTION(view, "&Lighting", VVIEW_MENU_LIGHTING);
   mActions[VVIEW_MENU_LIGHTING]->setCheckable(true);
@@ -137,6 +133,14 @@ ImodvWindow::ImodvWindow(ImodvApp *a,
   ADD_ACTION(view, "&Wireframe", VVIEW_MENU_WIREFRAME);
   mActions[VVIEW_MENU_WIREFRAME]->setCheckable(true);
   connect(viewMapper, SIGNAL(mapped(int)), this, SLOT(viewMenuSlot(int)));
+
+  ADD_ACTION(view, "Do&uble Buffer", VVIEW_MENU_DB);
+
+  // This made it act on a shifted D only and steal it from imodv_input
+  //mViewMenu->setAccel(Qt::Key_D, VVIEW_MENU_DB);
+  mActions[VVIEW_MENU_DB]->setCheckable(true);
+  mActions[VVIEW_MENU_DB]->setChecked(a->db > 0);
+  mActions[VVIEW_MENU_DB]->setEnabled(a->db > 0 && a->enableDepthSB >= 0);
 
   // Help menu
   // To stabilize the 3dmod menu with model view open, it had to have a 
@@ -407,6 +411,9 @@ void ImodvGL::wheelEvent ( QWheelEvent * e)
 /*
 
 $Log$
+Revision 4.26  2010/12/18 05:42:24  mast
+Make movie be movie/montage
+
 Revision 4.25  2010/03/02 01:31:21  mast
 Tried to stabilize the 3dmod menu bar with Cocoa Mac Qt
 

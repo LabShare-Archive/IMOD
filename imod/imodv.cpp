@@ -165,6 +165,7 @@ static int imodv_init(ImodvApp *a, struct Mod_Draw *md)
   a->depthcue  = 0;
   a->wireframe = 0;
   a->lowres = 0;
+  a->invertZ = 0;
   a->drawClip = 0;
   a->drawLight = 0;
   a->linkToSlicer = 0;
@@ -344,8 +345,10 @@ static int openWindow(ImodvApp *a)
   int needy = a->winy;
   int xleft, ytop, newHeight;
 
-  a->lighting = Imodv->imod->view->world & VIEW_WORLD_LIGHT;
-  a->lowres = (Imodv->imod->view->world & VIEW_WORLD_LOWRES) ? 1 : 0;
+  // These may not matter...
+  a->invertZ = (a->imod->view->world & VIEW_WORLD_INVERT_Z) ? 1 : 0;
+  a->lighting = (a->imod->view->world & VIEW_WORLD_LIGHT) ? 1 : 0;
+  a->lowres = (a->imod->view->world & VIEW_WORLD_LOWRES) ? 1 : 0;
   a->mainWin = new ImodvWindow(a);
 
   if (!a->mainWin)
@@ -778,6 +781,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.49  2010/12/18 17:36:44  mast
+Changes for stereo image display
+
 Revision 4.48  2010/04/01 02:41:48  mast
 Called function to test for closing keys, or warning cleanup
 

@@ -238,6 +238,8 @@ static void imodvSetDepthCue(Imod *imod)
   double zscale = imod->zscale;
   if (!Imodv->standalone)
     zscale = (imod->zscale * Imodv->vi->zbin) / Imodv->vi->xybin;
+  if (imod->view->world & VIEW_WORLD_INVERT_Z)
+    zscale = -zscale;
  
   depthShift = 0.0f;
 
@@ -296,7 +298,9 @@ static void imodvSetModelTrans(Imod *imod)
 
   zscale = imod->zscale;
   if (!Imodv->standalone)
-    zscale = (imod->zscale * Imodv->vi->zbin) / Imodv->vi->xybin;
+    zscale = -(imod->zscale * Imodv->vi->zbin) / Imodv->vi->xybin;
+  if (imod->view->world & VIEW_WORLD_INVERT_Z)
+    zscale = -zscale;
 
   vw = imod->view;
   glMatrixMode(GL_MODELVIEW);
@@ -2558,6 +2562,9 @@ static void drawCurrentClipPlane(ImodvApp *a)
 /*
 
 $Log$
+Revision 4.48  2010/12/18 17:36:44  mast
+Changes for stereo image display
+
 Revision 4.47  2010/02/15 06:33:35  mast
 Turn points off when value out of range
 

@@ -53,6 +53,7 @@ static void imodvUpdateView(ImodvApp *a)
   a->wireframe = (a->imod->view->world & VIEW_WORLD_WIREFRAME) ? 1 : 0;
   a->lowres = (a->imod->view->world & VIEW_WORLD_LOWRES) ? 1 : 0;
   a->lighting = (a->imod->view->world & VIEW_WORLD_LIGHT) ? 1 : 0;
+  a->invertZ = (a->imod->view->world & VIEW_WORLD_INVERT_Z) ? 1 : 0;
   imodvControlSetView(a);
   imodvObjedNewView();
   imodvDepthCueSetWidgets();
@@ -79,6 +80,10 @@ void imodvUpdateModel(ImodvApp *a, bool setView)
 /* set the current application flags into the current view */
 static void manage_world_flags(ImodvApp *a, Iview *view)
 {
+  if (a->invertZ)
+    view->world |= VIEW_WORLD_INVERT_Z;
+  else
+    view->world &= ~VIEW_WORLD_INVERT_Z;
   if (a->lighting)
     view->world |= VIEW_WORLD_LIGHT;
   else
@@ -339,6 +344,7 @@ void imodvViewsInitialize(Imod *imod)
   imodViewUse(imod);
 
   // Set the world flags in the Imodv structure
+  Imodv->invertZ = (imod->view->world & VIEW_WORLD_INVERT_Z)  ? 1 : 0;
   Imodv->lighting = (imod->view->world & VIEW_WORLD_LIGHT)  ? 1 : 0;
   Imodv->wireframe = (imod->view->world & VIEW_WORLD_WIREFRAME) ? 1 : 0;
   Imodv->lowres = (imod->view->world & VIEW_WORLD_LOWRES) ? 1 : 0;
@@ -357,6 +363,9 @@ static void build_list(ImodvApp *a)
 /*
 
     $Log$
+    Revision 4.15  2009/03/22 19:54:25  mast
+    Show with new geometry adjust routine for Mac OS X 10.5/cocoa
+
     Revision 4.14  2009/01/15 16:33:18  mast
     Qt 4 port
 

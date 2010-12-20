@@ -124,6 +124,7 @@ typedef struct __imodv_struct
   int depthcue;
   int wireframe;
   int lowres;
+  int invertZ;
 } ImodvApp;
 
 extern ImodvApp *Imodv;
@@ -150,6 +151,9 @@ void imodvNewModelAngles(Ipoint *rot);
 /*
 
 $Log$
+Revision 3.27  2010/12/18 17:36:44  mast
+Changes for stereo image display
+
 Revision 3.26  2009/01/15 16:33:17  mast
 Qt 4 port
 
