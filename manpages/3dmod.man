@@ -441,7 +441,10 @@ Snapshots can be taken of image and model view windows with hot keys.
 A TIFF snapshot can be taken with Ctrl-S.  Snapshots in other formats such as
 JPEG, PNG, and SGI RGB can be
 taken with Shift-S or Ctrl-Shift-S.  The format of these non-TIFF snapshots
-can be selected in the Preferences dialog.  There is an entry in the file menu
+can be selected in the Preferences dialog.  The Preferences dialog also has
+options for setting the quality of JPEG snapshots and a resolution value in
+dots per inch that can be stored in a TIFF or JPEG file.
+There is an entry in the file menu
 that allows you to select (and create) a directory in which snapshots will be
 saved.  There is also an entry there to let you save TIFF snapshots from the
 image windows in 8-bit gray scale instead of 24-bit color.
@@ -589,12 +592,13 @@ Reload Model      Reload the current model from file.
 Save Model        Save model.  (s)
 Save Model as...  Save model with new name.
 Write Model as    Write model as Imod, wimp, NFF or Synu files.
+Movie/Montage...  Open window to control movie limits in X, Y, Z and
+                  time, movie snapshots, and montaged snapshots
 Set Snap Dir...   Set a directory to put snapshots into.  The same 
                     directory will be used for snapshots from the 
                     model view window.
 Gray Tif Snaps    A checkable entry; when checked, TIFF snapshots
                     of image windows are saved as 8-bit gray scale.
-JPEG Quality...   Set the quality factor for JPEG snapshots.
 Memory to TIFF... Write the whole section of a raw color image
                     stored inside 3dmod to a TIFF file, in order
                     to turn a montaged image bigger than the
@@ -701,8 +705,6 @@ Image
    Cache Filler... Open a dialog box to control cache filling and
                       select autofilling.
 
-Movies...     Open window to control movie limits in X, Y, Z and
-                 time.
 Fine Grain... Open window to define display properties of 
                  individual points, contours, or surfaces.
 Angles...     Open window to save and restore angles and positions
