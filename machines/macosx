@@ -116,7 +116,7 @@ if ("$filetext" != "") then
     set m64bit = true
     set m64notIA = true
     if ($ccomp == gcc) set m64flags = '-m64'
-    set ltiff = '-ltiff64'
+    if (! -e /usr/local/lib/libtiff.dylib) set ltiff = '-ltiff64'
     set ld_lib_var      = DYLD_FRAMEWORK_PATH
 
     # These two could be a Qt 4.5 requirement...
@@ -188,6 +188,7 @@ if ($wrapintel == true && $compiler == ifort) then
 else
     echo "DLLDESTDIR = lib" >> $configure
 endif
+@ dllnum = 2
 
 # Needed under tcsh 6.12 in RH 8.0 to avoid getting two \ out
 cat << EOF >> $configure
@@ -299,6 +300,17 @@ else
     echo "IMLIBS     = -lhvem -lmrcim -lifft  -lcfshr -lb3dcmpt" >> $configure
 endif
 
+# Set up to pack dynamic tiff libraries
+#
+if (-e /usr/local/lib/libtiff.dylib) then
+    set dllstocopy = libtiff
+    if (-e /usr/local/lib/libjpeg.dylib) set dllstocopy = "libtiff libjpeg"
+    if (-e /usr/local/lib/libz.dylib) set dllstocopy = "$dllstocopy libz"
+    echo "DLLSTOCOPY2 = $dllstocopy" >> $configure
+    echo "DLLSOURCEDIR2 = /usr/local/lib" >> $configure
+    @ dllnum = 3
+endif
+
 # Adjust variables for CUDA.  Libraries are hardcoded to user's installed 
 # copies but we still have to pack libraries for users without CUDA
 #
@@ -312,8 +324,8 @@ if ($?CUDA_DIR) then
     endif
     set cudalibs = "-L$CUDA_DIR/lib -Wl,-rpath,/usr/local/cuda/lib -lcudart -lcufft -ltlshook"
     if ($m64bit == true) set cudalibs = "$cudalibs -lstdc++"
-    echo "DLLSTOCOPY2 = libcudart libcufft libtlshook" >> $configure
-    echo "DLLSOURCEDIR2 = $CUDA_DIR/lib" >> $configure
+    echo "DLLSTOCOPY$dllnum = libcudart libcufft libtlshook" >> $configure
+    echo "DLLSOURCEDIR$dllnum = $CUDA_DIR/lib" >> $configure
 endif
 
 # Set the string for the "ctrl" key
