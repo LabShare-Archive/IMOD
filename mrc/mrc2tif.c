@@ -34,6 +34,7 @@ int main(int argc, char *argv[])
   int i, j, slmode, z, iarg = 1, stack = 0, resolution = 0, initialNum = -1;
   int oldcode = 0, convert = 0;
   int compression = 1, black = 0, white = 255, zmin = -1, zmax = -1;
+  int quality = -1;
   b3dUInt32 ifdOffset = 0, dataOffset = 0;
   float chunkCriterion = 100.;
   float savecrit, dmin, dmax, smin =0., smax = 0.;
@@ -102,6 +103,10 @@ int main(int argc, char *argv[])
         initialNum = atoi(argv[++iarg]);
         break;
 
+      case 'q':
+        quality = atoi(argv[++iarg]);
+        break;
+
       case 't':
         chunkCriterion = atof(argv[++iarg]);
         break;
@@ -133,6 +138,8 @@ int main(int argc, char *argv[])
            " file\n");
     printf("    -c val     Compress data; val can be lzw, zip, jpeg, or "
            "numbers defined\n\t\t in libtiff\n");
+    printf("    -q #       Quality for jpeg compression (0-100) or for zip "
+           "compression (1-9)");
     printf("    -S min,max Initial scaling limits for conversion to bytes\n");
     printf("    -C b,w     Contrast black/white values for conversion to "
            "bytes\n");
@@ -272,8 +279,8 @@ int main(int argc, char *argv[])
     /* If doing chunks, set up chunk loop */
     numChunks = 1;
     if (doChunks) {
-      tiffWriteSetup(iifile, compression, 0, resolution, &linesPerChunk, 
-                     &numChunks);
+      tiffWriteSetup(iifile, compression, 0, resolution, quality, 
+                     &linesPerChunk, &numChunks);
       allocSize = xsize * linesPerChunk * psize;
       linesDone = 0;
     }
@@ -333,11 +340,11 @@ int main(int argc, char *argv[])
         tiferr = tiff_write_image(fpTiff, xsize, ysize, hdata.mode, buf, 
                                   &ifdOffset, &dataOffset, dmin, dmax);
       else if (!doChunks)
-        tiferr = tiffWriteSection(iifile, buf, compression, 0, resolution);
+        tiferr = tiffWriteSection(iifile, buf, compression, 0, resolution,
+                                  quality);
       else
         tiferr = tiffWriteStrip(iifile, chunk, buf);
       if (tiferr){
-        perror("mrc2tif ");
         exitError("Error (%d) writing section %d to %s", tiferr, z, iname);
       }
       if (convert && slmode > 0)
@@ -390,6 +397,11 @@ static FILE *openEitherWay(ImodImageFile *iifile, char *iname, char *progname,
 /*
 
 $Log$
+Revision 3.15  2010/12/18 18:46:20  mast
+Now it will work with up to 4 GB with version 3 libtiff, and above 4 GB
+for libtiff 4.  Reads files in chunks corresponding to output file strips
+above a certain size.
+
 Revision 3.14  2010/12/17 06:20:51  mast
 Maybe it will work with > 2 GB of data
 
