@@ -835,12 +835,12 @@ static char *tmpbuf;
  * resolution >0 to set a resolution in DPI in the file
  */
 int tiffWriteSection(ImodImageFile *inFile, void *buf, int compression, 
-                     int inverted, int resolution)
+                     int inverted, int resolution, int quality)
 {
   int strip, lines, err;
   char *sbuf;
-  err = tiffWriteSetup(inFile, compression, inverted, resolution, &strip,
-                       &lines);
+  err = tiffWriteSetup(inFile, compression, inverted, resolution, quality,
+                       &strip, &lines);
   if (err)
     return err;
   for (strip = 0; strip < numStrips; strip++) {
@@ -858,7 +858,8 @@ int tiffWriteSection(ImodImageFile *inFile, void *buf, int compression,
 }
 
 int tiffWriteSetup(ImodImageFile *inFile, int compression, 
-                   int inverted, int resolution, int *outRows, int *outNum)
+                   int inverted, int resolution, int quality, 
+                   int *outRows, int *outNum)
 {
   uint32 stripTarget = 8192;
   int maxStrips = 4096;
@@ -888,6 +889,14 @@ int tiffWriteSetup(ImodImageFile *inFile, int compression,
   if (resolution > 0) {
     TIFFSetField(tif, TIFFTAG_XRESOLUTION, (float)resolution);
     TIFFSetField(tif, TIFFTAG_YRESOLUTION, (float)resolution);
+  }
+  if (quality >= 0 && compression == COMPRESSION_JPEG) {
+    quality = B3DMIN(100, quality);
+    TIFFSetField(tif, TIFFTAG_JPEGQUALITY, quality);
+  }
+  if (quality > 0 && compression == COMPRESSION_ADOBE_DEFLATE) {
+    quality = B3DMIN(9, quality);
+    TIFFSetField(tif, TIFFTAG_ZIPQUALITY, quality);
   }
   if (inFile->format == IIFORMAT_RGB) {
     samples = 3;
@@ -1016,6 +1025,9 @@ int tiffVersion(int *minor)
 
 /*
   $Log$
+  Revision 3.23  2010/12/18 18:43:18  mast
+  Changes to write files in chunks and for big tiff files
+
   Revision 3.22  2010/12/15 06:21:58  mast
   Added ability to set resolution when writing
 
