@@ -65,11 +65,19 @@ the sections in the input file.
 .TP
 .B -c <value>
 Compress the data with the type of compression indicated.  The most useful
-compression types may be LZW (value 5), Zip or Deflate (value 8), and JPEG
+compression types are LZW (value 5), Zip or Deflate (value 8), and JPEG
 (value 7).  For these types, the value can be given as a text string: "lzw",
 "zip", or "jpeg".  On Linux, see "man libtiff" for other numeric values that
 can be entered.  Not all of these options will be available on all operating
 systems.
+.TP
+.B -q <value>
+Set the quality for JPEG or ZIP compression.  For JPEG the quality ranges from
+0 to 100 with a default of 75; higher numbers preserve more information but
+with less compression.  For ZIP, which is a lossless compression, the quality
+factor ranges from 1 to 9 with a default of 6 and specifies a tradeoff between
+speed and amount of compression, with higher numbers giving somewhat more
+compression for more computational time.
 .TP
 .B -S <min,min>
 Specify an initial intensity scaling that will scale "min" to 0 and "max" to

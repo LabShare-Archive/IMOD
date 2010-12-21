@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/20/10: Added option to set compression qaulity in tif2mrc.
+
+12/20/10: Zip and JPEG compression are now supported for TIFF files read or
+written on Intel Mac and 64-bit Windows; mrc2tif can now write with JPEG
+compression on 32-bit Windows.
+
 12/19/10: Added abiity to invert model display in Z, stored as a flag in the 
 model.
 
