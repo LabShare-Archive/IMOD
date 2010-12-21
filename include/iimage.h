@@ -184,9 +184,10 @@ extern "C" {
   void tiffFilterWarnings(void);
   int tiffOpenNew(ImodImageFile *inFile);
   int tiffWriteSection(ImodImageFile *inFile, void *buf, int compression, 
-                       int inverted, int resolution);
+                       int inverted, int resolution, int quality);
   int tiffWriteSetup(ImodImageFile *inFile, int compression, 
-                     int inverted, int resolution, int *outRows, int *outNum);
+                     int inverted, int resolution, int quality, 
+                     int *outRows, int *outNum);
   int tiffWriteStrip(ImodImageFile *inFile, int strip, void *buf);
   void tiffWriteFinish(ImodImageFile *inFile);
   int tiffVersion(int *minor);
@@ -206,6 +207,9 @@ extern "C" {
 
 /*
 $Log$
+Revision 3.20  2010/12/18 18:42:15  mast
+Add includes for new TIFF routines and to prevent warnings in compiles
+
 Revision 3.19  2010/12/15 06:22:17  mast
 New arg fro tiff writing
 
