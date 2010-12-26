@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/25/10: IMOD_4-2-9
 12/20/10: Added option to set compression qaulity in tif2mrc.
 
 12/20/10: Zip and JPEG compression are now supported for TIFF files read or
