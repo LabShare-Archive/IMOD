@@ -98,6 +98,8 @@ int new_view(MidasView *vw)
   vw->keepsecdiff = 1;
   vw->mouseXonly = 0;
   vw->anySkipped = 0;
+  vw->robustFit = 0;
+  vw->robustCrit = 1.;
   vw->excludeSkipped = 0;
   vw->centerXory = -1;
   vw->numTopErr = 6;
@@ -311,7 +313,7 @@ int load_view(MidasView *vw, char *fname)
     vw->edgedy = (float *)malloc(2 * maxedges * sizeof(float));
     vw->skippedEdge = (int *)malloc(2 * maxedges * sizeof(int));
     vw->montmap = (int *)malloc(maxpieces * sizeof(int));
-    vw->fbs_work = (int *)malloc((nxypc * 31 / 2 + 1) * sizeof(int));
+    vw->fbs_work = (int *)malloc((nxypc * 41 / 2 + 1) * sizeof(int));
     vw->fbs_b = (float *)malloc(2 * nxypc * sizeof(float));
     vw->fbs_ivarpc = (int *)malloc(nxypc * sizeof(int));
     vw->pathList = (int *)malloc(nxypc * sizeof(int));
@@ -1470,7 +1472,6 @@ void find_best_shifts(MidasView *vw, int leaveout, int ntoperr,
   int leavind, i, j, ivar, ipclo, ipc, nvar, ind, elx, ely, eux, euy;
   int nsum, edge, ixy;
   float adist, asum, adx, ady;
-  int limvar = vw->nxpieces * vw->nypieces;
 
   /*  Unlike in bsubs.f the data coming in are the shifts to bring 
       the upper piece into alignment with the lower piece. */
@@ -1799,8 +1800,10 @@ static void solve_for_shifts(MidasView *vw, float *b,
                       vw->edgedx, vw->edgedy, -1, vw->piecelower,
                       vw->pieceupper, vw->skippedEdge, 1, b, 1,
                       vw->edgelower, vw->edgeupper, 1, vw->fbs_work, 0,leavind,
-                      vw->excludeSkipped ? 1 : 3, critMaxMove, critMoveDiff,
-                      maxIter,numAvgForTest,intervalForTest, &numIter))
+                      vw->excludeSkipped ? 1 : 3, 
+                      vw->robustFit * vw->robustCrit, critMaxMove, 
+                      critMoveDiff, maxIter,numAvgForTest,intervalForTest,
+                      &numIter))
     printf("Error calling findPieceShifts\n");
   return;
 }
@@ -1821,9 +1824,8 @@ static void xcorrRange(int size, float shift, int center, int border, int box,
 #define MAX_PEAKS 16
 void crossCorrelate(MidasView *vw)
 {
-  float padFrac = 0.2f, taperFrac = 0.1f;
+  float padFrac = 0.2f;
   float radius1 = -0.005, radius2 = 0.2f, sigma1 = 0.025f, sigma2 = 0.05f;
-  float peakRatio = 5.;
   int nsmooth = 6;
   int maxdim = B3DMAX(vw->xsize, vw->ysize);
   int border = B3DMIN(16, maxdim / 64);
@@ -1833,7 +1835,6 @@ void crossCorrelate(MidasView *vw)
   int ix0, ix1, iy0, iy1, i, nxsmooth, nysmooth, minpad;
   int nxuse, nyuse, nxpad, nypad;
   float *array, *brray, *arfilt;
-  int ifor = 0, ibak = 1;
   int ipsave, nsum, imax;
   unsigned char *curImageData, *prevImageData;
   Islice *curSlice;
@@ -1944,6 +1945,9 @@ void crossCorrelate(MidasView *vw)
 /*
 
 $Log$
+Revision 3.25  2010/07/16 02:44:41  mast
+Fixed crash when using missing file with pieces
+
 Revision 3.24  2010/07/06 23:41:24  mast
 Comment out debug output
 
