@@ -182,9 +182,57 @@ void rsmadmedianoutliers(float *x, int *n, float *kcrit, float *out)
   rsMadMedianOutliers(x, *n, *kcrit, out);
 }
 
+/*!
+ * Computes a trimmed mean of the [n] already sorted values in [x], trimming 
+ * off the fraction [gamma] on each end of the distribution.  The value is 
+ * returned in [trmean].
+ */
+void rsTrimmedMeanOfSorted(float *x, int n, float gamma, float *trmean)
+{
+  int i;
+  int cut = (int)(gamma * n);
+  double sum = 0.;
+  *trmean = 0.;
+  for (i = cut; i < n - cut; i++)
+    sum += x[i];
+  if (sum != 0.)
+    *trmean = sum / (n - 2 * cut);
+}
+
+/*!
+ * Fortran wrapper for @rsTrimmedMeanOfSorted
+ */
+void rstrimmedmeanofsorted(float *x, int *n, float *gamma, float *median)
+{
+  rsTrimmedMeanOfSorted(x, *n, *gamma, median);
+}
+
+/*!
+ * Computes a trimmed mean of the [n] values in [x], trimming off the fraction 
+ * [gamma] on each end of the distribution.  The value is returned in 
+ * [trmean] and [xsort] is used for sorting the array and returned with the 
+ * sorted values.
+ */
+void rsTrimmedMean(float *x, int n, float gamma, float *xsort, float *trmean)
+{
+  memcpy(xsort, x, n * sizeof(float));
+  rsSortFloats(xsort, n);
+  rsTrimmedMeanOfSorted(xsort, n, gamma, trmean);
+}
+
+/*!
+ * Fortran wrapper for @rsTrimmedMean
+ */
+void rstrimmedmean(float *x, int *n, float *gamma, float *xsort, float *median)
+{
+  rsTrimmedMean(x, *n, *gamma, xsort, median);
+}
 /*
 
 $Log$
+Revision 1.3  2010/03/11 18:18:21  mast
+Fixed the median outliers routine to recompute the deviation
+
 Revision 1.2  2009/11/28 20:09:46  mast
 Added indexed sort
 
