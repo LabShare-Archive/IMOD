@@ -136,6 +136,9 @@ extern "C" {
   void rsMedian(float *x, int n, float *tmp, float *median);
   void rsMADN(float *x, int n, float median, float *tmp, float *MADN);
   void rsMadMedianOutliers(float *x, int n, float kcrit, float *out);
+  void rsTrimmedMean(float *x, int n, float gamma, float *xsort, 
+                     float *trmean);
+  void rsTrimmedMeanOfSorted(float *x, int n, float gamma, float *trmean);
 
   /* amat_to_rotamgstr.c */
   void amatToRotmagstr(float a11, float a12, float a21, float a22, 
@@ -187,8 +190,8 @@ extern "C" {
    float *dxedge, float *dyedge, int idir, int *pieceLower, int *pieceUpper, 
    int *ifskipEdge, int edgeStep, float *dxyvar, int varStep, int *edgelower,
    int *edgeupper, int pcStep, int *work, int fort, int leaveInd, int skipCrit,
-   float critMaxMove, float critMoveDiff, int maxIter, int numAvgForTest,
-   int intervalForTest, int *numIter);
+   float robustCrit, float critMaxMove, float critMoveDiff, int maxIter,
+   int numAvgForTest, int intervalForTest, int *numIter);
 
 #ifdef __cplusplus
 }
@@ -200,6 +203,9 @@ extern "C" {
 /*
 
 $Log$
+Revision 3.23  2010/10/26 16:47:56  mast
+rotmagstrToAmat
+
 Revision 3.22  2010/10/22 05:36:21  mast
 Add weighting to circle fits
 
