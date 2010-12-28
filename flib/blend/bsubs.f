@@ -884,9 +884,9 @@ c
             else
               call getExtraIndents(ipiecelower(jedge,ixy),
      &            ipieceupper(jedge,ixy), ixy, delIndent)
-              indentXcorr = 0
+              indentXcorr = 2
               if (delIndent(ixy) .gt. 0. .and. ifillTreatment .eq. 1)
-     &            indentXcorr = int(delIndent(ixy)) + 1
+     &            indentXcorr = int(delIndent(ixy)) + 2
               if (ifskipEdge(jedge,ixy) .gt. 0) then
                 xdisp = 0.
                 ydisp = 0.
@@ -899,9 +899,9 @@ c
             endif
             ixdisp=nint(xdisp)
             iydisp=nint(ydisp)
-c             write(*,'(1x,a,2i4,a,2i5)') char(ixy+ichar('W'))//' edge, pieces'
-c             &       ,ipiecelower(jedge,ixy),ipieceupper(jedge,ixy),
-c             &           '  ixydisp:',ixdisp,iydisp
+c            write(*,'(1x,a,2i4,a,2i5)') char(ixy+ichar('W'))//' edge, pieces'
+c     &          ,ipiecelower(jedge,ixy),ipieceupper(jedge,ixy),
+c     &          '  ixydisp:',ixdisp,iydisp
           endif
           ixdispmid=ixdisp
           iydispmid=iydisp
@@ -1783,15 +1783,17 @@ c
       implicit none
       integer*4 indentXC,ixy,nbin,indentUse, nxybox(2), nExtra(2),nxpad, nypad
       integer*4 nxCCC, nyCCC, iyx, nxybord(2), npadCCC, niceframe
-      npadCCC = 16
+      real*4 cccPadFrac
+      cccPadFrac = 0.1
       iyx=3-ixy
       indentUse = min(indentXC, (noverlap(ixy) - 8) / 2)
       nxybox(ixy) = (noverlap(ixy) - indentUse * 2) / nbin
-      nxybox(iyx) = min((nxyzin(iyx) - 2*nbin), int(aspectmax*noverlap(ixy))) /
-     &    nbin
+      nxybox(iyx) = min((nxyzin(iyx) - max(2*nbin, nxyzin(ixy) / 20)), 
+     &    int(aspectmax*noverlap(ixy))) / nbin
       nExtra(iyx)=0
       nExtra(ixy) = min(2 * (nint(extraWidth * nxybox(ixy)) / 2),
-     &    (nxyzin(ixy) - max(nbin, indentUse) * 2) / nbin - nxybox(ixy))
+     &    (nxyzin(ixy) - max(nbin, indentUse, nxyzin(ixy) / 20) * 2) / nbin -
+     &    nxybox(ixy))
       nxybox(ixy) = nxybox(ixy) + nExtra(ixy)
 c       
 c       get the padded size
@@ -1801,8 +1803,12 @@ c       Limit the long dimension padding to twice the default short dim padding
      &    max(5, nint(0.45 * 2 * nxybox(ixy))))
       nxpad=niceframe(nxybox(1)+2*nxybord(1),2,19)
       nypad=niceframe(nxybox(2)+2*nxybord(2),2,19)
-      nxCCC = niceframe(nxybox(1) + npadCCC, 2, 19)
-      nyCCC = niceframe(nxybox(2) + npadCCC, 2, 19)
+c
+c       12/28/10: these sizes are now irrelevant
+      npadCCC = max(16, nint(cccPadFrac * nxybox(1)))
+      nxCCC = niceframe(nxybox(1) + 2 * npadCCC, 2, 19)
+      npadCCC = max(16, nint(cccPadFrac * nxybox(2)))
+      nyCCC = niceframe(nxybox(2) + 2 * npadCCC, 2, 19)
       return
       end
 
@@ -1896,68 +1902,89 @@ c
       call dumpedge(xdray,nxpad+2,nxpad,nypad,ixy,0)
       call todfft(xdray,nxpad,nypad,0)
 c       
-c       multiply xcray by complex conjugate of xdray, put back in xcray
-c       
-      call conjugateProduct(xcray, xdray, nxpad, nypad)
-c       
 c       Multiply all filter parameters by the binning so they are equivalent
 c       to frequencies in unbinned images
 c
       call setctfwsr(nbin*sigma1,nbin*sigma2,nbin*radius1,nbin*radius2,ctf,
      &    nxpad,nypad,delta)
+      if (numXcorrPeaks .gt. 1 .and. .not.legacy .and. delta .ne. 0.) then
+c         
+c         If we are going to evaluate multiple peaks, use the square root of
+c         this filter function and apply it to each image
+        do i = 1, 8193
+          ctf(i) = sqrt(ctf(i))
+        enddo
+        call filterpart(xcray,xcray,nxpad,nypad,ctf,delta)
+        call filterpart(xdray,xdray,nxpad,nypad,ctf,delta)
+        do i = 1, (nxpad+2)*nypad/2
+          xeray(i) = xcray(i)
+        enddo
+      elseif (delta.ne.0.) then
+        call filterpart(xcray,xcray,nxpad,nypad,ctf,delta)
+      endif
 c       
-      if(delta.ne.0.)call filterpart(xcray,xcray,nxpad,nypad,ctf,delta)
+c       multiply xcray by complex conjugate of xdray, put back in xcray
+c       
+      call conjugateProduct(xcray, xdray, nxpad, nypad)
+c       
       call todfft(xcray,nxpad,nypad,1)
       call xcorrPeakFind(xcray,nxpad+2,nypad,xpeak,ypeak,peak,numXcorrPeaks)
-      call dumpedge(xcray,nxpad+2,nxpad,nypad,ixy,1)
 c      write(*,'(a,f10.6)')'Initial cross-corr time',walltime()-wallstart
       indPeak = 1
       if (numXcorrPeaks .gt. 1 .and. .not.legacy) then
 c         
-c         If evaluating multiple peaks, get a new padding amount and ctf
-        nxpad = nxCCC
-        nypad = nyCCC
-        call setctfwsr(nbin*sigma1,nbin*sigma2,nbin*radius1,nbin*radius2,ctf,
-     &      nxpad,nypad,delta)
-c         
-c         Pad second image into xdray then get first image again
-        call taperoutpad(brray,nxybox(1),nxybox(2),xdray,nxpad+2,nxpad,
-     &      nypad,0,0.)
-        ind0(ixy)=nxyzin(ixy) - noverlap(ixy) + indentUse - nbin * nExtra(ixy)
-        ind1(ixy)=ind0(ixy) + nbin * nxybox(ixy) - 1
-        call ibinpak(brray, crray,nxin,nyin,ind0(1),ind1(1),ind0(2),
-     &      ind1(2), nbin)
-        if (ifillTreatment .eq. 2)
-     &      ierr = taperAtFill(brray, nxybox(1),nxybox(2), 64, 0)
-        call taperoutpad(brray,nxybox(1),nxybox(2),xcray,nxpad+2,nxpad,
-     &      nypad,0,0.)
-c         
-c         Filter BOTH images
-        if (delta .ne. 0) then
-          call todfft(xcray,nxpad,nypad,0)
-          call filterpart(xcray,xcray,nxpad,nypad,ctf,delta)
-          call todfft(xcray,nxpad,nypad,1)
-          call todfft(xdray,nxpad,nypad,0)
-          call filterpart(xdray,xdray,nxpad,nypad,ctf,delta)
+c         If there was no filtering, pad second image into xdray then get 
+c         first image again
+        if (delta .eq. 0) then
+          call taperoutpad(brray,nxybox(1),nxybox(2),xdray,nxpad+2,nxpad,
+     &        nypad,0,0.)
+          ind0(ixy)=nxyzin(ixy) - noverlap(ixy) + indentUse - nbin * nExtra(ixy)
+          ind1(ixy)=ind0(ixy) + nbin * nxybox(ixy) - 1
+          call ibinpak(brray, crray,nxin,nyin,ind0(1),ind1(1),ind0(2),
+     &        ind1(2), nbin)
+          if (ifillTreatment .eq. 2)
+     &        ierr = taperAtFill(brray, nxybox(1),nxybox(2), 64, 0)
+          call taperoutpad(brray,nxybox(1),nxybox(2),xeray,nxpad+2,nxpad,
+     &        nypad,0,0.)
+        else
+c           
+c           Otherwise, back-transform the filtered images
+          call todfft(xeray,nxpad,nypad,1)
           call todfft(xdray,nxpad,nypad,1)
+c         
+          call dumpedge(xeray,nxpad+2,nxpad,nypad,ixy,0)
+          call dumpedge(xdray,nxpad+2,nxpad,nypad,ixy,0)
         endif
         cccMax = -10.
         do i = 1, numXcorrPeaks
           if (peak(i) .gt. -1.e20) then
-            ccc = CCCoefficient(xcray, xdray, nxpad + 2, nxpad, nypad, xpeak(i)
-     &          , ypeak(i), (nxpad - nxybox(1)) / 2, (nypad - nxybox(2)) / 2,
-     &          nsum)
-c            write(*,'(i3,a,2f7.1,a,e14.7,a,i8,a,f8.5)')i,' at ',xpeak(i), 
-c     &          ypeak(i), ' peak =',peak(i), ' nsum = ', nsum, ' cc =',ccc
-            if (ccc .gt. cccMax .and.
-     &          (i .eq. 1 .or. nsum .gt. nxybox(1) * nxybox(2) / 8)) then
-              cccMax = ccc
-              indPeak = i
+c             
+c             Reject peak at no zero image offset from fixed pattern noise
+            if (.not. (ixy .eq. 1 .and.
+     &          abs(nxin + nbin * (xpeak(i) - nExtra(1)) - nxoverlap) .le. 3.)
+     &          .or. (ixy .eq. 2 .and.
+     &          abs(nyin + nbin * (ypeak(i) - nExtra(2)) - nyoverlap) .le. 3.))
+     &          then
+              ccc = CCCoefficient(xeray, xdray, nxpad + 2, nxpad, nypad,
+     &            xpeak(i), ypeak(i), (nxpad - nxybox(1)) / 2,
+     &            (nypad - nxybox(2)) / 2, nsum)
+c               write(*,'(i3,a,2f7.1,a,e14.7,a,i8,a,f8.5)')i,' at ',xpeak(i), 
+c               &   ypeak(i), ' peak =',peak(i), ' nsum = ', nsum, ' cc =',ccc
+              if (ccc .gt. cccMax .and.
+     &            (i .eq. 1 .or. nsum .gt. nxybox(1) * nxybox(2) / 8)) then
+                cccMax = ccc
+                indPeak = i
+              endif
             endif
           endif
+          
         enddo
+        i = indPeak
+c        write(*,'(i3,a,2f7.1,a,e14.7,a,f8.5)')i,' at ',xpeak(i), 
+c     &      ypeak(i), ' peak =',peak(i), ' cc =',cccMax
 c        write(*,'(a,f10.6)')'time after CCC',walltime()-wallstart
       endif
+      call dumpedge(xcray,nxpad+2,nxpad,nypad,ixy,1)
 c       
 c       return the amount to shift upper to align it to lower (verified)
 c       
@@ -2012,7 +2039,7 @@ c
         ydisp=-rdispl(2)-(nyin-nyoverlap)
       endif
 c      write(*,'(a,f10.6)')'time after big search',walltime()-wallstart
-c       write(*,'(2f8.2,2f8.2)')xpeak,ypeak,xdisp,ydisp
+c       write(*,'(2f8.2,2f8.2)')xpeak(indPeak),ypeak(indPeak),xdisp,ydisp
       return
       end
 
@@ -2034,7 +2061,7 @@ c
 c       
 c       Set maxvar higher to get comparisons
       integer maxvar, maxGaussj
-      parameter (maxGaussj = 25, maxvar = maxGaussj)
+      parameter (maxGaussj = 10, maxvar = maxGaussj)
       real*4 a(maxvar,maxvar)
 c       
       real*4 critmaxmove,critMoveDiff
@@ -2198,8 +2225,9 @@ c           Solve by iteration first
             if (findPieceShifts(ivarpc, nvar, indvar, ixpclist, iypclist,
      &          dxgridmean, dygridmean, idir, ipiecelower, ipieceupper,
      &          ifskipEdge, limedge, dxyvar, limvar, iedgelower,
-     &          iedgeupper, limnpc, fpsWork, 1, 0, 2, critMaxMove,
-     &          critMoveDiff, maxiter, numAvgForTest, intervalForTest, i)
+     &          iedgeupper, limnpc, fpsWork, 1, 0, 2, robustCrit,
+     &          critMaxMove, critMoveDiff, maxiter, numAvgForTest,
+     &          intervalForTest, i)
      &          .ne. 0) call exitError('CALLING findPieceShifts')
             wallAdj = walltime()-wallstart
 c            write(*,'(i6,a,f8.4,a,f15.6)')i, ' iterations, time',wallAdj
@@ -3167,6 +3195,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.35  2010/09/23 04:59:59  mast
+c       Added patch output
+c
 c       Revision 3.34  2010/07/16 03:41:46  mast
 c       Changed model scaling so model can be made at different binning
 c
