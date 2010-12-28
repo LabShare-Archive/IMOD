@@ -1,5 +1,10 @@
 Version = 1.0
 Pip = 1
+[SectionHeader = IOOptions]
+usage = INPUT AND OUTPUT FILE OPTIONS 
+manpage = INPUT AND OUTPUT FILE OPTIONS
+^  These options give information about input and output files.
+
 [Field = ImageInputFile]
 short = imin
 type = FN
@@ -38,6 +43,37 @@ manpage = Root name for edge function and .ecd files.  Two files will be
 created or sought for, with the extensions .xef and .yef attached to this root
 name.
 
+[Field = OldEdgeFunctions]
+short = oldedge
+type = B
+usage = Use existing edge functions
+tooltip = 
+manpage = Use existing edge functions, if they exist, rather than computing new
+ones.
+
+[Field = FramesPerNegativeXandY]
+short = perneg
+type = IP
+usage = Number of frames per negative for multi-negative montage
+tooltip = 
+manpage = Number of frames in X and Y per negative for a multi-negative 
+montage.  This option could be used instead of having negative numbers in the
+piece list file.
+
+[Field = MissingFromFirstNegativeXandY]
+short = missing
+type = IP
+usage = Number of pieces missing from first negative in X and Y
+tooltip = 
+manpage = Number of pieces missing from the first negative in X and Y.  For
+example, if there are 3 negatives across, with 2, 4, and 1 pieces in X
+from each, then the number missing is 2.
+
+[SectionHeader = OutputOptions]
+usage = OUTPUT CONTROL OPTIONS 
+manpage =  OUTPUT CONTROL OPTIONS
+^  These options control various aspects of the output.
+
 [Field = ModeToOutput]
 short = mode
 type = I
@@ -53,7 +89,7 @@ usage = Stretch intensities of each output section to fill range of data mode
 tooltip = 
 manpage = Stretch intensities of each output section to fill range of data
 mode.
-
+ 
 [Field = TransformFile]
 short = xform
 type = FN
@@ -80,31 +116,83 @@ only one available before IMOD 3.6), 3 for cubic; the default is cubic when
 the program is run with PIP input and quadratic when run with sequential
 input.
 
-[Field = SkipEdgeModelFile]
-short = skip
-type = FN
-usage = Model file with points near edges to exclude
+[Field = SectionsToDo]
+short = sections
+type = LI
+usage = Sections to blend into output file
 tooltip = 
-manpage = Model file with points near edges to exclude when computing edge 
-functions and displacements.  You can exclude edges where the overlap cannot
-be determined correctly in order to prevent bad displacements from affecting
-the placement of surrounding pieces.  On an initial run of Blendmont, marked
-edges will be given zero correlation displacements and zero edge functions.
-On subsequent runs, the treatment of such edges may be affected by the
--nonzero option described next.
+manpage = List of sections to blend into output file; comma-separated ranges
+are allowed.
 
-[Field = NonzeroSkippedEdgeUse]
-short = nonzero
-type = I
-usage = Where to use excluded edges that have non-zero shifts read from file
+[Field = StartingAndEndingX]
+short = xminmax
+type = IP
+usage = Minimum and maximum X index coordinates to output
 tooltip = 
-manpage = An indicator of how to treat excluded edges that have non-zero shifts
-read in from the edge displacement file.  Possible values are: 0, to exclude
-the edge from computation of piece shifts and to give it a zero edge function;
-1, to include the displacement in the computation of piece shifts but still
-give it the edge a zero edge function; 2, to include the displacement in the
-computation of piece shifts and compute an edge function for it.  The default
-is 1.
+manpage = Minimum and maximum X index coordinates to output (numbered from 0).
+The default is to output the entire image.
+
+[Field = StartingAndEndingY]
+short = yminmax
+type = IP
+usage = Minimum and maximum Y index coordinates to output
+tooltip = 
+manpage = Minimum and maximum Y index coordinates to output.
+
+[Field = NoResizeForFFT]
+short = nofft
+type = B
+usage = Do not increase size of single frame output to legal size for FFT
+tooltip = 
+manpage = Do not increase the size of the output to be suitable for taking an
+FFT.  By default, output sizes are increased to have no higher prime factor
+than 19.  This option suppresses that increase, but only when output is to a
+single frame.
+
+[Field = AdjustOrigin]
+short = origin
+type = B
+usage = Adjust the image origin for the range of X and Y output
+tooltip = 
+manpage = Adjust the origin values in the image file header based on the
+starting X, Y, and Y that are output.  With this adjustment, a model
+built on the input stack should be correctly located when loaded onto the
+output stack in 3dmod(1).  Model points will be correctly located in Z
+provided that a contiguous set of sections is output.  This origin adjustment
+is inappropriate if an output piece list is used to read the data into 3dmod.
+
+[Field = BinByFactor]
+short = bin
+long = BinByFactor
+type = I
+usage = Use binning to reduce images in size by the given factor
+tooltip = 
+manpage = Use binning to reduce images in size by the given factor.  Binning
+is applied to the data just before output, so the starting and ending X and Y
+coordinates to output should be specified in unbinned pixels.  With binning,
+the output must be a single piece.
+
+[Field = MaximumNewSizeXandY]
+short = maxsize
+type = IP
+usage = Maximum size in X and Y of pieces in output file
+tooltip = 
+manpage = Maximum size in X and Y of pieces in output file.  The default is to
+make output be a single piece, unless it exceeds the limits of the program.
+
+[Field = MinimumOverlapXandY]
+short = minoverlap
+type = IP
+usage = Minimum overlap between pieces in X and Y in output file
+tooltip = 
+manpage = Minimum overlap between pieces in X and Y in output file.  The
+default is an overlap of 2.
+
+[SectionHeader = DistortOptions]
+usage = DISTORTION CORRECTION OPTIONS 
+manpage =  DISTORTION CORRECTION OPTIONS
+^  These options are related to corrections for an image distortion field and
+for distortion due to magnification gradients in tilted images.
 
 [Field = DistortionField]
 short = distort
@@ -211,6 +299,12 @@ compute edge functions and find the best shifts of the pieces for a given
 magnification gradient correction.  Output images will not be computed, 
 although an empty output file will be produced.
 
+[SectionHeader = ShiftOptions]
+usage = PIECE SHIFT OPTIONS 
+manpage =  PIECE SHIFT OPTIONS
+^These options are related to the determination of displacements between
+pieces in overlap zones and the shifting of pieces into best alignment.
+
 [Field = SloppyMontage]
 short = sloppy
 type = B
@@ -268,103 +362,86 @@ tooltip =
 manpage = Read displacements in the overlap zones from an existing .ecd file
 instead of computing correlations.
 
-[Field = SectionsToDo]
-short = sections
-type = LI
-usage = Sections to blend into output file
-tooltip = 
-manpage = List of sections to blend into output file; comma-separated ranges
-are allowed.
+[Field = BinningForEdgeShifts]
+short = ecdbin
+type = F
+usage = Relative binning of images when edge displacements were first computed
+tooltip =
+manpage = The binning of the images used to determine the edge displacements 
+being read in, relative to the current binning of the images, if any. 
+You can used binned images to determine edge displacements and
+fix them in Midas(1), then use those displacements directly with unbinned
+images by specifying the original binning with this option.
 
-[Field = StartingAndEndingX]
-short = xminmax
+[Field = OverlapForEdgeShifts]
+short = overlap
 type = IP
-usage = Minimum and maximum X index coordinates to output
-tooltip = 
-manpage = Minimum and maximum X index coordinates to output (numbered from 0).
-The default is to output the entire image.
+usage = Overlap in X and Y when edge displacements were first computed
+tooltip =
+manpage = This option allows you to change the overlap between pieces and use
+edge displacements determined with the original overlaps.  Bad artifacts can
+occur when the difference between the actual average overlap between pieces
+and the overlap in the piece list is big enough to change the actual
+coordinates of pieces by more than twice the piece size.  The program will
+detect this situation and issue a warning advising that you change the
+overlap.  You can use Edpiecepoint(1) to get a new piece list with a different
+overlap in one or both dimensions.  Set the new overlap to the old overlap
+minus the average edge displacement reported in the warning.  If you want to
+use existing edge displacements rather than starting from scratch, use this
+option to specify the overlaps in the run originally used to compute edge
+displacements.  If that run was done with binned images, enter the binned
+overlap value.
 
-[Field = StartingAndEndingY]
-short = yminmax
-type = IP
-usage = Minimum and maximum Y index coordinates to output
+[Field = SkipEdgeModelFile]
+short = skip
+type = FN
+usage = Model file with points near edges to exclude
 tooltip = 
-manpage = Minimum and maximum Y index coordinates to output.
+manpage = Model file with points near edges to exclude when computing edge 
+functions and displacements.  You can exclude edges where the overlap cannot
+be determined correctly in order to prevent bad displacements from affecting
+the placement of surrounding pieces.  On an initial run of Blendmont, marked
+edges will be given zero correlation displacements and zero edge functions.
+On subsequent runs, the treatment of such edges may be affected by the
+-nonzero option described next.  If an edge is marked in a model file, 
+it will be excluded even if it is not marked as excluded in the edge 
+displacement file that was read in.
 
-[Field = NoResizeForFFT]
-short = nofft
-type = B
-usage = Do not increase size of single frame output to legal size for FFT
-tooltip = 
-manpage = Do not increase the size of the output to be suitable for taking an
-FFT.  By default, output sizes are increased to have no higher prime factor
-than 19.  This option suppresses that increase, but only when output is to a
-single frame.
-
-[Field = AdjustOrigin]
-short = origin
-type = B
-usage = Adjust the image origin for the range of X and Y output
-tooltip = 
-manpage = Adjust the origin values in the image file header based on the
-starting X, Y, and Y that are output.  With this adjustment, a model
-built on the input stack should be correctly located when loaded onto the
-output stack in 3dmod(1).  Model points will be correctly located in Z
-provided that a contiguous set of sections is output.  This origin adjustment
-is inappropriate if an output piece list is used to read the data into 3dmod.
-
-[Field = BinByFactor]
-short = bin
-long = BinByFactor
+[Field = NonzeroSkippedEdgeUse]
+short = nonzero
 type = I
-usage = Use binning to reduce images in size by the given factor
+usage = Where to use excluded edges that have non-zero shifts read from file
 tooltip = 
-manpage = Use binning to reduce images in size by the given factor.  Binning
-is applied to the data just before output, so the starting and ending X and Y
-coordinates to output should be specified in unbinned pixels.  With binning,
-the output must be a single piece.
+manpage = An indicator of how to treat excluded edges that have non-zero shifts
+read in from the edge displacement file.  Possible values are: 0, to exclude
+the edge from computation of piece shifts and to give it a zero edge function;
+1, to include the displacement in the computation of piece shifts but still
+give the edge a zero edge function; 2, to include the displacement in the
+computation of piece shifts and compute an edge function for it.  The default
+is 0.
 
-[Field = MaximumNewSizeXandY]
-short = maxsize
-type = IP
-usage = Maximum size in X and Y of pieces in output file
-tooltip = 
-manpage = Maximum size in X and Y of pieces in output file.  The default is to
-make output be a single piece, unless it exceeds the limits of the program.
+[Field = RobustFitCriterion]
+short = robust
+type = F
+usage = Criterion for ignoring aberrant edge shifts when finding piece shifts
+tooltip =
+manpage = When solving for the piece shifts from the displacements between
+pieces, the program can give less weight to, or completely ignore,
+displacements that appear to be outliers.  This option activates this
+robust fitting and specifies the criterion for determining an outlier.  A
+value of 1 will generally find nearly all outliers but may downweight some edge
+displacements inappropriately and give a poor blend across those edges.
+Higher values, up to about 1.5, will avoid the latter problem but will tend
+not to catch actual outliers.  This option is ideal for getting a higher
+quality blend quickly for a low-magnification map where grid bars ruin some of
+the displacements.  For data to be analyzed, it is preferable to fix the bad
+displacements or mark edges to be excluded in Midas(1).
+Robust fitting is available only with more than 10 pieces.
 
-[Field = MinimumOverlapXandY]
-short = minoverlap
-type = IP
-usage = Minimum overlap between pieces in X and Y in output file
-tooltip = 
-manpage = Minimum overlap between pieces in X and Y in output file.  The
-default is an overlap of 2.
-
-[Field = OldEdgeFunctions]
-short = oldedge
-type = B
-usage = Use existing edge functions
-tooltip = 
-manpage = Use existing edge functions, if they exist, rather than computing new
-ones.
-
-[Field = FramesPerNegativeXandY]
-short = perneg
-type = IP
-usage = Number of frames per negative for multi-negative montage
-tooltip = 
-manpage = Number of frames in X and Y per negative for a multi-negative 
-montage.  This option could be used instead of having negative numbers in the
-piece list file.
-
-[Field = MissingFromFirstNegativeXandY]
-short = missing
-type = IP
-usage = Number of pieces missing from first negative in X and Y
-tooltip = 
-manpage = Number of pieces missing from the first negative in X and Y.  For
-example, if there are 3 negatives across, with 2, 4, and 1 pieces in X
-from each, then the number missing is 2.
+[SectionHeader = EdegFuncOptions]
+usage = EDGE FUNCTION OPTIONS 
+manpage =  EDGE FUNCTION OPTIONS
+^These options control the computation and use of the edge functions.
 
 [Field = BlendingWidthXandY]
 short = width
@@ -446,6 +523,34 @@ piece consists of uniform values and the other has actual image data, it will
 use the actual data across the whole edge instead of transitioning to the
 uniform data.
 
+[Field = UnsmoothedPatchFile]
+short = unsmooth
+type = FN
+usage = Text file for unsmoothed edge functions to be output as patch vectors
+tooltip =
+manpage = Text file for edge functions before smoothing to be output as 
+displacement vectors.  This file can be converted to an IMOD model with
+"patch2imod -l -f"; use the -s option to control how much the vector lengths
+are scaled.  Each edge is output at a different Z value, so the model can be
+viewed in the Zap window.  You can use this model to assess whether the box 
+size is large enough to give accurate edge functions.
+
+[Field = SmoothedPatchFile]
+short = smooth
+type = FN
+usage = Text file for smoothed edge functions to be output as patch vectors
+tooltip =
+manpage = Text file for edge functions after smoothing to be output as
+displacement vectors.  This file can be converted to an IMOD model with
+"patch2imod -l -f".  This model shows the functions actually applied when
+blending the overlap zones.
+
+[SectionHeader = ParallelOptions]
+usage = PARALLEL BLENDING OPTIONS 
+manpage =  PARALLEL BLENDING OPTIONS
+^These options allow for running a blending operation in parallel using
+Splitblend(1).
+
 [Field = ParallelMode]
 short = parallel
 type = IP
@@ -519,7 +624,9 @@ The default is 2, which is generally adequate.  Larger values are required if
 the displacements can be very large, but the value should not be made much
 larger than necessary because the correlations will take longer to compute and 
 may be poorer quality if there is substantial distortion between the two images
-in an overlap zone.
+in an overlap zone.  The value determines the length of the area relative to
+the width of the overlap zone, before any expansion of the correlated width
+with the -extra option.
 
 [Field = PadFraction]
 short = pad
@@ -579,11 +686,12 @@ by FilterSigma1, which gives a more predictable attenuation of low frequencies.
 [Field = FilterRadius2]
 short = radius2
 type = F
-usage = Right cutoff radius for correlation filter
+usage = Right cutoff radius for correlation filter (default 0.35)
 tooltip = 
 manpage = High spatial frequencies in the cross-correlation will be attenuated
 by a Gaussian curve that is 1 at this cutoff radius and falls off above this
-radius with a standard deviation specified by FilterSigma2.
+radius with a standard deviation specified by FilterSigma2.  The default is
+0.35.
 
 [Field = FilterSigma1]
 short = sigma1
@@ -599,10 +707,11 @@ The default is 0.05.
 [Field = FilterSigma2]
 short = sigma2
 type = F
-usage = Sigma for Gaussian rolloff below radius1 and above radius2
+usage = Sigma for Gaussian rolloff below radius1 and above radius2 (default 
+0.05)
 tooltip =
 manpage = Sigma value for the Gaussian rolloff below and above the cutoff
-frequencies specified by FilterRadius1 and FilterRadius2
+frequencies specified by FilterRadius1 and FilterRadius2.  The default is 0.05.
 
 [Field = TreatFillForXcorr]
 short = treat
@@ -634,28 +743,6 @@ type = F
 usage = Discontinued option
 tooltip = 
 manpage = 
-
-[Field = UnsmoothedPatchFile]
-short = unsmooth
-type = FN
-usage = Text file for unsmoothed edge functions to be output as patch vectors
-tooltip =
-manpage = Text file for edge functions before smoothing to be output as 
-displacement vectors.  This file can be converted to an IMOD model with
-"patch2imod -l -f"; use the -s option to control how much the vector lengths
-are scaled.  Each edge is output at a different Z value, so the model can be
-viewed in the Zap window.  You can use this model to assess whether the box 
-size is large enough to give accurate edge functions.
-
-[Field = SmoothedPatchFile]
-short = smooth
-type = FN
-usage = Text file for smoothed edge functions to be output as patch vectors
-tooltip =
-manpage = Text file for edge functions after smoothing to be output as
-displacement vectors.  This file can be converted to an IMOD model with
-"patch2imod -l -f".  This model shows the functions actually applied when
-blending the overlap zones.
 
 [Field = ParameterFile]
 short = param
