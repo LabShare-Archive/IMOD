@@ -387,7 +387,7 @@ MidasWindow::MidasWindow(bool doubleBuffer, QWidget * parent, Qt::WFlags f)
   : QMainWindow(parent, f)
 {
   int newWidth, newHeight, xleft, ytop;
-  int commandWidth, commandHeight;
+  int commandWidth, commandHeight, menu;
 
   // Yes this goes out of scope, but this was a prototype for 3dmod
   QAction *menuActions[LAST_MENU_ID];
@@ -475,8 +475,8 @@ MidasWindow::MidasWindow(bool doubleBuffer, QWidget * parent, Qt::WFlags f)
   // Set height from max of command area and image height, plus difference
   // between command and window height, which is menu area
   commandHeight = comSize.height();
-  newHeight = (winSize.height() - commandHeight) + 
-    B3DMAX(commandHeight, VW->ysize);
+  menu = winSize.height() - commandHeight;
+  newHeight = menu + B3DMAX(commandHeight, VW->ysize);
 
   // But limit by size of display, allow extra on top for title bar, make
   // sure it is on screen for Windows
@@ -489,6 +489,18 @@ MidasWindow::MidasWindow(bool doubleBuffer, QWidget * parent, Qt::WFlags f)
 
   resize(newWidth, newHeight);
   move(xleft, ytop);
+
+  // Zoom down so it fits.
+  while ((VW->xsize * VW->truezoom > 1.1 * (newWidth - commandWidth) || 
+          VW->ysize * VW->truezoom > 1.1 * (newHeight - menu)) && 
+         VW->zoomind > 0)
+    VW->midasSlots->slotZoom(-1);
+  
+  // For edges, shift them so the whole edge shows
+  if (VW->xtype == XTYPE_MONT) {
+    VW->xtrans = -newWidth / 2;
+    VW->ytrans = -newHeight / 2;
+  }
 
   // This should be a good thing, because widgets were all initialized with
   // extreme numbers
@@ -612,6 +624,7 @@ void MidasWindow::createParameterDisplay(QVBoxLayout *col)
   int i;
   QLabel *label;
   QString str;
+  QCheckBox *check;
   
   for (i = 0; i < 3; i++) {
     VW->mouseLabel[i] = diaLabel(" ", NULL, col);
@@ -727,7 +740,7 @@ void MidasWindow::createParameterDisplay(QVBoxLayout *col)
                        VW->midasSlots, SLOT(slotGlobRot(double)));
       VW->globRotSpin->setToolTip("Angle to rotate both images by to make "
                                   "tilt axis vertical");
-      QCheckBox *check = diaCheckBox("Mouse shifts X only", NULL, col);
+      check = diaCheckBox("Mouse shifts X only", NULL, col);
       check->setChecked(false);
       QObject::connect(check, SIGNAL(toggled(bool)), VW->midasSlots,
                        SLOT(slotConstrainMouse(bool)));
@@ -793,8 +806,26 @@ void MidasWindow::createParameterDisplay(QVBoxLayout *col)
     VW->wApplyLeave->setToolTip("Set this edge shift to value implied by "
                                 "all the other edge shifts");
 
+    QHBoxLayout *robustBox = diaHBoxLayout(col);
+    check = diaCheckBox("Robust fits,  crit.", NULL, robustBox);
+    QObject::connect(check, SIGNAL(toggled(bool)), VW->midasSlots,
+                     SLOT(slotRobustFit(bool)));
+    check->setToolTip("Use weighted fitting to try to eliminate bad "
+                      "displacements");
+    VW->robustFit = VW->nxpieces * VW->nypieces > 10 ? 1 : 0;
+    diaSetChecked(check, VW->robustFit != 0);
+    
+    VW->robustSpin = (QDoubleSpinBox *)diaLabeledSpin(1, 0.5f, 3.0f, 0.1f,
+                                                      NULL, NULL, robustBox);
+    VW->robustSpin->setValue(VW->robustCrit);
+    VW->robustSpin->setEnabled( VW->robustFit != 0);
+    QObject::connect(VW->robustSpin, SIGNAL(valueChanged(double)), 
+                     VW->midasSlots, SLOT(slotRobustCrit(double)));
+    VW->robustSpin->setToolTip("Set criterion for identifying a displacement"
+                               " as an outlier");
+    
     if (VW->nxpieces * VW->nypieces > 1200) {
-      QCheckBox *check = diaCheckBox("Skip error computation", NULL, col);
+      check = diaCheckBox("Skip error computation", NULL, col);
       QObject::connect(check, SIGNAL(toggled(bool)), VW->midasSlots,
                        SLOT(slotSkipError(bool)));
       check->setToolTip("Speed up display by not computing edge errors");
@@ -887,15 +918,20 @@ void MidasWindow::createSectionControls(QVBoxLayout *parent)
     VW->lowerYspin->setToolTip("Set frame number in Y of piece below edge"
                                " (hot keys y and Y)");
 
-    if (VW->anySkipped) {
-      VW->wSkipExcluded = diaCheckBox("Skip excluded edges", NULL, col);
-      VW->wSkipExcluded->setChecked(true);
-      QObject::connect(VW->wSkipExcluded, SIGNAL(toggled(bool)), 
-                       VW->midasSlots, SLOT(slotSkipExcluded(bool)));
-      VW->excludeSkipped = 1;
-      VW->wSkipExcluded->setToolTip("Skip over edges excluded in Blendmont and"
-                                    " exclude them from error computations");
-    }
+    VW->wExcludeEdge = diaCheckBox("Exclude edge", NULL, col);
+    QObject::connect(VW->wExcludeEdge, SIGNAL(toggled(bool)), 
+                     VW->midasSlots, SLOT(slotExcludeEdge(bool)));
+    VW->wExcludeEdge->setToolTip("Mark this as an excluded edge here and"
+                                 " in Blendmont");
+
+    VW->wSkipExcluded = diaCheckBox("Skip excluded edges", NULL, col);
+    VW->wSkipExcluded->setChecked(VW->anySkipped != 0);
+    VW->wSkipExcluded->setEnabled(VW->anySkipped != 0);
+    QObject::connect(VW->wSkipExcluded, SIGNAL(toggled(bool)), 
+                     VW->midasSlots, SLOT(slotSkipExcluded(bool)));
+    VW->excludeSkipped = VW->anySkipped;
+    VW->wSkipExcluded->setToolTip("Skip over excluded edges and"
+                                  " exclude them from error computations");
 
     VW->midasSlots->manage_xory(VW);
     
@@ -940,6 +976,9 @@ void MidasWindow::createViewToggle(QVBoxLayout *parent)
 		   SLOT(slotOverlay(bool)));
   VW->overlaytoggle->setToolTip("Show both images in two-color overlay (hot "
                                 "keys Insert or Delete)");
+
+  // ONE widget needs to be able to accept focus or the spin boxes keep it
+  VW->overlaytoggle->setFocusPolicy(Qt::TabFocus);
 
   QPushButton *button = diaPushButton("Toggle Ref/Cur", NULL, parent);
   QObject::connect(button, SIGNAL(pressed()), VW->midasSlots,
@@ -1021,6 +1060,10 @@ void midas_error(const char *tmsg, const char *bmsg, int retval)
 /*
 
 $Log$
+Revision 3.27  2010/06/29 22:31:11  mast
+New X and Y frame buttons, cross-correlate button and spin boxes, options
+to skip excluded edges and skip computing correlations
+
 Revision 3.26  2009/12/07 17:09:50  mast
 Remove requirement for existing ecd file with montage mode
 

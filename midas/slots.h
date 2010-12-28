@@ -78,6 +78,9 @@ class MidasSlots : public QObject
   void slotCosStretch(bool state);
   void slotSkipError(bool state);
   void slotSkipExcluded(bool state);
+  void slotExcludeEdge(bool state);
+  void slotRobustFit(bool state);
+  void slotRobustCrit(double value);
   void slotAutoContrast();
   void slotCorrelate();
   void slotCorrBoxSize(int value);
@@ -123,6 +126,9 @@ class MidasSlots : public QObject
 /*
   
 $Log$
+Revision 3.10  2010/06/30 14:14:40  mast
+Fix duplicate parameter
+
 Revision 3.9  2010/06/29 22:29:26  mast
 changes for numerous improvements
 

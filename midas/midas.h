@@ -258,10 +258,12 @@ typedef struct Midas_view
   int nxoverlap, nyoverlap;   /* Overlap between pieces */
   float *edgedx;    /* Edge displacements in X and Y */
   float *edgedy;
-  int *skippedEdge;   /* Flag if edge was skipped in blendmont */
+  int *skippedEdge;   /* Flag if edge was skipped in blendmont or here */
+  int anySkipped;      /* Flag if any such edges exist */
+  int robustFit;     /* Flag to do robust fitting of shifts */
+  float robustCrit;  /* Criterion for outlier rejection */
   int *pathList;     /* List of pieces to look at when looking for path */
   unsigned char *leaveType;  /* Type 1 or 2 for pieces around left-out edge */
-  int anySkipped;      /* Flags if any such edges exist */
   int *montmap;   /* Map of piece numbers in 3-D array of positions */
   int *edgelower; /* indexes of edges below and above pieces */
   int *edgeupper;
@@ -310,6 +312,7 @@ typedef struct Midas_view
   QSpinBox *lowerXspin;
   QSpinBox *lowerYspin;
   QCheckBox *wSkipExcluded;
+  QCheckBox *wExcludeEdge;
   QLabel   *zoomlabel;
   QLabel   *blocklabel;
   int      boxsize;      /* block size for transforms */
@@ -331,6 +334,7 @@ typedef struct Midas_view
   QLabel   *anglelabel;
   QSpinBox *corrBoxSpin;
   QSpinBox *corrLimitSpin;
+  QDoubleSpinBox *robustSpin;
   QLabel   *mouseLabel[3];
   QDoubleSpinBox *globRotSpin;
   QDoubleSpinBox *tiltOffSpin;
@@ -413,6 +417,9 @@ void crossCorrelate(MidasView *vw);
 /*
 
 $Log$
+Revision 3.18  2010/06/29 22:29:26  mast
+changes for numerous improvements
+
 Revision 3.17  2010/06/06 21:14:12  mast
 Remove some declarations (like gaussj, amat_to_rotmagstr)
 

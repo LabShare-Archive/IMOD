@@ -112,6 +112,8 @@ void MidasSlots::update_parameters()
   } else  {
     param[3] = VW->edgedx[VW->edgeind * 2 + VW->xory];
     param[4] = VW->edgedy[VW->edgeind * 2 + VW->xory];
+    diaSetChecked(VW->wExcludeEdge, 
+                  VW->skippedEdge[VW->edgeind * 2 + VW->xory] != 0);
     first = 3;
     if (!VW->skipErr) {
       find_best_shifts(VW, 0, VW->numTopErr, &meanerr, toperr, VW->topind,
@@ -1151,6 +1153,28 @@ void MidasSlots::slotSkipExcluded(bool state)
   update_parameters();
 }
 
+void MidasSlots::slotExcludeEdge(bool state)
+{
+  VW->skippedEdge[VW->edgeind * 2 + VW->xory] = state ? 1 : 0;
+  VW->wSkipExcluded->setEnabled(true);
+  VW->anySkipped = 1;
+  update_parameters();
+}
+
+void MidasSlots::slotRobustFit(bool state)
+{
+  VW->robustFit = state ? 1 : 0;
+  update_parameters();
+  VW->robustSpin->setEnabled(state);
+}
+
+void MidasSlots::slotRobustCrit(double value)
+{
+  VW->midasWindow->setFocus();
+  VW->robustCrit = (float)value;
+  update_parameters();
+}
+
 static float zooms[MAX_ZOOMIND] = {-8., -6., -4., -3., -2., 
 				   1., 1.5, 2., 3., 4., 6., 8., 10.};
 void MidasSlots::slotZoom(int upDown)
@@ -2068,6 +2092,11 @@ int MidasSlots::showHelpPage(const char *page)
 
 /*
 $Log$
+Revision 3.22  2010/06/29 22:36:01  mast
+New slots for various controls such as X and Y frame boxes, functions to
+move between edges in X and/or Y; changes for binning, skipped edges,
+cross-correlation, and variable number of error buttons
+
 Revision 3.21  2009/01/15 17:03:23  mast
 Get rid of floatspinbox include
 
