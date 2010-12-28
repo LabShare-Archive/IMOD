@@ -20,6 +20,9 @@
 #define findpieceshifts findpieceshifts_
 #endif
 
+static void findLowestThree(float val, int ind, float *lowest, float *second, 
+                            float *third);
+
 /*!
  * Solves for positions of overlapping pieces by adjusting them iteratively to
  * minimize the difference between measured displacement between pairs of
@@ -50,7 +53,7 @@
  * in X or Y. ^
  * [pcStep]: Stride between X and Y edges at the same piece in those arrays;
  * again, this is either 1 or the long dimension of the array ^
- * [work]: Array for temporary storage, must be at least 15.25 times the number
+ * [work]: Array for temporary storage, must be at least 20.25 times the number
  * of variables plus 1. ^
  * [fort]: A nonzero value indicates that the indexes in 
  * [ivarpc, indvar, pieceLower, pieceUpper, edgeLower, edgeUpper] are numbered
@@ -59,6 +62,8 @@
  * [skipCrit]: An edge is skipped if [ifskipEdge] is >= this value ^
  * [critMaxMove]: Terminate if the maximum move of any piece in X or Y is less
  * than this criterion. ^
+ * [robustCrit]: Use robust fitting to eliminate or down-weight outlying 
+ * edge displacements; multiply outlier criterion by given factor. ^
  * [critMoveDiff]: Terminate if the average move changes by less than this
  * amount between samples ^
  * [maxIter]: Maximum number of iterations ^
@@ -74,14 +79,21 @@ int findPieceShifts
  float *dxedge, float *dyedge, int idir, int *pieceLower, int *pieceUpper, 
  int *ifskipEdge, int edgeStep, float *dxyvar, int varStep, int *edgeLower,
  int *edgeUpper, int pcStep, int *work, int fort, int leaveInd, int skipCrit,
- float critMaxMove, float critMoveDiff, int maxIter, int numAvgForTest,
- int intervalForTest, int *numIter)
+ float robustCrit, float critMaxMove, float critMoveDiff, int maxIter,
+ int numAvgForTest, int intervalForTest, int *numIter)
 {
   int minxpc, minypc, maxxpc, maxypc, imin, numOnList, listInd, iedge, ipc;
-  int numNeigh,isign,iter,nay,list, nsum, i, ivar, xyStep, ind, ixy;
-  int lowup, neighpc,neighvar;
+  int numNeigh,isign,iter,nay,list, nsum, i, ivar, xyStep, ind, ixy, j;
+  int lowup, neighpc,neighvar, numMedian, didWeights, computeWeights;
+  int weightInterval, numEdge[2], debug;
+  int edgeMedCrit = 6;
+  float edgeTrMeanX[2], edgeTrMeanY[2], edgeDevMed[2], edgeDevMADN[2];
   float distmin,dist,xmovemax,ymovemax, xsum, ysum, dx, dy, ex, ey;
-  double sumxmove,sumymove,dxsum,dysum,errsum;
+  float erx[4], ery[4], errd[4], xlow, xsec, xthr, ylow, ysec, ythr;
+  float elow, esec, ethr, uu, wsum, wgt, MAD;
+  float Ktune = 2.f * 4.685f * 0.6745f * robustCrit;
+  float medThresh = 2.f * robustCrit;
+  double sumxmove,sumymove,dxsum,dysum,errsum, errmax, medSum;
   float xmoveAvg, ymoveAvg, xmoveLast, ymoveLast;
   int bigint = 100000000;
 
@@ -91,7 +103,9 @@ int findPieceShifts
   int *neighInd = listToVar + nvar;
   int *neighList = neighInd + nvar + 1;
   float *dxyEdge = (float *)(neighList + 4 * nvar);
-  unsigned char *placed = (unsigned char *)(dxyEdge + 8 * nvar);
+  float *neighWgt = (float *)(dxyEdge + 8 * nvar);
+  unsigned char *edgeDir = (unsigned char *)(neighWgt + 4 * nvar);
+  unsigned char *placed = edgeDir + 4 * nvar;
 
   /* Set the xy stride parameter */
   if (edgeStep == 1 && pcStep == 1 && varStep == 1)
@@ -102,6 +116,48 @@ int findPieceShifts
     return 1;
   if (fort)
     fort = 1;
+
+  /* If doing robust, get median edge displacement and median deviation */
+  if (robustCrit > 0.) {
+    for (ixy = 0; ixy < 2; ixy++) {
+      nsum = 0;
+
+      /* Find the X or Y edges and save them in array */
+      for (ivar = 0; ivar < nvar; ivar++) {
+        ipc = ivarpc[ivar] - fort;
+        iedge = edgeUpper[xyStep*ipc + pcStep*ixy] - fort;
+        ind = xyStep*iedge + edgeStep*ixy;
+        if (iedge >= 0 && ifskipEdge[ind] < skipCrit && 
+            ind != leaveInd - fort) {
+          dxyEdge[nsum] = -idir * dxedge[ind];
+          dxyEdge[nsum++ + nvar] = -idir * dyedge[ind];
+        }
+      }
+      numEdge[ixy] = nsum;
+
+      /* If there are enough, get a trimmed mean vector, the deviations from 
+         the mean, and the median and MADN of those deviations */
+      if (nsum >= edgeMedCrit) {
+        rsTrimmedMean(dxyEdge, nsum, 0.2f, &dxyEdge[2 * nvar], 
+                      &edgeTrMeanX[ixy]);
+        rsTrimmedMean(&dxyEdge[nvar], nsum, 0.2f, &dxyEdge[2 * nvar], 
+                      &edgeTrMeanY[ixy]);
+        for (i = 0; i < nsum; i++) {
+          ex = dxyEdge[i] - edgeTrMeanX[ixy];
+          ey = dxyEdge[i+nvar] - edgeTrMeanY[ixy];
+          dxyEdge[i + 2 * nvar] = (float)sqrt((double)ex * ex + ey * ey);
+          /* printf("%d %.2f,%.2f  %.2f,%.2f  %.3f\n", i, dxyEdge[i],
+             dxyEdge[i+nvar], ex, ey, dxyEdge[i + 2 * nvar]); */
+        }
+        rsMedian(&dxyEdge[2 * nvar], nsum, dxyEdge, &edgeDevMed[ixy]);
+        rsMADN(&dxyEdge[2 * nvar], nsum, edgeDevMed[ixy], dxyEdge,
+                &edgeDevMADN[ixy]);
+        /*printf("%d %s edges: trMean %.2f, %.2f, median dev %.3f MADN %.3f\n",
+               nsum, ixy ?"Y":"X",  edgeTrMeanX[ixy],  edgeTrMeanY[ixy], 
+               edgeDevMed[ixy], edgeDevMADN[ixy]); */
+      } 
+    }
+  }
 
   /* Initialize stuff */
   for (ivar = 0; ivar < nvar; ivar++) {
@@ -192,6 +248,8 @@ int findPieceShifts
             dxyEdge[2 * numNeigh] = ex;
             ey = -idir * isign * dyedge[ind];
             dxyEdge[2 * numNeigh + 1] = ey;
+            neighWgt[numNeigh] = 1.;
+            edgeDir[numNeigh] = lowup + 2 * ixy;
             /* printf("dxyEdge %.2f %.2f %d %d %d %2.f %.2f\n", ex,ey, idir,
                isign, ind, dxedge[ind], dyedge[ind]); */
             neighList[numNeigh++] = nay;
@@ -221,19 +279,23 @@ int findPieceShifts
     }
   }
   neighInd[nvar] = numNeigh;
-  /* printf("Set up %d neighbors\n", numNeigh); */
-  /*printf("Initial positions\n");
+  /* printf("Set up %d neighbors\n", numNeigh);
+  printf("Initial positions\n");
   for (list = 0; list < nvar; list++) {
     printf("%6.0f %6.0f  ",dxyvar[2 * list],dxyvar[2 * list+1]);
     if (list % 5 == 4 || list == nvar - 1) 
       printf("\n");
-      }*/
+      } */
 
   /* Iterate */
   xmoveLast = 1.e10;
   xmoveAvg = 0.;
   ymoveLast = 1.e10;
   ymoveAvg = 0.;
+  MAD = 0.;
+  weightInterval = B3DMAX(1, B3DMIN(nvar / 2, maxIter / 10));
+  computeWeights = 0;
+  didWeights = 0;
   for (iter = 1; iter <= maxIter; iter++) {
     sumxmove = 0.;
     sumymove = 0.;
@@ -241,31 +303,133 @@ int findPieceShifts
     ymovemax = 0.;
     dxsum = 0.;
     dysum = 0.;
+    if (robustCrit > 0. && !(iter % weightInterval))
+      computeWeights = 1;
+
+    /* This is needed only for debug output */
     errsum = 0.;
-    for (list = 0; list < nvar; list++) {
+    errmax = 0.;
+    /*for (list = 0; list < nvar; list++) {
       for (i = neighInd[list]; i < neighInd[list+1]; i++) {
         nay = neighList[i];
         ex = dxyvar[2 * nay] - dxyvar[2 * list] - dxyEdge[2 * i];
         ey = dxyvar[2 * nay + 1] - dxyvar[2 * list + 1] - dxyEdge[2 * i + 1];
-        errsum+=ex*ex+ey*ey;
+        ex = ex*ex+ey*ey;
+        errsum+=ex;
+        errmax = B3DMAX(errmax, ex);
       }
     }
+    printf("Iteration %d errmax = %.2f\n", iter, sqrt(errmax)); */
 
-    /* Loop on pieces, adjusting each one by average error in edges */
+    if (computeWeights) {
+      numMedian = 0;
+      medSum = 0.;
+      for (list = 0; list < nvar; list++) {
+        xsum = 0.;
+        ysum = 0.;
+        debug = 0;
+        for (i = neighInd[list]; i < neighInd[list+1]; i++) {
+          j = i - neighInd[list];
+          nay = neighList[i];
+          erx[j] = dxyvar[2 * nay] - dxyvar[2 * list] - dxyEdge[2 * i];
+          ery[j] = dxyvar[2 * nay + 1] - dxyvar[2 * list + 1] - dxyEdge[2*i+1];
+          /*if (fabs(fabs(dxyEdge[2 * i]) - 24.5) < 0.2 && 
+              (fabs(fabs(dxyEdge[2 * i+1]) - 105) <0.2) )
+              debug = 1; */
+          findLowestThree(erx[j], j, &xlow, &xsec, &xthr);
+          findLowestThree(ery[j], j, &ylow, &ysec, &ythr);
+          xsum += erx[j];
+          ysum += ery[j];
+        }
+        nsum = B3DMAX(1, neighInd[list+1] - neighInd[list]);
+        if (nsum >= 3) {
+
+          /* Get the median into xsec, ysec if 4 points */
+          if (nsum > 3) {
+            xsec = (xsec + xthr) / 2.;
+            ysec = (ysec + ythr) / 2.;
+          }
+
+          /* Find deviation from median and get a median deviation */
+          for (j = 0; j < nsum; j++) {
+            ex = erx[j] - xsec;
+            ey = ery[j] - ysec;
+            errd[j] = (float)sqrt((double)(ex * ex + ey * ey));
+            findLowestThree(errd[j], j, &elow, &esec, &ethr);
+          }
+          if (nsum > 3)
+            esec = (esec + ethr) / 2.;
+          medSum += esec;
+          numMedian++;
+
+          /* Get the bisquare weighting factor and compute a weight */
+          if (MAD > 0.) {
+            /*if (debug)
+              printf("  %d  %.2f %.2f    %.3f\n", nsum, xsec, ysec, esec); */
+            esec = B3DMAX(MAD, esec);
+            for (j = 0; j < nsum; j++) {
+              uu = (errd[j] - medThresh * MAD) / (Ktune * esec);
+              wgt = 0.;
+              if (uu < 1.)
+                wgt = uu <= 0 ? 1.f : (1. - uu * uu) * (1. - uu * uu);
+              /*if (debug)
+                printf("%d  %.2f %.2f    %.3f  %.4f  %.4f\n", j, erx[j],ery[j],
+                errd[j], uu, wgt); */
+              neighWgt[neighInd[list] + j] = wgt;
+            }
+          }
+        } else if (nsum == 2 && B3DMIN(numEdge[0], numEdge[1]) > edgeMedCrit &&
+                   B3DMIN(edgeDevMADN[0], edgeDevMADN[1]) > 1.e-6) {
+          
+          /* For two edges, get their deviation from the median edge vector */
+          for (j = 0; j < 2; j++) {
+            i = neighInd[list] + j;
+            ixy = edgeDir[i] / 2;
+            isign = (edgeDir[i] % 2) ? 1 : -1;
+            ex = dxyEdge[2*i] - isign * edgeTrMeanX[ixy];
+            ey = dxyEdge[2*i+1] - isign * edgeTrMeanY[ixy];
+            esec = (float)sqrt((double)(ex * ex + ey * ey));
+            uu = (esec - edgeDevMed[ixy]) / (edgeDevMADN[ixy] *  4.685f);
+            neighWgt[i] = 0.;
+            if (uu < 1.)
+              neighWgt[i] = uu <= 0. ? 1. : (1. - uu * uu) * (1. - uu * uu);
+            /* if (debug)
+               printf("Two: %d  %d  %.2f %.2f  %.3f  %.4f  %.4f\n", j, ixy, 
+               ex, ey, esec, uu, neighWgt[i]); */
+          }
+          if (B3DMAX(neighWgt[i-1], neighWgt[i]) < 1.e-2)
+            neighWgt[i-1] = neighWgt[i] = 1.;
+        }
+      }
+      if (MAD > 0.) {
+        didWeights = 1;
+        computeWeights = 0;
+      }
+      
+      MAD = 0.;
+      if (numMedian)
+        MAD = (float)B3DMAX(1.e-5, medSum / numMedian);
+      /* printf("Average median dev = %.2f\n", MAD); */
+    }
+
+    /* Loop on pieces, adjusting each one by weighted average error in edges */
     for (list = 0; list < nvar; list++) {
       xsum = 0.;
       ysum = 0.;
+      wsum = 0.;
       for (i = neighInd[list]; i < neighInd[list+1]; i++) {
         nay = neighList[i];
+        wgt = neighWgt[i];
         ex = dxyvar[2 * nay] - dxyvar[2 * list] - dxyEdge[2 * i];
         ey = dxyvar[2 * nay + 1] - dxyvar[2 * list + 1] - dxyEdge[2 * i + 1];
-        xsum = xsum + ex;
-        ysum = ysum + ey;
+        xsum += ex * wgt;
+        ysum += ey * wgt;
+        wsum += wgt;
       }
-
-      nsum = B3DMAX(1, neighInd[list+1] - neighInd[list]);
-      xsum /= nsum;
-      ysum /= nsum;
+      if (wsum > 1.e-6) {
+        xsum /= wsum;
+        ysum /= wsum;
+      }
       dxyvar[2 * list] += xsum;
       dxyvar[2 * list + 1] += ysum;
       dxsum += dxyvar[2 * list];
@@ -275,7 +439,8 @@ int findPieceShifts
       xmovemax = B3DMAX(xmovemax, fabs((double)xsum));
       ymovemax = B3DMAX(ymovemax, fabs((double)ysum));
     }
-     
+
+
     /* Shift to zero mean */
     ex = dxsum / nvar;
     ey = dysum / nvar;
@@ -285,8 +450,11 @@ int findPieceShifts
     }
 
     /* stop if change was low */
-    if (xmovemax < critMaxMove && ymovemax < critMaxMove)
-      break;
+    if (xmovemax < critMaxMove && ymovemax < critMaxMove) {
+      if (robustCrit <= 0. || didWeights)
+        break;
+      computeWeights = 1;
+    }
     /*  printf("iter %d  err %.7f  xmove %.5f  ymove %.5f\n", iter,
         sqrt(errsum/numNeigh), sumxmove / nvar, sumymove / nvar); */
     /* Average the mean moves over some iterations, and test for a change
@@ -299,15 +467,18 @@ int findPieceShifts
       xmoveAvg /= numAvgForTest;
       ymoveAvg /= numAvgForTest;
       if (xmoveLast - xmoveAvg < critMoveDiff && 
-          ymoveLast - ymoveAvg < critMoveDiff) 
-        break;
+          ymoveLast - ymoveAvg < critMoveDiff) {
+        if (robustCrit <= 0. || didWeights)
+          break;
+        computeWeights = 1;
+      }
       xmoveLast = xmoveAvg;
       xmoveAvg = 0.;
       ymoveLast = ymoveAvg;
       ymoveAvg = 0.;
     }
   }
-  /*printf("Final positions\n");
+  /*printf("Final positions after %d iterations\n", iter);
   for (list = 0; list < nvar; list++) {
     printf("%6.0f %6.0f  ",dxyvar[2 * list],dxyvar[2 * list+1]);
     if (list % 5 == 4 || list == nvar - 1) 
@@ -322,6 +493,7 @@ int findPieceShifts
   }
 
   *numIter = iter;
+  /* printf("%d iterations\n", iter);*/
   fflush(stdout);
   return 0;
 }
@@ -331,20 +503,42 @@ int findpieceshifts
  float *dxedge, float *dyedge, int *idir, int *pieceLower, int *pieceUpper, 
  int *ifskipEdge, int *edgeStep, float *dxyvar, int *varStep, int *edgeLower,
  int *edgeUpper, int *pcStep, int *work, int *fort, int *leaveInd, 
- int *skipCrit, float *critMaxMove, float *critMoveDiff, int *maxIter,
- int *numAvgForTest, int *intervalForTest, int *numIter)
+ int *skipCrit, float *robustCrit, float *critMaxMove, float *critMoveDiff,
+ int *maxIter, int *numAvgForTest, int *intervalForTest, int *numIter)
 {
   return findPieceShifts
     (ivarpc, *nvar, indvar, ixpclist, iypclist, dxedge, dyedge, *idir,
      pieceLower, pieceUpper, ifskipEdge, *edgeStep, dxyvar, *varStep, 
      edgeLower, edgeUpper, *pcStep, work, *fort, *leaveInd, *skipCrit,
-     *critMaxMove, *critMoveDiff, *maxIter, *numAvgForTest,
+     *robustCrit, *critMaxMove, *critMoveDiff, *maxIter, *numAvgForTest,
      *intervalForTest, numIter);
+}
+
+void findLowestThree(float val, int ind, float *lowest, float *second, 
+                     float *third)
+{
+  if (!ind) {
+    *lowest = val;
+  } else if (val < *lowest) {
+    if (ind > 1)
+      *third = *second;
+    *second = *lowest;
+    *lowest = val;
+    return;
+  } else if (ind <= 1 || val < *second) {
+    if (ind > 1)
+      *third = *second;
+    *second = val;
+  } else if (ind <= 2 || val < *third)
+    *third = val;
 }
 
 /*
 
 $Log$
+Revision 1.2  2010/06/19 23:41:42  mast
+Removed one debug line
+
 Revision 1.1  2010/06/19 23:24:09  mast
 Added to library
 
