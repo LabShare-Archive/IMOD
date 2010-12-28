@@ -1,0 +1,98 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputFile]
+short = input
+type = FN
+usage = Input piece list or point file
+tooltip = 
+manpage = Input piece list or point file.  If this option is not entered and
+-create is not entered, the first non-optional argument will be used for an
+input file.
+
+[Field = OutputFile]
+short = output
+type = FN
+usage = Output piece list or point file
+tooltip = 
+manpage = Output piece list or point file.  If this option is not entered, the 
+second non-optional argument will be used if -create is not entered; otherwise
+the first non-option argument will be used for an output file.
+
+[Field = CreateForSections]
+short = create
+type = I
+usage = Number of sections to create a new piece list for
+tooltip = 
+manpage = Number of sections to create a new piece list for
+
+[Field = PiecesInXandY]
+short = pieces
+type = IP
+usage = Number of pieces in X and Y in the newly created piece list
+tooltip = 
+manpage = 
+
+[Field = SpacingInXandY]
+short = spacing
+type = IP
+usage = Spacing between pieces in created piece list (- for inverse order)
+tooltip = 
+manpage = Spacing between the pieces in X and Y in the newly created piece
+list. Enter the negative of a spacing to have pieces coordinates put out in
+inverse order, from high to low coordinates.  For how to determine the desired
+spacing, see above.
+
+[Field = ColumnsOfPieces]
+short = columns
+type = B
+usage = Order pieces in created piece list in columns instead of rows
+tooltip = 
+manpage = Order pieces in a newly created piece list so that successive pieces
+occur in columns (in Y) rather than in rows (in X).
+
+[Field = NewOverlapInXandY]
+short = overlap
+type = IP
+usage = Adjust coordinates to have the new overlap in X and Y
+tooltip = 
+manpage = This option can be used to change the overlap between pieces in a
+piece list.  Enter the new overlaps in X and Y, and enter the size of the
+pieces with the -size option.
+
+[Field = SizeInXandY]
+short = size
+type = IP
+usage = Size of pieces in X and Y (required to adjust overlap)
+tooltip = 
+manpage = 
+
+[Field = NewZList]
+short = new
+type = LI
+usage = List of Z values to map old list to
+tooltip = 
+manpage = List of Z values to map old list to.  There must be as many values
+in this list as in the list of Z values to remap.  See notes above on the
+contents of this list.
+
+[Field = AddToAllCoordinates]
+short = add
+type = FT
+usage = Amount to add to all coordinates in X, Y, and Z, after remapping
+tooltip = 
+manpage = 
+
+[Field = ParameterFile]
+short = param
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
+
+[Field = usage]
+short = help
+type = B
+usage = Print help output
+tooltip = 
+manpage = 
