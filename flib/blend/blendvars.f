@@ -15,7 +15,7 @@ c
       parameter (maxPcNear = (2*maxDistNear + 1) * (2*maxDistNear + 1))
       parameter (maxUseEdge = 100, limXcorrPeaks = 30)
       real*4, allocatable :: array(:), brray(:)
-      complex*8, allocatable :: xcray(:), xdray(:)
+      complex*8, allocatable :: xcray(:), xdray(:), xeray(:)
 c       
       integer*4 nxyzin(3),nxyzout(3),nxin,nyin,nzin,nxout,nyout,nzout,idimc
       integer*4 nxyzbin(3),nxbin,nybin,nzbin, limnpc, limsect, limedge,maxsiz
@@ -94,7 +94,7 @@ c
       integer*4 ifDumpXY(2),nzOutXY(2),nxOutXY(2),nyOutXY(2),ipcBelowEdge
       integer*4 ifillTreatment, numXcorrPeaks,nbinXcorr,ixdebug,iydebug
       real*4 padFrac, aspectMax, extraWidth
-      real*4 radius1, radius2, sigma1, sigma2
+      real*4 radius1, radius2, sigma1, sigma2, robustCrit
 c       
 c       Variables for finding shifts and for finding gradients
       integer*4 limvar
