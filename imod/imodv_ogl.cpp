@@ -82,7 +82,7 @@ static void imodvDraw_filled_contours(Iobj *obj, int drawTrans);
 static void imodvDraw_object(Iobj *obj, Imod *imod, int drawTrans);
 static int checkMeshDraw(Imesh *mesh, int checkTime, int resol);
 static int checkContourDraw(Icont *cont, int co, int checkTime);
-static void imodvSetObject(Iobj *obj, int style, int drawTrans);
+static void imodvSetObject(Imod *imod, Iobj *obj, int style, int drawTrans);
 static void set_curcontsurf(int ob, Imod* imod);
 static void imodvUnsetObject(Iobj *obj);
 static int clip_obj(Imod *imod, Iobj *obj, int flag);
@@ -298,7 +298,7 @@ static void imodvSetModelTrans(Imod *imod)
 
   zscale = imod->zscale;
   if (!Imodv->standalone)
-    zscale = -(imod->zscale * Imodv->vi->zbin) / Imodv->vi->xybin;
+    zscale = (imod->zscale * Imodv->vi->zbin) / Imodv->vi->xybin;
   if (imod->view->world & VIEW_WORLD_INVERT_Z)
     zscale = -zscale;
 
@@ -639,7 +639,7 @@ static void imodvUnsetObject(Iobj *obj)
   return;
 }
 
-static void imodvSetObject(Iobj *obj, int style, int drawTrans)
+static void imodvSetObject(Imod *imod, Iobj *obj, int style, int drawTrans)
 {
   float red, green, blue, trans;
      
@@ -675,6 +675,11 @@ static void imodvSetObject(Iobj *obj, int style, int drawTrans)
       glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 1);
     else
       glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
+    if ((obj->flags & IMOD_OBJFLAG_TWO_SIDE) && 
+        (imod->view->world & VIEW_WORLD_INVERT_Z))
+      glFrontFace(GL_CW);
+    else
+      glFrontFace(GL_CCW);
 
     if (obj->flags & IMOD_OBJFLAG_FCOLOR){
       red   = (float)obj->fillred / 255.0f;
@@ -805,34 +810,34 @@ static void imodvDraw_object(Iobj *obj, Imod *imod, int drawTrans)
       flagSave = obj->flags;
       if (obj->flags & IMOD_OBJFLAG_FCOLOR_PNT)
         obj->flags |= IMOD_OBJFLAG_FCOLOR;
-      imodvSetObject(obj, DRAW_FILL, drawTrans);
+      imodvSetObject(imod, obj, DRAW_FILL, drawTrans);
       imodvDraw_spheres(obj, zscale, DRAW_FILL, drawTrans );
       flagSave |= (obj->flags & IMOD_OBJFLAG_TEMPUSE);
       obj->flags = flagSave;
       if (iobjLine(obj->flags) && iobjFill(obj->flags)){
-        imodvSetObject(obj, 0, 0);
-        imodvSetObject(obj, DRAW_LINES, drawTrans);
+        imodvSetObject(imod, obj, 0, 0);
+        imodvSetObject(imod, obj, DRAW_LINES, drawTrans);
         imodvDraw_spheres(obj, zscale, DRAW_LINES, drawTrans);
       }
     }else{
       /* or, just draw the lines if that is selected; otherwise draw
          points */
       if (iobjLine(obj->flags)){
-        imodvSetObject(obj, DRAW_LINES, drawTrans);
+        imodvSetObject(imod, obj, DRAW_LINES, drawTrans);
         imodvDraw_spheres(obj, zscale, DRAW_LINES, drawTrans );
       }else{
-        imodvSetObject(obj, DRAW_POINTS, drawTrans);
+        imodvSetObject(imod, obj, DRAW_POINTS, drawTrans);
         imodvDraw_spheres(obj, zscale, DRAW_POINTS, drawTrans );
       }
     }
-    imodvSetObject(obj, 0, 0);
+    imodvSetObject(imod, obj, 0, 0);
     if (iobjScat(obj->flags))
       return;
   }
 
   if (Imodv->doPick){
     imodvPick_Contours(obj, zscale, drawTrans);
-    imodvSetObject(obj, 0, 0);
+    imodvSetObject(imod, obj, 0, 0);
     return;
   }
 
@@ -855,7 +860,7 @@ static void imodvDraw_object(Iobj *obj, Imod *imod, int drawTrans)
       glMatrixMode(GL_MODELVIEW);
       glPushMatrix();
       glScalef(1.0f, 1.0f, 1.0f/zscale);
-      imodvSetObject(obj, DRAW_FILL, drawTrans);
+      imodvSetObject(imod, obj, DRAW_FILL, drawTrans);
       for (co = 0; co < obj->meshsize; co++){
         mesh = &(obj->mesh[co]);
         if (checkMeshDraw(mesh, checkTime, resol)) {
@@ -869,19 +874,19 @@ static void imodvDraw_object(Iobj *obj, Imod *imod, int drawTrans)
                
       /* Fill outline: draw the mesh lines as well */
       if (iobjLine(obj->flags)){
-        imodvSetObject(obj, 0, 0);
-        imodvSetObject(obj, DRAW_LINES, drawTrans);
+        imodvSetObject(imod, obj, 0, 0);
+        imodvSetObject(imod, obj, DRAW_LINES, drawTrans);
         for(co = 0; co < obj->meshsize; co++) {
           mesh = &(obj->mesh[co]);
           if (checkMeshDraw(mesh, checkTime, resol))
             imodvDraw_mesh(mesh, DRAW_LINES, obj, drawTrans);
         }
-        /*  imodvSetObject(obj, 0); */
+        /*  imodvSetObject(imod, obj, 0); */
       }
     }else{
       /* Mesh Lines: draw lines in scalar or regular mode */
       if (iobjLine(obj->flags)){
-        imodvSetObject(obj, DRAW_LINES, drawTrans);
+        imodvSetObject(imod, obj, DRAW_LINES, drawTrans);
         for(co = 0; co < obj->meshsize; co++){
           mesh = &(obj->mesh[co]);
           if (checkMeshDraw(mesh, checkTime, resol)) {
@@ -894,7 +899,7 @@ static void imodvDraw_object(Iobj *obj, Imod *imod, int drawTrans)
         }
       }else{
         /* Mesh Points: draw points in scalar or regular mode */
-        imodvSetObject(obj, DRAW_POINTS, drawTrans);
+        imodvSetObject(imod, obj, DRAW_POINTS, drawTrans);
         for(co = 0; co < obj->meshsize; co++) {
           mesh = &(obj->mesh[co]);
           if (checkMeshDraw(mesh, checkTime, resol)) {
@@ -911,14 +916,14 @@ static void imodvDraw_object(Iobj *obj, Imod *imod, int drawTrans)
         }
       }
     }
-    imodvSetObject(obj, 0, 0);
+    imodvSetObject(imod, obj, 0, 0);
     return;
   }
 
   /* Closed contours with Fill: draw the fill, then draw the outside lines
      if Fill Outline is selected */
   if ((iobjClose(obj->flags)) && (iobjFill(obj->flags))){
-    imodvSetObject(obj, DRAW_FILL, drawTrans);
+    imodvSetObject(imod, obj, DRAW_FILL, drawTrans);
     /* We have to either turn off the light or set the normal to
        something, to have display be independent of the state of the
        last object. Lighting makes it look too bright.  Also turn off
@@ -928,26 +933,26 @@ static void imodvDraw_object(Iobj *obj, Imod *imod, int drawTrans)
     /* glNormal3f(0., 0., 1.); */
     imodvDraw_filled_contours(obj, drawTrans);
     if (iobjLine(obj->flags)){
-      imodvSetObject(obj, 0, 0);
-      imodvSetObject(obj, DRAW_LINES, drawTrans);
+      imodvSetObject(imod, obj, 0, 0);
+      imodvSetObject(imod, obj, DRAW_LINES, drawTrans);
       imodvDraw_contours(obj, GL_LINE_LOOP, drawTrans);
     }
   }else{
     /* Contours as lines or points; draw as open or closed lines */
     if (iobjLine(obj->flags)){
-      imodvSetObject(obj, DRAW_LINES, drawTrans);
+      imodvSetObject(imod, obj, DRAW_LINES, drawTrans);
       if (iobjClose(obj->flags)){
         imodvDraw_contours(obj, GL_LINE_LOOP, drawTrans );
       }else{
         imodvDraw_contours(obj, GL_LINE_STRIP, drawTrans );
       }
     }else{
-      imodvSetObject(obj, DRAW_POINTS, drawTrans);
+      imodvSetObject(imod, obj, DRAW_POINTS, drawTrans);
       imodvDraw_contours(obj, GL_POINTS, drawTrans );
     }
   }
 
-  imodvSetObject(obj, 0, 0);
+  imodvSetObject(imod, obj, 0, 0);
   return;
 }
 
@@ -2562,6 +2567,9 @@ static void drawCurrentClipPlane(ImodvApp *a)
 /*
 
 $Log$
+Revision 4.49  2010/12/20 03:29:20  mast
+Added flag and menu item to invert model in Z
+
 Revision 4.48  2010/12/18 17:36:44  mast
 Changes for stereo image display
 
