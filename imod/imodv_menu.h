@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.4  2009/01/15 16:33:18  mast
+Qt 4 port
+
 Revision 4.3  2008/11/28 06:44:25  mast
 Added function to build bounding box
 
@@ -63,6 +66,7 @@ class ImodvBkgColor : public QObject
 void imodvMenuLight(int value);
 void imodvMenuWireframe(int value);
 void imodvMenuLowres(int value);
+void imodvMenuInvertZ(int value);
 void imodvFileSave(void);
 void imodvEditMenu(int item);
 void imodvHelpMenu(int item);

@@ -504,6 +504,11 @@ void imodvMenuLowres(int value)
   Imodv->mainWin->setCheckableItem(VVIEW_MENU_LOWRES, value);
 }
 
+void imodvMenuInvertZ(int value)
+{
+  Imodv->mainWin->setCheckableItem(VVIEW_MENU_INVERTZ, value);
+}
+
 // Add the contours of the bounding box for the current model
 int imodvAddBoundingBox(ImodvApp *a)
 {
@@ -641,6 +646,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.34  2010/12/20 03:29:20  mast
+Added flag and menu item to invert model in Z
+
 Revision 4.33  2009/03/22 19:54:25  mast
 Show with new geometry adjust routine for Mac OS X 10.5/cocoa
 
