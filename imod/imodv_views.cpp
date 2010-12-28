@@ -60,6 +60,7 @@ static void imodvUpdateView(ImodvApp *a)
   imodvMenuLight(a->imod->view->world & VIEW_WORLD_LIGHT);
   imodvMenuWireframe(a->imod->view->world & VIEW_WORLD_WIREFRAME);
   imodvMenuLowres(a->imod->view->world & VIEW_WORLD_LOWRES);
+  imodvMenuInvertZ(a->imod->view->world & VIEW_WORLD_INVERT_Z);
 }
 
 /* Update when a different model is being displayed (setView true) or when
@@ -363,6 +364,9 @@ static void build_list(ImodvApp *a)
 /*
 
     $Log$
+    Revision 4.16  2010/12/20 03:29:20  mast
+    Added flag and menu item to invert model in Z
+
     Revision 4.15  2009/03/22 19:54:25  mast
     Show with new geometry adjust routine for Mac OS X 10.5/cocoa
 
