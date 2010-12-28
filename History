@@ -1,13 +1,16 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/27/10: IMOD_4-2-10
+12/27/10: Fixed problems with inverted Z model display.
+
 12/25/10: IMOD_4-2-9
-12/20/10: Added option to set compression qaulity in tif2mrc.
+12/20/10: Added option to set compression quality in tif2mrc.
 
 12/20/10: Zip and JPEG compression are now supported for TIFF files read or
 written on Intel Mac and 64-bit Windows; mrc2tif can now write with JPEG
 compression on 32-bit Windows.
 
-12/19/10: Added abiity to invert model display in Z, stored as a flag in the 
+12/19/10: Added ability to invert model display in Z, stored as a flag in the 
 model.
 
 12/18/10: Made mrc2tif and tif2mrc able to operate on images in chunks or
