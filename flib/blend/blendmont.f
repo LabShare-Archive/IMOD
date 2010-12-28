@@ -33,7 +33,6 @@ c
       include 'recl_bytes.inc'
       character*320 filnam,edgenam,plOutfile, outFile
       character*320 rootname,edgename2
-      character*320 concat
       character*4 edgeext(2)/'.xef','.yef'/
       character*5 xcorrext(0:2)/'.ecd','.xecd','.yecd'/
       character*18 actionStr
@@ -123,13 +122,15 @@ c
       real*4 dy3,dx3,bx,by,emin,w4,f4b11,f4b12,f4b21,f4b22,dden14,dden43
       integer*4 ipiece3,ipiece4,nxgr,nygr,indbray1,indbray2,jndp4
       real*4 x4,y4,dx4,dy4,xg,yg, delDmagPerUm, delRotPerUm, delIndent(2)
-      real*4 dmagnew,rotnew,tiltOffset,edstart,edend,bwof
+      real*4 dmagnew,rotnew,tiltOffset,edstart,edend,bwof, ecdBin
       integer*4 iBinning, nyWrite, nlineTot,indentXC,numZero, mostNeeded
       integer*4 lineOffset, ixOffset, iyOffset, linesBuffered, iBufferBase
       integer*4 maxXcorrBinning, nxyXcorrTarget, numSkip, lineStart, lineEnd
       integer*4 nxyPadded, nxyBoxed, ifUseAdjusted, iyOutOffset, ifEdgeFuncOnly
       integer*4 ipfirst(4), numfirst, ixyFuncStart, ixyFuncEnd, nlinesWrite
+      integer*4 iedgeDelX, iedgeDelY
       integer*4 imodBackupFile, parWrtInitialize
+      character*320 concat
       real*4 sind,cosd,oneintrp
       real*8 walltime, wallstart, fastcum, slowcum
 c       
@@ -183,7 +184,7 @@ c
 c       initialization of many things
 c       
       ixdebug = -12000
-      iydebug = -12000
+      iydebug = -11084
       inpiece(0) = 0
       iunedge(1)=7
       iunedge(2)=8
@@ -223,13 +224,15 @@ c
       outFile = ' '
       numXcorrPeaks = 1
       numSkip = 0
-      ifUseAdjusted = 1
+      ifUseAdjusted = 0
       iyOutOffset = 0
       ifEdgeFuncOnly = 0
       edgename2 = ' '
       boundFile = ' '
       izUnsmoothedPatch = -1
       izsmoothedPatch = -1
+      robustCrit = 0.
+      ecdBin = 1.
 c       
 c       Xcorr parameters
 c       11/5/05: increased taper fraction 0.05->0.1 to protect against
@@ -243,9 +246,9 @@ c
       padFrac = 0.45
       extraWidth = 0.
       radius1 = 0.
-      radius2 = 0.
+      radius2 = 0.35
       sigma1 = 0.05
-      sigma2 = 0.
+      sigma2 = 0.05
       maxXcorrBinning = 3
       nxyXcorrTarget = 1024
       verySloppy = .false.
@@ -442,6 +445,8 @@ c
         ierr = PipGetLogical('ShiftFromEdges', fromedge)
         ierr = PipGetLogical('ShiftFromXcorrs', xclegacy)
         ierr = PipGetLogical('ReadInXcorrs', xcreadin)
+        ierr = PipGetInteger('NonzeroSkippedEdgeUse', ifUseAdjusted)
+        ierr = PipGetFloat('RobustFitCriterion', robustCrit)
         ierr = PipGetLogical('TestMode', testMode)
         ierr = PipGetTwoIntegers('GoodEdgeLowAndHighZ', izUseDefLow,
      &      izUseDefHigh)
@@ -797,7 +802,7 @@ c       Allocate data depending on number of pieces (limvar)
       limvar = nxpieces * nypieces
       if (.not. undistortOnly) then
         allocate(bb(2, limvar), ivarpc(limvar), iallVarpc(limvar),
-     &      ivarGroup(limvar), listCheck(limvar), fpsWork(16*limvar),
+     &      ivarGroup(limvar), listCheck(limvar), fpsWork(20*limvar),
      &      dxyvar(limvar, 2), rowTmp(limvar*2), stat = ierr)
         if (ierr .ne. 0) call exitError('ALLOCATING ARRAYS FOR FINDING SHIFTS')
 c
@@ -1107,10 +1112,19 @@ c       Do not write ecd file if not all sections are being computed
 c       
 c       Read old .ecd file(s)
       if(xcreadin .and. .not.undistortOnly)then
+        iedgeDelX = 0
+        iedgeDelY = 0
+        if (PipGetTwoIntegers('OverlapForEdgeShifts', iedgeDelX, iedgeDelY)
+     &      .eq. 0) then
+          iedgeDelX = nxoverlap - nint(ecdBin * iedgeDelX)
+          iedgeDelY = nyoverlap - nint(ecdBin * iedgeDelY)
+          print *,'Adjusting by ', iedgeDelX, iedgeDelY
+        endif
         edgenam=concat(rootname,xcorrext(0))
         inquire(file=edgenam,exist=exist)
         iy = 4
         if(.not.exist)then
+          ierr = PipGetFloat('BinningForEdgeShifts', ecdBin)
 c           
 c           If the file does not exist, look for the two separate files
 c           and put second name in a different variable.  Set unit number to
@@ -1135,9 +1149,28 @@ c           read one file then the other.
         if(nedgetmp(1,1).ne.nedge(1).or.nedgetmp(1,2).ne.nedge(2))
      &      call exitError('WRONG # OF EDGES IN EDGE CORRELATION FILE')
         ix = 4
+        
         do ixy = 1,2
           do i = 1,nedge(ixy)
-            read(ix,*)edgedispx(i,ixy),edgedispy(i,ixy)
+            read(ix, '(a)') titlech
+            call frefor(titlech, title, ixout)
+            edgedispx(i,ixy) = title(1) * ecdBin
+            edgedispy(i,ixy) = title(2) * ecdBin
+            if (ixy .eq. 1) edgedispx(i,ixy) = edgedispx(i,ixy) + iedgeDelX
+            if (ixy .eq. 2) edgedispy(i,ixy) = edgedispy(i,ixy) + iedgeDelY
+c             
+c             Read in skip edge flag and treat it same as when using an
+c             exclusion model
+            if (ixout .gt. 2) then
+              if (title(3) .ne. 0) then
+                ifSkipEdge(i,ixy) = 2
+                if ((edgedispx(i,ixy) .ne. 0. .or.
+     &              edgedispy(i,ixy).ne.0.) .and. ifUseAdjusted.gt.0) then
+                  ifskipEdge(i,ixy) = 1
+                  if (ifUseAdjusted .gt. 1) ifskipEdge(i,ixy) = 0
+                endif
+              endif
+            endif
           enddo
           ix = iy
         enddo
@@ -1287,7 +1320,6 @@ c         set for taper
      &      verySloppy .and. (undistort .or. doMagGrad)) ifillTreatment = 2
 c         
 c         Check for model of edges to exclude
-        ierr = PipGetLogical('NonzeroSkippedEdgeUse', ifUseAdjusted)
         if (PipGetString('SkipEdgeModelFile', filnam) .eq. 0 .and.
      &      .not. undistortOnly)  call readExclusionModel(filnam,edgedispx,
      &      edgedispy,limedge, ifUseAdjusted, mapAllPc, nxpieces, nypieces,
@@ -1315,8 +1347,11 @@ c       Allocate more arrays now
      &    ddengrbf(ixgdim,iygdim,limedgbf), dxgrid(ixgdim,iygdim),
      &    dygrid(ixgdim,iygdim), ddengrid(ixgdim,iygdim), 
      &    sdgrid(ixgdim,iygdim), stat = ierr)
-      if (ierr .ne. 0) call exitError(
-     &    'ALLOCATING CORRELATION OR EDGE BUFFER ARRAYS')
+      call memoryError(ierr, 'CORRELATION OR EDGE BUFFER ARRAYS')
+      if (numXcorrPeaks .gt. 1 .and. .not. xclegacy) then
+        allocate(xeray(idimc/2), stat = ierr)
+        call memoryError(ierr, 'CORRELATION ARRAY')
+      endif
 c       
 c       Set maximum load; allow one extra slot if doing fields
 c       Limit by the maximum number of pieces that could be needed, which is
@@ -1746,13 +1781,13 @@ c
                     endif
                   enddo
                 enddo
-c                if (debug) print *,indylo,indyhi,numpieces,xinpiece(1),yinpiece(1)
+                if (debug) print *,indylo,indyhi,numpieces,xinpiece(1),yinpiece(1)
 c                 
 c                 ALL ON ONE PIECE: do a fast transform of whole box
 c                 
                 wallstart = walltime()
                 if(dofast.and.inframe)then
-c                  if (debug) print *,  'fast box',indxlo,indxhi,indylo,indyhi
+                  if (debug) print *,  'fast box',indxlo,indxhi,indylo,indyhi
                   call xfunit(fastf,1.)         !start with unit xform
 c                   
 c                   if doing g xforms, put operations into xform that will
@@ -1814,9 +1849,9 @@ c                         the positions in the pieces
                       else
                         call countedges(indx,indy,xg,yg, useEdges)
                       endif
-c                      if (debug) write(*,'(2i6,i7,i2,a,i3,a,5i5)')indx,indy,
-c     &                    numedges(1), numedges(2),' edges',numpieces,
-c     &                    ' pieces', (inpiece(i),i=1,numpieces)
+                      if (debug) write(*,'(2i6,i7,i2,a,i3,a,5i5)')indx,indy,
+     &                    numedges(1), numedges(2),' edges',numpieces,
+     &                    ' pieces', (inpiece(i),i=1,numpieces)
 c                       
 c                       load the edges and compute edge fractions
 c                       
@@ -2263,10 +2298,12 @@ c
 c       FIND THE SHIFTS OF EACH PIECE THAT BEST ALIGN THE PIECES
 c
       subroutine getBestPieceShifts()
+      real*4 edispMean
 c       
 c       Set the multineg flag to indicate that there are h transforms
       multng=.true.
       do ixy=1,2
+        edispMean = 0.
         do iedge=1,nedge(ixy)
           if(izpclist(ipiecelower(iedge,ixy)).eq.izsect)then
 c             
@@ -2348,7 +2385,16 @@ c             dxgridmean(iedge,ixy)=-xdisp
 c             dygridmean(iedge,ixy)=-ydisp
 c             endif
           endif
+          if (ixy .eq. 1)
+     &        edispMean = edispMean + edgedispx(iedge,ixy) / nedge(ixy)
+          if (ixy .eq. 2) 
+     &        edispMean = edispMean + edgedispy(iedge,ixy) / nedge(ixy)
         enddo
+        if ((ixy .eq. 1 .and. abs(edispMean * nxpieces) .gt. nxin * 3) .or.
+     &      (ixy .eq. 2 .and. abs(edispMean * nypieces) .gt. nyin * 3))
+     &      write(*,'(/,a,f8.0,a)')'WARNING: mean edge shift of', edispMean,
+     &      ' in '// char(ixy+ichar('W'))//' may give artifacts; consider'//
+     &      ' adjusting overlaps with edpiecepoint and -overlap option'
       enddo
 c       
 c       If there is only one piece in one direction, then do it from
@@ -2435,7 +2481,7 @@ c
      &            intgrid(1)-bwof) + iygrdstbf(indedg) - iyofsbf(indedg)
               bwof=(yinpiece(indlower)-edstart)/(edend-edstart)
             endif
-c            if (debug)print *,ied,ixy,edgefrac4(ied,ixy),bwof
+            if (debug)print *,ied,ixy,edgefrac4(ied,ixy),bwof
             edgefrac4(ied,ixy)=bwof
           endif
           active4(ied,ixy)=edgefrac4(ied,ixy).lt..999
@@ -2443,7 +2489,7 @@ c            if (debug)print *,ied,ixy,edgefrac4(ied,ixy),bwof
           if(active4(ied,ixy)) nedgesum=nedgesum+1
           if(edgefrac4(ied,ixy).lt.0.)edgefrac4(ied,ixy)=0.
           if(edgefrac4(ied,ixy).gt.1.)edgefrac4(ied,ixy)=1.
-c          if (debug) print *,ied,ixy,edgefrac4(ied,ixy),active4(ied,ixy)
+          if (debug) print *,ied,ixy,edgefrac4(ied,ixy),active4(ied,ixy)
         enddo
       enddo
       return
@@ -3014,14 +3060,14 @@ c       and upper right
             if(inedlower(ied,2).eq.indp1)inde13=ied
             if(inedlower(ied,2).eq.indp2)inde24=ied
           enddo
-c          if (debug) print *,inde12,inde34,inde13,inde24
+          if (debug) print *,inde12,inde34,inde13,inde24
           if(inde12.ne.0)f12=edgefrac4(inde12,1)
           if(inde34.ne.0)f34=edgefrac4(inde34,1)
           if(inde13.ne.0)f13=edgefrac4(inde13,2)
           if(inde24.ne.0)f24=edgefrac4(inde24,2)
-c          if (debug) write(*,'(a,4i6,a,4f8.4)')'piece 1234',
-c     &        inpiece(indp1),inpiece(indp2),inpiece(indp3),
-c     &        inpiece(indp4),'  edge fractions',f12,f34,f13,f24
+          if (debug) write(*,'(a,4i6,a,4f8.4)')'piece 1234',
+     &        inpiece(indp1),inpiece(indp2),inpiece(indp3),
+     &        inpiece(indp4),'  edge fractions',f12,f34,f13,f24
         else
 c           
 c           two piece case - identify as upper or lower to
@@ -3231,9 +3277,9 @@ c           start at the midpoint of the piece
      &            startSkew) / (endSkew-startSkew)))
               db4 = max(0., yinpiece(indp4) - startSkew)
               eb4 = (db4 + 1.) / iblend(2)
-c              if (debug) write(*,'(a,3f8.1,a,f8.4,f8.1,f8.4)')'s&e skew, y',
-c     &            startSkew,endSkew,yinpiece(indp4),
-c     &            ' mod ef, db4, eb4',edgefrac4(1,2),db4,eb4
+              if (debug) write(*,'(a,3f8.1,a,f8.4,f8.1,f8.4)')'s&e skew, y',
+     &            startSkew,endSkew,yinpiece(indp4),
+     &            ' mod ef, db4, eb4',edgefrac4(1,2),db4,eb4
             else if (indp2 .eq. 0) then
               edgefrac4(1,2) = max(0., min(1., (yinpiece(indp3)-
      &            startSkew) / (endSkew-startSkew)))
@@ -3256,22 +3302,21 @@ c     &            ' mod ef, db4, eb4',edgefrac4(1,2),db4,eb4
      &            startSkew) / (endSkew-startSkew)))
               dl4 = max(0., xinpiece(indp4) - startSkew)
               el4 = (dl4 + 1.) / iblend(1)
-              if (indp2 .eq. 0) then
-                edgefrac4(1,1) = max(0., min(1., (xinpiece(indp3)-
-     &              startSkew) / (endSkew-startSkew)))
-                dr3 = max(0., endSkew - xinpiece(indp3))
-                er3 = (dr3 + 1.) / iblend(1)
-              else if (indp3 .eq. 0) then
-                edgefrac4(1,1) = max(0., min(1., (xinpiece(indp2)-
-     &              startSkew) / (endSkew-startSkew)))
-                dl2 = max(0., xinpiece(indp4) - startSkew)
-                el2 = (dl2 + 1.) / iblend(1)
-              else
-                edgefrac4(1,1) = max(0., min(1., (xinpiece(indp1)-
-     &              startSkew) / (endSkew-startSkew)))
-                dr1 = max(0., endSkew - xinpiece(indp1))
-                er1 = (dr3 + 1.) / iblend(1)
-              endif
+            else if (indp2 .eq. 0) then
+              edgefrac4(1,1) = max(0., min(1., (xinpiece(indp3)-
+     &            startSkew) / (endSkew-startSkew)))
+              dr3 = max(0., endSkew - xinpiece(indp3))
+              er3 = (dr3 + 1.) / iblend(1)
+            else if (indp3 .eq. 0) then
+              edgefrac4(1,1) = max(0., min(1., (xinpiece(indp2)-
+     &            startSkew) / (endSkew-startSkew)))
+              dl2 = max(0., xinpiece(indp4) - startSkew)
+              el2 = (dl2 + 1.) / iblend(1)
+            else
+              edgefrac4(1,1) = max(0., min(1., (xinpiece(indp1)-
+     &            startSkew) / (endSkew-startSkew)))
+              dr1 = max(0., endSkew - xinpiece(indp1))
+              er1 = (dr3 + 1.) / iblend(1)
             endif
           endif
         endif
@@ -3355,7 +3400,7 @@ c
         indp1=1
         wll=1.
       endif
-c      if (debug)write(*,'(a,i3,a,4f8.4)')'Active',nactivep,'  weights',wll,wlr,wul,wur
+      if (debug)write(*,'(a,i3,a,4f8.4)')'Active',nactivep,'  weights',wll,wlr,wul,wur
       return
       end subroutine getPieceIndicesAndWeighting
 
@@ -3363,6 +3408,9 @@ c      if (debug)write(*,'(a,i3,a,4f8.4)')'Active',nactivep,'  weights',wll,wlr,
 
 c       
 c       $Log$
+c       Revision 3.46  2010/11/15 23:30:25  mast
+c       Initialize boundfile
+c
 c       Revision 3.45  2010/09/23 05:45:32  mast
 c       Set new defaults to double box size, increase indent and interval a
 c       bit, start increase at 512 and limit it at 4096 pixels
