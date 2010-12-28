@@ -214,12 +214,41 @@ One must be careful to examine both of the edges with the top two errors when
 the erroneous edge involves a corner piece in the montage, a not infrequent
 occurrence.  In this case, the error will be equally divided between the
 two edges of the corner piece, even though there is an erroneous measurement
-at only one of them.
+at only one of them.  For similar reasons, a 2 by 2 montage with an erroneous
+displacement will spread the error equally among all four edges.
 
-Finally, if the montage consists of only one row or one column, all errors
+If the montage consists of only one row or one column, all errors
 will be zero regardless of whether the displacements have been measured
 correctly.  Visual examination of the edges is the only way to detect and
 correct errors in the measured displacements.
+
+When there are more than 10 pieces, the program can find a more robust
+solution for the shifts between pieces that can give less weight to or
+eliminate edges that have obviously erroneous displacement.  This is referred
+to as robust fitting.  Its main value in Midas is to make the edges with bad
+diplacements show up with particularly high errors.  The degree of robustness
+is controlled by a criterion value with a default value of 1.  With the
+default value, some edges that have good displacements may be downweighted
+inappropriately and thus show up as having a high error even though they are
+well-aligned.  A higher criterion will prevent this from happening but may
+fail to identify some bad edges as outliers (values up to about 1.5 should be
+tried).
+
+If an edge with a good alignment shows up as having a large error with robust
+fitting enabled, use the following strategy:
+.br
+1) Continue to fix or exclude other edges with high errors.  The error of the
+well-aligned edge may drop as other errors around it are resolved.
+.br
+2) If the well-aligned edge still has a high error after other edges with high
+errors have been fixed, examine all of the edges around the two pieces below
+and above this edge.  You may find a small misalignment.
+.br.
+3) If you still can not find a misaligned edge, raise the fitting criterion
+until the error becomes normal, or ignore the large error.  Note that if you
+are going to use the robust fitting option in Blendmont(1), you would need to
+set the criterion to this same value to prevent a misalignment across this
+edge.
 
 .SS Options
 Midas accepts some Qt options (such as -style) and
