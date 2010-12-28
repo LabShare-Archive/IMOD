@@ -1,5 +1,19 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/28/10: Modified Midas to use robust fitting to edge displacements when
+there are more than 10 pieces, to allow edges to be excluded or included
+again, and to set initial zoom automatically.
+
+12/28/10: In Blendmont, evaluate cross-correlation coefficients in filtered 
+versions of the full tapered, padded images used for correlation; this is a
+little slower but reduces artifacts.  Added ability to read in excluded edge
+information from .ecd file, and added options to do robust fitting to edge
+displacements, to specify the binning and overlap at which an .ecd file was
+computed.
+
+12/28/10: Converted Edpiecepoint to PIP input and added options to change the
+overlap of a piece list.
+
 12/27/10: IMOD_4-2-10
 12/27/10: Fixed problems with inverted Z model display.
 
