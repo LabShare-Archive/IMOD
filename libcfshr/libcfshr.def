@@ -102,6 +102,7 @@ EXPORTS
 	sliceCreate
 	PARWRTFINDREGION
 	MEANZERO
+	rsTrimmedMeanOfSorted
 	parWrtProperties
 	PipParseEntries
 	AdocGetIntegerArray
@@ -198,6 +199,7 @@ EXPORTS
 	PARWRTPROPERTIES
 	imodProgName
 	b3dSetStoreError
+	RSTRIMMEDMEAN
 	parselist
 	PARWRTINITIALIZEFW
 	gaussj
@@ -227,6 +229,7 @@ EXPORTS
 	PIPDONE
 	AMOEBA
 	ilistAppend
+	rsTrimmedMean
 	PIPADDOPTION
 	ADOCSETCURRENT
 	PipMemoryError
@@ -279,6 +282,7 @@ EXPORTS
 	ilistItem
 	PipAllowCommaDefaults
 	TAPERATFILL
+	RSTRIMMEDMEANOFSORTED
 	sliceFree
 	lsFit
 	PIPPRINTHELP
