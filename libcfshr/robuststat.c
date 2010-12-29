@@ -20,6 +20,8 @@
 #define rssortindexedfloats RSSORTINDEXEDFLOATS
 #define rsmedianofsorted RSMEDIANOFSORTED
 #define rsmedian RSMEDIAN
+#define rstrimmedmeanofsorted RSTRIMMEDMEANOFSORTED
+#define rstrimmedmean RSTRIMMEDMEAN
 #define rsmadn RSMADN
 #define rsmadmedianoutliers RSMADMEDIANOUTLIERS
 #else
@@ -27,6 +29,8 @@
 #define rssortindexedfloats rssortindexedfloats_
 #define rsmedianofsorted rsmedianofsorted_
 #define rsmedian rsmedian_
+#define rstrimmedmeanofsorted rstrimmedmeanofsorted_
+#define rstrimmedmean rstrimmedmean_
 #define rsmadn rsmadn_
 #define rsmadmedianoutliers rsmadmedianoutliers_
 #endif
@@ -230,6 +234,9 @@ void rstrimmedmean(float *x, int *n, float *gamma, float *xsort, float *median)
 /*
 
 $Log$
+Revision 1.4  2010/12/28 18:04:26  mast
+Added trimmed mean
+
 Revision 1.3  2010/03/11 18:18:21  mast
 Fixed the median outliers routine to recompute the deviation
 
