@@ -12,10 +12,12 @@
 #include <QProcess>
 #include <processchunks.h>
 #include <machinehandler.h>
+#include <comfilejob.h>
 #include <QTextStream>
 
 class Processchunks;
 class MachineHandler;
+class ComFileJob;
 
 class ProcessHandler: public QObject {
 Q_OBJECT
@@ -24,15 +26,10 @@ public:
   ProcessHandler();
   ~ProcessHandler();
 
-  typedef enum flag {
-    sync = -1, notDone, assigned, done
-  } FlagType;
-
-  void setup(Processchunks &processchunks, const QString &comFile,
-      const int processIndex);
+  void setup(Processchunks &processchunks);
   const bool logFileExists(const bool newlyCreatedFile);
   const bool isChunkDone();
-  void setFlag(const FlagType flag);
+  void setFlag(const ComFileJob::FlagType flag);
   void removeFiles();
   void removeProcessFiles();
   const bool cshFileExists();
@@ -50,10 +47,10 @@ public:
   const bool isJobFileEmpty();
   const bool getSshError(QString &dropMess);
   const bool qidFileExists();
-  const QString &getPid();
-  void setFlagNotDone();
+  const QString getPid();
+  void setFlagNotDone(const bool singleFile);
   void backupLog();
-  const FlagType getFlag();
+  const ComFileJob::FlagType getFlag();
   void runProcess(MachineHandler *machine);
   const bool killProcess();
   void continueKillProcess(const bool asynchronous);
@@ -63,7 +60,11 @@ public:
   const bool isPidInStderr();
   void resetPausing();
   bool isPausing();
-  QFile *getCshFile();
+  QString getCshFile();
+  void setJob(ComFileJob &comFileJob,const int jobIndex);
+  void invalidateJob();
+  const int getAssignedJobIndex();
+  const bool isJobValid();
 
 public slots:
   void handleError(const QProcess::ProcessError error);
@@ -80,24 +81,24 @@ protected:
 
 private:
   void initProcess();
-  const bool getPid(QTextStream *stream, const bool save);
-  const bool getSshError(QString &dropMess, QTextStream *stream);
+  const bool getPid(QTextStream &stream, const bool save);
+  const bool getSshError(QString &dropMess, QTextStream &stream);
   void resetSignalValues();
   void readAllStandardError();
   void killLocalProcessAndDescendents(QString &pid);
   void stopProcess(const QString &pid);
   void killProcess(const QString &pid);
+  void resetFields();
 
-  QString mComFileName, mRoot;
-  QFile *mLogFile, *mCshFile, *mJobFile, *mQidFile;
+  ComFileJob *mComFileJob;
+  QFile *mLogFile, *mJobFile, *mQidFile;
   bool mLogFileExists;
   //On when process is run, off when finished, kill finished signal received,
   //or when the kill timeout is handled.
   bool mStartingProcess;
-  int mNumChunkErr, mPausing;
-  FlagType mFlag;
+  int  mPausing;
   QByteArray mStderr;
-  QTextStream *mStderrTextStream, *mJobFileTextStream, *mQidFileTextStream;
+  QTextStream  *mJobFileTextStream, *mQidFileTextStream;
   QString mPid, mEscapedRemoteDirPath, mDecoratedClassName, mCommand;//queue or local command
   QStringList mParamList;//list of queue or local params
   Processchunks *mProcesschunks;
@@ -107,8 +108,8 @@ private:
   //Kill process variables
   MachineHandler *mMachine;
   QProcess *mKillProcess;
-  int mProcessIndex, mPidTimerId;
-  bool mKill, mRanContinueKillProcess;
+  int mComFileJobIndex, mPidTimerId;
+  bool mKill, mRanContinueKillProcess,mLocalKill;
 
   //Signal variables
   bool mErrorSignalReceived, mStartedSignalReceived, mFinishedSignalReceived,
