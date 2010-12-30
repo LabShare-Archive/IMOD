@@ -5,7 +5,7 @@
  *      Author: sueh
  */
 
-#include <machinehandler.h>
+#include "machinehandler.h"
 #include <QString>
 #include <QTextStream>
 #include <typeinfo>
@@ -30,14 +30,14 @@ void MachineHandler::init() {
   mFailureCount = 0;
   mChunkErred = false;
   mKillCpuIndex = -1;
-  mDrop = false;
   mKill = false;
   mDecoratedClassName = typeid(*this).name();
-  mAssignedProcIndexList = NULL;
+  mProcessHandlerArray = NULL;
+  mDrop = false;
 }
 
 MachineHandler::~MachineHandler() {
-  delete mAssignedProcIndexList;
+  delete[] mProcessHandlerArray;
 }
 
 MachineHandler &MachineHandler::operator=(const MachineHandler &otherInstance) {
@@ -46,11 +46,11 @@ MachineHandler &MachineHandler::operator=(const MachineHandler &otherInstance) {
   mNumCpus = otherInstance.mNumCpus;
   mFailureCount = otherInstance.mFailureCount;
   mChunkErred = otherInstance.mChunkErred;
-  if (mAssignedProcIndexList != NULL) {
-    delete[] mAssignedProcIndexList;
-    mAssignedProcIndexList = NULL;
+  if (mProcessHandlerArray != NULL) {
+    delete[] mProcessHandlerArray;
+    mProcessHandlerArray = NULL;
   }
-  mAssignedProcIndexList = otherInstance.mAssignedProcIndexList;
+  mProcessHandlerArray = otherInstance.mProcessHandlerArray;
   mKillCpuIndex = otherInstance.mKillCpuIndex;
   mKill = otherInstance.mKill;
   return *this;
@@ -70,28 +70,31 @@ void MachineHandler::incrementNumCpus() {
 //Sets the arrays based on mNumCpus
 //Call this once when mNumCpus will no long change
 void MachineHandler::setup() {
-  if (mAssignedProcIndexList != NULL) {
-    delete[] mAssignedProcIndexList;
-    mAssignedProcIndexList = NULL;
+  if (mProcessHandlerArray != NULL) {
+    delete[] mProcessHandlerArray;
+    mProcessHandlerArray = NULL;
   }
-  mAssignedProcIndexList = new int[mNumCpus];
+  mProcessHandlerArray = new ProcessHandler[mNumCpus];
   int i;
   for (i = 0; i < mNumCpus; i++) {
-    mAssignedProcIndexList[i] = -1;
+    mProcessHandlerArray[i].setup(*mProcesschunks);
   }
+}
+
+const bool MachineHandler::isJobValid(const int index) {
+  return mProcessHandlerArray[index].isJobValid();
+}
+
+const int MachineHandler::getAssignedJobIndex(const int index) {
+  return mProcessHandlerArray[index].getAssignedJobIndex();
 }
 
 const int MachineHandler::getNumCpus() {
   return mNumCpus;
 }
 
-const int MachineHandler::getAssignedProcIndex(const int index) {
-  return mAssignedProcIndexList[index];
-}
-
-void MachineHandler::setAssignedProcIndex(const int index,
-    const int assignedProcIndex) {
-  mAssignedProcIndexList[index] = assignedProcIndex;
+ProcessHandler *MachineHandler::getProcessHandler(const int index) {
+  return &mProcessHandlerArray[index];
 }
 
 void MachineHandler::setChunkErred(const bool chunkErred) {
@@ -130,9 +133,8 @@ const bool MachineHandler::operator==(const QString &other) {
 //Kill all running processes on this machine.  Returns false if one of the kill
 //requests had to wait for a signal or event.
 const bool MachineHandler::killProcesses() {
+  //set mKill boolean
   mKill = true;
-  //set mKill and mDrop booleans
-  mDrop = false;
   if (mProcesschunks->getAns() == 'D') {
     mKill = false;
     if (!mProcesschunks->getDropList().isEmpty()
@@ -146,6 +148,10 @@ const bool MachineHandler::killProcesses() {
   }
   if (!mKill) {
     return true;
+  }
+  if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+    mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
+        << ":mKill:" << mKill << ",mDrop:" << mDrop << endl;
   }
   return killNextProcess();
 }
@@ -163,30 +169,29 @@ const bool MachineHandler::killNextProcess() {
         << endl;
     return false;
   }
+  if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+    mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
+        << ":A:mKillCpuIndex:" << mKillCpuIndex << ",mNumCpus:" << mNumCpus
+        << ",mDrop:" << mDrop << endl;
+  }
   //Kill the process on each cpu
   mKillCpuIndex++;
   if (mKillCpuIndex < mNumCpus) {
     while (mKillCpuIndex < mNumCpus) {
-      if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-        mProcesschunks->getOutStream() << "killNextProcess:mKillCpuIndex:"
-            << mKillCpuIndex << endl;
-      }
-      if (mAssignedProcIndexList[mKillCpuIndex] != -1) {
-        int processIndex = mAssignedProcIndexList[mKillCpuIndex];
+      if (getAssignedJobIndex(mKillCpuIndex) != -1) {
         if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-          mProcesschunks->getOutStream() << "killNextProcess:processIndex:"
-              << processIndex << endl;
+          mProcesschunks->getOutStream() << mDecoratedClassName << ":"
+              << __func__ << ":B:mKillCpuIndex:" << mKillCpuIndex << endl;
         }
         if (mDrop) {
-          mAssignedProcIndexList[mKillCpuIndex] = -1;
+          mProcessHandlerArray[mKillCpuIndex].invalidateJob();
         }
         //Get the process handler using the assigned process index and to it to
         //kill its process.
-        if (!mProcesschunks->getProcessHandler(processIndex).killProcess()) {
+        if (!mProcessHandlerArray[mKillCpuIndex].killProcess()) {
           if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-            mProcesschunks->getOutStream() << "killNextProcess:mKillCpuIndex:"
-                << mKillCpuIndex << ",processIndex:" << processIndex
-                << ",killProcess:false" << endl;
+            mProcesschunks->getOutStream() << mDecoratedClassName << ":"
+                << __func__ << ":C:killProcess:false" << endl;
           }
           return false;
         }
@@ -196,14 +201,14 @@ const bool MachineHandler::killNextProcess() {
   }
   if (mKillCpuIndex >= mNumCpus) {
     //This machine is done - go on to the next machine
-      mProcesschunks->killProcessOnNextMachine();
+    mProcesschunks->killProcessOnNextMachine();
     cleanupKillProcess();
   }
   return true;
 }
 
 void MachineHandler::cleanupKillProcess() {
-  mDrop = false;
   mKillCpuIndex = -1;
+  mDrop = false;
   mKill = false;
 }
