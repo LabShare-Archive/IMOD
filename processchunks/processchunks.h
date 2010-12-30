@@ -7,12 +7,14 @@
 #include <QStringList>
 #include <QDir>
 #include <processhandler.h>
+#include <comfilejob.h>
 
 #ifndef __func__
 #define __func__ __FUNCTION__
 #endif
 
 class ProcessHandler;
+class ComFileJob;
 class QTextStream;
 class QProcess;
 class QFile;
@@ -31,9 +33,8 @@ public:
   const bool askGo();
   void startLoop();
   void killProcessOnNextMachine();
-  ProcessHandler &getProcessHandler(const int processIndex);
-  void msgKillProcessStarted(const int processIndex);
-  void msgKillProcessDone(const int processIndex);
+  void msgKillProcessStarted(ProcessHandler *processHandler);
+  void msgKillProcessDone(ProcessHandler *processHandler);
   void handleFileSystemBug();
 
   const bool isQueue();
@@ -47,11 +48,12 @@ public:
   const QString &getHostRoot();
   const QStringList &getSshOpts();
   const int getNice();
+  const int getMillisecSleep();
   const char getAns();
   QStringList &getDropList();
   const int getDropCrit();
   const QString &getRemoteDir();
-  void makeCshFile(ProcessHandler &process);
+  void makeCshFile(ProcessHandler *process);
 
 public slots:
   void timerEvent();
@@ -73,21 +75,20 @@ private:
   void probeMachines();
   const bool readCheckFile();
   void exitIfDropped(const int minFail, const int failTot, const int assignTot);
-  const bool handleChunkDone(MachineHandler *machine, const int cpuIndex,
-      const int processIndex);
+  const bool handleChunkDone(MachineHandler *machine, ProcessHandler *process,
+      const int jobIndex);
   const bool
   handleLogFileError(QString &errorMess, MachineHandler *machine,
-      const int cpuIndex, const int processIndex);
+      ProcessHandler *process);
   void handleComProcessNotDone(bool &dropout, QString &dropMess,
-      MachineHandler *machine, const int processIndex);
+      MachineHandler *machine, ProcessHandler *process);
   void handleDropOut(bool &noChunks, QString &dropMess,
-      MachineHandler *machine, const int cpuIndex, const int processIndex,
-      QString &errorMess);
+      MachineHandler *machine, ProcessHandler *process, QString &errorMess);
   const bool checkChunk(int &runFlag, bool &noChunks, int &undone,
       bool &foundChunks, bool &chunkOk, MachineHandler *machine,
-      const int processIndex, const int chunkErrTot);
-  void runProcess(MachineHandler *machine, const int cpuIndex,
-      const int processIndex);
+      const int jobIndex, const int chunkErrTot);
+  void runProcess(MachineHandler *machine, ProcessHandler *process,
+      const int jobIndex);
   int escapeEntered();
   void handleInterrupt();
   void cleanupAndExit(int exitCode = 0);
@@ -96,17 +97,17 @@ private:
   void startTimers();
   void cleanupKillProcesses(const bool timeout);
   const bool handleError(const QString *errorMess, MachineHandler *machine,
-      const int cpuIndex, const int processIndex);
+      ProcessHandler *process);
   const bool isVerbose(const QString &verboseClass,
       const QString verboseFunction, const int verbosity, const bool print);
 
-  int mSizeProcessArray;
-  ProcessHandler *mProcessArray;
+  int mSizeJobArray;
+  ComFileJob *mJobArray;
   QList<MachineHandler> mMachineList;
   QTextStream *mOutStream;
 
   //params
-  int mRetain, mJustGo, mNice, mDropCrit, mQueue, mSingleFile, mMaxChunkErr,
+  int mRetain, mJustGo, mNice,mMillisecSleep, mDropCrit, mQueue, mSingleFile, mMaxChunkErr,
       mVerbose;
   bool mSkipProbe;
   char *mQueueName, *mRootName;
@@ -129,7 +130,7 @@ private:
   //killing processes
   bool mKill, mAllKillProcessesHaveStarted;
   int mKillProcessMachineIndex, mKillCounter;
-  QList<int> mProcessesWithUnfinishedKillRequest;
+  QList<ProcessHandler*> mProcessesWithUnfinishedKillRequest;
   QStringList mDropList;
 
   //handling file system bug
