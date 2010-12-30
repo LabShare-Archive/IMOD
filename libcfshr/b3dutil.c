@@ -23,6 +23,7 @@
 #ifndef _WIN32
 #include <sys/time.h>
 #include <unistd.h>
+#include <errno.h>
 #else
 #include <Windows.h>
 #include <process.h>
@@ -588,6 +589,25 @@ double walltime(void)
   return wallTime();
 }
 
+int b3dMilliSleep(int msecs)
+{
+#ifdef _WIN32
+  Sleep(msecs);
+#else
+  struct timespec req, rem;
+  int retval;
+  req.tv_sec = msecs / 1000;
+  req.tv_nsec = 1000000 * (msecs % 1000);
+  while ((retval = nanosleep(&req, &rem)) != 0) {
+    if (errno != EINTR)
+      return -1;
+    req.tv_sec = rem.tv_sec;
+    req.tv_nsec = rem.tv_nsec;
+  }
+#endif
+  return 0;
+}
+
 /*!
  * Computes the number of threads to specify in an OpenMP directive by taking
  * the minimum of the given optimal thread number [optimalThreads], the number
@@ -625,6 +645,9 @@ int numompthreads(int optimalThreads)
 
 /*
 $Log$
+Revision 1.15  2010/06/23 17:20:35  mast
+Added getpid function
+
 Revision 1.14  2010/05/20 23:43:44  mast
 Fixed default IMOD_DIR for Mac
 
