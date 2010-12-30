@@ -11,49 +11,56 @@
 #include <QFile>
 #include "b3dutil.h"
 #include <typeinfo>
+#include <unistd.h>
 
 const static QString pidTag = "PID:";
 
 ProcessHandler::ProcessHandler() {
   mJobFile = NULL;
   mQidFile = NULL;
+  mProcesschunks = NULL;
+  mComFileJobIndex = -1;
+  mMachine = NULL;
+  mProcess = NULL;
+  mKillProcess = new QProcess(this);
+  mKillProcess->setProcessChannelMode(QProcess::ForwardedChannels);
+  QObject::connect(mKillProcess, SIGNAL(finished(int, QProcess::ExitStatus)),
+      SLOT(handleKillFinished(int, QProcess::ExitStatus)));
+  mDecoratedClassName = typeid(*this).name();
+  mJobFileTextStream = NULL;
+  mLogFile = NULL;
+  mComFileJob = NULL;
+  mQidFileTextStream = NULL;
+  resetFields();
+}
+
+void ProcessHandler::resetFields() {
   mLogFileExists = false;
   mErrorSignalReceived = false;
   mProcessError = -1;
   mStartedSignalReceived = false;
   mFinishedSignalReceived = false;
-  mNumChunkErr = 0;
   mPidTimerId = 0;
-  mProcesschunks = NULL;
-  mMachine = NULL;
-  mProcessIndex = -1;
-  mProcess = NULL;
   mStartTime.start();
   mStartingProcess = false;
   mRanContinueKillProcess = false;
-  mKillProcess = new QProcess(this);
-  mKillProcess->setProcessChannelMode(QProcess::ForwardedChannels);
-  QObject::connect(mKillProcess, SIGNAL(finished(int, QProcess::ExitStatus)),
-      SLOT(handleKillFinished(int, QProcess::ExitStatus)));
   mKillFinishedSignalReceived = false;
   mKill = false;
   resetSignalValues();
-  mDecoratedClassName = typeid(*this).name();
   mPausing = 0;
-  mStderrTextStream = NULL;
-  mJobFileTextStream = NULL;
-  mLogFile = NULL;
-  mCshFile = NULL;
+  mStderr.clear();
+  mPid.clear();
+  mLocalKill = false;
 }
 
 ProcessHandler::~ProcessHandler() {
   delete mKillProcess;
-  delete mStderrTextStream;
   delete mProcess;
   delete mLogFile;
-  delete mCshFile;
   delete mJobFile;
   delete mJobFileTextStream;
+  delete mQidFile;
+  delete mQidFileTextStream;
 }
 
 void ProcessHandler::initProcess() {
@@ -83,45 +90,15 @@ void ProcessHandler::initProcess() {
 
 //Set mFlag to -1 for sync com files.
 //Return true for non-sync files.
-void ProcessHandler::setup(Processchunks &processchunks,
-    const QString &comFile, const int processIndex) {
+void ProcessHandler::setup(Processchunks &processchunks) {
   mProcesschunks = &processchunks;
-  mComFileName = comFile;
-  mProcessIndex = processIndex;
   mEscapedRemoteDirPath = mProcesschunks->getRemoteDir();
   mEscapedRemoteDirPath.replace(QRegExp(" "), "\\ ");
-  setFlagNotDone();
-  //Set mRoot
-  int i = mComFileName.lastIndexOf(".");
-  if (i != -1) {
-    mRoot = mComFileName.mid(0, i);
-  }
-  else {
-    mRoot = mComFileName;
-  }
-  QString fileName = QString("%1.log").arg(mRoot);
-  mLogFile = new QFile(fileName);
-  fileName.clear();
-  fileName.append("%1.csh");
-  fileName = fileName.arg(mRoot);
-  mCshFile = new QFile(fileName);
   if (mProcesschunks->isQueue()) {
-    fileName.clear();
-    fileName.append("%1.job");
-    fileName = fileName.arg(mRoot);
-    mJobFile = new QFile(fileName);
-    mJobFileTextStream = new QTextStream(mJobFile);
-    fileName.clear();
-    fileName.append("%1.qid");
-    fileName = fileName.arg(mRoot);
-    mQidFile = new QFile(fileName);
-    mQidFileTextStream = new QTextStream(mQidFile);
     //Queue command
     //finishes after putting things into the queue
     //$queuecom -w "$curdir" -a R $comname:r
     mCommand = mProcesschunks->getQueueCommand();
-    mParamList << mProcesschunks->getQueueParamList() << "-w"
-        << mEscapedRemoteDirPath << "-a" << "R" << mRoot;
   }
   else {
     //Local host command
@@ -131,20 +108,68 @@ void ProcessHandler::setup(Processchunks &processchunks,
 #else
     mCommand = "tcsh";
 #endif
-    mParamList << "-ef" << mCshFile->fileName();
   }
   initProcess();
 }
 
-void ProcessHandler::setFlagNotDone() {
-  if (mProcesschunks->isSingleFile() || mComFileName.endsWith("-start.com")
-      || mComFileName.endsWith("-finish.com") || mComFileName.endsWith(
-      "-sync.com")) {
-    mFlag = sync;
+void ProcessHandler::setJob(ComFileJob &comFileJob, const int jobIndex) {
+  if (mComFileJobIndex != -1) {
+    mProcesschunks ->getOutStream() << "ERROR:" << mDecoratedClassName << ":"
+        << __func__
+        << ":Unable is set job, process handler contains a runnable job:"
+        << mComFileJob->getComFileName() << ",mComFileJobIndex:"
+        << mComFileJobIndex << endl;
+    return;
+  }
+  resetFields();
+  mComFileJob = &comFileJob;
+  mComFileJobIndex = jobIndex;
+  delete mLogFile;
+  mLogFile = NULL;
+  mLogFile = new QFile(mComFileJob->getLogFileName());
+  if (mProcesschunks->isQueue()) {
+    delete mJobFile;
+    mJobFile = NULL;
+    mJobFile = new QFile(mComFileJob->getJobFileName());
+    delete mJobFileTextStream;
+    mJobFileTextStream = NULL;
+    mJobFileTextStream = new QTextStream(mJobFile);
+    delete mQidFile;
+    mQidFile = NULL;
+    mQidFile = new QFile(mComFileJob->getQidFileName());
+    delete mQidFileTextStream;
+    mQidFileTextStream = NULL;
+    mQidFileTextStream = new QTextStream(mQidFile);
+    mParamList << mProcesschunks->getQueueParamList() << "-w"
+        << mEscapedRemoteDirPath << "-a" << "R" << mComFileJob->getRoot();
   }
   else {
-    mFlag = notDone;
+    mParamList.clear();
+    mParamList << "-ef" << mComFileJob->getCshFileName();
   }
+}
+
+//Prevent job from being run, but still allow cleanup.
+void ProcessHandler::invalidateJob() {
+  mComFileJobIndex = -1;
+}
+
+//Returns true if job is runnable using this process handler.
+const bool ProcessHandler::isJobValid() {
+  return mComFileJobIndex != -1;
+}
+
+const int ProcessHandler::getAssignedJobIndex() {
+  return mComFileJobIndex;
+}
+
+void ProcessHandler::setFlagNotDone(const bool singleFile) {
+  if (mComFileJob == NULL) {
+    mProcesschunks ->getOutStream() << "ERROR:" << mDecoratedClassName << ":"
+        << __func__ << ":Empty mComFileJob" << endl;
+    return;
+  }
+  mComFileJob->setFlagNotDone(singleFile);
 }
 
 void ProcessHandler::resetSignalValues() {
@@ -156,17 +181,28 @@ void ProcessHandler::resetSignalValues() {
   mProcessError = -1;
 }
 
-const ProcessHandler::FlagType ProcessHandler::getFlag() {
-  return mFlag;
+const ComFileJob::FlagType ProcessHandler::getFlag() {
+  if (mComFileJob == NULL) {
+    mProcesschunks ->getOutStream() << "ERROR:" << mDecoratedClassName << ":"
+        << __func__ << ":Empty mComFileJob" << endl;
+    return ComFileJob::done;
+  }
+  return mComFileJob->getFlag();
 }
 
 const bool ProcessHandler::logFileExists(const bool newlyCreatedFile) {
+  if (mComFileJob == NULL) {
+    mProcesschunks ->getOutStream() << "ERROR:" << mDecoratedClassName << ":"
+        << __func__ << ":Empty mComFileJob" << endl;
+    return false;
+  }
   if (mLogFileExists) {
     return true;
   }
   if (!newlyCreatedFile) {
     //Don't set mLogFileExists when newlyCreateFile is false because ls may need
     //to be run (with handleFileSystemBug) later - the file may be backed up.
+
     return mProcesschunks->getCurrentDir().exists(mLogFile->fileName());
   }
   //Set mLogFileExists.  Run ls (with handleFileSystemBug) if necessary.
@@ -180,26 +216,34 @@ const bool ProcessHandler::logFileExists(const bool newlyCreatedFile) {
 }
 
 const bool ProcessHandler::qidFileExists() {
+  if (mComFileJob == NULL) {
+    mProcesschunks ->getOutStream() << "ERROR:" << mDecoratedClassName << ":"
+        << __func__ << ":Empty mComFileJob" << endl;
+    return false;
+  }
   if (mProcesschunks->isQueue()) {
     return mProcesschunks->getCurrentDir().exists(mQidFile->fileName());
   }
   return true;
 }
 
-//Looks for PID in either stdout/stderr (non-queue) or in .qid file (queue).
-const QString &ProcessHandler::getPid() {
+//Looks for PID in either stderr (non-queue) or in .qid file (queue).
+const QString ProcessHandler::getPid() {
+  if (mComFileJob == NULL) {
+    mProcesschunks ->getOutStream() << "ERROR:" << mDecoratedClassName << ":"
+        << __func__ << ":Empty mComFileJob" << endl;
+    return "";
+  }
   if (!mProcesschunks->isQueue()) {
     readAllStandardError();
-    mStderrTextStream = new QTextStream(mStderr);
-    getPid(mStderrTextStream, true);
-    delete mStderrTextStream;
-    mStderrTextStream = NULL;
+    QTextStream textStream(mStderr);
+    getPid(textStream, true);
   }
   else {
     if (!mQidFile->open(QIODevice::ReadOnly)) {
       return mPid;
     }
-    getPid(mQidFileTextStream, true);
+    getPid(*mQidFileTextStream, true);
   }
   return mPid;
 }
@@ -213,29 +257,29 @@ const bool ProcessHandler::isPidInStderr() {
     return false;
   }
   readAllStandardError();
-  mStderrTextStream = new QTextStream(mStderr);
-  return getPid(mStderrTextStream, false);
-  delete mStderrTextStream;
-  mStderrTextStream = NULL;
+  QTextStream textStream(mStderr);
+  return getPid(textStream, false);
 }
 
 /**
  * return true if the pid is found in stream.  If save is true, save the pid
  * to mPid; in this case only check for the pid if mPid is empty.
  */
-const bool ProcessHandler::getPid(QTextStream *stream, const bool save) {
+const bool ProcessHandler::getPid(QTextStream &stream, const bool save) {
+  if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+    mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
+        << ":mPid:" << mPid << endl;
+  }
   if (save && !mPid.isEmpty()) {
     //Don't look for the PID more then once
     return true;
   }
-  if (stream == NULL) {
-    return false;
-  }
   //Don't set the PID unless the line is conplete (includes an EOL).  Process
   //may not be finished when this function runs.
-  QString output = stream->readAll();
+  QString output = stream.readAll();
   if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-    mProcesschunks->getOutStream() << "getPid:output:" << output << endl;
+    mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
+        << ":getPid:output:" << output << endl;
   }
   //Look for a PID entry with an EOL so the the complete PID is collected
   int index = output.lastIndexOf("PID:");
@@ -258,6 +302,11 @@ const bool ProcessHandler::getPid(QTextStream *stream, const bool save) {
 
 const QByteArray ProcessHandler::readAllLogFile() {
   QByteArray log;
+  if (mComFileJob == NULL) {
+    mProcesschunks ->getOutStream() << "ERROR:" << mDecoratedClassName << ":"
+        << __func__ << ":Empty mComFileJob" << endl;
+    return log;
+  }
   if (!mLogFile->open(QIODevice::ReadOnly)) {
     return log;
   }
@@ -267,9 +316,14 @@ const QByteArray ProcessHandler::readAllLogFile() {
 }
 
 const bool ProcessHandler::isLogFileEmpty() {
+  if (mComFileJob == NULL) {
+    mProcesschunks ->getOutStream() << "ERROR:" << mDecoratedClassName << ":"
+        << __func__ << ":Empty mComFileJob" << endl;
+    return true;
+  }
   if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-    mProcesschunks->getOutStream() << "isLogFileEmpty:size:"
-        << mLogFile->size() << endl;
+    mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
+        << ":isLogFileEmpty:size:" << mLogFile->size() << endl;
   }
   return mLogFile->size() == 0;
 }
@@ -278,9 +332,9 @@ void ProcessHandler::readAllStandardError() {
   QByteArray err = mProcess->readAllStandardError();
   if (!err.isEmpty()) {
     mStderr.append(err);
-    if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-      mProcesschunks->getOutStream() << err.data() << endl;
-    }
+    //if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+    printf("stderr:%s\n", err.data());
+    //}
   }
 }
 
@@ -288,13 +342,16 @@ void ProcessHandler::readAllStandardError() {
 //.job file (queue).
 //Returns true if found
 const bool ProcessHandler::getSshError(QString &dropMess) {
+  if (mComFileJob == NULL) {
+    mProcesschunks ->getOutStream() << "ERROR:" << mDecoratedClassName << ":"
+        << __func__ << ":Empty mComFileJob" << endl;
+    return false;
+  }
   bool found = false;
   if (!mProcesschunks->isQueue()) {
     readAllStandardError();
-    mStderrTextStream = new QTextStream(mStderr);
-    found = getSshError(dropMess, mStderrTextStream);
-    delete mStderrTextStream;
-    mStderrTextStream = NULL;
+    QTextStream textStream(mStderr);
+    found = getSshError(dropMess, textStream);
   }
   else {
     if (!mProcesschunks->getCurrentDir().exists(mJobFile->fileName())) {
@@ -306,14 +363,14 @@ const bool ProcessHandler::getSshError(QString &dropMess) {
     if (!mJobFile->open(QIODevice::ReadOnly)) {
       return found;
     }
-    found = getSshError(dropMess, mJobFileTextStream);
+    found = getSshError(dropMess, *mJobFileTextStream);
   }
   return found;
 }
 
-const bool ProcessHandler::getSshError(QString &dropMess, QTextStream *stream) {
+const bool ProcessHandler::getSshError(QString &dropMess, QTextStream &stream) {
   //look for cd error & ssh error
-  QString line = stream->readLine();
+  QString line = stream.readLine();
   while (!line.isNull()) {
     if (line.indexOf("cd: ") != -1) {
       dropMess = "it cannot cd to %1 (%2)";
@@ -325,7 +382,7 @@ const bool ProcessHandler::getSshError(QString &dropMess, QTextStream *stream) {
       dropMess = dropMess.arg(line);
       return true;
     }
-    line = stream->readLine();
+    line = stream.readLine();
   }
   return false;
 }
@@ -333,11 +390,17 @@ const bool ProcessHandler::getSshError(QString &dropMess, QTextStream *stream) {
 //True when the .com file has been run and it has finished.  Returns true if
 //the log exists and the finished signal has been received
 const bool ProcessHandler::isComProcessDone() {
+  if (mComFileJob == NULL) {
+    mProcesschunks ->getOutStream() << "ERROR:" << mDecoratedClassName << ":"
+        << __func__ << ":Empty mComFileJob" << endl;
+    return false;
+  }
   if (mProcesschunks->isQueue()) {
     if (!cshFileExists() && logFileExists(true)) {
       mMachine = NULL;
       if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-        mProcesschunks->getOutStream() << mComFileName
+        mProcesschunks->getOutStream() << mDecoratedClassName << ":"
+            << __func__ << ":" << mComFileJob->getComFileName()
             << ":isComProcessDone returning true (mMachine set to NULL)"
             << endl;
       }
@@ -349,7 +412,8 @@ const bool ProcessHandler::isComProcessDone() {
   }
   bool done = mFinishedSignalReceived && logFileExists(true);
   if (done && mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-    mProcesschunks->getOutStream() << mComFileName
+    mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
+        << ":" << mComFileJob->getComFileName()
         << ":isComProcessDone returning " << done << endl;
   }
   return done;
@@ -361,10 +425,16 @@ const bool ProcessHandler::isFinishedSignalReceived() {
 
 //Returns true if a last line of the log file starts with "CHUNK DONE"
 const bool ProcessHandler::isChunkDone() {
+  if (mComFileJob == NULL) {
+    mProcesschunks ->getOutStream() << "ERROR:" << mDecoratedClassName << ":"
+        << __func__ << ":Empty mComFileJob" << endl;
+    return false;
+  }
   if (!mLogFile->open(QIODevice::ReadOnly)) {
     if (logFileExists(true) && !mLogFile->open(QIODevice::ReadOnly)) {
-      mProcesschunks->getOutStream() << "Warning: Unable to open "
-          << mLogFile->fileName() << endl;
+      mProcesschunks->getOutStream() << "Warning:" << mDecoratedClassName
+          << ":" << __func__ << ":Unable to open " << mLogFile->fileName()
+          << endl;
     }
     return false;
   }
@@ -381,7 +451,8 @@ const bool ProcessHandler::isChunkDone() {
   lastPartOfFile = lastPartOfFile.trimmed();
   bool done = lastPartOfFile.endsWith("CHUNK DONE");
   if (done && mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-    mProcesschunks->getOutStream() << mComFileName << ":isChunkDone returning "
+    mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
+        << ":" << mComFileJob->getComFileName() << ":isChunkDone returning "
         << done << ",lastPartOfFile:" << lastPartOfFile << endl;
   }
   return done;
@@ -402,6 +473,11 @@ bool ProcessHandler::isPausing() {
 //Reads the last 1000 characters of the file.  Returns all the text between
 //with "ERROR:" and the end of the file.
 void ProcessHandler::getErrorMessageFromLog(QString &errorMess) {
+  if (mComFileJob == NULL) {
+    mProcesschunks ->getOutStream() << "ERROR:" << mDecoratedClassName << ":"
+        << __func__ << ":Empty mComFileJob" << endl;
+    return;
+  }
   if (!mLogFile->open(QIODevice::ReadOnly)) {
     return;
   }
@@ -459,24 +535,34 @@ void ProcessHandler::getErrorMessageFromOutput(QString &errorMess) {
 }
 
 void ProcessHandler::printTooManyErrorsMessage(const int numErr) {
-  mProcesschunks->getOutStream() << getComFileName()
-      << " has given processing error " << numErr << " times - giving up"
-      << endl;
+  mProcesschunks->getOutStream() << "ERROR:" << mDecoratedClassName << ":"
+      << __func__ << ":" << getComFileName() << " has given processing error "
+      << numErr << " times - giving up" << endl;
   if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-    mProcesschunks->getOutStream() << "mExitCode:" << mExitCode
-        << ",mExitStatus:" << mExitStatus << endl;
+    mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
+        << ":mExitCode:" << mExitCode << ",mExitStatus:" << mExitStatus << endl;
   }
 }
 
 void ProcessHandler::incrementNumChunkErr() {
-  mNumChunkErr++;
+  if (mComFileJob == NULL) {
+    mProcesschunks ->getOutStream() << "ERROR:" << mDecoratedClassName << ":"
+        << __func__ << ":Empty mComFileJob" << endl;
+    return;
+  }
+  mComFileJob->incrementNumChunkErr();
   if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-    mProcesschunks->getOutStream() << "incrementNumChunkErr:" << mNumChunkErr
-        << endl;
+    mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
+        << ":incrementNumChunkErr:" << mComFileJob->getNumChunkErr() << endl;
   }
 }
 
 void ProcessHandler::printWarnings() {
+  if (mComFileJob == NULL) {
+    mProcesschunks ->getOutStream() << "ERROR:" << mDecoratedClassName << ":"
+        << __func__ << ":Empty mComFileJob" << endl;
+    return;
+  }
   if (!mLogFile->open(QIODevice::ReadOnly)) {
     return;
   }
@@ -491,19 +577,39 @@ void ProcessHandler::printWarnings() {
 }
 
 const bool ProcessHandler::cshFileExists() {
-  return mProcesschunks->getCurrentDir().exists(mCshFile->fileName());
+  if (mComFileJob == NULL) {
+    mProcesschunks ->getOutStream() << "ERROR:" << mDecoratedClassName << ":"
+        << __func__ << ":Empty mComFileJob" << endl;
+    return false;
+  }
+  return mProcesschunks->getCurrentDir().exists(mComFileJob->getCshFileName());
 }
 
 const int ProcessHandler::getNumChunkErr() {
-  return mNumChunkErr;
+  if (mComFileJob == NULL) {
+    mProcesschunks ->getOutStream() << "ERROR:" << mDecoratedClassName << ":"
+        << __func__ << ":Empty mComFileJob" << endl;
+    return 0;
+  }
+  return mComFileJob->getNumChunkErr();
 }
 
 const QString ProcessHandler::getComFileName() {
-  return mComFileName;
+  if (mComFileJob == NULL) {
+    mProcesschunks ->getOutStream() << "ERROR:" << mDecoratedClassName << ":"
+        << __func__ << ":Empty mComFileJob" << endl;
+    return "";
+  }
+  return mComFileJob->getComFileName();
 }
 
 const QString ProcessHandler::getLogFileName() {
-  return mLogFile->fileName();
+  if (mComFileJob == NULL) {
+    mProcesschunks ->getOutStream() << "ERROR:" << mDecoratedClassName << ":"
+        << __func__ << ":Empty mComFileJob" << endl;
+    return "";
+  }
+  return mComFileJob->getLogFileName();
 }
 
 //Returns true if the process has started, but the log file hasn't been create,
@@ -521,21 +627,41 @@ const bool ProcessHandler::isStartProcessTimedOut(const int timeout) {
   return !logFileExists(true);
 }
 
-void ProcessHandler::setFlag(const FlagType flag) {
-  mFlag = flag;
+void ProcessHandler::setFlag(const ComFileJob::FlagType flag) {
+  if (mComFileJob == NULL) {
+    mProcesschunks ->getOutStream() << "ERROR:" << mDecoratedClassName << ":"
+        << __func__ << ":Empty mComFileJob" << endl;
+    return;
+  }
+  mComFileJob->setFlag(flag);
 }
 
 void ProcessHandler::backupLog() {
+  if (mComFileJob == NULL) {
+    mProcesschunks ->getOutStream() << "ERROR:" << mDecoratedClassName << ":"
+        << __func__ << ":Empty mComFileJob" << endl;
+    return;
+  }
   imodBackupFile(mLogFile->fileName().toLatin1().data());
 }
 
 void ProcessHandler::removeFiles() {
+  if (mComFileJob == NULL) {
+    mProcesschunks ->getOutStream() << "ERROR:" << mDecoratedClassName << ":"
+        << __func__ << ":Empty mComFileJob" << endl;
+    return;
+  }
   mProcesschunks->getCurrentDir().remove(mLogFile->fileName());
-  mProcesschunks->getCurrentDir().remove(mCshFile->fileName());
+  mProcesschunks->getCurrentDir().remove(mComFileJob->getCshFileName());
   removeProcessFiles();
 }
 
 void ProcessHandler::removeProcessFiles() {
+  if (mComFileJob == NULL) {
+    mProcesschunks ->getOutStream() << "ERROR:" << mDecoratedClassName << ":"
+        << __func__ << ":Empty mComFileJob" << endl;
+    return;
+  }
   if (mProcesschunks->isQueue()) {
     mProcesschunks->getCurrentDir().remove(mJobFile->fileName());
     mProcesschunks->getCurrentDir().remove(mQidFile->fileName());
@@ -546,15 +672,28 @@ void ProcessHandler::removeProcessFiles() {
   }
 }
 
-QFile *ProcessHandler::getCshFile() {
-  return mCshFile;
+QString ProcessHandler::getCshFile() {
+  QString temp;
+  if (mComFileJob == NULL) {
+    mProcesschunks ->getOutStream() << "ERROR:" << mDecoratedClassName << ":"
+        << __func__ << ":Empty mComFileJob" << endl;
+    return temp;
+  }
+  temp = mComFileJob->getCshFileName();
+  return temp;
 }
 
 void ProcessHandler::runProcess(MachineHandler *machine) {
+  //Don't run a job that has been reset.
+  if (mComFileJobIndex == -1) {
+    mProcesschunks ->getOutStream() << "ERROR:" << mDecoratedClassName << ":"
+        << __func__ << ":Empty mComFileJob" << endl;
+    return;
+  }
   if (mProcesschunks->isVerbose(mDecoratedClassName, __func__) && machine
       != NULL) {
-    mProcesschunks->getOutStream() << "runProcess:machine:"
-        << machine->getName() << endl;
+    mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
+        << ":runProcess:machine:" << machine->getName() << endl;
   }
   mMachine = machine;
   int i;
@@ -574,7 +713,8 @@ void ProcessHandler::runProcess(MachineHandler *machine) {
       //Escaping the single quote shouldn't be necessary because this is not
       //being run from a shell.
       QString param = QString("\"cd %1 && (csh -ef < %2 ; \\rm -f %3)\"").arg(
-          mEscapedRemoteDirPath, mCshFile->fileName(), mCshFile->fileName());
+          mEscapedRemoteDirPath, mComFileJob->getCshFileName(),
+          mComFileJob->getCshFileName());
       paramList = new QStringList();
       paramList->append("-x");
       QStringList sshOpts = mProcesschunks->getSshOpts();
@@ -585,15 +725,16 @@ void ProcessHandler::runProcess(MachineHandler *machine) {
     }
     //hook stdin to something to avoid excessive pipes
     mProcess->setStandardOutputFile(QString("%1.stdout").arg(
-        mCshFile->fileName()), QProcess::Truncate);
-    mProcess->setStandardInputFile(mCshFile->fileName());
+        mComFileJob->getCshFileName()), QProcess::Truncate);
+    mProcess->setStandardInputFile(mComFileJob->getCshFileName());
   }
   //Run command
   resetSignalValues();
   if (command != NULL) {
     if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-      mProcesschunks->getOutStream() << "running remote command:" << endl
-          << *command << " " << paramList->join(" ") << endl;
+      mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
+          << ":running remote command:" << endl << *command << " "
+          << paramList->join(" ") << endl;
     }
     //Run on a remote machine
     mProcess->start(*command, *paramList);
@@ -601,8 +742,9 @@ void ProcessHandler::runProcess(MachineHandler *machine) {
   }
   else {
     if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-      mProcesschunks->getOutStream() << "running:" << endl << mCommand << " "
-          << mParamList.join(" ") << endl;
+      mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
+          << ":running:" << endl << mCommand << " " << mParamList.join(" ")
+          << endl;
     }
     //Run on local machine or queue
     mProcess->start(mCommand, mParamList);
@@ -625,33 +767,56 @@ const bool ProcessHandler::killProcess() {
     //Nothing to do - no process is running
     return true;
   }
+  if (mComFileJob == NULL) {
+    return true;
+  }
   if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-    mProcesschunks->getOutStream() << mComFileName
-        << ":Turning on ProcessHandler::mKill" << endl;
+    mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
+        << ":" << mComFileJob->getComFileName() << ":A" << endl;
   }
   mKill = true;
   //Tell processchunks that a process is being killed
   //This must be done before relinquishing control.
-  mProcesschunks->msgKillProcessStarted(mProcessIndex);
-  mFlag = notDone;
+  mProcesschunks->msgKillProcessStarted(this);
+  mComFileJob->setFlag(ComFileJob::notDone);
   mRanContinueKillProcess = false;
   //Not doing the ls to handle the old RHEL5 bug - bug should be fixed
   if (mProcesschunks->isQueue() && mProcesschunks->getAns() != 'D') {
+    if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+      mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
+          << ":" << mComFileJob->getComFileName() << ":B" << endl;
+    }
     continueKillProcess(false);
   }
   else if (!mProcesschunks->isQueue()) {
+    if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+      mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
+          << ":" << mComFileJob->getComFileName() << ":C" << endl;
+    }
     //Make sure that the pid has been retrieved
     getPid();
     if (!mPid.isEmpty()) {
+      if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+        mProcesschunks->getOutStream() << mDecoratedClassName << ":"
+            << __func__ << ":" << mComFileJob->getComFileName() << ":D" << endl;
+      }
       continueKillProcess(false);
     }
     else {
+      if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+        mProcesschunks->getOutStream() << mDecoratedClassName << ":"
+            << __func__ << ":" << mComFileJob->getComFileName() << ":E" << endl;
+      }
       //if the PID isn't there yet, wait for it for at most 15 seconds
       mPidTimerId = startTimer(15 * 1000);
       return false;
     }
   }
   else {
+    if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+      mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
+          << ":" << mComFileJob->getComFileName() << ":F" << endl;
+    }
     continueKillProcess(false);
   }
   return true;
@@ -679,17 +844,20 @@ void ProcessHandler::timerEvent(const QTimerEvent */*timerEvent*/) {
 
 //If waiting for the PID (if necessary) continue killing the process
 void ProcessHandler::continueKillProcess(const bool asynchronous) {
+  if (mComFileJob == NULL) {
+    mProcesschunks ->getOutStream() << "ERROR:" << mDecoratedClassName << ":"
+        << __func__ << ":Empty mComFileJob" << endl;
+    return;
+  }
   if (!mKill) {
-    mProcesschunks->getOutStream()
-        << "Warning: ProcessHandler::continueKillProcess called when mKill is false"
-        << endl;
+    mProcesschunks->getOutStream() << "Warning:" << mDecoratedClassName << ":"
+        << __func__ << " called when mKill is false" << endl;
     return;
   }
   //function should only be run once
   if (mRanContinueKillProcess) {
-    mProcesschunks->getOutStream()
-        << "Warning: ProcessHandler::continueKillProcess called when mRanContinueKillProcess is true"
-        << endl;
+    mProcesschunks->getOutStream() << "Warning:" << mDecoratedClassName << ":"
+        << __func__ << " called when mRanContinueKillProcess is true" << endl;
     return;
   }
   mRanContinueKillProcess = true;
@@ -709,18 +877,18 @@ void ProcessHandler::continueKillProcess(const bool asynchronous) {
     //The second to last parameter is the action letter
     mParamList.replace(mParamList.size() - 2, action);
     if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-      mProcesschunks->getOutStream() << mCommand << " " << mParamList.join(" ")
-          << endl;
+      mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
+          << ":" << mCommand << " " << mParamList.join(" ") << endl;
     }
     mKillProcess->start(mCommand, mParamList);
     runningKillProcess = true;
     if (!mKillProcess->waitForFinished(1000) && mProcesschunks->isVerbose(
         mDecoratedClassName, __func__)) {
-      mProcesschunks->getOutStream() << "did not finish:error:"
-          << mKillProcess->error() << ",exitCode:" << mKillProcess->exitCode()
-          << ",exitStatus:" << mKillProcess->exitStatus() << ",state:"
-          << mKillProcess->state() << endl
-          << mKillProcess->readAllStandardError() << endl
+      mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
+          << ":did not finish:error:" << mKillProcess->error() << ",exitCode:"
+          << mKillProcess->exitCode() << ",exitStatus:"
+          << mKillProcess->exitStatus() << ",state:" << mKillProcess->state()
+          << endl << mKillProcess->readAllStandardError() << endl
       /* << mKillProcess->readAllStandardOutput()*/<< endl;
     }
     //Put mParamList back to its regular form
@@ -731,10 +899,9 @@ void ProcessHandler::continueKillProcess(const bool asynchronous) {
     getPid();
     if (!mPid.isEmpty()) {
       //the pid exists - continue killing the process
-      mProcesschunks->getOutStream() << "Killing " << mComFileName << " on "
-          << mMachine->getName() << endl;
-      QString command;
-      QStringList paramList;
+      mProcesschunks->getOutStream() << "Killing "
+          << mComFileJob->getComFileName() << " on " << mMachine->getName()
+          << endl;
       if (mMachine->getName() == mProcesschunks->getHostRoot()
           || mMachine->getName() == "localhost") {
         //local job
@@ -743,17 +910,26 @@ void ProcessHandler::continueKillProcess(const bool asynchronous) {
       else {
         //Kill a remote job in background
         //ssh -x $sshopts $machname bash --login -c \'"imodkillgroup $pid ; \rm -f $curdir/$pidname"\' &
-        command = "ssh";
+        QString command = "ssh";
         QString param = QString("\"imodkillgroup %1\"").arg(mPid);
+        QStringList paramList;
         paramList << "-x" << mProcesschunks->getSshOpts()
             << mMachine->getName() << "bash" << "--login" << "-c" << param;
+        QTime time;
+        mKillProcess->start(command, paramList);
+        time.start();
+        int sleepRet = b3dMilliSleep(mProcesschunks->getMillisecSleep());
+        int timeElapsed = time.elapsed();
+        mProcesschunks->getOutStream() << mDecoratedClassName << ":"
+            << __func__ << ":sleepRet:" << sleepRet << ",timeElapsed:"
+            << timeElapsed << endl;
+        if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+          mProcesschunks->getOutStream() << mDecoratedClassName << ":"
+              << __func__ << ":running " << command << " " << paramList.join(
+              " ") << endl;
+        }
+        runningKillProcess = true;
       }
-      mKillProcess->start(command, paramList);
-      if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-        mProcesschunks->getOutStream() << "running " << command << " "
-            << paramList.join(" ") << endl;
-      }
-      runningKillProcess = true;
     }
   }
   if (asynchronous) {
@@ -762,13 +938,13 @@ void ProcessHandler::continueKillProcess(const bool asynchronous) {
     //process.
     mMachine->killNextProcess();
   }
-  if (!runningKillProcess) {
+  if (!runningKillProcess && !mLocalKill) {
     //No kill request to wait for - go straight to clean up.
-    //This happens when a queue receives a drop command or when the PID was
+    //This happens when a queue receives a drop command, when the PID was
     //never received from a non-queue process.
     if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-      mProcesschunks->getOutStream()
-          << "Calling cleanupKillProcess from continueKillProcess" << endl;
+      mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
+          << ":Calling cleanupKillProcess from continueKillProcess" << endl;
     }
     cleanupKillProcess();
   }
@@ -778,11 +954,19 @@ void ProcessHandler::continueKillProcess(const bool asynchronous) {
 //machine.  If the process was killed, calls cleanupKillProcess.
 void ProcessHandler::handleFinished(const int exitCode,
     const QProcess::ExitStatus exitStatus) {
+  if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+    printf("%s:%s:%d,exitStatus:%d\n", mDecoratedClassName.toLatin1().data(),
+        __func__, exitCode, exitStatus);
+  }
+  if (mComFileJob == NULL) {
+    printf("ERROR:%s:%s:Empty mComFileJob\n",
+        mDecoratedClassName.toLatin1().data(), __func__);
+    return;
+  }
   mFinishedSignalReceived = true;
   if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-    mProcesschunks->getOutStream() << "finished:" << mComFileName
-        << ":exitCode" << exitCode << ",exitStatus:" << exitStatus << endl;
-    //readAllStandardOutput();
+    printf("%s:%s:%s\n", mDecoratedClassName.toLatin1().data(), __func__,
+        mComFileJob->getComFileName().toLatin1().data());
     readAllStandardError();
   }
   mStartingProcess = false;
@@ -794,50 +978,69 @@ void ProcessHandler::handleFinished(const int exitCode,
   if (!mProcesschunks->isQueue()) {
     if (mMachine->getName() == mProcesschunks->getHostRoot()
         || mMachine->getName() == "localhost") {
-      mProcesschunks->getCurrentDir().remove(mCshFile->fileName());
+      if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+        printf("%s:%s:%s\n%s\n", mDecoratedClassName.toLatin1().data(),
+            __func__,
+            mProcesschunks->getCurrentDir().absolutePath().toLatin1().data(),
+            mComFileJob->getCshFileName().toLatin1().data());
+      }
+      mProcesschunks->getCurrentDir().remove(mComFileJob->getCshFileName());
     }
+    mProcesschunks->getCurrentDir().remove(QString("%1.stdout").arg(
+        mComFileJob->getCshFileName()));
     if (mKill) {
       if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-        mProcesschunks->getOutStream()
-            << "Calling cleanupKillProcess from handleFinished" << endl;
+        printf("%s:%s:Calling cleanupKillProcess from handleFinished\n",
+            mDecoratedClassName.toLatin1().data(), __func__);
       }
       cleanupKillProcess();
     }
     mMachine = NULL;
     if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-      mProcesschunks->getOutStream() << "machine set to NULL" << endl;
+      printf("%s:%s:machine set to NULL\n",
+          mDecoratedClassName.toLatin1().data(), __func__);
     }
   }
 }
 
 void ProcessHandler::cleanupKillProcess() {
+  if (mComFileJob == NULL) {
+    printf("ERROR:%s:%s:Empty mComFileJob\n",
+        mDecoratedClassName.toLatin1().data(), __func__);
+    return;
+  }
   if (!mKill) {
-    mProcesschunks->getOutStream()
-        << "Warning: ProcessHandler::cleanupKillProcess called for "
-        << mComFileName << " when mKill is false" << endl;
+    printf("Warning:%s:%s called for %s when mKill is false\n",
+        mDecoratedClassName.toLatin1().data(), __func__,
+        mComFileJob->getComFileName().toLatin1().data());
     return;
   }
   //Tell processchunks that a process is killed
-  mProcesschunks->msgKillProcessDone(mProcessIndex);
-  mProcessIndex = -1;
+  mProcesschunks->msgKillProcessDone(this);
   mRanContinueKillProcess = false;
   if (!mKillFinishedSignalReceived) {
     mKillProcess->kill();
   }
   mKillFinishedSignalReceived = false;
   if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-    mProcesschunks->getOutStream() << mComFileName
-        << ":Turning off ProcessHandler::mKill in cleanupKillProcess" << endl;
+    printf(
+        "Warning:%s:%s:%s:Turning off ProcessHandler::mKill in cleanupKillProcess\n",
+        mDecoratedClassName.toLatin1().data(), __func__,
+        mComFileJob->getComFileName().toLatin1().data());
   }
   mKill = false;
 }
 
 //Called if kill process did not finish before the Processchunks timeout
 void ProcessHandler::msgKillProcessTimeout() {
+  if (mComFileJob == NULL) {
+    mProcesschunks ->getOutStream() << "ERROR:" << mDecoratedClassName << ":"
+        << __func__ << ":Empty mComFileJob" << endl;
+    return;
+  }
   if (!mKill) {
-    mProcesschunks->getOutStream()
-        << "Warning: ProcessHandler::msgKillProcessTimeout called when mKill is false"
-        << endl;
+    mProcesschunks->getOutStream() << "Warning:" << mDecoratedClassName << ":"
+        << __func__ << " called when mKill is false" << endl;
     return;
   }
   //A process did not end.  Disconnect the signals and create new processes
@@ -845,15 +1048,16 @@ void ProcessHandler::msgKillProcessTimeout() {
   mStartingProcess = false;
   initProcess();
   resetSignalValues();
-  mProcesschunks->getOutStream() << "Failed to kill " << mComFileName << " on "
-      << mMachine->getName() << " (no problem if machine is dead)" << endl;
-  mProcessIndex = -1;
+  mProcesschunks->getOutStream() << "Failed to kill "
+      << mComFileJob->getComFileName() << " on " << mMachine->getName()
+      << " (no problem if machine is dead)" << endl;
   if (!mKillFinishedSignalReceived) {
     mKillProcess->kill();
   }
   mKillFinishedSignalReceived = false;
   if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-    mProcesschunks->getOutStream() << mComFileName
+    mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
+        << ":" << mComFileJob->getComFileName()
         << ":Turning off ProcessHandler::mKill in msgKillProcessTimeout"
         << endl;
   }
@@ -862,15 +1066,21 @@ void ProcessHandler::msgKillProcessTimeout() {
 
 void ProcessHandler::handleKillFinished(const int exitCode,
     const QProcess::ExitStatus exitStatus) {
+  if (mComFileJob == NULL) {
+    mProcesschunks ->getOutStream() << "ERROR:" << mDecoratedClassName << ":"
+        << __func__ << ":Empty mComFileJob" << endl;
+    return;
+  }
   if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-    mProcesschunks->getOutStream() << "handleKillFinished: " << mComFileName
+    mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
+        << ":handleKillFinished: " << mComFileJob->getComFileName()
         << ",exitCode:" << exitCode << ",exitStatus:" << exitStatus << endl;
   }
   mKillFinishedSignalReceived = true;
   if (!mProcesschunks->isQueue()) {
     return;
   }
-  //The queue kill request is syncronous.
+  //The queue kill request is syncronous with the job.
   bool cleanup = true;
   //exitCode == 0:  Kill is completed
   //exitCode == 100:  Process finished before it could be killed
@@ -886,8 +1096,8 @@ void ProcessHandler::handleKillFinished(const int exitCode,
   }
   if (cleanup) {
     if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-      mProcesschunks->getOutStream()
-          << "Calling cleanupKillProcess from handleKillFinished with exitCode:"
+      mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
+          << ":Calling cleanupKillProcess from handleKillFinished with exitCode:"
           << exitCode << endl;
     }
     cleanupKillProcess();
@@ -895,10 +1105,20 @@ void ProcessHandler::handleKillFinished(const int exitCode,
 }
 
 void ProcessHandler::handleError(const QProcess::ProcessError processError) {
+  if (mLocalKill) {
+    //KillLocalProcessAndDescendents was used - causes a return code of 1
+    return;
+  }
+  if (mComFileJob == NULL) {
+    mProcesschunks ->getOutStream() << "ERROR:" << mDecoratedClassName << ":"
+        << __func__ << ":Empty mComFileJob" << endl;
+    return;
+  }
   mErrorSignalReceived = true;
   mProcessError = processError;
-  mProcesschunks->getOutStream() << mComFileName << ":process error:"
-      << processError << "," << mProcess->errorString() << endl;
+  mProcesschunks->getOutStream() << mComFileJob->getComFileName()
+      << ":process error:" << processError << "," << mProcess->errorString()
+      << endl;
 }
 
 void ProcessHandler::handleStarted() {
@@ -907,11 +1127,19 @@ void ProcessHandler::handleStarted() {
 
 //Stop and then kill the process with process ID pid and all of its descendents.
 //Waits for kill commands to complete.
+//Can't use imodkillgroup on the local host because we don't want to kill
+//processchunks, and its part of the group.
 void ProcessHandler::killLocalProcessAndDescendents(QString &pid) {
+  if (mComFileJob == NULL) {
+    mProcesschunks ->getOutStream() << "ERROR:" << mDecoratedClassName << ":"
+        << __func__ << ":Empty mComFileJob" << endl;
+    return;
+  }
   //immediately stop the process
   stopProcess(pid);
   if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-    mProcesschunks->getOutStream() << "stopping " << pid << endl;
+    mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
+        << ":stopping " << pid << endl;
   }
   int i;
   QStringList pidList;
@@ -936,8 +1164,8 @@ void ProcessHandler::killLocalProcessAndDescendents(QString &pid) {
         if (pidIndex == -1 || ppidIndex == -1) {
           header = stream.readLine().trimmed();
           if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-            mProcesschunks->getOutStream() << "ps column header:" << endl
-                << header << endl;
+            mProcesschunks->getOutStream() << mDecoratedClassName << ":"
+                << __func__ << ":ps column header:" << endl << header << endl;
           }
           QStringList headerList = header.split(QRegExp("\\s+"),
               QString::SkipEmptyParts);
@@ -974,8 +1202,8 @@ void ProcessHandler::killLocalProcessAndDescendents(QString &pid) {
                 foundNewChildPid = true;
                 pidList.append(childPid);
                 if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-                  mProcesschunks->getOutStream() << "stopping:" << endl << line
-                      << endl;
+                  mProcesschunks->getOutStream() << mDecoratedClassName << ":"
+                      << __func__ << ":stopping:" << endl << line << endl;
                 }
               }
             }
@@ -984,7 +1212,7 @@ void ProcessHandler::killLocalProcessAndDescendents(QString &pid) {
         else {
           mProcesschunks->getOutStream()
               << "Warning: May not have been able to kill all processes descendent from "
-              << mCommand << " " << mCshFile
+              << mCommand << " " << mComFileJob->getCshFileName()
               << " on local machine.  Ps PID and PPID columns where not found in "
               << header << "(" << command << " " << paramList.join(" ") << ")."
               << endl;
@@ -994,7 +1222,7 @@ void ProcessHandler::killLocalProcessAndDescendents(QString &pid) {
       else {
         mProcesschunks->getOutStream()
             << "Warning: May not have been able to kill all processes descendent from "
-            << mCommand << " " << mCshFile
+            << mCommand << " " << mComFileJob->getCshFileName()
             << " on local machine.  Ps command return nothing" << "("
             << command << " " << paramList.join(" ") << ")." << endl;
       }
@@ -1002,12 +1230,13 @@ void ProcessHandler::killLocalProcessAndDescendents(QString &pid) {
     else {
       mProcesschunks->getOutStream()
           << "Warning: May not have been able to kill all processes descendent from "
-          << mCommand << " " << mCshFile
+          << mCommand << " " << mComFileJob->getCshFileName()
           << " on local machine.  Ps command failed" << "(" << command << " "
           << paramList.join(" ") << ")." << endl;
       return;
     }
   } while (foundNewChildPid);
+  mLocalKill = true;
   //Kill everything in the process ID list.
   for (i = 0; i < pidList.size(); i++) {
     killProcess(pidList.at(i));
