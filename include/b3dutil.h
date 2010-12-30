@@ -56,6 +56,7 @@ extern "C" {
   int b3dIMin(int narg, ...);
   int b3dIMax(int narg, ...);
   double wallTime(void);
+  int b3dMilliSleep(int msecs);
   int numOMPthreads(int optimalThreads);
 
 #ifdef __cplusplus
@@ -67,6 +68,9 @@ extern "C" {
 
 /*
 $Log$
+Revision 1.20  2010/06/29 21:34:11  mast
+Added convenience functions for calling from C
+
 Revision 1.19  2010/06/23 17:23:03  mast
 pid function
 
