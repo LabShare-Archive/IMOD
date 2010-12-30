@@ -739,6 +739,7 @@ void ProcessHandler::runProcess(MachineHandler *machine) {
     //Run on a remote machine
     mProcess->start(*command, *paramList);
     mProcess->closeWriteChannel();
+    b3dMilliSleep(mProcesschunks->getMillisecSleep());
   }
   else {
     if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
@@ -749,6 +750,7 @@ void ProcessHandler::runProcess(MachineHandler *machine) {
     //Run on local machine or queue
     mProcess->start(mCommand, mParamList);
     mProcess->closeWriteChannel();
+    b3dMilliSleep(mProcesschunks->getMillisecSleep());
     if (mProcesschunks->isQueue()) {
       mProcess->waitForFinished(2000);
     }
