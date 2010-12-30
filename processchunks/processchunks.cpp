@@ -57,6 +57,7 @@ static char
         ":c:FN:Check file \"name\" for commands P, Q, and D (default processchunks.input)",
         ":q:I:Run on cluster queue with given maximum # of jobs at once",
         ":Q:CH:Machine name to use for the queue (default queue)",
+        ":m:I:Milliseconds to pause before killing each process (default 50)",
         ":P:B:Output process ID",
         ":v:B:Verbose.",
         ":V:CH:?|?,2|class[,function[,...]][,2]|2  Verbose instructions:  case insensitive, matches from the end of the class or function name." };
@@ -81,6 +82,7 @@ Processchunks::Processchunks(int &argc, char **argv) :
   mOutStream = new QTextStream(stdout);
   mRemoteDir = NULL;
   mNice = 18;
+  mMillisecSleep = 50;
   mDropCrit = 5;
   mMaxChunkErr = 5;
   mRetain = 0;
@@ -111,11 +113,12 @@ Processchunks::~Processchunks() {
     free(mRootName);
   }
   delete mLsProcess;
-  delete mOutStream;
   delete mRemoteDir;
   delete mCheckFile;
-  delete[] mProcessArray;
+  delete[] mJobArray;
   delete mVmstocsh;
+  delete mOutStream;
+  mOutStream = NULL;
 }
 
 void Processchunks::printOsInformation() {
@@ -150,6 +153,7 @@ void Processchunks::loadParams(int &argc, char **argv) {
   PipGetBoolean("s", &mSingleFile);
   PipGetBoolean("g", &mJustGo);
   PipGetInteger("n", &mNice);
+  PipGetInteger("m", &mMillisecSleep);
   char *remoteDir = NULL;
   PipGetString("w", &remoteDir);
   if (remoteDir != NULL) {
@@ -230,12 +234,12 @@ void Processchunks::loadParams(int &argc, char **argv) {
 //machines.
 void Processchunks::setup() {
   setupSshOpts();
-  setupMachineList();
-  setupHostRoot();
   //Get current directory if the -w option was not used
   if (mRemoteDir == NULL) {
     mRemoteDir = new QString(mCurrentDir.absolutePath().toLatin1().data());
   }
+  setupMachineList();
+  setupHostRoot();
   setupProcessArray();
   probeMachines();
 }
@@ -247,41 +251,41 @@ void Processchunks::startLoop() {
   //Prescan logs for done ones to find first undone one, or back up unfinished
   mNumDone = 0;
   mFirstUndoneIndex = -1;
-  for (i = 0; i < mSizeProcessArray; i++) {
-    ProcessHandler *process = &mProcessArray[i];
-    if (process->logFileExists(false)) {
-      if (process->isChunkDone()) {
+  ProcessHandler process;
+  process.setup(*this);
+  for (i = 0; i < mSizeJobArray; i++) {
+    process.setJob(mJobArray[i], i);
+    if (process.logFileExists(false)) {
+      if (process.isChunkDone()) {
         //If it was done and we are resuming, set flag it is done, count
         if (mRetain) {
-          process->setFlag(ProcessHandler::done);
+          process.setFlag(ComFileJob::done);
           mNumDone++;
         }
       }
       else if (!mRetain) {
         //If it was not done and we are restarting, back up the old log
-        process->backupLog();
+        process.backupLog();
       }
     }
     //If resuming and this is the first undone one, keep track of that
-    if (mRetain && mFirstUndoneIndex == -1 && process->getFlag()
-        != ProcessHandler::done) {
+    if (mRetain && mFirstUndoneIndex == -1 && process.getFlag()
+        != ComFileJob::done) {
       mFirstUndoneIndex = i;
     }
+    //OLD:remove logs if not restarting
+    //remove logs if not resuming
+    if (!mRetain) {
+      process.removeFiles();
+    }
+    process.invalidateJob();
   }
   if (mFirstUndoneIndex == -1) {
     mFirstUndoneIndex = 0;
   }
 
-  //OLD:remove logs if not restarting
-  //remove logs if not resuming
-  if (!mRetain) {
-    for (i = 0; i < mSizeProcessArray; i++) {
-      mProcessArray[i].removeFiles();
-    }
-  }
-
   if (!mSingleFile || mSkipProbe) {
-    *mOutStream << mNumDone << " OF " << mSizeProcessArray << " DONE SO FAR "
+    *mOutStream << mNumDone << " OF " << mSizeJobArray << " DONE SO FAR "
         << endl;
   }
   //Initialize variables needed by the timer event function
@@ -289,7 +293,7 @@ void Processchunks::startLoop() {
   mPausing = false;
   mSyncing = 0;
   mAnyDone = false;
-  mNextSyncIndex = mSizeProcessArray + 2 - 1;
+  mNextSyncIndex = mSizeJobArray + 2 - 1;
   mHoldCrit = (mNumCpus + 1) / 2;
   //Error messages from inside the event loop must using QApplication functionality
   PipDone();
@@ -343,7 +347,7 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
   int i, cpuIndex;
   bool endTimerEvent = false;
   while (!endTimerEvent) {
-    if (mNumDone >= mSizeProcessArray) {
+    if (mNumDone >= mSizeJobArray) {
       cleanupAndExit();
     }
     if (readCheckFile()) {
@@ -373,7 +377,7 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
         if (machine->isChunkErred()) {
           chunkErrTot++;
         }
-        if (machine->getAssignedProcIndex(cpuIndex) != -1) {
+        if (machine->isJobValid(cpuIndex)) {
           assignTot++;
         }
       }
@@ -387,33 +391,33 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
       machine = &(mMachineList)[i];
       numCpus = machine->getNumCpus();
       for (cpuIndex = 0; cpuIndex < numCpus; cpuIndex++) {
-        int processIndex = machine->getAssignedProcIndex(cpuIndex);
+        ProcessHandler *process = machine->getProcessHandler(cpuIndex);
+        int jobIndex = process->getAssignedJobIndex();
         bool dropout = false;
-        if (processIndex != -1) {
+        if (jobIndex != -1) {
           QString dropMess;
           QString checkPid;
           QString errorMess;
-          if (mProcessArray[processIndex].isComProcessDone()) {
+          if (process->isComProcessDone()) {
             //Handle the comscript ran and finished
             //OLD:If the log is present and the .csh is gone, it has exited
             //If the log is present and the process's finished signal has been caught
-            if (mProcessArray[processIndex].isChunkDone()) {
+            if (process->isChunkDone()) {
               //If mSingleFile is true, set loopDone to end outer loop, and break
               //out of inner loop.
-              loopDone = handleChunkDone(machine, cpuIndex, processIndex);
+              loopDone = handleChunkDone(machine, process, jobIndex);
               if (loopDone) {
                 break;
               }
             }
             else {
-              if (!mQueue && mProcessArray[processIndex].isPausing()) {
+              if (!mQueue && process->isPausing()) {
                 return;
               }
               //otherwise set flag to redo it
               dropout = true;
-              if (!mProcessArray[processIndex].isLogFileEmpty()) {
-                if (!handleLogFileError(errorMess, machine, cpuIndex,
-                    processIndex)) {
+              if (!process->isLogFileEmpty()) {
+                if (!handleLogFileError(errorMess, machine, process)) {
                   return;
                 }
               }
@@ -422,8 +426,8 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
                 //If the com script issues a PID to standard error and nothing
                 //to standard out, it can't run the first real command in the
                 //file.
-                if (mProcessArray[processIndex].isPidInStderr()) {
-                  if (!handleError(NULL, machine, cpuIndex, processIndex)) {
+                if (process->isPidInStderr()) {
+                  if (!handleError(NULL, machine, process)) {
                     return;
                   }
                 }
@@ -431,18 +435,17 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
             }
           }
           else {
-            handleComProcessNotDone(dropout, dropMess, machine, processIndex);
+            handleComProcessNotDone(dropout, dropMess, machine, process);
           }
           //if failed, remove the assignment, mark chunk as to be done,
           //skip this machine on this round
           if (dropout) {
-            handleDropOut(noChunks, dropMess, machine, cpuIndex, processIndex,
-                errorMess);
+            handleDropOut(noChunks, dropMess, machine, process, errorMess);
           }
           //OLD:Clean up .ssh and .pid if no longer assigned
           //For queue only:  clean up .job and .qid if no longer assigned
-          if (machine->getAssignedProcIndex(cpuIndex) == -1 && mQueue) {
-            mProcessArray[processIndex].removeProcessFiles();
+          if (!process->isJobValid() && mQueue) {
+            process->removeProcessFiles();
           }
         }
         //Drop a machine if it has failed more than given number of times
@@ -460,24 +463,23 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
         //If the current machine is unassigned, find next com to do and run it
         //Move current log out of way so non-existence of log can be sign of
         //nothing having started.  Skip if no chunks are available
-        if (machine->getAssignedProcIndex(cpuIndex) == -1 && !dropout
-            && !noChunks && mSyncing != 2) {
-          processIndex = mFirstUndoneIndex;
+        if (!process->isJobValid() && !dropout && !noChunks && mSyncing != 2) {
+          jobIndex = mFirstUndoneIndex;
           bool foundChunks = false;
           int undoneIndex = -1;
-          while (processIndex < mSizeProcessArray
-              && machine->getAssignedProcIndex(cpuIndex) == -1) {
+          while (jobIndex < mSizeJobArray && machine->getAssignedJobIndex(
+              cpuIndex) == -1) {
             int runFlag;
             bool chunkOk;
             if (!checkChunk(runFlag, noChunks, undoneIndex, foundChunks,
-                chunkOk, machine, processIndex, chunkErrTot)) {
+                chunkOk, machine, jobIndex, chunkErrTot)) {
               break;
             }
-            if ((runFlag == ProcessHandler::sync || runFlag
-                == ProcessHandler::notDone) && chunkOk) {
-              runProcess(machine, cpuIndex, processIndex);
+            if ((runFlag == ComFileJob::sync || runFlag == ComFileJob::notDone)
+                && chunkOk) {
+              runProcess(machine, process, jobIndex);
             }
-            processIndex++;
+            jobIndex++;
           }
           //If no chunks were found in that loop set the nochunks flag
           if (!foundChunks) {
@@ -490,14 +492,14 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
       }
     }
     if (mNumDone > mLastNumDone) {
-      *mOutStream << mNumDone << " OF " << mSizeProcessArray << " DONE SO FAR"
+      *mOutStream << mNumDone << " OF " << mSizeJobArray << " DONE SO FAR"
           << endl;
     }
     mLastNumDone = mNumDone;
     //If we have finished up to the sync file, then allow the loop to run it
     if (mNumDone - 1 >= mNextSyncIndex - 1) {
       QString endComName = QString("%1.com").arg(mRootName);
-      if (!mSingleFile && mProcessArray[mNextSyncIndex].getComFileName()
+      if (!mSingleFile && mJobArray[mNextSyncIndex].getComFileName()
           == endComName) {
         *mOutStream << "ALL DONE - going to run " << endComName
             << " to reassemble" << endl;
@@ -505,7 +507,7 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
       //Set syncing flag to 1 to get it started
       mSyncing = 1;
       mFirstUndoneIndex = mNextSyncIndex;
-      mNextSyncIndex = mSizeProcessArray + 2 - 1;
+      mNextSyncIndex = mSizeJobArray + 2 - 1;
       noChunks = false;
     }
     else {
@@ -581,8 +583,7 @@ int Processchunks::escapeEntered() {
 }
 
 void Processchunks::handleInterrupt() {
-  *mOutStream << mSizeProcessArray - mNumDone << " chunks are still undone"
-      << endl;
+  *mOutStream << mSizeJobArray - mNumDone << " chunks are still undone" << endl;
   QString command;
   while (mAns != 'Q' && mAns != 'C' && mAns != 'P' && !(mAns == 'D' && !mQueue)) {
     mAns = ' ';
@@ -664,12 +665,13 @@ void Processchunks::killProcessOnNextMachine() {
   }
   //Go to next machine and start killing its running processes.
   mKillProcessMachineIndex++;
+  if (isVerbose(mDecoratedClassName, __func__)) {
+    *mOutStream << "killProcessOnNextMachine:mKillProcessMachineIndex:"
+        << mKillProcessMachineIndex << ",mMachineList.size():"
+        << mMachineList.size() << endl;
+  }
   if (mKillProcessMachineIndex < mMachineList.size()) {
     while (mKillProcessMachineIndex < mMachineList.size()) {
-      if (isVerbose(mDecoratedClassName, __func__)) {
-        *mOutStream << "killProcessOnNextMachine:mKillProcessMachineIndex:"
-            << mKillProcessMachineIndex << endl;
-      }
       if (!mMachineList[mKillProcessMachineIndex].killProcesses()) {
         if (isVerbose(mDecoratedClassName, __func__)) {
           *mOutStream << "killProcessOnNextMachine:mKillProcessMachineIndex:"
@@ -685,10 +687,15 @@ void Processchunks::killProcessOnNextMachine() {
   //Clean up when all machines are completed
   //This assumes that msgKillProcessStarted has already been called for every
   //kill request, including the ones that require waiting.
-  if (mKillProcessMachineIndex >= mMachineList.size()) {
+  if (!mAllKillProcessesHaveStarted && mKillProcessMachineIndex
+      >= mMachineList.size()) {
     mAllKillProcessesHaveStarted = true;
     if (isVerbose(mDecoratedClassName, __func__)) {
       *mOutStream << "mAllKillProcessesHaveStarted set to true" << endl;
+    }
+    if (mAllKillProcessesHaveStarted
+        && mProcessesWithUnfinishedKillRequest.isEmpty()) {
+      cleanupKillProcesses(false);
     }
   }
 }
@@ -697,8 +704,8 @@ void Processchunks::killProcessOnNextMachine() {
 //wait for processes to be killed after all the kill commands have been sent out,
 //and send a timeout message to the processes that haven't completed their kill
 //command.
-void Processchunks::msgKillProcessStarted(const int processIndex) {
-  mProcessesWithUnfinishedKillRequest.append(processIndex);
+void Processchunks::msgKillProcessStarted(ProcessHandler *process) {
+  mProcessesWithUnfinishedKillRequest.append(process);
   if (isVerbose(mDecoratedClassName, __func__)) {
     *mOutStream << "mProcessesWithUnfinishedKillRequest size:"
         << mProcessesWithUnfinishedKillRequest.size() << endl;
@@ -716,8 +723,18 @@ void Processchunks::msgKillProcessStarted(const int processIndex) {
 //ProcessHandler::handleFinished.
 //
 //This is not used for queue kill requests.
-void Processchunks::msgKillProcessDone(const int processIndex) {
-  mProcessesWithUnfinishedKillRequest.removeOne(processIndex);
+void Processchunks::msgKillProcessDone(ProcessHandler *process) {
+  if (isVerbose(mDecoratedClassName, __func__)) {
+    *mOutStream << mDecoratedClassName << ":" << __func__ << ":"
+        << mProcessesWithUnfinishedKillRequest.size() << " left" << endl;
+  }
+  mProcessesWithUnfinishedKillRequest.removeAll(process);
+  if (isVerbose(mDecoratedClassName, __func__)) {
+    *mOutStream << mDecoratedClassName << ":" << __func__ << ":"
+        << mProcessesWithUnfinishedKillRequest.size() << " left" << endl
+        << "mAllKillProcessesHaveStarted:" << mAllKillProcessesHaveStarted
+        << endl;
+  }
   if (mAllKillProcessesHaveStarted
       && mProcessesWithUnfinishedKillRequest.isEmpty()) {
     cleanupKillProcesses(false);
@@ -745,7 +762,7 @@ void Processchunks::killProcessTimeout() {
       //No need to call clean up until timeout.  msgKillProcessDone calls clean up.
       cleanupKillProcesses(true);
     }
-        }
+  }
   else {
     bool timeout = mKillCounter >= 150;
     //updating mProcessesWithUnfinishedKillRequest is not done by
@@ -755,16 +772,16 @@ void Processchunks::killProcessTimeout() {
     //The size of mProcessesWithUnfinishedKillRequest may decrease while this
     //loop is running.
     while (index < mProcessesWithUnfinishedKillRequest.size()) {
-      int processIndex = mProcessesWithUnfinishedKillRequest.at(index);
+      ProcessHandler *process = mProcessesWithUnfinishedKillRequest.at(index);
       //The .qid file is deleted when a queued chunk finishes
-      if (!mProcessArray[processIndex].qidFileExists()) {
+      if (!process->qidFileExists()) {
         //This call will cause processIndex to be removed from
         //mProcessesWithUnfinishedKillRequest so don't increment index.
         if (isVerbose(mDecoratedClassName, __func__)) {
           *mOutStream << "Calling cleanupKillProcess from killProcessTimeout"
               << endl;
         }
-        mProcessArray[processIndex].cleanupKillProcess();
+        process->cleanupKillProcess();
       }
       else {
         index++;
@@ -814,7 +831,7 @@ void Processchunks::cleanupKillProcesses(const bool timeout) {
   //Not all kill requests completed so send a timeout message to the processes
   int i;
   for (i = 0; i < mProcessesWithUnfinishedKillRequest.size(); i++) {
-    mProcessArray[mProcessesWithUnfinishedKillRequest.at(i)].msgKillProcessTimeout();
+    mProcessesWithUnfinishedKillRequest.at(i)->msgKillProcessTimeout();
   }
   //Handle error
   if (mAns == 'E') {
@@ -1079,15 +1096,14 @@ void Processchunks::setupProcessArray() {
   if (comFileArray.isEmpty()) {
     exitError("There are no command files matching %s-nnn.com", mRootName);
   }
-  //Build mProcessArray from comFileArray.
+  //Build mJobArray from comFileArray.
   //set up flag list and set up which chunk to copy the
   //log from, the first non-sync if any, otherwise just the first one
-  mSizeProcessArray = comFileArray.size();
-  mProcessArray = new ProcessHandler[mSizeProcessArray];
-  for (i = 0; i < mSizeProcessArray; i++) {
-    mProcessArray[i].setup(*this, comFileArray.at(i), i);
-    if (mProcessArray[i].getFlag() != ProcessHandler::sync && mCopyLogIndex
-        == -1) {
+  mSizeJobArray = comFileArray.size();
+  mJobArray = new ComFileJob[mSizeJobArray];
+  for (i = 0; i < mSizeJobArray; i++) {
+    mJobArray[i].setup(comFileArray.at(i), mSingleFile);
+    if (mJobArray[i].getFlag() != ComFileJob::sync && mCopyLogIndex == -1) {
       //Setting mCopyLogIndex to the first non-sync log
       mCopyLogIndex = i;
     }
@@ -1302,22 +1318,22 @@ void Processchunks::exitIfDropped(const int minFail, const int failTot,
 //copy the log for the first non-sync chunk
 //Return true if all chunks are done
 const bool Processchunks::handleChunkDone(MachineHandler *machine,
-    const int cpuIndex, const int processIndex) {
+    ProcessHandler *process, const int jobIndex) {
   int i;
   //If it is DONE, then set flag to done and deassign
   //Exonerate the machine from chunk errors if this chunk
   //gave a previous chunk error
-  mProcessArray[processIndex].setFlag(ProcessHandler::done);
-  machine->setAssignedProcIndex(cpuIndex, -1);
+  process->setFlag(ComFileJob::done);
+  process->invalidateJob();
   machine->setFailureCount(0);
   mSyncing = 0;
-  if (mProcessArray[processIndex].getNumChunkErr() != 0) {
+  if (process->getNumChunkErr() != 0) {
     machine->setChunkErred(false);
   }
   mNumDone++;
-  *mOutStream << mProcessArray[processIndex].getComFileName()
-      << " finished on " << machine->getName() << endl;
-  mProcessArray[processIndex].printWarnings();
+  *mOutStream << process->getComFileName() << " finished on "
+      << machine->getName() << endl;
+  process->printWarnings();
   if (mSingleFile) {
     if (!mSkipProbe) {
       cleanupAndExit();
@@ -1336,7 +1352,7 @@ const bool Processchunks::handleChunkDone(MachineHandler *machine,
   }
   mAnyDone = true;
   //copy the log for the first non-sync chunk
-  if (processIndex == mCopyLogIndex) {
+  if (jobIndex == mCopyLogIndex) {
     QString rootLogName = QString("%1.log").arg(mRootName);
     if (isVerbose(mDecoratedClassName, __func__)) {
       *mOutStream << "rootLogName:" << rootLogName << endl;
@@ -1355,8 +1371,8 @@ const bool Processchunks::handleChunkDone(MachineHandler *machine,
     QTextStream writeStream(&rootLog);
     writeStream
         << "THIS FILE IS JUST THE LOG FOR ONE CHUNK AND WAS COPIED BY PROCESSCHUNKS FROM "
-        << mProcessArray[processIndex].getLogFileName() << endl;
-    const QByteArray log = mProcessArray[processIndex].readAllLogFile();
+        << process->getLogFileName() << endl;
+    const QByteArray log = process->readAllLogFile();
     if (!log.isEmpty()) {
       writeStream << log.data();
     }
@@ -1369,31 +1385,30 @@ const bool Processchunks::handleChunkDone(MachineHandler *machine,
 //If the chunk has errored too many times, set mAns to E and kill jobs
 //Return false the chunk has errored too many times
 const bool Processchunks::handleLogFileError(QString &errorMess,
-    MachineHandler *machine, const int cpuIndex, const int processIndex) {
-  mProcessArray[processIndex].getErrorMessageFromLog(errorMess);
-  return handleError(&errorMess, machine, cpuIndex, processIndex);
+    MachineHandler *machine, ProcessHandler *process) {
+  process->getErrorMessageFromLog(errorMess);
+  return handleError(&errorMess, machine, process);
 }
 
 //Print an error message.
 //If the chunk has errored too many times, set mAns to E and kill jobs
 //Return false the chunk has errored too many times
 const bool Processchunks::handleError(const QString *errorMess,
-    MachineHandler *machine, const int cpuIndex, const int processIndex) {
+    MachineHandler *machine, ProcessHandler *process) {
   int numErr;
-  mProcessArray[processIndex].incrementNumChunkErr();
-  numErr = mProcessArray[processIndex].getNumChunkErr();
+  process->incrementNumChunkErr();
+  numErr = process->getNumChunkErr();
   machine->setChunkErred(true);
   //Give up if the chunk errored too many  times: and
   //for a sync chunk that is twice or once if one machine
   if (numErr >= mMaxChunkErr || (mSyncing && (mMachineList.size() == 1
       || numErr >= 2))) {
-    mProcessArray[processIndex].printTooManyErrorsMessage(numErr);
+    process->printTooManyErrorsMessage(numErr);
     if (errorMess != NULL && !errorMess->isEmpty()) {
       *mOutStream << *errorMess << endl;
     }
     mAns = 'E';
-    //Unassign the CPU
-    machine->setAssignedProcIndex(cpuIndex, -1);
+    process->invalidateJob();
     killProcesses();
     return false;
   }
@@ -1406,8 +1421,8 @@ const bool Processchunks::handleError(const QString *errorMess,
 //Handle com not started yet
 //Handle log doen't exist and timeout - drop
 void Processchunks::handleComProcessNotDone(bool &dropout, QString &dropMess,
-    MachineHandler *machine, const int processIndex) {
-  if (mQueue && !mProcessArray[processIndex].qidFileExists()) {
+    MachineHandler *machine, ProcessHandler *process) {
+  if (mQueue && !process->qidFileExists()) {
     //For a queue, the qid file should be there
     dropout = true;
     dropMess = "it failed to be submitted to queue";
@@ -1418,19 +1433,19 @@ void Processchunks::handleComProcessNotDone(bool &dropout, QString &dropMess,
     //OLD:If the ssh file is non empty check for errors there
     //Look for cd or ssh errors in stdout and stderr.  For a queue check the
     //.job file.
-    if (mProcessArray[processIndex].getSshError(dropMess)) {
+    if (process->getSshError(dropMess)) {
       //A cd or ssh error is very serious - stop using this machine.
       dropout = true;
       machine->setFailureCount(mDropCrit);
     }
-    if (!dropout && mProcessArray[processIndex].isFinishedSignalReceived()) {
+    if (!dropout && process->isFinishedSignalReceived()) {
       dropout = true;
     }
     else if (!dropout) {
       //OLD:if log file doesn't exist, check the pid
       //OLD:and give up after timeout
       //Check for timeout
-      if (mProcessArray[processIndex].isStartProcessTimedOut(runProcessTimeout)) {
+      if (process->isStartProcessTimedOut(runProcessTimeout)) {
         dropout = true;
       }
     }
@@ -1440,23 +1455,22 @@ void Processchunks::handleComProcessNotDone(bool &dropout, QString &dropMess,
 //remove the assignment, mark chunk as to be done,
 //skip this machine on this round
 void Processchunks::handleDropOut(bool &noChunks, QString &dropMess,
-    MachineHandler *machine, const int cpuIndex, const int processIndex,
-    QString &errorMess) {
-  *mOutStream << mProcessArray[processIndex].getComFileName() << " failed on "
+    MachineHandler *machine, ProcessHandler *process, QString &errorMess) {
+  *mOutStream << process->getComFileName() << " failed on "
       << machine->getName() << " - need to restart" << endl;
   if (!errorMess.isEmpty()) {
     *mOutStream << errorMess << endl;
   }
-  mProcessArray[processIndex].setFlagNotDone();
+  process->setFlagNotDone(mSingleFile);
   if (mSyncing) {
     mSyncing = 1;
   }
-  machine->setAssignedProcIndex(cpuIndex, -1);
+  process->invalidateJob();
   noChunks = false;
   machine->incrementFailureCount();
   if (machine->getFailureCount() >= mDropCrit) {
     if (errorMess.isEmpty()) {
-      mProcessArray[processIndex].getErrorMessageFromOutput(errorMess);
+      process->getErrorMessageFromOutput(errorMess);
       if (!errorMess.isEmpty()) {
         *mOutStream << errorMess << endl;
       }
@@ -1486,28 +1500,27 @@ void Processchunks::handleDropOut(bool &noChunks, QString &dropMess,
 //Return false when need to break out of the loop
 const bool Processchunks::checkChunk(int &runFlag, bool &noChunks,
     int &undoneIndex, bool &foundChunks, bool &chunkOk,
-    MachineHandler *machine, const int processIndex, const int chunkErrTot) {
-  runFlag = mProcessArray[processIndex].getFlag();
+    MachineHandler *machine, const int jobIndex, const int chunkErrTot) {
+  runFlag = mJobArray[jobIndex].getFlag();
   //But if the next com is a sync, record number and break loop
-  if (runFlag == ProcessHandler::sync && !mSyncing) {
-    mNextSyncIndex = processIndex;
+  if (runFlag == ComFileJob::sync && !mSyncing) {
+    mNextSyncIndex = jobIndex;
     if (!foundChunks) {
       noChunks = true;
     }
     return false;
   }
-  if (undoneIndex == -1 && runFlag != ProcessHandler::done) {
-    undoneIndex = processIndex;
+  if (undoneIndex == -1 && runFlag != ComFileJob::done) {
+    undoneIndex = jobIndex;
   }
   //If any chunks found set that flag
-  if (runFlag == ProcessHandler::sync || runFlag == ProcessHandler::notDone) {
+  if (runFlag == ComFileJob::sync || runFlag == ComFileJob::notDone) {
     if (isVerbose(mDecoratedClassName, __func__, 2)) {
-      *mOutStream << "checkChunk:"
-          << mProcessArray[processIndex].getComFileName() << ":runFlag:"
-          << runFlag << ":undoneIndex:" << undoneIndex << ",processIndex:"
-          << processIndex << endl
+      *mOutStream << "checkChunk:" << mJobArray[jobIndex].getComFileName()
+          << ":runFlag:" << runFlag << ":undoneIndex:" << undoneIndex
+          << ",processIndex:" << jobIndex << endl
           << ",mProcessArray[processIndex].getNumChunkErr():"
-          << mProcessArray[processIndex].getNumChunkErr()
+          << mJobArray[jobIndex].getNumChunkErr()
           << ",machine->isChunkErred():" << machine->isChunkErred() << endl
           << ",chunkErrTot:" << chunkErrTot << ",mNumCpus:" << mNumCpus << endl;
     }
@@ -1515,8 +1528,8 @@ const bool Processchunks::checkChunk(int &runFlag, bool &noChunks,
     //Skip a chunk if it has errored, if this machine has given chunk
     //error, and not all machines have done so
     chunkOk = true;
-    if (mProcessArray[processIndex].getNumChunkErr() > 0
-        && machine->isChunkErred() && chunkErrTot < mNumCpus) {
+    if (mJobArray[jobIndex].getNumChunkErr() > 0 && machine->isChunkErred()
+        && chunkErrTot < mNumCpus) {
       chunkOk = false;
       if (mSyncing) {
         return false;
@@ -1527,21 +1540,21 @@ const bool Processchunks::checkChunk(int &runFlag, bool &noChunks,
 }
 
 //Build the .csh file and run the process
-void Processchunks::runProcess(MachineHandler *machine, const int cpuIndex,
-    const int processIndex) {
-  machine->setAssignedProcIndex(cpuIndex, processIndex);
-  mProcessArray[processIndex].resetPausing();
-  mProcessArray[processIndex].setFlag(ProcessHandler::assigned);
-  mProcessArray[processIndex].backupLog();
-  mProcessArray[processIndex].removeProcessFiles();
-  *mOutStream << "Running " << mProcessArray[processIndex].getComFileName()
-      << " on " << machine->getName() << " ..." << endl;
-  makeCshFile(mProcessArray[processIndex]);
+void Processchunks::runProcess(MachineHandler *machine,
+    ProcessHandler *process, const int jobIndex) {
+  process->setJob(mJobArray[jobIndex], jobIndex);
+  process->resetPausing();
+  process->setFlag(ComFileJob::assigned);
+  process->backupLog();
+  process->removeProcessFiles();
+  *mOutStream << "Running " << process->getComFileName() << " on "
+      << machine->getName() << " ..." << endl;
+  makeCshFile(process);
   //If running a sync, set the syncing flag to 2
   if (mSyncing) {
     mSyncing = 2;
   }
-  mProcessArray[processIndex].runProcess(machine);
+  process->runProcess(machine);
 }
 
 //Extracts the first two numbers of a numeric version.  Multiples the first
@@ -1657,12 +1670,18 @@ void Processchunks::handleFileSystemBug() {
 }
 
 //Return if csh file is made
-void Processchunks::makeCshFile(ProcessHandler &process) {
-  QFile * cshFile = process.getCshFile();
-  mCurrentDir.remove(cshFile->fileName());
-  QTextStream writeStream(cshFile);
-  if (!cshFile->open(QIODevice::WriteOnly)) {
-    *mOutStream << "Warning: unable to open and create " << cshFile->fileName()
+void Processchunks::makeCshFile(ProcessHandler *process) {
+  QString cshFileName = process->getCshFile();
+  if (cshFileName.isEmpty()){
+    *mOutStream << "Warning: no .csh file name available "
+        << endl;
+    return;
+  }
+  QFile cshFile(cshFileName);
+  mCurrentDir.remove(cshFile.fileName());
+  QTextStream writeStream(&cshFile);
+  if (!cshFile.open(QIODevice::WriteOnly)) {
+    *mOutStream << "Warning: unable to open and create " << cshFileName
         << endl;
     return;
   }
@@ -1670,13 +1689,13 @@ void Processchunks::makeCshFile(ProcessHandler &process) {
     writeStream << "nice +" << mNice << endl;
   }
   //convert and add CHUNK DONE to all files
-  QString comFileName = process.getComFileName();
+  QString comFileName = process->getComFileName();
   mVmstocsh->setStandardInputFile(comFileName);
   //This does not work:
   //mVmstocsh->setStandardOutputFile(mCshFile->fileName(), QIODevice::Append);
   QString command("vmstocsh");
   QStringList paramList;
-  paramList.append(process.getLogFileName());
+  paramList.append(process->getLogFileName());
   if (isVerbose(mDecoratedClassName, __func__)) {
     *mOutStream << "running: " << command << " " << paramList.join(" ") << endl
         << "input file: " << comFileName << endl;
@@ -1695,9 +1714,9 @@ void Processchunks::makeCshFile(ProcessHandler &process) {
     }
   }
   writeStream << mVmstocsh->readAllStandardOutput().data()
-      << "echo CHUNK DONE >> " << process.getLogFileName() << endl;
+      << "echo CHUNK DONE >> " << process->getLogFileName() << endl;
 
-  cshFile->close();
+  cshFile.close();
 }
 
 const bool Processchunks::isQueue() {
@@ -1780,6 +1799,10 @@ const int Processchunks::getNice() {
   return mNice;
 }
 
+const int Processchunks::getMillisecSleep() {
+  return mMillisecSleep;
+}
+
 QStringList &Processchunks::getDropList() {
   return mDropList;
 }
@@ -1788,16 +1811,15 @@ const int Processchunks::getDropCrit() {
   return mDropCrit;
 }
 
-ProcessHandler &Processchunks::getProcessHandler(const int processIndex) {
-  return mProcessArray[processIndex];
-}
-
 const QString &Processchunks::getRemoteDir() {
   return *mRemoteDir;
 }
 
 /*
  $Log$
+ Revision 1.49  2010/12/16 19:10:01  sueh
+ bug# 1427 Added #include <typeinfo>.
+
  Revision 1.48  2010/12/15 23:48:54  sueh
  bug# 1426 Roll back kill functions to a previous version.  Moved vmstocsh
  call from ProcessHandler to Processchunks.
