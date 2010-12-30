@@ -589,23 +589,28 @@ double walltime(void)
   return wallTime();
 }
 
+/*!
+ * Sleeps for [msec] milliseconds.  Returns 0 on Windows; elsewhere it returns
+ * -1 for an error or the number of times the sleep was interrupted.
+ */
 int b3dMilliSleep(int msecs)
 {
+  int retval = 0;
 #ifdef _WIN32
   Sleep(msecs);
 #else
   struct timespec req, rem;
-  int retval;
   req.tv_sec = msecs / 1000;
   req.tv_nsec = 1000000 * (msecs % 1000);
-  while ((retval = nanosleep(&req, &rem)) != 0) {
+  while (nanosleep(&req, &rem) != 0) {
     if (errno != EINTR)
       return -1;
     req.tv_sec = rem.tv_sec;
     req.tv_nsec = rem.tv_nsec;
+    retval++;
   }
 #endif
-  return 0;
+  return retval;
 }
 
 /*!
@@ -645,6 +650,9 @@ int numompthreads(int optimalThreads)
 
 /*
 $Log$
+Revision 1.16  2010/12/30 01:07:49  mast
+Test checkin for sleep function
+
 Revision 1.15  2010/06/23 17:20:35  mast
 Added getpid function
 
