@@ -15,6 +15,7 @@ EXPORTS
 	setExitPrefix
 	AdocGetTwoIntegers
 	sliceTaperAtFill
+	b3dMilliSleep
 	ilistFirst
 	setSurfSortParam
 	sliceGetVal
