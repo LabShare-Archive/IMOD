@@ -191,7 +191,8 @@ extern "C" {
    int *ifskipEdge, int edgeStep, float *dxyvar, int varStep, int *edgelower,
    int *edgeupper, int pcStep, int *work, int fort, int leaveInd, int skipCrit,
    float robustCrit, float critMaxMove, float critMoveDiff, int maxIter,
-   int numAvgForTest, int intervalForTest, int *numIter);
+   int numAvgForTest, int intervalForTest, int *numIter, float *wErrMean, 
+   float *wErrMax);
 
 #ifdef __cplusplus
 }
@@ -203,6 +204,9 @@ extern "C" {
 /*
 
 $Log$
+Revision 3.24  2010/12/28 18:05:24  mast
+trimmed mean, robust argument
+
 Revision 3.23  2010/10/26 16:47:56  mast
 rotmagstrToAmat
 
