@@ -243,7 +243,7 @@ well-aligned edge may drop as other errors around it are resolved.
 2) If the well-aligned edge still has a high error after other edges with high
 errors have been fixed, examine all of the edges around the two pieces below
 and above this edge.  You may find a small misalignment.
-.br.
+.br
 3) If you still can not find a misaligned edge, raise the fitting criterion
 until the error becomes normal, or ignore the large error.  Note that if you
 are going to use the robust fitting option in Blendmont(1), you would need to
