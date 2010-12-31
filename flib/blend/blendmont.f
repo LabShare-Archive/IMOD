@@ -184,7 +184,7 @@ c
 c       initialization of many things
 c       
       ixdebug = -12000
-      iydebug = -11084
+      iydebug = -12000
       inpiece(0) = 0
       iunedge(1)=7
       iunedge(2)=8
@@ -825,7 +825,7 @@ c       Find binning up to limit that will get padded size down to target
         nxyBoxed = 0
         do ixy = 1, 2
           call xcorrSizes(ixy, nbinXcorr, 0, i, nxybox, nExtra, ix, iy,
-     &        iz, iwant)
+     &        iz, iwant, ierr)
           nxyPadded = max(nxyPadded, (ix + 8) * (iy + 8), (iz + 8) * (iwant+8))
           nxyBoxed = max(nxyBoxed, (nxybox(1) + 4) * (nxybox(2) + 4))
         enddo
@@ -3286,7 +3286,7 @@ c           start at the midpoint of the piece
               db3 = max(0., yinpiece(indp3) - startSkew)
               eb3 = (db3 + 1.) / iblend(2)
             else if (indp3 .eq. 0) then
-              edgefrac4(1,2) = max(0., min(1., (yinpiece(indp3)-
+              edgefrac4(1,2) = max(0., min(1., (yinpiece(indp2)-
      &            startSkew) / (endSkew-startSkew)))
               dt2 = max(0., endSkew - yinpiece(indp2))
               et2 = (dt2 + 1.) / iblend(2)
@@ -3310,7 +3310,7 @@ c           start at the midpoint of the piece
             else if (indp3 .eq. 0) then
               edgefrac4(1,1) = max(0., min(1., (xinpiece(indp2)-
      &            startSkew) / (endSkew-startSkew)))
-              dl2 = max(0., xinpiece(indp4) - startSkew)
+              dl2 = max(0., xinpiece(indp2) - startSkew)
               el2 = (dl2 + 1.) / iblend(1)
             else
               edgefrac4(1,1) = max(0., min(1., (xinpiece(indp1)-
@@ -3408,6 +3408,10 @@ c
 
 c       
 c       $Log$
+c       Revision 3.47  2010/12/28 17:50:28  mast
+c       Added robust fitting and options for changing binning and overlap from
+c       when the ecd was first computed
+c
 c       Revision 3.46  2010/11/15 23:30:25  mast
 c       Initialize boundfile
 c
