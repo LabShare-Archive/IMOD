@@ -289,6 +289,9 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\find_piece_shifts.c">
+			</File>
+			<File
 				RelativePath=".\gaussj.c">
 			</File>
 			<File
