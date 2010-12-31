@@ -1145,7 +1145,7 @@ c
       logical useCross
       real*4 xycur(2)
       integer*4 movedPiece(4), k, axisin, maxInside, ipcCross
-      integer*4 ixframe,iyframe,ipc,ixfrm,iyfrm, limitLo, j
+      integer*4 ixframe,iyframe,ipc,ixfrm,iyfrm, limitLo, j, lookxfr, lookyfr
       integer*4 indinp,newedge,newpiece,iflo,listno,ixy,i, idSearch, limitHi
       real*4 xtmp,xframe,yframe,ytmp,xbak,ybak,distmin,xttmp,dist
       real*4 xpcCross, ypcCross
@@ -1280,6 +1280,7 @@ c
         ipc=inpiece(indinp)
         xycur(1) = xinpiece(indinp)
         xycur(2) = yinpiece(indinp)
+c        print *,'looking at',ipc, xycur(1),xycur(2)
 c         
 c         check the x and y directions to see if point is near an edge
 c         
@@ -1296,6 +1297,22 @@ c
      &            iedgeupper(ipc,ixy).gt.0)then
                 newedge=iedgeupper(ipc,ixy)
                 newpiece=ipieceupper(newedge,ixy)
+              endif
+c               
+c               But if there are 4 pieces, make sure this picks up an edge
+c               between this piece and an existing piece
+              if (newedge .eq. 0 .and. numpieces .ge. 4) then
+                lookxfr = inpxframe(indinp) + (2 - ixy) * (1 - 2 * iflo)
+                lookyfr = inpyframe(indinp) + (ixy - 1) * (1 - 2 * iflo)
+                do i = 1, numpieces
+                  if (inpxframe(i) .eq. lookxfr .and. 
+     &                inpyframe(i) .eq. lookyfr) then
+                    newpiece = inpiece(i)
+                    if (iflo .eq. 0) newedge = iedgeupper(ipc,ixy)
+                    if (iflo .eq. 1) newedge = iedgelower(ipc,ixy)
+                    exit
+                  endif
+                enddo
               endif
 c             
 c               if check picked up a new edge, see if edge is on list already
@@ -1398,7 +1415,7 @@ c
         enddo
         indinp=indinp+1
       enddo
-c      if (indy.eq.685) write(*,'(2i5,i3,a,4i3,10i5)')indx,indy,numPieces,
+c      if (indy.eq.998) write(*,'(2i5,i3,a,4i3,10i5)')indx,indy,numPieces,
 c     &    ' pieces',minxframe,maxxframe,minyframe,maxyframe,(inPiece(i),i=1,numPieces)
 c       
 c       If the pieces extend too far in either direction, we need to reduce the
@@ -1778,11 +1795,11 @@ c       the padded sizes for correlation in nxpad, nypad.  The padded size
 c       for filtering to compute real-space correlations is in nxCCC, nyCCC
 c       
       subroutine xcorrSizes(ixy, nbin, indentXC, indentUse, nxybox, nExtra,
-     &    nxpad, nypad, nxCCC, nyCCC)
+     &    nxpad, nypad, nxCCC, nyCCC, maxLongShift)
       use blendvars
       implicit none
       integer*4 indentXC,ixy,nbin,indentUse, nxybox(2), nExtra(2),nxpad, nypad
-      integer*4 nxCCC, nyCCC, iyx, nxybord(2), npadCCC, niceframe
+      integer*4 nxCCC, nyCCC, iyx, nxybord(2), npadCCC, niceframe,maxLongShift
       real*4 cccPadFrac
       cccPadFrac = 0.1
       iyx=3-ixy
@@ -1795,12 +1812,13 @@ c
      &    (nxyzin(ixy) - max(nbin, indentUse, nxyzin(ixy) / 20) * 2) / nbin -
      &    nxybox(ixy))
       nxybox(ixy) = nxybox(ixy) + nExtra(ixy)
+      maxLongShift = nint(max(1.9 * noverlap(ixy) / nbin, 1.5 * nxybox(ixy)))
 c       
 c       get the padded size
-c       Limit the long dimension padding to twice the default short dim padding
+c       Limit the long dimension padding to that needed for the maximum shift
       nxybord(ixy)=max(5,nint(padFrac*nxybox(ixy)))
       nxybord(iyx)=min(max(5,nint(padFrac*nxybox(iyx))), 
-     &    max(5, nint(0.45 * 2 * nxybox(ixy))))
+     &    max(5, nint(0.45 * maxLongShift)))
       nxpad=niceframe(nxybox(1)+2*nxybord(1),2,19)
       nypad=niceframe(nxybox(2)+2*nxybord(2),2,19)
 c
@@ -1826,9 +1844,9 @@ c
       real*4 overfrac,delta,sdmin,ddenmin
       real*4 xpeak(limXcorrPeaks),ypeak(limXcorrPeaks),peak(limXcorrPeaks)
       integer*4 indentSD,niter,limstep,iyx,nxpad,nypad, indentUse
-      integer*4 jx,ixdispl,iydispl,i,nExtra(2),nbin, ierr
+      integer*4 jx,ixdispl,iydispl,i,nExtra(2),nbin, ierr, nxtrim, nytrim
       integer*4 nsmooth, nxsmooth, nysmooth, indPeak, nxCCC, nyCCC
-      integer*4 taperAtFill, nsum
+      integer*4 taperAtFill, nsum, maxLongShift
       real *8 cccMax, ccc, CCCoefficient,walltime,wallstart
 
       indentSD=5                                !indent for sdsearch
@@ -1843,7 +1861,7 @@ c       find size and limits of box in overlap zone to cut out
 c       
       iyx=3-ixy
       call xcorrSizes(ixy, nbin, indentXC, indentUse, nxybox, nExtra,
-     &    nxpad, nypad, nxCCC, nyCCC)
+     &    nxpad, nypad, nxCCC, nyCCC, maxLongShift)
       indentSD = indentSD + indentUse
       ind0(iyx)=nxyzin(iyx)/2 - (nbin * nxybox(iyx))/2
       ind1(iyx)=ind0(iyx) + nbin * nxybox(iyx) - 1
@@ -1928,9 +1946,29 @@ c
       call conjugateProduct(xcray, xdray, nxpad, nypad)
 c       
       call todfft(xcray,nxpad,nypad,1)
-      call xcorrPeakFind(xcray,nxpad+2,nypad,xpeak,ypeak,peak,numXcorrPeaks)
+      call xcorrPeakFind(xcray,nxpad+2,nypad,xpeak,ypeak,peak,
+     &    max(16, numXcorrPeaks))
 c      write(*,'(a,f10.6)')'Initial cross-corr time',walltime()-wallstart
-      indPeak = 1
+c       
+c       Eliminate any peaks that shift beyond maximum along edge
+c       leave indPeak pointing to first good peak
+      indPeak = 0
+      do i = 1, max(16, numXcorrPeaks)
+        if ((ixy .eq. 1 .and. abs(ypeak(i)) .gt. maxLongShift) .or.
+     &      (ixy .eq. 2 .and. abs(xpeak(i)) .gt. maxLongShift)) then
+          peak(i) = -1.e30
+c          print *,'eliminated', i, xpeak(i), ypeak(i)
+        elseif (indPeak .eq. 0 .and. peak(i) .gt. -1.e29) then
+          indPeak = i
+        endif
+      enddo
+c       
+c       But if no peak was legal, zero out the shift
+      if (indPeak .eq. 0) then
+        indPeak = 1
+        xpeak(1) = nExtra(1)
+        ypeak(1) = nExtra(2)
+      endif
       if (numXcorrPeaks .gt. 1 .and. .not.legacy) then
 c         
 c         If there was no filtering, pad second image into xdray then get 
@@ -1957,7 +1995,7 @@ c
         endif
         cccMax = -10.
         do i = 1, numXcorrPeaks
-          if (peak(i) .gt. -1.e20) then
+          if (peak(i) .gt. -1.e29) then
 c             
 c             Reject peak at no zero image offset from fixed pattern noise
             if (.not. (ixy .eq. 1 .and.
@@ -1965,13 +2003,14 @@ c             Reject peak at no zero image offset from fixed pattern noise
      &          .or. (ixy .eq. 2 .and.
      &          abs(nyin + nbin * (ypeak(i) - nExtra(2)) - nyoverlap) .le. 3.))
      &          then
+              nxtrim = min(4, nxybox(1) / 8) + (nxpad - nxybox(1)) / 2
+              nytrim = min(4, nxybox(2) / 8) + (nypad - nxybox(2)) / 2
               ccc = CCCoefficient(xeray, xdray, nxpad + 2, nxpad, nypad,
-     &            xpeak(i), ypeak(i), (nxpad - nxybox(1)) / 2,
-     &            (nypad - nxybox(2)) / 2, nsum)
+     &            xpeak(i), ypeak(i), nxtrim, nytrim, nsum)
 c               write(*,'(i3,a,2f7.1,a,e14.7,a,i8,a,f8.5)')i,' at ',xpeak(i), 
-c               &   ypeak(i), ' peak =',peak(i), ' nsum = ', nsum, ' cc =',ccc
-              if (ccc .gt. cccMax .and.
-     &            (i .eq. 1 .or. nsum .gt. nxybox(1) * nxybox(2) / 8)) then
+c     &            ypeak(i), ' peak =',peak(i), ' nsum = ', nsum, ' cc =',ccc
+              if (ccc .gt. cccMax .and. (i .eq. 1 .or. nsum .gt.
+     &            (nxpad - 2 * nxtrim) * (nypad - 2 * nytrim) / 8)) then
                 cccMax = ccc
                 indPeak = i
               endif
@@ -2064,7 +2103,7 @@ c       Set maxvar higher to get comparisons
       parameter (maxGaussj = 10, maxvar = maxGaussj)
       real*4 a(maxvar,maxvar)
 c       
-      real*4 critmaxmove,critMoveDiff
+      real*4 critmaxmove,critMoveDiff, wErrMean, wErrMax
       integer*4 intervalForTest, numAvgForTest,findPieceShifts,maxiter
       integer*4 nvar,ipc,ivar,m,ixy,iedge,neighpc,neighvar,ipclo,i,j, numGroups
       integer*4 numPrev, ndxy, nallvar, nextvar, nextCheck, numToCheck, igroup
@@ -2224,10 +2263,10 @@ c           Solve by iteration first
             wallstart = walltime()
             if (findPieceShifts(ivarpc, nvar, indvar, ixpclist, iypclist,
      &          dxgridmean, dygridmean, idir, ipiecelower, ipieceupper,
-     &          ifskipEdge, limedge, dxyvar, limvar, iedgelower,
-     &          iedgeupper, limnpc, fpsWork, 1, 0, 2, robustCrit,
-     &          critMaxMove, critMoveDiff, maxiter, numAvgForTest,
-     &          intervalForTest, i)
+     &          ifskipEdge, limedge, dxyvar, limvar, iedgelower, iedgeupper,
+     &          limnpc, fpsWork, 1, 0, 2, robustCrit, critMaxMove,
+     &          critMoveDiff, maxiter, numAvgForTest, intervalForTest, i,
+     &          wErrMean, wErrMax)
      &          .ne. 0) call exitError('CALLING findPieceShifts')
             wallAdj = walltime()-wallstart
 c            write(*,'(i6,a,f8.4,a,f15.6)')i, ' iterations, time',wallAdj
@@ -3195,6 +3234,10 @@ c
 
 c       
 c       $Log$
+c       Revision 3.36  2010/12/28 17:57:45  mast
+c       Made real-space correlations be based on filtered correlated images.
+c       Added robust argument and switch to iterative fitting for > 10 pieces.
+c
 c       Revision 3.35  2010/09/23 04:59:59  mast
 c       Added patch output
 c
