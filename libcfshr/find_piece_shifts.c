@@ -70,7 +70,9 @@ static void findLowestThree(float val, int ind, float *lowest, float *second,
  * [numAvgForTest]: Number of iterations over which to average the average  ^
  * moves in X and Y for the test based on [critMoveDiff]  ^
  * [intervalForTest]: Number of iterations between such tests  ^
- * [numIter] is the returned with the number of iteratation. ^
+ * [numIter] is returned with the number of iteratation. ^
+ * [wErrMean] and [wErrMax] are returned with the mean and maximum of weighted
+ * errors. ^
  * Returns 1 if the strides are not all 1 or all different from 1. ^
  * Called from Fortran with identical arguments and name.
  */
@@ -80,7 +82,8 @@ int findPieceShifts
  int *ifskipEdge, int edgeStep, float *dxyvar, int varStep, int *edgeLower,
  int *edgeUpper, int pcStep, int *work, int fort, int leaveInd, int skipCrit,
  float robustCrit, float critMaxMove, float critMoveDiff, int maxIter,
- int numAvgForTest, int intervalForTest, int *numIter)
+ int numAvgForTest, int intervalForTest, int *numIter, float *wErrMean, 
+ float *wErrMax)
 {
   int minxpc, minypc, maxxpc, maxypc, imin, numOnList, listInd, iedge, ipc;
   int numNeigh,isign,iter,nay,list, nsum, i, ivar, xyStep, ind, ixy, j;
@@ -478,6 +481,25 @@ int findPieceShifts
       ymoveAvg = 0.;
     }
   }
+
+  // Compute weighted error mean and max
+  errsum = 0.;
+  errmax = 0.;
+  nsum = 0;
+  for (list = 0; list < nvar; list++) {
+    for (i = neighInd[list]; i < neighInd[list+1]; i++) {
+      nay = neighList[i];
+      ex = dxyvar[2 * nay] - dxyvar[2 * list] - dxyEdge[2 * i];
+      ey = dxyvar[2 * nay + 1] - dxyvar[2 * list + 1] - dxyEdge[2 * i + 1];
+      ex = (float)sqrt((double)ex*ex+ey*ey) * neighWgt[i];
+      errsum += ex;
+      errmax = B3DMAX(errmax, ex);
+      nsum++;
+    }
+  }
+  *wErrMax = errmax;
+  *wErrMean = errsum / B3DMAX(1, nsum);
+
   /*printf("Final positions after %d iterations\n", iter);
   for (list = 0; list < nvar; list++) {
     printf("%6.0f %6.0f  ",dxyvar[2 * list],dxyvar[2 * list+1]);
@@ -493,8 +515,8 @@ int findPieceShifts
   }
 
   *numIter = iter;
-  /* printf("%d iterations\n", iter);*/
-  fflush(stdout);
+  /* printf("%d iterations\n", iter);
+  fflush(stdout); */
   return 0;
 }
 
@@ -504,14 +526,15 @@ int findpieceshifts
  int *ifskipEdge, int *edgeStep, float *dxyvar, int *varStep, int *edgeLower,
  int *edgeUpper, int *pcStep, int *work, int *fort, int *leaveInd, 
  int *skipCrit, float *robustCrit, float *critMaxMove, float *critMoveDiff,
- int *maxIter, int *numAvgForTest, int *intervalForTest, int *numIter)
+ int *maxIter, int *numAvgForTest, int *intervalForTest, int *numIter,
+ float *wErrMean, float *wErrMax)
 {
   return findPieceShifts
     (ivarpc, *nvar, indvar, ixpclist, iypclist, dxedge, dyedge, *idir,
      pieceLower, pieceUpper, ifskipEdge, *edgeStep, dxyvar, *varStep, 
      edgeLower, edgeUpper, *pcStep, work, *fort, *leaveInd, *skipCrit,
      *robustCrit, *critMaxMove, *critMoveDiff, *maxIter, *numAvgForTest,
-     *intervalForTest, numIter);
+     *intervalForTest, numIter, wErrMean, wErrMax);
 }
 
 void findLowestThree(float val, int ind, float *lowest, float *second, 
@@ -536,6 +559,9 @@ void findLowestThree(float val, int ind, float *lowest, float *second,
 /*
 
 $Log$
+Revision 1.3  2010/12/28 18:06:28  mast
+Added robust fitting
+
 Revision 1.2  2010/06/19 23:41:42  mast
 Removed one debug line
 
