@@ -1792,6 +1792,7 @@ static void solve_for_shifts(MidasView *vw, float *b,
   int intervalForTest = 50;
   float critMaxMove = 5.e-4f;
   float critMoveDiff = 5.e-6f;
+  float wErrMean, wErrMax;
 
   if (nvar < 2)
     return;
@@ -1803,7 +1804,7 @@ static void solve_for_shifts(MidasView *vw, float *b,
                       vw->excludeSkipped ? 1 : 3, 
                       vw->robustFit * vw->robustCrit, critMaxMove, 
                       critMoveDiff, maxIter,numAvgForTest,intervalForTest,
-                      &numIter))
+                      &numIter, &wErrMean, &wErrMax))
     printf("Error calling findPieceShifts\n");
   return;
 }
@@ -1945,6 +1946,9 @@ void crossCorrelate(MidasView *vw)
 /*
 
 $Log$
+Revision 3.26  2010/12/28 18:22:22  mast
+Added robust fitting
+
 Revision 3.25  2010/07/16 02:44:41  mast
 Fixed crash when using missing file with pieces
 
