@@ -12,7 +12,7 @@
 #include <QProcess>
 #include <processchunks.h>
 #include <machinehandler.h>
-#include <comfilejob.h>
+#include "comfilejob.h"
 #include <QTextStream>
 
 class Processchunks;
