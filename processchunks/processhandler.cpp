@@ -11,7 +11,6 @@
 #include <QFile>
 #include "b3dutil.h"
 #include <typeinfo>
-#include <unistd.h>
 
 const static QString pidTag = "PID:";
 

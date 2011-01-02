@@ -26,7 +26,6 @@
 #ifndef _WIN32
 #include <sys/select.h>
 #include <sys/time.h>
-#include <unistd.h>
 #endif
 
 static const int arraySize = 2;
@@ -1817,6 +1816,14 @@ const QString &Processchunks::getRemoteDir() {
 
 /*
  $Log$
+ Revision 1.50  2010/12/30 19:19:18  sueh
+ bug# 1426 Added a temporary -m mMillisecSleep parameter.  Added
+ mJobArray to store information related to the chunks.  Process related data
+ has been broken up into small arrays and placed under the
+ MachineHandler.  In killProcessOnNextMachine, call clean up when
+ mAllKillProcessesHaveStarted is set to true.  Only set
+ mAllKillProcessesHaveStarted to true once.
+
  Revision 1.49  2010/12/16 19:10:01  sueh
  bug# 1427 Added #include <typeinfo>.
 
