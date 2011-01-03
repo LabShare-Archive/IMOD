@@ -116,12 +116,20 @@ if ("$filetext" != "") then
     set m64bit = true
     set m64notIA = true
     if ($ccomp == gcc) set m64flags = '-m64'
-    if (! -e /usr/local/lib/libtiff.dylib) set ltiff = '-ltiff64'
     set ld_lib_var      = DYLD_FRAMEWORK_PATH
 
     # These two could be a Qt 4.5 requirement...
     set midasGL = ""
     set assistantcopy   = 'QtAssistant'
+endif
+
+# Set the TIFF libs.  libiimod needs to have all of them; it is not clear
+# if the executables linking it need to have them all too
+if ($tifflibs == true) then
+    set ltiff = "/usr/local/lib/libtiff.a -lz"
+    if (-e /usr/local/lib/libjpeg.a) set ltiff = "$ltiff /usr/local/lib/libjpeg.a"
+else
+    set ltiff = ""
 endif
 
 # -read_only_relocs warning is not supposed to be used with 64-bit OS 10.6
