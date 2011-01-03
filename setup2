@@ -598,7 +598,7 @@ if (($tifflibs == default) || ($tifflibs == false)) then
     echo "TIFFLIBS = $ltiff" >> $configure
     echo '#define NOTIFFLIBS'  >> $hconfigure
 else
-    if ($tifflibs == true) set tifflibs = $ltiff
+    if ($tifflibs == true) set tifflibs = "$ltiff"
     echo "DUMMYTIFF = $dummytiff" >> $configure
     echo "TIFFLIBS = $tifflibs" >> $configure
 endif
@@ -1016,6 +1016,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.70  2010/10/19 22:17:18  mast
+#  Define both mac DYLD paths for setlibpath
+#
 #  Revision 1.69  2010/09/23 03:34:25  mast
 #  Added qmake flags for Mac SDK, simplified qmake flag outputt
 #
