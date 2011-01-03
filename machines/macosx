@@ -308,17 +308,6 @@ else
     echo "IMLIBS     = -lhvem -lmrcim -lifft  -lcfshr -lb3dcmpt" >> $configure
 endif
 
-# Set up to pack dynamic tiff libraries
-#
-if (-e /usr/local/lib/libtiff.dylib) then
-    set dllstocopy = libtiff
-    if (-e /usr/local/lib/libjpeg.dylib) set dllstocopy = "libtiff libjpeg"
-    if (-e /usr/local/lib/libz.dylib) set dllstocopy = "$dllstocopy libz"
-    echo "DLLSTOCOPY2 = $dllstocopy" >> $configure
-    echo "DLLSOURCEDIR2 = /usr/local/lib" >> $configure
-    @ dllnum = 3
-endif
-
 # Adjust variables for CUDA.  Libraries are hardcoded to user's installed 
 # copies but we still have to pack libraries for users without CUDA
 #
