@@ -170,24 +170,24 @@ make
 sudo make install
 
 On 64-bit Mac you may need to set flags to obtain a 64-bit build.  On OS X
-10.5 this is necessary, on OS X 10.6 Server, it is not.
+10.5 this is necessary, on OS X 10.6 Server, it is not.  You need to
+define environment variables both CFLAGS and CXXFLAGS to be '-g -O2 -m64' 
 
 For jpeg:
-EITHER define environment variable CFLAGS to be '-g -O2 -m64' beforehand, OR
-edit Makefile afterwards to add -m64 to CFLAGS.
 ./configure
 make 
 sudo make install
 
 For TIFF,
-EITHER define environment variable CFLAGS to be '-g -O2 -Wall -W -m64'
-beforehand, OR edit the Makefile afterwards to add -m64 to CFLAGS, CPPFLAGS,
 and CXXFLAGS
 ./configure --with-jpeg-include-dir=/usr/local/include \
 --with-jpeg-lib-dir=/usr/local/lib
 make
 sudo make install
 
+It is possible to have both 32-bit and 64-bit versions of both static
+libraries in  /usr/local/lib by renaming the 64-bit versions to libtiff64.a
+and libjpeg64.a.
 
 Compilers for Mac OSX
 
