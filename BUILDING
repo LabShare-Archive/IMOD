@@ -189,6 +189,7 @@ It is possible to have both 32-bit and 64-bit versions of both static
 libraries in  /usr/local/lib by renaming the 64-bit versions to libtiff64.a
 and libjpeg64.a.
 
+
 Compilers for Mac OSX
 
 You need to have a Fortran compiler.  Two options are the Intel compiler
