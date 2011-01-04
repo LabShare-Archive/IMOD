@@ -111,12 +111,16 @@ echo "CXX       = $cxx"              >> $configure
 set filetext = `file $QTDIR/bin/moc | grep 64-bit`
 set m64flags = ""
 set ld_lib_var      = DYLD_LIBRARY_PATH
+set tiffa = libtiff.a
+set jpega = libjpeg.a
 if ($ccomp == gcc) set m64flags = '-m32'
 if ("$filetext" != "") then
     set m64bit = true
     set m64notIA = true
     if ($ccomp == gcc) set m64flags = '-m64'
     set ld_lib_var      = DYLD_FRAMEWORK_PATH
+    if (-e /usr/local/lib/libtiff64.a) set tiffa = libtiff64.a
+    if (-e /usr/local/lib/libjpeg64.a) set jpega = libjpeg64.a
 
     # These two could be a Qt 4.5 requirement...
     set midasGL = ""
@@ -125,9 +129,10 @@ endif
 
 # Set the TIFF libs.  libiimod needs to have all of them; it is not clear
 # if the executables linking it need to have them all too
+# The 64 and 32-bit libraries can coexist...
 if ($tifflibs == true) then
-    set ltiff = "/usr/local/lib/libtiff.a -lz"
-    if (-e /usr/local/lib/libjpeg.a) set ltiff = "$ltiff /usr/local/lib/libjpeg.a"
+    set ltiff = "/usr/local/lib/$tiffa -lz"
+    if (-e /usr/local/lib/$jpega) set ltiff = "$ltiff /usr/local/lib/$jpega"
 else
     set ltiff = ""
 endif
