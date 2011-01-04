@@ -1,7 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/3/11: Switched back to static TIFF library on Mac, but still support JPEG.
+
 12/28/10: in Blendmont, limited shifts along the length of overlap zones in 
-very sloppy case, fixed 3 bugs that wuld crash program.
+very sloppy case, fixed 3 bugs that would crash program.
 
 12/28/10: Modified Midas to use robust fitting to edge displacements when
 there are more than 10 pieces, to allow edges to be excluded or included
