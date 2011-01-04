@@ -147,32 +147,30 @@ $QT_DIR/lib must be on the DYLD_LIBRARY_PATH.
 
 TIFF and other libraries for Mac OSX
 
-You should build and install TIFF libraries from source; installing JPEG and 
-ZLIB is optional to allow compression to be used in TIFF files.
+You should build and install TIFF libraries from source; installing JPEG is
+optional to allow JPEG compression to be used in TIFF files (libz is on the
+Mac already).
 http://www.remotesensing.org/libtiff/ is the right site to go to for TIFF;
-We are now using tiff-3.9.4; jpeg-8b from http://www.ijg.org/, and zlib-1.2.5
-from http://www.zlib.net/.  As of IMOD 4.2.9, we use dynamic libraries for all three rather than a static library for TIFF alone.
+We are now using tiff-3.9.4 and jpeg-8b from http://www.ijg.org/.
+We use static libraries which are linked into libiimod.dylib.  When we
+tried to use dynamic libraries, 3dmod and etomo would not run because a system
+library tried to call back into the libtiff and libjpeg that we had placed on 
+the DYLD_LIBRARY_PATH.
 
 On 32-bit Mac, to install TIFF alone it is simply
 ./configure
 make
 sudo make install
 
-To install all three, do those steps for zlib and jpeg first.  Then configure
+To install JPEG and TIFF, do those steps for jpeg first.  Then configure
 TIFF with
-./configure --with-zlib-include-dir=/usr/local/include \
---with-zlib-lib-dir=/usr/local/lib \
---with-jpeg-include-dir=/usr/local/include \
+./configure --with-jpeg-include-dir=/usr/local/include \
 --with-jpeg-lib-dir=/usr/local/lib
 make
 sudo make install
 
 On 64-bit Mac you may need to set flags to obtain a 64-bit build.  On OS X
 10.5 this is necessary, on OS X 10.6 Server, it is not.
-For zlib:
-./configure --64
-make
-sudo make install
 
 For jpeg:
 EITHER define environment variable CFLAGS to be '-g -O2 -m64' beforehand, OR
@@ -185,9 +183,7 @@ For TIFF,
 EITHER define environment variable CFLAGS to be '-g -O2 -Wall -W -m64'
 beforehand, OR edit the Makefile afterwards to add -m64 to CFLAGS, CPPFLAGS,
 and CXXFLAGS
-./configure --with-zlib-include-dir=/usr/local/include \
---with-zlib-lib-dir=/usr/local/lib \
---with-jpeg-include-dir=/usr/local/include \
+./configure --with-jpeg-include-dir=/usr/local/include \
 --with-jpeg-lib-dir=/usr/local/lib
 make
 sudo make install
