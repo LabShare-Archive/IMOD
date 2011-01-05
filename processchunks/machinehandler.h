@@ -1,20 +1,23 @@
 /*
- * machinehandler.h
+ *  Description of a computer or a queue.
  *
- *  Created on: Jun 23, 2010
- *      Author: sueh
+ *  Manages processes for one or more CPUs.
+ *
+ *  Contains a list of ProcessHandlers based on the number of CPUs that was
+ *  passed to the application.
+ *
+ *  Author: Sue Held
+ *
+ *  Copyright (C) 2010,2011 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
 
 #ifndef MACHINEHANDLER_H_
 #define MACHINEHANDLER_H_
-
-#include <QTime>
-#include <QString>
-#include <processchunks.h>
-
-class QTextStream;
-class Processchunks;
-class ProcessHandler;
 
 class MachineHandler {
 public:
@@ -23,27 +26,63 @@ public:
   MachineHandler(Processchunks &processchunks, const QString &machineName);
   ~MachineHandler();
 
-  const long nameToLong(bool *ok);
+  inline const long nameToLong(bool *ok) {
+    return mName.toLong(ok);
+  }
+  ;
   void setValues(const char *machineName, const int numCpus);
-  void incrementNumCpus();
-  const QString &getName();
+  inline void incrementNumCpus() {
+    mNumCpus++;
+  }
+  ;
+  inline const QString &getName() {
+    return mName;
+  }
+  ;
   void setup();
-  const int getNumCpus();
-  ProcessHandler *getProcessHandler(const int index);
-  const int getFailureCount();
-  const bool isChunkErred();
-  void setFailureCount(const int failureCount);
-  void setChunkErred(const bool chunkErred);
+  inline const int getNumCpus() {
+    return mNumCpus;
+  }
+  ;
+  inline ProcessHandler *getProcessHandler(const int index) {
+    return &mProcessHandlerArray[index];
+  }
+  ;
+  inline const int getFailureCount() {
+    return mFailureCount;
+  }
+  ;
+  inline const bool isChunkErred() {
+    return mChunkErred;
+  }
+  ;
+  inline void setFailureCount(const int failureCount) {
+    mFailureCount = failureCount;
+  }
+  ;
+  inline void setChunkErred(const bool chunkErred) {
+    mChunkErred = chunkErred;
+  }
+  ;
   const bool isTimedOut(const int index, const int timeoutMillisec);
-  void incrementFailureCount();
+  inline void incrementFailureCount() {
+    mFailureCount++;
+  }
+  ;
   const bool killProcesses();
   void msgKillProcessTimeout();
   const bool killNextProcess();
-  const bool isJobValid(const int index);
-  const int getAssignedJobIndex(const int index);
+  inline const bool isJobValid(const int index) {
+    return mProcessHandlerArray[index].isJobValid();
+  }
+  ;
 
   MachineHandler &operator=(const MachineHandler &machineHandler);
-  const bool operator==(const QString &other);
+  //Compares mName to a QString
+  inline const bool operator==(const QString &other) {
+    return mName == other;
+  }
+  ;
 
 private:
   void init();
@@ -61,3 +100,7 @@ private:
 };
 
 #endif /* MACHINEHANDLER_H_ */
+
+/*
+ $Log$
+ */

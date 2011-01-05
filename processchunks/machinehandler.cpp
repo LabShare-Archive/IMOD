@@ -1,14 +1,17 @@
 /*
- * machinehandler.cpp
+ *  Description of a computer or a queue.
  *
- *  Created on: Jun 23, 2010
- *      Author: sueh
+ *  Author: Sue Held
+ *
+ *  Copyright (C) 2010,2011 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
 
-#include "machinehandler.h"
-#include <QString>
-#include <QTextStream>
-#include <typeinfo>
+#include "processchunks.h"
 
 MachineHandler::MachineHandler(Processchunks &processchunks,
     const char *machineName, const int numCpus) {
@@ -62,11 +65,6 @@ void MachineHandler::setValues(const char *machineName, const int numCpus) {
   mNumCpus = numCpus;
 }
 
-//Increments mNumCpus.
-void MachineHandler::incrementNumCpus() {
-  mNumCpus++;
-}
-
 //Sets the arrays based on mNumCpus
 //Call this once when mNumCpus will no long change
 void MachineHandler::setup() {
@@ -79,55 +77,6 @@ void MachineHandler::setup() {
   for (i = 0; i < mNumCpus; i++) {
     mProcessHandlerArray[i].setup(*mProcesschunks);
   }
-}
-
-const bool MachineHandler::isJobValid(const int index) {
-  return mProcessHandlerArray[index].isJobValid();
-}
-
-const int MachineHandler::getAssignedJobIndex(const int index) {
-  return mProcessHandlerArray[index].getAssignedJobIndex();
-}
-
-const int MachineHandler::getNumCpus() {
-  return mNumCpus;
-}
-
-ProcessHandler *MachineHandler::getProcessHandler(const int index) {
-  return &mProcessHandlerArray[index];
-}
-
-void MachineHandler::setChunkErred(const bool chunkErred) {
-  mChunkErred = chunkErred;
-}
-
-void MachineHandler::incrementFailureCount() {
-  mFailureCount++;
-}
-
-const int MachineHandler::getFailureCount() {
-  return mFailureCount;
-}
-
-void MachineHandler::setFailureCount(const int failureCount) {
-  mFailureCount = failureCount;
-}
-
-const bool MachineHandler::isChunkErred() {
-  return mChunkErred;
-}
-
-const long MachineHandler::nameToLong(bool *ok) {
-  return mName.toLong(ok);
-}
-
-const QString &MachineHandler::getName() {
-  return mName;
-}
-
-//Compares mName to a QString
-const bool MachineHandler::operator==(const QString &other) {
-  return mName == other;
 }
 
 //Kill all running processes on this machine.  Returns false if one of the kill
@@ -178,7 +127,7 @@ const bool MachineHandler::killNextProcess() {
   mKillCpuIndex++;
   if (mKillCpuIndex < mNumCpus) {
     while (mKillCpuIndex < mNumCpus) {
-      if (getAssignedJobIndex(mKillCpuIndex) != -1) {
+      if (mProcessHandlerArray[mKillCpuIndex].getAssignedJobIndex() != -1) {
         if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
           mProcesschunks->getOutStream() << mDecoratedClassName << ":"
               << __func__ << ":B:mKillCpuIndex:" << mKillCpuIndex << endl;
@@ -212,3 +161,7 @@ void MachineHandler::cleanupKillProcess() {
   mDrop = false;
   mKill = false;
 }
+
+/*
+ $Log$
+ */
