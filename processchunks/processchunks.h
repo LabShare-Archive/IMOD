@@ -1,24 +1,50 @@
+/*
+ *  Main class for processchunks - an application to process command files on
+ *  multiple machines.
+ *
+ *  Contains macros and all include files for the application.  Header files
+ *  for the other processchunks classes should only be included in this class.
+ *
+ *  Contains the main timer for processchunks.  Assigns and manages chunks run-
+ *  ning on multiple computers (or a queue).  Kills chunks.
+ *
+ *  Contains a list of MachineHandlers  based on the description of the
+ *  computer(s) or a queue that was passed to the application.
+ *
+ *  Contains a ComFileJobs instance.
+ *
+ *  Author: Sue Held
+ *
+ *  Copyright (C) 2010,2011 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
+ */
+
 #ifndef PROCESSCHUNKS_H
 #define PROCESSCHUNKS_H
 
 #include <QApplication>
-#include <machinehandler.h>
-#include <QList>
-#include <QStringList>
 #include <QDir>
-#include <processhandler.h>
-#include <comfilejob.h>
+//processchunks.h is the only place where all of the headers for the
+//processchunks classes should be included.  Include processchunks.h instead of
+//the class header in all the processchunks classes' .cpp files.
+#include "processhandler.h"
+#include "machinehandler.h"
+#include "comfilejobs.h"
 
 #ifndef __func__
 #define __func__ __FUNCTION__
 #endif
 
-class ProcessHandler;
-class ComFileJob;
-class QTextStream;
-class QProcess;
-class QFile;
-class MachineHandler;
+//Flag values
+//was enum sync = -1, notDone, assigned, done
+#define CHUNK_SYNC -1
+#define CHUNK_NOT_DONE 0
+#define CHUNK_ASSIGNED 1
+#define CHUNK_DONE 2
 
 class Processchunks: public QApplication {
 Q_OBJECT
@@ -37,26 +63,79 @@ public:
   void msgKillProcessDone(ProcessHandler *processHandler);
   void handleFileSystemBug();
 
-  const bool isQueue();
-  const QString &getQueueCommand();
-  QDir &getCurrentDir();
-  const QStringList &getQueueParamList();
-  const bool isVerbose(const QString &verboseClass,
-      const QString verboseFunction, const int verbosity = 1);
-  QTextStream &getOutStream();
-  const bool isSingleFile();
-  const QString &getHostRoot();
-  const QStringList &getSshOpts();
-  const int getNice();
-  const int getMillisecSleep();
-  const char getAns();
-  QStringList &getDropList();
-  const int getDropCrit();
-  const QString &getRemoteDir();
+  inline const bool isQueue() {
+    return mQueue;
+  }
+  ;
+  inline const QString &getQueueCommand() {
+    return mQueueCommand;
+  }
+  ;
+  inline QDir &getCurrentDir() {
+    return mCurrentDir;
+  }
+  ;
+  inline const QStringList &getQueueParamList() {
+    return mQueueParamList;
+  }
+  ;
+  inline const bool isVerbose(const QString &verboseClass,
+      const QString verboseFunction, const int verbosity = 1) {
+    return isVerbose(verboseClass, verboseFunction, verbosity, true);
+  }
+  ;
+  inline QTextStream &getOutStream() {
+    return *mOutStream;
+  }
+  ;
+  inline const bool isSingleFile() {
+    return mSingleFile;
+  }
+  ;
+  inline const QString &getHostRoot() {
+    return mHostRoot;
+  }
+  ;
+  inline const QStringList &getSshOpts() {
+    return mSshOpts;
+  }
+  ;
+  inline const int getNice() {
+    return mNice;
+  }
+  ;
+  inline const int getMillisecSleep() {
+    return mMillisecSleep;
+  }
+  ;
+  inline const char getAns() {
+    return mAns;
+  }
+  ;
+  inline QStringList &getDropList() {
+    return mDropList;
+  }
+  ;
+  inline const int getDropCrit() {
+    return mDropCrit;
+  }
+  ;
+  inline const QString &getRemoteDir() {
+    return *mRemoteDir;
+  }
+  ;
   void makeCshFile(ProcessHandler *process);
+  inline ComFileJobs *getComFileJobs() {
+    return mComFileJobs;
+  }
+  ;
 
 public slots:
-  void timerEvent();
+  //Single shot timer slot
+  inline void timerEvent() {
+    timerEvent(NULL);
+  }
+  ;
 
 protected:
   void timerEvent(QTimerEvent *e);
@@ -102,13 +181,13 @@ private:
       const QString verboseFunction, const int verbosity, const bool print);
 
   int mSizeJobArray;
-  ComFileJob *mJobArray;
+  ComFileJobs *mComFileJobs;
   QList<MachineHandler> mMachineList;
   QTextStream *mOutStream;
 
   //params
-  int mRetain, mJustGo, mNice,mMillisecSleep, mDropCrit, mQueue, mSingleFile, mMaxChunkErr,
-      mVerbose;
+  int mRetain, mJustGo, mNice, mMillisecSleep, mDropCrit, mQueue, mSingleFile,
+      mMaxChunkErr, mVerbose;
   bool mSkipProbe;
   char *mQueueName, *mRootName;
   QFile *mCheckFile;
@@ -138,4 +217,8 @@ private:
   QStringList mLsParamList;
 };
 
-#endif
+#endif /* PROCESSCHUNKS_H_ */
+
+/*
+ $Log$
+ */
