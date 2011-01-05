@@ -1,23 +1,30 @@
 /*
- * processhandler.h - has slots to handle process signals and knows which process
- * it is running
+ *  Runs a process, receives and handles process signals, kills the process.
  *
- *  Created on: Jun 3, 2010
- *      Author: sueh
+ *  Associated with a single .com file (chunk) using an index to an array
+ *  in ComFileJobs.  Can be reset to change chunks.
+ *
+ *  Author: Sue Held
+ *
+ *  Copyright (C) 2010,2011 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
 
 #ifndef PROCESSHANDLER_H_
 #define PROCESSHANDLER_H_
 
-#include <QProcess>
-#include <processchunks.h>
-#include <machinehandler.h>
-#include "comfilejob.h"
-#include <QTextStream>
-
 class Processchunks;
 class MachineHandler;
-class ComFileJob;
+
+#include <QFile>
+#include <QTextStream>
+#include <QProcess>
+#include <QTime>
+#include "b3dutil.h"
 
 class ProcessHandler: public QObject {
 Q_OBJECT
@@ -29,7 +36,7 @@ public:
   void setup(Processchunks &processchunks);
   const bool logFileExists(const bool newlyCreatedFile);
   const bool isChunkDone();
-  void setFlag(const ComFileJob::FlagType flag);
+  void setFlag(const int flag);
   void removeFiles();
   void removeProcessFiles();
   const bool cshFileExists();
@@ -49,26 +56,47 @@ public:
   const bool qidFileExists();
   const QString getPid();
   void setFlagNotDone(const bool singleFile);
-  void backupLog();
-  const ComFileJob::FlagType getFlag();
+  inline void backupLog() {
+    imodBackupFile(mLogFile->fileName().toLatin1().data());
+  }
+  ;
+  const int getFlag();
   void runProcess(MachineHandler *machine);
   const bool killProcess();
   void continueKillProcess(const bool asynchronous);
   void msgKillProcessTimeout();
-  const bool isFinishedSignalReceived();
+  inline const bool isFinishedSignalReceived() {
+    return mFinishedSignalReceived;
+  }
+  ;
   void getErrorMessageFromOutput(QString &errorMess);
   const bool isPidInStderr();
-  void resetPausing();
+  inline void resetPausing() {
+    mPausing = 0;
+  }
+  ;
   bool isPausing();
   QString getCshFile();
-  void setJob(ComFileJob &comFileJob,const int jobIndex);
-  void invalidateJob();
-  const int getAssignedJobIndex();
-  const bool isJobValid();
+  void setJob(const int jobIndex);
+  inline void invalidateJob() {
+    mValidJob = false;
+  }
+  ;
+  inline const int getAssignedJobIndex() {
+    return mComFileJobIndex;
+  }
+  ;
+  inline const bool isJobValid() {
+    return mValidJob;
+  }
+  ;
 
 public slots:
   void handleError(const QProcess::ProcessError error);
-  void handleStarted();
+  inline void handleStarted() {
+    mStartedSignalReceived = true;
+  }
+  ;
   void
   handleFinished(const int exitCode, const QProcess::ExitStatus exitStatus);
   void handleReadyReadStandardError();
@@ -90,15 +118,14 @@ private:
   void killProcess(const QString &pid);
   void resetFields();
 
-  ComFileJob *mComFileJob;
   QFile *mLogFile, *mJobFile, *mQidFile;
-  bool mLogFileExists;
+  bool mLogFileExists, mValidJob;
   //On when process is run, off when finished, kill finished signal received,
   //or when the kill timeout is handled.
   bool mStartingProcess;
-  int  mPausing;
+  int mPausing;
   QByteArray mStderr;
-  QTextStream  *mJobFileTextStream, *mQidFileTextStream;
+  QTextStream *mJobFileTextStream, *mQidFileTextStream;
   QString mPid, mEscapedRemoteDirPath, mDecoratedClassName, mCommand;//queue or local command
   QStringList mParamList;//list of queue or local params
   Processchunks *mProcesschunks;
@@ -109,7 +136,7 @@ private:
   MachineHandler *mMachine;
   QProcess *mKillProcess;
   int mComFileJobIndex, mPidTimerId;
-  bool mKill, mRanContinueKillProcess,mLocalKill;
+  bool mKill, mRanContinueKillProcess, mLocalKill;
 
   //Signal variables
   bool mErrorSignalReceived, mStartedSignalReceived, mFinishedSignalReceived,
@@ -118,3 +145,7 @@ private:
 };
 
 #endif /* PROCESSHANDLER_H_ */
+
+/*
+ $Log$
+ */
