@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/4/11: IMOD_4-2-11
 1/3/11: Switched back to static TIFF library on Mac, but still support JPEG.
 
 12/28/10: in Blendmont, limited shifts along the length of overlap zones in 
