@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.48  2011/01/08 00:50:14  tempuser
+    Added Measure tool
+
     Revision 1.47  2010/11/03 06:54:47  tempuser
     Improved the rename feature, removed the .png file, and explained why I made this tool
 
@@ -2921,23 +2924,8 @@ void DrawingTools::keyboardSettings()
                   "NOTE: Holding [Shift] when you press \n"
                   "[Page Up] or [Page Down] will cause it \n"
                   "to increment one slice (as normal)" );
-	ds.exec();
-	if( ds.wasCancelled() )
-		return;
   
-  ivwRedraw( plug.view );  
-}
-
-//------------------------
-//-- Allows user to change other plugin values/settings.
-
-void DrawingTools::moreSettings()
-{
-  //## GET USER INPUT FROM CUSTOM DIALOG:
-  
-	CustomDialog ds("More Settings", this);
-  
-  ds.addLabel   ( "--- SCULPT CIRCLE ---" );
+  ds.addLabel   ( "\n--- SCULPT CIRCLE ---" );
   ds.addCheckBox( "mark contours as key after sculpt", 
                   &plug.markTouchedContsAsKey,
                   "If on: any stippled contour selected and/or "
@@ -2948,11 +2936,11 @@ void DrawingTools::moreSettings()
                   "If off: the size of the warp circle will always be equal"
                   "\nto the size of the sculpt circle." );
   ds.addLineEditF( "sculpt circle radius:",
-                  0.01, 200, &plug.sculptRadius, 3,
-                  "The radius (in pixels) of the circle used "
-                  "in sculpt and join drawing mode. \n"
-                  "NOTE: Change this using [q] and [w] or (better yet) use the \n"
-                  "   mouse wheel (so long as 'mouse behavior' is set correctly).");
+                   0.01, 200, &plug.sculptRadius, 3,
+                   "The radius (in pixels) of the circle used "
+                   "in sculpt and join drawing mode. \n"
+                   "NOTE: Change this using [q] and [w] or (better yet) use the \n"
+                   "   mouse wheel (so long as 'mouse behavior' is set correctly).");
   ds.addComboBox( "sculpt resize scheme:",
                   "normal|"
                   "linear|"
@@ -2983,7 +2971,26 @@ void DrawingTools::moreSettings()
                   "    (the stippled circle) with the most influence on points \n"
                   "    near the center" );
   
-  ds.addLabel   ( "\n--- CONTOUR REDUCTION [r] ---" );
+	ds.exec();
+	if( ds.wasCancelled() )
+		return;
+  
+  if( plug.sculptRadius <= 0.01 )
+    plug.sculptRadius == 0.01;
+  
+  ivwRedraw( plug.view );  
+}
+
+//------------------------
+//-- Allows user to change other plugin values/settings.
+
+void DrawingTools::moreSettings()
+{
+  //## GET USER INPUT FROM CUSTOM DIALOG:
+  
+	CustomDialog ds("More Settings", this);
+  
+  ds.addLabel   ( "--- CONTOUR REDUCTION [r] ---" );
   ds.addCheckBox( "reduce drawn contours", &plug.reducePts,
                   "Automatically applies smoothing to any contour drawn with the \n"
                   "'sculpt' and 'join' tools upon release of the mouse button" );
@@ -3077,9 +3084,6 @@ void DrawingTools::moreSettings()
   
   Iobj *xobj = ivwGetAnExtraObject(plug.view, plug.extraObjNum);
   imodObjectSetValue(xobj, IobjLineWidth2, plug.lineDisplayWidth);
-  
-  if( plug.sculptRadius <= 0.01 )
-    plug.sculptRadius == 0.01;
   
   ivwRedraw( plug.view );
 }
