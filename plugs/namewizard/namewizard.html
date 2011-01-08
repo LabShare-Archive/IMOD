@@ -1,0 +1,126 @@
+<head>
+<title>Name Wizard Plugin Help</title>
+</head>
+<body>
+<h3>Name Wizard Plugin Help</h3><br>
+--------------------------<br><br>
+This plugin provides an interface to rapidly change the name and colors
+of objects and (more importantly) verify that all your object names
+and colors match a table of standards names and colors.
+Giving ALL objects consistent and PROPER names 
+<i>(that is, names taken from a "shared vocabulary")</i> is critical,
+because without this nobody in your group (let alone any computer/database or 
+collaborator outside your group) will be able to identify, compare, understand, 
+analyze, datamine, or share your model file - and odds are your 
+model will be deleted after you leave. 
+This plugin can also be used to reorder, merge, delete and duplicate objects, 
+however it's main advantage is that it can autocomplete and verify names. 
+To learn more about the important of using standard names read this article on 
+<a href='naming_help.html'>naming objects in IMOD</a>.
+
+<br>
+<br>
+<b>Naming Authorities</b><br>
+--------------------------<br>
+What one student may (accurately) name "<i>Mitochondrial Outer Membrane</i>", 
+another may name "<i>Mitochondria</i>", "<i>mitochondrion</i>", 
+"<i>Mito memb</i>", "<i>MITO23</i>", "<i>MT</i>", "<i>dark thing</i>", 
+"<i>green</i>" or just leave blank. The idea of this 
+plugin is to discourage people from "making up" names and/or leaving objects 
+unnamed. The names you use should instead should come from an 
+authority/website such as 
+<a href="http://www.neurolex.org/wiki/">Neurolex</a> or the 
+<a href="http://www.geneontology.org/">The Gene Ontology</a>.
+
+<br>
+<br>
+<b>How it Works</b><br>
+--------------------------<br>
+When you open this plugin (via: <b>Special > Name Wizard</b>) it loads a 
+table of standard names and colors, plus optional hyperlinks, descriptions and 
+unique IDs from a CSV (comma separated value) file from one of the following 
+two locations:<br>
+<blockquote>
+<b>(1)</b> in the "<i>IMOD_CALIB_DIR</i>": "<b>/usr/local/standard_names_persistent.csv</b>"<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;.. or, if that doesn't exist:<br>
+<b>(2)</b> in the "<i>IMOD_PLUGIN_DIR</i>": "<b>$IMOD_DIR/lib/imodplug/standard_names.csv</b>"<br>
+</blockquote>
+<br>
+Note that the former file location is preferred because it will not get overwritten when IMOD is reinstalled. By default these files contain just over 200 entries from the <a href="http://www.neurolex.org/wiki/Subcellular_Parts_Table" class="external text" title="http://www.neurolex.org/wiki/Subcellular_Parts_Table" rel="nofollow">NeuroLex Subcellular Parts Table</a>. To modify or add additional entries, you can simply open the files in a text editor <i>(like Notepad or TextEdit)</i> or spreadsheet program <i>(like Excel)</i>. If you are serious about making your group use consistent labels, I recommending installing the same "standard_names_persistent.csv" on all computers in your group and making sure all your models pass the Name Wizard test.
+<br>
+<br>
+<br>
+<b>The Standard Names and Colors CSV Table</b><br>
+---------------------<br>
+The current format for the <b>standard names and colors cvs file</b> is:<br>
+<blockquote><b>(1)Name, (2)Red, (3)Green, (4)Blue, (5)Hyperlink, (6)UniqueID, (7)Description, (8)Super Category, (9)Synonym(s)</b></blockquote>
+Notice commas delimit the separation between each field. Below I've explained these nine fields in more detail:
+<ol>
+<li><b>Name</b> - The name of your object/protein/organelle/compartment. We highly advice you don't just "make up" names... they should be taken from one of the authorities listed above. Another advantage of using these websites is that you'll find all the other fiends (UniqueID, hyperlink etc) you need. Names of objects/proteins/compartments should be in <b>Title Case</b> and <b>Singular</b>. If you are creating a name for something more abstract we recommend using UPPERCASE (eg: "MEASURING STICK", "GOLD FIDUCIAL").</li>
+<li><b>Red</b> - The red component of your "standard color" for this compartment - a represented by an integer between 0 and 255.</li>
+<li><b>Green</b> - The green component of your "standard color" (as above).</li>
+<li><b>Blue</b> - The blue component of your "standard color" (as above).</li>
+<li><b>Hyperlink</b> - A hyperlink to information about and/or pictures of the compartment.</li>
+<li><b>UniqueID</b> - A string which uniquely identifies your compartment, and is linked to an authority such as those listed above. Even if two different groups/countries use different names/synonyms, these UniqueIDs help ensure they map to the same thing, and tie into the context of larger rule-based <a href='naming_help.html#ontologies'>ontologies</a>.</li>
+<li><b>Description</b> - Here you can copy the description from an authority, or may chose to include your own description of what the organelle looks like, so that other people in your group can help identify them. Note you can actually include image HTML markup, but be careful not to include commas!</li>
+<li><b>Super-Category</b> - The super category represents what your compartment is and/or belongs to.... for example: <b>Mitochondrial Outer Membrane</b> <i>"is part of"</i> <b>Mitochondrion</b>.... OR <b>Nucleus</b> <i>"is a"</i> <b>Membrane Bound Organelle</b>. In computer programming this is important because the properties/rules of the supercategory can be applied to all it's sub-category.</li>
+<li><b>Synonym(s)</b> - Any commonly used alternative names for this compartment, separated by semicolons.</li>
+</ol>
+<br>
+To give an idea, here are two examples of valid entries:
+<blockquote><b>Nucleus, 255, 255, 0, http://www.neurolex.org/wiki/Category:Nucleus, sao1702920020, A membrane-bounded organelle of eukaryotic cells that contains the chromosomes., Membrane Bound Organelle, </b><br><br>
+<b>Mature Insulin Granule, , , , http://www.neurolex.org/wiki/Category:Mature_Insulin_Granule, nlx_13590, Insulin secretory granule which occurs inside pancreatic beta cells; is about 300 nm wide and contains a large electron-dense core, Insulin Granule, Dense core granule;Mature granule</b>
+</blockquote>
+<br>
+If you open the default files (standard_names.csv) you'll see many more examples and also notice that it's possible to write comments by starting a line with "#".<br>
+<br>
+If you do add your own entries, the "<b>Name</b>" field is the most important and mandatory field, however it is recommended you also enter "<b>Red,Green,Blue</b>" <i>(specifying your desired color for the compartment)</i>, a "<b>Hyperlink</b>" <i>(a URL where information about or pictures of the compartment resides)</i>, a "<b>UniqueID</b>" <i>(taken from an authority such as NeuroLex which links to an "ontology")</i>, a "<b>Description</b>" <i>(to help your group members identify the object/protein/compartment)</i>... and you may also consider typing in the "<b>Super Category</b>" <i>(helping identify what the object is/the next level up)</i>, and finally any commonly used "<b>Synonym(s)</b>" (common expressions/abbreviation you might use for this object). Whenever an object name matches an entry, all the fields are displayed in the tooltip when you hover your mouse over the green box which appears. If you click the "match" it will open the provided hyperlink - hence this hyperlink represents a valuable learning resource for students.<br>
+<br>
+<b>TIP:</b> Since CVS files use commas (,) to separate fields, remember to replace any commas you have within sentences with a semicolon (;).. otherwise your text will load into the wrong field. Synonyms in the "Synonym(s)" field should also be separated by semicolons, as demonstrated in the second example above.<br>
+<br>
+<br>
+<br>
+<b>The List of Object Names</b><br>
+---------------------<br>
+In the Name Wizard plugin interface you'll see five columns: 
+<ol>
+<li><b>Color</b> - Click this color box to quickly change the color. If you wish to perform a "Selection" action 
+(eg: "Delete") you can select multiple objects using the check boxes. If you click "Match Colors" all objects which have a match will change to the standard color for that name (if one exists). This can be a handy time saver!</li>
+<li><b>Object Name</b> - Notice that as you type it should autocomplete with the full list of names from the standard names and colors CVS file/table. Whenever a name matches one of these entries a "match" will appear. If you want to preserve the match, but add extra information use a full stop (.). This allows you, for example, to unique identify individual objects/compartments by labeling objects "Axon.001","Axon.002" etc. Some groups prefer to separate surfaces into separate compartments like this, but many find it easier to manage to segment all axons in a single object (called "Axon").</li>
+<li><b>Match</b> - This column is red if you have no match, but changes to green when you have a match. The "goal" is to try and have ALL your objects match. Note that if it's light green then it matches a standard name, but not the color. You can correct the color by holding your mouse over it to see the red, green and blue values listed for that name (in the tooltip), then clicking the color box to match these colors... or you can simply click the "Match Colors" button at the bottom. If a hyperlink is provided for that entry, then you can click "match" to open a URL matching the compartment name.</li>
+<li><b>UniqueID</b> - If an object name has a match and a UniqueID is provided for that name, then it will appear here. UniqueIDs are important, as a way to uniquely identify a compartment/organelle/protein without relying on the object name (since the names and classification of organelles change surprisingly often over time).</li>
+</ol>
+<br>
+<br>
+<br>
+<b>Extra Buttons</b><br>
+---------------------<br>
+At the bottom of the window you'll notice a few extra buttons.
+<ul>
+<li><b>Refresh List</b> - If you have added/removed or renamed objects outside the plugin you should press this to refresh the list of names.</li>
+<li><b>Selection</b> - This includes a number of options to delete/merge/duplicate/reorder and batch rename all the objects which have been checked. The options include:</li>
+<ul>
+<li><b>Delete Selected</b> - Deletes all selected (checked) objects.</li>
+<li><b>Merge Selected</b> - Merges all the contours from the selected (checked) objects into the first object, and deletes the (now) empty objects.</li>
+<li><b>Duplicate Selected</b> - Takes a single selected object, and creates multiple new objects with the same properties (name, color etc) and can also copy contours (if specified). <i>NOTE: To split surfaces into new objects use 'imodsortsurf -s'</i>.</li>
+<li><b>Move/Reorder Selected</b> - Used to quickly reorder objects, by moving all selected objects together and down/up to the number you specify.</li>
+<li><b>Batch Rename (.001, .002, etc)</b> - Batch renames all selected objects and includes the option to append numbers to the end (NewName.001, NewName.002, etc)..</li>
+<li><b>Deselect/Uncheck All</b> - Deselect/uncheck all objects which have been ticked.</li>
+<li><b>Select Range</b> - Select/deselect objects within a given the range of objects.</li>
+<li><b>Select Matching Names</b> - Select/deselect objects matching a string you enter..</li>
+</ul>
+<li><b>Match Colors</b> - Click this to change the color of all correctly named objects to match the color of their matching entry (if a color has been specified).</li>
+<li><b>Standard Names</b> - Includes information about the <b>standard names and colors cvs file</b>, plus the option to reload this file. If you wish to edit this file (to add your own entries) you should be able to click the first option and chose to launch a text editor or spreadsheet program... although it's probably just as easy to open it yourself by finding it in Finder/Explorer.</li>
+</ul>
+<br>
+<br>
+---------------------<br>
+<br>
+This plugin was created by <b>Andrew Noske</b>
+(<u>a.noske@imb.uq.edu.au</u>).<br>
+<i>If you encounter bugs please e-mail me before e-mailing the
+IMOD group (to reduce traffic). <br>
+In your e-mail please tell me exactly how and when the problem
+occurred and attach the model file you were using with
+enough information that I can replicate the error/crash.
+</body>

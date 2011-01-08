@@ -1,0 +1,336 @@
+<head>
+<title>Object Naming Help</title>
+</head>
+<body>
+<h3>Naming Objects in IMOD</h3><br>
+--------------------------<br>
+<br>
+<h3>Why is it Important to Name Objects Consistently?</h3><br>
+<br>
+A common problem in segmentation programs, such as IMOD/3dmod, is that 
+<b>users often don't know how or forget to provide adequate labeling for 
+the structures they segment</b>. All over the world, science/electron 
+tomography labs tell the same story of having tens to hundreds of IMOD models 
+with object names such as "<i>blue object</i>", "<i>round things</i>" or 
+(more commonly) no label at all. Segmentation is usually carried out by 
+students who are never taught the importance of labeling objects, who are 
+allowed to chose their own colors and who only stay in the lab for a 
+short-to-medium time period. Anyone else in the group who opens these 
+model files thus has no idea what they're looking at.<br>
+<br>
+Without a <b>consistent naming system</b> it become very difficult for 
+scientists for analyze single models - let alone analyze differences between 
+several models by several different people. As a result, such models often 
+get disregarded: wether it's poor segmentation or poor labeling no-body wants 
+to go back and fix someone else's model, thus if a model is to have a chance 
+of being analyzed and reused for publication, it's important the lab trains 
+new users to identify, segment and label all objects correctly!<br>
+
+<br>
+<h3>How to Name Objects in IMOD</h3>
+<br>
+To name an object in 3dmod you can simply go: <b>Edit > Object > Type</b> 
+then enter a "name", and to change it's color go <b>Edit > Object > Color</b>. 
+Making people name objects is only half the battle: the other half is doing 
+it right! Even if students have been sufficiently trained to correctly 
+identify an organelle, if left to their own devices, multiple students will 
+give the same object type different labels and different colors. For example, 
+what one student may (accurately) name <i>"Mitochondrial Outer Membrane"</i>, 
+others may name "<i>Mitochondria", "mitochondrion", "Mito memb", "MITO23"</i> 
+and so on. To reduce these differences, every group should try and build and 
+then enforce a set of standard names and colors which can be expressed as a 
+simple table. As an example of this, below is an excerpt from a table used to 
+segment pancreatic beta cells:<br>
+<br>
+<table border="2" bgcolor="#FBFBFF" width="100%" cellspacing="0" cellpadding="3" rules="all" style="width: 450px">
+
+<tr bgcolor="#F3F3FF">
+<th colspan="6">
+<p>Standard Names and Colors for Beta Cell Segmenation
+</p>
+</th></tr>
+<tr bgcolor="#CACACA">
+<th> #
+</th><th><u>Object Name</u>
+</th><th><u>Color</u>
+</th><th>(red
+</th><th>green
+</th><th>blue)
+</th></tr>
+<tr>
+<td>1
+</td><td> <b><a href="http://www.neurolex.org/wiki/Category:Plasma_Membrane" class="external text" title="http://www.neurolex.org/wiki/Category:Plasma_Membrane" rel="nofollow">Plasma Membrane</a></b> </td><td style="background: #FF3CFF"> pink
+</td><td>255
+</td><td>60
+</td><td>255
+</td></tr>
+<tr>
+<td>2
+</td><td> <b><a href="http://www.neurolex.org/wiki/Category:Nucleus" class="external text" title="http://www.neurolex.org/wiki/Category:Nucleus" rel="nofollow">Nucleus</a></b> </td><td style="background: #FFFF00"> yellow
+</td><td>255
+</td><td>255
+</td><td>0
+</td></tr>
+<tr>
+<td>3
+</td><td> <b><a href="http://www.neurolex.org/wiki/Category:Mitochondrial_Membrane_Outer" class="external text" title="http://www.neurolex.org/wiki/Category:Mitochondrial_Membrane_Outer" rel="nofollow">Mitochondrial Membrane Outer</a></b> </td><td style="background: #007D00"> dark green
+</td><td>0
+</td><td>125
+</td><td>0
+</td></tr>
+<tr>
+<td>4
+</td><td> <b><a href="http://www.neurolex.org/wiki/Category:Multivesicular_Body" class="external text" title="http://www.neurolex.org/wiki/Category:Multivesicular_Body" rel="nofollow">Multivesicular Body</a></b> </td><td style="background: #FF9B00"> orange
+</td><td>255
+</td><td>155
+</td><td>0
+</td></tr>
+<tr>
+<td>5
+</td><td> <b><a href="http://www.neurolex.org/wiki/Category:Golgi_Apparatus" class="external text" title="http://www.neurolex.org/wiki/Category:Golgi_Apparatus" rel="nofollow">Golgi Apparatus</a></b> </td><td style="background: #646464"> grey
+</td><td>100
+</td><td>100
+</td><td>100
+</td></tr>
+<tr>
+<td>6
+</td><td> <b><a href="http://www.neurolex.org/wiki/Category:Microtubule_(sao1846835077)" class="external text" title="http://www.neurolex.org/wiki/Category:Microtubule_(sao1846835077)" rel="nofollow">Microtubule</a></b> </td><td style="background: #00FF00"> green
+</td><td>0
+</td><td>255
+</td><td>0
+</td></tr>
+<tr>
+<td>7
+</td><td> <b><a href="http://www.neurolex.org/wiki/Category:Transport_Vesicle" class="external text" title="http://www.neurolex.org/wiki/Category:Transport_Vesicle" rel="nofollow">Transport Vesicle</a></b> </td><td style="background: #FFFFFF"> white
+</td><td>255
+</td><td>255
+</td><td>255
+</td></tr></table>
+<p>Notice here that:
+</p>
+<ol><li> all names are in <b>Title Case</b> <i>(i.e. first letter capitalized, the rest in lowercase)</i>
+</li><li> all names are <b>Singular</b> <i>(eg: "Microtubule" instead of "Microtubules", even thought the object is likely to contain many microtubules)</i>
+</li><li> all these names were taken from the <b><a href="http://www.neurolex.org/wiki/Subcellular_Parts_Table" class="external text" title="http://www.neurolex.org/wiki/Subcellular_Parts_Table" rel="nofollow">NeuroLex "Subcellular Parts Table"</a></b>. <i>(to ensure consistency with other cell biology groups)</i>
+</li></ol>
+<p>Your own group can and should build a similar table using standard names from your field. Although difficult, it's also a good idea to try and use the same ordering of object types across similar models, since most IMOD analysis tools (such as mtk) require you to list the object's number. You can renumber objects using: <b>Edit &gt; Object &gt; Renumber...</b>.<br>
+
+<br>
+<h3>Using the "Name Wizard" Plugin</h3><br>
+<br>
+To help encourage consistent naming and coloring of objects I created a IMOD plugin called "<b>Name Wizard</b>". This plugin works by loading a <b>table of standard names and colors</b>, plus optional hyperlinks and unique IDs from a CSV (comma separated value) file in the "IMOD_CALIB_DIR" at: "<b>/usr/local/standard_names_persistent.csv</b>" or (if this does not exist) at in the IMOD_DIR under "<b>$IMOD_DIR/lib/imodplug/standard_names.csv</b>" <i>(NOTE: The former file location is preferred because it will not get overwritten when IMOD is reinstalled)</i>. By default there are just over 200 entries which were taken from the <a href="http://www.neurolex.org/wiki/Subcellular_Parts_Table" class="external text" title="http://www.neurolex.org/wiki/Subcellular_Parts_Table" rel="nofollow">NeuroLex "Subcellular Parts Table"</a>, and you can open these cvs files to modify them or create your own entries. In addition to auto-complete, this plugin helps rapidly enter and verify that all names match the entries in the csv file. There are also options here to manage objects by reordering, deleting, merging or splitting. Thus, if you are serious about making your group use consistent labels, I recommending installing the same "standard_names_persistent.csv" and installing Name Wizard on all computers in your group.
+<ul><li> <b>Installation Instructions</b>
+<ul><li> Name Wizard was created Jan 2010, so it may take while before it's part of the standard IMOD release... in the meantime you can install Name Wizard manually by downloading the latest version (which matches your platform) from: <a href="ftp://bio3d.colorado.edu/latestIMOD/alpha/plugins/" class="external free" title="ftp://bio3d.colorado.edu/latestIMOD/alpha/plugins/" rel="nofollow">ftp://bio3d.colorado.edu/latestIMOD/alpha/plugins/</a>. Copy this file + "standard_names.csv" + "namewizard.html" to your <b>$IMOD_DIR/lib/imodplug/</b> directory, and the next time you start 3dmod you should be able the see and start the plugin under <b>"Special > Name Wizard"</b>. E-mail me at andrew_noske[AT_SIGN]yahoo.com if you have any problems.
+</li></ul>
+</li></ul>
+<br>
+<br>
+
+<br><a name="ontologies" id="ontologies"></a>
+<h3>Shared Vocabularies and Ontologies</h3><br>
+<br>
+To ensure proper names are used between groups, cellular biology organizations/initiatives such as the "<a href="http://neuinfo.org/" class="external text" title="http://neuinfo.org/" rel="nofollow">Neuroscience Information Framework (NIF)</a>" have built large <b>ontologies</b> containing <b>shared vocabularies</b>. An ontology is much more than just using standardized names: and ontology is "a formal representation of knowledge as a set of concepts with a domain and the relationship between those concepts". Effectively it's like a set of rules... for example:<br>
+<ul><li> <b>Mitochondrial Outer Membrane</b> <i>"is part of"</i> <b>Mitochondrion</b>
+</li><li> <b>Mitochondrion</b> <i>"is an"</i> <b>Organelle</b>
+</li><li> <b>Organelle</b> <i>"is part of"</i> <b>Cell</b>
+</li></ul><br>
+This tells us where-ever there is an organelle, it must be contained within a cell. This information can be very useful for analysis and even in segmentation algorithms. Since IMOD can be used over a broad number of domains (including material science), it does not contain or enforce any ontology rules/logic, however it's still a good idea to be aware of such ontologies, and adhere to the most relevant naming conventions.<br>
+
+<br>
+<h3>Finding Correct Names for Cellular and Sub-cellular Compartments using the NIF Website</h3>
+<br>
+<p>Although there are (unfortunately) no enforced standards, a good standard to use in the field of cellular biology are the "<b><a href="http://neuinfo.org/#vocab/" class="external text" title="http://neuinfo.org/#vocab/" rel="nofollow">NIF Vocabularies</a></b>". NIF, an initiative at the University of San Diego California, provides the following website interface where you can being typing the name of an organelle and an auto-complete feature will suggest the appropriate name:
+</p>
+<ul><li><a href="http://www.neuinfo.org/nif/" class="external text" title="http://www.neuinfo.org/nif/" rel="nofollow">NIF's Search Interface</a>
+</li></ul>
+<p>NIF ontology, they also provide a list of common subcellular compartments here:
+</p>
+<ul><li><a href="http://www.neurolex.org/wiki/Subcellular_Parts_Table" class="external text" title="http://www.neurolex.org/wiki/Subcellular_Parts_Table" rel="nofollow">NeuroLex "Subcellular Parts Table"</a>.
+</li></ul>
+<p>Clicking on any of these organelles will link to information and often pictures of that organelle. Note that each "object" in NeuroLex contains a unique identifier. For example "<a href="http://www.neurolex.org/wiki/Category:Microtubule_(sao1846835077)" class="external text" title="http://www.neurolex.org/wiki/Category:Microtubule_(sao1846835077)" rel="nofollow">Microtubule</a>" has the unique identifier "sao1846835077".
+<br>
+
+<br>
+<h3>Single Object Per Compartment Type vs. Multiple Objects</h3><br>
+<br>
+<p>Within IMOD each "Object" contains: <b>many contours</b> and these contours are meshed together across the volume to form <b>multiple surfaces</b>. Although many groups create a SINGLE object for each type of organelle..... other groups prefer to segment each individual organelle (each surface) in a new object. When you do this it's still important to name objects consistently, and you may also want to add a number to the end, for example:<br>
+<br>
+<table border="2" bgcolor="#FBFBFF" width="100%" cellspacing="0" cellpadding="3" rules="all" style="width: 450px">
+
+<tr bgcolor="#F3F3FF">
+<th colspan="6">
+<p>Segmenting Each Surface into a Separate IMOD Object
+</p>
+</th></tr>
+<tr bgcolor="#CACACA">
+<th> #
+</th><th><u>Object Name</u>
+</th><th><u>Color</u>
+</th><th>(red
+</th><th>green
+</th><th>blue)
+</th></tr>
+<tr>
+<td>1
+</td><td> <b><a href="http://www.neurolex.org/wiki/Category:Axon" class="external text" title="http://www.neurolex.org/wiki/Category:Axon" rel="nofollow">Axon.001</a></b> </td><td style="background: #0000FF"> blue
+</td><td>0
+</td><td>0
+</td><td>255
+</td></tr>
+<tr>
+<td>2
+</td><td> <b><a href="http://www.neurolex.org/wiki/Category:Axon" class="external text" title="http://www.neurolex.org/wiki/Category:Axon" rel="nofollow">Axon.002</a></b> </td><td style="background: #0000FF"> blue
+</td><td>0
+</td><td>0
+</td><td>255
+</td></tr>
+<tr>
+<td>3
+</td><td> <b><a href="http://www.neurolex.org/wiki/Category:Axon" class="external text" title="http://www.neurolex.org/wiki/Category:Axon" rel="nofollow">Axon.003</a></b> </td><td style="background: #0000FF"> blue
+</td><td>0
+</td><td>0
+</td><td>255
+</td></tr>
+<tr>
+<th colspan="6"> ...
+</th></tr>
+<tr>
+<td>50
+</td><td> <b><a href="http://www.neurolex.org/wiki/Category:Axon" class="external text" title="http://www.neurolex.org/wiki/Category:Axon" rel="nofollow">Axon.050</a></b> </td><td style="background: #0000FF"> blue
+</td><td>0
+</td><td>0
+</td><td>255
+</td></tr></table>
+<br>
+Notice that an accurate label ("Axon") has been used, and a number suffixed to each object, separated by a period. The big drawback of this method is that you'll probably end up with a LOT of objects in your model file, and each will have to be individually renamed and colored, however there are also some advantages to such a method. The pros and cons of having multiple objects versus one object per "object type", are summarized in this table:<br>
+<br>
+</p>
+<table border="2" bgcolor="#FBFBFF" width="100%" cellspacing="0" cellpadding="3" rules="all" style="width: 80%">
+<tr bgcolor="#CACACA">
+<th>
+</th><th>Single Object (per organelle type)
+</th><th>Multiple Objects (one object/surface)
+</th></tr>
+<tr>
+<th>Pros:
+</th>
+<td>
+<ul>
+<li>Few objects per model (usually &lt; 10) means it's much easier to mange (i.e. to setup/recolor and rename objects).</li>
+<li> Don't need to think about what contour belongs to what surface during segmentation (useful for convoluted surfaces).</li>
+<li>Easy to show/hide whole "layers" at a time.</li>
+</ul>
+</td>
+<td>
+<ul>
+<li>Easier to find and compare individual surface if needed.</li>
+<li>Easy to see meshing errors since expect each object to mesh into 1 surface.</li>
+</ul>
+</td>
+</tr>
+<tr>
+<th>Cons:
+</th>
+<td>
+<ul>
+<li>Can't show/hide individual surfaces in ModelView.</li>
+<li>Harder to see and find meshing errors.</li>
+<li>Each time you modify then mesh contours, surfaces may be in a different order.</li>
+</ul>
+</td>
+<td>
+<ul>
+<li>Can result in hundreds of objects, making it VERY difficult to mange.</li>
+<li>Must create a new object for each new surface you segment (laborious).</li>
+</ul>
+</td></tr></table>
+<br>
+
+
+
+
+<h3>Naming Non-Standard Objects in Capitals</h3>
+<p>Within IMOD you may often find yourself wanting or needing to create objects which don't represent standard 3D structures. For example, you may want to create an object with scattered points to show interesting features within your tomogram, or an object with open contours to measure distances between two types of organelles, or to show section boundaries, and so on. For such "non-standard" objects I suggest you use capital letters to make them stand out. I've listed some examples of these objects below:
+<br>
+<br>
+<table border="2" bgcolor="#FBFBFF" width="100%" cellspacing="0" cellpadding="3" rules="all" style="width: 100%">
+<tr bgcolor="#F3F3FF">
+<th colspan="6">
+<p>Examples of Non-Standard Objects
+</p>
+</th></tr>
+<tr bgcolor="#CACACA">
+<th><u>Object Name</u>
+</th><th><u>Red</u>
+</th><th><u>Green</u>
+</th><th><u>Blue</u>
+</th><th>Color
+</th><th>Description
+</th></tr>
+<tr>
+<td> <b>POINTS OF INTEREST</b>
+</td><td>255 </td><td>0 </td><td>255 </td><td style="background: #FF00FF"> purple
+</td><td>When segmenting a cellular tomogram it's not uncommon to find features which are interesting which you want to show other people. To flag these interesting areas I recommend creating an object of type <b>"scattered points"</b>, which you should call "POINTS OF INTEREST, set <i>sphere size</i> to about 20 and <i>points per contor</i> to <b>1</b>. You may also want to add a label to each contour (to comment on what you see) by going <b>Edit &gt; Contour &gt; Type...</b> then enter a label. Next time your supervisor is around you can then use [c] to iterate through these points of interest, and see if any are biologically interesting.
+</td></tr>
+<tr>
+<td> <b>MEASURING STICK</b>
+</td><td>255 </td><td>255 </td><td>255 </td><td style="background: #FFFFFF"> white
+</td><td>Use this to measure from one point to another. Make sure you set the <i>object type</i> to <b>"open contours"</b> and you may also want to increase the <i>line width</i> to about <b>3</b> and set <i>points per contour</i> to <b>2</b> so that each "MEASURING STICK" appears as a nice thick white line. After clicking two points (often spanning several sections) you can then measure the (selected) line's length by going: <b>Edit &gt; Contour &gt; Info</b>.
+</td></tr>
+<tr>
+<td> <b>TOMOGRAM BOUNDARIES</b>
+</td><td>0 </td><td>0 </td><td>255 </td><td style="background: #0000FF"> blue
+</td><td>To just show a plain box around your boundary you can do so in the ModelView window via: <b>Edit &gt; View &gt; Bounding Box</b>, and you can change the color from yellow in the Objects dialog. However when I have multiple sections joined together in Z I sometime like to delimit/model the boundaries by creating a blue "TOMOGRAM BOUNDARIES" object.
+</td></tr>
+<tr>
+<td> <b>UNKNOWN</b>
+</td><td>255 </td><td>255 </td><td>0 </td><td style="background: #FFFF00"> yellow
+</td><td>Often during segmentation you'll see organelles which you are unsure of. In this cases it makes sense to create an object such as this. At a later time you'll want to go through this object with someone more experienced, and make sure you shift all surfaces from here into their appropriate object.
+</td></tr>
+<tr>
+<td> <b>GOLD FIDUCIAL</b>
+</td><td>0 </td><td>255 </td><td>0 </td><td style="background: #00FF00"> green
+</td><td>Not often, but in some situations you may want to segment the gold fiducial particles which typically occur at the very top and bottom of your tomogram. To segment these you should use <b>scattered points</b> with a small <i>sphere size</i> for the object. These gold particles are typically 10, 15 or 20 nm in diameter and appear as dark dots. They are NOT part of the cell, but are often added to both sides of a section to aid in aligning tilt series, and if done well their distribution should be quite uniform with no clumping. <br /><i>NOTE: If you are doing fiducial tracking on a tilt series it's not really necessary to label your objects, because it's pretty obvious that all your objects/contours are  gold particles.</i>
+</td></tr>
+<tr>
+<td> <b>IMMUNOGOLD</b>
+</td><td>255 </td><td>200 </td><td>0 </td><td style="background: #FFC800"> gold
+</td><td>Immunogold labelling or Immunogold staining (IGS) is a staining technique used in electron microscopy. Colloidal gold particles are most often attached to secondary antibodies which are in turn attached to primary antibodies designed to bind a specific protein or other cell component. It can also be attached to protein A or protein G instead of a secondary antibody, as these proteins bind mammalian IgG Fc regions in a non-specic way. Gold is used for its high electron density which increases electron scatter to give high contrast "dark spots". To segment these, use a <b>scattered point</b> object, with a <i>small sphere size</i> of about 1-5 (whatever fits best). <br /><i>NOTE: Although they appear the same, these gold particles are different from "gold fiducials" (which are used purely for alignment).</i>
+</td></tr>
+<tr>
+<td> <b>MINDIST.Microtubules AND Vesicles</b>
+</td><td>0 </td><td>0 </td><td>255 </td><td style="background: #FF0000"> red
+</td><td>Using the program <a href="http://bio3d.colorado.edu/imod/doc/man/mtk.html" class="external text" title="http://bio3d.colorado.edu/imod/doc/man/mtk.html" rel="nofollow">mtk</a> or my "Analysis Tools" plugin, you can automatically generate lines, representing the minimum distance between surfaces in two objects. If you come back to such objects in a few weeks time you'll forget what you did, hence I advise giving such objects long descriptive names!
+</td></tr></table>
+<br>
+<br>
+<br>
+<h3>Summary</h3>
+<p>In this article I've explained the importance of naming conventions, and suggested a set of standards you should follow. To revise:
+</p>
+<blockquote style="background: white; border: 1px solid rgb(153, 153, 153); padding: 1em;">
+Each group should create a <b>table of standard object names and colors</b> for all the common compartments which students will need to name and segment.
+<ul><li> <u>Standard object names</u> should be:
+<ul><li> Spelt in full
+</li><li> Title case
+</li><li> Singular
+</li><li> Tied to a shared vocabulary such as the <a href="http://www.neuinfo.org/nif/" class="external text" title="http://www.neuinfo.org/nif/" rel="nofollow">NIF ontology</a>.
+</li><li> <i>some examples: <b>"Free Ribosome", "Mitochondria Membrane Outer", "Peroxisome", "Autolysosome", "Nuclear Pore"</b> ... and so on</i>
+</li></ul>
+</li></ul>
+<ul><li> The <b>Name Wizard</b> IMOD plugin provides a nice interface to help you implement this table as a CSV file and use this to verify all your objects have correct names and colors.
+</li></ul>
+<ul><li> In cases where it make sense to use <u>multiple objects per compartment type</u> (such as one object per surface), use the same color and name, and use a period to separate the number. 
+<ul><li> <i>some examples: <b>"Multivesicular Body.001", "Multivesicular Body.002", "Multivesicular Body.003", ... </b> ... and so on</i>
+</li></ul>
+</li></ul>
+<ul><li> For <u>non-standard object</u> (objects which don't represent cellular compartments), you can enforce your own standards, but I recommend using capitals to make them stick out. 
+<ul><li> <i>some examples: <b>"POINTS OF INTEREST", "UNKNOWN", "MINDIST Golgi Apparatus AND Transport Vesicle WITHIN 50nm", ... </b> ... and so on</i>
+</li></ul>
+</li></ul>
+</blockquote><br>
+I hope this has convinced you to develop your own table of standard object names and colors to enforce within your group. If this article has convinced you (even a little bit) to create such a table I encourage you to forward this article to other people!<br><br>
+You can find the full article at: <a href='http://www.andrewnoske.com/wiki/index.php?title=IMOD_-_naming_objects'>http://www.andrewnoske.com/wiki/index.php?title=IMOD_-_naming_objects</a>.
+<br>
+<br>
+<br>
+</body>
