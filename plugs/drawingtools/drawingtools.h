@@ -101,7 +101,8 @@ private:
   QRadioButton *typeRadio_Eraser;
   QRadioButton *typeRadio_Warp;
   QRadioButton *typeRadio_Curve;
-    
+  QRadioButton *typeRadio_Measure;
+  
   QGroupBox    *grpActions;
   QVBoxLayout  *vboxLayout1;
   QPushButton  *reduceContsButton;
@@ -119,7 +120,7 @@ private:
 //## CONSTANTS:
 
 enum drawmodes      { DM_NORMAL, DM_SCULPT, DM_JOIN, DM_TRANSFORM, DM_ERASER,
-                      DM_WARP, DM_CURVE, DM_CIRCLE };
+                      DM_WARP, DM_CURVE, DM_MEASURE, DM_CIRCLE };
 enum smoothmodes    { RD_TOL, RD_MINAREA };
 enum wheelbehaviour { WH_NONE, WH_SCULPTCIRCLE, WH_SLICES, WH_CONTS, WH_PTS, WH_PTSIZE };
 enum dkeybehavior   { DK_NONE, DK_TOEND, DK_NEARESTEND, DK_DELETEPT, DK_DELETECONT,
@@ -138,7 +139,9 @@ enum sortcriteria   { SORT_SURFACENUM,
                       SORT_PTX, SORT_PTY, SORT_PTZ,
                       SORT_PTSIZE, SORT_PTGREY, SORT_NUMOPTIONS };
 
-const int NUM_SAVED_VALS = 31;
+enum zhints        { ZH_NONE, ZH_ABOVE, ZH_BELOW, ZH_BOX };
+
+const int NUM_SAVED_VALS = 32;
 
 //-------------------------------
 //## DRAWINGTOOLS DATA STRUCTURE:
@@ -216,8 +219,11 @@ struct DrawingToolsData   // contains all local plugin data
   int    findCriteria;          // the lat find criteria selected via:
                                 //  "More Actions >> sort ... " (see: sortcriteria)
   
-  bool   warningIfNoNameObjs;   // if true: generates warning box when the plugin loads
-                                //  if some of the objects have no names
+  int    minObjsNameWarning;    // if there are more than this many objects when plugin
+                                //  loads, a warning box may be generated if any of those
+                                //  objects have no names
+  int    drawZhint;             // if greater than 1: draws some type of hint
+                                //  to show user what slice he is on
   
   //int    numSavedAction;        // is set to NUM_SAVED_VALS and helps ensure correct
   //                              //  number of values are saved/loaded
@@ -261,6 +267,7 @@ struct DrawingToolsData   // contains all local plugin data
   bool initialized;           // is set to true after values have been set
   int xsize, ysize, zsize;    // size of the image / tomogram
   int extraObjNum;            // stores a reference to the extra object
+  int extraObjNum2;           // stores a reference to a 2nd extra object (used for text)
 };
 
 
@@ -312,6 +319,8 @@ void edit_executeWarp();
 void edit_executeWarpEnd();
 
 void edit_executeCurve( bool forceEndContour );
+
+//string edit_executeMeasureLength(bool print);
 
 void edit_inversePointsInContour(bool reorder);
 int  edit_reduceCurrContour();

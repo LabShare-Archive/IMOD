@@ -25,6 +25,7 @@ get disregarded: wether it's poor segmentation or poor labeling no-body wants
 to go back and fix someone else's model, thus if a model is to have a chance 
 of being analyzed and reused for publication, it's important the lab trains 
 new users to identify, segment and label all objects correctly!<br>
+
 <br>
 <h3>How to Name Objects in IMOD</h3>
 <br>
@@ -112,6 +113,18 @@ segment pancreatic beta cells:<br>
 </li><li> all these names were taken from the <b><a href="http://www.neurolex.org/wiki/Subcellular_Parts_Table" class="external text" title="http://www.neurolex.org/wiki/Subcellular_Parts_Table" rel="nofollow">NeuroLex "Subcellular Parts Table"</a></b>. <i>(to ensure consistency with other cell biology groups)</i>
 </li></ol>
 <p>Your own group can and should build a similar table using standard names from your field. Although difficult, it's also a good idea to try and use the same ordering of object types across similar models, since most IMOD analysis tools (such as mtk) require you to list the object's number. You can renumber objects using: <b>Edit &gt; Object &gt; Renumber...</b>.<br>
+
+<br>
+<h3>Using the "Name Wizard" Plugin</h3><br>
+<br>
+To help encourage consistent naming and coloring of objects I created a IMOD plugin called "<b>Name Wizard</b>". This plugin works by loading a <b>table of standard names and colors</b>, plus optional hyperlinks and unique IDs from a CSV (comma separated value) file in the "IMOD_CALIB_DIR" at: "<b>/usr/local/standard_names_persistent.csv</b>" or (if this does not exist) at in the "IMOD_PLUGIN_DIR" under "<b>$IMOD_DIR/lib/imodplug/standard_names.csv</b>" <i>(NOTE: The former file location is preferred because it will not get overwritten when IMOD is reinstalled)</i>. By default there are just over 200 entries which were taken from the <a href="http://www.neurolex.org/wiki/Subcellular_Parts_Table" class="external text" title="http://www.neurolex.org/wiki/Subcellular_Parts_Table" rel="nofollow">NeuroLex "Subcellular Parts Table"</a>, and you can open these cvs files to modify them or create your own entries. In addition to auto-complete, this plugin helps rapidly enter and verify that all names match the entries in the csv file. There are also options here to manage objects by reordering, deleting, merging or splitting. Thus, if you are serious about making your group use consistent labels, I recommending installing the same "standard_names_persistent.csv" and installing Name Wizard on all computers in your group.
+<ul><li><b>Installation Instructions</b>
+<ul><li>Name Wizard was created Jan 2010, so it may take while before it's part of the standard IMOD release... in the meantime you can install Name Wizard manually by downloading the latest version (which matches your platform) from: <a href="ftp://bio3d.colorado.edu/latestIMOD/alpha/plugins/" class="external free" title="ftp://bio3d.colorado.edu/latestIMOD/alpha/plugins/" rel="nofollow">ftp://bio3d.colorado.edu/latestIMOD/alpha/plugins/</a>. Copy this file + "standard_names.csv" + "namewizard.html" to your <b>$IMOD_DIR/lib/imodplug/</b> directory, and the next time you start 3dmod you should be able the see and start the plugin under <b>"Special > Name Wizard"</b>. E-mail me at andrew_noske[AT_SIGN]yahoo.com if you have any problems.
+</li></ul>
+</li></ul>
+<br>
+<br>
+
 <br>
 <h3>Shared Vocabularies and Ontologies</h3><br>
 <br>
@@ -121,6 +134,7 @@ To ensure proper names are used between groups, cellular biology organizations/i
 </li><li> <b>Organelle</b> <i>"is part of"</i> <b>Cell</b>
 </li></ul><br>
 This tells us where-ever there is an organelle, it must be contained within a cell. This information can be very useful for analysis and even in segmentation algorithms. Since IMOD can be used over a broad number of domains (including material science), it does not contain or enforce any ontology rules/logic, however it's still a good idea to be aware of such ontologies, and adhere to the most relevant naming conventions.<br>
+
 <br>
 <h3>Finding Correct Names for Cellular and Sub-cellular Compartments using the NIF Website</h3>
 <br>
@@ -134,6 +148,7 @@ This tells us where-ever there is an organelle, it must be contained within a ce
 </li></ul>
 <p>Clicking on any of these organelles will link to information and often pictures of that organelle. Note that each "object" in NeuroLex contains a unique identifier. For example "<a href="http://www.neurolex.org/wiki/Category:Microtubule_(sao1846835077)" class="external text" title="http://www.neurolex.org/wiki/Category:Microtubule_(sao1846835077)" rel="nofollow">Microtubule</a>" has the unique identifier "sao1846835077".
 <br>
+
 <br>
 <h3>Single Object Per Compartment Type vs. Multiple Objects</h3><br>
 <br>

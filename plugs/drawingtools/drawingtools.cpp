@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.47  2010/11/03 06:54:47  tempuser
+    Improved the rename feature, removed the .png file, and explained why I made this tool
+
     Revision 1.46  2010/10/18 22:41:56  tempuser
     Minor changes only
 
@@ -215,8 +218,8 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
      keysym != Qt::Key_X && keysym != Qt::Key_C && keysym != Qt::Key_V )
     return 0;
   
-  if( !plug.useNumKeys && keysym >= Qt::Key_1 && keysym <= Qt::Key_6
-      && event->modifiers() & Qt::KeypadModifier )    // if user presses 1-6 on keypad
+  if( !plug.useNumKeys && keysym >= Qt::Key_1 && keysym <= Qt::Key_9
+      && event->modifiers() & Qt::KeypadModifier )    // if user presses 1-9 on keypad
     return 0;
   
   switch(keysym)
@@ -335,6 +338,9 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
     case Qt::Key_7:
       plug.window->changeTypeSelected( DM_CURVE ); 
       break;
+    case Qt::Key_8:
+      plug.window->changeTypeSelected( DM_MEASURE ); 
+      break;
       
     default:
       keyhandled = 0;
@@ -389,13 +395,21 @@ void imodPlugExecute(ImodView *inImodView)
   
   //## INITIALIZE EXTRA OBJECT:
   
+  plug.extraObjNum2 = ivwGetFreeExtraObjectNumber(plug.view);
+  Iobj *xobj2 = ivwGetAnExtraObject(plug.view, plug.extraObjNum2);
+  imodObjectSetColor(xobj2, 0.0, 0.0, 0.0);
+  imodObjectSetValue(xobj2, IobjLineWidth2, 2);
+  imodObjectSetValue(xobj2, IobjFlagClosed, 1);
+  ivwClearAnExtraObject(plug.view, plug.extraObjNum2);  
+  
+  
   plug.extraObjNum = ivwGetFreeExtraObjectNumber(plug.view);
   Iobj *xobj = ivwGetAnExtraObject(plug.view, plug.extraObjNum);
   imodObjectSetColor(xobj, 1.0, 0.0, 0.0);
   imodObjectSetValue(xobj, IobjLineWidth2, plug.lineDisplayWidth);
   imodObjectSetValue(xobj, IobjFlagClosed, 1);
+  ivwClearAnExtraObject(plug.view, plug.extraObjNum);
   
-  ivwClearAnExtraObject(plug.view, plug.extraObjNum);  
   
   //## CREATE THE PLUGIN WINDOW:
   
@@ -651,7 +665,8 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
                               || plug.drawMode==DM_JOIN
                               || plug.drawMode==DM_TRANSFORM
                               || plug.drawMode==DM_ERASER  
-                              || plug.drawMode==DM_WARP ) );
+                              || plug.drawMode==DM_WARP
+                              || plug.drawMode==DM_MEASURE) );
   
   if ( !(actionNeeded) )            // if no action is needed: do nothing
     return (2);
@@ -806,6 +821,24 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
       break;
     }
     
+    case (DM_MEASURE):
+    {
+      if( plug.but2Released )
+      {
+        Imod  *imod = ivwGetModel(plug.view);
+        
+        float pixelSize = imodGetPixelSize(imod);
+        char *unitsChs = imodUnits(imod);
+        Ipoint scalePt;        setPt( &scalePt, 1,1, imodGetZScale(imod) );
+        float dist = imodPoint3DScaleDistance( &plug.mouseDownPt, &plug.mouse, &scalePt );
+        float unitDist = dist * pixelSize;
+        
+        wprint( "LENGTH = %f pixels\n", dist );
+        wprint( "       = %f %s\n", unitDist, unitsChs );
+      }
+      break;
+    }
+    
     default:    // DM_NORMAL
     {
       if( plug.smartPtResizeMode && plug.but2Pressed )
@@ -907,6 +940,10 @@ DrawingTools::DrawingTools(QWidget *parent, const char *name) :
   typeRadio_Curve = diaRadioButton
     ("Curve          [7]", typeGbox, typeButtonGroup, gbLayout, 6,
      "Quickly correct bad regions of contour by dragging/warping the edges");
+  
+  typeRadio_Measure = diaRadioButton
+    ("Measure       [8]", typeGbox, typeButtonGroup, gbLayout, 7,
+     "Quickly measure the distance between two points");
   
   changeTypeSelected( plug.drawMode );
   
@@ -1022,18 +1059,21 @@ bool DrawingTools::drawExtraObject( bool redraw )
   //## CLEAR EXTRA OBJECT:
   
   Iobj *xobj = ivwGetAnExtraObject(plug.view, plug.extraObjNum);
-  if ( !xobj )
+  Iobj *xobj2 = ivwGetAnExtraObject(plug.view, plug.extraObjNum2);
+  if ( !xobj || !xobj2 )
     return false;
   imodObjectSetValue(xobj, IobjFlagExtraInModv, (plug.showMouseInModelView)?1:0);
+  imodObjectSetValue(xobj2, IobjFlagExtraInModv, (plug.showMouseInModelView)?1:0);
   ivwClearAnExtraObject(plug.view, plug.extraObjNum);
+  ivwClearAnExtraObject(plug.view, plug.extraObjNum2);
   Icont *xcont   = imodContourNew();    // primary closed contour used in extra object
-  Icont *xcontO1 = imodContourNew();    // open   contour used in extra object
-  Icont *xcontO2 = imodContourNew();    // open   contour used in extra object
-                                        // NOTE: it's rare to use all these at once
+  Icont *xcont2 = imodContourNew();    // open   contour used in extra object
+  Icont *xcont3 = imodContourNew();    // open   contour used in extra object
+                                           // NOTE: it's rare to use all these at once
   
   imodContourSetFlag(xcont, ICONT_CURSOR_LIKE | ICONT_MMODEL_ONLY, 1);
-  setOpenFlag(xcontO1, 1);
-  setOpenFlag(xcontO2, 2);
+  setOpenFlag(xcont2, 1);
+  setOpenFlag(xcont3, 2);
   
   
   //## GET Z VALUE:
@@ -1056,6 +1096,81 @@ bool DrawingTools::drawExtraObject( bool redraw )
   float sc = fDiv( 1.0f, zapZoom);   // tomogram distance for one screen pixel 
   
   
+  //## IF REQUESTED, DRAW Z HINT:
+  
+  if( plug.drawZhint )
+  {    
+    const float xOffset = 5;
+    const float xOverhang = 10;
+    const float yOffset = 3;
+    float xOffsetRight = plug.xsize - xOffset;
+    
+    for(int i=0; i<plug.zsize; i++)
+    {
+      float fractionUpZ = fDiv( i, plug.zsize-1 );
+      float fullHeight  = (plug.drawZhint==4) ? plug.zsize : plug.ysize;
+      float yTopPos    = (fullHeight - yOffset) * fractionUpZ + yOffset;
+      float yBottomPos = -(fullHeight) * (1.0 - fractionUpZ);
+      
+      Icont *xcontZhint  = imodContourNew();    // open   contour used in extra object
+      Icont *xcontZhint2 = imodContourNew();    // open   contour used in extra object
+      Icont *xcontZhint3 = imodContourNew();    // open   contour used in extra object
+      Icont *xcontZhint4 = imodContourNew();    // open   contour used in extra object
+      
+      if( plug.drawZhint == 1 )
+      {
+        cont_generateBox(xcontZhint,xOffset,yTopPos,-1,-(yTopPos-yOffset),i);
+        imodPointAppendXYZ( xcontZhint, xOffset+xOverhang, yTopPos, i );
+      }
+      
+      if( plug.drawZhint == 2 )
+      {
+        cont_generateBox(xcontZhint,xOffset,yTopPos,-1,-(yTopPos-yOffset),i);
+        imodPointAppendXYZ( xcontZhint, xOffset+xOverhang, yTopPos, i );
+        
+        cont_generateBox(xcontZhint2,xOffset,yBottomPos,-1,-yBottomPos+0.01,i);
+        imodPointAppendXYZ( xcontZhint2, xOffset+xOverhang, yBottomPos, i );
+      }
+      
+      if( plug.drawZhint == 3 )
+      {
+        cont_generateBox(xcontZhint,xOffset,yTopPos,-1,-(yTopPos-yOffset),i);
+        imodPointAppendXYZ( xcontZhint, xOffset+xOverhang, yTopPos, i );
+        
+        cont_generateBox(xcontZhint2,xOffset,yBottomPos,-1,-yBottomPos+0.01,i);
+        imodPointAppendXYZ( xcontZhint2, xOffset+xOverhang, yBottomPos, i );
+        
+        cont_generateBox(xcontZhint3,xOffsetRight,yTopPos,-1,-(yTopPos-yOffset),i);
+        imodPointAppendXYZ( xcontZhint3, xOffsetRight-xOverhang, yTopPos, i );
+        
+        cont_generateBox(xcontZhint4,xOffsetRight,yBottomPos,-1,-yBottomPos+0.01,i);
+        imodPointAppendXYZ(xcontZhint4,xOffsetRight-xOverhang,yBottomPos, i );
+      }
+      
+      if( plug.drawZhint == 4 )
+      {
+        cont_generateBox(xcontZhint2,xOffset,yBottomPos,-1,-yBottomPos+0.01,i);
+        cont_generateBox(xcontZhint2,xOffsetRight,yBottomPos,1,-yBottomPos+0.01,i);
+        
+        cont_generateBox(xcontZhint3,xOffset,yTopPos,-1,-(yTopPos-yOffset),i);
+        cont_generateBox(xcontZhint3,xOffsetRight,yTopPos,-1,-(yTopPos-yOffset),i);
+        cont_generateBox(xcontZhint3,xOffsetRight,plug.ysize+yTopPos,-1,-yTopPos,i);
+        cont_generateBox(xcontZhint3,xOffset,plug.ysize+yTopPos,-1,-yTopPos,i);
+      }
+      
+      imodObjectAddContour(xobj, xcontZhint);
+      imodObjectAddContour(xobj, xcontZhint2);
+      imodObjectAddContour(xobj, xcontZhint3);
+      imodObjectAddContour(xobj, xcontZhint4);
+      free(xcontZhint);
+      free(xcontZhint2);
+      free(xcontZhint3);
+      free(xcontZhint4);
+    }
+  }
+  
+  
+  
   //## IF CHANGING Z HEIGHT: DRAW RECTANGLE REPRESENTING SLICES
   
   if( plug.but1Down && plug.shiftDown )   // draw rectangle and bar representing z slices
@@ -1067,10 +1182,7 @@ bool DrawingTools::drawExtraObject( bool redraw )
     float ymin = y - (currSlice-2)*sc;
     float ymax = ymin + plug.zsize*sc;
     
-    imodPointAppendXYZ( xcont, xmin, ymin, currSlice );
-    imodPointAppendXYZ( xcont, xmax, ymin, currSlice );
-    imodPointAppendXYZ( xcont, xmax, ymax, currSlice );
-    imodPointAppendXYZ( xcont, xmin, ymax, currSlice );
+    cont_generateBox( xcont, xmin, ymin, 10*sc, plug.zsize*sc, currSlice, true);
     
     imodPointAppendXYZ( xcont, xmin,     y, currSlice );
     imodPointAppendXYZ( xcont, xmax,     y, currSlice );
@@ -1078,13 +1190,14 @@ bool DrawingTools::drawExtraObject( bool redraw )
 		
     imodObjectAddContour(xobj, xcont);
     free(xcont);
-    imodContourDelete(xcontO1);
-    imodContourDelete(xcontO2);
+    imodContourDelete(xcont2);
+    imodContourDelete(xcont3);
     
 		if( redraw )
 			ivwRedraw( plug.view );
 		return true;
   }
+  
   
   //## CONSTRUCT EXTRA CONTOURS:
   
@@ -1105,13 +1218,13 @@ bool DrawingTools::drawExtraObject( bool redraw )
       
       if( plug.shiftDown )      // draw pinch lines:
       {
-        imodPointAppendXYZ( xcontO1, x+hRadius, y+qRadius, z );
-        imodPointAppendXYZ( xcontO1, x+qRadius, y, z );
-        imodPointAppendXYZ( xcontO1, x+hRadius, y-qRadius, z );
+        imodPointAppendXYZ( xcont2, x+hRadius, y+qRadius, z );
+        imodPointAppendXYZ( xcont2, x+qRadius, y, z );
+        imodPointAppendXYZ( xcont2, x+hRadius, y-qRadius, z );
         
-        imodPointAppendXYZ( xcontO2, x-hRadius, y-qRadius, z );
-        imodPointAppendXYZ( xcontO2, x-qRadius, y, z );
-        imodPointAppendXYZ( xcontO2, x-hRadius, y+qRadius, z );
+        imodPointAppendXYZ( xcont3, x-hRadius, y-qRadius, z );
+        imodPointAppendXYZ( xcont3, x-qRadius, y, z );
+        imodPointAppendXYZ( xcont3, x-hRadius, y+qRadius, z );
       }
       
       break;
@@ -1122,18 +1235,18 @@ bool DrawingTools::drawExtraObject( bool redraw )
       {
         cont_generateCircle( xcont, radius, 100, plug.mouse, true );
         
-        imodPointAppendXYZ( xcontO1, x+hRadius,   y,      z );
-        imodPointAppendXYZ( xcontO1, x-hRadius,   y,      z );
-        imodPointAppendXYZ( xcontO2, x,           y+hRadius,  z );
-        imodPointAppendXYZ( xcontO2, x,           y-hRadius,  z );
+        imodPointAppendXYZ( xcont2, x+hRadius,   y,      z );
+        imodPointAppendXYZ( xcont2, x-hRadius,   y,      z );
+        imodPointAppendXYZ( xcont3, x,           y+hRadius,  z );
+        imodPointAppendXYZ( xcont3, x,           y-hRadius,  z );
       }
       else                      // draw line and rectangle from where user clicked down:
       {
         float xS = plug.mouseDownPt.x;
         float yS = plug.mouseDownPt.y;
         
-        imodPointAppendXYZ( xcontO1, xS, yS, z );
-        imodPointAppendXYZ( xcontO1, x,  y,  z );
+        imodPointAppendXYZ( xcont2, xS, yS, z );
+        imodPointAppendXYZ( xcont2, x,  y,  z );
         
         float xDiff = xS - x;
         float yDiff = yS - y;
@@ -1155,45 +1268,37 @@ bool DrawingTools::drawExtraObject( bool redraw )
       {
         Ipoint ll, ur;
         imodContourGetBBox( cont, &ll, &ur);
-        imodPointAppendXYZ( xcont, ll.x, ll.y, z );
-        imodPointAppendXYZ( xcont, ur.x, ll.y, z );
-        imodPointAppendXYZ( xcont, ur.x, ur.y, z );
-        imodPointAppendXYZ( xcont, ll.x, ur.y, z );
+        cont_generateBox( xcont, ll, ur, false );
         
         if( (!plug.shiftDown && plug.but3Down) || (plug.shiftDown && plug.but2Down) )
         {                          // draw crosshair and vertical line from clicked:
-          imodPointAppendXYZ( xcontO1, plug.centerPt.x,      plug.centerPt.y, z );
-          imodPointAppendXYZ( xcontO1, plug.centerPt.x+4*sc, plug.centerPt.y, z );
-          imodPointAppendXYZ( xcontO1, plug.centerPt.x-4*sc, plug.centerPt.y, z );
-          imodPointAppendXYZ( xcontO1, plug.centerPt.x,      plug.centerPt.y, z );
-          imodPointAppendXYZ( xcontO1, plug.centerPt.x, plug.centerPt.y+4*sc, z );
-          imodPointAppendXYZ( xcontO1, plug.centerPt.x, plug.centerPt.y-4*sc, z );
+          imodPointAppendXYZ( xcont2, plug.centerPt.x,      plug.centerPt.y, z );
+          imodPointAppendXYZ( xcont2, plug.centerPt.x+4*sc, plug.centerPt.y, z );
+          imodPointAppendXYZ( xcont2, plug.centerPt.x-4*sc, plug.centerPt.y, z );
+          imodPointAppendXYZ( xcont2, plug.centerPt.x,      plug.centerPt.y, z );
+          imodPointAppendXYZ( xcont2, plug.centerPt.x, plug.centerPt.y+4*sc, z );
+          imodPointAppendXYZ( xcont2, plug.centerPt.x, plug.centerPt.y-4*sc, z );
           
-          imodPointAppendXYZ( xcontO2, plug.mouseDownPt.x, plug.mouseDownPt.y, z );
-          imodPointAppendXYZ( xcontO2, plug.mouseDownPt.x, y, z );
+          imodPointAppendXYZ( xcont3, plug.mouseDownPt.x, plug.mouseDownPt.y, z );
+          imodPointAppendXYZ( xcont3, plug.mouseDownPt.x, y, z );
           if(!plug.transformBut3Unif && plug.but3Down)
-            imodPointAppendXYZ( xcontO2, x, y, z );
+            imodPointAppendXYZ( xcont3, x, y, z );
         }
         else if(plug.but2Down)      // draw line from point clicked to mouse:
         {
-          imodPointAppendXYZ( xcontO1, plug.mouseDownPt.x, plug.mouseDownPt.y, z );
-          imodPointAppendXYZ( xcontO1, x, y, z );
+          imodPointAppendXYZ( xcont2, plug.mouseDownPt.x, plug.mouseDownPt.y, z );
+          imodPointAppendXYZ( xcont2, x, y, z );
         }
         else if(plug.but3Down)    // draw line from center of contour to mouse:
         {
-          imodPointAppendXYZ( xcontO1, plug.centerPt.x, plug.centerPt.y, z );
-          imodPointAppendXYZ( xcontO1, x, y, z );
+          imodPointAppendXYZ( xcont2, plug.centerPt.x, plug.centerPt.y, z );
+          imodPointAppendXYZ( xcont2, x, y, z );
         }
       }
       else
       {
         float rectLen = 10.0 * sc;
-        imodPointAppendXYZ( xcont, x+1.0f*rectLen, y+1.0f*rectLen, z );
-        imodPointAppendXYZ( xcont, x+2.0f*rectLen, y+1.0f*rectLen, z );
-        imodPointAppendXYZ( xcont, x+2.0f*rectLen, y+1.5f*rectLen, z );
-        imodPointAppendXYZ( xcont, x+1.0f*rectLen, y+1.5f*rectLen, z );
-        imodPointAppendXYZ( xcont, x+1.0f*rectLen, y+1.0f*rectLen, z );
-        imodPointAppendXYZ( xcont, x+1.0f*rectLen, y+1.0f*rectLen, z-1 );
+        cont_generateBox( xcont, x+rectLen, y+rectLen, rectLen, 0.5*rectLen, z );
       }
       
       break;
@@ -1205,15 +1310,15 @@ bool DrawingTools::drawExtraObject( bool redraw )
         cont_generateCircle( xcont, radius*0.98f, 100, plug.mouse, true );
       }
       cont_generateCircle( xcont, radius, 100, plug.mouse, true );
-      imodPointAppendXYZ( xcontO1, x+hRadius, y+hRadius, z );
-      imodPointAppendXYZ( xcontO1, x-hRadius, y-hRadius, z );
+      imodPointAppendXYZ( xcont2, x+hRadius, y+hRadius, z );
+      imodPointAppendXYZ( xcont2, x-hRadius, y-hRadius, z );
       
       if( plug.shiftDown )              // draw extra arrows on diagonal line:
       {
-        imodPointAppendXYZ( xcontO2, x+hRadius, y+qRadius, z );
-        imodPointAppendXYZ( xcontO2, x+hRadius, y+hRadius, z );
-        imodPointAppendXYZ( xcontO2, x-hRadius, y-hRadius, z );
-        imodPointAppendXYZ( xcontO2, x-hRadius, y-qRadius, z );
+        imodPointAppendXYZ( xcont3, x+hRadius, y+qRadius, z );
+        imodPointAppendXYZ( xcont3, x+hRadius, y+hRadius, z );
+        imodPointAppendXYZ( xcont3, x-hRadius, y-hRadius, z );
+        imodPointAppendXYZ( xcont3, x-hRadius, y-qRadius, z );
       }
       break;
     }
@@ -1302,10 +1407,10 @@ bool DrawingTools::drawExtraObject( bool redraw )
                               // draw small lines to hint warp radius
         
         float halfSmallLineLen = MAX( warpRadius*0.05f, 0.5f );
-        imodPointAppendXYZ( xcontO1, x-warpRadius, y+halfSmallLineLen, z );
-        imodPointAppendXYZ( xcontO1, x-warpRadius, y-halfSmallLineLen, z );
-        imodPointAppendXYZ( xcontO2, x+warpRadius, y+halfSmallLineLen, z );
-        imodPointAppendXYZ( xcontO2, x+warpRadius, y-halfSmallLineLen, z );
+        imodPointAppendXYZ( xcont2, x-warpRadius, y+halfSmallLineLen, z );
+        imodPointAppendXYZ( xcont2, x-warpRadius, y-halfSmallLineLen, z );
+        imodPointAppendXYZ( xcont3, x+warpRadius, y+halfSmallLineLen, z );
+        imodPointAppendXYZ( xcont3, x+warpRadius, y-halfSmallLineLen, z );
       }
       else        // draw warp circle
       {
@@ -1327,10 +1432,10 @@ bool DrawingTools::drawExtraObject( bool redraw )
         float distFromFirstPt = imodPointDistance( getPt(cont,0), &plug.mouse );
         bool readyToCloseCont = (psize(cont) > 3) && (distFromFirstPt < 10.0);
         
-        cont_copyPts( cont, xcontO1, false );
+        cont_copyPts( cont, xcont2, false );
         if( !readyToCloseCont )
-          imodPointAdd( xcontO1, &plug.mouse, ptIdx+1 );
-        cont_addPtsSmooth( xcontO1, plug.smoothMinDist,
+          imodPointAdd( xcont2, &plug.mouse, ptIdx+1 );
+        cont_addPtsSmooth( xcont2, plug.smoothMinDist,
                            plug.smoothTensileFract, (readyToCloseCont), false, false );
         
         if( readyToCloseCont )
@@ -1342,14 +1447,135 @@ bool DrawingTools::drawExtraObject( bool redraw )
       
       break;
     }
+    
+    case (DM_MEASURE):            // measure distance
+    {
+      float fontSize = 12 * sc;
+      
+      float pixelSize = imodGetPixelSize(imod);
+      char *unitsChs = imodUnits(imod);
+      Ipoint scalePt;        setPt( &scalePt, 1,1, imodGetZScale(imod) );
+      float dist3D = imodPoint3DScaleDistance( &plug.mouseDownPt, &plug.mouse, &scalePt );
+      float unitDist = dist3D * pixelSize;      
+      
+      if( plug.but2Down )
+      {
+        float xS = plug.mouseDownPt.x;
+        float yS = plug.mouseDownPt.y;
+        
+        int slicesSpanned = ABS( plug.mouseDownPt.z - z );
+        
+        float xDiff = xS - x;
+        float yDiff = yS - y;
+        float dist  = sqrt( (xDiff*xDiff) + (yDiff*yDiff) );
+        float sideScale = fDiv( 1.0f , dist );
+        
+        imodPointAppendXYZ( xcont, x +(yDiff*sideScale), y -(xDiff*sideScale), z );
+        imodPointAppendXYZ( xcont, x -(yDiff*sideScale), y +(xDiff*sideScale), z );
+        imodPointAppendXYZ( xcont, xS-(yDiff*sideScale), yS+(xDiff*sideScale), z );
+        imodPointAppendXYZ( xcont, xS+(yDiff*sideScale), yS-(xDiff*sideScale), z );
+        
+        if( slicesSpanned )
+        {
+          setInterpolated( xcont, 1 );
+        }
+        else
+        {
+          imodPointAppendXYZ( xcont2, xS, yS, z );
+          imodPointAppendXYZ( xcont2, x,  y,  z );
+          imodPointAppendXYZ( xcont2, xS, yS, z );
+          imodPointAppendXYZ( xcont2, x,  y,  z );
+          
+          float halfSi = sideScale / 2.0;
+          imodPointAppendXYZ( xcont, x +(yDiff*halfSi), y -(xDiff*halfSi), z );
+          imodPointAppendXYZ( xcont, x -(yDiff*halfSi), y +(xDiff*halfSi), z );
+          imodPointAppendXYZ( xcont, xS-(yDiff*halfSi), yS+(xDiff*halfSi), z );
+          imodPointAppendXYZ( xcont, xS+(yDiff*halfSi), yS-(xDiff*halfSi), z );
+        }
+        
+        Ipoint textPos = line_getPtHalfwayBetween( &plug.mouseDownPt, &plug.mouse );
+        textPos.y -= fontSize / 2.0f;
+        textPos.z = z;
+        if( ABS(yDiff) < ABS(xDiff) )
+          textPos.y += (yDiff*xDiff>0) ? -3*fontSize : 2*fontSize;
+        else
+          textPos.x += fontSize;
+        
+        //string text = toString( unitDist ) + " " + toString( unitsChs )
+        //              + " (" + toString( dist3D ) + " pixels)";
+        //cont_generateTextAsConts( xobj, text, textPos, fontSize, TA_LEFT, true );
+        
+        string text = toString( unitDist ) + " " + toString( unitsChs )
+                        + "\n (=" + toString( dist3D ) + " pixels)";
+        
+        if( slicesSpanned )
+          text += "\n spanning " + toString( slicesSpanned ) + " slices";
+        
+        cont_generateTextAreaAsConts( xobj2, text, textPos, fontSize, TA_LEFT, TV_CENTER,
+                                      true, 4 );
+      }
+      else if( isCurrPtValid() && getCurrPt()->z == z )
+      {
+        Ipoint *pt   = getCurrPt();
+        Icont  *cont = getCurrCont();
+                
+        float lineLenHoriz = 15*sc;
+        float lineLenVert  = 15*sc;
+        
+        //float distOnRightInSc = (plug.xsize - pt->x) / sc;
+        int textAlign = (  pt->x < 0.7*plug.xsize ) ? TA_LEFT : TA_RIGHT;
+        if( textAlign == TA_RIGHT )
+          lineLenHoriz = -lineLenHoriz;
+        
+        Ipoint textPos; setPt(&textPos, pt->x+lineLenHoriz, pt->y+lineLenVert, z);         
+        cont_addTwoPointContourToObj( xobj, pt->x+2*sc, pt->y+2*sc, 
+                                      pt->x+lineLenHoriz, pt->y+lineLenVert, z );
+
+        
+        char *objName    = imodObjectGetName( getCurrObj() ); 
+        string text = toString( objName );
+        if( text.length() == 0 )
+        {
+          text = "WARNING: this object is unlabelled";
+          cont_generateTextAsConts( xobj2, text, textPos, fontSize, textAlign, true );
+        }
+        
+        cont_generateTextAsConts( xobj, text, textPos, fontSize, textAlign, true );
+        
+        if( imodPointDistance( pt, &plug.mouse ) < 30.0 )
+        {
+          textPos.y -= (fontSize + 15)*sc;
+          bool closed = isContClosed( getCurrCont(), cont);
+          float lengthClosed = imodContourLength( cont, closed ) * pixelSize;
+          string extraText = (closed) ? "CLOSED LENGTH: " : "OPEN LENGTH: ";
+          extraText += toString(lengthClosed)+ " " + toString( unitsChs );
+          cont_generateTextAsConts( xobj2, extraText, textPos, fontSize, textAlign, true );
+        }
+        
+        /*
+        //## PRINT ANY LABEL ATTACHED TO THE CONTOUR
+        //## WON'T YET WORK AS NO WAY TO ACCESS LABEL'S TITLE?! : 
+        //## SEE: file:///Users/a.noske/Documents/MACMOD/html/libhelp/ilabel.html
+        Ilabel *label = imodContourGetLabel( getCurrCont() );
+        if(label && imodLabelItemGet(label,0)!=NULL )
+        {
+          char *labelText = imodLabelItemGet( label, 0 );
+          string extraText = "CONTOUR LABEL: " + toString(labelText);
+          textPos.y -= (fontSize + 4 + 15)*sc;
+          cont_generateTextAsConts( xobj, extraText, textPos, fontSize, textAlign, true );
+        } */       
+      }
+      
+      break;
+    }
   }
   
   imodObjectAddContour(xobj, xcont);
-  imodObjectAddContour(xobj, xcontO1);
-  imodObjectAddContour(xobj, xcontO2);
+  imodObjectAddContour(xobj, xcont2);
+  imodObjectAddContour(xobj, xcont3);
   free(xcont);
-  free(xcontO1);
-  free(xcontO2);
+  free(xcont2);
+  free(xcont3);
   
   if( redraw )
     ivwDraw( plug.view, IMOD_DRAW_MOD | IMOD_DRAW_NOSYNC );
@@ -1414,7 +1640,8 @@ void DrawingTools::initValues()
   plug.selectedAction         = 0;
   plug.sortCriteria           = SORT_NUMPTS;
   plug.findCriteria           = SORT_NUMPTS;
-  plug.warningIfNoNameObjs    = true;
+  plug.minObjsNameWarning     = 3;
+  plug.drawZhint              = 0;
   
   plug.sortCriteriaOfVals     = -1;
 }
@@ -1471,7 +1698,8 @@ void DrawingTools::loadSettings()
   plug.selectedAction             = savedValues[27];
   plug.testIntersetAllObjs        = savedValues[28];
   plug.selectedAction             = savedValues[29];
-  plug.warningIfNoNameObjs        = savedValues[30];
+  plug.minObjsNameWarning         = savedValues[30];
+  plug.drawZhint                  = savedValues[31];
 }
 
 
@@ -1514,7 +1742,8 @@ void DrawingTools::saveSettings()
   saveValues[27]  = plug.selectedAction;
   saveValues[28]  = plug.testIntersetAllObjs;
   saveValues[29]  = plug.selectedAction;
-  saveValues[30]  = plug.warningIfNoNameObjs;
+  saveValues[30]  = plug.minObjsNameWarning;
+  saveValues[31]  = plug.drawZhint;
   
   prefSaveGenericSettings("DrawingTools",NUM_SAVED_VALS,saveValues);
 }
@@ -2822,10 +3051,21 @@ void DrawingTools::moreSettings()
                       "eventually result in the contour turning into a circle! \n\n"
                       "RECOMMENDED VALUE: 0.20" );
   
- ds.addLabel   ( "\n--- OTHER ---" );
+  ds.addLabel   ( "\n--- OTHER ---" );
   ds.addCheckBox( "print result of [e] and [r]", &plug.printSmoothResults,
                   "Will output a single-line summary of changes each time \n"
                   "[e] or [r] is pressed" );
+  ds.addComboBox( "show Z hint:",
+                  "off|"
+                  "part line left|"
+                  "line on left|"
+                  "line both sides|"
+                  "full box scaled",
+                  &plug.drawZhint,
+                  "Will display a hint on the edges of the tomogram to help show what \n"
+                  "slice you are on.... which you may find useful making animations. \n"
+                  "Note you can also see a nice hint and quicly scroll by holding \n"
+                  "[Shift] plus the second mouse button. \n" );
   ds.addSpinBox ( "line display width:",
                   1, 50, &plug.lineDisplayWidth, 1,
                   "The thickness of lines used to display "
@@ -3620,7 +3860,7 @@ void DrawingTools::copyOrMoveContourRange()
   
   if( createNewObj )
   {
-    //undoObjectAddition( plug.view, osize(imod) );                 // REIGSTER UNDO
+    //undoObjectAddition( plug.view, osize(imod) );                 // REGISTER UNDO
     int error = imodNewObject(imod);
     if(error == 1)
     {
@@ -4279,17 +4519,18 @@ void DrawingTools::cleanModelAndFixContours()
 
 
 //------------------------
-//-- Checks for nameless objects and generates a warning label if one or more
-//-- objects in the model are missing names, and there are more than two objects.
-//-- If "warningIfNoNameObjs" is true a message box is generated, otherwise
-//-- the message just appears in the IMOD window.
+//-- Checks for nameless objects and outputs warning text if there are more than
+//-- two objects in the model and any of them are missing names.
+//-- If there are more than "minObjsNameWarning" objects in the model or if
+//-- "forceMessageBox" is true a message box is generated, otherwise the message
+//-- just appears in the IMOD window.
 
 void DrawingTools::checkForNamelessObjects( bool forceMessageBox )
 {    
   Imod *imod  = ivwGetModel(plug.view);
   
-  if( osize(imod) <= 2 )     // if there is only one or two objects don't worry about 
-    return;                  // enforcing names
+  if( osize(imod) <= 2 )          // if there are less than 2 objects don't
+    return;                       // don't bother enforcing names / generating warning
   
   //## COUNT NUMBER OF OBJECTS WITH NO NAME
   
@@ -4306,77 +4547,76 @@ void DrawingTools::checkForNamelessObjects( bool forceMessageBox )
       numObjsNoName++;
     }
   }
+  if( numObjsNoName == 0 )    // if no objects with empty names were found: do nothing
+    return;
   
   //## IF OBJECTS WITH NO NAME WERE FOUND: GENERATE WARNING
   
-  if( numObjsNoName > 0)
+  QString warningStr = "WARNING: " + QStr(numObjsNoName) + " objects have no name! ";
+  if(numObjsNoName==1)
+    warningStr = "WARNING: one of your objects has no name! ";
+  
+  wprint("");
+  wprint("\a" + warningStr.toLatin1() );
+  
+  if( osize(imod) < plug.minObjsNameWarning && !forceMessageBox )
+    return;     // if there are less than the required number of objects, return early
+  
+  
+  //## IF WE GET TO HERE WE WANT TO GENERATE A "NAG SCREEN":
+  
+  int action = 0;
+  CustomDialog ds("Missing Labels",this);
+  ds.addLabel   ( "" );
+  ds.addLabel   ( warningStr, true );
+  ds.setStylePrev( "color: rgb(255, 0, 0); background-color: rgba(255, 255, 255);", true );
+  ds.addLabel   ( "" );
+  ds.addLabel   ( "<i>It's important to label objects with PROPER names\n"
+                  "(e.g. 'Microtubules', 'Nucleus', etc) so others\n"
+                  "can analyze, understand and reuse your models.</i>");
+  ds.addLabel   ( "-----" );
+  ds.addRadioGrp( "action:",
+                  "let me fix this now|"
+                  "learn more and get proper names",
+                  &action,
+                  "",
+                  "Takes you through all un-named objects and give\n"
+                  "them names, one at a time.|"
+                  "Takes you to the short webpage with information about good \n"
+                  "naming protocol and a list of common organelles to help you \n"
+                  "correctly identify and name of subcellular compoments."
+                  );
+  ds.addSpinBox ( "do not check for missing names if there are\n"
+                  "at least this many objects in the model:", 3, 100,
+                  &plug.minObjsNameWarning, 1,
+                  "If checked, this warning dialog will not appear \n"
+                  "when you open DrawinTools, but will still appear \n"
+                  "(and can be turned on again) if you run \n"
+                  "'More Actions > clean model and fix contours'" );
+  
+  ds.exec();
+  if( ds.wasCancelled() )
+    return;
+  
+  if( action == 0 )
   {
-    QString warningStr = "WARNING: " + QStr(numObjsNoName) + " objects have no name! ";
-    if(numObjsNoName==1)
-      warningStr = "WARNING: one of your objects has no name! ";
-    
-    wprint("");
-    wprint("\a" + warningStr.toLatin1() );//+ "\n... objects: " + listObjsNoName.c_str() );
-    
-    if( !forceMessageBox && !plug.warningIfNoNameObjs )
-      return;
-    
-    //## GET USER INPUT:
-    
-    bool dontShowAgain = !plug.warningIfNoNameObjs;
-    int action = 0;
-    CustomDialog ds("Missing Labels",this);
-    ds.addLabel   ( "" );
-    ds.addLabel   ( warningStr, true );
-    ds.setStylePrev( "color: rgb(255, 0, 0); background-color: rgba(255, 255, 255);", true );
-    ds.addLabel   ( "" );
-    ds.addLabel   ( "It's important to label objects with PROPER names\n"
-                    "(e.g. 'Microtubules', 'Nucleus', etc) so others\n"
-                    "can analyze, understand and reuse your models.");
-    ds.addLabel   ( "-----" );
-    ds.addRadioGrp( "action:",
-                    "let me fix this now|"
-                    "learn more and get proper names",
-                    &action,
-                    "",
-                    "Takes you through all un-named objects and give\n"
-                      "them names, one at a time.|"
-                    "Takes you to the short webpage with information about good \n"
-                      "naming protocol and a list of common organelles to help you \n"
-                      "correctly identify and name of subcellular compoments."
-                    );
-    ds.addCheckBox( "do not show again", &dontShowAgain,
-                    "If checked, this warning dialog will not appear \n"
-                    "when you open DrawinTools, but will still appear \n"
-                    "(and can be turned on again) if you run \n"
-                    "'More Actions > clean model and fix contours'" );
-    
-    ds.exec();
-    if( ds.wasCancelled() )
-      return;
-    
-    plug.warningIfNoNameObjs = !dontShowAgain;
-    if( action == 0 )
+    for( int o=0; o<osize(imod); o++ )
     {
-      for( int o=0; o<osize(imod); o++ )
+      Iobj *obj = getObj(imod,o);
+      string objName = toString( imodObjectGetName(obj) );
+      if( objName.length() == 0 )
       {
-        Iobj *obj = getObj(imod,o);
-        string objName = toString( imodObjectGetName(obj) );
-        if( objName.length() == 0 )
-        {
-          int renamed = promptRenameObject( o );
-          if(!renamed)
-            return;
-        }
+        int renamed = promptRenameObject( o );
+        if(!renamed)
+          return;
       }
     }
-    else if( action == 1 )
-    {
-      QString str = QString(getenv("IMOD_DIR"));
-      str += QString("/lib/imodplug/naming_help.html");
-      imodShowHelpPage((const char *)str.toLatin1());
-      //imodShowHelpPage("naming_help.html");
-    }
+  }
+  else if( action == 1 )
+  {
+    QString str = QString(getenv("IMOD_DIR"));
+    str += QString("/lib/imodplug/naming_help.html");
+    imodShowHelpPage((const char *)str.toLatin1());
   }
 }
 
@@ -4534,7 +4774,7 @@ int DrawingTools::promptRenameObject( int objIdx )
     << "Pinocytic Vesicle" 
     << "Plasma Membrane" 
     << "Plasmalemmal precursor vesicle" 
-    << "Post-lysosomal vacuole" 
+    << "Post-lysosomal Vacuole" 
     << "Post-synaptic Component" 
     << "Post-synaptic Density" 
     << "Pre-synaptic Active Zone Component" 
@@ -4596,6 +4836,7 @@ int DrawingTools::promptRenameObject( int objIdx )
     << "Golgi Trans-most Cisternae"
     
     << "UNKNOWN"
+    << "GOLD FIDUCIALS"
     << "POINT OF INTEREST"
     << "RULER"
     << "TOMOGRAM BOUNDARIES";
@@ -4943,6 +5184,7 @@ void DrawingTools::closeEvent ( QCloseEvent * e )
   imodDialogManager.remove((QWidget *)plug.window);
   clearExtraObj();
   ivwFreeExtraObject(plug.view, plug.extraObjNum);
+  ivwFreeExtraObject(plug.view, plug.extraObjNum2);
   ivwTrackMouseForPlugs(plug.view, 0);
   //ivwEnableStipple( plug.view, 0 );
   
