@@ -133,7 +133,7 @@ enum chkbehaviour { CB_NONE, CB_DISABLE, CB_ENABLE,
 
 class ColorButton : public QPushButton    // used to create a "pick colour" button
 {
-  Q_OBJECT      // NOTE: To compile on my version of IMOD I have to comment these out?
+  Q_OBJECT      // NOTE: To compile on my version of IMOD I have to comment these out
   
 public:
   QColor color;
@@ -141,6 +141,8 @@ public:
   void setColor(QColor _color);
 public slots:
   void pickColor();
+//public signals:
+//  void valueChanged() {};
 };
 
 //############################################################

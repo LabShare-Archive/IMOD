@@ -8,6 +8,18 @@
 #include <vector>
 using namespace std;
 
+
+//############################################################
+
+//-------------------------------
+//## CONSTANTS
+
+enum textalign  { TA_LEFT, TA_CENTER, TA_RIGHT };
+enum textalignv { TV_TOP,  TV_CENTER, TV_BOTTOM, TV_LEADING };
+
+const float DEFAULT_FONT_HEIGHT = 12.0f;
+const float DEFAULT_FONT_SPACING = 10.0f;
+
 //############################################################
 
 //-------------------------------
@@ -157,7 +169,7 @@ float mbr_distToNearestEdge(float val, float min, float max);
 float mbr_distToNearestEdge(float min1, float max1, float min2, float max2);
 float mbr_distBetweenBBoxes2D(Ipoint *ll1, Ipoint *ur1, Ipoint *ll2, Ipoint *ur2);
 float mbr_distBetweenBBoxes3D(Ipoint *ll1, Ipoint *ur1, Ipoint *ll2, Ipoint *ur2, float zScale); // NEW
-bool mbr_distToBBox2D(Ipoint *pt, Ipoint *ll, Ipoint *ur);                  // NEW
+bool mbr_distToBBox2D(Ipoint *pt, Ipoint *ll, Ipoint *ur);                    // NEW
 bool mbr_isPtInsideBBox(Ipoint *pt, Ipoint *ll, Ipoint *ur);                  // NEW
 bool mbr_isPtInsideBBox2D(Ipoint *pt, Ipoint *ll, Ipoint *ur);                // NEW
 bool mbr_doEdgesOverlap(float min1, float max1, float min2, float max2);
@@ -198,6 +210,13 @@ bool line_twoKiss( Ipoint *a1, Ipoint *a2, Ipoint *a3,    Ipoint *b1, Ipoint *b2
 //-------------------------------
 //## EXTRA CONTOUR FUNCTIONS:
 
+int cont_generateDigitUsing16SegDisplay( Iobj *obj, char ch, int z );
+int cont_generateDigitUsing7SegDisplay( Iobj *obj, int number, int z );
+int cont_generateTextAsConts( Iobj *obj, string text, Ipoint pos, float fontSize, int textAlign=TA_LEFT, bool smallCaps=false );
+int cont_generateTextAreaAsConts( Iobj *obj, string text, Ipoint pos, float fontSize, int alignHoriz=TA_LEFT, int alignVert=TV_LEADING, bool smallCaps=false, float lineSpacing=4 );
+int cont_addTwoPointContourToObj( Iobj *obj, float p1x, float p1y, float p2x, float p2y, float z, int open=1 );
+int cont_addTwoPointContourToObj( Iobj *obj, Ipoint p1, Ipoint p2, int open=1 );
+
 int  cont_isEqual( Icont *cont1, Icont *cont2 );
 int  cont_doesPtExistInCont( Icont *cont, Ipoint *pt );
 
@@ -225,6 +244,8 @@ void cont_scaleAboutPt( Icont *cont, Ipoint *pt, const float scaleFactor, bool i
 void cont_stretchAlongAngle( Icont *cont, Ipoint *center, float angle, float stretchFactor );
 
 void cont_generateCircle( Icont *cont, float radius, int numPoints, Ipoint center, bool addEndPt );
+void cont_generateBox( Icont *cont, float llX, float llY, float width, float height, float z, bool repeatFirstPt=true );
+void cont_generateBox( Icont *cont, Ipoint ll, Ipoint ur, bool repeatFirstPt=true );
 
 int cont_numTimesCountsCross( Icont *cont1, Icont *cont2 );
 bool cont_doCountoursCross( Icont *cont1, Icont *cont2, bool cont1Closed, bool cont2Closed );
@@ -342,7 +363,7 @@ inline void setOpenFlag(Icont *cont, int on )
 
 inline bool isDeleteFlag(Icont *cont)
 {
-  return ( imodContourGetFlag( cont, ICONT_TEMPUSE ) != 0 );
+  return ( imodContourGetFlag( cont, (unsigned int)ICONT_TEMPUSE ) != 0 );
 }
 
 //------------------------
@@ -455,6 +476,7 @@ inline Ipoint newPt( float x, float y, float z )
   pt.x = x;
   pt.y = y;
   pt.z = z;
+  return pt;
 }
 
 

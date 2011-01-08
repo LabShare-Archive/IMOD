@@ -35,7 +35,9 @@ void ColorButton::pickColor()
   //color = dlgColor.selectedColor();
   this->setStyleSheet( "background-color: " + color.name() );
       // NOTE: QColorDialog is significantly different in Qt version 4.3 versus 4.7
+  emit released();
 }
+
 
 //############################################################
 

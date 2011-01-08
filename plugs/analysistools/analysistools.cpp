@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.3  2010/10/18 22:41:56  tempuser
+    Minor changes only
+
     Revision 1.2  2010/10/18 22:28:37  tempuser
     Improved and renamed qt_dialog_customizable to customdialog
 
@@ -385,6 +388,16 @@ AnalysisTools::AnalysisTools(QWidget *parent, const char *name) :
              "tested wether or not they are inside and/or within a specified distance \n"
              "of a closed contour, thus the more points generated, the more accurate  \n"
              "results are likely to be." );
+  addAction( analysisMenu, SLOT(findClosestDistanceSurfsTwoObjects()),   "Distance Between Surfaces In Two Objects Analysis",
+             "Monica is a poo-poo head  :-) \n"
+             "I sure hope I remember to fix this up. \n"
+             " \n"
+             " \n"
+             " \n"
+             " \n" 
+             " \n"
+             " \n"
+             "." );
   
   QMenu *gridMenu = actionMenu->addMenu                    ("Deformation Grid");
   addAction( gridMenu, SLOT(generateDefGrid()),            "Generate",
@@ -724,6 +737,32 @@ void AnalysisTools::saveSettings()
 
 void AnalysisTools::test()
 {
+  /*
+  Imod *imod = ivwGetModel(plug.view);
+  float modelZScale    = imodGetZScale(imod);
+  Iobj *obj = getCurrObj();
+  Icont *cont1 = getCont( obj, 0 );
+  Icont *cont2 = getCont( obj, 1 );
+  Ipoint p1, p2;
+  Ipoint ll1, ur1;
+  Ipoint ll2, ur2;
+  
+  cont_getMBR(cont1, &ll1, &ur1);
+  cont_getMBR(cont2, &ll2, &ur2);
+  
+  cout << "MIN DIST MBRS: " << mbr_distBetweenBBoxes3D( &ll1, &ur1,
+                                                                &ll2, &ur2, modelZScale
+                                                                   ) << endl;
+  cout << "MIN DIST BETWEEN CONTS: " << cont_minDistBetweenContPts3D( cont1, cont2, modelZScale,
+                                                                  &p1, &p2 ) << endl;
+  flush(cout);
+  printPt( &p1);
+  printPt( &p2);
+  */
+  
+  findClosestDistanceSurfsTwoObjects();
+  
+  /*
   int numRandPts = 100*1000;
   
   cout << analysis_outputVolumeWithinXAnalysis( 0, 3,4,-1, 900, numRandPts, true, true );  // golgi
@@ -739,7 +778,7 @@ void AnalysisTools::test()
   cout << analysis_outputVolumeWithinXAnalysis( 3, 3,4,-1, 100, numRandPts, true, false );
   cout << analysis_outputVolumeWithinXAnalysis( 3, 3,4,-1, 50, numRandPts, true, false );
   cout << analysis_outputVolumeWithinXAnalysis( 3, 3,4,-1, 25, numRandPts, true, false );
-  
+  */
   
   /*deleteSlice();*/
   /*int x, y, z;
@@ -1136,6 +1175,59 @@ void AnalysisTools::outputVolumeWithinXAnalysis()
                                           objInIdx-1, objOut1Idx-1, objOut2Idx-1,
                                           (float) distThres, numRandomPts,
                                           useMbr, addPtsNewObj );
+  
+  outputString( bigOutputString, outputOption );
+}
+
+
+//------------------------
+//-- 
+
+void AnalysisTools::findClosestDistanceSurfsTwoObjects()
+{
+  Imod *imod  = ivwGetModel(plug.view);
+  
+  //## GET USER INPUT FROM CUSTOM DIALOG:
+  static int objAIdx = 1;
+  static int objBIdx = 2;
+  
+  static bool addPtsNewObj = true;
+  static bool applyDistLimit = false;
+  static float  maxDistLimitInNm = 1000;
+  static int  outputOption = 1;
+  
+  CustomDialog ds( "Closest Distance Between Surfaces", this);
+  ds.addLabel   ( "Objects to use:" );
+  ds.addSpinBox ( "> object A (from):",1,osize(imod),&objAIdx,1,
+                  "For EACH surface in this object, you want to find the closest \n"
+                  "surface in object B." );
+  ds.addSpinBox ( "> object B (to):",-1,osize(imod),&objBIdx,1,
+                  "For each surface in object A, you want to find the closest surface \n"
+                  "in this object. When closest distances are fun, every surface \n"
+                  "in object A should have one line extending from it, but surfaces \n"
+                  "in object B can have zero or more lines." );
+  ds.addCheckBox( "limit distances (in nm) to ignore anything over:", &applyDistLimit,
+                  "Generates and minimum boundring rectangle around the analysis object "
+                  "expanded to include a gutter equal to the distance threshold" );
+  ds.addDblSpinBoxF( "..... ",1.0,100000000.0,&maxDistLimitInNm,2,100.0,
+                     "The max limit distance. If any surface in object A is further \n"
+                     "than this distance (in the units you've specified under \n"
+                     "'Model > Header') to the nearest surface in object B it won't "
+                     "be shown" );
+  ds.addRadioGrp( "output to:", "imod window|console|csv file", &outputOption );
+  ds.exec();
+  if( ds.wasCancelled() )
+    return;
+  
+  //## PERFORM ANALYSIS AND OUTPUT RESULTS:
+  
+  float maxDistLimitInPixels = fDiv( maxDistLimitInNm, imodGetPixelSize(imod) );
+  if(!applyDistLimit)
+    maxDistLimitInPixels = FLOAT_MAX;
+  
+  string bigOutputString =
+    analysis_closestDistanceSurfsTwoObjects( objAIdx-1, objBIdx-1, addPtsNewObj,
+                                             maxDistLimitInPixels );
   
   outputString( bigOutputString, outputOption );
 }
@@ -2447,7 +2539,7 @@ float analysis_estimateZScale( int objIdx, float currZScale, bool useHemispheres
   
   //## POPULATE CONTOURS THE SURFACE VECTOR:
   
-  int nSurfaces = imodObjectGetValue( obj, IobjMaxSurface) ;    // returns the maximum "surfNum" value for any contour in the object + 1
+  int nSurfaces = imodObjectGetValue( obj, IobjMaxSurface);    // returns the maximum "surfNum" value for any contour in the object + 1
   vector<Surface> surf;              // stores a list of contours in each surface and information about the surface itself
   surf.resize( nSurfaces );            // allow enough room for all surfaces
   
@@ -4034,6 +4126,269 @@ string analysis_outputVolumeWithinXAnalysis( int objToAnalyse,
   return out.str();
 }
 
+
+
+
+
+
+
+
+
+
+struct SurfPoints
+{
+  Ipoint mbrLL, mbrUR;    // stores a minimum bounding rectangle around the surface
+  Icont *p;
+  float minDist;
+  
+  int surfsCompared;
+  Ipoint closestPtThisSurf;
+  Ipoint closestPtOtherObj;
+  int closestSurfNumOtherObj;  
+  
+  SurfPoints()  {      //-- Default constructor
+    mbr_reset(&mbrLL,&mbrUR);
+    minDist = FLOAT_MAX;
+    surfsCompared = 0;
+    closestSurfNumOtherObj = -1;
+    //p = imodContourNew();
+  }
+};
+
+
+//------------------------
+//-- Finds the closest distances between each surface in (objAIdx) and the nearest
+//-- surface in (objBIdx) and returns analysis as comma seperated list.
+//-- This function works by finding the closest points,
+//-- thus may not necessarily be the absolute cloest distance.
+//-- Another method to increase processing time: all surfaces in each object
+//-- are put into bounding boxes, allowing the algorithm to skip surfaces in object B
+//-- which have a bounding box further away from the closest distance already found.
+//-- If addPtsNewObj is true, two new objects are created to show closest distances,
+//-- although this can be buggy sometimes for some reason.
+
+string analysis_closestDistanceSurfsTwoObjects( int objAIdx, int objBIdx, bool addPtsNewObj, float maxDistLimit )
+{
+  Imod *imod = ivwGetModel(plug.view);
+  
+  float pixelSize = imodGetPixelSize(imod);
+  float modelZScale    = imodGetZScale(imod);
+  
+  Iobj *objA = getObj(imod, objAIdx);  
+  Iobj *objB = getObj(imod, objBIdx);
+  
+  //## INITIALIZE VECTORS OF POINTS REPRESENTING MINIMUM BOUNDING BOXES FOR EACH SURFACE:
+  
+  int nSurfacesA = imodObjectGetValue( objA, IobjMaxSurface);
+  int nSurfacesB = imodObjectGetValue( objB, IobjMaxSurface);
+  vector<SurfPoints> surfA;              // stores a list of contours in each surface and information about the surface itself
+  vector<SurfPoints> surfB;              // stores a list of contours in each surface and information about the surface itself
+  surfA.resize( nSurfacesA );            // allow enough room for all surfaces
+  surfB.resize( nSurfacesB );            // allow enough room for all surfaces
+  
+  
+  for(int sA=0; sA<(int)surfA.size(); sA++)
+    surfA[sA].p = imodContourNew();
+  for(int sB=0; sB<(int)surfB.size(); sB++)
+    surfB[sB].p = imodContourNew();
+  
+  
+  //## POPULATE CONTOURS INTO THE SURFACE VECTOR AND MAKE MBR:
+  
+  for (int c=0; c<csize(objA); c++)        // for each contour: if it has a valid surfNum, add it in the appropriate surface
+  {
+    Icont *cont = getCont(objA,c);
+    int surfNum = imodContourGetSurface( cont ) - 1;
+    if( surfNum >=0 && surfNum < (int)surfA.size()  )
+    {
+      for( int p=0; p<psize(cont); p++ )
+      {
+        imodPointAppend( surfA[surfNum].p, getPt(cont,p) );
+        mbr_addPt( getPt(cont,p), &surfA[surfNum].mbrLL, &surfA[surfNum].mbrUR );
+      }
+    }
+  }
+  
+  for (int c=0; c<csize(objB); c++)        // for each contour: if it has a valid surfNum, add it in the appropriate surface
+  {
+    Icont *cont = getCont(objB,c);
+    int surfNum = imodContourGetSurface( cont ) - 1;
+    if( surfNum >=0 && surfNum < (int)surfB.size()  )
+    {
+      for( int p=0; p<psize(cont); p++ )
+      {
+        imodPointAppend( surfB[surfNum].p, getPt(cont,p) );
+        mbr_addPt( getPt(cont,p), &surfB[surfNum].mbrLL, &surfB[surfNum].mbrUR );
+      }
+    }
+  }
+  
+  
+  //cout << "surf A1 has this many points =" << psize( surfA[1].p ) << endl;   //%%%%%%%%%%%%
+  //cout << "surf A1 LL.x =" << surfA[1].mbrLL.x << endl;   //%%%%%%%%%%%%
+  //cout << "surf B1 has this many points =" << psize( surfB[1].p ) << endl;   //%%%%%%%%%%%%
+  //cout << "surf B1 LL.x =" << surfB[1].mbrLL.x << endl;   //%%%%%%%%%%%%
+  //flush(cout);
+  
+  //## FOR EACH SURFACE IN A: FIND NEAREST POINT IN SURFACE B
+  
+  int totalMinDistsFound = 0;
+  float totalSumMinDists = 0;
+  
+  cout << endl << "BEGINNING SURFACE COMPARISON....." << endl << endl;
+  cout << "                              ";
+  
+  for(int sA=0; sA<(int)surfA.size(); sA++)
+  {
+    //## SHOW PROGRESS:
+    
+    cout << "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b";        // shows progress
+    string progressStr = "surf " + toString(sA) + " of " + toString(nSurfacesA)
+      + " ("+ toString( calcPercentInt(sA,nSurfacesA) ) + "%)"  ;
+    cout << toStringPadNumber( progressStr,30,(char)' ' );
+    flush(cout);
+    
+    //## FIND THE SURFACE IN B WITH THE MBR NEAREST TO SURFACE A'S MBR
+    
+    float minDistToBBAnySurface = FLOAT_MAX;
+    int minDistSurfBIdx = 0;
+    
+    for(int sB=0; sB<(int)surfB.size(); sB++)
+    {
+      float distBetweenBB = mbr_distBetweenBBoxes3D( &surfA[sA].mbrLL, &surfA[sA].mbrUR,
+                              &surfB[sB].mbrLL, &surfB[sB].mbrUR, modelZScale );
+      if( distBetweenBB < minDistToBBAnySurface )
+      {
+        minDistToBBAnySurface = distBetweenBB;
+        minDistSurfBIdx = sB;
+      }
+    }
+    
+    //cout << "surf " << sA+1 << " closest BB in objB surf # " << minDistSurfBIdx+1
+    //  << " dist = " << minDistToBBAnySurface << endl; 
+    
+    //## STARTING AT SURFACE IN B WITH CLOSEST MBR, SEARCH FOR CLOSEST POINT IN ANY
+    //## SURFACE A TO ANY POINT IN B:
+    
+    surfA[sA].minDist = maxDistLimit;
+    
+    for(int s=0; s<(int)surfB.size(); s++)
+    {
+      int sB = (s+minDistSurfBIdx) % (int)surfB.size();
+      float distBetweenBB = mbr_distBetweenBBoxes3D( &surfA[sA].mbrLL, &surfA[sA].mbrUR,
+                              &surfB[sB].mbrLL, &surfB[sB].mbrUR, modelZScale );
+      
+      if( distBetweenBB > surfA[sA].minDist )   // if distance between bounding boxes > min dist, skip it
+        continue;
+      
+      surfA[sA].surfsCompared++;
+      Ipoint minPtHereInA;
+      Ipoint minPtHereInB;
+      float minDistHere = cont_minDistBetweenContPts3D( surfA[sA].p, surfB[sB].p, modelZScale,
+                                                        &minPtHereInA, &minPtHereInB );
+      
+      if( minDistHere < surfA[sA].minDist )
+      {
+        surfA[sA].minDist = minDistHere;
+        surfA[sA].closestPtThisSurf = minPtHereInA;
+        surfA[sA].closestPtOtherObj = minPtHereInB;
+        surfA[sA].closestSurfNumOtherObj = sA;
+      }
+    }
+    
+    if( surfA[sA].minDist < maxDistLimit )
+    {
+      totalMinDistsFound++;
+      totalSumMinDists += surfA[sA].minDist;
+    }
+  }
+  
+  
+  //## AS USER IF THEY WANTS TO GENERATE OUTPUT INTO NEW OBJECTS:
+  
+  string question = "A total of " + toString(totalMinDistsFound) + " closest distances "
+                    "have been found §from surfaces in object " + toString(objAIdx) +
+                    " to object " + toString(objBIdx) + ".\n\n"
+                    "Would you like to output results into a new object\n"
+                    "called 'MIN DISTANCES BETWEEN SURFACES'?";
+  if( addPtsNewObj && MsgBoxYesNo( plug.window, question) )
+  {
+    if( imodNewObject(imod) ) return "";
+    Iobj *objOutLines = getObj( imod, osize(imod)-1 );
+    imodObjectSetName (objOutLines,"MIN DISTANCES BETWEEN SURFACES");
+    imodObjectSetColor(objOutLines, 1.0, 0.0, 0.0);     // red
+    imodObjectSetValue(objOutLines, IobjFlagClosed, 0);
+    
+    //if( imodNewObject(imod) ) return "";
+    //Iobj *objOutPts = getObj( imod, osize(imod)-1 );
+    //imodObjectSetName (objOutPts,"CENTER POINT");
+    //imodObjectSetColor(objOutPts, 1.0, 1.0, 0.0);     // yellow
+    //imodObjectSetValue(objOutPts, IobjFlagClosed, 0);
+    //imodObjectSetValue(objOutPts, IobjFlagClosed, 0);
+    
+    for(int sA=0; sA<(int)surfA.size(); sA++)
+    {
+      if( addPtsNewObj )
+      {
+        Icont *newCont = imodContourNew();
+        imodPointAppend( newCont, &surfA[sA].closestPtThisSurf );
+        imodPointAppend( newCont, &surfA[sA].closestPtOtherObj );
+        edit_addContourToObj( objOutLines, newCont, true );
+        imodContourDelete(newCont);
+      }
+    }
+  }
+  
+  //## TALLY RESULTS:
+  
+  float minMinDist = FLOAT_MAX;
+  float maxMinDist = 0;
+  for(int sA=0; sA<(int)surfA.size(); sA++)
+  {
+    surfA[sA].minDist *= pixelSize;
+    minMinDist = MIN( minMinDist, surfA[sA].minDist );
+    maxMinDist = MAX( maxMinDist, surfA[sA].minDist );
+  }
+  float avgMinDist = fDiv( totalSumMinDists, totalMinDistsFound );
+  string unitsStr = toString( imodUnits(imod) );
+  
+  //## OUTPUT RESULTS:
+  
+  ostringstream out;
+  out << endl << endl;
+  out << ">--------------------" << endl;
+  out << "CLOSEST DISTANCE BETWEEN SURFACES IN OBJECT A TO OBJECT B:" << endl;
+  out << endl;
+  out << "sur#A,\tsur#B,\tminDist(nm),\tpsize(surfA),surfsCompared,\tBBsurfA" << endl;
+  for(int sA=0; sA<(int)surfA.size(); sA++)
+    out << sA << ",\t" << surfA[sA].closestSurfNumOtherObj << ",\t"
+      << surfA[sA].minDist << ",\t" << psize( surfA[sA].p ) << ",\t"
+      << surfA[sA].surfsCompared << ",\t"
+      << "(" << surfA[sA].mbrLL.x << "," << surfA[sA].mbrLL.y << "," << surfA[sA].mbrLL.z << ")-"
+      << "(" << surfA[sA].mbrUR.x << "," << surfA[sA].mbrUR.y << "," << surfA[sA].mbrUR.z << ")" << endl;
+  out << endl;
+  out << endl;
+  out << "SUMMARY:" << endl;
+  out << endl;
+  out << "Objects: " << endl;
+  out << " > objA: " << objAIdx+1 << "  \t... with " << nSurfacesA << " surfaces" << endl;
+  out << " > objB: " << objBIdx+1 << "  \t... with " << nSurfacesB << " surfaces" << endl;
+  out << " > max distance limit: " << ((maxDistLimit < FLOAT_MAX) ? toString(maxDistLimit) : "none") << endl;
+  out << endl;
+  out << "Number distances found: " << totalMinDistsFound << "   (of " << nSurfacesA << ")" << endl;
+  out << endl;
+  out << "Smallest min dist: " << minMinDist << " " << unitsStr <<endl;
+  out << "Largest min dist: "  << maxMinDist << " " << unitsStr <<endl;
+  out << "Average min dist: "  << avgMinDist << " " << unitsStr <<endl;
+  out << endl;
+  
+  for(int sA=0; sA<(int)surfA.size(); sA++)
+    imodContourDelete( surfA[sA].p );
+  for(int sB=0; sB<(int)surfB.size(); sB++)
+    imodContourDelete( surfB[sB].p );
+  
+  return out.str();
+}
 
 
 

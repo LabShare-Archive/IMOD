@@ -68,6 +68,7 @@ public slots:
   void outputTubeSizeAnalysis();
   void outputBranchingAnalysis();
   void outputVolumeWithinXAnalysis();
+  void findClosestDistanceSurfsTwoObjects();
   
   void generateDefGrid();
   void deformObjectsUsingDefGrid();
@@ -238,6 +239,7 @@ string analysis_outputVolumeWithinXAnalysis( int objToAnalyse,
                                              float distThres,
                                              int  numRandomPts, 
                                              bool useMbr, bool addPtsNewObj );
+string analysis_closestDistanceSurfsTwoObjects( int objAIdx, int objBIdx, bool addPtsNewObj, float maxDist );
 
 //-------------------------------
 //## DEFORMATION GRID FUNCTIONS:

@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.22  2010/11/03 06:53:14  tempuser
+    Uncommented Q_OBJECT although still not working on my machine
+
     Revision 1.21  2009/10/23 01:36:11  tempuser
     setZChange - wild problem
 
@@ -1377,6 +1380,297 @@ bool line_twoKiss( Ipoint *a1, Ipoint *a2, Ipoint *a3,
 //----------------------------------------------------------------------------
 
 
+//------------------------
+//-- 
+//--         __0___ ___1__            a _______b_______c
+//--       |\_     |     _/|           |\_     |     _/|
+//--       |  \12  10  13  |           |  \_   |   _/  |
+//--      7|    \_ | _/    |2          |    \_ | _/    |
+//--       | __8__\|/__9__ |          h| _____\i/_____ |d
+//--       |     _/|\_     |           |     _/|\_     |
+//--      6|   _/  |  \_   |3          |   _/  |  \_   |
+//--       | _/15  11  14_ |           | _/    |    \_ |
+//--       |/______|______\|           |/______|______\|          
+//--          5        4              g        f        e             
+
+void cont_gen16SegDisplay( Iobj *obj,int s0,int s1,int s2,int s3,int s4,int s5,int s6,
+          int s7,int s8,int s9,int s10,int s11,int s12,int s13,int s14,int s15, int z )
+{
+  Ipoint a;   setPt(&a,  0, 12, z);
+  Ipoint b;   setPt(&b,  3, 12, z);
+  Ipoint c;   setPt(&c,  6, 12, z);
+  Ipoint d;   setPt(&d,  6, 6,  z);
+  Ipoint e;   setPt(&e,  6, 0,  z);
+  Ipoint f;   setPt(&f,  3, 0,  z);
+  Ipoint g;   setPt(&g,  0, 0,  z);
+  Ipoint h;   setPt(&h,  0, 6,  z);
+  Ipoint i;   setPt(&i,  3, 6,  z);
+  
+  if( s0 ) cont_addTwoPointContourToObj(obj, a, b);   // seg 0
+  if( s1 ) cont_addTwoPointContourToObj(obj, b, c);   // seg 1
+  if( s2 ) cont_addTwoPointContourToObj(obj, c, d);   // seg 2
+  if( s3 ) cont_addTwoPointContourToObj(obj, d, e);   // seg 3
+  if( s4 ) cont_addTwoPointContourToObj(obj, e, f);   // seg 4
+  if( s5 ) cont_addTwoPointContourToObj(obj, f, g);   // seg 5
+  if( s6 ) cont_addTwoPointContourToObj(obj, g, h);   // seg 6
+  if( s7 ) cont_addTwoPointContourToObj(obj, h, a);   // seg 7
+  if( s8 ) cont_addTwoPointContourToObj(obj, h, i);   // seg 8
+  if( s9 ) cont_addTwoPointContourToObj(obj, i, d);   // seg 9
+  if( s10) cont_addTwoPointContourToObj(obj, b, i);   // seg 12
+  if( s11) cont_addTwoPointContourToObj(obj, f, i);   // seg 13 
+  if( s12) cont_addTwoPointContourToObj(obj, a, i);   // seg 10
+  if( s13) cont_addTwoPointContourToObj(obj, c, i);   // seg 11
+  if( s14) cont_addTwoPointContourToObj(obj, e, i);   // seg 12
+  if( s15) cont_addTwoPointContourToObj(obj, g, i);   // seg 13 
+}
+
+int cont_generateDigitUsing16SegDisplay( Iobj *obj, char ch, int z )
+{
+  //int segDisp[14];
+  
+  switch (ch)
+  {                            // seg:  0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5
+    case('0'): cont_gen16SegDisplay(obj,1,1,1,1,1,1,1,1,0,0,0,0,0,1,0,1,z); break;
+    case('1'): cont_gen16SegDisplay(obj,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,z); break;
+    case('2'): cont_gen16SegDisplay(obj,1,1,1,0,1,1,1,0,1,1,0,0,0,0,0,0,z); break;
+    case('3'): cont_gen16SegDisplay(obj,1,1,1,1,1,1,0,0,1,1,0,0,0,0,0,0,z); break;
+    case('4'): cont_gen16SegDisplay(obj,0,0,1,1,0,0,0,1,1,1,0,0,0,0,0,0,z); break;
+    case('5'): cont_gen16SegDisplay(obj,1,1,0,1,1,1,0,1,1,1,0,0,0,0,0,0,z); break;
+    case('6'): cont_gen16SegDisplay(obj,1,1,0,1,1,1,1,1,1,1,0,0,0,0,0,0,z); break;
+    case('7'): cont_gen16SegDisplay(obj,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,z); break;
+    case('8'): cont_gen16SegDisplay(obj,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,z); break;
+    case('9'): cont_gen16SegDisplay(obj,1,1,1,1,1,1,0,1,1,1,0,0,0,0,0,0,z); break;
+    
+                                          // seg:  0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5
+    case('a'): case('A'): cont_gen16SegDisplay(obj,1,1,1,1,0,0,1,1,1,1,0,0,0,0,0,0,z); break;
+    case('b'): case('B'): cont_gen16SegDisplay(obj,1,1,1,1,1,1,0,0,0,1,1,1,0,0,0,0,z); break;
+    case('c'): case('C'): cont_gen16SegDisplay(obj,1,1,0,0,1,1,1,1,0,0,0,0,0,0,0,0,z); break;
+    case('d'): case('D'): cont_gen16SegDisplay(obj,1,1,1,1,1,1,0,0,0,0,1,1,0,0,0,0,z); break;
+    case('e'): case('E'): cont_gen16SegDisplay(obj,1,1,0,0,1,1,1,1,1,1,0,0,0,0,0,0,z); break;
+    case('f'): case('F'): cont_gen16SegDisplay(obj,1,1,0,0,0,0,1,1,1,1,0,0,0,0,0,0,z); break;
+    case('g'): case('G'): cont_gen16SegDisplay(obj,1,1,0,1,1,1,1,1,0,1,0,0,0,0,0,0,z); break;
+    case('h'): case('H'): cont_gen16SegDisplay(obj,0,0,1,1,0,0,1,1,1,1,0,0,0,0,0,0,z); break;
+    case('i'): case('I'): cont_gen16SegDisplay(obj,1,1,0,0,1,1,0,0,0,0,1,1,0,0,0,0,z); break;
+    case('j'): case('J'): cont_gen16SegDisplay(obj,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,z); break;
+    case('k'): case('K'): cont_gen16SegDisplay(obj,0,0,0,0,0,0,1,1,1,0,0,0,0,1,1,0,z); break;
+    case('l'): case('L'): cont_gen16SegDisplay(obj,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,z); break;
+    case('m'): case('M'): cont_gen16SegDisplay(obj,0,0,1,1,0,0,1,1,0,0,0,0,1,1,0,0,z); break;
+    case('n'): case('N'): cont_gen16SegDisplay(obj,0,0,1,1,0,0,1,1,0,0,0,0,1,0,1,0,z); break;
+    case('o'): case('O'): cont_gen16SegDisplay(obj,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,z); break;
+    case('p'): case('P'): cont_gen16SegDisplay(obj,1,1,1,0,0,0,1,1,1,1,0,0,0,0,0,0,z); break;
+    case('q'): case('Q'): cont_gen16SegDisplay(obj,1,1,1,1,1,1,1,1,0,0,0,0,0,0,1,0,z); break;
+    case('r'): case('R'): cont_gen16SegDisplay(obj,1,1,1,0,0,0,1,1,1,1,0,0,0,0,1,0,z); break;
+    case('s'): case('S'): cont_gen16SegDisplay(obj,1,1,0,1,1,1,0,1,1,1,0,0,0,0,0,0,z); break;
+    case('t'): case('T'): cont_gen16SegDisplay(obj,1,1,0,0,0,0,0,0,0,0,1,1,0,0,0,0,z); break;
+    case('u'): case('U'): cont_gen16SegDisplay(obj,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,z); break;
+    case('v'): case('V'): cont_gen16SegDisplay(obj,0,0,0,0,0,0,1,1,0,0,0,0,0,1,0,1,z); break;
+    case('w'): case('W'): cont_gen16SegDisplay(obj,0,0,1,1,0,0,1,1,0,0,0,0,0,0,1,1,z); break;
+    case('x'): case('X'): cont_gen16SegDisplay(obj,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,z); break;
+    case('y'): case('Y'): cont_gen16SegDisplay(obj,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,z); break;
+    case('z'): case('Z'): cont_gen16SegDisplay(obj,1,1,0,0,1,1,0,0,0,0,0,0,0,1,0,1,z); break;
+    
+    case('.'): cont_addTwoPointContourToObj(obj, 2,0, 4,0, z);
+               cont_addTwoPointContourToObj(obj, 4,0, 4,2, z);
+               cont_addTwoPointContourToObj(obj, 4,2, 2,2, z);
+               cont_addTwoPointContourToObj(obj, 2,2, 2,0, z);
+               break;
+    case(':'): cont_addTwoPointContourToObj(obj, 2,2, 4,2, z);
+               cont_addTwoPointContourToObj(obj, 4,2, 4,4, z);
+               cont_addTwoPointContourToObj(obj, 4,4, 2,4, z);
+               cont_addTwoPointContourToObj(obj, 2,4, 2,2, z);
+               cont_addTwoPointContourToObj(obj, 2,8, 4,8, z);
+               cont_addTwoPointContourToObj(obj, 4,8, 4,10, z);
+               cont_addTwoPointContourToObj(obj, 4,10, 2,10, z);
+               cont_addTwoPointContourToObj(obj, 2,10, 2,8, z);
+               break;
+    case(','): cont_addTwoPointContourToObj(obj, 0,0, -0.5,-0.5, z); 
+               break;
+    case('='): cont_addTwoPointContourToObj(obj, 0,7.5, 6,7.5, z);
+               cont_addTwoPointContourToObj(obj, 0,4.5, 6,4.5, z);
+               break;
+    
+                               // seg:  0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5
+    case('-'): cont_gen16SegDisplay(obj,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,z); break;
+    case('_'): cont_gen16SegDisplay(obj,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,z); break;
+    case('['): cont_gen16SegDisplay(obj,0,1,0,0,1,0,0,0,0,0,1,1,0,0,0,0,z); break;
+    case(']'): cont_gen16SegDisplay(obj,1,0,0,0,0,1,0,0,0,0,1,1,0,0,0,0,z); break;
+    case('('): cont_gen16SegDisplay(obj,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,z); break;
+    case(')'): cont_gen16SegDisplay(obj,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,z); break;
+    case('*'): cont_gen16SegDisplay(obj,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,z); break;
+    case('/'): cont_gen16SegDisplay(obj,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,z); break;
+    case('\\'):cont_gen16SegDisplay(obj,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,z); break;
+    case('\''):cont_gen16SegDisplay(obj,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,z); break;
+    case('"'): cont_gen16SegDisplay(obj,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,z); break;
+    //case(''): cont_gen16SegDisplay(obj,,,,,,,,,,,,,,,,,z); break;
+    
+    default:    return 0;
+  }
+  
+  return 1;
+}
+
+
+
+//------------------------
+//-- 
+
+int cont_generateDigitUsing7SegDisplay( Iobj *obj, int number, int z )
+{
+  if( number < 0 || number > 9 )
+    return 0;
+  
+  static int segDisp[10][7] = {
+                    // seg:    A,B,C,D,E,F,G
+                              {1,1,1,1,1,1,0},    // "0"
+                              {0,1,1,0,0,0,0},    // "1"
+                              {1,1,0,1,1,0,1},    // "2"
+                              {1,1,1,1,0,0,1},    // "3"
+                              {0,1,1,0,0,1,1},    // "4"
+                              {1,0,1,1,0,1,1},    // "5"
+                              {1,0,1,1,1,1,1},    // "6"
+                              {1,1,1,0,0,0,0},    // "7"
+                              {1,1,1,1,1,1,1},    // "8"
+                              {1,1,1,1,0,1,1}     // "9"
+                              };
+  
+  if( segDisp[number][0] ) cont_addTwoPointContourToObj(obj,0,2, 1,2, z);   // seg A
+  if( segDisp[number][1] ) cont_addTwoPointContourToObj(obj,1,2, 1,1, z);   // seg B
+  if( segDisp[number][2] ) cont_addTwoPointContourToObj(obj,1,1, 1,0, z);   // seg C
+  if( segDisp[number][3] ) cont_addTwoPointContourToObj(obj,1,0, 0,0, z);   // seg D
+  if( segDisp[number][4] ) cont_addTwoPointContourToObj(obj,0,0, 0,1, z);   // seg E
+  if( segDisp[number][5] ) cont_addTwoPointContourToObj(obj,0,1, 0,2, z);   // seg F
+  if( segDisp[number][6] ) cont_addTwoPointContourToObj(obj,0,1, 1,1, z);   // seg G
+  
+  return 1;
+}
+
+//------------------------
+//-- 
+//-- 
+
+int cont_generateTextAsConts( Iobj *obj, string text, Ipoint pos,
+                                 float fontSize, int textAlign, bool smallCaps )
+{
+  if( text.length() <= 0 )
+    return 0;
+  
+  Ipoint originPt;  setPt( &originPt, 0, 0, 0 );
+  float scaleFactor = fontSize / DEFAULT_FONT_HEIGHT;
+  float finalWidth = text.length() * DEFAULT_FONT_SPACING * scaleFactor;
+  float translateX = pos.x;
+  if(textAlign == TA_CENTER)
+    translateX -= finalWidth/2.0; 
+  if(textAlign == TA_RIGHT )
+    translateX -= finalWidth; 
+  
+  //## GENERATE EACH CHARACTER:
+  
+  int nContsBeforeText = csize(obj);
+  for(int i=0; i<text.length(); i++ )
+  {
+    int nContsBeforeChar = csize(obj); 
+    cont_generateDigitUsing16SegDisplay( obj, text[i], pos.z );
+    bool isLowerCase = ( int(text[i]) >= int('a') ) && ( int(text[i]) <= int('z') );
+    for (int c=nContsBeforeChar; c<csize(obj); c++)
+    {
+      if( smallCaps && isLowerCase )
+        cont_scaleAboutPtXY( getCont(obj,c), &originPt, 0.9, 0.7 );
+      cont_translate( getCont(obj,c), DEFAULT_FONT_SPACING*i, 0 );
+    }
+  }
+  
+  //## FINAL SCALE AND TRANSLATE OF TEXT
+  
+  for (int c=nContsBeforeText; c<csize(obj); c++)
+  {
+    cont_scaleAboutPtXY( getCont(obj,c), &originPt, scaleFactor, scaleFactor );
+    cont_translate( getCont(obj,c), translateX, pos.y );
+  }
+  
+  return 1;
+}
+
+//------------------------
+//-- 
+//-- 
+
+int cont_generateTextAreaAsConts( Iobj *obj, string text, Ipoint pos, float fontSize,
+                       int alignHoriz, int alignVert, bool smallCaps, float lineSpacing )
+{
+  if (text.length() == 0 )
+    return 0;
+  
+  vector<string> lines = string_explode( text, "\n" );
+  int numLines = (int)lines.size();
+  
+  
+  float scaleFactor = fontSize / DEFAULT_FONT_HEIGHT;
+  int   maxCharsWide = 0;
+  for (int i=0; i<(int)lines.size(); i++)
+    maxCharsWide = MAX( maxCharsWide, (int)lines[i].length() );
+  
+  float textWidth  = maxCharsWide * DEFAULT_FONT_SPACING * scaleFactor;
+  float textHeight = (numLines * fontSize) + ((numLines-1) * lineSpacing);
+  
+  
+  float yPosFirstLine = pos.y;
+  if( alignVert == TV_CENTER )
+    yPosFirstLine -= fontSize*0.5 - ( (numLines-1) * 0.5*(fontSize+lineSpacing) );
+  if( alignVert == TV_TOP )
+    yPosFirstLine += fontSize/2.0;
+  if( alignVert == TV_BOTTOM )
+    yPosFirstLine -= (textHeight - fontSize);
+  
+  for (int i=0; i<(int)lines.size(); i++)
+  {
+    Ipoint linePos; setPt(&linePos, pos.x, yPosFirstLine, pos.z );
+    
+    float lineWidth = lines[i].length() * DEFAULT_FONT_SPACING * scaleFactor;
+    if( alignHoriz == TA_CENTER )
+      linePos.x -= lineWidth/2.0;
+    if( alignHoriz == TA_RIGHT )
+      linePos.x -= lineWidth;
+    
+    linePos.y = yPosFirstLine - i*(fontSize+lineSpacing);
+    cont_generateTextAsConts( obj, lines[i], linePos, fontSize, TA_LEFT, smallCaps );
+  }
+  return numLines;  
+}
+
+
+//------------------------
+//-- Adds a new contour to the specified object
+
+int cont_addTwoPointContourToObj( Iobj *obj, float p1x,float p1y,
+                                  float p2x,float p2y, float z, int open )
+{
+  Icont *newCont = imodContourNew();    // malloc new contour and don't delele it
+  imodPointAppendXYZ( newCont, p1x, p1y, z );
+  imodPointAppendXYZ( newCont, p2x, p2y, z );
+  setOpenFlag( newCont, open );
+  int numConts = csize(obj);
+  int newContPos = imodObjectAddContour( obj, newCont );
+  free(newCont); 
+  return newContPos;
+}
+
+//------------------------
+//-- Adds a new contour to the specified object
+
+int cont_addTwoPointContourToObj( Iobj *obj, Ipoint p1, Ipoint p2, int open )
+{
+  Icont *newCont = imodContourNew();    // malloc new contour and don't delele it
+  imodPointAppend( newCont, &p1 );
+  imodPointAppend( newCont, &p2 );
+  int numConts = csize(obj);
+  setOpenFlag( newCont, open );
+  int newContPos = imodObjectAddContour( obj, newCont );
+  free(newCont); 
+  return newContPos;
+}
+
+
+
 
 //------------------------
 //-- Returns 1 if the two contours have an identical set of points
@@ -1856,8 +2150,36 @@ void cont_generateCircle( Icont *cont, float radius, int numPoints,
 }
 
 
+//---------------------------------
+//-- Generates a 2D rectangle of the given width and height with the bottom left corner
+//-- at coordinates (llX, llY, z). The box is draw counterclockwise from the bottom
+//-- left, and if "repeatFirstPt" is true it will "close" the box with a 5th point
 
+void cont_generateBox( Icont *cont, float llX, float llY, float width, float height,
+                       float z, bool repeatFirstPt )
+{
+  imodPointAppendXYZ( cont, llX      , llY       , z );
+  imodPointAppendXYZ( cont, llX+width, llY       , z );
+  imodPointAppendXYZ( cont, llX+width, llY+height, z );
+  imodPointAppendXYZ( cont, llX      , llY+height, z );
+  if( repeatFirstPt )
+    imodPointAppendXYZ( cont, llX      , llY       , z );
+}
 
+//---------------------------------
+//-- Generates a 2D rectangle between the two points given (lower left and upper right).
+//-- The box is draw counterclockwise from the bottom left, at the z of the first point,
+//-- and if "repeatFirstPt" is true it will "close" the box with a 5th point.
+
+void cont_generateBox( Icont *cont, Ipoint ll, Ipoint ur, bool repeatFirstPt )
+{
+  imodPointAppendXYZ( cont, ll.x, ll.y, ll.z );
+  imodPointAppendXYZ( cont, ur.x, ll.y, ll.z );
+  imodPointAppendXYZ( cont, ur.x, ur.y, ll.z );
+  imodPointAppendXYZ( cont, ll.x, ur.y, ll.z );
+  if( repeatFirstPt )
+    imodPointAppendXYZ( cont, ll.x, ll.y, ll.z );
+}
 
 
 //------------------------
