@@ -23,9 +23,8 @@ all : $(PLUGS)
 
 install : $(PLUGS)
 	$(CP) -f $(PLUGS) $(MODULE).html $(IMOD_PLUGIN_DIR)
-	$(CP) -f $(PLUGS) standard_names.csv $(IMOD_PLUGIN_DIR)
-	$(CP) -f $(PLUGS) standard_names_persistent.csv $(IMOD_CALIB_DIR)
-	$(CP) -f $(PLUGS) naming_help.html $(IMOD_PLUGIN_DIR)
+	$(CP) -f standard_names.csv $(IMOD_PLUGIN_DIR)
+	$(CP) -f naming_help.html $(IMOD_PLUGIN_DIR)
 
 $(PLUGS) : $(CONTEXTRA).$(O) $(QTDIALOG).$(O) $(MODULE).$(O) \
 	moc_$(MODULE).$(O) $(COMMINCLUDES)
