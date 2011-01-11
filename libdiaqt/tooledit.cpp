@@ -20,7 +20,7 @@
  * A line edit widget that sends a signal, focusLost(), when it loses input 
  * focus, and that can be set to fixed column width by providing the number 
  * of characters in [columns].  [columns] defaults to 0.  [name] is ignored.
- * Use the signal finishedEditing() instead of focusLost() and returnPressed().
+ * Use the signal editingFinished() instead of focusLost() and returnPressed().
  */
 ToolEdit::ToolEdit( QWidget * parent, int columns, const char * name)
   : QLineEdit(parent)
@@ -71,6 +71,10 @@ void ToolEdit::setColumnWidth(int columns)
 /*
 
 $Log$
+Revision 1.8  2010/12/16 19:02:18  mast
+Fixed focusLost signal and ability to get the editingFinished signal
+by emitting focusLost for editingFinished and remove event handler
+
 Revision 1.7  2009/01/15 16:30:26  mast
 Qt 4 port
 
