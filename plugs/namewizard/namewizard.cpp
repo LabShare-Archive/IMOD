@@ -55,6 +55,7 @@
 #include <QMenu>
 
 #include <QDesktopServices>
+#include <QDir>
 #include <QUrl>
 #include <QProcess>
 
@@ -274,8 +275,9 @@ NameWizard::NameWizard(QWidget *parent, const char *name) :
                           "file/table. Whenever a name matches one of these entries a \n"
                           "'match' will appear. Note that if you want to preserve the \n"
                           "match, but add extra information use a full stop (.). This \n"
-                          "allows you, for example, to unique identify individual objects/\n"
-                          "compartments by labeling objects 'Axon.001','Axon.002' etc.\n"
+                          "allows you to (as just one example) to unique identify \n"
+                          "individual compartments/surfaces by labeling objects \n"
+                          "'Axon.001','Axon.002','Axon.003', etc.\n"
                           "Some groups prefer to separate surfaces into separate \n"
                           "compartments like this, but many find it easier to manage \n"
                           "to segment all axons in a single object (called 'Axon').");
@@ -403,7 +405,7 @@ NameWizard::NameWizard(QWidget *parent, const char *name) :
              "Used to quickly reorder objects, by moving all selected \n"
              "objects together and down/up to the number you specify." );
   selectionMenu->addSeparator();
-  addAction( selectionMenu, SLOT(batchRenameSelected()),     "Batch Rename (.001, .002, etc)",
+  addAction( selectionMenu, SLOT(batchRenameSelected()), "Batch Rename (.001, .002, etc)",
              "Batch renames all selected objects and includes the option \n"
              "to append numbers to the end (NewName.001, NewName.002, etc)." );
   selectionMenu->addSeparator();
@@ -425,12 +427,17 @@ NameWizard::NameWizard(QWidget *parent, const char *name) :
   addAction( editTableMenu, SLOT(loadNames()),    "Reload standard names from file",
              "Allows you to reload the <b>standard names and colors cvs file</b> \n"
              "from the default location, or (if specified) a different file location." );
+  editTableMenu->addSeparator();
   addAction( editTableMenu, SLOT(helpPluginHelp()), "HELP: How do I add custom names?",
              "Takes you to the help page, where it explains how to load custom names" );
   addAction( editTableMenu, SLOT(helpNamingHelp()), "HELP: Why is this important?",
              "Takes you to a page on 'Naming Objects in IMOD' which explains \n"
              "the importance of consitent names, the conventions you should follow \n"
              "and several other important concepts such as ontologies!" );
+  editTableMenu->addSeparator();
+  addAction( editTableMenu, SLOT(moreSettings()), "Settings",
+             "Lets you modify settings associated with this \n"
+             "plugin (such as the nag screen)" );
   
   editNameTableButton->setMenu( editTableMenu );
   
@@ -469,7 +476,8 @@ QString NameWizard::getFirstValidFilePath()
     return plug.defaultFilePath;
   else
   {
-    cout << "File '" << qStringToString(plug.defaultFilePath) << "' does not exist" << endl;
+    cout <<"File '"<< qStringToString(plug.defaultFilePath) <<"' does not exist" <<endl;
+    
     return plug.secondaryFilePath;
   }
 }
@@ -494,7 +502,6 @@ void NameWizard::resizeEvent ( QResizeEvent * event )
 
 
 
-
 //## SLOTS:
 
 
@@ -506,7 +513,8 @@ void NameWizard::resizeEvent ( QResizeEvent * event )
 void NameWizard::initValues()
 {
   plug.rightColIdx   = 0;
-  //plug.copySuggestedColors = true;
+  plug.showNagPersitentCsv = true;
+  
   plug.defaultFilePath = QString(getenv("IMOD_CALIB_DIR"))
                        + QString("/standard_names_persistent.csv");
   plug.secondaryFilePath = QString(getenv("IMOD_DIR"))
@@ -525,19 +533,128 @@ void NameWizard::loadSettings()
   if(nvals!=NUM_SAVED_VALS )
   {
     wprint("NameWizard: Could not load saved values");
-    QMessageBox::about( this, "-- Documentation --",
-                        "If this is your first time using 'Name Wizard' \n"
-                        "we HIGHLY recommended you click 'Help' \n"
-                        "(at bottom of the plugin) and watch the video tutorial! \n\n"
-                        "                                   -- Andrew Noske" );
+    int result = QMessageBox::information( this, "-- Documentation --",
+                              "Would you like to view help? \n\n"
+                              "If this is your first time using 'Name Wizard' \n"
+                              "we HIGHLY recommended you click 'Help' \n"
+                              "(at bottom of the plugin) to learn how it works! \n\n"
+                              "                                   -- Andrew Noske",
+                              QMessageBox::Yes, QMessageBox::No );
+    if( result == QMessageBox::Yes )
+      helpPluginHelp();
     return;
   }
   
-  plug.rightColIdx     = savedValues[0];
-  //plug.copySuggestedColors   = savedValues[1];
+  plug.rightColIdx         = savedValues[0];
+  plug.showNagPersitentCsv = savedValues[1];
+  
+  
+  if( plug.showNagPersitentCsv && !QFile::exists( plug.defaultFilePath ) )
+  {
+    showNagScreenPersistenCsv();
+  }
+  
   
   loadNamesFromFile( getFirstValidFilePath() );
 }
+
+//------------------------
+//-- Displays a nag screen asking the user if he wishes to copy a file accross to
+//-- "plug.defaultFilePath".
+
+void NameWizard::showNagScreenPersistenCsv()
+{
+  QString calibDir = QString(getenv("IMOD_CALIB_DIR"));
+  
+  //## GET USER INPUT FROM CUSTOM DIALOG:
+  
+  int option = 0;
+  CustomDialog ds("Missing Default CVS File",this);
+  ds.addHtmlLabel( "This plugin works by matching your object's names/colors <br>"
+                   "to a \"<b>standard names and colors cvs file</b>\". <br>"
+                   "The preferred location for this file is: <br>" );
+  ds.addHtmlLabel( "<a href='file://" + calibDir + "'>"
+                   + plug.defaultFilePath + "</a><br>");
+  ds.addHtmlLabel( "This file is not yet setup.... what would you like to do?" );
+  ds.addRadioGrp( "... action:",
+                  "use 'standard_names.cvs' (the default cvs file) for now|"
+                  "copy 'standard_names.cvs' to this location|"
+                  "open this directory in Finder/Explorer|"
+                  "show me help!",
+                  &option );
+  
+  ds.addLabel   ( "-----" );
+  ds.addCheckBox( "always show this message", &plug.showNagPersitentCsv );
+  ds.exec();
+  if( ds.wasCancelled() )
+    return;
+  
+  
+  //## OPEN HELP OR DO NOTHING:
+  
+  if( option==0 )   // "use the default cvs file 'standard_names.cvs' instead"
+  {
+    return;
+  }
+  if( option==3 )   // "show me help!"
+  {
+    helpPluginHelp();
+    return;
+  }
+  
+  
+  //## CHECK "IMOD_CALIB_DIR" EXISTS:
+  
+  
+  if( calibDir.length() == 0 )
+  {
+    MsgBox( "ERROR: The environmental variable 'IMOD_CALIB_DIR' \n"
+            "       has not been set. Cannot complete request." );
+    return;
+  }
+  QDir dir;
+  if( !dir.exists( calibDir ) )
+  {
+    if( MsgBoxYesNo( this, "WARNING: The 'IMOD_CALIB_DIR' directory does not exist. \n("
+                     + qStringToString(calibDir)
+                     + ")\nTry to create this folder now?" ) )
+    {
+      bool success = dir.mkpath( calibDir );
+      if(success)
+        MsgBox( "New folder created at: \n  " + qStringToString(calibDir) );
+      else
+        MsgBox( "Failed to create new folder at: \n  " + qStringToString(calibDir) 
+                + "\nYou may have to create this folder yourself (with permissions)." );
+    }
+  }
+  
+  //## TRY TO OPEN FOLDER OR COPY FILE:
+  
+  if( option==2 )   // "open this directory in Finder/Explorer"
+  {
+    QStringList dirPathList;
+    dirPathList << QString(getenv("IMOD_CALIB_DIR"));
+    QProcess *processFinder = new QProcess(NULL);
+    processFinder->start("open", dirPathList );
+    
+    return;
+  }
+  else if( option==1 )   // "copy 'standard_names.cvs' to this location"
+  {
+    QFile defaultFile( plug.secondaryFilePath );
+    bool success = defaultFile.copy( plug.defaultFilePath );
+    if(success)
+      MsgBox( "File was successfully copied from: \n  "
+              + qStringToString(plug.secondaryFilePath) + "\nto the location: \n  :"
+              + qStringToString(plug.defaultFilePath) );
+    else
+      MsgBox( "ERROR: Was unable to copy the file from: \n  "
+              + qStringToString(plug.secondaryFilePath) + "\nto the location: \n  :"
+              + qStringToString(plug.defaultFilePath)
+              + "\nYou may have to perform this operation yourself (with permissions).");
+  }
+}
+
 
 
 //------------------------
@@ -549,7 +666,7 @@ void NameWizard::saveSettings()
   double saveValues[NUM_SAVED_VALS];
   
   saveValues[0]   = plug.rightColIdx;
-  //saveValues[1]   = plug.copySuggestedColors;
+  saveValues[1]   = plug.showNagPersitentCsv;
   
   prefSaveGenericSettings("NameWizard",NUM_SAVED_VALS,saveValues);
 }
@@ -614,7 +731,12 @@ int NameWizard::loadNamesFromFile( QString filePath )
   
   //## SHOW OUTCOME:
   
-  wprint("%d names loaded\n", (int)plug.nameList.size() );
+  string filePathStr = qStringToString(filePath);
+  wprint("");
+  wprint("NAME WIZARD: %d names loaded from", (int)plug.nameList.size() );
+  //if( filePath == plug.defaultFilePath )
+    wprint(" '%s' ", filePathStr.c_str() );
+  
   if( linesRead == 0 )
   {
     MsgBox("WARNING: This file appears to be empty: \n" 
@@ -682,7 +804,7 @@ void NameWizard::changeCols( int i )
   if( i==0 )
   {
     lblIdentifier->setText( "<i>UniqueID</i>" );
-    lblIdentifier->setToolTip( "If an object name has a match and a UniqueID is provided \n"
+    lblIdentifier->setToolTip( "If an object name has a match and a UniqueID is given \n"
                                "for that name, then it will appear here. UniqueIDs \n"
                                "are important, as a way to uniquely identify a \n"
                                "compartment/organelle/protein without relying on \n"
@@ -779,16 +901,15 @@ void NameWizard::refreshObjList()
       item.lblObjNum->setFixedWidth(20);
       
       item.btnColor      = new ColorButton( item.prevColor, item.widLine);
-      connect( item.btnColor, SIGNAL(released()), this, SLOT(updateColors()) );    // CONNECTION
-      //connect( item.btnColor, SIGNAL(valueChanged()), this, SLOT(updateColors()) );    // CONNECTION
+      connect( item.btnColor, SIGNAL(released()), this, SLOT(updateColors()) );    
+                // CONNECTION
       
       item.txtObjName    = new QLineEdit();
-      //item.txtObjName->setFixedWidth( 200 );
       item.txtObjName->setMinimumWidth( 200 );
-      //item.txtObjName->setSizePolicy( QSizePolicy::MinimumExpanding );
       item.txtObjName->setCompleter(completer);
-      connect( item.txtObjName, SIGNAL(textEdited(QString)), this, SLOT(nameModified()) );    // CONNECTION
+      connect( item.txtObjName, SIGNAL(textEdited(QString)), this, SLOT(nameModified()) );
       connect( item.txtObjName, SIGNAL(editingFinished()), this, SLOT(nameModified()) );
+                // CONNECTION
       
       item.lblLink       = new QLabel();
       item.lblLink->setTextFormat( Qt::RichText );
@@ -1401,12 +1522,10 @@ void NameWizard::duplicateSelected()
     // NOTE: I tried using imodObjectDup and imodObjectCopy, but had problems,
     //       so instead I copy *most* of the objects properties individually.
     
-    imodObjectSetValue( objNew, IobjLineWidth, imodObjectGetValue(objToDup,IobjLineWidth) );
-    imodObjectSetValue( objNew, IobjLineWidth2, imodObjectGetValue(objToDup,IobjLineWidth2) );
-    imodObjectSetValue( objNew, IobjPointSize, imodObjectGetValue(objToDup,IobjPointSize) );
-    imodObjectSetValue( objNew, IobjFlagClosed, imodObjectGetValue(objToDup,IobjFlagClosed) );
-    //imodObjectSetValue( objNew, IobjFlagConnected, imodObjectGetValue(objToDup,IobjFlagConnected) );
-    //imodObjectSetValue( objNew, IobjFlagFilled, imodObjectGetValue(objToDup,IobjFlagFilled) );
+    imodObjectSetValue(objNew,IobjLineWidth,imodObjectGetValue(objToDup,IobjLineWidth));
+    imodObjectSetValue(objNew,IobjLineWidth2,imodObjectGetValue(objToDup,IobjLineWidth2));
+    imodObjectSetValue(objNew,IobjPointSize,imodObjectGetValue(objToDup,IobjPointSize));
+    imodObjectSetValue(objNew,IobjFlagClosed,imodObjectGetValue(objToDup,IobjFlagClosed));
     
     float red, green, blue;
     imodObjectGetColor( objToDup, &red, &green, &blue );
@@ -1478,7 +1597,6 @@ void NameWizard::moveSelected()
   {
     int checkedInt = lineItem[i].chkObj->isChecked() ? 1 : 0;
     imodObjectSetValue( getObj(imod,i), IobjFlagFilled, checkedInt );
-    //cout << "MOVE OBJECT " << i << " = " << checkedInt << " = " << imodObjectGetValue( getObj(imod,i), IobjFlagFilled ) << endl;    //%%%%%%
   }
   
   //## SYSTEMATICALLY MOVE MARKED OBJECTS TO DESIRED POSITION AND RESET "IobjFlagFilled":
@@ -1497,7 +1615,6 @@ void NameWizard::moveSelected()
       imodObjectSetValue( obj, IobjFlagFilled, 0 );
       undoObjectMove( plug.view, i, newObjIdx );
       imodMoveObject( imod, i, newObjIdx );
-      //cout << "MOVING OBJECT " << i << " " << imodObjectGetValue( obj, IobjFlagFilled ) << endl;    //%%%%%%
       numObjsMoved++;
       i++;
       if(numObjsMoved>numSelectedObjs) { cerr<<"ERROR: moveSelected()"<<endl; break; }
@@ -1703,6 +1820,43 @@ void NameWizard::helpNamingHelp()
 {
   QString str = QString(getenv("IMOD_DIR")) + QString("/lib/imodplug/naming_help.html");
   imodShowHelpPage((const char *)str.toLatin1());
+}
+
+
+//------------------------
+//-- Allows user to change other plugin values/settings.
+
+void NameWizard::moreSettings()
+{
+  //## GET USER INPUT FROM CUSTOM DIALOG:
+  
+  int newRightColIdx = plug.rightColIdx;
+  
+	CustomDialog ds("More Settings", this);
+  //ds.addLabel   ( "", false );
+  ds.addCheckBox( "show nag screen about 'standard_names_persistent.cvs'", 
+                  &plug.showNagPersitentCsv,
+                  "If true, then each time you open this plugin it will check if \n"
+                  "a file exists at the location: \n   " + plug.defaultFilePath + " \n" 
+                  "and show a nag screen if this file does not exist." );
+  ds.addComboBox( "right column:",
+                  "UniqueID|"
+                  "Contours",
+                  &newRightColIdx,
+                  "The information to display in the right-most column in the list "
+                  "of objects in this plugin.\n"
+                  "\n"
+                  " > UniqueID - if the object matches an entry in the \n"
+                  "              'standards names and colors cvs file' \n"
+                  "               then shows the UniqueID for this entry \n"
+                  "               (if it exists).\n"
+                  " > Contours - shows how many (and what type) of contours \n"
+                  "              are in each object" );  
+	ds.exec();
+	if( ds.wasCancelled() )
+		return;
+  
+  changeCols( newRightColIdx );
 }
 
 

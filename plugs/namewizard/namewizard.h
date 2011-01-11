@@ -89,6 +89,7 @@ public slots:
   void initValues();
   void loadSettings();
   void saveSettings();
+  void showNagScreenPersistenCsv();
   
   void nameModified();
   void changeCols( int i );
@@ -119,6 +120,7 @@ public slots:
   void helpPluginHelp();
   void helpNamingHelp();
   
+  void moreSettings();
   
 protected:
   void closeEvent ( QCloseEvent * e );
@@ -151,7 +153,7 @@ private:
 //-------------------------------
 //## CONSTANTS:
 
-const int NUM_SAVED_VALS = 1;
+const int NUM_SAVED_VALS = 2;
 
 //-------------------------------
 
@@ -189,8 +191,10 @@ struct NameWizardData   // contains all local plugin data
   
   //## SETTINGS:
   
-  int rightColIdx;
-  //bool copySuggestedColors;
+  int rightColIdx;            // used to change the right-most column to show
+                              //  either "UniqueId" or "Contours"
+  bool showNagPersitentCsv;   // if true, will show nag screen if the file path 
+                              //  "secondaryFilePath" has no file
   
   bool initialized;
 };
