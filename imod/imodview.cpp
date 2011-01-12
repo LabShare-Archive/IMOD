@@ -30,6 +30,8 @@
 #include "imod_edit.h"
 #include "imod_moviecon.h"
 #include "imod_iscale.h"
+#include "imodv_objed.h"
+#include "imod_object_edit.h"
 #include "iproc.h"
 #include "autox.h"
 #include "xzap.h"
@@ -2610,6 +2612,13 @@ int prefGetGenericSettings(char *key, double *values, int maxVals)
   return ImodPrefs->getGenericSettings(key, values, maxVals);
 }
 
+void imodUpdateObjectDialogs()
+{
+  imodvObjedNewView();
+  imod_object_edit_draw();
+  imod_info_setobjcolor();
+}
+
 int ivwOverlayOK(ImodView *inImodView)
 {
   return (App->rgba == 1 && !App->cvi->rawImageStore);
@@ -2852,6 +2861,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 /*
 
 $Log$
+Revision 4.84  2010/12/18 05:45:40  mast
+Added function for line-pointer based rectangle copy
+
 Revision 4.83  2009/08/19 21:31:16  mast
 Switched to having a variable to enable dumping FS cache
 

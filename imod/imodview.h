@@ -320,6 +320,12 @@ void DLL_EX_IM imodSelectionNewCurPoint(ImodView *vi, Imod *imod,
  * selected object number in [minOb] and [maxOb].
  */
 int DLL_EX_IM imodNumSelectedObjects(ImodView *vi, int &minOb, int &maxOb);
+
+/*!
+ * Updates the Object Type dialog, the Model View Edit Object and Object List
+ * dialogs, and the color in the Info window.
+ */
+void DLL_EX_IM imodUpdateObjectDialogs();
 }
 
 /*
@@ -344,6 +350,9 @@ int DLL_EX_IM prefGetGenericSettings(char *key, double *values, int maxVals);
 /* 
 
 $Log$
+Revision 1.20  2009/04/28 15:46:13  mast
+Added functions to get and set top zap center
+
 Revision 1.19  2008/08/01 15:37:20  mast
 Added function to set top zap zoom
 
