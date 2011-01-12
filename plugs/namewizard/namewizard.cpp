@@ -854,7 +854,10 @@ void NameWizard::nameModified()
   }
   
   if( numNamesModified )
+  {
     updateStatusLabel();
+    imodUpdateObjectDialogs();
+  }
 }
 
 
@@ -1119,7 +1122,6 @@ void NameWizard::refreshObjItem( int itemIdx )
     return;
   }
   
-  
   //## SEARCH FOR A NAME ENTRY MATCHING THE NAME CURRENTY ENTERED FOR THE OBJECT:
   
   item.hasMatch = false;
@@ -1194,7 +1196,6 @@ void NameWizard::refreshObjItem( int itemIdx )
 
 
 
-
 //------------------------
 //-- Presents the user with the options to load or reload the "standard names and
 //-- colors cvs file" from the default location, or load their own file.
@@ -1234,7 +1235,6 @@ void NameWizard::loadNames()
     }
   }
 }
-
 
 
 
@@ -1372,6 +1372,7 @@ int NameWizard::updateColors()
   if( colorsUpdated )
   {
     updateStatusLabel();
+    imodUpdateObjectDialogs();
     ivwRedraw( plug.view );
   }
   
@@ -1447,6 +1448,7 @@ void NameWizard::deleteSelected()
   }
   
   refreshObjList();
+  imodUpdateObjectDialogs();
   ivwRedraw( plug.view );
 }
 
@@ -1579,7 +1581,8 @@ void NameWizard::mergeSelected()
   
   undoFinishUnit( plug.view );          // FINISH UNDO
   
-  refreshObjList();
+  refresh();
+  imodUpdateObjectDialogs();
   ivwRedraw( plug.view );
 }
 
@@ -1678,8 +1681,10 @@ void NameWizard::duplicateSelected()
     }
   }
   
-  undoFinishUnit( plug.view );                      // FINISH UNDO      
+  undoFinishUnit( plug.view );                      // FINISH UNDO     
+  
   refresh();
+  imodUpdateObjectDialogs();
   ivwRedraw( plug.view );
 }
 
@@ -1761,6 +1766,7 @@ void NameWizard::moveSelected()
   
   
   refreshObjList();
+  imodUpdateObjectDialogs();
   ivwRedraw( plug.view );
 }
 
@@ -1822,6 +1828,7 @@ void NameWizard::batchRenameSelected()
   undoFinishUnit( plug.view );          // FINISH UNDO
   
   refreshObjList();
+  imodUpdateObjectDialogs();
 }
 
 
