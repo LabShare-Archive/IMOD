@@ -138,7 +138,7 @@ inline Iobj* getObj( Imod *imod, int idx );
 inline bool isObjClosed(Iobj *obj);
 inline bool isContClosed(Iobj *obj, Icont *cont);
 inline bool isObjectValidAndShown(Iobj *obj);
- 
+inline void setObjColor( Iobj *obj, int red, int green, int blue ); 
 
 //-------------------------------
 //## POINT RELATED FUNCTIONS:
@@ -757,6 +757,23 @@ inline bool isObjectValidAndShown(Iobj *obj)
         // imodObjectGetValue returns 1 when object is hidden
   int objHidden = (imodObjectGetValue(obj, IobjFlagDraw) );
   return ( obj != NULL && !objHidden );    
+}
+
+//---------------------------------
+//-- Wrapper function for "imodObjectSetColor" but using integers between 0 & 255
+//-- intead of a float beteen 0 & 1.
+//-- Sets the objects color using red, green, blue integers with values between
+//-- 0 and 255. I created this function because I had problems with
+//-- "imodObjectSetColor( obj, red/255, green/255, blue/255 );" sometimes
+//-- typecasting some colors incorrectly.
+
+inline void setObjColor( Iobj *obj, int red, int green, int blue )
+{
+  float redF = (float)red / 255.0f;
+  float greenF = (float)green / 255.0f;
+  float blueF = (float)blue / 255.0f;
+  
+  imodObjectSetColor( obj, redF,greenF,blueF );
 }
 
 

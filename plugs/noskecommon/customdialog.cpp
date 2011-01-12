@@ -29,13 +29,18 @@ void ColorButton::setColor( QColor _color )
 
 void ColorButton::pickColor()
 {
-  color = QColorDialog::getColor(color, this);
+  QColor newColor = QColorDialog::getColor(color, this);
+  if( newColor.isValid() )
+  {
+    color = newColor;
+  //color = QColorDialog::getColor(color, this);
   //QColorDialog dlgColor = new QColorDialor();
   //if( dlgColor.exec() )
   //color = dlgColor.selectedColor();
   this->setStyleSheet( "background-color: " + color.name() );
       // NOTE: QColorDialog is significantly different in Qt version 4.3 versus 4.7
   emit released();
+  }
 }
 
 

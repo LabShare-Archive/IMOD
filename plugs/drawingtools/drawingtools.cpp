@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.49  2011/01/08 01:25:24  tempuser
+    *** empty log message ***
+
     Revision 1.48  2011/01/08 00:50:14  tempuser
     Added Measure tool
 
@@ -4563,11 +4566,11 @@ void DrawingTools::checkForNamelessObjects( bool forceMessageBox )
   wprint("");
   wprint("\a" + warningStr.toLatin1() );
   
-  if( osize(imod) < plug.minObjsNameWarning && !forceMessageBox )
+  if( osize(imod) <= plug.minObjsNameWarning && !forceMessageBox )
     return;     // if there are less than the required number of objects, return early
   
   
-  //## IF WE GET TO HERE WE WANT TO GENERATE A "NAG SCREEN":
+  //## IF WE GET HERE WE WANT TO GENERATE A "NAG SCREEN":
   
   int action = 0;
   CustomDialog ds("Missing Labels",this);
@@ -4575,9 +4578,9 @@ void DrawingTools::checkForNamelessObjects( bool forceMessageBox )
   ds.addLabel   ( warningStr, true );
   ds.setStylePrev( "color: rgb(255, 0, 0); background-color: rgba(255, 255, 255);", true );
   ds.addLabel   ( "" );
-  ds.addLabel   ( "<i>It's important to label objects with PROPER names\n"
+  ds.addLabel   ( "It's important to label objects with PROPER names\n"
                   "(e.g. 'Microtubules', 'Nucleus', etc) so others\n"
-                  "can analyze, understand and reuse your models.</i>");
+                  "can analyze, understand and reuse your models.");
   ds.addLabel   ( "-----" );
   ds.addRadioGrp( "action:",
                   "let me fix this now|"
@@ -4590,14 +4593,14 @@ void DrawingTools::checkForNamelessObjects( bool forceMessageBox )
                   "naming protocol and a list of common organelles to help you \n"
                   "correctly identify and name of subcellular compoments."
                   );
-  ds.addSpinBox ( "do not check for missing names if there are\n"
+  ds.addSpinBox ( "do not check for missing names unless there are\n"
                   "at least this many objects in the model:", 3, 100,
                   &plug.minObjsNameWarning, 1,
-                  "If checked, this warning dialog will not appear \n"
-                  "when you open DrawinTools, but will still appear \n"
-                  "(and can be turned on again) if you run \n"
+                  "When you open Drawing Tools, this window will only appear if \n"
+                  "you have more than this many objects in your model and one or \n"
+                  "of those objects have empty names.\n\n"
+                  "NOTE: You can still access this window and change this value via \n"
                   "'More Actions > clean model and fix contours'" );
-  
   ds.exec();
   if( ds.wasCancelled() )
     return;
@@ -4884,7 +4887,7 @@ int DrawingTools::promptRenameObject( int objIdx )
   }
   else
   {
-    imodObjectSetColor(obj,color.red()/255,color.green()/255,color.blue()/255);
+    setObjColor( obj,color.red(),color.green(),color.blue() );
     imodObjectSetName( obj, (char *)objName.c_str() );
     return 1;
   }

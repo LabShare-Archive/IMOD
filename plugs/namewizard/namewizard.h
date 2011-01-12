@@ -89,8 +89,10 @@ public slots:
   void initValues();
   void loadSettings();
   void saveSettings();
-  void showNagScreenPersistenCsv();
+  void showNagScreenPersistentCsv();
   
+  bool ifRefreshNeeded();
+  void alertIfRefreshNeeded();
   void nameModified();
   void changeCols( int i );
   void changeColsIdx0() { changeCols(0); }
@@ -99,8 +101,9 @@ public slots:
   void refresh();
   void refreshObjList();
   void refreshObjItem( int itemIdx );
+  void updateStatusLabel();
   
-  void loadTable();
+  void editStandardNamesFile();
   void loadNames();
   int  loadNamesFromFile( QString );
   
@@ -147,13 +150,15 @@ private:
   QPushButton  *selectionButton;
   QPushButton  *editNameTableButton;
   QPushButton  *matchColorsButton;
+  
+  QLabel      *lblStatusLabel;
 };
 
 
 //-------------------------------
 //## CONSTANTS:
 
-const int NUM_SAVED_VALS = 2;
+const int NUM_SAVED_VALS = 3;
 
 //-------------------------------
 
@@ -195,6 +200,7 @@ struct NameWizardData   // contains all local plugin data
                               //  either "UniqueId" or "Contours"
   bool showNagPersitentCsv;   // if true, will show nag screen if the file path 
                               //  "secondaryFilePath" has no file
+  bool showStatusLabel;       // if true, shows "lblStatusLabel".
   
   bool initialized;
 };

@@ -337,31 +337,28 @@ NameWizard::NameWizard(QWidget *parent, const char *name) :
   completer = new QCompleter( plug.wordList, this);
   completer->setCaseSensitivity( Qt::CaseInsensitive );
   
-  refreshObjList();
-  
-  
   //## INITIALIZE EXTRA BUTTONS:
   
-  QWidget *widget1 = new QWidget(this);
-  layButtons = new QHBoxLayout(widget1);
+  QWidget *widgetBtns = new QWidget(this);
+  layButtons = new QHBoxLayout(widgetBtns);
   layButtons->setSpacing(LAY_SPACING);
   layButtons->setContentsMargins(LAY_MARGIN, LAY_MARGIN, LAY_MARGIN, LAY_MARGIN);
-  widget1->setLayout(layButtons);
+  widgetBtns->setLayout(layButtons);
   
-  refreshListButton = new QPushButton("Refresh List", this);
+  refreshListButton = new QPushButton("Refresh List", widgetBtns);
   connect(refreshListButton, SIGNAL(clicked()), this, SLOT(refresh()));
   refreshListButton->setToolTip( "Refreshes the list of objects above.... \n"
                                  "useful if you've modified/deleted or added \n"
                                  "objects outside of this plugin");
   layButtons->addWidget(refreshListButton);
   
-  selectionButton = new QPushButton("Selection", widget1);
+  selectionButton = new QPushButton("Selection", widgetBtns);
   selectionButton->setToolTip( "Contains several options to manage/modify \n"
                                "the objects which you have selected \n"
                                "by checking the box on the left.");
   layButtons->addWidget(selectionButton); 
   
-  matchColorsButton = new QPushButton("Match Colors", this);
+  matchColorsButton = new QPushButton("Match Colors", widgetBtns);
   connect(matchColorsButton, SIGNAL(clicked()), this, SLOT(matchColors()));
   matchColorsButton->setToolTip( "Will automatically change the color of any object \n"
                                  "which has a name match to the suggested color for \n"
@@ -369,23 +366,38 @@ NameWizard::NameWizard(QWidget *parent, const char *name) :
                                  "colors by hovering your mouse over the word 'match'.");
   layButtons->addWidget(matchColorsButton); 
   
-  editNameTableButton = new QPushButton("Standards Names", this);
+  editNameTableButton = new QPushButton("Standards Names", widgetBtns);
   editNameTableButton->setToolTip( "Contains several options to modify or reload the \n"
                                    "'standard names and colors csv file' which this \n"
                                    "plugin uses to autocomplete and match names.");
   layButtons->addWidget(editNameTableButton);
   
-  //mLayout->addWidget(lblDescription);
+  //## INITIALIZE STATUS LABEL AND BOTTOM-BUTTONS:
+  
+  lblStatusLabel = new QLabel();
+  lblStatusLabel->setTextFormat( Qt::RichText );
+  lblStatusLabel->setContentsMargins( 5,0,3,0 );
+  lblStatusLabel->setOpenExternalLinks(true);
+  lblStatusLabel->setFont( smallFont );
+  lblStatusLabel->setToolTip( "Shows the number of names and colors which match "
+                              "the <b>standard names and colors cvs file</b>.<br><br>"
+                              "If you want to change or add more standard names "
+                              "and colors click 'Help' to learn how." );
+  lblStatusLabel->setVisible( plug.showStatusLabel );
+  
+  //## ADD THE WIDGES TO THE MAIN LAYOUT, GENERATE THE OBJECT LIST AND RESIZE: 
+  
+  mLayout->addWidget(lblStatusLabel);
   mLayout->addWidget(widHeader);
   mLayout->addWidget(scrollArea);
-  mLayout->addWidget(widget1);
+  mLayout->addWidget(widgetBtns);
   
-  //mLayout->addStretch();
+  
+  refreshObjList();
+  updateStatusLabel();
+  
   this->adjustSize();
-  //this->setFixedWidth(460);
   this->setMinimumWidth(460);
-  //this->setSize(460);
-  //this->setMaximumWidth(350);
   
   
   //## CREATE "ACTIONS" CONTEXT MENU AND CONNECTIONS:
@@ -420,7 +432,7 @@ NameWizard::NameWizard(QWidget *parent, const char *name) :
   
   
   QMenu *editTableMenu = new QMenu(this);
-  addAction( editTableMenu, SLOT(loadTable()),    "Edit 'standard_names.csv'",
+  addAction( editTableMenu, SLOT(editStandardNamesFile()),  "Edit 'standard_names.csv'",
              "Gives you several options to open the <b>standard names and colors cvs \n"
              "file</b> in Explorer/Finder, Excel or a text editor. After modifying \n"
              "the file don't forget to reload it with the option below." );
@@ -514,6 +526,7 @@ void NameWizard::initValues()
 {
   plug.rightColIdx   = 0;
   plug.showNagPersitentCsv = true;
+  plug.showStatusLabel = true;
   
   plug.defaultFilePath = QString(getenv("IMOD_CALIB_DIR"))
                        + QString("/standard_names_persistent.csv");
@@ -547,22 +560,38 @@ void NameWizard::loadSettings()
   
   plug.rightColIdx         = savedValues[0];
   plug.showNagPersitentCsv = savedValues[1];
-  
+  plug.showStatusLabel     = savedValues[2];
   
   if( plug.showNagPersitentCsv && !QFile::exists( plug.defaultFilePath ) )
   {
-    showNagScreenPersistenCsv();
+    showNagScreenPersistentCsv();
   }
-  
   
   loadNamesFromFile( getFirstValidFilePath() );
 }
+
+
+//------------------------
+//-- Saves most of the settings within NameWizardData in user preferences
+//-- so they will load next time Bead Helper is started.
+
+void NameWizard::saveSettings()
+{
+  double saveValues[NUM_SAVED_VALS];
+  
+  saveValues[0]   = plug.rightColIdx;
+  saveValues[1]   = plug.showNagPersitentCsv;
+  saveValues[2]   = plug.showStatusLabel;
+  
+  prefSaveGenericSettings("NameWizard",NUM_SAVED_VALS,saveValues);
+}
+
 
 //------------------------
 //-- Displays a nag screen asking the user if he wishes to copy a file accross to
 //-- "plug.defaultFilePath".
 
-void NameWizard::showNagScreenPersistenCsv()
+void NameWizard::showNagScreenPersistentCsv()
 {
   QString calibDir = QString(getenv("IMOD_CALIB_DIR"));
   
@@ -653,22 +682,6 @@ void NameWizard::showNagScreenPersistenCsv()
               + qStringToString(plug.defaultFilePath)
               + "\nYou may have to perform this operation yourself (with permissions).");
   }
-}
-
-
-
-//------------------------
-//-- Saves most of the settings within NameWizardData in user preferences
-//-- so they will load next time Bead Helper is started.
-
-void NameWizard::saveSettings()
-{
-  double saveValues[NUM_SAVED_VALS];
-  
-  saveValues[0]   = plug.rightColIdx;
-  saveValues[1]   = plug.showNagPersitentCsv;
-  
-  prefSaveGenericSettings("NameWizard",NUM_SAVED_VALS,saveValues);
 }
 
 
@@ -764,8 +777,51 @@ int NameWizard::loadNamesFromFile( QString filePath )
 
 
 
+//------------------------
+//-- Checks if a refresh is needed by comparing the names and number objects
+//-- in the model against the names and number of objects in the list.
 
+bool NameWizard::ifRefreshNeeded()
+{
+  Imod *imod  = ivwGetModel(plug.view);
+  
+  //## IF MULTIPLE NAMES NEED TO BE UPDATED: ASK USER TO REFRESH
+  
+  int diffInObjs = osize(imod) - (int)lineItem.size();
+  
+  int numNamesNeedingUpdate = 0;
+  for (int i=0; i<(int)lineItem.size() && i<osize(imod); i++)
+  {
+    QString currObjName = (QString)imodObjectGetName( getObj(imod,i) );
+    if( lineItem[i].prevName != currObjName )
+      numNamesNeedingUpdate++;
+  }
+  
+  bool refreshNeeded = ( diffInObjs != 0 || numNamesNeedingUpdate > 0 );
+  if(refreshNeeded)
+    wprint("\aNAME WIZARD: Needs refresh");
+  
+  return refreshNeeded;
+}
 
+//------------------------
+//-- A callback function which calls "checkIfRefreshNeeded" and if a difference 
+//-- is detected between the objects in the model and objects in the list
+//-- then a message box is displayed advising the user to refresh the list.
+
+void NameWizard::alertIfRefreshNeeded()
+{
+  static int numWarnings = 0;
+  if( ifRefreshNeeded() )
+  {
+    if(numWarnings > 10)
+      return;
+    MsgBox( "Changes to the object list outside of this plugin have "
+            "been detected\n\n"
+            "Please hit 'Refresh List' before you continue" );
+    numWarnings++;
+  }
+}
 
 //------------------------
 //-- A callback function for whenever an object name in the list is changed.
@@ -775,20 +831,30 @@ int NameWizard::loadNamesFromFile( QString filePath )
 void NameWizard::nameModified()
 {
   Imod *imod  = ivwGetModel(plug.view);
-  int numObjs = osize( imod );    
   
-  for (int i=0; i<(int)lineItem.size() && i<numObjs; i++)
+  //## RENAME ANY OBJECTS WHICH HAVE BEEN MODIFIED BY THE USER:
+  
+  int numNamesModified = 0;
+  for (int i=0; i<(int)lineItem.size(); i++)
   {
     ObjectLineItem &item = lineItem[i];
     if( item.prevName != item.txtObjName->text() )
     {
+      if( i>=osize(imod) ) {
+        MsgBox("This object has been deleted outside the plugin \n"
+               "Please click 'Refresh List' and then continue.");
+        return;
+      }
       refreshObjItem(i);
       Iobj *obj  = getObj(imod,i);
       string newObjStr = qStringToString( item.txtObjName->text() );
       imodObjectSetName( obj, (char *)newObjStr.c_str() );
-      //cout << "Updated Object " << i+1 << endl;       //%%%%%
+      numNamesModified++;
     }
   }
+  
+  if( numNamesModified )
+    updateStatusLabel();
 }
 
 
@@ -865,10 +931,9 @@ void NameWizard::refreshObjList()
   for(int o=0; (int)o<lineItem.size() && o<osize(imod); o++)
   {
     ObjectLineItem &item = lineItem[o];
+    Iobj *obj  = getObj(imod,o);
     
     //## UPDATE VALUES FROM OBJECTS:
-    
-    Iobj *obj  = getObj(imod,o);
     
     item.prevName = (QString)( imodObjectGetName(obj) );
     
@@ -907,8 +972,9 @@ void NameWizard::refreshObjList()
       item.txtObjName    = new QLineEdit();
       item.txtObjName->setMinimumWidth( 200 );
       item.txtObjName->setCompleter(completer);
-      connect( item.txtObjName, SIGNAL(textEdited(QString)), this, SLOT(nameModified()) );
-      connect( item.txtObjName, SIGNAL(editingFinished()), this, SLOT(nameModified()) );
+      connect( item.txtObjName,SIGNAL(textEdited(QString)), this,SLOT(nameModified()) );
+      connect( item.txtObjName,SIGNAL(editingFinished()), this,SLOT(nameModified()) );
+      connect( item.txtObjName,SIGNAL(textEdited(QString)), this,SLOT(alertIfRefreshNeeded()) );
                 // CONNECTION
       
       item.lblLink       = new QLabel();
@@ -955,7 +1021,67 @@ void NameWizard::refreshObjList()
     layList->addWidget( lineItem[o].widLine );
   }
   
+  updateStatusLabel();
   resizeEvent( NULL );
+}
+
+//------------------------
+//-- Counts the number of unmatched names and colors and uses these values to
+//-- update the text and background colors of the status label ("lblStatusLabel")
+
+void NameWizard::updateStatusLabel()
+{
+  //## COUNT AND DISPLAY NUMBER OF UNMATCHED COLORS AND NAMES:
+  
+  Imod *imod  = ivwGetModel(plug.view);
+  int numMissingNames    = 0;
+  int numUnmatchedNames  = 0;
+  int numUnmatchedColors = 0;
+  
+  for(int o=0; (int)o<lineItem.size() && o<osize(imod); o++)
+  {
+    ObjectLineItem &item = lineItem[o];
+    if( item.prevName.length() == 0 )
+      numMissingNames++;
+    if( item.hasMatch == false )
+      numUnmatchedNames++;
+    if( item.matchHasColor && item.matchColor != item.btnColor->color )
+      numUnmatchedColors++;
+  }
+  
+  //## UPDATE THE STATUS LABEL:
+  
+  QString text      = "";
+  QString styleStr  = "";
+  if( numMissingNames )
+  {
+    text = "<b>(WARNING)</b> empty names: <b>" +QStr(numMissingNames)+ "</b>";
+    if( numUnmatchedColors )
+      text += ", unmatched colors: <b>" +QStr(numUnmatchedColors)+ "</b>";
+    text += " &nbsp; <b>:-(</b>";
+    styleStr = "color: rgb(255, 255, 255); background-color: rgb(255, 40, 40);";
+  }
+  else if( numUnmatchedNames )
+  {
+    text = "<b>(WARNING)</b> unmatched names: <b>" +QStr(numUnmatchedNames)+ "</b>";
+    if( numUnmatchedColors )
+      text += ", unmatched colors: <b>" +QStr(numUnmatchedColors)+ "</b>";
+    text += " &nbsp; :(";
+    styleStr = "color: rgb(255, 255, 255); background-color: rgb(255, 100, 100);";
+  }
+  else if( numUnmatchedColors )  
+  {
+    text = "unmatched colors: <b>" + QStr(numUnmatchedColors) + "</b>";
+    styleStr = "color: rgb(0, 0, 0); background-color: rgb(180, 255, 180);";    
+  }
+  else
+  {
+    text = "<b>(CONGRATS!)</b> All names and colors conform to standards! &nbsp; <b>:)</b>";
+    styleStr = "color: rgb(0, 0, 0); background-color: rgb(100, 255, 100);";
+  }
+  
+  lblStatusLabel->setText( text );
+  lblStatusLabel->setStyleSheet( styleStr );
 }
 
 
@@ -1063,6 +1189,7 @@ void NameWizard::refreshObjItem( int itemIdx )
     item.lblLink->setText( "<b>no match</b>" );
     item.lblLink->setStyleSheet("color: rgb(255, 255, 255); background-color: rgb(255, 100, 100);");
   }
+  
 }
 
 
@@ -1116,7 +1243,7 @@ void NameWizard::loadNames()
 //-- the user a number of options to load this file in a file explorer, text editor
 //-- or spreadsheet program.
 
-void NameWizard::loadTable()
+void NameWizard::editStandardNamesFile()
 {
   static int option = 0;
   QString cvsFilePath = getFirstValidFilePath();
@@ -1231,7 +1358,7 @@ int NameWizard::updateColors()
     
     if( currCol != item.prevColor )
     {
-      imodObjectSetColor( obj, currCol.red()/255,currCol.green()/255,currCol.blue()/255 );
+      setObjColor( obj, currCol.red(), currCol.green(), currCol.blue() );
       item.prevColor = currCol;
       //cout << "UPDATED COLOR OBJECT " << i+1 << endl;       //%%%%%
       refreshObjItem(i);
@@ -1243,7 +1370,10 @@ int NameWizard::updateColors()
   }
   
   if( colorsUpdated )
+  {
+    updateStatusLabel();
     ivwRedraw( plug.view );
+  }
   
   return numUnmatchedColors;
 }
@@ -1834,6 +1964,10 @@ void NameWizard::moreSettings()
   
 	CustomDialog ds("More Settings", this);
   //ds.addLabel   ( "", false );
+  ds.addCheckBox( "show status label", 
+                  &plug.showStatusLabel,
+                  "Shows/hides the label at the top of the plugin which \n"
+                  "displays the number of unmatched names and colors." );
   ds.addCheckBox( "show nag screen about 'standard_names_persistent.cvs'", 
                   &plug.showNagPersitentCsv,
                   "If true, then each time you open this plugin it will check if \n"
@@ -1851,10 +1985,12 @@ void NameWizard::moreSettings()
                   "               then shows the UniqueID for this entry \n"
                   "               (if it exists).\n"
                   " > Contours - shows how many (and what type) of contours \n"
-                  "              are in each object" );  
+                  "              are in each object" );
 	ds.exec();
 	if( ds.wasCancelled() )
 		return;
+  
+  lblStatusLabel->setVisible( plug.showStatusLabel );
   
   changeCols( newRightColIdx );
 }
