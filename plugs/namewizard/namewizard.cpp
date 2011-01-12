@@ -1342,8 +1342,6 @@ void NameWizard::editStandardNamesFile()
 
 int NameWizard::updateColors()
 {
-  //cout << "UPDATING COLORS..." << endl;   //%%%%%%%
-  
   Imod *imod  = ivwGetModel(plug.view);
   
   int numUnmatchedColors = 0;
@@ -1360,7 +1358,6 @@ int NameWizard::updateColors()
     {
       setObjColor( obj, currCol.red(), currCol.green(), currCol.blue() );
       item.prevColor = currCol;
-      //cout << "UPDATED COLOR OBJECT " << i+1 << endl;       //%%%%%
       refreshObjItem(i);
       colorsUpdated++;
     }
