@@ -56,6 +56,7 @@ void b3dResizeViewportXY(int winx, int winy);
 void b3dSubareaViewport(int xstart, int ystart, int xsize, int ysize);
 void b3dColorIndex(int pix);
 float b3dGetCurXZoom();
+void b3dStippleNextLine(bool value);
 
 void b3dDrawPoint(int x, int y);
 void b3dDrawPlus(int x, int y, int size);
@@ -164,6 +165,9 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
 
 /*
     $Log$
+    Revision 3.17  2010/12/15 06:14:41  mast
+    Changes for setting resolution in image snapshots
+
     Revision 3.16  2008/05/27 05:37:28  mast
     Changed snapshot calls
 
