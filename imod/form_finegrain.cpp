@@ -145,7 +145,10 @@ void FineGrainForm::init()
   mLastSymType = -1;
   mCtrlPressed = false;
   diaSetChecked(drawConnectCheckBox, ifgShowConnections() != 0);
+  diaSetChecked(stippleGapsCheckBox, ifgStippleGaps() != 0);
   diaSetChecked(changeAllCheckBox, ifgGetChangeAll() != 0);
+  connect(stippleGapsCheckBox, SIGNAL(toggled(bool)), this, 
+          SLOT(stippleGapsToggled(bool)));
     
   // Get the signal mappers
   QSignalMapper *endMapper = new QSignalMapper(this);
@@ -233,8 +236,12 @@ void FineGrainForm::update( int ptContSurf, bool enabled, DrawProps *props, int 
   diaSetSpinBox(symsizeSpin, props->symsize);
   symsizeSpin->setEnabled(enabled);
   diaSetChecked(gapCheckBox, props->gap);
-  gapCheckBox->setText(QString(ptContSurf ? "Turn off drawing" : "Gap to next point"));
+  gapCheckBox->setText(QString(ptContSurf ? "Turn off drawing" : 
+                               "Gap to next point"));
   gapCheckBox->setEnabled(enabled);
+  gapCheckBox->setToolTip
+    (QString(ptContSurf ? "Do not draw this contour or surface": 
+             "Do not draw line connecting to next point (hot key Ctrl-G)"));
   diaSetSpinBox(connectSpin, props->connect);
   connectSpin->setEnabled(ptContSurf < 2 && enabled);
   if (enabled && (stateFlags & CHANGED_VALUE1))
@@ -456,6 +463,11 @@ void FineGrainForm::drawConnectToggled( bool state )
   ifgShowConnectChanged(state);
 }
 
+void FineGrainForm::stippleGapsToggled( bool state )
+{
+  ifgStippleGapsChanged(state);
+}
+
 void FineGrainForm::helpClicked()
 {
   ifgHelp();
@@ -503,6 +515,9 @@ void FineGrainForm::fontChange( const QFont & oldFont )
 /*
 
 $Log$
+Revision 4.4  2010/04/01 02:41:48  mast
+Called function to test for closing keys, or warning cleanup
+
 Revision 4.3  2009/03/22 19:54:25  mast
 Show with new geometry adjust routine for Mac OS X 10.5/cocoa
 

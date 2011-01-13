@@ -6,7 +6,7 @@
     <x>0</x>
     <y>0</y>
     <width>243</width>
-    <height>686</height>
+    <height>712</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -60,11 +60,27 @@
    </item>
    <item>
     <widget class="QCheckBox" name="changeAllCheckBox" >
+     <property name="focusPolicy" >
+      <enum>Qt::TabFocus</enum>
+     </property>
      <property name="toolTip" >
       <string>Apply change to multiple selected contours in current object</string>
      </property>
      <property name="text" >
       <string>Change all selected contours</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="stippleGapsCheckBox" >
+     <property name="focusPolicy" >
+      <enum>Qt::NoFocus</enum>
+     </property>
+     <property name="toolTip" >
+      <string>Show gaps with dashed lines in Zap window</string>
+     </property>
+     <property name="text" >
+      <string>Draw dashed lines at gaps</string>
      </property>
     </widget>
    </item>
@@ -1306,7 +1322,7 @@
       <enum>Qt::NoFocus</enum>
      </property>
      <property name="toolTip" >
-      <string>Do not draw line connecting to next point</string>
+      <string/>
      </property>
      <property name="text" >
       <string>Gap to next point</string>
@@ -1479,19 +1495,6 @@
     </layout>
    </item>
   </layout>
-  <zorder>groupBox</zorder>
-  <zorder>changeAllCheckBox</zorder>
-  <zorder>groupBox5</zorder>
-  <zorder>groupBox5_2</zorder>
-  <zorder>groupBox5_3</zorder>
-  <zorder>groupBox5_4</zorder>
-  <zorder>groupBox5_4_2</zorder>
-  <zorder>groupBox5_4_3_2</zorder>
-  <zorder>groupBox5_4_3</zorder>
-  <zorder>gapCheckBox</zorder>
-  <zorder>Line1</zorder>
-  <zorder>label</zorder>
-  <zorder>drawConnectCheckBox</zorder>
  </widget>
  <layoutdefault spacing="6" margin="11" />
  <includes>

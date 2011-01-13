@@ -2,6 +2,9 @@
  *
  *  $Id$
  *  $Log$
+ *  Revision 4.2  2009/03/10 04:37:35  mast
+ *  New options
+ *
  *  Revision 4.1  2009/01/15 16:33:17  mast
  *  Qt 4 port
  *
@@ -58,6 +61,7 @@ class FineGrainForm : public QWidget, public Ui::FineGrainForm
   virtual void gapToggled( bool state );
   virtual void connectChanged( int value );
   virtual void drawConnectToggled( bool state );
+  virtual void stippleGapsToggled( bool state );
   virtual void helpClicked();
   virtual void closeEvent( QCloseEvent * e );
   virtual void keyPressEvent( QKeyEvent * e );
