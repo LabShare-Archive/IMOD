@@ -126,6 +126,7 @@ class ImodvObjed : public QObject
   void makeZincSlot(int value);
   void makeFlatSlot(double value);
   void makeStateSlot(int which);
+  void makeZeditSlot();
   void makeDoitSlot();
   void makeDoAllSlot();
   void toggleObjSlot(int ob);
@@ -147,6 +148,9 @@ class ImodvObjed : public QObject
 /*
 
 $Log$
+Revision 4.18  2009/09/08 23:51:42  mast
+Added function for toggling clip plane
+
 Revision 4.17  2009/01/15 16:33:18  mast
 Qt 4 port
 
