@@ -30,7 +30,7 @@ void utilDrawSymbol(int mx, int my, int sym, int size, int flags);
 void utilCurrentPointSize(Iobj *obj, int *modPtSize, int *backupSize,
                           int *imPtSize);
 void utilGetLongestTimeString(ImodView *vi, QString *str);
-void utilEnableStipple(ImodView *vi, Icont *cont);
+bool utilEnableStipple(ImodView *vi, Icont *cont);
 void utilDisableStipple(ImodView *vi, Icont *cont);
 void utilClearWindow(int index);
 float utilMouseZaxisRotation(int winx, int mx, int lastmx, int winy, int my,
@@ -76,6 +76,9 @@ QString imodCaption(const char *intro);
 /*
  *
  *  $Log$
+ *  Revision 1.11  2010/12/18 05:33:59  mast
+ *  Added common functions for montage snapshots
+ *
  *  Revision 1.10  2010/04/01 02:41:48  mast
  *  Called function to test for closing keys, or warning cleanup
  *

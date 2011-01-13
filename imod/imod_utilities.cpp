@@ -127,12 +127,14 @@ void utilCurrentPointSize(Iobj *obj, int *modPtSize, int *backupSize,
 }
 
 /* Turn on stippling if globally enabled and contour has flag set */
-void utilEnableStipple(ImodView *vi, Icont *cont)
+bool utilEnableStipple(ImodView *vi, Icont *cont)
 {
   if (vi->drawStipple && (cont->flags & ICONT_STIPPLED)) {
     glLineStipple(3, 0x5555);
     glEnable(GL_LINE_STIPPLE);
+    return true;
   }
+  return false;
 }
 
 /* Turn off stippling under same conditions */
@@ -715,6 +717,9 @@ int imodColorValue(int inColor)
 /*
 
 $Log$
+Revision 1.14  2010/12/18 05:33:47  mast
+Added common functions for montage snapshots
+
 Revision 1.13  2010/04/01 02:41:48  mast
 Called function to test for closing keys, or warning cleanup
 
