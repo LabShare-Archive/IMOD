@@ -1840,9 +1840,9 @@ static QDoubleSpinBox *wMakeDiamSpin;
 static QDoubleSpinBox *wMakeTolSpin;
 static QSpinBox *wMakeZincSpin;
 static QDoubleSpinBox *wMakeFlatSpin;
+static ToolEdit *wMakeZedit;
 static QPushButton *wMakeDoButton;
 static QPushButton *wMakeAllButton;
-static QLabel *wMakeProgLabel;
 static int makeLowRes = 0;
 static MeshParams *makeParams;
 static MeshParams makeDefParams;
@@ -1975,6 +1975,52 @@ void ImodvObjed::makeStateSlot(int which)
   setMakeMesh_cb();
 }
 
+void ImodvObjed::makeZeditSlot()
+{
+  QString str;
+  QStringList strlist;
+  Iobj *obj;
+  int mst, mnd, minz, maxz, ob, m, any = 0;
+  MeshParams *param;
+  bool ok;
+  objed_dialog->setFocus();
+
+  if (!Imodv->imod || !objedObject())
+    return;
+  setStartEndModel(mst, mnd);
+  for (m = mst; m <= mnd; m++) {
+    for (ob = 0; ob < Imodv->mod[m]->objsize; ob++) {
+      obj = editableObject(m, ob);
+      if (changeModelObject(m, ob) && !iobjScat(obj->flags)) {
+        param = makeGetObjectParams(obj, ob);
+        any = 1;
+        str = wMakeZedit->text();
+        param->minz = DEFAULT_VALUE;
+        param->maxz = DEFAULT_VALUE;
+        if (str.contains(QRegExp("[0-9]"))) {
+          strlist = str.split(",", QString::SkipEmptyParts);
+          minz = strlist[0].toInt(&ok) - 1;
+          if (ok) {
+            if (strlist.size() == 1) {
+              param->minz = minz;
+              param->maxz = minz + 1;
+            } else {
+              maxz = strlist[1].toInt(&ok) - 1;
+              if (ok) {
+                param->minz = B3DMIN(minz, maxz);
+                param->maxz = B3DMAX(param->minz + 1, B3DMAX(minz, maxz));
+              }
+            }
+          }
+        }
+      }
+    }
+    if (any)
+      imodvFinishChgUnit();
+  }
+  setMakeMesh_cb();
+}
+
 // Get meshing parameters from the object, make them if they don't exist, and
 // return the default params if necessary
 static MeshParams *makeGetObjectParams(Iobj *obj, int ob)
@@ -1995,6 +2041,7 @@ static void setMakeMesh_cb(void)
 {
   bool cap, scat, tube;
   Iobj *obj = objedObject();
+  QString str = "";
   if (!obj) 
     return;
   if (obj->meshParam)
@@ -2035,6 +2082,13 @@ static void setMakeMesh_cb(void)
   wMakeTolSpin->setEnabled(!tube && !scat);
   wMakeZincSpin->setEnabled(!tube && !scat);
   wMakeFlatSpin->setEnabled(!tube && !scat);
+  if (makeParams->minz != DEFAULT_VALUE && makeParams->maxz != DEFAULT_VALUE) {
+    if (makeParams->minz == makeParams->maxz - 1)
+      str.sprintf("%d", makeParams->maxz);
+    else
+      str.sprintf("%d,%d", makeParams->minz + 1, makeParams->maxz + 1);
+  }
+  wMakeZedit->setText(str);
 }
 
 char *makeCheckTips[] = {"Connect contours across sections with no contours",
@@ -2098,8 +2152,15 @@ static void mkMakeMesh_cb(int index)
 
   hLayout = diaHBoxLayout(layout1);
   wMakeChecks[MAKE_MESH_DOME] = diaCheckBox("Dome cap", oef->control, hLayout);
-  wMakeProgLabel = diaLabel("", oef->control, hLayout);
-  wMakeProgLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+  hLayout->addStretch();
+  diaLabel("Z", oef->control, hLayout);
+  wMakeZedit = new ToolEdit(oef->control, 7);
+  hLayout->addWidget(wMakeZedit);
+  wMakeZedit->setToolTip("Enter starting,ending Z to mesh, or just starting "
+                         "Z for one plane; leave blank to mesh all");
+  wMakeZedit->setFocusPolicy(Qt::ClickFocus);
+  QObject::connect(wMakeZedit, SIGNAL(editingFinished()), &imodvObjed,
+                   SLOT(makeZeditSlot()));
 
   QSignalMapper *mapper = new QSignalMapper(oef->control);
   QObject::connect(mapper, SIGNAL(mapped(int)), &imodvObjed,
@@ -2220,8 +2281,8 @@ int ImodvObjed::meshOneObject(Iobj *obj)
     meshDupObj = NULL;
     return -1;
   }
-  str.sprintf("Doing obj %d", meshedObjNum + 1);
-  wMakeProgLabel->setText(str);
+  if (objed_dialog)
+    objed_dialog->updateMeshing(meshedObjNum);
 
 #ifdef QT_THREAD_SUPPORT
 
@@ -2299,7 +2360,8 @@ static int finishMesh()
   QString str;
   int retval = 0;
   int resol = makeLowRes ? 1 : 0;
-  wMakeProgLabel->setText("");
+  if (objed_dialog)
+    objed_dialog->updateMeshing(-1);
 
   // If error, just clean up dup object
   if (meshThreadErr) {
@@ -2576,6 +2638,9 @@ static QVBoxLayout *outerVBoxLayout(QWidget *parent)
 /*
 
 $Log$
+Revision 4.50  2010/04/01 02:16:36  mast
+Prevented closing during meshing; called function for close keys
+
 Revision 4.49  2009/11/21 23:07:07  mast
 Fixed step size in flat crit box
 
