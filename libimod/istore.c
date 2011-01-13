@@ -280,10 +280,31 @@ void istoreDump(Ilist *list)
   int i, j, dtype;
   Istore *store;
   StoreUnion *item;
+  char *types[] = {"COLOR", "FCOLOR", "TRANS", "GAP", "CONNECT", "3DWIDTH",
+                   "2DWIDTH", "SYMTYPE", "SYMSIZE", "VALUE1", "MINMAX1", 
+                   "VALUE2"};
   printf(" %d items in list:\n", ilistSize(list));
   for (i = 0; i < ilistSize(list); i++) {
     store = istoreItem(list, i);
-    printf("%6d %6o", store->type, store->flags);
+    printf("%6d-", store->type);
+    if (store->type > 0 || store->type <= 12)
+      printf("%s", types[store->type - 1]);
+    printf("  %6o-", store->flags);
+    dtype = 0;
+    if (store->flags & GEN_STORE_NOINDEX) {
+      printf("NOIND");
+      dtype = 1;
+    }
+    if (store->flags & GEN_STORE_REVERT) {
+      printf("%sREVERT", dtype ? "|" : "");
+      dtype = 1;
+    }
+    if (store->flags & GEN_STORE_SURFACE) {
+      printf("%sSURF", dtype ? "|" : "");
+      dtype = 1;
+    }
+    if (store->flags & GEN_STORE_ONEPOINT)
+      printf("%sONEPT", dtype ? "|" : "");
 
     dtype = store->flags & 3;
     item = &store->index;
@@ -585,7 +606,7 @@ int istoreInsertChange(Ilist **listp, Istore *store)
 {
   Istore *stp;
   Ilist *list = *listp;
-  int i, lookup, after, j, needItem;
+  int i, lookup, after, needItem;
   lookup = istoreLookup(list, store->index.i, &after);
   
   /* If there is a match at the current index, eliminate it */
@@ -1223,8 +1244,6 @@ int istoreBreakContour(Icont *cont, Icont *ncont, int p1, int p2)
   Ilist *ostore = cont->store;
   Ilist *nstore = NULL;
   Ilist *tmpList1 = NULL;
-  int after, i, lookup, size;
-  Istore *stp;
 
   if (!ilistSize(ostore))
     return 0;
@@ -1375,7 +1394,7 @@ int istoreExtractChanges(Ilist *olist, Ilist **nlistp, int indStart,
                          int indEnd, int newStart, int psize)
 {
   Ilist *tmpList;
-  int i, lookup, after1, after2;
+  int i, after1, after2;
   Istore *stp;
 
   if (!ilistSize(olist) || indStart > indEnd)
@@ -1471,7 +1490,7 @@ int istoreCopyContSurfItems(Ilist *olist, Ilist **nlistp, int indFrom,
 Istore *istoreNextObjItem(Ilist *list, int co, int surf, int first)
 {
   Istore *stp;
-  int i, index;
+  int index;
   if (!ilistSize(list))
     return NULL;
   if (first)
@@ -1668,7 +1687,7 @@ int istoreNextChange(Ilist *list, DrawProps *defProps,
   if (!ilistSize(list))
     return -1;
 
-  while (1) {
+  while(1) {
 
     /* If at end of list or item is past index items, return -1 */
     if (list->current >= list->size)
@@ -1815,9 +1834,7 @@ int istoreNextChange(Ilist *list, DrawProps *defProps,
 int istorePointDrawProps(Iobj *obj, DrawProps *contProps, DrawProps *ptProps,
                          int co, int pt)
 {
-  int stateFlags = 0;
-  int changeFlags, nextChange, lastChange, contState, surfState;
-  Ilist *list = obj->cont[co].store;
+  int contState, surfState;
   DrawProps defProps;
 
   /* Get the properties for the contour */
@@ -1868,7 +1885,7 @@ int istoreListPointProps(Ilist *list, DrawProps *contProps, DrawProps *ptProps,
  */
 int istoreSkipToIndex(Ilist *list, int index)
 {
-  int lookup, after, i;
+  int lookup, after;
   Istore *stp;
   lookup = istoreLookup(list, index, &after);
   if (lookup < 0)
@@ -1908,6 +1925,9 @@ int istoreTransStateMatches(Ilist *list, int state)
 /*
 
 $Log$
+Revision 3.15  2008/11/12 03:42:42  mast
+Added functoin to find and set min/max for object
+
 Revision 3.14  2008/08/20 19:48:47  mast
 Fixed bug in returned connection value if there is another item at index
 
