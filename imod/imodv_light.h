@@ -8,6 +8,8 @@
 #ifndef IMODV_LIGHT_H
 #define IMODV_LIGHT_H
 
+extern float Imodv_light_position[4];
+
 // This has to be included because Iview has no struct name
 #include "imodel.h"
 
@@ -27,6 +29,9 @@ void light_adjust(Iobj *obj, float r, float g, float b, int trans);
 /*
 
 $Log$
+Revision 4.6  2008/06/10 05:54:05  mast
+pass model index to light on function
+
 Revision 4.5  2008/06/10 02:02:27  mast
 Pass view to moveby
 

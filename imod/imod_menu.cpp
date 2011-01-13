@@ -65,7 +65,7 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co);
  */
 void InfoWindow::fileSlot(int item)
 {
-  int returnValue, quality;
+  int returnValue;
   int limits[4];
   unsigned char **data;
   QString qname;
@@ -159,7 +159,7 @@ void InfoWindow::fileSlot(int item)
       imod_info_forbid();
       imod_info_input();
       releaseKeyboard();
-      quality = ImodPrefs->snapQuality();
+      int quality = ImodPrefs->snapQuality();
       if (diaQInput(&quality, 10, 100, 0, 
                      "Quality factor for JPEG snapshots (%)"))
         ImodPrefs->setSnapQuality(quality);
@@ -1298,6 +1298,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 /*
 
 $Log$
+Revision 4.58  2010/12/18 05:41:55  mast
+Move movie to file menu
+
 Revision 4.57  2010/11/09 00:25:03  mast
 Fix model clean to not remove isosurface objects
 

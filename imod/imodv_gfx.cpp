@@ -198,7 +198,6 @@ void imodvDraw(ImodvApp *a)
 void imodvPaintGL()
 {
   ImodvApp *a = Imodv;
-  static int first = 1;
   static int drawcount = 0;
   int color;
   float scale;
@@ -293,7 +292,6 @@ void imodvPaintGL()
 static void drawLightVector(ImodvApp *a)
 {
   Ipoint pnt, cen, an, ar;
-  Iview *vw = a->imod->view;
   float winhalf = 0.5 * B3DMIN(a->winx, a->winy);
   float radfrac = winhalf * 0.9f;
   float del = 10.f;
@@ -496,6 +494,9 @@ static int imodv_snapshot(ImodvApp *a, QString fname)
 /*
 
 $Log$
+Revision 4.26  2009/03/03 15:53:55  mast
+Screwed up commenting out
+
 Revision 4.25  2009/03/02 20:28:11  mast
 Take out double swap on Mac
 

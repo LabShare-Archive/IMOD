@@ -172,12 +172,9 @@ void light_moveby(Iview *vw, int x, int y)
  */
 void light_move(int *x, int *y)
 {
-  int n = 0;
   float xn,yn,zn;
   double xa, ya;
   int lim = 800;
-  float lightpos[4];
-  float ldist = Imodv_light_dist;
 
   if (Imodv_light_dist > 0.0){
     Imodv_light_position[0] = *x;
@@ -262,7 +259,6 @@ void light_on(Iobj *obj, int modind)
   GLfloat green = obj->green;
   GLfloat blue  = obj->blue;
   GLfloat alpha = (1.0 - (float)obj->trans / 100.0f);
-  unsigned char *ub;
 
   GLfloat params[4];
   GLfloat spec, amb, diffuse, shine;
@@ -403,6 +399,10 @@ int imod_light_normal( struct Mod_Point *n,
 #endif /* IMODV_LIGHT_TEST_NORMAL */
 /*
 $Log$
+Revision 4.10  2008/06/10 05:55:52  mast
+Reduced sensitivity and limit, made view and zscale be for the model
+being drawn
+
 Revision 4.9  2008/06/10 02:06:31  mast
 Changed so that model-specific lighting can be set up
 

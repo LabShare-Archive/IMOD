@@ -65,7 +65,6 @@ static int xDrawSize = -1;
 static int yDrawSize = -1;
 static int zDrawSize = -1;
 static int lastYsize = -1;
-static int lastZsize = -1;
 
 #define MAX_SLICES 1024
 
@@ -869,6 +868,9 @@ void ImodvImage::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.23  2010/12/18 17:36:44  mast
+Changes for stereo image display
+
 Revision 4.22  2010/08/23 02:55:43  mast
 Try setting max slices to 1024
 

@@ -10,6 +10,9 @@
 /*  
 
 $Log$
+Revision 4.4  2008/12/15 21:25:56  mast
+Changed set buffer command
+
 Revision 4.3  2007/11/10 04:07:10  mast
 Changes for setting snapshot directory
 
@@ -30,6 +33,8 @@ initial creation
 #ifndef IMODV_GFX_H
 #define IMODV_GFX_H
 #include "qstring.h"
+
+extern Ipoint ImodvCurModLight;
 
 typedef struct __imodv_struct ImodvApp;
 class ImodvGL;

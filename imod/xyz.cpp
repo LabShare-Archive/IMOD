@@ -1350,12 +1350,12 @@ void XyzWindow::DrawCurrentLines()
   float z = xx->zoom;
   int bx = xx->xwoffset1;
   int by = xx->ywoffset1;
-  int nx = xx->vi->xsize;
-  int ny = xx->vi->ysize;
   int nz = xx->vi->zsize;
+  /*int nx = xx->vi->xsize;
+  int ny = xx->vi->ysize;
   int xsize = (int)(nx * z + 0.5);
   int ysize = (int)(ny * z + 0.5);
-  int zsize = (int)(nz * z + 0.5);
+  int zsize = (int)(nz * z + 0.5); */
   int bx2 = xx->xwoffset2;
   int by2 = xx->ywoffset2;
 
@@ -2361,6 +2361,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.59  2010/04/01 02:41:48  mast
+Called function to test for closing keys, or warning cleanup
+
 Revision 4.58  2010/02/22 21:34:07  mast
 Stop drawing points below threshold
 

@@ -56,7 +56,6 @@ void imodvControlZoom(int zoom)
 void imodvControlKickClips(bool state)
 {
   ImodvApp *a = Imodv;
-  Iview *view;
   int m, mst, mnd;
   mst = a->crosset ? 0 : a->cm;
   mnd = a->crosset ? a->nm - 1 : a->cm;
@@ -407,6 +406,9 @@ int imodv_control(ImodvApp *a, int state)
 /*
 
 $Log$
+Revision 4.13  2009/03/22 19:54:25  mast
+Show with new geometry adjust routine for Mac OS X 10.5/cocoa
+
 Revision 4.12  2009/01/15 16:33:17  mast
 Qt 4 port
 

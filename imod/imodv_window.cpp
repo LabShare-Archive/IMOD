@@ -41,8 +41,6 @@ mActions[c]->setShortcut(QKeySequence(d)); \
 connect(mActions[c], SIGNAL(triggered()), a##Mapper, SLOT(map())); \
 a##Mapper->setMapping(mActions[c], c);
 
-extern int Imod_debug;
-
 ImodvWindow::ImodvWindow(ImodvApp *a,
                          QWidget * parent, const char * name, Qt::WFlags f)
   : QMainWindow(parent, f)
@@ -411,6 +409,9 @@ void ImodvGL::wheelEvent ( QWheelEvent * e)
 /*
 
 $Log$
+Revision 4.27  2010/12/20 03:29:20  mast
+Added flag and menu item to invert model in Z
+
 Revision 4.26  2010/12/18 05:42:24  mast
 Make movie be movie/montage
 
