@@ -38,12 +38,13 @@ typedef struct fg_data_struct {
   int stateFlags;
   int rangeEnd;
   int showConnects;
+  int stippleGaps;
   int changeAll;
   DrawProps contProps;
   Istore store;
 } FgData;
 
-static FgData fgd = {NULL, NULL, NULL, NULL, 0, -1, -1, -1, -1, 0, 0, 0, 0};
+static FgData fgd = {NULL, NULL, NULL, NULL, 0, -1, -1, -1, -1, 0, 0, 0, 0, 0};
 
 static int getLoadedObjCont(int addType);
 static int findNextChange(Ilist *list, int index, int surfFlag);
@@ -138,6 +139,11 @@ void fineGrainUpdate()
 int ifgShowConnections()
 {
   return fgd.showConnects ;
+}
+
+int ifgStippleGaps()
+{
+  return fgd.stippleGaps ;
 }
 
 int ifgGetChangeAll()
@@ -408,22 +414,38 @@ void ifgGapChanged(bool state)
       ifgClearChange(GEN_STORE_GAP);
     return;
   }
-  fgd.vw->undo->contourDataChg();
-  if (state) {
-    fgd.store.type = GEN_STORE_GAP;
-    fgd.store.flags = GEN_STORE_ONEPOINT;
-    fgd.store.index.i = fgd.ptLoaded;
-    if (istoreAddOneIndexItem(&fgd.cont->store, &fgd.store))
-      wprint("\aError inserting gap into storage list\n");
-  } else if (istoreClearOneIndexItem(fgd.cont->store, GEN_STORE_GAP,
-                                     fgd.ptLoaded, 0))
-    wprint("\aError removing gap from storage list\n");
-  fgd.vw->undo->finishUnit();
+
+  ifgToggleGap(fgd.vw, fgd.cont, fgd.ptLoaded, state);
   if (imodDebug('g'))
     istoreDump(fgd.cont->store);
   imod_setxyzmouse();
   fineGrainUpdate();
 }
+
+
+/*
+ * Externally callable function to toggle a gap at a point
+ */
+int ifgToggleGap(ImodView *vw, Icont *cont, int ptIndex, bool state)
+{
+  int retval = 0;
+  vw->undo->contourDataChg();
+  if (state) {
+    fgd.store.type = GEN_STORE_GAP;
+    fgd.store.flags = GEN_STORE_ONEPOINT;
+    fgd.store.index.i = ptIndex;
+    if (istoreAddOneIndexItem(&cont->store, &fgd.store)) {
+      wprint("\aError inserting gap into storage list\n");
+      retval = 1;
+    }
+  } else if (istoreClearOneIndexItem(cont->store, GEN_STORE_GAP, ptIndex, 0)) {
+    wprint("\aError removing gap from storage list\n");
+    retval = 1;
+  }
+  vw->undo->finishUnit();
+  return retval;
+}
+
 
 /*
  * A change in the connection number for points
@@ -454,6 +476,7 @@ void ifgConnectChanged(int value)
     istoreDump(fgd.cont->store);
   fgd.vw->undo->finishUnit();
   fineGrainUpdate();
+  imodDraw(App->cvi, IMOD_DRAW_MOD);
 }
 
 /*
@@ -462,6 +485,12 @@ void ifgConnectChanged(int value)
 void ifgShowConnectChanged(bool state)
 {
   fgd.showConnects = state;
+  imodDraw(App->cvi, IMOD_DRAW_MOD);
+}
+
+void ifgStippleGapsChanged(bool state)
+{
+  fgd.stippleGaps = state;
   imodDraw(App->cvi, IMOD_DRAW_MOD);
 }
 
@@ -1258,6 +1287,9 @@ static void ifgHandleValue1(DrawProps *defProps, DrawProps *contProps,
 /*
 
 $Log$
+Revision 1.18  2010/02/15 06:32:38  mast
+Manage flag that point is off because of value out of range
+
 Revision 1.17  2009/03/22 19:54:24  mast
 Show with new geometry adjust routine for Mac OS X 10.5/cocoa
 
