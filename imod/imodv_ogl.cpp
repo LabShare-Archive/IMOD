@@ -30,9 +30,6 @@
 #include "istore.h"
 #include "finegrain.h"
 
-extern float Imodv_light_position[4];
-extern Ipoint ImodvCurModLight;
-
 #define DRAW_POINTS 1
 #define DRAW_LINES  2
 #define DRAW_FILL   3
@@ -962,18 +959,18 @@ static void imodvDraw_object(Iobj *obj, Imod *imod, int drawTrans)
 /****************************************************************************/
 /* DRAW CONTOURS 
  */
-#define PICKPOINTS
+//#define PICKPOINTS
 static void imodvPick_Contours(Iobj *obj, double zscale, int drawTrans)
 {
   int co, pt, npt;
   Icont *cont;
   Imesh *mesh;
   int i, li;
-  float z = zscale;
   Ipoint *vert;
   int    *list;
   int pmode = GL_POINTS;
   int doLines = 0;
+  bool hasPolyNorm2;
   DrawProps contProps, ptProps;
   int nextChange, stateFlags, changeFlags;
   int handleFlags = HANDLE_MESH_COLOR | HANDLE_3DWIDTH;
@@ -990,47 +987,84 @@ static void imodvPick_Contours(Iobj *obj, double zscale, int drawTrans)
     return;
   }
 
-#ifdef PICKPOINTS
-  /* pick points first */
-  // DNM 6/25/05: What is the point?  Can't detect a difference in performance,
-  // but leave it for now.
+
+  // Make sure there is a polynorm2 mesh before doing mesh drawing, so it
+  // can fall back to contour drawing for old meshes
+  hasPolyNorm2 = false;
+  for (co = 0; co < obj->meshsize && !hasPolyNorm2; co++) {
+    mesh = &(obj->mesh[co]);
+    for(i = 0; i < mesh->lsize; i++) {
+      if (mesh->list[i] == IMOD_MESH_BGNPOLYNORM2) {
+        hasPolyNorm2 = true;
+        break;
+      }
+    }
+  }
+
+  // If there is mesh drawing, draw the vertex points or the triangles
   glPushName(NO_NAME);
-  for (co = 0; co < obj->contsize; co++) {
-    cont = &(obj->cont[co]);
-    if (!checkContourDraw(cont, co, checkTime))
-      continue;
-
-    nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, 
-                                     &stateFlags, handleFlags, 0);
-    if (contProps.gap)
-      continue;
-
-    glLoadName(co);
-    glPushName(NO_NAME);
-    for (pt = 0; pt < cont->psize; pt++) {
-      ptProps.gap = 0;
-      if (nextChange == pt)
-        nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
-                                         &ptProps, &stateFlags, 
-                                         &changeFlags, handleFlags, 0);
-      if (ptProps.gap && ptProps.valskip)
+  if (iobjMesh(obj->flags) && hasPolyNorm2) {
+    for (co = 0; co < obj->meshsize; co++) {
+      mesh = &(obj->mesh[co]);
+      list = mesh->list;
+      vert = mesh->vert;
+      if (!mesh->lsize || !mesh->vsize)
         continue;
-      glLoadName(pt);
-      glBegin(GL_POINTS);
-      glVertex3fv((GLfloat *)&(cont->pts[pt]));
-      glEnd();
+
+      // Load the name as a number past the last contour
+      glLoadName(co + 1 + obj->contsize);
+      glPushName(NO_NAME);
+      
+      // For ordinary meshes, better draw all the lines
+      if (obj->contsize) {
+
+        // LINE/FILL give same time and seem to perform same on big triangles
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); 
+        for(i = 0; i < mesh->lsize; i++){
+          switch(list[i]){
+          case IMOD_MESH_BGNPOLYNORM2:
+            i++;
+            while (list[i] != IMOD_MESH_ENDPOLY) {
+              li = list[i++];
+
+              // The load name must occur outside begin-end sequence
+              glLoadName(li);
+              glBegin(GL_TRIANGLES);
+              glVertex3f(vert[li].x, vert[li].y, vert[li].z);
+              li = list[i++];
+              glVertex3f(vert[li].x, vert[li].y, vert[li].z);
+              li = list[i++];
+              glVertex3f(vert[li].x, vert[li].y, vert[li].z);
+              glEnd();
+            }
+            break;
+          default:
+            break;
+          }
+        }
+      } else {
+
+        // This is 5 times faster!  So do it for isosurfaces (no contours)
+        for (li = 0; li < mesh->vsize; li += 2) {
+          glLoadName(li);
+          glBegin(GL_POINTS);
+          glVertex3fv((GLfloat *)&(vert[li]));
+          glEnd();
+          
+        }
+      }
+      glPopName();
     }
     glPopName();
+    return;
   }
-  glPopName();
-#endif    
+
 
   if (iobjLine(obj->flags)){
     pmode = GL_LINES;
     doLines = 1;
   }
 
-  glPushName(NO_NAME);
   for (co = 0; co < obj->contsize; co++) {
     cont = &(obj->cont[co]);
     if (!checkContourDraw(cont, co, checkTime))
@@ -1073,62 +1107,6 @@ static void imodvPick_Contours(Iobj *obj, double zscale, int drawTrans)
     glPopName();
   }
 
-  // If there are no contours but there are meshes, draw the triangles
-  if (!obj->contsize && obj->meshsize) {
-    for (co = 0; co < obj->meshsize; co++) {
-      mesh = &(obj->mesh[co]);
-      list = mesh->list;
-      vert = mesh->vert;
-      if (!mesh->lsize || !mesh->vsize)
-        continue;
-
-      // For sanity sake, make sure there is a polynorm2 mesh in there when 
-      // using vertices only
-      for(i = 0; i < mesh->lsize; i++)
-        if (list[i] == IMOD_MESH_BGNPOLYNORM2)
-          break;
-      if (i == mesh->lsize)
-        continue;
-
-      glLoadName(co);
-      glPushName(NO_NAME);
-      /*  THIS WORKED ...
-      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);   // LINE/FILL give same time
-      for(i = 0; i < mesh->lsize; i++){
-        switch(list[i]){
-        case IMOD_MESH_BGNPOLYNORM2:
-          i++;
-          while (list[i] != IMOD_MESH_ENDPOLY) {
-            li = list[i++];
-
-            // The load name must occur outside begin-end sequence
-            glLoadName(li);
-            glBegin(GL_TRIANGLES);
-            glVertex3f(vert[li].x, vert[li].y, vert[li].z * z);
-            li = list[i++];
-            glVertex3f(vert[li].x, vert[li].y, vert[li].z * z);
-            li = list[i++];
-            glVertex3f(vert[li].x, vert[li].y, vert[li].z * z);
-            glEnd();
-          }
-          glFlush();
-          break;
-        default:
-          break;
-        }
-        } */
-
-      // This is 5 times faster!  And fine for isosurfaces
-      for (li = 0; li < mesh->vsize; li += 2) {
-        glLoadName(li);
-        glBegin(GL_POINTS);
-        glVertex3fv((GLfloat *)&(vert[li]));
-        glEnd();
-        
-      }
-      glPopName();
-    }
-  }
   glPopName();
 }
 
@@ -2567,6 +2545,9 @@ static void drawCurrentClipPlane(ImodvApp *a)
 /*
 
 $Log$
+Revision 4.50  2010/12/28 03:48:14  mast
+Fix invert Z minus sign, also invert triangle order for 2-sided lighting
+
 Revision 4.49  2010/12/20 03:29:20  mast
 Added flag and menu item to invert model in Z
 
