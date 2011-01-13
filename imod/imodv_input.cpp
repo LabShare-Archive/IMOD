@@ -1034,6 +1034,31 @@ void clipCenterAndAngles(ImodvApp *a, Ipoint *clipPoint, Ipoint *clipNormal,
 /* DNM 12/16/02: removed unused callback code */
 
 /*****************************************************************************/
+// PICKING CODE
+/* How picking works:
+   1) Mouse hit occurs, it calls imodvSelect
+   2) imodvSelect sets the pick flag and calls for a draw
+   3) In the paint routine, it sets the render context to selection mode
+   4) Model name is loaded by imodvDraw_models
+   5) Object name is loaded by imodvDraw_model
+   6) imodvDraw_object draws all spheres via imodvDraw_spheres, which always
+   loads names for each point
+   7) imodvDraw_object then calls imodvPick_Contours if there is picking
+   8) imodvPick_Contours checks for mesh drawing with a POLYNORM2 and draws
+   either all mesh triangles (normal mesh) or all vertex points (isosurface 
+   mesh, assumed to be denser and not need triangles.  The "contour" name is
+   the mesh index + contsize + 1; the "point" name is the vertex index.
+   Otherwise it draws contours with contour and point indexes for names.
+   9) imodvSelect restores the render mode and calls processHits 
+   10) processHits finds the hit with the highest Z.  For an extra object with
+   contours, it sets the current image point.  Otherwise there is an object,
+   contour and point index that could be used to set a current model point.
+   But there is a high contour index it then looks up the mesh vertex and 
+   finds the corresponding contour point.  If this fails it looks for the 
+   nearest contour point.  Then it sets the new current point, adding to a 
+   selection list if appropriate.
+
+*/
 #define SELECT_BUFSIZE 40960
 
 static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving)
@@ -1042,9 +1067,12 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving)
   GLuint names, *ptr, *ptrstr;
   unsigned int z1, z2, zav, zmin;
   int tmo, tob, tco, tpt;
-  int mo, ob, co, pt;
+  int mo, ob, co, pt, minco, minpt;
   Iindex indSave;
+  Ipoint pickpt;
+  Ipoint *pts;
   Iobj *obj;
+  float minsq, dsqr, dx, dy, dz;
 
   if (!hits) 
     return;
@@ -1133,47 +1161,106 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving)
     
     // For an extra object with contours, just set mouse from point position
     if (obj->contsize) {
-      a->vi->xmouse = obj->cont[co].pts[pt].x;
-      a->vi->ymouse = obj->cont[co].pts[pt].y;
-      a->vi->zmouse = obj->cont[co].pts[pt].z;
-      ivwBindMouse(a->vi);
-      if (imodDebug('p'))
-        imodPrintStderr ("Extra object, point at %.1f %.1f %.1f\n", 
-                         a->vi->xmouse, a->vi->ymouse, a->vi->zmouse);
-      imodDraw(a->vi, IMOD_DRAW_XYZ);
+      if (co < obj->contsize) {
+        a->vi->xmouse = obj->cont[co].pts[pt].x;
+        a->vi->ymouse = obj->cont[co].pts[pt].y;
+        a->vi->zmouse = obj->cont[co].pts[pt].z;
+        ivwBindMouse(a->vi);
+        if (imodDebug('p'))
+          imodPrintStderr ("Extra object, point at %.1f %.1f %.1f\n", 
+                           a->vi->xmouse, a->vi->ymouse, a->vi->zmouse);
+        imodDraw(a->vi, IMOD_DRAW_XYZ);
+      }
       return;
     }
   }
 
-  // Now if there are contours, process as an indexable point
-  if (obj->contsize) {
-    indSave = a->imod->cindex;
-    imodSetIndex(a->imod, ob, co, pt);     
-    if (!moving || imodSelectionListQuery(a->vi, ob, co) < -1)
-      imodSelectionNewCurPoint(a->vi, a->imod, indSave, ctrlDown);
-    if (!a->standalone)
-      imod_setxyzmouse();
-    else
-      imodvDraw(a);
-    pickedContour = a->imod->cindex.contour;
-    pickedObject = a->imod->cindex.object;
-    if (imodDebug('p'))
-      imodPrintStderr("hit %d %d  current picked %d %d\n", ob, co, 
-                      pickedObject, pickedContour);
-  } else {
-
-    // Otherwise look up position in mesh
-    if (co >= obj->meshsize || pt >= obj->mesh[co].vsize || a->standalone)
+  // If there is mesh drawing, get the position in the mesh
+  if (co >= obj->contsize) {
+    co -= 1 + obj->contsize;
+    
+    if (!iobjMesh(obj->flags) || co < 0 || co >= obj->meshsize || 
+        pt >= obj->mesh[co].vsize)
       return;
-    a->vi->xmouse = obj->mesh[co].vert[pt].x;
-    a->vi->ymouse = obj->mesh[co].vert[pt].y;
-    a->vi->zmouse = obj->mesh[co].vert[pt].z;
-    ivwBindMouse(a->vi);
-    imodDraw(a->vi, IMOD_DRAW_XYZ);
-    if (imodDebug('p'))
-      imodPrintStderr ("Contourless mesh, point at %.1f %.1f %.1f\n", 
-                       a->vi->xmouse, a->vi->ymouse, a->vi->zmouse);
+    pickpt = obj->mesh[co].vert[pt];
+    if (!obj->contsize) {
+      if (a->standalone)
+        return;
+      a->vi->xmouse = pickpt.x;
+      a->vi->ymouse = pickpt.y;
+      a->vi->zmouse = pickpt.z;
+      ivwBindMouse(a->vi);
+      imodDraw(a->vi, IMOD_DRAW_XYZ);
+      if (imodDebug('p'))
+        imodPrintStderr ("Contourless mesh, point at %.1f %.1f %.1f\n", 
+                         a->vi->xmouse, a->vi->ymouse, a->vi->zmouse);
+      return;
+    }
+
+    // Search contours for the point, first an exact hit
+    for (co = 0; co < obj->contsize; co++) {
+      pts = obj->cont[co].pts;
+      for (pt = 0; pt < obj->cont[co].psize; pt++)
+        if (pts[pt].x == pickpt.x && pts[pt].y == pickpt.y && 
+            pts[pt].z == pickpt.z)
+          break;
+      if (pt < obj->cont[co].psize)
+        break;
+    }
+    if (co < obj->contsize) {
+      if (imodDebug('p'))
+        imodPrintStderr ("Mesh hit, exact match\n");
+    } else {
+      
+      // Now look for closest point
+      minsq = 1.e30;
+      for (co = 0; co < obj->contsize; co++) {
+        pts = obj->cont[co].pts;
+        for (pt = 0; pt < obj->cont[co].psize; pt++) {
+          dx = pts[pt].x - pickpt.x;
+          dx *= dx;
+          if (dx < minsq) {
+            dy = pts[pt].y - pickpt.y;
+            dy *= dy;
+            if (dy < minsq) {
+              dz = pts[pt].z - pickpt.z;
+              dz *= dz;
+              if (dz < minsq) {
+                dsqr = dx + dy + dz;
+                if (dsqr < minsq) {
+                  minco = co;
+                  minpt = pt;
+                  minsq = dsqr;
+                }
+              }
+            }
+          }
+        }
+      }
+      if (minsq > 1.e20)
+        return;
+      co = minco;
+      pt = minpt;
+      if (imodDebug('p'))
+        imodPrintStderr ("Mesh hit, nearest point distance %.3f\n", 
+                         sqrt((double)minsq));
+    }
   }
+  
+  // Now process the indexable point whether from contour or mesh
+  indSave = a->imod->cindex;
+  imodSetIndex(a->imod, ob, co, pt);     
+  if (!moving || imodSelectionListQuery(a->vi, ob, co) < -1)
+    imodSelectionNewCurPoint(a->vi, a->imod, indSave, ctrlDown);
+  if (!a->standalone)
+    imod_setxyzmouse();
+  else
+    imodvDraw(a);
+  pickedContour = a->imod->cindex.contour;
+  pickedObject = a->imod->cindex.object;
+  if (imodDebug('p'))
+    imodPrintStderr("hit %d %d  current picked %d %d\n", ob, co, 
+                    pickedObject, pickedContour);
 }
 
 // For select mode, set up for picking then call draw routine
@@ -1306,6 +1393,9 @@ void imodvMovieTimeout()
 /*
 
 $Log$
+Revision 4.51  2010/12/18 17:36:44  mast
+Changes for stereo image display
+
 Revision 4.50  2010/04/01 02:41:48  mast
 Called function to test for closing keys, or warning cleanup
 
