@@ -107,6 +107,7 @@ void imodvObjedForm::init()
           SLOT(frameSelected(int)));
     
   imodvObjedMakeOnOffs(checkBoxFrame);
+  updateMeshing(-1);
 }
 
 void imodvObjedForm::setFontDependentSizes(int width, int height)
@@ -156,7 +157,7 @@ void imodvObjedForm::fontChange( const QFont & oldFont )
   setFontDependentSizes(width, height);
 }
 
-// Pass on changes in the valious controls
+// Pass on changes in the various controls
 void imodvObjedForm::objectSelected( int which )
 {
   imodvObjedSelect(which);
@@ -221,6 +222,19 @@ void imodvObjedForm::updateObject(int ob, int numObj, int drawType, int drawStyl
   diaSetEditText(nameLineEdit, str);
 }
 
+void imodvObjedForm::updateMeshing(int ob)
+{
+  QString str;
+  if (ob < 0) {
+    meshingLabel1->setText("");
+    meshingLabel2->setText("");
+  } else {
+    str.sprintf("Obj. %d", ob + 1);
+    meshingLabel1->setText("Meshing");
+    meshingLabel2->setText(str);
+  }
+}
+
 void imodvObjedForm::updateColorBox( QColor color )
 {
   mBoxRGB[0] = color.red();
@@ -272,6 +286,9 @@ void imodvObjedForm::keyReleaseEvent( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.3  2010/04/01 02:41:48  mast
+Called function to test for closing keys, or warning cleanup
+
 Revision 4.2  2009/02/16 06:47:35  mast
 Fixed some geometry problems
 

@@ -18,7 +18,7 @@
   <property name="windowTitle" >
    <string>3dmodv Objects</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" >
+  <layout class="QVBoxLayout" name="verticalLayout_2" >
    <item>
     <layout class="QHBoxLayout" >
      <property name="spacing" >
@@ -178,13 +178,7 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" >
-     <property name="spacing" >
-      <number>6</number>
-     </property>
-     <property name="margin" >
-      <number>0</number>
-     </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_2" >
      <item>
       <layout class="QGridLayout" >
        <property name="margin" >
@@ -285,11 +279,45 @@
        </property>
        <property name="sizeHint" stdset="0" >
         <size>
-         <width>30</width>
-         <height>0</height>
+         <width>13</width>
+         <height>49</height>
         </size>
        </property>
       </spacer>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout" >
+       <property name="spacing" >
+        <number>0</number>
+       </property>
+       <item>
+        <spacer name="verticalSpacer" >
+         <property name="orientation" >
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0" >
+          <size>
+           <width>20</width>
+           <height>2</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="meshingLabel1" >
+         <property name="text" >
+          <string>Meshing</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="meshingLabel2" >
+         <property name="text" >
+          <string>Obj. 1</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
     </layout>
    </item>

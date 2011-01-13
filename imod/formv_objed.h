@@ -2,6 +2,9 @@
  *
  *  $Id$
  *  $Log$
+ *  Revision 4.1  2009/01/15 16:33:17  mast
+ *  Qt 4 port
+ *
  *
  */
 #ifndef IMODVOBJEDFORM_H
@@ -36,6 +39,7 @@ class imodvObjedForm : public QWidget, public Ui::imodvObjedForm
   virtual void donePressed();
   virtual void helpPressed();
   virtual void updateObject( int ob, int numObj, int drawType, int drawStyle, QColor color, char * name );
+  virtual void updateMeshing(int ob);
   virtual void updateColorBox( QColor color );
   virtual void setCurrentFrame( int frame, int editData );
   virtual void closeEvent( QCloseEvent * e );
