@@ -33,13 +33,13 @@ typedef struct connect_struct {
 
 
 
-static void cost_from_area_matrices(float *up, float *down, float *cost,
+static void cost_from_area_matrices(float *up, float *down, double *cost,
                                     char *path, int bdim, int tdim, int bsize,
                                     int sb, int st, int bmax,
                                     int tmax, float curmin);
 static void build_area_matrices(Icont *bc, int bdir,
                                 Icont *tc, int tdir, Ipoint *scale,
-                                float *up, float *down);
+                                float *up, float *down, int openObj);
 static Connector *makeConnectors(Icont *bc, Icont *tc, int *numCon, 
                                  int closedObj, int dirProduct);
 static int outsideMeshLimits(Ipoint *p1, Ipoint *p2, Ipoint *p3);
@@ -47,6 +47,19 @@ static void chunkAddTriangle(Imesh *mesh, int i1, int i2, int i3, int *maxsize,
                              int inside);
 static void invertConnectors(Connector *connects, int numCon,
                              int direction[2]);
+static int manageGaps(Icont *bc, Ilist **bcStore, int *newBstore, Icont *tc,
+                      Ilist **tcStore, int *newTstore, int objClosed, 
+                      int *direction, Ipoint *scale);
+static int dupStoreIfNeeded(Icont *cont, Ilist **oldStore, int *madeNew);
+static int addConnectorIfNone(Icont *bc, Ilist **bcStore, int *newBstore,
+                              int bpt, Icont *tc, Ilist **tcStore,
+                              int *newTstore, int tpt, int *maxConNum,
+                              int *direction);
+static int endsOfWholeGap(Icont *cont, int pt, int *newStart);
+static void cleanupICCarrays(Imesh *mesh, float *up, float *down, double *cost,
+                             char *path, char *path2, Icont *bc, int newBstore,
+                             Ilist *bcStore, Icont *tc, int newTstore,
+                             Ilist *tcStore, int numCon, Connector *connects);
 
 static int fastmesh = 0;
 static  Ipoint meshMin = {-1.e30, -1.e30, -1.e30};
@@ -83,22 +96,24 @@ Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
   int tdim, bdim, tlen, blen;
   int bsize, tsize, csize, totind;
   int dofast;
-  int bsi, tsi, li, lj, step, iskip, jskip, endb, endt, jobase, lc;
+  int bsi, tsi, bsi2, tsi2, li, lj, step, iskip, jskip, endb, endt, jobase, lc;
   int maxsize;
-  float mincost, ccost;
-  float *up, *down, *cost;
-  char *path;
+  double mincost, ccost;
+  float *up, *down;
+  double *cost;
+  char *path, *path2;
   Ipoint minp, maxp;
   float dista, distb, valmin, valmax;
   DrawProps objProps, bcProps, tcProps, ptProps;
   DrawProps *props3;
-  Ilist *store3;
+  Ilist *store3, *bcStore, *tcStore;
   int surfState, bcState, tcState, state3, anyTrans, transMax;
   int  p1State, p2State, p3State, k2, k3, trans1, trans2, trans3;
   int stateTest = CHANGED_COLOR | CHANGED_FCOLOR | CHANGED_3DWIDTH;
-  Connector *connects;
-  int numCon, curCon, nextCon, startedAtCon = 0, bothOpen;
+  Connector *connects = NULL;
+  int numCon = 0, curCon, nextCon, startedAtCon = 0, openObj, tOpen, bOpen;
   int startsConnected = 0, endsConnected = 0;
+  int newBstore = 0, newTstore = 0;
 
   /* Index [0] is bottom contour, Index [1] is top contour. */
   int si[2];                /* start index */
@@ -118,13 +133,15 @@ Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
                    &valmax))
     stateTest |= CHANGED_VALUE1;
 
-  /* Contours from an open contour object should be marked as open */
-  bothOpen = ((bc->flags & ICONT_OPEN) && (tc->flags & ICONT_OPEN)) ? 1 : 0;
+  /* Contours from an open contour object should be marked as open? */
+  openObj = iobjClose(obj->flags) ? 0 : 1;
   tsize = tc->psize;
   tdim = tsize;
   bsize = bc->psize;
   bdim = bsize;
-  if (bothOpen) {
+
+  /* Reduce extent of meshing for open objects */
+  if (openObj) {
     tdim--;
     bdim--;
   }
@@ -133,18 +150,16 @@ Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
 
   up = (float *)malloc(sizeof(float) * bsize * tsize);
   down = (float *)malloc(sizeof(float) * tsize * bsize);
-  cost = (float *)malloc(sizeof(float) * csize);
+  cost = (double *)malloc(sizeof(double) * csize);
   path = (char *)malloc(sizeof(char) * csize);
-  if (!down || !up || !cost || !path) {
+  path2 = (char *)malloc(sizeof(char) * csize);
+  if (!down || !up || !cost || !path || !path2) {
     free(mesh);
-    if (up)
-      free(up);
-    if (down)
-      free(down);
-    if (cost)
-      free(cost);
-    if (path)
-      free(path);
+    B3DFREE(up);
+    B3DFREE(down);
+    B3DFREE(cost);
+    B3DFREE(path);
+    B3DFREE(path2);
     return(NULL);
   }
 
@@ -167,7 +182,7 @@ Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
     istoreCountItems(tc->store, GEN_STORE_TRANS, 1);
   /*printf("bco %d surf %d state %d %d tco %d surf %d state %d %d\n", bco,
           bc->surf, bcState, i, tco, tc->surf, tcState, j);
-          istoreDump(obj->store);*/
+          istoreDump(obj->store); */
 
   /* Find direction of each contour.
    * If contours aren't flat in a Z plane, they must already be
@@ -183,6 +198,23 @@ Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
   si[0] = si[1] = 0;
   dofast = 1;
 
+  /*printf("bco %d size %d dir %d  tco %d size %d dir %d\n", bco, bsize, 
+         direction[0], tco, tsize, direction[1]);
+  istoreDump(bc->store);
+  istoreDump(tc->store); */
+
+  /* Add gaps for open contours in closed obj and make connectors at gaps */
+  if (manageGaps(bc, &bcStore, &newBstore, tc, &tcStore, &newTstore, 
+                 iobjClose(obj->flags), direction, scale)) {
+    cleanupICCarrays(mesh, up, down, cost, path, path2, bc, newBstore, bcStore,
+                     tc, newTstore, tcStore, numCon, connects);
+    return(NULL);
+  }
+
+  /* Set flags for whether the contours are open one way or another */
+  bOpen = (openObj || istorePointIsGap(bc->store, bsize - 1)) ? 1 : 0;
+  tOpen = (openObj || istorePointIsGap(tc->store, tsize - 1)) ? 1 : 0;
+
   /* Get connectors if any */
   connects = makeConnectors(bc, tc, &numCon, iobjClose(obj->flags), 
                             direction[0] * direction[1]);
@@ -190,67 +222,62 @@ Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
   lc = numCon - 1;
 
   /* Set starting index for both contours. */
-  if (bothOpen) {
+  if (openObj) {
     dofast = fastmesh;
 
-    /* If BOTH CONTOURS OPEN, then the starting points are endpoints 
-       regardless of connectors */
     /* If the OBJECT TYPE IS OPEN CONTOUR, then ignore the
        computed contour directions; set directions to +, and
        invert the second one if that makes them match up better */
-    if (!iobjClose(obj->flags)) {
-      direction[1] = direction[0] = 1;
+    direction[1] = direction[0] = 1;
 
-      /* But first see if starts or ends are connected and use that to set
+    /* But first see if starts or ends are connected and use that to set
        the polarity.  Also set polarity if there is more than 1 connector */
-      if (numCon) {
-        startsConnected = ((!connects[0].b1 && 
-                            (!connects[0].t1 || connects[0].t2 == tsize - 1))
-                           || connects[0].skipFromStart) ? 1 : 0;
-        endsConnected = ((connects[lc].b2 == bsize - 1 && 
-                          (!connects[lc].t1 || connects[lc].t2 == tsize - 1))
-                         || connects[lc].skipToEnd) ? 1 : 0;
-      }
-
-      if (startsConnected || endsConnected || numCon > 1) {
-        if ((startsConnected && ((connects[0].t2 == tsize - 1) || 
-                                 (!connects[0].t1 && connects[0].skipFromStart
-                                  && connects[0].skipIndex > connects[0].b2)))
-            || (endsConnected && (!connects[lc].t1 || 
-                                  (connects[lc].b2 == bsize - 1 &&
-                                   connects[lc].skipToEnd &&
-                                   connects[lc].skipIndex < connects[lc].t1))
-                || (numCon > 1 && connects[1].t1 < connects[0].t1)))
-          direction[1] = -1;
-    
-      } else {
-
-        /* If there is no polarity info, now use endpoint distances */
-        dista = imodPointDistance(bc->pts, &tc->pts[0]) + imodPointDistance
-          (&bc->pts[bsize - 1], &tc->pts[tsize - 1]);
-        distb = imodPointDistance(bc->pts, &tc->pts[tsize-1]) + 
-          imodPointDistance(&bc->pts[bsize - 1], &tc->pts[0]);
-        if (distb < dista)
-          direction[1] = -1;
-      }
-
-      /* If either one is marked as inverted before and is NOT inverted this 
-         time, invert them both */
-      if (((bc->flags & ICONT_CONNECT_INVERT) && 
-           (bc->flags & ICONT_CONNECT_BOTTOM)) ||
-          ((tc->flags & ICONT_CONNECT_TOP) && 
-           direction[1] != ((tc->flags & ICONT_CONNECT_INVERT) ? -1 : 1))) {
-        direction[0] *= -1;
-        direction[1] *= -1;
-      }
-      /* printf("direction %d %d\n", direction[0], direction[1]); */
-
-      /* Then set the invert flag for whichever is now inverted */
-      setOrClearFlags(&bc->flags, ICONT_CONNECT_INVERT, 1 - direction[0]);
-      setOrClearFlags(&tc->flags, ICONT_CONNECT_INVERT, 1 - direction[1]);
+    if (numCon) {
+      startsConnected = ((!connects[0].b1 && 
+                          (!connects[0].t1 || connects[0].t2 == tsize - 1))
+                         || connects[0].skipFromStart) ? 1 : 0;
+      endsConnected = ((connects[lc].b2 == bsize - 1 && 
+                        (!connects[lc].t1 || connects[lc].t2 == tsize - 1))
+                       || connects[lc].skipToEnd) ? 1 : 0;
     }
 
-    /* Still BOTH OPEN, now either type of object */
+    if (startsConnected || endsConnected || numCon > 1) {
+      if ((startsConnected && ((connects[0].t2 == tsize - 1) || 
+                               (!connects[0].t1 && connects[0].skipFromStart
+                                && connects[0].skipIndex > connects[0].b2)))
+          || (endsConnected && (!connects[lc].t1 || 
+                                (connects[lc].b2 == bsize - 1 &&
+                                 connects[lc].skipToEnd &&
+                                 connects[lc].skipIndex < connects[lc].t1))
+              || (numCon > 1 && connects[1].t1 < connects[0].t1)))
+        direction[1] = -1;
+    
+    } else {
+
+      /* If there is no polarity info, now use endpoint distances */
+      dista = imodPointDistance(bc->pts, &tc->pts[0]) + imodPointDistance
+        (&bc->pts[bsize - 1], &tc->pts[tsize - 1]);
+      distb = imodPointDistance(bc->pts, &tc->pts[tsize-1]) + 
+        imodPointDistance(&bc->pts[bsize - 1], &tc->pts[0]);
+      if (distb < dista)
+        direction[1] = -1;
+    }
+
+    /* If either one is marked as inverted before and is NOT inverted this 
+       time, invert them both */
+    if (((bc->flags & ICONT_CONNECT_INVERT) && 
+         (bc->flags & ICONT_CONNECT_BOTTOM)) ||
+        ((tc->flags & ICONT_CONNECT_TOP) && 
+         direction[1] != ((tc->flags & ICONT_CONNECT_INVERT) ? -1 : 1))) {
+      direction[0] *= -1;
+      direction[1] *= -1;
+    }
+    /* printf("direction %d %d\n", direction[0], direction[1]); */
+
+    /* Then set the invert flag for whichever is now inverted */
+    setOrClearFlags(&bc->flags, ICONT_CONNECT_INVERT, 1 - direction[0]);
+    setOrClearFlags(&tc->flags, ICONT_CONNECT_INVERT, 1 - direction[1]);
+
     /* Invert the direction of connections if bottom is reversed */
     if (numCon)
       invertConnectors(connects, numCon, direction);
@@ -270,19 +297,18 @@ Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
                        connects[lc].skipToEnd) ? 1 : 0;
 
       /* Finally, if the starts are connected, use those to set indexes */
-      /* WHY IS THIS B2/T2? SEEMS TO WORK FOR Closed Obj, BUT NOT OPEN */
       if (startsConnected) {
-        si[0] = iobjClose(obj->flags) ? connects[0].b2 : connects[0].b1;
-        si[1] = iobjClose(obj->flags) ? connects[0].t2 : connects[0].t1;
+        si[0] = connects[0].b1;
+        si[1] = connects[0].t1;
         curCon = 1;
       }
-      /* printf("connected %d %d si %d %d\n", startsConnected, endsConnected,
-         si[0], si[1]); */
+      /*printf("connected %d %d si %d %d\n", startsConnected, endsConnected,
+        si[0], si[1]); */
     }
 
   } else {
 
-    /* NOT BOTH OPEN: if connectors, start at the first connector and set flag,
+    /* CLOSED OBJECT: if connectors, start at the first connector and set flag,
        but reverse connectors if bottom is inverted */
     if (numCon) {
       invertConnectors(connects, numCon, direction);
@@ -292,15 +318,15 @@ Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
       curCon = 1;
 
       /* If either one is open, start at closest point in other contour */
-    } else if (bc->flags & ICONT_OPEN) {
+    } else if (bOpen && !tOpen) {
       si[1] = imodContourNearest(tc, bc->pts);
 
-    } else if (tc->flags & ICONT_OPEN) {
+    } else if (tOpen && !bOpen) {
       si[0] = imodContourNearest(bc, tc->pts);
 
     } else {
 
-      /* Both closed contours */
+      /* Both closed contours, no connectors */
       dofast = fastmesh;
                     
       /* Try to have all mesh start at about the same place
@@ -308,11 +334,17 @@ Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
        */
       imodContourGetBBox(bc, &minp, &maxp);
       si[0] = imodContourNearest(bc, &minp);
+      bsi2 = imodContourNearest(bc, &maxp);
+      if (direction[0] < 0)
+        bsi2 = bsize - 1 - bsi2;
                     
       /* Now find a similar point in the top contour. */
                     
       imodContourGetBBox(tc, &minp, &maxp);
       si[1] = imodContourNearest(tc,  &minp); 
+      tsi2 = imodContourNearest(tc, &maxp);
+      if (direction[1] < 0)
+        tsi2 = tsize - 1 - tsi2;
 
       /* DNM: deleted attempt to get nearest points; it doesn't work any 
          better than going for corner points: basically, need to do two 
@@ -323,7 +355,8 @@ Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
   /*
    * Build the matrices of areas for up and down triangles
    */
-  build_area_matrices(bc, direction[0], tc, direction[1], scale, up, down);
+  build_area_matrices(bc, direction[0], tc, direction[1], scale, up, down, 
+                      openObj);
 
   //siFirst[0] = si[0];
   //siFirst[1] = si[1];
@@ -356,15 +389,15 @@ Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
         /* get the extent to mesh; routine will mesh 0 to dim inclusive.
            If both open contours, length can be zero and zero must not wrap */
         blen = direction[0] > 0 ? endb - si[0] : si[0] - endb;
-        if (blen < 0 || (!bothOpen && blen == 0))
+        if (blen < 0 || (!openObj && blen == 0))
           blen += bsize;
         tlen = direction[1] > 0 ? endt - si[1] : si[1] - endt;
-        if (tlen < 0 || (!bothOpen && tlen == 0))
+        if (tlen < 0 || (!openObj && tlen == 0))
           tlen += tsize;
 
         /*printf("%d %d %d %d %d %d %d %d %d %d\n", bdim, direction[0], si[0], 
           endb, blen, tdim, direction[1], si[1],  endt, tlen);
-        fflush(stdout); */
+          fflush(stdout); */
       }
  
       /* flip starting indexes if directions are reversed */
@@ -385,11 +418,22 @@ Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
       if (!numCon) {
         if (dofast) {
         
-          if (!(bc->flags & ICONT_OPEN) && 
-              !(tc->flags & ICONT_OPEN)) {
+          if (!bOpen && !tOpen) {
           
-            /* If both closed contours, go halfway around to find a
-               new starting point, and use that instead */
+            /* If both closed contours, first try the opposite corner and 
+               replace path if better */
+            ccost = cost[totind];
+            cost_from_area_matrices(up, down, cost, path2, bdim, tdim,
+                                    bsize, bsi2, tsi2, blen, tlen, ccost);
+            if (cost[totind] < ccost) {
+              bsi = bsi2;
+              tsi = tsi2;
+              ccost = cost[totind];
+              memcpy(path, path2, csize);
+            }
+
+            /* Now go halfway around to find a new starting point, and use 
+               that instead if it is better */
             i = bdim;
             j = tdim;
             for (step = 0; step < (bdim + tdim) / 2; step++) {
@@ -398,10 +442,16 @@ Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
               else
                 j--;
             }
-            bsi = (bsi + i) % bsize;
-            tsi = (tsi + j) % tsize;
-            cost_from_area_matrices(up, down, cost, path, bdim, tdim,
-                                    bsize, bsi, tsi, bdim, tdim, -1.0);
+
+            bsi2 = (bsi + i) % bsize;
+            tsi2 = (tsi + j) % tsize;
+            cost_from_area_matrices(up, down, cost, path2, bdim, tdim,
+            bsize, bsi2, tsi2, bdim, tdim, ccost);
+            if (cost[totind] < ccost) {
+              bsi = bsi2;
+              tsi = tsi2;
+              memcpy(path, path2, csize);
+            }
           } 
         } else {
         
@@ -409,11 +459,11 @@ Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
      
           mincost = cost[totind];
         
-          if (tc->flags & ICONT_OPEN  || bc->flags & ICONT_OPEN) {
+          if (tOpen || bOpen) {
             /* For open contours, just do reverse direction */
           
             build_area_matrices(bc, direction[0], tc, -direction[1],
-                                scale, up, down);
+                                scale, up, down, openObj);
             cost_from_area_matrices(up, down, cost, path, bdim, tdim,
                                     bsize, bsi, tsi, bdim, tdim, mincost);
 
@@ -422,9 +472,11 @@ Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
               direction[1] *= -1;
             else
               build_area_matrices(bc, direction[0], tc, direction[1],
-                                  scale, up, down);
+                                  scale, up, down, openObj);
           } else {
           
+            /* Loop on starting points in top: note that given mincost as
+               the argument makes it bail and it won't return the full cost */
             for (i = 0; i < tsize; i++) {
               cost_from_area_matrices(up, down, cost, path, bdim, tdim,
                                       bsize, bsi, i, bdim, tdim, mincost);
@@ -434,9 +486,9 @@ Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
               if (ccost < mincost) {
                 mincost = ccost;
                 tsi = i;
-                /*             printf ("* "); */
+                /* printf ("* "); */
               }
-              /*           printf("%d %d %g\n",si[0], i, ccost); */
+              /* printf("%d %d %g\n",si[0], i, ccost);*/
             }
           }
 
@@ -462,11 +514,8 @@ Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
         mesh->vsize = bsize + tsize + 2;
         mesh->vert = (Ipoint *)malloc(mesh->vsize * sizeof(Ipoint));
         if (mesh->vert == NULL) {
-          free(cost);
-          free(up);
-          free(down);
-          free(mesh);
-          free(path);
+          cleanupICCarrays(mesh, up, down, cost, path, path2, bc, newBstore,
+                           bcStore, tc, newTstore, tcStore, numCon, connects);
           return(NULL);
         }
       
@@ -517,7 +566,7 @@ Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
           path[i + j * (bdim + 1)] = 0;
         }
       }
-      /* printf("%d %d %d %d\n", bsi, siCopy[0], tsi, siCopy[1]);
+      /*printf("%d %d %d %d\n", bsi, siCopy[0], tsi, siCopy[1]);
          printf("%d %d %d %d\n", i, io, j, jobase);
          fflush(stdout); */
 
@@ -617,12 +666,8 @@ Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
   }
 
   /* istoreDump(mesh->store); */
-  if (numCon)
-    free(connects);
-  free(path);
-  free(cost);
-  free(up);
-  free(down);
+  cleanupICCarrays(mesh, up, down, cost, path, path2, bc, newBstore, bcStore, 
+                   tc, newTstore, tcStore, numCon, connects);
 
   if (mesh->lsize)
     chunkMeshAddIndex(mesh, IMOD_MESH_ENDPOLY, &maxsize);
@@ -630,12 +675,293 @@ Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
   return(mesh);
 }
 
+/* 
+ * Make sure gaps get connected correctly if possible.
+ * Insert a gap at the end of open contours in closed objects.
+ * Connect endpoints of gaps that match up
+ */
+static int manageGaps(Icont *bc, Ilist **bcStore, int *newBstore, Icont *tc,
+                      Ilist **tcStore, int *newTstore, int objClosed,
+                      int *direction, Ipoint *scale)
+{
+  Istore store;
+  Istore *storep;
+  
+  float minGapRatio = 1.;
+  int *botList, *topList, *btList;
+  Icont *cont;
+  Ipoint pntb, pntt;
+  int numGaps[2], bigOpen[2];
+  int retval = 0;
+  int tpt, tnext, bpt, bnext, tgmin, bgmin, bgap, tgap, maxConNum, bt, i, j;
+  int noGaps, botLeft, topLeft, endConnected = 0;
+  float dist, distmin, maxgap;
+
+  numGaps[0] = istoreCountItems(bc->store, GEN_STORE_GAP, 0);
+  numGaps[1] = istoreCountItems(tc->store, GEN_STORE_GAP, 0);
+  noGaps = (numGaps[0] + numGaps[1] == 0) ? 1 : 0;
+  store.type = GEN_STORE_GAP;
+  store.flags = GEN_STORE_ONEPOINT;
+  store.value.i = 0;
+
+  /* If either contour is open in closed object, insert a gap at the end */
+  if (objClosed && (bc->flags & ICONT_OPEN) && 
+      !istorePointIsGap(bc->store, bc->psize - 1)) {
+    if (dupStoreIfNeeded(bc, bcStore, newBstore))
+      return 1;
+    store.index.i = bc->psize - 1;
+    if (istoreInsert(&bc->store, &store))
+      return 1;
+    numGaps[0]++;
+    /*printf("Add gap to bottom, total gaps %d\n", numGaps[0]);*/
+  }
+  if (objClosed && (tc->flags & ICONT_OPEN) &&
+      !istorePointIsGap(tc->store, tc->psize - 1)) {
+    if (dupStoreIfNeeded(tc, tcStore, newTstore))
+      return 1;
+    store.index.i = tc->psize - 1;
+    if (istoreInsert(&tc->store, &store))
+      return 1;
+    numGaps[1]++;
+    /*printf("Add gap to top, total gaps %d\n", numGaps[1]); */
+  }
+
+  /* If there are gaps in only one, or neither, no more to do */
+  if (!numGaps[1] || !numGaps[0])
+    return 0;
+
+  /* Make list of all the gaps and find maximum connection number */
+  botList = (int *)malloc((numGaps[0] + numGaps[1]) * sizeof(int));
+  if (!botList)
+    return 1;
+  topList = botList + numGaps[0];
+  cont = bc;
+  btList = botList;
+  maxConNum = 0;
+  for (bt = 0; bt < 2; bt++) {
+    numGaps[bt] = 0;
+    bigOpen[bt] = -1;
+    for (i = 0; i < ilistSize(cont->store); i++) {
+      storep = istoreItem(cont->store, i);
+      if (storep->type == GEN_STORE_GAP && storep->index.i >= 0) {
+
+        /* Get real start of gap, add it to list if it is not on it already */
+        bnext = endsOfWholeGap(cont, storep->index.i, &bpt);
+        for (j = 0; j < numGaps[bt]; j++)
+          if (btList[j] == bpt)
+            break;
+        if (j == numGaps[bt]) {
+          btList[numGaps[bt]] = bpt;
+          if (bnext < bpt && (bnext > 0 || bpt < cont->psize - 1))
+            bigOpen[bt] = numGaps[bt];
+          numGaps[bt]++;
+        }
+      }
+      if (storep->type == GEN_STORE_CONNECT)
+        maxConNum = B3DMAX(maxConNum, storep->value.i);
+    }
+    cont = tc;
+    btList = topList;
+  }
+  botLeft = numGaps[0];
+  topLeft = numGaps[1];
+  
+  /* Connect multi-point gaps across contour ends */
+  if (bigOpen[0] >= 0 && bigOpen[1] >= 0) {
+    bpt = botList[bigOpen[0]];
+    tpt = topList[bigOpen[1]];
+    if (addConnectorIfNone(bc, bcStore, newBstore, bpt, tc, tcStore,
+                           newTstore, tpt, &maxConNum, direction)) {
+      free(botList);
+      return 1;
+    }
+    endConnected = 1;
+    botList[bigOpen[0]] = -1;
+    topList[bigOpen[1]] = -1;
+    botLeft--;
+    topLeft--;
+  }
+
+  /* Loop on finding closest pairs of gaps and connecting them */
+  while (botLeft && topLeft) {
+
+    /* Look at all pairs of gaps and find one with closest midpoint */
+    distmin = 1.e30;
+    for (bgap = 0; bgap < numGaps[0]; bgap++) {
+      if (botList[bgap] < 0)
+        continue;
+      bpt = botList[bgap];
+      bnext = endsOfWholeGap(bc, bpt, &j);
+      pntb.x = (bc->pts[bpt].x + bc->pts[bnext].x) / 2.;
+      pntb.y = (bc->pts[bpt].y + bc->pts[bnext].y) / 2.;
+      pntb.z = (bc->pts[bpt].z + bc->pts[bnext].z) / 2.;
+      for (tgap = 0; tgap < numGaps[1]; tgap++) {
+        if (topList[tgap] < 0)
+          continue;
+        tpt = topList[tgap];
+        tnext = endsOfWholeGap(tc, tpt, &j);
+        pntt.x = (tc->pts[tpt].x + tc->pts[tnext].x) / 2.;
+        pntt.y = (tc->pts[tpt].y + tc->pts[tnext].y) / 2.;
+        pntt.z = (tc->pts[tpt].z + tc->pts[tnext].z) / 2.;
+        dist = imodPoint3DScaleDistance(&pntb, &pntt, scale);
+        if (dist < distmin) {
+          tgmin = tgap;
+          bgmin = bgap;
+          distmin = dist;
+        }
+      }
+    }
+    
+    /* Find maximum of two gap extents */
+    bpt = botList[bgmin];
+    bnext = endsOfWholeGap(bc, bpt, &j);
+    tpt = topList[tgmin];
+    tnext = endsOfWholeGap(tc, tpt, &j);
+    maxgap = imodPointDistance(&bc->pts[bpt], &bc->pts[bnext]);
+    dist = imodPointDistance(&tc->pts[tpt], &tc->pts[tnext]);
+    maxgap = B3DMAX(maxgap, dist);
+
+    /* Connect the two gaps if they are close relative to the size of the gaps,
+       or if they are open contours openings and there are no other gaps,
+       and if none of the four points are already connected somewhere */
+    if (distmin < minGapRatio * maxgap || noGaps) {
+      if (addConnectorIfNone(bc, bcStore, newBstore, bpt, tc, tcStore,
+                             newTstore, tpt, &maxConNum, direction)) {
+        retval = 1;
+        break;
+      }
+
+      /* Keep track of whether an endpoint has been connected */
+      if (bpt == bc->psize - 1 || tpt == tc->psize - 1)
+        endConnected = 1;
+    }
+
+    /* Remove these two gaps from lists regardless of whether connected */
+    botList[bgmin] = -1;
+    topList[tgmin] = -1;
+    botLeft--;
+    topLeft--;
+  }
+
+  /* If both were open, make sure at least one end if connected to something,
+     otherwise connect the two openings */
+  if (objClosed && (bc->flags & ICONT_OPEN) && (tc->flags & ICONT_OPEN) && 
+      !endConnected)
+    retval = addConnectorIfNone(bc, bcStore, newBstore, bc->psize - 1, tc,
+                                tcStore, newTstore, tc->psize - 1, &maxConNum,
+                                direction);
+  free(botList);
+  return retval;
+}
+
+/*
+ * Add a pair of connectors at the ends of a shared gap if the user has not
+ * inserted any connectors
+ */
+static int addConnectorIfNone(Icont *bc, Ilist **bcStore, int *newBstore,
+                              int bpt, Icont *tc, Ilist **tcStore,
+                              int *newTstore, int tpt, int *maxConNum,
+                              int *direction)
+{
+  int cpt;
+  int bnext = endsOfWholeGap(bc, bpt, &cpt);
+  int tnext = endsOfWholeGap(tc, tpt, &cpt);
+  Istore store;
+
+  if (istoreConnectNumber(bc->store, bpt) < 0 &&
+      istoreConnectNumber(bc->store, bnext) < 0 && 
+      istoreConnectNumber(tc->store, tpt) < 0 && 
+      istoreConnectNumber(tc->store, tnext) < 0) {
+    store.type = GEN_STORE_CONNECT;
+    store.flags = GEN_STORE_ONEPOINT;
+    store.value.i = 0;
+    for (cpt = 0; cpt < 2; cpt++) {
+      store.value.i = ++(*maxConNum);
+      store.index.i = cpt ? bnext : bpt;
+      if (dupStoreIfNeeded(bc, bcStore, newBstore) || 
+          istoreInsert(&bc->store, &store))
+        return 1;
+      store.index.i = cpt ? tnext : tpt;
+      if (direction[0] != direction[1])
+        store.index.i = cpt ? tpt : tnext;
+      if (dupStoreIfNeeded(tc, tcStore, newTstore) ||
+          istoreInsert(&tc->store, &store))
+        return 1;
+    }
+  }
+  return 0;
+}
+
+/*
+ * Find the point at the ends of a gap, passing over gap points 
+ */
+static int endsOfWholeGap(Icont *cont, int pt, int *newStart)
+{
+  int i, next = pt;
+  i = 0;
+  *newStart = pt;
+  while (i < cont->psize / 2) {
+    next = next ? next - 1 : cont->psize - 1;
+    if (!istorePointIsGap(cont->store, next))
+      break;
+    *newStart = next;
+    i++;
+  }
+
+  next = (pt + 1) % cont->psize;
+  i = 0;
+  while (i < cont->psize / 2 && istorePointIsGap(cont->store, next)) {
+    next = (next + 1) % cont->psize;
+    i++;
+  }
+  return next;
+}
+
+/*
+ * Duplicate the contour store if it has not been done already, and keep track
+ *  of old store and flag of whether this was done 
+ */
+static int dupStoreIfNeeded(Icont *cont, Ilist **oldStore, int *madeNew)
+{
+  if (*madeNew)
+    return 0;
+  *oldStore = cont->store;
+  *madeNew = 1;
+  cont->store = ilistDup(cont->store);
+  return (*oldStore && !cont->store ? 1 : 0);
+}
+
+/*
+ * Clean up all arrays from the contour cost routine 
+ */
+static void cleanupICCarrays(Imesh *mesh, float *up, float *down, double *cost,
+                             char *path, char *path2, Icont *bc, int newBstore,
+                             Ilist *bcStore, Icont *tc, int newTstore,
+                             Ilist *tcStore, int numCon, Connector *connects)
+{
+  if (numCon)
+    free(connects);
+  free(path);
+  free(path2);
+  free(cost);
+  free(up);
+  free(down);
+  if (newBstore) {
+    ilistDelete(bc->store);
+    bc->store = bcStore;
+  }
+  if (newTstore) {
+    ilistDelete(tc->store);
+    tc->store = tcStore;
+  }
+}
+
 /*
  * Build the matrices of areas for up and down triangles
  */
 static void build_area_matrices(Icont *bc, int bdir,
                                 Icont *tc, int tdir, Ipoint *scale,
-                                float *up, float *down)
+                                float *up, float *down, int openObj)
 {
   int k, l, i, j, ni, nj, lbase, bsize, tsize, tdim, bdim;
   Ipoint *bpt, *tpt;
@@ -646,7 +972,7 @@ static void build_area_matrices(Icont *bc, int bdir,
   tpt = tc->pts;
   bdim = bsize;
   tdim = tsize;
-  if ((bc->flags & ICONT_OPEN) && (tc->flags & ICONT_OPEN)) {
+  if (openObj) {
     bdim--;
     tdim--;
   }
@@ -691,13 +1017,13 @@ static void build_area_matrices(Icont *bc, int bdir,
  * Compute the minimum area path to every possible connection, thus allowing
  * one to follow a minimum area path from ending to starting connection
  */
-static void cost_from_area_matrices(float *up, float *down, float *cost,
+static void cost_from_area_matrices(float *up, float *down, double *cost,
                                     char *path, int bdim, int tdim, int bsize,
                                     int sb, int st, int bmax,
                                     int tmax, float curmin)
 {
   int i, j, k, l, jl, il, ind, lbase;
-  float rowmin, costup, costdown;
+  double rowmin, costup, costdown;
 
   cost[0] = 0;
   j = st;
@@ -775,7 +1101,7 @@ static void cost_from_area_matrices(float *up, float *down, float *cost,
 static Connector *makeConnectors(Icont *bc, Icont *tc, int *numCon, 
                                  int closedObj, int dirProduct)
 {
-  int maxCon, maxTop, i, j, used, index, k, bothOpen, tsize, start, last, mid;
+  int maxCon, maxTop, i, j, used, index, k, openObj, tsize, start, last, mid;
   int nj, connum1, connum2, openDir = 0;
   Istore *stp, *stp2;
   Connector *conn, *connp;
@@ -789,7 +1115,7 @@ static Connector *makeConnectors(Icont *bc, Icont *tc, int *numCon,
   if (!conn)
     return NULL;
 
-  bothOpen = ((bc->flags & ICONT_OPEN) && (tc->flags & ICONT_OPEN)) ? 1 : 0; 
+  openObj = closedObj ? 0 : 1; 
   tsize = tc->psize;
 
   for (i = 0; i < ilistSize(bc->store); i++) {
@@ -824,13 +1150,8 @@ static Connector *makeConnectors(Icont *bc, Icont *tc, int *numCon,
         last = conn[*numCon - 1].t1;
         mid = stp2->index.i;
 
-        if (closedObj && bothOpen) {
-          
-          /* For open contours of closed object, direction is set, any one 
-             point is OK but the next point must be in the right direction */
-          if (dirProduct * (mid - start) < 0)
-            continue;
-        } else if (closedObj) {
+        /* No longer need to consider open contours of closed objects */
+        if (closedObj) {
 
           /* For closed contours, direction is set, any two points are OK but
              the next point must be between the last and the end.  This is 
@@ -880,7 +1201,7 @@ static Connector *makeConnectors(Icont *bc, Icont *tc, int *numCon,
           
           /* If connector is at zero and this is an end of cont, back off
              the starting index to the end of the cont */
-          if (stp->index.i == bc->psize - 1 && connp->b1 == 0 && !bothOpen) {
+          if (stp->index.i == bc->psize - 1 && connp->b1 == 0 && closedObj) {
             connp->b1 = bc->psize - 1;
             used = 1;
           }
@@ -897,7 +1218,7 @@ static Connector *makeConnectors(Icont *bc, Icont *tc, int *numCon,
             connp->t2++;
             used = 1;
           }
-          if (stp->index.i == tc->psize - 1 && connp->t1 == 0 && !bothOpen) {
+          if (stp->index.i == tc->psize - 1 && connp->t1 == 0 && closedObj) {
             connp->t1 = tc->psize - 1;
             used = 1;
           }
@@ -928,7 +1249,7 @@ static Connector *makeConnectors(Icont *bc, Icont *tc, int *numCon,
        not another connector with this point */
     index = (connp->b1 + 1) % bc->psize;
     if (connp->b1 == connp->b2 && istorePointIsGap(bc->store, connp->b1) &&
-        !(connp->b1 == bc->psize - 1 && bothOpen)) {
+        !(connp->b1 == bc->psize - 1 && openObj)) {
       used = 0;
       for (i = 0; i < *numCon; i++) {
         if ((i != j) && (conn[i].b1 == index || conn[i].b2 == index))
@@ -943,7 +1264,7 @@ static Connector *makeConnectors(Icont *bc, Icont *tc, int *numCon,
     /* Look backward on bottom */
     index = (bc->psize + connp->b1 - 1) % bc->psize;
     if (connp->b1 == connp->b2 && istorePointIsGap(bc->store, index) && 
-        !(index == bc->psize - 1 && bothOpen)) {
+        !(index == bc->psize - 1 && openObj)) {
       used = 0;
       for (i = 0; i < *numCon; i++) {
         if ((i != j) && (conn[i].b1 == index || conn[i].b2 == index))
@@ -958,7 +1279,7 @@ static Connector *makeConnectors(Icont *bc, Icont *tc, int *numCon,
     /* Look forward on top */
     index = (connp->t1 + 1) % tc->psize;
     if (connp->t1 == connp->t2 && istorePointIsGap(tc->store, connp->t1) &&
-        !(connp->t1 == tc->psize - 1 && bothOpen)) {
+        !(connp->t1 == tc->psize - 1 && openObj)) {
       used = 0;
       for (i = 0; i < *numCon; i++) {
         if ((i != j) && (conn[i].t1 == index || conn[i].t2 == index))
@@ -973,7 +1294,7 @@ static Connector *makeConnectors(Icont *bc, Icont *tc, int *numCon,
     /* Look backward on top */
     index = (tc->psize + connp->t1 - 1) % tc->psize;
     if (connp->t1 == connp->t2 && istorePointIsGap(tc->store, index) && 
-        !(index == tc->psize - 1 && bothOpen)) {
+        !(index == tc->psize - 1 && openObj)) {
       used = 0;
       for (i = 0; i < *numCon; i++) {
         if ((i != j) && (conn[i].t1 == index || conn[i].t2 == index))
@@ -990,7 +1311,7 @@ static Connector *makeConnectors(Icont *bc, Icont *tc, int *numCon,
   openDir = closedObj ? dirProduct : openDir;
   for (j = 0; j < *numCon; j++) {
     nj = (j + 1) % *numCon;
-    if (!j && (bothOpen || !closedObj)) {
+    if (!j && openObj) {
       
       /* Test for skip at start of open contours */
       /* First test that top is at known or possible end and blocker is
@@ -1023,7 +1344,7 @@ static Connector *makeConnectors(Icont *bc, Icont *tc, int *numCon,
       } 
     }
 
-    if (j < *numCon - 1 || (closedObj && !bothOpen)) {
+    if (j < *numCon - 1 || closedObj) {
 
       /* Test for skip between two successive contours */
       /* First look for pair of blockers on bottom */
@@ -1090,7 +1411,7 @@ static Connector *makeConnectors(Icont *bc, Icont *tc, int *numCon,
 
   }  
   /*for (i = 0; i < *numCon; i++)
-    printf("%d %d %d %d %d %d %d %d %d %d\n", conn[i].connect, conn[i].b1, 
+    printf("%d %d %d %d %d %d %d %d %d %d\n", conn[i].connect, conn[i].b1,
     conn[i].b2, conn[i].t1, conn[i].t2, conn[i].gap, 
     conn[i].skipFromStart,
     conn[i].skipToNext, conn[i].skipToEnd, conn[i].skipIndex);
@@ -1156,7 +1477,7 @@ static void invertConnectors(Connector *connects, int numCon, int direction[2])
     connects[i].b1, connects[i].b2, connects[i].t1, connects[i].t2,
     connects[i].gap, connects[i].skipFromStart,
     connects[i].skipToNext, connects[i].skipToEnd, connects[i].skipIndex);
-    fflush(stdout);  */
+    fflush(stdout); */
 }
 
 /* Tests for whether a triangle is entirely outside the limit */
@@ -1465,6 +1786,9 @@ Imesh *joinTubeCont(Icont *c1, Icont *c2, Ipoint *norm,
 
 /*
 $Log$
+Revision 1.7  2009/05/30 05:06:33  mast
+Test if any before inverting connnectors for open contours
+
 Revision 1.6  2009/03/10 02:52:54  mast
 Analyze for blocking connectors to skip regions of mesh
 
