@@ -4116,6 +4116,7 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
   int checkSymbol = 0;
   int handleFlags = HANDLE_LINE_COLOR | HANDLE_2DWIDTH;
   bool lastVisible, thisVisible, selected, drawAllZ, drawPntOffSec;
+  bool stippleGaps;
   bool currentCont = (co == vi->imod->cindex.contour) &&
     (ob == vi->imod->cindex.object );
 
@@ -4159,7 +4160,7 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
   if (contProps.gap)
     return;
 
-  utilEnableStipple(vi, cont);
+  stippleGaps = !utilEnableStipple(vi, cont) && ifgStippleGaps();
 
   /* Open or closed contour */
   // Skip if not wild and not on section
@@ -4170,6 +4171,13 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
         nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
                                          &ptProps, &stateFlags, &changeFlags, 
                                          handleFlags, selected, scaleSizes);
+
+      if (stippleGaps)
+        glLineStipple(1, 0x0707);
+      if (ptProps.gap && stippleGaps) {
+        b3dStippleNextLine(true);
+        ptProps.gap = 0;
+      }
 
       // For wild contour, test every point and connect only pairs on section
       lastX = zapXpos(zap, cont->pts[0].x);
@@ -4191,7 +4199,10 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
                                            &ptProps, &stateFlags,
                                            &changeFlags, handleFlags, 
                                            selected, scaleSizes);
-
+        if (ptProps.gap && stippleGaps) {
+          b3dStippleNextLine(true);
+          ptProps.gap = 0;
+        }
       }
 
       // IF closed contour in closed object and not current, draw closure as
@@ -4202,6 +4213,9 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
         b3dDrawLine(lastX, lastY, zapXpos(zap, cont->pts->x),
                     zapYpos(zap, cont->pts->y));
 
+      if (stippleGaps)
+        b3dStippleNextLine(false);
+        
     } else {
 
       // For non-wild contour with no changes, draw all points without testing
@@ -4317,7 +4331,7 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
         if (pt >= 0 && pt < cont->psize &&
             zapPointVisable(zap, &cont->pts[pt]))
           b3dDrawSquare(zapXpos(zap, cont->pts[pt].x),
-                        zapYpos(zap, cont->pts[pt].y), stp->value.i + 3);
+                        zapYpos(zap, cont->pts[pt].y), stp->value.i + 4);
       }
     }
     imodSetObjectColor(ob);
@@ -4429,7 +4443,7 @@ static void zapDrawGhost(ZapStruct *zap)
   Imod *mod = zap->vi->imod;
   DrawProps contProps, ptProps;
   int nextz, prevz, iz;
-  bool drawprev, drawnext;
+  bool drawprev, drawnext, stippleGaps = ifgStippleGaps();
   int pt, npt, lastX, lastY, thisX, thisY;
   int nextChange, stateFlags, changeFlags;
   int handleFlags;
@@ -4499,6 +4513,8 @@ static void zapDrawGhost(ZapStruct *zap)
           } else {
 
             // If there are changes in contour, then draw only needed lines
+            if (stippleGaps)
+              glLineStipple(1, 0x0707);
             lastX = zapXpos(zap, cont->pts[0].x);
             lastY = zapYpos(zap, cont->pts[0].y);
             for (pt = 0; pt < cont->psize; pt++) {
@@ -4511,6 +4527,10 @@ static void zapDrawGhost(ZapStruct *zap)
                 if (changeFlags & CHANGED_COLOR)
                   zapSetGhostColor(zap, ptProps.red, ptProps.green, 
                                    ptProps.blue);
+                if (ptProps.gap && stippleGaps) {
+                  b3dStippleNextLine(true);
+                  ptProps.gap = 0;
+                }
               }
 
               // Skip gap or last point if open
@@ -4524,6 +4544,8 @@ static void zapDrawGhost(ZapStruct *zap)
               lastX = thisX;
               lastY = thisY;
             }
+            if (stippleGaps)
+              b3dStippleNextLine(false);
           }
         }
       }
@@ -4715,6 +4737,9 @@ static void setDrawCurrentOnly(ZapStruct *zap, int value)
 /*
 
 $Log$
+Revision 4.157  2010/12/18 05:44:30  mast
+Use new common functions for montage snapshots
+
 Revision 4.156  2010/12/15 06:14:41  mast
 Changes for setting resolution in image snapshots
 
