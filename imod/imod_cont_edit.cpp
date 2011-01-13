@@ -686,8 +686,15 @@ void imodContEditJoin(ImodView *vw)
       joinError(indArray, "Point number is no longer valid.");
       return;
     }
-    if (cont1->label)
-      iflabel = 1;
+    
+    // Check for meaningful labels
+    if (cont1->label) {
+      if (strlen(cont1->label->name) > 0)
+        iflabel = 1;
+      for (ind1 = 0; ind1 < cont1->label->nl; ind1++)
+        if (cont1->label->label[ind1].index >= 0)
+          iflabel = 1;
+    }
   }
 
   // Confirm label deletion if there are any
@@ -1949,6 +1956,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.39  2010/04/01 02:41:48  mast
+Called function to test for closing keys, or warning cleanup
+
 Revision 4.38  2009/11/11 19:28:20  mast
 Added break at current point and external call for hot key
 
