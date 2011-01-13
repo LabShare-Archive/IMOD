@@ -408,13 +408,13 @@ static int mesh_open_tube_obj(Iobj *obj, Ipoint *scale, unsigned int flags,
 
       /* Get the contours for dome caps if at start or end */
       if (!pt && (flags & IMESH_MK_CAP_DOME)) {
-        domeCont1 = makeDomeConts(&clst[pt], &cont->pts[pt], &nrot, scale, tubeDiameter,
-                                  -1., &numDome1, &domeCap1);
+        domeCont1 = makeDomeConts(&clst[pt], &cont->pts[pt], &nrot, scale, 
+                                  tubeDiameter, -1., &numDome1, &domeCap1);
         domeRot1 = nrot;
       }
       if (pt == cont->psize - 1 && (flags & IMESH_MK_CAP_DOME)) {
-        domeCont2 = makeDomeConts(&clst[pt], &cont->pts[pt], &nrot, scale, tubeDiameter,
-                                  1., &numDome2, &domeCap2);
+        domeCont2 = makeDomeConts(&clst[pt], &cont->pts[pt], &nrot, scale, 
+                                  tubeDiameter, 1., &numDome2, &domeCap2);
         domeRot2 = nrot;
       }
     }
@@ -435,19 +435,20 @@ static int mesh_open_tube_obj(Iobj *obj, Ipoint *scale, unsigned int flags,
     if ((flags & IMESH_MK_CAP_DOME) && numDome1) {
 
       /* At start, cap from point up to first regular contour for dome */
-      nmesh = makeCapMesh(&domeCont1[numDome1 - 1], &domeCap1, 1, &ptProps, stateFlags,
-                          stateTest);
+      nmesh = makeCapMesh(&domeCont1[numDome1 - 1], &domeCap1, 1, &ptProps, 
+                          stateFlags, stateTest);
       addMeshToObject(obj, cont, nmesh, flags);
       for (pt = numDome1 - 1; pt >= 0; pt--) {
         nextcont = pt ? &domeCont1[pt - 1] : &clst[0];
-        nmesh = joinTubeCont(&domeCont1[pt], nextcont, &domeRot1, &ptProps, stateFlags, 
-                     &ptProps, stateFlags);
+        nmesh = joinTubeCont(&domeCont1[pt], nextcont, &domeRot1, &ptProps,
+                             stateFlags, &ptProps, stateFlags);
         addMeshToObject(obj, cont, nmesh, flags);
       }
-      free(domeCont1);
+      imodContoursDelete(domeCont1, numDome1);
 
     } else if (flags & IMESH_MK_CAP_TUBE) {
-      nmesh = makeCapMesh(&clst[0], &cont->pts[0], 1, &ptProps, stateFlags, stateTest);
+      nmesh = makeCapMesh(&clst[0], &cont->pts[0], 1, &ptProps, stateFlags, 
+                          stateTest);
       addMeshToObject(obj, cont, nmesh, flags);
     }
 
@@ -476,14 +477,14 @@ static int mesh_open_tube_obj(Iobj *obj, Ipoint *scale, unsigned int flags,
       /* At end, cap from last regular contour out to point for dome */
       for (pt = 0; pt < numDome2; pt++) {
         nextcont = pt ? &domeCont2[pt - 1] : &clst[cont->psize - 1];
-        nmesh = joinTubeCont(nextcont, &domeCont2[pt], &domeRot2, &ptProps, stateFlags, 
-                             &ptProps, stateFlags);
+        nmesh = joinTubeCont(nextcont, &domeCont2[pt], &domeRot2, &ptProps,
+                             stateFlags, &ptProps, stateFlags);
         addMeshToObject(obj, cont, nmesh, flags);
       }
-      nmesh = makeCapMesh(&domeCont2[numDome2 - 1], &domeCap2, 0, &ptProps, stateFlags,
-                          stateTest);
+      nmesh = makeCapMesh(&domeCont2[numDome2 - 1], &domeCap2, 0, &ptProps, 
+                          stateFlags, stateTest);
       addMeshToObject(obj, cont, nmesh, flags);
-      free(domeCont2);
+      imodContoursDelete(domeCont2, numDome2);
 
     } else if (flags & IMESH_MK_CAP_TUBE) {
       nmesh = makeCapMesh(&clst[cont->psize - 1], &cont->pts[cont->psize - 1], 
@@ -504,8 +505,9 @@ static int mesh_open_tube_obj(Iobj *obj, Ipoint *scale, unsigned int flags,
 /* 
  * Make contours for a hemispherical cap and return the terminal point also
  */
-static Icont *makeDomeConts(Icont *lastCont, Ipoint *lastPt, Ipoint *nrot, Ipoint *scale, 
-                            float diameter, float direction, int *numCont, Ipoint *capPt)
+static Icont *makeDomeConts(Icont *lastCont, Ipoint *lastPt, Ipoint *nrot, 
+                            Ipoint *scale, float diameter, float direction,
+                            int *numCont, Ipoint *capPt)
 {
   int i, slices;
   Ipoint sclPt;
@@ -627,8 +629,9 @@ int imeshSkinObject(Iobj *obj, Ipoint *scale, double overlap, int cap,
   if (flags & IMESH_MK_NO_WARN)
     numwarn = -1;
 
-  if (imodContourMakeZTables(obj, incz, CONNECT_BOTH | ICONT_CONNECT_INVERT, &contz,
-                             &zlist, &numatz, &contatz, &zmin, &zmax, &zlsize, &nummax))
+  if (imodContourMakeZTables(obj, incz, CONNECT_BOTH | ICONT_CONNECT_INVERT, 
+                             &contz, &zlist, &numatz, &contatz, &zmin, &zmax,
+                             &zlsize, &nummax))
     return -1;
 
 
@@ -643,6 +646,7 @@ int imeshSkinObject(Iobj *obj, Ipoint *scale, double overlap, int cap,
     if (obj->cont[co].psize)
       imodContourGetBBox(&(obj->cont[co]), &(pmin[co]), &(pmax[co]));
 
+  /* OPEN OBJECT: GO OFF AND DO IT */
   if (!iobjClose(obj->flags))
     return(mesh_open_obj(obj, scale, incz, flags, skipPasses, zmin, zmax,
                          contz, zlist, zlsize, numatz, contatz, pmin, pmax));
@@ -1426,6 +1430,11 @@ int imeshSkinObject(Iobj *obj, Ipoint *scale, double overlap, int cap,
         if (imodContourArea(cont) / imodContourLength(cont, 1)
             < 0.01)
           continue;
+
+        /* Don't cap an open contour with phantom extensions */
+        if ((cont->flags & ICONT_OPEN) && istorePointIsGap(cont->store, 0) &&
+            istorePointIsGap(cont->store, cont->psize - 2))
+          continue;
                 
         if (nestind[co] >= 0)
           if (nests[nestind[co]].level % 2 == 0)
@@ -1963,6 +1972,8 @@ static float evaluate_break(Icont *cout, int *list, int *used,
     ratio = dist / pow((double)inarea, areapow);
   if ((!areaonly && ratio > curmin) || (areaonly && inarea < curmin)) {
     *innerarea = inarea;
+    imodContourDelete(c1);
+    imodContourDelete(c2);
     return (ratio);
   }
 
@@ -2877,8 +2888,12 @@ static int break_contour_inout(Icont *cin, int st1, int st2,  int fill,
 
 
 /* 
+
 mkmesh.c got the big log from before the split
 $Log$
+Revision 1.9  2010/04/01 04:12:27  mast
+Return empty mesh when object has no contours
+
 Revision 1.8  2008/11/15 21:55:27  mast
 Implemented dome caps, fixed bug in getting next Z
 
