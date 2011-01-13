@@ -42,6 +42,7 @@
 #include "imod_input.h"
 #include "control.h"
 #include "sslice.h"
+#include "finegrain.h"
 #include "imod_moviecon.h"
 #include "imod_model_edit.h"
 #include "imod_object_edit.h"
@@ -795,6 +796,19 @@ void inputTruncateContour(ImodView *vw)
   imod_setxyzmouse();
 }
 
+void inputToggleGap(ImodView *vw)
+{
+  Icont *cont = imodContourGet(vw->imod);
+  int wasGap;
+  if (!cont || vw->imod->cindex.point < 0)
+    return;
+  wasGap = istorePointIsGap(cont->store, vw->imod->cindex.point);
+  if (!ifgToggleGap(vw, cont, vw->imod->cindex.point, wasGap == 0))
+    wprint("%s gap at current point\n", wasGap ? "Removed" : "Added");
+  imodDraw(vw, IMOD_DRAW_MOD);
+  fineGrainUpdate();
+}
+
 void inputFindValue(ImodView *vw)
 {
   float pixval;
@@ -1176,6 +1190,8 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
       /* DMN 2/25/01: do not open with fake image */
       if (!vw->rawImageStore && !vw->fakeImage)
         xgraphOpen(vw);
+    } else if (ctrl) {
+      inputToggleGap(vw);
     } else  
       inputGhostmode(vw);
     break;
@@ -1497,6 +1513,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.55  2010/04/01 02:41:48  mast
+Called function to test for closing keys, or warning cleanup
+
 Revision 4.54  2010/03/30 16:11:24  mast
 Added new hot keys for []{} for Europeans
 

@@ -45,6 +45,7 @@ void inputPrevPoint(ImodView *vw);
 void inputMoveObject(ImodView *vw);
 void inputDeleteContour(ImodView *vw);
 void inputTruncateContour(ImodView *vw);
+void inputToggleGap(ImodView *vw);
 void inputFindValue(ImodView *vw);
 void inputPointMove(ImodView *vw, int x, int y, int z);
 void inputTranslate(ImodView *vw, int x, int y);
@@ -73,6 +74,9 @@ int mouse_in_box(int llx, int lly, int urx, int  ury, int mousex, int mousey);
 #endif /* imod_input.h */
 /*
   $Log$
+  Revision 3.16  2010/04/01 02:41:48  mast
+  Called function to test for closing keys, or warning cleanup
+
   Revision 3.15  2009/02/26 20:03:32  mast
   Add paging by big steps
 
