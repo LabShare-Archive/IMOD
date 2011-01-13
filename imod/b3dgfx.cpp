@@ -48,6 +48,7 @@ typedef struct cubic_factors
 static int          CurWidth;
 static int          CurHeight;
 static float        CurXZoom;
+static bool         StippleNextLine = false;
 
 /* Set a current window size for the drawing routines */
 void b3dSetCurSize(int width, int height)
@@ -57,6 +58,11 @@ void b3dSetCurSize(int width, int height)
 }
 
 float b3dGetCurXZoom() { return CurXZoom;}
+
+void b3dStippleNextLine(bool value)
+{
+  StippleNextLine = value;
+}
 
 /*
  * Set the viewport to the entire window of the given size, with 1:1 
@@ -257,11 +263,15 @@ void b3dDrawFilledCircle(int x, int y, int radius)
 
 void b3dDrawLine(int x1, int y1, int x2, int y2)
 {
+  if (StippleNextLine)
+    glEnable(GL_LINE_STIPPLE);
   glBegin(GL_LINES);
   glVertex2i(x1, y1);
   glVertex2i(x2, y2);
   glEnd();
-  return;
+  if (StippleNextLine)
+    glDisable(GL_LINE_STIPPLE);
+  StippleNextLine = false;
 }
 
 void b3dDrawSquare(int x, int y, int size)
@@ -1812,7 +1822,10 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
   unsigned char bpix,rpix,gpix;
   unsigned short tenum;
   unsigned short color[3];
-  int depth;
+
+  /* App may not be defined if rgbmode is coming from standalone Imodv,
+     so set up a depth variable that works in later tests regardless */
+  int depth = (!data && !rgbmode) ? App->depth : 8;
   bool convertRGB = false;
 
   int mapsize;
@@ -1881,12 +1894,8 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
     glReadPixels(rpx, rpy, rpWidth, rpHeight,
                  GL_RGBA, GL_UNSIGNED_BYTE, pixels);
     glFlush();
-    /* App may not be defined if rgbmode is coming from standalone Imodv,
-       so set up a depth variable that works in later tests regardless */
-    depth = 8;
 
   } else if (!data) {
-    depth = App->depth;
     mapsize = 1 << depth;
     fcmapr = (unsigned int *)malloc((mapsize+1) * sizeof(unsigned int));
     if (!fcmapr) return 1;
@@ -2125,6 +2134,9 @@ int b3dSnapshot(QString fname)
 
 /*
 $Log$
+Revision 4.46  2010/12/18 05:32:17  mast
+Made TIFF snapshots work up to 4GB limit
+
 Revision 4.45  2010/12/15 06:14:41  mast
 Changes for setting resolution in image snapshots
 
