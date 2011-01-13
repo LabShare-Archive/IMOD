@@ -53,10 +53,16 @@ and the relevant button will select contours crossed by the mouse.  All
 properties except connection numbers
 can be changed in tandem for the selected contours.
 <P>
+The <B>Draw dashed lines at gaps</B> checkbox lets you see where you have
+inserted gaps in contours.  This is especially useful for seeing line segments
+on the ends of open-type contours in closed contour objects.  Such segments
+are added so that the whole contour will not cross itself or any other
+contours that it is meshed with.
+<P>
 The <B>Draw mesh connections</B> checkbox allows you to visualize the mesh
 connections that have been defined for individual points (see below).  At each
 point with a mesh connection, a square will be drawn in the Zap window; the
-size of the square is the assigned mesh connection number plus 3.
+size of the square is the assigned mesh connection number plus 4.
 <P>
 The <B>Go to Next Change</B> button can be used to step forward
 to the next item where a change occurs.  When point properties are being
@@ -128,20 +134,28 @@ model view.
 the current point, so that contours can have multiple openings.  These
 gaps are introduced into the mesh when the model is meshed with
 <A HREF = "../man/imodmesh.html">Imodmesh</A> or in the Edit-Objects dialog of
-the Model View window. When
+the Model View window. The hot key for toggling this property is Ctrl-G and it
+is available even when the dialog is closed.  When
 contour or surface properties are being shown, this button mutates to
 <B>Turn off drawing</B>, which lets you turn off an individual contour or
 surface.
 <LI><B>Mesh connection #</B> also has two different meanings.  When point
 properties are being shown, it can be used to force particular points
-in adjacent contours to be connected in a mesh, such as the points at
-the start of a gap, and to prevent some connections.  
+in adjacent contours to be connected in a mesh
+and to prevent some connections.  The meshing routines attempt to match up
+gaps that are close to each other in two contours being meshed together, and
+then connect their starting points together and their ending points together.
+If this process fails, you may have to specify which points to connect with
+connection numbers.  
 The points to be connected need to be assigned the
-same unique connection number.  It may be necessary to connect three
+same unique connection number (unique within the pair of contours being
+connected).  It may be necessary to connect three
 points rather than two to guarantee that a gap connects correctly
 between contours.  If there are more than three points with the same
 connection number, points after the third one will be silently ignored
-when meshing.  There are two cases where connections can be prevented:
+when meshing.  
+<br>
+There are two cases where connections can be prevented:
 <OL>
 <LI>
 At the ends of two contours in an open contour object, or two open
