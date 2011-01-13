@@ -282,6 +282,10 @@ separate value is maintained for regular and low resolution meshing.
 more than this amount in Z, then each surface will be analyzed for the
 orientation of its contours and the tilted contours will be meshed (-F
 option).  A value of 0 disables the analysis.
+<LI><B>Z:</B> Starting and ending Z of range over which to mesh, numbered from
+1 (-z option, except that is numbered from 0).  Enter a single number to mesh
+a single pair of planes, as long as the Z increment is 1; e.g., "23" will mesh
+sections 23 and 24.
 </UL>
 Pressing <B>Mesh One</b> will start the meshing on the current object on a
 separate thread, so you
@@ -293,7 +297,7 @@ resolutions.
 <P>
 Pressing <B>Mesh All</B> will mesh all closed and open contour objects in the
 model.  The meshing parameters used for each object will be the ones defined
-for that object, of it has been meshed before, or it will be the default
+for that object, if it has been meshed before, or it will be the default
 parameters that you would see in this panel if you switched to that object.
 The parameters visible for the current object are not necessarily the defaults
 for the other objects.
