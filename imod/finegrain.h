@@ -34,12 +34,15 @@ void ifgClearChange(int type);
 void ifgGapChanged(bool state);
 void ifgConnectChanged(int value);
 void ifgShowConnectChanged(bool state);
+void ifgStippleGapsChanged(bool state);
 void ifgChangeAllToggled(bool state);
 int ifgGetChangeAll();
 void ifgDump();
 void ifgHelp();
 void ifgClosing();
 int ifgShowConnections();
+int ifgStippleGaps();
+int ifgToggleGap(ImodView *vw, Icont *cont, int ptIndex, bool state);
 
 void fineGrainOpen(ImodView *vw);
 void fineGrainUpdate();
@@ -70,6 +73,9 @@ void ifgResetValueSetup();
 /*
 
 $Log$
+Revision 1.7  2009/03/10 04:37:57  mast
+Functions for new options
+
 Revision 1.6  2008/12/08 17:26:29  mast
 Changes for scaling line thicknesses
 
