@@ -7,15 +7,10 @@
  *  Copyright (C) 2006 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ * $Id$
+ * Log at end
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end
-*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,6 +23,7 @@ static int floatcmp(const void *v1, const void *v2);
 static void cleanPrepArrays(Ipoint *bbmin, Ipoint *bbmax, float *volume, 
                             float *volsort, Imat *mat, Imat *inv,
                             Iobj *useObj);
+static int extendOpenEnds(Iobj *obj);
 
 
 /*!
@@ -503,6 +499,10 @@ int imeshPrepContours(Iobj *obj, int minz, int maxz, int incz, float tol,
       cont->pts[i].z = zval;
   }
 
+  /* Add phantom ends to open contours if possible */
+  if (iobjClose(obj->flags) && extendOpenEnds(obj))
+    return 1;
+
   if (resecobj(obj, minz, maxz, incz))
     return 1;
   if (ReduceObj(obj, tol))
@@ -568,7 +568,7 @@ static int resecobj(Iobj *obj, int minz, int maxz, int incz)
  */
 static int ReduceObj(Iobj *obj, float dist)
 {
-  int co;
+  int co, numTest, loopBack, pt;
   Icont *cont;
   Icont *tc;
   float tol;
@@ -581,7 +581,19 @@ static int ReduceObj(Iobj *obj, float dist)
   for (co = 0; co < obj->contsize; co++){
     cont = &(obj->cont[co]);
     tol = dist;
-    if (cont->psize > 4)
+
+    /* Check for a loopback contour, end points matching start points */
+    numTest = B3DMIN(4, cont->psize / 2 - 1);
+    loopBack = 1;
+    for (pt = 1; pt <= numTest; pt++) {
+      if (fabs(cont->pts[pt].x - cont->pts[cont->psize - pt].x) > 0.001 ||
+          fabs(cont->pts[pt].y - cont->pts[cont->psize - pt].y) > 0.001) {
+        loopBack = 0;
+        break;
+      }
+    }
+
+    if (cont->psize > 4 && !loopBack)
       while(tol > 0.01 * dist){
         tc = imodContourDup(cont);
         if (!tc) {
@@ -603,6 +615,118 @@ static int ReduceObj(Iobj *obj, float dist)
   }
   return 0;
 }
+
+static int extendOpenEnds(Iobj *obj)
+{
+  int co, nco, pt, ptStart, ptEnd, phan, dz, dzmin, retval = 0, numPhant = 0;
+  int startGap, endGap;
+  int *phantConts;
+  int *contz;
+  Icont *cont, *nearco;
+  float gapLengthRatio = 0.33f;
+  Ipoint pnt;
+  Istore store;
+
+  phantConts = (int *)malloc(obj->contsize * sizeof(int));
+  contz = (int *)malloc(obj->contsize * sizeof(int));
+  if (!phantConts || !contz)
+    return 1;
+
+  /* Make a list of contours with phantom ends: >= 2 gaps on either end */
+  for (co = 0; co < obj->contsize; co++) {
+    cont = &obj->cont[co];
+    contz[co] = imodContourZValue(cont);
+    if ((cont->flags & ICONT_OPEN) && cont->psize > 1) {
+      startGap = istorePointIsGap(cont->store, 0);
+      endGap = istorePointIsGap(cont->store, cont->psize - 2);
+      if ((startGap && endGap) || 
+          (startGap && istorePointIsGap(cont->store, 1)) ||
+          (endGap && istorePointIsGap(cont->store, cont->psize - 3)))
+        phantConts[numPhant++] = co;
+    }
+  }
+  if (!numPhant) {
+    free(phantConts);
+    free(contz);
+    return 0;
+  }
+
+  for (co = 0; co < obj->contsize; co++) {
+    cont = &obj->cont[co];
+
+    /* Extend a contour if it is open and neither end has phantom points and
+       the distance from end to start is greater than a fraction of the total 
+       contour length */
+    if ((cont->flags & ICONT_OPEN) && cont->psize > 1 && 
+        !istorePointIsGap(cont->store, 0) &&
+        !istorePointIsGap(cont->store, cont->psize - 2) &&
+        imodPointDistance(&cont->pts[0], &cont->pts[cont->psize - 1]) >
+        gapLengthRatio * imodContourLength(cont, 0)) {
+
+      nco = -1;
+      for (phan = 0; phan < numPhant; phan++) {
+        dz = contz[phantConts[phan]] - contz[co];
+        if (dz < 0)
+          dz = -dz;
+        if (nco < 0 || dz < dzmin) {
+          dzmin = dz;
+          nco = phantConts[phan];
+        }
+      }
+
+      nearco = &obj->cont[nco];
+      /*printf("Extending contour %d at z %d from cont %d at z %d\n", co, 
+        contz[co], nco, contz[nco]); */
+      
+      /* Find last gap point at start and first point after gap at end */
+      ptStart = -1;
+      while (istorePointIsGap(nearco->store, ptStart + 1) && 
+             ptStart < nearco->psize / 2)
+        ptStart++;
+      ptEnd = nearco->psize;
+      while (istorePointIsGap(nearco->store, ptEnd -2) &&
+             ptEnd > nearco->psize / 2)
+        ptEnd--;
+
+      /* Add points at start and mark as gaps */
+      store.flags = GEN_STORE_ONEPOINT;
+      store.type = GEN_STORE_GAP;
+      store.value.i = 0;
+      for (pt = 0; pt <= ptStart; pt++) {
+        pnt = nearco->pts[pt];
+        pnt.z = contz[co];
+        if (!imodPointAdd(cont, &pnt, pt)) {
+          retval = 1;
+          break;
+        }
+        store.index.i = pt;
+        if (istoreInsert(&cont->store, &store)) {
+          retval = 1;
+          break;
+        }
+      }
+
+      /* Add points at end and mark each preceding one as a gap */
+      for (pt = ptEnd; pt < nearco->psize; pt++) {
+        pnt = nearco->pts[pt];
+        pnt.z = contz[co];
+        if (!imodPointAppend(cont, &pnt)) {
+          retval = 1;
+          break;
+        }
+        store.index.i = cont->psize - 2;
+        if (istoreInsert(&cont->store, &store)) {
+          retval = 1;
+          break;
+        }
+      }
+    }
+  }
+  free(phantConts);
+  free(contz);
+  return retval;
+}
+
 
 /*
  * avoid underflow exceptions.  No idea if this is still needed.
@@ -709,6 +833,9 @@ Iobj *imeshDupMarkedConts(Iobj *obj, unsigned int flag)
 /* 
 mkmesh.c got the big log from before the split
 $Log$
+Revision 1.9  2010/04/01 04:11:59  mast
+Stop erroneous error when object has no contours
+
 Revision 1.8  2008/09/21 17:59:01  mast
 Rationalized value range for using sphere or symbold size for tube diameter
 
