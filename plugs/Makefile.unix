@@ -1,4 +1,3 @@
-# THIS FILE WAS COPIED BY SETUP FROM Makefile.unix - DO NOT EDIT
 # Makefile for making plugins.
 # An old version of beadfix is retained for testing the build, but there is no 
 # install for this.  To test the plugin, do an install manually from the 
@@ -18,6 +17,7 @@ install :
 	cd beadhelper     ;    $(MAKE) $@
 	cd drawingtools   ;    $(MAKE) $@
 	cd interpolator   ;    $(MAKE) $@
+	cd namewizard     ;    $(MAKE) $@
 
 clean : ALWAYS
 	cd beadfix        ;    $(MAKE) $@
