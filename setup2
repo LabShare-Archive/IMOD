@@ -903,7 +903,11 @@ echo "# end of configure"          >> $configure
 # Copy makefiles for actual use or for dummy use under Cygwin-gcc
 
 foreach i ($makefile_dirs)
-    echo "# THIS FILE WAS COPIED BY SETUP FROM Makefile.$makefile_ext - DO NOT EDIT" >! $i/Makefile
+    cat <<EOF  >! $i/Makefile
+# *****************************************************************
+# THIS FILE WAS COPIED BY SETUP FROM Makefile.$makefile_ext - DO NOT EDIT
+# *****************************************************************
+EOF
     cat $i/Makefile.$makefile_ext >> $i/Makefile
 end
 
@@ -1016,6 +1020,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.71  2011/01/03 21:45:16  mast
+#  Need to quote $ltiff in set
+#
 #  Revision 1.70  2010/10/19 22:17:18  mast
 #  Define both mac DYLD paths for setlibpath
 #
