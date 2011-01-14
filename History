@@ -1,5 +1,29 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/14/11: IMOD_4-2-12
+1/14/11: Added Name Wizard plugin from Andrew Noske for standardizing and 
+managing object names and colors.
+
+1/13/11: Meshing improvements: gaps are automatically matched up between
+adjacent contours and their starts and ends connected; open contours in closed
+objects are treated the same as having gaps in this and almost all other
+respects; if there are at least two points with gaps adjacent to an open
+contour opening, these "phantom extensions" will be added to other open
+contours, allowing proper meshing when, e.g., vesicles attach to an open wall.
+Improved choice of starting points for meshing a contour pair; prevented
+contour reduction from making cracks in cap from loopback contour; fixed two
+memory leaks.
+
+1/13/11: Added option to finegrain dialog to view gaps in contours with dashed
+lines; added hot key Ctrl G to toggle gap at current point.
+
+1/13/11: Added box to meshing panel of model view object edit to specify Z
+range for meshing and moved meshing progress label up.
+
+1/13/11: Made right mouse click in model view pick mesh lines of meshed
+objects instead of contour lines so that picking works properly when only
+a subset of Z is meshed.
+
 1/4/11: IMOD_4-2-11
 1/3/11: Switched back to static TIFF library on Mac, but still support JPEG.
 
