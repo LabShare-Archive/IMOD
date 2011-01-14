@@ -30,7 +30,8 @@ automatically inverted if necessary to maintain a consistent outside face.
 If you are facing the surface from the side that you want to be brightly lit,
 the lowest contour should
 progress (point number should increase) from left to right.  This rule will
-cover most situations, but if you are skipping sections in a way that requires
+cover most situations, but if you are skipping sections in an irregular
+fashion that requires
 multiple passes to form all connections, then you need to use a consistent
 direction for the lowest contour in each set of contours that are connected on
 the first pass.  If a 
@@ -66,11 +67,14 @@ branch involving an open contour, the open contour will be joined with one or
 more closed contours on the same section to form a merged open contour that
 preserves the open ends; but if such branching requires two open contours on
 the same section to be joined, the surface will not be meshed correctly.
+The way around this is to use gaps insteads of open contours (see "Gaps and
+Phantom Extensions" below).
 Second, if the
 line connecting the start and end of an open contour would intersect the rest
-of the contour, difficulties may arise if that contour has to be joined with
-another on the same section.  
-
+of the contour, difficulties will arise if that contour has to be joined with
+another on the same section.  The solution to this problem is to use invisible
+extensions to make the contour encompass the whole area with contours in the
+object (see below).
 
 .SS Caps
 A cap is used to close off a surface at a place where a contour is not
@@ -121,8 +125,8 @@ the contour will be divided into two) be close together.  Finally, a branch
 may emerge from the inside of an inside contour just as it may from a normal,
 outside contour.
 
-.SS Fine-grained display information
-Imodmesh will encoded some fine-grained display information into the mesh,
+.SS Fine-grained Display Information
+Imodmesh will encode some fine-grained display information into the mesh,
 specifically, color, transparency, 3D width changes, and stored values.
 In addition, 3D width, point size, or symbol size can be used to set the
 diameter of a tubular mesh around open contours.
@@ -148,7 +152,67 @@ overlap, give them different connection numbers.  If only one of a pair of
 contours has a connection number it will be ignored when deciding whether to
 join them.
 
-.SS Tilted contours
+.SS Gaps and Phantom Extensions
+A gap in a contour can also be defined to occur after an individual point,
+either with the Fine Grain dialog or with a hot key in 3dmod.
+A gap at the last point in a closed contour can be used interchangeably with
+defining the contour as open in most situations.  One place where the program
+makes a distinction is when there are other points with gaps adjacent to the
+ends of an open contour.  You can add such points in order to make an
+invisible extension of the contour to enclose other parts of the object that
+need to be meshed with the open component.  Such added points will be referred
+to as phantom extensions.  The typical case is when you are
+modeling a sheet (such as a fraction of a cell membrane) to which other
+components such as vesicles attach.  The most reliable way to get this case to
+mesh properly is to add two or three points to a contour so that it encloses
+the entire image on the side of the sheet containing the rest of the
+components in that object, then define gaps to make the added segments
+invisible.  
+
+In order for the program to recognize this situation, the contour
+must be defined as open, and you must have at least two phantom segments
+adjacent to the opening.  The segments can all be at the start, all at the
+end, or at both the start and the end.  
+
+You may need to add phantom extensions to only one or a few contours.  If any
+contours do have phantom extensions, then the extensions will be added to all
+open contours in the object that do NOT have any gaps adjacent to the opening,
+provided that the opening is sufficiently large relative to the length of the
+contour.  For such a contour, the program will find the nearest contour in Z
+that does have extensions and simply copy the extensions from that contour.
+Thus, you may have to draw new extensions at places where the endpoints very
+differently.  The automatic attachment of extensions could fail.  If the
+program fails to attach an extension to a contour (because it is very long
+and convoluted relative to the distance between its ends), then you need to
+add extensions to the contour.  If the extensions are added by mistake to an
+open contour that is not part of the sheet, then change the contour to closed
+and define a gap at its last point.
+
+The meshing code will try to match up corresponding gaps between sections and
+connect their endpoints.  Adjacent gaps are combined into one for the purpose
+of connecting endpoints.  Here also open contours are treated specially.
+Connections are created in three stages:
+.br
+1) If both contours are open and there is at least one gap adjacent to the
+opening, the program connects the two openings together.
+.br.
+2) The pair of remaining gaps with the least distance between their midpoints
+is found and connected provided that this distance is no bigger than the
+largest gap opening.  This process is repeated until all gaps have been
+considered.
+.br.
+3) If both contours are open and neither opening has been paired with another
+gap yet, the two openings are connected.
+.br
+In each of these cases, the connections are added only if none of the points
+at the ends of the two paired gaps have a connection number defined.  Thus,
+you can prevent an erroneous pairing and connection of two gaps by defining a
+connection number on one of the four endpoints.  If two gaps fail to be
+connected by this procedure and artifactual triangles are added in the gap,
+then you need to define connection numbers at one or both ends of the gap by
+hand.  See the Fine Grain dialog help for more details.
+
+.SS Tilted Contours
 The program's meshing routines assume that contours
 are flat in the X/Y plane and located at integer steps in Z.  However,
 it will first analyze the contours of an object to find out if they
@@ -164,7 +228,7 @@ the direction perpendicular to the plane of the contours.
 This spacing will be maintained when you model in the slicer window with the
 Lock button on and step between slices with the PageUp and PageDown keys. 
 
-.SS Stored parameters
+.SS Stored Parameters
 All of the parameters used to mesh an object are stored in the object.
 Most of these stored values are presented in the Remesh panel of the 3dmod
 Model View Object Edit window, where they can be modified and used to remesh
