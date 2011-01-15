@@ -2439,7 +2439,7 @@ int ivwGetFreeExtraObjectNumber(ImodView *vi)
 
       // Return object to default when reassigning it
       imodObjectDefault(&vi->extraObj[i]);
-      // imodPrintStderr("Allocating free existing object # %d\n", i);
+      //imodPrintStderr("Allocating free existing object # %d\n", i);
       return i;
     }
   }
@@ -2466,8 +2466,8 @@ int ivwFreeExtraObject(ImodView *vi, int objNum)
 {
   if (objNum < 1 || objNum >= vi->numExtraObj || !vi->extraObjInUse[objNum])
     return 1;
-  vi->extraObjInUse[objNum] = 0;
   ivwClearAnExtraObject(vi, objNum);
+  vi->extraObjInUse[objNum] = 0;
   //imodPrintStderr("Freed extra object # %d\n", objNum);
   return 0;
 }
@@ -2491,6 +2491,7 @@ void ivwClearAnExtraObject(ImodView *inImodView, int objNum)
   Iobj *obj = ivwGetAnExtraObject(inImodView, objNum);
   if (!obj)
     return;
+  //imodPrintStderr("Clearing extra object # %d\n", objNum);
   if (obj->contsize)
     imodContoursDelete(obj->cont, obj->contsize);
   obj->contsize = 0;
@@ -2861,6 +2862,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 /*
 
 $Log$
+Revision 4.85  2011/01/12 02:53:19  mast
+Added update function for plugins that change color/name etc
+
 Revision 4.84  2010/12/18 05:45:40  mast
 Added function for line-pointer based rectangle copy
 
