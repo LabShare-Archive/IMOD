@@ -324,7 +324,7 @@ csrc : ALWAYS
 	html/3dmodHelp html/joinImages html/adpStub html/makeadp \
 	html/ctfHelp html/midasHelp html/libdoc/Makefile html/libdoc/*.html \
 	dist scripts pysrc com manpages autodoc \
-	plugs/*/*.[chf] plugs/*/*.cpp plugs/*/*.html plugs/*/Makefile \
+	plugs/*/*.[chf] plugs/*/*.cpp plugs/*/*.html plugs/*/*.csv plugs/*/Makefile \
 	plugs/*/*.png plugs/Makefile.unix plugs/Makefile.dummy \
 	include/*.h include/*.inc | (cd $(ARCDIR)_src; tar xBf -)
 
@@ -366,6 +366,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.86  2010/12/13 05:51:05  mast
+#  Take out processchunks
+#
 #  Revision 3.85  2010/11/02 14:30:37  mast
 #  Silly misprint
 #
