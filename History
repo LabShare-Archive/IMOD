@@ -1,6 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 1/14/11: IMOD_4-2-12
+1/14/11: Fixed memory leak from bug in freeing extra objects in 3dmod.
+
 1/14/11: Added Name Wizard plugin from Andrew Noske for standardizing and 
 managing object names and colors.
 
