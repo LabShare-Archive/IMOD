@@ -30,6 +30,7 @@ class DLL_IM_EX MultiSlider : public QObject
 
   void setValue(int slider, int value);
   void setRange(int slider, int minVal, int maxVal);
+  void setMinMaxVal(int slider, int minVal, int maxVal, int value);
   QSlider *getSlider(int slider);
   void setEnabled(int slider, bool enabled);
   QBoxLayout *getLayout() {return mBigLayout;};
@@ -65,6 +66,9 @@ class DLL_IM_EX MultiSlider : public QObject
 /*  
 
 $Log$
+Revision 3.8  2009/01/15 16:31:02  mast
+Qt 4 port
+
 Revision 3.7  2008/06/25 21:21:57  mast
 Added method for show/hide
 

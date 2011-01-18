@@ -51,7 +51,6 @@ MultiSlider::MultiSlider(QWidget *parent, int numSliders, char *titles[],
   QBoxLayout *layOuter;
   QHBoxLayout *layInner;
   QString str;
-  QLabel *titleLabel;
   int i;
   // Get arrays for sliders, labels, and pressed flags
   mSliders = new QSlider* [numSliders];
@@ -183,6 +182,22 @@ void MultiSlider::setRange(int slider, int minVal, int maxVal)
 }
 
 /*!
+ * Sets the range of the given slider to [minVal], [maxVal] and the value to [value] with
+ * signals blocked, thus avoiding any signals from an existing value being outside of a 
+ * new range.
+ */
+void MultiSlider::setMinMaxVal(int slider, int minVal, int maxVal, int value)
+{
+  if (slider >=0 && slider < mNumSliders) {
+    mSliders[slider]->blockSignals(true);
+    mSliders[slider]->setRange(minVal, maxVal);
+    mSliders[slider]->setValue(value);
+    mSliders[slider]->blockSignals(false);
+    displayValue(slider, value);
+  }
+}
+
+/*!
  * Returns a pointer to the given slider, or NULL if the value is out of range.
  */
 QSlider *MultiSlider::getSlider(int slider)
@@ -272,6 +287,9 @@ void MultiSlider::sliderReleased(int which)
 }
 /*
 $Log$
+Revision 1.10  2009/01/26 04:39:47  mast
+Set page step of slicer to 1 so mouse click gives one step
+
 Revision 1.9  2009/01/15 16:30:26  mast
 Qt 4 port
 
