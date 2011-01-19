@@ -481,7 +481,7 @@ void ImodvStereo::update()
     mImageBox->setEnabled(Imodv->texMap != 0);
     mViewsAreaSpin->setEnabled(Imodv->texMap != 0);
     mDeltaZspin->setEnabled(Imodv->texMap != 0);
-    mSlider->setEnabled(0, Imodv->texMap == 0 && !Imodv->imageStereo);
+    mSlider->setEnabled(0, Imodv->texMap != 0 && !Imodv->imageStereo);
   }
 }
 
@@ -527,6 +527,9 @@ void ImodvStereo::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.19  2010/12/18 17:36:44  mast
+Changes for stereo image display
+
 Revision 4.18  2010/04/01 02:41:48  mast
 Called function to test for closing keys, or warning cleanup
 
