@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/19/11: Fixed enabling of angle slider in stereo dialog.
+
 1/14/11: IMOD_4-2-12
 1/14/11: Fixed memory leak from bug in freeing extra objects in 3dmod.
 
