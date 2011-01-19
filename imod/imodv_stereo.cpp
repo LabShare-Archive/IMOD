@@ -481,7 +481,7 @@ void ImodvStereo::update()
     mImageBox->setEnabled(Imodv->texMap != 0);
     mViewsAreaSpin->setEnabled(Imodv->texMap != 0);
     mDeltaZspin->setEnabled(Imodv->texMap != 0);
-    mSlider->setEnabled(0, Imodv->texMap != 0 && !Imodv->imageStereo);
+    mSlider->setEnabled(0, Imodv->texMap == 0 || !Imodv->imageStereo);
   }
 }
 
@@ -527,6 +527,9 @@ void ImodvStereo::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.20  2011/01/19 18:50:52  mast
+Fixed enabling of angle slider
+
 Revision 4.19  2010/12/18 17:36:44  mast
 Changes for stereo image display
 
