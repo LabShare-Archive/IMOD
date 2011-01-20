@@ -155,21 +155,16 @@ void fillin_from_mesh(Imod *imod, int ob, int newobj, int zinc, float tol)
   Iobj *obj = &imod->obj[ob];
   Iobj *destobj = obj;   /* Destination object */
   int resol;         /* resolution for highest res mesh */
-  int me, i, j;      /* indices */
+  int me, i, ind;      /* indices */
   int *listp;        /* pointer to normal-vertex indices */
   int ninpoly;       /* # of vertexes in polygon */
   Ipoint *vertp;     /* pointer to normal-vertex list */
   float zmax, zmin;  /* max and min z in polygon */
   int ntriang;       /* # of triangles in polygon */
-  int itri, jtri;    /* triangle indexes */
-  Ipoint ptadd;      /* Point to add */
   int zadd;          /* Z value at which to add contour */
   int firstv;        /* index of first vertex in polygon */
-  int ind, ind1, ind2, jnd1, jnd2, jnd3, indv, jndv, done;
   Icont *cont;       /* contour being added to */
   int coadd;         /* number of that contour */
-  float z1, z2;      /* z values of two candidate vertices */
-  float frac;        /* interpolation fraction */
   float red, green, blue;
   int listInc, vertBase, normAdd;
 
@@ -246,70 +241,7 @@ void fillin_from_mesh(Imod *imod, int ob, int newobj, int zinc, float tol)
           cont->surf = obj->mesh[me].surf;
           cont->time = obj->mesh[me].time;
                          
-          /* loop on triangles */
-          for (itri = 0; itri < ntriang; itri++) {
-            indv = firstv + itri * 3 * listInc;
-                              
-            /* Look at the three pairs of vertices in 
-               triangle, see if any bracket zadd */
-            for (j = 0; j < 3; j++) {
-              ind1 = listp[indv + j * listInc];
-              ind2 = listp[indv + ((j + 1) % 3) * listInc];
-              z1 = vertp[ind1].z;
-              z2 = vertp[ind2].z;
-              if (!((z1 > zadd && z2 < zadd) ||
-                    (z1 < zadd && z2 > zadd)))
-                continue;
-                                   
-              /* If it brackets, look back to see that 
-                 this pair of vertices hasn't been done 
-                 already */
-              done = 0;
-              for (jtri = itri - 1; jtri >= 0; jtri--) {
-                jndv = firstv + jtri * 3 * listInc;
-                jnd1 = listp[jndv];
-                jnd2 = listp[jndv + listInc];
-                jnd3 = listp[jndv + 2 * listInc];
-                if ((ind1 == jnd1 && ind2 == jnd2) ||
-                    (ind2 == jnd1 && ind1 == jnd2) ||
-                    (ind1 == jnd2 && ind2 == jnd3) ||
-                    (ind2 == jnd2 && ind1 == jnd3) ||
-                    (ind1 == jnd3 && ind2 == jnd1) ||
-                    (ind2 == jnd3 && ind1 == jnd1)) {
-                  done = 1;
-                  break;
-                }
-              }
-
-              /* If there is a duplicate, see if this is
-                 the second triangle, and if it is the
-                 first point of first triangle that
-                 matches - then need to swap the points */
-              if (done) {
-                if (itri == 1 && 
-                    ((ind1 == jnd1 && ind2 == jnd2) ||
-                     (ind2 == jnd1 && ind1 == jnd2) ||
-                     (vertp[jnd1].z == vertp[jnd2].z &&
-                      ((ind1 == jnd2 && ind2 == jnd3) ||
-                       (ind2 == jnd2 && ind1 == jnd3))))) {
-                                             
-                  ptadd = cont->pts[0];
-                  cont->pts[0] = cont->pts[1];
-                  cont->pts[1] = ptadd;
-                }
-
-                continue;
-              }
-                                   
-              /* It passes the test, add interpolated 
-                 point */
-              frac = (zadd - z1) / (z2 - z1);
-              ptadd.z = zadd;
-              ptadd.x = (1. - frac) * vertp[ind1].x + frac * vertp[ind2].x;
-              ptadd.y = (1. - frac) * vertp[ind1].y + frac * vertp[ind2].y;
-              imodPointAppend(cont, &ptadd);
-            }
-          }
+          imodMeshInterpCont(listp, vertp, ntriang, firstv, listInc, zadd, cont);
           imodContourReduce(cont, tol);
           zadd += zinc;
         }
@@ -317,45 +249,49 @@ void fillin_from_mesh(Imod *imod, int ob, int newobj, int zinc, float tol)
     }
   }
 }
+
      
 /*
 
-$Log$
-Revision 3.12  2006/09/12 15:02:42  mast
-rename mesh members, null out meshparam
+  $Log$
+  Revision 3.13  2008/04/04 21:21:28  mast
+  Free contour after adding to object
 
-Revision 3.11  2006/06/26 14:48:49  mast
-Added b3dutil include for parselist
+  Revision 3.12  2006/09/12 15:02:42  mast
+  rename mesh members, null out meshparam
 
-Revision 3.10  2005/09/11 19:22:11  mast
-Changes for new style of mesh
+  Revision 3.11  2006/06/26 14:48:49  mast
+  Added b3dutil include for parselist
 
-Revision 3.9  2005/02/11 01:42:33  mast
-Warning cleanup: implicit declarations, main return type, parentheses, etc.
+  Revision 3.10  2005/09/11 19:22:11  mast
+  Changes for new style of mesh
 
-Revision 3.8  2004/11/05 19:05:29  mast
-Include local files with quotes, not brackets
+  Revision 3.9  2005/02/11 01:42:33  mast
+  Warning cleanup: implicit declarations, main return type, parentheses, etc.
 
-Revision 3.7  2004/07/07 19:25:30  mast
-Changed exit(-1) to exit(3) for Cygwin
+  Revision 3.8  2004/11/05 19:05:29  mast
+  Include local files with quotes, not brackets
 
-Revision 3.6  2003/10/26 14:46:41  mast
-fixed problem in eliminating getopt
+  Revision 3.7  2004/07/07 19:25:30  mast
+  Changed exit(-1) to exit(3) for Cygwin
 
-Revision 3.5  2003/10/24 03:05:23  mast
-open as binary, strip program name and/or use routine for backup file
+  Revision 3.6  2003/10/26 14:46:41  mast
+  fixed problem in eliminating getopt
 
-Revision 3.4  2003/08/01 00:16:14  mast
-Complete object views when saving model, since there may be new objects
+  Revision 3.5  2003/10/24 03:05:23  mast
+  open as binary, strip program name and/or use routine for backup file
 
-Revision 3.3  2003/02/21 23:15:33  mast
-Open new file as wb
+  Revision 3.4  2003/08/01 00:16:14  mast
+  Complete object views when saving model, since there may be new objects
 
-Revision 3.2  2002/06/21 00:26:03  mast
-Needed to swap points from first triangle of a strip if they were out of
-order relative to the following points of the strip
+  Revision 3.3  2003/02/21 23:15:33  mast
+  Open new file as wb
 
-Revision 3.1  2001/12/17 18:53:55  mast
-First version of program
+  Revision 3.2  2002/06/21 00:26:03  mast
+  Needed to swap points from first triangle of a strip if they were out of
+  order relative to the following points of the strip
+
+  Revision 3.1  2001/12/17 18:53:55  mast
+  First version of program
 
 */
