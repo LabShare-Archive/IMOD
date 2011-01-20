@@ -1432,6 +1432,53 @@ Icont *imodContourSplice(Icont *c1, Icont *c2, int p1, int p2)
 }
 
 /*!
+ * Adds together two scan contours [c1] and [c2], returning all of their segments in order
+ * and combining segments where they overlap.  Returns NULL for error.
+ */
+Icont *imodContourScanAdd(Icont *c1, Icont *c2)
+{
+  Icont *cont;
+  int y1, y2, pt1, pt2, psize = 0;
+  if (!c1 || !c2 || !(c1->flags & ICONT_SCANLINE) || !(c2->flags & ICONT_SCANLINE) ||
+      !c1->psize || !c2->psize)
+    return NULL;
+  cont = imodContourNew();
+  if (!cont)
+    return NULL;
+  cont->pts = (Ipoint *)malloc((c1->psize + c2->psize) * sizeof(Ipoint));
+  if (!cont->pts)
+    return NULL;
+  pt1 = pt2 = 0;
+  while (pt1 < c1->psize - 1 || pt2 < c2->psize - 1) {
+    y1 = y2 = INT_MAX;
+    if (pt1 < c1->psize - 1)
+      y1 = (int)c1->pts[pt1].y;
+    if (pt2 < c2->psize - 1)
+      y2 = (int)c2->pts[pt2].y;
+    /* Compare the current pair of segments to see which one to add next */
+    if (y1 < y2  || (y1 == y2 && c1->pts[pt1+1].x < c2->pts[pt2].x)) {
+      cont->pts[psize++] = c1->pts[pt1++];
+      cont->pts[psize++] = c1->pts[pt1++];
+    } else if (y2 < y1  || (y1 == y2 && c2->pts[pt2+1].x < c1->pts[pt1].x)) {
+      cont->pts[psize++] = c2->pts[pt2++];
+      cont->pts[psize++] = c2->pts[pt2++];
+    } else {
+
+      /* Combine the two segments */
+      cont->pts[psize].x = B3DMIN(c1->pts[pt1].x, c2->pts[pt2].x);
+      cont->pts[psize++].y = y1;
+      cont->pts[psize].x = B3DMAX(c1->pts[pt1+1].x, c2->pts[pt2+1].x);
+      cont->pts[psize++].y = y1;
+      pt1 += 2;
+      pt2 += 2;
+    }
+  }
+  cont->psize = psize;
+  cont->flags |= ICONT_SCANLINE;
+  return cont;
+}
+
+/*!
  * Returns a contour containing points from [p1] to [p2], inclusive, from 
  * contour [cont], and removes those points from [cont].  If [p2] is < 0 all 
  * points from [p1] to the end are transferred to the new contour.  Returns 
@@ -3478,6 +3525,9 @@ char *imodContourGetName(Icont *inContour)
 /* END_SECTION */
 /*
   $Log$
+  Revision 3.32  2010/03/10 05:31:12  mast
+  Initialize new member
+
   Revision 3.31  2009/02/24 18:02:37  mast
   Made contour centroid routine work for open object contours with flag
 
