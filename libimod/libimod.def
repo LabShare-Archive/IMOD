@@ -176,6 +176,7 @@ EXPORTS
 	istoreClearRange
 	imodPutFloat
 	imodContourJoin
+	imodContourScanAdd
 	imodDeleteContour
 	imodContourGetPoint
 	istoreCopyNonIndex
@@ -316,6 +317,7 @@ EXPORTS
 	PUTCONTVALUE
 	imodContourZValue
 	imodMatTransform2D
+	imodMeshInterpCont
 	imeshParamsNew
 	GETIMODOBJLIST
 	imodContourCenterOfMass
