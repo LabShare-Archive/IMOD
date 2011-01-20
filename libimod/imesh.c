@@ -363,6 +363,91 @@ Imesh *imodel_mesh_add(Imesh *nmesh,
   return(nmray);
 }
 
+/*!
+ * Contructs an interpolated contour at a Z plane between two other contours by finding
+ * lines in a triangle mesh that cross that Z plane and using the points where the lines
+ * cross the plane.  [listp] is the list of mesh indices, [vertp] is the list of mesh 
+ * vertices; [ntriang] is the number of triangles in the polygon; [firstv] is the index of
+ * the first vertex in [listp], [listInc] is the step between successive vertex indices,
+ * [zadd] is the Z value at which to interpolate, and [cont] is the contour to add points
+ * to.
+ */
+void imodMeshInterpCont(int *listp, Ipoint *vertp, int ntriang, int firstv, int listInc,
+                         int zadd, Icont *cont)
+{
+  int ind, ind1, ind2, jnd1, jnd2, jnd3, indv, jndv, done, j;
+  float z1, z2;      /* z values of two candidate vertices */
+  float frac;        /* interpolation fraction */
+  int itri, jtri;    /* triangle indexes */
+  Ipoint ptadd;      /* Point to add */
+  
+  
+  /* loop on triangles */
+  for (itri = 0; itri < ntriang; itri++) {
+    indv = firstv + itri * 3 * listInc;
+                              
+    /* Look at the three pairs of vertices in 
+       triangle, see if any bracket zadd */
+    for (j = 0; j < 3; j++) {
+      ind1 = listp[indv + j * listInc];
+      ind2 = listp[indv + ((j + 1) % 3) * listInc];
+      z1 = vertp[ind1].z;
+      z2 = vertp[ind2].z;
+      if (!((z1 > zadd && z2 < zadd) ||
+            (z1 < zadd && z2 > zadd)))
+        continue;
+                                   
+      /* If it brackets, look back to see that 
+         this pair of vertices hasn't been done 
+         already */
+      done = 0;
+      for (jtri = itri - 1; jtri >= 0; jtri--) {
+        jndv = firstv + jtri * 3 * listInc;
+        jnd1 = listp[jndv];
+        jnd2 = listp[jndv + listInc];
+        jnd3 = listp[jndv + 2 * listInc];
+        if ((ind1 == jnd1 && ind2 == jnd2) ||
+            (ind2 == jnd1 && ind1 == jnd2) ||
+            (ind1 == jnd2 && ind2 == jnd3) ||
+            (ind2 == jnd2 && ind1 == jnd3) ||
+            (ind1 == jnd3 && ind2 == jnd1) ||
+            (ind2 == jnd3 && ind1 == jnd1)) {
+          done = 1;
+          break;
+        }
+      }
+
+      /* If there is a duplicate, see if this is
+         the second triangle, and if it is the
+         first point of first triangle that
+         matches - then need to swap the points */
+      if (done) {
+        if (itri == 1 && 
+            ((ind1 == jnd1 && ind2 == jnd2) ||
+             (ind2 == jnd1 && ind1 == jnd2) ||
+             (vertp[jnd1].z == vertp[jnd2].z &&
+              ((ind1 == jnd2 && ind2 == jnd3) ||
+               (ind2 == jnd2 && ind1 == jnd3))))) {
+                                             
+          ptadd = cont->pts[0];
+          cont->pts[0] = cont->pts[1];
+          cont->pts[1] = ptadd;
+        }
+
+        continue;
+      }
+                                   
+      /* It passes the test, add interpolated 
+         point */
+      frac = (zadd - z1) / (z2 - z1);
+      ptadd.z = zadd;
+      ptadd.x = (1. - frac) * vertp[ind1].x + frac * vertp[ind2].x;
+      ptadd.y = (1. - frac) * vertp[ind1].y + frac * vertp[ind2].y;
+      imodPointAppend(cont, &ptadd);
+    }
+  }
+}
+
 
 /****************************************************************************/
 /* Get mesh info.                                                           */
@@ -715,6 +800,9 @@ int imeshCopySkipList(int *lfrom, int nfrom, int **lto, int *nto)
 /*
 
 $Log$
+Revision 3.11  2010/04/13 18:12:00  mast
+Need to take abs for volume inside mesh
+
 Revision 3.10  2009/03/19 05:09:58  mast
 Fixed initialization when getting mesh volume
 
