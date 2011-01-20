@@ -88,6 +88,8 @@ extern "C" {
   int     imodMeshNearestRes(Imesh *mesh, int size, int inres, int *outres);
   int     imodMeshPolyNormFactors(int startCode, int *listInc, int *vertBase, 
                                   int *normAdd);
+  void imodMeshInterpCont(int *listp, Ipoint *vertp, int ntriang, int firstv, 
+                           int listInc, int zadd, Icont *cont);
 
   Imesh *imodel_mesh_add(Imesh *nmesh, Imesh *mray, int *size);
 
@@ -111,6 +113,9 @@ extern "C" {
 /*
 
 $Log$
+Revision 3.9  2008/11/14 15:21:25  mast
+Changed mesh volume call
+
 Revision 3.8  2008/05/07 04:43:43  mast
 Added mesh bounding box function
 

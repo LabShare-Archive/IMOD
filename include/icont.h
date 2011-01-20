@@ -105,6 +105,7 @@ void   imodContourMakeDirection(Icont *cont, int direction);
 Icont *imodContourJoin(Icont *c1, Icont *c2, int st1, int st2, int fill,
 		       int counterdir);
 Icont *imodContourSplice(Icont *c1, Icont *c2, int p1, int p2);
+Icont *imodContourScanAdd(Icont *c1, Icont *c2);
 Icont *imodContourBreak(Icont *cont, int p1, int p2);
 Icont *imodContourFill(Icont *cont);
 void   imodContourScale(Icont *cont, Ipoint *spoint);
@@ -208,6 +209,9 @@ void imodContourNestLevels(Nesting *nests, int *nestind, int numnests);
 
 /*
 $Log$
+Revision 3.18  2008/11/15 21:50:49  mast
+Define new temporary flag for inversions
+
 Revision 3.17  2008/05/27 05:30:34  mast
 Changed call for contour from points
 
