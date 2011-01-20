@@ -131,7 +131,6 @@ Icont *imodContourDup(Icont *cont)
  */
 int imodContourDelete(Icont *cont)
 {
-  char *lbl;
   if (cont == NULL)
     return(-1);
   imodContourClear(cont);
@@ -239,9 +238,6 @@ int imodContoursDeleteToEnd(Iobj *obj, int keep)
  */
 int imodel_contour_newsurf(Iobj *obj, Icont *cont)
 {
-  int co;
-  int max;
-
   if (!obj)
     return(-1);
   if (!cont)
@@ -460,7 +456,6 @@ double imodel_contour_length(Icont *cont)
 double imodContourMoment(Icont *cont, int a, int b)
 {
   Icont *scont;
-  int scanline;
   int i, j, pt;
   int bline, eline;
   double moment = 0.0;
@@ -638,12 +633,12 @@ int imodel_contour_centroid(Icont *icont, Ipoint *rcp,
 double imodContourCenterMoment(Icont *cont, Ipoint *org, int a, int b)
 {
   Icont *scont = imodel_contour_scan(cont);
-  int scanline;
   int i, j, pt;
   int bline, eline;
   double moment = 0.0;
      
-  if (!scont) return 0.0;
+  if (!scont) 
+    return 0.0;
      
   for(pt = 0; pt < scont->psize; pt+=2){
     i = scont->pts[pt].y + 0.5f - org->x;
@@ -798,7 +793,7 @@ double imodContourPrincipalAxis(Icont *cont)
   Icont *fcont;
   Icont *lcont = imodContourNew();
   double tdist = 0;
-  double dist, angle;
+  double dist;
   int pt;
 
   if (imodContourBad(cont, 1)) return 0.0;
@@ -1487,7 +1482,6 @@ Icont *imodContourScanAdd(Icont *c1, Icont *c2)
 Icont *imodContourBreak(Icont *cont, int p1, int p2)
 {
   Icont *nc;
-  Ipoint *tpt;
   int i, ni;
 
   /* check for bogus input data. */
@@ -1800,7 +1794,6 @@ void imodContourReduce(Icont *cont, float tol)
   int *minseg;
   int *nextpt;
   float tolsq, denom, tmin, distsq, x1, y1, x2, y2, dx, dy, dx0, dy0;
-  Ipoint *tpt;
 
   /*      moving from right to left, look at possible segments from a given
           point going to right.  A segment is possible if all intervening
@@ -2118,10 +2111,6 @@ void imodel_contour_swapxy(Icont *cont)
  */
 void imodContourMakeDirection(Icont *cont, int direction)
 {
-  int pt, hpt;
-  Ipoint point;
-  float size;
-
   if (!cont)
     return;
   if (cont->psize < 3)
@@ -3525,6 +3514,9 @@ char *imodContourGetName(Icont *inContour)
 /* END_SECTION */
 /*
   $Log$
+  Revision 3.33  2011/01/20 17:09:04  mast
+  Added function to combine scan contours
+
   Revision 3.32  2010/03/10 05:31:12  mast
   Initialize new member
 
