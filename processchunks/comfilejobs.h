@@ -1,8 +1,9 @@
 /*
- *  List of chunks (.com files).
+ *  A list of chunks (.com files).
  *
- *  Contains an array of chunks.  The number of chunks is unlimited so this
- *  class needs to be as light-weight in terms of memory use as possible.
+ *  Contains an array of chunks.  The maximum number of chunks is around
+ *  100,000 so this class needs to be as scaleable as possible, minimizing its
+ *  memory footprint.
  *
  *  Contains the error count and the status of each chunk.
  *
@@ -25,30 +26,32 @@ public:
   ~ComFileJobs();
 
   typedef struct job {
-    QString comFileName;
+    char* root;
     int numChunkErr;
     int flag;
   } Job;
 
   void setup(const QString &comFile, const bool singleFile);
   inline const QString getLogFileName(const int index) {
-    return QString("%1.log").arg(getRoot(index));
+    return QString("%1.log").arg(QString(mJobArray[index].root));
   }
   ;
   inline const QString getCshFileName(const int index) {
-    return QString("%1.csh").arg(getRoot(index));
+    return QString("%1.csh").arg(QString(mJobArray[index].root));
   }
   ;
   inline const QString getJobFileName(const int index) {
-    return QString("%1.job").arg(getRoot(index));
+    return QString("%1.job").arg(QString(mJobArray[index].root));
   }
   ;
   inline const QString getQidFileName(const int index) {
-    return QString("%1.qid").arg(getRoot(index));
+    return QString("%1.qid").arg(QString(mJobArray[index].root));
   }
   ;
-  inline const QString &getComFileName(const int index) {
-    return mJobArray[index].comFileName;
+  //Currently the chunk files all end in .com.  If this changes this class will
+  //have to know what chunk file extension to use for each chunk.
+  inline const QString getComFileName(const int index) {
+    return QString("%1.com").arg(QString(mJobArray[index].root));
   }
   ;
   inline const int getNumChunkErr(const int index) {
@@ -68,7 +71,10 @@ public:
     return mJobArray[index].flag;
   }
   ;
-  const QString getRoot(const int index);
+  const char *getRoot(const int index) {
+    return mJobArray[index].root;
+  }
+  ;
 
 private:
   int mNumJobs;
@@ -79,4 +85,8 @@ private:
 
 /*
  $Log$
+ Revision 1.1  2011/01/05 20:47:07  sueh
+ bug# 1426 ComFileJobs is lighter weight then ComFileJob.  Only one
+ instance is created.
+
  */

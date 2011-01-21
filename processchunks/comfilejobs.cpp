@@ -18,22 +18,37 @@ ComFileJobs::ComFileJobs(const QStringList comFileArray, const bool singleFile) 
   mJobArray = new Job[mNumJobs];
   int i;
   for (i = 0; i < mNumJobs; i++) {
-    mJobArray[i].comFileName = comFileArray.at(i);
+    //Save the root (file name without the extension) because it is used more
+    //the the file name.  Currently chunk file names always end in ".com".
+    QString comFileName = comFileArray.at(i);
+    int extIndex = comFileName.lastIndexOf(".");
+    QString root;
+    if (extIndex == -1) {
+      root = comFileName;
+    }
+    else {
+      root = comFileName.mid(0, extIndex);
+    }
+    mJobArray[i].root = strdup(root.toLatin1().data());
     mJobArray[i].numChunkErr = 0;
     setFlagNotDone(i, singleFile);
   }
 }
 
 ComFileJobs::~ComFileJobs() {
+  int i;
+  for (i = 0; i < mNumJobs; i++) {
+    free(mJobArray[i].root);
+  }
   delete[] mJobArray;
 }
 
 //Set mFlag to -1 for sync com files.
 //Return true for non-sync files.
 void ComFileJobs::setFlagNotDone(const int index, const bool singleFile) {
-  if (singleFile || mJobArray[index].comFileName.endsWith("-start.com")
-      || mJobArray[index].comFileName.endsWith("-finish.com")
-      || mJobArray[index].comFileName.endsWith("-sync.com")) {
+  QString sRoot(mJobArray[index].root);
+  if (singleFile || sRoot.endsWith("-start") || sRoot.endsWith("-finish")
+      || sRoot.endsWith("-sync")) {
     mJobArray[index].flag = CHUNK_SYNC;
   }
   else {
@@ -41,17 +56,11 @@ void ComFileJobs::setFlagNotDone(const int index, const bool singleFile) {
   }
 }
 
-const QString ComFileJobs::getRoot(const int index) {
-  int i = mJobArray[index].comFileName.lastIndexOf(".");
-  if (i != -1) {
-    return mJobArray[index].comFileName.mid(0, i);
-  }
-  else {
-    return mJobArray[index].comFileName;
-  }
-}
-
 /*
  $Log$
+ Revision 1.1  2011/01/05 20:46:57  sueh
+ bug# 1426 ComFileJobs is lighter weight then ComFileJob.  Only one
+ instance is created.
+
  */
 
