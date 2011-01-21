@@ -1,5 +1,6 @@
 /*
- *  Main class for processchunks.
+ *  Main class for processchunks - an application to process command files on
+ *  multiple machines.
  *
  *  Author: Sue Held
  *
@@ -16,6 +17,7 @@
 #include <signal.h>
 #include <QTimer>
 #include <QSet>
+#include <QDirIterator>
 
 #ifndef _WIN32
 #include <sys/select.h>
@@ -50,7 +52,7 @@ static char
         ":c:FN:Check file \"name\" for commands P, Q, and D (default processchunks.input)",
         ":q:I:Run on cluster queue with given maximum # of jobs at once",
         ":Q:CH:Machine name to use for the queue (default queue)",
-        //        ":m:I:Milliseconds to pause before killing each process (default 50)",
+        //":m:I:Milliseconds to pause before killing each process (default 50)",
         ":P:B:Output process ID",
         ":v:B:Verbose.",
         ":V:CH:?|?,2|class[,function[,...]][,2]|2  Verbose instructions:  case insensitive, matches from the end of the class or function name." };
@@ -99,6 +101,7 @@ Processchunks::Processchunks(int &argc, char **argv) :
   mLsProcess = new QProcess(this);
   mVmstocsh = new QProcess(this);
   mDecoratedClassName = typeid(*this).name();
+  mKillPipes = 0;
 }
 
 Processchunks::~Processchunks() {
@@ -112,11 +115,11 @@ Processchunks::~Processchunks() {
   delete mVmstocsh;
   delete mOutStream;
   mOutStream = NULL;
+  delete[] mMachineList;
 }
 
 void Processchunks::printOsInformation() {
-  printf(
-      "\nIMPORTANT:  Ctrl-C does not work with this version of processchunks.  Use ");
+  printf("\nIMPORTANT:  Ctrl-C does not work with this version of processchunks.  Use ");
 #ifndef _WIN32
   printf("<Esc> <Enter> or ");
 #endif
@@ -126,12 +129,11 @@ void Processchunks::printOsInformation() {
 //Print usage statement
 //Not implementing $IMOD_ALL_MACHINES since no one seems to have used it.
 void processchunksUsageHeader(char *pname) {
-  printf(
-      "\nUsage: %s [Options] machine_list root_name\nWill process multiple command "
-        "files on multiple processors or machines\nmachine_list is a list of "
-        "available machines, separated by commas.\nList machines names multiple "
-        "times to gain access to multiple CPUs on a machine.\nRoot_name is "
-        "the base name of the command files, omitting -nnn.com\n\n", pname);
+  printf("\nUsage: %s [Options] machine_list root_name\nWill process multiple command "
+    "files on multiple processors or machines\nmachine_list is a list of "
+    "available machines, separated by commas.\nList machines names multiple "
+    "times to gain access to multiple CPUs on a machine.\nRoot_name is "
+    "the base name of the command files, omitting -nnn.com\n\n", pname);
   imodUsageHeader(pname);
 }
 
@@ -146,7 +148,7 @@ void Processchunks::loadParams(int &argc, char **argv) {
   PipGetBoolean("s", &mSingleFile);
   PipGetBoolean("g", &mJustGo);
   PipGetInteger("n", &mNice);
-  //  PipGetInteger("m", &mMillisecSleep);
+  //PipGetInteger("m", &mMillisecSleep);
   char *remoteDir = NULL;
   PipGetString("w", &remoteDir);
   if (remoteDir != NULL) {
@@ -169,8 +171,7 @@ void Processchunks::loadParams(int &argc, char **argv) {
     PipGetString("V", &verboseClassFunctions);
     if (verboseClassFunctions != NULL) {
       QString param(verboseClassFunctions);
-      QStringList paramList = param.trimmed().split(",",
-          QString::SkipEmptyParts);
+      QStringList paramList = param.trimmed().split(",", QString::SkipEmptyParts);
       if (!paramList.isEmpty()) {
         //Set verbosity level.
         bool ok;
@@ -231,10 +232,14 @@ void Processchunks::setup() {
   if (mRemoteDir == NULL) {
     mRemoteDir = new QString(mCurrentDir.absolutePath().toLatin1().data());
   }
-  setupMachineList();
+  QStringList machineNameList;
+  int *numCpusList = initMachineList(machineNameList);
   setupHostRoot();
-  setupProcessArray();
-  probeMachines();
+  setupComFileJobs();
+  probeMachines(machineNameList);
+  setupMachineList(machineNameList, numCpusList);
+  machineNameList.clear();
+  delete[] numCpusList;
 }
 
 //Setup mFlags.  Find first not-done log file.  Delete log files and
@@ -277,8 +282,7 @@ void Processchunks::startLoop() {
   }
 
   if (!mSingleFile || mSkipProbe) {
-    *mOutStream << mNumDone << " OF " << mSizeJobArray << " DONE SO FAR "
-        << endl;
+    *mOutStream << mNumDone << " OF " << mSizeJobArray << " DONE SO FAR " << endl;
   }
   //Initialize variables needed by the timer event function
   mLastNumDone = 0;
@@ -291,6 +295,7 @@ void Processchunks::startLoop() {
   PipDone();
   startTimers();
   signal(SIGINT, SIG_IGN);
+  signal(SIGHUP, SIG_IGN);
   exec();
 }
 
@@ -319,11 +324,12 @@ void Processchunks::startTimers() {
 
 void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
   if (mKill) {
-    if (isVerbose(mDecoratedClassName, __func__, 2)) {
-      *mOutStream << "timerEvent with mKill true" << endl;
-    }
-    //If all the kill requests have gone out, start the timeout
-    killProcessTimeout();
+    killSignal();
+    /* if (isVerbose(mDecoratedClassName, __func__, 2)) {
+     *mOutStream << "timerEvent with mKill true" << endl;
+     }
+     //If all the kill requests have gone out, start the timeout
+     killProcessTimeout();*/
     return;
   }
   //Handle the regular timer.
@@ -333,8 +339,8 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
   }
   int i, cpuIndex;
   if (isVerbose(mDecoratedClassName, __func__)) {
-    *mOutStream << mDecoratedClassName << ":" << __func__ << ":mNumDone:"
-        << mNumDone << ",mSizeJobArray:" << mSizeJobArray << endl;
+    *mOutStream << mDecoratedClassName << ":" << __func__ << ":mNumDone:" << mNumDone
+        << ",mSizeJobArray:" << mSizeJobArray << endl;
   }
   if (mNumDone >= mSizeJobArray) {
     cleanupAndExit();
@@ -349,25 +355,23 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
   int minFail = mDropCrit;
   int failCount = 0;
   int chunkErrTot = 0;
-  MachineHandler *machine = NULL;
   int numCpus = 0;
   bool noChunks = false;
-  for (i = 0; i < mMachineList.size(); i++) {
-    machine = &(mMachineList)[i];
-    failCount = machine->getFailureCount();
+  for (i = 0; i < mMachineListSize; i++) {
+    failCount = mMachineList[i].getFailureCount();
     if (failCount != 0) {
       failTot++;
     }
     if (failCount < minFail) {
       minFail = failCount;
     }
-    numCpus = machine->getNumCpus();
+    numCpus = mMachineList[i].getNumCpus();
     for (cpuIndex = 0; cpuIndex < numCpus; cpuIndex++) {
       //chunkerrtot must be incremented for each cpu.
-      if (machine->isChunkErred()) {
+      if (mMachineList[i].isChunkErred()) {
         chunkErrTot++;
       }
-      if (machine->isJobValid(cpuIndex)) {
+      if (mMachineList[i].isJobValid(cpuIndex)) {
         assignTot++;
       }
     }
@@ -377,11 +381,10 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
   //Loop on machines and CPUs, if they have an assignment check if it is done
   i = -1;
   bool loopDone = false;
-  while (++i < mMachineList.size() && !loopDone) {
-    machine = &(mMachineList)[i];
-    numCpus = machine->getNumCpus();
+  while (++i < mMachineListSize && !loopDone) {
+    numCpus = mMachineList[i].getNumCpus();
     for (cpuIndex = 0; cpuIndex < numCpus; cpuIndex++) {
-      ProcessHandler *process = machine->getProcessHandler(cpuIndex);
+      ProcessHandler *process = mMachineList[i].getProcessHandler(cpuIndex);
       int jobIndex = -1;
       bool dropout = false;
       if (process->isJobValid()) {
@@ -396,7 +399,7 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
           if (process->isChunkDone()) {
             //If mSingleFile is true, set loopDone to end outer loop, and break
             //out of inner loop.
-            loopDone = handleChunkDone(machine, process, jobIndex);
+            loopDone = handleChunkDone(mMachineList[i], process, jobIndex);
             if (loopDone) {
               break;
             }
@@ -408,7 +411,7 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
             //otherwise set flag to redo it
             dropout = true;
             if (!process->isLogFileEmpty()) {
-              if (!handleLogFileError(errorMess, machine, process)) {
+              if (!handleLogFileError(errorMess, mMachineList[i], process)) {
                 return;
               }
             }
@@ -418,7 +421,7 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
               //to standard out, it can't run the first real command in the
               //file.
               if (process->isPidInStderr()) {
-                if (!handleError(NULL, machine, process)) {
+                if (!handleError(NULL, mMachineList[i], process)) {
                   return;
                 }
               }
@@ -426,12 +429,12 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
           }
         }
         else {
-          handleComProcessNotDone(dropout, dropMess, machine, process);
+          handleComProcessNotDone(dropout, dropMess, mMachineList[i], process);
         }
         //if failed, remove the assignment, mark chunk as to be done,
         //skip this machine on this round
         if (dropout) {
-          handleDropOut(noChunks, dropMess, machine, process, errorMess);
+          handleDropOut(noChunks, dropMess, mMachineList[i], process, errorMess);
         }
         //OLD:Clean up .ssh and .pid if no longer assigned
         //For queue only:  clean up .job and .qid if no longer assigned
@@ -442,11 +445,11 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
       //Drop a machine if it has failed more than given number of times
       //Institute hold on any failed machine if no chunks are done and
       //machine failure count is above criterion
-      int failCount = machine->getFailureCount();
-      if (failCount >= mDropCrit || mPausing || (failCount && !mAnyDone
-          && failTot >= mHoldCrit)) {
+      int failCount = mMachineList[i].getFailureCount();
+      if (failCount >= mDropCrit || mPausing || (failCount && !mAnyDone && failTot
+          >= mHoldCrit)) {
         if (isVerbose(mDecoratedClassName, __func__, 2)) {
-          *mOutStream << machine->getName() << ":set dropout, failCount:"
+          *mOutStream << mMachineList[i].getName() << ":set dropout, failCount:"
               << failCount << ",failTot:" << failTot << endl;
         }
         dropout = true;
@@ -456,7 +459,7 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
       //nothing having started.  Skip if no chunks are available
       if (isVerbose(mDecoratedClassName, __func__, 2)) {
         *mOutStream << mDecoratedClassName << ":" << __func__ << ":"
-            << machine->getName() << ":process->isJobValid():"
+            << mMachineList[i].getName() << ":process->isJobValid():"
             << process->isJobValid() << ",dropout:" << dropout << ",noChunks:"
             << noChunks << ",mSyncing:" << mSyncing << endl;
       }
@@ -468,11 +471,11 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
           int runFlag;
           bool chunkOk;
           if (!checkChunk(runFlag, noChunks, undoneIndex, foundChunks, chunkOk,
-              machine, jobIndex, chunkErrTot)) {
+              mMachineList[i], jobIndex, chunkErrTot)) {
             break;
           }
           if ((runFlag == CHUNK_SYNC || runFlag == CHUNK_NOT_DONE) && chunkOk) {
-            runProcess(machine, process, jobIndex);
+            runProcess(mMachineList[i], process, jobIndex);
           }
           jobIndex++;
         }
@@ -487,21 +490,19 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
     }
   }
   if (mNumDone > mLastNumDone) {
-    *mOutStream << mNumDone << " OF " << mSizeJobArray << " DONE SO FAR"
-        << endl;
+    *mOutStream << mNumDone << " OF " << mSizeJobArray << " DONE SO FAR" << endl;
   }
   mLastNumDone = mNumDone;
   if (isVerbose(mDecoratedClassName, __func__, 2)) {
-    *mOutStream << mDecoratedClassName << ":" << __func__ << ":mNumDone:"
-        << mNumDone << ",mNextSyncIndex:" << mNextSyncIndex
-        << ",mSizeJobArray:" << mSizeJobArray << endl;
+    *mOutStream << mDecoratedClassName << ":" << __func__ << ":mNumDone:" << mNumDone
+        << ",mNextSyncIndex:" << mNextSyncIndex << ",mSizeJobArray:" << mSizeJobArray
+        << endl;
   }
   //Old:  if we have finished up to the sync file, then allow the loop to run it
   if (mNumDone - 1 >= mNextSyncIndex - 1) {
     QString endComName = QString("%1-finish.com").arg(mRootName);
     if (mComFileJobs->getComFileName(mNextSyncIndex) == endComName) {
-      *mOutStream << "ALL DONE - going to run " << endComName
-          << " to reassemble" << endl;
+      *mOutStream << "ALL DONE - going to run " << endComName << " to reassemble" << endl;
     }
     //Set syncing flag to 1 to get it started
     mSyncing = 1;
@@ -587,8 +588,7 @@ void Processchunks::handleInterrupt() {
         << "Enter Q to kill all jobs and quit, P to finish running jobs then exit,"
         << endl;
     if (!mQueue) {
-      *mOutStream << " D machine_list to kill jobs and drop given machines,"
-          << endl;
+      *mOutStream << " D machine_list to kill jobs and drop given machines," << endl;
     }
     *mOutStream << " or C to continue waiting: " << endl;
     mOutStream->flush();
@@ -616,6 +616,7 @@ void Processchunks::handleInterrupt() {
 
 //Handle mAns:  killing, pausing, dropping machines, and exiting as required
 void Processchunks::killProcesses(QStringList *dropList) {
+  int i;
   if (dropList != NULL) {
     mDropList = *dropList;
   }
@@ -623,7 +624,7 @@ void Processchunks::killProcesses(QStringList *dropList) {
   if (mAns == 'P') {
     mPausing = true;
   }
-  if (mAns == 'C' || (mAns == 'P' && !mQueue)) {
+  if (mAns == 'C' || (mAns == 'P' && !mQueue) || (mAns == 'D' && mQueue)) {
     mDropList.clear();
     mAns = ' ';
     //Continue with timer loop
@@ -632,7 +633,6 @@ void Processchunks::killProcesses(QStringList *dropList) {
   if (isVerbose(mDecoratedClassName, __func__)) {
     *mOutStream << "Turning on ProcessChunks::mKill" << endl;
   }
-  mKill = true;
   killTimer(mTimerId);
   if (isVerbose(mDecoratedClassName, __func__)) {
     *mOutStream << "killProcesses:The timer is off" << endl;
@@ -641,8 +641,66 @@ void Processchunks::killProcesses(QStringList *dropList) {
   if (isVerbose(mDecoratedClassName, __func__)) {
     *mOutStream << "killProcesses:Turning the timer on" << endl;
   }
+  mKill = true;
+  //killProcessOnNextMachine();
+  for (i = 0; i < mMachineListSize; i++) {
+    mMachineList[i].startKill();
+  }
+  killSignal();
   mTimerId = startTimer(1000);
-  killProcessOnNextMachine();
+}
+
+//Loops through the machine list each time the counter goes off and mKill is on.
+//Sends kill signals and timeout instructions, decides when the kill is done,
+//cleans up, and responds to the mAns request.
+void Processchunks::killSignal() {
+  int i;
+  bool killDone = true;
+  for (i = 0; i < mMachineListSize; i++) {
+    //Send the machine a kill signal each time the timer goes off
+    mMachineList[i].killSignal();
+    //See if the kill is done
+    if (!mMachineList[i].isKillFinished()) {
+      killDone = false;
+    }
+  }
+  //If killDone was not turned off during the loop, then the kill is done
+  if (killDone) {
+    //clean up kill
+    //Kill the timer to clean up.  It will go back on for D and P.
+    if (mTimerId != 0) {
+      killTimer(mTimerId);
+      mTimerId = 0;
+    }
+    //Reset kill variables and tell the machines to reset their kill variables.
+    mAns = ' ';
+    mDropList.clear();
+    mKill = false;
+    for (i = 0; i < mMachineListSize; i++) {
+      mMachineList[i].resetKill();
+    }
+    //Handle error
+    if (mAns == 'E') {
+      if (!mSyncing) {
+        *mOutStream << "ERROR: A CHUNK HAS FAILED " << mMaxChunkErr << " times" << endl;
+      }
+      else {
+        *mOutStream << "ERROR: A START, FINISH, OR SYNC CHUNK HAS FAILED" << endl;
+      }
+      cleanupAndExit(4);
+    }
+    //Handle drop and pause by resuming processesing
+    if (mAns == 'D' || mAns == 'P') {
+      *mOutStream << "Resuming processing" << endl;
+      startTimers();
+      return;
+    }
+    //If not returning to the timer loop, then exit the program.
+    *mOutStream << endl
+        << "When you rerun with a different set of machines, be sure to use" << endl
+        << "the -r flag to retain the existing results" << endl;
+    cleanupAndExit(2);
+  }
 }
 
 //Tells machines to send kill requests.  Stops when a machine has to give up
@@ -660,18 +718,9 @@ void Processchunks::killProcessOnNextMachine() {
   }
   //Go to next machine and start killing its running processes.
   mKillProcessMachineIndex++;
-  if (isVerbose(mDecoratedClassName, __func__)) {
-    *mOutStream << "killProcessOnNextMachine:mKillProcessMachineIndex:"
-        << mKillProcessMachineIndex << ",mMachineList.size():"
-        << mMachineList.size() << endl;
-  }
-  if (mKillProcessMachineIndex < mMachineList.size()) {
-    while (mKillProcessMachineIndex < mMachineList.size()) {
+  if (mKillProcessMachineIndex < mMachineListSize) {
+    while (mKillProcessMachineIndex < mMachineListSize) {
       if (!mMachineList[mKillProcessMachineIndex].killProcesses()) {
-        if (isVerbose(mDecoratedClassName, __func__)) {
-          *mOutStream << "killProcessOnNextMachine:mKillProcessMachineIndex:"
-              << mKillProcessMachineIndex << ",killProcesses:false" << endl;
-        }
         //Can't go on to the next machine because the current machine has to wait
         //for a signal or event.
         return;
@@ -682,14 +731,9 @@ void Processchunks::killProcessOnNextMachine() {
   //Clean up when all machines are completed
   //This assumes that msgKillProcessStarted has already been called for every
   //kill request, including the ones that require waiting.
-  if (!mAllKillProcessesHaveStarted && mKillProcessMachineIndex
-      >= mMachineList.size()) {
+  if (!mAllKillProcessesHaveStarted && mKillProcessMachineIndex >= mMachineListSize) {
     mAllKillProcessesHaveStarted = true;
-    if (isVerbose(mDecoratedClassName, __func__)) {
-      *mOutStream << "mAllKillProcessesHaveStarted set to true" << endl;
-    }
-    if (mAllKillProcessesHaveStarted
-        && mProcessesWithUnfinishedKillRequest.isEmpty()) {
+    if (mAllKillProcessesHaveStarted && mProcessesWithUnfinishedKillRequest.isEmpty()) {
       cleanupKillProcesses(false);
     }
   }
@@ -724,14 +768,13 @@ void Processchunks::msgKillProcessDone(ProcessHandler *process) {
         << mProcessesWithUnfinishedKillRequest.size() << " left" << endl;
   }
   mProcessesWithUnfinishedKillRequest.removeAll(process);
+  mKilledProcesses.append(process);
   if (isVerbose(mDecoratedClassName, __func__)) {
     *mOutStream << mDecoratedClassName << ":" << __func__ << ":"
         << mProcessesWithUnfinishedKillRequest.size() << " left" << endl
-        << "mAllKillProcessesHaveStarted:" << mAllKillProcessesHaveStarted
-        << endl;
+        << "mAllKillProcessesHaveStarted:" << mAllKillProcessesHaveStarted << endl;
   }
-  if (mAllKillProcessesHaveStarted
-      && mProcessesWithUnfinishedKillRequest.isEmpty()) {
+  if (mAllKillProcessesHaveStarted && mProcessesWithUnfinishedKillRequest.isEmpty()) {
     cleanupKillProcesses(false);
   }
 }
@@ -773,8 +816,7 @@ void Processchunks::killProcessTimeout() {
         //This call will cause processIndex to be removed from
         //mProcessesWithUnfinishedKillRequest so don't increment index.
         if (isVerbose(mDecoratedClassName, __func__)) {
-          *mOutStream << "Calling cleanupKillProcess from killProcessTimeout"
-              << endl;
+          *mOutStream << "Calling cleanupKillProcess from killProcessTimeout" << endl;
         }
         process->cleanupKillProcess();
       }
@@ -796,6 +838,7 @@ void Processchunks::killProcessTimeout() {
 //If timeout is false and mProcessesWithUnfinishedKillRequest is not empty, exits
 //without cleaning up.
 void Processchunks::cleanupKillProcesses(const bool timeout) {
+  int i;
   if (!mKill) {
     *mOutStream
         << "Warning: Processchunks::cleanupKillProcess called when mKill is false"
@@ -813,7 +856,13 @@ void Processchunks::cleanupKillProcesses(const bool timeout) {
   if (!timeout && !mProcessesWithUnfinishedKillRequest.isEmpty()) {
     return;
   }
-  //clean up
+  //clean up machines and processes
+  for (i = 0; i < mKilledProcesses.size(); i++) {
+    mKilledProcesses.at(i)->cleanupKillProcess();
+  }
+  for (i = 0; i < mMachineListSize; i++) {
+    mMachineList[i].cleanupKillProcess();
+  }
 
   //Kill the timer to clean up.  It will go back on for D and P.
   if (mTimerId != 0) {
@@ -824,15 +873,13 @@ void Processchunks::cleanupKillProcesses(const bool timeout) {
     mTimerId = 0;
   }
   //Not all kill requests completed so send a timeout message to the processes
-  int i;
   for (i = 0; i < mProcessesWithUnfinishedKillRequest.size(); i++) {
     mProcessesWithUnfinishedKillRequest.at(i)->msgKillProcessTimeout();
   }
   //Handle error
   if (mAns == 'E') {
     if (!mSyncing) {
-      *mOutStream << "ERROR: A CHUNK HAS FAILED " << mMaxChunkErr << " times"
-          << endl;
+      *mOutStream << "ERROR: A CHUNK HAS FAILED " << mMaxChunkErr << " times" << endl;
     }
     else {
       *mOutStream << "ERROR: A START, FINISH, OR SYNC CHUNK HAS FAILED" << endl;
@@ -860,8 +907,8 @@ void Processchunks::cleanupKillProcesses(const bool timeout) {
 
   //If not returning to the timer loop, then exit the program.
   *mOutStream << endl
-      << "When you rerun with a different set of machines, be sure to use"
-      << endl << "the -r flag to retain the existing results" << endl;
+      << "When you rerun with a different set of machines, be sure to use" << endl
+      << "the -r flag to retain the existing results" << endl;
   cleanupAndExit(2);
 }
 
@@ -902,15 +949,93 @@ void Processchunks::setupSshOpts() {
 }
 
 //Setup mMachineList with the queue name or the values in mCpuList.
-void Processchunks::setupMachineList() {
+int *Processchunks::initMachineList(QStringList &machineNameList) {
+  int i, j;
+  //Not implementing $IMOD_ALL_MACHINES since no one seems to have used it.
+  if (!mQueue) {
+    //Setup up machine names from mCpuList
+    const QStringList cpuArray = mCpuList.split(",", QString::SkipEmptyParts);
+    /*The number of chunk (.com file) processes that this program can run at
+     one time equals the size of the cpuArray.  The CPU limit is necessary
+     because of the OS's application-level 1024 process pipe limit (this
+     program uses a pipe limit of 1012 for safety).  There are 4 pipes per
+     chunk process because stdout is going to a file (if it wasn't, there would
+     be 6 per process). Keeping the number chunk process pipes under the pipe
+     limit leaves room for running vmstocsh and killing processes.*/
+    const int numCpusLimit = 240;
+    int numCpus = cpuArray.size();
+    if (numCpus > numCpusLimit) {
+      *mOutStream << "WARNING:the number of CPUs exceeds limit (" << numCpusLimit
+          << ").  CPU list will be truncated." << endl;
+      numCpus = numCpusLimit;
+    }
+    mMaxKillPipes = (1012 - (4 * numCpus)) / 6;
+    /*Now handling mixed up names (as in bear,shrek,bear) without extra probes
+     and MachineHandler instances.  Identical machine names are always
+     consolidated into one MachineHandler instance and the MachineHandler
+     instance order is based on where a machine name first appeared in the
+     list.*/
+    //Consolidate list of machines and add up CPUs.
+    int *numCpusList = new int[numCpus];
+    QString machineName;
+    for (i = 0; i < numCpus; i++) {
+      const QString cpuMachine = cpuArray.at(i);
+      if (!machineNameList.contains(cpuMachine)) {
+        machineNameList.append(cpuMachine);
+        numCpusList[machineNameList.size() - 1] = 1;
+      }
+      else {
+        //Increment the number of CPUs in an existing machine.
+        machineName = machineNameList.last();
+        if (machineName == cpuMachine) {
+          numCpusList[machineNameList.size() - 1]++;
+        }
+        else {
+          //Machine names are mixed up (as in bear,bebop,bear).  Find the
+          //correct machine name.
+          for (j = 0; j < machineNameList.size(); j++) {
+            machineName = machineNameList[j];
+            if (machineName == cpuMachine) {
+              numCpusList[j]++;
+              break;
+            }
+          }
+        }
+      }
+    }
+    if (machineNameList.size() < 1) {
+      exitError("No machines specified");
+    }
+    //OLD:Translate a single number into a list of localhost entries
+    //Set the single number as the number of CPUs in the one instance of MachineHandler.
+    if (machineNameList.size() == 1) {
+      bool ok;
+      const long localByNum = machineNameList[0].toLong(&ok);
+      if (ok) {
+        if (localByNum > maxLocalByNum) {
+          exitError("You cannot run more than %d chunks on localhost by "
+            "entering a number", maxLocalByNum);
+        }
+        machineNameList[0] = "localhost";
+        numCpusList[0] = localByNum;
+      }
+    }
+    return numCpusList;
+  }
+  else {
+    return NULL;
+  }
+}
+
+//Setup mMachineList with the queue name or the values in mCpuList.
+void Processchunks::setupMachineList(QStringList &machineNameList, int *numCpusList) {
   int i;
   //Not implementing $IMOD_ALL_MACHINES since no one seems to have used it.
-  MachineHandler *machine;
   if (mQueue) {
     //OLD: For a queue, make a CPU list that is all the same name
     //For a queue, create a single MachineHandler instance.
-    machine = new MachineHandler(*this, mQueueName, mQueue);
-    mMachineList.append(*machine);
+    mMachineList = new MachineHandler[1];
+    mMachineList[0].setup(*this, mQueueName, mQueue);
     //Parse mCpuList into mQueueComand and mQueueParamList
     if (mCpuList.isEmpty()) {
       exitError("Queue command doesn't exist.");
@@ -919,72 +1044,32 @@ void Processchunks::setupMachineList() {
     mQueueCommand = mQueueParamList.takeAt(0);
   }
   else {
-    //Setup up machine names from mCpuList
-    const QStringList cpuArray = mCpuList.split(",", QString::SkipEmptyParts);
-    //Now handling mixed up names (as in bear,bebop,bear) without extra probes.
-    //Processes will now be run based on the first time a machine appears in
-    //the list.
-    //MachineSet temporarily keeps track of machines.
-    QSet<QString> machineSet;
-    for (i = 0; i < cpuArray.size(); i++) {
-      const QString cpuMachine = cpuArray.at(i);
-      if (!machineSet.contains(cpuMachine)) {
-        machineSet.insert(cpuMachine);
-        machine = new MachineHandler(*this, cpuMachine);
-        mMachineList.append(*machine);
-      }
-      else {
-        //Increment the number of CPUs in an existing machine.
-        machine = &mMachineList.last();
-        if (*machine == cpuMachine) {
-          machine->incrementNumCpus();
-        }
-        else {
-          //Machine names are mixed up (as in bear,bebop,bear).
-          for (int j = 0; j < mMachineList.size(); j++) {
-            machine = &(mMachineList)[j];
-            if (*machine == cpuMachine) {
-              machine->incrementNumCpus();
-              break;
-            }
-          }
-        }
+    mMachineListSize = 0;
+    for (i = 0; i < machineNameList.size(); i++) {
+      //When machines where probed, the failures where removed by setting their
+      //name to "".  Ignore removed machines.
+      if (!machineNameList[i].isEmpty()) {
+        mMachineListSize++;
       }
     }
-  }
-  int size = mMachineList.size();
-  if (size < 1) {
-    exitError("No machines specified");
-  }
-  //OLD:Translate a single number into a list of localhost entries
-  //Set the single number as the number of CPUs in the one instance of MachineHandler.
-  if (size == 1) {
-    bool ok;
-    machine = &(mMachineList)[0];
-    const long localByNum = machine->nameToLong(&ok);
-    if (ok) {
-      if (localByNum > maxLocalByNum) {
-        exitError("You cannot run more than %d chunks on localhost by "
-          "entering a number", maxLocalByNum);
-      }
-      machine->setValues("localhost", localByNum);
-    }
-  }
-  if (isVerbose(mDecoratedClassName, __func__)) {
-    *mOutStream << "mMachineList:" << endl;
-  }
-  //Setup machines.  Do this only once after the number of CPUs is finalized.
-  mNumCpus = 0;
-  for (i = 0; i < mMachineList.size(); i++) {
-    machine = &(mMachineList)[i];
-    machine->setup();
-    mNumCpus += machine->getNumCpus();
+    //Setup machine list.  Do this only once after the number of CPUs is finalized.
     if (isVerbose(mDecoratedClassName, __func__)) {
-      *mOutStream << i << ":" << machine->getName() << endl;
+      *mOutStream << "mMachineList:" << endl;
     }
-  }
-  if (isVerbose(mDecoratedClassName, __func__)) {
-    *mOutStream << endl;
+    mNumCpus = 0;
+    mMachineList = new MachineHandler[mMachineListSize];
+    for (i = 0; i < mMachineListSize; i++) {
+      if (!machineNameList[i].isEmpty()) {
+        mMachineList[i].setup(*this, machineNameList[i], numCpusList[i]);
+        mNumCpus += numCpusList[i];
+        if (isVerbose(mDecoratedClassName, __func__)) {
+          *mOutStream << i << ":" << mMachineList[i].getName() << endl;
+        }
+      }
+    }
+    if (isVerbose(mDecoratedClassName, __func__)) {
+      *mOutStream << endl;
+    }
   }
 }
 
@@ -1011,8 +1096,12 @@ void Processchunks::setupHostRoot() {
   }
 }
 
-//Sets up mProcessArray for single file or multi-file processing
-void Processchunks::setupProcessArray() {
+/*Sets up ComFileJobs for single file or multi-file processing.  This
+ functionality should be scaleable because the number of chunks can be very
+ large.  The file name limitations max out the number of chunks at around
+ 100,000.  Coming close to this limit is not unrealistic, especially with PEET
+ processing.*/
+void Processchunks::setupComFileJobs() {
   int i;
   QStringList comFileArray;
   if (isVerbose(mDecoratedClassName, __func__)) {
@@ -1028,8 +1117,7 @@ void Processchunks::setupProcessArray() {
     }
     rootName.append(".com");
     if (!mCurrentDir.exists(rootName)) {
-      exitError("The single command file %s does not exist",
-          rootName.toLatin1().data());
+      exitError("The single command file %s does not exist", rootName.toLatin1().data());
     }
     comFileArray.append(rootName);
   }
@@ -1051,7 +1139,16 @@ void Processchunks::setupProcessArray() {
     QStringList filters;
     //?- is a special character and gets a warning about -trigraphs
     buildFilters("-???.com", "-??\?-sync.com", filters);
-    QStringList list = mCurrentDir.entryList(filters);
+    QStringList list;
+    //Using QDirIterator directly is a more scaleable solution then using
+    //QDir::entryList.
+    QDirIterator *dit = new QDirIterator(mCurrentDir.path(), filters);
+    while (dit->hasNext()) {
+      dit->next();
+      list << dit->fileName();
+    }
+    delete dit;
+    list.sort();
     cleanupList("-\\D{3,3}(-sync){0,1}\\.com", list);
     numNumericCommandFiles += list.size();
     comFileArray += list;
@@ -1059,7 +1156,13 @@ void Processchunks::setupProcessArray() {
     filters.clear();
     list.clear();
     buildFilters("-????.com", "-???\?-sync.com", filters);
-    list = mCurrentDir.entryList(filters);
+    dit = new QDirIterator(mCurrentDir.path(), filters);
+    while (dit->hasNext()) {
+      dit->next();
+      list << dit->fileName();
+    }
+    delete dit;
+    list.sort();
     cleanupList("-\\D{4,4}(-sync){0,1}\\.com", list);
     numNumericCommandFiles += list.size();
     comFileArray += list;
@@ -1067,10 +1170,18 @@ void Processchunks::setupProcessArray() {
     filters.clear();
     list.clear();
     buildFilters("-?????.com", "-????\?-sync.com", filters);
-    list = mCurrentDir.entryList(filters);
+    dit = new QDirIterator(mCurrentDir.path(), filters);
+    while (dit->hasNext()) {
+      dit->next();
+      list << dit->fileName();
+    }
+    delete dit;
+    list.sort();
     cleanupList("-\\D{5,5}(-sync){0,1}\\.com", list);
     numNumericCommandFiles += list.size();
     comFileArray += list;
+    filters.clear();
+    list.clear();
     //Add finish com file
     QString finishComFile(mRootName);
     finishComFile.append("-finish.com");
@@ -1092,10 +1203,11 @@ void Processchunks::setupProcessArray() {
     exitError("There are no command files matching %s-nnn.com", mRootName);
   }
   //Build mJobArray from comFileArray.
-  //set up flag list and set up which chunk to copy the
-  //log from, the first non-sync if any, otherwise just the first one
+  //set up flag list and set up which chunk to copy the log from, the first
+  //non-sync if any, otherwise just the first one.
   mSizeJobArray = comFileArray.size();
   mComFileJobs = new ComFileJobs(comFileArray, mSingleFile);
+  comFileArray.clear();
   for (i = 0; i < mSizeJobArray; i++) {
     if (mComFileJobs->getFlag(i) != CHUNK_SYNC && mCopyLogIndex == -1) {
       //Setting mCopyLogIndex to the first non-sync log
@@ -1108,7 +1220,7 @@ void Processchunks::setupProcessArray() {
 }
 
 //Probe machines by running the "w" command.  Drop machines that don't respond.
-void Processchunks::probeMachines() {
+void Processchunks::probeMachines(QStringList &machineNameList) {
   int i;
   //Remove the old checkfile
   if (mCheckFile != NULL) {
@@ -1146,10 +1258,10 @@ void Processchunks::probeMachines() {
     bool status = -1;
     i = 0;
     if (isVerbose(mDecoratedClassName, __func__)) {
-      *mOutStream << "mMachineList.size():" << mMachineList.size() << endl;
+      *mOutStream << "machineNameList.size():" << machineNameList.size() << endl;
     }
-    while (i < mMachineList.size()) {
-      const QString machName = (mMachineList)[i].getName();
+    while (i < machineNameList.size()) {
+      const QString machName = machineNameList[i];
       QByteArray output;
       if (machName == mHostRoot || machName == "localhost") {
         *mOutStream << machName << endl;
@@ -1159,8 +1271,7 @@ void Processchunks::probeMachines() {
         //Use uname to find out whether machName is a Windows system.  Use
         //imodwincpu instead of w for Windows systems.
         unameParams.replace(mSshOpts.size() + 1, machName);
-        int unameStatus = runGenericProcess(output, w, remoteCommand,
-            unameParams, 0);
+        int unameStatus = runGenericProcess(output, w, remoteCommand, unameParams, 0);
         QStringList *params = &remoteParams;
         if (unameStatus == 0 && !output.isEmpty()) {
           QString unameOutput = output;
@@ -1184,7 +1295,7 @@ void Processchunks::probeMachines() {
           *mOutStream << "status:" << status << endl;
         }
         //Drops failed machine from the machine list
-        mMachineList.removeAt(i);
+        machineNameList[i] = "";
       }
       else {
         i++;
@@ -1241,18 +1352,16 @@ const bool Processchunks::readCheckFile() {
 void Processchunks::exitIfDropped(const int minFail, const int failTot,
     const int assignTot) {
   if (isVerbose(mDecoratedClassName, __func__, 2)) {
-    *mOutStream << "minFail=" << minFail << ",failTot:" << failTot
-        << ",assignTot:" << assignTot << ",mDropCrit:" << mDropCrit
-        << ",mNumCpus:" << mNumCpus << ",mNumDone:" << mNumDone << ",mPausing:"
-        << mPausing << ",mSyncing:" << mSyncing << ",mQueue:" << mQueue
-        << ",mMachineList.size():" << mMachineList.size() << endl;
+    *mOutStream << "minFail=" << minFail << ",failTot:" << failTot << ",assignTot:"
+        << assignTot << ",mDropCrit:" << mDropCrit << ",mNumCpus:" << mNumCpus
+        << ",mNumDone:" << mNumDone << ",mPausing:" << mPausing << ",mSyncing:"
+        << mSyncing << ",mQueue:" << mQueue << ",mMachineListSize:" << mMachineListSize
+        << endl;
   }
   if (minFail >= mDropCrit) {
-    *mOutStream << "ERROR: ALL MACHINES HAVE BEEN DROPPED DUE TO FAILURES"
-        << endl;
+    *mOutStream << "ERROR: ALL MACHINES HAVE BEEN DROPPED DUE TO FAILURES" << endl;
     if (isVerbose(mDecoratedClassName, __func__)) {
-      *mOutStream << "minFail:" << minFail << ",mDropCrit:" << mDropCrit
-          << endl;
+      *mOutStream << "minFail:" << minFail << ",mDropCrit:" << mDropCrit << endl;
     }
     if (!mQueue) {
       cleanupAndExit(1);
@@ -1263,40 +1372,33 @@ void Processchunks::exitIfDropped(const int minFail, const int failTot,
     }
   }
   if (mPausing && assignTot == 0) {
-    *mOutStream
-        << "All previously running chunks are done - exiting as requested"
-        << endl << "Rerun with -r to resume and retain existing results"
-        << endl;
+    *mOutStream << "All previously running chunks are done - exiting as requested"
+        << endl << "Rerun with -r to resume and retain existing results" << endl;
     cleanupAndExit(2);
   }
   if (assignTot == 0 && mNumDone == 0) {
     if (failTot == mNumCpus) {
-      *mOutStream
-          << "ERROR: NO CHUNKS HAVE WORKED AND EVERY MACHINE HAS FAILED"
-          << endl;
+      *mOutStream << "ERROR: NO CHUNKS HAVE WORKED AND EVERY MACHINE HAS FAILED" << endl;
       if (isVerbose(mDecoratedClassName, __func__)) {
-        *mOutStream << "failTot:" << failTot << ",mNumCpus:" << mNumCpus
-            << endl;
+        *mOutStream << "failTot:" << failTot << ",mNumCpus:" << mNumCpus << endl;
       }
       cleanupAndExit(1);
     }
     //Handle the case where the start.com cannot be run.
     else if (mSyncing) {
       if (!mQueue) {
-        if (failTot == mMachineList.size()) {
-          *mOutStream
-              << "ERROR: NO CHUNKS HAVE WORKED AND EVERY MACHINE HAS FAILED"
+        if (failTot == mMachineListSize) {
+          *mOutStream << "ERROR: NO CHUNKS HAVE WORKED AND EVERY MACHINE HAS FAILED"
               << endl;
           if (isVerbose(mDecoratedClassName, __func__)) {
             *mOutStream << "failTot:" << failTot << ",mMachineList.size():"
-                << mMachineList.size() << endl;
+                << mMachineListSize << endl;
           }
           cleanupAndExit(1);
         }
       }
       else if (failTot == 1 && minFail == mQueue) {
-        *mOutStream
-            << "ERROR: NO CHUNKS HAVE WORKED AND EVERY MACHINE HAS FAILED"
+        *mOutStream << "ERROR: NO CHUNKS HAVE WORKED AND EVERY MACHINE HAS FAILED"
             << endl;
         if (isVerbose(mDecoratedClassName, __func__)) {
           *mOutStream << "failTot:" << failTot << ",mQueue:" << mQueue << endl;
@@ -1311,7 +1413,7 @@ void Processchunks::exitIfDropped(const int minFail, const int failTot,
 //When it is the first chunk done, issue drop messages
 //copy the log for the first non-sync chunk
 //Return true if all chunks are done
-const bool Processchunks::handleChunkDone(MachineHandler *machine,
+const bool Processchunks::handleChunkDone(MachineHandler &machine,
     ProcessHandler *process, const int jobIndex) {
   int i;
   //If it is DONE, then set flag to done and deassign
@@ -1319,14 +1421,14 @@ const bool Processchunks::handleChunkDone(MachineHandler *machine,
   //gave a previous chunk error
   process->setFlag(CHUNK_DONE);
   process->invalidateJob();
-  machine->setFailureCount(0);
+  machine.setFailureCount(0);
   mSyncing = 0;
   if (process->getNumChunkErr() != 0) {
-    machine->setChunkErred(false);
+    machine.setChunkErred(false);
   }
   mNumDone++;
-  *mOutStream << process->getComFileName() << " finished on "
-      << machine->getName() << endl;
+  *mOutStream << process->getComFileName() << " finished on " << machine.getName()
+      << endl;
   process->printWarnings();
   if (mSingleFile) {
     if (!mSkipProbe) {
@@ -1337,10 +1439,10 @@ const bool Processchunks::handleChunkDone(MachineHandler *machine,
   //If this is the first one done, issue drop messages now
   //on ones that chunk errored and exceeded failure count
   if (!mAnyDone) {
-    for (i = 0; i < mMachineList.size(); i++) {
-      MachineHandler*m = &(mMachineList)[i];
-      if (m->getFailureCount() >= mDropCrit && m->isChunkErred()) {
-        *mOutStream << "Dropping " << m->getName() << endl;
+    for (i = 0; i < mMachineListSize; i++) {
+      if (mMachineList[i].getFailureCount() >= mDropCrit
+          && mMachineList[i].isChunkErred()) {
+        *mOutStream << "Dropping " << mMachineList[i].getName() << endl;
       }
     }
   }
@@ -1357,8 +1459,8 @@ const bool Processchunks::handleChunkDone(MachineHandler *machine,
     if (!rootLog.open(QIODevice::WriteOnly)) {
       handleFileSystemBug();
       if (!rootLog.open(QIODevice::WriteOnly)) {
-        *mOutStream << "Warning: Unable to write copied chunk log "
-            << rootLogName << endl;
+        *mOutStream << "Warning: Unable to write copied chunk log " << rootLogName
+            << endl;
         return false;
       }
     }
@@ -1378,8 +1480,8 @@ const bool Processchunks::handleChunkDone(MachineHandler *machine,
 //Looks for and print an error message in log file.
 //If the chunk has errored too many times, set mAns to E and kill jobs
 //Return false the chunk has errored too many times
-const bool Processchunks::handleLogFileError(QString &errorMess,
-    MachineHandler *machine, ProcessHandler *process) {
+const bool Processchunks::handleLogFileError(QString &errorMess, MachineHandler &machine,
+    ProcessHandler *process) {
   process->getErrorMessageFromLog(errorMess);
   return handleError(&errorMess, machine, process);
 }
@@ -1387,16 +1489,15 @@ const bool Processchunks::handleLogFileError(QString &errorMess,
 //Print an error message.
 //If the chunk has errored too many times, set mAns to E and kill jobs
 //Return false the chunk has errored too many times
-const bool Processchunks::handleError(const QString *errorMess,
-    MachineHandler *machine, ProcessHandler *process) {
+const bool Processchunks::handleError(const QString *errorMess, MachineHandler &machine,
+    ProcessHandler *process) {
   int numErr;
   process->incrementNumChunkErr();
   numErr = process->getNumChunkErr();
-  machine->setChunkErred(true);
+  machine.setChunkErred(true);
   //Give up if the chunk errored too many  times: and
   //for a sync chunk that is twice or once if one machine
-  if (numErr >= mMaxChunkErr || (mSyncing && (mMachineList.size() == 1
-      || numErr >= 2))) {
+  if (numErr >= mMaxChunkErr || (mSyncing && (mMachineListSize == 1 || numErr >= 2))) {
     process->printTooManyErrorsMessage(numErr);
     if (errorMess != NULL && !errorMess->isEmpty()) {
       *mOutStream << *errorMess << endl;
@@ -1415,7 +1516,7 @@ const bool Processchunks::handleError(const QString *errorMess,
 //Handle com not started yet
 //Handle log doen't exist and timeout - drop
 void Processchunks::handleComProcessNotDone(bool &dropout, QString &dropMess,
-    MachineHandler *machine, ProcessHandler *process) {
+    MachineHandler &machine, ProcessHandler *process) {
   if (mQueue && !process->qidFileExists()) {
     //For a queue, the qid file should be there
     dropout = true;
@@ -1430,7 +1531,7 @@ void Processchunks::handleComProcessNotDone(bool &dropout, QString &dropMess,
     if (process->getSshError(dropMess)) {
       //A cd or ssh error is very serious - stop using this machine.
       dropout = true;
-      machine->setFailureCount(mDropCrit);
+      machine.setFailureCount(mDropCrit);
     }
     if (!dropout && process->isFinishedSignalReceived()) {
       dropout = true;
@@ -1449,9 +1550,9 @@ void Processchunks::handleComProcessNotDone(bool &dropout, QString &dropMess,
 //remove the assignment, mark chunk as to be done,
 //skip this machine on this round
 void Processchunks::handleDropOut(bool &noChunks, QString &dropMess,
-    MachineHandler *machine, ProcessHandler *process, QString &errorMess) {
-  *mOutStream << process->getComFileName() << " failed on "
-      << machine->getName() << " - need to restart" << endl;
+    MachineHandler &machine, ProcessHandler *process, QString &errorMess) {
+  *mOutStream << process->getComFileName() << " failed on " << machine.getName()
+      << " - need to restart" << endl;
   if (!errorMess.isEmpty()) {
     *mOutStream << errorMess << endl;
   }
@@ -1461,8 +1562,8 @@ void Processchunks::handleDropOut(bool &noChunks, QString &dropMess,
   }
   process->invalidateJob();
   noChunks = false;
-  machine->incrementFailureCount();
-  if (machine->getFailureCount() >= mDropCrit) {
+  machine.incrementFailureCount();
+  if (machine.getFailureCount() >= mDropCrit) {
     if (errorMess.isEmpty()) {
       process->getErrorMessageFromOutput(errorMess);
       if (!errorMess.isEmpty()) {
@@ -1471,42 +1572,41 @@ void Processchunks::handleDropOut(bool &noChunks, QString &dropMess,
     }
     if (dropMess.isEmpty()) {
       dropMess = "it failed (with ";
-      if (!machine->isChunkErred()) {
+      if (!machine.isChunkErred()) {
         dropMess.append("time out");
       }
       else {
         dropMess.append("chunk error");
       }
       dropMess.append(") %1 times in a row");
-      dropMess = dropMess.arg(machine->getFailureCount());
+      dropMess = dropMess.arg(machine.getFailureCount());
     }
-    if (!mAnyDone && machine->isChunkErred()) {
+    if (!mAnyDone && machine.isChunkErred()) {
       *mOutStream << "Holding off on using ";
     }
     else {
       *mOutStream << "Dropping ";
     }
-    *mOutStream << machine->getName() << " - " << dropMess << endl;
+    *mOutStream << machine.getName() << " - " << dropMess << endl;
   }
 }
 
 //See if a process can be run by the current machine
 //Return false when need to break out of the loop
-const bool Processchunks::checkChunk(int &runFlag, bool &noChunks,
-    int &undoneIndex, bool &foundChunks, bool &chunkOk,
-    MachineHandler *machine, const int jobIndex, const int chunkErrTot) {
+const bool Processchunks::checkChunk(int &runFlag, bool &noChunks, int &undoneIndex,
+    bool &foundChunks, bool &chunkOk, MachineHandler &machine, const int jobIndex,
+    const int chunkErrTot) {
   runFlag = mComFileJobs->getFlag(jobIndex);
   if (isVerbose(mDecoratedClassName, __func__, 2)) {
-    *mOutStream << mDecoratedClassName << ":" << __func__ << ":jobIndex:"
-        << jobIndex << ",runFlag:" << runFlag << endl;
+    *mOutStream << mDecoratedClassName << ":" << __func__ << ":jobIndex:" << jobIndex
+        << ",runFlag:" << runFlag << endl;
   }
   //But if the next com is a sync, record number and break loop
   if (runFlag == CHUNK_SYNC && !mSyncing) {
     mNextSyncIndex = jobIndex;
     if (isVerbose(mDecoratedClassName, __func__)) {
-      *mOutStream << mDecoratedClassName << ":" << __func__
-          << ":mNextSyncIndex:" << mNextSyncIndex << ",jobIndex:" << jobIndex
-          << endl;
+      *mOutStream << mDecoratedClassName << ":" << __func__ << ":mNextSyncIndex:"
+          << mNextSyncIndex << ",jobIndex:" << jobIndex << endl;
     }
     if (!foundChunks) {
       noChunks = true;
@@ -1521,17 +1621,17 @@ const bool Processchunks::checkChunk(int &runFlag, bool &noChunks,
     if (isVerbose(mDecoratedClassName, __func__, 2)) {
       *mOutStream << mDecoratedClassName << ":" << __func__ << ":"
           << mComFileJobs->getComFileName(jobIndex) << ":runFlag:" << runFlag
-          << ":undoneIndex:" << undoneIndex << ",processIndex:" << jobIndex
-          << endl << ",mProcessArray[processIndex].getNumChunkErr():"
-          << mComFileJobs->getNumChunkErr(jobIndex)
-          << ",machine->isChunkErred():" << machine->isChunkErred() << endl
-          << ",chunkErrTot:" << chunkErrTot << ",mNumCpus:" << mNumCpus << endl;
+          << ":undoneIndex:" << undoneIndex << ",processIndex:" << jobIndex << endl
+          << ",mProcessArray[processIndex].getNumChunkErr():"
+          << mComFileJobs->getNumChunkErr(jobIndex) << ",machine->isChunkErred():"
+          << machine.isChunkErred() << endl << ",chunkErrTot:" << chunkErrTot
+          << ",mNumCpus:" << mNumCpus << endl;
     }
     foundChunks = true;
     //Skip a chunk if it has errored, if this machine has given chunk
     //error, and not all machines have done so
     chunkOk = true;
-    if (mComFileJobs->getNumChunkErr(jobIndex) > 0 && machine->isChunkErred()
+    if (mComFileJobs->getNumChunkErr(jobIndex) > 0 && machine.isChunkErred()
         && chunkErrTot < mNumCpus) {
       chunkOk = false;
       if (mSyncing) {
@@ -1543,19 +1643,21 @@ const bool Processchunks::checkChunk(int &runFlag, bool &noChunks,
 }
 
 //Build the .csh file and run the process
-void Processchunks::runProcess(MachineHandler *machine,
-    ProcessHandler *process, const int jobIndex) {
+void Processchunks::runProcess(MachineHandler &machine, ProcessHandler *process,
+    const int jobIndex) {
   if (isVerbose(mDecoratedClassName, __func__)) {
-    *mOutStream << mDecoratedClassName << ":" << __func__ << ":jobIndex:"
-        << jobIndex << endl;
+    *mOutStream << mDecoratedClassName << ":" << __func__ << ":jobIndex:" << jobIndex
+        << endl;
   }
+  //Lock the pipe counter until the process either starts or fails to start.
+  //Since there is a delay between
   process->setJob(jobIndex);
   process->resetPausing();
   process->setFlag(CHUNK_ASSIGNED);
   process->backupLog();
   process->removeProcessFiles();
-  *mOutStream << "Running " << process->getComFileName() << " on "
-      << machine->getName() << " ..." << endl;
+  *mOutStream << "Running " << process->getComFileName() << " on " << machine.getName()
+      << " ..." << endl;
   makeCshFile(process);
   //If running a sync, set the syncing flag to 2
   if (mSyncing) {
@@ -1601,8 +1703,7 @@ const int Processchunks::extractVersion(const QString &versionString) {
   return iversion;
 }
 
-void Processchunks::buildFilters(const char *reg, const char *sync,
-    QStringList &filters) {
+void Processchunks::buildFilters(const char *reg, const char *sync, QStringList &filters) {
   int i;
   QString filter1(mRootName);
   filter1.append(reg);
@@ -1632,9 +1733,8 @@ void Processchunks::cleanupList(const char *remove, QStringList &list) {
 //Runs process, outputs first numLinesToPrint lines, and returns the exit code
 //If numLinesToPrint to is zero, no lines with be printed.
 //Places stdout into the output parameter.
-const int Processchunks::runGenericProcess(QByteArray &output,
-    QProcess &process, const QString &command, const QStringList &params,
-    const int numLinesToPrint) {
+const int Processchunks::runGenericProcess(QByteArray &output, QProcess &process,
+    const QString &command, const QStringList &params, const int numLinesToPrint) {
   int i;
   if (isVerbose(mDecoratedClassName, __func__)) {
     *mOutStream << "command:" << command << " " << params.join(" ") << endl;
@@ -1714,12 +1814,12 @@ void Processchunks::makeCshFile(ProcessHandler *process) {
     }
     else {
       *mOutStream << "Warning: vmstocsh conversion of " << comFileName
-          << " timed out after 30 seconds: "
-          << mVmstocsh->readAllStandardError().data() << endl;
+          << " timed out after 30 seconds: " << mVmstocsh->readAllStandardError().data()
+          << endl;
     }
   }
-  writeStream << mVmstocsh->readAllStandardOutput().data()
-      << "echo CHUNK DONE >> " << process->getLogFileName() << endl;
+  writeStream << mVmstocsh->readAllStandardOutput().data() << "echo CHUNK DONE >> "
+      << process->getLogFileName() << endl;
 
   cshFile.close();
 }
@@ -1741,8 +1841,7 @@ const bool Processchunks::isVerbose(const QString &verboseClass,
   }
   if (!mVerboseFunctionList.isEmpty() && print) {
     if (isVerbose(mDecoratedClassName, __func__, 1, false)) {
-      *mOutStream << verboseClass << "," << verboseFunction << "," << verbosity
-          << endl;
+      *mOutStream << verboseClass << "," << verboseFunction << "," << verbosity << endl;
     }
   }
   if (!verboseClass.endsWith(mVerboseClass, Qt::CaseInsensitive)) {
@@ -1752,8 +1851,7 @@ const bool Processchunks::isVerbose(const QString &verboseClass,
     return true;
   }
   for (i = 0; i < mVerboseFunctionList.size(); i++) {
-    if (verboseFunction.endsWith(mVerboseFunctionList.at(i),
-        Qt::CaseInsensitive)) {
+    if (verboseFunction.endsWith(mVerboseFunctionList.at(i), Qt::CaseInsensitive)) {
       return true;
     }
   }
@@ -1762,6 +1860,12 @@ const bool Processchunks::isVerbose(const QString &verboseClass,
 
 /*
  $Log$
+ Revision 1.52  2011/01/05 20:49:42  sueh
+ bug# 1426 Moved one-line functions to .h file.  Creating on instance of
+ ComFileJobs instead of an array of ComFileJob instances.  Moved the array
+ into ComFileJobs.  Removed the extra looping on sync'ing because it is
+ unnecessary.
+
  Revision 1.51  2011/01/02 20:49:10  sueh
  bug# 1426 Removed unistd.h include, which is unnecessary and isn't
  available in Windows.
