@@ -1,17 +1,36 @@
 /*
- *  Main class for processchunks - an application to process command files on
- *  multiple machines.
+ *  Main class for processchunks - a batch application that runs command
+ *  file(s) on one or more machines or a single queue.
  *
- *  Contains macros and all include files for the application.  Header files
- *  for the other processchunks classes should only be included in this class.
+ *  This application was derived directly from the processchunks script.  The
+ *  algorithm for running processes is basically the same (process status is
+ *  checked at intervals).  The kill process functionality is different from
+ *  processchunks and is signal based - only using a timer for timeout
+ *  situations.
  *
- *  Contains the main timer for processchunks.  Assigns and manages chunks run-
- *  ning on multiple computers (or a queue).  Kills chunks.
+ *  Because there is so much class interdependency, this file includes the
+ *  header files for all the classes in this application.  Include this file in
+ *  all the .cpp files in this application.  This makes including the class's
+ *  .h file unnecessary.
  *
- *  Contains a list of MachineHandlers  based on the description of the
- *  computer(s) or a queue that was passed to the application.
+ *  Contains the main timer for processchunks.  Assigns and manages chunks
+ *  (.com file processes) running on multiple computers (or a queue).  Handles
+ *  user requests via an interrupt mechanism (Esc+Enter) on non-Windows
+ *  environments.  Also monitors a file (default name is processchunks.input)
+ *  to get user requests.
  *
- *  Contains a ComFileJobs instance.
+ *  Ignores Ctrl-C, which was the interrupt mechanism in the original
+ *  processchunks script, because the Ctrl-C causes the QProcesses to stop -
+ *  even when it is intercepted by the program.  Losing the QProcess's means
+ *  that the application cannot receive signals from the actual .com processes,
+ *  which are not effected by the Ctrl-C and are still running on other
+ *  computers.
+ *
+ *  Contains a list of MachineHandlers based on the description of the
+ *  computer(s) or the queue.
+ *
+ *  Contains a ComFileJobs instance based on the description of the chunk file
+ *  names (a prefix for the .com files).
  *
  *  Author: Sue Held
  *
@@ -28,13 +47,12 @@
 
 #include <QApplication>
 #include <QDir>
-//processchunks.h is the only place where all of the headers for the
-//processchunks classes should be included.  Include processchunks.h instead of
-//the class header in all the processchunks classes' .cpp files.
+//All processchunks application header files should be included here.
+#include "comfilejobs.h"
 #include "processhandler.h"
 #include "machinehandler.h"
-#include "comfilejobs.h"
 
+//Returns the name of the currently running function.
 #ifndef __func__
 #define __func__ __FUNCTION__
 #endif
@@ -79,8 +97,8 @@ public:
     return mQueueParamList;
   }
   ;
-  inline const bool isVerbose(const QString &verboseClass,
-      const QString verboseFunction, const int verbosity = 1) {
+  inline const bool isVerbose(const QString &verboseClass, const QString verboseFunction,
+      const int verbosity = 1) {
     return isVerbose(verboseClass, verboseFunction, verbosity, true);
   }
   ;
@@ -129,6 +147,18 @@ public:
     return mComFileJobs;
   }
   ;
+  void killSignal();
+  inline const bool pipesAvailable() {
+    return mMaxKillPipes - mKillPipes >= 6;
+  }
+  ;
+  inline void incrementPipes() {
+    mKillPipes += 6;
+  }
+  inline void decrementPipes() {
+    mKillPipes -= 6;
+  }
+  ;
 
 public slots:
   //Single shot timer slot
@@ -145,29 +175,27 @@ private:
   void buildFilters(const char *reg, const char *sync, QStringList &filters);
   void cleanupList(const char *remove, QStringList &list);
   const int runGenericProcess(QByteArray &output, QProcess &process,
-      const QString &command, const QStringList &params,
-      const int numLinesToPrint);
+      const QString &command, const QStringList &params, const int numLinesToPrint);
   void setupSshOpts();
-  void setupMachineList();
+  int * initMachineList(QStringList &machineNameList);
+  void setupMachineList(QStringList &machineNameList, int *numCpusList);
   void setupHostRoot();
-  void setupProcessArray();
-  void probeMachines();
+  void setupComFileJobs();
+  void probeMachines(QStringList &machineNameList);
   const bool readCheckFile();
   void exitIfDropped(const int minFail, const int failTot, const int assignTot);
-  const bool handleChunkDone(MachineHandler *machine, ProcessHandler *process,
+  const bool handleChunkDone(MachineHandler &machine, ProcessHandler *process,
       const int jobIndex);
   const bool
-  handleLogFileError(QString &errorMess, MachineHandler *machine,
+      handleLogFileError(QString &errorMess, MachineHandler &machine,
+          ProcessHandler *process);
+  void handleComProcessNotDone(bool &dropout, QString &dropMess, MachineHandler &machine,
       ProcessHandler *process);
-  void handleComProcessNotDone(bool &dropout, QString &dropMess,
-      MachineHandler *machine, ProcessHandler *process);
-  void handleDropOut(bool &noChunks, QString &dropMess,
-      MachineHandler *machine, ProcessHandler *process, QString &errorMess);
-  const bool checkChunk(int &runFlag, bool &noChunks, int &undone,
-      bool &foundChunks, bool &chunkOk, MachineHandler *machine,
-      const int jobIndex, const int chunkErrTot);
-  void runProcess(MachineHandler *machine, ProcessHandler *process,
-      const int jobIndex);
+  void handleDropOut(bool &noChunks, QString &dropMess, MachineHandler &machine,
+      ProcessHandler *process, QString &errorMess);
+  const bool checkChunk(int &runFlag, bool &noChunks, int &undone, bool &foundChunks,
+      bool &chunkOk, MachineHandler &machine, const int jobIndex, const int chunkErrTot);
+  void runProcess(MachineHandler &machine, ProcessHandler *process, const int jobIndex);
   int escapeEntered();
   void handleInterrupt();
   void cleanupAndExit(int exitCode = 0);
@@ -175,17 +203,17 @@ private:
   void killProcesses(QStringList *dropList = NULL);
   void startTimers();
   void cleanupKillProcesses(const bool timeout);
-  const bool handleError(const QString *errorMess, MachineHandler *machine,
+  const bool handleError(const QString *errorMess, MachineHandler &machine,
       ProcessHandler *process);
-  const bool isVerbose(const QString &verboseClass,
-      const QString verboseFunction, const int verbosity, const bool print);
+  const bool isVerbose(const QString &verboseClass, const QString verboseFunction,
+      const int verbosity, const bool print);
 
-  int mSizeJobArray;
+  int mSizeJobArray, mMachineListSize;
   ComFileJobs *mComFileJobs;
-  QList<MachineHandler> mMachineList;
+  MachineHandler *mMachineList;
   QTextStream *mOutStream;
 
-  //params
+  //parameters
   int mRetain, mJustGo, mNice, mMillisecSleep, mDropCrit, mQueue, mSingleFile,
       mMaxChunkErr, mVerbose;
   bool mSkipProbe;
@@ -201,18 +229,19 @@ private:
   QDir mCurrentDir;
 
   //loop
-  int mNumDone, mLastNumDone, mHoldCrit, mTimerId, mFirstUndoneIndex,
-      mNextSyncIndex, mSyncing;
+  int mNumDone, mLastNumDone, mHoldCrit, mTimerId, mFirstUndoneIndex, mNextSyncIndex,
+      mSyncing;
   bool mPausing, mAnyDone;
   char mAns;
 
   //killing processes
   bool mKill, mAllKillProcessesHaveStarted;
-  int mKillProcessMachineIndex, mKillCounter;
+  int mKillProcessMachineIndex, mKillCounter, mKillPipes, mMaxKillPipes;
   QList<ProcessHandler*> mProcessesWithUnfinishedKillRequest;
+  QList<ProcessHandler*> mKilledProcesses;
   QStringList mDropList;
 
-  //handling file system bug
+  //running processes
   QProcess *mLsProcess, *mVmstocsh;
   QStringList mLsParamList;
 };
@@ -221,4 +250,9 @@ private:
 
 /*
  $Log$
+ Revision 1.24  2011/01/05 20:50:22  sueh
+ bug# 1426 Moved one-line functions to .h file.  Creating on instance of
+ ComFileJobs instead of an array of ComFileJob instances.  Moved the array
+ into ComFileJobs.  Fixed the includes.
+
  */
