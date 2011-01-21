@@ -1058,9 +1058,11 @@ void Processchunks::setupMachineList(QStringList &machineNameList, int *numCpusL
     }
     mNumCpus = 0;
     mMachineList = new MachineHandler[mMachineListSize];
-    for (i = 0; i < mMachineListSize; i++) {
+    int newIndex =0;
+    for (i = 0; i < machineNameList.size(); i++) {
       if (!machineNameList[i].isEmpty()) {
-        mMachineList[i].setup(*this, machineNameList[i], numCpusList[i]);
+        mMachineList[newIndex].setup(*this, machineNameList[i], numCpusList[i]);
+        newIndex++;
         mNumCpus += numCpusList[i];
         if (isVerbose(mDecoratedClassName, __func__)) {
           *mOutStream << i << ":" << mMachineList[i].getName() << endl;
@@ -1297,9 +1299,7 @@ void Processchunks::probeMachines(QStringList &machineNameList) {
         //Drops failed machine from the machine list
         machineNameList[i] = "";
       }
-      else {
-        i++;
-      }
+      i++;
     }
     if (isVerbose(mDecoratedClassName, __func__)) {
       *mOutStream << "end probe machines" << endl;
@@ -1860,6 +1860,11 @@ const bool Processchunks::isVerbose(const QString &verboseClass,
 
 /*
  $Log$
+ Revision 1.53  2011/01/21 00:15:57  sueh
+ bug# 1426 Changed mMachineList to an array.  Divided setupMachineList
+ to initMachineList and setupMachineList.  Added killSignal and
+ setupComFilesJobs.
+
  Revision 1.52  2011/01/05 20:49:42  sueh
  bug# 1426 Moved one-line functions to .h file.  Creating on instance of
  ComFileJobs instead of an array of ComFileJob instances.  Moved the array
