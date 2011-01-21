@@ -1,8 +1,8 @@
 /*
  *  Runs a process, receives and handles process signals, kills the process.
  *
- *  Associated with a single .com file (chunk) using an index to an array
- *  in ComFileJobs.  Can be reset to change chunks.
+ *  Associated with one .com file (chunk) at a time, using an index to the
+ *  array in ComFileJobs.
  *
  *  Author: Sue Held
  *
@@ -20,11 +20,14 @@
 class Processchunks;
 class MachineHandler;
 
-#include <QFile>
-#include <QTextStream>
-#include <QProcess>
-#include <QTime>
 #include "b3dutil.h"
+#include <QProcess>
+#include <QTextStream>
+#include <QTime>
+#include <QFile>
+
+#define CHUNK_PROCESS_PIPES 4
+#define KILL_CHUNK_PROCESS_PIPES 6
 
 class ProcessHandler: public QObject {
 Q_OBJECT
@@ -61,7 +64,7 @@ public:
   }
   ;
   const int getFlag();
-  void runProcess(MachineHandler *machine);
+  void runProcess(MachineHandler &machine);
   const bool killProcess();
   void continueKillProcess(const bool asynchronous);
   void msgKillProcessTimeout();
@@ -90,19 +93,23 @@ public:
     return mValidJob;
   }
   ;
+  void cleanupKillProcess();
+  void killSignal();
+  const bool isPidEmpty();
+  inline const bool isKillFinished() {
+    return mKillFinishedSignalReceived && mFinishedSignalReceived;
+  }
+  ;
+  void resetKill();
+  void setJobNotDone();
+  void startKill();
 
 public slots:
   void handleError(const QProcess::ProcessError error);
-  inline void handleStarted() {
-    mStartedSignalReceived = true;
-  }
-  ;
   void
   handleFinished(const int exitCode, const QProcess::ExitStatus exitStatus);
   void handleReadyReadStandardError();
-  void handleKillFinished(const int exitCode,
-      const QProcess::ExitStatus exitStatus);
-  void cleanupKillProcess();
+  void handleKillFinished(const int exitCode, const QProcess::ExitStatus exitStatus);
 
 protected:
   void timerEvent(const QTimerEvent *e);
@@ -135,12 +142,11 @@ private:
   //Kill process variables
   MachineHandler *mMachine;
   QProcess *mKillProcess;
-  int mComFileJobIndex, mPidTimerId;
-  bool mKill, mRanContinueKillProcess, mLocalKill;
+  int mComFileJobIndex, mPidTimerId, mKillCounter;
+  bool mKill, mRanContinueKillProcess, mLocalKill, mKillStarted;
 
   //Signal variables
-  bool mErrorSignalReceived, mStartedSignalReceived, mFinishedSignalReceived,
-      mKillFinishedSignalReceived;
+  bool mErrorSignalReceived, mFinishedSignalReceived, mKillFinishedSignalReceived;
   int mProcessError, mExitCode, mExitStatus;
 };
 
@@ -148,4 +154,9 @@ private:
 
 /*
  $Log$
+ Revision 1.15  2011/01/05 20:53:28  sueh
+ bug# 1426 Instead of getting a ComFileJob instance, get an index and
+ refer to the ComFileJobs instance in Processchunks.  Moved one-line
+ functions to the header.  Added mValidJob.
+
  */
