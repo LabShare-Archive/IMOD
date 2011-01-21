@@ -7,6 +7,9 @@
  *  $Id$
  *
  * $Log$
+ * Revision 4.10  2010/03/30 02:22:31  mast
+ * Added to thread limit comment
+ *
  * Revision 4.9  2009/01/15 16:33:18  mast
  * Qt 4 port
  *
@@ -26,14 +29,10 @@
 #define IMODV_ISOSURFACE_H
 
 typedef struct __imodv_struct ImodvApp;
-
-#define IMODV_CENTER_VOLUME 1
-#define IMODV_VIEW_BOX (1 << 1)
-#define IMODV_VIEW_USER_MODEL (1 << 2)
-#define IMODV_VIEW_ISOSURFACE (1 << 3)
-#define IMODV_LINK_XYZ (1 << 4)
-#define IMODV_DELETE_PIECES (1 << 5)
-
+typedef unsigned int Index;
+extern void smooth_vertex_positions(float *varray, Index nv,
+    const Index *tarray, Index nt,
+    float smoothing_factor, int smoothing_iterations);
 
 // Based on timing tests in May 2008, confirmed on Nehalem March 2010
 #define MAX_THREADS 4
@@ -57,8 +56,13 @@ class HistWidget;
 struct ViewInfo;
 struct Mod_Point;
 struct Mod_Mesh;
+struct Mod_Contour;
 class IsoThread;
 class Surface_Pieces;
+typedef struct {
+  int ix, iy, iz;
+} Point3D;
+
 
 class ImodvIsosurface : public DialogFrame
 {
@@ -67,54 +71,45 @@ class ImodvIsosurface : public DialogFrame
  public:
   ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const char *name = NULL) ;
   ~ImodvIsosurface();
-  void updateCoords();
+  void updateCoords(bool setLocal);
   void setBoundingBox();
   void setBoundingObj();
   void setViewCenter();
   int getCurrStackIdx();
-  float fillVolumeArray();
-  void  fillBinVolume();
   void setIsoObj();
-  void smoothMesh(struct Mod_Mesh *, int);
-  void filterMesh(bool);
-
-  QCheckBox *mViewIso, *mViewModel, *mViewBoxing, *mCenterVolume;
-  QCheckBox *mLinkXYZ, *mDeletePieces; 
-  MultiSlider *mSliders;
-  HistWidget *mHistPanel;
-  MultiSlider *mHistSlider;
-  QPushButton *mUseRubber;
-  QSpinBox *mSmoothBox;
-  QSpinBox *mBinningBox;
-  QSpinBox *mPiecesBox;
+  void fillAndProcessVols(bool setThresh);
+  void resizeToContours(bool draw);
+  int getBinning();
 
   int mLocalX;
   int mLocalY;
   int mLocalZ;
-  int mBoxObjNum;
+  int mMaskObj;
+  int mMaskCont;
+  int mMaskPsize;
   int mCurrTime;
   int mBoxOrigin[3];
   int mBoxEnds[3];
-  int mBinBoxEnds[3];
-  int mBoxSize[3];
-  int mBinBoxSize[3];
-  int mSubZEnds[MAX_THREADS+1];
   unsigned char *mVolume;
-  unsigned char *mBinVolume;
   int mCurrStackIdx; // wihich stack is current;
   std::vector<float> mStackThresholds;
   float mThreshold; //threshold for the current stack;
+  std::vector<int> mStackOuterLims;
+  int mOuterLimit;
+  int mBinBoxSize[3];
+  int mSubZEnds[MAX_THREADS+1];
+  unsigned char *mBinVolume;
   int mNThreads;
-  int mInitNThreads;
-  Surface_Pieces *mSurfPieces;
+
 
   public slots:
     void viewIsoToggled(bool state) ;
     void viewModelToggled(bool state) ;
     void viewBoxingToggled(bool state);
     void centerVolumeToggled(bool state);
-    void deletePiecesToggled(bool);
-    void linkXYZToggled(bool);
+    void deletePiecesToggled(bool state);
+    void linkXYZToggled(bool state);
+    void closeFacesToggled(bool state);
     void histChanged(int, int, bool );
     void iterNumChanged(int);
     void binningNumChanged(int);
@@ -122,6 +117,8 @@ class ImodvIsosurface : public DialogFrame
     void buttonPressed(int which);
     void showRubberBandArea();
     void numOfTrianglesChanged(int);
+    void maskSelected(int which);
+    void areaFromContClicked();
 
  protected:
   void closeEvent ( QCloseEvent * e );
@@ -130,14 +127,51 @@ class ImodvIsosurface : public DialogFrame
   void fontChange( const QFont & oldFont );
 
  private:
+  float fillVolumeArray();
+  void  fillBinVolume();
+  void removeOuterPixels();
+  void smoothMesh(struct Mod_Mesh *, int);
+  void filterMesh(bool);
+  bool allocArraysIfNeeded();
+  int maskWithContour(struct Mod_Contour *inCont, int iz);
+  void closeBoxFaces();
+  void applyMask();
+  void showDefinedArea(float x0, float x1, float y0, float y1, bool draw);
+  int findClosestZ(int iz, int *listz, int zlsize, int **contatz, int *numatz, int zmin,
+                   int &otherSide);
+  void addToNeighborList(Point3D **neighp, int &numNeigh, int &maxNeigh,
+                         int ix, int iy, int iz);
+  void dumpVolume(char *filename);
+  void setFontDependentWidths();
+
   bool mCtrlPressed;
-  struct ViewInfo *mIsoView;
+  struct ViewInfo *mVi;
   int mExtraObjNum;
-  double mCurrMax;
+  int mCurrMax;
   IsoThread *threads[MAX_THREADS];
 
   struct Mod_Mesh * mOrigMesh;
   struct Mod_Mesh * mFilteredMesh;
+  QCheckBox *mViewIso, *mViewModel, *mViewBoxing, *mCenterVolume;
+  QCheckBox *mLinkXYZ, *mDeletePieces; 
+  MultiSlider *mSliders;
+  HistWidget *mHistPanel;
+  MultiSlider *mHistSlider;
+  QPushButton *mUseRubber, *mSizeContours;
+  QSpinBox *mSmoothBox;
+  QSpinBox *mBinningBox;
+  QSpinBox *mPiecesBox;
+
+  int mBoxObjNum;
+  int mBinBoxEnds[3];
+  int mBoxSize[3];
+
+  unsigned char *mTrueBinVol;
+  float mMedian;
+  int mVolMin, mVolMax;
+  int mInitNThreads;
+  Surface_Pieces *mSurfPieces;
+
 };
 
 #endif
