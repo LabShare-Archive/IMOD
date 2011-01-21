@@ -264,8 +264,10 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
   QHBoxLayout *horizLayout = new QHBoxLayout();
   QVBoxLayout *leftLayout = new QVBoxLayout();
   QVBoxLayout *rightLayout = new QVBoxLayout();
-  leftLayout->setSpacing(4);
-  rightLayout->setSpacing(4);
+  if (!ImodPrefs->getRoundedStyle()) {
+    leftLayout->setSpacing(4);
+    rightLayout->setSpacing(4);
+  }
   horizLayout->setSpacing(6);
   mLayout->addLayout(horizLayout);
   horizLayout->addLayout(leftLayout);
@@ -392,7 +394,8 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
   QButtonGroup *maskGroup = new QButtonGroup(this);
 
   connect(maskGroup, SIGNAL(buttonClicked(int)), this, SLOT(maskSelected(int)));
-  gbLayout->setSpacing(0);
+  if (!ImodPrefs->getRoundedStyle())
+    gbLayout->setSpacing(0);
   gbLayout->setContentsMargins(5, 0, 5, 4);
 
   QRadioButton *radio = diaRadioButton("None", gbox, maskGroup, gbLayout, 0,
@@ -2103,6 +2106,12 @@ void ImodvIsosurface::dumpVolume(char *filename)
 /*
 
 $Log$
+Revision 4.21  2011/01/21 17:36:27  mast
+Added ability to set outer limit on values, closing of open faces on edge of
+box, and masking by current contour, object, or ellipsoid; reorganized into
+two columns, fixed memory leaks, problems with link to global XYZ off, and
+some crashes when flipping data.
+
 Revision 4.20  2010/04/05 18:12:03  mast
 Fixed bug in limiting ideal thread count to MAX
 
