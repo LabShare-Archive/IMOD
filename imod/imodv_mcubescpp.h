@@ -556,7 +556,7 @@ void smooth_vertex_positions(float *varray, Index nv,
     c[tarray[t]/2] += 2;
     //c[tarray[t]] += 2;
 
-  Index nv3 = 3*nv;
+  //Index nv3 = 3*nv;
 
   // Just reuse the normal space as long as they are going to be recomputed
   //float *an = new float[nv3];
@@ -630,12 +630,15 @@ void smooth_vertex_positions(float *varray, Index nv,
   }
 
   //  delete an;
-  delete c;
+  delete [] c;
 }
 
 /*
 
 $Log$
+Revision 4.3  2008/10/02 16:27:00  xiongq
+add small piece filter, binning, and local XYZ functions
+
 Revision 4.2  2008/08/19 15:17:16  mast
 Changed for loop declarations for old intel compiler
 
