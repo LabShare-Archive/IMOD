@@ -90,7 +90,7 @@ void ProcessHandler::setup(Processchunks &processchunks) {
   mProcesschunks = &processchunks;
   mEscapedRemoteDirPath = mProcesschunks->getRemoteDir();
   mEscapedRemoteDirPath.replace(QRegExp(" "), "\\ ");
-  if (mProcesschunks->isQueue()) {
+  if (processchunks.isQueue()) {
     //Queue command
     //finishes after putting things into the queue
     //$queuecom -w "$curdir" -a R $comname:r
@@ -1320,6 +1320,9 @@ void ProcessHandler::killProcess(const QString &pid) {
 
 /*
  $Log$
+ Revision 1.33  2011/01/21 00:20:24  sueh
+ bug# 1426 Added isPidEmpty, killSignal, resetKill, setJobNotDone, startKill.
+
  Revision 1.32  2011/01/05 20:52:50  sueh
  bug# 1426 Instead of getting a ComFileJob instance, get an index and
  refer to the ComFileJobs instance in Processchunks.  Moved one-line
