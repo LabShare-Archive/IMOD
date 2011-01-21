@@ -1,5 +1,5 @@
-SOURCES += processchunks.cpp processhandler.cpp machinehandler.cpp comfilejobs.cpp
-HEADERS += processchunks.h processhandler.h machinehandler.h comfilejobs.h
+SOURCES += processchunks.cpp machinehandler.cpp processhandler.cpp comfilejobs.cpp
+HEADERS += processchunks.h machinehandler.h processhandler.h comfilejobs.h
 TEMPLATE = app
 CONFIG += qt
 CONFIG += console
