@@ -48,7 +48,7 @@ void MachineHandler::setup(Processchunks &processchunks, const QString &machineN
   mProcesschunks = &processchunks;
   mProcessHandlerArray = new ProcessHandler[mNumCpus];
   for (i = 0; i < mNumCpus; i++) {
-    mProcessHandlerArray[i].setup(*mProcesschunks);
+    mProcessHandlerArray[i].setup(processchunks);
   }
 }
 
@@ -271,6 +271,9 @@ void MachineHandler::cleanupKillProcess() {
 
 /*
  $Log$
+ Revision 1.11  2011/01/21 00:13:21  sueh
+ bug# 1426 Added handleError, isKillFinished, killSignal, resetKill, startKill.
+
  Revision 1.10  2011/01/05 20:45:38  sueh
  bug# 1426 Moved ProcessHandler instances to MachineHandler.  Moved
  one-line functions to .h file.
