@@ -23,6 +23,7 @@
 #define B3DMAX(a,b) ((a) > (b) ? (a) : (b))
 #define B3DNINT(a) (int)floor((a) + 0.5)
 #define B3DFREE(a) if (a) free(a)
+#define B3DMALLOC(a,b) (a *)malloc((b) * sizeof(a))
 
 #ifdef __cplusplus
 extern "C" {
@@ -68,6 +69,9 @@ extern "C" {
 
 /*
 $Log$
+Revision 1.21  2010/12/30 01:08:01  mast
+sleep function
+
 Revision 1.20  2010/06/29 21:34:11  mast
 Added convenience functions for calling from C
 
