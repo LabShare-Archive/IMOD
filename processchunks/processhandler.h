@@ -112,7 +112,7 @@ public slots:
   void handleKillFinished(const int exitCode, const QProcess::ExitStatus exitStatus);
 
 protected:
-  void timerEvent(const QTimerEvent *e);
+  void timerEvent(QTimerEvent *e);
 
 private:
   void initProcess();
@@ -154,6 +154,9 @@ private:
 
 /*
  $Log$
+ Revision 1.16  2011/01/21 00:20:35  sueh
+ bug# 1426 Added isPidEmpty, killSignal, resetKill, setJobNotDone, startKill.
+
  Revision 1.15  2011/01/05 20:53:28  sueh
  bug# 1426 Instead of getting a ComFileJob instance, get an index and
  refer to the ComFileJobs instance in Processchunks.  Moved one-line

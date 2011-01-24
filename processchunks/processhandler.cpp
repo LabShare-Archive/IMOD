@@ -818,7 +818,7 @@ void ProcessHandler::handleReadyReadStandardError() {
 }
 
 //Pid timer event
-void ProcessHandler::timerEvent(const QTimerEvent */*timerEvent*/) {
+void ProcessHandler::timerEvent(QTimerEvent */*timerEvent*/) {
   //timer should only go off once
   if (mPidTimerId != 0) {
     killTimer(mPidTimerId);
@@ -1320,6 +1320,9 @@ void ProcessHandler::killProcess(const QString &pid) {
 
 /*
  $Log$
+ Revision 1.34  2011/01/21 04:56:25  sueh
+ bug# 1426 In setup, calling isQueue from the parameter.
+
  Revision 1.33  2011/01/21 00:20:24  sueh
  bug# 1426 Added isPidEmpty, killSignal, resetKill, setJobNotDone, startKill.
 
