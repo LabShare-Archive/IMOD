@@ -295,7 +295,9 @@ void Processchunks::startLoop() {
   PipDone();
   startTimers();
   signal(SIGINT, SIG_IGN);
+#ifndef _WIN32
   signal(SIGHUP, SIG_IGN);
+#endif
   exec();
 }
 
@@ -1062,11 +1064,11 @@ void Processchunks::setupMachineList(QStringList &machineNameList, int *numCpusL
     for (i = 0; i < machineNameList.size(); i++) {
       if (!machineNameList[i].isEmpty()) {
         mMachineList[newIndex].setup(*this, machineNameList[i], numCpusList[i]);
-        newIndex++;
         mNumCpus += numCpusList[i];
         if (isVerbose(mDecoratedClassName, __func__)) {
-          *mOutStream << i << ":" << mMachineList[i].getName() << endl;
+          *mOutStream << newIndex << ":" << mMachineList[newIndex].getName() << endl;
         }
+        newIndex++;
       }
     }
     if (isVerbose(mDecoratedClassName, __func__)) {
@@ -1860,6 +1862,10 @@ const bool Processchunks::isVerbose(const QString &verboseClass,
 
 /*
  $Log$
+ Revision 1.54  2011/01/21 04:55:45  sueh
+ bug# 1426 In probeMachines and setupMachineList fixed problems which
+ prevented application from handling failed probes.
+
  Revision 1.53  2011/01/21 00:15:57  sueh
  bug# 1426 Changed mMachineList to an array.  Divided setupMachineList
  to initMachineList and setupMachineList.  Added killSignal and
