@@ -50,10 +50,7 @@ public:
     return &mProcessHandlerArray[index];
   }
   ;
-  inline const int getFailureCount() {
-    return mFailureCount;
-  }
-  ;
+  const int getFailureCount();
   inline const bool isChunkErred() {
     return mChunkErred;
   }
@@ -78,13 +75,6 @@ public:
     return mProcessHandlerArray[index].isJobValid();
   }
   ;
-
-  //MachineHandler &operator=(const MachineHandler &machineHandler);
-  //Compares mName to a QString
-  //inline const bool operator==(const QString &other) {
-  //  return mName == other;
-  //}
-  //;
   void cleanupKillProcess();
   const bool isKillNeeded();
   const bool isKillSignal();
@@ -92,6 +82,10 @@ public:
   void startKill();
   void killSignal();
   const bool isKillFinished();
+  inline const bool isDropped() {
+    return mDropped;
+  }
+  ;
 
 public slots:
   void handleFinished(const int exitCode, const QProcess::ExitStatus exitStatus);
@@ -104,7 +98,7 @@ private:
   ProcessHandler *mProcessHandlerArray;
   QString mName, mDecoratedClassName;
   int mNumCpus, mFailureCount;
-  bool mKill, mChunkErred;
+  bool mKill, mChunkErred, mDropped;
   Processchunks *mProcesschunks;
 
   //killing processes
@@ -117,6 +111,9 @@ private:
 
 /*
  $Log$
+ Revision 1.9  2011/01/21 00:13:32  sueh
+ bug# 1426 Added handleError, isKillFinished, killSignal, resetKill, startKill.
+
  Revision 1.8  2011/01/05 20:45:53  sueh
  bug# 1426 Moved ProcessHandler instances to MachineHandler.  Moved
  one-line functions to .h file.

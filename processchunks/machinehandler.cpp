@@ -26,6 +26,7 @@ MachineHandler::MachineHandler() {
   mKillCounter = 0;
   mDecoratedClassName = typeid(*this).name();
   mKillProcess = new QProcess(this);
+  mDropped = false;
   mKillProcess->setProcessChannelMode(QProcess::ForwardedChannels);
   QObject::connect(mKillProcess, SIGNAL(finished(int, QProcess::ExitStatus)),
       SLOT(handleFinished(int, QProcess::ExitStatus)));
@@ -60,24 +61,33 @@ void MachineHandler::setValues(const char *machineName, const int numCpus) {
 
 //Setup done before starting to kill processes.
 void MachineHandler::startKill() {
-  int i;
-  //Ignore kill signal if it is a drop command and this machine is not on the list.
-  if (mProcesschunks->getAns() == 'D' && (mProcesschunks->getDropList().isEmpty()
-      || !mProcesschunks->getDropList().contains(mName))) {
+  mIgnoreKill = false;
+  if (mDropped) {
     mIgnoreKill = true;
+    return;
   }
-  else {
-    mIgnoreKill = false;
+  int i;
+  if (mProcesschunks->getAns() == 'D') {
+    //Ignore kill signal if it is a drop command and this machine is not on the list.
+    if (mProcesschunks->getDropList().isEmpty()
+        || !mProcesschunks->getDropList().contains(mName)) {
+      mIgnoreKill = true;
+    }
+    else {
+      //Turn on dropped if this machine is on the drop list.
+      mDropped = true;
+    }
   }
   if (mIgnoreKill) {
     return;
   }
+  //If any of the jobs are valid, then turn off mIgnoreKill.  Run startKill
+  //for the valid jobs.
+  mIgnoreKill = true;
   for (i = 0; i < mNumCpus; i++) {
-    if (!mProcessHandlerArray[i].isJobValid()) {
-      mIgnoreKill = true;
-    }
-    else {
+    if (mProcessHandlerArray[i].isJobValid()) {
       mProcessHandlerArray[i].startKill();
+      mIgnoreKill = false;
     }
   }
 }
@@ -178,9 +188,12 @@ void MachineHandler::handleError(const QProcess::ProcessError error) {
 
 const bool MachineHandler::isKillFinished() {
   int i;
+  if (mIgnoreKill) {
+    return true;
+  }
   if (mName != mProcesschunks->getHostRoot() && mName != "localhost"
       && !mProcesschunks->isQueue()) {
-    return mIgnoreKill || mKillFinishedSignalReceived;
+    return mKillFinishedSignalReceived;
   }
   else {
     for (i = 0; i < mNumCpus; i++) {
@@ -201,6 +214,16 @@ void MachineHandler::resetKill() {
   mKillCounter = 0;
   for (i = 0; i < mNumCpus; i++) {
     mProcessHandlerArray[i].resetKill();
+  }
+}
+
+//When a machine is dropped, its failures no longer count.
+const int MachineHandler::getFailureCount() {
+  if (mDropped) {
+    return 0;
+  }
+  else {
+    return mFailureCount;
   }
 }
 
@@ -271,6 +294,9 @@ void MachineHandler::cleanupKillProcess() {
 
 /*
  $Log$
+ Revision 1.12  2011/01/21 04:54:49  sueh
+ bug# 1426 In setup, passing the parameter to ProcessHandler setup.
+
  Revision 1.11  2011/01/21 00:13:21  sueh
  bug# 1426 Added handleError, isKillFinished, killSignal, resetKill, startKill.
 
