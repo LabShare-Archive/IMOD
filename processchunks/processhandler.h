@@ -97,7 +97,7 @@ public:
   void killSignal();
   const bool isPidEmpty();
   inline const bool isKillFinished() {
-    return mKillFinishedSignalReceived && mFinishedSignalReceived;
+    return mIgnoreKill || (mKillFinishedSignalReceived && mFinishedSignalReceived);
   }
   ;
   void resetKill();
@@ -143,7 +143,7 @@ private:
   MachineHandler *mMachine;
   QProcess *mKillProcess;
   int mComFileJobIndex, mPidTimerId, mKillCounter;
-  bool mKill, mRanContinueKillProcess, mLocalKill, mKillStarted;
+  bool mKill, mRanContinueKillProcess, mLocalKill, mKillStarted, mIgnoreKill;
 
   //Signal variables
   bool mErrorSignalReceived, mFinishedSignalReceived, mKillFinishedSignalReceived;
@@ -154,6 +154,10 @@ private:
 
 /*
  $Log$
+ Revision 1.17  2011/01/24 18:47:13  sueh
+ bug# 1426 Removed const from timerEvent(QtimerEvent) to avoid a
+ compiler warning.
+
  Revision 1.16  2011/01/21 00:20:35  sueh
  bug# 1426 Added isPidEmpty, killSignal, resetKill, setJobNotDone, startKill.
 
