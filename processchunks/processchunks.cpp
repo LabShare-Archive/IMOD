@@ -102,6 +102,8 @@ Processchunks::Processchunks(int &argc, char **argv) :
   mVmstocsh = new QProcess(this);
   mDecoratedClassName = typeid(*this).name();
   mKillPipes = 0;
+  mMachineListSize = 0;
+  mNumMachinesDropped = 0;
 }
 
 Processchunks::~Processchunks() {
@@ -450,22 +452,14 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
       int failCount = mMachineList[i].getFailureCount();
       if (failCount >= mDropCrit || mPausing || (failCount && !mAnyDone && failTot
           >= mHoldCrit)) {
-        if (isVerbose(mDecoratedClassName, __func__, 2)) {
-          *mOutStream << mMachineList[i].getName() << ":set dropout, failCount:"
-              << failCount << ",failTot:" << failTot << endl;
-        }
         dropout = true;
       }
-      //If the current machine is unassigned, find next com to do and run it
-      //Move current log out of way so non-existence of log can be sign of
-      //nothing having started.  Skip if no chunks are available
-      if (isVerbose(mDecoratedClassName, __func__, 2)) {
-        *mOutStream << mDecoratedClassName << ":" << __func__ << ":"
-            << mMachineList[i].getName() << ":process->isJobValid():"
-            << process->isJobValid() << ",dropout:" << dropout << ",noChunks:"
-            << noChunks << ",mSyncing:" << mSyncing << endl;
-      }
-      if (!process->isJobValid() && !dropout && !noChunks && mSyncing != 2) {
+      /*If the current machine is unassigned and has not been dropped, find
+       next com to do and run it.  Move current log out of way so non-existence
+       of log can be sign of nothing having started.  Skip if no chunks are
+       available*/
+      if (!mMachineList[i].isDropped() && !process->isJobValid() && !dropout && !noChunks
+          && mSyncing != 2) {
         jobIndex = mFirstUndoneIndex;
         bool foundChunks = false;
         int undoneIndex = -1;
@@ -645,8 +639,14 @@ void Processchunks::killProcesses(QStringList *dropList) {
   }
   mKill = true;
   //killProcessOnNextMachine();
+  //Run startKill on machines.  Increment mNumMachinesDropped for each matching
+  //machine on the drop list.
   for (i = 0; i < mMachineListSize; i++) {
+    bool activeMachine = !mMachineList[i].isDropped();
     mMachineList[i].startKill();
+    if (activeMachine && mMachineList[i].isDropped()) {
+      mNumMachinesDropped++;
+    }
   }
   killSignal();
   mTimerId = startTimer(1000);
@@ -675,7 +675,6 @@ void Processchunks::killSignal() {
       mTimerId = 0;
     }
     //Reset kill variables and tell the machines to reset their kill variables.
-    mAns = ' ';
     mDropList.clear();
     mKill = false;
     for (i = 0; i < mMachineListSize; i++) {
@@ -692,7 +691,8 @@ void Processchunks::killSignal() {
       cleanupAndExit(4);
     }
     //Handle drop and pause by resuming processesing
-    if (mAns == 'D' || mAns == 'P') {
+    if ((mAns == 'D' && mMachineListSize > mNumMachinesDropped) || mAns == 'P') {
+      mAns = ' ';
       *mOutStream << "Resuming processing" << endl;
       startTimers();
       return;
@@ -1060,7 +1060,7 @@ void Processchunks::setupMachineList(QStringList &machineNameList, int *numCpusL
     }
     mNumCpus = 0;
     mMachineList = new MachineHandler[mMachineListSize];
-    int newIndex =0;
+    int newIndex = 0;
     for (i = 0; i < machineNameList.size(); i++) {
       if (!machineNameList[i].isEmpty()) {
         mMachineList[newIndex].setup(*this, machineNameList[i], numCpusList[i]);
@@ -1553,10 +1553,12 @@ void Processchunks::handleComProcessNotDone(bool &dropout, QString &dropMess,
 //skip this machine on this round
 void Processchunks::handleDropOut(bool &noChunks, QString &dropMess,
     MachineHandler &machine, ProcessHandler *process, QString &errorMess) {
-  *mOutStream << process->getComFileName() << " failed on " << machine.getName()
-      << " - need to restart" << endl;
-  if (!errorMess.isEmpty()) {
-    *mOutStream << errorMess << endl;
+  if (!machine.isDropped()) {
+    *mOutStream << process->getComFileName() << " failed on " << machine.getName()
+        << " - need to restart" << endl;
+    if (!errorMess.isEmpty()) {
+      *mOutStream << errorMess << endl;
+    }
   }
   process->setFlagNotDone(mSingleFile);
   if (mSyncing) {
@@ -1565,31 +1567,33 @@ void Processchunks::handleDropOut(bool &noChunks, QString &dropMess,
   process->invalidateJob();
   noChunks = false;
   machine.incrementFailureCount();
-  if (machine.getFailureCount() >= mDropCrit) {
+  if (!machine.isDropped() && machine.getFailureCount() >= mDropCrit) {
     if (errorMess.isEmpty()) {
       process->getErrorMessageFromOutput(errorMess);
       if (!errorMess.isEmpty()) {
         *mOutStream << errorMess << endl;
       }
     }
-    if (dropMess.isEmpty()) {
-      dropMess = "it failed (with ";
-      if (!machine.isChunkErred()) {
-        dropMess.append("time out");
+    if (!machine.isDropped()) {
+      if (dropMess.isEmpty()) {
+        dropMess = "it failed (with ";
+        if (!machine.isChunkErred()) {
+          dropMess.append("time out");
+        }
+        else {
+          dropMess.append("chunk error");
+        }
+        dropMess.append(") %1 times in a row");
+        dropMess = dropMess.arg(machine.getFailureCount());
+      }
+      if (!mAnyDone && machine.isChunkErred()) {
+        *mOutStream << "Holding off on using ";
       }
       else {
-        dropMess.append("chunk error");
+        *mOutStream << "Dropping ";
       }
-      dropMess.append(") %1 times in a row");
-      dropMess = dropMess.arg(machine.getFailureCount());
+      *mOutStream << machine.getName() << " - " << dropMess << endl;
     }
-    if (!mAnyDone && machine.isChunkErred()) {
-      *mOutStream << "Holding off on using ";
-    }
-    else {
-      *mOutStream << "Dropping ";
-    }
-    *mOutStream << machine.getName() << " - " << dropMess << endl;
   }
 }
 
@@ -1862,6 +1866,10 @@ const bool Processchunks::isVerbose(const QString &verboseClass,
 
 /*
  $Log$
+ Revision 1.55  2011/01/24 18:46:09  sueh
+ bug# 1426 Removed sighup from the Windows compile.  In
+ setupMachineList corrected the index used.
+
  Revision 1.54  2011/01/21 04:55:45  sueh
  bug# 1426 In probeMachines and setupMachineList fixed problems which
  prevented application from handling failed probes.
