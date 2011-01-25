@@ -33,6 +33,7 @@ ProcessHandler::ProcessHandler() {
   mValidJob = false;
   mKillStarted = false;
   mKillCounter = 0;
+  mIgnoreKill = true;
   resetFields();
 }
 
@@ -829,6 +830,7 @@ void ProcessHandler::timerEvent(QTimerEvent */*timerEvent*/) {
 
 void ProcessHandler::startKill() {
   mKill = true;
+  mIgnoreKill = !isJobValid();
 }
 
 /*
@@ -838,7 +840,7 @@ void ProcessHandler::startKill() {
  is the local machine or a queue, it passes the kill signal to the process.
  */
 void ProcessHandler::killSignal() {
-  if (mKillFinishedSignalReceived && mFinishedSignalReceived) {
+  if (mIgnoreKill || (mKillFinishedSignalReceived && mFinishedSignalReceived)) {
     return;
   }
   //For remote machines imodkillgroup can be used to kill all the processes
@@ -907,6 +909,7 @@ void ProcessHandler::resetKill() {
   mKillStarted = false;
   mKillCounter = 0;
   mKill = false;
+  mIgnoreKill = true;
 }
 
 const bool ProcessHandler::isPidEmpty() {
@@ -1320,6 +1323,10 @@ void ProcessHandler::killProcess(const QString &pid) {
 
 /*
  $Log$
+ Revision 1.35  2011/01/24 18:46:59  sueh
+ bug# 1426 Removed const from timerEvent(QtimerEvent) to avoid a
+ compiler warning.
+
  Revision 1.34  2011/01/21 04:56:25  sueh
  bug# 1426 In setup, calling isQueue from the parameter.
 
