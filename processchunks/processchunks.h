@@ -208,7 +208,7 @@ private:
   const bool isVerbose(const QString &verboseClass, const QString verboseFunction,
       const int verbosity, const bool print);
 
-  int mSizeJobArray, mMachineListSize;
+  int mSizeJobArray, mMachineListSize,mNumMachinesDropped;
   ComFileJobs *mComFileJobs;
   MachineHandler *mMachineList;
   QTextStream *mOutStream;
@@ -250,6 +250,10 @@ private:
 
 /*
  $Log$
+ Revision 1.25  2011/01/21 00:18:12  sueh
+ bug# 1426 Adding decrementPipes, incrementPipes, pipesAvailable,
+ initMachineList, killSignal, setupComFileJobs.
+
  Revision 1.24  2011/01/05 20:50:22  sueh
  bug# 1426 Moved one-line functions to .h file.  Creating on instance of
  ComFileJobs instead of an array of ComFileJob instances.  Moved the array
