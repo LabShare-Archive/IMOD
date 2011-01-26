@@ -128,6 +128,7 @@ void ProcessHandler::setJob(const int jobIndex) {
   delete mLogFile;
   mLogFile = NULL;
   mLogFile = new QFile(mProcesschunks->getComFileJobs()->getLogFileName(jobIndex));
+  mParamList.clear();
   if (mProcesschunks->isQueue()) {
     delete mJobFile;
     mJobFile = NULL;
@@ -145,7 +146,6 @@ void ProcessHandler::setJob(const int jobIndex) {
         << "-a" << "R" << mProcesschunks->getComFileJobs()->getRoot(jobIndex);
   }
   else {
-    mParamList.clear();
     mParamList << "-ef" << mProcesschunks->getComFileJobs()->getCshFileName(jobIndex);
   }
 }
@@ -229,6 +229,7 @@ const QString ProcessHandler::getPid() {
       return mPid;
     }
     getPid(*mQidFileTextStream, true);
+    mQidFile->close();
   }
   return mPid;
 }
@@ -723,7 +724,8 @@ void ProcessHandler::runProcess(MachineHandler &machine) {
   else {
     if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
       mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
-          << ":running:" << endl << mCommand << " " << mParamList.join(" ") << endl;
+          << ":running:" << endl << "mCommand:" << mCommand << endl << "mParamList:"
+          << mParamList.join(" ") << endl;
     }
     //Run on local machine or queue
     mProcess->start(mCommand, mParamList);
@@ -845,33 +847,33 @@ void ProcessHandler::killSignal() {
   }
   //For remote machines imodkillgroup can be used to kill all the processes
   if (!mKillStarted) {
-    if (!isPidEmpty()) {
-      //PIDs are available
-      if (mProcesschunks->isQueue()) {
-        //check for available pipes
-        if (mProcesschunks->pipesAvailable()) {
-          mKillStarted = true;//This starts the 15-count timeout
-          setJobNotDone();
-          mProcesschunks->incrementPipes();
-          //Kill the process
-          mProcesschunks->getOutStream() << "Killing jobs on " << mMachine->getName()
-              << endl;
-          char ans = mProcesschunks->getAns();
-          QString action(ans);
-          if (ans != 'P') {
-            action = "K";
-            //Don't know if this waits until the kill is does
-            //$queuecom -w "$curdir" -a $action $comlist[$ind]:r
-            //The second to last parameter is the action letter
-            mParamList.replace(mParamList.size() - 2, action);
-            mKillProcess->start(mCommand, mParamList);
-            mKillProcess->waitForFinished(1000);
-            //Put mParamList back to its regular form
-            mParamList.replace(mParamList.size() - 2, "R");
-          }
+    if (mProcesschunks->isQueue()) {
+      //check for available pipes
+      if (mProcesschunks->pipesAvailable()) {
+        mKillStarted = true;//This starts the 15-count timeout
+        setJobNotDone();
+        mProcesschunks->incrementPipes();
+        //Kill the process
+        mProcesschunks->getOutStream() << "Killing jobs on " << mMachine->getName()
+            << endl;
+        char ans = mProcesschunks->getAns();
+        QString action(ans);
+        if (ans != 'P') {
+          action = "K";
+          //Don't know if this waits until the kill is does
+          //$queuecom -w "$curdir" -a $action $comlist[$ind]:r
+          //The second to last parameter is the action letter
+          mParamList.replace(mParamList.size() - 2, action);
+          mKillProcess->start(mCommand, mParamList);
+          mKillProcess->waitForFinished(1000);
+          //Put mParamList back to its regular form
+          mParamList.replace(mParamList.size() - 2, "R");
         }
       }
-      else {
+    }
+    else {
+      if (!isPidEmpty()) {
+        //PIDs are available
         mKillStarted = true;//This starts the 15-count timeout
         mProcesschunks->getOutStream() << "Killing "
             << mProcesschunks->getComFileJobs()->getComFileName(mComFileJobIndex);
@@ -1183,6 +1185,8 @@ void ProcessHandler::handleError(const QProcess::ProcessError processError) {
   mProcesschunks->getOutStream() << mProcesschunks->getComFileJobs()->getComFileName(
       mComFileJobIndex) << ":process error:" << processError << ","
       << mProcess->errorString() << endl;
+  mProcesschunks->getOutStream() << "exitCode:" << mProcess->exitCode() << ",exitStatus:"
+      << mProcess->exitStatus() << ",state:" << mProcess->state() << endl;
 }
 
 //Stop and then kill the process with process ID pid and all of its descendents.
@@ -1323,6 +1327,9 @@ void ProcessHandler::killProcess(const QString &pid) {
 
 /*
  $Log$
+ Revision 1.36  2011/01/25 07:16:22  sueh
+ bug# 1426 Setting mIgnoreKill in startKill() and checking it in killSignal().
+
  Revision 1.35  2011/01/24 18:46:59  sueh
  bug# 1426 Removed const from timerEvent(QtimerEvent) to avoid a
  compiler warning.
