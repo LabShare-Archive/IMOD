@@ -162,6 +162,7 @@ void Processchunks::loadParams(int &argc, char **argv) {
   PipGetString("c", &checkFile);
   if (checkFile != NULL) {
     mCheckFile = new QFile(checkFile);
+    free(checkFile);
   }
   else {
     mCheckFile = new QFile("processchunks.input");
@@ -1034,16 +1035,17 @@ void Processchunks::setupMachineList(QStringList &machineNameList, int *numCpusL
   int i;
   //Not implementing $IMOD_ALL_MACHINES since no one seems to have used it.
   if (mQueue) {
+    mQueueParamList = mCpuList.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+    mQueueCommand = mQueueParamList.takeAt(0);
+    mMachineListSize = 1;
     //OLD: For a queue, make a CPU list that is all the same name
     //For a queue, create a single MachineHandler instance.
-    mMachineList = new MachineHandler[1];
+    mMachineList = new MachineHandler[mMachineListSize];
     mMachineList[0].setup(*this, mQueueName, mQueue);
     //Parse mCpuList into mQueueComand and mQueueParamList
     if (mCpuList.isEmpty()) {
       exitError("Queue command doesn't exist.");
     }
-    mQueueParamList = mCpuList.split(QRegExp("\\s+"), QString::SkipEmptyParts);
-    mQueueCommand = mQueueParamList.takeAt(0);
   }
   else {
     mMachineListSize = 0;
@@ -1866,6 +1868,10 @@ const bool Processchunks::isVerbose(const QString &verboseClass,
 
 /*
  $Log$
+ Revision 1.56  2011/01/25 07:15:00  sueh
+ bug# 1426 Incrementing/checking mNumMachinesDropped and checking
+ MachineHandler.isDropped().
+
  Revision 1.55  2011/01/24 18:46:09  sueh
  bug# 1426 Removed sighup from the Windows compile.  In
  setupMachineList corrected the index used.
