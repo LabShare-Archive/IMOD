@@ -915,7 +915,7 @@ void Processchunks::cleanupKillProcesses(const bool timeout) {
   cleanupAndExit(2);
 }
 
-const bool Processchunks::askGo() {
+bool Processchunks::askGo() {
   if (mJustGo) {
     return true;
   }
@@ -1314,7 +1314,7 @@ void Processchunks::probeMachines(QStringList &machineNameList) {
 //Look for commands in mCheckFile.  CheckFile is kept open so already processed
 //commands are not read twice.
 //Return true if a valid command is found in the check file
-const bool Processchunks::readCheckFile() {
+bool Processchunks::readCheckFile() {
   //Handle mCheckFile
   if (mCheckFile != NULL) {
     if (mCheckFile->exists()) {
@@ -1417,8 +1417,8 @@ void Processchunks::exitIfDropped(const int minFail, const int failTot,
 //When it is the first chunk done, issue drop messages
 //copy the log for the first non-sync chunk
 //Return true if all chunks are done
-const bool Processchunks::handleChunkDone(MachineHandler &machine,
-    ProcessHandler *process, const int jobIndex) {
+bool Processchunks::handleChunkDone(MachineHandler &machine, ProcessHandler *process,
+    const int jobIndex) {
   int i;
   //If it is DONE, then set flag to done and deassign
   //Exonerate the machine from chunk errors if this chunk
@@ -1484,7 +1484,7 @@ const bool Processchunks::handleChunkDone(MachineHandler &machine,
 //Looks for and print an error message in log file.
 //If the chunk has errored too many times, set mAns to E and kill jobs
 //Return false the chunk has errored too many times
-const bool Processchunks::handleLogFileError(QString &errorMess, MachineHandler &machine,
+bool Processchunks::handleLogFileError(QString &errorMess, MachineHandler &machine,
     ProcessHandler *process) {
   process->getErrorMessageFromLog(errorMess);
   return handleError(&errorMess, machine, process);
@@ -1493,7 +1493,7 @@ const bool Processchunks::handleLogFileError(QString &errorMess, MachineHandler 
 //Print an error message.
 //If the chunk has errored too many times, set mAns to E and kill jobs
 //Return false the chunk has errored too many times
-const bool Processchunks::handleError(const QString *errorMess, MachineHandler &machine,
+bool Processchunks::handleError(const QString *errorMess, MachineHandler &machine,
     ProcessHandler *process) {
   int numErr;
   process->incrementNumChunkErr();
@@ -1601,7 +1601,7 @@ void Processchunks::handleDropOut(bool &noChunks, QString &dropMess,
 
 //See if a process can be run by the current machine
 //Return false when need to break out of the loop
-const bool Processchunks::checkChunk(int &runFlag, bool &noChunks, int &undoneIndex,
+bool Processchunks::checkChunk(int &runFlag, bool &noChunks, int &undoneIndex,
     bool &foundChunks, bool &chunkOk, MachineHandler &machine, const int jobIndex,
     const int chunkErrTot) {
   runFlag = mComFileJobs->getFlag(jobIndex);
@@ -1677,7 +1677,7 @@ void Processchunks::runProcess(MachineHandler &machine, ProcessHandler *process,
 //Extracts the first two numbers of a numeric version.  Multiples the first
 //number by 100 and adds it to the second number.  Places the result in
 //mVersion.
-const int Processchunks::extractVersion(const QString &versionString) {
+int Processchunks::extractVersion(const QString &versionString) {
   int iversion = -1;
   if (isVerbose(mDecoratedClassName, __func__)) {
     *mOutStream << "ssh sshOutput:" << versionString << endl;
@@ -1741,7 +1741,7 @@ void Processchunks::cleanupList(const char *remove, QStringList &list) {
 //Runs process, outputs first numLinesToPrint lines, and returns the exit code
 //If numLinesToPrint to is zero, no lines with be printed.
 //Places stdout into the output parameter.
-const int Processchunks::runGenericProcess(QByteArray &output, QProcess &process,
+int Processchunks::runGenericProcess(QByteArray &output, QProcess &process,
     const QString &command, const QStringList &params, const int numLinesToPrint) {
   int i;
   if (isVerbose(mDecoratedClassName, __func__)) {
@@ -1835,8 +1835,8 @@ void Processchunks::makeCshFile(ProcessHandler *process) {
 //Returns true if its parameters match the verbose member variables.  If print
 //is true, will print this function's verbose message only if class and
 //function match (uses the verbosity level from the calling function).
-const bool Processchunks::isVerbose(const QString &verboseClass,
-    const QString verboseFunction, const int verbosity, const bool print) {
+bool Processchunks::isVerbose(const QString &verboseClass, const QString verboseFunction,
+    const int verbosity, const bool print) {
   int i;
   if (!mVerbose) {
     return false;
@@ -1868,6 +1868,10 @@ const bool Processchunks::isVerbose(const QString &verboseClass,
 
 /*
  $Log$
+ Revision 1.57  2011/01/26 06:48:14  sueh
+ bug# 1426 In loadParams freeing a local variable.  In setupMachineList
+ setting mQueueCommand before running MachineHandler.setup.
+
  Revision 1.56  2011/01/25 07:15:00  sueh
  bug# 1426 Incrementing/checking mNumMachinesDropped and checking
  MachineHandler.isDropped().

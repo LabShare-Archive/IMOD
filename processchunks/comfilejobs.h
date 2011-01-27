@@ -54,7 +54,7 @@ public:
     return QString("%1.com").arg(QString(mJobArray[index].root));
   }
   ;
-  inline const int getNumChunkErr(const int index) {
+  inline int getNumChunkErr(const int index) {
     return mJobArray[index].numChunkErr;
   }
   ;
@@ -67,7 +67,7 @@ public:
     mJobArray[index].flag = flag;
   }
   ;
-  inline const int getFlag(const int index) {
+  inline int getFlag(const int index) {
     return mJobArray[index].flag;
   }
   ;
@@ -85,6 +85,9 @@ private:
 
 /*
  $Log$
+ Revision 1.2  2011/01/21 00:12:09  sueh
+ bug# 1426 Saving the root instead of the .com file name.
+
  Revision 1.1  2011/01/05 20:47:07  sueh
  bug# 1426 ComFileJobs is lighter weight then ComFileJob.  Only one
  instance is created.

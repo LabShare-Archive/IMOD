@@ -37,43 +37,43 @@ public:
   ~ProcessHandler();
 
   void setup(Processchunks &processchunks);
-  const bool logFileExists(const bool newlyCreatedFile);
-  const bool isChunkDone();
+  bool logFileExists(const bool newlyCreatedFile);
+  bool isChunkDone();
   void setFlag(const int flag);
   void removeFiles();
   void removeProcessFiles();
-  const bool cshFileExists();
-  const int getNumChunkErr();
+  bool cshFileExists();
+  int getNumChunkErr();
   const QString getComFileName();
   void printWarnings();
   const QString getLogFileName();
   const QByteArray readAllLogFile();
-  const bool isLogFileEmpty();
-  const bool isStartProcessTimedOut(const int timeoutMillisec);
+  bool isLogFileEmpty();
+  bool isStartProcessTimedOut(const int timeoutMillisec);
   void getErrorMessageFromLog(QString &errorMess);
   void incrementNumChunkErr();
-  const bool isComProcessDone();
+  bool isComProcessDone();
   void printTooManyErrorsMessage(const int numErr);
-  const bool isJobFileEmpty();
-  const bool getSshError(QString &dropMess);
-  const bool qidFileExists();
+  bool isJobFileEmpty();
+  bool getSshError(QString &dropMess);
+  bool qidFileExists();
   const QString getPid();
   void setFlagNotDone(const bool singleFile);
   inline void backupLog() {
     imodBackupFile(mLogFile->fileName().toLatin1().data());
   }
   ;
-  const int getFlag();
+  int getFlag();
   void runProcess(MachineHandler &machine);
-  const bool killProcess();
+  bool killProcess();
   void continueKillProcess(const bool asynchronous);
   void msgKillProcessTimeout();
-  inline const bool isFinishedSignalReceived() {
+  inline bool isFinishedSignalReceived() {
     return mFinishedSignalReceived;
   }
   ;
   void getErrorMessageFromOutput(QString &errorMess);
-  const bool isPidInStderr();
+  bool isPidInStderr();
   inline void resetPausing() {
     mPausing = 0;
   }
@@ -85,18 +85,18 @@ public:
     mValidJob = false;
   }
   ;
-  inline const int getAssignedJobIndex() {
+  inline int getAssignedJobIndex() {
     return mComFileJobIndex;
   }
   ;
-  inline const bool isJobValid() {
+  inline bool isJobValid() {
     return mValidJob;
   }
   ;
   void cleanupKillProcess();
   void killSignal();
-  const bool isPidEmpty();
-  inline const bool isKillFinished() {
+  bool isPidEmpty();
+  inline bool isKillFinished() {
     return mIgnoreKill || (mKillFinishedSignalReceived && mFinishedSignalReceived);
   }
   ;
@@ -116,8 +116,8 @@ protected:
 
 private:
   void initProcess();
-  const bool getPid(QTextStream &stream, const bool save);
-  const bool getSshError(QString &dropMess, QTextStream &stream);
+  bool getPid(QTextStream &stream, const bool save);
+  bool getSshError(QString &dropMess, QTextStream &stream);
   void resetSignalValues();
   void readAllStandardError();
   void killLocalProcessAndDescendents(QString &pid);
@@ -154,6 +154,9 @@ private:
 
 /*
  $Log$
+ Revision 1.18  2011/01/25 07:16:49  sueh
+ bug# 1426 Added mIgnoreKill.
+
  Revision 1.17  2011/01/24 18:47:13  sueh
  bug# 1426 Removed const from timerEvent(QtimerEvent) to avoid a
  compiler warning.

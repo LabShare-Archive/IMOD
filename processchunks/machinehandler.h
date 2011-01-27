@@ -29,7 +29,7 @@ public:
   ~MachineHandler();
 
   void setup(Processchunks &processchunks, const QString &machineName, const int numCpus);
-  inline const long nameToLong(bool *ok) {
+  inline long nameToLong(bool *ok) {
     return mName.toLong(ok);
   }
   ;
@@ -42,7 +42,7 @@ public:
     return mName;
   }
   ;
-  inline const int getNumCpus() {
+  inline int getNumCpus() {
     return mNumCpus;
   }
   ;
@@ -50,8 +50,8 @@ public:
     return &mProcessHandlerArray[index];
   }
   ;
-  const int getFailureCount();
-  inline const bool isChunkErred() {
+  int getFailureCount();
+  inline bool isChunkErred() {
     return mChunkErred;
   }
   ;
@@ -63,26 +63,26 @@ public:
     mChunkErred = chunkErred;
   }
   ;
-  const bool isTimedOut(const int index, const int timeoutMillisec);
+  bool isTimedOut(const int index, const int timeoutMillisec);
   inline void incrementFailureCount() {
     mFailureCount++;
   }
   ;
-  const bool killProcesses();
+  bool killProcesses();
   void msgKillProcessTimeout();
-  const bool killNextProcess(const bool asynchronou);
-  inline const bool isJobValid(const int index) {
+  bool killNextProcess(const bool asynchronou);
+  inline bool isJobValid(const int index) {
     return mProcessHandlerArray[index].isJobValid();
   }
   ;
   void cleanupKillProcess();
-  const bool isKillNeeded();
-  const bool isKillSignal();
+  bool isKillNeeded();
+  bool isKillSignal();
   void resetKill();
   void startKill();
   void killSignal();
-  const bool isKillFinished();
-  inline const bool isDropped() {
+  bool isKillFinished();
+  inline bool isDropped() {
     return mDropped;
   }
   ;
@@ -111,6 +111,9 @@ private:
 
 /*
  $Log$
+ Revision 1.10  2011/01/25 07:06:01  sueh
+ bug# 1426 Added mDropped.
+
  Revision 1.9  2011/01/21 00:13:32  sueh
  bug# 1426 Added handleError, isKillFinished, killSignal, resetKill, startKill.
 
