@@ -167,7 +167,7 @@ void ProcessHandler::resetSignalValues() {
   mProcessError = -1;
 }
 
-const int ProcessHandler::getFlag() {
+int ProcessHandler::getFlag() {
   if (mComFileJobIndex == -1) {
     mProcesschunks->getOutStream() << "ERROR:" << mDecoratedClassName << ":" << __func__
         << ":No mComFileJobIndex" << endl;
@@ -176,7 +176,7 @@ const int ProcessHandler::getFlag() {
   return mProcesschunks->getComFileJobs()->getFlag(mComFileJobIndex);
 }
 
-const bool ProcessHandler::logFileExists(const bool newlyCreatedFile) {
+bool ProcessHandler::logFileExists(const bool newlyCreatedFile) {
   if (mComFileJobIndex == -1) {
     mProcesschunks->getOutStream() << "ERROR:" << mDecoratedClassName << ":" << __func__
         << ":No mComFileJobIndex" << endl;
@@ -200,7 +200,7 @@ const bool ProcessHandler::logFileExists(const bool newlyCreatedFile) {
   return mLogFileExists;
 }
 
-const bool ProcessHandler::qidFileExists() {
+bool ProcessHandler::qidFileExists() {
   if (mComFileJobIndex == -1) {
     mProcesschunks->getOutStream() << "ERROR:" << mDecoratedClassName << ":" << __func__
         << ":No mComFileJobIndex" << endl;
@@ -238,7 +238,7 @@ const QString ProcessHandler::getPid() {
  * Returns true if there is a pid in stderr.  Always returns fase if queue is
  * set.
  */
-const bool ProcessHandler::isPidInStderr() {
+bool ProcessHandler::isPidInStderr() {
   if (mProcesschunks->isQueue()) {
     return false;
   }
@@ -251,7 +251,7 @@ const bool ProcessHandler::isPidInStderr() {
  * return true if the pid is found in stream.  If save is true, save the pid
  * to mPid; in this case only check for the pid if mPid is empty.
  */
-const bool ProcessHandler::getPid(QTextStream &stream, const bool save) {
+bool ProcessHandler::getPid(QTextStream &stream, const bool save) {
   if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
     mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__ << ":mPid:"
         << mPid << endl;
@@ -301,7 +301,7 @@ const QByteArray ProcessHandler::readAllLogFile() {
   return log;
 }
 
-const bool ProcessHandler::isLogFileEmpty() {
+bool ProcessHandler::isLogFileEmpty() {
   if (mComFileJobIndex == -1) {
     mProcesschunks->getOutStream() << "ERROR:" << mDecoratedClassName << ":" << __func__
         << ":No mComFileJobIndex" << endl;
@@ -327,7 +327,7 @@ void ProcessHandler::readAllStandardError() {
 //Looks for cd or ssh error in either stdout/stderr (non-queue) or
 //.job file (queue).
 //Returns true if found
-const bool ProcessHandler::getSshError(QString &dropMess) {
+bool ProcessHandler::getSshError(QString &dropMess) {
   if (mComFileJobIndex == -1) {
     mProcesschunks->getOutStream() << "ERROR:" << mDecoratedClassName << ":" << __func__
         << ":No mComFileJobIndex" << endl;
@@ -354,7 +354,7 @@ const bool ProcessHandler::getSshError(QString &dropMess) {
   return found;
 }
 
-const bool ProcessHandler::getSshError(QString &dropMess, QTextStream &stream) {
+bool ProcessHandler::getSshError(QString &dropMess, QTextStream &stream) {
   //look for cd error & ssh error
   QString line = stream.readLine();
   while (!line.isNull()) {
@@ -375,7 +375,7 @@ const bool ProcessHandler::getSshError(QString &dropMess, QTextStream &stream) {
 
 //True when the .com file has been run and it has finished.  Returns true if
 //the log exists and the finished signal has been received
-const bool ProcessHandler::isComProcessDone() {
+bool ProcessHandler::isComProcessDone() {
   if (mComFileJobIndex == -1) {
     mProcesschunks->getOutStream() << "ERROR:" << mDecoratedClassName << ":" << __func__
         << ":No mComFileJobIndex" << endl;
@@ -405,7 +405,7 @@ const bool ProcessHandler::isComProcessDone() {
 }
 
 //Returns true if a last line of the log file starts with "CHUNK DONE"
-const bool ProcessHandler::isChunkDone() {
+bool ProcessHandler::isChunkDone() {
   if (mComFileJobIndex == -1) {
     mProcesschunks->getOutStream() << "ERROR:" << mDecoratedClassName << ":" << __func__
         << ":No mComFileJobIndex" << endl;
@@ -554,7 +554,7 @@ void ProcessHandler::printWarnings() {
   mLogFile->close();
 }
 
-const bool ProcessHandler::cshFileExists() {
+bool ProcessHandler::cshFileExists() {
   if (mComFileJobIndex == -1) {
     mProcesschunks->getOutStream() << "ERROR:" << mDecoratedClassName << ":" << __func__
         << ":No mComFileJobIndex" << endl;
@@ -564,7 +564,7 @@ const bool ProcessHandler::cshFileExists() {
       mProcesschunks->getComFileJobs()->getCshFileName(mComFileJobIndex));
 }
 
-const int ProcessHandler::getNumChunkErr() {
+int ProcessHandler::getNumChunkErr() {
   if (mComFileJobIndex == -1) {
     mProcesschunks->getOutStream() << "ERROR:" << mDecoratedClassName << ":" << __func__
         << ":No mComFileJobIndex" << endl;
@@ -597,7 +597,7 @@ const QString ProcessHandler::getLogFileName() {
 
 //Returns true if the process has started, but the log file hasn't been create,
 //and the timeout (milliseconds) has been exceeded.
-const bool ProcessHandler::isStartProcessTimedOut(const int timeout) {
+bool ProcessHandler::isStartProcessTimedOut(const int timeout) {
   //If a process isn't running then there is nothing to timeout
   //If a process is running and the log file has been created then the log file
   //was created before the timeout
@@ -744,7 +744,7 @@ void ProcessHandler::runProcess(MachineHandler &machine) {
 
 //Kill the process.  Returns false if it started the timer and exited instead of
 //called continueKillProcess.
-const bool ProcessHandler::killProcess() {
+bool ProcessHandler::killProcess() {
   if (mMachine == NULL) {
     //Nothing to do - no process is running
     return true;
@@ -854,8 +854,6 @@ void ProcessHandler::killSignal() {
         setJobNotDone();
         mProcesschunks->incrementPipes();
         //Kill the process
-        mProcesschunks->getOutStream() << "Killing jobs on " << mMachine->getName()
-            << endl;
         char ans = mProcesschunks->getAns();
         QString action(ans);
         if (ans != 'P') {
@@ -914,7 +912,7 @@ void ProcessHandler::resetKill() {
   mIgnoreKill = true;
 }
 
-const bool ProcessHandler::isPidEmpty() {
+bool ProcessHandler::isPidEmpty() {
   getPid();
   return mPid.isEmpty();
 }
@@ -1327,6 +1325,10 @@ void ProcessHandler::killProcess(const QString &pid) {
 
 /*
  $Log$
+ Revision 1.37  2011/01/26 06:50:11  sueh
+ bug# 1426 Stop checking for the pid during the kill for queue.  Always
+ clear the param list during setJob.
+
  Revision 1.36  2011/01/25 07:16:22  sueh
  bug# 1426 Setting mIgnoreKill in startKill() and checking it in killSignal().
 

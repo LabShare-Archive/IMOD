@@ -90,6 +90,9 @@ void MachineHandler::startKill() {
       mIgnoreKill = false;
     }
   }
+  if (!mIgnoreKill && mProcesschunks->isQueue() && mProcesschunks->getAns() == 'Q') {
+    mProcesschunks->getOutStream() << "Killing jobs on " << mName << endl;
+  }
 }
 
 /*
@@ -186,7 +189,7 @@ void MachineHandler::handleError(const QProcess::ProcessError error) {
   }
 }
 
-const bool MachineHandler::isKillFinished() {
+bool MachineHandler::isKillFinished() {
   int i;
   if (mIgnoreKill) {
     return true;
@@ -218,7 +221,7 @@ void MachineHandler::resetKill() {
 }
 
 //When a machine is dropped, its failures no longer count.
-const int MachineHandler::getFailureCount() {
+int MachineHandler::getFailureCount() {
   if (mDropped) {
     return 0;
   }
@@ -229,7 +232,7 @@ const int MachineHandler::getFailureCount() {
 
 //Kill all running processes on this machine.  Returns false if one of the kill
 //requests had to wait for a signal or event.
-const bool MachineHandler::killProcesses() {
+bool MachineHandler::killProcesses() {
   //set mKill boolean
   mKill = true;
   if (mProcesschunks->getAns() == 'D') {
@@ -254,7 +257,7 @@ const bool MachineHandler::killProcesses() {
 //This is called the first time by Processchunks::killProcessOnNextMachine.
 //If that call can't get though all the processes because of a signal or event
 //wait, it returns false and is then called by ProcessHandler::killNextProcess.
-const bool MachineHandler::killNextProcess(const bool asynchronous) {
+bool MachineHandler::killNextProcess(const bool asynchronous) {
   if (!mKill) {
     mProcesschunks->getOutStream()
         << "Warning: MachineHandler::killNextProcess called when mKill is false" << endl;
@@ -294,6 +297,9 @@ void MachineHandler::cleanupKillProcess() {
 
 /*
  $Log$
+ Revision 1.13  2011/01/25 07:05:49  sueh
+ bug# 1426 Added mDropped.
+
  Revision 1.12  2011/01/21 04:54:49  sueh
  bug# 1426 In setup, passing the parameter to ProcessHandler setup.
 

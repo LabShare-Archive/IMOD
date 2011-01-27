@@ -74,14 +74,14 @@ public:
   void printOsInformation();
   void loadParams(int &argc, char **argv);
   void setup();
-  const bool askGo();
+  bool askGo();
   void startLoop();
   void killProcessOnNextMachine();
   void msgKillProcessStarted(ProcessHandler *processHandler);
   void msgKillProcessDone(ProcessHandler *processHandler);
   void handleFileSystemBug();
 
-  inline const bool isQueue() {
+  inline bool isQueue() {
     return mQueue;
   }
   ;
@@ -97,7 +97,7 @@ public:
     return mQueueParamList;
   }
   ;
-  inline const bool isVerbose(const QString &verboseClass, const QString verboseFunction,
+  inline bool isVerbose(const QString &verboseClass, const QString verboseFunction,
       const int verbosity = 1) {
     return isVerbose(verboseClass, verboseFunction, verbosity, true);
   }
@@ -106,7 +106,7 @@ public:
     return *mOutStream;
   }
   ;
-  inline const bool isSingleFile() {
+  inline bool isSingleFile() {
     return mSingleFile;
   }
   ;
@@ -118,15 +118,15 @@ public:
     return mSshOpts;
   }
   ;
-  inline const int getNice() {
+  inline int getNice() {
     return mNice;
   }
   ;
-  inline const int getMillisecSleep() {
+  inline int getMillisecSleep() {
     return mMillisecSleep;
   }
   ;
-  inline const char getAns() {
+  inline char getAns() {
     return mAns;
   }
   ;
@@ -134,7 +134,7 @@ public:
     return mDropList;
   }
   ;
-  inline const int getDropCrit() {
+  inline int getDropCrit() {
     return mDropCrit;
   }
   ;
@@ -148,7 +148,7 @@ public:
   }
   ;
   void killSignal();
-  inline const bool pipesAvailable() {
+  inline bool pipesAvailable() {
     return mMaxKillPipes - mKillPipes >= 6;
   }
   ;
@@ -171,29 +171,29 @@ protected:
   void timerEvent(QTimerEvent *e);
 
 private:
-  const int extractVersion(const QString &versionString);
+  int extractVersion(const QString &versionString);
   void buildFilters(const char *reg, const char *sync, QStringList &filters);
   void cleanupList(const char *remove, QStringList &list);
-  const int runGenericProcess(QByteArray &output, QProcess &process,
-      const QString &command, const QStringList &params, const int numLinesToPrint);
+  int runGenericProcess(QByteArray &output, QProcess &process, const QString &command,
+      const QStringList &params, const int numLinesToPrint);
   void setupSshOpts();
   int * initMachineList(QStringList &machineNameList);
   void setupMachineList(QStringList &machineNameList, int *numCpusList);
   void setupHostRoot();
   void setupComFileJobs();
   void probeMachines(QStringList &machineNameList);
-  const bool readCheckFile();
+  bool readCheckFile();
   void exitIfDropped(const int minFail, const int failTot, const int assignTot);
-  const bool handleChunkDone(MachineHandler &machine, ProcessHandler *process,
+  bool handleChunkDone(MachineHandler &machine, ProcessHandler *process,
       const int jobIndex);
-  const bool
+  bool
       handleLogFileError(QString &errorMess, MachineHandler &machine,
           ProcessHandler *process);
   void handleComProcessNotDone(bool &dropout, QString &dropMess, MachineHandler &machine,
       ProcessHandler *process);
   void handleDropOut(bool &noChunks, QString &dropMess, MachineHandler &machine,
       ProcessHandler *process, QString &errorMess);
-  const bool checkChunk(int &runFlag, bool &noChunks, int &undone, bool &foundChunks,
+  bool checkChunk(int &runFlag, bool &noChunks, int &undone, bool &foundChunks,
       bool &chunkOk, MachineHandler &machine, const int jobIndex, const int chunkErrTot);
   void runProcess(MachineHandler &machine, ProcessHandler *process, const int jobIndex);
   int escapeEntered();
@@ -203,12 +203,12 @@ private:
   void killProcesses(QStringList *dropList = NULL);
   void startTimers();
   void cleanupKillProcesses(const bool timeout);
-  const bool handleError(const QString *errorMess, MachineHandler &machine,
+  bool handleError(const QString *errorMess, MachineHandler &machine,
       ProcessHandler *process);
-  const bool isVerbose(const QString &verboseClass, const QString verboseFunction,
+  bool isVerbose(const QString &verboseClass, const QString verboseFunction,
       const int verbosity, const bool print);
 
-  int mSizeJobArray, mMachineListSize,mNumMachinesDropped;
+  int mSizeJobArray, mMachineListSize, mNumMachinesDropped;
   ComFileJobs *mComFileJobs;
   MachineHandler *mMachineList;
   QTextStream *mOutStream;
@@ -250,6 +250,9 @@ private:
 
 /*
  $Log$
+ Revision 1.26  2011/01/25 07:15:22  sueh
+ bug# 1426 Added mNumMachinesDropped.
+
  Revision 1.25  2011/01/21 00:18:12  sueh
  bug# 1426 Adding decrementPipes, incrementPipes, pipesAvailable,
  initMachineList, killSignal, setupComFileJobs.
