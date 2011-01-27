@@ -45,7 +45,7 @@
 #ifndef PROCESSCHUNKS_H
 #define PROCESSCHUNKS_H
 
-#include <QApplication>
+#include <QCoreApplication>
 #include <QDir>
 //All processchunks application header files should be included here.
 #include "comfilejobs.h"
@@ -64,7 +64,7 @@
 #define CHUNK_ASSIGNED 1
 #define CHUNK_DONE 2
 
-class Processchunks: public QApplication {
+class Processchunks: public QCoreApplication {
 Q_OBJECT
 
 public:
@@ -250,6 +250,12 @@ private:
 
 /*
  $Log$
+ Revision 1.27  2011/01/27 03:51:55  sueh
+ bug# 1426 Removes const from simple variable return values (int, char,
+ bool, long) because they cause a warning in the intel compiler.  Moved the
+ the kill message for queues to the machine handler so it will only print
+ once.
+
  Revision 1.26  2011/01/25 07:15:22  sueh
  bug# 1426 Added mNumMachinesDropped.
 

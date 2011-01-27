@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
 }
 
 Processchunks::Processchunks(int &argc, char **argv) :
-  QApplication(argc, argv) {
+  QCoreApplication(argc, argv) {
   //initialize member variables
   mOutStream = new QTextStream(stdout);
   mRemoteDir = NULL;
@@ -1868,6 +1868,10 @@ bool Processchunks::isVerbose(const QString &verboseClass, const QString verbose
 
 /*
  $Log$
+ Revision 1.58  2011/01/27 03:44:17  sueh
+ bug# 1426 Removes const from simple variable return values (int, char,
+ bool, long) because they cause a warning in the intel compiler.
+
  Revision 1.57  2011/01/26 06:48:14  sueh
  bug# 1426 In loadParams freeing a local variable.  In setupMachineList
  setting mQueueCommand before running MachineHandler.setup.
