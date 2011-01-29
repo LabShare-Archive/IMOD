@@ -807,10 +807,18 @@ int tiffReadSection(ImodImageFile *inFile, char *buf, int inSection)
 int tiffOpenNew(ImodImageFile *inFile)
 {
   TIFF *tif;
-  int minor;
+  int minor, psize = 1;
+
+  if (inFile->type == IITYPE_SHORT || inFile->type == IITYPE_USHORT)
+    psize = 2;
+  if (inFile->type == IITYPE_INT || inFile->type == IITYPE_UINT || 
+      inFile->type == IITYPE_FLOAT)
+    psize = 4;
+  if (inFile->format == IIFORMAT_RGB)
+    psize *= 3;
   
   /* Try to open a big file in version 4 */
-  if (tiffVersion(&minor) > 3 && ((double)inFile->nx * inFile->ny * inFile->nz)
+  if (tiffVersion(&minor) > 3 && ((double)inFile->nx * inFile->ny * inFile->nz * psize)
       > 4.0e9)
     tif = TIFFOpen(inFile->filename, "w8");
   else
@@ -1025,6 +1033,9 @@ int tiffVersion(int *minor)
 
 /*
   $Log$
+  Revision 3.24  2010/12/21 05:28:40  mast
+  Added quality argument to tiff writing
+
   Revision 3.23  2010/12/18 18:43:18  mast
   Changes to write files in chunks and for big tiff files
 
