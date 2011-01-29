@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/29/11: Fixed test for when to open a big TIFF file to work for other than
+bytes. 
+
 1/19/11: Fixed enabling of angle slider in stereo dialog.
 
 1/14/11: IMOD_4-2-12
