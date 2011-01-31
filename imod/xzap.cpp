@@ -1486,7 +1486,7 @@ void zapGeneralEvent(ZapStruct *zap, QEvent *e)
   float imx, imy;
   Iobj *obj;
   Icont *cont;
-  float wheelScale = 1./1200.f;
+  float wheelScale = utilWheelToPointSizeScaling(zap->zoom);
   if (zap->numXpanels || !zap->popup || App->closing)
     return;
   ix = (zap->gfx->mapFromGlobal(QCursor::pos())).x();
@@ -1506,17 +1506,11 @@ void zapGeneralEvent(ZapStruct *zap, QEvent *e)
     imx = imodPointGetSize(obj, cont, pt);
     if (!imx && (!cont->sizes || (cont->sizes && cont->sizes[pt] < 0)))
       return;
-    if (zap->zoom < 4. && zap->zoom >= 2.)
-      wheelScale *= 2.;
-    else if (zap->zoom < 2. && zap->zoom > 1.)
-      wheelScale *= 3.;
-    else if (zap->zoom == 1.)
-      wheelScale *= 4.;
-    else if (zap->zoom < 1.)
-      wheelScale *= 5.;
     imx += ((QWheelEvent *)e)->delta() * wheelScale;
     imx = B3DMAX(0., imx);
+    zap->vi->undo->contourDataChg();
     imodPointSetSize(cont, pt, imx);
+    zap->vi->undo->finishUnit();
     imodDraw(zap->vi, IMOD_DRAW_MOD);
   }
 }
@@ -4737,6 +4731,9 @@ static void setDrawCurrentOnly(ZapStruct *zap, int value)
 /*
 
 $Log$
+Revision 4.158  2011/01/13 20:29:29  mast
+stipple gaps; draw connector squares one pixel bigger
+
 Revision 4.157  2010/12/18 05:44:30  mast
 Use new common functions for montage snapshots
 
