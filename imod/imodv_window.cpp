@@ -400,15 +400,15 @@ void ImodvGL::mouseMoveEvent ( QMouseEvent * e )
 
 void ImodvGL::wheelEvent ( QWheelEvent * e)
 {
-  double power = -e->delta() / 120.;
-  double zoom = pow(1.05, power);
-  imodv_zoomd(Imodv, zoom);
-  imodvDraw(Imodv);
+  imodvScrollWheel(e);
 }
 
 /*
 
 $Log$
+Revision 4.28  2011/01/13 20:32:57  mast
+warning cleanup
+
 Revision 4.27  2010/12/20 03:29:20  mast
 Added flag and menu item to invert model in Z
 
