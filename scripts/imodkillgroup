@@ -11,6 +11,7 @@ if ($#argv < 1) then
 endif
 
 set system = `uname -s`
+set windows = 0
 
 # Get PID and PGID in two column output for each system, for all lines 
 # containing the PID somewhere
@@ -26,6 +27,7 @@ switch ($system)
 
         # Strip any leading characters like S for suspended
         set proclist = `ps -el | sed -e '/^[^ ]/s///' | awk '{print $1, $3}'`
+        set windows = 1
         breaksw
     case *Darwin*:
         set proclist = `ps -jA | awk '{print $2, $4}'`
@@ -50,7 +52,17 @@ while ($#argv > 0)
 
             # For some reason it didn't like $proclist[$i+1]; "missing -"
             @ j = $i + 1
-            \kill -9 -$proclist[$j]
+
+            # It turns out that tcsh kill works fine with a pgid too.
+            # Cygwin kill now complains about "-9: no such process" even though it
+            # works, so just use the (silent) built-in kill instead
+            # Neither tcsh nor bash man page mention that group kills work, and the
+            # kill man page on cygwin does not either, but they all work.
+            if ($windows) then
+                kill -9 -$proclist[$j]
+            else
+                \kill -9 -$proclist[$j]
+            endif
             set found = 1
             break
         endif
@@ -64,6 +76,9 @@ end
 exit $retval
 
 #  $Log$
+#  Revision 3.5  2010/12/31 15:45:00  mast
+#  Made it do multiple PIDs
+#
 #  Revision 3.4  2010/11/02 16:38:07  mast
 #  remove DOS endings (?)
 #
