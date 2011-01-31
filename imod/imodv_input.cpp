@@ -35,6 +35,7 @@
 #include "imod_input.h"
 #include "preferences.h"
 #include "control.h"
+#include "undoredo.h"
 #include "imodv_menu.h"
 #include "imodv_ogl.h"
 #include "imodv_gfx.h"
@@ -54,15 +55,15 @@
 
 
 static void imodv_light_move(ImodvApp *a, int mx, int my);
-static void imodv_translate(ImodvApp *a, int x, int y);
-static void imodv_translated(ImodvApp *a, int x, int y, int z);
-static void imodvSelect(ImodvApp *a, int mx, int my, bool moving);
+static void imodvTranslateByDelta(ImodvApp *a, int x, int y, int z);
+static void imodvSelect(ImodvApp *a, int mx, int my, bool moving, bool insert, 
+                        bool curObj);
 static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z);
 static void imodv_rotate(ImodvApp *a, int mx, int my, int throwFlag,
                          int rightWasDown);
 static int  imodvStepTime(ImodvApp *a, int tstep);
 static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], 
-                         bool moving);
+                         bool moving, bool insert, bool curObj);
 static void imodv_start_movie(ImodvApp *a);
 static void registerClipPlaneChg(ImodvApp *a);
 
@@ -93,6 +94,7 @@ void imodvKeyPress(QKeyEvent *event)
 {
   ImodvApp *a = Imodv;
   IclipPlanes *clips;
+  Iobj *obj;
   int keysym = event->key();
   int tstep = 1;
   int newval, fastdraw, ip;
@@ -113,10 +115,16 @@ void imodvKeyPress(QKeyEvent *event)
 
   inputConvertNumLock(keysym, keypad);
 
-  if (shifted)
+  // Increase step size for shift, except not when moving a point
+  if (shifted && !ctrl)
     tstep = 10;
+  if (shifted && ctrl && (keysym == Qt::Key_PageDown) || (keysym == Qt::Key_PageUp)) {
+    tstep = (int)(0.5 * B3DMIN(a->winx, a->winy) / a->imod->view->rad);
+    tstep = B3DMAX(1, tstep);
+  }
 
-  if (!Imodv->imod) return;
+  if (!Imodv->imod)
+    return;
 
   if (imodDebug('k'))
     imodPrintStderr("key %x\n", keysym);
@@ -304,37 +312,37 @@ void imodvKeyPress(QKeyEvent *event)
     if (keypad)
       imodv_rotate_model(a,0, 0, -a->md->arot);
     else
-      imodv_translated(a, 0, 0, tstep);
+      imodvTranslateByDelta(a, 0, 0, tstep);
     break;
   case Qt::Key_PageUp:
     if (keypad)
       imodv_rotate_model(a,0, 0, a->md->arot);
     else
-      imodv_translated(a, 0, 0, -tstep);
+      imodvTranslateByDelta(a, 0, 0, -tstep);
     break;
   case Qt::Key_Up:
     if (keypad)
       imodv_rotate_model(a,-a->md->arot, 0, 0);
     else
-      imodv_translated(a, 0, -tstep, 0);
+      imodvTranslateByDelta(a, 0, -tstep, 0);
     break;
   case Qt::Key_Down:
     if (keypad)
       imodv_rotate_model(a,a->md->arot, 0, 0);
     else
-      imodv_translated(a, 0, tstep, 0);
+      imodvTranslateByDelta(a, 0, tstep, 0);
     break;
   case Qt::Key_Right:
     if (keypad)
       imodv_rotate_model(a,0, a->md->arot, 0);
     else
-      imodv_translated(a, -tstep, 0, 0);
+      imodvTranslateByDelta(a, -tstep, 0, 0);
     break;
   case Qt::Key_Left:
     if (keypad)
       imodv_rotate_model(a,0, -a->md->arot, 0);
     else
-      imodv_translated(a, tstep, 0, 0);
+      imodvTranslateByDelta(a, tstep, 0, 0);
     break;
   case Qt::Key_5:
   case Qt::Key_Enter:
@@ -346,6 +354,21 @@ void imodvKeyPress(QKeyEvent *event)
     }else{
       a->movie = 0;
       a->md->xrotm = a->md->yrotm = a->md->zrotm = 0;
+    }
+    break;
+
+  case Qt::Key_Delete:
+    obj = imodObjectGet(a->imod);
+    if (!keypad && shifted && ctrl && !a->standalone && obj && imodPointGet(a->imod)) {
+      if (!iobjScat(obj->flags)) {
+        wprint("\aObject type must be scattered points to delete points in Model View\n");
+        break;
+      }
+      if (a->imod->mousemode != IMOD_MMODEL) {
+        wprint("\aYou must be in Model Mode to delete points in Model View\n");
+        break;
+      }
+      inputDeletePoint(a->vi);
     }
     break;
                
@@ -503,6 +526,8 @@ void imodvKeyRelease(QKeyEvent *event)
 void imodvMousePress(QMouseEvent *event)
 {
   ImodvApp *a = Imodv;
+  int shift = event->modifiers() & Qt::ShiftModifier;
+  int ctrl = event->modifiers() & Qt::ControlModifier;
 
   // Use state after in press and release to keep track of mouse state
   leftDown = event->buttons() & ImodPrefs->actualModvButton(1);
@@ -523,18 +548,18 @@ void imodvMousePress(QMouseEvent *event)
     /* imodvDraw(a); */
 
   } else if (event->button() == ImodPrefs->actualModvButton(2) ||
-             (event->button() == ImodPrefs->actualModvButton(3) && 
-              (event->modifiers() & Qt::ShiftModifier))) {
+             (event->button() == ImodPrefs->actualModvButton(3) && shift && !ctrl)) {
     b2x = a->lmx = event->x();
     b2y = a->lmy = event->y();
-    if (event->button() == ImodPrefs->actualModvButton(2) && 
-        (event->modifiers() & Qt::ShiftModifier)) {
+    if (event->button() == ImodPrefs->actualModvButton(2) && shift && !ctrl) {
       a->drawLight = 1;
       imodvDraw(a);
     }
+    if (event->button() == ImodPrefs->actualModvButton(2) && shift && ctrl)
+      imodvSelect(a, event->x(), event->y(), false, true, false);
 
   } else if (event->button() == ImodPrefs->actualModvButton(3)) {
-    imodvSelect(a, event->x(), event->y(), false);
+    imodvSelect(a, event->x(), event->y(), false, false, (shift && ctrl));
   }
 }
 
@@ -543,13 +568,14 @@ void imodvMouseRelease(QMouseEvent *event)
 {
   ImodvApp *a = Imodv;
   int rightWasDown = event->button() & ImodPrefs->actualModvButton(3);
+  int shift = event->modifiers() & Qt::ShiftModifier;
+  int ctrl = event->modifiers() & Qt::ControlModifier;
 
   leftDown = event->buttons() & ImodPrefs->actualModvButton(1);
   midDown = event->buttons() & ImodPrefs->actualModvButton(2);
   rightDown = event->buttons() & ImodPrefs->actualModvButton(3);
-  if (((event->button() & ImodPrefs->actualModvButton(2)) && 
-      !(event->modifiers() & Qt::ShiftModifier)) || 
-      (rightWasDown && (event->modifiers() & Qt::ShiftModifier)))
+  if (((event->button() & ImodPrefs->actualModvButton(2)) && !shift && !ctrl) || 
+      (rightWasDown && shift))
     imodv_rotate(a, event->x(), event->y(), 1, rightWasDown);
   if (a->drawLight) {
     a->drawLight = 0;
@@ -561,16 +587,17 @@ void imodvMouseRelease(QMouseEvent *event)
 void imodvMouseMove(QMouseEvent *event)
 {
   ImodvApp *a = Imodv;
-  static int ex, ey, modifiers;
+  static int ex, ey, shift, ctrl;
   static bool processing = false;
   ex = event->x();
   ey = event->y();
+  shift = event->modifiers() & Qt::ShiftModifier;
+  ctrl = event->modifiers() & Qt::ControlModifier;
 
   // Use state in mouse move to keep track of button down
   leftDown = event->buttons() & ImodPrefs->actualModvButton(1);
   midDown = event->buttons() & ImodPrefs->actualModvButton(2);
   rightDown = event->buttons() & ImodPrefs->actualModvButton(3);
-  modifiers = event->modifiers();
   if (imodDebug('m'))
     imodPrintStderr("Move ex,y %d %d ", ex, ey);
 
@@ -583,22 +610,46 @@ void imodvMouseMove(QMouseEvent *event)
   processing = false;
 
   if (leftDown){
-    if (!(modifiers & Qt::ShiftModifier))
-      /*   DNM: disable this */
-      /*           imodv_fog_move(a);
-                   else */
-      imodv_translate(a, ex, ey);
+
+    imodvTranslateByDelta(a, -(ex - a->lmx), ey - a->lmy, 0);
   }
-  if (midDown && (modifiers & Qt::ShiftModifier))
+  if (midDown && shift && !ctrl)
     imodv_light_move(a, ex, ey);
-  else if (midDown || (rightDown && (modifiers & Qt::ShiftModifier)))
+  else if ((midDown && !ctrl) || (rightDown && shift))
     imodv_rotate(a, ex, ey, 0, rightDown);
-  else if (rightDown && (modifiers & Qt::ControlModifier))
-    imodvSelect(a, ex, ey, true);
+  else if (rightDown && ctrl)
+    imodvSelect(a, ex, ey, true, false, false);
   a->lmx = ex;
   a->lmy = ey;
   if (imodDebug('m'))
     imodPuts(" ");
+}
+
+// A mouse wheel event either zooms or scales a scattered point size
+void imodvScrollWheel(QWheelEvent *e)
+{
+  double power = -e->delta() / 120.;
+  double zoom = pow(1.05, power);
+  float wheelScale, scrnScale, size;
+  int ob, co, pt;
+  Imod *imod = Imodv->imod;
+  if ((e->modifiers() & Qt::ShiftModifier) && (e->modifiers() & Qt::ControlModifier)) {
+    imodGetIndex(Imodv->imod, &ob, &co, &pt);
+    if (pt < 0 || !iobjScat(imod->obj[ob].flags))
+      return;
+    size = imodPointGetSize(&imod->obj[ob], &imod->obj[ob].cont[co], pt);
+    scrnScale = 0.5 * B3DMIN(Imodv->winx, Imodv->winy) / Imodv->imod->view->rad;
+    size += e->delta() * utilWheelToPointSizeScaling(scrnScale);
+    size = B3DMAX(0., size);
+    Imodv->vi->undo->contourDataChg();
+    imodPointSetSize(&imod->obj[ob].cont[co], pt, size);
+    imodvFinishChgUnit();
+    imodvDrawImodImages(false);
+    imodvDraw(Imodv);
+  } else {
+    imodv_zoomd(Imodv, zoom);
+    imodvDraw(Imodv);
+  }
 }
 
 /*
@@ -622,18 +673,6 @@ static void imodv_light_move(ImodvApp *a, int mx, int my)
   imodvDraw(a);
 }
 
-
-/* model coord transformation. */
-
-static void imodv_translate(ImodvApp *a, int mx, int my)
-{
-  int dx, dy;
-     
-  dx = -(mx - a->lmx);
-  dy = my - a->lmy;
-
-  imodv_translated(a, dx, dy, 0);
-}
 
 // Change zoom by a factor
 void imodv_zoomd(ImodvApp *a, double zoom)
@@ -665,12 +704,14 @@ static void registerClipPlaneChg(ImodvApp *a)
 }
 
 /*
- * Translate model or clipping plane
+ * Translate model or clipping plane or current point
  */
-static void imodv_translated(ImodvApp *a, int x, int y, int z)
+static void imodvTranslateByDelta(ImodvApp *a, int x, int y, int z)
 {
-  int mx, my, ip, ipst, ipnd;
+  int mx, my, ip, ipst, ipnd, ob, co, pt;
   unsigned int maskr = imodv_query_pointer(a,&mx,&my);
+  bool ctrl = (maskr & Qt::ControlModifier) != 0;
+  bool shift = (maskr & Qt::ShiftModifier) != 0;
   IclipPlanes *clips;
     
   Imod *imod;
@@ -680,7 +721,7 @@ static void imodv_translated(ImodvApp *a, int x, int y, int z)
   float scrnscale;
   double alpha, beta;
 
-  if ((maskr & Qt::ControlModifier) || !a->moveall) {
+  if (ctrl || !a->moveall) {
     mstrt = a->cm;
     mend = mstrt + 1;
   } else {
@@ -698,8 +739,7 @@ static void imodv_translated(ImodvApp *a, int x, int y, int z)
     imodMatRot(mat, -(double)imod->view->rot.y, b3dY);
     imodMatRot(mat, -(double)imod->view->rot.z, b3dZ);
 
-    scrnscale = 0.5 * (a->winx > a->winy ? a->winy : a->winx) / 
-      imod->view->rad;
+    scrnscale = 0.5 * B3DMIN(a->winx, a->winy) / imod->view->rad;
     
     spt.x = 1.0f/scrnscale;
     spt.y = 1.0f/scrnscale;
@@ -715,7 +755,7 @@ static void imodv_translated(ImodvApp *a, int x, int y, int z)
     opt.y *= (1.0/ imod->view->scale.y);
     opt.z *= (1.0/ imod->view->scale.z);
     
-    if (maskr & Qt::ControlModifier){
+    if (ctrl && !shift) {
       objedObject();
       if (a->obj){
         registerClipPlaneChg(a);
@@ -738,7 +778,20 @@ static void imodv_translated(ImodvApp *a, int x, int y, int z)
             clips->point[ip].z = -spt.z;
           }
       }
-    }else{ 
+    } else if (ctrl && shift) {
+      imodGetIndex(imod, &ob, &co, &pt);
+      if (pt < 0 || !iobjScat(imod->obj[ob].flags))
+        return;
+      if (firstMove) {
+        a->vi->undo->contourDataChg();
+        imodvFinishChgUnit();
+        firstMove = 0;
+      }
+      imod->obj[ob].cont[co].pts[pt].x -= opt.x;
+      imod->obj[ob].cont[co].pts[pt].y -= opt.y;
+      imod->obj[ob].cont[co].pts[pt].z -= opt.z;
+      imodvDrawImodImages();
+    } else { 
       imod->view->trans.x -= opt.x;
       imod->view->trans.y -= opt.y;
       imod->view->trans.z -= opt.z;
@@ -1061,13 +1114,58 @@ void clipCenterAndAngles(ImodvApp *a, Ipoint *clipPoint, Ipoint *clipNormal,
 */
 #define SELECT_BUFSIZE 40960
 
-static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving)
+// For select mode, set up for picking then call draw routine
+static void imodvSelect(ImodvApp *a, int x, int y, bool moving, bool insert, bool curObj)
+{
+
+  // 5/29/08: This was static, but why?  It stays in scope while needed.
+  GLuint buf[SELECT_BUFSIZE];
+  GLint hits;
+  Iobj *obj = imodObjectGet(a->imod);
+  //QTime picktime;
+  //picktime.start();
+
+  if (insert) {
+    if (a->standalone)
+      return;
+    if (!iobjScat(obj->flags)) {
+      wprint("\aObject type must be scattered points to add points in Model View\n");
+      return;
+    }
+    if (a->imod->mousemode != IMOD_MMODEL) {
+      wprint("\aYou must be in Model Mode to add points in Model View\n");
+      return;
+    }
+  }      
+
+  imodv_winset(a);
+  glSelectBuffer(SELECT_BUFSIZE, buf);
+
+  // Defer entering selection mode until inside the paint routine and context
+  // is already set.  This avoid context-setting errors on some systems
+  a->xPick = x;
+  a->yPick = a->winy - y;
+
+  a->wPick = a->hPick = 10;
+  a->doPick = 1;
+     
+  imodvDraw(a);
+
+  a->doPick = 0;
+  hits = glRenderMode( GL_RENDER );
+  processHits(a, hits, buf, moving, insert, curObj);
+  //imodPrintStderr("Pick time %d\n", picktime.elapsed());
+}
+
+// Analyze the hits from selection mode
+static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving, 
+                         bool insert, bool curObj)
 {
   unsigned int i, j;
   GLuint names, *ptr, *ptrstr;
   unsigned int z1, z2, zav, zmin;
   int tmo, tob, tco, tpt;
-  int mo, ob, co, pt, minco, minpt;
+  int mo, ob, co, pt, minco, cosave, obsave, minpt;
   Iindex indSave;
   Ipoint pickpt;
   Ipoint *pts;
@@ -1082,6 +1180,8 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving)
     hits = SELECT_BUFSIZE/3; 
 
   imodGetIndex(a->imod, &ob, &co, &pt);
+  obsave = ob;
+  cosave = co;
 
   ptr = (GLuint *) buffer;
   ptrstr = ptr;
@@ -1129,7 +1229,7 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving)
     }
 
     /* If it was a good hit (4 names) and its in front of any previous, take it */
-    if ((names > 3 ) && ((i == 0) || (zav <= zmin))) { 
+    if (names > 3 && (pt == -1 || zav <= zmin) && (!curObj || tob == obsave)) { 
       zmin = zav;
       mo = tmo; ob = tob; co = tco; pt = tpt;
       if (imodDebug('p'))
@@ -1167,9 +1267,17 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving)
         a->vi->zmouse = obj->cont[co].pts[pt].z;
         ivwBindMouse(a->vi);
         if (imodDebug('p'))
-          imodPrintStderr ("Extra object, point at %.1f %.1f %.1f\n", 
-                           a->vi->xmouse, a->vi->ymouse, a->vi->zmouse);
-        imodDraw(a->vi, IMOD_DRAW_XYZ);
+          imodPrintStderr ("Extra object, point at %.1f %.1f %.1f   inserting %d\n", 
+                           a->vi->xmouse, a->vi->ymouse, a->vi->zmouse, insert?1:0);
+        if (insert)
+          inputInsertPoint(a->vi);
+        else {
+
+          // Detach from current model point in model mode so point shows up as cross
+          if (a->imod->mousemode == IMOD_MMODEL)
+            imodSetIndex(a->imod, obsave, cosave, -1);
+          imodDraw(a->vi, IMOD_DRAW_XYZ);
+        }
       }
       return;
     }
@@ -1183,17 +1291,23 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving)
         pt >= obj->mesh[co].vsize)
       return;
     pickpt = obj->mesh[co].vert[pt];
-    if (!obj->contsize) {
+    if (!obj->contsize || insert) {
       if (a->standalone)
         return;
       a->vi->xmouse = pickpt.x;
       a->vi->ymouse = pickpt.y;
       a->vi->zmouse = pickpt.z;
       ivwBindMouse(a->vi);
-      imodDraw(a->vi, IMOD_DRAW_XYZ);
       if (imodDebug('p'))
-        imodPrintStderr ("Contourless mesh, point at %.1f %.1f %.1f\n", 
-                         a->vi->xmouse, a->vi->ymouse, a->vi->zmouse);
+        imodPrintStderr ("Contourless mesh, point at %.1f %.1f %.1f  inserting %d\n", 
+                         a->vi->xmouse, a->vi->ymouse, a->vi->zmouse, insert?1:0);
+      if (insert)
+        inputInsertPoint(a->vi);
+      else {
+        if (a->imod->mousemode == IMOD_MMODEL)
+          imodSetIndex(a->imod, obsave, cosave, -1);
+        imodDraw(a->vi, IMOD_DRAW_XYZ);
+      }
       return;
     }
 
@@ -1245,8 +1359,22 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving)
         imodPrintStderr ("Mesh hit, nearest point distance %.3f\n", 
                          sqrt((double)minsq));
     }
-  }
+  } else
+    pickpt = a->imod->obj[ob].cont[co].pts[pt];
   
+  // If inserting is requesting, always insert a point no matter how it was gotten
+  if (insert) {
+    a->vi->xmouse = pickpt.x;
+    a->vi->ymouse = pickpt.y;
+    a->vi->zmouse = pickpt.z;
+    ivwBindMouse(a->vi);
+    if (imodDebug('p'))
+      imodPrintStderr("Inserting  %.1f %.1f %.1f\n", a->vi->xmouse, a->vi->ymouse, 
+                      a->vi->zmouse);
+    inputInsertPoint(a->vi);
+    return;
+  }
+
   // Now process the indexable point whether from contour or mesh
   indSave = a->imod->cindex;
   imodSetIndex(a->imod, ob, co, pt);     
@@ -1263,34 +1391,6 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving)
                     pickedObject, pickedContour);
 }
 
-// For select mode, set up for picking then call draw routine
-static void imodvSelect(ImodvApp *a, int x, int y, bool moving)
-{
-
-  // 5/29/08: This was static, but why?  It stays in scope while needed.
-  GLuint buf[SELECT_BUFSIZE];
-  GLint hits;
-  //QTime picktime;
-  //picktime.start();
-
-  imodv_winset(a);
-  glSelectBuffer(SELECT_BUFSIZE, buf);
-
-  // Defer entering selection mode until inside the paint routine and context
-  // is already set.  This avoid context-setting errors on some systems
-  a->xPick = x;
-  a->yPick = a->winy - y;
-
-  a->wPick = a->hPick = 10;
-  a->doPick = 1;
-     
-  imodvDraw(a);
-
-  a->doPick = 0;
-  hits = glRenderMode( GL_RENDER );
-  processHits(a, hits, buf, moving);
-  //imodPrintStderr("Pick time %d\n", picktime.elapsed());
-}
 
 static int imodvStepTime(ImodvApp *a, int tstep)
 {
@@ -1393,6 +1493,9 @@ void imodvMovieTimeout()
 /*
 
 $Log$
+Revision 4.52  2011/01/13 20:28:11  mast
+Change in picking hit analysis to find matching point in contour from mesh hit
+
 Revision 4.51  2010/12/18 17:36:44  mast
 Changes for stereo image display
 
