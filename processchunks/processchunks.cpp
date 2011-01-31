@@ -451,7 +451,7 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
       //Drop a machine if it has failed more than given number of times
       //Institute hold on any failed machine if no chunks are done and
       //machine failure count is above criterion
-      int failCount = mMachineList[i].getFailureCount();
+      failCount = mMachineList[i].getFailureCount();
       if (failCount >= mDropCrit || mPausing || (failCount && !mAnyDone && failTot
           >= mHoldCrit)) {
         dropout = true;
@@ -1883,6 +1883,10 @@ bool Processchunks::isVerbose(const QString &verboseClass, const QString verbose
 
 /*
  $Log$
+ Revision 1.60  2011/01/31 19:47:02  sueh
+ bug# 1426 Counting kills instead of pipes.  For Windows, which has
+ another (smaller) limit, set mMaxKills differently.
+
  Revision 1.59  2011/01/27 22:54:21  sueh
  bug# 1426 Switching to QCoreApplication, which is for console applications.
 
