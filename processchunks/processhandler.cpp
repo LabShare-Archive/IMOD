@@ -13,8 +13,6 @@
 
 #include "processchunks.h"
 
-const static QString pidTag = "PID:";
-
 ProcessHandler::ProcessHandler() {
   mJobFile = NULL;
   mQidFile = NULL;
@@ -1325,6 +1323,9 @@ void ProcessHandler::killProcess(const QString &pid) {
 
 /*
  $Log$
+ Revision 1.39  2011/01/31 19:45:10  sueh
+ bug# 1426 Counting kills instead of pipes.
+
  Revision 1.38  2011/01/27 03:52:10  sueh
  bug# 1426 Removes const from simple variable return values (int, char,
  bool, long) because they cause a warning in the intel compiler.  Moved the
