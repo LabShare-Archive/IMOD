@@ -325,7 +325,7 @@ int imodDraw(ImodView *vw, int flag)
      xyz window separately (it now has a control) */
 
 
-  if (flag & IMOD_DRAW_XYZ) {
+  if (flag & (IMOD_DRAW_XYZ | IMOD_DRAW_MOD)) {
     imod_info_setxyz();
     needModv = imodvIsosurfaceUpdate();
   }
@@ -555,6 +555,9 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
 /*
 
 $Log$
+Revision 4.29  2010/03/09 19:51:06  mast
+Modernized error message about GL format
+
 Revision 4.28  2009/01/15 16:33:17  mast
 Qt 4 port
 
