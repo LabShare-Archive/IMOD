@@ -67,6 +67,7 @@ void utilFinishMontSnap(unsigned char **linePtrs,
                         int digits, float zoom, char *prefix, char *message);
 void utilFreeMontSnapArrays(unsigned char **fullPix, int numChunks, 
                             unsigned char *framePix, unsigned char **linePtrs);
+float utilWheelToPointSizeScaling(float zoom);
 char *imodwfname(const char *intro);
 char *imodwEithername(const char *intro, const char *filein, int modelFirst);
 char *imodwGivenName(const char *intro, const char *filein);
@@ -76,6 +77,9 @@ QString imodCaption(const char *intro);
 /*
  *
  *  $Log$
+ *  Revision 1.12  2011/01/13 20:30:59  mast
+ *  Change stipple enabling to return bool
+ *
  *  Revision 1.11  2010/12/18 05:33:59  mast
  *  Added common functions for montage snapshots
  *

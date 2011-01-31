@@ -515,6 +515,21 @@ void utilFinishMontSnap(unsigned char **linePtrs,
   b3dSetDpiScaling(1.);
 }
 
+// Returns a zoom-dependent for scaling a scroll wheel delta to a point size change
+float utilWheelToPointSizeScaling(float zoom)
+{
+  float wheelScale = 1./1200.f;
+  if (zoom < 4. && zoom >= 2.)
+    wheelScale *= 2.;
+  else if (zoom < 2. && zoom > 1.)
+    wheelScale *= 3.;
+  else if (zoom == 1.)
+    wheelScale *= 4.;
+  else if (zoom < 1.)
+    wheelScale *= 5.;
+  return wheelScale;
+}
+
 
 /* Appends either the model or file name to the window name, giving
    first priority to the model name if "modelFirst" is set */
@@ -717,6 +732,9 @@ int imodColorValue(int inColor)
 /*
 
 $Log$
+Revision 1.15  2011/01/13 20:30:56  mast
+Change stipple enabling to return bool
+
 Revision 1.14  2010/12/18 05:33:47  mast
 Added common functions for montage snapshots
 
