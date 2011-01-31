@@ -353,8 +353,7 @@ void imodvControlUpdate(ImodvApp *a)
     dialog->setAxisText(IMODV_CONTROL_ZAXIS, lastZ);
   }
 
-  scale = 0.5 * (a->winx > a->winy ? a->winy : a->winx) / 
-    a->imod->view->rad;
+  scale = 0.5 * B3DMIN(a->winx, a->winy) / a->imod->view->rad;
   if (lastScale != scale) {
     lastScale = scale;
     dialog->setScaleText(lastScale);
@@ -406,6 +405,9 @@ int imodv_control(ImodvApp *a, int state)
 /*
 
 $Log$
+Revision 4.14  2011/01/13 20:32:39  mast
+warning cleanup
+
 Revision 4.13  2009/03/22 19:54:25  mast
 Show with new geometry adjust routine for Mac OS X 10.5/cocoa
 

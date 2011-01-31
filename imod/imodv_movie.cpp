@@ -481,7 +481,7 @@ static void imodvMakeMontage(int frames, int overlap)
   imodMatRot(mat, -(double)vw->rot.y, b3dY);
   imodMatRot(mat, -(double)vw->rot.z, b3dZ);
      
-  scrnscale = 0.5 * (a->winx > a->winy ? a->winy : a->winx) / vw->rad;
+  scrnscale = 0.5 * B3DMIN(a->winx, a->winy) / vw->rad;
     
   spt.x = 1.0f/scrnscale;
   spt.y = 1.0f/scrnscale;
@@ -579,6 +579,9 @@ static void imodvMakeMontage(int frames, int overlap)
 
 /*
     $Log$
+    Revision 4.24  2010/12/18 05:43:37  mast
+    Use new common functions for montage snapshots
+
     Revision 4.23  2010/12/15 06:14:41  mast
     Changes for setting resolution in image snapshots
 
