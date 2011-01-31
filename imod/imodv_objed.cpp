@@ -131,6 +131,7 @@ static int numOnoffButtons = 0;
 static QGridLayout *OnoffGrid;
 static QSignalMapper *OnoffMapper;
 static QFrame *OnoffFrame;
+static QRadioButton *wSubsetPoint;
 
 static int      CurrentObjectField       = 0;
 ObjectEditField objectEditFieldData[]    = {
@@ -449,6 +450,7 @@ static void objset(ImodvApp *a)
                                QColor((int)(255 * obj->red), 
                                       (int)(255 * obj->green),
                                       (int)(255 * obj->blue)), namep);
+    wSubsetPoint->setEnabled(iobjScat(obj->flags) != 0);
   }
   if (objectEditFieldData[CurrentObjectField].setwidget)
     objectEditFieldData[CurrentObjectField].setwidget();
@@ -1791,12 +1793,14 @@ static void fixMove_cb()
  * The subsets edit field
  *****************************************************************************/
 
-static char *subsetLabels[6] = {  "Show all ON objects", 
+static char *subsetLabels[7] = {
+  "Show all ON objects", 
   "Current object only", 
   "Current surface only", 
   "Surface && other objects", 
   "Current contour only", 
-  "Contour && other objects"
+  "Contour && other objects",
+  "Point && other objects"                                
 };
 
 void ImodvObjed::subsetSlot(int which)
@@ -1817,8 +1821,10 @@ static void mkSubsets_cb(int index)
   QObject::connect(group, SIGNAL(buttonClicked(int)), &imodvObjed, 
 		   SLOT(subsetSlot(int)));
 
-  for (int i = 0; i < 6; i++)
-    diaRadioButton(subsetLabels[i], oef->control, group, layout1, i, NULL);
+  for (int i = 0; i < 7; i++)
+    wSubsetPoint = diaRadioButton(subsetLabels[i], oef->control, group, layout1, i, NULL);
+  if (!ImodPrefs->getRoundedStyle())
+    layout1->setSpacing(2);
 
   diaSetGroup(group, Imodv->current_subset);
   layout1->addStretch();
@@ -2638,6 +2644,9 @@ static QVBoxLayout *outerVBoxLayout(QWidget *parent)
 /*
 
 $Log$
+Revision 4.51  2011/01/13 19:58:36  mast
+Added text box to set Z range for meshing; moved progress label
+
 Revision 4.50  2010/04/01 02:16:36  mast
 Prevented closing during meshing; called function for close keys
 
