@@ -26,6 +26,7 @@ void imodvKeyRelease(QKeyEvent *event);
 void imodvMousePress(QMouseEvent *event);
 void imodvMouseRelease(QMouseEvent *event);
 void imodvMouseMove(QMouseEvent *event);
+void imodvScrollWheel(QWheelEvent *e);
 void imodv_rotate_model(ImodvApp *a, int x, int y, int z);
 void imodv_zoomd(ImodvApp *a, double zoom);
 int imodv_sys_time(void);
@@ -39,6 +40,9 @@ void clipCenterAndAngles(ImodvApp *a, Ipoint *clipPoint, Ipoint *clipNormal,
 /*  
 
 $Log$
+Revision 4.7  2009/01/15 16:33:18  mast
+Qt 4 port
+
 Revision 4.6  2007/11/16 03:12:47  mast
 Foxed log format
 
