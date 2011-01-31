@@ -849,10 +849,10 @@ void ProcessHandler::killSignal() {
   if (!mKillStarted) {
     if (mProcesschunks->isQueue()) {
       //check for available pipes
-      if (mProcesschunks->pipesAvailable()) {
+      if (mProcesschunks->resourcesAvailableForKill()) {
         mKillStarted = true;//This starts the 15-count timeout
         setJobNotDone();
-        mProcesschunks->incrementPipes();
+        mProcesschunks->incrementKills();
         //Kill the process
         char ans = mProcesschunks->getAns();
         QString action(ans);
@@ -896,7 +896,7 @@ void ProcessHandler::killSignal() {
     if (mKillCounter > 15 && (!mKillFinishedSignalReceived || !mFinishedSignalReceived)) {
       if (mProcesschunks->isQueue()) {
         mKillProcess->kill();
-        mProcesschunks->decrementPipes();
+        mProcesschunks->decrementKills();
       }
       mKillFinishedSignalReceived = true;
       mFinishedSignalReceived = true;
@@ -1148,7 +1148,7 @@ void ProcessHandler::handleKillFinished(const int exitCode,
         << ",exitCode:" << exitCode << ",exitStatus:" << exitStatus << endl;
   }
   if (!mKillFinishedSignalReceived) {
-    mProcesschunks->decrementPipes();
+    mProcesschunks->decrementKills();
     mKillFinishedSignalReceived = true;
   }
   if (mProcesschunks->isQueue()) {
@@ -1325,6 +1325,12 @@ void ProcessHandler::killProcess(const QString &pid) {
 
 /*
  $Log$
+ Revision 1.38  2011/01/27 03:52:10  sueh
+ bug# 1426 Removes const from simple variable return values (int, char,
+ bool, long) because they cause a warning in the intel compiler.  Moved the
+ the kill message for queues to the machine handler so it will only print
+ once.
+
  Revision 1.37  2011/01/26 06:50:11  sueh
  bug# 1426 Stop checking for the pid during the kill for queue.  Always
  clear the param list during setJob.

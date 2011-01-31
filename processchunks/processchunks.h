@@ -148,15 +148,15 @@ public:
   }
   ;
   void killSignal();
-  inline bool pipesAvailable() {
-    return mMaxKillPipes - mKillPipes >= 6;
+  inline bool resourcesAvailableForKill() {
+    return mMaxKills > mNumKills;
   }
   ;
-  inline void incrementPipes() {
-    mKillPipes += 6;
+  inline void incrementKills() {
+    mNumKills++;
   }
-  inline void decrementPipes() {
-    mKillPipes -= 6;
+  inline void decrementKills() {
+    mNumKills--;
   }
   ;
 
@@ -236,7 +236,7 @@ private:
 
   //killing processes
   bool mKill, mAllKillProcessesHaveStarted;
-  int mKillProcessMachineIndex, mKillCounter, mKillPipes, mMaxKillPipes;
+  int mKillProcessMachineIndex, mKillCounter, mNumKills, mMaxKills;
   QList<ProcessHandler*> mProcessesWithUnfinishedKillRequest;
   QList<ProcessHandler*> mKilledProcesses;
   QStringList mDropList;
@@ -250,6 +250,9 @@ private:
 
 /*
  $Log$
+ Revision 1.28  2011/01/27 22:54:30  sueh
+ bug# 1426 Switching to QCoreApplication, which is for console applications.
+
  Revision 1.27  2011/01/27 03:51:55  sueh
  bug# 1426 Removes const from simple variable return values (int, char,
  bool, long) because they cause a warning in the intel compiler.  Moved the

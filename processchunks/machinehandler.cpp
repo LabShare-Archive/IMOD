@@ -123,13 +123,13 @@ void MachineHandler::killSignal() {
       }
       if (mPidsAvailable) {
         //PIDs are available and there are valid jobs - check for pipes
-        if (mProcesschunks->pipesAvailable()) {
+        if (mProcesschunks->resourcesAvailableForKill()) {
           mProcesschunks->getOutStream() << "Killing jobs on " << mName << endl;
           mKillStarted = true;//This starts the 15-count timeout
           //Get PIDs and run imodkillgroup
           //Kill a remote jobs in the background
           //ssh -x $sshopts $machname bash --login -c \'"imodkillgroup $pid ; \rm -f $curdir/$pidname"\' &
-          mProcesschunks->incrementPipes();
+          mProcesschunks->incrementKills();
           QString command = "ssh";
           QString param = "\"imodkillgroup";
           for (i = 0; i < mNumCpus; i++) {
@@ -155,7 +155,7 @@ void MachineHandler::killSignal() {
       mKillCounter++;
       if (mKillCounter > 15 && !mKillFinishedSignalReceived) {
         mKillProcess->kill();
-        mProcesschunks->decrementPipes();
+        mProcesschunks->decrementKills();
         mKillFinishedSignalReceived = true;
       }
     }
@@ -175,7 +175,7 @@ void MachineHandler::handleFinished(const int exitCode,
         << exitStatus << endl;
   }
   if (!mKillFinishedSignalReceived) {
-    mProcesschunks->decrementPipes();
+    mProcesschunks->decrementKills();
     mKillFinishedSignalReceived = true;
   }
 }
@@ -183,7 +183,7 @@ void MachineHandler::handleFinished(const int exitCode,
 void MachineHandler::handleError(const QProcess::ProcessError error) {
   if (error == QProcess::FailedToStart || error == QProcess::Crashed) {
     if (!mKillFinishedSignalReceived) {
-      mProcesschunks->decrementPipes();
+      mProcesschunks->decrementKills();
       mKillFinishedSignalReceived = true;
     }
   }
@@ -297,6 +297,12 @@ void MachineHandler::cleanupKillProcess() {
 
 /*
  $Log$
+ Revision 1.14  2011/01/27 03:50:16  sueh
+ bug# 1426 Removes const from simple variable return values (int, char,
+ bool, long) because they cause a warning in the intel compiler.  Moved the
+ the kill message for queues to the machine handler so it will only print
+ once.
+
  Revision 1.13  2011/01/25 07:05:49  sueh
  bug# 1426 Added mDropped.
 
