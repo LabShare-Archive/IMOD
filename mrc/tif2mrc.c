@@ -374,7 +374,7 @@ int main( int argc, char *argv[])
     if (tiff.iifile && !bg) {
       xsize = tiff.iifile->nx;
       ysize = tiff.iifile->ny;
-      k = (tiff.PhotometricInterpretation == 2) ? 3 : tiff.BitsPerSample / 8;
+      k = (tiff.PhotometricInterpretation == 2) ? 3 : (tiff.BitsPerSample / 8);
       if ((!mrcxsize || (xsize == mrcxsize && ysize == mrcysize)) && 
           (double)xsize * ysize * k > chunkCriterion) {
         numChunks = 1 + (int)(((double)xsize * ysize * k) / chunkCriterion);
@@ -511,7 +511,7 @@ int main( int argc, char *argv[])
               b3dFwrite(fillPtr, pixSize, 1, mrcfp);
             xdo = pixSize * (B3DMAX(0, xoffset) + (y + yoffset) * xsize);
             b3dFwrite (&tifdata[xdo], pixSize, B3DMIN(xsize, mrcxsize), mrcfp);
-            for (x = 0; x < mrcxsize - xsize + xoffset; x++)
+            for (k = 0; k < mrcxsize - xsize + xoffset; k++)
               b3dFwrite(fillPtr, pixSize, 1, mrcfp);
           }
         }
@@ -736,6 +736,9 @@ static float minmaxmean(unsigned char *tifdata, int mode, int unsign,
 
 /* 
    $Log$
+   Revision 3.20  2010/12/18 18:47:08  mast
+   Added ability to read in chunks and made it work with > 2 GB files.
+
    Revision 3.19  2009/06/19 20:49:31  mast
    Added ability to read integer files
 
