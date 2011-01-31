@@ -101,9 +101,10 @@ Processchunks::Processchunks(int &argc, char **argv) :
   mLsProcess = new QProcess(this);
   mVmstocsh = new QProcess(this);
   mDecoratedClassName = typeid(*this).name();
-  mKillPipes = 0;
+  mNumKills = 0;
   mMachineListSize = 0;
   mNumMachinesDropped = 0;
+  mMaxKills = 0;
 }
 
 Processchunks::~Processchunks() {
@@ -965,14 +966,28 @@ int *Processchunks::initMachineList(QStringList &machineNameList) {
      chunk process because stdout is going to a file (if it wasn't, there would
      be 6 per process). Keeping the number chunk process pipes under the pipe
      limit leaves room for running vmstocsh and killing processes.*/
+#ifndef _WIN32
     const int numCpusLimit = 240;
+#else
+    //Handling this message: QWinEventNotifier: Cannot have more than 62 enabled at one time
+    //The message appears around the time the 63rd chunk is run, so there is one
+    //QWinEventNotifier per process.
+    const int numCpusLimit = 56;
+#endif
     int numCpus = cpuArray.size();
     if (numCpus > numCpusLimit) {
       *mOutStream << "WARNING:the number of CPUs exceeds limit (" << numCpusLimit
           << ").  CPU list will be truncated." << endl;
       numCpus = numCpusLimit;
     }
-    mMaxKillPipes = (1012 - (4 * numCpus)) / 6;
+    //set max kills allowed to run at the same time, leaving room for misc processes
+#ifndef _WIN32
+    //1024 pipe limit
+    mMaxKills = (1012 - (4 * numCpus)) / 6;
+#else
+    //62 whatsit limit
+    mMaxKills = 60 - numCpus;
+#endif
     /*Now handling mixed up names (as in bear,shrek,bear) without extra probes
      and MachineHandler instances.  Identical machine names are always
      consolidated into one MachineHandler instance and the MachineHandler
@@ -1868,6 +1883,9 @@ bool Processchunks::isVerbose(const QString &verboseClass, const QString verbose
 
 /*
  $Log$
+ Revision 1.59  2011/01/27 22:54:21  sueh
+ bug# 1426 Switching to QCoreApplication, which is for console applications.
+
  Revision 1.58  2011/01/27 03:44:17  sueh
  bug# 1426 Removes const from simple variable return values (int, char,
  bool, long) because they cause a warning in the intel compiler.
