@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/31/11: Fixed tif2mrc stacking of files of different sizes.
+
 1/29/11: Fixed test for when to open a big TIFF file to work for other than
 bytes. 
 
