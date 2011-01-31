@@ -67,6 +67,7 @@ static QTime isoTime;
 #define IIS_LINK_XYZ (1 << 4)
 #define IIS_DELETE_PIECES (1 << 5)
 #define IIS_CLOSE_FACES (1 << 6)
+#define IIS_PAINT_OBJECT (1 << 7)
 
 #define MAXIMAL_VOXELS 128*512*512  //the number of voxles the bounding box is limited to;
 #define DEFAULT_VOXELS 96*96*96 //the number of voxles the initial bounding box;
@@ -82,10 +83,12 @@ struct imodvIsosurfaceDataStruct {
   int binningNum;
   int minTNum;
   int maskType;
+  int paintObj;
   b3dUInt32 flags;
 };
+
 static struct imodvIsosurfaceDataStruct iisData = 
-  {0, 0, 0, 1, 100, 0, IIS_CENTER_VOLUME | IIS_VIEW_BOX | IIS_VIEW_USER_MODEL |
+  {0, 0, 0, 1, 100, 0, 0, IIS_CENTER_VOLUME | IIS_VIEW_BOX | IIS_VIEW_USER_MODEL |
    IIS_VIEW_ISOSURFACE | IIS_VIEW_ISOSURFACE | IIS_LINK_XYZ};
 
 static bool isBoxChanged(const int *start, const int *end);
@@ -138,7 +141,7 @@ bool imodvIsosurfaceUpdate(void)
       dia->mThreshold = dia->mStackThresholds[stackIdx];
       dia->mOuterLimit = dia->mStackOuterLims[stackIdx];
       dia->fillAndProcessVols(dia->mStackThresholds[stackIdx]<0);
-      iisData.dia->setIsoObj();
+      dia->setIsoObj(true);
       //imodvDraw(Imodv);
       return true;
     } else if (!(iisData.flags & IIS_LINK_XYZ) && 
@@ -152,6 +155,16 @@ bool imodvIsosurfaceUpdate(void)
         dia->resizeToContours(false);
         return true;
       }
+    }
+
+    // Keep the painting object spin box up to date
+    if (dia->mLastObjsize != Imodv->imod->objsize)
+      dia->managePaintObject();
+
+    // Check if repainting is needed
+    if (dia->fillPaintVol()) {
+      dia->paintMesh();
+      return true;
     }
     return false;
 
@@ -244,7 +257,7 @@ static char *buttonTips[] = {"Save isosurfaces and bounding box as Imod objects"
 static char *sliderLabels[] = {"X", "Y", "Z", "X size", "Y size", "Z size"};
 static char *histLabels[] = {"Threshold", "Outer limit"};
 
-ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const char *name)
+ImodvIsosurface::ImodvIsosurface(ImodView *vi, QWidget *parent, const char *name)
   : DialogFrame(parent, 3, 1, buttonLabels, buttonTips, false, 
       ImodPrefs->getRoundedStyle(), "3dmodv Isosurface View", "", name)
 {
@@ -256,10 +269,12 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
   ivwGetTime(vi, &mCurrTime);
   mVolume = NULL;
   mTrueBinVol = NULL;
+  mPaintVol = NULL;
   mCurrMax = 0;
   mSurfPieces = NULL;
   mOrigMesh = NULL;
   mFilteredMesh = NULL;
+  mMadeFiltered = false;
   mLayout->setSpacing(4);
   QHBoxLayout *horizLayout = new QHBoxLayout();
   QVBoxLayout *leftLayout = new QVBoxLayout();
@@ -302,20 +317,20 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
   mLinkXYZ->setToolTip("Link global XYZ and  the XYZ of isosurface center");
 
 
-  QHBoxLayout *binningLayout = new QHBoxLayout;
+  QHBoxLayout *hLayout = new QHBoxLayout;
   mBinningBox = (QSpinBox *)diaLabeledSpin(0, 1., (float)MAXIMAL_BINNING, 1.,
-                                           "Binning:", this, binningLayout);
+                                           "Binning:", this, hLayout);
   mBinningBox->setValue(iisData.binningNum);
-  rightLayout->addLayout(binningLayout);
+  rightLayout->addLayout(hLayout);
   connect(mBinningBox, SIGNAL(valueChanged(int)), this,
       SLOT(binningNumChanged(int)));
   mBinningBox->setToolTip("Set the binning level");
 
-  QHBoxLayout *smoothLayout = new QHBoxLayout;
+  hLayout = new QHBoxLayout;
   mSmoothBox = (QSpinBox *)diaLabeledSpin(0, 0., (float)MAXIMAL_ITERATION, 1.,
-                                        "Smoothing:", this, smoothLayout);
+                                        "Smoothing:", this, hLayout);
   mSmoothBox->setValue(iisData.itNum);
-  rightLayout->addLayout(smoothLayout);
+  rightLayout->addLayout(hLayout);
   connect(mSmoothBox, SIGNAL(valueChanged(int)), this, SLOT(iterNumChanged(int)));
   mSmoothBox->setToolTip("Set the iteration number for smoothing");
 
@@ -324,11 +339,11 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
   connect(mDeletePieces, SIGNAL(toggled(bool)), this, SLOT(
         deletePiecesToggled(bool)));
   mDeletePieces->setToolTip("Remove small isosurface pieces");
-  QHBoxLayout *piecesLayout = new QHBoxLayout;
+  hLayout = new QHBoxLayout;
   mPiecesBox = (QSpinBox *)diaLabeledSpin(0, 10., 9999., 10., "min size:",
-                                        this, piecesLayout);
+                                        this, hLayout);
   mPiecesBox->setValue(iisData.minTNum);
-  rightLayout->addLayout(piecesLayout);
+  rightLayout->addLayout(hLayout);
   connect(mPiecesBox, SIGNAL(valueChanged(int)), this,
       SLOT(numOfTrianglesChanged(int)) );
   mPiecesBox->setToolTip(
@@ -412,21 +427,35 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
 
   gbox = new QGroupBox("Set X/Y area from", this);
   leftLayout->addWidget(gbox);
-  QHBoxLayout *sizeLayout = new QHBoxLayout(gbox);
-  sizeLayout->setSpacing(3);
-  sizeLayout->setContentsMargins(3, 1, 3, 3);
-  rightLayout->addStretch();
+  hLayout = new QHBoxLayout(gbox);
+  hLayout->setSpacing(3);
+  hLayout->setContentsMargins(3, 1, 3, 3);
 
-  mUseRubber = diaPushButton("Zap Band", this, sizeLayout);
+  //rightLayout->addStretch();
+
+  mUseRubber = diaPushButton("Zap Band", this, hLayout);
   mUseRubber->setToolTip("Show isosurfaces of area enclosed by the Zap rubberband");
   connect(mUseRubber, SIGNAL(clicked()), this, SLOT(showRubberBandArea()));
 
   mSizeContours = diaPushButton(iisData.maskType == MASK_OBJECT ? "Object" : "Contour",
-                                this, sizeLayout);
+                                this, hLayout);
   mSizeContours->setToolTip("Make X/Y sizes as big as masking contours if possible");
   connect(mSizeContours, SIGNAL(clicked()), this, SLOT(areaFromContClicked()));
   mSizeContours->setEnabled(iisData.maskType == MASK_CONTOUR || 
                             iisData.maskType == MASK_OBJECT);
+
+  hLayout = new QHBoxLayout;
+  rightLayout->addLayout(hLayout);
+  mPaintCheck = diaCheckBox("Paint obj:", this, hLayout);
+  mPaintCheck->setChecked(iisData.flags & IIS_PAINT_OBJECT);
+  connect(mPaintCheck, SIGNAL(toggled(bool)), this, SLOT(paintObjToggled(bool)));
+  mPaintCheck->setToolTip("Color parts of mesh inside spheres in selected object");
+  hLayout->setStretchFactor(mPaintCheck, 100);
+
+  mPaintObjSpin = (QSpinBox *)diaLabeledSpin(0, 1., 10., 1., NULL, this, hLayout);
+  managePaintObject();
+  connect(mPaintObjSpin, SIGNAL(valueChanged(int)), this, SLOT(paintObjChanged(int)));
+  mPaintObjSpin->setToolTip("Select a scattered point object to color mesh with");
 
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
   setFontDependentWidths();
@@ -491,7 +520,7 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
   }
 
   if (!failed)
-    setIsoObj();
+    setIsoObj(true);
   //mHistSlider->setValue(0,mThreshold);
 
   if(flagDrawXYZ || (iisData.flags & IIS_VIEW_BOX) )
@@ -514,14 +543,19 @@ bool ImodvIsosurface::allocArraysIfNeeded()
   if (newSize > mCurrMax) {
     B3DFREE(mVolume);
     B3DFREE(mTrueBinVol);
+    B3DFREE(mPaintVol);
     mCurrMax = newSize;
     mVolume = (unsigned char*)malloc(newSize * sizeof(unsigned char));
     mTrueBinVol = (unsigned char*)malloc(newSize * sizeof(unsigned char) / 8);
-    if(!mVolume || !mTrueBinVol){
+    if (iisData.flags & IIS_PAINT_OBJECT)
+      mPaintVol = B3DMALLOC(unsigned char, newSize);
+    if(!mVolume || !mTrueBinVol || ((iisData.flags & IIS_PAINT_OBJECT) && !mPaintVol)) {
       B3DFREE(mVolume);
       B3DFREE(mTrueBinVol);
+      B3DFREE(mPaintVol);
       mVolume = NULL;
       mTrueBinVol = NULL;
+      mPaintVol = NULL;
       wprint("\aFailed to allocate memory for %d voxels\n", newSize);
       return true;
     }//else imodPrintStderr("allocate mem for %d voxels\n", newSize);
@@ -679,18 +713,18 @@ void ImodvIsosurface::applyMask()
     return;
   } else if (iisData.maskType == MASK_CONTOUR) {
 
-    // COntour masking is simple, just call the routine on each Z plane
-    if (cont) {
-      scan = imodel_contour_scan(cont);
-      for (iz = 0; iz < nz; iz++)
-        maskWithContour(scan, iz);
-      imodContourDelete(scan);
-    }
+    // Contour masking is simple, just call the routine on each Z plane
+    if (!obj || !obj->contsize || !iobjClose(obj->flags) || !cont)
+      return;
+    scan = imodel_contour_scan(cont);
+    for (iz = 0; iz < nz; iz++)
+      maskWithContour(scan, iz);
+    imodContourDelete(scan);
 
   } else if (iisData.maskType == MASK_OBJECT) {
 
     // Masking with an object requires the Z tables
-    if (!obj || !obj->contsize)
+    if (!obj || !obj->contsize || !iobjClose(obj->flags))
       return;
     if (imodContourMakeZTables(obj, 1, 0, &contz, &zlist, &numatz, &contatz, &zmin, &zmax,
                                &zlsize, &nummax))
@@ -806,7 +840,7 @@ void ImodvIsosurface::applyMask()
  */
 void ImodvIsosurface::removeOuterPixels()
 {
-  Point3D *neighbors = NULL;
+  IsoPoint3D *neighbors = NULL;
   int dx[] = { 0, -1,  0,  1,  0, -1,  0,  1, -1,  1, -1,  0,  1,  1,  1,  1,  1,  1};
   int dy[] = {-1,  0,  0,  0,  1, -1, -1, -1,  0,  0,  1,  1,  1, -1,  0,  0,  0,  1};
   int dz[] = {-1, -1, -1, -1, -1,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  1};
@@ -902,16 +936,16 @@ void ImodvIsosurface::removeOuterPixels()
   free(onList);
 }
 
-void ImodvIsosurface::addToNeighborList(Point3D **neighp, int &numNeigh, int &maxNeigh,
+void ImodvIsosurface::addToNeighborList(IsoPoint3D **neighp, int &numNeigh, int &maxNeigh,
                                         int ix, int iy, int iz)
 {
   int quantum = 10000;
   if (numNeigh >= maxNeigh) {
     maxNeigh += quantum;
     if (*neighp)
-      *neighp = (Point3D *)realloc(*neighp, maxNeigh * sizeof(Point3D));
+      *neighp = (IsoPoint3D *)realloc(*neighp, maxNeigh * sizeof(IsoPoint3D));
     else
-      *neighp = (Point3D *)malloc(maxNeigh * sizeof(Point3D));
+      *neighp = (IsoPoint3D *)malloc(maxNeigh * sizeof(IsoPoint3D));
     if (!*neighp) {
       numNeigh = 0;
       maxNeigh = 0;
@@ -1022,7 +1056,7 @@ void ImodvIsosurface::closeBoxFaces()
 /*
  * Compute the isosurface and place it into the extra object
  */
-void ImodvIsosurface::setIsoObj()
+void ImodvIsosurface::setIsoObj(bool fillPaint)
 {
   int i, ii, j, jj, k;
   b3dInt32 *triangle[MAX_THREADS];
@@ -1092,8 +1126,8 @@ void ImodvIsosurface::setIsoObj()
 
       flagFind = false;
 
-      for(ii = 0; ii<2*nVertex[i]; ii += 2){
-        if (vertex_xyz[i][ii].z>cOrigZ[i]+binNum+binNum-TOL ) 
+      for(ii = 0; ii < 2 * nVertex[i]; ii += 2){
+        if (vertex_xyz[i][ii].z > cOrigZ[i] + binNum + binNum - TOL) 
         //if (vertex_xyz[i][ii].z>mSubZEnds[i]+1.0-TOL ) //old code for without binning; 
           break;
       }
@@ -1106,21 +1140,21 @@ void ImodvIsosurface::setIsoObj()
       jj = 0;
       if (skipNVertex[i]) {
         for(j = 2*validNVertex[i-1]-2; j >= 0; j -= 2)
-          if ( fabs(vertex_xyz[i-1][j].x - vertex_xyz[i][ii-2].x)>TOL ||
-               fabs(vertex_xyz[i-1][j].y - vertex_xyz[i][ii-2].y)>TOL ||
-               fabs(vertex_xyz[i-1][j].z - vertex_xyz[i][ii-2].z)>TOL )
+          if ( fabs(vertex_xyz[i-1][j].x - vertex_xyz[i][ii-2].x) > TOL ||
+               fabs(vertex_xyz[i-1][j].y - vertex_xyz[i][ii-2].y) > TOL ||
+               fabs(vertex_xyz[i-1][j].z - vertex_xyz[i][ii-2].z) > TOL )
             jj++;
           else 
             break;
       }
-      validNVertex[i-1] -= jj+skipNVertex[i-1];
+      validNVertex[i-1] -= jj + skipNVertex[i-1];
 
       if(imodDebug('U') )
         imodPrintStderr("skipNVertex[%d]=%d remove %d redundant vertices  %d\n"
                         , i-1, skipNVertex[i-1], jj, isoTime.elapsed());
 
       validVertexSum += validNVertex[i-1];
-      offset[i] = validVertexSum-skipNVertex[i];
+      offset[i] = validVertexSum - skipNVertex[i];
 
       k = -1;
       int lowz, highz;
@@ -1318,21 +1352,36 @@ void ImodvIsosurface::setIsoObj()
     isoTime.start();
   }
 
-  if(mOrigMesh) imodMeshDelete(mOrigMesh);
+  imodMeshDelete(mOrigMesh);
   mOrigMesh = mcubeMesh;
 
   //filter out small pieces;
   filterMesh( iisData.flags & IIS_DELETE_PIECES );
+  if(imodDebug('U') ){
+    imodPrintStderr("filter time=%d \n", isoTime.elapsed());
+    isoTime.start();
+  }
   
   //need to create a dup and put in the extraObject;
-  struct Mod_Mesh *dup = imodMeshDup(mFilteredMesh);
+  Imesh *dup = imodMeshDup(mFilteredMesh);
 
   //apply smoothing;
-  if (iisData.itNum)
+  if (iisData.itNum) {
     smoothMesh(dup, iisData.itNum);
+    if(imodDebug('U') ){
+      imodPrintStderr("smooth time=%d \n", isoTime.elapsed());
+      isoTime.start();
+    }
+  }
+
   //attach the new mesh to the extra obj;
   imodObjectAddMesh(extraObj, dup);
   free(dup);
+
+  // Refill the painting volume if called for, then paint mesh
+  if (fillPaint)
+    fillPaintVol();
+  paintMesh();
 
   /*for(i = 0; i<mNThreads; i++){
     imodPrintStderr("mSubZEnds[%d]=%d\n", i, mSubZEnds[i]);
@@ -1377,18 +1426,18 @@ void ImodvIsosurface::setBoundingBox()
   //set binning parameters
   int binNum = iisData.binningNum;
   int i;
-  for(i = 0; i<3; i++) {
+  for (i = 0; i<3; i++) {
     mBinBoxSize[i] = mBoxSize[i]/binNum;
     mBinBoxEnds[i] = mBoxOrigin[i]+mBinBoxSize[i];
   }
   
   int fairShare = mBinBoxSize[2]/mInitNThreads;
 
-  if(fairShare<8)
-  { 
+  if (fairShare<8) { 
     mNThreads = 1;
     fairShare = mBinBoxSize[2];
-  }else mNThreads = mInitNThreads;
+  } else
+    mNThreads = mInitNThreads;
 
   mSubZEnds[0] = mBoxOrigin[2];
   for(i = 1; i<mNThreads; i++)
@@ -1556,14 +1605,16 @@ void ImodvIsosurface::deletePiecesToggled(bool state)
 //Setting up mFilteredMesh using mOrigMesh;
 void ImodvIsosurface::filterMesh(bool state)
 {
-  if(mFilteredMesh) imodMeshDelete(mFilteredMesh);
-  mFilteredMesh = imodMeshDup(mOrigMesh);
+  if (mMadeFiltered)
+    imodMeshDelete(mFilteredMesh);
+  mMadeFiltered = state;
 
   int totalTriangle = (mOrigMesh->lsize -3)/3;
   Ipoint *finalVertex_xyz = mOrigMesh->vert;
   b3dInt32 *finalTriangle = mOrigMesh->list;
 
-  if(state){
+  if (state) {
+    mFilteredMesh = imodMeshDup(mOrigMesh);
     mPiecesBox->setEnabled(true);
     delete mSurfPieces;
     mSurfPieces = new Surface_Pieces(finalVertex_xyz, finalTriangle+1,
@@ -1583,13 +1634,15 @@ void ImodvIsosurface::filterMesh(bool state)
     start = mFilteredMesh->list+3*(totalTriangle-includedTriangle);
     *(start) = -25;
     newTList = (b3dInt32*)malloc( (3*includedTriangle+3)*sizeof(b3dInt32) );
-    for(int i = 0; i<3*includedTriangle+3; i++) *(newTList+i) = *(start+i);
+    for (int i = 0; i < 3*includedTriangle+3; i++) 
+      *(newTList+i) = *(start+i);
     free(mFilteredMesh->list);
     mFilteredMesh->list = newTList;
     mFilteredMesh->lsize = 3*includedTriangle+3;
 
   }else{
     mPiecesBox->setEnabled(false);
+    mFilteredMesh = mOrigMesh;
   }
 }
 
@@ -1606,11 +1659,11 @@ void ImodvIsosurface::closeFacesToggled(bool state)
 {
   setOrClearFlags(&iisData.flags, IIS_CLOSE_FACES, state ? 1 : 0);
   fillAndProcessVols(false);
-  setIsoObj();
+  setIsoObj(false);
   imodvDraw(Imodv);
 }
 
-void ImodvIsosurface::smoothMesh(struct Mod_Mesh *mcubeMesh, int iterNum)
+void ImodvIsosurface::smoothMesh(Imesh *mcubeMesh, int iterNum)
 {
   Ipoint *vertex_xyz = mcubeMesh->vert;
   b3dInt32 *triangles = mcubeMesh->list +1; //skip the -25 code; 
@@ -1625,13 +1678,13 @@ void ImodvIsosurface::iterNumChanged(int iterNum)
   iisData.itNum = iterNum;
   ivwClearAnExtraObject(mVi, mExtraObjNum);
   Iobj *extraObj = ivwGetAnExtraObject(mVi, mExtraObjNum);
-  struct Mod_Mesh *dup = imodMeshDup(mFilteredMesh);
+  Imesh *dup = imodMeshDup(mFilteredMesh);
   if(iterNum)
     smoothMesh(dup, iterNum);
   imodObjectAddMesh(extraObj, dup);
   setFocus();
   free(dup);
-  setFocus();
+  paintMesh();
   imodvDraw(Imodv);
 }
 
@@ -1648,7 +1701,7 @@ void ImodvIsosurface::binningNumChanged(int binningNum)
     closeBoxFaces();
     removeOuterPixels();
   }
-  setIsoObj();
+  setIsoObj(false);
   setFocus();
   imodvDraw(Imodv);
 }
@@ -1663,6 +1716,44 @@ void ImodvIsosurface::numOfTrianglesChanged(int trNum)
   iisData.minTNum = trNum;
   deletePiecesToggled(true);
 }
+
+void ImodvIsosurface::paintObjToggled(bool state)
+{
+  setOrClearFlags(&iisData.flags, IIS_PAINT_OBJECT, state ? 1 : 0);
+  if (state) {
+    mPaintVol = B3DMALLOC(unsigned char, mBoxSize[0] *  mBoxSize[1] * mBoxSize[2]);
+    if (!mPaintVol) {
+      wprint("\aFailed to get memory for color mask volume\n");
+      setOrClearFlags(&iisData.flags, IIS_PAINT_OBJECT, 0);
+      mPaintCheck->setChecked(false);
+    }
+  } else {
+    B3DFREE(mPaintVol);
+    mPaintVol = NULL;
+  }
+  managePaintObject();
+  fillPaintVol();
+  paintMesh();
+  imodvDraw(Imodv);
+}
+
+void ImodvIsosurface::paintObjChanged(int value)
+{
+  iisData.paintObj = value - 1;
+  setFocus();
+  fillPaintVol();
+  paintMesh();
+  imodvDraw(Imodv);
+}
+
+void ImodvIsosurface::managePaintObject()
+{
+  mLastObjsize = Imodv->imod->objsize;
+  iisData.paintObj = B3DMAX(0, B3DMIN(mLastObjsize - 1, iisData.paintObj));
+  diaSetSpinMMVal(mPaintObjSpin, 1, mLastObjsize, iisData.paintObj + 1);
+  mPaintObjSpin->setEnabled(iisData.flags & IIS_PAINT_OBJECT);
+}
+
 
 void  ImodvIsosurface::histChanged(int which, int value, bool dragging)
 { 
@@ -1707,7 +1798,7 @@ void  ImodvIsosurface::histChanged(int which, int value, bool dragging)
         mHistSlider->setValue(1, mThreshold < mMedian ? mVolMin : mVolMax);
       mHistSlider->setValue(0,mThreshold);
     }
-    setIsoObj();
+    setIsoObj(false);
     mCurrStackIdx = getCurrStackIdx();
     mStackThresholds[mCurrStackIdx] = mThreshold;
     mStackOuterLims[mCurrStackIdx] = mOuterLimit;
@@ -1770,7 +1861,7 @@ void ImodvIsosurface::sliderMoved(int which, int value, bool dragging)
 
 
       fillAndProcessVols(false);
-      setIsoObj();
+      setIsoObj(true);
 
       imodvDraw(Imodv); 
       if (which <= IIS_Z_COORD || (iisData.flags & IIS_VIEW_BOX))
@@ -1796,7 +1887,7 @@ void ImodvIsosurface::maskSelected(int which)
     resizeToContours(true);
   } else {
     fillAndProcessVols(false);
-    setIsoObj();
+    setIsoObj(false);
     imodvDraw(Imodv);
   }
 }
@@ -1816,6 +1907,8 @@ void ImodvIsosurface::resizeToContours(bool draw)
   int *contz, *zlist, *numatz, **contatz;
   imodGetIndex(Imodv->imod, &curob, &curco, &co);
 
+  if (!obj || !obj->contsize || !iobjClose(obj->flags))
+    return;
   if (iisData.maskType == MASK_CONTOUR) {
     if (!cont || cont->psize < 3)
       return;
@@ -1825,8 +1918,6 @@ void ImodvIsosurface::resizeToContours(bool draw)
     mMaskPsize = cont->psize;
 
   } else if (iisData.maskType == MASK_OBJECT) {
-    if (!obj || !obj->contsize)
-      return;
     if (imodContourMakeZTables(obj, 1, 0, &contz, &zlist, &numatz, &contatz, &zmin, &zmax,
                                &zlsize, &nummax))
       return;
@@ -1970,7 +2061,7 @@ void ImodvIsosurface::showDefinedArea(float x0, float x1, float y0, float y1, bo
   setBoundingBox();
   setBoundingObj();
   fillAndProcessVols(false);
-  setIsoObj();
+  setIsoObj(true);
   if (!draw)
     return;
 
@@ -2018,6 +2109,475 @@ void ImodvIsosurface::buttonPressed(int which)
   } 
 }
 
+bool ImodvIsosurface::fillPaintVol()
+{
+  Iobj *obj = NULL;
+  std::vector<IsoColor> colors;
+  std::vector<IsoPaintPoint> paintPts;
+  std::vector<int> cluster, excludeList, listIndex, numExclude, excludeFlags; 
+  DrawProps objProps, contProps, ptProps;
+  IsoPaintPoint paint;
+  IsoColor color;
+  Icont *cont;
+  Ipoint *pts;
+  IsoPaintPoint *paintp, *paintp2;
+  IsoColor *colorp, *ocolorp;
+  bool retval;
+  int co, stateFlags, surfState, nextChange, pt, pt2, red, green, blue, i, j, indClust;
+  int numClust, ixst, ixnd, iyst, iynd, ix, iy, iz, yzbase, minInd, changeFlags, found;
+  int izst, iznd;
+  float drawsize, dx, dy, dz, radsum, xmin, xmax, ymin, ymax, zmin, zmax, dzsq;
+  float dxsq, dist, minDist, radsq;
+  int nx = mBoxSize[0];
+  int ny = mBoxSize[1];
+  int nz = mBoxSize[2];
+
+  // Get the object if painting, amke sure it is valid
+  if (iisData.flags & IIS_PAINT_OBJECT) {
+    if (iisData.paintObj >= Imodv->imod->objsize)
+      managePaintObject();
+    obj = &Imodv->imod->obj[iisData.paintObj];
+  }
+
+  // Return if not painting or not a scattered object; clear the arrays
+  if (!obj || !iobjScat(obj->flags)) {
+    retval = mColorList.size() > 0 || mPaintPoints.size() > 0;
+    mPaintPoints.clear();
+    mColorList.clear();
+    return retval;
+  }
+
+  if (imodDebug('U'))
+    isoTime.start();
+
+  istoreDefaultDrawProps(obj, &objProps);
+  for (co = 0; co < obj->contsize; co++) {
+    cont = &obj->cont[co];
+    istoreContSurfDrawProps(obj->store, &objProps, &contProps, co, cont->surf, 
+                            &stateFlags, &surfState);
+    ptProps = contProps;
+    nextChange = istoreFirstChangeIndex(cont->store);
+    if (contProps.gap)
+      continue;
+    pts = cont->pts;
+    for (pt = 0; pt < cont->psize; pt++, pts++) {
+      ptProps.gap = 0;
+      if (nextChange == pt)
+        nextChange = istoreNextChange(cont->store, &contProps, &ptProps, &stateFlags, 
+                                      &changeFlags);
+      drawsize = imodPointGetSize(obj, cont, pt);
+      if (!drawsize || ptProps.gap)
+	continue;
+      if (pts->x >= mBoxOrigin[0] - drawsize && pts->x <= mBoxEnds[0] + drawsize &&
+          pts->y >= mBoxOrigin[1] - drawsize && pts->y <= mBoxEnds[1] + drawsize &&
+          pts->z >= mBoxOrigin[2] - drawsize && pts->z <= mBoxEnds[2] + drawsize) {
+
+        // Get the color and look it up on the color list
+        red = B3DNINT(ptProps.red * 255.);
+        red = B3DMAX(0, B3DMIN(255, red));
+        green = B3DNINT(ptProps.green * 255.);
+        green = B3DMAX(0, B3DMIN(255, green));
+        blue = B3DNINT(ptProps.blue * 255.);
+        blue = B3DMAX(0, B3DMIN(255, blue));
+        found = -1;
+        for (i = 0; i < colors.size(); i++) {
+          colorp = &colors[i];
+          if (red == colorp->r && green == colorp->g && blue == colorp->b && 
+              ptProps.trans == colorp->trans) {
+            found = i;
+            break;
+          }
+        }
+
+        // If color not found, add to the list, bail out if 255 colors already
+        if (found < 0) {
+          if (colors.size() >= 255)
+            break;
+          found = colors.size();
+          color.r = red;
+          color.g = green;
+          color.b = blue;
+          color.trans = ptProps.trans;
+          colors.push_back(color);
+        }
+
+        paint.x = (pts->x - mBoxOrigin[0]);
+        paint.y = (pts->y - mBoxOrigin[1]);
+        paint.z = (pts->z - mBoxOrigin[2]);
+        paint.size = drawsize;
+        paint.colorInd = found + 1;
+        paint.drawn = false;
+        paintPts.push_back(paint);
+      }
+    }
+    if (colors.size() >= 255)
+      break;
+  }
+
+  // If there is nothing on the lists, leave, clear lists, signal if this is a change
+  if (!colors.size() || !paintPts.size()) {
+    retval = mColorList.size() > 0 || mPaintPoints.size() > 0;
+    mPaintPoints.clear();
+    mColorList.clear();
+    return retval;
+  }
+
+  //imodPrintStderr("Points %d  colors %d\n", paintPts.size(), colors.size());
+
+  // If mask exists and sizes match what was used when it was made, need to compare
+  if (mColorList.size() == colors.size() && mPaintPoints.size() == paintPts.size() && 
+      mPaintSize[0] == nx && mPaintSize[1] == ny && mPaintSize[2] == nz) {
+    found = 0;
+    for (i = 0; i < colors.size(); i++) {
+      colorp = &colors[i];
+      ocolorp = &mColorList[i];
+      if (colorp->r != ocolorp->r || colorp->g != ocolorp->g || colorp->b != ocolorp->b ||
+          colorp->trans != ocolorp->trans) {
+        found = 1;
+        break;
+      }
+    }
+    if (!found) {
+      for (i = 0; i < paintPts.size(); i++) {
+        paintp = &paintPts[i];
+        paintp2 = &mPaintPoints[i];
+        if (paintp->x != paintp2->x || paintp->y != paintp2->y || paintp->z != paintp2->z
+            || paintp->size != paintp2->size || paintp->colorInd != paintp2->colorInd) {
+          found = 1;
+          break;
+        }
+      }
+    }
+    if (!found)
+      return false;
+  }
+  
+  // Clear the mask
+  for (i = 0; i < nx * ny * nz; i++)
+    mPaintVol[i] = 0;
+  mPaintSize[0] = nx;
+  mPaintSize[1] = ny;
+  mPaintSize[2] = nz;
+
+  // Loop on the points
+  for (pt = 0; pt < paintPts.size(); pt++) {
+    paintp = &paintPts[pt];
+    if (paintp->drawn)
+      continue;
+
+    // Build a cluster of overlapping points 
+    paintp->drawn = true;
+    cluster.resize(1);
+    cluster[0] = pt;
+    indClust = 0;
+    xmin = paintp->x - paintp->size;
+    ymin = paintp->y - paintp->size;
+    zmin = paintp->z - paintp->size;
+    xmax = paintp->x + paintp->size;
+    ymax = paintp->y + paintp->size;
+    zmax = paintp->z + paintp->size;
+    while (indClust < cluster.size()) {
+      paintp = &paintPts[cluster[indClust]];
+      for (pt2 = pt + 1; pt2 < paintPts.size(); pt2++) {
+        paintp2 = &paintPts[pt2];
+
+        // Skip points already drawn or ones with matching color
+        if ((!paintp2->drawn) && (paintp->colorInd != paintp2->colorInd)) {
+          dx = paintp->x - paintp2->x;
+          dy = paintp->y - paintp2->y;
+          dz = paintp->z - paintp2->z;
+          radsum = paintp->size + paintp2->size;
+          if (dx * dx + dy * dy + dz * dz < radsum * radsum) {
+            cluster.push_back(pt2);
+            xmin = B3DMIN(xmin, paintp2->x - paintp2->size);
+            ymin = B3DMIN(ymin, paintp2->y - paintp2->size);
+            zmin = B3DMIN(zmin, paintp2->z - paintp2->size);
+            xmax = B3DMAX(xmax, paintp2->x + paintp2->size);
+            ymax = B3DMAX(ymax, paintp2->y + paintp2->size);
+            zmax = B3DMAX(zmax, paintp2->z + paintp2->size);
+            paintp2->drawn = true;
+          }
+        }
+      }
+      indClust++;
+    }
+
+    // Get limits of box to be filled
+    numClust = cluster.size();
+    ixst = B3DMAX(0, (int)(xmin - 0.5));
+    ixnd = B3DMIN(nx - 1, (int)(xmax + 0.5));
+    iyst = B3DMAX(0, (int)(ymin - 0.5));
+    iynd = B3DMIN(ny - 1, (int)(ymax + 0.5));
+    izst = B3DMAX(0, (int)(zmin - 0.5));
+    iznd = B3DMIN(nz - 1, (int)(zmax + 0.5));
+    //imodPrintStderr("cluster of %d, limits X %d %d  Y %d %d  Z %d %d\n", numClust, 
+    //              ixst, ixnd, iyst, iynd, izst, iznd);
+    if (numClust == 1) {
+
+      // If there are no overlapping points, fill lines
+      radsq = paintp->size * paintp->size;
+      for (iz = izst; iz <= iznd; iz++) {
+        dz = iz + 0.5 - paintp->z;
+        dzsq = dz * dz;
+        for (iy = iyst; iy <= iynd; iy++) {
+          dy = iy + 0.5 - paintp->y;
+          dxsq = radsq - dy * dy - dzsq;
+          yzbase = iy * nx + iz * nx * ny;
+          if (dxsq >= 0) {
+            dx = (float)sqrt((double)dxsq);
+            ixst = B3DNINT(paintp->x - 0.5 - dx);
+            ixnd = B3DNINT(paintp->x - 0.5 + dx);
+            ixst = B3DMAX(0, ixst);
+            ixnd = B3DMIN(nx - 1, ixnd);
+            for (ix = ixst; ix <= ixnd; ix++)
+              mPaintVol[ix + yzbase] = paintp->colorInd;
+          }
+        }
+      }
+    } else {
+
+      // Now sort the cluster by size
+      for (i = 0; i < numClust - 1; i++) {
+        for (j = i + 1; j < numClust; j++) {
+          paintp = &paintPts[cluster[i]];
+          paintp2 = &paintPts[cluster[j]];
+          if (paintp2->size < paintp->size) {
+            ix = cluster[i];
+            cluster[i] = cluster[j];
+            cluster[j] = ix;
+          }
+        }
+      }
+
+      // Make lists of larger points to exclude
+      excludeList.resize(0);
+      listIndex.resize(numClust);
+      numExclude.resize(numClust);
+      excludeFlags.resize(numClust);
+      for (i = 0; i < numClust; i++) {
+        listIndex[i] = excludeList.size();
+        paintp = &paintPts[cluster[i]];
+        for (j = i + 1; j < numClust; j++) {
+          paintp2 = &paintPts[cluster[j]];
+          dx = paintp->x - paintp2->x;
+          dy = paintp->y - paintp2->y;
+          dz = paintp->z - paintp2->z;
+          dist = (float)sqrt((double)dx*dx + dy*dy + dz* dz);
+          if (dist >= paintp2->size + paintp->size || dist <= paintp2->size -paintp->size)
+            excludeList.push_back(j);
+        }
+        numExclude[i] = excludeList.size() - listIndex[i];
+      }
+
+      // Loop on the points in the volume
+      for (iz = izst; iz <= iznd; iz++) {
+        for (iy = iyst; iy <= iynd; iy++) {
+          yzbase = iy * nx + iz * nx * ny;
+          for (ix = ixst; ix <= ixnd; ix++) {
+            minDist = 1.e30;
+            minInd = 0;
+
+            // Clear the exclude flags and loop on the spheres
+            for (i = 0; i < numClust; i++)
+              excludeFlags[i] = 0;
+            for (i = 0; i < numClust; i++) {
+
+              // Skip if its marked as include or if point is outside sphere
+              if (excludeFlags[i])
+                continue;
+              paintp = &paintPts[cluster[i]];
+              dz = iz + 0.5 - paintp->z;
+              dy = iy + 0.5 - paintp->y;
+              dx = ix + 0.5 - paintp->x;
+              dist = (dx * dx + dy * dy + dz * dz) / (paintp->size  * paintp->size);
+              if (dist > 1.)
+                continue;
+
+              // Mark other bigger ones to exclude, keep track of color of sphere that
+              // point is closest to center of relative to radius
+              for (j = 0; j < numExclude[i]; j++)
+                excludeFlags[excludeList[listIndex[i] + j]] = 1;
+              if (dist < minDist) {
+                minDist = dist;
+                minInd = paintp->colorInd;
+              }
+            }
+            if (minInd)
+              mPaintVol[ix + yzbase] = minInd;
+          }
+        }
+      }
+    }
+  }
+
+  mColorList.swap(colors);
+  mPaintPoints.swap(paintPts);
+  if (imodDebug('U'))
+    imodPrintStderr("fillPaintVol time %d\n", isoTime.elapsed());
+  return true;
+}
+
+/*
+ * Paint the mesh by going through the indices and adding color items to mesh store
+ */
+void ImodvIsosurface::paintMesh()
+{
+  Iobj *extraObj = ivwGetAnExtraObject(mVi, mExtraObjNum);
+  Imesh *mesh = extraObj->mesh;
+  int ind, i, j, li, ix, iy, iz, numThreads, numColors, thr, quantum = 10000;
+  unsigned char *paintVol = mPaintVol;
+  if (!mesh)
+    return;
+  int *list = mesh->list;
+  Ipoint *vert = mesh->vert;
+  Ipoint *pnt;
+  Istore *allStores, *storep;
+  Istore tranStore;
+  IsoColor *colorp;
+  int anyTrans = 0;
+  int numTrans, isTrans[3];
+  Ilist *threadLists[MAX_THREADS];
+  int threadStart[MAX_THREADS + 1];
+  int nx = mBoxSize[0];
+  int ny = mBoxSize[1];
+  int orix = mBoxOrigin[0];
+  int oriy = mBoxOrigin[1];
+  int oriz = mBoxOrigin[2];
+
+  // Clear out the existing store if any, this unpaints if painting turned off
+  ilistDelete(mesh->store);
+  mesh->store = NULL;
+  numColors = mColorList.size();
+  if (!(iisData.flags & IIS_PAINT_OBJECT) || !numColors)
+    return;
+
+  if (imodDebug('U'))
+    isoTime.start();
+
+  numThreads = B3DMIN(mInitNThreads, 1 + mesh->lsize / 10000);
+  if (imodDebug('U'))
+    imodPrintStderr("paintMesh lsize %d numThreads %d  \n", mesh->lsize, numThreads);
+  for (i = 0; i < numThreads; i++) {
+    threadLists[i] = ilistNew(sizeof(Istore), quantum);
+    if (!threadLists[i])
+      return;
+    ilistQuantum(threadLists[i], quantum);
+    threadStart[i] = 1 + 3 * (i * (mesh->lsize - 3) / (3 * numThreads));
+  }
+  threadStart[numThreads] = mesh->lsize - 2;
+
+  allStores = B3DMALLOC(Istore, 2 * numColors * numThreads);
+  if (!allStores)
+    return;
+
+  // Prepare the store items with the different colors
+  for (thr = 0; thr < numThreads; thr++) {
+    for (i = 0; i < numColors; i++) {
+      colorp = &mColorList[i];
+      storep = &allStores[i + thr * numColors];
+      storep->type = GEN_STORE_COLOR;
+      storep->flags = GEN_STORE_BYTE << 2;
+      storep->value.i = 0;
+      storep->value.b[0] = colorp->r;
+      storep->value.b[1] = colorp->g;
+      storep->value.b[2] = colorp->b;
+      if (colorp->trans) {
+        anyTrans = 1;
+        storep->value.b[3] = 1;
+        storep = &allStores[i + (thr + numThreads) * numColors];
+        storep->type = GEN_STORE_TRANS;
+        storep->flags = 0;
+        storep->value.i = colorp->trans;
+      }
+    }
+  }
+
+  /*#pragma omp parallel for                                         \
+  shared(threadStart, paintVol, nx, ny, orix, oriy, oriz, allStores, \
+         threadLists, vert, list, numThreads, numColors, anyTrans)   \
+         private(thr, li, pnt, ix, iy, iz, ind, i, storep, tranStore, numTrans, isTrans, j) */
+  for (thr = 0; thr < numThreads; thr++) {
+    if (anyTrans) {
+      tranStore.type = GEN_STORE_TRANS;
+      tranStore.flags = 0;
+      tranStore.value.i = 1;
+      for (li = threadStart[thr]; li < threadStart[thr+1]; li += 3) {
+        numTrans = 0;
+        for (j = 0; j < 3; j++) {
+          pnt = &vert[list[li+j]];
+          ix = (int)(pnt->x - orix);
+          iy = (int)(pnt->y - oriy);
+          iz = (int)(pnt->z - oriz);
+          ind = ix + iy * nx + iz * nx * ny;
+          i = paintVol[ind];
+          if (i > 0) {
+            storep = &allStores[i - 1 + thr * numColors];
+            storep->index.i = li + j;
+            ilistAppend(threadLists[thr], storep);
+            if (storep->value.b[3]) {
+              isTrans[numTrans++] = j;
+              storep = &allStores[i - 1 + (thr + numThreads) * numColors];
+              storep->index.i = li + j;
+              ilistAppend(threadLists[thr], storep);
+            }
+          }
+        }
+
+        if (numTrans % 3) {
+          for (j = 0; j < 3; j++) {
+            if (!(isTrans[0] == j || (numTrans == 2 && isTrans[1] == j))) {
+              tranStore.index.i = li + j;
+              istoreInsert(&threadLists[thr], &tranStore);
+            }
+          }
+        }
+      }
+    } else {
+      for (li = threadStart[thr]; li < threadStart[thr+1]; li++) {
+        pnt = &vert[list[li]];
+        ix = (int)(pnt->x - orix);
+        iy = (int)(pnt->y - oriy);
+        iz = (int)(pnt->z - oriz);
+        ind = ix + iy * nx + iz * nx * ny;
+        i = paintVol[ind];
+        if (i > 0) {
+          storep = &allStores[i - 1 + thr * numColors];
+          storep->index.i = li;
+          ilistAppend(threadLists[thr], storep);
+        }
+      }
+    }
+  }
+
+  // Concatenate the lists from the threads
+  if (numThreads > 1) {
+    iz = 0;
+    for (thr = 0; thr < numThreads; thr++)
+      iz += ilistSize(threadLists[thr]);
+    mesh->store = ilistNew(sizeof(Istore), iz);
+    if (!mesh->store)
+      return;
+    mesh->store->size = iz;
+    ind = 0;
+    for (thr = 0; thr < numThreads; thr++) {
+      i = ilistSize(threadLists[thr]);
+      if (i) {
+        storep = istoreItem(mesh->store, ind);
+        memcpy(storep, threadLists[thr]->data, i * sizeof(Istore));
+      }
+      ilistDelete(threadLists[thr]);
+      ind += i;
+    }
+    
+  } else
+    mesh->store = threadLists[0];
+  // istoreDump(mesh->store);
+
+  free(allStores);
+  if (imodDebug('U'))
+    imodPrintStderr("paintMesh time %d\n", isoTime.elapsed());
+}
+
 void ImodvIsosurface::setFontDependentWidths()
 {
   diaSetButtonWidth(mUseRubber, ImodPrefs->getRoundedStyle(), 1.2, "Zap Band");
@@ -2046,8 +2606,10 @@ void ImodvIsosurface::closeEvent ( QCloseEvent * e )
 
   B3DFREE(mVolume);
   B3DFREE(mTrueBinVol);
+  B3DFREE(mPaintVol);
   imodMeshDelete(mOrigMesh);
-  imodMeshDelete(mFilteredMesh);
+  if (mMadeFiltered)
+    imodMeshDelete(mFilteredMesh);
   delete mSurfPieces;
 }
 
@@ -2106,6 +2668,9 @@ void ImodvIsosurface::dumpVolume(char *filename)
 /*
 
 $Log$
+Revision 4.22  2011/01/21 18:12:33  mast
+Do not set some layout spacings for Aqua (rounded) style; it is way too close then
+
 Revision 4.21  2011/01/21 17:36:27  mast
 Added ability to set outer limit on values, closing of open faces on edge of
 box, and masking by current contour, object, or ellipsoid; reorganized into
