@@ -36,6 +36,9 @@
 #define DRAW_OBJECT -1
 #define NO_NAME 0xffffffff
 
+enum {SUBSET_NONE = 0, SUBSET_OBJ_ONLY, SUBSET_SURF_ONLY, SUBSET_SURF_OTHER, 
+      SUBSET_CONT_ONLY, SUBSET_CONT_OTHER, SUBSET_PNT_OTHER};
+
 static int begCount = 0;
 void myGlEnd()
 {
@@ -527,8 +530,8 @@ void imodvDraw_model(ImodvApp *a, Imod *imod)
     /* If displaying a current subset, set up object limits */
     obstart = 0;
     obend = imod->objsize;
-    if ((a->current_subset == 1 || a->current_subset == 2 || 
-         a->current_subset == 4 )&& imod->cindex.object >= 0) {
+    if ((a->current_subset == SUBSET_OBJ_ONLY || a->current_subset == SUBSET_SURF_ONLY || 
+         a->current_subset == SUBSET_CONT_ONLY )&& imod->cindex.object >= 0) {
       obstart = imod->cindex.object;
       obend = obstart + 1;
     }
@@ -725,8 +728,8 @@ static int checkMeshDraw(Imesh *mesh, int checkTime, int resol)
 {
   if ((checkTime) && (mesh->time) && (mesh->time != CTime))
     return 0;
-  if (Imodv->current_subset / 2 == 1 && cursurf >= 0 && mesh->surf > 0 && 
-      mesh->surf != cursurf)
+  if ((Imodv->current_subset == SUBSET_SURF_ONLY || Imodv->current_subset == 
+       SUBSET_SURF_OTHER) && cursurf >= 0 && mesh->surf > 0 && mesh->surf != cursurf)
     return 0;
   if (imeshResol(mesh->flag) == resol)
     return 1;
@@ -736,18 +739,22 @@ static int checkMeshDraw(Imesh *mesh, int checkTime, int resol)
 /* And to check whether a contour should be drawn */
 static int checkContourDraw(Icont *cont, int co, int checkTime)
 {
-    if (!cont->psize) 
-      return 0;
-    if ((checkTime) && (cont->time) && (cont->time != CTime))
-      return 0;
-    if (Imodv->current_subset / 2 == 1 && cursurf >= 0 && 
-        cont->surf != cursurf)
-      return 0;
+  if (!cont->psize) 
+    return 0;
+  if ((checkTime) && (cont->time) && (cont->time != CTime))
+    return 0;
+  if ((Imodv->current_subset == SUBSET_SURF_ONLY || Imodv->current_subset == 
+       SUBSET_SURF_OTHER) && cursurf >= 0 && cont->surf != cursurf)
+    return 0;
 
-    if (Imodv->current_subset / 2 == 2 && curcont >= 0 && co != curcont &&
-        imodSelectionListQuery(Imodv->vi, Imodv->imod->cindex.object, co) < 0)
-      return 0;
-    return 1;
+  if ((Imodv->current_subset == SUBSET_CONT_ONLY || Imodv->current_subset == 
+       SUBSET_CONT_OTHER || Imodv->current_subset == SUBSET_PNT_OTHER) && 
+      curcont >= 0 && co != curcont &&
+      imodSelectionListQuery(Imodv->vi, Imodv->imod->cindex.object, co) < 0)
+    return 0;
+  if (Imodv->current_subset == SUBSET_PNT_OTHER && co == curcont)
+    return 2;
+  return 1;
 }
 
 /*
@@ -1509,7 +1516,7 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style,
   float z = zscale;
   int checkTime = (int)iobjTime(obj->flags);
   float drawsize;
-  int pixsize, quality, i, j, k, mink, stepRes, xybin;
+  int pixsize, quality, i, j, k, mink, stepRes, xybin, contDraw;
   float scale, diff, mindiff;
   DrawProps contProps, ptProps;
   int nextChange, stateFlags, changeFlags;
@@ -1619,10 +1626,11 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style,
   gluSphere(qobj, drawsize , stepRes * 2, stepRes);
   glEndList();
 
-  for(co = 0; co < obj->contsize; co++){
+  for (co = 0; co < obj->contsize; co++) {
     cont = &(obj->cont[co]);
     glLoadName(co);
-    if (!checkContourDraw(cont, co, checkTime))
+    contDraw = checkContourDraw(cont, co, checkTime);
+    if (!contDraw)
       continue;
 
     // Skip contour if not scattered and no sizes
@@ -1671,8 +1679,8 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style,
 
       // Only draw zero-size points with scattered point objects
       // Skip points only if values are outside range, not if a line gap
-      if ((!iobjScat(obj->flags) && !drawsize) || 
-          (ptProps.gap && ptProps.valskip)) 
+      if ((!iobjScat(obj->flags) && !drawsize) || (ptProps.gap && ptProps.valskip) || 
+          (contDraw > 1 && pt != Imodv->imod->cindex.point)) 
         continue;
 
       glLoadName(pt);
@@ -2358,7 +2366,8 @@ static int skipNonCurrentSurface(Imesh *mesh, int *ip, Iobj *obj)
 
   // Test if surface subset on, it's also OK if the mesh surface is greater
   // than zero because a match was already tested for in checkMeshDraw
-  if (!(Imodv->current_subset / 2 == 1 && cursurf >= 0) || mesh->surf > 0)
+  if (!((Imodv->current_subset == SUBSET_SURF_ONLY || Imodv->current_subset == 
+         SUBSET_SURF_OTHER) && cursurf >= 0) || mesh->surf > 0)
     return 0;
 
   // Set up indexes, offset and interval to check, ending code
@@ -2545,6 +2554,10 @@ static void drawCurrentClipPlane(ImodvApp *a)
 /*
 
 $Log$
+Revision 4.51  2011/01/13 20:25:45  mast
+Changed picking to use mesh triangles when possible for meshed objects,
+still use vertexes for isosurface mesh
+
 Revision 4.50  2010/12/28 03:48:14  mast
 Fix invert Z minus sign, also invert triangle order for 2-sided lighting
 
