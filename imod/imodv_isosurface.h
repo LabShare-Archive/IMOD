@@ -7,6 +7,9 @@
  *  $Id$
  *
  * $Log$
+ * Revision 4.11  2011/01/21 17:36:57  mast
+ * changes for masking, outer limits, etc.
+ *
  * Revision 4.10  2010/03/30 02:22:31  mast
  * Added to thread limit comment
  *
@@ -41,6 +44,7 @@ extern void smooth_vertex_positions(float *varray, Index nv,
 void imodvIsosurfaceEditDialog(ImodvApp *a, int state);
 bool imodvIsosurfaceUpdate(void);
 
+#include "imodel.h"
 #include "dialog_frame.h"
 #include <qspinbox.h>
 #include <vector>
@@ -54,14 +58,24 @@ class QLineEdit;
 class QPushButton;
 class HistWidget;
 struct ViewInfo;
-struct Mod_Point;
-struct Mod_Mesh;
-struct Mod_Contour;
 class IsoThread;
 class Surface_Pieces;
+
 typedef struct {
   int ix, iy, iz;
-} Point3D;
+} IsoPoint3D;
+
+typedef struct {
+  int trans;
+  unsigned char r, g, b, dummy;
+} IsoColor;
+
+typedef struct {
+  float x, y, z;
+  float size;
+  int colorInd;
+  bool drawn;
+} IsoPaintPoint;
 
 
 class ImodvIsosurface : public DialogFrame
@@ -76,10 +90,13 @@ class ImodvIsosurface : public DialogFrame
   void setBoundingObj();
   void setViewCenter();
   int getCurrStackIdx();
-  void setIsoObj();
+  void setIsoObj(bool fillPaint);
   void fillAndProcessVols(bool setThresh);
   void resizeToContours(bool draw);
   int getBinning();
+  bool fillPaintVol();
+  void paintMesh();
+  void managePaintObject();
 
   int mLocalX;
   int mLocalY;
@@ -100,6 +117,7 @@ class ImodvIsosurface : public DialogFrame
   int mSubZEnds[MAX_THREADS+1];
   unsigned char *mBinVolume;
   int mNThreads;
+  int mLastObjsize;
 
 
   public slots:
@@ -119,6 +137,8 @@ class ImodvIsosurface : public DialogFrame
     void numOfTrianglesChanged(int);
     void maskSelected(int which);
     void areaFromContClicked();
+    void paintObjToggled(bool state);
+    void paintObjChanged(int value);
 
  protected:
   void closeEvent ( QCloseEvent * e );
@@ -130,16 +150,16 @@ class ImodvIsosurface : public DialogFrame
   float fillVolumeArray();
   void  fillBinVolume();
   void removeOuterPixels();
-  void smoothMesh(struct Mod_Mesh *, int);
+  void smoothMesh(Imesh *, int);
   void filterMesh(bool);
   bool allocArraysIfNeeded();
-  int maskWithContour(struct Mod_Contour *inCont, int iz);
+  int maskWithContour(Icont *inCont, int iz);
   void closeBoxFaces();
   void applyMask();
   void showDefinedArea(float x0, float x1, float y0, float y1, bool draw);
   int findClosestZ(int iz, int *listz, int zlsize, int **contatz, int *numatz, int zmin,
                    int &otherSide);
-  void addToNeighborList(Point3D **neighp, int &numNeigh, int &maxNeigh,
+  void addToNeighborList(IsoPoint3D **neighp, int &numNeigh, int &maxNeigh,
                          int ix, int iy, int iz);
   void dumpVolume(char *filename);
   void setFontDependentWidths();
@@ -150,10 +170,11 @@ class ImodvIsosurface : public DialogFrame
   int mCurrMax;
   IsoThread *threads[MAX_THREADS];
 
-  struct Mod_Mesh * mOrigMesh;
-  struct Mod_Mesh * mFilteredMesh;
+  Imesh * mOrigMesh;
+  Imesh * mFilteredMesh;
+  bool mMadeFiltered;
   QCheckBox *mViewIso, *mViewModel, *mViewBoxing, *mCenterVolume;
-  QCheckBox *mLinkXYZ, *mDeletePieces; 
+  QCheckBox *mLinkXYZ, *mDeletePieces, *mPaintCheck; 
   MultiSlider *mSliders;
   HistWidget *mHistPanel;
   MultiSlider *mHistSlider;
@@ -161,16 +182,22 @@ class ImodvIsosurface : public DialogFrame
   QSpinBox *mSmoothBox;
   QSpinBox *mBinningBox;
   QSpinBox *mPiecesBox;
+  QSpinBox *mPaintObjSpin;
 
   int mBoxObjNum;
   int mBinBoxEnds[3];
   int mBoxSize[3];
+  int mPaintSize[3];
 
   unsigned char *mTrueBinVol;
+  unsigned char *mPaintVol;
   float mMedian;
   int mVolMin, mVolMax;
   int mInitNThreads;
   Surface_Pieces *mSurfPieces;
+
+  std::vector<IsoColor> mColorList;
+  std::vector<IsoPaintPoint> mPaintPoints;
 
 };
 
