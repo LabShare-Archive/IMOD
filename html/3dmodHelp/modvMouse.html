@@ -68,6 +68,31 @@ the Ctrl key down will add contours that are crossed by the mouse to the set of
 selected contours.  Note that Ctrl-A can also be used to select all contours
 that are being drawn in the current object (excluding ones that are completely
 clipped).
+<DT>[Ctrl] + [Shift] + Right Mouse Button Click
+<DD>Points can be selected in the current object by holding down the Ctrl and
+  Shift keys and clicking with the right mouse button.  The nearest, frontmost
+  point in the current object will be selected.  This feature is particularly
+  useful when modeling scattered points that are being used to paint an
+  isosurface, but it will work in other situations as well.
+</DL>
+<H4>Modeling Scattered Points</H4>
+If the current object type is scattered points, then holding down the Ctrl and
+Shift buttons allows you to move, resize, or add points with the mouse.  
+Hot keys can also be used to move or delete a point.
+<DL>
+<DT>[Ctrl] + [Shift] + Left Mouse Button Drag
+<DD>Moving the mouse while holding down the Ctrl and Shift keys and the left
+  mouse button will move the current scattered point.
+<DT>[Ctrl] + [Shift] + Middle Mouse Button Click
+<DD>Clicking the middle mouse button while holding down the Ctrl and Shift keys 
+  will insert a scattered point, as long as the model view is opened from
+  3dmod and 3dmod is in model mode.  The point will be centered at the
+  location that would be selected by clicking with the right mouse button.  If
+  the click selects a point on a meshed surface, then the new point will have
+  its center on that surface.
+<DT>[Ctrl] + [Shift] + Scroll Wheel
+<DD>Operating the mouse scroll wheel while holding down the Ctrl and Shift keys 
+  will resize the the current scattered point.
 </DL>
 <P>
 <A HREF="index.html">Help Index<A>
