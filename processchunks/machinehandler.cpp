@@ -106,19 +106,12 @@ void MachineHandler::killSignal() {
   if (mIgnoreKill || mKillFinishedSignalReceived) {
     return;
   }
-  bool useImodkillgroup = false;
-  //For remote machines imodkillgroup can be used to kill all the processes on
-  //a machine.
+  bool useImodkillgroup;
 #ifndef _WIN32
-  if (mName != mProcesschunks->getHostRoot() && mName != "localhost"
-      && !mProcesschunks->isQueue()) {
-    useImodkillgroup = true;
-  }
+  useImodkillgroup = mName != mProcesschunks->getHostRoot() && mName != "localhost"
+      && !mProcesschunks->isQueue();
 #else
-  //On Windows imodkillgroup won't kill processchunks, so use it for local kills.
-  if (!mProcesschunks->isQueue()) {
-    useImodkillgroup = true;
-  }
+  useImodkillgroup =!mProcesschunks->isQueue();
 #endif
   if (useImodkillgroup) {
     if (!mKillStarted) {
@@ -141,8 +134,13 @@ void MachineHandler::killSignal() {
           //Kill a remote jobs in the background
           //ssh -x $sshopts $machname bash --login -c \'"imodkillgroup $pid ; \rm -f $curdir/$pidname"\' &
           mProcesschunks->incrementKills();
+#ifndef _WIN32
           QString command = "ssh";
           QString param = "\"imodkillgroup";
+#else
+          QString command = "\"imodkillgroup";
+          QString param;
+#endif
           for (i = 0; i < mNumCpus; i++) {
             if (mProcessHandlerArray[i].isJobValid()) {
               mProcessHandlerArray[i].setJobNotDone();
@@ -308,6 +306,9 @@ void MachineHandler::cleanupKillProcess() {
 
 /*
  $Log$
+ Revision 1.16  2011/02/01 20:20:31  sueh
+ bug# 1426 In killSignal using imodkillgroup to kill local processes in Windows.
+
  Revision 1.15  2011/01/31 19:45:00  sueh
  bug# 1426 Counting kills instead of pipes.
 
