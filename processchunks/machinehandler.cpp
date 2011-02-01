@@ -192,7 +192,7 @@ void MachineHandler::handleFinished(const int exitCode,
     mKillFinishedSignalReceived = true;
   }
 #ifdef _WIN32
-  restartKillTimer();
+  mProcesschunks->restartKillTimer();
 #endif
 }
 
@@ -315,6 +315,10 @@ void MachineHandler::cleanupKillProcess() {
 */
 /*
  $Log$
+ Revision 1.20  2011/02/01 23:01:41  sueh
+ bug# 1426 In windows imodkillgroup causes processchunks to behave as
+ if its timer is dead, so restarting it.
+
  Revision 1.19  2011/02/01 22:39:13  sueh
  bug# 1426 Removing old method of killing.
 
