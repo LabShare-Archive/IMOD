@@ -18,7 +18,7 @@ The subvolume is specified by a bounding box whose position and size
 are set by sliders.  Isosurfaces are displayed when this dialog is
 opened but will be removed when you close the dialog. 
 <P>
-The isosurface mesh and the bounding box are store in two "extra objects".
+The isosurface mesh and the bounding box are stored in two "extra objects".
 Their display properties can be edited in the Model View Object Edit dialog.
 The extra objects that can be edited are listed after the last regular object
 in the model; just use the slider or spin box there to get to them.
@@ -48,8 +48,57 @@ modules from Chimera, developed at the Resource for Biocomputing,
 Visualization, and Informatics at UCSF.
 <P>
 The controls in
-this window are as follows:
+this window are in two columns.  The left side has controls for setting the threshold
+and adjusting the volume being displayed; the right size presents a variety of
+options. Controls are as follows:
 </P>
+<P>
+At the top left is the <B>histogram</B> of voxel values inside the
+bounding box.  The histogram is based on the byte values stored in
+program memory, not the values in the image file.
+<P>
+The <B>Threshold</B> slider sets the constant intensity
+value at which the isosurfaces will be rendered.</P>
+<P>
+The <B>Outer limit</B> slider sets a second threshold beyond which intensity
+values will be set to the median intensity, so that you can visualize just the
+intensities between two values.  However, extreme intensities are usually
+surrounded by less extreme ones; thus, if the program removed only the extreme
+ones from consideration, you would usually see a shell around places with
+extreme intensities.  To avoid this effect, the program searches up to 16 pixels
+away from extreme pixels for ones that are above the threshold and sets those
+to the median as well, as long as they are connected to an extreme one by a chain
+of adjacent pixels above the threshold.  The outer limit is constrained to be
+on the same side of the median intensity as the threshold.  No elimination is
+done when the outer limit is at the end of the intensity range.
+<P>
+The <B>X</B>, <B>Y</B>, and <B>Z</B> sliders will track the
+current point coordinate in 3dmod image display windows and can be
+used to adjust the center position of the bounding box.  The bounding
+box will center on the coordinate unless that would result in the box
+size being smaller than the slider value. 
+</P>
+<P>
+The <B>X size</B>, <B>Y size</B>, and <B>Z size</B> sliders can be
+used to set the X, Y, and Z size of the bounding box.  The maximum
+values of these sliders are set so as to prevent you from trying to
+render too large a total volume, which is especially time-consuming when
+the threshold is near the middle of the intensity distribution.
+</P>
+<P>
+The <B>Zap Band</B> button can be used to set the size and
+center of the bounding box in X and Y from the position of the rubber band in
+the top Zap window.  The size will be limited to the maximum size
+allowed for this display but the center position will be the same as that of
+the rubber band.
+<P>
+The <B>Contour</B> button in the "Set X/Y area from" box allows you to set the 
+size and center of the bounding box to fit the current contour when you
+are masking the volume with the current contour (see
+below).  When masking with the current object, the button (now
+labeled <B>Object</B> will set the X/Y area based on the extent of the current
+object over the selected Z range.  This button is useful for recentering if
+you change the current contour or object or the center or size in Z.
 <P>
 <B>View isosurfaces</B> selects whether the isosurfaces will be
 computed and displayed.
@@ -66,6 +115,17 @@ subvolume being rendered in the model view window whenever its size or
 position changes.  The subvolume is also centered when this box is turned
 on, so you can use it to center the volume even if you do not want to
 leave it on.
+<P>
+<B>Link to global X, Y, Z</B> controls whether the coordinates selected in the
+sliders below will be linked to the current point coordinate in 3dmod image
+display windows.  If it is on, then changing these sliders will change the
+current point in 3dmod and affect other displays; also, any change in current
+point within 3dmod will change the center position of the bounding box.  If it
+is off, then the coordinates selected here become independent of the current
+point.  Turning the option off allows you to right-click on the isosurface
+without having the isosurface display move to a new position.  It is also
+useful when modeling scattered points directly in the Model View window in
+order to paint the isosurface (see below).
 <P>
 <B>Binning</B> selects the amount of binning of the data in 3D; e.g., with a
 binning of 2, each voxel used for computing the isosurface will be the average
@@ -90,43 +150,95 @@ There is significant computation involved in identifying the small pieces, so
 you may need to turn this option off while adjusting other features, then turn
 it back on.
 <P>
-Below these controls is the <B>histogram</B> of voxel values inside the
-bounding box.  The histogram is based on the byte values stored in
-program memory, not the values in the image file.
+<B>Cap at box faces</B> can be turned on to close off
+isosurfaces that go to the edge of the bounding box.  Otherwise, you will see
+into the inside of any isosurface that is cut by the bounding box.
 <P>
-<B>Threshold</B> sets the constant intensity
-value at which the isosurfaces will be rendered.</P>
+<B>Masking:</B> It is possible to restrict the region within the bounding box
+that is rendered with one of the selections in the <B>Mask</B> box.
+<UL>
+<LI>Select <B>Current contour</B> to see isosurfaces just inside the current
+  contour, provided the current object is closed type.  The same area will be
+  shown for all planes in Z being displayed. When you first select the option,
+  the bounding box size and center will be adjusted to just fit the contour if
+  possible; if the contour is too large, the size will be restricted but the
+  center will be set the same.  However, the subvolume will not be continually
+  refit if you change contours or modify
+  the current contour.  Press the <B>Contour</B> button in the "Set X/Y area"
+  box to refit to a new or modified contour.
+<LI>Select <B>Current object</B> to see isosurfaces inside of contours of the
+  current object, provided it is closed type.  The Z size and center sliders
+  control the range of data that will be displayed in Z.  You need not have a
+  contour on each section in the range; the program can smoothly interpolate
+  between the contours that you have drawn.  Specifically, for a section that
+  has no contours, the program finds the nearest sections above and below in Z
+  that have contours. If there is only one contour on each section, an
+  interpolated contour is computed by forming a mesh between the two given
+  contours and is used to constrain the isosurface on that section.  However,
+  the interpolation is not possible if there is more than one contour on one
+  of the sections, in which case it just uses the contour(s) on the nearest
+  section.  Other than this limitation, there is no problem with having more
+  than one contour on a section.  Just as described for <B>Current
+  contour</B>, the bounding box will be set in X and Y to fit the object when the
+  option is first selected, but if you change the current object, you need to
+  push the <B>Object</B> button to refit the subvolume.
+<LI>Select <B>Sphere</B> to see isosurfaces within the largest sphere that
+  fits inside the bounding box.  The sphere will be centered on the position
+  indicated by the X, Y, and Z sliders, unless the sphere would be truncated
+  at that position.  Thus, if you make the bounding box large enough so that it
+  does not change when you move one of these sliders, you can move the sphere
+  around within a fixed subvolume.
+<LI>Select <B>Ellipsoid</B> to see isosurfaces within an ellipsoid that
+  touches all the faces of the bounding box.  Use the <B>X, Y, Z size</B> sliders
+  to adjust the shape of the ellipsoid.
+</UL>
 <P>
-<B>Link to global X, Y, Z</B> controls whether the coordinates selected in the
-sliders below will be linked to the current point coordinate in 3dmod image
-display windows.  If it is on, then changing these sliders will change the
-current point in 3dmod and affect other displays; also, any change in current
-point within 3dmod will change the center position of the bounding box.  If it
-is off, then the coordinates selected here become independent of the current
-point.  Turning the option off allows you to right-click on the isosurface
-without having the isosurface display move to a new position.
+<B>Painting the Mesh:</B> It is possible to set different parts of the
+isosurface to different colors or transparencies by enclosing them in the
+spheres of a scattered point object.  To activate painting, turn on
+the <B>Paint obj.</B> check box and select the object number in the spin box.
+<UL>
+<LI>All spheres must be in one object, so if you want more than one color, you
+  need to use the <A HREF="finegrain.html">Fine Grain</A> dialog.  It is
+  probably easiest to keep track of different colors by assigning colors to
+  individual contours instead of points.  Select the <B>Contour</B> radio
+  button at the top of the dialog and use the <B>Set</B> button in the "Line
+  color" section to set the color of the current contour.
+<LI>You can adjust sphere radius for individual points with
+  the <A HREF="contourType.html">Surface/Contour/Point</A> dialog, with the mouse scroll
+  wheel in the Zap window if <B>Set with mouse wheel</B> is checked in that
+  dialog, or directly in the Model view window with the scroll wheel and Ctrl
+  and Shift keys held down.
+<LI>Spheres can overlap.  Use overlapping spheres of the same color to paint a
+  non-spherical volume.  When two spheres of the different colors overlap,
+  there will be a sharp boundary between the two colors.  If one sphere is
+  contained entirely within another, then parts of the mesh inside the smaller
+  sphere will be that sphere's color, and parts outside that sphere will be
+  the larger sphere's color.  Thus, you can make concentric shells of
+  different colors.
+<LI>If the painting object is the current object, you can hold down Ctrl and
+  Shift keys and do several modeling operations directly in the Model View
+  window, aside from adjusting the size of the current point with the scroll
+  wheel.  You can move the mouse with the left button held down to shift the
+  current point in the X/Y plane of view.  Arrow keys and the PageUp
+  and PageDown keys (not on the numeric keypad) can be used to shift in X/Y and in Z
+  as well.  Click the middle button to insert a new point in the current
+  contour.  Use the Delete key to delete the current point.  Click the right
+  button to select a different scattered point; a point on the isosurface will
+  not be picked as long as Ctrl and Shift are held down.
+<LI>The "Subsets" panel of the  <A HREF="modvObjectEdit.html#Subsets">Edit Objects</A>
+  dialog has an option to display only the current point; this may be useful
+  for focusing on just one point at a time when working on the painting
+  object.
+<LI>Transparency can also applied with a painting object, although there may be
+ limitations.  To erase a part of the mesh, the best way is to set
+ transparency to 100 in the Edit Objects dialog for the object as a whole, or
+ in the Fine Grain dialog for individual contours or points.  Rendering will
+ be slower with transparency.  Artifacts often appear when two partially
+ transparent items are superimposed.
+</UL>
 <P>
-The <B>X</B>, <B>Y</B>, and <B>Z</B> sliders will track the
-current point coordinate in 3dmod image display windows and can be
-used to adjust the center position of the bounding box.  The bounding
-box will center on the coordinate unless that would result in the box
-size being smaller than the slider value. 
-</P>
-<P>
-The <B>X size</B>, <B>Y size</B>, and <B>Z size</B> sliders can be
-used to set the X, Y, and Z size of the bounding box.  The maximum
-values of these sliders are set so as to prevent you from trying to
-render too large a total volume, which is especially time-consuming when
-the threshold is near the middle of the intensity distribution.
-</P>
-<P>
-The <B>Use Rubber Band</B> button can be used to set the size and
-center of the bounding box in X and Y from the position of the rubber band in
-the top Zap window.  The size will be limited to the maximum size
-allowed for this display but the center position will be the same as that of
-the rubber band.
-<P>
-<B>Save</B> is used to create two new objects containing copies of the
+<B>Save to Object</B> is used to create two new objects containing copies of the
 isosurfaces and the bounding box.  Until you do this, these items are
 kept in "extra objects" that are not saved with the model.  This button is the
 only way to save the isosurfaces in a model file and reload them.
