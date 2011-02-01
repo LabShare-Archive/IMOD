@@ -1,5 +1,18 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/1/11: Isosurface improvements: Added ability to set an outer threshold to
+show features with intensities between two thresholds; ability to mask the
+isosurface with the current contour, current object, a sphere, or an
+ellipsoid; option to close off surfaces that are cut by the bounding box;
+and ability to paint parts of the mesh with colors or transparency values of
+points in a scattered point object.  Also reorganized dialog into two columns
+and fixed memory leaks, problems with link to global XYZ off, and some crashes
+when flipping data.
+
+2/1/11: Added ability to model scattered points directly in Model View window
+with Ctrl and Shift held down; inserting, deleting, selecting, moving, and
+changing sphere size with the scroll wheel are possible.
+
 1/31/11: Fixed tif2mrc stacking of files of different sizes.
 
 1/29/11: Fixed test for when to open a big TIFF file to work for other than
