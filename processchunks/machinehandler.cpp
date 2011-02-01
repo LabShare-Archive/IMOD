@@ -111,7 +111,7 @@ void MachineHandler::killSignal() {
   useImodkillgroup = mName != mProcesschunks->getHostRoot() && mName != "localhost"
       && !mProcesschunks->isQueue();
 #else
-  useImodkillgroup =!mProcesschunks->isQueue();
+  useImodkillgroup =! mProcesschunks->isQueue();
 #endif
   if (useImodkillgroup) {
     if (!mKillStarted) {
@@ -191,6 +191,9 @@ void MachineHandler::handleFinished(const int exitCode,
     mProcesschunks->decrementKills();
     mKillFinishedSignalReceived = true;
   }
+#ifdef _WIN32
+  restartKillTimer();
+#endif
 }
 
 void MachineHandler::handleError(const QProcess::ProcessError error) {
@@ -312,6 +315,9 @@ void MachineHandler::cleanupKillProcess() {
 */
 /*
  $Log$
+ Revision 1.19  2011/02/01 22:39:13  sueh
+ bug# 1426 Removing old method of killing.
+
  Revision 1.18  2011/02/01 21:49:45  mast
  In killSignal, really not use ssh stuff, set up PIDs in separate strings in
  paramList, and call by imodkillgroup.cmd for Windows
