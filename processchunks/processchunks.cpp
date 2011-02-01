@@ -707,6 +707,10 @@ void Processchunks::killSignal() {
   }
 }
 
+void Processchunks::restartKillTimer() {
+  killTimer(mTimerId);
+  mTimerId = startTimer(1000);
+}
 //Tells machines to send kill requests.  Stops when a machine has to give up
 //control to the event loop.  If there are no more machines, starts
 //cleaning up.
@@ -714,49 +718,49 @@ void Processchunks::killSignal() {
 //If that call can't get though all the machines because of a signal or event
 //wait, it is called by MachineHandler::killNextProcess.
 /*
-void Processchunks::killProcessOnNextMachine() {
-  if (!mKill) {
-    *mOutStream
-        << "Warning: Processchunks::killProcessOnNextMachine called when mKill is false"
-        << endl;
-    return;
-  }
-  //Go to next machine and start killing its running processes.
-  mKillProcessMachineIndex++;
-  if (mKillProcessMachineIndex < mMachineListSize) {
-    while (mKillProcessMachineIndex < mMachineListSize) {
-      if (!mMachineList[mKillProcessMachineIndex].killProcesses()) {
-        //Can't go on to the next machine because the current machine has to wait
-        //for a signal or event.
-        return;
-      }
-      mKillProcessMachineIndex++;
-    }
-  }
-  //Clean up when all machines are completed
-  //This assumes that msgKillProcessStarted has already been called for every
-  //kill request, including the ones that require waiting.
-  if (!mAllKillProcessesHaveStarted && mKillProcessMachineIndex >= mMachineListSize) {
-    mAllKillProcessesHaveStarted = true;
-    if (mAllKillProcessesHaveStarted && mProcessesWithUnfinishedKillRequest.isEmpty()) {
-      cleanupKillProcesses(false);
-    }
-  }
-}
-*/
+ void Processchunks::killProcessOnNextMachine() {
+ if (!mKill) {
+ *mOutStream
+ << "Warning: Processchunks::killProcessOnNextMachine called when mKill is false"
+ << endl;
+ return;
+ }
+ //Go to next machine and start killing its running processes.
+ mKillProcessMachineIndex++;
+ if (mKillProcessMachineIndex < mMachineListSize) {
+ while (mKillProcessMachineIndex < mMachineListSize) {
+ if (!mMachineList[mKillProcessMachineIndex].killProcesses()) {
+ //Can't go on to the next machine because the current machine has to wait
+ //for a signal or event.
+ return;
+ }
+ mKillProcessMachineIndex++;
+ }
+ }
+ //Clean up when all machines are completed
+ //This assumes that msgKillProcessStarted has already been called for every
+ //kill request, including the ones that require waiting.
+ if (!mAllKillProcessesHaveStarted && mKillProcessMachineIndex >= mMachineListSize) {
+ mAllKillProcessesHaveStarted = true;
+ if (mAllKillProcessesHaveStarted && mProcessesWithUnfinishedKillRequest.isEmpty()) {
+ cleanupKillProcesses(false);
+ }
+ }
+ }
+ */
 //Keeps track of the processes are being killed so that it will be able to
 //wait for processes to be killed after all the kill commands have been sent out,
 //and send a timeout message to the processes that haven't completed their kill
 //command.
 /*
-void Processchunks::msgKillProcessStarted(ProcessHandler *process) {
-  mProcessesWithUnfinishedKillRequest.append(process);
-  if (isVerbose(mDecoratedClassName, __func__)) {
-    *mOutStream << "mProcessesWithUnfinishedKillRequest size:"
-        << mProcessesWithUnfinishedKillRequest.size() << endl;
-  }
-}
-*/
+ void Processchunks::msgKillProcessStarted(ProcessHandler *process) {
+ mProcessesWithUnfinishedKillRequest.append(process);
+ if (isVerbose(mDecoratedClassName, __func__)) {
+ *mOutStream << "mProcessesWithUnfinishedKillRequest size:"
+ << mProcessesWithUnfinishedKillRequest.size() << endl;
+ }
+ }
+ */
 //Removes the processIndex from the list of unfinished kill requests.  Calls
 //clean up if all kill requests have been sent and the list of unfinshed kill
 //requests is empty.
@@ -769,22 +773,22 @@ void Processchunks::msgKillProcessStarted(ProcessHandler *process) {
 //
 //This is not used for queue kill requests.
 /*
-void Processchunks::msgKillProcessDone(ProcessHandler *process) {
-  if (isVerbose(mDecoratedClassName, __func__)) {
-    *mOutStream << mDecoratedClassName << ":" << __func__ << ":"
-        << mProcessesWithUnfinishedKillRequest.size() << " left" << endl;
-  }
-  mProcessesWithUnfinishedKillRequest.removeAll(process);
-  mKilledProcesses.append(process);
-  if (isVerbose(mDecoratedClassName, __func__)) {
-    *mOutStream << mDecoratedClassName << ":" << __func__ << ":"
-        << mProcessesWithUnfinishedKillRequest.size() << " left" << endl
-        << "mAllKillProcessesHaveStarted:" << mAllKillProcessesHaveStarted << endl;
-  }
-  if (mAllKillProcessesHaveStarted && mProcessesWithUnfinishedKillRequest.isEmpty()) {
-    cleanupKillProcesses(false);
-  }
-}*/
+ void Processchunks::msgKillProcessDone(ProcessHandler *process) {
+ if (isVerbose(mDecoratedClassName, __func__)) {
+ *mOutStream << mDecoratedClassName << ":" << __func__ << ":"
+ << mProcessesWithUnfinishedKillRequest.size() << " left" << endl;
+ }
+ mProcessesWithUnfinishedKillRequest.removeAll(process);
+ mKilledProcesses.append(process);
+ if (isVerbose(mDecoratedClassName, __func__)) {
+ *mOutStream << mDecoratedClassName << ":" << __func__ << ":"
+ << mProcessesWithUnfinishedKillRequest.size() << " left" << endl
+ << "mAllKillProcessesHaveStarted:" << mAllKillProcessesHaveStarted << endl;
+ }
+ if (mAllKillProcessesHaveStarted && mProcessesWithUnfinishedKillRequest.isEmpty()) {
+ cleanupKillProcesses(false);
+ }
+ }*/
 
 //Cluster:
 //calculates the timeout and calls cleanupKillProcesses.
@@ -795,50 +799,50 @@ void Processchunks::msgKillProcessDone(ProcessHandler *process) {
 //Calls clean up function if every kill is done or timeout is true.
 //Called by timerEvent.
 /*
-void Processchunks::killProcessTimeout() {
-  if (!mAllKillProcessesHaveStarted) {
-    //Don't start the timeout counter or (for the queue) start cleaning up kill
-    //requests until all the kill requests have gone out.  Otherwise it will
-    //timeout and (for queue) its possible that some requests won't go out.
-    return;
-  }
-  mKillCounter++;
-  if (!mQueue) {
-    if (mKillCounter >= 15) {
-      //No need to call clean up until timeout.  msgKillProcessDone calls clean up.
-      cleanupKillProcesses(true);
-    }
-  }
-  else {
-    bool timeout = mKillCounter >= 150;
-    //updating mProcessesWithUnfinishedKillRequest is not done by
-    //ProcessHandler in the case of a queue.
-    int index = 0;
-    //Remove indexes associated with finished queued chunks
-    //The size of mProcessesWithUnfinishedKillRequest may decrease while this
-    //loop is running.
-    while (index < mProcessesWithUnfinishedKillRequest.size()) {
-      ProcessHandler *process = mProcessesWithUnfinishedKillRequest.at(index);
-      //The .qid file is deleted when a queued chunk finishes
-      if (!process->qidFileExists()) {
-        //This call will cause processIndex to be removed from
-        //mProcessesWithUnfinishedKillRequest so don't increment index.
-        if (isVerbose(mDecoratedClassName, __func__)) {
-          *mOutStream << "Calling cleanupKillProcess from killProcessTimeout" << endl;
-        }
-        process->cleanupKillProcess();
-      }
-      else {
-        index++;
-      }
-    }
-    //Move on to clean up if all kills have completed or kill processes has timed
-    //out.
-    if (timeout || mProcessesWithUnfinishedKillRequest.isEmpty()) {
-      cleanupKillProcesses(timeout);
-    }
-  }
-}*/
+ void Processchunks::killProcessTimeout() {
+ if (!mAllKillProcessesHaveStarted) {
+ //Don't start the timeout counter or (for the queue) start cleaning up kill
+ //requests until all the kill requests have gone out.  Otherwise it will
+ //timeout and (for queue) its possible that some requests won't go out.
+ return;
+ }
+ mKillCounter++;
+ if (!mQueue) {
+ if (mKillCounter >= 15) {
+ //No need to call clean up until timeout.  msgKillProcessDone calls clean up.
+ cleanupKillProcesses(true);
+ }
+ }
+ else {
+ bool timeout = mKillCounter >= 150;
+ //updating mProcessesWithUnfinishedKillRequest is not done by
+ //ProcessHandler in the case of a queue.
+ int index = 0;
+ //Remove indexes associated with finished queued chunks
+ //The size of mProcessesWithUnfinishedKillRequest may decrease while this
+ //loop is running.
+ while (index < mProcessesWithUnfinishedKillRequest.size()) {
+ ProcessHandler *process = mProcessesWithUnfinishedKillRequest.at(index);
+ //The .qid file is deleted when a queued chunk finishes
+ if (!process->qidFileExists()) {
+ //This call will cause processIndex to be removed from
+ //mProcessesWithUnfinishedKillRequest so don't increment index.
+ if (isVerbose(mDecoratedClassName, __func__)) {
+ *mOutStream << "Calling cleanupKillProcess from killProcessTimeout" << endl;
+ }
+ process->cleanupKillProcess();
+ }
+ else {
+ index++;
+ }
+ }
+ //Move on to clean up if all kills have completed or kill processes has timed
+ //out.
+ if (timeout || mProcessesWithUnfinishedKillRequest.isEmpty()) {
+ cleanupKillProcesses(timeout);
+ }
+ }
+ }*/
 
 //Cleans up process killing.  Must only be called when all kill requests have
 //been sent.
@@ -846,81 +850,81 @@ void Processchunks::killProcessTimeout() {
 //If timeout is false and mProcessesWithUnfinishedKillRequest is not empty, exits
 //without cleaning up.
 /*
-void Processchunks::cleanupKillProcesses(const bool timeout) {
-  int i;
-  if (!mKill) {
-    *mOutStream
-        << "Warning: Processchunks::cleanupKillProcess called when mKill is false"
-        << endl;
-    return;
-  }
-  if (!mAllKillProcessesHaveStarted) {
-    *mOutStream
-        << "Warning: Processchunks::cleanupKillProcess called when mAllKillProcessesHaveStarted is false"
-        << endl;
-    return;
-  }
-  //Leave if still need to wait for process kill requests and kill timer hasn't
-  //timed out yet.
-  if (!timeout && !mProcessesWithUnfinishedKillRequest.isEmpty()) {
-    return;
-  }
-  //clean up machines and processes
-  for (i = 0; i < mKilledProcesses.size(); i++) {
-    mKilledProcesses.at(i)->cleanupKillProcess();
-  }
-  for (i = 0; i < mMachineListSize; i++) {
-    mMachineList[i].cleanupKillProcess();
-  }
+ void Processchunks::cleanupKillProcesses(const bool timeout) {
+ int i;
+ if (!mKill) {
+ *mOutStream
+ << "Warning: Processchunks::cleanupKillProcess called when mKill is false"
+ << endl;
+ return;
+ }
+ if (!mAllKillProcessesHaveStarted) {
+ *mOutStream
+ << "Warning: Processchunks::cleanupKillProcess called when mAllKillProcessesHaveStarted is false"
+ << endl;
+ return;
+ }
+ //Leave if still need to wait for process kill requests and kill timer hasn't
+ //timed out yet.
+ if (!timeout && !mProcessesWithUnfinishedKillRequest.isEmpty()) {
+ return;
+ }
+ //clean up machines and processes
+ for (i = 0; i < mKilledProcesses.size(); i++) {
+ mKilledProcesses.at(i)->cleanupKillProcess();
+ }
+ for (i = 0; i < mMachineListSize; i++) {
+ mMachineList[i].cleanupKillProcess();
+ }
 
-  //Kill the timer to clean up.  It will go back on for D and P.
-  if (mTimerId != 0) {
-    killTimer(mTimerId);
-    if (isVerbose(mDecoratedClassName, __func__)) {
-      *mOutStream << "cleanupKillProcesses:The timer is off" << endl;
-    }
-    mTimerId = 0;
-  }
-  //Not all kill requests completed so send a timeout message to the processes
-  for (i = 0; i < mProcessesWithUnfinishedKillRequest.size(); i++) {
-    mProcessesWithUnfinishedKillRequest.at(i)->msgKillProcessTimeout();
-  }
-  //Handle error
-  if (mAns == 'E') {
-    if (!mSyncing) {
-      *mOutStream << "ERROR: A CHUNK HAS FAILED " << mMaxChunkErr << " times" << endl;
-    }
-    else {
-      *mOutStream << "ERROR: A START, FINISH, OR SYNC CHUNK HAS FAILED" << endl;
-    }
-    cleanupAndExit(4);
-  }
+ //Kill the timer to clean up.  It will go back on for D and P.
+ if (mTimerId != 0) {
+ killTimer(mTimerId);
+ if (isVerbose(mDecoratedClassName, __func__)) {
+ *mOutStream << "cleanupKillProcesses:The timer is off" << endl;
+ }
+ mTimerId = 0;
+ }
+ //Not all kill requests completed so send a timeout message to the processes
+ for (i = 0; i < mProcessesWithUnfinishedKillRequest.size(); i++) {
+ mProcessesWithUnfinishedKillRequest.at(i)->msgKillProcessTimeout();
+ }
+ //Handle error
+ if (mAns == 'E') {
+ if (!mSyncing) {
+ *mOutStream << "ERROR: A CHUNK HAS FAILED " << mMaxChunkErr << " times" << endl;
+ }
+ else {
+ *mOutStream << "ERROR: A START, FINISH, OR SYNC CHUNK HAS FAILED" << endl;
+ }
+ cleanupAndExit(4);
+ }
 
-  //Handle drop and pause by resuming processesing
-  if (mAns == 'D' || mAns == 'P') {
-    *mOutStream << "Resuming processing" << endl;
-    mAns = ' ';
-    //Reset kill values
-    mKillCounter = 0;
-    mDropList.clear();
-    if (isVerbose(mDecoratedClassName, __func__)) {
-      *mOutStream << "Turning off ProcessChunks::mKill" << endl;
-    }
-    mKill = false;
-    mAllKillProcessesHaveStarted = false;
-    mKillProcessMachineIndex = -1;
-    mProcessesWithUnfinishedKillRequest.clear();
-    startTimers();
-    return;
-  }
+ //Handle drop and pause by resuming processesing
+ if (mAns == 'D' || mAns == 'P') {
+ *mOutStream << "Resuming processing" << endl;
+ mAns = ' ';
+ //Reset kill values
+ mKillCounter = 0;
+ mDropList.clear();
+ if (isVerbose(mDecoratedClassName, __func__)) {
+ *mOutStream << "Turning off ProcessChunks::mKill" << endl;
+ }
+ mKill = false;
+ mAllKillProcessesHaveStarted = false;
+ mKillProcessMachineIndex = -1;
+ mProcessesWithUnfinishedKillRequest.clear();
+ startTimers();
+ return;
+ }
 
-  //If not returning to the timer loop, then exit the program.
-  *mOutStream << endl
-      << "When you rerun with a different set of machines, be sure to use" << endl
-      << "the -r flag to retain the existing results" << endl;
-  cleanupAndExit(2);
-}
-*/
+ //If not returning to the timer loop, then exit the program.
+ *mOutStream << endl
+ << "When you rerun with a different set of machines, be sure to use" << endl
+ << "the -r flag to retain the existing results" << endl;
+ cleanupAndExit(2);
+ }
+ */
 bool Processchunks::askGo() {
   if (mJustGo) {
     return true;
@@ -1888,6 +1892,9 @@ bool Processchunks::isVerbose(const QString &verboseClass, const QString verbose
 
 /*
  $Log$
+ Revision 1.63  2011/02/01 22:38:27  sueh
+ bug# 1426 Removing old method of killing.
+
  Revision 1.62  2011/02/01 01:22:03  sueh
  bug# 1426 In cleanupAndExit, always exiting with 0.
 

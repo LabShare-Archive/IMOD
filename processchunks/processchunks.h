@@ -156,6 +156,7 @@ public:
     mNumKills--;
   }
   ;
+  void restartKillTimer();
 
 public slots:
   //Single shot timer slot
@@ -246,6 +247,9 @@ private:
 
 /*
  $Log$
+ Revision 1.30  2011/02/01 22:38:39  sueh
+ bug# 1426 Removing old method of killing.
+
  Revision 1.29  2011/01/31 19:47:13  sueh
  bug# 1426 Counting kills instead of pipes.
 
