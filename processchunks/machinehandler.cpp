@@ -134,13 +134,10 @@ void MachineHandler::killSignal() {
           //Kill a remote jobs in the background
           //ssh -x $sshopts $machname bash --login -c \'"imodkillgroup $pid ; \rm -f $curdir/$pidname"\' &
           mProcesschunks->incrementKills();
+          QStringList paramList;
 #ifndef _WIN32
           QString command = "ssh";
           QString param = "\"imodkillgroup";
-#else
-          QString command = "\"imodkillgroup";
-          QString param;
-#endif
           for (i = 0; i < mNumCpus; i++) {
             if (mProcessHandlerArray[i].isJobValid()) {
               mProcessHandlerArray[i].setJobNotDone();
@@ -149,12 +146,19 @@ void MachineHandler::killSignal() {
             }
           }
           param.append("\"");
-          QStringList paramList;
           paramList << "-x" << mProcesschunks->getSshOpts() << mName << "bash"
               << "--login" << "-c" << param;
+#else
+          QString command = "imodkillgroup.cmd";
+          for (i = 0; i < mNumCpus; i++) {
+            if (mProcessHandlerArray[i].isJobValid()) {
+              mProcessHandlerArray[i].setJobNotDone();
+              paramList << mProcessHandlerArray[i].getPid();
+            }
+          }
+#endif
           mKillProcess->start(command, paramList);
           b3dMilliSleep(mProcesschunks->getMillisecSleep());
-          param.clear();
           paramList.clear();
         }
       }
@@ -306,6 +310,9 @@ void MachineHandler::cleanupKillProcess() {
 
 /*
  $Log$
+ Revision 1.17  2011/02/01 21:07:56  sueh
+ bug# 1426 In killSignal remove ssh when using imodkillgroup for a local machine.
+
  Revision 1.16  2011/02/01 20:20:31  sueh
  bug# 1426 In killSignal using imodkillgroup to kill local processes in Windows.
 
