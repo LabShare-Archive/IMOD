@@ -166,6 +166,11 @@ void MachineHandler::killSignal() {
     else {
       //Waiting for kill to finish
       mKillCounter++;
+      if (mProcesschunks->isVerbose(mDecoratedClassName, __func__, 2)) {
+        mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
+            << ":mKillCounter:" << mKillCounter << ",mKillFinishedSignalReceived:"
+            << mKillFinishedSignalReceived << endl;
+      }
       if (mKillCounter > 15 && !mKillFinishedSignalReceived) {
         mKillProcess->kill();
         mProcesschunks->decrementKills();
@@ -184,16 +189,13 @@ void MachineHandler::killSignal() {
 void MachineHandler::handleFinished(const int exitCode,
     const QProcess::ExitStatus exitStatus) {
   if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-    mProcesschunks->getOutStream() << "exitCode:" << exitCode << ",exitStatus:"
-        << exitStatus << endl;
+    mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
+        << ":exitCode:" << exitCode << ",exitStatus:" << exitStatus << endl;
   }
   if (!mKillFinishedSignalReceived) {
     mProcesschunks->decrementKills();
     mKillFinishedSignalReceived = true;
   }
-#ifdef _WIN32
-  mProcesschunks->restartKillTimer();
-#endif
 }
 
 void MachineHandler::handleError(const QProcess::ProcessError error) {
@@ -210,8 +212,14 @@ bool MachineHandler::isKillFinished() {
   if (mIgnoreKill) {
     return true;
   }
-  if (mName != mProcesschunks->getHostRoot() && mName != "localhost"
-      && !mProcesschunks->isQueue()) {
+  bool useImodkillgroup;
+#ifndef _WIN32
+  useImodkillgroup = mName != mProcesschunks->getHostRoot() && mName != "localhost"
+      && !mProcesschunks->isQueue();
+#else
+  useImodkillgroup =! mProcesschunks->isQueue();
+#endif
+  if (useImodkillgroup) {
     return mKillFinishedSignalReceived;
   }
   else {
@@ -249,25 +257,25 @@ int MachineHandler::getFailureCount() {
 //Kill all running processes on this machine.  Returns false if one of the kill
 //requests had to wait for a signal or event.
 /*
-bool MachineHandler::killProcesses() {
-  //set mKill boolean
-  mKill = true;
-  if (mProcesschunks->getAns() == 'D') {
-    mKill = false;
-    if (!mProcesschunks->getDropList().isEmpty()
-        && mProcesschunks->getDropList().contains(mName)) {
-      mKill = true;
-      mDrop = true;
-      mFailureCount = mProcesschunks->getDropCrit();
-      mProcesschunks->getOutStream() << "Dropping " << mName << " as requested" << endl;
-    }
-  }
-  if (!mKill) {
-    return true;
-  }
-  return killNextProcess(false);
-}
-*/
+ bool MachineHandler::killProcesses() {
+ //set mKill boolean
+ mKill = true;
+ if (mProcesschunks->getAns() == 'D') {
+ mKill = false;
+ if (!mProcesschunks->getDropList().isEmpty()
+ && mProcesschunks->getDropList().contains(mName)) {
+ mKill = true;
+ mDrop = true;
+ mFailureCount = mProcesschunks->getDropCrit();
+ mProcesschunks->getOutStream() << "Dropping " << mName << " as requested" << endl;
+ }
+ }
+ if (!mKill) {
+ return true;
+ }
+ return killNextProcess(false);
+ }
+ */
 //Tells processes to send kill requests.  Stops when a process has to give up
 //control to the event loop.  If there are no more processes, starts
 //cleaning up.
@@ -275,46 +283,49 @@ bool MachineHandler::killProcesses() {
 //If that call can't get though all the processes because of a signal or event
 //wait, it returns false and is then called by ProcessHandler::killNextProcess.
 /*
-bool MachineHandler::killNextProcess(const bool asynchronous) {
-  if (!mKill) {
-    mProcesschunks->getOutStream()
-        << "Warning: MachineHandler::killNextProcess called when mKill is false" << endl;
-    return false;
-  }
-  //Kill the process on each cpu
-  mKillCpuIndex++;
-  if (mKillCpuIndex < mNumCpus) {
-    while (mKillCpuIndex < mNumCpus) {
-      if (mProcessHandlerArray[mKillCpuIndex].getAssignedJobIndex() != -1) {
-        if (mDrop) {
-          mProcessHandlerArray[mKillCpuIndex].invalidateJob();
-        }
-        //Get the process handler using the assigned process index and to it to
-        //kill its process.
-        if (!mProcessHandlerArray[mKillCpuIndex].killProcess()) {
-          return false;
-        }
-      }
-      mKillCpuIndex++;
-    }
-  }
-  if (mKillCpuIndex >= mNumCpus) {
-    if (asynchronous) {
-      //This machine is done - go on to the next machine
-      mProcesschunks->killProcessOnNextMachine();
-    }
-  }
-  return true;
-}
+ bool MachineHandler::killNextProcess(const bool asynchronous) {
+ if (!mKill) {
+ mProcesschunks->getOutStream()
+ << "Warning: MachineHandler::killNextProcess called when mKill is false" << endl;
+ return false;
+ }
+ //Kill the process on each cpu
+ mKillCpuIndex++;
+ if (mKillCpuIndex < mNumCpus) {
+ while (mKillCpuIndex < mNumCpus) {
+ if (mProcessHandlerArray[mKillCpuIndex].getAssignedJobIndex() != -1) {
+ if (mDrop) {
+ mProcessHandlerArray[mKillCpuIndex].invalidateJob();
+ }
+ //Get the process handler using the assigned process index and to it to
+ //kill its process.
+ if (!mProcessHandlerArray[mKillCpuIndex].killProcess()) {
+ return false;
+ }
+ }
+ mKillCpuIndex++;
+ }
+ }
+ if (mKillCpuIndex >= mNumCpus) {
+ if (asynchronous) {
+ //This machine is done - go on to the next machine
+ mProcesschunks->killProcessOnNextMachine();
+ }
+ }
+ return true;
+ }
 
-void MachineHandler::cleanupKillProcess() {
-  mKillCpuIndex = -1;
-  mDrop = false;
-  mKill = false;
-}
-*/
+ void MachineHandler::cleanupKillProcess() {
+ mKillCpuIndex = -1;
+ mDrop = false;
+ mKill = false;
+ }
+ */
 /*
  $Log$
+ Revision 1.21  2011/02/01 23:08:13  sueh
+ bug# 1426 Fixed windows code in handleFinished.
+
  Revision 1.20  2011/02/01 23:01:41  sueh
  bug# 1426 In windows imodkillgroup causes processchunks to behave as
  if its timer is dead, so restarting it.
