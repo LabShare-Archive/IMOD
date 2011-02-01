@@ -537,7 +537,7 @@ void Processchunks::cleanupAndExit(int exitCode) {
     }
   }
   *mOutStream << "exitCode:" << exitCode << endl;
-  exit(exitCode);
+  exit(0);
 }
 
 int Processchunks::escapeEntered() {
@@ -1883,6 +1883,9 @@ bool Processchunks::isVerbose(const QString &verboseClass, const QString verbose
 
 /*
  $Log$
+ Revision 1.61  2011/01/31 20:01:59  sueh
+ bug# 1426 In timerEvent fixed unnecessary failCount redeclaration.
+
  Revision 1.60  2011/01/31 19:47:02  sueh
  bug# 1426 Counting kills instead of pipes.  For Windows, which has
  another (smaller) limit, set mMaxKills differently.
