@@ -707,7 +707,10 @@ void ImodvIsosurface::applyMask()
   int nx = mBoxSize[0];
   int ny = mBoxSize[1];
   int nz = mBoxSize[2];
-  float aa, bb, cc, dx, dy, dxasq, dz, xcen = (nx - 1.) / 2.;
+  float aa, bb, cc, dx, dy, dxasq, dz, xcen, ycen, zcen;
+  xcen = (nx - 1.) / 2.;
+  ycen = (ny - 1.) / 2.;
+  zcen = (nz - 1.) / 2.;
 
   if (iisData.maskType == MASK_NONE) {
     return;
@@ -808,22 +811,25 @@ void ImodvIsosurface::applyMask()
     // X coordinate at each Y and Z
     if (iisData.maskType == MASK_SPHERE) {
       aa = bb = cc = b3dIMin(3, nx, ny, nz) / 2.;
+      xcen = B3DMAX(aa, B3DMIN(nx - aa, mLocalX - mBoxOrigin[0])) - 0.5;
+      ycen = B3DMAX(aa, B3DMIN(ny - aa, mLocalY - mBoxOrigin[1])) - 0.5;
+      zcen = B3DMAX(aa, B3DMIN(nz - aa, mLocalZ - mBoxOrigin[2])) - 0.5;
     } else {
       aa = nx / 2.;
       bb = ny / 2.;
       cc = nz / 2.;
     }
     for (iz = 0; iz < nz; iz++) {
-      dz = (iz - (nz - 1.) / 2.) / cc;
+      dz = (iz - zcen) / cc;
       for (iy = 0; iy < ny; iy++) {
-        dy = (iy - (ny - 1.) / 2.) / bb;
+        dy = (iy - ycen) / bb;
         dxasq = 1. - dz * dz - dy * dy;
         xst = xcen + 1;
         xnd = xst - 1;
         if (dxasq > 0) {
           dx = aa * sqrt((double)dxasq);
-          xst = B3DNINT((nx - 1.) / 2. - dx);
-          xnd = B3DNINT((nx - 1.) / 2. + dx);
+          xst = B3DNINT(xcen - dx);
+          xnd = B3DNINT(xcen + dx);
         }
         for (ix = 0; ix < xst; ix++)
           mVolume[ix + iy * nx + iz * nx * ny] = mMedian;
@@ -1844,11 +1850,9 @@ void ImodvIsosurface::sliderMoved(int which, int value, bool dragging)
   }
 
   // draw if slider clicked or is in hot state
-  if (!dragging || ImodPrefs->hotSliderActive(mCtrlPressed)) 
-  {
+  if (!dragging || ImodPrefs->hotSliderActive(mCtrlPressed)) {
     bool boxChanged = isBoxChanged(mBoxOrigin, mBoxEnds);
-    if (boxChanged)
-    {
+    if (boxChanged || (iisData.maskType == MASK_SPHERE)) {
       setBoundingBox();
       if (iisData.flags & IIS_CENTER_VOLUME)
         setViewCenter();
@@ -1871,7 +1875,7 @@ void ImodvIsosurface::sliderMoved(int which, int value, bool dragging)
         imodPrintStderr("In sliderMoved: rendering time=%d \n", isoTime.elapsed());
         isoTime.start();
       }
-    }else if(which <= IIS_Z_COORD)
+    } else if (which <= IIS_Z_COORD)
       imodDraw(mVi, IMOD_DRAW_XYZ);
   }
 
@@ -2668,6 +2672,10 @@ void ImodvIsosurface::dumpVolume(char *filename)
 /*
 
 $Log$
+Revision 4.23  2011/01/31 06:25:50  mast
+Added painting with scattered points and made current contour/point mask
+work only with closed contour objects
+
 Revision 4.22  2011/01/21 18:12:33  mast
 Do not set some layout spacings for Aqua (rounded) style; it is way too close then
 
