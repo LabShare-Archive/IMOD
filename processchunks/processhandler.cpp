@@ -1296,9 +1296,10 @@ void ProcessHandler::killLocalProcessAndDescendents(QString &pid) {
   } while (foundNewChildPid);
   mLocalKill = true;
   //Kill everything in the process ID list.
-  for (i = 0; i < pidList.size(); i++) {
-    killProcess(pidList.at(i));
-  }
+  QProcess kill;
+  QString killCommand("kill");
+  pidList.prepend("-9");
+  kill.execute(killCommand, pidList);
 }
 
 //Stop a single process.  Waits for process to complete.
@@ -1311,18 +1312,11 @@ void ProcessHandler::stopProcess(const QString &pid) {
   ps.execute(command, paramList);
 }
 
-//Kill a single process.  Waits for process to complete.
-void ProcessHandler::killProcess(const QString &pid) {
-  QProcess ps;
-  QString command("kill");
-  QStringList paramList;
-  paramList.append("-9");
-  paramList.append(pid);
-  ps.execute(command, paramList);
-}
-
 /*
  $Log$
+ Revision 1.40  2011/01/31 20:02:31  sueh
+ bug# 1426 Removed unused const static pidTag.
+
  Revision 1.39  2011/01/31 19:45:10  sueh
  bug# 1426 Counting kills instead of pipes.
 
