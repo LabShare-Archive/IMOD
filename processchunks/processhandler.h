@@ -122,7 +122,6 @@ private:
   void readAllStandardError();
   void killLocalProcessAndDescendents(QString &pid);
   void stopProcess(const QString &pid);
-  void killProcess(const QString &pid);
   void resetFields();
 
   QFile *mLogFile, *mJobFile, *mQidFile;
@@ -154,6 +153,10 @@ private:
 
 /*
  $Log$
+ Revision 1.19  2011/01/27 03:52:25  sueh
+ bug# 1426 Removes const from simple variable return values (int, char,
+ bool, long) because they cause a warning in the intel compiler.
+
  Revision 1.18  2011/01/25 07:16:49  sueh
  bug# 1426 Added mIgnoreKill.
 
