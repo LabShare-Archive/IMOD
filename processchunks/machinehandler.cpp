@@ -111,7 +111,7 @@ void MachineHandler::killSignal() {
   useImodkillgroup = mName != mProcesschunks->getHostRoot() && mName != "localhost"
       && !mProcesschunks->isQueue();
 #else
-  useImodkillgroup =! mProcesschunks->isQueue();
+  useImodkillgroup = !mProcesschunks->isQueue();
 #endif
   if (useImodkillgroup) {
     if (!mKillStarted) {
@@ -217,7 +217,7 @@ bool MachineHandler::isKillFinished() {
   useImodkillgroup = mName != mProcesschunks->getHostRoot() && mName != "localhost"
       && !mProcesschunks->isQueue();
 #else
-  useImodkillgroup =! mProcesschunks->isQueue();
+  useImodkillgroup = !mProcesschunks->isQueue();
 #endif
   if (useImodkillgroup) {
     return mKillFinishedSignalReceived;
@@ -323,6 +323,10 @@ int MachineHandler::getFailureCount() {
  */
 /*
  $Log$
+ Revision 1.22  2011/02/01 23:20:41  sueh
+ bug# 1426 Added verbose information.  Allowing for Windows difference
+ in isKillFinished.
+
  Revision 1.21  2011/02/01 23:08:13  sueh
  bug# 1426 Fixed windows code in handleFinished.
 
