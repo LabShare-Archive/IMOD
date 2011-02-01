@@ -106,10 +106,21 @@ void MachineHandler::killSignal() {
   if (mIgnoreKill || mKillFinishedSignalReceived) {
     return;
   }
+  bool useImodkillgroup = false;
   //For remote machines imodkillgroup can be used to kill all the processes on
   //a machine.
+#ifndef _WIN32
   if (mName != mProcesschunks->getHostRoot() && mName != "localhost"
       && !mProcesschunks->isQueue()) {
+    useImodkillgroup = true;
+  }
+#else
+  //On Windows imodkillgroup won't kill processchunks, so use it for local kills.
+  if (!mProcesschunks->isQueue()) {
+    useImodkillgroup = true;
+  }
+#endif
+  if (useImodkillgroup) {
     if (!mKillStarted) {
       if (!mPidsAvailable) {
         //See if PIDs are available
@@ -297,6 +308,9 @@ void MachineHandler::cleanupKillProcess() {
 
 /*
  $Log$
+ Revision 1.15  2011/01/31 19:45:00  sueh
+ bug# 1426 Counting kills instead of pipes.
+
  Revision 1.14  2011/01/27 03:50:16  sueh
  bug# 1426 Removes const from simple variable return values (int, char,
  bool, long) because they cause a warning in the intel compiler.  Moved the
