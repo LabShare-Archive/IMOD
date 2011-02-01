@@ -834,10 +834,8 @@ void ProcessHandler::startKill() {
 }
 
 /*
- Handles the kill signal.  If this is a remote machine, it checks for its
- process PIDs and runs imodkillgroup.  If imodkillgroup has already been run
- (mKillStarted is true), the machine handler waits for it to finish.  If this
- is the local machine or a queue, it passes the kill signal to the process.
+ Handles the kill signal when imodkillgroup isn't used.  If the is a queue and
+ the kill request has already been sent, this process waits for it to finish.
  */
 void ProcessHandler::killSignal() {
   if (mIgnoreKill || (mKillFinishedSignalReceived && mFinishedSignalReceived)) {
@@ -868,6 +866,7 @@ void ProcessHandler::killSignal() {
       }
     }
     else {
+      //This must be a local job
       if (!isPidEmpty()) {
         //PIDs are available
         mKillStarted = true;//This starts the 15-count timeout
@@ -1314,6 +1313,10 @@ void ProcessHandler::stopProcess(const QString &pid) {
 
 /*
  $Log$
+ Revision 1.41  2011/02/01 01:29:12  sueh
+ bug# 1426 In killLocalProcessAndDescendents kill all the collected PIDs at
+ once.
+
  Revision 1.40  2011/01/31 20:02:31  sueh
  bug# 1426 Removed unused const static pidTag.
 
