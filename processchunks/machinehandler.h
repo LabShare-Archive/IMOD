@@ -68,14 +68,14 @@ public:
     mFailureCount++;
   }
   ;
-  bool killProcesses();
+  //bool killProcesses();
   void msgKillProcessTimeout();
-  bool killNextProcess(const bool asynchronou);
+  //bool killNextProcess(const bool asynchronou);
   inline bool isJobValid(const int index) {
     return mProcessHandlerArray[index].isJobValid();
   }
   ;
-  void cleanupKillProcess();
+  //void cleanupKillProcess();
   bool isKillNeeded();
   bool isKillSignal();
   void resetKill();
@@ -111,6 +111,10 @@ private:
 
 /*
  $Log$
+ Revision 1.11  2011/01/27 03:51:34  sueh
+ bug# 1426 Removes const from simple variable return values (int, char,
+ bool, long) because they cause a warning in the intel compiler.
+
  Revision 1.10  2011/01/25 07:06:01  sueh
  bug# 1426 Added mDropped.
 

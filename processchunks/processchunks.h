@@ -76,9 +76,6 @@ public:
   void setup();
   bool askGo();
   void startLoop();
-  void killProcessOnNextMachine();
-  void msgKillProcessStarted(ProcessHandler *processHandler);
-  void msgKillProcessDone(ProcessHandler *processHandler);
   void handleFileSystemBug();
 
   inline bool isQueue() {
@@ -202,7 +199,6 @@ private:
   void killProcessTimeout();
   void killProcesses(QStringList *dropList = NULL);
   void startTimers();
-  void cleanupKillProcesses(const bool timeout);
   bool handleError(const QString *errorMess, MachineHandler &machine,
       ProcessHandler *process);
   bool isVerbose(const QString &verboseClass, const QString verboseFunction,
@@ -250,6 +246,9 @@ private:
 
 /*
  $Log$
+ Revision 1.29  2011/01/31 19:47:13  sueh
+ bug# 1426 Counting kills instead of pipes.
+
  Revision 1.28  2011/01/27 22:54:30  sueh
  bug# 1426 Switching to QCoreApplication, which is for console applications.
 

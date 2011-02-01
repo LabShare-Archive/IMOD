@@ -65,9 +65,9 @@ public:
   ;
   int getFlag();
   void runProcess(MachineHandler &machine);
-  bool killProcess();
-  void continueKillProcess(const bool asynchronous);
-  void msgKillProcessTimeout();
+  //bool killProcess();
+  //void continueKillProcess(const bool asynchronous);
+ // void msgKillProcessTimeout();
   inline bool isFinishedSignalReceived() {
     return mFinishedSignalReceived;
   }
@@ -93,7 +93,7 @@ public:
     return mValidJob;
   }
   ;
-  void cleanupKillProcess();
+  //void cleanupKillProcess();
   void killSignal();
   bool isPidEmpty();
   inline bool isKillFinished() {
@@ -108,11 +108,10 @@ public slots:
   void handleError(const QProcess::ProcessError error);
   void
   handleFinished(const int exitCode, const QProcess::ExitStatus exitStatus);
-  void handleReadyReadStandardError();
   void handleKillFinished(const int exitCode, const QProcess::ExitStatus exitStatus);
 
 protected:
-  void timerEvent(QTimerEvent *e);
+  //void timerEvent(QTimerEvent *e);
 
 private:
   void initProcess();
@@ -153,6 +152,9 @@ private:
 
 /*
  $Log$
+ Revision 1.20  2011/02/01 01:29:42  sueh
+ bug# 1426 Removed unnecessary killProcess(QString).
+
  Revision 1.19  2011/01/27 03:52:25  sueh
  bug# 1426 Removes const from simple variable return values (int, char,
  bool, long) because they cause a warning in the intel compiler.

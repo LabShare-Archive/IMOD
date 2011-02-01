@@ -245,6 +245,7 @@ int MachineHandler::getFailureCount() {
 
 //Kill all running processes on this machine.  Returns false if one of the kill
 //requests had to wait for a signal or event.
+/*
 bool MachineHandler::killProcesses() {
   //set mKill boolean
   mKill = true;
@@ -263,13 +264,14 @@ bool MachineHandler::killProcesses() {
   }
   return killNextProcess(false);
 }
-
+*/
 //Tells processes to send kill requests.  Stops when a process has to give up
 //control to the event loop.  If there are no more processes, starts
 //cleaning up.
 //This is called the first time by Processchunks::killProcessOnNextMachine.
 //If that call can't get though all the processes because of a signal or event
 //wait, it returns false and is then called by ProcessHandler::killNextProcess.
+/*
 bool MachineHandler::killNextProcess(const bool asynchronous) {
   if (!mKill) {
     mProcesschunks->getOutStream()
@@ -307,9 +309,13 @@ void MachineHandler::cleanupKillProcess() {
   mDrop = false;
   mKill = false;
 }
-
+*/
 /*
  $Log$
+ Revision 1.18  2011/02/01 21:49:45  mast
+ In killSignal, really not use ssh stuff, set up PIDs in separate strings in
+ paramList, and call by imodkillgroup.cmd for Windows
+
  Revision 1.17  2011/02/01 21:07:56  sueh
  bug# 1426 In killSignal remove ssh when using imodkillgroup for a local machine.
 

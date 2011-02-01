@@ -69,8 +69,6 @@ void ProcessHandler::initProcess() {
         SLOT(handleError(QProcess::ProcessError)));
     disconnect(mProcess, SIGNAL(finished(int, QProcess::ExitStatus)), this,
         SLOT(handleFinished(int, QProcess::ExitStatus)));
-    disconnect(mProcess, SIGNAL(readyReadStandardError()), this,
-        SLOT(handleReadyReadStandardError()));
     delete mProcess;
     mProcess = NULL;
   }
@@ -79,8 +77,6 @@ void ProcessHandler::initProcess() {
       SLOT(handleError(QProcess::ProcessError)));
   QObject::connect(mProcess, SIGNAL(finished(int, QProcess::ExitStatus)),
       SLOT(handleFinished(int, QProcess::ExitStatus)));
-  QObject::connect(mProcess, SIGNAL(readyReadStandardError()),
-      SLOT(handleReadyReadStandardError()));
 }
 
 //Set mFlag to -1 for sync com files.
@@ -742,6 +738,7 @@ void ProcessHandler::runProcess(MachineHandler &machine) {
 
 //Kill the process.  Returns false if it started the timer and exited instead of
 //called continueKillProcess.
+/*
 bool ProcessHandler::killProcess() {
   if (mMachine == NULL) {
     //Nothing to do - no process is running
@@ -817,9 +814,10 @@ void ProcessHandler::handleReadyReadStandardError() {
     }
   }
 }
-
+*/
 //Pid timer event
-void ProcessHandler::timerEvent(QTimerEvent */*timerEvent*/) {
+/*
+void ProcessHandler::timerEvent(QTimerEvent **//*timerEvent*//*) {
   //timer should only go off once
   if (mPidTimerId != 0) {
     killTimer(mPidTimerId);
@@ -827,7 +825,7 @@ void ProcessHandler::timerEvent(QTimerEvent */*timerEvent*/) {
   }
   continueKillProcess(true);
 }
-
+*/
 void ProcessHandler::startKill() {
   mKill = true;
   mIgnoreKill = !isJobValid();
@@ -919,6 +917,7 @@ void ProcessHandler::setJobNotDone() {
 }
 
 //If waiting for the PID (if necessary) continue killing the process
+/*
 void ProcessHandler::continueKillProcess(const bool asynchronous) {
   if (mComFileJobIndex == -1) {
     mProcesschunks->getOutStream() << "ERROR:" << mDecoratedClassName << ":" << __func__
@@ -1010,7 +1009,7 @@ void ProcessHandler::continueKillProcess(const bool asynchronous) {
     mMachine->killNextProcess(true);
   }
 }
-
+*/
 //Sets signal variables.  For a non-queue removes the .csh file on the local
 //machine.  If the process was killed, tell processchunks that its done.
 void ProcessHandler::handleFinished(const int exitCode,
@@ -1058,17 +1057,13 @@ void ProcessHandler::handleFinished(const int exitCode,
     if (!mKill) {
       mMachine = NULL;
     }
-    else if (mLocalKill) {
-      //Tell processchunks that a process is killed
-      mProcesschunks->msgKillProcessDone(this);
-    }
     if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
       printf("%s:%s:machine set to NULL\n", mDecoratedClassName.toLatin1().data(),
           __func__);
     }
   }
 }
-
+/*
 void ProcessHandler::cleanupKillProcess() {
   if (mComFileJobIndex == -1) {
     printf("ERROR:%s:%s:No mComFileJobIndex\n", mDecoratedClassName.toLatin1().data(),
@@ -1098,8 +1093,9 @@ void ProcessHandler::cleanupKillProcess() {
   mKill = false;
   mMachine = NULL;
 }
-
+*/
 //Called if kill process did not finish before the Processchunks timeout
+/*
 void ProcessHandler::msgKillProcessTimeout() {
   if (mComFileJobIndex == -1) {
     mProcesschunks->getOutStream() << "ERROR:" << mDecoratedClassName << ":" << __func__
@@ -1131,7 +1127,7 @@ void ProcessHandler::msgKillProcessTimeout() {
   //Tell processchunks that a process is killed
   mProcesschunks->msgKillProcessDone(this);
 }
-
+*/
 void ProcessHandler::handleKillFinished(const int exitCode,
     const QProcess::ExitStatus exitStatus) {
   if (mComFileJobIndex == -1) {
@@ -1162,7 +1158,7 @@ void ProcessHandler::handleKillFinished(const int exitCode,
     }
   }
   //Tell processchunks that a process is killed
-  mProcesschunks->msgKillProcessDone(this);
+  //mProcesschunks->msgKillProcessDone(this);
 }
 
 void ProcessHandler::handleError(const QProcess::ProcessError processError) {
@@ -1313,6 +1309,9 @@ void ProcessHandler::stopProcess(const QString &pid) {
 
 /*
  $Log$
+ Revision 1.42  2011/02/01 20:20:52  sueh
+ bug# 1426 Fixing killSignal comments.
+
  Revision 1.41  2011/02/01 01:29:12  sueh
  bug# 1426 In killLocalProcessAndDescendents kill all the collected PIDs at
  once.

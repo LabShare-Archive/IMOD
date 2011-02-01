@@ -713,6 +713,7 @@ void Processchunks::killSignal() {
 //This is called the first time by Processchunks::killProcesses.
 //If that call can't get though all the machines because of a signal or event
 //wait, it is called by MachineHandler::killNextProcess.
+/*
 void Processchunks::killProcessOnNextMachine() {
   if (!mKill) {
     *mOutStream
@@ -742,11 +743,12 @@ void Processchunks::killProcessOnNextMachine() {
     }
   }
 }
-
+*/
 //Keeps track of the processes are being killed so that it will be able to
 //wait for processes to be killed after all the kill commands have been sent out,
 //and send a timeout message to the processes that haven't completed their kill
 //command.
+/*
 void Processchunks::msgKillProcessStarted(ProcessHandler *process) {
   mProcessesWithUnfinishedKillRequest.append(process);
   if (isVerbose(mDecoratedClassName, __func__)) {
@@ -754,7 +756,7 @@ void Processchunks::msgKillProcessStarted(ProcessHandler *process) {
         << mProcessesWithUnfinishedKillRequest.size() << endl;
   }
 }
-
+*/
 //Removes the processIndex from the list of unfinished kill requests.  Calls
 //clean up if all kill requests have been sent and the list of unfinshed kill
 //requests is empty.
@@ -766,6 +768,7 @@ void Processchunks::msgKillProcessStarted(ProcessHandler *process) {
 //ProcessHandler::handleFinished.
 //
 //This is not used for queue kill requests.
+/*
 void Processchunks::msgKillProcessDone(ProcessHandler *process) {
   if (isVerbose(mDecoratedClassName, __func__)) {
     *mOutStream << mDecoratedClassName << ":" << __func__ << ":"
@@ -781,7 +784,7 @@ void Processchunks::msgKillProcessDone(ProcessHandler *process) {
   if (mAllKillProcessesHaveStarted && mProcessesWithUnfinishedKillRequest.isEmpty()) {
     cleanupKillProcesses(false);
   }
-}
+}*/
 
 //Cluster:
 //calculates the timeout and calls cleanupKillProcesses.
@@ -791,6 +794,7 @@ void Processchunks::msgKillProcessDone(ProcessHandler *process) {
 //mProcessesWithUnfinishedKillRequest.
 //Calls clean up function if every kill is done or timeout is true.
 //Called by timerEvent.
+/*
 void Processchunks::killProcessTimeout() {
   if (!mAllKillProcessesHaveStarted) {
     //Don't start the timeout counter or (for the queue) start cleaning up kill
@@ -834,13 +838,14 @@ void Processchunks::killProcessTimeout() {
       cleanupKillProcesses(timeout);
     }
   }
-}
+}*/
 
 //Cleans up process killing.  Must only be called when all kill requests have
 //been sent.
 //Also updates mProcessesWithUnfinishedKillRequest in the case of a queue.
 //If timeout is false and mProcessesWithUnfinishedKillRequest is not empty, exits
 //without cleaning up.
+/*
 void Processchunks::cleanupKillProcesses(const bool timeout) {
   int i;
   if (!mKill) {
@@ -915,7 +920,7 @@ void Processchunks::cleanupKillProcesses(const bool timeout) {
       << "the -r flag to retain the existing results" << endl;
   cleanupAndExit(2);
 }
-
+*/
 bool Processchunks::askGo() {
   if (mJustGo) {
     return true;
@@ -1883,6 +1888,9 @@ bool Processchunks::isVerbose(const QString &verboseClass, const QString verbose
 
 /*
  $Log$
+ Revision 1.62  2011/02/01 01:22:03  sueh
+ bug# 1426 In cleanupAndExit, always exiting with 0.
+
  Revision 1.61  2011/01/31 20:01:59  sueh
  bug# 1426 In timerEvent fixed unnecessary failCount redeclaration.
 
