@@ -207,6 +207,7 @@ int sliceFloat(Islice *slice)
   switch(slice->mode){
   case SLICE_MODE_BYTE:
   case SLICE_MODE_SHORT:
+  case SLICE_MODE_USHORT:
     tsl = sliceCreate(slice->xsize, slice->ysize, SLICE_MODE_FLOAT);
     if (!tsl)
       return(-1);
@@ -1492,6 +1493,9 @@ int mrc_vol_wrap(struct MRCvolume *v)
 
 /*
 $Log$
+Revision 3.24  2008/12/01 15:32:58  mast
+Reduced edge artifacts in convolution filtering and in sliceGradient
+
 Revision 3.23  2008/11/02 13:43:08  mast
 Added functions for reading float slice
 
