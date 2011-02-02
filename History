@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/1/11: IMOD_4-2-13
 2/1/11: Isosurface improvements: Added ability to set an outer threshold to
 show features with intensities between two thresholds; ability to mask the
 isosurface with the current contour, current object, a sphere, or an
