@@ -824,6 +824,11 @@ void ProcessHandler::setJobNotDone() {
   mProcesschunks->getComFileJobs()->setFlag(mComFileJobIndex, CHUNK_NOT_DONE);
 }
 
+void ProcessHandler::killQProcesses() {
+  mProcess->kill();
+  mKillProcess->kill();
+}
+
 //Sets signal variables.  For a non-queue removes the .csh file on the local
 //machine.  If the process was killed, tell processchunks that its done.
 void ProcessHandler::handleFinished(const int exitCode,
@@ -1057,6 +1062,9 @@ void ProcessHandler::stopProcess(const QString &pid) {
 
 /*
  $Log$
+ Revision 1.44  2011/02/02 00:09:37  sueh
+ bug# 1426 Removed unused variables and commented-out code.
+
  Revision 1.43  2011/02/01 22:38:49  sueh
  bug# 1426 Removing old method of killing.
 

@@ -242,6 +242,14 @@ void MachineHandler::resetKill() {
   }
 }
 
+void MachineHandler::killQProcesses(){
+  int i;
+  for (i = 0; i < mNumCpus; i++) {
+    mProcessHandlerArray[i].killQProcesses();
+    mKillProcess->kill();
+  }
+}
+
 //When a machine is dropped, its failures no longer count.
 int MachineHandler::getFailureCount() {
   if (mDropped) {
@@ -254,6 +262,9 @@ int MachineHandler::getFailureCount() {
 
 /*
  $Log$
+ Revision 1.24  2011/02/02 00:08:52  sueh
+ bug# 1426 Removed unused variables and commented-out code.
+
  Revision 1.23  2011/02/01 23:27:56  sueh
  bug# 1426 Changed a bad format in the Windows code.
 

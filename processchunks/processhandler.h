@@ -99,6 +99,7 @@ public:
   void resetKill();
   void setJobNotDone();
   void startKill();
+  void killQProcesses();
 
 public slots:
   void handleError(const QProcess::ProcessError error);
@@ -145,6 +146,9 @@ private:
 
 /*
  $Log$
+ Revision 1.22  2011/02/02 00:09:49  sueh
+ bug# 1426 Removed unused variables and commented-out code.
+
  Revision 1.21  2011/02/01 22:39:01  sueh
  bug# 1426 Removing old method of killing.
 

@@ -83,6 +83,7 @@ public:
     return mDropped;
   }
   ;
+  void killQProcesses();
 
 public slots:
   void handleFinished(const int exitCode, const QProcess::ExitStatus exitStatus);
@@ -108,6 +109,9 @@ private:
 
 /*
  $Log$
+ Revision 1.13  2011/02/02 00:09:03  sueh
+ bug# 1426 Removed unused variables and commented-out code.
+
  Revision 1.12  2011/02/01 22:39:22  sueh
  bug# 1426 Removing old method of killing.
 
