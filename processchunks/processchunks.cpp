@@ -536,7 +536,7 @@ void Processchunks::cleanupAndExit(int exitCode) {
     }
   }
   *mOutStream << "exitCode:" << exitCode << endl;
-  exit(0);
+  ::exit(0);
 }
 
 int Processchunks::escapeEntered() {
@@ -1673,6 +1673,9 @@ bool Processchunks::isVerbose(const QString &verboseClass, const QString verbose
 
 /*
  $Log$
+ Revision 1.66  2011/02/02 22:43:10  sueh
+ bug# 1426 In cleanupAndExit called MachineHandler::killQProcesses.
+
  Revision 1.65  2011/02/02 00:09:14  sueh
  bug# 1426 Removed unused variables and commented-out code.
 
