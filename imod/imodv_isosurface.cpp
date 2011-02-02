@@ -94,7 +94,7 @@ static struct imodvIsosurfaceDataStruct iisData =
 static bool isBoxChanged(const int *start, const int *end);
 static void setCoordLimits(int cur, int maxSize, int drawSize, int &str, int &end);
 static void findDimLimits(int which, int &xdim, int &ydim, int &zdim, int *sizes);
-static bool doDumps;
+static int doDumps = 0;
 
 // Open, close, or raise the dialog box
 void imodvIsosurfaceEditDialog(ImodvApp *a, int state)
@@ -854,7 +854,7 @@ void ImodvIsosurface::removeOuterPixels()
   int ny = mBinBoxSize[1];
   int nz = mBinBoxSize[2];
   int maxShell = 16;  // WHAT TO SET THIS TO?
-  int indNeigh, maxNeigh, numNeigh, numOrig, shell, i,ix, iy, iz,  median;
+  int indNeigh, maxNeigh = 0, numNeigh = 0, numOrig, shell, i,ix, iy, iz,  median;
   int ind, dir = mThreshold > mMedian ? 1 : -1;
   if (mOuterLimit <= mVolMin || mOuterLimit >= mVolMax)
     return;
@@ -2672,6 +2672,9 @@ void ImodvIsosurface::dumpVolume(char *filename)
 /*
 
 $Log$
+Revision 4.24  2011/02/01 20:15:37  mast
+Keep center of sphere at slider positions if possible
+
 Revision 4.23  2011/01/31 06:25:50  mast
 Added painting with scattered points and made current contour/point mask
 work only with closed contour objects
