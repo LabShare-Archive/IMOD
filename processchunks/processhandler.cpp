@@ -40,10 +40,8 @@ void ProcessHandler::resetFields() {
   mErrorSignalReceived = false;
   mProcessError = -1;
   mFinishedSignalReceived = false;
-  mPidTimerId = 0;
   mStartTime.start();
   mStartingProcess = false;
-  mRanContinueKillProcess = false;
   mKillFinishedSignalReceived = false;
   mKill = false;
   resetSignalValues();
@@ -736,96 +734,6 @@ void ProcessHandler::runProcess(MachineHandler &machine) {
   delete paramList;
 }
 
-//Kill the process.  Returns false if it started the timer and exited instead of
-//called continueKillProcess.
-/*
-bool ProcessHandler::killProcess() {
-  if (mMachine == NULL) {
-    //Nothing to do - no process is running
-    return true;
-  }
-  if (mComFileJobIndex == -1) {
-    return true;
-  }
-  if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-    mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__ << ":"
-        << mProcesschunks->getComFileJobs()->getComFileName(mComFileJobIndex) << ":A"
-        << endl;
-  }
-  mKill = true;
-  //Tell processchunks that a process is being killed
-  //This must be done before relinquishing control.
-  mProcesschunks->msgKillProcessStarted(this);
-  mProcesschunks->getComFileJobs()->setFlag(mComFileJobIndex, CHUNK_NOT_DONE);
-  mRanContinueKillProcess = false;
-  //Not doing the ls to handle the old RHEL5 bug - bug should be fixed
-  if (mProcesschunks->isQueue() && mProcesschunks->getAns() != 'D') {
-    if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-      mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__ << ":"
-          << mProcesschunks->getComFileJobs()->getComFileName(mComFileJobIndex) << ":B"
-          << endl;
-    }
-    continueKillProcess(false);
-  }
-  else if (!mProcesschunks->isQueue()) {
-    if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-      mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__ << ":"
-          << mProcesschunks->getComFileJobs()->getComFileName(mComFileJobIndex) << ":C"
-          << endl;
-    }
-    //Make sure that the pid has been retrieved
-    getPid();
-    if (!mPid.isEmpty()) {
-      if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-        mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__ << ":"
-            << mProcesschunks->getComFileJobs()->getComFileName(mComFileJobIndex) << ":D"
-            << endl;
-      }
-      continueKillProcess(false);
-    }
-    else {
-      if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-        mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__ << ":"
-            << mProcesschunks->getComFileJobs()->getComFileName(mComFileJobIndex) << ":E"
-            << endl;
-      }
-      //if the PID isn't there yet, wait for it for at most 15 seconds
-      mPidTimerId = startTimer(15 * 1000);
-      return false;
-    }
-  }
-  else {
-    if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-      mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__ << ":"
-          << mProcesschunks->getComFileJobs()->getComFileName(mComFileJobIndex) << ":F"
-          << endl;
-    }
-    continueKillProcess(false);
-  }
-  return true;
-}
-
-void ProcessHandler::handleReadyReadStandardError() {
-  if (mKill && mPidTimerId != 0) {
-    //If killing, check for pid
-    getPid();
-    if (!mPid.isEmpty()) {
-      continueKillProcess(true);
-    }
-  }
-}
-*/
-//Pid timer event
-/*
-void ProcessHandler::timerEvent(QTimerEvent **//*timerEvent*//*) {
-  //timer should only go off once
-  if (mPidTimerId != 0) {
-    killTimer(mPidTimerId);
-    mPidTimerId = 0;
-  }
-  continueKillProcess(true);
-}
-*/
 void ProcessHandler::startKill() {
   mKill = true;
   mIgnoreKill = !isJobValid();
@@ -916,100 +824,6 @@ void ProcessHandler::setJobNotDone() {
   mProcesschunks->getComFileJobs()->setFlag(mComFileJobIndex, CHUNK_NOT_DONE);
 }
 
-//If waiting for the PID (if necessary) continue killing the process
-/*
-void ProcessHandler::continueKillProcess(const bool asynchronous) {
-  if (mComFileJobIndex == -1) {
-    mProcesschunks->getOutStream() << "ERROR:" << mDecoratedClassName << ":" << __func__
-        << ":No mComFileJobIndex" << endl;
-    return;
-  }
-  if (!mKill) {
-    mProcesschunks->getOutStream() << "Warning:" << mDecoratedClassName << ":"
-        << __func__ << " called when mKill is false" << endl;
-    return;
-  }
-  //function should only be run once
-  if (mRanContinueKillProcess) {
-    mProcesschunks->getOutStream() << "Warning:" << mDecoratedClassName << ":"
-        << __func__ << " called when mRanContinueKillProcess is true" << endl;
-    return;
-  }
-  mRanContinueKillProcess = true;
-  if (mPidTimerId != 0) {
-    killTimer(mPidTimerId);
-    mPidTimerId = 0;
-  }
-  bool runningKillProcess = false;
-  char ans = mProcesschunks->getAns();
-  if (mProcesschunks->isQueue() && ans != 'D') {
-    QString action(ans);
-    if (ans != 'P') {
-      action = "K";
-    }
-    //Don't know if this waits until the kill is does
-    //$queuecom -w "$curdir" -a $action $comlist[$ind]:r
-    //The second to last parameter is the action letter
-    mParamList.replace(mParamList.size() - 2, action);
-    if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-      mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__ << ":"
-          << mCommand << " " << mParamList.join(" ") << endl;
-    }
-    mKillProcess->start(mCommand, mParamList);
-    runningKillProcess = true;
-    if (!mKillProcess->waitForFinished(1000) && mProcesschunks->isVerbose(
-        mDecoratedClassName, __func__)) {
-      mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
-          << ":did not finish:error:" << mKillProcess->error() << ",exitCode:"
-          << mKillProcess->exitCode() << ",exitStatus:" << mKillProcess->exitStatus()
-          << ",state:" << mKillProcess->state() << endl
-          << mKillProcess->readAllStandardError() << endl;
-    }
-    //Put mParamList back to its regular form
-    mParamList.replace(mParamList.size() - 2, "R");
-  }
-  else if (!mProcesschunks->isQueue()) {
-    //Make sure that the pid has been retrieved
-    getPid();
-    if (!mPid.isEmpty()) {
-      //the pid exists - continue killing the process
-      mProcesschunks->getOutStream() << "Killing "
-          << mProcesschunks->getComFileJobs()->getComFileName(mComFileJobIndex) << " on "
-          << mMachine->getName() << endl;
-      if (mMachine->getName() == mProcesschunks->getHostRoot() || mMachine->getName()
-          == "localhost") {
-        //local job
-        killLocalProcessAndDescendents(mPid);
-      }
-      else {
-        //Kill a remote job in background
-        //ssh -x $sshopts $machname bash --login -c \'"imodkillgroup $pid ; \rm -f $curdir/$pidname"\' &
-        QString command = "ssh";
-        QString param = QString("\"imodkillgroup %1\"").arg(mPid);
-        QStringList paramList;
-        paramList << "-x" << mProcesschunks->getSshOpts() << mMachine->getName()
-            << "bash" << "--login" << "-c" << param;
-        mKillProcess->start(command, paramList);
-        b3dMilliSleep(mProcesschunks->getMillisecSleep());
-        runningKillProcess = true;
-      }
-    }
-  }
-  if (!runningKillProcess && !mLocalKill) {
-    //No kill request to wait for - go straight to clean up.
-    //This happens when a queue receives a drop command, when the PID was
-    //never received from a non-queue process.
-    //Tell processchunks that a process is killed
-    mProcesschunks->msgKillProcessDone(this);
-  }
-  if (asynchronous) {
-    //MachineHandler::killNextProcess is not currently running because a wait
-    //for a signal or event was done.  Run this function to get to the next
-    //process.
-    mMachine->killNextProcess(true);
-  }
-}
-*/
 //Sets signal variables.  For a non-queue removes the .csh file on the local
 //machine.  If the process was killed, tell processchunks that its done.
 void ProcessHandler::handleFinished(const int exitCode,
@@ -1063,71 +877,7 @@ void ProcessHandler::handleFinished(const int exitCode,
     }
   }
 }
-/*
-void ProcessHandler::cleanupKillProcess() {
-  if (mComFileJobIndex == -1) {
-    printf("ERROR:%s:%s:No mComFileJobIndex\n", mDecoratedClassName.toLatin1().data(),
-        __func__);
-    return;
-  }
-  if (!mKill) {
-    printf(
-        "Warning:%s:%s called for %s when mKill is false\n",
-        mDecoratedClassName.toLatin1().data(),
-        __func__,
-        mProcesschunks->getComFileJobs()->getComFileName(mComFileJobIndex).toLatin1().data());
-    return;
-  }
-  mRanContinueKillProcess = false;
-  if (!mKillFinishedSignalReceived) {
-    mKillProcess->kill();
-  }
-  mKillFinishedSignalReceived = false;
-  if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-    printf(
-        "Warning:%s:%s:%s:Turning off ProcessHandler::mKill in cleanupKillProcess\n",
-        mDecoratedClassName.toLatin1().data(),
-        __func__,
-        mProcesschunks->getComFileJobs()->getComFileName(mComFileJobIndex).toLatin1().data());
-  }
-  mKill = false;
-  mMachine = NULL;
-}
-*/
-//Called if kill process did not finish before the Processchunks timeout
-/*
-void ProcessHandler::msgKillProcessTimeout() {
-  if (mComFileJobIndex == -1) {
-    mProcesschunks->getOutStream() << "ERROR:" << mDecoratedClassName << ":" << __func__
-        << ":No mComFileJobIndex" << endl;
-    return;
-  }
-  if (!mKill) {
-    mProcesschunks->getOutStream() << "Warning:" << mDecoratedClassName << ":"
-        << __func__ << " called when mKill is false" << endl;
-    return;
-  }
-  //A process did not end.  Disconnect the signals and create new processes
-  //to prevent slots from being run because of old processes.
-  mStartingProcess = false;
-  initProcess();
-  resetSignalValues();
-  mProcesschunks->getOutStream() << "Failed to kill "
-      << mProcesschunks->getComFileJobs()->getComFileName(mComFileJobIndex) << " on "
-      << mMachine->getName() << " (no problem if machine is dead)" << endl;
-  if (!mKillFinishedSignalReceived) {
-    mKillProcess->kill();
-  }
-  mKillFinishedSignalReceived = false;
-  if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-    mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__ << ":"
-        << mProcesschunks->getComFileJobs()->getComFileName(mComFileJobIndex)
-        << ":Turning off ProcessHandler::mKill in msgKillProcessTimeout" << endl;
-  }
-  //Tell processchunks that a process is killed
-  mProcesschunks->msgKillProcessDone(this);
-}
-*/
+
 void ProcessHandler::handleKillFinished(const int exitCode,
     const QProcess::ExitStatus exitStatus) {
   if (mComFileJobIndex == -1) {
@@ -1157,8 +907,6 @@ void ProcessHandler::handleKillFinished(const int exitCode,
       }
     }
   }
-  //Tell processchunks that a process is killed
-  //mProcesschunks->msgKillProcessDone(this);
 }
 
 void ProcessHandler::handleError(const QProcess::ProcessError processError) {
@@ -1309,6 +1057,9 @@ void ProcessHandler::stopProcess(const QString &pid) {
 
 /*
  $Log$
+ Revision 1.43  2011/02/01 22:38:49  sueh
+ bug# 1426 Removing old method of killing.
+
  Revision 1.42  2011/02/01 20:20:52  sueh
  bug# 1426 Fixing killSignal comments.
 

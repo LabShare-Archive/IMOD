@@ -156,7 +156,6 @@ public:
     mNumKills--;
   }
   ;
-  void restartKillTimer();
 
 public slots:
   //Single shot timer slot
@@ -232,10 +231,8 @@ private:
   char mAns;
 
   //killing processes
-  bool mKill, mAllKillProcessesHaveStarted;
-  int mKillProcessMachineIndex, mKillCounter, mNumKills, mMaxKills;
-  QList<ProcessHandler*> mProcessesWithUnfinishedKillRequest;
-  QList<ProcessHandler*> mKilledProcesses;
+  bool mKill;
+  int mKillCounter, mNumKills, mMaxKills;
   QStringList mDropList;
 
   //running processes
@@ -247,6 +244,9 @@ private:
 
 /*
  $Log$
+ Revision 1.31  2011/02/01 23:02:40  sueh
+ bug# 1426 Added restartKillTimer.
+
  Revision 1.30  2011/02/01 22:38:39  sueh
  bug# 1426 Removing old method of killing.
 

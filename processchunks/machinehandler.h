@@ -68,14 +68,11 @@ public:
     mFailureCount++;
   }
   ;
-  //bool killProcesses();
   void msgKillProcessTimeout();
-  //bool killNextProcess(const bool asynchronou);
   inline bool isJobValid(const int index) {
     return mProcessHandlerArray[index].isJobValid();
   }
   ;
-  //void cleanupKillProcess();
   bool isKillNeeded();
   bool isKillSignal();
   void resetKill();
@@ -102,8 +99,8 @@ private:
   Processchunks *mProcesschunks;
 
   //killing processes
-  bool mIgnoreKill, mDrop, mKillFinishedSignalReceived, mKillStarted, mPidsAvailable;
-  int mKillCpuIndex, mKillCounter;
+  bool mIgnoreKill, mKillFinishedSignalReceived, mKillStarted, mPidsAvailable;
+  int mKillCounter;
   QProcess *mKillProcess;
 };
 
@@ -111,6 +108,9 @@ private:
 
 /*
  $Log$
+ Revision 1.12  2011/02/01 22:39:22  sueh
+ bug# 1426 Removing old method of killing.
+
  Revision 1.11  2011/01/27 03:51:34  sueh
  bug# 1426 Removes const from simple variable return values (int, char,
  bool, long) because they cause a warning in the intel compiler.

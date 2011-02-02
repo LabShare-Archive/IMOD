@@ -65,9 +65,6 @@ public:
   ;
   int getFlag();
   void runProcess(MachineHandler &machine);
-  //bool killProcess();
-  //void continueKillProcess(const bool asynchronous);
- // void msgKillProcessTimeout();
   inline bool isFinishedSignalReceived() {
     return mFinishedSignalReceived;
   }
@@ -93,7 +90,6 @@ public:
     return mValidJob;
   }
   ;
-  //void cleanupKillProcess();
   void killSignal();
   bool isPidEmpty();
   inline bool isKillFinished() {
@@ -110,9 +106,6 @@ public slots:
   handleFinished(const int exitCode, const QProcess::ExitStatus exitStatus);
   void handleKillFinished(const int exitCode, const QProcess::ExitStatus exitStatus);
 
-protected:
-  //void timerEvent(QTimerEvent *e);
-
 private:
   void initProcess();
   bool getPid(QTextStream &stream, const bool save);
@@ -128,7 +121,7 @@ private:
   //On when process is run, off when finished, kill finished signal received,
   //or when the kill timeout is handled.
   bool mStartingProcess;
-  int mPausing;
+  int mPausing, mComFileJobIndex;
   QByteArray mStderr;
   QTextStream *mJobFileTextStream, *mQidFileTextStream;
   QString mPid, mEscapedRemoteDirPath, mDecoratedClassName, mCommand;//queue or local command
@@ -136,12 +129,12 @@ private:
   Processchunks *mProcesschunks;
   QProcess *mProcess;
   QTime mStartTime;
+  MachineHandler *mMachine;
 
   //Kill process variables
-  MachineHandler *mMachine;
   QProcess *mKillProcess;
-  int mComFileJobIndex, mPidTimerId, mKillCounter;
-  bool mKill, mRanContinueKillProcess, mLocalKill, mKillStarted, mIgnoreKill;
+  int mKillCounter;
+  bool mKill, mLocalKill, mKillStarted, mIgnoreKill;
 
   //Signal variables
   bool mErrorSignalReceived, mFinishedSignalReceived, mKillFinishedSignalReceived;
@@ -152,6 +145,9 @@ private:
 
 /*
  $Log$
+ Revision 1.21  2011/02/01 22:39:01  sueh
+ bug# 1426 Removing old method of killing.
+
  Revision 1.20  2011/02/01 01:29:42  sueh
  bug# 1426 Removed unnecessary killProcess(QString).
 
