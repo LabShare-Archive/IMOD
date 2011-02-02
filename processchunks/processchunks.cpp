@@ -507,6 +507,7 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
 }
 
 void Processchunks::cleanupAndExit(int exitCode) {
+  int i;
   if (mTimerId != 0) {
     killTimer(mTimerId);
     if (isVerbose(mDecoratedClassName, __func__)) {
@@ -527,6 +528,11 @@ void Processchunks::cleanupAndExit(int exitCode) {
     mCheckFile->close();
     if (exitCode == 0 && mCurrentDir.exists(mCheckFile->fileName())) {
       mCurrentDir.remove(mCheckFile->fileName());
+    }
+  }
+  if (exitCode != 0) {
+    for (i = 0; i < mMachineListSize; i++) {
+      mMachineList[i].killQProcesses();
     }
   }
   *mOutStream << "exitCode:" << exitCode << endl;
@@ -1667,6 +1673,9 @@ bool Processchunks::isVerbose(const QString &verboseClass, const QString verbose
 
 /*
  $Log$
+ Revision 1.65  2011/02/02 00:09:14  sueh
+ bug# 1426 Removed unused variables and commented-out code.
+
  Revision 1.64  2011/02/01 23:02:31  sueh
  bug# 1426 Added restartKillTimer.
 
