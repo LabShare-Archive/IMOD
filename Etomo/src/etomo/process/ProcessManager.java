@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.154  2010/12/05 04:43:17  sueh
+ * bug# 1416 Changed FinalAlignedStackExpert.setEnabledTiltPArameters to
+ * setTiltState.
+ *
  * Revision 3.153  2010/11/13 16:03:45  sueh
  * bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  *
@@ -970,6 +974,7 @@ import etomo.type.ConstProcessSeries;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
+import etomo.type.ProcessingMethod;
 import etomo.type.TomogramState;
 import etomo.type.ViewType;
 import etomo.ApplicationManager;
@@ -1675,14 +1680,16 @@ public class ProcessManager extends BaseProcessManager {
    */
   public String tilt(AxisID axisID, ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries, ConstTiltParam param,
-      String processTitle) throws SystemProcessException {
+      String processTitle, final ProcessingMethod processingMethod)
+      throws SystemProcessException {
     //  Instantiate the process monitor
     TiltProcessMonitor tiltProcessMonitor = new TiltProcessMonitor(appManager,
         axisID, ProcessName.TILT);
     tiltProcessMonitor.setProcessTitle(processTitle);
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(param,
-        tiltProcessMonitor, axisID, processResultDisplay, processSeries);
+        tiltProcessMonitor, axisID, processResultDisplay, processSeries,
+        processingMethod);
 
     return comScriptProcess.getName();
   }
@@ -1695,15 +1702,15 @@ public class ProcessManager extends BaseProcessManager {
   public String tilt3dFind(AxisID axisID,
       ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries, ConstTiltParam param,
-      String processTitle, ProcessName processName)
-      throws SystemProcessException {
+      String processTitle, ProcessName processName,
+      final ProcessingMethod processingMethod) throws SystemProcessException {
     //  Instantiate the process monitor
     TiltProcessMonitor monitor = new Tilt3dFindProcessMonitor(appManager,
         axisID, processName, param);
     monitor.setProcessTitle(processTitle);
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(param, monitor, axisID,
-        processResultDisplay, processSeries);
+        processResultDisplay, processSeries, processingMethod);
 
     return comScriptProcess.getName();
   }
