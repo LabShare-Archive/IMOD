@@ -39,6 +39,9 @@ import etomo.ui.swing.ProcessDisplay;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2010/11/13 16:02:54  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.4  2010/09/08 19:16:53  sueh
  * <p> bug# 1401 Added doAutomation.
  * <p>
@@ -74,12 +77,12 @@ public final class FrontPageManager extends BaseManager {
       uiHarness.toFront(this);
     }
   }
-  
+
   public void doAutomation() {
     if (EtomoDirector.INSTANCE.getArguments().isReconAutomation()) {
       frontPageDialog.reconActionForAutomation();
     }
-    
+
     super.doAutomation();
   }
 
@@ -208,7 +211,8 @@ public final class FrontPageManager extends BaseManager {
   void startNextProcess(final AxisID axisID,
       final ProcessSeries.Process process,
       final ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries, DialogType dialogType, ProcessDisplay display) {
+      ProcessSeries processSeries, DialogType dialogType,
+      ProcessDisplay display) {
   }
 
   public String getName() {
@@ -227,8 +231,6 @@ public final class FrontPageManager extends BaseManager {
     if (frontPageDialog == null) {
       frontPageDialog = FrontPageDialog.getInstance();
     }
-    mainPanel.setParallelDialog(AXIS_ID, frontPageDialog
-        .usingParallelProcessing());
     mainPanel.showProcess(frontPageDialog.getContainer(), AXIS_ID);
   }
 }

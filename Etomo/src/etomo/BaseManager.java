@@ -42,6 +42,7 @@ import etomo.type.InterfaceType;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
+import etomo.type.ProcessingMethod;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.UserConfiguration;
 import etomo.ui.swing.FileChooser;
@@ -77,52 +78,34 @@ public abstract class BaseManager {
 
   // protected static variables
   private static boolean headless = false;
-
   // protected MainFrame mainFrame = null;
   UIHarness uiHarness = UIHarness.INSTANCE;
-
   static UserConfiguration userConfig = EtomoDirector.INSTANCE
       .getUserConfiguration();
-
   boolean loadedParamFile = false;
-
   // imodManager manages the opening and closing closing of imod(s), message
   // passing for loading model
   final ImodManager imodManager;
-
   File paramFile = null;
-
   // FIXME homeDirectory may not have to be visible
   String homeDirectory;
-
   String threadNameA = "none";
-
   String threadNameB = "none";
-
   boolean backgroundProcessA = false;
-
   String backgroundProcessNameA = null;
-
   String propertyUserDir = null;// working directory for this manager
-
   // private static variables
   private boolean debug = false;
-
   private boolean exiting = false;
-
   private boolean initialized = false;
-
   private DialogType currentDialogTypeA = null;
-
   private DialogType currentDialogTypeB = null;
-
   private ParameterStore parameterStore = null;
-
   // True if reconnect() has been run for the specified axis.
   private boolean reconnectRunA = false;
-
   private boolean reconnectRunB = false;
-
+  private final ProcessingMethodMediator processingMethodMediatorA = new ProcessingMethodMediator();
+  private final ProcessingMethodMediator processingMethodMediatorB = new ProcessingMethodMediator();
   private final ManagerKey managerKey = new ManagerKey();
 
   abstract public InterfaceType getInterfaceType();
@@ -242,6 +225,13 @@ public abstract class BaseManager {
         e.printStackTrace();
       }
     }
+  }
+
+  public ProcessingMethodMediator getProcessingMethodMediator(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return processingMethodMediatorB;
+    }
+    return processingMethodMediatorA;
   }
 
   public void logMessage(String[] message, String title, AxisID axisID) {
@@ -1473,17 +1463,10 @@ public abstract class BaseManager {
     if (display != null) {
       sendMsgProcessStarting(display);
     }
-    // Add parallel panel if it doesn't exist. ReconnectProcesschunks is called
-    // before any dialog is displayed, so it probably doesn't exist.
     MainPanel mainPanel = getMainPanel();
-    ParallelPanel parallelPanel = mainPanel.getParallelPanel(axisID);
-    if (parallelPanel == null) {
-      mainPanel.setParallelDialog(axisID, true);
-    }
+    //FIXME - null pointer getPArallelPanel
     boolean ret = getProcessManager().reconnectProcesschunks(axisID,
-        processData,
-        mainPanel.getParallelPanel(axisID).getParallelProgressDisplay(),
-        display);
+        processData, display);
     setThreadName(processData.getProcessName().toString(), axisID);
     return ret;
   }
@@ -1495,7 +1478,8 @@ public abstract class BaseManager {
    */
   public void processchunks(AxisID axisID, ProcesschunksParam param,
       ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries, boolean popupChunkWarnings) {
+      ConstProcessSeries processSeries, boolean popupChunkWarnings,
+      ProcessingMethod processingMethod) {
     ParallelPanel parallelPanel = getMainPanel().getParallelPanel(axisID);
     BaseMetaData metaData = getBaseMetaData();
     metaData.setCurrentProcesschunksRootName(axisID, param.getRootName()
@@ -1506,7 +1490,7 @@ public abstract class BaseManager {
     try {
       threadName = getProcessManager().processchunks(axisID, param,
           parallelPanel.getParallelProgressDisplay(), processResultDisplay,
-          processSeries, popupChunkWarnings);
+          processSeries, popupChunkWarnings, processingMethod);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -1706,7 +1690,8 @@ public abstract class BaseManager {
   public final void resume(AxisID axisID, ProcesschunksParam param,
       ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries, Container root,
-      CommandDetails subcommandDetails, boolean popupChunkWarnings) {
+      CommandDetails subcommandDetails, boolean popupChunkWarnings,
+      ProcessingMethod processingMethod) {
     sendMsgProcessStarting(processResultDisplay);
     BaseMetaData metaData = getBaseMetaData();
     if (param == null) {
@@ -1735,7 +1720,7 @@ public abstract class BaseManager {
     try {
       threadName = getProcessManager().processchunks(axisID, param,
           parallelPanel.getParallelProgressDisplay(), processResultDisplay,
-          processSeries, popupChunkWarnings);
+          processSeries, popupChunkWarnings, processingMethod);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -1749,11 +1734,6 @@ public abstract class BaseManager {
     setThreadName(threadName, axisID);
   }
 
-  public final void setParallelDialog(AxisID axisID,
-      boolean usingParallelProcessing) {
-    getMainPanel().setParallelDialog(axisID, usingParallelProcessing);
-  }
-
   public final void tomosnapshot(AxisID axisID) {
     getProcessManager().tomosnapshot(axisID);
   }
@@ -1761,6 +1741,9 @@ public abstract class BaseManager {
 /**
  * <p>
  * $Log$
+ * Revision 1.136  2010/11/13 16:02:54  sueh
+ * bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ *
  * Revision 1.135  2010/07/02 03:13:43  sueh
  * bug# 1388 Added popupChunkWarnings to processchunks and resume.
  *

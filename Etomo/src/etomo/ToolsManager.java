@@ -55,6 +55,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2010/11/13 16:02:54  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.4  2010/04/28 15:39:23  sueh
  * <p> bug# 1344 Added getFileSubdirectoryName.  Passing params to process
  * <p> manager functions, standardizing "3dmod is open" messages to always
@@ -157,7 +160,6 @@ public final class ToolsManager extends BaseManager {
       toolsDialog = ToolsDialog.getInstance(this, AXIS_ID, DIALOG_TYPE,
           toolType);
     }
-    mainPanel.setParallelDialog(AXIS_ID, toolsDialog.usingParallelProcessing());
     mainPanel.showProcess(toolsDialog.getContainer(), AXIS_ID);
   }
 

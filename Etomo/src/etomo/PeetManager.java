@@ -39,6 +39,7 @@ import etomo.type.PeetState;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
+import etomo.type.ProcessingMethod;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.swing.LogInterface;
 import etomo.ui.swing.LogPanel;
@@ -65,6 +66,9 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.66  2010/11/13 16:02:54  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.65  2010/07/02 03:14:14  sueh
  * <p> bug# 1388 Calling processchunks with popupChunkWarnings equals to false.
  * <p>
@@ -738,7 +742,8 @@ public final class PeetManager extends BaseManager {
     return fileNameArray;
   }
 
-  public void peetParser(ProcessSeries processSeries, DialogType dialogType) {
+  public void peetParser(ProcessSeries processSeries, DialogType dialogType,
+      final ProcessingMethod peetProcessingMethod) {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
@@ -763,7 +768,7 @@ public final class PeetManager extends BaseManager {
       String threadName = processMgr.peetParser(param, processSeries);
       processSeries.setNextProcess(ProcessName.PROCESSCHUNKS.toString(),
           ProcessName.PEET_PARSER, FileType.AVERAGED_VOLUMES,
-          FileType.REFERENCE_VOLUMES);
+          FileType.REFERENCE_VOLUMES, peetProcessingMethod);
       setThreadName(threadName, AxisID.ONLY);
       mainPanel.startProgressBar("Running " + ProcessName.PEET_PARSER,
           AxisID.ONLY, ProcessName.PEET_PARSER);
@@ -833,7 +838,7 @@ public final class PeetManager extends BaseManager {
   public BaseState getBaseState() {
     return state;
   }
-  
+
   public String getFileSubdirectoryName() {
     return null;
   }
@@ -876,7 +881,8 @@ public final class PeetManager extends BaseManager {
       final ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries, DialogType dialogType, ProcessDisplay display) {
     if (process.equals(ProcessName.PROCESSCHUNKS.toString())) {
-      processchunks(processSeries, process.getOutputImageFileType());
+      processchunks(processSeries, process.getOutputImageFileType(), process
+          .getProcessingMethod());
     }
   }
 
@@ -912,7 +918,6 @@ public final class PeetManager extends BaseManager {
     if (peetDialog == null) {
       peetDialog = PeetDialog.getInstance(this, AXIS_ID);
     }
-    mainPanel.setParallelDialog(AXIS_ID, peetDialog.usingParallelProcessing());
     setPeetDialogParameters(null, true, false);
     mainPanel.showProcess(peetDialog.getContainer(), AXIS_ID);
   }
@@ -961,7 +966,7 @@ public final class PeetManager extends BaseManager {
    * @param axisID
    */
   private void processchunks(ConstProcessSeries processSeries,
-      FileType outputImageFileType) {
+      FileType outputImageFileType, ProcessingMethod processingMethod) {
     if (peetDialog == null) {
       return;
     }
@@ -975,6 +980,7 @@ public final class PeetManager extends BaseManager {
     }
     //param should never be set to resume
     parallelPanel.getParallelProgressDisplay().resetResults();
-    processchunks(AxisID.ONLY, param, null, processSeries,false);
+    processchunks(AxisID.ONLY, param, null, processSeries, false,
+        processingMethod);
   }
 }

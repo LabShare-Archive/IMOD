@@ -73,6 +73,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.88  2010/11/13 16:02:54  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.87  2010/09/09 17:06:15  sueh
  * <p> bug# 1402 Reformatted.
  * <p>
@@ -942,7 +945,7 @@ public final class JoinManager extends BaseManager {
           + except.getMessage(), "SystemProcessException", AxisID.ONLY);
       return;
     }
-    processSeries.setNextProcess("startjoin");
+    processSeries.setNextProcess("startjoin", null);
     mainPanel.startProgressBar("Makejoincom", AxisID.ONLY,
         ProcessName.MAKEJOINCOM);
   }
@@ -1294,7 +1297,7 @@ public final class JoinManager extends BaseManager {
       System.err.println("xfmodel:gapExist=" + state.isGapsExist());
     }
     if (state.isGapsExist()) {
-      processSeries.setNextProcess(ProcessName.REMAPMODEL.toString());
+      processSeries.setNextProcess(ProcessName.REMAPMODEL.toString(), null);
     }
     try {
       threadNameA = processMgr.xfmodel(param, AxisID.ONLY, null, processSeries);
@@ -1314,7 +1317,7 @@ public final class JoinManager extends BaseManager {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
-    processSeries.setNextProcess(ProcessName.XFMODEL.toString());
+    processSeries.setNextProcess(ProcessName.XFMODEL.toString(), null);
     XftoxgParam param = new XftoxgParam(this);
     try {
       threadNameA = processMgr.xftoxg(param, processSeries);
@@ -1359,7 +1362,7 @@ public final class JoinManager extends BaseManager {
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     if (mode == FinishjoinParam.Mode.REJOIN
         || mode == FinishjoinParam.Mode.SUPPRESS_EXECUTION) {
-      processSeries.setNextProcess(ProcessName.XFTOXG.toString());
+      processSeries.setNextProcess(ProcessName.XFTOXG.toString(), null);
     }
     if (mode == FinishjoinParam.Mode.SUPPRESS_EXECUTION) {
       processSeries.setLastProcess(ImodManager.TRANSFORMED_MODEL_KEY);
