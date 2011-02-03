@@ -118,6 +118,7 @@ void MachineHandler::killSignal() {
         mPidsAvailable = true;
         for (i = 0; i < mNumCpus; i++) {
           if (mProcessHandlerArray[i].isJobValid()
+              && !mProcessHandlerArray[i].isFinishedSignalReceived()
               && mProcessHandlerArray[i].isPidEmpty()) {
             mPidsAvailable = false;
           }
@@ -242,7 +243,7 @@ void MachineHandler::resetKill() {
   }
 }
 
-void MachineHandler::killQProcesses(){
+void MachineHandler::killQProcesses() {
   int i;
   for (i = 0; i < mNumCpus; i++) {
     mProcessHandlerArray[i].killQProcesses();
@@ -262,6 +263,9 @@ int MachineHandler::getFailureCount() {
 
 /*
  $Log$
+ Revision 1.25  2011/02/02 22:42:24  sueh
+ bug# 1426 Added killQProcesses.
+
  Revision 1.24  2011/02/02 00:08:52  sueh
  bug# 1426 Removed unused variables and commented-out code.
 
