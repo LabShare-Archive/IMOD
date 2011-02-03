@@ -6,6 +6,7 @@ import etomo.type.AxisID;
 import etomo.type.ConstProcessSeries;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessResultDisplay;
+import etomo.type.ProcessingMethod;
 
 /**
 * <p>Description: </p>
@@ -22,25 +23,43 @@ import etomo.type.ProcessResultDisplay;
 */
 
 public interface SystemProcessInterface {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   public String[] getStdOutput();
+
   public String[] getStdError();
+
   public boolean isStarted();
+
   public String getShellProcessID();
+
   public void notifyKilled();
+
   public void setProcessEndState(ProcessEndState endState);
+
   public void pause(AxisID axisID);
+
   public void kill(AxisID axisID);
+
   public void signalKill(AxisID axisID);
+
   public void setProcessResultDisplay(ProcessResultDisplay processResultDisplay);
+
   public ProcessData getProcessData();
+
   public boolean isNohup();
+
   public ConstProcessSeries getProcessSeries();
+
   public void setComputerMap(Map computerMap);
+
+  public void setProcessingMethod(ProcessingMethod processingMethod);
 }
 /**
 * <p> $Log$
+* <p> Revision 3.12  2009/04/20 20:06:01  sueh
+* <p> bug# 1192 Added setComputerMap.
+* <p>
 * <p> Revision 3.11  2008/05/03 00:43:09  sueh
 * <p> bug# 847 Added getProcessSeries().
 * <p>
