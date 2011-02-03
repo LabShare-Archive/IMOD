@@ -9,28 +9,24 @@ import java.util.Map;
 import java.util.Properties;
 
 import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.comscript.IntermittentCommand;
-import etomo.comscript.LoadAverageParam;
 import etomo.comscript.ProcesschunksParam;
-import etomo.comscript.QueuechunkParam;
 import etomo.process.LoadAverageMonitor;
 import etomo.process.LoadMonitor;
 import etomo.process.QueuechunkLoadMonitor;
 import etomo.storage.CpuAdoc;
 import etomo.storage.LogFile;
-import etomo.storage.Network;
 import etomo.storage.Node;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoVersion;
 import etomo.type.EtomoNumber;
-import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -45,23 +41,16 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  */
-final class ProcessorTable implements Storable, ParallelProgressDisplay,
+abstract class ProcessorTable implements Storable, ParallelProgressDisplay,
     LoadDisplay, Viewable {
   public static final String rcsid = "$Id$";
 
-  static final String NUMBER_CPUS_HEADER = "# CPUs";
-  private static final String STORE_PREPEND = "ProcessorTable";
-
   private final JPanel rootPanel = new JPanel();
-  private  JPanel tablePanel;
+  private JPanel tablePanel;
   private GridBagLayout layout = null;
   private GridBagConstraints constraints = null;
   private final HeaderCell header1Computer = new HeaderCell();
-  private final HeaderCell header1NumberCPUs = new HeaderCell(
-      NUMBER_CPUS_HEADER);
-  private final HeaderCell header1Load = new HeaderCell("Load Average");
-  private final HeaderCell header1Users = new HeaderCell("Users");
-  private final HeaderCell header1CPUUsage = new HeaderCell("CPU Usage");
+  private final HeaderCell header1NumberCPUs;
   private final HeaderCell header1CPUType = new HeaderCell("CPU Type");
   private final HeaderCell header1Speed = new HeaderCell("Speed");
   private final HeaderCell header1RAM = new HeaderCell("RAM");
@@ -72,10 +61,6 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
   private final HeaderCell header2Computer = new HeaderCell();
   private final HeaderCell header2NumberCPUsUsed = new HeaderCell("Used");
   private final HeaderCell header2NumberCPUsMax = new HeaderCell("Max.");
-  private final HeaderCell header2Load1 = new HeaderCell("1 Min.");
-  private final HeaderCell header2Load5 = new HeaderCell("5 Min.");
-  private final HeaderCell header2Users = new HeaderCell();
-  private final HeaderCell header2CPUUsage = new HeaderCell();
   private final HeaderCell header2CPUType = new HeaderCell();
   private final HeaderCell header2Speed = new HeaderCell();
   private final HeaderCell header2RAM = new HeaderCell();
@@ -89,37 +74,83 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
       .getUserConfiguration().getParallelTableSize().getInt(), null, null,
       null, "Processor");
   private final ParallelPanel parent;
-  private final AxisID axisID;
-  private final BaseManager manager;
-  private final boolean displayQueues;
+  final AxisID axisID;
+  final BaseManager manager;
   private final LoadMonitor loadMonitor;
 
   private boolean numberColumn = false;
   private boolean typeColumn = false;
   private boolean speedColumn = false;
   private boolean memoryColumn = false;
-  private boolean usersColumn = false;
   private boolean osColumn = false;
   private String speedUnits = null;
   private String memoryUnits = null;
   private boolean scrolling = false;
-
-  private HeaderCell[] header1LoadArray;
-  private HeaderCell[] header2LoadArray;
   private boolean expanded = false;
+  private boolean stopped = true;
+
+  abstract int getSize();
+
+  abstract Node getNode(int index);
+
+  abstract ProcessorTableRow createProcessorTableRow(
+      ProcessorTable processorTable, Node node, EtomoNumber number);
+
+  abstract String getHeader1ComputerText();
+
+  abstract boolean isSelectOnlyRow();
+
+  abstract void addHeader1Load(JPanel tablePanel, GridBagLayout layout,
+      GridBagConstraints constraints);
+
+  abstract void addHeader1Users(JPanel tablePanel, GridBagLayout layout,
+      GridBagConstraints constraints);
+
+  abstract void addHeader2Load(JPanel tablePanel, GridBagLayout layout,
+      GridBagConstraints constraints);
+
+  abstract void addHeader2Users(JPanel tablePanel, GridBagLayout layout,
+      GridBagConstraints constraints);
+
+  abstract boolean useUsersColumn();
+
+  abstract void getParameters(ProcesschunksParam param, String computer);
+
+  abstract IntermittentCommand getIntermittentCommand(String computer);
+
+  abstract void setHeaderLoadToolTipText();
+
+  abstract void setHeaderUsersToolTipText();
+
+  abstract boolean isExcludeNode(Node node);
+
+  abstract boolean isNiceable();
+
+  abstract String getStorePrepend();
+
+  abstract String getLoadPrepend(final ConstEtomoVersion version);
+
+  abstract void initRow(ProcessorTableRow row);
 
   ProcessorTable(final BaseManager manager, final ParallelPanel parent,
       final AxisID axisID, final boolean displayQueues) {
     this.manager = manager;
     this.parent = parent;
     this.axisID = axisID;
-    this.displayQueues = displayQueues;
+    header1NumberCPUs = new HeaderCell(getheader1NumberCPUsTitle());
     if (displayQueues) {
       loadMonitor = new QueuechunkLoadMonitor(this, axisID, manager);
     }
     else {
       loadMonitor = new LoadAverageMonitor(this, axisID, manager);
     }
+  }
+
+  String getheader1NumberCPUsTitle() {
+    return "# CPUs";
+  }
+
+  void createTable() {
     expanded = true;
     initTable();
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.X_AXIS));
@@ -150,64 +181,22 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
   }
 
   private void initTable() {
-    usersColumn = CpuAdoc.INSTANCE.isUsersColumn(manager, axisID, manager
-        .getPropertyUserDir())
-        && !displayQueues;
     speedUnits = CpuAdoc.INSTANCE.getSpeedUnits(manager, axisID, manager
         .getPropertyUserDir());
     memoryUnits = CpuAdoc.INSTANCE.getMemoryUnits(manager, axisID, manager
         .getPropertyUserDir());
-    String[] loadUnitsArray = null;
-    if (displayQueues) {
-      loadUnitsArray = CpuAdoc.INSTANCE.getLoadUnits(manager, axisID, manager
-          .getPropertyUserDir());
-      if (loadUnitsArray.length == 0) {
-        header1LoadArray = new HeaderCell[1];
-        header1LoadArray[0] = new HeaderCell("Load");
-      }
-      else {
-        header1LoadArray = new HeaderCell[loadUnitsArray.length];
-        for (int i = 0; i < loadUnitsArray.length; i++) {
-          header1LoadArray[i] = new HeaderCell(loadUnitsArray[i]);
-        }
-      }
-      header2LoadArray = new HeaderCell[header1LoadArray.length];
-      for (int i = 0; i < header2LoadArray.length; i++) {
-        header2LoadArray[i] = new HeaderCell();
-      }
-    }
     //loop through the nodes
     EtomoNumber number = new EtomoNumber();
     //loop on nodes
-    int size;
-    if (displayQueues) {
-      size = Network
-          .getNumQueues(manager, axisID, manager.getPropertyUserDir());
-    }
-    else {
-      size = Network.getNumComputers(manager, axisID, manager
-          .getPropertyUserDir());
-    }
-    ButtonGroup buttonGroup = null;
-    if (displayQueues) {
-      buttonGroup = new ButtonGroup();
-    }
+    int size = getSize();
     for (int i = 0; i < size; i++) {
       //get the node
-      Node node;
-      if (displayQueues) {
-        node = Network.getQueue(manager, i, axisID, manager
-            .getPropertyUserDir());
-      }
-      else {
-        node = Network.getComputer(manager, i, axisID, manager
-            .getPropertyUserDir());
-      }
+      Node node = getNode(i);
       //exclude any node with the "exclude-interface" attribute set to the
       //current interface
       if (node != null && !node.isExcludedInterface(manager.getInterfaceType())
-          && (!node.isExcludedUser(System.getProperty("user.name")))) {
-        String name = node.getName();
+          && (!node.isExcludedUser(System.getProperty("user.name")))
+          && !isExcludeNode(node)) {
         //get the number attribute
         //set numberColumn to true if an number attribute is returned
         number.set(node.getNumber());
@@ -216,59 +205,30 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
         }
         //get the type attribute
         //set typeColumn to true if an type attribute is returned
-        String type = node.getType();
-        if (!type.matches("\\s*")) {
-          typeColumn = true;
-        }
+        typeColumn = !node.isTypeEmpty();
         //get the speed attribute
         //set speedColumn to true if an speed attribute is returned
-        String speed = node.getSpeed();
-        if (!speed.matches("\\s*")) {
-          speedColumn = true;
-        }
+        speedColumn = !node.isSpeedEmpty();
         //get the memory attribute
         //set memoryColumn to true if an memory attribute is returned
-        String memory = node.getMemory();
-        if (!memory.matches("\\s*")) {
-          memoryColumn = true;
-        }
+        memoryColumn = !node.isMemoryEmpty();
         //get the os attribute
         //set osColumn to true if an os attribute is returned
-        String os = node.getOs();
-        if (!os.matches("\\s*")) {
-          osColumn = true;
-        }
+        osColumn = !node.isOsEmpty();
         //create the row
-        ProcessorTableRow row;
-        if (displayQueues) {
-          row = ProcessorTableRow.getQueueInstance(this, name, number.getInt(),
-              type, speed, memory, os, buttonGroup, header2LoadArray.length);
-        }
-        else {
-          row = ProcessorTableRow.getComputerInstance(this, name, number
-              .getInt(), type, speed, memory, os);
-        }
+        ProcessorTableRow row = createProcessorTableRow(this, node, number);
+        initRow(row);
         //add the row to the rows HashedArray
         rowList.add(row);
       }
     }
     //set custom header text
-    if (displayQueues) {
-      header1Computer.setText("Queue");
-    }
-    else {
-      header1Computer.setText("Computer");
-    }
+    header1Computer.setText(getHeader1ComputerText());
     if (speedColumn) {
       header2Speed.setText(speedUnits);
     }
     if (memoryColumn) {
       header2RAM.setText(memoryUnits);
-    }
-    if (displayQueues) {
-      if (loadUnitsArray == null || loadUnitsArray.length == 0) {
-
-      }
     }
     try {
       ParameterStore parameterStore = EtomoDirector.INSTANCE
@@ -281,7 +241,7 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
           axisID);
     }
     setToolTipText();
-    if (displayQueues && rowList.size() == 1) {
+    if (isSelectOnlyRow() && rowList.size() == 1) {
       rowList.setSelected(0, true);
     }
   }
@@ -311,28 +271,8 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
       constraints.gridwidth = 2;
     }
     header1NumberCPUs.add(tablePanel, layout, constraints);
-    if (Utilities.isWindowsOS()) {
-      constraints.gridwidth = 1;
-      header1CPUUsage.add(tablePanel, layout, constraints);
-    }
-    else {
-      if (displayQueues) {
-        constraints.gridwidth = 1;
-        for (int i = 0; i < header1LoadArray.length; i++) {
-          header1LoadArray[i].add(tablePanel, layout, constraints);
-        }
-      }
-      else {
-        constraints.gridwidth = 2;
-        header1Load.add(tablePanel, layout, constraints);
-        constraints.gridwidth = 1;
-        //The users column contains a load value, so it can't be used when
-        //displaying queues.
-        if (usersColumn) {
-          header1Users.add(tablePanel, layout, constraints);
-        }
-      }
-    }
+    addHeader1Load(tablePanel, layout, constraints);
+    addHeader1Users(tablePanel, layout, constraints);
     if (useTypeColumn()) {
       header1CPUType.add(tablePanel, layout, constraints);
     }
@@ -360,23 +300,8 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
     if (useNumberColumn()) {
       header2NumberCPUsMax.add(tablePanel, layout, constraints);
     }
-    if (Utilities.isWindowsOS()) {
-      header2CPUUsage.add(tablePanel, layout, constraints);
-    }
-    else {
-      if (displayQueues) {
-        for (int i = 0; i < header2LoadArray.length; i++) {
-          header2LoadArray[i].add(tablePanel, layout, constraints);
-        }
-      }
-      else {
-        header2Load1.add(tablePanel, layout, constraints);
-        header2Load5.add(tablePanel, layout, constraints);
-        if (usersColumn) {
-          header2Users.add(tablePanel, layout, constraints);
-        }
-      }
-    }
+    addHeader2Load(tablePanel, layout, constraints);
+    addHeader2Users(tablePanel, layout, constraints);
     if (useTypeColumn()) {
       header2CPUType.add(tablePanel, layout, constraints);
     }
@@ -446,10 +371,6 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
     loadMonitor.restart();
   }
 
-  boolean useUsersColumn() {
-    return usersColumn;
-  }
-
   boolean useNumberColumn() {
     return numberColumn && expanded;
   }
@@ -479,15 +400,7 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
   }
 
   void getParameters(final ProcesschunksParam param) {
-    if (displayQueues) {
-      String queue = rowList.getComputer(rowList.getFirstSelectedIndex());
-      Node node = Network.getQueue(manager, queue, axisID, manager
-          .getPropertyUserDir());
-      if (node != null) {
-        param.setQueueCommand(node.getCommand());
-      }
-      param.setQueue(queue);
-    }
+    getParameters(param, rowList.getComputer(rowList.getFirstSelectedIndex()));
     rowList.getParameters(param);
   }
 
@@ -535,6 +448,7 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
   }
 
   public void startLoad() {
+    stopped = false;
     for (int i = 0; i < rowList.size(); i++) {
       manager.startLoad(getIntermittentCommand(i), loadMonitor);
     }
@@ -543,10 +457,7 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
   private IntermittentCommand getIntermittentCommand(final int index) {
     ProcessorTableRow row = (ProcessorTableRow) rowList.get(index);
     String computer = row.getComputer();
-    if (displayQueues) {
-      return QueuechunkParam.getLoadInstance(computer, axisID, manager);
-    }
-    return LoadAverageParam.getInstance(computer, manager);
+    return getIntermittentCommand(computer);
   }
 
   /**
@@ -560,15 +471,21 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
    }*/
 
   public void endLoad() {
+    stopped = true;
     for (int i = 0; i < rowList.size(); i++) {
       manager.endLoad(getIntermittentCommand(i), loadMonitor);
     }
   }
 
   public void stopLoad() {
+    stopped = true;
     for (int i = 0; i < rowList.size(); i++) {
       manager.stopLoad(getIntermittentCommand(i), loadMonitor);
     }
+  }
+
+  public boolean isStopped() {
+    return stopped;
   }
 
   public void setLoad(final String computer, final double load1,
@@ -622,10 +539,10 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
   public void store(final Properties props, String prepend) {
     String group;
     if (prepend == "") {
-      prepend = STORE_PREPEND;
+      prepend = getStorePrepend();
     }
     else {
-      prepend += "." + STORE_PREPEND;
+      prepend += "." + getStorePrepend();
     }
     rowList.store(props, prepend);
   }
@@ -633,26 +550,26 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
   /**
    *  Get the objects attributes from the properties object.
    */
-  public void load(final Properties props) {
+  public final void load(final Properties props) {
     load(props, "");
   }
 
-   void load(final Properties props, String prepend) {
+  void load(final Properties props, String prepend) {
     String group;
     if (prepend == "") {
-      prepend = STORE_PREPEND;
+      prepend = getLoadPrepend(parent.getVersion());
     }
     else {
-      prepend += "." + STORE_PREPEND;
+      prepend += "." + getLoadPrepend(parent.getVersion());
     }
     rowList.load(props, prepend);
   }
 
-  boolean isScrolling() {
+  final boolean isScrolling() {
     return scrolling;
   }
 
-  private void setToolTipText() {
+  final private void setToolTipText() {
     String text;
     text = "Select computers to use for parallel processing.";
     header1Computer.setToolTipText(text);
@@ -664,18 +581,8 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
       header2NumberCPUsMax
           .setToolTipText("The maximum number of CPUs available on each computer.");
     }
-    if (Utilities.isWindowsOS()) {
-      header1CPUUsage
-          .setToolTipText("The CPU usage (0 to number of CPUs) averaged over one second.");
-    }
-    else {
-      header1Load.setToolTipText("Represents how busy each computer is.");
-      header2Load1.setToolTipText("The load averaged over one minute.");
-      header2Load5.setToolTipText("The load averaged over five minutes.");
-      text = "The number of users logged into the computer.";
-      header1Users.setToolTipText(text);
-      header2Users.setToolTipText(text);
-    }
+    setHeaderLoadToolTipText();
+    setHeaderUsersToolTipText();
     text = "The number of times processes failed on each computer.";
     header1Restarts.setToolTipText(text);
     header2Restarts.setToolTipText(text);
@@ -740,7 +647,7 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
       list.add(row);
     }
 
-    private void display(final boolean expanded,final  Viewport viewport) {
+    private void display(final boolean expanded, final Viewport viewport) {
       for (int i = 0; i < size(expanded); i++) {
         ProcessorTableRow row;
         if (expanded) {
@@ -870,6 +777,9 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.58  2010/10/12 02:44:42  sueh
  * <p> bug# 1391 Added setComputerMap.
  * <p>
