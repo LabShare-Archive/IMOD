@@ -24,6 +24,10 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2010/02/17 04:49:31  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.1  2010/01/11 23:57:17  sueh
  * <p> bug# 1299 Removed responsibility anything other then cpu.adoc from
  * <p> CpuAdoc.  Placed responsibility for information about the network in the
@@ -46,7 +50,8 @@ public final class Node {
   private boolean queue = false;
   private String name = "";
   private EtomoNumber number = new EtomoNumber();
-  private EtomoNumber gpu = null;
+  private boolean gpu = false;
+  private boolean gpuLocal = false;
   private InterfaceType excludeInterface = null;
   private String[] userArray = null;
   private String memory = "";
@@ -77,8 +82,8 @@ public final class Node {
    * @param propertyUserDir
    * @param managerKey
    */
-  static synchronized void createLocalInstance(BaseManager manager,
-      AxisID axisID, String propertyUserDir) {
+  static synchronized void createLocalInstance(final BaseManager manager,
+      final AxisID axisID, final String propertyUserDir) {
     if (LOCAL_HOST_INSTANCE != null) {
       return;
     }
@@ -100,13 +105,11 @@ public final class Node {
     }
     //Set GPU processing.
     if (userConfiguration.isGpuProcessing()) {
-      LOCAL_HOST_INSTANCE.gpu = new EtomoNumber();
-      LOCAL_HOST_INSTANCE.gpu.setDisplayValue(1);
-      LOCAL_HOST_INSTANCE.gpu.setDefault(1);
+      LOCAL_HOST_INSTANCE.gpu = true;
     }
   }
 
-  void load(ReadOnlySection section) {
+  void load(final ReadOnlySection section) {
     name = section.getName();
     ReadOnlyAttribute attribute = section.getAttribute("exclude-interface");
     if (attribute != null) {
@@ -139,10 +142,27 @@ public final class Node {
     if (attribute != null) {
       type = attribute.getValue();
     }
+    //gpu = 1
+    //gpu.local = 1
     attribute = section.getAttribute("gpu");
     if (attribute != null) {
-      gpu = new EtomoNumber();
-      gpu.set(attribute.getValue());
+      //see if .local is used
+      ReadOnlyAttribute parentAttribute = attribute;
+      boolean local = false;
+      attribute = parentAttribute.getAttribute("local");
+      if (attribute != null) {
+        local = true;
+      }
+      else {
+        attribute = parentAttribute;
+      }
+      //value is the child of the last attribute
+      EtomoNumber value = new EtomoNumber();
+      value.set(attribute.getValue());
+      if (!value.isNull() && value.gt(0)) {
+        gpu = true;
+        gpuLocal = local;
+      }
     }
     if (queue) {
       attribute = section.getAttribute("command");
@@ -152,8 +172,38 @@ public final class Node {
     }
   }
 
-  boolean isGpu() {
-    return gpu != null;
+  /**
+   * Returns true if the name member variable matches the output of the
+   * "hostname" command or the output stripped of everything from the first "."
+   * on.
+   * @param manager
+   * @param axisID
+   * @param propertyUserDir
+   * @return
+   */
+  public boolean isLocalHost(final BaseManager manager, final AxisID axisID,
+      final String propertyUserDir) {
+    String localHostName = Network.getLocalHostName(manager, axisID,
+        propertyUserDir);
+    if (name.equals(localHostName)) {
+      return true;
+    }
+    //Local host does not match.  Try removing everything from the local host name
+    //starting with the first ".".
+    int index = localHostName.indexOf('.');
+    if (index != -1) {
+      localHostName = localHostName.substring(0, index);
+      return name.equals(localHostName);
+    }
+    return false;
+  }
+
+  public boolean isGpu() {
+    return gpu;
+  }
+  
+  public boolean isGpuLocal() {
+    return gpuLocal;
   }
 
   public String getName() {
@@ -173,11 +223,15 @@ public final class Node {
     return true;
   }
 
+  public boolean isMemoryEmpty() {
+    return memory == null || memory.matches("\\s*");
+  }
+
   public String getMemory() {
     return memory;
   }
 
-  private void setNumber(int input) {
+  private void setNumber(final int input) {
     number.set(input);
   }
 
@@ -185,12 +239,24 @@ public final class Node {
     return number.getInt();
   }
 
+  public boolean isOsEmpty() {
+    return os == null || os.matches("\\s*");
+  }
+
   public String getOs() {
     return os;
   }
 
+  public boolean isSpeedEmpty() {
+    return speed == null || speed.matches("\\s*");
+  }
+
   public String getSpeed() {
     return speed;
+  }
+
+  public boolean isTypeEmpty() {
+    return type == null || type.matches("\\s*");
   }
 
   public String getType() {
@@ -208,7 +274,7 @@ public final class Node {
    * @param user
    * @return
    */
-  public boolean isExcludedUser(String user) {
+  public boolean isExcludedUser(final String user) {
     if (userArray == null || userArray.length == 0) {
       return false;
     }
