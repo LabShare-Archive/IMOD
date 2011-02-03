@@ -7,7 +7,6 @@ import java.util.Map;
 import etomo.BaseManager;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
-import etomo.ui.swing.ParallelProgressDisplay;
 import etomo.util.DatasetFiles;
 
 /**
@@ -24,6 +23,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2010/11/13 16:03:45  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.8  2010/02/17 04:49:20  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -63,9 +65,8 @@ final class ProcesschunksVolcombineMonitor extends ProcesschunksProcessMonitor {
   private LogFile.ReaderId readerIdFinish = null;
 
   public ProcesschunksVolcombineMonitor(BaseManager manager, AxisID axisID,
-      ParallelProgressDisplay parallelProgressDisplay, String rootName,
-      Map computerMap) {
-    super(manager, axisID, parallelProgressDisplay, rootName, computerMap);
+      String rootName, Map computerMap) {
+    super(manager, axisID, rootName, computerMap);
   }
 
   boolean updateState() throws LogFile.LockException, FileNotFoundException,
