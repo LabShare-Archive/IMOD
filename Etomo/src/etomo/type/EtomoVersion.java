@@ -21,6 +21,10 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2010/03/18 22:44:28  sueh
+ * <p> bug# 1323 In load(Properties,String) and store(Properties,String) fixed the
+ * <p> key that was used with Properties.
+ * <p>
  * <p> Revision 1.9  2009/09/01 02:59:42  sueh
  * <p> bug# 1222 Corrected version comparison.
  * <p>
@@ -56,7 +60,7 @@ import etomo.storage.Storable;
  * <p> bug# 578 A class to parse and compare version numbers.
  * <p> </p>
  */
-public final class EtomoVersion implements Storable {
+public final class EtomoVersion implements Storable, ConstEtomoVersion {
   public static final String rcsid = "$Id$";
 
   public static final String DEFAULT_KEY = "Version";
@@ -120,6 +124,10 @@ public final class EtomoVersion implements Storable {
       }
     }
     return true;
+  }
+
+  public boolean lt(final String version) {
+    return lt(getDefaultInstance(version));
   }
 
   /**
@@ -203,6 +211,10 @@ public final class EtomoVersion implements Storable {
       return true;
     }
     return false;
+  }
+
+  public boolean ge(final String version) {
+    return ge(getDefaultInstance(version));
   }
 
   /**
