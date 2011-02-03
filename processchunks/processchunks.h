@@ -75,7 +75,7 @@ public:
   void loadParams(int &argc, char **argv);
   void setup();
   bool askGo();
-  void startLoop();
+  int startLoop();
   void handleFileSystemBug();
 
   inline bool isQueue() {
@@ -244,6 +244,9 @@ private:
 
 /*
  $Log$
+ Revision 1.32  2011/02/02 00:09:25  sueh
+ bug# 1426 Removed unused variables and commented-out code.
+
  Revision 1.31  2011/02/01 23:02:40  sueh
  bug# 1426 Added restartKillTimer.
 

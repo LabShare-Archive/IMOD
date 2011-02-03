@@ -68,8 +68,7 @@ int main(int argc, char **argv) {
   if (!pc.askGo()) {
     return 0;
   }
-  pc.startLoop();
-  exit(0);
+  exit(pc.startLoop());
 }
 
 Processchunks::Processchunks(int &argc, char **argv) :
@@ -247,7 +246,7 @@ void Processchunks::setup() {
 
 //Setup mFlags.  Find first not-done log file.  Delete log files and
 //miscellaneous files.  Listen for ctrl-C.  Run event loop.
-void Processchunks::startLoop() {
+int Processchunks::startLoop() {
   int i;
   //Prescan logs for done ones to find first undone one, or back up unfinished
   mNumDone = 0;
@@ -301,7 +300,7 @@ void Processchunks::startLoop() {
 #ifndef _WIN32
   signal(SIGHUP, SIG_IGN);
 #endif
-  exec();
+  return exec();
 }
 
 void Processchunks::startTimers() {
@@ -537,7 +536,7 @@ void Processchunks::cleanupAndExit(int exitCode) {
     }
   }
   *mOutStream << "exitCode:" << exitCode << endl;
-  exit(0);
+  exit(exitCode);
 }
 
 int Processchunks::escapeEntered() {
@@ -1674,6 +1673,9 @@ bool Processchunks::isVerbose(const QString &verboseClass, const QString verbose
 
 /*
  $Log$
+ Revision 1.68  2011/02/03 00:17:11  sueh
+ bug# 1426 In cleanupAndExit calling the QT exit.  Added exit to the main function.
+
  Revision 1.67  2011/02/02 23:39:22  sueh
  bug# 1426 In cleanupAndExit calling the standard exit instead of the QT one.
 
