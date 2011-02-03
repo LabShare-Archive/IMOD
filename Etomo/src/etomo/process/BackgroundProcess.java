@@ -13,6 +13,7 @@ import etomo.type.ConstProcessSeries;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
+import etomo.type.ProcessingMethod;
 import etomo.ui.swing.UIHarness;
 
 /**
@@ -28,6 +29,9 @@ import etomo.ui.swing.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.49  2010/11/13 16:03:45  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.48  2010/07/15 03:38:36  sueh
  * <p> bug# 1390 Made a new constructor which takes CommandDetails so that
  * <p> ProcessDetails will be set.
@@ -523,7 +527,13 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
       processData.setComputerMap(computerMap);
     }
   }
-
+  
+  public final void setProcessingMethod(final ProcessingMethod processingMethod) {
+    if (processData != null) {
+      processData.setProcessingMethod(processingMethod);
+    }
+  }
+  
   public final ConstProcessSeries getProcessSeries() {
     return processSeries;
   }

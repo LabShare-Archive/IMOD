@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.60  2010/11/13 16:03:45  sueh
+ * bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ *
  * Revision 3.59  2010/04/28 16:17:04  sueh
  * bug# 1344 Added closeOutputImageFile.  Changed a constructor to take a
  * Command parameter.
@@ -448,6 +451,7 @@ import etomo.type.FileType;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
+import etomo.type.ProcessingMethod;
 import etomo.ui.swing.UIHarness;
 
 public class ComScriptProcess extends Thread implements SystemProcessInterface {
@@ -643,7 +647,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   public ComScriptProcess(BaseManager manager, CommandDetails commandDetails,
       BaseProcessManager processManager, AxisID axisID, String watchedFileName,
       ProcessMonitor processMonitor, ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries) {
+      ConstProcessSeries processSeries,final ProcessingMethod processingMethod) {
     this.manager = manager;
     this.comScriptName = commandDetails.getCommand();
     this.processManager = processManager;
@@ -658,6 +662,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     processData = ProcessData.getManagedInstance(axisID, manager,
         getProcessName());
     processData.setDisplayKey(processResultDisplay);
+    processData.setProcessingMethod(processingMethod);
     this.processSeries = processSeries;
     initialize(null);
   }
@@ -665,7 +670,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   public ComScriptProcess(BaseManager manager, Command command,
       BaseProcessManager processManager, AxisID axisID, String watchedFileName,
       ProcessMonitor processMonitor, ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries) {
+      ConstProcessSeries processSeries,final ProcessingMethod processingMethod) {
     this.manager = manager;
     this.comScriptName = command.getCommand();
     this.processManager = processManager;
@@ -678,6 +683,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     processData = ProcessData.getManagedInstance(axisID, manager,
         getProcessName());
     processData.setDisplayKey(processResultDisplay);
+    processData.setProcessingMethod(processingMethod);
     this.processSeries = processSeries;
     initialize(null);
   }
@@ -696,6 +702,12 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   public final void setComputerMap(Map computerMap) {
     if (processData != null) {
       processData.setComputerMap(computerMap);
+    }
+  }
+  
+  public final void setProcessingMethod(final ProcessingMethod processingMethod) {
+    if (processData != null) {
+      processData.setProcessingMethod(processingMethod);
     }
   }
 
