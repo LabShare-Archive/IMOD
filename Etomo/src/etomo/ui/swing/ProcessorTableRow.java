@@ -12,6 +12,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import etomo.comscript.ProcesschunksParam;
+import etomo.storage.Node;
 import etomo.storage.Storable;
 import etomo.type.EtomoNumber;
 import etomo.util.Utilities;
@@ -72,18 +73,18 @@ final class ProcessorTableRow implements Storable {
   private boolean osColumn = false;
   private boolean usersColumn = false;
   private boolean displayed = false;
+  private boolean loadWarning = true;
 
-  private ProcessorTableRow(ProcessorTable table, String computerName,
-      int numCpus, String cpuType, String speed, String memory, String os,
+  private ProcessorTableRow(ProcessorTable table, Node node, int numCpus,
       boolean displayQueues, ButtonGroup queueButtonGroup,
       int queueLoadArraySize) {
     this.table = table;
-    this.computerName = computerName;
-    this.cpuType = cpuType;
+    computerName = node.getName();
+    cpuType = node.getType();
     this.numCpus = numCpus;
-    this.speed = speed;
-    this.memory = memory;
-    this.os = os;
+    speed = node.getSpeed();
+    memory = node.getMemory();
+    os = node.getOs();
     this.displayQueues = displayQueues;
     if (displayQueues) {
       cellComputer = new RadioButtonCell(queueButtonGroup);
@@ -98,20 +99,18 @@ final class ProcessorTableRow implements Storable {
     }
   }
 
-  static ProcessorTableRow getComputerInstance(ProcessorTable table,
-      String computerName, int numCpus, String cpuType, String speed,
-      String memory, String os) {
-    ProcessorTableRow instance = new ProcessorTableRow(table, computerName,
-        numCpus, cpuType, speed, memory, os, false, null, 0);
+  static ProcessorTableRow getComputerInstance(ProcessorTable table, Node node,
+      int numCpus) {
+    ProcessorTableRow instance = new ProcessorTableRow(table, node, numCpus,
+        false, null, 0);
     instance.initRow();
     return instance;
   }
 
-  static ProcessorTableRow getQueueInstance(ProcessorTable table,
-      String computerName, int numCpus, String cpuType, String speed,
-      String memory, String os, ButtonGroup buttonGroup, int loadArraySize) {
-    ProcessorTableRow instance = new ProcessorTableRow(table, computerName,
-        numCpus, cpuType, speed, memory, os, true, buttonGroup, loadArraySize);
+  static ProcessorTableRow getQueueInstance(ProcessorTable table, Node node,
+      int numCpus, ButtonGroup buttonGroup, int loadArraySize) {
+    ProcessorTableRow instance = new ProcessorTableRow(table, node, numCpus,
+        true, buttonGroup, loadArraySize);
     instance.initRow();
     return instance;
   }
@@ -199,6 +198,13 @@ final class ProcessorTableRow implements Storable {
     cellMemory.setValue(memory);
     cellOS.setValue(os);
     updateSelected(false);
+  }
+
+  void turnOffLoadWarning() {
+    loadWarning = false;
+    cellCPUUsage.setWarning(false);
+    cellLoad1.setWarning(false);
+    cellLoad5.setWarning(false);
   }
 
   void setNumberColumn(boolean numberColumn) {
@@ -451,7 +457,9 @@ final class ProcessorTableRow implements Storable {
   void setCPUUsage(double cpuUsage) {
     int numberCPUs = cellNumberCpus.getIntValue();
     double usage = cpuUsage * numberCPUs / 100.0;
-    cellCPUUsage.setWarning(numberCPUs - usage <= .25);
+    if (loadWarning) {
+      cellCPUUsage.setWarning(numberCPUs - usage <= .25);
+    }
     cellCPUUsage.setValue(usage);
     cellComputer.setWarning(false);
   }
@@ -499,7 +507,9 @@ final class ProcessorTableRow implements Storable {
   }
 
   private final void setLoad(FieldCell cellLoad, double load, int numberCpus) {
-    cellLoad.setWarning(load >= numberCpus);
+    if (loadWarning) {
+      cellLoad.setWarning(load >= numberCpus);
+    }
     cellLoad.setValue(load);
   }
 
@@ -585,6 +595,9 @@ final class ProcessorTableRow implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.35  2009/04/20 20:13:50  sueh
  * <p> bug# 1192 Added setCPUsSelected.  Setting the computer and CPUs by
  * <p> calling ProcesschunksParam.addMachineName once.
