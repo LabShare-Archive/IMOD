@@ -69,6 +69,7 @@ int main(int argc, char **argv) {
     return 0;
   }
   pc.startLoop();
+  exit(0);
 }
 
 Processchunks::Processchunks(int &argc, char **argv) :
@@ -536,7 +537,7 @@ void Processchunks::cleanupAndExit(int exitCode) {
     }
   }
   *mOutStream << "exitCode:" << exitCode << endl;
-  ::exit(0);
+  exit(0);
 }
 
 int Processchunks::escapeEntered() {
@@ -1673,6 +1674,9 @@ bool Processchunks::isVerbose(const QString &verboseClass, const QString verbose
 
 /*
  $Log$
+ Revision 1.67  2011/02/02 23:39:22  sueh
+ bug# 1426 In cleanupAndExit calling the standard exit instead of the QT one.
+
  Revision 1.66  2011/02/02 22:43:10  sueh
  bug# 1426 In cleanupAndExit called MachineHandler::killQProcesses.
 
