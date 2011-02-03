@@ -24,6 +24,7 @@ import etomo.type.FileType;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
+import etomo.type.ProcessingMethod;
 import etomo.ui.swing.ParallelProgressDisplay;
 import etomo.ui.swing.UIHarness;
 import etomo.util.Utilities;
@@ -45,6 +46,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.95  2010/11/13 16:03:45  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.94  2010/10/20 23:04:57  sueh
  * <p> bug# 1364 In DetachedProcess removed unnecessary variable
  * <p> runInBackground.
@@ -561,16 +565,14 @@ public abstract class BaseProcessManager {
 
   public final boolean reconnectProcesschunks(final AxisID axisID,
       final ProcessData processData,
-      final ParallelProgressDisplay parallelProgressDisplay,
       final ProcessResultDisplay processResultDisplay) {
     ProcesschunksProcessMonitor monitor = ProcesschunksProcessMonitor
-        .getReconnectInstance(manager, axisID, parallelProgressDisplay,
-            processData);
+        .getReconnectInstance(manager, axisID, processData);
     monitor.setSubdirName(processData.getSubDirName());
     boolean ret;
     try {
-      ReconnectProcess process = ReconnectProcess.getMonitorInstance(manager,
-          this, monitor, getSavedProcessData(axisID), axisID, monitor
+      ReconnectProcess process = ReconnectProcess.getLogInstance(manager, this,
+          monitor, getSavedProcessData(axisID), axisID, monitor
               .getLogFileName(), ProcesschunksProcessMonitor.SUCCESS_TAG,
           processData.getSubDirName());
       monitor.setProcess(process);
@@ -600,30 +602,30 @@ public abstract class BaseProcessManager {
       final ProcesschunksParam param,
       final ParallelProgressDisplay parallelProgressDisplay,
       final ProcessResultDisplay processResultDisplay,
-      final ConstProcessSeries processSeries, boolean popupChunkWarnings)
-      throws SystemProcessException {
+      final ConstProcessSeries processSeries, boolean popupChunkWarnings,
+      final ProcessingMethod processingMethod) throws SystemProcessException {
     // Instantiate the process monitor
     ProcesschunksProcessMonitor monitor;
     if (param.equalsRootName(ProcessName.VOLCOMBINE, axisID)) {
-      monitor = new ProcesschunksVolcombineMonitor(manager, axisID,
-          parallelProgressDisplay, param.getRootName(), param.getComputerMap());
+      monitor = new ProcesschunksVolcombineMonitor(manager, axisID, param
+          .getRootName(), param.getComputerMap());
     }
     else {
-      monitor = new ProcesschunksProcessMonitor(manager, axisID,
-          parallelProgressDisplay, param.getRootName(), param.getComputerMap());
+      monitor = new ProcesschunksProcessMonitor(manager, axisID, param
+          .getRootName(), param.getComputerMap());
     }
     BackgroundProcess process;
     if (param.isSubdirNameEmpty()) {
       process = startDetachedProcess(param, axisID, monitor,
           processResultDisplay, ProcessName.PROCESSCHUNKS, processSeries,
-          popupChunkWarnings);
+          popupChunkWarnings, processingMethod);
     }
     else {
       monitor.setSubdirName(param.getSubdirName());
       process = startDetachedProcess(param, axisID, monitor,
           processResultDisplay, ProcessName.PROCESSCHUNKS, param
               .getSubdirName(), param.getShortCommandName(), processSeries,
-          popupChunkWarnings);
+          popupChunkWarnings, processingMethod);
     }
     return process.getName();
   }
@@ -854,10 +856,12 @@ public abstract class BaseProcessManager {
   final ComScriptProcess startComScript(final CommandDetails commandDetails,
       final ProcessMonitor processMonitor, final AxisID axisID,
       final ProcessResultDisplay processResultDisplay,
-      final ConstProcessSeries processSeries) throws SystemProcessException {
+      final ConstProcessSeries processSeries,
+      final ProcessingMethod processingMethod) throws SystemProcessException {
     return startComScript(new ComScriptProcess(manager, commandDetails, this,
-        axisID, null, processMonitor, processResultDisplay, processSeries),
-        commandDetails.getCommandLine(), processMonitor, axisID);
+        axisID, null, processMonitor, processResultDisplay, processSeries,
+        processingMethod), commandDetails.getCommandLine(), processMonitor,
+        axisID);
   }
 
   final ComScriptProcess startComScript(final Command command,
@@ -865,8 +869,18 @@ public abstract class BaseProcessManager {
       final ProcessResultDisplay processResultDisplay,
       final ConstProcessSeries processSeries) throws SystemProcessException {
     return startComScript(new ComScriptProcess(manager, command, this, axisID,
-        null, processMonitor, processResultDisplay, processSeries), command
-        .getCommandLine(), processMonitor, axisID);
+        null, processMonitor, processResultDisplay, processSeries, null),
+        command.getCommandLine(), processMonitor, axisID);
+  }
+
+  final ComScriptProcess startComScript(final CommandDetails CommandDetails,
+      final ProcessMonitor processMonitor, final AxisID axisID,
+      final ProcessResultDisplay processResultDisplay,
+      final ConstProcessSeries processSeries) throws SystemProcessException {
+    return startComScript(
+        new ComScriptProcess(manager, CommandDetails, this, axisID, null,
+            processMonitor, processResultDisplay, processSeries, null),
+        CommandDetails.getCommandLine(), processMonitor, axisID);
   }
 
   /**
@@ -1615,11 +1629,11 @@ public abstract class BaseProcessManager {
       final OutfileProcessMonitor monitor,
       final ProcessResultDisplay processResultDisplay,
       final ProcessName processName, final ConstProcessSeries processSeries,
-      boolean popupChunkWarnings)
+      boolean popupChunkWarnings, final ProcessingMethod processingMethod)
       throws SystemProcessException {
     DetachedProcess detachedProcess = new DetachedProcess(manager,
         detachedCommandDetails, this, axisID, monitor, processResultDisplay,
-        processName, processSeries, popupChunkWarnings);
+        processName, processSeries, popupChunkWarnings, processingMethod);
     if (monitor != null) {
       monitor.setProcess(detachedProcess);
     }
@@ -1633,11 +1647,11 @@ public abstract class BaseProcessManager {
       final ProcessResultDisplay processResultDisplay,
       final ProcessName processName, final String subdirName,
       final String shortCommandName, final ConstProcessSeries processSeries,
-      boolean popupChunkWarnings)
+      boolean popupChunkWarnings, final ProcessingMethod processingMethod)
       throws SystemProcessException {
     DetachedProcess detachedProcess = new DetachedProcess(manager,
         detachedCommandDetails, this, axisID, monitor, processResultDisplay,
-        processName, processSeries, popupChunkWarnings);
+        processName, processSeries, popupChunkWarnings, processingMethod);
     detachedProcess.setSubdirName(subdirName);
     detachedProcess.setShortCommandName(shortCommandName);
     if (monitor != null) {
