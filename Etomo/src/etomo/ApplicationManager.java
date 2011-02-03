@@ -105,6 +105,7 @@ import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessTrack;
+import etomo.type.ProcessingMethod;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TiltAngleSpec;
@@ -641,7 +642,6 @@ public final class ApplicationManager extends BaseManager implements
         CCDEraserParam.Mode.X_RAYS));
     preProcDialog.setParameters(getScreenState(axisID));
     mainPanel.showProcess(preProcDialog.getContainer(), axisID);
-    setParallelDialog(axisID, preProcDialog.usingParallelProcessing());
   }
 
   /**
@@ -935,7 +935,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     // set next process to archiveorig so that the second axis can be done
     if (stackAxisID == AxisID.FIRST) {
-      processSeries.setNextProcess(ArchiveorigParam.COMMAND_NAME);
+      processSeries.setNextProcess(ArchiveorigParam.COMMAND_NAME, null);
     }
     // else {
     // resetNextProcess(AxisID.ONLY);
@@ -1241,7 +1241,6 @@ public final class ApplicationManager extends BaseManager implements
     coarseAlignDialog.setImageRotation(metaData.getImageRotation(axisID));
     coarseAlignDialog.setParameters(getScreenState(axisID));
     mainPanel.showProcess(coarseAlignDialog.getContainer(), axisID);
-    setParallelDialog(axisID, coarseAlignDialog.usingParallelProcessing());
   }
 
   /**
@@ -1446,7 +1445,7 @@ public final class ApplicationManager extends BaseManager implements
 
   private void extracttilts(AxisID axisID,
       ProcessResultDisplay processResultDisplay, ProcessSeries processSeries) {
-    processSeries.setNextProcess(ExtractpiecesParam.COMMAND_NAME);
+    processSeries.setNextProcess(ExtractpiecesParam.COMMAND_NAME, null);
     if (metaData.getTiltAngleSpecA().getType() != TiltAngleType.EXTRACT
         && processSeries != null) {
       processSeries.startNextProcess(axisID, processResultDisplay);
@@ -1485,7 +1484,7 @@ public final class ApplicationManager extends BaseManager implements
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
-    processSeries.setNextProcess(ExtractmagradParam.COMMAND_NAME);
+    processSeries.setNextProcess(ExtractmagradParam.COMMAND_NAME, null);
     if (metaData.getViewType() != ViewType.MONTAGE && processSeries != null) {
       processSeries.startNextProcess(axisID, processResultDisplay);
       return;
@@ -1680,7 +1679,7 @@ public final class ApplicationManager extends BaseManager implements
           "Unable to execute com script", axisID);
       return;
     }
-    processSeries.setNextProcess("checkUpdateFiducialModel");
+    processSeries.setNextProcess("checkUpdateFiducialModel", null);
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     setThreadName(threadName, axisID);
   }
@@ -2021,7 +2020,6 @@ public final class ApplicationManager extends BaseManager implements
     fiducialModelDialog.setParameters(tiltXcorrPtParam);
     fiducialModelDialog.setParameters(getScreenState(axisID));
     mainPanel.showProcess(fiducialModelDialog.getContainer(), axisID);
-    setParallelDialog(axisID, fiducialModelDialog.usingParallelProcessing());
   }
 
   /**
@@ -2589,7 +2587,6 @@ public final class ApplicationManager extends BaseManager implements
     metaData.setFineExists(axisID, true);
     // Create a default transferfid object to populate the alignment dialog
     mainPanel.showProcess(fineAlignmentDialog.getContainer(), axisID);
-    setParallelDialog(axisID, fineAlignmentDialog.usingParallelProcessing());
   }
 
   /**
@@ -4476,7 +4473,7 @@ public final class ApplicationManager extends BaseManager implements
     String threadName;
     try {
       threadName = processMgr.tilt(axisID, processResultDisplay, processSeries,
-          tiltParam, null);
+          tiltParam, null, null);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -4509,7 +4506,8 @@ public final class ApplicationManager extends BaseManager implements
   public void tilt3dFindAction(ProcessResultDisplay tilt,
       ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
       Run3dmodMenuOptions run3dmodMenuOptions, TiltDisplay display,
-      AxisID axisID, DialogType dialogType) {
+      AxisID axisID, DialogType dialogType,
+      final ProcessingMethod tiltProcessingMethod) {
     if (display == null) {
       return;
     }
@@ -4517,18 +4515,21 @@ public final class ApplicationManager extends BaseManager implements
       processSeries = new ProcessSeries(this, dialogType);
     }
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
-    if (display.isParallelProcess()) {
-      splittilt3dFind(tilt, processSeries, display, axisID, dialogType);
+    if (!tiltProcessingMethod.isLocal()) {
+      splittilt3dFind(tilt, processSeries, display, axisID, dialogType,
+          tiltProcessingMethod);
     }
     else {
-      tilt3dFind(tilt, processSeries, display, axisID, dialogType);
+      tilt3dFind(tilt, processSeries, display, axisID, dialogType,
+          tiltProcessingMethod);
     }
   }
 
   public void tiltAction(ProcessResultDisplay tilt,
       ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
       Run3dmodMenuOptions run3dmodMenuOptions, TiltDisplay display,
-      AxisID axisID, DialogType dialogType) {
+      AxisID axisID, DialogType dialogType,
+      ProcessingMethod tiltProcessingMethod) {
     if (display == null) {
       return;
     }
@@ -4536,11 +4537,13 @@ public final class ApplicationManager extends BaseManager implements
       processSeries = new ProcessSeries(this, dialogType);
     }
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
-    if (display.isParallelProcess()) {
-      splittilt(tilt, processSeries, display, axisID, dialogType);
+    if (!tiltProcessingMethod.isLocal()) {
+      splittilt(tilt, processSeries, display, axisID, dialogType,
+          tiltProcessingMethod);
     }
     else {
-      tilt(tilt, processSeries, display, axisID, dialogType);
+      tilt(tilt, processSeries, display, axisID, dialogType,
+          tiltProcessingMethod);
     }
   }
 
@@ -4569,7 +4572,7 @@ public final class ApplicationManager extends BaseManager implements
 
   public void trialAction(ProcessResultDisplay trial,
       ProcessSeries processSeries, TrialTiltDisplay display, AxisID axisID,
-      DialogType dialogType) {
+      DialogType dialogType, ProcessingMethod tiltProcessingMethod) {
     if (display == null) {
       return;
     }
@@ -4589,17 +4592,19 @@ public final class ApplicationManager extends BaseManager implements
     if (!display.containsTrialTomogramName(trialTomogramName)) {
       display.addTrialTomogramName(trialTomogramName);
     }
-    if (display.isParallelProcess()) {
-      splitTrialTilt(trial, processSeries, display, axisID, dialogType);
+    if (!tiltProcessingMethod.isLocal()) {
+      splitTrialTilt(trial, processSeries, display, axisID, dialogType,
+          tiltProcessingMethod);
     }
     else {
-      trialTilt(trial, processSeries, display, axisID, dialogType);
+      trialTilt(trial, processSeries, display, axisID, dialogType,
+          tiltProcessingMethod);
     }
   }
 
   private void splittilt3dFind(ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries, TiltDisplay display, AxisID axisID,
-      DialogType dialogType) {
+      DialogType dialogType, final ProcessingMethod tiltProcessingMethod) {
     if (display == null) {
       return;
     }
@@ -4622,14 +4627,15 @@ public final class ApplicationManager extends BaseManager implements
         processSeries, splittiltParam, dialogType);
     if (processResult == null) {
       processSeries.setNextProcess(ProcessName.PROCESSCHUNKS.toString(),
-          ProcessName.TILT_3D_FIND, FileType.TILT_3D_FIND_OUTPUT);
+          ProcessName.TILT_3D_FIND, FileType.TILT_3D_FIND_OUTPUT,
+          tiltProcessingMethod);
     }
     sendMsg(processResult, processResultDisplay);
   }
 
   private void splittilt(ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries, TiltDisplay display, AxisID axisID,
-      DialogType dialogType) {
+      DialogType dialogType, final ProcessingMethod tiltProcessingMethod) {
     if (display == null) {
       return;
     }
@@ -4652,14 +4658,14 @@ public final class ApplicationManager extends BaseManager implements
         processSeries, splittiltParam, dialogType);
     if (processResult == null) {
       processSeries.setNextProcess(ProcessName.PROCESSCHUNKS.toString(),
-          ProcessName.TILT, FileType.DUAL_AXIS_TOMOGRAM);
+          ProcessName.TILT, FileType.DUAL_AXIS_TOMOGRAM, tiltProcessingMethod);
     }
     sendMsg(processResult, processResultDisplay);
   }
 
   private void splitTrialTilt(ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries, TrialTiltDisplay display, AxisID axisID,
-      DialogType dialogType) {
+      DialogType dialogType, final ProcessingMethod tiltProcessingMethod) {
     if (display == null) {
       return;
     }
@@ -4682,7 +4688,7 @@ public final class ApplicationManager extends BaseManager implements
         processSeries, splittiltParam, dialogType);
     if (processResult == null) {
       processSeries.setNextProcess(ProcessName.PROCESSCHUNKS.toString(),
-          ProcessName.TILT);
+          ProcessName.TILT, tiltProcessingMethod);
       closeImod(FileType.TRIAL_TOMOGRAM, tiltParam.getOutputFile(), axisID,
           true);
     }
@@ -4731,7 +4737,7 @@ public final class ApplicationManager extends BaseManager implements
    */
   private void tilt3dFind(ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries, TiltDisplay display, AxisID axisID,
-      DialogType dialogType) {
+      DialogType dialogType, final ProcessingMethod processingMethod) {
     if (display == null) {
       return;
     }
@@ -4746,7 +4752,8 @@ public final class ApplicationManager extends BaseManager implements
     }
     mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
     sendMsg(tilt3dFindProcess(axisID, processResultDisplay, processSeries,
-        param, null, ProcessName.TILT_3D_FIND), processResultDisplay);
+        param, null, ProcessName.TILT_3D_FIND, processingMethod),
+        processResultDisplay);
   }
 
   /**
@@ -4754,7 +4761,7 @@ public final class ApplicationManager extends BaseManager implements
    */
   private void tilt(ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries, TiltDisplay display, AxisID axisID,
-      DialogType dialogType) {
+      DialogType dialogType, final ProcessingMethod processingMethod) {
     if (display == null) {
       return;
     }
@@ -4769,7 +4776,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
     sendMsg(tiltProcess(axisID, processResultDisplay, processSeries, param,
-        null), processResultDisplay);
+        null, processingMethod), processResultDisplay);
   }
 
   /**
@@ -4779,7 +4786,8 @@ public final class ApplicationManager extends BaseManager implements
    */
   private void trialTilt(ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries, TrialTiltDisplay display,
-      AxisID axisID, DialogType dialogType) {
+      AxisID axisID, DialogType dialogType,
+      final ProcessingMethod processingMethod) {
     if (display == null) {
       return;
     }
@@ -4794,7 +4802,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
     sendMsg(tiltProcess(axisID, processResultDisplay, processSeries, param,
-        null), processResultDisplay);
+        null, processingMethod), processResultDisplay);
   }
 
   /**
@@ -4839,11 +4847,12 @@ public final class ApplicationManager extends BaseManager implements
   private ProcessResult tilt3dFindProcess(AxisID axisID,
       ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries, ConstTiltParam param,
-      String processTitle, ProcessName processName) {
+      String processTitle, ProcessName processName,
+      ProcessingMethod processingMethod) {
     String threadName;
     try {
       threadName = processMgr.tilt3dFind(axisID, processResultDisplay,
-          processSeries, param, processTitle, processName);
+          processSeries, param, processTitle, processName, processingMethod);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -4869,12 +4878,12 @@ public final class ApplicationManager extends BaseManager implements
   private ProcessResult tiltProcess(AxisID axisID,
       ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries, ConstTiltParam param,
-      String processTitle) {
+      String processTitle, final ProcessingMethod processingMethod) {
     closeImod(FileType.TRIAL_TOMOGRAM, param.getOutputFile(), axisID, true);
     String threadName;
     try {
       threadName = processMgr.tilt(axisID, processResultDisplay, processSeries,
-          param, processTitle);
+          param, processTitle, processingMethod);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -5575,8 +5584,6 @@ public final class ApplicationManager extends BaseManager implements
     // Show the process panel
     mainPanel.showProcess(tomogramCombinationDialog.getContainer(),
         AxisID.FIRST);
-    setParallelDialog(AxisID.FIRST, tomogramCombinationDialog
-        .usingParallelProcessing());
   }
 
   /**
@@ -6300,7 +6307,7 @@ public final class ApplicationManager extends BaseManager implements
       // processes
       // before volcombine can take awhile.
       combineComscriptState.setOutputImageFileType(FileType.COMBINED_VOLUME);
-      if (!tomogramCombinationDialog.usingParallelProcessing()) {
+      if (tomogramCombinationDialog.getRunProcessingMethod().isLocal()) {
         combineComscriptState.setEndCommand(CombineProcessType.VOLCOMBINE
             .getIndex(), comScriptMgr);
       }
@@ -6356,7 +6363,8 @@ public final class ApplicationManager extends BaseManager implements
    */
   public void combine(ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
-      Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType) {
+      Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType,
+      final ProcessingMethod volcombineProcessingMethod) {
     sendMsgProcessStarting(processResultDisplay);
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
@@ -6408,9 +6416,10 @@ public final class ApplicationManager extends BaseManager implements
       return;
     }
     // Set the next process to execute when this is finished
-    if (tomogramCombinationDialog.usingParallelProcessing()
+    if (!volcombineProcessingMethod.isLocal()
         && tomogramCombinationDialog.isRunVolcombine()) {
-      processSeries.setNextProcess(SplitcombineParam.COMMAND_NAME);
+      processSeries.setNextProcess(SplitcombineParam.COMMAND_NAME,
+          volcombineProcessingMethod);
     }
     setBackgroundThreadName(threadName, AxisID.FIRST,
         CombineComscriptState.COMSCRIPT_NAME);
@@ -6427,7 +6436,8 @@ public final class ApplicationManager extends BaseManager implements
    */
   public void matchvol1Combine(ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
-      Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType) {
+      Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType,
+      final ProcessingMethod volcombineProcessingMethod) {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
@@ -6487,9 +6497,10 @@ public final class ApplicationManager extends BaseManager implements
       return;
     }
     // Set the next process to execute when this is finished
-    if (tomogramCombinationDialog.usingParallelProcessing()
+    if (!volcombineProcessingMethod.isLocal()
         && tomogramCombinationDialog.isRunVolcombine()) {
-      processSeries.setNextProcess(SplitcombineParam.COMMAND_NAME);
+      processSeries.setNextProcess(SplitcombineParam.COMMAND_NAME,
+          volcombineProcessingMethod);
     }
     setBackgroundThreadName(threadName, AxisID.FIRST,
         CombineComscriptState.COMSCRIPT_NAME);
@@ -6500,7 +6511,8 @@ public final class ApplicationManager extends BaseManager implements
    */
   public void patchcorrCombine(ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
-      Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType) {
+      Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType,
+      final ProcessingMethod volcombineProcessingMethod) {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
@@ -6543,9 +6555,10 @@ public final class ApplicationManager extends BaseManager implements
       return;
     }
     // Set the next process to execute when this is finished
-    if (tomogramCombinationDialog.usingParallelProcessing()
+    if (!volcombineProcessingMethod.isLocal()
         && tomogramCombinationDialog.isRunVolcombine()) {
-      processSeries.setNextProcess(SplitcombineParam.COMMAND_NAME);
+      processSeries.setNextProcess(SplitcombineParam.COMMAND_NAME,
+          volcombineProcessingMethod);
     }
     setBackgroundThreadName(threadName, AxisID.FIRST,
         CombineComscriptState.COMSCRIPT_NAME);
@@ -6556,7 +6569,8 @@ public final class ApplicationManager extends BaseManager implements
    */
   public void matchorwarpCombine(ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
-      Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType) {
+      Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType,
+      final ProcessingMethod volcombineProcessingMethod) {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
@@ -6592,9 +6606,10 @@ public final class ApplicationManager extends BaseManager implements
       return;
     }
     // Set the next process to execute when this is finished
-    if (tomogramCombinationDialog.usingParallelProcessing()
+    if (!volcombineProcessingMethod.isLocal()
         && tomogramCombinationDialog.isRunVolcombine()) {
-      processSeries.setNextProcess(SplitcombineParam.COMMAND_NAME);
+      processSeries.setNextProcess(SplitcombineParam.COMMAND_NAME,
+          volcombineProcessingMethod);
     }
     setBackgroundThreadName(threadName, AxisID.FIRST,
         CombineComscriptState.COMSCRIPT_NAME);
@@ -6757,8 +6772,6 @@ public final class ApplicationManager extends BaseManager implements
           .getWarpVolParamFromFlatten(AxisID.ONLY));
     }
     mainPanel.showProcess(postProcessingDialog.getContainer(), AxisID.ONLY);
-    setParallelDialog(AxisID.ONLY, postProcessingDialog
-        .usingParallelProcessing());
   }
 
   /**
@@ -6783,7 +6796,6 @@ public final class ApplicationManager extends BaseManager implements
     }
     updateArchiveDisplay();
     mainPanel.showProcess(cleanUpDialog.getContainer(), AxisID.ONLY);
-    setParallelDialog(AxisID.ONLY, cleanUpDialog.usingParallelProcessing());
   }
 
   /**
@@ -7528,10 +7540,12 @@ public final class ApplicationManager extends BaseManager implements
     }
     else if (process.equals(ProcessName.PROCESSCHUNKS.toString())
         && process.getSubprocessName() == ProcessName.VOLCOMBINE) {
-      processchunksVolcombine(processResultDisplay, processSeries);
+      processchunksVolcombine(processResultDisplay, processSeries, process
+          .getProcessingMethod());
     }
     else if (process.equals(SplitcombineParam.COMMAND_NAME)) {
-      splitcombine(processSeries, null, null, dialogType);
+      splitcombine(processSeries, null, null, dialogType, process
+          .getProcessingMethod());
     }
     else if (process.equals(ExtractpiecesParam.COMMAND_NAME)) {
       extractpieces(axisID, processResultDisplay, processSeries, dialogType);
@@ -7963,8 +7977,6 @@ public final class ApplicationManager extends BaseManager implements
           axisID);
       return ProcessResult.FAILED_TO_START;
     }
-    processSeries.setNextProcess(ProcessName.PROCESSCHUNKS.toString(),
-        ProcessName.TILT);
     setThreadName(threadName, axisID);
     mainPanel.startProgressBar("Running " + SplittiltParam.COMMAND_NAME,
         axisID, ProcessName.SPLITTILT);
@@ -7973,7 +7985,8 @@ public final class ApplicationManager extends BaseManager implements
 
   public ProcessResult splitCorrection(AxisID axisID,
       ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
-      ConstSplitCorrectionParam param, final DialogType dialogType) {
+      ConstSplitCorrectionParam param, final DialogType dialogType,
+      final ProcessingMethod correctionProcessingMethod) {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
@@ -7992,7 +8005,8 @@ public final class ApplicationManager extends BaseManager implements
       return ProcessResult.FAILED_TO_START;
     }
     processSeries.setNextProcess(ProcessName.PROCESSCHUNKS.toString(),
-        ProcessName.CTF_CORRECTION);
+        ProcessName.CTF_CORRECTION, FileType.CTF_CORRECTED_STACK,
+        correctionProcessingMethod);
     setThreadName(threadName, axisID);
     mainPanel.startProgressBar("Running " + ProcessName.SPLIT_CORRECTION,
         axisID, ProcessName.SPLIT_CORRECTION);
@@ -8001,7 +8015,8 @@ public final class ApplicationManager extends BaseManager implements
 
   public void splitcombine(ProcessSeries processSeries,
       Deferred3dmodButton deferred3dmodButton,
-      Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType) {
+      Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType,
+      final ProcessingMethod volcombineProcessingMethod) {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
@@ -8029,7 +8044,7 @@ public final class ApplicationManager extends BaseManager implements
       return;
     }
     processSeries.setNextProcess(ProcessName.PROCESSCHUNKS.toString(),
-        ProcessName.VOLCOMBINE);
+        ProcessName.VOLCOMBINE, volcombineProcessingMethod);
     setThreadName(threadName, AxisID.ONLY);
     mainPanel.startProgressBar("Running " + SplitcombineParam.COMMAND_NAME,
         AxisID.ONLY, ProcessName.SPLITCOMBINE);
@@ -8037,12 +8052,12 @@ public final class ApplicationManager extends BaseManager implements
 
   private void processchunksVolcombine(
       ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries) {
+      ConstProcessSeries processSeries, final ProcessingMethod processingMethod) {
     // CloseImod, including the one for processchunks volcombine is take care
     // when combine.com is updated.
     processchunks(AxisID.ONLY, DialogType.TOMOGRAM_COMBINATION,
         tomogramCombinationDialog, processResultDisplay, processSeries,
-        ProcessName.VOLCOMBINE, FileType.COMBINED_VOLUME);
+        ProcessName.VOLCOMBINE, FileType.COMBINED_VOLUME, processingMethod);
   }
 
   /**
@@ -8053,7 +8068,7 @@ public final class ApplicationManager extends BaseManager implements
   private void processchunks(AxisID axisID, DialogType dialogType,
       AbstractParallelDialog dialog, ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries, ProcessName processName,
-      FileType outputImageFileType) {
+      FileType outputImageFileType, final ProcessingMethod processingMethod) {
     sendMsgProcessStarting(processResultDisplay);
     if (dialog == null) {
       sendMsgProcessFailedToStart(processResultDisplay);
@@ -8073,8 +8088,9 @@ public final class ApplicationManager extends BaseManager implements
     }
     mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
     // param should never be set to resume
-    parallelPanel.getParallelProgressDisplay().resetResults();
-    processchunks(axisID, param, processResultDisplay, processSeries,true);
+    parallelPanel.resetResults();
+    processchunks(axisID, param, processResultDisplay, processSeries, true,
+        processingMethod);
   }
 
   public BaseProcessManager getProcessManager() {
@@ -8139,6 +8155,10 @@ public final class ApplicationManager extends BaseManager implements
 /**
  * <p>
  * $Log$
+ * Revision 3.364  2010/12/05 04:06:43  sueh
+ * bug# 1416 Changed FinalAlignedStackExpert.setEnabledTiltPArameters to
+ * setTiltState.
+ *
  * Revision 3.363  2010/11/13 16:02:54  sueh
  * bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  *
