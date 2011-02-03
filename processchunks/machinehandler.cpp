@@ -118,7 +118,6 @@ void MachineHandler::killSignal() {
         mPidsAvailable = true;
         for (i = 0; i < mNumCpus; i++) {
           if (mProcessHandlerArray[i].isJobValid()
-              && !mProcessHandlerArray[i].isFinishedSignalReceived()
               && mProcessHandlerArray[i].isPidEmpty()) {
             mPidsAvailable = false;
           }
@@ -219,6 +218,15 @@ bool MachineHandler::isKillFinished() {
   useImodkillgroup = !mProcesschunks->isQueue();
 #endif
   if (useImodkillgroup) {
+    bool processesFinished = true;
+    for (i = 0; i < mNumCpus; i++) {
+      if (!mProcessHandlerArray[i].isFinishedSignalReceived()) {
+        processesFinished = false;
+      }
+    }
+    if (processesFinished) {
+      return true;
+    }
     return mKillFinishedSignalReceived;
   }
   else {
@@ -263,6 +271,9 @@ int MachineHandler::getFailureCount() {
 
 /*
  $Log$
+ Revision 1.26  2011/02/03 23:39:15  sueh
+ bug# 1426 In kill signal check if process done.
+
  Revision 1.25  2011/02/02 22:42:24  sueh
  bug# 1426 Added killQProcesses.
 
