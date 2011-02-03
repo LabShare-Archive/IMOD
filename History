@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/2/11: Allowing tilt to be run using GPUs in parallel.
+
 2/2/11: Fixed clip corr with unsigned short images.
 
 2/1/11: IMOD_4-2-13
