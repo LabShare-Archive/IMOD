@@ -19,6 +19,7 @@ import etomo.type.EtomoNumber;
 import etomo.type.OSType;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
+import etomo.type.ProcessingMethod;
 import etomo.type.StringProperty;
 import etomo.type.Time;
 
@@ -74,6 +75,9 @@ public final class ProcessData implements Storable {
   //set by the process in a managed instance, but only if the process is
   //parallel.
   private Map computerMap = null;
+  //Only needed when more then one processing method is possible in a
+  //reconnectable process.
+  private ProcessingMethod processingMethod = null;
 
   /**
    * Get an instance of ProcessData which is associated with a process managed
@@ -174,6 +178,10 @@ public final class ProcessData implements Storable {
     this.computerMap = computerMap;
   }
 
+  public void setProcessingMethod(final ProcessingMethod processingMethod) {
+    this.processingMethod = processingMethod;
+  }
+
   /**
    * Use the pid to get the process data from the ps output.
    * @param pid
@@ -253,6 +261,10 @@ public final class ProcessData implements Storable {
     return computerMap;
   }
 
+  public ProcessingMethod getProcessingMethod() {
+    return processingMethod;
+  }
+
   private String getPrepend(String prepend) {
     if (prepend == "") {
       prepend = processDataPrepend;
@@ -286,6 +298,7 @@ public final class ProcessData implements Storable {
       props.remove(group + GROUP_PID_KEY);
       props.remove(group + START_TIME_KEY);
       props.remove(group + PROCESS_NAME_KEY);
+      ProcessingMethod.remove(props, prepend);
       displayKey.remove(props, prepend);
       subProcessName.remove(props, prepend);
       subDirName.remove(props, prepend);
@@ -306,6 +319,12 @@ public final class ProcessData implements Storable {
       subProcessName.store(props, prepend);
       subDirName.store(props, prepend);
       hostName.store(props, prepend);
+      if (processingMethod == null) {
+        ProcessingMethod.remove(props, prepend);
+      }
+      else {
+        processingMethod.store(props, prepend);
+      }
       if (osType == null) {
         props.remove(group + OSType.KEY);
       }
@@ -342,6 +361,7 @@ public final class ProcessData implements Storable {
     if (computerMap != null) {
       computerMap.clear();
     }
+    processingMethod = null;
   }
 
   private void load(Properties props, String prepend) {
@@ -370,6 +390,7 @@ public final class ProcessData implements Storable {
     subDirName.load(props, prepend);
     displayKey.load(props, prepend);
     hostName.load(props, prepend);
+    processingMethod = ProcessingMethod.load(props, prepend);
     osType = OSType.getInstance(props, prepend);
     //Load from props to computerMap
     Enumeration keyEnumeration = props.keys();
@@ -391,6 +412,10 @@ public final class ProcessData implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2010/02/17 04:49:20  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.12  2010/01/11 23:52:07  sueh
  * <p> bug# 1299 Removed responsibility anything other then cpu.adoc from
  * <p> CpuAdoc.  Placed responsibility for information about the network in the
