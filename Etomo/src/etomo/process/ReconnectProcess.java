@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Vector;
 
 import etomo.BaseManager;
+import etomo.ProcessingMethodMediator;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ConstProcessSeries;
@@ -14,6 +15,7 @@ import etomo.type.ConstStringProperty;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
+import etomo.type.ProcessingMethod;
 import etomo.ui.swing.UIHarness;
 
 /**
@@ -29,7 +31,7 @@ import etomo.ui.swing.UIHarness;
  * 
  * @version $Revision$
  */
-final class ReconnectProcess implements SystemProcessInterface, Runnable {
+public final class ReconnectProcess implements SystemProcessInterface, Runnable {
   public static final String rcsid = "$Id$";
 
   private final BaseManager manager;
@@ -66,7 +68,7 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
     return instance;
   }
 
-  static ReconnectProcess getMonitorInstance(BaseManager manager,
+  static ReconnectProcess getLogInstance(BaseManager manager,
       BaseProcessManager processManager, ProcessMonitor monitor,
       ProcessData processData, AxisID axisID, String logFileName,
       String logSuccessTag, ConstStringProperty subDirName)
@@ -98,11 +100,27 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
     return null;
   }
 
+  public void setProcessingMethod(ProcessingMethod processingMethod) {
+    //already have processing method from process data
+  }
+
+  public ProcessingMethod getProcessingMethod() {
+    if (processData == null) {
+      return null;
+    }
+    return processData.getProcessingMethod();
+  }
+
   public void run() {
     if (processData == null || !processData.isRunning()
         || processData.isOnDifferentHost()) {
       return;
     }
+
+    ProcessingMethodMediator mediator = manager
+        .getProcessingMethodMediator(axisID);
+    mediator.register(this);
+
     new Thread(monitor).start();
     try {
       Thread.sleep(500);
@@ -161,6 +179,7 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
       exitValue = 1;
     }
     processManager.msgReconnectDone(this, exitValue);
+    mediator.deregister(this);
   }
 
   public ProcessData getProcessData() {
@@ -295,6 +314,9 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2010/11/13 16:03:45  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.12  2010/02/17 04:49:20  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
