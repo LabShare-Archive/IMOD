@@ -6,6 +6,7 @@ import etomo.type.DialogType;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
+import etomo.type.ProcessingMethod;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.swing.Deferred3dmodButton;
 import etomo.ui.swing.ProcessDisplay;
@@ -113,6 +114,9 @@ import etomo.ui.swing.ProcessDisplay;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2010/11/13 16:02:54  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.9  2010/04/28 15:38:58  sueh
  * <p> bug# 1344 Using ProcessSeries.Process to hold next process and last
  * <p> process information, including outputImageFIleType.
@@ -230,8 +234,9 @@ public final class ProcessSeries implements ConstProcessSeries {
    * @param axisID
    * @param process
    */
-  public void setNextProcess(final String process) {
-    nextProcess = new Process(process, null, null, null);
+  public void setNextProcess(final String process,
+      final ProcessingMethod processingMethod) {
+    nextProcess = new Process(process, null, null, null, processingMethod);
   }
 
   /**
@@ -240,19 +245,9 @@ public final class ProcessSeries implements ConstProcessSeries {
    * @param process
    */
   public void setNextProcess(final String process,
-      final ProcessName subprocessName) {
-    nextProcess = new Process(process, subprocessName, null, null);
-  }
-
-  /**
-   * Keep final.  Adds next process 
-   * @param axisID
-   * @param process
-   */
-  public void setNextProcess(final String process,
-      final ProcessName subprocessName, final FileType outputImageFileType) {
-    nextProcess = new Process(process, subprocessName, outputImageFileType,
-        null);
+      final ProcessName subprocessName, final ProcessingMethod processingMethod) {
+    nextProcess = new Process(process, subprocessName, null, null,
+        processingMethod);
   }
 
   /**
@@ -262,9 +257,22 @@ public final class ProcessSeries implements ConstProcessSeries {
    */
   public void setNextProcess(final String process,
       final ProcessName subprocessName, final FileType outputImageFileType,
-      final FileType outputImageFileType2) {
+      final ProcessingMethod processingMethod) {
     nextProcess = new Process(process, subprocessName, outputImageFileType,
-        outputImageFileType2);
+        null, processingMethod);
+  }
+
+  /**
+   * Keep final.  Adds next process 
+   * @param axisID
+   * @param process
+   */
+  public void setNextProcess(final String process,
+      final ProcessName subprocessName, final FileType outputImageFileType,
+      final FileType outputImageFileType2,
+      final ProcessingMethod processingMethod) {
+    nextProcess = new Process(process, subprocessName, outputImageFileType,
+        outputImageFileType2, processingMethod);
   }
 
   void clearProcesses() {
@@ -293,7 +301,7 @@ public final class ProcessSeries implements ConstProcessSeries {
    * @param process
    */
   public void setLastProcess(final String process) {
-    lastProcess = new Process(process, null, null, null);
+    lastProcess = new Process(process, null, null, null, null);
   }
 
   /**
@@ -343,13 +351,17 @@ public final class ProcessSeries implements ConstProcessSeries {
     private final ProcessName subprocessName;
     private final FileType outputImageFileType;
     private final FileType outputImageFileType2;
+    private final ProcessingMethod processingMethod;
 
     private Process(final String process, final ProcessName subprocessName,
-        final FileType outputImageFileType, final FileType outputImageFileType2) {
+        final FileType outputImageFileType,
+        final FileType outputImageFileType2,
+        final ProcessingMethod processingMethod) {
       this.process = process;
       this.subprocessName = subprocessName;
       this.outputImageFileType = outputImageFileType;
       this.outputImageFileType2 = outputImageFileType2;
+      this.processingMethod = processingMethod;
     }
 
     private String getProcess() {
@@ -370,6 +382,10 @@ public final class ProcessSeries implements ConstProcessSeries {
 
     public boolean equals(ProcessName processName) {
       return process.equals(processName.toString());
+    }
+
+    public ProcessingMethod getProcessingMethod() {
+      return processingMethod;
     }
 
     public String toString() {
