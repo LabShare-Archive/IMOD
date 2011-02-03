@@ -6,6 +6,7 @@ import java.util.Map;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.ProcessingMethodMediator;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ConstStringProperty;
@@ -46,6 +47,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   private final String rootName;
   private final ProcessMessages messages = ProcessMessages
       .getInstanceForParallelProcessing();
+  private final ProcessingMethodMediator mediator;
   private String subdirName = null;
   private boolean setProgressBarTitle = false;//turn on to changed the progress bar title
   private boolean reassembling = false;
@@ -74,22 +76,22 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   private int tcshErrorCountDown = NO_TCSH_ERROR;
 
   ProcesschunksProcessMonitor(BaseManager manager, AxisID axisID,
-      ParallelProgressDisplay parallelProgressDisplay, String rootName,
-      Map computerMap) {
+      String rootName, Map computerMap) {
     this.manager = manager;
     this.axisID = axisID;
-    this.parallelProgressDisplay = parallelProgressDisplay;
+    this.parallelProgressDisplay = manager.getProcessingMethodMediator(axisID)
+        .getParallelProgressDisplay();
     this.rootName = rootName;
     this.computerMap = computerMap;
+    mediator = manager.getProcessingMethodMediator(axisID);
     debug = EtomoDirector.INSTANCE.getArguments().isDebug();
   }
 
   public static ProcesschunksProcessMonitor getReconnectInstance(
-      BaseManager manager, AxisID axisID,
-      ParallelProgressDisplay parallelProgressDisplay, ProcessData processData) {
+      BaseManager manager, AxisID axisID, ProcessData processData) {
     ProcesschunksProcessMonitor instance = new ProcesschunksProcessMonitor(
-        manager, axisID, parallelProgressDisplay, processData
-            .getSubProcessName(), processData.getComputerMap());
+        manager, axisID, processData.getSubProcessName(), processData
+            .getComputerMap());
     instance.reconnect = true;
     return instance;
   }
@@ -116,6 +118,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 
   public final void run() {
     running = true;
+    mediator.register(this);
     //make sure commmandsPipe is deleted and enable its use
     try {
       deleteCommandsPipe(true);
@@ -127,7 +130,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     if (reconnect && parallelProgressDisplay != null) {
       parallelProgressDisplay.setComputerMap(computerMap);
     }
-    parallelProgressDisplay.msgStartingProcessOnSelectedComputers();
+    if (parallelProgressDisplay != null) {
+      parallelProgressDisplay.msgStartingProcessOnSelectedComputers();
+    }
     nChunks.set(0);
     chunksFinished.set(0);
     initializeProgressBar();
@@ -164,8 +169,11 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     catch (LogFile.LockException e) {
       e.printStackTrace();
     }
-    parallelProgressDisplay.msgEndingProcess();
+    if (parallelProgressDisplay != null) {
+      parallelProgressDisplay.msgEndingProcess();
+    }
     running = false;
+    mediator.deregister(this);
   }
 
   public final void msgLogFileRenamed() {
@@ -219,7 +227,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   public final void kill(SystemProcessInterface process, AxisID axisID) {
     try {
       writeCommand("Q");
-      parallelProgressDisplay.msgKillingProcess();
+      if (parallelProgressDisplay != null) {
+        parallelProgressDisplay.msgKillingProcess();
+      }
       killing = true;
       setProgressBarTitle = true;
       if (starting) {
@@ -249,7 +259,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   public final void pause(SystemProcessInterface process, AxisID axisID) {
     try {
       writeCommand("P");
-      parallelProgressDisplay.msgPausingProcess();
+      if (parallelProgressDisplay != null) {
+        parallelProgressDisplay.msgPausingProcess();
+      }
       pausing = true;
       setProgressBarTitle = true;
     }
@@ -609,6 +621,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.53  2010/11/13 16:03:45  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.52  2010/03/03 04:55:35  sueh
  * <p> bug# 1311 Removed unnecessary ProcessName references.
  * <p>
