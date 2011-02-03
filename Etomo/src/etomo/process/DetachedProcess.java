@@ -13,6 +13,7 @@ import etomo.type.ConstProcessSeries;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
+import etomo.type.ProcessingMethod;
 import etomo.ui.swing.UIHarness;
 import etomo.util.DatasetFiles;
 
@@ -51,7 +52,7 @@ final class DetachedProcess extends BackgroundProcess {
       BaseProcessManager processManager, AxisID axisID,
       OutfileProcessMonitor monitor, ProcessResultDisplay processResultDisplay,
       ProcessName processName, ConstProcessSeries processSeries,
-      boolean popupChunkWarnings) {
+      boolean popupChunkWarnings, final ProcessingMethod processingMethod) {
     super(manager, commandDetails, processManager, axisID, processName,
         processSeries, popupChunkWarnings);
     this.axisID = axisID;
@@ -59,8 +60,10 @@ final class DetachedProcess extends BackgroundProcess {
     this.monitor = monitor;
     this.processManager = processManager;
     setProcessResultDisplay(processResultDisplay);
+    ProcessData processData = getProcessData();
+    processData.setProcessingMethod(processingMethod);
     if (monitor != null) {
-      getProcessData().setSubProcessName(monitor.getSubProcessName());
+      processData.setSubProcessName(monitor.getSubProcessName());
     }
   }
 
@@ -256,6 +259,9 @@ final class DetachedProcess extends BackgroundProcess {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.26  2010/11/13 16:03:45  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.25  2010/10/20 23:04:20  sueh
  * <p> bug# 1364 Removing unnecessary variable runInBackground.
  * <p>
