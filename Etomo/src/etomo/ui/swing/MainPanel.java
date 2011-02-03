@@ -35,6 +35,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.44  2010/03/03 05:04:38  sueh
  * <p> bug# 1311 Removed unnecessary ProcessName references.
  * <p>
@@ -458,19 +461,6 @@ public abstract class MainPanel extends EtomoPanel {
     if (axisPanel != null) {
       axisPanel.endThreads();
     }
-  }
-
-  /**
-   * create (if necessary) and show/hide the parallel panel
-   * @param axisID
-   * @param show: true = create/show/start panel, false = hide/stop panel
-   */
-  public void setParallelDialog(AxisID axisID, boolean show) {
-    AxisProcessPanel axisPanel = mapBaseAxis(axisID);
-    if (axisPanel == null) {
-      return;
-    }
-    axisPanel.setParallelDialog(show);
   }
 
   public ParallelPanel getParallelPanel(AxisID axisID) {
