@@ -14,11 +14,14 @@ package etomo.ui.swing;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.1  2010/01/21 21:31:33  sueh
  * <p> bug# 1305 Factored filter full volume panel out of AnisotropicDiffusionDialog.
  * <p> </p>
  */
-interface FilterFullVolumeParent {
+interface FilterFullVolumeParent extends ProcessInterface {
   public static final String rcsid = "$Id$";
 
   public void cleanUp();

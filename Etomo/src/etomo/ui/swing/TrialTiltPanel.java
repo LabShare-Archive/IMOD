@@ -37,6 +37,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2010/12/05 05:24:51  sueh
+ * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.  Added
+ * <p> setEnabled(boolean).
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -235,10 +239,6 @@ final class TrialTiltPanel implements Expandable, Run3dmodButtonContainer,
     UIHarness.INSTANCE.pack(axisID, manager);
   }
 
-  public boolean isParallelProcess() {
-    return parent.isParallelProcess();
-  }
-
   public void action(final Run3dmodButton button,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     action(button.getActionCommand(), button.getDeferred3dmodButton(),
@@ -258,7 +258,9 @@ final class TrialTiltPanel implements Expandable, Run3dmodButtonContainer,
       final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnTrial.getActionCommand())) {
-      manager.trialAction(btnTrial, null, this, axisID, dialogType);
+      manager.trialAction(btnTrial, null, this, axisID, dialogType, manager
+          .getProcessingMethodMediator(axisID).getRunMethodForProcessInterface(
+              parent.getProcessingMethod()));
     }
     else if (command.equals(btnUseTrial.getActionCommand())) {
       manager.commitTestVolume(btnUseTrial, axisID, this);

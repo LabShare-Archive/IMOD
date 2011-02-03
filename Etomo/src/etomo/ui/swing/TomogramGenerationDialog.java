@@ -39,6 +39,10 @@ import etomo.type.TomogramState;
  * 
  * <p>
  * $Log$
+ * Revision 1.2  2010/12/05 05:22:36  sueh
+ * bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.  Under --newstuff,
+ * added tabs and SirtPanel.
+ *
  * Revision 1.1  2010/11/13 16:07:34  sueh
  * bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  *
@@ -655,7 +659,7 @@ import etomo.type.TomogramState;
  */
 
 public class TomogramGenerationDialog extends ProcessDialog implements
-    ContextMenu, ParallelProcessEnabledDialog {
+    ContextMenu {
   public static final String rcsid = "$Id$";
 
   public static final String X_AXIS_TILT_TOOLTIP = "This line allows one to rotate the reconstruction around the X axis, so "
@@ -676,10 +680,10 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     super(appMgr, axisID, DialogType.TOMOGRAM_GENERATION);
     this.expert = expert;
     tiltPanel = TiltPanel.getBackProjectionInstance(appMgr, axisID, dialogType,
-        this, btnAdvanced);
+        btnAdvanced);
     if (EtomoDirector.INSTANCE.getArguments().isNewstuff()) {
-      sirtPanel = SirtPanel.getInstance(appMgr, axisID, dialogType, this,
-          btnAdvanced);
+      sirtPanel = SirtPanel
+          .getInstance(appMgr, axisID, dialogType, btnAdvanced);
     }
     else {
       sirtPanel = null;
@@ -691,7 +695,6 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     TomogramGenerationDialog instance = new TomogramGenerationDialog(appMgr,
         expert, axisID);
     instance.createPanel();
-    instance.updateParallelProcess();
     instance.updateAdvanced();
     instance.initTab();
     instance.addListeners();
@@ -759,7 +762,6 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     else if (curTab == Tab.SIRT) {
       panel.add(sirtPanel.getRoot());
     }
-    updateParallelProcess();
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
@@ -819,16 +821,6 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
-  public boolean usingParallelProcessing() {
-    if (curTab == Tab.BACK_PROJECTION) {
-      return tiltPanel.usingParallelProcessing();
-    }
-    else if (curTab == Tab.SIRT) {
-      sirtPanel.usingParallelProcessing();
-    }
-    return false;
-  }
-
   /**
    * Right mouse button context menu
    */
@@ -866,10 +858,6 @@ public class TomogramGenerationDialog extends ProcessDialog implements
       return sirtPanel.getTiltDisplay();
     }
     return null;
-  }
-
-  public void updateParallelProcess() {
-    applicationManager.setParallelDialog(axisID, usingParallelProcessing());
   }
 
   private static final class TabChangeListener implements ChangeListener {

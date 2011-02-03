@@ -12,6 +12,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
+import etomo.ProcessingMethodMediator;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.SplittiltParam;
@@ -28,6 +29,7 @@ import etomo.type.DialogType;
 import etomo.type.MetaData;
 import etomo.type.PanelId;
 import etomo.type.ProcessResultDisplay;
+import etomo.type.ProcessingMethod;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TomogramState;
@@ -48,6 +50,11 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2010/12/05 04:48:30  sueh
+ * <p> bug# 1416 Moved radial filter fields to RadialPanel.  Added setEnabled
+ * <p> boolean) to enable/disable all the fields in the panel.  Added booleans for
+ * <p> remember the state so enabling all the fields will be down correctly.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:35  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -87,7 +94,7 @@ import etomo.util.InvalidParameterException;
  * <p> </p>
  */
 abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
-    Run3dmodButtonContainer, TiltDisplay {
+    Run3dmodButtonContainer, TiltDisplay, ProcessInterface {
   public static final String rcsid = "$Id$";
 
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
@@ -97,8 +104,6 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   private final JPanel pnlBody = new JPanel();
   private final CheckTextField ctfLog = CheckTextField
       .getInstance("Take logarithm of densities with offset: ");
-  private final CheckBox cbParallelProcess = new CheckBox(
-      ParallelPanel.FIELD_LABEL);
   private final LabeledTextField ltfTomoWidth = new LabeledTextField(
       "Tomogram width in X: ");
   final LabeledTextField ltfTomoThickness = new LabeledTextField(
@@ -129,8 +134,19 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   private final CheckBox cbUseLocalAlignment = new CheckBox(
       "Use local alignments");
   private final CheckBox cbUseZFactors = new CheckBox("Use Z factors");
-  private final CheckBox cbUseGpu = new CheckBox("Use the GPU");
   private final RadialPanel radialPanel = RadialPanel.getInstance();
+  /**
+   * cbParallelProcess: Call mediator.msgChangedMethod when
+   * cbParallelProcess's value is changed.
+   */
+  private final CheckBox cbParallelProcess = new CheckBox(
+      ParallelPanel.FIELD_LABEL);
+  /**
+   * cbUseGpu: Enable/disable cbUseGpu by changing gpuEnabled and calling
+   * updateDisplay.  Call mediator.msgChangedMethod when cbUseGpu's value is
+   * changed.
+   */
+  private final CheckBox cbUseGpu = new CheckBox("Use the GPU");
 
   private final PanelHeader header;
   final ApplicationManager manager;
@@ -140,17 +156,21 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   //Keep components with listeners private.
   private final Run3dmodButton btnTilt;
   private final MultiLineButton btnDeleteStack;
-  private final ParallelProcessEnabledDialog parentDialog;
   private final PanelId panelId;
+  final ProcessingMethodMediator mediator;
 
+  private boolean gpuAvailable = false;
+  private boolean gpuEnabled = true;
   private boolean enabled = true;
   private boolean madeZFactors = false;
   private boolean newstFiducialessAlignment = false;
   private boolean usedLocalAlignments = false;
+  private boolean processingMethodLocked = false;
 
   abstract void tiltAction(ProcessResultDisplay processResultDisplay,
       final Deferred3dmodButton deferred3dmodButton,
-      final Run3dmodMenuOptions run3dmodMenuOptions);
+      final Run3dmodMenuOptions run3dmodMenuOptions,
+      ProcessingMethod tiltProcessingMethod);
 
   abstract void imodTomogramAction(
       final Deferred3dmodButton deferred3dmodButton,
@@ -160,13 +180,12 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   //get binning from newst
   AbstractTiltPanel(final ApplicationManager manager, final AxisID axisID,
       final DialogType dialogType,
-      final ParallelProcessEnabledDialog parentDialog,
       final GlobalExpandButton globalAdvancedButton, final PanelId panelId) {
     this.manager = manager;
     this.axisID = axisID;
     this.dialogType = dialogType;
-    this.parentDialog = parentDialog;
     this.panelId = panelId;
+    mediator = manager.getProcessingMethodMediator(axisID);
     if (panelId == PanelId.TILT_SIRT) {
       btn3dmodTomogram = null;
     }
@@ -183,6 +202,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     btnTilt = (Run3dmodButton) displayFactory.getTilt(dialogType, panelId);
     btnDeleteStack = (MultiLineButton) displayFactory
         .getDeleteAlignedStack(panelId);
+
   }
 
   final void initializePanel() {
@@ -400,29 +420,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
       btnDeleteStack.removeActionListener(actionListener);
     }
     trialTiltPanel.done();
-  }
-
-  /**
-   * Show or hide the parallel processing panel.  If Parallel Processing has
-   * been checked and Use GPU is checked, uncheck Use GPU.
-   */
-  private void updateParallelProcess() {
-    parentDialog.updateParallelProcess();
-    if (cbParallelProcess.isSelected() && cbUseGpu.isSelected()) {
-      cbUseGpu.setSelected(false);
-    }
-  }
-
-  /**
-   * If Use GPU has been checked and Parallel Processing is checked, uncheck
-   * Parallel Processing and call updateParallelProcessing to update the
-   * parallel processing panel.
-   */
-  public final void updateUseGpu() {
-    if (cbUseGpu.isSelected() && cbParallelProcess.isSelected()) {
-      cbParallelProcess.setSelected(false);
-      updateParallelProcess();
-    }
+    mediator.deregister(this);
   }
 
   public final void setEnabled(boolean enable) {
@@ -439,7 +437,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
       btn3dmodTomogram.setEnabled(enabled);
     }
     ctfLog.setEnabled(enabled);
-    cbParallelProcess.setEnabled(enabled);
+    cbParallelProcess.setEnabled(enabled && !processingMethodLocked);
     ltfTomoWidth.setEnabled(enabled);
     ltfTomoThickness.setEnabled(enabled);
     ltfSliceIncr.setEnabled(enabled);
@@ -464,7 +462,8 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     cbUseZFactors.setEnabled(madeZFactors && !newstFiducialessAlignment
         && enabled);
 
-    cbUseGpu.setEnabled(enabled);
+    cbUseGpu.setEnabled(gpuAvailable && gpuEnabled && enabled
+        && !processingMethodLocked);
     trialTiltPanel.setEnabled(enabled);
     if (btnTilt != null) {
       btnTilt.setEnabled(enabled);
@@ -474,17 +473,8 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     }
   }
 
-  public final boolean isParallelProcess() {
+  final boolean isParallelProcess() {
     return cbParallelProcess.isSelected();
-  }
-
-  public final boolean usingParallelProcessing() {
-    return cbParallelProcess.isEnabled() && cbParallelProcess.isSelected();
-  }
-
-  final void setParallelProcess(final boolean select) {
-    cbParallelProcess.setSelected(select);
-    updateParallelProcess();
   }
 
   final boolean isZShiftSet() {
@@ -550,21 +540,19 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     boolean validAutodoc = Network.isParallelProcessingEnabled(manager, axisID,
         manager.getPropertyUserDir());
     //Use GPU
-    cbUseGpu.setEnabled(Network.isLocalHostGpuProcessingEnabled(manager,
-        axisID, manager.getPropertyUserDir()));
+    gpuAvailable = Network.isLocalHostGpuProcessingEnabled(manager, axisID,
+        manager.getPropertyUserDir());
     cbUseGpu.setSelected(metaData.getDefaultGpuProcessing().is());
-    updateUseGpu();
+    //updateUseGpu();
     //Parallel processing
     cbParallelProcess.setEnabled(validAutodoc);
     ConstEtomoNumber tiltParallel = metaData.getTiltParallel(axisID, panelId);
     if (tiltParallel == null) {
-      //Default GPU processing takes precedence over default parallel process,
-      //at least for now.
-      setParallelProcess(validAutodoc && metaData.getDefaultParallel().is()
-          && !metaData.getDefaultGpuProcessing().is());
+      cbParallelProcess.setSelected(validAutodoc
+          && metaData.getDefaultParallel().is());
     }
     else {
-      setParallelProcess(validAutodoc && tiltParallel.is());
+      cbParallelProcess.setSelected(validAutodoc && tiltParallel.is());
     }
     trialTiltPanel.setParameters(metaData);
     ctfLog.setText(metaData.getGenLog(axisID));
@@ -578,6 +566,36 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
       ltfLinearDensityScaleOffset.setText(metaData
           .getGenScaleOffsetLinear(axisID));
     }
+    updateDisplay();
+    mediator.setMethod(this, getProcessingMethod());
+  }
+
+  public void disableGpu(final boolean disable) {
+    gpuEnabled = !disable;
+    updateDisplay();
+  }
+
+  public void lockProcessingMethod(final boolean lock) {
+    processingMethodLocked = lock;
+    updateDisplay();
+
+  }
+
+  public ProcessingMethod getProcessingMethod() {
+    if (cbParallelProcess.isEnabled() && cbParallelProcess.isSelected()) {
+      if (cbUseGpu.isEnabled() && cbUseGpu.isSelected()) {
+        return ProcessingMethod.PP_GPU;
+      }
+      return ProcessingMethod.PP_CPU;
+    }
+    if (cbUseGpu.isEnabled() && cbUseGpu.isSelected()) {
+      return ProcessingMethod.LOCAL_GPU;
+    }
+    return ProcessingMethod.LOCAL_CPU;
+  }
+
+  void registerProcessingMethodMediator() {
+    mediator.register(this);
   }
 
   /**
@@ -633,13 +651,14 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     if (!initialize) {
       //During initialization the value should coming from setup
       cbUseGpu.setSelected(tiltParam.isUseGpu());
-      updateUseGpu();
+      //updateUseGpu();
     }
     MetaData metaData = manager.getMetaData();
     cbUseLocalAlignment.setSelected(metaData.getUseLocalAlignments(axisID));
     cbUseZFactors.setSelected(metaData.getUseZFactors(axisID).is());
     ltfExtraExcludeList.setText(tiltParam.getExcludeList2());
     updateDisplay();
+    mediator.setMethod(this, getProcessingMethod());
   }
 
   final void setParameters(final ReconScreenState screenState) {
@@ -864,21 +883,22 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
       final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (btnTilt != null && command.equals(btnTilt.getActionCommand())) {
-      tiltAction(btnTilt, deferred3dmodButton, run3dmodMenuOptions);
+      tiltAction(btnTilt, deferred3dmodButton, run3dmodMenuOptions, mediator
+          .getRunMethodForProcessInterface(getProcessingMethod()));
     }
     else if (btnDeleteStack != null
         && command.equals(btnDeleteStack.getActionCommand())) {
       manager.deleteIntermediateImageStacks(axisID, btnDeleteStack);
     }
     else if (command.equals(cbParallelProcess.getActionCommand())) {
-      updateParallelProcess();
+      mediator.setMethod(this, getProcessingMethod());
     }
     else if (btn3dmodTomogram != null
         && command.equals(btn3dmodTomogram.getActionCommand())) {
       imodTomogramAction(deferred3dmodButton, run3dmodMenuOptions);
     }
     else if (command.equals(cbUseGpu.getActionCommand())) {
-      updateUseGpu();
+      mediator.setMethod(this, getProcessingMethod());
     }
     else {
       updateDisplay();

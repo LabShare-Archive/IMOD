@@ -24,6 +24,7 @@ import etomo.type.FileType;
 import etomo.type.MetaData;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
+import etomo.type.ProcessingMethod;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TomogramState;
@@ -44,6 +45,11 @@ import etomo.type.ViewType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2010/12/05 04:54:01  sueh
+ * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.  Getting rid of
+ * <p> some of the panel parents by handling common needs with generic
+ * <p> interfaces:  ParallelProcessEnabledDialog.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -84,9 +90,7 @@ final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
   private final PanelHeader header;
 
   Beads3dFindPanel(final ApplicationManager manager, final AxisID axisID,
-      final DialogType dialogType,
-      final ParallelProcessEnabledDialog parentDialog,
-      final GlobalExpandButton globalAdvancedButton) {
+      final DialogType dialogType, final GlobalExpandButton globalAdvancedButton) {
     this.manager = manager;
     this.axisID = axisID;
     this.dialogType = dialogType;
@@ -101,7 +105,7 @@ final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
           axisID, dialogType, this);
     }
     tilt3dFindPanel = Tilt3dFindPanel.getInstance(manager, axisID, dialogType,
-        parentDialog, this, newstackOrBlendmont3dFindPanel.get3dmodButton());
+        this, newstackOrBlendmont3dFindPanel.get3dmodButton());
     findBeads3dPanel = FindBeads3dPanel.getInstance(manager, axisID,
         dialogType, globalAdvancedButton);
     reprojectModelPanel = ReprojectModelPanel.getInstance(manager, axisID,
@@ -110,12 +114,19 @@ final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
 
   static Beads3dFindPanel getInstance(final ApplicationManager manager,
       final AxisID axisID, final DialogType dialogType,
-      final ParallelProcessEnabledDialog parentDialog,
       final GlobalExpandButton globalAdvancedButton) {
     Beads3dFindPanel instance = new Beads3dFindPanel(manager, axisID,
-        dialogType, parentDialog, globalAdvancedButton);
+        dialogType, globalAdvancedButton);
     instance.createPanel();
     return instance;
+  }
+
+  void registerProcessingMethodMediator() {
+    tilt3dFindPanel.registerProcessingMethodMediator();
+  }
+
+  ProcessingMethod getProcessingMethod() {
+    return tilt3dFindPanel.getProcessingMethod();
   }
 
   void done() {
@@ -189,12 +200,7 @@ final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
     return findBeads3dPanel;
   }
 
-  public boolean usingParallelProcessing() {
-    return tilt3dFindPanel.usingParallelProcessing();
-  }
-
-  public void setTiltState(TomogramState state,
-      ConstMetaData metaData) {
+  public void setTiltState(TomogramState state, ConstMetaData metaData) {
     tilt3dFindPanel.setState(state, metaData);
   }
 
@@ -268,7 +274,8 @@ final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
 
   public void tilt3dFindAction(final ProcessResultDisplay processResultDisplay,
       final Deferred3dmodButton deferred3dmodButton,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
+      final Run3dmodMenuOptions run3dmodMenuOptions,
+      final ProcessingMethod tiltpProcessingMethod) {
     //The parent (this class) is responsible for running tilt_3dfind because it
     //may have to run newst/blend_3dfind first.
     //Validate to make sure that the binned bead size in pixels is not too
@@ -283,7 +290,8 @@ final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
         .getBinning(), FileType.ALIGNED_STACK)) {
       ProcessSeries processSeries = new ProcessSeries(manager, dialogType,
           tilt3dFindPanel);
-      processSeries.setNextProcess(ProcessName.TILT_3D_FIND.toString());
+      processSeries.setNextProcess(ProcessName.TILT_3D_FIND.toString(),
+          tiltpProcessingMethod);
       newstackOrBlendmont3dFindPanel.runProcess(processResultDisplay,
           processSeries, run3dmodMenuOptions);
     }

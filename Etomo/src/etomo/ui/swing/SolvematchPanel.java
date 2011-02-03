@@ -43,6 +43,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2010/12/05 05:18:46  sueh
+ * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:35  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -622,7 +625,8 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
       }
       else if (initialPanel && command.equals(btnRestart.getActionCommand())) {
         applicationManager.combine(btnRestart, null, deferred3dmodButton,
-            run3dmodMenuOptions, dialogType);
+            run3dmodMenuOptions, dialogType, tomogramCombinationDialog
+                .getProcessingMethod());
       }
       else if (command.equals(btnImodMatchModels.getActionCommand())) {
         applicationManager.imodMatchingModel(cbBinBy2.isSelected(),

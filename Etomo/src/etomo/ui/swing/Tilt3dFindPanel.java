@@ -22,6 +22,7 @@ import etomo.type.MetaData;
 import etomo.type.PanelId;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
+import etomo.type.ProcessingMethod;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.util.InvalidParameterException;
 
@@ -39,6 +40,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2010/12/15 17:55:24  sueh
+ * <p> bug# 1425 In updateDisplay call super.updateDisplay to correctly enable
+ * <p> or disable the undisplayed parts of the panel.
+ * <p>
  * <p> Revision 1.2  2010/12/05 05:19:33  sueh
  * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.  Getting rid of some of the panel parents by handling common needs with generic
  * <p> interfaces:  ParallelProcessEnabledDialog.
@@ -101,9 +106,8 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
 
   private Tilt3dFindPanel(final ApplicationManager manager,
       final AxisID axisID, final DialogType dialogType,
-      final ParallelProcessEnabledDialog parentDialog,
       final Tilt3dFindParent parent, final Component extraButton) {
-    super(manager, axisID, dialogType, parentDialog, null, PANEL_ID);
+    super(manager, axisID, dialogType, null, PANEL_ID);
     this.parent = parent;
     this.extraButton = extraButton;
     //Change some labels.
@@ -112,11 +116,10 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
   }
 
   static Tilt3dFindPanel getInstance(final ApplicationManager manager,
-      final AxisID axisID, DialogType dialogType,
-      final ParallelProcessEnabledDialog parentDialog, Tilt3dFindParent parent,
+      final AxisID axisID, DialogType dialogType, Tilt3dFindParent parent,
       Component extraButton) {
     Tilt3dFindPanel instance = new Tilt3dFindPanel(manager, axisID, dialogType,
-        parentDialog, parent, extraButton);
+        parent, extraButton);
     instance.createPanel();
     instance.setToolTipText();
     instance.addListeners();
@@ -268,14 +271,16 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
       final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     manager.tilt3dFindAction(processResultDisplay, null, deferred3dmodButton,
-        run3dmodMenuOptions, this, axisID, dialogType);
+        run3dmodMenuOptions, this, axisID, dialogType, mediator
+            .getRunMethodForProcessInterface(getProcessingMethod()));
   }
 
   void tiltAction(final ProcessResultDisplay processResultDisplay,
       final Deferred3dmodButton deferred3dmodButton,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
+      final Run3dmodMenuOptions run3dmodMenuOptions,
+      final ProcessingMethod tiltProcessingMethod) {
     parent.tilt3dFindAction(processResultDisplay, deferred3dmodButton,
-        run3dmodMenuOptions);
+        run3dmodMenuOptions, tiltProcessingMethod);
   }
 
   void imodTomogramAction(final Deferred3dmodButton deferred3dmodButton,

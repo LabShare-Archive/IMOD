@@ -15,6 +15,7 @@ import etomo.type.ProcessResult;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessTrack;
+import etomo.type.ProcessingMethod;
 
 /**
  * <p>Description: </p>
@@ -96,7 +97,6 @@ public abstract class ReconUIExpert implements UIExpert {
   final void openDialog(ProcessDialog dialog) {
     dialogOutOfDate = false;
     mainPanel.showProcess(dialog.getContainer(), axisID);
-    mainPanel.setParallelDialog(axisID, dialog.usingParallelProcessing());
   }
 
   final void sendMsgProcessStarting(ProcessResultDisplay processResultDisplay) {
@@ -169,7 +169,7 @@ public abstract class ReconUIExpert implements UIExpert {
   final void processchunks(BaseManager manager, AbstractParallelDialog dialog,
       ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries, ProcessName processName,
-      FileType outputImageFileType) {
+      FileType outputImageFileType, ProcessingMethod processingMethod) {
     sendMsgProcessStarting(processResultDisplay);
     if (dialog == null) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
@@ -189,7 +189,8 @@ public abstract class ReconUIExpert implements UIExpert {
     setDialogState(ProcessState.INPROGRESS);
     //param should never be set to resume
     parallelPanel.getParallelProgressDisplay().resetResults();
-    manager.processchunks(axisID, param, processResultDisplay, processSeries,true);
+    manager.processchunks(axisID, param, processResultDisplay, processSeries,
+        true, processingMethod);
   }
 
   final ParallelPanel getParallelPanel() {
@@ -211,6 +212,9 @@ public abstract class ReconUIExpert implements UIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.15  2010/07/02 03:19:49  sueh
  * <p> bug# 1388 Calling processchunks with popupChunkWarnings equals to true.
  * <p>

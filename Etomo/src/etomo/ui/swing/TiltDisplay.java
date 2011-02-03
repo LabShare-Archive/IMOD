@@ -20,14 +20,15 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.1  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p> </p>
  */
 public interface TiltDisplay extends ProcessDisplay {
   public static final String rcsid = "$Id$";
-
-  public boolean isParallelProcess();
 
   public boolean getParameters(TiltParam param) throws NumberFormatException,
       InvalidParameterException, IOException;

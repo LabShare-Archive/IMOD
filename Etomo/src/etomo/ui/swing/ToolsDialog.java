@@ -31,6 +31,9 @@ import etomo.type.ToolType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.1  2010/02/17 04:56:58  sueh
  * <p> bug# 1301 Main dialog for the ToolsManager.
  * <p> </p>
@@ -111,10 +114,6 @@ public final class ToolsDialog implements ContextMenu, LogInterface {
 
   public Container getContainer() {
     return pnlRoot;
-  }
-
-  public boolean usingParallelProcessing() {
-    return false;
   }
 
   /**

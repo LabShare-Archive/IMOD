@@ -20,6 +20,7 @@ import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.FiducialMatch;
 import etomo.type.MatchMode;
+import etomo.type.ProcessingMethod;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.util.DatasetFiles;
@@ -39,6 +40,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2010/12/05 05:10:56  sueh
+ * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -378,6 +382,10 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
         + ".  Final size will be " + toY);
   }
 
+  ProcessingMethod getProcessingMethod() {
+    return ProcessingMethod.LOCAL_CPU;
+  }
+
   /**
    * Since match mode isn't modified in initial tab, always return null.
    */
@@ -392,7 +400,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
   public void setUseCorrespondingPoints(boolean use) {
     pnlSolvematch.setUseCorrespondingPoints(use);
   }
-  
+
   public Container getContainer() {
     return pnlRoot;
   }
@@ -535,7 +543,8 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
         true);
     if (command.equals(btnMatchvolRestart.getActionCommand())) {
       applicationManager.matchvol1Combine(btnMatchvolRestart, null,
-          deferred3dmodButton, run3dmodMenuOptions, dialogType);
+          deferred3dmodButton, run3dmodMenuOptions, dialogType,
+          tomogramCombinationDialog.getRunProcessingMethod());
     }
   }
 

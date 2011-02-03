@@ -28,6 +28,7 @@ import etomo.type.FiducialMatch;
 import etomo.type.MatchMode;
 import etomo.type.MetaData;
 import etomo.type.ProcessResultDisplay;
+import etomo.type.ProcessingMethod;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TomogramState;
@@ -55,6 +56,9 @@ import etomo.util.MRCHeader;
  * 
  * <p>
  * $Log$
+ * Revision 1.2  2010/12/05 05:16:57  sueh
+ * bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
+ *
  * Revision 1.1  2010/11/13 16:07:34  sueh
  * bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  *
@@ -514,6 +518,9 @@ public final class SetupCombinePanel implements ContextMenu,
   private final MultiLineButton btnDefaults = new MultiLineButton("Defaults");
   private final DialogType dialogType;
 
+  private boolean validAutodoc = false;
+  private boolean processingMethodLocked = false;
+
   /**
    * Default constructor
    */
@@ -775,12 +782,11 @@ public final class SetupCombinePanel implements ContextMenu,
   void setParameters(ConstMetaData metaData) {
     //Parallel processing is optional in tomogram reconstruction, so only use it
     //if the user set it up.
-    boolean validAutodoc = Network.isParallelProcessingEnabled(
-        applicationManager, AxisID.FIRST, applicationManager
-            .getPropertyUserDir());
+    validAutodoc = Network.isParallelProcessingEnabled(applicationManager,
+        AxisID.FIRST, applicationManager.getPropertyUserDir());
     ConstEtomoNumber combineVolcombineParallel = metaData
         .getCombineVolcombineParallel();
-    cbParallelProcess.setEnabled(validAutodoc);
+    cbParallelProcess.setEnabled(validAutodoc && !processingMethodLocked);
     if (combineVolcombineParallel == null) {
       cbParallelProcess.setSelected(validAutodoc
           && metaData.getDefaultParallel().is());
@@ -789,6 +795,24 @@ public final class SetupCombinePanel implements ContextMenu,
       cbParallelProcess.setSelected(validAutodoc
           && combineVolcombineParallel.is());
     }
+    sendProcessingMethodMessage();
+  }
+
+  public void lockProcessingMethod(final boolean lock) {
+    processingMethodLocked = lock;
+    cbParallelProcess.setEnabled(validAutodoc && !processingMethodLocked);
+  }
+
+  ProcessingMethod getProcessingMethod() {
+    if (cbParallelProcess.isEnabled() && cbParallelProcess.isSelected()) {
+      return ProcessingMethod.PP_CPU;
+    }
+    return ProcessingMethod.LOCAL_CPU;
+  }
+
+  private void sendProcessingMethodMessage() {
+    applicationManager.getProcessingMethodMediator(AxisID.FIRST).setMethod(
+        tomogramCombinationDialog, getProcessingMethod());
   }
 
   public void setNoVolcombine(boolean noVolcombine) {
@@ -801,14 +825,11 @@ public final class SetupCombinePanel implements ContextMenu,
 
   public void setParallel(boolean parallel) {
     cbParallelProcess.setSelected(parallel);
+    //Used for synchronization - don't send message to mediator
   }
 
   public void setParallelEnabled(boolean parallelEnabled) {
     cbParallelProcess.setEnabled(parallelEnabled);
-  }
-
-  public boolean usingParallelProcessing() {
-    return cbParallelProcess.isEnabled() && cbParallelProcess.isSelected();
   }
 
   public boolean isParallel() {
@@ -1144,10 +1165,11 @@ public final class SetupCombinePanel implements ContextMenu,
     }
     else if (command.equals(btnCombine.getActionCommand())) {
       applicationManager.combine(btnCombine, null, deferred3dmodButton,
-          run3dmodMenuOptions, dialogType);
+          run3dmodMenuOptions, dialogType, tomogramCombinationDialog
+              .getRunProcessingMethod());
     }
     else if (command.equals(cbParallelProcess.getActionCommand())) {
-      tomogramCombinationDialog.updateParallelProcess();
+      sendProcessingMethodMessage();
     }
     else if (command.equals(btnDefaults.getActionCommand())) {
       resetXandY();

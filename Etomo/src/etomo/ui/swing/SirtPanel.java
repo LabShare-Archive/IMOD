@@ -35,6 +35,9 @@ import etomo.type.TomogramState;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2010/12/05 05:17:34  sueh
+* <p> bug# 1421 Main class for running SIRT.
+* <p>
 * <p> Revision 1.1  2010/11/13 16:07:34  sueh
 * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
 * <p> </p>
@@ -73,13 +76,11 @@ final class SirtPanel implements Run3dmodButtonContainer {
   private final MultiLineButton btnUseSirt;
 
   private SirtPanel(final ApplicationManager manager, final AxisID axisID,
-      final DialogType dialogType,
-      final ParallelProcessEnabledDialog parentDialog,
-      final GlobalExpandButton globalAdvancedButton) {
+      final DialogType dialogType, final GlobalExpandButton globalAdvancedButton) {
     this.axisID = axisID;
     this.manager = manager;
     tiltPanel = TiltPanel.getSirtInstance(manager, axisID, dialogType,
-        parentDialog, globalAdvancedButton);
+        globalAdvancedButton);
     ProcessResultDisplayFactory factory = manager
         .getProcessResultDisplayFactory(axisID);
     btnSirtsetup = (Run3dmodButton) factory.getSirtsetup();
@@ -88,10 +89,9 @@ final class SirtPanel implements Run3dmodButtonContainer {
 
   static SirtPanel getInstance(final ApplicationManager manager,
       final AxisID axisID, final DialogType dialogType,
-      final ParallelProcessEnabledDialog parentDialog,
       final GlobalExpandButton globalAdvancedButton) {
     SirtPanel instance = new SirtPanel(manager, axisID, dialogType,
-        parentDialog, globalAdvancedButton);
+        globalAdvancedButton);
     instance.createPanel();
     instance.addListeners();
     return instance;
@@ -166,10 +166,6 @@ final class SirtPanel implements Run3dmodButtonContainer {
     btnSirtsetup.addActionListener(listener);
     btn3dmodSirt.addActionListener(listener);
     btnUseSirt.addActionListener(listener);
-  }
-
-  boolean usingParallelProcessing() {
-    return false;
   }
 
   void updateAdvanced(final boolean advanced) {

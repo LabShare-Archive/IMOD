@@ -11,6 +11,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JFileChooser;
 
 import etomo.ParallelManager;
+import etomo.ProcessingMethodMediator;
 import etomo.comscript.AnisotropicDiffusionParam;
 import etomo.comscript.ChunksetupParam;
 import etomo.comscript.ParallelParam;
@@ -22,6 +23,7 @@ import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.ParallelMetaData;
 import etomo.type.ProcessName;
+import etomo.type.ProcessingMethod;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.util.Utilities;
 
@@ -41,6 +43,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.23  2010/04/28 16:32:52  sueh
  * <p> bug# 1344 Added getSubdirectory.
  * <p>
@@ -123,7 +128,8 @@ import etomo.util.Utilities;
  * <p> </p>
  */
 public final class AnisotropicDiffusionDialog implements ContextMenu,
-    AbstractParallelDialog, Run3dmodButtonContainer, FilterFullVolumeParent {
+    AbstractParallelDialog, Run3dmodButtonContainer, FilterFullVolumeParent,
+    ProcessInterface {
   public static final String rcsid = "$Id$";
 
   public static final String CLEANUP_LABEL = FilterFullVolumePanel.CLEANUP_LABEL;
@@ -169,6 +175,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
 
   private final RubberbandPanel pnlTestVolumeRubberband;
   private final ParallelManager manager;
+  private final ProcessingMethodMediator mediator;
 
   private String subdirName = null;
   private boolean debug = false;
@@ -233,6 +240,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     System.err.println(Utilities.getDateTimeStamp() + "\nDialog: "
         + DialogType.ANISOTROPIC_DIFFUSION);
     this.manager = manager;
+    mediator = manager.getProcessingMethodMediator(AxisID.ONLY);
     filterFullVolumePanel = FilterFullVolumePanel.getInstance(manager,
         DIALOG_TYPE, this);
     //root
@@ -338,6 +346,23 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     pnlSecond.add(filterFullVolumePanel.getComponent());
     rootPanel.add(pnlSecond);
     setToolTipText();
+    mediator.register(this);
+    mediator.setMethod(this, ProcessingMethod.PP_CPU);
+  }
+
+  /**
+   * Get the processing method based on the dialogs settings.  Dialogs don't
+   * need to know if QUEUE is in use in the parallel panel.
+   * @return
+   */
+  public ProcessingMethod getProcessingMethod() {
+    return ProcessingMethod.PP_CPU;
+  }
+
+  public void disableGpu(final boolean disable) {
+  }
+
+  public void lockProcessingMethod(final boolean lock) {
   }
 
   public static AnisotropicDiffusionDialog getInstance(ParallelManager manager,
@@ -368,10 +393,6 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
 
   public DialogType getDialogType() {
     return DialogType.ANISOTROPIC_DIFFUSION;
-  }
-
-  public boolean usingParallelProcessing() {
-    return true;
   }
 
   public Container getContainer() {
@@ -539,7 +560,8 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
         return;
       }
       manager.anisotropicDiffusionVaryingK(subdirName, null,
-          deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
+          deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE, mediator
+              .getRunMethodForProcessInterface(getProcessingMethod()));
     }
     else if (command.equals(btnRunVaryingIteration.getActionCommand())) {
       if (!initSubdir()) {

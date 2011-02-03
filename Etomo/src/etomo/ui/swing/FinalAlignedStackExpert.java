@@ -28,6 +28,7 @@ import etomo.type.ProcessName;
 import etomo.type.ProcessResult;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessTrack;
+import etomo.type.ProcessingMethod;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TomogramState;
@@ -51,6 +52,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2010/12/05 05:04:39  sueh
+ * <p> bug# 1416 Changed setEnabledTiltParameters to setTiltState.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -314,11 +318,13 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       DialogType dialogType, ProcessDisplay display) {
     if (process.equals(ProcessName.PROCESSCHUNKS.toString())) {
       processchunks(manager, dialog, processResultDisplay, processSeries,
-          process.getSubprocessName(), process.getOutputImageFileType());
+          process.getSubprocessName(), process.getOutputImageFileType(),
+          process.getProcessingMethod());
     }
     else if (process.equals(ProcessName.TILT_3D_FIND.toString())) {
       manager.tilt3dFindAction(processResultDisplay, processSeries, null, null,
-          (TiltDisplay) display, axisID, dialogType);
+          (TiltDisplay) display, axisID, dialogType, process
+              .getProcessingMethod());
     }
   }
 
@@ -614,7 +620,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
 
   void ctfCorrection(ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
-      Run3dmodMenuOptions run3dmodMenuOptions) {
+      Run3dmodMenuOptions run3dmodMenuOptions,
+      final ProcessingMethod correctionProcessingMethod) {
     if (dialog == null) {
       return;
     }
@@ -625,8 +632,9 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     if (dialog.isUseExpectedDefocus() && !createSimpleDefocusFile()) {
       return;
     }
-    if (dialog.isParallelProcess()) {
-      splitcorrection(processResultDisplay, processSeries);
+    if (!correctionProcessingMethod.isLocal()) {
+      splitcorrection(processResultDisplay, processSeries,
+          correctionProcessingMethod);
     }
     else {
       ctfCorrection(processResultDisplay, processSeries);
@@ -676,7 +684,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
   }
 
   void splitcorrection(ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries) {
+      ProcessSeries processSeries,
+      final ProcessingMethod correctionProcessingMethod) {
     if (dialog == null) {
       return;
     }
@@ -689,12 +698,11 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     }
     setDialogState(ProcessState.INPROGRESS);
     ProcessResult processResult = manager.splitCorrection(axisID,
-        processResultDisplay, processSeries, param, dialogType);
-    if (processResult == null) {
-      processSeries.setNextProcess(ProcessName.PROCESSCHUNKS.toString(),
-          ProcessName.CTF_CORRECTION, FileType.CTF_CORRECTED_STACK);
+        processResultDisplay, processSeries, param, dialogType,
+        correctionProcessingMethod);
+    if (processResult != null) {
+      sendMsg(processResult, processResultDisplay);
     }
-    sendMsg(processResult, processResultDisplay);
   }
 
   /**

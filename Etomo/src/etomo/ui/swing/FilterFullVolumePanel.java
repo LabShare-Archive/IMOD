@@ -10,6 +10,7 @@ import javax.swing.JPanel;
 import etomo.ParallelManager;
 import etomo.comscript.AnisotropicDiffusionParam;
 import etomo.comscript.ChunksetupParam;
+import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.FileType;
 import etomo.type.ParallelMetaData;
@@ -29,6 +30,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.2  2010/04/28 16:37:07  sueh
  * <p> bug# 1344 In action removed call to manager.setupAnisotropicDiffusion.
  * <p>
@@ -110,7 +114,7 @@ final class FilterFullVolumePanel implements Run3dmodButtonContainer {
     pnlFields.add(spIteration);
     pnlFields.add(spMemoryPerChunk);
     //checkbox panel
-    pnlCheckBox.setLayout(new BoxLayout(pnlCheckBox,BoxLayout.X_AXIS));
+    pnlCheckBox.setLayout(new BoxLayout(pnlCheckBox, BoxLayout.X_AXIS));
     pnlCheckBox.add(cbOverlapTimesFour);
     //buttons panel
     pnlButtons.setBoxLayout(BoxLayout.X_AXIS);
@@ -167,7 +171,8 @@ final class FilterFullVolumePanel implements Run3dmodButtonContainer {
         return;
       }
       manager.chunksetup(null, deferred3dmodButton, run3dmodMenuOptions,
-          dialogType);
+          dialogType, manager.getProcessingMethodMediator(AxisID.ONLY)
+              .getRunMethodForProcessInterface(parent.getProcessingMethod()));
     }
     else if (command.equals(btnCleanup.getActionCommand())) {
       parent.cleanUp();

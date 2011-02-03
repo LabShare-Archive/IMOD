@@ -25,6 +25,9 @@ import etomo.type.ToolType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.10  2010/09/08 19:17:57  sueh
  * <p> bug# 1401 Added reconActionForAutomation
  * <p>
@@ -132,10 +135,6 @@ public final class FrontPageDialog {
 
   public Container getContainer() {
     return pnlRoot.getContainer();
-  }
-
-  public boolean usingParallelProcessing() {
-    return false;
   }
   
   public void reconActionForAutomation() {

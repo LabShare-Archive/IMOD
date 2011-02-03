@@ -43,6 +43,10 @@ import etomo.type.ViewType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2010/12/05 05:02:18  sueh
+ * <p> bug# 1420 Getting rid of some of the panel parents by handling common
+ * <p> needs with generic interfaces:  ParallelProcessEnabledDialog.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -86,28 +90,23 @@ final class EraseGoldPanel implements ContextMenu {
   private final ApplicationManager manager;
   private final AxisID axisID;
   private final DialogType dialogType;
-  final ParallelProcessEnabledDialog parentDialog;
 
   private EraseGoldPanel(final ApplicationManager manager, final AxisID axisID,
-      final DialogType dialogType,
-      final ParallelProcessEnabledDialog parentDialog,
-      final GlobalExpandButton globalAdvancedButton) {
+      final DialogType dialogType, final GlobalExpandButton globalAdvancedButton) {
     this.manager = manager;
     this.axisID = axisID;
     this.dialogType = dialogType;
-    this.parentDialog = parentDialog;
     xfModelPanel = XfModelPanel.getInstance(manager, axisID, dialogType);
     beads3dFindPanel = Beads3dFindPanel.getInstance(manager, axisID,
-        dialogType, parentDialog, globalAdvancedButton);
+        dialogType, globalAdvancedButton);
     ccdEraserBeadsPanel = CcdEraserBeadsPanel.getInstance(manager, axisID,
         dialogType);
   }
 
   static EraseGoldPanel getInstance(ApplicationManager manager, AxisID axisID,
-      DialogType dialogType, final ParallelProcessEnabledDialog parentDialog,
-      GlobalExpandButton globalAdvancedButton) {
+      DialogType dialogType, GlobalExpandButton globalAdvancedButton) {
     EraseGoldPanel instance = new EraseGoldPanel(manager, axisID, dialogType,
-        parentDialog, globalAdvancedButton);
+        globalAdvancedButton);
     instance.createPanel();
     instance.addListeners();
     instance.setToolTipText();
@@ -118,6 +117,10 @@ final class EraseGoldPanel implements ContextMenu {
     pnlRoot.addMouseListener(new GenericMouseAdapter(this));
     rbModelUseFid.addActionListener(actionListener);
     rbModelUseFindBeads3d.addActionListener(actionListener);
+  }
+
+  void registerProcessingMethodMediator() {
+    beads3dFindPanel.registerProcessingMethodMediator();
   }
 
   /**
@@ -177,10 +180,6 @@ final class EraseGoldPanel implements ContextMenu {
     return pnlRoot;
   }
 
-  public void updateParallelProcess() {
-    parentDialog.updateParallelProcess();
-  }
-
   void updateAdvanced(boolean advanced) {
     beads3dFindPanel.updateAdvanced(advanced);
   }
@@ -218,11 +217,6 @@ final class EraseGoldPanel implements ContextMenu {
     UIHarness.INSTANCE.pack(axisID, manager);
   }
 
-  public boolean usingParallelProcessing() {
-    return rbModelUseFindBeads3d.isSelected()
-        && beads3dFindPanel.usingParallelProcessing();
-  }
-
   void getParameters(MetaData metaData) throws FortranInputSyntaxException {
     ccdEraserBeadsPanel.getParameters(metaData);
     metaData.setEraseGoldModelUseFid(axisID, rbModelUseFid.isSelected());
@@ -237,8 +231,7 @@ final class EraseGoldPanel implements ContextMenu {
     beads3dFindPanel.getParameters(screenState);
   }
 
-  public void setTiltState(TomogramState state,
-      ConstMetaData metaData) {
+  public void setTiltState(TomogramState state, ConstMetaData metaData) {
     beads3dFindPanel.setTiltState(state, metaData);
   }
 
@@ -281,7 +274,6 @@ final class EraseGoldPanel implements ContextMenu {
     if (command.equals(rbModelUseFid.getActionCommand())
         || command.equals(rbModelUseFindBeads3d.getActionCommand())) {
       updateDisplay();
-      updateParallelProcess();
     }
   }
 

@@ -29,6 +29,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.42  2010/07/02 03:18:03  sueh
  * <p> bug# 1388 Added popupChunkWarnings.
  * <p>
@@ -285,8 +288,11 @@ public abstract class AxisProcessPanel implements ContextMenu {
   private EtomoNumber lastWidth = new EtomoNumber(EtomoNumber.Type.INTEGER);
   private KillButtonActionListener actionListener;
   private boolean parallelShowing = false;
-  private boolean parallelDialog = false;
-  private boolean parallelInUse = false;
+  /**
+   * processingMethodLocked: when on, prevents any changes to visibility of
+   * parallel panel.
+   */
+  private boolean processingMethodLocked = false;
 
   private final boolean popupChunkWarnings;
 
@@ -331,6 +337,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
     innerStatusPanel
         .setLayout(new BoxLayout(innerStatusPanel, BoxLayout.X_AXIS));
     buttonKillProcess.setToolTipText("Press to end the current process.");
+    manager.getProcessingMethodMediator(axis).register(this);
   }
 
   protected void initializePanels() {
@@ -364,45 +371,55 @@ public abstract class AxisProcessPanel implements ContextMenu {
     return hide;
   }
 
+  public void lockProcessingMethod(final boolean lock) {
+    processingMethodLocked = lock;
+  }
+
   /**
-   * build parallelStatusPanel if necessary
-   * show or hide parallelStatusPanel
-   * @param showParallelStatus
+   * Create and show, or hide parallel panel if necessary.
+   * @param method
    */
-  final void setParallelDialog(boolean show) {
-    parallelDialog = show;
-    if (parallelDialog) {
-      createParallelPanel();
-    }
-    if (parallelDialog && !parallelShowing) {
-      startParallelPanel();
-    }
-    else if (parallelPanel != null && !parallelDialog && parallelShowing
-        && !parallelInUse) {
-      stopParallelPanel();
-    }
+  public void showParallelPanel(final boolean show) {
+    showParallelPanel(show, false);
   }
 
-  final void setParallelInUse(boolean parallelInUse) {
-    this.parallelInUse = parallelInUse;
-    if (parallelInUse) {
-      createParallelPanel();
-    }
-    if (parallelInUse && !parallelShowing) {
-      startParallelPanel();
-    }
-    else if (!parallelInUse && !parallelDialog && parallelShowing) {
-      stopParallelPanel();
-    }
+  /**
+   * Call showParallelPanel, ignoring processingMethodLocked.
+   * @param show
+   */
+  public void forceShowParallelPanel(final boolean show) {
+    showParallelPanel(show, true);
   }
 
-  private final void createParallelPanel() {
-    if (parallelPanel == null) {
-      parallelPanel = ParallelPanel.getInstance(manager, axisID, manager
-          .getBaseScreenState(axisID).getParallelHeaderState(), this,
-          popupChunkWarnings);
-      parallelStatusPanel.add(Box.createRigidArea(FixedDim.x5_y0));
-      parallelStatusPanel.add(parallelPanel.getContainer());
+  /**
+   * Create and show, or hide parallel panel if necessary.
+   * @param method
+   */
+  private void showParallelPanel(final boolean show, final boolean force) {
+    if (processingMethodLocked && !force) {
+      return;
+    }
+    if (!show) {
+      //Parallel panel is not in use, hide it if necessary
+      if (parallelPanel != null && parallelShowing) {
+        parallelShowing = false;
+        parallelStatusPanel.setVisible(false);
+        UIHarness.INSTANCE.pack(axisID, manager);
+      }
+    }
+    else {
+      if (parallelPanel == null) {
+        parallelPanel = ParallelPanel.getInstance(manager, axisID, manager
+            .getBaseScreenState(axisID).getParallelHeaderState(), this,
+            popupChunkWarnings);
+        parallelStatusPanel.add(Box.createRigidArea(FixedDim.x5_y0));
+        parallelStatusPanel.add(parallelPanel.getContainer());
+      }
+      if (!parallelShowing) {
+        parallelShowing = true;
+        parallelStatusPanel.setVisible(true);
+        UIHarness.INSTANCE.pack(axisID, manager);
+      }
     }
   }
 
@@ -414,9 +431,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
   }
 
   void endThreads() {
-    if (parallelPanel != null) {
-      parallelPanel.getLoadDisplay().endLoad();
-    }
+    manager.getProcessingMethodMediator(axisID).msgExiting();
   }
 
   private final void stopParallelPanel() {

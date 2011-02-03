@@ -23,6 +23,7 @@ import javax.swing.event.ChangeListener;
 
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
+import etomo.ProcessingMethodMediator;
 import etomo.comscript.BlendmontParam;
 import etomo.comscript.ConstFindBeads3dParam;
 import etomo.comscript.ConstNewstParam;
@@ -46,6 +47,7 @@ import etomo.type.EtomoAutodoc;
 import etomo.type.MetaData;
 import etomo.type.PanelHeaderState;
 import etomo.type.ProcessName;
+import etomo.type.ProcessingMethod;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TomogramState;
@@ -66,6 +68,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2010/12/05 05:03:54  sueh
+ * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -178,7 +183,7 @@ import etomo.util.DatasetFiles;
  * <p> </p>
  */
 public final class FinalAlignedStackDialog extends ProcessDialog implements
-    Expandable, Run3dmodButtonContainer, ParallelProcessEnabledDialog, ContextMenu {
+    Expandable, Run3dmodButtonContainer, ContextMenu, ProcessInterface {
   public static final String rcsid = "$Id$";
 
   private static final String MTF_FILE_LABEL = "MTF file: ";
@@ -227,6 +232,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   private final ButtonListener finalAlignedStackListener = new ButtonListener(
       this);
   private final FinalAlignedStackExpert expert;
+  private final ProcessingMethodMediator mediator;
 
   //ctf correction
   private final PanelHeader ctfCorrectionHeader = PanelHeader
@@ -268,16 +274,19 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
 
   private boolean trialTilt = false;
   private Tab curTab = Tab.DEFAULT;
+  private boolean processingMethodLocked = false;
+  private boolean validAutodoc = false;
 
   private FinalAlignedStackDialog(ApplicationManager appMgr,
       FinalAlignedStackExpert expert, AxisID axisID, Tab curTab) {
     super(appMgr, axisID, DIALOG_TYPE);
     this.expert = expert;
     this.curTab = curTab;
+    mediator = appMgr.getProcessingMethodMediator(axisID);
     ProcessResultDisplayFactory displayFactory = appMgr
         .getProcessResultDisplayFactory(axisID);
     eraseGoldPanel = EraseGoldPanel.getInstance(appMgr, axisID, dialogType,
-        this, btnAdvanced);
+        btnAdvanced);
     if (appMgr.getMetaData().getViewType() == ViewType.MONTAGE) {
       newstackOrBlendmontPanel = BlendmontPanel.getInstance(appMgr, axisID,
           DIALOG_TYPE, btnAdvanced);
@@ -315,6 +324,12 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     // Set the default advanced dialog state
     updateAdvanced();
     setToolTipText();
+    if (curTab == Tab.CCD_ERASER) {
+      eraseGoldPanel.registerProcessingMethodMediator();
+    }
+    else {
+      mediator.register(this);
+    }
   }
 
   public static FinalAlignedStackDialog getInstance(ApplicationManager appMgr,
@@ -419,8 +434,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     return ltfDefocusTol.getText();
   }
 
-  public void setTiltState(TomogramState state,
-      ConstMetaData metaData) {
+  public void setTiltState(TomogramState state, ConstMetaData metaData) {
     eraseGoldPanel.setTiltState(state, metaData);
   }
 
@@ -640,9 +654,9 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   void setParameters(ConstMetaData metaData) {
     //Parallel processing is optional in tomogram reconstruction, so only use it
     //if the user set it up.
-    boolean validAutodoc = Network.isParallelProcessingEnabled(
-        applicationManager, axisID, applicationManager.getPropertyUserDir());
-    cbParallelProcess.setEnabled(validAutodoc);
+    validAutodoc = Network.isParallelProcessingEnabled(applicationManager,
+        axisID, applicationManager.getPropertyUserDir());
+    cbParallelProcess.setEnabled(validAutodoc && !processingMethodLocked);
     ConstEtomoNumber parallel = metaData
         .getFinalStackCtfCorrectionParallel(axisID);
     if (parallel == null) {
@@ -653,11 +667,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     }
     newstackOrBlendmontPanel.setParameters(metaData);
     eraseGoldPanel.setParameters(metaData);
-    updateParallelProcess();
-  }
-
-  public void updateParallelProcess() {
-    applicationManager.setParallelDialog(axisID, usingParallelProcessing());
+    mediator.setMethod(this, getProcessingMethod());
   }
 
   void setParameters(BlendmontParam param) {
@@ -703,17 +713,6 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     updateAdvancedFilter(advanced);
     updateAdvancedCtfCorrection(advanced);
     UIHarness.INSTANCE.pack(axisID, applicationManager);
-  }
-
-  /**
-   * Returns true if the current tab is one that uses parallel processing and
-   * parallel processing has been turned on in that tab.
-   */
-  public boolean usingParallelProcessing() {
-    return (curTab == Tab.CTF_CORRECTION && cbParallelProcess.isEnabled() && cbParallelProcess
-        .isSelected())
-        || (curTab == Tab.CCD_ERASER && eraseGoldPanel
-            .usingParallelProcessing());
   }
 
   boolean isParallelProcess() {
@@ -947,6 +946,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     btnCtfCorrection.removeActionListener(finalAlignedStackListener);
     btnUseCtfCorrection.removeActionListener(finalAlignedStackListener);
     setDisplayed(false);
+    mediator.deregister(this);
   }
 
   private void chooseConfigFile(FileTextField fileTextField) {
@@ -1004,7 +1004,8 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     }
     else if (command.equals(btnCtfCorrection.getActionCommand())) {
       expert.ctfCorrection(btnCtfCorrection, null, deferred3dmodButton,
-          run3dmodMenuOptions);
+          run3dmodMenuOptions, mediator
+              .getRunMethodForProcessInterface(getProcessingMethod()));
     }
     else if (command.equals(btnImodCtfCorrection.getActionCommand())) {
       applicationManager.imodCtfCorrection(axisID, run3dmodMenuOptions);
@@ -1013,14 +1014,50 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
       expert.useCtfCorrection(btnUseCtfCorrection);
     }
     else if (command.equals(cbParallelProcess.getActionCommand())) {
-      updateParallelProcess();
+      mediator.setMethod(this, getProcessingMethod());
     }
+  }
+
+  public void lockProcessingMethod(final boolean lock) {
+    processingMethodLocked = lock;
+    cbParallelProcess.setEnabled(validAutodoc && !processingMethodLocked);
+  }
+
+  public void disableGpu(final boolean disable) {
+  }
+
+  /**
+   * Return local processing method unless the ctf correction tab is selected.
+   * In that case check the parallel processing check box.  Does not handle
+   * bead erasing - that is handled by another class.
+   */
+  public ProcessingMethod getProcessingMethod() {
+    if (curTab == Tab.CTF_CORRECTION && cbParallelProcess.isEnabled()
+        && cbParallelProcess.isSelected()) {
+      return ProcessingMethod.PP_CPU;
+    }
+    return ProcessingMethod.LOCAL_CPU;
   }
 
   private void changeTab() {
     Tab prevTab = curTab;
-    ((Container) tabbedPane.getComponentAt(curTab.toInt())).removeAll();
     curTab = Tab.getInstance(tabbedPane.getSelectedIndex());
+    if (prevTab == curTab) {
+      //Tab didn't change - nothing to do
+      return;
+    }
+    ((Container) tabbedPane.getComponentAt(prevTab.toInt())).removeAll();
+    //Tell the ProcessingMethodMediator
+    if (prevTab == Tab.CCD_ERASER) {
+      mediator.register(this);
+    }
+    else if (curTab == Tab.CCD_ERASER) {
+      eraseGoldPanel.registerProcessingMethodMediator();
+    }
+    else {
+      mediator.setMethod(this, getProcessingMethod());
+    }
+    //Add panel for new tab
     Container panel = (Container) tabbedPane.getSelectedComponent();
     if (curTab == Tab.NEWST) {
       panel.add(newstackOrBlendmontPanel.getComponent());
@@ -1034,7 +1071,6 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     else if (curTab == Tab.MTF_FILTER) {
       panel.add(filterPanel);
     }
-    updateParallelProcess();
     UIHarness.INSTANCE.pack(axisID, applicationManager);
     //Warning caused by leaving the previous tab
     if (curTab != prevTab) {

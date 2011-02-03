@@ -11,11 +11,13 @@ import javax.swing.ImageIcon;
 
 import etomo.BaseManager;
 import etomo.ParallelManager;
+import etomo.ProcessingMethodMediator;
 import etomo.comscript.ParallelParam;
 import etomo.type.AxisID;
 import etomo.type.BaseScreenState;
 import etomo.type.DialogType;
 import etomo.type.ParallelMetaData;
+import etomo.type.ProcessingMethod;
 import etomo.util.Utilities;
 
 /**
@@ -31,7 +33,8 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  */
-public final class ParallelDialog implements AbstractParallelDialog {
+public final class ParallelDialog implements AbstractParallelDialog,
+    ProcessInterface {
   public static final String rcsid = "$Id$";
 
   private static final DialogType DIALOG_TYPE = DialogType.PARALLEL;
@@ -50,14 +53,17 @@ public final class ParallelDialog implements AbstractParallelDialog {
   private final ParallelActionListener actionListener;
   private final ParallelManager manager;
   private final AxisID axisID;
+  private final ProcessingMethodMediator mediator;
 
   private File workingDir = null;
 
   private ParallelDialog(ParallelManager manager, AxisID axisID) {
-    System.err.println(Utilities.getDateTimeStamp()+"\nDialog: "+DialogType.PARALLEL);
+    System.err.println(Utilities.getDateTimeStamp() + "\nDialog: "
+        + DialogType.PARALLEL);
     actionListener = new ParallelActionListener(this);
     this.manager = manager;
     this.axisID = axisID;
+    mediator = manager.getProcessingMethodMediator(axisID);
     //process name panel
     btnChunkComscript.setName(PROCESS_NAME_LABEL);
     pnlProcessName.setBoxLayout(BoxLayout.X_AXIS);
@@ -73,6 +79,23 @@ public final class ParallelDialog implements AbstractParallelDialog {
     pnlRoot.add(btnRunProcess);
     pnlRoot.alignComponentsX(Component.CENTER_ALIGNMENT);
     setToolTipText();
+    mediator.register(this);
+    mediator.setMethod(this, ProcessingMethod.PP_CPU);
+  }
+
+  /**
+   * Get the processing method based on the dialogs settings.  Dialogs don't
+   * need to know if QUEUE is in use in the parallel panel.
+   * @return
+   */
+  public ProcessingMethod getProcessingMethod() {
+    return ProcessingMethod.PP_CPU;
+  }
+
+  public void disableGpu(final boolean disable) {
+  }
+
+  public void lockProcessingMethod(final boolean lock) {
   }
 
   public static ParallelDialog getInstance(ParallelManager manager,
@@ -101,6 +124,7 @@ public final class ParallelDialog implements AbstractParallelDialog {
 
   public void done() {
     btnRunProcess.removeActionListener(actionListener);
+    manager.getProcessingMethodMediator(axisID).deregister(this);
   }
 
   public void setParameters(BaseScreenState screenState) {
@@ -129,14 +153,12 @@ public final class ParallelDialog implements AbstractParallelDialog {
     btnChunkComscript.setEnabled(setupMode);
   }
 
-  public final boolean usingParallelProcessing() {
-    return true;
-  }
-
   void action(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnRunProcess.getText())) {
-      manager.processchunks(btnRunProcess, null, ltfProcessName.getText(),null);
+      manager
+          .processchunks(btnRunProcess, null, ltfProcessName.getText(), null,
+              mediator.getRunMethodForProcessInterface(getProcessingMethod()));
     }
   }
 
@@ -190,6 +212,9 @@ public final class ParallelDialog implements AbstractParallelDialog {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.24  2010/04/28 16:44:30  sueh
  * <p> bug# 1344 Added the output image file type to the manager's
  * <p> processchunks function.

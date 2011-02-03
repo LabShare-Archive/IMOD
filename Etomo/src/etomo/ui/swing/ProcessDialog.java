@@ -14,6 +14,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.37  2009/09/20 21:33:48  sueh
  * <p> bug# 1268 Added timestamp and dialog identification to log.
  * <p>
@@ -261,10 +264,6 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
   }
 
   public void getParameters(final ParallelParam param) {
-  }
-
-  public boolean usingParallelProcessing() {
-    return false;
   }
 
   public void addExitButtons() {

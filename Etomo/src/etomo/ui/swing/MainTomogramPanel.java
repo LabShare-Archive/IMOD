@@ -28,6 +28,9 @@ import etomo.type.ProcessTrack;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.24  2009/06/11 16:57:16  sueh
  * <p> bug# 1221 Formatted.
  * <p>
@@ -497,7 +500,6 @@ public class MainTomogramPanel extends MainPanel {
   public void showBlankProcess(AxisID axisID) {
     ((ApplicationManager) manager).setCurrentDialogType(null, axisID);
     super.showBlankProcess(axisID);
-    setParallelDialog(axisID, false);
   }
 
   /**

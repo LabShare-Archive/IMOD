@@ -11,6 +11,7 @@ import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.PanelId;
 import etomo.type.ProcessResultDisplay;
+import etomo.type.ProcessingMethod;
 import etomo.type.Run3dmodMenuOptions;
 
 /**
@@ -27,6 +28,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2010/12/05 05:20:15  sueh
+ * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.  Getting rid of some of the panel parents by handling common needs with generic
+ * <p> interfaces:  ParallelProcessEnabledDialog.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -48,22 +53,18 @@ final class TiltPanel extends AbstractTiltPanel {
 
   private final JPanel pnlTiltPanelRoot = new JPanel();
 
-  //backward compatibility functionality - if the metadata binning is missing
-  //get binning from newst
   private TiltPanel(final ApplicationManager manager, final AxisID axisID,
       final DialogType dialogType,
-      final ParallelProcessEnabledDialog parentDialog,
       final GlobalExpandButton globalAdvancedButton, final PanelId panelId) {
-    super(manager, axisID, dialogType, parentDialog, globalAdvancedButton,
-        panelId);
+    super(manager, axisID, dialogType, globalAdvancedButton, panelId);
+    mediator.register(this);
   }
 
   static TiltPanel getBackProjectionInstance(final ApplicationManager manager,
       final AxisID axisID, final DialogType dialogType,
-      final ParallelProcessEnabledDialog parentDialog,
       final GlobalExpandButton globalAdvancedButton) {
     TiltPanel instance = new TiltPanel(manager, axisID, dialogType,
-        parentDialog, globalAdvancedButton, PanelId.TILT);
+        globalAdvancedButton, PanelId.TILT);
     instance.createPanel();
     instance.setToolTipText();
     instance.addListeners();
@@ -72,10 +73,9 @@ final class TiltPanel extends AbstractTiltPanel {
 
   static TiltPanel getSirtInstance(final ApplicationManager manager,
       final AxisID axisID, final DialogType dialogType,
-      final ParallelProcessEnabledDialog parentDialog,
       GlobalExpandButton globalAdvancedButton) {
     TiltPanel instance = new TiltPanel(manager, axisID, dialogType,
-        parentDialog, globalAdvancedButton, PanelId.TILT_SIRT);
+        globalAdvancedButton, PanelId.TILT_SIRT);
     instance.createPanel();
     instance.setToolTipText();
     instance.addListeners();
@@ -104,9 +104,10 @@ final class TiltPanel extends AbstractTiltPanel {
 
   void tiltAction(final ProcessResultDisplay processResultDisplay,
       final Deferred3dmodButton deferred3dmodButton,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
+      final Run3dmodMenuOptions run3dmodMenuOptions,
+      final ProcessingMethod tiltProcessingMethod) {
     manager.tiltAction(processResultDisplay, null, deferred3dmodButton,
-        run3dmodMenuOptions, this, axisID, dialogType);
+        run3dmodMenuOptions, this, axisID, dialogType, tiltProcessingMethod);
   }
 
   void imodTomogramAction(final Deferred3dmodButton deferred3dmodButton,

@@ -31,6 +31,7 @@ import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
+import etomo.type.ProcessingMethod;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.util.DatasetFiles;
@@ -59,6 +60,9 @@ import etomo.util.DatasetFiles;
  * 
  * <p>
  * $Log$
+ * Revision 1.2  2010/12/05 05:07:39  sueh
+ * bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
+ *
  * Revision 1.1  2010/11/13 16:07:35  sueh
  * bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  *
@@ -1011,6 +1015,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
 
   public final void setParallel(boolean parallel) {
     cbParallelProcess.setSelected(parallel);
+    //Used for synchronization - don't send message to mediator
   }
 
   public final void setParallelEnabled(boolean parallelEnabled) {
@@ -1263,11 +1268,13 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     }
     else if (command.equals(btnPatchcorrRestart.getActionCommand())) {
       applicationManager.patchcorrCombine(btnPatchcorrRestart, null,
-          deferred3dmodButton, run3dmodMenuOptions, dialogType);
+          deferred3dmodButton, run3dmodMenuOptions, dialogType,
+          tomogramCombinationDialog.getRunProcessingMethod());
     }
     else if (command.equals(btnMatchorwarpRestart.getActionCommand())) {
       applicationManager.matchorwarpCombine(btnMatchorwarpRestart, null,
-          deferred3dmodButton, run3dmodMenuOptions, dialogType);
+          deferred3dmodButton, run3dmodMenuOptions, dialogType,
+          tomogramCombinationDialog.getRunProcessingMethod());
     }
     else if (command.equals(btnMatchorwarpTrial.getActionCommand())) {
       applicationManager.matchorwarpTrial(null);
@@ -1275,7 +1282,8 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     else if (command.equals(btnVolcombineRestart.getActionCommand())) {
       if (cbParallelProcess.isSelected()) {
         applicationManager.splitcombine(null, deferred3dmodButton,
-            run3dmodMenuOptions, dialogType);
+            run3dmodMenuOptions, dialogType, tomogramCombinationDialog
+                .getRunProcessingMethod());
       }
       else {
         applicationManager.volcombine(btnVolcombineRestart, null,
@@ -1294,7 +1302,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
       applicationManager.modelToPatch();
     }
     else if (command.equals(cbParallelProcess.getActionCommand())) {
-      tomogramCombinationDialog.updateParallelProcess();
+      sendProcessingMethodMessage();
     }
     else if (command.equals(cbKernelSigma.getActionCommand())) {
       updateKernelSigma();
@@ -1308,6 +1316,18 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     else if (command.equals(btnImodCombined.getActionCommand())) {
       applicationManager.imodCombinedTomogram(run3dmodMenuOptions);
     }
+  }
+
+  ProcessingMethod getProcessingMethod() {
+    if (cbParallelProcess.isEnabled() && cbParallelProcess.isSelected()) {
+      return ProcessingMethod.PP_CPU;
+    }
+    return ProcessingMethod.LOCAL_CPU;
+  }
+
+  private void sendProcessingMethodMessage() {
+    applicationManager.getProcessingMethodMediator(AxisID.FIRST).setMethod(
+        tomogramCombinationDialog, getProcessingMethod());
   }
 
   private void updateKernelSigma() {

@@ -44,7 +44,7 @@ public final class SettingsDialog extends JDialog {
   private final CheckBox cbGpuProcessing = new CheckBox(
       "Enable graphics processing");
   private final LabeledTextField ltfCpus = new LabeledTextField(
-      ProcessorTable.NUMBER_CPUS_HEADER + ": ");
+      "# CPUs: ");
   private final CheckBox cbSingleAxis = new CheckBox(
       SetupDialog.AXIS_TYPE_LABEL + ":  " + SetupDialog.SINGLE_AXIS_LABEL);
   private final CheckBox cbMontage = new CheckBox(SetupDialog.FRAME_TYPE_LABEL

@@ -98,7 +98,8 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       DialogType dialogType, ProcessDisplay display) {
     if (process.equals(ProcessName.PROCESSCHUNKS.toString())) {
       processchunks(manager, dialog, processResultDisplay, processSeries,
-          ProcessName.TILT, process.getOutputImageFileType());
+          ProcessName.TILT, process.getOutputImageFileType(), process
+              .getProcessingMethod());
     }
   }
 
@@ -202,6 +203,10 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2010/12/05 05:23:38  sueh
+ * <p> bug# 1421 Changed setEnabledTiltParameters to setTiltState.  Removed
+ * <p> unused function getParameters(TiltParam).
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>

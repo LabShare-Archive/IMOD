@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import etomo.comscript.SplittiltParam;
 import etomo.comscript.TiltParam;
+import etomo.type.ProcessingMethod;
 import etomo.util.InvalidParameterException;
 
 /**
@@ -20,6 +21,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:35  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.1  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p> </p>
@@ -31,5 +35,6 @@ interface TrialTiltParent {
       throws NumberFormatException, InvalidParameterException, IOException;
 
   public boolean getParameters(final SplittiltParam param);
-  public boolean isParallelProcess();
+
+  public ProcessingMethod getProcessingMethod();
 }

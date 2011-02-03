@@ -20,6 +20,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import etomo.PeetManager;
+import etomo.ProcessingMethodMediator;
 import etomo.comscript.AverageAllParam;
 import etomo.comscript.ParallelParam;
 import etomo.comscript.ProcesschunksParam;
@@ -30,6 +31,7 @@ import etomo.type.ConstPeetScreenState;
 import etomo.type.DialogType;
 import etomo.type.PeetMetaData;
 import etomo.type.PeetScreenState;
+import etomo.type.ProcessingMethod;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.util.Goodframe;
 import etomo.util.InvalidParameterException;
@@ -49,6 +51,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.99  2010/05/20 23:51:58  sueh
  * <p> bug# 1368 Removed cbFlgMeanFill.
  * <p>
@@ -384,7 +389,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     Expandable, Run3dmodButtonContainer, FileContainer,
     UseExistingProjectParent, ReferenceParent, MissingWedgeCompensationParent,
     IterationParent, MaskingParent, YAxisTypeParent,
-    SphericalSamplingForThetaAndPsiParent {
+    SphericalSamplingForThetaAndPsiParent, ProcessInterface {
   public static final String rcsid = "$Id$";
 
   public static final String FN_OUTPUT_LABEL = "Root name for output";
@@ -489,6 +494,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private final PeetManager manager;
   private final AxisID axisID;
   private final FixPathsPanel fixPathsPanel;
+  private final ProcessingMethodMediator mediator;
 
   private File lastLocation = null;
   private String correctPath = null;
@@ -498,6 +504,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
         + DialogType.PEET);
     this.manager = manager;
     this.axisID = axisID;
+    mediator = manager.getProcessingMethodMediator(axisID);
     useExistingProjectPanel = UseExistingProjectPanel
         .getInstance(manager, this);
     referencePanel = ReferencePanel.getInstance(this, manager);
@@ -527,6 +534,26 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     updateDisplay();
     updateAdvanceRunParameters(phRun.isAdvanced());
     setTooltipText();
+    mediator.register(this);
+    mediator.setMethod(this, ProcessingMethod.PP_CPU);
+  }
+
+  /**
+  * Get the processing method based on the dialogs settings.  Dialogs don't
+  * need to know if QUEUE is in use in the parallel panel.
+  * @return
+  */
+  public ProcessingMethod getProcessingMethod() {
+    if (tabPane.getSelectedIndex() == 1) {
+      return ProcessingMethod.PP_CPU;
+    }
+    return ProcessingMethod.LOCAL_CPU;
+  }
+
+  public void disableGpu(final boolean disable) {
+  }
+
+  public void lockProcessingMethod(final boolean lock) {
   }
 
   public Component getFocusComponent() {
@@ -822,13 +849,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
 
   public String getFnOutput() {
     return ltfFnOutput.getText();
-  }
-
-  /**
-   * 
-   */
-  public boolean usingParallelProcessing() {
-    return tabPane.getSelectedIndex() == 1;
   }
 
   public void expand(final GlobalExpandButton button) {
@@ -1130,7 +1150,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     }
     else if (actionCommand.equals(btnRun.getActionCommand())) {
       if (validateRun()) {
-        manager.peetParser(null, DIALOG_TYPE);
+        manager.peetParser(null, DIALOG_TYPE, mediator
+            .getRunMethodForProcessInterface(getProcessingMethod()));
       }
     }
     else if (actionCommand.equals(rbInitMotlZero.getActionCommand())
@@ -1325,12 +1346,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       pnlRun.add(pnlRunBody.getContainer());
       pnlSetup.remove(pnlSetupBody);
     }
-    updateParallelProcess();
+    mediator.setMethod(this, getProcessingMethod());
     UIHarness.INSTANCE.pack(axisID, manager);
-  }
-
-  public void updateParallelProcess() {
-    manager.setParallelDialog(axisID, usingParallelProcessing());
   }
 
   public int getVolumeTableSize() {

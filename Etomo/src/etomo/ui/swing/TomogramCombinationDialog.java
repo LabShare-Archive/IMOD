@@ -10,6 +10,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import etomo.ApplicationManager;
+import etomo.ProcessingMethodMediator;
 import etomo.comscript.CombineParams;
 import etomo.comscript.ConstCombineParams;
 import etomo.comscript.ConstMatchorwarpParam;
@@ -29,6 +30,7 @@ import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.MatchMode;
 import etomo.type.MetaData;
+import etomo.type.ProcessingMethod;
 import etomo.type.ReconScreenState;
 import etomo.type.TomogramState;
 
@@ -46,6 +48,9 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2010/12/05 05:22:02  sueh
+ * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -392,7 +397,7 @@ import etomo.type.TomogramState;
  * <p> </p>
  */
 public final class TomogramCombinationDialog extends ProcessDialog implements
-    ContextMenu, AbstractParallelDialog {
+    ContextMenu, AbstractParallelDialog, ProcessInterface {
   public static final String rcsid = "$Id$";
 
   private static final int SETUP_INDEX = 0;
@@ -407,6 +412,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
   private FinalCombinePanel pnlFinal;
   private boolean combinePanelEnabled;
   private JPanel parallelPanelContainer = new JPanel();
+  private final ProcessingMethodMediator mediator;
 
   private TabbedPane tabbedPane = new TabbedPane();
   final String parallelProcessCheckBoxText;
@@ -433,6 +439,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     super(appMgr, AxisID.FIRST, DialogType.TOMOGRAM_COMBINATION);
     ConstEtomoNumber maxCPUs = CpuAdoc.INSTANCE.getMaxVolcombine(appMgr,
         axisID, applicationManager.getPropertyUserDir());
+    mediator = appMgr.getProcessingMethodMediator(axisID);
     if (maxCPUs != null && !maxCPUs.isNull()) {
       parallelProcessCheckBoxText = ParallelPanel.FIELD_LABEL
           + ParallelPanel.MAX_CPUS_STRING + maxCPUs.toString();
@@ -475,6 +482,8 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     pnlSetup.setDeferred3dmodButtons();
     pnlInitial.setDeferred3dmodButtons();
     updateDisplay();
+    mediator.register(this);
+    mediator.setMethod(this, ProcessingMethod.LOCAL_CPU);
   }
 
   /**
@@ -564,17 +573,6 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
   public void setParameters(ConstMetaData metaData) {
     pnlSetup.setParameters(metaData);
     synchronize(lblSetup, true);
-    updateParallelProcess();
-  }
-
-  void updateParallelProcess() {
-    applicationManager.setParallelDialog(axisID, usingParallelProcessing());
-  }
-
-  public boolean usingParallelProcessing() {
-    synchronize(lblFinal, false);
-    return tabbedPane.getSelectedIndex() != 1
-        && pnlSetup.usingParallelProcessing();
   }
 
   /**
@@ -647,6 +645,47 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
    */
   public void setMatchorwarpParams(ConstMatchorwarpParam matchorwarpParams) {
     pnlFinal.setMatchorwarpParams(matchorwarpParams);
+  }
+
+  public void disableGpu(final boolean disable) {
+  }
+
+  public void lockProcessingMethod(final boolean lock) {
+    pnlSetup.lockProcessingMethod(lock);
+    pnlFinal.setParallelEnabled(pnlSetup.isParallelEnabled());
+  }
+
+  public ProcessingMethod getProcessingMethod() {
+    String tabTitle = tabbedPane.getTitleAt(tabbedPane.getSelectedIndex());
+    if (tabTitle.equals(lblSetup)) {
+      return pnlSetup.getProcessingMethod();
+    }
+    if (tabTitle.equals(pnlInitial)) {
+      return pnlInitial.getProcessingMethod();
+    }
+    if (tabTitle.equals(lblFinal)) {
+      return pnlFinal.getProcessingMethod();
+    }
+    return ProcessingMethod.LOCAL_CPU;
+  }
+
+  /**
+   * This is an unusual situation.  In the combine dialog it is possible to
+   * start a parallel process from a tab where the parallel processing table
+   * is not displayed.  So I have to distinguish between getting the processing
+   * method for display from running from the Initial panel.
+   * @return
+   */
+  public ProcessingMethod getRunProcessingMethod() {
+    String tabTitle = tabbedPane.getTitleAt(tabbedPane.getSelectedIndex());
+    if (tabTitle.equals(lblInitial)) {
+      //Tabs copy their data to other tabs when other tabs is selected, so
+      //either setup or final should be correct.
+      return pnlFinal.getProcessingMethod();
+    }
+    else {
+      return getProcessingMethod();
+    }
   }
 
   /**
@@ -776,6 +815,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
   public void done() {
     applicationManager.doneTomogramCombinationDialog();
     setDisplayed(false);
+    applicationManager.getProcessingMethodMediator(axisID).deregister(this);
   }
 
   /**
@@ -826,7 +866,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     //  Set the last tab index to current tab so that we are ready for tab
     // change
     idxLastTab = tabbedPane.getSelectedIndex();
-    updateParallelProcess();
+    mediator.setMethod(this, getProcessingMethod());
   }
 
   void setVisible(String showTabTitle) {

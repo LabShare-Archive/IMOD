@@ -393,7 +393,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       sendMsg(processResult, processResultDisplay);
       return;
     }
-    processSeries.setNextProcess(ProcessName.TILT.toString());
+    processSeries.setNextProcess(ProcessName.TILT.toString(), null);
   }
 
   public void tomopitch(ProcessResultDisplay processResultDisplay,
@@ -952,6 +952,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2010/12/05 05:24:00  sueh
+ * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
