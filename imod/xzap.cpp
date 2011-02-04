@@ -62,17 +62,17 @@ static void zapKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e);
 static void zapAnalyzeBandEdge(ZapStruct *zap, int ix, int iy);
 static int checkPlugUseMouse(ZapStruct *zap, QMouseEvent *event, int but1, 
                              int but2, int but3);
-static int zapButton1(struct zapwin *zap, int x, int y, int controlDown);
-static int zapButton2(struct zapwin *zap, int x, int y, int controlDown);
-static int zapButton3(struct zapwin *zap, int x, int y, int controlDown);
-static int zapB1Drag(struct zapwin *zap, int x, int y);
-static int zapB2Drag(struct zapwin *zap, int x, int y, int controlDown);
-static int zapB3Drag(struct zapwin *zap, int x, int y, int controlDown, 
+static int zapButton1(ZapStruct *zap, int x, int y, int controlDown);
+static int zapButton2(ZapStruct *zap, int x, int y, int controlDown);
+static int zapButton3(ZapStruct *zap, int x, int y, int controlDown);
+static int zapB1Drag(ZapStruct *zap, int x, int y);
+static int zapB2Drag(ZapStruct *zap, int x, int y, int controlDown);
+static int zapB3Drag(ZapStruct *zap, int x, int y, int controlDown, 
                       int shiftDown);
 static int zapDelUnderCursor(ZapStruct *zap, int x, int y, Icont *cont);
 static int contInSelectArea(Iobj *obj, Icont *cont, Ipoint selmin,
                             Ipoint selmax);
-static int dragSelectContsCrossed(struct zapwin *zap, int x, int y);
+static int dragSelectContsCrossed(ZapStruct *zap, int x, int y);
 static void endContourShift(ZapStruct *zap);
 static Icont *checkContourShift(ZapStruct *zap, int &pt, int &err);
 static void setupContourShift(ZapStruct *zap);
@@ -80,6 +80,7 @@ static int startShiftingContour(ZapStruct *zap, int x, int y, int button,
                                  int ctrlDown);
 static void shiftContour(ZapStruct *zap, int x, int y, int button, 
                          int shiftDown);
+static int defaultXformCenter(ZapStruct *zap, float &xcen, float &ycen);
 static int startMovieCheckSnap(ZapStruct *zap, int dir);
 static void registerDragAdditions(ZapStruct *zap);
 static int mouseXformMatrix(ZapStruct *zap, int x, int y, int type, 
@@ -788,6 +789,8 @@ int imod_zap_open(struct ViewInfo *vi, int wintype)
   zap->bandChanged = 0;
   zap->shiftRegistered = 0;
   zap->centerMarked = 0;
+  zap->xformFixedPt.x = 0.;
+  zap->xformFixedPt.y = 0.;
   zap->movieSnapCount = 0;
   zap->drawCurrentOnly = 0;
   zap->dragAddCount = 0;
@@ -2350,7 +2353,7 @@ static int contInSelectArea(Iobj *obj, Icont *cont, Ipoint selmin,
 /*
  * Select contours in the current object crossed by a mouse move 
  */
-static int dragSelectContsCrossed(struct zapwin *zap, int x, int y)
+static int dragSelectContsCrossed(ZapStruct *zap, int x, int y)
 {
   ImodView *vi = zap->vi;
   Imod *imod = vi->imod;
@@ -2737,6 +2740,7 @@ static void setupContourShift(ZapStruct *zap)
     zapToggleRubberband(zap);
   zap->centerDefined = 0;
   zap->centerMarked = 0;
+  zap->fixedPtDefined = 0;
   zap->shiftObjNum = ivwGetFreeExtraObjectNumber(zap->vi);
   zapSetCursor(zap, zap->mousemode);
 }
@@ -2750,11 +2754,8 @@ static Ipoint contShiftBase;
 static int startShiftingContour(ZapStruct *zap, int x, int y, int button,
                                  int ctrlDown)
 {
-  int   pt, err, co, ob, curco, curob, iz;
-  float ix, iy, area, areaSum;
-  Ipoint cent, centSum;
-  Imod *imod = zap->vi->imod;
-  Iobj *obj;
+  int   pt, err, iz;
+  float ix, iy;
   Icont *cont = checkContourShift(zap, pt, err);
   if (err)
     return 0;
@@ -2767,6 +2768,29 @@ static int startShiftingContour(ZapStruct *zap, int x, int y, int button,
     zap->xformCenter.y = iy;
     zap->centerDefined = 1;
     markXformCenter(zap, ix, iy);
+    return 1;
+  }
+
+  // If button for 2nd fixed point, toggle it on or off
+  if (button == 3 && ctrlDown) {
+    if (zap->fixedPtDefined) {
+      zap->fixedPtDefined = 0;
+    } else {
+
+      // Define center if it is not already defined
+      if (!zap->centerDefined && 
+          defaultXformCenter(zap, zap->xformCenter.x, zap->xformCenter.y)) {
+        endContourShift(zap);
+        return 0;
+      }
+      zap->centerDefined = 1;
+
+      // Save coordinates and show both marks
+      zap->xformFixedPt.x = ix;
+      zap->xformFixedPt.y = iy;
+      zap->fixedPtDefined = 1;
+    }
+    markXformCenter(zap, zap->xformCenter.x, zap->xformCenter.y);
     return 1;
   }
 
@@ -2784,54 +2808,69 @@ static int startShiftingContour(ZapStruct *zap, int x, int y, int button,
     } else {
 
       // Otherwise get center for transforms as center of mass
-      // Loop on contours and analyze current or selected ones
-      imodGetIndex(imod, &curob, &curco, &pt);
-      contShiftBase.x = contShiftBase.y = 0;
-      centSum.x = centSum.y = 0;
-      areaSum = 0;
-      for (ob = 0; ob < imod->objsize; ob++) {
-        obj = &imod->obj[ob];
-        if (iobjScat(obj->flags))
-          continue;
-        for (co = 0; co < obj->contsize; co++) {
-          
-          if ((ob == curob && co == curco) || 
-              imodSelectionListQuery(zap->vi, ob, co) > -2) {
-            cont = &obj->cont[co];
-            if (!iobjClose(obj->flags) && (cont->flags & ICONT_WILD))
-              continue;
-
-            // For each contour add centroid to straight sum, 
-            // accumulate area-weighted sum also
-            imodContourCenterOfMass(cont, &cent);
-            area = imodContourArea(cont);
-            areaSum += area;
-            contShiftBase.x += cent.x;
-            contShiftBase.y += cent.y;
-            centSum.x += cent.x * area;
-            centSum.y += cent.y * area;
-            err++;
-          }
-        }
-      }
-
-      if (!err) {
+      if (defaultXformCenter(zap, contShiftBase.x, contShiftBase.y)) {
         endContourShift(zap);
         return 0;
-      }
-
-      // Use plain sum if area small or if only one contour, otherwise
-      // use an area-weighted sum
-      if (areaSum < 1. || err == 1) {
-        contShiftBase.x /= err;
-        contShiftBase.y /= err;
-      } else if (areaSum >= 1. && err > 1) {
-        contShiftBase.x = centSum.x / areaSum;
-        contShiftBase.y = centSum.y / areaSum;
       }
     }
     markXformCenter(zap, contShiftBase.x, contShiftBase.y);
     return 1;
+  }
+  return 0;
+}
+
+  // Get default center for transforms as center of mass
+static int defaultXformCenter(ZapStruct *zap, float &xcen, float &ycen)
+{
+  int   pt, err, co, ob, curco, curob;
+  float area, areaSum;
+  Ipoint cent, centSum;
+  Imod *imod = zap->vi->imod;
+  Iobj *obj;
+  Icont *cont;
+
+  // Loop on contours and analyze current or selected ones
+  imodGetIndex(imod, &curob, &curco, &pt);
+  xcen = ycen = 0;
+  centSum.x = centSum.y = 0;
+  areaSum = 0;
+  for (ob = 0; ob < imod->objsize; ob++) {
+    obj = &imod->obj[ob];
+    if (iobjScat(obj->flags))
+      continue;
+    for (co = 0; co < obj->contsize; co++) {
+      
+      if ((ob == curob && co == curco) || 
+          imodSelectionListQuery(zap->vi, ob, co) > -2) {
+        cont = &obj->cont[co];
+        if (!iobjClose(obj->flags) && (cont->flags & ICONT_WILD))
+          continue;
+        
+        // For each contour add centroid to straight sum, 
+        // accumulate area-weighted sum also
+        imodContourCenterOfMass(cont, &cent);
+        area = imodContourArea(cont);
+        areaSum += area;
+        xcen += cent.x;
+        ycen += cent.y;
+        centSum.x += cent.x * area;
+        centSum.y += cent.y * area;
+        err++;
+      }
+    }
+  }
+
+  if (!err)
+    return 1;
+
+  // Use plain sum if area small or if only one contour, otherwise
+  // use an area-weighted sum
+  if (areaSum < 1. || err == 1) {
+    xcen /= err;
+    ycen /= err;
+  } else if (areaSum >= 1. && err > 1) {
+    xcen = centSum.x / areaSum;
+    ycen = centSum.y / areaSum;
   }
   return 0;
 }
@@ -2920,34 +2959,76 @@ static int mouseXformMatrix(ZapStruct *zap, int x, int y, int type,
   float strThresh = 0.001;
   float rotThresh = 0.05;
   float delCrit = 20.;
-  double delx, dely, startang, endang, radst, radnd, delrad, drot, scale;
-  double costh, sinth, cosphi, sinphi, cosphisq, sinphisq, f1, f2, f3;
-  int xcen, ycen;
+  float fixPtCritSq = 1000.;
+  double dxf, dyf, dxl, dyl, dxn, startang, endang, radst, radnd, delrad, drot, scale;
+  double dyn, distsq, disxn, disyn, disxl, disyl, p2lsq, tmin;
+  int xcen, ycen, xfix, yfix;
 
   xcen = zapXpos(zap, contShiftBase.x);
   ycen = zapYpos(zap, contShiftBase.y);
 
   // Compute starting/ending  angle and radii as in midas
-  delx = zap->lmx - xcen;
-  dely = zap->winy - 1 - zap->lmy - ycen;
-  if(delx > -delCrit && delx < delCrit && dely > -delCrit && dely < delCrit)
+  // l for last, n for new, f for fixed
+  dxl = zap->lmx - xcen;
+  dyl = zap->winy - 1 - zap->lmy - ycen;
+  if(dxl > -delCrit && dxl < delCrit && dyl > -delCrit && dyl < delCrit)
     return 1;
-  radst = sqrt((delx*delx + dely*dely));
-  startang = atan2(dely, delx) / RADIANS_PER_DEGREE;
-  //imodPrintStderr("%d %d %f %f %f %f\n", xcen, ycen, delx, dely, radst, 
+  radst = sqrt((dxl*dxl + dyl*dyl));
+  startang = atan2(dyl, dxl) / RADIANS_PER_DEGREE;
+  //imodPrintStderr("%d %d %f %f %f %f\n", xcen, ycen, dxl, dyl, radst, 
   //                startang);
 
-  delx = x - xcen;
-  dely = zap->winy - 1 - y - ycen;
-  if(delx > -delCrit && delx < delCrit && dely > -delCrit && dely < delCrit)
+  dxn = x - xcen;
+  dyn = zap->winy - 1 - y - ycen;
+  if(dxn > -delCrit && dxn < delCrit && dyn > -delCrit && dyn < delCrit)
     return 1;
-  radnd = sqrt((delx*delx + dely*dely));
-  endang = atan2(dely, delx) / RADIANS_PER_DEGREE;
-  //imodPrintStderr("%f %f %f %f\n", delx, dely, radnd, endang);
+  radnd = sqrt((dxn*dxn + dyn*dyn));
+  endang = atan2(dyn, dxn) / RADIANS_PER_DEGREE;
+  //imodPrintStderr("%f %f %f %f\n", dxn, dyn, radnd, endang);
 
   drot = 0.;
   scale = 1.;
   delrad = 1.;
+  if (type == 3 && zap->fixedPtDefined) {
+
+    // Get fixed point in window coordinates and test if separation from center is enough
+    // This code slavishly imitates midas but all the names are changed
+    xfix = zapXpos(zap, zap->xformFixedPt.x);
+    yfix = zapYpos(zap, zap->xformFixedPt.y);
+    dxf = xfix - xcen;
+    dyf = yfix - ycen;
+    distsq = dxf * dxf + dyf + dyf;
+    if (distsq < fixPtCritSq)
+      return 1;
+
+    // Then make sure each point is far enough away from line
+    tmin = (dxn * dxf + dyn * dyf) / distsq;
+    disxn = tmin * dxf - dxn;
+    disyn = tmin * dyf - dyn;
+    p2lsq = disxn * disxn + disyn * disyn;
+    if (p2lsq < fixPtCritSq)
+      return 1;
+
+    tmin = (dxl * dxf + dyl * dyf) / distsq;
+    disxl = tmin * dxf - dxl;
+    disyl = tmin * dyf - dyl;
+    p2lsq = disxl * disxl + disyl * disyl;
+    if (p2lsq < fixPtCritSq)
+      return 1;
+
+    // If both points are on same side of line, do the change
+    if (disxl * disxn + disyl * disyn <= 0.)
+      return 1;
+    distsq = dyl * dxf - dxl * dyf;
+    if (fabs((double)distsq) < 1.e-5)
+      return 1;
+    mat[0][0] = (dxf * dyl - dxn * dyf) / distsq;
+    mat[0][1] = (dxf * dxn - dxl * dxf) / distsq;
+    mat[1][0] = (dyf * dyl - dyn * dyf) / distsq;
+    mat[1][1] = (dxf * dyn - dxl * dyf) / distsq;
+    return 0;
+  }
+
   if (type == 2) {
 
     // Compute rotation from change in angle
@@ -2975,22 +3056,11 @@ static int mouseXformMatrix(ZapStruct *zap, int x, int y, int type,
     }
   }
 
-  // Compute matrix as in rotmagstr_to_amat
-  costh = cos(drot * RADIANS_PER_DEGREE);
-  sinth = sin(drot * RADIANS_PER_DEGREE);
-  cosphi = cos(endang * RADIANS_PER_DEGREE);
-  sinphi = sin(endang * RADIANS_PER_DEGREE);
-  cosphisq = cosphi * cosphi;
-  sinphisq = sinphi * sinphi;
-  f1 = scale * (delrad * cosphisq + sinphisq);
-  f2 = scale * (delrad - 1.) * cosphi * sinphi;
-  f3 = scale * (delrad * sinphisq + cosphisq);
-  mat[0][0] = (float)(f1 * costh - f2 * sinth);
-  mat[0][1] = (float)(f2 * costh - f3 * sinth);
-  mat[1][0] = (float)(f1 * sinth + f2 * costh);
-  mat[1][1] = (float)(f2 * sinth + f3 * costh);
+  // Compute matrix 
+  rotmagstrToAmat(drot, scale, delrad, endang, &mat[0][0], &mat[0][1], &mat[1][0],
+                  &mat[1][1]);
   //imodPrintStderr("%f %f %f %f %f %f %f %f\n", drot, scale, delrad, endang,
-  //              mat[0][0], mat[0][1], mat[1][0], mat[1][1]);
+  //            mat[0][0], mat[0][1], mat[1][0], mat[1][1]);
   return 0;
 }
 
@@ -2999,11 +3069,12 @@ static int mouseXformMatrix(ZapStruct *zap, int x, int y, int type,
  */
 static void markXformCenter(ZapStruct *zap, float ix, float iy)
 {
-  int i;
+  int i, which;
   float starEnd[6] = {0., 8., 7., 4., 7., -4.};
   Iobj *obj = ivwGetAnExtraObject(zap->vi, zap->shiftObjNum);
   Icont *cont;
   Ipoint tpt;
+  Istore store;
 
   if (!obj)
     return;
@@ -3017,18 +3088,30 @@ static void markXformCenter(ZapStruct *zap, float ix, float iy)
   tpt.z = zap->section;
 
   // Add three contours for lines
-  for (i = 0; i < 3; i++) {
-    cont = imodContourNew();
-    if (!cont)
-      break;
-    tpt.x = ix + starEnd[i * 2];
-    tpt.y = iy + starEnd[i * 2 + 1];
-    imodPointAppend(cont, &tpt);
-    tpt.x = ix - starEnd[i * 2];
-    tpt.y = iy - starEnd[i * 2 + 1];
-    imodPointAppend(cont, &tpt);
-    imodObjectAddContour(obj, cont);
-    free(cont);
+  for (which = 0; which < (zap->fixedPtDefined ? 2 : 1); which++) {
+    for (i = 0; i < 3; i++) {
+      cont = imodContourNew();
+      if (!cont)
+        break;
+      tpt.x = ix + starEnd[i * 2];
+      tpt.y = iy + starEnd[i * 2 + 1];
+      imodPointAppend(cont, &tpt);
+      tpt.x = ix - starEnd[i * 2];
+      tpt.y = iy - starEnd[i * 2 + 1];
+      imodPointAppend(cont, &tpt);
+      imodObjectAddContour(obj, cont);
+      free(cont);
+      if (which) {
+        store.type = GEN_STORE_COLOR;
+        store.flags = GEN_STORE_BYTE << 2;
+        store.index.i = 3 + i;
+        store.value.i = 0;
+        store.value.b[0] = 255;
+        istoreInsert(&obj->store, &store);
+      }
+    }
+    ix = zap->xformFixedPt.x;
+    iy = zap->xformFixedPt.y;
   }
   zap->centerMarked = 1;
   imodDraw(zap->vi, IMOD_DRAW_MOD);
@@ -4731,6 +4814,9 @@ static void setDrawCurrentOnly(ZapStruct *zap, int value)
 /*
 
 $Log$
+Revision 4.159  2011/01/31 04:21:54  mast
+Use new wheel scaling function and make scroll wheel size change undoable
+
 Revision 4.158  2011/01/13 20:29:29  mast
 stipple gaps; draw connector squares one pixel bigger
 
