@@ -236,7 +236,7 @@ bool MachineHandler::useImodkillgroup() {
 
 void MachineHandler::resetKill() {
   int i;
-  if (useImodkillgroup() && !mPidsAvailable) {
+  if (!mIgnoreKill && useImodkillgroup() && !mPidsAvailable) {
     mProcesschunks->getOutStream() << "No processes are running on " << mName << endl;
   }
   mIgnoreKill = true;
@@ -269,6 +269,9 @@ int MachineHandler::getFailureCount() {
 
 /*
  $Log$
+ Revision 1.28  2011/02/04 00:11:54  sueh
+ bug# 1426 Added useImodkillgroup().
+
  Revision 1.27  2011/02/03 23:53:49  sueh
  bug# 1426 Moved checking for process done signal to isKillFinished.
 
