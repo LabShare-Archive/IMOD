@@ -104,14 +104,7 @@ void MachineHandler::killSignal() {
   if (mIgnoreKill || mKillFinishedSignalReceived) {
     return;
   }
-  bool useImodkillgroup;
-#ifndef _WIN32
-  useImodkillgroup = mName != mProcesschunks->getHostRoot() && mName != "localhost"
-      && !mProcesschunks->isQueue();
-#else
-  useImodkillgroup = !mProcesschunks->isQueue();
-#endif
-  if (useImodkillgroup) {
+  if (useImodkillgroup()) {
     if (!mKillStarted) {
       if (!mPidsAvailable) {
         //See if PIDs are available
@@ -177,7 +170,7 @@ void MachineHandler::killSignal() {
     }
   }
   else {
-    //Local machine or queue - pass kill signal to process handlers
+    //Local machine (not Windows) or queue - pass kill signal to process handlers
     for (i = 0; i < mNumCpus; i++) {
       mProcessHandlerArray[i].killSignal();
     }
@@ -210,14 +203,7 @@ bool MachineHandler::isKillFinished() {
   if (mIgnoreKill) {
     return true;
   }
-  bool useImodkillgroup;
-#ifndef _WIN32
-  useImodkillgroup = mName != mProcesschunks->getHostRoot() && mName != "localhost"
-      && !mProcesschunks->isQueue();
-#else
-  useImodkillgroup = !mProcesschunks->isQueue();
-#endif
-  if (useImodkillgroup) {
+  if (useImodkillgroup()) {
     bool processesFinished = true;
     for (i = 0; i < mNumCpus; i++) {
       if (!mProcessHandlerArray[i].isFinishedSignalReceived()) {
@@ -239,8 +225,20 @@ bool MachineHandler::isKillFinished() {
   }
 }
 
+bool MachineHandler::useImodkillgroup() {
+#ifndef _WIN32
+  return mName != mProcesschunks->getHostRoot() && mName != "localhost"
+      && !mProcesschunks->isQueue();
+#else
+  return !mProcesschunks->isQueue();
+#endif
+}
+
 void MachineHandler::resetKill() {
   int i;
+  if (useImodkillgroup() && !mPidsAvailable) {
+    mProcesschunks->getOutStream() << "No processes are running on " << mName << endl;
+  }
   mIgnoreKill = true;
   mKillFinishedSignalReceived = false;
   mKillStarted = false;
@@ -271,6 +269,9 @@ int MachineHandler::getFailureCount() {
 
 /*
  $Log$
+ Revision 1.27  2011/02/03 23:53:49  sueh
+ bug# 1426 Moved checking for process done signal to isKillFinished.
+
  Revision 1.26  2011/02/03 23:39:15  sueh
  bug# 1426 In kill signal check if process done.
 

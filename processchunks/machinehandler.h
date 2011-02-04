@@ -92,6 +92,7 @@ public slots:
 private:
   void init();
   void setup();
+  bool useImodkillgroup();
 
   ProcessHandler *mProcessHandlerArray;
   QString mName, mDecoratedClassName;
@@ -109,6 +110,9 @@ private:
 
 /*
  $Log$
+ Revision 1.14  2011/02/02 22:42:33  sueh
+ bug# 1426 Added killQProcesses.
+
  Revision 1.13  2011/02/02 00:09:03  sueh
  bug# 1426 Removed unused variables and commented-out code.
 
