@@ -57,16 +57,18 @@ typedef struct zapwin
   int    rbMouseY0;
   int    rbMouseY1;
   int    startingBand;
-  int    shiftingCont; /* Flag for shifting contour */
-  int    bandChanged;  /* Flag that band changed, draw graph windows */
-  Ipoint xformCenter;  /* Center defined by mouse */
+  int    shiftingCont;   /* Flag for shifting contour */
+  int    bandChanged;    /* Flag that band changed, draw graph windows */
+  Ipoint xformCenter;    /* Center defined by mouse */
+  Ipoint xformFixedPt;   /* Second fixed point defined by mouse */
   int    centerDefined;  /* Flag that center was defined with mouse */
   int    centerMarked;   /* Flag that center was displayed in extra object */
+  int    fixedPtDefined; /* Flag that second fixed point has been set */
   int    shiftRegistered;  /* Flag that contour changes have been registered */
   int    shiftObjNum;    /* Extra object number for center marker */
-  int    dragAddCount; /* Number of points added and not registered for undo */
-  Iindex dragAddIndex; /* Starting obj, cont, point for first such point*/
-  int    dragAddEnd;   /* Ending or last point not registered */
+  int    dragAddCount;   /* Number of points added and not registered for undo */
+  Iindex dragAddIndex;   /* Starting obj, cont, point for first such point*/
+  int    dragAddEnd;     /* Ending or last point not registered */
 
   int movieSnapCount; /* Counter if this window is doing movie snapshots */
   int recordSubarea;  /* Record the subarea on the next draw */
@@ -142,8 +144,9 @@ void zapStateToggled(ZapStruct *zap, int index, int state);
 QString zapPrintInfo(ZapStruct *zap, bool toInfoWindow = true);
 void zapStepTime(ZapStruct *zap, int step);
 int zapSetupPanels(ZapStruct *zap);
-void zapReportBiggestMultiZ();
 void zapToggleContourShift(ZapStruct *zap);
+
+void zapReportBiggestMultiZ();
 ZapStruct *getTopZapWindow(bool withBand, int type = ZAP_WINDOW_TYPE);
 int getTopZapMouse(Ipoint *imagePt);
 int  imod_zap_open(struct ViewInfo *vi, int wintype);
@@ -157,6 +160,9 @@ void zapSetMouseTracking();
 
 /*
 $Log$
+Revision 3.33  2009/06/05 15:43:04  mast
+Stop passing mouse pressed to move move event
+
 Revision 3.32  2009/01/15 16:33:18  mast
 Qt 4 port
 
