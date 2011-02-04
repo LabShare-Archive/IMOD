@@ -101,15 +101,26 @@ these functions are the same as in the
 <A HREF = "../man/midas.html">Midas</A> program.
 If multiple contours are selected, the same operation will be done on all of
 them.  This mode stays active until toggled off again. 
-To shift contour(s), position the mouse anywhere, press the first mouse 
-button, and shift the contour(s) to the desired position.  
-To rotate, press the second button and move the mouse in an arc around the 
-center of mass of the selected contour(s); to stretch or scale, press the 
-third button and move the mouse toward or away from this center point.
-During these actions, the center of rotation/stretching will be marked with 
-a star.
-You can set this center by clicking with Ctrl and the second mouse button.
 These operations work for any contours in closed contour objects and for
 coplanar contours in open contour objects.
+<UL>
+<LI>To <B>shift</B> contour(s), position the mouse anywhere, press the <B>first mouse 
+button</B>, and shift the contour(s) to the desired position.  
+<LI>To <B>rotate</B>, press the <B>second button</B> and move the mouse in an
+arc around the center of mass of the selected contour(s).
+<LI> To <B>stretch</B>, press the 
+<B>third button</B> and move the mouse toward or away from the center point.
+<LI> To <B>scale</B>, press <B>Shift</B> and the 
+<B>third button</B> and move the mouse toward or away from the center point.
+<LI> During rotation, stretching, and scaling, the center of action will be marked with 
+a star. You can <B>set this center</B> by clicking with <B>Ctrl</B> and the
+<B>second mouse button</B>.
+<LI> To set a <B>second fixed point</B> for stretching, click with <B>Ctrl</B> and the
+<B>third mouse button</B>.  This point will be marked with a red star.
+Clicking again will remove the point.  With such a point, moving the mouse with the
+third button held down will stretch the contour in such a way that the center
+and fixed point stay stationary and the point under the mouse pointer stays
+under the pointer.
+</UL>
 <P>
 <A HREF="index.html">Help Index<A>
