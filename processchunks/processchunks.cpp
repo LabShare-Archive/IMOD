@@ -1130,7 +1130,7 @@ bool Processchunks::readCheckFile() {
         QTextStream stream(mCheckFile);
         QString comLine = stream.readLine();
         while (!comLine.isNull()) {
-          mAns = comLine.at(0).toLatin1();
+          mAns = comLine.at(0).toUpper().toLatin1();
           if (mAns == 'D' && comLine.size() > 1) {
             //machine name(s) are required
             QStringList dropList = comLine.mid(1).trimmed().split(",",
@@ -1673,6 +1673,9 @@ bool Processchunks::isVerbose(const QString &verboseClass, const QString verbose
 
 /*
  $Log$
+ Revision 1.69  2011/02/03 23:40:07  sueh
+ bug# 1426 return the correct exit code.
+
  Revision 1.68  2011/02/03 00:17:11  sueh
  bug# 1426 In cleanupAndExit calling the QT exit.  Added exit to the main function.
 
