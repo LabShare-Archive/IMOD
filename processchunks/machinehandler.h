@@ -101,8 +101,8 @@ private:
   Processchunks *mProcesschunks;
 
   //killing processes
-  bool mIgnoreKill, mKillFinishedSignalReceived, mKillStarted, mPidsAvailable;
-  int mKillCounter;
+  bool mIgnoreKill, mKillFinishedSignalReceived, mKillStarted, mPidsAvailable,mKillWarning;
+  int mKillCounter,mPidWaitCounter;
   QProcess *mKillProcess;
 };
 
@@ -110,6 +110,9 @@ private:
 
 /*
  $Log$
+ Revision 1.15  2011/02/04 00:12:04  sueh
+ bug# 1426 Added useImodkillgroup().
+
  Revision 1.14  2011/02/02 22:42:33  sueh
  bug# 1426 Added killQProcesses.
 

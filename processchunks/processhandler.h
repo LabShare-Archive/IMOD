@@ -134,7 +134,7 @@ private:
 
   //Kill process variables
   QProcess *mKillProcess;
-  int mKillCounter;
+  int mKillCounter, mPidWaitCounter;
   bool mKill, mLocalKill, mKillStarted, mIgnoreKill;
 
   //Signal variables
@@ -146,6 +146,9 @@ private:
 
 /*
  $Log$
+ Revision 1.23  2011/02/02 22:43:32  sueh
+ bug# 1426 Added killQProcesses.
+
  Revision 1.22  2011/02/02 00:09:49  sueh
  bug# 1426 Removed unused variables and commented-out code.
 

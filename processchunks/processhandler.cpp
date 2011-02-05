@@ -31,6 +31,7 @@ ProcessHandler::ProcessHandler() {
   mValidJob = false;
   mKillStarted = false;
   mKillCounter = 0;
+  mPidWaitCounter = 0;
   mIgnoreKill = true;
   resetFields();
 }
@@ -773,23 +774,36 @@ void ProcessHandler::killSignal() {
     }
     else {
       //This must be a local job
-      if (!isPidEmpty()) {
+      if (!isPidEmpty() || mPidWaitCounter > 15) {
         //PIDs are available
         mKillStarted = true;//This starts the 15-count timeout
-        mProcesschunks->getOutStream() << "Killing "
-            << mProcesschunks->getComFileJobs()->getComFileName(mComFileJobIndex);
-        if (mMachine == NULL) {
-          mProcesschunks->getOutStream() << endl;
+        if (!isPidEmpty()) {
+          mProcesschunks->getOutStream() << "Killing "
+              << mProcesschunks->getComFileJobs()->getComFileName(mComFileJobIndex);
+          if (mMachine == NULL) {
+            mProcesschunks->getOutStream() << endl;
+          }
+          else {
+            mProcesschunks->getOutStream() << " on " << mMachine->getName() << endl;
+          }
+          setJobNotDone();
+          //Kill a local job.  Killing non-local jobs is not handled handled by
+          //ProcessHandlers.
+          killLocalProcessAndDescendents(mPid);
+          mKillFinishedSignalReceived = true;
+          mFinishedSignalReceived = true;
         }
         else {
-          mProcesschunks->getOutStream() << " on " << mMachine->getName() << endl;
+          //Unable to get the PID.
+          mProcesschunks->getOutStream() << "Unable to kill a processes on "
+              << mMachine->getName() << endl;
+          mKillFinishedSignalReceived = true;
+          mProcess->kill();
+          mFinishedSignalReceived = true;
         }
-        setJobNotDone();
-        //Kill a local job.  Killing non-local jobs is not handled handled by
-        //ProcessHandlers.
-        killLocalProcessAndDescendents(mPid);
-        mKillFinishedSignalReceived = true;
-        mFinishedSignalReceived = true;
+      }
+      else {
+        mPidWaitCounter++;
       }
     }
   }
@@ -811,6 +825,7 @@ void ProcessHandler::resetKill() {
   mKillFinishedSignalReceived = false;
   mKillStarted = false;
   mKillCounter = 0;
+  mPidWaitCounter = 0;
   mKill = false;
   mIgnoreKill = true;
 }
@@ -1062,6 +1077,9 @@ void ProcessHandler::stopProcess(const QString &pid) {
 
 /*
  $Log$
+ Revision 1.45  2011/02/02 22:43:22  sueh
+ bug# 1426 Added killQProcesses.
+
  Revision 1.44  2011/02/02 00:09:37  sueh
  bug# 1426 Removed unused variables and commented-out code.
 

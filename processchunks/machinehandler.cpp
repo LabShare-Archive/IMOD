@@ -22,9 +22,11 @@ MachineHandler::MachineHandler() {
   mKillStarted = false;
   mPidsAvailable = false;
   mKillCounter = 0;
+  mPidWaitCounter = 0;
   mDecoratedClassName = typeid(*this).name();
   mKillProcess = new QProcess(this);
   mDropped = false;
+  mKillWarning = false;
   mKillProcess->setProcessChannelMode(QProcess::ForwardedChannels);
   QObject::connect(mKillProcess, SIGNAL(finished(int, QProcess::ExitStatus)),
       SLOT(handleFinished(int, QProcess::ExitStatus)));
@@ -116,21 +118,23 @@ void MachineHandler::killSignal() {
           }
         }
       }
-      if (mPidsAvailable) {
-        //PIDs are available and there are valid jobs - check for pipes
+      if (mPidsAvailable || mPidWaitCounter > 15) {
+        //PIDs are available (or there was a timeout) and there are valid jobs - check for pipes
         if (mProcesschunks->resourcesAvailableForKill()) {
           mProcesschunks->getOutStream() << "Killing jobs on " << mName << endl;
           mKillStarted = true;//This starts the 15-count timeout
           //Get PIDs and run imodkillgroup
           //Kill a remote jobs in the background
           //ssh -x $sshopts $machname bash --login -c \'"imodkillgroup $pid ; \rm -f $curdir/$pidname"\' &
-          mProcesschunks->incrementKills();
           QStringList paramList;
+          bool pidFound = false;
 #ifndef _WIN32
           QString command = "ssh";
           QString param = "\"imodkillgroup";
           for (i = 0; i < mNumCpus; i++) {
-            if (mProcessHandlerArray[i].isJobValid()) {
+            if (mProcessHandlerArray[i].isJobValid()
+                && !mProcessHandlerArray[i].isPidEmpty()) {
+              pidFound = true;
               mProcessHandlerArray[i].setJobNotDone();
               param.append(" ");
               param.append(mProcessHandlerArray[i].getPid());
@@ -142,16 +146,33 @@ void MachineHandler::killSignal() {
 #else
           QString command = "imodkillgroup.cmd";
           for (i = 0; i < mNumCpus; i++) {
-            if (mProcessHandlerArray[i].isJobValid()) {
+            if (mProcessHandlerArray[i].isJobValid()
+                && !mProcessHandlerArray[i].isPidEmpty()) {
+              pidFound = true;
               mProcessHandlerArray[i].setJobNotDone();
               paramList << mProcessHandlerArray[i].getPid();
             }
           }
 #endif
-          mKillProcess->start(command, paramList);
-          b3dMilliSleep(mProcesschunks->getMillisecSleep());
+          if (pidFound) {
+            mProcesschunks->incrementKills();
+            mKillProcess->start(command, paramList);
+            b3dMilliSleep(mProcesschunks->getMillisecSleep());
+          }
+          else {
+            //Only one attempt is made to kill the processes.  If no PIDs are
+            //found, then no further attempt will be made because killStarted
+            //has been turned on.
+            mKillWarning = true;
+            mProcesschunks->getOutStream() << "Unable to kill any processes on "
+                << mName << endl;
+            mKillFinishedSignalReceived = true;
+          }
           paramList.clear();
         }
+      }
+      else {
+        mPidWaitCounter++;
       }
     }
     else {
@@ -236,7 +257,7 @@ bool MachineHandler::useImodkillgroup() {
 
 void MachineHandler::resetKill() {
   int i;
-  if (!mIgnoreKill && useImodkillgroup() && !mPidsAvailable) {
+  if (!mKillWarning && !mIgnoreKill && useImodkillgroup() && !mPidsAvailable) {
     mProcesschunks->getOutStream() << "No processes are running on " << mName << endl;
   }
   mIgnoreKill = true;
@@ -244,6 +265,8 @@ void MachineHandler::resetKill() {
   mKillStarted = false;
   mPidsAvailable = false;
   mKillCounter = 0;
+  mPidWaitCounter = 0;
+  mKillWarning = false;
   for (i = 0; i < mNumCpus; i++) {
     mProcessHandlerArray[i].resetKill();
   }
@@ -269,6 +292,9 @@ int MachineHandler::getFailureCount() {
 
 /*
  $Log$
+ Revision 1.29  2011/02/04 00:19:34  sueh
+ *** empty log message ***
+
  Revision 1.28  2011/02/04 00:11:54  sueh
  bug# 1426 Added useImodkillgroup().
 
