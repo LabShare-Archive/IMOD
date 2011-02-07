@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/6/11: Fixed problems with running large numbers of processes in the
+processchunks application.
+
 2/2/11: Allowing tilt to be run using GPUs in parallel.
 
 2/2/11: Fixed clip corr with unsigned short images.
