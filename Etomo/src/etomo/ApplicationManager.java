@@ -5702,7 +5702,7 @@ public final class ApplicationManager extends BaseManager implements
       AxisID axisID, Run3dmodMenuOptions menuOptions) {
     try {
       imodManager.open(fileType.getImodManagerKey(), axisID, modelFileType
-          .getFileName(this, axisID), true, menuOptions);
+          .getFileName(this, axisID), false, menuOptions);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
@@ -8155,6 +8155,12 @@ public final class ApplicationManager extends BaseManager implements
 /**
  * <p>
  * $Log$
+ * Revision 3.365  2011/02/03 05:50:17  sueh
+ * bug# 1422 Using ProcessingMethod to keep track of which type of
+ * processing method is in use.  In splittilt removed a setNextProcess call
+ * which had no effect.  The decisions about when to display the parallel
+ * processing table have been centralized in ProcessingMethodMediator.
+ *
  * Revision 3.364  2010/12/05 04:06:43  sueh
  * bug# 1416 Changed FinalAlignedStackExpert.setEnabledTiltPArameters to
  * setTiltState.
