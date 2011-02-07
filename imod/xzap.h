@@ -30,136 +30,207 @@ class QMouseEvent;
 
 typedef struct b3d_ci_image B3dCIImage;
 
-typedef struct zapwin
+class ZapFuncs
 {
-  ZapWindow *qtWindow;               /* Zap window widget. */
-  ZapGL *gfx;                  /* Image sub window.  */
-  int    winx,      winy;      /* Image window size. */
-  int    xborder,   yborder;   /* border around image window. */
-  int    xstart,    ystart;
-  int    xdrawsize, ydrawsize;
-  int    xtrans,    ytrans,    ztrans;
-  int    lmx,       lmy;
+ public:
+  ZapFuncs(ImodView *vi, int wintype);
+  ~ZapFuncs() {};
+  void closing();
+  void paint();
+  void draw();
+  void resize(int winx, int winy);
+  void keyInput(QKeyEvent *e);
+  void keyRelease(QKeyEvent *e);
+  void mousePress(QMouseEvent *e);
+  void mouseRelease(QMouseEvent *e);
+  void mouseMove(QMouseEvent *e);
+  void generalEvent(QEvent *e);
+  void help();
+  void enteredZoom(float newZoom);
+  void enteredSection(int section);
+  void stepZoom(int step);
+  void stateToggled(int index, int state);
+  QString printInfo(bool toInfoWindow = true);
+  void stepTime(int step);
+  int setupPanels();
+  void toggleContourShift();
+  void bandImageToMouse(int ifclip); 
+  void flushImage();
+  void getixy(int mx, int my, float *x, float *y, int *z);
+  void montageSnapshot(int snaptype);
+  void setCursor(int mode, bool setAnyway = false);
+  void setMouseTracking();
+  void shiftRubberband(float idx, float idy);
+  void syncImage();
+  void toggleRubberband(bool draw = true);
+  bool getLowHighSection(int &low, int &high);
 
-  int    ginit;
+ private:
+  int contInSelectArea(Iobj *obj, Icont *cont, Ipoint selmin, Ipoint selmax);
+  void analyzeBandEdge(int ix, int iy);
+  int checkPlugUseMouse(QMouseEvent *event, int but1, int but2, int but3);
+  int b1Click(int x, int y, int controlDown);
+  int b2Click(int x, int y, int controlDown);
+  int b3Click(int x, int y, int controlDown);
+  int b1Drag(int x, int y);
+  int b2Drag(int x, int y, int controlDown);
+  int b3Drag(int x, int y, int controlDown, int shiftDown);
+  int delUnderCursor(int x, int y, Icont *cont);
+  int dragSelectContsCrossed(int x, int y);
+  void endContourShift();
+  Icont *checkContourShift(int &pt, int &err);
+  void setupContourShift();
+  int startShiftingContour(int x, int y, int button, int ctrlDown);
+  void shiftContour(int x, int y, int button, int shiftDown);
+  int defaultXformCenter(float &xcen, float &ycen);
+  int startMovieCheckSnap(int dir);
+  void registerDragAdditions();
+  int mouseXformMatrix(int x, int y, int type, float mat[2][2]);
+  void markXformCenter(float ix, float iy);
+  void drawGraphics();
+  void fillOverlayRGB(unsigned char **lines, int nx, int ny, int chan,
+                      unsigned char *image);
+  void drawModel();
+  void drawContour(int co, int ob);
+  void drawCurrentPoint();
+  void drawExtraObject();
+  int  drawAuto();
+  void drawGhost();
+  void setGhostColor(float obr, float obg, float obb);
+  void drawTools();
+  int  xpos(float x);
+  int  ypos(float x);
+  int  pointVisable(Ipoint *pnt);
+  void autoTranslate();
+  void resizeToFit();
+  void setAreaLimits();
+  void setControlAndLimits();
+  void bandMouseToImage(int ifclip);
+  int getMontageShifts(int factor, int imStart, int border, int imSize, 
+                       int winSize, int &transStart, int &transDelta, int &copyDelta,
+                       int &fullSize);
+  void panelIndexAndCoord(int size, int num, int gutter, int border, int &pos, 
+                          int &panelInd);
+  void setDrawCurrentOnly(int value);
+  void translate(int x, int y);
+  int bandMinimum();
+  B3dCIImage *getNewCIImage(B3dCIImage *image);
+  void allocateToPanels(int num, int winSize, int gutter, int &panelSize, int &border);
 
-  int    hqgfx, hide;
-  int    hqgfxsave;           /* Place to save hqgfx when dragging */
-  int    drawCurrentOnly;
+ public:
+  ImodView    *mVi;  /* Pointer to view structure. */
+  ZapWindow *mQtWindow;               /* Zap window widget. */
+  ZapGL *mGfx;                  /* Image sub window.  */
+  int    mWinx,      mWiny;      /* Image window size. */
+  int mNumXpanels;    /* Number of panels in X and Y: # in X is flag for */
+  int mNumYpanels;    /* multi Z window type */
+  int mPanelZstep;    /* Step in Z between panels */
+  int mDrawInCenter;  /* Flags to draw model in center or other panels */
+  int mDrawInOthers;
+  int mSection;
+  int    mRubberband;    /* Rubber banding flag and image inside coordinates */
+  float  mRbImageX0;
+  float  mRbImageX1;
+  float  mRbImageY0;
+  float  mRbImageY1;
+  int    mRbMouseX0;    /* mouse coords - always derived from image coords */
+  int    mRbMouseX1;
+  int    mRbMouseY0;
+  int    mRbMouseY1;
+  int    mBandChanged;    /* Flag that band changed, draw graph windows */
+  /* Pointer to control structure. */
+  int         mCtrl;
+  int    mGinit;
+  B3dCIImage **mImages;
+  int mMovieSnapCount; /* Counter if this window is doing movie snapshots */
+  int mPopup;
+  int mRecordSubarea;  /* Record the subarea on the next draw */
+  short mShowslice;   /* Flag that slice should be drawn during paint */
+  int    mStartingBand;
+  int   mToolMaxZ;
+  int    mXtrans,    mYtrans,    mZtrans;
+  float  mZoom;
+  int mLock;
+  float mScaleBarSize;  /* Size of scale bar that was last drawn */
 
-  int    rubberband;    /* Rubber banding flag and image inside coordinates */
-  float  rbImageX0;
-  float  rbImageX1;
-  float  rbImageY0;
-  float  rbImageY1;
-  int    rbMouseX0;    /* mouse coords - always derived from image coords */
-  int    rbMouseX1;
-  int    rbMouseY0;
-  int    rbMouseY1;
-  int    startingBand;
-  int    shiftingCont;   /* Flag for shifting contour */
-  int    bandChanged;    /* Flag that band changed, draw graph windows */
-  Ipoint xformCenter;    /* Center defined by mouse */
-  Ipoint xformFixedPt;   /* Second fixed point defined by mouse */
-  int    centerDefined;  /* Flag that center was defined with mouse */
-  int    centerMarked;   /* Flag that center was displayed in extra object */
-  int    fixedPtDefined; /* Flag that second fixed point has been set */
-  int    shiftRegistered;  /* Flag that contour changes have been registered */
-  int    shiftObjNum;    /* Extra object number for center marker */
-  int    dragAddCount;   /* Number of points added and not registered for undo */
-  Iindex dragAddIndex;   /* Starting obj, cont, point for first such point*/
-  int    dragAddEnd;     /* Ending or last point not registered */
+ private:
+  int    mXborder,   mYborder;   /* border around image window. */
+  int    mXstart,    mYstart;
+  int    mXdrawsize, mYdrawsize;
+  int    mLmx,       mLmy;
 
-  int movieSnapCount; /* Counter if this window is doing movie snapshots */
-  int recordSubarea;  /* Record the subarea on the next draw */
-  bool   drewExtraCursor;  /* Flag that extra cursor was drawn */
-  float scaleBarSize;  /* Size of scale bar that was last drawn */
 
-  float  zoom;
-  float  xzoom;    /* Possibly slightly different X zoom */
-  char   *data;
+  int    mHqgfx, mHide;
+  int    mHqgfxsave;           /* Place to save hqgfx when dragging */
+  int    mDrawCurrentOnly;
+
+  int    mShiftingCont;   /* Flag for shifting contour */
+  Ipoint mXformCenter;    /* Center defined by mouse */
+  Ipoint mXformFixedPt;   /* Second fixed point defined by mouse */
+  int    mCenterDefined;  /* Flag that center was defined with mouse */
+  int    mCenterMarked;   /* Flag that center was displayed in extra object */
+  int    mFixedPtDefined; /* Flag that second fixed point has been set */
+  int    mShiftRegistered;  /* Flag that contour changes have been registered */
+  int    mShiftObjNum;    /* Extra object number for center marker */
+  int    mDragAddCount;   /* Number of points added and not registered for undo */
+  Iindex mDragAddIndex;   /* Starting obj, cont, point for first such point*/
+  int    mDragAddEnd;     /* Ending or last point not registered */
+
+  bool   mDrewExtraCursor;  /* Flag that extra cursor was drawn */
+
+  float  mXzoom;    /* Possibly slightly different X zoom */
+  char   *mData;
 
   /* The graphic image buffer. */
-  B3dCIImage *image;
-  B3dCIImage **images;
-  int numImages;
+  B3dCIImage *mImage;
+  int mNumImages;
 
-  int section;
-  int sectionStep; /* auto step image after new model point. */
-  int time;
-  int overlay;     /* Flag for displaying overlay */
-  int lock;
-  int keepcentered;
-  int mousemode;
-  int lastShape;   /* Last shape for cursor */
-  int popup;
-  int   toolSection;
-  int   toolMaxZ;
-  float toolZoom;
-  int   toolTime;
-  int toolSizeX;
-  int toolSizeY;
+  int mSectionStep; /* auto step image after new model point. */
+  int mTime;
+  int mOverlay;     /* Flag for displaying overlay */
+  int mKeepcentered;
+  int mMousemode;
+  int mLastShape;   /* Last shape for cursor */
+  int   mToolSection;
+  float mToolZoom;
+  int   mToolTime;
+  int mToolSizeX;
+  int mToolSizeY;
 
-  short insertmode;
-  short showslice;   /* Flag that slice should be drawn during paint */
-  int showedSlice;   /* Flag that it was drawn last time */
+  short mInsertmode;
+  int mShowedSlice;   /* Flag that it was drawn last time */
 
-  int numXpanels;    /* Number of panels in X and Y: # in X is flag for */
-  int numYpanels;    /* multi Z window type */
-  int panelZstep;    /* Step in Z between panels */
-  int drawInCenter;  /* Flags to draw model in center or other panels */
-  int drawInOthers;
-  int panelXborder;  /* Border outside panels in X and Y */
-  int panelYborder;  
-  int panelGutter;   /* Gutter between panels */
-  int panelXsize;    /* Size of panels in X and Y */
-  int panelYsize;
+  int mPanelXborder;  /* Border outside panels in X and Y */
+  int mPanelYborder;  
+  int mPanelGutter;   /* Gutter between panels */
+  int mPanelXsize;    /* Size of panels in X and Y */
+  int mPanelYsize;
 
-  /* Pointer to view and control sturctures. */
-  ImodView    *vi;
-  int         ctrl;
-  int toolstart;
+  int mToolstart;
 
   /* Special, lock time */
-  int    timeLock;
-  int    twod;
-
-}ZapStruct;
-
-void zapClosing(ZapStruct *zap);
-void zapPaint(ZapStruct *zap);
-void zapDraw(ZapStruct *zap);
-void zapResize(ZapStruct *zap, int winx, int winy);
-void zapKeyInput(ZapStruct *zap, QKeyEvent *e);
-void zapKeyRelease(ZapStruct *zap, QKeyEvent *e);
-void zapMousePress(ZapStruct *zap, QMouseEvent *e);
-void zapMouseRelease(ZapStruct *zap, QMouseEvent *e);
-void zapMouseMove(ZapStruct *zap, QMouseEvent *e);
-void zapGeneralEvent(ZapStruct *zap, QEvent *e);
-void zapHelp(ZapStruct *zap);
-void zapEnteredZoom(ZapStruct *zap, float newZoom);
-void zapEnteredSection(ZapStruct *zap, int section);
-void zapStepZoom(ZapStruct *zap, int step);
-void zapStateToggled(ZapStruct *zap, int index, int state);
-QString zapPrintInfo(ZapStruct *zap, bool toInfoWindow = true);
-void zapStepTime(ZapStruct *zap, int step);
-int zapSetupPanels(ZapStruct *zap);
-void zapToggleContourShift(ZapStruct *zap);
+  int    mTimeLock;
+  int    mTwod;
+};
 
 void zapReportBiggestMultiZ();
-ZapStruct *getTopZapWindow(bool withBand, int type = ZAP_WINDOW_TYPE);
+ZapFuncs *getTopZapWindow(bool withBand, int type = ZAP_WINDOW_TYPE);
 int getTopZapMouse(Ipoint *imagePt);
-int  imod_zap_open(struct ViewInfo *vi, int wintype);
-int zapSubsetLimits(ViewInfo *vi, int &ixStart, int &iyStart, int &nxUse, 
-                    int &nyUse);
+int  imod_zap_open(ImodView *vi, int wintype);
+int zapSubsetLimits(ImodView *vi, int &ixStart, int &iyStart, int &nxUse, int &nyUse);
 void zapReportRubberband();
 void zapSetImageOrBandCenter(float imx, float imy, bool incremental);
 int zapRubberbandCoords(float &rbX0, float &rbX1, float &rbY0, float &rbY1);
 void zapPixelViewState(bool state);
 void zapSetMouseTracking();
 
+
 /*
+
 $Log$
+Revision 3.34  2011/02/04 03:52:55  mast
+Add second fixed point
+
 Revision 3.33  2009/06/05 15:43:04  mast
 Stop passing mouse pressed to move move event
 

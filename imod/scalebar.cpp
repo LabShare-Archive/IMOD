@@ -74,7 +74,6 @@ float scaleBarAssess(int winx, int winy, float zoom, int &pixlen, int &xst,
   Imod *imod;
   double expon, minlen, loglen, normlen, custlen;
   float truelen, pixsize;
-  int i, j;
   if (!params.draw || !sbDia)
     return -1.;
 
@@ -170,7 +169,6 @@ void scaleBarTestAdjust(int winx, int winy, float zoom)
  */
 float scaleBarDraw(int winx, int winy, float zoom, int background)
 {
-  Imod *imod;
   float truelen;
   int xst, yst, color, pixlen, xsize, ysize, i, j, red, green, blue, index;
   GLboolean depthEnabled;
@@ -224,7 +222,7 @@ float scaleBarDraw(int winx, int winy, float zoom, int background)
 void scaleBarUpdate()
 {
   SlicerStruct *ss;
-  ZapStruct *zap;
+  ZapFuncs *zap;
   Imod *imod;
   float slicerv = -1., zapv = -1., multiZv = -1., modvv = -1., xyzv = -1.;
   if (!sbDia)
@@ -238,10 +236,10 @@ void scaleBarUpdate()
       slicerv = ss->scaleBarSize;
     zap = getTopZapWindow(false, ZAP_WINDOW_TYPE);
     if (zap)
-      zapv = zap->scaleBarSize;
+      zapv = zap->mScaleBarSize;
     zap = getTopZapWindow(false, MULTIZ_WINDOW_TYPE);
     if (zap)
-      multiZv = zap->scaleBarSize;
+      multiZv = zap->mScaleBarSize;
     xyzv = xyzScaleBarSize();
   }
   if (!ImodvClosed)
@@ -265,6 +263,9 @@ void scaleBarRedraw()
 /*
 
 $Log$
+Revision 1.9  2010/01/22 03:05:23  mast
+Added functions to fit bar in one panel for a montage
+
 Revision 1.8  2009/05/08 02:18:21  mast
 Fixed for binned data
 

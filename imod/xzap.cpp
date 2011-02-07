@@ -59,71 +59,6 @@ static void zapDraw_cb(ImodView *vi, void *client, int drawflag);
 
 static void zapClose_cb(ImodView *vi, void *client, int drawflag);
 static void zapKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e);
-static void zapAnalyzeBandEdge(ZapStruct *zap, int ix, int iy);
-static int checkPlugUseMouse(ZapStruct *zap, QMouseEvent *event, int but1, 
-                             int but2, int but3);
-static int zapButton1(ZapStruct *zap, int x, int y, int controlDown);
-static int zapButton2(ZapStruct *zap, int x, int y, int controlDown);
-static int zapButton3(ZapStruct *zap, int x, int y, int controlDown);
-static int zapB1Drag(ZapStruct *zap, int x, int y);
-static int zapB2Drag(ZapStruct *zap, int x, int y, int controlDown);
-static int zapB3Drag(ZapStruct *zap, int x, int y, int controlDown, 
-                      int shiftDown);
-static int zapDelUnderCursor(ZapStruct *zap, int x, int y, Icont *cont);
-static int contInSelectArea(Iobj *obj, Icont *cont, Ipoint selmin,
-                            Ipoint selmax);
-static int dragSelectContsCrossed(ZapStruct *zap, int x, int y);
-static void endContourShift(ZapStruct *zap);
-static Icont *checkContourShift(ZapStruct *zap, int &pt, int &err);
-static void setupContourShift(ZapStruct *zap);
-static int startShiftingContour(ZapStruct *zap, int x, int y, int button,
-                                 int ctrlDown);
-static void shiftContour(ZapStruct *zap, int x, int y, int button, 
-                         int shiftDown);
-static int defaultXformCenter(ZapStruct *zap, float &xcen, float &ycen);
-static int startMovieCheckSnap(ZapStruct *zap, int dir);
-static void registerDragAdditions(ZapStruct *zap);
-static int mouseXformMatrix(ZapStruct *zap, int x, int y, int type, 
-                            float mat[2][2]);
-static void markXformCenter(ZapStruct *zap, float ix, float iy);
-
-static void zapDrawGraphics(ZapStruct *zap);
-static void fillOverlayRGB(unsigned char **lines, int nx, int ny, int chan,
-                           unsigned char *image);
-static void zapDrawModel(ZapStruct *zap);
-static void zapDrawContour(ZapStruct *zap, int co, int ob);
-static void zapDrawCurrentPoint(ZapStruct *zap);
-static void zapDrawExtraObject(ZapStruct *zap);
-static int  zapDrawAuto(ZapStruct *zap);
-static void zapDrawGhost(ZapStruct *zap);
-static void zapSetGhostColor(ZapStruct *zap, float obr, float obg, float obb);
-static void zapDrawTools(ZapStruct *zap);
-static void zapSetCursor(ZapStruct *zap, int mode, bool setAnyway = false);
-static int  zapXpos(ZapStruct *zap, float x);
-static int  zapYpos(ZapStruct *zap, float x);
-static void zapGetixy(ZapStruct *zap, int mx, int my, float *x, float *y, 
-                      int *z);
-static int  zapPointVisable(ZapStruct *zap, Ipoint *pnt);
-static void zapAutoTranslate(ZapStruct *zap);
-static void zapSyncImage(ZapStruct *win);
-static void zapResizeToFit(ZapStruct *zap);
-static void setAreaLimits(ZapStruct *zap);
-static void setControlAndLimits(ZapStruct *zap);
-static void zapToggleRubberband(ZapStruct *zap, bool draw = true);
-static void zapBandImageToMouse(ZapStruct *zap, int ifclip); 
-static void zapBandMouseToImage(ZapStruct *zap, int ifclip);
-static void montageSnapshot(ZapStruct *zap, int snaptype);
-static void shiftRubberband(ZapStruct *zap, float idx, float idy);
-static int getMontageShifts(ZapStruct *zap, int factor, int imStart, 
-                             int border, int imSize, int winSize,
-                             int &transStart, int &transDelta, int &copyDelta,
-                             int &fullSize);
-static void setMouseTracking(ZapStruct *zap);
-static void zapFlushImage(ZapStruct *zap);
-static void panelIndexAndCoord(int size, int num, int gutter, int border, 
-                               int &pos, int &panelInd);
-static bool getLowHighSection(ZapStruct *zap, int &low, int &high);
-static void setDrawCurrentOnly(ZapStruct *zap, int value);
 
 static int dragRegisterSize = 10;
 
@@ -149,12 +84,343 @@ static int maxMultiZarea = 0;
 static int scaleSizes = 1;
 static bool mousePressed = false;
 
-void zapHelp(ZapStruct *zap)
+/*
+ * Open the zap window
+ */
+int imod_zap_open(ImodView *vi, int wintype)
 {
-  if (zap->numXpanels)
-    imodShowHelpPage("multizap.html");
-  else
-    imodShowHelpPage("zap.html");
+  ZapFuncs *zap;
+
+  zap = new ZapFuncs(vi, wintype);
+  if (!zap || !zap->mQtWindow) {
+    delete zap;
+    return (-1);
+  }
+  return 0;
+}
+
+/*
+ * Look through all multiZ windows and report params of biggest one
+ */
+void zapReportBiggestMultiZ()
+{
+  QObjectList objList;
+  QRect pos;
+  ZapFuncs *zap;
+  int i;
+  if (!ImodPrefs)
+    return;
+  imodDialogManager.windowList(&objList, -1, MULTIZ_WINDOW_TYPE);
+
+  for (i = 0; i < objList.count(); i++) {
+    zap = ((ZapWindow *)objList.at(i))->mZap;
+    if (maxMultiZarea < zap->mWinx * zap->mWiny) {
+      maxMultiZarea = zap->mWinx * zap->mWiny;
+      pos = ivwRestorableGeometry(zap->mQtWindow);
+      ImodPrefs->recordMultiZparams(pos, zap->mNumXpanels, zap->mNumYpanels,
+                                    zap->mPanelZstep, zap->mDrawInCenter,
+                                    zap->mDrawInOthers);
+    }
+  }
+}
+
+/*
+ * Find the first zap window, with a rubberband if flag is set
+ */
+ZapFuncs *getTopZapWindow(bool withBand, int type)
+{
+  QObjectList objList;
+  ZapFuncs *zap;
+  ImodControl *ctrlPtr;
+  int ixl, ixr, iyb, iyt;
+  int i, j, curSave, topOne;
+
+  imodDialogManager.windowList(&objList, -1, type);
+  if (!objList.count())
+    return NULL;
+
+  // Loop through the control list and find the first window that is a zap
+  // with a viable rubberband if required.  
+  // It is best to save and restore ctrlist current item
+  topOne = -1;
+  curSave = App->cvi->ctrlist->list->current;
+  for (j = 0; topOne < 0 && j < ilistSize(App->cvi->ctrlist->list); j++) {
+    ctrlPtr = (ImodControl *)ilistItem(App->cvi->ctrlist->list, j);
+    for (i = 0; i < objList.count(); i++) {
+      zap = ((ZapWindow *)objList.at(i))->mZap;
+      if (ctrlPtr->id == zap->mCtrl && (!withBand || zap->mRubberband)) {
+        if (zap->mRubberband) {
+          ixl = (int)floor(zap->mRbImageX0 + 0.5);
+          ixr = (int)floor(zap->mRbImageX1 - 0.5);
+          iyb = (int)floor(zap->mRbImageY0 + 0.5);
+          iyt = (int)floor(zap->mRbImageY1 - 0.5);
+          if (ixr < 1 || iyt < 1 || ixl > zap->mVi->xsize - 2 || 
+              iyb > zap->mVi->ysize - 2)
+            continue;
+        }
+        topOne = i;
+        break;
+      }
+    }
+  }
+  App->cvi->ctrlist->list->current = curSave;
+  if (topOne && withBand)
+    return NULL;
+  if (topOne < 0)
+    topOne = 0;
+  return ((ZapWindow *)objList.at(topOne))->mZap;
+}
+
+/*
+ * Report the rubberband coordinates of the first zap window with a band
+ */
+void zapReportRubberband()
+{
+  ZapFuncs *zap;
+  int ixl, ixr, iyb, iyt, bin;
+
+
+  zap = getTopZapWindow(true);
+  if (!zap) {
+    imodPrintStderr("ERROR: No Zap window has usable rubberband coordinates"
+                    "\n");
+    return;
+  }
+
+  bin = zap->mVi->xybin;
+  ixl = (int)floor(zap->mRbImageX0 + 0.5);
+  ixr = (int)floor(zap->mRbImageX1 - 0.5);
+  iyb = (int)floor(zap->mRbImageY0 + 0.5);
+  iyt = (int)floor(zap->mRbImageY1 - 0.5);
+  
+  if (ixl < 0)
+    ixl = 0;
+  if (ixr >= zap->mVi->xsize)
+    ixr = zap->mVi->xsize - 1;
+  if (iyb < 0)
+    iyb = 0;
+  if (iyt >= zap->mVi->ysize)
+    iyt = zap->mVi->ysize - 1;
+  ixl *= bin;
+  iyb *= bin;
+  ixr = ixr * bin + bin - 1;
+  iyt = iyt * bin + bin - 1;
+  int lowSection, highSection;
+  if (zap->getLowHighSection(lowSection, highSection)) {
+    imodPrintStderr("Rubberband: %d %d %d %d %d %d\n", ixl + 1, iyb + 1,
+                    ixr + 1, iyt + 1, zap->mVi->zbin * (lowSection - 1) + 1,
+                     zap->mVi->zbin * highSection);
+  }
+  else {
+    imodPrintStderr("Rubberband: %d %d %d %d\n", ixl + 1, iyb + 1, ixr + 1,
+                    iyt + 1);
+  }
+}
+
+/*
+ * Return coordinates of first rubber band; return value 1 if any, 0 if none
+ */
+int zapRubberbandCoords(float &rbX0, float &rbX1, float &rbY0, float &rbY1)
+{
+  QObjectList objList;
+  ZapFuncs *zap;
+  int i;
+
+  imodDialogManager.windowList(&objList, -1, ZAP_WINDOW_TYPE);
+
+  for (i = 0; i < objList.count(); i++) {
+    zap = ((ZapWindow *)objList.at(i))->mZap;
+    if (zap->mRubberband) {
+      rbX0 = zap->mRbImageX0;
+      rbX1 = zap->mRbImageX1;
+      rbY0 = zap->mRbImageY0;
+      rbY1 = zap->mRbImageY1;
+      return 1;
+    }
+  }
+  return 0;
+}
+
+/*
+ * Reposition image center or rubber band to the given absolute position,
+ * or by the given increments if the flag is set
+ */
+void zapSetImageOrBandCenter(float imx, float imy, bool incremental)
+{
+  ZapFuncs *zap;
+  zap = getTopZapWindow(false);
+  if (!zap)
+    return;
+  if (zap->mRubberband) {
+
+    // Rubberband: get desired shift if not incremental, try to do it
+    if (!incremental) {
+      imx -= (zap->mRbImageX1 + zap->mRbImageX0) / 2.;
+      imy -= (zap->mRbImageY1 + zap->mRbImageY0) / 2.;
+    }
+    zap->shiftRubberband(imx, imy);
+
+    // And center image on rubberband
+    zap->mXtrans = B3DNINT(zap->mVi->xsize / 2. - 
+                          (zap->mRbImageX1 + zap->mRbImageX0) / 2.);
+    zap->mYtrans = B3DNINT(zap->mVi->ysize / 2. - 
+                          (zap->mRbImageY1 + zap->mRbImageY0) / 2.);
+    zap->mBandChanged = 1;
+  } else {
+
+    // Not rubberband: just adjust or set the translations, which will be
+    // fixed when the draw is done
+    if (incremental) {
+      zap->mXtrans -= B3DNINT(imx);
+      zap->mYtrans -= B3DNINT(imy);
+    } else {
+      zap->mXtrans = B3DNINT(zap->mVi->xsize / 2. - imx);
+      zap->mYtrans = B3DNINT(zap->mVi->ysize / 2. - imy);
+    }
+  }
+  zap->mRecordSubarea = 1;
+  zap->draw();
+}
+
+/*
+ * The pixel view window has opened or closed, set mouse tracking for all zaps
+ */
+void zapPixelViewState(bool state)
+{
+  pixelViewOpen = state;
+  zapSetMouseTracking();
+}
+
+/*
+ * The state of externally requested tracking has changed somehow, set 
+ * tracking for all zaps
+ */
+void zapSetMouseTracking()
+{
+  QObjectList objList;
+  ZapFuncs *zap;
+  int i;
+  imodDialogManager.windowList(&objList, -1, ZAP_WINDOW_TYPE);
+
+  for (i = 0; i < objList.count(); i++) {
+    zap = ((ZapWindow *)objList.at(i))->mZap;
+    zap->setMouseTracking();
+  }
+}
+
+/* 
+ * Return the image coordinates of the mouse in the top Zap
+ */
+int getTopZapMouse(Ipoint *imagePt)
+{
+  int mx, my, iz;
+  ZapFuncs *zap = getTopZapWindow(false);
+  if (!zap)
+    return 1;
+  mx = zap->mGfx->mapFromGlobal(QCursor::pos()).x();
+  my = zap->mGfx->mapFromGlobal(QCursor::pos()).y();
+  zap->getixy(mx, my, &imagePt->x, &imagePt->y, &iz);
+  imagePt->z = (float)iz;
+  return 0;
+}
+
+/*
+ * Return the subset limits from the active window
+ */
+int zapSubsetLimits(ViewInfo *vi, int &ixStart, int &iyStart, int &nxUse, 
+                    int &nyUse)
+{
+  if (numZapWindows <= 0 || subStartX >= subEndX || subStartY >= subEndY ||
+      subEndX >= vi->xsize || subEndY >= vi->ysize)
+    return 1;
+  ixStart = subStartX;
+  nxUse = subEndX + 1 - subStartX;
+  iyStart = subStartY;
+  nyUse = subEndY + 1 - subStartY;
+  return 0;
+}
+
+/*
+ * This is the external draw command from the controller
+ */
+static void zapDraw_cb(ImodView *vi, void *client, int drawflag)
+{
+  ZapFuncs *zap = (ZapFuncs *)client;
+  int *limits;
+  int limarr[4];
+  int snaptype = imcGetSnapshot(zap->mVi);
+
+  if (imodDebug('z'))
+    imodPrintStderr("Zap Draw\n");
+
+  if (!zap)
+    return;
+  if ((!zap->mPopup) || (!zap->mGinit)) 
+    return;
+     
+  zap->setCursor(vi->imod->mousemode);
+
+  if (drawflag & IMOD_DRAW_COLORMAP) {
+    zap->mGfx->setColormap(*(App->qColormap));
+    return;
+  }
+
+  // If the rubberband is enabled and a flip is happening, turn off the
+  // rubberband.
+  if ((zap->mRubberband || zap->mStartingBand) && zap->mToolMaxZ != zap->mVi->zsize)
+    zap->toggleRubberband(false);
+  // drawTools();
+
+  if (drawflag){
+    if (drawflag & IMOD_DRAW_SLICE)
+      zap->mShowslice = 1;
+
+    /* DNM: skip this, it is covered by the zapdraw call below and the
+       items that it sets are not needed by the flush or sync */
+    /* b3dWinset(XtDisplay(zap->gfx), zap->gfx, (XID)zap->context); */
+
+    if (drawflag & IMOD_DRAW_IMAGE){
+      zap->flushImage();
+    }
+          
+    if (!(drawflag & IMOD_DRAW_ACTIVE) && !(drawflag & IMOD_DRAW_NOSYNC))
+      zap->syncImage();
+
+    /* DNM 1/29/03: no more worry about multiple calls */
+    zap->draw();
+
+    /* DNM 3/8/01: add autosnapshot when movieing */
+    // 3/8/07: make it take montages too
+    if (snaptype && zap->mVi->zmovie && 
+        zap->mMovieSnapCount && imcGetStarterID() == zap->mCtrl) {
+      if (imcGetSnapMontage(true)) {
+        zap->montageSnapshot(snaptype);
+      } else {
+        limits = NULL;
+        if (zap->mRubberband) {
+          limits = limarr;
+          zap->bandImageToMouse(1);
+          limarr[0] = zap->mRbMouseX0 + 1;
+          limarr[1] = zap->mWiny - zap->mRbMouseY1;
+          limarr[2] = zap->mRbMouseX1 - 1 - zap->mRbMouseX0;
+          limarr[3] = zap->mRbMouseY1 - 1 - zap->mRbMouseY0;
+        }
+        b3dKeySnapshot((char *)(zap->mNumXpanels ? "multiz" : "zap"), 
+                       snaptype - 1, snaptype % 2, limits);
+      }
+      zap->mMovieSnapCount--;
+      /* When count expires, stop movie */
+      if(!zap->mMovieSnapCount) {
+        zap->mVi->zmovie = 0;
+        b3dSetMovieSnapping(false);
+      }
+    }
+
+    // If there is only one zap window, set flag to record the subarea
+    if (imodDialogManager.windowCount(ZAP_WINDOW_TYPE) == 1 && 
+        !zap->mNumXpanels)
+      zap->mRecordSubarea = 1;
+  }
 }
 
 /*
@@ -163,169 +429,372 @@ void zapHelp(ZapStruct *zap)
  */
 static void zapClose_cb(ImodView *vi, void *client, int junk)
 {
-  ZapStruct *zap = (ZapStruct *)client;
+  ZapFuncs *zap = (ZapFuncs *)client;
   if (imodDebug('z'))
     imodPrintStderr("Sending zap window close.\n");
-  zap->popup = 0;
-  zap->qtWindow->close();
+  zap->mPopup = 0;
+  zap->mQtWindow->close();
+}
+
+/*
+ * External key is passed on
+ */
+static void zapKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e)
+{
+  ZapFuncs *zap = (ZapFuncs *)client;
+  if ((e->modifiers() & Qt::KeypadModifier) && (e->key() == Qt::Key_Insert ||
+                                    e->key() == Qt::Key_0))
+    return;
+  if (released)
+    zap->keyRelease(e);
+  else
+    zap->keyInput(e);
+}
+
+/*****************************************************************************/
+/* THE ZAP FUNCTION CLASS */
+
+ZapFuncs::ZapFuncs(ImodView *vi, int wintype)
+{
+  QString str;
+  QRect oldGeom;
+  int needWinx, needWiny;
+  int maxWinx;
+  int maxWiny;
+  int i, newWidth, newHeight, xleft, ytop, toolHeight;
+  double newZoom;
+
+  mVi     = vi;
+  mCtrl   = 0;
+  mXtrans = mYtrans = 0;
+  mZtrans = 0;
+  mHqgfx  = 0;
+  mHide   = 0;
+  mZoom   = 1.0;
+  mData   = NULL;
+  mImage  = NULL;
+  mGinit  = 0;
+  mLock   = 0;
+  mKeepcentered = 0;
+  mInsertmode = 0;
+  mToolstart = 0;
+  mShowslice = 0;
+  mShowedSlice = 0;
+  mTimeLock = 0;
+  mToolSection = -1;
+  mToolMaxZ = vi->zsize;
+  mToolZoom = -1.0f;
+  mToolTime = 0;
+  mToolSizeX = 0;
+  mToolSizeY = 0;
+  mTwod = (!(vi->dim&4));
+  mSectionStep = 0;
+  mTime = 0;
+  mOverlay = 0;
+  mMousemode = 0;
+  mLastShape = -1;
+  mRubberband = 0;
+  mStartingBand = 0;
+  mShiftingCont = 0;
+  mBandChanged = 0;
+  mShiftRegistered = 0;
+  mCenterMarked = 0;
+  mXformFixedPt.x = 0.;
+  mXformFixedPt.y = 0.;
+  mMovieSnapCount = 0;
+  mDrawCurrentOnly = 0;
+  mDragAddCount = 0;
+  mDrewExtraCursor = false;
+  mNumXpanels = wintype ? 5 : 0;
+  mNumYpanels = 1;
+  mPanelZstep = 1;
+  mDrawInCenter = 1;
+  mDrawInOthers = 1;
+  mPanelGutter = 8;
+  mQtWindow = NULL;
+
+  if (wintype) {
+    mImages = (B3dCIImage **)malloc
+      (MULTIZ_MAX_PANELS * MULTIZ_MAX_PANELS * sizeof(B3dCIImage *));
+    mNumImages = 0;
+    if (!mImages) {
+      wprint("\aError getting memory for array of image pointers.\n");
+      return;
+    }
+    for (i = 0; i < MULTIZ_MAX_PANELS * MULTIZ_MAX_PANELS; i++)
+      mImages[i] = NULL;
+    oldGeom = ImodPrefs->getMultiZparams(mNumXpanels, mNumYpanels,
+                                         mPanelZstep, mDrawInCenter, 
+                                         mDrawInOthers);
+  }
+
+  utilGetLongestTimeString(mVi, &str);
+  mQtWindow = new ZapWindow(this, str, wintype != 0, App->rgba, 
+                                App->doublebuffer, App->qtEnableDepth, 
+                                imodDialogManager.parent(IMOD_IMAGE),
+                                "zap window");
+  if (!mQtWindow){
+    free(mImages);
+    wprint("\aError opening zap window.\n");
+    return;
+  }
+  if (imodDebug('z'))
+    imodPuts("Got a zap window");
+
+  mGfx = mQtWindow->mGLw;
+  if (!App->rgba)
+    mGfx->setColormap(*(App->qColormap));
+
+  mQtWindow->setWindowTitle
+    (imodCaption((char *)(wintype ? "3dmod Multi-Z Window" : 
+                          "3dmod ZaP Window")));
+
+  mQtWindow->mToolBar->setWindowTitle(imodCaption("ZaP Toolbar"));
+  if (mQtWindow->mToolBar2)
+    mQtWindow->mToolBar2->setWindowTitle(imodCaption("Time Toolbar"));
+  if (mQtWindow->mPanelBar)
+    mQtWindow->mPanelBar->setWindowTitle(imodCaption("Multi-Z Toolbar"));
+  
+  mCtrl = ivwNewControl(vi, zapDraw_cb, zapClose_cb, zapKey_cb, (void *)this);
+  imodDialogManager.add((QWidget *)mQtWindow, IMOD_IMAGE, 
+                        wintype ? MULTIZ_WINDOW_TYPE : ZAP_WINDOW_TYPE);
+
+  if (!wintype) {
+    diaMaximumWindowSize(maxWinx, maxWiny);
+    mQtWindow->setSizeText(maxWinx, maxWiny);
+
+    oldGeom = ImodPrefs->getZapGeometry();
+  }
+
+  /* 1/28/03: this call is needed to get the toolbar size hint right */
+  imod_info_input();
+  QSize toolSize = mQtWindow->mToolBar->sizeHint();
+  QSize toolSize2(0, 0);
+  QSize toolSize3(0, 0);
+  if (mQtWindow->mToolBar2)
+    toolSize2 = mQtWindow->mToolBar2->sizeHint();
+  if (wintype)
+    toolSize3 = mQtWindow->mPanelBar->sizeHint();
+  toolHeight = toolSize.height();
+  if (imodDebug('z'))
+    imodPrintStderr("Toolsize %d %d win %d gfx %d\n", toolSize.width(), 
+                    toolSize.height(), mQtWindow->height(), 
+                    mGfx->height());
+  if (!oldGeom.width()) {
+
+    if (!wintype) {
+      // If no old geometry, adjust zoom if necessary to fit image on screen
+
+      for (i = 0; i < 2; i++) {
+        mZoom = 1.;
+        while (mZoom * vi->xsize > 1.1 * maxWinx || 
+               mZoom * vi->ysize > 1.1 * maxWiny - toolHeight) {
+          newZoom = b3dStepPixelZoom(mZoom, -1);
+          if (fabs(newZoom - mZoom) < 0.0001)
+            break;
+          mZoom = (float)newZoom;
+        }
+      
+        needWinx = (int)(mZoom * vi->xsize);
+      
+        // If Window is narrower than two toolbars, set up to stack the
+        // toolbars and increase the tool height
+        if (!i && needWinx < toolSize.width() + toolSize2.width()) {
+          mQtWindow->insertToolBarBreak(mQtWindow->mToolBar2);
+          toolHeight += toolSize2.height();
+        } 
+      }
+      
+      needWiny = (int)(mZoom * vi->ysize) + toolHeight;
+      diaLimitWindowSize(needWinx, needWiny);
+
+      // Make the width big enough for the toolbar, and add the difference
+      // between the window and image widget heights to get height
+      newWidth = toolSize.width() > needWinx ? toolSize.width() : needWinx;
+      newHeight = needWiny;
+    } else {
+
+      // For multiZ, just make it big enough for two bars, then if
+      // necessary insert break and make it taller for the panel bar
+      newWidth = B3DMAX(640, toolSize.width() + toolSize2.width());
+      newHeight = 170;
+      if (newWidth < toolSize.width() + toolSize2.width() + toolSize3.width()){
+        newHeight += toolSize3.height();
+        mQtWindow->insertToolBarBreak(mQtWindow->mPanelBar);
+      }
+    }
+
+    QRect pos = mQtWindow->geometry();
+    xleft = pos.x();
+    ytop = pos.y();
+
+    diaLimitWindowPos(newWidth, newHeight, xleft, ytop);
+    if (imodDebug('z'))
+      imodPrintStderr("Sizes: zap %d %d, toolbar %d %d, GL %d %d: "
+                      "resize %d %d\n", mQtWindow->width(), 
+                      mQtWindow->height(), 
+                      toolSize.width(), toolSize.height(), mGfx->width(), 
+                      mGfx->height(), newWidth, newHeight);
+
+  } else {
+
+    // Existing geometry - better fit it to current screen
+    xleft = oldGeom.x();
+    ytop = oldGeom.y();
+    newWidth = oldGeom.width();
+    newHeight = oldGeom.height();
+    diaLimitWindowSize(newWidth, newHeight);
+    diaLimitWindowPos(newWidth, newHeight, xleft, ytop);
+
+    // Adjust the tool height: see if time bar fits on line and insert break
+    // if not and add to height
+    int toolBase = toolSize.width();
+    if (mQtWindow->mToolBar2) {
+      if (newWidth < toolBase + toolSize2.width()) {
+        mQtWindow->insertToolBarBreak(mQtWindow->mToolBar2);
+        toolBase = toolSize2.width();
+        toolHeight += toolSize2.height();
+      } else
+        toolBase += toolSize2.width();
+    }
+
+    // Then see if panel bar fits on line, insert break if not, add to height
+    if (wintype && (newWidth < toolBase + toolSize3.width())) {
+      mQtWindow->insertToolBarBreak(mQtWindow->mPanelBar);
+      toolHeight += toolSize3.height();
+    }
+
+    if (!wintype) {
+
+      needWinx = newWidth;
+      needWiny = newHeight - toolHeight;
+      
+      // If images are too big, zoom down until they almost fit
+      // If images are too small, start big and find first zoom that fits
+      // Apply same overflow criterion so that reopened windows will behave
+      // the same as when they were first opened
+      if (vi->xsize < needWinx && vi->ysize < needWiny)
+        mZoom = (2. * needWinx) / vi->xsize;
+      
+      while ((mZoom * vi->xsize > 1.1 * needWinx || 
+              mZoom * vi->ysize > 1.1 * needWiny)) {
+        newZoom = b3dStepPixelZoom(mZoom, -1);
+        // This test goes into infinite loop in Windows - Intel, 6/22/04
+        // if (newZoom == mZoom)
+        if (fabs(newZoom - mZoom) < 0.0001)
+          break;
+        mZoom = (float)newZoom;
+      }
+    }
+  }
+
+  // 9/23/03: changed setGeometry to resize/move and this allowed elimination
+  // of the setting again on the first real draw
+  mQtWindow->resize(newWidth, newHeight);
+  mQtWindow->move(xleft, ytop);
+  mXzoom = mZoom;
+  mQtWindow->show();
+  mPopup = 1;
+  setMouseTracking();
+
+  // 11/24/03: OS 10.3 needs to move after the show, so just put this in without
+  // checking if it would work generally
+#ifdef Q_OS_MACX
+  mQtWindow->move(xleft, ytop);
+#endif    
+
+  if (imodDebug('z'))
+    imodPuts("popup a zap dialog");
+
+  /* DNM: set cursor after window created so it has model mode cursor if
+     an existing window put us in model mode */
+  setCursor(vi->imod->mousemode);
+  numZapWindows++;
+  insertTime.start();
+}
+
+
+void ZapFuncs::help()
+{
+  if (mNumXpanels)
+    imodShowHelpPage("multizap.html");
+  else
+    imodShowHelpPage("zap.html");
 }
 
 /*
  * This receives a closing signal from the window 
  */
-void zapClosing(ZapStruct *zap)
+void ZapFuncs::closing()
 {
   if (imodDebug('z'))
     imodPrintStderr("ZapClosing received.\n");
 
   // Do cleanup
-  zap->popup = 0;
-  ivwRemoveControl(zap->vi, zap->ctrl);
-  imodDialogManager.remove((QWidget *)zap->qtWindow);
-  if (!zap->numXpanels)
+  mPopup = 0;
+  ivwRemoveControl(mVi, mCtrl);
+  imodDialogManager.remove((QWidget *)mQtWindow);
+  if (!mNumXpanels)
     numZapWindows--;
 
   // What for?  flush any events that might refer to this zap
   imod_info_input();     
 
-  if (!zap->numXpanels)
-    b3dFreeCIImage(zap->image);
+  if (!mNumXpanels)
+    b3dFreeCIImage(mImage);
   else {
     if (!maxMultiZarea) {
-      QRect pos = ivwRestorableGeometry(zap->qtWindow);
-      ImodPrefs->recordMultiZparams(pos, zap->numXpanels, zap->numYpanels, 
-                                    zap->panelZstep, zap->drawInCenter, 
-                                    zap->drawInOthers);
+      QRect pos = ivwRestorableGeometry(mQtWindow);
+      ImodPrefs->recordMultiZparams(pos, mNumXpanels, mNumYpanels, 
+                                    mPanelZstep, mDrawInCenter, 
+                                    mDrawInOthers);
     }
-    for (int i = 0; i < zap->numImages; i++)
-      b3dFreeCIImage(zap->images[i]);
-    if (zap->images)
-      free(zap->images);
+    for (int i = 0; i < mNumImages; i++)
+      b3dFreeCIImage(mImages[i]);
+    if (mImages)
+      free(mImages);
   }
-  free(zap);
+  // TODO: window class must delete after this returns
+  //free(zap);
 }
 
 /*
  * Start or stop movie and check for whether to start a movie snapshot sequence
  */
-static int startMovieCheckSnap(ZapStruct *zap, int dir)
+int ZapFuncs::startMovieCheckSnap(int dir)
 {
   int start, end;
 
-  imodMovieXYZT(zap->vi, MOVIE_DEFAULT, MOVIE_DEFAULT, dir, MOVIE_DEFAULT);
-  imcSetStarterID(zap->ctrl);
+  imodMovieXYZT(mVi, MOVIE_DEFAULT, MOVIE_DEFAULT, dir, MOVIE_DEFAULT);
+  imcSetStarterID(mCtrl);
 
-  zap->movieSnapCount = 0;
+  mMovieSnapCount = 0;
   b3dSetMovieSnapping(false);
 
   /* done if no movie, or if no snapshots are desired.  */
-  if (!zap->vi->zmovie || !imcGetSnapshot(zap->vi))
+  if (!mVi->zmovie || !imcGetSnapshot(mVi))
     return 0;
      
   /* Get start and end of loop, compute count */
-  imcGetStartEnd(zap->vi, 2, &start, &end);
-  zap->movieSnapCount = (end - start) / imcGetIncrement(zap->vi, 2) + 1;
-  if (zap->movieSnapCount < 1)
-    zap->movieSnapCount = 1;
+  imcGetStartEnd(mVi, 2, &start, &end);
+  mMovieSnapCount = (end - start) / imcGetIncrement(mVi, 2) + 1;
+  if (mMovieSnapCount < 1)
+    mMovieSnapCount = 1;
 
   /* double count for normal mode, leave as is for one-way */
-  if (!imcGetLoopMode(zap->vi))
-    zap->movieSnapCount *= 2;
+  if (!imcGetLoopMode(mVi))
+    mMovieSnapCount *= 2;
 
   /* Set to start or end depending on which button was hit */
-  if (!imcStartSnapHere(zap->vi))
-    zap->vi->zmouse = dir > 0 ? start : end;
+  if (!imcStartSnapHere(mVi))
+    mVi->zmouse = dir > 0 ? start : end;
 
   // Inform autosnapshot not to check file numbers from 0
   b3dSetMovieSnapping(true);
 
   /* draw - via imodDraw to get float done correctly */
-  imodDraw(zap->vi, IMOD_DRAW_XYZ);
+  imodDraw(mVi, IMOD_DRAW_XYZ);
   return 1;
-}
-
-/*
- * This is the external draw command from the controller
- */
-void zapDraw_cb(ImodView *vi, void *client, int drawflag)
-{
-  ZapStruct *zap = (ZapStruct *)client;
-  int *limits;
-  int limarr[4];
-  int snaptype = imcGetSnapshot(zap->vi);
-
-  if (imodDebug('z'))
-    imodPrintStderr("Zap Draw\n");
-
-  if (!zap)
-    return;
-  if ((!zap->popup) || (!zap->ginit)) 
-    return;
-     
-  zapSetCursor(zap, vi->imod->mousemode);
-
-  if (drawflag & IMOD_DRAW_COLORMAP) {
-    zap->gfx->setColormap(*(App->qColormap));
-    return;
-  }
-
-  // If the rubberband is enabled and a flip is happening, turn off the
-  // rubberband.
-  if ((zap->rubberband || zap->startingBand) && zap->toolMaxZ != zap->vi->zsize)
-    zapToggleRubberband(zap, false);
-  // zapDrawTools(zap);
-
-  if (drawflag){
-    if (drawflag & IMOD_DRAW_SLICE)
-      zap->showslice = 1;
-
-    /* DNM: skip this, it is covered by the zapdraw call below and the
-       items that it sets are not needed by the flush or sync */
-    /* b3dWinset(XtDisplay(zap->gfx), zap->gfx, (XID)zap->context); */
-
-    if (drawflag & IMOD_DRAW_IMAGE){
-      zapFlushImage(zap);
-    }
-          
-    if (!(drawflag & IMOD_DRAW_ACTIVE) && !(drawflag & IMOD_DRAW_NOSYNC))
-      zapSyncImage(zap);
-
-    /* DNM 1/29/03: no more worry about multiple calls */
-    zapDraw(zap);
-
-    /* DNM 3/8/01: add autosnapshot when movieing */
-    // 3/8/07: make it take montages too
-    if (snaptype && zap->vi->zmovie && 
-        zap->movieSnapCount && imcGetStarterID() == zap->ctrl) {
-      if (imcGetSnapMontage(true)) {
-        montageSnapshot(zap, snaptype);
-      } else {
-        limits = NULL;
-        if (zap->rubberband) {
-          limits = limarr;
-          zapBandImageToMouse(zap, 1);
-          limarr[0] = zap->rbMouseX0 + 1;
-          limarr[1] = zap->winy - zap->rbMouseY1;
-          limarr[2] = zap->rbMouseX1 - 1 - zap->rbMouseX0;
-          limarr[3] = zap->rbMouseY1 - 1 - zap->rbMouseY0;
-        }
-        b3dKeySnapshot((char *)(zap->numXpanels ? "multiz" : "zap"), 
-                       snaptype - 1, snaptype % 2, limits);
-      }
-      zap->movieSnapCount--;
-      /* When count expires, stop movie */
-      if(!zap->movieSnapCount) {
-        zap->vi->zmovie = 0;
-        b3dSetMovieSnapping(false);
-      }
-    }
-
-    // If there is only one zap window, set flag to record the subarea
-    if (imodDialogManager.windowCount(ZAP_WINDOW_TYPE) == 1 && 
-        !zap->numXpanels)
-      zap->recordSubarea = 1;
-  }
-  return;
 }
 
 /*
@@ -336,26 +805,26 @@ void zapDraw_cb(ImodView *vi, void *client, int drawflag)
 #define BORDER_MIN_MULTIZ  20
 #define BORDER_MAX  125
 
-static void zapSyncImage(ZapStruct *zap)
+void ZapFuncs::syncImage()
 {
   int syncborder, wposition, wsize, tripshift;
   int trytrans, trydraws, tryborder, trystart, borderMin;
-  ImodView *vi = zap->vi;
-  if ((!zap->lock) && 
-      ((vi->imod->mousemode == IMOD_MMODEL && zap->vi->imod->cindex.point >= 0)
-       || (zap->numXpanels && zap->keepcentered))) {
-    borderMin = zap->numXpanels ? BORDER_MIN_MULTIZ : BORDER_MIN;
+  ImodView *vi = mVi;
+  if ((!mLock) && 
+      ((vi->imod->mousemode == IMOD_MMODEL && mVi->imod->cindex.point >= 0)
+       || (mNumXpanels && mKeepcentered))) {
+    borderMin = mNumXpanels ? BORDER_MIN_MULTIZ : BORDER_MIN;
 
     /* If the keepcentered flag is set, just do a shift to center */
-    if (zap->keepcentered)
+    if (mKeepcentered)
       tripshift = 1;
     else {
       
       /* Otherwise, look at each axis independently.  First see if
          if the position is within the borders for shifting */
       tripshift = 0;
-      wsize = zap->numXpanels ? zap->panelXsize : zap->winx;
-      wposition = zapXpos(zap, vi->xmouse);
+      wsize = mNumXpanels ? mPanelXsize : mWinx;
+      wposition = xpos(vi->xmouse);
       syncborder = (int)(wsize * BORDER_FRAC);
       syncborder = B3DMIN(BORDER_MAX, B3DMAX(borderMin, syncborder));
       if (wposition < syncborder || wposition > wsize - syncborder) {
@@ -364,51 +833,51 @@ static void zapSyncImage(ZapStruct *zap)
            to see if the display would actually get moved if
            this axis were centered on point */
         trytrans = (int)((vi->xsize * 0.5f) - vi->xmouse + 0.5f);
-        trydraws = zap->xdrawsize;
-        tryborder = zap->xborder;
-        trystart = zap->xstart;
+        trydraws = mXdrawsize;
+        tryborder = mXborder;
+        trystart = mXstart;
         /* imodPrintStderr ("before %d %d %d %d\n", 
-           trydraws, zap->xtrans, tryborder, trystart); */
-        b3dSetImageOffset(wsize, vi->xsize, zap->zoom, trydraws,
+           trydraws, mXtrans, tryborder, trystart); */
+        b3dSetImageOffset(wsize, vi->xsize, mZoom, trydraws,
                           trytrans, tryborder, trystart, 1);
         /* imodPrintStderr ("after %d %d %d %d\n", 
            trydraws, trytrans, tryborder, trystart); */
         /* Can't use xtrans for a test, need to use the other
            two values to see if change in display would occur */
-        if (tryborder != zap->xborder || trystart != zap->xstart)
+        if (tryborder != mXborder || trystart != mXstart)
           tripshift += 1;
         
       }
       
       /* Same for Y axis */
-      wsize = zap->numXpanels ? zap->panelYsize : zap->winy;
-      wposition = zapYpos(zap, vi->ymouse);
+      wsize = mNumXpanels ? mPanelYsize : mWiny;
+      wposition = ypos(vi->ymouse);
       syncborder = (int)(wsize * BORDER_FRAC);
       syncborder = B3DMIN(BORDER_MAX, B3DMAX(borderMin, syncborder));
       if (wposition < syncborder || wposition > wsize - syncborder){
         trytrans = (int)((vi->ysize * 0.5f) - vi->ymouse + 0.5f);
-        trydraws = zap->ydrawsize;
-        tryborder = zap->yborder;
-        trystart = zap->ystart;
-        b3dSetImageOffset(wsize, vi->ysize, zap->zoom, trydraws,
+        trydraws = mYdrawsize;
+        tryborder = mYborder;
+        trystart = mYstart;
+        b3dSetImageOffset(wsize, vi->ysize, mZoom, trydraws,
                           trytrans, tryborder, trystart, 1);
-        if (tryborder != zap->yborder || trystart != zap->ystart)
+        if (tryborder != mYborder || trystart != mYstart)
           tripshift += 2;
       }
     }
     
     if (tripshift) {
       /* imodPrintStderr("tripshift %d\n",tripshift); */
-      zap->xtrans = (int)((vi->xsize * 0.5f) - vi->xmouse + 0.5f);
-      zap->ytrans = (int)((vi->ysize * 0.5f) - vi->ymouse + 0.5f);
+      mXtrans = (int)((vi->xsize * 0.5f) - vi->xmouse + 0.5f);
+      mYtrans = (int)((vi->ysize * 0.5f) - vi->ymouse + 0.5f);
     }
   }
 }
 
-static B3dCIImage *getNewCIImage(ZapStruct *zap, B3dCIImage *image)
+B3dCIImage *ZapFuncs::getNewCIImage(B3dCIImage *image)
 {
   B3dCIImage *newim;
-  if (zap->ginit)
+  if (mGinit)
     b3dFlushImage(image);
 
   newim =  b3dGetNewCIImage(image, App->depth);
@@ -426,72 +895,72 @@ static B3dCIImage *getNewCIImage(ZapStruct *zap, B3dCIImage *image)
 /*
  * This receives the resize events which precede paint signals
  */
-void zapResize(ZapStruct *zap, int winx, int winy)
+void ZapFuncs::resize(int winx, int winy)
 {
-  ivwControlPriority(zap->vi, zap->ctrl);
+  ivwControlPriority(mVi, mCtrl);
 
   if (imodDebug('z'))
     imodPrintStderr("RESIZE: ");
 
   if (imodDebug('z')) {
     imodPrintStderr("Size = %d x %d  heights win %d tool %d :", winx, winy,
-                    zap->qtWindow->height(),zap->qtWindow->mToolBar->height());
-    if (zap->ginit)
-      imodPrintStderr("Old Size = %d x %d :", zap->winx, zap->winy);
+                    mQtWindow->height(),mQtWindow->mToolBar->height());
+    if (mGinit)
+      imodPrintStderr("Old Size = %d x %d :", mWinx, mWiny);
   }
 
-  zap->winx = winx;
-  zap->winy = winy;
+  mWinx = winx;
+  mWiny = winy;
   b3dSetCurSize(winx, winy);
   b3dResizeViewportXY(winx, winy);
 
-  if (zap->numXpanels) {
-    zapSetupPanels(zap);
+  if (mNumXpanels) {
+    setupPanels();
   } else {
     
-    zap->image =  getNewCIImage(zap, zap->image);
-    if (!zap->image)
+    mImage =  getNewCIImage(mImage);
+    if (!mImage)
       return;
-    zap->recordSubarea = 1;
+    mRecordSubarea = 1;
   }
-  zap->ginit = 1;
+  mGinit = 1;
   if (imodDebug('z'))
     imodPrintStderr("\n");
 }
 
-static void allocateToPanels(int num, int winSize, int gutter, int &panelSize,
-                             int &border)
+void ZapFuncs::allocateToPanels(int num, int winSize, int gutter, int &panelSize,
+                                int &border)
 {
   int imarea = B3DMAX(0, winSize - (num - 1) * gutter);
   panelSize = imarea / num;
   border = (imarea % num) / 2;
 }
 
-int zapSetupPanels(ZapStruct *zap)
+int ZapFuncs::setupPanels()
 {
   int i, newnum = 0, retval = 0;
-  int numtot = zap->numXpanels * zap->numYpanels;
-  allocateToPanels(zap->numXpanels, zap->winx, zap->panelGutter, 
-                   zap->panelXsize, zap->panelXborder);
-  allocateToPanels(zap->numYpanels, zap->winy, zap->panelGutter, 
-                   zap->panelYsize, zap->panelYborder);
+  int numtot = mNumXpanels * mNumYpanels;
+  allocateToPanels(mNumXpanels, mWinx, mPanelGutter, 
+                   mPanelXsize, mPanelXborder);
+  allocateToPanels(mNumYpanels, mWiny, mPanelGutter, 
+                   mPanelYsize, mPanelYborder);
   
   // If panels are too small, set them to 1 as a signal
-  if (zap->panelXsize < 4 ||  zap->panelYsize < 4) {
-    zap->panelXsize = 1;
-    zap->panelYsize = 1;
+  if (mPanelXsize < 4 ||  mPanelYsize < 4) {
+    mPanelXsize = 1;
+    mPanelYsize = 1;
     retval = 1;
   }
 
   // Set the minimum size regardless, so it won't get stuck at large value
-  zap->gfx->setMinimumSize
-    ((zap->numXpanels - 1) *  (zap->panelGutter + 5) + 5,
-     (zap->numYpanels - 1) *  (zap->panelGutter + 5) + 5);
+  mGfx->setMinimumSize
+    ((mNumXpanels - 1) *  (mPanelGutter + 5) + 5,
+     (mNumYpanels - 1) *  (mPanelGutter + 5) + 5);
 
   // Allocate or resize the images, stop on a failure
   for (i = 0; i < numtot; i++) {
-    zap->images[i] = getNewCIImage(zap, zap->images[i]);
-    if (!zap->images[i]) {
+    mImages[i] = getNewCIImage(mImages[i]);
+    if (!mImages[i]) {
       retval = 2;
       break;
     }
@@ -499,23 +968,23 @@ int zapSetupPanels(ZapStruct *zap)
   }
   
   // Clear out unused images
-  for (i = newnum; i < zap->numImages; i++) {
-    b3dFreeCIImage(zap->images[i]);
-    zap->images[i] = NULL;
+  for (i = newnum; i < mNumImages; i++) {
+    b3dFreeCIImage(mImages[i]);
+    mImages[i] = NULL;
   }
-  zap->numImages = newnum;
+  mNumImages = newnum;
     
   return retval;
 }
 
-static void zapFlushImage(ZapStruct *zap)
+void ZapFuncs::flushImage()
 {
   int ind;
-  if (zap->numXpanels) {
-    for (ind = 0; ind < zap->numImages; ind++)
-      b3dFlushImage(zap->images[ind]);
+  if (mNumXpanels) {
+    for (ind = 0; ind < mNumImages; ind++)
+      b3dFlushImage(mImages[ind]);
   } else
-    b3dFlushImage(zap->image);
+    b3dFlushImage(mImage);
 }
 
 /* 1/29/03: removed the resize and expose hack code and the report time code */
@@ -523,15 +992,15 @@ static void zapFlushImage(ZapStruct *zap)
 /*
  * This is the central drawing routine called from in the module or imodview
  */
-void zapDraw(ZapStruct *zap)
+void ZapFuncs::draw()
 {
-  zap->gfx->updateGL();
+  mGfx->updateGL();
 }
 
 /*
  * This receives the paint events generated by the window manager
  */
-void zapPaint(ZapStruct *zap)
+void ZapFuncs::paint()
 {
   int ob, ix, iy, ind, delInd, xborderSave, yborderSave, sectionSave;
   int panelX, panelY;
@@ -539,91 +1008,91 @@ void zapPaint(ZapStruct *zap)
   if (imodDebug('z'))
     imodPrintStderr("Paint:");
 
-  b3dSetCurSize(zap->winx, zap->winy);
+  b3dSetCurSize(mWinx, mWiny);
 
-  if (zap->numXpanels && zap->panelXsize < 4)
+  if (mNumXpanels && mPanelXsize < 4)
     return;
 
-  zapAutoTranslate(zap);
-  zap->drewExtraCursor = false;
+  autoTranslate();
+  mDrewExtraCursor = false;
 
   // If the current only flag is set, swap the displayed buffer into the
   // drawing buffer and just draw the current contour
   // Reset value drawing since it has not been set up for this object
-  if (zap->drawCurrentOnly > 0) {
+  if (mDrawCurrentOnly > 0) {
     if (App->doublebuffer)
-      zap->gfx->swapBuffers();
+      mGfx->swapBuffers();
     ifgResetValueSetup();
-    ob = zap->vi->imod->cindex.object;
+    ob = mVi->imod->cindex.object;
     imodSetObjectColor(ob); 
-    b3dLineWidth(zap->vi->imod->obj[ob].linewidth2); 
-    zapDrawContour(zap, zap->vi->imod->cindex.contour, ob);
-    zap->drawCurrentOnly = -1;
+    b3dLineWidth(mVi->imod->obj[ob].linewidth2); 
+    drawContour(mVi->imod->cindex.contour, ob);
+    mDrawCurrentOnly = -1;
     return;
   }
   
-  if (zap->drawCurrentOnly < 0)
-    setDrawCurrentOnly(zap, 0);
+  if (mDrawCurrentOnly < 0)
+    setDrawCurrentOnly(0);
 
   /* DNM 1/29/03: no more skipping of further drawing */
-  zapDrawGraphics(zap);
+  drawGraphics();
 
-  if (zap->numXpanels) {
+  if (mNumXpanels) {
 
     // Multipanel draw: need to set borders and section for each panel
-    xborderSave = zap->xborder;
-    yborderSave = zap->yborder;
-    sectionSave = zap->section;
-    for (ix = 0; ix < zap->numXpanels; ix++) {
-      for (iy = 0; iy < zap->numYpanels; iy++) {
-        ind = ix + iy * zap->numXpanels;
-        delInd = ind - (zap->numXpanels * zap->numYpanels - 1) / 2;
-        zap->section = sectionSave + zap->panelZstep * delInd;
-        if (zap->section < 0 || zap->section >= zap->vi->zsize)
+    xborderSave = mXborder;
+    yborderSave = mYborder;
+    sectionSave = mSection;
+    for (ix = 0; ix < mNumXpanels; ix++) {
+      for (iy = 0; iy < mNumYpanels; iy++) {
+        ind = ix + iy * mNumXpanels;
+        delInd = ind - (mNumXpanels * mNumYpanels - 1) / 2;
+        mSection = sectionSave + mPanelZstep * delInd;
+        if (mSection < 0 || mSection >= mVi->zsize)
           continue;
-        if ((!delInd && !zap->drawInCenter) || (delInd && !zap->drawInOthers))
+        if ((!delInd && !mDrawInCenter) || (delInd && !mDrawInOthers))
           continue;
-        panelX = zap->panelXborder + ix * (zap->panelXsize + zap->panelGutter);
-        zap->xborder = xborderSave + panelX;
-        panelY = zap->panelYborder + iy * (zap->panelYsize + zap->panelGutter);
-        zap->yborder = yborderSave + panelY;
-        b3dSubareaViewport(panelX, panelY, zap->panelXsize, zap->panelYsize);
-        zapDrawModel(zap);
-        zapDrawCurrentPoint(zap);
-        zapDrawExtraObject(zap);
+        panelX = mPanelXborder + ix * (mPanelXsize + mPanelGutter);
+        mXborder = xborderSave + panelX;
+        panelY = mPanelYborder + iy * (mPanelYsize + mPanelGutter);
+        mYborder = yborderSave + panelY;
+        b3dSubareaViewport(panelX, panelY, mPanelXsize, mPanelYsize);
+        drawModel();
+        drawCurrentPoint();
+        drawExtraObject();
       }
     }
-    zap->xborder = xborderSave;
-    zap->yborder = yborderSave;
-    zap->section = sectionSave;
-    b3dResizeViewportXY(zap->winx, zap->winy);
+    mXborder = xborderSave;
+    mYborder = yborderSave;
+    mSection = sectionSave;
+    b3dResizeViewportXY(mWinx, mWiny);
     
   } else {
 
     // Normal draw
-    zapDrawModel(zap);
-    zapDrawCurrentPoint(zap);
-    zapDrawExtraObject(zap);
-    zapDrawAuto(zap);
-    if (zap->rubberband) {
+    drawModel();
+    drawCurrentPoint();
+    drawExtraObject();
+    drawAuto();
+    if (mRubberband) {
       b3dLineWidth(1);
       b3dColorIndex(App->endpoint);
-      zapBandImageToMouse(zap, 0);
-      b3dDrawRectangle(zap->rbMouseX0, zap->winy - 1 - zap->rbMouseY1, 
-                       zap->rbMouseX1 - zap->rbMouseX0, 
-                       zap->rbMouseY1 - zap->rbMouseY0);
+      bandImageToMouse(0);
+      b3dDrawRectangle(mRbMouseX0, mWiny - 1 - mRbMouseY1, 
+                       mRbMouseX1 - mRbMouseX0, 
+                       mRbMouseY1 - mRbMouseY0);
     } 
   }
-  zapDrawTools(zap);
-  zap->scaleBarSize = scaleBarDraw(zap->winx, zap->winy, zap->zoom, 0);
+  drawTools();
+  mScaleBarSize = scaleBarDraw(mWinx, mWiny, mZoom, 0);
 
   // Update graph windows if rubber band changed (this should be done by 
   // control but that is not possible, it doesn't know types)
-  if (zap->bandChanged) {
+  if (mBandChanged) {
     imodDialogManager.windowList(&objList, -1, GRAPH_WINDOW_TYPE);
     for (ob = 0; ob < objList.count(); ob++)
       ((GraphWindow *)objList.at(ob))->xgraphDraw();
-    zap->bandChanged = 0;
+    mBandChanged = 0;
   }
 
   if (imodDebug('z'))
@@ -634,392 +1103,118 @@ void zapPaint(ZapStruct *zap)
 /*****************************************************************************/
 /* zap tool bar functions called from interface class                        */
 
-void zapStepZoom(ZapStruct *zap, int step)
+void ZapFuncs::stepZoom(int step)
 {
-  setControlAndLimits(zap);
-  zap->zoom = b3dStepPixelZoom(zap->zoom, step);
-  zapDraw(zap);
+  setControlAndLimits();
+  mZoom = b3dStepPixelZoom(mZoom, step);
+  draw();
 }
 
-void zapEnteredZoom(ZapStruct *zap, float newZoom)
+void ZapFuncs::enteredZoom(float newZoom)
 {
-  if (!zap->popup)
+  if (!mPopup)
     return;
-  setControlAndLimits(zap);
-  zap->zoom = newZoom;
-  if (zap->zoom <= 0.01)
-    zap->zoom = 0.01;
-  zapDraw(zap);
-  zap->qtWindow->setFocus();
+  setControlAndLimits();
+  mZoom = newZoom;
+  if (mZoom <= 0.01)
+    mZoom = 0.01;
+  draw();
+  mQtWindow->setFocus();
 }
  
-void zapStateToggled(ZapStruct *zap, int index, int state)
+void ZapFuncs::stateToggled(int index, int state)
 {
   int time;
-  setControlAndLimits(zap);
+  setControlAndLimits();
   switch (index) {
   case ZAP_TOGGLE_RESOL:
-    zap->hqgfx = state;
-    zapDraw(zap);
+    mHqgfx = state;
+    draw();
     break;
 
   case ZAP_TOGGLE_ZLOCK:
-    zap->lock = state ? 2 : 0;
-    if (!zap->lock) {
-      zapFlushImage(zap);
-      zapSyncImage(zap);
-      zapDraw(zap);
+    mLock = state ? 2 : 0;
+    if (!mLock) {
+      flushImage();
+      syncImage();
+      draw();
     }
     break;
 
   case ZAP_TOGGLE_CENTER:
-    zap->keepcentered = state;
+    mKeepcentered = state;
     if (state) {
-      zapFlushImage(zap);
-      zapSyncImage(zap);
-      zapDraw(zap);
+      flushImage();
+      syncImage();
+      draw();
     }
     break;
 
   case ZAP_TOGGLE_INSERT:
-    zap->insertmode = state;
-    zap->vi->insertmode = zap->insertmode;
-    registerDragAdditions(zap);
+    mInsertmode = state;
+    mVi->insertmode = mInsertmode;
+    registerDragAdditions();
     break;
 
   case ZAP_TOGGLE_RUBBER:
-    zapToggleRubberband(zap);
+    toggleRubberband();
     break;
 
   case ZAP_TOGGLE_TIMELOCK:
-    ivwGetTime(zap->vi, &time);
-    zap->timeLock = state ? time : 0;
-    if (!zap->timeLock)
-      zapDraw(zap);
+    ivwGetTime(mVi, &time);
+    mTimeLock = state ? time : 0;
+    if (!mTimeLock)
+      draw();
     break;
   }
 }
 
-void zapEnteredSection(ZapStruct *zap, int sec)
+void ZapFuncs::enteredSection(int sec)
 {
-  if (!zap->popup)
+  if (!mPopup)
     return;
-  setControlAndLimits(zap);
-  if (zap->lock != 2)
-    zap->vi->zmouse = sec-1;
-  zap->section = sec-1;
-  ivwBindMouse(zap->vi);
-  imodDraw(zap->vi, IMOD_DRAW_XYZ);
-  zap->qtWindow->setFocus();
+  setControlAndLimits();
+  if (mLock != 2)
+    mVi->zmouse = sec-1;
+  mSection = sec-1;
+  ivwBindMouse(mVi);
+  imodDraw(mVi, IMOD_DRAW_XYZ);
+  mQtWindow->setFocus();
 }
 
-void zapStepTime(ZapStruct *zap, int step)
+void ZapFuncs::stepTime(int step)
 {
-  setControlAndLimits(zap);
+  setControlAndLimits();
   
   // if time locked, advance the time lock and draw this window
   // Does this make sense?
-  if (zap->timeLock){
-    zap->timeLock += step;
-    if (zap->timeLock <= 0)
-      zap->timeLock = 1;
-    if (zap->timeLock > ivwGetMaxTime(zap->vi))
-      zap->timeLock = ivwGetMaxTime(zap->vi);
-    zapDraw(zap);
+  if (mTimeLock){
+    mTimeLock += step;
+    if (mTimeLock <= 0)
+      mTimeLock = 1;
+    if (mTimeLock > ivwGetMaxTime(mVi))
+      mTimeLock = ivwGetMaxTime(mVi);
+    draw();
 
   } else {
-    imodMovieXYZT(zap->vi, MOVIE_DEFAULT, MOVIE_DEFAULT, MOVIE_DEFAULT, 0);
+    imodMovieXYZT(mVi, MOVIE_DEFAULT, MOVIE_DEFAULT, MOVIE_DEFAULT, 0);
     if (step > 0)
-      inputNextTime(zap->vi);
+      inputNextTime(mVi);
     else
-      inputPrevTime(zap->vi);
+      inputPrevTime(mVi);
   }
 }
 
-/*****************************************************************************/
-/*
- * Open the zap window and initialize structure
- */
-int imod_zap_open(struct ViewInfo *vi, int wintype)
+void ZapFuncs::autoTranslate()
 {
-  ZapStruct *zap;
-  QString str;
-  QRect oldGeom;
-  int needWinx, needWiny;
-  int maxWinx;
-  int maxWiny;
-  int i, newWidth, newHeight, xleft, ytop, toolHeight;
-  double newZoom;
-
-  zap = (ZapStruct *)malloc(sizeof(ZapStruct));
-  if (!zap) return(-1);
-
-  zap->vi     = vi;
-  zap->ctrl   = 0;
-  zap->xtrans = zap->ytrans = 0;
-  zap->ztrans = 0;
-  zap->hqgfx  = 0;
-  zap->hide   = 0;
-  zap->zoom   = 1.0;
-  zap->data   = NULL;
-  zap->image  = NULL;
-  zap->ginit  = 0;
-  zap->lock   = 0;
-  zap->keepcentered = 0;
-  zap->insertmode = 0;
-  zap->toolstart = 0;
-  zap->showslice = 0;
-  zap->showedSlice = 0;
-  zap->timeLock = 0;
-  zap->toolSection = -1;
-  zap->toolMaxZ = vi->zsize;
-  zap->toolZoom = -1.0f;
-  zap->toolTime = 0;
-  zap->toolSizeX = 0;
-  zap->toolSizeY = 0;
-  zap->twod = (!(vi->dim&4));
-  zap->sectionStep = 0;
-  zap->time = 0;
-  zap->overlay = 0;
-  zap->mousemode = 0;
-  zap->lastShape = -1;
-  zap->rubberband = 0;
-  zap->startingBand = 0;
-  zap->shiftingCont = 0;
-  zap->bandChanged = 0;
-  zap->shiftRegistered = 0;
-  zap->centerMarked = 0;
-  zap->xformFixedPt.x = 0.;
-  zap->xformFixedPt.y = 0.;
-  zap->movieSnapCount = 0;
-  zap->drawCurrentOnly = 0;
-  zap->dragAddCount = 0;
-  zap->drewExtraCursor = false;
-  zap->numXpanels = wintype ? 5 : 0;
-  zap->numYpanels = 1;
-  zap->panelZstep = 1;
-  zap->drawInCenter = 1;
-  zap->drawInOthers = 1;
-  zap->panelGutter = 8;
-
-  if (wintype) {
-    zap->images = (B3dCIImage **)malloc
-      (MULTIZ_MAX_PANELS * MULTIZ_MAX_PANELS * sizeof(B3dCIImage *));
-    zap->numImages = 0;
-    if (!zap->images) {
-      free(zap);
-      wprint("\aError getting memory for array of image pointers.\n");
-      return(-1);
-    }
-    for (i = 0; i < MULTIZ_MAX_PANELS * MULTIZ_MAX_PANELS; i++)
-      zap->images[i] = NULL;
-    oldGeom = ImodPrefs->getMultiZparams(zap->numXpanels, zap->numYpanels,
-                                         zap->panelZstep, zap->drawInCenter, 
-                                         zap->drawInOthers);
-  }
-
-  utilGetLongestTimeString(zap->vi, &str);
-  zap->qtWindow = new ZapWindow(zap, str, wintype != 0, App->rgba, 
-                                App->doublebuffer, App->qtEnableDepth, 
-                                imodDialogManager.parent(IMOD_IMAGE),
-                                "zap window");
-  if (!zap->qtWindow){
-    free(zap);
-    wprint("\aError opening zap window.\n");
-    return(-1);
-  }
-  if (imodDebug('z'))
-    imodPuts("Got a zap window");
-
-  zap->gfx = zap->qtWindow->mGLw;
-  if (!App->rgba)
-    zap->gfx->setColormap(*(App->qColormap));
-
-  zap->qtWindow->setWindowTitle
-    (imodCaption((char *)(wintype ? "3dmod Multi-Z Window" : 
-                          "3dmod ZaP Window")));
-
-  zap->qtWindow->mToolBar->setWindowTitle(imodCaption("ZaP Toolbar"));
-  if (zap->qtWindow->mToolBar2)
-    zap->qtWindow->mToolBar2->setWindowTitle(imodCaption("Time Toolbar"));
-  if (zap->qtWindow->mPanelBar)
-    zap->qtWindow->mPanelBar->setWindowTitle(imodCaption("Multi-Z Toolbar"));
-  
-  zap->ctrl = ivwNewControl(vi, zapDraw_cb, zapClose_cb, zapKey_cb,
-                            (void *)zap);
-  imodDialogManager.add((QWidget *)zap->qtWindow, IMOD_IMAGE, 
-                        wintype ? MULTIZ_WINDOW_TYPE : ZAP_WINDOW_TYPE);
-
-  if (!wintype) {
-    diaMaximumWindowSize(maxWinx, maxWiny);
-    zap->qtWindow->setSizeText(maxWinx, maxWiny);
-
-    oldGeom = ImodPrefs->getZapGeometry();
-  }
-
-  /* 1/28/03: this call is needed to get the toolbar size hint right */
-  imod_info_input();
-  QSize toolSize = zap->qtWindow->mToolBar->sizeHint();
-  QSize toolSize2(0, 0);
-  QSize toolSize3(0, 0);
-  if (zap->qtWindow->mToolBar2)
-    toolSize2 = zap->qtWindow->mToolBar2->sizeHint();
-  if (wintype)
-    toolSize3 = zap->qtWindow->mPanelBar->sizeHint();
-  toolHeight = toolSize.height();
-  if (imodDebug('z'))
-    imodPrintStderr("Toolsize %d %d win %d gfx %d\n", toolSize.width(), 
-                    toolSize.height(), zap->qtWindow->height(), 
-                    zap->gfx->height());
-  if (!oldGeom.width()) {
-
-    if (!wintype) {
-      // If no old geometry, adjust zoom if necessary to fit image on screen
-
-      for (i = 0; i < 2; i++) {
-        zap->zoom = 1.;
-        while (zap->zoom * vi->xsize > 1.1 * maxWinx || 
-               zap->zoom * vi->ysize > 1.1 * maxWiny - toolHeight) {
-          newZoom = b3dStepPixelZoom(zap->zoom, -1);
-          if (fabs(newZoom - zap->zoom) < 0.0001)
-            break;
-          zap->zoom = (float)newZoom;
-        }
-      
-        needWinx = (int)(zap->zoom * vi->xsize);
-      
-        // If Window is narrower than two toolbars, set up to stack the
-        // toolbars and increase the tool height
-        if (!i && needWinx < toolSize.width() + toolSize2.width()) {
-          zap->qtWindow->insertToolBarBreak(zap->qtWindow->mToolBar2);
-          toolHeight += toolSize2.height();
-        } 
-      }
-      
-      needWiny = (int)(zap->zoom * vi->ysize) + toolHeight;
-      diaLimitWindowSize(needWinx, needWiny);
-
-      // Make the width big enough for the toolbar, and add the difference
-      // between the window and image widget heights to get height
-      newWidth = toolSize.width() > needWinx ? toolSize.width() : needWinx;
-      newHeight = needWiny;
-    } else {
-
-      // For multiZ, just make it big enough for two bars, then if
-      // necessary insert break and make it taller for the panel bar
-      newWidth = B3DMAX(640, toolSize.width() + toolSize2.width());
-      newHeight = 170;
-      if (newWidth < toolSize.width() + toolSize2.width() + toolSize3.width()){
-        newHeight += toolSize3.height();
-        zap->qtWindow->insertToolBarBreak(zap->qtWindow->mPanelBar);
-      }
-    }
-
-    QRect pos = zap->qtWindow->geometry();
-    xleft = pos.x();
-    ytop = pos.y();
-
-    diaLimitWindowPos(newWidth, newHeight, xleft, ytop);
-    if (imodDebug('z'))
-      imodPrintStderr("Sizes: zap %d %d, toolbar %d %d, GL %d %d: "
-                      "resize %d %d\n", zap->qtWindow->width(), 
-                      zap->qtWindow->height(), 
-                      toolSize.width(), toolSize.height(), zap->gfx->width(), 
-                      zap->gfx->height(), newWidth, newHeight);
-
-  } else {
-
-    // Existing geometry - better fit it to current screen
-    xleft = oldGeom.x();
-    ytop = oldGeom.y();
-    newWidth = oldGeom.width();
-    newHeight = oldGeom.height();
-    diaLimitWindowSize(newWidth, newHeight);
-    diaLimitWindowPos(newWidth, newHeight, xleft, ytop);
-
-    // Adjust the tool height: see if time bar fits on line and insert break
-    // if not and add to height
-    int toolBase = toolSize.width();
-    if (zap->qtWindow->mToolBar2) {
-      if (newWidth < toolBase + toolSize2.width()) {
-        zap->qtWindow->insertToolBarBreak(zap->qtWindow->mToolBar2);
-        toolBase = toolSize2.width();
-        toolHeight += toolSize2.height();
-      } else
-        toolBase += toolSize2.width();
-    }
-
-    // Then see if panel bar fits on line, insert break if not, add to height
-    if (wintype && (newWidth < toolBase + toolSize3.width())) {
-      zap->qtWindow->insertToolBarBreak(zap->qtWindow->mPanelBar);
-      toolHeight += toolSize3.height();
-    }
-
-    if (!wintype) {
-
-      needWinx = newWidth;
-      needWiny = newHeight - toolHeight;
-      
-      // If images are too big, zoom down until they almost fit
-      // If images are too small, start big and find first zoom that fits
-      // Apply same overflow criterion so that reopened windows will behave
-      // the same as when they were first opened
-      if (vi->xsize < needWinx && vi->ysize < needWiny)
-        zap->zoom = (2. * needWinx) / vi->xsize;
-      
-      while ((zap->zoom * vi->xsize > 1.1 * needWinx || 
-              zap->zoom * vi->ysize > 1.1 * needWiny)) {
-        newZoom = b3dStepPixelZoom(zap->zoom, -1);
-        // This test goes into infinite loop in Windows - Intel, 6/22/04
-        // if (newZoom == zap->zoom)
-        if (fabs(newZoom - zap->zoom) < 0.0001)
-          break;
-        zap->zoom = (float)newZoom;
-      }
-    }
-  }
-
-  // 9/23/03: changed setGeometry to resize/move and this allowed elimination
-  // of the setting again on the first real draw
-  zap->qtWindow->resize(newWidth, newHeight);
-  zap->qtWindow->move(xleft, ytop);
-  zap->xzoom = zap->zoom;
-  zap->qtWindow->show();
-  zap->popup = 1;
-  setMouseTracking(zap);
-
-  // 11/24/03: OS 10.3 needs to move after the show, so just put this in without
-  // checking if it would work generally
-#ifdef Q_OS_MACX
-  zap->qtWindow->move(xleft, ytop);
-#endif    
-
-  if (imodDebug('z'))
-    imodPuts("popup a zap dialog");
-
-  /* DNM: set cursor after window created so it has model mode cursor if
-     an existing window put us in model mode */
-  zapSetCursor(zap, vi->imod->mousemode);
-  numZapWindows++;
-  insertTime.start();
-  return(0);
-}
-
-void zapGotoCurrentPoint(ZapStruct *zap)
-{
-  return;
-}
-
-static void zapAutoTranslate(ZapStruct *zap)
-{
-  if (zap->lock == 2)
+  if (mLock == 2)
     return;
 
-  zap->section = (int)(zap->vi->zmouse + 0.5f);
+  mSection = (int)(mVi->zmouse + 0.5f);
      
-  zapDrawTools(zap);
+  drawTools();
 
-  if (zap->lock)
+  if (mLock)
     return;
 
   return;
@@ -1028,36 +1223,21 @@ static void zapAutoTranslate(ZapStruct *zap)
 /* DNM: 2.40 deleted imod_zap_draw which was unused and confusing */
 
 
-static void zapTranslate(ZapStruct *zap, int x, int y)
+void ZapFuncs::translate(int x, int y)
 {
-  ImodView *vw = zap->vi;
-  zap->xtrans += x;
-  if (zap->xtrans > vw->xsize)
-    zap->xtrans = vw->xsize;
-  if (zap->xtrans < -vw->xsize)
-    zap->xtrans = - vw->xsize;
-  zap->ytrans += y;
-  if (zap->ytrans > vw->ysize)
-    zap->ytrans = vw->ysize;
-  if (zap->ytrans < -vw->ysize)
-    zap->ytrans = - vw->ysize;
-  zapDraw(zap);
+  ImodView *vw = mVi;
+  mXtrans += x;
+  if (mXtrans > vw->xsize)
+    mXtrans = vw->xsize;
+  if (mXtrans < -vw->xsize)
+    mXtrans = - vw->xsize;
+  mYtrans += y;
+  if (mYtrans > vw->ysize)
+    mYtrans = vw->ysize;
+  if (mYtrans < -vw->ysize)
+    mYtrans = - vw->ysize;
+  draw();
   return;
-}
-
-/*
- * External key is passed on
- */
-static void zapKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e)
-{
-  ZapStruct *zap = (ZapStruct *)client;
-  if ((e->modifiers() & Qt::KeypadModifier) && (e->key() == Qt::Key_Insert ||
-                                    e->key() == Qt::Key_0))
-    return;
-  if (released)
-    zapKeyRelease(zap, e);
-  else
-    zapKeyInput(zap, e);
 }
 
 
@@ -1066,9 +1246,9 @@ static void zapKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e)
 /*
  * Respond to a key press
  */
-void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
+void ZapFuncs::keyInput(QKeyEvent *event)
 {
-  struct ViewInfo *vi = zap->vi;
+  struct ViewInfo *vi = mVi;
   Imod *imod = vi->imod;
   int keysym = event->key();
   static int trans = 5;
@@ -1092,14 +1272,14 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
 
   if (utilCloseKey(event)) {
     // For cocoa/Qt 4.5.0, need to prevent enter/leave events
-    zap->popup = 0;
-    zap->qtWindow->close();
+    mPopup = 0;
+    mQtWindow->close();
     return;
   }
 
   inputConvertNumLock(keysym, keypad);
 
-  setControlAndLimits(zap);
+  setControlAndLimits();
   ivwControlActive(vi, 0);
 
   if (imodPlugHandleKey(vi, event)) 
@@ -1108,7 +1288,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
 
   /* DNM: set global insertmode from this zap's mode to get it to work
      right with Delete key */
-  vi->insertmode = zap->insertmode;
+  vi->insertmode = mInsertmode;
 
   /*      imodPrintStderr("Zapo got %x keysym\n", keysym); */
 
@@ -1123,13 +1303,13 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
     if (!keypad && imod->mousemode != IMOD_MMOVIE ||
         keypad && imod->mousemode == IMOD_MMOVIE) {
       if (keysym == Qt::Key_Left)
-        zapTranslate(zap, -trans, 0);
+        translate(-trans, 0);
       if (keysym == Qt::Key_Right)
-        zapTranslate(zap, trans, 0);
+        translate(trans, 0);
       if (keysym == Qt::Key_Down)
-        zapTranslate(zap, 0, -trans);
+        translate(0, -trans);
       if (keysym == Qt::Key_Up)
-        zapTranslate(zap, 0, trans);
+        translate(0, trans);
       handled = 1;
 
       // Move point with keypad in model mode
@@ -1153,51 +1333,51 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
     if (keypad) {
       if (keysym == Qt::Key_PageDown) {
         if (imod->mousemode == IMOD_MMOVIE)
-          zapTranslate(zap, trans, -trans);
+          translate(trans, -trans);
         else
           inputPointMove(vi, 0, 0, -1);
       } else {
         if (imod->mousemode == IMOD_MMOVIE)
-          zapTranslate(zap, trans, trans);
+          translate(trans, trans);
         else
           inputPointMove(vi, 0, 0, 1);
       }
       handled = 1;
 
       // with regular keys, handle specially if locked
-    } else if (!keypad && zap->lock == 2){
+    } else if (!keypad && mLock == 2){
       if (shifted) {
         obj = imodObjectGet(imod);
-        zap->section = utilNextSecWithCont(vi, obj, zap->section, 
+        mSection = utilNextSecWithCont(vi, obj, mSection, 
                                            keysym == Qt::Key_PageUp ? 1 : -1);
       } else {
         if (keysym == Qt::Key_PageDown)
-          zap->section--;
+          mSection--;
         else
-          zap->section++;
+          mSection++;
       }
-      if (zap->section < 0) zap->section = 0;
-      if (zap->section >= vi->zsize) 
-        zap->section = vi->zsize -1;
-      zapDraw(zap);
+      if (mSection < 0) mSection = 0;
+      if (mSection >= vi->zsize) 
+        mSection = vi->zsize -1;
+      draw();
       handled = 1;
     }
     break;
           
   case Qt::Key_1:
   case Qt::Key_2:
-    if (zap->timeLock) {
-      zapStepTime(zap, (keysym == Qt::Key_1) ? -1 : 1);
+    if (mTimeLock) {
+      stepTime((keysym == Qt::Key_1) ? -1 : 1);
       handled = 1;
     }
     break;
 
   case Qt::Key_At:
   case Qt::Key_Exclam:
-    if (zap->timeLock) {
+    if (mTimeLock) {
       imcGetStartEnd(vi, 3, &start, &end);
-      zap->timeLock = (keysym == Qt::Key_At) ? end + 1 : start + 1;
-      zapDraw(zap);
+      mTimeLock = (keysym == Qt::Key_At) ? end + 1 : start + 1;
+      draw();
       handled = 1;
     }
     break;
@@ -1205,28 +1385,28 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
 
   case Qt::Key_Home:
     if (keypad && imod->mousemode == IMOD_MMOVIE) {
-      zapTranslate(zap, -trans, trans);
+      translate(-trans, trans);
       handled = 1;
     }
     break;
 
   case Qt::Key_End:
     if (keypad && imod->mousemode == IMOD_MMOVIE) {
-      zapTranslate(zap, -trans, -trans);
+      translate(-trans, -trans);
       handled = 1;
     }
     break;
           
   case Qt::Key_Minus:
-    zap->zoom = b3dStepPixelZoom(zap->zoom, -1);
-    zapDraw(zap);
+    mZoom = b3dStepPixelZoom(mZoom, -1);
+    draw();
     handled = 1;
     break;
 
   case Qt::Key_Plus:
   case Qt::Key_Equal:
-    zap->zoom = b3dStepPixelZoom(zap->zoom, 1);
-    zapDraw(zap);
+    mZoom = b3dStepPixelZoom(mZoom, 1);
+    draw();
     handled = 1;
     break;
           
@@ -1235,18 +1415,18 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
 
     /* But skip out if in movie mode or already active */
     if (!keypad || imod->mousemode == IMOD_MMOVIE || insertDown || 
-        zap->numXpanels)
+        mNumXpanels)
       break;
 
     // It wouldn't work going to a QPoint and accessing it, so do it in shot!
-    ix = (zap->gfx->mapFromGlobal(QCursor::pos())).x();
-    iy = (zap->gfx->mapFromGlobal(QCursor::pos())).y();
+    ix = (mGfx->mapFromGlobal(QCursor::pos())).x();
+    iy = (mGfx->mapFromGlobal(QCursor::pos())).y();
 
     // Set a flag, set continuous tracking, grab keyboard and mouse
     insertDown = 1;
-    zap->gfx->setMouseTracking(true);
-    zap->qtWindow->grabKeyboard();
-    zap->gfx->grabMouse();
+    mGfx->setMouseTracking(true);
+    mQtWindow->grabKeyboard();
+    mGfx->grabMouse();
 
     /* Use time since last event to determine whether to treat like
        single click or drag */
@@ -1254,35 +1434,35 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
     insertTime.restart();
     /* imodPrintStderr(" %d %d %d\n ", rx, ix, iy); */
     if(rx > 250)
-      zapButton2(zap, ix, iy, 0);
+      b2Click(ix, iy, 0);
     else
-      zapB2Drag(zap, ix, iy, 0); 
+      b2Drag(ix, iy, 0); 
 
-    zap->lmx = ix;
-    zap->lmy = iy;
+    mLmx = ix;
+    mLmy = iy;
     handled = 1;
     break;
 
     /* DNM 12/13/01: add next and smooth hotkeys to autox */
   case Qt::Key_A:
-    if (zap->numXpanels)
+    if (mNumXpanels)
       break;
     if (ctrl) {
 
       // Select all contours in current object on section or in rubberband
-      if (zap->rubberband) {
-        selmin.x = zap->rbImageX0;
-        selmax.x = zap->rbImageX1;
-        selmin.y = zap->rbImageY0;
-        selmax.y = zap->rbImageY1;
+      if (mRubberband) {
+        selmin.x = mRbImageX0;
+        selmax.x = mRbImageX1;
+        selmin.y = mRbImageY0;
+        selmax.y = mRbImageY1;
       } else {
         selmin.x = -vi->xsize;;
         selmax.x = 2 * vi->xsize;
         selmin.y = -vi->ysize;;
         selmax.y = 2 * vi->ysize;
       }
-      selmin.z = zap->section - 0.5;
-      selmax.z = zap->section + 0.5;
+      selmin.z = mSection - 0.5;
+      selmax.z = mSection + 0.5;
 
       // Look through selection list, remove any that do not fit constraints
       for (i = ilistSize(vi->selectionList) - 1; i >= 0; i--) {
@@ -1328,52 +1508,52 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
     break;
 
   case Qt::Key_U:
-    if (shifted || zap->numXpanels)
+    if (shifted || mNumXpanels)
       break;
     autox_smooth(vi->ax);
     handled = 1;
     break;
 
   case Qt::Key_B:
-    if (zap->numXpanels || ctrl)
+    if (mNumXpanels || ctrl)
       break;
     if (shifted) { 
-      zapToggleRubberband(zap);
+      toggleRubberband();
     } else
       autox_build(vi->ax);
     handled = 1;
     break;
           
   case Qt::Key_P:
-    if (zap->numXpanels)
+    if (mNumXpanels)
       break;
     if (shifted) {
-      zapToggleContourShift(zap);
+      toggleContourShift();
       handled = 1;
     }
     break;
 
   case Qt::Key_S:
     if (shifted || ctrl){
-      zap->showslice = zap->showedSlice;
+      mShowslice = mShowedSlice;
 
       // Take a montage snapshot if selected and no rubberband is on
-      if (!zap->rubberband && imcGetSnapMontage(true) && !zap->numXpanels) {
-        montageSnapshot(zap, (ctrl ? 1 : 0) + (shifted ? 2 : 0));
+      if (!mRubberband && imcGetSnapMontage(true) && !mNumXpanels) {
+        montageSnapshot((ctrl ? 1 : 0) + (shifted ? 2 : 0));
         handled = 1;
         break;
       }
-      zapDraw(zap);
+      draw();
       limits = NULL;
-      if (zap->rubberband) {
+      if (mRubberband) {
         limits = limarr;
-        zapBandImageToMouse(zap, 1);
-        limarr[0] = zap->rbMouseX0 + 1;
-        limarr[1] = zap->winy - zap->rbMouseY1;
-        limarr[2] = zap->rbMouseX1 - 1 - zap->rbMouseX0;
-        limarr[3] = zap->rbMouseY1 - 1 - zap->rbMouseY0;
+        bandImageToMouse(1);
+        limarr[0] = mRbMouseX0 + 1;
+        limarr[1] = mWiny - mRbMouseY1;
+        limarr[2] = mRbMouseX1 - 1 - mRbMouseX0;
+        limarr[3] = mRbMouseY1 - 1 - mRbMouseY0;
       }
-      b3dKeySnapshot((char *)(zap->numXpanels ? "multiz" : "zap"), shifted, 
+      b3dKeySnapshot((char *)(mNumXpanels ? "multiz" : "zap"), shifted, 
                      ctrl, limits);
     }else
       inputSaveModel(vi);
@@ -1381,20 +1561,20 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
     break;
           
   case Qt::Key_R:
-    if (shifted && !zap->numXpanels) {
-      zapResizeToFit(zap);
+    if (shifted && !mNumXpanels) {
+      resizeToFit();
       handled = 1;
     }
     break;
 
   case Qt::Key_Z:
     if (shifted) {
-      if (!zap->numXpanels) { 
-        if(zap->sectionStep) {
-          zap->sectionStep = 0;
+      if (!mNumXpanels) { 
+        if(mSectionStep) {
+          mSectionStep = 0;
           wprint("Auto-section advance turned OFF\n");
         } else {
-          zap->sectionStep = 1;
+          mSectionStep = 1;
           wprint("\aAuto-section advance turned ON\n");
         }
       }
@@ -1403,13 +1583,13 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
     break;
 
   case Qt::Key_I:
-    if (zap->numXpanels)
+    if (mNumXpanels)
       break;
     if (shifted)
-      zapPrintInfo(zap);
+      printInfo();
     else {
-      zapStateToggled(zap, ZAP_TOGGLE_INSERT, 1 - zap->insertmode);
-      zap->qtWindow->setToggleState(ZAP_TOGGLE_INSERT, zap->insertmode);
+      stateToggled(ZAP_TOGGLE_INSERT, 1 - mInsertmode);
+      mQtWindow->setToggleState(ZAP_TOGGLE_INSERT, mInsertmode);
       wprint("\aToggled modeling direction\n");
     }
     handled = 1;
@@ -1422,7 +1602,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
       Dimension width, height, neww, newh;
       Position dx, dy;
       int delta = 1;
-      XtVaGetValues(zap->dialog,
+      XtVaGetValues(mDialog,
       XmNwidth, &width,
       XmNheight, &height,
       XmNx, &dx, XmNy, &dy,
@@ -1434,7 +1614,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
       else
       height += delta;
       imodPrintStderr ("%d x %d\n", width, height);
-      XtConfigureWidget(zap->dialog, dx, dy, width, height, 0);
+      XtConfigureWidget(mDialog, dx, dy, width, height, 0);
       }
     */
 
@@ -1462,48 +1642,48 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
 /*
  * Key is raised: finish up various tasks
  */
-void zapKeyRelease(ZapStruct *zap, QKeyEvent *event)
+void ZapFuncs::keyRelease(QKeyEvent *event)
 {
   /*  imodPrintStderr ("%d down\n", downtime.elapsed()); */
   if (!insertDown || !(event->modifiers() & Qt::KeypadModifier) ||
       (event->key() != Qt::Key_Insert && event->key() != Qt::Key_0))
     return;
   insertDown = 0;
-  registerDragAdditions(zap);
-  setMouseTracking(zap);
-  zap->qtWindow->releaseKeyboard();
-  zap->gfx->releaseMouse();
+  registerDragAdditions();
+  setMouseTracking();
+  mQtWindow->releaseKeyboard();
+  mGfx->releaseMouse();
 
   // Note that unless the user truns off autorepeat on the key, there is a
   // series of key press - release events and it does full draws
-  if (zap->drawCurrentOnly) {
-    setDrawCurrentOnly(zap, 0);
-    imodDraw(zap->vi, IMOD_DRAW_MOD | IMOD_DRAW_XYZ);
+  if (mDrawCurrentOnly) {
+    setDrawCurrentOnly(0);
+    imodDraw(mVi, IMOD_DRAW_MOD | IMOD_DRAW_XYZ);
   }
 }
 
 // Pass on various events to plugins
-void zapGeneralEvent(ZapStruct *zap, QEvent *e)
+void ZapFuncs::generalEvent(QEvent *e)
 {
   int ix, iy, ifdraw, iz, pt;
   float imx, imy;
   Iobj *obj;
   Icont *cont;
-  float wheelScale = utilWheelToPointSizeScaling(zap->zoom);
-  if (zap->numXpanels || !zap->popup || App->closing)
+  float wheelScale = utilWheelToPointSizeScaling(mZoom);
+  if (mNumXpanels || !mPopup || App->closing)
     return;
-  ix = (zap->gfx->mapFromGlobal(QCursor::pos())).x();
-  iy = (zap->gfx->mapFromGlobal(QCursor::pos())).y();
-  zapGetixy(zap, ix, iy, &imx, &imy, &iz);
-  ifdraw = imodPlugHandleEvent(zap->vi, e, imx, imy);
-  if (ifdraw & 2 || (zap->drewExtraCursor && e->type() == QEvent::Leave))
-    zapDraw(zap);
+  ix = (mGfx->mapFromGlobal(QCursor::pos())).x();
+  iy = (mGfx->mapFromGlobal(QCursor::pos())).y();
+  getixy(ix, iy, &imx, &imy, &iz);
+  ifdraw = imodPlugHandleEvent(mVi, e, imx, imy);
+  if (ifdraw & 2 || (mDrewExtraCursor && e->type() == QEvent::Leave))
+    draw();
   if (ifdraw)
     return;
   if (e->type() == QEvent::Wheel && iceGetWheelForSize()) {
-    imodGetIndex(zap->vi->imod, &ix, &iy, &pt);
-    obj = imodObjectGet(zap->vi->imod);
-    cont = imodContourGet(zap->vi->imod);
+    imodGetIndex(mVi->imod, &ix, &iy, &pt);
+    obj = imodObjectGet(mVi->imod);
+    cont = imodContourGet(mVi->imod);
     if (!cont || pt < 0)
       return;
     imx = imodPointGetSize(obj, cont, pt);
@@ -1511,17 +1691,17 @@ void zapGeneralEvent(ZapStruct *zap, QEvent *e)
       return;
     imx += ((QWheelEvent *)e)->delta() * wheelScale;
     imx = B3DMAX(0., imx);
-    zap->vi->undo->contourDataChg();
+    mVi->undo->contourDataChg();
     imodPointSetSize(cont, pt, imx);
-    zap->vi->undo->finishUnit();
-    imodDraw(zap->vi, IMOD_DRAW_MOD);
+    mVi->undo->finishUnit();
+    imodDraw(mVi, IMOD_DRAW_MOD);
   }
 }
 
 /*
  * respond to a mouse press event
  */
-void zapMousePress(ZapStruct *zap, QMouseEvent *event)
+void ZapFuncs::mousePress(QMouseEvent *event)
 {
   int button1, button2, button3, ifdraw = 0, drew = 0;
   int ctrlDown = event->modifiers() & Qt::ControlModifier;
@@ -1536,10 +1716,10 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
   but1downt.start();
   firstmx = x;
   firstmy = y;
-  zap->lmx = x;
-  zap->lmy = y;
+  mLmx = x;
+  mLmy = y;
   mousePressed = true;
-  utilRaiseIfNeeded(zap->qtWindow, event);
+  utilRaiseIfNeeded(mQtWindow, event);
 
   if (imodDebug('m'))
     imodPrintStderr("click at %d %d   buttons %d %d %d\n", x, y, button1, 
@@ -1551,63 +1731,63 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
     
     /* If rubber band is on and within criterion distance of any edge, set
        flag to move whole band and return */
-    if (zap->rubberband) {
-      zapBandImageToMouse(zap, 0);
-      dxll = x - zap->rbMouseX0;
-      dxur = x - zap->rbMouseX1;
-      dyll = y - zap->rbMouseY0;
-      dyur = y - zap->rbMouseY1;
+    if (mRubberband) {
+      bandImageToMouse(0);
+      dxll = x - mRbMouseX0;
+      dxur = x - mRbMouseX1;
+      dyll = y - mRbMouseY0;
+      dyur = y - mRbMouseY1;
       if ((dyll > 0 && dyur < 0 && (dxll < rcrit && dxll > -rcrit ||
                                     dxur < rcrit && dxur > -rcrit)) ||
           (dxll > 0 && dxur < 0 && (dyll < rcrit && dyll > -rcrit ||
                                     dyur < rcrit && dyur > -rcrit))) {
         moveband = 1;
-        zapSetCursor(zap, zap->mousemode);
+        setCursor(mMousemode);
         return;
       }
     }   
   }  
-  zapSetCursor(zap, zap->mousemode, utilNeedToSetCursor());
+  setCursor(mMousemode, utilNeedToSetCursor());
 
   // Now give the plugins a crack at it
-  ifdraw = checkPlugUseMouse(zap, event, button1, button2, button3);
+  ifdraw = checkPlugUseMouse(event, button1, button2, button3);
   if (ifdraw & 1) {
     if (ifdraw & 2)
-      zapDraw(zap);
+      draw();
     return;
   }
 
   // Check for regular actions
   if (event->button() == ImodPrefs->actualButton(1)) {
-    if (zap->shiftingCont)
-      drew = startShiftingContour(zap, firstmx, firstmy, 1, ctrlDown);
-    else if (zap->startingBand)
-      drew = zapButton1(zap, firstmx, firstmy, ctrlDown);
+    if (mShiftingCont)
+      drew = startShiftingContour(firstmx, firstmy, 1, ctrlDown);
+    else if (mStartingBand)
+      drew = b1Click(firstmx, firstmy, ctrlDown);
     else
       firstdrag = 1;
       
   } else if (event->button() == ImodPrefs->actualButton(2) &&
 	     !button1 && !button3) {
-    if (zap->shiftingCont)
-      drew = startShiftingContour(zap, x, y, 2, ctrlDown);
+    if (mShiftingCont)
+      drew = startShiftingContour(x, y, 2, ctrlDown);
     else
-      drew = zapButton2(zap, x, y, ctrlDown);
+      drew = b2Click(x, y, ctrlDown);
 
   } else if (event->button() == ImodPrefs->actualButton(3) &&
 	     !button1 && !button2) {
-    if (zap->shiftingCont)
-      drew = startShiftingContour(zap, x, y, 3, ctrlDown);
+    if (mShiftingCont)
+      drew = startShiftingContour(x, y, 3, ctrlDown);
     else
-      drew = zapButton3(zap, x, y, ctrlDown);
+      drew = b3Click(x, y, ctrlDown);
   }
   if (ifdraw && !drew)
-    zapDraw(zap);
+    draw();
 }
 
 /*
  * respond to mouse release event
  */
-void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
+void ZapFuncs::mouseRelease(QMouseEvent *event)
 {
   int imz, button1, button2, button3, ifdraw = 0, drew = 0;
   bool needDraw;
@@ -1620,16 +1800,16 @@ void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
   if (imodDebug('m'))
     imodPrintStderr("release at %d %d   buttons %d %d %d\n", event->x(), 
                     event->y(), button1, button2, button3);
-  if (zap->shiftRegistered) {
-    zap->shiftRegistered = 0;
-    zap->vi->undo->finishUnit();
+  if (mShiftRegistered) {
+    mShiftRegistered = 0;
+    mVi->undo->finishUnit();
   }
-  needDraw = zap->drewExtraCursor && !zap->gfx->extraCursorInWindow();
+  needDraw = mDrewExtraCursor && !mGfx->extraCursorInWindow();
 
-  ifdraw = checkPlugUseMouse(zap, event, button1, button2, button3);
+  ifdraw = checkPlugUseMouse(event, button1, button2, button3);
   if (ifdraw & 1) {
     if ((ifdraw & 2) || needDraw)
-      zapDraw(zap);
+      draw();
 
     // Defer the return so the band moving can be turned off, but then only 
     // check other things below if this flag is off
@@ -1638,46 +1818,46 @@ void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
   if (button1 && !(ifdraw & 1)) {
     if (dragband) {
       dragband = 0;
-      zapSetCursor(zap, zap->mousemode);
+      setCursor(mMousemode);
     }
     firstdrag = 0;
 
     if (but1downt.elapsed() > 250) {
-      if (zap->hqgfxsave || ifdraw)
-        zapDraw(zap);
-      zap->hqgfxsave  = 0;
+      if (mHqgfxsave || ifdraw)
+        draw();
+      mHqgfxsave  = 0;
       return;    //IS THIS RIGHT?
     }
-    drew = zapButton1(zap, event->x(), event->y(),
+    drew = b1Click(event->x(), event->y(),
                event->modifiers() & Qt::ControlModifier);
   }
  
   // Button 2 and band moving, release the band
-  if (button2 && zap->rubberband && moveband) {
+  if (button2 && mRubberband && moveband) {
     moveband = 0;
-    zapSetCursor(zap, zap->mousemode);
-    if (zap->hqgfxsave) {
-      zapDraw(zap);
+    setCursor(mMousemode);
+    if (mHqgfxsave) {
+      draw();
       drew = 1;
     }
-    zap->hqgfxsave  = 0;
+    mHqgfxsave  = 0;
 
     // Button 2 and doing a drag draw - draw for real.
-  } else if (button2 && !zap->numXpanels && !(ifdraw & 1) &&
-             zap->vi->imod->mousemode == IMOD_MMODEL) {
+  } else if (button2 && !mNumXpanels && !(ifdraw & 1) &&
+             mVi->imod->mousemode == IMOD_MMODEL) {
     if (imodDebug('z'))
       imodPrintStderr("Down time %d msec\n", but1downt.elapsed());
 
-    registerDragAdditions(zap);
+    registerDragAdditions();
 
     // Fix the mouse position and update the other windows finally
     // Why call imod_info_setxyz again on release of single point add?
-    zapGetixy(zap, event->x(), event->y(), &imx, &imy, &imz);
-    zap->vi->xmouse = imx;
-    zap->vi->ymouse = imy;
-    if (zap->drawCurrentOnly) {
-      setDrawCurrentOnly(zap, 0);
-      imodDraw(zap->vi, IMOD_DRAW_MOD | IMOD_DRAW_XYZ);
+    getixy(event->x(), event->y(), &imx, &imy, &imz);
+    mVi->xmouse = imx;
+    mVi->ymouse = imy;
+    if (mDrawCurrentOnly) {
+      setDrawCurrentOnly(0);
+      imodDraw(mVi, IMOD_DRAW_MOD | IMOD_DRAW_XYZ);
       drew = 1;
     } else
       imod_info_setxyz();
@@ -1687,22 +1867,22 @@ void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
   if (ifdraw & 1)
     return;
 
-  if (zap->centerMarked && !zap->centerDefined) {
-    ivwClearAnExtraObject(zap->vi, zap->shiftObjNum);
-    imodDraw(zap->vi, IMOD_DRAW_MOD);
-    zap->centerMarked = 0;
+  if (mCenterMarked && !mCenterDefined) {
+    ivwClearAnExtraObject(mVi, mShiftObjNum);
+    imodDraw(mVi, IMOD_DRAW_MOD);
+    mCenterMarked = 0;
     drew = 1;
   }
   if ((ifdraw || needDraw) && !drew)
-    zapDraw(zap);
+    draw();
   else
-    setAreaLimits(zap);
+    setAreaLimits();
 }
 
 /*
  * Respond to a mouse move event (mouse down)
  */
-void zapMouseMove(ZapStruct *zap, QMouseEvent *event)
+void ZapFuncs::mouseMove(QMouseEvent *event)
 {
   int imz;
   static int button1, button2, button3, ex, ey, processing = 0;
@@ -1727,32 +1907,32 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event)
   }
 
   if (pixelViewOpen) {
-    zapGetixy(zap, ex, ey, &imx, &imy, &imz);
-    pvNewMousePosition(zap->vi, imx, imy, imz);
+    getixy(ex, ey, &imx, &imy, &imz);
+    pvNewMousePosition(mVi, imx, imy, imz);
   }
 
-  if (!(zap->rubberband && moveband)  && 
-      (mousePressed || insertDown || zap->vi->trackMouseForPlugs)) {
-    ifdraw = checkPlugUseMouse(zap, event, button1, button2, button3);
+  if (!(mRubberband && moveband)  && 
+      (mousePressed || insertDown || mVi->trackMouseForPlugs)) {
+    ifdraw = checkPlugUseMouse(event, button1, button2, button3);
     if (ifdraw & 1) {
       if (ifdraw & 2)
-        zapDraw(zap);
+        draw();
       return;
     }
   } else
-    setControlAndLimits(zap);
+    setControlAndLimits();
 
   if (!(mousePressed || insertDown)) {
-    if (zap->rubberband)
-      zapAnalyzeBandEdge(zap, ex, ey);
+    if (mRubberband)
+      analyzeBandEdge(ex, ey);
     if (ifdraw)
-      zapDraw(zap);
+      draw();
     return;
   }
 
   // For first button or band moving, eat any pending move events and use 
   // latest position
-  if ( (button1 && !button2 && !button3) || (zap->rubberband && moveband)) {
+  if ( (button1 && !button2 && !button3) || (mRubberband && moveband)) {
     processing = 1;
     imod_info_input();
     if (imodDebug('m') && processing > 1)
@@ -1773,13 +1953,13 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event)
 
   if ( (button1) && (!button2) && (!button3)){
     if (ctrlDown) {
-      drew = dragSelectContsCrossed(zap, ex, ey);
+      drew = dragSelectContsCrossed(ex, ey);
     } else {
       /* DNM: wait for a bit of time or until enough distance moved, but if we
          do not replace original lmx, lmy, there is a disconcerting lurch */
       if ((but1downt.elapsed()) > 250 || cumdx * cumdx + cumdy * cumdy >
           cumthresh)
-        drew = zapB1Drag(zap, ex, ey);
+        drew = b1Drag(ex, ey);
     }
   }
 
@@ -1787,38 +1967,38 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event)
   if ( (!button1) && (button2) && (!button3)) {
     if ((but1downt.elapsed()) > 150 || cumdx * cumdx + cumdy * cumdy > 
         dragthresh)
-      drew = zapB2Drag(zap, ex, ey, ctrlDown);
+      drew = b2Drag(ex, ey, ctrlDown);
   }
   
   if ( (!button1) && (!button2) && (button3))
-    drew = zapB3Drag(zap, ex, ey, ctrlDown, shiftDown);
+    drew = b3Drag(ex, ey, ctrlDown, shiftDown);
   
-  zap->lmx = ex;
-  zap->lmy = ey;
+  mLmx = ex;
+  mLmy = ey;
   if (ifdraw && !drew)
-    zapDraw(zap);
+    draw();
 }
 
 /*
  * Test for whether a plugin takes care of the mouse event; take care of 
  * setting limits also
  */
-static int checkPlugUseMouse(ZapStruct *zap, QMouseEvent *event, int but1, 
+int ZapFuncs::checkPlugUseMouse(QMouseEvent *event, int but1, 
                           int but2, int but3)
 {
   float imx, imy;
   int ifdraw, imz;
-  setControlAndLimits(zap);
-  if (zap->numXpanels)
+  setControlAndLimits();
+  if (mNumXpanels)
     return 0;
-  ivwControlActive(zap->vi, 0);
-  zapGetixy(zap, event->x(), event->y(), &imx, &imy, &imz);
-  ifdraw = imodPlugHandleMouse(zap->vi, event, imx, imy, but1, but2, but3);
+  ivwControlActive(mVi, 0);
+  getixy(event->x(), event->y(), &imx, &imy, &imz);
+  ifdraw = imodPlugHandleMouse(mVi, event, imx, imy, but1, but2, but3);
   if (ifdraw & 1) {
     if (ifdraw & 2) 
-      zapDraw(zap);
+      draw();
   } else
-    ivwControlActive(zap->vi, 1);
+    ivwControlActive(mVi, 1);
   return ifdraw;
 }
 
@@ -1826,22 +2006,22 @@ static int checkPlugUseMouse(ZapStruct *zap, QMouseEvent *event, int but1,
  * Analyze for whether mouse is close to a corner or an edge and set flags
  * for mouse to be set properly
  */
-static void zapAnalyzeBandEdge(ZapStruct *zap, int ix, int iy)
+void ZapFuncs::analyzeBandEdge(int ix, int iy)
 {
   int rubbercrit = 10;  /* Criterion distance for grabbing the band */
   int i, dminsq, dist, distsq, dmin, dxll, dyll, dxur, dyur;
   int minedgex, minedgey;
 
-  zapBandImageToMouse(zap, 0);    
+  bandImageToMouse(0);    
   dminsq = rubbercrit * rubbercrit;
   dragband = 0;
   minedgex = -1;
   for (i = 0; i < 4; i++)
     dragging[i] = 0;
-  dxll = ix - zap->rbMouseX0;
-  dxur = ix - zap->rbMouseX1;
-  dyll = iy - zap->rbMouseY0;
-  dyur = iy - zap->rbMouseY1;
+  dxll = ix - mRbMouseX0;
+  dxur = ix - mRbMouseX1;
+  dyll = iy - mRbMouseY0;
+  dyur = iy - mRbMouseY1;
 
   /* Find distance from each corner, keep track of a min */
   distsq = dxll * dxll + dyll * dyll;
@@ -1904,16 +2084,16 @@ static void zapAnalyzeBandEdge(ZapStruct *zap, int ix, int iy)
       dragband = 1;
     }
   }
-  zapSetCursor(zap, zap->mousemode);
+  setCursor(mMousemode);
 }
 
 /*
  * Adjust minimum size of rubberband down in case image is tiny
  */
-static int zapBandMinimum(ZapStruct *zap)
+int ZapFuncs::bandMinimum()
 {
-  int bandmin = B3DMIN(4, (int)(zap->vi->xsize * zap->xzoom) + 2);
-  bandmin = B3DMIN(bandmin, (int)(zap->vi->ysize * zap->zoom) + 2);
+  int bandmin = B3DMIN(4, (int)(mVi->xsize * mXzoom) + 2);
+  bandmin = B3DMIN(bandmin, (int)(mVi->ysize * mZoom) + 2);
   return bandmin;
 }
 
@@ -1921,84 +2101,84 @@ static int zapBandMinimum(ZapStruct *zap)
  * First mouse button click: Attach to nearest point in model mode,
  * or just modify the current xmouse, ymouse values
  */
-int zapButton1(ZapStruct *zap, int x, int y, int controlDown)
+int ZapFuncs::b1Click(int x, int y, int controlDown)
 {
-  ImodView *vi   = zap->vi;
+  ImodView *vi   = mVi;
   Imod     *imod = vi->imod;
   Ipoint pnt;
   Iindex index, indSave;
-  int bandmin = zapBandMinimum(zap);
+  int bandmin = bandMinimum();
   int iz;
   float distance;
   float ix, iy, dx, dy;
-  float selsize = IMOD_SELSIZE / zap->zoom;
+  float selsize = IMOD_SELSIZE / mZoom;
 
-  zapGetixy(zap, x, y, &ix, &iy, &iz);
+  getixy(x, y, &ix, &iy, &iz);
   if (iz < 0)
     return 0;
      
   // If starting rubber band, set upper left corner, set for moving lower left
-  if (zap->startingBand) {
+  if (mStartingBand) {
     
     // Set up mouse coords then convert to image
-    zap->rbMouseX1 = x + bandmin;
-    if (zap->rbMouseX1 > zap->winx - 1)
-      zap->rbMouseX1 = zap->winx - 1;
-    zap->rbMouseX0 = zap->rbMouseX1 - bandmin;
+    mRbMouseX1 = x + bandmin;
+    if (mRbMouseX1 > mWinx - 1)
+      mRbMouseX1 = mWinx - 1;
+    mRbMouseX0 = mRbMouseX1 - bandmin;
 
-    zap->rbMouseY0 = y - bandmin;
+    mRbMouseY0 = y - bandmin;
     if (y < bandmin)
-      zap->rbMouseY0 = 0;
-    zap->rbMouseY1 = zap->rbMouseY0 + bandmin;
-    zapBandMouseToImage(zap, 0);
+      mRbMouseY0 = 0;
+    mRbMouseY1 = mRbMouseY0 + bandmin;
+    bandMouseToImage(0);
 
     // Does image coord need to be moved?  Do so and move mouse
     dx = dy = 0;
-    if (zap->rbImageX0 < 0.)
-      dx = -zap->rbImageX0;
-    if (zap->rbImageX1 > zap->vi->xsize)
-      dx = zap->vi->xsize - zap->rbImageX1; 
-    if (zap->rbImageY0 < 0.)
-      dy = -zap->rbImageY0;
-    if (zap->rbImageY1 > zap->vi->ysize)
-      dy = zap->vi->ysize - zap->rbImageY1; 
+    if (mRbImageX0 < 0.)
+      dx = -mRbImageX0;
+    if (mRbImageX1 > mVi->xsize)
+      dx = mVi->xsize - mRbImageX1; 
+    if (mRbImageY0 < 0.)
+      dy = -mRbImageY0;
+    if (mRbImageY1 > mVi->ysize)
+      dy = mVi->ysize - mRbImageY1; 
     if (dx || dy) {
-      zap->rbImageX0 += dx;
-      zap->rbImageX1 += dx;
-      zap->rbImageY0 += dy;
-      zap->rbImageY1 += dy;
-      zapBandImageToMouse(zap, 1);
-      QCursor::setPos(zap->gfx->mapToGlobal(QPoint(zap->rbMouseX0, 
-                                                   zap->rbMouseY0)));
-      firstmx = zap->rbMouseX0;
-      firstmy = zap->rbMouseY0;
+      mRbImageX0 += dx;
+      mRbImageX1 += dx;
+      mRbImageY0 += dy;
+      mRbImageY1 += dy;
+      bandImageToMouse(1);
+      QCursor::setPos(mGfx->mapToGlobal(QPoint(mRbMouseX0, 
+                                                   mRbMouseY0)));
+      firstmx = mRbMouseX0;
+      firstmy = mRbMouseY0;
     }
 
-    zap->startingBand = 0;
-    zap->rubberband = 1;
-    zap->gfx->setMouseTracking(true);
+    mStartingBand = 0;
+    mRubberband = 1;
+    mGfx->setMouseTracking(true);
     dragband = 1;
     dragging[0] = 0;
     dragging[1] = 1;
     dragging[2] = 0;
     dragging[3] = 1;
-    zap->bandChanged = 1;
-    zapSetCursor(zap, zap->mousemode);
-    zapDraw(zap);
+    mBandChanged = 1;
+    setCursor(mMousemode);
+    draw();
     return 1;  
   }
 
-  if (vi->ax && !zap->numXpanels)
+  if (vi->ax && !mNumXpanels)
     if (vi->ax->altmouse == AUTOX_ALTMOUSE_PAINT){
       autox_fillmouse(vi, (int)ix, (int)iy);
       return 1;
     }
      
-  // In either mode, do a default modification of zmouse or zap->section
+  // In either mode, do a default modification of zmouse or mSection
   vi->xmouse = ix;
   vi->ymouse = iy;
-  if (zap->lock)
-    zap->section = iz;
+  if (mLock)
+    mSection = iz;
   else
     vi->zmouse = (float)iz;
 
@@ -2028,9 +2208,9 @@ int zapButton1(ZapStruct *zap, int x, int y, int controlDown)
  * Second mouse button click:
  * In model mode, add a model point, creating a new contour if necessary 
  */
-int zapButton2(ZapStruct *zap, int x, int y, int controlDown)
+int ZapFuncs::b2Click(int x, int y, int controlDown)
 {
-  ImodView *vi = zap->vi;
+  ImodView *vi = mVi;
   Iobj  *obj;
   Icont *cont;
   Ipoint point;
@@ -2039,9 +2219,9 @@ int zapButton2(ZapStruct *zap, int x, int y, int controlDown)
   float lastz;
   int cz, pz, iz;
 
-  zapGetixy(zap, x, y, &ix, &iy, &iz);
+  getixy(x, y, &ix, &iy, &iz);
 
-  if (vi->ax && !zap->numXpanels){
+  if (vi->ax && !mNumXpanels){
     if (vi->ax->altmouse == AUTOX_ALTMOUSE_PAINT){
       /* DNM 2/1/01: need to call with int */
       autox_sethigh(vi, (int)ix, (int)iy);
@@ -2053,23 +2233,23 @@ int zapButton2(ZapStruct *zap, int x, int y, int controlDown)
   // plugin action
 
   if (vi->imod->mousemode == IMOD_MMODEL) {
-    if (zap->numXpanels)
+    if (mNumXpanels)
       return 0;
-    zap->dragAddCount = 0;
+    mDragAddCount = 0;
     obj = imodObjectGet(vi->imod);
     if (!obj)
       return 0;
 
     // Get current contour; if there is none, start a new one
     // DNM 7/10/04: switch to calling routine; it now fixes time of empty cont
-    cont = ivwGetOrMakeContour(vi, obj, zap->timeLock);
+    cont = ivwGetOrMakeContour(vi, obj, mTimeLock);
     if (!cont)
       return 0;
 
     point.x = ix;
     point.y = iy;
-    point.z = zap->section;
-    if ((zap->twod)&&(cont)&&(cont->psize)){
+    point.z = mSection;
+    if ((mTwod)&&(cont)&&(cont->psize)){
       point.z = cont->pts->z;
     }
     vi->xmouse = ix;
@@ -2084,7 +2264,7 @@ int zapButton2(ZapStruct *zap, int x, int y, int controlDown)
       cz = (int)floor(cont->pts->z + 0.5); 
       pz = (int)point.z;
       if ((iobjPlanar(obj->flags) && !(cont->flags & ICONT_WILD) && cz != pz) 
-          || ivwTimeMismatch(vi, zap->timeLock, obj, cont)) {
+          || ivwTimeMismatch(vi, mTimeLock, obj, cont)) {
         if (cont->psize == 1) {
           wprint("Started a new contour even though last "
                  "contour had only 1 pt.  ");
@@ -2109,7 +2289,7 @@ int zapButton2(ZapStruct *zap, int x, int y, int controlDown)
     }
 
     /* Now if times still don't match refuse the point */
-    if (ivwTimeMismatch(vi, zap->timeLock, obj, cont)) {
+    if (ivwTimeMismatch(vi, mTimeLock, obj, cont)) {
       wprint("\aContour time does not match current time.\n"
              "Set contour time to 0 to model across times.\n");
       vi->undo->finishUnit();
@@ -2125,14 +2305,14 @@ int zapButton2(ZapStruct *zap, int x, int y, int controlDown)
     else
       lastz = point.z;
 
-    if (pt > 0 && zap->insertmode)
+    if (pt > 0 && mInsertmode)
       pt--;
     
     ivwRegisterInsertPoint(vi, cont, &point, pt);
 
     /* DNM: auto section advance is based on the direction of section change 
        between last and just-inserted points */
-    if (zap->sectionStep && point.z != lastz) {
+    if (mSectionStep && point.z != lastz) {
       if (point.z - lastz > 0.0)
         vi->zmouse += 1.0;
       else
@@ -2150,33 +2330,33 @@ int zapButton2(ZapStruct *zap, int x, int y, int controlDown)
       
     return 1;
   }
-  return startMovieCheckSnap(zap, 1);
+  return startMovieCheckSnap(1);
 }
 
 /*
  * Delete all points of current contour under the cursor 
  */     
-static int zapDelUnderCursor(ZapStruct *zap, int x, int y, Icont *cont)
+int ZapFuncs::delUnderCursor(int x, int y, Icont *cont)
 {
   float ix, iy;
-  float crit = 8./ zap->zoom;
+  float crit = 8./ mZoom;
   float critsq, dsq;
   int i, iz;
   Ipoint *lpt;
   int deleted = 0;
 
-  zapGetixy(zap, x, y, &ix, &iy, &iz);
+  getixy(x, y, &ix, &iy, &iz);
   critsq = crit * crit;
   for (i = 0; i < cont->psize  && cont->psize > 1; ) {
     lpt = &(cont->pts[i]);
-    if (floor(lpt->z + 0.5) == zap->section) {
+    if (floor(lpt->z + 0.5) == mSection) {
       dsq = (lpt->x - ix) * (lpt->x - ix) +
         (lpt->y - iy) * (lpt->y - iy);
       if (dsq <= critsq) {
-        zap->vi->undo->pointRemoval(i);
+        mVi->undo->pointRemoval(i);
         imodPointDelete(cont, i);
-        zap->vi->imod->cindex.point = 
-          B3DMIN(cont->psize - 1, B3DMAX(i + zap->insertmode - 1, 0));
+        mVi->imod->cindex.point = 
+          B3DMIN(cont->psize - 1, B3DMAX(i + mInsertmode - 1, 0));
         deleted = 1;
         continue;
       }
@@ -2185,8 +2365,8 @@ static int zapDelUnderCursor(ZapStruct *zap, int x, int y, Icont *cont)
   }
   if (!deleted)
     return 0;
-  zap->vi->undo->finishUnit();
-  imodDraw(zap->vi, IMOD_DRAW_XYZ | IMOD_DRAW_MOD );
+  mVi->undo->finishUnit();
+  imodDraw(mVi, IMOD_DRAW_XYZ | IMOD_DRAW_MOD );
   return 1;
 }
 
@@ -2194,17 +2374,17 @@ static int zapDelUnderCursor(ZapStruct *zap, int x, int y, Icont *cont)
  * Third mouse button click:
  * In model mode, modify current point; otherwise run movie 
  */
-int zapButton3(ZapStruct *zap, int x, int y, int controlDown)
+int ZapFuncs::b3Click(int x, int y, int controlDown)
 {
-  ImodView *vi = zap->vi;
+  ImodView *vi = mVi;
   Icont *cont;
   Iobj *obj;
   int   pt, iz;
   float ix, iy;
 
-  zapGetixy(zap, x, y, &ix, &iy, &iz);
+  getixy(x, y, &ix, &iy, &iz);
 
-  if (vi->ax && !zap->numXpanels) {
+  if (vi->ax && !mNumXpanels) {
     if (vi->ax->altmouse == AUTOX_ALTMOUSE_PAINT){
       /* DNM 2/1/01: need to call with int */
       autox_setlow(vi, (int)ix, (int)iy);
@@ -2213,7 +2393,7 @@ int zapButton3(ZapStruct *zap, int x, int y, int controlDown)
   }
 
   if (vi->imod->mousemode == IMOD_MMODEL) {
-    if (zap->numXpanels)
+    if (mNumXpanels)
       return 0;
     cont = imodContourGet(vi->imod);
     pt   = vi->imod->cindex.point;
@@ -2223,15 +2403,15 @@ int zapButton3(ZapStruct *zap, int x, int y, int controlDown)
       return 0; 
 
     obj = imodObjectGet(vi->imod);
-    if (ivwTimeMismatch(vi, zap->timeLock, obj, cont))
+    if (ivwTimeMismatch(vi, mTimeLock, obj, cont))
       return 0;
 
     /* If the control key is down, delete points under the cursor */
     if (controlDown)
-      return zapDelUnderCursor(zap, x, y, cont);
+      return delUnderCursor(x, y, cont);
 
           
-    if (!zapPointVisable(zap, &(cont->pts[pt])))
+    if (!pointVisable(&(cont->pts[pt])))
       return 0;
 
     vi->undo->pointShift();
@@ -2245,83 +2425,82 @@ int zapButton3(ZapStruct *zap, int x, int y, int controlDown)
     imodDraw(vi, IMOD_DRAW_RETHINK);
     return 1;
   }
-  return startMovieCheckSnap(zap, -1);
+  return startMovieCheckSnap(-1);
 }
 
 /*
  * First mouse button drag
  */
-int zapB1Drag(ZapStruct *zap, int x, int y)
+int ZapFuncs::b1Drag(int x, int y)
 {
 
   // For zooms less than one, move image along with mouse; for higher zooms,
   // Translate 1 image pixel per mouse pixel (accelerated)
-  double transFac = zap->zoom < 1. ? 1. / zap->zoom : 1.;
+  double transFac = mZoom < 1. ? 1. / mZoom : 1.;
 
-  if (zap->shiftingCont) {
-    shiftContour(zap, x, y, 1, 0);
+  if (mShiftingCont) {
+    shiftContour(x, y, 1, 0);
     return 1;
   }
 
   // First time mouse moves, lock in the band drag position
-  if (zap->rubberband && firstdrag)
-    zapAnalyzeBandEdge(zap, x, y);
+  if (mRubberband && firstdrag)
+    analyzeBandEdge(x, y);
   firstdrag = 0;
      
-  if (zap->rubberband && dragband) {
+  if (mRubberband && dragband) {
 
     /* Move the rubber band */
     if (dragging[0]) {
-      zap->rbImageX0 += (x - zap->lmx) / zap->xzoom;
-      if (zap->rbImageX0 < 0)
-        zap->rbImageX0 = 0;
-      if (zap->rbImageX0 >= zap->rbImageX1)
-        zap->rbImageX0 = zap->rbImageX1 - 1;
+      mRbImageX0 += (x - mLmx) / mXzoom;
+      if (mRbImageX0 < 0)
+        mRbImageX0 = 0;
+      if (mRbImageX0 >= mRbImageX1)
+        mRbImageX0 = mRbImageX1 - 1;
     }
     if (dragging[1]) {
-      zap->rbImageX1 += (x - zap->lmx) / zap->xzoom;
-      if (zap->rbImageX1 > zap->vi->xsize)
-        zap->rbImageX1 = zap->vi->xsize;
-      if (zap->rbImageX1 <= zap->rbImageX0)
-        zap->rbImageX1 = zap->rbImageX0 + 1;
+      mRbImageX1 += (x - mLmx) / mXzoom;
+      if (mRbImageX1 > mVi->xsize)
+        mRbImageX1 = mVi->xsize;
+      if (mRbImageX1 <= mRbImageX0)
+        mRbImageX1 = mRbImageX0 + 1;
     }
     if (dragging[3]) {
-      zap->rbImageY0 += (zap->lmy - y) / zap->xzoom;
-      if (zap->rbImageY0 < 0)
-        zap->rbImageY0 = 0;
-      if (zap->rbImageY0 >= zap->rbImageY1)
-        zap->rbImageY0 = zap->rbImageY1 - 1;
+      mRbImageY0 += (mLmy - y) / mXzoom;
+      if (mRbImageY0 < 0)
+        mRbImageY0 = 0;
+      if (mRbImageY0 >= mRbImageY1)
+        mRbImageY0 = mRbImageY1 - 1;
     }
     if (dragging[2]) {
-      zap->rbImageY1 += (zap->lmy - y) / zap->xzoom;
-      if (zap->rbImageY1 > zap->vi->ysize)
-        zap->rbImageY1 = zap->vi->ysize;
-      if (zap->rbImageY1 <= zap->rbImageY0)
-        zap->rbImageY1 = zap->rbImageY0 + 1;
+      mRbImageY1 += (mLmy - y) / mXzoom;
+      if (mRbImageY1 > mVi->ysize)
+        mRbImageY1 = mVi->ysize;
+      if (mRbImageY1 <= mRbImageY0)
+        mRbImageY1 = mRbImageY0 + 1;
     }
-    zap->bandChanged = 1;
-    zapSetCursor(zap, zap->mousemode, utilNeedToSetCursor());
+    mBandChanged = 1;
+    setCursor(mMousemode, utilNeedToSetCursor());
   } else {
     /* Move the image */
     if (imodDebug('m'))
       imodPrintStderr("B1Drag: x,y %d,%d  lmx,y %d,%d  trans %d,%d\n",
-                      x, y, zap->lmx,  zap->lmy,  zap->xtrans,  zap->ytrans);
-    zap->xtrans += (int)floor(transFac * (x - zap->lmx) + 0.5);
-    zap->ytrans -= (int)floor(transFac * (y - zap->lmy) + 0.5);
+                      x, y, mLmx,  mLmy,  mXtrans,  mYtrans);
+    mXtrans += (int)floor(transFac * (x - mLmx) + 0.5);
+    mYtrans -= (int)floor(transFac * (y - mLmy) + 0.5);
   }
 
-  zap->hqgfxsave = zap->hqgfx;
-  zap->hqgfx = 0;
-  zapDraw(zap);
-  zap->hqgfx = zap->hqgfxsave;
+  mHqgfxsave = mHqgfx;
+  mHqgfx = 0;
+  draw();
+  mHqgfx = mHqgfxsave;
   return 1;
 }
 
 /* Tests whether the contour is in the selection area.  Either it must be 
    entirely within the area, or it must be an open wild contour and have points
    on the current section that are all within the area */
-static int contInSelectArea(Iobj *obj, Icont *cont, Ipoint selmin, 
-                            Ipoint selmax)
+int ZapFuncs::contInSelectArea(Iobj *obj, Icont *cont, Ipoint selmin, Ipoint selmax)
 {
   Ipoint pmin, pmax;
   int pt, inRange = 0;
@@ -2353,9 +2532,9 @@ static int contInSelectArea(Iobj *obj, Icont *cont, Ipoint selmin,
 /*
  * Select contours in the current object crossed by a mouse move 
  */
-static int dragSelectContsCrossed(ZapStruct *zap, int x, int y)
+int ZapFuncs::dragSelectContsCrossed(int x, int y)
 {
-  ImodView *vi = zap->vi;
+  ImodView *vi = mVi;
   Imod *imod = vi->imod;
   int ob, co, pt, ptStart, lastPt, thisZ, lastZ, iz2, iz1, drew = 0;
   Icont *cont;
@@ -2368,8 +2547,8 @@ static int dragSelectContsCrossed(ZapStruct *zap, int x, int y)
 
   // Get image positions of starting and current mouse positions
   ob = imod->cindex.object;
-  zapGetixy(zap, x, y, &pnt2.x, &pnt2.y, &iz2);
-  zapGetixy(zap, zap->lmx, zap->lmy, &pnt1.x, &pnt1.y, &iz1);
+  getixy(x, y, &pnt2.x, &pnt2.y, &iz2);
+  getixy(mLmx, mLmy, &pnt1.x, &pnt1.y, &iz1);
   if (iz1 != iz2 || iz1 < 0)
     return 0;
   if (imodDebug('z'))
@@ -2420,7 +2599,7 @@ static int dragSelectContsCrossed(ZapStruct *zap, int x, int y)
             imod->cindex.contour = co;
             imod->cindex.point = pt;
             imodSelectionListAdd(vi, imod->cindex);
-            imodDraw(zap->vi, IMOD_DRAW_RETHINK | IMOD_DRAW_XYZ);
+            imodDraw(mVi, IMOD_DRAW_RETHINK | IMOD_DRAW_XYZ);
             drew = 1;
             break;
           }
@@ -2435,9 +2614,9 @@ static int dragSelectContsCrossed(ZapStruct *zap, int x, int y)
 /*
  * Second mouse button drag
  */
-int zapB2Drag(ZapStruct *zap, int x, int y, int controlDown)
+int ZapFuncs::b2Drag(int x, int y, int controlDown)
 {
-  ImodView *vi = zap->vi;
+  ImodView *vi = mVi;
   Iobj *obj;
   Icont *cont;
   Ipoint *lpt, cpt;
@@ -2445,35 +2624,35 @@ int zapB2Drag(ZapStruct *zap, int x, int y, int controlDown)
   double dist;
   int pt, iz;
      
-  if (zap->numXpanels)
+  if (mNumXpanels)
     return 0;
 
-  if (zap->shiftingCont) {
-    shiftContour(zap, x, y, 2, 0);
+  if (mShiftingCont) {
+    shiftContour(x, y, 2, 0);
     return 1;
   }
 
   if (vi->ax){
     if (vi->ax->altmouse == AUTOX_ALTMOUSE_PAINT){
-      zapGetixy(zap, x, y, &ix, &iy, &iz);
+      getixy(x, y, &ix, &iy, &iz);
       /* DNM 2/1/01: need to call with int */
       autox_sethigh(vi, (int)ix, (int)iy);
       return 1;
     }
   }
 
-  if (zap->rubberband && moveband) {
+  if (mRubberband && moveband) {
     /* Moving rubber band: get desired move and constrain it to keep
        band in the image */
-    idx = (x - zap->lmx) / zap->xzoom;
-    idy = (zap->lmy - y) / zap->zoom;
-    shiftRubberband(zap, idx, idy);
+    idx = (x - mLmx) / mXzoom;
+    idy = (mLmy - y) / mZoom;
+    shiftRubberband(idx, idy);
 
-    zap->hqgfxsave = zap->hqgfx;
-    zap->hqgfx = 0;
-    zapDraw(zap);
-    zap->hqgfx = zap->hqgfxsave;
-    zap->bandChanged = 1;
+    mHqgfxsave = mHqgfx;
+    mHqgfx = 0;
+    draw();
+    mHqgfx = mHqgfxsave;
+    mBandChanged = 1;
     return 1;
   }
 
@@ -2483,11 +2662,11 @@ int zapB2Drag(ZapStruct *zap, int x, int y, int controlDown)
   if (vi->imod->cindex.point < 0)
     return 0;
 
-  zapGetixy(zap, x, y, &ix, &iy, &iz);
+  getixy(x, y, &ix, &iy, &iz);
 
   cpt.x = ix;
   cpt.y = iy;
-  cpt.z = zap->section;
+  cpt.z = mSection;
      
   obj = imodObjectGet(vi->imod);
   if (!obj)
@@ -2498,7 +2677,7 @@ int zapB2Drag(ZapStruct *zap, int x, int y, int controlDown)
     return 0;
 
   lpt = &(cont->pts[vi->imod->cindex.point]);
-  if (zap->twod)
+  if (mTwod)
     cpt.z = lpt->z;
 
   dist = imodel_point_dist( lpt, &cpt);
@@ -2509,51 +2688,51 @@ int zapB2Drag(ZapStruct *zap, int x, int y, int controlDown)
   // DNM 7/15/08: Start new contour if up to the point limit too
   if ((iobjPlanar(obj->flags) && !(cont->flags & ICONT_WILD) && 
       (int)floor(lpt->z + 0.5) != (int)cpt.z) ||
-      ivwTimeMismatch(vi, zap->timeLock, obj, cont) || 
+      ivwTimeMismatch(vi, mTimeLock, obj, cont) || 
       (obj->extra[IOBJ_EX_PNT_LIMIT] &&
        cont->psize >= obj->extra[IOBJ_EX_PNT_LIMIT])) {
-    registerDragAdditions(zap);
-    return zapButton2(zap, x, y, 0);
+    registerDragAdditions();
+    return b2Click(x, y, 0);
   }
 
-  if (ivwTimeMismatch(vi, zap->timeLock, obj, cont))
+  if (ivwTimeMismatch(vi, mTimeLock, obj, cont))
     return 0;
 
-  if ( dist > scaleModelRes(vi->imod->res, zap->zoom)){
+  if ( dist > scaleModelRes(vi->imod->res, mZoom)){
 
     // Set insertion index to next point, or to current if drawing backwards
     pt = vi->imod->cindex.point + 1;
-    if (pt > 0 && zap->insertmode)
+    if (pt > 0 && mInsertmode)
       pt--;
 
     // Set flag for drawing current contour only if at end and going forward
-    if (!zap->insertmode && pt == cont->psize)
-      setDrawCurrentOnly(zap, 1);
+    if (!mInsertmode && pt == cont->psize)
+      setDrawCurrentOnly(1);
 
     // Register previous additions if the count is up or if the object or
     // contour has changed
-    if (zap->dragAddCount >= dragRegisterSize || 
-        zap->dragAddIndex.object != vi->imod->cindex.object ||
-        zap->dragAddIndex.contour != vi->imod->cindex.contour)
-      registerDragAdditions(zap);
+    if (mDragAddCount >= dragRegisterSize || 
+        mDragAddIndex.object != vi->imod->cindex.object ||
+        mDragAddIndex.contour != vi->imod->cindex.contour)
+      registerDragAdditions();
 
     // Start keeping track of delayed registrations by opening a unit and
     // saving the indices.  If general store exists, start with whole data
     // change to save the store.
     // Otherwise if going backwards, need to increment registered first point
-    if (!zap->dragAddCount) {
+    if (!mDragAddCount) {
       if (ilistSize(cont->store))
         vi->undo->contourDataChg();
       else
         vi->undo->getOpenUnit();
-      zap->dragAddIndex = vi->imod->cindex;
-      zap->dragAddIndex.point = pt;
-    } else if (zap->insertmode)
-      zap->dragAddIndex.point++;
+      mDragAddIndex = vi->imod->cindex;
+      mDragAddIndex.point = pt;
+    } else if (mInsertmode)
+      mDragAddIndex.point++;
     
     // Always save last point not registered and increment count
-    zap->dragAddEnd = pt;
-    zap->dragAddCount++;
+    mDragAddEnd = pt;
+    mDragAddCount++;
 
     // Since we are not changing xyzmouse yet, drag draws can be done without
     // IMOD_DRAW_XYZ; this prevents some time-consuming things in other windows
@@ -2567,9 +2746,9 @@ int zapB2Drag(ZapStruct *zap, int x, int y, int controlDown)
 /*
  * Third mouse button drag
  */
-int zapB3Drag(ZapStruct *zap, int x, int y, int controlDown, int shiftDown)
+int ZapFuncs::b3Drag(int x, int y, int controlDown, int shiftDown)
 {
-  ImodView *vi = zap->vi;
+  ImodView *vi = mVi;
   Iobj *obj;
   Icont *cont;
   Ipoint *lpt;
@@ -2577,17 +2756,17 @@ int zapB3Drag(ZapStruct *zap, int x, int y, int controlDown, int shiftDown)
   float ix, iy;
   int iz;
 
-  if (zap->numXpanels)
+  if (mNumXpanels)
     return 0;
 
-  if (zap->shiftingCont) {
-    shiftContour(zap, x, y, 3, shiftDown);
+  if (mShiftingCont) {
+    shiftContour(x, y, 3, shiftDown);
     return 1;
   }
 
   if (vi->ax){
     if (vi->ax->altmouse == AUTOX_ALTMOUSE_PAINT){
-      zapGetixy(zap, x, y, &ix, &iy, &iz);
+      getixy(x, y, &ix, &iy, &iz);
       /* DNM 2/1/01: need to call with int */
       autox_setlow(vi, (int)ix, (int)iy);
       return 1;
@@ -2612,25 +2791,25 @@ int zapB3Drag(ZapStruct *zap, int x, int y, int controlDown, int shiftDown)
   if (iobjScat(obj->flags))
     return 0;
 
-  if (ivwTimeMismatch(vi, zap->timeLock, obj, cont))
+  if (ivwTimeMismatch(vi, mTimeLock, obj, cont))
     return 0;
 
   if (controlDown)
-    return zapDelUnderCursor(zap, x, y, cont);
+    return delUnderCursor(x, y, cont);
 
   if (vi->imod->cindex.point == (cont->psize - 1))
     return 0;
 
   /* DNM 11/13/02: need to test for both next and current points to prevent
      strange moves between sections */
-  if (!zapPointVisable(zap, &(cont->pts[vi->imod->cindex.point + 1])) ||
-      !zapPointVisable(zap, &(cont->pts[vi->imod->cindex.point])))
+  if (!pointVisable(&(cont->pts[vi->imod->cindex.point + 1])) ||
+      !pointVisable(&(cont->pts[vi->imod->cindex.point])))
     return 0;
 
   lpt = &(cont->pts[vi->imod->cindex.point]);
-  zapGetixy(zap, x, y, &(pt.x), &(pt.y), &iz);
+  getixy(x, y, &(pt.x), &(pt.y), &iz);
   pt.z = lpt->z;
-  if (imodel_point_dist(lpt, &pt) > scaleModelRes(vi->imod->res, zap->zoom)){
+  if (imodel_point_dist(lpt, &pt) > scaleModelRes(vi->imod->res, mZoom)){
     ++vi->imod->cindex.point;
     vi->undo->pointShift();
     lpt = &(cont->pts[vi->imod->cindex.point]);
@@ -2647,24 +2826,24 @@ int zapB3Drag(ZapStruct *zap, int x, int y, int controlDown, int shiftDown)
 /*
  * Register accumulated additions for undo
  */
-static void registerDragAdditions(ZapStruct *zap)
+void ZapFuncs::registerDragAdditions()
 {
-  Iindex *index = &zap->vi->imod->cindex;
-  if (!zap->dragAddCount)
+  Iindex *index = &mVi->imod->cindex;
+  if (!mDragAddCount)
     return;
-  zap->dragAddCount = 0;
+  mDragAddCount = 0;
  
   // If obj/cont don't match, forget it
- if (zap->dragAddIndex.object != index->object ||
-      zap->dragAddIndex.contour != index->contour) {
-    zap->vi->undo->flushUnit();
+ if (mDragAddIndex.object != index->object ||
+      mDragAddIndex.contour != index->contour) {
+    mVi->undo->flushUnit();
     return;
   }
 
  // Send out the additions
-  zap->vi->undo->pointAddition(B3DMIN(zap->dragAddIndex.point, index->point),
-                               B3DMAX(zap->dragAddIndex.point, index->point));
-  zap->vi->undo->finishUnit();
+  mVi->undo->pointAddition(B3DMIN(mDragAddIndex.point, index->point),
+                               B3DMAX(mDragAddIndex.point, index->point));
+  mVi->undo->finishUnit();
 }
 
 /*
@@ -2674,34 +2853,34 @@ static void registerDragAdditions(ZapStruct *zap)
 /*
  * Single routine to toggle shift for contour move window to call
  */
-void zapToggleContourShift(ZapStruct *zap)
+void ZapFuncs::toggleContourShift()
 {
-  if (zap->shiftingCont)
-    endContourShift(zap);
+  if (mShiftingCont)
+    endContourShift();
   else
-    setupContourShift(zap);
+    setupContourShift();
 }
 
 /*
  * Turn off contour shifting and reset mouse
  */
-static void endContourShift(ZapStruct *zap)
+void ZapFuncs::endContourShift()
 {
-  if (!zap->shiftingCont)
+  if (!mShiftingCont)
     return;
-  zap->shiftingCont = 0;
-  ivwFreeExtraObject(zap->vi, zap->shiftObjNum);
-  if (zap->centerMarked)
-    imodDraw(zap->vi, IMOD_DRAW_MOD);
-  zapSetCursor(zap, zap->mousemode);
+  mShiftingCont = 0;
+  ivwFreeExtraObject(mVi, mShiftObjNum);
+  if (mCenterMarked)
+    imodDraw(mVi, IMOD_DRAW_MOD);
+  setCursor(mMousemode);
 }
 
 /*
  * Check whether contour shifting is OK and return current contour
  */
-static Icont *checkContourShift(ZapStruct *zap, int &pt, int &err)
+Icont *ZapFuncs::checkContourShift(int &pt, int &err)
 {
-  ImodView *vi = zap->vi;
+  ImodView *vi = mVi;
   Iobj *obj = imodObjectGet(vi->imod);
   Icont *cont = imodContourGet(vi->imod);
   pt = vi->imod->cindex.point;
@@ -2718,31 +2897,31 @@ static Icont *checkContourShift(ZapStruct *zap, int &pt, int &err)
     pt = 0;
 
   if (err)
-    endContourShift(zap);
+    endContourShift();
   return cont;
 }
 
 /*
  * Initiate contour shifting                             
  */
-static void setupContourShift(ZapStruct *zap)
+void ZapFuncs::setupContourShift()
 {
   int   pt, err;
-  checkContourShift(zap, pt, err);
+  checkContourShift(pt, err);
   if (err < 0)
     wprint("\aYou cannot shift scattered point or non-planar open contours."
            "To shift this contour, temporarily make the object type be "
            "closed.\n");
   if (err)
     return;
-  zap->shiftingCont = 1;
-  if (zap->startingBand)
-    zapToggleRubberband(zap);
-  zap->centerDefined = 0;
-  zap->centerMarked = 0;
-  zap->fixedPtDefined = 0;
-  zap->shiftObjNum = ivwGetFreeExtraObjectNumber(zap->vi);
-  zapSetCursor(zap, zap->mousemode);
+  mShiftingCont = 1;
+  if (mStartingBand)
+    toggleRubberband();
+  mCenterDefined = 0;
+  mCenterMarked = 0;
+  mFixedPtDefined = 0;
+  mShiftObjNum = ivwGetFreeExtraObjectNumber(mVi);
+  setCursor(mMousemode);
 }
 
 // Keep track of the base position for contour shifting
@@ -2751,46 +2930,46 @@ static Ipoint contShiftBase;
 /*
  * Start the actual shift once the mouse goes down
  */
-static int startShiftingContour(ZapStruct *zap, int x, int y, int button,
+int ZapFuncs::startShiftingContour(int x, int y, int button,
                                  int ctrlDown)
 {
   int   pt, err, iz;
   float ix, iy;
-  Icont *cont = checkContourShift(zap, pt, err);
+  Icont *cont = checkContourShift(pt, err);
   if (err)
     return 0;
 
-  zapGetixy(zap, x, y, &ix, &iy, &iz);
+  getixy(x, y, &ix, &iy, &iz);
 
   // If button for marking center, save coordinates, set flag, show mark
   if (button == 2 && ctrlDown) {
-    zap->xformCenter.x = ix;
-    zap->xformCenter.y = iy;
-    zap->centerDefined = 1;
-    markXformCenter(zap, ix, iy);
+    mXformCenter.x = ix;
+    mXformCenter.y = iy;
+    mCenterDefined = 1;
+    markXformCenter(ix, iy);
     return 1;
   }
 
   // If button for 2nd fixed point, toggle it on or off
   if (button == 3 && ctrlDown) {
-    if (zap->fixedPtDefined) {
-      zap->fixedPtDefined = 0;
+    if (mFixedPtDefined) {
+      mFixedPtDefined = 0;
     } else {
 
       // Define center if it is not already defined
-      if (!zap->centerDefined && 
-          defaultXformCenter(zap, zap->xformCenter.x, zap->xformCenter.y)) {
-        endContourShift(zap);
+      if (!mCenterDefined && 
+          defaultXformCenter(mXformCenter.x, mXformCenter.y)) {
+        endContourShift();
         return 0;
       }
-      zap->centerDefined = 1;
+      mCenterDefined = 1;
 
       // Save coordinates and show both marks
-      zap->xformFixedPt.x = ix;
-      zap->xformFixedPt.y = iy;
-      zap->fixedPtDefined = 1;
+      mXformFixedPt.x = ix;
+      mXformFixedPt.y = iy;
+      mFixedPtDefined = 1;
     }
-    markXformCenter(zap, zap->xformCenter.x, zap->xformCenter.y);
+    markXformCenter(mXformCenter.x, mXformCenter.y);
     return 1;
   }
 
@@ -2802,30 +2981,30 @@ static int startShiftingContour(ZapStruct *zap, int x, int y, int button,
   } else {
 
     // Use defined center if one was set
-    if (zap->centerDefined) {
-      contShiftBase.x = zap->xformCenter.x;
-      contShiftBase.y = zap->xformCenter.y;
+    if (mCenterDefined) {
+      contShiftBase.x = mXformCenter.x;
+      contShiftBase.y = mXformCenter.y;
     } else {
 
       // Otherwise get center for transforms as center of mass
-      if (defaultXformCenter(zap, contShiftBase.x, contShiftBase.y)) {
-        endContourShift(zap);
+      if (defaultXformCenter(contShiftBase.x, contShiftBase.y)) {
+        endContourShift();
         return 0;
       }
     }
-    markXformCenter(zap, contShiftBase.x, contShiftBase.y);
+    markXformCenter(contShiftBase.x, contShiftBase.y);
     return 1;
   }
   return 0;
 }
 
   // Get default center for transforms as center of mass
-static int defaultXformCenter(ZapStruct *zap, float &xcen, float &ycen)
+int ZapFuncs::defaultXformCenter(float &xcen, float &ycen)
 {
   int   pt, err, co, ob, curco, curob;
   float area, areaSum;
   Ipoint cent, centSum;
-  Imod *imod = zap->vi->imod;
+  Imod *imod = mVi->imod;
   Iobj *obj;
   Icont *cont;
 
@@ -2841,7 +3020,7 @@ static int defaultXformCenter(ZapStruct *zap, float &xcen, float &ycen)
     for (co = 0; co < obj->contsize; co++) {
       
       if ((ob == curob && co == curco) || 
-          imodSelectionListQuery(zap->vi, ob, co) > -2) {
+          imodSelectionListQuery(mVi, ob, co) > -2) {
         cont = &obj->cont[co];
         if (!iobjClose(obj->flags) && (cont->flags & ICONT_WILD))
           continue;
@@ -2878,15 +3057,15 @@ static int defaultXformCenter(ZapStruct *zap, float &xcen, float &ycen)
 /*
  * Shift or transform contour upon mouse move
  */
-static void shiftContour(ZapStruct *zap, int x, int y, int button, 
+void ZapFuncs::shiftContour(int x, int y, int button, 
                          int shiftDown)
 {
   int   pt, err, ob, co, curco, curob, iz;
   float ix, iy;
   float mat[2][2];
-  Imod *imod = zap->vi->imod;
+  Imod *imod = mVi->imod;
   Iobj *obj;
-  Icont *cont = checkContourShift(zap, pt, err);
+  Icont *cont = checkContourShift(pt, err);
   if (err)
     return;
 
@@ -2894,14 +3073,14 @@ static void shiftContour(ZapStruct *zap, int x, int y, int button,
     
     // Shift by change from original mouse pos minus change in current 
     // point position
-    zapGetixy(zap, x, y, &ix, &iy, &iz);
+    getixy(x, y, &ix, &iy, &iz);
     ix += contShiftBase.x - cont->pts[pt].x;
     iy += contShiftBase.y - cont->pts[pt].y;
   } else {
 
     // Get transformation matrix if 2nd or 3rd button
     err = button + (button == 3 && shiftDown ? 1 : 0);
-    if (mouseXformMatrix(zap, x, y, err, mat))
+    if (mouseXformMatrix(x, y, err, mat))
       return;
   }
 
@@ -2914,15 +3093,15 @@ static void shiftContour(ZapStruct *zap, int x, int y, int button,
       continue;
     for (co = 0; co < obj->contsize; co++) {
       if ((ob == curob && co == curco) ||
-          imodSelectionListQuery(zap->vi, ob, co) > -2) {
+          imodSelectionListQuery(mVi, ob, co) > -2) {
 
         cont = &obj->cont[co];
         if (!iobjClose(obj->flags) && (cont->flags & ICONT_WILD))
           continue;
         
         // Register changes first time only
-        if (!zap->shiftRegistered)
-          zap->vi->undo->contourDataChg(ob, co);
+        if (!mShiftRegistered)
+          mVi->undo->contourDataChg(ob, co);
         if (button == 1) {
           
           // Shift points
@@ -2946,14 +3125,14 @@ static void shiftContour(ZapStruct *zap, int x, int y, int button,
     }
   }
 
-  zap->shiftRegistered = 1;
-  imodDraw(zap->vi, IMOD_DRAW_XYZ | IMOD_DRAW_MOD );
+  mShiftRegistered = 1;
+  imodDraw(mVi, IMOD_DRAW_XYZ | IMOD_DRAW_MOD );
 }
 
 /*
  * Compute transform matrix from the mouse move
  */
-static int mouseXformMatrix(ZapStruct *zap, int x, int y, int type, 
+int ZapFuncs::mouseXformMatrix(int x, int y, int type, 
                             float mat[2][2])
 {
   float strThresh = 0.001;
@@ -2964,13 +3143,13 @@ static int mouseXformMatrix(ZapStruct *zap, int x, int y, int type,
   double dyn, distsq, disxn, disyn, disxl, disyl, p2lsq, tmin;
   int xcen, ycen, xfix, yfix;
 
-  xcen = zapXpos(zap, contShiftBase.x);
-  ycen = zapYpos(zap, contShiftBase.y);
+  xcen = xpos(contShiftBase.x);
+  ycen = ypos(contShiftBase.y);
 
   // Compute starting/ending  angle and radii as in midas
   // l for last, n for new, f for fixed
-  dxl = zap->lmx - xcen;
-  dyl = zap->winy - 1 - zap->lmy - ycen;
+  dxl = mLmx - xcen;
+  dyl = mWiny - 1 - mLmy - ycen;
   if(dxl > -delCrit && dxl < delCrit && dyl > -delCrit && dyl < delCrit)
     return 1;
   radst = sqrt((dxl*dxl + dyl*dyl));
@@ -2979,7 +3158,7 @@ static int mouseXformMatrix(ZapStruct *zap, int x, int y, int type,
   //                startang);
 
   dxn = x - xcen;
-  dyn = zap->winy - 1 - y - ycen;
+  dyn = mWiny - 1 - y - ycen;
   if(dxn > -delCrit && dxn < delCrit && dyn > -delCrit && dyn < delCrit)
     return 1;
   radnd = sqrt((dxn*dxn + dyn*dyn));
@@ -2989,12 +3168,12 @@ static int mouseXformMatrix(ZapStruct *zap, int x, int y, int type,
   drot = 0.;
   scale = 1.;
   delrad = 1.;
-  if (type == 3 && zap->fixedPtDefined) {
+  if (type == 3 && mFixedPtDefined) {
 
     // Get fixed point in window coordinates and test if separation from center is enough
     // This code slavishly imitates midas but all the names are changed
-    xfix = zapXpos(zap, zap->xformFixedPt.x);
-    yfix = zapYpos(zap, zap->xformFixedPt.y);
+    xfix = xpos(mXformFixedPt.x);
+    yfix = ypos(mXformFixedPt.y);
     dxf = xfix - xcen;
     dyf = yfix - ycen;
     distsq = dxf * dxf + dyf + dyf;
@@ -3067,11 +3246,11 @@ static int mouseXformMatrix(ZapStruct *zap, int x, int y, int type,
 /*
  * Mark the center of transformation with a star in extra object
  */
-static void markXformCenter(ZapStruct *zap, float ix, float iy)
+void ZapFuncs::markXformCenter(float ix, float iy)
 {
   int i, which;
   float starEnd[6] = {0., 8., 7., 4., 7., -4.};
-  Iobj *obj = ivwGetAnExtraObject(zap->vi, zap->shiftObjNum);
+  Iobj *obj = ivwGetAnExtraObject(mVi, mShiftObjNum);
   Icont *cont;
   Ipoint tpt;
   Istore store;
@@ -3080,15 +3259,15 @@ static void markXformCenter(ZapStruct *zap, float ix, float iy)
     return;
 
   // Clear out the object and set to yellow non scattered
-  ivwClearAnExtraObject(zap->vi, zap->shiftObjNum);
+  ivwClearAnExtraObject(mVi, mShiftObjNum);
   imodObjectSetColor(obj, 1., 1., 0.);
   obj->flags &= ~IMOD_OBJFLAG_SCAT;
   obj->pdrawsize = 0;
   obj->linewidth = 1;
-  tpt.z = zap->section;
+  tpt.z = mSection;
 
   // Add three contours for lines
-  for (which = 0; which < (zap->fixedPtDefined ? 2 : 1); which++) {
+  for (which = 0; which < (mFixedPtDefined ? 2 : 1); which++) {
     for (i = 0; i < 3; i++) {
       cont = imodContourNew();
       if (!cont)
@@ -3110,11 +3289,11 @@ static void markXformCenter(ZapStruct *zap, float ix, float iy)
         istoreInsert(&obj->store, &store);
       }
     }
-    ix = zap->xformFixedPt.x;
-    iy = zap->xformFixedPt.y;
+    ix = mXformFixedPt.x;
+    iy = mXformFixedPt.y;
   }
-  zap->centerMarked = 1;
-  imodDraw(zap->vi, IMOD_DRAW_MOD);
+  mCenterMarked = 1;
+  imodDraw(mVi, IMOD_DRAW_MOD);
 }
 
 
@@ -3125,53 +3304,53 @@ static void markXformCenter(ZapStruct *zap, float ix, float iy)
  a few tenths of a pixel difference */
 
 /* return x pos in window for given image x cord. */
-static int zapXpos(ZapStruct *zap, float x)
+int ZapFuncs::xpos(float x)
 {
-  return( (int)(((x - zap->xstart) * zap->xzoom) 
-                + zap->xborder));
+  return( (int)(((x - mXstart) * mXzoom) 
+                + mXborder));
 }
 
 /* return y pos in window for given image y cord. */
-static int zapYpos(ZapStruct *zap, float y)
+int ZapFuncs::ypos(float y)
 {
-  return((int)(((y - zap->ystart) * zap->zoom)
-               + zap->yborder));
+  return((int)(((y - mYstart) * mZoom)
+               + mYborder));
 }
 
 /* returns image coords in x,y, z, given mouse coords mx, my */
-static void zapGetixy(ZapStruct *zap, int mx, int my, float *x, float *y, 
+void ZapFuncs::getixy(int mx, int my, float *x, float *y, 
                       int *z)
 {
   int indx, indy, indp, indmid;
 
   // 10/31/04: winy - 1 maps to 0, not winy, so need a -1 here
-  my = zap->winy - 1 - my;
+  my = mWiny - 1 - my;
 
-  if (!zap->numXpanels) {
-    *z = zap->section;
+  if (!mNumXpanels) {
+    *z = mSection;
   } else {
-    panelIndexAndCoord(zap->panelXsize, zap->numXpanels, zap->panelGutter, 
-                       zap->panelXborder, mx, indx);
-    panelIndexAndCoord(zap->panelYsize, zap->numYpanels, zap->panelGutter, 
-                       zap->panelYborder, my, indy);
+    panelIndexAndCoord(mPanelXsize, mNumXpanels, mPanelGutter, 
+                       mPanelXborder, mx, indx);
+    panelIndexAndCoord(mPanelYsize, mNumYpanels, mPanelGutter, 
+                       mPanelYborder, my, indy);
     if (indx < 0 || indy < 0) {
       *z = -1;
     } else {
-      indp = indx + indy * zap->numXpanels;
-      indmid = (zap->numXpanels * zap->numYpanels - 1) / 2;
-      *z = zap->section + (indp - indmid) * zap->panelZstep;
-      if (*z < 0 || *z >= zap->vi->zsize)
+      indp = indx + indy * mNumXpanels;
+      indmid = (mNumXpanels * mNumYpanels - 1) / 2;
+      *z = mSection + (indp - indmid) * mPanelZstep;
+      if (*z < 0 || *z >= mVi->zsize)
         *z = -1;
     }
   }
-  *x = ((float)(mx - zap->xborder) / zap->xzoom) + (float)zap->xstart;
-  *y = ((float)(my - zap->yborder) / zap->zoom) + (float)zap->ystart;
+  *x = ((float)(mx - mXborder) / mXzoom) + (float)mXstart;
+  *y = ((float)(my - mYborder) / mZoom) + (float)mYstart;
 }
 
 // Determine which panel a point is in for one direction and get the position
 // within that panel
-static void panelIndexAndCoord(int size, int num, int gutter, int border, 
-                              int &pos, int &panelInd)
+void ZapFuncs::panelIndexAndCoord(int size, int num, int gutter, int border, 
+                                  int &pos, int &panelInd)
 {
   int spacing = size + gutter;
   //imodPrintStderr("size %d, num %d, gutter %d, border %d, pos win %d",
@@ -3187,52 +3366,52 @@ static void panelIndexAndCoord(int size, int num, int gutter, int border,
  * Convert image rubberband coordinates to outer window coordinates, with
  * optional clipping to window limits
  */
-static void zapBandImageToMouse(ZapStruct *zap, int ifclip)
+void ZapFuncs::bandImageToMouse(int ifclip)
 {
-  zap->rbMouseX0 = zapXpos(zap, zap->rbImageX0) - 1;
-  zap->rbMouseX1 = zapXpos(zap, zap->rbImageX1);
-  zap->rbMouseY0 = zap->winy - 1 - zapYpos(zap, zap->rbImageY1);
-  zap->rbMouseY1 = zap->winy - zapYpos(zap, zap->rbImageY0);
+  mRbMouseX0 = xpos(mRbImageX0) - 1;
+  mRbMouseX1 = xpos(mRbImageX1);
+  mRbMouseY0 = mWiny - 1 - ypos(mRbImageY1);
+  mRbMouseY1 = mWiny - ypos(mRbImageY0);
   if (ifclip) {
-    if (zap->rbMouseX0 < 0)
-      zap->rbMouseX0 = 0;
-    if (zap->rbMouseX1 >= zap->winx)
-      zap->rbMouseX1 = zap->winx - 1;
-    if (zap->rbMouseY0 < 0)
-      zap->rbMouseY0 = 0;
-    if (zap->rbMouseY1 >= zap->winy)
-      zap->rbMouseY1 = zap->winy - 1;
+    if (mRbMouseX0 < 0)
+      mRbMouseX0 = 0;
+    if (mRbMouseX1 >= mWinx)
+      mRbMouseX1 = mWinx - 1;
+    if (mRbMouseY0 < 0)
+      mRbMouseY0 = 0;
+    if (mRbMouseY1 >= mWiny)
+      mRbMouseY1 = mWiny - 1;
   }
   /* imodPrintStderr("Image %.1f,%.1f : %.1f,%.1f  to mouse %d,%d : %d,%d\n", 
-                  zap->rbImageX0, zap->rbImageY0, zap->rbImageX1, zap->rbImageY1,
-                  zap->rbMouseX0, zap->rbMouseY0, zap->rbMouseX1, zap->rbMouseY1); */
+                  mRbImageX0, mRbImageY0, mRbImageX1, mRbImageY1,
+                  mRbMouseX0, mRbMouseY0, mRbMouseX1, mRbMouseY1); */
 }
 
 /*
  * Convert rubberband window coordinates to inside image coordinates, with
  * optional clipping to image limits
  */
-static void zapBandMouseToImage(ZapStruct *zap, int ifclip)
+void ZapFuncs::bandMouseToImage(int ifclip)
 {
   int iz;
-  zapGetixy(zap, zap->rbMouseX0 + 1, zap->rbMouseY1 - 1, &zap->rbImageX0, 
-            &zap->rbImageY0, &iz);
-  zapGetixy(zap, zap->rbMouseX1, zap->rbMouseY0, &zap->rbImageX1, 
-            &zap->rbImageY1, &iz);
+  getixy(mRbMouseX0 + 1, mRbMouseY1 - 1, &mRbImageX0, 
+            &mRbImageY0, &iz);
+  getixy(mRbMouseX1, mRbMouseY0, &mRbImageX1, 
+            &mRbImageY1, &iz);
   
   if (ifclip) {
-    if (zap->rbImageX0 < 0)
-      zap->rbImageX0 = 0;
-    if (zap->rbImageX1 > zap->vi->xsize)
-      zap->rbImageX1 = zap->vi->xsize;
-    if (zap->rbImageY0 < 0)
-      zap->rbImageY0 = 0;
-    if (zap->rbImageY1 > zap->vi->ysize)
-      zap->rbImageY1 = zap->vi->ysize;
+    if (mRbImageX0 < 0)
+      mRbImageX0 = 0;
+    if (mRbImageX1 > mVi->xsize)
+      mRbImageX1 = mVi->xsize;
+    if (mRbImageY0 < 0)
+      mRbImageY0 = 0;
+    if (mRbImageY1 > mVi->ysize)
+      mRbImageY1 = mVi->ysize;
   }
   /* imodPrintStderr("Mouse %d,%d : %d,%d  to image %.1f,%.1f : %.1f,%.1f\n", 
-                  zap->rbMouseX0, zap->rbMouseY0, zap->rbMouseX1, zap->rbMouseY1,
-                  zap->rbImageX0, zap->rbImageY0, zap->rbImageX1, zap->rbImageY1); */
+                  mRbMouseX0, mRbMouseY0, mRbMouseX1, mRbMouseY1,
+                  mRbImageX0, mRbImageY0, mRbImageX1, mRbImageY1); */
 }
 
 /*
@@ -3240,26 +3419,26 @@ static void zapBandMouseToImage(ZapStruct *zap, int ifclip)
  * Returns true if the rubberband is in use and at least of the two values have
  * been set.
  */
-static bool getLowHighSection(ZapStruct *zap, int &lowSection, int &highSection)
+bool ZapFuncs::getLowHighSection(int &lowSection, int &highSection)
 {
   bool lowHighSectionSet = true;
   // If rubberband is not enabled, set both ints to the current section
   // (original functionality) and return false.  This is probably not necessary
   // because the sections values are reset when the rubberband is turned off.
-  if (zap->rubberband + zap->startingBand == 0) {
+  if (mRubberband + mStartingBand == 0) {
     lowHighSectionSet = false;
-    lowSection = zap->section + 1;
-    highSection = zap->section + 1;
+    lowSection = mSection + 1;
+    highSection = mSection + 1;
   }
   else {
-    QString low = zap->qtWindow->lowSection();
-    QString high = zap->qtWindow->highSection();
+    QString low = mQtWindow->lowSection();
+    QString high = mQtWindow->highSection();
     // If neither of the section values have been set, fall back to the original
     // functionality and return false.
     if (low.isEmpty() && high.isEmpty()) {
       lowHighSectionSet = false;
-      lowSection = zap->section + 1;
-      highSection = zap->section + 1;
+      lowSection = mSection + 1;
+      highSection = mSection + 1;
     }
     else {
       lowSection = low.toInt();
@@ -3269,7 +3448,7 @@ static bool getLowHighSection(ZapStruct *zap, int &lowSection, int &highSection)
       if (low.isEmpty()) {
         lowSection = 1;
       } else if (high.isEmpty()) {
-          highSection = zap->vi->zsize;
+          highSection = mVi->zsize;
       }
     }
   }
@@ -3287,53 +3466,53 @@ static bool getLowHighSection(ZapStruct *zap, int &lowSection, int &highSection)
  * trimvol command.  Actually printing to Info Window is optional.  The allows
  * this function to be reused for running trimvol.
  */
-QString zapPrintInfo(ZapStruct *zap, bool toInfoWindow)
+QString ZapFuncs::printInfo(bool toInfoWindow)
 {
   float xl, xr, yb, yt;
   int ixl, ixr, iyb, iyt, iz;
   int ixcen, iycen, ixofs, iyofs, imx, imy;
-  int bin = zap->vi->xybin;
-  bool ifpad, flipped = zap->vi->li->axis == 2;
+  int bin = mVi->xybin;
+  bool ifpad, flipped = mVi->li->axis == 2;
 
-  ivwControlPriority(zap->vi, zap->ctrl);
+  ivwControlPriority(mVi, mCtrl);
   ImodInfoWin->raise();
-  if (zap->rubberband) {
-    xl = zap->rbImageX0;
-    yb = zap->rbImageY0;
-    xr = zap->rbImageX1;
-    yt = zap->rbImageY1;
+  if (mRubberband) {
+    xl = mRbImageX0;
+    yb = mRbImageY0;
+    xr = mRbImageX1;
+    yt = mRbImageY1;
   } else {
-    zapGetixy(zap, 0, -1, &xl, &yt, &iz);
-    zapGetixy(zap, zap->winx, zap->winy-1, &xr, &yb, &iz);
+    getixy(0, -1, &xl, &yt, &iz);
+    getixy(mWinx, mWiny-1, &xr, &yb, &iz);
   }
   ixl = (int)floor(xl + 0.5);
   ixr = (int)floor(xr - 0.5);
   iyb = (int)floor(yb + 0.5);
   iyt = (int)floor(yt - 0.5);
-  ifpad = ixl < 0 || iyb < 0 || ixr >= zap->vi->xsize || iyt >= zap->vi->ysize;
+  ifpad = ixl < 0 || iyb < 0 || ixr >= mVi->xsize || iyt >= mVi->ysize;
   imx = bin * (ixr + 1 - ixl);
   imy = bin * (iyt + 1 - iyb);
   ixcen = bin * (ixr + 1 + ixl)/2;
   iycen = bin * (iyt + 1 + iyb)/2;
-  ixofs = ixcen - (bin * zap->vi->xsize)/2;
-  iyofs = iycen - (bin * zap->vi->ysize)/2;
+  ixofs = ixcen - (bin * mVi->xsize)/2;
+  iyofs = iycen - (bin * mVi->ysize)/2;
   ixl = B3DMAX(0, ixl);
   iyb = B3DMAX(0, iyb);
-  ixr = B3DMIN(ixr, zap->vi->xsize - 1);
-  iyt = B3DMIN(iyt, zap->vi->ysize - 1);
+  ixr = B3DMIN(ixr, mVi->xsize - 1);
+  iyt = B3DMIN(iyt, mVi->ysize - 1);
   ixl *= bin;
   iyb *= bin;
   ixr = ixr * bin + bin - 1;
   iyt = iyt * bin + bin - 1;
   int lowSection, highSection;
-  getLowHighSection(zap, lowSection, highSection);
-  if (lowSection < 1 || highSection < 1 || highSection > zap->vi->zsize) {
+  getLowHighSection(lowSection, highSection);
+  if (lowSection < 1 || highSection < 1 || highSection > mVi->zsize) {
     wprint("ERROR: %s is out of range.\n", flipped ? "-y" : "-z");
     if (!toInfoWindow)
       return "";
   }
-  lowSection = zap->vi->zbin * (lowSection - 1) + 1;
-  highSection *= zap->vi->zbin;
+  lowSection = mVi->zbin * (lowSection - 1) + 1;
+  highSection *= mVi->zbin;
   
   QString trimvol;
   trimvol.sprintf("  trimvol -x %d,%d %s %d,%d %s %d,%d", ixl + 1, ixr + 1, 
@@ -3353,36 +3532,36 @@ QString zapPrintInfo(ZapStruct *zap, bool toInfoWindow)
 /*
  * Resize window to fit either whole image or part in rubber band 
  */
-static void zapResizeToFit(ZapStruct *zap)
+void ZapFuncs::resizeToFit()
 {
   int width, height, neww, newh;
   int dx, dy, newdx, newdy;
   float xl, xr, yb, yt;
-  width = zap->qtWindow->width();
-  height = zap->qtWindow->height();
-  QRect pos = ivwRestorableGeometry(zap->qtWindow);
+  width = mQtWindow->width();
+  height = mQtWindow->height();
+  QRect pos = ivwRestorableGeometry(mQtWindow);
   dx = pos.x();
   dy = pos.y();
   /* imodPrintStderr("dx %d dy %d\n", dx, dy); */
-  if (zap->rubberband) {
+  if (mRubberband) {
     /* If rubberbanding, set size to size of band, and offset
        image by difference between band and window center */
-    zapBandImageToMouse(zap, 0);
-    xl = zap->rbImageX0;
-    yb = zap->rbImageY0;
-    xr = zap->rbImageX1;
-    yt = zap->rbImageY1;
-    neww = zap->rbMouseX1 -1 - zap->rbMouseX0 + width - zap->winx;
-    newh = zap->rbMouseY1 -1 - zap->rbMouseY0 + height - zap->winy;
-    zap->xtrans = (int)(-(xr + xl - zap->vi->xsize) / 2);
-    zap->ytrans = (int)(-(yt + yb - zap->vi->ysize) / 2);
+    bandImageToMouse(0);
+    xl = mRbImageX0;
+    yb = mRbImageY0;
+    xr = mRbImageX1;
+    yt = mRbImageY1;
+    neww = mRbMouseX1 -1 - mRbMouseX0 + width - mWinx;
+    newh = mRbMouseY1 -1 - mRbMouseY0 + height - mWiny;
+    mXtrans = (int)(-(xr + xl - mVi->xsize) / 2);
+    mYtrans = (int)(-(yt + yb - mVi->ysize) / 2);
 
     // 3/6/05: turn off through common function to keep synchronized
-    zapToggleRubberband(zap, false);
+    toggleRubberband(false);
   } else {
     /* Otherwise, make window the right size for the image */
-    neww = (int)(zap->zoom * zap->vi->xsize + width - zap->winx);
-    newh = (int)(zap->zoom * zap->vi->ysize + height - zap->winy);
+    neww = (int)(mZoom * mVi->xsize + width - mWinx);
+    newh = (int)(mZoom * mVi->ysize + height - mWiny);
   }
 
   diaLimitWindowSize(neww, newh);
@@ -3394,8 +3573,8 @@ static void zapResizeToFit(ZapStruct *zap)
     imodPrintStderr("configuring widget...");
 
   /* imodPrintStderr("newdx %d newdy %d\n", newdx, newdy); */
-  zap->qtWindow->resize(neww, newh);
-  zap->qtWindow->move(newdx, newdy);
+  mQtWindow->resize(neww, newh);
+  mQtWindow->move(newdx, newdy);
 
   /* DNM 9/12/03: remove the ZAP_EXPOSE_HACK, and a second set geometry that
      was needed temporarily with Qt 3.2.1 on Mac */
@@ -3407,25 +3586,25 @@ static void zapResizeToFit(ZapStruct *zap)
 /*
  * Set the control priority and set flag to record subarea and do float
  */
-static void setControlAndLimits(ZapStruct *zap)
+void ZapFuncs::setControlAndLimits()
 {
-  ivwControlPriority(zap->vi, zap->ctrl);
-  if (!zap->numXpanels)
-    zap->recordSubarea = 1;
+  ivwControlPriority(mVi, mCtrl);
+  if (!mNumXpanels)
+    mRecordSubarea = 1;
 }
 
 /*
  * Record the limits of the image displayed in the window or in the rubber band
  */
-static void setAreaLimits(ZapStruct *zap)
+void ZapFuncs::setAreaLimits()
 {
   int iz, minArea = 16;
   float xl, xr, yb, yt, delta;
-  if (zap->rubberband) {
-    xl = zap->rbImageX0;
-    yb = zap->rbImageY0;
-    xr = zap->rbImageX1;
-    yt = zap->rbImageY1;
+  if (mRubberband) {
+    xl = mRbImageX0;
+    yb = mRbImageY0;
+    xr = mRbImageX1;
+    yt = mRbImageY1;
 
     // Enforce a minimum size so 
     delta = (minArea - (xr - xl)) / 2.;
@@ -3439,321 +3618,80 @@ static void setAreaLimits(ZapStruct *zap)
       yt += delta;
     }
   } else {
-    zapGetixy(zap, 0, 0, &xl, &yt, &iz);
-    zapGetixy(zap, zap->winx, zap->winy, &xr, &yb, &iz);
+    getixy(0, 0, &xl, &yt, &iz);
+    getixy(mWinx, mWiny, &xr, &yb, &iz);
   }
   subStartX = B3DMAX((int)(xl + 0.5), 0);
-  subEndX = B3DMIN((int)(xr - 0.5), zap->vi->xsize - 1);
+  subEndX = B3DMIN((int)(xr - 0.5), mVi->xsize - 1);
   subStartY = B3DMAX((int)(yb + 0.5), 0);
-  subEndY = B3DMIN((int)(yt - 0.5), zap->vi->ysize - 1);
+  subEndY = B3DMIN((int)(yt - 0.5), mVi->ysize - 1);
   if (imodDebug('z'))
     imodPrintStderr("Set area %d %d %d %d\n", subStartX, subEndX, subStartY,
                     subEndY);
 }     
 
 /*
- * Return the subset limits from the active window
- */
-int zapSubsetLimits(ViewInfo *vi, int &ixStart, int &iyStart, int &nxUse, 
-                    int &nyUse)
-{
-  if (numZapWindows <= 0 || subStartX >= subEndX || subStartY >= subEndY ||
-      subEndX >= vi->xsize || subEndY >= vi->ysize)
-    return 1;
-  ixStart = subStartX;
-  nxUse = subEndX + 1 - subStartX;
-  iyStart = subStartY;
-  nyUse = subEndY + 1 - subStartY;
-  return 0;
-}
-
-/*
  * Toggle the rubber band
  */
-void zapToggleRubberband(ZapStruct *zap, bool draw)
+void ZapFuncs::toggleRubberband(bool drawWin)
 {
-  if (zap->rubberband || zap->startingBand) {
-    zap->rubberband = 0;
-    zap->startingBand = 0;
-    zap->bandChanged = 1;
-    setControlAndLimits(zap);
-    setMouseTracking(zap);
+  if (mRubberband || mStartingBand) {
+    mRubberband = 0;
+    mStartingBand = 0;
+    mBandChanged = 1;
+    setControlAndLimits();
+    setMouseTracking();
   } else {
-    zap->startingBand = 1;
-    zap->shiftingCont = 0;
+    mStartingBand = 1;
+    mShiftingCont = 0;
     /* Eliminated old code for making initial band */
   }
 
-  zap->qtWindow->setLowHighSectionState(zap->rubberband + zap->startingBand);
+  mQtWindow->setLowHighSectionState(mRubberband + mStartingBand);
  
   // 3/6/05: synchronize the toolbar button
-  zap->qtWindow->setToggleState(ZAP_TOGGLE_RUBBER, 
-                                zap->rubberband + zap->startingBand);
-  zapSetCursor(zap, zap->mousemode, utilNeedToSetCursor());
-  if (draw)
-    zapDraw(zap);
+  mQtWindow->setToggleState(ZAP_TOGGLE_RUBBER, 
+                                mRubberband + mStartingBand);
+  setCursor(mMousemode, utilNeedToSetCursor());
+  if (drawWin)
+    draw();
 
   // 4/6/09: This was needed before and after the draw for the Mac Qt 4.5.0
-  zapSetCursor(zap, zap->mousemode, utilNeedToSetCursor());
+  setCursor(mMousemode, utilNeedToSetCursor());
 }
 
 /*
  * Shift the rubberband by a desired amount to the extent possible
  */
-static void shiftRubberband(ZapStruct *zap, float idx, float idy)
+void ZapFuncs::shiftRubberband(float idx, float idy)
 {
-  if (zap->rbImageX0 + idx < 0)
-    idx = -zap->rbImageX0;
-  if (zap->rbImageX1 + idx > zap->vi->xsize)
-    idx = zap->vi->xsize - zap->rbImageX1;
-  if (zap->rbImageY0 + idy < 0)
-    idy = -zap->rbImageY0;
-  if (zap->rbImageY1 + idy > zap->vi->ysize)
-    idy = zap->vi->ysize - zap->rbImageY1;
-  zap->rbImageX0 += idx;
-  zap->rbImageX1 += idx;
-  zap->rbImageY0 += idy;
-  zap->rbImageY1 += idy;
-}
-
-/*
- * Find the first zap window, with a rubberband if flag is set
- */
-ZapStruct *getTopZapWindow(bool withBand, int type)
-{
-  QObjectList objList;
-  ZapStruct *zap;
-  ImodControl *ctrlPtr;
-  int ixl, ixr, iyb, iyt;
-  int i, j, curSave, topOne;
-
-  imodDialogManager.windowList(&objList, -1, type);
-  if (!objList.count())
-    return NULL;
-
-  // Loop through the control list and find the first window that is a zap
-  // with a viable rubberband if required.  
-  // It is best to save and restore ctrlist current item
-  topOne = -1;
-  curSave = App->cvi->ctrlist->list->current;
-  for (j = 0; topOne < 0 && j < ilistSize(App->cvi->ctrlist->list); j++) {
-    ctrlPtr = (ImodControl *)ilistItem(App->cvi->ctrlist->list, j);
-    for (i = 0; i < objList.count(); i++) {
-      zap = ((ZapWindow *)objList.at(i))->mZap;
-      if (ctrlPtr->id == zap->ctrl && (!withBand || zap->rubberband)) {
-        if (zap->rubberband) {
-          ixl = (int)floor(zap->rbImageX0 + 0.5);
-          ixr = (int)floor(zap->rbImageX1 - 0.5);
-          iyb = (int)floor(zap->rbImageY0 + 0.5);
-          iyt = (int)floor(zap->rbImageY1 - 0.5);
-          if (ixr < 1 || iyt < 1 || ixl > zap->vi->xsize - 2 || 
-              iyb > zap->vi->ysize - 2)
-            continue;
-        }
-        topOne = i;
-        break;
-      }
-    }
-  }
-  App->cvi->ctrlist->list->current = curSave;
-  if (topOne && withBand)
-    return NULL;
-  if (topOne < 0)
-    topOne = 0;
-  return ((ZapWindow *)objList.at(topOne))->mZap;
-}
-
-/*
- * Report the rubberband coordinates of the first zap window with a band
- */
-void zapReportRubberband()
-{
-  ZapStruct *zap;
-  int ixl, ixr, iyb, iyt, bin;
-
-
-  zap = getTopZapWindow(true);
-  if (!zap) {
-    imodPrintStderr("ERROR: No Zap window has usable rubberband coordinates"
-                    "\n");
-    return;
-  }
-
-  bin = zap->vi->xybin;
-  ixl = (int)floor(zap->rbImageX0 + 0.5);
-  ixr = (int)floor(zap->rbImageX1 - 0.5);
-  iyb = (int)floor(zap->rbImageY0 + 0.5);
-  iyt = (int)floor(zap->rbImageY1 - 0.5);
-  
-  if (ixl < 0)
-    ixl = 0;
-  if (ixr >= zap->vi->xsize)
-    ixr = zap->vi->xsize - 1;
-  if (iyb < 0)
-    iyb = 0;
-  if (iyt >= zap->vi->ysize)
-    iyt = zap->vi->ysize - 1;
-  ixl *= bin;
-  iyb *= bin;
-  ixr = ixr * bin + bin - 1;
-  iyt = iyt * bin + bin - 1;
-  int lowSection, highSection;
-  if (getLowHighSection(zap, lowSection, highSection)) {
-    imodPrintStderr("Rubberband: %d %d %d %d %d %d\n", ixl + 1, iyb + 1,
-                    ixr + 1, iyt + 1, zap->vi->zbin * (lowSection - 1) + 1,
-                     zap->vi->zbin * highSection);
-  }
-  else {
-    imodPrintStderr("Rubberband: %d %d %d %d\n", ixl + 1, iyb + 1, ixr + 1,
-                    iyt + 1);
-  }
-}
-
-/*
- * Return coordinates of first rubber band; return value 1 if any, 0 if none
- */
-int zapRubberbandCoords(float &rbX0, float &rbX1, float &rbY0, float &rbY1)
-{
-  QObjectList objList;
-  ZapStruct *zap;
-  int i;
-
-  imodDialogManager.windowList(&objList, -1, ZAP_WINDOW_TYPE);
-
-  for (i = 0; i < objList.count(); i++) {
-    zap = ((ZapWindow *)objList.at(i))->mZap;
-    if (zap->rubberband) {
-      rbX0 = zap->rbImageX0;
-      rbX1 = zap->rbImageX1;
-      rbY0 = zap->rbImageY0;
-      rbY1 = zap->rbImageY1;
-      return 1;
-    }
-  }
-  return 0;
-}
-
-/*
- * Reposition image center or rubber band to the given absolute position,
- * or by the given increments if the flag is set
- */
-void zapSetImageOrBandCenter(float imx, float imy, bool incremental)
-{
-  ZapStruct *zap;
-  zap = getTopZapWindow(false);
-  if (!zap)
-    return;
-  if (zap->rubberband) {
-
-    // Rubberband: get desired shift if not incremental, try to do it
-    if (!incremental) {
-      imx -= (zap->rbImageX1 + zap->rbImageX0) / 2.;
-      imy -= (zap->rbImageY1 + zap->rbImageY0) / 2.;
-    }
-    shiftRubberband(zap, imx, imy);
-
-    // And center image on rubberband
-    zap->xtrans = B3DNINT(zap->vi->xsize / 2. - 
-                          (zap->rbImageX1 + zap->rbImageX0) / 2.);
-    zap->ytrans = B3DNINT(zap->vi->ysize / 2. - 
-                          (zap->rbImageY1 + zap->rbImageY0) / 2.);
-    zap->bandChanged = 1;
-  } else {
-
-    // Not rubberband: just adjust or set the translations, which will be
-    // fixed when the draw is done
-    if (incremental) {
-      zap->xtrans -= B3DNINT(imx);
-      zap->ytrans -= B3DNINT(imy);
-    } else {
-      zap->xtrans = B3DNINT(zap->vi->xsize / 2. - imx);
-      zap->ytrans = B3DNINT(zap->vi->ysize / 2. - imy);
-    }
-  }
-  zap->recordSubarea = 1;
-  zapDraw(zap);
-}
-
-/*
- * The pixel view window has opened or closed, set mouse tracking for all zaps
- */
-void zapPixelViewState(bool state)
-{
-  pixelViewOpen = state;
-  zapSetMouseTracking();
-}
-
-/*
- * The state of externally requested tracking has changed somehow, set 
- * tracking for all zaps
- */
-void zapSetMouseTracking()
-{
-  QObjectList objList;
-  ZapStruct *zap;
-  int i;
-  imodDialogManager.windowList(&objList, -1, ZAP_WINDOW_TYPE);
-
-  for (i = 0; i < objList.count(); i++) {
-    zap = ((ZapWindow *)objList.at(i))->mZap;
-    setMouseTracking(zap);
-  }
+  if (mRbImageX0 + idx < 0)
+    idx = -mRbImageX0;
+  if (mRbImageX1 + idx > mVi->xsize)
+    idx = mVi->xsize - mRbImageX1;
+  if (mRbImageY0 + idy < 0)
+    idy = -mRbImageY0;
+  if (mRbImageY1 + idy > mVi->ysize)
+    idy = mVi->ysize - mRbImageY1;
+  mRbImageX0 += idx;
+  mRbImageX1 += idx;
+  mRbImageY0 += idy;
+  mRbImageY1 += idy;
 }
 
 /*
  * Set mouse tracking based on state of all governing flags
  */
-static void setMouseTracking(ZapStruct *zap)
+void ZapFuncs::setMouseTracking()
 {
-  zap->gfx->setMouseTracking(insertDown != 0 || zap->rubberband ||
-                             pixelViewOpen || zap->vi->trackMouseForPlugs);
-}
-
-/* 
- * Return the image coordinates of the mouse in the top Zap
- */
-int getTopZapMouse(Ipoint *imagePt)
-{
-  int mx, my, iz;
-  ZapStruct *zap = getTopZapWindow(false);
-  if (!zap)
-    return 1;
-  mx = zap->gfx->mapFromGlobal(QCursor::pos()).x();
-  my = zap->gfx->mapFromGlobal(QCursor::pos()).y();
-  zapGetixy(zap, mx, my, &imagePt->x, &imagePt->y, &iz);
-  imagePt->z = (float)iz;
-  return 0;
-}
-
-/*
- * Look through all multiZ windows and report params of biggest one
- */
-void zapReportBiggestMultiZ()
-{
-  QObjectList objList;
-  QRect pos;
-  ZapStruct *zap;
-  int i;
-  if (!ImodPrefs)
-    return;
-  imodDialogManager.windowList(&objList, -1, MULTIZ_WINDOW_TYPE);
-
-  for (i = 0; i < objList.count(); i++) {
-    zap = ((ZapWindow *)objList.at(i))->mZap;
-    if (maxMultiZarea < zap->winx * zap->winy) {
-      maxMultiZarea = zap->winx * zap->winy;
-      pos = ivwRestorableGeometry(zap->qtWindow);
-      ImodPrefs->recordMultiZparams(pos, zap->numXpanels, zap->numYpanels,
-                                    zap->panelZstep, zap->drawInCenter,
-                                    zap->drawInOthers);
-    }
-  }
+  mGfx->setMouseTracking(insertDown != 0 || mRubberband ||
+                             pixelViewOpen || mVi->trackMouseForPlugs);
 }
 
 /*
  * Take a snapshot by montaging at higher zoom
  */
-static void montageSnapshot(ZapStruct *zap, int snaptype)
+void ZapFuncs::montageSnapshot(int snaptype)
 {
   int ix, iy, xFullSize, yFullSize, xTransStart, yTransStart, xTransDelta;
   int yTransDelta, xCopyDelta, yCopyDelta, xTransSave, yTransSave, hqSave;
@@ -3768,15 +3706,15 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
   ScaleBar barSaved;
 
   // Save translations and zoom 
-  xTransSave = zap->xtrans;
-  yTransSave = zap->ytrans;
-  zoomSave = zap->zoom;
-  hqSave = zap->hqgfx;
+  xTransSave = mXtrans;
+  yTransSave = mYtrans;
+  zoomSave = mZoom;
+  hqSave = mHqgfx;
 
   if (imcGetSnapWholeMont()) {
     for (factor = 1; factor < 31; factor++) {
-      if (factor * zap->winx >= zap->vi->xsize && factor * zap->winy >=
-          zap->vi->ysize)
+      if (factor * mWinx >= mVi->xsize && factor * mWiny >=
+          mVi->ysize)
         break;
     }
     if (factor == 1) {
@@ -3788,23 +3726,23 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
              "window.\n");
       return;
     }
-    zap->zoom = 1. / factor;
+    mZoom = 1. / factor;
     scalingFactor = 1. / zoomSave;
-    zapDraw(zap);
+    draw();
   }
 
   // Get coordinates and offsets and buffers
-  setAreaLimits(zap);
-  if (getMontageShifts(zap, factor, zap->xstart, zap->xborder,
-                       zap->vi->xsize, zap->winx,
+  setAreaLimits();
+  if (getMontageShifts(factor, mXstart, mXborder,
+                       mVi->xsize, mWinx,
                        xTransStart, xTransDelta, xCopyDelta, xFullSize) ||
-      getMontageShifts(zap, factor, zap->ystart, zap->yborder, 
-                       zap->vi->ysize, zap->winy,
+      getMontageShifts(factor, mYstart, mYborder, 
+                       mVi->ysize, mWiny,
                        yTransStart, yTransDelta, yCopyDelta, yFullSize)) {
     wprint("\aThere is too much border around image for montage snapshot.\n");
     return;
   }
-  if (utilStartMontSnap(zap->winx, zap->winy, xFullSize, yFullSize,
+  if (utilStartMontSnap(mWinx, mWiny, xFullSize, yFullSize,
                         scalingFactor, barSaved, numChunks, &framePix,
                         &fullPix, &linePtrs)) {
     wprint("\aFailed to get memory for snapshot buffers.\n");
@@ -3814,7 +3752,7 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
   // On Quadro card (?), it is necessary to defer the autoswap for montaging
   // It's not clear why this isn't needed for other snapshots
   if (App->doublebuffer) {
-    zap->gfx->setBufferSwapAuto(false);
+    mGfx->setBufferSwapAuto(false);
     glReadBuffer(GL_BACK);
   }
 
@@ -3822,43 +3760,43 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
   if (imcGetScaleSizes()) {
     scaleSizes = imcGetSizeScaling();
     if (scaleSizes == 1)
-      scaleSizes = B3DNINT(scalingFactor * B3DMIN(1., zap->zoom));
+      scaleSizes = B3DNINT(scalingFactor * B3DMIN(1., mZoom));
   }
 
   // Loop on frames, getting pixels and copying them
-  zap->hqgfx = 1;
-  zap->zoom *= factor;
-  showSlice = zap->showslice;
+  mHqgfx = 1;
+  mZoom *= factor;
+  showSlice = mShowslice;
   for (iy = 0; iy < factor; iy++) {
     for (ix = 0; ix < factor; ix++) {
 
       // Set up for scale bar if it is the right corner
-      utilMontSnapScaleBar(ix, iy, factor, zap->winx - 4, zap->winy - 4, 
-                           zap->zoom, barSaved.draw);
+      utilMontSnapScaleBar(ix, iy, factor, mWinx - 4, mWiny - 4, 
+                           mZoom, barSaved.draw);
       
-      zap->xtrans = -(xTransStart + ix * xTransDelta);
-      zap->ytrans = -(yTransStart + iy * yTransDelta);
-      zapDraw(zap);
-      zap->showslice = showSlice;
+      mXtrans = -(xTransStart + ix * xTransDelta);
+      mYtrans = -(yTransStart + iy * yTransDelta);
+      draw();
+      mShowslice = showSlice;
 
       // Print scale bar length if it was drawn
-      if (zap->scaleBarSize > 0)
-        imodPrintStderr("Scale bar for montage is %g %s\n", zap->scaleBarSize,
-                        imodUnits(zap->vi->imod));
+      if (mScaleBarSize > 0)
+        imodPrintStderr("Scale bar for montage is %g %s\n", mScaleBarSize,
+                        imodUnits(mVi->imod));
 
-      glReadPixels(0, 0, zap->winx, zap->winy, GL_RGBA, GL_UNSIGNED_BYTE, 
+      glReadPixels(0, 0, mWinx, mWiny, GL_RGBA, GL_UNSIGNED_BYTE, 
                    framePix);
       glFlush();
 
       // set up copy parameters for full copy, and adjust to skip the overlap
       // after the first piece unless doing panel with bar
-      xCopy = zap->winx;
-      yCopy = zap->winy;
+      xCopy = mWinx;
+      yCopy = mWiny;
       toXoff = ix * xCopyDelta;
       toYoff = iy * yCopyDelta;
       fromXoff = fromYoff = 0;
       if (ix && !(barReal->draw && ix == factor - 1)) {
-        overhalf = zap->winx - xCopyDelta - 2;
+        overhalf = mWinx - xCopyDelta - 2;
         if (overhalf > 2 && overhalf < xCopy) {
           fromXoff = overhalf;
           toXoff += overhalf;
@@ -3866,7 +3804,7 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
         }
       }
       if (iy && !(barReal->draw && iy == factor - 1)) {
-        overhalf = zap->winy - yCopyDelta - 2;
+        overhalf = mWiny - yCopyDelta - 2;
         if (overhalf > 2 && overhalf < yCopy) {
           fromYoff = overhalf;
           toYoff += overhalf;
@@ -3875,17 +3813,17 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
       }
 
       memLineCpy(linePtrs, framePix, xCopy, yCopy, 4,
-               toXoff, toYoff, zap->winx, fromXoff, fromYoff);
+               toXoff, toYoff, mWinx, fromXoff, fromYoff);
       if (App->doublebuffer) 
-        zap->gfx->swapBuffers();
+        mGfx->swapBuffers();
     }
   }
 
   if (App->doublebuffer)
-    zap->gfx->setBufferSwapAuto(true);
+    mGfx->setBufferSwapAuto(true);
 
   // Reset the file number to zero unless doing movie, then get name and save
-  if (!zap->movieSnapCount)
+  if (!mMovieSnapCount)
     fileno = 0;
 
   // Save the image then restore display
@@ -3893,32 +3831,32 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
                      fileno, 3, (float)factor, "zap", "3dmod: Saving zap");
 
   *barReal = barSaved;
-  zap->xtrans = xTransSave;
-  zap->ytrans = yTransSave;
-  zap->zoom = zoomSave;
+  mXtrans = xTransSave;
+  mYtrans = yTransSave;
+  mZoom = zoomSave;
   scaleSizes = 1;
-  zap->hqgfx = hqSave;
-  zapDraw(zap);
+  mHqgfx = hqSave;
+  draw();
   utilFreeMontSnapArrays(fullPix, numChunks, framePix, linePtrs);
 }
 
 /*
  * Compute shifts and increments for the montage snapshot
  */
-static int getMontageShifts(ZapStruct *zap, int factor, int imStart, 
+int ZapFuncs::getMontageShifts(int factor, int imStart, 
                              int border, int imSize, int winSize,
                              int &transStart, int &transDelta, int &copyDelta,
                              int &fullSize)
 {
   int inWin, overlap, imEnd, wofftmp, dstmp, dofftmp, trans;
-  imEnd = B3DMIN(imStart + (int)((winSize - border)/ zap->zoom), imSize);
-  inWin = (int)(winSize / (zap->zoom * factor));
+  imEnd = B3DMIN(imStart + (int)((winSize - border)/ mZoom), imSize);
+  inWin = (int)(winSize / (mZoom * factor));
   if (inWin >= imSize - factor)
     return 1;
 
   // Get trans and back it off to avoid window offset on left
   trans = -(imStart + (inWin - imSize) / 2);
-  b3dSetImageOffset(winSize, imSize, zap->zoom * factor, dstmp, trans,
+  b3dSetImageOffset(winSize, imSize, mZoom * factor, dstmp, trans,
                     wofftmp, dofftmp, 0);
   if (wofftmp > 0)
     trans--;
@@ -3927,11 +3865,11 @@ static int getMontageShifts(ZapStruct *zap, int factor, int imStart,
   // Get overlap and delta, back off delta to avoid extra pixels on right
   overlap = B3DMAX(0, (factor * inWin + imStart - imEnd) / (factor - 1));
   transDelta = inWin - overlap;
-  copyDelta = zap->zoom * factor * transDelta;
+  copyDelta = mZoom * factor * transDelta;
   fullSize = (factor - 1) * copyDelta + winSize;
-  if (fullSize > (int)(zap->zoom * factor * (imSize - imStart))) {
+  if (fullSize > (int)(mZoom * factor * (imSize - imStart))) {
     transDelta--;
-    copyDelta = zap->zoom * factor * transDelta;
+    copyDelta = mZoom * factor * transDelta;
     fullSize = (factor - 1) * copyDelta + winSize;
   }
 
@@ -3947,61 +3885,61 @@ static int getMontageShifts(ZapStruct *zap, int factor, int imStart,
 /* drawing routines.                                                        */
 
 /* Draws the image */
-static void zapDrawGraphics(ZapStruct *zap)
+void ZapFuncs::drawGraphics()
 {
-  ImodView *vi = zap->vi;
+  ImodView *vi = mVi;
   int bl, wh, ind, ix, iy, iz;
   int time, rgba = App->rgba;
   unsigned char **imageData;
   unsigned char *overImage;
   int overlay = 0;
-  int otherSec = zap->section + vi->overlaySec;
+  int otherSec = mSection + vi->overlaySec;
 
   // DNM: this is not needed, 1/12/08
   //  ivwGetLocation(vi, &x, &y, &z);
 
 
   // DNM eliminated unused function 1/23/03
-  // b3dSetCurPoint(x, y, zap->section);
+  // b3dSetCurPoint(x, y, mSection);
 
-  b3dSetImageOffset(zap->numXpanels ? zap->panelXsize : zap->winx, vi->xsize,
-                    zap->zoom, zap->xdrawsize, zap->xtrans, 
-                    zap->xborder, zap->xstart, 1);
+  b3dSetImageOffset(mNumXpanels ? mPanelXsize : mWinx, vi->xsize,
+                    mZoom, mXdrawsize, mXtrans, 
+                    mXborder, mXstart, 1);
 
-  b3dSetImageOffset(zap->numXpanels ? zap->panelYsize : zap->winy, vi->ysize,
-                    zap->zoom, zap->ydrawsize, zap->ytrans, 
-                    zap->yborder, zap->ystart, 1);
+  b3dSetImageOffset(mNumXpanels ? mPanelYsize : mWiny, vi->ysize,
+                    mZoom, mYdrawsize, mYtrans, 
+                    mYborder, mYstart, 1);
 
   /* Get the time to display and flush if time is different. */
-  if (zap->timeLock)
-    time = zap->timeLock;
+  if (mTimeLock)
+    time = mTimeLock;
   else
     ivwGetTime(vi, &time);
-  if (time != zap->time)
-    zapFlushImage(zap);
+  if (time != mTime)
+    flushImage();
 
-  if (!zap->numXpanels) {
-    imageData = ivwGetZSectionTime(vi, zap->section, time);
+  if (!mNumXpanels) {
+    imageData = ivwGetZSectionTime(vi, mSection, time);
 
     // If flag set, record the subarea size, clear flag, and do call float to
     // set the color map if necessary.  If the black/white changes, flush image
-    if (zap->recordSubarea) {
+    if (mRecordSubarea) {
       
       // Set the X zoom to zoom if it hasn't been set yet or is not close to
       // zoom
-      if (!zap->xzoom || fabs(1./zap->xzoom - 1./zap->zoom) >= 0.002)
-        zap->xzoom = zap->zoom;
-      setAreaLimits(zap);
+      if (!mXzoom || fabs(1./mXzoom - 1./mZoom) >= 0.002)
+        mXzoom = mZoom;
+      setAreaLimits();
       bl = vi->black;
       wh = vi->white;
-      imod_info_bwfloat(vi, zap->section, time);
+      imod_info_bwfloat(vi, mSection, time);
       if (App->rgba && (bl != vi->black || wh != vi->white))
-        b3dFlushImage(zap->image);
+        b3dFlushImage(mImage);
     }
     
-    b3dDrawBoxout(zap->xborder, zap->yborder, 
-                  zap->xborder + (int)(zap->xdrawsize * zap->zoom),
-                  zap->yborder + (int)(zap->ydrawsize * zap->zoom));
+    b3dDrawBoxout(mXborder, mYborder, 
+                  mXborder + (int)(mXdrawsize * mZoom),
+                  mYborder + (int)(mYdrawsize * mZoom));
     
     // If overlay section is set and legal, get an image buffer and fill it
     // with the color overlay
@@ -4031,62 +3969,62 @@ static void zapDrawGraphics(ZapStruct *zap)
                                         MRC_MODE_RGB);
       }
     }
-    if (overlay != zap->overlay)
-      b3dFlushImage(zap->image);
-    zap->overlay = overlay;
+    if (overlay != mOverlay)
+      b3dFlushImage(mImage);
+    mOverlay = overlay;
 
     b3dDrawGreyScalePixelsHQ(imageData,
                              vi->xsize, vi->ysize,
-                             zap->xstart, zap->ystart,
-                             zap->xborder, zap->yborder,
-                             zap->xdrawsize, zap->ydrawsize,
-                             zap->image,
+                             mXstart, mYstart,
+                             mXborder, mYborder,
+                             mXdrawsize, mYdrawsize,
+                             mImage,
                              vi->rampbase, 
-                             (double)zap->zoom, (double)zap->zoom,
-                             zap->hqgfx, zap->section, rgba);
+                             (double)mZoom, (double)mZoom,
+                             mHqgfx, mSection, rgba);
   } else {
 
     // For panels, clear whole window then draw each panel if it is at legal Z
     utilClearWindow(App->background);
-    for (ix = 0; ix < zap->numXpanels; ix++) {
-      for (iy = 0; iy < zap->numYpanels; iy++) {
-        ind = ix + iy * zap->numXpanels;
-        bl = ind - (zap->numXpanels * zap->numYpanels - 1) / 2;
-        iz = zap->section + zap->panelZstep * bl;
+    for (ix = 0; ix < mNumXpanels; ix++) {
+      for (iy = 0; iy < mNumYpanels; iy++) {
+        ind = ix + iy * mNumXpanels;
+        bl = ind - (mNumXpanels * mNumYpanels - 1) / 2;
+        iz = mSection + mPanelZstep * bl;
         if (iz < 0 || iz >= vi->zsize)
           continue;
         imageData = ivwGetZSectionTime(vi, iz, time);
-        bl =  zap->xborder + zap->panelXborder + ix * 
-          (zap->panelXsize + zap->panelGutter);
-        wh =  zap->yborder + zap->panelYborder + iy * 
-          (zap->panelYsize + zap->panelGutter);
+        bl =  mXborder + mPanelXborder + ix * 
+          (mPanelXsize + mPanelGutter);
+        wh =  mYborder + mPanelYborder + iy * 
+          (mPanelYsize + mPanelGutter);
         b3dDrawGreyScalePixelsHQ(imageData,
                                  vi->xsize, vi->ysize,
-                                 zap->xstart, zap->ystart, bl, wh,
-                                 zap->xdrawsize, zap->ydrawsize,
-                                 zap->images[ind],
+                                 mXstart, mYstart, bl, wh,
+                                 mXdrawsize, mYdrawsize,
+                                 mImages[ind],
                                  vi->rampbase, 
-                                 zap->zoom, zap->zoom,
-                                 zap->hqgfx, iz, rgba);
+                                 mZoom, mZoom,
+                                 mHqgfx, iz, rgba);
       }
     }
   }
 
   /* DNM 9/15/03: Get the X zoom, which might be slightly different */
   // Then get the subarea limits again with more correct zoom value
-  zap->xzoom = b3dGetCurXZoom();
-  zap->time = time;
-  if (zap->recordSubarea) {
-    setAreaLimits(zap);
+  mXzoom = b3dGetCurXZoom();
+  mTime = time;
+  if (mRecordSubarea) {
+    setAreaLimits();
     locatorScheduleDraw(vi);
-    zap->recordSubarea = 0;
+    mRecordSubarea = 0;
   }
   if (overlay)
     free(overImage);
 }
 
-static void fillOverlayRGB(unsigned char **lines, int nx, int ny, int chan,
-                           unsigned char *image)
+void ZapFuncs::fillOverlayRGB(unsigned char **lines, int nx, int ny, int chan,
+                              unsigned char *image)
 {
   unsigned int *cindex = App->cvi->cramp->ramp;
   unsigned char ramp[256];
@@ -4105,9 +4043,9 @@ static void fillOverlayRGB(unsigned char **lines, int nx, int ny, int chan,
   }
 }
 
-static void zapDrawModel(ZapStruct *zap)
+void ZapFuncs::drawModel()
 {
-  ImodView *vi = zap->vi;
+  ImodView *vi = mVi;
   int ob, co;
   int surf = -1;
   Icont *cont = imodContourGet(vi->imod);
@@ -4115,7 +4053,7 @@ static void zapDrawModel(ZapStruct *zap)
   if (vi->imod->drawmode <= 0)
     return;
 
-  zapDrawGhost(zap);
+  drawGhost();
 
   if (cont)
     surf = cont->surf;
@@ -4130,29 +4068,29 @@ static void zapDrawModel(ZapStruct *zap)
     for (co = 0; co < vi->imod->obj[ob].contsize; co++){
       if (ob == vi->imod->cindex.object){
         if (co == vi->imod->cindex.contour){
-          zapDrawContour(zap, co, ob);
+          drawContour(co, ob);
           continue;
         }
         if (vi->ghostmode & IMOD_GHOST_SURFACE)
           if (surf >= 0)
             if (surf != vi->imod->obj[ob].cont[co].surf){
               b3dColorIndex(App->ghost); 
-              zapDrawContour(zap, co, ob);
+              drawContour(co, ob);
               imodSetObjectColor(ob);
               continue;
             }
       }
 
-      zapDrawContour(zap, co, ob); 
+      drawContour(co, ob); 
     }
   }
 }
 
 // A separate routine to draw the extra object(s) so that model - current 
 // point - extra object drawing could happen in the right order
-static void zapDrawExtraObject(ZapStruct *zap)
+void ZapFuncs::drawExtraObject()
 {
-  ImodView *vi = zap->vi;
+  ImodView *vi = mVi;
   Iobj *xobj;
   int co, ob;
 
@@ -4171,7 +4109,7 @@ static void zapDrawExtraObject(ZapStruct *zap)
     customGhostColor((int)(255. * xobj->red), (int)(255. * xobj->green), 
                      (int)(255. * xobj->blue));
     for (co = 0; co < xobj->contsize; co++)
-      zapDrawContour(zap, co, -1 - ob);
+      drawContour(co, -1 - ob);
   }
   resetGhostColor();
 }
@@ -4179,9 +4117,9 @@ static void zapDrawExtraObject(ZapStruct *zap)
 /*
  * Draw a contour, including contours in an extra object
  */
-static void zapDrawContour(ZapStruct *zap, int co, int ob)
+void ZapFuncs::drawContour(int co, int ob)
 {
-  ImodView *vi = zap->vi;
+  ImodView *vi = mVi;
   float delz;
   Iobj  *obj;
   Icont *cont;
@@ -4214,9 +4152,9 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
     return;
 
   if (cont->flags & ICONT_CURSOR_LIKE) {
-    if (!zap->gfx->extraCursorInWindow() || zap->numXpanels)
+    if (!mGfx->extraCursorInWindow() || mNumXpanels)
       return;
-    zap->drewExtraCursor = true;
+    mDrewExtraCursor = true;
   }
 
   if (ifgGetValueSetupState())
@@ -4227,7 +4165,7 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
   /* check for contours that contain time data. */
   /* Don't draw them if the time isn't right. */
   /* DNM 6/7/01: but draw contours with time 0 regardless of time */
-  if (ivwTimeMismatch(vi, zap->timeLock, obj, cont))
+  if (ivwTimeMismatch(vi, mTimeLock, obj, cont))
     return;
 
   // get draw properties
@@ -4241,7 +4179,7 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
 
   /* Open or closed contour */
   // Skip if not wild and not on section
-  lastVisible = zapPointVisable(zap, &(cont->pts[0])) || drawAllZ;
+  lastVisible = pointVisable(&(cont->pts[0])) || drawAllZ;
   if (!iobjScat(obj->flags) && ((cont->flags & ICONT_WILD) || lastVisible)) {
     if ((cont->flags & ICONT_WILD) || nextChange >= 0) {
       if (!nextChange)
@@ -4257,13 +4195,13 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
       }
 
       // For wild contour, test every point and connect only pairs on section
-      lastX = zapXpos(zap, cont->pts[0].x);
-      lastY = zapYpos(zap, cont->pts[0].y);
+      lastX = xpos(cont->pts[0].x);
+      lastY = ypos(cont->pts[0].y);
       for (pt = 1; pt < cont->psize; pt++) {
-        thisVisible = zapPointVisable(zap, &(cont->pts[pt]));
+        thisVisible = pointVisable(&(cont->pts[pt]));
         if (thisVisible) {
-          thisX = zapXpos(zap, cont->pts[pt].x);
-          thisY = zapYpos(zap, cont->pts[pt].y);
+          thisX = xpos(cont->pts[pt].x);
+          thisY = ypos(cont->pts[pt].y);
           if (lastVisible && !ptProps.gap)
             b3dDrawLine(lastX, lastY, thisX, thisY);
           lastX = thisX;
@@ -4286,9 +4224,9 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
       // long as both points are visible
       if (iobjClose(obj->flags) && !(cont->flags & ICONT_OPEN) && 
           !ptProps.gap && 
-          !currentCont && lastVisible && zapPointVisable(zap, cont->pts))
-        b3dDrawLine(lastX, lastY, zapXpos(zap, cont->pts->x),
-                    zapYpos(zap, cont->pts->y));
+          !currentCont && lastVisible && pointVisable(cont->pts))
+        b3dDrawLine(lastX, lastY, xpos(cont->pts->x),
+                    ypos(cont->pts->y));
 
       if (stippleGaps)
         b3dStippleNextLine(false);
@@ -4298,12 +4236,12 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
       // For non-wild contour with no changes, draw all points without testing
       b3dBeginLine();
       for (pt = 0; pt < cont->psize; pt++)
-        b3dVertex2i(zapXpos(zap, cont->pts[pt].x),
-                    zapYpos(zap, cont->pts[pt].y));
+        b3dVertex2i(xpos(cont->pts[pt].x),
+                    ypos(cont->pts[pt].y));
 
       // IF closed contour in closed object and not current, draw closure
       if (iobjClose(obj->flags) && !(cont->flags & ICONT_OPEN) && !currentCont)
-        b3dVertex2i(zapXpos(zap, cont->pts->x), zapYpos(zap, cont->pts->y));
+        b3dVertex2i(xpos(cont->pts->x), ypos(cont->pts->y));
 
       b3dEndLine();
     }
@@ -4326,9 +4264,9 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
                                          handleFlags, selected, scaleSizes);
 
       if (ptProps.symtype != IOBJ_SYM_NONE && !(ptProps.gap && ptProps.valskip)
-          && zapPointVisable(zap, &(cont->pts[pt]))){
-        utilDrawSymbol(zapXpos(zap, cont->pts[pt].x),
-                       zapYpos(zap, cont->pts[pt].y),
+          && pointVisable(&(cont->pts[pt]))){
+        utilDrawSymbol(xpos(cont->pts[pt].x),
+                       ypos(cont->pts[pt].y),
                        ptProps.symtype,
                        ptProps.symsize * scaleSizes,
                        ptProps.symflags);
@@ -4351,27 +4289,27 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
 
       drawsize = imodPointGetSize(obj, cont, pt) / vi->xybin;
       if (drawsize > 0 && !(ptProps.gap && ptProps.valskip))
-        if (zapPointVisable(zap, &(cont->pts[pt]))){
+        if (pointVisable(&(cont->pts[pt]))){
           /* DNM: make the product cast to int, not drawsize */
-          b3dDrawCircle(zapXpos(zap, cont->pts[pt].x),
-                        zapYpos(zap, cont->pts[pt].y),
-                        (int)(drawsize * zap->zoom));
+          b3dDrawCircle(xpos(cont->pts[pt].x),
+                        ypos(cont->pts[pt].y),
+                        (int)(drawsize * mZoom));
           if (drawsize > 3 && drawPntOffSec)
-            b3dDrawPlus(zapXpos(zap, cont->pts[pt].x), 
-                        zapYpos(zap, cont->pts[pt].y), 3 * scaleSizes);
+            b3dDrawPlus(xpos(cont->pts[pt].x), 
+                        ypos(cont->pts[pt].y), 3 * scaleSizes);
         } else if (drawsize > 1 && drawPntOffSec) {
           /* DNM: fixed this at last, but let size round
              down so circles get smaller*/
           /* draw a smaller circ if further away. */
-          delz = (cont->pts[pt].z - zap->section) * zscale;
+          delz = (cont->pts[pt].z - mSection) * zscale;
           if (delz < 0)
             delz = -delz;
           
           if (delz < drawsize - 0.01) {
             radius = (int)(sqrt((double)(drawsize * drawsize - delz * delz))
-                           * zap->zoom);
-            b3dDrawCircle(zapXpos(zap, cont->pts[pt].x),
-                          zapYpos(zap, cont->pts[pt].y),
+                           * mZoom);
+            b3dDrawCircle(xpos(cont->pts[pt].x),
+                          ypos(cont->pts[pt].y),
                           radius);
           }
         }
@@ -4382,16 +4320,16 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
 
   // Draw end markers
   if ((obj->symflags & IOBJ_SYMF_ENDS) && ob >= 0){
-    if (zapPointVisable(zap, &(cont->pts[cont->psize-1]))){
+    if (pointVisable(&(cont->pts[cont->psize-1]))){
       b3dColorIndex(App->endpoint);
-      b3dDrawCross(zapXpos(zap, cont->pts[cont->psize-1].x),
-                   zapYpos(zap, cont->pts[cont->psize-1].y), 
+      b3dDrawCross(xpos(cont->pts[cont->psize-1].x),
+                   ypos(cont->pts[cont->psize-1].y), 
                    scaleSizes * obj->symsize/2);
     }
-    if (zapPointVisable(zap, cont->pts)){
+    if (pointVisable(cont->pts)){
       b3dColorIndex(App->bgnpoint);
-      b3dDrawCross(zapXpos(zap, cont->pts->x),
-                   zapYpos(zap, cont->pts->y),
+      b3dDrawCross(xpos(cont->pts->x),
+                   ypos(cont->pts->y),
                    scaleSizes * obj->symsize/2);
     }
     imodSetObjectColor(ob);
@@ -4406,9 +4344,9 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
       if (stp->type == GEN_STORE_CONNECT) {
         pt = stp->index.i;
         if (pt >= 0 && pt < cont->psize &&
-            zapPointVisable(zap, &cont->pts[pt]))
-          b3dDrawSquare(zapXpos(zap, cont->pts[pt].x),
-                        zapYpos(zap, cont->pts[pt].y), stp->value.i + 4);
+            pointVisable(&cont->pts[pt]))
+          b3dDrawSquare(xpos(cont->pts[pt].x),
+                        ypos(cont->pts[pt].y), stp->value.i + 4);
       }
     }
     imodSetObjectColor(ob);
@@ -4424,9 +4362,9 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
 /*
  * Draw the current point marker and contour end markers
  */
-static void zapDrawCurrentPoint(ZapStruct *zap)
+void ZapFuncs::drawCurrentPoint()
 {
-  ImodView *vi = zap->vi;
+  ImodView *vi = mVi;
   Iobj *obj = imodObjectGet(vi->imod);
   Icont *cont = imodContourGet(vi->imod);
   Ipoint *pnt = imodPointGet(vi->imod);
@@ -4442,8 +4380,8 @@ static void zapDrawCurrentPoint(ZapStruct *zap)
   b3dLineWidth(scaleSizes);
 
   if ((vi->imod->mousemode == IMOD_MMOVIE)||(!pnt)){
-    x = zapXpos(zap, (float)((int)vi->xmouse + 0.5));
-    y = zapYpos(zap, (float)((int)vi->ymouse + 0.5));
+    x = xpos((float)((int)vi->xmouse + 0.5));
+    y = ypos((float)((int)vi->ymouse + 0.5));
     b3dColorIndex(App->curpoint);
     b3dDrawPlus(x, y, imPtSize * scaleSizes);
           
@@ -4457,10 +4395,10 @@ static void zapDrawCurrentPoint(ZapStruct *zap)
         curSize = backupSize;
           
       /* DNM 6/17/01: display off-time features as if off-section */
-      x = zapXpos(zap, pnt->x);
-      y = zapYpos(zap, pnt->y);
-      if (zapPointVisable(zap, pnt) && 
-	  !ivwTimeMismatch(vi, zap->timeLock, obj, cont)) {
+      x = xpos(pnt->x);
+      y = ypos(pnt->y);
+      if (pointVisable(pnt) && 
+	  !ivwTimeMismatch(vi, mTimeLock, obj, cont)) {
         b3dColorIndex(App->curpoint);
       }else{
         b3dColorIndex(App->shadow);
@@ -4471,7 +4409,7 @@ static void zapDrawCurrentPoint(ZapStruct *zap)
      
   /* draw begin/end points for current contour */
   if (cont){
-    if (ivwTimeMismatch(vi, zap->timeLock, obj, cont))
+    if (ivwTimeMismatch(vi, mTimeLock, obj, cont))
       return;
 
     if (iobjClose(obj->flags) && (cont->flags & ICONT_OPEN)) {
@@ -4480,30 +4418,30 @@ static void zapDrawCurrentPoint(ZapStruct *zap)
     }
     b3dLineWidth(scaleSizes * obj->linewidth2);
     if (cont->psize > 1){
-      if (zapPointVisable(zap, cont->pts)){
+      if (pointVisable(cont->pts)){
         b3dColorIndex(App->bgnpoint);
-        utilDrawSymbol(zapXpos(zap, cont->pts->x),
-                       zapYpos(zap, cont->pts->y), symbol, 
+        utilDrawSymbol(xpos(cont->pts->x),
+                       ypos(cont->pts->y), symbol, 
                        scaleSizes * (modPtSize + openAdd), flags);
       }
-      if (zapPointVisable(zap, &(cont->pts[cont->psize - 1]))){
+      if (pointVisable(&(cont->pts[cont->psize - 1]))){
         b3dColorIndex(App->endpoint);
-        utilDrawSymbol(zapXpos(zap, cont->pts[cont->psize - 1].x),
-                       zapYpos(zap, cont->pts[cont->psize - 1].y), 
+        utilDrawSymbol(xpos(cont->pts[cont->psize - 1].x),
+                       ypos(cont->pts[cont->psize - 1].y), 
                        symbol, scaleSizes * (modPtSize + openAdd), flags);
       }
     }
   }
 
   b3dLineWidth(scaleSizes);
-  zap->showedSlice = zap->showslice;
-  if (zap->showslice){
+  mShowedSlice = mShowslice;
+  if (mShowslice){
     b3dColorIndex(App->foreground);
-    b3dDrawLine(zapXpos(zap, vi->slice.zx1+0.5f),
-                zapYpos(zap, vi->slice.zy1+0.5f),
-                zapXpos(zap, vi->slice.zx2+0.5f), 
-                zapYpos(zap, vi->slice.zy2+0.5f));
-    zap->showslice = 0;
+    b3dDrawLine(xpos(vi->slice.zx1+0.5f),
+                ypos(vi->slice.zy1+0.5f),
+                xpos(vi->slice.zx2+0.5f), 
+                ypos(vi->slice.zy2+0.5f));
+    mShowslice = 0;
   }
   
   return;
@@ -4512,12 +4450,12 @@ static void zapDrawCurrentPoint(ZapStruct *zap)
 /*
  * Draw ghost contours
  */ 
-static void zapDrawGhost(ZapStruct *zap)
+void ZapFuncs::drawGhost()
 {
   int co, i, ob;
   struct Mod_Object *obj;
   struct Mod_Contour *cont;
-  Imod *mod = zap->vi->imod;
+  Imod *mod = mVi->imod;
   DrawProps contProps, ptProps;
   int nextz, prevz, iz;
   bool drawprev, drawnext, stippleGaps = ifgStippleGaps();
@@ -4528,11 +4466,11 @@ static void zapDrawGhost(ZapStruct *zap)
   if (!mod)
     return;
 
-  if ( !(zap->vi->ghostmode & IMOD_GHOST_SECTION))
+  if ( !(mVi->ghostmode & IMOD_GHOST_SECTION))
     return;
      
   for (ob = 0; ob < mod->objsize; ob++) {
-    if (ob != mod->cindex.object && !(zap->vi->ghostmode & IMOD_GHOST_ALLOBJ))
+    if (ob != mod->cindex.object && !(mVi->ghostmode & IMOD_GHOST_ALLOBJ))
       continue;
     obj = &(mod->obj[ob]);
 
@@ -4544,16 +4482,16 @@ static void zapDrawGhost(ZapStruct *zap)
     if (ifgSetupValueDrawing(obj, GEN_STORE_MINMAX1))
       handleFlags |= HANDLE_VALUE1;
 
-    /* DNM 6/16/01: need to be based on zap->section, not zmouse */
-    if (zap->vi->ghostdist) {
-      nextz = zap->section + zap->vi->ghostdist;
-      prevz = zap->section - zap->vi->ghostdist;
+    /* DNM 6/16/01: need to be based on mSection, not zmouse */
+    if (mVi->ghostdist) {
+      nextz = mSection + mVi->ghostdist;
+      prevz = mSection - mVi->ghostdist;
     } else {
-      nextz = utilNextSecWithCont(zap->vi, obj, zap->section, 1);
-      prevz = utilNextSecWithCont(zap->vi, obj, zap->section, -1);
+      nextz = utilNextSecWithCont(mVi, obj, mSection, 1);
+      prevz = utilNextSecWithCont(mVi, obj, mSection, -1);
     }
-    drawprev = zap->vi->ghostmode & IMOD_GHOST_PREVSEC;
-    drawnext = zap->vi->ghostmode & IMOD_GHOST_NEXTSEC;
+    drawprev = mVi->ghostmode & IMOD_GHOST_PREVSEC;
+    drawnext = mVi->ghostmode & IMOD_GHOST_NEXTSEC;
      
     for (co = 0; co < obj->contsize; co++) {
       cont = &(obj->cont[co]);
@@ -4562,38 +4500,38 @@ static void zapDrawGhost(ZapStruct *zap)
                                        scaleSizes);
       if (contProps.gap)
         continue;
-      zapSetGhostColor(zap, contProps.red, contProps.green, contProps.blue);
+      setGhostColor(contProps.red, contProps.green, contProps.blue);
       
       /* DNM: don't display wild contours, only coplanar ones */
       /* By popular demand, display ghosts from lower and upper sections */
       if (cont->pts && !(cont->flags & ICONT_WILD)) {
         iz = (int)floor(cont->pts->z + 0.5);
-        if ((iz > zap->section && drawprev && 
-             ((zap->vi->ghostdist && iz <= nextz) || 
-              (!zap->vi->ghostdist && iz == nextz))) ||
-            (iz < zap->section && drawnext && 
-             ((zap->vi->ghostdist && iz >= prevz) ||
-              (!zap->vi->ghostdist && iz == prevz)))) {
+        if ((iz > mSection && drawprev && 
+             ((mVi->ghostdist && iz <= nextz) || 
+              (!mVi->ghostdist && iz == nextz))) ||
+            (iz < mSection && drawnext && 
+             ((mVi->ghostdist && iz >= prevz) ||
+              (!mVi->ghostdist && iz == prevz)))) {
 
           if (nextChange < 0) {
             b3dBeginLine();
             for (i = 0; i < cont->psize; i++) {
-              b3dVertex2i(zapXpos(zap, cont->pts[i].x),
-                          zapYpos(zap, cont->pts[i].y));
+              b3dVertex2i(xpos(cont->pts[i].x),
+                          ypos(cont->pts[i].y));
             }
           
             /* DNM: connect back to start only if closed contour */
             if (iobjClose(obj->flags) && !(cont->flags & ICONT_OPEN))
-              b3dVertex2i(zapXpos(zap, cont->pts->x),
-                          zapYpos(zap, cont->pts->y));
+              b3dVertex2i(xpos(cont->pts->x),
+                          ypos(cont->pts->y));
             b3dEndLine();
           } else {
 
             // If there are changes in contour, then draw only needed lines
             if (stippleGaps)
               glLineStipple(1, 0x0707);
-            lastX = zapXpos(zap, cont->pts[0].x);
-            lastY = zapYpos(zap, cont->pts[0].y);
+            lastX = xpos(cont->pts[0].x);
+            lastY = ypos(cont->pts[0].y);
             for (pt = 0; pt < cont->psize; pt++) {
               ptProps.gap = 0;
               if (pt == nextChange) {
@@ -4602,7 +4540,7 @@ static void zapDrawGhost(ZapStruct *zap)
                                                  &changeFlags, handleFlags, 0,
                                                  scaleSizes);
                 if (changeFlags & CHANGED_COLOR)
-                  zapSetGhostColor(zap, ptProps.red, ptProps.green, 
+                  setGhostColor(ptProps.red, ptProps.green, 
                                    ptProps.blue);
                 if (ptProps.gap && stippleGaps) {
                   b3dStippleNextLine(true);
@@ -4612,8 +4550,8 @@ static void zapDrawGhost(ZapStruct *zap)
 
               // Skip gap or last point if open
               npt = (pt + 1) % cont->psize;
-              thisX = zapXpos(zap, cont->pts[npt].x);
-              thisY = zapYpos(zap, cont->pts[npt].y);
+              thisX = xpos(cont->pts[npt].x);
+              thisY = ypos(cont->pts[npt].y);
               if ((pt < cont->psize - 1 || 
                    (iobjClose(obj->flags) && !(cont->flags & ICONT_OPEN)))
                   && !ptProps.gap)
@@ -4631,12 +4569,12 @@ static void zapDrawGhost(ZapStruct *zap)
   resetGhostColor();
 }
 
-static void zapSetGhostColor(ZapStruct *zap, float obr, float obg, float obb)
+void ZapFuncs::setGhostColor(float obr, float obg, float obb)
 {
   int red, green, blue, base;
 
   // Set base to 2 to make color get brighter instead of darker
-  base = (zap->vi->ghostmode & IMOD_GHOST_LIGHTER) ? 2 : 0;
+  base = (mVi->ghostmode & IMOD_GHOST_LIGHTER) ? 2 : 0;
   red = (int)(((base + obr) * 255.0) / 3.0);
   green = (int)(((base + obg) * 255.0) / 3.0);
   blue = (int)(((base + obb) * 255.0) / 3.0);
@@ -4644,9 +4582,9 @@ static void zapSetGhostColor(ZapStruct *zap, float obr, float obg, float obb)
   customGhostColor(red, green, blue); 
 }
 
-static int zapDrawAuto(ZapStruct *zap)
+int ZapFuncs::drawAuto()
 {
-  ImodView *vi = zap->vi;
+  ImodView *vi = mVi;
   unsigned int i, j;
   int x, y;
   int pixel;
@@ -4662,15 +4600,15 @@ static int zapDrawAuto(ZapStruct *zap)
   if (!vi->ax->filled)
     return(-1);
 
-  if (vi->ax->cz != zap->section)
+  if (vi->ax->cz != mSection)
     return(-1);
 
   /* DNM 8/11/01: make rectangle size be nearest integer and not 0 */
-  rectsize = zap->zoom < 1 ? 1 : (int)(zap->zoom + 0.5);
+  rectsize = mZoom < 1 ? 1 : (int)(mZoom + 0.5);
   for (j = 0; j < ysize; j++){
-    y = zapYpos(zap,(float)j);
+    y = ypos((float)j);
     for(i = 0; i < xsize; i++){
-      x = zapXpos(zap,(float)i);
+      x = xpos((float)i);
       /*DNM 2/1/01: pick a dark and light color to work in rgb mode */
       if (vi->ax->data[i + (j * vi->xsize)] & AUTOX_BLACK){
         pixel = App->ghost;
@@ -4698,64 +4636,64 @@ static int zapDrawAuto(ZapStruct *zap)
 }
 
   // send a new value of section, zoom, or time label if it has changed
-static void zapDrawTools(ZapStruct *zap)
+void ZapFuncs::drawTools()
 {
   QString qstr;
   int winx, winy;
 
-  if (zap->toolMaxZ != zap->vi->zsize) {
-    zap->toolMaxZ = zap->vi->zsize;
-    zap->qtWindow->setMaxZ(zap->toolMaxZ);
+  if (mToolMaxZ != mVi->zsize) {
+    mToolMaxZ = mVi->zsize;
+    mQtWindow->setMaxZ(mToolMaxZ);
   }
 
   // Workaround to Qt 4.5.0 cocoa bug, need to load these boxes 3 times
-  if (zap->toolSection != zap->section){
-    if (zap->toolZoom <= -4. || zap->toolZoom > -0.9)
-      zap->toolSection = zap->section;
-    zap->qtWindow->setSectionText(zap->section + 1);
+  if (mToolSection != mSection){
+    if (mToolZoom <= -4. || mToolZoom > -0.9)
+      mToolSection = mSection;
+    mQtWindow->setSectionText(mSection + 1);
   }
      
-  if (zap->toolZoom != zap->zoom){
-    if (zap->toolZoom < 0.)
-      zap->toolZoom -= 1.;
-    if (zap->toolZoom <= -4. || zap->toolZoom > -0.9)
-      zap->toolZoom = zap->zoom;
-    zap->qtWindow->setZoomText(zap->zoom);
+  if (mToolZoom != mZoom){
+    if (mToolZoom < 0.)
+      mToolZoom -= 1.;
+    if (mToolZoom <= -4. || mToolZoom > -0.9)
+      mToolZoom = mZoom;
+    mQtWindow->setZoomText(mZoom);
   }
 
-  if (zap->rubberband) {
-    zapBandImageToMouse(zap, 0);
-    winx = zap->rbMouseX1 - 1 - zap->rbMouseX0;
-    winy = zap->rbMouseY1 - 1 - zap->rbMouseY0;
+  if (mRubberband) {
+    bandImageToMouse(0);
+    winx = mRbMouseX1 - 1 - mRbMouseX0;
+    winy = mRbMouseY1 - 1 - mRbMouseY0;
   } else {
-    winx = zap->winx;
-    winy = zap->winy;
+    winx = mWinx;
+    winy = mWiny;
   }
-  if (winx != zap->toolSizeX || winy != zap->toolSizeY) {
-    zap->toolSizeX = winx;
-    zap->toolSizeY = winy;
-    zap->qtWindow->setSizeText(winx, winy);
+  if (winx != mToolSizeX || winy != mToolSizeY) {
+    mToolSizeX = winx;
+    mToolSizeY = winy;
+    mQtWindow->setSizeText(winx, winy);
   }
 
-  if (zap->vi->nt) {
-    int time = zap->timeLock ? zap->timeLock : zap->vi->ct;
-    if (zap->toolTime != time){
-      zap->toolTime = time;
+  if (mVi->nt) {
+    int time = mTimeLock ? mTimeLock : mVi->ct;
+    if (mToolTime != time){
+      mToolTime = time;
       qstr.sprintf(" (%3d)", time);
-      qstr += ivwGetTimeIndexLabel(zap->vi, time);
-      zap->qtWindow->setTimeLabel(qstr);
+      qstr += ivwGetTimeIndexLabel(mVi, time);
+      mQtWindow->setTimeLabel(qstr);
     }
   }
 }
 
-static void zapSetCursor(ZapStruct *zap, int mode, bool setAnyway)
+void ZapFuncs::setCursor(int mode, bool setAnyway)
 {
   Qt::CursorShape shape;
 
   // Set up a special cursor for the rubber band
-  if (zap->startingBand || (zap->rubberband && (moveband || dragband)) ||
-      zap->shiftingCont) {
-    if (zap->startingBand || moveband || zap->shiftingCont)
+  if (mStartingBand || (mRubberband && (moveband || dragband)) ||
+      mShiftingCont) {
+    if (mStartingBand || moveband || mShiftingCont)
       shape = Qt::SizeAllCursor;
     else if (dragging[0] && dragging[2] || dragging[1] && dragging[3])
       shape = Qt::SizeFDiagCursor;
@@ -4765,55 +4703,58 @@ static void zapSetCursor(ZapStruct *zap, int mode, bool setAnyway)
       shape = Qt::SizeHorCursor;
     else if (dragging[2] || dragging[3])
       shape = Qt::SizeVerCursor;
-    if (shape != zap->lastShape || setAnyway) {
+    if (shape != mLastShape || setAnyway) {
 
       // This one makes the cursor show up a little better on starting/MAC
       imod_info_input();
-      zap->gfx->setCursor(QCursor(shape));
+      mGfx->setCursor(QCursor(shape));
     }
-    zap->lastShape = shape;
+    mLastShape = shape;
     return;
   }
 
   // Or restore cursor from rubber band or change cursor dur to mode change
-  if (zap->mousemode != mode || zap->lastShape >= 0 || setAnyway) {
+  if (mMousemode != mode || mLastShape >= 0 || setAnyway) {
     if (mode == IMOD_MMODEL) {
-      zap->gfx->setCursor(*App->modelCursor);
+      mGfx->setCursor(*App->modelCursor);
     } else {
-      zap->gfx->unsetCursor();
+      mGfx->unsetCursor();
     }
-    zap->mousemode = mode;
-    zap->lastShape = -1;
+    mMousemode = mode;
+    mLastShape = -1;
     imod_info_input();
   }
   return;
 }
 
 
-static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
+int ZapFuncs::pointVisable(Ipoint *pnt)
 {
   int cz;
 
-  if (zap->twod) return(1);
+  if (mTwod) return(1);
 
   /* DNM 11/30/02: replace +/- alternatives with standard nearest int code */
   cz = (int)floor(pnt->z + 0.5);
     
-  if (cz == zap->section)
+  if (cz == mSection)
     return(1);
     
   return(0);
 }
 
-static void setDrawCurrentOnly(ZapStruct *zap, int value)
+void ZapFuncs::setDrawCurrentOnly(int value)
 {
-  zap->drawCurrentOnly = value;
+  mDrawCurrentOnly = value;
   imodInfoUpdateOnly(value);
 }
 
 /*
 
 $Log$
+Revision 4.160  2011/02/04 03:53:18  mast
+Added second fixed point to mouse stretching
+
 Revision 4.159  2011/01/31 04:21:54  mast
 Use new wheel scaling function and make scroll wheel size change undoable
 

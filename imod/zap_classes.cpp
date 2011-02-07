@@ -89,7 +89,7 @@ static char *toggleTips[] = {
   "Lock window at current time unless time is changed in this window"};
 
 
-ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool panels,
+ZapWindow::ZapWindow(ZapFuncs *zap, QString timeLabel, bool panels,
                      bool rgba, bool doubleBuffer, bool enableDepth, 
                      QWidget * parent, const char * name, Qt::WFlags f) 
   : QMainWindow(parent, f)
@@ -165,14 +165,14 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool panels,
   QLabel *label = new QLabel("Z", this);
   mToolBar->addWidget(label);
   label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-  mSecSlider = diaSlider(1, zap->vi->zsize, 1, 1, this, NULL);
+  mSecSlider = diaSlider(1, mZap->mVi->zsize, 1, 1, this, NULL);
   mToolBar->addWidget(mSecSlider);
 
   QSize hint = mSecSlider->minimumSizeHint();
   /* fprintf(stderr, "minimum slider size %d minimum hint size %d\n", 
      mSecSlider->minimumWidth(), hint.width()); */
-  int swidth = zap->vi->zsize < MAX_SLIDER_WIDTH ? 
-    zap->vi->zsize : MAX_SLIDER_WIDTH;
+  int swidth = mZap->mVi->zsize < MAX_SLIDER_WIDTH ? 
+    mZap->mVi->zsize : MAX_SLIDER_WIDTH;
   swidth = swidth > MIN_SLIDER_WIDTH ? swidth : MIN_SLIDER_WIDTH;
   mSecSlider->setFixedWidth(swidth + hint.width() + 5);
   connect(mSecSlider, SIGNAL(valueChanged(int)), this, 
@@ -250,7 +250,7 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool panels,
     mColumnSpin = (QSpinBox *)diaLabeledSpin(0, 1., (float)MULTIZ_MAX_PANELS,
                                              1., NULL, this, NULL);
     mPanelBar->addWidget(mColumnSpin);
-    diaSetSpinBox(mColumnSpin, zap->numXpanels);
+    diaSetSpinBox(mColumnSpin, mZap->mNumXpanels);
     connect(mColumnSpin, SIGNAL(valueChanged(int)), this, 
             SLOT(columnsChanged(int)));
     mColumnSpin->setToolTip("Number of columns of panels");
@@ -260,14 +260,14 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool panels,
     mRowSpin = (QSpinBox *)diaLabeledSpin(0, 1., (float)MULTIZ_MAX_PANELS, 
                               1., NULL, this, NULL);
     mPanelBar->addWidget(mRowSpin);
-    diaSetSpinBox(mRowSpin, zap->numYpanels);
+    diaSetSpinBox(mRowSpin, mZap->mNumYpanels);
     connect(mRowSpin, SIGNAL(valueChanged(int)), this, SLOT(rowsChanged(int)));
     mRowSpin->setToolTip("Number of rows of panels");
 
     label = new QLabel("Z step");
     mPanelBar->addWidget(label);
     mZstepSpin = (QSpinBox *)diaLabeledSpin(0, 1., 100., 1., NULL, this, NULL);
-    diaSetSpinBox(mZstepSpin, zap->panelZstep);
+    diaSetSpinBox(mZstepSpin, zap->mPanelZstep);
     mPanelBar->addWidget(mZstepSpin);
     connect(mZstepSpin, SIGNAL(valueChanged(int)), this, 
             SLOT(zStepChanged(int)));
@@ -278,14 +278,14 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool panels,
 
     button = diaCheckBox("Middle", this, NULL);
     mPanelBar->addWidget(button);
-    diaSetChecked(button, zap->drawInCenter != 0);
+    diaSetChecked(button, zap->mDrawInCenter != 0);
     connect(button, SIGNAL(toggled(bool)), this, 
             SLOT(drawCenterToggled(bool)));
     button->setToolTip("Draw model on middle panel in Z");
 
     button = diaCheckBox("Others", this, NULL);
     mPanelBar->addWidget(button);
-    diaSetChecked(button, zap->drawInOthers != 0);
+    diaSetChecked(button, mZap->mDrawInOthers != 0);
     connect(button, SIGNAL(toggled(bool)), this, 
             SLOT(drawOthersToggled(bool)));
     button->setToolTip("Draw model on panels other than middle one in Z");
@@ -332,31 +332,31 @@ void ZapWindow::setFontDependentWidths()
 
 void ZapWindow::zoomUp()
 {
-  zapStepZoom(mZap, 1);
+  mZap->stepZoom(1);
 }
 
 void ZapWindow::zoomDown()
 {
-  zapStepZoom(mZap, -1);
+  mZap->stepZoom(-1);
 }
 
 // A new zoom or section was entered - let zap decide on limits and refresh box
 void ZapWindow::newZoom()
 {
   QString str = mZoomEdit->text();
-  zapEnteredZoom(mZap, atof(LATIN1(str)));
+  mZap->enteredZoom(atof(LATIN1(str)));
 }
 
 void ZapWindow::newSection()
 {
   QString str = mSectionEdit->text();
-  zapEnteredSection(mZap, atoi(LATIN1(str)));
+  mZap->enteredSection(atoi(LATIN1(str)));
 }
 
 void ZapWindow::sliderChanged(int value)
 {
     if (!mSecPressed || ImodPrefs->hotSliderActive(mCtrlPressed))
-      zapEnteredSection(mZap, value);
+      mZap->enteredSection(value);
     else
       setSectionText(value);
 }
@@ -369,27 +369,27 @@ void ZapWindow::secPressed()
 void ZapWindow::secReleased()
 {
   mSecPressed = false;
-  zapEnteredSection(mZap, mDisplayedSection);
+  mZap->enteredSection(mDisplayedSection);
 }
 
 void ZapWindow::help()
 {
-  zapHelp(mZap);
+  mZap->help();
 }
 
 void ZapWindow::info()
 {
-  zapPrintInfo(mZap);
+  mZap->printInfo();
 }
 
 void ZapWindow::timeBack()
 {
-  zapStepTime(mZap, -1);
+  mZap->stepTime(-1);
 }
 
 void ZapWindow::timeForward()
 {
-  zapStepTime(mZap, 1);
+  mZap->stepTime(1);
 }
 
 // One of toggle buttons needs to change state
@@ -397,7 +397,7 @@ void ZapWindow::toggleClicked(int index)
 {
   int state = mToggleButs[index]->isChecked() ? 1 : 0;
   mToggleStates[index] = state; 
-  zapStateToggled(mZap, index, state);
+  mZap->stateToggled(index, state);
 }
 
 /*
@@ -437,7 +437,7 @@ void ZapWindow::setZoomText(float zoom)
 void ZapWindow::setSizeText(int winx, int winy)
 {
   int num;
-  if (mSizeLabel && !ivwGetTiltAngles(mZap->vi, num)) {
+  if (mSizeLabel && !ivwGetTiltAngles(mZap->mVi, num)) {
     QString str;
     setSizeAngleState();
     str.sprintf(" %dx%d", winx, winy);
@@ -448,7 +448,7 @@ void ZapWindow::setSizeText(int winx, int winy)
 void ZapWindow::setSectionText(int section)
 {
   int num;
-  float *angles = ivwGetTiltAngles(mZap->vi, num);
+  float *angles = ivwGetTiltAngles(mZap->mVi, num);
   QString str;
   str.sprintf("%d", section);
   mSectionEdit->setText(str);
@@ -464,7 +464,7 @@ void ZapWindow::setSectionText(int section)
 void ZapWindow::setSizeAngleState()
 {
   int num;
-  int state = ivwGetTiltAngles(mZap->vi, num) ? 1 : 0;
+  int state = ivwGetTiltAngles(mZap->mVi, num) ? 1 : 0;
   if (state != mSizeAngleState) {
     if (mSizeAction)
       mSizeAction->setVisible(state == 0);
@@ -489,23 +489,23 @@ void ZapWindow::setTimeLabel(QString label)
 void ZapWindow::rowsChanged(int value)
 {
   setFocus();
-  mZap->numYpanels = value;
-  if (!zapSetupPanels(mZap))
+  mZap->mNumYpanels = value;
+  if (!mZap->setupPanels())
     mGLw->updateGL();
 }
 
 void ZapWindow::columnsChanged(int value)
 {
   setFocus();
-  mZap->numXpanels = value;
-  if (!zapSetupPanels(mZap))
+  mZap->mNumXpanels = value;
+  if (!mZap->setupPanels())
     mGLw->updateGL();
 }
 
 void ZapWindow::zStepChanged(int value)
 {
   setFocus();
-  mZap->panelZstep = value;
+  mZap->mPanelZstep = value;
   mGLw->updateGL();
 }
 
@@ -522,26 +522,26 @@ QString ZapWindow::highSection()
 void ZapWindow::setLowSection()
 {
   QString str;
-  str.sprintf("%d", mZap->section + 1);
+  str.sprintf("%d", mZap->mSection + 1);
   mLowSectionEdit->setText(str);
 }
 
 void ZapWindow::setHighSection()
 {
   QString str;
-  str.sprintf("%d", mZap->section + 1);
+  str.sprintf("%d", mZap->mSection + 1);
   mHighSectionEdit->setText(str);
 }
 
 void ZapWindow::drawCenterToggled(bool state)
 {
-  mZap->drawInCenter = state ? 1 : 0;
+  mZap->mDrawInCenter = state ? 1 : 0;
   mGLw->updateGL();
 }
 
 void ZapWindow::drawOthersToggled(bool state)
 {
-  mZap->drawInOthers = state ? 1 : 0;
+  mZap->mDrawInOthers = state ? 1 : 0;
   mGLw->updateGL();
 }
 
@@ -551,7 +551,7 @@ void ZapWindow::keyPressEvent ( QKeyEvent * e )
     mCtrlPressed = true;
     grabKeyboard();
   }
-  zapKeyInput(mZap, e);
+  mZap->keyInput(e);
 }
 
 void ZapWindow::keyReleaseEvent (QKeyEvent * e )
@@ -560,21 +560,22 @@ void ZapWindow::keyReleaseEvent (QKeyEvent * e )
     mCtrlPressed = false;
     releaseKeyboard();
   }
-  zapKeyRelease(mZap, e);
+  mZap->keyRelease(e);
 }
 void ZapWindow::wheelEvent ( QWheelEvent * e)
 {
-  zapGeneralEvent(mZap, e);
+  mZap->generalEvent(e);
 }
 
 // Whan a close event comes in, inform zap, and accept
 void ZapWindow::closeEvent (QCloseEvent * e )
 {
-  zapClosing(mZap);
+  mZap->closing();
   e->accept();
+  delete mZap;
 }
 
-ZapGL::ZapGL(struct zapwin *zap, QGLFormat inFormat, QWidget * parent)
+ZapGL::ZapGL(ZapFuncs *zap, QGLFormat inFormat, QWidget * parent)
   : QGLWidget(inFormat, parent)
 {
   mMousePressed = false;
@@ -592,7 +593,7 @@ void ZapGL::paintGL()
     // DNM 6/8/04: Suse 9.1 on AMD64 needed more, so just switch to doing 
     // two draws unconditionally
   }
-  zapPaint(mZap);
+  mZap->paint();
 }
 
 // When the timer fires after the first draw, do first real draw
@@ -604,40 +605,43 @@ void ZapGL::timerEvent(QTimerEvent * e )
 
 void ZapGL::resizeGL( int wdth, int hght )
 {
-  zapResize(mZap, wdth, hght);
+  mZap->resize(wdth, hght);
 }
 
 void ZapGL::mousePressEvent(QMouseEvent * e )
 {
   mMousePressed = true;
-  zapMousePress(mZap, e);
+  mZap->mousePress(e);
 }
 
 void ZapGL::mouseReleaseEvent ( QMouseEvent * e )
 {
   mMousePressed = false;
-  zapMouseRelease(mZap, e);
+  mZap->mouseRelease(e);
 }
 
 void ZapGL::mouseMoveEvent ( QMouseEvent * e )
 {
   mMouseInWindow = true;
-  zapMouseMove(mZap, e);
+  mZap->mouseMove(e);
 }
 
 void ZapGL::enterEvent ( QEvent * e)
 {
   mMouseInWindow = 1;
-  zapGeneralEvent(mZap, e);
+  mZap->generalEvent(e);
 }
 void ZapGL::leaveEvent ( QEvent * e)
 {
   mMouseInWindow = 0;
-  zapGeneralEvent(mZap, e);
+  mZap->generalEvent(e);
 }
 
 /*
 $Log$
+Revision 4.33  2009/06/05 15:43:04  mast
+Stop passing mouse pressed to move move event
+
 Revision 4.32  2009/01/15 16:33:18  mast
 Qt 4 port
 

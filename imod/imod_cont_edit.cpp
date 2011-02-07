@@ -1584,9 +1584,9 @@ void ContourMove::upDownSelected(int which)
 // Call function directly in top zap instead of sending a P key event
 void ContourMove::shiftContClicked()
 {
-  ZapStruct *zap = getTopZapWindow(false);
+  ZapFuncs *zap = getTopZapWindow(false);
   if (zap)
-    zapToggleContourShift(zap);
+    zap->toggleContourShift();
 }
 
 
@@ -1956,6 +1956,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.40  2011/01/13 20:32:16  mast
+Only warn about labels on join if they are meaningful
+
 Revision 4.39  2010/04/01 02:41:48  mast
 Called function to test for closing keys, or warning cleanup
 

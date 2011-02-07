@@ -46,8 +46,8 @@ class QSlider;
 class QPushButton;
 class QSpinBox;
 class QAction;
+class ZapFuncs;
 
-struct zapwin;
 class ZapGL;
 
 class ZapWindow : public QMainWindow
@@ -55,7 +55,7 @@ class ZapWindow : public QMainWindow
   Q_OBJECT
 
  public:
-  ZapWindow(struct zapwin *zap, QString timeLabel, bool panels, bool rgba, 
+  ZapWindow(ZapFuncs *zap, QString timeLabel, bool panels, bool rgba, 
             bool doubleBuffer, bool enableDepth, QWidget * parent = 0,
             const char * name = 0, Qt::WFlags f = Qt::Window) ;
   ~ZapWindow();
@@ -74,7 +74,7 @@ class ZapWindow : public QMainWindow
   HotToolBar *mToolBar;
   HotToolBar *mToolBar2;
   HotToolBar *mPanelBar;
-  struct zapwin *mZap;
+  ZapFuncs *mZap;
 
   public slots:
     void zoomUp();
@@ -144,11 +144,11 @@ class ZapGL : public QGLWidget
   Q_OBJECT
 
  public:
-  ZapGL(struct zapwin *zap, QGLFormat format, QWidget * parent = 0);
+  ZapGL(ZapFuncs *zap, QGLFormat format, QWidget * parent = 0);
   ~ZapGL() {};
   void setBufferSwapAuto(bool state) { setAutoBufferSwap(state); };
   bool extraCursorInWindow() {return (mMousePressed || mMouseInWindow);};
-  struct zapwin *mZap;
+  ZapFuncs *mZap;
  
 protected:
   void paintGL();
@@ -170,6 +170,9 @@ protected:
 /*
 
 $Log$
+Revision 4.16  2009/01/15 16:33:18  mast
+Qt 4 port
+
 Revision 4.15  2008/05/27 22:48:35  mast
 Moved angle to separate label after Z slider
 

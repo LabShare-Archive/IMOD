@@ -415,7 +415,7 @@ void InfoWindow::extract()
   }
   if (!cshell)
     cshell = "tcsh";
-  ZapStruct *zap = getTopZapWindow(true);
+  ZapFuncs *zap = getTopZapWindow(true);
   if (!zap) {
     zap = getTopZapWindow(false);
     if (zap)
@@ -430,7 +430,7 @@ void InfoWindow::extract()
     (this, "MRC File to extract to:");
   if (mTrimvolOutput.isEmpty())
     return;
-  QString commandString = zapPrintInfo(zap, false);
+  QString commandString = zap->printInfo(false);
   if (commandString.isEmpty()) {
     return;
   }
@@ -707,6 +707,9 @@ static char *truncate_name(char *name, int limit)
 /*
 
 $Log$
+Revision 4.60  2010/12/18 15:02:16  mast
+Change order
+
 Revision 4.59  2010/12/18 15:01:42  mast
 Capitalize
 

@@ -2519,30 +2519,30 @@ void ivwTrackMouseForPlugs(ImodView *inImodView, int enable)
 
 int ivwGetTopZapZslice(ImodView *inImodView, int *outZ)
 {
-  ZapStruct *zap = getTopZapWindow(false);
+  ZapFuncs *zap = getTopZapWindow(false);
   if (!zap)
     return 1;
-  *outZ = zap->section;
+  *outZ = zap->mSection;
   return 0;
 }
 
 int ivwGetTopZapZoom(ImodView *inImodView, float *outZoom)
 {
-  ZapStruct *zap = getTopZapWindow(false);
+  ZapFuncs *zap = getTopZapWindow(false);
   if (!zap)
     return 1;
-  *outZoom = zap->zoom;
+  *outZoom = zap->mZoom;
   return 0;
 }
 
 int ivwSetTopZapZoom(ImodView *inImodView, float inZoom, bool draw)
 {
-  ZapStruct *zap = getTopZapWindow(false);
+  ZapFuncs *zap = getTopZapWindow(false);
   if (!zap || inZoom < 0.005 || inZoom > 200.)
     return 1;
-  zap->zoom = inZoom;
+  zap->mZoom = inZoom;
   if (draw)
-    zapDraw(zap);
+    zap->draw();
   return 0;
 }
 
@@ -2550,11 +2550,11 @@ int ivwSetTopZapZslice(ImodView *inImodView, int inZ)
 {
   if (inZ < 0 || inZ >= App->cvi->zsize)
     return 1;
-  ZapStruct *zap = getTopZapWindow(false);
+  ZapFuncs *zap = getTopZapWindow(false);
   if (!zap)
     return 1;
-  if (zap->lock)
-    zap->section = inZ;
+  if (zap->mLock)
+    zap->mSection = inZ;
   else
     App->cvi->zmouse = inZ;
   return 0;
@@ -2567,15 +2567,15 @@ int ivwGetTopZapMouse(ImodView *inImodView, Ipoint *imagePt)
 
 int ivwGetTopZapCenter(ImodView *inImodView, float &imX, float &imY, int &imZ)
 {
-  ZapStruct *zap = getTopZapWindow(false);
+  ZapFuncs *zap = getTopZapWindow(false);
   if (!zap)
     return 1;
-  if (zap->lock)
-    imZ = zap->section;
+  if (zap->mLock)
+    imZ = zap->mSection;
   else
     imZ = B3DNINT(inImodView->zmouse);
-  imX = (float)(inImodView->xsize / 2. - zap->xtrans);
-  imY = (float)(inImodView->ysize / 2. - zap->ytrans);
+  imX = (float)(inImodView->xsize / 2. - zap->mXtrans);
+  imY = (float)(inImodView->ysize / 2. - zap->mYtrans);
   return 0;
 }
 
@@ -2585,16 +2585,16 @@ int ivwSetTopZapCenter(ImodView *inImodView, float imX, float imY, int imZ,
   if (imX < 0 || imX >= inImodView->xsize || imY < 0 || 
       imY >= inImodView->ysize || imZ < 0 || imZ >= inImodView->zsize)
     return 1;
-  ZapStruct *zap = getTopZapWindow(false);
+  ZapFuncs *zap = getTopZapWindow(false);
   if (!zap)
     return 1;
 
-  zap->xtrans = B3DNINT(zap->vi->xsize / 2. - imX);
-  zap->ytrans = B3DNINT(zap->vi->ysize / 2. - imY);
-  if (zap->lock) {
-    zap->section = imZ;
+  zap->mXtrans = B3DNINT(zap->mVi->xsize / 2. - imX);
+  zap->mYtrans = B3DNINT(zap->mVi->ysize / 2. - imY);
+  if (zap->mLock) {
+    zap->mSection = imZ;
     if (draw)
-      zapDraw(zap);
+      zap->draw();
   } else {
     inImodView->zmouse = imZ;
     if (draw)
@@ -2862,6 +2862,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 /*
 
 $Log$
+Revision 4.86  2011/01/15 06:20:48  mast
+Fixed bug in clearing extra object when freeing it
+
 Revision 4.85  2011/01/12 02:53:19  mast
 Added update function for plugins that change color/name etc
 
