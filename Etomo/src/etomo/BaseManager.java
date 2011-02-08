@@ -80,8 +80,7 @@ public abstract class BaseManager {
   private static boolean headless = false;
   // protected MainFrame mainFrame = null;
   UIHarness uiHarness = UIHarness.INSTANCE;
-  static UserConfiguration userConfig = EtomoDirector.INSTANCE
-      .getUserConfiguration();
+  static UserConfiguration userConfig = EtomoDirector.INSTANCE.getUserConfiguration();
   boolean loadedParamFile = false;
   // imodManager manages the opening and closing closing of imod(s), message
   // passing for loading model
@@ -240,8 +239,8 @@ public abstract class BaseManager {
       logInterface.logMessage(title, axisID, message);
     }
     else {
-      System.err.println(Utilities.getDateTimeStamp() + "\n" + title + " - "
-          + axisID + " axis:");
+      System.err.println(Utilities.getDateTimeStamp() + "\n" + title + " - " + axisID
+          + " axis:");
       for (int i = 0; i < message.length; i++) {
         System.err.println(message[i]);
       }
@@ -289,8 +288,7 @@ public abstract class BaseManager {
       boolean loadedFromADifferentFile) {
     if (!headless) {
       if (dataFile != null) {
-        loadedParamFile = loadParamFile(dataFile, axisID,
-            loadedFromADifferentFile);
+        loadedParamFile = loadParamFile(dataFile, axisID, loadedFromADifferentFile);
       }
     }
     initialized = true;
@@ -322,15 +320,13 @@ public abstract class BaseManager {
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(this,
-          "Unable to save or write to properties.  " + e.getMessage(),
-          "Etomo Error", axisID);
+      uiHarness.openMessageDialog(this, "Unable to save or write to properties.  "
+          + e.getMessage(), "Etomo Error", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(this,
-          "Unable to save or write to properties.  " + e.getMessage(),
-          "Etomo Error", axisID);
+      uiHarness.openMessageDialog(this, "Unable to save or write to properties.  "
+          + e.getMessage(), "Etomo Error", axisID);
     }
   }
 
@@ -359,15 +355,13 @@ public abstract class BaseManager {
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(this,
-          "Unable to save or write to properties.  " + e.getMessage(),
-          "Etomo Error", axisID);
+      uiHarness.openMessageDialog(this, "Unable to save or write to properties.  "
+          + e.getMessage(), "Etomo Error", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(this,
-          "Unable to save or write to properties.  " + e.getMessage(),
-          "Etomo Error", axisID);
+      uiHarness.openMessageDialog(this, "Unable to save or write to properties.  "
+          + e.getMessage(), "Etomo Error", axisID);
     }
     parameterStore.setAutoStore(true);
     try {
@@ -376,14 +370,12 @@ public abstract class BaseManager {
     catch (LogFile.LockException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, "Unable to save or write to "
-          + paramFile.getAbsolutePath() + ".  " + e.getMessage(),
-          "Etomo Error", axisID);
+          + paramFile.getAbsolutePath() + ".  " + e.getMessage(), "Etomo Error", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, "Unable to save or write to "
-          + paramFile.getAbsolutePath() + ".  " + e.getMessage(),
-          "Etomo Error", axisID);
+          + paramFile.getAbsolutePath() + ".  " + e.getMessage(), "Etomo Error", axisID);
     }
   }
 
@@ -496,12 +488,10 @@ public abstract class BaseManager {
       ConstProcessSeries processSeriesB = null;
       String nextProcessA = null;
       String nextProcessB = null;
-      if (processA != null
-          && (processSeriesA = processA.getProcessSeries()) != null) {
+      if (processA != null && (processSeriesA = processA.getProcessSeries()) != null) {
         nextProcessA = processSeriesA.peekNextProcess();
       }
-      if (processB != null
-          && (processSeriesB = processB.getProcessSeries()) != null) {
+      if (processB != null && (processSeriesB = processB.getProcessSeries()) != null) {
         nextProcessB = processSeriesB.peekNextProcess();
       }
       if (nextProcessA != null || nextProcessB != null) {
@@ -548,8 +538,8 @@ public abstract class BaseManager {
    * @param toFileType
    * @param axisID
    */
-  public void renameImageFile(FileType fromFileType, FileType toFileType,
-      AxisID axisID) throws IOException {
+  public void renameImageFile(FileType fromFileType, FileType toFileType, AxisID axisID)
+      throws IOException {
     if (fromFileType == null || toFileType == null) {
       return;
     }
@@ -561,8 +551,8 @@ public abstract class BaseManager {
     }
     closeImod(fromFileType, axisID, true);
     closeImod(toFileType, axisID, true);
-    Utilities.renameFile(fromFileType.getFile(this, axisID), toFileType
-        .getFile(this, axisID));
+    Utilities.renameFile(fromFileType.getFile(this, axisID), toFileType.getFile(this,
+        axisID));
   }
 
   /**
@@ -575,14 +565,14 @@ public abstract class BaseManager {
    * @param toFileType
    * @param axisID
    */
-  void renameImageFile(FileType fromFileType, File fromFile,
-      FileType toFileType, AxisID axisID) throws IOException {
+  void renameImageFile(FileType fromFileType, File fromFile, FileType toFileType,
+      AxisID axisID) throws IOException {
     if (fromFileType == null || toFileType == null) {
       return;
     }
     if (!fromFile.exists()) {
-      uiHarness.openMessageDialog(this, "Unable to rename file.  "
-          + fromFile.getName() + " doesn't exist.", "Entry Error", axisID);
+      uiHarness.openMessageDialog(this, "Unable to rename file.  " + fromFile.getName()
+          + " doesn't exist.", "Entry Error", axisID);
       return;
     }
     closeImod(fromFileType, fromFile, axisID, true);
@@ -599,8 +589,7 @@ public abstract class BaseManager {
    * @param toFileType
    * @param axisID
    */
-  public void backupImageFile(FileType fileType, AxisID axisID)
-      throws IOException {
+  public void backupImageFile(FileType fileType, AxisID axisID) throws IOException {
     if (fileType == null || !fileType.getFile(this, axisID).exists()) {
       return;
     }
@@ -631,10 +620,8 @@ public abstract class BaseManager {
     if (fileType == null) {
       return;
     }
-    closeImod(fileType.getImodManagerKey(), axisID, fileType.toString(),
-        warnOnce);
-    closeImod(fileType.getImodManagerKey2(), axisID, fileType.toString2(),
-        warnOnce);
+    closeImod(fileType.getImodManagerKey(), axisID, fileType.toString(), warnOnce);
+    closeImod(fileType.getImodManagerKey2(), axisID, fileType.toString2(), warnOnce);
   }
 
   /**
@@ -646,15 +633,14 @@ public abstract class BaseManager {
    * @param stale -
    *          when true, only one warning is give for the open 3dmod instance
    */
-  private void closeImod(FileType fileType, File file, AxisID axisID,
-      boolean warnOnce) {
+  private void closeImod(FileType fileType, File file, AxisID axisID, boolean warnOnce) {
     if (fileType == null) {
       return;
     }
-    closeImod(fileType.getImodManagerKey(), file.getName(), axisID, fileType
-        .toString(), warnOnce);
-    closeImod(fileType.getImodManagerKey2(), file.getName(), axisID, fileType
-        .toString2(), warnOnce);
+    closeImod(fileType.getImodManagerKey(), file.getName(), axisID, fileType.toString(),
+        warnOnce);
+    closeImod(fileType.getImodManagerKey2(), file.getName(), axisID,
+        fileType.toString2(), warnOnce);
   }
 
   /**
@@ -666,19 +652,17 @@ public abstract class BaseManager {
    * @param stale -
    *          when true, only one warning is give for the open 3dmod instance
    */
-  void closeImod(FileType fileType, String fileName, AxisID axisID,
-      boolean warnOnce) {
+  void closeImod(FileType fileType, String fileName, AxisID axisID, boolean warnOnce) {
     if (fileType == null) {
       return;
     }
-    closeImod(fileType.getImodManagerKey(), fileName, axisID, fileType
-        .toString(), warnOnce);
-    closeImod(fileType.getImodManagerKey2(), fileName, axisID, fileType
-        .toString2(), warnOnce);
+    closeImod(fileType.getImodManagerKey(), fileName, axisID, fileType.toString(),
+        warnOnce);
+    closeImod(fileType.getImodManagerKey2(), fileName, axisID, fileType.toString2(),
+        warnOnce);
   }
 
-  public boolean closeImod(String key, AxisID axisID, String description,
-      boolean warnOnce) {
+  public boolean closeImod(String key, AxisID axisID, String description, boolean warnOnce) {
     return closeImod(key, axisID, description, null, warnOnce);
   }
 
@@ -692,8 +676,8 @@ public abstract class BaseManager {
    * @param fullMessage
    * @return true if files where closed or files did not need to be closed
    */
-  public boolean closeImods(String key1, String key2, String key3,
-      AxisID axisID, String fullMessage) {
+  public boolean closeImods(String key1, String key2, String key3, AxisID axisID,
+      String fullMessage) {
     if (key1 == null && key2 == null && key3 == null) {
       return true;
     }
@@ -736,8 +720,7 @@ public abstract class BaseManager {
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(),
-          "AxisType problem", axisID);
+      uiHarness.openMessageDialog(this, except.getMessage(), "AxisType problem", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -745,8 +728,8 @@ public abstract class BaseManager {
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(this, e.getMessage(),
-          "System Process Exception", axisID);
+      uiHarness.openMessageDialog(this, e.getMessage(), "System Process Exception",
+          axisID);
     }
     return false;
   }
@@ -766,8 +749,8 @@ public abstract class BaseManager {
    * @param stale
    * @return true if file was closed or file did not need to be closed
    */
-  public boolean closeImod(String key, AxisID axisID, String description,
-      String message, boolean warnOnce) {
+  public boolean closeImod(String key, AxisID axisID, String description, String message,
+      boolean warnOnce) {
     if (key == null) {
       return true;
     }
@@ -781,8 +764,7 @@ public abstract class BaseManager {
                     description
                         + " is open in 3dmod."
                         + (warnOnce ? "  This 3dmod instance will display an out of date version of this file.  "
-                            : "")
-                        + (message == null ? "" : "  " + message + "  ")
+                            : "") + (message == null ? "" : "  " + message + "  ")
                         + "Should file be closed?", axisID)) {
               imodManager.quit(key, axisID);
               releaseFile();
@@ -802,8 +784,7 @@ public abstract class BaseManager {
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(),
-          "AxisType problem", axisID);
+      uiHarness.openMessageDialog(this, except.getMessage(), "AxisType problem", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -811,8 +792,8 @@ public abstract class BaseManager {
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(this, e.getMessage(),
-          "System Process Exception", axisID);
+      uiHarness.openMessageDialog(this, e.getMessage(), "System Process Exception",
+          axisID);
     }
     return false;
   }
@@ -831,8 +812,8 @@ public abstract class BaseManager {
    * @param description
    * @param stale
    */
-  private void closeImod(String key, String fileName, AxisID axisID,
-      String description, boolean stale) {
+  private void closeImod(String key, String fileName, AxisID axisID, String description,
+      boolean stale) {
     if (key == null) {
       return;
     }
@@ -862,8 +843,7 @@ public abstract class BaseManager {
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(),
-          "AxisType problem", axisID);
+      uiHarness.openMessageDialog(this, except.getMessage(), "AxisType problem", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -871,8 +851,8 @@ public abstract class BaseManager {
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(this, e.getMessage(),
-          "System Process Exception", axisID);
+      uiHarness.openMessageDialog(this, e.getMessage(), "System Process Exception",
+          axisID);
     }
   }
 
@@ -910,8 +890,7 @@ public abstract class BaseManager {
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(),
-          "AxisType problem", axisID);
+      uiHarness.openMessageDialog(this, except.getMessage(), "AxisType problem", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -954,10 +933,8 @@ public abstract class BaseManager {
       // Check for processes that will die if etomo exits
       BaseProcessManager processManager = getProcessManager();
       if (processManager != null) {
-        SystemProcessInterface processA = getProcessManager().getThread(
-            AxisID.FIRST);
-        SystemProcessInterface processB = getProcessManager().getThread(
-            AxisID.SECOND);
+        SystemProcessInterface processA = getProcessManager().getThread(AxisID.FIRST);
+        SystemProcessInterface processB = getProcessManager().getThread(AxisID.SECOND);
         boolean nohupA = processA == null || processA.isNohup();
         boolean nohupB = processB == null || processB.isNohup();
         if (!nohupA || !nohupB) {
@@ -1028,8 +1005,7 @@ public abstract class BaseManager {
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(),
-          "AxisType problem", axisID);
+      uiHarness.openMessageDialog(this, except.getMessage(), "AxisType problem", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -1037,8 +1013,8 @@ public abstract class BaseManager {
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(this, e.getMessage(),
-          "System Process Exception", AxisID.ONLY);
+      uiHarness.openMessageDialog(this, e.getMessage(), "System Process Exception",
+          AxisID.ONLY);
     }
     return results;
   }
@@ -1047,8 +1023,7 @@ public abstract class BaseManager {
     uiHarness.pack(this);
     // Resize to the users preferrred window dimensions
     getMainPanel().setSize(
-        new Dimension(userConfig.getMainWindowWidth(), userConfig
-            .getMainWindowHeight()));
+        new Dimension(userConfig.getMainWindowWidth(), userConfig.getMainWindowHeight()));
     uiHarness.doLayout(this);
     uiHarness.validate(this);
     if (isDualAxis()) {
@@ -1064,8 +1039,8 @@ public abstract class BaseManager {
    * @return
    */
   public static String getIMODBinPath() {
-    return EtomoDirector.INSTANCE.getIMODDirectory().getAbsolutePath()
-        + File.separator + "bin" + File.separator;
+    return EtomoDirector.INSTANCE.getIMODDirectory().getAbsolutePath() + File.separator
+        + "bin" + File.separator;
   }
 
   /**
@@ -1083,18 +1058,17 @@ public abstract class BaseManager {
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(),
-          "AxisType problem", AxisID.ONLY);
+      uiHarness.openMessageDialog(this, except.getMessage(), "AxisType problem",
+          AxisID.ONLY);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(), "Can't open "
-          + imodKey + " 3dmod with imodIndex=" + imodIndex, AxisID.ONLY);
+      uiHarness.openMessageDialog(this, except.getMessage(), "Can't open " + imodKey
+          + " 3dmod with imodIndex=" + imodIndex, AxisID.ONLY);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception",
-          AxisID.ONLY);
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", AxisID.ONLY);
     }
     return imodIndex;
   }
@@ -1110,23 +1084,21 @@ public abstract class BaseManager {
       if (imodIndex == -1) {
         imodIndex = imodManager.newImod(imodKey, file);
       }
-      imodManager
-          .open(imodKey, imodIndex, absoluteModelPath, true, menuOptions);
+      imodManager.open(imodKey, imodIndex, absoluteModelPath, true, menuOptions);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(),
-          "AxisType problem", AxisID.ONLY);
+      uiHarness.openMessageDialog(this, except.getMessage(), "AxisType problem",
+          AxisID.ONLY);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(), "Can't open "
-          + imodKey + " 3dmod with imodIndex=" + imodIndex, AxisID.ONLY);
+      uiHarness.openMessageDialog(this, except.getMessage(), "Can't open " + imodKey
+          + " 3dmod with imodIndex=" + imodIndex, AxisID.ONLY);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception",
-          AxisID.ONLY);
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", AxisID.ONLY);
     }
     return imodIndex;
   }
@@ -1140,18 +1112,17 @@ public abstract class BaseManager {
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(),
-          "AxisType problem", AxisID.ONLY);
+      uiHarness.openMessageDialog(this, except.getMessage(), "AxisType problem",
+          AxisID.ONLY);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(), "Can't open "
-          + imodKey + " in 3dmod ", AxisID.ONLY);
+      uiHarness.openMessageDialog(this, except.getMessage(), "Can't open " + imodKey
+          + " in 3dmod ", AxisID.ONLY);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception",
-          AxisID.ONLY);
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", AxisID.ONLY);
     }
   }
 
@@ -1162,13 +1133,12 @@ public abstract class BaseManager {
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(),
-          "AxisType problem", axisID);
+      uiHarness.openMessageDialog(this, except.getMessage(), "AxisType problem", axisID);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(), "Can't open "
-          + imodKey + " in 3dmod ", axisID);
+      uiHarness.openMessageDialog(this, except.getMessage(), "Can't open " + imodKey
+          + " in 3dmod ", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -1198,8 +1168,7 @@ public abstract class BaseManager {
    *          True if duplicating or extracting data from another param file to
    *          create this project.
    */
-  boolean loadParamFile(File paramFile, AxisID axisID,
-      boolean loadedFromADifferentFile) {
+  boolean loadParamFile(File paramFile, AxisID axisID, boolean loadedFromADifferentFile) {
     FileInputStream processDataStream;
     // Set the current working directory for the application, this is the
     // path to the EDF or EJF file. The working directory is defined by the
@@ -1210,10 +1179,9 @@ public abstract class BaseManager {
     paramFile = new File(paramFile.getAbsolutePath());
     propertyUserDir = paramFile.getParent();
     StringBuffer invalidReason = new StringBuffer();
-    if (!Utilities.isValidFile(paramFile, "Parameter file", invalidReason,
-        true, true, true, false)) {
-      uiHarness.openMessageDialog(this, invalidReason.toString(), "File Error",
-          axisID);
+    if (!Utilities.isValidFile(paramFile, "Parameter file", invalidReason, true, true,
+        true, false)) {
+      uiHarness.openMessageDialog(this, invalidReason.toString(), "File Error", axisID);
       return false;
     }
     this.paramFile = paramFile;
@@ -1255,10 +1223,10 @@ public abstract class BaseManager {
         Utilities.renameFile(file, backupFile);
       }
       catch (IOException except) {
-        System.err.println("Unable to backup file: " + file.getAbsolutePath()
-            + " to " + backupFile.getAbsolutePath());
-        uiHarness.openMessageDialog(this, except.getMessage(),
-            "File Rename Error", axisID);
+        System.err.println("Unable to backup file: " + file.getAbsolutePath() + " to "
+            + backupFile.getAbsolutePath());
+        uiHarness.openMessageDialog(this, except.getMessage(), "File Rename Error",
+            axisID);
       }
     }
   }
@@ -1272,21 +1240,20 @@ public abstract class BaseManager {
    * @param axisID
    */
   public final void processDone(String threadName, int exitValue,
-      ProcessName processName, AxisID axisID, ProcessEndState endState,
-      boolean failed, ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries, boolean nonBlocking) {
-    processDone(threadName, exitValue, processName, axisID, false, endState,
-        null, failed, processResultDisplay, processSeries, nonBlocking);
+      ProcessName processName, AxisID axisID, ProcessEndState endState, boolean failed,
+      ProcessResultDisplay processResultDisplay, ConstProcessSeries processSeries,
+      boolean nonBlocking) {
+    processDone(threadName, exitValue, processName, axisID, false, endState, null,
+        failed, processResultDisplay, processSeries, nonBlocking);
   }
 
   public final void processDone(String threadName, int exitValue,
       ProcessName processName, AxisID axisID, boolean forceNextProcess,
       ProcessEndState endState, boolean failed,
-      ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries, boolean nonBlocking) {
-    processDone(threadName, exitValue, processName, axisID, forceNextProcess,
-        endState, null, failed, processResultDisplay, processSeries,
-        nonBlocking);
+      ProcessResultDisplay processResultDisplay, ConstProcessSeries processSeries,
+      boolean nonBlocking) {
+    processDone(threadName, exitValue, processName, axisID, forceNextProcess, endState,
+        null, failed, processResultDisplay, processSeries, nonBlocking);
   }
 
   /**
@@ -1298,8 +1265,8 @@ public abstract class BaseManager {
   public final void processDone(String threadName, int exitValue,
       ProcessName processName, AxisID axisID, boolean forceNextProcess,
       ProcessEndState endState, String statusString, boolean failed,
-      ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries, boolean nonBlocking) {
+      ProcessResultDisplay processResultDisplay, ConstProcessSeries processSeries,
+      boolean nonBlocking) {
     if (threadName.equals(threadNameA)) {
       getMainPanel().stopProgressBar(AxisID.FIRST, endState, statusString);
       threadNameA = "none";
@@ -1313,8 +1280,8 @@ public abstract class BaseManager {
       // axisID = AxisID.SECOND;
     }
     else if (!nonBlocking) {
-      uiHarness.openMessageDialog(this, "Unknown thread finished!!!"
-          + "\nThread name: " + threadName, "Unknown Thread", axisID);
+      uiHarness.openMessageDialog(this, "Unknown thread finished!!!" + "\nThread name: "
+          + threadName, "Unknown Thread", axisID);
     }
     if (processName != null) {
       updateDialog(processName, axisID);
@@ -1323,8 +1290,7 @@ public abstract class BaseManager {
     // forceNextProcess is true (unless the user killed the process, it makes
     // the
     // nextProcess execute even when the current process failed).
-    if (endState != ProcessEndState.KILLED
-        && (exitValue == 0 || forceNextProcess)) {
+    if (endState != ProcessEndState.KILLED && (exitValue == 0 || forceNextProcess)) {
       if (processSeries == null
           || !processSeries.startNextProcess(axisID, processResultDisplay)) {
         sendMsgProcessSucceeded(processResultDisplay);
@@ -1383,11 +1349,10 @@ public abstract class BaseManager {
     if (processData.isRunning()) {
       // Handles the case where ssh hostname ps finds the pid of this process.
       if (uiHarness.openYesNoDialog(this, "WARNING:  Cannot connect to "
-          + processData.getProcessName() + ".  The process is running on "
-          + hostName + ".  Please exit Etomo, run xhost " + hostName
-          + ", ssh to " + hostName
-          + ", and run etomo in order to connect to this process.  Exit "
-          + "Etomo Y/N?", axisID)) {
+          + processData.getProcessName() + ".  The process is running on " + hostName
+          + ".  Please exit Etomo, run xhost " + hostName + ", ssh to " + hostName
+          + ", and run etomo in order to connect to this process.  Exit " + "Etomo Y/N?",
+          axisID)) {
         // Exit from etomo.
         uiHarness.exit(AxisID.ONLY);
       }
@@ -1396,12 +1361,11 @@ public abstract class BaseManager {
       // Handles the case where the ssh fails.
       uiHarness.openMessageDialog(this, "WARNING:  Cannot connect to "
           + processData.getProcessName() + ".  This process may be running on "
-          + hostName + ".  Unable to connect to " + hostName
-          + " to find out.  If " + processData.getProcessName()
-          + " is still running on " + hostName
-          + ", please exit Etomo, run xhost " + hostName + ", ssh to "
-          + hostName + ", and run etomo in order to connect to this process.",
-          "Reconnect Warning", axisID);
+          + hostName + ".  Unable to connect to " + hostName + " to find out.  If "
+          + processData.getProcessName() + " is still running on " + hostName
+          + ", please exit Etomo, run xhost " + hostName + ", ssh to " + hostName
+          + ", and run etomo in order to connect to this process.", "Reconnect Warning",
+          axisID);
     }
   }
 
@@ -1436,11 +1400,10 @@ public abstract class BaseManager {
           return false;
         }
         if (processData.isRunning()) {
-          System.err.println("\nAttempting to reconnect in Axis "
-              + axisID.toString() + "\n" + processData);
+          System.err.println("\nAttempting to reconnect in Axis " + axisID.toString()
+              + "\n" + processData);
           if (!reconnectProcesschunks(processData, axisID)) {
-            System.err.println("\nReconnect in Axis" + axisID.toString()
-                + " failed");
+            System.err.println("\nReconnect in Axis" + axisID.toString() + " failed");
           }
           getProcessManager().unblockAxis(axisID);
           return true;
@@ -1458,15 +1421,15 @@ public abstract class BaseManager {
 
   public boolean reconnectProcesschunks(ProcessData processData, AxisID axisID) {
     ProcessResultDisplayFactoryInterface factory = getProcessResultDisplayFactoryInterface(axisID);
-    ProcessResultDisplay display = getProcessResultDisplayFactoryInterface(
-        axisID).getProcessResultDisplay(processData.getDisplayKey().getInt());
+    ProcessResultDisplay display = getProcessResultDisplayFactoryInterface(axisID)
+        .getProcessResultDisplay(processData.getDisplayKey().getInt());
     if (display != null) {
       sendMsgProcessStarting(display);
     }
     MainPanel mainPanel = getMainPanel();
     //FIXME - null pointer getPArallelPanel
-    boolean ret = getProcessManager().reconnectProcesschunks(axisID,
-        processData, display);
+    boolean ret = getProcessManager()
+        .reconnectProcesschunks(axisID, processData, display);
     setThreadName(processData.getProcessName().toString(), axisID);
     return ret;
   }
@@ -1477,13 +1440,11 @@ public abstract class BaseManager {
    * @param axisID
    */
   public void processchunks(AxisID axisID, ProcesschunksParam param,
-      ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries, boolean popupChunkWarnings,
-      ProcessingMethod processingMethod) {
+      ProcessResultDisplay processResultDisplay, ConstProcessSeries processSeries,
+      boolean popupChunkWarnings, ProcessingMethod processingMethod) {
     ParallelPanel parallelPanel = getMainPanel().getParallelPanel(axisID);
     BaseMetaData metaData = getBaseMetaData();
-    metaData.setCurrentProcesschunksRootName(axisID, param.getRootName()
-        .toString());
+    metaData.setCurrentProcesschunksRootName(axisID, param.getRootName().toString());
     metaData.setCurrentProcesschunksSubdirName(axisID, param.getSubdirName());
     saveStorable(axisID, metaData);
     String threadName;
@@ -1497,8 +1458,8 @@ public abstract class BaseManager {
       String[] message = new String[2];
       message[0] = "Can not execute " + ProcessName.PROCESSCHUNKS;
       message[1] = e.getMessage();
-      UIHarness.INSTANCE.openMessageDialog(this, message,
-          "Unable to execute command", axisID);
+      UIHarness.INSTANCE.openMessageDialog(this, message, "Unable to execute command",
+          axisID);
       if (processResultDisplay != null) {
         processResultDisplay.msgProcessFailedToStart();
       }
@@ -1524,8 +1485,7 @@ public abstract class BaseManager {
    * @param axisID
    * @param processResultDisplay
    */
-  final void processDone(AxisID axisID,
-      ProcessResultDisplay processResultDisplay,
+  final void processDone(AxisID axisID, ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries) {
     if (processSeries == null
         || !processSeries.startNextProcess(axisID, processResultDisplay)) {
@@ -1619,19 +1579,18 @@ public abstract class BaseManager {
   public final void savePreferences(AxisID axisID, Storable storable) {
     MainPanel mainPanel = getMainPanel();
     try {
-      ParameterStore localParameterStore = EtomoDirector.INSTANCE
-          .getParameterStore();
+      ParameterStore localParameterStore = EtomoDirector.INSTANCE.getParameterStore();
       localParameterStore.save(storable);
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(this, "Unable to save preferences.\n"
-          + e.getMessage(), "Etomo Error", axisID);
+      uiHarness.openMessageDialog(this, "Unable to save preferences.\n" + e.getMessage(),
+          "Etomo Error", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(this, "Unable to save preferences.\n"
-          + e.getMessage(), "Etomo Error", axisID);
+      uiHarness.openMessageDialog(this, "Unable to save preferences.\n" + e.getMessage(),
+          "Etomo Error", axisID);
     }
   }
 
@@ -1688,9 +1647,8 @@ public abstract class BaseManager {
    * @param subcommandDetails
    */
   public final void resume(AxisID axisID, ProcesschunksParam param,
-      ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries, Container root,
-      CommandDetails subcommandDetails, boolean popupChunkWarnings,
+      ProcessResultDisplay processResultDisplay, ConstProcessSeries processSeries,
+      Container root, CommandDetails subcommandDetails, boolean popupChunkWarnings,
       ProcessingMethod processingMethod) {
     sendMsgProcessStarting(processResultDisplay);
     BaseMetaData metaData = getBaseMetaData();
@@ -1700,13 +1658,11 @@ public abstract class BaseManager {
         param = new ProcesschunksParam(this, axisID, rootName, null);
         param.setSubcommandDetails(subcommandDetails);
         if (metaData.isCurrentProcesschunksSubdirNameSet(axisID)) {
-          param.setSubdirName(metaData
-              .getCurrentProcesschunksSubdirName(axisID));
+          param.setSubdirName(metaData.getCurrentProcesschunksSubdirName(axisID));
         }
       }
       else {
-        uiHarness.openMessageDialog(this, "No command to resume",
-            "Resume Failed");
+        uiHarness.openMessageDialog(this, "No command to resume", "Resume Failed");
         sendMsgProcessFailedToStart(processResultDisplay);
         return;
       }
@@ -1727,8 +1683,7 @@ public abstract class BaseManager {
       String[] message = new String[2];
       message[0] = "Can not execute " + ProcessName.PROCESSCHUNKS;
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(this, message, "Unable to execute command",
-          axisID);
+      uiHarness.openMessageDialog(this, message, "Unable to execute command", axisID);
       return;
     }
     setThreadName(threadName, axisID);
@@ -1741,6 +1696,12 @@ public abstract class BaseManager {
 /**
  * <p>
  * $Log$
+ * Revision 1.137  2011/02/03 05:51:42  sueh
+ * bug# 1422 Using ProcessingMethod to keep track of which type of
+ * processing method is in use.  The decisions about when to display the
+ * parallel processing table have been centralized in
+ * ProcessingMethodMediator.
+ *
  * Revision 1.136  2010/11/13 16:02:54  sueh
  * bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  *
