@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/7/11: In eTomo - PEET, made Sample Interval a float.
+
+2/7/11: In eTomo - Fiducial Model Gen., opening tracked patches in 3dmod movie
+mode.
+
 2/6/11: Fixed problems with running large numbers of processes in the
 processchunks application.
 
