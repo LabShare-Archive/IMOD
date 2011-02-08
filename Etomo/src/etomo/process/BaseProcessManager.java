@@ -46,6 +46,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.96  2011/02/03 05:58:48  sueh
+ * <p> bug# 1422 Sending the processing method to parallel processing
+ * <p> functions so it can be used for reconnecting.
+ * <p>
  * <p> Revision 1.95  2010/11/13 16:03:45  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -535,46 +539,41 @@ public abstract class BaseProcessManager {
 
   final String paramString() {
     return "threadAxisA=" + threadAxisA + ",threadAxisB=" + threadAxisB
-        + ",\nprocessMonitorA=" + processMonitorA + ",processMonitorB="
-        + processMonitorB + ",\nkilledList=" + killedList + ",uiHarness="
-        + uiHarness + "," + super.toString();
+        + ",\nprocessMonitorA=" + processMonitorA + ",processMonitorB=" + processMonitorB
+        + ",\nkilledList=" + killedList + ",uiHarness=" + uiHarness + ","
+        + super.toString();
   }
 
-  public final void startLoad(final IntermittentCommand param,
-      final LoadMonitor monitor) {
+  public final void startLoad(final IntermittentCommand param, final LoadMonitor monitor) {
     IntermittentBackgroundProcess.startInstance(manager, param, monitor);
   }
 
-  public final void endLoad(final IntermittentCommand param,
-      final LoadMonitor monitor) {
+  public final void endLoad(final IntermittentCommand param, final LoadMonitor monitor) {
     IntermittentBackgroundProcess.endInstance(manager, param, monitor);
   }
 
-  public final void stopLoad(final IntermittentCommand param,
-      final LoadMonitor monitor) {
+  public final void stopLoad(final IntermittentCommand param, final LoadMonitor monitor) {
     IntermittentBackgroundProcess.stopInstance(manager, param, monitor);
   }
 
   public String xfmodel(XfmodelParam param, AxisID axisID,
-      ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries) throws SystemProcessException {
+      ProcessResultDisplay processResultDisplay, ConstProcessSeries processSeries)
+      throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param, axisID,
         processResultDisplay, ProcessName.XFMODEL, processSeries);
     return backgroundProcess.getName();
   }
 
   public final boolean reconnectProcesschunks(final AxisID axisID,
-      final ProcessData processData,
-      final ProcessResultDisplay processResultDisplay) {
+      final ProcessData processData, final ProcessResultDisplay processResultDisplay) {
     ProcesschunksProcessMonitor monitor = ProcesschunksProcessMonitor
         .getReconnectInstance(manager, axisID, processData);
     monitor.setSubdirName(processData.getSubDirName());
     boolean ret;
     try {
-      ReconnectProcess process = ReconnectProcess.getLogInstance(manager, this,
-          monitor, getSavedProcessData(axisID), axisID, monitor
-              .getLogFileName(), ProcesschunksProcessMonitor.SUCCESS_TAG,
-          processData.getSubDirName());
+      ReconnectProcess process = ReconnectProcess.getLogInstance(manager, this, monitor,
+          getSavedProcessData(axisID), axisID, monitor.getLogFileName(),
+          ProcesschunksProcessMonitor.SUCCESS_TAG, processData.getSubDirName());
       monitor.setProcess(process);
       process.setProcessResultDisplay(processResultDisplay);
       Thread thread = new Thread(process);
@@ -598,8 +597,7 @@ public abstract class BaseProcessManager {
    * @return
    * @throws SystemProcessException
    */
-  public final String processchunks(final AxisID axisID,
-      final ProcesschunksParam param,
+  public final String processchunks(final AxisID axisID, final ProcesschunksParam param,
       final ParallelProgressDisplay parallelProgressDisplay,
       final ProcessResultDisplay processResultDisplay,
       final ConstProcessSeries processSeries, boolean popupChunkWarnings,
@@ -607,25 +605,23 @@ public abstract class BaseProcessManager {
     // Instantiate the process monitor
     ProcesschunksProcessMonitor monitor;
     if (param.equalsRootName(ProcessName.VOLCOMBINE, axisID)) {
-      monitor = new ProcesschunksVolcombineMonitor(manager, axisID, param
-          .getRootName(), param.getComputerMap());
+      monitor = new ProcesschunksVolcombineMonitor(manager, axisID, param.getRootName(),
+          param.getComputerMap());
     }
     else {
-      monitor = new ProcesschunksProcessMonitor(manager, axisID, param
-          .getRootName(), param.getComputerMap());
+      monitor = new ProcesschunksProcessMonitor(manager, axisID, param.getRootName(),
+          param.getComputerMap());
     }
     BackgroundProcess process;
     if (param.isSubdirNameEmpty()) {
-      process = startDetachedProcess(param, axisID, monitor,
-          processResultDisplay, ProcessName.PROCESSCHUNKS, processSeries,
-          popupChunkWarnings, processingMethod);
+      process = startDetachedProcess(param, axisID, monitor, processResultDisplay,
+          ProcessName.PROCESSCHUNKS, processSeries, popupChunkWarnings, processingMethod);
     }
     else {
       monitor.setSubdirName(param.getSubdirName());
-      process = startDetachedProcess(param, axisID, monitor,
-          processResultDisplay, ProcessName.PROCESSCHUNKS, param
-              .getSubdirName(), param.getShortCommandName(), processSeries,
-          popupChunkWarnings, processingMethod);
+      process = startDetachedProcess(param, axisID, monitor, processResultDisplay,
+          ProcessName.PROCESSCHUNKS, param.getSubdirName(), param.getShortCommandName(),
+          processSeries, popupChunkWarnings, processingMethod);
     }
     return process.getName();
   }
@@ -638,26 +634,26 @@ public abstract class BaseProcessManager {
     File dir = file.getParentFile();
     if (!dir.exists()) {
       if (!dir.mkdirs()) {
-        uiHarness.openMessageDialog(manager, "Unable to create "
-            + dir.getAbsolutePath(), "File Error");
+        uiHarness.openMessageDialog(manager, "Unable to create " + dir.getAbsolutePath(),
+            "File Error");
         return;
       }
     }
     if (!dir.canWrite()) {
-      uiHarness.openMessageDialog(manager, "Cannot write to "
-          + dir.getAbsolutePath(), "File Error");
+      uiHarness.openMessageDialog(manager, "Cannot write to " + dir.getAbsolutePath(),
+          "File Error");
       return;
     }
     try {
       if (!file.createNewFile()) {
-        uiHarness.openMessageDialog(manager, "Cannot create  "
-            + file.getAbsolutePath(), "File Error");
+        uiHarness.openMessageDialog(manager, "Cannot create  " + file.getAbsolutePath(),
+            "File Error");
       }
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(manager, "Cannot create  "
-          + file.getAbsolutePath() + ".\n" + e.getMessage(), "File Error");
+      uiHarness.openMessageDialog(manager, "Cannot create  " + file.getAbsolutePath()
+          + ".\n" + e.getMessage(), "File Error");
     }
   }
 
@@ -730,21 +726,21 @@ public abstract class BaseProcessManager {
   final ComScriptProcess startComScript(final String command,
       final ProcessMonitor processMonitor, final AxisID axisID,
       final ProcessResultDisplay processResultDisplay,
-      final ProcessDetails processDetails,
-      final ConstProcessSeries processSeries) throws SystemProcessException {
-    return startComScript(new ComScriptProcess(manager, command, this, axisID,
-        null, processMonitor, processResultDisplay, processDetails,
-        processSeries), command, processMonitor, axisID);
+      final ProcessDetails processDetails, final ConstProcessSeries processSeries)
+      throws SystemProcessException {
+    return startComScript(new ComScriptProcess(manager, command, this, axisID, null,
+        processMonitor, processResultDisplay, processDetails, processSeries), command,
+        processMonitor, axisID);
   }
 
   final ComScriptProcess startComScript(final String command,
       final ProcessMonitor processMonitor, final AxisID axisID,
       final ProcessResultDisplay processResultDisplay,
-      final CommandDetails commandDetails,
-      final ConstProcessSeries processSeries) throws SystemProcessException {
-    return startComScript(new ComScriptProcess(manager, command, this, axisID,
-        null, processMonitor, processResultDisplay, commandDetails,
-        processSeries), command, processMonitor, axisID);
+      final CommandDetails commandDetails, final ConstProcessSeries processSeries)
+      throws SystemProcessException {
+    return startComScript(new ComScriptProcess(manager, command, this, axisID, null,
+        processMonitor, processResultDisplay, commandDetails, processSeries), command,
+        processMonitor, axisID);
   }
 
   /**
@@ -759,9 +755,9 @@ public abstract class BaseProcessManager {
       final ProcessMonitor processMonitor, final AxisID axisID,
       final ProcessResultDisplay processResultDisplay, final Command command,
       final ConstProcessSeries processSeries) throws SystemProcessException {
-    return startComScript(new ComScriptProcess(manager, commandString, this,
-        axisID, null, processMonitor, processResultDisplay, command,
-        processSeries), commandString, processMonitor, axisID);
+    return startComScript(new ComScriptProcess(manager, commandString, this, axisID,
+        null, processMonitor, processResultDisplay, command, processSeries),
+        commandString, processMonitor, axisID);
   }
 
   /**
@@ -776,9 +772,9 @@ public abstract class BaseProcessManager {
       final ProcessMonitor processMonitor, final AxisID axisID,
       final ProcessResultDisplay processResultDisplay,
       final ConstProcessSeries processSeries) throws SystemProcessException {
-    return startComScript(new ComScriptProcess(manager, command, this, axisID,
-        null, processMonitor, processResultDisplay, processSeries), command,
-        processMonitor, axisID);
+    return startComScript(new ComScriptProcess(manager, command, this, axisID, null,
+        processMonitor, processResultDisplay, processSeries), command, processMonitor,
+        axisID);
   }
 
   /**
@@ -794,9 +790,9 @@ public abstract class BaseProcessManager {
       final ProcessResultDisplay processResultDisplay, final Command command,
       final ConstProcessSeries processSeries, final FileType fileType)
       throws SystemProcessException {
-    return startComScript(new ComScriptProcess(manager, commandString, command,
-        this, axisID, null, processMonitor, processResultDisplay,
-        processSeries, fileType), commandString, processMonitor, axisID);
+    return startComScript(new ComScriptProcess(manager, commandString, command, this,
+        axisID, null, processMonitor, processResultDisplay, processSeries, fileType),
+        commandString, processMonitor, axisID);
   }
 
   /**
@@ -807,11 +803,10 @@ public abstract class BaseProcessManager {
    * @return
    * @throws SystemProcessException
    */
-  final void startNonBlockingComScript(final String command,
-      final AxisID axisID, final ProcessResultDisplay processResultDisplay)
-      throws SystemProcessException {
-    startNonBlockingComScript(new ComScriptProcess(manager, command, this,
-        axisID, processResultDisplay), command, axisID);
+  final void startNonBlockingComScript(final String command, final AxisID axisID,
+      final ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+    startNonBlockingComScript(new ComScriptProcess(manager, command, this, axisID,
+        processResultDisplay), command, axisID);
   }
 
   /**
@@ -825,8 +820,8 @@ public abstract class BaseProcessManager {
   final ComScriptProcess startComScript(final String command,
       final ProcessMonitor processMonitor, final AxisID axisID,
       final ConstProcessSeries processSeries) throws SystemProcessException {
-    return startComScript(new ComScriptProcess(manager, command, this, axisID,
-        null, processMonitor, processSeries), command, processMonitor, axisID);
+    return startComScript(new ComScriptProcess(manager, command, this, axisID, null,
+        processMonitor, processSeries), command, processMonitor, axisID);
   }
 
   /**
@@ -840,9 +835,9 @@ public abstract class BaseProcessManager {
   final ComScriptProcess startComScript(final CommandDetails commandDetails,
       final ProcessMonitor processMonitor, final AxisID axisID,
       final ConstProcessSeries processSeries) throws SystemProcessException {
-    return startComScript(new ComScriptProcess(manager, commandDetails, this,
-        axisID, null, processMonitor, processSeries), commandDetails
-        .getCommandLine(), processMonitor, axisID);
+    return startComScript(new ComScriptProcess(manager, commandDetails, this, axisID,
+        null, processMonitor, processSeries), commandDetails.getCommandLine(),
+        processMonitor, axisID);
   }
 
   /**
@@ -856,31 +851,29 @@ public abstract class BaseProcessManager {
   final ComScriptProcess startComScript(final CommandDetails commandDetails,
       final ProcessMonitor processMonitor, final AxisID axisID,
       final ProcessResultDisplay processResultDisplay,
-      final ConstProcessSeries processSeries,
-      final ProcessingMethod processingMethod) throws SystemProcessException {
-    return startComScript(new ComScriptProcess(manager, commandDetails, this,
-        axisID, null, processMonitor, processResultDisplay, processSeries,
-        processingMethod), commandDetails.getCommandLine(), processMonitor,
-        axisID);
+      final ConstProcessSeries processSeries, final ProcessingMethod processingMethod)
+      throws SystemProcessException {
+    return startComScript(new ComScriptProcess(manager, commandDetails, this, axisID,
+        null, processMonitor, processResultDisplay, processSeries, processingMethod),
+        commandDetails.getCommandLine(), processMonitor, axisID);
   }
 
   final ComScriptProcess startComScript(final Command command,
       final ProcessMonitor processMonitor, final AxisID axisID,
       final ProcessResultDisplay processResultDisplay,
       final ConstProcessSeries processSeries) throws SystemProcessException {
-    return startComScript(new ComScriptProcess(manager, command, this, axisID,
-        null, processMonitor, processResultDisplay, processSeries, null),
-        command.getCommandLine(), processMonitor, axisID);
+    return startComScript(new ComScriptProcess(manager, command, this, axisID, null,
+        processMonitor, processResultDisplay, processSeries, null), command
+        .getCommandLine(), processMonitor, axisID);
   }
 
   final ComScriptProcess startComScript(final CommandDetails CommandDetails,
       final ProcessMonitor processMonitor, final AxisID axisID,
       final ProcessResultDisplay processResultDisplay,
       final ConstProcessSeries processSeries) throws SystemProcessException {
-    return startComScript(
-        new ComScriptProcess(manager, CommandDetails, this, axisID, null,
-            processMonitor, processResultDisplay, processSeries, null),
-        CommandDetails.getCommandLine(), processMonitor, axisID);
+    return startComScript(new ComScriptProcess(manager, CommandDetails, this, axisID,
+        null, processMonitor, processResultDisplay, processSeries, null), CommandDetails
+        .getCommandLine(), processMonitor, axisID);
   }
 
   /**
@@ -895,9 +888,9 @@ public abstract class BaseProcessManager {
       final DetachedProcessMonitor processMonitor, final AxisID axisID,
       final ComscriptState comscriptState, final String watchedFileName,
       final ConstProcessSeries processSeries) throws SystemProcessException {
-    BackgroundComScriptProcess process = new BackgroundComScriptProcess(
-        manager, comscript, this, axisID, watchedFileName, processMonitor,
-        comscriptState, processSeries);
+    BackgroundComScriptProcess process = new BackgroundComScriptProcess(manager,
+        comscript, this, axisID, watchedFileName, processMonitor, comscriptState,
+        processSeries);
     processMonitor.setProcess(process);
     return startComScript(process, comscript, processMonitor, axisID);
   }
@@ -916,8 +909,7 @@ public abstract class BaseProcessManager {
       final String watchedFileName, final ConstProcessSeries processSeries)
       throws SystemProcessException {
     return startComScript(new ComScriptProcess(manager, command, this, axisID,
-        watchedFileName, processMonitor, processSeries), command,
-        processMonitor, axisID);
+        watchedFileName, processMonitor, processSeries), command, processMonitor, axisID);
   }
 
   /**
@@ -929,17 +921,15 @@ public abstract class BaseProcessManager {
    * @return
    * @throws SystemProcessException
    */
-  final ComScriptProcess startComScript(
-      final ComScriptProcess comScriptProcess, final String command,
-      Runnable processMonitor, final AxisID axisID)
+  final ComScriptProcess startComScript(final ComScriptProcess comScriptProcess,
+      final String command, Runnable processMonitor, final AxisID axisID)
       throws SystemProcessException {
     // Make sure there isn't something going on in the current axis
     isAxisBusy(axisID, comScriptProcess.getProcessResultDisplay());
     comScriptProcess.closeOutputImageFile();
 
     // Run the script as a thread in the background
-    comScriptProcess
-        .setWorkingDirectory(new File(manager.getPropertyUserDir()));
+    comScriptProcess.setWorkingDirectory(new File(manager.getPropertyUserDir()));
     comScriptProcess.setDebug(etomoDirector.getArguments().isDebug());
     comScriptProcess.setDemoMode(etomoDirector.getArguments().isDemo());
     manager.saveStorables(axisID);
@@ -956,8 +946,8 @@ public abstract class BaseProcessManager {
     Thread processMonitorThread = null;
     // Replace the process monitor with a DemoProcessMonitor if demo mode is on
     if (etomoDirector.getArguments().isDemo()) {
-      processMonitor = new DemoProcessMonitor(manager, axisID, command,
-          comScriptProcess.getDemoTime());
+      processMonitor = new DemoProcessMonitor(manager, axisID, command, comScriptProcess
+          .getDemoTime());
     }
 
     // Start the process monitor thread if a runnable process is provided
@@ -972,8 +962,8 @@ public abstract class BaseProcessManager {
           break;
         }
       }
-      processMonitorThread = new Thread(new etomo.process.ThreadGroup(
-          "startComScript"), processMonitor);
+      processMonitorThread = new Thread(new etomo.process.ThreadGroup("startComScript"),
+          processMonitor);
       processMonitorThread.start();
       mapAxisProcessMonitor(processMonitorThread, axisID);
     }
@@ -992,8 +982,7 @@ public abstract class BaseProcessManager {
       final String command, final AxisID axisID) throws SystemProcessException {
     // Run the script as a thread in the background
     comScriptProcess.closeOutputImageFile();
-    comScriptProcess
-        .setWorkingDirectory(new File(manager.getPropertyUserDir()));
+    comScriptProcess.setWorkingDirectory(new File(manager.getPropertyUserDir()));
     comScriptProcess.setDebug(etomoDirector.getArguments().isDebug());
     comScriptProcess.setDemoMode(etomoDirector.getArguments().isDemo());
     comScriptProcess.setNonBlocking();
@@ -1016,8 +1005,8 @@ public abstract class BaseProcessManager {
         e.printStackTrace();
       }
       uiHarness.openMessageDialog(manager,
-          "A process is already executing in the current axis",
-          "Cannot run process", axisID);
+          "A process is already executing in the current axis", "Cannot run process",
+          axisID);
       return true;
     }
     return false;
@@ -1031,8 +1020,7 @@ public abstract class BaseProcessManager {
    * @throws SystemProcessException
    */
   final void isAxisBusy(final AxisID axisID,
-      final ProcessResultDisplay processResultDisplay)
-      throws SystemProcessException {
+      final ProcessResultDisplay processResultDisplay) throws SystemProcessException {
     // Check to make sure there is not another process already running on this
     // axis.
     boolean busy = false;
@@ -1105,8 +1093,7 @@ public abstract class BaseProcessManager {
 
   private void saveProcessData(final ProcessData processData) {
     try {
-      ParameterStore paramStore = ParameterStore.getInstance(manager
-          .getParamFile());
+      ParameterStore paramStore = ParameterStore.getInstance(manager.getParamFile());
       if (paramStore == null) {
         return;
       }
@@ -1126,8 +1113,7 @@ public abstract class BaseProcessManager {
    * @param thread
    * @param axisID
    */
-  final void mapAxisThread(final SystemProcessInterface thread,
-      final AxisID axisID) {
+  final void mapAxisThread(final SystemProcessInterface thread, final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       threadAxisB = thread;
     }
@@ -1142,8 +1128,7 @@ public abstract class BaseProcessManager {
    * @param processMonitor
    * @param axisID
    */
-  private void mapAxisProcessMonitor(final Thread processMonitor,
-      final AxisID axisID) {
+  private void mapAxisProcessMonitor(final Thread processMonitor, final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       processMonitorB = processMonitor;
     }
@@ -1242,8 +1227,7 @@ public abstract class BaseProcessManager {
    * 
    * @param processID
    */
-  private void killProcessAndDescendants(final String processID,
-      final AxisID axisID) {
+  private void killProcessAndDescendants(final String processID, final AxisID axisID) {
     if (processID == null || processID.equals("")) {
       return;
     }
@@ -1264,17 +1248,14 @@ public abstract class BaseProcessManager {
     // there are no more unkilled child processes so kill process with a SIGKILL
     // signal
     kill("-9", processID, axisID);
-    System.err.println("killProcessAndDescendants:kill " + "-9" + " "
-        + processID);
+    System.err.println("killProcessAndDescendants:kill " + "-9" + " " + processID);
     // record killed process
     killedList.put(processID, "");
   }
 
-  private void kill(final String signal, final String processID,
-      final AxisID axisID) {
-    SystemProgram killShell = new SystemProgram(manager, manager
-        .getPropertyUserDir(), new String[] { "kill", signal, processID },
-        axisID);
+  private void kill(final String signal, final String processID, final AxisID axisID) {
+    SystemProgram killShell = new SystemProgram(manager, manager.getPropertyUserDir(),
+        new String[] { "kill", signal, processID }, axisID);
     killShell.run();
     //"kill " + signal + " " + processID + " at " + killShell.getRunTimestamp());
     Utilities.debugPrint("kill " + signal + " " + processID + " at "
@@ -1290,8 +1271,7 @@ public abstract class BaseProcessManager {
    * @param processID
    * @return A PID of a child process or null
    */
-  private String[] getChildProcessList(final String processID,
-      final AxisID axisID) {
+  private String[] getChildProcessList(final String processID, final AxisID axisID) {
     Utilities.debugPrint("in getChildProcessList: processID=" + processID);
     // ps -l: get user processes on this terminal
     SystemProgram ps = new SystemProgram(manager, manager.getPropertyUserDir(),
@@ -1342,8 +1322,7 @@ public abstract class BaseProcessManager {
     for (int i = 1; i < stdout.length; i++) {
       // System.out.println(stdout[i]);
       fields = stdout[i].trim().split("\\s+");
-      if (fields[idxPPID].equals(processID)
-          && !killedList.containsKey(fields[idxPID])) {
+      if (fields[idxPPID].equals(processID) && !killedList.containsKey(fields[idxPID])) {
         if (idxCMD != -1) {
           Utilities.debugPrint("child found:PID=" + fields[idxPID] + ",PPID="
               + fields[idxPPID] + ",name=" + fields[idxCMD]);
@@ -1358,8 +1337,7 @@ public abstract class BaseProcessManager {
     }
 
     // Connvert the ArrayList into a String[]
-    String[] children = (String[]) childrenPID.toArray(new String[childrenPID
-        .size()]);
+    String[] children = (String[]) childrenPID.toArray(new String[childrenPID.size()]);
     return children;
   }
 
@@ -1416,8 +1394,7 @@ public abstract class BaseProcessManager {
     String[] fields;
     for (int i = 1; i < stdout.length; i++) {
       fields = stdout[i].trim().split("\\s+");
-      if (fields[idxPPID].equals(processID)
-          && !killedList.containsKey(fields[idxPID])) {
+      if (fields[idxPPID].equals(processID) && !killedList.containsKey(fields[idxPID])) {
         if (idxCMD != -1) {
           Utilities.debugPrint("child found:PID=" + fields[idxPID] + ",PPID="
               + fields[idxPPID] + ",name=" + fields[idxCMD]);
@@ -1436,25 +1413,23 @@ public abstract class BaseProcessManager {
    * @param exitValue
    *          the exit value for the com script
    */
-  public final void msgComScriptDone(final ComScriptProcess script,
-      final int exitValue, final boolean nonBlocking) {
-    System.err
-        .println("msgComScriptDone:scriptName=" + script.getComScriptName()
-            + ",processName=" + script.getProcessName());
+  public final void msgComScriptDone(final ComScriptProcess script, final int exitValue,
+      final boolean nonBlocking) {
+    System.err.println("msgComScriptDone:scriptName=" + script.getComScriptName()
+        + ",processName=" + script.getProcessName());
     if (exitValue != 0) {
       String[] stdError = script.getStdError();
       ProcessMessages combinedMessages = ProcessMessages.getInstance();
       // Is the last string "Killed"
       if (stdError != null && stdError.length > 0
           && stdError[stdError.length - 1].trim().equals("Killed")) {
-        combinedMessages.addError("<html>Terminated: "
-            + script.getComScriptName());
+        combinedMessages.addError("<html>Terminated: " + script.getComScriptName());
       }
       else {
         ProcessMessages messages = script.getProcessMessages();/* Error */
         int j = 0;
-        combinedMessages.addError("<html>Com script failed: "
-            + script.getComScriptName());
+        combinedMessages
+            .addError("<html>Com script failed: " + script.getComScriptName());
         combinedMessages.addError("\n<html><U>Log file errors:</U>");
         combinedMessages.addError(messages);
         combinedMessages.addError("\n<html><U>Standard error output:</U>");
@@ -1474,8 +1449,8 @@ public abstract class BaseProcessManager {
       ProcessMessages messages = script.getProcessMessages();/* Warning */
       if (messages.warningListSize() > 0) {
         messages.addWarning("Com script: " + script.getComScriptName());
-        uiHarness.openWarningMessageDialog(manager, messages,
-            "Comscript Warnings", script.getAxisID());
+        uiHarness.openWarningMessageDialog(manager, messages, "Comscript Warnings",
+            script.getAxisID());
       }
     }
     manager.saveStorables(script.getAxisID());
@@ -1497,13 +1472,12 @@ public abstract class BaseProcessManager {
     }
 
     // Inform the app manager that this process is complete
-    manager.processDone(script.getName(), exitValue, script.getProcessName(),
-        script.getAxisID(), script.getProcessEndState(), exitValue != 0, script
-            .getProcessResultDisplay(), script.getProcessSeries(), nonBlocking);
+    manager.processDone(script.getName(), exitValue, script.getProcessName(), script
+        .getAxisID(), script.getProcessEndState(), exitValue != 0, script
+        .getProcessResultDisplay(), script.getProcessSeries(), nonBlocking);
   }
 
-  public final void msgReconnectDone(final ReconnectProcess script,
-      final int exitValue) {
+  public final void msgReconnectDone(final ReconnectProcess script, final int exitValue) {
     String name = script.getProcessData().getProcessName().toString();
     System.err.println("msgReconnectDone:processName=" + name);
     if (exitValue != 0) {
@@ -1537,8 +1511,8 @@ public abstract class BaseProcessManager {
       ProcessMessages messages = script.getProcessMessages();/* Warning */
       if (messages.warningListSize() > 0) {
         messages.addWarning("Com script: " + name);
-        uiHarness.openWarningMessageDialog(manager, messages,
-            "Reconnect Warnings", script.getAxisID());
+        uiHarness.openWarningMessageDialog(manager, messages, "Reconnect Warnings",
+            script.getAxisID());
       }
     }
     manager.saveStorables(script.getAxisID());
@@ -1559,10 +1533,10 @@ public abstract class BaseProcessManager {
       threadAxisB = null;
     }
     // Inform the app manager that this process is complete
-    manager.processDone(name, exitValue, script.getProcessData()
-        .getProcessName(), script.getAxisID(), script.getProcessEndState(),
-        script.getProcessEndState() != ProcessEndState.DONE || exitValue != 0,
-        script.getProcessResultDisplay(), script.getProcessSeries(), false);
+    manager.processDone(name, exitValue, script.getProcessData().getProcessName(), script
+        .getAxisID(), script.getProcessEndState(),
+        script.getProcessEndState() != ProcessEndState.DONE || exitValue != 0, script
+            .getProcessResultDisplay(), script.getProcessSeries(), false);
   }
 
   /**
@@ -1576,31 +1550,30 @@ public abstract class BaseProcessManager {
       final AxisID axisID, final ProcessResultDisplay processResultDisplay,
       final ProcessName processName, final ConstProcessSeries processSeries)
       throws SystemProcessException {
-    BackgroundProcess backgroundProcess = new BackgroundProcess(manager,
-        command, this, axisID, processResultDisplay, processName, processSeries);
-    return startBackgroundProcess(backgroundProcess, backgroundProcess
-        .getCommandLine(), axisID, null);
+    BackgroundProcess backgroundProcess = new BackgroundProcess(manager, command, this,
+        axisID, processResultDisplay, processName, processSeries);
+    return startBackgroundProcess(backgroundProcess, backgroundProcess.getCommandLine(),
+        axisID, null);
   }
 
   final BackgroundProcess startBackgroundProcess(final String[] commandArray,
       final AxisID axisID, final ProcessResultDisplay processResultDisplay,
       final ProcessName processName, final ConstProcessSeries processSeries)
       throws SystemProcessException {
-    BackgroundProcess backgroundProcess = new BackgroundProcess(manager,
-        commandArray, this, axisID, processResultDisplay, processName,
-        processSeries);
-    return startBackgroundProcess(backgroundProcess, commandArray.toString(),
-        axisID, null);
+    BackgroundProcess backgroundProcess = new BackgroundProcess(manager, commandArray,
+        this, axisID, processResultDisplay, processName, processSeries);
+    return startBackgroundProcess(backgroundProcess, commandArray.toString(), axisID,
+        null);
   }
 
   final BackgroundProcess startBackgroundProcess(final Command command,
       final AxisID axisID, final ProcessResultDisplay processResultDisplay,
       final ProcessName processName, final ConstProcessSeries processSeries)
       throws SystemProcessException {
-    BackgroundProcess backgroundProcess = new BackgroundProcess(manager,
-        command, this, axisID, processResultDisplay, processName, processSeries);
-    return startBackgroundProcess(backgroundProcess, command.getCommandArray()
-        .toString(), axisID, null);
+    BackgroundProcess backgroundProcess = new BackgroundProcess(manager, command, this,
+        axisID, processResultDisplay, processName, processSeries);
+    return startBackgroundProcess(backgroundProcess,
+        command.getCommandArray().toString(), axisID, null);
   }
 
   final BackgroundProcess startBackgroundProcess(final String[] commandArray,
@@ -1608,32 +1581,30 @@ public abstract class BaseProcessManager {
       final ProcessResultDisplay processResultDisplay,
       final ConstProcessSeries processSeries, final ProcessName processName)
       throws SystemProcessException {
-    BackgroundProcess backgroundProcess = new BackgroundProcess(manager,
-        commandArray, this, axisID, forceNextProcess, processResultDisplay,
-        processSeries, processName);
-    return startBackgroundProcess(backgroundProcess, commandArray.toString(),
-        axisID, null);
+    BackgroundProcess backgroundProcess = new BackgroundProcess(manager, commandArray,
+        this, axisID, forceNextProcess, processResultDisplay, processSeries, processName);
+    return startBackgroundProcess(backgroundProcess, commandArray.toString(), axisID,
+        null);
   }
 
   final BackgroundProcess startBackgroundProcess(final String[] commandArray,
       final AxisID axisID, final ProcessName processName,
       final ConstProcessSeries processSeries) throws SystemProcessException {
-    BackgroundProcess backgroundProcess = new BackgroundProcess(manager,
-        commandArray, this, axisID, processName, processSeries);
-    return startBackgroundProcess(backgroundProcess, commandArray.toString(),
-        axisID, null);
+    BackgroundProcess backgroundProcess = new BackgroundProcess(manager, commandArray,
+        this, axisID, processName, processSeries);
+    return startBackgroundProcess(backgroundProcess, commandArray.toString(), axisID,
+        null);
   }
 
   final BackgroundProcess startDetachedProcess(
       final DetachedCommandDetails detachedCommandDetails, final AxisID axisID,
       final OutfileProcessMonitor monitor,
-      final ProcessResultDisplay processResultDisplay,
-      final ProcessName processName, final ConstProcessSeries processSeries,
-      boolean popupChunkWarnings, final ProcessingMethod processingMethod)
-      throws SystemProcessException {
+      final ProcessResultDisplay processResultDisplay, final ProcessName processName,
+      final ConstProcessSeries processSeries, boolean popupChunkWarnings,
+      final ProcessingMethod processingMethod) throws SystemProcessException {
     DetachedProcess detachedProcess = new DetachedProcess(manager,
-        detachedCommandDetails, this, axisID, monitor, processResultDisplay,
-        processName, processSeries, popupChunkWarnings, processingMethod);
+        detachedCommandDetails, this, axisID, monitor, processResultDisplay, processName,
+        processSeries, popupChunkWarnings, processingMethod);
     if (monitor != null) {
       monitor.setProcess(detachedProcess);
     }
@@ -1644,14 +1615,13 @@ public abstract class BaseProcessManager {
   final BackgroundProcess startDetachedProcess(
       final DetachedCommandDetails detachedCommandDetails, final AxisID axisID,
       final OutfileProcessMonitor monitor,
-      final ProcessResultDisplay processResultDisplay,
-      final ProcessName processName, final String subdirName,
-      final String shortCommandName, final ConstProcessSeries processSeries,
-      boolean popupChunkWarnings, final ProcessingMethod processingMethod)
-      throws SystemProcessException {
+      final ProcessResultDisplay processResultDisplay, final ProcessName processName,
+      final String subdirName, final String shortCommandName,
+      final ConstProcessSeries processSeries, boolean popupChunkWarnings,
+      final ProcessingMethod processingMethod) throws SystemProcessException {
     DetachedProcess detachedProcess = new DetachedProcess(manager,
-        detachedCommandDetails, this, axisID, monitor, processResultDisplay,
-        processName, processSeries, popupChunkWarnings, processingMethod);
+        detachedCommandDetails, this, axisID, monitor, processResultDisplay, processName,
+        processSeries, popupChunkWarnings, processingMethod);
     detachedProcess.setSubdirName(subdirName);
     detachedProcess.setShortCommandName(shortCommandName);
     if (monitor != null) {
@@ -1661,53 +1631,47 @@ public abstract class BaseProcessManager {
         .getCommandLine(), axisID, monitor);
   }
 
-  final BackgroundProcess startBackgroundProcess(
-      final CommandDetails commandDetails, final AxisID axisID,
-      final ProcessName processName, final ConstProcessSeries processSeries)
-      throws SystemProcessException {
-    BackgroundProcess backgroundProcess = new BackgroundProcess(manager,
-        commandDetails, this, axisID, processName, processSeries);
-    return startBackgroundProcess(backgroundProcess, commandDetails
-        .getCommandLine(), axisID, null);
+  final BackgroundProcess startBackgroundProcess(final CommandDetails commandDetails,
+      final AxisID axisID, final ProcessName processName,
+      final ConstProcessSeries processSeries) throws SystemProcessException {
+    BackgroundProcess backgroundProcess = new BackgroundProcess(manager, commandDetails,
+        this, axisID, processName, processSeries);
+    return startBackgroundProcess(backgroundProcess, commandDetails.getCommandLine(),
+        axisID, null);
   }
 
-  final BackgroundProcess startBackgroundProcess(
-      final CommandDetails commandDetails, final AxisID axisID,
-      final ProcessResultDisplay processResultDisplay,
+  final BackgroundProcess startBackgroundProcess(final CommandDetails commandDetails,
+      final AxisID axisID, final ProcessResultDisplay processResultDisplay,
       final ProcessName processName, final ConstProcessSeries processSeries)
       throws SystemProcessException {
-    BackgroundProcess backgroundProcess = new BackgroundProcess(manager,
-        commandDetails, this, axisID, processResultDisplay, processName,
-        processSeries);
-    return startBackgroundProcess(backgroundProcess, commandDetails
-        .getCommandLine(), axisID, null);
+    BackgroundProcess backgroundProcess = new BackgroundProcess(manager, commandDetails,
+        this, axisID, processResultDisplay, processName, processSeries);
+    return startBackgroundProcess(backgroundProcess, commandDetails.getCommandLine(),
+        axisID, null);
   }
 
   final BackgroundProcess startBackgroundProcess(final Command command,
       final AxisID axisID, final ProcessName processName,
       final ConstProcessSeries processSeries) throws SystemProcessException {
-    BackgroundProcess backgroundProcess = new BackgroundProcess(manager,
-        command, this, axisID, processName, processSeries);
-    return startBackgroundProcess(backgroundProcess, command.getCommandLine(),
-        axisID, null);
+    BackgroundProcess backgroundProcess = new BackgroundProcess(manager, command, this,
+        axisID, processName, processSeries);
+    return startBackgroundProcess(backgroundProcess, command.getCommandLine(), axisID,
+        null);
   }
 
   final BackgroundProcess startBackgroundProcess(final Command command,
-      final AxisID axisID, final boolean forceNextProcess,
-      final ProcessName processName, final ConstProcessSeries processSeries)
-      throws SystemProcessException {
-    BackgroundProcess backgroundProcess = new BackgroundProcess(manager,
-        command, this, axisID, forceNextProcess, processName, processSeries);
-    return startBackgroundProcess(backgroundProcess, command.getCommandLine(),
-        axisID, null);
+      final AxisID axisID, final boolean forceNextProcess, final ProcessName processName,
+      final ConstProcessSeries processSeries) throws SystemProcessException {
+    BackgroundProcess backgroundProcess = new BackgroundProcess(manager, command, this,
+        axisID, forceNextProcess, processName, processSeries);
+    return startBackgroundProcess(backgroundProcess, command.getCommandLine(), axisID,
+        null);
   }
 
   private BackgroundProcess startBackgroundProcess(
       final BackgroundProcess backgroundProcess, final String commandLine,
-      final AxisID axisID, final Runnable processMonitor)
-      throws SystemProcessException {
-    backgroundProcess
-        .setWorkingDirectory(new File(manager.getPropertyUserDir()));
+      final AxisID axisID, final Runnable processMonitor) throws SystemProcessException {
+    backgroundProcess.setWorkingDirectory(new File(manager.getPropertyUserDir()));
     backgroundProcess.setDemoMode(etomoDirector.getArguments().isDemo());
     backgroundProcess.setDebug(etomoDirector.getArguments().isDebug());
     manager.saveStorables(axisID);
@@ -1739,10 +1703,10 @@ public abstract class BaseProcessManager {
     return backgroundProcess;
   }
 
-  final InteractiveSystemProgram startInteractiveSystemProgram(
-      final Command command) throws SystemProcessException {
-    InteractiveSystemProgram program = new InteractiveSystemProgram(manager,
-        command, this, command.getAxisID());
+  final InteractiveSystemProgram startInteractiveSystemProgram(final Command command)
+      throws SystemProcessException {
+    InteractiveSystemProgram program = new InteractiveSystemProgram(manager, command,
+        this, command.getAxisID());
     program.closeOutputImageFile();
     program.setWorkingDirectory(new File(manager.getPropertyUserDir()));
     Thread thread = new Thread(program);
@@ -1762,8 +1726,8 @@ public abstract class BaseProcessManager {
       new Thread(process).start();
     }
     catch (Exception e) {
-      UIHarness.INSTANCE.openMessageDialog(null, e.getMessage(),
-          "Process Exception", axisID);
+      UIHarness.INSTANCE.openMessageDialog(null, e.getMessage(), "Process Exception",
+          axisID);
     }
   }
 
@@ -1773,8 +1737,8 @@ public abstract class BaseProcessManager {
   public static final void startSystemProgramThread(final String[] command,
       final AxisID axisID, BaseManager manager) {
     // Initialize the SystemProgram object
-    SystemProgram sysProgram = new SystemProgram(manager,
-        manager == null ? null : manager.getPropertyUserDir(), command, axisID);
+    SystemProgram sysProgram = new SystemProgram(manager, manager == null ? null
+        : manager.getPropertyUserDir(), command, axisID);
     startSystemProgramThread(sysProgram, manager);
   }
 
@@ -1801,13 +1765,12 @@ public abstract class BaseProcessManager {
     sysProgThread.start();
     if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
       System.err.println("Started " + sysProgram.getCommandLine());
-      System.err
-          .println("  working directory: " + manager.getPropertyUserDir());
+      System.err.println("  working directory: " + manager.getPropertyUserDir());
     }
   }
 
-  public final void msgProcessDone(final DetachedProcess process,
-      final int exitValue, final boolean errorFound) {
+  public final void msgProcessDone(final DetachedProcess process, final int exitValue,
+      final boolean errorFound) {
     if (exitValue != 0 || errorFound) {
       errorProcess(process);
     }
@@ -1826,17 +1789,16 @@ public abstract class BaseProcessManager {
     // Inform the manager that this process is complete
     ProcessEndState endState = process.getProcessEndState();
     if (endState == null || endState == ProcessEndState.DONE) {
-      manager.processDone(process.getName(), exitValue, process
-          .getProcessName(), process.getAxisID(), process.isForceNextProcess(),
-          process.getProcessEndState(), exitValue != 0 || errorFound, process
-              .getProcessResultDisplay(), process.getProcessSeries(), false);
+      manager.processDone(process.getName(), exitValue, process.getProcessName(), process
+          .getAxisID(), process.isForceNextProcess(), process.getProcessEndState(),
+          exitValue != 0 || errorFound, process.getProcessResultDisplay(), process
+              .getProcessSeries(), false);
     }
     else {
-      manager.processDone(process.getName(), exitValue, process
-          .getProcessName(), process.getAxisID(), process.isForceNextProcess(),
-          process.getProcessEndState(), process.getStatusString(),
-          exitValue != 0 || errorFound, process.getProcessResultDisplay(),
-          process.getProcessSeries(), false);
+      manager.processDone(process.getName(), exitValue, process.getProcessName(), process
+          .getAxisID(), process.isForceNextProcess(), process.getProcessEndState(),
+          process.getStatusString(), exitValue != 0 || errorFound, process
+              .getProcessResultDisplay(), process.getProcessSeries(), false);
     }
   }
 
@@ -1848,8 +1810,8 @@ public abstract class BaseProcessManager {
    * @param exitValue
    *          the exit value for the process
    */
-  public final void msgProcessDone(final BackgroundProcess process,
-      final int exitValue, final boolean errorFound) {
+  public final void msgProcessDone(final BackgroundProcess process, final int exitValue,
+      final boolean errorFound) {
     if (exitValue != 0 || errorFound) {
       errorProcess(process);
     }
@@ -1857,8 +1819,8 @@ public abstract class BaseProcessManager {
       postProcess(process);
       ProcessMessages messages = process.getProcessMessages();
       if (messages != null && messages.warningListSize() > 0) {
-        uiHarness.openWarningMessageDialog(manager, messages,
-            "Process Warnings", process.getAxisID());
+        uiHarness.openWarningMessageDialog(manager, messages, "Process Warnings", process
+            .getAxisID());
       }
     }
     manager.saveStorables(process.getAxisID());
@@ -1873,17 +1835,16 @@ public abstract class BaseProcessManager {
     // Inform the manager that this process is complete
     ProcessEndState endState = process.getProcessEndState();
     if (endState == null || endState == ProcessEndState.DONE) {
-      manager.processDone(process.getName(), exitValue, process
-          .getProcessName(), process.getAxisID(), process.isForceNextProcess(),
-          process.getProcessEndState(), exitValue != 0 || errorFound, process
-              .getProcessResultDisplay(), process.getProcessSeries(), false);
+      manager.processDone(process.getName(), exitValue, process.getProcessName(), process
+          .getAxisID(), process.isForceNextProcess(), process.getProcessEndState(),
+          exitValue != 0 || errorFound, process.getProcessResultDisplay(), process
+              .getProcessSeries(), false);
     }
     else {
-      manager.processDone(process.getName(), exitValue, process
-          .getProcessName(), process.getAxisID(), process.isForceNextProcess(),
-          process.getProcessEndState(), process.getStatusString(),
-          exitValue != 0 || errorFound, process.getProcessResultDisplay(),
-          process.getProcessSeries(), false);
+      manager.processDone(process.getName(), exitValue, process.getProcessName(), process
+          .getAxisID(), process.isForceNextProcess(), process.getProcessEndState(),
+          process.getStatusString(), exitValue != 0 || errorFound, process
+              .getProcessResultDisplay(), process.getProcessSeries(), false);
     }
   }
 
@@ -1904,8 +1865,8 @@ public abstract class BaseProcessManager {
         logFile = LogFile.getInstance(manager.getPropertyUserDir(), fileName);
       }
       catch (LogFile.LockException e) {
-        uiHarness.openMessageDialog(manager, e.getMessage(),
-            "log File Write Error", axisID);
+        uiHarness.openMessageDialog(manager, e.getMessage(), "log File Write Error",
+            axisID);
         return;
       }
       writerId = logFile.openWriter();
@@ -1919,13 +1880,13 @@ public abstract class BaseProcessManager {
     }
     catch (LogFile.LockException except) {
       logFile.closeWriter(writerId);
-      uiHarness.openMessageDialog(manager, except.getMessage(),
-          "log File Write Error", axisID);
+      uiHarness.openMessageDialog(manager, except.getMessage(), "log File Write Error",
+          axisID);
     }
     catch (IOException except) {
       logFile.closeWriter(writerId);
-      uiHarness.openMessageDialog(manager, except.getMessage(),
-          "log File Write Error", axisID);
+      uiHarness.openMessageDialog(manager, except.getMessage(), "log File Write Error",
+          axisID);
     }
   }
 
@@ -1936,9 +1897,8 @@ public abstract class BaseProcessManager {
         return;
       }
       if (ProcessName.TOMOSNAPSHOT.equals(commandName)) {
-        Utilities.findMessageAndOpenDialog(manager, process.getAxisID(),
-            process.getStdOutput(), TomosnapshotParam.OUTPUT_LINE,
-            "Tomosnapshot Complete");
+        Utilities.findMessageAndOpenDialog(manager, process.getAxisID(), process
+            .getStdOutput(), TomosnapshotParam.OUTPUT_LINE, "Tomosnapshot Complete");
       }
     }
     catch (Exception e) {
