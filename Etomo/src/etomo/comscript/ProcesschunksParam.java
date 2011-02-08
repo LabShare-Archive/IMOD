@@ -39,8 +39,7 @@ import etomo.util.RemotePath.InvalidMountRuleException;
  * 
  * @version $Revision$
  */
-public final class ProcesschunksParam implements DetachedCommandDetails,
-    ParallelParam {
+public final class ProcesschunksParam implements DetachedCommandDetails, ParallelParam {
   public static final String rcsid = "$Id$";
 
   private static final ProcessName PROCESS_NAME = ProcessName.PROCESSCHUNKS;
@@ -263,8 +262,8 @@ public final class ProcesschunksParam implements DetachedCommandDetails,
     return PROCESS_NAME.toString();
   }
 
-  public List getLogMessage() throws LogFile.LockException,
-      FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+      IOException {
     return null;
   }
 
@@ -402,9 +401,9 @@ public final class ProcesschunksParam implements DetachedCommandDetails,
           .getPropertyUserDir(), axisID);
     }
     catch (InvalidMountRuleException e) {
-      UIHarness.INSTANCE.openMessageDialog(manager,
-          "ERROR:  Remote path error.  " + "Unabled to run " + PROCESS_NAME
-              + ".\n\n" + e.getMessage(), "Processchunks Error", axisID);
+      UIHarness.INSTANCE.openMessageDialog(manager, "ERROR:  Remote path error.  "
+          + "Unabled to run " + PROCESS_NAME + ".\n\n" + e.getMessage(),
+          "Processchunks Error", axisID);
       valid = false;
     }
     if (remoteUserDir != null) {
@@ -421,8 +420,8 @@ public final class ProcesschunksParam implements DetachedCommandDetails,
     if (!isSubdirNameEmpty()) {
       commandsFileName.append("\"../");
     }
-    commandsFileName.append(new StringBuffer(DatasetFiles.getCommandsFileName(
-        subdirName, rootName)));
+    commandsFileName.append(new StringBuffer(DatasetFiles.getCommandsFileName(subdirName,
+        rootName)));
     if (!isSubdirNameEmpty()) {
       commandsFileName.append("\"");
     }
@@ -527,18 +526,19 @@ public final class ProcesschunksParam implements DetachedCommandDetails,
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstEtomoNumber getEtomoNumber(
-      etomo.comscript.FieldInterface fieldInterface) {
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstIntKeyList getIntKeyList(
-      etomo.comscript.FieldInterface fieldInterface) {
+  public ConstIntKeyList getIntKeyList(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.47  2010/11/13 16:03:15  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.46  2010/10/20 23:03:48  sueh
  * <p> bug# 1364 In buildCommand removing unecessary "tcsh -f".  The
  * <p> command is being run from inside of a .csh file.  Removing IS_SCRIPT
