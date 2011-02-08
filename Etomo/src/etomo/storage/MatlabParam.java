@@ -44,6 +44,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.42  2010/11/13 16:05:03  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.41  2010/05/27 05:35:12  sueh
  * <p> bug# 1368 Fixed bug number in a comment.
  * <p>
@@ -378,7 +381,8 @@ public final class MatlabParam {
   private final ParsedNumber flgWedgeWeight = ParsedNumber.getMatlabInstance();
   private final ParsedQuotedString sampleSphere = ParsedQuotedString
       .getInstance();
-  private final ParsedNumber sampleInterval = ParsedNumber.getMatlabInstance();
+  private final ParsedNumber sampleInterval = ParsedNumber
+      .getMatlabInstance(EtomoNumber.Type.FLOAT);
   private final ParsedQuotedString maskType = ParsedQuotedString.getInstance();
   private final ParsedArray maskModelPts = ParsedArray.getMatlabInstance();
   private final ParsedNumber insideMaskRadius = ParsedNumber
