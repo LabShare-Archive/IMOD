@@ -351,6 +351,7 @@ public final class ParallelPanel implements Expandable, Storable {
     if (currentTable == getTable(method)) {
       if (currentTable.isStopped()) {
         currentTable.startLoad();
+        currentTable.msgCPUsSelectedChanged();
       }
     }
     else {
@@ -527,6 +528,10 @@ public final class ParallelPanel implements Expandable, Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/03 06:18:41  sueh
+ * <p> bug# 1422 Registering with the processing method mediator class and
+ * <p> letting it decide whether to display the processor table.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
