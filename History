@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/8/11: In eTomo - using processchunks, except when more CPUs are requested then it can
+handle; in that case using prochunks.csh (the original csh script).
+
 2/8/11: In eTomo - fix a bug in the parallel processing table where the CPUs selected
 reflected the GPU table rather then the current table.
 
