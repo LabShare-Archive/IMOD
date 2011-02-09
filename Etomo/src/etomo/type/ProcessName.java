@@ -17,6 +17,9 @@ import etomo.util.DatasetFiles;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.25  2010/03/03 04:58:47  sueh
+ * <p> $bug# 1311 Added xcorr_pt.
+ * <p> $
  * <p> $Revision 1.24  2009/12/08 02:45:42  sueh
  * <p> $bug# 1286 Added AVERAGE_ALL.
  * <p> $
@@ -164,7 +167,8 @@ public class ProcessName {
   private static final String tilt_3dfind_reproject = "tilt_3dfind_reproject";
   private static final String midas = "midas";
   private static final String xcorr_pt = "xcorr_pt";
-
+  private static final String prochunks_csh = "prochunks.csh";
+  
   private final String name;
 
   private ProcessName(String name) {
@@ -236,7 +240,8 @@ public class ProcessName {
       tilt_3dfind_reproject);
   public static final ProcessName MIDAS = new ProcessName(midas);
   public static final ProcessName XCORR_PT = new ProcessName(xcorr_pt);
-
+  public static final ProcessName PROCHUNKS_CSH = new ProcessName(prochunks_csh);
+  
   /**
    * Returns a string representation of the object.
    */
