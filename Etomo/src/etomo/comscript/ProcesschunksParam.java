@@ -23,6 +23,7 @@ import etomo.type.ProcessName;
 import etomo.ui.swing.UIHarness;
 import etomo.util.DatasetFiles;
 import etomo.util.RemotePath;
+import etomo.util.Utilities;
 import etomo.util.RemotePath.InvalidMountRuleException;
 
 /**
@@ -42,7 +43,6 @@ import etomo.util.RemotePath.InvalidMountRuleException;
 public final class ProcesschunksParam implements DetachedCommandDetails, ParallelParam {
   public static final String rcsid = "$Id$";
 
-  private static final ProcessName PROCESS_NAME = ProcessName.PROCESSCHUNKS;
   public static final int NICE_CEILING = 19;
   public static final int DROP_VALUE = 5;
   public static final String WORKING_DIR_OPTION = "-w";
@@ -103,7 +103,7 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
   }
 
   public String getCommand() {
-    return PROCESS_NAME.toString();
+    return getProcessName().toString();
   }
 
   public CommandMode getCommandMode() {
@@ -259,7 +259,7 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
   }
 
   public String getCommandName() {
-    return PROCESS_NAME.toString();
+    return getProcessName().toString();
   }
 
   public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
@@ -268,7 +268,7 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
   }
 
   public String getName() {
-    return PROCESS_NAME.toString();
+    return getProcessName().toString();
   }
 
   public FileType getOutputImageFileType() {
@@ -283,10 +283,6 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
       return subcommandDetails.getOutputImageFileType2();
     }
     return outputImageFileType;
-  }
-
-  public ProcessName getProcessName() {
-    return PROCESS_NAME;
   }
 
   public String getShortCommandName() {
@@ -382,11 +378,26 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
     return "nice +18";
   }
 
+  public ProcessName getProcessName() {
+    if (cpuNumber.isNull()) {
+      return ProcessName.PROCESSCHUNKS;
+    }
+    if (Utilities.isWindowsOS()) {
+      if (cpuNumber.gt(56)) {
+        return ProcessName.PROCHUNKS_CSH;
+      }
+      return ProcessName.PROCESSCHUNKS;
+    }
+    if (cpuNumber.gt(240)) {
+      return ProcessName.PROCHUNKS_CSH;
+    }
+    return ProcessName.PROCESSCHUNKS;
+  }
+
   private void buildCommand() {
     valid = true;
     ArrayList command = new ArrayList();
-    //command.add("'" + BaseManager.getIMODBinPath() + PROCESS_NAME.toString() + "'");
-    command.add(PROCESS_NAME.toString());
+    command.add(getProcessName().toString());
     if (resume.is()) {
       command.add("-r");
     }
@@ -402,7 +413,7 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
     }
     catch (InvalidMountRuleException e) {
       UIHarness.INSTANCE.openMessageDialog(manager, "ERROR:  Remote path error.  "
-          + "Unabled to run " + PROCESS_NAME + ".\n\n" + e.getMessage(),
+          + "Unabled to run " + getProcessName() + ".\n\n" + e.getMessage(),
           "Processchunks Error", axisID);
       valid = false;
     }
@@ -536,6 +547,9 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.48  2011/02/08 23:03:43  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.47  2010/11/13 16:03:15  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
