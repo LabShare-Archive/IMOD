@@ -2496,10 +2496,10 @@ void ImodvIsosurface::paintMesh()
     }
   }
 
-  /*#pragma omp parallel for                                         \
+#pragma omp parallel for                                         \
   shared(threadStart, paintVol, nx, ny, orix, oriy, oriz, allStores, \
-         threadLists, vert, list, numThreads, numColors, anyTrans)   \
-         private(thr, li, pnt, ix, iy, iz, ind, i, storep, tranStore, numTrans, isTrans, j) */
+         threadLists, vert, list, numThreads, numColors, anyTrans)      \
+  private(thr, li, pnt, ix, iy, iz, ind, i, storep, tranStore, numTrans, isTrans, j)
   for (thr = 0; thr < numThreads; thr++) {
     if (anyTrans) {
       tranStore.type = GEN_STORE_TRANS;
@@ -2672,6 +2672,9 @@ void ImodvIsosurface::dumpVolume(char *filename)
 /*
 
 $Log$
+Revision 4.25  2011/02/02 21:31:44  mast
+Fixed initialization in removing outer pixels
+
 Revision 4.24  2011/02/01 20:15:37  mast
 Keep center of sphere at slider positions if possible
 
