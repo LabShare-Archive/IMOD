@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.50  2011/01/12 02:52:49  tempuser
+    Minor
+
     Revision 1.49  2011/01/08 01:25:24  tempuser
     *** empty log message ***
 
@@ -309,6 +312,34 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
         return 0;
       break;
       
+      
+    case Qt::Key_Up:
+      if( plug.useArrowKeys )
+      {
+        edit_changeSelectedSlice( 1,false, false );
+      }
+      else
+        return 0;
+      break;
+    case Qt::Key_Down:
+      if( plug.useArrowKeys )
+        edit_changeSelectedSlice( -1,false, false );
+      else
+        return 0;
+      break;
+      
+    case Qt::Key_Left:
+      if( plug.useArrowKeys && plug.pgUpDownInc>1 )
+        edit_changeSelectedSlice( -plug.pgUpDownInc,false, false );
+      else
+        return 0;
+      break;
+    case Qt::Key_Right:
+      if( plug.useArrowKeys && plug.pgUpDownInc>1 )
+        edit_changeSelectedSlice( plug.pgUpDownInc,false, false );
+      else
+        return 0;
+      break;
       
     case Qt::Key_PageUp:
       if(shift || plug.pgUpDownInc==1)
@@ -1648,6 +1679,7 @@ void DrawingTools::initValues()
   plug.findCriteria           = SORT_NUMPTS;
   plug.minObjsNameWarning     = 3;
   plug.drawZhint              = 0;
+  plug.useArrowKeys           = false;
   
   plug.sortCriteriaOfVals     = -1;
 }
@@ -1706,6 +1738,7 @@ void DrawingTools::loadSettings()
   plug.selectedAction             = savedValues[29];
   plug.minObjsNameWarning         = savedValues[30];
   plug.drawZhint                  = savedValues[31];
+  plug.useArrowKeys               = savedValues[32];
 }
 
 
@@ -1750,6 +1783,7 @@ void DrawingTools::saveSettings()
   saveValues[29]  = plug.selectedAction;
   saveValues[30]  = plug.minObjsNameWarning;
   saveValues[31]  = plug.drawZhint;
+  saveValues[32]  = plug.useArrowKeys;
   
   prefSaveGenericSettings("DrawingTools",NUM_SAVED_VALS,saveValues);
 }
@@ -2927,6 +2961,14 @@ void DrawingTools::keyboardSettings()
                   "NOTE: Holding [Shift] when you press \n"
                   "[Page Up] or [Page Down] will cause it \n"
                   "to increment one slice (as normal)" );
+  ds.addCheckBox( "use up/down arrows to scroll slices", 
+                  &plug.useArrowKeys,
+                  "If on: the up and down keys are intercepted and used \n"
+                  " to change the current slice. This is a handy option if \n"
+                  " you have a laptop without PageUp/PageDown keys"
+                  "\n"
+                  "WARNING: Having this on may (unfortunately) have side-effects \n"
+                  "wherebe if you're editing text it does silly things ");
   
   ds.addLabel   ( "\n--- SCULPT CIRCLE ---" );
   ds.addCheckBox( "mark contours as key after sculpt", 
@@ -5368,7 +5410,8 @@ int edit_changeSelectedSlice( int changeZ, bool redraw, bool snapToEnds )
   int newZ = iz+changeZ;
   if( !snapToEnds && newZ < 0 || newZ >= plug.zsize )
     return iz;
-  edit_setZapLocation( ix, iy, newZ, redraw );
+  edit_setZapLocation( plug.mouse.x, plug.mouse.y, newZ, redraw );
+      // before hand I used ix and iy, but gave jumping problems.
   return newZ;
 }
 

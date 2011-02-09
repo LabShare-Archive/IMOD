@@ -141,7 +141,7 @@ enum sortcriteria   { SORT_SURFACENUM,
 
 enum zhints        { ZH_NONE, ZH_ABOVE, ZH_BELOW, ZH_BOX };
 
-const int NUM_SAVED_VALS = 32;
+const int NUM_SAVED_VALS = 33;
 
 //-------------------------------
 //## DRAWINGTOOLS DATA STRUCTURE:
@@ -224,6 +224,8 @@ struct DrawingToolsData   // contains all local plugin data
                                 //  objects have no names
   int    drawZhint;             // if greater than 1: draws some type of hint
                                 //  to show user what slice he is on
+  bool   useArrowKeys;          // if true: up & down arrow keys are intercepted
+                                //  to page up/down
   
   //int    numSavedAction;        // is set to NUM_SAVED_VALS and helps ensure correct
   //                              //  number of values are saved/loaded
