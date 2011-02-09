@@ -39,6 +39,11 @@ import etomo.type.TomogramState;
  * 
  * <p>
  * $Log$
+ * Revision 1.3  2011/02/03 06:22:16  sueh
+ * bug# 1422 Control of the processing method has been centralized in the
+ * processing method mediator class.  Implementing ProcessInterface.
+ * Supplying processes with the current processing method.
+ *
  * Revision 1.2  2010/12/05 05:22:36  sueh
  * bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.  Under --newstuff,
  * added tabs and SirtPanel.
@@ -658,8 +663,7 @@ import etomo.type.TomogramState;
  * </p>
  */
 
-public class TomogramGenerationDialog extends ProcessDialog implements
-    ContextMenu {
+public class TomogramGenerationDialog extends ProcessDialog implements ContextMenu {
   public static final String rcsid = "$Id$";
 
   public static final String X_AXIS_TILT_TOOLTIP = "This line allows one to rotate the reconstruction around the X axis, so "
@@ -682,8 +686,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     tiltPanel = TiltPanel.getBackProjectionInstance(appMgr, axisID, dialogType,
         btnAdvanced);
     if (EtomoDirector.INSTANCE.getArguments().isNewstuff()) {
-      sirtPanel = SirtPanel
-          .getInstance(appMgr, axisID, dialogType, btnAdvanced);
+      sirtPanel = SirtPanel.getInstance(appMgr, axisID, dialogType, btnAdvanced);
     }
     else {
       sirtPanel = null;
@@ -692,8 +695,8 @@ public class TomogramGenerationDialog extends ProcessDialog implements
 
   static TomogramGenerationDialog getInstance(ApplicationManager appMgr,
       TomogramGenerationExpert expert, AxisID axisID) {
-    TomogramGenerationDialog instance = new TomogramGenerationDialog(appMgr,
-        expert, axisID);
+    TomogramGenerationDialog instance = new TomogramGenerationDialog(appMgr, expert,
+        axisID);
     instance.createPanel();
     instance.updateAdvanced();
     instance.initTab();

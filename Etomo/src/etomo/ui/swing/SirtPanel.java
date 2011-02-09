@@ -35,6 +35,11 @@ import etomo.type.TomogramState;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2011/02/03 06:22:16  sueh
+* <p> bug# 1422 Control of the processing method has been centralized in the
+* <p> processing method mediator class.  Implementing ProcessInterface.
+* <p> Supplying processes with the current processing method.
+* <p>
 * <p> Revision 1.2  2010/12/05 05:17:34  sueh
 * <p> bug# 1421 Main class for running SIRT.
 * <p>
@@ -47,8 +52,7 @@ final class SirtPanel implements Run3dmodButtonContainer {
 
   private final JPanel pnlRoot = new JPanel();
   private final CheckBox cbSubarea = new CheckBox("Subarea");
-  private final LabeledTextField ltfOffsetInY = new LabeledTextField(
-      " Offset in Y: ");
+  private final LabeledTextField ltfOffsetInY = new LabeledTextField(" Offset in Y: ");
   private final LabeledTextField ltfSizeInXAndY = new LabeledTextField(
       "Size in X and Y: ");
   private final RadialPanel radiusAndSigmaPanel = RadialPanel.getInstance();
@@ -57,14 +61,14 @@ final class SirtPanel implements Run3dmodButtonContainer {
   private final CheckBox cbScaleToIntegers = new CheckBox(
       "Scale retained volumes to integers");
   private final ButtonGroup bgStartingIteration = new ButtonGroup();
-  private final RadioButton rbStartFromZero = new RadioButton(
-      "Start from beginning", bgStartingIteration);
+  private final RadioButton rbStartFromZero = new RadioButton("Start from beginning",
+      bgStartingIteration);
   private final RadioButton rbResumeFromLastIteration = new RadioButton(
       "Resume from last iteration", bgStartingIteration);
   private final RadioButton rbResumeFromIteration = new RadioButton(
       "Go back, resume from iteration:", bgStartingIteration);
-  private final ComboBox cmbResumeFromIteration = new ComboBox(
-      rbResumeFromIteration.getText());
+  private final ComboBox cmbResumeFromIteration = new ComboBox(rbResumeFromIteration
+      .getText());
   private final ActionListener listener = new SirtActionListener(this);
   private final Run3dmodButton btn3dmodSirt = Run3dmodButton.get3dmodInstance(
       "View Tomogram In 3dmod", this);
@@ -81,17 +85,14 @@ final class SirtPanel implements Run3dmodButtonContainer {
     this.manager = manager;
     tiltPanel = TiltPanel.getSirtInstance(manager, axisID, dialogType,
         globalAdvancedButton);
-    ProcessResultDisplayFactory factory = manager
-        .getProcessResultDisplayFactory(axisID);
+    ProcessResultDisplayFactory factory = manager.getProcessResultDisplayFactory(axisID);
     btnSirtsetup = (Run3dmodButton) factory.getSirtsetup();
     btnUseSirt = (MultiLineButton) factory.getUseSirt();
   }
 
-  static SirtPanel getInstance(final ApplicationManager manager,
-      final AxisID axisID, final DialogType dialogType,
-      final GlobalExpandButton globalAdvancedButton) {
-    SirtPanel instance = new SirtPanel(manager, axisID, dialogType,
-        globalAdvancedButton);
+  static SirtPanel getInstance(final ApplicationManager manager, final AxisID axisID,
+      final DialogType dialogType, final GlobalExpandButton globalAdvancedButton) {
+    SirtPanel instance = new SirtPanel(manager, axisID, dialogType, globalAdvancedButton);
     instance.createPanel();
     instance.addListeners();
     return instance;
@@ -128,8 +129,7 @@ final class SirtPanel implements Run3dmodButtonContainer {
     pnlSubarea.add(cbSubarea);
     pnlSubarea.add(pnlSizeAndOffset);
     //Offset and size panel
-    pnlSizeAndOffset
-        .setLayout(new BoxLayout(pnlSizeAndOffset, BoxLayout.X_AXIS));
+    pnlSizeAndOffset.setLayout(new BoxLayout(pnlSizeAndOffset, BoxLayout.X_AXIS));
     pnlSizeAndOffset.add(ltfSizeInXAndY.getContainer());
     pnlSizeAndOffset.add(ltfOffsetInY.getContainer());
     //SIRT params panel
@@ -196,8 +196,7 @@ final class SirtPanel implements Run3dmodButtonContainer {
     tiltPanel.getParameters(screenState);
     btnSirtsetup.setButtonState(screenState.getButtonState(btnSirtsetup
         .getButtonStateKey()));
-    btnUseSirt.setButtonState(screenState.getButtonState(btnUseSirt
-        .getButtonStateKey()));
+    btnUseSirt.setButtonState(screenState.getButtonState(btnUseSirt.getButtonStateKey()));
   }
 
   void setParameters(ConstMetaData metaData) {
@@ -263,8 +262,8 @@ final class SirtPanel implements Run3dmodButtonContainer {
     String[] logFile = new String[1];
     logFile[0] = "sirtsetup" + axisID.getExtension() + ".log";
     ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent, anchor,
-        ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile,
-        manager, axisID);
+        ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile, manager,
+        axisID);
   }
 
   private static final class SirtActionListener implements ActionListener {
