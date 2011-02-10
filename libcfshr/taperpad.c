@@ -47,7 +47,7 @@ void sliceTaperOutPad(void *array, int type, int nxbox, int nybox,
                       float dmeanin)
 {
   int ixlo, ixhi, iylo, iyhi, ix, iy, nxtop, nytop, iytoplin;
-  float sum, dmean, edgel, edger, wedge, wmean, prodmean;
+  float dmean, edgel, edger, wedge, wmean, prodmean;
 
   copyToCenter(array, type, nxbox, nybox, brray, nxdim, nx, ny, &ixlo, &ixhi,
                &iylo, &iyhi);
@@ -504,7 +504,7 @@ void sliceSplitFill(float *array, int nxbox, int nybox, float *brray,
                int nxdim, int nx, int ny, int iffill, float fillin)
 {
   int i, ix, iy, ixlo, iylo, ixnew, iynew;
-  float sum, fill, bias, dmean, edge;
+  float sum, fill, bias, dmean;
   sum = 0.;
   for (i = 0; i < nxbox * nybox; i++)
     sum += array[i];
@@ -557,6 +557,9 @@ void splitfill(float *array, int *nxbox, int *nybox, float *brray,
 
 /*
   $Log$
+  Revision 1.8  2010/07/07 22:38:51  mast
+  Added support for RGB images
+
   Revision 1.7  2008/12/20 05:31:16  mast
   Added function to smooth outside
 

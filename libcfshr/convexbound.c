@@ -5,6 +5,9 @@
  * $Id$
  *      
  * $Log$
+ * Revision 1.2  2009/11/29 16:12:23  mast
+ * Fixed declarations
+ *
  * Revision 1.1  2009/11/28 20:09:32  mast
  * translated to C
  *
@@ -250,7 +253,6 @@ static void angorder(float *sx, float *sy, int nptuse, int *inddist,
                      float *angle)
 {
   int i, ind;
-  int j, jnd;
   for (i = 0; i < nptuse; i++) {
     ind=inddist[i];
     angle[ind]=(float)atan2((double)(sy[ind]-ycen),(double)(sx[ind]-xcen));

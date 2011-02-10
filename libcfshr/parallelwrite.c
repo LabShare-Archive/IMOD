@@ -226,7 +226,6 @@ int parwrtfindregion(int *secNum, int *lineNum, int *nlWrite, char *filename,
 int parwrtgetregion(int *regionNum, char *filename, int *sections, 
                     int *startLines, int strlen)
 {
-  char *fileptr;
   int reg = *regionNum - 1;
   if (!regions)
     return 2;
@@ -242,6 +241,9 @@ int parwrtgetregion(int *regionNum, char *filename, int *sections,
 /*
 
 $Log$
+Revision 1.3  2010/06/23 15:25:03  mast
+Modify boundary lines when no boundary for Y chunk
+
 Revision 1.2  2009/09/18 14:57:20  mast
 Corrected test for good reading of a line
 

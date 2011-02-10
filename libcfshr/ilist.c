@@ -13,6 +13,9 @@
 $Id$
 
 $Log$
+Revision 1.1  2007/09/20 02:43:08  mast
+Moved to new library
+
 Revision 3.4  2005/06/20 22:25:17  mast
 Documented
 
@@ -182,9 +185,6 @@ int ilistAppend(Ilist *list, void *data)
 /*! Removes the item at [element] from [list] */
 void ilistRemove(Ilist *list, int element)
 {
-  int i;
-  char *to, *from;
-
   if (list->size <= element)
     return;
 

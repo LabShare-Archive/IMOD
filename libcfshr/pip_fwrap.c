@@ -324,7 +324,6 @@ int pipgeterror(char *errString, int stringSize)
 {
   char *strPtr = NULL;
   int err;
-  int copyLen = stringSize - 1;
 
   /* Set up string as null, and with a null at end in case it is too long */
   err = PipGetError(&strPtr);
@@ -370,7 +369,6 @@ void pipdone(void)
 /* Create a C string with a copy of a Fortran string */
 static char *pipf2cstr(char *str, int strSize)
 {
-  int i;
   char *newStr = f2cString(str, strSize);
   if (!newStr)
     PipSetError("Memory error converting string from Fortran to C");
@@ -378,7 +376,11 @@ static char *pipf2cstr(char *str, int strSize)
 }
 
 /*
+
 $Log$
+Revision 1.3  2009/12/04 21:32:32  mast
+Fixed define
+
 Revision 1.2  2009/12/04 20:27:42  mast
 Added new functions for printing entries
 

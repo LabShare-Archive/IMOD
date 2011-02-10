@@ -280,7 +280,7 @@ void meanzero(float *array, int *nxdim, int *nx, int *ny)
 void XCorrPeakFind(float *array, int nxdim, int ny, float  *xpeak,
                    float *ypeak, float *peak, int maxpeaks)
 {
-  float denom, cx, cy, y1, y2, y3, local, val;
+  float cx, cy, y1, y2, y3, local, val;
   int ixpeak, iypeak, ix, iy, ixBlock, iyBlock, ixStart, ixEnd, iyStart, iyEnd;
   int i, j, ixm, ixp, iyb, iybm, iybp;
   int nx=nxdim-2;
@@ -522,6 +522,9 @@ return XCorrCCCoefficient(array, brray, *nxdim, *nx, *ny, *xpeak, *ypeak,
 /*
 
 $Log$
+Revision 1.9  2010/06/21 16:26:42  mast
+fixed log
+
 Revision 1.8  2008/12/22 23:06:01  mast
 Needed anoth *nsum
 
