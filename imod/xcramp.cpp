@@ -15,6 +15,10 @@
     $Revision$
 
     $Log$
+    Revision 4.3  2006/08/28 05:17:00  mast
+    Moved false color functions to library, and provided for colormapped
+    images by simply using the imposed false color map
+
     Revision 4.2  2004/09/10 02:31:03  mast
     replaced long with int
 
@@ -230,6 +234,8 @@ int xcramp_ramp(Cramp *cr)
     for(i = 0; i < 256; i++)
       cmap[i] = i;
   }
+  for(i = 0; i < 256; i++)
+    cr->bramp[i] = (unsigned char)cmap[i];
 
   /* DNM: for TrueColor, look up the appropriate pixel values and stick in
      the ramp array, conditional on machine type */

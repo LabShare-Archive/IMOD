@@ -11,6 +11,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.2  2006/08/28 05:14:52  mast
+Added functions for manipulating false color map
+
 Revision 4.1  2003/02/10 20:41:56  mast
 Merge Qt source
 
@@ -48,6 +51,7 @@ typedef struct xbldrcoloramp
   int    *whites;         /* Array of white levels.                   */
 
   unsigned int   ramp[256];
+  unsigned char bramp[256];
 } Cramp;
 
 
