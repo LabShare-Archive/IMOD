@@ -6,7 +6,7 @@
  *   Colorado.
  *
  *   $Id$
- *   Log at end
+ *   No more Log
  */                                                                           
 
 #ifndef B3DUTIL_H
@@ -59,6 +59,7 @@ extern "C" {
   double wallTime(void);
   int b3dMilliSleep(int msecs);
   int numOMPthreads(int optimalThreads);
+  int b3dOMPthreadNum();
 
 #ifdef __cplusplus
 }
@@ -66,70 +67,3 @@ extern "C" {
 
 
 #endif
-
-/*
-$Log$
-Revision 1.21  2010/12/30 01:08:01  mast
-sleep function
-
-Revision 1.20  2010/06/29 21:34:11  mast
-Added convenience functions for calling from C
-
-Revision 1.19  2010/06/23 17:23:03  mast
-pid function
-
-Revision 1.18  2010/03/24 02:20:17  mast
-IMOD_DIR function
-
-Revision 1.17  2009/06/22 22:47:03  mast
-Add walltime and thread number functions
-
-Revision 1.16  2008/11/15 21:51:05  mast
-flag function
-
-Revision 1.15  2007/10/01 15:27:41  mast
-Split out everything not in b3dutil.c
-
-Revision 1.14  2007/09/20 15:42:12  mast
-Added declarations for new routines
-
-Revision 1.13  2007/04/26 19:07:44  mast
-Add B3DNINT
-
-Revision 1.12  2006/09/28 21:13:23  mast
-Added huge seek routine
-
-Revision 1.11  2006/09/20 23:02:15  mast
-Added header usage function
-
-Revision 1.10  2006/09/19 16:33:32  mast
-fix prototypes
-
-Revision 1.9  2006/08/27 23:47:00  mast
-Moved fgetline from mrcfiles to b3dutil
-
-Revision 1.8  2006/06/26 14:49:09  mast
-Moved miscellaneous functions to b3dutil
-
-Revision 1.7  2005/02/11 01:41:04  mast
-Swicthed to b3dIMin/Max
-
-Revision 1.6  2004/11/12 15:22:13  mast
-Added min and max functions and macros
-
-Revision 1.5  2004/03/18 17:56:57  mast
-Added header byte count routine
-
-Revision 1.4  2004/01/17 20:34:03  mast
-Add b3d file routines
-
-Revision 1.3  2003/11/04 17:14:21  mast
-Add include of stdio so that FILE is defined
-
-Revision 1.2  2003/11/01 16:41:13  mast
-Add error routines
-
-Revision 1.1  2003/10/24 02:44:36  mast
-Initial creation
-
-*/
