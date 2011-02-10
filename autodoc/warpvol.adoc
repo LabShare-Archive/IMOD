@@ -96,7 +96,7 @@ type = FN
 usage = Output file for warping transforms after filling in empty positions
 tooltip = 
 manpage = Output file for warping transforms after filling in empty positions.
-The program will exit without making an output file if this option is given.
+The program will exit without making an output image file if this option is given.
 
 [Field = ParameterFile]
 short = param
