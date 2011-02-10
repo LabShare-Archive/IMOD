@@ -11,6 +11,7 @@ EXPORTS
 	PipSetManpageOutput
 	KERNELHISTOGRAM
 	ilistQuantum
+	ZOOMWITHFILTER
 	IMODGETENV
 	setExitPrefix
 	AdocGetTwoIntegers
@@ -142,6 +143,7 @@ EXPORTS
 	cmapConvertRamp
 	SCANHISTOGRAM
 	ADOCSETTHREEFLOATS
+	zoomWithFilter
 	AdocGetThreeIntegers
 	conjugateProduct
 	XCorrSetCTFnoScl
@@ -163,6 +165,7 @@ EXPORTS
 	ADOCGETINTEGER
 	PIPSETERROR
 	sliceGetPixelMagnitude
+	SELECTZOOMFILTER
 	AdocSetFloat
 	sliceTaperInPad
 	PipPrintHelp
@@ -177,13 +180,16 @@ EXPORTS
 	ilistDup
 	rsMedianOfSorted
 	AdocSetTwoFloats
+	ZOOMFILTINTERP
 	sliceTaperOutPad
 	addValueToRow
 	lsFit2
 	PIPNUMBEROFENTRIES
 	PipGetInteger
 	PIPGETTWOFLOATS
+	b3dOMPthreadNum
 	b3dIMax
+	zoomFiltInterp
 	FINDPIECESHIFTS
 	b3dIMin
 	CCCOEFFICIENT
@@ -301,6 +307,7 @@ EXPORTS
 	B3DHEADERITEMBYTES
 	PipGetLineOfValues
 	SPLITFILL
+	b3dompthreadnum
 	PIPALLOWCOMMADEFAULTS
 	SURFACESORT
 	AdocRead
@@ -314,6 +321,7 @@ EXPORTS
 	SCALEDSOBEL
 	AdocAddSection
 	cblas_daxpy
+	selectZoomFilter
 	PIPGETSTRING
 	PipGetFloatArray
 	slicePutVal

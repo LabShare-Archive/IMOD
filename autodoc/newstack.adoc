@@ -208,13 +208,42 @@ enter a new size explicitly.
 [Field = ExpandByFactor]
 short = expand
 type = F
-usage = Scale all images in size by the given factor
+usage = Scale all images up in size by the given factor
 tooltip =
-manpage = Scale all images in size by the given factor, greater than 1 to 
-expand, or less than 1 to shrink.  Scaling is applied after binning and
-transformation, if any.  If no output size is specified, the size of the input
+manpage = Scale all images up in size by the given factor, greater than 1 to 
+expand, or less than 1 to shrink with ordinary interpolation.  Scaling is
+applied after binning and transformation, if any.  If no output size is
+specified, the size of the input image will be scaled appropriately so that
+the output will contain the entire image.
+
+[Field = ShrinkByFactor]
+short = shrink
+type = F
+usage = Scale all images down in size by the given factor with antialias filtering
+tooltip =
+manpage = Scale all images down in size by the given factor, a value
+greater than 1, using antialias filtering.  This option should be used for
+large image reductions, because using ordinary interpolation 
+will give aliasing artifacts that appear primarily as noise.
+Even binning will give some aliasing.  Shrinking can be applied after
+binning but cannot be combined with rotation, general transformation, or
+distortion correction.  If no output size is specified, the size of the input
 image will be scaled appropriately so that the output will contain the entire
 image.
+
+[Field = AntialiasFilter]
+short = antialias
+type = I
+usage = Type of antialiasing filter to use when shrinking images (default 3)
+tooltip = 
+manpage = Type of antialiasing filter to use when reducing images with the
+-shrink option.  The available types of filters are:
+^    1: Blackman - faster but not as good at antialiasing, used in 3dmod
+^    2: Mitchell - good at antialiasing, smooths a bit
+^    3: Lanczos 2 lobes - good at antialiasing, less smoothing
+^    4: Lanczos 3 lobes - slower, even less smoothing but more risk of ringing
+^The default is 3 for the Lanczos 2, which many people consider the best
+compromise among the various factors.
 
 [Field = BinByFactor]
 short = bin
