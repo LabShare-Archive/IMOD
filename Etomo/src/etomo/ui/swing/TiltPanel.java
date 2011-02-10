@@ -28,6 +28,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/03 06:22:16  sueh
+ * <p> bug# 1422 Control of the processing method has been centralized in the
+ * <p> processing method mediator class.  Implementing ProcessInterface.
+ * <p> Supplying processes with the current processing method.
+ * <p>
  * <p> Revision 1.2  2010/12/05 05:20:15  sueh
  * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.  Getting rid of some of the panel parents by handling common needs with generic
  * <p> interfaces:  ParallelProcessEnabledDialog.
@@ -54,8 +59,8 @@ final class TiltPanel extends AbstractTiltPanel {
   private final JPanel pnlTiltPanelRoot = new JPanel();
 
   private TiltPanel(final ApplicationManager manager, final AxisID axisID,
-      final DialogType dialogType,
-      final GlobalExpandButton globalAdvancedButton, final PanelId panelId) {
+      final DialogType dialogType, final GlobalExpandButton globalAdvancedButton,
+      final PanelId panelId) {
     super(manager, axisID, dialogType, globalAdvancedButton, panelId);
     mediator.register(this);
   }
@@ -63,19 +68,18 @@ final class TiltPanel extends AbstractTiltPanel {
   static TiltPanel getBackProjectionInstance(final ApplicationManager manager,
       final AxisID axisID, final DialogType dialogType,
       final GlobalExpandButton globalAdvancedButton) {
-    TiltPanel instance = new TiltPanel(manager, axisID, dialogType,
-        globalAdvancedButton, PanelId.TILT);
+    TiltPanel instance = new TiltPanel(manager, axisID, dialogType, globalAdvancedButton,
+        PanelId.TILT);
     instance.createPanel();
     instance.setToolTipText();
     instance.addListeners();
     return instance;
   }
 
-  static TiltPanel getSirtInstance(final ApplicationManager manager,
-      final AxisID axisID, final DialogType dialogType,
-      GlobalExpandButton globalAdvancedButton) {
-    TiltPanel instance = new TiltPanel(manager, axisID, dialogType,
-        globalAdvancedButton, PanelId.TILT_SIRT);
+  static TiltPanel getSirtInstance(final ApplicationManager manager, final AxisID axisID,
+      final DialogType dialogType, GlobalExpandButton globalAdvancedButton) {
+    TiltPanel instance = new TiltPanel(manager, axisID, dialogType, globalAdvancedButton,
+        PanelId.TILT_SIRT);
     instance.createPanel();
     instance.setToolTipText();
     instance.addListeners();
@@ -84,8 +88,7 @@ final class TiltPanel extends AbstractTiltPanel {
 
   void createPanel() {
     super.createPanel();
-    pnlTiltPanelRoot
-        .setLayout(new BoxLayout(pnlTiltPanelRoot, BoxLayout.Y_AXIS));
+    pnlTiltPanelRoot.setLayout(new BoxLayout(pnlTiltPanelRoot, BoxLayout.Y_AXIS));
     UIUtilities.addWithYSpace(pnlTiltPanelRoot, super.getRoot());
     UIUtilities.alignComponentsX(pnlTiltPanelRoot, Component.CENTER_ALIGNMENT);
   }
@@ -123,7 +126,7 @@ final class TiltPanel extends AbstractTiltPanel {
     String[] logFile = new String[1];
     logFile[0] = "tilt" + axisID.getExtension() + ".log";
     ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent, anchor,
-        ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile,
-        manager, axisID);
+        ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile, manager,
+        axisID);
   }
 }

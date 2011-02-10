@@ -48,6 +48,11 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/03 06:22:16  sueh
+ * <p> bug# 1422 Control of the processing method has been centralized in the
+ * <p> processing method mediator class.  Implementing ProcessInterface.
+ * <p> Supplying processes with the current processing method.
+ * <p>
  * <p> Revision 1.2  2010/12/05 05:22:02  sueh
  * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
  * <p>
@@ -429,16 +434,16 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
   }
 
   protected String paramString() {
-    return "pnlSetup=" + pnlSetup + ",\npnlInitial=" + pnlInitial
-        + ",\npnlFinal=" + pnlFinal + ",\ncombinePanelEnabled="
-        + combinePanelEnabled + ",\nparallelProcessCheckBoxText="
-        + parallelProcessCheckBoxText + ",\nidxLastTab=" + idxLastTab;
+    return "pnlSetup=" + pnlSetup + ",\npnlInitial=" + pnlInitial + ",\npnlFinal="
+        + pnlFinal + ",\ncombinePanelEnabled=" + combinePanelEnabled
+        + ",\nparallelProcessCheckBoxText=" + parallelProcessCheckBoxText
+        + ",\nidxLastTab=" + idxLastTab;
   }
 
   public TomogramCombinationDialog(ApplicationManager appMgr) {
     super(appMgr, AxisID.FIRST, DialogType.TOMOGRAM_COMBINATION);
-    ConstEtomoNumber maxCPUs = CpuAdoc.INSTANCE.getMaxVolcombine(appMgr,
-        axisID, applicationManager.getPropertyUserDir());
+    ConstEtomoNumber maxCPUs = CpuAdoc.INSTANCE.getMaxVolcombine(appMgr, axisID,
+        applicationManager.getPropertyUserDir());
     mediator = appMgr.getProcessingMethodMediator(axisID);
     if (maxCPUs != null && !maxCPUs.isNull()) {
       parallelProcessCheckBoxText = ParallelPanel.FIELD_LABEL
@@ -451,8 +456,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     pnlSetup = new SetupCombinePanel(this, applicationManager, dialogType);
     pnlInitial = new InitialCombinePanel(this, applicationManager, dialogType,
         btnAdvanced);
-    pnlFinal = new FinalCombinePanel(this, applicationManager, dialogType,
-        btnAdvanced);
+    pnlFinal = new FinalCombinePanel(this, applicationManager, dialogType, btnAdvanced);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.add(parallelPanelContainer);
@@ -462,8 +466,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     tabbedPane.add(lblFinal, pnlFinal.getContainer());
 
     rootPanel.setBorder(new BeveledBorder("Tomogram Combination").getBorder());
-    JLabel zWarning = new JLabel(
-        "For all 3D parameters Z represents the depth domain");
+    JLabel zWarning = new JLabel("For all 3D parameters Z represents the depth domain");
     zWarning.setAlignmentX(Component.CENTER_ALIGNMENT);
     rootPanel.add(zWarning);
     rootPanel.add(tabbedPane);
@@ -510,8 +513,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
    * @param combineParams
    * @throws NumberFormatException
    */
-  public void getCombineParams(CombineParams combineParams)
-      throws NumberFormatException {
+  public void getCombineParams(CombineParams combineParams) throws NumberFormatException {
     pnlSetup.getParameters(combineParams);
   }
 
@@ -730,8 +732,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
    * @param toPanel
    * @param fieldSet
    */
-  private void synchronize(InitialCombineFields fromPanel,
-      InitialCombineFields toPanel) {
+  private void synchronize(InitialCombineFields fromPanel, InitialCombineFields toPanel) {
     if (!fromPanel.isEnabled() || !toPanel.isEnabled()) {
       return;
     }
@@ -750,8 +751,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
    * @param toPanel
    * @param fieldSet
    */
-  private void synchronize(FinalCombineFields fromPanel,
-      FinalCombineFields toPanel) {
+  private void synchronize(FinalCombineFields fromPanel, FinalCombineFields toPanel) {
     if (!fromPanel.isEnabled() || !toPanel.isEnabled()) {
       return;
     }
@@ -831,12 +831,10 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "Solvematch", "Matchshifts", "Patchcrawl3d",
-        "Matchorwarp" };
-    String[] manPage = { "solvematch.html", "matchshifts.html",
-        "patchcrawl3d.html", "matchorwarp.html" };
-    String[] logFileLabel = { "Solvematch.log", "Patchcorr.log",
-        "Matchorwarp.log" };
+    String[] manPagelabel = { "Solvematch", "Matchshifts", "Patchcrawl3d", "Matchorwarp" };
+    String[] manPage = { "solvematch.html", "matchshifts.html", "patchcrawl3d.html",
+        "matchorwarp.html" };
+    String[] logFileLabel = { "Solvematch.log", "Patchcorr.log", "Matchorwarp.log" };
     ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
         "TOMOGRAM COMBINATION", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
         logFileLabel, logFileLabel, applicationManager, axisID);
