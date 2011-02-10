@@ -1,5 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/9/11: Added a -shrink option to Newstack to do antialiased image reduction,
+which is preferable to binning.
+
+2/9/11: Parallelized array-filling for high-quality display in Zap and XYZ
+windows.  Made high-quality display work for color images.  Added antialiased
+image reduction, which is used when high-quality is selected and zoom is less
+than 0.75.
+
 2/8/11: Switched to new processchunks again.
 
 2/8/11: In eTomo - using processchunks, except when more CPUs are requested
