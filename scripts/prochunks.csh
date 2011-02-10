@@ -937,6 +937,9 @@ exit 2
 
 #
 #  $Log$
+#  Revision 3.55  2010/08/31 18:36:10  mast
+#  Fixed two problems with hanging due to nochunks being set erroneously
+#
 #  Revision 3.54  2010/08/19 01:48:24  mast
 #  Fixed test for no numbered com files
 #
