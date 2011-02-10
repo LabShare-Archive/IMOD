@@ -47,8 +47,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 
   public TomogramGenerationExpert(ApplicationManager manager,
       MainTomogramPanel mainPanel, ProcessTrack processTrack, AxisID axisID) {
-    super(manager, mainPanel, processTrack, axisID,
-        DialogType.TOMOGRAM_GENERATION);
+    super(manager, mainPanel, processTrack, axisID, DialogType.TOMOGRAM_GENERATION);
     comScriptMgr = manager.getComScriptManager();
     state = manager.getState();
     screenState = manager.getScreenState(axisID);
@@ -65,11 +64,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       return;
     }
     //Create the dialog and show it.
-    Utilities.timestamp("new", "TomogramGenerationDialog",
-        Utilities.STARTED_STATUS);
+    Utilities.timestamp("new", "TomogramGenerationDialog", Utilities.STARTED_STATUS);
     dialog = TomogramGenerationDialog.getInstance(manager, this, axisID);
-    Utilities.timestamp("new", "TomogramGenerationDialog",
-        Utilities.FINISHED_STATUS);
+    Utilities.timestamp("new", "TomogramGenerationDialog", Utilities.FINISHED_STATUS);
     // no longer managing image size
     setParameters(metaData);
     setParameters(screenState);
@@ -104,8 +101,8 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
   }
 
   public boolean reconnectTilt(ProcessName processName) {
-    ProcessResultDisplay display = manager.getProcessResultDisplayFactory(
-        axisID).getTilt(DialogType.TOMOGRAM_GENERATION, PanelId.TILT);
+    ProcessResultDisplay display = manager.getProcessResultDisplayFactory(axisID)
+        .getTilt(DialogType.TOMOGRAM_GENERATION, PanelId.TILT);
     sendMsgProcessStarting(display);
     return manager.reconnectTilt(axisID, processName, display);
   }
@@ -123,8 +120,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     }
     DialogExitState exitState = dialog.getExitState();
     if (exitState == DialogExitState.EXECUTE) {
-      manager.closeImods(ImodManager.TRIAL_TOMOGRAM_KEY, axisID,
-          "Trial tomogram");
+      manager.closeImods(ImodManager.TRIAL_TOMOGRAM_KEY, axisID, "Trial tomogram");
     }
     if (exitState != DialogExitState.CANCEL) {
       saveDialog();
@@ -145,8 +141,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       getParameters(metaData);
     }
     catch (FortranInputSyntaxException e) {
-      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
-          "Data File Error");
+      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(), "Data File Error");
     }
     getParameters(screenState);
     manager.updateTiltCom(dialog.getTiltDisplay(), axisID);
@@ -178,8 +173,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     dialog.getParameters(screenState);
   }
 
-  private void getParameters(MetaData metaData)
-      throws FortranInputSyntaxException {
+  private void getParameters(MetaData metaData) throws FortranInputSyntaxException {
     if (dialog == null) {
       return;
     }
@@ -203,6 +197,11 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/03 06:22:16  sueh
+ * <p> bug# 1422 Control of the processing method has been centralized in the
+ * <p> processing method mediator class.  Implementing ProcessInterface.
+ * <p> Supplying processes with the current processing method.
+ * <p>
  * <p> Revision 1.2  2010/12/05 05:23:38  sueh
  * <p> bug# 1421 Changed setEnabledTiltParameters to setTiltState.  Removed
  * <p> unused function getParameters(TiltParam).
