@@ -617,7 +617,8 @@ int b3dMilliSleep(int msecs)
  * Computes the number of threads to specify in an OpenMP directive by taking
  * the minimum of the given optimal thread number [optimalThreads], the number
  * of processors, and the value of OMP_NUM_THREADS, if any.  It evaluates the
- * number of processors and value of OMP_NUM_THREADS only on the first call.
+ * number of processors and value of OMP_NUM_THREADS only on the first call.  Returns 1
+ * if there is no OpenMP available.
  */
 int numOMPthreads(int optimalThreads)
 {
@@ -639,6 +640,8 @@ int numOMPthreads(int optimalThreads)
     numThreads = B3DMIN(limThreads, numThreads);
   /* printf("numProcs %d  limThreads %d  numThreads %d\n", numProcs,
      limThreads, numThreads); */
+#else
+  numThreads = 1;
 #endif
   return numThreads;
 }
@@ -648,8 +651,29 @@ int numompthreads(int optimalThreads)
   return numOMPthreads(optimalThreads);
 }
 
+/*!
+ * Returns the thread number of the current thread, numbered from 0 when calling from 
+ * C or numbered from 1 when calling the Fortran wrapper.
+ */
+int b3dOMPthreadNum()
+{
+#ifdef _OPENMP
+  return omp_get_thread_num();
+#else
+  return 0;
+#endif
+}
+
+int b3dompthreadnum()
+{
+  return b3dOMPthreadNum() + 1;
+}
+
 /*
 $Log$
+Revision 1.17  2010/12/30 01:20:01  mast
+Tested version of sleep now
+
 Revision 1.16  2010/12/30 01:07:49  mast
 Test checkin for sleep function
 
