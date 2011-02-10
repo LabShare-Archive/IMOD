@@ -98,7 +98,7 @@ install : configure man sourcedoc
 	cd sendevent  ; $(MAKE) $@
 	cd qtassist   ; $(MAKE) $@
 	cd ctfplotter ; $(MAKE) $@
-#	cd processchunks ; $(MAKE) $@
+	cd processchunks ; $(MAKE) $@
 	cd mrc        ; $(MAKE) $@
 	cd midas      ; $(MAKE) $@
 	cd pysrc      ; $(MAKE) $@
@@ -366,6 +366,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.87  2011/01/15 15:27:40  mast
+#  Add csv files in plugins
+#
 #  Revision 3.86  2010/12/13 05:51:05  mast
 #  Take out processchunks
 #
