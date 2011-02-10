@@ -92,11 +92,12 @@ c
       integer*4 ixOffset, iyOffset, lenTemp, ierr3, applyFirst,numTaper
       integer*4 nLineTemp,ifOnePerFile,ifUseFill,listIncrement,indout
       integer*4 ixOriginOff,iyOriginOff, numReplace, isecReplace, modeOld
-      real*4 fieldMaxY, binRatio, rotateAngle, expandFactor, fillVal
+      integer*4 indFilter,linesShrink
+      real*4 fieldMaxY, binRatio, rotateAngle, expandFactor, fillVal, shrinkFactor
       real*8 dsum,dsumsq,tsum,tsumsq, wallstart,walltime,loadtime,savetime
       real*8 rottime
       real*4 cosd, sind
-      integer*4 lnblnk, taperAtFill
+      integer*4 lnblnk, taperAtFill, selectZoomFilter, zoomFiltInterp
       character*320 concat
 c       
       logical pipinput
@@ -108,7 +109,7 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  newstack
 c       
       integer numOptions
-      parameter (numOptions = 38)
+      parameter (numOptions = 40)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'input:InputFile:FNM:@output:OutputFile:FNM:@'//
@@ -121,6 +122,7 @@ c
      &    'applyfirst:ApplyOffsetsFirst:B:@xform:TransformFile:FN:@'//
      &    'uselines:UseTransformLines:LIM:@onexform:OneTransformPerFile:B:@'//
      &    'rotate:RotateByAngle:F:@expand:ExpandByFactor:F:@'//
+     &    'shrink:ShrinkByFactor:F:@antialias:AntialiasFilter:I:@'//
      &    'bin:BinByFactor:I:@origin:AdjustOrigin:B:@'//
      &    'linear:LinearInterpolation:B:@float:FloatDensities:I:@'//
      &    'contrast:ContrastBlackWhite:IP:@scale:ScaleMinAndMax:FP:@'//
@@ -175,6 +177,8 @@ c
       savetime=0.
       rottime = 0.
       maxextra = 0
+      indFilter = 3
+      linesShrink = 0
       iseriesBase = -1
       seriesExt = ' '
 c       
@@ -652,6 +656,27 @@ c
 c
         if (iBinning .le. 0) call exitError
      &      ('BINNING FACTOR MUST BE A POSITIVE NUMBER')
+c         
+c         Shrinkage
+        if (PipGetFloat('ShrinkByFactor', shrinkFactor) .eq. 0) then
+          if (ifxform .ne. 0 .or. rotateAngle .ne. 0. or. expandFactor .ne. 0. .or.
+     &        idfFile .ne. ' ' .or. magGradFile .ne. ' ') call exitError('YOU CANNOT'//
+     &        ' USE -shrink WITH -xform, -rotate, -expand, -distort, or -gradient')
+          if (shrinkFactor .le. 1.) call exitError(
+     &        'FACTOR FOR -shrink MUST BE GREATER THAN 1')
+          ierr = PipGetInteger('AntialiasFilter', indFilter)
+          indFilter = max(0, indFilter - 1)
+          expandFactor = 1. / shrinkFactor
+          ierr = 1
+          i = indFilter
+          do while (ierr .eq. 1)
+            ierr = selectZoomFilter(indFilter, expandFactor, linesShrink)
+            if (ierr .eq. 1) indFilter = indFilter - 1 
+            if (ierr .gt. 1) call exitError( 'SELECTING ANTIALIASING FILTER')
+          enddo
+          if (indFilter .lt. i) print *,'Using the last antialiasing filter, #',indFilter
+          linesShrink = linesShrink / 2 + 2
+        endif
 c         
 c         Section replacement
         if (PipGetString('ReplaceSections', listString) .eq. 0) then
@@ -1321,9 +1346,9 @@ c		      dy=f(2,3,lnu)-ycen(isec)
                     call backxform(nxbin,nybin,nx3,ny3,fprod,xci ,yci,dx,dy,
      &                  nx3,nextline,xp4,yp4)
                     iy1=min(nybin-1,max(0,int(min(yp1,yp2,yp3,yp4))-2 -
-     &                  maxFieldY))
+     &                  maxFieldY - linesShrink))
                     iy2=min(nybin-1,max(0,int(max(yp1,yp2,yp3,yp4))+1 +
-     &                  maxFieldY))
+     &                  maxFieldY + linesShrink))
                   endif
                   lineInSt(ichunk)=iy1
                   nLinesIn(ichunk)=iy2+1-iy1
@@ -1475,7 +1500,11 @@ c
               dy=(ny3-nych)/2.+fprod(2,3) - lineOutSt(ichunk)
 c		dx=f(1,3,lnu)-xcen(isec)
 c		dy=(ny3-nych)/2.+f(2,3,lnu) - ycen(isec) - lineOutSt(ichunk)
-              if (ifDistort + ifMagGrad .eq. 0) then
+              if (linesShrink .gt. 0) then
+                if (zoomFiltInterp(array,array(ibchunk),nxbin,nyload, nx3, nych,
+     &              xci ,yci, dx,dy,dmeansec) .ne. 0) call exitError(
+     &              'CALLING zoomFiltInterp FOR IMAGE REDUCTION')
+              elseif (ifDistort + ifMagGrad .eq. 0) then
                 call cubinterp(array,array(ibchunk),nxbin,nyload, nx3, nych,
      &              fprod,xci ,yci, dx,dy,1.,dmeansec, ifLinear)
               else
@@ -2106,6 +2135,10 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.60  2010/08/25 15:13:42  mast
+c       Fixed allocatoin with list of output files, added option for extension
+c       on file series
+c
 c       Revision 3.59  2010/06/09 04:29:02  mast
 c       Fixed fallback for memory limit
 c
