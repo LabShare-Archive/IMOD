@@ -24,7 +24,11 @@ import etomo.ui.swing.ProcessInterface;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2011/02/03 05:54:15  sueh
+* <p> bug# 1422 Class that coordinates information about the current parallel
+* <p> processing method.
+* <p> </p>
 */
 public final class ProcessingMethodMediator {
   public static final String rcsid = "$Id$";
@@ -180,8 +184,7 @@ public final class ProcessingMethodMediator {
    * @param parallelPanel
    * @param running
    */
-  public synchronized void register(
-      final ParallelProcessMonitor parallelProcessMonitor) {
+  public synchronized void register(final ParallelProcessMonitor parallelProcessMonitor) {
     if (parallelProcessMonitor == null) {
       //can't use this function to deregister an interface
       return;
@@ -270,8 +273,7 @@ public final class ProcessingMethodMediator {
    * @param origin
    * @param method
    */
-  public void setMethod(final ProcessInterface origin,
-      final ProcessingMethod method) {
+  public void setMethod(final ProcessInterface origin, final ProcessingMethod method) {
     //Ignore an unregistered process interface
     //Don't change processing method while reconnect process exists
     if (origin != processInterface || reconnectProcess != null) {
@@ -285,8 +287,7 @@ public final class ProcessingMethodMediator {
    * @param origin
    * @param method
    */
-  public void setMethod(final ParallelPanel origin,
-      final ProcessingMethod method) {
+  public void setMethod(final ParallelPanel origin, final ProcessingMethod method) {
     //Ignore an unregistered parallel panel
     if (origin != parallelPanel) {
       return;
@@ -304,8 +305,7 @@ public final class ProcessingMethodMediator {
   public ProcessingMethod getRunMethodForParallelPanel(
       final ProcessingMethod parallelPanelMethod) {
     if (processInterface != null) {
-      ProcessingMethod processInterfaceMethod = processInterface
-          .getProcessingMethod();
+      ProcessingMethod processInterfaceMethod = processInterface.getProcessingMethod();
       if (!processInterfaceMethod.isLocal()
           && parallelPanelMethod == ProcessingMethod.QUEUE) {
         return parallelPanelMethod;
@@ -326,8 +326,7 @@ public final class ProcessingMethodMediator {
   public ProcessingMethod getRunMethodForProcessInterface(
       final ProcessingMethod processInterfaceMethod) {
     if (parallelPanel != null) {
-      ProcessingMethod parallelPanelMethod = parallelPanel
-          .getProcessingMethod();
+      ProcessingMethod parallelPanelMethod = parallelPanel.getProcessingMethod();
       if (!processInterfaceMethod.isLocal()
           && parallelPanelMethod == ProcessingMethod.QUEUE) {
         return parallelPanelMethod;
