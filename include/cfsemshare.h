@@ -6,7 +6,7 @@
  *   Colorado.
  *
  *   $Id$
- *   Log at end
+ *   No more Log
  */                                                                           
 
 #ifndef CFSEMSHARE_H
@@ -194,87 +194,17 @@ extern "C" {
    int numAvgForTest, int intervalForTest, int *numIter, float *wErrMean, 
    float *wErrMax);
 
+  /* zoomdown.c */
+  int selectZoomFilter(int type, double zoom, int *outWidth);
+  int zoomWithFilter(unsigned char **slines, int sXsize, int sYsize, float sXoff,
+                     float sYoff, int dXsize, int dYsize, int dXdim, int dXoff, int dtype,
+                     void *outData, b3dUInt32 *cindex, unsigned char *bindex);
+  int zoomFiltInterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
+                     float xc, float yc, float xt, float yt, float dmean);
+
 #ifdef __cplusplus
 }
 #endif
 
 
 #endif
-
-/*
-
-$Log$
-Revision 3.24  2010/12/28 18:05:24  mast
-trimmed mean, robust argument
-
-Revision 3.23  2010/10/26 16:47:56  mast
-rotmagstrToAmat
-
-Revision 3.22  2010/10/22 05:36:21  mast
-Add weighting to circle fits
-
-Revision 3.21  2010/06/19 23:40:06  mast
-Added find_piece_shifts
-
-Revision 3.20  2010/06/06 21:14:34  mast
-Added gaussj
-
-Revision 3.19  2010/06/03 14:44:09  mast
-Fixed arguments
-
-Revision 3.18  2010/06/02 21:19:52  mast
-Added surfacesort
-
-Revision 3.17  2010/01/21 03:48:15  mast
-Added statfuncs
-
-Revision 3.16  2009/11/28 20:10:20  mast
-Added convexbound and indexed sort
-
-Revision 3.15  2009/11/21 21:16:24  mast
-Added robuststat
-
-Revision 3.14  2009/02/16 06:16:12  mast
-Add parallel write routines
-
-Revision 3.13  2009/01/02 05:19:19  mast
-const char * for Qt 4 port
-
-Revision 3.12  2008/12/22 23:02:30  mast
-Added return of nsum to ccc function
-
-Revision 3.11  2008/12/21 18:28:17  mast
-Add ccc routine
-
-Revision 3.10  2008/12/20 05:32:46  mast
-Added smooth pad function
-
-Revision 3.9  2008/12/01 15:31:01  mast
-More functions
-
-Revision 3.8  2008/11/18 22:44:06  mast
-Added amat_to_rotmagstr
-
-Revision 3.7  2008/11/14 19:59:23  mast
-Added simplestat functions
-
-Revision 3.6  2008/11/12 03:41:42  mast
-Added histogram functions
-
-Revision 3.5  2008/06/24 04:44:11  mast
-Added taper function
-
-Revision 3.4  2007/10/11 16:47:23  mast
-Added edge mean function
-
-Revision 3.3  2007/10/10 18:54:52  mast
-Functions callable by fortran must return double not float!
-
-Revision 3.2  2007/10/04 16:24:29  mast
-Added parabolic fit function to do it right everywhere
-
-Revision 3.1  2007/10/01 15:27:13  mast
-Split b3dutil.h, this one goes to SerialEM
-
-
-*/

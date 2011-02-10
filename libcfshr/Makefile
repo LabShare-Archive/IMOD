@@ -17,7 +17,7 @@ UTILOBJS = b3dutil.$(O) ilist.$(O) parselist.$(O) amoeba.$(O) \
 	simplestat.$(O) amat_to_rotmagstr.$(O) percentile.$(O) beadutil.$(O) \
 	lsqr.$(O) lsqrblas.$(O) sparselsqr.$(O) parallelwrite.$(O) \
 	robuststat.$(O) convexbound.$(O) statfuncs.$(O) surfacesort.$(O) \
-	gaussj.$(O) find_piece_shifts.$(O)
+	gaussj.$(O) find_piece_shifts.$(O) zoomdown.$(O)
 
 PIPOBJS = parse_params.$(O) pip_fwrap.$(O) autodoc.$(O) adoc_fwrap.$(O)
 
@@ -25,6 +25,8 @@ all : $(LIBI)
 
 cubinterp.$(O) : cubinterp.c
 	$(CC) $(CFLAGS) $(OPENMP) -c cubinterp.c
+zoomdown.$(O) : zoomdown.c
+	$(CC) $(CFLAGS) $(OPENMP) -c zoomdown.c
 b3dutil.$(O) : b3dutil.c
 	$(CC) $(CFLAGS) $(OPENMP) -c b3dutil.c
 
