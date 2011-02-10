@@ -22,7 +22,11 @@ one to type in a custom zoom.
 pixels enclosed by the rubber band if it is on.  This is the size of image that
 will be produced when taking a snapshot.
 <LI>The <B>checkerboard</B> button toggles between fast rendering and 
-slower but higher quality interpolated image rendering.
+slower but higher quality interpolated image rendering.  When the zoom is
+below 0.75, the higher quality display uses a filter to remove aliased
+information, which often appears as extra noise.
+The smaller the zoom, the slower the filtering is, so the display may become
+quite slow for very large images.
 <LI>The <B>lock</B> button can lock the Zap window at the current Z value.
 When locked, the Z value of a Zap window can be changed with 
 controls or hot keys in the window, but that will not change the current

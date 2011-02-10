@@ -39,7 +39,9 @@ the 3dmod Preferences dialog, accessed via the <B>Edit-Options</B> menu entry.
 <LI>The <B>zoom</B> edit box shows the current zoom factor and allows 
 one to type in a custom zoom.
 <LI>The <B>checkerboard</B> button toggles between fast rendering and 
-slower but higher quality interpolated image rendering.
+slower but higher quality interpolated image rendering.  When the zoom is
+below 0.75, the higher quality display uses a filter to remove aliased
+information, which often appears as extra noise.
 <LI>The <B>centering</B> button will pan the images to bring the current point
 as close as possible to the center of each view box.  The centered point is
 either the current image point in movie mode or the current model point in
