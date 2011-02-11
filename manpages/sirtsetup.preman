@@ -74,9 +74,10 @@ should particularly avoid leaving reconstructions in the first 5 iterations.
 Sirtsetup is meant to be used with a command file for running Tilt(1) that has
 all of the entries produced when running through eTomo.  There is one main
 restriction on this file.  The reconstruction must be the same size in X and Y
-as the aligned stack; this means a SLICE entry will be ignored and a WIDTH
-entry, if present, must match the size of the aligned stack being used for
-reconstruction.  Sirtsetup does allow you to reconstruct a subarea that can be
+as the aligned stack; this means both a SLICE entry and a WIDTH
+entry will be ignored if present.  In addition, an X shift specified with the
+first value in a SHIFT entry will also be ignored.
+Sirtsetup does allow you to reconstruct a subarea that can be
 offset in Y (along the tilt axis) but must be centered in X.  It extracts the
 specified subarea from the full aligned stack into a new stack that is used
 for the reconstruction, and adjusts the SUBSETSTART entry in the tilt command

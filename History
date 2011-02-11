@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/10/11: Changed Sirtsetup to accept a command file with WIDTH and X SHIFT
+entries by ignoring them, so eTomo only needs to maintain one com file.
+
 2/9/11: Added a -shrink option to Newstack to do antialiased image reduction,
 which is preferable to binning.
 
