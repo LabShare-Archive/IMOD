@@ -50,14 +50,12 @@ public final class ProcessResultDisplayFactory implements
       .getToggleButtonInstance("Make Distortion Corrected Stack",
           DialogType.COARSE_ALIGNMENT);
   private final ProcessResultDisplay fixEdgesMidas = MultiLineButton
-      .getToggleButtonInstance("Fix Edges With Midas",
-          DialogType.COARSE_ALIGNMENT);
+      .getToggleButtonInstance("Fix Edges With Midas", DialogType.COARSE_ALIGNMENT);
   private final ProcessResultDisplay coarseAlign = Run3dmodButton
       .getDeferredToggle3dmodInstance("Generate Coarse Aligned Stack",
           DialogType.COARSE_ALIGNMENT);
-  private final ProcessResultDisplay midas = MultiLineButton
-      .getToggleButtonInstance("Fix Alignment With Midas",
-          DialogType.COARSE_ALIGNMENT);
+  private final ProcessResultDisplay midas = MultiLineButton.getToggleButtonInstance(
+      "Fix Alignment With Midas", DialogType.COARSE_ALIGNMENT);
 
   //fiducial model
 
@@ -67,20 +65,17 @@ public final class ProcessResultDisplayFactory implements
   private final ProcessResultDisplay raptor = Run3dmodButton
       .getDeferredToggle3dmodInstance(RaptorPanel.RUN_RAPTOR_LABEL,
           DialogType.FIDUCIAL_MODEL);
-  private final ProcessResultDisplay useRaptor = MultiLineButton
-      .getToggleButtonInstance(RaptorPanel.USE_RAPTOR_RESULT_LABEL,
-          DialogType.FIDUCIAL_MODEL);
+  private final ProcessResultDisplay useRaptor = MultiLineButton.getToggleButtonInstance(
+      RaptorPanel.USE_RAPTOR_RESULT_LABEL, DialogType.FIDUCIAL_MODEL);
   private final ProcessResultDisplay seedFiducialModel = Run3dmodButton
       .getToggle3dmodInstance(FiducialModelDialog.SEEDING_NOT_DONE_LABEL,
           DialogType.FIDUCIAL_MODEL);
   private final ProcessResultDisplay trackFiducials = MultiLineButton
-      .getToggleButtonInstance(BeadtrackPanel.TRACK_LABEL,
-          DialogType.FIDUCIAL_MODEL);
+      .getToggleButtonInstance(BeadtrackPanel.TRACK_LABEL, DialogType.FIDUCIAL_MODEL);
   private final ProcessResultDisplay fixFiducialModel = Run3dmodButton
       .getToggle3dmodInstance("Fix Fiducial Model", DialogType.FIDUCIAL_MODEL);
   private final ProcessResultDisplay trackTiltxcorr = Run3dmodButton
-      .getDeferredToggle3dmodInstance("Track Patches",
-          DialogType.FIDUCIAL_MODEL);
+      .getDeferredToggle3dmodInstance("Track Patches", DialogType.FIDUCIAL_MODEL);
 
   //fine alignment
 
@@ -90,29 +85,24 @@ public final class ProcessResultDisplayFactory implements
   //positioning
 
   private final ProcessResultDisplay sampleTomogram = Run3dmodButton
-      .getDeferredToggle3dmodInstance(
-          TomogramPositioningExpert.SAMPLE_TOMOGRAMS_LABEL,
+      .getDeferredToggle3dmodInstance(TomogramPositioningExpert.SAMPLE_TOMOGRAMS_LABEL,
           DialogType.TOMOGRAM_POSITIONING);
   private final ProcessResultDisplay computePitch = MultiLineButton
       .getToggleButtonInstance("Compute Z Shift & Pitch Angles",
           DialogType.TOMOGRAM_POSITIONING);
   private final ProcessResultDisplay finalAlignment = MultiLineButton
-      .getToggleButtonInstance("Create Final Alignment",
-          DialogType.TOMOGRAM_POSITIONING);
+      .getToggleButtonInstance("Create Final Alignment", DialogType.TOMOGRAM_POSITIONING);
 
   //final aligned stack
 
   private final ProcessResultDisplay fullAlignedStack = Run3dmodButton
-      .getDeferredToggle3dmodInstance(
-          NewstackOrBlendmontPanel.RUN_BUTTON_LABEL,
+      .getDeferredToggle3dmodInstance(NewstackOrBlendmontPanel.RUN_BUTTON_LABEL,
           DialogType.FINAL_ALIGNED_STACK);
   private final ProcessResultDisplay ctfCorrection = Run3dmodButton
-      .getDeferredToggle3dmodInstance(
-          FinalAlignedStackDialog.CTF_CORRECTION_LABEL,
+      .getDeferredToggle3dmodInstance(FinalAlignedStackDialog.CTF_CORRECTION_LABEL,
           DialogType.FINAL_ALIGNED_STACK);
   private final ProcessResultDisplay useCtfCorrection = MultiLineButton
-      .getToggleButtonInstance(
-          FinalAlignedStackDialog.USE_CTF_CORRECTION_LABEL,
+      .getToggleButtonInstance(FinalAlignedStackDialog.USE_CTF_CORRECTION_LABEL,
           DialogType.FINAL_ALIGNED_STACK);
   private final ProcessResultDisplay xfModel = Run3dmodButton
       .getDeferredToggle3dmodInstance("Transform Fiducial Model",
@@ -121,24 +111,20 @@ public final class ProcessResultDisplayFactory implements
       .getDeferredToggle3dmodInstance(Tilt3dFindPanel.TILT_3D_FIND_LABEL,
           DialogType.FINAL_ALIGNED_STACK);
   private final ProcessResultDisplay findBeads3d = Run3dmodButton
-      .getDeferredToggle3dmodInstance("Run Findbeads3d",
-          DialogType.FINAL_ALIGNED_STACK);
+      .getDeferredToggle3dmodInstance("Run Findbeads3d", DialogType.FINAL_ALIGNED_STACK);
   private final ProcessResultDisplay reprojectModel = Run3dmodButton
-      .getDeferredToggle3dmodInstance(
-          ReprojectModelPanel.REPROJECT_MODEL_LABEL,
+      .getDeferredToggle3dmodInstance(ReprojectModelPanel.REPROJECT_MODEL_LABEL,
           DialogType.FINAL_ALIGNED_STACK);
   private final ProcessResultDisplay ccdEraserBeads = Run3dmodButton
       .getDeferredToggle3dmodInstance(CcdEraserBeadsPanel.CCD_ERASER_LABEL,
           DialogType.FINAL_ALIGNED_STACK);
   private final ProcessResultDisplay useCcdEraserBeads = Run3dmodButton
-      .getDeferredToggle3dmodInstance(
-          CcdEraserBeadsPanel.USE_ERASED_STACK_LABEL,
+      .getDeferredToggle3dmodInstance(CcdEraserBeadsPanel.USE_ERASED_STACK_LABEL,
           DialogType.FINAL_ALIGNED_STACK);
   private final ProcessResultDisplay filter = Run3dmodButton
       .getDeferredToggle3dmodInstance("Filter", DialogType.FINAL_ALIGNED_STACK);
   private final ProcessResultDisplay useFilteredStack = MultiLineButton
-      .getToggleButtonInstance(
-          FinalAlignedStackDialog.USE_FILTERED_STACK_LABEL,
+      .getToggleButtonInstance(FinalAlignedStackDialog.USE_FILTERED_STACK_LABEL,
           DialogType.FINAL_ALIGNED_STACK);
 
   //generation
@@ -147,29 +133,23 @@ public final class ProcessResultDisplayFactory implements
       .getToggleButtonInstance("Use Current Trial Tomogram",
           DialogType.TOMOGRAM_GENERATION);
   private final ProcessResultDisplay genTilt = Run3dmodButton
-      .getDeferredToggle3dmodInstance("Generate Tomogram",
-          DialogType.TOMOGRAM_GENERATION);
+      .getDeferredToggle3dmodInstance("Generate Tomogram", DialogType.TOMOGRAM_GENERATION);
   private final ProcessResultDisplay deleteAlignedStack = MultiLineButton
       .getToggleButtonInstance("Delete Intermediate Image Stacks",
           DialogType.TOMOGRAM_GENERATION);
   private final ProcessResultDisplay sirtsetup = Run3dmodButton
-      .getDeferredToggle3dmodInstance("Run SIRT",
-          DialogType.TOMOGRAM_GENERATION);
-  private final ProcessResultDisplay useSirt = MultiLineButton
-      .getToggleButtonInstance("Use SIRT output file",
-          DialogType.TOMOGRAM_GENERATION);
+      .getDeferredToggle3dmodInstance("Run SIRT", DialogType.TOMOGRAM_GENERATION);
+  private final ProcessResultDisplay useSirt = MultiLineButton.getToggleButtonInstance(
+      "Use SIRT output file", DialogType.TOMOGRAM_GENERATION);
 
   //combination
 
   private final ProcessResultDisplay createCombine = MultiLineButton
-      .getToggleButtonInstance("Create Combine Scripts",
-          DialogType.TOMOGRAM_COMBINATION);
+      .getToggleButtonInstance("Create Combine Scripts", DialogType.TOMOGRAM_COMBINATION);
   private final ProcessResultDisplay combine = Run3dmodButton
-      .getDeferredToggle3dmodInstance("Start Combine",
-          DialogType.TOMOGRAM_COMBINATION);
+      .getDeferredToggle3dmodInstance("Start Combine", DialogType.TOMOGRAM_COMBINATION);
   private final ProcessResultDisplay restartCombine = Run3dmodButton
-      .getDeferredToggle3dmodInstance("Restart Combine",
-          DialogType.TOMOGRAM_COMBINATION);
+      .getDeferredToggle3dmodInstance("Restart Combine", DialogType.TOMOGRAM_COMBINATION);
   private final ProcessResultDisplay restartMatchvol1 = Run3dmodButton
       .getDeferredToggle3dmodInstance("Restart at Matchvol1",
           DialogType.TOMOGRAM_COMBINATION);
@@ -192,8 +172,7 @@ public final class ProcessResultDisplayFactory implements
   private final ProcessResultDisplay flattenWarp = new MultiLineButton(
       FlattenVolumePanel.FLATTEN_WARP_LABEL);
   private final ProcessResultDisplay squeezeVolume = Run3dmodButton
-      .getDeferredToggle3dmodInstance("Squeeze Volume",
-          DialogType.POST_PROCESSING);
+      .getDeferredToggle3dmodInstance("Squeeze Volume", DialogType.POST_PROCESSING);
   private final ProcessResultDisplay smoothingAssessment = Run3dmodButton
       .getDeferredToggle3dmodInstance(SmoothingAssessmentPanel.FLATTEN_WARP_LABEL,
           DialogType.POST_PROCESSING);
@@ -202,10 +181,8 @@ public final class ProcessResultDisplayFactory implements
     this.screenState = screenState;
   }
 
-  public static ProcessResultDisplayFactory getInstance(
-      BaseScreenState screenState) {
-    ProcessResultDisplayFactory instance = new ProcessResultDisplayFactory(
-        screenState);
+  public static ProcessResultDisplayFactory getInstance(BaseScreenState screenState) {
+    ProcessResultDisplayFactory instance = new ProcessResultDisplayFactory(screenState);
     instance.initialize();
     return instance;
   }
@@ -432,8 +409,7 @@ public final class ProcessResultDisplayFactory implements
       return;
     }
     for (int i = index + 1; i < dependentDisplayList.size(); i++) {
-      display.addDependentDisplay((ProcessResultDisplay) dependentDisplayList
-          .get(i));
+      display.addDependentDisplay((ProcessResultDisplay) dependentDisplayList.get(i));
     }
   }
 
@@ -654,6 +630,9 @@ public final class ProcessResultDisplayFactory implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2010/12/05 05:15:34  sueh
+ * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.
+ * <p>
  * <p> Revision 1.16  2010/11/13 16:06:53  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
