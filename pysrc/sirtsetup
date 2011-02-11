@@ -155,10 +155,11 @@ sirtname = rootname + '_sirt'
 
 # read com file and get options from it
 comlines = readTextFile(comfile, 'tilt command file')
-slices = optionValue(comlines, 'slice', 1, 1)
+#slices = optionValue(comlines, 'slice', 1, 1)
 alifile = optionValue(comlines, 'inputproj', 0, 1)
 recfile = optionValue(comlines, 'outputfile', 0, 1)
-widthArr = optionValue(comlines, 'width', 1, 1)
+#widthArr = optionValue(comlines, 'width', 1, 1)
+shiftArr = optionValue(comlines, 'shift', 2, 1)
 thicknessArr = optionValue(comlines, 'thickness', 1, 1)
 logbase = optionValue(comlines, 'log', 2, 1)
 xtiltArr = optionValue(comlines, 'xaxistilt', 2, 1)
@@ -253,11 +254,16 @@ maskSize = max(2, int(alix / 500))
 
 # If either width or slices entry is present, we need to make sure ali 
 # matches the possibly binned size here
-if widthArr != None and alix != widthArr[0] // binning:
-   exitError("The reconstruction must be the full width of the aligned stack")
+#if widthArr != None and alix != widthArr[0] // binning:
+#   exitError("The reconstruction must be the full width of the aligned stack")
 # Actually, slices are completely overridden below, so who cares
 #if slices != None and aliy != (slices[1] // binning + 1 - slices[2] // binning):
 #   exitError("The reconstruction must be the full height of the aligned stack")
+
+# Get the z shift if any, for substituting in a SHIFT line
+zshift = 0.
+if shiftArr != None and len(shiftArr) > 1:
+   zshift = shiftArr[1]
 
 lastslice = aliy * binning - 1
 
@@ -449,19 +455,22 @@ if cleanlist != "" or (startfirst and (makeLog or doSubarea)):
    except:
       exitError(action + " file: " + comname)
 
+# Set up the base sed commands common to all command files
+sedbase = [r'/^\s*SLICE/d',
+           r'/^\s*WIDTH/d',
+           r'/^\s*MASK/d',
+           fmtstr(r'/^\s*MODE.*/s//MODE   {}/', mode),
+           fmtstr(r'/^\s*SHIFT.*/s//SHIFT 0.0 {}/', zshift),
+           fmtstr(r'/^\s*SUBSETSTART.*/s//SUBSETSTART   {} {}/', ssXstart, ssYstart),
+           fmtstr('/THICKNESS/a/SLICE  0 {}/', lastslice)]
+
 if startfirst:
          
    # Compose the commands for first bp.  Strip log for regular, not for simple
-   sedlist = [fmtstr('/{}/s//{}/', recfile, srecname),
+   sedlist = sedbase + \
+             [fmtstr('/{}/s//{}/', recfile, srecname),
               fmtstr('/{}/s//{}/', alifile, aliuse),
-              r'/^\s*SLICE/d',
-              r'/^\s*MASK/d',
-              fmtstr(r'/^\s*MODE.*/s//MODE   {}/', mode),
-              fmtstr(r'/^\s*SUBSETSTART.*/s//SUBSETSTART   {} {}/', ssXstart,
-                     ssYstart),
-              fmtstr(r'/^\s*RADIAL.*/s//RADIAL   {:.3f} {:.3f}/', radius,
-                     sigma),
-              fmtstr('/THICKNESS/a/SLICE  0 {}/', lastslice),
+              fmtstr(r'/^\s*RADIAL.*/s//RADIAL   {:.3f} {:.3f}/', radius, sigma),
               fmtstr('/THICKNESS/a/MASK  {}/', maskSize),
               fmtstr('/THICKNESS/a/FlatFilterFraction  {:f}/', flatfrac)]
 
@@ -534,14 +543,8 @@ while loopIter < iterations:
    lastname = fmtstr('{}.{}{:02d}', setname, sirtext, lastnum)
 
    # Make commands for reprojection or SIRT iterations
-   sedlist = [fmtstr('/{}/s//{}/', alifile, aliuse),
-              r'/^\s*SLICE/d',
-              r'/^\s*MASK/d',
-              fmtstr(r'/^\s*MODE.*/s//MODE   {}/', mode),
-              fmtstr(r'/^\s*SUBSETSTART.*/s//SUBSETSTART   {} {}/', ssXstart,
-                     ssYstart),
-              fmtstr('/THICKNESS/a/SLICE  0 {}/', lastslice),
-              fmtstr('/THICKNESS/a/RecFileToReproj  {}/', lastname)]
+   sedlist = sedbase + [fmtstr('/{}/s//{}/', alifile, aliuse),
+                        fmtstr('/THICKNESS/a/RecFileToReproj  {}/', lastname)]
 
    if simpleBP:
       sedlist.append(fmtstr('/{}/s//{}/', recfile, srecname))
@@ -566,20 +569,17 @@ while loopIter < iterations:
    if numproc > 1:
       try:
          cmdline = fmtstr('splittilt -d {},{} -n {} -o {} -b {} -i {} {} {}', \
-                   alix, aliy, numproc, thisChunk, boundpixels, comnum,
-                    doVert, sirtcom)
+                   alix, aliy, numproc, thisChunk, boundpixels, comnum, doVert, sirtcom)
          splitout = runcmd(cmdline)
          numchunk = findSplitComNumber(splitout,
-                                       fmtstr('projection for iteration {}',
-                                              recnum))
+                                       fmtstr('projection for iteration {}', recnum))
 
          comnum += numchunk + 1
          if thisChunk == "":
             comnum += 1
 
       except ImodpyError:
-         prnstr(fmtstr('Splittilt failed setting up projection for ' +\
-                       'iteration {}', recnum))
+         prnstr(fmtstr('Splittilt failed setting up projection for iteration {}', recnum))
          exitFromImodError(progname)
 
    # One processor, do not split the file, just rename it
@@ -590,17 +590,11 @@ while loopIter < iterations:
    if not simpleBP:
 
       # Make the error reconstruction and subtract from rec
-      sedlist = [fmtstr('/{}/s//{}/', recfile, srecname),
+      sedlist = sedbase + \
+                [fmtstr('/{}/s//{}/', recfile, srecname),
                  fmtstr('/{}/s//{}/', alifile, diffname),
-                 r'/^\s*SLICE/d',
-                 r'/^\s*MASK/d',
                  r'/^\s*LOG/d',
-                 fmtstr(r'/^\s*MODE.*/s//MODE   {}/', mode),
-                 fmtstr(r'/^\s*SUBSETSTART.*/s//SUBSETSTART   {} {}/',
-                        ssXstart, ssYstart),
-                 fmtstr(r'/^\s*RADIAL.*/s//RADIAL   {:.3f} {:.3f}/', radius,
-                        sigma),
-                 fmtstr('/THICKNESS/a/SLICE  0 {}/', lastslice),
+                 fmtstr(r'/^\s*RADIAL.*/s//RADIAL   {:.3f} {:.3f}/', radius, sigma),
                  fmtstr('/THICKNESS/a/MASK  {}/', maskSize),
                  '/THICKNESS/a/FlatFilterFraction  2/',
                  fmtstr('/THICKNESS/a/BaseRecFile  {}/', lastname),
@@ -608,19 +602,16 @@ while loopIter < iterations:
                  '/THICKNESS/a/SubtractFromBase   -1/']
 
       if signConstraint:
-         sedlist.append(fmtstr('/THICKNESS/a/ConstrainSign  {}/',
-                               signConstraint))
+         sedlist.append(fmtstr('/THICKNESS/a/ConstrainSign  {}/', signConstraint))
       
       pysed(sedlist, comlines, sirtcom, True)
       if numproc > 1:
          try:
             cmdline = fmtstr('splittilt -d {},{} -n {} -o {} -b {} -i {} {}', \
-                      alix, aliy, numproc, recchunk, boundpixels, comnum,
-                       sirtcom)
+                      alix, aliy, numproc, recchunk, boundpixels, comnum, sirtcom)
             splitout = runcmd(cmdline)
             numchunk = findSplitComNumber(splitout, 'difference reconstructi'+\
-                                          fmtstr('on for iteration # {}',
-                                                 recnum))
+                                          fmtstr('on for iteration # {}', recnum))
 
             comnum += numchunk + 1
             if recchunk == "":
@@ -691,6 +682,9 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.8  2010/12/18 17:41:55  mast
+# Stop putting out empty com files and doing scaling on every iteration
+#
 # Revision 1.7  2010/12/06 22:31:49  mast
 # use new function for getting com file
 #
