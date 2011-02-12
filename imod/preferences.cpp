@@ -97,9 +97,9 @@ typedef struct generic_settings
 ImodPreferences::ImodPreferences(char *cmdLineStyle)
 {
   double szoomvals[MAXZOOMS] =
-    { 0.1, 0.1667, 0.25, 0.3333, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0,
-      8.0, 10.0, 12.0, 16.0, 20.0};
-  int i, left, top, width, height, position, floatOn, subarea;
+    {0.01, 0.02, 0.04, 0.07, 0.1, 0.1667, 0.25, 0.3333, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0,
+     4.0, 5.0, 6.0, 8.0, 10.0, 12.0, 16.0, 20.0};
+  int i, j, left, top, width, height, position, floatOn, subarea, readmax;
   bool readin;
   QString str;
   char *plugdir;
@@ -132,6 +132,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->modvSwapLeftMidDflt = false;
   prefs->silentBeepDflt = false;
   prefs->classicSlicerDflt = false;
+  prefs->startInHQDflt = true;
   //prefs->tooltipsOnDflt = true;
   prefs->startAtMidZDflt = true;
   prefs->autoConAtStartDflt = 1;
@@ -186,6 +187,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   mClassicWarned = settings->value("classicWarned").toBool();
   if (prefs->classicSlicer)
     mClassicWarned = true;
+  READBOOL(startInHQ);
   //READBOOL(tooltipsOn);
   //QToolTip::setGloballyEnabled(prefs->tooltipsOn);
   READNUM(autoConAtStart);
@@ -223,13 +225,22 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
 
   // Read each zoom with a separate key
   prefs->zoomsChgd = false;
+  readmax = 0;
   for (i = 0; i < MAXZOOMS; i++) {
     prefs->zoomsDflt[i] = szoomvals[i];
+    prefs->zooms[i] = szoomvals[i];
     str.sprintf("zooms/%d", i);
-    readin = settings->contains(str);
-    prefs->zooms[i] = settings->value(str, szoomvals[i]).toDouble();
-    if (readin)
-      prefs->zoomsChgd = true;
+    if (settings->contains(str))
+      readmax = i + 1;
+  }
+  prefs->zoomsChgd = readmax > 0;
+
+  // Shift zooms up if they were not all present before (new zooms are added at bottom)
+  for (i = 0; i < MAXZOOMS; i++) {
+    j = i + MAXZOOMS - readmax;
+    str.sprintf("zooms/%d", i);
+    if (settings->contains(str))
+      prefs->zooms[j] = settings->value(str, szoomvals[j]).toDouble();
   }
 
   // Read colors with separate keys
@@ -503,6 +514,7 @@ void ImodPreferences::saveSettings(int modvAlone)
   WRITE_IF_CHANGED(silentBeep);
   WRITE_IF_CHANGED(classicSlicer);
   settings->setValue("classicWarned", mClassicWarned);
+  WRITE_IF_CHANGED(startInHQ);
   //WRITE_IF_CHANGED(tooltipsOn);
   WRITE_IF_CHANGED(autoConAtStart);
   WRITE_IF_CHANGED(startAtMidZ);
@@ -653,6 +665,7 @@ void ImodPreferences::donePressed()
   curp->attachToOnObjChgd |= !equiv(newp->attachToOnObj, oldp->attachToOnObj);
   curp->slicerNewSurfChgd |= !equiv(newp->slicerNewSurf, oldp->slicerNewSurf);
   curp->classicSlicerChgd |= !equiv(newp->classicSlicer, oldp->classicSlicer);
+  curp->startInHQChgd |= !equiv(newp->startInHQ, oldp->startInHQ);
   /*if (!equiv(newp->tooltipsOn, oldp->tooltipsOn)) {
     curp->tooltipsOnChgd = true;
     //QToolTip::setGloballyEnabled(curp->tooltipsOn);
@@ -779,6 +792,7 @@ void ImodPreferences::defaultPressed()
     //prefs->tooltipsOn = prefs->tooltipsOnDflt;
     prefs->autoConAtStart = prefs->autoConAtStartDflt;
     prefs->startAtMidZ = prefs->startAtMidZDflt;
+    prefs->startInHQ = prefs->startInHQDflt;
     prefs->attachToOnObj = prefs->attachToOnObjDflt;
     prefs->slicerNewSurf = prefs->slicerNewSurfDflt;
     prefs->bwStep = prefs->bwStepDflt;
@@ -1242,6 +1256,9 @@ void PrefsDialog::closeEvent ( QCloseEvent * e )
 
 /*
 $Log$
+Revision 1.46  2010/12/18 05:42:46  mast
+Save slicer montage settings
+
 Revision 1.45  2010/12/15 06:14:41  mast
 Changes for setting resolution in image snapshots
 
