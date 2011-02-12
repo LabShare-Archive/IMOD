@@ -327,8 +327,7 @@ int getTopZapMouse(Ipoint *imagePt)
 /*
  * Return the subset limits from the active window
  */
-int zapSubsetLimits(ViewInfo *vi, int &ixStart, int &iyStart, int &nxUse, 
-                    int &nyUse)
+int zapSubsetLimits(ViewInfo *vi, int &ixStart, int &iyStart, int &nxUse, int &nyUse)
 {
   if (numZapWindows <= 0 || subStartX >= subEndX || subStartY >= subEndY ||
       subEndX >= vi->xsize || subEndY >= vi->ysize)
@@ -468,7 +467,7 @@ ZapFuncs::ZapFuncs(ImodView *vi, int wintype)
   mCtrl   = 0;
   mXtrans = mYtrans = 0;
   mZtrans = 0;
-  mHqgfx  = 0;
+  mHqgfx  = ImodPrefs->startInHQ() ? 1 : 0;
   mHide   = 0;
   mZoom   = 1.0;
   mData   = NULL;
@@ -540,6 +539,7 @@ ZapFuncs::ZapFuncs(ImodView *vi, int wintype)
   }
   if (imodDebug('z'))
     imodPuts("Got a zap window");
+  mQtWindow->setToggleState(ZAP_TOGGLE_RESOL, mHqgfx);
 
   mGfx = mQtWindow->mGLw;
   if (!App->rgba)
@@ -1116,8 +1116,8 @@ void ZapFuncs::enteredZoom(float newZoom)
     return;
   setControlAndLimits();
   mZoom = newZoom;
-  if (mZoom <= 0.01)
-    mZoom = 0.01;
+  if (mZoom <= 0.001)
+    mZoom = 0.001;
   draw();
   mQtWindow->setFocus();
 }
@@ -3631,6 +3631,31 @@ void ZapFuncs::setAreaLimits()
 }     
 
 /*
+ *
+ */
+B3dCIImage *ZapFuncs::zoomedDownImage(int subset, int &nxim, int &nyim, int &ixStart,
+                                      int &iyStart, int &nxUse, int &nyUse)
+{
+  if (!mHqgfx || mZoom > b3dZoomDownCrit() || !App->rgba || !mImage || 
+      mVi->cramp->falsecolor)
+    return NULL;
+  ixStart = 1;
+  iyStart = 1;
+  nxim = (int)(mXdrawsize * mZoom);
+  nyim = (int)(mYdrawsize * mZoom);
+  nxUse = nxim - 2;
+  nyUse = nyim - 2;
+  if (subset && mRubberband) {
+    bandImageToMouse(1);
+    ixStart = B3DMAX(1, mRbMouseX0 + 1 - mXborder);
+    iyStart = B3DMAX(1, mWiny - mRbMouseY1 + 1 - mYborder);
+    nxUse = B3DMIN(nxUse - ixStart, mRbMouseX1 - mRbMouseX0 - 1);
+    nyUse = B3DMIN(nyUse - iyStart, mRbMouseY1 - mRbMouseY0 - 1);
+  }
+  return mImage;
+}
+
+/*
  * Toggle the rubber band
  */
 void ZapFuncs::toggleRubberband(bool drawWin)
@@ -4752,6 +4777,9 @@ void ZapFuncs::setDrawCurrentOnly(int value)
 /*
 
 $Log$
+Revision 4.161  2011/02/07 16:12:39  mast
+Convert zap structure to class, most functions to members
+
 Revision 4.160  2011/02/04 03:53:18  mast
 Added second fixed point to mouse stretching
 
