@@ -130,7 +130,7 @@ int xxyz_open(ImodView *vi)
   xx->ytrans1 = 0;
   xx->xtrans2 = 0;
   xx->ytrans2 = 0;
-  xx->hq = 0;
+  xx->hq = ImodPrefs->startInHQ() ? 1 : 0;
   xx->project = 0;
   xx->mousemode = IMOD_MMOVIE;
   xx->toolZoom = -1.0f;
@@ -325,6 +325,8 @@ XyzWindow::XyzWindow(struct xxyzwin *xyz, bool rgba, bool doubleBuffer,
                           toggleTips, mToggleButs, mToggleStates, j);
     connect(mToggleButs[j], SIGNAL(clicked()), toggleMapper, SLOT(map()));
   }
+  mToggleStates[XYZ_TOGGLE_RESOL] = xyz->hq;
+  diaSetChecked(mToggleButs[XYZ_TOGGLE_RESOL], xyz->hq != 0);
 
   // Make simple pushbutton for centering
   utilTBToolButton(this, mToolBar, &button, "Center windows on current image"
@@ -2361,6 +2363,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.60  2011/01/13 20:26:24  mast
+warning cleanup
+
 Revision 4.59  2010/04/01 02:41:48  mast
 Called function to test for closing keys, or warning cleanup
 
