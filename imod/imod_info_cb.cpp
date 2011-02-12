@@ -678,7 +678,6 @@ void imodInfoAutoContrast(int targetMean, int targetSD)
                     (((255. * App->cvi->black) / (App->cvi->white - App->cvi->black) + 
                       mean) * targetSD / sd - targetMean));
     white = black + B3DNINT(wbdiff);
-    imodPrintStderr("%f %d %d\n", wbdiff, black, white);
 
   } else {
 
@@ -872,6 +871,9 @@ void imod_imgcnt(const char *string)
 /*
 
 $Log$
+Revision 4.40  2011/02/12 04:59:59  mast
+Made autocontrast measure actual contrast of filtered image when zoomed down
+
 Revision 4.39  2010/04/19 23:52:37  mast
 Wipe out loading lines better
 
