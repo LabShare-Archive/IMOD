@@ -177,7 +177,7 @@ c
       savetime=0.
       rottime = 0.
       maxextra = 0
-      indFilter = 3
+      indFilter = 5
       linesShrink = 0
       iseriesBase = -1
       seriesExt = ' '
@@ -674,7 +674,8 @@ c         Shrinkage
             if (ierr .eq. 1) indFilter = indFilter - 1 
             if (ierr .gt. 1) call exitError( 'SELECTING ANTIALIASING FILTER')
           enddo
-          if (indFilter .lt. i) print *,'Using the last antialiasing filter, #',indFilter
+          if (indFilter .lt. i) print *,'Using the last antialiasing filter, #',
+     &        indFilter + 1
           linesShrink = linesShrink / 2 + 2
         endif
 c         
@@ -2135,6 +2136,9 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.61  2011/02/10 05:25:10  mast
+c       Added options for antialiased image reduction
+c
 c       Revision 3.60  2010/08/25 15:13:42  mast
 c       Fixed allocatoin with list of output files, added option for extension
 c       on file series
