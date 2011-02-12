@@ -21,7 +21,11 @@ import etomo.comscript.TiltParam;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2010/12/05 05:16:07  sueh
+* <p> bug# 1416 Moved radial filter fields to RadialPanel so they can be reused
+* <p> in SirtPanel.
+* <p> </p>
 */
 final class RadialPanel {
   public static final String rcsid = "$Id$";
@@ -29,8 +33,7 @@ final class RadialPanel {
   private final JPanel pnlRoot = new JPanel();
   private final LabeledTextField ltfRadialMax = new LabeledTextField(
       "Radial filter cutoff: ");
-  private final LabeledTextField ltfRadialFallOff = new LabeledTextField(
-      " Falloff: ");
+  private final LabeledTextField ltfRadialFallOff = new LabeledTextField(" Falloff: ");
 
   private RadialPanel() {
   }
@@ -69,8 +72,7 @@ final class RadialPanel {
     }
   }
 
-  public void getParameters(final TiltParam tiltParam)
-      throws NumberFormatException {
+  public void getParameters(final TiltParam tiltParam) throws NumberFormatException {
     String badParameter = "";
     try {
       if (ltfRadialMax.getText().matches("\\S+")
@@ -78,8 +80,7 @@ final class RadialPanel {
         badParameter = ltfRadialMax.getLabel();
         tiltParam.setRadialBandwidth(Float.parseFloat(ltfRadialMax.getText()));
         badParameter = ltfRadialFallOff.getLabel();
-        tiltParam
-            .setRadialFalloff(Float.parseFloat(ltfRadialFallOff.getText()));
+        tiltParam.setRadialFalloff(Float.parseFloat(ltfRadialFallOff.getText()));
       }
       else {
         tiltParam.resetRadialFilter();
