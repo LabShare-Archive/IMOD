@@ -49,6 +49,7 @@ static int          CurWidth;
 static int          CurHeight;
 static float        CurXZoom;
 static bool         StippleNextLine = false;
+static float        zoomDownCrit = 0.7f;
 
 /* Set a current window size for the drawing routines */
 void b3dSetCurSize(int width, int height)
@@ -517,6 +518,11 @@ B3dCIImage *b3dGetNewCIImageSize(B3dCIImage *image, int depth,
   b3dFlushImage(ri); 
   return( ri);
      
+}
+
+float b3dZoomDownCrit()
+{
+  return zoomDownCrit;
 }
 
 /* 1/28/03: eliminated unused b3dPutCIImage and  b3dFillGreyScalePixels */
@@ -1061,11 +1067,11 @@ static void b3dDrawGreyScalePixels15
    assuming CurZ */
 void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
                               int xsize, int ysize,     /* size of input   */
-                              int xoffset, int yoffset, /* data offsets    */
-                              int wx, int wy,           /* window start    */
-                              int width, int height,    /* sub-area size   */
+                              int xoffset, int yoffset, /* data offsets into input */
+                              int wx, int wy,           /* window start for drawing */
+                              int width, int height,    /* sub-area size of input data */
                               B3dCIImage *image,        /* tmp image data. */
-                              int base,                 /* colorindex ramp */
+                              int base,                 /* colorindex ramp base */
                               double xzoom,
                               double yzoom,
                               int quality, int slice, int rgba)  
@@ -1095,7 +1101,6 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
   float ystop = yoffset + height + trans; /* stop at this y coord. */
   unsigned short rbase = base;
   float pixmin = 0.0f, pixmax = 255.0f;
-  float zoomDownCrit = 0.7f;
   GLenum type, format;
   GLint unpack = b3dGetImageType(&type, &format);
   unsigned int *cindex = App->cvi->cramp->ramp;
@@ -1108,7 +1113,10 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
   cubicFactors nullFacs;
   unsigned char *yptr;
   float fy1, fy2, fy3, fy4;
-  //double wallstart = wallTime();
+  int zoomFilters[] = {5, 4, 1, 0};  // lanczos3, 2, Blackman, box
+  int numZoomFilt = sizeof(zoomFilters) / sizeof(int);
+  int zoomWidthCrit = 20;
+  double wallstart = wallTime();
 
   if (!dataPtrs){
     b3dColorIndex(base);
@@ -1125,10 +1133,6 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
     return;
   } 
 
-  /* Ignore quality button for small zooms */
-  //if ((xzoom <= 1.0)&&(yzoom <= 1.0))
-  //quality = 0;
-    
   if (!quality){
         
     if (!App->wzoom){
@@ -1180,8 +1184,16 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
     idata = (unsigned int  *)sdata;
     if (quality > 0 && rgba > 0 && rgba < 4 && zoom <= zoomDownCrit) {
 
-      // Here for quality zoom down
-      if (!selectZoomFilter(0, xzoom, &i)) {
+      // Here for quality zoom down with antialias filters
+      // Select the biggest filter that does not give too many lines, normalized to a
+      // 512-pixel image with no threads
+      for (i = 0; i < numZoomFilt; i++) {
+        j = selectZoomFilter(zoomFilters[i], xzoom, &k);
+        if (!j && (k * dwidth * dheight) / (250000 * numOMPthreads(8)) <= zoomWidthCrit)
+          break;
+      }
+      if (!j) {
+        //imodPrintStderr("Filter selector index %d\n", i);
         i = zoomWithFilter(dataPtrs, xsize, ysize, (float)xoffset, (float)yoffset, dwidth,
                            dheight, dwidth, 0, rgba > 1 ? 
                            SLICE_MODE_RGB : SLICE_MODE_BYTE, bdata, cindex, bindex);
@@ -1191,7 +1203,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
 
     } else if (quality > 0 && rgba < 4) {
 
-      /* For HQ, step to each display pixel and use cubic interpolation at 
+      /* For regular HQ, step to each display pixel and use cubic interpolation at 
          each position. */
 
       // First set up cubic factors for each position in X
@@ -1437,10 +1449,10 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
       if (!izs)
         free(xindex);
     }
+    //imodPrintStderr("Array fill time %.4f\n", wallTime() - wallstart);
   }
   /*imodPrintStderr("HQ wx %d wy %d dwidth %d dheight %d window %d %d\n",
     wxdraw, wy, drawwidth, dheight, CurWidth, CurHeight);*/
-  //imodPrintStderr("Array fill time %.4f\n", wallTime() - wallstart);
 
   glPixelZoom((GLfloat)1.0f, (GLfloat)1.0f); 
 #ifndef CHUNKDRAW_HACK
@@ -2201,6 +2213,10 @@ int b3dSnapshot(QString fname)
 
 /*
 $Log$
+Revision 4.48  2011/02/10 05:35:23  mast
+Parallelized array filling for HQ, made it work for color images, and called
+new zoomdown routines for HQ zoom below 0.75.
+
 Revision 4.47  2011/01/13 19:43:51  mast
 Function to stipple next line only; fixed depth setting in TIFF snapshot
 
