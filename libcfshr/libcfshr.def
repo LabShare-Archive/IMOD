@@ -124,6 +124,7 @@ EXPORTS
 	PIPSETMANPAGEOUTPUT
 	RSMADMEDIANOUTLIERS
 	normalizeColumns
+	makeLinePointers
 	NORMALIZECOLUMNS
 	cubinterp
 	findHistogramDip
