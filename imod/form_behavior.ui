@@ -6,7 +6,7 @@
     <x>0</x>
     <y>0</y>
     <width>378</width>
-    <height>501</height>
+    <height>526</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -54,6 +54,13 @@
      </property>
      <property name="text" >
       <string>Start new surfaces upon angle change in Slicer</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="startInHQBox" >
+     <property name="text" >
+      <string>Start Zap &amp; XYZ windows with high-quality display</string>
      </property>
     </widget>
    </item>
