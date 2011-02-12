@@ -4,19 +4,18 @@
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
  *
- *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Copyright (C) 1995-2011 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
+ *  No more Log
  */
 
 #ifndef XZAP_H
 #define XZAP_H
 
 #include "control.h"
-//Added by qt3to4:
 #include <QMouseEvent>
 #include <QKeyEvent>
 #include <QEvent>
@@ -24,9 +23,6 @@
 class ZapWindow;
 class ZapGL;
 class QString;
-class QKeyEvent;
-class QEvent;
-class QMouseEvent;
 
 typedef struct b3d_ci_image B3dCIImage;
 
@@ -64,7 +60,8 @@ class ZapFuncs
   void syncImage();
   void toggleRubberband(bool draw = true);
   bool getLowHighSection(int &low, int &high);
-
+  B3dCIImage *zoomedDownImage(int subset, int &nxim, int &nyim, int &ixStart,
+                              int &iyStart, int &nxUse, int &nyUse);
  private:
   int contInSelectArea(Iobj *obj, Icont *cont, Ipoint selmin, Ipoint selmax);
   void analyzeBandEdge(int ix, int iy);
@@ -224,136 +221,4 @@ int zapRubberbandCoords(float &rbX0, float &rbX1, float &rbY0, float &rbY1);
 void zapPixelViewState(bool state);
 void zapSetMouseTracking();
 
-
-/*
-
-$Log$
-Revision 3.34  2011/02/04 03:52:55  mast
-Add second fixed point
-
-Revision 3.33  2009/06/05 15:43:04  mast
-Stop passing mouse pressed to move move event
-
-Revision 3.32  2009/01/15 16:33:18  mast
-Qt 4 port
-
-Revision 3.31  2008/08/01 15:37:55  mast
-Moved draw routine to global so imodview can draw top zap
-
-Revision 3.30  2008/02/06 16:33:48  sueh
-bug# 1065 In zapPrintInfo made printing the info optional.
-
-Revision 3.29  2008/01/25 20:22:58  mast
-Changes for new scale bar
-
-Revision 3.28  2008/01/14 19:48:23  mast
-Added function to return mouse image coords to plugin
-
-Revision 3.27  2008/01/13 22:58:35  mast
-Changes for multi-Z window
-
-Revision 3.26  2007/12/04 18:47:27  mast
-Changes for moving functions to utilities module, and for mouse tracking
-and cursor-like drawing
-
-Revision 3.25  2007/08/13 16:04:50  mast
-Changes for locator window
-
-Revision 3.24  2007/05/31 16:23:10  mast
-Changes for using hot toolbar
-
-Revision 3.23  2007/03/29 04:55:50  mast
-Fixed crash bug when closing window while focus is in edit/spinbox
-
-Revision 3.22  2006/09/17 18:15:59  mast
-Changes to provide mouse position to pixelview
-
-Revision 3.21  2006/08/24 21:28:50  mast
-Added flag that rubberband changed
-
-Revision 3.20  2006/07/03 04:14:21  mast
-Changes for beadfixer overlay mode
-
-Revision 3.19  2006/04/01 23:43:14  mast
-Added size output to toolbar
-
-Revision 3.18  2006/03/01 19:13:06  mast
-Moved window size/position routines from xzap to dia_qtutils
-
-Revision 3.17  2005/09/12 14:23:43  mast
-Added function to get rubber band coordinates
-
-Revision 3.16  2005/03/08 02:28:46  mast
-Added flag to set upon resize so that new subarea gets recorded
-
-Revision 3.15  2005/02/19 01:31:05  mast
-Added variables for center of rotation
-
-Revision 3.14  2005/02/09 01:19:48  mast
-Added flag for keeping track of changes started when shifted contours
-
-Revision 3.13  2004/11/20 05:05:27  mast
-Changes for undo/redo capability
-
-Revision 3.12  2004/11/04 17:02:41  mast
-Changes for switching to shifting contour as a mode that is turned on
-
-Revision 3.11  2004/11/01 22:58:32  mast
-New rubberband image variables
-
-Revision 3.10  2004/05/05 17:33:46  mast
-Added call to get rubberband coordinates
-
-Revision 3.9  2003/09/25 21:10:34  mast
-Removed unneeded starting geometry member
-
-Revision 3.8  2003/09/18 00:44:13  mast
-Added declaration for function to get subset boundaries
-
-Revision 3.7  2003/09/17 04:43:51  mast
-Add declarations for window size functions
-
-Revision 3.6  2003/09/16 02:56:21  mast
-Added an xzoom variable to keep track of actually displayed fractional zoom
-
-Revision 3.5  2003/03/12 06:38:18  mast
-Added time mismatch function
-
-Revision 3.4  2003/03/03 22:13:38  mast
-Added variable for starting the rubber band
-
-Revision 3.3  2003/02/10 20:41:56  mast
-Merge Qt source
-
-Revision 3.2.2.8  2003/01/30 06:17:47  mast
-Add ability to change range of Z slider on image flip
-
-Revision 3.2.2.7  2003/01/30 00:47:35  mast
-Cleanup with new timer logic
-
-Revision 3.2.2.6  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 3.2.2.5  2003/01/04 03:42:20  mast
-simplified closing logic
-
-Revision 3.2.2.4  2002/12/14 05:23:42  mast
-backing out the fancy subclass, adjusting for new visual detection
-
-Revision 3.2.2.3  2002/12/13 06:06:30  mast
-using new glmainwindow and mainglwidget classes
-
-Revision 3.2.2.2  2002/12/10 16:57:34  mast
-preventing multiple draws, implementing current contour draw while dragging
-
-Revision 3.2.2.1  2002/12/09 17:50:17  mast
-Initial changes to get Qt version
-
-Revision 3.2  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.1  2002/09/13 21:04:57  mast
-Added resizeSkipDraw to prevent redraws during resize
-
-*/
 #endif
