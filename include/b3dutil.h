@@ -53,6 +53,7 @@ extern "C" {
 
   void b3dHeaderItemBytes(int *nflags, int *nbytes);
   void setOrClearFlags(b3dUInt32 *flags, b3dUInt32 mask, int state);
+  unsigned char **makeLinePointers(void *array, int xsize, int ysize, int dsize);
 
   int b3dIMin(int narg, ...);
   int b3dIMax(int narg, ...);
