@@ -71,6 +71,7 @@ void BehaviorForm::update()
 {
   diaSetChecked(silenceBox, mPrefs->silentBeep);
   diaSetChecked(classicBox, mPrefs->classicSlicer);
+  diaSetChecked(startInHQBox, mPrefs->startInHQ);
   //  diaSetChecked(tooltipBox, mPrefs->tooltipsOn);
   diaSetChecked(startAtMidZBox, mPrefs->startAtMidZ);
   diaSetChecked(selectONcheckBox, mPrefs->attachToOnObj);
@@ -92,6 +93,7 @@ void BehaviorForm::unload()
 {
   mPrefs->silentBeep = silenceBox->isChecked();
   mPrefs->classicSlicer = classicBox->isChecked();
+  mPrefs->startInHQ = startInHQBox->isChecked();
   //  mPrefs->tooltipsOn = tooltipBox->isChecked();
   mPrefs->startAtMidZ = startAtMidZBox->isChecked();
   mPrefs->attachToOnObj = selectONcheckBox->isChecked();
@@ -119,6 +121,9 @@ void BehaviorForm::toolTipsToggled( bool state )
 /*
 
 $Log$
+Revision 4.4  2010/12/15 06:13:13  mast
+Changes for new snapshot preference panel
+
 Revision 4.3  2009/11/21 23:06:43  mast
 Setting to control slicer new surfaces
 
