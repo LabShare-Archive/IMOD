@@ -15,6 +15,8 @@
 #define UNSIGNED_SHORT 2
 #define SIGNED_SHORT 3
 #define FLOAT 6
+#define RGB   8
+#define RGBA  9
 
 #ifdef F77FUNCAP
 #define samplemeansd SAMPLEMEANSD
@@ -25,7 +27,8 @@
 /*!
  * Estimates mean and SD of a sample of an image.  Returns nonzero for errors.
  * ^ [image] = array of pointers to each line of data 
- * ^ [type] = data type, 0 for bytes, 3 for signed shorts, 6 for floats
+ * ^ [type] = data type, 0 for bytes, 3 for signed shorts, 6 for floats, 8 for RGB
+ * triples of bytes or 9 for RGBA bytes; RGB values are weighted with NTSC weighting
  * ^ [nx], [ny] = X and Y dimensions of image
  * ^ [sample] = fraction of pixels to sample
  * ^ [nxMatt], [nyMatt] = starting X and Y index to include
@@ -46,7 +49,7 @@ int sampleMeanSD(unsigned char **image, int type, int nx, int ny,
   float **floatp;
 
   int ixUse, iyUse, dxSample;
-  int i, j;
+  int i, j, nchan = type == RGBA ? 4 : 3;
   int val;
   unsigned int uval;
   double sum, sumsq, nPixUse;
@@ -78,10 +81,11 @@ int sampleMeanSD(unsigned char **image, int type, int nx, int ny,
     dxSample--;
   nSample = (int)(nPixUse / dxSample);
 
-
   /* get pointer based on type of data */
   switch (type) {
   case BYTE :
+  case RGBA :
+  case RGB :
     ubytep = image;
     break;
 
@@ -100,7 +104,8 @@ int sampleMeanSD(unsigned char **image, int type, int nx, int ny,
   case FLOAT :
     floatp = (float **)image;
     break;
-
+  default :
+    return(2);
   }
 
   sum = 0.;
@@ -114,6 +119,16 @@ int sampleMeanSD(unsigned char **image, int type, int nx, int ny,
           uval = ubytep[j][i];
           sum += uval;
           sumsq += uval * uval;
+        }
+        break;
+
+      case RGBA:
+      case RGB:
+        for (i = 0; i < nxUse; i++) {
+          fval = 0.3 * ubytep[j][nchan*i] + 0.59 * ubytep[j][nchan*i+1] + 
+            0.11 * ubytep[j][nchan*i+2];
+          sum += fval;
+          sumsq += fval * fval;
         }
         break;
 
@@ -161,8 +176,12 @@ int sampleMeanSD(unsigned char **image, int type, int nx, int ny,
 
       /* get the value */
       switch (type) {
+      case RGBA:
+      case RGB:
       case BYTE :
-        fval = ubytep[iyUse + nyMatt][ixUse + nxMatt];
+        fval = 0.3 * ubytep[iyUse + nyMatt][nchan*(ixUse+nxMatt)] +
+          0.59 * ubytep[iyUse + nyMatt][nchan*(ixUse+nxMatt)+1] +
+          0.11 * ubytep[iyUse + nyMatt][nchan*(ixUse+nxMatt)+2];
         break;
     
       case SIGNED_BYTE :
@@ -181,8 +200,6 @@ int sampleMeanSD(unsigned char **image, int type, int nx, int ny,
         fval = floatp[iyUse + nyMatt][ixUse + nxMatt];
         break;
 
-      default :
-        return(2);
       }
       sum += fval;
       sumsq += fval * fval;
@@ -221,12 +238,9 @@ int samplemeansd(float *image, int *nx, int *ny, float *sample, int *nxMatt,
                  int *nyMatt, int *nxUse, int *nyUse, float *mean, float *sd)
 {
   int i;
-  unsigned char **lines = (unsigned char **)malloc
-    (*ny * sizeof(unsigned char *));
+  unsigned char **lines = makeLinePointers(image, nx, ny, 4);
   if (!lines)
     return -1;
-  for (i = 0; i < *ny; i++)
-    lines[i] = (unsigned char *)&(image[i * *nx]);
   i = sampleMeanSD(lines, FLOAT, *nx, *ny, *sample, *nxMatt, *nyMatt, *nxUse,
                    *nyUse, mean, sd);
   free(lines);
@@ -236,6 +250,9 @@ int samplemeansd(float *image, int *nx, int *ny, float *sample, int *nxMatt,
 /*
 
 $Log$
+Revision 1.3  2010/02/26 16:56:57  mast
+Added fortran wrapper
+
 Revision 1.2  2008/10/02 02:05:12  mast
 Clean up warning for SerialEM
 
