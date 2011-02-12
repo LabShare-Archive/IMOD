@@ -240,7 +240,9 @@ void AppearanceForm::displayCurrentZoom()
   if (str.endsWith("00"))
     str.truncate(str.length() - 2);
   zoomEdit->setText(str);
-  str = "Default " + str;
+  str.sprintf("Default %.4f", mPrefs->zoomsDflt[mZoomIndex]);
+  if (str.endsWith("00"))
+    str.truncate(str.length() - 2);
   defaultZoomLabel->setText(str);
   mZoomValChanged = false;
 }
@@ -306,6 +308,9 @@ void AppearanceForm::destroy()
 /*
 
 $Log$
+Revision 4.2  2009/03/22 19:46:55  mast
+Fixed combo box call when using all styles and excluding from list
+
 Revision 4.1  2009/01/15 16:33:17  mast
 Qt 4 port
 
