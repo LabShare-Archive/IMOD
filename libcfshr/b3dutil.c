@@ -507,6 +507,21 @@ void setOrClearFlags(b3dUInt32 *flags, b3dUInt32 mask, int state)
     *flags &= ~mask;
 }
 
+/*!
+ * Returns a set of pointers to the lines of [array], which has [xsize] data elements
+ * per line, [ysize] lines, and data element size [dsize].  Returns NULL for memory error.
+ */
+unsigned char **makeLinePointers(void *array, int xsize, int ysize, int dsize)
+{
+  int i;
+  unsigned char **linePtrs = B3DMALLOC(unsigned char *, ysize);
+  if (!linePtrs)
+    return NULL;
+  for (i = 0; i < ysize; i++)
+    linePtrs[i] = (unsigned char *)array + (size_t)xsize * i * dsize;
+  return linePtrs;
+}
+
 /*! A variable argument min function for multiple integer arguments.
  * Call as:  b3dIMin(4, ival1, ival2, ival3, ival4); 
  * For only two arguments with acceptable cost of multiple evaluations,
@@ -670,7 +685,12 @@ int b3dompthreadnum()
 }
 
 /*
+
 $Log$
+Revision 1.18  2011/02/10 04:36:34  mast
+Added function to get thread number, and made function that gives number of
+threads return 1 if no openmp
+
 Revision 1.17  2010/12/30 01:20:01  mast
 Tested version of sleep now
 
