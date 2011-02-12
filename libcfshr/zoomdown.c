@@ -89,7 +89,6 @@ typedef struct { /* SAMPLED FILTER WEIGHT TABLE */
 #define FINALSHIFT  (2*WEIGHTBITS-CHANBITS) /* shift after x&y filter passes */
 #define WEIGHTONE  (1<<WEIGHTBITS)	/* filter weight of one */
 
-static unsigned char **makeLinePointers(float *array, int aXsize, int aYsize);
 static void interpLimits(int na, int nb, float cen, float trans, float *aOff, int *bSize,
                          int *bOff);
 static void scanline_accum(unsigned char *lineb, int dtype, int aXsize, 
@@ -101,16 +100,20 @@ static void scanline_remap(unsigned char *filtBuf, int dtype, int bXsize,
                            unsigned char *bindex);
 static void make_weighttab(int b, double cen, int len, int dtype, Weighttab *wtab);
 static void mitchell_init(double b, double c);
+static double filt_binning(double x);
 static double filt_mitchell(double x);
+static double filt_triangle(double x);
 static double filt_blackman(double x);
 static double filt_lanczos2(double x); 
 static double filt_lanczos3(double x); 
 
 #define MAX_THREADS 16
-#define NUM_FILT 4
+#define NUM_FILT 6
 
 static Filt filters[NUM_FILT] = {
+  {filt_binning, 0.5},
   {filt_blackman, 1.},
+  {filt_triangle, 1.},
   {filt_mitchell, 2.},
   {filt_lanczos2, 2.},
   {filt_lanczos3, 3.}
@@ -129,8 +132,9 @@ static double mitchP0, mitchP2, mitchP3, mitchQ0, mitchQ1, mitchQ2, mitchQ3;
 
 /*!
  * Selects which filter to use in image reduction with [type] and sets the scaling factor
- * with [zoom], a value less that must be less than 1.  The type can be 0 for a Blackman
- * window, 1 for a Mitchell filter, or 2 or 3 for Lanczos 2 or Lanczos 3.  The total 
+ * with [zoom], a value less that must be less than 1.  The type can be 0 for a box 
+ * (equivalent to binning), 1 for a Blackman window, 2 for a triangle filter, 3 for a
+ * Mitchell filter, or 4 or 5 for Lanczos 2 or Lanczos 3.  The total 
  * width of the filter in the source image is returned in [outWidth].  Returns 1 for
  * a filter type out of range or 2 for a zoom out of range.
  */
@@ -146,7 +150,7 @@ int selectZoomFilter(int type, double zoom, int *outWidth)
   support = filters[type].supp * scale;
   width = (int)ceil(2. * support);
   *outWidth = width;
-  if (type == 1)
+  if (type == 3)
     mitchell_init(1./3., 1./3.);
   return 0;
 }
@@ -345,7 +349,7 @@ int zoomwithfilter(float *array, int *aXsize, int *aYsize, float *aXoff,
                    float *outData)
 {
   int i;
-  unsigned char **linePtrs = makeLinePointers(array, *aXsize, *aYsize);
+  unsigned char **linePtrs = makeLinePointers(array, *aXsize, *aYsize, 4);
   if (!linePtrs)
     return 5;
   i = zoomWithFilter(linePtrs, *aXsize, *aYsize, *aXoff, *aYoff, *bXsize, *bYsize, *bXdim,
@@ -374,7 +378,7 @@ int zoomFiltInterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb
 {
   int i, bXsize, bYsize, bXoff, bYoff, ix, iy;
   float aXoff, aYoff;
-  unsigned char **linePtrs = makeLinePointers(array, nxa, nya);
+  unsigned char **linePtrs = makeLinePointers(array, nxa, nya, 4);
   if (!linePtrs)
     return 5;
   interpLimits(nxa, nxb, xc, xt, &aXoff, &bXsize, &bXoff);
@@ -442,20 +446,6 @@ static void interpLimits(int na, int nb, float cen, float trans, float *aOff, in
   /* Make sure the output size will pass the test below too */
   if (*bSize * scale + *aOff > na)
     (*bSize)--;
-}
-
-/*
- * Make line pointers for a float array
- */
-static unsigned char **makeLinePointers(float *array, int aXsize, int aYsize)
-{
-  int i;
-  unsigned char **linePtrs = B3DMALLOC(unsigned char *, aYsize);
-  if (!linePtrs)
-    return NULL;
-  for (i = 0; i < aYsize; i++)
-    linePtrs[i] = (unsigned char *)(array + aXsize * i);
-  return linePtrs;
 }
 
 /*
@@ -709,6 +699,11 @@ static void make_weighttab(int b, double cen, int len, int dtype, Weighttab *wta
 /*
  * The filters
  */
+static double filt_binning(double x)
+{
+  return x >= -0.5 && x < 0.5 ? 1. : 0.;
+}
+
 static void mitchell_init(double b, double c)
 {
   mitchP0 = (  6. -  2.*b        ) / 6.;
@@ -744,6 +739,13 @@ static double filt_blackman(double x)	/* Blackman window */
   return .42+.50*cos(PI*x)+.08*cos(2.*PI*x);
 }
 
+static double filt_triangle(double x)
+{
+  if (x <= -1. || x >= 1.)
+    return 0.;
+  return 1. - fabs(x);
+}
+
 static double filt_lanczos2(double x) 
 {
   double a = 2.;
@@ -767,5 +769,8 @@ static double filt_lanczos3(double x)
 /*
 
 $Log$
+Revision 1.1  2011/02/10 05:21:35  mast
+Added to package
+
 
 */
