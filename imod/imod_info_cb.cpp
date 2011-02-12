@@ -34,6 +34,7 @@
 #include "preferences.h"
 #include "xcramp.h"
 #include "xzap.h"
+#include "b3dgfx.h"
 #include "iproc.h"
 #include "control.h"
 #include "finegrain.h"
@@ -644,10 +645,49 @@ void imodInfoAutoContrast(int targetMean, int targetSD)
 {
   float mean, sd;
   int black, white, floatSave;
-  if (imodInfoCurrentMeanSD(mean, sd))
-    return;
-  black = (int)(mean - sd * targetMean / targetSD + 0.5);
-  white = (int)(mean + sd * (255 - targetMean) / targetSD + 0.5);
+  B3dCIImage *image = NULL;
+  float sample, wbdiff;
+  int ixStart, iyStart, nxUse, nyUse, nxim, nyim;
+  unsigned char **lines = NULL;
+  ZapFuncs *zap = getTopZapWindow(false);
+
+  if (zap)
+    image = zap->zoomedDownImage(float_subsets, nxim, nyim, ixStart, iyStart, nxUse,
+                                 nyUse);
+
+  // If there is a top zap in HQ mode using zoomdown filters, analyze the RGBA image
+  // for its mean/sd and change sliders to get the actual display to the target
+  if (image && nxUse > 0 && nyUse > 0 && nxUse * nyUse > 32 && image->buf > 0) {
+    /*imodPrintStderr("Got image %d %d %d %d %d %d\n", nxim, nyim, ixStart, iyStart, 
+      nxUse, nyUse); */
+    if (image->buf == 1)
+      lines = makeLinePointers(image->id1, nxim, nyim, 4);
+    else
+      lines = makeLinePointers(image->id2, nxim, nyim, 4);
+    if (!lines)
+      return;
+    sample = B3DMIN(1., 10000.0/(((double)nxUse) * nyUse));
+    nxim = sampleMeanSD(lines, 9, nxim, nyim, sample, ixStart, iyStart, nxUse, nyUse,
+                        &mean, &sd);
+    //imodPrintStderr("%d %f %f %f\n", nxim, sample, mean, sd);
+    free(lines);
+    if (nxim)
+      return;
+    wbdiff = (App->cvi->white - App->cvi->black) * sd / targetSD;
+    black = B3DNINT((wbdiff / 255.) * 
+                    (((255. * App->cvi->black) / (App->cvi->white - App->cvi->black) + 
+                      mean) * targetSD / sd - targetMean));
+    white = black + B3DNINT(wbdiff);
+    imodPrintStderr("%f %d %d\n", wbdiff, black, white);
+
+  } else {
+
+    // Otherwise get the mean of the current image
+    if (imodInfoCurrentMeanSD(mean, sd))
+      return;
+    black = B3DNINT(mean - sd * targetMean / targetSD);
+    white = B3DNINT(mean + sd * (255 - targetMean) / targetSD);
+  }
   if (black < 0)
     black = 0;
   if (white > 255)
@@ -832,6 +872,9 @@ void imod_imgcnt(const char *string)
 /*
 
 $Log$
+Revision 4.39  2010/04/19 23:52:37  mast
+Wipe out loading lines better
+
 Revision 4.38  2010/04/01 03:08:30  mast
 Put out at leat 3 status strings to make sure one with \r goes out
 
