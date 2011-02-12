@@ -8,7 +8,7 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
+ *  No more Log
  */
 
 #ifndef B3DGFX_H
@@ -103,6 +103,7 @@ void b3dFlushImage(B3dCIImage *image);
 /*
  *   Some utility functions.
  */
+float b3dZoomDownCrit();
 int b3dGetImageType(GLenum *otype, GLenum *oformat);
 double b3dStepPixelZoom(double czoom, int step);
 void b3dSetImageOffset(int winsize,     /* window size         */
@@ -162,66 +163,3 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
 
 
 #endif
-
-/*
-    $Log$
-    Revision 3.17  2010/12/15 06:14:41  mast
-    Changes for setting resolution in image snapshots
-
-    Revision 3.16  2008/05/27 05:37:28  mast
-    Changed snapshot calls
-
-    Revision 3.15  2008/05/23 04:31:21  mast
-    Changed to allow nontiff montage snapshots
-
-    Revision 3.14  2007/11/10 04:07:10  mast
-    Changes for setting snapshot directory
-
-    Revision 3.13  2007/07/12 17:31:47  mast
-    Added subarea viewport function and added fill flag to offset routine
-
-    Revision 3.12  2007/05/06 03:25:51  mast
-    Added b3dSetMovieSnapping
-
-    Revision 3.11  2006/10/05 15:41:31  mast
-    Provided for primary and second non-TIFF snapshot format
-
-    Revision 3.10  2006/07/03 04:14:21  mast
-    Changes for beadfixer overlay mode
-
-    Revision 3.9  2004/11/29 19:25:21  mast
-    Changes to do QImage instead of RGB snapshots
-
-    Revision 3.8  2004/10/04 18:29:01  mast
-    Changed snapshot functions to give error returnd
-
-    Revision 3.7  2003/12/30 06:33:38  mast
-    Add routine to make snapshot name
-
-    Revision 3.6  2003/09/16 03:00:16  mast
-    Changed declarations of pixel drawing routines to use new line pointers
-
-    Revision 3.5  2003/02/25 19:39:24  mast
-    Needed to include qgl.h instead of GL.h for windows
-
-    Revision 3.4  2003/02/10 20:41:54  mast
-    Merge Qt source
-
-    Revision 3.3.2.4  2003/02/07 01:03:33  mast
-    a little cleanup
-
-    Revision 3.3.2.3  2003/01/27 00:30:07  mast
-    Pure Qt version and general cleanup
-
-    Revision 3.3.2.2  2003/01/06 15:40:33  mast
-    add b3dviewportXY
-
-    Revision 3.3.2.1  2002/12/23 04:55:13  mast
-    declare routines for putting bytes, shorts, ints that are in b3dfile.c
-
-    Revision 3.3  2002/12/01 15:34:41  mast
-    Changes to get clean compilation with g++
-
-    Revision 3.2  2002/07/18 20:20:35  rickg
-    Changed include of GLwMDrawA to rely upon -I compiler option
-*/
