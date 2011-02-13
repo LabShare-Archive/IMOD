@@ -60,6 +60,8 @@
 #include "lowres.bits"
 #include "highres.bits"
 #include "keepCenter.bits"
+#include "unlock.bits"
+#include "lock.bits"
 
 #define BM_WIDTH 16
 #define BM_HEIGHT 16
@@ -69,11 +71,14 @@
 #define GRAB_LENGTH 7
 #define GRAB_WIDTH 3
 #define XYZ_TOGGLE_RESOL 0
+#define XYZ_TOGGLE_LOCKED 1
 #define MAX_SLIDER_WIDTH 100
 #define MIN_SLIDER_WIDTH 20
+#define NOTNEW -999999999
 
 static unsigned char *bitList[MAX_XYZ_TOGGLES][2] =
-  {{lowres_bits, highres_bits}};
+  {{lowres_bits, highres_bits},
+   {unlock_bits, lock_bits}};
 static char *toggleTips[] = {
   "Toggle between regular and high-resolution (interpolated) image"};
 
@@ -90,9 +95,6 @@ static void xyzKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e);
 static void xyzClose_cb(ImodView *vi, void *client, int junk);
 static void xyzDraw_cb(ImodView *vi, void *client, int drawflag);
 
-/* The resident pointer to the structure */
-static struct xxyzwin *XYZ = NULL;
-
 static QTime but1downt;
 static int xyzShowSlice = 0;
 static bool pixelViewOpen = false;
@@ -102,149 +104,52 @@ static QTime insertTime;
 /* routine for opening or raising the window */
 int xxyz_open(ImodView *vi)
 {
-  double newzoom;
-  struct xxyzwin *xx;
-  int needWinx, needWiny, maxWinx, maxWiny, xleft, ytop, toolHeight;
-  int newHeight, newWidth;
-
-  if (XYZ) {
-    XYZ->dialog->raise();
-    return(0);
-  }
-
-  xx = (struct xxyzwin *)malloc(sizeof(struct xxyzwin));
-  if (!xx)
-    return(-1);
-
-  xx->xydata = xx->xzdata = xx->yzdata = NULL;
-
-  /* DNM 1/19/02: need separate fdata for each side panel */
-  xx->fdataxz  = (unsigned char *)malloc(vi->xsize * vi->zsize);
-  xx->fdatayz  = (unsigned char *)malloc(vi->ysize * vi->zsize);
-
-  xx->vi   = vi;
-  xx->exposed = 0;
-
-  xx->zoom = 1.0;
-  xx->xtrans1 = 0;
-  xx->ytrans1 = 0;
-  xx->xtrans2 = 0;
-  xx->ytrans2 = 0;
-  xx->hq = ImodPrefs->startInHQ() ? 1 : 0;
-  xx->project = 0;
-  xx->mousemode = IMOD_MMOVIE;
-  xx->toolZoom = -1.0f;
-  xx->toolMaxX = vi->xsize;
-  xx->toolMaxY = vi->ysize;
-  xx->toolMaxZ = vi->zsize;
-  xx->xzFraction = ((float)vi->zsize) / (vi->xsize + vi->zsize);
-  xx->yzFraction = ((float)vi->zsize) / (vi->ysize + vi->zsize);
-
-  xx->dialog = new XyzWindow(xx, App->rgba, App->doublebuffer, 
-			     App->qtEnableDepth, 
-                             imodDialogManager.parent(IMOD_IMAGE),
-                             "xyz window");
-  if ((!xx->dialog)|| (!xx->fdataxz) || (!xx->fdatayz)) {
+  XyzWindow *xyz;
+  xyz = new XyzWindow(vi, App->rgba, App->doublebuffer, App->qtEnableDepth, 
+                      imodDialogManager.parent(IMOD_IMAGE), "xyz window");
+  if (!xyz || (!xyz->mFdataxz) || (!xyz->mFdatayz)) {
     wprint("Error:\n\tXYZ window can't open due to low memory\n");
-    if(xx->fdataxz)
-      free(xx->fdataxz);
-    if(xx->fdatayz)
-      free(xx->fdatayz);
-    free(xx);
+    delete xyz;
     return(-1);
   }
-  
-  xx->glw = xx->dialog->mGLw;
-  if (!App->rgba)
-    xx->glw->setColormap(*(App->qColormap));
-
-  xx->glw->setMinimumSize(2 * ALL_BORDER, 2 * ALL_BORDER);
-
-  xx->dialog->setWindowTitle(imodCaption("3dmod XYZ Window"));
-  // THIS DOESN'T WORK
-  xx->dialog->mToolBar->setWindowTitle(imodCaption("XYZ Toolbar"));
-
-  xx->lx = xx->ly = xx->lz = xx->lastCacheSum -1;
-  XYZ  = xx;
-
-  xx->ctrl = ivwNewControl(vi, xyzDraw_cb, xyzClose_cb, xyzKey_cb, 
-			   (void *)xx);
-  imodDialogManager.add((QWidget *)xx->dialog, IMOD_IMAGE);
-  
-  // Determine needed window size, zoom that makes it mostly fit on the screen
-  diaMaximumWindowSize(maxWinx, maxWiny);
-  needWinx = vi->xsize + vi->zsize + ALL_BORDER;
-  needWiny = vi->ysize + vi->zsize + ALL_BORDER;
-  while (needWinx >  1.05 * maxWinx || needWiny > 1.05 * maxWiny) {
-    newzoom = b3dStepPixelZoom(xx->zoom, -1);
-    if (fabs(newzoom - xx->zoom) < 0.0001)
-      break;
-    xx->zoom = newzoom;
-    needWinx = (int)((vi->xsize + vi->zsize) * xx->zoom + ALL_BORDER);
-    needWiny = (int)((vi->ysize + vi->zsize) * xx->zoom + ALL_BORDER);
-  }
-     
-  // Allow input to get the size hints right for toolbars, compute and limit
-  // the new window size
-  imod_info_input();  
-  QSize toolSize = xx->dialog->mToolBar->sizeHint();
-  //toolHeight = xx->dialog->height() - xx->glw->height();
-  toolHeight = toolSize.height();
-  newHeight = needWiny + toolHeight;
-  newWidth = B3DMAX(needWinx, toolSize.width());
-  diaLimitWindowSize(needWinx, needWiny);
-
-  // Fix the position too then set up the window
-  QRect pos = xx->dialog->geometry();
-  xleft = pos.x();
-  ytop = pos.y();
-  diaLimitWindowPos(newWidth, newHeight, xleft, ytop);
-
-  xx->dialog->resize(newWidth, newHeight);
-  xx->dialog->move(xleft, ytop);
-
-  xx->dialog->show();
-  xx->dialog->SetCursor(vi->imod->mousemode);
-  xx->glw->setMouseTracking(pixelViewOpen);
   return(0);
 }
 
 /* The controller calls here to draw the window */
 static void xyzDraw_cb(ImodView *vi, void *client, int drawflag)
 {
-  struct xxyzwin *xx = (struct xxyzwin *)client;
+  XyzWindow *xyz = (XyzWindow *)client;
 
-  if ((!vi) || (!xx) || (!drawflag)) return;
+  if ((!vi) || (!xyz) || (!drawflag)) 
+    return;
      
   if (drawflag & IMOD_DRAW_COLORMAP) {
-    xx->glw->setColormap(*(App->qColormap));
+    xyz->mGLw->setColormap(*(App->qColormap));
     return;
   }
 
-  xx->dialog->SetCursor(vi->imod->mousemode);
+  xyz->SetCursor(vi->imod->mousemode);
 
   if (drawflag) {
     if (drawflag & IMOD_DRAW_IMAGE) {
 
-      xx->lx = xx->ly = xx->lz = -1;
-      b3dFlushImage(xx->xydata);
-      b3dFlushImage(xx->xzdata);
-      b3dFlushImage(xx->yzdata);
+      xyz->mLx = xyz->mLy = xyz->mLz = -1;
+      b3dFlushImage(xyz->mXydata);
+      b3dFlushImage(xyz->mXzdata);
+      b3dFlushImage(xyz->mYzdata);
 
       /* This happens whens a flip occurs: get new image spaces and geometry */
-      if (xx->toolMaxY != xx->vi->ysize || xx->toolMaxZ != xx->vi->zsize) {
-        if(xx->fdataxz)
-          free(xx->fdataxz);
-        if(xx->fdatayz)
-          free(xx->fdatayz);
-        xx->fdataxz  = (unsigned char *)malloc(vi->xsize * vi->zsize);
-        xx->fdatayz  = (unsigned char *)malloc(vi->ysize * vi->zsize);
-        xx->dialog->GetCIImages();
+      if (xyz->mToolMaxY != xyz->mVi->ysize || xyz->mToolMaxZ != xyz->mVi->zsize) {
+        B3DFREE(xyz->mFdataxz);
+        B3DFREE(xyz->mFdatayz);
+        xyz->mFdataxz  = (unsigned char *)malloc(vi->xsize * vi->zsize);
+        xyz->mFdatayz  = (unsigned char *)malloc(vi->ysize * vi->zsize);
+        xyz->GetCIImages();
       }
     }
     if (drawflag & IMOD_DRAW_SLICE)
       xyzShowSlice = 1;
-    xx->dialog->Draw();
+    xyz->Draw();
   }
   return;
 }
@@ -253,42 +158,92 @@ static void xyzDraw_cb(ImodView *vi, void *client, int drawflag)
 // window to close
 static void xyzClose_cb(ImodView *vi, void *client, int junk)
 {
-  struct xxyzwin *xx = (struct xxyzwin *)client;
-  xx->dialog->close();
+  XyzWindow *xyz = (XyzWindow *)client;
+  xyz->close();
 }
 
 // This receives a key from the controller
 static void xyzKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e)
 {
-  struct xxyzwin *xx = (struct xxyzwin *)client;
+  XyzWindow *xyz = (XyzWindow *)client;
   if (!released)
-    xx->dialog->keyPressPassedOn(e);
+    xyz->keyPressPassedOn(e);
 }
 
 // Notification that pixel view is open or closed
 void xyzPixelViewState(bool state)
 {
+  QObjectList objList;
+  XyzWindow *xyz;
   pixelViewOpen = state;
-  if (XYZ)
-    XYZ->glw->setMouseTracking(state);
+  int i;
+  imodDialogManager.windowList(&objList, -1, XYZ_WINDOW_TYPE);
+
+  for (i = 0; i < objList.count(); i++) {
+    xyz = ((XyzWindow *)objList.at(i));
+    xyz->setMouseTracking(state || insertDown != 0);
+  }
 }
 
 float xyzScaleBarSize()
 {
-  if (!XYZ)
+  XyzWindow *xyz = getTopXYZ();
+  if (!xyz)
     return -1;
-  return XYZ->scaleBarSize;
+  return xyz->mScaleBarSize;
+}
+
+// Find the XYZ window that is nearest to the top of the control list
+XyzWindow *getTopXYZ()
+{
+  return (XyzWindow *)imodDialogManager.getTopWindow(XYZ_WINDOW_TYPE);
 }
 
 // Implementation of the window class
-XyzWindow::XyzWindow(struct xxyzwin *xyz, bool rgba, bool doubleBuffer, 
+XyzWindow::XyzWindow(ImodView *vi, bool rgba, bool doubleBuffer, 
 		     bool enableDepth, QWidget * parent,
                      const char * name, Qt::WFlags f) 
   : QMainWindow(parent, f)
 {
   ArrowButton *upArrow, *downArrow;
   QToolButton *button;
-  mXyz = xyz;
+  double newzoom;
+  int needWinx, needWiny, maxWinx, maxWiny, xleft, ytop, toolHeight;
+  int newHeight, newWidth;
+
+  mXydata = mXzdata = mYzdata = NULL;
+  for (ytop = 0; ytop < NUM_AXIS; ytop++)
+    mDisplayedAxisLocation[ytop] = -100;
+
+  /* DNM 1/19/02: need separate fdata for each side panel */
+  mFdataxz  = (unsigned char *)malloc(vi->xsize * vi->zsize);
+  mFdatayz  = (unsigned char *)malloc(vi->ysize * vi->zsize);
+  if ((!mFdataxz) || (!mFdatayz)) {
+    B3DFREE(mFdataxz);
+    B3DFREE(mFdatayz);
+    return;
+  }
+
+  mVi   = vi;
+  mExposed = 0;
+  mZoom = 1.0;
+  mXtrans1 = 0;
+  mYtrans1 = 0;
+  mXtrans2 = 0;
+  mYtrans2 = 0;
+  mHq = ImodPrefs->startInHQ() ? 1 : 0;
+  mProject = 0;
+  mMousemode = IMOD_MMOVIE;
+  mToolZoom = -1.0f;
+  mToolMaxX = vi->xsize;
+  mToolMaxY = vi->ysize;
+  mToolMaxZ = vi->zsize;
+  mXzFraction = ((float)vi->zsize) / (vi->xsize + vi->zsize);
+  mYzFraction = ((float)vi->zsize) / (vi->ysize + vi->zsize);
+  mLock = 0;
+  mTimeLock = 0;
+  mTimeDrawn = -1;
+  
   mCtrlPressed = false;
   setAttribute(Qt::WA_DeleteOnClose);
   setAttribute(Qt::WA_AlwaysShowToolTips);
@@ -325,8 +280,8 @@ XyzWindow::XyzWindow(struct xxyzwin *xyz, bool rgba, bool doubleBuffer,
                           toggleTips, mToggleButs, mToggleStates, j);
     connect(mToggleButs[j], SIGNAL(clicked()), toggleMapper, SLOT(map()));
   }
-  mToggleStates[XYZ_TOGGLE_RESOL] = xyz->hq;
-  diaSetChecked(mToggleButs[XYZ_TOGGLE_RESOL], xyz->hq != 0);
+  mToggleStates[XYZ_TOGGLE_RESOL] = mHq;
+  diaSetChecked(mToggleButs[XYZ_TOGGLE_RESOL], mHq != 0);
 
   // Make simple pushbutton for centering
   utilTBToolButton(this, mToolBar, &button, "Center windows on current image"
@@ -348,9 +303,9 @@ XyzWindow::XyzWindow(struct xxyzwin *xyz, bool rgba, bool doubleBuffer,
   connect(mHelpButton, SIGNAL(clicked()), this, SLOT(help()));
   setFontDependentWidths();
 
-  setMaxAxis(X_COORD, xyz->vi->xsize - 1);
-  setMaxAxis(Y_COORD, xyz->vi->ysize - 1);
-  setMaxAxis(Z_COORD, xyz->vi->zsize - 1);
+  setMaxAxis(X_COORD, mVi->xsize - 1);
+  setMaxAxis(Y_COORD, mVi->ysize - 1);
+  setMaxAxis(Z_COORD, mVi->zsize - 1);
   
   mToolBar->setAllowedAreas(Qt::TopToolBarArea);
 
@@ -358,11 +313,61 @@ XyzWindow::XyzWindow(struct xxyzwin *xyz, bool rgba, bool doubleBuffer,
   glFormat.setRgba(rgba);
   glFormat.setDoubleBuffer(doubleBuffer);
   glFormat.setDepth(enableDepth);
-  mGLw = new XyzGL(xyz, glFormat, this);
+  mGLw = new XyzGL(glFormat, this);
   
   // Set it as main widget, set focus
   setCentralWidget(mGLw);
   setFocusPolicy(Qt::StrongFocus);
+
+  if (!App->rgba)
+    mGLw->setColormap(*(App->qColormap));
+
+  mGLw->setMinimumSize(2 * ALL_BORDER, 2 * ALL_BORDER);
+
+  setWindowTitle(imodCaption("3dmod XYZ Window"));
+  // THIS DOESN'T WORK
+  mToolBar->setWindowTitle(imodCaption("XYZ Toolbar"));
+
+  mLx = mLy = mLz = mLastCacheSum = -1;
+
+  mCtrl = ivwNewControl(vi, xyzDraw_cb, xyzClose_cb, xyzKey_cb, (void *)this);
+  imodDialogManager.add((QWidget *)this, IMOD_IMAGE, XYZ_WINDOW_TYPE);
+  
+  // Determine needed window size, zoom that makes it mostly fit on the screen
+  diaMaximumWindowSize(maxWinx, maxWiny);
+  needWinx = vi->xsize + vi->zsize + ALL_BORDER;
+  needWiny = vi->ysize + vi->zsize + ALL_BORDER;
+  while (needWinx >  1.05 * maxWinx || needWiny > 1.05 * maxWiny) {
+    newzoom = b3dStepPixelZoom(mZoom, -1);
+    if (fabs(newzoom - mZoom) < 0.0001)
+      break;
+    mZoom = newzoom;
+    needWinx = (int)((vi->xsize + vi->zsize) * mZoom + ALL_BORDER);
+    needWiny = (int)((vi->ysize + vi->zsize) * mZoom + ALL_BORDER);
+  }
+     
+  // Allow input to get the size hints right for toolbars, compute and limit
+  // the new window size
+  imod_info_input();  
+  QSize toolSize = mToolBar->sizeHint();
+  //toolHeight = height() - mGLw->height();
+  toolHeight = toolSize.height();
+  newHeight = needWiny + toolHeight;
+  newWidth = B3DMAX(needWinx, toolSize.width());
+  diaLimitWindowSize(needWinx, needWiny);
+
+  // Fix the position too then set up the window
+  QRect pos = geometry();
+  xleft = pos.x();
+  ytop = pos.y();
+  diaLimitWindowPos(newWidth, newHeight, xleft, ytop);
+
+  resize(newWidth, newHeight);
+  move(xleft, ytop);
+
+  show();
+  SetCursor(vi->imod->mousemode);
+  mGLw->setMouseTracking(pixelViewOpen);
   insertTime.start();
 }
 
@@ -381,24 +386,18 @@ void XyzWindow::help()
 //  and accept
 void XyzWindow::closeEvent (QCloseEvent * e )
 {
-  struct xxyzwin *xx = mXyz;
-  ivwRemoveControl(mXyz->vi, mXyz->ctrl);
-  imodDialogManager.remove((QWidget *)xx->dialog);
+  ivwRemoveControl(mVi, mCtrl);
+  imodDialogManager.remove((QWidget *)this);
 
   /* DNM 11/17/01: stop x and y movies when close window */
-  imodMovieXYZT(xx->vi, 0, 0, MOVIE_DEFAULT, MOVIE_DEFAULT);
+  imodMovieXYZT(mVi, 0, 0, MOVIE_DEFAULT, MOVIE_DEFAULT);
 
-  if(xx->fdataxz)
-    free(xx->fdataxz);
-  if(xx->fdatayz)
-    free(xx->fdatayz);
+  B3DFREE(mFdataxz);
+  B3DFREE(mFdatayz);
 
-  b3dFreeCIImage(xx->xydata);
-  b3dFreeCIImage(xx->xzdata);
-  b3dFreeCIImage(xx->yzdata);
-
-  free(xx);
-  XYZ = NULL;
+  b3dFreeCIImage(mXydata);
+  b3dFreeCIImage(mXzdata);
+  b3dFreeCIImage(mYzdata);
 
   mGLw->mClosing = true;
   e->accept();
@@ -406,13 +405,13 @@ void XyzWindow::closeEvent (QCloseEvent * e )
 
 void XyzWindow::SetCursor(int mode, bool setAnyway)
 {
-  if (mXyz->mousemode == mode && !setAnyway)
+  if (mMousemode == mode && !setAnyway)
     return;
   if (mode == IMOD_MMODEL)
       mGLw->setCursor(*App->modelCursor);
     else
       mGLw->unsetCursor();
-  mXyz->mousemode = mode;
+  mMousemode = mode;
 }
 
 // Set a slider range and fixed size based on max value
@@ -450,37 +449,35 @@ void XyzWindow::allocateDim(int winsize, float zFraction, int &dim1,
    origins */
 void XyzWindow::GetCIImages()
 {
-  struct xxyzwin *xx = mXyz;
+  allocateDim(mWinx, mXzFraction, mWinXdim1, mWinXdim2);
+  allocateDim(mWiny, mYzFraction, mWinYdim1, mWinYdim2);
   
-  allocateDim(xx->winx, xx->xzFraction, xx->winXdim1, xx->winXdim2);
-  allocateDim(xx->winy, xx->yzFraction, xx->winYdim1, xx->winYdim2);
-  
-  if (xx->winXdim2 > xx->winYdim2) {
-    xx->winXdim1 += xx->winXdim2 - xx->winYdim2;
-    xx->winXdim2 = xx->winYdim2;
+  if (mWinXdim2 > mWinYdim2) {
+    mWinXdim1 += mWinXdim2 - mWinYdim2;
+    mWinXdim2 = mWinYdim2;
   }
-  else if (xx->winYdim2 > xx->winXdim2) {
-    xx->winYdim1 += xx->winYdim2 - xx->winXdim2;
-    xx->winYdim2 = xx->winXdim2;
+  else if (mWinYdim2 > mWinXdim2) {
+    mWinYdim1 += mWinYdim2 - mWinXdim2;
+    mWinYdim2 = mWinXdim2;
   }
-  //xx->xzFraction = ((float)xx->winXdim2) / (xx->winXdim1 + xx->winXdim2);
-  //xx->yzFraction = ((float)xx->winYdim2) / (xx->winYdim1 + xx->winYdim2);
+  //mXzFraction = ((float)mWinXdim2) / (mWinXdim1 + mWinXdim2);
+  //mYzFraction = ((float)mWinYdim2) / (mWinYdim1 + mWinYdim2);
   
-  xx->xorigin1 = XYZ_BSIZE;
-  xx->xorigin2 = XYZ_BSIZE + XYZ_GSIZE + xx->winXdim1;
-  xx->yorigin1 = XYZ_BSIZE;
-  xx->yorigin2 = XYZ_BSIZE + XYZ_GSIZE + xx->winYdim1;
+  mXorigin1 = XYZ_BSIZE;
+  mXorigin2 = XYZ_BSIZE + XYZ_GSIZE + mWinXdim1;
+  mYorigin1 = XYZ_BSIZE;
+  mYorigin2 = XYZ_BSIZE + XYZ_GSIZE + mWinYdim1;
 
-  xx->xydata = (B3dCIImage *)b3dGetNewCIImageSize
-    (xx->xydata, App->depth, xx->winXdim1, xx->winYdim1);
+  mXydata = (B3dCIImage *)b3dGetNewCIImageSize
+    (mXydata, App->depth, mWinXdim1, mWinYdim1);
 
-  xx->xzdata = (B3dCIImage *)b3dGetNewCIImageSize
-    (xx->xzdata, App->depth,  xx->winXdim1, xx->winYdim2);
+  mXzdata = (B3dCIImage *)b3dGetNewCIImageSize
+    (mXzdata, App->depth,  mWinXdim1, mWinYdim2);
 
-  xx->yzdata = (B3dCIImage *)b3dGetNewCIImageSize
-    (xx->yzdata, App->depth,  xx->winXdim2, xx->winYdim1);
+  mYzdata = (B3dCIImage *)b3dGetNewCIImageSize
+    (mYzdata, App->depth,  mWinXdim2, mWinYdim1);
 
-  if (!xx->xydata || !xx->xzdata || !xx->yzdata)
+  if (!mXydata || !mXzdata || !mYzdata)
     wprint("\aInsufficient memory to run this Xyz window.\n"
             "Try making it smaller or close it.\n");
 }
@@ -491,94 +488,87 @@ void XyzWindow::GetCIImages()
  */
 int XyzWindow::Getxyz(int x, int y, float *mx, float *my, int *mz)
 {
-  struct xxyzwin *xx = mXyz;
-  int nx, ny, nz;
+  int nx, ny, nz, cx, cy, cz;
   /* DNM 1/23/02: turn this from float to int to keep calling expressions
      as ints */
   float scale;
-  struct ViewInfo *vi = xx->vi;
   
-  y = xx->winy - y;
+  y = mWiny - y;
 
-  nx = (int)(vi->xsize * xx->zoom);
-  ny = (int)(vi->ysize * xx->zoom);
-  nz = (int)(vi->zsize * xx->zoom);
+  nx = (int)(mVi->xsize * mZoom);
+  ny = (int)(mVi->ysize * mZoom);
+  nz = (int)(mVi->zsize * mZoom);
+  getLocation(cx, cy, cz);
+  *mx = cx;
+  *my = cy;
+  *mz = cz;
 
-  scale = 1.0/xx->zoom;
-  /*imodPrintStderr("xx->xorigin1 %d, xx->xorigin2 %d, xx->yorigin1 %d, xx->yorigin2 %d\n",
-                  xx->xorigin1, xx->xorigin2, xx->yorigin1, xx->yorigin2);
-  imodPrintStderr("xx->winXdim1 %d, xx->winXdim2 %d, xx->winYdim1 %d, xx->winYdim2 %d\n",
-                  xx->winXdim1, xx->winXdim2, xx->winYdim1, xx->winYdim2);
-  imodPrintStderr("xx->xorigin1+xx->winXdim1 %d, xx->xorigin2+xx->winXdim2 %d, xx->yorigin1+xx->winYdim1 %d, xx->yorigin2+xx->winYdim2 %d\n",
-                  xx->xorigin1+xx->winXdim1, xx->xorigin2+xx->winXdim2,
-                  xx->yorigin1+xx->yorigin1+xx->winYdim1, xx->yorigin2+xx->winYdim2);*/
+  scale = 1.0/mZoom;
+  /*imodPrintStderr("mXorigin1 %d, mXorigin2 %d, mYorigin1 %d, mYorigin2 %d\n",
+                  mXorigin1, mXorigin2, mYorigin1, mYorigin2);
+  imodPrintStderr("mWinXdim1 %d, mWinXdim2 %d, mWinYdim1 %d, mWinYdim2 %d\n",
+                  mWinXdim1, mWinXdim2, mWinYdim1, mWinYdim2);
+  imodPrintStderr("mXorigin1+mWinXdim1 %d, mXorigin2+mWinXdim2 %d, mYorigin1+mWinYdim1 %d, mYorigin2+mWinYdim2 %d\n",
+                  mXorigin1+mWinXdim1, mXorigin2+mWinXdim2,
+                  mYorigin1+mYorigin1+mWinYdim1, mYorigin2+mWinYdim2);*/
 
   /* Click in main image, Z-Section */
-  if (mouse_in_box(xx->xorigin1, xx->yorigin1, xx->xorigin1 + xx->winXdim1,
-                   xx->yorigin1 + xx->winYdim1, x, y)) {
+  if (mouse_in_box(mXorigin1, mYorigin1, mXorigin1 + mWinXdim1,
+                   mYorigin1 + mWinYdim1, x, y)) {
     //imodPrintStderr("found center image: x %d, y %d\n",x, y);
-    *mx = (x - xx->xwoffset1) * scale ;
-    *my = (y - xx->ywoffset1) * scale;
-    *mz = (int)vi->zmouse;
-    ivwBindMouse(vi);
+    *mx = (x - mXwoffset1) * scale ;
+    *my = (y - mYwoffset1) * scale;
+    //ivwBindMouse(mVi);
     return(Z_SLICE_BOX);
   }
 
   /* Click in top image, Y-Section */
-  if (mouse_in_box(xx->xorigin1, xx->yorigin2, xx->xorigin1 + xx->winXdim1,
-                   xx->yorigin2 + xx->winYdim2, x, y)) {
+  if (mouse_in_box(mXorigin1, mYorigin2, mXorigin1 + mWinXdim1,
+                   mYorigin2 + mWinYdim2, x, y)) {
     //imodPrintStderr("found top image: x %d, y %d\n",x, y);
-    *mx = (x - xx->xwoffset1) * scale;
-    *my = vi->ymouse;
-    *mz = (int)((y - xx->ywoffset2) * scale);
-    ivwBindMouse(vi);
+    *mx = (x - mXwoffset1) * scale;
+    *mz = (int)((y - mYwoffset2) * scale);
+    //ivwBindMouse(mVi);
     return(Y_SLICE_BOX);
   }
 
   /* Click in right image X-Section */
-  if (mouse_in_box(xx->xorigin2, xx->yorigin1, xx->xorigin2 + xx->winXdim2,
-                   xx->yorigin1 + xx->winYdim1, x, y)) {
+  if (mouse_in_box(mXorigin2, mYorigin1, mXorigin2 + mWinXdim2,
+                   mYorigin1 + mWinYdim1, x, y)) {
     //imodPrintStderr("found right image: x %d, y %d\n",x, y);
-    *mx = vi->xmouse;
-    *my = (y - xx->ywoffset1) * scale;
-    *mz = (int)((x - xx->xwoffset2) * scale);
+    *my = (y - mYwoffset1) * scale;
+    *mz = (int)((x - mXwoffset2) * scale);
     return(X_SLICE_BOX);
   }
 
   /* Z-Section Gadget */
-  if (mouse_in_box(xx->xorigin2 - 1, xx->yorigin2 - 1,
-                   xx->xorigin2 + xx->winXdim2 + 1,
-                   xx->yorigin2 + xx->winYdim2 + 1, x, y)) {
+  if (mouse_in_box(mXorigin2 - 1, mYorigin2 - 1,
+                   mXorigin2 + mWinXdim2 + 1,
+                   mYorigin2 + mWinYdim2 + 1, x, y)) {
     //imodPrintStderr("found z gadget: x %d, y %d\n",x, y);
-    *mx = vi->xmouse;
-    *my = vi->ymouse;
-    *mz = (int)(0.5 * ((y - xx->ywoffset2) + (x - xx->xwoffset2)) * scale);
+    *mz = (int)(0.5 * ((y - mYwoffset2) + (x - mXwoffset2)) * scale);
     return(Z_GADGET_BOX);
   }
      
   /* X-Section Gadget (top gutter)*/
-  if (mouse_in_box(xx->xorigin1 - 1, xx->yorigin1 + xx->winYdim1,
-                   xx->xorigin1 + xx->winXdim1 + 1, xx->yorigin2, x, y)) {
+  if (mouse_in_box(mXorigin1 - 1, mYorigin1 + mWinYdim1,
+                   mXorigin1 + mWinXdim1 + 1, mYorigin2, x, y)) {
     //imodPrintStderr("found top gutter: x %d, y %d\n",x, y);
-    *mx = (x - xx->xwoffset1) * scale;
-    *my = vi->ymouse;
-    *mz = (int)vi->zmouse;
+    *mx = (x - mXwoffset1) * scale;
     return(X_GADGET_BOX);
   }
      
   /* Y-Section Gadget (right gutter)*/
-  if (mouse_in_box(xx->xorigin1 + xx->winXdim1, xx->yorigin1 -1, xx->xorigin2,
-                   xx->yorigin1 + xx->winYdim1 + 1, x, y)) {
+  if (mouse_in_box(mXorigin1 + mWinXdim1, mYorigin1 -1, mXorigin2,
+                   mYorigin1 + mWinYdim1 + 1, x, y)) {
     //imodPrintStderr("found right gutter: x %d, y %d\n",x, y);
-    *mx = vi->xmouse;
-    *my = (y - xx->ywoffset1) * scale;
-    *mz = (int)vi->zmouse;
+    *my = (y - mYwoffset1) * scale;
     return(Y_GADGET_BOX);
   }
 
   // Grab box for readjusting fraction between windows
-  if (mouse_in_box(xx->xorigin1 + xx->winXdim1, xx->yorigin1 + xx->winYdim1,
-                   xx->xorigin2, xx->yorigin2, x, y)) {
+  if (mouse_in_box(mXorigin1 + mWinXdim1, mYorigin1 + mWinYdim1,
+                   mXorigin2, mYorigin2, x, y)) {
     //imodPrintStderr("found fraction grab box: x %d, y %d\n",x, y);
     return(FRACTION_BOX);
   }
@@ -590,14 +580,13 @@ int XyzWindow::Getxyz(int x, int y, float *mx, float *my, int *mz)
 // Mouse button 1 click
 void XyzWindow::B1Press(int x, int y)
 {
-  struct xxyzwin *xx = mXyz;
   float mx, my;
   int mz;
-  ImodView *vi   = xx->vi;
+  ImodView *vi   = mVi;
   Ipoint pnt;
   Iindex index;
   float distance;
-  float selsize = IMOD_SELSIZE / xx->zoom;
+  float selsize = IMOD_SELSIZE / mZoom;
   int box = Getxyz(x, y, &mx, &my, &mz);
 
   if (box == NOT_IN_BOX)
@@ -606,100 +595,100 @@ void XyzWindow::B1Press(int x, int y)
   if (box == FRACTION_BOX)
     return;
 
-  if (xx->vi->ax) {
-    if (xx->vi->ax->altmouse == AUTOX_ALTMOUSE_PAINT) {
-      autox_fillmouse(xx->vi, (int)mx, (int)my);
+  if (vi->ax) {
+    if (vi->ax->altmouse == AUTOX_ALTMOUSE_PAINT) {
+      autox_fillmouse(vi, (int)mx, (int)my);
       return;
     }
   }
 
   /* DNM 1/23/02: Adopt code from Zap window, get nearest point if in the
      main display panel */
-  if (xx->vi->imod->mousemode == IMOD_MMODEL && box == 3) {
+  if (vi->imod->mousemode == IMOD_MMODEL && box == 3) {
     pnt.x = mx;
     pnt.y = my;
     pnt.z = mz;
-    vi->xmouse = mx;
-    vi->ymouse = my;
-    vi->zmouse = mz;
-
+    setLocation(mx, my, mz);
     distance = imodAllObjNearest(vi, &index , &pnt, selsize);
-    ivwBindMouse(xx->vi);
-    imodDraw(vi, IMOD_DRAW_RETHINK | IMOD_DRAW_XYZ);
+    if (distance >= 0. || !mLock) {
+      vi->xmouse = mx;
+      vi->ymouse = my;
+      vi->zmouse = mz;
+      ivwBindMouse(vi);
+      imodDraw(vi, IMOD_DRAW_RETHINK | IMOD_DRAW_XYZ);
+    } else
+      Draw();
     return;
   }
 
-  xx->vi->xmouse = mx;
-  xx->vi->ymouse = my;
-  xx->vi->zmouse = mz;
-  ivwBindMouse(xx->vi);
+  setLocation(mx, my, mz);
      
   /* DNM 1/23/02: make it update all windows */
-  imodDraw(xx->vi, IMOD_DRAW_XYZ);
+  if (mLock)
+    Draw();
+  else
+    imodDraw(vi, IMOD_DRAW_XYZ);
   return;
 }
 
 // Mouse button 2 click
 void XyzWindow::B2Press(int x, int y)
 {
-  struct xxyzwin *xx = mXyz;
   float mx, my;
   int mz;
   int movie;
-  struct Mod_Object  *obj;
-  struct Mod_Contour *cont;
-  struct Mod_Point   point;
+  Iobj  *obj;
+  Icont *cont;
+  Ipoint point;
   int pt;
 
   movie = Getxyz(x, y, &mx, &my, &mz);
   if (movie == NOT_IN_BOX)
     return;
 
-  if (xx->vi->ax) {
-    if (xx->vi->ax->altmouse == AUTOX_ALTMOUSE_PAINT) {
-      autox_sethigh(xx->vi, (int)mx, (int)my);
+  if (mVi->ax) {
+    if (mVi->ax->altmouse == AUTOX_ALTMOUSE_PAINT) {
+      autox_sethigh(mVi, (int)mx, (int)my);
       return;
     }
   }
 
   /* DNM 12/18/93: do not start movie in slider areas */
-  if (xx->vi->imod->mousemode == IMOD_MMOVIE) {
+  if (mVi->imod->mousemode == IMOD_MMOVIE) {
     switch(movie) {
     case X_SLICE_BOX:
-      imodMovieXYZT(xx->vi, 1,
-                    MOVIE_DEFAULT, MOVIE_DEFAULT, MOVIE_DEFAULT);
+      imodMovieXYZT(mVi, 1, MOVIE_DEFAULT, MOVIE_DEFAULT, MOVIE_DEFAULT);
       break;
     case Y_SLICE_BOX:
-      imodMovieXYZT(xx->vi, MOVIE_DEFAULT, 1,
-                    MOVIE_DEFAULT, MOVIE_DEFAULT);
+      imodMovieXYZT(mVi, MOVIE_DEFAULT, 1, MOVIE_DEFAULT, MOVIE_DEFAULT);
       break;
     case Z_SLICE_BOX:
-      imodMovieXYZT(xx->vi, MOVIE_DEFAULT, MOVIE_DEFAULT, 1,
-                    MOVIE_DEFAULT);
+      imodMovieXYZT(mVi, MOVIE_DEFAULT, MOVIE_DEFAULT, 1, MOVIE_DEFAULT);
       break;
     default:
       break;
     }
     if (movie <= Z_SLICE_BOX)
-      imcSetStarterID(xx->ctrl);
+      imcSetStarterID(mCtrl);
     return;
   }
 
   if (movie != Z_SLICE_BOX)
     return;
 
-  obj = imodObjectGet(xx->vi->imod);
+  obj = imodObjectGet(mVi->imod);
   if (!obj)
     return;
 
   // DNM 7/10/04: switch to calling function for this
   // 11/17/04: have it take care of modifying time of empty contour
-  cont = ivwGetOrMakeContour(xx->vi, obj, 0);
+  cont = ivwGetOrMakeContour(mVi, obj, 0);
   if (!cont)
     return;
 
   /* Now if times still don't match refuse the point */
-  if (ivwTimeMismatch(xx->vi, 0, obj, cont)) {
+  // TODO: Time match
+  if (ivwTimeMismatch(mVi, mTimeLock, obj, cont)) {
     wprint("\aContour time does not match current time.\n"
 	   "Set contour time to 0 to model across times.\n");
     return;
@@ -715,23 +704,17 @@ void XyzWindow::B2Press(int x, int y)
   point.x = mx;
   point.y = my;
   point.z = mz;
-  pt = xx->vi->imod->cindex.point + 1;
+  pt = mVi->imod->cindex.point + 1;
 
-  ivwRegisterInsertPoint(xx->vi, cont, &point, pt);
+  ivwRegisterInsertPoint(mVi, cont, &point, pt);
 
   /* 11/71/04: deleted test to maintain wild flag, insert takes care of it */
-  xx->vi->xmouse  = mx;
-  xx->vi->ymouse  = my;
-
-  /* DNM 1/23/02: make it update all windows */
-  imodDraw(xx->vi, IMOD_DRAW_XYZ | IMOD_DRAW_MOD);
-  return;
+  finishNewModelPoint(mx, my, mz);
 }
 
 // Mouse button 3 click
 void XyzWindow::B3Press(int x, int y)
 {
-  struct xxyzwin *xx = mXyz;
   float mx, my;
   int mz;
   int movie;
@@ -743,33 +726,30 @@ void XyzWindow::B3Press(int x, int y)
   if (movie == NOT_IN_BOX)
     return;
 
-  if (xx->vi->ax) {
-    if (xx->vi->ax->altmouse == AUTOX_ALTMOUSE_PAINT) {
-      autox_setlow(xx->vi, (int)mx, (int)my);
+  if (mVi->ax) {
+    if (mVi->ax->altmouse == AUTOX_ALTMOUSE_PAINT) {
+      autox_setlow(mVi, (int)mx, (int)my);
       return;
     }
   }
      
      
-  if (xx->vi->imod->mousemode == IMOD_MMOVIE) {
+  if (mVi->imod->mousemode == IMOD_MMOVIE) {
     switch(movie) {
     case X_SLICE_BOX:
-      imodMovieXYZT(xx->vi, -1, 
-                    MOVIE_DEFAULT, MOVIE_DEFAULT, MOVIE_DEFAULT);
+      imodMovieXYZT(mVi, -1, MOVIE_DEFAULT, MOVIE_DEFAULT, MOVIE_DEFAULT);
       break;
     case Y_SLICE_BOX:
-      imodMovieXYZT(xx->vi, MOVIE_DEFAULT, -1,
-                    MOVIE_DEFAULT, MOVIE_DEFAULT);
+      imodMovieXYZT(mVi, MOVIE_DEFAULT, -1, MOVIE_DEFAULT, MOVIE_DEFAULT);
       break;
     case Z_SLICE_BOX:
-      imodMovieXYZT(xx->vi, MOVIE_DEFAULT, MOVIE_DEFAULT, -1,
-                    MOVIE_DEFAULT);
+      imodMovieXYZT(mVi, MOVIE_DEFAULT, MOVIE_DEFAULT, -1, MOVIE_DEFAULT);
       break;
     default:
       break;
     }
     if (movie <= Z_SLICE_BOX)
-      imcSetStarterID(xx->ctrl);
+      imcSetStarterID(mCtrl);
     return;
   }
 
@@ -777,212 +757,207 @@ void XyzWindow::B3Press(int x, int y)
     return;
 
   
-  obj = imodObjectGet(xx->vi->imod);
-  cont = imodContourGet(xx->vi->imod);
-  pt   = xx->vi->imod->cindex.point;
+  obj = imodObjectGet(mVi->imod);
+  cont = imodContourGet(mVi->imod);
+  pt   = mVi->imod->cindex.point;
   if (!cont || !obj)
     return;
   if (pt < 0)
     return;
-  if (!ivwPointVisible(xx->vi, &(cont->pts[pt])))
+  if (!ivwPointVisible(mVi, &(cont->pts[pt])))
     return;
 
-  if (ivwTimeMismatch(xx->vi, 0, obj, cont))
+  if (ivwTimeMismatch(mVi, mTimeLock, obj, cont))
     return;
 
-  xx->vi->undo->pointShift();
+  mVi->undo->pointShift();
   cont->pts[pt].x = mx;
   cont->pts[pt].y = my;
-  xx->vi->undo->finishUnit();
+  mVi->undo->finishUnit();
 
-  xx->vi->xmouse  = mx;
-  xx->vi->ymouse  = my;
-  ivwBindMouse(xx->vi);
-
-  /* DNM 1/23/02: make it update all windows */
-  imodDraw(xx->vi, IMOD_DRAW_XYZ | IMOD_DRAW_MOD);
-  return;
+  finishNewModelPoint(mx, my, mz);
 }
 
 // Mouse button 1 drag for panning
 void XyzWindow::B1Drag(int x, int y)
 {
-  struct xxyzwin *xx = mXyz;
-  int sx, sy;
+  int sx, sy, curx, cury, curz;
   int nx, ny, delx, dely, sizeSum;
-  int bx2 = xx->xwoffset2;
-  int by2 = xx->ywoffset2;
-  double transFac = xx->zoom < 1. ? 1. / xx->zoom : 1.;
+  int bx2 = mXwoffset2;
+  int by2 = mYwoffset2;
+  double transFac = mZoom < 1. ? 1. / mZoom : 1.;
   float scale, delz, xfrac, yfrac, delfrac;
-  struct ViewInfo *vi = xx->vi;
+  ImodView *vi = mVi;
   int newVal;
   
   //do not drag out of a gutter
-  if (xx->whichbox == Y_GADGET_BOX) {
-    int yinverted = xx->winy - y;
-    if (yinverted < xx->yorigin1 + 1) {
-      y = xx->winy - (xx->yorigin1 + 1);
+  if (mWhichbox == Y_GADGET_BOX) {
+    int yinverted = mWiny - y;
+    if (yinverted < mYorigin1 + 1) {
+      y = mWiny - (mYorigin1 + 1);
     }
-    else if (yinverted > xx->yorigin1 + xx->winYdim1) {
-      y = xx->winy - (xx->yorigin1 + xx->winYdim1);
-    }
-  }
-  else if (xx->whichbox == X_GADGET_BOX) {
-    if (x < xx->xorigin1) {
-      x = xx->xorigin1;
-    }
-    else if (x > xx->xorigin1 + xx->winXdim1 - 1) {
-      x = xx->xorigin1 + xx->winXdim1 - 1;
+    else if (yinverted > mYorigin1 + mWinYdim1) {
+      y = mWiny - (mYorigin1 + mWinYdim1);
     }
   }
-  else if (xx->whichbox == Z_GADGET_BOX) {
-    if (x < xx->xorigin2) {
-      x = xx->xorigin2;
+  else if (mWhichbox == X_GADGET_BOX) {
+    if (x < mXorigin1) {
+      x = mXorigin1;
     }
-    else if (x > xx->xorigin2 + xx->winXdim2 - 1) {
-      x = xx->xorigin2 + xx->winXdim2 - 1;
+    else if (x > mXorigin1 + mWinXdim1 - 1) {
+      x = mXorigin1 + mWinXdim1 - 1;
     }
-    int yinverted = xx->winy - y;
-    if (yinverted < xx->yorigin2 + 1) {
-      y = xx->winy - (xx->yorigin2 + 1);
+  }
+  else if (mWhichbox == Z_GADGET_BOX) {
+    if (x < mXorigin2) {
+      x = mXorigin2;
     }
-    else if (yinverted > xx->yorigin2 + xx->winYdim2) {
-      y = xx->winy - (xx->yorigin2 + xx->winYdim2);
+    else if (x > mXorigin2 + mWinXdim2 - 1) {
+      x = mXorigin2 + mWinXdim2 - 1;
+    }
+    int yinverted = mWiny - y;
+    if (yinverted < mYorigin2 + 1) {
+      y = mWiny - (mYorigin2 + 1);
+    }
+    else if (yinverted > mYorigin2 + mWinYdim2) {
+      y = mWiny - (mYorigin2 + mWinYdim2);
     }
   }
   
-  sy = xx->winy - y - 1;
-  sx = x - xx->xwoffset1;
-  sy -= xx->ywoffset1;
+  sy = mWiny - y - 1;
+  sx = x - mXwoffset1;
+  sy -= mYwoffset1;
 
-  nx = (int)(vi->xsize * xx->zoom);
-  ny = (int)(vi->ysize * xx->zoom);
+  nx = (int)(vi->xsize * mZoom);
+  ny = (int)(vi->ysize * mZoom);
 
-  scale = 1.0/xx->zoom;
-  delx = B3DNINT(transFac * (x - xx->lmx));
-  dely = B3DNINT(transFac * (y - xx->lmy));
+  scale = 1.0/mZoom;
+  delx = B3DNINT(transFac * (x - mLmx));
+  dely = B3DNINT(transFac * (y - mLmy));
+  getLocation(curx, cury, curz);
 
-  switch (xx->whichbox) {
+  switch (mWhichbox) {
   case NOT_IN_BOX:
     return;
   case X_SLICE_BOX:
-    xx->xtrans2 += delx;
-    xx->ytrans1 -= dely;
-    xx->ytrans2 += delx;
+    mXtrans2 += delx;
+    mYtrans1 -= dely;
+    mYtrans2 += delx;
     Draw();
     return;
   case Y_SLICE_BOX:
-    xx->xtrans1 += delx;
-    xx->ytrans2 -= dely;
-    xx->xtrans2 -= dely;
+    mXtrans1 += delx;
+    mYtrans2 -= dely;
+    mXtrans2 -= dely;
     Draw();
     return;
   case Z_SLICE_BOX:
-    xx->xtrans1 += delx;
-    xx->ytrans1 -= dely;
+    mXtrans1 += delx;
+    mYtrans1 -= dely;
     Draw();
     return;
 
   case Z_GADGET_BOX:
-    newVal = (int)(0.5 * ((xx->winy - y - 1 - by2) + (x - bx2)) * scale);
-    if (xx->vi->zmouse == newVal)
+    newVal = (int)(0.5 * ((mWiny - y - 1 - by2) + (x - bx2)) * scale);
+    if (curz == newVal)
       return;
-    xx->vi->zmouse = newVal;
+    setLocation(NOTNEW, NOTNEW, newVal);
     break;
 
   case X_GADGET_BOX:
     newVal = (int)(sx * scale);
-    if (xx->vi->xmouse == newVal)
+    if (curx == newVal)
       return;
-    xx->vi->xmouse = newVal; 
+    setLocation(newVal, NOTNEW, NOTNEW);
     break;
 
   case Y_GADGET_BOX:
     newVal = (int)((sy) * scale);
-    if (xx->vi->ymouse == newVal)
+    if (cury == newVal)
       return;
-    xx->vi->ymouse = newVal;
+    setLocation(NOTNEW, newVal, NOTNEW);
     break;
 
   case FRACTION_BOX:
 
     // Get the average delta Z and the existing window fractions
-    delz = -0.5 * (x - xx->lmx + xx->lmy - y);
-    //imodPrintStderr("lmx %d lmy %d x %d y %d\n", xx->lmx, xx->lmy, x, y);
-    xfrac = ((float)xx->winXdim2) / (xx->winXdim1 + xx->winXdim2);
-    yfrac = ((float)xx->winYdim2) / (xx->winYdim1 + xx->winYdim2);
+    delz = -0.5 * (x - mLmx + mLmy - y);
+    //imodPrintStderr("lmx %d lmy %d x %d y %d\n", mLmx, mLmy, x, y);
+    xfrac = ((float)mWinXdim2) / (mWinXdim1 + mWinXdim2);
+    yfrac = ((float)mWinYdim2) / (mWinYdim1 + mWinYdim2);
 
     // Use the window fraction that is bigger relative to the requested 
     // fractions since that is the unstretched dimension, and get a change
     // in fraction caused by that delta Z in the window
-    if (yfrac / xx->yzFraction > xfrac / xx->xzFraction)
-      delfrac = ((xx->winYdim2 + delz) / (xx->winYdim1 + xx->winYdim2)) / 
+    if (yfrac / mYzFraction > xfrac / mXzFraction)
+      delfrac = ((mWinYdim2 + delz) / (mWinYdim1 + mWinYdim2)) / 
         yfrac;
     else
-      delfrac = ((xx->winXdim2 + delz) / (xx->winXdim1 + xx->winXdim2)) /
+      delfrac = ((mWinXdim2 + delz) / (mWinXdim1 + mWinXdim2)) /
         xfrac;
     
     // Apply that delta to each of the requested fractions and limit
-    xx->xzFraction *= delfrac;
-    xx->yzFraction *= delfrac;
-    /*imodPrintStderr("delfrac %f xzf %f yzf %f\n", delfrac, xx->xzFraction,
-      xx->yzFraction);*/
-    sizeSum = xx->vi->xsize + xx->vi->zsize;
-    xx->xzFraction = B3DMAX(2. / sizeSum, B3DMIN((sizeSum - 2.) / sizeSum,
-                                                 xx->xzFraction));
-    sizeSum = xx->vi->ysize + xx->vi->zsize;
-    xx->yzFraction = B3DMAX(2. / sizeSum, B3DMIN((sizeSum - 2.) / sizeSum,
-                                                 xx->yzFraction));
+    mXzFraction *= delfrac;
+    mYzFraction *= delfrac;
+    /*imodPrintStderr("delfrac %f xzf %f yzf %f\n", delfrac, mXzFraction,
+      mYzFraction);*/
+    sizeSum = mVi->xsize + mVi->zsize;
+    mXzFraction = B3DMAX(2. / sizeSum, B3DMIN((sizeSum - 2.) / sizeSum,
+                                                 mXzFraction));
+    sizeSum = mVi->ysize + mVi->zsize;
+    mYzFraction = B3DMAX(2. / sizeSum, B3DMIN((sizeSum - 2.) / sizeSum,
+                                                 mYzFraction));
 
     // Get new images (computes new sizes with these fractions) and draw
     GetCIImages();
     Draw();
     return;
   }
-  ivwBindMouse(xx->vi);
-  imodDraw(xx->vi, IMOD_DRAW_XYZ);
+  if (mLock)
+    Draw();
+  else
+    imodDraw(mVi, IMOD_DRAW_XYZ);
 }
 
 // Mouse button 2 drag, continuous insert
 void XyzWindow::B2Drag(int x, int y)
 {
-  struct xxyzwin *xx = mXyz;
   float mx, my;
   int mz, box;
-  struct Mod_Object  *obj;
-  struct Mod_Contour *cont;
-  struct Mod_Point   point;
+  Iobj  *obj;
+  Icont *cont;
+  Ipoint point;
   double dist;
   int pt;
 
-  if (xx->vi->ax) {
-    if (xx->vi->ax->altmouse == AUTOX_ALTMOUSE_PAINT) {
+  if (mVi->ax) {
+    if (mVi->ax->altmouse == AUTOX_ALTMOUSE_PAINT) {
       box = Getxyz(x, y, &mx, &my, &mz);
       if (box != 3)
         return;
-      autox_sethigh(xx->vi, (int)mx, (int)my);
+      autox_sethigh(mVi, (int)mx, (int)my);
       return;
     }
   }
 
-  if (xx->vi->imod->mousemode != IMOD_MMODEL)
+  if (mVi->imod->mousemode != IMOD_MMODEL)
     return;
 
   box = Getxyz(x, y, &mx, &my, &mz);
   if (box != 3)
     return;
 
-  obj = imodObjectGet(xx->vi->imod);
+  obj = imodObjectGet(mVi->imod);
   if (!obj)
     return;
-  cont = imodContourGet(xx->vi->imod);
+  cont = imodContourGet(mVi->imod);
   if (!cont)
     return;
-  pt = xx->vi->imod->cindex.point;
+  pt = mVi->imod->cindex.point;
   if (pt < 0)
     return;
 
-  if (ivwTimeMismatch(xx->vi, 0, obj, cont))
+  if (ivwTimeMismatch(mVi, mTimeLock, obj, cont))
     return;
 
   /* DNM: don't make closed contours wild if they're not */
@@ -1001,60 +976,52 @@ void XyzWindow::B2Drag(int x, int y)
   point.z = mz;
 
   dist = imodel_point_dist(&point, &(cont->pts[pt]));
-  if (dist < scaleModelRes(xx->vi->imod->res, xx->zoom))
+  if (dist < scaleModelRes(mVi->imod->res, mZoom))
     return;
 
-  ivwRegisterInsertPoint(xx->vi, cont, &point, pt + 1);
-
-  xx->vi->xmouse  = mx;
-  xx->vi->ymouse  = my;
-  ivwBindMouse(xx->vi);
-
-  /* DNM 1/23/02: make it update all windows */
-  imodDraw(xx->vi, IMOD_DRAW_XYZ | IMOD_DRAW_MOD);
-  return;
+  ivwRegisterInsertPoint(mVi, cont, &point, pt + 1);
+  finishNewModelPoint(mx, my, mz);
 }
 
 // Mouse button 2 drag, continuous modification
 void XyzWindow::B3Drag(int x, int y)
 {
-  struct xxyzwin *xx = mXyz;
   float mx, my;
   int mz, box;
-  struct Mod_Object  *obj;
-  struct Mod_Contour *cont;
-  struct Mod_Point   point;
+  Iobj  *obj;
+  Icont *cont;
+  Ipoint point;
   double dist;
   int pt;
 
-  if (xx->vi->ax) {
-    if (xx->vi->ax->altmouse == AUTOX_ALTMOUSE_PAINT) {
+  if (mVi->ax) {
+    if (mVi->ax->altmouse == AUTOX_ALTMOUSE_PAINT) {
       box = Getxyz(x, y, &mx, &my, &mz);
       if (box != 3)
         return;
-      autox_setlow(xx->vi, (int)mx, (int)my);
+      autox_setlow(mVi, (int)mx, (int)my);
       return;
     }
   }
 
-  if (xx->vi->imod->mousemode != IMOD_MMODEL)
+  if (mVi->imod->mousemode != IMOD_MMODEL)
     return;
 
   box = Getxyz(x, y, &mx, &my, &mz);
   if (box != 3)
     return;
 
-  obj = imodObjectGet(xx->vi->imod);
+  obj = imodObjectGet(mVi->imod);
   if (!obj)
     return;
-  cont = imodContourGet(xx->vi->imod);
+  cont = imodContourGet(mVi->imod);
   if (!cont)
     return;
-  pt = xx->vi->imod->cindex.point;
+  pt = mVi->imod->cindex.point;
   if (pt < 0)
     return;
 
-  if (ivwTimeMismatch(xx->vi, 0, obj, cont))
+  if (ivwTimeMismatch(mVi, mTimeLock, obj, cont))
     return;
 
   point.x = mx;
@@ -1062,27 +1029,33 @@ void XyzWindow::B3Drag(int x, int y)
   point.z = mz;
 
   dist = imodel_point_dist(&point, &(cont->pts[pt]));
-  if (dist < scaleModelRes(xx->vi->imod->res, xx->zoom))
+  if (dist < scaleModelRes(mVi->imod->res, mZoom))
     return;
 
   pt++;
   if (pt >= cont->psize)
     pt = cont->psize - 1;
 
-  xx->vi->imod->cindex.point = pt;
-  xx->vi->undo->pointShift();
+  mVi->imod->cindex.point = pt;
+  mVi->undo->pointShift();
   cont->pts[pt].x = mx;
   cont->pts[pt].y = my;
   cont->pts[pt].z = mz;
-  xx->vi->undo->finishUnit();
+  mVi->undo->finishUnit();
 
-  xx->vi->xmouse  = mx;
-  xx->vi->ymouse  = my;
-  ivwBindMouse(xx->vi);
+  finishNewModelPoint(mx, my, mz);
+}
+
+void XyzWindow::finishNewModelPoint(int mx, int my, int mz)
+{
+  setLocation(mx, my, mz);
+  mVi->xmouse  = mx;
+  mVi->ymouse  = my;
+  mVi->zmouse  = mz;
+  ivwBindMouse(mVi);
 
   /* DNM 1/23/02: make it update all windows */
-  imodDraw(xx->vi, IMOD_DRAW_XYZ | IMOD_DRAW_MOD);
-  return;
+  imodDraw(mVi, IMOD_DRAW_XYZ | IMOD_DRAW_MOD);
 }
 
 /*
@@ -1101,14 +1074,14 @@ void XyzWindow::zoomDown()
 void XyzWindow::stepZoom(int step)
 {
   setControlAndLimits();
-  mXyz->zoom = b3dStepPixelZoom(mXyz->zoom, step);
+  mZoom = b3dStepPixelZoom(mZoom, step);
   Draw();
 }
 
 // Set the control priority
 void XyzWindow::setControlAndLimits()
 {
-  ivwControlPriority(mXyz->vi, mXyz->ctrl);
+  ivwControlPriority(mVi, mCtrl);
 }
 
 // A new zoom or section was entered
@@ -1121,11 +1094,11 @@ void XyzWindow::newZoom()
 void XyzWindow::enteredZoom(float newZoom)
 {
   setControlAndLimits();
-  mXyz->zoom = newZoom;
-  if (mXyz->zoom <= 0.01)
-    mXyz->zoom = 0.01;
+  mZoom = newZoom;
+  if (mZoom <= 0.01)
+    mZoom = 0.01;
   Draw();
-  mXyz->dialog->setFocus();
+  setFocus();
 }
 
 void XyzWindow::setZoomText(float zoom)
@@ -1158,18 +1131,20 @@ void XyzWindow::enteredAxisLocation(int which, int value)
   setControlAndLimits();
   switch (which) {
   case X_COORD:
-    mXyz->vi->xmouse = value;
+    setLocation(value, NOTNEW, NOTNEW);
     break;
   case Y_COORD:
-    mXyz->vi->ymouse = value;
+    setLocation(NOTNEW, value, NOTNEW);
     break;
   case Z_COORD:
-    mXyz->vi->zmouse = value;
+    setLocation(NOTNEW, NOTNEW, value);
     break;
   }
-  ivwBindMouse(mXyz->vi);
-  imodDraw(mXyz->vi, IMOD_DRAW_XYZ);
-  mXyz->dialog->setFocus();
+  if (mLock)
+    Draw();
+  else
+    imodDraw(mVi, IMOD_DRAW_XYZ);
+  setFocus();
 }
 
 
@@ -1178,11 +1153,10 @@ void XyzWindow::enteredAxisLocation(int which, int value)
  */
 void XyzWindow::DrawImage()
 {
-  struct xxyzwin *win = mXyz;
-  int x, y, z, i;
-  int nx = win->vi->xsize;
-  int ny = win->vi->ysize;
-  int nz = win->vi->zsize;
+  int x, y, z, i, time;
+  int nx = mVi->xsize;
+  int ny = mVi->ysize;
+  int nz = mVi->zsize;
   unsigned char **id;
   unsigned char *fdata;
   int cyi;
@@ -1193,81 +1167,83 @@ void XyzWindow::DrawImage()
   int xoffset1, xoffset2, yoffset1, yoffset2;
   int width1, height1, width2, height2, cacheSum, xslice, yslice;
   bool flipped;
-          
-  if (!win) return;
 
-  if (!win->exposed) return;     /* DNM: avoid crashes if Zap is movieing*/
+  if (!mExposed)
+    return;     /* DNM: avoid crashes if Zap is movieing*/
 
   /* DNM 3/5/01: changed to avoid very slow ivwGetValue when data are in
      cache; set up image pointer tables */
   // Keep track of a sum of Z values in the cache in order to detect 
   // Changes in available data that will require redisplay of XZ and YZ data
   // Load current Z section first to get it into cacheSum
-  id = ivwGetCurrentZSection(win->vi);
-  if (ivwSetupFastAccess(win->vi, &imdata, 0, &cacheSum, win->vi->ct))
+  getLocation(cx, cy, cz);
+
+  /* Get the time to display, flush images if it doesn't match last drawn */
+  if (mTimeLock)
+    time = mTimeLock;
+  else
+    ivwGetTime(mVi, &time);
+  if (time != mTimeDrawn) {
+    b3dFlushImage(mXydata);
+    b3dFlushImage(mYzdata);
+    b3dFlushImage(mXzdata);
+  }
+  mTimeDrawn = time;
+
+  id = ivwGetZSectionTime(mVi, cz, time);
+  if (ivwSetupFastAccess(mVi, &imdata, 0, &cacheSum, time))
     return;
 
   /* Just take the X size, do not allow for possibility of cached data 
      having different X sizes */
-  imdataxsize = win->vi->xsize;
+  imdataxsize = mVi->xsize;
 
-  if (win->vi->vmSize) {
-    win->lx = win->ly = -1;
+  if (mVi->vmSize) {
+    mLx = mLy = -1;
   }
           
   utilClearWindow(App->background);
 
-  ivwGetLocation(win->vi, &cx, &cy, &cz);
   cyi = cy * nx;
-  flipped = !win->vi->fakeImage && 
-    (!win->vi->vmSize || win->vi->fullCacheFlipped) && win->vi->li->axis == 2;
+  flipped = !mVi->fakeImage && (!mVi->vmSize || mVi->fullCacheFlipped) && 
+    mVi->li->axis == 2;
 
   /* Now compute drawing parameters for each of the subareas */
   /* Pass the image offset routine the effective image size, including
      de-zoomed borders, and convert a data offset into a negative window
      offset for use in drawing model */
-  b3dSetImageOffset(win->winXdim1, nx, win->zoom, width1, win->xtrans1, wx1,
-                    xoffset1, 0);
-  b3dSetImageOffset(win->winXdim2, nz, win->zoom, width2, win->xtrans2, wx2,
-                    xoffset2, 0);
-  b3dSetImageOffset(win->winYdim1, ny, win->zoom, height1, win->ytrans1, wy1,
-                    yoffset1, 0);
-  b3dSetImageOffset(win->winYdim2, nz, win->zoom, height2, win->ytrans2, wy2,
-                    yoffset2, 0);
+  b3dSetImageOffset(mWinXdim1, nx, mZoom, width1, mXtrans1, wx1, xoffset1, 0);
+  b3dSetImageOffset(mWinXdim2, nz, mZoom, width2, mXtrans2, wx2, xoffset2, 0);
+  b3dSetImageOffset(mWinYdim1, ny, mZoom, height1, mYtrans1, wy1, yoffset1, 0);
+  b3dSetImageOffset(mWinYdim2, nz, mZoom, height2, mYtrans2, wy2, yoffset2, 0);
   
-  wx1 += win->xorigin1;
-  wx2 += win->xorigin2;
-  wy1 += win->yorigin1;
-  wy2 += win->yorigin2;
+  wx1 += mXorigin1;
+  wx2 += mXorigin2;
+  wy1 += mYorigin1;
+  wy2 += mYorigin2;
   
   if (xoffset1)
-    win->xwoffset1 = -(int)floor((double)(xoffset1 * win->zoom + 0.5)) + 
-      win->xorigin1;
+    mXwoffset1 = -B3DNINT(xoffset1 * mZoom + 0.5) + mXorigin1;
   else
-    win->xwoffset1 = wx1;
+    mXwoffset1 = wx1;
   if (xoffset2)
-    win->xwoffset2 = -(int)floor((double)(xoffset2 * win->zoom + 0.5)) +
-      win->xorigin2;
+    mXwoffset2 = -B3DNINT(xoffset2 * mZoom + 0.5) + mXorigin2;
   else
-    win->xwoffset2 = wx2;
+    mXwoffset2 = wx2;
   if (yoffset1)
-    win->ywoffset1 = -(int)floor((double)(yoffset1 * win->zoom + 0.5)) +
-      win->yorigin1;
+    mYwoffset1 = -B3DNINT(yoffset1 * mZoom + 0.5) + mYorigin1;
   else
-    win->ywoffset1 = wy1;
+    mYwoffset1 = wy1;
   if (yoffset2)
-    win->ywoffset2 = -(int)floor((double)(yoffset2 * win->zoom + 0.5)) + 
-      win->yorigin2;
+    mYwoffset2 = -B3DNINT(yoffset2 * mZoom + 0.5) + mYorigin2;
   else
-    win->ywoffset2 = wy2;
+    mYwoffset2 = wy2;
   
   //draw XY view
   if (width1 > 0 && height1 > 0) {
-    win->lz = cz;
-    b3dDrawGreyScalePixelsHQ(id, nx,ny, xoffset1, yoffset1, wx1, wy1,
-                             width1, height1, win->xydata,
-                             win->vi->rampbase, win->zoom, win->zoom, 
-                             win->hq, cz, App->rgba);                    
+    mLz = cz;
+    b3dDrawGreyScalePixelsHQ(id, nx,ny, xoffset1, yoffset1, wx1, wy1, width1, height1,
+                             mXydata, mVi->rampbase, mZoom, mZoom, mHq, cz, App->rgba);
   }
 
   // Load data for YZ view
@@ -1275,11 +1251,11 @@ void XyzWindow::DrawImage()
   // this is the best way to signal that they are new to the matching routine
   if (width2 > 0 && height1 > 0) {
     xslice = cx;
-    fdata  = win->fdatayz;
-    if (cx != win->lx || cacheSum != win->lastCacheSum) {
+    fdata  = mFdatayz;
+    if (cx != mLx || cacheSum != mLastCacheSum) {
       xslice = -1 - cx;
-      win->lx = cx;
-      if (flipped && !win->vi->fakeImage) {
+      mLx = cx;
+      if (flipped && !mVi->fakeImage) {
         for (y = 0; y < ny; y++)
           if (imdata[y]) {
             for (z = 0; z < nz; z++) 
@@ -1290,7 +1266,7 @@ void XyzWindow::DrawImage()
           }
       } else {
         for(z = 0; z < nz; z++) {
-          if (!win->vi->fakeImage && imdata[z]) {
+          if (!mVi->fakeImage && imdata[z]) {
             for (i = z, y = 0; y < ny; y++, i += nz)
               fdata[i] = imdata[z][cx + (y * imdataxsize)];
           } else {
@@ -1302,26 +1278,24 @@ void XyzWindow::DrawImage()
     }
     
     //draw yz view
-    b3dDrawGreyScalePixelsHQ(ivwMakeLinePointers(win->vi, win->fdatayz, nz, ny,
-                                                 MRC_MODE_BYTE), 
-                             nz, ny, xoffset2, yoffset1,
-                             wx2, wy1, width2, height1, win->yzdata,
-                             win->vi->rampbase, win->zoom, win->zoom, 
-                             win->hq, xslice, App->rgba);
+    b3dDrawGreyScalePixelsHQ(ivwMakeLinePointers(mVi, mFdatayz, nz, ny, MRC_MODE_BYTE), 
+                             nz, ny, xoffset2, yoffset1, wx2, wy1, width2, height1,
+                             mYzdata, mVi->rampbase, mZoom, mZoom, mHq, xslice, 
+                             App->rgba);
   }
 
   // Load data for XZ view
   if (width1 > 0 && height2 > 0) {
     yslice = cy;
-    fdata  = win->fdataxz;
-    if (cy != win->ly || cacheSum != win->lastCacheSum) {
+    fdata  = mFdataxz;
+    if (cy != mLy || cacheSum != mLastCacheSum) {
       yslice = -1 - cy;
-      win->ly = cy;
+      mLy = cy;
       for(i = 0,z = 0; z < nz; z++) {
-        if (flipped && !win->vi->fakeImage && imdata[cy]) {
+        if (flipped && !mVi->fakeImage && imdata[cy]) {
           for(x = 0; x < nx; x++, i++)
             fdata[i] = imdata[cy][x + (z * imdataxsize)];
-        } else if (!flipped && !win->vi->fakeImage && imdata[z]) {
+        } else if (!flipped && !mVi->fakeImage && imdata[z]) {
           for(x = 0; x < nx; x++, i++)
             fdata[i] = imdata[z][x + (cy * imdataxsize)];
         } else {
@@ -1332,14 +1306,14 @@ void XyzWindow::DrawImage()
     }
 
     //draw xz view    
-    b3dDrawGreyScalePixelsHQ(ivwMakeLinePointers(win->vi, win->fdataxz, nx, nz,
+    b3dDrawGreyScalePixelsHQ(ivwMakeLinePointers(mVi, mFdataxz, nx, nz,
                                                  MRC_MODE_BYTE),
                              nx, nz, xoffset1, yoffset2,
-                             wx1, wy2, width1, height2, win->xzdata,
-                             win->vi->rampbase, win->zoom, win->zoom, 
-                             win->hq, yslice, App->rgba);
+                             wx1, wy2, width1, height2, mXzdata,
+                             mVi->rampbase, mZoom, mZoom, 
+                             mHq, yslice, App->rgba);
   }
-  win->lastCacheSum = cacheSum;
+  mLastCacheSum = cacheSum;
 }
 
 /*
@@ -1347,29 +1321,28 @@ void XyzWindow::DrawImage()
  */
 void XyzWindow::DrawCurrentLines()
 {
-  struct xxyzwin *xx = mXyz;
   int cx, cy, cz, cenx, ceny, xlim, ylim, cenxlim, cenylim;
-  float z = xx->zoom;
-  int bx = xx->xwoffset1;
-  int by = xx->ywoffset1;
-  int nz = xx->vi->zsize;
-  /*int nx = xx->vi->xsize;
-  int ny = xx->vi->ysize;
+  float z = mZoom;
+  int bx = mXwoffset1;
+  int by = mYwoffset1;
+  int nz = mVi->zsize;
+  /*int nx = mVi->xsize;
+  int ny = mVi->ysize;
   int xsize = (int)(nx * z + 0.5);
   int ysize = (int)(ny * z + 0.5);
   int zsize = (int)(nz * z + 0.5); */
-  int bx2 = xx->xwoffset2;
-  int by2 = xx->ywoffset2;
+  int bx2 = mXwoffset2;
+  int by2 = mYwoffset2;
 
   /* DNM 1/23/02: Put the line in the middle now that one can drag it */
   int hlen = GRAB_LENGTH / 2;
   int hwidth = GRAB_WIDTH / 2;
-  int xlineY = xx->yorigin2 - XYZ_GSIZE / 2 - 1;
-  int ylineX = xx->xorigin2 - XYZ_GSIZE / 2 - 1;
+  int xlineY = mYorigin2 - XYZ_GSIZE / 2 - 1;
+  int ylineX = mXorigin2 - XYZ_GSIZE / 2 - 1;
 
   b3dLineWidth(1);
 
-  ivwGetLocation(xx->vi, &cx, &cy, &cz);
+  getLocation(cx, cy, cz);
   b3dColorIndex(App->foreground);
 
   /* Draw Z location crossed lines and box around X/Y plane */
@@ -1377,17 +1350,17 @@ void XyzWindow::DrawCurrentLines()
   ceny = (int)(by2 + z * (cz+.5));
   xlim = (int)(bx2 + z * nz);
   ylim = (int)(by2 + z * nz);
-  cenxlim = B3DMIN(B3DMAX(cenx, xx->xorigin2 - 1), xx->xorigin2 + xx->winXdim2 + 1);
-  cenylim = B3DMIN(B3DMAX(ceny, xx->yorigin2), xx->yorigin2 + xx->winYdim2);
+  cenxlim = B3DMIN(B3DMAX(cenx, mXorigin2 - 1), mXorigin2 + mWinXdim2 + 1);
+  cenylim = B3DMIN(B3DMAX(ceny, mYorigin2), mYorigin2 + mWinYdim2);
 
   //draw Z location X line
   if (ceny == cenylim) {
-    b3dDrawLine(xx->xorigin2, ceny, xx->xorigin2 + xx->winXdim2, ceny);
+    b3dDrawLine(mXorigin2, ceny, mXorigin2 + mWinXdim2, ceny);
   }
 
   //draw Z location Y line
   if (cenx == cenxlim) {
-    b3dDrawLine(cenx, xx->yorigin2, cenx, xx->yorigin2 + xx->winYdim2);
+    b3dDrawLine(cenx, mYorigin2, cenx, mYorigin2 + mWinYdim2);
   }
 
   // Back off from edges and draw grab box
@@ -1397,8 +1370,8 @@ void XyzWindow::DrawCurrentLines()
   }
   
   //draw XY window box
-  b3dDrawRectangle(xx->xorigin1 - 1, xx->yorigin1 - 1, xx->winXdim1 + 1,
-                   xx->winYdim1 + 1);
+  b3dDrawRectangle(mXorigin1 - 1, mYorigin1 - 1, mWinXdim1 + 1,
+                   mWinYdim1 + 1);
   /*imodPrintStderr("bx - 1 %d  xsize + 1 %d  xsize + 1 %d  ysize + 1 %d\n", 
     bx - 1, xsize + 1, xsize + 1, ysize + 1);*/
 
@@ -1407,39 +1380,34 @@ void XyzWindow::DrawCurrentLines()
   /* draw x location line and box around X/Z plane */
   b3dColorIndex(App->bgnpoint);
   cenx = (int)(bx + z * (cx+.5));
-  cenxlim = B3DMIN(B3DMAX(cenx, xx->xorigin1 - 1), xx->xorigin1 + 
-                   xx->winXdim1);
+  cenxlim = B3DMIN(B3DMAX(cenx, mXorigin1 - 1), mXorigin1 + 
+                   mWinXdim1);
 
   //draw X location line
-  b3dDrawLine(cenxlim, xlineY, xx->xorigin2 + xx->winXdim2, xlineY);
+  b3dDrawLine(cenxlim, xlineY, mXorigin2 + mWinXdim2, xlineY);
   
   //draw grab box for X location
   if (cenx == cenxlim) {
-    b3dDrawFilledRectangle(cenx - hwidth, xlineY - hlen, GRAB_WIDTH, 
-                           GRAB_LENGTH);
+    b3dDrawFilledRectangle(cenx - hwidth, xlineY - hlen, GRAB_WIDTH, GRAB_LENGTH);
   }
   
   //draw YZ window box
-  b3dDrawRectangle(xx->xorigin2 - 1, xx->yorigin1 - 1, xx->winXdim2 + 1,
-                   xx->winYdim1 + 1);
+  b3dDrawRectangle(mXorigin2 - 1, mYorigin1 - 1, mWinXdim2 + 1, mWinYdim1 + 1);
 
   /* draw y location line. */
   b3dColorIndex(App->endpoint);
   ceny = (int)(by + z * (cy+.5));
-  cenylim = B3DMIN(B3DMAX(ceny, xx->yorigin1 - 1), xx->yorigin1 + 
-                   xx->winYdim1);
-  b3dDrawLine(ylineX, xx->yorigin2 + xx->winYdim2, ylineX, cenylim);
+  cenylim = B3DMIN(B3DMAX(ceny, mYorigin1 - 1), mYorigin1 + mWinYdim1);
+  b3dDrawLine(ylineX, mYorigin2 + mWinYdim2, ylineX, cenylim);
   
   //draw grab box for Y location
   //only draw box if the current point is displayed
   if (ceny == cenylim){
-    b3dDrawFilledRectangle(ylineX - hlen, ceny - hwidth, GRAB_LENGTH,
-                           GRAB_WIDTH);
+    b3dDrawFilledRectangle(ylineX - hlen, ceny - hwidth, GRAB_LENGTH, GRAB_WIDTH);
   }
                          
   //draw XZ window box
-  b3dDrawRectangle(xx->xorigin1 - 1, xx->yorigin2 - 1, xx->winXdim1 + 1,
-                   xx->winYdim2 + 1);
+  b3dDrawRectangle(mXorigin1 - 1, mYorigin2 - 1, mWinXdim1 + 1, mWinYdim2 + 1);
 
   // Draw a grab box for adjusting allocation between windows
   customGhostColor(64, 192, 255); 
@@ -1462,11 +1430,9 @@ void XyzWindow::DrawGhost()
    things up, now that floor call is needed */
 void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
 {
-  struct xxyzwin *xx = mXyz;
-  ImodView *vi = xx->vi;
   Icont *cont = &(obj->cont[co]);
-  bool currentCont = (co == vi->imod->cindex.contour) &&
-    (ob == vi->imod->cindex.object);
+  bool currentCont = (co == mVi->imod->cindex.contour) &&
+    (ob == mVi->imod->cindex.object);
   
   Ipoint *thisPt, *lastPt;
   DrawProps contProps, ptProps;
@@ -1475,33 +1441,34 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
   float zscale;
   int nextChange, stateFlags, changeFlags;
   int handleFlags = HANDLE_LINE_COLOR | HANDLE_2DWIDTH;
-  float z = xx->zoom;
-  int bx = xx->xwoffset1;
-  int by = xx->ywoffset1;
-  int bx2 = xx->xwoffset2;
-  int by2 = xx->ywoffset2;
-  int currentZ = (int)floor(vi->zmouse + 0.5);
-     
+  float z = mZoom;
+  int bx = mXwoffset1;
+  int by = mYwoffset1;
+  int bx2 = mXwoffset2;
+  int by2 = mYwoffset2;
+  int curX, curY, currentZ;
+
   if (!cont->psize)
     return;
      
-  if (ivwTimeMismatch(vi, 0, obj, cont))
+  if (ivwTimeMismatch(mVi, mTimeLock, obj, cont))
     return;
 
   if (ifgGetValueSetupState())
     handleFlags |= HANDLE_VALUE1;
 
-  zscale = ((vi->imod->zscale ? vi->imod->zscale : 1.) * vi->zbin) / vi->xybin;
+  getLocation(curX, curY, currentZ);
+  zscale = ((mVi->imod->zscale ? mVi->imod->zscale : 1.) * mVi->zbin) / mVi->xybin;
   nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, &stateFlags,
                                    handleFlags, 0);
   if (contProps.gap)
     return;
 
-  utilEnableStipple(vi, cont);
+  utilEnableStipple(mVi, cont);
 
   if (!iobjScat(obj->flags)) {    
 
-    b3dSubareaViewport(xx->xorigin1, xx->yorigin1, xx->winXdim1, xx->winYdim1);
+    b3dSubareaViewport(mXorigin1, mYorigin1, mWinXdim1, mWinYdim1);
 
     /* Open or closed contours, if they are wild or there are any changes
        coming, then need to test every
@@ -1514,7 +1481,7 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
       for (pt = 0; pt < cont->psize; pt++) {
         thisPt = &(cont->pts[pt]);
 	thisVis = (int)floor(thisPt->z + 0.5) == currentZ;
-        if (pt && ((lastVis && thisVis) || (currentCont && xx->project)) &&
+        if (pt && ((lastVis && thisVis) || (currentCont && mProject)) &&
             !ptProps.gap)
           b3dDrawLine((int)(z * thisPt->x + bx),
                       (int)(z * thisPt->y + by),
@@ -1570,32 +1537,32 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
 
 
     /* Now draw symbols and points in X/Z and Y/Z views */
-    b3dSubareaViewport(xx->xorigin1, xx->yorigin2, xx->winXdim1, xx->winYdim2);
+    b3dSubareaViewport(mXorigin1, mYorigin2, mWinXdim1, mWinYdim2);
     DrawSymProj(obj, cont, co, &contProps, &ptProps, &stateFlags, handleFlags,
-                nextChange, 0, 2, 1, (int)vi->ymouse, (float)bx, by2 + 0.5 * z,
+                nextChange, 0, 2, 1, curY, (float)bx, by2 + 0.5 * z,
                 currentCont);
-    b3dSubareaViewport(xx->xorigin2, xx->yorigin1, xx->winXdim2, xx->winYdim1);
+    b3dSubareaViewport(mXorigin2, mYorigin1, mWinXdim2, mWinYdim1);
     DrawSymProj(obj, cont, co, &contProps, &ptProps, &stateFlags, handleFlags,
-                nextChange, 2, 1, 0, (int)vi->xmouse, bx2 + 0.5 * z, (float)by,
+                nextChange, 2, 1, 0, curX, bx2 + 0.5 * z, (float)by,
                 currentCont);
   }
 
-  utilDisableStipple(vi, cont);
+  utilDisableStipple(mVi, cont);
 
   // Draw symbols for scattered points, spheres, and end markers in each window
-  b3dSubareaViewport(xx->xorigin1, xx->yorigin1, xx->winXdim1, xx->winYdim1);
+  b3dSubareaViewport(mXorigin1, mYorigin1, mWinXdim1, mWinYdim1);
   DrawScatSymAllSpheres(obj, ob, cont, co, &contProps, &ptProps, &stateFlags, 
-                        handleFlags, nextChange, 0, 1, 2, vi->zmouse, 
+                        handleFlags, nextChange, 0, 1, 2, currentZ, 
                         (float)bx, (float)by, zscale);
-  b3dSubareaViewport(xx->xorigin1, xx->yorigin2, xx->winXdim1, xx->winYdim2);
+  b3dSubareaViewport(mXorigin1, mYorigin2, mWinXdim1, mWinYdim2);
   DrawScatSymAllSpheres(obj, ob, cont, co, &contProps, &ptProps, &stateFlags, 
-                        handleFlags, nextChange, 0, 2, 1, vi->ymouse, 
+                        handleFlags, nextChange, 0, 2, 1, curY, 
                         (float)bx, by2 + 0.5 * z, 1.);
-  b3dSubareaViewport(xx->xorigin2, xx->yorigin1, xx->winXdim2, xx->winYdim1);
+  b3dSubareaViewport(mXorigin2, mYorigin1, mWinXdim2, mWinYdim1);
   DrawScatSymAllSpheres(obj, ob, cont, co, &contProps, &ptProps, &stateFlags, 
-                        handleFlags, nextChange, 2, 1, 0, vi->xmouse, 
+                        handleFlags, nextChange, 2, 1, 0, curX, 
                         bx2 + 0.5 * z, (float)by, 1.);
-  b3dResizeViewportXY(xx->winx, xx->winy);
+  b3dResizeViewportXY(mWinx, mWiny);
 }
 
 /*
@@ -1613,7 +1580,7 @@ void XyzWindow::DrawSymProj(Iobj *obj, Icont *cont, int co,
   float *point;
   float *nexpt;
   int changeFlags;
-  float z = mXyz->zoom;
+  float z = mZoom;
 
   if (ilistSize(cont->store))
     nextChange = ifgHandleContChange(obj, co, contProps, ptProps, 
@@ -1640,7 +1607,7 @@ void XyzWindow::DrawSymProj(Iobj *obj, Icont *cont, int co,
        last point unless closure is appropriate */
     nexpt = (float *)(&cont->pts[next]);
     if (((thisVis && (int)(nexpt[indz]) == currentZ) || 
-         (currentCont && mXyz->project)) && !ptProps->gap && 
+         (currentCont && mProject)) && !ptProps->gap && 
         (next || (!currentCont &&
                   (iobjClose(obj->flags) && !(cont->flags & ICONT_OPEN)))))
       b3dDrawLine((int)(z * point[indx] + bx),
@@ -1660,14 +1627,14 @@ void XyzWindow::DrawScatSymAllSpheres(Iobj *obj, int ob,  Icont *cont, int co,
                                       DrawProps *ptProps, int *stateFlags,
                                       int handleFlags, int nextChange, 
                                       int indx, int indy, int indz,
-                                      float zmouse, float bx, float by,
+                                      int zmouse, float bx, float by,
                                       float zscale)
 {
   int pt, testz;
   float *point;
   int changeFlags, radius;
-  int currentZ = indz == 2 ? B3DNINT(zmouse)  : (int)zmouse;
-  float z = mXyz->zoom;
+  int currentZ = zmouse;
+  float z = mZoom;
   float drawsize, delz;
 
   /* scattered contour - symbols in all three planes */
@@ -1707,7 +1674,7 @@ void XyzWindow::DrawScatSymAllSpheres(Iobj *obj, int ob,  Icont *cont, int co,
         nextChange = ifgHandleNextChange(obj, cont->store, contProps, 
                                          ptProps, stateFlags,
                                          &changeFlags, handleFlags, 0);
-      drawsize = imodPointGetSize(obj, cont, pt) / mXyz->vi->xybin;
+      drawsize = imodPointGetSize(obj, cont, pt) / mVi->xybin;
       if (drawsize > 0 && !(ptProps->gap && ptProps->valskip)) {
         point = (float *)(&cont->pts[pt]);
         testz = indz == 2 ? B3DNINT(point[indz]) : (int)point[indz];
@@ -1765,14 +1732,13 @@ void XyzWindow::DrawScatSymAllSpheres(Iobj *obj, int ob,  Icont *cont, int co,
  * Draw model by looping through all contours */
 void XyzWindow::DrawModel()
 {
-  struct xxyzwin *xx = mXyz;
-  Imod *imod = xx->vi->imod;
+  Imod *imod = mVi->imod;
   Iobj *obj;
   int ob, co;
 
   if (imod->drawmode <= 0)
     return;
-  if (xx->vi->ghostmode)
+  if (mVi->ghostmode)
     DrawGhost();
      
   for (ob = 0; ob < imod->objsize; ob++) {
@@ -1792,23 +1758,22 @@ void XyzWindow::DrawModel()
 */
 void XyzWindow::DrawCurrentPoint()
 {
-  struct xxyzwin *xx = mXyz;
-  Iobj *obj = imodObjectGet(xx->vi->imod);
-  Icont *cont = imodContourGet(xx->vi->imod);
-  Ipoint *pnt = imodPointGet(xx->vi->imod);
+  Iobj *obj = imodObjectGet(mVi->imod);
+  Icont *cont = imodContourGet(mVi->imod);
+  Ipoint *pnt = imodPointGet(mVi->imod);
   Ipoint *point;
   int psize;
   int cx, cy, cz, pt;
-  float z = xx->zoom;
-  int bx = xx->xwoffset1;
-  int by = xx->ywoffset1;
-  int bx2 = xx->xwoffset2;
-  int by2 = xx->ywoffset2;
+  float z = mZoom;
+  int bx = mXwoffset1;
+  int by = mYwoffset1;
+  int bx2 = mXwoffset2;
+  int by2 = mYwoffset2;
   int imPtSize, modPtSize, backupSize;
 
-  ivwGetLocation(xx->vi, &cx, &cy, &cz);
+  getLocation(cx, cy, cz);
   
-  if (!xx->vi->drawcursor)
+  if (!mVi->drawcursor)
     return;
 
   b3dLineWidth(1);
@@ -1819,8 +1784,8 @@ void XyzWindow::DrawCurrentPoint()
     psize = backupSize;
 
   /* Draw begin and end points of selected contour in model mode. */
-  if (xx->vi->imod->mousemode == IMOD_MMODEL && cont && cont->psize > 1 &&
-      !ivwTimeMismatch(xx->vi, 0, obj, cont)) {
+  if (mVi->imod->mousemode == IMOD_MMODEL && cont && cont->psize > 1 &&
+      !ivwTimeMismatch(mVi, mTimeLock, obj, cont)) {
 
     b3dLineWidth(obj->linewidth2);
     b3dColorIndex(App->bgnpoint);
@@ -1828,20 +1793,20 @@ void XyzWindow::DrawCurrentPoint()
 
     for (pt = 0; pt < 2; pt ++) {
       if (B3DNINT(point->z) == cz) {
-        b3dSubareaViewport(xx->xorigin1, xx->yorigin1, xx->winXdim1, 
-                           xx->winYdim1);
+        b3dSubareaViewport(mXorigin1, mYorigin1, mWinXdim1, 
+                           mWinYdim1);
         b3dDrawCircle((int)(z * point->x+bx),
                       (int)(z * point->y+by), modPtSize);
       }
       if ((int)point->y == cy) {
-        b3dSubareaViewport(xx->xorigin1, xx->yorigin2, xx->winXdim1,
-                           xx->winYdim2);
+        b3dSubareaViewport(mXorigin1, mYorigin2, mWinXdim1,
+                           mWinYdim2);
         b3dDrawCircle((int)(z * point->x+bx),
                       (int)(z * (point->z + 0.5) + by2), modPtSize);
       }
       if ((int)point->x == cx) {
-        b3dSubareaViewport(xx->xorigin2, xx->yorigin1, xx->winXdim2,
-                           xx->winYdim1);
+        b3dSubareaViewport(mXorigin2, mYorigin1, mWinXdim2,
+                           mWinYdim1);
         b3dDrawCircle((int)(z * (point->z + 0.5) + bx2),
                       (int)(z * point->y+by), modPtSize);
       }
@@ -1853,39 +1818,72 @@ void XyzWindow::DrawCurrentPoint()
   /* Draw location of current point. */
   /* DNM 1/21/02: do it like zap window, draw only if in model mode,
      otherwise draw crosses at current mouse point */
-  if (xx->vi->imod->mousemode == IMOD_MMODEL &&  pnt) {
+  if (mVi->imod->mousemode == IMOD_MMODEL &&  pnt) {
     b3dLineWidth(obj->linewidth2);
           
-    if (B3DNINT(pnt->z) == cz && !ivwTimeMismatch(xx->vi, 0, obj, cont)) {
+    if (B3DNINT(pnt->z) == cz && !ivwTimeMismatch(mVi, mTimeLock, obj, cont)) {
       b3dColorIndex(App->curpoint);
     }else{
       b3dColorIndex(App->shadow);
     }
-    b3dSubareaViewport(xx->xorigin1, xx->yorigin1, xx->winXdim1, xx->winYdim1);
+    b3dSubareaViewport(mXorigin1, mYorigin1, mWinXdim1, mWinYdim1);
     b3dDrawCircle((int)(z * pnt->x+bx), (int)(z * pnt->y+by), psize);
     b3dColorIndex(App->curpoint);
-    b3dSubareaViewport(xx->xorigin1, xx->yorigin2, xx->winXdim1, xx->winYdim2);
+    b3dSubareaViewport(mXorigin1, mYorigin2, mWinXdim1, mWinYdim2);
     b3dDrawPlus((int)(z*pnt->x+bx), (int)(z* (cz + 0.5) + by2), psize);
-    b3dSubareaViewport(xx->xorigin2, xx->yorigin1, xx->winXdim2, xx->winYdim1);
+    b3dSubareaViewport(mXorigin2, mYorigin1, mWinXdim2, mWinYdim1);
     b3dDrawPlus((int)(z * (cz + 0.5) + bx2), (int)(by+z*pnt->y), psize);
   } else {
     b3dColorIndex(App->curpoint);
-    b3dSubareaViewport(xx->xorigin1, xx->yorigin1, xx->winXdim1, xx->winYdim1);
+    b3dSubareaViewport(mXorigin1, mYorigin1, mWinXdim1, mWinYdim1);
     b3dDrawPlus((int)(z*(cx+.5)+bx), (int)(z*(cy+.5)+by), imPtSize);
-    b3dSubareaViewport(xx->xorigin1, xx->yorigin2, xx->winXdim1, xx->winYdim2);
+    b3dSubareaViewport(mXorigin1, mYorigin2, mWinXdim1, mWinYdim2);
     b3dDrawPlus((int)(z*(cx+.5)+bx), (int)(z*(cz+.5)+by2), imPtSize);
-    b3dSubareaViewport(xx->xorigin2, xx->yorigin1, xx->winXdim2, xx->winYdim1);
+    b3dSubareaViewport(mXorigin2, mYorigin1, mWinXdim2, mWinYdim1);
     b3dDrawPlus((int)(bx2+z*(cz+.5)), (int)(by+z*(cy+.5)), imPtSize);
   }
-  b3dResizeViewportXY(xx->winx, xx->winy);
+  b3dResizeViewportXY(mWinx, mWiny);
+}
+
+// send a new value of section, zoom, or time label if it has changed
+void XyzWindow::drawTools()
+{  
+  int cx, cy, cz;
+  getLocation(cx, cy, cz);
+  if (mToolMaxX != mVi->xsize) {
+    mToolMaxX = mVi->xsize;
+    setMaxAxis(X_COORD, mToolMaxX);
+  }
+  
+  if (mToolMaxY != mVi->ysize) {
+    mToolMaxY = mVi->ysize;
+    setMaxAxis(Y_COORD, mToolMaxY);
+  }
+  
+  if (mToolMaxZ != mVi->zsize) {
+    mToolMaxZ = mVi->zsize;
+    setMaxAxis(Z_COORD, mToolMaxZ);
+  }
+     
+  // Workaround to Qt 4.5.0 cocoa bug, need to load this boxes 3 times
+  if (mToolZoom != mZoom){
+    if (mToolZoom < 0.)
+      mToolZoom -= 1.;
+    if (mToolZoom <= -4. || mToolZoom > -0.9)
+    mToolZoom = mZoom;
+    setZoomText(mZoom);
+  }
+  
+  setSlider(X_COORD, cx);
+  setSlider(Y_COORD, cy);
+  setSlider(Z_COORD, cz);
 }
 
 // Nonfunctional
 void XyzWindow::DrawAuto()
 {
 #ifdef FIX_xyzDrawAuto_BUG
-  struct xxyzwin *xx = mXyz;
-  ImodView *vi = xx->vi;
+  ImodView *vi = mVi;
   int i, j;
   float vert[2];
   unsigned short cdat;
@@ -1943,8 +1941,18 @@ void XyzWindow::stateToggled(int index, int state)
   setControlAndLimits();
   switch (index) {
   case XYZ_TOGGLE_RESOL:
-    mXyz->hq = state;
+    mHq = state;
     Draw();
+    break;
+  case XYZ_TOGGLE_LOCKED:
+    mLock = state;
+    mTimeLock = 0;
+    if (!mLock) {
+      Draw();
+    } else {
+      ivwGetLocation(mVi, &mXlock, &mYlock, &mZlock);
+      ivwGetTime(mVi, &mTimeLock);
+    }
     break;
   }
 }
@@ -1960,22 +1968,18 @@ void XyzWindow::toggleClicked(int index)
 
 void XyzWindow::centerClicked()
 {
-  struct xxyzwin *xx = mXyz;
-  struct ViewInfo *vi = xx->vi; 
-  float curx, cury, curz;
-  Ipoint *pt = imodPointGet(vi->imod);
-  curx = vi->xmouse;
-  cury = vi->ymouse;
-  curz = vi->zmouse;
-  if (vi->imod->mousemode == IMOD_MMODEL && pt) {
+  int curx, cury, curz;
+  Ipoint *pt = imodPointGet(mVi->imod);
+  getLocation(curx, cury, curz);
+  if (!mLock && mVi->imod->mousemode == IMOD_MMODEL && pt) {
     curx = pt->x;
     cury = pt->y;
     curz = pt->z;
   }
-  xx->xtrans1 = vi->xsize / 2. - curx;
-  xx->ytrans1 = vi->ysize / 2. - cury;
-  xx->xtrans2 = vi->zsize / 2. - curz;
-  xx->ytrans2 = xx->xtrans2;
+  mXtrans1 = mVi->xsize / 2. - curx;
+  mYtrans1 = mVi->ysize / 2. - cury;
+  mXtrans2 = mVi->zsize / 2. - curz;
+  mYtrans2 = mXtrans2;
   Draw();
 }
 
@@ -1995,11 +1999,11 @@ void XyzWindow::keyRelease(QKeyEvent *event)
       (event->key() != Qt::Key_Insert && event->key() != Qt::Key_0))
     return;
   insertDown = 0;
-  mXyz->glw->setMouseTracking(pixelViewOpen);
+  mGLw->setMouseTracking(pixelViewOpen);
   releaseKeyboard();
-  mXyz->glw->releaseMouse();
-  if (mXyz->drawCurrentOnly) {
-    mXyz->drawCurrentOnly = 0;
+  mGLw->releaseMouse();
+  if (mDrawCurrentOnly) {
+    mDrawCurrentOnly = 0;
     Draw();
   }
 }
@@ -2007,9 +2011,7 @@ void XyzWindow::keyRelease(QKeyEvent *event)
 // Key handler
 void XyzWindow::keyPressEvent ( QKeyEvent * event )
 {
-  struct xxyzwin *xx = mXyz;
-  struct ViewInfo *vi = xx->vi; 
-  Imod *imod = vi->imod;
+  Imod *imod = mVi->imod;
 
   int keysym = event->key();
   int shifted = event->modifiers() & Qt::ShiftModifier;
@@ -2034,18 +2036,18 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
   // Start with this at 1: set to 0 if NOT handled
   int handled = 1;
 
-  ivwControlPriority(xx->vi, xx->ctrl);
+  ivwControlPriority(mVi, mCtrl);
 
   switch(keysym) {
 
   case Qt::Key_Minus:
-    xx->zoom = b3dStepPixelZoom(xx->zoom, -1);
+    mZoom = b3dStepPixelZoom(mZoom, -1);
     Draw();
     break;
              
   case Qt::Key_Plus:
   case Qt::Key_Equal:
-    xx->zoom = b3dStepPixelZoom(xx->zoom, 1);
+    mZoom = b3dStepPixelZoom(mZoom, 1);
     Draw();
     break;
 
@@ -2061,10 +2063,10 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
 
   case Qt::Key_R:
     if (!ctrl) {
-      xx->hq = 1 - xx->hq;
-      mToggleStates[XYZ_TOGGLE_RESOL] = xx->hq;
-      diaSetChecked(mToggleButs[XYZ_TOGGLE_RESOL], xx->hq != 0);
-      wprint("\aHigh-resolution mode %s\n", xx->hq ? "ON" : "OFF");
+      mHq = 1 - mHq;
+      mToggleStates[XYZ_TOGGLE_RESOL] = mHq;
+      diaSetChecked(mToggleButs[XYZ_TOGGLE_RESOL], mHq != 0);
+      wprint("\aHigh-resolution mode %s\n", mHq ? "ON" : "OFF");
     } else
       handled = 0;
     break;
@@ -2078,9 +2080,9 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
       handled = 0;
       break;
     }
-    xx->project = 1 - xx->project;
+    mProject = 1 - mProject;
     wprint("\aCurrent contour projection into side views %s\n",
-           xx->project ? "ON" : "OFF");
+           mProject ? "ON" : "OFF");
     Draw();
     break;
 
@@ -2094,14 +2096,14 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
     }
 
     // It wouldn't work going to a QPoint and accessing it, so do it in shot!
-    ix = (xx->glw->mapFromGlobal(QCursor::pos())).x();
-    iy = (xx->glw->mapFromGlobal(QCursor::pos())).y();
+    ix = (mGLw->mapFromGlobal(QCursor::pos())).x();
+    iy = (mGLw->mapFromGlobal(QCursor::pos())).y();
 
     // Set a flag, set continuous tracking, grab keyboard and mouse
     insertDown = 1;
-    xx->glw->setMouseTracking(true);
+    mGLw->setMouseTracking(true);
     grabKeyboard();
-    xx->glw->grabMouse();
+    mGLw->grabMouse();
 
     /* Use time since last event to determine whether to treat like
        single click or drag */
@@ -2112,8 +2114,36 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
     else
       B2Drag(ix, iy); 
 
-    xx->lmx = ix;
-    xx->lmy = iy;
+    mLmx = ix;
+    mLmy = iy;
+    break;
+
+  case Qt::Key_PageUp:
+  case Qt::Key_PageDown:
+  case Qt::Key_Left:
+  case Qt::Key_Right:
+  case Qt::Key_Down:
+  case Qt::Key_Up:
+    if (!keypad && mLock) {
+      if (keysym == Qt::Key_PageUp || keysym == Qt::Key_PageDown)
+        setLocation(NOTNEW, NOTNEW, mZlock + (keysym == Qt::Key_PageUp ? 1 : -1));
+      else if (keysym == Qt::Key_Left || keysym == Qt::Key_Right)
+        setLocation(mXlock + (keysym == Qt::Key_Right ? 1 : -1), NOTNEW, NOTNEW);
+      else
+        setLocation(NOTNEW, mYlock + (keysym == Qt::Key_Up ? 1 : -1), NOTNEW);
+      Draw();
+    } else
+      handled = 0;
+    break;
+
+  case Qt::Key_1:
+  case Qt::Key_2:
+    if (mTimeLock) {
+      mTimeLock += (keysym == Qt::Key_1) ? -1 : 1;
+      mTimeLock = B3DMAX(1, B3DMIN(mVi->nt, mTimeLock));
+      Draw();
+    } else 
+      handled = 0;
     break;
 
   default:
@@ -2122,14 +2152,43 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
   }
 
   if (!handled)
-    inputQDefaultKeys(event, vi);
+    inputQDefaultKeys(event, mVi);
 }
 
-XyzGL::XyzGL(struct xxyzwin *xyz, QGLFormat inFormat, XyzWindow * parent)
+void XyzWindow::getLocation(int &cx, int &cy, int &cz)
+{
+  if (mLock) {
+    cx = mXlock;
+    cy = mYlock;
+    cz = mZlock;
+  } else {
+    ivwGetLocation(mVi, &cx, &cy, &cz);
+  }
+}
+
+void XyzWindow::setLocation(int newx, int newy, int newz)
+{
+  if (newx != NOTNEW) {
+    mXlock = B3DMAX(0, B3DMIN(mVi->xsize - 1, newx));
+    if (!mLock)
+      mVi->xmouse = mXlock;
+  }
+  if (newy != NOTNEW) {
+    mYlock = B3DMAX(0, B3DMIN(mVi->ysize - 1, newy));
+    if (!mLock)
+      mVi->ymouse = mYlock;
+  }
+  if (newz != NOTNEW) {
+    mZlock = B3DMAX(0, B3DMIN(mVi->zsize - 1, newz));
+    if (!mLock)
+      mVi->zmouse = mZlock;
+  }
+}
+
+XyzGL::XyzGL(QGLFormat inFormat, XyzWindow * parent)
   : QGLWidget(inFormat, parent)
 {
   mMousePressed = false;
-  mXyz = xyz;
   mWin = parent;
   mClosing = false;
   mFirstDraw = true;
@@ -2149,25 +2208,22 @@ void XyzGL::timerEvent(QTimerEvent * e )
 /* DNM 1/28/02: moved uses of the elements of xx to after the test for zz */
 void XyzGL::paintGL()
 {
-  struct xxyzwin *xx = mXyz;
   float z;
   int bx, by, bx2, by2;
 
-  if (!xx)
-    return;
-  if (!xx->exposed) return;     /* DNM: avoid crashes if Zap is movieing*/
+  if (!mWin->mExposed) return;     /* DNM: avoid crashes if Zap is movieing*/
 
   if (mFirstDraw) {
     mTimerID = startTimer(10);
     mFirstDraw = false;
   }
   
-  b3dSetCurSize(xx->winx, xx->winy);
-  z = xx->zoom;
-  bx = xx->xwoffset1;
-  by = xx->ywoffset1;
-  bx2 = xx->xwoffset2;
-  by2 = xx->ywoffset2;
+  b3dSetCurSize(mWin->mWinx, mWin->mWiny);
+  z = mWin->mZoom;
+  bx = mWin->mXwoffset1;
+  by = mWin->mYwoffset1;
+  bx2 = mWin->mXwoffset2;
+  by2 = mWin->mYwoffset2;
 
 
   mWin->DrawImage();
@@ -2180,81 +2236,49 @@ void XyzGL::paintGL()
   if (xyzShowSlice) {
     b3dColorIndex(App->foreground);
      
-    b3dSubareaViewport(xx->xorigin1, xx->yorigin1, xx->winXdim1, xx->winYdim1);     
-    b3dDrawLine((int)(bx + (xx->vi->slice.zx1 * xx->zoom)), 
-                (int)(by + (xx->vi->slice.zy1 * xx->zoom)),
-                (int)(bx + (xx->vi->slice.zx2 * xx->zoom)), 
-                (int)(by + (xx->vi->slice.zy2 * xx->zoom)));
+    b3dSubareaViewport(mWin->mXorigin1, mWin->mYorigin1, mWin->mWinXdim1, 
+                       mWin->mWinYdim1);     
+    b3dDrawLine((int)(bx + (mWin->mVi->slice.zx1 * z)), 
+                (int)(by + (mWin->mVi->slice.zy1 * z)),
+                (int)(bx + (mWin->mVi->slice.zx2 * z)), 
+                (int)(by + (mWin->mVi->slice.zy2 * z)));
                 
-    b3dSubareaViewport(xx->xorigin1, xx->yorigin2, xx->winXdim1, xx->winYdim2);  
-    b3dDrawLine((int)(bx + (xx->vi->slice.yx1 * xx->zoom)),
-                (int)(by2+ (xx->vi->slice.yz1 * xx->zoom)),
-                (int)(bx + (xx->vi->slice.yx2 * xx->zoom)),
-                (int)(by2+ (xx->vi->slice.yz2 * xx->zoom)));
+    b3dSubareaViewport(mWin->mXorigin1, mWin->mYorigin2, mWin->mWinXdim1, 
+                       mWin->mWinYdim2);  
+    b3dDrawLine((int)(bx + (mWin->mVi->slice.yx1 * z)),
+                (int)(by2+ (mWin->mVi->slice.yz1 * z)),
+                (int)(bx + (mWin->mVi->slice.yx2 * z)),
+                (int)(by2+ (mWin->mVi->slice.yz2 * z)));
 
-    b3dSubareaViewport(xx->xorigin2, xx->yorigin1, xx->winXdim2, xx->winYdim1);  
-    b3dDrawLine((int)(bx2+ (xx->vi->slice.xz1 * xx->zoom)),
-                (int)(by + (xx->vi->slice.xy1 * xx->zoom)),
-                (int)(bx2+ (xx->vi->slice.xz2 * xx->zoom)),
-                (int)(by + (xx->vi->slice.xy2 * xx->zoom)));
+    b3dSubareaViewport(mWin->mXorigin2, mWin->mYorigin1, mWin->mWinXdim2, 
+                       mWin->mWinYdim1);  
+    b3dDrawLine((int)(bx2+ (mWin->mVi->slice.xz1 * z)),
+                (int)(by + (mWin->mVi->slice.xy1 * z)),
+                (int)(bx2+ (mWin->mVi->slice.xz2 * z)),
+                (int)(by + (mWin->mVi->slice.xy2 * z)));
 
-    b3dResizeViewportXY(xx->winx, xx->winy);  
+    b3dResizeViewportXY(mWin->mWinx, mWin->mWiny);  
     xyzShowSlice = 0;
   }
-  xx->scaleBarSize = scaleBarDraw(xx->winx, xx->winy, xx->zoom, 0);
-  drawTools();
+  mWin->mScaleBarSize = scaleBarDraw(mWin->mWinx, mWin->mWiny, z, 0);
+  mWin->drawTools();
   glFlush();
-}
-
-// send a new value of section, zoom, or time label if it has changed
-void XyzGL::drawTools()
-{  
-  
-  if (mXyz->toolMaxX != mXyz->vi->xsize) {
-    mXyz->toolMaxX = mXyz->vi->xsize;
-    mXyz->dialog->setMaxAxis(X_COORD, mXyz->toolMaxX);
-  }
-  
-  if (mXyz->toolMaxY != mXyz->vi->ysize) {
-    mXyz->toolMaxY = mXyz->vi->ysize;
-    mXyz->dialog->setMaxAxis(Y_COORD, mXyz->toolMaxY);
-  }
-  
-  if (mXyz->toolMaxZ != mXyz->vi->zsize) {
-    mXyz->toolMaxZ = mXyz->vi->zsize;
-    mXyz->dialog->setMaxAxis(Z_COORD, mXyz->toolMaxZ);
-  }
-     
-  // Workaround to Qt 4.5.0 cocoa bug, need to load this boxes 3 times
-  if (mXyz->toolZoom != mXyz->zoom){
-    if (mXyz->toolZoom < 0.)
-      mXyz->toolZoom -= 1.;
-    if (mXyz->toolZoom <= -4. || mXyz->toolZoom > -0.9)
-    mXyz->toolZoom = mXyz->zoom;
-    mXyz->dialog->setZoomText(mXyz->zoom);
-  }
-  
-  mWin->setSlider(X_COORD, B3DNINT(mXyz->vi->xmouse));
-  mWin->setSlider(Y_COORD, B3DNINT(mXyz->vi->ymouse));
-  mWin->setSlider(Z_COORD, B3DNINT(mXyz->vi->zmouse));
 }
 
 
 // The routine that initializes or reinitializes upon resize
 void XyzGL::resizeGL( int winx, int winy )
 {
-  struct xxyzwin *xx = mXyz;
+  ivwControlPriority(mWin->mVi, mWin->mCtrl);
 
-  ivwControlPriority(xx->vi, xx->ctrl);
-
-  xx->winx = winx;
-  xx->winy = winy;
+  mWin->mWinx = winx;
+  mWin->mWiny = winy;
   b3dSetCurSize(winx, winy);
 
   b3dResizeViewportXY(winx, winy);
   
   mWin->GetCIImages();
-  xx->exposed = 1;
+  mWin->mExposed = 1;
 }
 
 // Handlers for mouse events
@@ -2265,17 +2289,17 @@ void XyzGL::mousePressEvent(QMouseEvent * event )
   int mz;
   mMousePressed = true;
 
-  ivwControlPriority(mXyz->vi, mXyz->ctrl);
+  ivwControlPriority(mWin->mVi, mWin->mCtrl);
   
   button1 = event->buttons() & ImodPrefs->actualButton(1) ? 1 : 0;
   button2 = event->buttons() & ImodPrefs->actualButton(2) ? 1 : 0;
   button3 = event->buttons() & ImodPrefs->actualButton(3) ? 1 : 0;
-  utilRaiseIfNeeded(mXyz->dialog, event);
-  mWin->SetCursor(mXyz->mousemode, utilNeedToSetCursor());
+  utilRaiseIfNeeded(mWin, event);
+  mWin->SetCursor(mWin->mMousemode, utilNeedToSetCursor());
 
   if (event->button() == ImodPrefs->actualButton(1) && !button2 && !button3) {
     but1downt.start();
-    mXyz->whichbox = mWin->Getxyz(event->x(), event->y(), &mx, &my, &mz);
+    mWin->mWhichbox = mWin->Getxyz(event->x(), event->y(), &mx, &my, &mz);
 
   } else if (event->button() == ImodPrefs->actualButton(2) &&
 	     !button1 && !button3) {
@@ -2286,9 +2310,9 @@ void XyzGL::mousePressEvent(QMouseEvent * event )
     mWin->B3Press(event->x(), event->y());
   }
 
-  mXyz->lmx = event->x();
-  mXyz->lmy = event->y();
-  //imodPrintStderr("Mouse press at %d %d\n", mXyz->lmx, mXyz->lmy);
+  mWin->mLmx = event->x();
+  mWin->mLmy = event->y();
+  //imodPrintStderr("Mouse press at %d %d\n", mWin->mLmx, mWin->mLmy);
 }
 
 void XyzGL::mouseReleaseEvent( QMouseEvent * event )
@@ -2327,7 +2351,7 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
   if (pixelViewOpen) {
     whichbox = mWin->Getxyz(ex, ey, &mx, &my, &mz);
     if (whichbox != NOT_IN_BOX && whichbox <= Z_SLICE_BOX)
-      pvNewMousePosition(mXyz->vi, mx, my, mz);
+      pvNewMousePosition(mWin->mVi, mx, my, mz);
   }
 
   if(!mMousePressed)
@@ -2342,14 +2366,14 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
     processing = 0;
   }
 
-  ivwControlPriority(mXyz->vi, mXyz->ctrl);
+  ivwControlPriority(mWin->mVi, mWin->mCtrl);
 
   if ( (button1) && (!button2) && (!button3)) {
-    cumdx = mXyz->lmx - ex;
-    cumdy = mXyz->lmy - ey;
+    cumdx = mWin->mLmx - ex;
+    cumdy = mWin->mLmy - ey;
     if (but1downt.elapsed() > 250 || cumdx * cumdx + cumdy * cumdy > cumthresh)
       mWin->B1Drag(ex, ey);
-    else if (mXyz->whichbox == 7)
+    else if (mWin->mWhichbox == 7)
       return;
   }
   if ( (!button1) && (button2) && (!button3))
@@ -2357,12 +2381,16 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
   if ( (!button1) && (!button2) && (button3))
     mWin->B3Drag(ex, ey);
   
-  mXyz->lmx = ex;
-  mXyz->lmy = ey;
+  mWin->mLmx = ex;
+  mWin->mLmy = ey;
 }
 
 /*
+
 $Log$
+Revision 4.61  2011/02/12 05:10:27  mast
+Start in HQ mode if preference set
+
 Revision 4.60  2011/01/13 20:26:24  mast
 warning cleanup
 
