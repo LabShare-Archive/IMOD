@@ -32,6 +32,9 @@
 #include "imod_info_cb.h"
 #include "imodv.h"
 #include "control.h"
+#include "xxyz.h"
+#include "sslice.h"
+#include "slicer_classes.h"
 #include "imod_workprocs.h"
 #include "preferences.h"
 #include "dia_qtutils.h"
@@ -501,6 +504,46 @@ void DialogManager::windowList(QObjectList *objList, int dlgClass, int dlgType)
   }
 }
 
+// Find the window of a given type closest to top of control list
+QObject *DialogManager::getTopWindow(int dlgType)
+{
+  QObjectList objList;
+  XyzWindow *xyz;
+  SlicerStruct *ss;
+  ImodControl *ctrlPtr;
+  int i, j, topOne, curSave;
+  bool match;
+
+  imodDialogManager.windowList(&objList, -1, dlgType);
+  if (!objList.count())
+    return NULL;
+
+  // Look through the current control list, find first slicer with matching ID
+  // Here we MUST save and restore current item to avoid screwing up draws
+  topOne = -1;
+  curSave = App->cvi->ctrlist->list->current;
+  for (j = 0; topOne < 0 && j < ilistSize(App->cvi->ctrlist->list); j++) {
+    ctrlPtr = (ImodControl *)ilistItem(App->cvi->ctrlist->list, j);
+    for (i = 0; i < objList.count(); i++) {
+      if (dlgType == XYZ_WINDOW_TYPE) {
+        xyz = ((XyzWindow *)objList.at(i));
+        match = ctrlPtr->id == xyz->mCtrl;
+      } else if (dlgType == SLICER_WINDOW_TYPE) {
+        ss = ((SlicerWindow *)objList.at(i))->mSlicer;
+        match = ctrlPtr->id == ss->ctrl;
+      }
+      if (match) {
+        topOne = i;
+        break;
+      }
+    }
+  }
+  App->cvi->ctrlist->list->current = curSave;
+  if (topOne < 0)
+    topOne = 0;
+  return objList.at(topOne);
+}
+
 // Adjust size 
 void adjustGeometryAndShow(QWidget *widget, int dlgClass, bool doSize)
 {
@@ -572,6 +615,9 @@ QRect ivwRestorableGeometry(QWidget *widget)
 
 /*
 $Log$
+Revision 4.20  2009/03/22 22:28:06  mast
+Needed to get geometry after show in case of size changes
+
 Revision 4.19  2009/03/22 19:44:05  mast
 New routine for adjusting size generally, and position on make, when showing
 
