@@ -5,7 +5,7 @@
  *   Colorado.  See implementation file for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
+ *  No more Log
  */                                                                           
 
 #ifndef CONTROL_H
@@ -21,8 +21,9 @@
 #endif
 
 #include <qrect.h>
-//Added by qt3to4:
-#include <QKeyEvent>
+class QKeyEvent;
+class QString;
+class QWidget;
 
 /* DOC_SECTION MANAGERDEF */
 /* DOC_CODE Dialog Manager */
@@ -39,7 +40,7 @@ extern DLL_EX_IM DialogManager imodDialogManager;
 #define IMOD_IMAGE   2
 
 /* Types of windows for finding geometries and finding top windows */
-enum {ZAP_WINDOW_TYPE, MULTIZ_WINDOW_TYPE, SLICER_WINDOW_TYPE,
+enum {ZAP_WINDOW_TYPE, MULTIZ_WINDOW_TYPE, SLICER_WINDOW_TYPE, XYZ_WINDOW_TYPE,
       GRAPH_WINDOW_TYPE, UNKNOWN_TYPE};
 /* END_CODE */
 
@@ -69,10 +70,6 @@ typedef void (*ImodControlKey)(struct ViewInfo *, void *, int,  QKeyEvent *);
 #ifndef IMODP_H
 typedef struct ViewInfo ImodView;
 #endif
-class QKeyEvent;
-class QString;
-class QWidget;
-//class QObjectList;
 
 #ifndef CONTROLP_H
 #include "controlP.h"
@@ -164,6 +161,7 @@ class DLL_EX_IM DialogManager
   QRect biggestGeometry(int dlgType);
   int windowCount(int dlgType);
   void windowList(QObjectList *objList, int dlgClass, int dlgType);
+  QObject *getTopWindow(int dlgType);
 
  private:
   Ilist *mDialogList;
@@ -174,73 +172,3 @@ class DLL_EX_IM DialogManager
 
 }
 #endif
-
-/*
-$Log$
-Revision 4.16  2009/01/15 16:33:17  mast
-Qt 4 port
-
-Revision 4.15  2008/01/13 22:58:35  mast
-Changes for multi-Z window
-
-Revision 4.14  2008/01/11 17:31:45  mast
-Needed to include qrect.h, not just forward declare class
-
-Revision 4.13  2007/12/04 22:02:41  mast
-Changes for documentation
-
-Revision 4.12  2006/08/24 21:30:52  mast
-Added identifier for graph windows
-
-Revision 4.11  2004/08/12 17:02:33  mast
-added SLICER type
-
-Revision 4.10  2004/05/31 23:10:56  mast
-Added macros for exporting/importing under Windows
-
-Revision 4.9  2004/05/05 17:33:19  mast
-Added function to get list of windows of one type
-
-Revision 4.8  2004/04/28 23:52:39  mast
-Added windowCount method
-
-Revision 4.7  2003/10/01 04:59:52  mast
-Split into public and private files
-
-Revision 4.6  2003/09/24 17:32:25  mast
-Add declaration for restorable geometry call
-
-Revision 4.5  2003/09/17 05:54:36  mast
-Add variable for geometry of last zap window closed
-
-Revision 4.4  2003/09/17 04:46:43  mast
-Added function to return size of biggest Zap window
-
-Revision 4.3  2003/05/23 02:46:05  mast
-Added raise function
-
-Revision 4.2  2003/04/17 19:00:59  mast
-new function to provide machine-dependent parent widget
-
-Revision 4.1  2003/02/10 20:41:54  mast
-Merge Qt source
-
-Revision 1.1.2.6  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.5  2003/01/14 21:46:38  mast
-renamed dialog manager for imod
-
-Revision 1.1.2.4  2003/01/13 07:20:21  mast
-Added dialog manager class
-
-Revision 1.1.2.3  2003/01/06 15:39:08  mast
-add another orphan declaration
-
-Revision 1.1.2.2  2003/01/04 03:44:16  mast
-Add declaration for removeControl; stick inputQDefaultKeys declaration here
-
-Revision 1.1.2.1  2003/01/02 15:36:19  mast
-Initial creation
-
-*/
