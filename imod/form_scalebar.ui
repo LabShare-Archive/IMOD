@@ -391,7 +391,7 @@
      <item row="3" column="0" >
       <widget class="QLabel" name="xyzLabel" >
        <property name="text" >
-        <string>XYZ:</string>
+        <string>Top XYZ:</string>
        </property>
        <property name="alignment" >
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>

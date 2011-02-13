@@ -60,7 +60,7 @@
    <item>
     <widget class="QCheckBox" name="startInHQBox" >
      <property name="text" >
-      <string>Start Zap &amp; XYZ windows with high-quality display</string>
+      <string>Start Zap &amp;&amp; XYZ windows with high-quality display</string>
      </property>
     </widget>
    </item>
