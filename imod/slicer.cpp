@@ -570,33 +570,8 @@ void slicerReportAngles()
 // Find the slicer window that is nearest to the top of the control list
 SlicerStruct *getTopSlicer()
 {
-  QObjectList objList;
-  SlicerStruct *ss;
-  ImodControl *ctrlPtr;
-  int i, j, topOne, curSave;
-
-  imodDialogManager.windowList(&objList, -1, SLICER_WINDOW_TYPE);
-  if (!objList.count())
-    return NULL;
-
-  // Look through the current control list, find first slicer with matching ID
-  // Here we MUST save and restore current item to avoid screwing up draws
-  topOne = -1;
-  curSave = App->cvi->ctrlist->list->current;
-  for (j = 0; topOne < 0 && j < ilistSize(App->cvi->ctrlist->list); j++) {
-    ctrlPtr = (ImodControl *)ilistItem(App->cvi->ctrlist->list, j);
-    for (i = 0; i < objList.count(); i++) {
-      ss = ((SlicerWindow *)objList.at(i))->mSlicer;
-      if (ctrlPtr->id == ss->ctrl) {
-        topOne = i;
-        break;
-      }
-    }
-  }
-  App->cvi->ctrlist->list->current = curSave;
-  if (topOne < 0)
-    topOne = 0;
-  return ((SlicerWindow *)objList.at(topOne))->mSlicer;
+  QObject *obj = imodDialogManager.getTopWindow(SLICER_WINDOW_TYPE);
+  return obj ? ((SlicerWindow *)obj)->mSlicer : NULL;
 }
 
 // Sychronize angles of linked slicers, and positions for ones not locked,
@@ -2984,6 +2959,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.74  2010/12/18 05:47:46  mast
+Added montage snapshots including when movieing
+
 Revision 4.73  2010/04/01 02:41:48  mast
 Called function to test for closing keys, or warning cleanup
 
