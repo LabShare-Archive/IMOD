@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/13/11: Multiple XYZ windows can now be opened.  There is now a lock button
+that locks both position and time.
+
 2/10/11: Changed Sirtsetup to accept a command file with WIDTH and X SHIFT
 entries by ignoring them, so eTomo only needs to maintain one com file.
 
@@ -9,7 +12,8 @@ which is preferable to binning.
 2/9/11: Parallelized array-filling for high-quality display in Zap and XYZ
 windows.  Made high-quality display work for color images.  Added antialiased
 image reduction, which is used when high-quality is selected and zoom is less
-than 0.75.
+than 0.75.  Zap and XYZ windows now open with high-quality display turned on
+by default; there is an option in Preferences-Behavior to trun this off.
 
 2/8/11: Switched to new processchunks again.
 
