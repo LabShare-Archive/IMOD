@@ -104,7 +104,7 @@ static char *toggleTips[] = {
 
 static char *sliderLabels[] = {"X rotation", "Y rotation", "Z rotation"};
 
-SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[], 
+SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], 
                            QString timeLabel,
 			   bool rgba, bool doubleBuffer, bool enableDepth,
 			   QWidget * parent, Qt::WFlags f) 
@@ -119,7 +119,7 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   mTimeBar = NULL;
   mBreakBeforeAngBar = 0;
 
-  mSlicer = slicer;
+  mFuncs = funcs;
   setAttribute(Qt::WA_DeleteOnClose);
   setAttribute(Qt::WA_AlwaysShowToolTips);
   setAnimated(false);
@@ -177,7 +177,7 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   mZscaleCombo->addItem("Z-Scale Before");
 
   // Only allow scale after if there is no implicit scale from binning
-  if (slicer->vi->xybin == slicer->vi->zbin)
+  if (funcs->mVi->xybin == funcs->mVi->zbin)
     mZscaleCombo->addItem("Z-Scale After");
   mZscaleCombo->setFocusPolicy(Qt::NoFocus);
   connect(mZscaleCombo, SIGNAL(activated(int)), this, 
@@ -293,7 +293,7 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   cubeFrame->setFrameShape(QFrame::StyledPanel);
   QVBoxLayout *cubeLayout = new QVBoxLayout(cubeFrame);
   cubeLayout->setContentsMargins(2, 2, 2, 2);
-  mCube = new SlicerCube(slicer, glFormat, cubeFrame);
+  mCube = new SlicerCube(funcs, glFormat, cubeFrame);
   cubeLayout->addWidget(mCube);
 
   // Thickness box and help button
@@ -337,7 +337,7 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
                 "(hot keys 9 and 0");
   mToolBar2->setAllowedAreas(Qt::TopToolBarArea);
 
-  setToggleState(SLICER_TOGGLE_CENTER, slicer->classic);
+  setToggleState(SLICER_TOGGLE_CENTER, funcs->mClassic);
   setFontDependentWidths();
   firstTime = 0;
 
@@ -345,7 +345,7 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   glFormat.setRgba(rgba);
   glFormat.setDoubleBuffer(doubleBuffer);
   glFormat.setDepth(enableDepth);
-  mGLw = new SlicerGL(slicer, glFormat, this);
+  mGLw = new SlicerGL(funcs, glFormat, this);
   
   // Set it as main widget, set focus, dock on top and bottom only
   setCentralWidget(mGLw);
@@ -386,22 +386,22 @@ void SlicerWindow::showSaveAngleToolbar()
 
 void SlicerWindow::zoomUp()
 {
-  slicerStepZoom(mSlicer, 1);
+  mFuncs->stepZoom(1);
 }
 
 void SlicerWindow::zoomDown()
 {
-  slicerStepZoom(mSlicer, -1);
+  mFuncs->stepZoom(-1);
 }
 
 void SlicerWindow::timeBack()
 {
-  slicerStepTime(mSlicer, -1);
+  mFuncs->stepTime(-1);
 }
 
 void SlicerWindow::timeForward()
 {
-  slicerStepTime(mSlicer, 1);
+  mFuncs->stepTime(1);
 }
 
 
@@ -410,31 +410,31 @@ void SlicerWindow::timeForward()
 void SlicerWindow::newZoom()
 {
   QString str = mZoomEdit->text();
-  slicerEnteredZoom(mSlicer, atof(LATIN1(str)));
+  mFuncs->enteredZoom(atof(LATIN1(str)));
   setFocus();
 }
 
 // Respomd to spin box changes for image and model thickness
 void SlicerWindow::imageThicknessChanged(int depth)
 {
-  slicerImageThickness(mSlicer, depth);
+  mFuncs->imageThickness(depth);
   setFocus();
 }
 
 void SlicerWindow::modelThicknessChanged(double depth)
 {
-  slicerModelThickness(mSlicer, (float)depth);
+  mFuncs->modelThickness((float)depth);
   setFocus();
 }
 
 void SlicerWindow::help()
 {
-  slicerHelp();
+  mFuncs->help();
 }
 
 void SlicerWindow::angleChanged(int which, int value, bool dragging)
 {
-  slicerAngleChanged(mSlicer, which, value, dragging);
+  mFuncs->angleChanged(which, value, dragging);
 }
 
 // One of toggle buttons needs to change state
@@ -442,49 +442,49 @@ void SlicerWindow::toggleClicked(int index)
 {
   int state = mToggleButs[index]->isChecked() ? 1 : 0;
   mToggleStates[index] = state; 
-  slicerStateToggled(mSlicer, index, state);
+  mFuncs->stateToggled(index, state);
 }
 
 void SlicerWindow::showslicePressed()
 {
-  slicerShowSlice(mSlicer);
+  mFuncs->showSlice();
 }
 
 void SlicerWindow::contourPressed()
 {
-  if (!slicerAnglesFromContour(mSlicer))
-    slicerCheckMovieLimits(mSlicer);
+  if (!mFuncs->anglesFromContour())
+    mFuncs->checkMovieLimits();
 }
 
 void SlicerWindow::zScaleSelected(int item)
 {
-  slicerZscale(mSlicer, item);
+  mFuncs->Zscale(item);
 }
 
 void SlicerWindow::saveAngClicked()
 {
-  slicerSetCurrentOrNewRow(mSlicer, false);
+  mFuncs->setCurrentOrNewRow(false);
 }
 
 void SlicerWindow::setAngClicked()
 {
-  slicerSetAnglesFromRow(mSlicer);
+  mFuncs->setAnglesFromRow();
 }
 
 void SlicerWindow::newRowClicked()
 {
-  slicerSetCurrentOrNewRow(mSlicer, true);
+  mFuncs->setCurrentOrNewRow(true);
 }
 
 // Do not synchronize when this is turned on, direction is ambiguous
 void SlicerWindow::continuousToggled(bool state)
 {
-  mSlicer->continuous = state;
+  mFuncs->mContinuous = state;
 }
 
 void SlicerWindow::linkToggled(bool state)
 {
-  mSlicer->linked = state;
+  mFuncs->mLinked = state;
 }
 
 // Functions for setting state of the controls
@@ -530,28 +530,29 @@ void SlicerWindow::setTimeLabel(QString label)
 
 void SlicerWindow::keyPressEvent ( QKeyEvent * e )
 {
-  slicerKeyInput(mSlicer, e);
+  mFuncs->keyInput(e);
 }
 void SlicerWindow::keyReleaseEvent (QKeyEvent * e )
 {
-  slicerKeyRelease(mSlicer, e);
+  mFuncs->keyRelease(e);
 }
 
 // Whan a close event comes in, inform slicer, and accept
 void SlicerWindow::closeEvent (QCloseEvent * e )
 {
-  slicerClosing(mSlicer);
+  mFuncs->closing();
   e->accept();
+  delete mFuncs;
 }
 
 ///////////////////////////////////////////////
 // The GL widget
 
-SlicerGL::SlicerGL(SlicerStruct *slicer, QGLFormat inFormat, QWidget * parent)
+SlicerGL::SlicerGL(SlicerFuncs *funcs, QGLFormat inFormat, QWidget * parent)
   : QGLWidget(inFormat, parent)
 {
   mMousePressed = false;
-  mSlicer = slicer;
+  mFuncs = funcs;
   mFirstDraw = true;
 }
 
@@ -564,7 +565,7 @@ void SlicerGL::paintGL()
       return;
   }
 
-  slicerPaint(mSlicer);
+  mFuncs->paint();
 }
 
 void SlicerGL::timerEvent(QTimerEvent * e )
@@ -575,44 +576,43 @@ void SlicerGL::timerEvent(QTimerEvent * e )
 
 void SlicerGL::resizeGL( int wdth, int hght )
 {
-  slicerResize(mSlicer, wdth, hght);
+  mFuncs->resize(wdth, hght);
 }
 
 void SlicerGL::mousePressEvent(QMouseEvent * e )
 {
   mMousePressed = true;
-  slicerMousePress(mSlicer, e);
+  mFuncs->mousePress(e);
 }
 
 void SlicerGL::mouseMoveEvent(QMouseEvent * e )
 {
-  slicerMouseMove(mSlicer, e);
+  mFuncs->mouseMove(e);
 }
 
 void SlicerGL::mouseReleaseEvent ( QMouseEvent * e )
 {
   mMousePressed = false;
-  slicerMouseRelease(mSlicer, e);
+  mFuncs->mouseRelease(e);
 }
 
 ///////////////////////////////////////////////
 // The cube class
 
-SlicerCube::SlicerCube(SlicerStruct *slicer, QGLFormat inFormat,
-                       QWidget * parent)
+SlicerCube::SlicerCube(SlicerFuncs *funcs, QGLFormat inFormat, QWidget * parent)
   : QGLWidget(inFormat, parent)
 {
-  mSlicer = slicer;
+  mFuncs = funcs;
 }
 
 void SlicerCube::paintGL()
 {
-  slicerCubePaint(mSlicer);
+  mFuncs->cubePaint();
 }
 
 void SlicerCube::resizeGL( int wdth, int hght )
 {
-  slicerCubeResize(mSlicer, wdth, hght);
+  mFuncs->cubeResize(wdth, hght);
 }
 
 ////////////////////////////////////////////////
@@ -652,7 +652,7 @@ static int sshq, sswinx;
 
 
 // The top-level routine called to fill the image array
-void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
+void SlicerFuncs::fillImageArray(int panning, int meanOnly)
 {
   float maxPanPixels = 1000. * ImodPrefs->slicerPanKb();
   int i, j, k;
@@ -665,12 +665,12 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
   float numPosSD = 4., numNegSD = 3.;
 
   float xzoom, yzoom, zzoom;
-  float zoom = ss->zoom;
+  float zoom = mZoom;
   int iz, maxSlice;
   float extrashift, numpix;
   int crossget, crosswant;
   Ipoint pnt, tpnt;
-  Imat *mat = ss->mat;
+  Imat *mat = mMat;
 
   int cindex, pixsize;
   unsigned int *cmap = App->cvi->cramp->ramp;
@@ -690,19 +690,19 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
 
   QTime fillTime;
   fillTime.start();
-  if (!ss->image)
+  if (!mImage)
       return;
-  cidata = ss->image->id1;
+  cidata = mImage->id1;
   idata = (b3dUInt32 *)cidata;
   pixsize  = b3dGetImageType(NULL, NULL);
 
-  xsize = ss->vi->xsize;
-  ysize = ss->vi->ysize;
-  zsize = ss->vi->zsize;
+  xsize = mVi->xsize;
+  ysize = mVi->ysize;
+  zsize = mVi->zsize;
   noDataVal = 0;
   maxval = 255;
   minval = 0;
-  sswinx = ss->winx;
+  sswinx = mWinx;
   izoom = (int) zoom;
 
   // Turn off hq drawing if mean only.
@@ -710,15 +710,15 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
   // it is FFT at higher zoom
   // Set flag for doing shortcut HQ method
   // Set number of slices to draw
-  sshq = meanOnly ? 0 : ss->hq;
-  ss->noPixelZoom = (sshq || izoom != ss->zoom) &&
-    (!ss->fftMode || ss->zoom < 1.);
+  sshq = meanOnly ? 0 : mHq;
+  mNoPixelZoom = (sshq || izoom != mZoom) &&
+    (!mFftMode || mZoom < 1.);
 
   // 12/16/10: There seems to be nothing wrong with doing the shortcut for
   // non-integer zooms!  And it looks a lot nicer
   shortcut = (sshq && (zoom == izoom || zoom > 2.0) &&  (zoom > 1.0) && 
-              !ss->fftMode) ? 1 : 0;
-  ksize = (ss->vi->colormapImage || meanOnly) ? 1 : ss->nslice;
+              !mFftMode) ? 1 : 0;
+  ksize = (mVi->colormapImage || meanOnly) ? 1 : mNslice;
  
   // Set up number of threads early so pan limit can be modified
   // Start with ideal number of threads and modify with environment variable
@@ -737,9 +737,9 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
 
     // Get number of pixels to be computed: number in window, divided by
     // zoom**2 if pixel zoom or shortcut
-    numpix = ss->winx * ss->winy;
-    if (!ss->noPixelZoom || shortcut)
-      numpix /= ss->zoom * ss->zoom;
+    numpix = mWinx * mWiny;
+    if (!mNoPixelZoom || shortcut)
+      numpix /= mZoom * mZoom;
 
     // If one slice and it is hq, it is 4 times slower unless shortcut, where
     // it may still be 2 times slower.  Cancel hq if too many pixels
@@ -751,7 +751,7 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
       if (numpix > maxPanPixels) {
         sshq = 0;
         shortcut = 0;
-        ss->noPixelZoom = izoom != ss->zoom && (!ss->fftMode || ss->zoom < 1.);
+        mNoPixelZoom = izoom != mZoom && (!mFftMode || mZoom < 1.);
       }
     } else if (ksize > 1) {
 
@@ -769,10 +769,10 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
         shortcut = 0;
 
         // Re-evaluate flag and number of slices
-        ss->noPixelZoom = izoom != ss->zoom && (!ss->fftMode || ss->zoom < 1.);
-        numpix = ss->winx * ss->winy;
-        if (!ss->noPixelZoom)
-          numpix /= ss->zoom * ss->zoom;
+        mNoPixelZoom = izoom != mZoom && (!mFftMode || mZoom < 1.);
+        numpix = mWinx * mWiny;
+        if (!mNoPixelZoom)
+          numpix /= mZoom * mZoom;
         maxSlice = B3DMAX(1, (int)(maxPanPixels / numpix));
       }
       ksize = B3DMIN(ksize, maxSlice);
@@ -783,52 +783,52 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
   zoffset = (float)(ksize - 1) * 0.5;
 
   /* DNM 5/16/02: force a cache load of the current z slice at least */
-  iz = B3DNINT(ss->cz);
-  ivwGetZSection(ss->vi, iz);
+  iz = B3DNINT(mCz);
+  ivwGetZSection(mVi, iz);
 
   /* Set up image pointer tables */
   vmnullvalue = (App->cvi->white + App->cvi->black) / 2;
-  if (ivwSetupFastAccess(ss->vi, &imdata, vmnullvalue, &i, 
-                         ss->timeLock ? ss->timeLock : ss->vi->ct))
+  if (ivwSetupFastAccess(mVi, &imdata, vmnullvalue, &i, 
+                         mTimeLock ? mTimeLock : mVi->ct))
     return;
 
   noDataVal = vmnullvalue;
 
-  slice_trans_step(ss);
-  rbase = ss->vi->rampbase;
+  transStep();
+  rbase = mVi->rampbase;
   if (!App->rgba && App->depth == 8){
-    minval = ss->vi->rampbase;
-    maxval = minval + ss->vi->rampsize;
+    minval = mVi->rampbase;
+    maxval = minval + mVi->rampsize;
     noDataVal = (unsigned char)minval;
   }
 
 
   /* DNM 5/5/03: set lx, ly, lz when cx, cy, cz used to fill array */
-  xzoom = yzoom = zzoom = ss->zoom;
-  xo = ss->lx = ss->cx;
-  yo = ss->ly = ss->cy;
-  zo = ss->lz = ss->cz;
-  ss->lang[0] = ss->tang[0];
-  ss->lang[1] = ss->tang[1];
-  ss->lang[2] = ss->tang[2];
+  xzoom = yzoom = zzoom = mZoom;
+  xo = mLx = mCx;
+  yo = mLy = mCy;
+  zo = mLz = mCz;
+  mLang[0] = mTang[0];
+  mLang[1] = mTang[1];
+  mLang[2] = mTang[2];
 
-  xsx = ss->xstep[b3dX];
-  ysx = ss->xstep[b3dY];
-  zsx = ss->xstep[b3dZ];
-  xsy = ss->ystep[b3dX];
-  ysy = ss->ystep[b3dY];
-  zsy = ss->ystep[b3dZ];
-  xsz = ss->zstep[b3dX];
-  ysz = ss->zstep[b3dY];
-  zsz = ss->zstep[b3dZ];
+  xsx = mXstep[b3dX];
+  ysx = mXstep[b3dY];
+  zsx = mXstep[b3dZ];
+  xsy = mYstep[b3dX];
+  ysy = mYstep[b3dY];
+  zsy = mYstep[b3dZ];
+  xsz = mZstep[b3dX];
+  ysz = mZstep[b3dY];
+  zsz = mZstep[b3dZ];
 
-  zs = 1.0f / slicerGetZScaleBefore(ss);
-  // if ((ss->scalez) && (ss->vi->imod->zscale > 0))
-  //  zs  = 1.0f/ss->vi->imod->zscale;
+  zs = 1.0f / getZScaleBefore();
+  // if ((mScalez) && (mVi->imod->zscale > 0))
+  //  zs  = 1.0f/mVi->imod->zscale;
 
-  if (ss->scalez == SLICE_ZSCALE_AFTER){
-    if (ss->vi->imod->zscale > 0)
-      zs = ss->vi->imod->zscale;
+  if (mScalez == SLICE_ZSCALE_AFTER){
+    if (mVi->imod->zscale > 0)
+      zs = mVi->imod->zscale;
     xzoom = zoom * sqrt((double)
                         ((xsx * xsx + ysx * ysx + zsx * zsx * zs * zs)/
                          (xsx * xsx + ysx * ysx + zsx * zsx)));
@@ -846,13 +846,13 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
 
   /* size of 2-D loop for i, j */
   /* DNM: don't use xzoom, yzoom; make pixels be zoom x zoom */
-  isize = (int)(ss->winx / zoom + 0.9);
-  jsize = (int)(ss->winy / zoom + 0.9);
+  isize = (int)(mWinx / zoom + 0.9);
+  jsize = (int)(mWiny / zoom + 0.9);
 
-  if (ss->noPixelZoom) {
+  if (mNoPixelZoom) {
     /* high quality image or fractional zoom */
-    isize = ss->winx; /* calculate each pixel for zoom unless FFT. */
-    jsize = ss->winy;
+    isize = mWinx; /* calculate each pixel for zoom unless FFT. */
+    jsize = mWiny;
     xsx /= xzoom;
     ysx /= xzoom;
     zsx /= xzoom / zs; 
@@ -865,8 +865,8 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
     xo -= (jsize / 2) * xsy;
     yo -= (jsize / 2) * ysy;
     zo -= (jsize / 2) * zsy;
-    ss->xshift = 0;
-    ss->yshift = 0;
+    mXshift = 0;
+    mYshift = 0;
   }else{
     xsx *= zoom / xzoom;
     ysx *= zoom / xzoom;
@@ -878,11 +878,11 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
     /* Take fractional location of data point within a pixel and
        rotate in 3D to find location in display pixel */
 
-    slicerSetForwardMatrix(ss);
+    setForwardMatrix();
 
-    pnt.x = ss->cx - (int)ss->cx;
-    pnt.y = ss->cy - (int)ss->cy;
-    pnt.z = ss->cz - (int)ss->cz;
+    pnt.x = mCx - (int)mCx;
+    pnt.y = mCy - (int)mCy;
+    pnt.z = mCz - (int)mCz;
     imodMatTransform3D(mat, &pnt, &tpnt);
           
     if (tpnt.x < 0.0)
@@ -897,29 +897,29 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
     crosswant = (int)(zoom * tpnt.x);  /* don't take nearest int here! */
     if (crosswant >= zoom)
       crosswant -= (int)zoom;
-    crossget = (ss->winx / 2) % (int)zoom;
-    ss->xshift = crossget - crosswant;
-    if (ss->xshift < 0)
-      ss->xshift += zoom;
+    crossget = (mWinx / 2) % (int)zoom;
+    mXshift = crossget - crosswant;
+    if (mXshift < 0)
+      mXshift += zoom;
 
     crosswant = (int)(zoom * tpnt.y);
     if (crosswant >= zoom)
       crosswant -= (int)zoom;
-    crossget = (ss->winy / 2) % (int)zoom;
-    ss->yshift = crossget - crosswant;
-    if (ss->yshift < 0)
-      ss->yshift += zoom;
+    crossget = (mWiny / 2) % (int)zoom;
+    mYshift = crossget - crosswant;
+    if (mYshift < 0)
+      mYshift += zoom;
 
     extrashift = 0.5;      /* Needed for proper sampling */
     if (zoom == 1.0)
       extrashift = 0.0;
 
-    xo -= ((ss->winx / 2 - ss->xshift) / zoom - extrashift) * xsx;
-    yo -= ((ss->winx / 2 - ss->xshift) / zoom - extrashift) * ysx;
-    zo -= ((ss->winx / 2 - ss->xshift) / zoom - extrashift) * zsx;
-    xo -= ((ss->winy / 2 - ss->yshift) / zoom - extrashift) * xsy;
-    yo -= ((ss->winy / 2 - ss->yshift) / zoom - extrashift) * ysy;
-    zo -= ((ss->winy / 2 - ss->yshift) / zoom - extrashift) * zsy;
+    xo -= ((mWinx / 2 - mXshift) / zoom - extrashift) * xsx;
+    yo -= ((mWinx / 2 - mXshift) / zoom - extrashift) * ysx;
+    zo -= ((mWinx / 2 - mXshift) / zoom - extrashift) * zsx;
+    xo -= ((mWiny / 2 - mYshift) / zoom - extrashift) * xsy;
+    yo -= ((mWiny / 2 - mYshift) / zoom - extrashift) * ysy;
+    zo -= ((mWiny / 2 - mYshift) / zoom - extrashift) * zsy;
   }
 
   /* steps per step in Z are independent of HQ versus regular */
@@ -928,9 +928,9 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
   zsz *= zs * zoom / zzoom;
 
   /* Save values of starting position */
-  ss->xo = xo;
-  ss->yo = yo;
-  ss->zo = zo;
+  mXo = xo;
+  mYo = yo;
+  mZo = zo;
 
   /* Adjust for multiple slices */
   xo -= zoffset * xsz;
@@ -951,7 +951,7 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
 
   if (imodDebug('s'))
     imodPrintStderr("winx %d winy %d isize %d jsize %d shortcut %d ilimshort"
-                    " %d jlimshort %d\n", ss->winx, ss->winy, isize, jsize, 
+                    " %d jlimshort %d\n", mWinx, mWiny, isize, jsize, 
                     shortcut, ilimshort, ilimshort);
   //  int timeStart = imodv_sys_time();
   /* DNM: don't need to clear array in advance */
@@ -984,14 +984,14 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
 
     /* DNM 1/9/03: deleted quadratic interpolation code, turned cubic code
        into a routine that can be used by tumbler */
-    slicerCubicFillin(cidata, ss->winx, ss->winy, izoom, ilimshort, jlimshort,
+    slicerCubicFillin(cidata, mWinx, mWiny, izoom, ilimshort, jlimshort,
 		      minval * ksize, maxval * ksize);
   }
 
   // If computing mean only or scaling to mean, get the mean and SD of the
   // slice with some edges cut off
-  if (meanOnly || (ss->scaleToMeanSD && ksize > 1) || ss->fftMode) {
-    linePtrs = ivwMakeLinePointers(ss->vi, (unsigned char *)cidata, ss->winx, 
+  if (meanOnly || (mScaleToMeanSD && ksize > 1) || mFftMode) {
+    linePtrs = ivwMakeLinePointers(mVi, (unsigned char *)cidata, mWinx, 
                                    jsize, MRC_MODE_USHORT);
     sumSD = 0.;
     if (linePtrs) {
@@ -1012,9 +1012,9 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
 
     // If getting mean only, set values and flag and return now
     if (meanOnly) {
-      ss->oneSliceMean = sumMean;
-      ss->oneSliceSD = sumSD;
-      ss->scaleToMeanSD = true;
+      mOneSliceMean = sumMean;
+      mOneSliceSD = sumSD;
+      mScaleToMeanSD = true;
       if (imodDebug('s'))
         imodPrintStderr("Mean/SD time %d\n", fillTime.elapsed());
       return;
@@ -1022,7 +1022,7 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
   }
 
   // imodPrintStderr("%d msec\n", imodv_sys_time() - timeStart);
-  cindex = ss->image->width * ss->image->height;
+  cindex = mImage->width * mImage->height;
   k = ksize;
 
   if (k > 1) {
@@ -1031,12 +1031,12 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
 
     // If scaling to match one slice, set the scaling and adjust the mean and
     // SD to be after the scaling, for FFT scaling
-    if (ss->scaleToMeanSD && sumSD > 0.1 && ss->oneSliceSD > 0.1) {
-      scale = ss->oneSliceSD / sumSD;
-      offset  = ss->oneSliceMean - sumMean * scale;
-      sumMean = ss->oneSliceMean;
-      sumSD = ss->oneSliceSD;
-    } else if (ss->fftMode) {
+    if (mScaleToMeanSD && sumSD > 0.1 && mOneSliceSD > 0.1) {
+      scale = mOneSliceSD / sumSD;
+      offset  = mOneSliceMean - sumMean * scale;
+      sumMean = mOneSliceMean;
+      sumSD = mOneSliceSD;
+    } else if (mFftMode) {
 
       // If just doing FFT, divide mean and SD by # of slices
       sumMean /= k;
@@ -1050,7 +1050,7 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
   }
 
   // Take FFT if flag is set
-  if (ss->fftMode) {
+  if (mFftMode) {
     slice = sliceCreate(isize, jsize, SLICE_MODE_BYTE);
     if (slice) {
 
@@ -1058,10 +1058,10 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
       bdata = slice->data.b;
       for (j = 0; j < jsize; j++) {
         if (k > 1)
-          for (i = j * ss->winx; i < j * ss->winx + isize; i++)
+          for (i = j * mWinx; i < j * mWinx + isize; i++)
             *bdata++ = sclmap[cidata[i]];
         else
-          for (i = j * ss->winx; i < j * ss->winx + isize; i++)
+          for (i = j * mWinx; i < j * mWinx + isize; i++)
             *bdata++ = (b3dUByte)cidata[i];
       }
       slice->min = minval;
@@ -1109,7 +1109,7 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
                           offset);
         fftmap = get_byte_map(scale, offset, 0, 255);
         for (j = 0; j < jsize; j++)
-          for (i = j * ss->winx; i < j * ss->winx + isize; i++)
+          for (i = j * mWinx; i < j * mWinx + isize; i++)
             cidata[i] = fftmap[*bdata++];
       }
       sliceFree(slice);
@@ -1120,11 +1120,11 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
   /* for 8-bit displays, range is less then 256 gray scales. */
   if (!App->rgba && App->depth == 8){
     int tval;
-    int minval = ss->vi->rampbase;
-    int maxval = minval + ss->vi->rampsize;
+    int minval = mVi->rampbase;
+    int maxval = minval + mVi->rampsize;
     if (k > 1)
       for (j = 0; j < jsize; j++)
-        for(i = j * ss->winx; i < j * ss->winx + isize; i++){
+        for(i = j * mWinx; i < j * mWinx + isize; i++){
           tval = sclmap[cidata[i]];
           if (tval > maxval) tval = maxval;
           if (tval < minval) tval = minval;
@@ -1132,7 +1132,7 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
         }
     else
       for (j = 0; j < jsize; j++)
-        for(i = j * ss->winx; i < j * ss->winx + isize; i++){
+        for(i = j * mWinx; i < j * mWinx + isize; i++){
           if (cidata[i] > maxval) cidata[i] = maxval;
           if (cidata[i] < minval) cidata[i] = minval;
         }
@@ -1142,38 +1142,38 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
     case 1:
       if (k > 1)
         for (j = 0; j < jsize; j++)
-          for(i = j * ss->winx; i < j * ss->winx + isize; i++){
+          for(i = j * mWinx; i < j * mWinx + isize; i++){
             cidata[i] = sclmap[cidata[i]];
           }
       break;
     case 2:
       if (k > 1)
         for (j = 0; j < jsize; j++)
-          for(i = j * ss->winx; i < j * ss->winx + isize; i++){
+          for(i = j * mWinx; i < j * mWinx + isize; i++){
             cidata[i] = sclmap[cidata[i]] + rbase;
           }
       else
         for (j = 0; j < jsize; j++)
-          for(i = j * ss->winx; i < j * ss->winx + isize; i++){
+          for(i = j * mWinx; i < j * mWinx + isize; i++){
             cidata[i] = cidata[i] + rbase;
           }
       break;
     case 4:
       if (k > 1)
         for (j = jsize - 1; j >= 0; j--)
-          for(i = j * ss->winx + isize - 1; i >= j * ss->winx; i--){
+          for(i = j * mWinx + isize - 1; i >= j * mWinx; i--){
             idata[i] = cmap[sclmap[cidata[i]]];
           }
       else
 	for (j = jsize - 1; j >= 0; j--) {
-	  for(i = j * ss->winx + isize - 1; i >= j * ss->winx; i--){
+	  for(i = j * mWinx + isize - 1; i >= j * mWinx; i--){
 	    idata[i] = cmap[cidata[i]];
 	  }
 	}
     }
   }
-  ss->xzoom = xzoom;
-  ss->yzoom = yzoom;
+  mXzoom = xzoom;
+  mYzoom = yzoom;
   if (sclmap)
     free(sclmap);
   if (imodDebug('s'))
@@ -1506,6 +1506,9 @@ static void fillArraySegment(int jstart, int jlimit)
 /*
 
 $Log$
+Revision 4.35  2010/12/18 05:47:00  mast
+Use the shortcut for non-integer zooms above 2
+
 Revision 4.34  2010/03/17 21:30:30  mast
 Fixed crash when rotated in Z to -180 for some window sizes/shifts
 
