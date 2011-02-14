@@ -509,7 +509,7 @@ QObject *DialogManager::getTopWindow(int dlgType)
 {
   QObjectList objList;
   XyzWindow *xyz;
-  SlicerStruct *ss;
+  SlicerFuncs *ss;
   ImodControl *ctrlPtr;
   int i, j, topOne, curSave;
   bool match;
@@ -529,8 +529,8 @@ QObject *DialogManager::getTopWindow(int dlgType)
         xyz = ((XyzWindow *)objList.at(i));
         match = ctrlPtr->id == xyz->mCtrl;
       } else if (dlgType == SLICER_WINDOW_TYPE) {
-        ss = ((SlicerWindow *)objList.at(i))->mSlicer;
-        match = ctrlPtr->id == ss->ctrl;
+        ss = ((SlicerWindow *)objList.at(i))->mFuncs;
+        match = ctrlPtr->id == ss->mCtrl;
       }
       if (match) {
         topOne = i;
@@ -615,6 +615,9 @@ QRect ivwRestorableGeometry(QWidget *widget)
 
 /*
 $Log$
+Revision 4.21  2011/02/13 21:31:10  mast
+Add method for finding top window of a type
+
 Revision 4.20  2009/03/22 22:28:06  mast
 Needed to get geometry after show in case of size changes
 

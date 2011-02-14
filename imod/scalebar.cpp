@@ -221,7 +221,7 @@ float scaleBarDraw(int winx, int winy, float zoom, int background)
  */
 void scaleBarUpdate()
 {
-  SlicerStruct *ss;
+  SlicerFuncs *ss;
   ZapFuncs *zap;
   Imod *imod;
   float slicerv = -1., zapv = -1., multiZv = -1., modvv = -1., xyzv = -1.;
@@ -233,7 +233,7 @@ void scaleBarUpdate()
   if (!imodvStandalone()) {
     ss = getTopSlicer();
     if (ss)
-      slicerv = ss->scaleBarSize;
+      slicerv = ss->mScaleBarSize;
     zap = getTopZapWindow(false, ZAP_WINDOW_TYPE);
     if (zap)
       zapv = zap->mScaleBarSize;
@@ -263,6 +263,9 @@ void scaleBarRedraw()
 /*
 
 $Log$
+Revision 1.10  2011/02/07 16:12:39  mast
+Convert zap structure to class, most functions to members
+
 Revision 1.9  2010/01/22 03:05:23  mast
 Added functions to fit bar in one panel for a montage
 
