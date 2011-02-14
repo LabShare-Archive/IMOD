@@ -29,6 +29,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.65  2010/12/05 04:44:14  sueh
+ * <p> bug# 1416 Added genCurTab.
+ * <p>
  * <p> Revision 3.64  2010/11/13 16:06:53  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -435,8 +438,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private final SqueezevolParam squeezevolParam;
   private final TransferfidParam transferfidParamA;
   private final TransferfidParam transferfidParamB;
-  private final EtomoBoolean2 defaultParallel = new EtomoBoolean2(
-      "DefaultParallel");
+  private final EtomoBoolean2 defaultParallel = new EtomoBoolean2("DefaultParallel");
   private EtomoBoolean2 tomoGenTiltParallelA = null;
   private EtomoBoolean2 tomoGenTiltParallelB = null;
   private EtomoBoolean2 tilt3dFindTiltParallelA = null;
@@ -446,11 +448,9 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private EtomoBoolean2 combineVolcombineParallel = null;
   private EtomoBoolean2 bStackProcessed = null;
   private StringBuffer message = new StringBuffer();
-  private final EtomoNumber sampleThicknessA = new EtomoNumber(AxisID.FIRST
-      .toString()
+  private final EtomoNumber sampleThicknessA = new EtomoNumber(AxisID.FIRST.toString()
       + '.' + ProcessName.SAMPLE + '.' + THICKNESS_KEY);
-  private final EtomoNumber sampleThicknessB = new EtomoNumber(AxisID.SECOND
-      .toString()
+  private final EtomoNumber sampleThicknessB = new EtomoNumber(AxisID.SECOND.toString()
       + '.' + ProcessName.SAMPLE + '.' + THICKNESS_KEY);
   private String firstAxisPrepend = null;
   private String secondAxisPrepend = null;
@@ -459,39 +459,33 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   /**
    * @version 1.8
    */
-  private final EtomoBoolean2 fiducialessA = new EtomoBoolean2("A."
-      + FIDUCIALESS_KEY);
+  private final EtomoBoolean2 fiducialessA = new EtomoBoolean2("A." + FIDUCIALESS_KEY);
   /**
    * @version 1.8
    */
-  private final EtomoBoolean2 fiducialessB = new EtomoBoolean2("B."
-      + FIDUCIALESS_KEY);
+  private final EtomoBoolean2 fiducialessB = new EtomoBoolean2("B." + FIDUCIALESS_KEY);
   private String targetPatchSizeXandY = TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_DEFAULT;//backwards compatibility
   private String numberOfLocalPatchesXandY = TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_DEFAULT;
-  private final EtomoBoolean2 noBeamTiltSelectedA = new EtomoBoolean2(
-      AxisID.FIRST.getExtension() + "."
-          + DialogType.FINE_ALIGNMENT.getStorableName() + ".NoBeamTiltSelected");
-  private final EtomoBoolean2 fixedBeamTiltSelectedA = new EtomoBoolean2(
-      AxisID.FIRST.getExtension() + "."
-          + DialogType.FINE_ALIGNMENT.getStorableName()
-          + ".FixedBeamTiltSelected");
-  private final EtomoNumber fixedBeamTiltA = new EtomoNumber(
-      EtomoNumber.Type.FLOAT, AxisID.FIRST.getExtension() + "."
-          + DialogType.FINE_ALIGNMENT.getStorableName() + ".FixedBeamTilt");
-  private final EtomoBoolean2 noBeamTiltSelectedB = new EtomoBoolean2(
-      AxisID.SECOND.getExtension() + "."
-          + DialogType.FINE_ALIGNMENT.getStorableName() + ".NoBeamTiltSelected");
-  private final EtomoBoolean2 fixedBeamTiltSelectedB = new EtomoBoolean2(
-      AxisID.SECOND.getExtension() + "."
-          + DialogType.FINE_ALIGNMENT.getStorableName()
-          + ".FixedBeamTiltSelected");
-  private final EtomoNumber fixedBeamTiltB = new EtomoNumber(
-      EtomoNumber.Type.FLOAT, AxisID.SECOND.getExtension() + "."
-          + DialogType.FINE_ALIGNMENT.getStorableName() + ".FixedBeamTilt");
-  private final FortranInputString sizeToOutputInXandYA = new FortranInputString(
-      2);
-  private final FortranInputString sizeToOutputInXandYB = new FortranInputString(
-      2);
+  private final EtomoBoolean2 noBeamTiltSelectedA = new EtomoBoolean2(AxisID.FIRST
+      .getExtension()
+      + "." + DialogType.FINE_ALIGNMENT.getStorableName() + ".NoBeamTiltSelected");
+  private final EtomoBoolean2 fixedBeamTiltSelectedA = new EtomoBoolean2(AxisID.FIRST
+      .getExtension()
+      + "." + DialogType.FINE_ALIGNMENT.getStorableName() + ".FixedBeamTiltSelected");
+  private final EtomoNumber fixedBeamTiltA = new EtomoNumber(EtomoNumber.Type.FLOAT,
+      AxisID.FIRST.getExtension() + "." + DialogType.FINE_ALIGNMENT.getStorableName()
+          + ".FixedBeamTilt");
+  private final EtomoBoolean2 noBeamTiltSelectedB = new EtomoBoolean2(AxisID.SECOND
+      .getExtension()
+      + "." + DialogType.FINE_ALIGNMENT.getStorableName() + ".NoBeamTiltSelected");
+  private final EtomoBoolean2 fixedBeamTiltSelectedB = new EtomoBoolean2(AxisID.SECOND
+      .getExtension()
+      + "." + DialogType.FINE_ALIGNMENT.getStorableName() + ".FixedBeamTiltSelected");
+  private final EtomoNumber fixedBeamTiltB = new EtomoNumber(EtomoNumber.Type.FLOAT,
+      AxisID.SECOND.getExtension() + "." + DialogType.FINE_ALIGNMENT.getStorableName()
+          + ".FixedBeamTilt");
+  private final FortranInputString sizeToOutputInXandYA = new FortranInputString(2);
+  private final FortranInputString sizeToOutputInXandYB = new FortranInputString(2);
   /**
    * @deprecated in MetaData 1.10
    */
@@ -509,15 +503,15 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
    * fiducial diameter in pixels
    */
   private EtomoNumber finalStackFiducialDiameterA = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE, DialogType.FINAL_ALIGNED_STACK.getStorableName()
-          + "." + AxisID.FIRST.getExtension() + "." + "FiducialDiameter");
+      EtomoNumber.Type.DOUBLE, DialogType.FINAL_ALIGNED_STACK.getStorableName() + "."
+          + AxisID.FIRST.getExtension() + "." + "FiducialDiameter");
   /**
    * Added in MetaData 1.10
    * fiducial diameter in pixels
    */
   private EtomoNumber finalStackFiducialDiameterB = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE, DialogType.FINAL_ALIGNED_STACK.getStorableName()
-          + "." + AxisID.SECOND.getExtension() + "." + "FiducialDiameter");
+      EtomoNumber.Type.DOUBLE, DialogType.FINAL_ALIGNED_STACK.getStorableName() + "."
+          + AxisID.SECOND.getExtension() + "." + "FiducialDiameter");
   private EtomoNumber finalStackPolynomialOrderA = new EtomoNumber(
       DialogType.FINAL_ALIGNED_STACK.getStorableName() + "."
           + AxisID.FIRST.getExtension() + "." + "PolynomialOrder");
@@ -534,48 +528,42 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   /**
    * @deprecated substituted trackMethod
    */
-  private final EtomoBoolean2 trackUseRaptorA = new EtomoBoolean2(TRACK_KEY
-      + "." + FIRST_AXIS_KEY + "." + USE_KEY + RAPTOR_KEY);
-  private final EtomoBoolean2 trackRaptorUseRawStackA = new EtomoBoolean2(
-      TRACK_KEY + "." + FIRST_AXIS_KEY + "." + RAPTOR_KEY + "." + USE_KEY
-          + RAW_STACK_KEY);
+  private final EtomoBoolean2 trackUseRaptorA = new EtomoBoolean2(TRACK_KEY + "."
+      + FIRST_AXIS_KEY + "." + USE_KEY + RAPTOR_KEY);
+  private final EtomoBoolean2 trackRaptorUseRawStackA = new EtomoBoolean2(TRACK_KEY + "."
+      + FIRST_AXIS_KEY + "." + RAPTOR_KEY + "." + USE_KEY + RAW_STACK_KEY);
   private final EtomoNumber trackRaptorMarkA = new EtomoNumber(TRACK_KEY + "."
       + FIRST_AXIS_KEY + "." + RAPTOR_KEY + "." + MARK_KEY);
-  private final EtomoNumber trackRaptorDiamA = new EtomoNumber(
-      EtomoNumber.Type.LONG, TRACK_KEY + "." + FIRST_AXIS_KEY + "."
-          + RAPTOR_KEY + "." + DIAM_KEY);
+  private final EtomoNumber trackRaptorDiamA = new EtomoNumber(EtomoNumber.Type.LONG,
+      TRACK_KEY + "." + FIRST_AXIS_KEY + "." + RAPTOR_KEY + "." + DIAM_KEY);
 
-  private final EtomoBoolean2 stackEraseGoldModelUseFidA = new EtomoBoolean2(
-      STACK_KEY + "." + FIRST_AXIS_KEY + "." + ERASE_GOLD_KEY + "."
-          + MODEL_USE_FID_KEY);
-  private final EtomoBoolean2 stackEraseGoldModelUseFidB = new EtomoBoolean2(
-      STACK_KEY + "." + SECOND_AXIS_KEY + "." + ERASE_GOLD_KEY + "."
-          + MODEL_USE_FID_KEY);
+  private final EtomoBoolean2 stackEraseGoldModelUseFidA = new EtomoBoolean2(STACK_KEY
+      + "." + FIRST_AXIS_KEY + "." + ERASE_GOLD_KEY + "." + MODEL_USE_FID_KEY);
+  private final EtomoBoolean2 stackEraseGoldModelUseFidB = new EtomoBoolean2(STACK_KEY
+      + "." + SECOND_AXIS_KEY + "." + ERASE_GOLD_KEY + "." + MODEL_USE_FID_KEY);
   private final EtomoNumber posBinningA = new EtomoNumber("TomoPosBinningA");
   private final EtomoNumber posBinningB = new EtomoNumber("TomoPosBinningB");
-  private final EtomoNumber stackBinningA = new EtomoNumber(
-      "FinalStackBinningA");
-  private final EtomoNumber stackBinningB = new EtomoNumber(
-      "FinalStackBinningB");
-  private final EtomoNumber stack3dFindBinningA = new EtomoNumber(STACK_KEY
-      + "." + FIRST_AXIS_KEY + "." + "3dFind.Binning");
-  private final EtomoNumber stack3dFindBinningB = new EtomoNumber(STACK_KEY
-      + "." + SECOND_AXIS_KEY + "." + "3dFind.Binning");
+  private final EtomoNumber stackBinningA = new EtomoNumber("FinalStackBinningA");
+  private final EtomoNumber stackBinningB = new EtomoNumber("FinalStackBinningB");
+  private final EtomoNumber stack3dFindBinningA = new EtomoNumber(STACK_KEY + "."
+      + FIRST_AXIS_KEY + "." + "3dFind.Binning");
+  private final EtomoNumber stack3dFindBinningB = new EtomoNumber(STACK_KEY + "."
+      + SECOND_AXIS_KEY + "." + "3dFind.Binning");
 
-  private final EtomoBoolean2 postFlattenInputTrimVol = new EtomoBoolean2(
-      POST_KEY + "." + FLATTEN_KEY + "." + INPUT_KEY + TRIM_VOL_KEY);
+  private final EtomoBoolean2 postFlattenInputTrimVol = new EtomoBoolean2(POST_KEY + "."
+      + FLATTEN_KEY + "." + INPUT_KEY + TRIM_VOL_KEY);
 
   private final EtomoBoolean2 postFlattenWarpContoursOnOneSurface = new EtomoBoolean2(
       POST_KEY + "." + FLATTEN_WARP_KEY + "." + CONTOURS_ON_ONE_SURFACE_KEY);
   private final EtomoNumber postFlattenWarpSpacingInX = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE, POST_KEY + "." + FLATTEN_WARP_KEY + "."
-          + SPACING_IN_KEY + X_KEY);
+      EtomoNumber.Type.DOUBLE, POST_KEY + "." + FLATTEN_WARP_KEY + "." + SPACING_IN_KEY
+          + X_KEY);
   private final EtomoNumber postFlattenWarpSpacingInY = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE, POST_KEY + "." + FLATTEN_WARP_KEY + "."
-          + SPACING_IN_KEY + Y_KEY);
+      EtomoNumber.Type.DOUBLE, POST_KEY + "." + FLATTEN_WARP_KEY + "." + SPACING_IN_KEY
+          + Y_KEY);
 
-  private final EtomoBoolean2 postSqueezeVolInputTrimVol = new EtomoBoolean2(
-      POST_KEY + "." + SQUEEZE_VOL_KEY + "." + INPUT_KEY + TRIM_VOL_KEY);
+  private final EtomoBoolean2 postSqueezeVolInputTrimVol = new EtomoBoolean2(POST_KEY
+      + "." + SQUEEZE_VOL_KEY + "." + INPUT_KEY + TRIM_VOL_KEY);
 
   private final EtomoNumber postCurTab = new EtomoNumber(POST_KEY + ".CurTab");
   private final EtomoNumber genCurTab = new EtomoNumber(GEN_KEY + ".CurTab");
@@ -583,29 +571,28 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   /**
    * postExists is true if the post processing dialog has opened at least once.
    */
-  private final EtomoBoolean2 postExists = new EtomoBoolean2(POST_KEY
-      + ".Exists");
-  private final EtomoNumber lambdaForSmoothing = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE, POST_KEY + ".LambdaForSmoothing");
-  private final StringProperty lambdaForSmoothingList = new StringProperty(
-      POST_KEY + ".LambdaForSmoothingList");
+  private final EtomoBoolean2 postExists = new EtomoBoolean2(POST_KEY + ".Exists");
+  private final EtomoNumber lambdaForSmoothing = new EtomoNumber(EtomoNumber.Type.DOUBLE,
+      POST_KEY + ".LambdaForSmoothing");
+  private final StringProperty lambdaForSmoothingList = new StringProperty(POST_KEY
+      + ".LambdaForSmoothingList");
 
-  private final StringProperty trackOverlapOfPatchesXandYA = new StringProperty(
-      TRACK_KEY + "." + FIRST_AXIS_KEY + ".OverlapOfPatchesXandY");
-  private final StringProperty trackOverlapOfPatchesXandYB = new StringProperty(
-      TRACK_KEY + "." + SECOND_AXIS_KEY + ".OverlapOfPatchesXandY");
-  private final StringProperty trackNumberOfPatchesXandYA = new StringProperty(
-      TRACK_KEY + "." + FIRST_AXIS_KEY + ".NumberOfPatchesXandY");
-  private final StringProperty trackNumberOfPatchesXandYB = new StringProperty(
-      TRACK_KEY + "." + SECOND_AXIS_KEY + ".NumberOfPatchesXandY");
-  private final StringProperty trackLengthAndOverlapA = new StringProperty(
-      TRACK_KEY + "." + FIRST_AXIS_KEY + ".LengthAndOverlap");
-  private final StringProperty trackLengthAndOverlapB = new StringProperty(
-      TRACK_KEY + "." + SECOND_AXIS_KEY + ".LengthAndOverlap");
-  private final StringProperty trackMethodA = new StringProperty(TRACK_KEY
-      + "." + FIRST_AXIS_KEY + ".TrackMethod");
-  private final StringProperty trackMethodB = new StringProperty(TRACK_KEY
-      + "." + SECOND_AXIS_KEY + ".TrackMethod");
+  private final StringProperty trackOverlapOfPatchesXandYA = new StringProperty(TRACK_KEY
+      + "." + FIRST_AXIS_KEY + ".OverlapOfPatchesXandY");
+  private final StringProperty trackOverlapOfPatchesXandYB = new StringProperty(TRACK_KEY
+      + "." + SECOND_AXIS_KEY + ".OverlapOfPatchesXandY");
+  private final StringProperty trackNumberOfPatchesXandYA = new StringProperty(TRACK_KEY
+      + "." + FIRST_AXIS_KEY + ".NumberOfPatchesXandY");
+  private final StringProperty trackNumberOfPatchesXandYB = new StringProperty(TRACK_KEY
+      + "." + SECOND_AXIS_KEY + ".NumberOfPatchesXandY");
+  private final StringProperty trackLengthAndOverlapA = new StringProperty(TRACK_KEY
+      + "." + FIRST_AXIS_KEY + ".LengthAndOverlap");
+  private final StringProperty trackLengthAndOverlapB = new StringProperty(TRACK_KEY
+      + "." + SECOND_AXIS_KEY + ".LengthAndOverlap");
+  private final StringProperty trackMethodA = new StringProperty(TRACK_KEY + "."
+      + FIRST_AXIS_KEY + ".TrackMethod");
+  private final StringProperty trackMethodB = new StringProperty(TRACK_KEY + "."
+      + SECOND_AXIS_KEY + ".TrackMethod");
   /**
    * fineExists is true if the fine alignment dialog has opened at least once.
    */
@@ -614,34 +601,26 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private final EtomoBoolean2 fineExistsB = new EtomoBoolean2(FINE_KEY + "."
       + SECOND_AXIS_KEY + ".Exists");
 
-  private final EtomoNumber genLogA = new EtomoNumber(EtomoNumber.Type.DOUBLE,
-      GEN_KEY + "." + FIRST_AXIS_KEY + ".Log");
-  private final EtomoNumber genLogB = new EtomoNumber(EtomoNumber.Type.DOUBLE,
-      GEN_KEY + "." + SECOND_AXIS_KEY + ".Log");
-  private final EtomoNumber genScaleFactorLogA = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE, GEN_KEY + "." + FIRST_AXIS_KEY
-          + ".Scale.Factor.Log");
-  private final EtomoNumber genScaleFactorLogB = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE, GEN_KEY + "." + SECOND_AXIS_KEY
-          + ".Scale.Factor.Log");
-  private final EtomoNumber genScaleOffsetLogA = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE, GEN_KEY + "." + FIRST_AXIS_KEY
-          + ".Scale.Offset.Log");
-  private final EtomoNumber genScaleOffsetLogB = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE, GEN_KEY + "." + SECOND_AXIS_KEY
-          + ".Scale.Offset.Log");
+  private final EtomoNumber genLogA = new EtomoNumber(EtomoNumber.Type.DOUBLE, GEN_KEY
+      + "." + FIRST_AXIS_KEY + ".Log");
+  private final EtomoNumber genLogB = new EtomoNumber(EtomoNumber.Type.DOUBLE, GEN_KEY
+      + "." + SECOND_AXIS_KEY + ".Log");
+  private final EtomoNumber genScaleFactorLogA = new EtomoNumber(EtomoNumber.Type.DOUBLE,
+      GEN_KEY + "." + FIRST_AXIS_KEY + ".Scale.Factor.Log");
+  private final EtomoNumber genScaleFactorLogB = new EtomoNumber(EtomoNumber.Type.DOUBLE,
+      GEN_KEY + "." + SECOND_AXIS_KEY + ".Scale.Factor.Log");
+  private final EtomoNumber genScaleOffsetLogA = new EtomoNumber(EtomoNumber.Type.DOUBLE,
+      GEN_KEY + "." + FIRST_AXIS_KEY + ".Scale.Offset.Log");
+  private final EtomoNumber genScaleOffsetLogB = new EtomoNumber(EtomoNumber.Type.DOUBLE,
+      GEN_KEY + "." + SECOND_AXIS_KEY + ".Scale.Offset.Log");
   private final EtomoNumber genScaleFactorLinearA = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE, GEN_KEY + "." + FIRST_AXIS_KEY
-          + ".Scale.Factor.Linear");
+      EtomoNumber.Type.DOUBLE, GEN_KEY + "." + FIRST_AXIS_KEY + ".Scale.Factor.Linear");
   private final EtomoNumber genScaleFactorLinearB = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE, GEN_KEY + "." + SECOND_AXIS_KEY
-          + ".Scale.Factor.Linear");
+      EtomoNumber.Type.DOUBLE, GEN_KEY + "." + SECOND_AXIS_KEY + ".Scale.Factor.Linear");
   private final EtomoNumber genScaleOffsetLinearA = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE, GEN_KEY + "." + FIRST_AXIS_KEY
-          + ".Scale.Offset.Linear");
+      EtomoNumber.Type.DOUBLE, GEN_KEY + "." + FIRST_AXIS_KEY + ".Scale.Offset.Linear");
   private final EtomoNumber genScaleOffsetLinearB = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE, GEN_KEY + "." + SECOND_AXIS_KEY
-          + ".Scale.Offset.Linear");
+      EtomoNumber.Type.DOUBLE, GEN_KEY + "." + SECOND_AXIS_KEY + ".Scale.Offset.Linear");
   /**
    * getExists is true if the tomogram generation dialog has opened at least
    * once.
@@ -654,10 +633,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
    * postExists is true if the tomogram possitioning dialog has opened at least
    * once.
    */
-  private final EtomoBoolean2 posExistsA = new EtomoBoolean2(POS_KEY
-      + ".A.Exists");
-  private final EtomoBoolean2 posExistsB = new EtomoBoolean2(POS_KEY
-      + ".B.Exists");
+  private final EtomoBoolean2 posExistsA = new EtomoBoolean2(POS_KEY + ".A.Exists");
+  private final EtomoBoolean2 posExistsB = new EtomoBoolean2(POS_KEY + ".B.Exists");
 
   public MetaData(ApplicationManager manager) {
     this.manager = manager;
@@ -691,10 +668,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     stack3dFindBinningA.setDisplayValue(1);
     stack3dFindBinningB.setDisplayValue(1);
 
-    stackEraseGoldModelUseFidA
-        .setDisplayValue(ERASE_GOLD_MODEL_USE_FID_DEFAULT);
-    stackEraseGoldModelUseFidB
-        .setDisplayValue(ERASE_GOLD_MODEL_USE_FID_DEFAULT);
+    stackEraseGoldModelUseFidA.setDisplayValue(ERASE_GOLD_MODEL_USE_FID_DEFAULT);
+    stackEraseGoldModelUseFidB.setDisplayValue(ERASE_GOLD_MODEL_USE_FID_DEFAULT);
   }
 
   /**
@@ -876,7 +851,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   public void setPostCurTab(int input) {
     postCurTab.set(input);
   }
-  
+
   public void setGenCurTab(int input) {
     genCurTab.set(input);
   }
@@ -901,20 +876,17 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     this.combineVolcombineParallel.set(combineVolcombineParallel);
   }
 
-  public void setTiltParallel(AxisID axisID, PanelId panelId,
-      boolean tiltParallel) {
+  public void setTiltParallel(AxisID axisID, PanelId panelId, boolean tiltParallel) {
     if (panelId == PanelId.TILT) {
       if (axisID == AxisID.SECOND) {
         if (tomoGenTiltParallelB == null) {
-          tomoGenTiltParallelB = new EtomoBoolean2(
-              TOMO_GEN_B_TILT_PARALLEL_GROUP);
+          tomoGenTiltParallelB = new EtomoBoolean2(TOMO_GEN_B_TILT_PARALLEL_GROUP);
         }
         tomoGenTiltParallelB.set(tiltParallel);
       }
       else {
         if (tomoGenTiltParallelA == null) {
-          tomoGenTiltParallelA = new EtomoBoolean2(
-              TOMO_GEN_A_TILT_PARALLEL_GROUP);
+          tomoGenTiltParallelA = new EtomoBoolean2(TOMO_GEN_A_TILT_PARALLEL_GROUP);
         }
         tomoGenTiltParallelA.set(tiltParallel);
       }
@@ -922,15 +894,13 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     else if (panelId == PanelId.TILT_3D_FIND) {
       if (axisID == AxisID.SECOND) {
         if (tilt3dFindTiltParallelB == null) {
-          tilt3dFindTiltParallelB = new EtomoBoolean2(
-              TILT_3D_FIND_B_TILT_PARALLEL_KEY);
+          tilt3dFindTiltParallelB = new EtomoBoolean2(TILT_3D_FIND_B_TILT_PARALLEL_KEY);
         }
         tilt3dFindTiltParallelB.set(tiltParallel);
       }
       else {
         if (tilt3dFindTiltParallelA == null) {
-          tilt3dFindTiltParallelA = new EtomoBoolean2(
-              TILT_3D_FIND_A_TILT_PARALLEL_KEY);
+          tilt3dFindTiltParallelA = new EtomoBoolean2(TILT_3D_FIND_A_TILT_PARALLEL_KEY);
         }
         tilt3dFindTiltParallelA.set(tiltParallel);
       }
@@ -1241,16 +1211,13 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     //load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
-    axisType = AxisType.fromString(props.getProperty(group + "AxisType",
-        "Not Set"));
+    axisType = AxisType.fromString(props.getProperty(group + "AxisType", "Not Set"));
     setAxisPrepends();
     //backwards compatibility
     revisionNumber.load(props, prepend);
     if (revisionNumber.le(EtomoVersion.getDefaultInstance("1.7"))) {
-      fiducialessA.loadWithAlternateKey(props, prepend,
-          ".A.Param.tilt.Fiducialess");
-      fiducialessB.loadWithAlternateKey(props, prepend,
-          ".B.Param.tilt.Fiducialess");
+      fiducialessA.loadWithAlternateKey(props, prepend, ".A.Param.tilt.Fiducialess");
+      fiducialessB.loadWithAlternateKey(props, prepend, ".B.Param.tilt.Fiducialess");
     }
     else {
       fiducialessA.load(props, prepend);
@@ -1274,8 +1241,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     if (revisionNumber.le(EtomoVersion.getDefaultInstance("1.10"))) {
       trackUseRaptorA.load(props, prepend);
       if (trackUseRaptorA.is()) {
-        trackMethodA.set(FiducialModelDialog.MethodEnumeratedType.RAPTOR
-            .toString());
+        trackMethodA.set(FiducialModelDialog.MethodEnumeratedType.RAPTOR.toString());
       }
     }
     else {
@@ -1295,56 +1261,43 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     datasetName = props.getProperty(group + "DatasetName", datasetName);
     backupDirectory = props.getProperty(group + "BackupDirectory", "");
 
-    dataSource = DataSource.fromString(props.getProperty(group + "DataSource",
-        "CCD"));
-    viewType = ViewType.fromString(props.getProperty(group + "ViewType",
-        "Single View"));
-    pixelSize = Double.parseDouble(props
-        .getProperty(group + "PixelSize", "0.0"));
+    dataSource = DataSource.fromString(props.getProperty(group + "DataSource", "CCD"));
+    viewType = ViewType.fromString(props.getProperty(group + "ViewType", "Single View"));
+    pixelSize = Double.parseDouble(props.getProperty(group + "PixelSize", "0.0"));
 
     useLocalAlignmentsA = Boolean.valueOf(
-        props.getProperty(group + "UseLocalAlignmentsA", "true"))
-        .booleanValue();
+        props.getProperty(group + "UseLocalAlignmentsA", "true")).booleanValue();
     useLocalAlignmentsB = Boolean.valueOf(
-        props.getProperty(group + "UseLocalAlignmentsB", "true"))
-        .booleanValue();
-    fiducialDiameter = Double.parseDouble(props.getProperty(group
-        + "FiducialDiameter", "0.0"));
+        props.getProperty(group + "UseLocalAlignmentsB", "true")).booleanValue();
+    fiducialDiameter = Double.parseDouble(props.getProperty(group + "FiducialDiameter",
+        "0.0"));
 
     // Read in the old single image rotation or the newer separate image
     // rotation for each axis
     String strOldRotation = props.getProperty(group + "ImageRotation", "0.0");
-    imageRotationA = Float.parseFloat(props.getProperty(group
-        + "ImageRotationA", strOldRotation));
-    imageRotationB = Float.parseFloat(props.getProperty(group
-        + "ImageRotationB", strOldRotation));
-    excludeProjectionsA = props.getProperty(group + "AxisA.ExcludeProjections",
-        "");
+    imageRotationA = Float.parseFloat(props.getProperty(group + "ImageRotationA",
+        strOldRotation));
+    imageRotationB = Float.parseFloat(props.getProperty(group + "ImageRotationB",
+        strOldRotation));
+    excludeProjectionsA = props.getProperty(group + "AxisA.ExcludeProjections", "");
     tiltAngleSpecA.load(props, group + "AxisA");
 
-    excludeProjectionsB = props.getProperty(group + "AxisB.ExcludeProjections",
-        "");
+    excludeProjectionsB = props.getProperty(group + "AxisB.ExcludeProjections", "");
     tiltAngleSpecB.load(props, group + "AxisB");
     combineParams.load(props, group);
-    distortionFile = props
-        .getProperty(group + "DistortionFile", distortionFile);
-    magGradientFile = props.getProperty(group + "MagGradientFile",
-        magGradientFile);
+    distortionFile = props.getProperty(group + "DistortionFile", distortionFile);
+    magGradientFile = props.getProperty(group + "MagGradientFile", magGradientFile);
     binning = Integer.parseInt(props.getProperty(group + "Binning", Integer
         .toString(binning)));
 
     fiducialessAlignmentA = Boolean.valueOf(
-        props.getProperty(group + "FiducialessAlignmentA", "false"))
-        .booleanValue();
+        props.getProperty(group + "FiducialessAlignmentA", "false")).booleanValue();
     fiducialessAlignmentB = Boolean.valueOf(
-        props.getProperty(group + "FiducialessAlignmentB", "false"))
-        .booleanValue();
+        props.getProperty(group + "FiducialessAlignmentB", "false")).booleanValue();
     wholeTomogramSampleA = Boolean.valueOf(
-        props.getProperty(group + "WholeTomogramSampleA", "false"))
-        .booleanValue();
+        props.getProperty(group + "WholeTomogramSampleA", "false")).booleanValue();
     wholeTomogramSampleB = Boolean.valueOf(
-        props.getProperty(group + "WholeTomogramSampleB", "false"))
-        .booleanValue();
+        props.getProperty(group + "WholeTomogramSampleB", "false")).booleanValue();
     trimvolParam.load(props, group);
     squeezevolParam.load(props, prepend);
     useZFactorsA.load(props, prepend);
@@ -1353,8 +1306,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     transferfidParamB.load(props, prepend);
     sizeToOutputInXandYA.load(props, prepend);
     sizeToOutputInXandYB.load(props, prepend);
-    String propertyValue = props.getProperty(group
-        + TOMO_GEN_A_TILT_PARALLEL_GROUP);
+    String propertyValue = props.getProperty(group + TOMO_GEN_A_TILT_PARALLEL_GROUP);
     if (propertyValue != null) {
       setTomoGenTiltParallel(AxisID.FIRST, propertyValue);
     }
@@ -1362,18 +1314,17 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     if (propertyValue != null) {
       setTomoGenTiltParallel(AxisID.SECOND, propertyValue);
     }
-    propertyValue = props.getProperty(group
-        + FINAL_STACK_A_CTF_CORRECTION_PARALLEL_GROUP);
+    propertyValue = props
+        .getProperty(group + FINAL_STACK_A_CTF_CORRECTION_PARALLEL_GROUP);
     if (propertyValue != null) {
       setFinalStackCtfCorrectionParallel(AxisID.FIRST, propertyValue);
     }
-    propertyValue = props.getProperty(group
-        + FINAL_STACK_B_CTF_CORRECTION_PARALLEL_GROUP);
+    propertyValue = props
+        .getProperty(group + FINAL_STACK_B_CTF_CORRECTION_PARALLEL_GROUP);
     if (propertyValue != null) {
       setFinalStackCtfCorrectionParallel(AxisID.SECOND, propertyValue);
     }
-    propertyValue = props
-        .getProperty(group + COMBINE_VOLCOMBINE_PARALLEL_GROUP);
+    propertyValue = props.getProperty(group + COMBINE_VOLCOMBINE_PARALLEL_GROUP);
     if (propertyValue != null) {
       setCombineVolcombineParallel(propertyValue);
     }
@@ -1583,8 +1534,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     prepend = createPrepend(prepend);
     String group = prepend + ".";
     props.setProperty(group + "RevisionNumber", latestRevisionNumber);
-    props.setProperty(group + "ComScriptsCreated", String
-        .valueOf(comScriptsCreated));
+    props.setProperty(group + "ComScriptsCreated", String.valueOf(comScriptsCreated));
     props.setProperty(group + "DatasetName", datasetName);
     props.setProperty(group + "BackupDirectory", backupDirectory);
 
@@ -1593,12 +1543,9 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     props.setProperty(group + "ViewType", viewType.toString());
 
     props.setProperty(group + "PixelSize", String.valueOf(pixelSize));
-    props.setProperty(group + "UseLocalAlignmentsA", String
-        .valueOf(useLocalAlignmentsA));
-    props.setProperty(group + "UseLocalAlignmentsB", String
-        .valueOf(useLocalAlignmentsB));
-    props.setProperty(group + "FiducialDiameter", String
-        .valueOf(fiducialDiameter));
+    props.setProperty(group + "UseLocalAlignmentsA", String.valueOf(useLocalAlignmentsA));
+    props.setProperty(group + "UseLocalAlignmentsB", String.valueOf(useLocalAlignmentsB));
+    props.setProperty(group + "FiducialDiameter", String.valueOf(fiducialDiameter));
     props.setProperty(group + "ImageRotationA", String.valueOf(imageRotationA));
     props.setProperty(group + "ImageRotationB", String.valueOf(imageRotationB));
     tiltAngleSpecA.store(props, group + "AxisA");
@@ -1654,11 +1601,11 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     sampleThicknessB.store(props, prepend);
     fiducialessA.store(props, prepend);
     fiducialessB.store(props, prepend);
+    props.setProperty(
+        group + "tiltalign." + TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_KEY,
+        targetPatchSizeXandY);
     props.setProperty(group + "tiltalign."
-        + TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_KEY, targetPatchSizeXandY);
-    props.setProperty(group + "tiltalign."
-        + TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_KEY,
-        numberOfLocalPatchesXandY);
+        + TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_KEY, numberOfLocalPatchesXandY);
     noBeamTiltSelectedA.store(props, prepend);
     fixedBeamTiltSelectedA.store(props, prepend);
     fixedBeamTiltA.store(props, prepend);
@@ -2121,11 +2068,11 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   public ConstEtomoNumber getPostCurTab() {
     return postCurTab;
   }
-  
+
   public ConstEtomoNumber getGenCurTab() {
     return genCurTab;
   }
-  
+
   public boolean isPostExists() {
     return postExists.is();
   }
@@ -2303,8 +2250,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
 
     if (axisType == null || axisType == AxisType.NOT_SET) {
-      invalidReason = "Axis type should be either Dual Axis or Single Axis."
-          + helpString;
+      invalidReason = "Axis type should be either Dual Axis or Single Axis." + helpString;
       return false;
     }
 
@@ -2344,8 +2290,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       }
     }
     else {
-      if (getValidDatasetDirectory(new File(paramFile.getParent())
-          .getAbsolutePath()) != null) {
+      if (getValidDatasetDirectory(new File(paramFile.getParent()).getAbsolutePath()) != null) {
         return true;
       }
     }
@@ -2371,9 +2316,9 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
 
       //if no directory exists then exit
       if (!workingDir.exists() && !backupDir.exists()) {
-        invalidReason = "The working directory: "
-            + workingDir.getAbsolutePath() + " and the backup directory: "
-            + backupDir.getAbsolutePath() + " do not exist";
+        invalidReason = "The working directory: " + workingDir.getAbsolutePath()
+            + " and the backup directory: " + backupDir.getAbsolutePath()
+            + " do not exist";
         return null;
       }
 
@@ -2387,19 +2332,17 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       }
 
       if (!currentDir.canRead()) {
-        invalidReason = "Can't read " + currentDir.getAbsolutePath()
-            + " directory";
+        invalidReason = "Can't read " + currentDir.getAbsolutePath() + " directory";
         return null;
       }
 
       if (!currentDir.canWrite()) {
-        invalidReason = "Can't write " + currentDir.getAbsolutePath()
-            + " directory";
+        invalidReason = "Can't write " + currentDir.getAbsolutePath() + " directory";
         return null;
       }
 
-      throw new IllegalStateException("Working directory ="
-          + workingDir.toString() + ",backupDir=" + backupDir.toString());
+      throw new IllegalStateException("Working directory =" + workingDir.toString()
+          + ",backupDir=" + backupDir.toString());
     }
 
     // Does the appropriate image stack exist in the working directory
@@ -2455,18 +2398,15 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
    * @throws IllegalArgumentException if any parameter is null
    */
   File findValidFile(String fileName, File curDir, File altDir) {
-    if (fileName == null || curDir == null || altDir == null
-        || !isValid(curDir, true)) {
-      throw new IllegalArgumentException(
-          "ConstMetaData.findValidFile(String,File,File)");
+    if (fileName == null || curDir == null || altDir == null || !isValid(curDir, true)) {
+      throw new IllegalArgumentException("ConstMetaData.findValidFile(String,File,File)");
     }
 
     // Does the appropriate image stack exist in the working or backup directory
     File file = new File(curDir, fileName);
     while (!file.exists()) {
       if (curDir == altDir || !isValid(altDir, true)) {
-        message.append(fileName + " does not exist in  "
-            + curDir.getAbsolutePath());
+        message.append(fileName + " does not exist in  " + curDir.getAbsolutePath());
         invalidReason = message.toString();
         message = new StringBuffer();
         return null;
@@ -2497,16 +2437,14 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
    */
   File findValidFile(String fileName, File curDir) {
     if (fileName == null || curDir == null || !isValid(curDir, true)) {
-      throw new IllegalArgumentException(
-          "ConstMetaData.findValidFile(String,File)");
+      throw new IllegalArgumentException("ConstMetaData.findValidFile(String,File)");
     }
 
     // Does the appropriate image stack exist in the working or backup directory
     File file = new File(curDir, fileName);
 
     if (!file.exists()) {
-      invalidReason = fileName + " does not exist in "
-          + curDir.getAbsolutePath();
+      invalidReason = fileName + " does not exist in " + curDir.getAbsolutePath();
       return null;
     }
 
