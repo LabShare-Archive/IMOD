@@ -607,6 +607,7 @@ void imod_info_float_clear(int section, int time)
       free(secData);
     secData = NULL;
     table_size = 0;
+    last_section = -1;
   } else if (section < 0) {
     /* DNM 11/14/03: fix to test actual highest index */
     if ((-section - 1) * tdim + time >= table_size)
@@ -871,6 +872,9 @@ void imod_imgcnt(const char *string)
 /*
 
 $Log$
+Revision 4.41  2011/02/12 22:19:07  mast
+Removed debugging output
+
 Revision 4.40  2011/02/12 04:59:59  mast
 Made autocontrast measure actual contrast of filtered image when zoomed down
 
