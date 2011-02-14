@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <math.h>
 #include "imodconfig.h"
-#include "cfsemshare.h"
+#include "b3dutil.h"
 
 #define BYTE 0
 #define SIGNED_BYTE 1
@@ -176,9 +176,12 @@ int sampleMeanSD(unsigned char **image, int type, int nx, int ny,
 
       /* get the value */
       switch (type) {
+      case BYTE :
+        fval = ubytep[iyUse + nyMatt][ixUse + nxMatt];
+        break;
+
       case RGBA:
       case RGB:
-      case BYTE :
         fval = 0.3 * ubytep[iyUse + nyMatt][nchan*(ixUse+nxMatt)] +
           0.59 * ubytep[iyUse + nyMatt][nchan*(ixUse+nxMatt)+1] +
           0.11 * ubytep[iyUse + nyMatt][nchan*(ixUse+nxMatt)+2];
@@ -238,7 +241,7 @@ int samplemeansd(float *image, int *nx, int *ny, float *sample, int *nxMatt,
                  int *nyMatt, int *nxUse, int *nyUse, float *mean, float *sd)
 {
   int i;
-  unsigned char **lines = makeLinePointers(image, nx, ny, 4);
+  unsigned char **lines = makeLinePointers(image, *nx, *ny, 4);
   if (!lines)
     return -1;
   i = sampleMeanSD(lines, FLOAT, *nx, *ny, *sample, *nxMatt, *nyMatt, *nxUse,
@@ -250,6 +253,9 @@ int samplemeansd(float *image, int *nx, int *ny, float *sample, int *nxMatt,
 /*
 
 $Log$
+Revision 1.4  2011/02/12 04:32:06  mast
+Added support for RGB
+
 Revision 1.3  2010/02/26 16:56:57  mast
 Added fortran wrapper
 
