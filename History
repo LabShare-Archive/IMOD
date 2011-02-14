@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/14/11: Fixed 3dmod problem with contrast floating after flipping volume.
+
 2/13/11: Slicer and Zap top-level functions and data elements were rewritten
 as a class; XYZ data stucture was incorporated into the window class.
 
