@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/13/11: Slicer and Zap top-level functions and data elements were rewritten
+as a class; XYZ data stucture was incorporated into the window class.
+
 2/13/11: Multiple XYZ windows can now be opened.  There is now a lock button
 that locks both position and time.
 
