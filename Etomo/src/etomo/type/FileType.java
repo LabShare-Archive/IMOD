@@ -27,6 +27,14 @@ import etomo.process.ImodManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2010/04/28 16:27:44  sueh
+ * <p> bug# 1344 Added a second imodManagerKey and inSubdirectory
+ * <p> boolean.  Collecting the instances with file descriptions into
+ * <p> nameFileTypeList.  Implemented getting the subdirectory for peet file
+ * <p> types.  Added getInstance functions so a FileType instance can be derived
+ * <p> from a name description or a file name.  Added an iterator function for unit
+ * <p> testing.
+ * <p>
  * <p> Revision 1.8  2010/03/09 22:06:20  sueh
  * <p> bug# 1325 Changed CCD_ERASER_INPUT to RAW_STACK.
  * <p>
@@ -89,102 +97,101 @@ public final class FileType {
   //any .edf, .ejf, or .epe as long as it has a different dataset name
 
   //File types with a name description
-  public static final FileType FIDUCIAL_3D_MODEL = new FileType(true, true, "",
-      ".3dmod", ImodManager.FIDUCIAL_MODEL_KEY);
-  public static final FileType ALIGNED_STACK = new FileType(true, true, "",
-      ".ali", ImodManager.FINE_ALIGNED_KEY);
-  public static final FileType XCORR_BLEND_OUTPUT = new FileType(true, true,
-      "", ".bl", null);
-  public static final FileType DISTORTION_CORRECTED_STACK = new FileType(true,
-      true, "", ".dcst", null);
-  public static final FileType FIDUCIAL_MODEL = new FileType(true, true, "",
-      ".fid", null);
-  public static final FileType FLATTEN_TOOL_OUTPUT = new FileType(true, false,
-      "", ".flat", ImodManager.FLATTEN_TOOL_OUTPUT_KEY);
+  public static final FileType FIDUCIAL_3D_MODEL = new FileType(true, true, "", ".3dmod",
+      ImodManager.FIDUCIAL_MODEL_KEY);
+  public static final FileType ALIGNED_STACK = new FileType(true, true, "", ".ali",
+      ImodManager.FINE_ALIGNED_KEY);
+  public static final FileType XCORR_BLEND_OUTPUT = new FileType(true, true, "", ".bl",
+      null);
+  public static final FileType DISTORTION_CORRECTED_STACK = new FileType(true, true, "",
+      ".dcst", null);
+  public static final FileType FIDUCIAL_MODEL = new FileType(true, true, "", ".fid", null);
+  public static final FileType FLATTEN_TOOL_OUTPUT = new FileType(true, false, "",
+      ".flat", ImodManager.FLATTEN_TOOL_OUTPUT_KEY);
   public static final FileType JOIN = new FileType(true, false, "", ".join",
       ImodManager.JOIN_KEY);
-  public static final FileType ANISOTROPIC_DIFFUSION_OUTPUT = new FileType(
-      true, false, "", ".nad", ImodManager.ANISOTROPIC_DIFFUSION_VOLUME_KEY);
-  public static final FileType PREALIGNED_STACK = new FileType(true, true, "",
-      ".preali", ImodManager.COARSE_ALIGNED_KEY);
-  public static final FileType RAW_TILT_ANGLES = new FileType(true, true, "",
-      ".rawtlt", null);
-  public static final FileType TRIM_VOL_OUTPUT = new FileType(true, false, "",
-      ".rec", ImodManager.TRIMMED_VOLUME_KEY);
-  public static final FileType DUAL_AXIS_TOMOGRAM = new FileType(true, true,
-      "", ".rec", ImodManager.FULL_VOLUME_KEY);
-  public static final FileType JOIN_SAMPLE_AVERAGES = new FileType(true, false,
-      "", ".sampavg", ImodManager.JOIN_SAMPLE_AVERAGES_KEY);
-  public static final FileType JOIN_SAMPLE = new FileType(true, false, "",
-      ".sample", ImodManager.JOIN_SAMPLES_KEY);
-  public static final FileType SQUEEZE_VOL_OUTPUT = new FileType(true, false,
-      "", ".sqz", ImodManager.SQUEEZED_VOLUME_KEY);
+  public static final FileType ANISOTROPIC_DIFFUSION_OUTPUT = new FileType(true, false,
+      "", ".nad", ImodManager.ANISOTROPIC_DIFFUSION_VOLUME_KEY);
+  public static final FileType PREALIGNED_STACK = new FileType(true, true, "", ".preali",
+      ImodManager.COARSE_ALIGNED_KEY);
+  public static final FileType RAW_TILT_ANGLES = new FileType(true, true, "", ".rawtlt",
+      null);
+  public static final FileType TRIM_VOL_OUTPUT = new FileType(true, false, "", ".rec",
+      ImodManager.TRIMMED_VOLUME_KEY);
+  public static final FileType DUAL_AXIS_TOMOGRAM = new FileType(true, true, "", ".rec",
+      ImodManager.FULL_VOLUME_KEY);
+  public static final FileType JOIN_SAMPLE_AVERAGES = new FileType(true, false, "",
+      ".sampavg", ImodManager.JOIN_SAMPLE_AVERAGES_KEY);
+  public static final FileType JOIN_SAMPLE = new FileType(true, false, "", ".sample",
+      ImodManager.JOIN_SAMPLES_KEY);
+  public static final FileType SQUEEZE_VOL_OUTPUT = new FileType(true, false, "", ".sqz",
+      ImodManager.SQUEEZED_VOLUME_KEY);
   public static final FileType RAW_STACK = new FileType(true, true, "", ".st",
       ImodManager.RAW_STACK_KEY, ImodManager.PREVIEW_KEY);
-  public static final FileType NEWST_OR_BLEND_3D_FIND_OUTPUT = new FileType(
-      true, true, "_3dfind", ".ali", ImodManager.FINE_ALIGNED_3D_FIND_KEY);
-  public static final FileType FIND_BEADS_3D_OUTPUT_MODEL = new FileType(true,
-      true, "_3dfind", ".mod", null);
-  public static final FileType TILT_3D_FIND_OUTPUT = new FileType(true, true,
-      "_3dfind", ".rec", ImodManager.FULL_VOLUME_3D_FIND_KEY);
-  public static final FileType SMOOTHING_ASSESSMENT_OUTPUT_MODEL = new FileType(
-      true, true, "_checkflat", ".mod", ImodManager.SMOOTHING_ASSESSMENT_KEY);
-  public static final FileType CTF_CORRECTED_STACK = new FileType(true, true,
-      "_ctfcorr", ".ali", ImodManager.CTF_CORRECTION_KEY);
-  public static final FileType ERASED_BEADS_STACK = new FileType(true, true,
-      "_erase", ".ali", ImodManager.ERASED_FIDUCIALS_KEY);
-  public static final FileType CCD_ERASER_BEADS_INPUT_MODEL = new FileType(
-      true, true, "_erase", ".fid", null);
-  public static final FileType MTF_FILTERED_STACK = new FileType(true, true,
-      "_filt", ".ali", ImodManager.MTF_FILTER_KEY);
-  public static final FileType FIXED_XRAYS_STACK = new FileType(true, true,
-      "_fixed", ".st", ImodManager.ERASED_STACK_KEY);
-  public static final FileType FLATTEN_WARP_INPUT_MODEL = new FileType(true,
-      false, "_flat", ".mod", null);
-  public static final FileType FLATTEN_OUTPUT = new FileType(true, false,
-      "_flat", ".rec", ImodManager.FLAT_VOLUME_KEY);
-  public static final FileType FLATTEN_TOOL_COMSCRIPT = new FileType(true,
-      false, "_flatten", ".com", null);
-  public static final FileType SINGLE_AXIS_TOMOGRAM = new FileType(true, false,
-      "_full", ".rec", ImodManager.FULL_VOLUME_KEY);
-  public static final FileType MODELED_JOIN = new FileType(true, false,
-      "_modeled", ".join", ImodManager.MODELED_JOIN_KEY);
-  public static final FileType ORIGINAL_RAW_STACK = new FileType(true, true,
-      "_orig", ".st", null);
-  public static final FileType PATCH_TRACKING_BOUNDARY_MODEL = new FileType(
-      true, true, "_ptbound", ".mod", null);
-  public static final FileType TRANSFORMED_REFINING_MODEL = new FileType(true,
-      false, "_refine", ".alimod", ImodManager.TRANSFORMED_MODEL_KEY);
-  public static final FileType TRIAL_JOIN = new FileType(true, false, "_trial",
-      ".join", ImodManager.TRIAL_JOIN_KEY);
-  public static final FileType CTF_CORRECTION_COMSCRIPT = new FileType(false,
-      true, "ctfcorrection", ".com", null);
-  public static final FileType FIND_BEADS_3D_COMSCRIPT = new FileType(false,
-      true, "findbeads3d", ".com", null);
-  public static final FileType FLATTEN_COMSCRIPT = new FileType(false, false,
-      "flatten", ".com", null);
+  public static final FileType NEWST_OR_BLEND_3D_FIND_OUTPUT = new FileType(true, true,
+      "_3dfind", ".ali", ImodManager.FINE_ALIGNED_3D_FIND_KEY);
+  public static final FileType FIND_BEADS_3D_OUTPUT_MODEL = new FileType(true, true,
+      "_3dfind", ".mod", null);
+  public static final FileType TILT_3D_FIND_OUTPUT = new FileType(true, true, "_3dfind",
+      ".rec", ImodManager.FULL_VOLUME_3D_FIND_KEY);
+  public static final FileType SMOOTHING_ASSESSMENT_OUTPUT_MODEL = new FileType(true,
+      true, "_checkflat", ".mod", ImodManager.SMOOTHING_ASSESSMENT_KEY);
+  public static final FileType CTF_CORRECTED_STACK = new FileType(true, true, "_ctfcorr",
+      ".ali", ImodManager.CTF_CORRECTION_KEY);
+  public static final FileType ERASED_BEADS_STACK = new FileType(true, true, "_erase",
+      ".ali", ImodManager.ERASED_FIDUCIALS_KEY);
+  public static final FileType CCD_ERASER_BEADS_INPUT_MODEL = new FileType(true, true,
+      "_erase", ".fid", null);
+  public static final FileType MTF_FILTERED_STACK = new FileType(true, true, "_filt",
+      ".ali", ImodManager.MTF_FILTER_KEY);
+  public static final FileType FIXED_XRAYS_STACK = new FileType(true, true, "_fixed",
+      ".st", ImodManager.ERASED_STACK_KEY);
+  public static final FileType FLATTEN_WARP_INPUT_MODEL = new FileType(true, false,
+      "_flat", ".mod", null);
+  public static final FileType FLATTEN_OUTPUT = new FileType(true, false, "_flat",
+      ".rec", ImodManager.FLAT_VOLUME_KEY);
+  public static final FileType FLATTEN_TOOL_COMSCRIPT = new FileType(true, false,
+      "_flatten", ".com", null);
+  public static final FileType SINGLE_AXIS_TOMOGRAM = new FileType(true, false, "_full",
+      ".rec", ImodManager.FULL_VOLUME_KEY);
+  public static final FileType MODELED_JOIN = new FileType(true, false, "_modeled",
+      ".join", ImodManager.MODELED_JOIN_KEY);
+  public static final FileType ORIGINAL_RAW_STACK = new FileType(true, true, "_orig",
+      ".st", null);
+  public static final FileType PATCH_TRACKING_BOUNDARY_MODEL = new FileType(true, true,
+      "_ptbound", ".mod", null);
+  public static final FileType TRANSFORMED_REFINING_MODEL = new FileType(true, false,
+      "_refine", ".alimod", ImodManager.TRANSFORMED_MODEL_KEY);
+  public static final FileType TRIAL_JOIN = new FileType(true, false, "_trial", ".join",
+      ImodManager.TRIAL_JOIN_KEY);
+  public static final FileType CTF_CORRECTION_COMSCRIPT = new FileType(false, true,
+      "ctfcorrection", ".com", null);
+  public static final FileType FIND_BEADS_3D_COMSCRIPT = new FileType(false, true,
+      "findbeads3d", ".com", null);
+  public static final FileType FLATTEN_COMSCRIPT = new FileType(false, false, "flatten",
+      ".com", null);
   public static final FileType MTF_FILTER_COMSCRIPT = new FileType(false, true,
       "mtffilter", ".com", null);
   public static final FileType PATCH_VECTOR_MODEL = new FileType(false, false,
       "patch_vector", ".mod", ImodManager.PATCH_VECTOR_MODEL_KEY);
-  public static final FileType PATCH_VECTOR_CCC_MODEL = new FileType(false,
-      false, "patch_vector_ccc", ".mod", ImodManager.PATCH_VECTOR_CCC_MODEL_KEY);
-  public static final FileType COMBINED_VOLUME = new FileType(false, false,
-      "sum", ".rec", ImodManager.COMBINED_TOMOGRAM_KEY);
-  public static final FileType NAD_TEST_INPUT = new FileType(false, false,
-      "test", ".input", ImodManager.TEST_VOLUME_KEY, true);
-  public static final FileType TRACK_COMSCRIPT = new FileType(false, true,
-      "track", ".com", null);
-  public static final FileType CROSS_CORRELATION_COMSCRIPT = new FileType(
-      false, true, "xcorr", ".com", null);
-  public static final FileType PATCH_TRACKING_COMSCRIPT = new FileType(false,
-      true, "xcorr_pt", ".com", null);
+  public static final FileType PATCH_VECTOR_CCC_MODEL = new FileType(false, false,
+      "patch_vector_ccc", ".mod", ImodManager.PATCH_VECTOR_CCC_MODEL_KEY);
+  public static final FileType COMBINED_VOLUME = new FileType(false, false, "sum",
+      ".rec", ImodManager.COMBINED_TOMOGRAM_KEY);
+  public static final FileType NAD_TEST_INPUT = new FileType(false, false, "test",
+      ".input", ImodManager.TEST_VOLUME_KEY, true);
+  public static final FileType TRACK_COMSCRIPT = new FileType(false, true, "track",
+      ".com", null);
+  public static final FileType CROSS_CORRELATION_COMSCRIPT = new FileType(false, true,
+      "xcorr", ".com", null);
+  public static final FileType PATCH_TRACKING_COMSCRIPT = new FileType(false, true,
+      "xcorr_pt", ".com", null);
 
   //File types without a name description
   public static final FileType AVERAGED_VOLUMES = FileType
       .getUnamedInstance(ImodManager.AVG_VOL_KEY);
-  public static final FileType NAD_TEST_VARYING_ITERATIONS = FileType
-      .getUnamedInstance(ImodManager.VARYING_ITERATION_TEST_KEY, true);
+  public static final FileType NAD_TEST_VARYING_ITERATIONS = FileType.getUnamedInstance(
+      ImodManager.VARYING_ITERATION_TEST_KEY, true);
   public static final FileType NAD_TEST_VARYING_K = FileType.getUnamedInstance(
       ImodManager.VARYING_K_TEST_KEY, true);
   public static final FileType POSITIONING_SAMPLE = FileType
@@ -251,8 +258,7 @@ public final class FileType {
     return new FileType(false, false, "", "", imodManagerKey);
   }
 
-  private static FileType getUnamedInstance(String imodManagerKey,
-      boolean inSubdirectory) {
+  private static FileType getUnamedInstance(String imodManagerKey, boolean inSubdirectory) {
     return new FileType(false, false, "", "", imodManagerKey, inSubdirectory);
   }
 
@@ -269,8 +275,7 @@ public final class FileType {
     Iterator iterator = namedFileTypeList.iterator();
     while (iterator.hasNext()) {
       FileType fileType = (FileType) iterator.next();
-      if (fileType.usesDataset == usesDataset
-          && fileType.usesAxisID == usesAxisID
+      if (fileType.usesDataset == usesDataset && fileType.usesAxisID == usesAxisID
           && fileType.typeString.equals(typeString)
           && fileType.extension.equals(extension)) {
         return fileType;
@@ -311,8 +316,7 @@ public final class FileType {
       BaseMetaData metaData = manager.getBaseMetaData();
       String axisIDExtension = "";
       if (usesAxisID) {
-        axisIDExtension = correctAxisID(metaData.getAxisType(), axisID)
-            .getExtension();
+        axisIDExtension = correctAxisID(metaData.getAxisType(), axisID).getExtension();
       }
       if (usesDataset) {
         //With the dataset the axis follows the dataset
@@ -361,8 +365,7 @@ public final class FileType {
   }
 
   public boolean hasNameDescription() {
-    return usesAxisID || usesDataset || !extension.equals("")
-        || !typeString.equals("");
+    return usesAxisID || usesDataset || !extension.equals("") || !typeString.equals("");
   }
 
   public String getExtension() {
@@ -388,8 +391,7 @@ public final class FileType {
     //Make the file.  The file may be in a subdirectory below the dataset
     //location.
     String subdirName;
-    if (inSubdirectory
-        && (subdirName = manager.getFileSubdirectoryName()) != null) {
+    if (inSubdirectory && (subdirName = manager.getFileSubdirectoryName()) != null) {
       File subdir = new File(manager.getPropertyUserDir(), subdirName);
       return new File(subdir, fileName);
     }
@@ -437,8 +439,7 @@ public final class FileType {
     BaseMetaData metaData = manager.getBaseMetaData();
     String axisIDExtension = "";
     if (usesAxisID) {
-      axisIDExtension = correctAxisID(metaData.getAxisType(), axisID)
-          .getExtension();
+      axisIDExtension = correctAxisID(metaData.getAxisType(), axisID).getExtension();
     }
     if (usesDataset) {
       //With the dataset the axis follows the dataset
@@ -473,12 +474,10 @@ public final class FileType {
    * @return corrected axisID
    */
   private static AxisID correctAxisID(AxisType axisType, AxisID axisID) {
-    if (axisType == AxisType.DUAL_AXIS
-        && (axisID == null || axisID == AxisID.ONLY)) {
+    if (axisType == AxisType.DUAL_AXIS && (axisID == null || axisID == AxisID.ONLY)) {
       return AxisID.FIRST;
     }
-    if (axisType == AxisType.SINGLE_AXIS
-        && (axisID == null || axisID == AxisID.FIRST)) {
+    if (axisType == AxisType.SINGLE_AXIS && (axisID == null || axisID == AxisID.FIRST)) {
       return AxisID.ONLY;
     }
     if (axisType == null || axisType == AxisType.NOT_SET) {
@@ -523,9 +522,7 @@ public final class FileType {
    * @return
    */
   public boolean equals(FileType fileType) {
-    return fileType.usesDataset == usesDataset
-        && fileType.usesAxisID == usesAxisID
-        && fileType.typeString.equals(typeString)
-        && fileType.extension.equals(extension);
+    return fileType.usesDataset == usesDataset && fileType.usesAxisID == usesAxisID
+        && fileType.typeString.equals(typeString) && fileType.extension.equals(extension);
   }
 }
