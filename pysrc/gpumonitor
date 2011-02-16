@@ -1,0 +1,282 @@
+#!/usr/bin/python -u
+# gpumonitor - a program to save information about GPUs being used on a set of
+# workstations per user, and return that information in response to a query.
+# The program needs to be run via ssh on a single "server" machine where there is a
+# commonly available temporary directory.  Usage files are kept per user so that
+# there is no need for the program to run in a privileged account
+#
+# Author: David Mastronarde
+#
+# $Id$
+# Log at end
+#
+
+progname = 'gpumonitor'
+prefix = 'ERROR: ' + progname + ' - '
+fileroot = 'gpuUsage.'
+reportroot = 'lastGpuQuery.'
+username = ''
+tempdir = ''
+countLim = 15
+verbose = 0
+
+# Adds a set of GPU entries, or removes them, from this user's usage file
+def modifyUsageFile(controlHost, controlID, addlist):
+   filename = os.path.join(tempdir, fileroot + username)
+   lines = []
+   lockfile = ''
+
+   # If the file exists, need to lock it before reading
+   if os.path.exists(filename):
+      lockfile = os.path.join(tempdir, 'lock' + '.' + fileroot + username)
+      count = 0
+
+      # If the lock exists, wait for it to go away and then remove it
+      while os.path.exists(lockfile):
+         if verbose and not count:
+            prnstr("Waiting for lock file to disappear")
+         fileAge = datetime.datetime.fromtimestamp(os.stat(lockfile).st_ctime)
+         tdiff = datetime.datetime.now() - fileAge
+         if tdiff.seconds > countLim or count > countLim:
+            if verbose:
+               prnstr("Removing lock file")
+            try:
+               os.remove(lockfile)
+            except:
+               if verbose:
+                  prnstr("Error removing lock file")
+            break
+
+         count += 1
+         time.sleep(1)
+
+      # Write the lock file then read our file
+      writeTextFile(lockfile, [])
+      lines = readTextFile(filename)
+
+   # If adding, parse the string: machines separated by commas, GPUs by colons
+   if addlist:
+      machines = addlist.split(',')
+      for machine in machines:
+         gpus = machine.split(':')
+
+         # Assume a 0 if no GPU is specified
+         if len(gpus) == 1:
+            gpus.append('0')
+         for i in range(1, len(gpus)):
+            lines.append(fmtstr('{} {} {} {}', controlHost, controlID, gpus[0], gpus[i]))
+            if verbose:
+               prnstr("Adding: " + lines[len(lines) - 1])
+            
+   else:
+
+      # If removing, loop on lines in reverse order.  Yes, that range does it
+      found = 0
+      for ind in range(len(lines) - 1, -1, -1):
+         line = lines[ind]
+         fields = line.split(' ')
+         if len(fields) < 2:
+            continue
+
+         # If this line matches the controller name and PID, remove it
+         if fields[0] == controlHost and fields[1] == str(controlID):
+            found = 1
+            lines.pop(ind)
+
+      # It should not be an error, in case another process got there first
+      if not found and verbose:
+         prnstr(fmtstr("Controller {}, PID {} was not found in the file {}", controlHost,
+                       controlID, filename))
+
+   # Remove existing file unconditionally and write a new one only if non-empty
+   if os.path.exists(filename):
+      try:
+         os.remove(filename)
+      except:
+         if verbose:
+            prnstr("Error removing existing usage log " + filename)
+
+   if len(lines):
+      writeTextFile(filename, lines)
+
+   # Get rid of lock file if one was made
+   if lockfile:
+      try:
+         os.remove(lockfile)
+      except:
+         if verbose:
+            prnstr("Error removing lock file when done: " + lockfile)
+
+
+#### MAIN PROGRAM  ####
+#
+# load System Libraries
+import os, sys, os.path, signal, socket, getpass, glob, datetime, time
+
+#
+# Setup runtime environment
+if sys.platform.find("win32") < 0:
+   try:
+      signal.signal(signal.SIGHUP, signal.SIG_IGN)
+   except:
+      pass
+if os.getenv('IMOD_DIR') != None:
+   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
+                        os.pathsep + os.environ['PATH']
+   sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import *
+
+# Initializations
+
+
+options = ['add::CH:List of machines and GPUs to add (e.g., host:1:2,host2,host3:2)',
+           'controller::CH:Name of machine controlling jobs (running processchunks)',
+           'pid::I:PID of the controlling process (processchunks)',
+           'query::I:Report all GPUs in use',
+           'remove::B:Remove the GPU assignments to the given controller/PID',
+           'verbose::B:Verbose output']
+
+try:
+   username = getpass.getuser()
+except:
+   if verbose:
+      prnstr("Cannot get username")
+   pass
+
+PipExitOnError(False, prefix)
+PipEnableEntryOutput(False)
+(numOpts, numNonOpts) = PipParseInput(sys.argv, options)
+
+if not numOpts:
+   PipPrintHelp(progname, 0, 0, 0)
+
+tempdir = imodTempDir()
+if not tempdir:
+   exitError('No temporary directory can be identified')
+
+query = PipGetInteger('query', -1)
+verbose = PipGetBoolean('verbose', 0)
+
+# If not querying, require and add or remove, and modify the usage file
+if query < 0:
+   remove = PipGetBoolean('remove', 0)
+   PID = PipGetInteger('pid', -1)
+   addlist = PipGetString('add', '')
+   controller = PipGetString('controller', '')
+   if PID < 0 or not controller:
+      exitError('You must enter a PID and controller for -add or -remove')
+   if not remove and not addlist:
+      exitError('You must enter -add, -remove, or -query')
+
+   modifyUsageFile(controller, PID, addlist)
+   sys.exit(0)
+
+# Query: first see if there is a recent report to forward
+if query > 0:
+   reportFiles = glob.glob(os.path.join(tempdir, reportroot) + '*')
+   for rfile in reportFiles:
+      fileAge = datetime.datetime.fromtimestamp(os.stat(rfile).st_ctime)
+      tdiff = datetime.datetime.now() - fileAge
+      if tdiff.seconds <= query:
+         if verbose:
+            prnstr(fmtstr("Reusing report {} from {} seconds ago", rfile, tdiff.seconds))
+         lines = readTextFile(rfile)
+         for line in lines:
+            prnstr(line)
+         sys.exit(0)
+      
+# Query: get a list of usage files in the temp directory
+usageFiles = glob.glob(os.path.join(tempdir, fileroot) + '*')
+hostname = socket.gethostname().split('.')[0]
+usageLists = []
+checkList = []
+
+# Read each file, save the lines, and make list of all the machines to do ps on
+for ufile in usageFiles:
+   lines = readTextFile(ufile)
+   for line in lines:
+      lsplit = line.split(' ')
+      if len(lsplit) >  0 and not checkList.count(lsplit[0]):
+         checkList.append(lsplit[0])
+   usageLists.append(lines)
+
+# For each machine, run a ps
+for contHost in checkList:
+   if contHost == hostname:
+      command = 'ps -ae'
+   else:
+      command = 'ssh -x -o PreferredAuthentications=publickey ' + \
+                '-o StrictHostKeyChecking=no ' + contHost + ' ps -ae'
+   try:
+      pslines = runcmd(command)
+   except ImodpyError:
+      exitFromImodError(progname)
+
+   # Loop on all the usage lists
+   for useInd in range(len(usageFiles)):
+      ulist = usageLists[useInd]
+
+      # Loop on lines in a usage list
+      checked = []
+      for ind in range(len(ulist) - 1, -1, -1):
+         uline = ulist[ind]
+         lsplit = uline.split(' ')
+         if len(lsplit) < 2:
+            continue
+         lineHost = lsplit[0]
+         linePID = lsplit[1]
+
+         # If this line is for a process on this host, look for the process
+         if lineHost == contHost:
+            found = False
+            for pline in pslines[1:]:
+               while len(pline) > 0 and not pline[0].isdigit():
+                  pline = pline[1:]
+               if len(pline) > 0:
+                  psplit = pline.split(' ')
+                  if len(psplit) > 0 and psplit[0] == linePID:
+                     found = True
+                     break
+
+            # If the controlling process is not found on this machine's ps, take it out
+            # of the lists AND drop it from the usage file if it is ours
+            if not found:
+               if verbose and not checked.count(linePID):
+                  prnstr(fmtstr("Controller {}, PID {} no longer running", lineHost,
+                                linePID))
+               if verbose and len(lsplit) > 3:
+                  prnstr(fmtstr("Removing {} {} from usage list", lsplit[2], lsplit[3]))
+               usageLists[useInd].pop(ind)
+               if not checked.count(linePID) and \
+                      usageFiles[useInd] == os.path.join(tempdir, fileroot + username):
+                  if verbose:
+                     prnstr("Removing it from usage file")
+                  modifyUsageFile(lineHost, int(linePID), [])
+
+            checked.append(linePID)
+
+# Now the lists are checked and cleaned up, make a report list from them
+if verbose:
+   prnstr("A fresh report:")
+report = []
+for ulist in usageLists:
+   for uline in ulist:
+      usplit = uline.split(' ')
+      if len(usplit) == 4:
+         rline = usplit[2] + ' ' + usplit[3]
+         report.append(rline)
+         prnstr(rline)
+
+# Write the report to a file
+rfile = os.path.join(tempdir, reportroot + username)
+writeTextFile(rfile, report)
+sys.exit(0)
+
+#  $Log$
