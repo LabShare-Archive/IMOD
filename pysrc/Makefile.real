@@ -3,12 +3,12 @@ include ../configure
 # to pylib
 #
 # $Id$
-# Log at end
+# No more Log
 #
 
 # IS THIS Makefile.real?  IF NOT, DON't MODIFY IT!
 SCRIPTS = vmstopy tomostitch edgepatches fitpatches sirtsetup splitblend \
-setupcombine splittilt imodcpuload
+setupcombine splittilt imodcpuload gpumonitor
 MODULES = imodpy.py pysed.py supermont.py pip.py
 
 all:
@@ -23,33 +23,3 @@ cmdwrappers:
 
 clean:
 	$(FIND) . -type f -name "*~"   -exec rm "{}" \;
-
-#
-#  $Log$
-#  Revision 1.8  2010/12/03 19:46:35  mast
-#  *** empty log message ***
-#
-#  Revision 1.7  2010/06/23 23:21:46  mast
-#  Added splitblend
-#
-#  Revision 1.6  2010/02/22 06:20:08  mast
-#  Added sirtsetup
-#
-#  Revision 1.5  2009/09/08 23:29:27  mast
-#  Added fitpatches
-#
-#  Revision 1.4  2008/01/05 17:28:36  mast
-#  Removed extension module, added python module for pip
-#
-#  Revision 1.3  2007/04/10 19:43:12  mast
-#  Change for new copywrapper script
-#
-#  Revision 1.2  2007/04/08 16:32:45  mast
-#  Added supermontage programs
-#
-#  Revision 1.1  2006/10/03 18:54:47  mast
-#  Allow for dummy Makefile
-#
-#  Revision 1.1  2006/09/26 23:02:48  mast
-#  Added to package
-#
