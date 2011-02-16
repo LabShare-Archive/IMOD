@@ -26,6 +26,7 @@ This module provides the following functions:
   optionValue(linelist, option, type, ignorecase = False) - finds option value
                                                               in list of lines
   completeAndCheckComFile(comfile) - returns complete com file name and root
+  imodTempDir() - returns a temporary directory: IMOD_TEMPDIR, /usr/tmp, or /tmp
   fmtstr(string, *args) - formats a string with replacement fields
   prnstr(string, file = sys.stdout, end = '\n') - replaces print function
 """
@@ -438,6 +439,42 @@ def completeAndCheckComFile(comfile):
    return (comfile, rootname)
 
 
+# Return the windows path for path using cygpath if windows is not None
+def getCygpath(windows, path):
+   if windows:
+      try:
+         cygtemp = runcmd('cygpath -m ' + path)
+         if cygtemp != None and len(cygtemp) > 0:
+            return cygtemp[0]
+      except:
+         pass
+   return path
+
+
+# Function to return the IMOD temporary directory
+def imodTempDir():
+   """imodTempDir() - returns a temporary directory: IMOD_TEMPDIR, /usr/tmp, or /tmp
+   Uses IMOD_TEMPDIR as a temporary directory if it is defined, exists, and is writable;
+   otherwise uses /usr/tmp if it exists and is writable; otherwise uses /tmp if it
+   exists and is writable; otherwise returns None.  Paths are converted to Windows paths
+   on Windows.
+   """
+   windows = sys.platform.find('win32') >= 0 or sys.platform.find('cygwin') >= 0
+   imodtemp = os.getenv('IMOD_TMPDIR')
+   if imodtemp != None:
+      imodtemp = getCygpath(windows, imodtemp)
+      if os.path.exists(imodtemp) and os.path.isdir(imodtemp) and \
+             os.access(imodtemp, os.W_OK):
+         return imodtemp
+   imodtemp = getCygpath(windows, '/usr/tmp')
+   if os.path.exists(imodtemp) and os.access(imodtemp, os.W_OK):
+      return imodtemp
+   imodtemp = getCygpath(windows, '/tmp')
+   if os.path.exists(imodtemp) and os.access(imodtemp, os.W_OK):
+      return imodtemp
+   return None
+
+
 # Function to format a string in new format for earlier versions of python
 def fmtstr(stringIn, *args):
    """fmtstr(string, *args) - formats a string with replacement fields
@@ -557,6 +594,9 @@ def prnstr(string, file = sys.stdout, end = '\n'):
 
 
 #  $Log$
+#  Revision 1.13  2010/12/07 00:09:30  mast
+#  Back to subprocess, it wasn't the problem in cygwin!
+#
 #  Revision 1.12  2010/12/06 22:30:10  mast
 #  Added com file name completion routine (maybe temporarily), switched back
 #  to popen2 for cygwin python 2.6+ and set up to ignore deprecation warnings
