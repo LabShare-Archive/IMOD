@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/16/11: Added gpumonitor script that will be used to keep track of GPUs in
+use in a set of workstations.
+
 2/14/11: IMOD_4-2-14
 2/14/11: Fixed 3dmod problem with contrast floating after flipping volume.
 
