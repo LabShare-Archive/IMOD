@@ -741,7 +741,7 @@ summary includes \fIinput_file\fR or \fIinput_files...\fR if
 
 .nh
 .ft B
-.xf
+.nf
 void PipEnableEntryOutput(int \fIenable\fB);
 
 subroutine PipEnableEntryOutput(\fIenable\fB)
@@ -951,13 +951,17 @@ Functions for Help, Cleanup, and Errors:
 
 \fIstatus\fB = PipPrintHelp(\fIprogName\fB, \fIuseStdErr\fB, \fIinputFiles\fB, \fIoutputFiles\fB)
 
+PipEnableEntryOutput(\fIenable\fB)
+
+PipPrintEntries()
+
 PipDone()
 
 \fIerrStr\fB = PipGetError()
 
 \fIerrNo\fB = PipGetErrNo()
 
-\fIstatus\fB = PipSetError(errString)
+\fIstatus\fB = PipSetError(\fIerrString\fB)
 
 exitError(\fIstring\fB)
 
