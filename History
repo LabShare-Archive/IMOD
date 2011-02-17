@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/17/11: Changed Extractpieces to take an image autodoc file missing the
+montage flag.
+
 2/16/11: Added gpumonitor script that will be used to keep track of GPUs in
 use in a set of workstations.
 
