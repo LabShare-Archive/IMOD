@@ -96,7 +96,10 @@ c         Or get data from the autodoc file
      &      itypeAdoc)
         if (indAdoc .gt. 0 .and. filin .eq. ' ') nz = numSect
         npiece = 0
-        if (indAdoc .gt. 0 .and. numSect .eq. nz .and. montage .gt. 0) then
+c         
+c         Thanks to a bug in SerialEM, Montage flag may be missing.  So just plow
+c         ahead regardless
+        if (indAdoc .gt. 0 .and. numSect .eq. nz) then
           maxpiece = nz + 1024
           allocate(ixpiece(maxpiece), iypiece(maxpiece), izpiece(maxpiece),
      &        stat = ierr)
@@ -114,7 +117,7 @@ c         Give lots of different error messages
      &          ' metadata file'
           else if (indAdoc .eq. -1) then
             print *,'There was an error opening or reading the metadata file'
-          else if (montage .gt. 0 .and. (npiece .gt. 0 .or. numSect .ne. nz))
+          else if (npiece .gt. 0 .or. numSect .ne. nz)
      &          then
             print *,'The metadata file does not have piece coordinates for'//
      &          ' every image in the file'
