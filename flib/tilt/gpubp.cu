@@ -125,6 +125,7 @@ __constant__ int rpNumz[DELTA_OFS];
 #define XZFOFS (4 * DELTA_OFS)
 #define YZFOFS (5 * DELTA_OFS)
 #define INVOFS (2 * DELTA_OFS)
+#define SINVOFS (3 * DELTA_OFS)
 
 // Definitions for accessing the local alignments arrays with texture calls
 #define F11IND 0.f
@@ -382,16 +383,11 @@ int gpuallocarrays(int *width, int *nyout, int *nxprj2, int *nyprj,
     }
 
     // Allocate the arrays always used for local data
-    if (cudaMallocPitch((void **)&xprojf, &pitch1, sizetmp, nlines) != 
-        cudaSuccess ||
-        cudaMallocPitch((void **)&xprojz, &pitch2, sizetmp, nlines) != 
-        cudaSuccess ||
-        cudaMallocPitch((void **)&yprojf, &pitch3, sizetmp, nlines) != 
-        cudaSuccess ||
-        cudaMallocPitch((void **)&yprojz, &localPitch, sizetmp, nlines) != 
-        cudaSuccess  ||
-        cudaMallocArray(&localData, &projDesc, *numWarps * *nviews, 12) 
-        != cudaSuccess) {
+    if (cudaMallocPitch((void **)&xprojf, &pitch1, sizetmp, nlines) != cudaSuccess ||
+        cudaMallocPitch((void **)&xprojz, &pitch2, sizetmp, nlines) != cudaSuccess ||
+        cudaMallocPitch((void **)&yprojf, &pitch3, sizetmp, nlines) != cudaSuccess ||
+        cudaMallocPitch((void **)&yprojz, &localPitch, sizetmp, nlines) != cudaSuccess  ||
+        cudaMallocArray(&localData, &projDesc, *numWarps * *nviews, 12) != cudaSuccess) {
       allocerr("Failed to allocate local factor arrays on GPU device", nplanes,
                firstNpl, lastNpl, 1);
       return 1;
@@ -1262,9 +1258,10 @@ __global__ void reprojNox(float *lines, int pitch, int iwide, int ithick,
   int line, kz;
   float zz, sum, frac, zslice, xproj, xx;
   line = i + lsStart;
-  sum = 0.;
   if (j >= iwide || line > lsEnd)
     return;
+  sum = 0.;
+  xproj = j + 1 + xprjOffset;
   for (kz = 0; kz < numz; kz++) {
     zz = 1 + kz * delz;
     frac = 1.;
@@ -1274,7 +1271,6 @@ __global__ void reprojNox(float *lines, int pitch, int iwide, int ithick,
     }
     zslice = zz - 0.5f;
     zz -= ycenAdj;
-    xproj = j + 1 + xprjOffset;
 
     // the usual -0.5 is incorporated into xcenAdj
     xx = (xproj - (zz  * sbeta + xcenPdelxx)) * cbetinv + xcenAdj;
@@ -1289,14 +1285,11 @@ __global__ void reprojNox(float *lines, int pitch, int iwide, int ithick,
 }
 
 // Kernel to do reprojection with X axis tilt and/or Z factors
-__global__ void reprojXtilt(float *lines, int pitch, int iwide, int ithick, 
-                            int lsStart, int lsEnd, int lsliceBase,
-                            int lsliceLast, float xxlim, float xcenAdj,
-                            float xcenPdelxx, float xprjOffset, float slicen,
-                            float yprjOffset, float ycenAdj, float cbetinv,
-                            float calfinv, float salfmyz, float salfsbet,
-                            float calsbetpxz, float delz, int numz,
-                            float pmean)
+__global__ void reprojXtilt
+(float *lines, int pitch, int iwide, int ithick, int lsStart, int lsEnd, int lsliceBase,
+ int lsliceLast, float xxlim, float xcenAdj, float xcenPdelxx, float xprjOffset,
+ float slicen, float yprjOffset, float ycenAdj, float cbetinv, float calfinv,
+ float salfmyz, float salfsbet, float calsbetpxz, float delz, int numz, float pmean)
 {
   int j = blockIdx.x * blockDim.x + threadIdx.x;
   int i = blockIdx.y * blockDim.y + threadIdx.y;
@@ -1304,9 +1297,11 @@ __global__ void reprojXtilt(float *lines, int pitch, int iwide, int ithick,
   float zz, sum, frac, zslice, yproj, yy, yslice, xproj, xx, fy;
   float ytol = 3.05f;
   line = i + lsStart;
-  sum = 0.;
   if (j >= iwide || line > lsEnd)
     return;
+  sum = 0.;
+  xproj = j + 1 + xprjOffset;
+  yproj = line + yprjOffset;
   for (kz = 0; kz < numz; kz++) {
     zz = 1 + kz * delz;
     frac = 1.;
@@ -1316,14 +1311,11 @@ __global__ void reprojXtilt(float *lines, int pitch, int iwide, int ithick,
     }
     zslice = zz - 0.5f;
     zz -= ycenAdj;
-    yproj = line + yprjOffset;
     yy = (yproj + zz * salfmyz - slicen) * calfinv;
     yslice = yy + slicen - yprjOffset;
-    xproj = j + 1 + xprjOffset;
 
     // the usual -0.5 is incorporated into xcenAdj
-    xx = (xproj - (yy * salfsbet + zz * calsbetpxz + xcenPdelxx)) * cbetinv +
-      xcenAdj;
+    xx = (xproj - (yy * salfsbet + zz * calsbetpxz + xcenPdelxx)) * cbetinv + xcenAdj;
     if (xx < 0.5f || xx > xxlim || yslice < lsliceBase - ytol ||
         yslice > lsliceLast + ytol) {
       sum += frac * pmean;
@@ -1346,6 +1338,98 @@ __global__ void reprojXtilt(float *lines, int pitch, int iwide, int ithick,
   lines[pitch * i + j] = sum;
 }
 
+// Kernel to do simple reprojection at high angles (no X axis tilt or Z factors) 
+__global__ void reprojNoxHigh
+(float *lines, int pitch, int iwide, int ithick, int lsStart, int lsEnd, int lsliceBase, 
+ float zzlim, float xcenAdj, float xcenPdelxx, float xprjOffset, float ycenAdj,
+ float cbeta, float denomInv, float delx, int numx, float pmean)
+{
+  int j = blockIdx.x * blockDim.x + threadIdx.x;
+  int i = blockIdx.y * blockDim.y + threadIdx.y;
+  int line, kx;
+  float zz, sum, frac, zslice, xproj, xx;
+  line = i + lsStart;
+  if (j >= iwide || line > lsEnd)
+    return;
+  sum = 0.;
+  xproj = j + 1 + xprjOffset;
+  for (kx = 0; kx < numx; kx++) {
+    xx = 1.f + kx * delx;
+    frac = 1.f;
+    if (xx > iwide) {
+      frac = 1.f - (xx - (int)xx);
+      xx = iwide;
+    }
+    
+    zz = (xproj - xcenPdelxx - (xx - xcenAdj) * cbeta) * denomInv;
+    zslice = zz + ycenAdj;
+
+    if (zslice < 0.5f || zslice > zzlim) {
+      sum += frac * pmean;
+    } else {
+      zslice += (line - lsliceBase) * ithick;
+      sum += frac * tex2D(projtex, xx - 0.5f, zslice);
+    }
+  }
+  lines[pitch * i + j] = sum;
+}
+
+// Kernel to do reprojection at high angles with X axis tilt and/or Z factors
+__global__ void reprojXtiltHigh
+(float *lines, int pitch, int iwide, int ithick, int lsStart, int lsEnd, int lsliceBase,
+ int lsliceLast, float zzlim, float xcenAdj, float xcenPdelxx, float xprjOffset,
+ float slicen, float yprjOffset, float ycenAdj, float cbeta, float calfinv, float salfmyz,
+ float salfsbetdcal, float denomInv, float delx, int numx, float pmean)
+{
+  int j = blockIdx.x * blockDim.x + threadIdx.x;
+  int i = blockIdx.y * blockDim.y + threadIdx.y;
+  int line, kx,iys;
+  float zz, sum, frac, zslice, yproj, yy, yslice, xproj, xx, fy;
+  float ytol = 3.05f;
+  line = i + lsStart;
+  if (j >= iwide || line > lsEnd)
+    return;
+  sum = 0.;
+  xproj = j + 1 + xprjOffset;
+  yproj = line + yprjOffset;
+  for (kx = 0; kx < numx; kx++) {
+    xx = 1.f + kx * delx;
+    frac = 1.f;
+    if (xx > iwide) {
+      frac = 1.f - (xx - (int)xx);
+      xx = iwide;
+    }
+    
+    // Here xcenAdj does not have the -0.5 and ycenAdj does
+    zz = (xproj - (yproj - slicen) * salfsbetdcal - xcenPdelxx - (xx - xcenAdj) * cbeta) *
+      denomInv;
+    yy = (yproj + zz * salfmyz - slicen) * calfinv;
+    yslice = yy + slicen - yprjOffset;
+    zslice = zz + ycenAdj;
+
+    if (zslice < 0.5f || zslice > zzlim || yslice < lsliceBase - ytol ||
+        yslice > lsliceLast + ytol) {
+      sum += frac * pmean;
+    } else {
+      iys = (int)yslice;
+      if (iys < lsliceBase) {
+        iys = lsliceBase;
+        fy = 0.;
+      } else if (iys >= lsliceLast) {
+        iys = lsliceLast - 1;
+        fy = 1.;
+      } else {
+        fy = yslice - iys;
+      }
+      zslice += (iys - lsliceBase) * ithick;
+      xx -= 0.5f;
+      sum += frac * ((1. - fy) * tex2D(projtex, xx, zslice) + 
+                     fy * tex2D(projtex, xx, zslice + ithick));
+    }
+  }
+  lines[pitch * i + j] = sum;
+}
+
 // Function to run reprojection for all cases except local alignments
 int gpureproject(float *lines, float *sbeta, float *cbeta, float *salpha, 
                  float *calpha, float *xzfac, float *yzfac, float *delz,
@@ -1355,36 +1439,66 @@ int gpureproject(float *lines, float *sbeta, float *cbeta, float *salpha,
                  float *yprjOffset, float *slicen, int *ifalpha, float *pmean)
 { 
   int blockX = 16;
-  int numz, numLines = *lsEnd + 1 - *lsStart;
+  int numz, numx, numLines = *lsEnd + 1 - *lsStart;
   int lastSlice = lsliceFirst + numLoadedPlanes - 1;
   float znum, xcenAdj, salfsbet, calsbetpxz, ycenAdj, salfmyz, cbetinv,calfinv;
-  znum = 1. + (*ithick - 1) / *delz;
-  numz = znum;
-  if (znum - numz > 0.1)
-    numz++;
-  xcenAdj = *xcen - (*minXreproj-1) - 0.5;
-  salfsbet = *salpha * *sbeta;
-  calsbetpxz = *calpha * *sbeta + *xzfac;
-  ycenAdj = *ycen + 1 - *minYreproj;
-  salfmyz = *salpha - *yzfac;
-  cbetinv = 1. / *cbeta;
-  calfinv = 1. / *calpha;
+  float delx, xnum, salsbetdcal, denomInv;
 
   dim3 blockSize(blockX, 16, 1);
   dim3 gridSize((sliceWidth + blockSize.x - 1) / blockSize.x, 
                 (numLines + blockSize.y - 1) / blockSize.y, 1);
 
-  if (*ifalpha) {
-    reprojXtilt<<<gridSize, blockSize>>>
-      (devSlice, slicePitch / 4, sliceWidth, *ithick, *lsStart, *lsEnd, 
-       lsliceFirst, lastSlice, nxPlane - 0.5, xcenAdj, *xcenPdelxx,
-       *xprjOffset, *slicen, *yprjOffset, ycenAdj, cbetinv, calfinv, salfmyz,
-       salfsbet, calsbetpxz, *delz, numz, *pmean);
+  // Common items
+  xcenAdj = *xcen - (*minXreproj-1) - 0.5;
+  ycenAdj = *ycen + 1 - *minYreproj;
+  salfmyz = *salpha - *yzfac;
+  calfinv = 1. / *calpha;
+  calsbetpxz = *calpha * *sbeta + *xzfac;
+  
+  if (fabs(*sbeta * *ithick) <= fabs(*cbeta * sliceWidth)) {
+
+    // Regular low-angle lines
+    znum = 1. + (*ithick - 1) / *delz;
+    numz = (int)znum;
+    if (znum - numz > 0.1)
+      numz++;
+    salfsbet = *salpha * *sbeta;
+    cbetinv = 1. / *cbeta;
+
+    if (*ifalpha) {
+      reprojXtilt<<<gridSize, blockSize>>>
+        (devSlice, slicePitch / 4, sliceWidth, *ithick, *lsStart, *lsEnd, 
+         lsliceFirst, lastSlice, nxPlane - 0.5, xcenAdj, *xcenPdelxx,
+         *xprjOffset, *slicen, *yprjOffset, ycenAdj, cbetinv, calfinv, salfmyz,
+         salfsbet, calsbetpxz, *delz, numz, *pmean);
+    } else {
+      reprojNox<<<gridSize, blockSize>>>
+        (devSlice, slicePitch / 4, sliceWidth, *ithick, *lsStart, *lsEnd, 
+         lsliceFirst, nxPlane - 0.5, xcenAdj, *xcenPdelxx, *xprjOffset,
+         ycenAdj, *sbeta, cbetinv, *delz, numz, *pmean);
+    }
   } else {
-    reprojNox<<<gridSize, blockSize>>>
-      (devSlice, slicePitch / 4, sliceWidth, *ithick, *lsStart, *lsEnd, 
-       lsliceFirst, nxPlane - 0.5, xcenAdj, *xcenPdelxx, *xprjOffset,
-       ycenAdj, *sbeta, cbetinv, *delz, numz, *pmean);
+
+    // High angle vertical lines
+    delx = (float)fabs(*sbeta);
+    xnum = 1. + (sliceWidth - 1) / delx;
+    numx = (int)xnum;
+    if (xnum - numx > 0.1)
+      numx++;
+    salsbetdcal = *salpha * *sbeta / *calpha;
+    denomInv = 1. / (salfmyz * salsbetdcal + calsbetpxz);
+    if (*ifalpha) {
+      reprojXtiltHigh<<<gridSize, blockSize>>>
+        (devSlice, slicePitch / 4, sliceWidth, *ithick, *lsStart, *lsEnd, 
+         lsliceFirst, lastSlice, *ithick - 0.5, xcenAdj + 0.5, *xcenPdelxx,
+         *xprjOffset, *slicen, *yprjOffset, ycenAdj - 0.5, *cbeta, calfinv, salfmyz,
+         salsbetdcal, denomInv, delx, numx, *pmean);
+    } else {
+      reprojNoxHigh<<<gridSize, blockSize>>>
+        (devSlice, slicePitch / 4, sliceWidth, *ithick, *lsStart, *lsEnd, 
+         lsliceFirst, *ithick - 0.5, xcenAdj + 0.5, *xcenPdelxx, *xprjOffset,
+         ycenAdj - 0.5, *cbeta, denomInv, delx, numx, *pmean);
+    }
   }
   if (testReportErr("for reprojection"))
     return 1;
@@ -1420,7 +1534,7 @@ __global__ void reprojOneSlice(float *lines, int pitch, int iwide, int ithick,
     // The usual 0.5 is incorporated into xcenAdj
     xx = (j + 1 - ((ycen - zz)  * tables[SINOFS+i] + xcenAdj + 0.5f)) * 
       tables[INVOFS+i] + xcenAdj;
-    if (xx < 0.5f || xx > iwide - 0.5) {
+    if (xx < 0.5f || xx > iwide - 0.5f) {
       sum += frac * pmean;
     } else {
       sum += frac * tex2D(rpSlicetex, xx, zz - 0.5f);
@@ -1429,32 +1543,105 @@ __global__ void reprojOneSlice(float *lines, int pitch, int iwide, int ithick,
   lines[pitch * i + j] = sum;
 }
 
+__global__ void reprojOneHighSlice(float *lines, int pitch, int iwide, int ithick, 
+                                   float ycen, int numproj, float pmean)
+{
+  int j = blockIdx.x * blockDim.x + threadIdx.x;
+  int i = blockIdx.y * blockDim.y + threadIdx.y;
+  int kz;
+  float zz, sum, frac, xcenAdj, xx, delta;
+  if (j >= iwide || i >= numproj )
+    return;
+  sum = 0.f;
+  if (rpNumz[i] >= 0) {
+    xcenAdj = iwide / 2;
+    delta = fabsf(tables[COSOFS + i]);
+    for (kz = 0; kz < rpNumz[i]; kz++) {
+      zz = 1 + kz * delta;
+      frac = 1.f;
+      if (zz > ithick) {
+        frac = 1.f - (zz - (int)zz);
+        zz = ithick;
+      }
+      
+    // Invert what is multipled by sine because these sines were never inverted
+    // inside tilt.f, unlike the signs for regular reproj
+    // The usual -0.5 is incorporated into xcenAdj
+      xx = (j + 1 - ((ycen - zz)  * tables[SINOFS+i] + xcenAdj + 0.5f)) * 
+        tables[INVOFS+i] + xcenAdj;
+      if (xx < 0.5f || xx > iwide - 0.5f) {
+        sum += frac * pmean;
+      } else {
+        sum += frac * tex2D(rpSlicetex, xx, zz - 0.5f);
+      }
+    }
+  } else {
+
+    // Going across in X.  Here ycen incorporates the -0.5 and xcenAdj does not
+    xcenAdj = iwide / 2 + 0.5f;
+    ycen -= 0.5;
+    delta = fabsf(tables[SINOFS + i]);
+    for (kz = 0; kz < -rpNumz[i]; kz++) {
+      xx = 1 + kz * delta;
+      frac = 1.f;
+      if (xx > iwide) {
+        frac = 1.f - (xx - (int)xx);
+        xx = iwide;
+      }
+      
+      zz = ((xx - xcenAdj) * tables[COSOFS + i] - j - 1 + xcenAdj) * tables[SINVOFS + i] +
+        ycen;
+      if (zz < 0.5f || zz > ithick - 0.5f) {
+        sum += frac * pmean;
+      } else {
+        sum += frac * tex2D(rpSlicetex, xx - 0.5f, zz);
+      }
+    }
+  }
+  lines[pitch * i + j] = sum;
+}
+
 int gpureprojoneslice(float *slice, float *lines, float *sbeta, float *cbeta,
                       float *ycen, int *numproj, float *pmean)
 {
-  float znum, cosinv[DELTA_OFS];
+  float znum, cosinv[DELTA_OFS], sininv[DELTA_OFS];
   int numz[DELTA_OFS];
   int blockX = 16;
-  int iv;
+  int iv, high = 0;
 
   // Get limited inverse cosines and number of points to do in Z
   loadBetaInvertCos(cbeta, sbeta, cosinv, *numproj);
 
   for (iv = 0; iv < *numproj; iv++) {
-    znum = 1. + (sliceThick - 1) * cosinv[iv];
-    numz[iv] = znum;
-    if (znum - numz[iv] > 0.1)
-      numz[iv]++;
+    if (fabs(sbeta[iv] * sliceThick) <= fabs(cbeta[iv] * sliceWidth)) {
+      znum = 1. + (sliceThick - 1) * fabs(cosinv[iv]);
+      numz[iv] = (int)znum;
+      if (znum - numz[iv] > 0.1)
+        numz[iv]++;
+      sininv[iv] = 0.;
+    } else {
+
+      // For high angle slice, get the number of columns in X, save as a negative
+      high = 1;
+      sininv[iv] = 1. / sbeta[iv];
+      znum = 1. + (sliceWidth - 1) * fabs(sininv[iv]);
+      numz[iv] = (int)znum;
+      if (znum - numz[iv] > 0.1)
+        numz[iv]++;
+      numz[iv] = -numz[iv];
+    }
   }
 
   // Load constant data
   iv = *numproj * sizeof(float);
   if (cudaMemcpyToSymbol(tables, cosinv, iv, INVOFS*4, cudaMemcpyHostToDevice)
-      || cudaMemcpyToSymbol(rpNumz, numz, iv, 0, cudaMemcpyHostToDevice)) {
+      || cudaMemcpyToSymbol(rpNumz, numz, iv, 0, cudaMemcpyHostToDevice) ||
+      (high && cudaMemcpyToSymbol(tables, sininv, iv, SINVOFS*4, 
+                                  cudaMemcpyHostToDevice))) {
     pflerr("Failed to copy constant data to GPU");
     return 1;
   }
-
+  
   // Copy slice
   iv = sizeof(float) * sliceWidth * sliceThick;
   if (cudaMemcpyToArray(devRpSlice, 0, 0, slice, iv, cudaMemcpyHostToDevice)
@@ -1465,9 +1652,15 @@ int gpureprojoneslice(float *slice, float *lines, float *sbeta, float *cbeta,
   dim3 blockSize(blockX, 16, 1);
   dim3 gridSize((sliceWidth + blockSize.x - 1) / blockSize.x, 
                 (*numproj + blockSize.y - 1) / blockSize.y, 1);
-  reprojOneSlice<<<gridSize, blockSize>>>
-    (devReproj, reprojPitch / 4, sliceWidth, sliceThick, *ycen, *numproj,
-     *pmean);
+  if (high)
+    reprojOneHighSlice<<<gridSize, blockSize>>>
+      (devReproj, reprojPitch / 4, sliceWidth, sliceThick, *ycen, *numproj,
+       *pmean);
+  else
+    reprojOneSlice<<<gridSize, blockSize>>>
+      (devReproj, reprojPitch / 4, sliceWidth, sliceThick, *ycen, *numproj,
+       *pmean);
+
   if (testReportErr("for reprojection"))
     return 1;
 
@@ -1838,6 +2031,10 @@ static void allocerr(char *mess, int *nplanes, int *firstNpl,
 /*
 
 $Log$
+Revision 3.6  2010/09/15 22:51:04  mast
+Increased size to 2200 for constant arrays and tested nviews against this
+in the allocate routine
+
 Revision 3.5  2010/07/26 16:31:04  mast
 Changes for ncvv 3.1
 
