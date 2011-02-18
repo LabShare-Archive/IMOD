@@ -47,45 +47,39 @@ c       iterForReport  Starting iteration number for mean/sd reports
 c       reportVals    Array for mean, sd, and # of slices for each iteration
 c       
       module tiltvars
-      integer limview, limwidth
-      integer limreproj
-      parameter (limview=3600)
-      parameter (limreproj = limview)
 c       
       integer*4 NSTACK,maxstack, needBase, numNeedSE
       real*4, allocatable :: ARRAY(:), reprojLines(:), projline(:),origLines(:)
       integer*4, allocatable :: needStarts(:), needEnds(:)
 c       
       integer*4 npxyz(3),IWIDE,ITHICK,ISLICE,JSLICE,npad,ithickout
-      integer*4 nxprj, nyprj, nviews
-      real*4 ANGLES(limview),TITLE(20),pmin,pmax,pmean
+      integer*4 nxprj, nyprj, nviews, limview, limreproj
+      real*4 TITLE(20),pmin,pmax,pmean
       equivalence (nxprj,npxyz(1)),(nyprj,npxyz(2)),(nviews,npxyz(3))
 c       
       LOGICAL*4 MASK,PERP,reproj,recReproj,debug,readBase,useGPU, sirtFromZero
       logical*4 recSubtraction, projSubtraction
 c       
-      real*4 DELXX,xcenin,slicen,XCEN,YCEN,baselog,compress(limview),yoffset
-      real*4 xzfac(limview), yzfac(limview), edgeFill, zeroWeight, flatFrac
-      real*4 expWeight(limview),ycenModProj
-      integer*4 IMAP,nbase,ITHWID ,idelslice,newmode,mapuse(limview),
+      real*4 DELXX,xcenin,slicen,XCEN,YCEN,baselog,yoffset
+      real*4, allocatable ::  xzfac(:), yzfac(:), compress(:), expWeight(:), ANGLES(:)
+      real*4 edgeFill, zeroWeight, flatFrac, ycenModProj
+      integer*4 IMAP,nbase,ITHWID ,idelslice,newmode,
      &    iflog,iplane,ipextra,nplanes,interpfac,interpord, nvertneed,
      &    intordxtilt, minTotSlice, maxTotSlice, numViewBase, nViewSubtract,
-     &    ivSubtract(limview),nMaskExtra
+     &    nMaskExtra
 c       
-      integer*4 nstretch(limview),indstretch(limview)
-      real*4 ofstretch(limview)
+      integer*4, allocatable ::  nstretch(:),indstretch(:), mapuse(:), ivSubtract(:)
+      real*4, allocatable ::  ofstretch(:), wgtAngles(:)
 c
       integer*4 nweight, numWgtAngles
-      real*4 wincr(20), wgtAngles(limview)
+      real*4 wincr(20)
 c       
       integer*4, allocatable :: maskedge(:,:)
 c       
       real*4 FLEVL,SCALE,baseFlevl, baseScale
 c       
-      real*4 sbet(limview),cbet(limview),SAL(limview),CAL(limview)
-c       
+      real*4, allocatable :: sbet(:),cbet(:),SAL(:),CAL(:), alpha(:)
       integer*4 ifalpha
-      real*4 alpha(limview)
 c       
       integer*4 limwpos, limwarp
       integer*4 nxwarp,nywarp,ixswarp,iyswarp,idxwarp,idywarp,ifdelalpha
@@ -94,14 +88,14 @@ c
      &    swarpa(:),fw(:,:,:),delbeta(:),warpXZfac(:),warpYZfac(:),warpDelz(:),
      &    xraystr(:), yraystr(:), xprojfs(:), xprojzs(:), yprojfs(:),yprojzs(:)
 c       
-      integer*4 nreproj, nraymax(limreproj), maxZreproj
+      real*4, allocatable :: nraymax(:)
+      integer*4 nreproj, maxZreproj
       integer*4 minXreproj, maxXreproj, minYreproj, maxYreproj, minZreproj
       integer*4 ithickReproj, minXload, maxXload,nWarpDelz
       integer*4 numSIRTiter, nreadNeed, ireadBase, iworkPlane
       integer*4 ifoutSirtProj, ifoutSirtRec, isignConstraint, iterForReport
       real*4 xprjOffset, yprjOffset, projMean, filterScale, dxWarpDelz
-      real*4 cosReproj(limreproj), sinReproj(limreproj)
-      real*4, allocatable :: reportVals(:,:)
+      real*4, allocatable :: reportVals(:,:), cosReproj(:), sinReproj(:)
 c       
       integer*4 numGpuPlanes, loadGpuStart, loadGpuEnd
 c
