@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/18/11: Made Tilt able to do reprojections at all angles for nonlocal
+alignments and removed limits on number of views.
+
 2/17/11: Changed Extractpieces to take an image autodoc file missing the
 montage flag.
 
