@@ -24,6 +24,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2010/03/05 03:58:58  sueh
+ * <p> bug# 1319 Added the tilt autodoc.
+ * <p>
  * <p> Revision 1.17  2010/02/17 04:49:43  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -144,8 +147,7 @@ public final class AutodocFactory {
   }
 
   public static ReadOnlyAutodoc getInstance(BaseManager manager, String name,
-      AxisID axisID) throws FileNotFoundException, IOException,
-      LogFile.LockException {
+      AxisID axisID) throws FileNotFoundException, IOException, LogFile.LockException {
     if (name == null) {
       throw new IllegalStateException("name is null");
     }
@@ -166,9 +168,8 @@ public final class AutodocFactory {
     return autodoc;
   }
 
-  public static ReadOnlyAutodoc getDebugInstance(BaseManager manager,
-      String name, AxisID axisID) throws FileNotFoundException, IOException,
-      LogFile.LockException {
+  public static ReadOnlyAutodoc getDebugInstance(BaseManager manager, String name,
+      AxisID axisID) throws FileNotFoundException, IOException, LogFile.LockException {
     if (name == null) {
       throw new IllegalStateException("name is null");
     }
@@ -190,8 +191,8 @@ public final class AutodocFactory {
     return autodoc;
   }
 
-  public static WritableAutodoc getMatlabDebugInstance(BaseManager manager,
-      File file) throws IOException, LogFile.LockException {
+  public static WritableAutodoc getMatlabDebugInstance(BaseManager manager, File file)
+      throws IOException, LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
@@ -233,8 +234,8 @@ public final class AutodocFactory {
     return fileName.substring(0, extensionIndex);
   }
 
-  public static WritableAutodoc getEmptyMatlabInstance(BaseManager manager,
-      File file) throws IOException, LogFile.LockException {
+  public static WritableAutodoc getEmptyMatlabInstance(BaseManager manager, File file)
+      throws IOException, LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
@@ -301,8 +302,8 @@ public final class AutodocFactory {
    * @throws IOException
    */
   public static Autodoc getInstance(BaseManager manager, File directory,
-      String autodocFileName, AxisID axisID) throws FileNotFoundException,
-      IOException, LogFile.LockException {
+      String autodocFileName, AxisID axisID) throws FileNotFoundException, IOException,
+      LogFile.LockException {
     if (autodocFileName == null) {
       return null;
     }
@@ -317,8 +318,7 @@ public final class AutodocFactory {
     }
     autodoc = new Autodoc(stripFileExtension(autodocFileName));
     UITEST_AXIS_MAP.put(autodocFile, autodoc);
-    autodoc.initializeUITestAxis(manager, LogFile.getInstance(autodocFile),
-        axisID);
+    autodoc.initializeUITestAxis(manager, LogFile.getInstance(autodocFile), axisID);
     return autodoc;
   }
 
