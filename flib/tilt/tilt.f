@@ -838,8 +838,11 @@ C       Linear ramp plus Gaussian fall off
       integer*4 IRMAXin,IFALLin,ifilterSet
       integer*4 nxprj2,IEND,irmax,ifall,iv,iw,ibase,i,impbase
       real*4 stretch,avgint,atten,sumint,wsum,z,arg,sirtFrac
-      real*4 diffmin, diff, attensum,wgtAtten(limview)
+      real*4 diffmin, diff, attensum
+      real*4, allocatable :: wgtAtten(:)
 c       
+      allocate(wgtAtten(limview), stat = i)
+      call memoryError(i, 'ARRAY FOR WEIGHTS PER VIEW')
       sirtFrac = 0.99
       nxprj2=nxprj+2+npad
       IEND=NXPRJ2/2
@@ -1972,9 +1975,8 @@ C
       integer*4 nfields,inum(limnum)
       real*4 XNUM(limnum)
 c       
-      integer*4 ivexcl(limview),ivreprj(limview)
-      real*4 angReproj(limview)
-      real*4, allocatable :: packLocal(:,:)
+      integer*4, allocatable :: ivexcl(:),ivreprj(:)
+      real*4, allocatable :: packLocal(:,:), angReproj(:)
       integer*4 mode,newangles,iftiltfile,nvuse,nvexcl,numNeedEval
       real*4 delang,compfac,globalpha,xoffset,scalelocal,rrmax,rfall,xoffAdj
       integer*4 irmax,ifall,ncompress,nxfull,nyfull,ixsubset,iysubset
@@ -1982,7 +1984,7 @@ c
       integer*4 nd1,nd2,nv,nslice,indi,i,iex,nvorig,iv
       real*4 vd1,vd2,dtheta,theta,thetanv,rmax,sdg,oversamp,scalescl
       integer*4 nxprjp,nwidep,needwrk,needzwrk,neediw,needrw,needout,minsup
-      integer*4 maxsup,nshift,nxprj2,nsneed,ninp,nexclist,j,needzw,ind, nument
+      integer*4 maxsup,nshift,nxprj2,ninp,nexclist,j,needzw,ind, nument
       integer*4 npadtmp,nprpad,ithicknew,nocosPlanes,ifZfac,localZfacs
       integer*4 ifThickIn,ifSliceIn,ifWidthIn,imageBinned,ifSubsetIn,ierr
       real*4 pixelLocal, dmint,dmaxt,dmeant, frac, origx, origy, origz
@@ -2057,8 +2059,9 @@ c
      &    call exitError('NO OUTPUT FILE SPECIFIED')
 c       
 c       Allocate array a little bit for temp use
-      allocate(array(10*limview), stat = ierr)
-      if (ierr. ne. 0) call exitError('ALLOCATING SMALL TEMPORARY ARRAY')
+      limreproj = 100000
+      allocate(array(limreproj), angReproj(limreproj), stat = ierr)
+      call memoryError(ierr, 'SMALL TEMPORARY ARRAYS')
       ierr = PipGetLogical('DebugOutput', debug)
 C       
 C       Open input projection file
@@ -2066,11 +2069,17 @@ C       Open input projection file
       CALL IRDHDR(1,NPXYZ,MPXYZ,MODE,PMIN,PMAX,PMEAN)
       call irtdat(1,idtype,lens,nd1,nd2,vd1,vd2)
       NVIEWS=NPXYZ(3)
+      limview = nviews + 10
+      allocate(sbet(limview),cbet(limview),SAL(limview),CAL(limview), alpha(limview),
+     &    ANGLES(limview),xzfac(limview), yzfac(limview), compress(limview),
+     &    nstretch(limview), indstretch(limview), ofstretch(limview),expWeight(limview),
+     &    mapuse(limview),ivSubtract(limview), wgtAngles(limview), ivexcl(limview),
+     &    ivreprj(limview), stat = ierr)
+      call memoryError(ierr, 'ARRAYS FOR VARIABLES PER VIEW')
 c       
 c       The approximate implicit scaling caused by the default radial filter
       filterScale = npxyz(1) / 2.2
 c       
-      if (nviews.gt.limview) call exitError('Too many images in tilt series.')
       newangles=0
       iftiltfile=0
 c       
@@ -2430,8 +2439,6 @@ c       violates original unless a blank entry is allowed
         do i = 1, nfields
           nreproj = nreproj + 1
           angReproj(nreproj) = xnum(i)
-          cosReproj(nreproj) = cos(dtor * xnum(i))
-          sinReproj(nreproj) = sin(dtor * xnum(i))
         enddo      
         if (j. eq. 1)WRITE(6,3101)
         reproj=.not.recReproj
@@ -2828,13 +2835,20 @@ c       Also adjust the recon mean for a fill value
         nreproj = nvuse
         do i = 1, nvuse
           angReproj(i) = angles(mapuse(i))
-          sinReproj(i) = sin(dtor * angReproj(i))
-          cosReproj(i) = cos(dtor * angReproj(i))
         enddo
         flevl = flevl / filterScale
         scale = scale * filterScale
         pmean = pmean / scale - flevl
       endif
+      if (nreproj .gt. 0) then
+        allocate(cosReproj(nreproj), sinReproj(nreproj), stat = ierr)
+        call memoryError(ierr, 'ARRAYS FOR REPROJECTION SINES/COSINES')
+        do i = 1, nreproj
+          cosReproj(i) = cos(dtor * angReproj(i))
+          sinReproj(i) = sin(dtor * angReproj(i))
+        enddo
+      endif
+
 C       
 C       Open output map file
       call irtdel(1,delta)
@@ -2878,7 +2892,7 @@ c
             cell(3)=delta(1)*nreproj
           endif
           j = iwide * nreproj
-          allocate(xraystr(j), yraystr(j), nrayinc(j), stat = ierr)
+          allocate(xraystr(j), yraystr(j), nrayinc(j), nraymax(nreproj), stat = ierr)
           if (ierr .ne. 0) call exitError(
      &        'ALLOCATING ARRAYS FOR PROJECTION RAY DATA')
           do i = 1, nreproj
@@ -3089,6 +3103,9 @@ c
         if(thetanv.gt.180.)thetanv=thetanv-360.
         if(thetanv.le.-180.)thetanv=thetanv+360.
         CBET(iv)=COS(thetanv*DTOR)
+c         
+c         Keep cosine from going to zero so it can be divided by
+        if (abs(cbet(iv)) .lt. 1.e-6) cbet(iv) = sign(1.e-6, cbet(iv))
 c
 C         Take the negative of the sine of tilt angle to account for the fact
 c         that all equations are written for rotations in the X/Z plane,
@@ -3203,8 +3220,8 @@ c
         iyswarp=iyswarp-iysubset
       endif
 c       
-c       Done with array in its small form
-      deallocate(array, stat=ierr)
+c       Done with array in its small form and with angReproj
+      deallocate(array, angReproj, ivexcl, ivreprj, stat=ierr)
 c       
 c       Here is the place to project model points and exit
       if (projModel) call projectModel(filout, delta, nvorig)
@@ -3991,7 +4008,7 @@ c
       subroutine set_cos_stretch()
       use tiltvars
       implicit none
-      integer*4 nsneed,lsmin,lsmax,iv,ix,iy,lslice
+      integer*4 lsmin,lsmax,iv,ix,iy,lslice
       real*4 tanal,xpmax,xpmin,zz,zpart,yy,xproj
 c       make the indexes be bases, numbered from 0
 c       
@@ -4043,8 +4060,6 @@ c
         nstretch(iv)=interpfac*(xpmax-xpmin)/cbet(iv)+2.
         indstretch(iv+1)=indstretch(iv)+nstretch(iv)
 c         print *,iv,xpmin,xpmax,ofstretch(iv),nstretch(iv),indstretch(iv)
-        if(ifalpha.gt.0)nsneed=max(nsneed,
-     &      int(ithick*(abs(sal(iv))+abs(yzfac(iv)))+2))
       enddo
       return
       end
@@ -4316,6 +4331,7 @@ c
       xjump = 5.0
       nxload = maxXload + 1 - minXload
       tstart = walltime()
+      tcumul = 0.
       ycenAdj = ycen - (minYreproj - 1)
 c       
       if (useGPU .and. loadGpuStart .gt. 0) then
@@ -4713,143 +4729,333 @@ c       tiltvars module, so that this can be called in cases other than the
 c       reprojectRec where they are defined.
 c
       subroutine reprojOneAngle(array, reprojLines, inLoadStr, inLoadEnd, line,
-     &    cbeta, sbeta, calf, salf, delz, iwide, ithickReproj, iplane,
+     &    cbeta, sbeta, calf, salf, delzIn, iwide, ithickReproj, iplane,
      &    nxload, minXreproj, minYreproj, xprjOffset, yprjOffset, xcen, ycen,
      &    xcenPdelxx, slicen, ifalpha, xzfacv, yzfacv, pmean)
       implicit none
-      real*4 array(*), reprojLines(*), cbeta, sbeta, calf, salf, delx, delz
+      real*4 array(*), reprojLines(*), cbeta, sbeta, calf, salf, delx, delzIn
       integer*4 inLoadStr, inLoadEnd, line, iwide, ithickReproj, iplane, nxload
       integer*4 minXreproj, minYreproj, ifalpha
       real*4 xprjOffset, yprjOffset, slicen, xzfacv, yzfacv, pmean
       real*4 xcen, ycen, xcenPdelxx
 c       
       integer*4 ix, iz, i, numz, kz, iys, ixnd, ixst, ind, indbase,myFloor
-      real*4 znum, fz, omfz, zz, xx, fx, ytol, pfill
+      real*4 znum, fz, omfz, zz, xx, fx, ytol, pfill, salfsbetdcal, xcenAdj, ysl, dely
       real*4 omfx, yy, fy, omfy, xproj, yproj, yslice, d11, d12, d21, d22
-      real*8 xx8
+      real*8 xx8, yy8, zz8
+      integer*4 numx, kx, ixyOKst, ixyOKnd, iyfix, ifixst, ifixnd
+      real*4 delz, xnum, eps
+      real*4 atand, atan2d
 
       ytol = 3.05
-      delx = 1. / cbeta
-      do i = 1, iwide
-        reprojLines(i) = 0.
-      enddo
-c       
-      znum = 1. + (ithickReproj - 1) / delz
-      numz = znum
-      if (znum - numz .ge. 0.1) numz = numz + 1
-c       
-c       Loop up in Z through slices, adding in lines of data to the
-c       output line
-      do kz = 1, numz
-        zz = 1 + (kz - 1) * delz
-        iz = zz
-        fz = zz - iz
-        omfz = 1. - fz
-        pfill = pmean
+      eps = 0.01
+      reprojLines(1:iwide) = 0.
+      if (abs(sbeta * ithickReproj) .le. abs(cbeta * iwide)) then
 c         
-c         If Z is past the top, drop back one line and set up fractions
-c         to take just a fraction of the top line
-        if (zz .ge. ithickReproj) then
-          zz = ithickReproj
-          iz = ithickReproj - 1
-          fz = omfz
-          omfz = 0.
-          pfill = pmean * fz
-        endif
-        zz = zz + minYreproj - 1 - ycen
+        delz = delzIn
+        delx = 1. / cbeta
+        znum = 1. + (ithickReproj - 1) / delz
+        numz = znum
+        if (znum - numz .ge. 0.1) numz = numz + 1
 c         
-c         Get y slice for this z value
-        yproj = line + yprjOffset
-        yy = (yproj + zz * (salf - yzfacv) - slicen) / calf
-        yslice = yy + slicen - yprjOffset
-        if (ifalpha .eq. 0) yslice = line
-c         if (line.eq.591)print *,kz,zz,iz,fz,omfz,yproj,yy,yslice
-        if (yslice .lt. inloadstr - ytol .or.
-     &      yslice .gt. inloadend + ytol) then
+c         Loop up in Z through slices, adding in lines of data to the
+c         output line
+        do kz = 1, numz
+          zz = 1 + (kz - 1) * delz
+          iz = zz
+          fz = zz - iz
+          omfz = 1. - fz
+          pfill = pmean
 c           
-c           Really out of bounds, do fill
-c           if (line.eq.591)print *,'Out of bounds, view, line, zz', line, zz
-          do i = 1, iwide
-            reprojLines(i) = reprojLines(i) + pfill
-          enddo
-        else
+c           If Z is past the top, drop back one line and set up fractions
+c           to take just a fraction of the top line
+          if (zz .ge. ithickReproj) then
+            zz = ithickReproj
+            iz = ithickReproj - 1
+            fz = omfz
+            omfz = 0.
+            pfill = pmean * fz
+          endif
+          zz = zz + minYreproj - 1 - ycen
 c           
-c           otherwise set up iy and interpolation factors
-          iys = floor(yslice)
-          if (ifalpha .ne. 0) then
-            if (iys .lt. inloadstr) then
-              iys = inloadstr
-              fy = 0.
-            else if (iys .ge. inloadend) then
-              iys = inloadend - 1
-              fy = 1.
-            else
-              fy = yslice - iys
+c           Get y slice for this z value
+          yproj = line + yprjOffset
+          yy = (yproj + zz * (salf - yzfacv) - slicen) / calf
+          yslice = yy + slicen - yprjOffset
+          if (ifalpha .eq. 0) yslice = line
+c           if (line.eq.591)print *,kz,zz,iz,fz,omfz,yproj,yy,yslice
+          if (yslice .lt. inloadstr - ytol .or.
+     &        yslice .gt. inloadend + ytol) then
+c             
+c             Really out of bounds, do fill
+c             if (line.eq.591)print *,'Out of bounds, view, line, zz', line, zz
+            reprojLines(1:iwide) = reprojLines(1:iwide) + pfill
+          else
+c             
+c             otherwise set up iy and interpolation factors
+            iys = floor(yslice)
+            if (ifalpha .ne. 0) then
+              if (iys .lt. inloadstr) then
+                iys = inloadstr
+                fy = 0.
+              else if (iys .ge. inloadend) then
+                iys = inloadend - 1
+                fy = 1.
+              else
+                fy = yslice - iys
+              endif
+              omfy = 1. - fy
             endif
-            omfy = 1. - fy
-          endif
-c           
-c           Now get starting X coordinate, fill to left
-          xproj = 1 + xprjOffset
-          xx = (xproj - (yy * salf * sbeta + zz * (calf * sbeta +
-     &        xzfacv) + xcenPdelxx)) / cbeta + xcen - (minXreproj-1)
-          ixst = 1
-          if (xx .lt. 1) then
-            ixst = (1. - xx) / delx + 2
-            do i = 1, ixst - 1
-              reprojLines(i) = reprojLines(i) + pfill
-            enddo
+c             
+c             Now get starting X coordinate, fill to left
+            xproj = 1 + xprjOffset
+            xx = (xproj - (yy * salf * sbeta + zz * (calf * sbeta +
+     &          xzfacv) + xcenPdelxx)) / cbeta + xcen - (minXreproj-1)
+            ixst = 1
+            if (xx .lt. 1) then
+              ixst = ceiling((1. - xx) / delx + 1.)
+            elseif (xx .ge. iwide) then
+              ixst = ceiling((iwide - xx) / delx + 1.)
+            endif
             xx = xx + (ixst - 1) * delx
+            if (xx .lt. 1 .or. xx .ge. iwide) then
+              ixst = ixst + 1
+              xx = xx + delx
+            endif
+            if (ixst .gt. 1) reprojLines(1:ixst-1) = reprojLines(1:ixst-1) + pfill
+c             
+c             get ending X coordinate, fill to right
+            ixnd = iwide
+            if (xx + (ixnd - ixst) * delx .ge. iwide - eps) then
+              ixnd = (iwide - xx) / delx + ixst
+              if (xx + (ixnd - ixst) * delx .ge. iwide - eps) ixnd = ixnd - 1
+            elseif (xx + (ixnd - ixst) * delx .lt. 1 + eps) then
+              ixnd = (1. - xx) / delx + ixst
+              if (xx + (ixnd - ixst) * delx .lt. 1 + eps) ixnd = ixnd - 1
+            endif
+            if (ixnd .lt. iwide)
+     &          reprojLines(ixnd+1:iwide) = reprojLines(ixnd+1:iwide) + pfill
+
+c             if (line .eq. lsStart) write(*,'(3i6,3f11.3)')iv,ixst, ixnd,xx,
+c             &    (ixst+xprjOffset -
+c             &    (yy * salf * sbeta + zz * (calf * sbeta +
+c             &    xzfacv) + xcenPdelxx)) / cbeta + xcen - (minXreproj-1)
+c             &    ,(ixnd+xprjOffset -
+c             &    (yy * salf * sbeta + zz * (calf * sbeta +
+c             &    xzfacv) + xcenPdelxx)) / cbeta + xcen - (minXreproj-1)
+c             
+c             Add the line in: do simple 2x2 interpolation if no alpha
+            indbase = 1 + iplane * (iys - inloadstr) + (iz - 1) *nxload
+c             if (line.eq.591) print *,ixst,ixnd
+            xx8 = xx
+            if (ifalpha .eq. 0) then
+              do i = ixst, ixnd
+                ix = xx8
+                fx = xx8 - ix
+                omfx = 1. - fx
+                ind = indbase + ix - 1
+                reprojLines(i) = reprojLines(i) +
+     &              omfz * omfx * array(ind) +
+     &              omfz * fx * array(ind + 1) +
+     &              fz * omfx * array(ind + nxload) +
+     &              fz * fx * array(ind + nxload + 1)
+c                 if (line.eq.591.and.i.eq.164) print *,reprojLines(i),array(ind),
+c                 &    array(ind + 1),array(ind + nxload),array(ind + nxload + 1)
+                xx8 = xx8 + delx
+              enddo
+            else
+c               
+c               Or do the full 3D interpolation if any variation in Y
+              do i = ixst, ixnd
+                ix = xx8
+                fx = xx8 - ix
+                omfx = 1. - fx
+                d11 = omfx * omfy
+                d12 = omfx * fy
+                d21 = fx * omfy
+                d22 = fx * fy
+                ind = indbase + ix - 1
+                reprojLines(i) = reprojLines(i) +
+     &              omfz * (d11 * array(ind)
+     &              + d12 * array(ind + iplane) + d21 * array(ind + 1)
+     &              + d22 * array(ind + iplane + 1))
+     &              + fz * (d11 * array(ind + nxload)
+     &              + d12 * array(ind + iplane + nxload)
+     &              + d21 * array(ind + 1 + nxload)
+     &              + d22 * array(ind + iplane + 1 + nxload))
+                xx8 = xx8 + delx
+              enddo
+            endif
+          endif
+        enddo
+
+      else
+c         
+c         Angles higher than the corner angle need to be done in vertical lines,
+c         outer loop on X instead of z
+c         Spacing between vertical lines is now sine beta
+c         The step between pixels along a line is 1/sin beta with no alpha tilt,
+c         The alpha tilt compresses it by the delta Z factor divided by cosine
+c         beta, the amount that delta Z factor is compressed from cosine beta.
+        delx = abs(sbeta)
+        xnum = 1. + (iwide - 1) / delx
+        numx = xnum
+        if (xnum - numx .ge. 0.1) numx = numx + 1
+        delz = delzIn / (sbeta * abs(cbeta))
+        dely = delz * (salf - yzfacv) / calf
+c        print *,'delx, dely, delz', delx, dely, delz
+c         
+c         Loop in X across slices, adding in vertical lines of data to the output line
+        do kx = 1, numx
+          xx = 1 + (kx - 1) * delx
+          ix = xx
+          fx = xx - ix
+          omfx = 1. - fx
+          pfill = pmean
+c           
+c           If X is past the end, drop back one line and set up fractions
+c           to take just a fraction of the right column
+          if (xx .ge. iwide) then
+            xx = iwide
+            ix = iwide - 1
+            fx = omfx
+            omfx = 0.
+            pfill = pmean * fx
+          endif
+
+c           get starting Z coordinate
+          salfsbetdcal = salf * sbeta / calf
+          xcenAdj = xcen - (minXreproj-1)
+          xproj = 1 + xprjOffset
+          yproj = line + yprjOffset
+          
+          zz = (xproj - (yproj - slicen) * salfsbetdcal - xcenPdelxx - (xx - xcenAdj) *
+     &        cbeta) / ((salf - yzfacv) * salfsbetdcal + calf * sbeta + xzfacv)
+c           
+c           Get y slice for this z value, then convert Z to be index coordinates in slice
+          yy = (yproj + zz * (salf - yzfacv) - slicen) / calf
+          yslice = yy + slicen - yprjOffset
+          if (ifalpha .eq. 0) yslice = line
+          zz = zz - (minYreproj - 1 - ycen)
+c           
+c           Get starting X proj limit based on Z
+          ixst = 1
+          if (zz .lt. 1.) then
+            ixst = ceiling((1. - zz) / delz + 1.)
+          elseif (zz .ge. ithickReproj) then
+            ixst = ceiling((ithickReproj - zz) / delz + 1.)
           endif
 c           
-c           get ending X coordinate, fill to right
+c           Revise starting limit for Y
+          if (ifalpha .ne. 0) then
+            ysl = yslice + (ixst - 1.) * dely
+            if (ysl .lt. inloadstr - ytol) then
+              ixst = ceiling((inloadstr - ytol - yslice) / dely + 1.)
+            elseif (ysl .gt. inloadend + ytol) then
+              ixst = ceiling((inloadend + ytol - yslice) / dely + 1.)
+            endif              
+          endif
+c           
+c           Adjust Z start for final start and make sure it works, adjust Y also
+          zz = zz + (ixst - 1.) * delz
+          if (zz .lt. 1. .or. zz .ge. ithickReproj) then
+            zz = zz + delz
+            ixst = ixst + 1
+          endif
+          yslice = yslice + (ixst - 1.) * dely
+          if (ifalpha .eq. 0) yslice = line
+c           
+c           get ending coordinate based on limits in Z and Y
           ixnd = iwide
-          if (xx + (ixnd - ixst) * delx .ge. iwide) then
-            ixnd = iwide - (xx + (ixnd - ixst) * delx - iwide) / delx - 1
-            if (xx + (ixnd + 1 - ixst) * delx .lt. iwide) ixnd = ixnd + 1
-            do i = ixnd + 1, iwide
-              reprojLines(i) = reprojLines(i) + pfill
-            enddo
+          if (zz + (ixnd - ixst) * delz .ge. ithickReproj - eps) then
+            ixnd = (ithickReproj - zz) / delz + ixst
+            if (zz + (ixnd - ixst) * delz .ge. ithickReproj - eps) ixnd = ixnd - 1
+          elseif ( zz + (ixnd - ixst) * delz .lt. 1. + eps) then
+            ixnd = (1. - zz) / delz + ixst
+            if (zz + (ixnd - ixst) * delz .lt. 1. + eps) ixnd = ixnd - 1
           endif
-c           if (line .eq. lsStart) write(*,'(3i6,3f11.3)')iv,ixst, ixnd,xx,
-c           &    (ixst+xprjOffset -
-c           &    (yy * salf * sbeta + zz * (calf * sbeta +
-c           &    xzfacv) + xcenPdelxx)) / cbeta + xcen - (minXreproj-1)
-c           &    ,(ixnd+xprjOffset -
-c           &    (yy * salf * sbeta + zz * (calf * sbeta +
-c           &    xzfacv) + xcenPdelxx)) / cbeta + xcen - (minXreproj-1)
+          if (ifalpha .ne. 0) then
+            ysl = yslice + (ixnd - ixst) * dely
+            if (ysl .lt. inloadstr - ytol) then
+              ixnd = (inloadstr - ytol - yslice) / dely + ixst
+            elseif (ysl .gt. inloadend + ytol) then
+              ixnd = (inloadend + ytol - yslice) / dely + ixst
+            endif              
+          endif
 c           
+c           Now get X indexes within which Y can safely be varied
+          ixyOKst = ixst
+          ixyOKnd = ixnd
+          if (ifalpha .ne. 0) then
+            if (yslice .lt. inloadstr) then
+              ixyOKst = ceiling((inloadstr - yslice) / dely + ixst)
+              if (yslice + (ixyOKst - ixst) * dely .lt. inloadstr + eps)
+     &            ixyOKst = ixyOKst + 1
+            elseif (yslice .ge. inloadend) then
+              ixyOKst = ceiling((inloadend - yslice) / dely + ixst)
+              if (yslice + (ixyOKst - ixst) * dely .ge. inloadend - eps)
+     &            ixyOKst = ixyOKst + 1
+            endif
+            yslice = yslice + (ixyOKst - ixst) * dely 
+c             
+            ysl = yslice + (ixnd - ixyOKst) * dely
+            if (ysl .lt. inloadstr) then
+              ixyOKnd = (inloadstr - yslice) / dely + ixyOKst
+              if (yslice + (ixyOKnd - ixyOKst) * dely .lt. inloadstr + eps)
+     &            ixyOKnd = ixyOKnd-1
+            elseif (ysl .ge. inloadend) then
+              ixyOKnd = (inloadend - yslice) / dely + ixyOKst
+              if (yslice + (ixyOKnd - ixyOKst) * dely .ge. inloadend - eps)
+     &            ixyOKnd = ixyOKnd-1
+            endif
+          endif
+c           write( *,'(i5,f7.1,4i5,2f7.1)')kx, xx, ixst,ixyOKst,ixyOKnd, ixnd, zz,
+c     &          zz+(ixnd-ixst)*delz
+c
+c           Do the fills
+          if (ixst .gt. 1) reprojLines(1:ixst-1) = reprojLines(1:ixst-1) + pfill
+          if (ixnd .lt. iwide)
+     &        reprojLines(ixnd+1:iwide) = reprojLines(ixnd+1:iwide) + pfill
+c             
 c           Add the line in: do simple 2x2 interpolation if no alpha
-          indbase = 1 + iplane * (iys - inloadstr) + (iz - 1) *nxload
 c           if (line.eq.591) print *,ixst,ixnd
-          xx8 = xx
           if (ifalpha .eq. 0) then
+            zz8 = zz
+            indbase = 1 + iplane * (line - inloadstr) + ix - 1
             do i = ixst, ixnd
-              ix = xx8
-              fx = xx8 - ix
-              omfx = 1. - fx
-              ind = indbase + ix - 1
+              iz = zz8
+              fz = zz8 - iz
+              omfz = 1. - fz
+              ind = indbase + (iz - 1) * nxload
               reprojLines(i) = reprojLines(i) +
      &            omfz * omfx * array(ind) +
      &            omfz * fx * array(ind + 1) +
      &            fz * omfx * array(ind + nxload) +
      &            fz * fx * array(ind + nxload + 1)
+c              if (i.eq.70) print *,reprojLines(i)
 c               if (line.eq.591.and.i.eq.164) print *,reprojLines(i),array(ind),
 c               &    array(ind + 1),array(ind + nxload),array(ind + nxload + 1)
-              xx8 = xx8 + delx
+              zz8 = zz8 + delz
             enddo
           else
-c             
-c             Or do the full 3D interpolation if any variation in Y
-            do i = ixst, ixnd
-              ix = xx8
-              fx = xx8 - ix
-              omfx = 1. - fx
+c               
+c             Or do the full 3D interpolation if any variation in Y, starting with
+c             the loop where Y varies
+            yy8 = yslice
+            zz8 = zz + (ixyOKst - ixst) * delz
+            indbase = 1 - iplane * inloadstr + ix - 1
+            do i = ixyOKst, ixyOKnd
+              iz = zz8
+              fz = zz8 - iz
+              omfz = 1. - fz
+              iys = yy8
+              fy = yy8 - iys
+              omfy = 1. - fy
               d11 = omfx * omfy
               d12 = omfx * fy
               d21 = fx * omfy
               d22 = fx * fy
-              ind = indbase + ix - 1
+              ind = indbase + iplane * iys + (iz - 1) * nxload
               reprojLines(i) = reprojLines(i) +
      &            omfz * (d11 * array(ind)
      &            + d12 * array(ind + iplane) + d21 * array(ind + 1)
@@ -4858,11 +5064,47 @@ c             Or do the full 3D interpolation if any variation in Y
      &            + d12 * array(ind + iplane + nxload)
      &            + d21 * array(ind + 1 + nxload)
      &            + d22 * array(ind + iplane + 1 + nxload))
-              xx8 = xx8 + delx
+              zz8 = zz8 + delz
+              yy8 = yy8 + dely
+            enddo
+c              
+c             Now do special loops with Y fixed - do the one at the end first
+c             since Y and Z are all set for that
+            ifixst = ixyOKnd + 1
+            ifixnd = ixnd
+            do iyfix = 1,2
+              do i = ifixst, ifixnd
+                iz = zz8
+                fz = zz8 - iz
+                omfz = 1. - fz
+                d11 = omfx * omfy
+                d12 = omfx * fy
+                d21 = fx * omfy
+                d22 = fx * fy
+                ind = indbase + iplane * iys + (iz - 1) * nxload
+                reprojLines(i) = reprojLines(i) +
+     &              omfz * (d11 * array(ind)
+     &              + d12 * array(ind + iplane) + d21 * array(ind + 1)
+     &              + d22 * array(ind + iplane + 1))
+     &              + fz * (d11 * array(ind + nxload)
+     &              + d12 * array(ind + iplane + nxload)
+     &              + d21 * array(ind + 1 + nxload)
+     &              + d22 * array(ind + iplane + 1 + nxload))
+                zz8 = zz8 + delz
+              enddo
+c               
+c               Set up for loop with Y fixed at start, reset y and z
+              yy8 = yslice
+              zz8 = zz
+              iys = yy8
+              fy = yy8 - iys
+              omfy = 1. - fy
+              ifixst = ixst
+              ifixnd = ixyOKst - 1
             enddo
           endif
-        endif
-      enddo
+        enddo
+      endif
       return
       end
 
@@ -4892,7 +5134,12 @@ c       Write the line after scaling.  Scale log data to give approximately
 c       constant mean levels.  Descale non-log data by exposure weights
       numVals = iwide * (lineEnd + 1 - lineStart) 
       if (iflog .ne. 0) then
-        val = alog10(projMean + baselog) - ithickReproj * pmean / cbet(iv)
+c         Hopefully this works for local as well
+        if (abs(sbet(iv) * ithickReproj) .le. abs(cbet(iv) * iwide)) then
+          val = alog10(projMean + baselog) - ithickReproj * pmean / abs(cbet(iv))
+        else
+          val = alog10(projMean + baselog) - iwide * pmean / abs(sbet(iv))
+        endif
         if (debug) print *,iv,lineStart, lineEnd,val
         do i = 1, numVals
           reprojLines(i) = 10**(reprojLines(i) + val) - baselog
@@ -4934,20 +5181,21 @@ c
       include 'model.inc'
       character*(*) filout
       real*4 delta(3), orig(3)
-      integer*4 mapnv(limview), nvorig, ibase, numPt, iobj, ipt, ip1, iv, nv
+      integer*4 nvorig, ibase, numPt, iobj, ipt, ip1, iv, nv
       real*4 value, rj, ri, rlslice, zz, yy, zpart, xproj, yproj
       integer*4 j, lslice, imodobj, imodcont, ierr, size
       real*4 fj, fls, f11, f12, f21, f22, xf11, xz11, yf11, yz11
       real*4 xf21, xz21, yf21, yz21,xf12, xz12, yf12, yz12,xf22, xz22, yf22
       real*4 yz22, xprojf, xprojz, yprojf, yprojz
       real*4, allocatable :: values(:), coords(:,:)
+      integer*4, allocatable :: mapnv(:)
       integer*4 getContValue, putImageRef, putContValue, putImodFlag
       integer*4 getScatSize, putScatSize
-c
+c       
       call irtorg(1, orig(1), orig(2), orig(3))
       call scale_model(0)
       if (getScatSize(1, size) .ne. 0) size = 5
-      allocate(values(n_point), coords(3,n_point), stat = j)
+      allocate(values(n_point), coords(3,n_point), mapnv(limview), stat = j)
       if (j .ne. 0)call exitError('ALLOCATING ARRAYS FOR REPROJECTING MODEL')
 c       
 c       get each point and its contour value into the arrays
@@ -5064,6 +5312,9 @@ c       Set to open contour, show values etc., and show sphere on section only
 
 c       
 c       $Log$
+c       Revision 3.61  2010/09/15 22:50:08  mast
+c       Fixed problems at tilt near 90 with X axis offsets
+c
 c       Revision 3.60  2010/08/17 18:32:43  mast
 c       Fixed memory allocation for fewer than 10 slices
 c
