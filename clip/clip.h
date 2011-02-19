@@ -6,14 +6,13 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end
  */
 
 #ifndef CLIP_H
 #define CLIP_H
 
 /* processes */
-enum {IP_NONE = 0, IP_ADD, IP_AVERAGE, IP_BRIGHTNESS, IP_COLOR, 
+enum {IP_NONE = 0, IP_ADD, IP_AVERAGE, IP_VARIANCE, IP_STANDEV, IP_BRIGHTNESS, IP_COLOR, 
       IP_CONTRAST, IP_CORRELATE, IP_DIFFUSION, IP_FFT, IP_FILTER, IP_FLIP,
       IP_GRADIENT, 
       IP_GRAHAM, IP_INFO, IP_JOINRGB, IP_LAPLACIAN, IP_MEDIAN, IP_PEAK,
@@ -147,20 +146,3 @@ int clip_cor_scalevol(Istack *v);
 double parabolic_fit(double *outX, double *outY, double i[3][3]);
      
 #endif /* clip.h */
-
-/*  
-
-$Log$
-Revision 3.5  2009/03/24 02:32:54  mast
-Add decalartion of parabolic fit routine
-
-Revision 3.4  2005/01/27 05:55:17  mast
-Added anisotropic diffusion option
-
-Revision 3.3  2005/01/17 17:09:56  mast
-Changes for new typedefs and 2D processing scheme
-
-Revision 3.2  2005/01/07 20:07:06  mast
-Changes for new filters
-
-*/
