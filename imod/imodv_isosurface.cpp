@@ -215,6 +215,10 @@ static void findDimLimits(int which, int &xdim, int &ydim, int &zdim, int *sizes
   int specMinDim;
   int tempMin;
   int voxelMax;
+  int boxInit = ImodPrefs->isoBoxInitial();
+  int boxLimit = ImodPrefs->isoBoxLimit();
+  int maximal = boxLimit * boxLimit * boxLimit;
+  int deflt = boxInit * boxInit * boxInit;
 
   /* xdim = 512;
   ydim = 85;
@@ -222,11 +226,11 @@ static void findDimLimits(int which, int &xdim, int &ydim, int &zdim, int *sizes
   return;*/ 
 
   if (which == FIND_DEFAULT_DIM) {
-    specMinDim = powf(DEFAULT_VOXELS, 1.0/3.0);
-    voxelMax = DEFAULT_VOXELS;
+    specMinDim = powf((float)deflt, 1.0/3.0);
+    voxelMax = deflt;
   } else if (which == FIND_MAXIMAL_DIM) {
-    specMinDim = powf(MAXIMAL_VOXELS, 1.0/3.0);
-    voxelMax = MAXIMAL_VOXELS;
+    specMinDim = powf((float)maximal, 1.0/3.0);
+    voxelMax = maximal;
   } else {
     imodPrintStderr("imodv_isosurface: illegal usage\n");
     return;
@@ -688,7 +692,8 @@ float ImodvIsosurface::fillVolumeArray()
   mHistPanel->update();
   mMedian = mHistPanel->computePercentile(0.5);
   //imodPrintStderr("Min=%d, Max=%d, Median=%.1f\n", mVolMin, mVolMax, mMedian);
-  return mHistPanel->computePercentile(PERCENTILE);
+  return mHistPanel->computePercentile(ImodPrefs->isoHighThresh() ? 
+                                       1. - PERCENTILE : PERCENTILE);
 }
 
 /*
@@ -2672,6 +2677,9 @@ void ImodvIsosurface::dumpVolume(char *filename)
 /*
 
 $Log$
+Revision 4.26  2011/02/09 05:35:36  mast
+Uncommented openmp in painting routine
+
 Revision 4.25  2011/02/02 21:31:44  mast
 Fixed initialization in removing outer pixels
 

@@ -5,20 +5,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>365</width>
-    <height>502</height>
+    <width>359</width>
+    <height>546</height>
    </rect>
   </property>
   <property name="windowTitle" >
    <string>Appearance</string>
   </property>
-  <layout class="QVBoxLayout" >
-   <property name="spacing" >
-    <number>6</number>
-   </property>
-   <property name="margin" >
-    <number>11</number>
-   </property>
+  <layout class="QVBoxLayout" name="verticalLayout_2" >
    <item>
     <layout class="QHBoxLayout" >
      <item>
@@ -265,6 +259,21 @@
           <string>Autocontrast targets</string>
          </property>
          <layout class="QVBoxLayout" >
+          <property name="spacing" >
+           <number>4</number>
+          </property>
+          <property name="leftMargin" >
+           <number>5</number>
+          </property>
+          <property name="topMargin" >
+           <number>2</number>
+          </property>
+          <property name="rightMargin" >
+           <number>5</number>
+          </property>
+          <property name="bottomMargin" >
+           <number>5</number>
+          </property>
           <item>
            <layout class="QHBoxLayout" >
             <item>
@@ -399,8 +408,17 @@
       <property name="spacing" >
        <number>6</number>
       </property>
-      <property name="margin" >
-       <number>11</number>
+      <property name="leftMargin" >
+       <number>5</number>
+      </property>
+      <property name="topMargin" >
+       <number>2</number>
+      </property>
+      <property name="rightMargin" >
+       <number>5</number>
+      </property>
+      <property name="bottomMargin" >
+       <number>5</number>
       </property>
       <item>
        <layout class="QHBoxLayout" >
@@ -514,6 +532,21 @@
       <string>Voxel limit for speeding up slicer</string>
      </property>
      <layout class="QVBoxLayout" >
+      <property name="spacing" >
+       <number>4</number>
+      </property>
+      <property name="leftMargin" >
+       <number>5</number>
+      </property>
+      <property name="topMargin" >
+       <number>2</number>
+      </property>
+      <property name="rightMargin" >
+       <number>5</number>
+      </property>
+      <property name="bottomMargin" >
+       <number>5</number>
+      </property>
       <item>
        <layout class="QHBoxLayout" >
         <item>
@@ -571,20 +604,94 @@
     </widget>
    </item>
    <item>
-    <spacer name="spacer14" >
-     <property name="orientation" >
-      <enum>Qt::Vertical</enum>
+    <widget class="QGroupBox" name="groupBox" >
+     <property name="title" >
+      <string>Isosurface</string>
      </property>
-     <property name="sizeType" >
-      <enum>QSizePolicy::Expanding</enum>
-     </property>
-     <property name="sizeHint" stdset="0" >
-      <size>
-       <width>20</width>
-       <height>16</height>
-      </size>
-     </property>
-    </spacer>
+     <layout class="QVBoxLayout" name="verticalLayout" >
+      <property name="spacing" >
+       <number>4</number>
+      </property>
+      <property name="leftMargin" >
+       <number>5</number>
+      </property>
+      <property name="topMargin" >
+       <number>2</number>
+      </property>
+      <property name="rightMargin" >
+       <number>5</number>
+      </property>
+      <property name="bottomMargin" >
+       <number>5</number>
+      </property>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout" >
+        <item>
+         <widget class="QLabel" name="label" >
+          <property name="text" >
+           <string>Equivalent cube size, initial:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="isoBoxInitSpin" >
+          <property name="toolTip" >
+           <string>Set initial box size to the cube of this number of voxels</string>
+          </property>
+          <property name="minimum" >
+           <number>32</number>
+          </property>
+          <property name="maximum" >
+           <number>160</number>
+          </property>
+          <property name="singleStep" >
+           <number>4</number>
+          </property>
+          <property name="value" >
+           <number>96</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_2" >
+          <property name="text" >
+           <string>Max:</string>
+          </property>
+          <property name="alignment" >
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="isoBoxLimitSpin" >
+          <property name="toolTip" >
+           <string>Limit box size to the cube of this number of voxels</string>
+          </property>
+          <property name="maximum" >
+           <number>520</number>
+          </property>
+          <property name="singleStep" >
+           <number>10</number>
+          </property>
+          <property name="value" >
+           <number>320</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="isoHighBox" >
+        <property name="toolTip" >
+         <string>Set first isosurface threshold above instead of below the median intensity</string>
+        </property>
+        <property name="text" >
+         <string>Set initial threshold to show lighter objects</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
    </item>
   </layout>
  </widget>

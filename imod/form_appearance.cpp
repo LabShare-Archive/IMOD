@@ -132,6 +132,9 @@ void AppearanceForm::update()
   diaSetSpinBox(autoSDspinBox, mPrefs->autoTargetSD);
   diaSetSpinBox(voxLimitSpinBox, mPrefs->slicerPanKb);
   diaSetChecked(limitSliderBox, mPrefs->speedupSlider);
+  diaSetChecked(isoHighBox, mPrefs->isoHighThresh);
+  diaSetSpinBox(isoBoxLimitSpin, mPrefs->isoBoxLimit);
+  diaSetSpinBox(isoBoxInitSpin, mPrefs->isoBoxInitial);
   displayCurrentZoom();
 }
 
@@ -229,6 +232,9 @@ void AppearanceForm::unload()
 {
   mPrefs->slicerPanKb = voxLimitSpinBox->value();
   mPrefs->speedupSlider = limitSliderBox->isChecked();
+  mPrefs->isoHighThresh = isoHighBox->isChecked();
+  mPrefs->isoBoxLimit = isoBoxLimitSpin->value();
+  mPrefs->isoBoxInitial = isoBoxInitSpin->value();
   unloadZoomValue();
 }
 
@@ -308,6 +314,9 @@ void AppearanceForm::destroy()
 /*
 
 $Log$
+Revision 4.3  2011/02/12 04:47:42  mast
+Fixed default zoom output
+
 Revision 4.2  2009/03/22 19:46:55  mast
 Fixed combo box call when using all styles and excluding from list
 

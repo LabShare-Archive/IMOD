@@ -177,6 +177,9 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->scaleSnapDPI = false;
   prefs->slicerPanKbDflt = 3000;
   prefs->speedupSliderDflt = false;
+  prefs->isoHighThreshDflt = false;
+  prefs->isoBoxLimitDflt = 320;
+  prefs->isoBoxInitialDflt = 96;
 
   READNUM(hotSliderKey);
   READNUM(hotSliderFlag);
@@ -214,6 +217,9 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   READBOOL(scaleSnapDPI);
   READNUM(slicerPanKb);
   READBOOL(speedupSlider);
+  READBOOL(isoHighThresh);
+  READNUM(isoBoxInitial);
+  READNUM(isoBoxLimit);
 
   // Make sure an output format is on the list; if not drop to PNG then RGB
   strList = (snapFormatList()).filter(prefs->snapFormat);
@@ -536,6 +542,9 @@ void ImodPreferences::saveSettings(int modvAlone)
   WRITE_IF_CHANGED(scaleSnapDPI);
   WRITE_IF_CHANGED(slicerPanKb);
   WRITE_IF_CHANGED(speedupSlider);
+  WRITE_IF_CHANGED(isoHighThresh);
+  WRITE_IF_CHANGED(isoBoxLimit);
+  WRITE_IF_CHANGED(isoBoxInitial);
 
   if (prefs->zoomsChgd) {
     for (i = 0; i < MAXZOOMS; i++) {
@@ -657,8 +666,7 @@ void ImodPreferences::donePressed()
   curp->hotSliderKeyChgd |= newp->hotSliderKey != oldp->hotSliderKey;
   curp->hotSliderFlagChgd |= newp->hotSliderFlag != oldp->hotSliderFlag;
   curp->mouseMappingChgd |= newp->mouseMapping != oldp->mouseMapping;
-  curp->modvSwapLeftMidChgd |= !equiv(newp->modvSwapLeftMid, 
-                                      oldp->modvSwapLeftMid);
+  curp->modvSwapLeftMidChgd |= !equiv(newp->modvSwapLeftMid, oldp->modvSwapLeftMid);
   curp->silentBeepChgd |= !equiv(newp->silentBeep, oldp->silentBeep);
   curp->autoConAtStartChgd |= newp->autoConAtStart != oldp->autoConAtStart;
   curp->startAtMidZChgd |= !equiv(newp->startAtMidZ, oldp->startAtMidZ);
@@ -675,12 +683,9 @@ void ImodPreferences::donePressed()
   curp->styleChgd |= newp->styleKey.toLower() != oldp->styleKey.toLower();
   curp->bwStepChgd |= newp->bwStep != oldp->bwStep;
   curp->pageStepChgd |= newp->pageStep != oldp->pageStep;
-  curp->iconifyImodvDlgChgd |= !equiv(newp->iconifyImodvDlg, 
-                                     oldp->iconifyImodvDlg);
-  curp->iconifyImodDlgChgd |= !equiv(newp->iconifyImodDlg, 
-                                    oldp->iconifyImodDlg);
-  curp->iconifyImageWinChgd |= !equiv(newp->iconifyImageWin, 
-                                     oldp->iconifyImageWin);
+  curp->iconifyImodvDlgChgd |= !equiv(newp->iconifyImodvDlg, oldp->iconifyImodvDlg);
+  curp->iconifyImodDlgChgd |= !equiv(newp->iconifyImodDlg, oldp->iconifyImodDlg);
+  curp->iconifyImageWinChgd |= !equiv(newp->iconifyImageWin, oldp->iconifyImageWin);
   curp->minModPtSizeChgd |= newp->minModPtSize != oldp->minModPtSize;
   curp->minImPtSizeChgd |= newp->minImPtSize != oldp->minImPtSize;
   curp->rememberGeomChgd |= !equiv(newp->rememberGeom, oldp->rememberGeom);
@@ -691,8 +696,10 @@ void ImodPreferences::donePressed()
   curp->snapDPIChgd |= newp->snapDPI != oldp->snapDPI;
   curp->scaleSnapDPIChgd |= !equiv(newp->scaleSnapDPI, oldp->scaleSnapDPI);
   curp->slicerPanKbChgd |= newp->slicerPanKb != oldp->slicerPanKb;
-  curp->speedupSliderChgd |= !equiv(newp->speedupSlider, 
-                                     oldp->speedupSlider);
+  curp->speedupSliderChgd |= !equiv(newp->speedupSlider, oldp->speedupSlider);
+  curp->isoHighThreshChgd |= !equiv(newp->isoHighThresh, oldp->isoHighThresh);
+  curp->isoBoxLimitChgd |= newp->isoBoxLimit != oldp->isoBoxLimit;
+  curp->isoBoxInitialChgd |= newp->isoBoxInitial != oldp->isoBoxInitial;
 
   for (i = 0; i < MAXZOOMS; i++)
       curp->zoomsChgd |= newp->zooms[i] != oldp->zooms[i];
@@ -776,6 +783,9 @@ void ImodPreferences::defaultPressed()
       prefs->zooms[i] = prefs->zoomsDflt[i];
     prefs->slicerPanKb = prefs->slicerPanKbDflt;
     prefs->speedupSlider = prefs->speedupSliderDflt;
+    prefs->isoHighThresh = prefs->isoHighThreshDflt;
+    prefs->isoBoxLimit = prefs->isoBoxLimitDflt;
+    prefs->isoBoxInitial = prefs->isoBoxInitialDflt;
     mTabDlg->mAppearForm->update();
     break;
 
@@ -1218,9 +1228,13 @@ PrefsDialog::PrefsDialog(QWidget *parent)
 {
   setAttribute(Qt::WA_DeleteOnClose);
   setAttribute(Qt::WA_AlwaysShowToolTips);
+
+  // 2/19/11: experimented with QToolBox.  It is very annoying because you have to
+  // move mouse to the header.  The right thing to do is to make a list box on the left
+  // if more tans/panels are created
   mTabWidget = new QTabWidget();
   mAppearForm = new AppearanceForm();
-  mTabWidget->addTab(mAppearForm, "Appearance");
+  mTabWidget->addTab(mAppearForm, "Appearance/Limits");
   mSnapForm = new SnapshotForm();
   mTabWidget->addTab(mSnapForm, "Snapshots");
   mBehaveForm = new BehaviorForm();
@@ -1256,6 +1270,9 @@ void PrefsDialog::closeEvent ( QCloseEvent * e )
 
 /*
 $Log$
+Revision 1.47  2011/02/12 04:45:26  mast
+Added option to start in HQ mode
+
 Revision 1.46  2010/12/18 05:42:46  mast
 Save slicer montage settings
 
