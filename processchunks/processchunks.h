@@ -47,6 +47,7 @@
 
 #include <QCoreApplication>
 #include <QDir>
+#include <typeinfo>
 //All processchunks application header files should be included here.
 #include "comfilejobs.h"
 #include "processhandler.h"
@@ -244,6 +245,9 @@ private:
 
 /*
  $Log$
+ Revision 1.33  2011/02/03 23:40:17  sueh
+ bug# 1426 return the correct exit code.
+
  Revision 1.32  2011/02/02 00:09:25  sueh
  bug# 1426 Removed unused variables and commented-out code.
 
