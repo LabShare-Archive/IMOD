@@ -82,6 +82,12 @@ Split an RGB file into 3 byte files.
 .TP
 .I stats
 Print min, max, mean, standard deviation, and location of min and max.
+.TP
+.I standev
+Compute the standard deviation of a set of volumes.
+.TP
+.I variance
+Compute the variance of a set of volumes.
 .PD
 .SH Options
 These options are available to most processes.
@@ -397,7 +403,7 @@ structures in the image file.
 .B sobel
 .PD
 These options apply simple 2D filters to the input image, using the same
-same method as for the respective entry in the 3dmod
+method as for the respective entry in the 3dmod
 image processing dialog.  The
 .B prewitt
 and
@@ -482,7 +488,7 @@ ending in .r, .g, and .b.  No options except
 .B -v
 will work with this process.
 .TP
-.B stat
+.B stats
 Calculate stats on a file. A table is printed with the
 minimum, maximum, mean and standard deviation.  The locations of the max and 
 min
@@ -507,6 +513,12 @@ with the
 option; otherwise the comparison is with the values for all slices.  Each
 outlier is marked with a star, and at the end the slices with outlier values
 are listed.
+.TP
+.B standev
+.B variance
+Compute pixel-by-pixel standard deviation or variance of a set of volumes.
+This is implemented only in 3d.  All input images must be the same size and
+mode, and the standard options for input and output size are not implemented.
 
 .SH HISTORY
 Originally most processes loaded all data into memory unless the -2d option
