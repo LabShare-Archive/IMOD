@@ -1,6 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-2/19/11: Made clip able to make variance or standard deviation volumes from a
+2/19/11: Adjusted coordinates put out by clip stats on a subarea so that they
+are correct coordinates in the full image.
+
+2/19/11: Made Clip able to make variance or standard deviation volumes from a
 set of input volumes, upgraded Subimstat to calculate statistically
 significant differences between volumes conveniently.
 

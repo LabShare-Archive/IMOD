@@ -496,7 +496,9 @@ are also printed.  The locations are calculated by doing a
 quadratic fit around the extreme value.  If the
 .B -s
 option is given, the location of the max is adjusted by half the image
-size, which may be appropriate for a cross-correlation.  If either the 
+size, which may be appropriate for a cross-correlation.  Otherwise, if
+statistics are done on a subarea, the location is adjusted to give the
+coordinates in the full image. If either the 
 .B -l
 or the
 .B -n
