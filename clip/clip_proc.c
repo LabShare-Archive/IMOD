@@ -1003,45 +1003,66 @@ int clip_splitrgb(MrcHeader *h1, ClipOptions *opt)
 int grap_average(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
                  ClipOptions *opt)
 {
-  Islice *s, *so;
+  Islice *s, *so, *sso;
   MrcHeader **hdr;
-  int i, j, k, f;
+  int i, j, k, l, f, variance = 0;
   double valscale;
   Ival val, oval;
 
+  if (!strncmp(opt->command, "variance", 3))
+    variance = 1;
+  if (!strncmp(opt->command, "standev", 4))
+    variance = 2;
+
+  if (variance && h1->mode == MRC_MODE_RGB) {
+    fprintf(stderr, "clip variance: You must use \"standev\" on RGB files\n");
+    return -1;
+  }
+  if (variance && opt->dim == 2) {
+    fprintf(stderr, "clip variance: Can only be run in 3D mode\n");
+    return -1;
+  }
+  
   if (opt->dim == 2)
     return(clip2d_average(h1,hout,opt));
 
-
   if (opt->infiles < 2){
-    fprintf(stderr, "grap average: Need two input files.\n");
+    fprintf(stderr, "clip average/variance: Need at least two input files.\n");
     return(-1);
   }
 
   if (   (h1->nx != h2->nx)
          || (h1->ny != h2->ny)
          || (h1->nz != h2->nz)){
-    fprintf(stderr, "grap average: All x,y,z sizes must equal\n");
+    fprintf(stderr, "clip average/variance: All x,y,z sizes must equal\n");
     return(-1);
   }
 
   mrc_head_new(hout, h1->nx, h1->ny, h1->nz, 2);
-  mrc_head_label(hout, "3D Averaged");
+
+  if (variance) 
+    mrc_head_label(hout, variance > 1 ? "3D Standard deviation" : "#D variance");
+  else
+    mrc_head_label(hout, "3D Averaged");
   if (mrc_head_write(hout->fp, hout))
     return -1;
 
   s = sliceCreate(h1->nx, h1->ny, h1->mode);
   if (h1->mode == MRC_MODE_COMPLEX_FLOAT){
-    so = sliceCreate(h1->nx, h1->ny, 4);
+    so = sliceCreate(h1->nx, h1->ny, SLICE_MODE_COMPLEX_FLOAT);
     hout->mode = MRC_MODE_COMPLEX_FLOAT;
+    if (variance)
+      sso = sliceCreate(h1->nx, h1->ny, SLICE_MODE_COMPLEX_FLOAT);
   }else if (h1->mode == MRC_MODE_RGB){
-    so = sliceCreate(h1->nx, h1->ny, MRC_MODE_RGB);
+    so = sliceCreate(h1->nx, h1->ny, SLICE_MODE_RGB);
     hout->mode = MRC_MODE_RGB;
   }else{
-    so = sliceCreate(h1->nx, h1->ny, 2);
+    so = sliceCreate(h1->nx, h1->ny, SLICE_MODE_FLOAT);
+    if (variance)
+      sso = sliceCreate(h1->nx, h1->ny, SLICE_MODE_FLOAT);
   }
   hdr = (MrcHeader **)malloc(opt->infiles * sizeof(MrcHeader *));
-  if (!hdr)
+  if (!hdr || !s || !so || (variance && !sso))
     return(-1);
      
   for (f = 0; f < opt->infiles; f++){
@@ -1050,18 +1071,16 @@ int grap_average(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
       return(-1);
     hdr[f]->fp = fopen(opt->fnames[f], "rb");
     if (!hdr[f]->fp){
-      fprintf(stderr, "grap average: error opening %s.\n", 
-              opt->fnames[f]);
+      fprintf(stderr, "clip average: error opening %s.\n", opt->fnames[f]);
       return(-1);
     }
     if (mrc_head_read(hdr[f]->fp, hdr[f])){
-      fprintf(stderr, "clip average: error reading %s.\n",
-              opt->fnames[f]);
+      fprintf(stderr, "clip average: error reading %s.\n", opt->fnames[f]);
       return(-1);
     }
     if ( (h1->nx != hdr[f]->nx) || (h1->ny != hdr[f]->ny) ||
-         (h1->nz != hdr[f]->nz) ){
-      fprintf(stderr, "clip average: all files must be same size.");
+         (h1->nz != hdr[f]->nz) || (h1->mode != hdr[f]->mode) ){
+      fprintf(stderr, "clip average: all files must be same size and mode.");
       return(-1);
     }
   }
@@ -1069,16 +1088,18 @@ int grap_average(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
   for(k = 0; k < h1->nz; k++){
     printf("\r3D - Averaging section %d of %d", k + 1, h1->nz);
     fflush(stdout);
-	  
-    if (mrc_read_slice((void *)s->data.b, hdr[0]->fp, hdr[0], k, 'z'))
-      return -1;
+
+    /* Zero the slice(s) */
+    val[0] = val[1] = val[2] = 0.;
     for (j = 0; j < h1->ny; j++)
       for(i = 0; i < h1->nx; i ++){
-        sliceGetVal(s, i, j, val);
         slicePutVal(so, i, j, val);
+        if (variance)
+          slicePutVal(sso, i, j, val);
       }
 
-    for (f = 1; f < opt->infiles; f++){
+    /* Accumulate sums and sum of squares */
+    for (f = 0; f < opt->infiles; f++){
       if (mrc_read_slice((void *)s->data.b, hdr[f]->fp, hdr[f], k, 'z'))
         return -1;
       for (j = 0; j < h1->ny; j++)
@@ -1088,14 +1109,33 @@ int grap_average(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
           oval[0] += val[0];
           oval[1] += val[1];
           oval[2] += val[2];
-			 
           slicePutVal(so, i, j, oval);
+          if (variance) {
+            sliceGetVal(sso, i, j, oval);
+            oval[0] += val[0] * val[0];
+            oval[1] += val[1] * val[1];
+            oval[2] += val[2] * val[2];
+            slicePutVal(sso, i, j, oval);
+          }
         }
     }
 
-    if (f){
-      valscale = 1.0 / (double)f;
-      mrc_slice_valscale(so, valscale);
+    /* Compute mean and variance or SD */
+    valscale = 1.0 / (double)opt->infiles;
+    mrc_slice_valscale(so, valscale);
+    if (variance) {
+      for (j = 0; j < h1->ny; j++)
+        for(i = 0; i < h1->nx; i ++){
+          sliceGetVal(sso, i, j,   val);
+          sliceGetVal(so, i, j, oval);
+          for (l = 0; l < 3; l++) {
+            oval[l] = (val[l] - f * oval[l] * oval[l]) / (f - 1.);
+            oval[l] = B3DMAX(0., oval[l]);
+            if (variance > 1)
+              oval[l] = (float)sqrt(oval[l]);
+          }
+          slicePutVal(so, i, j, oval);
+        }
     }
 
     if (mrc_write_slice((void *)so->data.b, hout->fp, hout, k, 'z'))
@@ -1673,6 +1713,9 @@ int free_vol(Islice **vol, int z)
 */
 /*
 $Log$
+Revision 3.28  2009/11/21 22:10:20  mast
+Added outlier report for stats
+
 Revision 3.27  2009/03/24 02:33:32  mast
 Switch from centroid to parabolic fit for stat 2d
 
