@@ -58,7 +58,12 @@ bounding box.  The histogram is based on the byte values stored in
 program memory, not the values in the image file.
 <P>
 The <B>Threshold</B> slider sets the constant intensity
-value at which the isosurfaces will be rendered.</P>
+value at which the isosurfaces will be rendered.  When you open this dialog,
+the threshold is automatically set to a certain percentile on the low side of
+the intensity distribution so as to show dark structures.  There is an option
+in the Appearance tab of the 3dmod Preferences dialog to have the initial
+threshold set on the high side so as to show light structures instead.
+</P>
 <P>
 The <B>Outer limit</B> slider sets a second threshold beyond which intensity
 values will be set to the median intensity, so that you can visualize just the
@@ -83,7 +88,12 @@ The <B>X size</B>, <B>Y size</B>, and <B>Z size</B> sliders can be
 used to set the X, Y, and Z size of the bounding box.  The maximum
 values of these sliders are set so as to prevent you from trying to
 render too large a total volume, which is especially time-consuming when
-the threshold is near the middle of the intensity distribution.
+the threshold is near the middle of the intensity distribution.  The maximum
+number of voxels allowed, as well as the number of voxels when the display
+first opens, can be controlled in the Appearance tab of the 3dmod
+Preferences dialog.  The spin boxes there set the size of a cube equivalent to
+whatever shape of volume is displayed.  Thus, display time will increase with
+the cube of these numbers.
 </P>
 <P>
 The <B>Zap Band</B> button can be used to set the size and
