@@ -159,6 +159,10 @@ int main( int argc, char *argv[] )
   if ((!strncmp( argv[1], "avg", 3)) || 
       (!strncmp( argv[1], "average", 3)) )
     process = IP_AVERAGE;
+  if (!strncmp( argv[1], "standev", 4))
+    process = IP_STANDEV;
+  if (!strncmp( argv[1], "variance", 3))
+    process = IP_VARIANCE;
   if (!strncmp( argv[1], "brightness", 3))
     process = IP_BRIGHTNESS;
   if (!strncmp( argv[1], "color", 3))
@@ -211,7 +215,7 @@ int main( int argc, char *argv[] )
     process = IP_SMOOTH;
   if (!strncmp( argv[1], "sobel", 2))
     process = IP_SOBEL;
-  if (!strncmp( argv[1], "stat", 3)){
+  if (!strncmp( argv[1], "stat", 4)){
     process = IP_STAT;
     procout = FALSE;
   }
@@ -490,6 +494,8 @@ int main( int argc, char *argv[] )
     puts("add: (future)");
     break;
   case IP_AVERAGE:
+  case IP_STANDEV:
+  case IP_VARIANCE:
     retval = grap_average(&hin, &hin2, &hout, &opt);
     break;
   case IP_BRIGHTNESS:
@@ -630,6 +636,9 @@ int *clipMakeSecList(char *clst, int *nofsecs)
 
 /*
 $Log$
+Revision 3.22  2009/11/21 22:10:04  mast
+Added -1 option for numbering Z from 1.
+
 Revision 3.21  2008/07/04 21:30:42  mast
 Fixed splitrgb the right way this time
 
