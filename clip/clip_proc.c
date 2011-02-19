@@ -1550,6 +1550,13 @@ int grap_stat(MrcHeader *hin, ClipOptions *opt)
     if (opt->sano){
       x -= (float)slice->xsize/2;
       y -= (float)slice->ysize/2;
+    } else {
+
+      /* Adjust coordinates for subarea */
+      x += (int)opt->cx - opt->ix / 2;
+      y += (int)opt->cy - opt->iy / 2;
+      xmin += (int)opt->cx - opt->ix / 2;
+      ymin += (int)opt->cy - opt->iy / 2;
     }
 
     if (k == 0) {
@@ -1713,6 +1720,9 @@ int free_vol(Islice **vol, int z)
 */
 /*
 $Log$
+Revision 3.29  2011/02/19 15:32:39  mast
+Added variance.standev maps
+
 Revision 3.28  2009/11/21 22:10:20  mast
 Added outlier report for stats
 
