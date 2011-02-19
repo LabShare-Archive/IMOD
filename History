@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/19/11: Made clip able to make variance or standard deviation volumes from a
+set of input volumes, upgraded Subimstat to calculate statistically
+significant differences between volumes conveniently.
+
+2/19/11: For isosurfacing, added options to 3dmod preferences to set polarity
+of the initial theshold and the default and maximum box size.
+
 2/18/11: Made Tilt able to do reprojections at all angles for nonlocal
 alignments and removed limits on number of views.
 
@@ -47,7 +54,7 @@ mode.
 2/6/11: Fixed problems with running large numbers of processes in the
 processchunks application.
 
-2/4/11: Contouring stretching in zap window can now be done with a second
+2/4/11: Contour stretching in zap window can now be done with a second
 fixed point just as in Midas.
 
 2/2/11: Allowing tilt to be run using GPUs in parallel.
