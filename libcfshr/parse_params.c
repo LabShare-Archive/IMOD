@@ -699,7 +699,7 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
         optLen = strlen(sname) + strlen(lname) + strlen(optTable[i].type) + 4 +
           optTable[i].multiple;
         
-        if (linePos + optLen + (lastOpt ? 0 : 3) > 79) {
+        if (linePos + optLen + (lastOpt ? 0 : 3) > 90) {
           fprintf(out, "'//\n     &    '");
           linePos = 11;
         }
@@ -725,7 +725,7 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
         }
         optLen = strlen(sname) + strlen(lname) + strlen(optTable[i].type) + 7 +
           optTable[i].multiple;
-        if (linePos + optLen > 79) {
+        if (linePos + optLen > 90) {
           if (outputManpage == 2) {
             fprintf(out, "\n    ");
             linePos = 5;
@@ -1890,6 +1890,9 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
 
 /*
 $Log$
+Revision 1.6  2009/12/11 19:59:31  mast
+Do not print entry header/tail if there are no entries
+
 Revision 1.5  2009/12/04 20:27:11  mast
 Added automatic printing of entries
 
