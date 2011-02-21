@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.23  2010/12/03 19:35:52  sueh
+ * bug# 1419 In SetupCombine, running command with python.
+ *
  * Revision 3.22  2010/02/17 04:47:54  sueh
  * bug# 1301 Using the manager instead of the manager key do pop up
  * messages.
@@ -256,8 +259,8 @@ public class SetupCombine {
     for (int i = 0; i < commandArray.length; i++) {
       commandArray[i] = (String) command.get(i);
     }
-    setupcombine = new SystemProgram(manager, manager.getPropertyUserDir(),
-        commandArray, AxisID.ONLY);
+    setupcombine = new SystemProgram(manager, manager.getPropertyUserDir(), commandArray,
+        AxisID.ONLY);
     //genStdInputSequence();
   }
 

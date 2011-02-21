@@ -20,6 +20,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.12  2007/03/07 21:02:06  sueh
+ * <p> bug# 981 reformatted.
+ * <p>
  * <p> Revision 3.11  2006/09/13 23:20:43  sueh
  * <p> bug# 921 Added centerShiftLimit.
  * <p>
@@ -59,8 +62,7 @@ import etomo.util.DatasetFiles;
  * <p> </p>
  */
 
-public class SolvematchParam extends ConstSolvematchParam implements
-    CommandParam {
+public class SolvematchParam extends ConstSolvematchParam implements CommandParam {
 
   private static final float CENTER_SHIFT_LIMIT_DEFAULT = 10;
 
@@ -89,10 +91,9 @@ public class SolvematchParam extends ConstSolvematchParam implements
 
     // Set any of this class's attributes that are present in the script command
     // object
-    outputFile = ParamUtilities.setParamIfPresent(scriptCommand, OUTPUT_FILE,
-        outputFile);
-    toFiducialFile = ParamUtilities.setParamIfPresent(scriptCommand,
-        TO_FIDUCIAL_FILE, toFiducialFile);
+    outputFile = ParamUtilities.setParamIfPresent(scriptCommand, OUTPUT_FILE, outputFile);
+    toFiducialFile = ParamUtilities.setParamIfPresent(scriptCommand, TO_FIDUCIAL_FILE,
+        toFiducialFile);
     fromFiducialFile = ParamUtilities.setParamIfPresent(scriptCommand,
         FROM_FIDUCIAL_FILE, fromFiducialFile);
     ParamUtilities.setParamIfPresent(scriptCommand, TO_CORRESPONDENCE_LIST,
@@ -101,19 +102,17 @@ public class SolvematchParam extends ConstSolvematchParam implements
         fromCorrespondenceList);
     ParamUtilities.setParamIfPresent(scriptCommand, TRANSFER_COORDINATE_FILE,
         transferCoordinateFile);
-    ParamUtilities.setParamIfPresent(scriptCommand, A_FIDUCIAL_MODEL,
-        aFiducialModel);
-    ParamUtilities.setParamIfPresent(scriptCommand, B_FIDUCIAL_MODEL,
-        bFiducialModel);
+    ParamUtilities.setParamIfPresent(scriptCommand, A_FIDUCIAL_MODEL, aFiducialModel);
+    ParamUtilities.setParamIfPresent(scriptCommand, B_FIDUCIAL_MODEL, bFiducialModel);
     ParamUtilities.setParamIfPresent(scriptCommand, USE_POINTS, usePoints);
     ParamUtilities.setParamIfPresent(scriptCommand, XAXIS_TILTS, xAxistTilt);
     surfacesOrModel = ParamUtilities.setParamIfPresent(scriptCommand,
         SURFACE_OR_USE_MODELS, surfacesOrModel);
-    maximumResidual = ParamUtilities.setParamIfPresent(scriptCommand,
-        MAXIMUM_RESIDUAL, maximumResidual);
+    maximumResidual = ParamUtilities.setParamIfPresent(scriptCommand, MAXIMUM_RESIDUAL,
+        maximumResidual);
     centerShiftLimit.parse(scriptCommand);
-    toMatchingModel = ParamUtilities.setParamIfPresent(scriptCommand,
-        TO_MATCHING_MODEL, toMatchingModel);
+    toMatchingModel = ParamUtilities.setParamIfPresent(scriptCommand, TO_MATCHING_MODEL,
+        toMatchingModel);
     fromMatchingModel = ParamUtilities.setParamIfPresent(scriptCommand,
         FROM_MATCHING_MODEL, fromMatchingModel);
     toTomogramOrSizeXYZ = ParamUtilities.setParamIfPresent(scriptCommand,
@@ -131,8 +130,8 @@ public class SolvematchParam extends ConstSolvematchParam implements
     }
     else {
       //scripts contains a parameter for A to B, not B to A
-      matchBToA = !ParamUtilities.setParamIfPresent(scriptCommand,
-          MATCHING_A_TO_B, !matchBToA);
+      matchBToA = !ParamUtilities.setParamIfPresent(scriptCommand, MATCHING_A_TO_B,
+          !matchBToA);
     }
   }
 
@@ -149,42 +148,35 @@ public class SolvematchParam extends ConstSolvematchParam implements
     scriptCommand.useKeywordValue();
 
     //  Update the values in the comscript command object
-    ParamUtilities
-        .updateScriptParameter(scriptCommand, OUTPUT_FILE, outputFile);
-    ParamUtilities.updateScriptParameter(scriptCommand, TO_FIDUCIAL_FILE,
-        toFiducialFile);
+    ParamUtilities.updateScriptParameter(scriptCommand, OUTPUT_FILE, outputFile);
+    ParamUtilities.updateScriptParameter(scriptCommand, TO_FIDUCIAL_FILE, toFiducialFile);
     ParamUtilities.updateScriptParameter(scriptCommand, FROM_FIDUCIAL_FILE,
         fromFiducialFile);
     ParamUtilities.updateScriptParameter(scriptCommand, TO_CORRESPONDENCE_LIST,
         toCorrespondenceList.toString());
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        FROM_CORRESPONDENCE_LIST, fromCorrespondenceList.toString());
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        TRANSFER_COORDINATE_FILE, transferCoordinateFile);
-    ParamUtilities.updateScriptParameter(scriptCommand, A_FIDUCIAL_MODEL,
-        aFiducialModel);
-    ParamUtilities.updateScriptParameter(scriptCommand, B_FIDUCIAL_MODEL,
-        bFiducialModel);
-    ParamUtilities.updateScriptParameter(scriptCommand, MATCHING_A_TO_B,
-        !matchBToA);
+    ParamUtilities.updateScriptParameter(scriptCommand, FROM_CORRESPONDENCE_LIST,
+        fromCorrespondenceList.toString());
+    ParamUtilities.updateScriptParameter(scriptCommand, TRANSFER_COORDINATE_FILE,
+        transferCoordinateFile);
+    ParamUtilities.updateScriptParameter(scriptCommand, A_FIDUCIAL_MODEL, aFiducialModel);
+    ParamUtilities.updateScriptParameter(scriptCommand, B_FIDUCIAL_MODEL, bFiducialModel);
+    ParamUtilities.updateScriptParameter(scriptCommand, MATCHING_A_TO_B, !matchBToA);
     ParamUtilities.updateScriptParameter(scriptCommand, USE_POINTS, usePoints);
-    ParamUtilities
-        .updateScriptParameter(scriptCommand, XAXIS_TILTS, xAxistTilt);
+    ParamUtilities.updateScriptParameter(scriptCommand, XAXIS_TILTS, xAxistTilt);
     ParamUtilities.updateScriptParameter(scriptCommand, SURFACE_OR_USE_MODELS,
         surfacesOrModel);
-    ParamUtilities.updateScriptParameter(scriptCommand, MAXIMUM_RESIDUAL,
-        maximumResidual);
+    ParamUtilities
+        .updateScriptParameter(scriptCommand, MAXIMUM_RESIDUAL, maximumResidual);
     centerShiftLimit.updateComScript(scriptCommand);
     ParamUtilities.updateScriptParameter(scriptCommand, TO_MATCHING_MODEL,
         toMatchingModel);
     ParamUtilities.updateScriptParameter(scriptCommand, FROM_MATCHING_MODEL,
         fromMatchingModel);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        TO_TOMOGRAM_OR_SIZE_XYZ, toTomogramOrSizeXYZ);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        FROM_TOMOGRAM_OR_SIZE_XYZ, fromTomogramOrSizeXYZ);
-    ParamUtilities.updateScriptParameter(scriptCommand, SCALE_FACTORS,
-        scaleFactors);
+    ParamUtilities.updateScriptParameter(scriptCommand, TO_TOMOGRAM_OR_SIZE_XYZ,
+        toTomogramOrSizeXYZ);
+    ParamUtilities.updateScriptParameter(scriptCommand, FROM_TOMOGRAM_OR_SIZE_XYZ,
+        fromTomogramOrSizeXYZ);
+    ParamUtilities.updateScriptParameter(scriptCommand, SCALE_FACTORS, scaleFactors);
   }
 
   /**
@@ -213,8 +205,7 @@ public class SolvematchParam extends ConstSolvematchParam implements
    * Merge a solvematchmod param object into this object
    * @param solvematchmod
    */
-  public void mergeSolvematchmod(ConstSolvematchmodParam solvematchmod,
-      boolean modelBased) {
+  public void mergeSolvematchmod(ConstSolvematchmodParam solvematchmod, boolean modelBased) {
     if (modelBased) {
       toFiducialFile = solvematchmod.getToFiducialCoordinatesFile();
       setMatchBToA(toFiducialFile);
@@ -248,14 +239,12 @@ public class SolvematchParam extends ConstSolvematchParam implements
     if (aFiducialFilename.matches("^\\s*\\S+?afid.xyz\\s*$")) {
       matchBToA = true;
       aFiducialModel = DatasetFiles.getFiducialModelName(manager, AxisID.FIRST);
-      bFiducialModel = DatasetFiles
-          .getFiducialModelName(manager, AxisID.SECOND);
+      bFiducialModel = DatasetFiles.getFiducialModelName(manager, AxisID.SECOND);
     }
     else if (aFiducialFilename.matches("^\\s*\\S+?bfid.xyz\\s*$")) {
       matchBToA = false;
       bFiducialModel = DatasetFiles.getFiducialModelName(manager, AxisID.FIRST);
-      aFiducialModel = DatasetFiles
-          .getFiducialModelName(manager, AxisID.SECOND);
+      aFiducialModel = DatasetFiles.getFiducialModelName(manager, AxisID.SECOND);
     }
   }
 
