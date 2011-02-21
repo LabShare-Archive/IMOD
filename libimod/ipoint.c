@@ -294,6 +294,49 @@ float imodPointLineSegDistance(Ipoint *lp1, Ipoint *lp2, Ipoint *p,
 }
 
 /*!
+ * Returns the closest distance between the line segments in [cont] and 
+ * point [pt], or returns 0 for an empty contour or the distance to the single point in
+ * a one-point contour.  Set [open] non-zero for an open contour (i.e., to exclude the 
+ * segment connecting end to start).  Set [threeD] non-zero to have the distances measured
+ * in 3D instead of in the X/Y plane.  Also returns in [closest] the index of the point 
+ * at the beginning of the closest line segment.
+ */
+float imodPointContDistance(Icont *cont, Ipoint *pt, int open, int threeD, int *closest)
+{
+  float mindist = 1.e36, t, dist, dx, dy;
+  Ipoint *cpts = cont->pts;
+  Ipoint scale = {1., 1., 1.};
+  int i, ni, numSeg = cont->psize;
+  *closest = 0;
+  if (!cont->psize)
+    return 0;
+  if (cont->psize == 1)
+    return threeD ? imodPoint3DScaleDistance(pt, cpts, &scale) :
+      imodPointDistance(pt, cpts);
+  if (open)
+    numSeg--;
+  for (i = 0; i < numSeg; i++) {
+    ni = (i + 1) % cont->psize;
+    if (threeD) {
+      dist = imodPointLineSegDistance(&cpts[i], &cpts[ni], pt, &t);
+    } else {
+      dx = cpts[ni].x - cpts[i].x;
+      dy = cpts[ni].y - cpts[i].y;
+      t = ((pt->x - cpts[i].x) * dx + (pt->y - cpts[i].y) * dy) / (dx * dx + dy * dy);
+      t = B3DMIN(1., B3DMAX(0., t));
+      dx = pt->x -(cpts[i].x + t * dx);
+      dy = pt->y -(cpts[i].y + t * dy);
+      dist = dx * dx + dy * dy;
+    }
+    if (dist < mindist) {
+      *closest = i;
+      mindist = dist;
+    }
+  }
+  return (float)sqrt((double)mindist);
+}
+
+/*!
  * Returns dot product of [pnt1] and [pnt2].
  */
 float imodPointDot(Ipoint *pnt1, Ipoint *pnt2)
@@ -576,6 +619,9 @@ int imodPointInsideCont(Icont *cont, Ipoint *pt)
 /*
 
 $Log$
+Revision 3.12  2010/06/21 16:30:07  mast
+fix log
+
 Revision 3.11  2008/01/14 19:44:39  mast
 Added append XYZ function
 
