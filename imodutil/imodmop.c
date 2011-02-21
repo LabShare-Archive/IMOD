@@ -27,26 +27,36 @@
 #include "mrcslice.h"
 #include "parse_params.h"
 
-static int paintContours(Iobj *obj, Islice *islice, Islice *pslice[3], 
-                         int numChan, int inside, IloadInfo *li, int iz, 
-                         Ival bkgVal);
+static int paintContours(Iobj *obj, Islice *islice, Islice *pslice[3], int inside,
+                         int iz, int allsec);
 static void scaleAndCombineSlices(Islice *pslice[3], Islice *oslice, 
                                   float smin, float smax, int numFiles);
-static void paintScatPoints(Iobj *obj, Islice *islice, Islice *pslice[3], 
-                            int numChan, IloadInfo *li, int scat3D, int iz);
+static void paintScatPoints(Iobj *obj, Islice *islice, Islice *pslice[3], int iz, 
+                            int allsec);
 static void paintScanContour(Iobj *obj, Icont *cont, Islice *islice,
-                             Islice *pslice[3], int numChan, IloadInfo *li,
-                             int fill, Ival bkgVal);
+                             Islice *pslice[3], int fill);
+static void paintExactContour(Iobj *obj, Icont *cont, Islice *islice, Islice *pslice[3],
+                              int fill);
 static void paintTubularLines(Iobj *obj, Islice *islice, Islice *pslice[3], 
-                              int numChan, IloadInfo *li, float rad, int iz,
-                              int tubes2D);
-static void putSliceValue(Iobj *obj,  Islice *islice, Islice *pslice[3],
-                          int numChan, IloadInfo *li, int x, int y, 
-                          Ival inval);
+                              float rad, int iz);
+static void putSliceValue(Iobj *obj,  Islice *islice, Islice *pslice[3], int x, int y, 
+                          Ival inval, float taperFrac);
 static int itemOnList(int item, int *list, int num);
 
 #define FILE_STR_SIZE 4096
 #define MAX_TUBE_DIAMS 1024
+#define TABLE_SIZE 1000
+
+static int Scat2D = 0, Scat3D = 0;
+static int Tubes2D = 0;
+static int UseScans = 0;
+static Ival BkgVal, MaskVal;
+static IloadInfo *LIp;
+static int NumChan;
+static int Masking = 0;
+static int Taper = 0;
+static float Padding = 0.;
+static float WindowTable[TABLE_SIZE+1];
 
 int main( int argc, char *argv[])
 {
@@ -60,11 +70,12 @@ int main( int argc, char *argv[])
   char *axis = Yaxis;
   char *dot = ".";
   char *tempDir = dot;
-  int numObj = 0, scat2D = 0, scat3D = 0, retain = 0, constScale = 0;
+  int numObj = 0, retain = 0, constScale = 0;
   int numDiams, numTubes = 0, border = -1000;
+  int *allsecList;
+  int numAllsec = 0;
   int black = 0, white = 255;
   float bkgFill = 0., bkgRed = 1., bkgGreen = 1., bkgBlue = 1.;
-  int tubes2D = 0;
   char *listString;
   int *objList;
   int *tubeList;
@@ -74,7 +85,7 @@ int main( int argc, char *argv[])
   Ipoint *pts;
   Ipoint minpt, maxpt;
   int ob, co, pt;
-  float xload, yload, zload;
+  float xload, yload, zload, addPad;
   IrefImage *ref;
   MrcHeader hdata, hdbyte;
   IloadInfo li;
@@ -86,28 +97,29 @@ int main( int argc, char *argv[])
   Islice *pslice[3];
   int i, k, ix, iy, ifXin, ifYin, ifZin, dsize, csize, outMode, pid;
   int invert = 0, reverse = 0, ifThresh = 0, ifProj = 0, rgbOut = 0;
-  int xmin, ymin, zmin, xmax, ymax, zmax, numChan, numFiles, objnum;
+  int numFiles, objnum, allsec = 0;
   int nxout, nyout, nzout, inside, numOptArgs,numNonOptArgs;
   float start_tilt, end_tilt, inc_tilt;
-  float thresh, smin, smax, revMax, size;
-  Ival val, pval, bkgVal;
+  float thresh, smin, smax, revMax, size, mask = 0.;
+  Ival val, pval;
 
   /* Fallbacks from    ../manpages/autodoc2man 2 1 imodmop  */
-  int numOptions = 23;
+  int numOptions = 29;
   char *options[] = {
-    "xminmax:XMinAndMax:IP:", "yminmax:YMinAndMax:IP:",
-    "zminmax:ZMinAndMax:IP:", "border:BorderAroundObjects:I:",
-    "invert:InvertPaintedArea:B:", "reverse:ReverseContrast:B:",
-    "thresh:Threshold:F:", "fv:FillValue:F:", "fc:FillColor:FT:",
-    "objects:ObjectsToDo:LI:", "2dscat:2DScatteredPoints:B:",
-    "3dscat:3DScatteredPoints:B:", "tube:TubeObjects:LI:",
-    "diam:DiameterForTubes:F:", "planar:PlanarTubes:B:",
-    "color:ColorOutput:B:", "scale:ScalingMinMax:FP:",
-    "project:ProjectTiltSeries:FT:", "axis:AxisToTiltAround:CH:",
-    "constant:ConstantScaling:B:", "bw:BlackAndWhite:IP:",
+    "xminmax:XMinAndMax:IP:", "yminmax:YMinAndMax:IP:", "zminmax:ZMinAndMax:IP:", 
+    "border:BorderAroundObjects:I:", "invert:InvertPaintedArea:B:", 
+    "reverse:ReverseContrast:B:", "thresh:Threshold:F:", "fv:FillValue:F:", 
+    "fc:FillColor:FT:", "mask:MaskValue:F:", "mode:ModeToOutput:I:", 
+    "pad:PaddingSize:F:", "taper:TaperOverPad:I:", "objects:ObjectsToDo:LI:", 
+    "2dscat:2DScatteredPoints:B:", "3dscat:3DScatteredPoints:B:", 
+    "tube:TubeObjects:LI:", "diam:DiameterForTubes:F:", "planar:PlanarTubes:B:", 
+    "allsec:AllSectionObjects:LI:", "color:ColorOutput:B:", "scale:ScalingMinMax:FP:", 
+    "fast:FastLegacyMethod:B:", "project:ProjectTiltSeries:FT:", 
+    "axis:AxisToTiltAround:CH:", "constant:ConstantScaling:B:", "bw:BlackAndWhite:IP:", 
     "tempdir:TemporaryDirectory:CH:", "keep:KeepTempFiles:B:"};
 
   char *progname = imodProgName(argv[0]);
+  LIp = &li;
 
   /* Startup with fallback */
   PipReadOrParseOptions(argc, argv, options, numOptions, progname, 
@@ -163,7 +175,16 @@ int main( int argc, char *argv[])
   PipGetBoolean("ReverseContrast", &reverse);
   PipGetBoolean("ColorOutput", &rgbOut);
   ifThresh = 1 - PipGetFloat("Threshold", &thresh);
-
+  Masking = 1 - PipGetFloat("MaskValue", &mask);
+  MaskVal[0] = MaskVal[1] = MaskVal[2] = mask;
+  PipGetFloat("PaddingSize", &Padding);
+  PipGetInteger("TaperOverPad", &Taper);
+  if (Taper > 1)
+    for (i = 0; i <= TABLE_SIZE; i++) {
+      size = (TABLE_SIZE - i) * 2.5 / TABLE_SIZE;
+      WindowTable[i] = (float)exp(-size * size / 2.);
+    }
+  
   /* Projection option */
   ifProj = 1 - PipGetThreeFloats("ProjectTiltSeries", &start_tilt, &end_tilt,
                                  &inc_tilt);
@@ -189,10 +210,11 @@ int main( int argc, char *argv[])
   }
 
   PipGetBoolean("KeepTempFiles", &retain);
-  PipGetBoolean("2DScatteredPoints", &scat2D);
-  PipGetBoolean("3DScatteredPoints", &scat3D);
-  PipGetBoolean("PlanarTubes", &tubes2D);
-  if (scat2D && scat3D)
+  PipGetBoolean("FastLegacyMethod", &UseScans);
+  PipGetBoolean("2DScatteredPoints", &Scat2D);
+  PipGetBoolean("3DScatteredPoints", &Scat3D);
+  PipGetBoolean("PlanarTubes", &Tubes2D);
+  if (Scat2D && Scat3D)
     exitError("You can not enter both -2 and -3");
   if (!PipGetInteger("BorderAroundObjects", &border)) {
     if (ifXin + ifYin)
@@ -224,6 +246,37 @@ int main( int argc, char *argv[])
       tubeDiams[i] = tubeDiams[0];
   }
 
+  /* Get all-section list and check it, count number of actual objects */
+  if (!PipGetString("AllSectionObjects", &listString)) {
+    allsecList = parselist(listString, &numAllsec);
+    free(listString);
+    for (i = 0; i < numAllsec; i++) {
+      objnum = allsecList[i] - 1;
+      if (objnum < 0 || objnum >= imod->objsize ||
+          itemOnList(objnum + 1, objList, numObj) < -1)
+        continue;
+      allsec++;
+      if (iobjOpen(imod->obj[objnum].flags))
+        exitError("You cannot include an open contour object (%d) on an all-section list",
+                  objnum + 1);
+      if (iobjScat(imod->obj[objnum].flags) && (Scat3D || !Scat2D))
+        exitError("You cannot include a scattered point object (%d) on an all-section "
+                  "list unless you specify -2dscat", objnum + 1);
+    }
+  }
+
+  /* Get new mode if appropriate */
+  outMode = hdata.mode;
+  if (!PipGetInteger("ModeToOutput", &outMode)) {
+    if (hdata.mode == MRC_MODE_COMPLEX_FLOAT || hdata.mode == MRC_MODE_COMPLEX_SHORT)
+      exitError("You cannot change the output mode for FFT data");
+    if (ifProj || rgbOut)
+      exitError("You cannot change the output mode if using -color or -project");
+    if (hdata.mode == MRC_MODE_RGB && !Masking)
+      exitError("You cannot change the output mode with RGB input unless you are making"
+                " a mask");
+  }
+
   /* Take care of fill value and color, set up the background fill value
      for cases of gray or color output.  If a value is entered, it gets
      reversed for reverse contrast, before testing */
@@ -233,27 +286,31 @@ int main( int argc, char *argv[])
   if (bkgRed < 0. || bkgRed > 1. || bkgGreen < 0. || bkgGreen > 1. || 
       bkgBlue < 0. || bkgBlue > 1.) 
     exitError("Red, green, blue fill color values must be between 0 and 1");
-  if (((hdata.mode == MRC_MODE_RGB || hdata.mode == MRC_MODE_BYTE) &&
+  if (((outMode == MRC_MODE_RGB || outMode == MRC_MODE_BYTE) &&
        (bkgFill < 0 || bkgFill > 255)) ||
-      (hdata.mode == MRC_MODE_SHORT && (bkgFill < -32767 || bkgFill > 32767))
-      || (hdata.mode == MRC_MODE_USHORT && (bkgFill < 0 || bkgFill > 65535)))
-    exitError("Fill value is outside allowed range for input data mode");
+      (outMode == MRC_MODE_SHORT && (bkgFill < -32767 || bkgFill > 32767))
+      || (outMode == MRC_MODE_USHORT && (bkgFill < 0 || bkgFill > 65535)))
+    exitError("Fill value is outside allowed range for output data mode");
+  if (Masking && (((outMode == MRC_MODE_RGB || outMode == MRC_MODE_BYTE) &&
+                   (mask < 0 || mask > 255)) ||
+                  (outMode == MRC_MODE_SHORT && (mask < -32767 || mask > 32767))
+                  || (outMode == MRC_MODE_USHORT && (mask < 0 || mask > 65535))))
+      exitError("Mask value is outside allowed range for output data mode");
   if (hdata.mode == MRC_MODE_RGB || rgbOut) {
-    bkgVal[0] = bkgRed * bkgFill;
-    bkgVal[1] = bkgGreen * bkgFill;
-    bkgVal[2] = bkgBlue * bkgFill;
+    BkgVal[0] = bkgRed * bkgFill;
+    BkgVal[1] = bkgGreen * bkgFill;
+    BkgVal[2] = bkgBlue * bkgFill;
   } else 
-    bkgVal[0] = bkgVal[1] = bkgVal[2] = bkgFill;
+    BkgVal[0] = BkgVal[1] = BkgVal[2] = bkgFill;
   
   /* Check for incompatible options */
-  if (hdata.mode == MRC_MODE_COMPLEX_FLOAT || 
-      hdata.mode == MRC_MODE_COMPLEX_SHORT) {
+  if (hdata.mode == MRC_MODE_COMPLEX_FLOAT || hdata.mode == MRC_MODE_COMPLEX_SHORT) {
     if (reverse || rgbOut || ifProj)
       exitError("You can not use -reverse, -color, or -project"
                 " with FFT data");
     if (ifXin || ifYin)
       exitError("You can not limit the X or Y range with FFT data");
-    if (ifZin && scat3D)
+    if (ifZin && Scat3D)
       exitError("You can not limit the Z range of 3D FFT data");
   }
 
@@ -270,7 +327,8 @@ int main( int argc, char *argv[])
   if (border >= 0) {
     li.xmin = li.ymin = 10000000;
     li.xmax = li.ymax = -10000000;
-    if (!ifZin) {
+    addPad = Padding > 0 ? Padding : 0.;
+    if (!ifZin && !allsec) {
       li.zmin = 10000000;
       li.zmax = -10000000;
     }
@@ -283,34 +341,42 @@ int main( int argc, char *argv[])
         i = itemOnList(objnum + 1, tubeList, numTubes);
         if (i >= 0) {
           
-          /* For a tube, add radius to bounding box in X/Y */
+          /* For a tube, add radius to bounding box in X/Y/Z */
           imodObjectGetBBox(obj, &minpt, &maxpt);
-          minpt.x -= tubeDiams[i] / 2;
-          minpt.y -= tubeDiams[i] / 2;
-          maxpt.x += tubeDiams[i] / 2;
-          maxpt.y += tubeDiams[i] / 2;
+          minpt.x -= tubeDiams[i] / 2 + addPad;
+          minpt.y -= tubeDiams[i] / 2 + addPad;
+          maxpt.x += tubeDiams[i] / 2 + addPad;
+          maxpt.y += tubeDiams[i] / 2 + addPad;
+          if (!Tubes2D) {
+            minpt.z -= tubeDiams[i] / 2 + addPad;
+            maxpt.z += tubeDiams[i] / 2 + addPad;
+          }
         }
       } else if (iobjScat(obj->flags)) {
-        if (scat2D || scat3D) {
+        if (Scat2D || Scat3D) {
 
           /* For scattered point, allow for radius of each point */
           minpt.x = minpt.y = minpt.z = 1.e30;
           maxpt.x = maxpt.y = maxpt.z = -1.e30;
           for (co = 0; co < obj->contsize; co++) {
             for (pt = 0; pt < obj->cont[co].psize; pt++) {
-              size = imodPointGetSize(obj, &obj->cont[co], pt);
+              size = imodPointGetSize(obj, &obj->cont[co], pt) + addPad;
               pts = &obj->cont[co].pts[pt];
               minpt.x = B3DMIN(minpt.x, pts->x - size);
               minpt.y = B3DMIN(minpt.y, pts->y - size);
-              minpt.z = B3DMIN(minpt.z, pts->z - (scat3D ? size : 0));
+              minpt.z = B3DMIN(minpt.z, pts->z - (Scat3D ? size : 0));
               maxpt.x = B3DMAX(maxpt.x, pts->x + size);
               maxpt.y = B3DMAX(maxpt.y, pts->y + size);
-              maxpt.z = B3DMAX(maxpt.z, pts->z + (scat3D ? size : 0));
+              maxpt.z = B3DMAX(maxpt.z, pts->z + (Scat3D ? size : 0));
             }
           }
         }
       } else {
         imodObjectGetBBox(obj, &minpt, &maxpt);
+        minpt.x -= addPad;
+        minpt.y -= addPad;
+        maxpt.x += addPad;
+        maxpt.y += addPad;
       }
 
       /* Form mins and maxes over all objects */
@@ -318,7 +384,7 @@ int main( int argc, char *argv[])
       li.ymin = B3DMIN(li.ymin, B3DNINT(minpt.y - border));
       li.xmax = B3DMAX(li.xmax, B3DNINT(maxpt.x + border));
       li.ymax = B3DMAX(li.ymax, B3DNINT(maxpt.y + border));
-      if (!ifZin) {
+      if (!ifZin && !allsec) {
         li.zmin = B3DMIN(li.zmin, B3DNINT(minpt.z));
         li.zmax = B3DMAX(li.zmax, B3DNINT(maxpt.z));
       }
@@ -391,13 +457,13 @@ int main( int argc, char *argv[])
   free(outfile);
      
   /* Open temp files for projections */
-  numChan = rgbOut ? 3 : 1;
+  NumChan = rgbOut ? 3 : 1;
   numFiles = 1;
   files[0] = gfout;
   if (ifProj) {
-    numFiles = numChan;
+    numFiles = NumChan;
     pid = getpid();
-    for (i = 0; i < numChan; i++) {
+    for (i = 0; i < NumChan; i++) {
       sprintf(recnames[i], "%s/%s.rec%d.%d", tempDir, progname, i, pid);
       sprintf(xyznames[i], "%s/%s.xyz%d.%d", tempDir, progname, i, pid);
       files[i] = fopen(recnames[i], "wb");
@@ -407,7 +473,6 @@ int main( int argc, char *argv[])
   }
 
   /* Set up output file(s) in correct mode and size */
-  outMode = hdata.mode;
   nxout = li.xmax + 1 - li.xmin;
   nyout = li.ymax + 1 - li.ymin;
   nzout = li.zmax + 1 - li.zmin;
@@ -427,8 +492,8 @@ int main( int argc, char *argv[])
   islice = sliceCreate(nxout, nyout, hdata.mode);
   if (!islice)
     exitError("Memory error creating slice for input");
-  for (i = 0; i < numChan; i++) {
-    pslice[i] = sliceCreate(nxout, nyout, hdata.mode);
+  for (i = 0; i < NumChan; i++) {
+    pslice[i] = sliceCreate(nxout, nyout, outMode);
     if (!pslice[i])
       exitError("Memory error creating slice for painted data");
   }
@@ -466,11 +531,11 @@ int main( int argc, char *argv[])
 
     /* Clear the slice with the background value */
     val[0] = val[1] = val[2] = 0.;
-    if (numChan == 1) {
-      sliceClear(pslice[0], bkgVal);
+    if (NumChan == 1) {
+      sliceClear(pslice[0], BkgVal);
     } else {
-      for (i = 0; i < numChan; i++) {
-        val[0] = bkgVal[i];
+      for (i = 0; i < NumChan; i++) {
+        val[0] = BkgVal[i];
         sliceClear(pslice[i], val);
       }
     }
@@ -484,39 +549,42 @@ int main( int argc, char *argv[])
         if (itemOnList(objnum + 1, objList, numObj) < -1)
           continue;
         obj = &(imod->obj[objnum]);
+        allsec = (itemOnList(objnum + 1, allsecList, numAllsec) >= 0) ? 1 : 0;
 
         /* Do open objects if on tube list */
         if (iobjOpen(obj->flags)) {
           i = itemOnList(objnum + 1, tubeList, numTubes);
           if (i >= 0 && !inside)
-            paintTubularLines(obj, islice, pslice, numChan, &li,
-                              tubeDiams[i] /2., k, tubes2D);
+            paintTubularLines(obj, islice, pslice, tubeDiams[i] /2., k);
           
         /* Do scattered objects if specified and on first pass only */
         } else if (iobjScat(obj->flags)) {
-          if (!inside && (scat2D || scat3D))
-            paintScatPoints(obj, islice, pslice, numChan, &li, scat3D, k);
+          if (!inside && (Scat2D || Scat3D))
+            paintScatPoints(obj, islice, pslice, k, allsec);
         } else {
 
           /* Do closed objects on appropriate pass */
           if ((inside && (obj->flags & IMOD_OBJFLAG_OUT)) ||
               (!inside && !(obj->flags & IMOD_OBJFLAG_OUT))) {
-            if (paintContours(obj, islice, pslice, numChan, inside, &li, k,
-                              bkgVal))
+            if (paintContours(obj, islice, pslice, inside, k, allsec))
               exitError("Analyzing contours for object %d", objnum + 1);
           }
         }
       }
     }
 
-    /* To invert, subtract painted data from the original data */
+    /* To invert, subtract painted data from the original data or the mask */
     if (invert) {
+      val[0] = MaskVal[0];
+      val[1] = MaskVal[1];
+      val[2] = MaskVal[2];
       for (iy = 0; iy < nyout; iy++) {
         for (ix = 0; ix < nxout; ix++) {
-          sliceGetVal(islice, ix, iy, val);
+          if (!Masking)
+            sliceGetVal(islice, ix, iy, val);
           sliceGetVal(pslice[0], ix, iy, pval);
           for (i = 0; i < csize; i++)
-            pval[i] = val[i] - pval[i] + bkgVal[i];
+            pval[i] = val[i] - pval[i] + BkgVal[i];
           slicePutVal(pslice[0], ix, iy, pval);
         }
       }
@@ -549,7 +617,7 @@ int main( int argc, char *argv[])
   }
   fclose(gfin);
   sliceFree(islice);
-  for (i = 0; i < numChan; i++)
+  for (i = 0; i < NumChan; i++)
     sliceFree(pslice[i]);
   if (rgbOut && !ifProj)
     sliceFree(rgbslice);
@@ -642,14 +710,14 @@ int main( int argc, char *argv[])
 }     
 
 
-int paintContours(Iobj *obj, Islice *islice, Islice *pslice[3], int numChan,
-                  int inside, IloadInfo *li, int iz, Ival bkgVal)
+int paintContours(Iobj *obj, Islice *islice, Islice *pslice[3], int inside, int iz,
+                  int allsec)
 {
   int co;
   Icont *cont;
   Icont **scancont;
   int zmin,zmax;
-  int indz;
+  int indz, indzst, indznd;
   int nummax, inbox;
 
   int *contz;
@@ -662,6 +730,7 @@ int paintContours(Iobj *obj, Islice *islice, Islice *pslice[3], int numChan,
   int eco;
   Nesting *nests;
   int *nestind;
+  int *conumInObj;
   int numwarn = -1;
   int level, doLevel, found;
 
@@ -672,144 +741,248 @@ int paintContours(Iobj *obj, Islice *islice, Islice *pslice[3], int numChan,
                              &zmin, &zmax, &zlsize, &nummax))
     return -1;
 
-  if (iz < zmin || iz > zmax || !numatz[iz - zmin]) {
+  if (!allsec && (iz < zmin || iz > zmax || !numatz[iz - zmin])) {
     imodContourFreeZTables(numatz, contatz, contz, zlist, zmin, zmax);
     return 0;
   }
 
-  indz = iz - zmin;
-  nummax = numatz[indz];
-
-  /* Allocate space for lists of min's max's, and scan contours */
-  pmin = (Ipoint *)malloc(nummax * sizeof(Ipoint));
-  pmax = (Ipoint *)malloc(nummax * sizeof(Ipoint));
-  scancont = (Icont **)malloc(nummax * sizeof (Icont *)); 
-
-  /* Get array for index to inside/outside information */
-  nestind = (int *)malloc(nummax * sizeof(int));
-  if (!pmin || !pmax || !scancont || !nestind)
-    return -1;
-
-  /* Make scan contours and get mins/maxes for ones with non-empty scans */
-  inbox = 0;
-  numnests = 0;
-  for (kis = 0; kis < numatz[indz]; kis++) {
-    co = contatz[indz][kis];
-    cont = &(obj->cont[co]);
-    scancont[inbox] = imodel_contour_scan(cont);
-    if (scancont[inbox]->psize) {
-      imodContourGetBBox(cont, &pmin[inbox], &pmax[inbox]);
-      nestind[inbox++] = -1;
-    } else
-      imodContourDelete(scancont[inbox]);
+  indzst = indznd = iz - zmin;
+  if (allsec) {
+    indzst = 0;
+    indznd = zmax - zmin;
   }
+  for (indz = indzst; indz <= indznd; indz++) {
+    nummax = numatz[indz];
+    if (!nummax)
+      continue;
 
-  /* Look for overlapping contours as in imodmesh */
-  for (co = 0; co < inbox - 1; co++) {
-    for (eco = co + 1; eco < inbox; eco++) {
-      if (imodContourCheckNesting(co, eco, scancont, pmin, pmax, &nests,
+    /* Allocate space for lists of min's max's, and scan contours */
+    pmin = B3DMALLOC(Ipoint, nummax);
+    pmax = B3DMALLOC(Ipoint, nummax);
+    scancont = B3DMALLOC(Icont *, nummax); 
+    conumInObj = B3DMALLOC(int, nummax); 
+    
+    /* Get array for index to inside/outside information */
+    nestind = B3DMALLOC(int, nummax); 
+    if (!pmin || !pmax || !scancont || !nestind || !conumInObj)
+      return -1;
+    
+    /* Make scan contours and get mins/maxes for ones with non-empty scans */
+    inbox = 0;
+    numnests = 0;
+    for (kis = 0; kis < numatz[indz]; kis++) {
+      co = contatz[indz][kis];
+      cont = &(obj->cont[co]);
+      scancont[inbox] = imodel_contour_scan(cont);
+      if (scancont[inbox]->psize) {
+        imodContourGetBBox(cont, &pmin[inbox], &pmax[inbox]);
+        conumInObj[inbox] = co;
+        nestind[inbox++] = -1;
+      } else
+        imodContourDelete(scancont[inbox]);
+    }
+    
+    /* Look for overlapping contours as in imodmesh */
+    for (co = 0; co < inbox - 1; co++) {
+      for (eco = co + 1; eco < inbox; eco++) {
+        if (imodContourCheckNesting(co, eco, scancont, pmin, pmax, &nests,
                                     nestind, &numnests, &numwarn))
         return -1;
+      }
     }
+    
+    /* Analyze inside and outside contours to determine level, then go through
+       contours from lowest level inward */
+    imodContourNestLevels(nests, nestind, numnests);
+    doLevel = 1;
+    do {
+      found = 0;
+      for (co = 0; co < inbox; co++) {
+        level = 1;
+        if (nestind[co] >= 0)
+          level = nests[nestind[co]].level;
+        if (level != doLevel)
+          continue;
+        found = 1;
+        if (UseScans)
+          paintScanContour(obj, scancont[co], islice, pslice, (level + inside) % 2);
+        else
+          paintExactContour(obj, &obj->cont[conumInObj[co]], islice, pslice, 
+                            (level + inside) % 2);
+      }
+      doLevel++;
+    } while (found);
+
+    /* clean up inside the nests */
+    imodContourFreeNests(nests, numnests);
+  
+    /* clean up scan conversions */
+    for (co = 0; co < inbox; co++)
+      imodContourDelete(scancont[co]);
+  
+    /* clean up everything else */
+    free(nestind);
+    free(scancont);
+    free(pmin);
+    free(pmax);
+    free(conumInObj);
   }
-
-  /* Analyze inside and outside contours to determine level, then go through
-     contours from lowest level inward */
-  imodContourNestLevels(nests, nestind, numnests);
-  doLevel = 1;
-  do {
-    found = 0;
-    for (co = 0; co < inbox; co++) {
-      level = 1;
-      if (nestind[co] >= 0)
-        level = nests[nestind[co]].level;
-      if (level != doLevel)
-        continue;
-      found = 1;
-      paintScanContour(obj, scancont[co], islice, pslice, numChan, li, 
-                       (level + inside) % 2, bkgVal);
-    }
-    doLevel++;
-  } while (found);
-
-  /* clean up inside the nests */
-  imodContourFreeNests(nests, numnests);
-  
-  /* clean up scan conversions */
-  for (co = 0; co < inbox; co++)
-    imodContourDelete(scancont[co]);
-  
-  /* clean up everything else */
-  free(nestind);
-
   imodContourFreeZTables(numatz, contatz, contz, zlist, zmin, zmax);
-  free(scancont);
-  free(pmin);
-  free(pmax);
   return 0;
 }
 
 void paintScanContour(Iobj *obj, Icont *cont, Islice *islice,
-                      Islice *pslice[3], int numChan, IloadInfo *li, int fill,
-                      Ival bkgVal)
+                      Islice *pslice[3], int fill)
 {
   Ival inval, redval, grnval, bluval;
   int j, x, y, xst, xnd;
 
   /* Initialize color values if not filling */
   if (!fill) {
-    redval[0] = bkgVal[0];
-    grnval[0] = bkgVal[1];
-    bluval[0] = bkgVal[2];
+    redval[0] = BkgVal[0];
+    grnval[0] = BkgVal[1];
+    bluval[0] = BkgVal[2];
   }
 
   for (j = 0; j < cont->psize; j += 2) {
 
     /* Move Y down by 1 because otherwise bumps in X occur at the wrong Y
-       height.  This is not perfect */
+       height.  This is not perfect.  Without the -1, the boundary is up by 0.69 pixels
+       and with it then are down 0.24 pixels on average. */
     y = cont->pts[j].y - 1;
 
     /* Check if line is in the volume and get X limits */
-    if (y < li->ymin || y > li->ymax)
+    if (y < LIp->ymin || y > LIp->ymax)
       continue;
 
     /* And here truncation matches the positions better than taking the nint,
        and running to < xnd instead of to <= xnd.  */
     xst = cont->pts[j].x;
-    xst = B3DMAX(xst, li->xmin);
+    xst = B3DMAX(xst, LIp->xmin);
     xnd = cont->pts[j + 1].x;
-    xnd = B3DMIN(xnd, li->xmax);
+    xnd = B3DMIN(xnd, LIp->xmax);
     for (x = xst; x < xnd; x++) {
 
       /* Get value if filling */
       if (fill) {
-        sliceGetVal(islice, x - li->xmin, y - li->ymin, inval);
-        putSliceValue(obj, islice, pslice, numChan, li, x, y, inval);
+        sliceGetVal(islice, x - LIp->xmin, y - LIp->ymin, inval);
+        putSliceValue(obj, islice, pslice, x, y, inval, 1.);
       } else {
 
         /* Or output the background value */
-        if (numChan < 3)
-          slicePutVal(pslice[0],  x - li->xmin, y - li->ymin, bkgVal);
+        if (NumChan < 3)
+          slicePutVal(pslice[0],  x - LIp->xmin, y - LIp->ymin, BkgVal);
         else {
           
-          slicePutVal(pslice[0],  x - li->xmin, y - li->ymin, redval);
-          slicePutVal(pslice[1],  x - li->xmin, y - li->ymin, grnval);
-          slicePutVal(pslice[2],  x - li->xmin, y - li->ymin, bluval);
+          slicePutVal(pslice[0],  x - LIp->xmin, y - LIp->ymin, redval);
+          slicePutVal(pslice[1],  x - LIp->xmin, y - LIp->ymin, grnval);
+          slicePutVal(pslice[2],  x - LIp->xmin, y - LIp->ymin, bluval);
         }
       }
     }
   }
 }
 
-void paintScatPoints(Iobj *obj, Islice *islice, Islice *pslice[3], int numChan,
-                    IloadInfo *li, int scat3D, int iz)
+void paintExactContour(Iobj *obj, Icont *cont, Islice *islice, Islice *pslice[3],
+                        int fill)
+{
+  Ival inval, redval, grnval, bluval;
+  int x, y, xst, xnd, yst, ynd, doFill, closest, doBkg;
+  Ipoint pmin, pmax, pnt;
+  float morePad = B3DMAX(0., fill ? Padding : -Padding);
+  float dist, taperFrac, absPad;
+  int doAllInside = fill && Padding >= 0. || !fill && Padding <= 0.;
+  int lookOutside = fill && Padding > 0. || !fill && Padding < 0.;
+
+
+  /* Initialize color values if not filling */
+  if (!fill) {
+    redval[0] = BkgVal[0];
+    grnval[0] = BkgVal[1];
+    bluval[0] = BkgVal[2];
+  }
+  absPad = (float)fabs((double)Padding);
+  imodContourGetBBox(cont, &pmin, &pmax);
+  xst = B3DMAX((int)(pmin.x - 1 - morePad), LIp->xmin);
+  xnd = B3DMIN((int)(pmax.x + 2 + morePad), LIp->xmax);
+  yst = B3DMAX((int)(pmin.y - 1 - morePad), LIp->ymin);
+  ynd = B3DMIN((int)(pmax.y + 2 + morePad), LIp->ymax);
+  pnt.z = 0.;
+  for (y = yst; y <= ynd; y++) {
+    for (x = xst; x <= xnd; x++) {
+      pnt.x = x + 0.5;
+      pnt.y = y + 0.5;
+      doFill = 0;
+      doBkg = 0;
+      taperFrac = 1.;
+      if (imodPointInsideCont(cont, &pnt)) {
+        if (doAllInside) {
+          doFill = fill;
+          doBkg = fill ? 0 : 1.;
+        } else {
+          dist = imodPointContDistance(cont, &pnt, 0, 0, &closest);
+          if (dist >= absPad) {
+            doFill = fill;
+            doBkg = fill ? 0 : 1.;
+          } else if (Taper) {
+            taperFrac = dist / absPad;
+            doFill = 1;
+            if (!fill)
+              taperFrac = 1. - taperFrac;
+          }
+        }
+        
+      } else if (lookOutside) {
+        dist = imodPointContDistance(cont, &pnt, 0, 0, &closest);
+        if (dist <= absPad) {
+          if (Taper) {
+            taperFrac = dist / absPad;
+            if (fill)
+              taperFrac = 1. - taperFrac;
+            if (taperFrac > 0.)
+              doFill = 1;
+            else if (!fill)
+              doBkg = 1;
+          } else {
+            doFill = fill;
+            doBkg = fill ? 0 : 1.;
+          }
+        }
+      }
+
+      /* Get value if filling */
+      if (doFill) {
+        sliceGetVal(islice, x - LIp->xmin, y - LIp->ymin, inval);
+        putSliceValue(obj, islice, pslice, x, y, inval, taperFrac);
+      } else if (doBkg) {
+        
+        /* Or output the background value */
+        if (NumChan < 3)
+          slicePutVal(pslice[0],  x - LIp->xmin, y - LIp->ymin, BkgVal);
+        else {
+          
+          slicePutVal(pslice[0],  x - LIp->xmin, y - LIp->ymin, redval);
+          slicePutVal(pslice[1],  x - LIp->xmin, y - LIp->ymin, grnval);
+          slicePutVal(pslice[2],  x - LIp->xmin, y - LIp->ymin, bluval);
+        }
+      }
+    }
+  }
+}
+
+void paintScatPoints(Iobj *obj, Islice *islice, Islice *pslice[3], int iz, int allsec)
 {
   Ival inval;
   Icont *cont;
   Ipoint *pnt;
   int co, pt, x, y, xst, xnd, yst, ynd;
-  float rad, size;
+  float rad, dist, size, taperFrac, deltaSize = 0.;
+  float absPad = (float)fabs((double)Padding);
   double dx, dy, dz;
+
+  /* Change the size by the padding unless there is tapering inside */
+  if (Padding > 0 || !Taper)
+    deltaSize = Padding;
 
   /* Loop on all points in all contours */
   for (co = 0; co < obj->contsize; co++) {
@@ -818,21 +991,21 @@ void paintScatPoints(Iobj *obj, Islice *islice, Islice *pslice[3], int numChan,
       pnt = &cont->pts[pt];
 
       /* Get size, check if point is within bounds in X */
-      size = imodPointGetSize(obj, cont, pt);
-      if (pnt->x + size < li->xmin || pnt->x - size > li->xmax || 
-          pnt->y + size < li->ymin || pnt->y - size > li->ymax)
+      size = imodPointGetSize(obj, cont, pt) + deltaSize;
+      if (size <= 0. || pnt->x + size < LIp->xmin || pnt->x - size > LIp->xmax || 
+          pnt->y + size < LIp->ymin || pnt->y - size > LIp->ymax)
         continue;
 
       /* Check if Z is within range (3D) or right on (2D), get radius on
          current Z  for 3D */
-      if (scat3D) {
+      if (Scat3D) {
         dz = fabs((double)(pnt->z - iz));
         if (dz >= size)
           continue;
         rad = (float)sqrt(size * size - dz * dz);
 
       } else {
-        if (B3DNINT(cont->pts[pt].z) != iz)
+        if (!allsec && B3DNINT(cont->pts[pt].z) != iz)
           continue;
         rad = size;
       }
@@ -855,12 +1028,31 @@ void paintScatPoints(Iobj *obj, Islice *islice, Islice *pslice[3], int numChan,
            xnd inclusive made it ~0.5 pixel too wide.  So don't subtract 0.5,
            and run to < xnd instead of <= xnd, and it's pretty good */
         xst = B3DNINT(pnt->x - dx);
-        xst = B3DMAX(xst, li->xmin);
+        xst = B3DMAX(xst, LIp->xmin);
         xnd = B3DNINT(pnt->x + dx);
-        xnd = B3DMIN(xnd, li->xmax);
-        for (x = xst; x < xnd; x++) {
-          sliceGetVal(islice, x - li->xmin, y - li->ymin, inval);
-          putSliceValue(obj, islice, pslice, numChan, li, x, y, inval);
+        xnd = B3DMIN(xnd, LIp->xmax);
+        if (!(Padding && Taper)) {
+          for (x = xst; x < xnd; x++) {
+            sliceGetVal(islice, x - LIp->xmin, y - LIp->ymin, inval);
+            putSliceValue(obj, islice, pslice, x, y, inval, 1.);
+          }
+        } else {
+
+          /* For tapering, loop on the points and measure their distances individually
+             then evaluate a taper fraction */
+          for (x = xst; x < xnd; x++) {
+            dx = x + 0.5 - pnt->x;
+            dy = y + 0.5 - pnt->y;
+            dz = Scat3D ? iz - pnt->z : 0.;
+            dist = (float)sqrt(dx*dx + dy*dy + dz*dz);
+            taperFrac = 1.;
+            if (dist > size - absPad)
+              taperFrac = (size - dist) / absPad;
+            if (taperFrac > 0.) {
+              sliceGetVal(islice, x - LIp->xmin, y - LIp->ymin, inval);
+              putSliceValue(obj, islice, pslice, x, y, inval, taperFrac);
+            }
+          }
         }
       }
     }
@@ -868,16 +1060,19 @@ void paintScatPoints(Iobj *obj, Islice *islice, Islice *pslice[3], int numChan,
 }
 
 static void paintTubularLines(Iobj *obj, Islice *islice, Islice *pslice[3], 
-                              int numChan, IloadInfo *li, float rad, int iz,
-                              int tubes2D)
+                              float rad, int iz)
 {
   Ival inval;
   Icont *cont;
   Ipoint *ptcur, *ptlas;
   Ipoint pix;
-  int co, pt, x, y, xst, xnd, yst, ynd;
-  float radsq, tval, radinc;
+  int co, pt, x, y, xst, xnd, yst, ynd, closest;
+  float radsq, tval, radinc, taperFrac;
   double dz, dzlas;
+  float absPad = (float)fabs((double)Padding);
+
+  if (Padding > 0 || !Taper)
+    rad += Padding;
 
   /* Loop on all line segments in all contours */
   radsq = rad * rad;
@@ -890,22 +1085,22 @@ static void paintTubularLines(Iobj *obj, Islice *islice, Islice *pslice[3],
     for (pt = 1; pt < cont->psize; pt++) {
       ptcur = &cont->pts[pt];
       dz = fabs((double)ptcur->z - iz);
-      if ((!tubes2D && 
+      if ((!Tubes2D && 
           (dz <= rad || dzlas <= rad || (ptcur->z > iz && ptlas->z < iz) ||
            (ptcur->z < iz && ptlas->z > iz)))
-          || (tubes2D && dz < 0.5 && dzlas < 0.5)) {
+          || (Tubes2D && dz < 0.5 && dzlas < 0.5)) {
 
-        /* If either endpoint is within radius in Z, make a box around the
-           segment */
+        /* If either endpoint is within radius in Z or the segment crosses the Z-plane,
+           make a box around the segment */
         radinc = rad + 2.;
         xst = (int)B3DMIN(ptcur->x - radinc, (int)ptlas->x - radinc);
         xnd = (int)B3DMAX(ptcur->x + radinc, (int)ptlas->x + radinc);
         yst = (int)B3DMIN(ptcur->y - radinc, (int)ptlas->y - radinc);
         ynd = (int)B3DMAX(ptcur->y + radinc, (int)ptlas->y + radinc);
-        xst = B3DMAX(xst, li->xmin);
-        xnd = B3DMIN(xnd, li->xmax);
-        yst = B3DMAX(yst, li->ymin);
-        ynd = B3DMIN(ynd, li->ymax);
+        xst = B3DMAX(xst, LIp->xmin);
+        xnd = B3DMIN(xnd, LIp->xmax);
+        yst = B3DMAX(yst, LIp->ymin);
+        ynd = B3DMIN(ynd, LIp->ymax);
         for (y = yst; y <= ynd; y++) {
           for (x = xst; x <= xnd; x++) {
             float dist;
@@ -914,8 +1109,19 @@ static void paintTubularLines(Iobj *obj, Islice *islice, Islice *pslice[3],
             pix.z = iz;
             dist = imodPointLineSegDistance(ptlas, ptcur, &pix, &tval);
             if (dist <= radsq) {
-              sliceGetVal(islice, x - li->xmin, y - li->ymin, inval);
-              putSliceValue(obj, islice, pslice, numChan, li, x, y, inval);
+              taperFrac = 1.;
+
+              /* Get a global value for distance from the whole contour so that the same
+                 point in multiple segments will give the same tapered value */
+              if (Padding && Taper) {
+                dist = (float)imodPointContDistance(cont, &pix, 1, 1, &closest);
+                if (dist > rad - absPad)
+                  taperFrac = (rad - dist) / absPad;
+              }
+              if (taperFrac > 0.) {
+                sliceGetVal(islice, x - LIp->xmin, y - LIp->ymin, inval);
+                putSliceValue(obj, islice, pslice, x, y, inval, taperFrac);
+              }
             }
           }
         }
@@ -927,20 +1133,47 @@ static void paintTubularLines(Iobj *obj, Islice *islice, Islice *pslice[3],
 }
 
 static void putSliceValue(Iobj *obj,  Islice *islice, Islice *pslice[3],
-                          int numChan, IloadInfo *li, int x, int y, Ival inval)
+                          int x, int y, Ival inval, float taperFrac)
 {
-  Ival outval;
-  if (numChan < 3)
-    slicePutVal(pslice[0],  x - li->xmin, y - li->ymin, inval);
-  else {
+  Ival outval, useval;
+
+  /* In simple case, just put out the value( */
+  if (NumChan < 3 && !Masking && taperFrac > 0.99999) {
+    slicePutVal(pslice[0],  x - LIp->xmin, y - LIp->ymin, inval);
+    return;
+  }
+
+  /* Otherwise copy the value or turn it into mask */
+  if (Masking) {
+    useval[0] = MaskVal[0];
+    useval[1] = MaskVal[1];
+    useval[2] = MaskVal[2];
+  } else {
+    useval[0] = inval[0];
+    useval[1] = inval[1];
+    useval[2] = inval[2];
+  }
+
+  
+  if (taperFrac <= 0.9999) {
+    if (Taper > 1)
+      taperFrac = WindowTable[(int)(TABLE_SIZE * taperFrac)];
+    useval[0] = taperFrac * useval[0] + (1. - taperFrac) * BkgVal[0];
+    useval[1] = taperFrac * useval[1] + (1. - taperFrac) * BkgVal[1];
+    useval[2] = taperFrac * useval[2] + (1. - taperFrac) * BkgVal[2];
+  }
+
+  if (NumChan < 3) {
+    slicePutVal(pslice[0],  x - LIp->xmin, y - LIp->ymin, useval);
+  } else {
     
     /* If doing 3 channels, only first element is needed */
-    outval[0] = obj->red * inval[0];
-    slicePutVal(pslice[0],  x - li->xmin, y - li->ymin, outval);
-    outval[0] = obj->green * inval[0];
-    slicePutVal(pslice[1],  x - li->xmin, y - li->ymin, outval);
-    outval[0] = obj->blue * inval[0];
-    slicePutVal(pslice[2],  x - li->xmin, y - li->ymin, outval);
+    outval[0] = obj->red * useval[0];
+    slicePutVal(pslice[0],  x - LIp->xmin, y - LIp->ymin, outval);
+    outval[0] = obj->green * useval[0];
+    slicePutVal(pslice[1],  x - LIp->xmin, y - LIp->ymin, outval);
+    outval[0] = obj->blue * useval[0];
+    slicePutVal(pslice[2],  x - LIp->xmin, y - LIp->ymin, outval);
   }
 }
 
@@ -973,7 +1206,11 @@ static int itemOnList(int item, int *list, int num)
 }
 
 /*
+
 $Log$
+Revision 3.13  2009/02/27 17:13:35  mast
+Fixed 3D scattered point function, broken by adding planar tubes
+
 Revision 3.12  2009/01/08 00:00:54  mast
 Added option for planar tubes
 
