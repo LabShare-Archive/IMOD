@@ -36,9 +36,10 @@ tooltip =
 manpage = Use this option to extract just the volume necessary to contain all 
 of the objects being painted, with the given border added in X and Y.  For
 tubular lines, the radius of the tube is taken into account in determining the
-limits to extract in X and Y, but the limits in Z are determined just from the
-points on the contours.  For scattered points, the radius of each point is
-taken into account in determining limits to extract in all 3 dimensions.
+limits to extract in X and Y and Z. For scattered points, the radius of each
+point is taken into account in determining limits to extract in all 3
+dimensions.  If padding is specified with the -pad option, the padding is
+added only if it is positive.
 If Z limits are entered with the -zminmax option, then they supercede the
 Z limits computed from the objects with this option; this is the way to get
 extra slices in Z.  This option cannot be used with -xminmax or -yminmax.
@@ -93,6 +94,53 @@ manpage = Relative values for scaling the value for background fill into a
 red, green, and blue components for color output.  The values should be between
 0 and 1.  The default is 1,1,1.
 
+[Field = MaskValue]
+short = mask
+type = F
+usage = Value to use instead of existing pixel values, to make a binary mask
+tooltip = 
+manpage = With this option, the given value will be used to generate output
+instead of the value in the input data.  In the simplest case, you can make a
+mask volume that consists of zeros and ones by using "-mask 1".  You can
+use the -invert option to produce the mask value outside the painted regions
+and 0 inside.  A mask can be tapered with the -pad and -taper options.
+
+[Field = ModeToOutput]
+short = mode
+type = I
+usage = Output file mode (0: bytes, 1/6: signed/unsigned integers, 2: reals)
+tooltip = 
+manpage = Mode for output file: 0 for bytes, 1 or 6 for signed or unsigned
+integers, or 2 for real values.  Changing the mode to 2 is essential if you
+want to make a mask with a value of 1 and tapering over padded regions.  You
+may also need to change output mode if you are inserting fill or mask values
+outside the range of the input mode.  You cannot change the mode of FFT input
+data, of RGB input data unless making or mask, or when using -color or -project.
+
+[Field = PaddingSize]
+short = pad
+type = F
+usage = Distance to pad around painted area, + for outside, - for inside
+tooltip = 
+manpage = This option will extend the painted region outside of the model
+feature with a positive padding value, or eliminate pixels just inside the
+boundary of the model feature with a negative padding value.  For 
+a contour nested inside of another contour, the sense of the padding is reversed, with
+a positive padding extending the painted area inside, and a negative
+padding eliminating painted pixels outside.  For spheres, the padding size is
+essentially added to the sphere radius.  For tubular contours, adding padding is
+the same as entering a different tube diameter, unless tapering is being used.
+
+[Field = TaperOverPad]
+short = taper
+type = I
+usage = Type of tapering to background over padding region: 1 linear or 2 gaussian
+tooltip = 
+manpage = With this option, values will be tapered down to the background
+value over a padding region.  Enter 1 for a taper that is linear with
+distance, or 2 for a Gaussian that falls to 0.05 at the end of the tapering
+distance.
+
 [Field = ObjectsToDo]
 short = objects
 type = LI
@@ -142,6 +190,15 @@ tooltip =
 manpage = With this open, open contours identified as being painted as tubes
 will be painted in 2D only.  For each segment of the contour that lies in one
 Z plane, pixels will be extracted in that Z plane only.
+
+[Field = AllSectionObjects]
+short = allsec
+type = LI
+usage = List of objects to paint on all sections
+tooltip = 
+manpage = List of closed contour or scattered point objects to paint on all
+sections.  For example, a cylinder will be painted for each sphere regardless
+of its Z location. 
 
 [Field = ColorOutput]
 short = color
@@ -221,3 +278,13 @@ The temporary volume files are named imodmop.rec0.pid (and imodmop.rec1.pid
 and imodmop.rec2.pid for green and blue channels of color output), where pid
 is the process ID.  The
 temporary projection files are named imodmop.xyz0.pid, etc.
+
+[Field = FastLegacyMethod]
+short = fast
+type = B
+usage = Paint closed contours using old fast and approximate method.
+tooltip = 
+manpage = Paint closed contours using scan contours, the method used prior to
+IMOD 4.2.15.  This was about 10 times faster but was not completely accurate
+at identifying the pixels within contours, particularly if they were the
+contours small or convoluted. 

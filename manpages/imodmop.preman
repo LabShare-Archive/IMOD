@@ -21,7 +21,12 @@ scattered point objects can also be used.  For open contours, it is possible
 to paint a cylinder of data around each contour by specifying the object
 number and a diameter for the cylinder.  There are options for painting either
 circles or spheres of scattered point objects; if the points have individual
-sizes they will be used as the radius for each area painted.
+sizes they will be used as the radius for each area painted.  The painting can
+be padded outside the border of an area or restricted from approaching the
+border, and values can be tapered down to the background over these padding
+regions.  There is an option to produce an output from a constant value
+instead of the values in the input data, which is useful for making mask
+volumes. 
 .P
 Contours in a closed contour object may be nested to any level, and regions
 that are topologically inside the surface (odd nested levels) will be painted,
@@ -68,9 +73,4 @@ Based on imodmop and imodcmopp by James Kremer.
 .SH SEE ALSO
 3dmod(1), xyzproj(1)
 .SH BUGS
-Pixels inside closed contours are selected by converting to a scan contour
-that is used to define the pixels to paint, instead of directly testing
-whether each pixel is inside the contour.  If this is not accurate enough,
-then direct testing could be added, although this will be much slower.
-.P
 Email bug reports to mast@colorado.edu.

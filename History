@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/21/11: Changed Imodmop to use an exact evaluation of pixels inside contours,
+and added options to make a mask output, to pad inside or outside contours or
+other features, to taper values to the background over the padding region, 
+to define objects that will be applied on all sections, and to change the
+output mode.
+
 2/19/11: Adjusted coordinates put out by clip stats on a subarea so that they
 are correct coordinates in the full image.
 
