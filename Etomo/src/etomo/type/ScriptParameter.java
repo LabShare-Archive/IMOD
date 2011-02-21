@@ -19,6 +19,9 @@ import etomo.comscript.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2009/09/22 21:02:35  sueh
+ * <p> bug# 1259 No longer unnecessarily returning ConstEtomoNumber from updateComScript.
+ * <p>
  * <p> Revision 1.13  2008/10/27 20:24:34  sueh
  * <p> bug# 1141 Added debug only print statements.
  * <p>
@@ -159,8 +162,7 @@ public class ScriptParameter extends EtomoNumber {
    * @param includeWhenDefaulted
    * @return
    */
-  public void updateComScript(ComScriptCommand scriptCommand,
-      boolean includeWhenDefaulted) {
+  public void updateComScript(ComScriptCommand scriptCommand, boolean includeWhenDefaulted) {
     if (isActive()
         && ((includeWhenDefaulted && !isNull()) || (!includeWhenDefaulted && isNotNullAndNotDefault()))) {
       scriptCommand.setValue(name, toString(getValue()));
@@ -194,8 +196,8 @@ public class ScriptParameter extends EtomoNumber {
    * @return
    * @throws InvalidParameterException
    */
-  public ConstEtomoNumber parse(ComScriptCommand scriptCommand,
-      boolean setActive) throws InvalidParameterException {
+  public ConstEtomoNumber parse(ComScriptCommand scriptCommand, boolean setActive)
+      throws InvalidParameterException {
     boolean found = false;
     if (isDebug()) {
       System.out.println("name=" + name + ",scriptCommand.hasKeyword(name)="
@@ -213,8 +215,8 @@ public class ScriptParameter extends EtomoNumber {
     else {
       found = true;
       if (isDebug()) {
-        System.out.println("scriptCommand.getValue(name)="
-            + scriptCommand.getValue(name));
+        System.out
+            .println("scriptCommand.getValue(name)=" + scriptCommand.getValue(name));
       }
       set(scriptCommand.getValue(name));
       if (isDebug()) {

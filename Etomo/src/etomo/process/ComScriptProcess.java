@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.61  2011/02/03 05:59:07  sueh
+ * bug# 1422 Added setProcessingMethod.
+ *
  * Revision 3.60  2010/11/13 16:03:45  sueh
  * bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  *
@@ -501,17 +504,15 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.watchedFileName = watchedFileName;
     this.processMonitor = processMonitor;
     this.processResultDisplay = processResultDisplay;
-    processData = ProcessData.getManagedInstance(axisID, manager,
-        getProcessName());
+    processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
     processData.setDisplayKey(processResultDisplay);
     this.processSeries = processSeries;
     initialize(null);
   }
 
-  public ComScriptProcess(BaseManager manager, String comScript,
-      Command command, BaseProcessManager processManager, AxisID axisID,
-      String watchedFileName, ProcessMonitor processMonitor,
-      ProcessResultDisplay processResultDisplay,
+  public ComScriptProcess(BaseManager manager, String comScript, Command command,
+      BaseProcessManager processManager, AxisID axisID, String watchedFileName,
+      ProcessMonitor processMonitor, ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries, FileType fileType) {
     this.manager = manager;
     this.comScriptName = comScript;
@@ -521,8 +522,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.watchedFileName = watchedFileName;
     this.processMonitor = processMonitor;
     this.processResultDisplay = processResultDisplay;
-    processData = ProcessData.getManagedInstance(axisID, manager,
-        getProcessName());
+    processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
     processData.setDisplayKey(processResultDisplay);
     this.processSeries = processSeries;
     this.command = command;
@@ -540,8 +540,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.watchedFileName = null;
     this.processMonitor = null;
     this.processResultDisplay = processResultDisplay;
-    processData = ProcessData.getManagedInstance(axisID, manager,
-        getProcessName());
+    processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
     processData.setDisplayKey(processResultDisplay);
     this.processSeries = null;
     initialize(null);
@@ -560,8 +559,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.processMonitor = processMonitor;
     this.processResultDisplay = processResultDisplay;
     this.processDetails = processDetails;
-    processData = ProcessData.getManagedInstance(axisID, manager,
-        getProcessName());
+    processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
     processData.setDisplayKey(processResultDisplay);
     this.processSeries = processSeries;
     initialize(null);
@@ -580,8 +578,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.processMonitor = processMonitor;
     this.processResultDisplay = processResultDisplay;
     this.command = command;
-    processData = ProcessData.getManagedInstance(axisID, manager,
-        getProcessName());
+    processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
     processData.setDisplayKey(processResultDisplay);
     this.processSeries = processSeries;
     initialize(null);
@@ -602,8 +599,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     processDetails = commandDetails;
     command = commandDetails;
     this.commandDetails = commandDetails;
-    processData = ProcessData.getManagedInstance(axisID, manager,
-        getProcessName());
+    processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
     processData.setDisplayKey(processResultDisplay);
     this.processSeries = processSeries;
     initialize(null);
@@ -619,8 +615,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.axisID = axisID;
     this.watchedFileName = watchedFileName;
     this.processMonitor = processMonitor;
-    processData = ProcessData.getManagedInstance(axisID, manager,
-        getProcessName());
+    processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
     this.processSeries = processSeries;
     initialize(null);
   }
@@ -638,8 +633,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     command = commandDetails;
     this.commandDetails = commandDetails;
     this.processMonitor = processMonitor;
-    processData = ProcessData.getManagedInstance(axisID, manager,
-        getProcessName());
+    processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
     this.processSeries = processSeries;
     initialize(null);
   }
@@ -647,7 +641,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   public ComScriptProcess(BaseManager manager, CommandDetails commandDetails,
       BaseProcessManager processManager, AxisID axisID, String watchedFileName,
       ProcessMonitor processMonitor, ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries,final ProcessingMethod processingMethod) {
+      ConstProcessSeries processSeries, final ProcessingMethod processingMethod) {
     this.manager = manager;
     this.comScriptName = commandDetails.getCommand();
     this.processManager = processManager;
@@ -659,8 +653,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.commandDetails = commandDetails;
     this.processMonitor = processMonitor;
     this.processResultDisplay = processResultDisplay;
-    processData = ProcessData.getManagedInstance(axisID, manager,
-        getProcessName());
+    processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
     processData.setDisplayKey(processResultDisplay);
     processData.setProcessingMethod(processingMethod);
     this.processSeries = processSeries;
@@ -670,7 +663,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   public ComScriptProcess(BaseManager manager, Command command,
       BaseProcessManager processManager, AxisID axisID, String watchedFileName,
       ProcessMonitor processMonitor, ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries,final ProcessingMethod processingMethod) {
+      ConstProcessSeries processSeries, final ProcessingMethod processingMethod) {
     this.manager = manager;
     this.comScriptName = command.getCommand();
     this.processManager = processManager;
@@ -680,8 +673,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.command = command;
     this.processMonitor = processMonitor;
     this.processResultDisplay = processResultDisplay;
-    processData = ProcessData.getManagedInstance(axisID, manager,
-        getProcessName());
+    processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
     processData.setDisplayKey(processResultDisplay);
     processData.setProcessingMethod(processingMethod);
     this.processSeries = processSeries;
@@ -704,7 +696,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
       processData.setComputerMap(computerMap);
     }
   }
-  
+
   public final void setProcessingMethod(final ProcessingMethod processingMethod) {
     if (processData != null) {
       processData.setProcessingMethod(processingMethod);
@@ -719,26 +711,23 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
             getProcessName());
       }
       else {
-        logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
-            fileType.getRoot(manager, axisID));
+        logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID, fileType
+            .getRoot(manager, axisID));
       }
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog(manager,
-          "Unable to create log file.\n" + e.getMessage(),
-          "Com Script Log Failure");
+      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to create log file.\n"
+          + e.getMessage(), "Com Script Log Failure");
       logFile = null;
     }
     catch (NullPointerException e) {
       e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog(manager,
-          "Unable to create log file.\n" + e.getMessage(),
-          "Com Script Log Failure");
+      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to create log file.\n"
+          + e.getMessage(), "Com Script Log Failure");
       logFile = null;
     }
-    if (command != null && processMonitor != null
-        && command.isMessageReporter()) {
+    if (command != null && processMonitor != null && command.isMessageReporter()) {
       processMonitor.useMessageReporter();
     }
   }
@@ -758,8 +747,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     return processResultDisplay;
   }
 
-  public final void setProcessResultDisplay(
-      ProcessResultDisplay processResultDisplay) {
+  public final void setProcessResultDisplay(ProcessResultDisplay processResultDisplay) {
     this.processResultDisplay = processResultDisplay;
   }
 
@@ -821,8 +809,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
       catch (SystemProcessException except) {
         error = true;
         // if (!nonBlocking) {
-        processManager.msgComScriptDone(this, vmstocsh.getExitValue(),
-            nonBlocking);
+        processManager.msgComScriptDone(this, vmstocsh.getExitValue(), nonBlocking);
         // }
         return;
       }
@@ -836,8 +823,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
           processManager.msgComScriptDone(this, -1, nonBlocking);
         }
         else {
-          processManager.msgComScriptDone(this, vmstocsh.getExitValue(),
-              nonBlocking);
+          processManager.msgComScriptDone(this, vmstocsh.getExitValue(), nonBlocking);
         }
         // }
         return;
@@ -880,8 +866,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     return true;
   }
 
-  static protected void renameFiles(String watchedFileName,
-      File workingDirectory, LogFile logFile) throws LogFile.LockException {
+  static protected void renameFiles(String watchedFileName, File workingDirectory,
+      LogFile logFile) throws LogFile.LockException {
     if (logFile == null) {
       return;
     }
@@ -889,8 +875,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     // by an existing log file
     logFile.backup();
     if (watchedFileName != null) {
-      LogFile watchedFile = LogFile.getInstance(workingDirectory
-          .getAbsolutePath(), watchedFileName);
+      LogFile watchedFile = LogFile.getInstance(workingDirectory.getAbsolutePath(),
+          watchedFileName);
       watchedFile.backup();
     }
   }
@@ -993,8 +979,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     // Do not use the -e flag for tcsh since David's scripts handle the failure 
     // of commands and then report appropriately.  The exception to this is the
     // com scripts which require the -e flag.  RJG: 2003-11-06  
-    csh = new SystemProgram(manager, manager.getPropertyUserDir(),
-        new String[] { "tcsh", "-ef" }, axisID);
+    csh = new SystemProgram(manager, manager.getPropertyUserDir(), new String[] { "tcsh",
+        "-ef" }, axisID);
     csh.setWorkingDirectory(workingDirectory);
     csh.setStdInput(commands);
     csh.setDebug(debug);
@@ -1024,19 +1010,17 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     // Redirecting stdin for the command does not work even when a shell is
     // called, need to pump the com file directly into the stdin of vmstocsh
     String[] comSequence = loadFile();
-    String[] command = new String[] {
-        ApplicationManager.getIMODBinPath() + "vmstocsh", logFile.getName() };
+    String[] command = new String[] { ApplicationManager.getIMODBinPath() + "vmstocsh",
+        logFile.getName() };
     //parseBaseName(comScriptName, ".com") + ".log" };
-    vmstocsh = new SystemProgram(manager, manager.getPropertyUserDir(),
-        command, axisID);
+    vmstocsh = new SystemProgram(manager, manager.getPropertyUserDir(), command, axisID);
     vmstocsh.setWorkingDirectory(workingDirectory);
     vmstocsh.setStdInput(comSequence);
     vmstocsh.setDebug(debug);
     vmstocsh.run();
 
     if (vmstocsh.getExitValue() != 0) {
-      processMessages.addError("Running vmstocsh against " + comScriptName
-          + " failed");
+      processMessages.addError("Running vmstocsh against " + comScriptName + " failed");
       throw new SystemProcessException("");
     }
 
@@ -1063,12 +1047,10 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
    */
   private String[] loadFile() throws IOException {
     //  Open the file as a stream
-    InputStream fileStream = new FileInputStream(workingDirectory
-        .getAbsolutePath()
-        + "/" + comScriptName);
+    InputStream fileStream = new FileInputStream(workingDirectory.getAbsolutePath() + "/"
+        + comScriptName);
 
-    BufferedReader fileReader = new BufferedReader(new InputStreamReader(
-        fileStream));
+    BufferedReader fileReader = new BufferedReader(new InputStreamReader(fileStream));
 
     ArrayList lines = new ArrayList();
     String line;
@@ -1105,8 +1087,9 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     ArrayList errors = new ArrayList();
     LogFile logFileToParse = logFile;
     if (!parseLogFile) {
-      logFileToParse = LogFile.getInstance(new File(workingDirectory,
-          parseBaseName(name, ".com") + ".log"));
+      logFileToParse = LogFile.getInstance(new File(workingDirectory, parseBaseName(name,
+          ".com")
+          + ".log"));
     }
     if (!logFileToParse.exists() && !mustExist) {
       return;

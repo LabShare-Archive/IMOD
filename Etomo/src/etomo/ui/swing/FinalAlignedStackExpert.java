@@ -52,6 +52,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/03 06:22:16  sueh
+ * <p> bug# 1422 Control of the processing method has been centralized in the
+ * <p> processing method mediator class.  Implementing ProcessInterface.
+ * <p> Supplying processes with the current processing method.
+ * <p>
  * <p> Revision 1.2  2010/12/05 05:04:39  sueh
  * <p> bug# 1416 Changed setEnabledTiltParameters to setTiltState.
  * <p>
@@ -158,10 +163,9 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
   private boolean enableFiltering = false;
   private FinalAlignedStackDialog.Tab curTab = FinalAlignedStackDialog.Tab.DEFAULT;
 
-  public FinalAlignedStackExpert(ApplicationManager manager,
-      MainTomogramPanel mainPanel, ProcessTrack processTrack, AxisID axisID) {
-    super(manager, mainPanel, processTrack, axisID,
-        DialogType.FINAL_ALIGNED_STACK);
+  public FinalAlignedStackExpert(ApplicationManager manager, MainTomogramPanel mainPanel,
+      ProcessTrack processTrack, AxisID axisID) {
+    super(manager, mainPanel, processTrack, axisID, DialogType.FINAL_ALIGNED_STACK);
     comScriptMgr = manager.getComScriptManager();
     state = manager.getState();
     screenState = manager.getScreenState(axisID);
@@ -178,11 +182,9 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       return;
     }
     //Create the dialog and show it.
-    Utilities.timestamp("new", "FinalAlignedStackDialog",
-        Utilities.STARTED_STATUS);
+    Utilities.timestamp("new", "FinalAlignedStackDialog", Utilities.STARTED_STATUS);
     dialog = FinalAlignedStackDialog.getInstance(manager, this, axisID, curTab);
-    Utilities.timestamp("new", "FinalAlignedStackDialog",
-        Utilities.FINISHED_STATUS);
+    Utilities.timestamp("new", "FinalAlignedStackDialog", Utilities.FINISHED_STATUS);
 
     dialog.setParameters(metaData);//TEMP metadata
 
@@ -200,12 +202,11 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
           ProcessName.BLEND_3D_FIND.getComscript(axisID));
       try {
         if (!blend3dFindCom.exists()) {
-          Utilities.copyFile(new File(manager.getPropertyUserDir(),
-              ProcessName.BLEND.getComscript(axisID)), blend3dFindCom);
+          Utilities.copyFile(new File(manager.getPropertyUserDir(), ProcessName.BLEND
+              .getComscript(axisID)), blend3dFindCom);
         }
         comScriptMgr.loadBlend3dFind(axisID);
-        dialog.setEraseGoldParameters(comScriptMgr
-            .getBlendParamFromBlend3dFind(axisID));
+        dialog.setEraseGoldParameters(comScriptMgr.getBlendParamFromBlend3dFind(axisID));
       }
       catch (IOException e) {
         UIHarness.INSTANCE.openMessageDialog(manager,
@@ -221,12 +222,11 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
           ProcessName.NEWST_3D_FIND.getComscript(axisID));
       try {
         if (!newst3dFindCom.exists()) {
-          Utilities.copyFile(new File(manager.getPropertyUserDir(),
-              ProcessName.NEWST.getComscript(axisID)), newst3dFindCom);
+          Utilities.copyFile(new File(manager.getPropertyUserDir(), ProcessName.NEWST
+              .getComscript(axisID)), newst3dFindCom);
         }
         comScriptMgr.loadNewst3dFind(axisID);
-        dialog.setEraseGoldParameters(comScriptMgr
-            .getNewstParamFromNewst3dFind(axisID));
+        dialog.setEraseGoldParameters(comScriptMgr.getNewstParamFromNewst3dFind(axisID));
       }
       catch (IOException e) {
         UIHarness.INSTANCE.openMessageDialog(manager,
@@ -235,14 +235,14 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       }
     }
     //if tilt_3dfind.com doesn't exist copy tilt.com to tilt_3dfind.com.
-    File tilt3dFindCom = new File(manager.getPropertyUserDir(),
-        ProcessName.TILT_3D_FIND.getComscript(axisID));
+    File tilt3dFindCom = new File(manager.getPropertyUserDir(), ProcessName.TILT_3D_FIND
+        .getComscript(axisID));
     boolean newTilt3dFindCom = false;
     try {
       if (!tilt3dFindCom.exists()) {
         newTilt3dFindCom = true;
-        Utilities.copyFile(new File(manager.getPropertyUserDir(),
-            ProcessName.TILT.getComscript(axisID)), tilt3dFindCom);
+        Utilities.copyFile(new File(manager.getPropertyUserDir(), ProcessName.TILT
+            .getComscript(axisID)), tilt3dFindCom);
       }
       comScriptMgr.loadTilt3dFind(axisID);
       dialog.setParameters(comScriptMgr.getTiltParamFromTilt3dFind(axisID),
@@ -263,14 +263,12 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     //track.com.
     comScriptMgr.loadTrack(axisID);
     comScriptMgr.loadFindBeads3d(axisID);
-    dialog.setParameters(comScriptMgr.getFindBeads3dParam(axisID),
-        newTilt3dFindCom);
+    dialog.setParameters(comScriptMgr.getFindBeads3dParam(axisID), newTilt3dFindCom);
     comScriptMgr.loadTilt3dFindReproject(axisID);
 
     // Get the align{|a|b}.com parameters 
     comScriptMgr.loadAlign(axisID);
-    dialog.setParameters(comScriptMgr.getTiltalignParam(axisID),
-        newTilt3dFindCom);
+    dialog.setParameters(comScriptMgr.getTiltalignParam(axisID), newTilt3dFindCom);
 
     //backward compatibility
     //Try loading ctfcorrection.com first.  If it isn't there, copy it with
@@ -282,8 +280,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       manager.setupCtfCorrectionComScript(axisID);
       comScriptMgr.loadCtfCorrection(axisID, true);
     }
-    CtfPhaseFlipParam ctfPhaseFlipParam = comScriptMgr
-        .getCtfPhaseFlipParam(axisID);
+    CtfPhaseFlipParam ctfPhaseFlipParam = comScriptMgr.getCtfPhaseFlipParam(axisID);
     setParameters(ctfPhaseFlipParam);
     if (!comScriptMgr.loadCtfPlotter(axisID, false)) {
       //Get the voltage, etc from ctfcorrection.com, since it has been loaded, and it
@@ -317,14 +314,13 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
       DialogType dialogType, ProcessDisplay display) {
     if (process.equals(ProcessName.PROCESSCHUNKS.toString())) {
-      processchunks(manager, dialog, processResultDisplay, processSeries,
-          process.getSubprocessName(), process.getOutputImageFileType(),
-          process.getProcessingMethod());
+      processchunks(manager, dialog, processResultDisplay, processSeries, process
+          .getSubprocessName(), process.getOutputImageFileType(), process
+          .getProcessingMethod());
     }
     else if (process.equals(ProcessName.TILT_3D_FIND.toString())) {
       manager.tilt3dFindAction(processResultDisplay, processSeries, null, null,
-          (TiltDisplay) display, axisID, dialogType, process
-              .getProcessingMethod());
+          (TiltDisplay) display, axisID, dialogType, process.getProcessingMethod());
     }
   }
 
@@ -342,8 +338,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
         UIHarness.INSTANCE.openMessageDialog(null,
             "To use the CTF correction go back to Final Aligned Stack and press "
                 + "the \"" + FinalAlignedStackDialog.USE_CTF_CORRECTION_LABEL
-                + "\" button in the " + FinalAlignedStackDialog.CTF_TAB_LABEL
-                + " tab.", "Entry Warning", axisID);
+                + "\" button in the " + FinalAlignedStackDialog.CTF_TAB_LABEL + " tab.",
+            "Entry Warning", axisID);
         //Only warn once.
         state.setUseCtfCorrectionWarning(axisID, false);
       }
@@ -353,8 +349,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
         UIHarness.INSTANCE.openMessageDialog(null,
             "To use the stack with the erased beads go back to Final Aligned "
                 + "Stack and press the \""
-                + FinalAlignedStackDialog.getUseErasedStackLabel()
-                + "\" button in the "
+                + FinalAlignedStackDialog.getUseErasedStackLabel() + "\" button in the "
                 + FinalAlignedStackDialog.getErasedStackTabLabel() + " tab.",
             "Entry Warning", axisID);
         //Only warn once.
@@ -366,8 +361,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
         UIHarness.INSTANCE.openMessageDialog(null,
             "To use the MTF filtered stack go back to Final Aligned "
                 + "Stack and press the \""
-                + FinalAlignedStackDialog.USE_FILTERED_STACK_LABEL
-                + "\" button in the "
+                + FinalAlignedStackDialog.USE_FILTERED_STACK_LABEL + "\" button in the "
                 + FinalAlignedStackDialog.MTF_FILTER_TAB_LABEL + " tab.",
             "Entry Warning", axisID);
         //Only warn once.
@@ -375,16 +369,15 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       }
     }
     if (exitState == DialogExitState.EXECUTE) {
-      manager.closeImod(ImodManager.MTF_FILTER_KEY, axisID,
-          "MTF filtered stack", false);
-      manager.closeImod(ImodManager.CTF_CORRECTION_KEY, axisID,
-          "CTF corrected stack", false);
-      manager.closeImod(ImodManager.ERASED_FIDUCIALS_KEY, axisID,
-          "Erased beads stack", false);
+      manager.closeImod(ImodManager.MTF_FILTER_KEY, axisID, "MTF filtered stack", false);
+      manager.closeImod(ImodManager.CTF_CORRECTION_KEY, axisID, "CTF corrected stack",
+          false);
+      manager.closeImod(ImodManager.ERASED_FIDUCIALS_KEY, axisID, "Erased beads stack",
+          false);
       manager.closeImod(ImodManager.FINE_ALIGNED_3D_FIND_KEY, axisID,
           "Aligned stack for 3d find", false);
-      manager.closeImod(ImodManager.FULL_VOLUME_3D_FIND_KEY, axisID,
-          "tomogram 3d find", false);
+      manager.closeImod(ImodManager.FULL_VOLUME_3D_FIND_KEY, axisID, "tomogram 3d find",
+          false);
     }
     if (exitState != DialogExitState.CANCEL) {
       saveDialog();
@@ -405,8 +398,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       dialog.getParameters(metaData);
     }
     catch (FortranInputSyntaxException e) {
-      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
-          "Data File Error");
+      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(), "Data File Error");
     }
     dialog.getParameters(screenState);
     UIExpertUtilities.INSTANCE.updateFiducialessParams(manager, dialog
@@ -414,20 +406,16 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     if (metaData.getViewType() == ViewType.MONTAGE) {
       try {
         manager.updateBlendCom(dialog.getBlendmontDisplay(), axisID);
-        manager
-            .updateBlend3dFindCom(dialog.getBlendmont3dFindDisplay(), axisID);
+        manager.updateBlend3dFindCom(dialog.getBlendmont3dFindDisplay(), axisID);
       }
       catch (FortranInputSyntaxException e) {
-        UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
-            "Update Com Error");
+        UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(), "Update Com Error");
       }
       catch (InvalidParameterException e) {
-        UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
-            "Update Com Error");
+        UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(), "Update Com Error");
       }
       catch (IOException e) {
-        UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
-            "Update Com Error");
+        UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(), "Update Com Error");
       }
     }
     else {
@@ -466,11 +454,9 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
   private ConstMTFFilterParam updateMTFFilterCom() {
     // Set a reference to the correct object
     if (dialog == null) {
-      UIHarness.INSTANCE
-          .openMessageDialog(
-              manager,
-              "Can not update mtffilter?.com without an active final aligned stack dialog",
-              "Program logic error", axisID);
+      UIHarness.INSTANCE.openMessageDialog(manager,
+          "Can not update mtffilter?.com without an active final aligned stack dialog",
+          "Program logic error", axisID);
       return null;
     }
     MTFFilterParam mtfFilterParam = null;
@@ -480,16 +466,13 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       String inputFileName;
       String outputFileName;
       if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
-        inputFileName = metaData.getDatasetName() + AxisID.ONLY.getExtension()
-            + ".ali";
+        inputFileName = metaData.getDatasetName() + AxisID.ONLY.getExtension() + ".ali";
         outputFileName = metaData.getDatasetName() + AxisID.ONLY.getExtension()
             + "_filt.ali";
       }
       else {
-        inputFileName = metaData.getDatasetName() + axisID.getExtension()
-            + ".ali";
-        outputFileName = metaData.getDatasetName() + axisID.getExtension()
-            + "_filt.ali";
+        inputFileName = metaData.getDatasetName() + axisID.getExtension() + ".ali";
+        outputFileName = metaData.getDatasetName() + axisID.getExtension() + "_filt.ali";
       }
       mtfFilterParam.setInputFile(inputFileName);
       mtfFilterParam.setOutputFile(outputFileName);
@@ -522,9 +505,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
 
   /**
    */
-  void mtffilter(ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
-      Run3dmodMenuOptions run3dmodMenuOptions) {
+  void mtffilter(ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
+      Deferred3dmodButton deferred3dmodButton, Run3dmodMenuOptions run3dmodMenuOptions) {
     if (processSeries == null) {
       processSeries = new ProcessSeries(manager, dialogType);
     }
@@ -539,8 +521,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     }
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     setDialogState(ProcessState.INPROGRESS);
-    sendMsg(manager.mtffilter(param, axisID, processResultDisplay,
-        processSeries), processResultDisplay);
+    sendMsg(manager.mtffilter(param, axisID, processResultDisplay, processSeries),
+        processResultDisplay);
   }
 
   void ctfPlotter(ProcessResultDisplay processResultDisplay) {
@@ -554,8 +536,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       return;
     }
     setDialogState(ProcessState.INPROGRESS);
-    sendMsg(manager.ctfPlotter(axisID, processResultDisplay),
-        processResultDisplay);
+    sendMsg(manager.ctfPlotter(axisID, processResultDisplay), processResultDisplay);
   }
 
   /**
@@ -570,8 +551,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     LogFile.ReaderId readerId = null;
     LogFile.WriterId writerId = null;
     try {
-      file = LogFile.getInstance(DatasetFiles.getSimpleDefocusFile(manager,
-          axisID));
+      file = LogFile.getInstance(DatasetFiles.getSimpleDefocusFile(manager, axisID));
       if (file.exists()) {
         readerId = file.openReader();
         String line = file.readLine(readerId);
@@ -633,8 +613,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       return;
     }
     if (!correctionProcessingMethod.isLocal()) {
-      splitcorrection(processResultDisplay, processSeries,
-          correctionProcessingMethod);
+      splitcorrection(processResultDisplay, processSeries, correctionProcessingMethod);
     }
     else {
       ctfCorrection(processResultDisplay, processSeries);
@@ -653,8 +632,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       return;
     }
     setDialogState(ProcessState.INPROGRESS);
-    sendMsg(manager.ctfCorrection(param, axisID, processResultDisplay,
-        processSeries), processResultDisplay);
+    sendMsg(manager.ctfCorrection(param, axisID, processResultDisplay, processSeries),
+        processResultDisplay);
   }
 
   private ConstSplitCorrectionParam updateSplitCorrectionParam() {
@@ -668,8 +647,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
 
   void getParameters(final SplitCorrectionParam param) {
     param.setCpus(getParallelPanel().getCPUsSelected());
-    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        DatasetFiles.getFullAlignedStackFileName(manager, axisID), axisID);
+    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(), DatasetFiles
+        .getFullAlignedStackFileName(manager, axisID), axisID);
     try {
       if (header.read(manager)) {
         param.setMaxZ(header.getNSections());
@@ -684,8 +663,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
   }
 
   void splitcorrection(ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries,
-      final ProcessingMethod correctionProcessingMethod) {
+      ProcessSeries processSeries, final ProcessingMethod correctionProcessingMethod) {
     if (dialog == null) {
       return;
     }
@@ -697,9 +675,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       return;
     }
     setDialogState(ProcessState.INPROGRESS);
-    ProcessResult processResult = manager.splitCorrection(axisID,
-        processResultDisplay, processSeries, param, dialogType,
-        correctionProcessingMethod);
+    ProcessResult processResult = manager.splitCorrection(axisID, processResultDisplay,
+        processSeries, param, dialogType, correctionProcessingMethod);
     if (processResult != null) {
       sendMsg(processResult, processResultDisplay);
     }
@@ -711,8 +688,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
    */
   void useCtfCorrection(ProcessResultDisplay processResultDisplay) {
     if (manager.useFileAsFullAlignedStack(processResultDisplay,
-        FileType.CTF_CORRECTED_STACK,
-        FinalAlignedStackDialog.CTF_CORRECTION_LABEL, axisID, dialogType)) {
+        FileType.CTF_CORRECTED_STACK, FinalAlignedStackDialog.CTF_CORRECTION_LABEL,
+        axisID, dialogType)) {
       state.setUseCtfCorrectionWarning(axisID, false);
     }
   }
@@ -732,8 +709,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       return;
     }
     setProgressBar("Using filtered full aligned stack", 1, axisID);
-    File mtfFilteredStack = FileType.MTF_FILTERED_STACK
-        .getFile(manager, axisID);
+    File mtfFilteredStack = FileType.MTF_FILTERED_STACK.getFile(manager, axisID);
     if (!mtfFilteredStack.exists()) {
       UIHarness.INSTANCE
           .openMessageDialog(
@@ -747,8 +723,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     if (FileType.ALIGNED_STACK.getFile(manager, axisID).exists()
         && mtfFilteredStack.exists()) {
       if (!Utilities.isValidStack(mtfFilteredStack, manager, axisID)) {
-        UIHarness.INSTANCE.openMessageDialog(manager, mtfFilteredStack
-            .getName()
+        UIHarness.INSTANCE.openMessageDialog(manager, mtfFilteredStack.getName()
             + " is not a valid MRC file.", "Entry Error", axisID);
         sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
         return;
@@ -765,8 +740,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       }
     }
     try {
-      manager.renameImageFile(FileType.MTF_FILTERED_STACK,
-          FileType.ALIGNED_STACK, axisID);
+      manager
+          .renameImageFile(FileType.MTF_FILTERED_STACK, FileType.ALIGNED_STACK, axisID);
     }
     catch (IOException except) {
       UIHarness.INSTANCE.openMessageDialog(manager, except.getMessage(),
@@ -828,8 +803,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     mtfFilterParam.setStartingAndEndingZ(dialog.getStartingAndEndingZ());
     mtfFilterParam.setMtfFile(dialog.getMtfFile());
     mtfFilterParam.setMaximumInverse(dialog.getMaximumInverse());
-    mtfFilterParam.setInverseRolloffRadiusSigma(dialog
-        .getInverseRolloffRadiusSigma());
+    mtfFilterParam.setInverseRolloffRadiusSigma(dialog.getInverseRolloffRadiusSigma());
   }
 
   private void setParameters(ConstCtfPlotterParam param) {
@@ -883,16 +857,14 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     param.setInvertTiltAngles(dialog.getInvertTiltAngles());
     param.setAmplitudeContrast(dialog.getAmplitudeContrast());
     if (dialog.isUseExpectedDefocus()) {
-      param.setDefocusFile(DatasetFiles.getSimpleDefocusFileName(manager,
-          axisID));
+      param.setDefocusFile(DatasetFiles.getSimpleDefocusFileName(manager, axisID));
     }
     else {
       param.setDefocusFile(DatasetFiles.getCtfPlotterFileName(manager, axisID));
     }
     param.setInterpolationWidth(dialog.getInterpolationWidth());
     param.setDefocusTol(dialog.getDefocusTol());
-    param.setOutputFileName(DatasetFiles.getCtfCorrectionFileName(manager,
-        axisID));
+    param.setOutputFileName(DatasetFiles.getCtfCorrectionFileName(manager, axisID));
   }
 
   private void setParameters(ConstMTFFilterParam mtfFilterParam) {
