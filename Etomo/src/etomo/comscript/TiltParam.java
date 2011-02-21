@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.51  2010/11/13 16:03:15  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.50  2010/09/24 00:55:28  sueh
  * <p> bug# 1404 Changed excludelist and excludelist2 to load mutliple entries
  * <p> and output one entry.
@@ -287,24 +290,21 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   public static final String LINEAR_SCALE_OFFSET_DEFAULT = "0.0";
   private static final String ACTION_IF_GPU_FAILS_DEFAULT = "1,2";
 
-  private final StringParameter inputFile = new StringParameter(
-      "InputProjections");
+  private final StringParameter inputFile = new StringParameter("InputProjections");
   private final StringParameter outputFile = new StringParameter("OutputFile");
   //tempFullImage: utility variable that is not kept up to date contains fullImageX and fullImageY
   StringParameter tempFullImage = new StringParameter("FULLIMAGE");
   private int fullImageX = Integer.MIN_VALUE;
   private int fullImageY = Integer.MIN_VALUE;
-  private final StringParameter localAlignFile = new StringParameter(
-      "LOCALFILE");
+  private final StringParameter localAlignFile = new StringParameter("LOCALFILE");
   //TODO localScale not used and doesn't go into the .com file - what is it for?
   private float localScale = Float.NaN;
-  private final ScriptParameter logOffset = new ScriptParameter(
-      EtomoNumber.Type.FLOAT, LOG_KEY);
+  private final ScriptParameter logOffset = new ScriptParameter(EtomoNumber.Type.FLOAT,
+      LOG_KEY);
   private final ScriptParameter mode = new ScriptParameter("MODE");
   //tempOffset is not kept up to date
   private final StringParameter tempOffset = new StringParameter("OFFSET");
-  private final EtomoNumber tiltAngleOffset = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE);
+  private final EtomoNumber tiltAngleOffset = new EtomoNumber(EtomoNumber.Type.DOUBLE);
   private float tiltAxisOffset = Float.NaN;
   private final EtomoBoolean2 parallel = new EtomoBoolean2("PARALLEL");
   private final EtomoBoolean2 perpendicular = new EtomoBoolean2("PERPENDICULAR");
@@ -321,15 +321,14 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   private int idxSliceStart = Integer.MIN_VALUE;
   private int idxSliceStop = Integer.MIN_VALUE;
   private int incrSlice = Integer.MIN_VALUE;
-  private final StringParameter tempSubsetStart = new StringParameter(
-      SUBSETSTART_KEY);
+  private final StringParameter tempSubsetStart = new StringParameter(SUBSETSTART_KEY);
   private int idxXSubsetStart = Integer.MIN_VALUE;
   private int idxYSubsetStart = Integer.MIN_VALUE;
   private final ScriptParameter thickness = new ScriptParameter("THICKNESS");
   private StringParameter tiltFile = new StringParameter("TILTFILE");
   private final ScriptParameter width = new ScriptParameter("WIDTH");
-  private final ScriptParameter xAxisTilt = new ScriptParameter(
-      EtomoNumber.Type.DOUBLE, "XAXISTILT");
+  private final ScriptParameter xAxisTilt = new ScriptParameter(EtomoNumber.Type.DOUBLE,
+      "XAXISTILT");
   private StringParameter xTiltFile = new StringParameter("XTILTFILE");
   private boolean useZFactors = false;
   private StringParameter zFactorFileName = new StringParameter("ZFACTORFILE");
@@ -339,8 +338,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
 
   private final StringList excludeList2 = new StringList(0);
   private final StringList excludeList = new StringList(0);
-  private final ScriptParameter imageBinned = new ScriptParameter(
-      EtomoNumber.Type.LONG, "IMAGEBINNED");
+  private final ScriptParameter imageBinned = new ScriptParameter(EtomoNumber.Type.LONG,
+      "IMAGEBINNED");
 
   private final EtomoBoolean2 fiducialess = new EtomoBoolean2("Fiducialess");
   /**
@@ -348,11 +347,9 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
    * Script is from an earlier version if false.
    */
   private final EtomoBoolean2 adjustOrigin = new EtomoBoolean2("AdjustOrigin");
-  private final StringParameter projectModel = new StringParameter(
-      "ProjectModel");
+  private final StringParameter projectModel = new StringParameter("ProjectModel");
   private final ScriptParameter useGpu = new ScriptParameter("UseGPU");
-  private final StringParameter actionIfGPUFails = new StringParameter(
-      "ActionIfGPUFails");
+  private final StringParameter actionIfGPUFails = new StringParameter("ActionIfGPUFails");
 
   private final String datasetName;
   private final ApplicationManager manager;
@@ -392,8 +389,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     return processName.toString();
   }
 
-  public List getLogMessage() throws LogFile.LockException,
-      FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+      IOException {
     return null;
   }
 
@@ -885,8 +882,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
    * @param scriptCommand the ComScriptCommand containg the newst command
    * and parameters.
    */
-  public void backwardCompatibleParseComScriptCommand(
-      final ComScriptCommand scriptCommand) throws BadComScriptException {
+  public void backwardCompatibleParseComScriptCommand(final ComScriptCommand scriptCommand)
+      throws BadComScriptException {
     //  get the input arguments from the command
     ComScriptInputArg[] inputArgs;
     try {
@@ -1023,8 +1020,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     excludeList.updateComScript(scriptCommand);
     excludeList2.updateComScript(scriptCommand);
     if (fullImageX > Integer.MIN_VALUE) {
-      tempFullImage.set(String.valueOf(fullImageX) + " "
-          + String.valueOf(fullImageY));
+      tempFullImage.set(String.valueOf(fullImageX) + " " + String.valueOf(fullImageY));
     }
     else {
       tempFullImage.reset();
@@ -1058,8 +1054,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     }
     tempRadial.updateComScript(scriptCommand);
     if (!Float.isNaN(scaleFLevel)) {
-      tempScale.set(String.valueOf(scaleFLevel) + " "
-          + String.valueOf(scaleCoeff));
+      tempScale.set(String.valueOf(scaleFLevel) + " " + String.valueOf(scaleCoeff));
     }
     else {
       tempScale.reset();
@@ -1084,8 +1079,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     }
     tempShift.updateComScript(scriptCommand);
     if (idxSliceStart > Integer.MIN_VALUE) {
-      String arg = String.valueOf(idxSliceStart) + " "
-          + String.valueOf(idxSliceStop);
+      String arg = String.valueOf(idxSliceStart) + " " + String.valueOf(idxSliceStop);
       if (incrSlice > Integer.MIN_VALUE) {
         arg += " " + String.valueOf(incrSlice);
       }
@@ -1109,8 +1103,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     xAxisTilt.updateComScript(scriptCommand);
     if (useZFactors && !fiducialess.is()) {
       if (zFactorFileName.isEmpty()) {
-        zFactorFileName.set(TiltalignParam.getOutputZFactorFileName(
-            datasetName, axisID));
+        zFactorFileName.set(TiltalignParam.getOutputZFactorFileName(datasetName, axisID));
       }
     }
     else {
@@ -1126,8 +1119,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       //use xtilt file if the file exists
       //This is backwards compatibility issue since the only good reason for the
       //file not to exist is that the state comes from an earlier version.
-      if (!(new File(manager.getPropertyUserDir(), xTiltFile.toString())
-          .exists())) {
+      if (!(new File(manager.getPropertyUserDir(), xTiltFile.toString()).exists())) {
         xTiltFile.reset();
       }
     }
@@ -1159,8 +1151,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
    */
   public ConstEtomoNumber setImageBinned() {
     EtomoNumber currentBinning = new EtomoNumber(EtomoNumber.Type.LONG);
-    currentBinning.set(UIExpertUtilities.INSTANCE.getStackBinningFromFileName(
-        manager, axisID, inputFile.toString(), true));
+    currentBinning.set(UIExpertUtilities.INSTANCE.getStackBinningFromFileName(manager,
+        axisID, inputFile.toString(), true));
     if (!currentBinning.isNull()) {
       imageBinned.set(currentBinning);
     }
@@ -1201,14 +1193,14 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
    * @throws InvalidParameterException
    * @throws IOException
    */
-  public void setMontageSubsetStart()
-      throws etomo.util.InvalidParameterException, IOException {
+  public void setMontageSubsetStart() throws etomo.util.InvalidParameterException,
+      IOException {
     resetSubsetStart();
-    Goodframe goodframe = etomo.comscript.Utilities
-        .getGoodframeFromMontageSize(axisID, manager);
+    Goodframe goodframe = etomo.comscript.Utilities.getGoodframeFromMontageSize(axisID,
+        manager);
     if (goodframe != null) {
-      MRCHeader header = MRCHeader.getInstanceFromFileName(manager, axisID,
-          inputFile.toString());
+      MRCHeader header = MRCHeader.getInstanceFromFileName(manager, axisID, inputFile
+          .toString());
       try {
         if (!header.read(manager)) {
           //ok if tilt is being updated before .ali exists
@@ -1216,8 +1208,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
         }
         int goodframeX;
         int goodframeY;
-        if (etomo.comscript.Utilities.is90DegreeImageRotation(manager
-            .getConstMetaData().getImageRotation(axisID))) {
+        if (etomo.comscript.Utilities.is90DegreeImageRotation(manager.getConstMetaData()
+            .getImageRotation(axisID))) {
           //transpose x and y
           goodframeX = goodframe.getOutput(1).getInt();
           goodframeY = goodframe.getOutput(0).getInt();
@@ -1257,15 +1249,15 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       if (!stackHeader.read(manager)) {
         return true;
       }
-      MRCHeader aliHeader = MRCHeader.getInstanceFromFileName(manager, axisID,
-          inputFile.toString());
+      MRCHeader aliHeader = MRCHeader.getInstanceFromFileName(manager, axisID, inputFile
+          .toString());
       if (!aliHeader.read(manager)) {
         return true;
       }
       int stackX;
       int stackY;
-      if (etomo.comscript.Utilities.is90DegreeImageRotation(manager
-          .getConstMetaData().getImageRotation(axisID))) {
+      if (etomo.comscript.Utilities.is90DegreeImageRotation(manager.getConstMetaData()
+          .getImageRotation(axisID))) {
         stackX = stackHeader.getNRows();
         stackY = stackHeader.getNColumns();
       }
@@ -1285,14 +1277,11 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     catch (etomo.util.InvalidParameterException e) {
       e.printStackTrace();
       if (Utilities.isAprilFools()) {
-        UIHarness.INSTANCE
-            .openMessageDialog(
-                manager,
-                "A horrible horrible thing happened while I was setting the subset "
-                    + "start in tilt.com.  Your tomogram would have been a disaster.  "
-                    + "But I caught the problem before it ruined your life.\n"
-                    + "Don't bother to thank me.\n" + e.getMessage(),
-                "Just Awful", axisID);
+        UIHarness.INSTANCE.openMessageDialog(manager,
+            "A horrible horrible thing happened while I was setting the subset "
+                + "start in tilt.com.  Your tomogram would have been a disaster.  "
+                + "But I caught the problem before it ruined your life.\n"
+                + "Don't bother to thank me.\n" + e.getMessage(), "Just Awful", axisID);
       }
       else {
         UIHarness.INSTANCE.openMessageDialog(manager,
@@ -1308,11 +1297,11 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
    * If the tilt angle axis is closer to 90 degree, transpose x and y.
    */
   public void setMontageFullImage() {
-    Goodframe goodframe = etomo.comscript.Utilities
-        .getGoodframeFromMontageSize(axisID, manager);
+    Goodframe goodframe = etomo.comscript.Utilities.getGoodframeFromMontageSize(axisID,
+        manager);
     if (goodframe != null) {
-      if (etomo.comscript.Utilities.is90DegreeImageRotation(manager
-          .getConstMetaData().getImageRotation(axisID))) {
+      if (etomo.comscript.Utilities.is90DegreeImageRotation(manager.getConstMetaData()
+          .getImageRotation(axisID))) {
         fullImageX = goodframe.getOutput(1).getInt();
         fullImageY = goodframe.getOutput(0).getInt();
       }
@@ -1328,13 +1317,13 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
    */
   public void setFullImage(final File stack) {
     try {
-      MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
-          stack.getName(), axisID);
+      MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(), stack
+          .getName(), axisID);
       if (!header.read(manager)) {
         return;
       }
-      if (etomo.comscript.Utilities.is90DegreeImageRotation(manager
-          .getConstMetaData().getImageRotation(axisID))) {
+      if (etomo.comscript.Utilities.is90DegreeImageRotation(manager.getConstMetaData()
+          .getImageRotation(axisID))) {
         fullImageX = header.getNRows();
         fullImageY = header.getNColumns();
       }
@@ -1621,8 +1610,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
    * name of the command and the appropriate number of input arguments.
    * @param scriptCommand the ComScriptCommand containing the tilt command
    */
-  private ComScriptInputArg[] getInputArguments(
-      final ComScriptCommand scriptCommand) throws BadComScriptException {
+  private ComScriptInputArg[] getInputArguments(final ComScriptCommand scriptCommand)
+      throws BadComScriptException {
 
     //  Check to be sure that it is a tiltxcorr xommand
     if (!scriptCommand.getCommand().equals("tilt")) {
@@ -1647,8 +1636,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
    * @param binning
    * @return true if changes where made
    */
-  public boolean upgradeOldVersion(final int correctionBinning,
-      final long currentBinning) {
+  public boolean upgradeOldVersion(final int correctionBinning, final long currentBinning) {
     if (!isOldVersion()) {
       return false;
     }
@@ -1685,14 +1673,13 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
         thickness.multiply(correctionBinning);
       }
     }
-    StringBuffer buffer = new StringBuffer("\nUpgraded tilt"
-        + axisID.getExtension() + ".com:\n");
+    StringBuffer buffer = new StringBuffer("\nUpgraded tilt" + axisID.getExtension()
+        + ".com:\n");
     if (correctionBinning > 1) {
       buffer.append("Multiplied binned FullImage, Width, Offset,"
           + " IdxSliceStart, and/or Thickness by " + correctionBinning + ".\n");
     }
-    buffer.append("Added " + imageBinned.getName() + " " + currentBinning
-        + ".\n");
+    buffer.append("Added " + imageBinned.getName() + " " + currentBinning + ".\n");
     System.err.println(buffer.toString());
     return true;
   }

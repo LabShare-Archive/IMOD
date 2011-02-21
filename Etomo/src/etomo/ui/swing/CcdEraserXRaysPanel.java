@@ -39,8 +39,8 @@ import etomo.type.FileType;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 
-final class CcdEraserXRaysPanel implements ContextMenu,
-    Run3dmodButtonContainer, CcdEraserDisplay, Expandable {
+final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
+    CcdEraserDisplay, Expandable {
   public static final String rcsid = "$Id$";
 
   static final String ERASE_LABEL = "Create Fixed Stack";
@@ -48,8 +48,7 @@ final class CcdEraserXRaysPanel implements ContextMenu,
 
   private final JPanel pnlCCDEraser = new JPanel();
   private final EtomoPanel pnlManualReplacement = new EtomoPanel();
-  private final CheckBox cbXrayReplacement = new CheckBox(
-      "Automatic x-ray replacement");
+  private final CheckBox cbXrayReplacement = new CheckBox("Automatic x-ray replacement");
   private final LabeledTextField ltfPeakCriterion = new LabeledTextField(
       "Peak criterion:");
   private final LabeledTextField ltfDiffCriterion = new LabeledTextField(
@@ -60,35 +59,28 @@ final class CcdEraserXRaysPanel implements ContextMenu,
       "Edge exclusion:");
   private final LabeledTextField ltfMaximumRadius = new LabeledTextField(
       "Maximum radius:");
-  private final LabeledTextField ltfAnnulusWidth = new LabeledTextField(
-      "Annulus width:");
-  private final LabeledTextField ltfScanRegionSize = new LabeledTextField(
-      "XY scan size:");
+  private final LabeledTextField ltfAnnulusWidth = new LabeledTextField("Annulus width:");
+  private final LabeledTextField ltfScanRegionSize = new LabeledTextField("XY scan size:");
   private final LabeledTextField ltfScanCriterion = new LabeledTextField(
       "Scan criterion:");
   private final Run3dmodButton btnFindXRays;
-  private final Run3dmodButton btnViewXRayModel = Run3dmodButton
-      .get3dmodInstance("View X-ray Model", this);
-  private final CheckBox cbManualReplacement = new CheckBox(
-      "Manual replacement");
+  private final Run3dmodButton btnViewXRayModel = Run3dmodButton.get3dmodInstance(
+      "View X-ray Model", this);
+  private final CheckBox cbManualReplacement = new CheckBox("Manual replacement");
   private final LabeledTextField ltfGlobalReplacementList = new LabeledTextField(
       "All section replacement list: ");
   private final LabeledTextField ltfLocalReplacementList = new LabeledTextField(
       "Line replacement list: ");
   private final LabeledTextField ltfBoundaryReplacementList = new LabeledTextField(
       "Boundary replacement list: ");
-  private final Run3dmodButton btnCreateModel = Run3dmodButton
-      .get3dmodInstance("Create Manual Replacement Model", this);
-  private final LabeledTextField ltfInputImage = new LabeledTextField(
-      "Input file: ");
-  private final LabeledTextField ltfOutputImage = new LabeledTextField(
-      "Output file: ");
-  private final LabeledTextField ltfBorderPixels = new LabeledTextField(
-      "Border pixels: ");
+  private final Run3dmodButton btnCreateModel = Run3dmodButton.get3dmodInstance(
+      "Create Manual Replacement Model", this);
+  private final LabeledTextField ltfInputImage = new LabeledTextField("Input file: ");
+  private final LabeledTextField ltfOutputImage = new LabeledTextField("Output file: ");
+  private final LabeledTextField ltfBorderPixels = new LabeledTextField("Border pixels: ");
   private final LabeledTextField ltfPolynomialOrder = new LabeledTextField(
       "Polynomial order: ");
-  private final CheckBox cbIncludeAdjacentPoints = new CheckBox(
-      "Include adjacent points");
+  private final CheckBox cbIncludeAdjacentPoints = new CheckBox("Include adjacent points");
   private final Run3dmodButton btnViewErased = Run3dmodButton.get3dmodInstance(
       "View Fixed Stack", this);
   private final MultiLineButton btnClipStatsRaw = new MultiLineButton(
@@ -121,28 +113,19 @@ final class CcdEraserXRaysPanel implements ContextMenu,
     setToolTipText();
 
     EtomoPanel pnlXRayReplacement = new EtomoPanel();
-    pnlXRayReplacement.setLayout(new BoxLayout(pnlXRayReplacement,
-        BoxLayout.Y_AXIS));
-    pnlXRayReplacement
-        .setBorder(new EtchedBorder("Automatic X-ray Replacement").getBorder());
+    pnlXRayReplacement.setLayout(new BoxLayout(pnlXRayReplacement, BoxLayout.Y_AXIS));
+    pnlXRayReplacement.setBorder(new EtchedBorder("Automatic X-ray Replacement")
+        .getBorder());
 
     UIUtilities.addWithYSpace(pnlXRayReplacement, cbXrayReplacement);
-    UIUtilities.addWithYSpace(pnlXRayReplacement, ltfPeakCriterion
-        .getContainer());
-    UIUtilities.addWithYSpace(pnlXRayReplacement, ltfDiffCriterion
-        .getContainer());
-    UIUtilities.addWithYSpace(pnlXRayReplacement, ltfGrowCriterion
-        .getContainer());
-    UIUtilities.addWithYSpace(pnlXRayReplacement, ltfEdgeExclusion
-        .getContainer());
-    UIUtilities.addWithYSpace(pnlXRayReplacement, ltfMaximumRadius
-        .getContainer());
-    UIUtilities.addWithYSpace(pnlXRayReplacement, ltfAnnulusWidth
-        .getContainer());
-    UIUtilities.addWithYSpace(pnlXRayReplacement, ltfScanRegionSize
-        .getContainer());
-    UIUtilities.addWithYSpace(pnlXRayReplacement, ltfScanCriterion
-        .getContainer());
+    UIUtilities.addWithYSpace(pnlXRayReplacement, ltfPeakCriterion.getContainer());
+    UIUtilities.addWithYSpace(pnlXRayReplacement, ltfDiffCriterion.getContainer());
+    UIUtilities.addWithYSpace(pnlXRayReplacement, ltfGrowCriterion.getContainer());
+    UIUtilities.addWithYSpace(pnlXRayReplacement, ltfEdgeExclusion.getContainer());
+    UIUtilities.addWithYSpace(pnlXRayReplacement, ltfMaximumRadius.getContainer());
+    UIUtilities.addWithYSpace(pnlXRayReplacement, ltfAnnulusWidth.getContainer());
+    UIUtilities.addWithYSpace(pnlXRayReplacement, ltfScanRegionSize.getContainer());
+    UIUtilities.addWithYSpace(pnlXRayReplacement, ltfScanCriterion.getContainer());
 
     JPanel pnlXRayButtons = new JPanel();
     pnlXRayButtons.setLayout(new BoxLayout(pnlXRayButtons, BoxLayout.X_AXIS));
@@ -156,10 +139,9 @@ final class CcdEraserXRaysPanel implements ContextMenu,
 
     UIUtilities.addWithYSpace(pnlXRayReplacement, pnlXRayButtons);
 
-    pnlManualReplacement.setLayout(new BoxLayout(pnlManualReplacement,
-        BoxLayout.Y_AXIS));
-    pnlManualReplacement.setBorder(new EtchedBorder(
-        "Manual Pixel Region Replacement").getBorder());
+    pnlManualReplacement.setLayout(new BoxLayout(pnlManualReplacement, BoxLayout.Y_AXIS));
+    pnlManualReplacement.setBorder(new EtchedBorder("Manual Pixel Region Replacement")
+        .getBorder());
     UIUtilities.addWithYSpace(pnlManualReplacement, cbManualReplacement);
     UIUtilities.addWithYSpace(pnlManualReplacement, ltfGlobalReplacementList
         .getContainer());
@@ -169,8 +151,7 @@ final class CcdEraserXRaysPanel implements ContextMenu,
         .getContainer());
 
     JPanel pnlManualButtons = new JPanel();
-    pnlManualButtons
-        .setLayout(new BoxLayout(pnlManualButtons, BoxLayout.X_AXIS));
+    pnlManualButtons.setLayout(new BoxLayout(pnlManualButtons, BoxLayout.X_AXIS));
     pnlManualButtons.add(Box.createHorizontalGlue());
     pnlManualButtons.add(btnCreateModel.getComponent());
     pnlManualButtons.add(Box.createHorizontalGlue());
@@ -211,18 +192,16 @@ final class CcdEraserXRaysPanel implements ContextMenu,
     pnlClipStats.add(Box.createHorizontalGlue());
     pnlEraseButtons.add(pnlErase);
     pnlEraseButtons.add(pnlClipStats);
-    UIUtilities.setButtonSizeAll(pnlErase, UIParameters.INSTANCE
-        .getButtonDimension());
-    UIUtilities.setButtonSizeAll(pnlClipStats, UIParameters.INSTANCE
-        .getButtonDimension());
+    UIUtilities.setButtonSizeAll(pnlErase, UIParameters.INSTANCE.getButtonDimension());
+    UIUtilities
+        .setButtonSizeAll(pnlClipStats, UIParameters.INSTANCE.getButtonDimension());
 
     UIUtilities.addWithYSpace(pnlCCDEraser, pnlEraseButtons);
 
     // Left align  all of the compenents in each panel and center align the
     // panel
     UIUtilities.alignComponentsX(pnlXRayReplacement, Component.LEFT_ALIGNMENT);
-    UIUtilities
-        .alignComponentsX(pnlManualReplacement, Component.LEFT_ALIGNMENT);
+    UIUtilities.alignComponentsX(pnlManualReplacement, Component.LEFT_ALIGNMENT);
     UIUtilities.alignComponentsX(pnlCCDEraser, Component.LEFT_ALIGNMENT);
     pnlCCDEraser.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -235,8 +214,8 @@ final class CcdEraserXRaysPanel implements ContextMenu,
   static CcdEraserXRaysPanel getInstance(final ApplicationManager appMgr,
       final AxisID id, final DialogType dialogType,
       GlobalExpandButton globalAdvancedButton) {
-    CcdEraserXRaysPanel instance = new CcdEraserXRaysPanel(appMgr, id,
-        dialogType, globalAdvancedButton);
+    CcdEraserXRaysPanel instance = new CcdEraserXRaysPanel(appMgr, id, dialogType,
+        globalAdvancedButton);
     instance.addListeners();
     return instance;
   }
@@ -277,15 +256,12 @@ final class CcdEraserXRaysPanel implements ContextMenu,
     ltfEdgeExclusion.setText(ccdEraserParams.getEdgeExclusion());
 
     cbManualReplacement.setSelected(!ccdEraserParams.getModelFile().equals(""));
-    ltfGlobalReplacementList
-        .setText(ccdEraserParams.getGlobalReplacementList());
+    ltfGlobalReplacementList.setText(ccdEraserParams.getGlobalReplacementList());
     ltfLocalReplacementList.setText(ccdEraserParams.getlocalReplacementList());
-    ltfBoundaryReplacementList.setText(ccdEraserParams
-        .getBoundaryReplacementList());
+    ltfBoundaryReplacementList.setText(ccdEraserParams.getBoundaryReplacementList());
     ltfBorderPixels.setText(ccdEraserParams.getBorderPixels());
     ltfPolynomialOrder.setText(ccdEraserParams.getPolynomialOrder());
-    cbIncludeAdjacentPoints.setSelected(ccdEraserParams
-        .getIncludeAdjacentPoints());
+    cbIncludeAdjacentPoints.setSelected(ccdEraserParams.getIncludeAdjacentPoints());
 
     enableXRayReplacement();
     enableManualReplacement();
@@ -318,18 +294,14 @@ final class CcdEraserXRaysPanel implements ContextMenu,
     ccdEraserParams.setEdgeExclusion(ltfEdgeExclusion.getText());
     ccdEraserParams.setInputFile(ltfInputImage.getText());
     ccdEraserParams.setOutputFile(ltfOutputImage.getText());
-    ccdEraserParams
-        .setGlobalReplacementList(ltfGlobalReplacementList.getText());
+    ccdEraserParams.setGlobalReplacementList(ltfGlobalReplacementList.getText());
     ccdEraserParams.setLocalReplacementList(ltfLocalReplacementList.getText());
-    ccdEraserParams.setBoundaryReplacementList(ltfBoundaryReplacementList
-        .getText());
+    ccdEraserParams.setBoundaryReplacementList(ltfBoundaryReplacementList.getText());
     ccdEraserParams.setBorderPixels(ltfBorderPixels.getText());
     ccdEraserParams.setPolynomialOrder(ltfPolynomialOrder.getText());
-    ccdEraserParams.setIncludeAdjacentPoints(cbIncludeAdjacentPoints
-        .isSelected());
+    ccdEraserParams.setIncludeAdjacentPoints(cbIncludeAdjacentPoints.isSelected());
     if (cbManualReplacement.isSelected()) {
-      ccdEraserParams.setModelFile(applicationManager.getMetaData()
-          .getDatasetName()
+      ccdEraserParams.setModelFile(applicationManager.getMetaData().getDatasetName()
           + axisID.getExtension() + ".erase");
     }
     else {
@@ -392,16 +364,15 @@ final class CcdEraserXRaysPanel implements ContextMenu,
       final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnFindXRays.getActionCommand())) {
-      applicationManager.findXrays(axisID, btnFindXRays, null,
-          deferred3dmodButton, run3dmodMenuOptions, dialogType, this);
+      applicationManager.findXrays(axisID, btnFindXRays, null, deferred3dmodButton,
+          run3dmodMenuOptions, dialogType, this);
     }
     else if (command.equals(btnErase.getActionCommand())) {
       applicationManager.preEraser(axisID, btnErase, null, deferred3dmodButton,
           run3dmodMenuOptions, dialogType, this);
     }
     else if (command.equals(btnReplaceRawStack.getActionCommand())) {
-      applicationManager
-          .replaceRawStack(axisID, btnReplaceRawStack, dialogType);
+      applicationManager.replaceRawStack(axisID, btnReplaceRawStack, dialogType);
     }
     else if (command.equals(cbXrayReplacement.getActionCommand())) {
       enableXRayReplacement();
@@ -413,8 +384,7 @@ final class CcdEraserXRaysPanel implements ContextMenu,
       applicationManager.imodXrayModel(axisID, run3dmodMenuOptions);
     }
     else if (command.equals(btnCreateModel.getActionCommand())) {
-      applicationManager.imodManualErase(axisID, run3dmodMenuOptions,
-          dialogType);
+      applicationManager.imodManualErase(axisID, run3dmodMenuOptions, dialogType);
     }
     else if (command.equals(btnViewErased.getActionCommand())) {
       applicationManager.imodErasedStack(axisID, run3dmodMenuOptions);
@@ -439,8 +409,8 @@ final class CcdEraserXRaysPanel implements ContextMenu,
     logFile[0] = "eraser" + axisID.getExtension() + ".log";
 
     ContextPopup contextPopup = new ContextPopup(pnlCCDEraser, mouseEvent,
-        "PRE-PROCESSING", ContextPopup.TOMO_GUIDE, label, manPage,
-        logFileLabel, logFile, applicationManager, axisID);
+        "PRE-PROCESSING", ContextPopup.TOMO_GUIDE, label, manPage, logFileLabel, logFile,
+        applicationManager, axisID);
   }
 
   private void enableXRayReplacement() {
@@ -472,8 +442,8 @@ final class CcdEraserXRaysPanel implements ContextMenu,
     String text;
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(applicationManager,
-          AutodocFactory.CCDERASER, axisID);
+      autodoc = AutodocFactory.getInstance(applicationManager, AutodocFactory.CCDERASER,
+          axisID);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -523,10 +493,8 @@ final class CcdEraserXRaysPanel implements ContextMenu,
             + "being fit.");
     btnFindXRays.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         CCDEraserParam.TRIAL_MODE_KEY));
-    btnViewXRayModel
-        .setToolTipText("View the x-ray model on the raw stack in 3dmod.");
-    btnCreateModel
-        .setToolTipText("Create a manual replacement model using 3dmod.");
+    btnViewXRayModel.setToolTipText("View the x-ray model on the raw stack in 3dmod.");
+    btnCreateModel.setToolTipText("Create a manual replacement model using 3dmod.");
     btnErase
         .setToolTipText("Run ccderaser, erasing the raw stack and writing the modified stack "
             + "to the output file specified (the default is *_fixed.st).  "
@@ -544,9 +512,8 @@ final class CcdEraserXRaysPanel implements ContextMenu,
     btnClipStatsRaw
         .setToolTipText("Run clip stats on the raw stack.  Prints information "
             + "about each section");
-    btnClipStatsFixed
-        .setToolTipText("Run clip stats on the stack created by the "
-            + ERASE_LABEL + " button.  Prints information about each section.");
+    btnClipStatsFixed.setToolTipText("Run clip stats on the stack created by the "
+        + ERASE_LABEL + " button.  Prints information about each section.");
   }
 
   //  Action listener
@@ -566,6 +533,9 @@ final class CcdEraserXRaysPanel implements ContextMenu,
 
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2010/12/05 04:56:37  sueh
+ * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
