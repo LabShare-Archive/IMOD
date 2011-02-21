@@ -37,6 +37,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.69  2010/11/13 16:03:45  sueh
+ * bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ *
  * Revision 3.68  2010/09/21 16:25:42  sueh
  * bug# 1395 Added BF_MESSAGE_REMOVE_SKIP_LIST to handle a null skip
  * list.
@@ -697,8 +700,7 @@ public class ImodProcess {
     continuousListener = new ContinuousListener(stderr, axisID);
   }
 
-  public ImodProcess(BaseManager manager, String dataset, AxisID axisID,
-      boolean flip) {
+  public ImodProcess(BaseManager manager, String dataset, AxisID axisID, boolean flip) {
     this.manager = manager;
     this.axisID = axisID;
     this.flip = flip;
@@ -797,8 +799,7 @@ public class ImodProcess {
     this.openWithModel = openWithModel;
   }
 
-  private final int calcCurrentBinning(int binning,
-      Run3dmodMenuOptions menuOptions) {
+  private final int calcCurrentBinning(int binning, Run3dmodMenuOptions menuOptions) {
     int currentBinning;
     if (binning == defaultBinning) {
       currentBinning = 0;
@@ -815,8 +816,8 @@ public class ImodProcess {
   /**
    * Open the 3dmod process if is not already open.
    */
-  public void open(Run3dmodMenuOptions menuOptions)
-      throws SystemProcessException, IOException {
+  public void open(Run3dmodMenuOptions menuOptions) throws SystemProcessException,
+      IOException {
     if (isRunning()) {
       raise3dmod();
       return;
@@ -872,15 +873,13 @@ public class ImodProcess {
     if (binning > defaultBinning
         || (menuOptions.isBinBy2() && menuOptions.isAllowBinningInZ())) {
       commandOptions.add("-B");
-      commandOptions.add(Integer.toString(calcCurrentBinning(binning,
-          menuOptions)));
+      commandOptions.add(Integer.toString(calcCurrentBinning(binning, menuOptions)));
     }
 
     if (binningXY > defaultBinning
         || (menuOptions.isBinBy2() && !menuOptions.isAllowBinningInZ())) {
       commandOptions.add("-b");
-      commandOptions.add(Integer.toString(calcCurrentBinning(binningXY,
-          menuOptions)));
+      commandOptions.add(Integer.toString(calcCurrentBinning(binningXY, menuOptions)));
     }
 
     if (menuOptions.isStartupWindow()) {
@@ -889,11 +888,10 @@ public class ImodProcess {
 
     if (windowOpenOptionList != null) {
       commandOptions.add(WindowOpenOption.OPTION);
-      StringBuffer buffer = new StringBuffer(
-          ((WindowOpenOption) windowOpenOptionList.get(0)).toString());
+      StringBuffer buffer = new StringBuffer(((WindowOpenOption) windowOpenOptionList
+          .get(0)).toString());
       for (int i = 1; i < windowOpenOptionList.size(); i++) {
-        buffer.append(((WindowOpenOption) windowOpenOptionList.get(i))
-            .toString());
+        buffer.append(((WindowOpenOption) windowOpenOptionList.get(i)).toString());
       }
       commandOptions.add(buffer.toString());
     }
@@ -908,8 +906,7 @@ public class ImodProcess {
           commandOptions.add(datasetNameArray[i]);
         }
         else {
-          commandOptions.add(new File(subdirName, datasetNameArray[i])
-              .getPath());
+          commandOptions.add(new File(subdirName, datasetNameArray[i]).getPath());
         }
       }
     }
@@ -959,8 +956,7 @@ public class ImodProcess {
           if (line.indexOf("Window id = ") != -1) {
             String[] words = line.split("\\s+");
             if (words.length < 4) {
-              throw (new SystemProcessException(
-                  "Could not parse window ID from imod\n"));
+              throw (new SystemProcessException("Could not parse window ID from imod\n"));
             }
             windowID = words[3];
           }
@@ -969,8 +965,7 @@ public class ImodProcess {
 
       // If imod exited before getting the window report the problem to the user
       if (windowID.equals("") && outputWindowID) {
-        String message = "3dmod returned: "
-            + String.valueOf(imod.getExitValue()) + "\n";
+        String message = "3dmod returned: " + String.valueOf(imod.getExitValue()) + "\n";
 
         while ((line = stderr.getQuickMessage()) != null) {
           System.err.println(line);
@@ -1009,8 +1004,7 @@ public class ImodProcess {
         String[] messages = new String[1];
         messages[0] = MESSAGE_STOP_LISTENING;
         sendCommandsNoWait(messages);
-        System.err.println("Telling 3dmod " + datasetName
-            + " to stop listening.");
+        System.err.println("Telling 3dmod " + datasetName + " to stop listening.");
       }
     }
   }
@@ -1039,8 +1033,7 @@ public class ImodProcess {
   /**
    * Open a new model file
    */
-  public void openModel(String newModelName) throws IOException,
-      SystemProcessException {
+  public void openModel(String newModelName) throws IOException, SystemProcessException {
     modelName = newModelName;
     String[] args = new String[2];
     args[0] = MESSAGE_OPEN_MODEL;
@@ -1062,8 +1055,8 @@ public class ImodProcess {
   /**
    * Open a new model file, Preserve the constrast settings
    */
-  public void openModelPreserveContrast(String newModelName)
-      throws IOException, SystemProcessException {
+  public void openModelPreserveContrast(String newModelName) throws IOException,
+      SystemProcessException {
     String[] args = new String[2];
     args[0] = MESSAGE_OPEN_KEEP_BW;
     args[1] = newModelName;
@@ -1114,8 +1107,8 @@ public class ImodProcess {
    * @param size
    * @param size3D
    */
-  public void setNewObjectMessage(int object, boolean open, int symbol,
-      int size, int size3D) {
+  public void setNewObjectMessage(int object, boolean open, int symbol, int size,
+      int size3D) {
     sendArguments.add(MESSAGE_NEWOBJ_PROPERTIES);
     sendArguments.add(String.valueOf(object));
     sendArguments.add(open ? TRUE : FALSE);
@@ -1239,8 +1232,8 @@ public class ImodProcess {
   }
 
   public void setAutoCenter(boolean autoCenter) {
-    addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_AUTO_CENTER,
-        autoCenter ? MESSAGE_ON : MESSAGE_OFF);
+    addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_AUTO_CENTER, autoCenter ? MESSAGE_ON
+        : MESSAGE_OFF);
     if (!beadfixerDiameterSet) {
       addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_DIAMETER, String
           .valueOf(ImodManager.DEFAULT_BEADFIXER_DIAMETER));
@@ -1248,13 +1241,12 @@ public class ImodProcess {
   }
 
   public void setNewContours(boolean newContours) {
-    addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_NEW_CONTOURS,
-        newContours ? MESSAGE_ON : MESSAGE_OFF);
+    addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_NEW_CONTOURS, newContours ? MESSAGE_ON
+        : MESSAGE_OFF);
   }
 
   public void setBeadfixerMode(BeadFixerMode beadfixerMode) {
-    addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_MODE, beadfixerMode
-        .getValue());
+    addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_MODE, beadfixerMode.getValue());
   }
 
   public void reopenLog() throws IOException, SystemProcessException {
@@ -1283,8 +1275,7 @@ public class ImodProcess {
    * @return rubberband coordinates and error messages
    * @throws IOException
    */
-  public Vector getRubberbandCoordinates() throws IOException,
-      SystemProcessException {
+  public Vector getRubberbandCoordinates() throws IOException, SystemProcessException {
     String[] args = new String[1];
     args[0] = MESSAGE_RUBBERBAND;
     return request(args);
@@ -1296,8 +1287,8 @@ public class ImodProcess {
     return request(args);
   }
 
-  private void sendPluginMessage(String plugin, String message)
-      throws IOException, SystemProcessException {
+  private void sendPluginMessage(String plugin, String message) throws IOException,
+      SystemProcessException {
     send(new String[] { MESSAGE_PLUGIN_MESSAGE, plugin, message });
   }
 
@@ -1307,7 +1298,7 @@ public class ImodProcess {
     sendArguments.add(message);
     sendArguments.add(value);
   }
-  
+
   private void addPluginMessage(String plugin, String message) {
     sendArguments.add(MESSAGE_PLUGIN_MESSAGE);
     sendArguments.add(plugin);
@@ -1345,8 +1336,7 @@ public class ImodProcess {
     //The 3dmod process may have started without a continuous listener target.
     //If a target has been added and the continuous listener thread is not
     //running, start the continuous listener thread.
-    if (isRunning() && continuousListenerTarget != null
-        && !continuousListener.isAlive()) {
+    if (isRunning() && continuousListenerTarget != null && !continuousListener.isAlive()) {
       continuousListener.startThread(imodThread, continuousListenerTarget);
     }
   }
@@ -1360,8 +1350,7 @@ public class ImodProcess {
     }
   }
 
-  private Vector request(String[] args) throws IOException,
-      SystemProcessException {
+  private Vector request(String[] args) throws IOException, SystemProcessException {
     if (!listenToStdin) {
       return imodSendAndReceive(args);
     }
@@ -1379,8 +1368,7 @@ public class ImodProcess {
    * @return
    * @throws SystemProcessException
    */
-  protected Vector imodSendAndReceive(String[] args)
-      throws SystemProcessException {
+  protected Vector imodSendAndReceive(String[] args) throws SystemProcessException {
     Vector results = new Vector();
     if (!isRunning()) {
       UIHarness.INSTANCE.openMessageDialog(manager, "3dmod is not running.",
@@ -1412,8 +1400,8 @@ public class ImodProcess {
       }
     } while ((line = imod.readStderr()) != null);
     if (foundError) {
-      UIHarness.INSTANCE.openMessageDialog(manager, results.toString(),
-          "3dmod Message", getAxisID());
+      UIHarness.INSTANCE.openMessageDialog(manager, results.toString(), "3dmod Message",
+          getAxisID());
     }
     return results;
   }
@@ -1464,8 +1452,8 @@ public class ImodProcess {
       if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
         System.err.print(command);
       }
-      InteractiveSystemProgram imodSendEvent = new InteractiveSystemProgram(
-          manager, command, axisID);
+      InteractiveSystemProgram imodSendEvent = new InteractiveSystemProgram(manager,
+          command, axisID);
 
       //  Start the imodSendEvent program thread and wait for it to finish
       Thread sendEventThread = new Thread(imodSendEvent);
@@ -1563,10 +1551,9 @@ public class ImodProcess {
    * @throws IOException
    *           messages are received and imodReturnValues is null.
    */
-  private void sendCommands(String[] args, Vector imodReturnValues,
-      boolean readResponse) throws IOException {
-    MessageSender messageSender = new MessageSender(args, imodReturnValues,
-        readResponse);
+  private void sendCommands(String[] args, Vector imodReturnValues, boolean readResponse)
+      throws IOException {
+    MessageSender messageSender = new MessageSender(args, imodReturnValues, readResponse);
     if (imodReturnValues == null) {
       new Thread(messageSender).start();
     }
@@ -1726,17 +1713,15 @@ public class ImodProcess {
   }
 
   protected String paramString() {
-    return ",datasetName=" + datasetName + ", modelName=" + modelName
-        + ", windowID=" + windowID + ", swapYZ=" + swapYZ + ", modelView="
-        + modelView + ", useModv=" + useModv + ", outputWindowID="
-        + outputWindowID + ", binning=" + binning;
+    return ",datasetName=" + datasetName + ", modelName=" + modelName + ", windowID="
+        + windowID + ", swapYZ=" + swapYZ + ", modelView=" + modelView + ", useModv="
+        + useModv + ", outputWindowID=" + outputWindowID + ", binning=" + binning;
   }
 
   void addWindowOpenOption(WindowOpenOption option) {
     if (option.isImodv() && !modelView && !useModv) {
       System.err.println("WARNING:  Can't use 3dmod " + WindowOpenOption.OPTION
-          + " with " + option.toString()
-          + " because the Model View is not open.");
+          + " with " + option.toString() + " because the Model View is not open.");
     }
     if (windowOpenOptionList == null) {
       windowOpenOptionList = new ArrayList();
@@ -1744,8 +1729,7 @@ public class ImodProcess {
     windowOpenOptionList.add(option);
   }
 
-  void setContinuousListenerTarget(
-      ContinuousListenerTarget continuousListenerTarget) {
+  void setContinuousListenerTarget(ContinuousListenerTarget continuousListenerTarget) {
     this.continuousListenerTarget = continuousListenerTarget;
   }
 
@@ -1875,16 +1859,14 @@ public class ImodProcess {
       this.imodThread = imodThread;
       target = continuousListenerTarget;
       //If thread has ended create and start a new thread
-      if (continuousListenerThread == null
-          || !continuousListenerThread.isAlive()) {
+      if (continuousListenerThread == null || !continuousListenerThread.isAlive()) {
         continuousListenerThread = new Thread(this);
         continuousListenerThread.start();
       }
     }
 
     private boolean isAlive() {
-      return continuousListenerThread != null
-          && continuousListenerThread.isAlive();
+      return continuousListenerThread != null && continuousListenerThread.isAlive();
     }
 
     /**
@@ -1917,8 +1899,7 @@ public class ImodProcess {
 
     private boolean readResponse = true;
 
-    private MessageSender(String[] args, Vector imodReturnValues,
-        boolean readResponse) {
+    private MessageSender(String[] args, Vector imodReturnValues, boolean readResponse) {
       this.imodReturnValues = imodReturnValues;
       this.args = args;
       this.readResponse = readResponse;
@@ -1932,8 +1913,8 @@ public class ImodProcess {
       if (imod == null) {
         if (imodReturnValues != null) {
           // unable to get return values
-          UIHarness.INSTANCE.openMessageDialog(manager,
-              "3dmod is not running.", "3dmod Warning", getAxisID());
+          UIHarness.INSTANCE.openMessageDialog(manager, "3dmod is not running.",
+              "3dmod Warning", getAxisID());
         }
         return;
       }
@@ -1952,8 +1933,8 @@ public class ImodProcess {
           if (!isRunning()) {
             if (imodReturnValues != null) {
               // unable to get return values
-              UIHarness.INSTANCE.openMessageDialog(manager,
-                  "3dmod is not running.", "3dmod Warning", getAxisID());
+              UIHarness.INSTANCE.openMessageDialog(manager, "3dmod is not running.",
+                  "3dmod Warning", getAxisID());
             }
             return;
           }
@@ -1964,15 +1945,15 @@ public class ImodProcess {
           if (exception.getMessage().toLowerCase().indexOf("broken pipe") != -1) {
             if (imodReturnValues != null) {
               // unable to get return values
-              UIHarness.INSTANCE.openMessageDialog(manager,
-                  "3dmod is not running.", "3dmod Warning", getAxisID());
+              UIHarness.INSTANCE.openMessageDialog(manager, "3dmod is not running.",
+                  "3dmod Warning", getAxisID());
             }
             return;
           }
           else {
             exception.printStackTrace();
-            UIHarness.INSTANCE.openMessageDialog(manager, exception
-                .getMessage(), "3dmod Exception", getAxisID());
+            UIHarness.INSTANCE.openMessageDialog(manager, exception.getMessage(),
+                "3dmod Exception", getAxisID());
           }
         }
       }
@@ -2010,9 +1991,8 @@ public class ImodProcess {
           // if the response is not OK or an error message meant for the user
           // then it may be a requested return string.  Otherwise it is some
           // 3dmod output that etomo can ignore.
-          if (!parseUserMessages(response, userMessage)
-              && imodReturnValues != null && !failure
-              && !response.startsWith("imodExecuteMessage:")) {
+          if (!parseUserMessages(response, userMessage) && imodReturnValues != null
+              && !failure && !response.startsWith("imodExecuteMessage:")) {
             String[] words = response.split("\\s+");
             for (int i = 0; i < words.length; i++) {
               imodReturnValues.add(words[i]);
@@ -2030,16 +2010,16 @@ public class ImodProcess {
           // no response received and 3dmod is running - "throw" exception
           SystemProcessException exception = new SystemProcessException(
               "No response received from 3dmod.  datasetName=" + datasetName
-                  + ",modelName=" + modelName + ",workingDirectory="
-                  + workingDirectory + ",axisID=" + axisID);
+                  + ",modelName=" + modelName + ",workingDirectory=" + workingDirectory
+                  + ",axisID=" + axisID);
           exception.printStackTrace();
           UIHarness.INSTANCE.openMessageDialog(manager, exception.getMessage(),
               "3dmod Exception", getAxisID());
         }
         else if (imodReturnValues != null) {
           // unable to get return values
-          UIHarness.INSTANCE.openMessageDialog(manager,
-              "3dmod is not running.", "3dmod Warning", getAxisID());
+          UIHarness.INSTANCE.openMessageDialog(manager, "3dmod is not running.",
+              "3dmod Warning", getAxisID());
         }
       }
     }
@@ -2073,8 +2053,7 @@ public class ImodProcess {
   static class WindowOpenOption {
     static final String OPTION = "-E";
 
-    static final WindowOpenOption IMODV_OBJECTS = new WindowOpenOption("O",
-        true);
+    static final WindowOpenOption IMODV_OBJECTS = new WindowOpenOption("O", true);
 
     static final WindowOpenOption ISOSURFACE = new WindowOpenOption("U", true);
 

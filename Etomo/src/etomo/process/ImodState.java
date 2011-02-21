@@ -176,6 +176,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.59  2010/09/21 16:27:11  sueh
+ * <p> $bug# 1395 In open, when the process is already running and bead fixer is
+ * <p> $in use, always set skiplist.  Null skiplist is being handled by ImodProcess.
+ * <p> $
  * <p> $Revision 1.58  2010/09/21 04:04:59  sueh
  * <p> $bug# 1395 In open set skipList when process is already running.
  * <p> $
@@ -518,8 +522,7 @@ public final class ImodState {
    * Use this constructor to create an instance of ImodProcess using
    * ImodProcess(String dataset) and set either model view or imodv.
    */
-  ImodState(BaseManager manager, String datasetName, int modelViewType,
-      AxisID axisID) {
+  ImodState(BaseManager manager, String datasetName, int modelViewType, AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
     process = new ImodProcess(manager, datasetName, axisID);
@@ -532,8 +535,8 @@ public final class ImodState {
    * ImodProcess(String dataset) and set either model view or imodv, and open a
    * 3dmod window.
    */
-  ImodState(BaseManager manager, String datasetName, int modelViewType,
-      AxisID axisID, ImodProcess.WindowOpenOption option) {
+  ImodState(BaseManager manager, String datasetName, int modelViewType, AxisID axisID,
+      ImodProcess.WindowOpenOption option) {
     this.manager = manager;
     this.axisID = axisID;
     process = new ImodProcess(manager, datasetName, axisID);
@@ -546,8 +549,7 @@ public final class ImodState {
    * Use this constructor to create an instance of ImodProcess using
    * ImodProcess(String dataset, String model).
    */
-  ImodState(BaseManager manager, String datasetName, String modelName,
-      AxisID axisID) {
+  ImodState(BaseManager manager, String datasetName, String modelName, AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
     initialModelName = modelName;
@@ -570,8 +572,7 @@ public final class ImodState {
     reset();
   }
 
-  ImodState(BaseManager manager, String[] fileNameArray, AxisID axisID,
-      String subdirName) {
+  ImodState(BaseManager manager, String[] fileNameArray, AxisID axisID, String subdirName) {
     this.manager = manager;
     this.axisID = axisID;
     this.fileNameArray = fileNameArray;
@@ -631,9 +632,8 @@ public final class ImodState {
    * ImodProcess("topb.rec midb.rec botb.rec", "tomopitchb.mod");
    */
   ImodState(final BaseManager manager, final AxisID tempAxisID,
-      final String datasetName1, final String datasetName2,
-      final String datasetName3, final String datasetExt,
-      final String modelName, final String modelExt) {
+      final String datasetName1, final String datasetName2, final String datasetName3,
+      final String datasetExt, final String modelName, final String modelExt) {
     this.manager = manager;
     axisID = tempAxisID;
     String axisExtension = tempAxisID.getExtension();
@@ -659,8 +659,7 @@ public final class ImodState {
    * 
    * @throws SystemProcessException
    */
-  void open(Run3dmodMenuOptions menuOptions) throws SystemProcessException,
-      IOException {
+  void open(Run3dmodMenuOptions menuOptions) throws SystemProcessException, IOException {
     if (menuOptions == null) {
       menuOptions = new Run3dmodMenuOptions();
     }
@@ -790,16 +789,14 @@ public final class ImodState {
     open(menuOptions);
   }
 
-  public void open(String modelName, boolean modelMode,
-      Run3dmodMenuOptions menuOptions) throws SystemProcessException,
-      IOException {
+  public void open(String modelName, boolean modelMode, Run3dmodMenuOptions menuOptions)
+      throws SystemProcessException, IOException {
     setModelName(modelName);
     setModelMode(modelMode);
     open(menuOptions);
   }
 
-  public Vector getRubberbandCoordinates() throws IOException,
-      SystemProcessException {
+  public Vector getRubberbandCoordinates() throws IOException, SystemProcessException {
     return process.getRubberbandCoordinates();
   }
 
@@ -896,8 +893,8 @@ public final class ImodState {
 
   boolean equalsFileNameArray(String[] input) {
     if (debug) {
-      System.out.println("ImodState.equalsFileNameArray:input.length="
-          + input.length + ",fileNameArray.length=" + fileNameArray.length);
+      System.out.println("ImodState.equalsFileNameArray:input.length=" + input.length
+          + ",fileNameArray.length=" + fileNameArray.length);
     }
     if (fileNameArray == null && input == null) {
       return true;
@@ -1220,8 +1217,7 @@ public final class ImodState {
     process.setOpenModelView();
   }
 
-  void setContinuousListenerTarget(
-      ContinuousListenerTarget continuousListenerTarget) {
+  void setContinuousListenerTarget(ContinuousListenerTarget continuousListenerTarget) {
     process.setContinuousListenerTarget(continuousListenerTarget);
   }
 
@@ -1284,8 +1280,7 @@ public final class ImodState {
    * @return true if unchanging and initial state information is the same
    */
   public boolean equalsInitialConfiguration(ImodState imodState) {
-    if (modelView == imodState.isModelView()
-        && useModv == imodState.isUseModv()
+    if (modelView == imodState.isModelView() && useModv == imodState.isUseModv()
         && initialModelName.equals(imodState.getInitialModelName())
         && initialMode == imodState.getInitialMode()
         && initialSwapYZ == imodState.isInitialSwapYZ()) {
@@ -1300,12 +1295,11 @@ public final class ImodState {
    * @return true if unchanging and current state information is the same
    */
   public boolean equalsCurrentConfiguration(ImodState imodState) {
-    if (modelView == imodState.isModelView()
-        && useModv == imodState.isUseModv()
+    if (modelView == imodState.isModelView() && useModv == imodState.isUseModv()
         && modelName.equals(imodState.getModelName())
         && usingMode == imodState.isUsingMode()
-        && openContours == imodState.isOpenContours()
-        && mode == imodState.getMode() && swapYZ == imodState.isSwapYZ()
+        && openContours == imodState.isOpenContours() && mode == imodState.getMode()
+        && swapYZ == imodState.isSwapYZ()
         && preserveContrast == imodState.isPreserveContrast()
         && openBeadFixer == imodState.isOpenBeadFixer()
         && startNewContoursAtNewZ == imodState.startNewContoursAtNewZ) {
@@ -1321,8 +1315,7 @@ public final class ImodState {
    * same
    */
   public boolean equals(ImodState imodState) {
-    return equalsInitialConfiguration(imodState)
-        && equalsCurrentConfiguration(imodState);
+    return equalsInitialConfiguration(imodState) && equalsCurrentConfiguration(imodState);
   }
 
 }
