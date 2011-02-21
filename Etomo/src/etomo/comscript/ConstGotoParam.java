@@ -12,18 +12,20 @@ package etomo.comscript;
  *
  * @version $$Revision$$
  *
- * <p> $$Log$$ </p>
+ * <p> $$Log$
+ * <p> $Revision 1.1  2004/08/19 01:32:09  sueh
+ * <p> $Constant object for the goto command
+ * <p> $$ </p>
  */
 
 public class ConstGotoParam {
-  public static final String rcsid =
-    "$$Id$$";
-  
+  public static final String rcsid = "$$Id$$";
+
   public static final char DELIMITER = ':';
   public static final String COMMAND_NAME = "goto";
-  
+
   protected String label = "";
-  
+
   public ConstGotoParam() {
     reset();
   }
@@ -38,6 +40,5 @@ public class ConstGotoParam {
   public String getLabel() {
     return label;
   }
-  
-}
 
+}

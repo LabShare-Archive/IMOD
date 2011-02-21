@@ -22,6 +22,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2010/01/21 21:29:13  sueh
+ * <p> bug# 1305 Added -p, overlap, and -no.
+ * <p>
  * <p> Revision 1.1  2007/11/06 19:05:45  sueh
  * <p> bug# 1047 Represents the parameters of chunksetup.
  * <p> </p>
@@ -81,8 +84,7 @@ public final class ChunksetupParam {
     command.clear();
     command.add("tcsh");
     command.add("-f");
-    command.add(BaseManager.getIMODBinPath()
-        + ProcessName.CHUNKSETUP.toString());
+    command.add(BaseManager.getIMODBinPath() + ProcessName.CHUNKSETUP.toString());
     command.add("-p");
     command.add("0");
     command.add("-o");

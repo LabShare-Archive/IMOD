@@ -114,6 +114,9 @@ import etomo.ui.swing.ProcessDisplay;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2011/02/03 05:54:50  sueh
+ * <p> bug# 1422 Added ProcessingMethod.
+ * <p>
  * <p> Revision 1.10  2010/11/13 16:02:54  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -220,8 +223,8 @@ public final class ProcessSeries implements ConstProcessSeries {
     if (debug) {
       System.out.println("ProcessSeries.startNextProcess:process=" + process);
     }
-    manager.startNextProcess(axisID, process, processResultDisplay, this,
-        dialogType, processDisplay);
+    manager.startNextProcess(axisID, process, processResultDisplay, this, dialogType,
+        processDisplay);
     return true;
   }
 
@@ -234,8 +237,7 @@ public final class ProcessSeries implements ConstProcessSeries {
    * @param axisID
    * @param process
    */
-  public void setNextProcess(final String process,
-      final ProcessingMethod processingMethod) {
+  public void setNextProcess(final String process, final ProcessingMethod processingMethod) {
     nextProcess = new Process(process, null, null, null, processingMethod);
   }
 
@@ -244,9 +246,19 @@ public final class ProcessSeries implements ConstProcessSeries {
    * @param axisID
    * @param process
    */
-  public void setNextProcess(final String process,
-      final ProcessName subprocessName, final ProcessingMethod processingMethod) {
-    nextProcess = new Process(process, subprocessName, null, null,
+  public void setNextProcess(final String process, final ProcessName subprocessName,
+      final ProcessingMethod processingMethod) {
+    nextProcess = new Process(process, subprocessName, null, null, processingMethod);
+  }
+
+  /**
+   * Keep final.  Adds next process 
+   * @param axisID
+   * @param process
+   */
+  public void setNextProcess(final String process, final ProcessName subprocessName,
+      final FileType outputImageFileType, final ProcessingMethod processingMethod) {
+    nextProcess = new Process(process, subprocessName, outputImageFileType, null,
         processingMethod);
   }
 
@@ -255,21 +267,8 @@ public final class ProcessSeries implements ConstProcessSeries {
    * @param axisID
    * @param process
    */
-  public void setNextProcess(final String process,
-      final ProcessName subprocessName, final FileType outputImageFileType,
-      final ProcessingMethod processingMethod) {
-    nextProcess = new Process(process, subprocessName, outputImageFileType,
-        null, processingMethod);
-  }
-
-  /**
-   * Keep final.  Adds next process 
-   * @param axisID
-   * @param process
-   */
-  public void setNextProcess(final String process,
-      final ProcessName subprocessName, final FileType outputImageFileType,
-      final FileType outputImageFileType2,
+  public void setNextProcess(final String process, final ProcessName subprocessName,
+      final FileType outputImageFileType, final FileType outputImageFileType2,
       final ProcessingMethod processingMethod) {
     nextProcess = new Process(process, subprocessName, outputImageFileType,
         outputImageFileType2, processingMethod);
@@ -311,8 +310,7 @@ public final class ProcessSeries implements ConstProcessSeries {
    * @param run3dmodProcess
    * @param run3dmodMenuOptions
    */
-  public void setRun3dmodDeferred(
-      final Deferred3dmodButton deferred3dmodButton,
+  public void setRun3dmodDeferred(final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     //Don't want to keep track of when deferred3dmodButton is null or not in the
     //manager or UIExpert class.  So once a deferred3dmodButton is set, it
@@ -354,8 +352,7 @@ public final class ProcessSeries implements ConstProcessSeries {
     private final ProcessingMethod processingMethod;
 
     private Process(final String process, final ProcessName subprocessName,
-        final FileType outputImageFileType,
-        final FileType outputImageFileType2,
+        final FileType outputImageFileType, final FileType outputImageFileType2,
         final ProcessingMethod processingMethod) {
       this.process = process;
       this.subprocessName = subprocessName;

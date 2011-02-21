@@ -27,6 +27,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2010/02/17 04:47:54  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 3.9  2009/03/17 00:31:26  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -162,12 +166,10 @@ public class ConstCombineParams {
     if (!useList.toString().equals(cmp.getUseList().toString())) {
       return false;
     }
-    if (!fiducialMatchListA.toString().equals(
-        cmp.getFiducialMatchListA().toString())) {
+    if (!fiducialMatchListA.toString().equals(cmp.getFiducialMatchListA().toString())) {
       return false;
     }
-    if (!fiducialMatchListB.toString().equals(
-        cmp.getFiducialMatchListB().toString())) {
+    if (!fiducialMatchListB.toString().equals(cmp.getFiducialMatchListB().toString())) {
       return false;
     }
     if (!patchSize.equals(cmp.getPatchSize())) {
@@ -262,9 +264,8 @@ public class ConstCombineParams {
     }
     if (maxPatchZMax > 0 && patchZMax.gt(maxPatchZMax)) {
       valid = false;
-      invalidReasons
-          .add("Z max value is greater than the maximum Z max value ("
-              + maxPatchZMax + ")");
+      invalidReasons.add("Z max value is greater than the maximum Z max value ("
+          + maxPatchZMax + ")");
     }
     if (patchZMin.gt(patchZMax)) {
       valid = false;
@@ -284,8 +285,8 @@ public class ConstCombineParams {
     else {
       axisID = AxisID.SECOND;
     }
-    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        DatasetFiles.getTomogram(manager, axisID).getAbsolutePath(), axisID);
+    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(), DatasetFiles
+        .getTomogram(manager, axisID).getAbsolutePath(), axisID);
     try {
       if (!header.read(manager)) {
         return true;

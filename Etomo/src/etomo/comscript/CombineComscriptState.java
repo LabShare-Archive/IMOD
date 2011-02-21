@@ -22,6 +22,9 @@ import etomo.util.DatasetFiles;
  * @version $$Revision$$
  *
  * <p> $Log$
+ * <p> Revision 1.14  2010/11/13 16:03:15  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.13  2010/05/21 00:10:36  sueh
  * <p> bug# 1374 Removed some dead code.
  * <p>
@@ -105,11 +108,10 @@ public class CombineComscriptState implements ComscriptState {
       ProcessName.MATCHVOL1.toString(), ProcessName.PATCHCORR.toString(),
       ProcessName.MATCHORWARP.toString(), ProcessName.VOLCOMBINE.toString() };
 
-  private static final String WATCHED_FILES[] = { null, null,
-      DatasetFiles.PATCH_OUT, null, null };
+  private static final String WATCHED_FILES[] = { null, null, DatasetFiles.PATCH_OUT,
+      null, null };
 
-  private static final String DIALOG_PANES[] = {
-      TomogramCombinationDialog.lblInitial,
+  private static final String DIALOG_PANES[] = { TomogramCombinationDialog.lblInitial,
       TomogramCombinationDialog.lblInitial, TomogramCombinationDialog.lblFinal,
       TomogramCombinationDialog.lblFinal, TomogramCombinationDialog.lblFinal };
 
@@ -167,8 +169,7 @@ public class CombineComscriptState implements ComscriptState {
    * @param startCommand
    * @param comScriptManager
    */
-  public void setStartCommand(int startCommand,
-      ComScriptManager comScriptManager) {
+  public void setStartCommand(int startCommand, ComScriptManager comScriptManager) {
     if (startCommand < 0 || startCommand >= NUM_COMMANDS) {
       throw new IndexOutOfBoundsException();
     }
@@ -207,10 +208,8 @@ public class CombineComscriptState implements ComscriptState {
           .getEchoParamFromCombine(commandLabel);
       if (echoParamInComscript != null
           && echoParamInComscript.getString().startsWith(SUCCESS_TEXT)) {
-        comScriptManager
-            .deleteFromCombine(EchoParam.COMMAND_NAME, commandLabel);
-        comScriptManager
-            .deleteFromCombine(ExitParam.COMMAND_NAME, commandLabel);
+        comScriptManager.deleteFromCombine(EchoParam.COMMAND_NAME, commandLabel);
+        comScriptManager.deleteFromCombine(ExitParam.COMMAND_NAME, commandLabel);
       }
     }
     else if (endCommand == MATCHORWARP_INDEX) {
@@ -228,8 +227,7 @@ public class CombineComscriptState implements ComscriptState {
     }
     else {
       throw new IllegalStateException(
-          "EndCommand can only be volcombine or matchorwarp.  endCommand="
-              + endCommand);
+          "EndCommand can only be volcombine or matchorwarp.  endCommand=" + endCommand);
     }
     runSelfTest(END_COMMAND_SET_STATE);
   }
@@ -404,8 +402,7 @@ public class CombineComscriptState implements ComscriptState {
       if (COMMANDS.length != NUM_COMMANDS) {
         throw new IllegalStateException(stateString
             + "NUM_COMMANDS should be equal to the size of COMMMANDS.  "
-            + "NUM_COMMANDS=" + NUM_COMMANDS + ",COMMANDS.length="
-            + COMMANDS.length);
+            + "NUM_COMMANDS=" + NUM_COMMANDS + ",COMMANDS.length=" + COMMANDS.length);
       }
       if (WATCHED_FILES.length != NUM_COMMANDS) {
         throw new IllegalStateException(stateString
@@ -429,8 +426,8 @@ public class CombineComscriptState implements ComscriptState {
         if (!comscriptName.matches(COMSCRIPT_MATCH_STRING)) {
           throw new IllegalStateException(stateString
               + "The regular expression comscriptMatchString must match each "
-              + "comscript name.  " + "comscriptMatchString'"
-              + COMSCRIPT_MATCH_STRING + ",comscriptName=" + comscriptName);
+              + "comscript name.  " + "comscriptMatchString'" + COMSCRIPT_MATCH_STRING
+              + ",comscriptName=" + comscriptName);
         }
       }
       break;
@@ -440,9 +437,8 @@ public class CombineComscriptState implements ComscriptState {
       if (startCommand != NULL_INDEX || endCommand != NULL_INDEX) {
         if (startCommand > endCommand) {
           throw new IllegalStateException(stateString
-              + "StartCommand and endCommand must not be NULL_INDEX.  "
-              + "startCommand=" + startCommand + ",endCommand=" + endCommand
-              + "NULL_INDEX=" + NULL_INDEX);
+              + "StartCommand and endCommand must not be NULL_INDEX.  " + "startCommand="
+              + startCommand + ",endCommand=" + endCommand + "NULL_INDEX=" + NULL_INDEX);
         }
         if (startCommand < 0 || startCommand >= NUM_COMMANDS || endCommand < 0
             || endCommand >= NUM_COMMANDS) {
@@ -458,8 +454,8 @@ public class CombineComscriptState implements ComscriptState {
       stateString = "After set start command:  ";
       if (startCommand == NULL_INDEX) {
         throw new IllegalStateException(stateString
-            + "StartCommand must not be NULL_INDEX.  " + "startCommand="
-            + startCommand + "NULL_INDEX=" + NULL_INDEX);
+            + "StartCommand must not be NULL_INDEX.  " + "startCommand=" + startCommand
+            + "NULL_INDEX=" + NULL_INDEX);
       }
       if (startCommand < 0 || startCommand >= NUM_COMMANDS) {
         throw new IndexOutOfBoundsException(stateString
@@ -472,31 +468,31 @@ public class CombineComscriptState implements ComscriptState {
       stateString = "After set end command:  ";
       if (endCommand == NULL_INDEX) {
         throw new IllegalStateException(stateString
-            + "EndCommand must not be NULL_INDEX.  " + "endCommand="
-            + endCommand + "NULL_INDEX=" + NULL_INDEX);
+            + "EndCommand must not be NULL_INDEX.  " + "endCommand=" + endCommand
+            + "NULL_INDEX=" + NULL_INDEX);
       }
       if (endCommand < 0 || endCommand >= NUM_COMMANDS) {
         throw new IndexOutOfBoundsException(stateString
-            + "EndCommand must be a valid index value.  " + "endCommand="
-            + endCommand + ",NUM_COMMANDS=" + NUM_COMMANDS);
+            + "EndCommand must be a valid index value.  " + "endCommand=" + endCommand
+            + ",NUM_COMMANDS=" + NUM_COMMANDS);
       }
       if (endCommand != VOLCOMBINE_INDEX && endCommand != MATCHORWARP_INDEX) {
         throw new IllegalStateException(stateString
-            + "EndCommand can only refer to volcombine or matchorwarp.  "
-            + "endCommand=" + endCommand + ",VOLCOMBINE_INDEX="
-            + VOLCOMBINE_INDEX + ",MATCHORWARP_INDEX=" + MATCHORWARP_INDEX);
+            + "EndCommand can only refer to volcombine or matchorwarp.  " + "endCommand="
+            + endCommand + ",VOLCOMBINE_INDEX=" + VOLCOMBINE_INDEX
+            + ",MATCHORWARP_INDEX=" + MATCHORWARP_INDEX);
       }
       if (endCommand < VOLCOMBINE_INDEX && isRunVolcombine()) {
         throw new IllegalStateException(stateString
-            + "IsRunVolcombine() should not be true when endCommand is less "
-            + "then" + "VOLCOMBINE_INDEX.  " + "endCommand=" + endCommand
-            + ",VOLCOMBINE_INDEX=" + VOLCOMBINE_INDEX);
+            + "IsRunVolcombine() should not be true when endCommand is less " + "then"
+            + "VOLCOMBINE_INDEX.  " + "endCommand=" + endCommand + ",VOLCOMBINE_INDEX="
+            + VOLCOMBINE_INDEX);
       }
       if (endCommand >= VOLCOMBINE_INDEX && !isRunVolcombine()) {
         throw new IllegalStateException(stateString
             + "IsRunVolcombine() should not be false when endCommand is "
-            + "greater or equal to" + "VOLCOMBINE_INDEX.  " + "endCommand="
-            + endCommand + ",VOLCOMBINE_INDEX=" + VOLCOMBINE_INDEX);
+            + "greater or equal to" + "VOLCOMBINE_INDEX.  " + "endCommand=" + endCommand
+            + ",VOLCOMBINE_INDEX=" + VOLCOMBINE_INDEX);
       }
       break;
 
@@ -519,13 +515,13 @@ public class CombineComscriptState implements ComscriptState {
 
   public boolean equals(CombineComscriptState that) {
     if (startCommand != that.startCommand) {
-      notEqualsReason = "StartCommand is not equal.  this.startCommand="
-          + startCommand + ",that.startCommand=" + that.startCommand;
+      notEqualsReason = "StartCommand is not equal.  this.startCommand=" + startCommand
+          + ",that.startCommand=" + that.startCommand;
       return false;
     }
     if (endCommand != that.endCommand) {
-      notEqualsReason = "EndCommand is not equal.  this.endCommand="
-          + endCommand + ",that.endCommand=" + that.endCommand;
+      notEqualsReason = "EndCommand is not equal.  this.endCommand=" + endCommand
+          + ",that.endCommand=" + that.endCommand;
       return false;
     }
     notEqualsReason = null;

@@ -23,8 +23,7 @@ import etomo.type.ScriptParameter;
  */
 
 public class ConstTomopitchParam {
-  public static final String rcsid =
-    "$$Id$$";
+  public static final String rcsid = "$$Id$$";
 
   public static final String COMMAND = "tomopitch";
   public static final String MODEL_FILE = "ModelFile";
@@ -32,20 +31,23 @@ public class ConstTomopitchParam {
   public static final String SPACING_IN_Y = "SpacingInY";
   public static final String SCALE_FACTOR = "ScaleFactor";
   public static final String PARAMETER_FILE = "ParameterFile";
-  
+
   protected Vector modelFiles;
   protected double extraThickness;
   protected double spacingInY;
   protected double scaleFactor;
   protected String parameterFile;
-  protected ScriptParameter angleOffsetOld = new ScriptParameter(EtomoNumber.Type.DOUBLE, "AngleOffsetOld");
-  protected ScriptParameter zShiftOld = new ScriptParameter(EtomoNumber.Type.DOUBLE, "ZShiftOld");
-  protected ScriptParameter xAxisTiltOld = new ScriptParameter(EtomoNumber.Type.DOUBLE, "XAxisTiltOld");
-  
+  protected ScriptParameter angleOffsetOld = new ScriptParameter(EtomoNumber.Type.DOUBLE,
+      "AngleOffsetOld");
+  protected ScriptParameter zShiftOld = new ScriptParameter(EtomoNumber.Type.DOUBLE,
+      "ZShiftOld");
+  protected ScriptParameter xAxisTiltOld = new ScriptParameter(EtomoNumber.Type.DOUBLE,
+      "XAxisTiltOld");
+
   public ConstTomopitchParam() {
     reset();
   }
-  
+
   protected void reset() {
     modelFiles = new Vector();
     extraThickness = Double.NaN;
@@ -60,22 +62,27 @@ public class ConstTomopitchParam {
   public int getModelFilesSize() {
     return modelFiles.size();
   }
+
   public String getModelFile(int index) {
     return (String) modelFiles.get(index);
   }
+
   public String getExtraThicknessString() {
     return ParamUtilities.valueOf(extraThickness);
   }
+
   public String getSpacingInYString() {
     return ParamUtilities.valueOf(spacingInY);
   }
+
   public String getScaleFactorString() {
     return ParamUtilities.valueOf(scaleFactor);
   }
+
   public String getParameterFile() {
     return parameterFile;
   }
-  
+
   /**
    * Return a multiline string describing the class attributes.
    */

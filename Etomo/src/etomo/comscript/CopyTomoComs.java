@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.28  2010/11/13 16:03:15  sueh
+ * bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ *
  * Revision 3.27  2010/02/17 04:47:54  sueh
  * bug# 1301 Using the manager instead of the manager key do pop up
  * messages.
@@ -243,8 +246,7 @@ public final class CopyTomoComs {
 
   private final ArrayList command = new ArrayList();
   private final EtomoNumber voltage = new EtomoNumber();
-  private final EtomoNumber sphericalAberration = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE);
+  private final EtomoNumber sphericalAberration = new EtomoNumber(EtomoNumber.Type.DOUBLE);
   private final EtomoNumber ctfFiles = new EtomoNumber();
 
   private final ApplicationManager manager;
@@ -273,8 +275,8 @@ public final class CopyTomoComs {
     if (!genOptions()) {
       return false;
     }
-    copytomocoms = new SystemProgram(manager, manager.getPropertyUserDir(),
-        command, AxisID.ONLY);
+    copytomocoms = new SystemProgram(manager, manager.getPropertyUserDir(), command,
+        AxisID.ONLY);
     //genStdInputSequence();
     return true;
   }
@@ -307,11 +309,9 @@ public final class CopyTomoComs {
     //Copytomocoms overrides the existing .com files.  Make sure that the full
     //functionality is only used during setup.
     if (!manager.isNewManager() && ctfFiles.isNull()) {
-      UIHarness.INSTANCE
-          .openMessageDialog(
-              manager,
-              "ERROR:  Attempting to rebuild .com files when setup is already completed.",
-              "Etomo Error");
+      UIHarness.INSTANCE.openMessageDialog(manager,
+          "ERROR:  Attempting to rebuild .com files when setup is already completed.",
+          "Etomo Error");
       return false;
     }
     boolean montage = false;
@@ -346,8 +346,8 @@ public final class CopyTomoComs {
     // A first tilt angle and tilt angle incriment
     if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.RANGE) {
       command.add("-firstinc");
-      command.add(String.valueOf(metaData.getTiltAngleSpecA().getRangeMin())
-          + "," + String.valueOf(metaData.getTiltAngleSpecA().getRangeStep()));
+      command.add(String.valueOf(metaData.getTiltAngleSpecA().getRangeMin()) + ","
+          + String.valueOf(metaData.getTiltAngleSpecA().getRangeStep()));
     }
     // Use an existing rawtilt file (this assumes that one is there and has
     // not been deleted by checkTiltAngleFiles()
@@ -409,10 +409,8 @@ public final class CopyTomoComs {
       // B first tilt angle and tilt angle incriment
       if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.RANGE) {
         command.add("-bfirstinc");
-        command
-            .add(String.valueOf(metaData.getTiltAngleSpecB().getRangeMin())
-                + ","
-                + String.valueOf(metaData.getTiltAngleSpecB().getRangeStep()));
+        command.add(String.valueOf(metaData.getTiltAngleSpecB().getRangeMin()) + ","
+            + String.valueOf(metaData.getTiltAngleSpecB().getRangeStep()));
       }
       //Take tilt angle from a .rawtlt file - B
       else if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.FILE) {
@@ -492,8 +490,7 @@ public final class CopyTomoComs {
     tempStdInput[lineCount++] = String.valueOf(metaData.getFiducialDiameter());
 
     // Image rotation
-    tempStdInput[lineCount++] = String.valueOf(metaData
-        .getImageRotation(AxisID.FIRST));
+    tempStdInput[lineCount++] = String.valueOf(metaData.getImageRotation(AxisID.FIRST));
 
     //  Extract the tilt angle data from the stack
     if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.EXTRACT) {
@@ -519,8 +516,7 @@ public final class CopyTomoComs {
       //  TODO Specification of all tilt alngles is not yet implemented
       tempStdInput[lineCount++] = "n";
       tempStdInput[lineCount++] = "-1";
-      System.err
-          .println("Specification of all tilt alngles is not yet implemented");
+      System.err.println("Specification of all tilt alngles is not yet implemented");
     }
 
     //  Exclude list
@@ -530,8 +526,8 @@ public final class CopyTomoComs {
     if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
 
       //    Image rotation
-      tempStdInput[lineCount++] = String.valueOf(metaData
-          .getImageRotation(AxisID.SECOND));
+      tempStdInput[lineCount++] = String
+          .valueOf(metaData.getImageRotation(AxisID.SECOND));
 
       //    Extract the tilt angle data from the stack
       if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.EXTRACT) {
@@ -543,9 +539,9 @@ public final class CopyTomoComs {
       else if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.RANGE) {
         tempStdInput[lineCount++] = "n";
         tempStdInput[lineCount++] = "1";
-        tempStdInput[lineCount++] = String
-            .valueOf(metaData.getTiltAngleSpecB().getRangeMin() + ","
-                + String.valueOf(metaData.getTiltAngleSpecB().getRangeStep()));
+        tempStdInput[lineCount++] = String.valueOf(metaData.getTiltAngleSpecB()
+            .getRangeMin()
+            + "," + String.valueOf(metaData.getTiltAngleSpecB().getRangeStep()));
       }
 
       //    Specify a range, creating the rawtilt file
@@ -557,8 +553,7 @@ public final class CopyTomoComs {
         //  TODO Specification of all tilt alngles is not yet implemented
         tempStdInput[lineCount++] = "n";
         tempStdInput[lineCount++] = "-1";
-        System.err
-            .println("Specification of all tilt alngles is not yet implemented");
+        System.err.println("Specification of all tilt alngles is not yet implemented");
       }
 
       //  Exclude list

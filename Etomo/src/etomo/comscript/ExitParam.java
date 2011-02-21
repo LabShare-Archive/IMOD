@@ -15,6 +15,9 @@ import java.util.ArrayList;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.2  2010/04/28 15:54:18  sueh
+ * <p> $bug# 1344 Reformatted.
+ * <p> $
  * <p> $Revision 1.1  2004/08/19 01:34:50  sueh
  * <p> $bug# 508 param object for the echo command
  * <p> $$ </p>
@@ -49,8 +52,7 @@ public class ExitParam extends ConstExitParam implements CommandParam {
     cmdLineArgs.add(String.valueOf(resultValue));
 
     int nArgs = cmdLineArgs.size();
-    scriptCommand.setCommandLineArgs((String[]) cmdLineArgs
-        .toArray(new String[nArgs]));
+    scriptCommand.setCommandLineArgs((String[]) cmdLineArgs.toArray(new String[nArgs]));
   }
 
   public void initializeDefaults() {

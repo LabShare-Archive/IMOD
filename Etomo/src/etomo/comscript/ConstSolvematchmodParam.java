@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2004/06/13 17:03:23  rickg
+ * <p> Solvematch mid change
+ * <p>
  * <p> Revision 3.1  2004/05/14 00:44:32  sueh
  * <p> bug# 434 added a match b to a state variable
  * <p>
@@ -30,11 +33,10 @@ package etomo.comscript;
  * <p> </p>
  */
 public class ConstSolvematchmodParam {
-  public static final String rcsid =
-    "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   protected boolean matchBToA = true;
-  
+
   protected String toFiducialCoordinatesFile;
   protected String fromFiducialCoordinatesFile;
   protected StringList fiducialMatchListA = new StringList(0);
@@ -47,7 +49,6 @@ public class ConstSolvematchmodParam {
   protected String fromReconstructionFile;
   protected String fromMatchingModel;
   protected String outputTransformationFile;
-
 
   /**
    * @return StringList

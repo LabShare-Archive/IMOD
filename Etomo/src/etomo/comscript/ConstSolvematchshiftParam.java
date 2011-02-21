@@ -1,4 +1,5 @@
 package etomo.comscript;
+
 /**
  * <p>Description: </p>
  * 
@@ -12,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4  2004/06/14 23:39:53  rickg
+ * <p> Bug #383 Transitioned to using solvematch
+ * <p>
  * <p> Revision 3.3  2004/06/14 23:28:33  rickg
  * <p> Bug #383  reisdual changed to float.
  * <p>
@@ -42,8 +46,7 @@ package etomo.comscript;
  */
 
 public class ConstSolvematchshiftParam {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   protected boolean matchBToA = true;
   protected String toFiducialCoordinatesFile;

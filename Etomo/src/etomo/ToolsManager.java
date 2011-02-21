@@ -55,6 +55,12 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2011/02/03 05:55:11  sueh
+ * <p> bug# 1422 Using ProcessingMethod to keep track of which type of
+ * <p> processing method is in use.  The decisions about when to display the
+ * <p> parallel processing table have been centralized in
+ * <p> ProcessingMethodMediator.
+ * <p>
  * <p> Revision 1.5  2010/11/13 16:02:54  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -119,8 +125,7 @@ public final class ToolsManager extends BaseManager {
    */
   public boolean isConflictingDatasetName(AxisID axisID, File file) {
     File dir = file.getParentFile();
-    File[] conflictFileList = dir.listFiles(new ConflictFileFilter(file
-        .getName()));
+    File[] conflictFileList = dir.listFiles(new ConflictFileFilter(file.getName()));
     if (conflictFileList.length > 0) {
       uiHarness.openMessageDialog(this, "This file, " + file.getAbsolutePath()
           + ", cannot be opened by the Tools interface in the this "
@@ -149,16 +154,14 @@ public final class ToolsManager extends BaseManager {
       //the Tools flatten functionality was used before on the same file in the
       //same directory.
       if (comScriptMgr.isWarpVolParamInFlatten(AxisID.ONLY)) {
-        toolsDialog.setParameters(comScriptMgr
-            .getWarpVolParamFromFlatten(AxisID.ONLY));
+        toolsDialog.setParameters(comScriptMgr.getWarpVolParamFromFlatten(AxisID.ONLY));
       }
     }
   }
 
   public void openToolsDialog() {
     if (toolsDialog == null) {
-      toolsDialog = ToolsDialog.getInstance(this, AXIS_ID, DIALOG_TYPE,
-          toolType);
+      toolsDialog = ToolsDialog.getInstance(this, AXIS_ID, DIALOG_TYPE, toolType);
     }
     mainPanel.showProcess(toolsDialog.getContainer(), AXIS_ID);
   }
@@ -167,10 +170,9 @@ public final class ToolsManager extends BaseManager {
    * Execute flatten.com
    */
   public void flatten(final ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries,
-      final Deferred3dmodButton deferred3dmodButton,
-      final Run3dmodMenuOptions run3dmodMenuOptions,
-      final DialogType dialogType, final AxisID axisID, WarpVolDisplay display) {
+      ProcessSeries processSeries, final Deferred3dmodButton deferred3dmodButton,
+      final Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType,
+      final AxisID axisID, WarpVolDisplay display) {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
@@ -183,16 +185,15 @@ public final class ToolsManager extends BaseManager {
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     String threadName;
     try {
-      threadName = processMgr.flatten(param, axisID, processResultDisplay,
-          processSeries, FileType.FLATTEN_TOOL_COMSCRIPT);
+      threadName = processMgr.flatten(param, axisID, processResultDisplay, processSeries,
+          FileType.FLATTEN_TOOL_COMSCRIPT);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute " + ProcessName.FLATTEN;
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(this, message, "Unable to execute command",
-          axisID);
+      uiHarness.openMessageDialog(this, message, "Unable to execute command", axisID);
       return;
     }
     setThreadName(threadName, axisID);
@@ -202,8 +203,8 @@ public final class ToolsManager extends BaseManager {
       final AxisID axisID) {
     WarpVolParam param = comScriptMgr.getWarpVolParamFromFlatten(axisID);
     if (display == null) {
-      uiHarness.openMessageDialog(this,
-          "Unable to get information from the display.", "Etomo Error", axisID);
+      uiHarness.openMessageDialog(this, "Unable to get information from the display.",
+          "Etomo Error", axisID);
       return null;
     }
     if (!display.getParameters(param)) {
@@ -230,8 +231,7 @@ public final class ToolsManager extends BaseManager {
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(),
-          "AxisType problem", axisID);
+      uiHarness.openMessageDialog(this, except.getMessage(), "AxisType problem", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -239,8 +239,8 @@ public final class ToolsManager extends BaseManager {
     }
   }
 
-  public void imodMakeSurfaceModel(Run3dmodMenuOptions menuOptions,
-      AxisID axisID, int binning, File file) {
+  public void imodMakeSurfaceModel(Run3dmodMenuOptions menuOptions, AxisID axisID,
+      int binning, File file) {
     //Pick ImodManager key
     //Need to look at tomogram edge on.  Use -Y, unless using squeezevol and it
     //is not flipped.
@@ -251,8 +251,8 @@ public final class ToolsManager extends BaseManager {
       imodManager.setOpenContours(key, axisID, true);
       imodManager.setStartNewContoursAtNewZ(key, axisID, true);
       imodManager.setBinningXY(key, binning);
-      imodManager.open(key, file, FileType.FLATTEN_WARP_INPUT_MODEL
-          .getFileName(this, AXIS_ID), true, menuOptions);
+      imodManager.open(key, file, FileType.FLATTEN_WARP_INPUT_MODEL.getFileName(this,
+          AXIS_ID), true, menuOptions);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
@@ -261,8 +261,7 @@ public final class ToolsManager extends BaseManager {
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(),
-          "AxisType problem", axisID);
+      uiHarness.openMessageDialog(this, except.getMessage(), "AxisType problem", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -291,13 +290,11 @@ public final class ToolsManager extends BaseManager {
       return false;
     }
     if (header.getNRows() < header.getNSections()) {
-      System.err.println("Assuming that " + mrcFile.getName()
-          + " has not been flipped\n"
+      System.err.println("Assuming that " + mrcFile.getName() + " has not been flipped\n"
           + "because the Y is less then Z in the header.");
       return false;
     }
-    System.err.println("Assuming that " + mrcFile.getName()
-        + " has been flipped\n"
+    System.err.println("Assuming that " + mrcFile.getName() + " has been flipped\n"
         + "because the Y is greater or equal to Z in the header.");
     return true;
   }
@@ -306,11 +303,9 @@ public final class ToolsManager extends BaseManager {
    * Execute flattenwarp
    */
   public void flattenWarp(final ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries,
-      final Deferred3dmodButton deferred3dmodButton,
-      final Run3dmodMenuOptions run3dmodMenuOptions,
-      final DialogType dialogType, final AxisID axisID,
-      FlattenWarpDisplay display) {
+      ProcessSeries processSeries, final Deferred3dmodButton deferred3dmodButton,
+      final Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType,
+      final AxisID axisID, FlattenWarpDisplay display) {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
@@ -323,29 +318,28 @@ public final class ToolsManager extends BaseManager {
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     String threadName;
     try {
-      threadName = processMgr.flattenWarp(param, processResultDisplay,
-          processSeries, axisID);
+      threadName = processMgr.flattenWarp(param, processResultDisplay, processSeries,
+          axisID);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute " + param.getProcessName();
       message[1] = e.getMessage();
-      uiHarness.openMessageDialog(this, message, "Unable to execute command",
-          axisID);
+      uiHarness.openMessageDialog(this, message, "Unable to execute command", axisID);
       return;
     }
     setThreadName(threadName, axisID);
-    mainPanel.startProgressBar("Running " + param.getProcessName(), axisID,
-        param.getProcessName());
+    mainPanel.startProgressBar("Running " + param.getProcessName(), axisID, param
+        .getProcessName());
   }
 
   private FlattenWarpParam updateFlattenWarpParam(FlattenWarpDisplay display,
       final AxisID axisID) {
     FlattenWarpParam param = new FlattenWarpParam(this);
     if (display == null) {
-      uiHarness.openMessageDialog(this,
-          "Unable to get information from the display.", "Etomo Error", axisID);
+      uiHarness.openMessageDialog(this, "Unable to get information from the display.",
+          "Etomo Error", axisID);
       return null;
     }
     if (!display.getParameters(param)) {
@@ -364,14 +358,12 @@ public final class ToolsManager extends BaseManager {
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(),
-          "AxisType problem", axisID);
+      uiHarness.openMessageDialog(this, except.getMessage(), "AxisType problem", axisID);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(),
-          "Can't open 3dmod on " + modelFileType.getFileName(this, axisID),
-          axisID);
+      uiHarness.openMessageDialog(this, except.getMessage(), "Can't open 3dmod on "
+          + modelFileType.getFileName(this, axisID), axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -440,7 +432,7 @@ public final class ToolsManager extends BaseManager {
   public BaseState getBaseState() {
     return null;
   }
-  
+
   public String getFileSubdirectoryName() {
     return null;
   }
@@ -500,11 +492,9 @@ public final class ToolsManager extends BaseManager {
     this.paramFile = paramFile;
   }
 
-  void startNextProcess(final AxisID axisID,
-      final ProcessSeries.Process process,
-      final ProcessResultDisplay processResultDisplay,
-      final ProcessSeries processSeries, final DialogType dialogType,
-      final ProcessDisplay display) {
+  void startNextProcess(final AxisID axisID, final ProcessSeries.Process process,
+      final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
+      final DialogType dialogType, final ProcessDisplay display) {
   }
 
   public String getName() {
@@ -552,8 +542,7 @@ public final class ToolsManager extends BaseManager {
         if (fileName.endsWith(DatasetFiles.RECON_DATA_FILE_EXT)
             || fileName.endsWith(DatasetFiles.JOIN_DATA_FILE_EXT)
             || fileName.endsWith(DatasetFiles.PEET_DATA_FILE_EXT)) {
-          return fileName.substring(0, fileName.lastIndexOf('.')).equals(
-              compareFileName);
+          return fileName.substring(0, fileName.lastIndexOf('.')).equals(compareFileName);
         }
       }
       return false;

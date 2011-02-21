@@ -23,6 +23,9 @@ import etomo.type.StringParameter;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/10/19 16:28:20  sueh
+ * <p> bug# 1253 Added invertTiltAngles.
+ * <p>
  * <p> Revision 1.2  2009/02/25 00:14:32  sueh
  * <p> bug# 1182 Made sphericalAberration a double.
  * <p>
@@ -30,8 +33,7 @@ import etomo.type.StringParameter;
  * <p> bug# 1141 Class to update a ctfplotter call.
  * <p> </p>
  */
-public final class CtfPlotterParam implements ConstCtfPlotterParam,
-    CommandParam {
+public final class CtfPlotterParam implements ConstCtfPlotterParam, CommandParam {
   public static final String rcsid = "$Id$";
 
   public static final String COMMAND = "ctfplotter";
@@ -46,8 +48,7 @@ public final class CtfPlotterParam implements ConstCtfPlotterParam,
       CtfPhaseFlipParam.INVERT_TILT_ANGLES_OPTION);
   private final ScriptParameter amplitudeContrast = new ScriptParameter(
       EtomoNumber.Type.FLOAT, CtfPhaseFlipParam.AMPLITUDE_CONTRAST_OPTION);
-  private final StringParameter configFile = new StringParameter(
-      CONFIG_FILE_OPTION);
+  private final StringParameter configFile = new StringParameter(CONFIG_FILE_OPTION);
   private final ScriptParameter expectedDefocus = new ScriptParameter(
       EtomoNumber.Type.FLOAT, EXPECTED_DEFOCUS_OPTION);
 

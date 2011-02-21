@@ -27,6 +27,10 @@ import etomo.type.StringParameter;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2010/04/28 15:52:53  sueh
+ * <p> bug# 1344 Implemented Command.  Added getOutputImageFileType
+ * <p> functions.
+ * <p>
  * <p> Revision 1.4  2009/10/19 16:28:11  sueh
  * <p> bug# 1253 Added invertTiltAngles.
  * <p>
@@ -43,8 +47,7 @@ import etomo.type.StringParameter;
  * <p> ctfcorrection.com.
  * <p> </p>
  */
-public final class CtfPhaseFlipParam implements ConstCtfPhaseFlipParam,
-    CommandParam {
+public final class CtfPhaseFlipParam implements ConstCtfPhaseFlipParam, CommandParam {
   public static final String rcsid = "$Id$";
 
   public static final String COMMAND = "ctfphaseflip";
@@ -65,10 +68,8 @@ public final class CtfPhaseFlipParam implements ConstCtfPhaseFlipParam,
   private final StringParameter defocusFile = new StringParameter("DefocusFile");
   private final ScriptParameter interpolationWidth = new ScriptParameter(
       INTERPOLATION_WIDTH_OPTION);
-  private final ScriptParameter defocusTol = new ScriptParameter(
-      DEFOCUS_TOL_OPTION);
-  private final StringParameter outputFileName = new StringParameter(
-      "OutputFileName");
+  private final ScriptParameter defocusTol = new ScriptParameter(DEFOCUS_TOL_OPTION);
+  private final StringParameter outputFileName = new StringParameter("OutputFileName");
 
   private final BaseManager manager;
   private final AxisID axisID;
@@ -204,27 +205,31 @@ public final class CtfPhaseFlipParam implements ConstCtfPhaseFlipParam,
   public String getCommandLine() {
     return getCommand();
   }
-  
+
   public CommandMode getCommandMode() {
     return null;
   }
-  
+
   public String getCommandName() {
     return ProcessName.CTF_CORRECTION.toString();
   }
-  
+
   public File getCommandOutputFile() {
     return null;
   }
+
   public ProcessName getProcessName() {
     return ProcessName.CTF_CORRECTION;
   }
+
   public CommandDetails getSubcommandDetails() {
     return null;
   }
+
   public ProcessName getSubcommandProcessName() {
     return null;
   }
+
   public boolean isMessageReporter() {
     return false;
   }

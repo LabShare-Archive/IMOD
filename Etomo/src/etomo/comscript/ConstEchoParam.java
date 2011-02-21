@@ -12,17 +12,19 @@ package etomo.comscript;
  *
  * @version $$Revision$$
  *
- * <p> $$Log$$ </p>
+ * <p> $$Log$
+ * <p> $Revision 1.1  2004/08/19 01:30:31  sueh
+ * <p> $Constant object for the echo command
+ * <p> $$ </p>
  */
 
 public class ConstEchoParam {
-  public static final String rcsid =
-    "$$Id$$";
-  
+  public static final String rcsid = "$$Id$$";
+
   public static final String COMMAND_NAME = "echo";
-  
+
   protected StringBuffer string;
-  
+
   public ConstEchoParam() {
     reset();
   }
@@ -30,13 +32,12 @@ public class ConstEchoParam {
   protected void reset() {
     string = new StringBuffer();
   }
-  
+
   /**
    * @return String
    */
   public String getString() {
     return string.toString();
   }
-  
-}
 
+}

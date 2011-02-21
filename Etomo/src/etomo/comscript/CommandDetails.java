@@ -14,8 +14,13 @@ package etomo.comscript;
 * @version $Revision$
 */
 public interface CommandDetails extends Command, ProcessDetails {
-  public static  final String  rcsid =  "$Id$";
+  public static final String rcsid = "$Id$";
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2006/05/11 19:38:43  sueh
+* <p> bug# 838 Add CommandDetails, which extends Command and
+* <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
+* <p> functions.  Command contains all the command oriented functions.
+* <p> </p>
 */

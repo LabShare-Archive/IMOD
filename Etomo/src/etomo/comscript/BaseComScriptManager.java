@@ -24,6 +24,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2010/11/13 16:03:15  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.1  2010/02/17 04:47:54  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -38,8 +41,8 @@ public abstract class BaseComScriptManager {
     this.manager = manager;
   }
 
-  ComScript loadComScript(FileType scriptFileType, AxisID axisID,
-      boolean parseComments, boolean caseInsensitive, boolean separateWithASpace) {
+  ComScript loadComScript(FileType scriptFileType, AxisID axisID, boolean parseComments,
+      boolean caseInsensitive, boolean separateWithASpace) {
     return loadComScript(scriptFileType.getFileName(manager, axisID), axisID,
         parseComments, true, caseInsensitive, separateWithASpace);
   }
@@ -54,9 +57,8 @@ public abstract class BaseComScriptManager {
    * @param separateWithASpace
    * @return
    */
-  ComScript loadComScript(String commandComScript, AxisID axisID,
-      boolean parseComments, boolean required, boolean caseInsensitive,
-      boolean separateWithASpace) {
+  ComScript loadComScript(String commandComScript, AxisID axisID, boolean parseComments,
+      boolean required, boolean caseInsensitive, boolean separateWithASpace) {
     Utilities.timestamp("load", commandComScript, Utilities.STARTED_STATUS);
     File comFile = new File(manager.getPropertyUserDir(), commandComScript);
     //If the file isn't there and its not required then just return null without
@@ -74,9 +76,9 @@ public abstract class BaseComScriptManager {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Com file: " + comScript.getComFileName();
       errorMessage[1] = except.getMessage();
-      JOptionPane.showMessageDialog(null, errorMessage, "Can't parse "
-          + commandComScript + axisID.getExtension() + ".com file: "
-          + comScript.getComFileName(), JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(null, errorMessage, "Can't parse " + commandComScript
+          + axisID.getExtension() + ".com file: " + comScript.getComFileName(),
+          JOptionPane.ERROR_MESSAGE);
       Utilities.timestamp("load", commandComScript, Utilities.FAILED_STATUS);
       return null;
     }
@@ -97,8 +99,8 @@ public abstract class BaseComScriptManager {
    */
   boolean initialize(CommandParam param, ComScript comScript, String command,
       AxisID axisID, boolean caseInsensitive, boolean separateWithASpace) {
-    return initialize(param, comScript, command, axisID, false,
-        caseInsensitive, separateWithASpace);
+    return initialize(param, comScript, command, axisID, false, caseInsensitive,
+        separateWithASpace);
   }
 
   boolean initialize(CommandParam param, ComScript comScript, String command,
@@ -107,23 +109,20 @@ public abstract class BaseComScriptManager {
     if (comScript == null) {
       return false;
     }
-    Utilities.timestamp("initialize", command, comScript,
-        Utilities.STARTED_STATUS);
+    Utilities.timestamp("initialize", command, comScript, Utilities.STARTED_STATUS);
     if (!comScript.isCommandLoaded()) {
       param.initializeDefaults();
     }
     else {
       if (optionalCommand) {
-        if (comScript.getScriptCommandIndex(command, caseInsensitive,
-            separateWithASpace) == -1) {
-          Utilities.timestamp("initialize", command, comScript,
-              Utilities.FAILED_STATUS);
+        if (comScript.getScriptCommandIndex(command, caseInsensitive, separateWithASpace) == -1) {
+          Utilities.timestamp("initialize", command, comScript, Utilities.FAILED_STATUS);
           return false;
         }
       }
       try {
-        param.parseComScriptCommand(comScript.getScriptCommand(command,
-            caseInsensitive, separateWithASpace));
+        param.parseComScriptCommand(comScript.getScriptCommand(command, caseInsensitive,
+            separateWithASpace));
       }
       catch (Exception except) {
         except.printStackTrace();
@@ -134,13 +133,11 @@ public abstract class BaseComScriptManager {
         errorMessage[3] = except.getMessage();
         JOptionPane.showMessageDialog(null, errorMessage,
             "Com Script Command Parse Error", JOptionPane.ERROR_MESSAGE);
-        Utilities.timestamp("initialize", command, comScript,
-            Utilities.FAILED_STATUS);
+        Utilities.timestamp("initialize", command, comScript, Utilities.FAILED_STATUS);
         return false;
       }
     }
-    Utilities.timestamp("initialize", command, comScript,
-        Utilities.FINISHED_STATUS);
+    Utilities.timestamp("initialize", command, comScript, Utilities.FINISHED_STATUS);
     return true;
   }
 
@@ -153,8 +150,8 @@ public abstract class BaseComScriptManager {
    */
   void modifyCommand(ComScript script, CommandParam params, String command,
       AxisID axisID, boolean caseInsensitive, boolean separateWithASpace) {
-    modifyCommand(script, params, command, axisID, false, false,
-        caseInsensitive, separateWithASpace);
+    modifyCommand(script, params, command, axisID, false, false, caseInsensitive,
+        separateWithASpace);
   }
 
   /**
@@ -184,12 +181,11 @@ public abstract class BaseComScriptManager {
 
     //  Update the specified com script command from the CommandParam object
     ComScriptCommand comScriptCommand = null;
-    int commandIndex = script.getScriptCommandIndex(command, addNew,
-        caseInsensitive, separateWithASpace);
+    int commandIndex = script.getScriptCommandIndex(command, addNew, caseInsensitive,
+        separateWithASpace);
     //optional return false if failed
     if (optional && commandIndex == -1) {
-      Utilities.timestamp("updateComScript", command, script,
-          Utilities.FAILED_STATUS);
+      Utilities.timestamp("updateComScript", command, script, Utilities.FAILED_STATUS);
       return false;
     }
     try {
@@ -203,9 +199,8 @@ public abstract class BaseComScriptManager {
       errorMessage[0] = "Com file: " + script.getComFileName();
       errorMessage[1] = "Command: " + command;
       errorMessage[2] = except.getMessage();
-      JOptionPane.showMessageDialog(null, errorMessage, "Can't update "
-          + command + " in " + script.getComFileName(),
-          JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(null, errorMessage, "Can't update " + command
+          + " in " + script.getComFileName(), JOptionPane.ERROR_MESSAGE);
       Utilities.timestamp("update", command, script, Utilities.FAILED_STATUS);
       return false;
     }
@@ -223,10 +218,8 @@ public abstract class BaseComScriptManager {
       errorMessage[0] = "Com file: " + script.getComFileName();
       errorMessage[1] = "Command: " + command;
       errorMessage[2] = except.getMessage();
-      JOptionPane
-          .showMessageDialog(null, except.getMessage(), "Can't write "
-              + command + axisID.getExtension() + ".com",
-              JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(null, except.getMessage(), "Can't write " + command
+          + axisID.getExtension() + ".com", JOptionPane.ERROR_MESSAGE);
       Utilities.timestamp("update", command, script, Utilities.FAILED_STATUS);
       return false;
     }

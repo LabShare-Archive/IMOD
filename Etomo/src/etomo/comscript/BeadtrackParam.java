@@ -35,6 +35,9 @@ import etomo.type.ScriptParameter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.31  2010/09/23 21:05:00  sueh
+ * <p> bug# 1404 Allowing additionalViewGroups to have multiple entries.
+ * <p>
  * <p> Revision 3.30  2010/04/28 15:43:36  sueh
  * <p> bug# 1344 Added getOutputImageFileType functions.
  * <p>
@@ -270,8 +273,8 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
 
     HashMap requiredMap = getRequiredMap();
     skipViews = new StringList(SKIP_VIEW_LIST_KEY);
-    rotationAngle = new ScriptParameter(EtomoNumber.Type.DOUBLE,
-        IMAGE_ROTATION_KEY, requiredMap);
+    rotationAngle = new ScriptParameter(EtomoNumber.Type.DOUBLE, IMAGE_ROTATION_KEY,
+        requiredMap);
     additionalViewGroups.setKey(ADDITIONAL_VIEW_GROUPS_KEY);
     additionalViewGroups.setSuccessiveEntriesAccumulate();
 
@@ -284,13 +287,11 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
         TILT_ANGLE_GROUP_PARAMS_KEY, requiredMap);
     magDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER,
         MAGNIFICATION_GROUP_PARAMS_KEY, requiredMap);
-    minViewsForTiltalign = new ScriptParameter(EtomoNumber.Type.INTEGER,
-        N_MIN_VIEWS_KEY, requiredMap);
-    centroidRadius = new ScriptParameter(EtomoNumber.Type.DOUBLE,
-        "CentroidRadius");
-    lightBeads = new EtomoBoolean2(LIGHT_BEADS_KEY, requiredMap);
-    maxGapSize = new ScriptParameter(EtomoNumber.Type.INTEGER, MAX_GAP_KEY,
+    minViewsForTiltalign = new ScriptParameter(EtomoNumber.Type.INTEGER, N_MIN_VIEWS_KEY,
         requiredMap);
+    centroidRadius = new ScriptParameter(EtomoNumber.Type.DOUBLE, "CentroidRadius");
+    lightBeads = new EtomoBoolean2(LIGHT_BEADS_KEY, requiredMap);
+    maxGapSize = new ScriptParameter(EtomoNumber.Type.INTEGER, MAX_GAP_KEY, requiredMap);
     minTiltRangeToFindAxis = new ScriptParameter(EtomoNumber.Type.DOUBLE,
         MIN_TILT_RANGE_TO_FIND_AXIS_KEY, requiredMap);
     minTiltRangeToFindAngles = new ScriptParameter(EtomoNumber.Type.DOUBLE,
@@ -313,16 +314,15 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
 
     localAreaTargetSize = new ScriptParameter(EtomoNumber.Type.INTEGER,
         LOCAL_AREA_TARGET_SIZE_KEY, requiredMap);
-    minBeadsInArea = new ScriptParameter(EtomoNumber.Type.INTEGER,
-        MIN_BEADS_IN_AREA_KEY, requiredMap);
+    minBeadsInArea = new ScriptParameter(EtomoNumber.Type.INTEGER, MIN_BEADS_IN_AREA_KEY,
+        requiredMap);
     minOverlapBeads = new ScriptParameter(EtomoNumber.Type.INTEGER,
         MIN_OVERLAP_BEADS_KEY, requiredMap);
     maxViewsInAlign = new ScriptParameter(EtomoNumber.Type.INTEGER,
         MAX_VIEWS_IN_ALIGN_KEY, requiredMap);
     roundsOfTracking = new ScriptParameter(EtomoNumber.Type.INTEGER,
         ROUNDS_OF_TRACKING_KEY, requiredMap);
-    imagesAreBinned = new ScriptParameter(EtomoNumber.Type.LONG,
-        "ImagesAreBinned");
+    imagesAreBinned = new ScriptParameter(EtomoNumber.Type.LONG, "ImagesAreBinned");
     beadDiameter = new ScriptParameter(EtomoNumber.Type.DOUBLE, "BeadDiameter");
   }
 
@@ -381,8 +381,7 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
   private HashMap getRequiredMap() {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.BEADTRACK,
-          axisID);
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.BEADTRACK, axisID);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -524,12 +523,10 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
       tiltAngleSpec.parse(scriptCommand);
       tiltDefaultGrouping.parse(scriptCommand);
       tiltAngleGroups = ParamUtilities.setParamIfPresent(scriptCommand,
-          TILT_ANGLE_GROUPS_KEY, nondefaultGroupSize,
-          nondefaultGroupIntegerType);
+          TILT_ANGLE_GROUPS_KEY, nondefaultGroupSize, nondefaultGroupIntegerType);
       magDefaultGrouping.parse(scriptCommand);
       magnificationGroups = ParamUtilities.setParamIfPresent(scriptCommand,
-          MAGNIFICATION_GROUPS_KEY, nondefaultGroupSize,
-          nondefaultGroupIntegerType);
+          MAGNIFICATION_GROUPS_KEY, nondefaultGroupSize, nondefaultGroupIntegerType);
       minViewsForTiltalign.parse(scriptCommand);
       centroidRadius.parse(scriptCommand);
       lightBeads.parse(scriptCommand);
@@ -537,8 +534,7 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
       maxGapSize.parse(scriptCommand);
       minTiltRangeToFindAxis.parse(scriptCommand);
       minTiltRangeToFindAngles.parse(scriptCommand);
-      searchBoxPixels.validateAndSet(scriptCommand
-          .getValue(SEARCH_BOX_PIXELS_KEY));
+      searchBoxPixels.validateAndSet(scriptCommand.getValue(SEARCH_BOX_PIXELS_KEY));
       maxBeadsToAverage.parse(scriptCommand);
       fiducialExtrapolationParams.validateAndSet(scriptCommand
           .getValue(FIDUCIAL_EXTRAPOLATION_PARAMS_KEY));
@@ -552,8 +548,7 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
       maxRescueDistance.parse(scriptCommand);
       meanResidChangeLimits.validateAndSet(scriptCommand
           .getValue(MEAN_RESID_CHANGE_LIMITS_KEY));
-      deletionParams
-          .validateAndSet(scriptCommand.getValue(DELETION_PARAMS_KEY));
+      deletionParams.validateAndSet(scriptCommand.getValue(DELETION_PARAMS_KEY));
 
       localAreaTracking.parse(scriptCommand);
       localAreaTargetSize.parse(scriptCommand);
@@ -572,9 +567,8 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
     }
   }
 
-  private void convertToPIP(ComScriptCommand scriptCommand)
-      throws BadComScriptException, FortranInputSyntaxException,
-      InvalidParameterException {
+  private void convertToPIP(ComScriptCommand scriptCommand) throws BadComScriptException,
+      FortranInputSyntaxException, InvalidParameterException {
     OldBeadtrackParam oldParam = new OldBeadtrackParam();
     oldParam.parseComScriptCommand(scriptCommand);
     set(oldParam);
@@ -599,8 +593,7 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
     //  Switch to keyword/value pairs
     scriptCommand.useKeywordValue();
 
-    ParamUtilities.updateScriptParameter(scriptCommand, INPUT_FILE_KEY,
-        inputFile);
+    ParamUtilities.updateScriptParameter(scriptCommand, INPUT_FILE_KEY, inputFile);
     ParamUtilities.updateScriptParameter(scriptCommand, PIECE_LIST_FILE_KEY,
         pieceListFile);
     ParamUtilities.updateScriptParameter(scriptCommand, SEED_MODEL_FILE_KEY,
@@ -609,8 +602,7 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
         outputModelFile);
     ParamUtilities.updateScriptParameter(scriptCommand, OUTPUT_MODEL_FILE_KEY,
         outputModelFile);
-    ParamUtilities.updateScriptParameter(scriptCommand, skipViews.getKey(),
-        skipViews);
+    ParamUtilities.updateScriptParameter(scriptCommand, skipViews.getKey(), skipViews);
     rotationAngle.updateComScript(scriptCommand);
     // ParamUtilities.updateScriptParameter(scriptCommand, additionalViewGroups
     //    .getKey(), additionalViewGroups);
@@ -620,13 +612,12 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
     ParamUtilities.updateScriptParameter(scriptCommand, TILT_ANGLE_GROUPS_KEY,
         tiltAngleGroups);
     magDefaultGrouping.updateComScript(scriptCommand);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        MAGNIFICATION_GROUPS_KEY, magnificationGroups);
+    ParamUtilities.updateScriptParameter(scriptCommand, MAGNIFICATION_GROUPS_KEY,
+        magnificationGroups);
     minViewsForTiltalign.updateComScript(scriptCommand);
     centroidRadius.updateComScript(scriptCommand);
     lightBeads.updateComScript(scriptCommand);
-    ParamUtilities
-        .updateScriptParameter(scriptCommand, FILL_GAPS_KEY, fillGaps);
+    ParamUtilities.updateScriptParameter(scriptCommand, FILL_GAPS_KEY, fillGaps);
     maxGapSize.updateComScript(scriptCommand);
 
     localAreaTracking.updateComScript(scriptCommand);
@@ -643,16 +634,16 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
     maxBeadsToAverage.updateComScript(scriptCommand);
     ParamUtilities.updateScriptParameter(scriptCommand,
         FIDUCIAL_EXTRAPOLATION_PARAMS_KEY, fiducialExtrapolationParams);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        RESCUE_ATTEMPT_PARAMS_KEY, rescueAttemptParams);
+    ParamUtilities.updateScriptParameter(scriptCommand, RESCUE_ATTEMPT_PARAMS_KEY,
+        rescueAttemptParams);
     distanceRescueCriterion.updateComScript(scriptCommand);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        RESCUE_RELAXATION_PARAMS_KEY, rescueRelaxationParams);
+    ParamUtilities.updateScriptParameter(scriptCommand, RESCUE_RELAXATION_PARAMS_KEY,
+        rescueRelaxationParams);
     postFitRescueResidual.updateComScript(scriptCommand);
     densityRelaxationPostFit.updateComScript(scriptCommand);
     maxRescueDistance.updateComScript(scriptCommand);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        MEAN_RESID_CHANGE_LIMITS_KEY, meanResidChangeLimits);
+    ParamUtilities.updateScriptParameter(scriptCommand, MEAN_RESID_CHANGE_LIMITS_KEY,
+        meanResidChangeLimits);
     ParamUtilities.updateScriptParameter(scriptCommand, DELETION_PARAMS_KEY,
         deletionParams);
     imagesAreBinned.updateComScript(scriptCommand);
@@ -687,8 +678,7 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
     if (param.magnificationGroups != null) {
       magnificationGroups = new FortranInputString[param.magnificationGroups.length];
       for (int i = 0; i < param.magnificationGroups.length; i++) {
-        magnificationGroups[i] = new FortranInputString(
-            param.magnificationGroups[i]);
+        magnificationGroups[i] = new FortranInputString(param.magnificationGroups[i]);
       }
     }
     minViewsForTiltalign.set(param.nMinViews);
@@ -748,8 +738,7 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
 
   public void setTiltAngleGroups(String newTiltAngleGroups)
       throws FortranInputSyntaxException {
-    tiltAngleGroups = ParamUtilities.parse(newTiltAngleGroups, true,
-        nondefaultGroupSize);
+    tiltAngleGroups = ParamUtilities.parse(newTiltAngleGroups, true, nondefaultGroupSize);
   }
 
   public ConstEtomoNumber setMagDefaultGrouping(String magnificationGroupParams) {
@@ -774,13 +763,11 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
     return this.maxGapSize.set(maxGapSize);
   }
 
-  public ConstEtomoNumber setMinTiltRangeToFindAxis(
-      String minTiltRangeToFindAxis) {
+  public ConstEtomoNumber setMinTiltRangeToFindAxis(String minTiltRangeToFindAxis) {
     return this.minTiltRangeToFindAxis.set(minTiltRangeToFindAxis);
   }
 
-  public ConstEtomoNumber setMinTiltRangeToFindAngles(
-      String minTiltRangeToFindAngles) {
+  public ConstEtomoNumber setMinTiltRangeToFindAngles(String minTiltRangeToFindAngles) {
     return this.minTiltRangeToFindAngles.set(minTiltRangeToFindAngles);
   }
 
@@ -788,8 +775,7 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
     return this.maxBeadsToAverage.set(maxBeadsToAverage);
   }
 
-  public ConstEtomoNumber setDistanceRescueCriterion(
-      String distanceRescueCriterion) {
+  public ConstEtomoNumber setDistanceRescueCriterion(String distanceRescueCriterion) {
     return this.distanceRescueCriterion.set(distanceRescueCriterion);
   }
 
@@ -801,8 +787,7 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
     return beadDiameter.set(input);
   }
 
-  public ConstEtomoNumber setDensityRelaxationPostFit(
-      String densityRelaxationPostFit) {
+  public ConstEtomoNumber setDensityRelaxationPostFit(String densityRelaxationPostFit) {
     return this.densityRelaxationPostFit.set(densityRelaxationPostFit);
   }
 
@@ -859,8 +844,8 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
     return PROCESS_NAME.toString();
   }
 
-  public List getLogMessage() throws LogFile.LockException,
-      FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+      IOException {
     return null;
   }
 
@@ -896,8 +881,7 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
     return null;
   }
 
-  public boolean getBooleanValue(
-      final etomo.comscript.FieldInterface fieldInterface) {
+  public boolean getBooleanValue(final etomo.comscript.FieldInterface fieldInterface) {
     if (fieldInterface == Field.LIGHT_BEADS) {
       return lightBeads.is();
     }

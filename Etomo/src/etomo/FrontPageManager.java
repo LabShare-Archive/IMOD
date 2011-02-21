@@ -39,6 +39,12 @@ import etomo.ui.swing.ProcessDisplay;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2011/02/03 05:52:00  sueh
+ * <p> bug# 1422 Using ProcessingMethod to keep track of which type of
+ * <p> processing method is in use.  The decisions about when to display the
+ * <p> parallel processing table have been centralized in
+ * <p> ProcessingMethodMediator.
+ * <p>
  * <p> Revision 1.5  2010/11/13 16:02:54  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -122,8 +128,7 @@ public final class FrontPageManager extends BaseManager {
   protected void createComScriptManager() {
   }
 
-  protected void processSucceeded(final AxisID axisID,
-      final ProcessName processName) {
+  protected void processSucceeded(final AxisID axisID, final ProcessName processName) {
   }
 
   protected void createMainPanel() {
@@ -208,11 +213,9 @@ public final class FrontPageManager extends BaseManager {
     this.paramFile = paramFile;
   }
 
-  void startNextProcess(final AxisID axisID,
-      final ProcessSeries.Process process,
-      final ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries, DialogType dialogType,
-      ProcessDisplay display) {
+  void startNextProcess(final AxisID axisID, final ProcessSeries.Process process,
+      final ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
+      DialogType dialogType, ProcessDisplay display) {
   }
 
   public String getName() {

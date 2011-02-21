@@ -12,17 +12,19 @@ package etomo.comscript;
  *
  * @version $$Revision$$
  *
- * <p> $$Log$$ </p>
+ * <p> $$Log$
+ * <p> $Revision 1.1  2004/08/19 01:31:23  sueh
+ * <p> $Constant object for the exit command
+ * <p> $$ </p>
  */
 
 public class ConstExitParam {
-  public static final String rcsid =
-    "$$Id$$";
-  
+  public static final String rcsid = "$$Id$$";
+
   public static final String COMMAND_NAME = "exit";
-  
+
   protected int resultValue;
-  
+
   public ConstExitParam() {
     reset();
   }
@@ -30,13 +32,12 @@ public class ConstExitParam {
   protected void reset() {
     resultValue = 0;
   }
- 
+
   /**
    * @return String
    */
   public int getResultValue() {
     return resultValue;
   }
-  
-}
 
+}

@@ -117,12 +117,11 @@ public class ConstTiltalignParam implements CommandDetails {
 
   private static final int[] optionValidValues = { FIXED_OPTION, ALL_OPTION,
       AUTOMAPPED_OPTION };
-  private static final int[] tiltOptionValidValues = { FIXED_OPTION,
-      TILT_ALL_OPTION, TILT_AUTOMAPPED_OPTION };
+  private static final int[] tiltOptionValidValues = { FIXED_OPTION, TILT_ALL_OPTION,
+      TILT_AUTOMAPPED_OPTION };
   private static final int[] distortionOptionValidValues = { FIXED_OPTION,
       AUTOMAPPED_OPTION };
-  private static final int[] localOptionValidValues = { FIXED_OPTION,
-      AUTOMAPPED_OPTION };
+  private static final int[] localOptionValidValues = { FIXED_OPTION, AUTOMAPPED_OPTION };
   private static final int[] localTiltOptionValidValues = { FIXED_OPTION,
       TILT_AUTOMAPPED_OPTION };
   private static final int[] rotOptionValidValues = { FIXED_OPTION, ALL_OPTION,
@@ -207,8 +206,8 @@ public class ConstTiltalignParam implements CommandDetails {
   boolean loadedFromFile = false;
   final BaseManager manager;
 
-  public ConstTiltalignParam(final BaseManager manager,
-      final String datasetName, final AxisID axisID) {
+  public ConstTiltalignParam(final BaseManager manager, final String datasetName,
+      final AxisID axisID) {
     this.axisID = axisID;
     this.datasetName = datasetName;
     this.manager = manager;
@@ -220,28 +219,23 @@ public class ConstTiltalignParam implements CommandDetails {
     angleOffset = new ScriptParameter(EtomoNumber.Type.DOUBLE, ANGLE_OFFSET_KEY);
     projectionStretch = new EtomoBoolean2(PROJECTION_STRETCH_KEY);
     rotOption = new ScriptParameter(EtomoNumber.Type.INTEGER, ROT_OPTION_KEY);
-    rotOption.setValidValues(rotOptionValidValues).setDisplayValue(
-        AUTOMAPPED_OPTION);
+    rotOption.setValidValues(rotOptionValidValues).setDisplayValue(AUTOMAPPED_OPTION);
     rotDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER,
         ROT_DEFAULT_GROUPING_KEY);
     rotDefaultGrouping.setDisplayValue(3);
-    rotationFixedView = new ScriptParameter(EtomoNumber.Type.INTEGER,
-        "RotationFixedView");
-    localRotOption = new ScriptParameter(EtomoNumber.Type.INTEGER,
-        LOCAL_ROT_OPTION_KEY);
+    rotationFixedView = new ScriptParameter(EtomoNumber.Type.INTEGER, "RotationFixedView");
+    localRotOption = new ScriptParameter(EtomoNumber.Type.INTEGER, LOCAL_ROT_OPTION_KEY);
     localRotOption.setValidValues(localOptionValidValues).setDisplayValue(
         AUTOMAPPED_OPTION);
     localRotDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER,
         LOCAL_ROT_DEFAULT_GROUPING_KEY);
     localRotDefaultGrouping.setDisplayValue(6);
     tiltOption = new ScriptParameter(EtomoNumber.Type.INTEGER, TILT_OPTION_KEY);
-    tiltOption.setValidValues(tiltOptionValidValues).setDisplayValue(
-        TILT_ALL_OPTION);
+    tiltOption.setValidValues(tiltOptionValidValues).setDisplayValue(TILT_ALL_OPTION);
     tiltDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER,
         TILT_DEFAULT_GROUPING_KEY);
     tiltDefaultGrouping.setDisplayValue(5);
-    localTiltOption = new ScriptParameter(EtomoNumber.Type.INTEGER,
-        LOCAL_TILT_OPTION_KEY);
+    localTiltOption = new ScriptParameter(EtomoNumber.Type.INTEGER, LOCAL_TILT_OPTION_KEY);
     localTiltOption.setValidValues(localTiltOptionValidValues).setDisplayValue(
         TILT_AUTOMAPPED_OPTION);
     localTiltDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER,
@@ -256,15 +250,13 @@ public class ConstTiltalignParam implements CommandDetails {
     magDefaultGrouping.setDisplayValue(4);
     localMagReferenceView = new ScriptParameter(EtomoNumber.Type.INTEGER,
         "LocalMagReferenceView");
-    localMagOption = new ScriptParameter(EtomoNumber.Type.INTEGER,
-        LOCAL_MAG_OPTION_KEY);
+    localMagOption = new ScriptParameter(EtomoNumber.Type.INTEGER, LOCAL_MAG_OPTION_KEY);
     localMagOption.setValidValues(localOptionValidValues).setDisplayValue(
         AUTOMAPPED_OPTION);
     localMagDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER,
         LOCAL_MAG_DEFAULT_GROUPING_KEY);
     localMagDefaultGrouping.setDisplayValue(7);
-    xStretchOption = new ScriptParameter(EtomoNumber.Type.INTEGER,
-        "XStretchOption");
+    xStretchOption = new ScriptParameter(EtomoNumber.Type.INTEGER, "XStretchOption");
     xStretchOption.setValidValues(distortionOptionValidValues).setDisplayValue(
         NONE_OPTION);
     xStretchDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER,
@@ -274,19 +266,16 @@ public class ConstTiltalignParam implements CommandDetails {
         "LocalXStretchOption");
     localXStretchOption.setValidValues(localOptionValidValues).setDisplayValue(
         AUTOMAPPED_OPTION);
-    localXStretchDefaultGrouping = new ScriptParameter(
-        EtomoNumber.Type.INTEGER, LOCAL_X_STRETCH_DEFAULT_GROUPING_KEY);
+    localXStretchDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER,
+        LOCAL_X_STRETCH_DEFAULT_GROUPING_KEY);
     localXStretchDefaultGrouping.setDisplayValue(7);
     skewOption = new ScriptParameter(EtomoNumber.Type.INTEGER, SKEW_OPTION_KEY);
-    skewOption.setValidValues(distortionOptionValidValues).setDisplayValue(
-        NONE_OPTION);
+    skewOption.setValidValues(distortionOptionValidValues).setDisplayValue(NONE_OPTION);
     skewDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER,
         SKEW_DEFAULT_GROUPING_KEY);
     skewDefaultGrouping.setDisplayValue(11);
-    localSkewOption = new ScriptParameter(EtomoNumber.Type.INTEGER,
-        LOCAL_SKEW_OPTION_KEY);
-    localSkewOption.setValidValues(optionValidValues).setDisplayValue(
-        AUTOMAPPED_OPTION);
+    localSkewOption = new ScriptParameter(EtomoNumber.Type.INTEGER, LOCAL_SKEW_OPTION_KEY);
+    localSkewOption.setValidValues(optionValidValues).setDisplayValue(AUTOMAPPED_OPTION);
     localSkewDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER,
         LOCAL_SKEW_DEFAULT_GROUPING_KEY);
     localSkewDefaultGrouping.setDisplayValue(11);
@@ -296,22 +285,19 @@ public class ConstTiltalignParam implements CommandDetails {
         SURFACES_TO_ANALYZE_KEY);
     surfacesToAnalyze.setValidValues(surfacesToAnalyzeValidValues);
     metroFactor = new ScriptParameter(EtomoNumber.Type.DOUBLE, METRO_FACTOR_KEY);
-    maximumCycles = new ScriptParameter(EtomoNumber.Type.INTEGER,
-        MAXIMUM_CYCLES_KEY);
+    maximumCycles = new ScriptParameter(EtomoNumber.Type.INTEGER, MAXIMUM_CYCLES_KEY);
     axisZShift = new ScriptParameter(EtomoNumber.Type.DOUBLE, AXIS_Z_SHIFT_KEY);
     localAlignments = new EtomoBoolean2(LOCAL_ALIGNMENTS_KEY);
     localAlignments.setDisplayAsInteger(true);
     fixXYZCoordinates = new EtomoBoolean2(FIX_XYZ_COORDINATES_KEY);
     fixXYZCoordinates.setDisplayAsInteger(true);
     //do not default imagesAreBinnned
-    imagesAreBinned = new ScriptParameter(EtomoNumber.Type.LONG,
-        "ImagesAreBinned");
+    imagesAreBinned = new ScriptParameter(EtomoNumber.Type.LONG, "ImagesAreBinned");
     imagesAreBinned.setFloor(1);
     beamTiltOption = new ScriptParameter(BEAM_TILT_OPTION_KEY);
     beamTiltOption.setDefault(FIXED_OPTION);
     beamTiltOption.setDisplayValue(FIXED_OPTION);
-    beamTiltOption
-        .setValidValues(new int[] { FIXED_OPTION, BEAM_SEARCH_OPTION });
+    beamTiltOption.setValidValues(new int[] { FIXED_OPTION, BEAM_SEARCH_OPTION });
     fixedOrInitialBeamTilt.setDefault(0);
     reset();
   }
@@ -464,8 +450,7 @@ public class ConstTiltalignParam implements CommandDetails {
   }
 
   public String getCommand() {
-    return PROCESS_NAME.toString() + axisID.getExtension()
-        + commandFileExtension;
+    return PROCESS_NAME.toString() + axisID.getExtension() + commandFileExtension;
   }
 
   public String getCommandLine() {
@@ -476,8 +461,8 @@ public class ConstTiltalignParam implements CommandDetails {
     return PROCESS_NAME.toString();
   }
 
-  public List getLogMessage() throws LogFile.LockException,
-      FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+      IOException {
     return null;
   }
 
@@ -558,13 +543,11 @@ public class ConstTiltalignParam implements CommandDetails {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstEtomoNumber getEtomoNumber(
-      etomo.comscript.FieldInterface fieldInterface) {
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstIntKeyList getIntKeyList(
-      etomo.comscript.FieldInterface fieldInterface) {
+  public ConstIntKeyList getIntKeyList(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
@@ -892,8 +875,7 @@ public class ConstTiltalignParam implements CommandDetails {
    * @param axisID
    * @return
    */
-  public static String getOutputZFactorFileName(String datasetName,
-      AxisID axisID) {
+  public static String getOutputZFactorFileName(String datasetName, AxisID axisID) {
     return datasetName + axisID.getExtension() + zFactorFileExtension;
   }
 
@@ -1055,6 +1037,9 @@ public class ConstTiltalignParam implements CommandDetails {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.42  2010/09/23 21:05:19  sueh
+ * <p> bug# 1404 Allowing separateGroup to have multiple entries.
+ * <p>
  * <p> Revision 3.41  2010/04/28 15:51:44  sueh
  * <p> bug# 1344 Added getOutputImageFileType functions.
  * <p>

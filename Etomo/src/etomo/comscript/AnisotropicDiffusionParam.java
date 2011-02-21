@@ -37,6 +37,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2010/11/13 16:03:15  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.18  2010/04/28 15:42:47  sueh
  * <p> bug# 1344 Added the mode to the constructor.  Completed the list of
  * <p> modes.  Added getOutputImageFileType functions.
@@ -107,8 +110,7 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
   private static final String COMMAND_CHAR = "$";
   private static final ProcessName PROCESS_NAME = ProcessName.ANISOTROPIC_DIFFUSION;
 
-  private final ParsedArray kValueList = ParsedArray
-      .getInstance(EtomoNumber.Type.FLOAT);
+  private final ParsedArray kValueList = ParsedArray.getInstance(EtomoNumber.Type.FLOAT);
   private final EtomoNumber iteration = new EtomoNumber();
   private final EtomoNumber kValue = new EtomoNumber(EtomoNumber.Type.FLOAT);
   private final List command = new ArrayList();
@@ -197,13 +199,13 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
    */
   public void createFilterFullFile() throws LogFile.LockException, IOException {
     File subdir = new File(manager.getPropertyUserDir(), subdirName);
-    LogFile filterFullFile = LogFile.getInstance(new File(subdir,
-        getFilterFullFileName()));
+    LogFile filterFullFile = LogFile
+        .getInstance(new File(subdir, getFilterFullFileName()));
     filterFullFile.create();
     LogFile.WriterId writerId = filterFullFile.openWriter();
-    filterFullFile.write(COMMAND_CHAR + PROCESS_NAME + " " + K_VALUE_TAG + " "
-        + kValue + " " + ITERATION_TAG + " " + iteration + " " + "INPUTFILE"
-        + " " + "OUTPUTFILE", writerId);
+    filterFullFile.write(COMMAND_CHAR + PROCESS_NAME + " " + K_VALUE_TAG + " " + kValue
+        + " " + ITERATION_TAG + " " + iteration + " " + "INPUTFILE" + " " + "OUTPUTFILE",
+        writerId);
     filterFullFile.newLine(writerId);
     filterFullFile.closeWriter(writerId);
   }
@@ -220,15 +222,14 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
       index.set(i + 1);
       k.set(kValueList.getRawString(i));
       LogFile testFile = LogFile.getInstance(new File(subdir,
-          TestNADFileFilter.FILE_NAME_BODY
-              + addLeadingZeros(index.toString(), 3)
+          TestNADFileFilter.FILE_NAME_BODY + addLeadingZeros(index.toString(), 3)
               + TestNADFileFilter.FILE_NAME_EXT));
       testFile.create();
       LogFile.WriterId writerId = testFile.openWriter();
       testFile.write(COMMAND_CHAR + PROCESS_NAME + " " + K_VALUE_TAG + " "
-          + kValueList.getRawString(i) + " " + ITERATION_TAG + " "
-          + iteration.toString() + " " + inputFileName + " "
-          + getTestFileName(k, iteration.toString()), writerId);
+          + kValueList.getRawString(i) + " " + ITERATION_TAG + " " + iteration.toString()
+          + " " + inputFileName + " " + getTestFileName(k, iteration.toString()),
+          writerId);
       testFile.newLine(writerId);
       testFile.write(COMMAND_CHAR + "echo CHUNK DONE", writerId);
       testFile.newLine(writerId);
@@ -261,8 +262,8 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
    * @param iteration
    * @return
    */
-  public static List getTestFileNameList(BaseManager manager,
-      ParsedArray kValueList, ConstEtomoNumber iteration, String testVolumeName) {
+  public static List getTestFileNameList(BaseManager manager, ParsedArray kValueList,
+      ConstEtomoNumber iteration, String testVolumeName) {
     EtomoNumber index = new EtomoNumber();
     EtomoNumber kValue = new EtomoNumber(EtomoNumber.Type.FLOAT);
     List list = new ArrayList();
@@ -367,8 +368,8 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
     return null;
   }
 
-  public List getLogMessage() throws LogFile.LockException,
-      FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+      IOException {
     return null;
   }
 
@@ -453,13 +454,11 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstEtomoNumber getEtomoNumber(
-      etomo.comscript.FieldInterface fieldInterface) {
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstIntKeyList getIntKeyList(
-      etomo.comscript.FieldInterface fieldInterface) {
+  public ConstIntKeyList getIntKeyList(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 

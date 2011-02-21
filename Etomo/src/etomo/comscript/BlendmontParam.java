@@ -72,18 +72,17 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
       "StartingAndEndingX", 2);
   private final FortranInputString startingAndEndingY = new FortranInputString(
       "StartingAndEndingY", 2);
-  private final EtomoNumber imageRotation = new EtomoNumber(
-      EtomoNumber.Type.FLOAT);
+  private final EtomoNumber imageRotation = new EtomoNumber(EtomoNumber.Type.FLOAT);
 
   private boolean overrideModeForImageOutputFile = false;
 
-  public BlendmontParam(final ApplicationManager manager,
-      final String datasetName, final AxisID axisID) {
+  public BlendmontParam(final ApplicationManager manager, final String datasetName,
+      final AxisID axisID) {
     this(manager, datasetName, axisID, Mode.XCORR);
   }
 
-  public BlendmontParam(final ApplicationManager manager,
-      final String datasetName, final AxisID axisID, final Mode mode) {
+  public BlendmontParam(final ApplicationManager manager, final String datasetName,
+      final AxisID axisID, final Mode mode) {
     this.manager = manager;
     this.datasetName = datasetName;
     this.axisID = axisID;
@@ -192,8 +191,8 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     fisSizeToOutputInXandY.validateAndSet(sizeToOutputInXandY);
     if ((fisSizeToOutputInXandY.isDefault() || fisSizeToOutputInXandY.isEmpty())
         && Utilities.is90DegreeImageRotation(imageRotation)) {
-      Goodframe goodframe = etomo.comscript.Utilities
-          .getGoodframeFromMontageSize(axisID, manager);
+      Goodframe goodframe = etomo.comscript.Utilities.getGoodframeFromMontageSize(axisID,
+          manager);
       if (goodframe != null) {
         //transposing x and y
         fisSizeToOutputInXandY.set(1, goodframe.getOutput(0));
@@ -219,9 +218,8 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     return null;
   }
 
-  private void convertToStartingAndEnding(
-      final FortranInputString startingAndEnding, final int montageSize,
-      final int size) {
+  private void convertToStartingAndEnding(final FortranInputString startingAndEnding,
+      final int montageSize, final int size) {
     int starting = ((int) montageSize / 2) - ((int) (size + 1) / 2);
     startingAndEnding.set(0, starting);
     if (size == 0) {
@@ -475,8 +473,8 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     throw new IllegalArgumentException("mode=" + mode);
   }
 
-  public List getLogMessage() throws LogFile.LockException,
-      FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+      IOException {
     return null;
   }
 
@@ -540,8 +538,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     public static final Mode BLEND = new Mode("Blend");
     public static final Mode BLEND_3DFIND = new Mode("Blend_3dfind");
     public static final Mode UNDISTORT = new Mode("Undistort");
-    public static final Mode WHOLE_TOMOGRAM_SAMPLE = new Mode(
-        "WholeTomogramSample");
+    public static final Mode WHOLE_TOMOGRAM_SAMPLE = new Mode("WholeTomogramSample");
 
     private final String string;
 
@@ -556,6 +553,9 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.38  2010/04/28 15:44:39  sueh
+ * <p> bug# 1344 Added getOutputImageFileType functions.
+ * <p>
  * <p> Revision 1.37  2010/02/17 04:47:54  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.

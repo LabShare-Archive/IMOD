@@ -25,6 +25,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2010/02/17 04:47:54  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 3.15  2009/03/17 00:31:05  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -204,8 +208,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
 
   public void setFiducialMatch(FiducialMatch match) {
     fiducialMatch = match;
-    if (match == FiducialMatch.USE_MODEL
-        || match == FiducialMatch.USE_MODEL_ONLY) {
+    if (match == FiducialMatch.USE_MODEL || match == FiducialMatch.USE_MODEL_ONLY) {
       modelBased = true;
     }
     else {
@@ -290,12 +293,12 @@ public class CombineParams extends ConstCombineParams implements Storable {
     this.patchZMin.set(patchZMin);
   }
 
-  public void setMaxPatchZMax(String fileName)
-      throws InvalidParameterException, IOException {
+  public void setMaxPatchZMax(String fileName) throws InvalidParameterException,
+      IOException {
 
     // Get the data size limits from the image stack
-    MRCHeader mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        fileName, AxisID.ONLY);
+    MRCHeader mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(), fileName,
+        AxisID.ONLY);
     if (!mrcHeader.read(manager)) {
       throw new IOException("file does not exist");
     }
@@ -376,10 +379,8 @@ public class CombineParams extends ConstCombineParams implements Storable {
     }
     props.setProperty(group + "FiducialMatch", fiducialMatch.toString());
     props.setProperty(group + "UseList", useList.toString());
-    props.setProperty(group + "FiducialMatchListA", fiducialMatchListA
-        .toString());
-    props.setProperty(group + "FiducialMatchListB", fiducialMatchListB
-        .toString());
+    props.setProperty(group + "FiducialMatchListA", fiducialMatchListA.toString());
+    props.setProperty(group + "FiducialMatchListB", fiducialMatchListB.toString());
     props.setProperty(group + "PatchSize", patchSize.toString());
     props.setProperty(group + "PatchBoundaryXMin", String.valueOf(patchXMin));
     props.setProperty(group + "PatchBoundaryXMax", String.valueOf(patchXMax));
@@ -392,8 +393,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
     props.setProperty(group + "ManualCleanup", String.valueOf(manualCleanup));
     props.setProperty(group + "ModelBased", String.valueOf(modelBased));
     props.setProperty(group + "Transfer", String.valueOf(transfer));
-    props.setProperty(group + "MaxPatchBoundaryZMax", String
-        .valueOf(maxPatchZMax));
+    props.setProperty(group + "MaxPatchBoundaryZMax", String.valueOf(maxPatchZMax));
   }
 
   /**
@@ -421,8 +421,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
     //Start backwards compatibility with RevisionNumber = 1.0
     //load dialogMatchMode
     //old property was MatchBtoA.  MatchBtoA should be deleted in store()
-    String dialogMatchModeString = props.getProperty(group
-        + DIALOG_MATCH_MODE_KEY);
+    String dialogMatchModeString = props.getProperty(group + DIALOG_MATCH_MODE_KEY);
     //backwards compatibility with 1.1
     MatchMode dialogMatchMode = null;
     if (dialogMatchModeString == null) {
@@ -438,8 +437,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
       }
     }
     else {
-      MatchMode loadDialogMatchMode = MatchMode
-          .getInstance(dialogMatchModeString);
+      MatchMode loadDialogMatchMode = MatchMode.getInstance(dialogMatchModeString);
       if (loadDialogMatchMode != null) {
         dialogMatchMode = loadDialogMatchMode;
       }
@@ -447,47 +445,44 @@ public class CombineParams extends ConstCombineParams implements Storable {
     //End backwards compatibility with RevisionNumber = 1.0
 
     if (matchMode == null) {
-      matchMode = MatchMode.getInstance(props.getProperty(group
-          + MATCH_MODE_KEY));
+      matchMode = MatchMode.getInstance(props.getProperty(group + MATCH_MODE_KEY));
       if (matchMode == null) {
         //backwards compatibility with 1.1
         matchMode = dialogMatchMode;
       }
     }
     else {
-      matchMode = MatchMode.getInstance(props.getProperty(group
-          + MATCH_MODE_KEY, matchMode.toString()));
+      matchMode = MatchMode.getInstance(props.getProperty(group + MATCH_MODE_KEY,
+          matchMode.toString()));
     }
 
-    fiducialMatch = FiducialMatch.fromString(props.getProperty(group
-        + "FiducialMatch", fiducialMatch.toString()));
+    fiducialMatch = FiducialMatch.fromString(props.getProperty(group + "FiducialMatch",
+        fiducialMatch.toString()));
 
-    useList.parseString(props
-        .getProperty(group + "UseList", useList.toString()));
+    useList.parseString(props.getProperty(group + "UseList", useList.toString()));
 
-    fiducialMatchListA.parseString(props.getProperty(group
-        + "FiducialMatchListA", fiducialMatchListA.toString()));
+    fiducialMatchListA.parseString(props.getProperty(group + "FiducialMatchListA",
+        fiducialMatchListA.toString()));
 
-    fiducialMatchListB.parseString(props.getProperty(group
-        + "FiducialMatchListB", fiducialMatchListB.toString()));
+    fiducialMatchListB.parseString(props.getProperty(group + "FiducialMatchListB",
+        fiducialMatchListB.toString()));
 
-    patchSize = CombinePatchSize.fromString(props.getProperty(group
-        + "PatchSize", patchSize.toString()));
+    patchSize = CombinePatchSize.fromString(props.getProperty(group + "PatchSize",
+        patchSize.toString()));
 
-    patchRegionModel = props.getProperty(group + "PatchRegionModel",
-        patchRegionModel);
+    patchRegionModel = props.getProperty(group + "PatchRegionModel", patchRegionModel);
 
-    patchXMin = Integer.parseInt(props.getProperty(group + "PatchBoundaryXMin",
-        String.valueOf(patchXMin)));
+    patchXMin = Integer.parseInt(props.getProperty(group + "PatchBoundaryXMin", String
+        .valueOf(patchXMin)));
 
-    patchXMax = Integer.parseInt(props.getProperty(group + "PatchBoundaryXMax",
-        String.valueOf(patchXMax)));
+    patchXMax = Integer.parseInt(props.getProperty(group + "PatchBoundaryXMax", String
+        .valueOf(patchXMax)));
 
-    patchYMin = Integer.parseInt(props.getProperty(group + "PatchBoundaryYMin",
-        String.valueOf(patchYMin)));
+    patchYMin = Integer.parseInt(props.getProperty(group + "PatchBoundaryYMin", String
+        .valueOf(patchYMin)));
 
-    patchYMax = Integer.parseInt(props.getProperty(group + "PatchBoundaryYMax",
-        String.valueOf(patchYMax)));
+    patchYMax = Integer.parseInt(props.getProperty(group + "PatchBoundaryYMax", String
+        .valueOf(patchYMax)));
 
     patchZMin.load(props, prepend);
     patchZMax.load(props, prepend);
@@ -495,15 +490,14 @@ public class CombineParams extends ConstCombineParams implements Storable {
     tempDirectory = props.getProperty(group + "TempDirectory", tempDirectory);
 
     manualCleanup = Boolean.valueOf(
-        props.getProperty(group + "ManualCleanup", Boolean
-            .toString(manualCleanup))).booleanValue();
+        props.getProperty(group + "ManualCleanup", Boolean.toString(manualCleanup)))
+        .booleanValue();
 
     modelBased = Boolean.valueOf(
         props.getProperty(group + "ModelBased", Boolean.toString(modelBased)))
         .booleanValue();
     transfer = Boolean.valueOf(
-        props.getProperty(group + "Transfer", Boolean.toString(transfer)))
-        .booleanValue();
+        props.getProperty(group + "Transfer", Boolean.toString(transfer))).booleanValue();
 
     if (fiducialMatch == FiducialMatch.USE_MODEL) {
       modelBased = true;
@@ -511,8 +505,8 @@ public class CombineParams extends ConstCombineParams implements Storable {
     else {
       modelBased = false;
     }
-    maxPatchZMax = Integer.parseInt(props.getProperty(group
-        + "MaxPatchBoundaryZMax", String.valueOf(maxPatchZMax)));
+    maxPatchZMax = Integer.parseInt(props.getProperty(group + "MaxPatchBoundaryZMax",
+        String.valueOf(maxPatchZMax)));
   }
 
   /**
@@ -525,8 +519,8 @@ public class CombineParams extends ConstCombineParams implements Storable {
       throws InvalidParameterException, IOException {
 
     // Get the data size limits from the image stack
-    MRCHeader mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        fileName, AxisID.ONLY);
+    MRCHeader mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(), fileName,
+        AxisID.ONLY);
     if (!mrcHeader.read(manager)) {
       return;
     }

@@ -19,6 +19,9 @@ import java.util.Vector;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2010/09/24 00:54:05  sueh
+ * <p> bug# 1404 Returning a boolean from deleteKey.
+ * <p>
  * <p> Revision 3.6  2009/09/22 20:51:11  sueh
  * <p> bug# 1259 In order to process nonstandard tilt.com, added
  * <p> caseInsensitive and separateWithASpace.
@@ -395,8 +398,8 @@ public class ComScriptCommand {
     }
     boolean oldDebug = false;
     if (debug) {
-      System.out.println("ComScriptCommand:setValue:keyword=" + keyword
-          + ",divider=" + divider + ",value=" + value);
+      System.out.println("ComScriptCommand:setValue:keyword=" + keyword + ",divider="
+          + divider + ",value=" + value);
       inputArg.setDebug(debug);
     }
     inputArg.setArgument(keyword + divider + value);

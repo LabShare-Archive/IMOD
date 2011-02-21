@@ -12,6 +12,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2010/02/17 04:47:54  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.7  2008/12/15 22:58:01  sueh
  * <p> bug# 1161 Made EtomoDirector.getCurrentManager private.  Added a
  * <p> public test version for public access.
@@ -65,18 +69,17 @@ public class ComScriptManagerTest extends TestCase {
     // variable
     ApplicationManager manager = (ApplicationManager) EtomoDirector.INSTANCE
         .getCurrentManagerForTest();
-    System.out.println(EtomoDirector.INSTANCE.getIMODDirectory()
-        .getAbsolutePath());
+    System.out.println(EtomoDirector.INSTANCE.getIMODDirectory().getAbsolutePath());
     ComScriptManager comScriptManager = manager.getComScriptManager();
     try {
-      comScriptManager.useTemplate("mtffilter", "datasetName",
-          AxisType.SINGLE_AXIS, AxisID.ONLY);
+      comScriptManager.useTemplate("mtffilter", "datasetName", AxisType.SINGLE_AXIS,
+          AxisID.ONLY);
       comScriptManager.useTemplate("eraser", "datasetName", AxisType.DUAL_AXIS,
           AxisID.SECOND);
-      comScriptManager.useTemplate("volcombine", "datasetName",
-          AxisType.DUAL_AXIS, AxisID.ONLY);
-      comScriptManager.useTemplate("solvematch", "datasetName",
-          AxisType.DUAL_AXIS, AxisID.ONLY);
+      comScriptManager.useTemplate("volcombine", "datasetName", AxisType.DUAL_AXIS,
+          AxisID.ONLY);
+      comScriptManager.useTemplate("solvematch", "datasetName", AxisType.DUAL_AXIS,
+          AxisID.ONLY);
     }
     catch (BadComScriptException e) {
       // TODO Auto-generated catch block

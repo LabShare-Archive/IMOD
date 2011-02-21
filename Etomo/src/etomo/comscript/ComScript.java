@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2009/09/22 20:50:43  sueh
+ * <p> bug# 1259 In order to process nonstandard tilt.com, added
+ * <p> caseInsensitive and separateWithASpace.
+ * <p>
  * <p> Revision 3.12  2007/09/07 00:17:21  sueh
  * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> instead of getInstance and createInstance.
@@ -175,8 +179,7 @@ public class ComScript {
       //    parse the command line setting the command and command line
       //      arguments
       else if (line.matches("^\\$[^!].*")) {
-        currentScriptCommand = new ComScriptCommand(caseInsensitive,
-            separateWithASpace);
+        currentScriptCommand = new ComScriptCommand(caseInsensitive, separateWithASpace);
         scriptCommands.add(currentScriptCommand);
 
         if (currentCommentBlock.size() > 0) {
@@ -247,8 +250,7 @@ public class ComScript {
         else {
           if (currentScriptCommand == null) {
             String description = "Input parameter found before command in "
-                + comFile.getAbsoluteFile() + " line: "
-                + String.valueOf(lineNumber);
+                + comFile.getAbsoluteFile() + " line: " + String.valueOf(lineNumber);
             throw new BadComScriptException(description);
           }
 
@@ -300,9 +302,8 @@ public class ComScript {
    * @return the first ComScriptCommand in the collection that matches cmdName,
    * null if no command with the specified name is found.
    */
-  public ComScriptCommand getScriptCommand(String cmdName,
-      boolean caseInsensitive, boolean separateWithASpace)
-      throws BadComScriptException {
+  public ComScriptCommand getScriptCommand(String cmdName, boolean caseInsensitive,
+      boolean separateWithASpace) throws BadComScriptException {
     if (!commandLoaded) {
       createCommand(cmdName, caseInsensitive, separateWithASpace);
     }
@@ -328,8 +329,7 @@ public class ComScript {
     if (!commandLoaded) {
       createCommand(cmdName, commandIndex, caseInsensitive, separateWithASpace);
     }
-    ComScriptCommand command = (ComScriptCommand) scriptCommands
-        .get(commandIndex);
+    ComScriptCommand command = (ComScriptCommand) scriptCommands.get(commandIndex);
     if (command.getCommand().equals(cmdName)) {
       return command;
     }
@@ -340,8 +340,8 @@ public class ComScript {
         return command;
       }
     }
-    throw (new BadComScriptException("Did not find command: " + cmdName
-        + " at index " + commandIndex));
+    throw (new BadComScriptException("Did not find command: " + cmdName + " at index "
+        + commandIndex));
   }
 
   /**
@@ -351,8 +351,8 @@ public class ComScript {
    */
   protected int createCommand(String cmdName, boolean caseInsensitive,
       boolean separateWithASpace) {
-    ComScriptCommand currentScriptCommand = new ComScriptCommand(
-        caseInsensitive, separateWithASpace);
+    ComScriptCommand currentScriptCommand = new ComScriptCommand(caseInsensitive,
+        separateWithASpace);
     scriptCommands.add(currentScriptCommand);
     currentScriptCommand.setCommand(cmdName);
     commandLoaded = true;
@@ -365,10 +365,10 @@ public class ComScript {
    * @param commandIndex
    * @return
    */
-  protected void createCommand(String cmdName, int commandIndex,
-      boolean caseInsensitive, boolean separateWithASpace) {
-    ComScriptCommand currentScriptCommand = new ComScriptCommand(
-        caseInsensitive, separateWithASpace);
+  protected void createCommand(String cmdName, int commandIndex, boolean caseInsensitive,
+      boolean separateWithASpace) {
+    ComScriptCommand currentScriptCommand = new ComScriptCommand(caseInsensitive,
+        separateWithASpace);
     scriptCommands.add(commandIndex, currentScriptCommand);
     currentScriptCommand.setCommand(cmdName);
     commandLoaded = true;
@@ -389,8 +389,7 @@ public class ComScript {
    */
   public int getScriptCommandIndex(String cmdName, boolean caseInsensitive,
       boolean separateWithASpace) {
-    return getScriptCommandIndex(cmdName, false, caseInsensitive,
-        separateWithASpace);
+    return getScriptCommandIndex(cmdName, false, caseInsensitive, separateWithASpace);
   }
 
   public int getScriptCommandIndex(String cmdName, boolean addNew,
@@ -410,13 +409,12 @@ public class ComScript {
     return -1;
   }
 
-  public int getScriptCommandIndex(String cmdName, int commandIndex,
-      boolean addNew, boolean caseInsensitive, boolean separateWithASpace) {
+  public int getScriptCommandIndex(String cmdName, int commandIndex, boolean addNew,
+      boolean caseInsensitive, boolean separateWithASpace) {
     if (!commandLoaded) {
       createCommand(cmdName, caseInsensitive, separateWithASpace);
     }
-    ComScriptCommand command = (ComScriptCommand) scriptCommands
-        .get(commandIndex);
+    ComScriptCommand command = (ComScriptCommand) scriptCommands.get(commandIndex);
     if (command.getCommand().equals(cmdName)) {
       return commandIndex;
     }
@@ -437,8 +435,7 @@ public class ComScript {
     if (!commandLoaded) {
       createCommand(cmdName, caseInsensitive, separateWithASpace);
     }
-    ComScriptCommand command = (ComScriptCommand) scriptCommands
-        .get(commandIndex);
+    ComScriptCommand command = (ComScriptCommand) scriptCommands.get(commandIndex);
     if (command.getCommand().equals(cmdName)) {
       return commandIndex;
     }

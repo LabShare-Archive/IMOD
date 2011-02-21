@@ -15,6 +15,9 @@ import java.util.ArrayList;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.2  2010/04/28 15:54:07  sueh
+ * <p> $bug# 1344 Reformatted.
+ * <p> $
  * <p> $Revision 1.1  2004/08/19 01:34:30  sueh
  * <p> $param object for the echo command
  * <p> $$ </p>
@@ -57,8 +60,7 @@ public class EchoParam extends ConstEchoParam implements CommandParam {
       scriptCommand.setCommandLineArgs(args);
     }
     else {
-      scriptCommand.setCommandLineArgs((String[]) cmdLineArgs
-          .toArray(new String[nArgs]));
+      scriptCommand.setCommandLineArgs((String[]) cmdLineArgs.toArray(new String[nArgs]));
     }
   }
 

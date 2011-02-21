@@ -34,6 +34,9 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2010/11/13 16:03:15  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.5  2010/04/28 15:43:23  sueh
  * <p> bug# 1344 Added getOutputImageFileType functions.
  * <p>
@@ -110,13 +113,12 @@ public final class AverageAllParam implements CommandDetails {
               + "to the location of the directory containing the PEET "
               + "software.  Make sure the PEET package is installed "
               + "(typically installed in /usr/local/Particle).  To download "
-              + "PEET, go to ftp://bio3d.colorado.edu/PEET.",
-          "Environment Error");
+              + "PEET, go to ftp://bio3d.colorado.edu/PEET.", "Environment Error");
       return null;
     }
-    commandArray.add(new File(new File(EnvironmentVariable.INSTANCE.getValue(
-        manager, manager.getPropertyUserDir(), "PARTICLE_DIR", AxisID.ONLY),
-        "bin"), PROCESS_NAME.toString()).getAbsolutePath());
+    commandArray.add(new File(new File(EnvironmentVariable.INSTANCE.getValue(manager,
+        manager.getPropertyUserDir(), "PARTICLE_DIR", AxisID.ONLY), "bin"), PROCESS_NAME
+        .toString()).getAbsolutePath());
     commandArray.add(prmFile.getName());
     if (!iterationNumber.isNull()) {
       commandArray.add(iterationNumber.toString());
@@ -125,8 +127,8 @@ public final class AverageAllParam implements CommandDetails {
     return (String[]) commandArray.toArray(new String[commandArray.size()]);
   }
 
-  public List getLogMessage() throws LogFile.LockException,
-      FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+      IOException {
     List message = new ArrayList();
     message.add(MatlabParam.SZ_VOL_KEY + " = " + szVol);
     message.add(MatlabParam.LST_FLAG_ALL_TOM_KEY + " = " + lstFlagAllTom);
@@ -147,9 +149,11 @@ public final class AverageAllParam implements CommandDetails {
   public FileType getOutputImageFileType() {
     return FileType.AVERAGED_VOLUMES;
   }
+
   public FileType getOutputImageFileType2() {
     return null;
   }
+
   public void setParameters(MatlabParam matlabParam) {
     iterationListSize = matlabParam.getIterationListSize();
     lstThresholdsArray = matlabParam.getLstThresholdsExpandedArray();
@@ -201,13 +205,11 @@ public final class AverageAllParam implements CommandDetails {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstEtomoNumber getEtomoNumber(
-      etomo.comscript.FieldInterface fieldInterface) {
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstIntKeyList getIntKeyList(
-      etomo.comscript.FieldInterface fieldInterface) {
+  public ConstIntKeyList getIntKeyList(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 

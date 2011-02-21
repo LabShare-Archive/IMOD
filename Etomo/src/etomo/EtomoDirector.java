@@ -64,8 +64,7 @@ public class EtomoDirector {
   public static final String rcsid = "$Id$";
 
   private static final long TO_BYTES = 1024;
-  public static final double MIN_AVAILABLE_MEMORY_REQUIRED = 2 * TO_BYTES
-      * TO_BYTES;
+  public static final double MIN_AVAILABLE_MEMORY_REQUIRED = 2 * TO_BYTES * TO_BYTES;
   public static final int NUMBER_STORABLES = 2;
   private static final String JAVA_MEMORY_LIMIT_ENV_VAR = "ETOMO_MEM_LIM";
 
@@ -74,8 +73,7 @@ public class EtomoDirector {
   private boolean outOfMemoryMessage = false;
   private String originalUserDir = null;
   private boolean testFailed = false;
-  private final EtomoNumber javaMemoryLimit = new EtomoNumber(
-      EtomoNumber.Type.LONG);
+  private final EtomoNumber javaMemoryLimit = new EtomoNumber(EtomoNumber.Type.LONG);
   private boolean imodBriefHeader = false;
 
   //state
@@ -124,8 +122,7 @@ public class EtomoDirector {
         if (EtomoDirector.INSTANCE.arguments.getDebugLevel() > 1) {
           System.err.println();
           System.err.println("Java lib:");
-          File libDir = new File(new File(System.getProperty("java.home")),
-              "lib");
+          File libDir = new File(new File(System.getProperty("java.home")), "lib");
           String[] libDirList = libDir.list();
           if (libDirList != null) {
             for (int i = 0; i < libDirList.length; i++) {
@@ -146,8 +143,7 @@ public class EtomoDirector {
     catch (OutOfMemoryError e) {
       e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog(null, "WARNING:  Ran out of memory."
-          + "\nPlease close open log file windows or exit Etomo.",
-          "Out of Memory");
+          + "\nPlease close open log file windows or exit Etomo.", "Out of Memory");
       throw e;
     }
   }
@@ -214,23 +210,22 @@ public class EtomoDirector {
       userConfigFile.createNewFile();
     }
     catch (IOException except) {
-      System.err.println("Could not create file:"
-          + userConfigFile.getAbsolutePath());
+      System.err.println("Could not create file:" + userConfigFile.getAbsolutePath());
       System.err.println(except.getMessage());
       System.exit(1);
     }
     try {
       if (!arguments.isIgnoreSettings()) {
         parameterStore = ParameterStore.getInstance(userConfigFile);
-      }else {
+      }
+      else {
         parameterStore = ParameterStore.getFilelessInstance();
       }
       parameterStore.load(userConfig);
     }
     catch (LogFile.LockException except) {
       UIHarness.INSTANCE.openMessageDialog(getCurrentManager(),
-          "Can't load user configuration.\n" + except.getMessage(),
-          "Etomo Error");
+          "Can't load user configuration.\n" + except.getMessage(), "Etomo Error");
     }
     setUserPreferences();
     ArrayList paramFileNameList = arguments.getParamFileNameList();
@@ -277,8 +272,7 @@ public class EtomoDirector {
       manager = (BaseManager) managerList.get(currentManagerKey.getKey());
     }
     if (manager != null) {
-      UIHarness.INSTANCE.setCurrentManager(manager, currentManagerKey.getKey(),
-          true);
+      UIHarness.INSTANCE.setCurrentManager(manager, currentManagerKey.getKey(), true);
     }
     UIHarness.INSTANCE.selectWindowMenuItem(currentManagerKey.getKey());
     setCurrentManager(currentManagerKey, false);
@@ -302,11 +296,10 @@ public class EtomoDirector {
     // Get the IMOD calibration directory so we know where to find documentation
     // Check to see if is defined on the command line first with -D
     // Otherwise check to see if we can get it from the environment
-    String imodCalibDirectoryName = System
-        .getProperty(EnvironmentVariable.CALIB_DIR);
+    String imodCalibDirectoryName = System.getProperty(EnvironmentVariable.CALIB_DIR);
     if (imodCalibDirectoryName == null) {
-      imodCalibDirectoryName = EnvironmentVariable.INSTANCE.getValue(null,
-          null, EnvironmentVariable.CALIB_DIR, AxisID.ONLY);
+      imodCalibDirectoryName = EnvironmentVariable.INSTANCE.getValue(null, null,
+          EnvironmentVariable.CALIB_DIR, AxisID.ONLY);
       if (!imodCalibDirectoryName.equals("")) {
         if (arguments.isDebug()) {
           System.err.println(EnvironmentVariable.CALIB_DIR + " (env): "
@@ -340,19 +333,17 @@ public class EtomoDirector {
       long conversionNumber = 1;
       if (sJavaMemoryLimit.endsWith("k") || sJavaMemoryLimit.endsWith("K")) {
         conversionNumber = TO_BYTES;
-        sJavaMemoryLimit = sJavaMemoryLimit.substring(0, sJavaMemoryLimit
-            .length() - 1);
+        sJavaMemoryLimit = sJavaMemoryLimit.substring(0, sJavaMemoryLimit.length() - 1);
       }
       else if (sJavaMemoryLimit.endsWith("m") || sJavaMemoryLimit.endsWith("M")) {
         conversionNumber = TO_BYTES * TO_BYTES;
-        sJavaMemoryLimit = sJavaMemoryLimit.substring(0, sJavaMemoryLimit
-            .length() - 1);
+        sJavaMemoryLimit = sJavaMemoryLimit.substring(0, sJavaMemoryLimit.length() - 1);
       }
       javaMemoryLimit.set(sJavaMemoryLimit);
       javaMemoryLimit.set(javaMemoryLimit.getLong() * conversionNumber);
       System.err.println(JAVA_MEMORY_LIMIT_ENV_VAR + "=" + javaMemoryLimit);
-      System.err.println("MIN_AVAILABLE_MEMORY_REQUIRED="
-          + MIN_AVAILABLE_MEMORY_REQUIRED);
+      System.err
+          .println("MIN_AVAILABLE_MEMORY_REQUIRED=" + MIN_AVAILABLE_MEMORY_REQUIRED);
     }
   }
 
@@ -378,8 +369,8 @@ public class EtomoDirector {
     // Otherwise check to see if we can get it from the environment
     String imodDirectoryName = System.getProperty("IMOD_DIR");
     if (imodDirectoryName == null) {
-      imodDirectoryName = EnvironmentVariable.INSTANCE.getValue(null, null,
-          "IMOD_DIR", AxisID.ONLY);
+      imodDirectoryName = EnvironmentVariable.INSTANCE.getValue(null, null, "IMOD_DIR",
+          AxisID.ONLY);
       if (imodDirectoryName.equals("")) {
         String[] message = new String[3];
         message[0] = "Can not find IMOD directory!";
@@ -464,13 +455,12 @@ public class EtomoDirector {
    * @param managerKey
    * @param newWindow
    */
-  public synchronized void setCurrentManager(ManagerKey managerKey,
-      boolean newWindow) {
+  public synchronized void setCurrentManager(ManagerKey managerKey, boolean newWindow) {
     if (managerKey == null || managerKey == null || managerKey.getKey() == null) {
       return;
     }
-    setCurrentManager((BaseManager) managerList.get(managerKey.getKey()),
-        managerKey, newWindow);
+    setCurrentManager((BaseManager) managerList.get(managerKey.getKey()), managerKey,
+        newWindow);
   }
 
   /**
@@ -483,8 +473,7 @@ public class EtomoDirector {
       return;
     }
     BaseManager newCurrentManager = (BaseManager) managerList.get(key);
-    setCurrentManager(newCurrentManager, newCurrentManager.getManagerKey(),
-        newWindow);
+    setCurrentManager(newCurrentManager, newCurrentManager.getManagerKey(), newWindow);
   }
 
   /**
@@ -493,14 +482,14 @@ public class EtomoDirector {
    * @param managerKey
    * @param newWindow
    */
-  private void setCurrentManager(BaseManager newCurrentManager,
-      ManagerKey managerKey, boolean newWindow) {
+  private void setCurrentManager(BaseManager newCurrentManager, ManagerKey managerKey,
+      boolean newWindow) {
     if (newCurrentManager == null) {
       throw new NullPointerException("managerKey=" + managerKey);
     }
     currentManagerKey = managerKey;
-    UIHarness.INSTANCE.setCurrentManager(newCurrentManager, currentManagerKey
-        .getKey(), newWindow);
+    UIHarness.INSTANCE.setCurrentManager(newCurrentManager, currentManagerKey.getKey(),
+        newWindow);
   }
 
   /**
@@ -510,11 +499,10 @@ public class EtomoDirector {
    * @param axisID
    * @return
    */
-  private ManagerKey openTomogram(String etomoDataFileName,
-      boolean makeCurrent, AxisID axisID) {
+  private ManagerKey openTomogram(String etomoDataFileName, boolean makeCurrent,
+      AxisID axisID) {
     ApplicationManager manager;
-    if (etomoDataFileName == null
-        || etomoDataFileName.equals(MetaData.getNewFileTitle())) {
+    if (etomoDataFileName == null || etomoDataFileName.equals(MetaData.getNewFileTitle())) {
       manager = new ApplicationManager("", axisID);
       UIHarness.INSTANCE.setEnabledNewTomogramMenuItem(false);
     }
@@ -536,14 +524,14 @@ public class EtomoDirector {
 
   public ManagerKey openGenericParallel(boolean makeCurrent, AxisID axisID) {
     closeDefaultWindow(axisID);
-    return openParallel(ParallelMetaData.NEW_GENERIC_PARALLEL_PROCESS_TITLE,
-        makeCurrent, axisID);
+    return openParallel(ParallelMetaData.NEW_GENERIC_PARALLEL_PROCESS_TITLE, makeCurrent,
+        axisID);
   }
 
   public ManagerKey openAnisotropicDiffusion(boolean makeCurrent, AxisID axisID) {
     closeDefaultWindow(axisID);
-    return openParallel(ParallelMetaData.NEW_ANISOTROPIC_DIFFUSION_TITLE,
-        makeCurrent, axisID);
+    return openParallel(ParallelMetaData.NEW_ANISOTROPIC_DIFFUSION_TITLE, makeCurrent,
+        axisID);
   }
 
   /**
@@ -564,8 +552,7 @@ public class EtomoDirector {
     return openPeet(PeetMetaData.NEW_TITLE, makeCurrent, axisID);
   }
 
-  private ManagerKey openJoin(File etomoJoinFile, boolean makeCurrent,
-      AxisID axisID) {
+  private ManagerKey openJoin(File etomoJoinFile, boolean makeCurrent, AxisID axisID) {
     if (etomoJoinFile == null) {
       return openJoin(makeCurrent, axisID);
     }
@@ -583,20 +570,17 @@ public class EtomoDirector {
     if (etomoParallelFile == null) {
       return openParallel(makeCurrent, axisID);
     }
-    return openParallel(etomoParallelFile.getAbsolutePath(), makeCurrent,
-        axisID);
+    return openParallel(etomoParallelFile.getAbsolutePath(), makeCurrent, axisID);
   }
 
-  private ManagerKey openPeet(File etomoPeetFile, boolean makeCurrent,
-      AxisID axisID) {
+  private ManagerKey openPeet(File etomoPeetFile, boolean makeCurrent, AxisID axisID) {
     if (etomoPeetFile == null) {
       return openPeet(makeCurrent, axisID);
     }
     return openPeet(etomoPeetFile.getAbsolutePath(), makeCurrent, axisID);
   }
 
-  private ManagerKey openJoin(String etomoJoinFileName, boolean makeCurrent,
-      AxisID axisID) {
+  private ManagerKey openJoin(String etomoJoinFileName, boolean makeCurrent, AxisID axisID) {
     JoinManager manager;
     if (etomoJoinFileName == null
         || etomoJoinFileName.equals(JoinMetaData.getNewFileTitle())) {
@@ -615,13 +599,11 @@ public class EtomoDirector {
     if (parallelFileName == null) {
       manager = new ParallelManager();
     }
-    else if (parallelFileName
-        .equals(ParallelMetaData.NEW_GENERIC_PARALLEL_PROCESS_TITLE)) {
+    else if (parallelFileName.equals(ParallelMetaData.NEW_GENERIC_PARALLEL_PROCESS_TITLE)) {
       manager = new ParallelManager(DialogType.PARALLEL);
       UIHarness.INSTANCE.setEnabledNewGenericParallelMenuItem(false);
     }
-    else if (parallelFileName
-        .equals(ParallelMetaData.NEW_ANISOTROPIC_DIFFUSION_TITLE)) {
+    else if (parallelFileName.equals(ParallelMetaData.NEW_ANISOTROPIC_DIFFUSION_TITLE)) {
       manager = new ParallelManager(DialogType.ANISOTROPIC_DIFFUSION);
       UIHarness.INSTANCE.setEnabledNewAnisotropicDiffusionMenuItem(false);
     }
@@ -631,8 +613,7 @@ public class EtomoDirector {
     return setManager(manager, makeCurrent);
   }
 
-  private ManagerKey openPeet(String peetFileName, boolean makeCurrent,
-      AxisID axisID) {
+  private ManagerKey openPeet(String peetFileName, boolean makeCurrent, AxisID axisID) {
     PeetManager manager;
     if (peetFileName == null || peetFileName.equals(PeetMetaData.NEW_TITLE)) {
       manager = new PeetManager();
@@ -675,8 +656,7 @@ public class EtomoDirector {
    */
   private void closeDefaultWindow(AxisID axisID) {
     if (defaultWindow && managerList.size() == 1) {
-      BaseManager manager = ((BaseManager) managerList.get(currentManagerKey
-          .getKey()));
+      BaseManager manager = ((BaseManager) managerList.get(currentManagerKey.getKey()));
       if (manager instanceof FrontPageManager) {
         defaultWindow = false;
         closeCurrentManager(axisID, false);
@@ -715,14 +695,12 @@ public class EtomoDirector {
       openPeet(dataFile, makeCurrent, axisID);
       return;
     }
-    UIHarness.INSTANCE.openMessageDialog(getCurrentManager(),
-        "Unknown file type " + dataFile.getName() + ".", "Unknown File Type",
-        axisID);
+    UIHarness.INSTANCE.openMessageDialog(getCurrentManager(), "Unknown file type "
+        + dataFile.getName() + ".", "Unknown File Type", axisID);
     throw new IllegalStateException("unknown dataFile");
   }
 
-  public void openTomogram(File etomoDataFile, boolean makeCurrent,
-      AxisID axisID) {
+  public void openTomogram(File etomoDataFile, boolean makeCurrent, AxisID axisID) {
     if (etomoDataFile == null) {
       openTomogram(makeCurrent, axisID);
     }
@@ -768,12 +746,10 @@ public class EtomoDirector {
     else if (key.getName().equals(JoinMetaData.getNewFileTitle())) {
       UIHarness.INSTANCE.setEnabledNewJoinMenuItem(true);
     }
-    else if (key.getName().equals(
-        ParallelMetaData.NEW_GENERIC_PARALLEL_PROCESS_TITLE)) {
+    else if (key.getName().equals(ParallelMetaData.NEW_GENERIC_PARALLEL_PROCESS_TITLE)) {
       UIHarness.INSTANCE.setEnabledNewGenericParallelMenuItem(true);
     }
-    else if (key.getName().equals(
-        ParallelMetaData.NEW_ANISOTROPIC_DIFFUSION_TITLE)) {
+    else if (key.getName().equals(ParallelMetaData.NEW_ANISOTROPIC_DIFFUSION_TITLE)) {
       UIHarness.INSTANCE.setEnabledNewAnisotropicDiffusionMenuItem(true);
     }
     else if (key.getName().equals(PeetMetaData.NEW_TITLE)) {
@@ -844,8 +820,7 @@ public class EtomoDirector {
   public void renameCurrentManager(String managerName) {
     enableOpenManagerMenuItem();
     UniqueKey oldKey = currentManagerKey.getKey();
-    currentManagerKey.setKey(managerList.rekey(currentManagerKey.getKey(),
-        managerName));
+    currentManagerKey.setKey(managerList.rekey(currentManagerKey.getKey(), managerName));
     UIHarness.INSTANCE.renameWindow(oldKey, currentManagerKey.getKey());
   }
 
@@ -857,18 +832,15 @@ public class EtomoDirector {
   }
 
   private final void printUsageMessage() {
-    System.out.println("Usage: etomo [options] [data files]\n"
-        + Arguments.HELP_MESSAGE);
+    System.out.println("Usage: etomo [options] [data files]\n" + Arguments.HELP_MESSAGE);
   }
 
   /**
    * Set the user preferences
    */
   private void setUserPreferences() {
-    ToolTipManager.sharedInstance().setInitialDelay(
-        userConfig.getToolTipsInitialDelay());
-    ToolTipManager.sharedInstance().setDismissDelay(
-        userConfig.getToolTipsDismissDelay());
+    ToolTipManager.sharedInstance().setInitialDelay(userConfig.getToolTipsInitialDelay());
+    ToolTipManager.sharedInstance().setDismissDelay(userConfig.getToolTipsDismissDelay());
     setUIFont(userConfig.getFontFamily(), userConfig.getFontSize());
     setLookAndFeel(userConfig.getNativeLookAndFeel());
     isAdvanced = userConfig.getAdvancedDialogs();
@@ -926,8 +898,7 @@ public class EtomoDirector {
       UIManager.setLookAndFeel(lookAndFeelClassName);
     }
     catch (Exception excep) {
-      System.err.println("Could not set " + lookAndFeelClassName
-          + " look and feel");
+      System.err.println("Could not set " + lookAndFeelClassName + " look and feel");
     }
     if (arguments.getDebugLevel() > 1) {
       //print look and feel info
@@ -955,8 +926,8 @@ public class EtomoDirector {
       Object value = UIManager.get(key);
       if (value instanceof FontUIResource) {
         FontUIResource currentFont = (FontUIResource) value;
-        FontUIResource newFont = new FontUIResource(fontFamily, currentFont
-            .getStyle(), fontSize);
+        FontUIResource newFont = new FontUIResource(fontFamily, currentFont.getStyle(),
+            fontSize);
         UIManager.put(key, newFont);
       }
     }
@@ -1036,15 +1007,13 @@ public class EtomoDirector {
     }
     catch (LogFile.LockException e) {
       UIHarness.INSTANCE.openMessageDialog(getCurrentManager(),
-          "Unable to save or write preferences to "
-              + parameterStore.getAbsolutePath() + ".\n" + e.getMessage(),
-          "Etomo Error");
+          "Unable to save or write preferences to " + parameterStore.getAbsolutePath()
+              + ".\n" + e.getMessage(), "Etomo Error");
     }
     catch (IOException e) {
       UIHarness.INSTANCE.openMessageDialog(getCurrentManager(),
-          "Unable to save or write preferences to "
-              + parameterStore.getAbsolutePath() + ".\n" + e.getMessage(),
-          "Etomo Error");
+          "Unable to save or write preferences to " + parameterStore.getAbsolutePath()
+              + ".\n" + e.getMessage(), "Etomo Error");
     }
   }
 
@@ -1061,8 +1030,7 @@ public class EtomoDirector {
     //System.err.println("max=  " + Runtime.getRuntime().maxMemory());
     //System.err.println("total=" + Runtime.getRuntime().totalMemory());
     //System.err.println("free= " + Runtime.getRuntime().freeMemory());
-    return Runtime.getRuntime().maxMemory()
-        - Runtime.getRuntime().totalMemory()
+    return Runtime.getRuntime().maxMemory() - Runtime.getRuntime().totalMemory()
         + Runtime.getRuntime().freeMemory();
   }
 
@@ -1107,12 +1075,10 @@ public class EtomoDirector {
      }*/
     if (availableMemory <= MIN_AVAILABLE_MEMORY_REQUIRED) {
       if (!outOfMemoryMessage) {
-        UIHarness.INSTANCE
-            .openMessageDialog(getCurrentManager(),
-                "WARNING:  Ran out of memory.  Changes to the .edf file and/or"
-                    + " comscript files may not be saved."
-                    + "\nPlease close open windows or exit Etomo.",
-                "Out of Memory");
+        UIHarness.INSTANCE.openMessageDialog(getCurrentManager(),
+            "WARNING:  Ran out of memory.  Changes to the .edf file and/or"
+                + " comscript files may not be saved."
+                + "\nPlease close open windows or exit Etomo.", "Out of Memory");
         outOfMemoryMessage = true;
       }
       return false;
@@ -1205,6 +1171,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.103  2010/11/13 16:02:54  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.102  2010/10/13 20:17:58  sueh
  * <p> bug# 1392 Handling the ignoresettings parameter by loading userconfig
  * <p> with a file.

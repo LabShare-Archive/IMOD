@@ -17,6 +17,9 @@ import etomo.type.ScriptParameter;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.5  2007/02/05 21:39:49  sueh
+ * <p> bug# 962  Put EtomoNumber type info into an inner class.
+ * <p>
  * <p> Revision 3.4  2006/09/13 23:08:56  sueh
  * <p> bug# 921 Added initialShiftXYZ.
  * <p>
@@ -56,12 +59,9 @@ public class ConstPatchcrawl3DParam {
       "PatchSizeXYZ", 3);
   protected final FortranInputString numberOfPatchesXYZ = new FortranInputString(
       "NumberOfPatchesXYZ", 3);
-  protected final FortranInputString xMinAndMax = new FortranInputString(
-      "XMinAndMax", 2);
-  protected final FortranInputString yMinAndMax = new FortranInputString(
-      "YMinAndMax", 2);
-  protected final FortranInputString zMinAndMax = new FortranInputString(
-      "ZMinAndMax", 2);
+  protected final FortranInputString xMinAndMax = new FortranInputString("XMinAndMax", 2);
+  protected final FortranInputString yMinAndMax = new FortranInputString("YMinAndMax", 2);
+  protected final FortranInputString zMinAndMax = new FortranInputString("ZMinAndMax", 2);
   protected final FortranInputString bSourceBorderXLoHi = new FortranInputString(
       "BSourceBorderXLoHi", 2);
   protected final FortranInputString bSourceBorderYZLoHi = new FortranInputString(

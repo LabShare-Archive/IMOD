@@ -30,13 +30,13 @@ import etomo.util.Utilities;
 public class JUnitTests {
   public static final String rcsid = "$Id$";
 
-  public static final File TEST_ROOT_DIR = new File(System
-      .getProperty("user.dir"), "JUnitTests");
+  public static final File TEST_ROOT_DIR = new File(System.getProperty("user.dir"),
+      "JUnitTests");
   public static final String[] ETOMO_ARGUMENTS = { Arguments.TEST_TAG,
       Arguments.HEADLESS_TAG, Arguments.SELFTEST_TAG };
 
   public static Test suite() {
-    System.setProperty("java.awt.headless", "true"); 
+    System.setProperty("java.awt.headless", "true");
     EtomoDirector.main(ETOMO_ARGUMENTS);
     TestSuite suite = new TestSuite("Test for etomo");
 
@@ -116,6 +116,9 @@ public class JUnitTests {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2010/11/13 16:02:54  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.12  2009/08/24 20:23:01  sueh
  * <p> bug# 1254 Setting java.awt.headless during unit tests.
  * <p>

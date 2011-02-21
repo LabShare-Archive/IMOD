@@ -29,8 +29,7 @@ public class ExtractmagradParam {
   private final AxisID axisID;
   private final BaseManager manager;
 
-  private final EtomoNumber rotationAngle = new EtomoNumber(
-      EtomoNumber.Type.FLOAT);
+  private final EtomoNumber rotationAngle = new EtomoNumber(EtomoNumber.Type.FLOAT);
 
   private String gradientTable = null;
   private String[] commandArray = null;
@@ -74,8 +73,8 @@ public class ExtractmagradParam {
   }
 
   public final void setPixelSize(double pixelSize) {
-    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        DatasetFiles.getStackName(manager, axisID), axisID);
+    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(), DatasetFiles
+        .getStackName(manager, axisID), axisID);
     if (header.getXPixelSpacing() == 1) {
       if (this.pixelSize == null) {
         this.pixelSize = new EtomoNumber(EtomoNumber.Type.DOUBLE);
@@ -86,6 +85,10 @@ public class ExtractmagradParam {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2010/02/17 04:47:54  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.5  2009/03/17 00:31:44  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>

@@ -32,6 +32,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2010/04/28 15:45:10  sueh
+ * <p> bug# 1344 Added getOutputImageFileType functions.
+ * <p>
  * <p> Revision 1.8  2010/02/17 04:47:54  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -73,8 +76,8 @@ public final class ClipParam implements CommandDetails {
   private final Mode mode;
   private final File inputFile;
 
-  public ClipParam(BaseManager manager, AxisID axisID, File inputFile,
-      File workingDir, Mode mode) {
+  public ClipParam(BaseManager manager, AxisID axisID, File inputFile, File workingDir,
+      Mode mode) {
     this.manager = manager;
     this.axisID = axisID;
     this.mode = mode;
@@ -112,8 +115,8 @@ public final class ClipParam implements CommandDetails {
       int length;
       int min = 15;
       int max = 30;
-      MRCHeader header = MRCHeader.getInstanceFromFileName(manager, axisID,
-          inputFile.getName());
+      MRCHeader header = MRCHeader.getInstanceFromFileName(manager, axisID, inputFile
+          .getName());
       try {
         header.read(manager);
         length = header.getNSections();
@@ -173,21 +176,23 @@ public final class ClipParam implements CommandDetails {
     return PROCESS_NAME.toString();
   }
 
-  public List getLogMessage() throws LogFile.LockException,
-      FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+      IOException {
     return null;
   }
 
   public String getName() {
     return PROCESS_NAME.toString();
   }
-  
+
   public FileType getOutputImageFileType() {
     return null;
   }
+
   public FileType getOutputImageFileType2() {
     return null;
   }
+
   public ProcessName getProcessName() {
     return PROCESS_NAME;
   }

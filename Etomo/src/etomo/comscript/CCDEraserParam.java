@@ -24,6 +24,9 @@ import etomo.ui.swing.UIHarness;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2010/11/13 16:03:15  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.11  2010/04/28 15:45:00  sueh
  * <p> bug# 1344 Added getOutputImageFileType functions.
  * <p>
@@ -96,8 +99,7 @@ import etomo.ui.swing.UIHarness;
  * <p> </p>
  */
 
-public class CCDEraserParam extends ConstCCDEraserParam implements Command,
-    CommandParam {
+public class CCDEraserParam extends ConstCCDEraserParam implements Command, CommandParam {
   public static final String rcsid = "$Id$";
 
   private static final int COMMAND_SIZE = 1;
@@ -418,8 +420,7 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command,
    */
   protected void convertOuterRadius() {
     //if annulusWidth already set then return
-    if (!annulusWidth.equals("") || outerRadius.equals("")
-        || maximumRadius.equals("")) {
+    if (!annulusWidth.equals("") || outerRadius.equals("") || maximumRadius.equals("")) {
       return;
     }
     annulusWidth = String.valueOf(Float.parseFloat(outerRadius)
