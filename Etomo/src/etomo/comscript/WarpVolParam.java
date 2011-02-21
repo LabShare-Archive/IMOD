@@ -29,6 +29,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2010/04/28 16:12:36  sueh
+ * <p> bug# 1344 Added a list of modes.  Added mode to the constructor.  Added
+ * <p> getOutputImageFileType functions.  Implemented Command.
+ * <p>
  * <p> Revision 1.3  2010/02/17 04:47:14  sueh
  * <p> bug# 1301 Added outputFile
  * <p>
@@ -52,12 +56,9 @@ public final class WarpVolParam implements ConstWarpVolParam, CommandParam {
   private final List command = new ArrayList();
   StringParameter inputFile = new StringParameter(INPUT_FILE_OPTION);
   StringParameter outputFile = new StringParameter("OutputFile");
-  StringParameter temporaryDirectory = new StringParameter(
-      TEMPORARY_DIRECTORY_OPTION);//optional
-  FortranInputString outputSizeXYZ = new FortranInputString(
-      OUTPUT_SIZE_X_Y_Z_OPTION, 3);//optional
-  ScriptParameter interpolationOrder = new ScriptParameter(
-      INTERPOLATION_ORDER_OPTION);//optional
+  StringParameter temporaryDirectory = new StringParameter(TEMPORARY_DIRECTORY_OPTION);//optional
+  FortranInputString outputSizeXYZ = new FortranInputString(OUTPUT_SIZE_X_Y_Z_OPTION, 3);//optional
+  ScriptParameter interpolationOrder = new ScriptParameter(INTERPOLATION_ORDER_OPTION);//optional
   private final BaseManager manager;
   private final AxisID axisID;
   private final CommandMode mode;
@@ -91,11 +92,10 @@ public final class WarpVolParam implements ConstWarpVolParam, CommandParam {
     inputFile.updateComScript(scriptCommand);
     temporaryDirectory.updateComScript(scriptCommand);
     outputFile.updateComScript(scriptCommand);
-    ParamUtilities.updateScriptParameter(scriptCommand, "TransformFile",
-        DatasetFiles.getFlattenWarpOutputName(manager), true);
+    ParamUtilities.updateScriptParameter(scriptCommand, "TransformFile", DatasetFiles
+        .getFlattenWarpOutputName(manager), true);
     outputSizeXYZ.updateScriptParameter(scriptCommand);
-    ParamUtilities
-        .updateScriptParameter(scriptCommand, "SameSizeAsInput", true);
+    ParamUtilities.updateScriptParameter(scriptCommand, "SameSizeAsInput", true);
   }
 
   private void reset() {
