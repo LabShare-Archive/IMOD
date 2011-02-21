@@ -49,6 +49,7 @@ EXPORTS
 	imodel_overlap_fractions
 	imodMatDelete
 	imodPoint2DAngle
+	imodMeshInterpCont
 	imodClipsInitialize
 	objGroupDup
 	imodPlanesNew
@@ -152,6 +153,7 @@ EXPORTS
 	imodViewUse
 	imodContourSetTimeIndex
 	imodContourCheckNesting
+	imodContourScanAdd
 	FROMVMSFLOATS
 	imodContourClearPoints
 	imodObjviewDelete
@@ -176,7 +178,6 @@ EXPORTS
 	istoreClearRange
 	imodPutFloat
 	imodContourJoin
-	imodContourScanAdd
 	imodDeleteContour
 	imodContourGetPoint
 	istoreCopyNonIndex
@@ -299,6 +300,7 @@ EXPORTS
 	objGroupListWrite
 	imodel_maxpt
 	istoreCountObjectItems
+	imodPointContDistance
 	imodContourGetFlag
 	imodLabelDup
 	imodReadFile
@@ -317,7 +319,6 @@ EXPORTS
 	PUTCONTVALUE
 	imodContourZValue
 	imodMatTransform2D
-	imodMeshInterpCont
 	imeshParamsNew
 	GETIMODOBJLIST
 	imodContourCenterOfMass
