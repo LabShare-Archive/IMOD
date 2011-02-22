@@ -21,6 +21,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2010/03/19 21:59:22  sueh
+ * <p> bug# 1335 Class can't be a singleton because the dataset tabs.
+ * <p>
  * <p> Revision 1.2  2010/02/17 04:49:31  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -55,8 +58,8 @@ public final class FlattenWarpLog implements Loggable {
    * without setLog being called (because it is a pointer), it would not
    * necessarily be correct anymore.
    */
-  public List getLogMessage() throws LogFile.LockException,
-      FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+      IOException {
     if (log == null || !lineList.isEmpty()) {
       return lineList;
     }
@@ -64,8 +67,7 @@ public final class FlattenWarpLog implements Loggable {
       if (log[i].trim().startsWith("Minimum spacing between contours is")) {
         lineList.add(log[i]);
       }
-      else if (log[i].trim()
-          .startsWith("Setting target spacings in X and Y to")) {
+      else if (log[i].trim().startsWith("Setting target spacings in X and Y to")) {
         lineList.add(log[i]);
       }
       else if (log[i].trim().startsWith("Mean Z height is")) {

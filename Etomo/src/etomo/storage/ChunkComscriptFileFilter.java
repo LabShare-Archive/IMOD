@@ -15,8 +15,8 @@ import java.io.File;
  * 
  * @version $Revision$
  */
-public class ChunkComscriptFileFilter extends
-    javax.swing.filechooser.FileFilter implements java.io.FileFilter {
+public class ChunkComscriptFileFilter extends javax.swing.filechooser.FileFilter
+    implements java.io.FileFilter {
   public static final String rcsid = "$Id$";
 
   /**
@@ -43,6 +43,9 @@ public class ChunkComscriptFileFilter extends
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2009/02/26 19:55:49  sueh
+ * <p> bug# 1185 Allowing a larger string of zeros in the file name.
+ * <p>
  * <p> Revision 1.3  2007/08/10 16:56:01  mast
  * <p> The first chunk may be a sync file, so filter for -001-sync.com
  * <p>

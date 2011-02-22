@@ -80,32 +80,27 @@ public class CpuAdoc {
     return separateChunks;
   }
 
-  public boolean isUsersColumn(BaseManager manager, AxisID axisID,
-      String propertyUserDir) {
+  public boolean isUsersColumn(BaseManager manager, AxisID axisID, String propertyUserDir) {
     load(manager, axisID, propertyUserDir);
     return usersColumn;
   }
 
-  public int getMinNice(BaseManager manager, AxisID axisID,
-      String propertyUserDir) {
+  public int getMinNice(BaseManager manager, AxisID axisID, String propertyUserDir) {
     load(manager, axisID, propertyUserDir);
     return minNice.getInt();
   }
 
-  public String getSpeedUnits(BaseManager manager, AxisID axisID,
-      String propertyUserDir) {
+  public String getSpeedUnits(BaseManager manager, AxisID axisID, String propertyUserDir) {
     load(manager, axisID, propertyUserDir);
     return speedUnits;
   }
 
-  public String getMemoryUnits(BaseManager manager, AxisID axisID,
-      String propertyUserDir) {
+  public String getMemoryUnits(BaseManager manager, AxisID axisID, String propertyUserDir) {
     load(manager, axisID, propertyUserDir);
     return memoryUnits;
   }
 
-  public String[] getLoadUnits(BaseManager manager, AxisID axisID,
-      String propertyUserDir) {
+  public String[] getLoadUnits(BaseManager manager, AxisID axisID, String propertyUserDir) {
     load(manager, axisID, propertyUserDir);
     return loadUnits;
   }
@@ -122,14 +117,12 @@ public class CpuAdoc {
     return maxVolcombine;
   }
 
-  boolean isComputerListEmpty(BaseManager manager, AxisID axisID,
-      String propertyUserDir) {
+  boolean isComputerListEmpty(BaseManager manager, AxisID axisID, String propertyUserDir) {
     load(manager, axisID, propertyUserDir);
     return computerList.isEmpty();
   }
 
-  boolean isQueueListEmpty(BaseManager manager, AxisID axisID,
-      String propertyUserDir) {
+  boolean isQueueListEmpty(BaseManager manager, AxisID axisID, String propertyUserDir) {
     load(manager, axisID, propertyUserDir);
     return queueList.isEmpty();
   }
@@ -142,8 +135,7 @@ public class CpuAdoc {
    * @param managerKey
    * @return
    */
-  Node getComputer(BaseManager manager, int index, AxisID axisID,
-      String propertyUserDir) {
+  Node getComputer(BaseManager manager, int index, AxisID axisID, String propertyUserDir) {
     load(manager, axisID, propertyUserDir);
     return (Node) computerMap.get(computerList.get(index));
   }
@@ -155,12 +147,9 @@ public class CpuAdoc {
    * @param managerKey
    * @return
    */
-  Node getLocalHostComputer(BaseManager manager, AxisID axisID,
-      String propertyUserDir) {
-    String localHostName = Network.getLocalHostName(manager, axisID,
-        propertyUserDir);
-    Node localHost = getComputer(manager, localHostName, axisID,
-        propertyUserDir);
+  Node getLocalHostComputer(BaseManager manager, AxisID axisID, String propertyUserDir) {
+    String localHostName = Network.getLocalHostName(manager, axisID, propertyUserDir);
+    Node localHost = getComputer(manager, localHostName, axisID, propertyUserDir);
     //Local host not found.  Try removing everything from the local host name
     //starting with the first ".".
     if (localHost == null) {
@@ -173,8 +162,7 @@ public class CpuAdoc {
     return localHost;
   }
 
-  Node getQueue(BaseManager manager, int index, AxisID axisID,
-      String propertyUserDir) {
+  Node getQueue(BaseManager manager, int index, AxisID axisID, String propertyUserDir) {
     load(manager, axisID, propertyUserDir);
     return (Node) queueMap.get(queueList.get(index));
   }
@@ -187,8 +175,7 @@ public class CpuAdoc {
    * @param managerKey
    * @return
    */
-  Node getQueue(BaseManager manager, String name, AxisID axisID,
-      String propertyUserDir) {
+  Node getQueue(BaseManager manager, String name, AxisID axisID, String propertyUserDir) {
     load(manager, axisID, propertyUserDir);
     return (Node) queueMap.get(name);
   }
@@ -201,20 +188,17 @@ public class CpuAdoc {
    * @param managerKey
    * @return
    */
-  Node getComputer(BaseManager manager, String name, AxisID axisID,
-      String propertyUserDir) {
+  Node getComputer(BaseManager manager, String name, AxisID axisID, String propertyUserDir) {
     load(manager, axisID, propertyUserDir);
     return (Node) computerMap.get(name);
   }
 
-  int getComputerListSize(BaseManager manager, AxisID axisID,
-      String propertyUserDir) {
+  int getComputerListSize(BaseManager manager, AxisID axisID, String propertyUserDir) {
     load(manager, axisID, propertyUserDir);
     return computerList.size();
   }
 
-  int getQueueListSize(BaseManager manager, AxisID axisID,
-      String propertyUserDir) {
+  int getQueueListSize(BaseManager manager, AxisID axisID, String propertyUserDir) {
     load(manager, axisID, propertyUserDir);
     return queueList.size();
   }
@@ -269,8 +253,7 @@ public class CpuAdoc {
   }
 
   private void loadComputers(ReadOnlyAutodoc autodoc) {
-    SectionLocation location = autodoc
-        .getSectionLocation(COMPUTER_SECTION_TYPE);
+    SectionLocation location = autodoc.getSectionLocation(COMPUTER_SECTION_TYPE);
     if (location == null) {
       return;
     }
@@ -305,15 +288,14 @@ public class CpuAdoc {
 
   private boolean loadBooleanAttribute(ReadOnlyAutodoc autodoc, String key) {
     ReadOnlyAttribute attrib = autodoc.getAttribute(key);
-    if (attrib != null
-        && (attrib.getValue() == null || !attrib.getValue().equals("0"))) {
+    if (attrib != null && (attrib.getValue() == null || !attrib.getValue().equals("0"))) {
       return true;
     }
     return false;
   }
 
-  private void loadAttribute(EtomoNumber number, ReadOnlyAutodoc autodoc,
-      String key1, String key2) {
+  private void loadAttribute(EtomoNumber number, ReadOnlyAutodoc autodoc, String key1,
+      String key2) {
     number.reset();
     ReadOnlyAttribute attrib = autodoc.getAttribute(key1);
     if (attrib == null) {
@@ -326,8 +308,7 @@ public class CpuAdoc {
     number.set(attrib.getValue());
   }
 
-  private String loadStringAttribute(ReadOnlyAutodoc autodoc, String key1,
-      String key2) {
+  private String loadStringAttribute(ReadOnlyAutodoc autodoc, String key1, String key2) {
     ReadOnlyAttribute attrib = autodoc.getAttribute(key1);
     if (attrib == null) {
       return "";
@@ -339,8 +320,8 @@ public class CpuAdoc {
     return attrib.getValue();
   }
 
-  private String[] loadStringListAttribute(ReadOnlyAutodoc autodoc,
-      String key1, String key2) {
+  private String[] loadStringListAttribute(ReadOnlyAutodoc autodoc, String key1,
+      String key2) {
     ReadOnlyAttribute attrib = autodoc.getAttribute(key1);
     if (attrib == null) {
       return new String[0];
@@ -358,6 +339,9 @@ public class CpuAdoc {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.19  2010/11/04 21:02:25  sueh
+ * <p> bug# 1415 Changed MIN_NICE_DEFAULT to 0.
+ * <p>
  * <p> Revision 1.18  2010/02/17 04:49:31  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.

@@ -45,8 +45,8 @@ public class JoinInfoFile {
   public static JoinInfoFile getInstance(BaseManager manager)
       throws LogFile.LockException {
     JoinInfoFile instance = new JoinInfoFile();
-    instance.joinInfo = LogFile.getInstance(manager.getPropertyUserDir(),
-        DatasetFiles.getJoinInfoName(manager));
+    instance.joinInfo = LogFile.getInstance(manager.getPropertyUserDir(), DatasetFiles
+        .getJoinInfoName(manager));
     return instance;
   }
 
@@ -65,8 +65,8 @@ public class JoinInfoFile {
     }
     catch (IndexOutOfBoundsException e) {
       e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog(manager,  ERROR_MESSAGE
-          + "\n" + e.toString(),ERROR_TITLE);
+      UIHarness.INSTANCE.openMessageDialog(manager, ERROR_MESSAGE + "\n" + e.toString(),
+          ERROR_TITLE);
       return null;
     }
   }
@@ -78,8 +78,7 @@ public class JoinInfoFile {
       joinInfo.readLine(readerId);
       String line = joinInfo.readLine(readerId);
       if (line == null) {
-        UIHarness.INSTANCE.openMessageDialog(manager, 
-            ERROR_MESSAGE,ERROR_TITLE);
+        UIHarness.INSTANCE.openMessageDialog(manager, ERROR_MESSAGE, ERROR_TITLE);
         return false;
       }
       else {
@@ -96,20 +95,20 @@ public class JoinInfoFile {
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog(manager, "Etomo Error",
-          ERROR_MESSAGE + "\n" + e.toString());
+      UIHarness.INSTANCE.openMessageDialog(manager, "Etomo Error", ERROR_MESSAGE + "\n"
+          + e.toString());
       return false;
     }
     catch (FileNotFoundException e) {
       e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog(manager, "Etomo Error",
-          ERROR_MESSAGE + "\n" + e.toString());
+      UIHarness.INSTANCE.openMessageDialog(manager, "Etomo Error", ERROR_MESSAGE + "\n"
+          + e.toString());
       return false;
     }
     catch (IOException e) {
       e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog(manager, "Etomo Error",
-          ERROR_MESSAGE + "\n" + e.toString());
+      UIHarness.INSTANCE.openMessageDialog(manager, "Etomo Error", ERROR_MESSAGE + "\n"
+          + e.toString());
       return false;
     }
     loaded = true;
@@ -127,6 +126,9 @@ public class JoinInfoFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2010/11/13 16:05:03  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.8  2010/02/26 20:38:11  sueh
  * <p> Changing the complex popup titles are making it hard to complete the
  * <p> uitests.

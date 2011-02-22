@@ -18,6 +18,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2007/12/26 22:15:27  sueh
+ * <p> bug# 1052 Moved ".edf" to DatasetFiles.
+ * <p>
  * <p> Revision 1.7  2007/08/07 00:46:46  sueh
  * <p> bug# 996 Changed getDescription
  * <p>
@@ -40,8 +43,8 @@ import etomo.util.DatasetFiles;
  * <p> bug# 520 A file filter that selects etomo data files and join data files.
  * <p> </p>
  */
-public class DataFileFilter extends javax.swing.filechooser.FileFilter
-    implements java.io.FileFilter {
+public class DataFileFilter extends javax.swing.filechooser.FileFilter implements
+    java.io.FileFilter {
   public static final String rcsid = "$Id$";
 
   /**
@@ -63,7 +66,7 @@ public class DataFileFilter extends javax.swing.filechooser.FileFilter
    */
   public String getDescription() {
     return "Data file (" + ".edf, " + DatasetFiles.JOIN_DATA_FILE_EXT + ", "
-        + DatasetFiles.PARALLEL_DATA_FILE_EXT + ", "
-        + DatasetFiles.PEET_DATA_FILE_EXT + ")";
+        + DatasetFiles.PARALLEL_DATA_FILE_EXT + ", " + DatasetFiles.PEET_DATA_FILE_EXT
+        + ")";
   }
 }

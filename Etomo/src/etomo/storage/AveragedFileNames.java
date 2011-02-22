@@ -25,6 +25,9 @@ import etomo.ui.swing.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2010/11/13 16:05:03  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.2  2010/02/17 04:49:31  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -61,8 +64,8 @@ public final class AveragedFileNames {
     }
     catch (FileNotFoundException e) {
       e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog(manager, "File not found. "
-          + errorMessage, errorTitle);
+      UIHarness.INSTANCE.openMessageDialog(manager, "File not found. " + errorMessage,
+          errorTitle);
     }
     List list = new ArrayList();
     String line;

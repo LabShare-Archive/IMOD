@@ -17,6 +17,9 @@ import javax.swing.filechooser.FileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2006/07/24 14:07:42  sueh
+ * <p> bug# 878 Added .dcst to the files accepted by this filter.
+ * <p>
  * <p> Revision 3.5  2005/12/13 00:29:49  sueh
  * <p> bug# 618 Made the file selection for files with dashes more selective.
  * <p>
@@ -52,38 +55,22 @@ import javax.swing.filechooser.FileFilter;
  * <p>
  */
 public class IntermediateFileFilter extends FileFilter {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
   private String datasetName;
   boolean acceptPretrimmedTomograms = false;
-  
+
   public IntermediateFileFilter(String datasetName) {
     this.datasetName = datasetName;
   }
+
   /* (non-Javadoc)
    * @see javax.swing.filechooser.FileFilter#accept(java.io.File)
    */
   public boolean accept(File f) {
-    String[] endsWith =
-      {
-        "~",
-        "matchcheck.rec",
-        ".mat",
-        ".ali",
-        ".preali",
-        "bot.rec",
-        "bota.rec",
-        "botb.rec",
-        "mid.rec",
-        "mida.rec",
-        "midb.rec",
-        "top.rec",
-        "topa.rec",
-        "topb.rec",
-        "volcombine.log",
-        ".bl",
-        ".dcst"};
-    String[] pretrimmedTomograms = {"sum.rec","full.rec"};
+    String[] endsWith = { "~", "matchcheck.rec", ".mat", ".ali", ".preali", "bot.rec",
+        "bota.rec", "botb.rec", "mid.rec", "mida.rec", "midb.rec", "top.rec", "topa.rec",
+        "topb.rec", "volcombine.log", ".bl", ".dcst" };
+    String[] pretrimmedTomograms = { "sum.rec", "full.rec" };
     if (f.isFile()) {
       String path = f.getAbsolutePath();
       for (int i = 0; i < endsWith.length; i++) {
@@ -131,7 +118,7 @@ public class IntermediateFileFilter extends FileFilter {
   public String getDescription() {
     return "Intermediate files";
   }
-  
+
   public void setAcceptPretrimmedTomograms(boolean acceptPretrimmedTomograms) {
     this.acceptPretrimmedTomograms = acceptPretrimmedTomograms;
   }
