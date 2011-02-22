@@ -44,6 +44,9 @@ import etomo.util.DatasetFiles;
  * <p> </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.34  2010/04/28 15:58:49  sueh
+ * <p> bug# 1344 Added getOutputImageFileType functions.
+ * <p>
  * <p> Revision 1.33  2010/02/17 04:47:54  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -232,8 +235,7 @@ public final class MakejoincomParam implements CommandDetails {
   private boolean rotate = false;
   private int totalRows = 0;
 
-  public MakejoincomParam(ConstJoinMetaData metaData, JoinState state,
-      BaseManager manager) {
+  public MakejoincomParam(ConstJoinMetaData metaData, JoinState state, BaseManager manager) {
     this.metaData = metaData;
     this.state = state;
     this.manager = manager;
@@ -271,8 +273,7 @@ public final class MakejoincomParam implements CommandDetails {
     if (sectionData != null) {
       totalRows = sectionData.size();
       for (int i = 0; i < totalRows; i++) {
-        ConstSectionTableRowData screen = (SectionTableRowData) sectionData
-            .get(i);
+        ConstSectionTableRowData screen = (SectionTableRowData) sectionData.get(i);
         File section = screen.getSetupSection();
         if (i < totalRows - 1) {
           options.add("-top");
@@ -340,8 +341,7 @@ public final class MakejoincomParam implements CommandDetails {
     }
     options.add("-tmpext");
     options.add("rot");
-    ScriptParameter densityRefSection = metaData
-        .getDensityRefSectionParameter();
+    ScriptParameter densityRefSection = metaData.getDensityRefSectionParameter();
     if (densityRefSection.isNotNullAndNotDefault()) {
       options.add("-ref");
       options.add(densityRefSection.toString());
@@ -369,8 +369,8 @@ public final class MakejoincomParam implements CommandDetails {
     return commandName;
   }
 
-  public List getLogMessage() throws LogFile.LockException,
-      FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+      IOException {
     return null;
   }
 
@@ -401,13 +401,11 @@ public final class MakejoincomParam implements CommandDetails {
     return null;
   }
 
-  public ConstEtomoNumber getEtomoNumber(
-      etomo.comscript.FieldInterface fieldInterface) {
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstIntKeyList getIntKeyList(
-      etomo.comscript.FieldInterface fieldInterface) {
+  public ConstIntKeyList getIntKeyList(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
@@ -460,9 +458,11 @@ public final class MakejoincomParam implements CommandDetails {
   public FileType getOutputImageFileType() {
     return null;
   }
+
   public FileType getOutputImageFileType2() {
     return null;
   }
+
   public static final class Fields implements etomo.comscript.FieldInterface {
     private Fields() {
     }

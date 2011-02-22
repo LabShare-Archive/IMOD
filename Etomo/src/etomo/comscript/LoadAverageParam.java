@@ -34,10 +34,8 @@ public class LoadAverageParam implements IntermittentCommand {
   private String intermittentCommand = null;
   private String endCommand = null;
 
-  public final static LoadAverageParam getInstance(String computer,
-      BaseManager manager) {
-    LoadAverageParam loadAverageParam = (LoadAverageParam) instances
-        .get(computer);
+  public final static LoadAverageParam getInstance(String computer, BaseManager manager) {
+    LoadAverageParam loadAverageParam = (LoadAverageParam) instances.get(computer);
     if (loadAverageParam != null) {
       return loadAverageParam;
     }
@@ -142,6 +140,10 @@ public class LoadAverageParam implements IntermittentCommand {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2010/02/17 04:47:54  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.14  2009/04/13 22:23:13  sueh
  * <p> bug# 1207 Moved the building of the ssh command to SshParam.
  * <p>

@@ -1,4 +1,5 @@
 package etomo.comscript;
+
 /**
 * <p>Description: A collection of FortranInputStrings.  Useful when success
 * com script entries accumulate.  Should handle FortranInputString of different
@@ -15,17 +16,16 @@ package etomo.comscript;
 * @version $Revision$
 */
 public class FortranInputStringList {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   String key = null;
   FortranInputString[] array = null;
-  
+
   public FortranInputStringList(String key) {
     this.key = key;
   }
-  
-  public void parse(ComScriptCommand scriptCommand)
-      throws FortranInputSyntaxException {
+
+  public void parse(ComScriptCommand scriptCommand) throws FortranInputSyntaxException {
     array = null;
     String[] values = scriptCommand.getValues(key);
     if (values == null || values.length == 0) {
@@ -35,7 +35,7 @@ public class FortranInputStringList {
       array[i] = FortranInputString.getInstance(values[i]);
     }
   }
-  
+
   public double[] getDouble() {
     if (array == null) {
       return null;
@@ -55,5 +55,9 @@ public class FortranInputStringList {
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/05/09 22:57:12  sueh
+* <p> bug# 658 FortranInputStringList replaces FortranInputString[] and will be
+* <p> simpler to use.
+* <p> </p>
 */

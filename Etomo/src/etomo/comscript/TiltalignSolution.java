@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -24,8 +27,7 @@ package etomo.comscript;
  * <p> </p>
  */
 public class TiltalignSolution {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   public int type;
   public FortranInputString referenceView;

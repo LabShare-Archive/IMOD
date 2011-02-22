@@ -23,6 +23,9 @@ import etomo.type.EtomoVersion;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2010/04/28 16:06:37  sueh
+ * <p> Fixed the location of a comment.
+ * <p>
  * <p> Revision 1.2  2010/02/17 04:47:53  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -39,8 +42,7 @@ final class SshParam {
 
   private EtomoBoolean2 timeoutAvailable = null;
 
-  final List getCommand(BaseManager manager, boolean useTimeoutIfPossible,
-      String computer) {
+  final List getCommand(BaseManager manager, boolean useTimeoutIfPossible, String computer) {
     List command = new ArrayList();
     command.add("ssh");
     command.add("-x");
@@ -90,8 +92,7 @@ final class SshParam {
       }
       if (i < stderr.length) {
         //Find and store the version of OpenSSH (OpenSSH_version, ...).
-        String[] versionInfoArray = stderr[i].toLowerCase().trim().split(
-            "[_,\\s]+");
+        String[] versionInfoArray = stderr[i].toLowerCase().trim().split("[_,\\s]+");
         if (versionInfoArray != null && versionInfoArray.length > 0) {
           i = 0;
           while (versionInfoArray[i++].toLowerCase().indexOf(appString) == -1) {

@@ -27,8 +27,7 @@ public final class TomosnapshotParam implements Command {
 
   private static final ProcessName PROCESS_NAME = ProcessName.TOMOSNAPSHOT;
   public static final String OUTPUT_LINE = "Snapshot done";
-  private static final String COMMAND_NAME = PROCESS_NAME
-      .toString();
+  private static final String COMMAND_NAME = PROCESS_NAME.toString();
 
   private final AxisID axisID;
 
@@ -46,6 +45,7 @@ public final class TomosnapshotParam implements Command {
   public CommandMode getCommandMode() {
     return null;
   }
+
   public boolean isMessageReporter() {
     return false;
   }
@@ -53,7 +53,7 @@ public final class TomosnapshotParam implements Command {
   public File getCommandOutputFile() {
     return null;
   }
-  
+
   public FileType getOutputImageFileType() {
     return null;
   }
@@ -83,8 +83,7 @@ public final class TomosnapshotParam implements Command {
       commandArray[i] = (String) command.get(i);
     }
     if (debug) {
-      System.err.println("Running tomosnapshot in "
-          + System.getProperty("user.dir"));
+      System.err.println("Running tomosnapshot in " + System.getProperty("user.dir"));
       for (int i = 0; i < commandArray.length; i++) {
         System.err.print(commandArray[i] + " ");
       }
@@ -95,7 +94,7 @@ public final class TomosnapshotParam implements Command {
   public final String getCommandName() {
     return COMMAND_NAME;
   }
-  
+
   public ProcessName getProcessName() {
     return PROCESS_NAME;
   }
@@ -122,13 +121,16 @@ public final class TomosnapshotParam implements Command {
   public CommandDetails getSubcommandDetails() {
     return null;
   }
-  
+
   public ProcessName getSubcommandProcessName() {
     return null;
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2010/04/28 16:09:45  sueh
+ * <p> bug# 1344 Added getOutputImageFileType functions.
+ * <p>
  * <p> Revision 1.11  2010/01/11 23:49:01  sueh
  * <p> bug# 1299 Added isMessageReporter.
  * <p>

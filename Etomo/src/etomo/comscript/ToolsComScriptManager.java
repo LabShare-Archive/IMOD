@@ -18,6 +18,9 @@ import etomo.type.FileType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2010/04/28 16:10:39  sueh
+ * <p> bug# 1344 Constructing WarpVolParam with the mode.
+ * <p>
  * <p> Revision 3.1  2010/02/17 04:47:54  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -37,20 +40,19 @@ public final class ToolsComScriptManager extends BaseComScriptManager {
   }
 
   public void loadFlatten(AxisID axisID) {
-    scriptFlatten = loadComScript(FileType.FLATTEN_TOOL_COMSCRIPT, axisID,
-        true, false, false);
+    scriptFlatten = loadComScript(FileType.FLATTEN_TOOL_COMSCRIPT, axisID, true, false,
+        false);
   }
 
   public boolean isWarpVolParamInFlatten(AxisID axisID) {
-    return loadComScript(FileType.FLATTEN_TOOL_COMSCRIPT, axisID, true, false,
-        false).isCommandLoaded();
+    return loadComScript(FileType.FLATTEN_TOOL_COMSCRIPT, axisID, true, false, false)
+        .isCommandLoaded();
   }
 
   public WarpVolParam getWarpVolParamFromFlatten(AxisID axisID) {
     // Initialize a WarpVolParam object from the com script command
     // object
-    WarpVolParam param = new WarpVolParam(manager, axisID,
-        WarpVolParam.Mode.TOOLS);
+    WarpVolParam param = new WarpVolParam(manager, axisID, WarpVolParam.Mode.TOOLS);
     initialize(param, scriptFlatten, WarpVolParam.COMMAND, axisID, false, false);
     return param;
   }
@@ -60,7 +62,6 @@ public final class ToolsComScriptManager extends BaseComScriptManager {
    * @param warpVolParam
    */
   public void saveFlatten(WarpVolParam param, AxisID axisID) {
-    modifyCommand(scriptFlatten, param, WarpVolParam.COMMAND, axisID, true,
-        false);
+    modifyCommand(scriptFlatten, param, WarpVolParam.COMMAND, axisID, true, false);
   }
 }

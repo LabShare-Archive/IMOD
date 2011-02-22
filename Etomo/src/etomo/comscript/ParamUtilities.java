@@ -29,6 +29,12 @@
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.17  2007/03/03 00:36:12  sueh
+ * <p> $bug# 973 In
+ * <p> $updateScriptParameter(ComScriptCommand,String,FortranInputString) if the
+ * <p> $FortranInputString is not active, the parameter is deleted in the
+ * <p> $ComScriptCommand.
+ * <p> $
  * <p> $Revision 1.16  2006/05/16 21:27:06  sueh
  * <p> $bug# 856 Changed setParamIfPresent(ComScriptCommand, String, StringList)
  * <p> $to create stringList if it is null.  Returns stringList.
@@ -87,7 +93,7 @@ package etomo.comscript;
 import java.util.Vector;
 
 public class ParamUtilities {
-  
+
   public static final int INT_NOT_SET = Integer.MIN_VALUE;
   private static final String zeroOrMoreWhiteSpace = "\\s*";
 
@@ -103,7 +109,7 @@ public class ParamUtilities {
     }
     return false;
   }
-  
+
   /**
    * Return the string representation of the int value or an empty string if the
    * value is the not present value
@@ -116,7 +122,7 @@ public class ParamUtilities {
     }
     return String.valueOf(value);
   }
-  
+
   /**
    * Return the string representation of the float value or an empty string if
    * the value is the not present value
@@ -153,7 +159,7 @@ public class ParamUtilities {
     }
     return strings;
   }
-  
+
   public static String valueOf(FortranInputString[] valueArray) {
     if (valueArray == null || valueArray.length == 0) {
       return "";
@@ -165,7 +171,6 @@ public class ParamUtilities {
     return buffer.toString();
   }
 
-  
   /**
    * Parse an integer value from a string, returning the default value if the
    * string is white space
@@ -178,7 +183,7 @@ public class ParamUtilities {
     }
     return Integer.parseInt(value);
   }
-  
+
   /**
    * Parse a FortranInputString array from a string.  Use StringList to split
    * the string at whitespace.
@@ -187,8 +192,8 @@ public class ParamUtilities {
    * @return
    * @throws FortranInputSyntaxException
    */
-  public static FortranInputString[] parse(String value, boolean integerType, int inputStringSize)
-      throws FortranInputSyntaxException {
+  public static FortranInputString[] parse(String value, boolean integerType,
+      int inputStringSize) throws FortranInputSyntaxException {
     if (value == null || value.matches(zeroOrMoreWhiteSpace)) {
       return null;
     }
@@ -209,9 +214,8 @@ public class ParamUtilities {
    * @return
    * @throws FortranInputSyntaxException
    */
-  public static FortranInputString[] parse(StringList stringList,
-      boolean[] integerType, int inputStringSize)
-      throws FortranInputSyntaxException {
+  public static FortranInputString[] parse(StringList stringList, boolean[] integerType,
+      int inputStringSize) throws FortranInputSyntaxException {
     if (stringList != null && stringList.getNElements() > 0) {
       int stringListSize = stringList.getNElements();
       FortranInputString[] inputStringArray = new FortranInputString[stringListSize];
@@ -224,7 +228,7 @@ public class ParamUtilities {
     }
     return null;
   }
-  
+
   /**
    * Returns value or defaultValue if value isn't set
    * @param value
@@ -237,7 +241,6 @@ public class ParamUtilities {
     }
     return value;
   }
-
 
   /**
    * Parse a float value from a string returning the default value the string
@@ -272,7 +275,7 @@ public class ParamUtilities {
    * @throws FortranInputSyntaxException
    */
   public static void set(String value, FortranInputString target)
-    throws FortranInputSyntaxException {
+      throws FortranInputSyntaxException {
     if (target == null) {
       throw new NullPointerException();
     }
@@ -298,14 +301,12 @@ public class ParamUtilities {
       target.set(index, Double.parseDouble(value));
     }
   }
-  
-  public static FortranInputString[] setParamIfPresent(
-      ComScriptCommand scriptCommand, String keyword, int size,
-      boolean[] integerType) throws InvalidParameterException,
+
+  public static FortranInputString[] setParamIfPresent(ComScriptCommand scriptCommand,
+      String keyword, int size, boolean[] integerType) throws InvalidParameterException,
       FortranInputSyntaxException {
     if (scriptCommand.hasKeyword(keyword)) {
-      return parse(new StringList(scriptCommand.getValues(keyword)),
-          integerType, size);
+      return parse(new StringList(scriptCommand.getValues(keyword)), integerType, size);
     }
     return null;
   }
@@ -319,8 +320,8 @@ public class ParamUtilities {
    * @return
    * @throws InvalidParameterException
    */
-  public static boolean setParamIfPresent(ComScriptCommand scriptCommand,
-    String keyword, boolean notPresentValue) throws InvalidParameterException {
+  public static boolean setParamIfPresent(ComScriptCommand scriptCommand, String keyword,
+      boolean notPresentValue) throws InvalidParameterException {
 
     return (scriptCommand.hasKeyword(keyword)) ? true : notPresentValue;
   }
@@ -334,12 +335,11 @@ public class ParamUtilities {
    * @return
    * @throws InvalidParameterException
    */
-  public static String setParamIfPresent(ComScriptCommand scriptCommand,
-    String keyword, String notPresentValue) throws InvalidParameterException {
+  public static String setParamIfPresent(ComScriptCommand scriptCommand, String keyword,
+      String notPresentValue) throws InvalidParameterException {
 
-    return (scriptCommand.hasKeyword(keyword))
-      ? scriptCommand.getValue(keyword)
-      : notPresentValue;
+    return (scriptCommand.hasKeyword(keyword)) ? scriptCommand.getValue(keyword)
+        : notPresentValue;
   }
 
   /**
@@ -351,13 +351,11 @@ public class ParamUtilities {
    * @return
    * @throws InvalidParameterException NumberFormatException 
    */
-  public static int setParamIfPresent(ComScriptCommand scriptCommand,
-    String keyword, int notPresentValue) throws InvalidParameterException,
-    NumberFormatException {
+  public static int setParamIfPresent(ComScriptCommand scriptCommand, String keyword,
+      int notPresentValue) throws InvalidParameterException, NumberFormatException {
 
-    return (scriptCommand.hasKeyword(keyword))
-      ? Integer.parseInt(scriptCommand.getValue(keyword))
-      : notPresentValue;
+    return (scriptCommand.hasKeyword(keyword)) ? Integer.parseInt(scriptCommand
+        .getValue(keyword)) : notPresentValue;
   }
 
   /**
@@ -369,13 +367,11 @@ public class ParamUtilities {
    * @return
    * @throws InvalidParameterException NumberFormatException 
    */
-  public static float setParamIfPresent(ComScriptCommand scriptCommand,
-    String keyword, float notPresentValue) throws InvalidParameterException,
-    NumberFormatException {
-    
-    return (scriptCommand.hasKeyword(keyword))
-      ? Float.parseFloat(scriptCommand.getValue(keyword))
-      : notPresentValue;
+  public static float setParamIfPresent(ComScriptCommand scriptCommand, String keyword,
+      float notPresentValue) throws InvalidParameterException, NumberFormatException {
+
+    return (scriptCommand.hasKeyword(keyword)) ? Float.parseFloat(scriptCommand
+        .getValue(keyword)) : notPresentValue;
   }
 
   /**
@@ -387,13 +383,11 @@ public class ParamUtilities {
    * @return
    * @throws InvalidParameterException NumberFormatException 
    */
-  public static double setParamIfPresent(ComScriptCommand scriptCommand,
-    String keyword, double notPresentValue) throws InvalidParameterException,
-    NumberFormatException {
+  public static double setParamIfPresent(ComScriptCommand scriptCommand, String keyword,
+      double notPresentValue) throws InvalidParameterException, NumberFormatException {
 
-    return (scriptCommand.hasKeyword(keyword))
-      ? Integer.parseInt(scriptCommand.getValue(keyword))
-      : notPresentValue;
+    return (scriptCommand.hasKeyword(keyword)) ? Integer.parseInt(scriptCommand
+        .getValue(keyword)) : notPresentValue;
   }
 
   /**
@@ -404,10 +398,10 @@ public class ParamUtilities {
    * @param parameter
    * @throws FortranInputSyntaxException, InvalidParameterException
    */
-  public static void setParamIfPresent(ComScriptCommand scriptCommand,
-    String keyword, FortranInputString fisParameter)
-    throws FortranInputSyntaxException, InvalidParameterException {
-    
+  public static void setParamIfPresent(ComScriptCommand scriptCommand, String keyword,
+      FortranInputString fisParameter) throws FortranInputSyntaxException,
+      InvalidParameterException {
+
     if (scriptCommand.hasKeyword(keyword)) {
       fisParameter.validateAndSet(scriptCommand.getValue(keyword));
     }
@@ -422,8 +416,8 @@ public class ParamUtilities {
    * @throws FortranInputSyntaxException, InvalidParameterException
    */
   public static StringList setParamIfPresent(ComScriptCommand scriptCommand,
-    String keyword, StringList stringList) throws InvalidParameterException {
-    
+      String keyword, StringList stringList) throws InvalidParameterException {
+
     if (scriptCommand.hasKeyword(keyword)) {
       if (stringList == null) {
         stringList = new StringList();
@@ -440,8 +434,8 @@ public class ParamUtilities {
    * @param value
    * @throws BadComScriptException
    */
-  public static void updateScriptParameter(ComScriptCommand scriptCommand,
-    String key, String value) throws BadComScriptException {
+  public static void updateScriptParameter(ComScriptCommand scriptCommand, String key,
+      String value) throws BadComScriptException {
 
     updateScriptParameter(scriptCommand, key, value, false);
   }
@@ -454,8 +448,8 @@ public class ParamUtilities {
    * @param required
    * @throws BadComScriptException
    */
-  public static void updateScriptParameter(ComScriptCommand scriptCommand,
-    String key, String value, boolean required) throws BadComScriptException {
+  public static void updateScriptParameter(ComScriptCommand scriptCommand, String key,
+      String value, boolean required) throws BadComScriptException {
     if (key == null) {
       throw new NullPointerException();
     }
@@ -469,13 +463,13 @@ public class ParamUtilities {
       scriptCommand.deleteKey(key);
       if (required) {
         throw new BadComScriptException(scriptCommand.getCommand()
-          + " missing required parameter: " + key + ".");
+            + " missing required parameter: " + key + ".");
       }
     }
   }
-  
-  public static void updateScriptParameter(ComScriptCommand scriptCommand,
-      String key, StringList value) throws BadComScriptException {
+
+  public static void updateScriptParameter(ComScriptCommand scriptCommand, String key,
+      StringList value) throws BadComScriptException {
     if (key == null) {
       throw new NullPointerException();
     }
@@ -490,16 +484,15 @@ public class ParamUtilities {
     }
   }
 
-
   /**
    * 
    * @param scriptCommand
    * @param key
    * @param value
    */
-  public static void updateScriptParameter(ComScriptCommand scriptCommand,
-    String key, int value) {
-    
+  public static void updateScriptParameter(ComScriptCommand scriptCommand, String key,
+      int value) {
+
     if (key == null) {
       throw new NullPointerException();
     }
@@ -516,9 +509,9 @@ public class ParamUtilities {
    * @param key
    * @param value
    */
-  public static void updateScriptParameter(ComScriptCommand scriptCommand,
-    String key, float value) {
-    
+  public static void updateScriptParameter(ComScriptCommand scriptCommand, String key,
+      float value) {
+
     if (key == null) {
       throw new NullPointerException();
     }
@@ -535,9 +528,9 @@ public class ParamUtilities {
    * @param key
    * @param value
    */
-  public static void updateScriptParameter(ComScriptCommand scriptCommand,
-    String key, double value) {
-    
+  public static void updateScriptParameter(ComScriptCommand scriptCommand, String key,
+      double value) {
+
     if (key == null) {
       throw new NullPointerException();
     }
@@ -555,8 +548,8 @@ public class ParamUtilities {
    * @param key
    * @param value
    */
-  public static void updateScriptParameter(ComScriptCommand scriptCommand,
-    String key, FortranInputString value) {
+  public static void updateScriptParameter(ComScriptCommand scriptCommand, String key,
+      FortranInputString value) {
     if (key == null) {
       throw new NullPointerException();
     }
@@ -571,9 +564,9 @@ public class ParamUtilities {
       scriptCommand.deleteKey(key);
     }
   }
-  
-  public static void updateScriptParameter(ComScriptCommand scriptCommand,
-      String key, FortranInputString[] value) {
+
+  public static void updateScriptParameter(ComScriptCommand scriptCommand, String key,
+      FortranInputString[] value) {
     if (key == null) {
       throw new NullPointerException();
     }
@@ -599,9 +592,9 @@ public class ParamUtilities {
    * @param values
    * @throws BadComScriptException
    */
-  public static void updateScriptParameter(ComScriptCommand scriptCommand,
-    String key, double[] values) throws BadComScriptException {
-    
+  public static void updateScriptParameter(ComScriptCommand scriptCommand, String key,
+      double[] values) throws BadComScriptException {
+
     if (key == null) {
       throw new NullPointerException();
     }
@@ -625,9 +618,9 @@ public class ParamUtilities {
    * @param key
    * @param set
    */
-  public static void updateScriptParameter(ComScriptCommand scriptCommand,
-    String key, boolean set) {
-    
+  public static void updateScriptParameter(ComScriptCommand scriptCommand, String key,
+      boolean set) {
+
     if (key == null) {
       throw new NullPointerException();
     }
@@ -646,10 +639,9 @@ public class ParamUtilities {
    * @param strings
    * @throws BadComScriptException
    */
-  public static void updateScriptParameterStrings(
-    ComScriptCommand scriptCommand, String key, Vector strings)
-    throws BadComScriptException {
-    
+  public static void updateScriptParameterStrings(ComScriptCommand scriptCommand,
+      String key, Vector strings) throws BadComScriptException {
+
     updateScriptParameterStrings(scriptCommand, key, strings, false);
   }
 
@@ -661,10 +653,9 @@ public class ParamUtilities {
    * @param required
    * @throws BadComScriptException
    */
-  public static void updateScriptParameterStrings(
-    ComScriptCommand scriptCommand, String key, Vector strings, boolean required)
-    throws BadComScriptException {
-    
+  public static void updateScriptParameterStrings(ComScriptCommand scriptCommand,
+      String key, Vector strings, boolean required) throws BadComScriptException {
+
     if (key == null) {
       throw new NullPointerException();
     }
@@ -672,11 +663,10 @@ public class ParamUtilities {
       scriptCommand.deleteKeyAll(key);
       if (required) {
         throw new BadComScriptException(scriptCommand.getCommand()
-          + " missing required parameter: " + key + ".");
+            + " missing required parameter: " + key + ".");
       }
       return;
     }
-    scriptCommand.setValues(key,
-      (String[]) strings.toArray(new String[strings.size()]));
+    scriptCommand.setValues(key, (String[]) strings.toArray(new String[strings.size()]));
   }
 }

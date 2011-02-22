@@ -20,6 +20,10 @@ import etomo.type.FileType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2010/03/03 04:53:02  sueh
+ * <p> bug# 1311 Changed FileType.NEWST_OR_BLEND_OUTPUT to
+ * <p> ALIGNED_STACK.
+ * <p>
  * <p> Revision 3.1  2009/09/01 03:17:46  sueh
  * <p> bug# 1222
  * <p> </p>
@@ -77,8 +81,7 @@ public final class MrcTaperParam implements CommandParam {
       cmdLineArgs.add(inputFile);
     }
     int nArgs = cmdLineArgs.size();
-    scriptCommand.setCommandLineArgs((String[]) cmdLineArgs
-        .toArray(new String[nArgs]));
+    scriptCommand.setCommandLineArgs((String[]) cmdLineArgs.toArray(new String[nArgs]));
   }
 
   public void initializeDefaults() {

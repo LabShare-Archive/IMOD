@@ -27,6 +27,9 @@ import etomo.type.SectionTableRowData;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2010/04/28 16:00:59  sueh
+ * <p> bug# 1344 Added getOutputImageFileType functions.
+ * <p>
  * <p> Revision 1.18  2010/02/17 04:47:54  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -148,8 +151,8 @@ public class MidasParam implements Command {
     for (int i = 0; i < options.size(); i++) {
       commandArray[i + commandSize] = (String) options.get(i);
     }
-    program = new SystemProgram(manager, manager.getPropertyUserDir(),
-        commandArray, axisID);
+    program = new SystemProgram(manager, manager.getPropertyUserDir(), commandArray,
+        axisID);
     program.setWorkingDirectory(new File(workingDir));
   }
 
@@ -216,13 +219,15 @@ public class MidasParam implements Command {
   public File getCommandOutputFile() {
     return outputFile;
   }
-  
+
   public FileType getOutputImageFileType() {
     return null;
   }
+
   public FileType getOutputImageFileType2() {
     return null;
   }
+
   public File getCommandInputFile() {
     return null;
   }

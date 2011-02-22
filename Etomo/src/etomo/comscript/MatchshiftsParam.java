@@ -12,6 +12,9 @@
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.3  2010/04/28 16:00:15  sueh
+ * <p> $bug# 1344 Reformatted.
+ * <p> $
  * <p> $Revision 1.2  2004/06/24 20:20:34  sueh
  * <p> $bug# 482 Used ParamUtilities functions.  Added additional
  * <p> $matchshifts parameters.
@@ -25,8 +28,7 @@ package etomo.comscript;
 
 import java.util.ArrayList;
 
-public class MatchshiftsParam extends ConstMatchshiftsParam implements
-    CommandParam {
+public class MatchshiftsParam extends ConstMatchshiftsParam implements CommandParam {
   public static final String rcsid = "$$Id$$";
 
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
@@ -76,8 +78,7 @@ public class MatchshiftsParam extends ConstMatchshiftsParam implements
       cmdLineArgs.add(xfOut);
     }
     int nArgs = cmdLineArgs.size();
-    scriptCommand.setCommandLineArgs((String[]) cmdLineArgs
-        .toArray(new String[nArgs]));
+    scriptCommand.setCommandLineArgs((String[]) cmdLineArgs.toArray(new String[nArgs]));
   }
 
   public void initializeDefaults() {

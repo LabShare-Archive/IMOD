@@ -33,6 +33,9 @@ import etomo.type.StringParameter;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.8  2010/04/28 15:54:34  sueh
+ * <p> bug# 1344 Added getOutputImageFileType functions.
+ * <p>
  * <p> Revision 3.7  2010/03/09 22:05:37  sueh
  * <p> bug# 1325 Adding binningOfVolume.
  * <p>
@@ -56,8 +59,7 @@ import etomo.type.StringParameter;
  * <p> bug# 1222
  * <p> </p>
  */
-public final class FindBeads3dParam implements ConstFindBeads3dParam,
-    CommandParam {
+public final class FindBeads3dParam implements ConstFindBeads3dParam, CommandParam {
   public static final String rcsid = "$Id$";
 
   public static final String BEAD_SIZE_TAG = "BeadSize";
@@ -71,8 +73,8 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam,
 
   private final StringParameter inputFile = new StringParameter("InputFile");
   private final StringParameter outputFile = new StringParameter("OutputFile");
-  private final ScriptParameter beadSize = new ScriptParameter(
-      EtomoNumber.Type.FLOAT, BEAD_SIZE_TAG);
+  private final ScriptParameter beadSize = new ScriptParameter(EtomoNumber.Type.FLOAT,
+      BEAD_SIZE_TAG);
   private final EtomoBoolean2 lightBeads = new EtomoBoolean2(LIGHT_BEADS_TAG);
   private final ScriptParameter minRelativeStrength = new ScriptParameter(
       EtomoNumber.Type.FLOAT, MIN_RELATIVE_STRENGTH_TAG);
@@ -80,12 +82,10 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam,
       EtomoNumber.Type.FLOAT, THRESHOLD_FOR_AVERAGING_TAG);
   private final ScriptParameter storageThreshold = new ScriptParameter(
       EtomoNumber.Type.FLOAT, STORAGE_THRESHOLD_TAG);
-  private final ScriptParameter minSpacing = new ScriptParameter(
-      EtomoNumber.Type.FLOAT, MIN_SPACING_TAG);
-  private final ScriptParameter guessNumBeads = new ScriptParameter(
-      GUESS_NUM_BEADS_TAG);
-  private final ScriptParameter maxNumBeads = new ScriptParameter(
-      MAX_NUM_BEADS_TAG);
+  private final ScriptParameter minSpacing = new ScriptParameter(EtomoNumber.Type.FLOAT,
+      MIN_SPACING_TAG);
+  private final ScriptParameter guessNumBeads = new ScriptParameter(GUESS_NUM_BEADS_TAG);
+  private final ScriptParameter maxNumBeads = new ScriptParameter(MAX_NUM_BEADS_TAG);
   private final ScriptParameter binningOfVolume = new ScriptParameter(
       EtomoNumber.Type.LONG, "BinningOfVolume");
 
@@ -148,8 +148,7 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam,
 
   public void setInputFile(FileType input) {
     inputFile.set(input.getFileName(manager, axisID));
-    binningOfVolume.set(etomo.util.Utilities.getStackBinning(manager, axisID,
-        input));
+    binningOfVolume.set(etomo.util.Utilities.getStackBinning(manager, axisID, input));
   }
 
   public void setOutputFile(String input) {
@@ -204,22 +203,23 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam,
     return minSpacing.toString();
   }
 
-  public List getLogMessage() throws LogFile.LockException,
-      FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+      IOException {
     return null;
   }
 
   public String getName() {
     return ProcessName.FIND_BEADS_3D.toString();
   }
-  
 
   public FileType getOutputImageFileType() {
     return null;
   }
+
   public FileType getOutputImageFileType2() {
     return null;
   }
+
   public ProcessName getProcessName() {
     return ProcessName.FIND_BEADS_3D;
   }
@@ -285,8 +285,7 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam,
     return FileType.FIND_BEADS_3D_COMSCRIPT.getFileName(manager, axisID);
   }
 
-  public boolean getBooleanValue(
-      final etomo.comscript.FieldInterface fieldInterface) {
+  public boolean getBooleanValue(final etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 

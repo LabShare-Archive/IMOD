@@ -19,8 +19,7 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  */
-public final class TiltalignParam extends ConstTiltalignParam implements
-    CommandParam {
+public final class TiltalignParam extends ConstTiltalignParam implements CommandParam {
   public static final String rcsid = "$Id$";
 
   /**
@@ -49,8 +48,7 @@ public final class TiltalignParam extends ConstTiltalignParam implements
       imagesAreBinned.parse(scriptCommand);
       modelFile = scriptCommand.getValue(modelFileString);
       imageFile = scriptCommand.getValue(imageFileString);
-      outputModelAndResidual = scriptCommand
-          .getValue(outputModelAndResidualString);
+      outputModelAndResidual = scriptCommand.getValue(outputModelAndResidualString);
       outputModelFile = scriptCommand.getValue(outputModelFileString);
       outputResidualFile = scriptCommand.getValue(outputResidualFileString);
 
@@ -83,55 +81,51 @@ public final class TiltalignParam extends ConstTiltalignParam implements
       rotOption.parse(scriptCommand);
       rotDefaultGrouping.parse(scriptCommand);
       rotNondefaultGroup = ParamUtilities.setParamIfPresent(scriptCommand,
-          ROT_NONDEFAULT_GROUP_KEY, nondefaultGroupSize,
-          nondefaultGroupIntegerType);
+          ROT_NONDEFAULT_GROUP_KEY, nondefaultGroupSize, nondefaultGroupIntegerType);
       rotationFixedView.parse(scriptCommand);
       localRotOption.parse(scriptCommand);
       localRotDefaultGrouping.parse(scriptCommand);
-      localRotNondefaultGroup = ParamUtilities.setParamIfPresent(scriptCommand,
-          LOCAL_ROT_NONDEFAULT_GROUP_KEY, nondefaultGroupSize,
-          nondefaultGroupIntegerType);
+      localRotNondefaultGroup = ParamUtilities
+          .setParamIfPresent(scriptCommand, LOCAL_ROT_NONDEFAULT_GROUP_KEY,
+              nondefaultGroupSize, nondefaultGroupIntegerType);
       tiltOption.parse(scriptCommand);
       tiltDefaultGrouping.parse(scriptCommand);
       tiltNondefaultGroup = ParamUtilities.setParamIfPresent(scriptCommand,
-          TILT_NONDEFAULT_GROUP_KEY, nondefaultGroupSize,
-          nondefaultGroupIntegerType);
+          TILT_NONDEFAULT_GROUP_KEY, nondefaultGroupSize, nondefaultGroupIntegerType);
       localTiltOption.parse(scriptCommand);
       localTiltDefaultGrouping.parse(scriptCommand);
-      localTiltNondefaultGroup = ParamUtilities.setParamIfPresent(
-          scriptCommand, LOCAL_TILT_NONDEFAULT_GROUP_KEY, nondefaultGroupSize,
+      localTiltNondefaultGroup = ParamUtilities.setParamIfPresent(scriptCommand,
+          LOCAL_TILT_NONDEFAULT_GROUP_KEY, nondefaultGroupSize,
           nondefaultGroupIntegerType);
       magReferenceView.parse(scriptCommand);
       magOption.parse(scriptCommand);
       magDefaultGrouping.parse(scriptCommand);
       magNondefaultGroup = ParamUtilities.setParamIfPresent(scriptCommand,
-          MAG_NONDEFAULT_GROUP_KEY, nondefaultGroupSize,
-          nondefaultGroupIntegerType);
+          MAG_NONDEFAULT_GROUP_KEY, nondefaultGroupSize, nondefaultGroupIntegerType);
       localMagReferenceView.parse(scriptCommand);
       localMagOption.parse(scriptCommand);
       localMagDefaultGrouping.parse(scriptCommand);
-      localMagNondefaultGroup = ParamUtilities.setParamIfPresent(scriptCommand,
-          LOCAL_MAG_NONDEFAULT_GROUP_KEY, nondefaultGroupSize,
-          nondefaultGroupIntegerType);
+      localMagNondefaultGroup = ParamUtilities
+          .setParamIfPresent(scriptCommand, LOCAL_MAG_NONDEFAULT_GROUP_KEY,
+              nondefaultGroupSize, nondefaultGroupIntegerType);
       xStretchOption.parse(scriptCommand);
       xStretchDefaultGrouping.parse(scriptCommand);
-      xStretchNondefaultGroup = ParamUtilities.setParamIfPresent(scriptCommand,
-          X_STRETCH_NONDEFAULT_GROUP_KEY, nondefaultGroupSize,
-          nondefaultGroupIntegerType);
+      xStretchNondefaultGroup = ParamUtilities
+          .setParamIfPresent(scriptCommand, X_STRETCH_NONDEFAULT_GROUP_KEY,
+              nondefaultGroupSize, nondefaultGroupIntegerType);
       localXStretchOption.parse(scriptCommand);
       localXStretchDefaultGrouping.parse(scriptCommand);
-      localXStretchNondefaultGroup = ParamUtilities.setParamIfPresent(
-          scriptCommand, LOCAL_X_STRETCH_NONDEFAULT_GROUP_KEY,
-          nondefaultGroupSize, nondefaultGroupIntegerType);
+      localXStretchNondefaultGroup = ParamUtilities.setParamIfPresent(scriptCommand,
+          LOCAL_X_STRETCH_NONDEFAULT_GROUP_KEY, nondefaultGroupSize,
+          nondefaultGroupIntegerType);
       skewOption.parse(scriptCommand);
       skewDefaultGrouping.parse(scriptCommand);
       skewNondefaultGroup = ParamUtilities.setParamIfPresent(scriptCommand,
-          SKEW_NONDEFAULT_GROUP_KEY, nondefaultGroupSize,
-          nondefaultGroupIntegerType);
+          SKEW_NONDEFAULT_GROUP_KEY, nondefaultGroupSize, nondefaultGroupIntegerType);
       localSkewOption.parse(scriptCommand);
       localSkewDefaultGrouping.parse(scriptCommand);
-      localSkewNondefaultGroup = ParamUtilities.setParamIfPresent(
-          scriptCommand, LOCAL_SKEW_NONDEFAULT_GROUP_KEY, nondefaultGroupSize,
+      localSkewNondefaultGroup = ParamUtilities.setParamIfPresent(scriptCommand,
+          LOCAL_SKEW_NONDEFAULT_GROUP_KEY, nondefaultGroupSize,
           nondefaultGroupIntegerType);
       residualReportCriterion.parse(scriptCommand);
       surfacesToAnalyze.parse(scriptCommand);
@@ -140,12 +134,12 @@ public final class TiltalignParam extends ConstTiltalignParam implements
       axisZShift.parse(scriptCommand);
       localAlignments.parse(scriptCommand);
       outputLocalFile = scriptCommand.getValue(outputLocalFileString);
-      ParamUtilities.setParamIfPresent(scriptCommand,
-          TARGET_PATCH_SIZE_X_AND_Y_KEY, targetPatchSizeXandY);
+      ParamUtilities.setParamIfPresent(scriptCommand, TARGET_PATCH_SIZE_X_AND_Y_KEY,
+          targetPatchSizeXandY);
       ParamUtilities.setParamIfPresent(scriptCommand,
           NUMBER_OF_LOCAL_PATCHES_X_AND_Y_KEY, numberOfLocalPatchesXandY);
-      ParamUtilities.setParamIfPresent(scriptCommand,
-          MIN_SIZE_OR_OVERLAP_X_AND_Y_KEY, minSizeOrOverlapXandY);
+      ParamUtilities.setParamIfPresent(scriptCommand, MIN_SIZE_OR_OVERLAP_X_AND_Y_KEY,
+          minSizeOrOverlapXandY);
       ParamUtilities.setParamIfPresent(scriptCommand,
           MIN_FIDS_TOTAL_AND_EACH_SURFACE_KEY, minFidsTotalAndEachSurface);
       fixXYZCoordinates.parse(scriptCommand);
@@ -244,8 +238,7 @@ public final class TiltalignParam extends ConstTiltalignParam implements
     //the model file or the residual file
     outputModelAndResidual = oldParam.getIMODFiducialPosFile();
     outputModelFile = oldParam.getIMODFiducialPosFile() + modelFileExtension;
-    outputResidualFile = oldParam.getIMODFiducialPosFile()
-        + residualFileExtension;
+    outputResidualFile = oldParam.getIMODFiducialPosFile() + residualFileExtension;
     outputFidXYZFile = oldParam.getAsciiFiducialPosFile();
     outputTiltFile = oldParam.getTiltAngleSolutionFile();
     outputTransformFile = oldParam.getTransformSolutionFile();
@@ -282,25 +275,24 @@ public final class TiltalignParam extends ConstTiltalignParam implements
       rotOption.set(rotationAngleSolutionType);
     }
 
-    localRotNondefaultGroup = setSolution(localRotOption,
-        localRotDefaultGrouping, null, oldParam.getLocalRotationSolution());
-    tiltNondefaultGroup = setSolution(tiltOption, tiltDefaultGrouping, null,
-        oldParam.getTiltAngleSolution());
-    localTiltNondefaultGroup = setSolution(localTiltOption,
-        localTiltDefaultGrouping, null, oldParam.getLocalTiltSolution());
-    magNondefaultGroup = setSolution(magOption, magDefaultGrouping,
-        magReferenceView, oldParam.getMagnificationSolution());
-    localMagNondefaultGroup = setSolution(localMagOption,
-        localMagDefaultGrouping, localMagReferenceView, oldParam
-            .getLocalMagnificationSolution());
-    xStretchNondefaultGroup = setSolution(xStretchOption,
-        xStretchDefaultGrouping, null, oldParam.getXstretchSolution());
+    localRotNondefaultGroup = setSolution(localRotOption, localRotDefaultGrouping, null,
+        oldParam.getLocalRotationSolution());
+    tiltNondefaultGroup = setSolution(tiltOption, tiltDefaultGrouping, null, oldParam
+        .getTiltAngleSolution());
+    localTiltNondefaultGroup = setSolution(localTiltOption, localTiltDefaultGrouping,
+        null, oldParam.getLocalTiltSolution());
+    magNondefaultGroup = setSolution(magOption, magDefaultGrouping, magReferenceView,
+        oldParam.getMagnificationSolution());
+    localMagNondefaultGroup = setSolution(localMagOption, localMagDefaultGrouping,
+        localMagReferenceView, oldParam.getLocalMagnificationSolution());
+    xStretchNondefaultGroup = setSolution(xStretchOption, xStretchDefaultGrouping, null,
+        oldParam.getXstretchSolution());
     localXStretchNondefaultGroup = setSolution(localXStretchOption,
         localXStretchDefaultGrouping, null, oldParam.getLocalXstretchSolution());
-    skewNondefaultGroup = setSolution(skewOption, skewDefaultGrouping, null,
-        oldParam.getSkewSolution());
-    localSkewNondefaultGroup = setSolution(localSkewOption,
-        localSkewDefaultGrouping, null, oldParam.getLocalSkewSolution());
+    skewNondefaultGroup = setSolution(skewOption, skewDefaultGrouping, null, oldParam
+        .getSkewSolution());
+    localSkewNondefaultGroup = setSolution(localSkewOption, localSkewDefaultGrouping,
+        null, oldParam.getLocalSkewSolution());
     residualReportCriterion.set(oldParam.getResidualThreshold());
     surfacesToAnalyze.set(oldParam.getNSurfaceAnalysis());
     metroFactor.set(oldParam.getMetroFactor());
@@ -319,25 +311,24 @@ public final class TiltalignParam extends ConstTiltalignParam implements
   }
 
   private FortranInputString[] setSolution(EtomoNumber option,
-      EtomoNumber defaultGrouping, EtomoNumber referenceView,
-      TiltalignSolution solution) throws FortranInputSyntaxException {
+      EtomoNumber defaultGrouping, EtomoNumber referenceView, TiltalignSolution solution)
+      throws FortranInputSyntaxException {
     if (solution == null) {
       return null;
     }
     if (option != null) {
       option.set(solution.type);
     }
-    if (defaultGrouping != null && solution.params != null
-        && solution.params.size() > 0 && !solution.params.isDefault(0)) {
+    if (defaultGrouping != null && solution.params != null && solution.params.size() > 0
+        && !solution.params.isDefault(0)) {
       defaultGrouping.set(solution.params.getInt(0));
     }
     if (referenceView != null && solution.referenceView != null
-        && solution.referenceView.size() > 0
-        && !solution.referenceView.isDefault(0)) {
+        && solution.referenceView.size() > 0 && !solution.referenceView.isDefault(0)) {
       referenceView.set(solution.referenceView.getInt(0));
     }
-    return ParamUtilities.parse(solution.additionalGroups,
-        nondefaultGroupIntegerType, nondefaultGroupSize);
+    return ParamUtilities.parse(solution.additionalGroups, nondefaultGroupIntegerType,
+        nondefaultGroupSize);
   }
 
   /**
@@ -353,27 +344,23 @@ public final class TiltalignParam extends ConstTiltalignParam implements
     scriptCommand.useKeywordValue();
 
     imagesAreBinned.updateComScript(scriptCommand);
-    ParamUtilities.updateScriptParameter(scriptCommand, modelFileString,
-        modelFile);
-    ParamUtilities.updateScriptParameter(scriptCommand, imageFileString,
-        imageFile);
+    ParamUtilities.updateScriptParameter(scriptCommand, modelFileString, modelFile);
+    ParamUtilities.updateScriptParameter(scriptCommand, imageFileString, imageFile);
     scriptCommand.deleteKey(outputModelAndResidualString);
     ParamUtilities.updateScriptParameter(scriptCommand, outputModelFileString,
         outputModelFile);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        outputResidualFileString, outputResidualFile);
+    ParamUtilities.updateScriptParameter(scriptCommand, outputResidualFileString,
+        outputResidualFile);
     ParamUtilities.updateScriptParameter(scriptCommand, outputFidXYZFileString,
         outputFidXYZFile);
     ParamUtilities.updateScriptParameter(scriptCommand, outputTiltFileString,
         outputTiltFile);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        outputTransformFileString, outputTransformFile);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        includeStartEndIncString, includeStartEndInc);
-    ParamUtilities.updateScriptParameter(scriptCommand, includeListString,
-        includeList);
-    ParamUtilities.updateScriptParameter(scriptCommand, EXCLUDE_LIST_KEY,
-        excludeList);
+    ParamUtilities.updateScriptParameter(scriptCommand, outputTransformFileString,
+        outputTransformFile);
+    ParamUtilities.updateScriptParameter(scriptCommand, includeStartEndIncString,
+        includeStartEndInc);
+    ParamUtilities.updateScriptParameter(scriptCommand, includeListString, includeList);
+    ParamUtilities.updateScriptParameter(scriptCommand, EXCLUDE_LIST_KEY, excludeList);
     rotationAngle.updateComScript(scriptCommand);
     separateGroup.updateComScript(scriptCommand);
     tiltAngleSpec.updateComScript(scriptCommand);
@@ -400,17 +387,17 @@ public final class TiltalignParam extends ConstTiltalignParam implements
     localAlignments.updateComScript(scriptCommand);
     ParamUtilities.updateScriptParameter(scriptCommand, outputLocalFileString,
         outputLocalFile);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        TARGET_PATCH_SIZE_X_AND_Y_KEY, targetPatchSizeXandY);
+    ParamUtilities.updateScriptParameter(scriptCommand, TARGET_PATCH_SIZE_X_AND_Y_KEY,
+        targetPatchSizeXandY);
     ParamUtilities.updateScriptParameter(scriptCommand,
         NUMBER_OF_LOCAL_PATCHES_X_AND_Y_KEY, numberOfLocalPatchesXandY);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        MIN_SIZE_OR_OVERLAP_X_AND_Y_KEY, minSizeOrOverlapXandY);
+    ParamUtilities.updateScriptParameter(scriptCommand, MIN_SIZE_OR_OVERLAP_X_AND_Y_KEY,
+        minSizeOrOverlapXandY);
     ParamUtilities.updateScriptParameter(scriptCommand,
         MIN_FIDS_TOTAL_AND_EACH_SURFACE_KEY, minFidsTotalAndEachSurface);
     fixXYZCoordinates.updateComScript(scriptCommand);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        localOutputOptionsString, localOutputOptions);
+    ParamUtilities.updateScriptParameter(scriptCommand, localOutputOptionsString,
+        localOutputOptions);
     localRotOption.updateComScript(scriptCommand);
     localRotDefaultGrouping.updateComScript(scriptCommand);
     localTiltOption.updateComScript(scriptCommand);
@@ -423,37 +410,36 @@ public final class TiltalignParam extends ConstTiltalignParam implements
     localSkewOption.updateComScript(scriptCommand);
     localSkewDefaultGrouping.updateComScript(scriptCommand);
     //optional parameters
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        outputZFactorFileString, outputZFactorFile);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        ROT_NONDEFAULT_GROUP_KEY, rotNondefaultGroup);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        TILT_NONDEFAULT_GROUP_KEY, tiltNondefaultGroup);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        MAG_NONDEFAULT_GROUP_KEY, magNondefaultGroup);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        X_STRETCH_NONDEFAULT_GROUP_KEY, xStretchNondefaultGroup);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        SKEW_NONDEFAULT_GROUP_KEY, skewNondefaultGroup);
+    ParamUtilities.updateScriptParameter(scriptCommand, outputZFactorFileString,
+        outputZFactorFile);
+    ParamUtilities.updateScriptParameter(scriptCommand, ROT_NONDEFAULT_GROUP_KEY,
+        rotNondefaultGroup);
+    ParamUtilities.updateScriptParameter(scriptCommand, TILT_NONDEFAULT_GROUP_KEY,
+        tiltNondefaultGroup);
+    ParamUtilities.updateScriptParameter(scriptCommand, MAG_NONDEFAULT_GROUP_KEY,
+        magNondefaultGroup);
+    ParamUtilities.updateScriptParameter(scriptCommand, X_STRETCH_NONDEFAULT_GROUP_KEY,
+        xStretchNondefaultGroup);
+    ParamUtilities.updateScriptParameter(scriptCommand, SKEW_NONDEFAULT_GROUP_KEY,
+        skewNondefaultGroup);
     //local optional parameters
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        LOCAL_ROT_NONDEFAULT_GROUP_KEY, localRotNondefaultGroup);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        LOCAL_TILT_NONDEFAULT_GROUP_KEY, localTiltNondefaultGroup);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        LOCAL_MAG_NONDEFAULT_GROUP_KEY, localMagNondefaultGroup);
+    ParamUtilities.updateScriptParameter(scriptCommand, LOCAL_ROT_NONDEFAULT_GROUP_KEY,
+        localRotNondefaultGroup);
+    ParamUtilities.updateScriptParameter(scriptCommand, LOCAL_TILT_NONDEFAULT_GROUP_KEY,
+        localTiltNondefaultGroup);
+    ParamUtilities.updateScriptParameter(scriptCommand, LOCAL_MAG_NONDEFAULT_GROUP_KEY,
+        localMagNondefaultGroup);
     ParamUtilities.updateScriptParameter(scriptCommand,
         LOCAL_X_STRETCH_NONDEFAULT_GROUP_KEY, localXStretchNondefaultGroup);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        LOCAL_SKEW_NONDEFAULT_GROUP_KEY, localSkewNondefaultGroup);
+    ParamUtilities.updateScriptParameter(scriptCommand, LOCAL_SKEW_NONDEFAULT_GROUP_KEY,
+        localSkewNondefaultGroup);
     beamTiltOption.updateComScript(scriptCommand, true);
     //Only using FixedOrInitialBeamTilt for fixed beam tilt
-    if (beamTiltOption.equals(FIXED_OPTION)
-        && !fixedOrInitialBeamTilt.isDefault()) {
+    if (beamTiltOption.equals(FIXED_OPTION) && !fixedOrInitialBeamTilt.isDefault()) {
       fixedOrInitialBeamTilt.updateComScript(scriptCommand);
     }
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        OUTPUT_X_AXIS_TILT_FILE_KEY, outputXAxisTiltFile);
+    ParamUtilities.updateScriptParameter(scriptCommand, OUTPUT_X_AXIS_TILT_FILE_KEY,
+        outputXAxisTiltFile);
   }
 
   public void initializeDefaults() {
@@ -523,8 +509,8 @@ public final class TiltalignParam extends ConstTiltalignParam implements
    */
   public void setLocalMagNondefaultGroup(final String localMagNondefaultGroup)
       throws FortranInputSyntaxException {
-    this.localMagNondefaultGroup = ParamUtilities.parse(
-        localMagNondefaultGroup, true, nondefaultGroupSize);
+    this.localMagNondefaultGroup = ParamUtilities.parse(localMagNondefaultGroup, true,
+        nondefaultGroupSize);
   }
 
   /**
@@ -546,8 +532,8 @@ public final class TiltalignParam extends ConstTiltalignParam implements
    */
   public void setLocalRotNondefaultGroup(String localRotNondefaultGroup)
       throws FortranInputSyntaxException {
-    this.localRotNondefaultGroup = ParamUtilities.parse(
-        localRotNondefaultGroup, true, nondefaultGroupSize);
+    this.localRotNondefaultGroup = ParamUtilities.parse(localRotNondefaultGroup, true,
+        nondefaultGroupSize);
   }
 
   /**
@@ -569,8 +555,8 @@ public final class TiltalignParam extends ConstTiltalignParam implements
    */
   public void setLocalSkewNondefaultGroup(String localSkewNondefaultGroup)
       throws FortranInputSyntaxException {
-    this.localSkewNondefaultGroup = ParamUtilities.parse(
-        localSkewNondefaultGroup, true, nondefaultGroupSize);
+    this.localSkewNondefaultGroup = ParamUtilities.parse(localSkewNondefaultGroup, true,
+        nondefaultGroupSize);
   }
 
   /**
@@ -592,8 +578,8 @@ public final class TiltalignParam extends ConstTiltalignParam implements
    */
   public void setLocalTiltNondefaultGroup(String localTiltNondefaultGroup)
       throws FortranInputSyntaxException {
-    this.localTiltNondefaultGroup = ParamUtilities.parse(
-        localTiltNondefaultGroup, true, nondefaultGroupSize);
+    this.localTiltNondefaultGroup = ParamUtilities.parse(localTiltNondefaultGroup, true,
+        nondefaultGroupSize);
   }
 
   /**
@@ -606,16 +592,15 @@ public final class TiltalignParam extends ConstTiltalignParam implements
   /**
    * @param localXStretchDefaultGrouping The localXStretchDefaultGrouping to set.
    */
-  public void setLocalXStretchDefaultGrouping(
-      String localXStretchDefaultGrouping) {
+  public void setLocalXStretchDefaultGrouping(String localXStretchDefaultGrouping) {
     this.localXStretchDefaultGrouping.set(localXStretchDefaultGrouping);
   }
 
   /**
    * @param localXStretchNondefaultGroup The localXStretchNondefaultGroup to set.
    */
-  public void setLocalXStretchNondefaultGroup(
-      String localXStretchNondefaultGroup) throws FortranInputSyntaxException {
+  public void setLocalXStretchNondefaultGroup(String localXStretchNondefaultGroup)
+      throws FortranInputSyntaxException {
     this.localXStretchNondefaultGroup = ParamUtilities.parse(
         localXStretchNondefaultGroup, true, nondefaultGroupSize);
   }
@@ -904,8 +889,8 @@ public final class TiltalignParam extends ConstTiltalignParam implements
    */
   public void setXStretchNondefaultGroup(String stretchNondefaultGroup)
       throws FortranInputSyntaxException {
-    xStretchNondefaultGroup = ParamUtilities.parse(stretchNondefaultGroup,
-        true, nondefaultGroupSize);
+    xStretchNondefaultGroup = ParamUtilities.parse(stretchNondefaultGroup, true,
+        nondefaultGroupSize);
   }
 
   /**
@@ -936,14 +921,13 @@ public final class TiltalignParam extends ConstTiltalignParam implements
         axisZShift.set(axisZShift.getDouble() * correctionBinning);
       }
     }
-    StringBuffer buffer = new StringBuffer("\nUpgraded align"
-        + axisID.getExtension() + ".com:\n");
+    StringBuffer buffer = new StringBuffer("\nUpgraded align" + axisID.getExtension()
+        + ".com:\n");
     if (correctionBinning > 1) {
       buffer.append("Multiplied binned " + axisZShift.getName() + " by "
           + correctionBinning + ".\n");
     }
-    buffer.append("Added " + imagesAreBinned.getName() + " " + currentBinning
-        + ".\n");
+    buffer.append("Added " + imagesAreBinned.getName() + " " + currentBinning + ".\n");
     System.err.println(buffer.toString());
     return true;
   }
@@ -951,6 +935,9 @@ public final class TiltalignParam extends ConstTiltalignParam implements
 
 /**
  * <p> $Log$
+ * <p> Revision 3.25  2010/09/23 22:15:58  sueh
+ * <p> bug# 1404 Allowing separateGroup to have multiple entries.
+ * <p>
  * <p> Revision 3.24  2010/07/19 04:31:10  sueh
  * <p> bug# 1393 In parseComScriptCommand added parse of localTiltOption.
  * <p>

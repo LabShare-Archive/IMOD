@@ -19,6 +19,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2010/02/17 04:47:54  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.4  2010/01/11 23:49:01  sueh
  * <p> bug# 1299 Added isMessageReporter.
  * <p>
@@ -56,10 +60,8 @@ public final class QueuechunkParam implements IntermittentCommand {
     return instance;
   }
 
-  private void setIntermittentCommand(String queue, AxisID axisID,
-      BaseManager manager) {
-    Node cluster = Network.getQueue(manager, queue, axisID, manager
-        .getPropertyUserDir());
+  private void setIntermittentCommand(String queue, AxisID axisID, BaseManager manager) {
+    Node cluster = Network.getQueue(manager, queue, axisID, manager.getPropertyUserDir());
     if (cluster != null) {
       intermittentCommand = "bash " + cluster.getCommand() + " -a L";
     }

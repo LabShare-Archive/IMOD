@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4  2005/11/14 21:22:51  sueh
+ * <p> removed extra ;'s.
+ * <p>
  * <p> Revision 3.3  2004/06/13 17:03:23  rickg
  * <p> Solvematch mid change
  * <p>
@@ -52,19 +55,15 @@ package etomo.comscript;
  * <p> Combine layout in progress
  * <p> </p>
  */
-public class SolvematchshiftParam
-  extends ConstSolvematchshiftParam
-  implements CommandParam {
-  public static final String rcsid =
-    "$Id$";
+public class SolvematchshiftParam extends ConstSolvematchshiftParam implements
+    CommandParam {
+  public static final String rcsid = "$Id$";
 
   /* (non-Javadoc)
    * @see etomo.comscript.CommandParam#initialize(etomo.comscript.ComScriptCommand)
    */
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
-    throws
-      BadComScriptException,
-      FortranInputSyntaxException,
+      throws BadComScriptException, FortranInputSyntaxException,
       InvalidParameterException {
     //  Check to be sure that it is a solvematch command
     if (!scriptCommand.getCommand().equals("solvematch")) {
@@ -74,11 +73,9 @@ public class SolvematchshiftParam
     //  Extract the parameters
     ComScriptInputArg[] inputArgs = scriptCommand.getInputArguments();
     if (inputArgs.length != 8) {
-      throw (
-        new BadComScriptException(
+      throw (new BadComScriptException(
           "Incorrect number of input arguments to solvematch command\nGot "
-            + String.valueOf(inputArgs.length)
-            + " expected 8."));
+              + String.valueOf(inputArgs.length) + " expected 8."));
     }
     int i = 0;
     toFiducialCoordinatesFile = inputArgs[i++].getArgument();
@@ -102,7 +99,7 @@ public class SolvematchshiftParam
    * @see etomo.comscript.CommandParam#updateComScript(etomo.comscript.ComScriptCommand)
    */
   public void updateComScriptCommand(ComScriptCommand scriptCommand)
-    throws BadComScriptException {
+      throws BadComScriptException {
     //  Check to be sure that it is a solvematch command
     if (!scriptCommand.getCommand().equals("solvematch")) {
       throw (new BadComScriptException("Not a solvematch command"));
@@ -111,17 +108,15 @@ public class SolvematchshiftParam
     //  Get the input arguments parameters to preserve the comments
     ComScriptInputArg[] inputArgs = scriptCommand.getInputArguments();
     if (inputArgs.length != 8) {
-      throw (
-        new BadComScriptException(
+      throw (new BadComScriptException(
           "Incorrect number of input arguments to solvematch command\nGot "
-            + String.valueOf(inputArgs.length)
-            + " expected 8."));
+              + String.valueOf(inputArgs.length) + " expected 8."));
     }
 
     //matchBToA has to be set correctly.  In case parseComScriptCommand() hasn't
     //been called, set is here to.
     setMatchBToA(inputArgs[0].getArgument());
-    
+
     //  Fill in the input argument sequence
     inputArgs[0].setArgument(toFiducialCoordinatesFile);
     scriptCommand.setInputArgument(0, inputArgs[0]);
@@ -139,7 +134,7 @@ public class SolvematchshiftParam
     else {
       inputArgs[2].setArgument(fiducialMatchListB.toString());
       scriptCommand.setInputArgument(2, inputArgs[2]);
-      
+
       inputArgs[3].setArgument(fiducialMatchListA.toString());
       scriptCommand.setInputArgument(3, inputArgs[3]);
     }
@@ -156,7 +151,7 @@ public class SolvematchshiftParam
     scriptCommand.setInputArgument(7, inputArgs[7]);
 
   }
-  
+
   protected void setMatchBToA(String toFile) {
     if (toFile == null || toFile.matches("\\s*")) {
       return;
@@ -169,7 +164,7 @@ public class SolvematchshiftParam
     }
     return;
   }
-  
+
   public void initializeDefaults() {
   }
 

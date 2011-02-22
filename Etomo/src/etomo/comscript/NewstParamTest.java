@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2010/04/28 16:04:44  sueh
+ * <p> bug# 1344 Make sure that the current manager is the front page manager.
+ * <p>
  * <p> Revision 3.7  2009/09/22 20:58:42  sueh
  * <p> bug# 1259 In order to process nonstandard tilt.com, added
  * <p> caseInsensitive and separateWithASpace.
@@ -61,8 +64,7 @@ public class NewstParamTest extends TestCase {
   protected void setUp() throws Exception {
     EtomoDirector.INSTANCE.closeCurrentManager(AxisID.ONLY, true);
     EtomoDirector.INSTANCE.openFrontPage(true, AxisID.ONLY);
-    manager = (FrontPageManager) EtomoDirector.INSTANCE
-        .getCurrentManagerForTest();
+    manager = (FrontPageManager) EtomoDirector.INSTANCE.getCurrentManagerForTest();
     manager.getMetaData().setAxisType(AxisType.SINGLE_AXIS);
     manager.getMetaData().setName("BBa");
     super.setUp();
@@ -88,8 +90,7 @@ public class NewstParamTest extends TestCase {
   /**
    * Test the old syntx newst command
    */
-  public void testParseOldSyntax(boolean caseInsensitive,
-      boolean separateWithASpace) {
+  public void testParseOldSyntax(boolean caseInsensitive, boolean separateWithASpace) {
     String oldSizeOption = "-si";
     String oldOffsetOption = "-offset";
     String oldXformOption = "-xform";
@@ -114,27 +115,19 @@ public class NewstParamTest extends TestCase {
       newstParam.parseComScriptCommand(scriptCommand);
     }
     catch (Exception e) {
-      fail("Unexpected exception: " + e.getClass().getName() + ": "
-          + e.getMessage());
+      fail("Unexpected exception: " + e.getClass().getName() + ": " + e.getMessage());
     }
 
     //  Test to see if the old old syntax was parsed correctly
-    assertEquals("Input filename mismatch", inputFile, newstParam
-        .getInputFile());
-    assertEquals("Output filename mismatch", outputFile, newstParam
-        .getOutputFile());
-    assertEquals("Transform filename mismatch", xformFile, newstParam
-        .getTransformFile());
-    assertEquals("Size parameter mismatch", size, newstParam
-        .getSizeToOutputInXandY());
-    assertEquals("Offset parameter mismatch", offset, newstParam
-        .getOffsetsInXandY());
-    assertTrue("Linear interpolation mismatch", newstParam
-        .isLinearInterpolation());
+    assertEquals("Input filename mismatch", inputFile, newstParam.getInputFile());
+    assertEquals("Output filename mismatch", outputFile, newstParam.getOutputFile());
+    assertEquals("Transform filename mismatch", xformFile, newstParam.getTransformFile());
+    assertEquals("Size parameter mismatch", size, newstParam.getSizeToOutputInXandY());
+    assertEquals("Offset parameter mismatch", offset, newstParam.getOffsetsInXandY());
+    assertTrue("Linear interpolation mismatch", newstParam.isLinearInterpolation());
   }
 
-  public void testParsingAndUpdatingComScriptCommand()
-      throws BadComScriptException {
+  public void testParsingAndUpdatingComScriptCommand() throws BadComScriptException {
     //ParseComScriptCommand() set values in NewstParam from a
     // ComScriptCommand.
     //UpdateComScriptCommand() creates a ComScriptCommand from the values
@@ -170,8 +163,7 @@ public class NewstParamTest extends TestCase {
       np.parseComScriptCommand(csc);
     }
     catch (Exception e) {
-      fail("Unexpected exception: " + e.getClass().getName() + ": "
-          + e.getMessage());
+      fail("Unexpected exception: " + e.getClass().getName() + ": " + e.getMessage());
     }
     assertEquals(np.getInputFile(), "");
     assertEquals(np.getOutputFile(), "");
@@ -188,13 +180,11 @@ public class NewstParamTest extends TestCase {
       np.parseComScriptCommand(csc);
     }
     catch (Exception e) {
-      fail("Unexpected exception: " + e.getClass().getName() + ": "
-          + e.getMessage());
+      fail("Unexpected exception: " + e.getClass().getName() + ": " + e.getMessage());
     }
     assertEquals("Input filename mismatch", inputFile, np.getInputFile());
     assertEquals("Output filename mismatch", outputFile, np.getOutputFile());
-    assertEquals("Transform filename mismatch", xformFile, np
-        .getTransformFile());
+    assertEquals("Transform filename mismatch", xformFile, np.getTransformFile());
     assertEquals("Size parameter mismatch", size, np.getSizeToOutputInXandY());
     assertEquals("Size parameter mismatch", offset, np.getOffsetsInXandY());
     assertTrue("Linear interpolation mismatch", np.isLinearInterpolation());
@@ -212,19 +202,19 @@ public class NewstParamTest extends TestCase {
     String[] commandLine = csc.getCommandLineArgs();
 
     //  Analysze the command line
-    assertTrue("Testing -SizeToOutputInXandY ", findStringPair(commandLine,
-        sizeOption, size) >= 0);
-    assertTrue("Testing -OffsetsInXandY ", findStringPair(commandLine,
-        offsetOption, offset) >= 0);
-    assertTrue("Testing -TransformFile ", findStringPair(commandLine,
-        xformOption, xformFile) >= 0);
-    assertTrue("Testing -SizeToOutputInXandY ", findString(commandLine,
-        linearOption) >= 0);
-    assertTrue("Testing input file ", findStringPair(commandLine,
-        inputFileOption, inputFile) >= 0);
+    assertTrue("Testing -SizeToOutputInXandY ", findStringPair(commandLine, sizeOption,
+        size) >= 0);
+    assertTrue("Testing -OffsetsInXandY ", findStringPair(commandLine, offsetOption,
+        offset) >= 0);
+    assertTrue("Testing -TransformFile ", findStringPair(commandLine, xformOption,
+        xformFile) >= 0);
+    assertTrue("Testing -SizeToOutputInXandY ",
+        findString(commandLine, linearOption) >= 0);
+    assertTrue("Testing input file ", findStringPair(commandLine, inputFileOption,
+        inputFile) >= 0);
 
-    assertTrue("Testing output file ", findStringPair(commandLine,
-        outputFileOption, outputFile) >= 0);
+    assertTrue("Testing output file ", findStringPair(commandLine, outputFileOption,
+        outputFile) >= 0);
     return commandLine;
   }
 

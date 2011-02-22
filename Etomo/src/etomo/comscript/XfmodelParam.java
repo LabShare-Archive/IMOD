@@ -36,6 +36,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2010/11/13 16:03:15  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.16  2010/04/28 16:13:35  sueh
  * <p> bug# 1344 Added getOutputImageFileType functions.
  * <p>
@@ -132,8 +135,7 @@ public final class XfmodelParam implements CommandDetails {
     options.add("-XformsToApply");
     options.add(DatasetFiles.getTransformFileName(manager, axisID));
     options.add(DatasetFiles.getFiducialModelName(manager, axisID));
-    options.add(FileType.CCD_ERASER_BEADS_INPUT_MODEL.getFileName(manager,
-        axisID));
+    options.add(FileType.CCD_ERASER_BEADS_INPUT_MODEL.getFileName(manager, axisID));
     return options;
   }
 
@@ -222,8 +224,8 @@ public final class XfmodelParam implements CommandDetails {
       }
       if (inFile.equals(outFile)) {
         UIHarness.INSTANCE.openMessageDialog(manager,
-            "Cannot overwrite xfmodel input file, " + inFile
-                + " with output file, " + outFile + ".", "XfmodelParam Error");
+            "Cannot overwrite xfmodel input file, " + inFile + " with output file, "
+                + outFile + ".", "XfmodelParam Error");
         return false;
       }
     }
@@ -304,8 +306,8 @@ public final class XfmodelParam implements CommandDetails {
     return COMMAND_NAME;
   }
 
-  public List getLogMessage() throws LogFile.LockException,
-      FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+      IOException {
     return null;
   }
 
@@ -333,13 +335,11 @@ public final class XfmodelParam implements CommandDetails {
     return null;
   }
 
-  public ConstEtomoNumber getEtomoNumber(
-      etomo.comscript.FieldInterface fieldInterface) {
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstIntKeyList getIntKeyList(
-      etomo.comscript.FieldInterface fieldInterface) {
+  public ConstIntKeyList getIntKeyList(etomo.comscript.FieldInterface fieldInterface) {
 
     throw new IllegalArgumentException("field=" + fieldInterface);
   }

@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.7  2006/09/13 23:16:56  sueh
+ * <p> bug# 921 Added initialShiftXYZ.
+ * <p>
  * <p> Revision 3.6  2006/08/29 20:03:19  sueh
  * <p> bug# 924 Added kernelSigma.
  * <p>
@@ -61,8 +64,7 @@ package etomo.comscript;
  * To change this generated comment go to 
  * Window>Preferences>Java>Code Generation>Code Template
  */
-public class Patchcrawl3DParam extends ConstPatchcrawl3DParam implements
-    CommandParam {
+public class Patchcrawl3DParam extends ConstPatchcrawl3DParam implements CommandParam {
   public static final String rcsid = "$Id:";
 
   public static final String COMMAND = "corrsearch3d";
@@ -106,8 +108,7 @@ public class Patchcrawl3DParam extends ConstPatchcrawl3DParam implements
    * @param param
    * @throws FortranInputSyntaxException
    */
-  public void load(Patchcrawl3DPrePIPParam param)
-      throws FortranInputSyntaxException {
+  public void load(Patchcrawl3DPrePIPParam param) throws FortranInputSyntaxException {
     if (!convertToPIP) {
       throw new IllegalStateException("!convertToPIP in load()");
     }
@@ -159,8 +160,7 @@ public class Patchcrawl3DParam extends ConstPatchcrawl3DParam implements
       throws BadComScriptException {
     String command = scriptCommand.getCommand();
     //  Check to be sure that it is the right command
-    if (!command.equals(COMMAND)
-        && !(command.equals("patchcrawl3d") && convertToPIP)) {
+    if (!command.equals(COMMAND) && !(command.equals("patchcrawl3d") && convertToPIP)) {
       throw (new BadComScriptException("Not a " + COMMAND + " command"));
     }
 
@@ -190,22 +190,19 @@ public class Patchcrawl3DParam extends ConstPatchcrawl3DParam implements
     xMinAndMax.updateScriptParameter(scriptCommand);
     yMinAndMax.updateScriptParameter(scriptCommand);
     zMinAndMax.updateScriptParameter(scriptCommand);
-    ParamUtilities.updateScriptParameter(scriptCommand, REGION_MODEL_KEY,
-        regionModel);
+    ParamUtilities.updateScriptParameter(scriptCommand, REGION_MODEL_KEY, regionModel);
     initialShiftXYZ.updateScriptParameter(scriptCommand);
     kernelSigma.updateComScript(scriptCommand);
     if (convertToPIP) {
       scriptCommand.setCommand(COMMAND);
       ParamUtilities.updateScriptParameter(scriptCommand, REFERENCE_FILE_KEY,
           referenceFile);
-      ParamUtilities.updateScriptParameter(scriptCommand, FILE_TO_ALIGN_KEY,
-          fileToAlign);
-      ParamUtilities.updateScriptParameter(scriptCommand, OUTPUT_FILE_KEY,
-          outputFile);
-      ParamUtilities.updateScriptParameter(scriptCommand,
-          B_SOURCE_TRANSFORM_KEY, bSourceTransform);
-      ParamUtilities.updateScriptParameter(scriptCommand,
-          B_SOURCE_OR_SIZE_XYZ_KEY, bSourceOrSizeXYZ);
+      ParamUtilities.updateScriptParameter(scriptCommand, FILE_TO_ALIGN_KEY, fileToAlign);
+      ParamUtilities.updateScriptParameter(scriptCommand, OUTPUT_FILE_KEY, outputFile);
+      ParamUtilities.updateScriptParameter(scriptCommand, B_SOURCE_TRANSFORM_KEY,
+          bSourceTransform);
+      ParamUtilities.updateScriptParameter(scriptCommand, B_SOURCE_OR_SIZE_XYZ_KEY,
+          bSourceOrSizeXYZ);
       bSourceBorderXLoHi.updateScriptParameter(scriptCommand);
       bSourceBorderYZLoHi.updateScriptParameter(scriptCommand);
     }

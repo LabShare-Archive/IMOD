@@ -15,6 +15,9 @@ import java.util.ArrayList;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4  2010/04/28 15:59:50  sueh
+ * <p> bug# 1344 Reformatted.
+ * <p>
  * <p> Revision 3.3  2006/09/19 21:59:52  sueh
  * <p> bug# 928 Added residualFile, vectormodel, and clipsize.
  * <p>
@@ -44,8 +47,7 @@ import java.util.ArrayList;
  * <p> </p>
  */
 
-public class MatchorwarpParam extends ConstMatchorwarpParam implements
-    CommandParam {
+public class MatchorwarpParam extends ConstMatchorwarpParam implements CommandParam {
   /* (non-Javadoc)
    * @see 
    * etomo.comscript.CommandParam#initialize(etomo.comscript.ComScriptCommand)
@@ -267,8 +269,7 @@ public class MatchorwarpParam extends ConstMatchorwarpParam implements
     cmdLineArgs.add(outputFile);
 
     int nArgs = cmdLineArgs.size();
-    scriptCommand.setCommandLineArgs((String[]) cmdLineArgs
-        .toArray(new String[nArgs]));
+    scriptCommand.setCommandLineArgs((String[]) cmdLineArgs.toArray(new String[nArgs]));
   }
 
   public void initializeDefaults() {

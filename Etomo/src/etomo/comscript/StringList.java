@@ -15,6 +15,9 @@ import java.util.ArrayList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2010/09/24 00:54:43  sueh
+ * <p> bug# 1404 Added mConvertToSingleEntry.
+ * <p>
  * <p> Revision 3.4  2010/09/23 21:06:49  sueh
  * <p> bug# 1404 Added boolean successiveEntriesAccumulate.  Added parse
  * <p> ComScriptCommand).  Removed successiveEntriesAccumulate
@@ -187,8 +190,7 @@ public class StringList {
       mElements[0] = (String) elementArray.get(0);
     }
     else {
-      mElements = (String[]) elementArray.toArray(new String[elementArray
-          .size()]);
+      mElements = (String[]) elementArray.toArray(new String[elementArray.size()]);
     }
   }
 
@@ -207,8 +209,7 @@ public class StringList {
     }
   }
 
-  public void parse(ComScriptCommand scriptCommand)
-      throws InvalidParameterException {
+  public void parse(ComScriptCommand scriptCommand) throws InvalidParameterException {
     if (mSuccessiveEntriesAccumulate) {
       parseString(scriptCommand.getValues(mKey));
     }
@@ -227,8 +228,7 @@ public class StringList {
       while (scriptCommand.deleteKey(mKey)) {
       }
     }
-    if (mSuccessiveEntriesAccumulate && !mConvertToSingleEntry
-        && getNElements() > 1) {
+    if (mSuccessiveEntriesAccumulate && !mConvertToSingleEntry && getNElements() > 1) {
       //output separate entries
       scriptCommand.setValues(mKey, mElements);
     }

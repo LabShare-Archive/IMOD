@@ -22,6 +22,10 @@ import etomo.util.Montagesize;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2010/02/17 04:47:54  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.2  2009/03/17 00:33:25  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -38,16 +42,13 @@ final class Utilities {
         || (imageRotation < -45 && imageRotation > -135);
   }
 
-  static Goodframe getGoodframeFromMontageSize(AxisID axisID,
-      BaseManager manager) {
+  static Goodframe getGoodframeFromMontageSize(AxisID axisID, BaseManager manager) {
     Montagesize montagesize = Montagesize.getInstance(manager, axisID);
     try {
       montagesize.read(manager);
       if (montagesize.isFileExists()) {
-        Goodframe goodframe = new Goodframe(manager.getPropertyUserDir(),
-            axisID);
-        goodframe.run(manager, montagesize.getX().getInt(), montagesize.getY()
-            .getInt());
+        Goodframe goodframe = new Goodframe(manager.getPropertyUserDir(), axisID);
+        goodframe.run(manager, montagesize.getX().getInt(), montagesize.getY().getInt());
         return goodframe;
       }
     }

@@ -34,6 +34,9 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2010/11/13 16:03:15  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.16  2010/04/28 16:05:12  sueh
  * <p> bug# 1344 Added getOutputImageFileType functions.
  * <p>
@@ -122,13 +125,12 @@ public final class PeetParserParam implements CommandDetails {
               + "to the location of the directory containing the PEET "
               + "software.  Make sure the PEET package is installed "
               + "(typically installed in /usr/local/Particle).  To download "
-              + "PEET, go to ftp://bio3d.colorado.edu/PEET.",
-          "Environment Error");
+              + "PEET, go to ftp://bio3d.colorado.edu/PEET.", "Environment Error");
       return null;
     }
-    File commandFile = new File(new File(EnvironmentVariable.INSTANCE.getValue(
-        manager, manager.getPropertyUserDir(), "PARTICLE_DIR", AxisID.ONLY),
-        "bin"), PROCESS_NAME.toString());
+    File commandFile = new File(new File(EnvironmentVariable.INSTANCE.getValue(manager,
+        manager.getPropertyUserDir(), "PARTICLE_DIR", AxisID.ONLY), "bin"), PROCESS_NAME
+        .toString());
     command[1] = commandFile.getAbsolutePath();
     command[2] = prmFile.getName();
     if (debug) {
@@ -147,8 +149,8 @@ public final class PeetParserParam implements CommandDetails {
     return new File(prmFile.getAbsolutePath() + ".log");
   }
 
-  public List getLogMessage() throws LogFile.LockException,
-      FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+      IOException {
     List message = new ArrayList();
     message.add(MatlabParam.SZ_VOL_KEY + " = " + szVol);
     message.add(MatlabParam.LST_FLAG_ALL_TOM_KEY + " = " + lstFlagAllTom);
@@ -264,13 +266,11 @@ public final class PeetParserParam implements CommandDetails {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstEtomoNumber getEtomoNumber(
-      etomo.comscript.FieldInterface fieldInterface) {
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstIntKeyList getIntKeyList(
-      etomo.comscript.FieldInterface fieldInterface) {
+  public ConstIntKeyList getIntKeyList(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 

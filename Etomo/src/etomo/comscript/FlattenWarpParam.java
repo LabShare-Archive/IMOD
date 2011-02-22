@@ -24,6 +24,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2010/05/28 04:22:04  sueh
+ * <p> bug# 1381 Added criterionForOutliers.
+ * <p>
  * <p> Revision 1.4  2010/05/27 16:49:01  sueh
  * <p> bug# 1378 Added LAMBDA_FOR_SMOOTHING_ASSESSMENT_DEFAULT
  * <p>
@@ -62,8 +65,7 @@ public final class FlattenWarpParam {
   }
 
   private void buildCommand() {
-    command.add(BaseManager.getIMODBinPath()
-        + ProcessName.FLATTEN_WARP.toString());
+    command.add(BaseManager.getIMODBinPath() + ProcessName.FLATTEN_WARP.toString());
     command.add("-PID");
     command.add("-InputFile");
     command.add(FileType.FLATTEN_WARP_INPUT_MODEL.getFileName(manager));

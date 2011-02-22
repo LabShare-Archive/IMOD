@@ -11,6 +11,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.41  2010/04/28 16:12:00  sueh
+ * <p> bug# 1344 Added a list of modes.  Added mode to the constructor.  Added
+ * <p> getOutputImageFileType functions.
+ * <p>
  * <p> Revision 3.40  2010/02/17 04:47:54  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -344,24 +348,22 @@ public class TrimvolParam implements CommandDetails {
     zMin.loadIfPresent(props, prepend);
     zMax.loadIfPresent(props, prepend);
     convertToBytes = Boolean.valueOf(
-        props.getProperty(group + CONVERT_TO_BYTES, Boolean
-            .toString(convertToBytes))).booleanValue();
+        props.getProperty(group + CONVERT_TO_BYTES, Boolean.toString(convertToBytes)))
+        .booleanValue();
 
-    fixedScaling = Boolean
-        .valueOf(
-            props.getProperty(group + FIXED_SCALING, Boolean
-                .toString(fixedScaling))).booleanValue();
+    fixedScaling = Boolean.valueOf(
+        props.getProperty(group + FIXED_SCALING, Boolean.toString(fixedScaling)))
+        .booleanValue();
     flippedVolume = Boolean.valueOf(
-        props.getProperty(group + FLIPPED_VOLUME, Boolean
-            .toString(flippedVolume))).booleanValue();
+        props.getProperty(group + FLIPPED_VOLUME, Boolean.toString(flippedVolume)))
+        .booleanValue();
     sectionScaleMin.load(props, prepend);
     sectionScaleMax.load(props, prepend);
     fixedScaleMin.load(props, prepend);
     fixedScaleMax.load(props, prepend);
 
     swapYZ = Boolean.valueOf(
-        props.getProperty(group + swapYZString, Boolean.toString(swapYZ)))
-        .booleanValue();
+        props.getProperty(group + swapYZString, Boolean.toString(swapYZ))).booleanValue();
 
     rotateX = Boolean.valueOf(
         props.getProperty(group + ROTATE_X_KEY, Boolean.toString(rotateX)))
@@ -487,14 +489,12 @@ public class TrimvolParam implements CommandDetails {
         options.add("-s");
         options.add(String.valueOf(sectionScaleMin) + ","
             + String.valueOf(sectionScaleMax));
-        if (!scaleXYParam.getXMin().isNull()
-            && !scaleXYParam.getXMax().isNull()) {
+        if (!scaleXYParam.getXMin().isNull() && !scaleXYParam.getXMax().isNull()) {
           options.add("-sx");
           options.add(scaleXYParam.getXMin().toString() + ","
               + scaleXYParam.getXMax().toString());
         }
-        if (!scaleXYParam.getYMin().isNull()
-            && !scaleXYParam.getYMax().isNull()) {
+        if (!scaleXYParam.getYMin().isNull() && !scaleXYParam.getYMax().isNull()) {
           options.add("-sy");
           options.add(scaleXYParam.getYMin().toString() + ","
               + scaleXYParam.getYMax().toString());
@@ -742,8 +742,7 @@ public class TrimvolParam implements CommandDetails {
     return nSectionsChanged;
   }
 
-  private boolean hasInputFileSizeChanged(MRCHeader mrcHeader,
-      TomogramState state) {
+  private boolean hasInputFileSizeChanged(MRCHeader mrcHeader, TomogramState state) {
     boolean changed = false;
     if (!state.isPostProcTrimVolInputNColumnsNull()
         && mrcHeader.getNColumns() != state.getPostProcTrimVolInputNColumns()) {
@@ -786,8 +785,8 @@ public class TrimvolParam implements CommandDetails {
     // Get the data size limits from the image stack
     BaseMetaData metaData = manager.getBaseMetaData();
     MRCHeader mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        TrimvolParam.getInputFileName(metaData.getAxisType(), metaData
-            .getName()), AxisID.ONLY);
+        TrimvolParam.getInputFileName(metaData.getAxisType(), metaData.getName()),
+        AxisID.ONLY);
     if (!mrcHeader.read(manager)) {
       throw new IOException("file does not exist");
     }
@@ -801,9 +800,8 @@ public class TrimvolParam implements CommandDetails {
     //Make sure that the dialog is refreshed the first time the dialog is
     //displayed.  Also fix any null values that may have appeared.  This is
     //done because there was a bug which caused null values.
-    if (!dialogExists || nColumnsChanged
-        || ((swapYZ || rotateX) && nSectionsChanged) || !swapYZ && !rotateX
-        && nRowsChanged) {
+    if (!dialogExists || nColumnsChanged || ((swapYZ || rotateX) && nSectionsChanged)
+        || !swapYZ && !rotateX && nRowsChanged) {
       xMin.set(1);
       xMax.set(mrcHeader.getNColumns());
     }
@@ -946,13 +944,11 @@ public class TrimvolParam implements CommandDetails {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstEtomoNumber getEtomoNumber(
-      etomo.comscript.FieldInterface fieldInterface) {
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstIntKeyList getIntKeyList(
-      etomo.comscript.FieldInterface fieldInterface) {
+  public ConstIntKeyList getIntKeyList(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
@@ -988,8 +984,8 @@ public class TrimvolParam implements CommandDetails {
     return commandName;
   }
 
-  public List getLogMessage() throws LogFile.LockException,
-      FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+      IOException {
     return null;
   }
 
@@ -1082,8 +1078,7 @@ public class TrimvolParam implements CommandDetails {
       return false;
     }
     if (!outputFile.equals(trim.getCommandOutputFile())
-        && (outputFile.equals("\\S+") || trim.getCommandOutputFile().equals(
-            "\\S+"))) {
+        && (outputFile.equals("\\S+") || trim.getCommandOutputFile().equals("\\S+"))) {
       return false;
     }
     if (!scaleXYParam.equals(trim.scaleXYParam)) {

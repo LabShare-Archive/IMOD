@@ -26,6 +26,9 @@ import etomo.type.Transform;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2010/04/28 16:12:55  sueh
+ * <p> bug# 1344 Added getOutputImageFileType functions.
+ * <p>
  * <p> Revision 1.21  2010/01/11 23:49:01  sueh
  * <p> bug# 1299 Added isMessageReporter.
  * <p>
@@ -218,7 +221,7 @@ public class XfalignParam implements Command {
   public File getCommandOutputFile() {
     return outputFile;
   }
-  
+
   public FileType getOutputImageFileType() {
     return null;
   }
@@ -234,6 +237,7 @@ public class XfalignParam implements Command {
   public CommandMode getCommandMode() {
     return mode;
   }
+
   public boolean isMessageReporter() {
     return false;
   }
@@ -271,21 +275,17 @@ public class XfalignParam implements Command {
   }
 
   private void genFilterOptions(ArrayList options) {
-    ScriptParameter sigmaLowFrequency = metaData
-        .getSigmaLowFrequencyParameter();
-    ScriptParameter cutoffHighFrequency = metaData
-        .getCutoffHighFrequencyParameter();
-    ScriptParameter sigmaHighFrequency = metaData
-        .getSigmaHighFrequencyParameter();
+    ScriptParameter sigmaLowFrequency = metaData.getSigmaLowFrequencyParameter();
+    ScriptParameter cutoffHighFrequency = metaData.getCutoffHighFrequencyParameter();
+    ScriptParameter sigmaHighFrequency = metaData.getSigmaHighFrequencyParameter();
     //optional
     if (sigmaLowFrequency.isNotNullAndNotDefault()
         || cutoffHighFrequency.isNotNullAndNotDefault()
         || sigmaHighFrequency.isNotNullAndNotDefault()) {
       options.add("-fil");
       //all three numbers must exist
-      options.add(sigmaLowFrequency.toString() + ","
-          + sigmaHighFrequency.toString() + ",0,"
-          + cutoffHighFrequency.toString());
+      options.add(sigmaLowFrequency.toString() + "," + sigmaHighFrequency.toString()
+          + ",0," + cutoffHighFrequency.toString());
     }
   }
 

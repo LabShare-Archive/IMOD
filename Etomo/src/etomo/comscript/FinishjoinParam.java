@@ -41,6 +41,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.43  2010/11/13 16:03:15  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.42  2010/04/28 15:54:48  sueh
  * <p> bug# 1344 Added getOutputImageFileType functions.
  * <p>
@@ -266,8 +269,7 @@ public final class FinishjoinParam implements CommandDetails {
     this.manager = manager;
     this.mode = mode;
     rootName = manager.getBaseMetaData().getName();
-    outputFile = new File(manager.getPropertyUserDir(), rootName
-        + DatasetFiles.JOIN_EXT);
+    outputFile = new File(manager.getPropertyUserDir(), rootName + DatasetFiles.JOIN_EXT);
     ArrayList options;
     if (mode == Mode.REJOIN || mode == Mode.SUPPRESS_EXECUTION
         || mode == Mode.TRIAL_REJOIN) {
@@ -308,8 +310,7 @@ public final class FinishjoinParam implements CommandDetails {
     return AxisID.ONLY;
   }
 
-  public ConstEtomoNumber getEtomoNumber(
-      etomo.comscript.FieldInterface fieldInterface) {
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.FieldInterface fieldInterface) {
     if (fieldInterface == Fields.ALIGNMENT_REF_SECTION) {
       return alignmentRefSection;
     }
@@ -337,8 +338,7 @@ public final class FinishjoinParam implements CommandDetails {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstIntKeyList getIntKeyList(
-      etomo.comscript.FieldInterface fieldInterface) {
+  public ConstIntKeyList getIntKeyList(etomo.comscript.FieldInterface fieldInterface) {
     if (fieldInterface == Fields.JOIN_START_LIST) {
       return joinStartList;
     }
@@ -402,8 +402,8 @@ public final class FinishjoinParam implements CommandDetails {
     return COMMAND_NAME;
   }
 
-  public List getLogMessage() throws LogFile.LockException,
-      FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+      IOException {
     return null;
   }
 
@@ -572,8 +572,8 @@ public final class FinishjoinParam implements CommandDetails {
       options.add("-o");
       //both numbers must exist
       //offset is a negative shift
-      options.add(Integer.toString(state.getJoinShiftInX(trial).getInt() * -1)
-          + "," + Integer.toString(state.getJoinShiftInY(trial).getInt() * -1));
+      options.add(Integer.toString(state.getJoinShiftInX(trial).getInt() * -1) + ","
+          + Integer.toString(state.getJoinShiftInY(trial).getInt() * -1));
     }
     if (state.isJoinLocalFits(trial)) {
       options.add("-l");
@@ -600,8 +600,7 @@ public final class FinishjoinParam implements CommandDetails {
     //from the boundary table
     IntKeyList.Walker startListWalker = state.getJoinStartListWalker(trial);
     IntKeyList.Walker endListWalker = state.getJoinEndListWalker(trial);
-    IntKeyList.Walker gapStartListWalker = metaData
-        .getBoundaryRowStartListWalker();
+    IntKeyList.Walker gapStartListWalker = metaData.getBoundaryRowStartListWalker();
     IntKeyList.Walker gapEndListWalker = metaData.getBoundaryRowEndListWalker();
     //Make sure that lists are valid
     int numRows = startListWalker.size();

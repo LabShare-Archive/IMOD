@@ -35,6 +35,11 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.28  2010/04/28 16:03:57  sueh
+ * <p> bug# 1344 Added getOutputImageFileType functions.  Changed outputFile
+ * <p> from Vector to String because current code does not work with an output
+ * <p> file vector of more then one.
+ * <p>
  * <p> Revision 3.27  2010/02/17 04:47:53  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -206,16 +211,12 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
    */
   private FileType outputFileType = null;
   private final Vector sectionsToRead = new Vector();
-  private final FortranInputString sizeToOutputInXandY = new FortranInputString(
-      2);
-  private final FortranInputString userSizeToOutputInXandY = new FortranInputString(
-      2);
+  private final FortranInputString sizeToOutputInXandY = new FortranInputString(2);
+  private final FortranInputString userSizeToOutputInXandY = new FortranInputString(2);
   private final Vector offsetsInXandY = new Vector();
-  private final FortranInputString contrastBlackWhite = new FortranInputString(
-      2);
+  private final FortranInputString contrastBlackWhite = new FortranInputString(2);
   private final FortranInputString testLimits = new FortranInputString(2);
-  private final EtomoNumber imageRotation = new EtomoNumber(
-      EtomoNumber.Type.FLOAT);
+  private final EtomoNumber imageRotation = new EtomoNumber(EtomoNumber.Type.FLOAT);
 
   private ProcessName processName = ProcessName.NEWST;
   /**
@@ -343,8 +344,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
         else if (cmdLineArgs[i].toLowerCase().startsWith("-a")) {
           applyOffsetsFirst = true;
         }
-        else if (cmdLineArgs[i].startsWith("-x")
-            || cmdLineArgs[i].startsWith("-Tr")) {
+        else if (cmdLineArgs[i].startsWith("-x") || cmdLineArgs[i].startsWith("-Tr")) {
           i++;
           transformFile = cmdLineArgs[i];
         }
@@ -522,8 +522,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
       cmdLineArgs.add("-origin");
     }
     int nArgs = cmdLineArgs.size();
-    scriptCommand.setCommandLineArgs((String[]) cmdLineArgs
-        .toArray(new String[nArgs]));
+    scriptCommand.setCommandLineArgs((String[]) cmdLineArgs.toArray(new String[nArgs]));
 
     // If the command is currently newst change it to newstack
     if (scriptCommand.getCommand().equals("newst")) {
@@ -534,8 +533,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   public void initializeDefaults() {
   }
 
-  public void setOffset(final String newOffset)
-      throws FortranInputSyntaxException {
+  public void setOffset(final String newOffset) throws FortranInputSyntaxException {
     offsetsInXandY.clear();
     offsetsInXandY.add(newOffset);
   }
@@ -741,8 +739,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   /**
    * @param testLimits The testLimits to set.
    */
-  public void setTestLimits(final String limits)
-      throws FortranInputSyntaxException {
+  public void setTestLimits(final String limits) throws FortranInputSyntaxException {
     testLimits.validateAndSet(limits);
   }
 
@@ -995,8 +992,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   }
 
   public boolean isSizeToOutputInXandYSet() {
-    return sizeToOutputInXandY.valuesSet()
-        && (!sizeToOutputInXandY.isDefault());
+    return sizeToOutputInXandY.valuesSet() && (!sizeToOutputInXandY.isDefault());
   }
 
   public String getCommand() {
@@ -1004,8 +1000,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   }
 
   public String getCommandFileName(final AxisID axisID) {
-    return processName.toString() + axisID.getExtension()
-        + COMMAND_FILE_EXTENSION;
+    return processName.toString() + axisID.getExtension() + COMMAND_FILE_EXTENSION;
   }
 
   public String getCommandLine() {
@@ -1016,8 +1011,8 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     return processName.toString();
   }
 
-  public List getLogMessage() throws LogFile.LockException,
-      FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+      IOException {
     return null;
   }
 
@@ -1117,8 +1112,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   }
 
   public static final class Mode implements CommandMode {
-    public static final Mode WHOLE_TOMOGRAM_SAMPLE = new Mode(
-        "WholeTomogramSample");
+    public static final Mode WHOLE_TOMOGRAM_SAMPLE = new Mode("WholeTomogramSample");
     public static final Mode FULL_ALIGNED_STACK = new Mode("FullAlignedStack");
 
     private final String string;

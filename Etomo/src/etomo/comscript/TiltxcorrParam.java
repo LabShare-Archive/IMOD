@@ -28,6 +28,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17  2010/04/28 16:09:35  sueh
+ * <p> bug# 1344 Added getOutputImageFileType functions.
+ * <p>
  * <p> Revision 3.16  2010/03/18 22:42:09  sueh
  * <p> bug# 1311 Don't put a display value in iterateCorrelations since it is not
  * <p> used in xcorr.com (this didn't cause any problems).
@@ -174,12 +177,12 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
 
   //was filterParams
   private double filterRadius1;
-  private ScriptParameter filterRadius2 = new ScriptParameter(
-      EtomoNumber.Type.DOUBLE, "FilterRadius2");
-  private ScriptParameter filterSigma1 = new ScriptParameter(
-      EtomoNumber.Type.DOUBLE, "FilterSigma1");
-  private ScriptParameter filterSigma2 = new ScriptParameter(
-      EtomoNumber.Type.DOUBLE, "FilterSigma2");
+  private ScriptParameter filterRadius2 = new ScriptParameter(EtomoNumber.Type.DOUBLE,
+      "FilterRadius2");
+  private ScriptParameter filterSigma1 = new ScriptParameter(EtomoNumber.Type.DOUBLE,
+      "FilterSigma1");
+  private ScriptParameter filterSigma2 = new ScriptParameter(EtomoNumber.Type.DOUBLE,
+      "FilterSigma2");
   private final ScriptParameter angleOffset = new ScriptParameter(
       EtomoNumber.Type.DOUBLE, "AngleOffset");
 
@@ -195,8 +198,7 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
       ITERATE_CORRELATIONS_KEY);
   private final FortranInputString shiftLimitsXandY;
   private final FortranInputString lengthAndOverlap;
-  private final StringParameter boundaryModel = new StringParameter(
-      BOUNDARY_MODEL_KEY);
+  private final StringParameter boundaryModel = new StringParameter(BOUNDARY_MODEL_KEY);
   private final ProcessName processName;
 
   private boolean partialSave = false;
@@ -229,10 +231,8 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
     sizeOfPatchesXandY = new FortranInputString(SIZE_OF_PATCHES_X_AND_Y_KEY, 2);
     sizeOfPatchesXandY.setIntegerType(0, true);
     sizeOfPatchesXandY.setIntegerType(1, true);
-    overlapOfPatchesXandY = new FortranInputString(
-        OVERLAP_OF_PATCHES_X_AND_Y_KEY, 2);
-    numberOfPatchesXandY = new FortranInputString(
-        NUMBER_OF_PATCHES_X_AND_Y_KEY, 2);
+    overlapOfPatchesXandY = new FortranInputString(OVERLAP_OF_PATCHES_X_AND_Y_KEY, 2);
+    numberOfPatchesXandY = new FortranInputString(NUMBER_OF_PATCHES_X_AND_Y_KEY, 2);
     numberOfPatchesXandY.setIntegerType(0, true);
     numberOfPatchesXandY.setIntegerType(1, true);
     iterateCorrelations.setFloor(ITERATE_CORRELATIONS_MIN);
@@ -253,14 +253,14 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
    * @param axisID
    * @return
    */
-  public static String getLengthAndOverlapDefault(BaseManager manager,
-      AxisID axisID, FileType fileType) {
+  public static String getLengthAndOverlapDefault(BaseManager manager, AxisID axisID,
+      FileType fileType) {
     EtomoNumber lengthAndOverlap = new EtomoNumber();
     int lengthAndOverlapFloor = 16;
     lengthAndOverlap.setFloor(lengthAndOverlapFloor);
     lengthAndOverlap.setDisplayValue(lengthAndOverlapFloor);
-    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        fileType.getFileName(manager, axisID), axisID);
+    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(), fileType
+        .getFileName(manager, axisID), axisID);
     try {
       header.read(manager);
       int z = header.getNSections();
@@ -277,12 +277,12 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
     return lengthAndOverlap.toString() + ",4";
   }
 
-  public static String getBordersInXandYDefault(BaseManager manager,
-      AxisID axisID, FileType fileType) {
+  public static String getBordersInXandYDefault(BaseManager manager, AxisID axisID,
+      FileType fileType) {
     EtomoNumber bordersInX = new EtomoNumber();
     EtomoNumber bordersInY = new EtomoNumber();
-    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        fileType.getFileName(manager, axisID), axisID);
+    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(), fileType
+        .getFileName(manager, axisID), axisID);
     try {
       header.read(manager);
       int x = header.getNColumns();
@@ -405,27 +405,23 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
       pieceListFile = scriptCommand.getValue("PieceListFile");
       outputFile = scriptCommand.getValue("OutputFile");
       if (scriptCommand.hasKeyword("FirstTiltAngle")) {
-        firstTiltAngle = Double.parseDouble(scriptCommand
-            .getValue("FirstTiltAngle"));
+        firstTiltAngle = Double.parseDouble(scriptCommand.getValue("FirstTiltAngle"));
       }
       if (scriptCommand.hasKeyword("TiltIncrement")) {
-        tiltIncrement = Double.parseDouble(scriptCommand
-            .getValue("TiltIncrement"));
+        tiltIncrement = Double.parseDouble(scriptCommand.getValue("TiltIncrement"));
       }
       tiltFile = scriptCommand.getValue("TiltFile");
-      StringTokenizer tokens = new StringTokenizer(scriptCommand
-          .getValue("TiltAngles"), ",");
+      StringTokenizer tokens = new StringTokenizer(scriptCommand.getValue("TiltAngles"),
+          ",");
       int index = 0;
       while (tokens.hasMoreTokens()) {
         tiltAngles[index++] = Double.parseDouble(tokens.nextToken());
       }
       if (scriptCommand.hasKeyword("RotationAngle")) {
-        rotationAngle = Double.parseDouble(scriptCommand
-            .getValue("RotationAngle"));
+        rotationAngle = Double.parseDouble(scriptCommand.getValue("RotationAngle"));
       }
       if (scriptCommand.hasKeyword("FilterRadius1")) {
-        filterRadius1 = Double.parseDouble(scriptCommand
-            .getValue("FilterRadius1"));
+        filterRadius1 = Double.parseDouble(scriptCommand.getValue("FilterRadius1"));
       }
       filterRadius2.parse(scriptCommand);
       filterSigma1.parse(scriptCommand);
@@ -454,8 +450,7 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
         testOutput = scriptCommand.getValue("TestOutput");
       }
       if (scriptCommand.hasKeyword("StartingEndingViews")) {
-        startingEndingViews.validateAndSet(scriptCommand
-            .getValue("StartingEndingViews"));
+        startingEndingViews.validateAndSet(scriptCommand.getValue("StartingEndingViews"));
       }
       angleOffset.parse(scriptCommand);
       sizeOfPatchesXandY.validateAndSet(scriptCommand);
@@ -483,8 +478,7 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
       String pair = inputArgs[inputLine++].getArgument();
       String values[] = pair.split(",");
       if (values.length != 2) {
-        throw new BadComScriptException(
-            "Incorrect tilt angle specification type");
+        throw new BadComScriptException("Incorrect tilt angle specification type");
       }
       tiltAngleSpec.setRangeMin(Double.parseDouble(values[0]));
       tiltAngleSpec.setRangeStep(Double.parseDouble(values[1]));
@@ -492,8 +486,7 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
       tiltIncrement = tiltAngleSpec.getRangeStep();
     }
     else if (tiltAngleSpec.getType() == TiltAngleType.LIST) {
-      throw new BadComScriptException(
-          "Unimplemented tilt angle specification type");
+      throw new BadComScriptException("Unimplemented tilt angle specification type");
     }
     else {
       throw new BadComScriptException("Incorrect tilt angle specification type");
@@ -506,8 +499,7 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
       filterSigma2.set(filterParams.getDouble(1));
       filterRadius1 = filterParams.getDouble(2);
       filterRadius2.set(filterParams.getDouble(3));
-      excludeCentralPeak = inputArgs[inputLine++].getArgument().matches(
-          "\\s*1\\s*");
+      excludeCentralPeak = inputArgs[inputLine++].getArgument().matches("\\s*1\\s*");
       bordersInXandY.validateAndSet(inputArgs[inputLine++].getArgument());
       padsInXandY.validateAndSet(inputArgs[inputLine++].getArgument());
       tapersInXandY.validateAndSet(inputArgs[inputLine++].getArgument());
@@ -546,46 +538,32 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
 
     //  Switch to keyword/value pairs
     scriptCommand.useKeywordValue();
-    ParamUtilities.updateScriptParameter(scriptCommand, "InputFile", inputFile,
-        required);
-    ParamUtilities.updateScriptParameter(scriptCommand, "PieceListFile",
-        pieceListFile);
-    ParamUtilities.updateScriptParameter(scriptCommand, "OutputFile",
-        outputFile);
-    ParamUtilities.updateScriptParameter(scriptCommand, "FirstTiltAngle",
-        firstTiltAngle);
-    ParamUtilities.updateScriptParameter(scriptCommand, "TiltIncrement",
-        tiltIncrement);
+    ParamUtilities.updateScriptParameter(scriptCommand, "InputFile", inputFile, required);
+    ParamUtilities.updateScriptParameter(scriptCommand, "PieceListFile", pieceListFile);
+    ParamUtilities.updateScriptParameter(scriptCommand, "OutputFile", outputFile);
+    ParamUtilities.updateScriptParameter(scriptCommand, "FirstTiltAngle", firstTiltAngle);
+    ParamUtilities.updateScriptParameter(scriptCommand, "TiltIncrement", tiltIncrement);
     ParamUtilities.updateScriptParameter(scriptCommand, "TiltFile", tiltFile);
-    ParamUtilities.updateScriptParameter(scriptCommand, "TiltAngles",
-        tiltAngles);
-    ParamUtilities.updateScriptParameter(scriptCommand, "RotationAngle",
-        rotationAngle);
-    ParamUtilities.updateScriptParameter(scriptCommand, "FilterRadius1",
-        filterRadius1);
+    ParamUtilities.updateScriptParameter(scriptCommand, "TiltAngles", tiltAngles);
+    ParamUtilities.updateScriptParameter(scriptCommand, "RotationAngle", rotationAngle);
+    ParamUtilities.updateScriptParameter(scriptCommand, "FilterRadius1", filterRadius1);
     filterRadius2.updateComScript(scriptCommand);
     filterSigma1.updateComScript(scriptCommand);
     filterSigma2.updateComScript(scriptCommand);
     ParamUtilities.updateScriptParameter(scriptCommand, "ExcludeCentralPeak",
         excludeCentralPeak);
-    ParamUtilities.updateScriptParameter(scriptCommand, "BordersInXandY",
-        bordersInXandY);
-    ParamUtilities.updateScriptParameter(scriptCommand, "XMinAndMax",
-        xMinAndMax);
-    ParamUtilities.updateScriptParameter(scriptCommand, "YMinAndMax",
-        yMinAndMax);
-    ParamUtilities.updateScriptParameter(scriptCommand, "PadsInXandY",
-        padsInXandY);
-    ParamUtilities.updateScriptParameter(scriptCommand, "TapersInXandY",
-        tapersInXandY);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        "CumulativeCorrelation", cumulativeCorrelation);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        "AbsoluteCosineStretch", absoluteCosineStretch);
+    ParamUtilities.updateScriptParameter(scriptCommand, "BordersInXandY", bordersInXandY);
+    ParamUtilities.updateScriptParameter(scriptCommand, "XMinAndMax", xMinAndMax);
+    ParamUtilities.updateScriptParameter(scriptCommand, "YMinAndMax", yMinAndMax);
+    ParamUtilities.updateScriptParameter(scriptCommand, "PadsInXandY", padsInXandY);
+    ParamUtilities.updateScriptParameter(scriptCommand, "TapersInXandY", tapersInXandY);
+    ParamUtilities.updateScriptParameter(scriptCommand, "CumulativeCorrelation",
+        cumulativeCorrelation);
+    ParamUtilities.updateScriptParameter(scriptCommand, "AbsoluteCosineStretch",
+        absoluteCosineStretch);
     ParamUtilities.updateScriptParameter(scriptCommand, "NoCosineStretch",
         noCosineStretch);
-    ParamUtilities.updateScriptParameter(scriptCommand, "TestOutput",
-        testOutput);
+    ParamUtilities.updateScriptParameter(scriptCommand, "TestOutput", testOutput);
     ParamUtilities.updateScriptParameter(scriptCommand, "StartingEndingViews",
         startingEndingViews);
     angleOffset.updateComScript(scriptCommand);
@@ -644,8 +622,7 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
     return null;
   }
 
-  public void setLengthAndOverlap(final String input)
-      throws FortranInputSyntaxException {
+  public void setLengthAndOverlap(final String input) throws FortranInputSyntaxException {
     lengthAndOverlap.validateAndSet(input);
   }
 
@@ -720,13 +697,11 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
   /**
    * Set the pads in x and y.
    */
-  public void setPadsInXandY(final String padsInXandY)
-      throws FortranInputSyntaxException {
+  public void setPadsInXandY(final String padsInXandY) throws FortranInputSyntaxException {
     ParamUtilities.set(padsInXandY, this.padsInXandY);
   }
 
-  public void setShiftLimitsXandY(final String input)
-      throws FortranInputSyntaxException {
+  public void setShiftLimitsXandY(final String input) throws FortranInputSyntaxException {
     shiftLimitsXandY.validateAndSet(input);
   }
 
@@ -782,12 +757,12 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
    * Return a multiline string describing the class attributes.
    */
   public String toString() {
-    return "Input file: " + inputFile + "\n" + "Piece list file: "
-        + pieceListFile + "\n" + "Output file: " + outputFile + "\n"
-        + "Exclude central peak : " + String.valueOf(excludeCentralPeak) + "\n"
-        + "Borders In X and Y: " + bordersInXandY + "\n" + "Pads In X and Y: "
-        + padsInXandY + "\n" + "Tapers In X and Y: " + tapersInXandY + "\n"
-        + "Starting Ending Views: " + startingEndingViews + "\n";
+    return "Input file: " + inputFile + "\n" + "Piece list file: " + pieceListFile + "\n"
+        + "Output file: " + outputFile + "\n" + "Exclude central peak : "
+        + String.valueOf(excludeCentralPeak) + "\n" + "Borders In X and Y: "
+        + bordersInXandY + "\n" + "Pads In X and Y: " + padsInXandY + "\n"
+        + "Tapers In X and Y: " + tapersInXandY + "\n" + "Starting Ending Views: "
+        + startingEndingViews + "\n";
   }
 
   /**
@@ -795,8 +770,8 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
    * name of the command and the appropriate number of input arguments.
    * @param scriptCommand the ComScriptCommand containing the beadtrack command
    */
-  private ComScriptInputArg[] getInputArguments(
-      final ComScriptCommand scriptCommand) throws BadComScriptException {
+  private ComScriptInputArg[] getInputArguments(final ComScriptCommand scriptCommand)
+      throws BadComScriptException {
 
     //  Check to be sure that it is a tiltxcorr xommand
     if (!scriptCommand.getCommand().equals("tiltxcorr")) {

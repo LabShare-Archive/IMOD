@@ -109,13 +109,11 @@ public class StartJoinParam implements CommandDetails {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstEtomoNumber getEtomoNumber(
-      etomo.comscript.FieldInterface fieldInterface) {
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstIntKeyList getIntKeyList(
-      etomo.comscript.FieldInterface fieldInterface) {
+  public ConstIntKeyList getIntKeyList(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
@@ -138,19 +136,19 @@ public class StartJoinParam implements CommandDetails {
     return null;
   }
 
-  public List getLogMessage()
-      throws LogFile.LockException, FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+      IOException {
     return null;
   }
 
   public String getName() {
     return PROCESS_NAME.toString();
   }
-  
+
   public FileType getOutputImageFileType() {
     return FileType.JOIN_SAMPLE;
   }
-  
+
   public FileType getOutputImageFileType2() {
     return FileType.JOIN_SAMPLE_AVERAGES;
   }
@@ -162,6 +160,7 @@ public class StartJoinParam implements CommandDetails {
   public CommandMode getCommandMode() {
     return null;
   }
+
   public boolean isMessageReporter() {
     return false;
   }
@@ -185,6 +184,9 @@ public class StartJoinParam implements CommandDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2010/04/28 16:06:49  sueh
+ * <p> bug# 1344 Added getOutputImageFileType functions.
+ * <p>
  * <p> Revision 1.14  2010/02/17 04:47:54  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.

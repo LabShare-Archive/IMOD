@@ -15,6 +15,9 @@ import java.util.ArrayList;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.2  2010/04/28 15:58:31  sueh
+ * <p> $bug# 1344 Reformatted.
+ * <p> $
  * <p> $Revision 1.1  2004/08/19 01:35:14  sueh
  * <p> $bug# 508 param object for the goto command
  * <p> $$ </p>
@@ -22,6 +25,7 @@ import java.util.ArrayList;
 
 public class GotoParam extends ConstGotoParam implements CommandParam {
   public static final String rcsid = "$$Id$$";
+
   /* (non-Javadoc)
    * @see 
    * etomo.comscript.CommandParam#initialize(etomo.comscript.ComScriptCommand)
@@ -49,8 +53,7 @@ public class GotoParam extends ConstGotoParam implements CommandParam {
     cmdLineArgs.add(label);
 
     int nArgs = cmdLineArgs.size();
-    scriptCommand.setCommandLineArgs((String[]) cmdLineArgs
-        .toArray(new String[nArgs]));
+    scriptCommand.setCommandLineArgs((String[]) cmdLineArgs.toArray(new String[nArgs]));
   }
 
   public void initializeDefaults() {

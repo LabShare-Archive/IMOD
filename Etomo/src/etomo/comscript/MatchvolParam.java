@@ -18,8 +18,7 @@ public class MatchvolParam implements CommandParam {
 
   public static final String COMMAND = "matchvol";
 
-  private FortranInputString outputSizeXYZ = new FortranInputString(
-      "OutputSizeXYZ", 3);
+  private FortranInputString outputSizeXYZ = new FortranInputString("OutputSizeXYZ", 3);
 
   public MatchvolParam() {
     outputSizeXYZ.setIntegerType(true);
@@ -99,6 +98,9 @@ public class MatchvolParam implements CommandParam {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2010/04/28 16:00:40  sueh
+ * <p> bug# 1344 Reformatted.
+ * <p>
  * <p> Revision 1.1  2006/09/05 17:35:01  sueh
  * <p> bug# 917 Param for parsing a matchvol call.
  * <p> </p>

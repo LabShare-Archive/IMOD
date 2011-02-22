@@ -23,6 +23,9 @@ import etomo.type.ConstEtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.18  2010/03/03 04:52:10  sueh
+ * <p> bug# 1311 Reformatted.
+ * <p>
  * <p> Revision 3.17  2009/06/05 01:48:23  sueh
  * <p> bug# 1219 Added isNull functions to deal with the two ways this class is
  * <p> empty.  In set(int,String) changing the value to default when the input is
@@ -293,8 +296,7 @@ public class FortranInputString {
    * Set the String representation of the parameters and validate it against the
    * specified rules.
    */
-  public void validateAndSet(String newValues)
-      throws FortranInputSyntaxException {
+  public void validateAndSet(String newValues) throws FortranInputSyntaxException {
     if (newValues == null) {
       newValues = "";
     }
@@ -333,8 +335,8 @@ public class FortranInputString {
       else {
         String currentToken = newValues.substring(idxStart);
         if (currentToken.endsWith("/")) {
-          tempValue[idxValue] = new Double(currentToken.substring(0,
-              currentToken.length() - 1));
+          tempValue[idxValue] = new Double(currentToken.substring(0, currentToken
+              .length() - 1));
           rangeCheck(tempValue[idxValue].doubleValue(), idxValue, newValues);
           idxValue++;
           while (idxValue < nParams) {
@@ -628,16 +630,14 @@ public class FortranInputString {
       throws FortranInputSyntaxException {
     if (value < minimum[index]) {
       String message = key == null ? "" : key + ": "
-          + "Value below minimum.  Acceptable range: ["
-          + String.valueOf(minimum[index]) + ","
-          + String.valueOf(maximum[index]) + "] got " + String.valueOf(value);
+          + "Value below minimum.  Acceptable range: [" + String.valueOf(minimum[index])
+          + "," + String.valueOf(maximum[index]) + "] got " + String.valueOf(value);
       throw (new FortranInputSyntaxException(message, newValues));
     }
     if (value > maximum[index]) {
       String message = key == null ? "" : key + ": "
-          + "Value above maximum.  Acceptable range: ["
-          + String.valueOf(minimum[index]) + ","
-          + String.valueOf(maximum[index]) + "] got " + String.valueOf(value);
+          + "Value above maximum.  Acceptable range: [" + String.valueOf(minimum[index])
+          + "," + String.valueOf(maximum[index]) + "] got " + String.valueOf(value);
       throw (new FortranInputSyntaxException(message, newValues));
     }
   }

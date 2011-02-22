@@ -15,6 +15,9 @@ import java.util.Vector;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2006/08/25 22:51:29  sueh
+ * <p> bug# 918 Save the pre-pip version of patchcrawl3d
+ * <p>
  * <p> Revision 3.4  2004/04/12 16:50:22  sueh
  * <p> bug# 409 changed interface class CommandParam
  * <p>
@@ -57,9 +60,8 @@ import java.util.Vector;
  * To change this generated comment go to 
  * Window>Preferences>Java>Code Generation>Code Template
  */
-public class Patchcrawl3DPrePIPParam
-  extends ConstPatchcrawl3DPrePIPParam
-  implements CommandParam {
+public class Patchcrawl3DPrePIPParam extends ConstPatchcrawl3DPrePIPParam implements
+    CommandParam {
   public static final String rcsid = "$Id:";
 
   public static final String COMMAND = "patchcrawl3d";
@@ -68,17 +70,14 @@ public class Patchcrawl3DPrePIPParam
    * @see etomo.comscript.CommandParam#initialize(etomo.comscript.ComScriptCommand)
    */
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
-    throws
-      BadComScriptException,
-      FortranInputSyntaxException,
+      throws BadComScriptException, FortranInputSyntaxException,
       InvalidParameterException {
 
     String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
     reset();
 
     if (cmdLineArgs.length < 16 || cmdLineArgs.length > 20) {
-      String message =
-        "Incorrect number of arguments, expected 16 - 20 found: "
+      String message = "Incorrect number of arguments, expected 16 - 20 found: "
           + String.valueOf(cmdLineArgs.length);
       throw (new BadComScriptException(message));
     }
@@ -143,13 +142,8 @@ public class Patchcrawl3DPrePIPParam
       }
     }
     catch (NumberFormatException except) {
-      String message =
-        "NumberFormatException Argument #: "
-          + String.valueOf(i)
-          + " value :"
-          + cmdLineArgs[i]
-          + " for parameter: "
-          + parameterID;
+      String message = "NumberFormatException Argument #: " + String.valueOf(i)
+          + " value :" + cmdLineArgs[i] + " for parameter: " + parameterID;
       throw new BadComScriptException(message);
     }
 
@@ -205,10 +199,10 @@ public class Patchcrawl3DPrePIPParam
       badParameter = "boundary_model";
       cmdLineArgs.add(boundaryModel);
     }
-    scriptCommand.setCommandLineArgs(
-      (String[]) cmdLineArgs.toArray(new String[cmdLineArgs.size()]));
+    scriptCommand.setCommandLineArgs((String[]) cmdLineArgs
+        .toArray(new String[cmdLineArgs.size()]));
   }
-  
+
   public void initializeDefaults() {
   }
 
@@ -267,7 +261,7 @@ public class Patchcrawl3DPrePIPParam
   public void setTransformFile(String transformFile) {
     this.transformFile = transformFile;
   }
-  
+
   public void setBorders(String borders) throws FortranInputSyntaxException {
     this.borders.validateAndSet(borders);
   }
@@ -359,7 +353,7 @@ public class Patchcrawl3DPrePIPParam
   public void setBoundaryModel(String boundaryModel) {
     this.boundaryModel = boundaryModel;
   }
-  
+
   public void setUseBoundaryModel(boolean useBoundaryModel) {
     if (useBoundaryModel) {
       boundaryModel = ConstMatchorwarpParam.getDefaultPatchRegionModel();

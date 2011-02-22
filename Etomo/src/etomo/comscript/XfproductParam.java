@@ -12,6 +12,11 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2005/06/10 23:02:02  sueh
+ * <p> bug# 583, bug# 683  Setting xfproduct scale shifts in align.com the same
+ * <p> way binning is set.  Moved the details of setting scale shifts into
+ * <p> XfproductParam.
+ * <p>
  * <p> Revision 1.3  2004/04/12 16:51:26  sueh
  * <p> bug# 409 changed interface class CommandParam
  * <p>
@@ -29,7 +34,8 @@ public class XfproductParam extends ConstXfproductParam implements CommandParam 
   public static final String rcsid = "$Id$";
 
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
-      throws BadComScriptException, InvalidParameterException, FortranInputSyntaxException{
+      throws BadComScriptException, InvalidParameterException,
+      FortranInputSyntaxException {
 
     //  Check to be sure that it is a xfproduct command
     if (!scriptCommand.getCommand().equals("xfproduct")) {
@@ -70,7 +76,7 @@ public class XfproductParam extends ConstXfproductParam implements CommandParam 
     else {
       scriptCommand.deleteKey("InputFile1");
     }
-    
+
     if (!inputFile2.equals("")) {
       scriptCommand.setValue("InputFile2", inputFile2);
     }
@@ -92,7 +98,7 @@ public class XfproductParam extends ConstXfproductParam implements CommandParam 
       scriptCommand.deleteKey("ScaleShifts");
     }
   }
-  
+
   public void initializeDefaults() {
   }
 
@@ -120,7 +126,7 @@ public class XfproductParam extends ConstXfproductParam implements CommandParam 
   /**
    * @param scaleShifts The scaleShifts to set.
    */
-  public void setScaleShifts(long binning) throws FortranInputSyntaxException{
+  public void setScaleShifts(long binning) throws FortranInputSyntaxException {
     if (binning > 1) {
       scaleShifts.validateAndSet("1," + String.valueOf(binning));
     }

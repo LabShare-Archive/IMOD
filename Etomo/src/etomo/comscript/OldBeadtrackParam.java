@@ -22,16 +22,16 @@ import etomo.type.TiltAngleType;
 * @version $Revision$
 */
 public class OldBeadtrackParam extends OldConstBeadtrackParam implements CommandParam {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   /**
    * Get the parameters from the ComScriptCommand
    * @param scriptCommand the ComScriptCommand containg the beadtrack command
    * and parameters.
    */
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
-  throws BadComScriptException, FortranInputSyntaxException,
-  InvalidParameterException {
+      throws BadComScriptException, FortranInputSyntaxException,
+      InvalidParameterException {
 
     //  get the input arguments from the command
     ComScriptInputArg[] inputArgs;
@@ -50,8 +50,7 @@ public class OldBeadtrackParam extends OldConstBeadtrackParam implements Command
     viewSkipList = inputArgs[inputLine++].getArgument();
     imageRotation = Double.parseDouble(inputArgs[inputLine++].getArgument());
 
-    nAdditionalViewSets =
-      Integer.parseInt(inputArgs[inputLine++].getArgument());
+    nAdditionalViewSets = Integer.parseInt(inputArgs[inputLine++].getArgument());
     if (nAdditionalViewSets > 0) {
       additionalViewGroups = new StringList(nAdditionalViewSets);
       for (int i = 0; i < nAdditionalViewSets; i++) {
@@ -91,8 +90,7 @@ public class OldBeadtrackParam extends OldConstBeadtrackParam implements Command
         tiltAngleGroups = ParamUtilities.parse(tiltAngleGroupsList,
             nondefaultGroupIntegerType, nondefaultGroupSize);
       }
-      magnificationGroupParams.validateAndSet(
-        inputArgs[inputLine++].getArgument());
+      magnificationGroupParams.validateAndSet(inputArgs[inputLine++].getArgument());
       nGroups = magnificationGroupParams.getInt(1);
       if (nGroups > 0) {
         StringList magnificationGroupsList = new StringList(nGroups);
@@ -114,31 +112,23 @@ public class OldBeadtrackParam extends OldConstBeadtrackParam implements Command
       tiltAngleMinRange.validateAndSet(inputArgs[inputLine++].getArgument());
       searchBoxPixels.validateAndSet(inputArgs[inputLine++].getArgument());
       maxFiducialsAvg = Integer.parseInt(inputArgs[inputLine++].getArgument());
-      fiducialExtrapolationParams.validateAndSet(
-        inputArgs[inputLine++].getArgument());
+      fiducialExtrapolationParams.validateAndSet(inputArgs[inputLine++].getArgument());
       rescueAttemptParams.validateAndSet(inputArgs[inputLine++].getArgument());
-      minRescueDistance =
-        Integer.parseInt(inputArgs[inputLine++].getArgument());
-      rescueRelaxationParams.validateAndSet(
-        inputArgs[inputLine++].getArgument());
-      residualDistanceLimit =
-        Double.parseDouble(inputArgs[inputLine++].getArgument());
+      minRescueDistance = Integer.parseInt(inputArgs[inputLine++].getArgument());
+      rescueRelaxationParams.validateAndSet(inputArgs[inputLine++].getArgument());
+      residualDistanceLimit = Double.parseDouble(inputArgs[inputLine++].getArgument());
       secondPassParams.validateAndSet(inputArgs[inputLine++].getArgument());
-      meanResidChangeLimits.validateAndSet(
-        inputArgs[inputLine++].getArgument());
+      meanResidChangeLimits.validateAndSet(inputArgs[inputLine++].getArgument());
       deletionParams.validateAndSet(inputArgs[inputLine++].getArgument());
     }
     catch (FortranInputSyntaxException except) {
-      String message =
-        "Parse error in beadtrack command, standard input argument: "
-          + String.valueOf(inputLine)
-          + "\n"
-          + except.getMessage();
+      String message = "Parse error in beadtrack command, standard input argument: "
+          + String.valueOf(inputLine) + "\n" + except.getMessage();
       throw new FortranInputSyntaxException(message, except.getNewString());
     }
 
   }
-  
+
   public void initializeDefaults() {
     tiltAngleGroups = null;
     magnificationGroups = null;
@@ -152,7 +142,7 @@ public class OldBeadtrackParam extends OldConstBeadtrackParam implements Command
    * @deprecated
    */
   public void updateComScriptCommand(ComScriptCommand scriptCommand)
-    throws BadComScriptException {
+      throws BadComScriptException {
 
     //  Get the existing input arguments from the command, this is so the
     //  comments are preserved.
@@ -221,7 +211,8 @@ public class OldBeadtrackParam extends OldConstBeadtrackParam implements Command
    * @param newTiltAngleGroups
    * @throws FortranInputSyntaxException
    */
-  public void setTiltAngleGroups(String newTiltAngleGroups) throws FortranInputSyntaxException {
+  public void setTiltAngleGroups(String newTiltAngleGroups)
+      throws FortranInputSyntaxException {
     tiltAngleGroups = ParamUtilities.parse(newTiltAngleGroups, true, nondefaultGroupSize);
     if (tiltAngleGroups == null) {
       tiltAngleGroupParams.setDefault(1);
@@ -244,8 +235,10 @@ public class OldBeadtrackParam extends OldConstBeadtrackParam implements Command
    * @param newMagnificationGroups
    * @throws FortranInputSyntaxException
    */
-  public void setMagnificationGroups(String newMagnificationGroups) throws FortranInputSyntaxException {
-    magnificationGroups = ParamUtilities.parse(newMagnificationGroups, true, nondefaultGroupSize);
+  public void setMagnificationGroups(String newMagnificationGroups)
+      throws FortranInputSyntaxException {
+    magnificationGroups = ParamUtilities.parse(newMagnificationGroups, true,
+        nondefaultGroupSize);
     if (tiltAngleGroups == null) {
       magnificationGroupParams.setDefault(1);
     }
@@ -268,7 +261,7 @@ public class OldBeadtrackParam extends OldConstBeadtrackParam implements Command
    * @throws FortranInputSyntaxException
    */
   public void setFiducialParams(String fiducialParams)
-    throws FortranInputSyntaxException, InvalidEtomoNumberException {
+      throws FortranInputSyntaxException, InvalidEtomoNumberException {
     this.fiducialParams.validateAndSet(fiducialParams);
   }
 
@@ -290,12 +283,12 @@ public class OldBeadtrackParam extends OldConstBeadtrackParam implements Command
    * @throws FortranInputSyntaxException
    */
   public void setTiltAngleMinRange(String tiltAngleMinRange)
-    throws FortranInputSyntaxException, InvalidEtomoNumberException {
+      throws FortranInputSyntaxException, InvalidEtomoNumberException {
     this.tiltAngleMinRange.validateAndSet(tiltAngleMinRange);
   }
 
   public void setSearchBoxPixels(String searchBoxPixels)
-    throws FortranInputSyntaxException {
+      throws FortranInputSyntaxException {
     this.searchBoxPixels.validateAndSet(searchBoxPixels);
   }
 
@@ -308,13 +301,12 @@ public class OldBeadtrackParam extends OldConstBeadtrackParam implements Command
   }
 
   public void setFiducialExtrapolationParams(String fiducialExtrapolationParams)
-    throws FortranInputSyntaxException {
-    this.fiducialExtrapolationParams.validateAndSet(
-      fiducialExtrapolationParams);
+      throws FortranInputSyntaxException {
+    this.fiducialExtrapolationParams.validateAndSet(fiducialExtrapolationParams);
   }
 
   public void setRescueAttemptParams(String rescueAttemptParams)
-    throws FortranInputSyntaxException {
+      throws FortranInputSyntaxException {
     this.rescueAttemptParams.validateAndSet(rescueAttemptParams);
   }
 
@@ -327,7 +319,7 @@ public class OldBeadtrackParam extends OldConstBeadtrackParam implements Command
   }
 
   public void setRescueRelaxationParams(String rescueRelaxationParams)
-    throws FortranInputSyntaxException {
+      throws FortranInputSyntaxException {
     this.rescueRelaxationParams.validateAndSet(rescueRelaxationParams);
   }
 
@@ -345,17 +337,16 @@ public class OldBeadtrackParam extends OldConstBeadtrackParam implements Command
    * @throws FortranInputSyntaxException
    */
   public void setSecondPassParams(String secondPassParams)
-    throws FortranInputSyntaxException, InvalidEtomoNumberException {
+      throws FortranInputSyntaxException, InvalidEtomoNumberException {
     this.secondPassParams.validateAndSet(secondPassParams);
   }
 
   public void setMeanResidChangeLimits(String meanResidChangeLimits)
-    throws FortranInputSyntaxException {
+      throws FortranInputSyntaxException {
     this.meanResidChangeLimits.validateAndSet(meanResidChangeLimits);
   }
 
-  public void setDeletionParams(String deletionParams)
-    throws FortranInputSyntaxException {
+  public void setDeletionParams(String deletionParams) throws FortranInputSyntaxException {
     this.deletionParams.validateAndSet(deletionParams);
   }
 
@@ -365,7 +356,7 @@ public class OldBeadtrackParam extends OldConstBeadtrackParam implements Command
    * @param scriptCommand the ComScriptCommand containing the beadtrack command
    */
   private ComScriptInputArg[] getInputArguments(ComScriptCommand scriptCommand)
-    throws BadComScriptException {
+      throws BadComScriptException {
 
     //  Check to be sure that it is a beadtrack command
     if (!scriptCommand.getCommand().equals("beadtrack")) {
@@ -375,11 +366,9 @@ public class OldBeadtrackParam extends OldConstBeadtrackParam implements Command
     //  Extract the parameters
     ComScriptInputArg[] inputArgs = scriptCommand.getInputArguments();
     if (inputArgs.length < 26) {
-      throw (
-        new BadComScriptException(
+      throw (new BadComScriptException(
           "Incorrect number of input arguments to beadtrack command\nGot "
-            + String.valueOf(inputArgs.length)
-            + " expected at least 26."));
+              + String.valueOf(inputArgs.length) + " expected at least 26."));
     }
 
     return inputArgs;
@@ -452,16 +441,11 @@ public class OldBeadtrackParam extends OldConstBeadtrackParam implements Command
       String[] errorMessage = new String[5];
       errorMessage[0] = "BeadtrackParam Error";
       errorMessage[1] = "Existing beadtrack tilt angle parameter was incorrect";
-      errorMessage[2] =
-        "Don't know how many non-default tilt angle groups, assuming 0";
-      errorMessage[3] =
-        "Input string: " + inputArgs[srcListCount].getArgument();
+      errorMessage[2] = "Don't know how many non-default tilt angle groups, assuming 0";
+      errorMessage[3] = "Input string: " + inputArgs[srcListCount].getArgument();
       errorMessage[4] = except.getMessage();
-      JOptionPane.showMessageDialog(
-        null,
-        errorMessage,
-        "BeadtrackParam Error",
-        JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(null, errorMessage, "BeadtrackParam Error",
+          JOptionPane.ERROR_MESSAGE);
     }
 
     inputArgs[srcListCount].setArgument(tiltAngleGroupParams.toString());
@@ -488,18 +472,12 @@ public class OldBeadtrackParam extends OldConstBeadtrackParam implements Command
       // TODO throw exception so calling object can catch and display a message 
       String[] errorMessage = new String[5];
       errorMessage[0] = "BeadtrackParam Error";
-      errorMessage[1] =
-        "Existing beadtrack magnification parameter was incorrect";
-      errorMessage[2] =
-        "Don't know how many non-default magnification groups, assuming 0";
-      errorMessage[3] =
-        "Input string: " + inputArgs[srcListCount].getArgument();
+      errorMessage[1] = "Existing beadtrack magnification parameter was incorrect";
+      errorMessage[2] = "Don't know how many non-default magnification groups, assuming 0";
+      errorMessage[3] = "Input string: " + inputArgs[srcListCount].getArgument();
       errorMessage[4] = except.getMessage();
-      JOptionPane.showMessageDialog(
-        null,
-        errorMessage,
-        "BeadtrackParam Error",
-        JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(null, errorMessage, "BeadtrackParam Error",
+          JOptionPane.ERROR_MESSAGE);
     }
     inputArgs[srcListCount].setArgument(magnificationGroupParams.toString());
     inputArgList.add(inputArgs[srcListCount++]);
@@ -560,11 +538,18 @@ public class OldBeadtrackParam extends OldConstBeadtrackParam implements Command
     inputArgs[srcListCount].setArgument(deletionParams.toString());
     inputArgList.add(inputArgs[srcListCount++]);
 
-    return (ComScriptInputArg[]) inputArgList.toArray(
-      new ComScriptInputArg[inputArgList.size()]);
+    return (ComScriptInputArg[]) inputArgList.toArray(new ComScriptInputArg[inputArgList
+        .size()]);
   }
 
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/05/09 23:06:40  sueh
+* <p> bug# 658 This class used to be BeadtrackParam before the the PIP
+* <p> upgrade.  Set functions that set member variables that are not used by
+* <p> the new BeadtrackParam are deprecated.  The throws clause on some
+* <p> set functions have been added to, in order to allow inheritance.  Other
+* <p> then these sorts of changes, this class should not be changed.
+* <p> </p>
 */

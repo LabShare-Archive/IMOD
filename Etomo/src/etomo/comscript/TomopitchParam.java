@@ -18,6 +18,9 @@ import etomo.type.ConstEtomoNumber;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.10  2006/09/13 23:23:28  sueh
+ * <p> $bug# 920 Added setAngleOffsetOld(String) and setZShiftOld(String).
+ * <p> $
  * <p> $Revision 1.9  2006/05/19 19:39:08  sueh
  * <p> $bug# 838 Added resetAngleOffsetOld and resetZShiftOld
  * <p> $
@@ -49,11 +52,8 @@ import etomo.type.ConstEtomoNumber;
  * <p> $$ </p>
  */
 
-public class TomopitchParam
-  extends ConstTomopitchParam
-  implements CommandParam {
-  public static final String rcsid =
-    "$$Id$$";
+public class TomopitchParam extends ConstTomopitchParam implements CommandParam {
+  public static final String rcsid = "$$Id$$";
 
   /**
    * Get the parameters from the ComScriptCommand
@@ -61,9 +61,7 @@ public class TomopitchParam
    * and parameters.
    */
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
-    throws
-      BadComScriptException,
-      FortranInputSyntaxException,
+      throws BadComScriptException, FortranInputSyntaxException,
       InvalidParameterException {
 
     //  get the input arguments from the command
@@ -83,8 +81,7 @@ public class TomopitchParam
         }
       }
       if (scriptCommand.hasKeyword(EXTRA_THICKNESS)) {
-        extraThickness =
-          Double.parseDouble(scriptCommand.getValue(EXTRA_THICKNESS));    
+        extraThickness = Double.parseDouble(scriptCommand.getValue(EXTRA_THICKNESS));
       }
       if (scriptCommand.hasKeyword(SPACING_IN_Y)) {
         spacingInY = Double.parseDouble(scriptCommand.getValue(SPACING_IN_Y));
@@ -94,7 +91,7 @@ public class TomopitchParam
       }
       if (scriptCommand.hasKeyword(PARAMETER_FILE)) {
         parameterFile = scriptCommand.getValue(PARAMETER_FILE);
-      } 
+      }
       if (scriptCommand.hasKeyword(angleOffsetOld.getName())) {
         angleOffsetOld.set(scriptCommand.getValue(angleOffsetOld.getName()));
       }
@@ -121,7 +118,7 @@ public class TomopitchParam
    * @param scriptCommand the script command to be updated
    */
   public void updateComScriptCommand(ComScriptCommand scriptCommand)
-    throws BadComScriptException {
+      throws BadComScriptException {
     //  get the input arguments from the command
     ComScriptInputArg[] inputArgs;
     try {
@@ -133,64 +130,60 @@ public class TomopitchParam
 
     //  Switch to keyword/value pairs
     scriptCommand.useKeywordValue();
-    ParamUtilities.updateScriptParameterStrings(
-      scriptCommand,
-      MODEL_FILE,
-      modelFiles,
-      true);
-    ParamUtilities.updateScriptParameter(
-      scriptCommand,
-      EXTRA_THICKNESS,
-      extraThickness);
+    ParamUtilities.updateScriptParameterStrings(scriptCommand, MODEL_FILE, modelFiles,
+        true);
+    ParamUtilities.updateScriptParameter(scriptCommand, EXTRA_THICKNESS, extraThickness);
     ParamUtilities.updateScriptParameter(scriptCommand, SPACING_IN_Y, spacingInY);
     ParamUtilities.updateScriptParameter(scriptCommand, SCALE_FACTOR, scaleFactor);
-    ParamUtilities.updateScriptParameter(
-      scriptCommand,
-      PARAMETER_FILE,
-      parameterFile);
+    ParamUtilities.updateScriptParameter(scriptCommand, PARAMETER_FILE, parameterFile);
     angleOffsetOld.updateComScript(scriptCommand);
     zShiftOld.updateComScript(scriptCommand);
     xAxisTiltOld.updateComScript(scriptCommand);
   }
-  
+
   public void initializeDefaults() {
   }
 
   public void resetModelFiles() {
     modelFiles = new Vector();
   }
+
   public void setModelFile(String modelFile) {
     modelFiles.add(modelFile);
   }
+
   public void setExtraThickness(String extraThickness) {
     this.extraThickness = ParamUtilities.parseDouble(extraThickness);
   }
+
   public void setSpacingInY(String spacingInY) {
     this.spacingInY = ParamUtilities.parseDouble(spacingInY);
   }
+
   public void setScaleFactor(double scaleFactor) {
     this.scaleFactor = scaleFactor;
   }
+
   public void setParameterFile(String parameterFile) {
     this.parameterFile = parameterFile;
   }
-  
+
   public void setAngleOffsetOld(ConstEtomoNumber angleOffsetOld) {
     this.angleOffsetOld.set(angleOffsetOld);
   }
-  
+
   public void setAngleOffsetOld(String angleOffsetOld) {
     this.angleOffsetOld.set(angleOffsetOld);
   }
-  
+
   public void setZShiftOld(ConstEtomoNumber zShiftOld) {
     this.zShiftOld.set(zShiftOld);
   }
-  
+
   public void setZShiftOld(String zShiftOld) {
     this.zShiftOld.set(zShiftOld);
   }
-  
+
   public void setXAxisTiltOld(ConstEtomoNumber xAxisTiltOld) {
     this.xAxisTiltOld.set(xAxisTiltOld);
   }
@@ -201,7 +194,7 @@ public class TomopitchParam
    * @param scriptCommand the ComScriptCommand containing the beadtrack command
    */
   private ComScriptInputArg[] getInputArguments(ComScriptCommand scriptCommand)
-    throws BadComScriptException {
+      throws BadComScriptException {
 
     //  Check to be sure that it is a tiltxcorr xommand
     if (!scriptCommand.getCommand().equals(COMMAND)) {

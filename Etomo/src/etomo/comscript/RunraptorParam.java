@@ -24,6 +24,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2010/11/13 16:03:15  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.3  2009/06/05 01:49:00  sueh
  * <p> bug# 1219 Removed unused getCommandMode.
  * <p>
@@ -59,8 +62,7 @@ public final class RunraptorParam {
   private void buildCommand() {
     command.add("tcsh");
     command.add("-f");
-    command
-        .add(BaseManager.getIMODBinPath() + ProcessName.RUNRAPTOR.toString());
+    command.add(BaseManager.getIMODBinPath() + ProcessName.RUNRAPTOR.toString());
     command.add("-" + DIAM_OPTION);
     command.add(diam.toString());
     command.add("-" + MARK_OPTION);
@@ -83,11 +85,9 @@ public final class RunraptorParam {
     }
     if (mayBeBinned) {
       diam.set(Math.round((double) diam.getLong()
-          / UIExpertUtilities.INSTANCE.getStackBinning(manager, axisID,
-              ".preali")));
+          / UIExpertUtilities.INSTANCE.getStackBinning(manager, axisID, ".preali")));
       if (!diam.isValid()) {
-        return "The binned diameter is " + diam + ".  "
-            + diam.getInvalidReason();
+        return "The binned diameter is " + diam + ".  " + diam.getInvalidReason();
       }
     }
     return null;

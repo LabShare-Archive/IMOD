@@ -83,8 +83,7 @@ public final class PsParam {
       //If the timeout option cannot be added to ssh then only ssh if the caller
       //of this constructor promises to run the command in a worker thread.  An
       //ssh on the main thread can lock up the user interface.
-      if (willRunOnWorkerThread
-          || SshParam.INSTANCE.isTimeoutAvailable(manager)) {
+      if (willRunOnWorkerThread || SshParam.INSTANCE.isTimeoutAvailable(manager)) {
         List sshCommand = SshParam.INSTANCE.getCommand(manager, true, hostName);
         if (sshCommand != null) {
           Iterator iterator = sshCommand.iterator();
@@ -142,8 +141,7 @@ public final class PsParam {
     int endIndex = -1;
     if (pidColumn) {
       pidStartIndex = endIndex + 1;
-      endIndex = pidEndIndex = output[0].indexOf(PID_HEADER)
-          + PID_HEADER.length();
+      endIndex = pidEndIndex = output[0].indexOf(PID_HEADER) + PID_HEADER.length();
     }
     if (parentPidColumn) {
       parentPidStartIndex = endIndex + 1;
@@ -172,8 +170,7 @@ public final class PsParam {
     }
     if (startTimeColumn) {
       startTimeStartIndex = endIndex + 1;
-      startTimeEndIndex = output[0].indexOf(startTimeHeader)
-          + startTimeHeader.length();
+      startTimeEndIndex = output[0].indexOf(startTimeHeader) + startTimeHeader.length();
     }
     loadValues();
   }
@@ -214,8 +211,8 @@ public final class PsParam {
    * @param startTime
    */
   public boolean findRow(String pid, String groupPid, Time startTime) {
-    System.err.println("Looking for a ps row with pid=" + pid + ",groupPid="
-        + groupPid + ",startTime=" + startTime);
+    System.err.println("Looking for a ps row with pid=" + pid + ",groupPid=" + groupPid
+        + ",startTime=" + startTime);
     for (int i = 0; i < valuesArray.size(); i++) {
       Values values = (Values) valuesArray.get(i);
       if (values.getPid().equals(pid) && values.getGroupPid().equals(groupPid)) {
@@ -295,8 +292,7 @@ public final class PsParam {
       if (groupPid != null) {
         return groupPid;
       }
-      groupPid = row.substring(getGroupPidStartIndex(), getGroupPidEndIndex())
-          .trim();
+      groupPid = row.substring(getGroupPidStartIndex(), getGroupPidEndIndex()).trim();
       return groupPid;
     }
 
@@ -304,8 +300,8 @@ public final class PsParam {
       if (startTime != null) {
         return startTime;
       }
-      startTime = new Time(row.substring(getStartTimeStartIndex(),
-          getStartTimeEndIndex()).trim());
+      startTime = new Time(row
+          .substring(getStartTimeStartIndex(), getStartTimeEndIndex()).trim());
       return startTime;
     }
   }
@@ -344,6 +340,10 @@ public final class PsParam {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2010/02/17 04:47:54  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.10  2010/02/05 00:46:19  sueh
  * <p> bug# 1309 In findRow adding info to the error log.
  * <p>

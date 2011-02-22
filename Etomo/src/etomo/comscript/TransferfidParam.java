@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2007/03/07 21:03:58  sueh
+ * <p> bug# 981 Changed ScriptParameter.isUseInScript to isNotNullAndNotDefault for
+ * <p> clarity.
+ * <p>
  * <p> Revision 3.13  2007/02/05 22:48:20  sueh
  * <p> bug# 962 Made EtomoNumber type info an inner class.
  * <p>
@@ -159,12 +163,12 @@ public final class TransferfidParam implements Storable {
   private final EtomoBoolean2 bToA = new EtomoBoolean2("BToA");
   private final EtomoBoolean2 runMidas = new EtomoBoolean2("RunMidas");
   //null => both, -1 => -90, 1=> +90  
-  private final EtomoNumber searchDirection = new EtomoNumber(
-      EtomoNumber.Type.INTEGER, "SearchDirection");
-  private final EtomoNumber centerViewA = new EtomoNumber(
-      EtomoNumber.Type.LONG, "CenterViewA");
-  private final EtomoNumber centerViewB = new EtomoNumber(
-      EtomoNumber.Type.LONG, "CenterViewB");
+  private final EtomoNumber searchDirection = new EtomoNumber(EtomoNumber.Type.INTEGER,
+      "SearchDirection");
+  private final EtomoNumber centerViewA = new EtomoNumber(EtomoNumber.Type.LONG,
+      "CenterViewA");
+  private final EtomoNumber centerViewB = new EtomoNumber(EtomoNumber.Type.LONG,
+      "CenterViewB");
   private final ScriptParameter numberViews = new ScriptParameter(
       EtomoNumber.Type.INTEGER, "NumberViews");
   private final EtomoBoolean2 mirrorInX = new EtomoBoolean2("MirrorInX");
@@ -239,8 +243,7 @@ public final class TransferfidParam implements Storable {
     setCenterViewResetValue(centerViewB, metaData.getTiltAngleSpecB());
   }
 
-  private void setCenterViewResetValue(EtomoNumber centerView,
-      TiltAngleSpec tiltAngleSpec) {
+  private void setCenterViewResetValue(EtomoNumber centerView, TiltAngleSpec tiltAngleSpec) {
     if (tiltAngleSpec.getType() != TiltAngleType.RANGE) {
       return;
     }

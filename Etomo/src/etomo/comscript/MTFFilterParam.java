@@ -12,6 +12,10 @@
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.9  2010/04/28 16:01:59  sueh
+ * <p> $bug# 1344 Implemented Command.  Added getOutputImageFileType
+ * <p> $functions.  Made Const ancestor class an interface.
+ * <p> $
  * <p> $Revision 1.8  2004/06/13 17:03:23  rickg
  * <p> $Solvematch mid change
  * <p> $
@@ -98,20 +102,17 @@ public final class MTFFilterParam implements ConstMTFFilterParam, CommandParam {
         mtfFile = scriptCommand.getValue("MtfFile");
       }
       if (scriptCommand.hasKeyword("MaximumInverse")) {
-        maximumInverse = Double.parseDouble(scriptCommand
-            .getValue("MaximumInverse"));
+        maximumInverse = Double.parseDouble(scriptCommand.getValue("MaximumInverse"));
       }
       if (scriptCommand.hasKeyword("LowPassRadiusSigma")) {
-        lowPassRadiusSigma.validateAndSet(scriptCommand
-            .getValue("LowPassRadiusSigma"));
+        lowPassRadiusSigma.validateAndSet(scriptCommand.getValue("LowPassRadiusSigma"));
       }
       if (scriptCommand.hasKeyword("InverseRolloffRadiusSigma")) {
         inverseRolloffRadiusSigma.validateAndSet(scriptCommand
             .getValue("InverseRolloffRadiusSigma"));
       }
       if (scriptCommand.hasKeyword("StartingAndEndingZ")) {
-        startingAndEndingZ.validateAndSet(scriptCommand
-            .getValue("StartingAndEndingZ"));
+        startingAndEndingZ.validateAndSet(scriptCommand.getValue("StartingAndEndingZ"));
       }
     }
     else {
@@ -123,17 +124,14 @@ public final class MTFFilterParam implements ConstMTFFilterParam, CommandParam {
   public void updateComScriptCommand(ComScriptCommand scriptCommand)
       throws BadComScriptException {
     scriptCommand.useKeywordValue();
-    ParamUtilities.updateScriptParameter(scriptCommand, "InputFile", inputFile,
-        true);
-    ParamUtilities.updateScriptParameter(scriptCommand, "OutputFile",
-        outputFile);
+    ParamUtilities.updateScriptParameter(scriptCommand, "InputFile", inputFile, true);
+    ParamUtilities.updateScriptParameter(scriptCommand, "OutputFile", outputFile);
     ParamUtilities.updateScriptParameter(scriptCommand, "MtfFile", mtfFile);
-    ParamUtilities.updateScriptParameter(scriptCommand, "MaximumInverse",
-        maximumInverse);
+    ParamUtilities.updateScriptParameter(scriptCommand, "MaximumInverse", maximumInverse);
     ParamUtilities.updateScriptParameter(scriptCommand, "LowPassRadiusSigma",
         lowPassRadiusSigma);
-    ParamUtilities.updateScriptParameter(scriptCommand,
-        "InverseRolloffRadiusSigma", inverseRolloffRadiusSigma);
+    ParamUtilities.updateScriptParameter(scriptCommand, "InverseRolloffRadiusSigma",
+        inverseRolloffRadiusSigma);
     ParamUtilities.updateScriptParameter(scriptCommand, "StartingAndEndingZ",
         startingAndEndingZ);
   }
@@ -209,8 +207,7 @@ public final class MTFFilterParam implements ConstMTFFilterParam, CommandParam {
 
   public void setInverseRolloffRadiusSigma(String inverseRolloffRadiusSigma)
       throws FortranInputSyntaxException {
-    ParamUtilities.set(inverseRolloffRadiusSigma,
-        this.inverseRolloffRadiusSigma);
+    ParamUtilities.set(inverseRolloffRadiusSigma, this.inverseRolloffRadiusSigma);
   }
 
   public void setStartingAndEndingZ(String startingAndEndingZ)

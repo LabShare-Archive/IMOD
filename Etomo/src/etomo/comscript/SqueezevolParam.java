@@ -34,6 +34,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2010/04/28 16:06:05  sueh
+ * <p> bug# 1344 Added getOutputImageFileType functions.
+ * <p>
  * <p> Revision 1.14  2010/02/17 04:47:54  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -92,12 +95,12 @@ public final class SqueezevolParam implements ConstSqueezevolParam {
   private static final int COMMAND_SIZE = 3;
   public static final String COMMAND_NAME = "squeezevol";
 
-  private final EtomoNumber reductionFactorX = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE, "ReductionFactorX");
-  private final EtomoNumber reductionFactorY = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE, "ReductionFactorY");
-  private final EtomoNumber reductionFactorZ = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE, "ReductionFactorZ");
+  private final EtomoNumber reductionFactorX = new EtomoNumber(EtomoNumber.Type.DOUBLE,
+      "ReductionFactorX");
+  private final EtomoNumber reductionFactorY = new EtomoNumber(EtomoNumber.Type.DOUBLE,
+      "ReductionFactorY");
+  private final EtomoNumber reductionFactorZ = new EtomoNumber(EtomoNumber.Type.DOUBLE,
+      "ReductionFactorZ");
 
   private final ApplicationManager manager;
 
@@ -196,11 +199,11 @@ public final class SqueezevolParam implements ConstSqueezevolParam {
     options.add(outputFile.getName());
     return options;
   }
-  
+
   public FileType getOutputImageFileType() {
     return FileType.SQUEEZE_VOL_OUTPUT;
   }
-  
+
   public FileType getOutputImageFileType2() {
     return null;
   }
@@ -301,13 +304,11 @@ public final class SqueezevolParam implements ConstSqueezevolParam {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstEtomoNumber getEtomoNumber(
-      etomo.comscript.FieldInterface fieldInterface) {
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
-  public ConstIntKeyList getIntKeyList(
-      etomo.comscript.FieldInterface fieldInterface) {
+  public ConstIntKeyList getIntKeyList(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
@@ -315,8 +316,8 @@ public final class SqueezevolParam implements ConstSqueezevolParam {
     return COMMAND_NAME;
   }
 
-  public List getLogMessage()
-      throws LogFile.LockException, FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+      IOException {
     return null;
   }
 
@@ -335,6 +336,7 @@ public final class SqueezevolParam implements ConstSqueezevolParam {
   public CommandMode getCommandMode() {
     return null;
   }
+
   public boolean isMessageReporter() {
     return false;
   }
