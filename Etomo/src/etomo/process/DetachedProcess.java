@@ -49,12 +49,12 @@ final class DetachedProcess extends BackgroundProcess {
   private String shortCommandName = "";
 
   DetachedProcess(BaseManager manager, DetachedCommandDetails commandDetails,
-      BaseProcessManager processManager, AxisID axisID,
-      OutfileProcessMonitor monitor, ProcessResultDisplay processResultDisplay,
-      ProcessName processName, ConstProcessSeries processSeries,
-      boolean popupChunkWarnings, final ProcessingMethod processingMethod) {
-    super(manager, commandDetails, processManager, axisID, processName,
-        processSeries, popupChunkWarnings);
+      BaseProcessManager processManager, AxisID axisID, OutfileProcessMonitor monitor,
+      ProcessResultDisplay processResultDisplay, ProcessName processName,
+      ConstProcessSeries processSeries, boolean popupChunkWarnings,
+      final ProcessingMethod processingMethod) {
+    super(manager, commandDetails, processManager, axisID, processName, processSeries,
+        popupChunkWarnings);
     this.axisID = axisID;
     this.manager = manager;
     this.monitor = monitor;
@@ -82,22 +82,21 @@ final class DetachedProcess extends BackgroundProcess {
       runCommand = makeRunFile();
     }
     catch (IOException e) {
-      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
-          "Can't Run Process");
+      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(), "Can't Run Process");
       return false;
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
-          "Can't Run " + getCommandName());
+      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(), "Can't Run "
+          + getCommandName());
       return false;
     }
     if (!getDetachedCommand().isValid()) {
       processDone(1);
       return false;
     }
-    SystemProgram program = new BackgroundSystemProgram(manager, runCommand,
-        monitor, axisID);
+    SystemProgram program = new BackgroundSystemProgram(manager, runCommand, monitor,
+        axisID);
     program.setAcceptInputWhileRunning(true);
     setProgram(program);
     return true;
@@ -120,8 +119,7 @@ final class DetachedProcess extends BackgroundProcess {
     return true;
   }
 
-  private final String[] makeRunFile() throws IOException,
-      LogFile.LockException {
+  private final String[] makeRunFile() throws IOException, LogFile.LockException {
     String commandName;
     if (subdirName == null) {
       commandName = getCommandName();
@@ -259,6 +257,10 @@ final class DetachedProcess extends BackgroundProcess {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.27  2011/02/03 06:00:27  sueh
+ * <p> bug# 1422 Added the processing method to the constructor so it can be
+ * <p> used for reconnecting.
+ * <p>
  * <p> Revision 1.26  2010/11/13 16:03:45  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>

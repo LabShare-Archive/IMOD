@@ -23,6 +23,10 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2010/02/17 04:49:20  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.11  2010/01/13 21:53:05  sueh
  * <p> bug# 1298 No longer saving lstThresholdArray.
  * <p>
@@ -73,17 +77,17 @@ public final class PeetProcessManager extends BaseProcessManager {
     this.manager = manager;
   }
 
-  public String peetParser(PeetParserParam param,
-      ConstProcessSeries processSeries) throws SystemProcessException {
-    BackgroundProcess backgroundProcess = startBackgroundProcess(param,
-        AxisID.ONLY, ProcessName.PEET_PARSER, processSeries);
+  public String peetParser(PeetParserParam param, ConstProcessSeries processSeries)
+      throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(param, AxisID.ONLY,
+        ProcessName.PEET_PARSER, processSeries);
     return backgroundProcess.getName();
   }
 
-  public String averageAll(AverageAllParam param,
-      ConstProcessSeries processSeries) throws SystemProcessException {
-    BackgroundProcess backgroundProcess = startBackgroundProcess(param,
-        AxisID.ONLY, ProcessName.AVERAGE_ALL, processSeries);
+  public String averageAll(AverageAllParam param, ConstProcessSeries processSeries)
+      throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(param, AxisID.ONLY,
+        ProcessName.AVERAGE_ALL, processSeries);
     return backgroundProcess.getName();
   }
 

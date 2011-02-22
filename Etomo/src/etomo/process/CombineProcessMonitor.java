@@ -33,6 +33,9 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.33  2010/12/05 04:42:56  sueh
+ * <p> $bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.
+ * <p> $
  * <p> $Revision 1.32  2010/11/13 16:03:45  sueh
  * <p> $bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p> $
@@ -326,32 +329,29 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
    * run the monitor associated with the current .com file, if these is one
    * @param comscriptName
    */
-  private void setCurrentChildCommand(String comscriptName)
-      throws LogFile.LockException {
-    if (childLog != null && childLogWritingId != null
-        && !childLogWritingId.isEmpty()) {
+  private void setCurrentChildCommand(String comscriptName) throws LogFile.LockException {
+    if (childLog != null && childLogWritingId != null && !childLogWritingId.isEmpty()) {
       childLog.closeForWriting(childLogWritingId);
       childLogWritingId = null;
     }
     manager.progressBarDone(axisID, ProcessEndState.DONE);
-    String childCommandName = comscriptName.substring(0, comscriptName
-        .indexOf(".com"));
+    String childCommandName = comscriptName.substring(0, comscriptName.indexOf(".com"));
     currentCommand = ProcessName.getInstance(childCommandName, axisID);
     if (currentCommand != null) {
-      childLog = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
-          currentCommand);
+      childLog = LogFile
+          .getInstance(manager.getPropertyUserDir(), axisID, currentCommand);
       childLogWritingId = childLog.openForWriting();
     }
     if (currentCommand == ProcessName.MATCHVOL1) {
       setNextProcessResultDisplay(displayFactory.getRestartMatchvol1());
-      manager.showPane(CombineComscriptState.COMSCRIPT_NAME,
-          CombineProcessType.MATCHVOL1);
+      manager
+          .showPane(CombineComscriptState.COMSCRIPT_NAME, CombineProcessType.MATCHVOL1);
       childMonitor = new Matchvol1ProcessMonitor(manager, axisID);
     }
     else if (currentCommand == ProcessName.PATCHCORR) {
       setNextProcessResultDisplay(displayFactory.getRestartPatchcorr());
-      manager.showPane(CombineComscriptState.COMSCRIPT_NAME,
-          CombineProcessType.PATCHCORR);
+      manager
+          .showPane(CombineComscriptState.COMSCRIPT_NAME, CombineProcessType.PATCHCORR);
       childMonitor = new PatchcorrProcessWatcher(manager, axisID);
     }
     else if (currentCommand == ProcessName.MATCHORWARP) {
@@ -371,8 +371,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     }
   }
 
-  private void setNextProcessResultDisplay(
-      ProcessResultDisplay nextProcessResultDisplay) {
+  private void setNextProcessResultDisplay(ProcessResultDisplay nextProcessResultDisplay) {
     if (!firstChildProcessSet) {
       firstChildProcessSet = true;
       return;
@@ -418,8 +417,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
    *
    */
   private void endMonitor(ProcessEndState endState) {
-    if (childLog != null && childLogWritingId != null
-        && !childLogWritingId.isEmpty()) {
+    if (childLog != null && childLogWritingId != null && !childLogWritingId.isEmpty()) {
       childLog.closeForWriting(childLogWritingId);
       childLogWritingId = null;
     }
@@ -448,8 +446,8 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     }
     setNextProcessResultDisplay(null);
     manager.showPane(CombineComscriptState.COMSCRIPT_NAME, combineProcessType);
-    manager.startProgressBar(COMBINE_LABEL + ": " + childCommandName, axisID,
-        processName);
+    manager
+        .startProgressBar(COMBINE_LABEL + ": " + childCommandName, axisID, processName);
   }
 
   public void stop() {
@@ -486,8 +484,8 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     catch (LogFile.LockException e) {
       endMonitor(ProcessEndState.FAILED);
       e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
-          "Etomo Error", axisID);
+      UIHarness.INSTANCE
+          .openMessageDialog(manager, e.getMessage(), "Etomo Error", axisID);
     }
     catch (InterruptedException e) {
       endMonitor(ProcessEndState.DONE);
@@ -501,9 +499,8 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
       e.printStackTrace();
     }
     //  Close the log file reader
-    Utilities
-        .debugPrint("LogFileProcessMonitor: Closing the log file reader for "
-            + logFile.getAbsolutePath());
+    Utilities.debugPrint("LogFileProcessMonitor: Closing the log file reader for "
+        + logFile.getAbsolutePath());
     if (logFile != null) {
       logFile.closeReader(logFileReaderId);
       logFileReaderId = null;
@@ -519,8 +516,8 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
    * Wait for the process to start and the appropriate log file to be created 
    * @return a buffered reader of the log file
    */
-  private void waitForLogFile() throws LogFile.LockException,
-      InterruptedException, FileNotFoundException {
+  private void waitForLogFile() throws LogFile.LockException, InterruptedException,
+      FileNotFoundException {
     if (logFile == null) {
       throw new NullPointerException("logFile");
     }
@@ -563,16 +560,14 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     case CONSTRUCTED_STATE:
       stateString = "After construction:  ";
       if (axisID == null) {
-        throw new NullPointerException(stateString
-            + "AxisID should not be null");
+        throw new NullPointerException(stateString + "AxisID should not be null");
       }
       if (combineComscriptState == null) {
         throw new NullPointerException(stateString
             + "CombineComscriptState should not be null");
       }
       if (!processRunning) {
-        throw new IllegalStateException(stateString
-            + "ProcessRunning must be true");
+        throw new IllegalStateException(stateString + "ProcessRunning must be true");
       }
 
       break;
@@ -590,8 +585,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     case RAN_STATE:
       stateString = "After run():  ";
       if (processRunning) {
-        throw new IllegalStateException(stateString
-            + "ProcessRunning should be false.");
+        throw new IllegalStateException(stateString + "ProcessRunning should be false.");
       }
       break;
 

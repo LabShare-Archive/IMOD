@@ -75,8 +75,8 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   final Map computerMap;
   private int tcshErrorCountDown = NO_TCSH_ERROR;
 
-  ProcesschunksProcessMonitor(BaseManager manager, AxisID axisID,
-      String rootName, Map computerMap) {
+  ProcesschunksProcessMonitor(BaseManager manager, AxisID axisID, String rootName,
+      Map computerMap) {
     this.manager = manager;
     this.axisID = axisID;
     this.parallelProgressDisplay = manager.getProcessingMethodMediator(axisID)
@@ -87,11 +87,10 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     debug = EtomoDirector.INSTANCE.getArguments().isDebug();
   }
 
-  public static ProcesschunksProcessMonitor getReconnectInstance(
-      BaseManager manager, AxisID axisID, ProcessData processData) {
-    ProcesschunksProcessMonitor instance = new ProcesschunksProcessMonitor(
-        manager, axisID, processData.getSubProcessName(), processData
-            .getComputerMap());
+  public static ProcesschunksProcessMonitor getReconnectInstance(BaseManager manager,
+      AxisID axisID, ProcessData processData) {
+    ProcesschunksProcessMonitor instance = new ProcesschunksProcessMonitor(manager,
+        axisID, processData.getSubProcessName(), processData.getComputerMap());
     instance.reconnect = true;
     return instance;
   }
@@ -332,8 +331,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     }
   }
 
-  boolean updateState() throws LogFile.LockException, FileNotFoundException,
-      IOException {
+  boolean updateState() throws LogFile.LockException, FileNotFoundException, IOException {
     createProcessOutput();
     if (processOutputReaderId == null || processOutputReaderId.isEmpty()) {
       processOutputReaderId = processOutput.openReader();
@@ -380,8 +378,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
         returnValue = true;
       }
       else if (line.indexOf("BAD COMMAND IGNORED") != -1) {
-        throw new IllegalStateException("Bad command sent to processchunks\n"
-            + line);
+        throw new IllegalStateException("Bad command sent to processchunks\n" + line);
       }
       else if (line.equals(SUCCESS_TAG)) {
         endMonitor(ProcessEndState.DONE);
@@ -404,8 +401,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
           || line.indexOf("Subscript out of range") != -1
           || line.indexOf("Illegal variable name") != -1
           || line.indexOf("Variable syntax") != -1
-          || line.indexOf("Badly placed (") != -1 || line
-          .indexOf("Badly formed number") != -1)
+          || line.indexOf("Badly placed (") != -1 || line.indexOf("Badly formed number") != -1)
           && (process == null || process.getProcessData() == null || !process
               .getProcessData().isRunning())) {
         //If a tcsh error is found, start a countdown that progresses each time
@@ -511,8 +507,8 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
           "Reconnecting...", axisID);
     }
     else {
-      manager.getMainPanel().setProgressBarValue(chunksFinished.getInt(),
-          "Starting...", axisID);
+      manager.getMainPanel().setProgressBarValue(chunksFinished.getInt(), "Starting...",
+          axisID);
     }
   }
 
@@ -541,8 +537,8 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     else if (pausing) {
       title.append(" - paused");
     }
-    manager.getMainPanel().setProgressBar(title.toString(), nChunks.getInt(),
-        axisID, !reassembling && !killing);
+    manager.getMainPanel().setProgressBar(title.toString(), nChunks.getInt(), axisID,
+        !reassembling && !killing);
   }
 
   /**
@@ -559,8 +555,8 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     }
     //delete the commands pipe even if it was never created (just to be sure)
     if (commandsPipe == null) {
-      commandsPipe = LogFile.getInstance(manager.getPropertyUserDir(),
-          DatasetFiles.getCommandsFileName(subdirName, rootName));
+      commandsPipe = LogFile.getInstance(manager.getPropertyUserDir(), DatasetFiles
+          .getCommandsFileName(subdirName, rootName));
     }
     if (commandsPipeWriterId != null && !commandsPipeWriterId.isEmpty()) {
       commandsPipe.closeWriter(commandsPipeWriterId);
@@ -587,8 +583,8 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       return;
     }
     if (commandsPipe == null) {
-      commandsPipe = LogFile.getInstance(manager.getPropertyUserDir(),
-          DatasetFiles.getCommandsFileName(subdirName, rootName));
+      commandsPipe = LogFile.getInstance(manager.getPropertyUserDir(), DatasetFiles
+          .getCommandsFileName(subdirName, rootName));
     }
     if (commandsPipeWriterId == null || commandsPipeWriterId.isEmpty()) {
       commandsPipeWriterId = commandsPipe.openWriter();
@@ -605,12 +601,11 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
    * make sure process output file is new and set processOutputFile.  This
    * function should be first run before the process starts.
    */
-  private final synchronized void createProcessOutput()
-      throws LogFile.LockException {
+  private final synchronized void createProcessOutput() throws LogFile.LockException {
     if (processOutput == null) {
-      processOutput = LogFile.getInstance(manager.getPropertyUserDir(),
-          DatasetFiles.getOutFileName(manager, subdirName,
-              ProcessName.PROCESSCHUNKS.toString(), axisID));
+      processOutput = LogFile.getInstance(manager.getPropertyUserDir(), DatasetFiles
+          .getOutFileName(manager, subdirName, ProcessName.PROCESSCHUNKS.toString(),
+              axisID));
       //Don't remove the file if this is a reconnect.
       if (!reconnect) {
         //Avoid looking at a file from a previous run.
@@ -621,6 +616,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.54  2011/02/03 06:02:00  sueh
+ * <p> bug# 1422 Registering class with process method mediator.
+ * <p>
  * <p> Revision 1.53  2010/11/13 16:03:45  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>

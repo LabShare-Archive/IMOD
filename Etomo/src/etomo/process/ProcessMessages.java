@@ -74,8 +74,8 @@ public final class ProcessMessages {
     return new ProcessMessages(false, true, null, null);
   }
 
-  private ProcessMessages(boolean multiLineMessages, boolean chunks,
-      String successTag1, String successTag2) {
+  private ProcessMessages(boolean multiLineMessages, boolean chunks, String successTag1,
+      String successTag2) {
     this.multiLineMessages = multiLineMessages;
     this.chunks = chunks;
     this.successTag1 = successTag1;
@@ -160,8 +160,7 @@ public final class ProcessMessages {
 
   synchronized final void add(ProcessMessages processMessages) {
     addError(processMessages);
-    if (processMessages.warningList != null
-        && processMessages.warningList.size() > 0) {
+    if (processMessages.warningList != null && processMessages.warningList.size() > 0) {
       getWarningList().addAll(processMessages.warningList);
     }
     if (processMessages.infoList != null && processMessages.infoList.size() > 0) {
@@ -195,8 +194,7 @@ public final class ProcessMessages {
   }
 
   synchronized void addError(ProcessMessages processMessages) {
-    if (processMessages.errorList != null
-        && processMessages.errorList.size() > 0) {
+    if (processMessages.errorList != null && processMessages.errorList.size() > 0) {
       getErrorList().addAll(processMessages.getErrorList());
     }
   }
@@ -234,8 +232,7 @@ public final class ProcessMessages {
   }
 
   public final String getWarning(int warningIndex) {
-    if (warningList == null || warningIndex < 0
-        || warningIndex >= warningList.size()) {
+    if (warningList == null || warningIndex < 0 || warningIndex >= warningList.size()) {
       return null;
     }
     return (String) warningList.get(warningIndex);
@@ -417,8 +414,7 @@ public final class ProcessMessages {
     int pipWarningEndTagIndex = line.indexOf(PIP_WARNING_END_TAG);
     if (pipWarningEndTagIndex != -1) {
       //check for pip warning ending in the middle of the line
-      int pipWarningEndIndex = pipWarningEndTagIndex
-          + PIP_WARNING_END_TAG.length();
+      int pipWarningEndIndex = pipWarningEndTagIndex + PIP_WARNING_END_TAG.length();
       if (line.length() > pipWarningEndIndex) {
         //remove the message from the line so the line can continue to be parsed
         line = line.substring(pipWarningEndIndex);
@@ -435,8 +431,7 @@ public final class ProcessMessages {
       else {
         //found the end tag - save the pip warning to infoList
         //check for pip warning ending in the middle of the line
-        int pipWarningEndIndex = pipWarningEndTagIndex
-            + PIP_WARNING_END_TAG.length();
+        int pipWarningEndIndex = pipWarningEndTagIndex + PIP_WARNING_END_TAG.length();
         if (line.length() > pipWarningEndIndex) {
           pipWarning.append(" " + line.substring(0, pipWarningEndIndex));
           //remove the message from the line so the line can continue to be parsed
@@ -510,8 +505,7 @@ public final class ProcessMessages {
     }
     //message found - add to list
     if (chunkError) {
-      addElement(getChunkErrorList(), line, chunkErrorIndex, CHUNK_ERROR_TAG
-          .length());
+      addElement(getChunkErrorList(), line, chunkErrorIndex, CHUNK_ERROR_TAG.length());
     }
     nextLine();
     return true;
@@ -771,8 +765,7 @@ public final class ProcessMessages {
    * @param line
    * @param startIndex
    */
-  private final void addElement(Vector list, String line, int startIndex,
-      int tagSize) {
+  private final void addElement(Vector list, String line, int startIndex, int tagSize) {
     if (startIndex + tagSize < line.length()) {
       if (startIndex > 0) {
         list.add(line.substring(startIndex));
@@ -854,6 +847,9 @@ public final class ProcessMessages {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2010/11/13 16:03:45  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.13  2010/06/18 16:23:31  sueh
  * <p> bug# 1385 Added addWarning and getLastWarning.
  * <p>

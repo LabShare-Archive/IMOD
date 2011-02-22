@@ -48,9 +48,8 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
   //When true the process is being controlled by the monitor.
   private boolean monitorControl = false;
 
-  private ReconnectProcess(BaseManager manager,
-      BaseProcessManager processManager, ProcessMonitor monitor,
-      ProcessData processData, AxisID axisID) {
+  private ReconnectProcess(BaseManager manager, BaseProcessManager processManager,
+      ProcessMonitor monitor, ProcessData processData, AxisID axisID) {
     this.manager = manager;
     this.processManager = processManager;
     this.monitor = monitor;
@@ -59,29 +58,27 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
   }
 
   static ReconnectProcess getInstance(BaseManager manager,
-      BaseProcessManager processManager, ProcessMonitor monitor,
-      ProcessData processData, AxisID axisID) throws LogFile.LockException {
-    ReconnectProcess instance = new ReconnectProcess(manager, processManager,
-        monitor, processData, axisID);
-    instance.logFile = LogFile.getInstance(manager.getPropertyUserDir(),
-        axisID, processData.getProcessName());
+      BaseProcessManager processManager, ProcessMonitor monitor, ProcessData processData,
+      AxisID axisID) throws LogFile.LockException {
+    ReconnectProcess instance = new ReconnectProcess(manager, processManager, monitor,
+        processData, axisID);
+    instance.logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
+        processData.getProcessName());
     return instance;
   }
 
   static ReconnectProcess getLogInstance(BaseManager manager,
-      BaseProcessManager processManager, ProcessMonitor monitor,
-      ProcessData processData, AxisID axisID, String logFileName,
-      String logSuccessTag, ConstStringProperty subDirName)
-      throws LogFile.LockException {
-    ReconnectProcess instance = new ReconnectProcess(manager, processManager,
-        monitor, processData, axisID);
+      BaseProcessManager processManager, ProcessMonitor monitor, ProcessData processData,
+      AxisID axisID, String logFileName, String logSuccessTag,
+      ConstStringProperty subDirName) throws LogFile.LockException {
+    ReconnectProcess instance = new ReconnectProcess(manager, processManager, monitor,
+        processData, axisID);
     if (subDirName.isEmpty()) {
-      instance.logFile = LogFile.getInstance(manager.getPropertyUserDir(),
-          logFileName);
+      instance.logFile = LogFile.getInstance(manager.getPropertyUserDir(), logFileName);
     }
     else {
-      instance.logFile = LogFile.getInstance(new File(manager
-          .getPropertyUserDir(), subDirName.toString()), logFileName);
+      instance.logFile = LogFile.getInstance(new File(manager.getPropertyUserDir(),
+          subDirName.toString()), logFileName);
     }
     instance.logSuccessTag = logSuccessTag;
     instance.monitorControl = true;
@@ -117,8 +114,7 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
       return;
     }
 
-    ProcessingMethodMediator mediator = manager
-        .getProcessingMethodMediator(axisID);
+    ProcessingMethodMediator mediator = manager.getProcessingMethodMediator(axisID);
     mediator.register(this);
 
     new Thread(monitor).start();
@@ -158,8 +154,7 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
       }
     }
     if (logSuccessTag == null) {
-      messages = ProcessMessages.getInstance("Reconstruction of",
-          "slices complete.");
+      messages = ProcessMessages.getInstance("Reconstruction of", "slices complete.");
     }
     else {
       messages = ProcessMessages.getInstance(logSuccessTag);
@@ -292,8 +287,7 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
     }
   }
 
-  public final void setProcessResultDisplay(
-      ProcessResultDisplay processResultDisplay) {
+  public final void setProcessResultDisplay(ProcessResultDisplay processResultDisplay) {
     this.processResultDisplay = processResultDisplay;
   }
 
@@ -314,6 +308,9 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2011/02/03 06:05:46  sueh
+ * <p> bug# 1422 Getting the processing method when reconnecting.
+ * <p>
  * <p> Revision 1.13  2010/11/13 16:03:45  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>

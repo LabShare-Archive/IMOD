@@ -23,6 +23,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2010/03/03 04:55:35  sueh
+ * <p> bug# 1311 Removed unnecessary ProcessName references.
+ * <p>
  * <p> Revision 1.7  2010/02/17 04:48:40  sueh
  * <p> bug# 1301 Added the option to pass in fileType when creating the
  * <p> flattening instance.
@@ -101,8 +104,7 @@ final class Matchvol1ProcessMonitor extends LogFileProcessMonitor {
       manager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
       return;
     }
-    manager.getMainPanel()
-        .setProgressBar(title, nSections, axisID);
+    manager.getMainPanel().setProgressBar(title, nSections, axisID);
   }
 
   /* (non-Javadoc)

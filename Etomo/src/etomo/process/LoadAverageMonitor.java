@@ -25,8 +25,7 @@ public class LoadAverageMonitor extends LoadMonitor {
   private static final String OUTPUT_KEY_PHRASE = "load average";
   private static final String OUTPUT_KEY_PHRASE_WINDOWS = "Percent CPU usage";
 
-  public LoadAverageMonitor(LoadDisplay display, AxisID axisID,
-      BaseManager manager) {
+  public LoadAverageMonitor(LoadDisplay display, AxisID axisID, BaseManager manager) {
     super(display, axisID, manager);
   }
 
@@ -91,8 +90,8 @@ public class LoadAverageMonitor extends LoadMonitor {
       if (load1 == -1) {
         return;
       }
-      display.setLoad(programState.getCommand().getComputer(), load1,
-          load5, users, programState.getUserList());
+      display.setLoad(programState.getCommand().getComputer(), load1, load5, users,
+          programState.getUserList());
     }
   }
 
@@ -114,6 +113,9 @@ public class LoadAverageMonitor extends LoadMonitor {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.27  2010/11/13 16:03:45  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.26  2009/04/13 22:31:31  sueh
  * <p> bug# 1207 Made FailureReason available to other classes.
  * <p>

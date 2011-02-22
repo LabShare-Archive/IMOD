@@ -22,6 +22,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2010/05/10 14:43:40  sueh
+ * <p> In run catching a null pointer exception if process is null.  This is a situation that is unlikely to happen.  Found it during test on Windows 7-64.
+ * <p>
  * <p> Revision 3.11  2010/04/28 16:20:29  sueh
  * <p> bug# 1344 Added closeOutputImageFile.
  * <p>
@@ -120,8 +123,7 @@ public class InteractiveSystemProgram implements Runnable {
 
   private String threadName = null;
 
-  private EtomoNumber outputFileLastModified = new EtomoNumber(
-      EtomoNumber.Type.LONG, "");
+  private EtomoNumber outputFileLastModified = new EtomoNumber(EtomoNumber.Type.LONG, "");
 
   private final BaseManager manager;
 
@@ -244,19 +246,18 @@ public class InteractiveSystemProgram implements Runnable {
       if (workingDirectory == null) {
         File currentUserDirectory = new File(manager.getPropertyUserDir());
         if (commandArray != null) {
-          process = Runtime.getRuntime().exec(commandArray, null,
-              currentUserDirectory);
-        } else {
-          process = Runtime.getRuntime().exec(commandLine, null,
-              currentUserDirectory);
+          process = Runtime.getRuntime().exec(commandArray, null, currentUserDirectory);
         }
-      } else {
+        else {
+          process = Runtime.getRuntime().exec(commandLine, null, currentUserDirectory);
+        }
+      }
+      else {
         if (commandArray != null) {
-          process = Runtime.getRuntime().exec(commandArray, null,
-              workingDirectory);
-        } else {
-          process = Runtime.getRuntime().exec(commandLine, null,
-              workingDirectory);
+          process = Runtime.getRuntime().exec(commandArray, null, workingDirectory);
+        }
+        else {
+          process = Runtime.getRuntime().exec(commandLine, null, workingDirectory);
         }
       }
 

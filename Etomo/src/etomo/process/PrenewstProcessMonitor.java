@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.15  2010/03/03 04:55:35  sueh
+ * <p> bug# 1311 Removed unnecessary ProcessName references.
+ * <p>
  * <p> Revision 3.14  2010/02/17 04:49:20  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -118,8 +121,8 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
 
     // Get the header from the raw stack to calculate the aligned stack size
     loadDataSetPath();
-    MRCHeader rawStack = MRCHeader.getInstance(applicationManager
-        .getPropertyUserDir(), dataSetPath + ".st", axisID);
+    MRCHeader rawStack = MRCHeader.getInstance(applicationManager.getPropertyUserDir(),
+        dataSetPath + ".st", axisID);
     if (!rawStack.read(applicationManager)) {
       return false;
     }
@@ -129,8 +132,7 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
     nZ = rawStack.getNSections();
 
     // Get the binByFactor from prenewst.com script
-    ComScriptManager comScriptManager = applicationManager
-        .getComScriptManager();
+    ComScriptManager comScriptManager = applicationManager.getComScriptManager();
     comScriptManager.loadPrenewst(axisID);
     NewstParam prenewstParam = comScriptManager.getPrenewstParam(axisID);
     int binBy = prenewstParam.getBinByFactor();
@@ -141,8 +143,8 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
     }
     long fileSize = 1024 + ((long) nX * nY) * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
-    applicationManager.getMainPanel().setProgressBar("Creating coarse stack",
-        nKBytes, axisID);
+    applicationManager.getMainPanel().setProgressBar("Creating coarse stack", nKBytes,
+        axisID);
     return true;
   }
 
@@ -157,7 +159,6 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
       return;
     }
     dataSetPath = applicationManager.getPropertyUserDir() + "/"
-        + applicationManager.getMetaData().getDatasetName()
-        + axisID.getExtension();
+        + applicationManager.getMetaData().getDatasetName() + axisID.getExtension();
   }
 }

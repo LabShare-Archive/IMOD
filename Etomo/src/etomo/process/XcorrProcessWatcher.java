@@ -32,8 +32,8 @@ public class XcorrProcessWatcher implements ProcessMonitor {
    * @param appMgr
    * @param id
    */
-  public XcorrProcessWatcher(ApplicationManager applicationManager,
-      AxisID axisID, boolean blendmont) {
+  public XcorrProcessWatcher(ApplicationManager applicationManager, AxisID axisID,
+      boolean blendmont) {
     this.applicationManager = applicationManager;
     this.axisID = axisID;
     this.blendmont = blendmont;
@@ -46,6 +46,7 @@ public class XcorrProcessWatcher implements ProcessMonitor {
   public boolean isRunning() {
     return running;
   }
+
   public void useMessageReporter() {
   }
 
@@ -126,6 +127,9 @@ public class XcorrProcessWatcher implements ProcessMonitor {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.19  2010/01/11 23:51:24  sueh
+ * <p> bug# 1299 Added useMessageReporter.
+ * <p>
  * <p> Revision 3.18  2008/01/14 22:00:12  sueh
  * <p> bug# 1050 Added stop() and isRunning() to allow ProcessMonitor classes to work
  * <p> with ReconnectProcess.

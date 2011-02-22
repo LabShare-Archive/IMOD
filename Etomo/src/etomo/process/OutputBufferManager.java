@@ -43,13 +43,11 @@ final class OutputBufferManager implements Runnable {
   private boolean debug = false;
   private boolean printMessages = false;
 
-  OutputBufferManager(
-      BufferedReader reader) {
+  OutputBufferManager(BufferedReader reader) {
     outputReader = reader;
   }
 
-  OutputBufferManager(
-      BufferedReader reader, String keyPhrase) {
+  OutputBufferManager(BufferedReader reader, String keyPhrase) {
     outputReader = reader;
     this.keyPhrase = keyPhrase;
   }
@@ -143,8 +141,7 @@ final class OutputBufferManager implements Runnable {
    * @return
    */
   synchronized String[] get() {
-    String[] stringArray = (String[]) outputList.toArray(new String[outputList
-        .size()]);
+    String[] stringArray = (String[]) outputList.toArray(new String[outputList.size()]);
     if (!collectOutput) {
       outputList.clear();
     }
@@ -223,6 +220,9 @@ final class OutputBufferManager implements Runnable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2010/01/11 23:56:33  sueh
+ * <p> bug# 1299 Added useMessageReporter.
+ * <p>
  * <p> Revision 1.5  2009/09/02 22:42:22  sueh
  * <p> bug# 1254 Getting rid of duplicate debug prints.
  * <p>

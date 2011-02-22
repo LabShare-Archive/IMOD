@@ -29,6 +29,9 @@ import etomo.ui.swing.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.50  2011/02/03 05:55:51  sueh
+ * <p> bug# 1422 Added setProcessingMethod.
+ * <p>
  * <p> Revision 3.49  2010/11/13 16:03:45  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -347,9 +350,8 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   }
 
   BackgroundProcess(BaseManager manager, CommandDetails commandDetails,
-      BaseProcessManager processManager, AxisID axisID,
-      ProcessName processName, ConstProcessSeries processSeries,
-      boolean popupChunkWarnings) {
+      BaseProcessManager processManager, AxisID axisID, ProcessName processName,
+      ConstProcessSeries processSeries, boolean popupChunkWarnings) {
     this.manager = manager;
     this.axisID = axisID;
     this.commandDetails = commandDetails;
@@ -366,8 +368,8 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   }
 
   BackgroundProcess(BaseManager manager, Command command,
-      BaseProcessManager processManager, AxisID axisID,
-      ProcessName processName, ConstProcessSeries processSeries) {
+      BaseProcessManager processManager, AxisID axisID, ProcessName processName,
+      ConstProcessSeries processSeries) {
     this.manager = manager;
     this.axisID = axisID;
     this.command = command;
@@ -381,10 +383,10 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     commandDetails = null;
     forceNextProcess = false;
   }
-  
+
   BackgroundProcess(BaseManager manager, CommandDetails commandDetails,
-      BaseProcessManager processManager, AxisID axisID,
-      ProcessName processName, ConstProcessSeries processSeries) {
+      BaseProcessManager processManager, AxisID axisID, ProcessName processName,
+      ConstProcessSeries processSeries) {
     this.manager = manager;
     this.axisID = axisID;
     this.command = commandDetails;
@@ -420,9 +422,8 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   }
 
   BackgroundProcess(BaseManager manager, Command command,
-      BaseProcessManager processManager, AxisID axisID,
-      boolean forceNextProcess, ProcessName processName,
-      ConstProcessSeries processSeries) {
+      BaseProcessManager processManager, AxisID axisID, boolean forceNextProcess,
+      ProcessName processName, ConstProcessSeries processSeries) {
     this.manager = manager;
     this.axisID = axisID;
     this.command = command;
@@ -478,8 +479,8 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   }
 
   BackgroundProcess(BaseManager manager, String[] commandArray,
-      BaseProcessManager processManager, AxisID axisID,
-      ProcessName processName, ConstProcessSeries processSeries) {
+      BaseProcessManager processManager, AxisID axisID, ProcessName processName,
+      ConstProcessSeries processSeries) {
     this.manager = manager;
     this.axisID = axisID;
     this.commandArray = commandArray;
@@ -495,9 +496,9 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   }
 
   BackgroundProcess(BaseManager manager, String[] commandArray,
-      BaseProcessManager processManager, AxisID axisID,
-      boolean forceNextProcess, ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries, ProcessName processName) {
+      BaseProcessManager processManager, AxisID axisID, boolean forceNextProcess,
+      ProcessResultDisplay processResultDisplay, ConstProcessSeries processSeries,
+      ProcessName processName) {
     this.manager = manager;
     this.axisID = axisID;
     this.commandArray = commandArray;
@@ -527,13 +528,13 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
       processData.setComputerMap(computerMap);
     }
   }
-  
+
   public final void setProcessingMethod(final ProcessingMethod processingMethod) {
     if (processData != null) {
       processData.setProcessingMethod(processingMethod);
     }
   }
-  
+
   public final ConstProcessSeries getProcessSeries() {
     return processSeries;
   }
@@ -608,8 +609,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   final CommandDetails getCommandDetails() {
     return commandDetails;
   }
-  
-  
+
   public String toString() {
     return getCommandLine();
   }
@@ -691,12 +691,12 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
 
   boolean newProgram() {
     if (commandArray != null) {
-      program = new SystemProgram(manager, manager.getPropertyUserDir(),
-          commandArray, axisID);
+      program = new SystemProgram(manager, manager.getPropertyUserDir(), commandArray,
+          axisID);
     }
     else if (command != null) {
-      program = new SystemProgram(manager, manager.getPropertyUserDir(),
-          command.getCommandArray(), axisID);
+      program = new SystemProgram(manager, manager.getPropertyUserDir(), command
+          .getCommandArray(), axisID);
     }
     else if (commandArrayList != null) {
       program = new SystemProgram(manager, manager.getPropertyUserDir(),
@@ -792,8 +792,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
         }
       }
     }
-    else if (endState != ProcessEndState.KILLED
-        && endState != ProcessEndState.PAUSED) {
+    else if (endState != ProcessEndState.KILLED && endState != ProcessEndState.PAUSED) {
       errorFound = true;
       ProcessMessages errorMessage = ProcessMessages.getInstance();
       //add the stderr
@@ -822,8 +821,8 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
       //make sure script knows about failure
       setProcessEndState(ProcessEndState.FAILED);
       //popup error messages
-      UIHarness.INSTANCE.openErrorMessageDialog(manager, errorMessage,
-          getProcessName() + " terminated", axisID);
+      UIHarness.INSTANCE.openErrorMessageDialog(manager, errorMessage, getProcessName()
+          + " terminated", axisID);
     }
     processDone(exitValue, errorFound);
   }

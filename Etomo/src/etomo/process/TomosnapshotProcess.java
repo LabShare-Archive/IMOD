@@ -18,6 +18,9 @@ import etomo.ui.swing.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2010/11/13 16:03:45  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.3  2010/02/17 04:49:20  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -41,9 +44,8 @@ final class TomosnapshotProcess implements Runnable {
 
   public void run() {
     //Run tomosnapshot.
-    SystemProgram sysProgram = new SystemProgram(null, System
-        .getProperty("user.dir"), new TomosnapshotParam(axisID)
-        .getCommandArray(), axisID);
+    SystemProgram sysProgram = new SystemProgram(null, System.getProperty("user.dir"),
+        new TomosnapshotParam(axisID).getCommandArray(), axisID);
     Thread thread = new Thread(sysProgram);
     thread.start();
     //Wait until tomosnapshot is done.
@@ -62,8 +64,8 @@ final class TomosnapshotProcess implements Runnable {
             + System.getProperty("user.dir"), "Snapshot Created", axisID);
       }
       else {
-        UIHarness.INSTANCE.openInfoMessageDialog(null,
-            stdout[stdout.length - 1], "Snapshot Created", axisID);
+        UIHarness.INSTANCE.openInfoMessageDialog(null, stdout[stdout.length - 1],
+            "Snapshot Created", axisID);
       }
       return;
     }
@@ -97,7 +99,6 @@ final class TomosnapshotProcess implements Runnable {
         errorMessage.append(stderr[i] + "  ");
       }
     }
-    UIHarness.INSTANCE.openMessageDialog(null, errorMessage.toString(), title,
-        axisID);
+    UIHarness.INSTANCE.openMessageDialog(null, errorMessage.toString(), title, axisID);
   }
 }

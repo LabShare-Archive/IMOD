@@ -17,6 +17,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.41  2010/11/13 16:03:45  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.40  2010/02/17 04:49:20  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -322,8 +325,8 @@ public class SystemProgram implements Runnable {
    * that SystemProgram(String[] arg) for be used so that spaces are not
    * accidentally lost in path or arguments. 
    */
-  public SystemProgram(BaseManager manager, String propertyUserDir,
-      ArrayList command, AxisID axisID) {
+  public SystemProgram(BaseManager manager, String propertyUserDir, ArrayList command,
+      AxisID axisID) {
     this.manager = manager;
     this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
@@ -343,8 +346,8 @@ public class SystemProgram implements Runnable {
    *  run.
    * 	
    */
-  public SystemProgram(BaseManager manager, String propertyUserDir,
-      String[] cmdArray, AxisID axisID) {
+  public SystemProgram(BaseManager manager, String propertyUserDir, String[] cmdArray,
+      AxisID axisID) {
     this.manager = manager;
     this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
@@ -432,8 +435,7 @@ public class SystemProgram implements Runnable {
         process = Runtime.getRuntime().exec(commandArray, null);
       }
       else if (commandArray != null) {
-        process = Runtime.getRuntime().exec(commandArray, null,
-            workingDirectory);
+        process = Runtime.getRuntime().exec(commandArray, null, workingDirectory);
       }
       waitForProcess();
       if (debug)
@@ -445,8 +447,8 @@ public class SystemProgram implements Runnable {
       cmdInBuffer = new BufferedWriter(new OutputStreamWriter(cmdInputStream));
 
       InputStream cmdOutputStream = process.getInputStream();
-      BufferedReader cmdOutputBuffer = new BufferedReader(
-          new InputStreamReader(cmdOutputStream));
+      BufferedReader cmdOutputBuffer = new BufferedReader(new InputStreamReader(
+          cmdOutputStream));
 
       // Set up a reader thread to keep the stdout buffers of the process empty
       stdout = newOutputBufferManager(cmdOutputBuffer);
@@ -502,11 +504,9 @@ public class SystemProgram implements Runnable {
       }
       catch (InterruptedException except) {
         except.printStackTrace();
-        System.err
-            .println("SystemProgram:: interrupted waiting for process to finish!");
+        System.err.println("SystemProgram:: interrupted waiting for process to finish!");
       }
-      Utilities
-          .timestamp(timestampString.toString(), Utilities.FINISHED_STATUS);
+      Utilities.timestamp(timestampString.toString(), Utilities.FINISHED_STATUS);
       // Inform the output manager threads that the process is done
       stdout.setProcessDone(true);
       stderr.setProcessDone(true);
@@ -517,8 +517,7 @@ public class SystemProgram implements Runnable {
       exitValue = getProcessExitValue(process);
 
       if (debug)
-        System.err.println("SystemProgram: Exit value: "
-            + String.valueOf(exitValue));
+        System.err.println("SystemProgram: Exit value: " + String.valueOf(exitValue));
 
       //  Wait for the manager threads to complete
       try {
@@ -527,8 +526,7 @@ public class SystemProgram implements Runnable {
       }
       catch (InterruptedException except) {
         except.printStackTrace();
-        System.err
-            .println("SystemProgram:: interrupted waiting for reader threads!");
+        System.err.println("SystemProgram:: interrupted waiting for reader threads!");
       }
       if (debug)
         System.err.print("SystemProgram: Reading from process stdout: ");
@@ -555,8 +553,7 @@ public class SystemProgram implements Runnable {
       except.printStackTrace();
       exceptionMessage = except.getMessage();
       if (exceptionMessage.indexOf("Cannot run program \"tcsh\"") != -1) {
-        UIHarness.INSTANCE.openMessageDialog(manager, exceptionMessage,
-            "System Error");
+        UIHarness.INSTANCE.openMessageDialog(manager, exceptionMessage, "System Error");
       }
     }
     processMessages.addProcessOutput(stdout);

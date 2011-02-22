@@ -27,6 +27,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2010/03/03 04:55:35  sueh
+ * <p> bug# 1311 Removed unnecessary ProcessName references.
+ * <p>
  * <p> Revision 1.6  2010/02/17 04:49:20  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -100,8 +103,8 @@ public final class CtfCorrectionMonitor extends FileSizeProcessMonitor {
     // the input file 
     double fileSize = 1024.0d + nX * nY * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
-    applicationManager.getMainPanel().setProgressBar("Running CTF Correction",
-        nKBytes, axisID);
+    applicationManager.getMainPanel().setProgressBar("Running CTF Correction", nKBytes,
+        axisID);
     return true;
   }
 

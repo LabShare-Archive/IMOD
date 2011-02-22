@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.25  2010/03/03 04:55:35  sueh
+ * <p> bug# 1311 Removed unnecessary ProcessName references.
+ * <p>
  * <p> Revision 3.24  2010/02/17 04:49:20  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -167,8 +170,7 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
       while ((line = getLogFile().readLine(logReaderId)) != null) {
         if (line.startsWith("Doing section")) {
           //mrctaper started
-          applicationManager.getMainPanel().setProgressBarValue(0, "mrctaper",
-              axisID);
+          applicationManager.getMainPanel().setProgressBarValue(0, "mrctaper", axisID);
           gotStatusFromLog = true;
           getLogFile().closeReader(logReaderId);
           logReaderId = null;
@@ -205,8 +207,8 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
     // Get the header from the raw stack to calculate the aligned stack stize
     String rawStackFilename = applicationManager.getPropertyUserDir() + "/"
         + newstParam.getInputFile();
-    MRCHeader rawStack = MRCHeader.getInstance(applicationManager
-        .getPropertyUserDir(), rawStackFilename, axisID);
+    MRCHeader rawStack = MRCHeader.getInstance(applicationManager.getPropertyUserDir(),
+        rawStackFilename, axisID);
     if (!rawStack.read(applicationManager)) {
       return false;
     }
@@ -235,8 +237,8 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
     // the input file 
     long fileSize = 1024 + ((long) nX * nY) * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
-    applicationManager.getMainPanel().setProgressBar("Creating aligned stack",
-        nKBytes, axisID);
+    applicationManager.getMainPanel().setProgressBar("Creating aligned stack", nKBytes,
+        axisID);
     return true;
   }
 

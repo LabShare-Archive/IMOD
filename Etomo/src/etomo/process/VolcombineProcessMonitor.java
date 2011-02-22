@@ -19,6 +19,9 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.12  2010/03/03 04:55:35  sueh
+ * <p> $bug# 1311 Removed unnecessary ProcessName references.
+ * <p> $
  * <p> $Revision 1.11  2010/02/17 04:49:20  sueh
  * <p> $bug# 1301 Using the manager instead of the manager key do pop up
  * <p> $messages.
@@ -84,20 +87,18 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
    */
   protected void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
-      manager.getMainPanel().setProgressBar("Combine: volcombine", 1, axisID
-          );
+      manager.getMainPanel().setProgressBar("Combine: volcombine", 1, axisID);
       manager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
       return;
     }
-    manager.getMainPanel().setProgressBar("Combine: volcombine", nSections,
-        axisID);
+    manager.getMainPanel().setProgressBar("Combine: volcombine", nSections, axisID);
   }
 
   /* (non-Javadoc)
    * @see etomo.process.LogFileProcessMonitor#getCurrentSection()
    */
-  protected void getCurrentSection() throws NumberFormatException,
-      LogFile.LockException, IOException {
+  protected void getCurrentSection() throws NumberFormatException, LogFile.LockException,
+      IOException {
     String line;
     while ((line = readLogFileLine()) != null) {
       if (line.startsWith("STATUS:")) {
@@ -137,8 +138,8 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
    * Search the log file for the header section and extract the number of
    * sections
    */
-  protected void findNSections() throws InterruptedException,
-      LogFile.LockException, IOException {
+  protected void findNSections() throws InterruptedException, LogFile.LockException,
+      IOException {
     //  Search for the number of sections, we should see a header ouput first
     boolean foundNSections = false;
 

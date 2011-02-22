@@ -55,8 +55,7 @@ public final class ProcessData implements Storable {
   private static final String COMPUTER_KEY = "Computer";
 
   private final EtomoNumber displayKey = new EtomoNumber("DisplayKey");
-  private final StringProperty subProcessName = new StringProperty(
-      "SubProcessName");
+  private final StringProperty subProcessName = new StringProperty("SubProcessName");
   private final StringProperty subDirName = new StringProperty("SubDirName");
   private final StringProperty hostName = new StringProperty("HostName");
 
@@ -119,11 +118,10 @@ public final class ProcessData implements Storable {
    * This is being used in the production code.  Keep it up to date.
    */
   public String toString() {
-    return "ProcessData values:" + "\nprocessName=" + processName + "\npid="
-        + pid + "\ngroupPid=" + groupPid + "\nstartTime=" + startTime
-        + "\nsubProcessName=" + subProcessName + "\nsubDirName=" + subDirName
-        + "\nhostName=" + hostName + "\nosType=" + osType + "\ndisplayKey="
-        + displayKey + "\n";
+    return "ProcessData values:" + "\nprocessName=" + processName + "\npid=" + pid
+        + "\ngroupPid=" + groupPid + "\nstartTime=" + startTime + "\nsubProcessName="
+        + subProcessName + "\nsubDirName=" + subDirName + "\nhostName=" + hostName
+        + "\nosType=" + osType + "\ndisplayKey=" + displayKey + "\n";
   }
 
   public void setDisplayKey(ProcessResultDisplay processResultDisplay) {
@@ -208,10 +206,9 @@ public final class ProcessData implements Storable {
    * @return
    */
   private PsParam runPs(String pid) {
-    PsParam param = new PsParam(manager, axisID, pid, osType, hostName
-        .toString(), false);
-    SystemProgram ps = new SystemProgram(manager, manager.getPropertyUserDir(),
-        param.getCommandArray(), axisID);
+    PsParam param = new PsParam(manager, axisID, pid, osType, hostName.toString(), false);
+    SystemProgram ps = new SystemProgram(manager, manager.getPropertyUserDir(), param
+        .getCommandArray(), axisID);
     ps.run();
     String[] stdout = ps.getStdOutput();
     //Ps should always return something - usually as header, but on Mac it will
@@ -337,8 +334,8 @@ public final class ProcessData implements Storable {
         Iterator entryIterator = computerSet.iterator();
         while (entryIterator.hasNext()) {
           Entry entry = (Entry) entryIterator.next();
-          props.setProperty(group + COMPUTER_KEY + "."
-              + (String) entry.getKey(), (String) entry.getValue());
+          props.setProperty(group + COMPUTER_KEY + "." + (String) entry.getKey(),
+              (String) entry.getValue());
         }
       }
     }
@@ -404,14 +401,17 @@ public final class ProcessData implements Storable {
         }
         //Strip the generic part of the key from props to get the key for
         //computerMap.
-        computerMap.put(key.substring(key.indexOf(computerKey)
-            + computerKey.length()), props.getProperty(key, "0"));
+        computerMap.put(key.substring(key.indexOf(computerKey) + computerKey.length()),
+            props.getProperty(key, "0"));
       }
     }
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2011/02/03 06:03:56  sueh
+ * <p> bug# 1422 Added processing method.
+ * <p>
  * <p> Revision 1.13  2010/02/17 04:49:20  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.

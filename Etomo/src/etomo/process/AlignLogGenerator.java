@@ -11,6 +11,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.11  2010/02/17 04:49:20  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 3.10  2009/09/01 03:17:56  sueh
  * <p> bug# 1222
  * <p>
@@ -90,8 +94,8 @@ public class AlignLogGenerator {
 
   private void runArgument(String argument, String logFile) throws IOException {
     alignLogCommand[3] = argument;
-    SystemProgram alignlog = new SystemProgram(manager, manager
-        .getPropertyUserDir(), alignLogCommand, axisID);
+    SystemProgram alignlog = new SystemProgram(manager, manager.getPropertyUserDir(),
+        alignLogCommand, axisID);
 
     alignlog.run();
 

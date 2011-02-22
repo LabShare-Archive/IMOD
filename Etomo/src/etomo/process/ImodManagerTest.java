@@ -65,8 +65,7 @@ public class ImodManagerTest extends TestCase {
 
   //Regression test
 
-  final public void testImodManager()
-    throws AxisTypeException, SystemProcessException {
+  final public void testImodManager() throws AxisTypeException, SystemProcessException {
     ImodState tester;
     //Test single axis
     setUpSingle();
@@ -91,9 +90,8 @@ public class ImodManagerTest extends TestCase {
     tester = newTester(fullVolume);
     tester.equals(imodManager.get(fullVolume));
     //combinedTomogram
-    assertEquals(
-      imodManager.get(imodManager.getPrivateKey(combinedTomogram)),
-      imodManager.get(imodManager.getPrivateKey(fullVolume)));
+    assertEquals(imodManager.get(imodManager.getPrivateKey(combinedTomogram)),
+        imodManager.get(imodManager.getPrivateKey(fullVolume)));
     //fiducialModel
     tester = newTester(fiducialModel);
     tester.equals(imodManager.get(fiducialModel));
@@ -222,6 +220,7 @@ public class ImodManagerTest extends TestCase {
     metaData.setDatasetName(datasetName);
     metaData.setAxisType(AxisType.SINGLE_AXIS);
   }
+
   private void setUpDual() {
     datasetName = datasetNameDual;
     metaData.setDatasetName(datasetName);
@@ -274,7 +273,8 @@ public class ImodManagerTest extends TestCase {
         return new ImodState(manager, datasetName + ".ali", axisID);
       }
       if (name.equals(sample)) {
-        tester = new ImodState(manager, "top.rec mid.rec bot.rec", "tomopitch.mod", axisID);
+        tester = new ImodState(manager, "top.rec mid.rec bot.rec", "tomopitch.mod",
+            axisID);
         tester.setInitialMode(ImodState.MODEL_MODE);
         return tester;
       }
@@ -366,14 +366,14 @@ public class ImodManagerTest extends TestCase {
       }
       if (name.equals(sample)) {
         if (axisID == AxisID.FIRST) {
-          tester = new ImodState(manager, "topa.rec mida.rec bota.rec",
-              "tomopitcha.mod", axisID);
+          tester = new ImodState(manager, "topa.rec mida.rec bota.rec", "tomopitcha.mod",
+              axisID);
           tester.setInitialMode(ImodState.MODEL_MODE);
           return tester;
         }
         else {
-          tester = new ImodState(manager, "topb.rec midb.rec botb.rec",
-              "tomopitchb.mod", axisID);
+          tester = new ImodState(manager, "topb.rec midb.rec botb.rec", "tomopitchb.mod",
+              axisID);
           tester.setInitialMode(ImodState.MODEL_MODE);
           return tester;
         }

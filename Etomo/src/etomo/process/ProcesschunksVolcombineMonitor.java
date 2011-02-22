@@ -23,6 +23,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2011/02/03 06:03:18  sueh
+ * <p> bug# 1422 No need parallel progress display passed to the constructor.
+ * <p>
  * <p> Revision 1.9  2010/11/13 16:03:45  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -69,8 +72,7 @@ final class ProcesschunksVolcombineMonitor extends ProcesschunksProcessMonitor {
     super(manager, axisID, rootName, computerMap);
   }
 
-  boolean updateState() throws LogFile.LockException, FileNotFoundException,
-      IOException {
+  boolean updateState() throws LogFile.LockException, FileNotFoundException, IOException {
     String line = null;
     if (super.updateState()) {
       return true;
@@ -142,8 +144,7 @@ final class ProcesschunksVolcombineMonitor extends ProcesschunksProcessMonitor {
       startLog = null;
       readerIdStart = null;
     }
-    if (finishLog != null && readerIdFinish != null
-        && !readerIdFinish.isEmpty()) {
+    if (finishLog != null && readerIdFinish != null && !readerIdFinish.isEmpty()) {
       finishLog.closeReader(readerIdFinish);
       finishLog = null;
       readerIdFinish = null;

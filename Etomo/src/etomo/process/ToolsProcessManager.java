@@ -23,6 +23,10 @@ import etomo.type.ProcessResultDisplay;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2010/04/28 16:22:57  sueh
+ * <p> bug# 1344 Passing params whose processes output image files to the
+ * <p> start process functions.
+ * <p>
  * <p> Revision 1.1  2010/02/17 04:49:00  sueh
  * <p> bug# 1301 Process manager for tools processes.
  * <p> </p>
@@ -47,11 +51,11 @@ public final class ToolsProcessManager extends BaseProcessManager {
     //  Create the required tilt command
     String command = fileType.getFileName(manager);
     //  Instantiate the process monitor
-    Matchvol1ProcessMonitor monitor = Matchvol1ProcessMonitor
-        .getFlattenInstance(manager, axisID, fileType);
+    Matchvol1ProcessMonitor monitor = Matchvol1ProcessMonitor.getFlattenInstance(manager,
+        axisID, fileType);
     //  Start the com script in the background
-    ComScriptProcess comScriptProcess = startComScript(command, monitor,
-        axisID, processResultDisplay, param, processSeries, fileType);
+    ComScriptProcess comScriptProcess = startComScript(command, monitor, axisID,
+        processResultDisplay, param, processSeries, fileType);
     return comScriptProcess.getName();
   }
 
@@ -59,9 +63,8 @@ public final class ToolsProcessManager extends BaseProcessManager {
       final ProcessResultDisplay processResultDisplay,
       final ConstProcessSeries processSeries, final AxisID axisID)
       throws SystemProcessException {
-    BackgroundProcess backgroundProcess = startBackgroundProcess(param
-        .getCommandArray(), axisID, processResultDisplay, param
-        .getProcessName(), processSeries);
+    BackgroundProcess backgroundProcess = startBackgroundProcess(param.getCommandArray(),
+        axisID, processResultDisplay, param.getProcessName(), processSeries);
     return backgroundProcess.getName();
   }
 

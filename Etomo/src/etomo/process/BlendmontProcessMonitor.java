@@ -55,17 +55,15 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
 
   protected void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
-      manager.getMainPanel().setProgressBar(title + ": blendmont", 1, axisID
-          );
+      manager.getMainPanel().setProgressBar(title + ": blendmont", 1, axisID);
       manager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
       return;
     }
-    manager.getMainPanel().setProgressBar(title + ": blendmont", nSections,
-        axisID);
+    manager.getMainPanel().setProgressBar(title + ": blendmont", nSections, axisID);
   }
 
-  protected void getCurrentSection() throws NumberFormatException,
-      LogFile.LockException, IOException {
+  protected void getCurrentSection() throws NumberFormatException, LogFile.LockException,
+      IOException {
     String line;
     while ((line = readLogFileLine()) != null) {
       line = line.trim();
@@ -79,8 +77,7 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
           || mode == BlendmontParam.Mode.WHOLE_TOMOGRAM_SAMPLE) {
         if (line.startsWith("Doing section #") && !doingMrctaper) {
           doingMrctaper = true;
-          manager.getMainPanel().setProgressBar(title + ": mrctaper", 1,
-              axisID);
+          manager.getMainPanel().setProgressBar(title + ": mrctaper", 1, axisID);
         }
         else if (currentSection >= nSections && line.startsWith("Done!")) {
           lastLineFound = true;
@@ -95,9 +92,8 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
     }
   }
 
-  protected void findNSections() throws InterruptedException,
-      NumberFormatException, LogFile.LockException, InvalidParameterException,
-      IOException {
+  protected void findNSections() throws InterruptedException, NumberFormatException,
+      LogFile.LockException, InvalidParameterException, IOException {
     Montagesize montagesize = null;
     montagesize = Montagesize.getInstance(manager, axisID);
     montagesize.read(manager);
@@ -106,6 +102,9 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.20  2010/03/03 04:55:35  sueh
+ * <p> bug# 1311 Removed unnecessary ProcessName references.
+ * <p>
  * <p> Revision 1.19  2010/02/17 04:49:20  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.

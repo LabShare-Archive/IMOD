@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.1  2004/11/19 23:19:29  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.0.6.1  2004/09/29 17:52:13  sueh
  * <p> bug# 520 Switched to BaseManager.  Removing pass-through function
  * <p> calls.
@@ -32,8 +35,7 @@ import etomo.BaseManager;
 import etomo.type.AxisID;
 
 public class DemoProcessMonitor implements Runnable {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
   BaseManager manager;
   AxisID axisID;
   long processStartTime;
@@ -41,11 +43,7 @@ public class DemoProcessMonitor implements Runnable {
   int demoTime;
   String message;
 
-  public DemoProcessMonitor(
-    BaseManager mgr,
-    AxisID id,
-    String message,
-    int demoTime) {
+  public DemoProcessMonitor(BaseManager mgr, AxisID id, String message, int demoTime) {
     manager = mgr;
     axisID = id;
     this.message = message;
@@ -69,15 +67,11 @@ public class DemoProcessMonitor implements Runnable {
     while (elapsedTime < (demoTime - 100)) {
       double fractionDone = (double) elapsedTime / demoTime;
       double percentage = Math.round(fractionDone * 100);
-      double remainingTime =  demoTime - elapsedTime;
+      double remainingTime = demoTime - elapsedTime;
       int minutes = (int) Math.floor(remainingTime / 60000);
-      int seconds =
-        (int) Math.floor((remainingTime - minutes * 60000) / 1000.0);
+      int seconds = (int) Math.floor((remainingTime - minutes * 60000) / 1000.0);
 
-      String message =
-        String.valueOf(percentage)
-          + "%   ETC: "
-          + String.valueOf(minutes)
+      String message = String.valueOf(percentage) + "%   ETC: " + String.valueOf(minutes)
           + ":";
       if (seconds < 10) {
         message = message + "0" + String.valueOf(seconds);
@@ -85,10 +79,8 @@ public class DemoProcessMonitor implements Runnable {
       else {
         message = message + String.valueOf(seconds);
       }
-      manager.getMainPanel().setProgressBarValue(
-        (int) (elapsedTime / (demoTime / 100)),
-        message,
-        axisID);
+      manager.getMainPanel().setProgressBarValue((int) (elapsedTime / (demoTime / 100)),
+          message, axisID);
 
       try {
         Thread.sleep(updatePeriod);

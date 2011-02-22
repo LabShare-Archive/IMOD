@@ -21,6 +21,10 @@ import etomo.type.ProcessEndState;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.10  2010/02/17 04:49:20  sueh
+ * <p> $bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> $messages.
+ * <p> $
  * <p> $Revision 1.9  2009/03/17 00:34:23  sueh
  * <p> $bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p> $
@@ -98,8 +102,7 @@ public class BackgroundSystemProgram extends SystemProgram {
    */
   protected int getProcessExitValue(Process process) {
     if (monitor.isProcessRunning()) {
-      throw new IllegalStateException(
-          "getExitValue() called while process is running.");
+      throw new IllegalStateException("getExitValue() called while process is running.");
     }
     if (monitor.getProcessEndState() == ProcessEndState.DONE) {
       return 0;

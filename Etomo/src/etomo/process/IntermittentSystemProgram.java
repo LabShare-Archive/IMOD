@@ -30,9 +30,8 @@ public class IntermittentSystemProgram {
 
   private boolean debug = false;
 
-  private IntermittentSystemProgram(BaseManager manager,
-      String propertyUserDir, String[] cmdArray, AxisID axisID,
-      String outputKeyPhrase, boolean useStartCommand) {
+  private IntermittentSystemProgram(BaseManager manager, String propertyUserDir,
+      String[] cmdArray, AxisID axisID, String outputKeyPhrase, boolean useStartCommand) {
     program = new SystemProgram(manager, propertyUserDir, cmdArray, axisID);
     program.setCollectOutput(false);
     this.outputKeyPhrase = outputKeyPhrase;
@@ -43,8 +42,8 @@ public class IntermittentSystemProgram {
   public static IntermittentSystemProgram getStartInstance(BaseManager manager,
       String propertyUserDir, String[] startCmdArray, AxisID axisID,
       String outputKeyPhrase) {
-    return new IntermittentSystemProgram(manager, propertyUserDir,
-        startCmdArray, axisID, outputKeyPhrase, true);
+    return new IntermittentSystemProgram(manager, propertyUserDir, startCmdArray, axisID,
+        outputKeyPhrase, true);
   }
 
   /**
@@ -56,12 +55,12 @@ public class IntermittentSystemProgram {
    * @param outputKeyPhrase
    * @return
    */
-  public static IntermittentSystemProgram getIntermittentInstance(
-      BaseManager manager, String propertyUserDir, String intermittentCommand,
-      AxisID axisID, String outputKeyPhrase) {
+  public static IntermittentSystemProgram getIntermittentInstance(BaseManager manager,
+      String propertyUserDir, String intermittentCommand, AxisID axisID,
+      String outputKeyPhrase) {
 
-    return new IntermittentSystemProgram(manager, propertyUserDir,
-        intermittentCommand.split("\\s+"), axisID, outputKeyPhrase, false);
+    return new IntermittentSystemProgram(manager, propertyUserDir, intermittentCommand
+        .split("\\s+"), axisID, outputKeyPhrase, false);
   }
 
   boolean useStartCommand() {
@@ -158,6 +157,9 @@ public class IntermittentSystemProgram {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.23  2010/04/29 01:35:05  sueh
+ * <p> Fixed a null pointer exception in clearStdError.
+ * <p>
  * <p> Revision 1.22  2010/02/17 04:49:20  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.

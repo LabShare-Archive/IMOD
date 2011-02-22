@@ -117,26 +117,23 @@ public final class IntermittentBackgroundProcess implements Runnable {
     return intermittentBackgroundProcess;
   }
 
-  private static IntermittentBackgroundProcess getInstance(
-      IntermittentCommand command) {
+  private static IntermittentBackgroundProcess getInstance(IntermittentCommand command) {
     return (IntermittentBackgroundProcess) instances.get(command);
   }
 
   private static synchronized IntermittentBackgroundProcess createInstance(
-      BaseManager manager, IntermittentCommand command,
-      IntermittentProcessMonitor monitor) {
+      BaseManager manager, IntermittentCommand command, IntermittentProcessMonitor monitor) {
     IntermittentBackgroundProcess intermittentBackgroundProcess = getInstance(command);
     if (intermittentBackgroundProcess == null) {
-      intermittentBackgroundProcess = new IntermittentBackgroundProcess(
-          manager, command, monitor);
-      instances.put(intermittentBackgroundProcess.command,
-          intermittentBackgroundProcess);
+      intermittentBackgroundProcess = new IntermittentBackgroundProcess(manager, command,
+          monitor);
+      instances.put(intermittentBackgroundProcess.command, intermittentBackgroundProcess);
     }
     return intermittentBackgroundProcess;
   }
 
-  private IntermittentBackgroundProcess(BaseManager manager,
-      IntermittentCommand command, IntermittentProcessMonitor monitor) {
+  private IntermittentBackgroundProcess(BaseManager manager, IntermittentCommand command,
+      IntermittentProcessMonitor monitor) {
     this.command = command;
     this.manager = manager;
     if (outputKeyPhrase == null) {
@@ -195,8 +192,7 @@ public final class IntermittentBackgroundProcess implements Runnable {
       return;
     }
     for (int i = 0; i < monitors.size(); i++) {
-      IntermittentProcessMonitor monitor = (IntermittentProcessMonitor) monitors
-          .get(i);
+      IntermittentProcessMonitor monitor = (IntermittentProcessMonitor) monitors.get(i);
       start(monitor);
     }
   }
@@ -226,8 +222,7 @@ public final class IntermittentBackgroundProcess implements Runnable {
     enumeration = instances.elements();
     boolean done = true;
     while (enumeration.hasMoreElements()) {
-      if (!((IntermittentBackgroundProcess) enumeration.nextElement()).program
-          .isDone()) {
+      if (!((IntermittentBackgroundProcess) enumeration.nextElement()).program.isDone()) {
         done = false;
       }
     }
@@ -243,8 +238,7 @@ public final class IntermittentBackgroundProcess implements Runnable {
     }
     done = true;
     while (enumeration.hasMoreElements()) {
-      if (!((IntermittentBackgroundProcess) enumeration.nextElement()).program
-          .isDone()) {
+      if (!((IntermittentBackgroundProcess) enumeration.nextElement()).program.isDone()) {
         done = false;
       }
     }
@@ -285,23 +279,21 @@ public final class IntermittentBackgroundProcess implements Runnable {
     IntermittentSystemProgram localProgram = null;
     String[] localStartCommand = command.getLocalStartCommand();
     String[] remoteStartCommand = command.getRemoteStartCommand();
-    boolean localSection = RemotePath.INSTANCE.isLocalSection(command
-        .getComputer(), manager, AxisID.ONLY);
+    boolean localSection = RemotePath.INSTANCE.isLocalSection(command.getComputer(),
+        manager, AxisID.ONLY);
     String intermittentCommand = command.getIntermittentCommand();
     if (localSection && localStartCommand != null) {
-      localProgram = IntermittentSystemProgram.getStartInstance(manager,
-          manager.getPropertyUserDir(), localStartCommand, AxisID.ONLY,
-          outputKeyPhrase);
+      localProgram = IntermittentSystemProgram.getStartInstance(manager, manager
+          .getPropertyUserDir(), localStartCommand, AxisID.ONLY, outputKeyPhrase);
     }
     else if (!localSection && remoteStartCommand != null) {
-      localProgram = IntermittentSystemProgram.getStartInstance(manager,
-          manager.getPropertyUserDir(), command.getRemoteStartCommand(),
-          AxisID.ONLY, outputKeyPhrase);
+      localProgram = IntermittentSystemProgram.getStartInstance(manager, manager
+          .getPropertyUserDir(), command.getRemoteStartCommand(), AxisID.ONLY,
+          outputKeyPhrase);
     }
     else if (intermittentCommand != null) {
-      localProgram = IntermittentSystemProgram.getIntermittentInstance(manager,
-          manager.getPropertyUserDir(), intermittentCommand, AxisID.ONLY,
-          outputKeyPhrase);
+      localProgram = IntermittentSystemProgram.getIntermittentInstance(manager, manager
+          .getPropertyUserDir(), intermittentCommand, AxisID.ONLY, outputKeyPhrase);
     }
     //place the most recent local SystemProgram in the member SystemProgram
     //non-local request (getting and setting standard input and output) will go
@@ -422,6 +414,9 @@ public final class IntermittentBackgroundProcess implements Runnable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.19  2010/05/21 00:13:21  sueh
+ * <p> bug# 1374 In run removing a null pointer exception.
+ * <p>
  * <p> Revision 1.18  2010/02/17 04:49:20  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.

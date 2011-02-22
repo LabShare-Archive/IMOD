@@ -39,8 +39,8 @@ public final class ParallelProcessManager extends BaseProcessManager {
   /**
    * Run trimvol
    */
-  public String trimVolume(TrimvolParam trimvolParam,
-      ConstProcessSeries processSeries) throws SystemProcessException {
+  public String trimVolume(TrimvolParam trimvolParam, ConstProcessSeries processSeries)
+      throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(trimvolParam,
         AxisID.ONLY, ProcessName.TRIMVOL, processSeries);
     return backgroundProcess.getName();
@@ -48,15 +48,15 @@ public final class ParallelProcessManager extends BaseProcessManager {
 
   public String anisotropicDiffusion(AnisotropicDiffusionParam param,
       ConstProcessSeries processSeries) throws SystemProcessException {
-    BackgroundProcess backgroundProcess = startBackgroundProcess(param,
-        AxisID.ONLY, ProcessName.ANISOTROPIC_DIFFUSION, processSeries);
+    BackgroundProcess backgroundProcess = startBackgroundProcess(param, AxisID.ONLY,
+        ProcessName.ANISOTROPIC_DIFFUSION, processSeries);
     return backgroundProcess.getName();
   }
 
-  public String chunksetup(ChunksetupParam param,
-      ConstProcessSeries processSeries) throws SystemProcessException {
-    BackgroundProcess backgroundProcess = startBackgroundProcess(param
-        .getCommandArray(), AxisID.ONLY, ProcessName.CHUNKSETUP, processSeries);
+  public String chunksetup(ChunksetupParam param, ConstProcessSeries processSeries)
+      throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(param.getCommandArray(),
+        AxisID.ONLY, ProcessName.CHUNKSETUP, processSeries);
     return backgroundProcess.getName();
   }
 
@@ -120,6 +120,9 @@ public final class ParallelProcessManager extends BaseProcessManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2009/09/05 00:38:55  sueh
+ * <p> bug# 1256 Changed testIterationList to IteratorElementList type.
+ * <p>
  * <p> Revision 1.7  2008/05/03 00:41:51  sueh
  * <p> bug# 847 Passing a ProcessSeries instance to all processes that use
  * <p> process objects.  The goal is to pass then back to process done functions.

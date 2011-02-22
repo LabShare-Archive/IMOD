@@ -23,6 +23,9 @@ import java.io.IOException;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.6  2006/06/06 17:18:49  sueh
+ * <p> $bug# change threadData to processData.
+ * <p> $
  * <p> $Revision 1.5  2006/06/05 16:29:28  sueh
  * <p> $bug# 766 Setting the pid in ProcessData.
  * <p> $
@@ -43,11 +46,11 @@ import java.io.IOException;
 
 public final class ParseBackgroundPID extends ParsePID {
   public static final String rcsid = "$$Id$$";
-  
+
   private final File outFile;
 
-  public ParseBackgroundPID(SystemProgram cshProcess, StringBuffer bufPID,
-      File outFile, ProcessData processData) {
+  public ParseBackgroundPID(SystemProgram cshProcess, StringBuffer bufPID, File outFile,
+      ProcessData processData) {
     super(cshProcess, bufPID, processData);
     this.outFile = outFile;
   }

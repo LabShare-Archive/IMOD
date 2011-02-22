@@ -25,6 +25,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.37  2010/10/07 04:48:31  sueh
+ * <p> bug$ 1409 Increased stop waiting timeout.
+ * <p>
  * <p> Revision 3.36  2010/03/03 04:55:35  sueh
  * <p> bug# 1311 Removed unnecessary ProcessName references.
  * <p>
@@ -243,8 +246,8 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
 
   abstract void initializeProgressBar();
 
-  abstract void getCurrentSection() throws NumberFormatException,
-      LogFile.LockException, IOException;
+  abstract void getCurrentSection() throws NumberFormatException, LogFile.LockException,
+      IOException;
 
   /**
    * Default constructor
@@ -287,8 +290,7 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
       }
       else {
         //logFileName = logFileBasename;
-        logFile = LogFile.getInstance(manager.getPropertyUserDir(),
-            logFileBasename);
+        logFile = LogFile.getInstance(manager.getPropertyUserDir(), logFileBasename);
 
       }
       //  Wait for the log file to exist
@@ -320,14 +322,12 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
     }
     setProcessEndState(ProcessEndState.DONE);
     //  Close the log file reader
-    Utilities
-        .debugPrint("LogFileProcessMonitor: Closing the log file reader for "
-            + logFile.getAbsolutePath());
+    Utilities.debugPrint("LogFileProcessMonitor: Closing the log file reader for "
+        + logFile.getAbsolutePath());
     //if (logFileReader != null) {
     // logFileReader.close();
     //}
-    if (logFile != null && logFileReaderId != null
-        && !logFileReaderId.isEmpty()) {
+    if (logFile != null && logFileReaderId != null && !logFileReaderId.isEmpty()) {
       logFile.closeReader(logFileReaderId);
       logFileReaderId = null;
     }
@@ -355,8 +355,7 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
    * set end state
    * @param endState
    */
-  public synchronized final void setProcessEndState(
-      final ProcessEndState endState) {
+  public synchronized final void setProcessEndState(final ProcessEndState endState) {
     this.endState = ProcessEndState.precedence(this.endState, endState);
   }
 
@@ -380,8 +379,8 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
    * Wait for the process to start and the appropriate log file to be created 
    * @return a buffered reader of the log file
    */
-  private final void waitForLogFile() throws InterruptedException,
-      LogFile.LockException, FileNotFoundException {
+  private final void waitForLogFile() throws InterruptedException, LogFile.LockException,
+      FileNotFoundException {
 
     processStartTime = System.currentTimeMillis();
 
@@ -462,8 +461,7 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
         + Utilities.millisToMinAndSecs(remainingTime);
 
     if (processRunning) {
-      manager.getMainPanel().setProgressBarValue(currentSection, message,
-          axisID);
+      manager.getMainPanel().setProgressBarValue(currentSection, message, axisID);
     }
   }
 
@@ -483,8 +481,7 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
     remainingTime = (int) (elapsedTime / fractionDone - elapsedTime);
   }
 
-  public final void kill(final SystemProcessInterface process,
-      final AxisID axisID) {
+  public final void kill(final SystemProcessInterface process, final AxisID axisID) {
     endState = ProcessEndState.KILLED;
     process.signalKill(axisID);
   }
@@ -497,8 +494,7 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
     return null;
   }
 
-  public final void pause(final SystemProcessInterface process,
-      final AxisID axisID) {
+  public final void pause(final SystemProcessInterface process, final AxisID axisID) {
     throw new IllegalStateException("pause illegal in this monitor");
   }
 }

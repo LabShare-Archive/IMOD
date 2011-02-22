@@ -32,8 +32,8 @@ public final class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
    * @param appMgr
    * @param id
    */
-  public TiltxcorrProcessWatcher(final BaseManager manager,
-      final AxisID id,FileType comscriptFileType) {
+  public TiltxcorrProcessWatcher(final BaseManager manager, final AxisID id,
+      FileType comscriptFileType) {
     super(manager, id);
     logFileBasename = comscriptFileType.getTypeString();
   }
@@ -45,8 +45,8 @@ public final class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
    * @param blendmontRan - True if blendmont output is in the log file prior to
    *        tiltxcorr output.
    */
-  public TiltxcorrProcessWatcher(final ApplicationManager appMgr,
-      final AxisID id, boolean blendmontRan) {
+  public TiltxcorrProcessWatcher(final ApplicationManager appMgr, final AxisID id,
+      boolean blendmontRan) {
     super(appMgr, id);
     logFileBasename = "xcorr";
     this.blendmontRan = blendmontRan;
@@ -57,13 +57,11 @@ public final class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
    */
   void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
-      manager.getMainPanel().setProgressBar("Cross-correlating stack", 1,
-          axisID);
+      manager.getMainPanel().setProgressBar("Cross-correlating stack", 1, axisID);
       manager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
       return;
     }
-    manager.getMainPanel().setProgressBar("Cross-correlating stack", nSections,
-        axisID);
+    manager.getMainPanel().setProgressBar("Cross-correlating stack", nSections, axisID);
   }
 
   /* (non-Javadoc)
@@ -124,6 +122,9 @@ public final class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2010/03/03 04:54:57  sueh
+ * <p> bug# 1311 Added capability to watch xcorr_pt.com
+ * <p>
  * <p> Revision 1.9  2010/02/17 04:49:20  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.

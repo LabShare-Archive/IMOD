@@ -33,6 +33,9 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $Log$
+ * <p> Revision 1.35  2010/05/21 00:11:08  sueh
+ * <p> bug# 1374 Removed a null pointer exception
+ * <p>
  * <p> Revision 1.34  2010/04/28 16:14:29  sueh
  * <p> bug# 1344 Added closeOutputImageFile.
  * <p>
@@ -269,16 +272,13 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
       groupPid = parsePIDString(pidFile);
     }
     if (groupPid == null) {
-      String[] command = new String[] { "/usr/sbin/lsof", "-w", "-S", "-l",
-          "-M", "-L" };
-      lsof = new SystemProgram(manager, manager.getPropertyUserDir(), command,
-          axisID);
+      String[] command = new String[] { "/usr/sbin/lsof", "-w", "-S", "-l", "-M", "-L" };
+      lsof = new SystemProgram(manager, manager.getPropertyUserDir(), command, axisID);
     }
     else {
-      String[] command = new String[] { "/usr/sbin/lsof", "-w", "-S", "-l",
-          "-M", "-L", "-g", groupPid };
-      lsof = new SystemProgram(manager, manager.getPropertyUserDir(), command,
-          axisID);
+      String[] command = new String[] { "/usr/sbin/lsof", "-w", "-S", "-l", "-M", "-L",
+          "-g", groupPid };
+      lsof = new SystemProgram(manager, manager.getPropertyUserDir(), command, axisID);
     }
     lsof.run();
     String[] stdout = lsof.getStdOutput();
@@ -294,8 +294,8 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     String[] fields;
     LogFile comscriptLog;
     try {
-      comscriptLog = LogFile.getInstance(getWorkingDirectory()
-          .getAbsolutePath(), axisID, comscriptState.getComscriptName());
+      comscriptLog = LogFile.getInstance(getWorkingDirectory().getAbsolutePath(), axisID,
+          comscriptState.getComscriptName());
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
@@ -303,8 +303,7 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     }
     for (int i = 1; i < stdout.length; i++) {
       //check for missing size entry - assume name is last
-      if (stdout[i].substring(nameIndex).trim().equals(
-          comscriptLog.getAbsolutePath())) {
+      if (stdout[i].substring(nameIndex).trim().equals(comscriptLog.getAbsolutePath())) {
         if (getMonitor() != null) {
           getMonitor().kill(this, axisID);
         }
@@ -330,16 +329,14 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     int index = startCommand;
     while (index <= endCommand) {
       try {
-        renameFiles(comscriptState.getWatchedFile(index),
-            getWorkingDirectory(), LogFile.getInstance(manager
-                .getPropertyUserDir(), getAxisID(), comscriptState
+        renameFiles(comscriptState.getWatchedFile(index), getWorkingDirectory(), LogFile
+            .getInstance(manager.getPropertyUserDir(), getAxisID(), comscriptState
                 .getCommand(index)));
       }
       catch (LogFile.LockException e) {
         getProcessMessages().addError(e.getMessage());
         getProcessMessages().addError(
-            getComScriptName()
-                + " may already be running.  Check the log file.");
+            getComScriptName() + " may already be running.  Check the log file.");
         e.printStackTrace();
         return false;
       }
@@ -371,14 +368,14 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     // of commands and then report appropriately.  The exception to this is the
     // com scripts which require the -e flag.  RJG: 2003-11-06 
     String[] command = { "tcsh", "-f", runCshFile.getAbsolutePath() };
-    BackgroundSystemProgram program = new BackgroundSystemProgram(manager,
-        command, getDetachedMonitor(), getAxisID());
+    BackgroundSystemProgram program = new BackgroundSystemProgram(manager, command,
+        getDetachedMonitor(), getAxisID());
     setSystemProgram(program);
     program.setWorkingDirectory(workingDirectory);
     program.setDebug(EtomoDirector.INSTANCE.getArguments().isDebug());
 
-    ParseBackgroundPID parsePID = new ParseBackgroundPID(program, processID,
-        outFile, getProcessData());
+    ParseBackgroundPID parsePID = new ParseBackgroundPID(program, processID, outFile,
+        getProcessData());
     Thread parsePIDThread = new Thread(parsePID);
     parsePIDThread.start();
     //make sure nothing else is writing or backing up the log files
@@ -408,19 +405,17 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
    * @param runName
    * @throws IOException
    */
-  private void makeRunCshFile(File runCshFile, String cshFileName,
-      String outFileName) throws IOException {
+  private void makeRunCshFile(File runCshFile, String cshFileName, String outFileName)
+      throws IOException {
     if (runCshFile == null) {
       throw new IOException("unable to create " + cshFileName);
     }
     if (runCshFile.exists()) {
       return;
     }
-    BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(
-        runCshFile));
+    BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(runCshFile));
     if (bufferedWriter == null) {
-      throw new IOException("unable to write to "
-          + runCshFile.getAbsolutePath());
+      throw new IOException("unable to write to " + runCshFile.getAbsolutePath());
     }
     bufferedWriter.write("nohup");
     bufferedWriter.newLine();

@@ -26,6 +26,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.27  2010/03/03 04:55:35  sueh
+ * <p> bug# 1311 Removed unnecessary ProcessName references.
+ * <p>
  * <p> Revision 3.26  2010/02/17 04:49:20  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -157,10 +160,9 @@ class TiltProcessMonitor extends FileSizeProcessMonitor {
     super(appMgr, id, processName);
   }
 
-  public static TiltProcessMonitor getReconnectInstance(
-      final ApplicationManager appMgr, final AxisID id) {
-    TiltProcessMonitor instance = new TiltProcessMonitor(appMgr, id,
-        ProcessName.TILT);
+  public static TiltProcessMonitor getReconnectInstance(final ApplicationManager appMgr,
+      final AxisID id) {
+    TiltProcessMonitor instance = new TiltProcessMonitor(appMgr, id, ProcessName.TILT);
     instance.setReconnect(true);
     return instance;
   }
@@ -206,8 +208,7 @@ class TiltProcessMonitor extends FileSizeProcessMonitor {
       nX = tiltParam.getWidth() / imageBinned;
     }
     if (tiltParam.hasSlice()) {
-      int sliceRange = tiltParam.getIdxSliceStop()
-          - tiltParam.getIdxSliceStart() + 1;
+      int sliceRange = tiltParam.getIdxSliceStop() - tiltParam.getIdxSliceStart() + 1;
       // Divide by the step size if present
       if (tiltParam.getIncrSlice() == Integer.MIN_VALUE) {
         nY = sliceRange / imageBinned;
@@ -220,12 +221,10 @@ class TiltProcessMonitor extends FileSizeProcessMonitor {
     nKBytes = (int) (fileSize / 1024);
 
     if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
-      System.err.println("TiltProcessMonitor.calcFileSize:fileSize=" + fileSize
-          + ",nX=" + nX + ",nY=" + nY + ",nZ=" + nZ + ",imageBinned="
-          + imageBinned);
+      System.err.println("TiltProcessMonitor.calcFileSize:fileSize=" + fileSize + ",nX="
+          + nX + ",nY=" + nY + ",nZ=" + nZ + ",imageBinned=" + imageBinned);
     }
-    applicationManager.getMainPanel().setProgressBar(processTitle, nKBytes,
-        axisID);
+    applicationManager.getMainPanel().setProgressBar(processTitle, nKBytes, axisID);
     return true;
   }
 
@@ -247,8 +246,7 @@ class TiltProcessMonitor extends FileSizeProcessMonitor {
       return;
     }
     tiltParam = getTiltParam();
-    applicationManager.getMetaData().setFiducialess(axisID,
-        tiltParam.isFiducialess());
+    applicationManager.getMetaData().setFiducialess(axisID, tiltParam.isFiducialess());
   }
 
   /**
@@ -256,8 +254,7 @@ class TiltProcessMonitor extends FileSizeProcessMonitor {
    * @return
    */
   ConstTiltParam getTiltParam() {
-    ComScriptManager comScriptManager = applicationManager
-        .getComScriptManager();
+    ComScriptManager comScriptManager = applicationManager.getComScriptManager();
     comScriptManager.loadTilt(axisID);
     return comScriptManager.getTiltParam(axisID);
   }

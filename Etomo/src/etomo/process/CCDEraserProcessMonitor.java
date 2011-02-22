@@ -19,6 +19,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.8  2010/03/03 04:55:35  sueh
+ * <p> bug# 1311 Removed unnecessary ProcessName references.
+ * <p>
  * <p> Revision 3.7  2010/02/17 04:49:20  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -73,20 +76,18 @@ public class CCDEraserProcessMonitor extends LogFileProcessMonitor {
    */
   protected void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
-      manager.getMainPanel().setProgressBar("CCD Eraser", 1, axisID
-          );
+      manager.getMainPanel().setProgressBar("CCD Eraser", 1, axisID);
       manager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
       return;
     }
-    manager.getMainPanel().setProgressBar("CCD Eraser", nSections, axisID
-        );
+    manager.getMainPanel().setProgressBar("CCD Eraser", nSections, axisID);
   }
 
   /* (non-Javadoc)
    * @see etomo.process.LogFileProcessMonitor#getCurrentSection()
    */
-  protected void getCurrentSection() throws NumberFormatException,
-      LogFile.LockException, IOException {
+  protected void getCurrentSection() throws NumberFormatException, LogFile.LockException,
+      IOException {
     String line;
     while ((line = readLogFileLine()) != null) {
       if (line.startsWith("Section")) {

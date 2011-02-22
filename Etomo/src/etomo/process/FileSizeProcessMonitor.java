@@ -28,6 +28,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.39  2010/11/13 16:03:45  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.38  2010/03/03 04:55:35  sueh
  * <p> bug# 1311 Removed unnecessary ProcessName references.
  * <p>
@@ -231,14 +234,12 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
     scriptStartTime = System.currentTimeMillis();
     this.processName = processName;
     try {
-      logFile = LogFile.getInstance(appMgr.getPropertyUserDir(), axisID,
-          processName);
+      logFile = LogFile.getInstance(appMgr.getPropertyUserDir(), axisID, processName);
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog(appMgr,
-          "Unable to create log file.\n" + e.getMessage(),
-          "File Size Monitor Log File Failure");
+      UIHarness.INSTANCE.openMessageDialog(appMgr, "Unable to create log file.\n"
+          + e.getMessage(), "File Size Monitor Log File Failure");
       logFile = null;
     }
   }
@@ -271,8 +272,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
     running = true;
     try {
       // Reset the progressBar 
-      applicationManager.getMainPanel().setProgressBar(" ", 1, axisID
-          );
+      applicationManager.getMainPanel().setProgressBar(" ", 1, axisID);
       applicationManager.getMainPanel().setProgressBarValue(0,
           reconnect ? "Reconnecting..." : "Starting...", axisID);
 
@@ -378,8 +378,8 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
       else {
         reloadWatchedFile();
         if (!findWatchedFileName
-            || (line.indexOf(watchedFile.getName()) != -1 && line.trim()
-                .toLowerCase().startsWith("new image file on unit"))) {
+            || (line.indexOf(watchedFile.getName()) != -1 && line.trim().toLowerCase()
+                .startsWith("new image file on unit"))) {
           watchedFileBackedUp = true;
         }
       }
@@ -443,8 +443,8 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
         double remainingTime = elapsedTime / fractionDone - elapsedTime;
         String message = String.valueOf(percentage) + "%   ETC: "
             + Utilities.millisToMinAndSecs(remainingTime);
-        applicationManager.getMainPanel().setProgressBarValue(currentLength,
-            message, axisID);
+        applicationManager.getMainPanel().setProgressBarValue(currentLength, message,
+            axisID);
       }
       try {
         Thread.sleep(updatePeriod);

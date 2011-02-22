@@ -20,6 +20,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2010/03/03 04:55:35  sueh
+ * <p> bug# 1311 Removed unnecessary ProcessName references.
+ * <p>
  * <p> Revision 1.8  2010/02/17 04:49:20  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -70,13 +73,11 @@ public final class MatchorwarpProcessMonitor extends LogFileProcessMonitor {
    */
   void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
-      manager.getMainPanel().setProgressBar("Combine: matchorwarp", 1, axisID
-          );
+      manager.getMainPanel().setProgressBar("Combine: matchorwarp", 1, axisID);
       manager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
       return;
     }
-    manager.getMainPanel().setProgressBar("Combine: matchorwarp", nSections,
-        axisID);
+    manager.getMainPanel().setProgressBar("Combine: matchorwarp", nSections, axisID);
   }
 
   /* (non-Javadoc)
@@ -119,8 +120,7 @@ public final class MatchorwarpProcessMonitor extends LogFileProcessMonitor {
           nSections = Integer.parseInt(strings[3]);
           foundNSections = true;
         }
-        else if (line.trim()
-            .startsWith("MATCHORWARP: CREATED patch_vector.mod")) {
+        else if (line.trim().startsWith("MATCHORWARP: CREATED patch_vector.mod")) {
           applicationManager.msgPatchVectorCreated();
         }
       }

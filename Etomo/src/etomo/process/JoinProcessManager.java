@@ -40,6 +40,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.32  2010/09/09 17:07:16  sueh
+ * <p> bug# 1402 In postProcess(BackgroundProcess) compare command name to ClipParam.PROCESS_NAME.toString().
+ * <p>
  * <p> Revision 1.31  2010/04/28 16:21:14  sueh
  * <p> bug# 1344 Removing FlipyzParam because it is no longer in use.
  * <p>
@@ -230,22 +233,22 @@ public final class JoinProcessManager extends BaseProcessManager {
    */
   public String makejoincom(MakejoincomParam makejoincomParam,
       ConstProcessSeries processSeries) throws SystemProcessException {
-    BackgroundProcess backgroundProcess = startBackgroundProcess(
-        makejoincomParam, AxisID.ONLY, ProcessName.MAKEJOINCOM, processSeries);
+    BackgroundProcess backgroundProcess = startBackgroundProcess(makejoincomParam,
+        AxisID.ONLY, ProcessName.MAKEJOINCOM, processSeries);
     return backgroundProcess.getName();
   }
 
-  public String remapmodel(RemapmodelParam param,
-      ConstProcessSeries processSeries) throws SystemProcessException {
-    BackgroundProcess backgroundProcess = startBackgroundProcess(param,
-        AxisID.ONLY, ProcessName.REMAPMODEL, processSeries);
+  public String remapmodel(RemapmodelParam param, ConstProcessSeries processSeries)
+      throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(param, AxisID.ONLY,
+        ProcessName.REMAPMODEL, processSeries);
     return backgroundProcess.getName();
   }
 
   public String xftoxg(XftoxgParam param, ConstProcessSeries processSeries)
       throws SystemProcessException {
-    BackgroundProcess backgroundProcess = startBackgroundProcess(param,
-        AxisID.ONLY, ProcessName.XFTOXG, processSeries);
+    BackgroundProcess backgroundProcess = startBackgroundProcess(param, AxisID.ONLY,
+        ProcessName.XFTOXG, processSeries);
     return backgroundProcess.getName();
   }
 
@@ -256,8 +259,8 @@ public final class JoinProcessManager extends BaseProcessManager {
    */
   public void saveFinishjoinState(FinishjoinParam finishjoinParam,
       ConstProcessSeries processSeries) {
-    postProcess(new BackgroundProcess(manager, finishjoinParam, this,
-        AxisID.ONLY, ProcessName.FINISHJOIN, processSeries));
+    postProcess(new BackgroundProcess(manager, finishjoinParam, this, AxisID.ONLY,
+        ProcessName.FINISHJOIN, processSeries));
   }
 
   /**
@@ -265,25 +268,24 @@ public final class JoinProcessManager extends BaseProcessManager {
    */
   public String finishjoin(FinishjoinParam finishjoinParam,
       ConstProcessSeries processSeries) throws SystemProcessException {
-    BackgroundProcess backgroundProcess = startBackgroundProcess(
-        finishjoinParam, AxisID.ONLY, ProcessName.FINISHJOIN, processSeries);
+    BackgroundProcess backgroundProcess = startBackgroundProcess(finishjoinParam,
+        AxisID.ONLY, ProcessName.FINISHJOIN, processSeries);
     return backgroundProcess.getName();
   }
 
   public String xfjointomo(XfjointomoParam xfjointomoParam,
       ConstProcessSeries processSeries) throws SystemProcessException {
     XfjointomoLog.getInstance(manager).reset();
-    BackgroundProcess backgroundProcess = startBackgroundProcess(
-        xfjointomoParam.getCommandArray(), AxisID.ONLY, null,
-        ProcessName.XFJOINTOMO, processSeries);
+    BackgroundProcess backgroundProcess = startBackgroundProcess(xfjointomoParam
+        .getCommandArray(), AxisID.ONLY, null, ProcessName.XFJOINTOMO, processSeries);
     return backgroundProcess.getName();
   }
 
   /**
    * Run xfalign
    */
-  public String xfalign(XfalignParam xfalignParam,
-      ConstProcessSeries processSeries) throws SystemProcessException {
+  public String xfalign(XfalignParam xfalignParam, ConstProcessSeries processSeries)
+      throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(xfalignParam,
         AxisID.ONLY, ProcessName.XFALIGN, processSeries);
     return backgroundProcess.getName();
@@ -304,16 +306,15 @@ public final class JoinProcessManager extends BaseProcessManager {
    */
   public String startjoin(StartJoinParam param, ConstProcessSeries processSeries)
       throws SystemProcessException {
-    ComScriptProcess comScriptProcess = startComScript(param, null,
-        AxisID.ONLY, processSeries);
+    ComScriptProcess comScriptProcess = startComScript(param, null, AxisID.ONLY,
+        processSeries);
     return comScriptProcess.getName();
   }
 
   /**
    * Run midas on the sample file.
    */
-  public String midasSample(MidasParam midasParam)
-      throws SystemProcessException {
+  public String midasSample(MidasParam midasParam) throws SystemProcessException {
     InteractiveSystemProgram program = startInteractiveSystemProgram(midasParam);
     return program.getName();
   }
@@ -363,8 +364,7 @@ public final class JoinProcessManager extends BaseProcessManager {
       if (command == null) {
         return;
       }
-      FinishjoinParam.Mode mode = (FinishjoinParam.Mode) command
-          .getCommandMode();
+      FinishjoinParam.Mode mode = (FinishjoinParam.Mode) command.getCommandMode();
       if (mode == FinishjoinParam.Mode.MAX_SIZE) {
         String[] stdOutput = process.getStdOutput();
         if (stdOutput != null) {
@@ -380,8 +380,7 @@ public final class JoinProcessManager extends BaseProcessManager {
               lineArray = line.split("\\s+");
               manager.setShift(FinishjoinParam
                   .getShift(lineArray[FinishjoinParam.OFFSET_IN_X_INDEX]),
-                  FinishjoinParam
-                      .getShift(lineArray[FinishjoinParam.OFFSET_IN_Y_INDEX]));
+                  FinishjoinParam.getShift(lineArray[FinishjoinParam.OFFSET_IN_Y_INDEX]));
             }
           }
         }
@@ -434,8 +433,8 @@ public final class JoinProcessManager extends BaseProcessManager {
       manager.postProcess(commandName, processDetails);
     }
     else if (commandName.equals(ProcessName.XFJOINTOMO.toString())) {
-      writeLogFile(process, process.getAxisID(), DatasetFiles.getLogName(
-          manager, process.getAxisID(), process.getProcessName()));
+      writeLogFile(process, process.getAxisID(), DatasetFiles.getLogName(manager, process
+          .getAxisID(), process.getProcessName()));
       try {
         state.setGapsExist(XfjointomoLog.getInstance(manager).gapsExist());
       }
@@ -488,8 +487,8 @@ public final class JoinProcessManager extends BaseProcessManager {
       manager.abortAddSection();
     }
     else if (commandName.equals(ProcessName.XFJOINTOMO.toString())) {
-      writeLogFile(process, process.getAxisID(), DatasetFiles.getLogName(
-          manager, process.getAxisID(), process.getProcessName()));
+      writeLogFile(process, process.getAxisID(), DatasetFiles.getLogName(manager, process
+          .getAxisID(), process.getProcessName()));
     }
   }
 
@@ -515,10 +514,8 @@ public final class JoinProcessManager extends BaseProcessManager {
     }
     if (commandName.equals(MidasParam.getName())) {
       File outputFile = command.getCommandOutputFile();
-      if (outputFile != null
-          && outputFile.exists()
-          && outputFile.lastModified() > program.getOutputFileLastModified()
-              .getLong()) {
+      if (outputFile != null && outputFile.exists()
+          && outputFile.lastModified() > program.getOutputFileLastModified().getLong()) {
         manager.copyXfFile(outputFile);
       }
     }

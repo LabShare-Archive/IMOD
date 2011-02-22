@@ -24,6 +24,9 @@ import etomo.util.HashedArray;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2010/11/13 16:03:45  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.6  2010/02/17 04:49:20  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -46,8 +49,7 @@ import etomo.util.HashedArray;
  * <p> bug# 1044 Added QueuechunkLoadMonitor, which has mostly the same functionality as LoadAverageMonitor, except for the output and how it is used.  Factoring out common functionality into a new parent class, LoadMonitor.
  * <p> </p>
  */
-public abstract class LoadMonitor implements IntermittentProcessMonitor,
-    Runnable {
+public abstract class LoadMonitor implements IntermittentProcessMonitor, Runnable {
   public static final String rcsid = "$Id$";
 
   final LoadDisplay display;
@@ -108,8 +110,8 @@ public abstract class LoadMonitor implements IntermittentProcessMonitor,
    * @param program
    */
   public void stopMonitoring(IntermittentBackgroundProcess program) {
-    ProgramState programState = (ProgramState) programs.get(program
-        .getCommand().getComputer());
+    ProgramState programState = (ProgramState) programs.get(program.getCommand()
+        .getComputer());
     programState.setStopMonitoring(true);
     boolean programsStopped = true;
     for (int i = 0; i < programs.size(); i++) {
@@ -164,8 +166,7 @@ public abstract class LoadMonitor implements IntermittentProcessMonitor,
     if (programs.containsKey(key)) {
       ProgramState program = (ProgramState) programs.get(key);
       FailureReason failureReason = program.getFailureReason();
-      display.msgLoadFailed(key, failureReason.getReason(), failureReason
-          .getTooltip());
+      display.msgLoadFailed(key, failureReason.getReason(), failureReason.getTooltip());
       program.fail();
       program.addToRestarter();
     }
@@ -176,8 +177,7 @@ public abstract class LoadMonitor implements IntermittentProcessMonitor,
   }
 
   public void msgSentIntermittentCommand(IntermittentCommand command) {
-    ProgramState programState = (ProgramState) programs.get(command
-        .getComputer());
+    ProgramState programState = (ProgramState) programs.get(command.getComputer());
     if (programState == null) {
       return;
     }
@@ -199,8 +199,8 @@ public abstract class LoadMonitor implements IntermittentProcessMonitor,
     }
 
     public String toString() {
-      return "[program=" + program + ",\nwaitForCommand=" + waitForCommand
-          + "," + super.toString() + "]";
+      return "[program=" + program + ",\nwaitForCommand=" + waitForCommand + ","
+          + super.toString() + "]";
     }
 
     private String[] getStdError() {
