@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.76  2010/11/13 16:08:59  sueh
+ * <p> $bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p> $
  * <p> $Revision 3.75  2010/05/20 23:55:19  sueh
  * <p> $bug# 1360 Adding new versions off checkExistingDir and getExistingDir
  * <p> $that allow a custom failure message.
@@ -377,10 +380,9 @@ public class Utilities {
    * @param axisID
    * @return true if the file exist
    */
-  public static boolean fileExists(BaseManager manager, String extension,
-      AxisID axisID) {
-    File file = new File(manager.getPropertyUserDir(), manager
-        .getBaseMetaData().getName()
+  public static boolean fileExists(BaseManager manager, String extension, AxisID axisID) {
+    File file = new File(manager.getPropertyUserDir(), manager.getBaseMetaData()
+        .getName()
         + axisID.getExtension() + extension);
     if (file.exists()) {
       return true;
@@ -397,21 +399,19 @@ public class Utilities {
    * @param fileType A string used in the error dialog
    * @return
    */
-  public static File getFile(BaseManager manager, boolean mustExist,
-      AxisID axisID, String extension, String fileDescription) {
+  public static File getFile(BaseManager manager, boolean mustExist, AxisID axisID,
+      String extension, String fileDescription) {
     File file = new File(manager.getPropertyUserDir(), manager.getName()
         + axisID.getExtension() + extension);
     if (!file.exists() && mustExist) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "The " + fileDescription
-          + " file: " + file.getAbsolutePath() + " doesn't exist.",
-          "Missing File", axisID);
+      UIHarness.INSTANCE.openMessageDialog(manager, "The " + fileDescription + " file: "
+          + file.getAbsolutePath() + " doesn't exist.", "Missing File", axisID);
       return null;
     }
     return file;
   }
 
-  public static File getFile(BaseManager manager, AxisID axisID,
-      String extension) {
+  public static File getFile(BaseManager manager, AxisID axisID, String extension) {
     File file = new File(manager.getPropertyUserDir(), manager.getName()
         + axisID.getExtension() + extension);
     return file;
@@ -446,10 +446,9 @@ public class Utilities {
    * @param axisID
    * @return
    */
-  public static boolean isValidStack(File file, BaseManager manager,
-      AxisID axisID) {
-    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(), file
-        .getName(), axisID);
+  public static boolean isValidStack(File file, BaseManager manager, AxisID axisID) {
+    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
+        file.getName(), axisID);
     boolean validMrcFile = false;
     try {
       header.read(manager);
@@ -476,8 +475,7 @@ public class Utilities {
    * This need serious work arounds because of the random failure bugs on
    * windows.  See sun java bugs: 4017593, 4017593, 4042592
    */
-  public static void renameFile(File source, File destination)
-      throws IOException {
+  public static void renameFile(File source, File destination) throws IOException {
     if (!source.exists()) {
       return;
     }
@@ -492,8 +490,7 @@ public class Utilities {
           System.err.println(destination.getAbsolutePath() + " still exists!");
         }
         else {
-          System.err
-              .println(destination.getAbsolutePath() + " does not exist!");
+          System.err.println(destination.getAbsolutePath() + " does not exist!");
         }
       }
     }
@@ -521,8 +518,7 @@ public class Utilities {
         StringBuffer message = new StringBuffer("Unable to rename "
             + source.getAbsolutePath() + " to " + destination.getAbsolutePath());
         if (isWindowsOS()) {
-          message
-              .append("\nIf either of these files is open in 3dmod, close 3dmod.");
+          message.append("\nIf either of these files is open in 3dmod, close 3dmod.");
         }
         throw (new IOException(message.toString()));
       }
@@ -563,8 +559,7 @@ public class Utilities {
     if (file4 != null && file4.exists()) {
       file4Time = file4.lastModified();
     }
-    if (file1Time >= file2Time && file1Time >= file3Time
-        && file1Time >= file4Time) {
+    if (file1Time >= file2Time && file1Time >= file3Time && file1Time >= file4Time) {
       return file1;
     }
     if (file2Time >= file3Time && file2Time >= file4Time) {
@@ -640,10 +635,9 @@ public class Utilities {
     }
   }
 
-  public static void deleteFileType(BaseManager manager, AxisID axisID,
-      FileType fileType) {
-    File file = new File(manager.getPropertyUserDir(), fileType.getFileName(
-        manager, axisID));
+  public static void deleteFileType(BaseManager manager, AxisID axisID, FileType fileType) {
+    File file = new File(manager.getPropertyUserDir(), fileType.getFileName(manager,
+        axisID));
     if (file.exists()) {
       if (!file.delete()) {
         StringBuffer message = new StringBuffer("Unable to delete file: "
@@ -695,8 +689,8 @@ public class Utilities {
    * @return
    */
   public static boolean isValidFile(File file, String fileDescription,
-      StringBuffer invalidReason, boolean exists, boolean canRead,
-      boolean canWrite, boolean isDirectory) {
+      StringBuffer invalidReason, boolean exists, boolean canRead, boolean canWrite,
+      boolean isDirectory) {
     boolean isValid = true;
     if (file == null) {
       if (fileDescription != null && !fileDescription.matches("\\s+")) {
@@ -763,8 +757,7 @@ public class Utilities {
     timestamp(process, null, container, status);
   }
 
-  public static void timestamp(String process, ProcessName container,
-      String status) {
+  public static void timestamp(String process, ProcessName container, String status) {
     if (!timestamp) {
       return;
     }
@@ -793,8 +786,8 @@ public class Utilities {
    * @param container
    * @param status
    */
-  public static void timestamp(String process, String command,
-      ComScript container, String status) {
+  public static void timestamp(String process, String command, ComScript container,
+      String status) {
     if (!timestamp) {
       return;
     }
@@ -815,8 +808,8 @@ public class Utilities {
    * @param container
    * @param status 0 = started, 1 = finished, -1 = failed, or -100 = null
    */
-  public static void timestamp(String process, String command,
-      String container, String status) {
+  public static void timestamp(String process, String command, String container,
+      String status) {
     if (!timestamp) {
       return;
     }
@@ -914,26 +907,25 @@ public class Utilities {
     return macOS;
   }
 
-  public static final void findMessageAndOpenDialog(BaseManager manager,
-      AxisID axisID, String[] searchLines, String startsWith, String title) {
+  public static final void findMessageAndOpenDialog(BaseManager manager, AxisID axisID,
+      String[] searchLines, String startsWith, String title) {
     if (searchLines == null) {
       return;
     }
     for (int i = 0; i < searchLines.length; i++) {
       if (searchLines[i].startsWith(startsWith)) {
-        UIHarness.INSTANCE.openInfoMessageDialog(manager, searchLines[i],
-            title, axisID);
+        UIHarness.INSTANCE.openInfoMessageDialog(manager, searchLines[i], title, axisID);
       }
     }
   }
 
-  public static final File getExistingDir(BaseManager manager,
-      String envVariable, AxisID axisID, String notFoundMessage) {
+  public static final File getExistingDir(BaseManager manager, String envVariable,
+      AxisID axisID, String notFoundMessage) {
     if (envVariable == null || envVariable.matches("\\s*")) {
       return null;
     }
-    String dirName = EnvironmentVariable.INSTANCE.getValue(manager, null,
-        envVariable, axisID);
+    String dirName = EnvironmentVariable.INSTANCE.getValue(manager, null, envVariable,
+        axisID);
     if (dirName == null || dirName.matches("\\s*")) {
       return null;
     }
@@ -944,13 +936,13 @@ public class Utilities {
     return dir;
   }
 
-  public static final File getExistingDir(BaseManager manager,
-      String envVariable, AxisID axisID) {
+  public static final File getExistingDir(BaseManager manager, String envVariable,
+      AxisID axisID) {
     if (envVariable == null || envVariable.matches("\\s*")) {
       return null;
     }
-    String dirName = EnvironmentVariable.INSTANCE.getValue(manager, null,
-        envVariable, axisID);
+    String dirName = EnvironmentVariable.INSTANCE.getValue(manager, null, envVariable,
+        axisID);
     if (dirName == null || dirName.matches("\\s*")) {
       return null;
     }
@@ -972,8 +964,8 @@ public class Utilities {
 
   public static final boolean checkExistingDir(File dir, String envVariable) {
     if (!dir.exists()) {
-      System.err.println("Warning:  " + dir.getAbsolutePath()
-          + " does not exist.  See $" + envVariable + ".");
+      System.err.println("Warning:  " + dir.getAbsolutePath() + " does not exist.  See $"
+          + envVariable + ".");
       return false;
     }
     if (!dir.isDirectory()) {
@@ -982,8 +974,8 @@ public class Utilities {
       return false;
     }
     if (!dir.canRead()) {
-      System.err.println("Warning:  cannot read " + dir.getAbsolutePath()
-          + ".  See $" + envVariable + ".");
+      System.err.println("Warning:  cannot read " + dir.getAbsolutePath() + ".  See $"
+          + envVariable + ".");
       return false;
     }
     return true;
@@ -1041,8 +1033,7 @@ public class Utilities {
     //Remove unnecessary symbols and strings from the label.
     boolean ignoreParen = false;
     boolean ignoreBracket = false;
-    while (token != null && !token.is(Token.Type.EOF)
-        && !token.is(Token.Type.EOL)) {
+    while (token != null && !token.is(Token.Type.EOF) && !token.is(Token.Type.EOL)) {
       if (token.equals(Token.Type.SYMBOL, '(')) {
         //ignore parenthesis and everything in them
         ignoreParen = true;
@@ -1106,8 +1097,7 @@ public class Utilities {
       return label;
     }
     //Convert interior whitespace to a single dash
-    while (token != null && !token.is(Token.Type.EOF)
-        && !token.is(Token.Type.EOL)) {
+    while (token != null && !token.is(Token.Type.EOF) && !token.is(Token.Type.EOL)) {
       if (token.is(Token.Type.WHITESPACE)) {
         buffer.append('-');
       }
@@ -1132,10 +1122,8 @@ public class Utilities {
    */
   public static long getStackBinning(BaseManager manager, AxisID axisID,
       FileType stackFileType) {
-    MRCHeader stackHeader = MRCHeader.getInstance(manager, axisID,
-        stackFileType);
-    MRCHeader rawstackHeader = MRCHeader.getInstance(manager, axisID,
-        FileType.RAW_STACK);
+    MRCHeader stackHeader = MRCHeader.getInstance(manager, axisID, stackFileType);
+    MRCHeader rawstackHeader = MRCHeader.getInstance(manager, axisID, FileType.RAW_STACK);
     try {
       if (!rawstackHeader.read(manager) || !stackHeader.read(manager)) {
         return 1;
@@ -1152,8 +1140,7 @@ public class Utilities {
     long binning = 1;
     double rawstackXPixelSpacing = rawstackHeader.getXPixelSpacing();
     if (rawstackXPixelSpacing > 0) {
-      binning = Math.round(stackHeader.getXPixelSpacing()
-          / rawstackXPixelSpacing);
+      binning = Math.round(stackHeader.getXPixelSpacing() / rawstackXPixelSpacing);
     }
     if (binning != 1 && binning < 1) {
       return 1;

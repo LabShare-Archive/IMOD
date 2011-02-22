@@ -58,8 +58,7 @@ public class Montagesize {
   /**
    * private constructor
    */
-  private Montagesize(String propertyUserDir, File file, AxisID axisID
-     ) {
+  private Montagesize(String propertyUserDir, File file, AxisID axisID) {
     this.propertyUserDir = propertyUserDir;
     this.file = file;
     this.axisID = axisID;
@@ -73,14 +72,12 @@ public class Montagesize {
    * @param axisID
    * @return
    */
-  public static Montagesize getInstance(BaseManager manager, AxisID axisID
-   ) {
+  public static Montagesize getInstance(BaseManager manager, AxisID axisID) {
     File keyFile = Utilities.getFile(manager, axisID, fileExtension);
     String key = makeKey(keyFile);
     Montagesize montagesize = (Montagesize) instances.get(key);
     if (montagesize == null) {
-      return createInstance(manager.getPropertyUserDir(), key, keyFile, axisID
-          );
+      return createInstance(manager.getPropertyUserDir(), key, keyFile, axisID);
     }
     return montagesize;
   }
@@ -111,9 +108,8 @@ public class Montagesize {
    * @param axisID
    * @return
    */
-  private static synchronized Montagesize createInstance(
-      String propertyUserDir, String key, File file, AxisID axisID
- ) {
+  private static synchronized Montagesize createInstance(String propertyUserDir,
+      String key, File file, AxisID axisID) {
     Montagesize montagesize = (Montagesize) instances.get(key);
     if (montagesize != null) {
       return montagesize;
@@ -148,8 +144,7 @@ public class Montagesize {
     String filePath = file.getAbsolutePath();
     int extensionIndex = filePath.lastIndexOf(fileExtension);
     if (extensionIndex == -1) {
-      throw new IllegalStateException("bad file name: file="
-          + file.getAbsolutePath());
+      throw new IllegalStateException("bad file name: file=" + file.getAbsolutePath());
     }
     return new File(filePath.substring(0, extensionIndex) + ".pl");
   }
@@ -212,8 +207,8 @@ public class Montagesize {
     Utilities.timestamp("read", "montagesize", file, Utilities.STARTED_STATUS);
     //Run the montagesize command on the file.
     buildCommand();
-    SystemProgram montagesize = new SystemProgram(manager,propertyUserDir,
-        commandArray, axisID);
+    SystemProgram montagesize = new SystemProgram(manager, propertyUserDir, commandArray,
+        axisID);
     montagesize.setDebug(EtomoDirector.INSTANCE.getArguments().isDebug());
     modifiedFlag.setReadingNow();
     montagesize.run();
@@ -228,8 +223,7 @@ public class Montagesize {
           for (int i = 0; i < messages.errorListSize(); i++) {
             message = message + messages.getError(i) + "\n";
           }
-          Utilities.timestamp("read", "montagesize", file,
-              Utilities.FAILED_STATUS);
+          Utilities.timestamp("read", "montagesize", file, Utilities.FAILED_STATUS);
           throw new InvalidParameterException(message);
         }
       }
@@ -261,8 +255,7 @@ public class Montagesize {
       if (outputLine.startsWith("Total NX, NY, NZ:")) {
         String[] tokens = outputLine.split("\\s+");
         if (tokens.length < 7) {
-          Utilities.timestamp("read", "montagesize", file,
-              Utilities.FAILED_STATUS);
+          Utilities.timestamp("read", "montagesize", file, Utilities.FAILED_STATUS);
           throw new IOException(
               "Montagesize returned less than three parameters for image size while reading"
                   + file.getAbsolutePath());
@@ -271,22 +264,19 @@ public class Montagesize {
         y.set(tokens[5]);
         z.set(tokens[6]);
         if (!x.isValid() || x.isNull()) {
-          Utilities.timestamp("read", "montagesize", file,
-              Utilities.FAILED_STATUS);
-          throw new NumberFormatException("NX is not set, token is "
-              + tokens[4] + "\n" + x.getInvalidReason());
+          Utilities.timestamp("read", "montagesize", file, Utilities.FAILED_STATUS);
+          throw new NumberFormatException("NX is not set, token is " + tokens[4] + "\n"
+              + x.getInvalidReason());
         }
         if (!y.isValid() || y.isNull()) {
-          Utilities.timestamp("read", "montagesize", file,
-              Utilities.FAILED_STATUS);
-          throw new NumberFormatException("NY is not set, token is "
-              + tokens[5] + "\n" + y.getInvalidReason());
+          Utilities.timestamp("read", "montagesize", file, Utilities.FAILED_STATUS);
+          throw new NumberFormatException("NY is not set, token is " + tokens[5] + "\n"
+              + y.getInvalidReason());
         }
         if (!z.isValid() || z.isNull()) {
-          Utilities.timestamp("read", "montagesize", file,
-              Utilities.FAILED_STATUS);
-          throw new NumberFormatException("NZ is not set, token is "
-              + tokens[6] + "\n" + z.getInvalidReason());
+          Utilities.timestamp("read", "montagesize", file, Utilities.FAILED_STATUS);
+          throw new NumberFormatException("NZ is not set, token is " + tokens[6] + "\n"
+              + z.getInvalidReason());
         }
       }
     }
@@ -346,8 +336,7 @@ public class Montagesize {
     }
     Montagesize montagesize = (Montagesize) instances.get(key);
     if (montagesize == null) {
-      throw new IllegalStateException("this instance is not in instances: key="
-          + key);
+      throw new IllegalStateException("this instance is not in instances: key=" + key);
     }
   }
 
@@ -356,12 +345,15 @@ public class Montagesize {
   }
 
   protected String paramString() {
-    return ",file=" + file + ",fileExists=" + fileExists + ",x=" + x + ",y="
-        + y + ",z=" + z + ",axisID=" + axisID;
+    return ",file=" + file + ",fileExists=" + fileExists + ",x=" + x + ",y=" + y + ",z="
+        + z + ",axisID=" + axisID;
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.21  2010/03/27 05:13:39  sueh
+ * <p> bug# 1336 Fixed the command line.
+ * <p>
  * <p> Revision 1.20  2010/02/17 05:05:58  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up
  * <p> messages.

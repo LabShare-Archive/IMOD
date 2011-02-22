@@ -5,6 +5,7 @@ import java.io.File;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import etomo.JUnitTests;
+
 /**
 * <p>Description: </p>
 * 
@@ -19,6 +20,9 @@ import etomo.JUnitTests;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1  2010/11/13 16:07:34  sueh
+* <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+* <p>
 * <p> Revision 1.2  2009/08/24 20:24:47  sueh
 * <p> bug# 1254 Added SetupDialogExpertTest.
 * <p>
@@ -28,11 +32,11 @@ import etomo.JUnitTests;
 * <p> </p>
 */
 public final class UITests {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   private static final String TEST_DIR = "etomo/ui";
   static final File TEST_ROOT_DIR = new File(JUnitTests.TEST_ROOT_DIR, TEST_DIR);
-  
+
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests:  " + TEST_DIR);
     //$JUnit-BEGIN$

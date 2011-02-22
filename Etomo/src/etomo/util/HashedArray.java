@@ -18,6 +18,9 @@ import java.util.Vector;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.10  2006/11/29 00:22:34  sueh
+* <p> bug# 934 Corrected comment.
+* <p>
 * <p> Revision 1.9  2005/09/09 21:48:15  sueh
 * <p> bug# 532 Handling null from stderr and stdout.
 * <p>
@@ -62,11 +65,11 @@ import java.util.Vector;
 * <p> </p>
 */
 public class HashedArray {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   private final Hashtable valueMap = new Hashtable();
   private final Vector keyArray = new Vector();
-  
+
   void selfTestInvariants() {
     if (!Utilities.isSelfTest()) {
       return;
@@ -79,31 +82,30 @@ public class HashedArray {
     //a key in keyArray must exist in valueMap
     for (int i = 0; i < keyArray.size(); i++) {
       if (!valueMap.containsKey(keyArray.get(i))) {
-        throw new IllegalStateException(
-            "a key in keyArray is not in valueMap:" + "key=" + keyArray.get(i));
+        throw new IllegalStateException("a key in keyArray is not in valueMap:" + "key="
+            + keyArray.get(i));
       }
     }
   }
-  
+
   void selfTestAdd(Object key, Object value) {
     if (!Utilities.isSelfTest()) {
       return;
     }
     if (!valueMap.containsKey(key)) {
-      throw new IllegalStateException("The added key is not in valueMap:"
-          + "key=" + key + ",value=" + value);
+      throw new IllegalStateException("The added key is not in valueMap:" + "key=" + key
+          + ",value=" + value);
     }
     if (valueMap.get(key) != value) {
-      throw new IllegalStateException("valueMap is mapped to the wrong value:"
-          + "key=" + key + ",value=" + value + ",valueMap.get(key)="
-          + valueMap.get(key));
+      throw new IllegalStateException("valueMap is mapped to the wrong value:" + "key="
+          + key + ",value=" + value + ",valueMap.get(key)=" + valueMap.get(key));
     }
     if (!keyArray.contains(key)) {
-      throw new IllegalStateException("The added key is not in keyArray:"
-          + "key=" + key + ",value=" + value);
+      throw new IllegalStateException("The added key is not in keyArray:" + "key=" + key
+          + ",value=" + value);
     }
   }
-  
+
   /**
    * Add a new value with key
    * @param key
@@ -120,11 +122,11 @@ public class HashedArray {
     selfTestInvariants();
     selfTestAdd(key, value);
   }
-  
+
   public synchronized void add(Object key) {
     add(key, key);
   }
-  
+
   public synchronized void remove(Object key) {
     if (key == null) {
       return;
@@ -140,14 +142,14 @@ public class HashedArray {
     }
     selfTestInvariants();
   }
-  
+
   public synchronized Object get(Object key) {
     if (key == null) {
       return null;
     }
     return valueMap.get(key);
   }
-  
+
   public Object get(int index) {
     if (index < 0) {
       return null;
@@ -158,12 +160,12 @@ public class HashedArray {
     }
     return valueMap.get(key);
   }
-  
+
   public int size() {
     return valueMap.size();
   }
-  
+
   public synchronized boolean containsKey(Object key) {
     return valueMap.containsKey(key);
-  }  
+  }
 }

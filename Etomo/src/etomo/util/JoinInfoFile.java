@@ -20,6 +20,10 @@ import java.util.ArrayList;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2005/08/27 22:43:51  sueh
+* <p> bug# 532 In Utilities.timestamp() change the int status to String status,
+* <p> since it doesn't have to be compared.
+* <p>
 * <p> Revision 1.4  2005/07/29 00:55:18  sueh
 * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
 * <p> because the current manager changes when the user changes the tab.
@@ -37,17 +41,17 @@ import java.util.ArrayList;
 * <p> </p>
 */
 public class JoinInfoFile {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   private String rootName;
   private ArrayList fileNameArray = null;
   private final String propertyUserDir;
-  
+
   public JoinInfoFile(String propertyUserDir, String rootName) {
     this.propertyUserDir = propertyUserDir;
     this.rootName = rootName;
   }
-  
+
   public boolean read(int numberFileNames) {
     String joinInfoFileName = rootName + ".info";
     Utilities.timestamp("read", joinInfoFileName, Utilities.STARTED_STATUS);
@@ -90,7 +94,7 @@ public class JoinInfoFile {
     Utilities.timestamp("read", joinInfoFileName, Utilities.FINISHED_STATUS);
     return true;
   }
-  
+
   public String getFileName(int index) {
     if (fileNameArray == null) {
       return null;

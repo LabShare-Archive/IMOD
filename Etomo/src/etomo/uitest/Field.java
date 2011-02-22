@@ -20,6 +20,9 @@ import etomo.type.UITestFieldType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/09/01 03:18:33  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.2  2009/01/28 00:58:29  sueh
  * <p> bug# 1102 Allowing a subcommand after a field.
  * <p>
@@ -32,7 +35,7 @@ final class Field extends Assert {
   public static final String rcsid = "$Id$";
 
   private final AxisID testAxisID;
-  
+
   private boolean empty = true;
   private UITestFieldType fieldType = null;
   private String name = null;
@@ -54,13 +57,11 @@ final class Field extends Assert {
   private void assertValid() {
     //Grammer assertions
     assertNotNull("fieldType is required (" + string + ")", fieldType);
-    assertFalse("index must be set (default 0) (" + string + ")", index
-        .isNull());
+    assertFalse("index must be set (default 0) (" + string + ")", index.isNull());
     assertNotNull("must create string representation of command", string);
     //Logic assertions
     if (fieldType == UITestFieldType.PANEL) {
-      assertTrue("panel find does not use the index (" + string + ")", index
-          .equals(0));
+      assertTrue("panel find does not use the index (" + string + ")", index.equals(0));
     }
   }
 
@@ -78,8 +79,7 @@ final class Field extends Assert {
     empty = false;
     string = statement.getString();
     //Set name
-    name = Command.replaceVariables(statement.getLeftSide(i), variableList,
-        testAxisID);
+    name = Command.replaceVariables(statement.getLeftSide(i), variableList, testAxisID);
     i++;
     //Set index - must be an integer
     String leftSide = statement.getLeftSide(i);

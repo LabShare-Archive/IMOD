@@ -28,6 +28,9 @@ import etomo.ui.swing.UIHarness;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.36  2010/11/13 16:08:59  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.35  2010/04/08 18:09:31  sueh
  * <p> bug# 1348 Whoops... do need to trim.
  * <p>
@@ -233,12 +236,9 @@ public class MRCHeader {
   private int nRows = -1;
   private int nSections = -1;
   private int mode = -1;
-  private final EtomoNumber xPixelSize = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE);
-  private final EtomoNumber yPixelSize = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE);
-  private final EtomoNumber zPixelSize = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE);
+  private final EtomoNumber xPixelSize = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+  private final EtomoNumber yPixelSize = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+  private final EtomoNumber zPixelSize = new EtomoNumber(EtomoNumber.Type.DOUBLE);
   private double xPixelSpacing = Double.NaN;
   private double yPixelSpacing = Double.NaN;
   private double zPixelSpacing = Double.NaN;
@@ -256,17 +256,15 @@ public class MRCHeader {
     modifiedFlag = new FileModifiedFlag(file);
   }
 
-  public static MRCHeader getInstance(BaseManager manager, AxisID axisID,
-      String fileExt) {
+  public static MRCHeader getInstance(BaseManager manager, AxisID axisID, String fileExt) {
     return MRCHeader.getInstance(manager.getPropertyUserDir(), DatasetFiles
         .getDatasetFile(manager, axisID, fileExt).getAbsolutePath(), axisID);
   }
 
-  public static MRCHeader getInstanceFromFileName(BaseManager manager,
-      AxisID axisID, String fileName) {
+  public static MRCHeader getInstanceFromFileName(BaseManager manager, AxisID axisID,
+      String fileName) {
     return MRCHeader.getInstance(manager.getPropertyUserDir(), DatasetFiles
-        .getDatasetFileFromFileName(manager, axisID, fileName)
-        .getAbsolutePath(), axisID);
+        .getDatasetFileFromFileName(manager, axisID, fileName).getAbsolutePath(), axisID);
   }
 
   /**
@@ -278,8 +276,8 @@ public class MRCHeader {
    */
   public static MRCHeader getInstance(BaseManager manager, AxisID axisID,
       FileType fileType) {
-    File keyFile = Utilities.getFile(manager.getPropertyUserDir(), fileType
-        .getFileName(manager, axisID));
+    File keyFile = Utilities.getFile(manager.getPropertyUserDir(), fileType.getFileName(
+        manager, axisID));
     String key = makeKey(keyFile);
     MRCHeader mrcHeader = (MRCHeader) instances.get(key);
     if (mrcHeader == null) {
@@ -295,8 +293,7 @@ public class MRCHeader {
    * @param axisID
    * @return
    */
-  public static MRCHeader getInstance(String fileLocation, String filename,
-      AxisID axisID) {
+  public static MRCHeader getInstance(String fileLocation, String filename, AxisID axisID) {
     File keyFile = Utilities.getFile(fileLocation, filename);
     String key = makeKey(keyFile);
     MRCHeader mrcHeader = (MRCHeader) instances.get(key);
@@ -314,8 +311,8 @@ public class MRCHeader {
    * @param axisID
    * @return
    */
-  private static synchronized MRCHeader createInstance(String fileLocation,
-      String key, File file, AxisID axisID) {
+  private static synchronized MRCHeader createInstance(String fileLocation, String key,
+      File file, AxisID axisID) {
     MRCHeader mrcHeader = (MRCHeader) instances.get(key);
     if (mrcHeader != null) {
       return mrcHeader;
@@ -362,8 +359,7 @@ public class MRCHeader {
     String[] commandArray = new String[2];
     commandArray[0] = ApplicationManager.getIMODBinPath() + "header";
     commandArray[1] = filename;
-    SystemProgram header = new SystemProgram(manager, fileLocation,
-        commandArray, axisID);
+    SystemProgram header = new SystemProgram(manager, fileLocation, commandArray, axisID);
     header.setDebug(Utilities.isDebug());
     modifiedFlag.setReadingNow();
     header.run();
@@ -375,8 +371,7 @@ public class MRCHeader {
         for (int i = 0; i < messages.errorListSize(); i++) {
           message = message + messages.getError(i) + "\n";
         }
-        Utilities
-            .timestamp("read", "header", filename, Utilities.FAILED_STATUS);
+        Utilities.timestamp("read", "header", filename, Utilities.FAILED_STATUS);
         throw new InvalidParameterException(filename + ":" + message);
       }
     }
@@ -414,8 +409,7 @@ public class MRCHeader {
           }
         }
         if (tokens.length < N_SECTIONS_INDEX + 1) {
-          Utilities.timestamp("read", "header", filename,
-              Utilities.FAILED_STATUS);
+          Utilities.timestamp("read", "header", filename, Utilities.FAILED_STATUS);
           throw new IOException(
               "Header returned less than three parameters for image size");
         }
@@ -426,8 +420,7 @@ public class MRCHeader {
         catch (NumberFormatException e) {
           e.printStackTrace();
           nRows = -1;
-          Utilities.timestamp("read", "header", filename,
-              Utilities.FAILED_STATUS);
+          Utilities.timestamp("read", "header", filename, Utilities.FAILED_STATUS);
           throw new NumberFormatException("nRows not set, token is "
               + tokens[N_ROWS_INDEX]);
         }
@@ -437,8 +430,7 @@ public class MRCHeader {
         catch (NumberFormatException e) {
           e.printStackTrace();
           nSections = -1;
-          Utilities.timestamp("read", "header", filename,
-              Utilities.FAILED_STATUS);
+          Utilities.timestamp("read", "header", filename, Utilities.FAILED_STATUS);
           throw new NumberFormatException("nSections not set, token is "
               + tokens[N_SECTIONS_INDEX]);
         }
@@ -448,10 +440,8 @@ public class MRCHeader {
       if (stdOutput[i].startsWith(" Map mode")) {
         String[] tokens = stdOutput[i].split("\\s+");
         if (tokens.length < 5) {
-          Utilities.timestamp("read", "header", filename,
-              Utilities.FAILED_STATUS);
-          throw new IOException(
-              "Header returned less than one parameter for the mode");
+          Utilities.timestamp("read", "header", filename, Utilities.FAILED_STATUS);
+          throw new IOException("Header returned less than one parameter for the mode");
         }
         mode = Integer.parseInt(tokens[4]);
       }
@@ -462,8 +452,7 @@ public class MRCHeader {
       if (stdOutput[i].startsWith(" Pixel spacing")) {
         String[] tokens = stdOutput[i].split("\\s+");
         if (tokens.length < 7) {
-          Utilities.timestamp("read", "header", filename,
-              Utilities.FAILED_STATUS);
+          Utilities.timestamp("read", "header", filename, Utilities.FAILED_STATUS);
           throw new IOException(
               "Header returned less than three parameters for pixel size");
         }
@@ -480,8 +469,7 @@ public class MRCHeader {
 
       // If the pixel sizes are default value scan for FEI pixel size in the
       // comment section
-      if (xPixelSize.equals(1.0) && yPixelSize.equals(1.0)
-          && yPixelSize.equals(1.0)) {
+      if (xPixelSize.equals(1.0) && yPixelSize.equals(1.0) && yPixelSize.equals(1.0)) {
         parseFEIPixelSize(manager, stdOutput[i], !pixelsParsed);
       }
 
@@ -501,17 +489,16 @@ public class MRCHeader {
    * @param popupErrorMessage - pop up an error message is there is an error
    * @return success boolean
    */
-  private boolean parsePixelSpacing(BaseManager manager,
-      EtomoNumber pixelSpacing, String sPixelSpacing, boolean popupErrorMessage) {
+  private boolean parsePixelSpacing(BaseManager manager, EtomoNumber pixelSpacing,
+      String sPixelSpacing, boolean popupErrorMessage) {
     pixelSpacing.set(sPixelSpacing);
     double dPixelSpacing = pixelSpacing.getDouble();
     String errorMessage = null;
     if (!pixelSpacing.isValid() || dPixelSpacing == -1 || dPixelSpacing == 0) {
       if (popupErrorMessage) {
-        UIHarness.INSTANCE
-            .openMessageDialog(manager, "Invalid pixel spacing:  "
-                + sPixelSpacing + ".  Fix the mrc header in " + filename
-                + " with alterheader.", "Header Error", axisID);
+        UIHarness.INSTANCE.openMessageDialog(manager, "Invalid pixel spacing:  "
+            + sPixelSpacing + ".  Fix the mrc header in " + filename
+            + " with alterheader.", "Header Error", axisID);
       }
       return false;
     }
@@ -606,8 +593,7 @@ public class MRCHeader {
     if (line.matches(".*Tilt axis angle =.*")) {
       String[] tokens = line.split("\\s+");
       if (tokens.length > 5) {
-        imageRotation.set(tokens[5].substring(0, tokens[5]
-            .length() - 1));
+        imageRotation.set(tokens[5].substring(0, tokens[5].length() - 1));
         return;
       }
     }
@@ -641,8 +627,7 @@ public class MRCHeader {
    * Pixel spacing should remain set to 1
    * @param line
    */
-  private void parseFEIPixelSize(BaseManager manager, String line,
-      boolean userMessage) {
+  private void parseFEIPixelSize(BaseManager manager, String line, boolean userMessage) {
     if (line.matches(".*Pixel size in nanometers.*")) {
       String[] tokens = line.split("\\s+");
       if (tokens.length > 6) {
@@ -660,12 +645,11 @@ public class MRCHeader {
   }
 
   protected String paramString() {
-    return ",\nfilename=" + filename + ",nColumns=" + nColumns + ",nRows="
-        + nRows + ",\nnSections=" + nSections + ",mode=" + mode
-        + ",\nxPixelSize=" + xPixelSize + ",yPixelSize=" + yPixelSize
-        + ",\nzPixelSize=" + zPixelSize + ",xPixelSpacing=" + xPixelSpacing
-        + ",\nyPixelSpacing=" + yPixelSpacing + ",zPixelSpacing="
-        + zPixelSpacing + ",\nimageRotation=" + imageRotation + ",binning="
-        + binning + ",\naxisID=" + axisID;
+    return ",\nfilename=" + filename + ",nColumns=" + nColumns + ",nRows=" + nRows
+        + ",\nnSections=" + nSections + ",mode=" + mode + ",\nxPixelSize=" + xPixelSize
+        + ",yPixelSize=" + yPixelSize + ",\nzPixelSize=" + zPixelSize + ",xPixelSpacing="
+        + xPixelSpacing + ",\nyPixelSpacing=" + yPixelSpacing + ",zPixelSpacing="
+        + zPixelSpacing + ",\nimageRotation=" + imageRotation + ",binning=" + binning
+        + ",\naxisID=" + axisID;
   }
 }

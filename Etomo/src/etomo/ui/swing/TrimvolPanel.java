@@ -33,6 +33,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:35  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.40  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
@@ -223,8 +226,7 @@ import etomo.type.Run3dmodMenuOptions;
  * <p> </p>
  */
 
-public final class TrimvolPanel implements Run3dmodButtonContainer,
-    RubberbandContainer {
+public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandContainer {
   public static final String rcsid = "$Id$";
 
   private static final String SCALING_ERROR_TITLE = "Scaling Panel Error";
@@ -242,15 +244,11 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
   private SpacedPanel pnlScale = SpacedPanel.getInstance();
   private JPanel pnlScaleFixed = new JPanel();
   private CheckBox cbConvertToBytes = new CheckBox("Convert to bytes");
-  private RadioButton rbScaleFixed = new RadioButton(
-      "Scale to match contrast  ");
-  private LabeledTextField ltfFixedScaleMin = new LabeledTextField(
-      FIXED_SCALE_MIN_LABEL);
-  private LabeledTextField ltfFixedScaleMax = new LabeledTextField(
-      FIXED_SCALE_MAX_LABEL);
+  private RadioButton rbScaleFixed = new RadioButton("Scale to match contrast  ");
+  private LabeledTextField ltfFixedScaleMin = new LabeledTextField(FIXED_SCALE_MIN_LABEL);
+  private LabeledTextField ltfFixedScaleMax = new LabeledTextField(FIXED_SCALE_MAX_LABEL);
 
-  private RadioButton rbScaleSection = new RadioButton(
-      "Find scaling from sections  ");
+  private RadioButton rbScaleSection = new RadioButton("Find scaling from sections  ");
   private JPanel pnlScaleSection = new JPanel();
   private LabeledTextField ltfSectionScaleMin = new LabeledTextField(
       SECTION_SCALE_MIN_LABEL);
@@ -278,8 +276,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
   private MultiLineButton btnGetCoordinates = new MultiLineButton(
       "Get XYZ Volume Range From 3dmod");
   private JPanel pnlImodFull = new JPanel();
-  private final VolumeRangePanel volumeRangePanel = VolumeRangePanel
-      .getInstance();
+  private final VolumeRangePanel volumeRangePanel = VolumeRangePanel.getInstance();
 
   private final ButtonListener buttonActonListener;
   private final RubberbandPanel pnlScaleRubberband;
@@ -289,25 +286,20 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
   /**
    * Default constructor
    */
-  public TrimvolPanel(ApplicationManager appMgr, AxisID axisID,
-      DialogType dialogType) {
+  public TrimvolPanel(ApplicationManager appMgr, AxisID axisID, DialogType dialogType) {
     this.dialogType = dialogType;
     this.axisID = axisID;
     applicationManager = appMgr;
     //panels
-    pnlScaleRubberband = RubberbandPanel
-        .getNoButtonInstance(
-            appMgr,
-            this,
-            ImodManager.COMBINED_TOMOGRAM_KEY,
-            "Scaling from sub-area:",
-            "Get XYZ Sub-Area From 3dmod",
-            "Minimum X coordinate on the left side to analyze for contrast range.",
-            "Maximum X coordinate on the right side to analyze for contrast range.",
-            "The lower Y coordinate to analyze for contrast range.",
-            "The upper Y coordinate to analyze for contrast range.");
-    btnTrimvol = (Run3dmodButton) appMgr.getProcessResultDisplayFactory(
-        AxisID.ONLY).getTrimVolume();
+    pnlScaleRubberband = RubberbandPanel.getNoButtonInstance(appMgr, this,
+        ImodManager.COMBINED_TOMOGRAM_KEY, "Scaling from sub-area:",
+        "Get XYZ Sub-Area From 3dmod",
+        "Minimum X coordinate on the left side to analyze for contrast range.",
+        "Maximum X coordinate on the right side to analyze for contrast range.",
+        "The lower Y coordinate to analyze for contrast range.",
+        "The upper Y coordinate to analyze for contrast range.");
+    btnTrimvol = (Run3dmodButton) appMgr.getProcessResultDisplayFactory(AxisID.ONLY)
+        .getTrimVolume();
     btnTrimvol.setContainer(this);
     btnTrimvol.setDeferred3dmodButton(btnImodTrim);
 
@@ -326,10 +318,8 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
 
     pnlScaleSection.setLayout(new BoxLayout(pnlScaleSection, BoxLayout.X_AXIS));
     pnlScaleSection.add(rbScaleSection.getComponent());
-    ltfSectionScaleMin.setTextPreferredWidth(UIParameters.INSTANCE
-        .getFourDigitWidth());
-    ltfSectionScaleMax.setTextPreferredWidth(UIParameters.INSTANCE
-        .getFourDigitWidth());
+    ltfSectionScaleMin.setTextPreferredWidth(UIParameters.INSTANCE.getFourDigitWidth());
+    ltfSectionScaleMax.setTextPreferredWidth(UIParameters.INSTANCE.getFourDigitWidth());
     pnlScaleSection.add(ltfSectionScaleMin.getContainer());
     pnlScaleSection.add(ltfSectionScaleMax.getContainer());
 
@@ -374,8 +364,8 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
     pnlReorientation.setBoxLayout(BoxLayout.X_AXIS);
     pnlReorientationChoices.setLayout(new BoxLayout(pnlReorientationChoices,
         BoxLayout.Y_AXIS));
-    pnlReorientationChoices.setBorder(new EtchedBorder(
-        REORIENTATION_GROUP_LABEL).getBorder());
+    pnlReorientationChoices.setBorder(new EtchedBorder(REORIENTATION_GROUP_LABEL)
+        .getBorder());
     pnlReorientationChoices.setAlignmentX(Component.RIGHT_ALIGNMENT);
     bgReorientation.add(rbNone.getAbstractButton());
     bgReorientation.add(rbSwapYZ.getAbstractButton());
@@ -493,20 +483,18 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
       trimvolParam.setFixedScaling(true);
 
       try {
-        errorMessage = trimvolParam
-            .setFixedScaleMin(ltfFixedScaleMin.getText()).validate(
-                FIXED_SCALE_MIN_LABEL);
+        errorMessage = trimvolParam.setFixedScaleMin(ltfFixedScaleMin.getText())
+            .validate(FIXED_SCALE_MIN_LABEL);
         if (errorMessage != null) {
-          UIHarness.INSTANCE.openMessageDialog(applicationManager,
-              errorMessage, SCALING_ERROR_TITLE, axisID);
+          UIHarness.INSTANCE.openMessageDialog(applicationManager, errorMessage,
+              SCALING_ERROR_TITLE, axisID);
           throw new InvalidEtomoNumberException(errorMessage);
         }
-        errorMessage = trimvolParam
-            .setFixedScaleMax(ltfFixedScaleMax.getText()).validate(
-                FIXED_SCALE_MAX_LABEL);
+        errorMessage = trimvolParam.setFixedScaleMax(ltfFixedScaleMax.getText())
+            .validate(FIXED_SCALE_MAX_LABEL);
         if (errorMessage != null) {
-          UIHarness.INSTANCE.openMessageDialog(applicationManager,
-              errorMessage, SCALING_ERROR_TITLE, axisID);
+          UIHarness.INSTANCE.openMessageDialog(applicationManager, errorMessage,
+              SCALING_ERROR_TITLE, axisID);
           throw new InvalidEtomoNumberException(errorMessage);
         }
       }
@@ -517,18 +505,18 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
     else {
       trimvolParam.setFixedScaling(false);
       try {
-        errorMessage = trimvolParam.setSectionScaleMin(
-            ltfSectionScaleMin.getText()).validate(SECTION_SCALE_MIN_LABEL);
+        errorMessage = trimvolParam.setSectionScaleMin(ltfSectionScaleMin.getText())
+            .validate(SECTION_SCALE_MIN_LABEL);
         if (errorMessage != null) {
-          UIHarness.INSTANCE.openMessageDialog(applicationManager,
-              errorMessage, SCALING_ERROR_TITLE, axisID);
+          UIHarness.INSTANCE.openMessageDialog(applicationManager, errorMessage,
+              SCALING_ERROR_TITLE, axisID);
           throw new InvalidEtomoNumberException(errorMessage);
         }
-        errorMessage = trimvolParam.setSectionScaleMax(
-            ltfSectionScaleMax.getText()).validate(SECTION_SCALE_MAX_LABEL);
+        errorMessage = trimvolParam.setSectionScaleMax(ltfSectionScaleMax.getText())
+            .validate(SECTION_SCALE_MAX_LABEL);
         if (errorMessage != null) {
-          UIHarness.INSTANCE.openMessageDialog(applicationManager,
-              errorMessage, SCALING_ERROR_TITLE, axisID);
+          UIHarness.INSTANCE.openMessageDialog(applicationManager, errorMessage,
+              SCALING_ERROR_TITLE, axisID);
           throw new InvalidEtomoNumberException(errorMessage);
         }
       }
@@ -542,8 +530,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
   }
 
   public void setParameters(ReconScreenState screenState) {
-    btnTrimvol.setButtonState(screenState.getButtonState(btnTrimvol
-        .getButtonStateKey()));
+    btnTrimvol.setButtonState(screenState.getButtonState(btnTrimvol.getButtonStateKey()));
   }
 
   public void setZMin(String zMin) {
@@ -565,12 +552,10 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
   private void setScaleState() {
     rbScaleFixed.setEnabled(cbConvertToBytes.isSelected());
     rbScaleSection.setEnabled(cbConvertToBytes.isSelected());
-    boolean fixedState = cbConvertToBytes.isSelected()
-        && rbScaleFixed.isSelected();
+    boolean fixedState = cbConvertToBytes.isSelected() && rbScaleFixed.isSelected();
     ltfFixedScaleMin.setEnabled(fixedState);
     ltfFixedScaleMax.setEnabled(fixedState);
-    boolean scaleState = cbConvertToBytes.isSelected()
-        && rbScaleSection.isSelected();
+    boolean scaleState = cbConvertToBytes.isSelected() && rbScaleSection.isSelected();
     ltfSectionScaleMin.setEnabled(scaleState);
     ltfSectionScaleMax.setEnabled(scaleState);
     pnlScaleRubberband.setEnabled(scaleState);
@@ -598,9 +583,8 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
           run3dmodMenuOptions, dialogType);
     }
     else if (command == btnGetCoordinates.getActionCommand()) {
-      volumeRangePanel.setXYMinAndMax(applicationManager
-          .imodGetRubberbandCoordinates(ImodManager.COMBINED_TOMOGRAM_KEY,
-              AxisID.ONLY));
+      volumeRangePanel.setXYMinAndMax(applicationManager.imodGetRubberbandCoordinates(
+          ImodManager.COMBINED_TOMOGRAM_KEY, AxisID.ONLY));
     }
     else if (command == btnImodFull.getActionCommand()) {
       applicationManager.imodCombinedTomogram(run3dmodMenuOptions);
@@ -674,12 +658,10 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
         .setToolTipText("Minimum Z section of the subset to analyze for contrast range.");
     ltfSectionScaleMax
         .setToolTipText("Maximum Z section of the subset to analyze for contrast range.");
-    pnlReorientationChoices
-        .setToolTipText("If the output volume is not reoriented, "
-            + "the file will need to be flipped when loaded into 3dmod.");
-    rbNone
-        .setToolTipText("Do not change the orientation of the output volume.  "
-            + "The file will need to be flipped when loaded into 3dmod.");
+    pnlReorientationChoices.setToolTipText("If the output volume is not reoriented, "
+        + "the file will need to be flipped when loaded into 3dmod.");
+    rbNone.setToolTipText("Do not change the orientation of the output volume.  "
+        + "The file will need to be flipped when loaded into 3dmod.");
     rbSwapYZ
         .setToolTipText("Flip Y and Z in the output volume so that the file does not need to be "
             + "flipped when loaded into 3dmod.");

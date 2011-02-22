@@ -3,10 +3,8 @@ package etomo.util;
 import java.io.File;
 import java.io.FileReader;
 import java.io.Reader;
-import java.io.StringReader;
-//import java.lang.IllegalArgumentException;
-import java.io.IOException;
-//import java.lang.IllegalStateException;
+import java.io.StringReader; //import java.lang.IllegalArgumentException;
+import java.io.IOException; //import java.lang.IllegalStateException;
 import java.io.StreamTokenizer;
 import java.io.FileNotFoundException;
 
@@ -53,6 +51,9 @@ import etomo.ui.swing.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.15  2010/11/13 16:08:59  sueh
+ * <p> $bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p> $
  * <p> $Revision 1.14  2009/09/05 00:06:14  sueh
  * <p> $bug# 1256 Added separateAlphabeticAndNumeric() to divide ALPHANUM
  * <p> $tokens into ALPHABETIC and NUMERIC tokens without changing the next()
@@ -296,8 +297,7 @@ public final class PrimativeTokenizer {
           }
           if (!whitespaceFound) {
             whitespaceFound = true;
-            whitespaceBuffer = new StringBuffer()
-                .append((char) tokenizer.ttype);
+            whitespaceBuffer = new StringBuffer().append((char) tokenizer.ttype);
           }
           else {
             whitespaceBuffer.append((char) tokenizer.ttype);
@@ -382,8 +382,7 @@ public final class PrimativeTokenizer {
     }
     //Found the end of the last token in valueBeingBrokenUp.  Add the value to
     //the new token and reset valueBeingBrokenUp and valueIndex.
-    newToken.set(valueBeingBrokenUp.substring(valueIndex, valueBeingBrokenUp
-        .length()));
+    newToken.set(valueBeingBrokenUp.substring(valueIndex, valueBeingBrokenUp.length()));
     if (debug) {
       System.out.println(newToken);
     }
@@ -427,8 +426,8 @@ public final class PrimativeTokenizer {
    * @param tokens If true, prints each token.  If false, prints the text.
    * @throws IOException
    */
-  public void testStreamTokenizer(boolean tokens, boolean details)
-      throws IOException, LogFile.LockException {
+  public void testStreamTokenizer(boolean tokens, boolean details) throws IOException,
+      LogFile.LockException {
     initializeStreamTokenizer();
     do {
       nextToken();
@@ -441,8 +440,8 @@ public final class PrimativeTokenizer {
                 + tokenizer.sval + ",nval=" + tokenizer.nval);
           }
           else {
-            System.out.println(", " + TokenType.getInstance(tokenizer.ttype)
-                + ",sval=" + tokenizer.sval + ",nval=" + tokenizer.nval);
+            System.out.println(", " + TokenType.getInstance(tokenizer.ttype) + ",sval="
+                + tokenizer.sval + ",nval=" + tokenizer.nval);
           }
         }
         else {

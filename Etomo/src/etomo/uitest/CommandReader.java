@@ -46,10 +46,9 @@ public final class CommandReader extends Assert {
    */
   public static CommandReader getAutodocReader(ReadOnlyAutodoc autodoc,
       String sectionType, AxisID axisID, VariableList variableList) {
-    CommandReader autodocReader = new CommandReader(autodoc, sectionType, null,
-        axisID, variableList);
-    assertFalse("syntax error in autodoc - " + autodoc.getName(), autodoc
-        .isError());
+    CommandReader autodocReader = new CommandReader(autodoc, sectionType, null, axisID,
+        variableList);
+    assertFalse("syntax error in autodoc - " + autodoc.getName(), autodoc.isError());
     return autodocReader;
   }
 
@@ -60,12 +59,10 @@ public final class CommandReader extends Assert {
    * @param sectionName
    */
   public static CommandReader getSectionReader(ReadOnlyAutodoc autodoc,
-      String sectionType, String sectionName, AxisID axisID,
-      VariableList variableList) {
-    CommandReader sectionReader= new CommandReader(autodoc, sectionType, sectionName, axisID,
-        variableList);
-    assertFalse("syntax error in autodoc - " + autodoc.getName(), autodoc
-        .isError());
+      String sectionType, String sectionName, AxisID axisID, VariableList variableList) {
+    CommandReader sectionReader = new CommandReader(autodoc, sectionType, sectionName,
+        axisID, variableList);
+    assertFalse("syntax error in autodoc - " + autodoc.getName(), autodoc.isError());
     return sectionReader;
   }
 
@@ -82,9 +79,8 @@ public final class CommandReader extends Assert {
    * @param axisID
    * @return
    */
-  public static CommandReader getSubsectionReader(
-      ReadOnlySectionList sectionList, ReadOnlySection subsection,
-      AxisID axisID, VariableList variableList) {
+  public static CommandReader getSubsectionReader(ReadOnlySectionList sectionList,
+      ReadOnlySection subsection, AxisID axisID, VariableList variableList) {
     return new CommandReader(sectionList, subsection, axisID, variableList);
   }
 
@@ -97,8 +93,8 @@ public final class CommandReader extends Assert {
    * @param axisID
    * @param variableList
    */
-  private CommandReader(ReadOnlyAutodoc autodoc, String sectionType,
-      String sectionName, AxisID axisID, VariableList variableList) {
+  private CommandReader(ReadOnlyAutodoc autodoc, String sectionType, String sectionName,
+      AxisID axisID, VariableList variableList) {
     this.axisID = axisID;
     this.variableList = variableList;
     this.sectionList = autodoc;
@@ -132,8 +128,8 @@ public final class CommandReader extends Assert {
    * @param axisID
    * @param variableList
    */
-  private CommandReader(ReadOnlySectionList sectionList,
-      ReadOnlySection subsection, AxisID axisID, VariableList variableList) {
+  private CommandReader(ReadOnlySectionList sectionList, ReadOnlySection subsection,
+      AxisID axisID, VariableList variableList) {
     this.axisID = axisID;
     this.variableList = variableList;
     this.sectionList = sectionList;
@@ -214,8 +210,7 @@ public final class CommandReader extends Assert {
       done = true;
     }
     else {
-      ReadOnlyStatement statement = statementList
-          .nextStatement(statementLocation);
+      ReadOnlyStatement statement = statementList.nextStatement(statementLocation);
       if (statement == null) {
         if (sectionLocation == null) {
           //Only reading one section and finished with it, so done.
@@ -228,9 +223,8 @@ public final class CommandReader extends Assert {
       }
       else {
         System.err.println("### " + sectionList.getName() + ":"
-            + (sectionType != null ? sectionType : "") + ":"
-            + statementList.getName() + ":"
-            + (axisID != null ? axisID.getExtension() : "") + ":"
+            + (sectionType != null ? sectionType : "") + ":" + statementList.getName()
+            + ":" + (axisID != null ? axisID.getExtension() : "") + ":"
             + statement.getString());
         return statement;
       }
@@ -267,6 +261,9 @@ public final class CommandReader extends Assert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2009/09/01 03:18:33  sueh
+ * <p> bug# 1222
+ * <p>
  * <p> Revision 1.3  2009/01/20 20:46:35  sueh
  * <p> bug# 1102 Class to read uitest commands.
  * <p>

@@ -18,7 +18,10 @@ import etomo.type.FileType;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2010/03/03 05:11:59  sueh
+ * <p> bug# 1311 Class to run imodinfo.
+ * <p> </p>
  */
 public final class Imodinfo {
   public static final String rcsid = "$Id$";
@@ -37,9 +40,9 @@ public final class Imodinfo {
   }
 
   private void run(final BaseManager manager, final AxisID axisID) {
-    SystemProgram systemProgram = new SystemProgram(manager, manager
-        .getPropertyUserDir(), new String[] { "imodinfo", "-h",
-        fileType.getFileName(manager, axisID) }, axisID);
+    SystemProgram systemProgram = new SystemProgram(manager,
+        manager.getPropertyUserDir(), new String[] { "imodinfo", "-h",
+            fileType.getFileName(manager, axisID) }, axisID);
     systemProgram.run();
     String[] stdout = systemProgram.getStdOutput();
     if (stdout != null) {

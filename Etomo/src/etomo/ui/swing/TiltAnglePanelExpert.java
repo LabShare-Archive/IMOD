@@ -21,6 +21,9 @@ import etomo.type.UserConfiguration;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.1  2007/12/26 22:36:34  sueh
  * <p> bug# 1052 Turned TiltAnglePanel into an extremely thin GUI.  Moved decisions
  * <p> and knowledge to TiltAnglePanelExpert.
@@ -34,7 +37,7 @@ final class TiltAnglePanelExpert {
   TiltAnglePanelExpert() {
     panel = new TiltAnglePanel(this);
   }
-  
+
   Component getComponent() {
     return panel.getComponent();
   }
@@ -109,26 +112,21 @@ final class TiltAnglePanelExpert {
   }
 
   void setTooltips() {
-    panel
-        .setSourceTooltip("Specify the source of the view tilt angles");
-    panel
-        .setExtractTooltip("Select the Extract option if the extended header of the "
-            + "raw data stack contains the angles");
-    panel
-        .setSpecifyTooltip("Select the Specify option if you wish to manually "
-            + "specify the tilt angles in the edit boxes below");
+    panel.setSourceTooltip("Specify the source of the view tilt angles");
+    panel.setExtractTooltip("Select the Extract option if the extended header of the "
+        + "raw data stack contains the angles");
+    panel.setSpecifyTooltip("Select the Specify option if you wish to manually "
+        + "specify the tilt angles in the edit boxes below");
     panel.setMinTooltip("Starting tilt angle of the series");
     panel.setStepTooltip("Tilt increment between views");
-    panel
-        .setFileTooltip("Select the File option if the tilt angles already exist "
-            + "in a *.rawtlt file");
+    panel.setFileTooltip("Select the File option if the tilt angles already exist "
+        + "in a *.rawtlt file");
   }
-  
+
   /**
    *  Set the state of the text fields depending upon the radio button state
-   */ 
+   */
   void setRadioButtonState(final ActionEvent event) {
-    enableAngleFields(event.getActionCommand().equals(
-        panel.getSpecify()));
+    enableAngleFields(event.getActionCommand().equals(panel.getSpecify()));
   }
 }

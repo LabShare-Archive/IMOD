@@ -25,6 +25,9 @@ import etomo.storage.MatlabParam;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.3  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
@@ -159,10 +162,10 @@ final class SphericalSamplingForThetaAndPsiPanel {
     //If full sphere or half sphere is selected, sample interval is required.
     if ((rbSampleSphereFull.isSelected() || rbSampleSphereHalf.isSelected())
         && ltfSampleInterval.isEnabled() && ltfSampleInterval.isEmpty()) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "In "
-          + SPHERICAL_SAMPLING_LABEL + ", " + SAMPLE_INTERVAL_LABEL
-          + " is required when either " + SAMPLE_SPHERE_FULL_LABEL + " or "
-          + SAMPLE_SPHERE_HALF_LABEL + " is selected.", "Entry Error");
+      UIHarness.INSTANCE.openMessageDialog(manager, "In " + SPHERICAL_SAMPLING_LABEL
+          + ", " + SAMPLE_INTERVAL_LABEL + " is required when either "
+          + SAMPLE_SPHERE_FULL_LABEL + " or " + SAMPLE_SPHERE_HALF_LABEL
+          + " is selected.", "Entry Error");
       return false;
     }
     return true;
@@ -193,15 +196,14 @@ final class SphericalSamplingForThetaAndPsiPanel {
             + "ignoring the values specified in the Iteration Table for these "
             + "parameters.  Optimization prevents over-sampling near the poles "
             + "Phi Max should be set to 180 degrees for spherical sampling.");
-    ltfSampleInterval
-        .setToolTipText("The interval, in degrees, at which theta will be "
-            + "sampled when using spherical sampling.  Psi will also be sampled "
-            + "at this interval at the equator, and with decreasing frequency "
-            + "near the poles (on the X axis).");
+    ltfSampleInterval.setToolTipText("The interval, in degrees, at which theta will be "
+        + "sampled when using spherical sampling.  Psi will also be sampled "
+        + "at this interval at the equator, and with decreasing frequency "
+        + "near the poles (on the X axis).");
   }
 
-  private static final class SphericalSamplingForThetaAndPsiActionListener
-      implements ActionListener {
+  private static final class SphericalSamplingForThetaAndPsiActionListener implements
+      ActionListener {
     private final SphericalSamplingForThetaAndPsiPanel sphericalSamplingForThetaAndPsiPanel;
 
     private SphericalSamplingForThetaAndPsiActionListener(

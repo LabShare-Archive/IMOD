@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.15  2007/03/01 01:46:09  sueh
  * <p> bug# 964 Moved colors from UIUtilities to Colors.
  * <p>
@@ -127,8 +130,7 @@ public class UIUtilities {
    * @param component
    * @param dim
    */
-  public static void addWithSpace(Container panel, Component component,
-      Dimension dim) {
+  public static void addWithSpace(Container panel, Component component, Dimension dim) {
     panel.add(component);
     panel.add(Box.createRigidArea(dim));
   }
@@ -157,8 +159,7 @@ public class UIUtilities {
   public static void setButtonSizeAll(Container container, Dimension size) {
     Component[] children = container.getComponents();
     for (int i = 0; i < children.length; i++) {
-      if (children[i] instanceof AbstractButton
-          && !(children[i] instanceof JCheckBox)) {
+      if (children[i] instanceof AbstractButton && !(children[i] instanceof JCheckBox)) {
         AbstractButton btn = (AbstractButton) children[i];
         btn.setPreferredSize(size);
         btn.setMaximumSize(size);
@@ -235,7 +236,7 @@ public class UIUtilities {
   }
 
   static ColorUIResource divideColor(Color color, int divisor) {
-    return new ColorUIResource(color.getRed() / divisor, color.getGreen()
-        / divisor, color.getBlue() / divisor);
+    return new ColorUIResource(color.getRed() / divisor, color.getGreen() / divisor,
+        color.getBlue() / divisor);
   }
 }

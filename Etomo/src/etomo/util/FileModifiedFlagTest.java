@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import junit.framework.TestCase;
+
 /**
 * <p>Description: </p>
 * 
@@ -18,11 +19,11 @@ import junit.framework.TestCase;
 * @version $Revision$
 */
 public class FileModifiedFlagTest extends TestCase {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   File testDir;
   File testFile;
-  
+
   protected void setUp() throws Exception {
     super.setUp();
     testDir = new File(UtilTests.TEST_ROOT_DIR, "FileModifiedFlag");
@@ -31,21 +32,24 @@ public class FileModifiedFlagTest extends TestCase {
     }
     testFile = new File(testDir, "testfile");
   }
-  
+
   public final void testfileModifiedFlag() {
     FileModifiedFlag fileModifiedFlag = new FileModifiedFlag(testFile);
   }
-  
+
   //TODO
   public final void testIsModifiedSinceLastRead() throws IOException {
   }
-  
+
   //TODO
   public final void testSetReadingNow() throws IOException {
   }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.15  2010/04/28 16:50:46  sueh
+* <p> bug# 1344 Removed unnecessary tearDown override.
+* <p>
 * <p> Revision 1.14  2006/06/14 00:44:42  sueh
 * <p> bug# 852 Removed selfTestInvariants() because there isn't much to test.
 * <p>

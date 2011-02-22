@@ -56,16 +56,18 @@ final class TabbedPane extends JTabbedPane {
 
   public void setName(String text) {
     String name = Utilities.convertLabelToName(text);
-    super.setName(UITestFieldType.TAB.toString()
-        + AutodocTokenizer.SEPARATOR_CHAR + name);
+    super
+        .setName(UITestFieldType.TAB.toString() + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
-          + ' ');
+      System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:35  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.7  2009/11/20 17:37:40  sueh
  * <p> bug# 1282 Added prefixes to all of the field names, so that the fields that
  * <p> are actually abstract buttons (radio buttons, etc) won't be activated by a

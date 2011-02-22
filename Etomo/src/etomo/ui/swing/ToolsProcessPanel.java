@@ -20,6 +20,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.2  2010/07/02 03:20:10  sueh
  * <p> bug# 1388 Constructing super class with popupChunkWarnings equal to true.
  * <p>
@@ -31,7 +34,7 @@ public final class ToolsProcessPanel extends AxisProcessPanel {
   public static final String rcsid = "$Id$";
 
   ToolsProcessPanel(ToolsManager manager) {
-    super(AxisID.ONLY, manager,true);
+    super(AxisID.ONLY, manager, true);
     createProcessControlPanel();
     initializePanels();
   }

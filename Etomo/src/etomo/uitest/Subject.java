@@ -21,6 +21,9 @@ import etomo.type.UITestSubjectType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/11/20 17:46:44  sueh
+ * <p> bug# 1282 Limited the types of subcommand actions.
+ * <p>
  * <p> Revision 1.2  2009/09/01 03:18:33  sueh
  * <p> bug# 1222
  * <p>
@@ -30,7 +33,7 @@ import etomo.type.UITestSubjectType;
  */
 class Subject extends Assert {
   public static final String rcsid = "$Id$";
-  
+
   private final AxisID testAxisID;
 
   private boolean empty = true;
@@ -38,10 +41,9 @@ class Subject extends Assert {
   private String name = null;
   private AxisID axisID = null;
   String string;
-  
-  Subject(AxisID testAxisID)
-  {
-    this.testAxisID=testAxisID;
+
+  Subject(AxisID testAxisID) {
+    this.testAxisID = testAxisID;
   }
 
   void reset() {
@@ -57,9 +59,8 @@ class Subject extends Assert {
   private void assertValid() {
     //Grammer assertions
     assertNotNull("subjectType is required (" + string + ")", subjectType);
-    assertNotNull(
-        "axisID should be assumed to be AxisID.ONLY when it is not included ("
-            + string + ")", axisID);
+    assertNotNull("axisID should be assumed to be AxisID.ONLY when it is not included ("
+        + string + ")", axisID);
     assertNotNull("must create string representation of command", string);
   }
 

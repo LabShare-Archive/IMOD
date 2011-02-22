@@ -32,6 +32,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.17  2010/03/03 05:07:01  sueh
  * <p> bug# 1311 Added getLabel.
  * <p>
@@ -103,12 +106,12 @@ final class Spinner {
     model = new SpinnerNumberModel(value, minimum, maximum, step);
     spinner = new JSpinner(model);
     this.defaultValue = new Integer(value);
-    String name = UITestFieldType.SPINNER.toString()
-        + AutodocTokenizer.SEPARATOR_CHAR + Utilities.convertLabelToName(label);
+    String name = UITestFieldType.SPINNER.toString() + AutodocTokenizer.SEPARATOR_CHAR
+        + Utilities.convertLabelToName(label);
     spinner.setName(name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(spinner.getName() + ' '
-          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+      System.out.println(spinner.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
+          + ' ');
     }
     if (labeled) {
       panel = new JPanel();
@@ -138,8 +141,8 @@ final class Spinner {
     return new Spinner(name, false, 1, 1, 1, 1);
   }
 
-  static Spinner getInstance(final String label, final int value,
-      final int minimum, final int maximum) {
+  static Spinner getInstance(final String label, final int value, final int minimum,
+      final int maximum) {
     return new Spinner(label, false, value, minimum, maximum, 1);
   }
 
@@ -175,7 +178,7 @@ final class Spinner {
     }
     return panel;
   }
-  
+
   String getLabel() {
     return label.getText();
   }

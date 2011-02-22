@@ -27,6 +27,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.5  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
@@ -51,8 +54,7 @@ final class UseExistingProjectPanel {
 
   private final MultiLineButton btnImportMatlabParamFile = new MultiLineButton(
       "Import an Existing Project");
-  private final MultiLineButton btnCopyParameters = new MultiLineButton(
-      "Copy Parameters");
+  private final MultiLineButton btnCopyParameters = new MultiLineButton("Copy Parameters");
   private final EtomoPanel pnlRoot = new EtomoPanel();
 
   private final PeetManager manager;
@@ -72,8 +74,7 @@ final class UseExistingProjectPanel {
    */
   static UseExistingProjectPanel getInstance(final PeetManager manager,
       final UseExistingProjectParent parent) {
-    UseExistingProjectPanel instance = new UseExistingProjectPanel(manager,
-        parent);
+    UseExistingProjectPanel instance = new UseExistingProjectPanel(manager, parent);
     instance.createPanel();
     instance.setTooltips();
     instance.addListeners();
@@ -127,9 +128,9 @@ final class UseExistingProjectPanel {
   private void importParam() {
     String path = parent.getDirectory().getText();
     if (path == null || path.matches("\\s*")) {
-      UIHarness.INSTANCE.openMessageDialog(manager,
-          "Please set the " + PeetDialog.DIRECTORY_LABEL
-              + " field before importing a .prm file.", "Entry Error");
+      UIHarness.INSTANCE.openMessageDialog(manager, "Please set the "
+          + PeetDialog.DIRECTORY_LABEL + " field before importing a .prm file.",
+          "Entry Error");
       return;
     }
     File dir = new File(parent.getDirectory().getText());
@@ -213,8 +214,7 @@ final class UseExistingProjectPanel {
    * Action listener for UseExistingProjectPanel.
    * @author sueh
    */
-  private static final class UseExistingProjectActionListener implements
-      ActionListener {
+  private static final class UseExistingProjectActionListener implements ActionListener {
     private final UseExistingProjectPanel panel;
 
     private UseExistingProjectActionListener(final UseExistingProjectPanel panel) {

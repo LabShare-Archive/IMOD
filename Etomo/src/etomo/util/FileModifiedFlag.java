@@ -18,6 +18,9 @@ import etomo.type.EtomoNumber;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2007/09/11 21:37:38  sueh
+* <p> bug# 1035 Added toString().
+* <p>
 * <p> Revision 1.2  2006/06/14 00:44:26  sueh
 * <p> bug# Removed selfTestInvariants() because there isn't much to test.
 * <p>
@@ -27,31 +30,31 @@ import etomo.type.EtomoNumber;
 * <p> </p>
 */
 class FileModifiedFlag {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   private File file;
   private long lastModified = EtomoNumber.LONG_NULL_VALUE;
-  
+
   FileModifiedFlag(File file) {
     this.file = file;
   }
-  
+
   boolean isModifiedSinceLastRead() {
     long fileLastModified = file.lastModified();
     boolean modified = lastModified == EtomoNumber.LONG_NULL_VALUE
         || fileLastModified > lastModified;
     return modified;
   }
-  
+
   void setReadingNow() {
     lastModified = file.lastModified();
   }
-  
+
   long getLastModified() {
     return lastModified;
   }
-  
+
   public String toString() {
-    return file.getAbsolutePath()+": "+lastModified;
+    return file.getAbsolutePath() + ": " + lastModified;
   }
 }

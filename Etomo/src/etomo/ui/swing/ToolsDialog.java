@@ -31,6 +31,11 @@ import etomo.type.ToolType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/03 06:22:16  sueh
+ * <p> bug# 1422 Control of the processing method has been centralized in the
+ * <p> processing method mediator class.  Implementing ProcessInterface.
+ * <p> Supplying processes with the current processing method.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -63,10 +68,9 @@ public final class ToolsDialog implements ContextMenu, LogInterface {
     }
   }
 
-  public static ToolsDialog getInstance(final ToolsManager manager,
-      final AxisID axisID, final DialogType dialogType, final ToolType toolType) {
-    ToolsDialog instance = new ToolsDialog(manager, axisID, dialogType,
-        toolType);
+  public static ToolsDialog getInstance(final ToolsManager manager, final AxisID axisID,
+      final DialogType dialogType, final ToolType toolType) {
+    ToolsDialog instance = new ToolsDialog(manager, axisID, dialogType, toolType);
     instance.createPanel();
     return instance;
   }

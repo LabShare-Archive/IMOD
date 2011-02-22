@@ -3,8 +3,6 @@ package etomo.uitest;
 import java.io.File;
 import java.io.IOException;
 
-
-
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
@@ -25,8 +23,9 @@ import junit.framework.TestSuite;
 public final class JfcUnitTests {
   public static final String rcsid = "$Id$";
 
-  public static final File TEST_ROOT_DIR = new File(System.getProperty("user.dir"), "UITests");
-  
+  public static final File TEST_ROOT_DIR = new File(System.getProperty("user.dir"),
+      "UITests");
+
   public static Test suite() throws IOException {
     TestSuite suite = new TestSuite("JfcUnit Tests");
     suite.addTestSuite(TestRunner.class);
@@ -35,6 +34,9 @@ public final class JfcUnitTests {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2009/01/20 20:48:06  sueh
+ * <p> bug# 1102 Changed uitest suite to TestRunner.
+ * <p>
  * <p> Revision 1.1  2008/05/30 21:36:43  sueh
  * <p> bug# 1102 Moved uitest classes to etomo.uitest.
  * <p>

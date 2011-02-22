@@ -21,6 +21,9 @@ import javax.swing.event.ChangeListener;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.1  2007/09/27 21:06:23  sueh
  * <p> bug# 1044 Common interface for checkbox and radio button table cells.
  * <p> </p>
@@ -30,14 +33,13 @@ interface ToggleCell {
 
   public String getLabel();
 
-  public void setLabel( String label);
+  public void setLabel(String label);
 
-  public void setSelected( boolean selected);
+  public void setSelected(boolean selected);
 
   public void addActionListener(ActionListener actionListener);
 
-  public void add(JPanel panel, GridBagLayout layout,
-      GridBagConstraints constraints);
+  public void add(JPanel panel, GridBagLayout layout, GridBagConstraints constraints);
 
   public boolean isSelected();
 
@@ -46,6 +48,6 @@ interface ToggleCell {
   public int getWidth();
 
   public void setWarning(boolean warning);
-  
+
   public void addChangeListener(ChangeListener listener);
 }

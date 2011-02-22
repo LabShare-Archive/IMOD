@@ -30,6 +30,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.31  2010/07/02 03:20:01  sueh
  * <p> bug# 1388 Constructing super class with popupChunkWarnings equal to true.
  * <p>
@@ -198,7 +201,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
    * @param axis
    */
   public TomogramProcessPanel(ApplicationManager appManager, AxisID axis) {
-    super(axis, appManager,true);
+    super(axis, appManager, true);
     applicationManager = (ApplicationManager) manager;
     //  Create the process control panel    
     createProcessControlPanel();
@@ -374,8 +377,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
 
   private void showAxisA(boolean showingBothAxis) {
     if (axisID != AxisID.FIRST) {
-      throw new IllegalStateException(
-          "Function should only be called for A axis panel.");
+      throw new IllegalStateException("Function should only be called for A axis panel.");
     }
     setBackground(Colors.getBackgroundA());
     if (showingBothAxis) {
@@ -395,8 +397,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
 
   private void showAxisB(boolean showingBothAxis) {
     if (axisID != AxisID.SECOND) {
-      throw new IllegalStateException(
-          "Function should only be called for B axis panel.");
+      throw new IllegalStateException("Function should only be called for B axis panel.");
     }
     setBackground(Colors.getBackgroundB());
     if (showingBothAxis) {
@@ -448,10 +449,8 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     super.createProcessControlPanel();
     //  Bind each button to action listener and the generic mouse listener
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
-    ProcessButtonActionListener buttonListener = new ProcessButtonActionListener(
-        this);
-    AxisButtonActionListener axisButtonListener = new AxisButtonActionListener(
-        this);
+    ProcessButtonActionListener buttonListener = new ProcessButtonActionListener(this);
+    AxisButtonActionListener axisButtonListener = new AxisButtonActionListener(this);
     setToolTipText();
     panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y5));
     int layoutAxis = BoxLayout.X_AXIS;
@@ -496,52 +495,45 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y10));
     procCtlFiducialModel.addMouseListener(mouseAdapter);
     procCtlFiducialModel.setButtonActionListener(buttonListener);
-    procCtlFiducialModel.getContainer().setAlignmentX(
-        Container.CENTER_ALIGNMENT);
+    procCtlFiducialModel.getContainer().setAlignmentX(Container.CENTER_ALIGNMENT);
     panelProcessSelect.add(procCtlFiducialModel.getContainer());
 
     panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y10));
     procCtlFineAlignment.addMouseListener(mouseAdapter);
     procCtlFineAlignment.setButtonActionListener(buttonListener);
-    procCtlFineAlignment.getContainer().setAlignmentX(
-        Container.CENTER_ALIGNMENT);
+    procCtlFineAlignment.getContainer().setAlignmentX(Container.CENTER_ALIGNMENT);
     panelProcessSelect.add(procCtlFineAlignment.getContainer());
 
     panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y10));
     procCtlTomogramPositioning.addMouseListener(mouseAdapter);
     procCtlTomogramPositioning.setButtonActionListener(buttonListener);
-    procCtlTomogramPositioning.getContainer().setAlignmentX(
-        Container.CENTER_ALIGNMENT);
+    procCtlTomogramPositioning.getContainer().setAlignmentX(Container.CENTER_ALIGNMENT);
     panelProcessSelect.add(procCtlTomogramPositioning.getContainer());
 
     panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y10));
     procCtlFinalAlignedStack.addMouseListener(mouseAdapter);
     procCtlFinalAlignedStack.setButtonActionListener(buttonListener);
-    procCtlFinalAlignedStack.getContainer().setAlignmentX(
-        Container.CENTER_ALIGNMENT);
+    procCtlFinalAlignedStack.getContainer().setAlignmentX(Container.CENTER_ALIGNMENT);
     panelProcessSelect.add(procCtlFinalAlignedStack.getContainer());
 
     panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y10));
     procCtlTomogramGeneration.addMouseListener(mouseAdapter);
     procCtlTomogramGeneration.setButtonActionListener(buttonListener);
-    procCtlTomogramGeneration.getContainer().setAlignmentX(
-        Container.CENTER_ALIGNMENT);
+    procCtlTomogramGeneration.getContainer().setAlignmentX(Container.CENTER_ALIGNMENT);
     panelProcessSelect.add(procCtlTomogramGeneration.getContainer());
 
     if (axisID == AxisID.FIRST) {
       panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y10));
       procCtlTomogramCombination.addMouseListener(mouseAdapter);
       procCtlTomogramCombination.setButtonActionListener(buttonListener);
-      procCtlTomogramCombination.getContainer().setAlignmentX(
-          Container.CENTER_ALIGNMENT);
+      procCtlTomogramCombination.getContainer().setAlignmentX(Container.CENTER_ALIGNMENT);
       panelProcessSelect.add(procCtlTomogramCombination.getContainer());
     }
     if (axisID != AxisID.SECOND) {
       panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y10));
       procCtlPostProcessing.addMouseListener(mouseAdapter);
       procCtlPostProcessing.setButtonActionListener(buttonListener);
-      procCtlPostProcessing.getContainer().setAlignmentX(
-          Container.CENTER_ALIGNMENT);
+      procCtlPostProcessing.getContainer().setAlignmentX(Container.CENTER_ALIGNMENT);
       panelProcessSelect.add(procCtlPostProcessing.getContainer());
 
       panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y10));

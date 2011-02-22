@@ -24,6 +24,9 @@ import etomo.type.UITestSubjectType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2009/11/20 17:45:55  sueh
+ * <p> bug# 1282 Added quotes and list separators.  Rewrote replaceVariables to handle them.
+ * <p>
  * <p> Revision 1.6  2009/09/22 21:05:27  sueh
  * <p> bug# 1259 In replaceVariables handling empty variable.
  * <p>
@@ -88,12 +91,12 @@ final class Command extends Assert {
 
   private void assertValid() {
     if (actionType == null) {
-      assertFalse("must have a field if there is not actionType(" + string
-          + ")", field.isEmpty());
+      assertFalse("must have a field if there is not actionType(" + string + ")", field
+          .isEmpty());
     }
     if (modifierType != null) {
-      assertFalse("modifierType can't exist without a subject or a field ("
-          + string + ")", subject.isEmpty() && field.isEmpty());
+      assertFalse("modifierType can't exist without a subject or a field (" + string
+          + ")", subject.isEmpty() && field.isEmpty());
     }
     assertNotNull("must create string representation of command", string);
     assertTrue("processed command must be known (" + string + ")", isKnown());
@@ -135,8 +138,8 @@ final class Command extends Assert {
       i = subcommand.setSubcommand(statement, i, variableList);
     }
     String leftSide = statement.getLeftSide(i);
-    assertNull("unknown attributes at the end of the command - " + leftSide
-        + " (" + string + ")", leftSide);
+    assertNull("unknown attributes at the end of the command - " + leftSide + " ("
+        + string + ")", leftSide);
     setValue(statement.getRightSide(), variableList);
     known = true;
     //validate
@@ -177,14 +180,12 @@ final class Command extends Assert {
 
   private void setValue(String rightSide, VariableList variableList) {
     if (rightSide != null) {
-      valueArray = rightSide.trim().split(
-          "\\s*\\" + SEPARATOR_OPERATOR + "\\s*");
+      valueArray = rightSide.trim().split("\\s*\\" + SEPARATOR_OPERATOR + "\\s*");
     }
     if (valueArray != null) {
       StringBuffer buffer = new StringBuffer();
       for (int i = 0; i < valueArray.length; i++) {
-        valueArray[i] = replaceVariables(valueArray[i], variableList,
-            testAxisID);
+        valueArray[i] = replaceVariables(valueArray[i], variableList, testAxisID);
         buffer.append(valueArray[i]
             + (i < valueArray.length - 1 ? SEPARATOR_OPERATOR : ""));
       }
@@ -203,8 +204,7 @@ final class Command extends Assert {
    * @param axisID
    * @return
    */
-  static String replaceVariables(String input, VariableList variableList,
-      AxisID axisID) {
+  static String replaceVariables(String input, VariableList variableList, AxisID axisID) {
     //Return input as is if it is empty.
     if (variableList == null || input == null) {
       return input;
@@ -249,8 +249,8 @@ final class Command extends Assert {
         if (!ignoringVariables) {
           //If not already in a variable reference, check for the start of a
           //variable reference %{.
-          if (variableRefStart == -1 && curChar == '%'
-              && input.length() > index + 1 && input.charAt(index + 1) == '{') {
+          if (variableRefStart == -1 && curChar == '%' && input.length() > index + 1
+              && input.charAt(index + 1) == '{') {
             //May be the start of a variable reference.
             variableRefStart = index;
             bufferVariableRefStart = buffer.length() - 1;
@@ -263,18 +263,17 @@ final class Command extends Assert {
           else if (variableRefStart != -1 && curChar == '}'
               && bufferVariableRefStart + 2 < buffer.length() - 1) {
             //Found the end of the variable reference - substitute.
-            String variableName = buffer.substring(bufferVariableRefStart + 2, buffer.length() - 1);
+            String variableName = buffer.substring(bufferVariableRefStart + 2, buffer
+                .length() - 1);
             assertTrue("Unknown variable " + variableName + " (" + input + ")",
                 variableList.isVariableSet(variableName, axisID));
-            String variableValue = variableList.getVariableValue(variableName,
-                axisID);
+            String variableValue = variableList.getVariableValue(variableName, axisID);
             if (variableValue == null) {
               variableValue = "";
             }
             //Replace the variable reference, including the %{} characters, in the
             //buffer.
-            buffer.replace(bufferVariableRefStart, buffer.length(),
-                variableValue);
+            buffer.replace(bufferVariableRefStart, buffer.length(), variableValue);
             variableRefStart = -1;
             bufferVariableRefStart = -1;
           }

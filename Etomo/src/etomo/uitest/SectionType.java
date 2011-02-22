@@ -14,6 +14,10 @@ package etomo.uitest;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/01/28 00:59:28  sueh
+ * <p> bug# 1102 Removed IF since the if subsection type can be recognized
+ * <p> using an action type.
+ * <p>
  * <p> Revision 1.1  2009/01/20 20:48:39  sueh
  * <p> bug# 1102 Lists the names of sections and subsections with fixed types.
  * <p> </p>
@@ -25,15 +29,14 @@ final class SectionType {
   static final SectionType INTERFACE = new SectionType("interface");
   static final SectionType TEST = new SectionType("Test");
 
-
   private final String string;
 
   private SectionType(String string) {
     this.string = string;
   }
-  
+
   static SectionType getInstance(String string) {
-    if (string==null) {
+    if (string == null) {
       return null;
     }
     if (string.equals(DATASET.toString())) {
@@ -47,7 +50,6 @@ final class SectionType {
     }
     return null;
   }
-
 
   public String toString() {
     return string;

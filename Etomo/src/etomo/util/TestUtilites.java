@@ -13,6 +13,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.25  2010/05/21 21:06:43  sueh
+ * <p> bug# 1362 Rewrote to get test data from a directory under Etomo which
+ * <p> would be as up to date as the checked out Etomo directory would be.
+ * <p>
  * <p> Revision 1.24  2010/02/17 05:05:58  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up
  * <p> messages.
@@ -149,8 +153,8 @@ public final class TestUtilites {
       //be set to the location of unitTestData in the workspace and current
       //project.
       String unitTestDataPath = EnvironmentVariable.INSTANCE.getValue(manager,
-          manager == null ? null : manager.getPropertyUserDir(),
-          "IMOD_UNIT_TEST_DATA", AxisID.ONLY);
+          manager == null ? null : manager.getPropertyUserDir(), "IMOD_UNIT_TEST_DATA",
+          AxisID.ONLY);
       if (unitTestDataPath != null && !unitTestDataPath.matches("\\s*")) {
         unitTestData = new File(unitTestDataPath);
       }
@@ -162,8 +166,8 @@ public final class TestUtilites {
             manager == null ? null : manager.getPropertyUserDir(), "IMOD_DIR",
             AxisID.ONLY);
         if (imodDirName != null && !imodDirName.matches("\\s*")) {
-          unitTestData = new File(new File(new File(imodDirName)
-              .getParentFile(), "Etomo"), "unitTestData");
+          unitTestData = new File(
+              new File(new File(imodDirName).getParentFile(), "Etomo"), "unitTestData");
         }
       }
     }
@@ -196,8 +200,8 @@ public final class TestUtilites {
       copyCommand[1] = unitTestDataFile.getAbsolutePath();
       copyCommand[2] = testDir.getAbsolutePath();
       BaseManager manager = EtomoDirector.INSTANCE.getCurrentManagerForTest();
-      SystemProgram copy = new SystemProgram(manager, manager == null ? null
-          : manager.getPropertyUserDir(), copyCommand, AxisID.ONLY);
+      SystemProgram copy = new SystemProgram(manager, manager == null ? null : manager
+          .getPropertyUserDir(), copyCommand, AxisID.ONLY);
       copy.setDebug(true);
       copy.run();
       return testDirFile;

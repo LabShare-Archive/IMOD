@@ -88,8 +88,7 @@ public class WindowSwitch {
     JCheckBoxMenuItem menuItem = new CheckBoxMenuItem();
     menuItem.addActionListener(menuActionListener);
     int index = menuList.size();
-    menuItem.setText(Integer.toString(index + 1) + menuItemDivider
-        + key.getName());
+    menuItem.setText(Integer.toString(index + 1) + menuItemDivider + key.getName());
     menuItem.setVisible(true);
     menu.add(menuItem);
     menuList.add(key, menuItem);
@@ -108,8 +107,7 @@ public class WindowSwitch {
     }
     JCheckBoxMenuItem menuItem = (JCheckBoxMenuItem) menuList.get(oldKey);
     int index = menuList.getIndex(oldKey);
-    menuItem.setText(Integer.toString(index + 1) + menuItemDivider
-        + newKey.getName());
+    menuItem.setText(Integer.toString(index + 1) + menuItemDivider + newKey.getName());
     menuList.rekey(oldKey, newKey);
     mainPanelList.rekey(oldKey, newKey);
     if (mainPanelList.size() > 1 && tabbedPane != null
@@ -168,8 +166,7 @@ public class WindowSwitch {
    * @return
    */
   JComponent getPanel(UniqueKey key) {
-    if (mainPanelList == null || mainPanelList.size() == 0
-        || key == null) {
+    if (mainPanelList == null || mainPanelList.size() == 0 || key == null) {
       return null;
     }
     if (mainPanelList.size() == 1) {
@@ -311,6 +308,9 @@ public class WindowSwitch {
 
 /**
  * <p>$Log$
+ * <p>Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p>bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p>Revision 1.15  2010/02/17 05:03:12  sueh
  * <p>bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>

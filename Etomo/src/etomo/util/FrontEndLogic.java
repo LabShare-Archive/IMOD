@@ -20,7 +20,11 @@ import etomo.type.EtomoBoolean2;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2010/03/27 05:12:23  sueh
+ * <p> bug# 1326 Class for SDK independent functionality needed by the front
+ * <p> end.  Added isRotated.
+ * <p> </p>
  */
 public final class FrontEndLogic {
   public static final String rcsid = "$Id$";
@@ -34,10 +38,8 @@ public final class FrontEndLogic {
    * @param file
    * @return true if Y >= Z
    */
-  public static EtomoBoolean2 isRotated(BaseManager manager, AxisID axisID,
-      File file) {
-    MRCHeader header = MRCHeader.getInstance(file.getParent(), file.getName(),
-        axisID);
+  public static EtomoBoolean2 isRotated(BaseManager manager, AxisID axisID, File file) {
+    MRCHeader header = MRCHeader.getInstance(file.getParent(), file.getName(), axisID);
     try {
       header.read(manager);
       EtomoBoolean2 retval = new EtomoBoolean2();

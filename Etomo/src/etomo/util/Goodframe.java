@@ -57,8 +57,8 @@ public class Goodframe {
     for (int i = 0; i < input.length; i++) {
       commandArray[i + 1] = input[i];
     }
-    SystemProgram groupframe = new SystemProgram(manager, propertyUserDir,
-        commandArray, axisID);
+    SystemProgram groupframe = new SystemProgram(manager, propertyUserDir, commandArray,
+        axisID);
     groupframe.setDebug(EtomoDirector.INSTANCE.getArguments().isDebug());
     groupframe.run();
 
@@ -96,8 +96,7 @@ public class Goodframe {
     String[] tokens = outputLine.split("\\s+");
     if (tokens.length < input.length) {
       Utilities.timestamp("run", "goodframe", Utilities.FAILED_STATUS);
-      throw new IOException("groupframe returned less than " + input.length
-          + " outputs");
+      throw new IOException("groupframe returned less than " + input.length + " outputs");
     }
     output = new EtomoNumber[input.length];
     for (int i = 0; i < output.length; i++) {
@@ -105,9 +104,8 @@ public class Goodframe {
       output[i].set(tokens[i]);
       if (!output[i].isValid() || output[i].isNull()) {
         Utilities.timestamp("run", "goodframe", Utilities.FAILED_STATUS);
-        throw new NumberFormatException("Output " + i
-            + " is not set, token is " + tokens[i] + "\n"
-            + output[i].getInvalidReason());
+        throw new NumberFormatException("Output " + i + " is not set, token is "
+            + tokens[i] + "\n" + output[i].getInvalidReason());
       }
     }
     Utilities.timestamp("run", "goodframe", Utilities.FINISHED_STATUS);
@@ -125,6 +123,10 @@ public class Goodframe {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2010/02/17 05:05:58  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.13  2009/03/17 00:46:43  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>

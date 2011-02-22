@@ -21,6 +21,9 @@ import etomo.process.ImodProcess;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.1  2009/12/19 01:21:03  sueh
  * <p> bug# 1294 Panel factored out of TrimVolPanel.
  * <p> </p>
@@ -100,8 +103,7 @@ final class VolumeRangePanel {
     }
     int index = 0;
     while (index < size) {
-      if (ImodProcess.RUBBERBAND_RESULTS_STRING.equals((String) coordinates
-          .get(index++))) {
+      if (ImodProcess.RUBBERBAND_RESULTS_STRING.equals((String) coordinates.get(index++))) {
         ltfXMin.setText((String) coordinates.get(index++));
         if (index >= size) {
           return;
@@ -131,10 +133,8 @@ final class VolumeRangePanel {
   }
 
   private void setTooltips() {
-    ltfXMin
-        .setToolTipText("The X coordinate on the left side to retain in the volume.");
-    ltfXMax
-        .setToolTipText("The X coordinate on the right side to retain in the volume.");
+    ltfXMin.setToolTipText("The X coordinate on the left side to retain in the volume.");
+    ltfXMax.setToolTipText("The X coordinate on the right side to retain in the volume.");
     ltfYMin.setToolTipText("The lower Y coordinate to retain in the volume.");
     ltfYMax.setToolTipText("The upper Y coordinate to retain in the volume.");
     ltfZMin.setToolTipText("The bottom Z slice to retain in the volume.");

@@ -27,6 +27,9 @@ import javax.swing.WindowConstants;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.5  2010/02/18 22:34:22  sueh
  * <p> bug# 1315 Made it possible to pass a File to setFile.  This allow for a shorter
  * <p> title by using getName.  The FileReader requests an absolute file path.
@@ -112,8 +115,8 @@ public class TextPageWindow extends JFrame {
       return false;
     }
     catch (IOException except) {
-      JOptionPane.showMessageDialog(null, except.getMessage(), filename
-          + " IO Exception", JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(null, except.getMessage(),
+          filename + " IO Exception", JOptionPane.ERROR_MESSAGE);
       return false;
     }
     return true;

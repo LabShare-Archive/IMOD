@@ -36,8 +36,8 @@ public final class EnvironmentVariable {
    * @param varName
    * @return String
    */
-  public String getValue(BaseManager manager, String propertyUserDir,
-      String varName, AxisID axisID) {
+  public String getValue(BaseManager manager, String propertyUserDir, String varName,
+      AxisID axisID) {
     String value = "";
     //prevent multiple reads and writes at the same time
     synchronized (variableList) {
@@ -54,8 +54,8 @@ public final class EnvironmentVariable {
     SystemProgram readEnvVar;
     if (Utilities.isWindowsOS()) {
       String var = "%" + varName + "%";
-      readEnvVar = new SystemProgram(manager, propertyUserDir, new String[] {
-          "cmd.exe", "/C", "echo", var }, axisID);
+      readEnvVar = new SystemProgram(manager, propertyUserDir, new String[] { "cmd.exe",
+          "/C", "echo", var }, axisID);
       try {
         readEnvVar.run();
       }
@@ -85,8 +85,8 @@ public final class EnvironmentVariable {
     }
     // Non windows environment
     else {
-      readEnvVar = new SystemProgram(manager, propertyUserDir,
-          new String[] { "env" }, axisID);
+      readEnvVar = new SystemProgram(manager, propertyUserDir, new String[] { "env" },
+          axisID);
       try {
         readEnvVar.run();
       }
@@ -133,15 +133,15 @@ public final class EnvironmentVariable {
    * @param varName
    * @return boolean
    */
-  public boolean exists(BaseManager manager, String propertyUserDir,
-      String varName, AxisID axisID) {
+  public boolean exists(BaseManager manager, String propertyUserDir, String varName,
+      AxisID axisID) {
     //  There is not a real good way to access the system environment variables
     //  since the primary method was deprecated
     SystemProgram readEnvVar;
     if (Utilities.isWindowsOS()) {
       String var = "%" + varName + "%";
-      readEnvVar = new SystemProgram(manager, propertyUserDir, new String[] {
-          "cmd.exe", "/C", "echo", var }, axisID);
+      readEnvVar = new SystemProgram(manager, propertyUserDir, new String[] { "cmd.exe",
+          "/C", "echo", var }, axisID);
       try {
         readEnvVar.run();
       }
@@ -171,8 +171,8 @@ public final class EnvironmentVariable {
     }
     // Non windows environment
     else {
-      readEnvVar = new SystemProgram(manager, propertyUserDir,
-          new String[] { "env" }, axisID);
+      readEnvVar = new SystemProgram(manager, propertyUserDir, new String[] { "env" },
+          axisID);
       try {
         readEnvVar.run();
       }
@@ -209,6 +209,10 @@ public final class EnvironmentVariable {
 /**
  * <p>
  * $Log$
+ * Revision 1.6  2010/02/17 05:05:58  sueh
+ * bug# 1301 Using manager instead of manager key for popping up
+ * messages.
+ *
  * Revision 1.5  2009/06/10 17:27:05  sueh
  * bug# 1202 Added exists.
  *

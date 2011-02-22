@@ -45,6 +45,10 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2010/12/05 05:21:50  sueh
+ * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.  Handling a
+ * <p> possibly null btnTiltxcorr.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:35  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -243,16 +247,14 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
   private final CheckBox cbExcludeCentralPeak = new CheckBox(
       "Exclude central peak due to fixed pattern noise");
 
-  private final LabeledTextField ltfTestOutput = new LabeledTextField(
-      "Test output: ");
+  private final LabeledTextField ltfTestOutput = new LabeledTextField("Test output: ");
   private final LabeledTextField ltfFilterSigma1 = new LabeledTextField(
       "Low frequency rolloff sigma: ");
   private final LabeledTextField ltfFilterRadius2 = new LabeledTextField(
       "High frequency cutoff radius: ");
   private final LabeledTextField ltfFilterSigma2 = new LabeledTextField(
       "High frequency rolloff sigma: ");
-  private final LabeledTextField ltfTrim = new LabeledTextField(
-      "Pixels to trim (x,y): ");
+  private final LabeledTextField ltfTrim = new LabeledTextField("Pixels to trim (x,y): ");
   private final LabeledTextField ltfXMin = new LabeledTextField("X axis min ");
   private final LabeledTextField ltfXMax = new LabeledTextField("Max ");
   private final LabeledTextField ltfYMin = new LabeledTextField("Y axis min ");
@@ -261,10 +263,8 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       "Pixels to pad (x,y): ");
   private final LabeledTextField ltfTaperPercent = new LabeledTextField(
       "Pixels to taper (x,y): ");
-  private final CheckBox cbCumulativeCorrelation = new CheckBox(
-      "Cumulative correlation");
-  private final CheckBox cbAbsoluteCosineStretch = new CheckBox(
-      "Absolute Cosine Stretch");
+  private final CheckBox cbCumulativeCorrelation = new CheckBox("Cumulative correlation");
+  private final CheckBox cbAbsoluteCosineStretch = new CheckBox("Absolute Cosine Stretch");
   private final CheckBox cbNoCosineStretch = new CheckBox("No Cosine Stretch");
   private final LabeledTextField ltfViewRange = new LabeledTextField(
       "View range (start,end): ");
@@ -277,62 +277,57 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
   private final LabeledTextField ltfSizeOfPatchesXandY = new LabeledTextField(
       "Size of patches (X,Y): ");
   private final ButtonGroup bgPatchLayout = new ButtonGroup();
-  private final RadioTextField rtfOverlapOfPatchesXandY = RadioTextField
-      .getInstance("Fractional overlap of patches (X,Y): ", bgPatchLayout);
-  private final RadioTextField rtfNumberOfPatchesXandY = RadioTextField
-      .getInstance("Number of patches (X,Y): ", bgPatchLayout);
+  private final RadioTextField rtfOverlapOfPatchesXandY = RadioTextField.getInstance(
+      "Fractional overlap of patches (X,Y): ", bgPatchLayout);
+  private final RadioTextField rtfNumberOfPatchesXandY = RadioTextField.getInstance(
+      "Number of patches (X,Y): ", bgPatchLayout);
   private final Spinner spIterateCorrelations = Spinner.getLabeledInstance(
       "Iterations to increase subpixel accuracy: ",
       TiltxcorrParam.ITERATE_CORRELATIONS_DEFAULT,
-      TiltxcorrParam.ITERATE_CORRELATIONS_MIN,
-      TiltxcorrParam.ITERATE_CORRELATIONS_MAX);
+      TiltxcorrParam.ITERATE_CORRELATIONS_MIN, TiltxcorrParam.ITERATE_CORRELATIONS_MAX);
   private final LabeledTextField ltfShiftLimitsXandY = new LabeledTextField(
       "Limits on shifts from correlation (X,Y): ");
   private final CheckTextField ctfLengthAndOverlap = CheckTextField
       .getInstance("Break contours into pieces (length, overlap): ");
   private final CheckBox cbBoundaryModel = new CheckBox("Use boundary model");
-  private final Run3dmodButton btn3dmodBoundaryModel = Run3dmodButton
-      .get3dmodInstance("Create Boundary Model", this);
+  private final Run3dmodButton btn3dmodBoundaryModel = Run3dmodButton.get3dmodInstance(
+      "Create Boundary Model", this);
 
   private final AxisID axisID;
   private final DialogType dialogType;
   private final MultiLineButton btnTiltxcorr;
-  private final Run3dmodButton btn3dmodPatchTracking = Run3dmodButton
-      .get3dmodInstance("Open Tracked Patches", this);
+  private final Run3dmodButton btn3dmodPatchTracking = Run3dmodButton.get3dmodInstance(
+      "Open Tracked Patches", this);
   private final PanelHeader header;
   private final ApplicationManager applicationManager;
   private final PanelId panelId;
   final ContextMenu contextMenu;
 
-  private TiltxcorrPanel(final ApplicationManager applicationManager,
-      final AxisID id, final DialogType dialogType,
-      final GlobalExpandButton globalAdvancedButton, final PanelId panelId,
-      final ContextMenu contextMenu) {
+  private TiltxcorrPanel(final ApplicationManager applicationManager, final AxisID id,
+      final DialogType dialogType, final GlobalExpandButton globalAdvancedButton,
+      final PanelId panelId, final ContextMenu contextMenu) {
     this.dialogType = dialogType;
     axisID = id;
     this.applicationManager = applicationManager;
     this.panelId = panelId;
     this.contextMenu = contextMenu;
-    header = PanelHeader.getAdvancedBasicInstance("Tiltxcorr", this,
-        dialogType, globalAdvancedButton);
+    header = PanelHeader.getAdvancedBasicInstance("Tiltxcorr", this, dialogType,
+        globalAdvancedButton);
 
-    btnTiltxcorr = (MultiLineButton) applicationManager
-        .getProcessResultDisplayFactory(axisID).getTiltxcorr(dialogType);
+    btnTiltxcorr = (MultiLineButton) applicationManager.getProcessResultDisplayFactory(
+        axisID).getTiltxcorr(dialogType);
     if (panelId == PanelId.PATCH_TRACKING && btnTiltxcorr != null) {
-      ((Run3dmodButton) btnTiltxcorr)
-          .setDeferred3dmodButton(btn3dmodPatchTracking);
+      ((Run3dmodButton) btnTiltxcorr).setDeferred3dmodButton(btn3dmodPatchTracking);
       ((Run3dmodButton) btnTiltxcorr).setContainer(this);
     }
   }
 
   static TiltxcorrPanel getCrossCorrelationInstance(
       final ApplicationManager applicationManager, final AxisID id,
-      final DialogType dialogType,
-      final GlobalExpandButton globalAdvancedButton,
+      final DialogType dialogType, final GlobalExpandButton globalAdvancedButton,
       final ContextMenu contextMenu) {
-    TiltxcorrPanel instance = new TiltxcorrPanel(applicationManager, id,
-        dialogType, globalAdvancedButton, PanelId.CROSS_CORRELATION,
-        contextMenu);
+    TiltxcorrPanel instance = new TiltxcorrPanel(applicationManager, id, dialogType,
+        globalAdvancedButton, PanelId.CROSS_CORRELATION, contextMenu);
     instance.createPanel();
     instance.setToolTipText();
     instance.addListeners();
@@ -342,8 +337,8 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
   static TiltxcorrPanel getPatchTrackingInstance(
       final ApplicationManager applicationManager, final AxisID id,
       final DialogType dialogType, final GlobalExpandButton globalAdvancedButton) {
-    TiltxcorrPanel instance = new TiltxcorrPanel(applicationManager, id,
-        dialogType, globalAdvancedButton, PanelId.PATCH_TRACKING, null);
+    TiltxcorrPanel instance = new TiltxcorrPanel(applicationManager, id, dialogType,
+        globalAdvancedButton, PanelId.PATCH_TRACKING, null);
     instance.createPanel();
     instance.setToolTipText();
     instance.addListeners();
@@ -402,16 +397,15 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
     }
     else if (panelId == PanelId.PATCH_TRACKING) {
       //initialize
-      rtfOverlapOfPatchesXandY
-          .setText(TiltxcorrParam.OVERLAP_OF_PATCHES_X_AND_Y_DEFAULT);
+      rtfOverlapOfPatchesXandY.setText(TiltxcorrParam.OVERLAP_OF_PATCHES_X_AND_Y_DEFAULT);
       ctfLengthAndOverlap.setTextPreferredWidth(35);
       ctfLengthAndOverlap.setText(TiltxcorrParam.getLengthAndOverlapDefault(
           applicationManager, axisID, FileType.PREALIGNED_STACK));
       btn3dmodPatchTracking.setSize();
       btn3dmodBoundaryModel.setSize();
       rtfOverlapOfPatchesXandY.setSelected(true);
-      ltfTrim.setText(TiltxcorrParam.getBordersInXandYDefault(
-          applicationManager, axisID, FileType.PREALIGNED_STACK));
+      ltfTrim.setText(TiltxcorrParam.getBordersInXandYDefault(applicationManager, axisID,
+          FileType.PREALIGNED_STACK));
       ltfFilterSigma1.setText(TiltxcorrParam.FILTER_SIGMA_1_DEFAULT);
       ltfFilterRadius2.setText(TiltxcorrParam.FILTER_RADIUS_2_DEFAULT);
       ltfFilterSigma2.setText(TiltxcorrParam.FILTER_SIGMA_2_DEFAULT);
@@ -440,8 +434,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       pnlPatchLayout.add(rtfOverlapOfPatchesXandY.getContainer());
       pnlPatchLayout.add(rtfNumberOfPatchesXandY.getContainer());
       //boundary model panel
-      pnlBoundaryModel.setLayout(new BoxLayout(pnlBoundaryModel,
-          BoxLayout.X_AXIS));
+      pnlBoundaryModel.setLayout(new BoxLayout(pnlBoundaryModel, BoxLayout.X_AXIS));
       pnlBoundaryModel.add(cbBoundaryModel);
       pnlBoundaryModel.add(btn3dmodBoundaryModel.getComponent());
       //advanced 2 panel
@@ -567,23 +560,19 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
     }
     if (panelId == PanelId.CROSS_CORRELATION) {
       cbExcludeCentralPeak.setSelected(tiltXcorrParams.getExcludeCentralPeak());
-      cbCumulativeCorrelation.setSelected(tiltXcorrParams
-          .isCumulativeCorrelation());
-      cbAbsoluteCosineStretch.setSelected(tiltXcorrParams
-          .isAbsoluteCosineStretch());
+      cbCumulativeCorrelation.setSelected(tiltXcorrParams.isCumulativeCorrelation());
+      cbAbsoluteCosineStretch.setSelected(tiltXcorrParams.isAbsoluteCosineStretch());
       cbNoCosineStretch.setSelected(tiltXcorrParams.isNoCosineStretch());
     }
     else if (panelId == PanelId.PATCH_TRACKING) {
       ltfSizeOfPatchesXandY.setText(tiltXcorrParams.getSizeOfPatchesXandY());
       if (tiltXcorrParams.isOverlapOfPatchesXandYSet()) {
         rtfOverlapOfPatchesXandY.setSelected(true);
-        rtfOverlapOfPatchesXandY.setText(tiltXcorrParams
-            .getOverlapOfPatchesXandY());
+        rtfOverlapOfPatchesXandY.setText(tiltXcorrParams.getOverlapOfPatchesXandY());
       }
       if (tiltXcorrParams.isNumberOfPatchesXandYSet()) {
         rtfNumberOfPatchesXandY.setSelected(true);
-        rtfNumberOfPatchesXandY.setText(tiltXcorrParams
-            .getNumberOfPatchesXandY());
+        rtfNumberOfPatchesXandY.setText(tiltXcorrParams.getNumberOfPatchesXandY());
       }
       spIterateCorrelations.setValue(tiltXcorrParams.getIterateCorrelations());
       ltfShiftLimitsXandY.setText(tiltXcorrParams.getShiftLimitsXandY());
@@ -607,11 +596,9 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
     if (panelId == PanelId.PATCH_TRACKING) {
       //Don't override defaults unless there is a value in meta data
       if (metaData.isTrackOverlapOfPatchesXandYSet(axisID)) {
-        rtfOverlapOfPatchesXandY.setText(metaData
-            .getTrackOverlapOfPatchesXandY(axisID));
+        rtfOverlapOfPatchesXandY.setText(metaData.getTrackOverlapOfPatchesXandY(axisID));
       }
-      rtfNumberOfPatchesXandY.setText(metaData
-          .getTrackNumberOfPatchesXandY(axisID));
+      rtfNumberOfPatchesXandY.setText(metaData.getTrackNumberOfPatchesXandY(axisID));
       if (metaData.isTrackLengthAndOverlapSet(axisID)) {
         ctfLengthAndOverlap.setText(metaData.getTrackLengthAndOverlap(axisID));
       }
@@ -624,10 +611,8 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
    */
   void getParameters(MetaData metaData) {
     if (panelId == PanelId.PATCH_TRACKING) {
-      metaData.setTrackOverlapOfPatchesXandY(axisID, rtfOverlapOfPatchesXandY
-          .getText());
-      metaData.setTrackNumberOfPatchesXandY(axisID, rtfNumberOfPatchesXandY
-          .getText());
+      metaData.setTrackOverlapOfPatchesXandY(axisID, rtfOverlapOfPatchesXandY.getText());
+      metaData.setTrackNumberOfPatchesXandY(axisID, rtfNumberOfPatchesXandY.getText());
       metaData.setTrackLengthAndOverlap(axisID, ctfLengthAndOverlap.getText());
     }
   }
@@ -653,12 +638,12 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       tiltXcorrParams.setExcludeCentralPeak(cbExcludeCentralPeak.isSelected());
     }
     else if (panelId == PanelId.PATCH_TRACKING) {
-      String errorMessage = tiltXcorrParams
-          .setIterateCorrelations(spIterateCorrelations.getValue());
+      String errorMessage = tiltXcorrParams.setIterateCorrelations(spIterateCorrelations
+          .getValue());
       if (errorMessage != null) {
-        UIHarness.INSTANCE.openMessageDialog(applicationManager,
-            spIterateCorrelations.getLabel() + ": " + errorMessage,
-            "Entry Error", axisID);
+        UIHarness.INSTANCE.openMessageDialog(applicationManager, spIterateCorrelations
+            .getLabel()
+            + ": " + errorMessage, "Entry Error", axisID);
         return false;
       }
       tiltXcorrParams.setInputFile(FileType.PREALIGNED_STACK.getFileName(
@@ -704,11 +689,9 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       tiltXcorrParams.setFilterSigma2(ltfFilterSigma2.getText());
       if (panelId == PanelId.CROSS_CORRELATION) {
         currentParam = cbCumulativeCorrelation.getText();
-        tiltXcorrParams.setCumulativeCorrelation(cbCumulativeCorrelation
-            .isSelected());
+        tiltXcorrParams.setCumulativeCorrelation(cbCumulativeCorrelation.isSelected());
         currentParam = cbAbsoluteCosineStretch.getText();
-        tiltXcorrParams.setAbsoluteCosineStretch(cbAbsoluteCosineStretch
-            .isSelected());
+        tiltXcorrParams.setAbsoluteCosineStretch(cbAbsoluteCosineStretch.isSelected());
         currentParam = cbNoCosineStretch.getText();
         tiltXcorrParams.setNoCosineStretch(cbNoCosineStretch.isSelected());
       }
@@ -717,16 +700,14 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
         tiltXcorrParams.setSizeOfPatchesXandY(ltfSizeOfPatchesXandY.getText());
         currentParam = rtfOverlapOfPatchesXandY.getLabel();
         if (rtfOverlapOfPatchesXandY.isSelected()) {
-          tiltXcorrParams.setOverlapOfPatchesXandY(rtfOverlapOfPatchesXandY
-              .getText());
+          tiltXcorrParams.setOverlapOfPatchesXandY(rtfOverlapOfPatchesXandY.getText());
         }
         else {
           tiltXcorrParams.resetOverlapOfPatchesXandY();
         }
         currentParam = rtfNumberOfPatchesXandY.getLabel();
         if (rtfNumberOfPatchesXandY.isSelected()) {
-          tiltXcorrParams.setNumberOfPatchesXandY(rtfNumberOfPatchesXandY
-              .getText());
+          tiltXcorrParams.setNumberOfPatchesXandY(rtfNumberOfPatchesXandY.getText());
         }
         else {
           tiltXcorrParams.resetNumberOfPatchesXandY();
@@ -767,30 +748,27 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
   private boolean validate() {
     if (panelId == PanelId.PATCH_TRACKING) {
       if (ltfSizeOfPatchesXandY.isEmpty()) {
-        UIHarness.INSTANCE.openMessageDialog(applicationManager,
-            ltfSizeOfPatchesXandY.getLabel() + " is required.", "Entry Error",
-            axisID);
+        UIHarness.INSTANCE.openMessageDialog(applicationManager, ltfSizeOfPatchesXandY
+            .getLabel()
+            + " is required.", "Entry Error", axisID);
         return false;
       }
     }
     return true;
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions menuOptions) {
-    buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(),
-        menuOptions);
+  public void action(final Run3dmodButton button, final Run3dmodMenuOptions menuOptions) {
+    buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(), menuOptions);
   }
 
   //  Action functions for setup panel buttons
   void buttonAction(final String actionCommand,
       final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    if (btnTiltxcorr != null
-        && actionCommand.equals(btnTiltxcorr.getActionCommand())) {
+    if (btnTiltxcorr != null && actionCommand.equals(btnTiltxcorr.getActionCommand())) {
       if (panelId == PanelId.CROSS_CORRELATION) {
-        applicationManager.preCrossCorrelate(axisID, btnTiltxcorr, null,
-            dialogType, this);
+        applicationManager
+            .preCrossCorrelate(axisID, btnTiltxcorr, null, dialogType, this);
       }
       else if (panelId == PanelId.PATCH_TRACKING) {
         if (!validate()) {
@@ -802,8 +780,8 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       }
     }
     else if (actionCommand.equals(btn3dmodPatchTracking.getActionCommand())) {
-      applicationManager.imodModel(FileType.PREALIGNED_STACK,
-          FileType.FIDUCIAL_MODEL, axisID, run3dmodMenuOptions);
+      applicationManager.imodModel(FileType.PREALIGNED_STACK, FileType.FIDUCIAL_MODEL,
+          axisID, run3dmodMenuOptions);
     }
     else if (actionCommand.equals(btn3dmodBoundaryModel.getActionCommand())) {
       applicationManager.imodModel(FileType.PREALIGNED_STACK,
@@ -835,8 +813,8 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
     ReadOnlyAutodoc autodoc = null;
 
     try {
-      autodoc = AutodocFactory.getInstance(applicationManager,
-          AutodocFactory.TILTXCORR, axisID);
+      autodoc = AutodocFactory.getInstance(applicationManager, AutodocFactory.TILTXCORR,
+          axisID);
       //autodoc.print();
     }
     catch (FileNotFoundException except) {
@@ -848,14 +826,10 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
     catch (LogFile.LockException except) {
       except.printStackTrace();
     }
-    ltfTestOutput
-        .setToolTipText(EtomoAutodoc.getTooltip(autodoc, "TestOutput"));
-    ltfFilterSigma1.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        "FilterSigma1"));
-    ltfFilterRadius2.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        "FilterRadius2"));
-    ltfFilterSigma2.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        "FilterSigma2"));
+    ltfTestOutput.setToolTipText(EtomoAutodoc.getTooltip(autodoc, "TestOutput"));
+    ltfFilterSigma1.setToolTipText(EtomoAutodoc.getTooltip(autodoc, "FilterSigma1"));
+    ltfFilterRadius2.setToolTipText(EtomoAutodoc.getTooltip(autodoc, "FilterRadius2"));
+    ltfFilterSigma2.setToolTipText(EtomoAutodoc.getTooltip(autodoc, "FilterSigma2"));
     ltfTrim.setToolTipText(EtomoAutodoc.getTooltip(autodoc, "BordersInXandY"));
     text = EtomoAutodoc.getTooltip(autodoc, "XMinAndMax");
     if (text != null) {
@@ -869,26 +843,20 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       ltfYMin.setToolTipText(text);
       ltfYMax.setToolTipText(text);
     }
-    ltfPadPercent.setToolTipText(EtomoAutodoc
-        .getTooltip(autodoc, "PadsInXandY"));
-    ltfTaperPercent.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        "TapersInXandY"));
+    ltfPadPercent.setToolTipText(EtomoAutodoc.getTooltip(autodoc, "PadsInXandY"));
+    ltfTaperPercent.setToolTipText(EtomoAutodoc.getTooltip(autodoc, "TapersInXandY"));
     cbCumulativeCorrelation.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         "CumulativeCorrelation"));
     cbAbsoluteCosineStretch.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         "AbsoluteCosineStretch"));
-    cbNoCosineStretch.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        "NoCosineStretch"));
-    ltfViewRange.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        "StartingEndingViews"));
+    cbNoCosineStretch.setToolTipText(EtomoAutodoc.getTooltip(autodoc, "NoCosineStretch"));
+    ltfViewRange.setToolTipText(EtomoAutodoc.getTooltip(autodoc, "StartingEndingViews"));
     cbExcludeCentralPeak.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         "ExcludeCentralPeak"));
-    ltfAngleOffset.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        "AngleOffset"));
+    ltfAngleOffset.setToolTipText(EtomoAutodoc.getTooltip(autodoc, "AngleOffset"));
     if (btnTiltxcorr != null) {
-      btnTiltxcorr
-          .setToolTipText("Find alignment transformations between successive "
-              + "images by cross-correlation.");
+      btnTiltxcorr.setToolTipText("Find alignment transformations between successive "
+          + "images by cross-correlation.");
     }
     btn3dmodPatchTracking
         .setToolTipText("Open the pre-aligned stack with the patch tracking "
@@ -903,8 +871,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
         TiltxcorrParam.ITERATE_CORRELATIONS_KEY));
     ltfShiftLimitsXandY.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         TiltxcorrParam.SHIFT_LIMITS_X_AND_Y_KEY));
-    String tooltip = EtomoAutodoc.getTooltip(autodoc,
-        TiltxcorrParam.BOUNDARY_MODEL_KEY);
+    String tooltip = EtomoAutodoc.getTooltip(autodoc, TiltxcorrParam.BOUNDARY_MODEL_KEY);
     cbBoundaryModel.setToolTipText(tooltip);
     btn3dmodBoundaryModel.setToolTipText(tooltip);
     ctfLengthAndOverlap.setToolTipText(EtomoAutodoc.getTooltip(autodoc,

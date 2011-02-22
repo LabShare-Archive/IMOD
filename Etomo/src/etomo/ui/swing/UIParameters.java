@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.19  2008/02/19 00:48:02  sueh
  * <p> bug# 1078 Added fileWidth.
  * <p>
@@ -158,7 +161,7 @@ public final class UIParameters {
   int getNumericWidth() {
     return numericWidth;
   }
-  
+
   int getWideNumericWidth() {
     return wideNumericWidth;
   }
@@ -170,11 +173,11 @@ public final class UIParameters {
   int getIntegerTripletWidth() {
     return integerTripletWidth;
   }
-  
+
   int getIntegerDoubletWidth() {
     return integerDoubletWidth;
   }
-  
+
   int getIntegerWidth() {
     return integerWidth;
   }
@@ -186,11 +189,11 @@ public final class UIParameters {
   int getListWidth() {
     return listWidth;
   }
-  
+
   int getFileWidth() {
     return fileWidth;
   }
-  
+
   /**
    * Get the amount to adjust a fields based on the current font size
    * @return
@@ -214,8 +217,7 @@ public final class UIParameters {
       height = DEFAULT_HEIGHT;
     }
     fontSizeAdjustment = fontSize / DEFAULT_FONT_SIZE;
-    dimButton.setSize(7 * height * fontSizeAdjustment, 2 * height
-        * fontSizeAdjustment);
+    dimButton.setSize(7 * height * fontSizeAdjustment, 2 * height * fontSizeAdjustment);
     dimNarrowButton.setSize(4 * height * fontSizeAdjustment, 1.25 * height
         * fontSizeAdjustment);
     dimAxisButton.setSize(3.6 * height * fontSizeAdjustment, 1.25 * height
@@ -229,8 +231,8 @@ public final class UIParameters {
     wideNumericWidth = (int) (50 * fontSizeAdjustment);
     sectionsWidth = (int) (75 * fontSizeAdjustment);
     integerTripletWidth = (int) (75 * fontSizeAdjustment);
-    integerDoubletWidth=(int)(50*fontSizeAdjustment);
-    integerWidth=(int)(30*fontSizeAdjustment);
+    integerDoubletWidth = (int) (50 * fontSizeAdjustment);
+    integerWidth = (int) (30 * fontSizeAdjustment);
     fourDigitWidth = (int) (40 * fontSizeAdjustment);
     listWidth = (int) (140 * fontSizeAdjustment);
     fileWidth = (int) (210 * fontSizeAdjustment);

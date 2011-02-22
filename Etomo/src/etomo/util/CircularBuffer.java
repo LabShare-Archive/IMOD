@@ -1,4 +1,5 @@
 package etomo.util;
+
 import java.util.Vector;
 
 /**
@@ -14,6 +15,9 @@ import java.util.Vector;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/11/20 00:09:16  sueh
+ * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ * <p>
  * <p> Revision 3.0.6.1  2004/10/11 02:28:24  sueh
  * <p> bug# 520 Added toString() function for debugging purposes.
  * <p>
@@ -34,8 +38,7 @@ import java.util.Vector;
  * <p> </p>
  */
 public final class CircularBuffer {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   Vector buffer;
 
@@ -66,7 +69,7 @@ public final class CircularBuffer {
       stringBuffer.append(",\nbuffer[" + index + "]=" + buffer.get(index++));
     }
     return stringBuffer.toString();
-  } 
+  }
 
   /**
    * Return the number of elements available in the circular buffer.

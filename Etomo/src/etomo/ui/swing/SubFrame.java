@@ -45,8 +45,7 @@ public final class SubFrame extends EtomoFrame {
 
   final synchronized void register() {
     if (subFrame != null) {
-      throw new IllegalStateException(
-          "Only one instance of SubFrame is allowed.");
+      throw new IllegalStateException("Only one instance of SubFrame is allowed.");
     }
     subFrame = this;
     main = false;
@@ -68,8 +67,8 @@ public final class SubFrame extends EtomoFrame {
     rootPanel.setLayout(new BorderLayout());
     //set name
     String name = Utilities.convertLabelToName(NAME);
-    rootPanel.setName(UITestFieldType.PANEL.toString()
-        + AutodocTokenizer.SEPARATOR_CHAR + name);
+    rootPanel.setName(UITestFieldType.PANEL.toString() + AutodocTokenizer.SEPARATOR_CHAR
+        + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(UITestFieldType.PANEL.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
@@ -110,8 +109,8 @@ public final class SubFrame extends EtomoFrame {
    * axis or handling the log window.
    */
   public void menuViewAction(ActionEvent event) {
-    if (menu.equalsAxisA(event) || menu.equalsAxisB(event)
-        || menu.equalsAxisBoth(event) || menu.equalsLogWindow(event)) {
+    if (menu.equalsAxisA(event) || menu.equalsAxisB(event) || menu.equalsAxisBoth(event)
+        || menu.equalsLogWindow(event)) {
       mainFrame.menuViewAction(event);
     }
     else {
@@ -174,6 +173,9 @@ public final class SubFrame extends EtomoFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:35  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.13  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>

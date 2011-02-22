@@ -270,8 +270,8 @@ public final class RemotePath {
    * @param localPath
    * @return remote path or null
    */
-  public final String getRemotePath(BaseManager manager, String localPath,
-      AxisID axisID) throws InvalidMountRuleException {
+  public final String getRemotePath(BaseManager manager, String localPath, AxisID axisID)
+      throws InvalidMountRuleException {
     loadMountRules(manager, axisID);
     return getRemotePath(getRule(localPath), localPath);
   }
@@ -333,15 +333,15 @@ public final class RemotePath {
       }
       buffer.append(mountName);
       if (mountNameIndex + MOUNT_NAME_TAG.length() < remoteMountRule.length()) {
-        buffer.append(remoteMountRule.substring(mountNameIndex
-            + MOUNT_NAME_TAG.length(), remoteMountRule.length()));
+        buffer.append(remoteMountRule.substring(mountNameIndex + MOUNT_NAME_TAG.length(),
+            remoteMountRule.length()));
       }
       remoteMountRule = buffer.toString();
     }
     //create remote path
     return remoteMountRule
-        + localPath.substring(((String) localMountRules.get(ruleIndex))
-            .length(), localPath.length());
+        + localPath.substring(((String) localMountRules.get(ruleIndex)).length(),
+            localPath.length());
   }
 
   /**
@@ -351,8 +351,7 @@ public final class RemotePath {
    * @param manager
    * @param axisID
    */
-  private synchronized final void loadMountRules(BaseManager manager,
-      AxisID axisID) {
+  private synchronized final void loadMountRules(BaseManager manager, AxisID axisID) {
     //only try to load mount rules once
     if (mountRulesLoaded) {
       return;
@@ -378,18 +377,16 @@ public final class RemotePath {
     }
     //first load section-level mount rules
     //look for a section name that is the same as the output of hostname
-    hostName = Network.getLocalHostName(manager, axisID, manager
-        .getPropertyUserDir());
-    if ((localSection = loadMountRules(autodoc, CpuAdoc.COMPUTER_SECTION_TYPE,
-        hostName, true)) == null) {
+    hostName = Network.getLocalHostName(manager, axisID, manager.getPropertyUserDir());
+    if ((localSection = loadMountRules(autodoc, CpuAdoc.COMPUTER_SECTION_TYPE, hostName,
+        true)) == null) {
       //try looking for a section name that is the same as the stripped version
       //of the hostname.
       if (hostName != null) {
         int stripIndex = hostName.indexOf('.');
         if (stripIndex == -1
-            || (localSection = loadMountRules(autodoc,
-                CpuAdoc.COMPUTER_SECTION_TYPE, hostName
-                    .substring(0, stripIndex), true)) == null) {
+            || (localSection = loadMountRules(autodoc, CpuAdoc.COMPUTER_SECTION_TYPE,
+                hostName.substring(0, stripIndex), true)) == null) {
           //look for a section name called "localhost"
           localSection = loadMountRules(autodoc, CpuAdoc.COMPUTER_SECTION_TYPE,
               Node.LOCAL_HOST_NAME, false);
@@ -445,21 +442,19 @@ public final class RemotePath {
    * Loads mount rules from a mountrule attribute.
    * @param mountRules
    */
-  private final void loadMountRules(ReadOnlyAttribute mountRules,
-      String sectionType, String sectionName) {
+  private final void loadMountRules(ReadOnlyAttribute mountRules, String sectionType,
+      String sectionName) {
     if (mountRules == null) {
       return;
     }
     //load the rules in order of the mountrule number
     int attributeNumber = 1;
-    ReadOnlyAttribute numberAttribute = mountRules
-        .getAttribute(attributeNumber);
+    ReadOnlyAttribute numberAttribute = mountRules.getAttribute(attributeNumber);
     while (numberAttribute != null) {
       ReadOnlyAttribute localRule = numberAttribute.getAttribute(LOCAL);
       ReadOnlyAttribute remoteRule = numberAttribute.getAttribute(REMOTE);
       //run valid rule check
-      if (isValidRule(localRule, remoteRule, attributeNumber, sectionType,
-          sectionName)) {
+      if (isValidRule(localRule, remoteRule, attributeNumber, sectionType, sectionName)) {
         //add rule
         localMountRules.add(localRule.getValue());
         remoteMountRules.add(remoteRule.getValue());
@@ -501,8 +496,7 @@ public final class RemotePath {
       return false;
     }
     //validate remote rule
-    if (!isValidRule(remoteRule, mountRuleNumber, errorTitle.toString(),
-        "remote")) {
+    if (!isValidRule(remoteRule, mountRuleNumber, errorTitle.toString(), "remote")) {
       return false;
     }
     //can't use %mountname if there is no mount name
@@ -518,8 +512,7 @@ public final class RemotePath {
               + ".  Cannot use "
               + MOUNT_NAME_TAG
               + " because there is no mountname.\nEither there is no mountname entry under the "
-              + sectionHeader + Node.LOCAL_HOST_NAME
-              + AutodocTokenizer.CLOSE_CHAR
+              + sectionHeader + Node.LOCAL_HOST_NAME + AutodocTokenizer.CLOSE_CHAR
               + " section or there is no section for this computer.\n");
       //pass this problem so that it can be shown to the user
       return true;
@@ -535,25 +528,25 @@ public final class RemotePath {
    * @param ruleType
    * @return
    */
-  private final boolean isValidRule(ReadOnlyAttribute rule,
-      int mountRuleNumber, String errorTitle, String ruleType) {
+  private final boolean isValidRule(ReadOnlyAttribute rule, int mountRuleNumber,
+      String errorTitle, String ruleType) {
     //rule must exist
     if (rule == null) {
-      System.err.println(errorTitle + ruleType + " mount rule "
-          + mountRuleNumber + " is missing.");
+      System.err.println(errorTitle + ruleType + " mount rule " + mountRuleNumber
+          + " is missing.");
       return false;
     }
     String value = rule.getValue();
     //local rule must not have an empty value
     if (value == null) {
-      System.err.println(errorTitle + ruleType + " mount rule "
-          + mountRuleNumber + " cannot be blank.");
+      System.err.println(errorTitle + ruleType + " mount rule " + mountRuleNumber
+          + " cannot be blank.");
       return false;
     }
     File path = new File(value);
     if (!path.isAbsolute()) {
-      System.err.println(errorTitle + ruleType + " mount rule "
-          + mountRuleNumber + " must be an absolute directory path.");
+      System.err.println(errorTitle + ruleType + " mount rule " + mountRuleNumber
+          + " must be an absolute directory path.");
       return false;
     }
     return true;
@@ -598,8 +591,7 @@ public final class RemotePath {
     if (!EtomoDirector.INSTANCE.getArguments().isTest()) {
       throw new IllegalStateException();
     }
-    return Network.getLocalHostName(manager, axisID, manager
-        .getPropertyUserDir());
+    return Network.getLocalHostName(manager, axisID, manager.getPropertyUserDir());
   }
 
   /**
@@ -665,6 +657,10 @@ public final class RemotePath {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.25  2010/02/17 05:05:58  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.24  2010/01/11 23:59:15  sueh
  * <p> bug# 1299 Removed responsibility anything other then cpu.adoc from
  * <p> CpuAdoc.  Placed responsibility for information about the network in the

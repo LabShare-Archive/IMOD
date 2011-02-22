@@ -71,8 +71,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 
   public TomogramPositioningExpert(ApplicationManager manager,
       MainTomogramPanel mainPanel, ProcessTrack processTrack, AxisID axisID) {
-    super(manager, mainPanel, processTrack, axisID,
-        DialogType.TOMOGRAM_POSITIONING);
+    super(manager, mainPanel, processTrack, axisID, DialogType.TOMOGRAM_POSITIONING);
     comScriptMgr = manager.getComScriptManager();
     state = manager.getState();
   }
@@ -98,8 +97,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
   public void postProcess(ProcessDetails processDetails, TomogramState state) {
     state.setSampleXAxisTilt(axisID, processDetails
         .getDoubleValue(TiltParam.Field.X_AXIS_TILT));
-    boolean fiducialess = processDetails
-        .getBooleanValue(TiltParam.Field.FIDUCIALESS);
+    boolean fiducialess = processDetails.getBooleanValue(TiltParam.Field.FIDUCIALESS);
     state.setSampleFiducialess(axisID, fiducialess);
     if (!fiducialess) {
       state.setSampleAxisZShift(axisID, state.getAlignAxisZShift(axisID));
@@ -128,11 +126,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     }
     //Create the dialog and show it.
     // Create a new dialog panel and map it the generic reference
-    Utilities.timestamp("new", "TomogramPositioningDialog",
-        Utilities.STARTED_STATUS);
+    Utilities.timestamp("new", "TomogramPositioningDialog", Utilities.STARTED_STATUS);
     dialog = TomogramPositioningDialog.getInstance(manager, this, axisID);
-    Utilities.timestamp("new", "TomogramPositioningDialog",
-        Utilities.FINISHED_STATUS);
+    Utilities.timestamp("new", "TomogramPositioningDialog", Utilities.FINISHED_STATUS);
     // Read in the meta data parameters. WARNING this needs to be done
     // before reading the tilt paramers below so that the GUI knows how to
     // correctly scale the dimensions
@@ -149,8 +145,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     TiltalignParam tiltalignParam = comScriptMgr.getTiltalignParam(axisID);
     if (metaData.getViewType() != ViewType.MONTAGE) {
       //upgrade and save param to comscript
-      UIExpertUtilities.INSTANCE.upgradeOldAlignCom(manager, axisID,
-          tiltalignParam);
+      UIExpertUtilities.INSTANCE.upgradeOldAlignCom(manager, axisID, tiltalignParam);
     }
     setAlignParam(tiltalignParam);
 
@@ -191,8 +186,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
   }
 
   void sampleAction(ProcessResultDisplay sample, ProcessSeries processSeries,
-      Deferred3dmodButton deferred3dmodButton,
-      Run3dmodMenuOptions run3dmodMenuOptions) {
+      Deferred3dmodButton deferred3dmodButton, Run3dmodMenuOptions run3dmodMenuOptions) {
     if (processSeries == null) {
       processSeries = new ProcessSeries(manager, dialogType);
     }
@@ -232,11 +226,10 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
           && !dialog.isAlignButton()) {
         UIHarness.INSTANCE.openMessageDialog(manager,
             "ERROR:  Final alignment is not done or is out of date.  Run "
-                + "final alignment in positioning before continuing.",
-            "User Error", axisID);
+                + "final alignment in positioning before continuing.", "User Error",
+            axisID);
       }
-      manager.closeImod(ImodManager.SAMPLE_KEY, axisID,
-          "sample reconstruction", false);
+      manager.closeImod(ImodManager.SAMPLE_KEY, axisID, "sample reconstruction", false);
     }
     if (exitState != DialogExitState.CANCEL) {
       saveDialog();
@@ -303,8 +296,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       return;
     }
     //  Get the user input data from the dialog box
-    if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(manager, dialog,
-        axisID)) {
+    if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(manager, dialog, axisID)) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
@@ -316,8 +308,8 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     comScriptMgr.loadTilt(axisID);
     setDialogState(ProcessState.INPROGRESS);
     manager.closeImod(FileType.ALIGNED_STACK, axisID, true);
-    sendMsg(manager.createSample(axisID, processResultDisplay, processSeries,
-        tiltParam), processResultDisplay);
+    sendMsg(manager.createSample(axisID, processResultDisplay, processSeries, tiltParam),
+        processResultDisplay);
   }
 
   /**
@@ -340,8 +332,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       return;
     }
     // Get the user input from the dialog
-    if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(manager, dialog,
-        axisID)) {
+    if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(manager, dialog, axisID)) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
@@ -359,16 +350,13 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
         blendmontParam = updateBlendCom();
       }
       catch (FortranInputSyntaxException e) {
-        UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
-            "Update Com Error");
+        UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(), "Update Com Error");
       }
       catch (InvalidParameterException e) {
-        UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
-            "Update Com Error");
+        UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(), "Update Com Error");
       }
       catch (IOException e) {
-        UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
-            "Update Com Error");
+        UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(), "Update Com Error");
       }
       if (blendmontParam == null) {
         sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
@@ -382,12 +370,12 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     setDialogState(ProcessState.INPROGRESS);
     ProcessResult processResult;
     if (metaData.getViewType() != ViewType.MONTAGE) {
-      processResult = manager.wholeTomogram(axisID, processResultDisplay,
-          processSeries, newstParam);
+      processResult = manager.wholeTomogram(axisID, processResultDisplay, processSeries,
+          newstParam);
     }
     else {
-      processResult = manager.wholeTomogram(axisID, processResultDisplay,
-          processSeries, blendmontParam);
+      processResult = manager.wholeTomogram(axisID, processResultDisplay, processSeries,
+          blendmontParam);
     }
     if (processResult != null) {
       sendMsg(processResult, processResultDisplay);
@@ -473,8 +461,8 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
     tiltParam.setCommandMode(TiltParam.Mode.WHOLE);
     tiltParam.setFiducialess(metaData.isFiducialess(axisID));
-    sendMsg(manager.sampleTilt(axisID, processResultDisplay, processSeries,
-        tiltParam), processResultDisplay);
+    sendMsg(manager.sampleTilt(axisID, processResultDisplay, processSeries, tiltParam),
+        processResultDisplay);
   }
 
   private ConstTiltalignParam updateAlignCom() {
@@ -486,8 +474,8 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       comScriptMgr.saveAlign(tiltalignParam, axisID);
       //update xfproduct in align.com
       XfproductParam xfproductParam = comScriptMgr.getXfproductInAlign(axisID);
-      xfproductParam.setScaleShifts(UIExpertUtilities.INSTANCE.getStackBinning(
-          manager, axisID, ".preali"));
+      xfproductParam.setScaleShifts(UIExpertUtilities.INSTANCE.getStackBinning(manager,
+          axisID, ".preali"));
       comScriptMgr.saveXfproductInAlign(xfproductParam, axisID);
     }
     catch (NumberFormatException except) {
@@ -549,8 +537,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
         outputFileName = metaData.getDatasetName() + "_full.rec";
       }
       else {
-        outputFileName = metaData.getDatasetName() + axisID.getExtension()
-            + ".rec";
+        outputFileName = metaData.getDatasetName() + axisID.getExtension() + ".rec";
       }
       tiltParam.setOutputFile(outputFileName);
       if (metaData.getViewType() == ViewType.MONTAGE) {
@@ -633,15 +620,13 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       }
       catch (InvalidParameterException e) {
         e.printStackTrace();
-        UIHarness.INSTANCE.openMessageDialog(manager,
-            "Unable to update newst com: " + e.getMessage(), "Etomo Error",
-            axisID);
+        UIHarness.INSTANCE.openMessageDialog(manager, "Unable to update newst com: "
+            + e.getMessage(), "Etomo Error", axisID);
       }
       catch (IOException e) {
         e.printStackTrace();
-        UIHarness.INSTANCE.openMessageDialog(manager,
-            "Unable to update newst com: " + e.getMessage(), "Etomo Error",
-            axisID);
+        UIHarness.INSTANCE.openMessageDialog(manager, "Unable to update newst com: "
+            + e.getMessage(), "Etomo Error", axisID);
       }
     }
     catch (FortranInputSyntaxException e) {
@@ -672,8 +657,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     blendmontParam.setMode(BlendmontParam.Mode.WHOLE_TOMOGRAM_SAMPLE);
     blendmontParam.setBlendmontState();
     blendmontParam.resetStartingAndEndingXandY();
-    blendmontParam.convertToStartingAndEndingXandY("", metaData
-        .getImageRotation(axisID));
+    blendmontParam.convertToStartingAndEndingXandY("", metaData.getImageRotation(axisID));
     comScriptMgr.saveBlend(blendmontParam, axisID);
     return blendmontParam;
   }
@@ -731,8 +715,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     }
     EtomoBoolean2 sampleFiducialess = state.getSampleFiducialess(axisID);
     boolean enable = false;
-    if (sampleFiducialess == null
-        || sampleFiducialess.is() == dialog.isFiducialess()) {
+    if (sampleFiducialess == null || sampleFiducialess.is() == dialog.isFiducialess()) {
       enable = true;
     }
     dialog.setTomopitchEnabled(enable);
@@ -831,8 +814,8 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       return;
     }
     //Use GPU
-    dialog.setUseGpuEnabled(Network.isLocalHostGpuProcessingEnabled(manager,
-        axisID, manager.getPropertyUserDir()));
+    dialog.setUseGpuEnabled(Network.isLocalHostGpuProcessingEnabled(manager, axisID,
+        manager.getPropertyUserDir()));
     dialog.setUseGpuSelected(metaData.getDefaultGpuProcessing().is());
     dialog.setBinning(metaData.getPosBinning(axisID));
     dialog.setSampleThickness(metaData.getSampleThickness(axisID));
@@ -941,8 +924,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     else {
       dialog.setBinningEnabled(false);
       dialog.setSampleButton(SAMPLE_TOMOGRAMS_LABEL);
-      dialog
-          .setSampleButtonToolTip(TomogramPositioningDialog.SAMPLE_TOMOGRAMS_TOOLTIP);
+      dialog.setSampleButtonToolTip(TomogramPositioningDialog.SAMPLE_TOMOGRAMS_TOOLTIP);
     }
   }
 
@@ -952,6 +934,11 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/03 06:22:16  sueh
+ * <p> bug# 1422 Control of the processing method has been centralized in the
+ * <p> processing method mediator class.  Implementing ProcessInterface.
+ * <p> Supplying processes with the current processing method.
+ * <p>
  * <p> Revision 1.2  2010/12/05 05:24:00  sueh
  * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
  * <p>

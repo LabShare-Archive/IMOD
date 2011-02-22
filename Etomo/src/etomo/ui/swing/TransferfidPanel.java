@@ -37,14 +37,11 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
   private final EtomoPanel panelTransferfid = new EtomoPanel();
   private final JPanel panelTransferfidBody = new JPanel();
   private final CheckBox cbRunMidas = new CheckBox("Run midas");
-  private final LabeledTextField ltfCenterViewA = new LabeledTextField(
-      "Center view A: ");
-  private final LabeledTextField ltfCenterViewB = new LabeledTextField(
-      "Center view B: ");
+  private final LabeledTextField ltfCenterViewA = new LabeledTextField("Center view A: ");
+  private final LabeledTextField ltfCenterViewB = new LabeledTextField("Center view B: ");
   private final LabeledTextField ltfNumberViews = new LabeledTextField(
       "Number of views in the search: ");
-  private final CheckBox cbMirrorInX = new CheckBox(
-      "Mirror one image around the X axis");
+  private final CheckBox cbMirrorInX = new CheckBox("Mirror one image around the X axis");
   private final EtomoPanel panelSearchDirection = new EtomoPanel();
   private final ButtonGroup bgSearchDirection = new ButtonGroup();
   private final RadioButton rbSearchBoth = new RadioButton("Both directions");
@@ -67,10 +64,9 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
     this.manager = manager;
     this.axisID = axisID;
     this.parent = parent;
-    header = PanelHeader.getAdvancedBasicInstance("Transfer Fiducials", this,
-        dialogType, globalAdvancedButton);
-    panelTransferfidBody.setLayout(new BoxLayout(panelTransferfidBody,
-        BoxLayout.Y_AXIS));
+    header = PanelHeader.getAdvancedBasicInstance("Transfer Fiducials", this, dialogType,
+        globalAdvancedButton);
+    panelTransferfidBody.setLayout(new BoxLayout(panelTransferfidBody, BoxLayout.Y_AXIS));
     cbRunMidas.setAlignmentX(Component.RIGHT_ALIGNMENT);
     panelTransferfidBody.add(cbRunMidas);
 
@@ -83,10 +79,8 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
     bgSearchDirection.add(rbSearchBoth.getAbstractButton());
     bgSearchDirection.add(rbSearchPlus90.getAbstractButton());
     bgSearchDirection.add(rbSearchMinus90.getAbstractButton());
-    panelSearchDirection.setLayout(new BoxLayout(panelSearchDirection,
-        BoxLayout.Y_AXIS));
-    panelSearchDirection.setBorder(new EtchedBorder("Search Direction")
-        .getBorder());
+    panelSearchDirection.setLayout(new BoxLayout(panelSearchDirection, BoxLayout.Y_AXIS));
+    panelSearchDirection.setBorder(new EtchedBorder("Search Direction").getBorder());
     panelSearchDirection.add(rbSearchBoth.getComponent());
     panelSearchDirection.add(rbSearchPlus90.getComponent());
     panelSearchDirection.add(rbSearchMinus90.getComponent());
@@ -96,15 +90,14 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
     panelTransferfidBody.add(cbMirrorInX);
     panelTransferfidBody.add(Box.createRigidArea(FixedDim.x0_y5));
 
-    buttonTransferfid = (Run3dmodButton) manager
-        .getProcessResultDisplayFactory(axisID).getTransferFiducials();
+    buttonTransferfid = (Run3dmodButton) manager.getProcessResultDisplayFactory(axisID)
+        .getTransferFiducials();
     buttonTransferfid.setContainer(this);
     buttonTransferfid.setAlignmentX(Component.CENTER_ALIGNMENT);
     buttonTransferfid.setSize();
     panelTransferfidBody.add(buttonTransferfid.getComponent());
     panelTransferfidBody.add(Box.createRigidArea(FixedDim.x0_y5));
-    panelTransferfid
-        .setLayout(new BoxLayout(panelTransferfid, BoxLayout.Y_AXIS));
+    panelTransferfid.setLayout(new BoxLayout(panelTransferfid, BoxLayout.Y_AXIS));
     panelTransferfid.setBorder(BorderFactory.createEtchedBorder());
     panelTransferfid.add(header);
     panelTransferfid.add(panelTransferfidBody);
@@ -112,11 +105,11 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
     setToolTipText();
   }
 
-  static TransferfidPanel getInstance(ApplicationManager manager,
-      AxisID axisID, DialogType dialogType, FiducialModelDialog parent,
+  static TransferfidPanel getInstance(ApplicationManager manager, AxisID axisID,
+      DialogType dialogType, FiducialModelDialog parent,
       GlobalExpandButton globalAdvancedButton) {
-    TransferfidPanel instance = new TransferfidPanel(manager, axisID,
-        dialogType, parent, globalAdvancedButton);
+    TransferfidPanel instance = new TransferfidPanel(manager, axisID, dialogType, parent,
+        globalAdvancedButton);
     instance.addListeners();
     return instance;
   }
@@ -126,8 +119,7 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
   }
 
   public void action(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
-    action(button.getActionCommand(), button.getDeferred3dmodButton(),
-        menuOptions);
+    action(button.getActionCommand(), button.getDeferred3dmodButton(), menuOptions);
   }
 
   /**
@@ -139,8 +131,7 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
    * @param deferred3dmodButton
    * @param run3dmodMenuOptions
    */
-  private void action(final String command,
-      Deferred3dmodButton deferred3dmodButton,
+  private void action(final String command, Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(buttonTransferfid.getActionCommand())) {
       manager.transferfid(axisID, buttonTransferfid, null, deferred3dmodButton,
@@ -270,8 +261,7 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
 
   //  ToolTip string setup
   private void setToolTipText() {
-    cbRunMidas
-        .setToolTipText("Run Midas to adjust initial alignment manually.");
+    cbRunMidas.setToolTipText("Run Midas to adjust initial alignment manually.");
     ltfCenterViewA
         .setToolTipText("View from A around which to search for the best pair of views.");
     ltfCenterViewB
@@ -307,6 +297,9 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
 
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2010/12/05 05:24:13  sueh
+ * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>

@@ -38,6 +38,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2010/06/02 21:48:10  sueh
+ * <p> bug# 1380 Changed EtomoDirector.testDone to testFailed for clarity.
+ * <p>
  * <p> Revision 1.13  2010/05/20 23:54:07  sueh
  * <p> Added getApplication.
  * <p>
@@ -122,16 +125,15 @@ public final class TestRunner extends JFCTestCase implements VariableList {
    * @throws IOException
    * @throws LogFile.ReadException
    */
-  public void test() throws FileNotFoundException, IOException,
-      LogFile.LockException {
+  public void test() throws FileNotFoundException, IOException, LogFile.LockException {
     //Add the default arguments to the parameter list.
     parameterList.add(Arguments.SELFTEST_TAG);
     parameterList.add(Arguments.TEST_TAG);
     //parameterList.add(Arguments.NAMES_TAG);
     //parameterList.add(Arguments.DEBUG_TAG);
     //get uitest.adoc
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(null,
-        AutodocFactory.UITEST, AxisID.ONLY);
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(null, AutodocFactory.UITEST,
+        AxisID.ONLY);
     if (autodoc == null) {
       fail("Missing autodoc: " + AutodocFactory.UITEST);
       return;
@@ -154,8 +156,8 @@ public final class TestRunner extends JFCTestCase implements VariableList {
     while (!testSectionReader.isDone()) {
       command = testSectionReader.nextCommand(command);
       if (command != null && command.isKnown()) {
-        assertNull("field not needed in Test section commands (" + command
-            + ")", command.getField());
+        assertNull("field not needed in Test section commands (" + command + ")", command
+            .getField());
         UITestActionType actionType = command.getActionType();
         UITestSubjectType subjectType = command.getSubjectType();
         Subject subject = command.getSubject();
@@ -165,8 +167,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
           if (subjectType == UITestSubjectType.ADOC) {
             //Create an autodoc tester for each autodoc in the Test section.  The
             //they appear is the order in which they start running.
-            File dir = Utilities.getExistingDir(null, SOURCE_ENV_VAR,
-                AxisID.ONLY);
+            File dir = Utilities.getExistingDir(null, SOURCE_ENV_VAR, AxisID.ONLY);
             System.err.println(SOURCE_ENV_VAR + ": " + dir.getAbsolutePath());
             AxisID axisID = subject.getAxisID();
             //Get the sectionType
@@ -175,16 +176,15 @@ public final class TestRunner extends JFCTestCase implements VariableList {
                 "set.adoc command must specify section types to run in autodoc ("
                     + command + ")", sectionType);
             //Create an autodoc tester for this autodoc.
-            AutodocTester autodocTester = AutodocTester.getAutodocTester(this,
-                helper, AutodocFactory.getInstance(null, dir, value,
-                    AxisID.ONLY), dir, sectionType, axisID, this);
+            AutodocTester autodocTester = AutodocTester.getAutodocTester(this, helper,
+                AutodocFactory.getInstance(null, dir, value, AxisID.ONLY), dir,
+                sectionType, axisID, this);
             autodocTesterList.add(autodocTester);
             //Assuming that AxisID can be a unique key for the testers
             autodocTesterMap.put(axisID, autodocTester);
           }
           else if (subjectType == UITestSubjectType.PARAM) {
-            assertNotNull("missing paramter - " + value + " (" + command + ")",
-                value);
+            assertNotNull("missing paramter - " + value + " (" + command + ")", value);
             parameterList.add(value);
           }
           //set.dataset
@@ -202,8 +202,8 @@ public final class TestRunner extends JFCTestCase implements VariableList {
           //set.interface
           else if (subjectType == UITestSubjectType.INTERFACE) {
             String subjectName = command.getSubject().getName();
-            assertNotNull("set.interface command requires a subject name ("
-                + command + ")", subjectName);
+            assertNotNull("set.interface command requires a subject name (" + command
+                + ")", subjectName);
             interfaceSection = new InterfaceSection(subjectName);
           }
           else {
@@ -228,8 +228,8 @@ public final class TestRunner extends JFCTestCase implements VariableList {
     //directory from the name of the Test section.
     assertNotNull("testdir is required in Test sections", testDir);
     //Run Etomo
-    EtomoDirector.main((String[]) parameterList
-        .toArray(new String[parameterList.size()]));
+    EtomoDirector
+        .main((String[]) parameterList.toArray(new String[parameterList.size()]));
     etomo = EtomoDirector.INSTANCE;
     //Run each autodoc, taking turns
     boolean testing = true;
@@ -247,7 +247,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
       }
     }
   }
-  
+
   EtomoDirector getApplication() {
     return etomo;
   }
@@ -270,9 +270,8 @@ public final class TestRunner extends JFCTestCase implements VariableList {
 
   private void executeDatasetSection(ReadOnlyAutodoc autodoc, String sectionName) {
     assertNotNull("sectionName is required", sectionName);
-    CommandReader datasetSectionReader = CommandReader
-        .getSectionReader(autodoc, SectionType.DATASET.toString(), sectionName,
-            AxisID.ONLY, this);
+    CommandReader datasetSectionReader = CommandReader.getSectionReader(autodoc,
+        SectionType.DATASET.toString(), sectionName, AxisID.ONLY, this);
     //The directory where dataset files are stored is specified by the section
     //name.
     uitestDataDir = new File(Utilities.getExistingDir(null, "IMOD_UITEST_DATA",
@@ -282,16 +281,15 @@ public final class TestRunner extends JFCTestCase implements VariableList {
     while (!datasetSectionReader.isDone()) {
       command = datasetSectionReader.nextCommand(command);
       if (command != null && command.isKnown()) {
-        assertNull("field not needed in dataset section commands (" + command
-            + ")", command.getField());
+        assertNull("field not needed in dataset section commands (" + command + ")",
+            command.getField());
         UITestActionType actionType = command.getActionType();
         UITestSubjectType subjectType = command.getSubjectType();
         Subject subject = command.getSubject();
         UITestModifierType modifierType = command.getModifierType();
         String value = command.getValue();
         //COPY
-        if (actionType == UITestActionType.COPY
-            && subjectType == UITestSubjectType.FILE) {
+        if (actionType == UITestActionType.COPY && subjectType == UITestSubjectType.FILE) {
           //Only copy axes that are specified in the Test section in the
           //set.adoc commands.
           if (autodocTesterMap.containsKey(subject.getAxisID())) {
@@ -303,8 +301,8 @@ public final class TestRunner extends JFCTestCase implements VariableList {
           //set.interface
           if (subjectType == UITestSubjectType.INTERFACE) {
             String subjectName = command.getSubject().getName();
-            assertNotNull("set.interface command requires a subject name ("
-                + command + ")", subjectName);
+            assertNotNull("set.interface command requires a subject name (" + command
+                + ")", subjectName);
             interfaceSection = new InterfaceSection(subjectName);
           }
           else if (subjectType == UITestSubjectType.VAR) {
@@ -329,8 +327,8 @@ public final class TestRunner extends JFCTestCase implements VariableList {
         }
       }
     }
-    System.err.println("dataset="
-        + variableMap.get(UITestSubjectType.DATASET.toString()));
+    System.err
+        .println("dataset=" + variableMap.get(UITestSubjectType.DATASET.toString()));
   }
 
   public void setVariable(String variableName, Object variableValue) {
@@ -400,8 +398,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
     assertNotNull("Section name cannot be null", testDirName);
     //make the test directory path
     testDir = new File(JfcUnitTests.TEST_ROOT_DIR, testDirName);
-    variableMap.put(UITestSubjectType.TESTDIR.toString(), testDir
-        .getAbsolutePath());
+    variableMap.put(UITestSubjectType.TESTDIR.toString(), testDir.getAbsolutePath());
     keepDatasetDir = command.getModifierType() == UITestModifierType.KEEP;
     if (keepDatasetDir) {
       variableMap.put("keep-dataset-dir", "");
@@ -411,9 +408,8 @@ public final class TestRunner extends JFCTestCase implements VariableList {
     }
     else if (!keepDatasetDir) {
       //clean the test directory by deleting it
-      SystemProgram remove = new SystemProgram(manager, System
-          .getProperty("user.dir"), new String[] { "rm", "-fr",
-          testDir.getAbsolutePath() }, AxisID.ONLY);
+      SystemProgram remove = new SystemProgram(manager, System.getProperty("user.dir"),
+          new String[] { "rm", "-fr", testDir.getAbsolutePath() }, AxisID.ONLY);
       remove.run();
       //make the test directory
       testDir.mkdir();
@@ -433,9 +429,8 @@ public final class TestRunner extends JFCTestCase implements VariableList {
   void copyFile(String fileName, String toFileName, boolean always) {
     File file = new File(uitestDataDir, fileName);
     if (!file.exists() || file.isDirectory()) {
-      throw new IllegalStateException(
-          "file must exist and must not be a directory: "
-              + file.getAbsolutePath());
+      throw new IllegalStateException("file must exist and must not be a directory: "
+          + file.getAbsolutePath());
     }
     boolean toFileNameEmpty = toFileName == null || toFileName.matches("\\s*");
     //If keepDatasetDir is true, then only copy if the file does not exist in
@@ -452,9 +447,10 @@ public final class TestRunner extends JFCTestCase implements VariableList {
         return;
       }
     }
-    SystemProgram copy = new SystemProgram(null,
-        System.getProperty("user.dir"), new String[] { "cp",
-            file.getAbsolutePath(), toFileNameEmpty ? "." : toFileName },
+    SystemProgram copy = new SystemProgram(
+        null,
+        System.getProperty("user.dir"),
+        new String[] { "cp", file.getAbsolutePath(), toFileNameEmpty ? "." : toFileName },
         AxisID.ONLY);
     copy.run();
   }

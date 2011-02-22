@@ -48,8 +48,7 @@ public final class UIExpertUtilities {
    * @param stackExtension
    * @return
    */
-  public long getStackBinning(BaseManager manager, AxisID axisID,
-      String stackExtension) {
+  public long getStackBinning(BaseManager manager, AxisID axisID, String stackExtension) {
     return getStackBinning(manager, axisID, stackExtension, false);
   }
 
@@ -63,10 +62,10 @@ public final class UIExpertUtilities {
    * @param nullIfFailed
    * @return
    */
-  public long getStackBinning(BaseManager manager, AxisID axisID,
-      String stackExtension, boolean nullIfFailed) {
-    return getStackBinning(manager, axisID, MRCHeader.getInstance(manager,
-        axisID, stackExtension), false);
+  public long getStackBinning(BaseManager manager, AxisID axisID, String stackExtension,
+      boolean nullIfFailed) {
+    return getStackBinning(manager, axisID, MRCHeader.getInstance(manager, axisID,
+        stackExtension), false);
   }
 
   /**
@@ -78,11 +77,9 @@ public final class UIExpertUtilities {
    * @param stackFileType
    * @return
    */
-  public long getStackBinning(BaseManager manager, AxisID axisID,
-      FileType stackFileType) {
+  public long getStackBinning(BaseManager manager, AxisID axisID, FileType stackFileType) {
     return getStackBinning(manager, axisID, MRCHeader.getInstance(manager
-        .getPropertyUserDir(), stackFileType.getFileName(manager, axisID),
-        axisID), false);
+        .getPropertyUserDir(), stackFileType.getFileName(manager, axisID), axisID), false);
   }
 
   /**
@@ -114,8 +111,8 @@ public final class UIExpertUtilities {
    * on failure.
    * @return
    */
-  public long getStackBinning(BaseManager manager, AxisID axisID,
-      MRCHeader stackHeader, boolean nullIfFailed) {
+  public long getStackBinning(BaseManager manager, AxisID axisID, MRCHeader stackHeader,
+      boolean nullIfFailed) {
     MRCHeader rawstackHeader = MRCHeader.getInstance(manager, axisID, ".st");
     long defaultValue = nullIfFailed ? EtomoNumber.LONG_NULL_VALUE : 1;
     try {
@@ -134,8 +131,7 @@ public final class UIExpertUtilities {
     long binning = defaultValue;
     double rawstackXPixelSpacing = rawstackHeader.getXPixelSpacing();
     if (rawstackXPixelSpacing > 0) {
-      binning = Math.round(stackHeader.getXPixelSpacing()
-          / rawstackXPixelSpacing);
+      binning = Math.round(stackHeader.getXPixelSpacing() / rawstackXPixelSpacing);
     }
     if (binning != defaultValue && binning < 1) {
       return 1;
@@ -175,8 +171,8 @@ public final class UIExpertUtilities {
    * @param dialog
    * @return
    */
-  public boolean updateFiducialessParams(ApplicationManager manager,
-      float imageRotation, boolean fiducialess, AxisID axisID) {
+  public boolean updateFiducialessParams(ApplicationManager manager, float imageRotation,
+      boolean fiducialess, AxisID axisID) {
     float tiltAxisAngle;
     try {
       tiltAxisAngle = imageRotation;
@@ -191,8 +187,7 @@ public final class UIExpertUtilities {
     }
     manager.getMetaData().setFiducialessAlignment(axisID, fiducialess);
     manager.getMetaData().setImageRotation(tiltAxisAngle, axisID);
-    updateRotationXF(manager, manager.getPropertyUserDir(), tiltAxisAngle,
-        axisID);
+    updateRotationXF(manager, manager.getPropertyUserDir(), tiltAxisAngle, axisID);
     return true;
   }
 
@@ -201,8 +196,8 @@ public final class UIExpertUtilities {
    * 
    * @param axisID
    */
-  private void updateRotationXF(BaseManager manager, String propertyUserDir,
-      float angle, AxisID axisID) {
+  private void updateRotationXF(BaseManager manager, String propertyUserDir, float angle,
+      AxisID axisID) {
     //  Open the appropriate rotation file
     String fnRotationXF = propertyUserDir + File.separator + "rotation"
         + axisID.getExtension() + ".xf";
@@ -211,9 +206,8 @@ public final class UIExpertUtilities {
       BufferedWriter out = new BufferedWriter(new FileWriter(rotationXF));
       //  Write out the transform to perform the rotation
       double rads = -1 * angle * Math.PI / 180;
-      out.write(String.valueOf(Math.cos(rads)) + "   "
-          + String.valueOf(Math.sin(-rads)) + "   "
-          + String.valueOf(Math.sin(rads)) + "   "
+      out.write(String.valueOf(Math.cos(rads)) + "   " + String.valueOf(Math.sin(-rads))
+          + "   " + String.valueOf(Math.sin(rads)) + "   "
           + String.valueOf(Math.cos(rads)) + "   0   0");
       out.newLine();
       //  Close the file
@@ -240,8 +234,8 @@ public final class UIExpertUtilities {
     String[] message = new String[2];
     message[0] = "The setup process has not been completed";
     message[1] = "Complete the Setup process before opening other process dialogs";
-    UIHarness.INSTANCE.openMessageDialog(manager, message,
-        "Program Operation Error", axisID);
+    UIHarness.INSTANCE.openMessageDialog(manager, message, "Program Operation Error",
+        axisID);
     return false;
   }
 
@@ -275,8 +269,7 @@ public final class UIExpertUtilities {
     if (!tiltParam.isOldVersion()) {
       return;
     }
-    int correctionBinning = getBackwardCompatibleTiltBinning(manager, axisID,
-        tiltParam);
+    int correctionBinning = getBackwardCompatibleTiltBinning(manager, axisID, tiltParam);
     long currentBinning = getStackBinning(manager, axisID, ".ali");
     if (tiltParam.upgradeOldVersion(correctionBinning, currentBinning)) {
       rollTiltComAngles(manager, axisID);
@@ -298,8 +291,7 @@ public final class UIExpertUtilities {
    * @param tiltParam
    * @return
    */
-  private long getBackwardCompatibleAlignBinning(ApplicationManager manager,
-      AxisID axisID) {
+  private long getBackwardCompatibleAlignBinning(ApplicationManager manager, AxisID axisID) {
     MRCHeader rawstackHeader = MRCHeader.getInstance(manager, axisID, ".st");
     try {
       if (!rawstackHeader.read(manager)) {
@@ -372,8 +364,7 @@ public final class UIExpertUtilities {
       e.printStackTrace();
       return 1;
     }
-    long binning = Math.round(stackHeader.getXPixelSpacing()
-        / rawstackXPixelSpacing);
+    long binning = Math.round(stackHeader.getXPixelSpacing() / rawstackXPixelSpacing);
     if (binning < 1) {
       return 1;
     }
@@ -390,8 +381,8 @@ public final class UIExpertUtilities {
    * @param tiltParam
    * @return
    */
-  private int getBackwardCompatibleTiltBinning(ApplicationManager manager,
-      AxisID axisID, ConstTiltParam tiltParam) {
+  private int getBackwardCompatibleTiltBinning(ApplicationManager manager, AxisID axisID,
+      ConstTiltParam tiltParam) {
     MRCHeader rawstackHeader = MRCHeader.getInstance(manager, axisID, ".st");
     try {
       if (!rawstackHeader.read(manager)) {
@@ -424,16 +415,16 @@ public final class UIExpertUtilities {
   }
 
   public void rollAlignComAngles(ApplicationManager manager, AxisID axisID) {
-    TomogramPositioningExpert expert = (TomogramPositioningExpert) manager
-        .getUIExpert(DialogType.TOMOGRAM_POSITIONING, axisID);
+    TomogramPositioningExpert expert = (TomogramPositioningExpert) manager.getUIExpert(
+        DialogType.TOMOGRAM_POSITIONING, axisID);
     if (expert != null) {
       expert.rollAlignComAngles();
     }
   }
 
   public void rollTiltComAngles(ApplicationManager manager, AxisID axisID) {
-    TomogramPositioningExpert expert = (TomogramPositioningExpert) manager
-        .getUIExpert(DialogType.TOMOGRAM_POSITIONING, axisID);
+    TomogramPositioningExpert expert = (TomogramPositioningExpert) manager.getUIExpert(
+        DialogType.TOMOGRAM_POSITIONING, axisID);
     if (expert != null) {
       expert.rollTiltComAngles();
     }
@@ -441,6 +432,9 @@ public final class UIExpertUtilities {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.10  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>

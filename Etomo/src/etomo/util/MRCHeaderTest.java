@@ -23,6 +23,10 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.31  2010/05/21 21:05:28  sueh
+ * <p> bug# 1362 Getting test data by calling TestUtilities.copyTestFile instead of
+ * <p> getVector.
+ * <p>
  * <p> Revision 3.30  2010/02/17 05:05:58  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up
  * <p> messages.
@@ -159,8 +163,7 @@ public class MRCHeaderTest extends TestCase {
   private final MRCHeader mrcWithSpaces;
   private final File testDir = new File(UtilTests.TEST_ROOT_DIR, "MRCHeader");
   private final String testDirPath = testDir.getAbsolutePath();
-  private final BaseManager manager = EtomoDirector.INSTANCE
-      .getCurrentManagerForTest();
+  private final BaseManager manager = EtomoDirector.INSTANCE.getCurrentManagerForTest();
 
   /**
    * Constructor for MRCHeaderTest.
@@ -177,16 +180,15 @@ public class MRCHeaderTest extends TestCase {
     emptyFilename = MRCHeader.getInstance(testDirPath, "", AxisID.ONLY);
     badFilename = MRCHeader.getInstance(testDirPath, testDirectory1
         + "/non_existant_image_file", AxisID.ONLY);
-    mrcHeader = MRCHeader.getInstance(testDirPath, testDirectory1
-        + "/headerTest.st", AxisID.ONLY);
-    mrcWithSpaces = MRCHeader.getInstance(testDirPath, testDirectory2
-        + "/headerTest.st", AxisID.ONLY);
+    mrcHeader = MRCHeader.getInstance(testDirPath, testDirectory1 + "/headerTest.st",
+        AxisID.ONLY);
+    mrcWithSpaces = MRCHeader.getInstance(testDirPath, testDirectory2 + "/headerTest.st",
+        AxisID.ONLY);
   }
 
   public void testEmptyFilename() throws InvalidParameterException {
     try {
-      assertFalse("Should rise IOException exception", emptyFilename
-          .read(manager));
+      assertFalse("Should rise IOException exception", emptyFilename.read(manager));
     }
     catch (IOException success) {
     }
@@ -219,8 +221,7 @@ public class MRCHeaderTest extends TestCase {
     }
 
     // Check out the test header stack into the required directories
-    TestUtilites.INSTANCE.copyTestFile(testDirPath, testDirectory1,
-        headerTestStack);
+    TestUtilites.INSTANCE.copyTestFile(testDirPath, testDirectory1, headerTestStack);
 
     assertTrue(mrcHeader.read(manager));
     assertEquals("Incorrect column count", 512, mrcHeader.getNColumns());
@@ -261,8 +262,7 @@ public class MRCHeaderTest extends TestCase {
       testDir2.mkdirs();
     }
     // Check out the test header stack into the required directories
-    TestUtilites.INSTANCE.copyTestFile(testDirPath, testDirectory2,
-        "headerTest.st");
+    TestUtilites.INSTANCE.copyTestFile(testDirPath, testDirectory2, "headerTest.st");
 
     assertTrue("the file should exist", mrcWithSpaces.read(manager));
     assertEquals("Incorrect column count", 512, mrcWithSpaces.getNColumns());

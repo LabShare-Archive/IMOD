@@ -26,6 +26,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.1  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p> </p>
@@ -36,21 +39,20 @@ final class XfModelPanel implements Run3dmodButtonContainer {
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
   private final XfModelPanelActionListener actionListener = new XfModelPanelActionListener(
       this);
-  private final Run3dmodButton btn3dmodXfModel = Run3dmodButton
-      .get3dmodInstance("View Transformed Model", this);
+  private final Run3dmodButton btn3dmodXfModel = Run3dmodButton.get3dmodInstance(
+      "View Transformed Model", this);
 
   private final Run3dmodButton btnXfModel;
   private final ApplicationManager manager;
   private final AxisID axisID;
   private final DialogType dialogType;
 
-  private XfModelPanel(ApplicationManager manager, AxisID axisID,
-      DialogType dialogType) {
+  private XfModelPanel(ApplicationManager manager, AxisID axisID, DialogType dialogType) {
     this.manager = manager;
     this.axisID = axisID;
     this.dialogType = dialogType;
-    btnXfModel = (Run3dmodButton) manager
-        .getProcessResultDisplayFactory(axisID).getXfModel();
+    btnXfModel = (Run3dmodButton) manager.getProcessResultDisplayFactory(axisID)
+        .getXfModel();
   }
 
   static XfModelPanel getInstance(ApplicationManager manager, AxisID axisID,
@@ -92,8 +94,7 @@ final class XfModelPanel implements Run3dmodButtonContainer {
   }
 
   void setParameters(ReconScreenState screenState) {
-    btnXfModel.setButtonState(screenState.getButtonState(btnXfModel
-        .getButtonStateKey()));
+    btnXfModel.setButtonState(screenState.getButtonState(btnXfModel.getButtonStateKey()));
   }
 
   public void action(final Run3dmodButton button,
@@ -102,12 +103,11 @@ final class XfModelPanel implements Run3dmodButtonContainer {
         run3dmodMenuOptions);
   }
 
-  private void action(final String command,
-      Deferred3dmodButton deferred3dmodButton,
+  private void action(final String command, Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnXfModel.getActionCommand())) {
-      manager.xfmodel(btnXfModel, null, deferred3dmodButton,
-          run3dmodMenuOptions, axisID, dialogType);
+      manager.xfmodel(btnXfModel, null, deferred3dmodButton, run3dmodMenuOptions, axisID,
+          dialogType);
     }
     else if (command.equals(btn3dmodXfModel.getActionCommand())) {
       manager.seedEraseFiducialModel(run3dmodMenuOptions, axisID, dialogType);
@@ -115,11 +115,9 @@ final class XfModelPanel implements Run3dmodButtonContainer {
   }
 
   private void setToolTipText() {
-    btnXfModel
-        .setToolTipText("Transform .fid mode built on prealigned stack to "
-            + "_erase.fid model that fits the aligned stack.");
-    btn3dmodXfModel
-        .setToolTipText("View the _erase.fid model on the aligned stack.");
+    btnXfModel.setToolTipText("Transform .fid mode built on prealigned stack to "
+        + "_erase.fid model that fits the aligned stack.");
+    btn3dmodXfModel.setToolTipText("View the _erase.fid model on the aligned stack.");
   }
 
   private final class XfModelPanelActionListener implements ActionListener {

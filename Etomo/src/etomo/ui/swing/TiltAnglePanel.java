@@ -24,6 +24,9 @@ import etomo.ui.swing.TooltipFormatter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.1  2007/12/26 22:36:25  sueh
  * <p> bug# 1052 Turned TiltAnglePanel into an extremely thin GUI.  Moved decisions
  * <p> and knowledge to TiltAnglePanelExpert.
@@ -80,13 +83,11 @@ final class TiltAnglePanel {
   static final String EXISTING_RAWTILT_FILE = "Tilt angles in existing rawtlt file";
 
   private final JPanel pnlSource = new JPanel();
-  private final RadioButton rbExtract = new RadioButton(
-      "Extract tilt angles from data");
+  private final RadioButton rbExtract = new RadioButton("Extract tilt angles from data");
   private final JPanel pnlAngle = new JPanel();
   private final RadioButton rbSpecify = new RadioButton(
       "Specify the starting angle and step (degrees)");
-  private final LabeledTextField ltfMin = new LabeledTextField(
-      "Starting angle:");
+  private final LabeledTextField ltfMin = new LabeledTextField("Starting angle:");
   private final LabeledTextField ltfStep = new LabeledTextField("Increment:");
   private final RadioButton rbFile = new RadioButton(EXISTING_RAWTILT_FILE);
 

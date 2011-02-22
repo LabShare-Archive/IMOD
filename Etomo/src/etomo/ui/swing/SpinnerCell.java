@@ -58,12 +58,11 @@ class SpinnerCell extends InputCell {
    * disable - the buttons shouldn't work
    */
   public void setEnabled(boolean enabled) {
-    this.enabled=enabled;
+    this.enabled = enabled;
     getComponent().setEnabled(enabled);
     if (!disabledValue.isNull()) {
       if (enabled) {
-        if (disabledValue.equals((Number) spinner.getValue())
-            && !savedValue.isNull()) {
+        if (disabledValue.equals((Number) spinner.getValue()) && !savedValue.isNull()) {
           spinner.setValue(savedValue.getNumber());
         }
       }
@@ -96,7 +95,7 @@ class SpinnerCell extends InputCell {
   final void setValue(String value) {
     setValue(new EtomoNumber(type).set(value).getNumber());
   }
-  
+
   UITestFieldType getFieldType() {
     return UITestFieldType.SPINNER;
   }
@@ -148,8 +147,8 @@ class SpinnerCell extends InputCell {
 
   protected final void setForeground() {
     JFormattedTextField textField = getTextField();
-      textField.setForeground(Colors.CELL_FOREGROUND);
-      textField.setDisabledTextColor(Colors.CELL_FOREGROUND);
+    textField.setForeground(Colors.CELL_FOREGROUND);
+    textField.setDisabledTextColor(Colors.CELL_FOREGROUND);
   }
 
   private SpinnerCell(int min, int max) {
@@ -167,8 +166,8 @@ class SpinnerCell extends InputCell {
     type = EtomoNumber.Type.LONG;
     disabledValue = new EtomoNumber(EtomoNumber.Type.LONG);
     savedValue = new EtomoNumber(EtomoNumber.Type.LONG);
-    spinner = new JSpinner(new SpinnerNumberModel(new Long(min), new Long(min),
-        new Long(max), new Long(1)));
+    spinner = new JSpinner(new SpinnerNumberModel(new Long(min), new Long(min), new Long(
+        max), new Long(1)));
     spinner.setBorder(BorderFactory.createEtchedBorder());
     getTextField().setHorizontalAlignment(JTextField.LEFT);
     setBackground();
@@ -189,6 +188,9 @@ class SpinnerCell extends InputCell {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.14  2009/01/20 20:29:48  sueh
  * <p> bug# 1102 Added getFieldType.
  * <p>

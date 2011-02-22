@@ -35,6 +35,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.3  2010/10/11 20:40:36  sueh
  * <p> bug# 1379 Implemented ContextMenu.
  * <p>
@@ -59,25 +62,22 @@ final class SqueezeVolPanel implements Run3dmodButtonContainer, ContextMenu {
       "Squeeze the flatten output", bgInputFile);
   private final LabeledTextField ltfReductionFactorXY = new LabeledTextField(
       "Reduction factor in X and Y ");
-  private final LabeledTextField ltfReductionFactorZ = new LabeledTextField(
-      "in Z ");
-  private final CheckBox cbLinearInterpolation = new CheckBox(
-      "Linear interpolation");
-  private final Run3dmodButton btnImodSqueezedVolume = Run3dmodButton
-      .get3dmodInstance("Open Squeezed Volume in 3dmod", this);
+  private final LabeledTextField ltfReductionFactorZ = new LabeledTextField("in Z ");
+  private final CheckBox cbLinearInterpolation = new CheckBox("Linear interpolation");
+  private final Run3dmodButton btnImodSqueezedVolume = Run3dmodButton.get3dmodInstance(
+      "Open Squeezed Volume in 3dmod", this);
 
   private final Run3dmodButton btnSqueezeVolume;
   private final ApplicationManager manager;
   private final AxisID axisID;
   private final DialogType dialogType;
 
-  private SqueezeVolPanel(ApplicationManager manager, AxisID axisID,
-      DialogType dialogType) {
+  private SqueezeVolPanel(ApplicationManager manager, AxisID axisID, DialogType dialogType) {
     this.manager = manager;
     this.axisID = axisID;
     this.dialogType = dialogType;
-    btnSqueezeVolume = (Run3dmodButton) manager.getProcessResultDisplayFactory(
-        axisID).getSqueezeVolume();
+    btnSqueezeVolume = (Run3dmodButton) manager.getProcessResultDisplayFactory(axisID)
+        .getSqueezeVolume();
   }
 
   static SqueezeVolPanel getInstance(ApplicationManager manager, AxisID axisID,
@@ -142,15 +142,13 @@ final class SqueezeVolPanel implements Run3dmodButtonContainer, ContextMenu {
 
   private void setToolTipText() {
     rbInputFileTrimVol.setToolTipText("Choose the input file for squeezevol.");
-    rbInputFileFlattenWarp
-        .setToolTipText("Choose the input file for squeezevol.");
+    rbInputFileFlattenWarp.setToolTipText("Choose the input file for squeezevol.");
     ltfReductionFactorXY.setToolTipText("Factor to squeeze by in X and Y.");
     ltfReductionFactorZ.setToolTipText("Factor to squeeze by in Z.");
     cbLinearInterpolation
         .setToolTipText("Use linear instead of quadratic interpolation for transforming the "
             + "volume with Matchvol.");
-    btnSqueezeVolume
-        .setToolTipText("Squeeze the trimmed volume by the given factors.");
+    btnSqueezeVolume.setToolTipText("Squeeze the trimmed volume by the given factors.");
     btnImodSqueezedVolume.setToolTipText("View the squeezed volume.");
   }
 
@@ -159,15 +157,12 @@ final class SqueezeVolPanel implements Run3dmodButtonContainer, ContextMenu {
    * @param squeezevolParam
    */
   public void setParameters(ConstSqueezevolParam squeezevolParam) {
-    ltfReductionFactorXY.setText(squeezevolParam.getReductionFactorX()
-        .toString());
+    ltfReductionFactorXY.setText(squeezevolParam.getReductionFactorX().toString());
     if (manager.isSqueezevolFlipped()) {
-      ltfReductionFactorZ.setText(squeezevolParam.getReductionFactorZ()
-          .toString());
+      ltfReductionFactorZ.setText(squeezevolParam.getReductionFactorZ().toString());
     }
     else {
-      ltfReductionFactorZ.setText(squeezevolParam.getReductionFactorY()
-          .toString());
+      ltfReductionFactorZ.setText(squeezevolParam.getReductionFactorY().toString());
     }
     cbLinearInterpolation.setSelected(squeezevolParam.isLinearInterpolation());
   }
@@ -226,8 +221,7 @@ final class SqueezeVolPanel implements Run3dmodButtonContainer, ContextMenu {
         run3dmodMenuOptions);
   }
 
-  private void action(final String command,
-      Deferred3dmodButton deferred3dmodButton,
+  private void action(final String command, Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnSqueezeVolume.getActionCommand())) {
       ImageFileType imageFileType;

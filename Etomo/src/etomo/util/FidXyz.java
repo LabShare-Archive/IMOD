@@ -19,6 +19,9 @@ import java.io.IOException;
 * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.9  2006/05/01 21:21:59  sueh
+ * <p> $bug# 854
+ * <p> $
  * <p> $Revision 1.8  2005/08/27 22:43:32  sueh
  * <p> $bug# 532 In Utilities.timestamp() change the int status to String status,
  * <p> $since it doesn't have to be compared.
@@ -66,7 +69,7 @@ public class FidXyz {
   private static final String NEW_PIXEL_SIZE_LABEL = "pix:";
   private static final int OLD_PIXEL_SIZE_INDEX = 9;
   private static final int NEW_PIXEL_SIZE_INDEX = 7;
-  
+
   private String filename;
   private boolean exists = false;
   private boolean empty = false;
@@ -83,7 +86,7 @@ public class FidXyz {
       throw new IOException("No filename specified");
     }
     Utilities.timestamp("read", filename, Utilities.STARTED_STATUS);
-    
+
     File fidXyzFile = new File(propertyUserDir, filename);
     if (!fidXyzFile.exists() || fidXyzFile.isDirectory()) {
       Utilities.timestamp("read", filename, Utilities.FAILED_STATUS);
@@ -108,7 +111,7 @@ public class FidXyz {
     }
     Utilities.timestamp("read", filename, Utilities.FINISHED_STATUS);
   }
-  
+
   /**
    * Handle format change in fid.xyz
    * @param line
@@ -116,8 +119,7 @@ public class FidXyz {
    * @param pixelSizeIndex
    * @return
    */
-  private boolean setPixelSize(String line, String pixelSizeLabel,
-      int pixelSizeIndex) {
+  private boolean setPixelSize(String line, String pixelSizeLabel, int pixelSizeIndex) {
     if (line == null) {
       return false;
     }
@@ -131,8 +133,8 @@ public class FidXyz {
           || !tokens[pixelSizeIndex - 1].equals(pixelSizeLabel)) {
         Utilities.timestamp("read", filename, Utilities.FAILED_STATUS);
         throw new IllegalStateException("bad fid.xyz format: " + ",\ntokens["
-            + pixelSizeIndex + "]=" + tokens[pixelSizeIndex]
-            + ",pixelSizeLabel=" + pixelSizeLabel + ",line=" + line);
+            + pixelSizeIndex + "]=" + tokens[pixelSizeIndex] + ",pixelSizeLabel="
+            + pixelSizeLabel + ",line=" + line);
       }
       pixelSize = Double.parseDouble(tokens[pixelSizeIndex]);
       return true;
@@ -147,7 +149,7 @@ public class FidXyz {
   public boolean exists() {
     return exists;
   }
-  
+
   /**
    * 
    * @return true if zero length file
@@ -155,7 +157,7 @@ public class FidXyz {
   public boolean isEmpty() {
     return empty;
   }
-  
+
   public boolean isPixelSizeSet() {
     return !Double.isNaN(pixelSize);
   }

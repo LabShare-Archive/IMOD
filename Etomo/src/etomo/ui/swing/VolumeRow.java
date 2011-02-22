@@ -28,6 +28,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.32  2009/12/23 02:28:34  sueh
  * <p> bug# 1296 Stop taking tooltips from peetprm.adoc.  Added tooltips to the actual fields in the tables instead of the column headers.
  * <p>
@@ -148,12 +151,9 @@ final class VolumeRow implements Highlightable {
   private final FieldCell initMotlFile = FieldCell.getExpandableInstance();
   private final FieldCell tiltRangeMin = FieldCell.getEditableMatlabInstance();
   private final FieldCell tiltRangeMax = FieldCell.getEditableMatlabInstance();
-  private final FieldCell relativeOrientX = FieldCell
-      .getEditableMatlabInstance();
-  private final FieldCell relativeOrientY = FieldCell
-      .getEditableMatlabInstance();
-  private final FieldCell relativeOrientZ = FieldCell
-      .getEditableMatlabInstance();
+  private final FieldCell relativeOrientX = FieldCell.getEditableMatlabInstance();
+  private final FieldCell relativeOrientY = FieldCell.getEditableMatlabInstance();
+  private final FieldCell relativeOrientZ = FieldCell.getEditableMatlabInstance();
   private final HighlighterButton btnHighlighter;
 
   private final VolumeTable table;
@@ -167,18 +167,16 @@ final class VolumeRow implements Highlightable {
 
   static VolumeRow getInstance(final BaseManager manager, final File fnVolume,
       final File fnModParticle, final int index, final VolumeTable table,
-      final JPanel panel, final GridBagLayout layout,
-      final GridBagConstraints constraints) {
-    VolumeRow instance = new VolumeRow(manager, fnVolume, fnModParticle, index,
-        table, panel, layout, constraints);
+      final JPanel panel, final GridBagLayout layout, final GridBagConstraints constraints) {
+    VolumeRow instance = new VolumeRow(manager, fnVolume, fnModParticle, index, table,
+        panel, layout, constraints);
     instance.setTooltips();
     return instance;
   }
 
   private VolumeRow(final BaseManager manager, final File fnVolumeFile,
       final File fnModParticleFile, final int index, final VolumeTable table,
-      final JPanel panel, final GridBagLayout layout,
-      final GridBagConstraints constraints) {
+      final JPanel panel, final GridBagLayout layout, final GridBagConstraints constraints) {
     this.manager = manager;
     this.index = index;
     this.table = table;
@@ -194,14 +192,11 @@ final class VolumeRow implements Highlightable {
   void setNames() {
     btnHighlighter.setHeaders(VolumeTable.LABEL, number, table
         .getVolumeNumberHeaderCell());
-    fnVolume.setHeaders(VolumeTable.LABEL, number, table
-        .getFnVolumeHeaderCell());
+    fnVolume.setHeaders(VolumeTable.LABEL, number, table.getFnVolumeHeaderCell());
     fnModParticle.setHeaders(VolumeTable.LABEL, number, table
         .getFnModParticleHeaderCell());
-    tiltRangeMin.setHeaders(VolumeTable.LABEL, number, table
-        .getTiltRangeHeaderCell());
-    tiltRangeMax.setHeaders(VolumeTable.LABEL, number, table
-        .getTiltRangeHeaderCell());
+    tiltRangeMin.setHeaders(VolumeTable.LABEL, number, table.getTiltRangeHeaderCell());
+    tiltRangeMax.setHeaders(VolumeTable.LABEL, number, table.getTiltRangeHeaderCell());
     relativeOrientX.setHeaders(VolumeTable.LABEL, number, table
         .getRelativeOrientHeaderCell());
     relativeOrientY.setHeaders(VolumeTable.LABEL, number, table
@@ -291,12 +286,10 @@ final class VolumeRow implements Highlightable {
     if (!fnVolume.isEmpty() && !new File(fnVolume.getExpandedValue()).exists()) {
       return true;
     }
-    if (!fnModParticle.isEmpty()
-        && !new File(fnModParticle.getExpandedValue()).exists()) {
+    if (!fnModParticle.isEmpty() && !new File(fnModParticle.getExpandedValue()).exists()) {
       return true;
     }
-    if (!initMotlFile.isEmpty()
-        && !new File(initMotlFile.getExpandedValue()).exists()) {
+    if (!initMotlFile.isEmpty() && !new File(initMotlFile.getExpandedValue()).exists()) {
       return true;
     }
     return false;
@@ -304,20 +297,16 @@ final class VolumeRow implements Highlightable {
 
   boolean fixIncorrectPaths(boolean choosePathEveryRow) {
     if (!fnVolume.isEmpty() && !new File(fnVolume.getExpandedValue()).exists()) {
-      if (!fixIncorrectPath(fnVolume, choosePathEveryRow, table
-          .isFnVolumeExpanded())) {
+      if (!fixIncorrectPath(fnVolume, choosePathEveryRow, table.isFnVolumeExpanded())) {
         return false;
       }
     }
-    if (!fnModParticle.isEmpty()
-        && !new File(fnModParticle.getExpandedValue()).exists()) {
-      if (!fixIncorrectPath(fnModParticle, false, table
-          .isFnModParticleExpanded())) {
+    if (!fnModParticle.isEmpty() && !new File(fnModParticle.getExpandedValue()).exists()) {
+      if (!fixIncorrectPath(fnModParticle, false, table.isFnModParticleExpanded())) {
         return false;
       }
     }
-    if (!initMotlFile.isEmpty()
-        && !new File(initMotlFile.getExpandedValue()).exists()) {
+    if (!initMotlFile.isEmpty() && !new File(initMotlFile.getExpandedValue()).exists()) {
       if (!fixIncorrectPath(initMotlFile, false, table.isInitMotlFileExpanded())) {
         return false;
       }
@@ -331,8 +320,7 @@ final class VolumeRow implements Highlightable {
    * @param choosePathEveryRow
    * @return false if the user cancels the file selector
    */
-  private boolean fixIncorrectPath(FieldCell fieldCell, boolean choosePath,
-      boolean expand) {
+  private boolean fixIncorrectPath(FieldCell fieldCell, boolean choosePath, boolean expand) {
     File newFile = null;
     while (newFile == null || !newFile.exists()) {
       //Have the user choose the location of the file if they haven't chosen
@@ -342,8 +330,7 @@ final class VolumeRow implements Highlightable {
           || (newFile != null && !newFile.exists())) {
         JFileChooser fileChooser = table.getFileChooserInstance();
         fileChooser.setSelectedFile(new File(fieldCell.getExpandedValue()));
-        fileChooser.setPreferredSize(UIParameters.INSTANCE
-            .getFileChooserDimension());
+        fileChooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         int returnVal = fileChooser.showOpenDialog(table.getContainer());
         if (returnVal != JFileChooser.APPROVE_OPTION) {
@@ -357,8 +344,7 @@ final class VolumeRow implements Highlightable {
         }
       }
       else if (!table.isCorrectPathNull()) {
-        newFile = new File(table.getCorrectPath(), fieldCell
-            .getContractedValue());
+        newFile = new File(table.getCorrectPath(), fieldCell.getContractedValue());
         if (newFile.exists()) {
           setExpandableValues(fieldCell, newFile);
           fieldCell.expand(expand);
@@ -440,14 +426,12 @@ final class VolumeRow implements Highlightable {
       return VolumeTable.LABEL + ":  In row " + number.getText() + ", "
           + VolumeTable.TILT_RANGE_HEADER1_LABEL + " is required when either "
           + MissingWedgeCompensationPanel.TILT_RANGE_LABEL + " or "
-          + MissingWedgeCompensationPanel.FLG_WEDGE_WEIGHT_LABEL
-          + " is checked.";
+          + MissingWedgeCompensationPanel.FLG_WEDGE_WEIGHT_LABEL + " is checked.";
     }
     return null;
   }
 
-  private void setExpandableValues(final FieldCell fieldCell,
-      final String fileName) {
+  private void setExpandableValues(final FieldCell fieldCell, final String fileName) {
     //Don't override existing values with null value.
     if (fileName == null || fileName.matches("\\s*")) {
       return;
@@ -532,25 +516,20 @@ final class VolumeRow implements Highlightable {
 
   private void setTooltips() {
     fnVolume.setToolTipText("The filename of the tomogram in MRC format.");
-    fnModParticle
-        .setToolTipText("The filename of the IMOD model specifying particle "
-            + "positions in the tomogram.");
-    initMotlFile
-        .setToolTipText("The name of a .csv file containing an initial motive "
-            + "list with orientations and shifts.");
+    fnModParticle.setToolTipText("The filename of the IMOD model specifying particle "
+        + "positions in the tomogram.");
+    initMotlFile.setToolTipText("The name of a .csv file containing an initial motive "
+        + "list with orientations and shifts.");
     String tooltip = "The minimum and maximum tilt angle (in degrees) used "
         + "during image acquisition for this tomogram.  Used only if missing "
         + "wedge compensation is enabled.";
     tiltRangeMin.setToolTipText(tooltip);
     tiltRangeMax.setToolTipText(tooltip);
-    relativeOrientX
-        .setToolTipText("The Slicer X axis rotation required to rotate this "
-            + "tomogram to to a common orientation with the other tomograms.");
-    relativeOrientY
-    .setToolTipText("The Slicer Y axis rotation required to rotate this "
+    relativeOrientX.setToolTipText("The Slicer X axis rotation required to rotate this "
         + "tomogram to to a common orientation with the other tomograms.");
-    relativeOrientZ
-    .setToolTipText("The Slicer Z axis rotation required to rotate this "
+    relativeOrientY.setToolTipText("The Slicer Y axis rotation required to rotate this "
+        + "tomogram to to a common orientation with the other tomograms.");
+    relativeOrientZ.setToolTipText("The Slicer Z axis rotation required to rotate this "
         + "tomogram to to a common orientation with the other tomograms.");
   }
 }

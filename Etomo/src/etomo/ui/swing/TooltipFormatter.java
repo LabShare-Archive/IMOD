@@ -13,6 +13,9 @@ package etomo.ui.swing;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.8  2008/04/02 19:08:44  sueh
  * <p> bug# 1104 In convertToHtml.  Use one index instead of two to go backwards through the raw string.  Otherwise it gets confused and converts the ">" in the <html> to <html>&gt.
  * <p>
@@ -89,8 +92,8 @@ public class TooltipFormatter {
           idxStop = N_COLUMNS;
         }
         else {
-          htmlFormat.append(convertToHtml(rawString.substring(idxStart,
-              idxStart + idxStop))
+          htmlFormat.append(convertToHtml(rawString.substring(idxStart, idxStart
+              + idxStop))
               + "<br>");
           idxStart = idxStart + idxStop + 1;
         }
@@ -107,16 +110,15 @@ public class TooltipFormatter {
    */
   private String convertToHtml(String rawString) {
     if (debug) {
-      System.out.println("TooltipFormatter.convertToHtml:rawString="
-          + rawString);
+      System.out.println("TooltipFormatter.convertToHtml:rawString=" + rawString);
     }
     StringBuffer buffer = new StringBuffer(rawString);
     int index = rawString.length();
     HtmlMask htmlMask = new HtmlMask();
     htmlMask.mask(rawString);
     while (index >= 0) {
-      index = Math.max(buffer.lastIndexOf("<", index - 1), buffer.lastIndexOf(
-          ">", index - 1));
+      index = Math.max(buffer.lastIndexOf("<", index - 1), buffer.lastIndexOf(">",
+          index - 1));
       if (index != -1 && !htmlMask.isMasked(index)) {
         char c = buffer.charAt(index);
         buffer.deleteCharAt(index);

@@ -31,6 +31,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.9  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
@@ -104,8 +107,8 @@ final class TabbedTextWindow extends JFrame {
    * @throws IOException
    * @throws FileNotFoundException
    */
-  boolean openFiles(BaseManager manager, String[] files, String[] labels,
-      AxisID axisID) throws IOException, FileNotFoundException {
+  boolean openFiles(BaseManager manager, String[] files, String[] labels, AxisID axisID)
+      throws IOException, FileNotFoundException {
     checkSize(files);
     StringBuffer error = null;
     JTabbedPane tabPane = null;
@@ -165,8 +168,7 @@ final class TabbedTextWindow extends JFrame {
       }
     }
     if (!displayEverythingElse) {
-      error
-          .append(".  Not enough available memory.  Close unnecessary windows.");
+      error.append(".  Not enough available memory.  Close unnecessary windows.");
       UIHarness.INSTANCE.openMessageDialog(manager, error.toString(),
           "Memory Limitation", axisID);
     }
@@ -221,8 +223,7 @@ final class TabbedTextWindow extends JFrame {
     //AverageFactor was calculated for bug# 1099 by opening log files and taking
     //the average.
     int overhead = 8;
-    if (available >= overhead
-        * (residualsSize + solutionsSize + everythingElseSize)) {
+    if (available >= overhead * (residualsSize + solutionsSize + everythingElseSize)) {
       return;
     }
     //Not enough space.  Turn off residuals if they are still being displayed.

@@ -62,8 +62,8 @@ public final class UIHarness {
    * @param message
    * @param title
    */
-  public synchronized void openMessageDialog(BaseManager manager,
-      String message, String title, AxisID axisID) {
+  public synchronized void openMessageDialog(BaseManager manager, String message,
+      String title, AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
       getFrame(manager).displayMessage(manager, message, title, axisID);
     }
@@ -72,8 +72,8 @@ public final class UIHarness {
     }
   }
 
-  public synchronized void openInfoMessageDialog(BaseManager manager,
-      String message, String title, AxisID axisID) {
+  public synchronized void openInfoMessageDialog(BaseManager manager, String message,
+      String title, AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
       getFrame(manager).displayInfoMessage(manager, message, title, axisID);
     }
@@ -117,8 +117,8 @@ public final class UIHarness {
    * @param message
    * @param title
    */
-  public synchronized void openMessageDialog(BaseManager manager,
-      String message, String title) {
+  public synchronized void openMessageDialog(BaseManager manager, String message,
+      String title) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
       getFrame(manager).displayMessage(manager, message, title);
     }
@@ -132,8 +132,8 @@ public final class UIHarness {
    * @param message
    * @param title
    */
-  public synchronized void openMessageDialog(BaseManager manager,
-      String[] message, String title, AxisID axisID) {
+  public synchronized void openMessageDialog(BaseManager manager, String[] message,
+      String title, AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
       getFrame(manager).displayMessage(manager, message, title, axisID);
     }
@@ -142,18 +142,17 @@ public final class UIHarness {
     }
   }
 
-  public synchronized int openYesNoCancelDialog(BaseManager manager,
-      String[] message, AxisID axisID) {
+  public synchronized int openYesNoCancelDialog(BaseManager manager, String[] message,
+      AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
-      return getFrame(manager).displayYesNoCancelMessage(manager, message,
-          axisID);
+      return getFrame(manager).displayYesNoCancelMessage(manager, message, axisID);
     }
     log("openYesNoCancelDialog", message, axisID);
     return JOptionPane.YES_OPTION;
   }
 
-  public synchronized boolean openYesNoDialog(BaseManager manager,
-      String message, AxisID axisID) {
+  public synchronized boolean openYesNoDialog(BaseManager manager, String message,
+      AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
       return getFrame(manager).displayYesNoMessage(manager, message, axisID);
     }
@@ -161,8 +160,8 @@ public final class UIHarness {
     return true;
   }
 
-  public synchronized boolean openDeleteDialog(BaseManager manager,
-      String[] message, AxisID axisID) {
+  public synchronized boolean openDeleteDialog(BaseManager manager, String[] message,
+      AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
       return getFrame(manager).displayDeleteMessage(manager, message, axisID);
     }
@@ -170,18 +169,17 @@ public final class UIHarness {
     return true;
   }
 
-  public synchronized boolean openYesNoWarningDialog(BaseManager manager,
-      String message, AxisID axisID) {
+  public synchronized boolean openYesNoWarningDialog(BaseManager manager, String message,
+      AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
-      return getFrame(manager).displayYesNoWarningDialog(manager, message,
-          axisID);
+      return getFrame(manager).displayYesNoWarningDialog(manager, message, axisID);
     }
     log("openYesNoWarningDialog", message, axisID);
     return true;
   }
 
-  public synchronized boolean openYesNoDialog(BaseManager manager,
-      String[] message, AxisID axisID) {
+  public synchronized boolean openYesNoDialog(BaseManager manager, String[] message,
+      AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
       return getFrame(manager).displayYesNoMessage(manager, message, axisID);
     }
@@ -338,8 +336,8 @@ public final class UIHarness {
     return new Point(0, 0);
   }
 
-  public void setCurrentManager(BaseManager currentManager,
-      UniqueKey managerKey, boolean newWindow) {
+  public void setCurrentManager(BaseManager currentManager, UniqueKey managerKey,
+      boolean newWindow) {
     if (isHead()) {
       mainFrame.setCurrentManager(currentManager, managerKey, newWindow);
     }
@@ -371,8 +369,7 @@ public final class UIHarness {
    * @param currentManagerKey
    * @param newWindow
    */
-  public void selectWindowMenuItem(UniqueKey currentManagerKey,
-      boolean newWindow) {
+  public void selectWindowMenuItem(UniqueKey currentManagerKey, boolean newWindow) {
     if (isHead()) {
       mainFrame.selectWindowMenuItem(currentManagerKey, newWindow);
     }
@@ -532,16 +529,16 @@ public final class UIHarness {
     System.err.flush();
   }
 
-  private void logError(String function, ProcessMessages processMessages,
-      String title, AxisID axisID) {
+  private void logError(String function, ProcessMessages processMessages, String title,
+      AxisID axisID) {
     System.err.println();
     System.err.println(function + ", " + axisID + ", " + title + ":");
     processMessages.printError();
     System.err.flush();
   }
 
-  private void logWarning(String function, ProcessMessages processMessages,
-      String title, AxisID axisID) {
+  private void logWarning(String function, ProcessMessages processMessages, String title,
+      AxisID axisID) {
     System.err.println();
     System.err.println(function + ", " + axisID + ", " + title + ":");
     processMessages.printWarning();
@@ -565,8 +562,7 @@ public final class UIHarness {
    * @param title
    * @param axisID
    */
-  private void log(String function, String[] message, String title,
-      AxisID axisID) {
+  private void log(String function, String[] message, String title, AxisID axisID) {
     System.err.println();
     if (title == null) {
       System.err.print(function + ", " + axisID + ":");
@@ -585,6 +581,9 @@ public final class UIHarness {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.40  2010/06/02 21:47:48  sueh
  * <p> bug# 1380 In exit saving the frame location.  Changed
  * <p> EtomoDirector.testDone to testFailed for clarity.

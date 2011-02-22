@@ -70,6 +70,9 @@ import etomo.storage.LogFile;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> $bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p> $
  * <p> $Revision 1.21  2009/09/05 00:36:25  sueh
  * <p> $bug# 1256 Added NUMERIC and ALPHABETIC.
  * <p> $
@@ -344,8 +347,8 @@ public final class Token {
    */
   public Token split(Type type, int startIndex, int size) {
     if (value == null || value.length() <= startIndex + size) {
-      throw new IndexOutOfBoundsException("startIndex + size, " + startIndex
-          + size + ", must be less then value.length," + value.length() + ".");
+      throw new IndexOutOfBoundsException("startIndex + size, " + startIndex + size
+          + ", must be less then value.length," + value.length() + ".");
     }
     Token newToken = new Token();
     newToken.set(type, value.substring(startIndex, startIndex + size));
@@ -560,8 +563,8 @@ public final class Token {
   public void removeListFromHead() {
     if (previous != null) {
       //error - not the head of the list
-      throw new IllegalStateException("Must be the head of the list:  this="
-          + this + ",previos=" + previous + ",next=" + next);
+      throw new IllegalStateException("Must be the head of the list:  this=" + this
+          + ",previos=" + previous + ",next=" + next);
     }
     next = null;
   }

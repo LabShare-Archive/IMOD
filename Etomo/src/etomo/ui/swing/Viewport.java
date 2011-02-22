@@ -30,6 +30,9 @@ import javax.swing.JComponent;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.4  2008/10/07 16:44:41  sueh
  * <p> bug# 1113 Improved names:  changed Viewport.msgViewportMoved to
  * <p> msgViewportPaged.
@@ -60,7 +63,8 @@ final class Viewport {
   private int end = -1;
 
   Viewport(final Viewable viewable, final int size, final JComponent focusableParent1,
-      final JComponent focusableParent2, final JComponent focusableParent3, final String uniqueKey) {
+      final JComponent focusableParent2, final JComponent focusableParent3,
+      final String uniqueKey) {
     this.viewable = viewable;
     if (size < MINUMUM_SIZE) {
       this.size = MINUMUM_SIZE;
@@ -68,8 +72,8 @@ final class Viewport {
     else {
       this.size = size;
     }
-    pagingPanel = PagingPanel.getInstance(this, focusableParent1, focusableParent2, focusableParent3,
-        uniqueKey);
+    pagingPanel = PagingPanel.getInstance(this, focusableParent1, focusableParent2,
+        focusableParent3, uniqueKey);
     pagingPanel.setVisible(false);
   }
 

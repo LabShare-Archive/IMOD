@@ -30,6 +30,10 @@ import etomo.type.UITestSubjectType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2010/02/17 05:04:48  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.6  2009/10/23 19:49:47  sueh
  * <p> bug# 1275 No default manager anymore so don't assume that manager is
  * <p> available.
@@ -70,8 +74,8 @@ final class InterfaceSection extends Assert {
    * @throws IOException
    * @throws LogFile.ReadException
    */
-  Command getGotoFrameCommand(AxisID axisID) throws FileNotFoundException,
-      IOException, LogFile.LockException {
+  Command getGotoFrameCommand(AxisID axisID) throws FileNotFoundException, IOException,
+      LogFile.LockException {
     readSection();
     return (Command) commandMap.get(UITestActionType.GOTO.toString()
         + UITestSubjectType.FRAME.toString() + axisID.getExtension());
@@ -85,8 +89,8 @@ final class InterfaceSection extends Assert {
    * @throws IOException
    * @throws LogFile.ReadException
    */
-  Command getOpenFrameCommand(AxisID axisID) throws FileNotFoundException,
-      IOException, LogFile.LockException {
+  Command getOpenFrameCommand(AxisID axisID) throws FileNotFoundException, IOException,
+      LogFile.LockException {
     readSection();
     return (Command) commandMap.get(UITestActionType.OPEN.toString()
         + UITestSubjectType.FRAME.toString() + axisID.getExtension());
@@ -137,10 +141,10 @@ final class InterfaceSection extends Assert {
     }
     commandMap = new HashMap();
     BaseManager manager = EtomoDirector.INSTANCE.getCurrentManagerForTest();
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager,
-        AutodocFactory.UITEST, AxisID.ONLY);
-    CommandReader reader = CommandReader.getSectionReader(autodoc,
-        SectionType.INTERFACE.toString(), sectionName, null, null);
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, AutodocFactory.UITEST,
+        AxisID.ONLY);
+    CommandReader reader = CommandReader.getSectionReader(autodoc, SectionType.INTERFACE
+        .toString(), sectionName, null, null);
     Command command = null;
     while (!reader.isDone()) {
       command = reader.nextCommand(command);
@@ -150,9 +154,8 @@ final class InterfaceSection extends Assert {
         //actionType
         UITestActionType actionType = command.getActionType();
         Subject subject = command.getSubject();
-        assertNotNull(
-            "action type required for all interface section commands ("
-                + command + ")", actionType);
+        assertNotNull("action type required for all interface section commands ("
+            + command + ")", actionType);
         key.append(actionType.toString());
         //subject type
         UITestSubjectType subjectType = command.getSubjectType();

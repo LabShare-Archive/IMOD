@@ -37,20 +37,17 @@ public final class DatasetFiles {
   public static final String STACK_EXT = ".st";
   public static final String MODEL_EXT = ".mod";
   private static final String PATCH_VECTOR_STRING = "patch_vector";
-  public static final String PATCH_VECTOR_MODEL = PATCH_VECTOR_STRING
+  public static final String PATCH_VECTOR_MODEL = PATCH_VECTOR_STRING + MODEL_EXT;
+  public static final String PATCH_VECTOR_CCC_MODEL = PATCH_VECTOR_STRING + "_ccc"
       + MODEL_EXT;
-  public static final String PATCH_VECTOR_CCC_MODEL = PATCH_VECTOR_STRING
-      + "_ccc" + MODEL_EXT;
   public static final String LOG_EXT = ".log";
   public static final char BACKUP_CHAR = '~';
   public static final String TRANSFER_FID_LOG = "transferfid.log";
   public static final String PATCH_OUT = "patch.out";
-  public static final String VOLCOMBINE_START_LOG = ProcessName.VOLCOMBINE
-      .toString()
+  public static final String VOLCOMBINE_START_LOG = ProcessName.VOLCOMBINE.toString()
       + "-start" + LOG_EXT;
   public static final String PROCESSCHUNKS_FINISH_NAME = "-finish";
-  public static final String VOLCOMBINE_FINISH_LOG = ProcessName.VOLCOMBINE
-      .toString()
+  public static final String VOLCOMBINE_FINISH_LOG = ProcessName.VOLCOMBINE.toString()
       + PROCESSCHUNKS_FINISH_NAME + LOG_EXT;
   public static final String JOIN_EXT = ".join";
   public static final String REFINE_NAME = "_refine";
@@ -78,12 +75,10 @@ public final class DatasetFiles {
   }
 
   public static File getStack(BaseManager manager, AxisID axisID) {
-    return getStack(manager.getPropertyUserDir(), manager.getBaseMetaData(),
-        axisID);
+    return getStack(manager.getPropertyUserDir(), manager.getBaseMetaData(), axisID);
   }
 
-  public static File getStack(String propertyUserDir, BaseMetaData metaData,
-      AxisID axisID) {
+  public static File getStack(String propertyUserDir, BaseMetaData metaData, AxisID axisID) {
     return new File(propertyUserDir, getStackName(metaData, axisID));
   }
 
@@ -96,8 +91,7 @@ public final class DatasetFiles {
     return metaData.getName() + axisID.getExtension() + STACK_EXT;
   }
 
-  public static String getStackName(String dataset, AxisType axisType,
-      AxisID axisID) {
+  public static String getStackName(String dataset, AxisType axisType, AxisID axisID) {
     axisID = correctAxisID(axisType, axisID);
     return dataset + axisID.getExtension() + STACK_EXT;
   }
@@ -111,8 +105,7 @@ public final class DatasetFiles {
   public static File getSeedFile(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
-    return new File(manager.getPropertyUserDir(), getSeedFileName(manager,
-        axisID));
+    return new File(manager.getPropertyUserDir(), getSeedFileName(manager, axisID));
   }
 
   //Tomograms
@@ -127,8 +120,7 @@ public final class DatasetFiles {
   }
 
   public static File getTomogram(BaseManager manager, AxisID axisID) {
-    return new File(manager.getPropertyUserDir(), getTomogramName(manager,
-        axisID));
+    return new File(manager.getPropertyUserDir(), getTomogramName(manager, axisID));
   }
 
   /*
@@ -141,8 +133,7 @@ public final class DatasetFiles {
 
   public static boolean isRotatedTomogram(File tomogram) {
     String tomogramName = tomogram.getName();
-    if (tomogramName.substring(tomogramName.lastIndexOf('.')).equals(
-        ROTATED_TOMO_EXT)) {
+    if (tomogramName.substring(tomogramName.lastIndexOf('.')).equals(ROTATED_TOMO_EXT)) {
       return true;
     }
     return false;
@@ -150,8 +141,8 @@ public final class DatasetFiles {
 
   public static File getRotatedTomogram(BaseManager manager, File tomogram) {
     String tomogramName = tomogram.getName();
-    return new File(manager.getPropertyUserDir(), tomogramName.substring(0,
-        tomogramName.lastIndexOf('.'))
+    return new File(manager.getPropertyUserDir(), tomogramName.substring(0, tomogramName
+        .lastIndexOf('.'))
         + ROTATED_TOMO_EXT);
   }
 
@@ -164,31 +155,27 @@ public final class DatasetFiles {
     return processName.toString() + axisID.getExtension() + LOG_EXT;
   }
 
-  public static File getAxisOnlyComFile(BaseManager manager,
-      ProcessName processName) {
+  public static File getAxisOnlyComFile(BaseManager manager, ProcessName processName) {
     BaseMetaData metaData = manager.getBaseMetaData();
-    return new File(manager.getPropertyUserDir(), processName.toString()
-        + COMSCRIPT_EXT);
+    return new File(manager.getPropertyUserDir(), processName.toString() + COMSCRIPT_EXT);
   }
 
-  public static File getDatasetFile(BaseManager manager, AxisID axisID,
-      String fileExt) {
+  public static File getDatasetFile(BaseManager manager, AxisID axisID, String fileExt) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
     return new File(manager.getPropertyUserDir(), metaData.getName()
         + axisID.getExtension() + fileExt);
   }
 
-  public static File getDatasetFileFromFileName(BaseManager manager,
-      AxisID axisID, String fileName) {
+  public static File getDatasetFileFromFileName(BaseManager manager, AxisID axisID,
+      String fileName) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
     return new File(manager.getPropertyUserDir(), fileName);
   }
 
   public static File getRawTilt(BaseManager manager, AxisID axisID) {
-    return new File(manager.getPropertyUserDir(), getRawTiltName(manager,
-        axisID));
+    return new File(manager.getPropertyUserDir(), getRawTiltName(manager, axisID));
   }
 
   public static String getRawTiltName(BaseManager manager, AxisID axisID) {
@@ -198,8 +185,7 @@ public final class DatasetFiles {
   }
 
   public static File getRawTiltFile(BaseManager manager, AxisID axisID) {
-    return new File(manager.getPropertyUserDir(), getRawTiltName(manager,
-        axisID));
+    return new File(manager.getPropertyUserDir(), getRawTiltName(manager, axisID));
   }
 
   public static String getFlattenWarpOutputName(BaseManager manager) {
@@ -219,17 +205,15 @@ public final class DatasetFiles {
     return metaData.getName() + axisID.getExtension() + ".preali";
   }
 
-  public static String getRaptorFiducialModelName(BaseManager manager,
-      AxisID axisID) {
+  public static String getRaptorFiducialModelName(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
-    return metaData.getName() + axisID.getExtension() + "_raptor"
-        + FIDUCIAL_MODEL_EXT;
+    return metaData.getName() + axisID.getExtension() + "_raptor" + FIDUCIAL_MODEL_EXT;
   }
 
   public static File getRaptorFiducialModel(BaseManager manager, AxisID axisID) {
-    return new File(manager.getPropertyUserDir(), getRaptorFiducialModelName(
-        manager, axisID));
+    return new File(manager.getPropertyUserDir(), getRaptorFiducialModelName(manager,
+        axisID));
   }
 
   public static String getTransformFileName(BaseManager manager, AxisID axisID) {
@@ -265,13 +249,11 @@ public final class DatasetFiles {
   }
 
   public static File getFiducialModelFile(BaseManager manager, AxisID axisID) {
-    return new File(manager.getPropertyUserDir(), getFiducialModelName(manager,
-        axisID));
+    return new File(manager.getPropertyUserDir(), getFiducialModelName(manager, axisID));
   }
 
   public static File getPieceListFile(BaseManager manager, AxisID axisID) {
-    return new File(manager.getPropertyUserDir(), getPieceListFileName(manager,
-        axisID));
+    return new File(manager.getPropertyUserDir(), getPieceListFileName(manager, axisID));
   }
 
   public static String getPieceListFileName(BaseManager manager, AxisID axisID) {
@@ -281,23 +263,19 @@ public final class DatasetFiles {
   }
 
   public static File getMagGradient(BaseManager manager, AxisID axisID) {
-    return new File(manager.getPropertyUserDir(), getMagGradientName(manager,
-        axisID));
+    return new File(manager.getPropertyUserDir(), getMagGradientName(manager, axisID));
   }
 
   public static String getJoinFileName(boolean trial, BaseManager manager) {
-    return manager.getBaseMetaData().getName() + (trial ? "_trial" : "")
-        + JOIN_EXT;
+    return manager.getBaseMetaData().getName() + (trial ? "_trial" : "") + JOIN_EXT;
   }
 
   public static File getJoinFile(boolean trial, BaseManager manager) {
-    return new File(manager.getPropertyUserDir(), getJoinFileName(trial,
-        manager));
+    return new File(manager.getPropertyUserDir(), getJoinFileName(trial, manager));
   }
 
   public static File getMatlabParamFile(BaseManager manager) {
-    return new File(manager.getPropertyUserDir(), manager.getBaseMetaData()
-        .getName()
+    return new File(manager.getPropertyUserDir(), manager.getBaseMetaData().getName()
         + MATLAB_PARAM_FILE_EXT);
   }
 
@@ -326,8 +304,7 @@ public final class DatasetFiles {
   }
 
   public static File getModeledJoinFile(JoinManager manager) {
-    return new File(manager.getPropertyUserDir(),
-        getModeledJoinFileName(manager));
+    return new File(manager.getPropertyUserDir(), getModeledJoinFileName(manager));
   }
 
   public static String getRefineModelFileName(BaseManager manager) {
@@ -339,12 +316,10 @@ public final class DatasetFiles {
   }
 
   public static File getRefineAlignedModelFile(BaseManager manager) {
-    return new File(manager.getPropertyUserDir(),
-        getRefineAlignedModelFileName(manager));
+    return new File(manager.getPropertyUserDir(), getRefineAlignedModelFileName(manager));
   }
 
-  public static String getFullAlignedStackFileName(BaseManager manager,
-      AxisID axisID) {
+  public static String getFullAlignedStackFileName(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
     return metaData.getName() + axisID.getExtension() + FULL_ALIGNED_EXT;
@@ -361,38 +336,34 @@ public final class DatasetFiles {
    manager, axisID));
    }*/
 
-  public static String getErasedFiducialsFileName(BaseManager manager,
-      AxisID axisID) {
+  public static String getErasedFiducialsFileName(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
-    return metaData.getName() + axisID.getExtension()
-        + getErasedFiducialsFileExtension();
+    return metaData.getName() + axisID.getExtension() + getErasedFiducialsFileExtension();
   }
 
   public static String getErasedFiducialsFileExtension() {
     return ERASE_EXT + FULL_ALIGNED_EXT;
   }
 
-  public static String getCtfCorrectionFileName(BaseManager manager,
-      AxisID axisID) {
+  public static String getCtfCorrectionFileName(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
     return metaData.getName() + axisID.getExtension() + CTF_CORRECTION_EXT;
   }
 
   public static File getCtfCorrectionFile(BaseManager manager, AxisID axisID) {
-    return new File(manager.getPropertyUserDir(), getCtfCorrectionFileName(
-        manager, axisID));
+    return new File(manager.getPropertyUserDir(), getCtfCorrectionFileName(manager,
+        axisID));
   }
 
   public static File getRefineModelFile(JoinManager manager) {
-    return new File(manager.getPropertyUserDir(),
-        getRefineModelFileName(manager));
+    return new File(manager.getPropertyUserDir(), getRefineModelFileName(manager));
   }
 
   public static File getSimpleDefocusFile(BaseManager manager, AxisID axisID) {
-    return new File(manager.getPropertyUserDir(), getSimpleDefocusFileName(
-        manager, axisID));
+    return new File(manager.getPropertyUserDir(), getSimpleDefocusFileName(manager,
+        axisID));
   }
 
   public static String getCtfPlotterFileName(BaseManager manager, AxisID axisID) {
@@ -401,8 +372,7 @@ public final class DatasetFiles {
     return metaData.getName() + axisID.getExtension() + CTF_PLOTTER_EXT;
   }
 
-  public static String getSimpleDefocusFileName(BaseManager manager,
-      AxisID axisID) {
+  public static String getSimpleDefocusFileName(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
     return metaData.getName() + axisID.getExtension() + SIMPLE_DEFOCUS_EXT;
@@ -450,11 +420,10 @@ public final class DatasetFiles {
     return name + ".adoc";
   }
 
-  public static File getShellScript(BaseManager manager, String commandName,
-      AxisID axisID) {
+  public static File getShellScript(BaseManager manager, String commandName, AxisID axisID) {
     axisID = correctAxisID(manager.getBaseMetaData(), axisID);
-    return new File(manager.getPropertyUserDir(), commandName
-        + axisID.getExtension() + ".csh");
+    return new File(manager.getPropertyUserDir(), commandName + axisID.getExtension()
+        + ".csh");
   }
 
   public static String getOutFileName(BaseManager manager, String subdirName,
@@ -469,11 +438,9 @@ public final class DatasetFiles {
 
   //log files
 
-  public static String getTomopitchLogFileName(BaseManager manager,
-      AxisID axisID) {
+  public static String getTomopitchLogFileName(BaseManager manager, AxisID axisID) {
     return ProcessName.TOMOPITCH.toString()
-        + correctAxisID(manager.getBaseMetaData(), axisID).getExtension()
-        + LOG_EXT;
+        + correctAxisID(manager.getBaseMetaData(), axisID).getExtension() + LOG_EXT;
   }
 
   //com scripts
@@ -484,8 +451,8 @@ public final class DatasetFiles {
    }*/
 
   //directories
-  public static File getCalibrationDir(BaseManager manager,
-      String propertyUserDir, AxisID axisID) {
+  public static File getCalibrationDir(BaseManager manager, String propertyUserDir,
+      AxisID axisID) {
     if (calibrationDir == null) {
       String calibDirVar = EnvironmentVariable.INSTANCE.getValue(manager,
           propertyUserDir, EnvironmentVariable.CALIB_DIR, axisID);
@@ -496,8 +463,8 @@ public final class DatasetFiles {
     return calibrationDir;
   }
 
-  public static File getDistortionDir(BaseManager manager,
-      String propertyUserDir, AxisID axisID) {
+  public static File getDistortionDir(BaseManager manager, String propertyUserDir,
+      AxisID axisID) {
     if (calibrationDir == null) {
       getCalibrationDir(manager, propertyUserDir, axisID);
     }
@@ -557,6 +524,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.56  2010/04/28 16:50:36  sueh
+ * <p> bug# 1344 Removed unused functions.
+ * <p>
  * <p> Revision 1.55  2010/02/17 05:05:58  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up
  * <p> messages.

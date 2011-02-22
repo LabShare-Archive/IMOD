@@ -14,6 +14,9 @@ package etomo.uitest;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2009/11/20 17:47:29  sueh
+ * <p> bug# 1282 Added CONTAINS.
+ * <p>
  * <p> Revision 1.3  2009/09/22 21:06:32  sueh
  * <p> bug# 1259 Added SAME.
  * <p>
@@ -37,8 +40,7 @@ final class UITestModifierType {
   static final UITestModifierType KEEP = new UITestModifierType("keep");
   static final UITestModifierType NOT = new UITestModifierType("not");
   static final UITestModifierType NOT_EQUALS = new UITestModifierType("not-equals");
-  static final UITestModifierType NOT_EXISTS = new UITestModifierType(
-      "not-exists");
+  static final UITestModifierType NOT_EXISTS = new UITestModifierType("not-exists");
   static final UITestModifierType SAME = new UITestModifierType("same");
   static final UITestModifierType SINGLE = new UITestModifierType("single");
   static final UITestModifierType GE = new UITestModifierType("ge");//greater then or equal to
