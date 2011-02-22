@@ -21,6 +21,9 @@ import etomo.type.EtomoNumber;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1  2010/11/13 16:07:34  sueh
+* <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+* <p>
 * <p> Revision 1.1  2009/03/05 23:30:17  sueh
 * <p> bug# 1194 Holds the frame size and location.
 * <p> </p>
@@ -29,8 +32,7 @@ public final class LogProperties implements ConstLogProperties {
   public static final String rcsid = "$Id$";
 
   private final EtomoNumber frameSizeWidth = new EtomoNumber("FrameSize.Width");
-  private final EtomoNumber frameSizeHeight = new EtomoNumber(
-      "FrameSize.Height");
+  private final EtomoNumber frameSizeHeight = new EtomoNumber("FrameSize.Height");
   private final EtomoNumber frameLocationX = new EtomoNumber("FrameLocation.X");
   private final EtomoNumber frameLocationY = new EtomoNumber("FrameLocation.Y");
 
@@ -51,7 +53,7 @@ public final class LogProperties implements ConstLogProperties {
   }
 
   public Dimension getFrameSize() {
-    if (frameSizeWidth.isNull()||frameSizeHeight.isNull()) {
+    if (frameSizeWidth.isNull() || frameSizeHeight.isNull()) {
       return null;
     }
     return new Dimension(frameSizeWidth.getInt(), frameSizeHeight.getInt());
@@ -108,4 +110,3 @@ public final class LogProperties implements ConstLogProperties {
     return prepend;
   }
 }
-

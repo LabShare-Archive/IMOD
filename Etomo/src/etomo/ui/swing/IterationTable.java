@@ -31,6 +31,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.28  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
@@ -167,28 +170,24 @@ final class IterationTable implements Highlightable {
       UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3DThetaMax = new HeaderCell(MAX_HEADER3,
       UIParameters.INSTANCE.getNumericWidth());
-  private final HeaderCell header3DThetaIncrement = new HeaderCell(
-      INCR_HEADER3, UIParameters.INSTANCE.getNumericWidth());
+  private final HeaderCell header3DThetaIncrement = new HeaderCell(INCR_HEADER3,
+      UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3DPsiMax = new HeaderCell(MAX_HEADER3,
       UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3DPsiIncrement = new HeaderCell(INCR_HEADER3,
       UIParameters.INSTANCE.getNumericWidth());
-  private final HeaderCell header1SearchRadius = new HeaderCell(
-      SEARCH_RADIUS_HEADER1);
-  private final HeaderCell header2SearchRadius = new HeaderCell(
-      SEARCH_RADIUS_HEADER2);
-  private final HeaderCell header3SearchRadius = new HeaderCell(
-      UIParameters.INSTANCE.getIntegerTripletWidth());
+  private final HeaderCell header1SearchRadius = new HeaderCell(SEARCH_RADIUS_HEADER1);
+  private final HeaderCell header2SearchRadius = new HeaderCell(SEARCH_RADIUS_HEADER2);
+  private final HeaderCell header3SearchRadius = new HeaderCell(UIParameters.INSTANCE
+      .getIntegerTripletWidth());
   private final HeaderCell header1Cutoff = new HeaderCell(CUTOFF_HEADER1);
   private final HeaderCell header2Cutoff = new HeaderCell(CUTOFF_HEADER2);
   private final HeaderCell header3HiCutoff = new HeaderCell(HI_CUTOFF_HEADER3,
       UIParameters.INSTANCE.getWideNumericWidth());
-  private final HeaderCell header3LowCutoff = new HeaderCell(
-      LOW_CUTOFF_HEADER3, UIParameters.INSTANCE.getWideNumericWidth());
-  private final HeaderCell header1RefThreshold = new HeaderCell(
-      REF_THRESHOLD_HEADER1);
-  private final HeaderCell header2RefThreshold = new HeaderCell(
-      REF_THRESHOLD_HEADER2);
+  private final HeaderCell header3LowCutoff = new HeaderCell(LOW_CUTOFF_HEADER3,
+      UIParameters.INSTANCE.getWideNumericWidth());
+  private final HeaderCell header1RefThreshold = new HeaderCell(REF_THRESHOLD_HEADER1);
+  private final HeaderCell header2RefThreshold = new HeaderCell(REF_THRESHOLD_HEADER2);
   private final HeaderCell header3RefThreshold = new HeaderCell();
   private final MultiLineButton btnAddRow = new MultiLineButton("Add Row");
   private final MultiLineButton btnCopyRow = new MultiLineButton("Copy Row");
@@ -252,8 +251,7 @@ final class IterationTable implements Highlightable {
    * @param sampleSphere
    * @param flgRemoveDuplicates
    */
-  void updateDisplay(final boolean sampleSphere,
-      final boolean flgRemoveDuplicates) {
+  void updateDisplay(final boolean sampleSphere, final boolean flgRemoveDuplicates) {
     rowList.updateDisplay(sampleSphere, flgRemoveDuplicates);
   }
 
@@ -285,9 +283,8 @@ final class IterationTable implements Highlightable {
 
   private void setToolTipText() {
     btnAddRow.setToolTipText("Add a new iteration row to the table.");
-    btnCopyRow
-        .setToolTipText("Create a new row that is a duplicate of the highlighted "
-            + "row.");
+    btnCopyRow.setToolTipText("Create a new row that is a duplicate of the highlighted "
+        + "row.");
     btnMoveUp.setToolTipText("Move highlighted row up in the table.");
     btnMoveDown.setToolTipText("Move highlighted row down in the table");
     btnDeleteRow.setToolTipText("Remove highlighted row from table.");
@@ -379,8 +376,7 @@ final class IterationTable implements Highlightable {
     }
     if (index == rowList.size() - 1) {
       UIHarness.INSTANCE.openMessageDialog(manager,
-          "Can't move the row down.  Its at the bottom.", "Wrong Row",
-          AxisID.ONLY);
+          "Can't move the row down.  Its at the bottom.", "Wrong Row", AxisID.ONLY);
       return;
     }
     rowList.moveRowDown(index);
@@ -396,8 +392,7 @@ final class IterationTable implements Highlightable {
     btnCopyRow.setEnabled(highlightIndex != -1);
     btnDeleteRow.setEnabled(highlightIndex != -1);
     btnMoveUp.setEnabled(highlightIndex > 0);
-    btnMoveDown.setEnabled(highlightIndex != -1
-        && highlightIndex < rowList.size() - 1);
+    btnMoveDown.setEnabled(highlightIndex != -1 && highlightIndex < rowList.size() - 1);
   }
 
   private void createTable() {
@@ -538,12 +533,11 @@ final class IterationTable implements Highlightable {
       this.table = table;
     }
 
-    private synchronized IterationRow add(final Highlightable parent,
-        final JPanel panel, final GridBagLayout layout,
-        final GridBagConstraints constraints) {
+    private synchronized IterationRow add(final Highlightable parent, final JPanel panel,
+        final GridBagLayout layout, final GridBagConstraints constraints) {
       int index = list.size();
-      IterationRow row = new IterationRow(index, parent, panel, layout,
-          constraints, manager, table);
+      IterationRow row = new IterationRow(index, parent, panel, layout, constraints,
+          manager, table);
       row.setNames();
       list.add(row);
       return row;
@@ -556,9 +550,9 @@ final class IterationTable implements Highlightable {
       }
     }
 
-    private synchronized void delete(IterationRow row,
-        final Highlightable parent, final JPanel panel,
-        final GridBagLayout layout, final GridBagConstraints constraints) {
+    private synchronized void delete(IterationRow row, final Highlightable parent,
+        final JPanel panel, final GridBagLayout layout,
+        final GridBagConstraints constraints) {
       int index = row.getIndex();
       list.remove(index);
       for (int i = index; i < list.size(); i++) {
@@ -568,8 +562,8 @@ final class IterationTable implements Highlightable {
 
     private boolean validateRun() {
       if (list.size() < 1) {
-        UIHarness.INSTANCE.openMessageDialog(manager,
-            "Must enter at least one row in " + LABEL, "Entry Error");
+        UIHarness.INSTANCE.openMessageDialog(manager, "Must enter at least one row in "
+            + LABEL, "Entry Error");
         return false;
       }
       for (int i = 0; i < list.size(); i++) {
@@ -600,9 +594,9 @@ final class IterationTable implements Highlightable {
       }
     }
 
-    private synchronized void copy(IterationRow row,
-        final Highlightable parent, final JPanel panel,
-        final GridBagLayout layout, final GridBagConstraints constraints) {
+    private synchronized void copy(IterationRow row, final Highlightable parent,
+        final JPanel panel, final GridBagLayout layout,
+        final GridBagConstraints constraints) {
       int index = list.size();
       IterationRow copy = new IterationRow(index, row, manager, table);
       copy.setNames();

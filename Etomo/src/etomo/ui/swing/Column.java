@@ -18,6 +18,9 @@ import java.util.List;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1  2010/11/13 16:07:34  sueh
+* <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+* <p>
 * <p> Revision 1.2  2009/09/28 18:34:39  sueh
 * <p> bug# 1235 Adding comments.
 * <p>
@@ -26,21 +29,21 @@ import java.util.List;
 * <p> </p>
 */
 final class Column {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   private final List list = new ArrayList();
-  
+
   private boolean enabled = true;
-  
+
   synchronized void add(Cell cell) {
     cell.setEnabled(enabled);
     list.add(cell);
   }
-  
+
   void setEnabled(boolean enable) {
-    enabled=enable;
-    for (int i = 0;i<list.size();i++) {
-      ((Cell)list.get(i)).setEnabled(enable);
+    enabled = enable;
+    for (int i = 0; i < list.size(); i++) {
+      ((Cell) list.get(i)).setEnabled(enable);
     }
   }
 }

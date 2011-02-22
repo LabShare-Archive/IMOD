@@ -56,8 +56,7 @@ abstract class EtomoFrame extends AbstractFrame {
 
   void initialize() {
     menu = new EtomoMenu(singleFrame);
-    ImageIcon iconEtomo = new ImageIcon(ClassLoader
-        .getSystemResource("images/etomo.png"));
+    ImageIcon iconEtomo = new ImageIcon(ClassLoader.getSystemResource("images/etomo.png"));
     setIconImage(iconEtomo.getImage());
     createMenus();
   }
@@ -153,8 +152,7 @@ abstract class EtomoFrame extends AbstractFrame {
       //Don't allow the user to do the equivalent of a Save As if Save As isn't available.
       if (!currentManager.canChangeParamFileName()) {
         UIHarness.INSTANCE.openMessageDialog(currentManager,
-            "Please set the name of dataset or the join before saving",
-            "Cannot Save");
+            "Please set the name of dataset or the join before saving", "Cannot Save");
         return;
       }
       //Do a Save As
@@ -164,13 +162,11 @@ abstract class EtomoFrame extends AbstractFrame {
     }
     catch (LogFile.LockException e) {
       UIHarness.INSTANCE.openMessageDialog(currentManager,
-          "Unable to write parameters.\n" + e.getMessage(), "Etomo Error",
-          axisID);
+          "Unable to write parameters.\n" + e.getMessage(), "Etomo Error", axisID);
     }
     catch (IOException e) {
       UIHarness.INSTANCE.openMessageDialog(currentManager,
-          "Unable to write parameters.\n" + e.getMessage(), "Etomo Error",
-          axisID);
+          "Unable to write parameters.\n" + e.getMessage(), "Etomo Error", axisID);
     }
   }
 
@@ -181,14 +177,12 @@ abstract class EtomoFrame extends AbstractFrame {
       }
     }
     catch (LogFile.LockException e) {
-      UIHarness.INSTANCE.openMessageDialog(currentManager,
-          "Unable to save parameters.\n" + e.getMessage(), "Etomo Error",
-          axisID);
+      UIHarness.INSTANCE.openMessageDialog(currentManager, "Unable to save parameters.\n"
+          + e.getMessage(), "Etomo Error", axisID);
     }
     catch (IOException e) {
-      UIHarness.INSTANCE.openMessageDialog(currentManager,
-          "Unable to save parameters.\n" + e.getMessage(), "Etomo Error",
-          axisID);
+      UIHarness.INSTANCE.openMessageDialog(currentManager, "Unable to save parameters.\n"
+          + e.getMessage(), "Etomo Error", axisID);
     }
   }
 
@@ -197,8 +191,8 @@ abstract class EtomoFrame extends AbstractFrame {
    * @param event
    */
   void menuFileMRUListAction(ActionEvent event) {
-    EtomoDirector.INSTANCE.openManager(new File(event.getActionCommand()),
-        true, getAxisID());
+    EtomoDirector.INSTANCE.openManager(new File(event.getActionCommand()), true,
+        getAxisID());
   }
 
   /**
@@ -341,13 +335,11 @@ abstract class EtomoFrame extends AbstractFrame {
    * @param message
    * @param title
    */
-  void displayMessage(BaseManager manager, String message, String title,
-      AxisID axisID) {
+  void displayMessage(BaseManager manager, String message, String title, AxisID axisID) {
     getFrame(axisID).openMessageDialog(manager, axisID, message, title);
   }
 
-  void displayInfoMessage(BaseManager manager, String message, String title,
-      AxisID axisID) {
+  void displayInfoMessage(BaseManager manager, String message, String title, AxisID axisID) {
     getFrame(axisID).openInfoMessageDialog(manager, axisID, message, title);
   }
 
@@ -357,8 +349,7 @@ abstract class EtomoFrame extends AbstractFrame {
    * @param title
    */
   void displayMessage(BaseManager manager, String message, String title) {
-    getFrame(AxisID.ONLY).openMessageDialog(manager, AxisID.ONLY, message,
-        title);
+    getFrame(AxisID.ONLY).openMessageDialog(manager, AxisID.ONLY, message, title);
   }
 
   /**
@@ -366,25 +357,21 @@ abstract class EtomoFrame extends AbstractFrame {
    * @param message
    * @param title
    */
-  void displayMessage(BaseManager manager, String[] message, String title,
-      AxisID axisID) {
+  void displayMessage(BaseManager manager, String[] message, String title, AxisID axisID) {
     getFrame(axisID).openMessageDialog(manager, axisID, message, title);
   }
 
-  void displayErrorMessage(BaseManager manager,
-      ProcessMessages processMessages, String title, AxisID axisID) {
-    getFrame(axisID).openErrorMessageDialog(manager, axisID, processMessages,
-        title);
+  void displayErrorMessage(BaseManager manager, ProcessMessages processMessages,
+      String title, AxisID axisID) {
+    getFrame(axisID).openErrorMessageDialog(manager, axisID, processMessages, title);
   }
 
-  void displayWarningMessage(BaseManager manager,
-      ProcessMessages processMessages, String title, AxisID axisID) {
-    getFrame(axisID).openWarningMessageDialog(manager, axisID, processMessages,
-        title);
+  void displayWarningMessage(BaseManager manager, ProcessMessages processMessages,
+      String title, AxisID axisID) {
+    getFrame(axisID).openWarningMessageDialog(manager, axisID, processMessages, title);
   }
 
-  int displayYesNoCancelMessage(BaseManager manager, String[] message,
-      AxisID axisID) {
+  int displayYesNoCancelMessage(BaseManager manager, String[] message, AxisID axisID) {
     return getFrame(axisID).openYesNoCancelDialog(manager, axisID, message);
   }
 
@@ -392,18 +379,15 @@ abstract class EtomoFrame extends AbstractFrame {
     return getFrame(axisID).openYesNoDialog(manager, axisID, message);
   }
 
-  boolean displayDeleteMessage(BaseManager manager, String message[],
-      AxisID axisID) {
+  boolean displayDeleteMessage(BaseManager manager, String message[], AxisID axisID) {
     return getFrame(axisID).openDeleteDialog(manager, axisID, message);
   }
 
-  boolean displayYesNoWarningDialog(BaseManager manager, String message,
-      AxisID axisID) {
+  boolean displayYesNoWarningDialog(BaseManager manager, String message, AxisID axisID) {
     return getFrame(axisID).openYesNoWarningDialog(manager, axisID, message);
   }
 
-  boolean displayYesNoMessage(BaseManager manager, String[] message,
-      AxisID axisID) {
+  boolean displayYesNoMessage(BaseManager manager, String[] message, AxisID axisID) {
     return getFrame(axisID).openYesNoDialog(manager, axisID, message);
   }
 
@@ -423,8 +407,7 @@ abstract class EtomoFrame extends AbstractFrame {
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     File[] edfFiles = workingDir.listFiles(fileFilter);
     if (edfFiles.length == 0) {
-      String metaDataFileName = currentManager.getBaseMetaData()
-          .getMetaDataFileName();
+      String metaDataFileName = currentManager.getBaseMetaData().getMetaDataFileName();
       if (metaDataFileName != null) {
         chooser.setSelectedFile(new File(workingDir, metaDataFileName));
       }
@@ -481,8 +464,7 @@ abstract class EtomoFrame extends AbstractFrame {
    */
   private File openDataFileDialog() {
     //  Open up the file chooser in current working directory
-    JFileChooser chooser = new FileChooser(new File(System
-        .getProperty("user.dir")));
+    JFileChooser chooser = new FileChooser(new File(System.getProperty("user.dir")));
     DataFileFilter fileFilter = new DataFileFilter();
     chooser.setFileFilter(fileFilter);
     chooser.setDialogTitle("Open " + fileFilter.getDescription());
@@ -502,8 +484,7 @@ abstract class EtomoFrame extends AbstractFrame {
     if (mainPanel == null) {
       return null;
     }
-    if (mainPanel.getAxisType() == AxisType.SINGLE_AXIS
-        || mainPanel.isShowingSetup()) {
+    if (mainPanel.getAxisType() == AxisType.SINGLE_AXIS || mainPanel.isShowingSetup()) {
       return AxisID.ONLY;
     }
     if (!mainPanel.isShowingAxisA()) {
@@ -546,6 +527,9 @@ abstract class EtomoFrame extends AbstractFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:35  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.48  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>

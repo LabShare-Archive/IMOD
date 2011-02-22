@@ -22,6 +22,9 @@ import etomo.type.PeetMetaData;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.3  2010/01/13 21:55:30  sueh
  * <p> bug# 1298 Passing parametersOnly to setParameters functions.
  * <p>
@@ -83,8 +86,7 @@ final class CylinderOrientationPanel {
    * Set parameters from metaData.
    * @param metaData
    */
-  void setParameters(final ConstPeetMetaData metaData,
-      final boolean parametersOnly) {
+  void setParameters(final ConstPeetMetaData metaData, final boolean parametersOnly) {
     if (!parametersOnly) {
       sMaskModelPtsModelNumber.setValue(metaData.getMaskModelPtsModelNumber());
       ltfMaskModelPtsParticle.setText(metaData.getMaskModelPtsParticle());
@@ -116,12 +118,10 @@ final class CylinderOrientationPanel {
     //if Cylinder is selected and reference file is in use, then Particle # is
     //required.
     if (parent.isMaskTypeCylinderSelected() && parent.isReferenceFileSelected()
-        && ltfMaskModelPtsParticle.isEnabled()
-        && ltfMaskModelPtsParticle.isEmpty()) {
-      return "In " + MASK_CYLINDER_LABEL + ", " + PARTICLE_LABEL
-          + " is required when " + MaskingPanel.MASK_TYPE_CYLINDER_LABEL + " "
-          + MaskingPanel.MASK_TYPE_LABEL + " is selected and "
-          + ReferencePanel.REFERENCE_FILE_LABEL + " is selected. ";
+        && ltfMaskModelPtsParticle.isEnabled() && ltfMaskModelPtsParticle.isEmpty()) {
+      return "In " + MASK_CYLINDER_LABEL + ", " + PARTICLE_LABEL + " is required when "
+          + MaskingPanel.MASK_TYPE_CYLINDER_LABEL + " " + MaskingPanel.MASK_TYPE_LABEL
+          + " is selected and " + ReferencePanel.REFERENCE_FILE_LABEL + " is selected. ";
     }
     return null;
   }
@@ -131,11 +131,9 @@ final class CylinderOrientationPanel {
    */
   public void updateDisplay() {
     boolean cylinder = parent.isMaskTypeCylinderSelected();
-    sMaskModelPtsModelNumber.setEnabled(cylinder
-        && parent.isReferenceFileSelected());
+    sMaskModelPtsModelNumber.setEnabled(cylinder && parent.isReferenceFileSelected());
     sMaskModelPtsModelNumber.setMax(parent.getVolumeTableSize());
-    ltfMaskModelPtsParticle.setEnabled(cylinder
-        && parent.isReferenceFileSelected());
+    ltfMaskModelPtsParticle.setEnabled(cylinder && parent.isReferenceFileSelected());
   }
 
   private void setTooltips() {

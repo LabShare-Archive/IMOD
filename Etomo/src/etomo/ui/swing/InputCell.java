@@ -52,8 +52,7 @@ abstract class InputCell implements Cell {
 
   abstract void setToolTipText(String toolTipText);
 
-  public final void add(JPanel panel, GridBagLayout layout,
-      GridBagConstraints constraints) {
+  public final void add(JPanel panel, GridBagLayout layout, GridBagConstraints constraints) {
     layout.setConstraints(getComponent(), constraints);
     panel.add(getComponent());
     jpanelContainer = panel;
@@ -146,16 +145,14 @@ abstract class InputCell implements Cell {
 
   void setFont() {
     plainFont = getComponent().getFont();
-    italicFont = new Font(plainFont.getFontName(), Font.ITALIC, plainFont
-        .getSize());
+    italicFont = new Font(plainFont.getFontName(), Font.ITALIC, plainFont.getSize());
   }
 
   private void setBackground(ColorUIResource color) {
     getComponent().setBackground(color);
   }
 
-  void setHeaders(String tableHeader, HeaderCell rowHeader,
-      HeaderCell columnHeader) {
+  void setHeaders(String tableHeader, HeaderCell rowHeader, HeaderCell columnHeader) {
     this.tableHeader = tableHeader;
     this.rowHeader = rowHeader;
     this.columnHeader = columnHeader;
@@ -175,9 +172,8 @@ abstract class InputCell implements Cell {
    * Build the name out of table header, row header, and column header.
    */
   private void setName() {
-    String name = Utilities.convertLabelToName(tableHeader,
-        rowHeader != null ? rowHeader.getText() : null,
-        columnHeader != null ? columnHeader.getText() : null);
+    String name = Utilities.convertLabelToName(tableHeader, rowHeader != null ? rowHeader
+        .getText() : null, columnHeader != null ? columnHeader.getText() : null);
     getComponent().setName(
         getFieldType().toString() + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
@@ -188,6 +184,9 @@ abstract class InputCell implements Cell {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.15  2010/01/13 21:55:43  sueh
  * <p> bug# 1298 Fixed highlight colors.
  * <p>

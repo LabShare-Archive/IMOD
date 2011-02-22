@@ -31,7 +31,11 @@ import etomo.util.Utilities;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2011/02/03 06:13:39  sueh
+* <p> bug# 1422 Child of ProcessorTable that makes a ProcessorTable display
+* <p> CPUs.
+* <p> </p>
 */
 class CpuTable extends ProcessorTable {
   public static final String rcsid = "$Id$";
@@ -48,8 +52,7 @@ class CpuTable extends ProcessorTable {
 
   private final boolean usersColumn;
 
-  CpuTable(final BaseManager manager, final ParallelPanel parent,
-      final AxisID axisID) {
+  CpuTable(final BaseManager manager, final ParallelPanel parent, final AxisID axisID) {
     super(manager, parent, axisID, false);
     usersColumn = CpuAdoc.INSTANCE.isUsersColumn(manager, axisID, manager
         .getPropertyUserDir());
@@ -67,8 +70,7 @@ class CpuTable extends ProcessorTable {
   }
 
   final int getSize() {
-    return Network.getNumComputers(manager, axisID, manager
-        .getPropertyUserDir());
+    return Network.getNumComputers(manager, axisID, manager.getPropertyUserDir());
   }
 
   final ButtonGroup getButtonGroup() {
@@ -76,15 +78,12 @@ class CpuTable extends ProcessorTable {
   }
 
   final Node getNode(final int index) {
-    return Network.getComputer(manager, index, axisID, manager
-        .getPropertyUserDir());
+    return Network.getComputer(manager, index, axisID, manager.getPropertyUserDir());
   }
 
-  ProcessorTableRow createProcessorTableRow(
-      final ProcessorTable processorTable, final Node node,
-      final EtomoNumber number) {
-    return ProcessorTableRow.getComputerInstance(processorTable, node, number
-        .getInt());
+  ProcessorTableRow createProcessorTableRow(final ProcessorTable processorTable,
+      final Node node, final EtomoNumber number) {
+    return ProcessorTableRow.getComputerInstance(processorTable, node, number.getInt());
   }
 
   String getHeader1ComputerText() {
@@ -95,8 +94,8 @@ class CpuTable extends ProcessorTable {
     return false;
   }
 
-  final void addHeader1Load(final JPanel tablePanel,
-      final GridBagLayout layout, final GridBagConstraints constraints) {
+  final void addHeader1Load(final JPanel tablePanel, final GridBagLayout layout,
+      final GridBagConstraints constraints) {
     if (Utilities.isWindowsOS()) {
       constraints.gridwidth = 1;
       header1CPUUsage.add(tablePanel, layout, constraints);
@@ -108,8 +107,8 @@ class CpuTable extends ProcessorTable {
     }
   }
 
-  final void addHeader1Users(final JPanel tablePanel,
-      final GridBagLayout layout, final GridBagConstraints constraints) {
+  final void addHeader1Users(final JPanel tablePanel, final GridBagLayout layout,
+      final GridBagConstraints constraints) {
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -118,8 +117,8 @@ class CpuTable extends ProcessorTable {
     }
   }
 
-  final void addHeader2Load(final JPanel tablePanel,
-      final GridBagLayout layout, final GridBagConstraints constraints) {
+  final void addHeader2Load(final JPanel tablePanel, final GridBagLayout layout,
+      final GridBagConstraints constraints) {
     if (Utilities.isWindowsOS()) {
       header2CPUUsage.add(tablePanel, layout, constraints);
     }
@@ -129,8 +128,8 @@ class CpuTable extends ProcessorTable {
     }
   }
 
-  final void addHeader2Users(final JPanel tablePanel,
-      final GridBagLayout layout, final GridBagConstraints constraints) {
+  final void addHeader2Users(final JPanel tablePanel, final GridBagLayout layout,
+      final GridBagConstraints constraints) {
     if (Utilities.isWindowsOS()) {
       return;
     }

@@ -44,6 +44,9 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2010/12/05 05:12:31  sueh
+ * <p> bug# 1416 Added getUnformattedLabel.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -275,8 +278,7 @@ class MultiLineButton implements ProcessResultDisplay {
    * @param toggleButton
    * @param dialogType
    */
-  MultiLineButton(String label, boolean toggleButton, DialogType dialogType,
-      boolean debug) {
+  MultiLineButton(String label, boolean toggleButton, DialogType dialogType, boolean debug) {
     this.toggleButton = toggleButton;
     this.dialogType = dialogType;
     this.debug = debug;
@@ -299,9 +301,9 @@ class MultiLineButton implements ProcessResultDisplay {
     if (buttonForeground == null) {
       buttonForeground = button.getForeground();
       //creating a readable foreground highlight color
-      buttonHighlightForeground = Colors.subtractColor(
-          Colors.HIGHLIGHT_BACKGROUND, UIUtilities.divideColor(Colors
-              .subtractColor(new Color(255, 255, 255), buttonForeground), 2));
+      buttonHighlightForeground = Colors.subtractColor(Colors.HIGHLIGHT_BACKGROUND,
+          UIUtilities.divideColor(Colors.subtractColor(new Color(255, 255, 255),
+              buttonForeground), 2));
     }
     if (highlight) {
       button.setForeground(buttonHighlightForeground);
@@ -315,8 +317,7 @@ class MultiLineButton implements ProcessResultDisplay {
     return new MultiLineButton(null, true, null, false);
   }
 
-  static final MultiLineButton getToggleButtonInstance(String label,
-      DialogType dialogType) {
+  static final MultiLineButton getToggleButtonInstance(String label, DialogType dialogType) {
     return new MultiLineButton(label, true, dialogType, false);
   }
 
@@ -334,8 +335,7 @@ class MultiLineButton implements ProcessResultDisplay {
    */
   String createButtonStateKey(DialogType dialogType) {
     if (dialogType != null) {
-      stateKey = dialogType.getStorableName() + '.' + button.getName()
-          + ".done";
+      stateKey = dialogType.getStorableName() + '.' + button.getName() + ".done";
     }
     return stateKey;
   }
@@ -389,11 +389,10 @@ class MultiLineButton implements ProcessResultDisplay {
    */
   void setName(String label) {
     String name = Utilities.convertLabelToName(label);
-    button.setName(UITestFieldType.BUTTON.toString()
-        + AutodocTokenizer.SEPARATOR_CHAR + name);
+    button.setName(UITestFieldType.BUTTON.toString() + AutodocTokenizer.SEPARATOR_CHAR
+        + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
-          + ' ');
+      System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
 
@@ -603,8 +602,7 @@ class MultiLineButton implements ProcessResultDisplay {
   }
 
   private static ColorUIResource createDefaultColor(String property) {
-    System.err.println("Warning: Cannot retrieve default UI property: "
-        + property);
+    System.err.println("Warning: Cannot retrieve default UI property: " + property);
     if (property == ENABLED_TEXT_COLOR_PROPERTY) {
       return new ColorUIResource(0, 0, 0);
     }

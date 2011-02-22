@@ -12,6 +12,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.13  2009/01/20 20:22:40  sueh
  * <p> bug# 1102 Gave the progress bar a label that is less likely to be
  * <p> duplicated.
@@ -108,7 +111,7 @@ public final class ProgressPanel {
   public static final String rcsid = "$Id$";
 
   public static final String NAME = "the-progress-bar";
-  public static final String LABEL_NAME = NAME+"-label";
+  public static final String LABEL_NAME = NAME + "-label";
   private static final int MAX_PACK = 5;
 
   private final JPanel panel = new JPanel();
@@ -149,8 +152,7 @@ public final class ProgressPanel {
     taskLabel.setName(LABEL_NAME);
   }
 
-  static ProgressPanel getInstance(String newLabel, BaseManager manager,
-      AxisID axisID) {
+  static ProgressPanel getInstance(String newLabel, BaseManager manager, AxisID axisID) {
     ProgressPanel instance = new ProgressPanel(newLabel, manager, axisID);
     instance.addListeners();
     return instance;
@@ -269,10 +271,11 @@ public final class ProgressPanel {
       }
       setProgressBarValue();
       //  Put the elapsed time into the progress bar string
-      getProgressBar().setString(
-          "Elapsed time: "
-              + Utilities.millisToMinAndSecs(System.currentTimeMillis()
-                  - getStartTime()));
+      getProgressBar()
+          .setString(
+              "Elapsed time: "
+                  + Utilities.millisToMinAndSecs(System.currentTimeMillis()
+                      - getStartTime()));
       validate();
       repaint();
       incrementCounter();
@@ -427,8 +430,7 @@ public final class ProgressPanel {
     return startTime;
   }
 
-  private static final class ProgressTimerActionListener implements
-      ActionListener {
+  private static final class ProgressTimerActionListener implements ActionListener {
     private final ProgressPanel panel;
 
     private ProgressTimerActionListener(final ProgressPanel panel) {

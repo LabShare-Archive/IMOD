@@ -24,6 +24,9 @@ import etomo.type.PeetMetaData;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.2  2009/12/23 02:25:54  sueh
  * <p> bug# 1296 Stop taking tooltips from peetprm.adoc.
  * <p>
@@ -42,13 +45,12 @@ final class MissingWedgeCompensationPanel {
 
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
   private final CheckBox cbTiltRange = new CheckBox(TILT_RANGE_LABEL);
-  private final LabeledTextField ltfEdgeShift = new LabeledTextField(
-      EDGE_SHIFT_LABEL + ": ");
+  private final LabeledTextField ltfEdgeShift = new LabeledTextField(EDGE_SHIFT_LABEL
+      + ": ");
   private final CheckBox cbFlgWedgeWeight = new CheckBox(FLG_WEDGE_WEIGHT_LABEL);
   private final CheckBox cbNWeightGroup = new CheckBox(N_WEIGHT_GROUP_LABEL);
-  private final Spinner sNWeightGroup = Spinner.getInstance(
-      N_WEIGHT_GROUP_LABEL, MatlabParam.N_WEIGHT_GROUP_DEFAULT,
-      MatlabParam.N_WEIGHT_GROUP_MIN, 20);
+  private final Spinner sNWeightGroup = Spinner.getInstance(N_WEIGHT_GROUP_LABEL,
+      MatlabParam.N_WEIGHT_GROUP_DEFAULT, MatlabParam.N_WEIGHT_GROUP_MIN, 20);
 
   private final MissingWedgeCompensationParent parent;
 
@@ -56,10 +58,8 @@ final class MissingWedgeCompensationPanel {
     this.parent = parent;
   }
 
-  static MissingWedgeCompensationPanel getInstance(
-      MissingWedgeCompensationParent parent) {
-    MissingWedgeCompensationPanel instance = new MissingWedgeCompensationPanel(
-        parent);
+  static MissingWedgeCompensationPanel getInstance(MissingWedgeCompensationParent parent) {
+    MissingWedgeCompensationPanel instance = new MissingWedgeCompensationPanel(parent);
     instance.createPanel();
     instance.setTooltips();
     instance.addListeners();
@@ -67,8 +67,7 @@ final class MissingWedgeCompensationPanel {
   }
 
   private void addListeners() {
-    ActionListener actionListener = new MissingWedgeCompensationActionListener(
-        this);
+    ActionListener actionListener = new MissingWedgeCompensationActionListener(this);
     cbTiltRange.addActionListener(actionListener);
     cbFlgWedgeWeight.addActionListener(actionListener);
     cbNWeightGroup.addActionListener(actionListener);
@@ -81,8 +80,7 @@ final class MissingWedgeCompensationPanel {
     SpacedPanel pnlNWeightGroup = SpacedPanel.getInstance();
     //Root panel
     pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
-    pnlRoot.setBorder(new EtchedBorder(MISSING_WEDGE_COMPENSATION_LABEL)
-        .getBorder());
+    pnlRoot.setBorder(new EtchedBorder(MISSING_WEDGE_COMPENSATION_LABEL).getBorder());
     pnlRoot.setComponentAlignmentX(Component.LEFT_ALIGNMENT);
     pnlRoot.add(pnlTiltRange);
     pnlRoot.add(pnlFlgWedgeWeight);
@@ -125,8 +123,7 @@ final class MissingWedgeCompensationPanel {
    * correct.
    * @param metaData
    */
-  public void setParameters(final ConstPeetMetaData metaData,
-      boolean parametersOnly) {
+  public void setParameters(final ConstPeetMetaData metaData, boolean parametersOnly) {
     if (!parametersOnly) {
       cbFlgWedgeWeight.setSelected(metaData.isFlgWedgeWeight());
     }
@@ -168,8 +165,7 @@ final class MissingWedgeCompensationPanel {
 
   private boolean isFlgWedgeWeightEnabled() {
     return !parent.isVolumeTableEmpty() && cbTiltRange.isSelected()
-        && cbFlgWedgeWeight.isSelected()
-        && parent.isReferenceParticleSelected();
+        && cbFlgWedgeWeight.isSelected() && parent.isReferenceParticleSelected();
   }
 
   boolean isTiltRangeSelected() {
@@ -201,8 +197,7 @@ final class MissingWedgeCompensationPanel {
     ltfEdgeShift.setEnabled(cbTiltRange.isSelected());
     cbFlgWedgeWeight.setEnabled(cbTiltRange.isSelected());
     cbNWeightGroup.setEnabled(isFlgWedgeWeightEnabled());
-    sNWeightGroup.setEnabled(isFlgWedgeWeightEnabled()
-        && cbNWeightGroup.isSelected());
+    sNWeightGroup.setEnabled(isFlgWedgeWeightEnabled() && cbNWeightGroup.isSelected());
   }
 
   boolean isFlgWedgeWeightSelected() {
@@ -243,20 +238,16 @@ final class MissingWedgeCompensationPanel {
   }
 
   private void setTooltips() {
-    cbTiltRange
-        .setToolTipText("Use the tilt range(s) specified in the volume table for "
-            + "missing wedge compensation during averaging.");
+    cbTiltRange.setToolTipText("Use the tilt range(s) specified in the volume table for "
+        + "missing wedge compensation during averaging.");
     cbFlgWedgeWeight
         .setToolTipText("Use the tilt range(s) specified in the volume table for "
             + "missing wedge compensation during alignment.");
-    cbNWeightGroup
-        .setToolTipText("Divide particles into groups by wedge weight and "
-            + "equalize median cross-correlation coefficient between groups, in "
-            + "order to reduce bias introduced by imperfect missing wedge "
-            + "compensation");
-    sNWeightGroup
-        .setToolTipText("Number of groups to use for equalizing median cross-"
-            + "correlation coefficient between groups.");
+    cbNWeightGroup.setToolTipText("Divide particles into groups by wedge weight and "
+        + "equalize median cross-correlation coefficient between groups, in "
+        + "order to reduce bias introduced by imperfect missing wedge " + "compensation");
+    sNWeightGroup.setToolTipText("Number of groups to use for equalizing median cross-"
+        + "correlation coefficient between groups.");
     ltfEdgeShift
         .setToolTipText("Number of pixels to shift the edge of the wedge mask to "
             + "include frequency information just inside the missing wedge.");

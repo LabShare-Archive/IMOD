@@ -1,6 +1,5 @@
 package etomo.ui.swing;
 
-
 /**
 * <p>Description: </p>
 * 
@@ -15,19 +14,31 @@ package etomo.ui.swing;
 * @version $Revision$
 */
 public interface LoadDisplay {
-  public static  final String  rcsid =  "$Id$";
-  
-  public void setLoad(String computer, double load1, double load5, int users, String usersTooltip);
-  public void msgLoadFailed(String computer, String reason,String tooltip);
-  public void msgStartingProcess(String computer, String failureReason1,String failureReason2);
+  public static final String rcsid = "$Id$";
+
+  public void setLoad(String computer, double load1, double load5, int users,
+      String usersTooltip);
+
+  public void msgLoadFailed(String computer, String reason, String tooltip);
+
+  public void msgStartingProcess(String computer, String failureReason1,
+      String failureReason2);
+
   public void setCPUUsage(String computer, double CPUUsage);
+
   public void startLoad();
+
   public void stopLoad();
+
   public void endLoad();
+
   public void setLoad(String computer, String[] loadArray);
 }
 /**
 * <p> $Log$
+* <p> Revision 1.1  2010/11/13 16:07:34  sueh
+* <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+* <p>
 * <p> Revision 1.1  2007/09/27 20:52:52  sueh
 * <p> bug# 1044 Changed "Load average" to "Load".  "Load average" now refers to the load average received when displaying computers in the processor table.  "Load" refers to any kind of load.
 * <p>

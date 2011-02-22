@@ -28,6 +28,11 @@ import etomo.type.ProcessTrack;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/03 06:22:16  sueh
+ * <p> bug# 1422 Control of the processing method has been centralized in the
+ * <p> processing method mediator class.  Implementing ProcessInterface.
+ * <p> Supplying processes with the current processing method.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -205,29 +210,21 @@ public class MainTomogramPanel extends MainPanel {
     }
 
     axisPanelA.setPreProcState(processTrack.getPreProcessingState(AxisID.ONLY));
-    axisPanelA.setCoarseAlignState(processTrack
-        .getCoarseAlignmentState(AxisID.ONLY));
-    axisPanelA.setFiducialModelState(processTrack
-        .getFiducialModelState(AxisID.ONLY));
-    axisPanelA.setFineAlignmentState(processTrack
-        .getFineAlignmentState(AxisID.ONLY));
+    axisPanelA.setCoarseAlignState(processTrack.getCoarseAlignmentState(AxisID.ONLY));
+    axisPanelA.setFiducialModelState(processTrack.getFiducialModelState(AxisID.ONLY));
+    axisPanelA.setFineAlignmentState(processTrack.getFineAlignmentState(AxisID.ONLY));
     axisPanelA.setTomogramPositioningState(processTrack
         .getTomogramPositioningState(AxisID.ONLY));
     axisPanelA.setFinalAlignedStackState(processTrack
         .getFinalAlignedStackState(AxisID.ONLY));
     axisPanelA.setTomogramGenerationState(processTrack
         .getTomogramGenerationState(AxisID.ONLY));
-    axisPanelA.setTomogramCombinationState(processTrack
-        .getTomogramCombinationState());
+    axisPanelA.setTomogramCombinationState(processTrack.getTomogramCombinationState());
     if (manager.isDualAxis()) {
-      axisPanelB.setPreProcState(processTrack
-          .getPreProcessingState(AxisID.SECOND));
-      axisPanelB.setCoarseAlignState(processTrack
-          .getCoarseAlignmentState(AxisID.SECOND));
-      axisPanelB.setFiducialModelState(processTrack
-          .getFiducialModelState(AxisID.SECOND));
-      axisPanelB.setFineAlignmentState(processTrack
-          .getFineAlignmentState(AxisID.SECOND));
+      axisPanelB.setPreProcState(processTrack.getPreProcessingState(AxisID.SECOND));
+      axisPanelB.setCoarseAlignState(processTrack.getCoarseAlignmentState(AxisID.SECOND));
+      axisPanelB.setFiducialModelState(processTrack.getFiducialModelState(AxisID.SECOND));
+      axisPanelB.setFineAlignmentState(processTrack.getFineAlignmentState(AxisID.SECOND));
       axisPanelB.setTomogramPositioningState(processTrack
           .getTomogramPositioningState(AxisID.SECOND));
       axisPanelB.setFinalAlignedStackState(processTrack
@@ -402,8 +399,7 @@ public class MainTomogramPanel extends MainPanel {
   }
 
   protected void createAxisPanelB() {
-    axisPanelB = new TomogramProcessPanel((ApplicationManager) manager,
-        AxisID.SECOND);
+    axisPanelB = new TomogramProcessPanel((ApplicationManager) manager, AxisID.SECOND);
   }
 
   /**

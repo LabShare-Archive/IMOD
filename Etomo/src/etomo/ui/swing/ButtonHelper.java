@@ -12,6 +12,9 @@
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 1.1  2010/11/13 16:07:34  sueh
+* <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+* <p>
 * <p> Revision 3.6  2006/07/20 17:19:25  sueh
 * <p> bug# 848 Made UIParameters a singleton.
 * <p>
@@ -61,8 +64,9 @@ import javax.swing.UIManager;
  */
 public class ButtonHelper {
   public static final String rcsid = "$$Id$$";
-  
-  static final Dimension MULTI_LINE_BUTTON_DIM = UIParameters.INSTANCE.getButtonDimension();
+
+  static final Dimension MULTI_LINE_BUTTON_DIM = UIParameters.INSTANCE
+      .getButtonDimension();
 
   public static String format(String text) {
     if (text == null) {
@@ -74,7 +78,7 @@ public class ButtonHelper {
     text = "<html><b>".concat(text).concat("</b>");
     return text;
   }
-  
+
   final static void setStandardSize(AbstractButton button) {
     button.setPreferredSize(ButtonHelper.MULTI_LINE_BUTTON_DIM);
     button.setMaximumSize(ButtonHelper.MULTI_LINE_BUTTON_DIM);

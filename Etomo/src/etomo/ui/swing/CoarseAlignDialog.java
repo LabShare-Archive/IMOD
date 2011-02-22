@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2010/12/05 04:59:01  sueh
+ * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:35  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -292,8 +295,8 @@ import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.ViewType;
 
-public final class CoarseAlignDialog extends ProcessDialog implements
-    ContextMenu, FiducialessParams, Run3dmodButtonContainer {
+public final class CoarseAlignDialog extends ProcessDialog implements ContextMenu,
+    FiducialessParams, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
   private final EtomoPanel pnlCoarseAlign = new EtomoPanel();
@@ -304,8 +307,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements
 
   private final JPanel pnlFiducialess = new JPanel();
   private final CheckBox cbFiducialess = new CheckBox("Fiducialless alignment");
-  private final LabeledTextField ltfRotation = new LabeledTextField(
-      "Tilt axis rotation:");
+  private final LabeledTextField ltfRotation = new LabeledTextField("Tilt axis rotation:");
   private final ActionListener actionListener;
 
   private final MultiLineButton btnMidas;
@@ -324,10 +326,10 @@ public final class CoarseAlignDialog extends ProcessDialog implements
     btnFixEdgesMidas = (MultiLineButton) displayFactory.getFixEdgesMidas();
     btnMidas = (MultiLineButton) displayFactory.getMidas();
     setToolTipText();
-    tiltxcorrPanel = TiltxcorrPanel.getCrossCorrelationInstance(
-        applicationManager, axisID, dialogType, btnAdvanced, this);
-    pnlPrenewst = new PrenewstPanel(applicationManager, axisID, dialogType,
-        this, btnAdvanced);
+    tiltxcorrPanel = TiltxcorrPanel.getCrossCorrelationInstance(applicationManager,
+        axisID, dialogType, btnAdvanced, this);
+    pnlPrenewst = new PrenewstPanel(applicationManager, axisID, dialogType, this,
+        btnAdvanced);
     btnExecute.setText("Done");
 
     pnlFiducialess.setLayout(new BoxLayout(pnlFiducialess, BoxLayout.Y_AXIS));
@@ -337,8 +339,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements
 
     pnlCoarseAlign.setLayout(new BoxLayout(pnlCoarseAlign, BoxLayout.Y_AXIS));
     pnlCoarseAlign.setBorder(new BeveledBorder("Coarse Alignment").getBorder());
-    UIUtilities.addWithSpace(pnlCoarseAlign, tiltxcorrPanel.getPanel(),
-        FixedDim.x0_y10);
+    UIUtilities.addWithSpace(pnlCoarseAlign, tiltxcorrPanel.getPanel(), FixedDim.x0_y10);
     if (metaData.getViewType() == ViewType.MONTAGE) {
       SpacedPanel pnlFixEdges = SpacedPanel.getInstance();
       pnlFixEdges.setBoxLayout(BoxLayout.Y_AXIS);
@@ -353,11 +354,9 @@ public final class CoarseAlignDialog extends ProcessDialog implements
       }
       setEnabledFixEdgesMidasButton();
     }
-    UIUtilities.addWithSpace(pnlCoarseAlign, pnlPrenewst.getPanel(),
-        FixedDim.x0_y10);
+    UIUtilities.addWithSpace(pnlCoarseAlign, pnlPrenewst.getPanel(), FixedDim.x0_y10);
     UIUtilities.addWithSpace(pnlCoarseAlign, pnlFiducialess, FixedDim.x0_y10);
-    UIUtilities.addWithSpace(pnlCoarseAlign, btnMidas.getComponent(),
-        FixedDim.x0_y10);
+    UIUtilities.addWithSpace(pnlCoarseAlign, btnMidas.getComponent(), FixedDim.x0_y10);
 
     // Set the alignment and size of the UI objects
     UIUtilities.alignComponentsX(pnlCoarseAlign, Component.CENTER_ALIGNMENT);
@@ -373,8 +372,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements
     updateAdvanced();
   }
 
-  public static CoarseAlignDialog getInstance(ApplicationManager appMgr,
-      AxisID axisID) {
+  public static CoarseAlignDialog getInstance(ApplicationManager appMgr, AxisID axisID) {
     CoarseAlignDialog instance = new CoarseAlignDialog(appMgr, axisID);
     instance.addListeners();
     return instance;
@@ -497,17 +495,16 @@ public final class CoarseAlignDialog extends ProcessDialog implements
       alignLogfileLabel = "Prenewst";
       alignLogfile = "prenewst";
     }
-    String[] manPagelabel = { "Tiltxcorr", "Xftoxg", alignManpageLabel,
-        "3dmod", "Midas" };
-    String[] manPage = { "tiltxcorr.html", "xftoxg.html",
-        alignManpage + ".html", "3dmod.html", "midas.html" };
+    String[] manPagelabel = { "Tiltxcorr", "Xftoxg", alignManpageLabel, "3dmod", "Midas" };
+    String[] manPage = { "tiltxcorr.html", "xftoxg.html", alignManpage + ".html",
+        "3dmod.html", "midas.html" };
     String[] logFileLabel = { "Xcorr", alignLogfileLabel };
     String[] logFile = new String[2];
     logFile[0] = "xcorr" + axisID.getExtension() + ".log";
     logFile[1] = alignLogfile + axisID.getExtension() + ".log";
     ContextPopup contextPopup = new ContextPopup(pnlCoarseAlign, mouseEvent,
-        "COARSE ALIGNMENT", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
-        logFileLabel, logFile, applicationManager, axisID);
+        "COARSE ALIGNMENT", ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel,
+        logFile, applicationManager, axisID);
   }
 
   /**
@@ -526,8 +523,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements
         .setToolTipText("Use Midas to adjust the alignment of the montage frames.");
   }
 
-  public void action(Run3dmodButton button,
-      Run3dmodMenuOptions run3dmodMenuOptions) {
+  public void action(Run3dmodButton button, Run3dmodMenuOptions run3dmodMenuOptions) {
     buttonAction(button.getActionCommand(), run3dmodMenuOptions);
   }
 

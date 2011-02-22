@@ -26,6 +26,9 @@ import javax.swing.border.BevelBorder;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.3  2009/10/15 23:32:11  sueh
  * <p> bug# 1274 Added setHeaders to allow non-automatic naming.
  * <p>
@@ -52,8 +55,7 @@ final class HighlighterButton {
    * @param parent
    * @param group
    */
-  private HighlighterButton(final Highlightable parent,
-      final Highlightable group) {
+  private HighlighterButton(final Highlightable parent, final Highlightable group) {
     this.parent = parent;
     this.group = group;
     //group
@@ -76,8 +78,7 @@ final class HighlighterButton {
     return instance;
   }
 
-  void setHeaders(String tableHeader, HeaderCell rowHeader,
-      HeaderCell columnHeader) {
+  void setHeaders(String tableHeader, HeaderCell rowHeader, HeaderCell columnHeader) {
     cell.setTableHeader(tableHeader);
     cell.setRowHeader(rowHeader);
     cell.setColumnHeader(columnHeader);

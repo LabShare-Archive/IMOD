@@ -34,6 +34,9 @@ import javax.swing.border.BevelBorder;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.3  2008/10/07 16:43:13  sueh
  * <p> bug# 1113 Improved named - changed parent... to focusableParent....
  * <p>
@@ -63,9 +66,9 @@ final class PagingPanel {
   private final JComponent focusableParent3;
   private final String uniqueKey;
 
-  private PagingPanel(final Viewport viewport,
-      final JComponent focusableParent1, final JComponent focusableParent2,
-      final JComponent focusableParent3, final String uniqueKey) {
+  private PagingPanel(final Viewport viewport, final JComponent focusableParent1,
+      final JComponent focusableParent2, final JComponent focusableParent3,
+      final String uniqueKey) {
     this.viewport = viewport;
     this.focusableParent1 = focusableParent1;
     this.focusableParent2 = focusableParent2;
@@ -96,8 +99,8 @@ final class PagingPanel {
   static PagingPanel getInstance(final Viewport viewport,
       final JComponent focusableParent1, final JComponent focusableParent2,
       final JComponent focusableParent3, final String uniqueKey) {
-    PagingPanel instance = new PagingPanel(viewport, focusableParent1,
-        focusableParent2, focusableParent3, uniqueKey);
+    PagingPanel instance = new PagingPanel(viewport, focusableParent1, focusableParent2,
+        focusableParent3, uniqueKey);
     instance.init(focusableParent1 != null || focusableParent2 != null
         || focusableParent3 != null);
     instance.addListeners();
@@ -106,10 +109,8 @@ final class PagingPanel {
 
   private void init(boolean hotkeys) {
     setupButton(btnHome, "home.png", "Top of table");
-    setupButton(btnPageUp, "pageUp.png", "Page up"
-        + (hotkeys ? " - Page Up button" : ""));
-    setupButton(btnUp, "up.png", "Up one line"
-        + (hotkeys ? " - Up Arrow button" : ""));
+    setupButton(btnPageUp, "pageUp.png", "Page up" + (hotkeys ? " - Page Up button" : ""));
+    setupButton(btnUp, "up.png", "Up one line" + (hotkeys ? " - Up Arrow button" : ""));
     setupButton(btnDown, "down.png", "Down one line"
         + (hotkeys ? " - Down Arrow button" : ""));
     setupButton(btnPageDown, "pageDown.png", "Page down"
@@ -121,8 +122,7 @@ final class PagingPanel {
       final String tooltip) {
     button.setManualName();
     button.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
-    button.setIcon(new ImageIcon(ClassLoader.getSystemResource("images/"
-        + iconFile)));
+    button.setIcon(new ImageIcon(ClassLoader.getSystemResource("images/" + iconFile)));
     Dimension size = button.getPreferredSize();
     if (size.width < size.height) {
       size.width = size.height;
@@ -173,12 +173,9 @@ final class PagingPanel {
     btnHome.addActionListener(new PagingPanelHomeListener(viewport));
     //page up
     AbstractAction action = new PagingPanelPageUpAction(viewport);
-    addAction(inputMap1, actionMap1, KeyEvent.VK_PAGE_UP,
-        uniqueKey + "PAGE_UP", action);
-    addAction(inputMap2, actionMap2, KeyEvent.VK_PAGE_UP,
-        uniqueKey + "PAGE_UP", action);
-    addAction(inputMap3, actionMap3, KeyEvent.VK_PAGE_UP,
-        uniqueKey + "PAGE_UP", action);
+    addAction(inputMap1, actionMap1, KeyEvent.VK_PAGE_UP, uniqueKey + "PAGE_UP", action);
+    addAction(inputMap2, actionMap2, KeyEvent.VK_PAGE_UP, uniqueKey + "PAGE_UP", action);
+    addAction(inputMap3, actionMap3, KeyEvent.VK_PAGE_UP, uniqueKey + "PAGE_UP", action);
     btnPageUp.addActionListener(action);
     //up
     action = new PagingPanelUpAction(viewport);
@@ -188,21 +185,18 @@ final class PagingPanel {
     btnUp.addActionListener(action);
     //down
     action = new PagingPanelDownAction(viewport);
-    addAction(inputMap1, actionMap1, KeyEvent.VK_DOWN, uniqueKey + "DOWN",
-        action);
-    addAction(inputMap2, actionMap2, KeyEvent.VK_DOWN, uniqueKey + "DOWN",
-        action);
-    addAction(inputMap3, actionMap3, KeyEvent.VK_DOWN, uniqueKey + "DOWN",
-        action);
+    addAction(inputMap1, actionMap1, KeyEvent.VK_DOWN, uniqueKey + "DOWN", action);
+    addAction(inputMap2, actionMap2, KeyEvent.VK_DOWN, uniqueKey + "DOWN", action);
+    addAction(inputMap3, actionMap3, KeyEvent.VK_DOWN, uniqueKey + "DOWN", action);
     btnDown.addActionListener(action);
     //page down
     action = new PagingPanelPageDownAction(viewport);
-    addAction(inputMap1, actionMap1, KeyEvent.VK_PAGE_DOWN, uniqueKey
-        + "PAGE_DOWN", action);
-    addAction(inputMap2, actionMap2, KeyEvent.VK_PAGE_DOWN, uniqueKey
-        + "PAGE_DOWN", action);
-    addAction(inputMap3, actionMap3, KeyEvent.VK_PAGE_DOWN, uniqueKey
-        + "PAGE_DOWN", action);
+    addAction(inputMap1, actionMap1, KeyEvent.VK_PAGE_DOWN, uniqueKey + "PAGE_DOWN",
+        action);
+    addAction(inputMap2, actionMap2, KeyEvent.VK_PAGE_DOWN, uniqueKey + "PAGE_DOWN",
+        action);
+    addAction(inputMap3, actionMap3, KeyEvent.VK_PAGE_DOWN, uniqueKey + "PAGE_DOWN",
+        action);
     btnPageDown.addActionListener(action);
     //end
     btnEnd.addActionListener(new PagingPanelEndListener(viewport));

@@ -31,6 +31,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.5  2010/04/28 16:42:38  sueh
  * <p> bug# 1344 In getParameters(NewstParam) passing the FileType to
  * <p> setOutputFile.
@@ -50,8 +53,8 @@ import etomo.util.InvalidParameterException;
  * <p> bug# 1222
  * <p> </p>
  */
-final class Newstack3dFindPanel extends NewstackOrBlendmont3dFindPanel
-    implements NewstackDisplay {
+final class Newstack3dFindPanel extends NewstackOrBlendmont3dFindPanel implements
+    NewstackDisplay {
   public static final String rcsid = "$Id$";
 
   private Newstack3dFindPanel(ApplicationManager manager, AxisID axisID,
@@ -59,11 +62,10 @@ final class Newstack3dFindPanel extends NewstackOrBlendmont3dFindPanel
     super(manager, axisID, dialogType, parent);
   }
 
-  static Newstack3dFindPanel getInstance(ApplicationManager manager,
-      AxisID axisID, DialogType dialogType,
-      NewstackOrBlendmont3dFindParent parent) {
-    Newstack3dFindPanel instance = new Newstack3dFindPanel(manager, axisID,
-        dialogType, parent);
+  static Newstack3dFindPanel getInstance(ApplicationManager manager, AxisID axisID,
+      DialogType dialogType, NewstackOrBlendmont3dFindParent parent) {
+    Newstack3dFindPanel instance = new Newstack3dFindPanel(manager, axisID, dialogType,
+        parent);
     instance.createPanel();
     instance.addListeners();
     instance.setToolTipText();
@@ -74,12 +76,11 @@ final class Newstack3dFindPanel extends NewstackOrBlendmont3dFindPanel
     setBinning(param.getBinByFactor());
   }
 
-  public void getParameters(NewstParam newstParam)
-      throws FortranInputSyntaxException, InvalidParameterException,
-      IOException {
+  public void getParameters(NewstParam newstParam) throws FortranInputSyntaxException,
+      InvalidParameterException, IOException {
     newstParam.setCommandMode(NewstParam.Mode.FULL_ALIGNED_STACK);
-    newstParam.setFiducialessAlignment(manager.getMetaData()
-        .isFiducialessAlignment(axisID));
+    newstParam.setFiducialessAlignment(manager.getMetaData().isFiducialessAlignment(
+        axisID));
     int binning = getBinning();
     // Only explicitly write out the binning if its value is something other than
     // the default of 1 to keep from cluttering up the com script  
@@ -91,22 +92,18 @@ final class Newstack3dFindPanel extends NewstackOrBlendmont3dFindPanel
     }
     //Get the rest of the parameters from current state of the final stack
     TomogramState state = manager.getState();
-    newstParam.setLinearInterpolation(state
-        .isStackUseLinearInterpolation(axisID));
-    newstParam.setSizeToOutputInXandY(state
-        .getStackUserSizeToOutputInXandY(axisID), getBinning(), manager
-        .getMetaData().getImageRotation(axisID));
+    newstParam.setLinearInterpolation(state.isStackUseLinearInterpolation(axisID));
+    newstParam.setSizeToOutputInXandY(state.getStackUserSizeToOutputInXandY(axisID),
+        getBinning(), manager.getMetaData().getImageRotation(axisID));
     //Set output file because this file was copied from newst.com
     Vector outputFile = new Vector();
-    outputFile.add(FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT.getFileName(manager,
-        axisID));
+    outputFile.add(FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT.getFileName(manager, axisID));
     newstParam.setOutputFile(FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT);
     newstParam.setProcessName(ProcessName.NEWST_3D_FIND);
   }
 
   void runProcess(final ProcessResultDisplay processResultDisplay,
-      final ProcessSeries processSeries,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
+      final ProcessSeries processSeries, final Run3dmodMenuOptions run3dmodMenuOptions) {
     manager.newst3dFind(processResultDisplay, processSeries, null, axisID,
         run3dmodMenuOptions, dialogType, this);
   }
@@ -120,8 +117,7 @@ final class Newstack3dFindPanel extends NewstackOrBlendmont3dFindPanel
    * @param deferred3dmodButton
    * @param run3dmodMenuOptions
    */
-  void action(final String command,
-      final Deferred3dmodButton deferred3dmodButton,
+  void action(final String command, final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(get3dmodFullButtonActionCommand())) {
       manager.imodFineAlign3dFind(axisID, run3dmodMenuOptions);

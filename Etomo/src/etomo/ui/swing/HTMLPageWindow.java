@@ -25,6 +25,9 @@ import javax.swing.text.html.HTMLEditorKit;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.2  2004/04/08 19:07:53  rickg
  * <p> Bug #422 added setDefaultCloseOperation call to constructor
  * <p>
@@ -59,14 +62,12 @@ import javax.swing.text.html.HTMLEditorKit;
  * <p> </p>
  */
 public class HTMLPageWindow extends JFrame implements HyperlinkListener {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   Container mainPanel;
   String url;
   JEditorPane editorPane = new JEditorPane();
   JScrollPane scrollPane = new JScrollPane(editorPane);
-
 
   public HTMLPageWindow() {
     editorPane.setEditorKit(new HTMLEditorKit());
@@ -89,7 +90,7 @@ public class HTMLPageWindow extends JFrame implements HyperlinkListener {
     }
     catch (Exception except) {
       System.err.println("Cannot open URL:");
-	  System.err.println(newURL);
+      System.err.println(newURL);
       except.printStackTrace();
     }
   }

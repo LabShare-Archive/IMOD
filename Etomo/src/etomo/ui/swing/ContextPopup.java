@@ -32,6 +32,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.20  2010/05/28 20:00:12  sueh
  * <p> bug# 1382 Removed calls to a deprecated Java function (File.toURL) in
  * <p> calcImodURL.
@@ -205,8 +208,8 @@ public class ContextPopup {
    * @param mouseEvent The mouse event that opened the menu.
    * @param tomoAnchor The tomography guide HTML anchor for the current popup.
    */
-  public ContextPopup(Component component, MouseEvent mouseEvent,
-      String tomoAnchor, final BaseManager manager, final AxisID axisID) {
+  public ContextPopup(Component component, MouseEvent mouseEvent, String tomoAnchor,
+      final BaseManager manager, final AxisID axisID) {
 
     this.mouseEvent = mouseEvent;
     anchor = tomoAnchor;
@@ -239,9 +242,9 @@ public class ContextPopup {
    * @param manPageLabel The string array of man page labels for the menu.
    * @param manPage The name of the HTML man pages.
    */
-  public ContextPopup(Component component, MouseEvent mouseEvent,
-      String tomoAnchor, final String guideToAnchor, String[] manPageLabel,
-      String[] manPage, final BaseManager manager, final AxisID axisID) {
+  public ContextPopup(Component component, MouseEvent mouseEvent, String tomoAnchor,
+      final String guideToAnchor, String[] manPageLabel, String[] manPage,
+      final BaseManager manager, final AxisID axisID) {
 
     // Check to make sure that the menu label and man page arrays are the same
     // length
@@ -265,13 +268,12 @@ public class ContextPopup {
 
         for (int i = 0; i < getManPageItem().length; i++) {
           if (actionEvent.getActionCommand() == getManPageItem()[i].getText()) {
-            ImodqtassistProcess.INSTANCE.open(manager, "man/"
-                + getManPageName()[i], axisID);
+            ImodqtassistProcess.INSTANCE.open(manager, "man/" + getManPageName()[i],
+                axisID);
           }
         }
 
-        globalItemAction(actionEvent, guideLocation, guideToAnchor, manager,
-            axisID);
+        globalItemAction(actionEvent, guideLocation, guideToAnchor, manager, axisID);
 
         //  Close the menu
         setVisible(false);
@@ -291,9 +293,8 @@ public class ContextPopup {
    * @param tomoAnchor
    * @param guideToAnchor
    */
-  public ContextPopup(Component component, MouseEvent mouseEvent,
-      String tomoAnchor, final String guideToAnchor, final BaseManager manager,
-      final AxisID axisID) {
+  public ContextPopup(Component component, MouseEvent mouseEvent, String tomoAnchor,
+      final String guideToAnchor, final BaseManager manager, final AxisID axisID) {
 
     this.mouseEvent = mouseEvent;
     anchor = tomoAnchor;
@@ -307,8 +308,7 @@ public class ContextPopup {
         if (anchor != null && !anchor.equals("")) {
           guideLocation += "#" + anchor;
         }
-        globalItemAction(actionEvent, guideLocation, guideToAnchor, manager,
-            axisID);
+        globalItemAction(actionEvent, guideLocation, guideToAnchor, manager, axisID);
         //  Close the menu
         setVisible(false);
       }
@@ -332,10 +332,10 @@ public class ContextPopup {
    * @param logFile The string arrays of names of the log files.
    * @param manager
    */
-  public ContextPopup(Component component, MouseEvent mouseEvent,
-      String tomoAnchor, final String guideToAnchor, String[] manPageLabel,
-      String[] manPage, String[] logFileLabel, String[] logFile,
-      final BaseManager manager, final AxisID axisID) {
+  public ContextPopup(Component component, MouseEvent mouseEvent, String tomoAnchor,
+      final String guideToAnchor, String[] manPageLabel, String[] manPage,
+      String[] logFileLabel, String[] logFile, final BaseManager manager,
+      final AxisID axisID) {
 
     // Check to make sure that the menu label and man page arrays are the same
     // length
@@ -375,8 +375,8 @@ public class ContextPopup {
             /*HTMLPageWindow manpage = new HTMLPageWindow();
              manpage.openURL(getImodURL() + "man/" + getManPageName()[i]);
              manpage.setVisible(true);*/
-            ImodqtassistProcess.INSTANCE.open(manager, "man/"
-                + getManPageName()[i], axisID);
+            ImodqtassistProcess.INSTANCE.open(manager, "man/" + getManPageName()[i],
+                axisID);
           }
         }
 
@@ -385,15 +385,13 @@ public class ContextPopup {
         for (int i = 0; i < logFileItem.length; i++) {
           if (actionEvent.getActionCommand() == logFileItem[i].getText()) {
             TextPageWindow logFileWindow = new TextPageWindow();
-            logFileWindow.setVisible(logFileWindow.setFile(manager
-                .getPropertyUserDir()
+            logFileWindow.setVisible(logFileWindow.setFile(manager.getPropertyUserDir()
                 + File.separator + getLogFileName()[i]));
           }
         }
 
         //  Search the standard items
-        globalItemAction(actionEvent, guideLocation, guideToAnchor, manager,
-            axisID);
+        globalItemAction(actionEvent, guideLocation, guideToAnchor, manager, axisID);
 
         //  Close the  the menu
         setVisible(false);
@@ -422,10 +420,10 @@ public class ContextPopup {
    * @param subdirName The subdirectory where the .log files are.
    * @param manager
    */
-  public ContextPopup(Component component, MouseEvent mouseEvent,
-      String tomoAnchor, final String guideToAnchor, String[] manPageLabel,
-      String[] manPage, String[] logFileLabel, String[] logFile,
-      final BaseManager manager, final AxisID axisID, final String subdirName) {
+  public ContextPopup(Component component, MouseEvent mouseEvent, String tomoAnchor,
+      final String guideToAnchor, String[] manPageLabel, String[] manPage,
+      String[] logFileLabel, String[] logFile, final BaseManager manager,
+      final AxisID axisID, final String subdirName) {
 
     // Check to make sure that the menu label and man page arrays are the same
     // length
@@ -456,8 +454,8 @@ public class ContextPopup {
             /*HTMLPageWindow manpage = new HTMLPageWindow();
              manpage.openURL(getImodURL() + "man/" + getManPageName()[i]);
              manpage.setVisible(true);*/
-            ImodqtassistProcess.INSTANCE.open(manager, "man/"
-                + getManPageName()[i], axisID);
+            ImodqtassistProcess.INSTANCE.open(manager, "man/" + getManPageName()[i],
+                axisID);
           }
         }
 
@@ -466,16 +464,14 @@ public class ContextPopup {
         for (int i = 0; i < logFileItem.length; i++) {
           if (actionEvent.getActionCommand() == logFileItem[i].getText()) {
             TextPageWindow logFileWindow = new TextPageWindow();
-            logFileWindow.setVisible(logFileWindow.setFile(manager
-                .getPropertyUserDir()
+            logFileWindow.setVisible(logFileWindow.setFile(manager.getPropertyUserDir()
                 + (subdirName != null ? File.separator + subdirName : "")
                 + File.separator + getLogFileName()[i]));
           }
         }
 
         //  Search the standard items
-        globalItemAction(actionEvent, guideLocation, guideToAnchor, manager,
-            axisID);
+        globalItemAction(actionEvent, guideLocation, guideToAnchor, manager, axisID);
 
         //  Close the  the menu
         setVisible(false);
@@ -503,10 +499,9 @@ public class ContextPopup {
    * @param logFile The string arrays of names of the log files.
    * @param manager
    */
-  public ContextPopup(Component component, MouseEvent mouseEvent,
-      String[] manPageLabel, String[] manPage, String[] logFileLabel,
-      String[] logFile, boolean addPeetGuide, final BaseManager manager,
-      final AxisID axisID) {
+  public ContextPopup(Component component, MouseEvent mouseEvent, String[] manPageLabel,
+      String[] manPage, String[] logFileLabel, String[] logFile, boolean addPeetGuide,
+      final BaseManager manager, final AxisID axisID) {
 
     // Check to make sure that the menu label and man page arrays are the same
     // length
@@ -532,8 +527,8 @@ public class ContextPopup {
             /*HTMLPageWindow manpage = new HTMLPageWindow();
              manpage.openURL(getImodURL() + "man/" + getManPageName()[i]);
              manpage.setVisible(true);*/
-            ImodqtassistProcess.INSTANCE.open(manager, "man/"
-                + getManPageName()[i], axisID);
+            ImodqtassistProcess.INSTANCE.open(manager, "man/" + getManPageName()[i],
+                axisID);
           }
         }
 
@@ -542,8 +537,7 @@ public class ContextPopup {
         for (int i = 0; i < logFileItem.length; i++) {
           if (actionEvent.getActionCommand() == logFileItem[i].getText()) {
             TextPageWindow logFileWindow = new TextPageWindow();
-            logFileWindow.setVisible(logFileWindow.setFile(manager
-                .getPropertyUserDir()
+            logFileWindow.setVisible(logFileWindow.setFile(manager.getPropertyUserDir()
                 + File.separator + getLogFileName()[i]));
           }
         }
@@ -581,11 +575,11 @@ public class ContextPopup {
    * is displayed
    * @param axisID used for updating the log file
    */
-  public ContextPopup(Component component, MouseEvent mouseEvent,
-      String tomoAnchor, String[] manPageLabel, String[] manPage,
-      final String[] logWindowLabel, final Vector logFileLabel,
-      final Vector logFile, final ApplicationManager applicationManager,
-      final String updateLogCommandName, final AxisID axisID) {
+  public ContextPopup(Component component, MouseEvent mouseEvent, String tomoAnchor,
+      String[] manPageLabel, String[] manPage, final String[] logWindowLabel,
+      final Vector logFileLabel, final Vector logFile,
+      final ApplicationManager applicationManager, final String updateLogCommandName,
+      final AxisID axisID) {
 
     // Check to make sure that the menu label and man page arrays are the same
     // length
@@ -628,13 +622,12 @@ public class ContextPopup {
             //  Create full path to the appropriate log file items
             String[] logFileList = (String[]) logFile.get(i);
             String[] logFileFullPath = new String[logFileList.length];
-            String path = applicationManager.getPropertyUserDir()
-                + File.separator;
+            String path = applicationManager.getPropertyUserDir() + File.separator;
             for (int j = 0; j < logFileList.length; j++) {
               logFileFullPath[j] = path + logFileList[j];
             }
-            TabbedTextWindow logFileWindow = new TabbedTextWindow(
-                logWindowLabel[i], axisID);
+            TabbedTextWindow logFileWindow = new TabbedTextWindow(logWindowLabel[i],
+                axisID);
             try {
               if (logFileWindow.openFiles(applicationManager, logFileFullPath,
                   (String[]) logFileLabel.get(i), axisID)) {
@@ -659,15 +652,13 @@ public class ContextPopup {
               }
               UIHarness.INSTANCE.openMessageDialog(applicationManager,
                   "WARNING:  Ran out of memory.  Will not display log file."
-                      + "\nPlease close open windows or exit Etomo.",
-                  "Out of Memory");
+                      + "\nPlease close open windows or exit Etomo.", "Out of Memory");
               throw e;
             }
           }
         }
         //  Search the standard items
-        globalItemAction(actionEvent, tomoGuideLocation, applicationManager,
-            axisID);
+        globalItemAction(actionEvent, tomoGuideLocation, applicationManager, axisID);
 
         //  Close the  the menu
         setVisible(false);
@@ -720,10 +711,9 @@ public class ContextPopup {
     }
   }
 
-  protected void globalItemAction(ActionEvent actionEvent,
-      String tomoGuideLocation, BaseManager manager, AxisID axisID) {
-    globalItemAction(actionEvent, tomoGuideLocation, TOMO_GUIDE, manager,
-        axisID);
+  protected void globalItemAction(ActionEvent actionEvent, String tomoGuideLocation,
+      BaseManager manager, AxisID axisID) {
+    globalItemAction(actionEvent, tomoGuideLocation, TOMO_GUIDE, manager, axisID);
   }
 
   /**
@@ -731,8 +721,8 @@ public class ContextPopup {
    * @param actionEvent
    * @param tomoGuideLocation
    */
-  protected void globalItemAction(ActionEvent actionEvent,
-      String guideLocation, String guide, BaseManager manager, AxisID axisID) {
+  protected void globalItemAction(ActionEvent actionEvent, String guideLocation,
+      String guide, BaseManager manager, AxisID axisID) {
     if (actionEvent.getActionCommand() == tomoGuideItem.getText()) {
       /*HTMLPageWindow manpage = new HTMLPageWindow();
        if (guide.equals(TOMO_GUIDE)) {

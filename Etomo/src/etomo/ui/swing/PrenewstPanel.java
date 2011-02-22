@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2010/12/05 05:14:25  sueh
+ * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -161,8 +164,8 @@ import etomo.type.ProcessName;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.ViewType;
 
-final class PrenewstPanel implements ContextMenu, Expandable,
-    Run3dmodButtonContainer, NewstackDisplay, BlendmontDisplay {
+final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonContainer,
+    NewstackDisplay, BlendmontDisplay {
   public static final String rcsid = "$Id$";
 
   private final EtomoPanel pnlPrenewst = new EtomoPanel();
@@ -172,8 +175,7 @@ final class PrenewstPanel implements ContextMenu, Expandable,
 
   private final LabeledSpinner spinBinning;
   private final CheckBox cbByteModeToOutput = new CheckBox("Convert to bytes");
-  private final CheckBox cbMeanFloatDensities = new CheckBox(
-      "Float intensities to mean");
+  private final CheckBox cbMeanFloatDensities = new CheckBox("Float intensities to mean");
   private final Run3dmodButton btnImod = Run3dmodButton.get3dmodInstance(
       "View Aligned Stack In 3dmod", this);
 
@@ -184,15 +186,14 @@ final class PrenewstPanel implements ContextMenu, Expandable,
   private final CoarseAlignDialog parent;
   private final DialogType dialogType;
 
-  PrenewstPanel(ApplicationManager applicationManager, AxisID id,
-      DialogType dialogType, CoarseAlignDialog parent,
-      GlobalExpandButton globalAdvancedButton) {
+  PrenewstPanel(ApplicationManager applicationManager, AxisID id, DialogType dialogType,
+      CoarseAlignDialog parent, GlobalExpandButton globalAdvancedButton) {
     this.parent = parent;
     axisID = id;
     this.applicationManager = applicationManager;
     this.dialogType = dialogType;
-    btnCoarseAlign = (Run3dmodButton) applicationManager
-        .getProcessResultDisplayFactory(axisID).getCoarseAlign();
+    btnCoarseAlign = (Run3dmodButton) applicationManager.getProcessResultDisplayFactory(
+        axisID).getCoarseAlign();
     btnCoarseAlign.setContainer(this);
 
     pnlPrenewst.setLayout(new BoxLayout(pnlPrenewst, BoxLayout.Y_AXIS));
@@ -201,21 +202,20 @@ final class PrenewstPanel implements ContextMenu, Expandable,
 
     //  Construct the binning spinner
     SpinnerNumberModel integerModel = new SpinnerNumberModel(1, 1, 8, 1);
-    spinBinning = new LabeledSpinner("Coarse aligned image stack binning ",
-        integerModel, 1);
-    spinBinning
-        .setTextMaxmimumSize(UIParameters.INSTANCE.getSpinnerDimension());
+    spinBinning = new LabeledSpinner("Coarse aligned image stack binning ", integerModel,
+        1);
+    spinBinning.setTextMaxmimumSize(UIParameters.INSTANCE.getSpinnerDimension());
     //if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
     //  spinBinning.setEnabled(false);
     //}
     UIUtilities.addWithYSpace(pnlBody, spinBinning.getContainer());
     if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
-      header = PanelHeader.getAdvancedBasicInstance("Blendmont", this,
-          dialogType, globalAdvancedButton);
+      header = PanelHeader.getAdvancedBasicInstance("Blendmont", this, dialogType,
+          globalAdvancedButton);
     }
     else {
-      header = PanelHeader.getAdvancedBasicInstance("Newstack", this,
-          dialogType, globalAdvancedButton);
+      header = PanelHeader.getAdvancedBasicInstance("Newstack", this, dialogType,
+          globalAdvancedButton);
       UIUtilities.addWithYSpace(pnlCheckBoxes, cbByteModeToOutput);
       UIUtilities.addWithYSpace(pnlCheckBoxes, cbMeanFloatDensities);
     }
@@ -340,8 +340,7 @@ final class PrenewstPanel implements ContextMenu, Expandable,
   }
 
   public void getParameters(BlendmontParam blendmontParam) {
-    blendmontParam
-        .setBinByFactor(((Integer) spinBinning.getValue()).intValue());
+    blendmontParam.setBinByFactor(((Integer) spinBinning.getValue()).intValue());
   }
 
   /**
@@ -354,8 +353,8 @@ final class PrenewstPanel implements ContextMenu, Expandable,
     String[] logFile = new String[1];
     logFile[0] = "prenewst" + axisID.getExtension() + ".log";
     ContextPopup contextPopup = new ContextPopup(pnlPrenewst, mouseEvent,
-        "COARSE ALIGNMENT", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
-        logFileLabel, logFile, applicationManager, axisID);
+        "COARSE ALIGNMENT", ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel,
+        logFile, applicationManager, axisID);
   }
 
   /**
@@ -369,17 +368,14 @@ final class PrenewstPanel implements ContextMenu, Expandable,
             + NewstParam.DATA_MODE_OPTION + " " + NewstParam.DATA_MODE_BYTE);
     cbMeanFloatDensities
         .setToolTipText("Adjust densities of sections individually.  Scale sections to common mean and standard deviation.  Command:  "
-            + NewstParam.FLOAT_DENSITIES_OPTION
-            + " "
-            + NewstParam.FLOAT_DENSITIES_MEAN);
+            + NewstParam.FLOAT_DENSITIES_OPTION + " " + NewstParam.FLOAT_DENSITIES_MEAN);
     btnCoarseAlign
         .setToolTipText("Use transformations to produce stack of aligned images.");
     btnImod.setToolTipText("Use 3dmod to view the coarsely aligned images.");
   }
 
   public void action(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
-    buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(),
-        menuOptions);
+    buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(), menuOptions);
   }
 
   public boolean validate() {
@@ -398,8 +394,8 @@ final class PrenewstPanel implements ContextMenu, Expandable,
   void buttonAction(String command, Deferred3dmodButton deferred3dmodButton,
       Run3dmodMenuOptions menuOptions) {
     if (command.equals(btnCoarseAlign.getActionCommand())) {
-      applicationManager.coarseAlign(axisID, btnCoarseAlign, null,
-          deferred3dmodButton, menuOptions, dialogType, this, this);
+      applicationManager.coarseAlign(axisID, btnCoarseAlign, null, deferred3dmodButton,
+          menuOptions, dialogType, this, this);
     }
     else if (command.equals(btnImod.getActionCommand())) {
       applicationManager.imodCoarseAlign(axisID, menuOptions);

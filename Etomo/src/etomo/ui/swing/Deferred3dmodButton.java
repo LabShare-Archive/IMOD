@@ -16,6 +16,9 @@ import etomo.type.Run3dmodMenuOptions;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1  2010/11/13 16:07:34  sueh
+* <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+* <p>
 * <p> Revision 1.1  2008/05/13 23:01:36  sueh
 * <p> bug# 847 Interface for Run3dmodButton.  Gives access to the button's
 * <p> right click menu actions.
@@ -30,7 +33,7 @@ import etomo.type.Run3dmodMenuOptions;
 * <p> </p>
 */
 public interface Deferred3dmodButton {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   public void action(Run3dmodMenuOptions menuOptions);
 }

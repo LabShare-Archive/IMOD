@@ -38,12 +38,11 @@ import etomo.util.Utilities;
 final class HeaderCell implements Cell {
   public static final String rcsid = "$Id$";
 
-  private static final ColorUIResource background = new ColorUIResource(204,
-      204, 204);
-  private static final ColorUIResource greyout = Colors.subtractColor(
-      Colors.BACKGROUND, background);
-  private static final ColorUIResource warningBackground = Colors
-      .subtractColor(Colors.WARNING_BACKGROUND, greyout);
+  private static final ColorUIResource background = new ColorUIResource(204, 204, 204);
+  private static final ColorUIResource greyout = Colors.subtractColor(Colors.BACKGROUND,
+      background);
+  private static final ColorUIResource warningBackground = Colors.subtractColor(
+      Colors.WARNING_BACKGROUND, greyout);
 
   private final UITestFieldType uiTestFieldType;
 
@@ -60,8 +59,7 @@ final class HeaderCell implements Cell {
     return text;
   }
 
-  private HeaderCell(String text, int width, boolean controlColor,
-      boolean toggle) {
+  private HeaderCell(String text, int width, boolean controlColor, boolean toggle) {
     if (toggle) {
       uiTestFieldType = UITestFieldType.MINI_BUTTON;
     }
@@ -175,8 +173,7 @@ final class HeaderCell implements Cell {
     cell.addActionListener(actionListener);
   }
 
-  HeaderCell add(JPanel panel, GridBagLayout layout,
-      GridBagConstraints constraints) {
+  HeaderCell add(JPanel panel, GridBagLayout layout, GridBagConstraints constraints) {
     layout.setConstraints((Component) cell, constraints);
     panel.add((Component) cell);
     jpanelContainer = panel;
@@ -244,15 +241,13 @@ final class HeaderCell implements Cell {
       name = Utilities.convertLabelToName(text);
     }
     else {
-      name = Utilities.convertLabelToName(tableHeader,
-          rowHeader != null ? rowHeader.getText() : null,
-          columnHeader != null ? columnHeader.getText() : null);
+      name = Utilities.convertLabelToName(tableHeader, rowHeader != null ? rowHeader
+          .getText() : null, columnHeader != null ? columnHeader.getText() : null);
     }
     getComponent().setName(prefix + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(uiTestFieldType.toString()
-          + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
-          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+      System.out.println(uiTestFieldType.toString() + AutodocTokenizer.SEPARATOR_CHAR
+          + name + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
 
@@ -298,6 +293,9 @@ final class HeaderCell implements Cell {
 }
 /**
  * * <p> $Log$
+ * * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * * <p>
  * * <p> Revision 1.20  2009/10/15 23:31:18  sueh
  * * <p> bug# 1274 Allowing a header cell to be named for UI testing.  Can either
  * * <p> use the name from its own text or the names from its table, row, and

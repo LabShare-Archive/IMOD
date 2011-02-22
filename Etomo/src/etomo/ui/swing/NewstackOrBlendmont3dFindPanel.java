@@ -32,6 +32,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.6  2010/04/09 03:01:46  sueh
  * <p> bug# 1352 Passing the ProcessResultDisplay via parameter instead of retrieving it with a function so that it always be passed.
  * <p>
@@ -52,16 +55,15 @@ import etomo.type.Run3dmodMenuOptions;
  * <p> bug# 1222
  * <p> </p>
  */
-abstract class NewstackOrBlendmont3dFindPanel implements
-    Run3dmodButtonContainer {
+abstract class NewstackOrBlendmont3dFindPanel implements Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
   private final JPanel pnlRoot = new JPanel();
   private final ActionListener actionListener = new NewstackOrBlendmont3dFindPanelActionListener(
       this);
   private final LabeledSpinner spinBinning = new LabeledSpinner(
-      NewstackAndBlendmontParamPanel.BINNING_LABEL + ": ",
-      new SpinnerNumberModel(1, 1, 8, 1), 1);
+      NewstackAndBlendmontParamPanel.BINNING_LABEL + ": ", new SpinnerNumberModel(1, 1,
+          8, 1), 1);
   private final Run3dmodButton btn3dmodFull = Run3dmodButton.get3dmodInstance(
       "View Full Aligned Stack", this);
 
@@ -140,8 +142,7 @@ abstract class NewstackOrBlendmont3dFindPanel implements
     if (binning > 1) {
       EtomoNumber beadSize = new EtomoNumber(EtomoNumber.Type.FLOAT);
       beadSize.set(parent.getBeadSize());
-      if (!beadSize.isNull() && beadSize.isValid()
-          && beadSize.getFloat() / binning < 4) {
+      if (!beadSize.isNull() && beadSize.isValid() && beadSize.getFloat() / binning < 4) {
         if (!UIHarness.INSTANCE.openYesNoWarningDialog(manager,
             "The binned fiducial diameter will be less then 4 pixels.  Do you "
                 + "want to continue?", axisID)) {
@@ -153,8 +154,7 @@ abstract class NewstackOrBlendmont3dFindPanel implements
   }
 
   abstract void runProcess(final ProcessResultDisplay processResultDisplay,
-      final ProcessSeries processSeries,
-      final Run3dmodMenuOptions run3dmodMenuOptions);
+      final ProcessSeries processSeries, final Run3dmodMenuOptions run3dmodMenuOptions);
 
   public final void action(final Run3dmodButton button,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
@@ -176,14 +176,13 @@ abstract class NewstackOrBlendmont3dFindPanel implements
       final Run3dmodMenuOptions run3dmodMenuOptions);
 
   void setToolTipText() {
-    spinBinning
-        .setToolTipText("Set the binning for the aligned image stack and "
-            + "tomogram to use with findbeads3d.");
+    spinBinning.setToolTipText("Set the binning for the aligned image stack and "
+        + "tomogram to use with findbeads3d.");
     btn3dmodFull.setToolTipText("Open the complete aligned stack in 3dmod");
   }
 
-  private static final class NewstackOrBlendmont3dFindPanelActionListener
-      implements ActionListener {
+  private static final class NewstackOrBlendmont3dFindPanelActionListener implements
+      ActionListener {
     private final NewstackOrBlendmont3dFindPanel adaptee;
 
     private NewstackOrBlendmont3dFindPanelActionListener(

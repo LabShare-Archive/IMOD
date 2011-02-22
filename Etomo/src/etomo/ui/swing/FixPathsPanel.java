@@ -28,6 +28,9 @@ import etomo.type.DialogType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:35  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.3  2009/10/19 14:04:27  sueh
  * <p> bug# 1244 Changed the title of cbChoosePathEveryRow.  Added tooltips.
  * <p>
@@ -49,8 +52,7 @@ final class FixPathsPanel implements Expandable {
       "Files cannot be found.  PEET may not run.");
   private final CheckBox cbChoosePathEveryRow = new CheckBox(
       "Files may be in separate directories");
-  private final MultiLineButton bnFixPaths = new MultiLineButton(
-      "Fix Incorrect Paths");
+  private final MultiLineButton bnFixPaths = new MultiLineButton("Fix Incorrect Paths");
 
   private final PanelHeader header;
 
@@ -64,13 +66,12 @@ final class FixPathsPanel implements Expandable {
             + "the Volume Table.  Otherwise the file chooser will only be "
             + "brought up when a file cannot be found in either the original "
             + "path or the most recent new path.");
-    bnFixPaths
-        .setToolTipText("Brings up file chooser(s) so that the new location(s) "
-            + "of any files that cannot be found can be specified.");
+    bnFixPaths.setToolTipText("Brings up file chooser(s) so that the new location(s) "
+        + "of any files that cannot be found can be specified.");
   }
 
-  private FixPathsPanel(FileContainer fileContainer, BaseManager manager,
-      AxisID axisID, DialogType dialogType) {
+  private FixPathsPanel(FileContainer fileContainer, BaseManager manager, AxisID axisID,
+      DialogType dialogType) {
     this.fileContainer = fileContainer;
     this.manager = manager;
     this.axisID = axisID;
@@ -101,10 +102,9 @@ final class FixPathsPanel implements Expandable {
     pnlMain.setMaximumSize(boxLayout.preferredLayoutSize(pnlMain));
   }
 
-  static FixPathsPanel getInstance(FileContainer fileContainer,
-      BaseManager manager, AxisID axisID, DialogType dialogType) {
-    FixPathsPanel instance = new FixPathsPanel(fileContainer, manager, axisID,
-        dialogType);
+  static FixPathsPanel getInstance(FileContainer fileContainer, BaseManager manager,
+      AxisID axisID, DialogType dialogType) {
+    FixPathsPanel instance = new FixPathsPanel(fileContainer, manager, axisID, dialogType);
     instance.setTooltips();
     instance.addListeners();
     return instance;

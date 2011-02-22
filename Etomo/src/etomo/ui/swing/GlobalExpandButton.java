@@ -22,6 +22,9 @@ import java.util.List;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.2  2009/09/23 23:24:12  sueh
  * <p> bug# 1270 Fixed action comment.
  * <p>
@@ -45,10 +48,8 @@ final class GlobalExpandButton {
     button = new MultiLineButton(contractedLabel);
   }
 
-  static GlobalExpandButton getInstance(String contractedLabel,
-      String expandedLabel) {
-    GlobalExpandButton instance = new GlobalExpandButton(contractedLabel,
-        expandedLabel);
+  static GlobalExpandButton getInstance(String contractedLabel, String expandedLabel) {
+    GlobalExpandButton instance = new GlobalExpandButton(contractedLabel, expandedLabel);
     instance.setListeners();
     return instance;
   }
@@ -98,8 +99,7 @@ final class GlobalExpandButton {
    * @param expanded
    */
   void msgExpandButtonAction(ExpandButton activeExpandButton, boolean isExpanded) {
-    if (expanded == isExpanded || expandableList != null
-        || expandButtonList == null) {
+    if (expanded == isExpanded || expandableList != null || expandButtonList == null) {
       //Same state as this button - nothing to do; or some advanced items only
       //appear when the global button is used, so the dialog can't be completely
       //expanded using ExpandButtons.
@@ -172,8 +172,7 @@ final class GlobalExpandButton {
     }
   }
 
-  private static final class GlobalExpandButtonActionListener implements
-      ActionListener {
+  private static final class GlobalExpandButtonActionListener implements ActionListener {
 
     private final GlobalExpandButton adaptee;
 

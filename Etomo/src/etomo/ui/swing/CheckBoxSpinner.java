@@ -25,6 +25,9 @@ import javax.swing.SpinnerModel;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.3  2007/03/01 01:28:21  sueh
  * <p> bug# 964 Made colors constant and moved them to Colors.
  * <p>
@@ -106,9 +109,8 @@ final class CheckBoxSpinner {
     if (panelBackground == null) {
       panelBackground = panel.getBackground();
       //greying out the highlight color to match the panel's original color
-      panelHighlightBackground = Colors.subtractColor(
-          Colors.HIGHLIGHT_BACKGROUND, Colors.subtractColor(
-              Colors.BACKGROUND, panelBackground));
+      panelHighlightBackground = Colors.subtractColor(Colors.HIGHLIGHT_BACKGROUND, Colors
+          .subtractColor(Colors.BACKGROUND, panelBackground));
     }
     if (highlight) {
       checkBox.setBackground(panelHighlightBackground);

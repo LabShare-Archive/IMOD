@@ -15,6 +15,9 @@ import java.awt.Dimension;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.8  2007/06/04 23:08:04  sueh
  * <p> bug# 1005 Added x200_y0.
  * <p>
@@ -61,8 +64,7 @@ import java.awt.Dimension;
  * <p> </p>
  */
 public class FixedDim {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   public final static Dimension x5_y0 = new Dimension(5, 0);
   public final static Dimension x10_y0 = new Dimension(10, 0);

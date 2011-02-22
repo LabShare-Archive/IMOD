@@ -37,6 +37,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2010/12/05 04:50:50  sueh
+ * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -331,13 +334,13 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
   private Run3dmodButton btnViewResiduals = Run3dmodButton.get3dmodInstance(
       "View Residual Vectors", this);
   private final AlignmentEstimationActionListner actionListener;
-  
-  private boolean patchTracking=false;
+
+  private boolean patchTracking = false;
 
   public AlignmentEstimationDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID, DialogType.FINE_ALIGNMENT);
-    btnComputeAlignment = (MultiLineButton) appMgr
-        .getProcessResultDisplayFactory(axisID).getComputeAlignment();
+    btnComputeAlignment = (MultiLineButton) appMgr.getProcessResultDisplayFactory(axisID)
+        .getComputeAlignment();
     pnlTiltalign = TiltalignPanel.getInstance(axisID, appMgr, btnAdvanced);
     btnExecute.setText("Done");
 
@@ -403,7 +406,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
   }
 
   public void setPatchTracking(boolean input) {
-    patchTracking=input;
+    patchTracking = input;
     pnlTiltalign.setPatchTracking(input);
   }
 
@@ -457,14 +460,12 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     String alignCommandName = logWindowLabel[0];
 
     String[] alignLabels = { "Errors", "Solution", "Surface Angles", "Locals",
-        "Complete Log", "Large Residual", "Mappings", "Coordinates",
-        "Beam Tilt" };
+        "Complete Log", "Large Residual", "Mappings", "Coordinates", "Beam Tilt" };
     logFileLabel.add(alignLabels);
 
     Vector logFile = new Vector(1);
     String beamtiltLogName = "taBeamtilt" + axisID.getExtension() + ".log";
-    File beamtiltLog = new File(applicationManager.getPropertyUserDir(),
-        beamtiltLogName);
+    File beamtiltLog = new File(applicationManager.getPropertyUserDir(), beamtiltLogName);
     String[] logFileList;
     if (beamtiltLog.length() > 0) {
       logFileList = new String[9];
@@ -487,8 +488,8 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     logFile.add(logFileList);
 
     ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
-        "FINAL ALIGNMENT", manPagelabel, manPage, logWindowLabel, logFileLabel,
-        logFile, applicationManager, alignCommandName, axisID);
+        "FINAL ALIGNMENT", manPagelabel, manPage, logWindowLabel, logFileLabel, logFile,
+        applicationManager, alignCommandName, axisID);
   }
 
   void done() {
@@ -510,8 +511,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
   }
 
   //  Event handler for panel buttons
-  void buttonAction(String command,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
+  void buttonAction(String command, final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnComputeAlignment.getActionCommand())) {
       applicationManager.fineAlignment(axisID, btnComputeAlignment, null);
     }
@@ -547,8 +547,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
    */
   private void setToolTipText() {
     String text;
-    btnComputeAlignment
-        .setToolTipText("Run Tiltalign with current parameters.");
+    btnComputeAlignment.setToolTipText("Run Tiltalign with current parameters.");
     btnImod.setToolTipText("View fiducial model on the image stack in 3dmod.");
     btnView3DModel
         .setToolTipText("View model of solved 3D locations of fiducial points in 3dmodv.");

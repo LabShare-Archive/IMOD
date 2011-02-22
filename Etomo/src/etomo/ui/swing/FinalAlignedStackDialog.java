@@ -68,6 +68,11 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/03 06:22:16  sueh
+ * <p> bug# 1422 Control of the processing method has been centralized in the
+ * <p> processing method mediator class.  Implementing ProcessInterface.
+ * <p> Supplying processes with the current processing method.
+ * <p>
  * <p> Revision 1.2  2010/12/05 05:03:54  sueh
  * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
  * <p>
@@ -182,8 +187,8 @@ import etomo.util.DatasetFiles;
  * <p> bug# 1141 Dialog for running newst (full align) and filtering
  * <p> </p>
  */
-public final class FinalAlignedStackDialog extends ProcessDialog implements
-    Expandable, Run3dmodButtonContainer, ContextMenu, ProcessInterface {
+public final class FinalAlignedStackDialog extends ProcessDialog implements Expandable,
+    Run3dmodButtonContainer, ContextMenu, ProcessInterface {
   public static final String rcsid = "$Id$";
 
   private static final String MTF_FILE_LABEL = "MTF file: ";
@@ -203,8 +208,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
       "Low pass (cutoff,sigma): ");
   private final ImageIcon iconFolder = new ImageIcon(ClassLoader
       .getSystemResource("images/openFile.gif"));
-  private final LabeledTextField ltfMtfFile = new LabeledTextField(
-      MTF_FILE_LABEL);
+  private final LabeledTextField ltfMtfFile = new LabeledTextField(MTF_FILE_LABEL);
   private final SimpleButton btnMtfFile = new SimpleButton(iconFolder);
   private final LabeledTextField ltfMaximumInverse = new LabeledTextField(
       "Maximum Inverse: ");
@@ -218,9 +222,8 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
       "Starting and ending views: ");
 
   //headers should not go into garbage collection
-  private final PanelHeader filterHeader = PanelHeader
-      .getAdvancedBasicOnlyInstance("2D Filtering (optional)", this,
-          DIALOG_TYPE, btnAdvanced);
+  private final PanelHeader filterHeader = PanelHeader.getAdvancedBasicOnlyInstance(
+      "2D Filtering (optional)", this, DIALOG_TYPE, btnAdvanced);
   //panels that are changed in setAdvanced()
   private final SpacedPanel inverseParamsPanel;
   private final JPanel filterBodyPanel;
@@ -229,39 +232,32 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   //get binning from newst
 
   private final ReconScreenState screenState;
-  private final ButtonListener finalAlignedStackListener = new ButtonListener(
-      this);
+  private final ButtonListener finalAlignedStackListener = new ButtonListener(this);
   private final FinalAlignedStackExpert expert;
   private final ProcessingMethodMediator mediator;
 
   //ctf correction
   private final PanelHeader ctfCorrectionHeader = PanelHeader
-      .getAdvancedBasicOnlyInstance("CTF Correction", this, DIALOG_TYPE,
-          btnAdvanced);
-  private final SpacedPanel ctfCorrectionBodyPanel = SpacedPanel
-      .getInstance(true);
+      .getAdvancedBasicOnlyInstance("CTF Correction", this, DIALOG_TYPE, btnAdvanced);
+  private final SpacedPanel ctfCorrectionBodyPanel = SpacedPanel.getInstance(true);
   private final FileTextField ftfConfigFile = new FileTextField("Config file: ");
-  private final LabeledTextField ltfVoltage = new LabeledTextField(
-      "Voltage (KV): ");
+  private final LabeledTextField ltfVoltage = new LabeledTextField("Voltage (KV): ");
   private final LabeledTextField ltfSphericalAberration = new LabeledTextField(
       "Spherical Aberration (mm): ");
-  private final CheckBox cbInvertTiltAngles = new CheckBox(
-      "Invert sign of tilt angles");
+  private final CheckBox cbInvertTiltAngles = new CheckBox("Invert sign of tilt angles");
   private final LabeledTextField ltfAmplitudeContrast = new LabeledTextField(
       "Amplitude contrast: ");
   private final LabeledTextField ltfExpectedDefocus = new LabeledTextField(
       "Expected defocus (nm): ");
   private final LabeledTextField ltfInterpolationWidth = new LabeledTextField(
       "Interpolation width (pixels): ");
-  private final CheckBox cbParallelProcess = new CheckBox(
-      ParallelPanel.FIELD_LABEL);
+  private final CheckBox cbParallelProcess = new CheckBox(ParallelPanel.FIELD_LABEL);
   private final LabeledTextField ltfDefocusTol = new LabeledTextField(
       "Defocus tolerance (nm): ");
-  private final MultiLineButton btnCtfPlotter = new MultiLineButton(
-      "Run Ctf Plotter");
+  private final MultiLineButton btnCtfPlotter = new MultiLineButton("Run Ctf Plotter");
   private final Run3dmodButton btnCtfCorrection;
-  private final Run3dmodButton btnImodCtfCorrection = Run3dmodButton
-      .get3dmodInstance("View CTF Correction", this);
+  private final Run3dmodButton btnImodCtfCorrection = Run3dmodButton.get3dmodInstance(
+      "View CTF Correction", this);
   private final MultiLineButton btnUseCtfCorrection;
   private final CheckBox cbUseExpectedDefocus = new CheckBox(
       "Use expected defocus instead of ctfplotter output");
@@ -285,15 +281,14 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     mediator = appMgr.getProcessingMethodMediator(axisID);
     ProcessResultDisplayFactory displayFactory = appMgr
         .getProcessResultDisplayFactory(axisID);
-    eraseGoldPanel = EraseGoldPanel.getInstance(appMgr, axisID, dialogType,
-        btnAdvanced);
+    eraseGoldPanel = EraseGoldPanel.getInstance(appMgr, axisID, dialogType, btnAdvanced);
     if (appMgr.getMetaData().getViewType() == ViewType.MONTAGE) {
-      newstackOrBlendmontPanel = BlendmontPanel.getInstance(appMgr, axisID,
-          DIALOG_TYPE, btnAdvanced);
+      newstackOrBlendmontPanel = BlendmontPanel.getInstance(appMgr, axisID, DIALOG_TYPE,
+          btnAdvanced);
     }
     else {
-      newstackOrBlendmontPanel = NewstackPanel.getInstance(appMgr, axisID,
-          DIALOG_TYPE, btnAdvanced);
+      newstackOrBlendmontPanel = NewstackPanel.getInstance(appMgr, axisID, DIALOG_TYPE,
+          btnAdvanced);
     }
     screenState = appMgr.getScreenState(axisID);
     btnFilter = (Run3dmodButton) displayFactory.getFilter();
@@ -311,8 +306,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     btnCtfCorrection = (Run3dmodButton) displayFactory.getCtfCorrection();
     btnCtfCorrection.setContainer(this);
     btnCtfCorrection.setDeferred3dmodButton(btnImodCtfCorrection);
-    btnUseCtfCorrection = (MultiLineButton) displayFactory
-        .getUseCtfCorrection();
+    btnUseCtfCorrection = (MultiLineButton) displayFactory.getUseCtfCorrection();
     //field instantiation
     layoutNewstPanel();
     layoutCtfCorrectionPanel();
@@ -334,8 +328,8 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
 
   public static FinalAlignedStackDialog getInstance(ApplicationManager appMgr,
       FinalAlignedStackExpert expert, AxisID axisID, Tab curTab) {
-    FinalAlignedStackDialog instance = new FinalAlignedStackDialog(appMgr,
-        expert, axisID, curTab);
+    FinalAlignedStackDialog instance = new FinalAlignedStackDialog(appMgr, expert,
+        axisID, curTab);
     instance.addListeners();
     instance.tabbedPane.setSelectedIndex(curTab.toInt());
     return instance;
@@ -347,8 +341,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     btnViewFilter.addActionListener(finalAlignedStackListener);
     btnUseFilter.addActionListener(finalAlignedStackListener);
     btnMtfFile.addActionListener(new MtfFileActionListener(this));
-    ltfStartingAndEndingZ
-        .addKeyListener(new StartingAndEndingZKeyListener(this));
+    ltfStartingAndEndingZ.addKeyListener(new StartingAndEndingZKeyListener(this));
     cbUseExpectedDefocus.addActionListener(finalAlignedStackListener);
     ftfConfigFile.addActionListener(finalAlignedStackListener);
     btnCtfPlotter.addActionListener(finalAlignedStackListener);
@@ -385,8 +378,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   }
 
   void setFilterButtonState(ReconScreenState screenState) {
-    btnFilter.setButtonState(screenState.getButtonState(btnFilter
-        .getButtonStateKey()));
+    btnFilter.setButtonState(screenState.getButtonState(btnFilter.getButtonStateKey()));
   }
 
   void setCtfCorrectionButtonState(ReconScreenState screenState) {
@@ -512,8 +504,8 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   }
 
   void setUseCtfCorrectionButtonState(ReconScreenState screenState) {
-    btnUseCtfCorrection.setButtonState(screenState
-        .getButtonState(btnUseCtfCorrection.getButtonStateKey()));
+    btnUseCtfCorrection.setButtonState(screenState.getButtonState(btnUseCtfCorrection
+        .getButtonStateKey()));
   }
 
   String getVoltage() {
@@ -654,11 +646,10 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   void setParameters(ConstMetaData metaData) {
     //Parallel processing is optional in tomogram reconstruction, so only use it
     //if the user set it up.
-    validAutodoc = Network.isParallelProcessingEnabled(applicationManager,
-        axisID, applicationManager.getPropertyUserDir());
+    validAutodoc = Network.isParallelProcessingEnabled(applicationManager, axisID,
+        applicationManager.getPropertyUserDir());
     cbParallelProcess.setEnabled(validAutodoc && !processingMethodLocked);
-    ConstEtomoNumber parallel = metaData
-        .getFinalStackCtfCorrectionParallel(axisID);
+    ConstEtomoNumber parallel = metaData.getFinalStackCtfCorrectionParallel(axisID);
     if (parallel == null) {
       setParallelProcess(validAutodoc && metaData.getDefaultParallel().is());
     }
@@ -756,8 +747,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     //ctf phase flip
     SpacedPanel ctfCorrectionPanel = SpacedPanel.getInstance();
     ctfCorrectionPanel.setBoxLayout(BoxLayout.Y_AXIS);
-    ctfCorrectionPanel
-        .setBorder(new EtchedBorder("CTF Phase Flip").getBorder());
+    ctfCorrectionPanel.setBorder(new EtchedBorder("CTF Phase Flip").getBorder());
     ctfCorrectionBodyPanel.add(ctfCorrectionPanel);
     //use expected defocus
     JPanel useExpectedDefocusPanel = new JPanel();
@@ -812,8 +802,8 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     filterPanel.add(filterBodyPanel);
     filterBodyPanel.setLayout(new BoxLayout(filterBodyPanel, BoxLayout.Y_AXIS));
     inverseParamsPanel.setBoxLayout(BoxLayout.Y_AXIS);
-    inverseParamsPanel.setBorder(new EtchedBorder(
-        "Inverse Filtering Parameters: ").getBorder());
+    inverseParamsPanel.setBorder(new EtchedBorder("Inverse Filtering Parameters: ")
+        .getBorder());
     SpacedPanel mtfFilePanel = SpacedPanel.getInstance();
     mtfFilePanel.setBoxLayout(BoxLayout.X_AXIS);
     SpacedPanel inversePanel = SpacedPanel.getInstance();
@@ -896,8 +886,8 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
       logFile[0] = "ctfplotter" + axisID.getExtension() + ".log";
       logFile[1] = "ctfcorrection" + axisID.getExtension() + ".log";
       ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
-          "CorrectingCTF", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
-          logFileLabel, logFile, applicationManager, axisID);
+          "CorrectingCTF", ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel,
+          logFile, applicationManager, axisID);
     }
     else if (curTab == Tab.MTF_FILTER) {
       String[] manPagelabel = { "Mtffilter", "3dmod" };
@@ -905,9 +895,9 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
       String[] logFileLabel = { "Mtffilter" };
       String[] logFile = new String[1];
       logFile[0] = "mtffilter" + axisID.getExtension() + ".log";
-      ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
-          "Filtering2D", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
-          logFileLabel, logFile, applicationManager, axisID);
+      ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent, "Filtering2D",
+          ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile,
+          applicationManager, axisID);
     }
     else {
       if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
@@ -927,9 +917,9 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
       String[] logFileLabel = { alignLogfileLabel };
       String[] logFile = new String[1];
       logFile[0] = alignLogfile + axisID.getExtension() + ".log";
-      ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
-          "FinalAligned", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
-          logFileLabel, logFile, applicationManager, axisID);
+      ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent, "FinalAligned",
+          ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile,
+          applicationManager, axisID);
     }
   }
 
@@ -980,12 +970,10 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
    * @param deferred3dmodButton
    * @param run3dmodMenuOptions
    */
-  void buttonAction(final String command,
-      final Deferred3dmodButton deferred3dmodButton,
+  void buttonAction(final String command, final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnFilter.getActionCommand())) {
-      expert.mtffilter(btnFilter, null, deferred3dmodButton,
-          run3dmodMenuOptions);
+      expert.mtffilter(btnFilter, null, deferred3dmodButton, run3dmodMenuOptions);
     }
     else if (command.equals(btnUseFilter.getActionCommand())) {
       expert.useMtfFilter(btnUseFilter);
@@ -1075,19 +1063,17 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     //Warning caused by leaving the previous tab
     if (curTab != prevTab) {
       TomogramState state = applicationManager.getState();
-      if (prevTab == Tab.CTF_CORRECTION
-          && state.isUseCtfCorrectionWarning(axisID)) {
+      if (prevTab == Tab.CTF_CORRECTION && state.isUseCtfCorrectionWarning(axisID)) {
         //The use button wasn't pressed and the user is moving on to the next
         //dialog.  Don't put this message in the log.
         UIHarness.INSTANCE.openMessageDialog(null,
             "To use the CTF correction go back to the " + CTF_TAB_LABEL
-                + " tab and press the \"" + USE_CTF_CORRECTION_LABEL
-                + "\" button.", "Entry Warning", axisID);
+                + " tab and press the \"" + USE_CTF_CORRECTION_LABEL + "\" button.",
+            "Entry Warning", axisID);
         //Only warn once.
         state.setUseCtfCorrectionWarning(axisID, false);
       }
-      else if (prevTab == Tab.CCD_ERASER
-          && state.isUseErasedStackWarning(axisID)) {
+      else if (prevTab == Tab.CCD_ERASER && state.isUseErasedStackWarning(axisID)) {
         //The use button wasn't pressed and the user is moving on to the next
         //dialog.  Don't put this message in the log.
         UIHarness.INSTANCE.openMessageDialog(null,
@@ -1098,15 +1084,13 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
         //Only warn once.
         state.setUseErasedStackWarning(axisID, false);
       }
-      else if (prevTab == Tab.MTF_FILTER
-          && state.isUseFilteredStackWarning(axisID)) {
+      else if (prevTab == Tab.MTF_FILTER && state.isUseFilteredStackWarning(axisID)) {
         //The use button wasn't pressed and the user is moving on to the next
         //dialog.  Don't put this message in the log.
         UIHarness.INSTANCE.openMessageDialog(null,
-            "To use the MTF filtered stack go back to the "
-                + MTF_FILTER_TAB_LABEL + " tab and press the \""
-                + USE_FILTERED_STACK_LABEL + "\" button.", "Entry Warning",
-            axisID);
+            "To use the MTF filtered stack go back to the " + MTF_FILTER_TAB_LABEL
+                + " tab and press the \"" + USE_FILTERED_STACK_LABEL + "\" button.",
+            "Entry Warning", axisID);
         //Only warn once.
         state.setUseFilteredStackWarning(axisID, false);
       }
@@ -1119,8 +1103,8 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   private void setToolTipText() {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(applicationManager,
-          AutodocFactory.MTF_FILTER, axisID);
+      autodoc = AutodocFactory.getInstance(applicationManager, AutodocFactory.MTF_FILTER,
+          axisID);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -1141,18 +1125,16 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
         ltfMtfFile.setToolTipText(text);
         btnMtfFile.setToolTipText(text);
       }
-      ltfMaximumInverse.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-          "MaximumInverse"));
-      ltfInverseRolloffRadiusSigma.setToolTipText(EtomoAutodoc.getTooltip(
-          autodoc, "InverseRolloffRadiusSigma"));
+      ltfMaximumInverse
+          .setToolTipText(EtomoAutodoc.getTooltip(autodoc, "MaximumInverse"));
+      ltfInverseRolloffRadiusSigma.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          "InverseRolloffRadiusSigma"));
     }
     btnFilter.setToolTipText("Run mtffilter on the full aligned stack.");
-    btnViewFilter
-        .setToolTipText("View the results of running mtffilter on the full "
-            + "aligned stack.");
-    btnUseFilter
-        .setToolTipText("Use the results of running mtffilter as the new full "
-            + "aligned stack.");
+    btnViewFilter.setToolTipText("View the results of running mtffilter on the full "
+        + "aligned stack.");
+    btnUseFilter.setToolTipText("Use the results of running mtffilter as the new full "
+        + "aligned stack.");
     try {
       autodoc = AutodocFactory.getInstance(applicationManager,
           AutodocFactory.CTF_PLOTTER, axisID);
@@ -1167,8 +1149,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
       e.printStackTrace();
     }
     if (autodoc != null) {
-      ftfConfigFile.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-          "ConfigFile"));
+      ftfConfigFile.setToolTipText(EtomoAutodoc.getTooltip(autodoc, "ConfigFile"));
       ltfVoltage.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           CtfPhaseFlipParam.VOLTAGE_OPTION)
           + "  Also used in " + CtfPhaseFlipParam.COMMAND + ".");
@@ -1204,19 +1185,18 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
       ltfDefocusTol.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           CtfPhaseFlipParam.DEFOCUS_TOL_OPTION));
     }
-    cbUseExpectedDefocus
-        .setToolTipText("Instead of using the CTF plotter output ("
-            + DatasetFiles.CTF_PLOTTER_EXT
-            + ") use a one line file containing the expected defocus ("
-            + DatasetFiles.SIMPLE_DEFOCUS_EXT + ").  Etomo will create the "
-            + DatasetFiles.SIMPLE_DEFOCUS_EXT
-            + " file when this checkbox is checked.");
+    cbUseExpectedDefocus.setToolTipText("Instead of using the CTF plotter output ("
+        + DatasetFiles.CTF_PLOTTER_EXT
+        + ") use a one line file containing the expected defocus ("
+        + DatasetFiles.SIMPLE_DEFOCUS_EXT + ").  Etomo will create the "
+        + DatasetFiles.SIMPLE_DEFOCUS_EXT + " file when this checkbox is checked.");
     cbParallelProcess.setToolTipText("Run " + ProcessName.SPLIT_CORRECTION
-        + " and use parallel procossing when running "
-        + ProcessName.CTF_CORRECTION + "." + DatasetFiles.COMSCRIPT_EXT + ".");
-    btnCtfCorrection.setToolTipText("Run " + ProcessName.CTF_CORRECTION + "."
-        + DatasetFiles.COMSCRIPT_EXT + ", which calls "
-        + CtfPhaseFlipParam.COMMAND + ".");
+        + " and use parallel procossing when running " + ProcessName.CTF_CORRECTION + "."
+        + DatasetFiles.COMSCRIPT_EXT + ".");
+    btnCtfCorrection
+        .setToolTipText("Run " + ProcessName.CTF_CORRECTION + "."
+            + DatasetFiles.COMSCRIPT_EXT + ", which calls " + CtfPhaseFlipParam.COMMAND
+            + ".");
     btnImodCtfCorrection.setToolTipText("Open CTF corrected stack ("
         + DatasetFiles.CTF_CORRECTION_EXT + ").");
     btnUseCtfCorrection.setToolTipText("Replace full aligned stack ("
@@ -1248,8 +1228,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     }
   }
 
-  private static final class StartingAndEndingZKeyListener implements
-      KeyListener {
+  private static final class StartingAndEndingZKeyListener implements KeyListener {
     private final FinalAlignedStackDialog adaptee;
 
     private StartingAndEndingZKeyListener(final FinalAlignedStackDialog adaptee) {

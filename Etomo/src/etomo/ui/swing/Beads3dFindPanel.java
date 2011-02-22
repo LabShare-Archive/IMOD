@@ -45,6 +45,11 @@ import etomo.type.ViewType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/03 06:22:16  sueh
+ * <p> bug# 1422 Control of the processing method has been centralized in the
+ * <p> processing method mediator class.  Implementing ProcessInterface.
+ * <p> Supplying processes with the current processing method.
+ * <p>
  * <p> Revision 1.2  2010/12/05 04:54:01  sueh
  * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.  Getting rid of
  * <p> some of the panel parents by handling common needs with generic
@@ -94,29 +99,27 @@ final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
     this.manager = manager;
     this.axisID = axisID;
     this.dialogType = dialogType;
-    header = PanelHeader.getInstance("Align Stack and Create Tomogram", this,
-        dialogType);
+    header = PanelHeader.getInstance("Align Stack and Create Tomogram", this, dialogType);
     if (manager.getMetaData().getViewType() == ViewType.MONTAGE) {
-      newstackOrBlendmont3dFindPanel = Blendmont3dFindPanel.getInstance(
-          manager, axisID, dialogType, this);
+      newstackOrBlendmont3dFindPanel = Blendmont3dFindPanel.getInstance(manager, axisID,
+          dialogType, this);
     }
     else {
-      newstackOrBlendmont3dFindPanel = Newstack3dFindPanel.getInstance(manager,
-          axisID, dialogType, this);
+      newstackOrBlendmont3dFindPanel = Newstack3dFindPanel.getInstance(manager, axisID,
+          dialogType, this);
     }
-    tilt3dFindPanel = Tilt3dFindPanel.getInstance(manager, axisID, dialogType,
-        this, newstackOrBlendmont3dFindPanel.get3dmodButton());
-    findBeads3dPanel = FindBeads3dPanel.getInstance(manager, axisID,
-        dialogType, globalAdvancedButton);
-    reprojectModelPanel = ReprojectModelPanel.getInstance(manager, axisID,
-        dialogType);
+    tilt3dFindPanel = Tilt3dFindPanel.getInstance(manager, axisID, dialogType, this,
+        newstackOrBlendmont3dFindPanel.get3dmodButton());
+    findBeads3dPanel = FindBeads3dPanel.getInstance(manager, axisID, dialogType,
+        globalAdvancedButton);
+    reprojectModelPanel = ReprojectModelPanel.getInstance(manager, axisID, dialogType);
   }
 
   static Beads3dFindPanel getInstance(final ApplicationManager manager,
       final AxisID axisID, final DialogType dialogType,
       final GlobalExpandButton globalAdvancedButton) {
-    Beads3dFindPanel instance = new Beads3dFindPanel(manager, axisID,
-        dialogType, globalAdvancedButton);
+    Beads3dFindPanel instance = new Beads3dFindPanel(manager, axisID, dialogType,
+        globalAdvancedButton);
     instance.createPanel();
     return instance;
   }
@@ -158,8 +161,7 @@ final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
     pnlRoot.add(findBeads3dPanel.getComponent());
     pnlRoot.add(reprojectModelPanel.getComponent());
     //Generate tomogram panel
-    pnlGenerateTomogram.setLayout(new BoxLayout(pnlGenerateTomogram,
-        BoxLayout.Y_AXIS));
+    pnlGenerateTomogram.setLayout(new BoxLayout(pnlGenerateTomogram, BoxLayout.Y_AXIS));
     pnlGenerateTomogram.setBorder(BorderFactory.createEtchedBorder());
     pnlGenerateTomogram.add(header.getContainer());
     pnlGenerateTomogram.add(pnlGenerateTomogramBody);
@@ -233,15 +235,13 @@ final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
 
   void setParameters(BlendmontParam param) {
     if (manager.getMetaData().getViewType() == ViewType.MONTAGE) {
-      ((Blendmont3dFindPanel) newstackOrBlendmont3dFindPanel)
-          .setParameters(param);
+      ((Blendmont3dFindPanel) newstackOrBlendmont3dFindPanel).setParameters(param);
     }
   }
 
   void setParameters(NewstParam param) {
     if (manager.getMetaData().getViewType() != ViewType.MONTAGE) {
-      ((Newstack3dFindPanel) newstackOrBlendmont3dFindPanel)
-          .setParameters(param);
+      ((Newstack3dFindPanel) newstackOrBlendmont3dFindPanel).setParameters(param);
     }
   }
 
@@ -286,20 +286,20 @@ final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
     //If the binning of the existing full aligned stack is different from the
     //the binning requested here, run newst/blend_3dfind.com and then run
     //tilt_3dfind.
-    if (!manager.equalsBinning(axisID, newstackOrBlendmont3dFindPanel
-        .getBinning(), FileType.ALIGNED_STACK)) {
+    if (!manager.equalsBinning(axisID, newstackOrBlendmont3dFindPanel.getBinning(),
+        FileType.ALIGNED_STACK)) {
       ProcessSeries processSeries = new ProcessSeries(manager, dialogType,
           tilt3dFindPanel);
       processSeries.setNextProcess(ProcessName.TILT_3D_FIND.toString(),
           tiltpProcessingMethod);
-      newstackOrBlendmont3dFindPanel.runProcess(processResultDisplay,
-          processSeries, run3dmodMenuOptions);
+      newstackOrBlendmont3dFindPanel.runProcess(processResultDisplay, processSeries,
+          run3dmodMenuOptions);
     }
     else {
       manager.getState().setStackUsingNewstOrBlend3dFindOutput(axisID, false);
       //Just run tilt_3dfind.
-      tilt3dFindPanel.tilt3dFindAction(processResultDisplay,
-          deferred3dmodButton, run3dmodMenuOptions);
+      tilt3dFindPanel.tilt3dFindAction(processResultDisplay, deferred3dmodButton,
+          run3dmodMenuOptions);
     }
   }
 }

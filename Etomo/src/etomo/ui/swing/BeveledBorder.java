@@ -17,6 +17,9 @@ import javax.swing.border.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:35  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.1  2009/01/20 19:45:41  sueh
  * <p> bug# 1102 Changed return type of getBorder to TitleBorder so that EtomoPanel can recognize that it has a label.
  * <p>
@@ -34,8 +37,7 @@ import javax.swing.border.*;
  * <p> </p>
  */
 public class BeveledBorder {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   Border border;
   TitledBorder titledBorder;
@@ -44,18 +46,11 @@ public class BeveledBorder {
   static Color shadowInner = new Color(84, 86, 95);
 
   public BeveledBorder(String title) {
-    titledBorder =
-      new TitledBorder(
-        BorderFactory.createEtchedBorder(highlightOuter, shadowOuter),
-        title);
+    titledBorder = new TitledBorder(BorderFactory.createEtchedBorder(highlightOuter,
+        shadowOuter), title);
 
-    border =
-      BorderFactory.createBevelBorder(
-        BevelBorder.LOWERED,
-        highlightOuter,
-        Color.white,
-        shadowOuter,
-        shadowOuter);
+    border = BorderFactory.createBevelBorder(BevelBorder.LOWERED, highlightOuter,
+        Color.white, shadowOuter, shadowOuter);
     titledBorder.setBorder(border);
   }
 

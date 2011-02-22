@@ -23,6 +23,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.19  2010/03/05 04:02:01  sueh
  * <p> bug# 1319 Added a constructor with no label string.
  * <p>
@@ -110,11 +113,10 @@ final class CheckBox extends JCheckBox {
 
   public void setName(String text) {
     String name = Utilities.convertLabelToName(text);
-    super.setName(UITestFieldType.CHECK_BOX.toString()
-        + AutodocTokenizer.SEPARATOR_CHAR + name);
+    super.setName(UITestFieldType.CHECK_BOX.toString() + AutodocTokenizer.SEPARATOR_CHAR
+        + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
-          + ' ');
+      System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
 
@@ -142,6 +144,9 @@ final class CheckBox extends JCheckBox {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.19  2010/03/05 04:02:01  sueh
  * <p> bug# 1319 Added a constructor with no label string.
  * <p>

@@ -25,6 +25,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.36  2009/11/20 17:27:33  sueh
  * <p> bug# 1282 Added prefixes to all of the field names, so that the fields that
  * <p> are actually abstract buttons (radio buttons, etc) won't be activated by a
@@ -224,8 +227,8 @@ final class LabeledTextField {
     textField.setName(UITestFieldType.TEXT_FIELD.toString()
         + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(textField.getName() + ' '
-          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+      System.out.println(textField.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
+          + ' ');
     }
   }
 

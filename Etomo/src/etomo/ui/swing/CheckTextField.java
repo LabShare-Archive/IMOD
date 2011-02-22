@@ -29,6 +29,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2010/12/05 04:58:39  sueh
+ * <p> bug# 1416 Added setEnabled.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -67,8 +70,8 @@ final class CheckTextField {
     textField.setName(UITestFieldType.TEXT_FIELD.toString()
         + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(textField.getName() + ' '
-          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+      System.out.println(textField.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
+          + ' ');
     }
   }
 
@@ -142,8 +145,7 @@ final class CheckTextField {
     updateDisplay();
   }
 
-  private static final class CheckTextFieldActionListener implements
-      ActionListener {
+  private static final class CheckTextFieldActionListener implements ActionListener {
     private final CheckTextField checkTextField;
 
     private CheckTextFieldActionListener(final CheckTextField checkTextField) {

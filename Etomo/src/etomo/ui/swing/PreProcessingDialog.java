@@ -26,6 +26,9 @@ import etomo.type.ReconScreenState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2010/12/05 05:14:39  sueh
+ * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -152,8 +155,7 @@ import etomo.type.ReconScreenState;
 public final class PreProcessingDialog extends ProcessDialog {
   public static final String rcsid = "$Id$";
 
-  private final JLabel textDM2MRC = new JLabel(
-      "No digital micrograph files detected:  ");
+  private final JLabel textDM2MRC = new JLabel("No digital micrograph files detected:  ");
   private final EtomoPanel pnlDMConvert = new EtomoPanel();
   private final CheckBox cbUniqueHeaders = new CheckBox(
       "Digital micrograph files have unique headers");
@@ -161,18 +163,17 @@ public final class PreProcessingDialog extends ProcessDialog {
 
   private final CcdEraserXRaysPanel ccdEraserXRaysPanel;
 
-  public PreProcessingDialog(final ApplicationManager appManager,
-      final AxisID axisID) {
+  public PreProcessingDialog(final ApplicationManager appManager, final AxisID axisID) {
     super(appManager, axisID, DialogType.PRE_PROCESSING);
-    ccdEraserXRaysPanel = CcdEraserXRaysPanel.getInstance(appManager, axisID,
-        dialogType, btnAdvanced);
+    ccdEraserXRaysPanel = CcdEraserXRaysPanel.getInstance(appManager, axisID, dialogType,
+        btnAdvanced);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
 
     //  Build the digital micrograph panel
     pnlDMConvert.setLayout(new BoxLayout(pnlDMConvert, BoxLayout.Y_AXIS));
-    pnlDMConvert.setBorder(new BeveledBorder("Digital Micrograph Conversion")
-        .getBorder());
+    pnlDMConvert
+        .setBorder(new BeveledBorder("Digital Micrograph Conversion").getBorder());
     pnlDMConvert.add(textDM2MRC);
     pnlDMConvert.add(Box.createRigidArea(FixedDim.x20_y0));
     pnlDMConvert.add(cbUniqueHeaders);
@@ -194,7 +195,7 @@ public final class PreProcessingDialog extends ProcessDialog {
     //  Set the default advanced state for the window, this also executes
     updateAdvanced();
   }
-  
+
   public static String getUseFixedStackLabel() {
     return CcdEraserXRaysPanel.USE_FIXED_STACK_LABEL;
   }

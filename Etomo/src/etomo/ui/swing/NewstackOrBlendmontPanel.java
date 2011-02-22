@@ -38,6 +38,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.2  2009/09/17 19:12:58  sueh
  * <p> bug# 1257 In NewstParam.setSizeToOutputInXandY forgot to read the
  * <p> header.  Adding read call and throwing InvalidParameterException and
@@ -47,8 +50,8 @@ import etomo.util.InvalidParameterException;
  * <p> bug# 1222
  * <p> </p>
  */
-abstract class NewstackOrBlendmontPanel implements Run3dmodButtonContainer,
-    Expandable, NewstackDisplay, BlendmontDisplay {
+abstract class NewstackOrBlendmontPanel implements Run3dmodButtonContainer, Expandable,
+    NewstackDisplay, BlendmontDisplay {
   public static final String rcsid = "$Id$";
 
   static final String RUN_BUTTON_LABEL = "Create Full Aligned Stack";
@@ -73,12 +76,12 @@ abstract class NewstackOrBlendmontPanel implements Run3dmodButtonContainer,
     this.manager = manager;
     this.axisID = axisID;
     this.dialogType = dialogType;
-    header = PanelHeader.getAdvancedBasicOnlyInstance(getHeaderTitle(), this,
-        dialogType, globalAdvancedButton);
-    newstackAndBlendmontParamPanel = NewstackAndBlendmontParamPanel
-        .getInstance(manager, axisID, dialogType);
-    btnRunProcess = (Run3dmodButton) manager.getProcessResultDisplayFactory(
-        axisID).getFullAlignedStack();
+    header = PanelHeader.getAdvancedBasicOnlyInstance(getHeaderTitle(), this, dialogType,
+        globalAdvancedButton);
+    newstackAndBlendmontParamPanel = NewstackAndBlendmontParamPanel.getInstance(manager,
+        axisID, dialogType);
+    btnRunProcess = (Run3dmodButton) manager.getProcessResultDisplayFactory(axisID)
+        .getFullAlignedStack();
   }
 
   abstract String getHeaderTitle();
@@ -145,7 +148,7 @@ abstract class NewstackOrBlendmontPanel implements Run3dmodButtonContainer,
 
   //  Copy the newstack parameters from the GUI to the NewstParam object
   public final void getParameters(NewstParam newstParam)
-      throws FortranInputSyntaxException,InvalidParameterException,IOException {
+      throws FortranInputSyntaxException, InvalidParameterException, IOException {
     newstackAndBlendmontParamPanel.getParameters(newstParam);
   }
 
@@ -155,8 +158,7 @@ abstract class NewstackOrBlendmontPanel implements Run3dmodButtonContainer,
 
   //  Copy the newstack parameters from the GUI to the NewstParam object
   public final void getParameters(BlendmontParam param)
-      throws FortranInputSyntaxException, InvalidParameterException,
-      IOException {
+      throws FortranInputSyntaxException, InvalidParameterException, IOException {
     newstackAndBlendmontParamPanel.getParameters(param);
   }
 
@@ -249,8 +251,7 @@ abstract class NewstackOrBlendmontPanel implements Run3dmodButtonContainer,
       ActionListener {
     private final NewstackOrBlendmontPanel adaptee;
 
-    private NewstackOrBlendmontPanelActionListener(
-        final NewstackOrBlendmontPanel adaptee) {
+    private NewstackOrBlendmontPanelActionListener(final NewstackOrBlendmontPanel adaptee) {
       this.adaptee = adaptee;
     }
 

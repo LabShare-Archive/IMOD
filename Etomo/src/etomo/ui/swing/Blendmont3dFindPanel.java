@@ -26,6 +26,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.4  2010/04/09 03:01:26  sueh
  * <p> bug# 1352 Passing the ProcessResultDisplay via parameter instead of retrieving it with a function so that it always be passed.
  * <p>
@@ -42,8 +45,8 @@ import etomo.util.InvalidParameterException;
  * <p> bug# 1222
  * <p> </p>
  */
-final class Blendmont3dFindPanel extends NewstackOrBlendmont3dFindPanel
-    implements BlendmontDisplay {
+final class Blendmont3dFindPanel extends NewstackOrBlendmont3dFindPanel implements
+    BlendmontDisplay {
   public static final String rcsid = "$Id$";
 
   private Blendmont3dFindPanel(ApplicationManager manager, AxisID axisID,
@@ -51,11 +54,10 @@ final class Blendmont3dFindPanel extends NewstackOrBlendmont3dFindPanel
     super(manager, axisID, dialogType, parent);
   }
 
-  static Blendmont3dFindPanel getInstance(ApplicationManager manager,
-      AxisID axisID, DialogType dialogType,
-      NewstackOrBlendmont3dFindParent parent) {
-    Blendmont3dFindPanel instance = new Blendmont3dFindPanel(manager, axisID,
-        dialogType, parent);
+  static Blendmont3dFindPanel getInstance(ApplicationManager manager, AxisID axisID,
+      DialogType dialogType, NewstackOrBlendmont3dFindParent parent) {
+    Blendmont3dFindPanel instance = new Blendmont3dFindPanel(manager, axisID, dialogType,
+        parent);
     instance.createPanel();
     instance.addListeners();
     instance.setToolTipText();
@@ -65,19 +67,17 @@ final class Blendmont3dFindPanel extends NewstackOrBlendmont3dFindPanel
   public void setParameters(BlendmontParam param) {
   }
 
-  public void getParameters(BlendmontParam param)
-      throws FortranInputSyntaxException, InvalidParameterException,
-      IOException {
+  public void getParameters(BlendmontParam param) throws FortranInputSyntaxException,
+      InvalidParameterException, IOException {
     param.setBinByFactor(getBinning());
     param.setMode(BlendmontParam.Mode.BLEND_3DFIND);
     param.convertToStartingAndEndingXandY(manager.getState()
-        .getStackUserSizeToOutputInXandY(axisID), manager.getMetaData()
-        .getImageRotation(axisID));
+        .getStackUserSizeToOutputInXandY(axisID), manager.getMetaData().getImageRotation(
+        axisID));
   }
 
   void runProcess(final ProcessResultDisplay processResultDisplay,
-      final ProcessSeries processSeries,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
+      final ProcessSeries processSeries, final Run3dmodMenuOptions run3dmodMenuOptions) {
     manager.blend3dFind(processResultDisplay, processSeries, null, axisID,
         run3dmodMenuOptions, dialogType, this);
   }
@@ -91,8 +91,7 @@ final class Blendmont3dFindPanel extends NewstackOrBlendmont3dFindPanel
    * @param deferred3dmodButton
    * @param run3dmodMenuOptions
    */
-  void action(final String command,
-      final Deferred3dmodButton deferred3dmodButton,
+  void action(final String command, final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(get3dmodFullButtonActionCommand())) {
       manager.imodFineAlign3dFind(axisID, run3dmodMenuOptions);

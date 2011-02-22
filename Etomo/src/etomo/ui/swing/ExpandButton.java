@@ -37,6 +37,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.24  2010/10/12 02:04:47  sueh
  * <p> bug# 1391 Reduce visibility of class.
  * <p>
@@ -155,8 +158,7 @@ final class ExpandButton extends MultiLineButton {
   private boolean expanded;
   private JPanel jpanelContainer = null;
 
-  static ExpandButton getInstance(final Expandable expandable,
-      ExpandButton.Type type) {
+  static ExpandButton getInstance(final Expandable expandable, ExpandButton.Type type) {
     if (type == null) {
       type = DEFAULT_TYPE;
     }
@@ -169,8 +171,7 @@ final class ExpandButton extends MultiLineButton {
     if (type == null) {
       type = DEFAULT_TYPE;
     }
-    ExpandButton instance = new ExpandButton(expandable1, null, type,
-        globalExpandButton);
+    ExpandButton instance = new ExpandButton(expandable1, null, type, globalExpandButton);
     return instance;
   }
 
@@ -179,8 +180,7 @@ final class ExpandButton extends MultiLineButton {
     if (type == null) {
       type = DEFAULT_TYPE;
     }
-    ExpandButton instance = new ExpandButton(expandable1, expandable2, type,
-        true, null);
+    ExpandButton instance = new ExpandButton(expandable1, expandable2, type, true, null);
     return instance;
   }
 
@@ -192,15 +192,14 @@ final class ExpandButton extends MultiLineButton {
    * The button can be used on any ui.
    * @param component
    */
-  private ExpandButton(final Expandable expandable1,
-      final Expandable expandable2, final ExpandButton.Type type,
-      final GlobalExpandButton globalExpandButton) {
+  private ExpandButton(final Expandable expandable1, final Expandable expandable2,
+      final ExpandButton.Type type, final GlobalExpandButton globalExpandButton) {
     this(expandable1, expandable2, type, false, globalExpandButton);
   }
 
-  private ExpandButton(final Expandable expandable1,
-      final Expandable expandable2, final ExpandButton.Type type,
-      final boolean expanded, final GlobalExpandButton globalExpandButton) {
+  private ExpandButton(final Expandable expandable1, final Expandable expandable2,
+      final ExpandButton.Type type, final boolean expanded,
+      final GlobalExpandButton globalExpandButton) {
     super();
     this.expandable1 = expandable1;
     this.expandable2 = expandable2;
@@ -233,11 +232,9 @@ final class ExpandButton extends MultiLineButton {
   void setName(final String associatedLabel) {
     String name = Utilities.convertLabelToName(associatedLabel);
     getButton().setName(
-        UITestFieldType.MINI_BUTTON.toString()
-            + AutodocTokenizer.SEPARATOR_CHAR + name);
+        UITestFieldType.MINI_BUTTON.toString() + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
-          + ' ');
+      System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
 
@@ -376,12 +373,12 @@ final class ExpandButton extends MultiLineButton {
     private static final String ADVANCED_EXPANDED_SYMBOL = "B";
     private static final String OPEN_EXPANDED_SYMBOL = "-";
 
-    static final Type MORE = new Type("more", MORE_EXPANDED_SYMBOL,
-        "Show less.", "less", "<html>&gt", "Show more.");
+    static final Type MORE = new Type("more", MORE_EXPANDED_SYMBOL, "Show less.", "less",
+        "<html>&gt", "Show more.");
     static final Type ADVANCED = new Type("advanced", ADVANCED_EXPANDED_SYMBOL,
         "Show basic options.", "basic", "A", "Show all options.");
-    static final Type OPEN = new Type("open", OPEN_EXPANDED_SYMBOL,
-        "Close panel.", "closed", "+", "Open panel.");
+    static final Type OPEN = new Type("open", OPEN_EXPANDED_SYMBOL, "Close panel.",
+        "closed", "+", "Open panel.");
 
     //Backwards compatibility issue:  expandedState is a key in the .edf file.
     private final String expandedState;
@@ -406,8 +403,7 @@ final class ExpandButton extends MultiLineButton {
     private static boolean isExpandedSymbol(String symbol) {
       symbol = Utilities.convertLabelToName(symbol);
       return symbol.equals(Utilities.convertLabelToName(MORE_EXPANDED_SYMBOL))
-          || symbol.equals(Utilities
-              .convertLabelToName(ADVANCED_EXPANDED_SYMBOL))
+          || symbol.equals(Utilities.convertLabelToName(ADVANCED_EXPANDED_SYMBOL))
           || symbol.equals(Utilities.convertLabelToName(OPEN_EXPANDED_SYMBOL));
     }
 

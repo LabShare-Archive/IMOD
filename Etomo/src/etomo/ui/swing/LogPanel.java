@@ -38,6 +38,9 @@ import etomo.type.ConstLogProperties;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.7  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
@@ -113,8 +116,7 @@ public final class LogPanel implements Storable, LogInterface {
    * @param paramFile
    * @param metaData
    */
-  synchronized void setTitle(File paramFile, BaseMetaData metaData,
-      String propertyUserDir) {
+  synchronized void setTitle(File paramFile, BaseMetaData metaData, String propertyUserDir) {
     if (metaData != null && paramFile != null) {
       datasetName = metaData.getName();
       border.setTitle(datasetName + " " + TITLE);
@@ -211,9 +213,8 @@ public final class LogPanel implements Storable, LogInterface {
               //Preserve an empty line by calling newLine.
               if (lineArray[i].length() > 1) {
                 //Write a line which has a Windows line ending (strip \r).
-                file.write(
-                    lineArray[i].substring(0, lineArray[i].length() - 2),
-                    writerId);
+                file
+                    .write(lineArray[i].substring(0, lineArray[i].length() - 2), writerId);
               }
             }
             else {
@@ -268,8 +269,8 @@ public final class LogPanel implements Storable, LogInterface {
         e.printStackTrace();
         if (!fileFailed) {
           fileFailed = true;
-          UIHarness.INSTANCE.openMessageDialog(null, "Unabled to access file "
-              + fileName + " in " + userDir, "System Error");
+          UIHarness.INSTANCE.openMessageDialog(null, "Unabled to access file " + fileName
+              + " in " + userDir, "System Error");
         }
         return false;
       }

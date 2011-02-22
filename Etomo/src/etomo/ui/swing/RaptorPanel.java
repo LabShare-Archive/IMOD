@@ -35,6 +35,9 @@ import etomo.type.ViewType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2010/12/05 05:16:25  sueh
+ * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -64,18 +67,17 @@ final class RaptorPanel implements Run3dmodButtonContainer, ContextMenu {
   private final JPanel pnlInput = new JPanel();
   private final Run3dmodButton btnOpenStack = Run3dmodButton.get3dmodInstance(
       "Open Stack in 3dmod", this);
-  private final LabeledTextField ltfMark = new LabeledTextField(MARK_LABEL
-      + ": ");
+  private final LabeledTextField ltfMark = new LabeledTextField(MARK_LABEL + ": ");
   private final LabeledTextField ltfDiam = new LabeledTextField(DIAM_LABEL
       + " (in pixels): ");
   private final ButtonGroup bgInput = new ButtonGroup();
   private final RadioButton rbInputPreali = new RadioButton(
       "Run against the coarse aligned stack", bgInput);
-  private final RadioButton rbInputRaw = new RadioButton(
-      "Run against the raw stack", bgInput);
+  private final RadioButton rbInputRaw = new RadioButton("Run against the raw stack",
+      bgInput);
   private final Run3dmodButton btnRaptor;
-  private final Run3dmodButton btnOpenRaptorResult = Run3dmodButton
-      .get3dmodInstance("Open RAPTOR Model in 3dmod", this);
+  private final Run3dmodButton btnOpenRaptorResult = Run3dmodButton.get3dmodInstance(
+      "Open RAPTOR Model in 3dmod", this);
   private final MultiLineButton btnUseRaptorResult;
   private final RaptorPanelActionListener actionListener = new RaptorPanelActionListener(
       this);
@@ -85,8 +87,8 @@ final class RaptorPanel implements Run3dmodButtonContainer, ContextMenu {
   private final ApplicationManager manager;
   private final DialogType dialogType;
 
-  private RaptorPanel(ApplicationManager manager, AxisID axisID,
-      DialogType dialogType, RaptorPanelParent parent) {
+  private RaptorPanel(ApplicationManager manager, AxisID axisID, DialogType dialogType,
+      RaptorPanelParent parent) {
     this.manager = manager;
     this.axisID = axisID;
     this.dialogType = dialogType;
@@ -126,8 +128,8 @@ final class RaptorPanel implements Run3dmodButtonContainer, ContextMenu {
     logFile[0] = "track" + axisID.getExtension() + ".log";
 
     new ContextPopup(pnlRoot.getContainer(), mouseEvent, "UsingRaptor",
-        ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile,
-        manager, axisID);
+        ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile, manager,
+        axisID);
   }
 
   private void createPanel() {
@@ -170,8 +172,7 @@ final class RaptorPanel implements Run3dmodButtonContainer, ContextMenu {
 
   public void setBeadtrackParams(final BeadtrackParam beadtrackParams) {
     if (beadtrackParams.isBeadDiameterSet()) {
-      ltfDiam
-          .setText(Math.round(beadtrackParams.getBeadDiameter().getDouble()));
+      ltfDiam.setText(Math.round(beadtrackParams.getBeadDiameter().getDouble()));
     }
   }
 
@@ -179,14 +180,14 @@ final class RaptorPanel implements Run3dmodButtonContainer, ContextMenu {
     param.setUseRawStack(rbInputRaw.isSelected());
     String errorMessage = param.setMark(ltfMark.getText());
     if (errorMessage != null) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "Error in " + MARK_LABEL
-          + ": " + errorMessage, "Entry Error", axisID);
+      UIHarness.INSTANCE.openMessageDialog(manager, "Error in " + MARK_LABEL + ": "
+          + errorMessage, "Entry Error", axisID);
       return false;
     }
     errorMessage = param.setDiam(ltfDiam.getText(), rbInputPreali.isSelected());
     if (errorMessage != null) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "Error in " + DIAM_LABEL
-          + ": " + errorMessage, "Entry Error", axisID);
+      UIHarness.INSTANCE.openMessageDialog(manager, "Error in " + DIAM_LABEL + ": "
+          + errorMessage, "Entry Error", axisID);
       return false;
     }
     return true;
@@ -229,8 +230,7 @@ final class RaptorPanel implements Run3dmodButtonContainer, ContextMenu {
         run3dmodMenuOptions);
   }
 
-  private void action(final String command,
-      Deferred3dmodButton deferred3dmodButton,
+  private void action(final String command, Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnOpenStack.getActionCommand())) {
       if (rbInputRaw.isSelected()) {
@@ -241,15 +241,14 @@ final class RaptorPanel implements Run3dmodButtonContainer, ContextMenu {
       }
     }
     else if (command.equals(btnRaptor.getActionCommand())) {
-      manager.runraptor(btnRaptor, null, deferred3dmodButton,
-          run3dmodMenuOptions, DialogType.FIDUCIAL_MODEL, axisID);
+      manager.runraptor(btnRaptor, null, deferred3dmodButton, run3dmodMenuOptions,
+          DialogType.FIDUCIAL_MODEL, axisID);
     }
     else if (command.equals(btnOpenRaptorResult.getActionCommand())) {
       manager.imodRunraptorResult(axisID, run3dmodMenuOptions);
     }
     else if (command.equals(btnUseRaptorResult.getActionCommand())) {
-      manager.useRunraptorResult(btnUseRaptorResult, axisID,
-          DialogType.FIDUCIAL_MODEL);
+      manager.useRunraptorResult(btnUseRaptorResult, axisID, DialogType.FIDUCIAL_MODEL);
     }
   }
 
@@ -262,11 +261,9 @@ final class RaptorPanel implements Run3dmodButtonContainer, ContextMenu {
   }
 
   private void setToolTipText() {
-    rbInputPreali
-        .setToolTipText("Run RAPTOR against the coarsely aligned stack.");
+    rbInputPreali.setToolTipText("Run RAPTOR against the coarsely aligned stack.");
     rbInputRaw.setToolTipText("Run RAPTOR against the raw stack.");
-    btnOpenStack
-        .setToolTipText("Opens the file that RAPTOR will be run against.");
+    btnOpenStack.setToolTipText("Opens the file that RAPTOR will be run against.");
     ltfMark.setToolTipText("Number of markers to track.");
     ltfDiam.setToolTipText("Bead diameter in pixels.");
     btnRaptor.setToolTipText("Runs the runraptor script");

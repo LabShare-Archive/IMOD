@@ -41,8 +41,8 @@ import etomo.type.EtomoNumber;
  * 
  * @version $Revision$
  */
-abstract class ProcessorTable implements Storable, ParallelProgressDisplay,
-    LoadDisplay, Viewable {
+abstract class ProcessorTable implements Storable, ParallelProgressDisplay, LoadDisplay,
+    Viewable {
   public static final String rcsid = "$Id$";
 
   private final JPanel rootPanel = new JPanel();
@@ -71,8 +71,8 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay,
 
   private final RowList rowList = new RowList();
   private final Viewport viewport = new Viewport(this, EtomoDirector.INSTANCE
-      .getUserConfiguration().getParallelTableSize().getInt(), null, null,
-      null, "Processor");
+      .getUserConfiguration().getParallelTableSize().getInt(), null, null, null,
+      "Processor");
   private final ParallelPanel parent;
   final AxisID axisID;
   final BaseManager manager;
@@ -93,8 +93,8 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay,
 
   abstract Node getNode(int index);
 
-  abstract ProcessorTableRow createProcessorTableRow(
-      ProcessorTable processorTable, Node node, EtomoNumber number);
+  abstract ProcessorTableRow createProcessorTableRow(ProcessorTable processorTable,
+      Node node, EtomoNumber number);
 
   abstract String getHeader1ComputerText();
 
@@ -231,14 +231,12 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay,
       header2RAM.setText(memoryUnits);
     }
     try {
-      ParameterStore parameterStore = EtomoDirector.INSTANCE
-          .getParameterStore();
+      ParameterStore parameterStore = EtomoDirector.INSTANCE.getParameterStore();
       parameterStore.load(this);
     }
     catch (LogFile.LockException e) {
-      UIHarness.INSTANCE.openMessageDialog(manager,
-          "Unable to load parameters.\n" + e.getMessage(), "Etomo Error",
-          axisID);
+      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to load parameters.\n"
+          + e.getMessage(), "Etomo Error", axisID);
     }
     setToolTipText();
     if (isSelectOnlyRow() && rowList.size() == 1) {
@@ -443,8 +441,8 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay,
 
   String getHelpMessage() {
     return "Click on check boxes in the " + header1Computer.getText()
-        + " column and use the spinner in the " + header1NumberCPUs.getText()
-        + " " + header2NumberCPUsUsed.getText() + " column where available.";
+        + " column and use the spinner in the " + header1NumberCPUs.getText() + " "
+        + header2NumberCPUsUsed.getText() + " column where available.";
   }
 
   public void startLoad() {
@@ -488,10 +486,10 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay,
     return stopped;
   }
 
-  public void setLoad(final String computer, final double load1,
-      final double load5, final int users, final String usersTooltip) {
-    ((ProcessorTableRow) rowList.get(computer)).setLoad(load1, load5, users,
-        usersTooltip);
+  public void setLoad(final String computer, final double load1, final double load5,
+      final int users, final String usersTooltip) {
+    ((ProcessorTableRow) rowList.get(computer))
+        .setLoad(load1, load5, users, usersTooltip);
   }
 
   public void setLoad(final String computer, final String[] loadArray) {
@@ -522,10 +520,10 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay,
    * for restarting an intermittent process without losing the processchunks
    * failure reason.
    */
-  public void msgStartingProcess(final String computer,
-      final String failureReason1, String failureReason2) {
-    ((ProcessorTableRow) rowList.get(computer)).clearFailureReason(
-        failureReason1, failureReason2);
+  public void msgStartingProcess(final String computer, final String failureReason1,
+      String failureReason2) {
+    ((ProcessorTableRow) rowList.get(computer)).clearFailureReason(failureReason1,
+        failureReason2);
   }
 
   void clearFailureReason(final boolean selectedComputers) {
@@ -777,6 +775,10 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/03 06:15:08  sueh
+ * <p> bug# 1422 Handling the three types of tables (queue, CPU, and GPU) by
+ * <p> putting the differences into child classes.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>

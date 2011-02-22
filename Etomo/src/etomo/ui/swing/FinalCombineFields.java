@@ -14,6 +14,9 @@ package etomo.ui.swing;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.1  2010/11/13 16:07:35  sueh
+* <p> $bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+* <p> $
 * <p> $Revision 1.6  2006/03/16 01:54:54  sueh
 * <p> $bug# 828 Added isEnabled().
 * <p> $
@@ -40,26 +43,46 @@ package etomo.ui.swing;
 */
 interface FinalCombineFields {
   public static final String rcsid = "$$Id$$";
-  
+
   public void setUsePatchRegionModel(boolean usePatchRegionModel);
+
   public boolean isUsePatchRegionModel();
+
   public void setXMin(String xMin);
+
   public String getXMin();
+
   public void setXMax(String xMax);
+
   public String getXMax();
+
   public void setYMin(String yMin);
+
   public String getYMin();
+
   public void setYMax(String yMax);
+
   public String getYMax();
+
   public void setZMin(String zMin);
+
   public String getZMin();
+
   public void setZMax(String zMax);
+
   public String getZMax();
+
   public void setParallel(boolean parallel);
+
   public boolean isParallel();
+
   public void setParallelEnabled(boolean parallelEnabled);
+
   public boolean isParallelEnabled();
+
   public void setNoVolcombine(boolean noVolcombine);
+
   public boolean isNoVolcombine();
+
   public boolean isEnabled();
 }

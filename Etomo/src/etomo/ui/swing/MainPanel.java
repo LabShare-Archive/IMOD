@@ -35,6 +35,10 @@ import etomo.type.ProcessName;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/03 06:20:01  sueh
+ * <p> bug# 1422 Removed setParallelDialog.  Control of the processing method
+ * <p> has been centralized in the processing method mediator class.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -442,8 +446,7 @@ public abstract class MainPanel extends EtomoPanel {
    * @param label
    * @param nSteps
    */
-  public void setProgressBar(String label, int nSteps, AxisID axisID,
-      boolean pauseEnabled) {
+  public void setProgressBar(String label, int nSteps, AxisID axisID, boolean pauseEnabled) {
     AxisProcessPanel axisPanel = mapBaseAxis(axisID);
     if (axisPanel == null) {
       return;
@@ -510,8 +513,7 @@ public abstract class MainPanel extends EtomoPanel {
   /**
    *  Start the indeterminate progress bar on the specified axis 
    */
-  public void startProgressBar(String name, AxisID axisID,
-      ProcessName processName) {
+  public void startProgressBar(String name, AxisID axisID, ProcessName processName) {
     AxisProcessPanel axisPanel = mapBaseAxis(axisID);
     axisPanel.startProgressBar(name, processName);
   }
@@ -745,36 +747,36 @@ public abstract class MainPanel extends EtomoPanel {
    public void fitWindow(boolean force) {
    if (!force && !EtomoDirector.getInstance().getUserConfiguration().isAutoFit()) {
    *//* Need a function which does what 1.4.2 show did:
-   * Makes the Window visible. If the Window and/or its owner are not yet
-   * displayable, both are made displayable. The Window will be validated
-   * prior to being made visible. If the Window is already visible, this
-   * will bring the Window to the front.
-   * Component.SetVisible() is recommended as the replacement  
-   *//*
-   EtomoDirector.getInstance().getMainFrame().setVisible(true);
-   //EtomoDirector.getInstance().getMainFrame().show();
-   return;
-   }
-   synchronized (MainFrame.class) {
-   packAxis();
-   if (EtomoDirector.getInstance().isNewstuff()) {
-   return;
-   }
-   //the mainPanel has a limited size, but the frame does not
-   //if the frame has a greater height then the mainPanel + the frame's border
-   //height, then a scroll bar will be used.
-   //Make room for the scroll bar when calling pack()
-   int tabHeight = 0;
-   if (EtomoDirector.getInstance().getControllerListSize() > 1) {
-   String osName = System.getProperty("os.name").toLowerCase();
-   if (osName.indexOf("mac os") == -1) {
-   tabHeight = 30;
-   }
-   else {
-   //Tabs in mac are taller
-   tabHeight = 43;
-   }
-   }*/
+     * Makes the Window visible. If the Window and/or its owner are not yet
+     * displayable, both are made displayable. The Window will be validated
+     * prior to being made visible. If the Window is already visible, this
+     * will bring the Window to the front.
+     * Component.SetVisible() is recommended as the replacement  
+     *//*
+       EtomoDirector.getInstance().getMainFrame().setVisible(true);
+       //EtomoDirector.getInstance().getMainFrame().show();
+       return;
+       }
+       synchronized (MainFrame.class) {
+       packAxis();
+       if (EtomoDirector.getInstance().isNewstuff()) {
+       return;
+       }
+       //the mainPanel has a limited size, but the frame does not
+       //if the frame has a greater height then the mainPanel + the frame's border
+       //height, then a scroll bar will be used.
+       //Make room for the scroll bar when calling pack()
+       int tabHeight = 0;
+       if (EtomoDirector.getInstance().getControllerListSize() > 1) {
+       String osName = System.getProperty("os.name").toLowerCase();
+       if (osName.indexOf("mac os") == -1) {
+       tabHeight = 30;
+       }
+       else {
+       //Tabs in mac are taller
+       tabHeight = 43;
+       }
+       }*/
   /*
    System.out.println("difference="
    + Integer.toString(EtomoDirector.getInstance().getMainFrame()
@@ -784,14 +786,14 @@ public abstract class MainPanel extends EtomoPanel {
    + frameBorder.height + ",both="
    + Integer.toString(frameBorder.height + tabHeight));
    *//*
-   if (EtomoDirector.getInstance().getMainFrame().getSize().height
-   - getSize().height > frameBorder.height+tabHeight) {
-   setVerticalScrollBarPolicy(true);
-   packAxis();
-   setVerticalScrollBarPolicy(false);
-   }
-   }
-   }*/
+     if (EtomoDirector.getInstance().getMainFrame().getSize().height
+     - getSize().height > frameBorder.height+tabHeight) {
+     setVerticalScrollBarPolicy(true);
+     packAxis();
+     setVerticalScrollBarPolicy(false);
+     }
+     }
+     }*/
 
   //  TODO Need a way to repaint the existing font
   public void repaintWindow() {

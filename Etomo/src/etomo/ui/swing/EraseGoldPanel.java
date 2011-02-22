@@ -43,6 +43,11 @@ import etomo.type.ViewType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/03 06:22:16  sueh
+ * <p> bug# 1422 Control of the processing method has been centralized in the
+ * <p> processing method mediator class.  Implementing ProcessInterface.
+ * <p> Supplying processes with the current processing method.
+ * <p>
  * <p> Revision 1.2  2010/12/05 05:02:18  sueh
  * <p> bug# 1420 Getting rid of some of the panel parents by handling common
  * <p> needs with generic interfaces:  ParallelProcessEnabledDialog.
@@ -81,8 +86,8 @@ final class EraseGoldPanel implements ContextMenu {
   private final ButtonGroup bgModel = new ButtonGroup();
   private final RadioButton rbModelUseFid = new RadioButton(
       "Use the existing fiducial model", bgModel);
-  private final RadioButton rbModelUseFindBeads3d = new RadioButton(
-      "Use findbeads3d", bgModel);
+  private final RadioButton rbModelUseFindBeads3d = new RadioButton("Use findbeads3d",
+      bgModel);
 
   private final XfModelPanel xfModelPanel;
   private final Beads3dFindPanel beads3dFindPanel;
@@ -97,10 +102,9 @@ final class EraseGoldPanel implements ContextMenu {
     this.axisID = axisID;
     this.dialogType = dialogType;
     xfModelPanel = XfModelPanel.getInstance(manager, axisID, dialogType);
-    beads3dFindPanel = Beads3dFindPanel.getInstance(manager, axisID,
-        dialogType, globalAdvancedButton);
-    ccdEraserBeadsPanel = CcdEraserBeadsPanel.getInstance(manager, axisID,
-        dialogType);
+    beads3dFindPanel = Beads3dFindPanel.getInstance(manager, axisID, dialogType,
+        globalAdvancedButton);
+    ccdEraserBeadsPanel = CcdEraserBeadsPanel.getInstance(manager, axisID, dialogType);
   }
 
   static EraseGoldPanel getInstance(ApplicationManager manager, AxisID axisID,
@@ -143,19 +147,19 @@ final class EraseGoldPanel implements ContextMenu {
       alignLogfileLabel = "Newst";
       alignLogfile = "newst";
     }
-    String[] manPagelabel = { alignManpageLabel, "Tilt", "Findbeads3d",
-        "CcdEraser", "3dmod" };
-    String[] manPage = { alignManpage + ".html", "tilt.html",
-        "findbeads3d.html", "ccderaser.html", "3dmod.html" };
+    String[] manPagelabel = { alignManpageLabel, "Tilt", "Findbeads3d", "CcdEraser",
+        "3dmod" };
+    String[] manPage = { alignManpage + ".html", "tilt.html", "findbeads3d.html",
+        "ccderaser.html", "3dmod.html" };
     String[] logFileLabel = { alignLogfileLabel + "_3dfind", "Tilt_3dfind",
         "Findbeads3d", };
     String[] logFile = new String[3];
     logFile[0] = alignLogfile + "_3dfind" + axisID.getExtension() + ".log";
     logFile[1] = "tilt_3dfind" + axisID.getExtension() + ".log";
     logFile[2] = "findbeads3d" + axisID.getExtension() + ".log";
-    ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent,
-        "ErasingGold", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
-        logFileLabel, logFile, manager, axisID);
+    ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent, "ErasingGold",
+        ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile, manager,
+        axisID);
   }
 
   private void createPanel() {
@@ -268,8 +272,7 @@ final class EraseGoldPanel implements ContextMenu {
     beads3dFindPanel.setParameters(param, initialize);
   }
 
-  private void action(final String command,
-      Deferred3dmodButton deferred3dmodButton,
+  private void action(final String command, Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(rbModelUseFid.getActionCommand())
         || command.equals(rbModelUseFindBeads3d.getActionCommand())) {
@@ -278,10 +281,8 @@ final class EraseGoldPanel implements ContextMenu {
   }
 
   private void setToolTipText() {
-    rbModelUseFid
-        .setToolTipText("Erase the fiducials selected in the fiducial model.");
-    rbModelUseFindBeads3d
-        .setToolTipText("Find beads in tomogram and project positions.");
+    rbModelUseFid.setToolTipText("Erase the fiducials selected in the fiducial model.");
+    rbModelUseFindBeads3d.setToolTipText("Find beads in tomogram and project positions.");
   }
 
   private final class EraseGoldPanelActionListener implements ActionListener {

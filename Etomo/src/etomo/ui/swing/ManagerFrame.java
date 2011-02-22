@@ -29,6 +29,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.1  2010/02/17 04:55:20  sueh
  * <p> bug# 1301 Independent frame associated with a single manager.
  * <p> </p>
@@ -61,15 +64,14 @@ public final class ManagerFrame extends AbstractFrame {
     }
     //set name
     String name = Utilities.convertLabelToName(NAME);
-    rootPanel.setName(UITestFieldType.PANEL.toString()
-        + AutodocTokenizer.SEPARATOR_CHAR + name);
+    rootPanel.setName(UITestFieldType.PANEL.toString() + AutodocTokenizer.SEPARATOR_CHAR
+        + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(UITestFieldType.PANEL.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
-    ImageIcon iconEtomo = new ImageIcon(ClassLoader
-        .getSystemResource("images/etomo.png"));
+    ImageIcon iconEtomo = new ImageIcon(ClassLoader.getSystemResource("images/etomo.png"));
     setIconImage(iconEtomo.getImage());
     menu.createMenus(this);
     setJMenuBar(menu.getMenuBar());
@@ -153,8 +155,7 @@ public final class ManagerFrame extends AbstractFrame {
     menu.menuHelpAction(manager, AxisID.ONLY, this, event);
   }
 
-  private static final class ManagerWindowFocusListener implements
-      WindowFocusListener {
+  private static final class ManagerWindowFocusListener implements WindowFocusListener {
     private final BaseManager manager;
 
     private ManagerWindowFocusListener(BaseManager manager) {

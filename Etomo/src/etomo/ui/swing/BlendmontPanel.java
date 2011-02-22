@@ -19,12 +19,15 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:35  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.1  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p> </p>
  */
-final class BlendmontPanel extends NewstackOrBlendmontPanel implements
-    Expandable, Run3dmodButtonContainer {
+final class BlendmontPanel extends NewstackOrBlendmontPanel implements Expandable,
+    Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
   private BlendmontPanel(ApplicationManager manager, AxisID axisID,
@@ -55,14 +58,11 @@ final class BlendmontPanel extends NewstackOrBlendmontPanel implements
    * @param deferred3dmodButton
    * @param run3dmodMenuOptions
    */
-  void action(final String command,
-      final Deferred3dmodButton deferred3dmodButton,
+  void action(final String command, final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(getRunProcessButtonActionCommand())) {
-      manager
-          .blend(getRunProcessResultDisplay(), null, deferred3dmodButton,
-              axisID, run3dmodMenuOptions, dialogType, getFiducialessParams(),
-              this);
+      manager.blend(getRunProcessResultDisplay(), null, deferred3dmodButton, axisID,
+          run3dmodMenuOptions, dialogType, getFiducialessParams(), this);
     }
     else if (command.equals(get3dmodFullButtonActionCommand())) {
       manager.imodFineAlign(axisID, run3dmodMenuOptions);

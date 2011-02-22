@@ -39,6 +39,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2010/12/05 05:03:16  sueh
+ * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -352,8 +355,8 @@ import etomo.comscript.TransferfidParam;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-public final class FiducialModelDialog extends ProcessDialog implements
-    ContextMenu, Run3dmodButtonContainer, RaptorPanelParent {
+public final class FiducialModelDialog extends ProcessDialog implements ContextMenu,
+    Run3dmodButtonContainer, RaptorPanelParent {
   public static final String rcsid = "$Id$";
 
   static final String SEEDING_NOT_DONE_LABEL = "Seed Fiducial Model";
@@ -369,29 +372,28 @@ public final class FiducialModelDialog extends ProcessDialog implements
 
   private final JPanel pnlMethod = new JPanel();
   private final ButtonGroup bgMethod = new ButtonGroup();
-  private final RadioButton rbMethodSeed = new RadioButton(
-      "Make seed and track", MethodEnumeratedType.SEED, bgMethod);
+  private final RadioButton rbMethodSeed = new RadioButton("Make seed and track",
+      MethodEnumeratedType.SEED, bgMethod);
   private final RadioButton rbMethodPatchTracking = new RadioButton(
-      "Use patch tracking to make fiducial model",
-      MethodEnumeratedType.PATCH_TRACKING, bgMethod);
-  private final RadioButton rbMethodRaptor = new RadioButton(
-      "Run RAPTOR and fix", MethodEnumeratedType.RAPTOR, bgMethod);
+      "Use patch tracking to make fiducial model", MethodEnumeratedType.PATCH_TRACKING,
+      bgMethod);
+  private final RadioButton rbMethodRaptor = new RadioButton("Run RAPTOR and fix",
+      MethodEnumeratedType.RAPTOR, bgMethod);
   private final TiltxcorrPanel tiltxcorrPanel;
 
   private final RaptorPanel raptorPanel;
 
   private boolean transferfidEnabled = false;
 
-  private FiducialModelDialog(final ApplicationManager appMgr,
-      final AxisID axisID, final AxisType axisType) {
+  private FiducialModelDialog(final ApplicationManager appMgr, final AxisID axisID,
+      final AxisType axisType) {
     super(appMgr, axisID, DialogType.FIDUCIAL_MODEL);
     //initialize final member variables
     ProcessResultDisplayFactory displayFactory = appMgr
         .getProcessResultDisplayFactory(axisID);
     btnSeed = (Run3dmodButton) displayFactory.getSeedFiducialModel();
     raptorPanel = RaptorPanel.getInstance(appMgr, axisID, dialogType, this);
-    pnlBeadtrack = BeadtrackPanel.getInstance(appMgr, axisID, dialogType,
-        btnAdvanced);
+    pnlBeadtrack = BeadtrackPanel.getInstance(appMgr, axisID, dialogType, btnAdvanced);
     tiltxcorrPanel = TiltxcorrPanel.getPatchTrackingInstance(appMgr, axisID,
         DialogType.FIDUCIAL_MODEL, btnAdvanced);
     //root panel
@@ -400,8 +402,8 @@ public final class FiducialModelDialog extends ProcessDialog implements
     rootPanel.add(pnlFiducialModel.getContainer());
     //fiducial model panel
     pnlFiducialModel.setBoxLayout(BoxLayout.Y_AXIS);
-    pnlFiducialModel.setBorder(new BeveledBorder("Fiducial Model Generation")
-        .getBorder());
+    pnlFiducialModel
+        .setBorder(new BeveledBorder("Fiducial Model Generation").getBorder());
     if (applicationManager.isDualAxis()) {
       pnlTransferfid = TransferfidPanel.getInstance(applicationManager, axisID,
           dialogType, this, btnAdvanced);
@@ -447,14 +449,14 @@ public final class FiducialModelDialog extends ProcessDialog implements
       File raptorBin = new File("/usr/local/RAPTOR/bin");
       //RAPTOR_BIN environment variable overrides the default location of RAPTOR.
       String envVar = "RAPTOR_BIN";
-      String raptorBinEnvVar = EnvironmentVariable.INSTANCE.getValue(appMgr,
-          appMgr.getPropertyUserDir(), envVar, axisID);
+      String raptorBinEnvVar = EnvironmentVariable.INSTANCE.getValue(appMgr, appMgr
+          .getPropertyUserDir(), envVar, axisID);
       if (raptorBinEnvVar != null && !raptorBinEnvVar.matches("\\s*")) {
         raptorBin = new File(raptorBinEnvVar);
       }
       if (!raptorBin.exists() || !raptorBin.isDirectory()) {
-        if (EnvironmentVariable.INSTANCE.exists(appMgr, appMgr
-            .getPropertyUserDir(), envVar, axisID)) {
+        if (EnvironmentVariable.INSTANCE.exists(appMgr, appMgr.getPropertyUserDir(),
+            envVar, axisID)) {
           System.err.println("WARNING:  " + raptorBin.getAbsolutePath()
               + " cannot be found.  The environment variable " + envVar
               + " may be incorrect.");
@@ -475,11 +477,9 @@ public final class FiducialModelDialog extends ProcessDialog implements
     updatePick();
   }
 
-  public static FiducialModelDialog getInstance(
-      final ApplicationManager appMgr, final AxisID axisID,
-      final AxisType axisType) {
-    FiducialModelDialog instance = new FiducialModelDialog(appMgr, axisID,
-        axisType);
+  public static FiducialModelDialog getInstance(final ApplicationManager appMgr,
+      final AxisID axisID, final AxisType axisType) {
+    FiducialModelDialog instance = new FiducialModelDialog(appMgr, axisID, axisType);
     instance.addListeners();
     return instance;
   }
@@ -630,9 +630,9 @@ public final class FiducialModelDialog extends ProcessDialog implements
     logFile[1] = "transferfid.log";
 
     //    ContextPopup contextPopup =
-    new ContextPopup(pnlFiducialModel.getContainer(), mouseEvent,
-        "GETTING FIDUCIAL", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
-        logFileLabel, logFile, applicationManager, axisID);
+    new ContextPopup(pnlFiducialModel.getContainer(), mouseEvent, "GETTING FIDUCIAL",
+        ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile,
+        applicationManager, axisID);
   }
 
   /**
@@ -733,12 +733,12 @@ public final class FiducialModelDialog extends ProcessDialog implements
   }
 
   public static final class MethodEnumeratedType implements EnumeratedType {
-    private static final MethodEnumeratedType SEED = new MethodEnumeratedType(
-        true, 0, "Seed");
+    private static final MethodEnumeratedType SEED = new MethodEnumeratedType(true, 0,
+        "Seed");
     private static final MethodEnumeratedType PATCH_TRACKING = new MethodEnumeratedType(
         false, 1, "PatchTracking");
-    public static final MethodEnumeratedType RAPTOR = new MethodEnumeratedType(
-        false, 2, "Raptor");
+    public static final MethodEnumeratedType RAPTOR = new MethodEnumeratedType(false, 2,
+        "Raptor");
 
     private final boolean isDefault;
     private final EtomoNumber value = new EtomoNumber();

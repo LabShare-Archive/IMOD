@@ -18,6 +18,9 @@ import javax.swing.border.TitledBorder;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.2  2009/02/04 23:36:48  sueh
  * <p> bug# 1158 Changed id and exception classes in LogFile.
  * <p>
@@ -46,16 +49,16 @@ public class EtchedBorder {
   // TODO these should be gotten from the app some how
   private static final Color highlight = new Color(248, 254, 255);
   private static final Color shadow = new Color(121, 124, 136);
-  
+
   public EtchedBorder(String title) {
-    titledBorder = new TitledBorder(BorderFactory.createEtchedBorder(highlight,
-        shadow), title);
+    titledBorder = new TitledBorder(BorderFactory.createEtchedBorder(highlight, shadow),
+        title);
   }
 
   public void setTitle(String title) {
     titledBorder.setTitle(title);
   }
-  
+
   public String getTitle() {
     return titledBorder.getTitle();
   }

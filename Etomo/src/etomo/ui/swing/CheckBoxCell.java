@@ -24,7 +24,7 @@ import etomo.type.UITestFieldType;
  * 
  * @version $Revision$
  */
-final class CheckBoxCell extends InputCell implements ToggleCell{
+final class CheckBoxCell extends InputCell implements ToggleCell {
   public static final String rcsid = "$Id$";
 
   private JCheckBox checkBox = new JCheckBox();
@@ -45,7 +45,7 @@ final class CheckBoxCell extends InputCell implements ToggleCell{
   Component getComponent() {
     return checkBox;
   }
-  
+
   UITestFieldType getFieldType() {
     return UITestFieldType.CHECK_BOX;
   }
@@ -60,50 +60,50 @@ final class CheckBoxCell extends InputCell implements ToggleCell{
   }
 
   private void setHtmlLabel(final ColorUIResource color) {
-    checkBox.setText("<html><P style=\"font-weight:normal; color:rgb("
-        + color.getRed() + "," + color.getGreen() + "," + color.getBlue()
-        + ")\">" + unformattedLabel + "</style>");
+    checkBox.setText("<html><P style=\"font-weight:normal; color:rgb(" + color.getRed()
+        + "," + color.getGreen() + "," + color.getBlue() + ")\">" + unformattedLabel
+        + "</style>");
   }
 
-  public  String getLabel() {
+  public String getLabel() {
     return unformattedLabel;
   }
 
-   void setValue(final String value) {
+  void setValue(final String value) {
     checkBox.setSelected(new EtomoBoolean2().set(value).is());
   }
 
-   public boolean isSelected() {
+  public boolean isSelected() {
     return checkBox.isSelected();
   }
 
-   public void setSelected(final boolean selected) {
+  public void setSelected(final boolean selected) {
     checkBox.setSelected(selected);
   }
 
-  public  void addActionListener(final ActionListener actionListener) {
+  public void addActionListener(final ActionListener actionListener) {
     checkBox.addActionListener(actionListener);
   }
-  
+
   public void addChangeListener(ChangeListener listener) {
     checkBox.addChangeListener(listener);
   }
 
-  private  void setForeground() {
+  private void setForeground() {
     checkBox.setForeground(Colors.CELL_FOREGROUND);
     setHtmlLabel(Colors.CELL_FOREGROUND);
   }
 
-   public int getHeight() {
-    return checkBox.getHeight()
-        + checkBox.getBorder().getBorderInsets(checkBox).bottom - 1;
+  public int getHeight() {
+    return checkBox.getHeight() + checkBox.getBorder().getBorderInsets(checkBox).bottom
+        - 1;
   }
 
-   public int getWidth() {
+  public int getWidth() {
     return checkBox.getWidth();
   }
 
-   int getLeftBorder() {
+  int getLeftBorder() {
     return checkBox.getBorder().getBorderInsets(checkBox).left;
   }
 
@@ -113,6 +113,9 @@ final class CheckBoxCell extends InputCell implements ToggleCell{
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.14  2009/01/20 19:49:55  sueh
  * <p> bug# 1102 Added getFieldType.
  * <p>

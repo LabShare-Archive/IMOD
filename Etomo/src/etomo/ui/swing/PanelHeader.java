@@ -48,16 +48,14 @@ final class PanelHeader implements Expandable {
 
   private final GlobalExpandButton globalAdvancedButton;
 
-  static PanelHeader getInstance(final String title,
-      final Expandable expandable, final DialogType dialogType) {
-    return new PanelHeader(title, expandable, false, false, dialogType, true,
-        null);
+  static PanelHeader getInstance(final String title, final Expandable expandable,
+      final DialogType dialogType) {
+    return new PanelHeader(title, expandable, false, false, dialogType, true, null);
   }
 
   static PanelHeader getAdvancedBasicInstance(final String title,
       final Expandable expandable, final DialogType dialogType) {
-    return new PanelHeader(title, expandable, true, false, dialogType, true,
-        null);
+    return new PanelHeader(title, expandable, true, false, dialogType, true, null);
   }
 
   static PanelHeader getAdvancedBasicInstance(final String title,
@@ -74,10 +72,9 @@ final class PanelHeader implements Expandable {
         globalAdvancedButton);
   }
 
-  static PanelHeader getMoreLessInstance(final String title,
-      final Expandable expandable, final DialogType dialogType) {
-    return new PanelHeader(title, expandable, false, true, dialogType, true,
-        null);
+  static PanelHeader getMoreLessInstance(final String title, final Expandable expandable,
+      final DialogType dialogType) {
+    return new PanelHeader(title, expandable, false, true, dialogType, true, null);
   }
 
   /**
@@ -91,9 +88,8 @@ final class PanelHeader implements Expandable {
    * @param moreLess - true if an more/less button should be created
    */
   private PanelHeader(final String title, final Expandable expandable,
-      final boolean advancedBasic, final boolean moreLess,
-      final DialogType dialogType, boolean openClose,
-      final GlobalExpandButton globalAdvancedButton) {
+      final boolean advancedBasic, final boolean moreLess, final DialogType dialogType,
+      boolean openClose, final GlobalExpandButton globalAdvancedButton) {
     this.dialogType = dialogType;
     this.title = title;
     this.globalAdvancedButton = globalAdvancedButton;
@@ -265,8 +261,7 @@ final class PanelHeader implements Expandable {
     setButtonStates(screenState, true);
   }
 
-  void setButtonStates(final BaseScreenState screenState,
-      final boolean defaultIsOpen) {
+  void setButtonStates(final BaseScreenState screenState, final boolean defaultIsOpen) {
     if (screenState == null) {
       return;
     }
@@ -275,8 +270,8 @@ final class PanelHeader implements Expandable {
           .createButtonStateKey(dialogType), defaultIsOpen));
     }
     if (btnAdvancedBasic != null) {
-      btnAdvancedBasic.setButtonState(screenState
-          .getButtonState(btnAdvancedBasic.createButtonStateKey(dialogType)));
+      btnAdvancedBasic.setButtonState(screenState.getButtonState(btnAdvancedBasic
+          .createButtonStateKey(dialogType)));
     }
     if (btnMoreLess != null) {
       btnMoreLess.setButtonState(screenState.getButtonState(btnMoreLess
@@ -293,8 +288,8 @@ final class PanelHeader implements Expandable {
           .getButtonState());
     }
     if (btnAdvancedBasic != null) {
-      screenState.setButtonState(btnAdvancedBasic.getButtonStateKey(),
-          btnAdvancedBasic.getButtonState());
+      screenState.setButtonState(btnAdvancedBasic.getButtonStateKey(), btnAdvancedBasic
+          .getButtonState());
     }
     if (btnMoreLess != null) {
       screenState.setButtonState(btnMoreLess.getButtonStateKey(), btnMoreLess
@@ -304,6 +299,9 @@ final class PanelHeader implements Expandable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.30  2010/10/12 02:33:24  sueh
  * <p> bug# 1391 Reduce visibility of class and limit how variables can be
  * <p> changed.  Added isLess.

@@ -14,6 +14,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/03 06:22:16  sueh
+ * <p> bug# 1422 Control of the processing method has been centralized in the
+ * <p> processing method mediator class.  Implementing ProcessInterface.
+ * <p> Supplying processes with the current processing method.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -208,8 +213,8 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
   final MultiLineButton btnCancel = new MultiLineButton("Cancel");
   final MultiLineButton btnPostpone = new MultiLineButton("Postpone");
   final MultiLineButton btnExecute = new MultiLineButton("Execute");
-  final GlobalExpandButton btnAdvanced = GlobalExpandButton.getInstance(
-      "Advanced", "Basic");
+  final GlobalExpandButton btnAdvanced = GlobalExpandButton.getInstance("Advanced",
+      "Basic");
 
   private DialogExitState exitState = DialogExitState.SAVE;
   private boolean displayed = false;
@@ -221,10 +226,9 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
    * execute, and advanced) available for use.  The action adapters for the
    * buttons are already implemented.
    */
-  public ProcessDialog(final ApplicationManager appManager,
-      final AxisID axisID, DialogType dialogType) {
-    System.err
-        .println(Utilities.getDateTimeStamp() + "\nDialog: " + dialogType);
+  public ProcessDialog(final ApplicationManager appManager, final AxisID axisID,
+      DialogType dialogType) {
+    System.err.println(Utilities.getDateTimeStamp() + "\nDialog: " + dialogType);
     displayed = true;
     applicationManager = appManager;
     this.axisID = axisID;
@@ -373,8 +377,7 @@ final class buttonCancelActionAdapter implements java.awt.event.ActionListener {
   }
 }
 
-final class buttonPostponeActionAdapter implements
-    java.awt.event.ActionListener {
+final class buttonPostponeActionAdapter implements java.awt.event.ActionListener {
 
   ProcessDialog adaptee;
 

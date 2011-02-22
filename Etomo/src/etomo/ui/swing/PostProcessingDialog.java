@@ -34,8 +34,7 @@ import etomo.type.ReconScreenState;
  *
  * @version $Revision$
  */
-public final class PostProcessingDialog extends ProcessDialog implements
-    ContextMenu {
+public final class PostProcessingDialog extends ProcessDialog implements ContextMenu {
   public static final String rcsid = "$Id$";
 
   private final TrimvolPanel trimvolPanel;
@@ -48,8 +47,7 @@ public final class PostProcessingDialog extends ProcessDialog implements
 
   private PostProcessingDialog(ApplicationManager appMgr) {
     super(appMgr, AxisID.ONLY, DialogType.POST_PROCESSING);
-    flattenVolumePanel = FlattenVolumePanel.getPostInstance(appMgr, axisID,
-        dialogType);
+    flattenVolumePanel = FlattenVolumePanel.getPostInstance(appMgr, axisID, dialogType);
     squeezeVolPanel = SqueezeVolPanel.getInstance(appMgr, axisID, dialogType);
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(new BeveledBorder("Post Processing").getBorder());
@@ -175,9 +173,8 @@ public final class PostProcessingDialog extends ProcessDialog implements
     String[] manPage = { "trimvol.html" };
 
     //    ContextPopup contextPopup =
-    new ContextPopup(rootPanel, mouseEvent, "POST-PROCESSING",
-        ContextPopup.TOMO_GUIDE, manPagelabel, manPage, applicationManager,
-        axisID);
+    new ContextPopup(rootPanel, mouseEvent, "POST-PROCESSING", ContextPopup.TOMO_GUIDE,
+        manPagelabel, manPage, applicationManager, axisID);
   }
 
   void done() {
@@ -233,6 +230,9 @@ public final class PostProcessingDialog extends ProcessDialog implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2010/12/05 05:14:08  sueh
+ * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>

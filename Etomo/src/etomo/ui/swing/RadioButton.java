@@ -57,8 +57,7 @@ final class RadioButton implements RadioButtonInterface {
     this(text, enumeratedType, null);
   }
 
-  RadioButton(final String text, final EnumeratedType enumeratedType,
-      ButtonGroup group) {
+  RadioButton(final String text, final EnumeratedType enumeratedType, ButtonGroup group) {
     radioButton = new JRadioButton(text);
     radioButton.setModel(new RadioButtonModel(this));
     setName(text);
@@ -72,8 +71,7 @@ final class RadioButton implements RadioButtonInterface {
   }
 
   public String toString() {
-    return radioButton.getText() + ": "
-        + (radioButton.isSelected() ? "On" : "Off");
+    return radioButton.getText() + ": " + (radioButton.isSelected() ? "On" : "Off");
   }
 
   void setText(final String text) {
@@ -114,8 +112,8 @@ final class RadioButton implements RadioButtonInterface {
     radioButton.setName(UITestFieldType.RADIO_BUTTON.toString()
         + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(radioButton.getName() + ' '
-          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+      System.out.println(radioButton.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
+          + ' ');
     }
   }
 
@@ -234,6 +232,9 @@ final class RadioButton implements RadioButtonInterface {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.25  2010/03/03 05:05:08  sueh
  * <p> bug# 1311 Added getFont and setVisible.
  * <p>

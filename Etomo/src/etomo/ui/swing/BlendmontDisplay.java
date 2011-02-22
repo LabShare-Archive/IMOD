@@ -20,6 +20,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.2  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p>
@@ -31,8 +34,7 @@ public interface BlendmontDisplay {
   public static final String rcsid = "$Id$";
 
   public void getParameters(BlendmontParam blendmontParam)
-      throws FortranInputSyntaxException, InvalidParameterException,
-      IOException;
+      throws FortranInputSyntaxException, InvalidParameterException, IOException;
 
   public void setParameters(BlendmontParam param);
 

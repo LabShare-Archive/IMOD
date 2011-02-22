@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:35  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.4  2008/10/16 21:20:16  sueh
  * <p> bug# 1141 Removed functions from this interface which are not being used generically.
  * <p>
@@ -27,9 +30,10 @@
  */
 package etomo.ui.swing;
 
-
 public interface FiducialessParams {
   public static final String rcsid = "$Id$";
+
   public boolean isFiducialess();
+
   public float getImageRotation() throws NumberFormatException;
 }

@@ -16,6 +16,9 @@ import etomo.type.EnumeratedType;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1  2010/11/13 16:07:34  sueh
+* <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+* <p>
 * <p> Revision 1.1  2007/04/13 20:37:51  sueh
 * <p> bug# 964 Changed RadioButtonParent, which was confusing, to
 * <p> RadioButtonInterface.
@@ -26,8 +29,9 @@ import etomo.type.EnumeratedType;
 * <p> </p>
 */
 interface RadioButtonInterface {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   void msgSelected();
+
   EnumeratedType getEnumeratedType();
 }

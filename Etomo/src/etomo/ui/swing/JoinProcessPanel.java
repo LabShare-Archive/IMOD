@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 
 import etomo.JoinManager;
 import etomo.type.AxisID;
+
 /**
 * <p>Description: </p>
 * 
@@ -19,6 +20,9 @@ import etomo.type.AxisID;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1  2010/11/13 16:07:34  sueh
+* <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+* <p>
 * <p> Revision 1.7  2010/07/02 03:18:45  sueh
 * <p> bug# 1388 Constructing super class with popupChunkWarnings equal to true.
 * <p>
@@ -55,23 +59,23 @@ import etomo.type.AxisID;
 * <p> </p>
 */
 
-
 public class JoinProcessPanel extends AxisProcessPanel {
-  public static  final String  rcsid =  "$Id$";
+  public static final String rcsid = "$Id$";
+
   /**
    * @param joinManager
    * @param axis
    */
   public JoinProcessPanel(JoinManager joinManager, AxisID axis) {
-    super(axis, joinManager,true);
+    super(axis, joinManager, true);
     createProcessControlPanel();
     initializePanels();
   }
-  
+
   void showBothAxis() {
     setBackground(Colors.getBackgroundJoin());
   }
-  
+
   private void setBackground(Color color) {
     panelRoot.setBackground(color);
     outerStatusPanel.setBackground(color);
@@ -82,12 +86,12 @@ public class JoinProcessPanel extends AxisProcessPanel {
     //axisButtonPanel.setBackground(color);
     progressPanel.setBackground(color);
   }
-  
+
   protected void createProcessControlPanel() {
     super.createProcessControlPanel();
     showBothAxis();
   }
-  
+
   /**
    * 
    * @param event

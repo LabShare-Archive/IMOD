@@ -26,6 +26,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.1  2010/02/17 04:54:36  sueh
  * <p> bug# 1301 Logging functionaity shared by LogPanel and ToolsDialog.
  * <p> </p>
@@ -39,14 +42,13 @@ final class EtomoLogger {
     this.logInterface = logInterface;
   }
 
-  synchronized void loadMessages(List lineList) throws LogFile.LockException,
-      IOException {
+  synchronized void loadMessages(List lineList) throws LogFile.LockException, IOException {
     SwingUtilities.invokeLater(new AppendLater(true, lineList));
   }
-  
-  public void logMessage(String line1,String line2) {
-    SwingUtilities.invokeLater(new AppendLater(Utilities
-        .getDateTimeStamp(), line1, line2));
+
+  public void logMessage(String line1, String line2) {
+    SwingUtilities
+        .invokeLater(new AppendLater(Utilities.getDateTimeStamp(), line1, line2));
   }
 
   public void logMessage(Loggable loggable, AxisID axisID) {
@@ -54,25 +56,25 @@ final class EtomoLogger {
       return;
     }
     try {
-      SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(),
-          loggable.getName() + " - " + axisID + " axis:", loggable
-              .getLogMessage()));
+      SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(), loggable
+          .getName()
+          + " - " + axisID + " axis:", loggable.getLogMessage()));
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      SwingUtilities.invokeLater(new AppendLater("Unable to log message:", e
-          .getMessage()));
+      SwingUtilities
+          .invokeLater(new AppendLater("Unable to log message:", e.getMessage()));
     }
     catch (IOException e) {
       e.printStackTrace();
-      SwingUtilities.invokeLater(new AppendLater("Unable to log message:", e
-          .getMessage()));
+      SwingUtilities
+          .invokeLater(new AppendLater("Unable to log message:", e.getMessage()));
     }
   }
 
   public void logMessage(String title, AxisID axisID, String[] message) {
-    SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(),
-        title + " - " + axisID + " axis:", message));
+    SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(), title
+        + " - " + axisID + " axis:", message));
   }
 
   private final class AppendLater implements Runnable {

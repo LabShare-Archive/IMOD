@@ -30,23 +30,26 @@ import etomo.type.EtomoNumber;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2011/02/03 06:17:02  sueh
+* <p> bug# 1422 Child of ProcessorTable that makes a ProcessorTable display
+* <p> queues.
+* <p> </p>
 */
 
 final class QueueTable extends ProcessorTable {
   public static final String rcsid = "$Id$";
-  
+
   private static final String PREPEND = "ProcessorTable.Queue";
 
   private HeaderCell[] header1LoadArray = null;
   private HeaderCell[] header2LoadArray = null;
   private ButtonGroup buttonGroup = null;
 
-  QueueTable(final BaseManager manager, final ParallelPanel parent,
-      final AxisID axisID) {
+  QueueTable(final BaseManager manager, final ParallelPanel parent, final AxisID axisID) {
     super(manager, parent, axisID, true);
   }
-  
+
   String getStorePrepend() {
     return PREPEND;
   }
@@ -91,16 +94,14 @@ final class QueueTable extends ProcessorTable {
   }
 
   Node getNode(final int index) {
-    return Network.getQueue(manager, index, axisID, manager
-        .getPropertyUserDir());
+    return Network.getQueue(manager, index, axisID, manager.getPropertyUserDir());
   }
 
-  ProcessorTableRow createProcessorTableRow(
-      final ProcessorTable processorTable, final Node node,
-      final EtomoNumber number) {
-    return ProcessorTableRow.getQueueInstance(processorTable, node, number
-        .getInt(), buttonGroup, Math.max(1, CpuAdoc.INSTANCE.getLoadUnits(
-        manager, axisID, manager.getPropertyUserDir()).length));
+  ProcessorTableRow createProcessorTableRow(final ProcessorTable processorTable,
+      final Node node, final EtomoNumber number) {
+    return ProcessorTableRow.getQueueInstance(processorTable, node, number.getInt(),
+        buttonGroup, Math.max(1, CpuAdoc.INSTANCE.getLoadUnits(manager, axisID, manager
+            .getPropertyUserDir()).length));
   }
 
   String getHeader1ComputerText() {
@@ -144,8 +145,7 @@ final class QueueTable extends ProcessorTable {
 
   void getParameters(final ProcesschunksParam param, final String computer) {
     String queue = computer;
-    Node node = Network.getQueue(manager, queue, axisID, manager
-        .getPropertyUserDir());
+    Node node = Network.getQueue(manager, queue, axisID, manager.getPropertyUserDir());
     if (node != null) {
       param.setQueueCommand(node.getCommand());
     }
@@ -169,7 +169,7 @@ final class QueueTable extends ProcessorTable {
   boolean isNiceable() {
     return true;
   }
-  
+
   void initRow(ProcessorTableRow row) {
   }
 }

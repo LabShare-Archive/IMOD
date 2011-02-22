@@ -43,6 +43,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/03 06:22:16  sueh
+ * <p> bug# 1422 Control of the processing method has been centralized in the
+ * <p> processing method mediator class.  Implementing ProcessInterface.
+ * <p> Supplying processes with the current processing method.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -146,31 +151,30 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
   public static final String TEST_VOLUME_NAME = "test.input";
 
   private final SpacedPanel rootPanel = SpacedPanel.getInstance();
-  private final Run3dmodButton btnViewFullVolume = Run3dmodButton
-      .get3dmodInstance("View Full Volume", this);
+  private final Run3dmodButton btnViewFullVolume = Run3dmodButton.get3dmodInstance(
+      "View Full Volume", this);
   private final FileTextField ftfVolume = FileTextField
       .getPartialPathInstance("Pick a volume");
   private final MultiLineButton btnExtractTestVolume = new MultiLineButton(
       "Extract Test Volume");
-  private final Run3dmodButton btnViewTestVolume = Run3dmodButton
-      .get3dmodInstance("View Test Volume", this);
+  private final Run3dmodButton btnViewTestVolume = Run3dmodButton.get3dmodInstance(
+      "View Test Volume", this);
   private final CheckBox cbLoadWithFlipping = new CheckBox("Load with flipping");
   private final LabeledTextField ltfTestKValueList = new LabeledTextField(
       K_VALUE_LIST_LABEL);
-  private final Spinner spTestIteration = Spinner.getLabeledInstance(
-      ITERATION_LABEL, 10, 1, 200);
-  private final Run3dmodButton btnRunVaryingK = Run3dmodButton
-      .getDeferred3dmodInstance("Run with Different K Values", this);
-  private final Run3dmodButton btnViewVaryingK = Run3dmodButton
-      .get3dmodInstance("View Different K Values Test Results", this);
-  private final LabeledTextField ltfTestKValue = new LabeledTextField(
-      K_VALUE_LABEL);
+  private final Spinner spTestIteration = Spinner.getLabeledInstance(ITERATION_LABEL, 10,
+      1, 200);
+  private final Run3dmodButton btnRunVaryingK = Run3dmodButton.getDeferred3dmodInstance(
+      "Run with Different K Values", this);
+  private final Run3dmodButton btnViewVaryingK = Run3dmodButton.get3dmodInstance(
+      "View Different K Values Test Results", this);
+  private final LabeledTextField ltfTestKValue = new LabeledTextField(K_VALUE_LABEL);
   private final LabeledTextField ltfTestIterationList = new LabeledTextField(
       ITERATION_LIST_LABEL);
   private final Run3dmodButton btnRunVaryingIteration = Run3dmodButton
       .getDeferred3dmodInstance("Run with Different Iterations", this);
-  private final Run3dmodButton btnViewVaryingIteration = Run3dmodButton
-      .get3dmodInstance("View Different Iteration Test Results", this);
+  private final Run3dmodButton btnViewVaryingIteration = Run3dmodButton.get3dmodInstance(
+      "View Different Iteration Test Results", this);
   private final FilterFullVolumePanel filterFullVolumePanel;
 
   private final RubberbandPanel pnlTestVolumeRubberband;
@@ -187,23 +191,19 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
             + "post-processing.");
     btnViewFullVolume.setToolTipText("View the full volume in 3dmod.");
     btnExtractTestVolume
-        .setToolTipText("Cut out a test volume from the indicated coordinate "
-            + "range.");
+        .setToolTipText("Cut out a test volume from the indicated coordinate " + "range.");
     btnViewTestVolume.setToolTipText("View the test volume in 3dmod.");
     ltfTestKValueList
         .setToolTipText("Set of K threshold values to try on the test volume "
             + "with the given number of iterations.");
-    spTestIteration
-        .setToolTipText("Number of iterations to run for each K value.");
-    btnRunVaryingK
-        .setToolTipText("Compute a set of test volumes with the different K "
-            + "threshold values and a fixed number of iterations");
+    spTestIteration.setToolTipText("Number of iterations to run for each K value.");
+    btnRunVaryingK.setToolTipText("Compute a set of test volumes with the different K "
+        + "threshold values and a fixed number of iterations");
     btnViewVaryingK
         .setToolTipText("View the volumes computed with different K values in "
             + "3dmod.");
-    ltfTestKValue
-        .setToolTipText("Single K threshold value to use with different numbers"
-            + " of iterations.");
+    ltfTestKValue.setToolTipText("Single K threshold value to use with different numbers"
+        + " of iterations.");
     ltfTestIterationList
         .setToolTipText("List of number of iterations to try with the single K "
             + "value. Comma-separated ranges of numbers are allowed.");
@@ -219,17 +219,17 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "Anisotropic Diffusion", "3dmod",
-        "Processchunks", "Chunksetup" };
-    String[] manPage = { ProcessName.ANISOTROPIC_DIFFUSION + ".html",
-        "3dmod.html", "processchunks.html", "chunksetup.html" };
+    String[] manPagelabel = { "Anisotropic Diffusion", "3dmod", "Processchunks",
+        "Chunksetup" };
+    String[] manPage = { ProcessName.ANISOTROPIC_DIFFUSION + ".html", "3dmod.html",
+        "processchunks.html", "chunksetup.html" };
     String[] logFileLabel = { "Anisotropic Diffusion" };
     String[] logFile = new String[1];
     logFile[0] = ProcessName.ANISOTROPIC_DIFFUSION + ".log";
     //    ContextPopup contextPopup =
-    new ContextPopup(rootPanel.getContainer(), mouseEvent,
-        "ANISOTROPIC DIFFUSION", ContextPopup.TOMO_GUIDE, manPagelabel,
-        manPage, logFileLabel, logFile, manager, AxisID.ONLY, subdirName);
+    new ContextPopup(rootPanel.getContainer(), mouseEvent, "ANISOTROPIC DIFFUSION",
+        ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile, manager,
+        AxisID.ONLY, subdirName);
   }
 
   public void setDebug(boolean input) {
@@ -241,17 +241,14 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
         + DialogType.ANISOTROPIC_DIFFUSION);
     this.manager = manager;
     mediator = manager.getProcessingMethodMediator(AxisID.ONLY);
-    filterFullVolumePanel = FilterFullVolumePanel.getInstance(manager,
-        DIALOG_TYPE, this);
+    filterFullVolumePanel = FilterFullVolumePanel.getInstance(manager, DIALOG_TYPE, this);
     //root
     rootPanel.setBoxLayout(BoxLayout.X_AXIS);
     if (Utilities.isAprilFools()) {
-      rootPanel
-          .setBorder(new BeveledBorder("Anisotropic Delusion").getBorder());
+      rootPanel.setBorder(new BeveledBorder("Anisotropic Delusion").getBorder());
     }
     else {
-      rootPanel.setBorder(new BeveledBorder("Anisotropic Diffusion")
-          .getBorder());
+      rootPanel.setBorder(new BeveledBorder("Anisotropic Diffusion").getBorder());
     }
     rootPanel.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     //first column
@@ -270,8 +267,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     pnlExtract.setBorder(new EtchedBorder("Extract Test Volume").getBorder());
     pnlExtract.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     pnlTestVolumeRubberband = RubberbandPanel.getInstance(manager,
-        ImodManager.VOLUME_KEY, "Test Volume Range:",
-        "Get test volume range From 3dmod",
+        ImodManager.VOLUME_KEY, "Test Volume Range:", "Get test volume range From 3dmod",
         "Minimum X coordinate on the left side for the test volume range.",
         "Maximum X coordinate on the right side for the test volume range.",
         "The lower Y coordinate for the test volume range.",
@@ -297,13 +293,11 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     //varying K
     SpacedPanel pnlVaryingK = SpacedPanel.getInstance();
     pnlVaryingK.setBoxLayout(BoxLayout.Y_AXIS);
-    pnlVaryingK.setBorder(new EtchedBorder("Find a K Value for Test Volume")
-        .getBorder());
+    pnlVaryingK.setBorder(new EtchedBorder("Find a K Value for Test Volume").getBorder());
     pnlVaryingK.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     SpacedPanel pnlVaryingKFields = SpacedPanel.getInstance();
     pnlVaryingKFields.setBoxLayout(BoxLayout.X_AXIS);
-    ltfTestKValueList.setTextPreferredWidth(UIParameters.INSTANCE
-        .getListWidth());
+    ltfTestKValueList.setTextPreferredWidth(UIParameters.INSTANCE.getListWidth());
     pnlVaryingKFields.add(ltfTestKValueList);
     pnlVaryingKFields.add(spTestIteration);
     pnlVaryingK.add(pnlVaryingKFields);
@@ -327,8 +321,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     SpacedPanel pnlVaryingIterationFields = SpacedPanel.getInstance();
     pnlVaryingIterationFields.setBoxLayout(BoxLayout.X_AXIS);
     pnlVaryingIterationFields.add(ltfTestKValue);
-    ltfTestIterationList.setTextPreferredWidth(UIParameters.INSTANCE
-        .getListWidth());
+    ltfTestIterationList.setTextPreferredWidth(UIParameters.INSTANCE.getListWidth());
     pnlVaryingIterationFields.add(ltfTestIterationList);
     pnlVaryingIteration.add(pnlVaryingIterationFields);
     SpacedPanel pnlVaryingIterationButtons = SpacedPanel.getInstance();
@@ -367,8 +360,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
 
   public static AnisotropicDiffusionDialog getInstance(ParallelManager manager,
       AxisID axisID) {
-    AnisotropicDiffusionDialog instance = new AnisotropicDiffusionDialog(
-        manager);
+    AnisotropicDiffusionDialog instance = new AnisotropicDiffusionDialog(manager);
     instance.addListeners();
     return instance;
   }
@@ -454,14 +446,13 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
   public boolean getParametersForVaryingK(AnisotropicDiffusionParam param) {
     String errorMessage = null;
     if (debug) {
-      System.out
-          .println("getParametersForVaryingK:ltfTestKValueList.getText()="
-              + ltfTestKValueList.getText());
+      System.out.println("getParametersForVaryingK:ltfTestKValueList.getText()="
+          + ltfTestKValueList.getText());
     }
     errorMessage = param.setKValueList(ltfTestKValueList.getText());
     if (errorMessage != null) {
-      UIHarness.INSTANCE.openMessageDialog(manager, K_VALUE_LIST_LABEL
-          + errorMessage, "Entry Error");
+      UIHarness.INSTANCE.openMessageDialog(manager, K_VALUE_LIST_LABEL + errorMessage,
+          "Entry Error");
       return false;
     }
     param.setIteration(spTestIteration.getValue());
@@ -469,11 +460,12 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     //working directory by changing the user.dir property doesn't work for
     //relative file paths.  The path looks correct, but File.exists() returns an
     //incorrect result.
-    if (!(new File(new File(manager.getPropertyUserDir(), subdirName),
-        TEST_VOLUME_NAME).exists())) {
-      UIHarness.INSTANCE.openMessageDialog(manager,
-          "Test volume has not been created.  Please extract test volume.",
-          "Entry Error");
+    if (!(new File(new File(manager.getPropertyUserDir(), subdirName), TEST_VOLUME_NAME)
+        .exists())) {
+      UIHarness.INSTANCE
+          .openMessageDialog(manager,
+              "Test volume has not been created.  Please extract test volume.",
+              "Entry Error");
       return false;
     }
     param.setSubdirName(subdirName);
@@ -494,8 +486,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     param.setOutputFile(getOutputFileName(ftfVolume.getFileName()));
   }
 
-  public boolean getParametersForVaryingIteration(
-      AnisotropicDiffusionParam param) {
+  public boolean getParametersForVaryingIteration(AnisotropicDiffusionParam param) {
     String errorMessage = null;
     param.setKValue(ltfTestKValue.getText());
     if (!param.setIterationList(ltfTestIterationList.getText())) {
@@ -512,10 +503,8 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
    */
   public boolean initSubdir() {
     if (ftfVolume.isEmpty()) {
-      UIHarness.INSTANCE
-          .openMessageDialog(manager,
-              "Please choose a volume before running this function.",
-              "Entry Error");
+      UIHarness.INSTANCE.openMessageDialog(manager,
+          "Please choose a volume before running this function.", "Entry Error");
       return false;
     }
     if (subdirName == null) {
@@ -546,8 +535,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     return cbLoadWithFlipping.isSelected();
   }
 
-  private void action(final String command,
-      Deferred3dmodButton deferred3dmodButton,
+  private void action(final String command, Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnExtractTestVolume.getActionCommand())) {
       if (!initSubdir()) {
@@ -559,29 +547,28 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
       if (!initSubdir()) {
         return;
       }
-      manager.anisotropicDiffusionVaryingK(subdirName, null,
-          deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE, mediator
+      manager.anisotropicDiffusionVaryingK(subdirName, null, deferred3dmodButton,
+          run3dmodMenuOptions, DIALOG_TYPE, mediator
               .getRunMethodForProcessInterface(getProcessingMethod()));
     }
     else if (command.equals(btnRunVaryingIteration.getActionCommand())) {
       if (!initSubdir()) {
         return;
       }
-      manager.anisotropicDiffusionVaryingIteration(subdirName, null,
-          deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
+      manager.anisotropicDiffusionVaryingIteration(subdirName, null, deferred3dmodButton,
+          run3dmodMenuOptions, DIALOG_TYPE);
     }
     else if (command.equals(btnViewFullVolume.getActionCommand())) {
-      manager.imod(ImodManager.VOLUME_KEY, ftfVolume.getFile(),
-          run3dmodMenuOptions, cbLoadWithFlipping.isSelected());
+      manager.imod(ImodManager.VOLUME_KEY, ftfVolume.getFile(), run3dmodMenuOptions,
+          cbLoadWithFlipping.isSelected());
     }
     else if (command.equals(btnViewTestVolume.getActionCommand())) {
-      manager.imod(ImodManager.TEST_VOLUME_KEY, new File(subdirName,
-          "test.input"), run3dmodMenuOptions, cbLoadWithFlipping.isSelected());
+      manager.imod(ImodManager.TEST_VOLUME_KEY, new File(subdirName, "test.input"),
+          run3dmodMenuOptions, cbLoadWithFlipping.isSelected());
     }
     else if (command.equals(btnViewVaryingK.getActionCommand())) {
-      manager.imodVaryingKValue(ImodManager.VARYING_K_TEST_KEY,
-          run3dmodMenuOptions, subdirName, TEST_VOLUME_NAME, cbLoadWithFlipping
-              .isSelected());
+      manager.imodVaryingKValue(ImodManager.VARYING_K_TEST_KEY, run3dmodMenuOptions,
+          subdirName, TEST_VOLUME_NAME, cbLoadWithFlipping.isSelected());
     }
     else if (command.equals(btnViewVaryingIteration.getActionCommand())) {
       manager.imodVaryingIteration(ImodManager.VARYING_ITERATION_TEST_KEY,
@@ -592,8 +579,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
 
   private void openVolume() {
     File volume = null;
-    JFileChooser chooser = new FileChooser(new File(manager
-        .getPropertyUserDir()));
+    JFileChooser chooser = new FileChooser(new File(manager.getPropertyUserDir()));
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     chooser.setFileFilter(new TomogramFileFilter());

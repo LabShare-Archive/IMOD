@@ -17,6 +17,9 @@ import etomo.type.MatchMode;
 * @version $$Revision$$
 *
 * <p> $$Log$
+* <p> $Revision 1.1  2010/11/13 16:07:34  sueh
+* <p> $bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+* <p> $
 * <p> $Revision 1.6  2006/09/13 23:45:38  sueh
 * <p> $bug# 921 Added get and setMatchMode().
 * <p> $
@@ -40,20 +43,34 @@ import etomo.type.MatchMode;
 */
 interface InitialCombineFields {
   public static final String rcsid = "$$Id$$";
-  
+
   public void setSurfacesOrModels(FiducialMatch useMatchingModels);
+
   public FiducialMatch getSurfacesOrModels();
+
   public void setBinBy2(boolean binBy2);
+
   public boolean isBinBy2();
+
   public void setFiducialMatchListA(String fiducialMatchListA);
+
   public String getFiducialMatchListA();
+
   public void setFiducialMatchListB(String fiducialMatchListB);
+
   public String getFiducialMatchListB();
+
   public boolean isEnabled();
+
   public boolean isUseCorrespondingPoints();
+
   public void setUseCorrespondingPoints(boolean use);
+
   public void setUseList(String useList);
+
   public String getUseList();
+
   public MatchMode getMatchMode();
+
   public void setMatchMode(MatchMode matchMode);
 }

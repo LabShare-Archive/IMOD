@@ -41,6 +41,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:35  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.5  2010/04/28 16:43:34  sueh
  * <p> bug# 1344 In NewstParam removed the manager parameter from
  * <p> setSizeToOutputInXandY because manager is stored in the class.
@@ -80,8 +83,8 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
   static final String BINNING_LABEL = "Aligned image stack binning";
 
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance(true);
-  private final LabeledSpinner spinBinning = new LabeledSpinner(BINNING_LABEL
-      + ": ", new SpinnerNumberModel(1, 1, 8, 1), 1);
+  private final LabeledSpinner spinBinning = new LabeledSpinner(BINNING_LABEL + ": ",
+      new SpinnerNumberModel(1, 1, 8, 1), 1);
 
   private final LabeledTextField ltfSizeToOutputInXandY = new LabeledTextField(
       SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL + " (X,Y - unbinned): ");
@@ -94,8 +97,8 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
   private final ApplicationManager manager;
   private final DialogType dialogType;
 
-  private NewstackAndBlendmontParamPanel(ApplicationManager manager,
-      AxisID axisID, DialogType dialogType) {
+  private NewstackAndBlendmontParamPanel(ApplicationManager manager, AxisID axisID,
+      DialogType dialogType) {
     this.manager = manager;
     this.axisID = axisID;
     this.dialogType = dialogType;
@@ -103,8 +106,8 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
 
   static NewstackAndBlendmontParamPanel getInstance(ApplicationManager manager,
       AxisID axisID, DialogType dialogType) {
-    NewstackAndBlendmontParamPanel instance = new NewstackAndBlendmontParamPanel(
-        manager, axisID, dialogType);
+    NewstackAndBlendmontParamPanel instance = new NewstackAndBlendmontParamPanel(manager,
+        axisID, dialogType);
     instance.createPanel();
     instance.addListeners();
     instance.setToolTipText();
@@ -139,8 +142,7 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
   }
 
   public void setParameters(BlendmontParam blendmontParam) {
-    cbUseLinearInterpolation
-        .setSelected(blendmontParam.isLinearInterpolation());
+    cbUseLinearInterpolation.setSelected(blendmontParam.isLinearInterpolation());
   }
 
   public void setParameters(ConstNewstParam newstParam) {
@@ -160,28 +162,25 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
   }
 
   public void getParameters(BlendmontParam blendmontParam)
-      throws FortranInputSyntaxException, InvalidParameterException,
-      IOException {
+      throws FortranInputSyntaxException, InvalidParameterException, IOException {
     blendmontParam.setBinByFactor(getBinning());
-    blendmontParam
-        .setLinearInterpolation(cbUseLinearInterpolation.isSelected());
+    blendmontParam.setLinearInterpolation(cbUseLinearInterpolation.isSelected());
     try {
-      blendmontParam.convertToStartingAndEndingXandY(ltfSizeToOutputInXandY
-          .getText(), manager.getMetaData().getImageRotation(axisID));
+      blendmontParam.convertToStartingAndEndingXandY(ltfSizeToOutputInXandY.getText(),
+          manager.getMetaData().getImageRotation(axisID));
     }
     catch (FortranInputSyntaxException e) {
       e.printStackTrace();
       throw new FortranInputSyntaxException(
-          NewstackAndBlendmontParamPanel.SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL
-              + ":  " + e.getMessage());
+          NewstackAndBlendmontParamPanel.SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL + ":  "
+              + e.getMessage());
     }
     blendmontParam.setFiducialess(cbFiducialess.isSelected());
   }
 
   //  Copy the newstack parameters from the GUI to the NewstParam object
-  public void getParameters(NewstParam newstParam)
-      throws FortranInputSyntaxException, InvalidParameterException,
-      IOException {
+  public void getParameters(NewstParam newstParam) throws FortranInputSyntaxException,
+      InvalidParameterException, IOException {
     int binning = getBinning();
     // Only explicitly write out the binning if its value is something other than
     // the default of 1 to keep from cluttering up the com script  
@@ -192,14 +191,14 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
       newstParam.setBinByFactor(Integer.MIN_VALUE);
     }
     newstParam.setLinearInterpolation(cbUseLinearInterpolation.isSelected());
-    newstParam.setSizeToOutputInXandY(ltfSizeToOutputInXandY.getText(),
-        getBinning(), manager.getMetaData().getImageRotation(axisID));
+    newstParam.setSizeToOutputInXandY(ltfSizeToOutputInXandY.getText(), getBinning(),
+        manager.getMetaData().getImageRotation(axisID));
   }
 
   void setParameters(ConstMetaData metaData) {
     spinBinning.setValue(metaData.getStackBinning(axisID));
-    ltfSizeToOutputInXandY.setText(metaData.getSizeToOutputInXandY(axisID)
-        .toString(true));
+    ltfSizeToOutputInXandY
+        .setText(metaData.getSizeToOutputInXandY(axisID).toString(true));
     updateFiducialess();
   }
 
@@ -245,8 +244,7 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
    * @param deferred3dmodButton
    * @param run3dmodMenuOptions
    */
-  void action(final String command,
-      final Deferred3dmodButton deferred3dmodButton,
+  void action(final String command, final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(cbFiducialess.getActionCommand())) {
       updateFiducialess();
@@ -256,8 +254,7 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
   private void setToolTipText() {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.NEWSTACK,
-          axisID);
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.NEWSTACK, axisID);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -279,23 +276,21 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
           .setToolTipText("Make aligned stack with linear instead of cubic "
               + "interpolation to  reduce noise.");
     }
-    spinBinning
-        .setToolTipText("Set the binning for the aligned image stack and "
-            + "tomogram.  With a binned tomogram, all of the thickness, position, "
-            + "and size parameters in Tomogram Generation are still entered in "
-            + "unbinned pixels.");
+    spinBinning.setToolTipText("Set the binning for the aligned image stack and "
+        + "tomogram.  With a binned tomogram, all of the thickness, position, "
+        + "and size parameters in Tomogram Generation are still entered in "
+        + "unbinned pixels.");
     if (cbFiducialess != null) {
       cbFiducialess.setToolTipText("Use cross-correlation alignment only.");
     }
     if (ltfRotation != null) {
-      ltfRotation
-          .setToolTipText("Rotation angle of tilt axis for generating aligned "
-              + "stack from " + "cross-correlation alignment only.");
+      ltfRotation.setToolTipText("Rotation angle of tilt axis for generating aligned "
+          + "stack from " + "cross-correlation alignment only.");
     }
   }
 
-  private static final class NewstackAndBlendmontParamPanelActionListener
-      implements ActionListener {
+  private static final class NewstackAndBlendmontParamPanelActionListener implements
+      ActionListener {
     private final NewstackAndBlendmontParamPanel adaptee;
 
     private NewstackAndBlendmontParamPanelActionListener(

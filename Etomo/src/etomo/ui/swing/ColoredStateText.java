@@ -1,4 +1,5 @@
 package etomo.ui.swing;
+
 import java.awt.Color;
 
 import etomo.util.InvalidParameterException;
@@ -16,6 +17,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.2  2006/07/31 21:43:23  sueh
  * <p> bug# 438 Made labels optional
  * <p>
@@ -40,8 +44,7 @@ import etomo.util.InvalidParameterException;
  */
 
 public class ColoredStateText {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   private String[] labels = null;
   private Color[] colors;
@@ -49,27 +52,25 @@ public class ColoredStateText {
   private int currentSelected = -1;
 
   public ColoredStateText(String[] labels, Color[] colors)
-    throws InvalidParameterException {
+      throws InvalidParameterException {
     nItems = labels.length;
     if (nItems != colors.length) {
-      throw new InvalidParameterException("The length of the labels and colors arrays do not match");
+      throw new InvalidParameterException(
+          "The length of the labels and colors arrays do not match");
     }
     this.labels = labels;
     this.colors = colors;
   }
-  
+
   public ColoredStateText(Color[] colors) {
-  nItems = colors.length;
-  this.colors = colors;
-}
-  
+    nItems = colors.length;
+    this.colors = colors;
+  }
+
   public void setSelected(int index) throws InvalidParameterException {
     if (index < 0 & index >= nItems) {
-      throw new InvalidParameterException(
-        "Index out of range, nItems: "
-          + String.valueOf(nItems)
-          + " index: "
-          + String.valueOf(index));
+      throw new InvalidParameterException("Index out of range, nItems: "
+          + String.valueOf(nItems) + " index: " + String.valueOf(index));
     }
     currentSelected = index;
   }

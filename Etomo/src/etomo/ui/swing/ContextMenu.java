@@ -16,6 +16,9 @@ import java.awt.event.MouseEvent;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -31,8 +34,7 @@ import java.awt.event.MouseEvent;
  */
 
 interface ContextMenu {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   void popUpContextMenu(MouseEvent mouseEvent);
 }

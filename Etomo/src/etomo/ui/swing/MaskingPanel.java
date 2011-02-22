@@ -31,6 +31,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.3  2010/01/13 21:56:08  sueh
  * <p> bug# 1298 Passing parametersOnly to
  * <p> CylinderOrientationPanel.setParameters functions.
@@ -55,10 +58,10 @@ final class MaskingPanel implements CylinderOrientationParent,
   private final ButtonGroup bgMaskType = new ButtonGroup();
   private final RadioButton rbMaskTypeNone = new RadioButton("None",
       MatlabParam.MaskType.NONE, bgMaskType);
-  private final RadioButton rbMaskTypeVolume = new RadioButton(
-      MASK_TYPE_VOLUME_LABEL, MatlabParam.MaskType.VOLUME, bgMaskType);
-  private final RadioButton rbMaskTypeSphere = new RadioButton(
-      MASK_TYPE_SPHERE_LABEL, MatlabParam.MaskType.SPHERE, bgMaskType);
+  private final RadioButton rbMaskTypeVolume = new RadioButton(MASK_TYPE_VOLUME_LABEL,
+      MatlabParam.MaskType.VOLUME, bgMaskType);
+  private final RadioButton rbMaskTypeSphere = new RadioButton(MASK_TYPE_SPHERE_LABEL,
+      MatlabParam.MaskType.SPHERE, bgMaskType);
   private final RadioButton rbMaskTypeCylinder = new RadioButton(
       MASK_TYPE_CYLINDER_LABEL, MatlabParam.MaskType.CYLINDER, bgMaskType);
   private final FileTextField ftfMaskTypeVolume = new FileTextField(
@@ -73,8 +76,7 @@ final class MaskingPanel implements CylinderOrientationParent,
     this.manager = manager;
     this.parent = parent;
     cylinderOrientationPanel = CylinderOrientationPanel.getInstance(this);
-    radiiOfSphereOrCylinderPanel = RadiiOfSphereOrCylinderPanel
-        .getInstance(this);
+    radiiOfSphereOrCylinderPanel = RadiiOfSphereOrCylinderPanel.getInstance(this);
   }
 
   static MaskingPanel getInstance(BaseManager manager, MaskingParent parent) {
@@ -115,8 +117,7 @@ final class MaskingPanel implements CylinderOrientationParent,
     pnlMaskType.add(rbMaskTypeSphere.getComponent());
     pnlMaskType.add(rbMaskTypeCylinder.getComponent());
     //mask type volume and sphere details
-    pnlMaskVolumeRadii.setLayout(new BoxLayout(pnlMaskVolumeRadii,
-        BoxLayout.Y_AXIS));
+    pnlMaskVolumeRadii.setLayout(new BoxLayout(pnlMaskVolumeRadii, BoxLayout.Y_AXIS));
     pnlMaskVolumeRadii.add(ftfMaskTypeVolume.getContainer());
     pnlMaskVolumeRadii.add(radiiOfSphereOrCylinderPanel.getComponent());
   }
@@ -166,8 +167,7 @@ final class MaskingPanel implements CylinderOrientationParent,
    * correct.
    * @param metaData
    */
-  public void setParameters(final ConstPeetMetaData metaData,
-      boolean parametersOnly) {
+  public void setParameters(final ConstPeetMetaData metaData, boolean parametersOnly) {
     if (!parametersOnly) {
       ftfMaskTypeVolume.setText(metaData.getMaskTypeVolume());
     }
@@ -185,11 +185,9 @@ final class MaskingPanel implements CylinderOrientationParent,
    * @param matlabParamFile
    * @param paramatersOnly 
    */
-  public void setParameters(final MatlabParam matlabParam,
-      boolean parametersOnly) {
+  public void setParameters(final MatlabParam matlabParam, boolean parametersOnly) {
     String maskTypeValue = matlabParam.getMaskType();
-    MatlabParam.MaskType maskType = MatlabParam.MaskType
-        .getInstance(maskTypeValue);
+    MatlabParam.MaskType maskType = MatlabParam.MaskType.getInstance(maskTypeValue);
     if (maskType == MatlabParam.MaskType.NONE) {
       rbMaskTypeNone.setSelected(true);
     }
@@ -214,8 +212,8 @@ final class MaskingPanel implements CylinderOrientationParent,
       matlabParam.setMaskType(ftfMaskTypeVolume.getText());
     }
     else {
-      matlabParam.setMaskType(((RadioButton.RadioButtonModel) bgMaskType
-          .getSelection()).getEnumeratedType());
+      matlabParam.setMaskType(((RadioButton.RadioButtonModel) bgMaskType.getSelection())
+          .getEnumeratedType());
     }
     cylinderOrientationPanel.getParameters(matlabParam);
     radiiOfSphereOrCylinderPanel.getParameters(matlabParam);
@@ -242,8 +240,7 @@ final class MaskingPanel implements CylinderOrientationParent,
   }
 
   private void chooseMaskTypeVolume(FileTextField fileTextField) {
-    JFileChooser chooser = new FileChooser(new File(manager
-        .getPropertyUserDir()));
+    JFileChooser chooser = new FileChooser(new File(manager.getPropertyUserDir()));
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     int returnVal = chooser.showOpenDialog(pnlRoot);
@@ -260,10 +257,9 @@ final class MaskingPanel implements CylinderOrientationParent,
     //Masking
     //volume
     if (rbMaskTypeVolume.isSelected() && ftfMaskTypeVolume.isEmpty()) {
-      return "In " + MaskingPanel.MASK_TYPE_LABEL + ", "
-          + MASK_TYPE_VOLUME_LABEL + " is required when "
-          + MASK_TYPE_VOLUME_LABEL + " " + MaskingPanel.MASK_TYPE_LABEL
-          + " is selected. ";
+      return "In " + MaskingPanel.MASK_TYPE_LABEL + ", " + MASK_TYPE_VOLUME_LABEL
+          + " is required when " + MASK_TYPE_VOLUME_LABEL + " "
+          + MaskingPanel.MASK_TYPE_LABEL + " is selected. ";
     }
     //validate radii
     String errorMessage = radiiOfSphereOrCylinderPanel.validateRun();
@@ -294,8 +290,7 @@ final class MaskingPanel implements CylinderOrientationParent,
 
   private void setTooltips() {
     rbMaskTypeNone.setToolTipText("No reference masking");
-    rbMaskTypeVolume
-        .setToolTipText("Mask the reference using a specified file");
+    rbMaskTypeVolume.setToolTipText("Mask the reference using a specified file");
     rbMaskTypeSphere
         .setToolTipText("Mask the reference using inner and out spherical shells "
             + "of specified radii.");
@@ -303,8 +298,7 @@ final class MaskingPanel implements CylinderOrientationParent,
         .setToolTipText("Mask the reference using inner and out cylindrical "
             + "shells of specified radii.");
     ftfMaskTypeVolume
-        .setToolTipText("The name of file containing the binary mask in MRC "
-            + "format.");
+        .setToolTipText("The name of file containing the binary mask in MRC " + "format.");
   }
 
   private static final class MaskingActionListener implements ActionListener {
@@ -319,8 +313,7 @@ final class MaskingPanel implements CylinderOrientationParent,
     }
   }
 
-  private static final class MaskTypeVolumeActionListener implements
-      ActionListener {
+  private static final class MaskTypeVolumeActionListener implements ActionListener {
     private final MaskingPanel maskingPanel;
 
     private MaskTypeVolumeActionListener(final MaskingPanel maskingPanel) {

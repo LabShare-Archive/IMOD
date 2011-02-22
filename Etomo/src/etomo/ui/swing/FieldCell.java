@@ -27,6 +27,9 @@ import etomo.type.UITestFieldType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.29  2010/04/10 23:30:41  sueh
  * <p> bug# 1343 Added a FocusEventListener to select and unselect the text in
  * <p> the text field.
@@ -174,8 +177,7 @@ final class FieldCell extends InputCell {
   }
 
   static FieldCell getEditableInstance() {
-    FieldCell instance = new FieldCell(true,
-        ParsedElementType.NON_MATLAB_NUMBER);
+    FieldCell instance = new FieldCell(true, ParsedElementType.NON_MATLAB_NUMBER);
     instance.addListeners();
     return instance;
   }
@@ -187,16 +189,14 @@ final class FieldCell extends InputCell {
   }
 
   static FieldCell getIneditableInstance() {
-    FieldCell instance = new FieldCell(false,
-        ParsedElementType.NON_MATLAB_NUMBER);
+    FieldCell instance = new FieldCell(false, ParsedElementType.NON_MATLAB_NUMBER);
     instance.setEditable(false);
     instance.addListeners();
     return instance;
   }
 
   static FieldCell getIneditableInstance(String value) {
-    FieldCell instance = new FieldCell(false,
-        ParsedElementType.NON_MATLAB_NUMBER);
+    FieldCell instance = new FieldCell(false, ParsedElementType.NON_MATLAB_NUMBER);
     instance.setEditable(false);
     instance.setValue(value);
     instance.addListeners();
@@ -204,8 +204,7 @@ final class FieldCell extends InputCell {
   }
 
   static FieldCell getExpandableInstance() {
-    FieldCell instance = new FieldCell(false,
-        ParsedElementType.NON_MATLAB_NUMBER);
+    FieldCell instance = new FieldCell(false, ParsedElementType.NON_MATLAB_NUMBER);
     instance.setEditable(false);
     instance.fixedValues = true;
     instance.addListeners();
@@ -262,8 +261,7 @@ final class FieldCell extends InputCell {
    * @param contractedValue
    * @param expandedValue
    */
-  void setExpandableValues(final String contractedValue,
-      final String expandedValue) {
+  void setExpandableValues(final String contractedValue, final String expandedValue) {
     this.contractedValue = contractedValue;
     this.expandedValue = expandedValue;
   }
@@ -312,8 +310,7 @@ final class FieldCell extends InputCell {
 
   void setRangeValue(int start, int end) {
     endValue = end;
-    setValue(new Integer(start).toString() + " - "
-        + new Integer(end).toString(), true);
+    setValue(new Integer(start).toString() + " - " + new Integer(end).toString(), true);
   }
 
   void setValue() {
@@ -455,7 +452,7 @@ final class FieldCell extends InputCell {
     }
 
     public void focusLost(final FocusEvent focusEvent) {
-      textField.select(0,0);
+      textField.select(0, 0);
     }
   }
 }

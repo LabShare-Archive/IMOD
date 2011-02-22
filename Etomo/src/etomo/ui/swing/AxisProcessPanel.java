@@ -29,6 +29,11 @@ import etomo.type.ProcessName;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/03 06:22:16  sueh
+ * <p> bug# 1422 Control of the processing method has been centralized in the
+ * <p> processing method mediator class.  Implementing ProcessInterface.
+ * <p> Supplying processes with the current processing method.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -298,8 +303,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
 
   //  Progress panel
   final ProgressPanel progressPanel;
-  private final SimpleButton buttonKillProcess = new SimpleButton(
-      KILL_BUTTON_LABEL);
+  private final SimpleButton buttonKillProcess = new SimpleButton(KILL_BUTTON_LABEL);
   private ParallelPanel parallelPanel = null;
 
   //  Process select panel
@@ -324,8 +328,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
     buttonKillProcess.addActionListener(actionListener);
     buttonKillProcess.setEnabled(false);
     buttonKillProcess.setAlignmentY(Component.BOTTOM_ALIGNMENT);
-    outerStatusPanel
-        .setLayout(new BoxLayout(outerStatusPanel, BoxLayout.Y_AXIS));
+    outerStatusPanel.setLayout(new BoxLayout(outerStatusPanel, BoxLayout.Y_AXIS));
     outerStatusPanel.add(innerStatusPanel);
     parallelStatusPanel.setVisible(false);
     outerStatusPanel.add(parallelStatusPanel);
@@ -334,8 +337,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
     innerStatusPanel.add(Box.createRigidArea(FixedDim.x5_y0));
     innerStatusPanel.add(buttonKillProcess);
     innerStatusPanel.add(Box.createRigidArea(FixedDim.x0_y5));
-    innerStatusPanel
-        .setLayout(new BoxLayout(innerStatusPanel, BoxLayout.X_AXIS));
+    innerStatusPanel.setLayout(new BoxLayout(innerStatusPanel, BoxLayout.X_AXIS));
     buttonKillProcess.setToolTipText("Press to end the current process.");
     manager.getProcessingMethodMediator(axis).register(this);
   }
@@ -555,8 +557,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * 
    *
    */
-  final void stopProgressBar(ProcessEndState processEndState,
-      String statusString) {
+  final void stopProgressBar(ProcessEndState processEndState, String statusString) {
     progressPanel.stop(processEndState, statusString);
     buttonKillProcess.setEnabled(false);
     if (parallelPanel != null) {
@@ -568,8 +569,8 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * Right mouse button context menu
    */
   public final void popUpContextMenu(MouseEvent mouseEvent) {
-    ContextPopup contextPopup = new ContextPopup(panelRoot, mouseEvent, "",
-        manager, axisID);
+    ContextPopup contextPopup = new ContextPopup(panelRoot, mouseEvent, "", manager,
+        axisID);
   }
 
   /**
@@ -588,8 +589,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
   }
 
   protected void createProcessControlPanel() {
-    panelProcessSelect.setLayout(new BoxLayout(panelProcessSelect,
-        BoxLayout.Y_AXIS));
+    panelProcessSelect.setLayout(new BoxLayout(panelProcessSelect, BoxLayout.Y_AXIS));
 
     if (axisID == AxisID.FIRST) {
       JLabel axisLabel = new JLabel("Axis A:");

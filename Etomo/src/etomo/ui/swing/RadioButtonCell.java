@@ -24,6 +24,9 @@ import etomo.type.UITestFieldType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.2  2009/01/20 20:23:25  sueh
  * <p> bug# 1102 Added getFieldType.
  * <p>
@@ -47,34 +50,34 @@ final class RadioButtonCell extends InputCell implements ToggleCell {
   }
 
   private void setForeground() {
-     radioButton.setForeground(Colors.CELL_FOREGROUND);
+    radioButton.setForeground(Colors.CELL_FOREGROUND);
     setHtmlLabel(Colors.CELL_FOREGROUND);
   }
 
   private void setHtmlLabel(final ColorUIResource color) {
     radioButton.setText("<html><P style=\"font-weight:normal; color:rgb("
-        + color.getRed() + "," + color.getGreen() + "," + color.getBlue()
-        + ")\">" + unformattedLabel + "</style>");
+        + color.getRed() + "," + color.getGreen() + "," + color.getBlue() + ")\">"
+        + unformattedLabel + "</style>");
   }
-  
+
   public void setSelected(final boolean selected) {
     radioButton.setSelected(selected);
   }
-  
+
   public int getWidth() {
     return radioButton.getWidth();
   }
-  
+
   public int getHeight() {
     return radioButton.getHeight()
         + radioButton.getBorder().getBorderInsets(radioButton.getComponent()).bottom - 1;
   }
-  
+
   public void setLabel(final String label) {
     unformattedLabel = label;
     setForeground();
   }
-  
+
   void setToolTipText(String text) {
     radioButton.setToolTipText(TooltipFormatter.INSTANCE.format(text));
   }
@@ -82,7 +85,7 @@ final class RadioButtonCell extends InputCell implements ToggleCell {
   public void addActionListener(final ActionListener actionListener) {
     radioButton.addActionListener(actionListener);
   }
-  
+
   public void addChangeListener(ChangeListener listener) {
     radioButton.addChangeListener(listener);
   }
@@ -90,11 +93,11 @@ final class RadioButtonCell extends InputCell implements ToggleCell {
   Component getComponent() {
     return radioButton.getComponent();
   }
-  
+
   UITestFieldType getFieldType() {
     return UITestFieldType.RADIO_BUTTON;
   }
-  
+
   public void setEnabled(final boolean enabled) {
     setEditable(enabled);
   }

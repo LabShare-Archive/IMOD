@@ -25,6 +25,9 @@ import javax.swing.SpinnerNumberModel;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.7  2009/09/20 21:32:25  sueh
  * <p> bug# 1268 Added a default value to LabeledSpinner.
  * <p>
@@ -57,8 +60,8 @@ final class BinnedXY3dmodButton {
   private JPanel panel = null;
 
   BinnedXY3dmodButton(String label, Run3dmodButtonContainer container) {
-    spBinningXY = new LabeledSpinner("Open binned by ", new SpinnerNumberModel(
-        1, 1, 50, 1), 1);
+    spBinningXY = new LabeledSpinner("Open binned by ", new SpinnerNumberModel(1, 1, 50,
+        1), 1);
     this.label = new JLabel(" in X and Y");
     button = Run3dmodButton.get3dmodInstance(label, container);
   }

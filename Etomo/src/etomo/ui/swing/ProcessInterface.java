@@ -15,7 +15,12 @@ import etomo.type.ProcessingMethod;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2011/02/03 06:22:16  sueh
+* <p> bug# 1422 Control of the processing method has been centralized in the
+* <p> processing method mediator class.  Implementing ProcessInterface.
+* <p> Supplying processes with the current processing method.
+* <p> </p>
 */
 public interface ProcessInterface {
   public static final String rcsid = "$Id$";
@@ -43,7 +48,7 @@ public interface ProcessInterface {
    * @return
    */
   public ProcessingMethod getProcessingMethod();
-  
+
   /**
    * When lock is true,disable check boxes that can change the processing
    * method.  When lock is false, enable these check boxes.

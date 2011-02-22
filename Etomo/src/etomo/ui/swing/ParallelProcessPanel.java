@@ -20,22 +20,22 @@ import etomo.type.AxisID;
 * @version $Revision$
 */
 public final class ParallelProcessPanel extends AxisProcessPanel {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   ParallelProcessPanel(ParallelManager manager) {
-    super(AxisID.ONLY, manager,true);
+    super(AxisID.ONLY, manager, true);
     createProcessControlPanel();
     initializePanels();
   }
-  
+
   protected void buttonKillAction(ActionEvent event) {
     manager.kill(axisID);
   }
-  
+
   void showBothAxis() {
     setBackground(Colors.getBackgroundParallel());
   }
-  
+
   private void setBackground(Color color) {
     panelRoot.setBackground(color);
     outerStatusPanel.setBackground(color);
@@ -46,7 +46,7 @@ public final class ParallelProcessPanel extends AxisProcessPanel {
     //axisButtonPanel.setBackground(color);
     progressPanel.setBackground(color);
   }
-  
+
   protected void createProcessControlPanel() {
     super.createProcessControlPanel();
     showBothAxis();
@@ -54,6 +54,9 @@ public final class ParallelProcessPanel extends AxisProcessPanel {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.1  2010/11/13 16:07:34  sueh
+* <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+* <p>
 * <p> Revision 1.4  2010/07/02 03:19:20  sueh
 * <p> bug# 1388 Constructing super class with popupChunkWarnings equal to true.
 * <p>

@@ -21,6 +21,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.1  2010/02/17 04:56:35  sueh
  * <p> bug# 1301 An interface for classes that receive messages to log.
  * <p> </p>
@@ -33,7 +36,7 @@ public interface LogInterface {
   public void logMessage(Loggable loggable, AxisID axisID);
 
   public void save();
-  
+
   //Functions used by EtomoLogger
 
   public void append(String line);

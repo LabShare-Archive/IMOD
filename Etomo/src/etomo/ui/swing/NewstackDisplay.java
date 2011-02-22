@@ -21,6 +21,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.3  2009/09/17 19:12:58  sueh
  * <p> bug# 1257 In NewstParam.setSizeToOutputInXandY forgot to read the
  * <p> header.  Adding read call and throwing InvalidParameterException and
@@ -36,8 +39,8 @@ import etomo.util.InvalidParameterException;
 public interface NewstackDisplay {
   public static final String rcsid = "$Id$";
 
-  public void getParameters(NewstParam newstParam)
-      throws FortranInputSyntaxException,InvalidParameterException,IOException;
+  public void getParameters(NewstParam newstParam) throws FortranInputSyntaxException,
+      InvalidParameterException, IOException;
 
   public void setParameters(ConstNewstParam param);
 

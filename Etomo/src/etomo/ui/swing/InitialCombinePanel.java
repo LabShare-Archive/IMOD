@@ -40,6 +40,11 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/03 06:22:16  sueh
+ * <p> bug# 1422 Control of the processing method has been centralized in the
+ * <p> processing method mediator class.  Implementing ProcessInterface.
+ * <p> Supplying processes with the current processing method.
+ * <p>
  * <p> Revision 1.2  2010/12/05 05:10:56  sueh
  * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
  * <p>
@@ -282,17 +287,16 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
    * Default constructor
    * @param appMgr
    */
-  public InitialCombinePanel(TomogramCombinationDialog parent,
-      ApplicationManager appMgr, DialogType dialogType,
-      GlobalExpandButton globalAdvancedButton) {
+  public InitialCombinePanel(TomogramCombinationDialog parent, ApplicationManager appMgr,
+      DialogType dialogType, GlobalExpandButton globalAdvancedButton) {
     this.dialogType = dialogType;
     tomogramCombinationDialog = parent;
     applicationManager = appMgr;
     globalAdvancedButton.register(this);
     matchvol1Header = PanelHeader.getAdvancedBasicInstance("Matchvol1", this,
         DialogType.TOMOGRAM_COMBINATION, globalAdvancedButton);
-    btnMatchvolRestart = (Run3dmodButton) appMgr
-        .getProcessResultDisplayFactory(AxisID.ONLY).getRestartMatchvol1();
+    btnMatchvolRestart = (Run3dmodButton) appMgr.getProcessResultDisplayFactory(
+        AxisID.ONLY).getRestartMatchvol1();
     btnMatchvolRestart.setContainer(this);
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
 
@@ -349,8 +353,8 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     }
     MRCHeader toHeader = MRCHeader.getInstance(applicationManager, toAxisID,
         DatasetFiles.TOMO_EXT);
-    MRCHeader fromHeader = MRCHeader.getInstance(applicationManager,
-        fromAxisID, DatasetFiles.TOMO_EXT);
+    MRCHeader fromHeader = MRCHeader.getInstance(applicationManager, fromAxisID,
+        DatasetFiles.TOMO_EXT);
     int toY = -1;
     try {
       if (!toHeader.read(applicationManager)) {
@@ -377,9 +381,8 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
       e.printStackTrace();
     }
     fromY = fromHeader.getNRows();
-    lOutputSizeYInfo.setText("Original "
-        + fromAxisID.getExtension().toUpperCase() + " size is " + fromY
-        + ".  Final size will be " + toY);
+    lOutputSizeYInfo.setText("Original " + fromAxisID.getExtension().toUpperCase()
+        + " size is " + fromY + ".  Final size will be " + toY);
   }
 
   ProcessingMethod getProcessingMethod() {
@@ -420,8 +423,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
   }
 
   public boolean isEnabled() {
-    return tomogramCombinationDialog
-        .isTabEnabled(TomogramCombinationDialog.lblInitial);
+    return tomogramCombinationDialog.isTabEnabled(TomogramCombinationDialog.lblInitial);
   }
 
   public void getParameters(MatchvolParam param) {
@@ -441,8 +443,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     if (matchvol1Header != null && matchvol1Header.equalsOpenClose(button)) {
       pnlMatchvol1Body.setVisible(expanded);
     }
-    else if (matchvol1Header != null
-        && matchvol1Header.equalsAdvancedBasic(button)) {
+    else if (matchvol1Header != null && matchvol1Header.equalsAdvancedBasic(button)) {
       updateMatchvol1Advanced(expanded);
     }
     UIHarness.INSTANCE.pack(AxisID.ONLY, applicationManager);
@@ -466,8 +467,8 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
 
   final void setParameters(ReconScreenState screenState) {
     pnlSolvematch.setParameters(screenState);
-    btnMatchvolRestart.setButtonState(screenState
-        .getButtonState(btnMatchvolRestart.getButtonStateKey()));
+    btnMatchvolRestart.setButtonState(screenState.getButtonState(btnMatchvolRestart
+        .getButtonStateKey()));
   }
 
   // InitialCombineFields interface pass-thru
@@ -521,12 +522,11 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     String[] logFile = { "transferfid.log", "solvematch.log" };
 
     ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent,
-        "Initial Problems in Combining", ContextPopup.TOMO_GUIDE, manPagelabel,
-        manPage, logFileLabel, logFile, applicationManager, AxisID.ONLY);
+        "Initial Problems in Combining", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
+        logFileLabel, logFile, applicationManager, AxisID.ONLY);
   }
 
-  public void action(Run3dmodButton button,
-      Run3dmodMenuOptions run3dmodMenuOptions) {
+  public void action(Run3dmodButton button, Run3dmodMenuOptions run3dmodMenuOptions) {
     buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(),
         run3dmodMenuOptions);
   }
@@ -535,16 +535,14 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
    * Respond to button actions
    * @param event
    */
-  protected void buttonAction(String command,
-      Deferred3dmodButton deferred3dmodButton,
+  protected void buttonAction(String command, Deferred3dmodButton deferred3dmodButton,
       Run3dmodMenuOptions run3dmodMenuOptions) {
     //  Synchronize this panel with the others
-    tomogramCombinationDialog.synchronize(TomogramCombinationDialog.lblInitial,
-        true);
+    tomogramCombinationDialog.synchronize(TomogramCombinationDialog.lblInitial, true);
     if (command.equals(btnMatchvolRestart.getActionCommand())) {
-      applicationManager.matchvol1Combine(btnMatchvolRestart, null,
-          deferred3dmodButton, run3dmodMenuOptions, dialogType,
-          tomogramCombinationDialog.getRunProcessingMethod());
+      applicationManager.matchvol1Combine(btnMatchvolRestart, null, deferred3dmodButton,
+          run3dmodMenuOptions, dialogType, tomogramCombinationDialog
+              .getRunProcessingMethod());
     }
   }
 

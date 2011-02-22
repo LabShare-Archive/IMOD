@@ -59,8 +59,7 @@ final class EtomoMenu {
   private final JMenuItem[] menuMRUList = new MenuItem[nMRUFileMax];
 
   private final JMenu menuNew = new Menu("New");
-  private final JMenuItem menuNewTomogram = new MenuItem(RECON_LABEL,
-      KeyEvent.VK_T);
+  private final JMenuItem menuNewTomogram = new MenuItem(RECON_LABEL, KeyEvent.VK_T);
   private final JMenuItem menuNewJoin = new MenuItem(JOIN_LABEL, KeyEvent.VK_J);
   private final JMenuItem menuNewAnisotropicDiffusion = new MenuItem(NAD_LABEL,
       KeyEvent.VK_D);
@@ -76,12 +75,10 @@ final class EtomoMenu {
   private final JMenuItem menuLogWindow = new MenuItem("Show/Hide Log Window",
       KeyEvent.VK_L);
   private final JMenuItem menuAxisA = new MenuItem("Axis A", KeyEvent.VK_A);
-  private final JMenuItem menuAxisB = new MenuItem(
-      TomogramProcessPanel.AXIS_B_LABEL, KeyEvent.VK_B);
-  private final JMenuItem menuAxisBoth = new MenuItem("Both Axes",
-      KeyEvent.VK_2);
-  private final JMenuItem menuFitWindow = new MenuItem("Fit Window",
-      KeyEvent.VK_F);
+  private final JMenuItem menuAxisB = new MenuItem(TomogramProcessPanel.AXIS_B_LABEL,
+      KeyEvent.VK_B);
+  private final JMenuItem menuAxisBoth = new MenuItem("Both Axes", KeyEvent.VK_2);
+  private final JMenuItem menuFitWindow = new MenuItem("Fit Window", KeyEvent.VK_F);
 
   private final JMenu menuOptions = new Menu("Options");
   private final JMenuItem menuSettings = new MenuItem("Settings", KeyEvent.VK_S);
@@ -91,23 +88,18 @@ final class EtomoMenu {
       "Open 3dmod Binned by 2");
 
   private final JMenu menuHelp = new Menu("Help");
-  private final JMenuItem menuTomoGuide = new MenuItem("Tomography Guide",
-      KeyEvent.VK_T);
-  private final JMenuItem menuImodGuide = new MenuItem("Imod Users Guide",
-      KeyEvent.VK_I);
+  private final JMenuItem menuTomoGuide = new MenuItem("Tomography Guide", KeyEvent.VK_T);
+  private final JMenuItem menuImodGuide = new MenuItem("Imod Users Guide", KeyEvent.VK_I);
   private final JMenuItem menu3dmodGuide = new MenuItem("3dmod Users Guide",
       KeyEvent.VK_3);
   private final JMenuItem menuEtomoGuide = new MenuItem("Etomo Users Guide",
       KeyEvent.VK_E);
-  private final JMenuItem menuJoinGuide = new MenuItem("Join Users Guide",
-      KeyEvent.VK_J);
-  private final JMenuItem menuPeetGuide = new MenuItem("Peet Users Guide",
-      KeyEvent.VK_P);
+  private final JMenuItem menuJoinGuide = new MenuItem("Join Users Guide", KeyEvent.VK_J);
+  private final JMenuItem menuPeetGuide = new MenuItem("Peet Users Guide", KeyEvent.VK_P);
   private final JMenuItem menuHelpAbout = new MenuItem("About", KeyEvent.VK_A);
 
-  private final boolean peetAvailable = EnvironmentVariable.INSTANCE.exists(
-      null, EtomoDirector.INSTANCE.getOriginalUserDir(), "PARTICLE_DIR",
-      AxisID.ONLY);
+  private final boolean peetAvailable = EnvironmentVariable.INSTANCE.exists(null,
+      EtomoDirector.INSTANCE.getOriginalUserDir(), "PARTICLE_DIR", AxisID.ONLY);
 
   private final boolean singleFrame;
 
@@ -131,20 +123,16 @@ final class EtomoMenu {
         ActionEvent.CTRL_MASK));
 
     //  Bind the menu items to their listeners
-    ToolsActionListener toolsActionListener = new ToolsActionListener(
-        abstractFrame);
+    ToolsActionListener toolsActionListener = new ToolsActionListener(abstractFrame);
     menuFlattenVolume.addActionListener(toolsActionListener);
 
-    ViewActionListener viewActionListener = new ViewActionListener(
-        abstractFrame);
+    ViewActionListener viewActionListener = new ViewActionListener(abstractFrame);
     menuFitWindow.addActionListener(viewActionListener);
 
-    OptionsActionListener optionsActionListener = new OptionsActionListener(
-        abstractFrame);
+    OptionsActionListener optionsActionListener = new OptionsActionListener(abstractFrame);
     menuSettings.addActionListener(optionsActionListener);
 
-    HelpActionListener helpActionListener = new HelpActionListener(
-        abstractFrame);
+    HelpActionListener helpActionListener = new HelpActionListener(abstractFrame);
     menuTomoGuide.addActionListener(helpActionListener);
     menuImodGuide.addActionListener(helpActionListener);
     menu3dmodGuide.addActionListener(helpActionListener);
@@ -169,8 +157,7 @@ final class EtomoMenu {
           ActionEvent.CTRL_MASK));
 
       //  Bind the menu items to their listeners
-      FileActionListener fileActionListener = new FileActionListener(
-          abstractFrame);
+      FileActionListener fileActionListener = new FileActionListener(abstractFrame);
       menuNewTomogram.addActionListener(fileActionListener);
       menuNewJoin.addActionListener(fileActionListener);
       menuNewGenericParallel.addActionListener(fileActionListener);
@@ -324,10 +311,9 @@ final class EtomoMenu {
   void setEnabled(final EtomoMenu mainFrameMenu) {
     menuNewTomogram.setEnabled(mainFrameMenu.menuNewTomogram.isEnabled());
     menuNewJoin.setEnabled(mainFrameMenu.menuNewJoin.isEnabled());
-    menuNewGenericParallel.setEnabled(mainFrameMenu.menuNewGenericParallel
+    menuNewGenericParallel.setEnabled(mainFrameMenu.menuNewGenericParallel.isEnabled());
+    menuNewAnisotropicDiffusion.setEnabled(mainFrameMenu.menuNewAnisotropicDiffusion
         .isEnabled());
-    menuNewAnisotropicDiffusion
-        .setEnabled(mainFrameMenu.menuNewAnisotropicDiffusion.isEnabled());
     menuNewPeet.setEnabled(mainFrameMenu.menuNewPeet.isEnabled());
     menuSaveAs.setEnabled(mainFrameMenu.menuSaveAs.isEnabled());
     menuAxisA.setEnabled(mainFrameMenu.menuAxisA.isEnabled());
@@ -405,11 +391,11 @@ final class EtomoMenu {
     if (equalsJoinGuide(event)) {
       ImodqtassistProcess.INSTANCE.open(manager, "tomojoin.html", axisID);
     }
-    
+
     if (equalsPeetGuide(event)) {
       ImodqtassistProcess.INSTANCE.open(manager, "PEETmanual.html", axisID);
     }
-    
+
     if (equalsHelpAbout(event)) {
       MainFrame_AboutBox dlg = new MainFrame_AboutBox(manager, frame, axisID);
       Dimension dlgSize = dlg.getPreferredSize();
@@ -609,8 +595,7 @@ final class EtomoMenu {
   }
 
   //  MRU file list action listener
-  private static final class FileMRUListActionListener implements
-      ActionListener {
+  private static final class FileMRUListActionListener implements ActionListener {
     private EtomoFrame adaptee;
 
     private FileMRUListActionListener(final EtomoFrame adaptee) {
@@ -663,6 +648,9 @@ final class EtomoMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.21  2010/05/28 20:00:32  sueh
  * <p> bug# 1382 Removed calls to a deprecated Java function (File.toURL) in
  * <p> menuHelpAction.

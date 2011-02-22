@@ -27,6 +27,9 @@ import etomo.type.ConstStringParameter;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.17  2010/03/27 05:01:18  sueh
  * <p> bug# 1337 Fixed the partial path display in FileTextField.  Updating file from
  * <p> the fields when getting it.
@@ -90,8 +93,8 @@ import etomo.type.ConstStringParameter;
 final class FileTextField {
   public static final String rcsid = "$Id$";
 
-  private final SimpleButton button = new SimpleButton(new ImageIcon(
-      ClassLoader.getSystemResource("images/openFile.gif")));
+  private final SimpleButton button = new SimpleButton(new ImageIcon(ClassLoader
+      .getSystemResource("images/openFile.gif")));
   private final SpacedPanel panel = SpacedPanel.getInstance();
   private final TextField field;
 

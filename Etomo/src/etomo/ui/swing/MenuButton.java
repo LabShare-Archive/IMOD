@@ -25,6 +25,9 @@ import etomo.type.DialogType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.5  2010/06/30 21:09:59  sueh
  * <p> bug# 1387 Added a debug instance of MultiLineButton.
  * <p>
@@ -63,13 +66,11 @@ final class MenuButton extends MultiLineButton implements ContextMenu {
     super(label, toggleButton, dialogType, false);
   }
 
-  static final MenuButton getToggleMenuButtonInstance(String label,
-      DialogType dialogType) {
+  static final MenuButton getToggleMenuButtonInstance(String label, DialogType dialogType) {
     return new MenuButton(label, true, dialogType);
   }
 
-  void addMenu(MenuButtonContainer menuButtonContainer,
-      ActionElement[] actionElementArray) {
+  void addMenu(MenuButtonContainer menuButtonContainer, ActionElement[] actionElementArray) {
     if (container != null) {
       return;
     }

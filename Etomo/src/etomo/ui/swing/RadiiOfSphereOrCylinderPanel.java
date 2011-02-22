@@ -20,6 +20,9 @@ import etomo.storage.MatlabParam;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.3  2009/12/23 02:26:41  sueh
  * <p> bug# 1296 Stop taking tooltips from peetprm.adoc.
  * <p>
@@ -49,10 +52,8 @@ final class RadiiOfSphereOrCylinderPanel {
     this.parent = parent;
   }
 
-  static RadiiOfSphereOrCylinderPanel getInstance(
-      RadiiOfSphereOrCylinderParent parent) {
-    RadiiOfSphereOrCylinderPanel instance = new RadiiOfSphereOrCylinderPanel(
-        parent);
+  static RadiiOfSphereOrCylinderPanel getInstance(RadiiOfSphereOrCylinderParent parent) {
+    RadiiOfSphereOrCylinderPanel instance = new RadiiOfSphereOrCylinderPanel(parent);
     instance.createPanel();
     instance.setTooltips();
     return instance;
@@ -86,15 +87,12 @@ final class RadiiOfSphereOrCylinderPanel {
 
   String validateRun() {
     //if sphere or cylinder is selected, require inner or outer or both.  
-    if (((parent.isMaskTypeSphereSelected() | parent
-        .isMaskTypeCylinderSelected()))
-        && ltfInsideMaskRadius.isEnabled()
-        && ltfInsideMaskRadius.isEmpty()
+    if (((parent.isMaskTypeSphereSelected() | parent.isMaskTypeCylinderSelected()))
+        && ltfInsideMaskRadius.isEnabled() && ltfInsideMaskRadius.isEmpty()
         && ltfOutsideMaskRadius.isEnabled() && ltfOutsideMaskRadius.isEmpty()) {
-      return "In " + MaskingPanel.MASK_TYPE_LABEL + ", "
-          + INSIDE_MASK_RADIUS_LABEL + " and/or " + OUTSIDE_MASK_RADIUS_LABEL
-          + " " + MASK_RADII_LABEL + " are required when either "
-          + MaskingPanel.MASK_TYPE_SPHERE_LABEL + " or "
+      return "In " + MaskingPanel.MASK_TYPE_LABEL + ", " + INSIDE_MASK_RADIUS_LABEL
+          + " and/or " + OUTSIDE_MASK_RADIUS_LABEL + " " + MASK_RADII_LABEL
+          + " are required when either " + MaskingPanel.MASK_TYPE_SPHERE_LABEL + " or "
           + MaskingPanel.MASK_TYPE_CYLINDER_LABEL + " is selected.";
     }
     return null;
@@ -111,8 +109,7 @@ final class RadiiOfSphereOrCylinderPanel {
   }
 
   private void setTooltips() {
-    ltfInsideMaskRadius
-        .setToolTipText("Inner radius of the mask region in pixels.");
+    ltfInsideMaskRadius.setToolTipText("Inner radius of the mask region in pixels.");
     ltfOutsideMaskRadius
         .setToolTipText("Inner and outer radii of the mask region in pixels.");
   }

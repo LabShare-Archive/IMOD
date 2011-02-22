@@ -19,23 +19,24 @@ import etomo.type.EtomoNumber;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2011/02/03 06:13:08  sueh
+* <p> bug# 1422 Child of CpuTable that makes a ProcessorTable display GPUs.
+* <p> </p>
 */
 final class GpuTable extends CpuTable {
   public static final String rcsid = "$Id$";
 
   private static final String PREPEND = "ProcessorTable.Gpu";
 
-  GpuTable(final BaseManager manager, final ParallelPanel parent,
-      final AxisID axisID) {
+  GpuTable(final BaseManager manager, final ParallelPanel parent, final AxisID axisID) {
     super(manager, parent, axisID);
   }
-
 
   String getheader1NumberCPUsTitle() {
     return "# GPUs";
   }
-  
+
   String getStorePrepend() {
     return PREPEND;
   }
@@ -59,12 +60,11 @@ final class GpuTable extends CpuTable {
     return false;
   }
 
-  ProcessorTableRow createProcessorTableRow(
-      final ProcessorTable processorTable, final Node node,
-      final EtomoNumber number) {
+  ProcessorTableRow createProcessorTableRow(final ProcessorTable processorTable,
+      final Node node, final EtomoNumber number) {
     return ProcessorTableRow.getComputerInstance(processorTable, node, 1);
   }
-  
+
   void initRow(ProcessorTableRow row) {
     row.turnOffLoadWarning();
   }

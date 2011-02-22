@@ -76,8 +76,7 @@ final class ProcessorTableRow implements Storable {
   private boolean loadWarning = true;
 
   private ProcessorTableRow(ProcessorTable table, Node node, int numCpus,
-      boolean displayQueues, ButtonGroup queueButtonGroup,
-      int queueLoadArraySize) {
+      boolean displayQueues, ButtonGroup queueButtonGroup, int queueLoadArraySize) {
     this.table = table;
     computerName = node.getName();
     cpuType = node.getType();
@@ -101,16 +100,16 @@ final class ProcessorTableRow implements Storable {
 
   static ProcessorTableRow getComputerInstance(ProcessorTable table, Node node,
       int numCpus) {
-    ProcessorTableRow instance = new ProcessorTableRow(table, node, numCpus,
-        false, null, 0);
+    ProcessorTableRow instance = new ProcessorTableRow(table, node, numCpus, false, null,
+        0);
     instance.initRow();
     return instance;
   }
 
-  static ProcessorTableRow getQueueInstance(ProcessorTable table, Node node,
-      int numCpus, ButtonGroup buttonGroup, int loadArraySize) {
-    ProcessorTableRow instance = new ProcessorTableRow(table, node, numCpus,
-        true, buttonGroup, loadArraySize);
+  static ProcessorTableRow getQueueInstance(ProcessorTable table, Node node, int numCpus,
+      ButtonGroup buttonGroup, int loadArraySize) {
+    ProcessorTableRow instance = new ProcessorTableRow(table, node, numCpus, true,
+        buttonGroup, loadArraySize);
     instance.initRow();
     return instance;
   }
@@ -161,13 +160,12 @@ final class ProcessorTableRow implements Storable {
       prepend += "." + cellComputer.getLabel();
     }
     group = prepend + ".";
-    boolean selected = Boolean.valueOf(
-        props.getProperty(group + STORE_SELECTED, "false")).booleanValue();
+    boolean selected = Boolean
+        .valueOf(props.getProperty(group + STORE_SELECTED, "false")).booleanValue();
     setSelected(selected);
     if (numCpus > 1 && isSelected() && cellCPUsSelected != null) {
-      ((SpinnerCell) cellCPUsSelected).setValue(Integer.parseInt(props
-          .getProperty(group + STORE_CPUS_SELECTED, Integer
-              .toString(DEFAULT_CPUS_SELECTED))));
+      ((SpinnerCell) cellCPUsSelected).setValue(Integer.parseInt(props.getProperty(group
+          + STORE_CPUS_SELECTED, Integer.toString(DEFAULT_CPUS_SELECTED))));
     }
   }
 
@@ -351,8 +349,7 @@ final class ProcessorTableRow implements Storable {
   private void setSelectedError() {
     boolean noloadAverage;
     if (displayQueues) {
-      noloadAverage = cellLoadArray[0].isEmpty()
-          || cellLoadArray[0].equals("NA");
+      noloadAverage = cellLoadArray[0].isEmpty() || cellLoadArray[0].equals("NA");
     }
     else if (Utilities.isWindowsOS()) {
       noloadAverage = cellCPUUsage.isEmpty();
@@ -494,8 +491,7 @@ final class ProcessorTableRow implements Storable {
    */
   final void clearFailureReason(String failureReason1, String failureReason2) {
     String value = cellFailureReason.getValue();
-    if (value == null
-        || (!value.equals(failureReason1) && !value.equals(failureReason2))) {
+    if (value == null || (!value.equals(failureReason1) && !value.equals(failureReason2))) {
       return;
     }
     clearFailureReason();
@@ -595,6 +591,10 @@ final class ProcessorTableRow implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/03 06:16:40  sueh
+ * <p> bug# 1422 Passing a Node instead of values that came from a Node.
+ * <p> Added the ability to turn off the load warning.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>

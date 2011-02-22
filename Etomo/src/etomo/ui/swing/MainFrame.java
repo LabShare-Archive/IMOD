@@ -32,6 +32,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.62  2010/06/04 20:02:33  sueh
  * <p> bug# 1380 In saveLocation checking the --ignoreloc argument before
  * <p> using saving the location.
@@ -513,8 +516,8 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     rootPanel.setMaximumSize(rootPanelSize);
     //set name
     String name = Utilities.convertLabelToName(NAME);
-    rootPanel.setName(UITestFieldType.PANEL.toString()
-        + AutodocTokenizer.SEPARATOR_CHAR + name);
+    rootPanel.setName(UITestFieldType.PANEL.toString() + AutodocTokenizer.SEPARATOR_CHAR
+        + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(UITestFieldType.PANEL.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
@@ -530,8 +533,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
 
   final synchronized void register() {
     if (registered) {
-      throw new IllegalStateException(
-          "Only one instance of MainFrame is allowed.");
+      throw new IllegalStateException("Only one instance of MainFrame is allowed.");
     }
     registered = true;
     mainFrame = this;
@@ -550,8 +552,8 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     }
     else {
       currentManager.makeCurrent();
-      Utilities.managerStamp(currentManager.getPropertyUserDir(),
-          currentManager.getName());
+      Utilities.managerStamp(currentManager.getPropertyUserDir(), currentManager
+          .getName());
     }
     //Remove everything from rootPanel if the main panel has been set from the
     //previous manager.
@@ -573,8 +575,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
       mainPanel.repaint();
 
       if (subFrame != null) {
-        ((SubFrame) subFrame).setMainPanel(bAxisTitle + title + " ",
-            currentManager);
+        ((SubFrame) subFrame).setMainPanel(bAxisTitle + title + " ", currentManager);
       }
       if (newWindow) {
         showAxisA();
@@ -598,8 +599,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
    */
   void saveLocation() {
     if (!EtomoDirector.INSTANCE.getArguments().isIgnoreLoc()) {
-      EtomoDirector.INSTANCE.getUserConfiguration().setLastLocation(
-          getLocation());
+      EtomoDirector.INSTANCE.getUserConfiguration().setLastLocation(getLocation());
     }
   }
 
@@ -724,8 +724,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     mainPanel.showAxisA();
     if (subFrame == null || !subFrame.isDisplayable()) {
       subFrame = new SubFrame(this);
-      ((SubFrame) subFrame).initialize(bAxisTitle + title + " ",
-          currentManager, mRUList);
+      ((SubFrame) subFrame).initialize(bAxisTitle + title + " ", currentManager, mRUList);
     }
     else {
       subFrame.setVisible(true);

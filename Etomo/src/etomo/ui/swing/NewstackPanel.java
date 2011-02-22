@@ -20,6 +20,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.6  2009/09/21 17:57:50  sueh
  * <p> bug# 1267 ProcessManager.newst handles newst and newst_3dfind so the
  * <p> process name must be passed.
@@ -31,8 +34,8 @@ import etomo.type.Run3dmodMenuOptions;
 final class NewstackPanel extends NewstackOrBlendmontPanel {
   public static final String rcsid = "$Id$";
 
-  private NewstackPanel(ApplicationManager manager, AxisID axisID,
-      DialogType dialogType, GlobalExpandButton globalAdvancedButton) {
+  private NewstackPanel(ApplicationManager manager, AxisID axisID, DialogType dialogType,
+      GlobalExpandButton globalAdvancedButton) {
     super(manager, axisID, dialogType, globalAdvancedButton);
   }
 
@@ -59,13 +62,12 @@ final class NewstackPanel extends NewstackOrBlendmontPanel {
    * @param deferred3dmodButton
    * @param run3dmodMenuOptions
    */
-  void action(final String command,
-      final Deferred3dmodButton deferred3dmodButton,
+  void action(final String command, final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(getRunProcessButtonActionCommand())) {
-      manager.newst(getRunProcessResultDisplay(), null, deferred3dmodButton,
-          axisID, run3dmodMenuOptions, dialogType, getFiducialessParams(),
-          this, ProcessName.NEWST);
+      manager.newst(getRunProcessResultDisplay(), null, deferred3dmodButton, axisID,
+          run3dmodMenuOptions, dialogType, getFiducialessParams(), this,
+          ProcessName.NEWST);
     }
     else if (command.equals(get3dmodFullButtonActionCommand())) {
       manager.imodFineAlign(axisID, run3dmodMenuOptions);

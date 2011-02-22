@@ -40,6 +40,9 @@ import etomo.type.SectionTableRowData;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:35  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.7  2009/02/04 23:36:48  sueh
  * <p> bug# 1158 Changed id and exception classes in LogFile.
  * <p>
@@ -109,8 +112,8 @@ final class BoundaryRow {
     //maxError
     maxError.setValue(screenState.getMaxError(key));
     //origEnd
-    SectionTableRowData data = (SectionTableRowData) metaData
-        .getSectionTableData().get(key - 1);
+    SectionTableRowData data = (SectionTableRowData) metaData.getSectionTableData().get(
+        key - 1);
     origEnd.setValue(data.getJoinFinalEnd().getLong());
     endInverted = data.getInverted().is();
     if (endInverted) {
@@ -134,8 +137,7 @@ final class BoundaryRow {
     //adjustedEnd and adjustedStart
     adjustedEnd = SpinnerCell.getLongInstance(zMaxEnd * 2 * -1, zMaxEnd * 2);
     adjustedEnd.setEditable(false);
-    adjustedStart = SpinnerCell.getLongInstance(zMaxStart * 2 * -1,
-        zMaxStart * 2);
+    adjustedStart = SpinnerCell.getLongInstance(zMaxStart * 2 * -1, zMaxStart * 2);
     adjustedStart.setEditable(false);
     setAdjustedValues(metaData);
     //listeners
@@ -159,9 +161,8 @@ final class BoundaryRow {
   synchronized private void setAdjustedValues(final ConstJoinMetaData metaData) {
     adjustedEnd.removeChangeListener(adjustedEndChangeListener);
     adjustedStart.removeChangeListener(adjustedStartChangeListener);
-    gap = new Gap(Math.round(bestGap.getFloatValue()), origEnd.getLongValue(),
-        origStart.getLongValue(), endInverted, startInverted, zMaxEnd,
-        zMaxStart);
+    gap = new Gap(Math.round(bestGap.getFloatValue()), origEnd.getLongValue(), origStart
+        .getLongValue(), endInverted, startInverted, zMaxEnd, zMaxStart);
     ConstEtomoNumber endNumber;
     if (metaData == null || metaData.isBoundaryRowEndListEmpty()
         || (endNumber = metaData.getBoundaryRowEnd(boundary.getInt())) == null) {
@@ -200,8 +201,7 @@ final class BoundaryRow {
    * @param orig (either origEnd or origStart)
    * @return
    */
-  private long calculateNegativeAdjustment(final int roundedBestGap,
-      final long orig) {
+  private long calculateNegativeAdjustment(final int roundedBestGap, final long orig) {
     if (roundedBestGap < 0 || orig <= 0) {
       throw new IllegalStateException(
           "Only pass the absolute value of roundedBestGap.  Orig is either origEnd or origStart and must be at least 1.\nroundedBestGap="
@@ -217,8 +217,7 @@ final class BoundaryRow {
     return adjustment * -1;
   }
 
-  void display(final int index, final Viewport viewport,
-      final JoinDialog.Tab tab) {
+  void display(final int index, final Viewport viewport, final JoinDialog.Tab tab) {
     if (!viewport.inViewport(index)) {
       return;
     }
@@ -300,8 +299,7 @@ final class BoundaryRow {
 
   void getMetaData(JoinMetaData metaData) {
     metaData.setBoundaryRowEnd(boundary.getInt(), adjustedEnd.getStringValue());
-    metaData.setBoundaryRowStart(boundary.getInt(), adjustedStart
-        .getStringValue());
+    metaData.setBoundaryRowStart(boundary.getInt(), adjustedStart.getStringValue());
   }
 
   synchronized void adjustedEndStateChanged(ChangeEvent event) {
@@ -359,8 +357,7 @@ final class BoundaryRow {
         boolean rightInverted, int okMaxLeft, int okMaxRight) {
       this.gap = gap;
       leftBoundary = new GapBoundary(origLeft, leftInverted, okMaxLeft, true);
-      rightBoundary = new GapBoundary(origRight, rightInverted, okMaxRight,
-          false);
+      rightBoundary = new GapBoundary(origRight, rightInverted, okMaxRight, false);
       if (gap == 0) {
         return;
       }
@@ -375,11 +372,9 @@ final class BoundaryRow {
       boolean leftSucceeded;
       boolean rightSucceeded = true;
       boolean stayInOkRange = true;
-      while (leftBoundary.getAdjustmentAbsValue()
-          + rightBoundary.getAdjustmentAbsValue() < absGap) {
+      while (leftBoundary.getAdjustmentAbsValue() + rightBoundary.getAdjustmentAbsValue() < absGap) {
         leftSucceeded = leftBoundary.adjust(positiveGap, stayInOkRange);
-        if (leftBoundary.getAdjustmentAbsValue()
-            + rightBoundary.getAdjustmentAbsValue() < absGap) {
+        if (leftBoundary.getAdjustmentAbsValue() + rightBoundary.getAdjustmentAbsValue() < absGap) {
           rightSucceeded = rightBoundary.adjust(positiveGap, stayInOkRange);
         }
         //see if have to go outside of ok range
@@ -433,8 +428,7 @@ final class BoundaryRow {
       private final int okMax;
       private long adjustment = 0;
 
-      private GapBoundary(long orig, boolean inverted, int okMax,
-          boolean leftSide) {
+      private GapBoundary(long orig, boolean inverted, int okMax, boolean leftSide) {
         this.orig = orig;
         this.inverted = inverted;
         this.okMax = okMax;

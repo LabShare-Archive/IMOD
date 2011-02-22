@@ -18,6 +18,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:35  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.3  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p>
@@ -94,10 +97,9 @@ public final class RadioTextFieldTest extends TestCase {
     assertTrue("SetSelected worked", test.isSelected());
     RadioTextField sameGroup = RadioTextField.getInstance("Same Group", group);
     sameGroup.setSelected(true);
-    assertTrue("SetSelected worked with multiple buttons in the group",
-        sameGroup.isSelected());
-    assertFalse("Only one button in the group can be selected", test
+    assertTrue("SetSelected worked with multiple buttons in the group", sameGroup
         .isSelected());
+    assertFalse("Only one button in the group can be selected", test.isSelected());
   }
 
   private void validate() {

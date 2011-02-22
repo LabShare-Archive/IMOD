@@ -18,6 +18,9 @@ import javax.swing.plaf.ColorUIResource;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.11  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
@@ -58,27 +61,24 @@ public final class Colors {
   public static final String rcsid = "$Id$";
 
   static final ColorUIResource CELL_FOREGROUND = new ColorUIResource(0, 0, 0);
-  static final ColorUIResource CELL_NOT_IN_USE_FOREGROUND = new ColorUIResource(
-      102, 102, 102);
-  static final ColorUIResource CELL_ERROR_BACKGROUND = new ColorUIResource(255,
-      204, 204);
+  static final ColorUIResource CELL_NOT_IN_USE_FOREGROUND = new ColorUIResource(102, 102,
+      102);
+  static final ColorUIResource CELL_ERROR_BACKGROUND = new ColorUIResource(255, 204, 204);
   static final ColorUIResource CELL_ERROR_BACKGROUND_NOT_EDITABLE = new ColorUIResource(
       230, 184, 184);//223,179,179?
   static final ColorUIResource BACKGROUND = new ColorUIResource(255, 255, 255);
-  static final ColorUIResource WARNING_BACKGROUND = new ColorUIResource(255,
-      255, 204);
-  static final ColorUIResource WARNING_BACKGROUND_NOT_EDITABLE = new ColorUIResource(
-      230, 230, 184);
-  static final ColorUIResource HIGHLIGHT_BACKGROUND = new ColorUIResource(204,
-      255, 255);
+  static final ColorUIResource WARNING_BACKGROUND = new ColorUIResource(255, 255, 204);
+  static final ColorUIResource WARNING_BACKGROUND_NOT_EDITABLE = new ColorUIResource(230,
+      230, 184);
+  static final ColorUIResource HIGHLIGHT_BACKGROUND = new ColorUIResource(204, 255, 255);
   static final ColorUIResource HIGHLIGHT_BACKGROUND_NOT_EDITABLE = new ColorUIResource(
       184, 230, 230);
   static final ColorUIResource FOREGROUND = new ColorUIResource(0, 0, 0);
 
-  private static final ColorUIResource BACKGROUND_GREYOUT = new ColorUIResource(
-      25, 25, 25);
-  static final ColorUIResource CELL_DISABLED_FOREGROUND = new ColorUIResource(
-      120, 120, 120);
+  private static final ColorUIResource BACKGROUND_GREYOUT = new ColorUIResource(25, 25,
+      25);
+  static final ColorUIResource CELL_DISABLED_FOREGROUND = new ColorUIResource(120, 120,
+      120);
   static final Color AVAILABLE_BACKGROUND = new ColorUIResource(224, 240, 255);
   static final Color AVAILABLE_BORDER = new ColorUIResource(153, 204, 255);
   private static final int BACKGROUND_ADJUSTMENT = 20;
@@ -142,19 +142,20 @@ public final class Colors {
   }
 
   static ColorUIResource subtractColor(Color color, Color subtractColor) {
-    return new ColorUIResource(color.getRed() - subtractColor.getRed(), color
-        .getGreen()
+    return new ColorUIResource(color.getRed() - subtractColor.getRed(), color.getGreen()
         - subtractColor.getGreen(), color.getBlue() - subtractColor.getBlue());
   }
 
   private static ColorUIResource addColor(Color color, Color subtractColor) {
-    return new ColorUIResource(color.getRed() + subtractColor.getRed(), color
-        .getGreen()
+    return new ColorUIResource(color.getRed() + subtractColor.getRed(), color.getGreen()
         + subtractColor.getGreen(), color.getBlue() + subtractColor.getBlue());
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.11  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>

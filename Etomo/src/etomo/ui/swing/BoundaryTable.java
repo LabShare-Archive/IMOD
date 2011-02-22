@@ -33,6 +33,9 @@ import etomo.type.JoinScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.9  2009/02/04 23:36:48  sueh
  * <p> bug# 1158 Changed id and exception classes in LogFile.
  * <p>
@@ -117,8 +120,8 @@ final class BoundaryTable implements Viewable {
     metaData = manager.getJoinMetaData();
     parent = joinDialog;
     viewport = new Viewport(this, EtomoDirector.INSTANCE.getUserConfiguration()
-        .getJoinTableSize().getInt(), joinDialog.getModelTabJComponent(),
-        joinDialog.getRejoinTabJComponent(), null, "Boundary");
+        .getJoinTableSize().getInt(), joinDialog.getModelTabJComponent(), joinDialog
+        .getRejoinTabJComponent(), null, "Boundary");
     //construct panels
     EtomoPanel pnlBorder = new EtomoPanel();
     //root panel
@@ -140,7 +143,8 @@ final class BoundaryTable implements Viewable {
     setToolTipText();
   }
 
-  void setXfjointomoResult() throws LogFile.LockException,FileNotFoundException,IOException{
+  void setXfjointomoResult() throws LogFile.LockException, FileNotFoundException,
+      IOException {
     rowList.setXfjointomoResult(manager);
   }
 
@@ -301,10 +305,8 @@ final class BoundaryTable implements Viewable {
     header1Original.setToolTipText(text);
     header2OriginalEnd.setToolTipText(text);
     header2OriginalStart.setToolTipText(text);
-    header3OriginalEnd
-        .setToolTipText("End values used to create the original join.");
-    header3OriginalStart
-        .setToolTipText("Start values used to create the original join.");
+    header3OriginalEnd.setToolTipText("End values used to create the original join.");
+    header3OriginalStart.setToolTipText("Start values used to create the original join.");
     text = "End and start values which will be used to create the new join.";
     header1Adjusted.setToolTipText(text);
     header2AdjustedEnd.setToolTipText(text);
@@ -324,8 +326,8 @@ final class BoundaryTable implements Viewable {
       rowChange = false;
       rowList.clear(viewport);
       parent.getSectionTable().getMetaData(metaData);
-      rowList.add(parent.getSectionTableSize() - 1, metaData, screenState,
-          pnlTable, layout, constraints, viewport);
+      rowList.add(parent.getSectionTableSize() - 1, metaData, screenState, pnlTable,
+          layout, constraints, viewport);
     }
     rowList.display(tab, viewport);
   }
@@ -377,7 +379,7 @@ final class BoundaryTable implements Viewable {
     }
 
     private void setXfjointomoResult(final BaseManager manager)
-        throws LogFile.LockException,FileNotFoundException,IOException {
+        throws LogFile.LockException, FileNotFoundException, IOException {
       for (int i = 0; i < list.size(); i++) {
         get(i).setXfjointomoResult(manager);
       }

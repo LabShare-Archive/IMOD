@@ -60,6 +60,11 @@ import etomo.util.DatasetFiles;
  * 
  * <p>
  * $Log$
+ * Revision 1.3  2011/02/03 06:22:16  sueh
+ * bug# 1422 Control of the processing method has been centralized in the
+ * processing method mediator class.  Implementing ProcessInterface.
+ * Supplying processes with the current processing method.
+ *
  * Revision 1.2  2010/12/05 05:07:39  sueh
  * bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
  *
@@ -426,24 +431,18 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
 
   private JPanel pnlPatchsize = new JPanel();
   private JPanel pnlPatchsizeEdit = new JPanel();
-  private LabeledTextField ltfXPatchSize = new LabeledTextField(
-      "X patch size :");
-  private LabeledTextField ltfYPatchSize = new LabeledTextField(
-      "Z patch size :");
-  private LabeledTextField ltfZPatchSize = new LabeledTextField(
-      "Y patch size :");
+  private LabeledTextField ltfXPatchSize = new LabeledTextField("X patch size :");
+  private LabeledTextField ltfYPatchSize = new LabeledTextField("Z patch size :");
+  private LabeledTextField ltfZPatchSize = new LabeledTextField("Y patch size :");
   private JPanel pnlPatchsizeButtons = new JPanel();
   private MultiLineButton btnPatchsizeIncrease = new MultiLineButton(
       "<html><b>Patch Size +20%</b>");
   private MultiLineButton btnPatchsizeDecrease = new MultiLineButton(
       "<html><b>Patch Size -20%</b>");
 
-  private LabeledTextField ltfXNPatches = new LabeledTextField(
-      "Number of X patches :");
-  private LabeledTextField ltfYNPatches = new LabeledTextField(
-      "Number of Z patches :");
-  private LabeledTextField ltfZNPatches = new LabeledTextField(
-      "Number of Y patches :");
+  private LabeledTextField ltfXNPatches = new LabeledTextField("Number of X patches :");
+  private LabeledTextField ltfYNPatches = new LabeledTextField("Number of Z patches :");
+  private LabeledTextField ltfZNPatches = new LabeledTextField("Number of Y patches :");
   private CheckBox cbKernelSigma = new CheckBox(KERNEL_SIGMA_LABEL);
   private TextField tfKernelSigma = new TextField(KERNEL_SIGMA_LABEL);
 
@@ -461,8 +460,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   private JPanel pnlMatchorwarpBody = new JPanel();
   private EtomoPanel pnlPatchRegionModel = new EtomoPanel();
   private SpacedPanel pnlPatchRegionModelBody = SpacedPanel.getInstance(true);
-  private CheckBox cbUsePatchRegionModel = new CheckBox(
-      "Use patch region model");
+  private CheckBox cbUsePatchRegionModel = new CheckBox("Use patch region model");
   private Run3dmodButton btnPatchRegionModel = Run3dmodButton.get3dmodInstance(
       "Create/Edit Patch Region Model", this);
   private LabeledTextField ltfWarpLimit = new LabeledTextField(
@@ -478,8 +476,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
       "Number of rows to exclude on bottom (in Y): ");
   private LabeledTextField ltfZUpperExclude = new LabeledTextField(
       "Number of rows to exclude on top (in Y): ");
-  private CheckBox cbUseLinearInterpolation = new CheckBox(
-      "Use linear interpolation");
+  private CheckBox cbUseLinearInterpolation = new CheckBox("Use linear interpolation");
   private JPanel pnlMatchorwarpButtons = new JPanel();
   private final Run3dmodButton btnMatchorwarpRestart;
   private MultiLineButton btnMatchorwarpTrial = new MultiLineButton(
@@ -494,8 +491,8 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
       "<html><b>Replace Patch Vectors</b>");
   private Run3dmodButton btnImodMatchedTo = Run3dmodButton.get3dmodInstance(
       "Open Volume Being Matched To", this);
-  private final Run3dmodButton btnImodCombined = Run3dmodButton
-      .get3dmodInstance("Open Combined Volume", this);
+  private final Run3dmodButton btnImodCombined = Run3dmodButton.get3dmodInstance(
+      "Open Combined Volume", this);
   private CheckBox cbNoVolcombine = new CheckBox(NO_VOLCOMBINE_TITLE);
   private LabeledTextField ltfReductionFactor = new LabeledTextField(
       "Reduction factor for matching amplitudes in combined FFT: ");
@@ -521,18 +518,16 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   }
 
   protected String paramString() {
-    return "ltfXPatchSize=" + ltfXPatchSize + ",\nltfYPatchSize="
-        + ltfYPatchSize + ",\nltfZPatchSize=" + ltfZPatchSize
-        + ",\nltfXNPatches=" + ltfXNPatches + ",\nltfYNPatches=" + ltfYNPatches
-        + ",\nltfZNPatches=" + ltfZNPatches + ",\nltfXLow=" + ltfXLow
-        + ",\nltfXHigh=" + ltfXHigh + ",\nltfYLow=" + ltfYLow + ",\nltfYHigh="
-        + ltfYHigh + ",\nltfZLow=" + ltfZLow + ",\nltfZHigh=" + ltfZHigh
-        + ",\ncbUsePatchRegionModel=" + cbUsePatchRegionModel
-        + ",\nltfWarpLimit=" + ltfWarpLimit + ",\nltfRefineLimit="
-        + ltfRefineLimit + ",\nltfXLowerExclude=" + ltfXLowerExclude
-        + ",\nltfXUpperExclude=" + ltfXUpperExclude + ",\nltfZLowerExclude="
-        + ltfZLowerExclude + ",\nltfZUpperExclude=" + ltfZUpperExclude
-        + ",\ncbUseLinearInterpolation=" + cbUseLinearInterpolation
+    return "ltfXPatchSize=" + ltfXPatchSize + ",\nltfYPatchSize=" + ltfYPatchSize
+        + ",\nltfZPatchSize=" + ltfZPatchSize + ",\nltfXNPatches=" + ltfXNPatches
+        + ",\nltfYNPatches=" + ltfYNPatches + ",\nltfZNPatches=" + ltfZNPatches
+        + ",\nltfXLow=" + ltfXLow + ",\nltfXHigh=" + ltfXHigh + ",\nltfYLow=" + ltfYLow
+        + ",\nltfYHigh=" + ltfYHigh + ",\nltfZLow=" + ltfZLow + ",\nltfZHigh=" + ltfZHigh
+        + ",\ncbUsePatchRegionModel=" + cbUsePatchRegionModel + ",\nltfWarpLimit="
+        + ltfWarpLimit + ",\nltfRefineLimit=" + ltfRefineLimit + ",\nltfXLowerExclude="
+        + ltfXLowerExclude + ",\nltfXUpperExclude=" + ltfXUpperExclude
+        + ",\nltfZLowerExclude=" + ltfZLowerExclude + ",\nltfZUpperExclude="
+        + ltfZUpperExclude + ",\ncbUseLinearInterpolation=" + cbUseLinearInterpolation
         + ",\ncbNoVolcombine=" + cbNoVolcombine + ",\nltfReductionFactor="
         + ltfReductionFactor + ",\ncbParallelProcess=" + cbParallelProcess;
   }
@@ -542,21 +537,20 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
    * 
    * @param appMgr
    */
-  public FinalCombinePanel(TomogramCombinationDialog parent,
-      ApplicationManager appMgr, DialogType dialogType,
-      GlobalExpandButton globalAdvancedButton) {
+  public FinalCombinePanel(TomogramCombinationDialog parent, ApplicationManager appMgr,
+      DialogType dialogType, GlobalExpandButton globalAdvancedButton) {
     this.dialogType = dialogType;
     tomogramCombinationDialog = parent;
-    btnPatchcorrRestart = (Run3dmodButton) appMgr
-        .getProcessResultDisplayFactory(AxisID.ONLY).getRestartPatchcorr();
+    btnPatchcorrRestart = (Run3dmodButton) appMgr.getProcessResultDisplayFactory(
+        AxisID.ONLY).getRestartPatchcorr();
     btnPatchcorrRestart.setContainer(this);
     btnPatchcorrRestart.setDeferred3dmodButton(btnImodCombined);
-    btnMatchorwarpRestart = (Run3dmodButton) appMgr
-        .getProcessResultDisplayFactory(AxisID.ONLY).getRestartMatchorwarp();
+    btnMatchorwarpRestart = (Run3dmodButton) appMgr.getProcessResultDisplayFactory(
+        AxisID.ONLY).getRestartMatchorwarp();
     btnMatchorwarpRestart.setContainer(this);
     btnMatchorwarpRestart.setDeferred3dmodButton(btnImodCombined);
-    btnVolcombineRestart = (Run3dmodButton) appMgr
-        .getProcessResultDisplayFactory(AxisID.ONLY).getRestartVolcombine();
+    btnVolcombineRestart = (Run3dmodButton) appMgr.getProcessResultDisplayFactory(
+        AxisID.ONLY).getRestartVolcombine();
     btnVolcombineRestart.setContainer(this);
     btnVolcombineRestart.setDeferred3dmodButton(btnImodCombined);
     applicationManager = appMgr;
@@ -570,27 +564,24 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlPatchRegionModelBody.addHorizontalGlue();
     //btnPatchRegionModel.setSize();
 
-    pnlPatchRegionModel.setLayout(new BoxLayout(pnlPatchRegionModel,
-        BoxLayout.Y_AXIS));
+    pnlPatchRegionModel.setLayout(new BoxLayout(pnlPatchRegionModel, BoxLayout.Y_AXIS));
     pnlPatchRegionModel.setBorder(BorderFactory.createEtchedBorder());
-    patchRegionModelHeader = PanelHeader.getInstance("Patch Region Model",
-        this, dialogType);
+    patchRegionModelHeader = PanelHeader.getInstance("Patch Region Model", this,
+        dialogType);
     pnlPatchRegionModel.add(patchRegionModelHeader);
     pnlPatchRegionModel.add(pnlPatchRegionModelBody.getContainer());
 
     // Layout the Patchcorr panel
     pnlPatchcorrBody.setBoxLayout(BoxLayout.Y_AXIS);
 
-    pnlPatchsizeButtons.setLayout(new BoxLayout(pnlPatchsizeButtons,
-        BoxLayout.Y_AXIS));
+    pnlPatchsizeButtons.setLayout(new BoxLayout(pnlPatchsizeButtons, BoxLayout.Y_AXIS));
     pnlPatchsizeButtons.add(btnPatchsizeIncrease.getComponent());
     pnlPatchsizeButtons.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlPatchsizeButtons.add(btnPatchsizeDecrease.getComponent());
     UIUtilities.setButtonSizeAll(pnlPatchsizeButtons, UIParameters.INSTANCE
         .getButtonDimension());
 
-    pnlPatchsizeEdit
-        .setLayout(new BoxLayout(pnlPatchsizeEdit, BoxLayout.Y_AXIS));
+    pnlPatchsizeEdit.setLayout(new BoxLayout(pnlPatchsizeEdit, BoxLayout.Y_AXIS));
 
     pnlPatchsizeEdit.add(ltfXPatchSize.getContainer());
     pnlPatchsizeEdit.add(Box.createRigidArea(FixedDim.x0_y5));
@@ -631,8 +622,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
 
     btnPatchcorrRestart.setAlignmentX(Component.CENTER_ALIGNMENT);
     JPanel pnlPatchcorrButtons = new JPanel();
-    pnlPatchcorrButtons.setLayout(new BoxLayout(pnlPatchcorrButtons,
-        BoxLayout.X_AXIS));
+    pnlPatchcorrButtons.setLayout(new BoxLayout(pnlPatchcorrButtons, BoxLayout.X_AXIS));
     btnPatchcorrRestart.setSize();
     btnPatchVectorCCCModel.setSize();
     pnlPatchcorrButtons.add(Box.createHorizontalGlue());
@@ -642,19 +632,17 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlPatchcorrButtons.add(Box.createHorizontalGlue());
     pnlPatchcorrBody.add(pnlPatchcorrButtons);
 
-    pnlPatchsizeButtons.setLayout(new BoxLayout(pnlPatchsizeButtons,
-        BoxLayout.Y_AXIS));
+    pnlPatchsizeButtons.setLayout(new BoxLayout(pnlPatchsizeButtons, BoxLayout.Y_AXIS));
 
     pnlPatchcorr.setLayout(new BoxLayout(pnlPatchcorr, BoxLayout.Y_AXIS));
     pnlPatchcorr.setBorder(BorderFactory.createEtchedBorder());
-    patchcorrHeader = PanelHeader.getAdvancedBasicInstance(
-        "Patchcorr Parameters", this, dialogType, globalAdvancedButton);
+    patchcorrHeader = PanelHeader.getAdvancedBasicInstance("Patchcorr Parameters", this,
+        dialogType, globalAdvancedButton);
     pnlPatchcorr.add(patchcorrHeader);
     pnlPatchcorr.add(pnlPatchcorrBody.getContainer());
 
     //  Layout the Matchorwarp panel
-    pnlMatchorwarpBody.setLayout(new BoxLayout(pnlMatchorwarpBody,
-        BoxLayout.Y_AXIS));
+    pnlMatchorwarpBody.setLayout(new BoxLayout(pnlMatchorwarpBody, BoxLayout.Y_AXIS));
 
     pnlMatchorwarpBody.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlMatchorwarpBody.add(ltfRefineLimit.getContainer());
@@ -673,8 +661,8 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlMatchorwarpBody.add(cbUseLinearInterpolation);
     pnlMatchorwarpBody.add(Box.createRigidArea(FixedDim.x0_y5));
 
-    pnlMatchorwarpButtons.setLayout(new BoxLayout(pnlMatchorwarpButtons,
-        BoxLayout.X_AXIS));
+    pnlMatchorwarpButtons
+        .setLayout(new BoxLayout(pnlMatchorwarpButtons, BoxLayout.X_AXIS));
     pnlMatchorwarpButtons.add(Box.createHorizontalGlue());
     pnlMatchorwarpButtons.add(btnMatchorwarpRestart.getComponent());
     pnlMatchorwarpButtons.add(Box.createHorizontalGlue());
@@ -688,13 +676,12 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
 
     pnlMatchorwarp.setLayout(new BoxLayout(pnlMatchorwarp, BoxLayout.Y_AXIS));
     pnlMatchorwarp.setBorder(BorderFactory.createEtchedBorder());
-    matchorwarpHeader = PanelHeader.getAdvancedBasicInstance(
-        "Matchorwarp Parameters", this, dialogType, globalAdvancedButton);
+    matchorwarpHeader = PanelHeader.getAdvancedBasicInstance("Matchorwarp Parameters",
+        this, dialogType, globalAdvancedButton);
     pnlMatchorwarp.add(matchorwarpHeader);
     pnlMatchorwarp.add(pnlMatchorwarpBody);
 
-    pnlVolcombineBody.setLayout(new BoxLayout(pnlVolcombineBody,
-        BoxLayout.Y_AXIS));
+    pnlVolcombineBody.setLayout(new BoxLayout(pnlVolcombineBody, BoxLayout.Y_AXIS));
     cbParallelProcess = new CheckBox(
         tomogramCombinationDialog.parallelProcessCheckBoxText);
     pnlVolcombineBody.add(cbParallelProcess);
@@ -711,8 +698,8 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
 
     pnlVolcombine.setLayout(new BoxLayout(pnlVolcombine, BoxLayout.Y_AXIS));
     pnlVolcombine.setBorder(BorderFactory.createEtchedBorder());
-    volcombineHeader = PanelHeader.getAdvancedBasicInstance(
-        "Volcombine Parameters", this, dialogType, globalAdvancedButton);
+    volcombineHeader = PanelHeader.getAdvancedBasicInstance("Volcombine Parameters",
+        this, dialogType, globalAdvancedButton);
     pnlVolcombine.add(volcombineHeader);
     pnlVolcombine.add(pnlVolcombineBody);
 
@@ -727,8 +714,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlButton.add(Box.createHorizontalGlue());
     pnlButton.add(btnImodCombined.getComponent());
     pnlButton.add(Box.createHorizontalGlue());
-    UIUtilities.setButtonSizeAll(pnlButton, UIParameters.INSTANCE
-        .getButtonDimension());
+    UIUtilities.setButtonSizeAll(pnlButton, UIParameters.INSTANCE.getButtonDimension());
 
     //  Root panel layout
     pnlRoot.add(pnlPatchRegionModel);
@@ -839,8 +825,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   }
 
   public boolean isEnabled() {
-    return tomogramCombinationDialog
-        .isTabEnabled(TomogramCombinationDialog.lblFinal);
+    return tomogramCombinationDialog.isTabEnabled(TomogramCombinationDialog.lblFinal);
   }
 
   public String getXMax() {
@@ -888,19 +873,16 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   }
 
   final void setParameters(ReconScreenState screenState) {
-    patchRegionModelHeader.setState(screenState
-        .getCombineFinalPatchRegionHeaderState());
+    patchRegionModelHeader.setState(screenState.getCombineFinalPatchRegionHeaderState());
     patchcorrHeader.setState(screenState.getCombineFinalPatchcorrHeaderState());
-    matchorwarpHeader.setState(screenState
-        .getCombineFinalPatchcorrHeaderState());
-    volcombineHeader.setState(screenState
-        .getCombineFinalVolcombineHeaderState());
-    btnPatchcorrRestart.setButtonState(screenState
-        .getButtonState(btnPatchcorrRestart.getButtonStateKey()));
-    btnMatchorwarpRestart.setButtonState(screenState
-        .getButtonState(btnMatchorwarpRestart.getButtonStateKey()));
-    btnVolcombineRestart.setButtonState(screenState
-        .getButtonState(btnVolcombineRestart.getButtonStateKey()));
+    matchorwarpHeader.setState(screenState.getCombineFinalPatchcorrHeaderState());
+    volcombineHeader.setState(screenState.getCombineFinalVolcombineHeaderState());
+    btnPatchcorrRestart.setButtonState(screenState.getButtonState(btnPatchcorrRestart
+        .getButtonStateKey()));
+    btnMatchorwarpRestart.setButtonState(screenState.getButtonState(btnMatchorwarpRestart
+        .getButtonStateKey()));
+    btnVolcombineRestart.setButtonState(screenState.getButtonState(btnVolcombineRestart
+        .getButtonStateKey()));
     //if the kernal sigma value isn't coming from the comscript, get it from the
     //.edf, if it exists
     if (!cbKernelSigma.isSelected()) {
@@ -912,13 +894,10 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   }
 
   final void getParameters(ReconScreenState screenState) {
-    patchRegionModelHeader.getState(screenState
-        .getCombineFinalPatchRegionHeaderState());
+    patchRegionModelHeader.getState(screenState.getCombineFinalPatchRegionHeaderState());
     patchcorrHeader.getState(screenState.getCombineFinalPatchcorrHeaderState());
-    matchorwarpHeader.getState(screenState
-        .getCombineFinalPatchcorrHeaderState());
-    volcombineHeader.getState(screenState
-        .getCombineFinalVolcombineHeaderState());
+    matchorwarpHeader.getState(screenState.getCombineFinalPatchcorrHeaderState());
+    volcombineHeader.getState(screenState.getCombineFinalVolcombineHeaderState());
     screenState.setPatchcorrKernelSigma(tfKernelSigma.getText());
   }
 
@@ -1058,14 +1037,11 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
       badParameter = cbUsePatchRegionModel.getText();
       patchcrawl3DParam.setUseBoundaryModel(cbUsePatchRegionModel.isSelected());
       badParameter = ltfXPatchSize.getLabel();
-      patchcrawl3DParam
-          .setXPatchSize(Integer.parseInt(ltfXPatchSize.getText()));
+      patchcrawl3DParam.setXPatchSize(Integer.parseInt(ltfXPatchSize.getText()));
       badParameter = ltfYPatchSize.getLabel();
-      patchcrawl3DParam
-          .setYPatchSize(Integer.parseInt(ltfYPatchSize.getText()));
+      patchcrawl3DParam.setYPatchSize(Integer.parseInt(ltfYPatchSize.getText()));
       badParameter = ltfZPatchSize.getLabel();
-      patchcrawl3DParam
-          .setZPatchSize(Integer.parseInt(ltfZPatchSize.getText()));
+      patchcrawl3DParam.setZPatchSize(Integer.parseInt(ltfZPatchSize.getText()));
       badParameter = ltfXNPatches.getLabel();
       patchcrawl3DParam.setNX(Integer.parseInt(ltfXNPatches.getText()));
       badParameter = ltfYNPatches.getLabel();
@@ -1091,8 +1067,8 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
       badParameter = ltfInitialShiftZ.getLabel();
       patchcrawl3DParam.setInitialShiftZ(ltfInitialShiftZ.getText());
       badParameter = cbKernelSigma.getText();
-      patchcrawl3DParam.setKernelSigma(cbKernelSigma.isSelected(),
-          tfKernelSigma.getText());
+      patchcrawl3DParam.setKernelSigma(cbKernelSigma.isSelected(), tfKernelSigma
+          .getText());
     }
     catch (NumberFormatException except) {
       String message = badParameter + " " + except.getMessage();
@@ -1125,8 +1101,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
       ltfZUpperExclude.setText(matchorwarpParam.getZUpperExclude());
     }
 
-    cbUseLinearInterpolation.setSelected(matchorwarpParam
-        .isUseLinearInterpolation());
+    cbUseLinearInterpolation.setSelected(matchorwarpParam.isUseLinearInterpolation());
 
     //when loading into the dialog, matchorwarp takes precidence over patchcorr
     cbUsePatchRegionModel.setSelected(matchorwarpParam.isUseModelFile());
@@ -1155,8 +1130,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
       matchorwarpParam.setWarpLimit(ltfWarpLimit.getText());
 
       badParameter = ltfRefineLimit.getLabel();
-      matchorwarpParam.setRefineLimit(Double.parseDouble(ltfRefineLimit
-          .getText()));
+      matchorwarpParam.setRefineLimit(Double.parseDouble(ltfRefineLimit.getText()));
 
       badParameter = ltfXLowerExclude.getLabel();
       String text = ltfXLowerExclude.getText();
@@ -1194,8 +1168,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
         matchorwarpParam.setZUpperExclude(0);
       }
       badParameter = cbUseLinearInterpolation.getText();
-      matchorwarpParam.setUseLinearInterpolation(cbUseLinearInterpolation
-          .isSelected());
+      matchorwarpParam.setUseLinearInterpolation(cbUseLinearInterpolation.isSelected());
     }
     catch (NumberFormatException except) {
       String message = badParameter + " " + except.getMessage();
@@ -1222,13 +1195,12 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
     String[] manPagelabel = { Patchcrawl3DParam.getTitle(), "Matchorwarp" };
-    String[] manPage = { Patchcrawl3DParam.COMMAND + ".html",
-        "matchorwarp.html" };
+    String[] manPage = { Patchcrawl3DParam.COMMAND + ".html", "matchorwarp.html" };
     String[] logFileLabel = { "Patchcorr", "Matchorwarp", "Volcombine" };
     String[] logFile = { "patchcorr.log", "matchorwarp.log", "volcombine.log" };
     ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent,
-        "Patch Problems in Combining", ContextPopup.TOMO_GUIDE, manPagelabel,
-        manPage, logFileLabel, logFile, applicationManager, AxisID.ONLY);
+        "Patch Problems in Combining", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
+        logFileLabel, logFile, applicationManager, AxisID.ONLY);
   }
 
   public void action(final Run3dmodButton button,
@@ -1241,62 +1213,52 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
       Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     // Synchronize this panel with the others
-    tomogramCombinationDialog.synchronize(TomogramCombinationDialog.lblFinal,
-        true);
+    tomogramCombinationDialog.synchronize(TomogramCombinationDialog.lblFinal, true);
     // Decrease patch sizes by 20%
     // and then round to ints
     // since they are in
     // pixels
     if (command.equals(btnPatchsizeDecrease.getActionCommand())) {
-      ltfXPatchSize.setText(Math.round(Integer
-          .parseInt(ltfXPatchSize.getText()) / 1.2f));
-      ltfYPatchSize.setText(Math.round(Integer
-          .parseInt(ltfYPatchSize.getText()) / 1.2f));
-      ltfZPatchSize.setText(Math.round(Integer
-          .parseInt(ltfZPatchSize.getText()) / 1.2f));
+      ltfXPatchSize.setText(Math.round(Integer.parseInt(ltfXPatchSize.getText()) / 1.2f));
+      ltfYPatchSize.setText(Math.round(Integer.parseInt(ltfYPatchSize.getText()) / 1.2f));
+      ltfZPatchSize.setText(Math.round(Integer.parseInt(ltfZPatchSize.getText()) / 1.2f));
     }
     //  Increase patch sizes by 20% and then round to ints since they are
     // in
     // pixels
     else if (command.equals(btnPatchsizeIncrease.getActionCommand())) {
-      ltfXPatchSize.setText(Math.round(Integer
-          .parseInt(ltfXPatchSize.getText()) * 1.2f));
-      ltfYPatchSize.setText(Math.round(Integer
-          .parseInt(ltfYPatchSize.getText()) * 1.2f));
-      ltfZPatchSize.setText(Math.round(Integer
-          .parseInt(ltfZPatchSize.getText()) * 1.2f));
+      ltfXPatchSize.setText(Math.round(Integer.parseInt(ltfXPatchSize.getText()) * 1.2f));
+      ltfYPatchSize.setText(Math.round(Integer.parseInt(ltfYPatchSize.getText()) * 1.2f));
+      ltfZPatchSize.setText(Math.round(Integer.parseInt(ltfZPatchSize.getText()) * 1.2f));
     }
     else if (command.equals(btnPatchcorrRestart.getActionCommand())) {
-      applicationManager.patchcorrCombine(btnPatchcorrRestart, null,
-          deferred3dmodButton, run3dmodMenuOptions, dialogType,
-          tomogramCombinationDialog.getRunProcessingMethod());
+      applicationManager.patchcorrCombine(btnPatchcorrRestart, null, deferred3dmodButton,
+          run3dmodMenuOptions, dialogType, tomogramCombinationDialog
+              .getRunProcessingMethod());
     }
     else if (command.equals(btnMatchorwarpRestart.getActionCommand())) {
       applicationManager.matchorwarpCombine(btnMatchorwarpRestart, null,
-          deferred3dmodButton, run3dmodMenuOptions, dialogType,
-          tomogramCombinationDialog.getRunProcessingMethod());
+          deferred3dmodButton, run3dmodMenuOptions, dialogType, tomogramCombinationDialog
+              .getRunProcessingMethod());
     }
     else if (command.equals(btnMatchorwarpTrial.getActionCommand())) {
       applicationManager.matchorwarpTrial(null);
     }
     else if (command.equals(btnVolcombineRestart.getActionCommand())) {
       if (cbParallelProcess.isSelected()) {
-        applicationManager.splitcombine(null, deferred3dmodButton,
-            run3dmodMenuOptions, dialogType, tomogramCombinationDialog
-                .getRunProcessingMethod());
+        applicationManager.splitcombine(null, deferred3dmodButton, run3dmodMenuOptions,
+            dialogType, tomogramCombinationDialog.getRunProcessingMethod());
       }
       else {
-        applicationManager.volcombine(btnVolcombineRestart, null,
-            deferred3dmodButton, run3dmodMenuOptions, dialogType);
+        applicationManager.volcombine(btnVolcombineRestart, null, deferred3dmodButton,
+            run3dmodMenuOptions, dialogType);
       }
     }
     else if (command.equals(btnPatchVectorModel.getActionCommand())) {
-      applicationManager
-          .imodPatchVectorModel(ImodManager.PATCH_VECTOR_MODEL_KEY);
+      applicationManager.imodPatchVectorModel(ImodManager.PATCH_VECTOR_MODEL_KEY);
     }
     else if (command.equals(btnPatchVectorCCCModel.getActionCommand())) {
-      applicationManager
-          .imodPatchVectorModel(ImodManager.PATCH_VECTOR_CCC_MODEL_KEY);
+      applicationManager.imodPatchVectorModel(ImodManager.PATCH_VECTOR_CCC_MODEL_KEY);
     }
     else if (command.equals(btnReplacePatchOut.getActionCommand())) {
       applicationManager.modelToPatch();
@@ -1335,8 +1297,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   }
 
   void updatePatchVectorModelDisplay() {
-    boolean enable = DatasetFiles.getPatchVectorModel(applicationManager)
-        .exists();
+    boolean enable = DatasetFiles.getPatchVectorModel(applicationManager).exists();
     btnPatchVectorModel.setEnabled(enable);
     btnReplacePatchOut.setEnabled(enable);
   }
@@ -1380,22 +1341,14 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     ltfXPatchSize.setToolTipText("Size of correlation patches in X.");
     ltfYPatchSize.setToolTipText("Size of correlation patches in Y.");
     ltfZPatchSize.setToolTipText("Size of correlation patches in Z.");
-    btnPatchsizeIncrease
-        .setToolTipText("Increase all patch dimensions by 20%.");
-    btnPatchsizeDecrease
-        .setToolTipText("Decrease all patch dimensions by 20%.");
-    ltfXNPatches
-        .setToolTipText("Number of patches to correlate in the X dimension.");
-    ltfYNPatches
-        .setToolTipText("Number of patches to correlate in the Y dimension.");
-    ltfZNPatches
-        .setToolTipText("Number of patches to correlate in the Z dimension.");
-    ltfXLow
-        .setToolTipText("Minimum X coordinate for left edge of correlation patches.");
-    ltfYLow
-        .setToolTipText("Minimum Y coordinate for upper edge of correlation patches.");
-    ltfZLow
-        .setToolTipText("Minimum Z coordinate for top edge of correlation patches.");
+    btnPatchsizeIncrease.setToolTipText("Increase all patch dimensions by 20%.");
+    btnPatchsizeDecrease.setToolTipText("Decrease all patch dimensions by 20%.");
+    ltfXNPatches.setToolTipText("Number of patches to correlate in the X dimension.");
+    ltfYNPatches.setToolTipText("Number of patches to correlate in the Y dimension.");
+    ltfZNPatches.setToolTipText("Number of patches to correlate in the Z dimension.");
+    ltfXLow.setToolTipText("Minimum X coordinate for left edge of correlation patches.");
+    ltfYLow.setToolTipText("Minimum Y coordinate for upper edge of correlation patches.");
+    ltfZLow.setToolTipText("Minimum Z coordinate for top edge of correlation patches.");
     ltfXHigh
         .setToolTipText("Maximum X coordinate for right edge of correlation patches.");
     ltfYHigh
@@ -1448,8 +1401,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
             + "3dmodv Objects, and select on Show stored values.");
     btnReplacePatchOut
         .setToolTipText("Replace the patch displacements with the vectors from the edited model.");
-    btnImodMatchedTo
-        .setToolTipText("View the volume being matched to in 3dmod.");
+    btnImodMatchedTo.setToolTipText("View the volume being matched to in 3dmod.");
     text = "View the final combined volume.";
     btnImodCombined.setToolTipText("View the final combined volume.");
     cbNoVolcombine
@@ -1468,8 +1420,8 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     if (adocCombineFft != null) {
       ltfReductionFactor.setToolTipText(EtomoAutodoc.getTooltip(adocCombineFft,
           "ReductionFraction"));
-      ltfLowFromBothRadius.setToolTipText(EtomoAutodoc.getTooltip(
-          adocCombineFft, "LowFromBothRadius"));
+      ltfLowFromBothRadius.setToolTipText(EtomoAutodoc.getTooltip(adocCombineFft,
+          "LowFromBothRadius"));
     }
 
     text = EtomoAutodoc.getTooltip(adocCorrsearch3d,

@@ -42,6 +42,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2010/12/05 05:09:59  sueh
+ * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -66,13 +69,11 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
   static final String BEAD_SIZE_LABEL = "Bead diameter";
 
   private final JPanel pnlRoot = new JPanel();
-  private final ActionListener actionListener = new FindBeads3dPanelActionListener(
-      this);
+  private final ActionListener actionListener = new FindBeads3dPanelActionListener(this);
   private final SpacedPanel pnlBody = SpacedPanel.getInstance(true);
-  private final LabeledTextField ltfBeadSize = new LabeledTextField(
-      BEAD_SIZE_LABEL + " (pixels): ");
-  private final LabeledTextField ltfMinSpacing = new LabeledTextField(
-      "Minimum spacing: ");
+  private final LabeledTextField ltfBeadSize = new LabeledTextField(BEAD_SIZE_LABEL
+      + " (pixels): ");
+  private final LabeledTextField ltfMinSpacing = new LabeledTextField("Minimum spacing: ");
   private final LabeledTextField ltfGuessNumBeads = new LabeledTextField(
       "Estimated number of beads: ");
   private final LabeledTextField ltfMinRelativeStrength = new LabeledTextField(
@@ -86,12 +87,12 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
   private final RadioButton rbStorageThresholdOnlyAbove = new RadioButton(
       "Store only points above threshold", StorageThresholdEnum.ONLY_ABOVE,
       bgStorageThreshold);
-  private final RadioTextField rtfStorageThreshold = RadioTextField
-      .getInstance("Set threshold for storing: ", bgStorageThreshold);
+  private final RadioTextField rtfStorageThreshold = RadioTextField.getInstance(
+      "Set threshold for storing: ", bgStorageThreshold);
   private final LabeledTextField ltfMaxNumBeads = new LabeledTextField(
       "Max points to analyze: ");
-  private final Run3dmodButton btn3dmodFindBeads3d = Run3dmodButton
-      .get3dmodInstance("View 3D Model on Tomogram", this);
+  private final Run3dmodButton btn3dmodFindBeads3d = Run3dmodButton.get3dmodInstance(
+      "View 3D Model on Tomogram", this);
 
   private final Run3dmodButton btnFindBeads3d;
   private final PanelHeader header;
@@ -104,17 +105,16 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
     this.manager = manager;
     this.axisID = axisID;
     this.dialogType = dialogType;
-    header = PanelHeader.getAdvancedBasicInstance("Find Beads 3d", this,
-        dialogType, globalAdvancedButton);
-    btnFindBeads3d = (Run3dmodButton) manager.getProcessResultDisplayFactory(
-        axisID).getFindBeads3d();
+    header = PanelHeader.getAdvancedBasicInstance("Find Beads 3d", this, dialogType,
+        globalAdvancedButton);
+    btnFindBeads3d = (Run3dmodButton) manager.getProcessResultDisplayFactory(axisID)
+        .getFindBeads3d();
   }
 
-  static FindBeads3dPanel getInstance(ApplicationManager manager,
-      AxisID axisID, DialogType dialogType,
-      GlobalExpandButton globalAdvancedButton) {
-    FindBeads3dPanel instance = new FindBeads3dPanel(manager, axisID,
-        dialogType, globalAdvancedButton);
+  static FindBeads3dPanel getInstance(ApplicationManager manager, AxisID axisID,
+      DialogType dialogType, GlobalExpandButton globalAdvancedButton) {
+    FindBeads3dPanel instance = new FindBeads3dPanel(manager, axisID, dialogType,
+        globalAdvancedButton);
     instance.createPanel();
     instance.setToolTipText();
     instance.addListeners();
@@ -164,8 +164,7 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
     pnlB.add(ltfThresholdForAveraging.getContainer());
     //Storage threshold panel
     pnlStorageThreshold.setLayout(new GridLayout(3, 2, 3, 3));
-    pnlStorageThreshold.setBorder(new EtchedBorder("Storage Threshold")
-        .getBorder());
+    pnlStorageThreshold.setBorder(new EtchedBorder("Storage Threshold").getBorder());
     pnlStorageThreshold.add(rbStorageThresholdSomeBelow.getComponent());
     pnlStorageThreshold.add(rbStorageThresholdOnlyAbove.getComponent());
     pnlStorageThreshold.add(rtfStorageThreshold.getContainer());
@@ -246,17 +245,15 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
 
   public void getParameters(FindBeads3dParam param) {
     param.setInputFile(FileType.TILT_3D_FIND_OUTPUT);
-    param.setOutputFile(FileType.FIND_BEADS_3D_OUTPUT_MODEL.getFileName(
-        manager, axisID));
+    param.setOutputFile(FileType.FIND_BEADS_3D_OUTPUT_MODEL.getFileName(manager, axisID));
     param.setBeadSize(ltfBeadSize.getText());
     param.setMinSpacing(ltfMinSpacing.getText());
     param.setGuessNumBeads(ltfGuessNumBeads.getText());
     param.setMinRelativeStrength(ltfMinRelativeStrength.getText());
     param.setThresholdForAveraging(ltfThresholdForAveraging.getText());
     if (!rtfStorageThreshold.isSelected()) {
-      param
-          .setStorageThreshold(((RadioButton.RadioButtonModel) bgStorageThreshold
-              .getSelection()).getEnumeratedType().getValue());
+      param.setStorageThreshold(((RadioButton.RadioButtonModel) bgStorageThreshold
+          .getSelection()).getEnumeratedType().getValue());
     }
     else {
       param.setStorageThreshold(rtfStorageThreshold.getText());
@@ -274,8 +271,7 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
         run3dmodMenuOptions);
   }
 
-  private void action(final String command,
-      Deferred3dmodButton deferred3dmodButton,
+  private void action(final String command, Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnFindBeads3d.getActionCommand())) {
       manager.findBeads3d(btnFindBeads3d, null, deferred3dmodButton, axisID,
@@ -284,16 +280,15 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
     else if (command.equals(btn3dmodFindBeads3d.getActionCommand())) {
       manager.imodFindBeads3d(axisID, run3dmodMenuOptions, null,
           FileType.TILT_3D_FIND_OUTPUT.getImodManagerKey(),
-          FileType.FIND_BEADS_3D_OUTPUT_MODEL.getFileName(manager, axisID),
-          null, dialogType);
+          FileType.FIND_BEADS_3D_OUTPUT_MODEL.getFileName(manager, axisID), null,
+          dialogType);
     }
   }
 
   private void setToolTipText() {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(manager,
-          AutodocFactory.FIND_BEADS_3D, axisID);
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.FIND_BEADS_3D, axisID);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -343,10 +338,8 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
   }
 
   private static final class StorageThresholdEnum implements EnumeratedType {
-    private static final StorageThresholdEnum SOME_BELOW = new StorageThresholdEnum(
-        0);
-    private static final StorageThresholdEnum ONLY_ABOVE = new StorageThresholdEnum(
-        -1);
+    private static final StorageThresholdEnum SOME_BELOW = new StorageThresholdEnum(0);
+    private static final StorageThresholdEnum ONLY_ABOVE = new StorageThresholdEnum(-1);
 
     private final EtomoNumber value = new EtomoNumber();
 
@@ -354,8 +347,7 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
       this.value.set(value);
     }
 
-    private static StorageThresholdEnum getInstance(
-        ConstEtomoNumber storageThreshold) {
+    private static StorageThresholdEnum getInstance(ConstEtomoNumber storageThreshold) {
       if (SOME_BELOW.value.equals(storageThreshold)) {
         return SOME_BELOW;
       }

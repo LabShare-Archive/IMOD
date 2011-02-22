@@ -37,6 +37,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2010/12/05 04:56:19  sueh
+ * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -60,8 +63,7 @@ import etomo.util.DatasetFiles;
  * <p> bug# 1221 Factored out of final aligned stack dialog.
  * <p> </p>
  */
-final class CcdEraserBeadsPanel implements Run3dmodButtonContainer,
-    CcdEraserDisplay {
+final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDisplay {
   public static final String rcsid = "$Id$";
 
   static final String CCD_ERASER_LABEL = "Erase Beads";
@@ -74,13 +76,11 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer,
       "Diameter to erase (pixels): ");
   private final ButtonGroup bgPolynomialOrder = new ButtonGroup();
   private final RadioButton rbPolynomialOrderUseMean = new RadioButton(
-      "Use mean of surrounding points", PolynomialOrder.USE_MEAN,
-      bgPolynomialOrder);
+      "Use mean of surrounding points", PolynomialOrder.USE_MEAN, bgPolynomialOrder);
   private final RadioButton rbPolynomialOrderFitAPlane = new RadioButton(
-      "Fit a plane to surrounding points", PolynomialOrder.FIT_A_PLANE,
-      bgPolynomialOrder);
-  private final Run3dmodButton btn3dmodCcdEraser = Run3dmodButton
-      .get3dmodInstance("View Erased Stack", this);
+      "Fit a plane to surrounding points", PolynomialOrder.FIT_A_PLANE, bgPolynomialOrder);
+  private final Run3dmodButton btn3dmodCcdEraser = Run3dmodButton.get3dmodInstance(
+      "View Erased Stack", this);
 
   private final Run3dmodButton btnCcdEraser;
   private final MultiLineButton btnUseCcdEraser;
@@ -99,10 +99,9 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer,
     btnUseCcdEraser = (MultiLineButton) displayFactory.getUseCcdEraserBeads();
   }
 
-  static CcdEraserBeadsPanel getInstance(ApplicationManager manager,
-      AxisID axisID, DialogType dialogType) {
-    CcdEraserBeadsPanel instance = new CcdEraserBeadsPanel(manager, axisID,
-        dialogType);
+  static CcdEraserBeadsPanel getInstance(ApplicationManager manager, AxisID axisID,
+      DialogType dialogType) {
+    CcdEraserBeadsPanel instance = new CcdEraserBeadsPanel(manager, axisID, dialogType);
     instance.createPanel();
     instance.addListeners();
     instance.setToolTipText();
@@ -136,10 +135,8 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer,
     ccdEraserParameterPanel.add(ltfFiducialDiameter.getContainer());
     ccdEraserParameterPanel.add(polynomialOrderPanel);
     //polynomial order
-    polynomialOrderPanel.setLayout(new BoxLayout(polynomialOrderPanel,
-        BoxLayout.Y_AXIS));
-    polynomialOrderPanel.setBorder(new EtchedBorder("Polynomial Order")
-        .getBorder());
+    polynomialOrderPanel.setLayout(new BoxLayout(polynomialOrderPanel, BoxLayout.Y_AXIS));
+    polynomialOrderPanel.setBorder(new EtchedBorder("Polynomial Order").getBorder());
     polynomialOrderPanel.add(rbPolynomialOrderUseMean.getComponent());
     polynomialOrderPanel.add(rbPolynomialOrderFitAPlane.getComponent());
     //buttons
@@ -174,23 +171,20 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer,
    * @throws FortranInputSyntaxException
    */
   void getParameters(MetaData metaData) throws FortranInputSyntaxException {
-    metaData.setFinalStackFiducialDiameter(axisID, ltfFiducialDiameter
-        .getText());
+    metaData.setFinalStackFiducialDiameter(axisID, ltfFiducialDiameter.getText());
     metaData.setFinalStackPolynomialOrder(axisID, getPolynomialOrder());
   }
 
   void setParameters(ConstMetaData metaData) {
     if (!metaData.isFinalStackFiducialDiameterNull(axisID)) {
-      ltfFiducialDiameter.setText((metaData
-          .getFinalStackFiducialDiameter(axisID)));
+      ltfFiducialDiameter.setText((metaData.getFinalStackFiducialDiameter(axisID)));
     }
     else if (!metaData.isFinalStackBetterRadiusEmpty(axisID)) {
       //backwards compatibility - used to save better radius, convert it to
       //fiducial diameter in pixels
       EtomoNumber betterRadius = new EtomoNumber(EtomoNumber.Type.DOUBLE);
       betterRadius.set(metaData.getFinalStackBetterRadius(axisID));
-      ltfFiducialDiameter.setText(Math
-          .round(betterRadius.getDouble() * 2 * 10.0) / 10.0);
+      ltfFiducialDiameter.setText(Math.round(betterRadius.getDouble() * 2 * 10.0) / 10.0);
     }
     else {
       //Currently not allowing an empty value to be saved.
@@ -204,10 +198,9 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer,
   }
 
   public boolean getParameters(CCDEraserParam param) {
-    param.setInputFile(DatasetFiles
-        .getFullAlignedStackFileName(manager, axisID));
-    param.setModelFile(FileType.CCD_ERASER_BEADS_INPUT_MODEL.getFileName(
-        manager, axisID));
+    param.setInputFile(DatasetFiles.getFullAlignedStackFileName(manager, axisID));
+    param
+        .setModelFile(FileType.CCD_ERASER_BEADS_INPUT_MODEL.getFileName(manager, axisID));
     param.setOutputFile(FileType.ERASED_BEADS_STACK);
     EtomoNumber fiducialDiameter = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     fiducialDiameter.set(ltfFiducialDiameter.getText());
@@ -222,19 +215,17 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer,
         run3dmodMenuOptions);
   }
 
-  private void action(final String command,
-      Deferred3dmodButton deferred3dmodButton,
+  private void action(final String command, Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnCcdEraser.getActionCommand())) {
-      manager.ccdEraser(btnCcdEraser, null, deferred3dmodButton,
-          run3dmodMenuOptions, axisID, dialogType, this);
+      manager.ccdEraser(btnCcdEraser, null, deferred3dmodButton, run3dmodMenuOptions,
+          axisID, dialogType, this);
     }
     else if (command.equals(btn3dmodCcdEraser.getActionCommand())) {
       manager.imodErasedFiducials(run3dmodMenuOptions, axisID);
     }
     else if (command.equals(btnUseCcdEraser.getActionCommand())) {
-      manager.useCcdEraser(btnUseCcdEraser, axisID, dialogType,
-          CCD_ERASER_LABEL);
+      manager.useCcdEraser(btnUseCcdEraser, axisID, dialogType, CCD_ERASER_LABEL);
     }
   }
 
@@ -255,14 +246,12 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer,
         .setToolTipText("The diameter, in pixels of the aligned stack, that will "
             + "be erased around each point.");
     rbPolynomialOrderUseMean
-        .setToolTipText("Fill the erased pixel with the mean of surrounding "
-            + "points.");
+        .setToolTipText("Fill the erased pixel with the mean of surrounding " + "points.");
     rbPolynomialOrderFitAPlane
         .setToolTipText("Fill the erased pixels with a gradient based on plane "
             + "fit to surrounding points.");
-    btnCcdEraser
-        .setToolTipText("Run Ccderaser on the aligned stack to erase around "
-            + "model points.");
+    btnCcdEraser.setToolTipText("Run Ccderaser on the aligned stack to erase around "
+        + "model points.");
     btn3dmodCcdEraser
         .setToolTipText("View the results of running Ccderaser on the aligned "
             + "stack along with the _erase.fid model.");

@@ -25,6 +25,11 @@ import etomo.type.ToolType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/03 06:22:16  sueh
+ * <p> bug# 1422 Control of the processing method has been centralized in the
+ * <p> processing method mediator class.  Implementing ProcessInterface.
+ * <p> Supplying processes with the current processing method.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -68,18 +73,16 @@ public final class FrontPageDialog {
   public static final String rcsid = "$Id$";
 
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance(true);
-  private final MultiLineButton btnRecon =  MultiLineButton.getDebugInstance("New "
+  private final MultiLineButton btnRecon = MultiLineButton.getDebugInstance("New "
       + EtomoMenu.RECON_LABEL);
   private final MultiLineButton btnJoin = new MultiLineButton("New "
       + EtomoMenu.JOIN_LABEL);
-  private final MultiLineButton btnNad = new MultiLineButton("New "
-      + EtomoMenu.NAD_LABEL);
+  private final MultiLineButton btnNad = new MultiLineButton("New " + EtomoMenu.NAD_LABEL);
   private final MultiLineButton btnGeneric = new MultiLineButton("New "
       + EtomoMenu.GENERIC_LABEL);
   private final MultiLineButton btnPeet = new MultiLineButton("New "
       + EtomoMenu.PEET_LABEL);
-  private final MultiLineButton btnFlattenVolume = new MultiLineButton(
-      "Flatten Volume");
+  private final MultiLineButton btnFlattenVolume = new MultiLineButton("Flatten Volume");
 
   private FrontPageDialog() {
   }
@@ -136,7 +139,7 @@ public final class FrontPageDialog {
   public Container getContainer() {
     return pnlRoot.getContainer();
   }
-  
+
   public void reconActionForAutomation() {
     EtomoDirector.INSTANCE.openTomogramAndDoAutomation(true, AxisID.ONLY);
   }
@@ -171,9 +174,8 @@ public final class FrontPageDialog {
     btnNad.setToolTipText("Run a nonlinear anisotropic diffusion process on a "
         + "tomogram.");
     btnGeneric.setToolTipText("Run a generic parallel process.");
-    btnPeet
-        .setToolTipText("Start the interface for the PEET particle averaging "
-            + "package.");
+    btnPeet.setToolTipText("Start the interface for the PEET particle averaging "
+        + "package.");
   }
 
   private static final class FrontPageActionListener implements ActionListener {

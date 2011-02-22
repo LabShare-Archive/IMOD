@@ -30,6 +30,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/03 06:22:16  sueh
+ * <p> bug# 1422 Control of the processing method has been centralized in the
+ * <p> processing method mediator class.  Implementing ProcessInterface.
+ * <p> Supplying processes with the current processing method.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -52,14 +57,14 @@ final class FilterFullVolumePanel implements Run3dmodButtonContainer {
   private final Run3dmodButton btnRunFilterFullVolume = Run3dmodButton
       .getDeferred3dmodInstance(FILTER_FULL_VOLUME_LABEL, this);
   private final LabeledTextField ltfKValue = new LabeledTextField("K value: ");
-  private final Spinner spIteration = Spinner.getLabeledInstance(
-      "Iterations: ", 10, 1, 200);
+  private final Spinner spIteration = Spinner.getLabeledInstance("Iterations: ", 10, 1,
+      200);
   private final Spinner spMemoryPerChunk = Spinner.getLabeledInstance(
       MEMORY_PER_CHUNK_LABEL + " (MB): ", MEMORY_PER_CHUNK_DEFAULT,
       ChunksetupParam.MEMORY_TO_VOXEL, 30 * ChunksetupParam.MEMORY_TO_VOXEL,
       ChunksetupParam.MEMORY_TO_VOXEL);
-  private final Run3dmodButton btnViewFilteredVolume = Run3dmodButton
-      .get3dmodInstance("View Filtered Volume", this);
+  private final Run3dmodButton btnViewFilteredVolume = Run3dmodButton.get3dmodInstance(
+      "View Filtered Volume", this);
   private final MultiLineButton btnCleanup = new MultiLineButton(CLEANUP_LABEL);
   private final CheckBox cbOverlapTimesFour = new CheckBox(
       "Overlap chunks by 4 times # of iterations");
@@ -77,8 +82,8 @@ final class FilterFullVolumePanel implements Run3dmodButtonContainer {
 
   static FilterFullVolumePanel getInstance(final ParallelManager manager,
       final DialogType dialogType, final FilterFullVolumeParent parent) {
-    FilterFullVolumePanel instance = new FilterFullVolumePanel(manager,
-        dialogType, parent);
+    FilterFullVolumePanel instance = new FilterFullVolumePanel(manager, dialogType,
+        parent);
     instance.createPanel();
     instance.setTooltips();
     instance.addListeners();
@@ -170,16 +175,16 @@ final class FilterFullVolumePanel implements Run3dmodButtonContainer {
       if (!parent.initSubdir()) {
         return;
       }
-      manager.chunksetup(null, deferred3dmodButton, run3dmodMenuOptions,
-          dialogType, manager.getProcessingMethodMediator(AxisID.ONLY)
+      manager.chunksetup(null, deferred3dmodButton, run3dmodMenuOptions, dialogType,
+          manager.getProcessingMethodMediator(AxisID.ONLY)
               .getRunMethodForProcessInterface(parent.getProcessingMethod()));
     }
     else if (command.equals(btnCleanup.getActionCommand())) {
       parent.cleanUp();
     }
     else if (command.equals(btnViewFilteredVolume.getActionCommand())) {
-      manager.imod(FileType.ANISOTROPIC_DIFFUSION_OUTPUT, run3dmodMenuOptions,
-          parent.isLoadWithFlipping());
+      manager.imod(FileType.ANISOTROPIC_DIFFUSION_OUTPUT, run3dmodMenuOptions, parent
+          .isLoadWithFlipping());
     }
   }
 
@@ -189,25 +194,21 @@ final class FilterFullVolumePanel implements Run3dmodButtonContainer {
             + "filename.nad");
     ltfKValue.setToolTipText("K threshold value for running on full volume");
     spIteration.setToolTipText("Number of iterations to run on full volume");
-    spMemoryPerChunk
-        .setToolTipText("Maximum memory in megabytes to use while running "
-            + "diffusion on one chunk. Reduce if there is less memory per "
-            + "processor or if you want to break the job into more chunks.  The"
-            + " number of voxels in each chunk will be 1/36 of this memory "
-            + "limit or less.");
-    btnViewFilteredVolume
-        .setToolTipText("View filtered volume (filename.nad) in 3dmod");
-    btnCleanup
-        .setToolTipText("Remove subdirectory with all temporary and test files "
-            + "(naddir.filename).");
+    spMemoryPerChunk.setToolTipText("Maximum memory in megabytes to use while running "
+        + "diffusion on one chunk. Reduce if there is less memory per "
+        + "processor or if you want to break the job into more chunks.  The"
+        + " number of voxels in each chunk will be 1/36 of this memory "
+        + "limit or less.");
+    btnViewFilteredVolume.setToolTipText("View filtered volume (filename.nad) in 3dmod");
+    btnCleanup.setToolTipText("Remove subdirectory with all temporary and test files "
+        + "(naddir.filename).");
     cbOverlapTimesFour
         .setToolTipText("Increase overlap to 4 times # of iterations (default is "
             + "equal to # of iterations) to eliminate minor effects of cutting "
             + "volume into chunks.");
   }
 
-  private static final class FilterFullVolumeActionListener implements
-      ActionListener {
+  private static final class FilterFullVolumeActionListener implements ActionListener {
     private final FilterFullVolumePanel filterFullVolumePanel;
 
     private FilterFullVolumeActionListener(

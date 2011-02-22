@@ -26,6 +26,9 @@ import etomo.type.EnumeratedType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.10  2010/03/03 05:06:31  sueh
  * <p> bug# 1311 Changed TextField.setSize to setPreferredSize.
  * <p>
@@ -210,8 +213,7 @@ final class RadioTextField implements RadioButtonInterface {
     if (!radioButton.isSelected() && textField.isEnabled()) {
       return "Text field should be disabled when radio button is not selected";
     }
-    if (radioButton.isEnabled() && radioButton.isSelected()
-        && !textField.isEnabled()) {
+    if (radioButton.isEnabled() && radioButton.isSelected() && !textField.isEnabled()) {
       return "text field should be enabled when radio button is selected";
     }
     return null;

@@ -38,6 +38,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.1  2010/11/13 16:07:34  sueh
+ * bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ *
  * Revision 3.19  2010/02/17 05:03:12  sueh
  * bug# 1301 Using manager instead of manager key for popping up messages.
  *
@@ -168,10 +171,8 @@ final class CleanupPanel {
   private final JLabel instructions = new JLabel(
       "Select files to be deleted then press the \"Delete Selected\" button. Ctrl-A selects all displayed files.");
   private final JPanel pnlButton = new JPanel();
-  private final MultiLineButton btnDelete = new MultiLineButton(
-      "Delete Selected");
-  private final MultiLineButton btnRescanDir = new MultiLineButton(
-      "Rescan Directory");
+  private final MultiLineButton btnDelete = new MultiLineButton("Delete Selected");
+  private final MultiLineButton btnRescanDir = new MultiLineButton("Rescan Directory");
   private final JFileChooser fileChooser = new JFileChooser();
   private final BackupFileFilter backupFileFilter = new BackupFileFilter();
   private final JLabel lDirSize = new JLabel();
@@ -188,22 +189,19 @@ final class CleanupPanel {
     //  Create the filechooser
     String datasetName = applicationManager.getMetaData().getDatasetName();
     intermediateFileFilter = new IntermediateFileFilter(datasetName);
-    File trimmedTomogram = new File(applicationManager.getPropertyUserDir(),
-        datasetName + ".rec");
-    intermediateFileFilter.setAcceptPretrimmedTomograms(trimmedTomogram
-        .exists());
+    File trimmedTomogram = new File(applicationManager.getPropertyUserDir(), datasetName
+        + ".rec");
+    intermediateFileFilter.setAcceptPretrimmedTomograms(trimmedTomogram.exists());
 
     fileChooser.setDialogType(JFileChooser.CUSTOM_DIALOG);
     fileChooser.setFileFilter(backupFileFilter);
     fileChooser.setFileFilter(intermediateFileFilter);
     fileChooser.setMultiSelectionEnabled(true);
     fileChooser.setControlButtonsAreShown(false);
-    fileChooser.setCurrentDirectory(new File(applicationManager
-        .getPropertyUserDir()));
+    fileChooser.setCurrentDirectory(new File(applicationManager.getPropertyUserDir()));
 
     pnlCleanup.setLayout(new BoxLayout(pnlCleanup, BoxLayout.Y_AXIS));
-    pnlCleanup.setBorder(new EtchedBorder("Intermediate File Cleanup")
-        .getBorder());
+    pnlCleanup.setBorder(new EtchedBorder("Intermediate File Cleanup").getBorder());
     instructions.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlCleanup.add(instructions);
     pnlCleanup.add(Box.createRigidArea(FixedDim.x0_y5));
@@ -245,8 +243,7 @@ final class CleanupPanel {
   }
 
   private void setDirSize() {
-    File[] fileList = new File(applicationManager.getPropertyUserDir())
-        .listFiles();
+    File[] fileList = new File(applicationManager.getPropertyUserDir()).listFiles();
     long dirSize = 0;
     if (fileList != null) {
       for (int i = 0; i < fileList.length; i++) {
@@ -279,8 +276,8 @@ final class CleanupPanel {
       if (Utilities.isWindowsOS()) {
         message.append("\nIf the files are open in 3dmod, close 3dmod.");
       }
-      UIHarness.INSTANCE.openMessageDialog(applicationManager, message
-          .toString(), "Unable to delete intermediate file", AxisID.ONLY);
+      UIHarness.INSTANCE.openMessageDialog(applicationManager, message.toString(),
+          "Unable to delete intermediate file", AxisID.ONLY);
     }
     setDirSize();
   }
@@ -303,8 +300,7 @@ final class CleanupPanel {
   private void setToolTipText() {
     fileChooser.setToolTipText(TooltipFormatter.INSTANCE
         .format("The list of files in this text box will be deleted."));
-    btnDelete
-        .setToolTipText("Delete the files listed in the \"File name\" text box.");
+    btnDelete.setToolTipText("Delete the files listed in the \"File name\" text box.");
     btnRescanDir
         .setToolTipText("Read the directory again to update the list in the file selection box.");
   }

@@ -42,8 +42,8 @@ abstract class AbstractFrame extends JFrame {
 
   private static final int MAX_MESSAGE_LINES = 20;
   private static final int MESSAGE_WIDTH = 60;
-  private static final boolean PRINT_NAMES = EtomoDirector.INSTANCE
-      .getArguments().isPrintNames();
+  private static final boolean PRINT_NAMES = EtomoDirector.INSTANCE.getArguments()
+      .isPrintNames();
   private static final String OK = "OK";
   private static final String ETOMO_QUESTION = "Etomo question";
   private static final String YES = "Yes";
@@ -65,8 +65,7 @@ abstract class AbstractFrame extends JFrame {
   abstract LogFrame getLogFrame();
 
   public void setVisible(boolean visible) {
-    UserConfiguration userConfiguration = EtomoDirector.INSTANCE
-        .getUserConfiguration();
+    UserConfiguration userConfiguration = EtomoDirector.INSTANCE.getUserConfiguration();
     if (!EtomoDirector.INSTANCE.getArguments().isIgnoreLoc()
         && userConfiguration.isLastLocationSet()) {
       setLocation(userConfiguration.getLastLocationX(), userConfiguration
@@ -138,8 +137,7 @@ abstract class AbstractFrame extends JFrame {
    * @param message
    * @param title
    */
-  void displayMessage(BaseManager manager, String message, String title,
-      AxisID axisID) {
+  void displayMessage(BaseManager manager, String message, String title, AxisID axisID) {
     openMessageDialog(manager, axisID, message, title);
   }
 
@@ -152,18 +150,15 @@ abstract class AbstractFrame extends JFrame {
     openMessageDialog(manager, AxisID.ONLY, message, title);
   }
 
-  void displayInfoMessage(BaseManager manager, String message, String title,
-      AxisID axisID) {
+  void displayInfoMessage(BaseManager manager, String message, String title, AxisID axisID) {
     openInfoMessageDialog(manager, axisID, message, title);
   }
 
-  int displayYesNoCancelMessage(BaseManager manager, String[] message,
-      AxisID axisID) {
+  int displayYesNoCancelMessage(BaseManager manager, String[] message, AxisID axisID) {
     return openYesNoCancelDialog(manager, axisID, message);
   }
 
-  boolean displayYesNoMessage(BaseManager manager, String[] message,
-      AxisID axisID) {
+  boolean displayYesNoMessage(BaseManager manager, String[] message, AxisID axisID) {
     return openYesNoDialog(manager, axisID, message);
   }
 
@@ -171,8 +166,7 @@ abstract class AbstractFrame extends JFrame {
     return openYesNoDialog(manager, axisID, message);
   }
 
-  boolean displayDeleteMessage(BaseManager manager, String message[],
-      AxisID axisID) {
+  boolean displayDeleteMessage(BaseManager manager, String message[], AxisID axisID) {
     return openDeleteDialog(manager, axisID, message);
   }
 
@@ -181,23 +175,21 @@ abstract class AbstractFrame extends JFrame {
    * @param message
    * @param title
    */
-  void displayMessage(BaseManager manager, String[] message, String title,
-      AxisID axisID) {
+  void displayMessage(BaseManager manager, String[] message, String title, AxisID axisID) {
     openMessageDialog(manager, axisID, message, title);
   }
 
-  void displayErrorMessage(BaseManager manager,
-      ProcessMessages processMessages, String title, AxisID axisID) {
+  void displayErrorMessage(BaseManager manager, ProcessMessages processMessages,
+      String title, AxisID axisID) {
     openErrorMessageDialog(manager, axisID, processMessages, title);
   }
 
-  boolean displayYesNoWarningDialog(BaseManager manager, String message,
-      AxisID axisID) {
+  boolean displayYesNoWarningDialog(BaseManager manager, String message, AxisID axisID) {
     return openYesNoWarningDialog(manager, axisID, message);
   }
 
-  void displayWarningMessage(BaseManager manager,
-      ProcessMessages processMessages, String title, AxisID axisID) {
+  void displayWarningMessage(BaseManager manager, ProcessMessages processMessages,
+      String title, AxisID axisID) {
     openWarningMessageDialog(manager, axisID, processMessages, title);
   }
 
@@ -206,16 +198,15 @@ abstract class AbstractFrame extends JFrame {
    * @param message
    * @param title
    */
-  void openMessageDialog(BaseManager manager, AxisID axisID, String message,
-      String title) {
+  void openMessageDialog(BaseManager manager, AxisID axisID, String message, String title) {
     showOptionPane(manager, axisID, wrap(manager, message), title,
         JOptionPane.ERROR_MESSAGE);
   }
 
   void openWarningMessageDialog(BaseManager manager, AxisID axisID,
       ProcessMessages processMessages, String title) {
-    showOptionPane(manager, axisID, wrapWarning(manager, processMessages),
-        title, JOptionPane.ERROR_MESSAGE);
+    showOptionPane(manager, axisID, wrapWarning(manager, processMessages), title,
+        JOptionPane.ERROR_MESSAGE);
   }
 
   void openErrorMessageDialog(BaseManager manager, AxisID axisID,
@@ -224,12 +215,11 @@ abstract class AbstractFrame extends JFrame {
         JOptionPane.ERROR_MESSAGE);
   }
 
-  boolean openYesNoWarningDialog(BaseManager manager, AxisID axisID,
-      String message) {
+  boolean openYesNoWarningDialog(BaseManager manager, AxisID axisID, String message) {
     String[] results = new String[] { "Yes", "No" };
-    int result = showOptionPane(manager, axisID, wrap(manager, message),
-        "Etomo Warning", JOptionPane.YES_NO_OPTION,
-        JOptionPane.WARNING_MESSAGE, results, results[1], results);
+    int result = showOptionPane(manager, axisID, wrap(manager, message), "Etomo Warning",
+        JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, results, results[1],
+        results);
     return result == 0;
   }
 
@@ -251,9 +241,8 @@ abstract class AbstractFrame extends JFrame {
    */
   boolean openDeleteDialog(BaseManager manager, AxisID axisID, String[] message) {
     String[] results = new String[] { "Delete", "No" };
-    int result = showOptionPane(manager, axisID, wrap(manager, message),
-        "Delete File?", JOptionPane.DEFAULT_OPTION,
-        JOptionPane.QUESTION_MESSAGE, results, null, results);
+    int result = showOptionPane(manager, axisID, wrap(manager, message), "Delete File?",
+        JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, results, null, results);
     return result == 0;
   }
 
@@ -268,8 +257,8 @@ abstract class AbstractFrame extends JFrame {
     return result == JOptionPane.YES_OPTION;
   }
 
-  void openInfoMessageDialog(BaseManager manager, AxisID axisID,
-      String message, String title) {
+  void openInfoMessageDialog(BaseManager manager, AxisID axisID, String message,
+      String title) {
     showOptionPane(manager, axisID, wrap(manager, message), title,
         JOptionPane.INFORMATION_MESSAGE);
   }
@@ -291,19 +280,17 @@ abstract class AbstractFrame extends JFrame {
    * @return int state of the users select
    */
   int openYesNoCancelDialog(BaseManager manager, AxisID axisID, String[] message) {
-    return showOptionConfirmPane(manager, axisID, wrap(manager, message),
-        ETOMO_QUESTION, JOptionPane.YES_NO_CANCEL_OPTION, new String[] { YES,
-            NO, CANCEL });
+    return showOptionConfirmPane(manager, axisID, wrap(manager, message), ETOMO_QUESTION,
+        JOptionPane.YES_NO_CANCEL_OPTION, new String[] { YES, NO, CANCEL });
   }
 
-  private int showOptionConfirmPane(BaseManager manager, AxisID axisID,
-      String[] message, String title, int optionType, String[] optionStrings) {
+  private int showOptionConfirmPane(BaseManager manager, AxisID axisID, String[] message,
+      String title, int optionType, String[] optionStrings) {
     return showOptionPane(manager, axisID, message, title, optionType,
         JOptionPane.QUESTION_MESSAGE, null, null, optionStrings);
   }
 
-  private final String[] wrapWarning(BaseManager manager,
-      ProcessMessages processMessages) {
+  private final String[] wrapWarning(BaseManager manager, ProcessMessages processMessages) {
     ArrayList messageArray = setupMessageArray(manager);
     for (int i = 0; i < processMessages.warningListSize(); i++) {
       messageArray = wrap(processMessages.getWarning(i), messageArray);
@@ -316,8 +303,7 @@ abstract class AbstractFrame extends JFrame {
    * @param message
    * @return
    */
-  private final String[] wrapError(BaseManager manager,
-      ProcessMessages processMessages) {
+  private final String[] wrapError(BaseManager manager, ProcessMessages processMessages) {
     ArrayList messageArray = setupMessageArray(manager);
     for (int i = 0; i < processMessages.errorListSize(); i++) {
       messageArray = wrap(processMessages.getError(i), messageArray);
@@ -396,17 +382,16 @@ abstract class AbstractFrame extends JFrame {
       else {
         int messageLength = messagePieceArray[i].length();
         int messageIndex = 0;
-        while (messageIndex < messageLength
-            && messageArray.size() < MAX_MESSAGE_LINES) {
+        while (messageIndex < messageLength && messageArray.size() < MAX_MESSAGE_LINES) {
           int endIndex = Math.min(messageLength, messageIndex + MESSAGE_WIDTH);
-          StringBuffer newLine = new StringBuffer(messagePieceArray[i]
-              .substring(messageIndex, endIndex));
+          StringBuffer newLine = new StringBuffer(messagePieceArray[i].substring(
+              messageIndex, endIndex));
           //overflowing line - look for whitespace or a comma
           messageIndex = endIndex;
           char lastChar = ' ';
           while (messageIndex < messageLength
-              && messagePieceArray[i].substring(messageIndex, messageIndex + 1)
-                  .matches("\\S+") && lastChar != ',') {
+              && messagePieceArray[i].substring(messageIndex, messageIndex + 1).matches(
+                  "\\S+") && lastChar != ',') {
             lastChar = messagePieceArray[i].charAt(messageIndex++);
             newLine.append(lastChar);
           }
@@ -417,17 +402,17 @@ abstract class AbstractFrame extends JFrame {
     return messageArray;
   }
 
-  private void showOptionPane(BaseManager manager, AxisID axisID,
-      String[] message, String title, int messageType) {
+  private void showOptionPane(BaseManager manager, AxisID axisID, String[] message,
+      String title, int messageType) {
     showOptionPane(manager, axisID, message, title, JOptionPane.DEFAULT_OPTION,
         messageType, null, null, new String[] { OK });
   }
 
-  private int showOptionPane(BaseManager manager, AxisID axisID,
-      String[] message, String title, int optionType, int messageType,
-      Object[] options, Object initialValue, String[] optionStrings) {
-    int result = showOptionDialog(manager, axisID, this, message, title,
-        optionType, messageType, null, options, initialValue, optionStrings);
+  private int showOptionPane(BaseManager manager, AxisID axisID, String[] message,
+      String title, int optionType, int messageType, Object[] options,
+      Object initialValue, String[] optionStrings) {
+    int result = showOptionDialog(manager, axisID, this, message, title, optionType,
+        messageType, null, options, initialValue, optionStrings);
     return result;
   }
 
@@ -447,25 +432,25 @@ abstract class AbstractFrame extends JFrame {
    * @throws HeadlessException
    */
   private int showOptionDialog(BaseManager manager, AxisID axisID,
-      Component parentComponent, String[] message, String title,
-      int optionType, int messageType, Icon icon, Object[] options,
-      Object initialValue, String[] optionStrings) throws HeadlessException {
+      Component parentComponent, String[] message, String title, int optionType,
+      int messageType, Icon icon, Object[] options, Object initialValue,
+      String[] optionStrings) throws HeadlessException {
     if (manager != null) {
       manager.logMessage(message, title, axisID);
     }
     else {
-      System.err.println(Utilities.getDateTimeStamp() + "\n" + title + " - "
-          + axisID + " axis:");
+      System.err.println(Utilities.getDateTimeStamp() + "\n" + title + " - " + axisID
+          + " axis:");
       for (int i = 0; i < message.length; i++) {
         System.err.println(message[i]);
       }
     }
-    JOptionPane pane = new JOptionPane(message, messageType, optionType, icon,
-        options, initialValue);
+    JOptionPane pane = new JOptionPane(message, messageType, optionType, icon, options,
+        initialValue);
 
     pane.setInitialValue(initialValue);
-    pane.setComponentOrientation(((parentComponent == null) ? JOptionPane
-        .getRootFrame() : parentComponent).getComponentOrientation());
+    pane.setComponentOrientation(((parentComponent == null) ? JOptionPane.getRootFrame()
+        : parentComponent).getComponentOrientation());
 
     JDialog dialog = pane.createDialog(parentComponent, title);
 
@@ -492,13 +477,12 @@ abstract class AbstractFrame extends JFrame {
     return JOptionPane.CLOSED_OPTION;
   }
 
-  private synchronized final void printName(String name,
-      String[] optionStrings, String title, String[] message) {
+  private synchronized final void printName(String name, String[] optionStrings,
+      String title, String[] message) {
     if (PRINT_NAMES) {
       //print waitfor popup name/value pair
       StringBuffer buffer = new StringBuffer(UITestActionType.WAIT.toString()
-          + AutodocTokenizer.SEPARATOR_CHAR
-          + UITestSubjectType.POPUP.toString()
+          + AutodocTokenizer.SEPARATOR_CHAR + UITestSubjectType.POPUP.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
       //if there are options, then print a popup name/value pair

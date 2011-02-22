@@ -17,6 +17,9 @@ import javax.swing.SwingUtilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.1  2006/01/12 17:11:20  sueh
  * <p> bug# 798 Reducing the visibility and inheritability of ui classes.
  * <p>
@@ -37,19 +40,20 @@ import javax.swing.SwingUtilities;
  * <p> </p>
  */
 class GenericMouseAdapter implements MouseListener {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   ContextMenu adaptee;
 
   GenericMouseAdapter(ContextMenu adaptee) {
     this.adaptee = adaptee;
   }
+
   public void mouseClicked(MouseEvent e) {
   }
+
   public void mousePressed(MouseEvent e) {
-		if (SwingUtilities.isRightMouseButton(e))
-			adaptee.popUpContextMenu(e);
+    if (SwingUtilities.isRightMouseButton(e))
+      adaptee.popUpContextMenu(e);
   }
 
   public void mouseReleased(MouseEvent e) {

@@ -29,6 +29,9 @@ import etomo.type.ConstLogProperties;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.5  2010/09/08 19:18:32  sueh
  * <p> bug# 1401 In msgChanged changed refresh() to repaint().
  * <p>
@@ -56,14 +59,12 @@ final class LogFrame extends JFrame {
 
   private final JMenuBar menuBar = new JMenuBar();
   private final JMenu menuFile = new Menu("File");
-  private final JMenuItem menuSave = new MenuItem(LogPanel.SAVE_LABEL,
-      KeyEvent.VK_S);
+  private final JMenuItem menuSave = new MenuItem(LogPanel.SAVE_LABEL, KeyEvent.VK_S);
 
   private final JMenu menuView = new Menu("View");
-  private final JMenuItem menuLogWindow = new MenuItem(
-      LogPanel.LOG_WINDOW_LABEL, KeyEvent.VK_L);
-  private final JMenuItem menuFitWindow = new MenuItem("Fit Log Window",
-      KeyEvent.VK_F);
+  private final JMenuItem menuLogWindow = new MenuItem(LogPanel.LOG_WINDOW_LABEL,
+      KeyEvent.VK_L);
+  private final JMenuItem menuFitWindow = new MenuItem("Fit Log Window", KeyEvent.VK_F);
 
   private LogFrame() {
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -119,7 +120,7 @@ final class LogFrame extends JFrame {
    * @param logPanel
    */
   void setPanel(LogPanel logPanel) {
-    if (logPanel==null) {
+    if (logPanel == null) {
       return;
     }
     Container contentPane = getContentPane();
@@ -139,15 +140,13 @@ final class LogFrame extends JFrame {
       //get the last size and location for this log panel
       ConstLogProperties properties = curLogPanel.getFrameProperties();
       if (properties == null) {
-        properties = EtomoDirector.INSTANCE.getUserConfiguration()
-            .getLogProperties();
+        properties = EtomoDirector.INSTANCE.getUserConfiguration().getLogProperties();
       }
       if (properties == null) {
         properties = new LogProperties();
       }
       setPreferredSize(properties.getFrameSize());
-      setLocation(properties.getFrameLocationX(), properties
-          .getFrameLocationY());
+      setLocation(properties.getFrameLocationX(), properties.getFrameLocationY());
       setVisible(curLogPanel.isFrameVisible());
       if (isVisible()) {
         refresh();
@@ -159,12 +158,12 @@ final class LogFrame extends JFrame {
       setVisible(false);
     }
   }
-  
+
   private void refresh() {
     repaint();
     pack();
   }
-  
+
   /**
    * Toggles setVisible().
    */

@@ -33,8 +33,7 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  */
-public final class ParallelDialog implements AbstractParallelDialog,
-    ProcessInterface {
+public final class ParallelDialog implements AbstractParallelDialog, ProcessInterface {
   public static final String rcsid = "$Id$";
 
   private static final DialogType DIALOG_TYPE = DialogType.PARALLEL;
@@ -45,8 +44,7 @@ public final class ParallelDialog implements AbstractParallelDialog,
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
   private final SpacedPanel pnlProcessName = SpacedPanel.getInstance();
   private final SimpleButton btnChunkComscript = new SimpleButton(iconFolder);
-  private final LabeledTextField ltfProcessName = new LabeledTextField(
-      PROCESS_NAME_LABEL);
+  private final LabeledTextField ltfProcessName = new LabeledTextField(PROCESS_NAME_LABEL);
   private final MultiLineButton btnRunProcess = MultiLineButton
       .getToggleButtonInstance("Run Parallel Process");
 
@@ -58,8 +56,7 @@ public final class ParallelDialog implements AbstractParallelDialog,
   private File workingDir = null;
 
   private ParallelDialog(ParallelManager manager, AxisID axisID) {
-    System.err.println(Utilities.getDateTimeStamp() + "\nDialog: "
-        + DialogType.PARALLEL);
+    System.err.println(Utilities.getDateTimeStamp() + "\nDialog: " + DialogType.PARALLEL);
     actionListener = new ParallelActionListener(this);
     this.manager = manager;
     this.axisID = axisID;
@@ -98,8 +95,7 @@ public final class ParallelDialog implements AbstractParallelDialog,
   public void lockProcessingMethod(final boolean lock) {
   }
 
-  public static ParallelDialog getInstance(ParallelManager manager,
-      AxisID axisID) {
+  public static ParallelDialog getInstance(ParallelManager manager, AxisID axisID) {
     ParallelDialog instance = new ParallelDialog(manager, axisID);
     instance.addListeners();
     return instance;
@@ -156,20 +152,17 @@ public final class ParallelDialog implements AbstractParallelDialog,
   void action(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnRunProcess.getText())) {
-      manager
-          .processchunks(btnRunProcess, null, ltfProcessName.getText(), null,
-              mediator.getRunMethodForProcessInterface(getProcessingMethod()));
+      manager.processchunks(btnRunProcess, null, ltfProcessName.getText(), null, mediator
+          .getRunMethodForProcessInterface(getProcessingMethod()));
     }
   }
 
   void chunkComscriptAction() {
-    File chunkComscript = BaseManager.chunkComscriptAction(pnlRoot
-        .getContainer());
+    File chunkComscript = BaseManager.chunkComscriptAction(pnlRoot.getContainer());
     if (chunkComscript != null) {
       try {
         String comFileName = chunkComscript.getName();
-        ltfProcessName.setText(comFileName.substring(0, comFileName
-            .lastIndexOf("-0")));
+        ltfProcessName.setText(comFileName.substring(0, comFileName.lastIndexOf("-0")));
         workingDir = chunkComscript.getParentFile();
       }
       catch (Exception e) {
@@ -212,6 +205,11 @@ public final class ParallelDialog implements AbstractParallelDialog,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/03 06:21:30  sueh
+ * <p> bug# 1422 Control of the processing method has been centralized in the
+ * <p> processing method mediator class.  Implementing ProcessInterface.
+ * <p> Supplying processes with the current processing method.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>

@@ -123,11 +123,11 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    new ContextPopup(rootPanel, mouseEvent, "Cleaning Up",
-        ContextPopup.TOMO_GUIDE, applicationManager, axisID);
+    new ContextPopup(rootPanel, mouseEvent, "Cleaning Up", ContextPopup.TOMO_GUIDE,
+        applicationManager, axisID);
   }
 
-   void done() {
+  void done() {
     applicationManager.doneCleanUp();
     setDisplayed(false);
   }
@@ -169,6 +169,9 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:35  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.17  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p>
