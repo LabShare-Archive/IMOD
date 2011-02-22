@@ -19,6 +19,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2007/02/05 23:25:15  sueh
+ * <p> bug# 962 Moved EtomoNumber type info to inner class.
+ * <p>
  * <p> Revision 1.21  2006/10/17 20:12:25  sueh
  * <p> bug# 939  Moved ScriptParameter.defaultValue to ConstEtomoNumber.  Making
  * <p> rotation values EtomoNumber instead of ScriptParameter.  Setting default value
@@ -212,12 +215,9 @@ public abstract class ConstSectionTableRowData implements Storable {
     setupFinalEnd = new EtomoNumber(EtomoNumber.Type.LONG, "FinalEnd");
     joinFinalStart = new EtomoNumber(EtomoNumber.Type.LONG);
     joinFinalEnd = new EtomoNumber(EtomoNumber.Type.LONG);
-    rotationAngleX = new EtomoNumber(EtomoNumber.Type.DOUBLE,
-        "RotationAngleX");
-    rotationAngleY = new EtomoNumber(EtomoNumber.Type.DOUBLE,
-        "RotationAngleY");
-    rotationAngleZ = new EtomoNumber(EtomoNumber.Type.DOUBLE,
-        "RotationAngleZ");
+    rotationAngleX = new EtomoNumber(EtomoNumber.Type.DOUBLE, "RotationAngleX");
+    rotationAngleY = new EtomoNumber(EtomoNumber.Type.DOUBLE, "RotationAngleY");
+    rotationAngleZ = new EtomoNumber(EtomoNumber.Type.DOUBLE, "RotationAngleZ");
     //configure
     sampleBottomStart.setDescription("Sample Slices, Bottom, Start");
     sampleBottomEnd.setDescription("Sample Slices, Bottom, End");
@@ -243,29 +243,28 @@ public abstract class ConstSectionTableRowData implements Storable {
   }
 
   protected String paramString() {
-    return "rowNumber=" + rowNumber + ",inverted="+inverted/*+",sampleBottomStart=" + sampleBottomStart
-        + ",\nsampleBottomStart=" + sampleBottomStart + ",sampleBottomEnd="
-        + sampleBottomEnd + ",\nsampleTopStart=" + sampleTopStart
-        + ",\nsampleTopEnd=" + sampleTopEnd + ",setupFinalStart="
-        + setupFinalStart + ",\nsetupFinalEnd=" + setupFinalEnd
-        + ",\njoinFinalStart=" + joinFinalStart + ",joinFinalEnd="
-        + joinFinalEnd + ",\nrotationAngleX=" + rotationAngleX
-        + ",\nrotationAngleY=" + rotationAngleY + ",rotationAngleZ="
-        + rotationAngleZ + ",\nsetupSection=" + setupSection + ",joinSection="
-        + joinSection + ",\nsetupXMax=" + setupXMax + ",joinXMax=" + joinXMax
-        + ",\nsetupYMax=" + setupYMax + ",joinYMax=" + joinYMax + ",setupZMax="
-        + setupZMax + ",\njoinZMax=" + joinZMax + ",imodIndex=" + imodIndex
-        + ",\nimodRotIndex=" + imodRotIndex + ",sectionExpanded="
-        + sectionExpanded + ",\ninvalidReason=" + invalidReason
-        + super.toString()*/;
+    return "rowNumber=" + rowNumber + ",inverted=" + inverted/*+",sampleBottomStart=" + sampleBottomStart
+                                                             + ",\nsampleBottomStart=" + sampleBottomStart + ",sampleBottomEnd="
+                                                             + sampleBottomEnd + ",\nsampleTopStart=" + sampleTopStart
+                                                             + ",\nsampleTopEnd=" + sampleTopEnd + ",setupFinalStart="
+                                                             + setupFinalStart + ",\nsetupFinalEnd=" + setupFinalEnd
+                                                             + ",\njoinFinalStart=" + joinFinalStart + ",joinFinalEnd="
+                                                             + joinFinalEnd + ",\nrotationAngleX=" + rotationAngleX
+                                                             + ",\nrotationAngleY=" + rotationAngleY + ",rotationAngleZ="
+                                                             + rotationAngleZ + ",\nsetupSection=" + setupSection + ",joinSection="
+                                                             + joinSection + ",\nsetupXMax=" + setupXMax + ",joinXMax=" + joinXMax
+                                                             + ",\nsetupYMax=" + setupYMax + ",joinYMax=" + joinYMax + ",setupZMax="
+                                                             + setupZMax + ",\njoinZMax=" + joinZMax + ",imodIndex=" + imodIndex
+                                                             + ",\nimodRotIndex=" + imodRotIndex + ",sectionExpanded="
+                                                             + sectionExpanded + ",\ninvalidReason=" + invalidReason
+                                                             + super.toString()*/;
   }
 
   /**
    * Copy constructor.  Does a deep copy.
    * @param constSectionTableRowData
    */
-  protected ConstSectionTableRowData(
-      ConstSectionTableRowData constSectionTableRowData) {
+  protected ConstSectionTableRowData(ConstSectionTableRowData constSectionTableRowData) {
     //deep copy
     imodIndex = constSectionTableRowData.imodIndex;
     imodRotIndex = constSectionTableRowData.imodRotIndex;
@@ -275,18 +274,15 @@ public abstract class ConstSectionTableRowData implements Storable {
       setupSection = null;
     }
     else {
-      setupSection = new File(constSectionTableRowData.setupSection
-          .getAbsolutePath());
+      setupSection = new File(constSectionTableRowData.setupSection.getAbsolutePath());
     }
     if (constSectionTableRowData.joinSection == null) {
       joinSection = null;
     }
     else {
-      joinSection = new File(constSectionTableRowData.joinSection
-          .getAbsolutePath());
+      joinSection = new File(constSectionTableRowData.joinSection.getAbsolutePath());
     }
-    sampleBottomStart = new EtomoNumber(
-        constSectionTableRowData.sampleBottomStart);
+    sampleBottomStart = new EtomoNumber(constSectionTableRowData.sampleBottomStart);
     sampleBottomEnd = new EtomoNumber(constSectionTableRowData.sampleBottomEnd);
     sampleTopStart = new EtomoNumber(constSectionTableRowData.sampleTopStart);
     sampleTopEnd = new EtomoNumber(constSectionTableRowData.sampleTopEnd);
@@ -294,12 +290,9 @@ public abstract class ConstSectionTableRowData implements Storable {
     setupFinalEnd = new EtomoNumber(constSectionTableRowData.setupFinalEnd);
     joinFinalStart = new EtomoNumber(constSectionTableRowData.joinFinalStart);
     joinFinalEnd = new EtomoNumber(constSectionTableRowData.joinFinalEnd);
-    rotationAngleX = new ScriptParameter(
-        constSectionTableRowData.rotationAngleX);
-    rotationAngleY = new ScriptParameter(
-        constSectionTableRowData.rotationAngleY);
-    rotationAngleZ = new ScriptParameter(
-        constSectionTableRowData.rotationAngleZ);
+    rotationAngleX = new ScriptParameter(constSectionTableRowData.rotationAngleX);
+    rotationAngleY = new ScriptParameter(constSectionTableRowData.rotationAngleY);
+    rotationAngleZ = new ScriptParameter(constSectionTableRowData.rotationAngleZ);
     setupXMax = constSectionTableRowData.setupXMax;
     joinXMax = constSectionTableRowData.joinXMax;
     setupYMax = constSectionTableRowData.setupYMax;
@@ -318,8 +311,7 @@ public abstract class ConstSectionTableRowData implements Storable {
     String group = prepend + ".";
     props.setProperty(group + VERSION_KEY, VERSION);
     rowNumber.store(props, prepend);
-    props.setProperty(group + setupSectionString, setupSection
-        .getAbsolutePath());
+    props.setProperty(group + setupSectionString, setupSection.getAbsolutePath());
     sampleBottomStart.store(props, prepend);
     sampleBottomEnd.store(props, prepend);
     sampleTopStart.store(props, prepend);

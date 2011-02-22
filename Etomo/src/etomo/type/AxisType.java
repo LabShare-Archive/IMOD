@@ -18,6 +18,9 @@ package etomo.type;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2007/12/26 22:16:45  sueh
+ * <p> bug# 1052 Added getValue() to return an alternative value for AxisType.
+ * <p>
  * <p> Revision 3.1  2004/05/25 23:07:15  sueh
  * <p> bug# 355 adding a "not set" value
  * <p>
@@ -35,8 +38,7 @@ package etomo.type;
  * <p> </p>
  */
 public class AxisType {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   private final String name;
 
@@ -70,23 +72,23 @@ public class AxisType {
     if (name.compareToIgnoreCase(NOT_SET.toString()) == 0) {
       return NOT_SET;
     }
-    if (name.compareToIgnoreCase(SINGLE_AXIS.getValue())==0){
+    if (name.compareToIgnoreCase(SINGLE_AXIS.getValue()) == 0) {
       return SINGLE_AXIS;
     }
-    if (name.compareToIgnoreCase(DUAL_AXIS.getValue())==0){
+    if (name.compareToIgnoreCase(DUAL_AXIS.getValue()) == 0) {
       return DUAL_AXIS;
     }
-    if (name.compareToIgnoreCase(NOT_SET.getValue())==0){
+    if (name.compareToIgnoreCase(NOT_SET.getValue()) == 0) {
       return NOT_SET;
     }
     return null;
   }
 
   public String getValue() {
-    if (this==SINGLE_AXIS) {
+    if (this == SINGLE_AXIS) {
       return "single";
     }
-    if (this==DUAL_AXIS) {
+    if (this == DUAL_AXIS) {
       return "dual";
     }
     return "";

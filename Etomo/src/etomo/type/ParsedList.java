@@ -71,6 +71,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2010/11/13 16:06:53  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.17  2009/02/04 23:30:30  sueh
  * <p> bug# 1158 Changed id and exception classes in LogFile.
  * <p>
@@ -209,7 +212,7 @@ public final class ParsedList {
       }
     }
   }
-  
+
   public void clear() {
     list.clear();
   }
@@ -302,8 +305,7 @@ public final class ParsedList {
       if (token.is(Token.Type.WHITESPACE)) {
         token = tokenizer.next();
       }
-      if (token == null
-          || !token.equals(Token.Type.SYMBOL, OPEN_SYMBOL.charValue())) {
+      if (token == null || !token.equals(Token.Type.SYMBOL, OPEN_SYMBOL.charValue())) {
         fail();
         return;
       }
@@ -320,8 +322,7 @@ public final class ParsedList {
         token = tokenizer.next();
       }
       //if the close symbol wasn't found, fail
-      if (token == null
-          || !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
+      if (token == null || !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
         fail();
         return;
       }
@@ -356,8 +357,8 @@ public final class ParsedList {
     //loop until the end of the array
     //can't just check dividerFound, because whitespace can act as a divider,
     //but isn't always the divider
-    while (dividerFound && !isFailed() && token != null
-        && !token.is(Token.Type.EOL) && !token.is(Token.Type.EOF)
+    while (dividerFound && !isFailed() && token != null && !token.is(Token.Type.EOL)
+        && !token.is(Token.Type.EOF)
         && !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
       try {
         //parse an element
@@ -367,8 +368,8 @@ public final class ParsedList {
         //whitespace.
         dividerFound = false;
         if (token != null
-            && (token.is(Token.Type.WHITESPACE) || token.equals(
-                Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue()))) {
+            && (token.is(Token.Type.WHITESPACE) || token.equals(Token.Type.SYMBOL,
+                DIVIDER_SYMBOL.charValue()))) {
           dividerFound = true;
           token = tokenizer.next();
         }
@@ -402,8 +403,7 @@ public final class ParsedList {
     }
     if (token.equals(Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue())) {
       //Found an empty element.
-      list.add(ParsedNumber.getInstance(type, etomoNumberType, isDebug(),
-          defaultValue));
+      list.add(ParsedNumber.getInstance(type, etomoNumberType, isDebug(), defaultValue));
       return token;
     }
     //May have found an element.
@@ -413,15 +413,14 @@ public final class ParsedList {
       token = element.parse(token, tokenizer);
     }
     else if (ParsedArray.isArray(token)) {
-      element = ParsedArray.getInstance(type, etomoNumberType, isDebug(),
-          defaultValue);
+      element = ParsedArray.getInstance(type, etomoNumberType, isDebug(), defaultValue);
       token = element.parse(token, tokenizer);
     }
     else {
       //Array descriptors don't have their own open and close symbols, so they
       //look like numbers until to you get to the first divider (":"or "-").
-      ParsedDescriptor descriptor = ParsedDescriptor.getInstance(type,
-          etomoNumberType, isDebug(), defaultValue);
+      ParsedDescriptor descriptor = ParsedDescriptor.getInstance(type, etomoNumberType,
+          isDebug(), defaultValue);
       token = descriptor.parse(token, tokenizer);
       //create the correct type of element
       if (descriptor.isEmpty()) {

@@ -20,7 +20,7 @@ package etomo.type;
  * 
  * @version $Revision$
  */
-public final class Time{
+public final class Time {
   public static final String rcsid = "$Id$";
 
   private static final char DIVIDER = ':';
@@ -71,7 +71,7 @@ public final class Time{
       }
     }
   }
-  
+
   private boolean parseHoursMinutesSeconds(String[] timeArray) {
     reset();
     try {
@@ -85,7 +85,7 @@ public final class Time{
     }
     return true;
   }
-  
+
   private boolean parseHoursMinutesAMPM(String[] timeArray) {
     reset();
     try {
@@ -96,20 +96,21 @@ public final class Time{
       return false;
     }
     int amPmStartIndex = timeArray[1].length() - 2;
-    String amPm = timeArray[1].substring(amPmStartIndex,timeArray[1].length());
-    if (amPm.equals("PM")){
+    String amPm = timeArray[1].substring(amPmStartIndex, timeArray[1].length());
+    if (amPm.equals("PM")) {
       hours += 12;
     }
     else if (!amPm.equals("AM")) {
       reset();
       return false;
     }
-    minutes = Integer.parseInt(timeArray[1].substring(0,amPmStartIndex));
+    minutes = Integer.parseInt(timeArray[1].substring(0, amPmStartIndex));
     return true;
   }
 
   public String toString() {
-    return String.valueOf(hours) + DIVIDER + String.valueOf(minutes) + DIVIDER + String.valueOf(seconds);
+    return String.valueOf(hours) + DIVIDER + String.valueOf(minutes) + DIVIDER
+        + String.valueOf(seconds);
   }
 
   /**
@@ -120,7 +121,7 @@ public final class Time{
   public boolean almostEquals(Time anotherTime) {
     return Math.abs(getTime() - anotherTime.getTime()) <= 3600;
   }
-  
+
   /**
    * Gets total time in milliseconds
    * @return
@@ -131,6 +132,9 @@ public final class Time{
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2010/02/05 00:46:55  sueh
+ * <p> bug# 1309 In almostEquals allowing up to 1 minute of difference.
+ * <p>
  * <p> Revision 1.4  2006/08/01 20:06:32  sueh
  * <p> Fixed almostEquals - difference should be compared with 60
  * <p>

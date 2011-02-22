@@ -54,6 +54,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2010/11/13 16:06:53  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.19  2008/09/10 21:01:26  sueh
  * <p> bug# 1135 Check for null when calling ParsedElementList.get(int).  Check
  * <p> for null when calling ParsedElement.getElement or getRawNumber.
@@ -151,13 +154,11 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
 
   ParsedArrayDescriptor(final EtomoNumber.Type etomoNumberType, boolean debug,
       EtomoNumber defaultValue) {
-    super(ParsedElementType.MATLAB_ARRAY_DESCRIPTOR, etomoNumberType, debug,
-        defaultValue);
+    super(ParsedElementType.MATLAB_ARRAY_DESCRIPTOR, etomoNumberType, debug, defaultValue);
     setDebug(debug);
   }
 
-  public static ParsedArrayDescriptor getInstance(
-      final EtomoNumber.Type etomoNumberType) {
+  public static ParsedArrayDescriptor getInstance(final EtomoNumber.Type etomoNumberType) {
     return new ParsedArrayDescriptor(etomoNumberType, false, null);
   }
 
@@ -226,9 +227,9 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
       return;
     }
     if (index > END_INDEX) {
-      new IllegalStateException("Unable to add element " + index + 1
-          + ".  No more then " + END_INDEX + 1
-          + " elements are allowed in an array descriptor.").printStackTrace();
+      new IllegalStateException("Unable to add element " + index + 1 + ".  No more then "
+          + END_INDEX + 1 + " elements are allowed in an array descriptor.")
+          .printStackTrace();
       return;
     }
     super.setRawString(index, number);
@@ -246,8 +247,8 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
       return;
     }
     if (index > END_INDEX) {
-      fail("Unable to add element " + index + 1 + ".  No more then "
-          + END_INDEX + 1 + " elements are allowed in an array descriptor.");
+      fail("Unable to add element " + index + 1 + ".  No more then " + END_INDEX + 1
+          + " elements are allowed in an array descriptor.");
       return;
     }
     super.setRawString(index, string);
@@ -265,8 +266,8 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
       }
     }
     if (descriptor.size() < NO_INCREMENT_SIZE || descriptor.size() > MAX_SIZE) {
-      return "Array descriptors can contain either " + NO_INCREMENT_SIZE
-          + " or " + MAX_SIZE + " elements.";
+      return "Array descriptors can contain either " + NO_INCREMENT_SIZE + " or "
+          + MAX_SIZE + " elements.";
     }
     ParsedElement start = descriptor.get(START_INDEX);
     ParsedElement end = descriptor.get(END_INDEX);
@@ -293,22 +294,15 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
       boolean dividerFound = true;
       //loop until the end of the array descriptor.  Whitespace is not allowed in
       //an array descriptor.
-      while (dividerFound
-          && !isFailed()
-          && token != null
-          && !token.is(Token.Type.EOL)
-          && !token.is(Token.Type.EOF)
-          && !token.is(Token.Type.WHITESPACE)
-          && !token.equals(Token.Type.SYMBOL, ParsedList.CLOSE_SYMBOL
-              .charValue())
-          && !token.equals(Token.Type.SYMBOL, ParsedArray.CLOSE_SYMBOL
-              .charValue())) {
+      while (dividerFound && !isFailed() && token != null && !token.is(Token.Type.EOL)
+          && !token.is(Token.Type.EOF) && !token.is(Token.Type.WHITESPACE)
+          && !token.equals(Token.Type.SYMBOL, ParsedList.CLOSE_SYMBOL.charValue())
+          && !token.equals(Token.Type.SYMBOL, ParsedArray.CLOSE_SYMBOL.charValue())) {
         //parse an element
         token = parseElement(token, tokenizer);
         //Find the divider.
         dividerFound = false;
-        if (token != null
-            && token.equals(Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue())) {
+        if (token != null && token.equals(Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue())) {
           //This confirms that this is a descriptor.
           setDividerParsed();
           dividerFound = true;
@@ -341,8 +335,8 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
   ParsedElementList getParsedNumberExpandedArray(
       ParsedElementList parsedNumberExpandedArray) {
     if (parsedNumberExpandedArray == null) {
-      parsedNumberExpandedArray = new ParsedElementList(getType(),
-          getEtomoNumberType(), debug, getDefault());
+      parsedNumberExpandedArray = new ParsedElementList(getType(), getEtomoNumberType(),
+          debug, getDefault());
     }
     ParsedNumber start = (ParsedNumber) descriptor.get(START_INDEX);
     ParsedNumber end = (ParsedNumber) descriptor.get(END_INDEX);
@@ -380,8 +374,7 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
     EtomoNumber last = new EtomoNumber(getEtomoNumberType());
     last.set(end.getRawNumber());
     boolean increasing = !increment.isNegative();
-    while ((increasing && current.lt(last))
-        || (!increasing && current.gt(last))) {
+    while ((increasing && current.lt(last)) || (!increasing && current.gt(last))) {
       ParsedNumber parsedCurrent = ParsedNumber.getInstance(getType(),
           getEtomoNumberType(), debug, getDefault());
       parsedCurrent.setRawString(current.getNumber());

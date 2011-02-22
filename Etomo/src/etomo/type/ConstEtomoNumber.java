@@ -35,6 +35,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.67  2010/02/17 04:52:36  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.66  2009/12/01 15:19:30  sueh
  * <p> bug# 1282 In newNumber(String, StringBuffer) mentioned the type in the
  * <p> error message.
@@ -496,8 +500,8 @@ public abstract class ConstEtomoNumber implements Storable {
         return;
       }
       addInvalidReason(toString(currentValue) + " is not a valid value.");
-      addInvalidReason("Valid values are greater or equal to "
-          + toString(validFloor) + ".");
+      addInvalidReason("Valid values are greater or equal to " + toString(validFloor)
+          + ".");
     }
   }
 
@@ -523,8 +527,7 @@ public abstract class ConstEtomoNumber implements Storable {
    * @return
    */
   Number applyFloorValue(Number value) {
-    if (value != null && !isNull(floorValue) && !isNull(value)
-        && lt(value, floorValue)) {
+    if (value != null && !isNull(floorValue) && !isNull(value) && lt(value, floorValue)) {
       return newNumber(floorValue);
     }
     return value;
@@ -576,12 +579,11 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   String paramString() {
-    StringBuffer buffer = new StringBuffer(",\ntype=" + type + ",\nname="
-        + name + ",\ndescription=" + description + ",\ninvalidReason="
-        + invalidReason + ",\ncurrentValue=" + currentValue
-        + ",\ndisplayValue=" + displayValue + ",\nceilingValue=" + ceilingValue
-        + ",\nfloorValue=" + floorValue + ",\nnullIsValid=" + nullIsValid
-        + ",\nvalidValues=");
+    StringBuffer buffer = new StringBuffer(",\ntype=" + type + ",\nname=" + name
+        + ",\ndescription=" + description + ",\ninvalidReason=" + invalidReason
+        + ",\ncurrentValue=" + currentValue + ",\ndisplayValue=" + displayValue
+        + ",\nceilingValue=" + ceilingValue + ",\nfloorValue=" + floorValue
+        + ",\nnullIsValid=" + nullIsValid + ",\nvalidValues=");
     if (validValues == null) {
       buffer.append("null");
     }
@@ -660,10 +662,9 @@ public abstract class ConstEtomoNumber implements Storable {
     if (Type.DOUBLE == Type.FLOAT || Type.DOUBLE == Type.INTEGER
         || Type.DOUBLE == Type.LONG || Type.FLOAT == Type.INTEGER
         || Type.FLOAT == Type.LONG || Type.INTEGER == Type.LONG) {
-      throw new IllegalStateException(
-          "Type constants are the same.\nDOUBLE_TYPE=" + Type.DOUBLE
-              + ",FLOAT_TYPE=" + Type.FLOAT + ",INTEGER_TYPE=" + Type.INTEGER
-              + ",LONG_TYPE=" + Type.LONG);
+      throw new IllegalStateException("Type constants are the same.\nDOUBLE_TYPE="
+          + Type.DOUBLE + ",FLOAT_TYPE=" + Type.FLOAT + ",INTEGER_TYPE=" + Type.INTEGER
+          + ",LONG_TYPE=" + Type.LONG);
     }
     //All members of type Number must be created with the current type
     //The type should be set only once.
@@ -801,8 +802,7 @@ public abstract class ConstEtomoNumber implements Storable {
     if (validValues != null) {
       for (int i = 0; i < validValues.size(); i++) {
         if (isNull((Number) validValues.get(i))) {
-          throw new IllegalStateException(
-              "ValidValues elements cannot be null.");
+          throw new IllegalStateException("ValidValues elements cannot be null.");
         }
       }
     }
@@ -959,8 +959,8 @@ public abstract class ConstEtomoNumber implements Storable {
     }
   }
 
-  public static void store(EtomoNumber etomoNumber, String name,
-      Properties props, String prepend) {
+  public static void store(EtomoNumber etomoNumber, String name, Properties props,
+      String prepend) {
     if (etomoNumber == null) {
       props.remove(prepend + '.' + name);
       return;
@@ -1317,8 +1317,7 @@ public abstract class ConstEtomoNumber implements Storable {
     if (numberVector == null || numberVector.size() == 0) {
       return "";
     }
-    StringBuffer buffer = new StringBuffer(toString((Number) numberVector
-        .get(0)));
+    StringBuffer buffer = new StringBuffer(toString((Number) numberVector.get(0)));
     for (int i = 1; i < numberVector.size(); i++) {
       buffer.append("," + toString((Number) numberVector.get(i)));
     }
@@ -1596,8 +1595,7 @@ public abstract class ConstEtomoNumber implements Storable {
     if (value instanceof Byte) {
       return value.byteValue() == byteNullValue;
     }
-    throw new IllegalStateException("Unknown type.  value.getClass()="
-        + value.getClass());
+    throw new IllegalStateException("Unknown type.  value.getClass()=" + value.getClass());
   }
 
   boolean gt(Number number, Number compValue) {
@@ -1605,8 +1603,7 @@ public abstract class ConstEtomoNumber implements Storable {
       return false;
     }
     //Compare as largest possible size.  Don't convert ints or longs to doubles.
-    boolean firstNumberDouble = number instanceof Float
-        || number instanceof Double;
+    boolean firstNumberDouble = number instanceof Float || number instanceof Double;
     boolean secondNumberDouble = compValue instanceof Float
         || compValue instanceof Double;
     if (!firstNumberDouble && !secondNumberDouble) {
@@ -1623,8 +1620,7 @@ public abstract class ConstEtomoNumber implements Storable {
       return false;
     }
     //Compare as largest possible size.  Don't convert ints or longs to doubles.
-    boolean firstNumberDouble = number instanceof Float
-        || number instanceof Double;
+    boolean firstNumberDouble = number instanceof Float || number instanceof Double;
     if (!firstNumberDouble) {
       return number.longValue() > value;
     }
@@ -1636,8 +1632,7 @@ public abstract class ConstEtomoNumber implements Storable {
       return false;
     }
     //Compare as largest possible size.  Don't convert ints or longs to doubles.
-    boolean firstNumberDouble = number instanceof Float
-        || number instanceof Double;
+    boolean firstNumberDouble = number instanceof Float || number instanceof Double;
     boolean secondNumberDouble = compValue instanceof Float
         || compValue instanceof Double;
     if (!firstNumberDouble && !secondNumberDouble) {
@@ -1654,8 +1649,7 @@ public abstract class ConstEtomoNumber implements Storable {
       return false;
     }
     //Compare as largest possible size.  Don't convert ints or longs to doubles.
-    boolean firstNumberDouble = number instanceof Float
-        || number instanceof Double;
+    boolean firstNumberDouble = number instanceof Float || number instanceof Double;
     boolean secondNumberDouble = compValue instanceof Float
         || compValue instanceof Double;
     if (!firstNumberDouble && !secondNumberDouble) {
@@ -1672,8 +1666,7 @@ public abstract class ConstEtomoNumber implements Storable {
       return false;
     }
     //Compare as largest possible size.  Don't convert ints or longs to doubles.
-    boolean firstNumberDouble = number instanceof Float
-        || number instanceof Double;
+    boolean firstNumberDouble = number instanceof Float || number instanceof Double;
     boolean secondNumberDouble = compValue instanceof Float
         || compValue instanceof Double;
     if (!firstNumberDouble && !secondNumberDouble) {
@@ -1690,8 +1683,7 @@ public abstract class ConstEtomoNumber implements Storable {
       return false;
     }
     //Compare as largest possible size.  Don't convert ints or longs to doubles.
-    boolean firstNumberDouble = number instanceof Float
-        || number instanceof Double;
+    boolean firstNumberDouble = number instanceof Float || number instanceof Double;
     if (!firstNumberDouble) {
       return number.longValue() < value;
     }
@@ -1706,8 +1698,7 @@ public abstract class ConstEtomoNumber implements Storable {
       return false;
     }
     //Compare as largest possible size.  Don't convert ints or longs to doubles.
-    boolean firstNumberDouble = number instanceof Float
-        || number instanceof Double;
+    boolean firstNumberDouble = number instanceof Float || number instanceof Double;
     boolean secondNumberDouble = compValue instanceof Float
         || compValue instanceof Double;
     if (!firstNumberDouble && !secondNumberDouble) {
@@ -1727,8 +1718,7 @@ public abstract class ConstEtomoNumber implements Storable {
       return false;
     }
     //Compare as largest possible size.  Don't convert ints or longs to doubles.
-    boolean firstNumberDouble = number instanceof Float
-        || number instanceof Double;
+    boolean firstNumberDouble = number instanceof Float || number instanceof Double;
     if (!firstNumberDouble) {
       return number.longValue() == value;
     }
@@ -1743,8 +1733,7 @@ public abstract class ConstEtomoNumber implements Storable {
       return false;
     }
     //Compare as largest possible size.  Don't convert ints or longs to doubles.
-    boolean firstNumberDouble = number instanceof Float
-        || number instanceof Double;
+    boolean firstNumberDouble = number instanceof Float || number instanceof Double;
     if (!firstNumberDouble) {
       return number.longValue() == value;
     }
@@ -1759,8 +1748,7 @@ public abstract class ConstEtomoNumber implements Storable {
       return false;
     }
     //Compare as largest possible size.  Don't convert ints or longs to doubles.
-    boolean firstNumberDouble = number instanceof Float
-        || number instanceof Double;
+    boolean firstNumberDouble = number instanceof Float || number instanceof Double;
     if (!firstNumberDouble) {
       return number.longValue() == value;
     }
@@ -1775,8 +1763,7 @@ public abstract class ConstEtomoNumber implements Storable {
       return false;
     }
     //Compare as largest possible size.  Don't convert ints or longs to doubles.
-    boolean firstNumberDouble = number instanceof Float
-        || number instanceof Double;
+    boolean firstNumberDouble = number instanceof Float || number instanceof Double;
     if (!firstNumberDouble) {
       return number.longValue() == value;
     }
@@ -1880,15 +1867,13 @@ public abstract class ConstEtomoNumber implements Storable {
    */
   private void validateReturnTypeLong() {
     if (type != Type.INTEGER && type != Type.LONG) {
-      throw new IllegalStateException(
-          "Cannot place a float or double into a long.");
+      throw new IllegalStateException("Cannot place a float or double into a long.");
     }
   }
 
   private void validateReturnTypeFloat() {
     if (type != Type.INTEGER && type != Type.FLOAT) {
-      throw new IllegalStateException(
-          "Cannot place a long or double into a float.");
+      throw new IllegalStateException("Cannot place a long or double into a float.");
     }
   }
 
@@ -1910,13 +1895,11 @@ public abstract class ConstEtomoNumber implements Storable {
     }
     if (input instanceof Float && type != Type.DOUBLE && type != Type.FLOAT) {
       throw new IllegalStateException(
-          "Cannot place a Float into anything but a Double or a Float.  Type="
-              + type);
+          "Cannot place a Float into anything but a Double or a Float.  Type=" + type);
     }
     if (input instanceof Long && type != Type.DOUBLE && type != Type.LONG) {
       throw new IllegalStateException(
-          "Cannot place a Long into anything but a Double or a Long.  Type="
-              + type);
+          "Cannot place a Long into anything but a Double or a Long.  Type=" + type);
 
     }
   }
@@ -1938,8 +1921,7 @@ public abstract class ConstEtomoNumber implements Storable {
   private void validateInputType(Type type, float input) {
     if (type != Type.FLOAT && type != Type.DOUBLE) {
       throw new IllegalStateException(
-          "Cannot place a float into anything but a Double or Float.  Type="
-              + type);
+          "Cannot place a float into anything but a Double or Float.  Type=" + type);
     }
   }
 
@@ -1950,8 +1932,7 @@ public abstract class ConstEtomoNumber implements Storable {
   private void validateInputType(float input) {
     if (type != Type.FLOAT && type != Type.DOUBLE) {
       throw new IllegalStateException(
-          "Cannot place a float into anything but a Double or Float.  Type="
-              + type);
+          "Cannot place a float into anything but a Double or Float.  Type=" + type);
     }
   }
 
@@ -1984,8 +1965,7 @@ public abstract class ConstEtomoNumber implements Storable {
   private void validateInputType(Type type, long input) {
     if (type != Type.DOUBLE && type != Type.LONG) {
       throw new IllegalStateException(
-          "Cannot place a long into anything but a Double or Long.  Type="
-              + type);
+          "Cannot place a long into anything but a Double or Long.  Type=" + type);
     }
   }
 
@@ -1996,8 +1976,7 @@ public abstract class ConstEtomoNumber implements Storable {
   private void validateInputType(long input) {
     if (type != Type.DOUBLE && type != Type.LONG) {
       throw new IllegalStateException(
-          "Cannot place a long into anything but a Double or Long.  Type="
-              + type);
+          "Cannot place a long into anything but a Double or Long.  Type=" + type);
     }
   }
 
@@ -2012,11 +1991,10 @@ public abstract class ConstEtomoNumber implements Storable {
   private void validateFloorAndCeiling() {
     //if floorValue and ceilingValue are both used, then floorValue must be less
     //then or equal to ceilingValue.
-    if (!isNull(ceilingValue) && !isNull(floorValue)
-        && gt(floorValue, ceilingValue)) {
+    if (!isNull(ceilingValue) && !isNull(floorValue) && gt(floorValue, ceilingValue)) {
       throw new IllegalStateException(
-          "FloorValue cannot be greater then ceilingValue.\nfloorValue="
-              + floorValue + ", ceilingValue=" + ceilingValue);
+          "FloorValue cannot be greater then ceilingValue.\nfloorValue=" + floorValue
+              + ", ceilingValue=" + ceilingValue);
     }
   }
 
@@ -2056,8 +2034,8 @@ public abstract class ConstEtomoNumber implements Storable {
         || (invalidReason == null && original.invalidReason != null)
         || (invalidReason != null && original.invalidReason != null && !invalidReason
             .toString().equals(original.invalidReason.toString()))) {
-      throw new IllegalStateException("Incorrect copy: this="
-          + this.classInfoString() + ",original=" + original.classInfoString());
+      throw new IllegalStateException("Incorrect copy: this=" + this.classInfoString()
+          + ",original=" + original.classInfoString());
     }
   }
 

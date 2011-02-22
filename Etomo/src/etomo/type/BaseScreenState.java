@@ -47,7 +47,7 @@ public class BaseScreenState implements Storable {
     this.axisID = axisID;
     this.axisType = axisType;
   }
-  
+
   /**
    * Get a button state out of the local Properties object and return it as a
    * boolean
@@ -96,8 +96,7 @@ public class BaseScreenState implements Storable {
       localProperties = new Properties();
       localPrepend = getPrepend("");
     }
-    localProperties.setProperty(localPrepend + '.' + key, String
-        .valueOf(state));
+    localProperties.setProperty(localPrepend + '.' + key, String.valueOf(state));
   }
 
   protected final String getPrepend(String prepend) {
@@ -162,6 +161,10 @@ public class BaseScreenState implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2006/03/28 17:00:34  sueh
+ * <p> bug# 437 Added getButtonState(String key, boolean defaultState) to
+ * <p> return defaultState when unable to get the value.
+ * <p>
  * <p> Revision 1.10  2006/03/27 20:59:37  sueh
  * <p> bug# 836 Changed loadedProperties to localProperties.  Added comments.
  * <p> Removed selfTestInvariants.

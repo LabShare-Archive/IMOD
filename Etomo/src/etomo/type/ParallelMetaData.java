@@ -31,8 +31,7 @@ public final class ParallelMetaData extends BaseMetaData {
   private static final String ROOT_NAME_KEY = "RootName";
   static final String ANISOTROPIC_DIFFUSION_GROUP_KEY = "AnisotropicDiffusion";
 
-  private final EtomoBoolean2 loadWithFlipping = new EtomoBoolean2(
-      "LoadWithFlipping");
+  private final EtomoBoolean2 loadWithFlipping = new EtomoBoolean2("LoadWithFlipping");
   private final StringProperty volume = new StringProperty("Volume");
   private final EtomoNumber xMin = new EtomoNumber("XMin");
   private final EtomoNumber xMax = new EtomoNumber("XMax");
@@ -40,18 +39,15 @@ public final class ParallelMetaData extends BaseMetaData {
   private final EtomoNumber yMax = new EtomoNumber("YMax");
   private final EtomoNumber zMin = new EtomoNumber("ZMin");
   private final EtomoNumber zMax = new EtomoNumber("ZMax");
-  private final StringProperty testKValueList = new StringProperty(
-      "TestKValueList");
+  private final StringProperty testKValueList = new StringProperty("TestKValueList");
   private final EtomoNumber testIteration = new EtomoNumber("TestIteration");
-  private final EtomoNumber testKValue = new EtomoNumber(
-      EtomoNumber.Type.FLOAT, "TestKValue");
-  private final StringProperty testIterationList = new StringProperty(
-      "TestIterationList");
-  private final EtomoNumber kValue = new EtomoNumber(EtomoNumber.Type.FLOAT,
-      "KValue");
+  private final EtomoNumber testKValue = new EtomoNumber(EtomoNumber.Type.FLOAT,
+      "TestKValue");
+  private final StringProperty testIterationList = new StringProperty("TestIterationList");
+  private final EtomoNumber kValue = new EtomoNumber(EtomoNumber.Type.FLOAT, "KValue");
   private final EtomoNumber iteration = new EtomoNumber("Iteration");
   private final EtomoNumber memoryPerChunk = new EtomoNumber("MemoryPerChunk");
-  private final EtomoBoolean2 overlapTimesFour=new EtomoBoolean2("OverlapTimesFour");
+  private final EtomoBoolean2 overlapTimesFour = new EtomoBoolean2("OverlapTimesFour");
 
   private DialogType dialogType = DialogType.getDefault(DataFileType.PARALLEL);
   private String revision = null;
@@ -219,11 +215,11 @@ public final class ParallelMetaData extends BaseMetaData {
   public ConstEtomoNumber getMemoryPerChunk() {
     return memoryPerChunk;
   }
-  
+
   public void setOverlapTimesFour(boolean input) {
     overlapTimesFour.set(input);
   }
-  
+
   public boolean isOverlapTimesFour() {
     return overlapTimesFour.is();
   }
@@ -279,8 +275,7 @@ public final class ParallelMetaData extends BaseMetaData {
     memoryPerChunk.reset();
     overlapTimesFour.reset();
     //load
-    dialogType = DialogType.load(DataFileType.PARALLEL, props,
-        DialogType.PROPERTIES_KEY);
+    dialogType = DialogType.load(DataFileType.PARALLEL, props, DialogType.PROPERTIES_KEY);
     prepend = createPrepend(prepend);
     String group = prepend + ".";
     revision = props.getProperty(group + REVISION_KEY, CURRENT_REVISION);
@@ -301,7 +296,7 @@ public final class ParallelMetaData extends BaseMetaData {
     iteration.load(props, prepend);
     memoryPerChunk.load(props, prepend,
         AnisotropicDiffusionDialog.MEMORY_PER_CHUNK_DEFAULT);
-    overlapTimesFour.load(props,prepend);
+    overlapTimesFour.load(props, prepend);
   }
 
   public void store(Properties props, String prepend) {
@@ -326,7 +321,7 @@ public final class ParallelMetaData extends BaseMetaData {
     kValue.store(props, prepend);
     iteration.store(props, prepend);
     memoryPerChunk.store(props, prepend);
-    overlapTimesFour.store(props,prepend);
+    overlapTimesFour.store(props, prepend);
   }
 
   String createPrepend(String prepend) {
@@ -345,6 +340,9 @@ public final class ParallelMetaData extends BaseMetaData {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2010/11/13 16:06:53  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.9  2010/01/21 21:30:22  sueh
  * <p> bug# 1305 Added overlapTimesFour.
  * <p>

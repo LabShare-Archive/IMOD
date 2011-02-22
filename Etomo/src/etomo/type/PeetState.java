@@ -16,6 +16,9 @@ import java.util.Properties;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2010/01/13 21:54:29  sueh
+ * <p> bug# 1298 Removed lstThresholdArray.
+ * <p>
  * <p> Revision 1.4  2009/12/08 02:44:39  sueh
  * <p> bug# 1286 Removed parserLstThresholds and parserIterationListSize from
  * <p> PeetState; saving lstThresholds and iterationListSize after prmParser is run.
@@ -46,8 +49,8 @@ public final class PeetState extends BaseState {
    * iterationListSize.  Either they are the same or iterationListSize is
    * missing.
    */
-  private final EtomoNumber parserIterationListSize = new EtomoNumber(
-      PARSER_KEY + "." + ITERATION_LIST_SIZE_KEY);
+  private final EtomoNumber parserIterationListSize = new EtomoNumber(PARSER_KEY + "."
+      + ITERATION_LIST_SIZE_KEY);
   /**
    * @deprecated
    * Backward compatbility:  put the data saved by this variable into
@@ -56,8 +59,7 @@ public final class PeetState extends BaseState {
    */
   private final IntKeyList parserLstThresholdsArray = IntKeyList
       .getStringInstance(PARSER_KEY + "." + LST_THRESHOLDS_KEY);
-  private final EtomoNumber iterationListSize = new EtomoNumber(
-      ITERATION_LIST_SIZE_KEY);
+  private final EtomoNumber iterationListSize = new EtomoNumber(ITERATION_LIST_SIZE_KEY);
   private final EtomoVersion version = EtomoVersion.getEmptyInstance("Version");
 
   public void store(Properties props) {

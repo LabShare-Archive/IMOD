@@ -14,6 +14,9 @@ package etomo.type;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2009/09/05 00:32:32  sueh
+ * <p> bug# 1256 Removed ParsedIteratorDescriptor.
+ * <p>
  * <p> Revision 1.4  2008/09/10 21:03:49  sueh
  * <p> bug# 1135 ParsedArrayDescriptor now has its own type.  This is because a ParsedNumber which is of type MATLAB_ARRAY_DESCRIPTOR must never show a "NaN" value.
  * <p>
@@ -69,8 +72,7 @@ public final class ParsedElementType {
   }
 
   boolean isMatlab() {
-    if (this == MATLAB_NUMBER || this == MATLAB_ARRAY
-        || this == MATLAB_ARRAY_DESCRIPTOR) {
+    if (this == MATLAB_NUMBER || this == MATLAB_ARRAY || this == MATLAB_ARRAY_DESCRIPTOR) {
       return true;
     }
     return false;

@@ -44,8 +44,8 @@ public class PanelHeaderState implements Storable, ConstPanelHeaderState {
 
   public String toString() {
     return "[group=" + group + ",openCloseState=" + openCloseState
-        + ",advancedBasicState=" + advancedBasicState + ",moreLessState="
-        + moreLessState + "]";
+        + ",advancedBasicState=" + advancedBasicState + ",moreLessState=" + moreLessState
+        + "]";
   }
 
   private String getGroup(String prepend, String key) {
@@ -103,8 +103,7 @@ public class PanelHeaderState implements Storable, ConstPanelHeaderState {
   }
 
   public boolean isNull() {
-    return openCloseState == null && advancedBasicState == null
-        && moreLessState == null;
+    return openCloseState == null && advancedBasicState == null && moreLessState == null;
   }
 
   public final void setAdvancedBasicState(String advancedBasicState) {
@@ -133,6 +132,9 @@ public class PanelHeaderState implements Storable, ConstPanelHeaderState {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2009/09/01 03:09:14  sueh
+ * <p> bug# 1222 Added isNull.
+ * <p>
  * <p> Revision 1.3  2008/10/16 20:59:20  sueh
  * <p> bug# 1141 Added set(PanelHeaderState)
  * <p>

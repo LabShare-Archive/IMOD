@@ -16,6 +16,10 @@ import java.util.Properties;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2010/02/17 04:52:36  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.15  2009/10/23 19:44:00  sueh
  * <p> bug# 1275 Changed the name of TabType to DataFileType to clarify what it
  * <p> corresponds to.
@@ -156,40 +160,38 @@ public final class DialogType {
     return index;
   }
 
-  public static final DialogType SETUP_RECON = new DialogType(
-      DataFileType.RECON, setupIndex);
-  public static final DialogType PRE_PROCESSING = new DialogType(
-      DataFileType.RECON, preProcessingIndex);
-  public static final DialogType COARSE_ALIGNMENT = new DialogType(
-      DataFileType.RECON, coarseAlignmentIndex);
-  public static final DialogType FIDUCIAL_MODEL = new DialogType(
-      DataFileType.RECON, fiducialModelIndex);
-  public static final DialogType FINE_ALIGNMENT = new DialogType(
-      DataFileType.RECON, fineAlignmentIndex);
+  public static final DialogType SETUP_RECON = new DialogType(DataFileType.RECON,
+      setupIndex);
+  public static final DialogType PRE_PROCESSING = new DialogType(DataFileType.RECON,
+      preProcessingIndex);
+  public static final DialogType COARSE_ALIGNMENT = new DialogType(DataFileType.RECON,
+      coarseAlignmentIndex);
+  public static final DialogType FIDUCIAL_MODEL = new DialogType(DataFileType.RECON,
+      fiducialModelIndex);
+  public static final DialogType FINE_ALIGNMENT = new DialogType(DataFileType.RECON,
+      fineAlignmentIndex);
 
   public static final DialogType TOMOGRAM_POSITIONING = new DialogType(
       DataFileType.RECON, tomogramPositioningIndex);
-  public static final DialogType FINAL_ALIGNED_STACK = new DialogType(
-      DataFileType.RECON, finalAlignedStackIndex);
-  public static final DialogType TOMOGRAM_GENERATION = new DialogType(
-      DataFileType.RECON, tomogramGenerationIndex);
+  public static final DialogType FINAL_ALIGNED_STACK = new DialogType(DataFileType.RECON,
+      finalAlignedStackIndex);
+  public static final DialogType TOMOGRAM_GENERATION = new DialogType(DataFileType.RECON,
+      tomogramGenerationIndex);
   public static final DialogType TOMOGRAM_COMBINATION = new DialogType(
       DataFileType.RECON, tomogramCombinationIndex);
-  public static final DialogType POST_PROCESSING = new DialogType(
-      DataFileType.RECON, postProcessingIndex);
+  public static final DialogType POST_PROCESSING = new DialogType(DataFileType.RECON,
+      postProcessingIndex);
   public static final DialogType CLEAN_UP = new DialogType(DataFileType.RECON,
       cleanUpIndex);
 
-  public static final DialogType JOIN = new DialogType(DataFileType.JOIN,
-      joinIndex);
+  public static final DialogType JOIN = new DialogType(DataFileType.JOIN, joinIndex);
 
-  public static final DialogType PARALLEL = new DialogType(
-      DataFileType.PARALLEL, parallelIndex);
+  public static final DialogType PARALLEL = new DialogType(DataFileType.PARALLEL,
+      parallelIndex);
   public static final DialogType ANISOTROPIC_DIFFUSION = new DialogType(
       DataFileType.PARALLEL, anisotropicDiffusionIndex);
 
-  public static final DialogType PEET = new DialogType(DataFileType.PEET,
-      peetIndex);
+  public static final DialogType PEET = new DialogType(DataFileType.PEET, peetIndex);
 
   public static final DialogType TOOLS = new DialogType(DataFileType.TOOLS, 0);
 
@@ -427,8 +429,7 @@ public final class DialogType {
     return null;
   }
 
-  public static DialogType load(DataFileType dataFileType, Properties props,
-      String key) {
+  public static DialogType load(DataFileType dataFileType, Properties props, String key) {
     DialogType defaultType = getDefault(dataFileType);
     if (defaultType != null) {
       return getInstance(props.getProperty(key, defaultType.toString()));

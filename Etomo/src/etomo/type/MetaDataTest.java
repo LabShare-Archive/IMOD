@@ -22,6 +22,10 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.29  2010/02/17 04:52:36  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 3.28  2009/10/26 15:03:00  sueh
  * <p> bug# 1275 Fixed test bug caused by the removal of the default manager.
  * <p>
@@ -142,14 +146,11 @@ public class MetaDataTest extends TestCase {
   private static final String dummyDir2Name = new String("ConstMetaData_dummy2");
   private static final String emptyDirName = new String("ConstMetaData_empty");
   private static final String emptyDir2Name = new String("ConstMetaData_empty2");
-  private static final String validFileDirName = new String(
-      "ConstMetaData_validFile");
+  private static final String validFileDirName = new String("ConstMetaData_validFile");
   private static final String dummyFileName = new String("dummy");
   private static final String validDatasetName = new String("valid");
-  private static final String validFileName = new String(validDatasetName
-      + ".st");
-  private static final String validAFileName = new String(validDatasetName
-      + "a.st");
+  private static final String validFileName = new String(validDatasetName + ".st");
+  private static final String validAFileName = new String(validDatasetName + "a.st");
   private boolean windowsOs = false;
   private SystemProgram program;
 
@@ -161,8 +162,7 @@ public class MetaDataTest extends TestCase {
   public MetaDataTest(String test) {
     super(test);
     EtomoDirector.INSTANCE.openTomogram(true, AxisID.ONLY);
-    manager = (ApplicationManager) EtomoDirector.INSTANCE
-        .getCurrentManagerForTest();
+    manager = (ApplicationManager) EtomoDirector.INSTANCE.getCurrentManagerForTest();
   }
 
   protected void setUp() throws Exception {
@@ -203,16 +203,14 @@ public class MetaDataTest extends TestCase {
     if (!emptyDir.exists()) {
       assertTrue(emptyDir.mkdir());
     }
-    assertTrue(emptyDir.isDirectory() && emptyDir.canRead()
-        && emptyDir.canWrite());
+    assertTrue(emptyDir.isDirectory() && emptyDir.canRead() && emptyDir.canWrite());
 
     //create a second empty directory
     emptyDir2 = new File(testDir, emptyDir2Name);
     if (!emptyDir2.exists()) {
       assertTrue(emptyDir2.mkdir());
     }
-    assertTrue(emptyDir2.isDirectory() && emptyDir2.canRead()
-        && emptyDir2.canWrite());
+    assertTrue(emptyDir2.isDirectory() && emptyDir2.canRead() && emptyDir2.canWrite());
 
     //create a directory containing valid files
     validFileDir = new File(testDir, validFileDirName);
@@ -232,9 +230,8 @@ public class MetaDataTest extends TestCase {
     file.createNewFile();
     assertTrue(file.isFile());
     if (file.canRead()) {
-      SystemProgram program = new SystemProgram(manager, manager
-          .getPropertyUserDir(), new String[] { "chmod", "244", name },
-          AxisID.ONLY);
+      SystemProgram program = new SystemProgram(manager, manager.getPropertyUserDir(),
+          new String[] { "chmod", "244", name }, AxisID.ONLY);
       program.setWorkingDirectory(dir);
       program.run();
     }
@@ -313,8 +310,7 @@ public class MetaDataTest extends TestCase {
     //Test successes
 
     //file exists & readable
-    assertEquals(testInst.findValidFile(validFileName, validFileDir),
-        validFileDir);
+    assertEquals(testInst.findValidFile(validFileName, validFileDir), validFileDir);
   }
 
   /*
@@ -401,8 +397,8 @@ public class MetaDataTest extends TestCase {
 
     //invalid directories
     //non-existant directories
-    String workingDir = EtomoDirector.INSTANCE
-        .setCurrentPropertyUserDir(dummyDir.getAbsolutePath());
+    String workingDir = EtomoDirector.INSTANCE.setCurrentPropertyUserDir(dummyDir
+        .getAbsolutePath());
     testInst.setBackupDirectory(dummyDir2.getAbsolutePath());
     testInst.setDatasetName(validDatasetName);
     if (!windowsOs) {
@@ -410,11 +406,9 @@ public class MetaDataTest extends TestCase {
     }
     //Test successes
     testInst.setDatasetName(validDatasetName);
-    EtomoDirector.INSTANCE.setCurrentPropertyUserDir(validFileDir
-        .getAbsolutePath());
+    EtomoDirector.INSTANCE.setCurrentPropertyUserDir(validFileDir.getAbsolutePath());
     //backup dir, dual axis
-    EtomoDirector.INSTANCE
-        .setCurrentPropertyUserDir(emptyDir.getAbsolutePath());
+    EtomoDirector.INSTANCE.setCurrentPropertyUserDir(emptyDir.getAbsolutePath());
     testInst.setBackupDirectory(validFileDir.getAbsolutePath());
     testInst.setAxisType(AxisType.DUAL_AXIS);
     assertTrue(testInst.isDatasetNameValid());
@@ -426,8 +420,8 @@ public class MetaDataTest extends TestCase {
    */
   final public void testIsValid() {
     String invalidReason;
-    String workingDir = EtomoDirector.INSTANCE
-        .setCurrentPropertyUserDir(validFileDir.getAbsolutePath());
+    String workingDir = EtomoDirector.INSTANCE.setCurrentPropertyUserDir(validFileDir
+        .getAbsolutePath());
     //Test failures
 
     //Testing boolean isValid(boolean fromSetupScreen)

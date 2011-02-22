@@ -18,6 +18,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2007/12/10 22:33:43  sueh
+ * <p> bug# 1041 Added current processchunks root name and subdir name.
+ * <p>
  * <p> Revision 1.6  2007/03/26 23:34:22  sueh
  * <p> bug# 964 Reduced visibility of inherited fields.
  * <p>
@@ -59,19 +62,18 @@ public abstract class BaseMetaData implements Storable {
   static String fileExtension;
 
   //revisionNumber should be set only by load()
-  EtomoVersion revisionNumber = EtomoVersion
-      .getEmptyInstance(revisionNumberString);
+  EtomoVersion revisionNumber = EtomoVersion.getEmptyInstance(revisionNumberString);
   AxisType axisType = AxisType.NOT_SET;
   String invalidReason = "";
 
-  private final StringProperty currentProcesschunksRootNameA = new StringProperty(
-      "A." + CURRENT_PROCESSCHUNKS_ROOT_NAME);
-  private final StringProperty currentProcesschunksRootNameB = new StringProperty(
-      "B." + CURRENT_PROCESSCHUNKS_ROOT_NAME);
-  private final StringProperty currentProcesschunksSubdirNameA = new StringProperty(
-      "A." + CURRENT_PROCESSCHUNKS_SUBDIR_NAME);
-  private final StringProperty currentProcesschunksSubdirNameB = new StringProperty(
-      "B." + CURRENT_PROCESSCHUNKS_SUBDIR_NAME);
+  private final StringProperty currentProcesschunksRootNameA = new StringProperty("A."
+      + CURRENT_PROCESSCHUNKS_ROOT_NAME);
+  private final StringProperty currentProcesschunksRootNameB = new StringProperty("B."
+      + CURRENT_PROCESSCHUNKS_ROOT_NAME);
+  private final StringProperty currentProcesschunksSubdirNameA = new StringProperty("A."
+      + CURRENT_PROCESSCHUNKS_SUBDIR_NAME);
+  private final StringProperty currentProcesschunksSubdirNameB = new StringProperty("B."
+      + CURRENT_PROCESSCHUNKS_SUBDIR_NAME);
 
   public abstract String getMetaDataFileName();
 
@@ -88,9 +90,9 @@ public abstract class BaseMetaData implements Storable {
   }
 
   String paramString() {
-    return "fileExtension=" + fileExtension + ",revisionNumber="
-        + revisionNumber + ",\naxisType=" + axisType + ",invalidReason="
-        + invalidReason + "," + super.toString();
+    return "fileExtension=" + fileExtension + ",revisionNumber=" + revisionNumber
+        + ",\naxisType=" + axisType + ",invalidReason=" + invalidReason + ","
+        + super.toString();
   }
 
   public void store(Properties props) {
@@ -140,12 +142,10 @@ public abstract class BaseMetaData implements Storable {
   }
 
   public boolean equals(BaseMetaData input) {
-    if (!currentProcesschunksRootNameA
-        .equals(input.currentProcesschunksRootNameA)) {
+    if (!currentProcesschunksRootNameA.equals(input.currentProcesschunksRootNameA)) {
       return false;
     }
-    if (!currentProcesschunksRootNameB
-        .equals(input.currentProcesschunksRootNameB)) {
+    if (!currentProcesschunksRootNameB.equals(input.currentProcesschunksRootNameB)) {
       return false;
     }
     if (axisType != input.axisType) {

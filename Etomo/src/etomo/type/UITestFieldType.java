@@ -14,6 +14,9 @@ package etomo.type;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2009/09/01 03:17:08  sueh
+ * <p> bug# 1222 Added COMBO_BOX.
+ * <p>
  * <p> Revision 1.1  2009/01/20 19:42:26  sueh
  * <p> bug# 1102 Was UITestField.
  * <p> </p>
@@ -23,8 +26,7 @@ public final class UITestFieldType {
   public static final String rcsid = "$Id$";
   public static final UITestFieldType BUTTON = new UITestFieldType("bn");
   public static final UITestFieldType CHECK_BOX = new UITestFieldType("cb");
-  public static final UITestFieldType CHECK_BOX_MENU_ITEM = new UITestFieldType(
-      "cbmn");
+  public static final UITestFieldType CHECK_BOX_MENU_ITEM = new UITestFieldType("cbmn");
   public static final UITestFieldType COMBO_BOX = new UITestFieldType("cbb");
   public static final UITestFieldType MENU_ITEM = new UITestFieldType("mn");
   public static final UITestFieldType MINI_BUTTON = new UITestFieldType("mb");

@@ -17,6 +17,9 @@ import java.util.Map;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2008/09/10 21:07:39  sueh
+ * <p> bug# 1135 ParsedElementList will no longer create an empty element, so null returns will happen.  Simplify size functionality because there is no more automatic creation of empty instances.
+ * <p>
  * <p> Revision 1.13  2008/04/15 21:26:07  sueh
  * <p> bug# 1105 Added default got rid of ParsedEmptyElement so that empty
  * <p> elements will show the correct parsed strings.  Added debug.
@@ -165,8 +168,7 @@ public final class ParsedElementList {
       element = ParsedQuotedString.getInstance(debug);
     }
     else {
-      element = ParsedNumber.getInstance(type, etomoNumberType, debug,
-          defaultValue);
+      element = ParsedNumber.getInstance(type, etomoNumberType, debug, defaultValue);
     }
     set(index, element);
     return element;

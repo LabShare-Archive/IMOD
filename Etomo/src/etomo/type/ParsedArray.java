@@ -32,6 +32,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2010/11/13 16:06:53  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.21  2009/11/20 16:56:46  sueh
  * <p> bug# 1282 Added addElement(ParsedElement).
  * <p>
@@ -152,24 +155,22 @@ public final class ParsedArray extends ParsedElement {
   }
 
   public static ParsedArray getMatlabInstance() {
-    return new ParsedArray(ParsedElementType.MATLAB_ARRAY, null, null, false,
-        null);
+    return new ParsedArray(ParsedElementType.MATLAB_ARRAY, null, null, false, null);
   }
 
   public static ParsedArray getMatlabInstance(EtomoNumber.Type etomoNumberType) {
-    return new ParsedArray(ParsedElementType.MATLAB_ARRAY, etomoNumberType,
-        null, false, null);
+    return new ParsedArray(ParsedElementType.MATLAB_ARRAY, etomoNumberType, null, false,
+        null);
   }
 
   public static ParsedArray getInstance(EtomoNumber.Type etomoNumberType) {
-    return new ParsedArray(ParsedElementType.NON_MATLAB_ARRAY, etomoNumberType,
-        null, false, null);
+    return new ParsedArray(ParsedElementType.NON_MATLAB_ARRAY, etomoNumberType, null,
+        false, null);
   }
 
-  public static ParsedArray getInstance(EtomoNumber.Type etomoNumberType,
-      String key) {
-    return new ParsedArray(ParsedElementType.NON_MATLAB_ARRAY, etomoNumberType,
-        key, false, null);
+  public static ParsedArray getInstance(EtomoNumber.Type etomoNumberType, String key) {
+    return new ParsedArray(ParsedElementType.NON_MATLAB_ARRAY, etomoNumberType, key,
+        false, null);
   }
 
   static ParsedArray getInstance(ParsedElementType type,
@@ -301,8 +302,8 @@ public final class ParsedArray extends ParsedElement {
   private ParsedArrayDescriptor getAddFirstArrayDescriptor(String addIfNumber) {
     ParsedArrayDescriptor descriptor = getFirstArrayDescriptor();
     if (descriptor == null) {
-      ParsedNumber number = ParsedNumber.getInstance(type, etomoNumberType,
-          debug, defaultValue);
+      ParsedNumber number = ParsedNumber.getInstance(type, etomoNumberType, debug,
+          defaultValue);
       //If the string doesn't have a number in it, don't bother to create the
       //descriptor.  Descriptors can't use "NaN", so there is no point to
       //creating an empty one.
@@ -310,8 +311,7 @@ public final class ParsedArray extends ParsedElement {
       if (number.isEmpty()) {
         return null;
       }
-      descriptor = new ParsedArrayDescriptor(etomoNumberType, debug,
-          defaultValue);
+      descriptor = new ParsedArrayDescriptor(etomoNumberType, debug, defaultValue);
       array.add(descriptor);
     }
     return descriptor;
@@ -548,8 +548,7 @@ public final class ParsedArray extends ParsedElement {
 
   void setRawString(int index, float number) {
     ParsedNumber element;
-    element = ParsedNumber.getInstance(type, etomoNumberType, debug,
-        defaultValue);
+    element = ParsedNumber.getInstance(type, etomoNumberType, debug, defaultValue);
     element.setRawString(number);
     array.set(index, element);
   }
@@ -559,7 +558,7 @@ public final class ParsedArray extends ParsedElement {
     element.setDefault(defaultValue);
     array.set(index, element);
   }
-  
+
   public void addElement(ParsedElement element) {
     element.setDebug(debug);
     element.setDefault(defaultValue);
@@ -593,8 +592,8 @@ public final class ParsedArray extends ParsedElement {
       }
     }
     if (parsedNumberExpandedArray == null) {
-      parsedNumberExpandedArray = new ParsedElementList(type, etomoNumberType,
-          debug, defaultValue);
+      parsedNumberExpandedArray = new ParsedElementList(type, etomoNumberType, debug,
+          defaultValue);
     }
     return parsedNumberExpandedArray;
   }
@@ -673,8 +672,7 @@ public final class ParsedArray extends ParsedElement {
       if (token != null && token.is(Token.Type.WHITESPACE)) {
         token = tokenizer.next();
       }
-      if (token == null
-          || !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
+      if (token == null || !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
         fail(CLOSE_SYMBOL + " never found.");
         return token;
       }
@@ -696,8 +694,7 @@ public final class ParsedArray extends ParsedElement {
    * @param parsable - true when getting parsable string, false when getting a raw string
    * @param startIndex - start index
    */
-  private String getString(final boolean parsable, int startIndex,
-      int exclusionIndex) {
+  private String getString(final boolean parsable, int startIndex, int exclusionIndex) {
     if (startIndex == -1) {
       startIndex = 0;
     }
@@ -734,8 +731,8 @@ public final class ParsedArray extends ParsedElement {
     //loop until the end of the array
     //can't just check dividerFound, because whitespace can act as a divider,
     //but isn't always the divider
-    while (dividerFound && !isFailed() && token != null
-        && !token.is(Token.Type.EOL) && !token.is(Token.Type.EOF)
+    while (dividerFound && !isFailed() && token != null && !token.is(Token.Type.EOL)
+        && !token.is(Token.Type.EOF)
         && !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
       if (debug) {
         System.out.println("ParsedArray.parseArray:while");
@@ -748,8 +745,8 @@ public final class ParsedArray extends ParsedElement {
         //whitespace.
         dividerFound = false;
         if (token != null
-            && (token.is(Token.Type.WHITESPACE) || token.equals(
-                Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue()))) {
+            && (token.is(Token.Type.WHITESPACE) || token.equals(Token.Type.SYMBOL,
+                DIVIDER_SYMBOL.charValue()))) {
           dividerFound = true;
           token = tokenizer.next();
         }
@@ -783,12 +780,12 @@ public final class ParsedArray extends ParsedElement {
     //Array descriptors don't have their own open and close symbols, so they
     //look like numbers until to you get to the first divider (":"or "-").
     if (debug) {
-      System.out.println("ParsedArray.parseElement:token="+token+",type="+type);
+      System.out.println("ParsedArray.parseElement:token=" + token + ",type=" + type);
     }
     ParsedElement element;
     //First assume that there might be an array descriptor.
-    ParsedDescriptor descriptor = ParsedDescriptor.getInstance(type,
-        etomoNumberType, debug, defaultValue);
+    ParsedDescriptor descriptor = ParsedDescriptor.getInstance(type, etomoNumberType,
+        debug, defaultValue);
     if (descriptor != null) {
       descriptor.setDebug(debug);
       token = descriptor.parse(token, tokenizer);
@@ -809,8 +806,7 @@ public final class ParsedArray extends ParsedElement {
     else {
       //ParsedDescriptor would not return an instance so the type is not a type
       //that can have an array descriptor or iterator.
-      element = ParsedNumber.getInstance(type, etomoNumberType, debug,
-          defaultValue);
+      element = ParsedNumber.getInstance(type, etomoNumberType, debug, defaultValue);
       token = element.parse(token, tokenizer);
     }
     array.add(element);

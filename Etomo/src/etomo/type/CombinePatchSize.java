@@ -13,6 +13,9 @@ package etomo.type;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2006/05/12 00:08:45  sueh
+ * <p> bug# 857 Placed the setupcombine options in getOption().
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -28,8 +31,7 @@ package etomo.type;
  */
 
 public final class CombinePatchSize {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   private final String name;
 
@@ -66,7 +68,7 @@ public final class CombinePatchSize {
 
     return null;
   }
-  
+
   public String getOption() {
     if (this == SMALL) {
       return "S";

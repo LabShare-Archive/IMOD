@@ -18,6 +18,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2010/04/28 16:23:43  sueh
+ * <p> bug# 1344 Removed unnecessary tearDown function override.
+ * <p>
  * <p> Revision 1.1  2009/09/01 02:51:11  sueh
  * <p> bug# 1222 Test for EtomoNumberPropertyList.
  * <p> </p>
@@ -44,8 +47,8 @@ public class EtomoNumberPropertyListTest extends TestCase {
 
   public void testAddProperty() {
     test.addProperty(id1, "Test1");
-    assertEquals("Should have added an empty element",
-        EtomoNumber.INTEGER_NULL_VALUE, test.getDefaultedInt(id1));
+    assertEquals("Should have added an empty element", EtomoNumber.INTEGER_NULL_VALUE,
+        test.getDefaultedInt(id1));
 
     try {
       test.addProperty(id1, "Test2");
@@ -62,35 +65,35 @@ public class EtomoNumberPropertyListTest extends TestCase {
     test.addProperty(id1, "Test1");
     test.addProperty(id2, "Test2");
     test.load(props, "");
-    assertEquals("Should have loaded the Test1 property", 2, test
-        .getDefaultedInt(id1));
-    assertEquals("Should have loaded the Test2 property", 4, test
-        .getDefaultedInt(id2));
+    assertEquals("Should have loaded the Test1 property", 2, test.getDefaultedInt(id1));
+    assertEquals("Should have loaded the Test2 property", 4, test.getDefaultedInt(id2));
 
     //EtomoVersion, Properties, String
     test.reset();
     props.remove("Test1");
     props.remove("Test2");
-    test.setBackwardCompatibility(id1, EtomoVersion.getDefaultInstance("1.1"), "OldestTest");
+    test.setBackwardCompatibility(id1, EtomoVersion.getDefaultInstance("1.1"),
+        "OldestTest");
     test.setBackwardCompatibility(id1, EtomoVersion.getDefaultInstance("1.3"), "OldTest");
-    test.setBackwardCompatibility(id2, EtomoVersion.getDefaultInstance("1.2"), "OldestTest2");
+    test.setBackwardCompatibility(id2, EtomoVersion.getDefaultInstance("1.2"),
+        "OldestTest2");
     props.setProperty("OldestTest", "2");
     props.setProperty("OldTest", "1");
     props.setProperty("OldestTest2", "4");
     test.load(EtomoVersion.getDefaultInstance("1.0"), props, "");
-    assertEquals("Should load the oldest value of 2 in the Test1 property", 2,
-        test.getDefaultedInt(id1));
-    assertEquals("Should load the old value of 4 in the Test2 property", 4,
-        test.getDefaultedInt(id2));
-    
+    assertEquals("Should load the oldest value of 2 in the Test1 property", 2, test
+        .getDefaultedInt(id1));
+    assertEquals("Should load the old value of 4 in the Test2 property", 4, test
+        .getDefaultedInt(id2));
+
     props.setProperty("OldestTest", "1");
     props.setProperty("OldTest", "2");
     test.load(EtomoVersion.getDefaultInstance("1.2"), props, "");
-    assertEquals("Should load the old value of 2 in the Test1 property", 2,
-        test.getDefaultedInt(id1));
-    assertEquals("Should load the old value of 4 in the Test2 property", 4,
-        test.getDefaultedInt(id2));
-    
+    assertEquals("Should load the old value of 2 in the Test1 property", 2, test
+        .getDefaultedInt(id1));
+    assertEquals("Should load the old value of 4 in the Test2 property", 4, test
+        .getDefaultedInt(id2));
+
     props.setProperty("OldestTest", "1");
     props.setProperty("OldTest", "5");
   }
@@ -101,10 +104,10 @@ public class EtomoNumberPropertyListTest extends TestCase {
     test.set(id1, 2);
     test.set(id2, 4);
     test.store(props, "");
-    assertTrue("Should have stored the Test1 property", props.getProperty(
-        "Test1").equals("2"));
-    assertTrue("Should have stored the Test2 property", props.getProperty(
-        "Test2").equals("4"));
+    assertTrue("Should have stored the Test1 property", props.getProperty("Test1")
+        .equals("2"));
+    assertTrue("Should have stored the Test2 property", props.getProperty("Test2")
+        .equals("4"));
   }
 
   public void testGetDefaultedInt() {
@@ -120,8 +123,7 @@ public class EtomoNumberPropertyListTest extends TestCase {
     test.set(id1, 2);
     test.set(id2, 4);
     assertEquals("Should get the Test1 property", 2, test.getDefaultedInt(id1));
-    assertEquals("Should get the Test2 property", 4, test
-        .getDefaultedInt(id2));
+    assertEquals("Should get the Test2 property", 4, test.getDefaultedInt(id2));
   }
 
   public void testSet() {
@@ -136,10 +138,8 @@ public class EtomoNumberPropertyListTest extends TestCase {
     test.addProperty(id2, "Test2");
     test.set(id1, 2);
     test.set(id2, 4);
-    assertEquals("Should set 2 in the Test1 property", 2, test
-        .getDefaultedInt(id1));
-    assertEquals("Should set 4 in the Test2 property", 4, test
-        .getDefaultedInt(id2));
+    assertEquals("Should set 2 in the Test1 property", 2, test.getDefaultedInt(id1));
+    assertEquals("Should set 4 in the Test2 property", 4, test.getDefaultedInt(id2));
   }
 
   public void testSetDisplayValue() {
@@ -191,31 +191,31 @@ public class EtomoNumberPropertyListTest extends TestCase {
     test.set(id1, 2);
     test.set(id2, 4);
     test.reset();
-    assertEquals("Should have reset all elements",
-        EtomoNumber.INTEGER_NULL_VALUE, test.getDefaultedInt(id1));
-    assertEquals("Should have reset all elements",
-        EtomoNumber.INTEGER_NULL_VALUE, test.getDefaultedInt(id1));
+    assertEquals("Should have reset all elements", EtomoNumber.INTEGER_NULL_VALUE, test
+        .getDefaultedInt(id1));
+    assertEquals("Should have reset all elements", EtomoNumber.INTEGER_NULL_VALUE, test
+        .getDefaultedInt(id1));
   }
 
   public void testEquals() {
     EtomoNumberPropertyList test2 = new EtomoNumberPropertyList();
-    assertTrue("Equal when the ids, keys, and values are the same", test
-        .equals(test2));
-    
+    assertTrue("Equal when the ids, keys, and values are the same", test.equals(test2));
+
     test.addProperty(id1, "Test1");
-    assertFalse("Not equal when there is a different number of properties", test.equals(test2));
-    
+    assertFalse("Not equal when there is a different number of properties", test
+        .equals(test2));
+
     test2.addProperty(id1, "TestA");
     test2.addProperty(id2, "TestB");
-    assertFalse("Not equal when there is a different number of properties", test.equals(test2));
-    
+    assertFalse("Not equal when there is a different number of properties", test
+        .equals(test2));
+
     test.addProperty(id2, "Test2");
     test.set(id1, 2);
     test.set(id2, 4);
     test2.set(id1, 2);
     test2.set(id2, 4);
-    assertTrue("Equal when the ids and values are the same", test
-        .equals(test2));
+    assertTrue("Equal when the ids and values are the same", test.equals(test2));
     assertTrue("Equals should work in both directions", test2.equals(test));
 
     test2.set(id2, 3);
@@ -223,7 +223,7 @@ public class EtomoNumberPropertyListTest extends TestCase {
 
     Object id3 = new Object();
     Object id4 = new Object();
-    test.addProperty(id3,"Test3");
+    test.addProperty(id3, "Test3");
     test2.addProperty(id4, "TestC");
     test.set(id3, 6);
     test2.set(id4, 6);

@@ -20,12 +20,17 @@ import junit.framework.TestCase;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2010/04/28 16:29:05  sueh
+ * <p> bug# 1344 Makes sure that the front page manager is the current
+ * <p> manager.  Tests for file name collisions.  Tests getting FileType instances
+ * <p> from name descriptions and file names.
+ * <p> </p>
  */
 public class FileTypeTest extends TestCase {
   public static final String rcsid = "$Id$";
-  
-  protected void setUp() throws Exception{
+
+  protected void setUp() throws Exception {
     EtomoDirector.INSTANCE.closeCurrentManager(AxisID.ONLY, true);
     EtomoDirector.INSTANCE.openFrontPage(true, AxisID.ONLY);
     super.setUp();
@@ -52,17 +57,15 @@ public class FileTypeTest extends TestCase {
 
   public void testGetInstanceFromNameDescription() {
     assertEquals("getInstance(boolean,boolean,string,string) failed",
-        FileType.FIDUCIAL_3D_MODEL, FileType.getInstance(true, true, "",
-            ".3dmod"));
+        FileType.FIDUCIAL_3D_MODEL, FileType.getInstance(true, true, "", ".3dmod"));
     assertEquals("getInstance(boolean,boolean,string,string) failed",
-        FileType.FLATTEN_TOOL_OUTPUT, FileType.getInstance(true, false, "",
-            ".flat"));
+        FileType.FLATTEN_TOOL_OUTPUT, FileType.getInstance(true, false, "", ".flat"));
     assertEquals("getInstance(boolean,boolean,string,string) failed",
-        FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT, FileType.getInstance(true,
-            true, "_3dfind", ".ali"));
+        FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT, FileType.getInstance(true, true,
+            "_3dfind", ".ali"));
     assertEquals("getInstance(boolean,boolean,string,string) failed",
-        FileType.FLATTEN_WARP_INPUT_MODEL, FileType.getInstance(true, false,
-            "_flat", ".mod"));
+        FileType.FLATTEN_WARP_INPUT_MODEL, FileType.getInstance(true, false, "_flat",
+            ".mod"));
     assertEquals("getInstance(boolean,boolean,string,string) failed",
         FileType.FIND_BEADS_3D_COMSCRIPT, FileType.getInstance(false, true,
             "findbeads3d", ".com"));
@@ -76,27 +79,23 @@ public class FileTypeTest extends TestCase {
     metaData.setName("BB");
     assertEquals(
         "getInstance(BaseManager,AxisID,boolean,boolean,string) failed - axisID "
-            + "only should be translated to axisID first",
-        FileType.FIDUCIAL_3D_MODEL, FileType.getInstance(manager, AxisID.ONLY,
-            true, true, "BBa.3dmod"));
-    assertEquals(
-        "getInstance(BaseManager,AxisID,boolean,boolean,string) failed",
-        FileType.FLATTEN_TOOL_OUTPUT, FileType.getInstance(manager,
-            AxisID.FIRST, true, false, "BB.flat"));
-    assertEquals(
-        "getInstance(BaseManager,AxisID,boolean,boolean,string) failed",
+            + "only should be translated to axisID first", FileType.FIDUCIAL_3D_MODEL,
+        FileType.getInstance(manager, AxisID.ONLY, true, true, "BBa.3dmod"));
+    assertEquals("getInstance(BaseManager,AxisID,boolean,boolean,string) failed",
+        FileType.FLATTEN_TOOL_OUTPUT, FileType.getInstance(manager, AxisID.FIRST, true,
+            false, "BB.flat"));
+    assertEquals("getInstance(BaseManager,AxisID,boolean,boolean,string) failed",
         FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT, FileType.getInstance(manager,
             AxisID.SECOND, true, true, "BBb_3dfind.ali"));
-    assertEquals(
-        "getInstance(BaseManager,AxisID,boolean,boolean,string) failed",
-        FileType.FLATTEN_WARP_INPUT_MODEL, FileType.getInstance(manager,
-            AxisID.FIRST, true, false, "BB_flat.mod"));
+    assertEquals("getInstance(BaseManager,AxisID,boolean,boolean,string) failed",
+        FileType.FLATTEN_WARP_INPUT_MODEL, FileType.getInstance(manager, AxisID.FIRST,
+            true, false, "BB_flat.mod"));
     metaData.setAxisType(AxisType.SINGLE_AXIS);
     metaData.setName("BBa");
     assertEquals(
         "getInstance(BaseManager,AxisID,boolean,boolean,string) failed - axisID "
             + "first should be translated to axisID only",
-        FileType.FIND_BEADS_3D_COMSCRIPT, FileType.getInstance(manager,
-            AxisID.FIRST, false, true, "findbeads3d.com"));
+        FileType.FIND_BEADS_3D_COMSCRIPT, FileType.getInstance(manager, AxisID.FIRST,
+            false, true, "findbeads3d.com"));
   }
 }

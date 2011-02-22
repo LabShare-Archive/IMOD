@@ -25,6 +25,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.39  2010/03/12 04:08:17  sueh
+ * <p> bug# 1325 Added use button warnings.
+ * <p>
  * <p> Revision 1.38  2010/02/17 04:52:36  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -195,62 +198,52 @@ public class TomogramState extends BaseState {
   EtomoState squeezevolFlipped = new EtomoState("SqueezevolFlipped");
   EtomoState madeZFactorsA = new EtomoState("MadeZFactors" + A_AXIS_KEY);
   EtomoState madeZFactorsB = new EtomoState("MadeZFactorsB");
-  EtomoState newstFiducialessAlignmentA = new EtomoState(
-      "NewstFiducialessAlignmentA");
-  EtomoState newstFiducialessAlignmentB = new EtomoState(
-      "NewstFiducialessAlignmentB");
-  EtomoState usedLocalAlignmentsA = new EtomoState("UsedLocalAlignments"
-      + A_AXIS_KEY);
-  EtomoState usedLocalAlignmentsB = new EtomoState("UsedLocalAlignments"
-      + B_AXIS_KEY);
-  EtomoState invalidEdgeFunctionsA = new EtomoState("InvalidEdgeFunctions"
-      + A_AXIS_KEY);
-  EtomoState invalidEdgeFunctionsB = new EtomoState("InvalidEdgeFunctions"
-      + B_AXIS_KEY);
-  private final EtomoNumber angleOffsetA = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE, AxisID.FIRST.getExtension() + '.'
-          + ProcessName.ALIGN + '.' + ConstTiltalignParam.ANGLE_OFFSET_KEY);
-  private final EtomoNumber angleOffsetB = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE, AxisID.SECOND.getExtension() + '.'
-          + ProcessName.ALIGN + '.' + ConstTiltalignParam.ANGLE_OFFSET_KEY);
-  private final EtomoNumber axisZShiftA = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE, AxisID.FIRST.getExtension() + '.'
-          + ProcessName.ALIGN + '.' + ConstTiltalignParam.AXIS_Z_SHIFT_KEY);
-  private final EtomoNumber axisZShiftB = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE, AxisID.SECOND.getExtension() + '.'
-          + ProcessName.ALIGN + '.' + ConstTiltalignParam.AXIS_Z_SHIFT_KEY);
+  EtomoState newstFiducialessAlignmentA = new EtomoState("NewstFiducialessAlignmentA");
+  EtomoState newstFiducialessAlignmentB = new EtomoState("NewstFiducialessAlignmentB");
+  EtomoState usedLocalAlignmentsA = new EtomoState("UsedLocalAlignments" + A_AXIS_KEY);
+  EtomoState usedLocalAlignmentsB = new EtomoState("UsedLocalAlignments" + B_AXIS_KEY);
+  EtomoState invalidEdgeFunctionsA = new EtomoState("InvalidEdgeFunctions" + A_AXIS_KEY);
+  EtomoState invalidEdgeFunctionsB = new EtomoState("InvalidEdgeFunctions" + B_AXIS_KEY);
+  private final EtomoNumber angleOffsetA = new EtomoNumber(EtomoNumber.Type.DOUBLE,
+      AxisID.FIRST.getExtension() + '.' + ProcessName.ALIGN + '.'
+          + ConstTiltalignParam.ANGLE_OFFSET_KEY);
+  private final EtomoNumber angleOffsetB = new EtomoNumber(EtomoNumber.Type.DOUBLE,
+      AxisID.SECOND.getExtension() + '.' + ProcessName.ALIGN + '.'
+          + ConstTiltalignParam.ANGLE_OFFSET_KEY);
+  private final EtomoNumber axisZShiftA = new EtomoNumber(EtomoNumber.Type.DOUBLE,
+      AxisID.FIRST.getExtension() + '.' + ProcessName.ALIGN + '.'
+          + ConstTiltalignParam.AXIS_Z_SHIFT_KEY);
+  private final EtomoNumber axisZShiftB = new EtomoNumber(EtomoNumber.Type.DOUBLE,
+      AxisID.SECOND.getExtension() + '.' + ProcessName.ALIGN + '.'
+          + ConstTiltalignParam.AXIS_Z_SHIFT_KEY);
 
-  private final EtomoNumber sampleAngleOffsetA = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE, AxisID.FIRST.getExtension() + '.'
-          + ProcessName.SAMPLE + '.' + ConstTiltalignParam.ANGLE_OFFSET_KEY);
-  private final EtomoNumber sampleAngleOffsetB = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE, AxisID.SECOND.getExtension() + '.'
-          + ProcessName.SAMPLE + '.' + ConstTiltalignParam.ANGLE_OFFSET_KEY);
-  private final EtomoNumber sampleAxisZShiftA = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE, AxisID.FIRST.getExtension() + '.'
-          + ProcessName.SAMPLE + '.' + ConstTiltalignParam.AXIS_Z_SHIFT_KEY);
-  private final EtomoNumber sampleAxisZShiftB = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE, AxisID.SECOND.getExtension() + '.'
-          + ProcessName.SAMPLE + '.' + ConstTiltalignParam.AXIS_Z_SHIFT_KEY);
-  private final EtomoNumber sampleXAxisTiltA = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE, AxisID.FIRST.getExtension() + '.'
-          + ProcessName.SAMPLE + '.' + X_AXIS_TILT_KEY);
-  private final EtomoNumber sampleXAxisTiltB = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE, AxisID.SECOND.getExtension() + '.'
-          + ProcessName.SAMPLE + '.' + X_AXIS_TILT_KEY);
+  private final EtomoNumber sampleAngleOffsetA = new EtomoNumber(EtomoNumber.Type.DOUBLE,
+      AxisID.FIRST.getExtension() + '.' + ProcessName.SAMPLE + '.'
+          + ConstTiltalignParam.ANGLE_OFFSET_KEY);
+  private final EtomoNumber sampleAngleOffsetB = new EtomoNumber(EtomoNumber.Type.DOUBLE,
+      AxisID.SECOND.getExtension() + '.' + ProcessName.SAMPLE + '.'
+          + ConstTiltalignParam.ANGLE_OFFSET_KEY);
+  private final EtomoNumber sampleAxisZShiftA = new EtomoNumber(EtomoNumber.Type.DOUBLE,
+      AxisID.FIRST.getExtension() + '.' + ProcessName.SAMPLE + '.'
+          + ConstTiltalignParam.AXIS_Z_SHIFT_KEY);
+  private final EtomoNumber sampleAxisZShiftB = new EtomoNumber(EtomoNumber.Type.DOUBLE,
+      AxisID.SECOND.getExtension() + '.' + ProcessName.SAMPLE + '.'
+          + ConstTiltalignParam.AXIS_Z_SHIFT_KEY);
+  private final EtomoNumber sampleXAxisTiltA = new EtomoNumber(EtomoNumber.Type.DOUBLE,
+      AxisID.FIRST.getExtension() + '.' + ProcessName.SAMPLE + '.' + X_AXIS_TILT_KEY);
+  private final EtomoNumber sampleXAxisTiltB = new EtomoNumber(EtomoNumber.Type.DOUBLE,
+      AxisID.SECOND.getExtension() + '.' + ProcessName.SAMPLE + '.' + X_AXIS_TILT_KEY);
 
-  private final EtomoNumber fidFileLastModifiedA = new EtomoNumber(
-      EtomoNumber.Type.LONG, AxisID.FIRST.getExtension() + '.'
-          + ProcessName.TRACK + '.' + LAST_MODIFIED);
-  private final EtomoNumber fidFileLastModifiedB = new EtomoNumber(
-      EtomoNumber.Type.LONG, AxisID.SECOND.getExtension() + '.'
-          + ProcessName.TRACK + '.' + LAST_MODIFIED);
+  private final EtomoNumber fidFileLastModifiedA = new EtomoNumber(EtomoNumber.Type.LONG,
+      AxisID.FIRST.getExtension() + '.' + ProcessName.TRACK + '.' + LAST_MODIFIED);
+  private final EtomoNumber fidFileLastModifiedB = new EtomoNumber(EtomoNumber.Type.LONG,
+      AxisID.SECOND.getExtension() + '.' + ProcessName.TRACK + '.' + LAST_MODIFIED);
   private final EtomoNumber seedFileLastModifiedA = new EtomoNumber(
-      EtomoNumber.Type.LONG, AxisID.FIRST.getExtension() + '.'
-          + USE_FID_AS_SEED + '.' + LAST_MODIFIED);
+      EtomoNumber.Type.LONG, AxisID.FIRST.getExtension() + '.' + USE_FID_AS_SEED + '.'
+          + LAST_MODIFIED);
   private final EtomoNumber seedFileLastModifiedB = new EtomoNumber(
-      EtomoNumber.Type.LONG, AxisID.SECOND.getExtension() + '.'
-          + USE_FID_AS_SEED + '.' + LAST_MODIFIED);
+      EtomoNumber.Type.LONG, AxisID.SECOND.getExtension() + '.' + USE_FID_AS_SEED + '.'
+          + LAST_MODIFIED);
   private final EtomoBoolean2 fixedFiducialsA = new EtomoBoolean2(AxisID.FIRST
       .getExtension()
       + "." + FIXED_FIDUCIALS_KEY);
@@ -259,8 +252,7 @@ public class TomogramState extends BaseState {
       + "." + FIXED_FIDUCIALS_KEY);
   private MatchMode combineMatchMode = null;
   private final EtomoState combineScriptsCreated = new EtomoState(
-      DialogType.TOMOGRAM_COMBINATION.getStorableName() + "."
-          + "ScriptsCreated");
+      DialogType.TOMOGRAM_COMBINATION.getStorableName() + "." + "ScriptsCreated");
   private final EtomoBoolean2 seedingDoneA = new EtomoBoolean2(AxisID.FIRST
       .getExtension()
       + '.' + "SeedingDone");
@@ -272,36 +264,34 @@ public class TomogramState extends BaseState {
   private final ApplicationManager manager;
   private String firstAxisGroup = null;
   private String secondAxisGroup = null;
-  private EtomoNumber tomogramSizeA = new EtomoNumber(EtomoNumber.Type.LONG,
-      A_AXIS_KEY + "." + TOMOGRAM_SIZE_KEY);
-  private EtomoNumber tomogramSizeB = new EtomoNumber(EtomoNumber.Type.LONG,
-      B_AXIS_KEY + "." + TOMOGRAM_SIZE_KEY);
-  private final EtomoBoolean2 adjustOriginA = new EtomoBoolean2(A_AXIS_KEY
-      + "." + ADJUST_ORIGIN_KEY);
-  private final EtomoBoolean2 adjustOriginB = new EtomoBoolean2(B_AXIS_KEY
-      + "." + ADJUST_ORIGIN_KEY);
+  private EtomoNumber tomogramSizeA = new EtomoNumber(EtomoNumber.Type.LONG, A_AXIS_KEY
+      + "." + TOMOGRAM_SIZE_KEY);
+  private EtomoNumber tomogramSizeB = new EtomoNumber(EtomoNumber.Type.LONG, B_AXIS_KEY
+      + "." + TOMOGRAM_SIZE_KEY);
+  private final EtomoBoolean2 adjustOriginA = new EtomoBoolean2(A_AXIS_KEY + "."
+      + ADJUST_ORIGIN_KEY);
+  private final EtomoBoolean2 adjustOriginB = new EtomoBoolean2(B_AXIS_KEY + "."
+      + ADJUST_ORIGIN_KEY);
   private final EtomoNumber postProcTrimVolInputNColumns = new EtomoNumber(
       DialogType.POST_PROCESSING.getStorableName() + ".TrimVol.Input.NColumns");
   private final EtomoNumber postProcTrimVolInputNRows = new EtomoNumber(
       DialogType.POST_PROCESSING.getStorableName() + ".TrimVol.Input.NRows");
   private final EtomoNumber postProcTrimVolInputNSections = new EtomoNumber(
       DialogType.POST_PROCESSING.getStorableName() + ".TrimVol.Input.NSections");
-  private final EtomoBoolean2 stackUseLinearInterpolationA = new EtomoBoolean2(
-      STACK_KEY + "." + A_AXIS_KEY + ".UseLinearInterpolation");
-  private final EtomoBoolean2 stackUseLinearInterpolationB = new EtomoBoolean2(
-      STACK_KEY + "." + B_AXIS_KEY + ".UseLinearInterpolation");
+  private final EtomoBoolean2 stackUseLinearInterpolationA = new EtomoBoolean2(STACK_KEY
+      + "." + A_AXIS_KEY + ".UseLinearInterpolation");
+  private final EtomoBoolean2 stackUseLinearInterpolationB = new EtomoBoolean2(STACK_KEY
+      + "." + B_AXIS_KEY + ".UseLinearInterpolation");
   private final StringProperty stackUserSizeToOutputInXandYA = new StringProperty(
       STACK_KEY + "." + A_AXIS_KEY + ".SizeToOutputInXandY");
   private final StringProperty stackUserSizeToOutputInXandYB = new StringProperty(
       STACK_KEY + "." + B_AXIS_KEY + ".SizeToOutputInXandY");
-  private final EtomoNumber stackImageRotationA = new EtomoNumber(STACK_KEY
-      + "." + A_AXIS_KEY + ".ImageRotation");
-  private final EtomoNumber stackImageRotationB = new EtomoNumber(STACK_KEY
-      + "." + B_AXIS_KEY + ".ImageRotation");
-  private final EtomoNumber trackLightBeadsA = new EtomoNumber(
-      "Track.A.LightBeads");
-  private final EtomoNumber trackLightBeadsB = new EtomoNumber(
-      "Track.B.LightBeads");
+  private final EtomoNumber stackImageRotationA = new EtomoNumber(STACK_KEY + "."
+      + A_AXIS_KEY + ".ImageRotation");
+  private final EtomoNumber stackImageRotationB = new EtomoNumber(STACK_KEY + "."
+      + B_AXIS_KEY + ".ImageRotation");
+  private final EtomoNumber trackLightBeadsA = new EtomoNumber("Track.A.LightBeads");
+  private final EtomoNumber trackLightBeadsB = new EtomoNumber("Track.B.LightBeads");
   private final EtomoBoolean2 stackUsingNewstOrBlend3dFindOutputA = new EtomoBoolean2(
       "Track.A.UsingNewstOrBlend3dFindOutput");
   private final EtomoBoolean2 stackUsingNewstOrBlend3dFindOutputB = new EtomoBoolean2(
@@ -311,20 +301,20 @@ public class TomogramState extends BaseState {
       + ".A.UseFixedStack.Warning");
   private final EtomoBoolean2 useFixedStackWarningB = new EtomoBoolean2(PRE_KEY
       + ".B.UseFixedStack.Warning");
-  private final EtomoBoolean2 useRaptorResultWarningA = new EtomoBoolean2(
-      TRACK_KEY + ".A.UseRaptorResult.Warning");
-  private final EtomoBoolean2 useCtfCorrectionWarningA = new EtomoBoolean2(
-      STACK_KEY + ".A.UseCtfCorrection.Warning");
-  private final EtomoBoolean2 useCtfCorrectionWarningB = new EtomoBoolean2(
-      STACK_KEY + ".B.UseCtfCorrection.Warning");
-  private final EtomoBoolean2 useErasedStackWarningA = new EtomoBoolean2(
-      STACK_KEY + ".A.UseErasedStack.Warning");
-  private final EtomoBoolean2 useErasedStackWarningB = new EtomoBoolean2(
-      STACK_KEY + ".B.UseErasedStack.Warning");
-  private final EtomoBoolean2 useFilteredStackWarningA = new EtomoBoolean2(
-      STACK_KEY + ".A.UseFilteredStack.Warning");
-  private final EtomoBoolean2 useFilteredStackWarningB = new EtomoBoolean2(
-      STACK_KEY + ".B.UseFilteredStack.Warning");
+  private final EtomoBoolean2 useRaptorResultWarningA = new EtomoBoolean2(TRACK_KEY
+      + ".A.UseRaptorResult.Warning");
+  private final EtomoBoolean2 useCtfCorrectionWarningA = new EtomoBoolean2(STACK_KEY
+      + ".A.UseCtfCorrection.Warning");
+  private final EtomoBoolean2 useCtfCorrectionWarningB = new EtomoBoolean2(STACK_KEY
+      + ".B.UseCtfCorrection.Warning");
+  private final EtomoBoolean2 useErasedStackWarningA = new EtomoBoolean2(STACK_KEY
+      + ".A.UseErasedStack.Warning");
+  private final EtomoBoolean2 useErasedStackWarningB = new EtomoBoolean2(STACK_KEY
+      + ".B.UseErasedStack.Warning");
+  private final EtomoBoolean2 useFilteredStackWarningA = new EtomoBoolean2(STACK_KEY
+      + ".A.UseFilteredStack.Warning");
+  private final EtomoBoolean2 useFilteredStackWarningB = new EtomoBoolean2(STACK_KEY
+      + ".B.UseFilteredStack.Warning");
 
   public TomogramState(ApplicationManager manager) {
     this.manager = manager;
@@ -421,15 +411,15 @@ public class TomogramState extends BaseState {
     useErasedStackWarningB.store(props, prepend);
     useFilteredStackWarningA.store(props, prepend);
     useFilteredStackWarningB.store(props, prepend);
-    
+
     //backwards compatibility
     props.remove(COMBINE_MATCH_MODE_BACK_KEY);
     if (combineMatchMode == null) {
       props.remove(prepend + "." + COMBINE_MATCH_MODE_KEY);
     }
     else {
-      props.setProperty(prepend + "." + COMBINE_MATCH_MODE_KEY,
-          combineMatchMode.toString());
+      props.setProperty(prepend + "." + COMBINE_MATCH_MODE_KEY, combineMatchMode
+          .toString());
     }
     //backwards compatibility
     props.remove(COMBINE_SCRIPTS_CREATED_BACK_KEY);
@@ -576,11 +566,10 @@ public class TomogramState extends BaseState {
         + COMBINE_MATCH_MODE_KEY));
     //backwards compatibility
     if (combineMatchMode == null) {
-      String backCombineMatchMode = props
-          .getProperty(COMBINE_MATCH_MODE_BACK_KEY);
+      String backCombineMatchMode = props.getProperty(COMBINE_MATCH_MODE_BACK_KEY);
       if (backCombineMatchMode != null) {
-        combineMatchMode = MatchMode.getInstance(Boolean.valueOf(
-            backCombineMatchMode).booleanValue());
+        combineMatchMode = MatchMode.getInstance(Boolean.valueOf(backCombineMatchMode)
+            .booleanValue());
       }
     }
     combineScriptsCreated.load(props, prepend);
@@ -592,11 +581,11 @@ public class TomogramState extends BaseState {
         combineScriptsCreated.set(backCombineScriptsCreated);
       }
     }
-    sampleFiducialessA = EtomoBoolean2.getInstance(sampleFiducialessA,
-        firstAxisGroup + SAMPLE_FIDUCIALESS_KEY, props, prepend);
+    sampleFiducialessA = EtomoBoolean2.getInstance(sampleFiducialessA, firstAxisGroup
+        + SAMPLE_FIDUCIALESS_KEY, props, prepend);
     if (secondAxisGroup != null) {
-      sampleFiducialessB = EtomoBoolean2.getInstance(sampleFiducialessB,
-          secondAxisGroup + SAMPLE_FIDUCIALESS_KEY, props, prepend);
+      sampleFiducialessB = EtomoBoolean2.getInstance(sampleFiducialessB, secondAxisGroup
+          + SAMPLE_FIDUCIALESS_KEY, props, prepend);
     }
   }
 
@@ -743,6 +732,7 @@ public class TomogramState extends BaseState {
       useErasedStackWarningA.set(input);
     }
   }
+
   public void setUseFilteredStackWarning(AxisID axisID, boolean input) {
     if (axisID == AxisID.SECOND) {
       useFilteredStackWarningB.set(input);
@@ -751,6 +741,7 @@ public class TomogramState extends BaseState {
       useFilteredStackWarningA.set(input);
     }
   }
+
   public void setUseRaptorResultWarning(boolean input) {
     useRaptorResultWarningA.set(input);
   }
@@ -822,12 +813,14 @@ public class TomogramState extends BaseState {
     }
     return useErasedStackWarningA.is();
   }
+
   public boolean isUseFilteredStackWarning(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return useFilteredStackWarningB.is();
     }
     return useFilteredStackWarningA.is();
   }
+
   public boolean isUseRaptorResultWarning() {
     return useRaptorResultWarningA.is();
   }
@@ -915,12 +908,12 @@ public class TomogramState extends BaseState {
 
   public void setSampleFiducialess(AxisID axisID, boolean sampleFiducialess) {
     if (axisID == AxisID.SECOND) {
-      sampleFiducialessB = EtomoBoolean2.getInstance(sampleFiducialessB,
-          secondAxisGroup + SAMPLE_FIDUCIALESS_KEY, sampleFiducialess);
+      sampleFiducialessB = EtomoBoolean2.getInstance(sampleFiducialessB, secondAxisGroup
+          + SAMPLE_FIDUCIALESS_KEY, sampleFiducialess);
     }
     else {
-      sampleFiducialessA = EtomoBoolean2.getInstance(sampleFiducialessA,
-          firstAxisGroup + SAMPLE_FIDUCIALESS_KEY, sampleFiducialess);
+      sampleFiducialessA = EtomoBoolean2.getInstance(sampleFiducialessA, firstAxisGroup
+          + SAMPLE_FIDUCIALESS_KEY, sampleFiducialess);
     }
   }
 
@@ -1145,8 +1138,8 @@ public class TomogramState extends BaseState {
     if (!trimvolFile.exists()) {
       return false;
     }
-    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        trimvolFile.getAbsolutePath(), AxisID.ONLY);
+    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(), trimvolFile
+        .getAbsolutePath(), AxisID.ONLY);
     try {
       if (!header.read(manager)) {
         return false;
@@ -1161,12 +1154,10 @@ public class TomogramState extends BaseState {
     }
     if (header.getNRows() < header.getNSections()) {
       System.err.println("Assuming that " + trimvolFile.getName()
-          + " has not been flipped\n"
-          + "because the Y is less then Z in the header.");
+          + " has not been flipped\n" + "because the Y is less then Z in the header.");
       return false;
     }
-    System.err.println("Assuming that " + trimvolFile.getName()
-        + " has been flipped\n"
+    System.err.println("Assuming that " + trimvolFile.getName() + " has been flipped\n"
         + "because the Y is greater or equal to Z in the header.");
     return true;
   }
@@ -1180,29 +1171,26 @@ public class TomogramState extends BaseState {
   public boolean getBackwardCompatibleUsedLocalAlignments(AxisID axisID) {
     String userDir = manager.getPropertyUserDir();
     String datasetName = manager.getName();
-    File localXfFile = new File(userDir, datasetName + axisID.getExtension()
-        + "local.xf");
-    File transformFile = new File(userDir, datasetName + axisID.getExtension()
-        + ".tltxf");
+    File localXfFile = new File(userDir, datasetName + axisID.getExtension() + "local.xf");
+    File transformFile = new File(userDir, datasetName + axisID.getExtension() + ".tltxf");
     if (!localXfFile.exists()) {
-      System.err.println("Assuming that local alignments where not used "
-          + "\nbecause " + localXfFile.getName() + " does not exist.");
+      System.err.println("Assuming that local alignments where not used " + "\nbecause "
+          + localXfFile.getName() + " does not exist.");
       return false;
     }
     if (!transformFile.exists()) {
-      System.err.println("Assuming that local alignments where not used "
-          + "\nbecause " + transformFile.getName() + " does not exist.");
+      System.err.println("Assuming that local alignments where not used " + "\nbecause "
+          + transformFile.getName() + " does not exist.");
       return false;
     }
     if (localXfFile.lastModified() < transformFile.lastModified()) {
-      System.err.println("Assuming that local alignments where not used "
-          + "\nbecause " + localXfFile.getName() + " was modified before "
-          + transformFile.getName() + ".");
+      System.err.println("Assuming that local alignments where not used " + "\nbecause "
+          + localXfFile.getName() + " was modified before " + transformFile.getName()
+          + ".");
       return false;
     }
-    System.err.println("Assuming that local alignments where used "
-        + "\nbecause " + localXfFile.getName() + " was modified after "
-        + transformFile.getName() + ".");
+    System.err.println("Assuming that local alignments where used " + "\nbecause "
+        + localXfFile.getName() + " was modified after " + transformFile.getName() + ".");
     return true;
   }
 
@@ -1216,10 +1204,9 @@ public class TomogramState extends BaseState {
     EtomoDirector etomoDirector = EtomoDirector.INSTANCE;
     String userDir = manager.getPropertyUserDir();
     String datasetName = manager.getName();
-    File zFactorFile = new File(userDir, TiltalignParam
-        .getOutputZFactorFileName(datasetName, axisID));
-    File tltxfFile = new File(userDir, datasetName + axisID.getExtension()
-        + ".tltxf");
+    File zFactorFile = new File(userDir, TiltalignParam.getOutputZFactorFileName(
+        datasetName, axisID));
+    File tltxfFile = new File(userDir, datasetName + axisID.getExtension() + ".tltxf");
     if (!zFactorFile.exists()) {
       System.err.println("Assuming that madeZFactors is false\n" + "because "
           + zFactorFile.getName() + " does not exist.");
@@ -1232,14 +1219,12 @@ public class TomogramState extends BaseState {
     }
     if (zFactorFile.lastModified() < tltxfFile.lastModified()) {
       System.err.println("Assuming that madeZFactors is false\n" + "because "
-          + zFactorFile.getName() + " is older then " + tltxfFile.getName()
-          + ".");
+          + zFactorFile.getName() + " is older then " + tltxfFile.getName() + ".");
 
       return false;
     }
     System.err.println("Assuming that madeZFactors is true\n" + "because "
-        + zFactorFile.getName() + " was modified after " + tltxfFile.getName()
-        + ".");
+        + zFactorFile.getName() + " was modified after " + tltxfFile.getName() + ".");
     return true;
   }
 

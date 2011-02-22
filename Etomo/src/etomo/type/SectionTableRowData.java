@@ -32,6 +32,9 @@ import etomo.util.MRCHeader;
  * </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2010/11/13 16:06:53  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.19  2010/02/17 04:52:36  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -205,8 +208,7 @@ public class SectionTableRowData extends ConstSectionTableRowData {
    * convert stored version to current version
    * @param storedVersion
    */
-  private final void convertVersion(String storedVersion, Properties props,
-      String prepend) {
+  private final void convertVersion(String storedVersion, Properties props, String prepend) {
     if (storedVersion == null) {
       //convert from version 1.0 to 1.1
       if (setupFinalStart.equals(EtomoNumber.INTEGER_NULL_VALUE)) {
@@ -229,8 +231,7 @@ public class SectionTableRowData extends ConstSectionTableRowData {
    * Assumes setupSection is set.
    */
   public final void synchronizeSetupToJoin() {
-    File rotatedSection = DatasetFiles
-        .getRotatedTomogram(manager, setupSection);
+    File rotatedSection = DatasetFiles.getRotatedTomogram(manager, setupSection);
     if (rotatedSection.exists()
         && (!rotationAngleX.isNull() || !rotationAngleY.isNull() || !rotationAngleZ
             .isNull())) {
@@ -321,8 +322,7 @@ public class SectionTableRowData extends ConstSectionTableRowData {
    * @return converted z
    */
   private final long convertToRotatedZ(ConstEtomoNumber z) {
-    double cosXY = Math
-        .cos(Math.toRadians(rotationAngleX.getDefaultedDouble()))
+    double cosXY = Math.cos(Math.toRadians(rotationAngleX.getDefaultedDouble()))
         * Math.cos(Math.toRadians(rotationAngleY.getDefaultedDouble()));
     if (Math.abs(cosXY) <= COS_X_Y_THRESHOLD) {
       return z.getLong();
@@ -332,8 +332,7 @@ public class SectionTableRowData extends ConstSectionTableRowData {
     double zSizeRotated = joinZMax;
     //System.out.println("z=" + z + ",cosXY=" + cosXY + ",zSlice=" + zSlice
     //    + ",zSize=" + zSize + ",zSizeRotated=" + zSizeRotated);
-    double convertedZ = cosXY * (zSlice - (zSize + 1.) / 2.)
-        + (zSizeRotated + 1.) / 2.;
+    double convertedZ = cosXY * (zSlice - (zSize + 1.) / 2.) + (zSizeRotated + 1.) / 2.;
     //System.out.println("convertedZ=" + convertedZ);
     return Math.round(convertedZ);
   }
@@ -352,8 +351,7 @@ public class SectionTableRowData extends ConstSectionTableRowData {
    * @return converted z
    */
   private final long convertFromRotatedZ(ConstEtomoNumber z) {
-    double cosXY = Math
-        .cos(Math.toRadians(rotationAngleX.getDefaultedDouble()))
+    double cosXY = Math.cos(Math.toRadians(rotationAngleX.getDefaultedDouble()))
         * Math.cos(Math.toRadians(rotationAngleY.getDefaultedDouble()));
     if (Math.abs(cosXY) <= COS_X_Y_THRESHOLD) {
       return z.getLong();
@@ -363,8 +361,7 @@ public class SectionTableRowData extends ConstSectionTableRowData {
     double zSizeRotated = joinZMax;
     //System.out.println("z=" + z + ",cosXY=" + cosXY + ",zSlice=" + zSlice
     //    + ",zSize=" + zSize + ",zSizeRotated=" + zSizeRotated);
-    double convertedZ = (zSlice - (zSizeRotated + 1.) / 2.) / cosXY
-        + (zSize + 1.) / 2.;
+    double convertedZ = (zSlice - (zSizeRotated + 1.) / 2.) / cosXY + (zSize + 1.) / 2.;
     //System.out.println("convertedZ=" + convertedZ);
     return Math.round(convertedZ);
   }
@@ -444,27 +441,25 @@ public class SectionTableRowData extends ConstSectionTableRowData {
    * @return
    */
   private final MRCHeader readHeader(String path) {
-    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        path, AxisID.ONLY);
+    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(), path,
+        AxisID.ONLY);
     try {
       if (!header.read(manager)) {
-        UIHarness.INSTANCE.openMessageDialog(manager,
-            "Unable to read the header in" + path, "Setting Max Values Failed");
+        UIHarness.INSTANCE.openMessageDialog(manager, "Unable to read the header in"
+            + path, "Setting Max Values Failed");
         return null;
       }
     }
     catch (InvalidParameterException e) {
       e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog(manager,
-          "Unable to read the header in" + path
-              + ".\nInvalidParameterException:  " + e.getMessage(),
+      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to read the header in" + path
+          + ".\nInvalidParameterException:  " + e.getMessage(),
           "Setting Max Values Failed");
       return null;
     }
     catch (IOException e) {
-      UIHarness.INSTANCE.openMessageDialog(manager,
-          "Unable to read the header in" + path + ".\nIOException:  "
-              + e.getMessage(), "Setting Max Values Failed");
+      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to read the header in" + path
+          + ".\nIOException:  " + e.getMessage(), "Setting Max Values Failed");
       return null;
     }
     return header;

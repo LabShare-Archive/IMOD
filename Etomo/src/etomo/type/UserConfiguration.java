@@ -20,6 +20,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2010/11/13 16:06:53  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.13  2010/06/02 21:44:48  sueh
  * <p> bug# 1380 Added lastLocationX and Y.
  * <p>
@@ -101,8 +104,8 @@ public final class UserConfiguration implements Storable {
   private static final String TILT_ANGLES_RAWTLT_FILE_KEY = DEFAULTS_KEY
       + ".TiltAnglesRawtltFile";
 
-  private EtomoVersion revisionNumber = EtomoVersion.getInstance(
-      "RevisionNumber", CURRENT_REVISION_NUMBER);
+  private EtomoVersion revisionNumber = EtomoVersion.getInstance("RevisionNumber",
+      CURRENT_REVISION_NUMBER);
   private boolean nativeLookAndFeel = false;
   private boolean advancedDialogs = false;
   private boolean compactDisplay = false;
@@ -117,8 +120,7 @@ public final class UserConfiguration implements Storable {
   private boolean autoFit = false;
   private final EtomoBoolean2 gpuProcessing = new EtomoBoolean2("GpuProcessing");
   private final EtomoNumber cpus = new EtomoNumber("Cpus");
-  private final EtomoNumber parallelTableSize = new EtomoNumber(
-      "ParallelTableSize");
+  private final EtomoNumber parallelTableSize = new EtomoNumber("ParallelTableSize");
   private final EtomoNumber joinTableSize = new EtomoNumber("JoinTableSize");
   private final EtomoNumber peetTableSize = new EtomoNumber("PeetTableSize");
   private ConstLogProperties logProperties = new LogProperties();
@@ -149,11 +151,10 @@ public final class UserConfiguration implements Storable {
   protected String paramString() {
     return "\n,revisionNumber=" + revisionNumber + ",\nnativeLookAndFeel="
         + nativeLookAndFeel + ",\nadvancedDialogs=" + advancedDialogs
-        + ",\ntoolTipsInitialDelay=" + toolTipsInitialDelay
-        + ",\ntoolTipsDismissDelay=" + toolTipsDismissDelay + ",\nnMRUFiles="
-        + nMRUFiles + ",\nMRUFileList=" + MRUFileList.toString()
-        + ",\nfontFamily=" + fontFamily + ",\nfontSize=" + fontSize
-        + ",\nmainWindowWidth=" + mainWindowWidth + ",\nmainWindowHeight="
+        + ",\ntoolTipsInitialDelay=" + toolTipsInitialDelay + ",\ntoolTipsDismissDelay="
+        + toolTipsDismissDelay + ",\nnMRUFiles=" + nMRUFiles + ",\nMRUFileList="
+        + MRUFileList.toString() + ",\nfontFamily=" + fontFamily + ",\nfontSize="
+        + fontSize + ",\nmainWindowWidth=" + mainWindowWidth + ",\nmainWindowHeight="
         + mainWindowHeight + ",\nautoFit=" + autoFit;
   }
 
@@ -172,12 +173,9 @@ public final class UserConfiguration implements Storable {
     revisionNumber.set(CURRENT_REVISION_NUMBER);
     revisionNumber.store(props, origPrepend);
     //props.setProperty(group + "RevisionNumber", revisionNumber);
-    props.setProperty(group + "NativeLookAndFeel", String
-        .valueOf(nativeLookAndFeel));
-    props.setProperty(group + "AdvancedDialogs", String
-        .valueOf(advancedDialogs));
-    props.setProperty(group + COMPACT_DISPLAY_KEY, String
-        .valueOf(compactDisplay));
+    props.setProperty(group + "NativeLookAndFeel", String.valueOf(nativeLookAndFeel));
+    props.setProperty(group + "AdvancedDialogs", String.valueOf(advancedDialogs));
+    props.setProperty(group + COMPACT_DISPLAY_KEY, String.valueOf(compactDisplay));
     props.setProperty(group + "ToolTipsInitialDelay", String
         .valueOf(toolTipsInitialDelay));
     props.setProperty(group + "ToolTipsDismissDelay", String
@@ -186,13 +184,11 @@ public final class UserConfiguration implements Storable {
     props.setProperty(group + "FontSize", String.valueOf(fontSize));
     EtomoBoolean2.store(singleAxis, props, prepend, SINGLE_AXIS_KEY);
     EtomoBoolean2.store(montage, props, prepend, MONTAGE_KEY);
-    EtomoBoolean2.store(noParallelProcessing, props, prepend,
-        NO_PARALLEL_PROCESSING_KEY);
-    EtomoBoolean2.store(tiltAnglesRawtltFile, props, prepend,
-        TILT_ANGLES_RAWTLT_FILE_KEY);
+    EtomoBoolean2.store(noParallelProcessing, props, prepend, NO_PARALLEL_PROCESSING_KEY);
+    EtomoBoolean2
+        .store(tiltAnglesRawtltFile, props, prepend, TILT_ANGLES_RAWTLT_FILE_KEY);
     EtomoBoolean2.store(swapYAndZ, props, prepend, SWAP_Y_AND_Z_KEY);
-    EtomoBoolean2.store(parallelProcessing, props, prepend,
-        PARALLEL_PROCESSING_KEY);
+    EtomoBoolean2.store(parallelProcessing, props, prepend, PARALLEL_PROCESSING_KEY);
     gpuProcessing.store(props, prepend);
     cpus.store(props, prepend);
     parallelTableSize.store(props, prepend);
@@ -204,15 +200,13 @@ public final class UserConfiguration implements Storable {
     lastLocationX.store(props, prepend);
     lastLocationY.store(props, prepend);
 
-    props.setProperty(group + "MainWindowWidth", String
-        .valueOf(mainWindowWidth));
-    props.setProperty(group + "MainWindowHeight", String
-        .valueOf(mainWindowHeight));
+    props.setProperty(group + "MainWindowWidth", String.valueOf(mainWindowWidth));
+    props.setProperty(group + "MainWindowHeight", String.valueOf(mainWindowHeight));
 
     props.setProperty(group + "NMRUFiles", String.valueOf(nMRUFiles));
     for (int i = 0; i < nMRUFiles; i++) {
-      props.setProperty(group + "EtomoDataFile" + String.valueOf(i),
-          (String) MRUFileList.get());
+      props.setProperty(group + "EtomoDataFile" + String.valueOf(i), (String) MRUFileList
+          .get());
     }
 
     props.setProperty(group + "AutoFit", String.valueOf(autoFit));
@@ -254,11 +248,10 @@ public final class UserConfiguration implements Storable {
     //  Get the user configuration data from the Properties object
     //
     revisionNumber.load(props, origPrepend);
-    parallelProcessing = EtomoBoolean2.load(parallelProcessing,
-        PARALLEL_PROCESSING_KEY, props, prepend);
+    parallelProcessing = EtomoBoolean2.load(parallelProcessing, PARALLEL_PROCESSING_KEY,
+        props, prepend);
     montage = EtomoBoolean2.load(montage, MONTAGE_KEY, props, prepend);
-    singleAxis = EtomoBoolean2
-        .load(singleAxis, SINGLE_AXIS_KEY, props, prepend);
+    singleAxis = EtomoBoolean2.load(singleAxis, SINGLE_AXIS_KEY, props, prepend);
     noParallelProcessing = EtomoBoolean2.load(noParallelProcessing,
         NO_PARALLEL_PROCESSING_KEY, props, prepend);
     parallelTableSize.load(props, prepend);
@@ -281,8 +274,7 @@ public final class UserConfiguration implements Storable {
         montage = EtomoBoolean2.load(montage, MONTAGE_KEY, props, ".");
       }
       if (singleAxis == null) {
-        singleAxis = EtomoBoolean2
-            .load(singleAxis, SINGLE_AXIS_KEY, props, ".");
+        singleAxis = EtomoBoolean2.load(singleAxis, SINGLE_AXIS_KEY, props, ".");
       }
       if (noParallelProcessing == null) {
         noParallelProcessing = EtomoBoolean2.load(noParallelProcessing,
@@ -322,16 +314,15 @@ public final class UserConfiguration implements Storable {
     fontFamily = props.getProperty(group + "FontFamily", "Dialog");
     fontSize = Integer.parseInt(props.getProperty(group + "FontSize", "12"));
 
-    mainWindowWidth = Integer.parseInt(props.getProperty(group
-        + "MainWindowWidth", "800"));
-    mainWindowHeight = Integer.parseInt(props.getProperty(group
-        + "MainWindowHeight", "600"));
+    mainWindowWidth = Integer.parseInt(props
+        .getProperty(group + "MainWindowWidth", "800"));
+    mainWindowHeight = Integer.parseInt(props.getProperty(group + "MainWindowHeight",
+        "600"));
 
     nMRUFiles = Integer.parseInt(props.getProperty(group + "NMRUFiles", "10"));
     MRUFileList = new CircularBuffer(nMRUFiles);
     for (int i = nMRUFiles - 1; i >= 0; i--) {
-      MRUFileList.put(props
-          .getProperty("EtomoDataFile" + String.valueOf(i), ""));
+      MRUFileList.put(props.getProperty("EtomoDataFile" + String.valueOf(i), ""));
     }
     autoFit = Boolean.valueOf(props.getProperty(group + "AutoFit", "false"))
         .booleanValue();

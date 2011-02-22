@@ -31,6 +31,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.25  2010/11/13 16:06:53  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.24  2010/05/20 23:51:30  sueh
  * <p> bug# 1368 Added setDefault(boolean).
  * <p>
@@ -136,19 +139,16 @@ public final class ParsedNumber extends ParsedElement {
   private EtomoNumber defaultValue = null;
   private boolean debug = false;
 
-  private ParsedNumber(ParsedElementType type,
-      EtomoNumber.Type etomoNumberType, boolean debug, EtomoNumber defaultValue) {
+  private ParsedNumber(ParsedElementType type, EtomoNumber.Type etomoNumberType,
+      boolean debug, EtomoNumber defaultValue) {
     this.etomoNumberType = etomoNumberType;
     this.type = type;
     rawNumber = new EtomoNumber(etomoNumberType);
     rawNumber.setDefault(defaultValue);
     NON_ELEMENT_SYMBOLS = new StringBuffer(ParsedList.OPEN_SYMBOL.toString()
-        + ParsedList.CLOSE_SYMBOL.toString()
-        + ParsedArray.OPEN_SYMBOL.toString()
-        + ParsedArray.CLOSE_SYMBOL.toString()
-        + ParsedQuotedString.DELIMITER_SYMBOL
-        + ParsedList.DIVIDER_SYMBOL.toString()
-        + ParsedArray.DIVIDER_SYMBOL.toString()
+        + ParsedList.CLOSE_SYMBOL.toString() + ParsedArray.OPEN_SYMBOL.toString()
+        + ParsedArray.CLOSE_SYMBOL.toString() + ParsedQuotedString.DELIMITER_SYMBOL
+        + ParsedList.DIVIDER_SYMBOL.toString() + ParsedArray.DIVIDER_SYMBOL.toString()
         + ParsedDescriptor.getDividerSymbol(type).toString());
     setDebug(debug);
   }
@@ -158,8 +158,7 @@ public final class ParsedNumber extends ParsedElement {
   }
 
   public static ParsedNumber getMatlabInstance(EtomoNumber.Type etomoNumberType) {
-    return new ParsedNumber(ParsedElementType.MATLAB_NUMBER, etomoNumberType,
-        false, null);
+    return new ParsedNumber(ParsedElementType.MATLAB_NUMBER, etomoNumberType, false, null);
   }
 
   static ParsedNumber getInstance(ParsedElementType type,
@@ -309,8 +308,7 @@ public final class ParsedNumber extends ParsedElement {
     if (fieldDescription != null) {
       String errorMessage = rawNumber.validate(fieldDescription);
       if (errorMessage != null) {
-        UIHarness.INSTANCE.openMessageDialog(manager, errorMessage,
-            "Entry Error");
+        UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, "Entry Error");
       }
     }
   }
@@ -353,8 +351,7 @@ public final class ParsedNumber extends ParsedElement {
   }
 
   boolean le(ParsedNumber element) {
-    return rawNumber.lt(element.rawNumber)
-        || rawNumber.equals(element.rawNumber);
+    return rawNumber.lt(element.rawNumber) || rawNumber.equals(element.rawNumber);
   }
 
   boolean lt(ParsedNumber element) {
@@ -370,8 +367,7 @@ public final class ParsedNumber extends ParsedElement {
   }
 
   boolean ge(ParsedNumber element) {
-    return rawNumber.gt(element.rawNumber)
-        || rawNumber.equals(element.rawNumber);
+    return rawNumber.gt(element.rawNumber) || rawNumber.equals(element.rawNumber);
   }
 
   boolean gt(ParsedNumber element) {
@@ -389,7 +385,7 @@ public final class ParsedNumber extends ParsedElement {
   public void setDefault(int input) {
     rawNumber.setDefault(input);
   }
-  
+
   public void setDefault(boolean input) {
     rawNumber.setDefault(input);
   }
@@ -417,8 +413,8 @@ public final class ParsedNumber extends ParsedElement {
   ParsedElementList getParsedNumberExpandedArray(
       ParsedElementList parsedNumberExpandedArray) {
     if (parsedNumberExpandedArray == null) {
-      parsedNumberExpandedArray = new ParsedElementList(type, etomoNumberType,
-          debug, defaultValue);
+      parsedNumberExpandedArray = new ParsedElementList(type, etomoNumberType, debug,
+          defaultValue);
     }
     if (rawNumber.isNull()) {
       return parsedNumberExpandedArray;
@@ -448,13 +444,12 @@ public final class ParsedNumber extends ParsedElement {
         }
         //If the number is not in an array, it may still have delimiters
         //(either [] or '').  Find opening delimiter.
-        if (token
-            .equals(Token.Type.SYMBOL, ParsedArray.OPEN_SYMBOL.charValue())) {
+        if (token.equals(Token.Type.SYMBOL, ParsedArray.OPEN_SYMBOL.charValue())) {
           closeSymbol = ParsedArray.CLOSE_SYMBOL;
           token = tokenizer.next();
         }
-        else if (token.equals(Token.Type.SYMBOL,
-            ParsedQuotedString.DELIMITER_SYMBOL.charValue())) {
+        else if (token.equals(Token.Type.SYMBOL, ParsedQuotedString.DELIMITER_SYMBOL
+            .charValue())) {
           closeSymbol = ParsedQuotedString.DELIMITER_SYMBOL;
           token = tokenizer.next();
         }
@@ -476,8 +471,7 @@ public final class ParsedNumber extends ParsedElement {
           token = tokenizer.next();
         }
         if (token == null) {
-          fail("End of value.  Closing delimiter, " + closeSymbol
-              + ", was not found.");
+          fail("End of value.  Closing delimiter, " + closeSymbol + ", was not found.");
           return token;
         }
         //If the number is not in an array, it may have delimiters
@@ -510,8 +504,8 @@ public final class ParsedNumber extends ParsedElement {
         && !token.is(Token.Type.WHITESPACE)
         && !token.is(Token.Type.EOL)
         && !token.is(Token.Type.EOF)
-        && (!token.is(Token.Type.SYMBOL) || NON_ELEMENT_SYMBOLS.toString()
-            .indexOf(token.getChar()) == -1)) {
+        && (!token.is(Token.Type.SYMBOL) || NON_ELEMENT_SYMBOLS.toString().indexOf(
+            token.getChar()) == -1)) {
       //build the number
       buffer.append(token.getValue());
       if (debug) {

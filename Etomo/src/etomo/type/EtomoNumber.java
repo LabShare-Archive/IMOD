@@ -18,6 +18,9 @@ import etomo.comscript.FortranInputString;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.24  2010/03/09 01:41:00  sueh
+ * <p> bug# 1323 In load(Properties,String) handling a prepend which ends with ".".
+ * <p>
  * <p> Revision 1.23  2009/09/22 21:01:36  sueh
  * <p> bug# 1259 Commented multiply.
  * <p>
@@ -206,16 +209,16 @@ public class EtomoNumber extends ConstEtomoNumber {
   }
 
   public boolean isKeyPresent(Properties props, String prepend) {
-    if (props.getProperty(prepend == null || prepend.matches("\\s*") ? name
-        : prepend + "." + name) == null) {
+    if (props.getProperty(prepend == null || prepend.matches("\\s*") ? name : prepend
+        + "." + name) == null) {
       return false;
     }
     return true;
   }
 
   public boolean loadIfPresent(Properties props, String prepend) {
-    if (props.getProperty(prepend == null || prepend.matches("\\s*") ? name
-        : prepend + "." + name) == null) {
+    if (props.getProperty(prepend == null || prepend.matches("\\s*") ? name : prepend
+        + "." + name) == null) {
       return false;
     }
     load(props, prepend);
@@ -235,9 +238,8 @@ public class EtomoNumber extends ConstEtomoNumber {
    */
   public static EtomoNumber load(EtomoNumber instance, Type type, String name,
       Properties props, String prepend) {
-    String value = props
-        .getProperty(prepend == null || prepend.matches("\\s*") ? name
-            : prepend + "." + name);
+    String value = props.getProperty(prepend == null || prepend.matches("\\s*") ? name
+        : prepend + "." + name);
     if (value == null) {
       return null;
     }
@@ -258,11 +260,10 @@ public class EtomoNumber extends ConstEtomoNumber {
    * @param prepend
    * @return etomoNumber
    */
-  public static EtomoNumber load(EtomoNumber instance, String name,
-      Properties props, String prepend) {
-    String value = props
-        .getProperty(prepend == null || prepend.matches("\\s*") ? name
-            : prepend + "." + name);
+  public static EtomoNumber load(EtomoNumber instance, String name, Properties props,
+      String prepend) {
+    String value = props.getProperty(prepend == null || prepend.matches("\\s*") ? name
+        : prepend + "." + name);
     if (value == null) {
       return null;
     }
@@ -384,8 +385,7 @@ public class EtomoNumber extends ConstEtomoNumber {
   }
 
   public EtomoNumber set(FortranInputString fortranInputString, int index) {
-    if (fortranInputString.isEmpty(index)
-        || fortranInputString.isDefault(index)) {
+    if (fortranInputString.isEmpty(index) || fortranInputString.isDefault(index)) {
       return set(newNumber());
     }
     if (fortranInputString.isIntegerType(index)) {

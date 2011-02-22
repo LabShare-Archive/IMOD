@@ -239,8 +239,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertEquals(test.getInvalidReason().length(), 0);
     test.set(0);
     assertFalse(test.isValid());
-    assertTrue(test.getInvalidReason().indexOf(
-        "Valid values are greater or equal to") != -1);
+    assertTrue(test.getInvalidReason().indexOf("Valid values are greater or equal to") != -1);
     test.set(2);
     assertTrue(test.isValid());
     assertEquals(test.getInvalidReason().length(), 0);
@@ -254,14 +253,12 @@ public final class ConstEtomoNumberTest extends TestCase {
     EtomoNumber test = new EtomoNumber();
     test.setCeiling(ceilingValue);
     //test (value < ceiling) => value
-    assertEquals(test.applyCeilingValue(new Integer(lowValue)).intValue(),
-        lowValue);
+    assertEquals(test.applyCeilingValue(new Integer(lowValue)).intValue(), lowValue);
     //test (value == ceiling) => value
     assertEquals(test.applyCeilingValue(new Integer(ceilingValue)).intValue(),
         ceilingValue);
     //test (value > ceiling) => ceiling
-    assertEquals(test.applyCeilingValue(new Integer(highValue)).intValue(),
-        ceilingValue);
+    assertEquals(test.applyCeilingValue(new Integer(highValue)).intValue(), ceilingValue);
     test.internalTest();
   }
 
@@ -272,14 +269,11 @@ public final class ConstEtomoNumberTest extends TestCase {
     EtomoNumber test = new EtomoNumber();
     test.setFloor(floorValue);
     //test (value > floor) => value
-    assertEquals(test.applyFloorValue(new Integer(highValue)).intValue(),
-        highValue);
+    assertEquals(test.applyFloorValue(new Integer(highValue)).intValue(), highValue);
     //test (value == floor) => value
-    assertEquals(test.applyFloorValue(new Integer(floorValue)).intValue(),
-        floorValue);
+    assertEquals(test.applyFloorValue(new Integer(floorValue)).intValue(), floorValue);
     //test (value < floor) => floor
-    assertEquals(test.applyFloorValue(new Integer(lowValue)).intValue(),
-        floorValue);
+    assertEquals(test.applyFloorValue(new Integer(lowValue)).intValue(), floorValue);
     test.internalTest();
   }
 
@@ -495,14 +489,11 @@ public final class ConstEtomoNumberTest extends TestCase {
     EtomoNumber test = new EtomoNumber();
     test.setFloor(floorValue);
     //test (value > floor) => value
-    assertEquals(test.applyFloorValue(new Integer(highValue)).intValue(),
-        highValue);
+    assertEquals(test.applyFloorValue(new Integer(highValue)).intValue(), highValue);
     //test (value == floor) => floor
-    assertEquals(test.applyFloorValue(new Integer(floorValue)).intValue(),
-        floorValue);
+    assertEquals(test.applyFloorValue(new Integer(floorValue)).intValue(), floorValue);
     //test (value < floor) => floor
-    assertEquals(test.applyFloorValue(new Integer(lowValue)).intValue(),
-        floorValue);
+    assertEquals(test.applyFloorValue(new Integer(lowValue)).intValue(), floorValue);
     test.internalTest();
   }
 
@@ -548,8 +539,7 @@ public final class ConstEtomoNumberTest extends TestCase {
   public final void testSetValidValues_intArray() {
     int validNumber = 3;
     EtomoNumber test = new EtomoNumber();
-    test.setValidValues(new int[] { 1, EtomoNumber.INTEGER_NULL_VALUE,
-        validNumber, 5 });
+    test.setValidValues(new int[] { 1, EtomoNumber.INTEGER_NULL_VALUE, validNumber, 5 });
     //test nulls are ignored in valid value
     assertTrue(test.isValid());
     //test valid value
@@ -578,8 +568,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     //test: no IOException thrown on save
     properties.save(test);
     //test: write parameter to file
-    BufferedReader logFileReader = new BufferedReader(new FileReader(
-        propertiesFile));
+    BufferedReader logFileReader = new BufferedReader(new FileReader(propertiesFile));
     String line;
     while ((line = logFileReader.readLine()) != null) {
       if (line.trim().equals(name + "=" + smallInteger)) {
@@ -851,8 +840,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     //test: add to existing message
     test.addInvalidReason(msg2);
     String invalidReason = test.getInvalidReason();
-    assertTrue(invalidReason.indexOf(msg1) != -1
-        && invalidReason.indexOf(msg2) != -1);
+    assertTrue(invalidReason.indexOf(msg1) != -1 && invalidReason.indexOf(msg2) != -1);
     test.internalTest();
   }
 
@@ -1098,8 +1086,7 @@ public final class ConstEtomoNumberTest extends TestCase {
         "IsNull() should return true after the NULL_VALUE for the current Type is set.",
         test.isNull());
     test.set(1);
-    assertFalse(
-        "IsNull() should return false after a non-null number has been set.",
+    assertFalse("IsNull() should return false after a non-null number has been set.",
         test.isNull());
     test.reset();
     assertTrue(
@@ -1138,8 +1125,8 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertFalse(test.gt(new Integer(smallInteger), new Integer(bigInteger)));
     test.internalTest();
     test = new EtomoNumber(EtomoNumber.Type.FLOAT);
-    assertTrue("bigDouble is greater then smallFloat", test.gt(new Double(
-        bigDouble), new Float(smallFloat)));
+    assertTrue("bigDouble is greater then smallFloat", test.gt(new Double(bigDouble),
+        new Float(smallFloat)));
     ///test: gt() is equivalent to ">"
     assertTrue(test.gt(new Float(bigFloat), new Float(smallFloat)));
     assertFalse(test.gt(new Float(smallFloat), new Float(smallFloat)));
@@ -1196,10 +1183,10 @@ public final class ConstEtomoNumberTest extends TestCase {
     test.internalTest();
     //float
     test = new EtomoNumber(EtomoNumber.Type.FLOAT);
-    assertFalse("bigDouble is not less then smallFloat", test.lt(new Double(
-        bigDouble), new Float(smallFloat)));
-    assertFalse("bigFloat is not less then smallDouble", test.lt(new Float(
-        bigFloat), new Double(smallDouble)));
+    assertFalse("bigDouble is not less then smallFloat", test.lt(new Double(bigDouble),
+        new Float(smallFloat)));
+    assertFalse("bigFloat is not less then smallDouble", test.lt(new Float(bigFloat),
+        new Double(smallDouble)));
     ///test: lt() is equivalent to "<"
     assertFalse(test.lt(new Float(bigFloat), new Float(smallFloat)));
     assertFalse(test.lt(new Float(smallFloat), new Float(smallFloat)));
@@ -1251,15 +1238,14 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertTrue("DefaultValue is null when not set.",
         test.getDefaultedDouble() == EtomoNumber.INTEGER_NULL_VALUE);
     test.setDefault(EtomoNumber.INTEGER_NULL_VALUE);
-    assertTrue("Setting defaultValue to null is the same as not setting it.",
-        test.getDefaultedDouble() == EtomoNumber.INTEGER_NULL_VALUE);
+    assertTrue("Setting defaultValue to null is the same as not setting it.", test
+        .getDefaultedDouble() == EtomoNumber.INTEGER_NULL_VALUE);
     test.setDefault(defaultValue);
-    assertTrue("setDefault sets defaultValue.",
-        test.getDefaultedDouble() == defaultValue);
+    assertTrue("setDefault sets defaultValue.", test.getDefaultedDouble() == defaultValue);
     test.internalTest();
     test.setDefault(EtomoNumber.INTEGER_NULL_VALUE);
-    assertTrue("Setting defaultValue to null is the same as unsetting it.",
-        test.getDefaultedDouble() == EtomoNumber.INTEGER_NULL_VALUE);
+    assertTrue("Setting defaultValue to null is the same as unsetting it.", test
+        .getDefaultedDouble() == EtomoNumber.INTEGER_NULL_VALUE);
     test.internalTest();
   }
 
@@ -1273,10 +1259,10 @@ public final class ConstEtomoNumberTest extends TestCase {
     assertFalse("Null is not a valid value for defaultValue.", test
         .isDefault(new Integer(EtomoNumber.INTEGER_NULL_VALUE)));
     test.setDefault(defaultValue);
-    assertFalse("Should only return true when it matches the defaultValue.",
-        test.isDefault(new Integer(EtomoNumber.INTEGER_NULL_VALUE)));
-    assertFalse("Should only return true when it matches the defaultValue.",
-        test.isDefault(new Integer(2)));
+    assertFalse("Should only return true when it matches the defaultValue.", test
+        .isDefault(new Integer(EtomoNumber.INTEGER_NULL_VALUE)));
+    assertFalse("Should only return true when it matches the defaultValue.", test
+        .isDefault(new Integer(2)));
     assertTrue("Should return true when it matches the defaultValue.", test
         .isDefault(defaultNumber));
     test.internalTest();
@@ -1334,6 +1320,9 @@ public final class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.51  2010/04/28 16:23:27  sueh
+ * <p> bug# 1344 Removed unnecessary tearDown function.
+ * <p>
  * <p> Revision 1.50  2010/02/17 04:52:36  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.

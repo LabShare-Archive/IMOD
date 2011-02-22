@@ -28,6 +28,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2010/11/13 16:06:53  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.14  2008/09/10 21:33:07  sueh
  * <p> bug# 1135 Check for null when calling ParsedElementList.get(int).  Check
  * <p> for null when calling ParsedElement.getElement or getRawNumber.
@@ -239,8 +242,7 @@ public final class ParsedQuotedString extends ParsedElement {
       if (token.is(Token.Type.WHITESPACE)) {
         token = tokenizer.next();
       }
-      if (token == null
-          || !token.equals(Token.Type.SYMBOL, DELIMITER_SYMBOL.charValue())) {
+      if (token == null || !token.equals(Token.Type.SYMBOL, DELIMITER_SYMBOL.charValue())) {
         fail(DELIMITER_SYMBOL + " not found.");
         return token;
       }
@@ -250,8 +252,7 @@ public final class ParsedQuotedString extends ParsedElement {
       if (isFailed()) {
         return token;
       }
-      if (token == null
-          || !token.equals(Token.Type.SYMBOL, DELIMITER_SYMBOL.charValue())) {
+      if (token == null || !token.equals(Token.Type.SYMBOL, DELIMITER_SYMBOL.charValue())) {
         fail(DELIMITER_SYMBOL + " not found.");
         return token;
       }

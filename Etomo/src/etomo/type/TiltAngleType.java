@@ -13,6 +13,9 @@ package etomo.type;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.1  2003/03/20 17:28:39  rickg
  * <p> Comment update
  * <p>
@@ -27,8 +30,7 @@ package etomo.type;
  * <p> </p>
  */
 public class TiltAngleType {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   private final String name;
 
@@ -66,7 +68,7 @@ public class TiltAngleType {
     if (name.compareToIgnoreCase(LIST.toString()) == 0) {
       return LIST;
     }
-  
+
     //  TODO Don't return null throw an exception for bad arguments
     return null;
   }

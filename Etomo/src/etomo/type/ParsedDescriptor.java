@@ -19,6 +19,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2010/11/13 16:06:53  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.7  2009/09/05 00:32:23  sueh
  * <p> bug# 1256 Removed ParsedIteratorDescriptor.
  * <p>
@@ -69,8 +72,7 @@ abstract class ParsedDescriptor extends ParsedElement {
     this.type = type;
     this.etomoNumberType = etomoNumberType;
     this.defaultValue = defaultValue;
-    descriptor = new ParsedElementList(type, etomoNumberType, debug,
-        defaultValue);
+    descriptor = new ParsedElementList(type, etomoNumberType, debug, defaultValue);
     setDebug(debug);
   }
 
@@ -150,15 +152,10 @@ abstract class ParsedDescriptor extends ParsedElement {
       }
       boolean dividerFound = true;
       //loop until the end of the array descriptor.
-      while (dividerFound
-          && !isFailed()
-          && token != null
-          && !token.is(Token.Type.EOL)
+      while (dividerFound && !isFailed() && token != null && !token.is(Token.Type.EOL)
           && !token.is(Token.Type.EOF)
-          && !token.equals(Token.Type.SYMBOL, ParsedList.CLOSE_SYMBOL
-              .charValue())
-          && !token.equals(Token.Type.SYMBOL, ParsedArray.CLOSE_SYMBOL
-              .charValue())) {
+          && !token.equals(Token.Type.SYMBOL, ParsedList.CLOSE_SYMBOL.charValue())
+          && !token.equals(Token.Type.SYMBOL, ParsedArray.CLOSE_SYMBOL.charValue())) {
         //parse an element
         token = parseElement(token, tokenizer);
         if (isDebug()) {
@@ -176,7 +173,7 @@ abstract class ParsedDescriptor extends ParsedElement {
         //Don't worry about whitespace after the divider.  It should be handled
         //by the element.
       }
-      if (validate()!=null) {
+      if (validate() != null) {
         clear();
       }
     }
@@ -218,8 +215,8 @@ abstract class ParsedDescriptor extends ParsedElement {
 
   final Token parseElement(Token token, final PrimativeTokenizer tokenizer) {
     //parse a number
-    ParsedNumber element = ParsedNumber.getInstance(type, etomoNumberType,
-        isDebug(), defaultValue);
+    ParsedNumber element = ParsedNumber.getInstance(type, etomoNumberType, isDebug(),
+        defaultValue);
     element.setDebug(isDebug());
     element.setDefault(defaultValue);
     token = element.parse(token, tokenizer);
@@ -275,15 +272,15 @@ abstract class ParsedDescriptor extends ParsedElement {
     if (index < 0) {
       return;
     }
-    ParsedNumber element = ParsedNumber.getInstance(type, etomoNumberType,
-        isDebug(), defaultValue);
+    ParsedNumber element = ParsedNumber.getInstance(type, etomoNumberType, isDebug(),
+        defaultValue);
     element.setRawString(string);
     descriptor.set(index, element);
   }
 
   void setRawString(final int index, final float number) {
-    ParsedNumber element = ParsedNumber.getInstance(type, etomoNumberType,
-        isDebug(), defaultValue);
+    ParsedNumber element = ParsedNumber.getInstance(type, etomoNumberType, isDebug(),
+        defaultValue);
     element.setRawString(number);
     descriptor.set(index, element);
   }
@@ -353,15 +350,15 @@ abstract class ParsedDescriptor extends ParsedElement {
   ParsedElementList getParsedNumberExpandedArray(
       ParsedElementList parsedNumberExpandedArray) {
     if (parsedNumberExpandedArray == null) {
-      parsedNumberExpandedArray = new ParsedElementList(type, etomoNumberType,
-          isDebug(), defaultValue);
+      parsedNumberExpandedArray = new ParsedElementList(type, etomoNumberType, isDebug(),
+          defaultValue);
     }
     if (descriptor.size() == 0) {
       return parsedNumberExpandedArray;
     }
     //exclude empty descriptor numbers
-    ParsedElementList list = new ParsedElementList(type, etomoNumberType,
-        isDebug(), defaultValue);
+    ParsedElementList list = new ParsedElementList(type, etomoNumberType, isDebug(),
+        defaultValue);
     for (int i = 0; i < descriptor.size(); i++) {
       ParsedElement element = descriptor.get(i);
       if (element != null && !element.isEmpty()) {
@@ -390,8 +387,8 @@ abstract class ParsedDescriptor extends ParsedElement {
         return parsedNumberExpandedArray;
       }
       else {
-        increment.set(getIncrement((ParsedNumber) list.get(0),
-            (ParsedNumber) list.get(1)));
+        increment
+            .set(getIncrement((ParsedNumber) list.get(0), (ParsedNumber) list.get(1)));
       }
       lastNumber = (ParsedNumber) list.get(1);
     }
@@ -412,8 +409,8 @@ abstract class ParsedDescriptor extends ParsedElement {
     boolean done = false;
     while (!done) {
       prevNumber = curNumber;
-      curNumber = ParsedNumber.getInstance(type, etomoNumberType, isDebug(),
-          defaultValue);
+      curNumber = ParsedNumber
+          .getInstance(type, etomoNumberType, isDebug(), defaultValue);
       curNumber.setRawString(prevNumber.getRawNumber());
       curNumber.plus(increment);
       if ((increment.isPositive() && curNumber.le(lastNumber))

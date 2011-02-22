@@ -18,6 +18,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2010/04/28 16:32:01  sueh
+ * <p> bug# 1344 Removed unnecessary tearDown function override.
+ * <p>
  * <p> Revision 1.1  2009/09/01 03:09:51  sueh
  * <p> bug# 1222 Test for PanelHeaderStatePropertyList.
  * <p> </p>
@@ -29,7 +32,7 @@ public class PanelHeaderStatePropertyListTest extends TestCase {
   private final Properties props = new Properties();
   private final Object id1 = new Object();
   private final Object id2 = new Object();
-  private final     PanelHeaderState panelHeaderState1 = new PanelHeaderState("Test1");
+  private final PanelHeaderState panelHeaderState1 = new PanelHeaderState("Test1");
   private final PanelHeaderState panelHeaderState2 = new PanelHeaderState("Test2");
 
   public PanelHeaderStatePropertyListTest(String name) {
@@ -48,8 +51,8 @@ public class PanelHeaderStatePropertyListTest extends TestCase {
 
   public void testAddProperty() {
     test.addProperty(id1, "Test1");
-    assertTrue("Should have added an empty element", ((PanelHeaderState) test
-        .get(id1)).isNull());
+    assertTrue("Should have added an empty element", ((PanelHeaderState) test.get(id1))
+        .isNull());
 
     try {
       test.addProperty(id1, "Test2");
@@ -102,10 +105,10 @@ public class PanelHeaderStatePropertyListTest extends TestCase {
     test.addProperty(id1, "Test1");
     test.addProperty(id2, "Test2");
     test.load(props, "");
-    assertTrue("Should have loaded the Test1 property", test.get(id1)
-        .getMoreLessState().equals("more"));
-    assertTrue("Should have loaded the Test2 property", test.get(id2)
-        .getOpenCloseState().equals("close"));
+    assertTrue("Should have loaded the Test1 property", test.get(id1).getMoreLessState()
+        .equals("more"));
+    assertTrue("Should have loaded the Test2 property", test.get(id2).getOpenCloseState()
+        .equals("close"));
   }
 
   public void testGet() {
@@ -120,9 +123,9 @@ public class PanelHeaderStatePropertyListTest extends TestCase {
     test.addProperty(id2, "Test2");
     test.set(id1, panelHeaderState1);
     test.set(id2, panelHeaderState2);
-    assertTrue("Should have loaded the Test1 property", test.get(id1)
-        .getMoreLessState().equals("more"));
-    assertTrue("Should have loaded the Test2 property", test.get(id2)
-        .getOpenCloseState().equals("close"));
+    assertTrue("Should have loaded the Test1 property", test.get(id1).getMoreLessState()
+        .equals("more"));
+    assertTrue("Should have loaded the Test2 property", test.get(id2).getOpenCloseState()
+        .equals("close"));
   }
 }

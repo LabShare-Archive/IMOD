@@ -25,6 +25,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2010/11/13 16:06:53  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.17  2010/02/26 20:38:20  sueh
  * <p> Changing the complex popup titles are making it hard to complete the
  * <p> uitests.
@@ -130,12 +133,11 @@ import etomo.util.Utilities;
  * <p> and set functions.
  * <p> </p>
  */
-public final class JoinMetaData extends BaseMetaData implements
-    ConstJoinMetaData {
+public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaData {
   public static final String rcsid = "$Id$";
 
-  private static final EtomoVersion latestRevisionNumber = EtomoVersion
-      .getInstance(revisionNumberString, "1.1");
+  private static final EtomoVersion latestRevisionNumber = EtomoVersion.getInstance(
+      revisionNumberString, "1.1");
   private static final String newJoinTitle = "New Join";
 
   private static final String groupString = "Join";
@@ -173,18 +175,18 @@ public final class JoinMetaData extends BaseMetaData implements
   private boolean useAlignmentRefSection = false;
   private ScriptParameter alignmentRefSection = new ScriptParameter(
       EtomoNumber.Type.INTEGER, "AlignmentRefSection");
-  private ScriptParameter sizeInX = new ScriptParameter(
-      EtomoNumber.Type.INTEGER, "SizeInX");
-  private ScriptParameter sizeInY = new ScriptParameter(
-      EtomoNumber.Type.INTEGER, "SizeInY");
-  private ScriptParameter shiftInX = new ScriptParameter(
-      EtomoNumber.Type.INTEGER, "ShiftInX");
-  private ScriptParameter shiftInY = new ScriptParameter(
-      EtomoNumber.Type.INTEGER, "ShiftInY");
+  private ScriptParameter sizeInX = new ScriptParameter(EtomoNumber.Type.INTEGER,
+      "SizeInX");
+  private ScriptParameter sizeInY = new ScriptParameter(EtomoNumber.Type.INTEGER,
+      "SizeInY");
+  private ScriptParameter shiftInX = new ScriptParameter(EtomoNumber.Type.INTEGER,
+      "ShiftInX");
+  private ScriptParameter shiftInY = new ScriptParameter(EtomoNumber.Type.INTEGER,
+      "ShiftInY");
   //FinishJoin -local.  Checkbox in Join tab.
   private final EtomoBoolean2 localFits = new EtomoBoolean2("LocalFits");
-  private EtomoNumber useEveryNSlices = new EtomoNumber(
-      EtomoNumber.Type.INTEGER, "UseEveryNSlices");
+  private EtomoNumber useEveryNSlices = new EtomoNumber(EtomoNumber.Type.INTEGER,
+      "UseEveryNSlices");
   private final ScriptParameter trialBinning = new ScriptParameter(
       EtomoNumber.Type.INTEGER, "TrialBinning");
   private final ScriptParameter rejoinTrialBinning = new ScriptParameter(
@@ -200,8 +202,8 @@ public final class JoinMetaData extends BaseMetaData implements
       .getNumberInstance("BoundaryRow" + '.' + "StartList");
   private final IntKeyList boundaryRowEndList = IntKeyList
       .getNumberInstance("BoundaryRow" + '.' + "EndList");
-  private EtomoNumber rejoinUseEveryNSlices = new EtomoNumber(
-      EtomoNumber.Type.INTEGER, "RejoinUseEveryNSlices");
+  private EtomoNumber rejoinUseEveryNSlices = new EtomoNumber(EtomoNumber.Type.INTEGER,
+      "RejoinUseEveryNSlices");
 
   private final BaseManager manager;
 
@@ -280,8 +282,8 @@ public final class JoinMetaData extends BaseMetaData implements
       alignTransform = Transform.load(props, prepend, ALIGN_TRANFORM_KEY,
           TRANSFORM_DEFAULT);
     }
-    modelTransform = Transform.load(props, prepend, MODEL_TRANFORM_KEY,
-        TRANSFORM_DEFAULT);
+    modelTransform = Transform
+        .load(props, prepend, MODEL_TRANFORM_KEY, TRANSFORM_DEFAULT);
     rootName = props.getProperty(group + rootNameString, "");
     boundariesToAnalyze = props.getProperty(group + BOUNDARIES_TO_ANALYZE_KEY);
     objectsToInclude = props.getProperty(group + OBJECTS_TO_INCLUDE_KEY);
@@ -296,8 +298,7 @@ public final class JoinMetaData extends BaseMetaData implements
     cutoffHighFrequency.load(props, prepend);
     sigmaHighFrequency.load(props, prepend);
     useAlignmentRefSection = Boolean.valueOf(
-        props.getProperty(group + useAlignmentRefSectionString, "false"))
-        .booleanValue();
+        props.getProperty(group + useAlignmentRefSectionString, "false")).booleanValue();
     alignmentRefSection.load(props, prepend);
     sizeInX.load(props, prepend);
     sizeInY.load(props, prepend);
@@ -320,9 +321,9 @@ public final class JoinMetaData extends BaseMetaData implements
       row.load(props, prepend);
       int rowIndex = row.getRowIndex();
       if (rowIndex < 0) {
-        UIHarness.INSTANCE.openMessageDialog(manager, "Invalid row index: "
-            + rowIndex+ ".  Corrupted: " + DatasetFiles.JOIN_DATA_FILE_EXT
-            + " file.","Corrupted File", AxisID.ONLY);
+        UIHarness.INSTANCE.openMessageDialog(manager, "Invalid row index: " + rowIndex
+            + ".  Corrupted: " + DatasetFiles.JOIN_DATA_FILE_EXT + " file.",
+            "Corrupted File", AxisID.ONLY);
       }
       sectionTableData.add(row.getRowIndex(), row);
     }
@@ -339,13 +340,12 @@ public final class JoinMetaData extends BaseMetaData implements
       alignTransform = Transform.FULL_LINEAR_TRANSFORMATION;
     }
     else if (Boolean.valueOf(
-        props.getProperty(group + rotationTranslationMagnificationString,
-            "false")).booleanValue()) {
+        props.getProperty(group + rotationTranslationMagnificationString, "false"))
+        .booleanValue()) {
       alignTransform = Transform.ROTATION_TRANSLATION_MAGNIFICATION;
     }
     else if (Boolean.valueOf(
-        props.getProperty(group + rotationTranslationString, "false"))
-        .booleanValue()) {
+        props.getProperty(group + rotationTranslationString, "false")).booleanValue()) {
       alignTransform = Transform.FULL_LINEAR_TRANSFORMATION;
     }
     else {

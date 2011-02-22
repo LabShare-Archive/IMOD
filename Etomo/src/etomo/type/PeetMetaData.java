@@ -22,6 +22,9 @@ import etomo.util.Utilities;
  * @notthreadsafe
  * 
  * <p> $Log$
+ * <p> Revision 1.27  2009/11/23 23:26:45  sueh
+ * <p> bug# 1292 Removing yaxisContour.
+ * <p>
  * <p> Revision 1.26  2009/09/16 16:28:26  sueh
  * <p> bug# 1227 In getName correct check for an empty rootName.
  * <p>
@@ -113,8 +116,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   private static final String TILT_RANGE_KEY = "TiltRange";
   private static final String GROUP_KEY = "Peet";
   private static final String REFERENCE_KEY = "Reference";
-  private static final EtomoVersion VERSION_1_1 = EtomoVersion
-      .getDefaultInstance("1.1");
+  private static final EtomoVersion VERSION_1_1 = EtomoVersion.getDefaultInstance("1.1");
   private static final String START_KEY = "Start";
   private static final String END_KEY = "End";
   private static final String MASK_MODEL_PTS_KEY = "MaskModelPts";
@@ -127,31 +129,27 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
 
   //do not change the names of these veriables unless backward compatibility work is done
   private final StringProperty rootName = new StringProperty("RootName");
-  private final IntKeyList initMotlFile = IntKeyList
-      .getStringInstance("InitMotlFile");
-  private final IntKeyList tiltRangeMin = IntKeyList
-      .getStringInstance(TILT_RANGE_KEY + "." + START_KEY);
-  private final IntKeyList tiltRangeMax = IntKeyList
-      .getStringInstance(TILT_RANGE_KEY + "." + END_KEY);
-  private final EtomoNumber referenceVolume = new EtomoNumber(REFERENCE_KEY
-      + "." + VOLUME_KEY);
-  private final EtomoNumber referenceParticle = new EtomoNumber(REFERENCE_KEY
-      + "." + PARTICLE_KEY);
-  private final StringProperty referenceFile = new StringProperty(REFERENCE_KEY
-      + ".File");
+  private final IntKeyList initMotlFile = IntKeyList.getStringInstance("InitMotlFile");
+  private final IntKeyList tiltRangeMin = IntKeyList.getStringInstance(TILT_RANGE_KEY
+      + "." + START_KEY);
+  private final IntKeyList tiltRangeMax = IntKeyList.getStringInstance(TILT_RANGE_KEY
+      + "." + END_KEY);
+  private final EtomoNumber referenceVolume = new EtomoNumber(REFERENCE_KEY + "."
+      + VOLUME_KEY);
+  private final EtomoNumber referenceParticle = new EtomoNumber(REFERENCE_KEY + "."
+      + PARTICLE_KEY);
+  private final StringProperty referenceFile = new StringProperty(REFERENCE_KEY + ".File");
   private final EtomoNumber edgeShift = new EtomoNumber("EdgeShift");
-  private final EtomoBoolean2 flgWedgeWeight = new EtomoBoolean2(
-      "FlgWedgeWeight");
+  private final EtomoBoolean2 flgWedgeWeight = new EtomoBoolean2("FlgWedgeWeight");
   private final EtomoBoolean2 maskUseReferenceParticle = new EtomoBoolean2(
       "Mask.UseReferenceParticle");
-  private final EtomoNumber maskModelPtsModelNumber = new EtomoNumber(
-      MASK_MODEL_PTS_KEY + "." + MODEL_NUMBER_KEY);
-  private final EtomoNumber maskModelPtsParticle = new EtomoNumber(
-      MASK_MODEL_PTS_KEY + "." + PARTICLE_KEY);
+  private final EtomoNumber maskModelPtsModelNumber = new EtomoNumber(MASK_MODEL_PTS_KEY
+      + "." + MODEL_NUMBER_KEY);
+  private final EtomoNumber maskModelPtsParticle = new EtomoNumber(MASK_MODEL_PTS_KEY
+      + "." + PARTICLE_KEY);
   private final StringProperty maskTypeVolume = new StringProperty("MastType."
       + VOLUME_KEY);
-  private final EtomoBoolean2 useNWeightGroup = new EtomoBoolean2(
-      "UseNWeightGroup");
+  private final EtomoBoolean2 useNWeightGroup = new EtomoBoolean2("UseNWeightGroup");
   private final EtomoNumber nWeightGroup = new EtomoNumber("NWeightGroup");
   private final EtomoBoolean2 tiltRange = new EtomoBoolean2("TiltRange");
 

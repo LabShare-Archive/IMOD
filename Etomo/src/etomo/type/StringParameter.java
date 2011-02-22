@@ -19,6 +19,9 @@ import etomo.comscript.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2009/09/22 21:03:16  sueh
+ * <p> bug# 1259 Commented updateComScript.
+ * <p>
  * <p> Revision 1.2  2008/11/20 01:39:27  sueh
  * <p> bug# 1149 Simplified StringParameter - set string to null when it is empty.
  * <p> Added getName and isEmpty.
@@ -56,8 +59,7 @@ public final class StringParameter implements ConstStringParameter {
     return value.endsWith(comparee);
   }
 
-  public void parse(ComScriptCommand scriptCommand)
-      throws InvalidParameterException {
+  public void parse(ComScriptCommand scriptCommand) throws InvalidParameterException {
     if (!scriptCommand.hasKeyword(name)) {
       reset();
     }

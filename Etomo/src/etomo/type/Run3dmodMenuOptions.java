@@ -25,8 +25,7 @@ public class Run3dmodMenuOptions {
 
   public String toString() {
     return "[startupWindow=" + startupWindow + ",binBy2=" + binBy2
-        + ",\nallowBinningInZ=" + allowBinningInZ + ",noOptions=" + noOptions
-        + "]";
+        + ",\nallowBinningInZ=" + allowBinningInZ + ",noOptions=" + noOptions + "]";
   }
 
   public void setNoOptions(boolean noOptions) {
@@ -83,6 +82,9 @@ public class Run3dmodMenuOptions {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2010/11/13 16:06:53  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.3  2008/05/03 00:46:02  sueh
  * <p> bug# 847 Renamed setOptions to orGlobalOptions, which is a better
  * <p> description of its functionality.

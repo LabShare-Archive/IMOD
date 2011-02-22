@@ -15,7 +15,10 @@ import java.util.Properties;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/02/05 23:32:21  sueh
+ * <p> bug# 962 Enum containing tranformation information.
+ * <p> </p>
  */
 public class Transform {
   public static final String rcsid = "$Id$";
@@ -36,8 +39,8 @@ public class Transform {
   private static final String KEY = "Transform";
   private final String value;
 
-  public static void store(Transform transform, Properties props,
-      String prepend, String key) {
+  public static void store(Transform transform, Properties props, String prepend,
+      String key) {
     prepend = createPrepend(prepend);
     if (transform == null) {
       props.remove(prepend + '.' + key);
@@ -45,20 +48,20 @@ public class Transform {
     props.setProperty(prepend + '.' + key, transform.toString());
   }
 
-  public static Transform load(Properties props,
-      String prepend, String key, Transform defaultTransform) {
+  public static Transform load(Properties props, String prepend, String key,
+      Transform defaultTransform) {
     prepend = createPrepend(prepend);
-    String value = props.getProperty(prepend+'.'+key);
-    if (value ==null) {
+    String value = props.getProperty(prepend + '.' + key);
+    if (value == null) {
       return defaultTransform;
     }
-    Transform instance= getInstance(value);
-    if (instance==null) {
+    Transform instance = getInstance(value);
+    if (instance == null) {
       return defaultTransform;
     }
     return instance;
   }
-  
+
   public static Transform getInstance(String value) {
     if (value.equals(FULL_LINEAR_TRANSFORMATION.value)) {
       return FULL_LINEAR_TRANSFORMATION;

@@ -34,6 +34,9 @@ import java.util.Properties;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2009/12/01 00:23:54  sueh
+ * <p> bug# 1285 Added Walker.isEmpty.
+ * <p>
  * <p> Revision 1.9  2009/10/30 20:53:58  sueh
  * <p> bug# 1285 Added debugging.
  * <p>
@@ -184,15 +187,15 @@ public final class IntKeyList implements ConstIntKeyList {
   public synchronized void put(final int key, final Object value) {
     rowKey.adjustFirstLastKeys(key);
     Pair pair = null;
-    if (etomoNumberType==null) {
-      pair = new Pair(key, (String)value, etomoNumberType);
+    if (etomoNumberType == null) {
+      pair = new Pair(key, (String) value, etomoNumberType);
     }
     else {
-      pair = new Pair(key, (ConstEtomoNumber)value, etomoNumberType);
+      pair = new Pair(key, (ConstEtomoNumber) value, etomoNumberType);
     }
     map.put(buildKey(key), pair);
     if (debug) {
-      System.out.println("map.size()="+map.size());
+      System.out.println("map.size()=" + map.size());
     }
   }
 
@@ -223,7 +226,7 @@ public final class IntKeyList implements ConstIntKeyList {
       System.out.println("map.size()=" + map.size());
     }
   }
-  
+
   /**
    * puts the value, generates its own key (lastKey+1)
    * @param value
@@ -291,14 +294,14 @@ public final class IntKeyList implements ConstIntKeyList {
 
   public void load(Properties props, String prepend) {
     if (debug) {
-      System.out.println("load:prepend="+prepend);
+      System.out.println("load:prepend=" + prepend);
     }
     if (listKey == null) {
       return;
     }
     prepend = getPrepend(prepend);
     if (debug) {
-      System.out.println("prepend="+prepend);
+      System.out.println("prepend=" + prepend);
     }
     String group = prepend + ".";
     rowKey.load(props, prepend);
@@ -355,7 +358,7 @@ public final class IntKeyList implements ConstIntKeyList {
   public boolean containsKey(int key) {
     return map.containsKey(buildKey(key));
   }
-  
+
   public boolean containsValue(String element) {
     return map.containsValue(element);
   }
@@ -416,7 +419,7 @@ public final class IntKeyList implements ConstIntKeyList {
     private boolean debug = false;
     private int key;
     private final ConstIntKeyList list;
-    
+
     public boolean isEmpty() {
       return list.isEmpty();
     }
@@ -529,8 +532,7 @@ public final class IntKeyList implements ConstIntKeyList {
       this(key, new Integer(value), etomoNumberType);
     }
 
-    private Pair(int key, ConstEtomoNumber value,
-        EtomoNumber.Type etomoNumberType) {
+    private Pair(int key, ConstEtomoNumber value, EtomoNumber.Type etomoNumberType) {
       this(key, value.getNumber(), etomoNumberType);
     }
 
@@ -592,7 +594,7 @@ public final class IntKeyList implements ConstIntKeyList {
 
     private final EtomoNumber firstKey = new EtomoNumber(FIRST_KEY);
     private final EtomoNumber lastKey = new EtomoNumber(LAST_KEY);
-    
+
     private boolean debug = false;
 
     private int startKey = DEFAULT_START_KEY;
@@ -617,7 +619,7 @@ public final class IntKeyList implements ConstIntKeyList {
       lastKey.reset();
       startKey = DEFAULT_START_KEY;
     }
-    
+
     public void setDebug(boolean debug) {
       this.debug = debug;
     }
@@ -658,8 +660,8 @@ public final class IntKeyList implements ConstIntKeyList {
     void store(Properties props, String prepend) {
       if (firstKey.gt(lastKey)) {
         throw new IllegalStateException(
-            "StartKey must be not be greater then endKey.\nstartKey="
-                + firstKey + ",endKey=" + lastKey);
+            "StartKey must be not be greater then endKey.\nstartKey=" + firstKey
+                + ",endKey=" + lastKey);
       }
       firstKey.store(props, prepend);
       lastKey.store(props, prepend);
@@ -669,7 +671,7 @@ public final class IntKeyList implements ConstIntKeyList {
       firstKey.load(props, prepend);
       lastKey.load(props, prepend);
       if (debug) {
-        System.out.println("firstKey="+firstKey+",lastKey="+lastKey);
+        System.out.println("firstKey=" + firstKey + ",lastKey=" + lastKey);
       }
     }
 

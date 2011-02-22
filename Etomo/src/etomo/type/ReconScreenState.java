@@ -174,8 +174,8 @@ public final class ReconScreenState extends BaseScreenState {
     tomoGenTrialTiltHeaderState.store(props, prepend);
     fineAlignBeamTiltHeaderState.store(props, prepend);
     stackEraseGoldNewstHeaderState.store(props, prepend);
-    stackFindBeads3dHeaderState.store(props,prepend);
-    stackAlignAndTiltHeaderState.store(props,prepend);
+    stackFindBeads3dHeaderState.store(props, prepend);
+    stackAlignAndTiltHeaderState.store(props, prepend);
     if (axisID == AxisID.FIRST) {
       combineSetupToSelectorHeaderState.store(props, prepend);
       combineSetupSolvematchHeaderState.store(props, prepend);
@@ -189,8 +189,7 @@ public final class ReconScreenState extends BaseScreenState {
       combineFinalPatchcorrHeaderState.store(props, prepend);
       combineFinalMatchorwarpHeaderState.store(props, prepend);
       combineFinalVolcombineHeaderState.store(props, prepend);
-      EtomoNumber.store(patchcorrKernelSigma, PATCHCORR_KERNEL_SIGMA_KEY,
-          props, prepend);
+      EtomoNumber.store(patchcorrKernelSigma, PATCHCORR_KERNEL_SIGMA_KEY, props, prepend);
     }
   }
 
@@ -219,8 +218,8 @@ public final class ReconScreenState extends BaseScreenState {
     tomoGenTrialTiltHeaderState.load(props, prepend);
     fineAlignBeamTiltHeaderState.load(props, prepend);
     stackEraseGoldNewstHeaderState.load(props, prepend);
-    stackFindBeads3dHeaderState.load(props,prepend);
-    stackAlignAndTiltHeaderState.load(props,prepend);
+    stackFindBeads3dHeaderState.load(props, prepend);
+    stackAlignAndTiltHeaderState.load(props, prepend);
     if (axisID == AxisID.FIRST) {
       combineSetupToSelectorHeaderState.load(props, prepend);
       combineSetupSolvematchHeaderState.load(props, prepend);
@@ -264,15 +263,15 @@ public final class ReconScreenState extends BaseScreenState {
   public PanelHeaderState getStackCtfCorrectionHeaderState() {
     return stackCtfCorrectionHeaderState;
   }
-  
+
   public PanelHeaderState getStackFindBeads3dHeaderState() {
     return stackFindBeads3dHeaderState;
   }
-  
+
   public PanelHeaderState getStackAlignAndTiltHeaderState() {
     return stackAlignAndTiltHeaderState;
   }
-  
+
   public PanelHeaderState getTomoGenTiltHeaderState() {
     return tomoGenTiltHeaderState;
   }
@@ -339,6 +338,10 @@ public final class ReconScreenState extends BaseScreenState {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2009/09/01 03:15:35  sueh
+ * <p> bug# 1222 Added stackAlignAndTiltHeaderState,
+ * <p> stackEraseGoldNewstHeaderState, and stackFindBeads3dHeaderState.
+ * <p>
  * <p> Revision 1.10  2008/11/21 17:10:56  sueh
  * <p> bug# 1123 Added fineAlignBeamTiltHeaderState.
  * <p>

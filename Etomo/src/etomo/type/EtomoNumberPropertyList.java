@@ -21,7 +21,10 @@ import java.util.Properties;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/09/01 02:49:05  sueh
+ * <p> bug# 1222 Class to hold multiple properties.
+ * <p> </p>
  */
 final class EtomoNumberPropertyList {
   public static final String rcsid = "$Id$";
@@ -37,8 +40,8 @@ final class EtomoNumberPropertyList {
    */
   void addProperty(final Object uniqueContainerID, final String key) {
     if (elementMap.containsKey(uniqueContainerID)) {
-      throw new IllegalArgumentException("Property already exists.  uniqueContainerID=" + uniqueContainerID
-          + ",key=" + key);
+      throw new IllegalArgumentException("Property already exists.  uniqueContainerID="
+          + uniqueContainerID + ",key=" + key);
     }
     elementMap.put(uniqueContainerID, new Element(new EtomoNumber(key)));
   }
@@ -60,8 +63,7 @@ final class EtomoNumberPropertyList {
    * @param props
    * @param prepend
    */
-  void load(EtomoVersion savedVersion, final Properties props,
-      final String prepend) {
+  void load(EtomoVersion savedVersion, final Properties props, final String prepend) {
     Collection collection = elementMap.values();
     Iterator iterator = collection.iterator();
     while (iterator.hasNext()) {
@@ -80,8 +82,7 @@ final class EtomoNumberPropertyList {
             //closest to savedVersion.  Only the smallest one that is greater
             //then or equal to the saved version is valid.
             if (smallestBackwardCompatibleVersion == null
-                || backwardCompatibleVersion
-                    .lt(smallestBackwardCompatibleVersion)) {
+                || backwardCompatibleVersion.lt(smallestBackwardCompatibleVersion)) {
               smallestBackwardCompatibleVersion = backwardCompatibleVersion;
               element.etomoNumber.loadWithAlternateKey(props, prepend,
                   backwardCompatibleKey);
@@ -117,7 +118,8 @@ final class EtomoNumberPropertyList {
    */
   int getDefaultedInt(final Object uniqueContainerID) {
     if (!elementMap.containsKey(uniqueContainerID)) {
-      throw new IllegalArgumentException("Property doesn't exist.  uniqueContainerID=" + uniqueContainerID);
+      throw new IllegalArgumentException("Property doesn't exist.  uniqueContainerID="
+          + uniqueContainerID);
     }
     return ((Element) elementMap.get(uniqueContainerID)).etomoNumber.getDefaultedInt();
   }
@@ -129,8 +131,8 @@ final class EtomoNumberPropertyList {
    */
   void set(final Object uniqueContainerID, final int value) {
     if (!elementMap.containsKey(uniqueContainerID)) {
-      throw new IllegalArgumentException("Property doesn't exist.  uniqueContainerID=" + uniqueContainerID
-          + ", value=" + value);
+      throw new IllegalArgumentException("Property doesn't exist.  uniqueContainerID="
+          + uniqueContainerID + ", value=" + value);
     }
     ((Element) elementMap.get(uniqueContainerID)).etomoNumber.set(value);
   }
@@ -142,7 +144,8 @@ final class EtomoNumberPropertyList {
    */
   void setDisplayValue(final Object uniqueContainerID, final int value) {
     if (!elementMap.containsKey(uniqueContainerID)) {
-      throw new IllegalArgumentException("Property doesn't exist.  uniqueContainerID=" + uniqueContainerID);
+      throw new IllegalArgumentException("Property doesn't exist.  uniqueContainerID="
+          + uniqueContainerID);
     }
     ((Element) elementMap.get(uniqueContainerID)).etomoNumber.setDisplayValue(value);
   }
@@ -155,11 +158,11 @@ final class EtomoNumberPropertyList {
    * @param oldKey
    */
   void setBackwardCompatibility(final Object uniqueContainerID,
-      final EtomoVersion backwardCompatibleVersion,
-      final String backwardCompatibleKey) {
+      final EtomoVersion backwardCompatibleVersion, final String backwardCompatibleKey) {
     if (!elementMap.containsKey(uniqueContainerID)) {
-      throw new IllegalArgumentException("Property doesn't exist.  uniqueContainerID=" + uniqueContainerID
-          + ", backwardCompatibleVersion=" + backwardCompatibleVersion);
+      throw new IllegalArgumentException("Property doesn't exist.  uniqueContainerID="
+          + uniqueContainerID + ", backwardCompatibleVersion="
+          + backwardCompatibleVersion);
     }
     Element element = (Element) elementMap.get(uniqueContainerID);
     element.addToBackwardCompatibilityList(backwardCompatibleVersion,
@@ -186,8 +189,7 @@ final class EtomoNumberPropertyList {
    * @return
    */
   public boolean equals(final EtomoNumberPropertyList etomoNumberPropertyList) {
-    if (etomoNumberPropertyList == null
-        || size() != etomoNumberPropertyList.size()) {
+    if (etomoNumberPropertyList == null || size() != etomoNumberPropertyList.size()) {
       return false;
     }
     Collection collection = elementMap.keySet();
@@ -221,8 +223,8 @@ final class EtomoNumberPropertyList {
       this.etomoNumber = etomoNumber;
     }
 
-    private void addToBackwardCompatibilityList(
-        EtomoVersion backwardCompatibleVersion, String backwardCompatibleKey) {
+    private void addToBackwardCompatibilityList(EtomoVersion backwardCompatibleVersion,
+        String backwardCompatibleKey) {
       if (backwardCompatibilityList == null) {
         backwardCompatibilityList = new ArrayList();
       }

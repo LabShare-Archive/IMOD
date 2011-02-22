@@ -21,6 +21,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2010/04/28 16:29:20  sueh
+ * <p> bug# 1344 Removed unnecessary tearDown function override.
+ * <p>
  * <p> Revision 1.1  2009/09/01 03:01:05  sueh
  * <p> bug# 1222 Test for FortranInputStringPropertyList.
  * <p> </p>
@@ -42,8 +45,7 @@ public class FortranInputStringPropertyListTest extends TestCase {
     super.setUp();
   }
 
-  public void testFortranInputStringPropertyList()
-      throws FortranInputSyntaxException {
+  public void testFortranInputStringPropertyList() throws FortranInputSyntaxException {
     assertNotNull("Test should have been created", test);
 
     test.setIntegerType(new boolean[] { true, false, true });
@@ -70,10 +72,8 @@ public class FortranInputStringPropertyListTest extends TestCase {
     test.addProperty(id1, "Test1");
     test.addProperty(id2, "Test2");
     test.load(props, "");
-    assertEquals("Should have loaded the Test1 property", 2, test.get(id1)
-        .getInt(1));
-    assertEquals("Should have loaded the Test2 property", 4, test.get(id2)
-        .getInt(1));
+    assertEquals("Should have loaded the Test1 property", 2, test.get(id1).getInt(1));
+    assertEquals("Should have loaded the Test2 property", 4, test.get(id2).getInt(1));
   }
 
   public void testStore() throws FortranInputSyntaxException {
@@ -82,10 +82,10 @@ public class FortranInputStringPropertyListTest extends TestCase {
     test.validateAndSet(id1, "1,2,3");
     test.validateAndSet(id2, "3,4,5");
     test.store(props, "");
-    assertTrue("Should have stored the Test1 property", props.getProperty(
-        "Test1").equals("1.0,2.0,3.0"));
-    assertTrue("Should have stored the Test2 property", props.getProperty(
-        "Test2").equals("3.0,4.0,5.0"));
+    assertTrue("Should have stored the Test1 property", props.getProperty("Test1")
+        .equals("1.0,2.0,3.0"));
+    assertTrue("Should have stored the Test2 property", props.getProperty("Test2")
+        .equals("3.0,4.0,5.0"));
   }
 
   public void testGet() throws FortranInputSyntaxException {
@@ -116,10 +116,8 @@ public class FortranInputStringPropertyListTest extends TestCase {
     test.addProperty(id2, "Test2");
     test.validateAndSet(id1, "1,2,3");
     test.validateAndSet(id2, "3,4,5");
-    assertEquals("Should set 1,2,3 in the Test1 property", 2, test.get(id1)
-        .getInt(1));
-    assertEquals("Should set 3,4,5 in the Test2 property", 4, test.get(id2)
-        .getInt(1));
+    assertEquals("Should set 1,2,3 in the Test1 property", 2, test.get(id1).getInt(1));
+    assertEquals("Should set 3,4,5 in the Test2 property", 4, test.get(id2).getInt(1));
   }
 
   public void testSetIntegerType() throws FortranInputSyntaxException {

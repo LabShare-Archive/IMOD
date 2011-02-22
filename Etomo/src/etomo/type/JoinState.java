@@ -20,6 +20,10 @@ import etomo.BaseManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2009/09/01 03:04:00  sueh
+ * <p> bug# 1222 in isJoinVersionGe, changed minimumVersion parameter to
+ * <p> EtomoVersion.
+ * <p>
  * <p> Revision 1.14  2008/12/11 01:41:27  sueh
  * <p> bug# 1165 In load fixing previous .ejf files when possible.  Added version.
  * <p>
@@ -98,11 +102,9 @@ public final class JoinState extends BaseState implements ConstJoinState {
 
   private static final String groupString = "JoinState";
   private static final String VERSION = "1.1";
-  private static final String XFMODEL_INPUT_FILE = ProcessName.XFMODEL
-      .toString()
+  private static final String XFMODEL_INPUT_FILE = ProcessName.XFMODEL.toString()
       + "InputFile";
-  private static final String XFMODEL_OUTPUT_FILE = ProcessName.XFMODEL
-      .toString()
+  private static final String XFMODEL_OUTPUT_FILE = ProcessName.XFMODEL.toString()
       + "OutputFile";
 
   private final EtomoNumber doneMode = new EtomoNumber("DoneMode");
@@ -123,56 +125,55 @@ public final class JoinState extends BaseState implements ConstJoinState {
   private final EtomoBoolean2 refineTrial = new EtomoBoolean2(REFINE_KEY + '.'
       + TRIAL_KEY);
 
-  private final EtomoVersion joinVersion = EtomoVersion
-      .getEmptyInstance(JOIN_KEY + '.' + EtomoVersion.DEFAULT_KEY);
-  private final IntKeyList joinStartList = IntKeyList.getNumberInstance(
-      JOIN_KEY + '.' + START_LIST_KEY, EtomoNumber.Type.LONG);
-  private final IntKeyList joinEndList = IntKeyList.getNumberInstance(JOIN_KEY
-      + '.' + END_LIST_KEY, EtomoNumber.Type.LONG);
-  private final EtomoNumber joinAlignmentRefSection = new EtomoNumber(JOIN_KEY
-      + '.' + ALIGNMENT_REF_SECTION_KEY);
-  private final ScriptParameter joinShiftInX = new ScriptParameter(JOIN_KEY
-      + '.' + SHIFT_IN_X_KEY);
-  private final ScriptParameter joinShiftInY = new ScriptParameter(JOIN_KEY
-      + '.' + SHIFT_IN_Y_KEY);
-  private final ScriptParameter joinSizeInX = new ScriptParameter(JOIN_KEY
-      + '.' + SIZE_IN_X_KEY);
-  private final ScriptParameter joinSizeInY = new ScriptParameter(JOIN_KEY
-      + '.' + SIZE_IN_Y_KEY);
+  private final EtomoVersion joinVersion = EtomoVersion.getEmptyInstance(JOIN_KEY + '.'
+      + EtomoVersion.DEFAULT_KEY);
+  private final IntKeyList joinStartList = IntKeyList.getNumberInstance(JOIN_KEY + '.'
+      + START_LIST_KEY, EtomoNumber.Type.LONG);
+  private final IntKeyList joinEndList = IntKeyList.getNumberInstance(JOIN_KEY + '.'
+      + END_LIST_KEY, EtomoNumber.Type.LONG);
+  private final EtomoNumber joinAlignmentRefSection = new EtomoNumber(JOIN_KEY + '.'
+      + ALIGNMENT_REF_SECTION_KEY);
+  private final ScriptParameter joinShiftInX = new ScriptParameter(JOIN_KEY + '.'
+      + SHIFT_IN_X_KEY);
+  private final ScriptParameter joinShiftInY = new ScriptParameter(JOIN_KEY + '.'
+      + SHIFT_IN_Y_KEY);
+  private final ScriptParameter joinSizeInX = new ScriptParameter(JOIN_KEY + '.'
+      + SIZE_IN_X_KEY);
+  private final ScriptParameter joinSizeInY = new ScriptParameter(JOIN_KEY + '.'
+      + SIZE_IN_Y_KEY);
   private final EtomoBoolean2 joinLocalFits = new EtomoBoolean2(JOIN_KEY + '.'
       + LOCAL_FITS_KEY);
 
-  private final EtomoVersion joinTrialVersion = EtomoVersion
-      .getEmptyInstance(JOIN_KEY + '.' + TRIAL_KEY + '.'
-          + EtomoVersion.DEFAULT_KEY);
-  private final IntKeyList joinTrialStartList = IntKeyList.getNumberInstance(
-      JOIN_KEY + '.' + TRIAL_KEY + '.' + START_LIST_KEY, EtomoNumber.Type.LONG);
-  private final IntKeyList joinTrialEndList = IntKeyList.getNumberInstance(
-      JOIN_KEY + '.' + TRIAL_KEY + '.' + END_LIST_KEY, EtomoNumber.Type.LONG);
-  private final EtomoNumber joinTrialAlignmentRefSection = new EtomoNumber(
-      JOIN_KEY + '.' + TRIAL_KEY + '.' + ALIGNMENT_REF_SECTION_KEY);
-  private final ScriptParameter joinTrialShiftInX = new ScriptParameter(
-      JOIN_KEY + '.' + TRIAL_KEY + '.' + SHIFT_IN_X_KEY);
-  private final ScriptParameter joinTrialShiftInY = new ScriptParameter(
-      JOIN_KEY + '.' + TRIAL_KEY + '.' + SHIFT_IN_Y_KEY);
-  private final ScriptParameter joinTrialSizeInX = new ScriptParameter(JOIN_KEY
-      + '.' + TRIAL_KEY + '.' + SIZE_IN_X_KEY);
-  private final ScriptParameter joinTrialSizeInY = new ScriptParameter(JOIN_KEY
-      + '.' + TRIAL_KEY + '.' + SIZE_IN_Y_KEY);
-  private final EtomoBoolean2 joinTrialLocalFits = new EtomoBoolean2(JOIN_KEY
-      + '.' + TRIAL_KEY + '.' + LOCAL_FITS_KEY);
-  private final EtomoNumber joinTrialBinning = new EtomoNumber(JOIN_KEY + '.'
-      + TRIAL_KEY + '.' + "Binning");
-  private final IntKeyList refineStartList = IntKeyList.getNumberInstance(
-      REFINE_KEY + '.' + START_LIST_KEY, EtomoNumber.Type.LONG);
-  private final IntKeyList refineEndList = IntKeyList.getNumberInstance(
-      REFINE_KEY + '.' + END_LIST_KEY, EtomoNumber.Type.LONG);
+  private final EtomoVersion joinTrialVersion = EtomoVersion.getEmptyInstance(JOIN_KEY
+      + '.' + TRIAL_KEY + '.' + EtomoVersion.DEFAULT_KEY);
+  private final IntKeyList joinTrialStartList = IntKeyList.getNumberInstance(JOIN_KEY
+      + '.' + TRIAL_KEY + '.' + START_LIST_KEY, EtomoNumber.Type.LONG);
+  private final IntKeyList joinTrialEndList = IntKeyList.getNumberInstance(JOIN_KEY + '.'
+      + TRIAL_KEY + '.' + END_LIST_KEY, EtomoNumber.Type.LONG);
+  private final EtomoNumber joinTrialAlignmentRefSection = new EtomoNumber(JOIN_KEY + '.'
+      + TRIAL_KEY + '.' + ALIGNMENT_REF_SECTION_KEY);
+  private final ScriptParameter joinTrialShiftInX = new ScriptParameter(JOIN_KEY + '.'
+      + TRIAL_KEY + '.' + SHIFT_IN_X_KEY);
+  private final ScriptParameter joinTrialShiftInY = new ScriptParameter(JOIN_KEY + '.'
+      + TRIAL_KEY + '.' + SHIFT_IN_Y_KEY);
+  private final ScriptParameter joinTrialSizeInX = new ScriptParameter(JOIN_KEY + '.'
+      + TRIAL_KEY + '.' + SIZE_IN_X_KEY);
+  private final ScriptParameter joinTrialSizeInY = new ScriptParameter(JOIN_KEY + '.'
+      + TRIAL_KEY + '.' + SIZE_IN_Y_KEY);
+  private final EtomoBoolean2 joinTrialLocalFits = new EtomoBoolean2(JOIN_KEY + '.'
+      + TRIAL_KEY + '.' + LOCAL_FITS_KEY);
+  private final EtomoNumber joinTrialBinning = new EtomoNumber(JOIN_KEY + '.' + TRIAL_KEY
+      + '.' + "Binning");
+  private final IntKeyList refineStartList = IntKeyList.getNumberInstance(REFINE_KEY
+      + '.' + START_LIST_KEY, EtomoNumber.Type.LONG);
+  private final IntKeyList refineEndList = IntKeyList.getNumberInstance(REFINE_KEY + '.'
+      + END_LIST_KEY, EtomoNumber.Type.LONG);
   private String xfModelOutputFile = null;
   private boolean debug = false;
-  private final EtomoNumber joinTrialUseEveryNSlices = new EtomoNumber(JOIN_KEY
-      + '.' + TRIAL_KEY + '.' + USE_EVERY_N_SLICES_KEY);
-  private final EtomoNumber refineTrialUseEveryNSlices = new EtomoNumber(
-      REFINE_KEY + '.' + TRIAL_KEY + '.' + USE_EVERY_N_SLICES_KEY);
+  private final EtomoNumber joinTrialUseEveryNSlices = new EtomoNumber(JOIN_KEY + '.'
+      + TRIAL_KEY + '.' + USE_EVERY_N_SLICES_KEY);
+  private final EtomoNumber refineTrialUseEveryNSlices = new EtomoNumber(REFINE_KEY + '.'
+      + TRIAL_KEY + '.' + USE_EVERY_N_SLICES_KEY);
   private final EtomoVersion version = EtomoVersion.getDefaultInstance();
 
   public JoinState(BaseManager manager) {
@@ -194,8 +195,7 @@ public final class JoinState extends BaseState implements ConstJoinState {
     joinVersion.store(props, prepend);
     joinTrialVersion.store(props, prepend);
     doneMode.store(props, prepend);
-    props.setProperty(group + sampleProducedString, Boolean
-        .toString(sampleProduced));
+    props.setProperty(group + sampleProducedString, Boolean.toString(sampleProduced));
     totalRows.store(props, prepend);
     //store the rotation angles under their current row number
     if (rotationAnglesList != null) {
@@ -203,8 +203,8 @@ public final class JoinState extends BaseState implements ConstJoinState {
         SlicerAngles rotationAngles = (SlicerAngles) rotationAnglesList
             .get(new Integer(i));
         if (rotationAngles != null) {
-          rotationAngles.store(props, SectionTableRowData.createPrepend(
-              prepend, new EtomoNumber().set(i + 1)));
+          rotationAngles.store(props, SectionTableRowData.createPrepend(prepend,
+              new EtomoNumber().set(i + 1)));
         }
       }
     }
@@ -450,8 +450,8 @@ public final class JoinState extends BaseState implements ConstJoinState {
   }
 
   public int getNewShiftInX(int min, int max) {
-    return joinTrialShiftInX.getInt() + (joinTrialSizeInX.getInt() + 1) / 2
-        - (max + min) / 2;
+    return joinTrialShiftInX.getInt() + (joinTrialSizeInX.getInt() + 1) / 2 - (max + min)
+        / 2;
   }
 
   public SlicerAngles getRotationAngles(Integer index) {
@@ -683,8 +683,8 @@ public final class JoinState extends BaseState implements ConstJoinState {
    * @return
    */
   public int getNewShiftInY(int min, int max) {
-    return joinTrialShiftInY.getInt() + (joinTrialSizeInY.getInt() + 1) / 2
-        - (max + min) / 2;
+    return joinTrialShiftInY.getInt() + (joinTrialSizeInY.getInt() + 1) / 2 - (max + min)
+        / 2;
   }
 
   public boolean isSampleProduced() {
@@ -692,8 +692,7 @@ public final class JoinState extends BaseState implements ConstJoinState {
   }
 
   public void setGapsExist(boolean gapsExist) {
-    this.gapsExist = EtomoBoolean2.set(this.gapsExist, gapsExist,
-        GAPS_EXIST_KEY);
+    this.gapsExist = EtomoBoolean2.set(this.gapsExist, gapsExist, GAPS_EXIST_KEY);
   }
 
   public boolean isGapsExist() {
@@ -724,8 +723,7 @@ public final class JoinState extends BaseState implements ConstJoinState {
       return;
     }
     if (rowIndex >= totalRows.getInt()) {
-      throw new IllegalStateException("rowIndex=" + rowIndex + ",totalRows="
-          + totalRows);
+      throw new IllegalStateException("rowIndex=" + rowIndex + ",totalRows=" + totalRows);
     }
     //delete row
     Integer prevIndex = new Integer(rowIndex);
@@ -733,8 +731,7 @@ public final class JoinState extends BaseState implements ConstJoinState {
     //move the other rows up one row
     for (int i = rowIndex + 1; i < totalRows.getInt(); i++) {
       Integer curIndex = new Integer(i);
-      SlicerAngles rotationAngles = (SlicerAngles) rotationAnglesList
-          .remove(curIndex);
+      SlicerAngles rotationAngles = (SlicerAngles) rotationAnglesList.remove(curIndex);
       if (rotationAngles != null) {
         rotationAnglesList.put(prevIndex, rotationAngles);
       }
@@ -747,14 +744,12 @@ public final class JoinState extends BaseState implements ConstJoinState {
       return;
     }
     if (rowIndex == 0 || rowIndex >= totalRows.getInt()) {
-      throw new IllegalStateException("rowIndex=" + rowIndex + ",totalRows="
-          + totalRows);
+      throw new IllegalStateException("rowIndex=" + rowIndex + ",totalRows=" + totalRows);
     }
     Integer curIndex = new Integer(rowIndex);
     Integer prevIndex = new Integer(rowIndex - 1);
     //swap the current row with the one above it
-    SlicerAngles rotationAngles = (SlicerAngles) rotationAnglesList
-        .remove(curIndex);
+    SlicerAngles rotationAngles = (SlicerAngles) rotationAnglesList.remove(curIndex);
     SlicerAngles prevRotationAngles;
     if (rotationAngles != null) {
       prevRotationAngles = (SlicerAngles) rotationAnglesList.put(prevIndex,
@@ -773,14 +768,12 @@ public final class JoinState extends BaseState implements ConstJoinState {
       return;
     }
     if (rowIndex >= totalRows.getInt() - 1) {
-      throw new IllegalStateException("rowIndex=" + rowIndex + ",totalRows="
-          + totalRows);
+      throw new IllegalStateException("rowIndex=" + rowIndex + ",totalRows=" + totalRows);
     }
     Integer curIndex = new Integer(rowIndex);
     Integer nextIndex = new Integer(rowIndex + 1);
     //swap the current row with the one below it
-    SlicerAngles rotationAngles = (SlicerAngles) rotationAnglesList
-        .remove(curIndex);
+    SlicerAngles rotationAngles = (SlicerAngles) rotationAnglesList.remove(curIndex);
     SlicerAngles nextRotationAngles;
     if (rotationAngles != null) {
       nextRotationAngles = (SlicerAngles) rotationAnglesList.put(nextIndex,

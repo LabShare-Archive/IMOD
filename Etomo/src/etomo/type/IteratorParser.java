@@ -52,6 +52,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2010/11/13 16:06:53  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.2  2010/02/17 04:52:36  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -95,8 +98,7 @@ public final class IteratorParser {
     valid = true;
     this.iteratorElementList = iteratorElementList;
     if (iteratorElementList == null) {
-      this.iteratorElementList = new IteratorElementList(manager, axisID,
-          description);
+      this.iteratorElementList = new IteratorElementList(manager, axisID, description);
     }
     tokenizer = PrimativeTokenizer.getNumericInstance(input);
     try {
@@ -106,21 +108,18 @@ public final class IteratorParser {
     }
     catch (FileNotFoundException e) {
       e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to parse "
-          + description + ".  FileNotFoundException: " + e.getMessage(),
-          "Etomo Error", axisID);
+      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to parse " + description
+          + ".  FileNotFoundException: " + e.getMessage(), "Etomo Error", axisID);
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to parse "
-          + description + ".  LogFile.LockException: " + e.getMessage(),
-          "Etomo Error", axisID);
+      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to parse " + description
+          + ".  LogFile.LockException: " + e.getMessage(), "Etomo Error", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to parse "
-          + description + ".  IOException: " + e.getMessage(), "Etomo Error",
-          axisID);
+      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to parse " + description
+          + ".  IOException: " + e.getMessage(), "Etomo Error", axisID);
     }
     iterator();
   }
@@ -222,13 +221,12 @@ public final class IteratorParser {
     Formatter f;
     String caret = "";
     if (index > 0) {
-      caret = String.format("%1$" + String.valueOf(index) + "s",
-          new Object[] { "^" });
+      caret = String.format("%1$" + String.valueOf(index) + "s", new Object[] { "^" });
     }
     UIHarness.INSTANCE.openMessageDialog(manager, "In " + description
         + ", iterator syntax error.\n" + buffer.toString() + "\n" + caret
-        + "\nExpected \"" + expected + "\".  Syntax example:  2,4-9,10",
-        "Entry Error", axisID);
+        + "\nExpected \"" + expected + "\".  Syntax example:  2,4-9,10", "Entry Error",
+        axisID);
   }
 
   /**

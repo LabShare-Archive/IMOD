@@ -21,7 +21,10 @@ import java.util.Properties;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/09/01 03:09:28  sueh
+ * <p> bug# 1222 Class to hold multiple properties.
+ * <p> </p>
  */
 final class PanelHeaderStatePropertyList {
   public static final String rcsid = "$Id$";
@@ -31,8 +34,8 @@ final class PanelHeaderStatePropertyList {
 
   void addProperty(final Object uniqueContainerID, final String key) {
     if (elementMap.containsKey(uniqueContainerID)) {
-      throw new IllegalArgumentException(
-          "Property already exists.  uniqueContainerID=" + uniqueContainerID + ",key=" + key);
+      throw new IllegalArgumentException("Property already exists.  uniqueContainerID="
+          + uniqueContainerID + ",key=" + key);
     }
     Element element = new Element(new PanelHeaderState(key));
     elementMap.put(uniqueContainerID, element);
@@ -54,12 +57,11 @@ final class PanelHeaderStatePropertyList {
    * @param oldKey
    */
   void setBackwardCompatibility(final Object uniqueContainerID,
-      final EtomoVersion backwardCompatibleVersion,
-      final String backwardCompatibleKey) {
+      final EtomoVersion backwardCompatibleVersion, final String backwardCompatibleKey) {
     if (!elementMap.containsKey(uniqueContainerID)) {
-      throw new IllegalArgumentException(
-          "Property doesn't exist.  uniqueContainerID=" + uniqueContainerID
-              + ", backwardCompatibleVersion=" + backwardCompatibleVersion);
+      throw new IllegalArgumentException("Property doesn't exist.  uniqueContainerID="
+          + uniqueContainerID + ", backwardCompatibleVersion="
+          + backwardCompatibleVersion);
     }
     Element element = (Element) elementMap.get(uniqueContainerID);
     element.addToBackwardCompatibilityList(backwardCompatibleVersion,
@@ -83,8 +85,7 @@ final class PanelHeaderStatePropertyList {
    * @param props
    * @param prepend
    */
-  void load(EtomoVersion savedVersion, final Properties props,
-      final String prepend) {
+  void load(EtomoVersion savedVersion, final Properties props, final String prepend) {
     Collection collection = elementMap.values();
     Iterator iterator = collection.iterator();
     while (iterator.hasNext()) {
@@ -103,11 +104,9 @@ final class PanelHeaderStatePropertyList {
             //closest to savedVersion.  Only the smallest one that is greater
             //then or equal to the saved version is valid.
             if (smallestBackwardCompatibleVersion == null
-                || backwardCompatibleVersion
-                    .lt(smallestBackwardCompatibleVersion)) {
+                || backwardCompatibleVersion.lt(smallestBackwardCompatibleVersion)) {
               smallestBackwardCompatibleVersion = backwardCompatibleVersion;
-              element.panelHeaderState.load(props, prepend,
-                  backwardCompatibleKey);
+              element.panelHeaderState.load(props, prepend, backwardCompatibleKey);
             }
           }
         }
@@ -122,17 +121,16 @@ final class PanelHeaderStatePropertyList {
 
   void set(final Object uniqueContainerID, final PanelHeaderState input) {
     if (!elementMap.containsKey(uniqueContainerID)) {
-      throw new IllegalArgumentException(
-          "Property doesn't exist.  uniqueContainerID=" + uniqueContainerID
-              + ", input=" + input);
+      throw new IllegalArgumentException("Property doesn't exist.  uniqueContainerID="
+          + uniqueContainerID + ", input=" + input);
     }
     (((Element) elementMap.get(uniqueContainerID))).panelHeaderState.set(input);
   }
 
   PanelHeaderState get(final Object uniqueContainerID) {
     if (!elementMap.containsKey(uniqueContainerID)) {
-      throw new IllegalArgumentException(
-          "Property doesn't exist.  uniqueContainerID=" + uniqueContainerID);
+      throw new IllegalArgumentException("Property doesn't exist.  uniqueContainerID="
+          + uniqueContainerID);
     }
     return ((Element) elementMap.get(uniqueContainerID)).panelHeaderState;
   }
@@ -152,8 +150,8 @@ final class PanelHeaderStatePropertyList {
       this.panelHeaderState = panelHeaderState;
     }
 
-    private void addToBackwardCompatibilityList(
-        EtomoVersion backwardCompatibleVersion, String backwardCompatibleKey) {
+    private void addToBackwardCompatibilityList(EtomoVersion backwardCompatibleVersion,
+        String backwardCompatibleKey) {
       if (backwardCompatibilityList == null) {
         backwardCompatibilityList = new ArrayList();
       }

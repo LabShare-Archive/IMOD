@@ -13,6 +13,11 @@ package etomo.type;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2005/01/14 03:00:35  sueh
+ * <p> bug# 511 Added a new state called SAVE to be the default state.  Tells
+ * <p> done functions to save the dialog to .com and .edf file without changing
+ * <p> the process state.
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -27,8 +32,7 @@ package etomo.type;
  * <p> </p>
  */
 public class DialogExitState {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   private final String name;
 
@@ -44,8 +48,7 @@ public class DialogExitState {
   }
 
   public static final DialogExitState CANCEL = new DialogExitState("Cancel");
-  public static final DialogExitState POSTPONE =
-    new DialogExitState("Postpone");
+  public static final DialogExitState POSTPONE = new DialogExitState("Postpone");
   public static final DialogExitState EXECUTE = new DialogExitState("Execute");
   public static final DialogExitState SAVE = new DialogExitState("Save");
 }

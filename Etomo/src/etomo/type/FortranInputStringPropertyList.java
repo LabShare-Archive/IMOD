@@ -25,7 +25,10 @@ import etomo.comscript.FortranInputSyntaxException;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/09/01 03:00:36  sueh
+ * <p> bug# 1222 Class to hold multiple properties.
+ * <p> </p>
  */
 final class FortranInputStringPropertyList {
   public static final String rcsid = "$Id$";
@@ -54,8 +57,8 @@ final class FortranInputStringPropertyList {
    */
   void addProperty(final Object uniqueContainerID, final String key) {
     if (elementMap.containsKey(uniqueContainerID)) {
-      throw new IllegalArgumentException("Property already exists.  uniqueContainerID=" + uniqueContainerID
-          + ",key=" + key);
+      throw new IllegalArgumentException("Property already exists.  uniqueContainerID="
+          + uniqueContainerID + ",key=" + key);
     }
     FortranInputString element = new FortranInputString(nParams);
     if (isIntArray != null) {
@@ -93,7 +96,8 @@ final class FortranInputStringPropertyList {
 
   FortranInputString get(final Object uniqueContainerID) {
     if (!elementMap.containsKey(uniqueContainerID)) {
-      throw new IllegalArgumentException("Property doesn't exist.  uniqueContainerID=" + uniqueContainerID);
+      throw new IllegalArgumentException("Property doesn't exist.  uniqueContainerID="
+          + uniqueContainerID);
     }
     return (FortranInputString) elementMap.get(uniqueContainerID);
   }
@@ -107,11 +111,10 @@ final class FortranInputStringPropertyList {
   void validateAndSet(final Object uniqueContainerID, final String newValues)
       throws FortranInputSyntaxException {
     if (!elementMap.containsKey(uniqueContainerID)) {
-      throw new IllegalArgumentException("Property doesn't exist.  uniqueContainerID=" + uniqueContainerID
-          + ", newValues=" + newValues);
+      throw new IllegalArgumentException("Property doesn't exist.  uniqueContainerID="
+          + uniqueContainerID + ", newValues=" + newValues);
     }
-    ((FortranInputString) elementMap.get(uniqueContainerID))
-        .validateAndSet(newValues);
+    ((FortranInputString) elementMap.get(uniqueContainerID)).validateAndSet(newValues);
   }
 
   /**

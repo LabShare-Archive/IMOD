@@ -20,6 +20,10 @@ import etomo.comscript.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2010/03/18 22:43:20  sueh
+ * <p> bug# 1323 In load(EtomoBoolean2,String,Properties,String fix the way the
+ * <p> key is derived from prepend and name.
+ * <p>
  * <p> Revision 1.21  2010/03/09 01:40:29  sueh
  * <p> bug# 1323 In load(EtomoBoolean2,String,Properties,String) handling a
  * <p> prepend which ends with ".".
@@ -158,8 +162,8 @@ public class EtomoBoolean2 extends ScriptParameter {
     setDisplayValue(falseValue);
   }
 
-  public static void store(EtomoBoolean2 instance, Properties props,
-      String prepend, String name) {
+  public static void store(EtomoBoolean2 instance, Properties props, String prepend,
+      String name) {
     if (instance == null) {
       props.remove(prepend + "." + name);
     }
@@ -178,8 +182,8 @@ public class EtomoBoolean2 extends ScriptParameter {
    * @param prepend
    * @return etomoBoolean2
    */
-  public static EtomoBoolean2 load(EtomoBoolean2 instance, String name,
-      Properties props, String prepend) {
+  public static EtomoBoolean2 load(EtomoBoolean2 instance, String name, Properties props,
+      String prepend) {
     String key = null;
     if (prepend == null || prepend.matches("\\s*")) {
       key = name;
@@ -211,8 +215,8 @@ public class EtomoBoolean2 extends ScriptParameter {
     return instance1.equals(instance2);
   }
 
-  public static EtomoBoolean2 set(EtomoBoolean2 instance,
-      ConstEtomoNumber value, String name) {
+  public static EtomoBoolean2 set(EtomoBoolean2 instance, ConstEtomoNumber value,
+      String name) {
     if (instance == null && value != null) {
       instance = new EtomoBoolean2(name);
     }
@@ -223,8 +227,7 @@ public class EtomoBoolean2 extends ScriptParameter {
     return instance;
   }
 
-  public static EtomoBoolean2 set(EtomoBoolean2 instance, boolean value,
-      String name) {
+  public static EtomoBoolean2 set(EtomoBoolean2 instance, boolean value, String name) {
     if (instance == null) {
       instance = new EtomoBoolean2(name);
     }
@@ -324,8 +327,7 @@ public class EtomoBoolean2 extends ScriptParameter {
   public ConstEtomoNumber parse(ComScriptCommand scriptCommand)
       throws InvalidParameterException {
     boolean nameInScript = scriptCommand.hasKeyword(name);
-    if (!nameInScript
-        && (shortName == null || !scriptCommand.hasKeyword(shortName))) {
+    if (!nameInScript && (shortName == null || !scriptCommand.hasKeyword(shortName))) {
       return set(falseValue);
     }
     String scriptValue;
