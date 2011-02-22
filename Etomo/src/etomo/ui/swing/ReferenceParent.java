@@ -14,6 +14,9 @@ package etomo.ui.swing;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.2  2009/12/01 00:27:36  sueh
  * <p> bug# 1285 Making PeetDialog.gotoSetupTab private.  Panels should not
  * <p> need to know about the tabs on the dialog they are on.
@@ -25,8 +28,7 @@ package etomo.ui.swing;
 interface ReferenceParent {
   public static final String rcsid = "$Id$";
 
-  public boolean fixIncorrectPath(FileTextField fileTextField,
-      boolean choosePath);
+  public boolean fixIncorrectPath(FileTextField fileTextField, boolean choosePath);
 
   public int getVolumeTableSize();
 

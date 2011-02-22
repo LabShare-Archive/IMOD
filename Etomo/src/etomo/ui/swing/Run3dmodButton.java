@@ -43,9 +43,9 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu,
   //When deferred is true, need a button that knows how to run the 3dmod command.
   private Deferred3dmodButton deferred3dmodButton = null;
 
-  private Run3dmodButton(final String label,
-      final Run3dmodButtonContainer container, final boolean toggleButton,
-      final DialogType dialogType, boolean deferred, String description) {
+  private Run3dmodButton(final String label, final Run3dmodButtonContainer container,
+      final boolean toggleButton, final DialogType dialogType, boolean deferred,
+      String description) {
     super(label, toggleButton, dialogType, false);
     this.container = container;
     this.deferred = deferred;
@@ -73,47 +73,46 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu,
 
   static Run3dmodButton get3dmodInstance(final String label,
       final Run3dmodButtonContainer container) {
-    Run3dmodButton instance = new Run3dmodButton(label, container, false, null,
-        false, null);
+    Run3dmodButton instance = new Run3dmodButton(label, container, false, null, false,
+        null);
     instance.init();
     return instance;
   }
 
   static Run3dmodButton getToggle3dmodInstance(final String label,
       final DialogType dialogType) {
-    Run3dmodButton instance = new Run3dmodButton(label, null, true, dialogType,
-        false, null);
+    Run3dmodButton instance = new Run3dmodButton(label, null, true, dialogType, false,
+        null);
     instance.init();
     return instance;
   }
 
   static Run3dmodButton getDeferred3dmodInstance(final String label,
       final Run3dmodButtonContainer container) {
-    Run3dmodButton instance = new Run3dmodButton(label, container, false, null,
-        true, null);
+    Run3dmodButton instance = new Run3dmodButton(label, container, false, null, true,
+        null);
     instance.init();
     return instance;
   }
 
   static Run3dmodButton getDeferred3dmodInstance(final String label,
       final Run3dmodButtonContainer container, String description) {
-    Run3dmodButton instance = new Run3dmodButton(label, container, false, null,
-        true, description);
+    Run3dmodButton instance = new Run3dmodButton(label, container, false, null, true,
+        description);
     instance.init();
     return instance;
   }
 
   static Run3dmodButton getDeferredToggle3dmodInstance(final String label) {
-    Run3dmodButton instance = new Run3dmodButton(label, null, true, null, true,
-        null);
+    Run3dmodButton instance = new Run3dmodButton(label, null, true, null, true, null);
     instance.init();
     return instance;
   }
 
   static Run3dmodButton getDeferredToggle3dmodInstance(final String label,
       final DialogType dialogType) {
-    Run3dmodButton instance = new Run3dmodButton(label, null, true, dialogType,
-        true, null);
+    Run3dmodButton instance = new Run3dmodButton(label, null, true, dialogType, true,
+        null);
     instance.init();
     return instance;
   }
@@ -204,6 +203,9 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.15  2010/06/30 21:10:23  sueh
  * <p> bug# 1387 Added a debug instance of MultiLineButton.
  * <p>

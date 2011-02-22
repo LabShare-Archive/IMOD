@@ -28,6 +28,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/03 06:22:16  sueh
+ * <p> bug# 1422 Control of the processing method has been centralized in the
+ * <p> processing method mediator class.  Implementing ProcessInterface.
+ * <p> Supplying processes with the current processing method.
+ * <p>
  * <p> Revision 1.2  2010/12/05 05:16:36  sueh
  * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
  * <p>
@@ -48,8 +53,8 @@ final class ReprojectModelPanel implements TiltDisplay, Run3dmodButtonContainer 
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance(true);
   private final ActionListener actionListener = new ReprojectModelPanelActionListener(
       this);
-  private final Run3dmodButton btn3dmodReprojectModel = Run3dmodButton
-      .get3dmodInstance("View 2D Model on Aligned Stack", this);
+  private final Run3dmodButton btn3dmodReprojectModel = Run3dmodButton.get3dmodInstance(
+      "View 2D Model on Aligned Stack", this);
 
   private final Run3dmodButton btnReprojectModel;
   private final ApplicationManager manager;
@@ -61,14 +66,13 @@ final class ReprojectModelPanel implements TiltDisplay, Run3dmodButtonContainer 
     this.manager = manager;
     this.axisID = axisID;
     this.dialogType = dialogType;
-    btnReprojectModel = (Run3dmodButton) manager
-        .getProcessResultDisplayFactory(axisID).getReprojectModel();
+    btnReprojectModel = (Run3dmodButton) manager.getProcessResultDisplayFactory(axisID)
+        .getReprojectModel();
   }
 
-  static ReprojectModelPanel getInstance(ApplicationManager manager,
-      AxisID axisID, DialogType dialogType) {
-    ReprojectModelPanel instance = new ReprojectModelPanel(manager, axisID,
-        dialogType);
+  static ReprojectModelPanel getInstance(ApplicationManager manager, AxisID axisID,
+      DialogType dialogType) {
+    ReprojectModelPanel instance = new ReprojectModelPanel(manager, axisID, dialogType);
     instance.createPanel();
     instance.setToolTipText();
     instance.addListeners();
@@ -101,8 +105,8 @@ final class ReprojectModelPanel implements TiltDisplay, Run3dmodButtonContainer 
   }
 
   void setParameters(ReconScreenState screenState) {
-    btnReprojectModel.setButtonState(screenState
-        .getButtonState(btnReprojectModel.getButtonStateKey()));
+    btnReprojectModel.setButtonState(screenState.getButtonState(btnReprojectModel
+        .getButtonStateKey()));
   }
 
   /**
@@ -122,12 +126,11 @@ final class ReprojectModelPanel implements TiltDisplay, Run3dmodButtonContainer 
         run3dmodMenuOptions);
   }
 
-  private void action(final String command,
-      Deferred3dmodButton deferred3dmodButton,
+  private void action(final String command, Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnReprojectModel.getActionCommand())) {
-      manager.reprojectModelAction(btnReprojectModel, null,
-          deferred3dmodButton, run3dmodMenuOptions, this, axisID, dialogType);
+      manager.reprojectModelAction(btnReprojectModel, null, deferred3dmodButton,
+          run3dmodMenuOptions, this, axisID, dialogType);
     }
     else if (command.equals(btn3dmodReprojectModel.getActionCommand())) {
       manager.imodReprojectModel(axisID, run3dmodMenuOptions);
@@ -139,8 +142,7 @@ final class ReprojectModelPanel implements TiltDisplay, Run3dmodButtonContainer 
     btn3dmodReprojectModel.setToolTipText("View model of gold particles.");
   }
 
-  private final class ReprojectModelPanelActionListener implements
-      ActionListener {
+  private final class ReprojectModelPanelActionListener implements ActionListener {
     private final ReprojectModelPanel adaptee;
 
     private ReprojectModelPanelActionListener(final ReprojectModelPanel adaptee) {

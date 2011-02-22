@@ -65,8 +65,7 @@ public abstract class ReconUIExpert implements UIExpert {
   final boolean canShowDialog() {
     //  Check to see if the com files are present otherwise pop up a dialog
     //  box informing the user to run the setup process
-    if (!UIExpertUtilities.INSTANCE
-        .areScriptsCreated(manager, metaData, axisID)) {
+    if (!UIExpertUtilities.INSTANCE.areScriptsCreated(manager, metaData, axisID)) {
       mainPanel.showBlankProcess(axisID);
       return false;
     }
@@ -106,8 +105,7 @@ public abstract class ReconUIExpert implements UIExpert {
     processResultDisplay.msgProcessStarting();
   }
 
-  final void sendMsg(ProcessResult displayState,
-      ProcessResultDisplay processResultDisplay) {
+  final void sendMsg(ProcessResult displayState, ProcessResultDisplay processResultDisplay) {
     if (displayState == null || processResultDisplay == null) {
       return;
     }
@@ -167,30 +165,28 @@ public abstract class ReconUIExpert implements UIExpert {
    * @param axisID
    */
   final void processchunks(BaseManager manager, AbstractParallelDialog dialog,
-      ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries, ProcessName processName,
-      FileType outputImageFileType, ProcessingMethod processingMethod) {
+      ProcessResultDisplay processResultDisplay, ConstProcessSeries processSeries,
+      ProcessName processName, FileType outputImageFileType,
+      ProcessingMethod processingMethod) {
     sendMsgProcessStarting(processResultDisplay);
     if (dialog == null) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
-    ProcesschunksParam param = new ProcesschunksParam(manager, axisID,
-        processName, outputImageFileType);
-    ParallelPanel parallelPanel = manager.getMainPanel().getParallelPanel(
-        axisID);
+    ProcesschunksParam param = new ProcesschunksParam(manager, axisID, processName,
+        outputImageFileType);
+    ParallelPanel parallelPanel = manager.getMainPanel().getParallelPanel(axisID);
     dialog.getParameters(param);
     if (!parallelPanel.getParameters(param)) {
-      manager.getMainPanel().stopProgressBar(AxisID.ONLY,
-          ProcessEndState.FAILED);
+      manager.getMainPanel().stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
     setDialogState(ProcessState.INPROGRESS);
     //param should never be set to resume
     parallelPanel.getParallelProgressDisplay().resetResults();
-    manager.processchunks(axisID, param, processResultDisplay, processSeries,
-        true, processingMethod);
+    manager.processchunks(axisID, param, processResultDisplay, processSeries, true,
+        processingMethod);
   }
 
   final ParallelPanel getParallelPanel() {
@@ -212,6 +208,11 @@ public abstract class ReconUIExpert implements UIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/03 06:22:16  sueh
+ * <p> bug# 1422 Control of the processing method has been centralized in the
+ * <p> processing method mediator class.  Implementing ProcessInterface.
+ * <p> Supplying processes with the current processing method.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>

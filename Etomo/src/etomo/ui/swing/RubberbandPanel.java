@@ -56,10 +56,9 @@ public final class RubberbandPanel {
   private final boolean placeButtons;
 
   private RubberbandPanel(BaseManager manager, RubberbandContainer container,
-      String imodKey, String borderLabel, String buttonLabel,
-      String xMinTooltip, String xMaxTooltip, String yMinTooltip,
-      String yMaxTooltip, String zMinTooltip, String zMaxTooltip,
-      Run3dmodButton btnImod, boolean placeButtons) {
+      String imodKey, String borderLabel, String buttonLabel, String xMinTooltip,
+      String xMaxTooltip, String yMinTooltip, String yMaxTooltip, String zMinTooltip,
+      String zMaxTooltip, Run3dmodButton btnImod, boolean placeButtons) {
     this.container = container;
     this.imodKey = imodKey;
     this.xMinTooltip = xMinTooltip;
@@ -114,24 +113,23 @@ public final class RubberbandPanel {
     setToolTipText();
   }
 
-  static RubberbandPanel getInstance(BaseManager manager,
-      RubberbandContainer container, String imodKey, String borderLabel,
-      String buttonLabel, String xMinTooltip, String xMaxTooltip,
-      String yMinTooltip, String yMaxTooltip) {
+  static RubberbandPanel getInstance(BaseManager manager, RubberbandContainer container,
+      String imodKey, String borderLabel, String buttonLabel, String xMinTooltip,
+      String xMaxTooltip, String yMinTooltip, String yMaxTooltip) {
     RubberbandPanel instance = new RubberbandPanel(manager, container, imodKey,
-        borderLabel, buttonLabel, xMinTooltip, xMaxTooltip, yMinTooltip,
-        yMaxTooltip, "", "", null, true);
+        borderLabel, buttonLabel, xMinTooltip, xMaxTooltip, yMinTooltip, yMaxTooltip, "",
+        "", null, true);
     instance.addListeners();
     return instance;
   }
 
   static RubberbandPanel getInstance(BaseManager manager, String imodKey,
-      String borderLabel, String buttonLabel, String xMinTooltip,
-      String xMaxTooltip, String yMinTooltip, String yMaxTooltip,
-      String zMinTooltip, String zMaxTooltip, Run3dmodButton btnIdmod) {
-    RubberbandPanel instance = new RubberbandPanel(manager, null, imodKey,
-        borderLabel, buttonLabel, xMinTooltip, xMaxTooltip, yMinTooltip,
-        yMaxTooltip, zMinTooltip, zMaxTooltip, btnIdmod, true);
+      String borderLabel, String buttonLabel, String xMinTooltip, String xMaxTooltip,
+      String yMinTooltip, String yMaxTooltip, String zMinTooltip, String zMaxTooltip,
+      Run3dmodButton btnIdmod) {
+    RubberbandPanel instance = new RubberbandPanel(manager, null, imodKey, borderLabel,
+        buttonLabel, xMinTooltip, xMaxTooltip, yMinTooltip, yMaxTooltip, zMinTooltip,
+        zMaxTooltip, btnIdmod, true);
     instance.addListeners();
     return instance;
   }
@@ -153,11 +151,11 @@ public final class RubberbandPanel {
    */
   static RubberbandPanel getNoButtonInstance(BaseManager manager,
       RubberbandContainer container, String imodKey, String borderLabel,
-      String buttonLabel, String xMinTooltip, String xMaxTooltip,
-      String yMinTooltip, String yMaxTooltip) {
+      String buttonLabel, String xMinTooltip, String xMaxTooltip, String yMinTooltip,
+      String yMaxTooltip) {
     RubberbandPanel instance = new RubberbandPanel(manager, container, imodKey,
-        borderLabel, buttonLabel, xMinTooltip, xMaxTooltip, yMinTooltip,
-        yMaxTooltip, "", "", null, false);
+        borderLabel, buttonLabel, xMinTooltip, xMaxTooltip, yMinTooltip, yMaxTooltip, "",
+        "", null, false);
     instance.addListeners();
     return instance;
   }
@@ -181,8 +179,7 @@ public final class RubberbandPanel {
   void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command == btnRubberband.getActionCommand()) {
-      Vector coordinates = manager.imodGetRubberbandCoordinates(imodKey,
-          AxisID.ONLY);
+      Vector coordinates = manager.imodGetRubberbandCoordinates(imodKey, AxisID.ONLY);
       setMinAndMax(coordinates);
     }
   }
@@ -197,8 +194,7 @@ public final class RubberbandPanel {
     }
     int index = 0;
     while (index < size) {
-      if (ImodProcess.RUBBERBAND_RESULTS_STRING.equals((String) coordinates
-          .get(index++))) {
+      if (ImodProcess.RUBBERBAND_RESULTS_STRING.equals((String) coordinates.get(index++))) {
         ltfXMin.setText((String) coordinates.get(index++));
         if (index >= size) {
           return;
@@ -299,11 +295,10 @@ public final class RubberbandPanel {
     ltfYMax.setToolTipText(yMaxTooltip);
     ltfZMin.setToolTipText(zMinTooltip);
     ltfZMax.setToolTipText(zMaxTooltip);
-    btnRubberband
-        .setToolTipText("After opening the volume in 3dmod, press shift-B in "
-            + "the ZaP window.  Create a rubberband around the contrast "
-            + "range.  Then press this button to retrieve the X"
-            + (btnImod == null ? " and Y" : ", Y, and Z") + " coordinates.");
+    btnRubberband.setToolTipText("After opening the volume in 3dmod, press shift-B in "
+        + "the ZaP window.  Create a rubberband around the contrast "
+        + "range.  Then press this button to retrieve the X"
+        + (btnImod == null ? " and Y" : ", Y, and Z") + " coordinates.");
   }
 
   private static final class RubberbandActionListener implements ActionListener {
@@ -320,6 +315,9 @@ public final class RubberbandPanel {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.10  2009/06/05 02:15:09  sueh
  * <p> bug# 1219 Improved the layout of pnlRange.
  * <p>

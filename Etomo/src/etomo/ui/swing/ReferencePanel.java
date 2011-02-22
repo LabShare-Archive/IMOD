@@ -30,6 +30,9 @@ import etomo.type.PeetMetaData;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.5  2009/12/23 02:27:06  sueh
  * <p> bug# 1296 Stop taking tooltips from peetprm.adoc.
  * <p>
@@ -56,10 +59,10 @@ final class ReferencePanel {
 
   private final EtomoPanel pnlRoot = new EtomoPanel();
   private final ButtonGroup bgReference = new ButtonGroup();
-  private final RadioButton rbReferenceParticle = new RadioButton(
-      REFERENCE_VOLUME_LABEL + ": ", bgReference);
-  private final Spinner sReferenceVolume = Spinner
-      .getInstance(REFERENCE_VOLUME_LABEL + ": ");
+  private final RadioButton rbReferenceParticle = new RadioButton(REFERENCE_VOLUME_LABEL
+      + ": ", bgReference);
+  private final Spinner sReferenceVolume = Spinner.getInstance(REFERENCE_VOLUME_LABEL
+      + ": ");
   private final RadioButton rbReferenceFile = new RadioButton(
       REFERENCE_FILE_LABEL + " :", bgReference);
   private final LabeledTextField ltfReferenceParticle = new LabeledTextField(
@@ -103,8 +106,7 @@ final class ReferencePanel {
     pnlRoot.add(pnlVolumeReference);
     pnlRoot.add(pnlVolumeFile);
     //volume reference panel
-    pnlVolumeReference.setLayout(new BoxLayout(pnlVolumeReference,
-        BoxLayout.X_AXIS));
+    pnlVolumeReference.setLayout(new BoxLayout(pnlVolumeReference, BoxLayout.X_AXIS));
     pnlVolumeReference.add(rbReferenceParticle.getComponent());
     pnlVolumeReference.add(sReferenceVolume.getContainer());
     pnlVolumeReference.add(Box.createRigidArea(FixedDim.x5_y0));
@@ -213,8 +215,7 @@ final class ReferencePanel {
   }
 
   private void chooseReferenceFile(FileTextField fileTextField) {
-    JFileChooser chooser = new FileChooser(new File(manager
-        .getPropertyUserDir()));
+    JFileChooser chooser = new FileChooser(new File(manager.getPropertyUserDir()));
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     int returnVal = chooser.showOpenDialog(pnlRoot);
@@ -238,13 +239,13 @@ final class ReferencePanel {
     //Must either have a volume and particle or a reference file.
     //Must have particle number if volume is selected
     if (rbReferenceParticle.isSelected() && ltfReferenceParticle.isEmpty()) {
-      return "In " + REFERENCE_LABEL + ", " + PARTICLE_LABEL
-          + " is required when " + REFERENCE_VOLUME_LABEL + " is selected.";
+      return "In " + REFERENCE_LABEL + ", " + PARTICLE_LABEL + " is required when "
+          + REFERENCE_VOLUME_LABEL + " is selected.";
     }
     //Must have a reference file if reference file is selected
     if (rbReferenceFile.isSelected() && ftfReferenceFile.isEmpty()) {
-      return "In " + REFERENCE_LABEL + ", " + REFERENCE_FILE_LABEL
-          + " is required when " + REFERENCE_FILE_LABEL + " is selected.";
+      return "In " + REFERENCE_LABEL + ", " + REFERENCE_FILE_LABEL + " is required when "
+          + REFERENCE_FILE_LABEL + " is selected.";
     }
     return null;
   }
@@ -276,8 +277,7 @@ final class ReferencePanel {
     rbReferenceParticle.setEnabled(volumeRows);
     sReferenceVolume.setEnabled(volumeRows && rbReferenceParticle.isSelected());
     sReferenceVolume.setMax(size);
-    ltfReferenceParticle.setEnabled(volumeRows
-        && rbReferenceParticle.isSelected());
+    ltfReferenceParticle.setEnabled(volumeRows && rbReferenceParticle.isSelected());
     ftfReferenceFile.setEnabled(volumeRows && rbReferenceFile.isSelected());
   }
 
@@ -286,8 +286,7 @@ final class ReferencePanel {
    * @param tooltip
    */
   private void setTooltips() {
-    sReferenceVolume
-        .setToolTipText("The number of the volume containing the reference.");
+    sReferenceVolume.setToolTipText("The number of the volume containing the reference.");
     rbReferenceParticle
         .setToolTipText("Specify the reference by volume and particle numbers.");
     ltfReferenceParticle
@@ -310,8 +309,7 @@ final class ReferencePanel {
     }
   }
 
-  private static final class ReferenceFileActionListener implements
-      ActionListener {
+  private static final class ReferenceFileActionListener implements ActionListener {
     private final ReferencePanel referencePanel;
 
     private ReferenceFileActionListener(final ReferencePanel referencePanel) {
