@@ -23,6 +23,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2010/03/19 21:59:44  sueh
+ * <p> bug# 1335 Class can't be a n'ton because the dataset tabs.
+ * <p>
  * <p> Revision 1.5  2010/02/17 04:49:31  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -71,8 +74,8 @@ public final class TaErrorLog implements Loggable {
   /**
    * Get a message to be logged in the LogPanel.
    */
-  public List getLogMessage() throws LogFile.LockException,
-      FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+      IOException {
     lineList.clear();
     //refresh the log file
     LogFile taErrorLog = LogFile.getInstance(userDir, axisID,
@@ -84,8 +87,7 @@ public final class TaErrorLog implements Loggable {
         boolean globalRatioFound = false;
         while (line != null) {
           if (!globalRatioFound
-              && line.trim().startsWith(
-                  "Ratio of total measured values to all unknowns")) {
+              && line.trim().startsWith("Ratio of total measured values to all unknowns")) {
             globalRatioFound = true;
             lineList.add(line);
           }

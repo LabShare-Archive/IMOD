@@ -18,6 +18,10 @@ import java.util.List;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2010/02/17 04:49:31  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.2  2009/03/17 00:45:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -28,8 +32,8 @@ import java.util.List;
 public interface Loggable {
   public static final String rcsid = "$Id$";
 
-  public List getLogMessage() throws LogFile.LockException,
-      FileNotFoundException, IOException;
+  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+      IOException;
 
   public String getName();
 }

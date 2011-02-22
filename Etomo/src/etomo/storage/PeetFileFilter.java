@@ -18,6 +18,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2007/06/04 23:07:11  sueh
+ * <p> bug# 1005 Substituted DatasetFiles.PEET_DATA_FILE_EXT for ".epe".
+ * <p>
  * <p> Revision 1.3  2007/05/16 23:47:41  sueh
  * <p> bug# 964 Added boolean acceptDirectories.
  * <p>
@@ -51,8 +54,7 @@ public class PeetFileFilter extends DataFileFilter {
       return acceptDirectories;
     }
     String fileName = file.getName();
-    if (fileName.endsWith(DatasetFiles.PEET_DATA_FILE_EXT)
-        && fileName.length() > 4) {
+    if (fileName.endsWith(DatasetFiles.PEET_DATA_FILE_EXT) && fileName.length() > 4) {
       return true;
     }
     return false;

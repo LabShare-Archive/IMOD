@@ -66,6 +66,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.14  2010/11/13 16:05:36  sueh
+ * <p> $bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p> $
  * <p> $Revision 1.13  2009/03/09 17:30:54  sueh
  * <p> $bug# 1199 Got rid of the keyword "CommandLanguage", which was
  * <p> $never used.
@@ -177,8 +180,7 @@ public final class AutodocTokenizer {
     this.debug = debug;
   }
 
-  void initialize() throws FileNotFoundException, IOException,
-      LogFile.LockException {
+  void initialize() throws FileNotFoundException, IOException, LogFile.LockException {
     primativeTokenizer.initialize();
   }
 
@@ -239,8 +241,7 @@ public final class AutodocTokenizer {
     } while (!token.is(Token.Type.EOF));
   }
 
-  void testPrimativeTokenizer(boolean tokens) throws IOException,
-      LogFile.LockException {
+  void testPrimativeTokenizer(boolean tokens) throws IOException, LogFile.LockException {
     primativeTokenizer.test(tokens);
   }
 
@@ -316,8 +317,7 @@ public final class AutodocTokenizer {
   private boolean findLookAheadToken() throws IOException {
     if (primativeToken.equals(Token.Type.SYMBOL, OPEN_CHAR)) {
       if (matchWithLookAhead(Token.Type.SYMBOL, OPEN_CHAR)) {
-        token.set(Token.Type.SUBOPEN, OPEN_CHAR.toString()
-            + OPEN_CHAR.toString());
+        token.set(Token.Type.SUBOPEN, OPEN_CHAR.toString() + OPEN_CHAR.toString());
       }
       else {
         token.set(Token.Type.OPEN, OPEN_CHAR);
@@ -325,8 +325,7 @@ public final class AutodocTokenizer {
     }
     else if (primativeToken.equals(Token.Type.SYMBOL, CLOSE_CHAR)) {
       if (matchWithLookAhead(Token.Type.SYMBOL, CLOSE_CHAR)) {
-        token.set(Token.Type.SUBCLOSE, CLOSE_CHAR.toString()
-            + CLOSE_CHAR.toString());
+        token.set(Token.Type.SUBCLOSE, CLOSE_CHAR.toString() + CLOSE_CHAR.toString());
       }
       else {
         token.set(Token.Type.CLOSE, CLOSE_CHAR);

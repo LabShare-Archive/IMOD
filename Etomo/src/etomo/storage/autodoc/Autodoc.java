@@ -346,8 +346,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     return getAttributeValues(sectionType, attributeName, false);
   }
 
-  public HashMap getAttributeMultiLineValues(String sectionType,
-      String attributeName) {
+  public HashMap getAttributeMultiLineValues(String sectionType, String attributeName) {
     return getAttributeValues(sectionType, attributeName, true);
   }
 
@@ -384,8 +383,8 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
               .getMultiLineValue());
         }
         else {
-          attributeValues.put(sectionName, section.getAttribute(attributeName)
-              .getValue());
+          attributeValues
+              .put(sectionName, section.getAttribute(attributeName).getValue());
         }
       }
       catch (NullPointerException e) {
@@ -438,8 +437,8 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
    * @param envVariable
    * @param notFoundMessage - Custom error message - when set the error messages are information, not warnings.
    */
-  private LogFile setAutodocFile(BaseManager manager, String name,
-      AxisID axisID, String envVariable, final String notFoundMessage) {
+  private LogFile setAutodocFile(BaseManager manager, String name, AxisID axisID,
+      String envVariable, final String notFoundMessage) {
     File dir = getAbsoluteDir();
     if (dir != null) {
       return getAutodocFile(dir, name, notFoundMessage == null);
@@ -447,20 +446,18 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     if (envVariable != null && !envVariable.matches("\\s*+")) {
       //if envVariable is set, then it points to the only valid directory for this
       //autodoc
-      dir = Utilities.getExistingDir(manager, envVariable, axisID,
-          notFoundMessage);
+      dir = Utilities.getExistingDir(manager, envVariable, axisID, notFoundMessage);
       if (dir == null) {
         if (notFoundMessage == null) {
           System.err.println("Warning:  can't open the " + name
-              + " autodoc file.\nThis autodoc should be stored in $"
-              + envVariable + ".\n");
+              + " autodoc file.\nThis autodoc should be stored in $" + envVariable
+              + ".\n");
         }
         return null;
       }
       return getAutodocFile(dir, name, notFoundMessage == null);
     }
-    dir = Utilities.getExistingDir(manager, AUTODOC_DIR, axisID,
-        notFoundMessage);
+    dir = Utilities.getExistingDir(manager, AUTODOC_DIR, axisID, notFoundMessage);
     if (dir != null) {
       return getAutodocFile(dir, name, notFoundMessage == null);
     }
@@ -470,8 +467,8 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     }
     System.err.println(notFoundMessage == null ? "Warning" : "Info"
         + ":  can't open the " + name
-        + " autodoc file.\nThis autodoc should be stored in either $"
-        + IMOD_DIR + "/" + DEFAULT_AUTODOC_DIR + " or $" + AUTODOC_DIR + ".\n");
+        + " autodoc file.\nThis autodoc should be stored in either $" + IMOD_DIR + "/"
+        + DEFAULT_AUTODOC_DIR + " or $" + AUTODOC_DIR + ".\n");
     return null;
   }
 
@@ -481,8 +478,8 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
    * @param axisID
    * @param envVariable
    */
-  private LogFile setAutodocFile(BaseManager manager, String name,
-      AxisID axisID, String envVariable) {
+  private LogFile setAutodocFile(BaseManager manager, String name, AxisID axisID,
+      String envVariable) {
     File dir = getAbsoluteDir();
     if (dir != null) {
       return getAutodocFile(dir, name, true);
@@ -493,8 +490,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
       dir = Utilities.getExistingDir(manager, envVariable, axisID);
       if (dir == null) {
         System.err.println("Warning:  can't open the " + name
-            + " autodoc file.\nThis autodoc should be stored in $"
-            + envVariable + ".\n");
+            + " autodoc file.\nThis autodoc should be stored in $" + envVariable + ".\n");
         return null;
       }
       return getAutodocFile(dir, name, true);
@@ -508,8 +504,8 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
       return getAutodocFile(dir, name, true);
     }
     System.err.println("Warning:  can't open the " + name
-        + " autodoc file.\nThis autodoc should be stored in either $"
-        + IMOD_DIR + "/" + DEFAULT_AUTODOC_DIR + " or $" + AUTODOC_DIR + ".\n");
+        + " autodoc file.\nThis autodoc should be stored in either $" + IMOD_DIR + "/"
+        + DEFAULT_AUTODOC_DIR + " or $" + AUTODOC_DIR + ".\n");
     return null;
   }
 
@@ -524,8 +520,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
    * @param warnIfFail - If false error messages start with "Info".
    * @return
    */
-  private LogFile getAutodocFile(File autodocDir, String autodocName,
-      boolean warnIfFail) {
+  private LogFile getAutodocFile(File autodocDir, String autodocName, boolean warnIfFail) {
     File file = DatasetFiles.getAutodoc(autodocDir, autodocName);
     String errorMessageTag = warnIfFail ? "Warning" : "Info";
     if (!file.exists()) {
@@ -560,16 +555,13 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     }
     File dir = new File(absoluteDir);
     if (!dir.isAbsolute()) {
-      throw new IllegalPathStateException(absoluteDir
-          + " is not an absolute path");
+      throw new IllegalPathStateException(absoluteDir + " is not an absolute path");
     }
     if (!dir.exists()) {
-      throw new IllegalPathStateException(dir.getAbsolutePath()
-          + " does not exist");
+      throw new IllegalPathStateException(dir.getAbsolutePath() + " does not exist");
     }
     if (!dir.canRead()) {
-      throw new IllegalPathStateException("cannot read "
-          + dir.getAbsolutePath());
+      throw new IllegalPathStateException("cannot read " + dir.getAbsolutePath());
     }
     return dir;
   }
@@ -598,9 +590,8 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     return dir;
   }
 
-  void initializeUITestAxis(BaseManager manager, LogFile autodocFile,
-      AxisID axisID) throws FileNotFoundException, IOException,
-      LogFile.LockException {
+  void initializeUITestAxis(BaseManager manager, LogFile autodocFile, AxisID axisID)
+      throws FileNotFoundException, IOException, LogFile.LockException {
     this.autodocFile = autodocFile;
     /*if (autodocFile.getName().equals("setup-recon.adoc")) {
      initialize(null, axisID, null, false);
@@ -626,12 +617,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
 
   void initializeCpu(BaseManager manager, String name, AxisID axisID)
       throws FileNotFoundException, IOException, LogFile.LockException {
-    initialize(
-        manager,
-        name,
-        axisID,
-        EnvironmentVariable.CALIB_DIR,
-        true,
+    initialize(manager, name, axisID, EnvironmentVariable.CALIB_DIR, true,
         "Info:  No local calibration information is available.  There is no "
             + "cpu.adoc file.  Parallel processing on multiple machines will not "
             + "be available unless it has been enabled in the eTomo Settings "
@@ -686,8 +672,8 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
    * @throws LogFile.ReadException
    */
   private void initialize(BaseManager manager, String name, AxisID axisID,
-      String envVariable, boolean storeData) throws FileNotFoundException,
-      IOException, LogFile.LockException {
+      String envVariable, boolean storeData) throws FileNotFoundException, IOException,
+      LogFile.LockException {
     if (autodocFile == null) {
       autodocFile = setAutodocFile(manager, name, axisID, envVariable);
     }
@@ -720,8 +706,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
       String envVariable, boolean storeData, final String notFoundMessage)
       throws FileNotFoundException, IOException, LogFile.LockException {
     if (autodocFile == null) {
-      autodocFile = setAutodocFile(manager, name, axisID, envVariable,
-          notFoundMessage);
+      autodocFile = setAutodocFile(manager, name, axisID, envVariable, notFoundMessage);
     }
     if (autodocFile == null) {
       return;
@@ -771,6 +756,9 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.37  2010/11/13 16:05:36  sueh
+ *<p> $bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ *<p> $
  *<p> $Revision 1.36  2010/05/28 18:48:29  sueh
  *<p> $bug# 1360 In initializeCpu changed the error message for a missing ImodCalib directory
  *<p> $to mention setting up parallel processing using Settings dialog.

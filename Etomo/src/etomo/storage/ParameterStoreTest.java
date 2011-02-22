@@ -25,6 +25,10 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2010/02/17 04:49:31  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.7  2009/03/17 00:45:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -147,10 +151,8 @@ public final class ParameterStoreTest extends TestCase {
     ParameterStore psBackup = ParameterStore.getInstance(backupFile);
     Data backupData = new Data();
     psBackup.load(backupData);
-    assertTrue(
-        "File should be backed up the first time it is modified.\nbackupData="
-            + backupData + ",setupData=" + setupData, backupData
-            .equals(setupData));
+    assertTrue("File should be backed up the first time it is modified.\nbackupData="
+        + backupData + ",setupData=" + setupData, backupData.equals(setupData));
     //test backup only once per instance
     Data newData = new Data(11, 12.13, "fourteen", 15);
     psTest.save(newData);
@@ -159,14 +161,14 @@ public final class ParameterStoreTest extends TestCase {
     psBackup.load(backupData);
     assertTrue(
         "File should be backed up only the first time it is modified.\nbackupData="
-            + backupData + ",setupData=" + setupData + "testData=" + testData,
-        backupData.equals(setupData));
+            + backupData + ",setupData=" + setupData + "testData=" + testData, backupData
+            .equals(setupData));
     //test storing data
     psTest = ParameterStore.getInstance(testFile);
     testData = new Data();
     psTest.load(testData);
-    assertTrue("Data should be stored.\ntestData=" + testData + ",newData="
-        + newData, testData.equals(newData));
+    assertTrue("Data should be stored.\ntestData=" + testData + ",newData=" + newData,
+        testData.equals(newData));
     LogFile.reset();
   }
 
@@ -178,8 +180,8 @@ public final class ParameterStoreTest extends TestCase {
     ParameterStore psTest = ParameterStore.getInstance(testFile);
     Data testData = new Data();
     psTest.load(testData);
-    assertTrue("Should be able to load the file.\ntestData=" + testData
-        + ",setupData=" + setupData, testData.equals(setupData));
+    assertTrue("Should be able to load the file.\ntestData=" + testData + ",setupData="
+        + setupData, testData.equals(setupData));
     LogFile.reset();
   }
 
@@ -206,8 +208,7 @@ public final class ParameterStoreTest extends TestCase {
     psReload.load(reloadData);
     assertFalse(
         "(AutoStore == false) should prevent save() from writing the file.\ntestData="
-            + testData + ",reloadData=" + reloadData, testData
-            .equals(reloadData));
+            + testData + ",reloadData=" + reloadData, testData.equals(reloadData));
     String moreDataPrepend = "more";
     Data testMoreData = new Data(moreDataPrepend, 16, 17.18, "nineteen", 20);
     psTest.save(testMoreData);
@@ -224,9 +225,8 @@ public final class ParameterStoreTest extends TestCase {
     assertTrue("StoreProperties should save to the file.\ntestData=" + testData
         + ",reloadData=" + reloadData, testData.equals(reloadData));
     psReload.load(reloadMoreData);
-    assertTrue("StoreProperties should save to the file.\ntestMoreData="
-        + testMoreData + ",reloadMoreData=" + reloadMoreData, testMoreData
-        .equals(reloadMoreData));
+    assertTrue("StoreProperties should save to the file.\ntestMoreData=" + testMoreData
+        + ",reloadMoreData=" + reloadMoreData, testMoreData.equals(reloadMoreData));
     LogFile.reset();
   }
 
@@ -336,8 +336,7 @@ public final class ParameterStoreTest extends TestCase {
     }
 
     public String toString() {
-      return "[i=" + i + ",d=" + d + ",string=" + string + ",number=" + number
-          + "]";
+      return "[i=" + i + ",d=" + d + ",string=" + string + ",number=" + number + "]";
     }
   }
 }

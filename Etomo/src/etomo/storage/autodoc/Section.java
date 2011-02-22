@@ -26,6 +26,9 @@ import etomo.ui.swing.Token;
  * @notthreadsafe
  *
  * <p> $$Log$
+ * <p> $Revision 1.20  2010/11/13 16:05:36  sueh
+ * <p> $bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p> $
  * <p> $Revision 1.19  2009/02/04 23:30:00  sueh
  * <p> $bug# 1158 Changed id and exceptions classes in LogFile.
  * <p> $
@@ -150,8 +153,8 @@ final class Section extends WriteOnlyStatementList implements ReadOnlySection {
   }
 
   public String toString() {
-    return getClass().getName() + "[key=" + key + ",type=" + type + ",name="
-        + name + ",\nattributeList=" + attributeList + "]";
+    return getClass().getName() + "[key=" + key + ",type=" + type + ",name=" + name
+        + ",\nattributeList=" + attributeList + "]";
   }
 
   public String getString() {
@@ -160,8 +163,8 @@ final class Section extends WriteOnlyStatementList implements ReadOnlySection {
     if (subsection) {
       buffer.append(AutodocTokenizer.OPEN_CHAR);
     }
-    buffer.append(type.getValues() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
-        + ' ' + name.getValues() + AutodocTokenizer.CLOSE_CHAR);
+    buffer.append(type.getValues() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' '
+        + name.getValues() + AutodocTokenizer.CLOSE_CHAR);
     if (subsection) {
       buffer.append(AutodocTokenizer.CLOSE_CHAR);
     }
@@ -271,7 +274,8 @@ final class Section extends WriteOnlyStatementList implements ReadOnlySection {
     return attributeList.getAttribute(name);
   }
 
-  void write(LogFile file, LogFile.WriterId writerId) throws LogFile.LockException,IOException {
+  void write(LogFile file, LogFile.WriterId writerId) throws LogFile.LockException,
+      IOException {
     //write section header
     file.write(AutodocTokenizer.OPEN_CHAR, writerId);
     if (subsection) {

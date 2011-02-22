@@ -33,8 +33,7 @@ final class NameValuePair extends Statement {
   private Token value = null;
   private Token newDelimiter = null;
 
-  public NameValuePair(WriteOnlyStatementList parent,
-      Statement previousStatement) {
+  public NameValuePair(WriteOnlyStatementList parent, Statement previousStatement) {
     super(previousStatement);
     this.parent = parent;
   }
@@ -60,11 +59,11 @@ final class NameValuePair extends Statement {
     }
     return value.getValues();
   }
-  
+
   public ReadOnlySection getSubsection() {
     return null;
   }
-  
+
   public String toString() {
     return getString();
   }
@@ -92,7 +91,7 @@ final class NameValuePair extends Statement {
   void setDelimiterChange(Token newDelimiter) {
     this.newDelimiter = newDelimiter;
   }
-  
+
   /**
    * Remove an occurrence from each attribute in the name.  Remove this instance
    * from the last attribute.  Remove the instance from the Statement link list.
@@ -100,17 +99,18 @@ final class NameValuePair extends Statement {
    */
   WritableStatement remove() {
     Attribute attribute;
-    for (int i =0;i<name.size();i++) {
-      attribute = (Attribute)name.get(i);
+    for (int i = 0; i < name.size(); i++) {
+      attribute = (Attribute) name.get(i);
       attribute.remove();
-      if (i==name.size()-1) {
+      if (i == name.size() - 1) {
         attribute.removeNameValuePair(this);
       }
     }
     return super.remove();
   }
 
-  void write(LogFile file, LogFile.WriterId writerId) throws LogFile.LockException,IOException{
+  void write(LogFile file, LogFile.WriterId writerId) throws LogFile.LockException,
+      IOException {
     for (int i = 0; i < name.size(); i++) {
       ((Attribute) name.get(i)).write(file, writerId);
       if (i < name.size() - 1) {
@@ -183,6 +183,9 @@ final class NameValuePair extends Statement {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2010/11/13 16:05:36  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.12  2009/02/04 23:30:00  sueh
  * <p> bug# 1158 Changed id and exceptions classes in LogFile.
  * <p>

@@ -20,7 +20,10 @@ import junit.framework.TestCase;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2009/10/29 19:53:53  sueh
+ * <p> bug# 1280 Unit tests for TomogramFileFilter.
+ * <p> </p>
  */
 public class TomogramFileFilterTest extends TestCase {
   private static final File testDir = new File(StorageTests.TEST_ROOT_DIR,
@@ -58,8 +61,7 @@ public class TomogramFileFilterTest extends TestCase {
     file = new File(testDir, "testDefaultExtensions" + ".dummy");
     BaseProcessManager.touch(file.getAbsolutePath(), EtomoDirector.INSTANCE
         .getCurrentManagerForTest());
-    assertFalse("Should not accept unknown extension", tomogramFileFilter
-        .accept(file));
+    assertFalse("Should not accept unknown extension", tomogramFileFilter.accept(file));
   }
 
   public void testNewExtension() {
@@ -67,16 +69,15 @@ public class TomogramFileFilterTest extends TestCase {
     BaseProcessManager.touch(file.getAbsolutePath(), EtomoDirector.INSTANCE
         .getCurrentManagerForTest());
     tomogramFileFilter.addExtension(file);
-    assertTrue("Should accept unknown extension after its been added",
-        tomogramFileFilter.accept(file));
+    assertTrue("Should accept unknown extension after its been added", tomogramFileFilter
+        .accept(file));
   }
 
   public void testAllowAll() {
     File file = new File(testDir, "testAllowAll");
     BaseProcessManager.touch(file.getAbsolutePath(), EtomoDirector.INSTANCE
         .getCurrentManagerForTest());
-    assertFalse("Should not accept without an extension", tomogramFileFilter
-        .accept(file));
+    assertFalse("Should not accept without an extension", tomogramFileFilter.accept(file));
     tomogramFileFilter.addExtension(file);
     assertTrue("Should accept without an extension once its been added",
         tomogramFileFilter.accept(file));
@@ -84,8 +85,7 @@ public class TomogramFileFilterTest extends TestCase {
     file = new File(testDir, "testAllowAll" + ".dummy");
     BaseProcessManager.touch(file.getAbsolutePath(), EtomoDirector.INSTANCE
         .getCurrentManagerForTest());
-    assertTrue(
-        "Should accept all files once a file without an extension has been added",
+    assertTrue("Should accept all files once a file without an extension has been added",
         tomogramFileFilter.accept(file));
   }
 

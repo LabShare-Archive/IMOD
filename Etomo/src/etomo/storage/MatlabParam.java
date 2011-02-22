@@ -44,6 +44,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.43  2011/02/08 00:59:18  sueh
+ * <p> bug# 1430 Making sampleInterval a float.
+ * <p>
  * <p> Revision 1.42  2010/11/13 16:05:03  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -368,32 +371,25 @@ public final class MatlabParam {
    * @deprecated always on
    */
   private final ParsedNumber flgMeanFill = ParsedNumber.getMatlabInstance();
-  private final ParsedQuotedString alignedBaseName = ParsedQuotedString
-      .getInstance();
+  private final ParsedQuotedString alignedBaseName = ParsedQuotedString.getInstance();
   private final ParsedNumber debugLevel = ParsedNumber.getMatlabInstance();
   private final List volumeList = new ArrayList();
   private final List iterationList = new ArrayList();
-  private final ParsedQuotedString referenceFile = ParsedQuotedString
-      .getInstance();
+  private final ParsedQuotedString referenceFile = ParsedQuotedString.getInstance();
   private final ParsedArray reference = ParsedArray.getMatlabInstance();
   private final ParsedNumber yaxisObjectNum = ParsedNumber.getMatlabInstance();
   private final ParsedNumber yaxisContourNum = ParsedNumber.getMatlabInstance();
   private final ParsedNumber flgWedgeWeight = ParsedNumber.getMatlabInstance();
-  private final ParsedQuotedString sampleSphere = ParsedQuotedString
-      .getInstance();
+  private final ParsedQuotedString sampleSphere = ParsedQuotedString.getInstance();
   private final ParsedNumber sampleInterval = ParsedNumber
       .getMatlabInstance(EtomoNumber.Type.FLOAT);
   private final ParsedQuotedString maskType = ParsedQuotedString.getInstance();
   private final ParsedArray maskModelPts = ParsedArray.getMatlabInstance();
-  private final ParsedNumber insideMaskRadius = ParsedNumber
-      .getMatlabInstance();
-  private final ParsedNumber outsideMaskRadius = ParsedNumber
-      .getMatlabInstance();
+  private final ParsedNumber insideMaskRadius = ParsedNumber.getMatlabInstance();
+  private final ParsedNumber outsideMaskRadius = ParsedNumber.getMatlabInstance();
   private final ParsedNumber nWeightGroup = ParsedNumber.getMatlabInstance();
-  private final ParsedNumber flgRemoveDuplicates = ParsedNumber
-      .getMatlabInstance();
-  private final ParsedNumber flgAlignAverages = ParsedNumber
-      .getMatlabInstance();
+  private final ParsedNumber flgRemoveDuplicates = ParsedNumber.getMatlabInstance();
+  private final ParsedNumber flgAlignAverages = ParsedNumber.getMatlabInstance();
 
   private String lowCutoff = LOW_CUTOFF_DEFAULT;
   private InitMotlCode initMotlCode = InitMotlCode.DEFAULT;
@@ -421,8 +417,7 @@ public final class MatlabParam {
    */
   public void setFile(String newDir) {
     newFile = true;
-    file = new File(newDir, fnOutput.getRawString()
-        + DatasetFiles.MATLAB_PARAM_FILE_EXT);
+    file = new File(newDir, fnOutput.getRawString() + DatasetFiles.MATLAB_PARAM_FILE_EXT);
   }
 
   /**
@@ -446,14 +441,13 @@ public final class MatlabParam {
     }
     catch (IOException e) {
       UIHarness.INSTANCE.openMessageDialog(manager, "Unable to load "
-          + file.getAbsolutePath() + ".  IOException:  " + e.getMessage(),
-          "File Error");
+          + file.getAbsolutePath() + ".  IOException:  " + e.getMessage(), "File Error");
       return false;
     }
     catch (LogFile.LockException e) {
       UIHarness.INSTANCE.openMessageDialog(manager, "Unable to read "
-          + file.getAbsolutePath() + ".  LogFile.ReadException:  "
-          + e.getMessage(), "File Error");
+          + file.getAbsolutePath() + ".  LogFile.ReadException:  " + e.getMessage(),
+          "File Error");
       return false;
     }
     return true;
@@ -473,8 +467,8 @@ public final class MatlabParam {
     //in its FieldInterface sections.
     ReadOnlyAutodoc commentAutodoc = null;
     try {
-      commentAutodoc = AutodocFactory.getInstance(manager,
-          AutodocFactory.PEET_PRM, AxisID.ONLY);
+      commentAutodoc = AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM,
+          AxisID.ONLY);
     }
     catch (IOException e) {
       System.err.println("Problem with " + AutodocFactory.PEET_PRM
@@ -530,14 +524,12 @@ public final class MatlabParam {
       newFile = false;
     }
     catch (IOException e) {
-      UIHarness.INSTANCE
-          .openMessageDialog(manager, "Unable to load " + file.getName()
-              + ".  IOException:  " + e.getMessage(), "File Error");
+      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to load " + file.getName()
+          + ".  IOException:  " + e.getMessage(), "File Error");
     }
     catch (LogFile.LockException e) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to read "
-          + file.getName() + ".  LogFile.ReadException:  " + e.getMessage(),
-          "File Error");
+      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to read " + file.getName()
+          + ".  LogFile.ReadException:  " + e.getMessage(), "File Error");
     }
   }
 
@@ -1075,8 +1067,7 @@ public final class MatlabParam {
     volumeList.clear();
     int size = 0;
     //relativeOrient
-    ParsedList relativeOrient = ParsedList
-        .getMatlabInstance(EtomoNumber.Type.FLOAT);
+    ParsedList relativeOrient = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
     relativeOrient.setDefault(RELATIVE_ORIENT_DEFAULT);
     relativeOrient.parse(autodoc.getAttribute(RELATIVE_ORIENT_KEY));
     size = Math.max(size, relativeOrient.size());
@@ -1149,17 +1140,15 @@ public final class MatlabParam {
     hiCutoff.parse(autodoc.getAttribute(HI_CUTOFF_KEY));
     size = Math.max(size, hiCutoff.size());
     //refThreshold
-    ParsedList refThreshold = ParsedList
-        .getMatlabInstance(EtomoNumber.Type.FLOAT);
+    ParsedList refThreshold = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
     refThreshold.parse(autodoc.getAttribute(REF_THRESHOLD_KEY));
     //duplicateShiftTolerance
     ParsedArray duplicateShiftTolerance = ParsedArray.getMatlabInstance();
-    duplicateShiftTolerance.parse(autodoc
-        .getAttribute(DUPLICATE_SHIFT_TOLERANCE_KEY));
+    duplicateShiftTolerance.parse(autodoc.getAttribute(DUPLICATE_SHIFT_TOLERANCE_KEY));
     //duplicateAngularTolerance
     ParsedArray duplicateAngularTolerance = ParsedArray.getMatlabInstance();
-    duplicateAngularTolerance.parse(autodoc
-        .getAttribute(DUPLICATE_ANGULAR_TOLERANCE_KEY));
+    duplicateAngularTolerance
+        .parse(autodoc.getAttribute(DUPLICATE_ANGULAR_TOLERANCE_KEY));
     size = Math.max(size, refThreshold.size());
     //add elements to iterationList
     for (int i = 0; i < size; i++) {
@@ -1171,10 +1160,8 @@ public final class MatlabParam {
       iteration.setLowCutoff(lowCutoff.getElement(i));
       iteration.setHiCutoff(hiCutoff.getElement(i));
       iteration.setRefThreshold(refThreshold.getElement(i));
-      iteration.setDuplicateShiftTolerance(duplicateShiftTolerance
-          .getElement(i));
-      iteration.setDuplicateAngularTolerance(duplicateAngularTolerance
-          .getElement(i));
+      iteration.setDuplicateShiftTolerance(duplicateShiftTolerance.getElement(i));
+      iteration.setDuplicateAngularTolerance(duplicateAngularTolerance.getElement(i));
       iterationList.add(iteration);
     }
   }
@@ -1228,13 +1215,11 @@ public final class MatlabParam {
     valueMap.put(MASK_TYPE_KEY, maskType.getParsableString());
     valueMap.put(MASK_MODEL_PTS_KEY, maskModelPts.getParsableString());
     valueMap.put(INSIDE_MASK_RADIUS_KEY, insideMaskRadius.getParsableString());
-    valueMap
-        .put(OUTSIDE_MASK_RADIUS_KEY, outsideMaskRadius.getParsableString());
+    valueMap.put(OUTSIDE_MASK_RADIUS_KEY, outsideMaskRadius.getParsableString());
     if (useNWeightGroup) {
       valueMap.put(N_WEIGHT_GROUP_KEY, nWeightGroup.getParsableString());
     }
-    valueMap.put(FLG_REMOVE_DUPLICATES_KEY, flgRemoveDuplicates
-        .getParsableString());
+    valueMap.put(FLG_REMOVE_DUPLICATES_KEY, flgRemoveDuplicates.getParsableString());
     valueMap.put(FLG_ALIGN_AVERAGES_KEY, flgAlignAverages.getParsableString());
   }
 
@@ -1251,8 +1236,7 @@ public final class MatlabParam {
       initMotlFile = ParsedList.getStringInstance();
     }
     ParsedList tiltRange = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
-    ParsedList relativeOrient = ParsedList
-        .getMatlabInstance(EtomoNumber.Type.FLOAT);
+    ParsedList relativeOrient = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
     relativeOrient.setDefault(RELATIVE_ORIENT_DEFAULT);
     //build the lists
     for (int i = 0; i < volumeList.size(); i++) {
@@ -1289,8 +1273,7 @@ public final class MatlabParam {
     ParsedList searchRadius = ParsedList.getMatlabInstance();
     ParsedList lowCutoff = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
     ParsedList hiCutoff = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
-    ParsedList refThreshold = ParsedList
-        .getMatlabInstance(EtomoNumber.Type.FLOAT);
+    ParsedList refThreshold = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
     ParsedArray duplicateShiftTolerance = ParsedArray.getMatlabInstance();
     ParsedArray duplicateAngularTolerance = ParsedArray.getMatlabInstance();
     //build the lists
@@ -1303,10 +1286,8 @@ public final class MatlabParam {
       lowCutoff.addElement(iteration.getLowCutoff());
       hiCutoff.addElement(iteration.getHiCutoff());
       refThreshold.addElement(iteration.getRefThreshold());
-      duplicateShiftTolerance
-          .addElement(iteration.getDuplicateShiftTolerance());
-      duplicateAngularTolerance.addElement(iteration
-          .getDuplicateAngularTolerance());
+      duplicateShiftTolerance.addElement(iteration.getDuplicateShiftTolerance());
+      duplicateAngularTolerance.addElement(iteration.getDuplicateAngularTolerance());
 
     }
     valueMap.put(D_PHI_KEY, dPhi.getParsableString());
@@ -1358,8 +1339,8 @@ public final class MatlabParam {
         .get(REFERENCE_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, FN_OUTPUT_KEY, (String) valueMap
         .get(FN_OUTPUT_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, SZ_VOL_KEY, (String) valueMap
-        .get(SZ_VOL_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, SZ_VOL_KEY,
+        (String) valueMap.get(SZ_VOL_KEY), commentMap);
     if (isTiltRangeEmpty()) {
       removeNameValuePair(autodoc, EDGE_SHIFT_KEY);
     }
@@ -1369,52 +1350,52 @@ public final class MatlabParam {
     }
     setNameValuePairValue(manager, autodoc, CC_MODE_KEY, (String) valueMap
         .get(CC_MODE_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, FLG_MEAN_FILL_KEY,
-        (String) valueMap.get(FLG_MEAN_FILL_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, ALIGNED_BASE_NAME_KEY,
-        (String) valueMap.get(ALIGNED_BASE_NAME_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, FLG_MEAN_FILL_KEY, (String) valueMap
+        .get(FLG_MEAN_FILL_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, ALIGNED_BASE_NAME_KEY, (String) valueMap
+        .get(ALIGNED_BASE_NAME_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, DEBUG_LEVEL_KEY, (String) valueMap
         .get(DEBUG_LEVEL_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, LST_THRESHOLDS_KEY,
-        (String) valueMap.get(LST_THRESHOLDS_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, REF_FLAG_ALL_TOM_KEY,
-        (String) valueMap.get(REF_FLAG_ALL_TOM_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, LST_FLAG_ALL_TOM_KEY,
-        (String) valueMap.get(LST_FLAG_ALL_TOM_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, PARTICLE_PER_CPU_KEY,
-        (String) valueMap.get(PARTICLE_PER_CPU_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, LST_THRESHOLDS_KEY, (String) valueMap
+        .get(LST_THRESHOLDS_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, REF_FLAG_ALL_TOM_KEY, (String) valueMap
+        .get(REF_FLAG_ALL_TOM_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, LST_FLAG_ALL_TOM_KEY, (String) valueMap
+        .get(LST_FLAG_ALL_TOM_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, PARTICLE_PER_CPU_KEY, (String) valueMap
+        .get(PARTICLE_PER_CPU_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, YAXIS_TYPE_KEY, (String) valueMap
         .get(YAXIS_TYPE_KEY), commentMap);
     removeNameValuePair(autodoc, YAXIS_CONTOUR_KEY);
-    setNameValuePairValue(manager, autodoc, YAXIS_OBJECT_NUM_KEY,
-        (String) valueMap.get(YAXIS_OBJECT_NUM_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, YAXIS_CONTOUR_NUM_KEY,
-        (String) valueMap.get(YAXIS_CONTOUR_NUM_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, FLG_WEDGE_WEIGHT_KEY,
-        (String) valueMap.get(FLG_WEDGE_WEIGHT_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, SAMPLE_SPHERE_KEY,
-        (String) valueMap.get(SAMPLE_SPHERE_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, SAMPLE_INTERVAL_KEY,
-        (String) valueMap.get(SAMPLE_INTERVAL_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, YAXIS_OBJECT_NUM_KEY, (String) valueMap
+        .get(YAXIS_OBJECT_NUM_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, YAXIS_CONTOUR_NUM_KEY, (String) valueMap
+        .get(YAXIS_CONTOUR_NUM_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, FLG_WEDGE_WEIGHT_KEY, (String) valueMap
+        .get(FLG_WEDGE_WEIGHT_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, SAMPLE_SPHERE_KEY, (String) valueMap
+        .get(SAMPLE_SPHERE_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, SAMPLE_INTERVAL_KEY, (String) valueMap
+        .get(SAMPLE_INTERVAL_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, MASK_TYPE_KEY, (String) valueMap
         .get(MASK_TYPE_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, MASK_MODEL_PTS_KEY,
-        (String) valueMap.get(MASK_MODEL_PTS_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, INSIDE_MASK_RADIUS_KEY,
-        (String) valueMap.get(INSIDE_MASK_RADIUS_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, OUTSIDE_MASK_RADIUS_KEY,
-        (String) valueMap.get(OUTSIDE_MASK_RADIUS_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, MASK_MODEL_PTS_KEY, (String) valueMap
+        .get(MASK_MODEL_PTS_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, INSIDE_MASK_RADIUS_KEY, (String) valueMap
+        .get(INSIDE_MASK_RADIUS_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, OUTSIDE_MASK_RADIUS_KEY, (String) valueMap
+        .get(OUTSIDE_MASK_RADIUS_KEY), commentMap);
     if (useNWeightGroup) {
-      setNameValuePairValue(manager, autodoc, N_WEIGHT_GROUP_KEY,
-          (String) valueMap.get(N_WEIGHT_GROUP_KEY), commentMap);
+      setNameValuePairValue(manager, autodoc, N_WEIGHT_GROUP_KEY, (String) valueMap
+          .get(N_WEIGHT_GROUP_KEY), commentMap);
     }
     else {
       removeNameValuePair(autodoc, N_WEIGHT_GROUP_KEY);
     }
-    setNameValuePairValue(manager, autodoc, FLG_REMOVE_DUPLICATES_KEY,
-        (String) valueMap.get(FLG_REMOVE_DUPLICATES_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, FLG_ALIGN_AVERAGES_KEY,
-        (String) valueMap.get(FLG_ALIGN_AVERAGES_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, FLG_REMOVE_DUPLICATES_KEY, (String) valueMap
+        .get(FLG_REMOVE_DUPLICATES_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, FLG_ALIGN_AVERAGES_KEY, (String) valueMap
+        .get(FLG_ALIGN_AVERAGES_KEY), commentMap);
   }
 
   /**
@@ -1423,18 +1404,18 @@ public final class MatlabParam {
    * @param autodoc
    * @param commentMap
    */
-  private void setVolumeNameValuePairValues(BaseManager manager,
-      final Map valueMap, final WritableAutodoc autodoc, final Map commentMap) {
+  private void setVolumeNameValuePairValues(BaseManager manager, final Map valueMap,
+      final WritableAutodoc autodoc, final Map commentMap) {
     setNameValuePairValue(manager, autodoc, FN_VOLUME_KEY, (String) valueMap
         .get(FN_VOLUME_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, FN_MOD_PARTICLE_KEY,
-        (String) valueMap.get(FN_MOD_PARTICLE_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, FN_MOD_PARTICLE_KEY, (String) valueMap
+        .get(FN_MOD_PARTICLE_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, INIT_MOTL_KEY, (String) valueMap
         .get(INIT_MOTL_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, TILT_RANGE_KEY, (String) valueMap
         .get(TILT_RANGE_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, RELATIVE_ORIENT_KEY,
-        (String) valueMap.get(RELATIVE_ORIENT_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, RELATIVE_ORIENT_KEY, (String) valueMap
+        .get(RELATIVE_ORIENT_KEY), commentMap);
   }
 
   /**
@@ -1443,22 +1424,22 @@ public final class MatlabParam {
    * @param autodoc
    * @param commentMap
    */
-  private void setIterationNameValuePairValues(BaseManager manager,
-      final Map valueMap, final WritableAutodoc autodoc, final Map commentMap) {
-    setNameValuePairValue(manager, autodoc, D_PHI_KEY, (String) valueMap
-        .get(D_PHI_KEY), commentMap);
+  private void setIterationNameValuePairValues(BaseManager manager, final Map valueMap,
+      final WritableAutodoc autodoc, final Map commentMap) {
+    setNameValuePairValue(manager, autodoc, D_PHI_KEY, (String) valueMap.get(D_PHI_KEY),
+        commentMap);
     setNameValuePairValue(manager, autodoc, D_THETA_KEY, (String) valueMap
         .get(D_THETA_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, D_PSI_KEY, (String) valueMap
-        .get(D_PSI_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, SEARCH_RADIUS_KEY,
-        (String) valueMap.get(SEARCH_RADIUS_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, D_PSI_KEY, (String) valueMap.get(D_PSI_KEY),
+        commentMap);
+    setNameValuePairValue(manager, autodoc, SEARCH_RADIUS_KEY, (String) valueMap
+        .get(SEARCH_RADIUS_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, LOW_CUTOFF_KEY, (String) valueMap
         .get(LOW_CUTOFF_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, HI_CUTOFF_KEY, (String) valueMap
         .get(HI_CUTOFF_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, REF_THRESHOLD_KEY,
-        (String) valueMap.get(REF_THRESHOLD_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, REF_THRESHOLD_KEY, (String) valueMap
+        .get(REF_THRESHOLD_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, DUPLICATE_SHIFT_TOLERANCE_KEY,
         (String) valueMap.get(DUPLICATE_SHIFT_TOLERANCE_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, DUPLICATE_ANGULAR_TOLERANCE_KEY,
@@ -1472,9 +1453,8 @@ public final class MatlabParam {
    * @param attributeName
    * @param attributeValue
    */
-  private void setNameValuePairValue(BaseManager manager,
-      final WritableAutodoc autodoc, final String name, final String value,
-      final Map commentMap) {
+  private void setNameValuePairValue(BaseManager manager, final WritableAutodoc autodoc,
+      final String name, final String value, final Map commentMap) {
     if (value == null) {
       return;
     }
@@ -1486,8 +1466,7 @@ public final class MatlabParam {
       }
       else {
         //new attribute, so add comment, attribute, and name/value pair
-        setNameValuePair(manager, autodoc, name, value, (String) commentMap
-            .get(name));
+        setNameValuePair(manager, autodoc, name, value, (String) commentMap.get(name));
       }
     }
     else {
@@ -1503,9 +1482,8 @@ public final class MatlabParam {
    * @param attributeValue
    * @param commentAttribute
    */
-  private void setNameValuePair(BaseManager manager,
-      final WritableAutodoc autodoc, final String name, final String value,
-      final ReadOnlyAttribute commentAttribute) {
+  private void setNameValuePair(BaseManager manager, final WritableAutodoc autodoc,
+      final String name, final String value, final ReadOnlyAttribute commentAttribute) {
     if (value == null) {
       return;
     }
@@ -1518,8 +1496,7 @@ public final class MatlabParam {
     }
   }
 
-  private void removeNameValuePair(final WritableAutodoc autodoc,
-      final String name) {
+  private void removeNameValuePair(final WritableAutodoc autodoc, final String name) {
     WritableStatement previousStatement = autodoc.removeNameValuePair(name);
     //remove the associated comments
     while (previousStatement != null
@@ -1541,9 +1518,8 @@ public final class MatlabParam {
    * @param attributeValue
    * @param comment
    */
-  private void setNameValuePair(BaseManager manager,
-      final WritableAutodoc autodoc, final String attributeName,
-      String attributeValue, String comment) {
+  private void setNameValuePair(BaseManager manager, final WritableAutodoc autodoc,
+      final String attributeName, String attributeValue, String comment) {
     WritableAttribute attribute = autodoc.getWritableAttribute(attributeName);
     if (attribute == null) {
       //If the attribute doesn't exist try to add a comment and add the attribute
@@ -1551,8 +1527,7 @@ public final class MatlabParam {
         //there's a comment, so add an empty line first
         autodoc.addEmptyLine();
         //Format and add the comment
-        String[] commentArray = EtomoAutodoc.format(attributeName + ":\n"
-            + comment);
+        String[] commentArray = EtomoAutodoc.format(attributeName + ":\n" + comment);
         for (int i = 0; i < commentArray.length; i++) {
           autodoc.addComment(" " + commentArray[i]);
         }
@@ -1723,13 +1698,11 @@ public final class MatlabParam {
 
   public static final class YAxisType implements EnumeratedType {
     private static final EtomoNumber Y_AXIS_VALUE = new EtomoNumber().set(0);
-    private static final EtomoNumber PARTICLE_MODEL_VALUE = new EtomoNumber()
-        .set(1);
+    private static final EtomoNumber PARTICLE_MODEL_VALUE = new EtomoNumber().set(1);
     private static final EtomoNumber CONTOUR_VALUE = new EtomoNumber().set(2);
 
     public static final YAxisType Y_AXIS = new YAxisType(Y_AXIS_VALUE);
-    public static final YAxisType PARTICLE_MODEL = new YAxisType(
-        PARTICLE_MODEL_VALUE);
+    public static final YAxisType PARTICLE_MODEL = new YAxisType(PARTICLE_MODEL_VALUE);
     public static final YAxisType CONTOUR = new YAxisType(CONTOUR_VALUE);
     public static final YAxisType DEFAULT = Y_AXIS;
 
@@ -1820,12 +1793,9 @@ public final class MatlabParam {
         .getMatlabInstance(EtomoNumber.Type.FLOAT);
     private final ParsedArray relativeOrient = ParsedArray
         .getMatlabInstance(EtomoNumber.Type.FLOAT);
-    private final ParsedQuotedString fnVolume = ParsedQuotedString
-        .getInstance();
-    private final ParsedQuotedString fnModParticle = ParsedQuotedString
-        .getInstance();
-    private final ParsedQuotedString initMotl = ParsedQuotedString
-        .getInstance();
+    private final ParsedQuotedString fnVolume = ParsedQuotedString.getInstance();
+    private final ParsedQuotedString fnModParticle = ParsedQuotedString.getInstance();
+    private final ParsedQuotedString initMotl = ParsedQuotedString.getInstance();
 
     private Volume() {
       relativeOrient.setDefault(RELATIVE_ORIENT_DEFAULT);
@@ -2007,8 +1977,7 @@ public final class MatlabParam {
         .getMatlabInstance(EtomoNumber.Type.FLOAT);
     private final ParsedNumber refThreshold = ParsedNumber
         .getMatlabInstance(EtomoNumber.Type.FLOAT);
-    private final ParsedNumber duplicateShiftTolerance = ParsedNumber
-        .getMatlabInstance();
+    private final ParsedNumber duplicateShiftTolerance = ParsedNumber.getMatlabInstance();
     private final ParsedNumber duplicateAngularTolerance = ParsedNumber
         .getMatlabInstance();
 
@@ -2203,8 +2172,7 @@ public final class MatlabParam {
       this.refThreshold.setElement(refThreshold);
     }
 
-    private void setDuplicateShiftTolerance(
-        final ParsedElement duplicateShiftTolerance) {
+    private void setDuplicateShiftTolerance(final ParsedElement duplicateShiftTolerance) {
       this.duplicateShiftTolerance.setElement(duplicateShiftTolerance);
     }
 

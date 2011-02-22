@@ -24,6 +24,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2010/10/13 20:19:11  sueh
+ * <p> bug# 1392 Added getFilelessInstance.  Handling null dataFile.
+ * <p>
  * <p> Revision 3.12  2010/02/17 04:49:31  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -100,8 +103,7 @@ public final class ParameterStore {
   /**
    * If paramFile is null, returns null.
    */
-  public static ParameterStore getInstance(File paramFile)
-      throws LogFile.LockException {
+  public static ParameterStore getInstance(File paramFile) throws LogFile.LockException {
     if (paramFile == null) {
       return null;
     }
@@ -110,8 +112,7 @@ public final class ParameterStore {
     return instance;
   }
 
-  public static ParameterStore getFilelessInstance()
-      throws LogFile.LockException {
+  public static ParameterStore getFilelessInstance() throws LogFile.LockException {
     ParameterStore instance = new ParameterStore();
     instance.initialize(null);
     return instance;

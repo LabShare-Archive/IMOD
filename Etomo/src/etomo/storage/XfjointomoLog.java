@@ -25,6 +25,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2010/02/17 04:49:31  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.4  2009/03/17 00:45:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>
@@ -52,8 +56,7 @@ public final class XfjointomoLog {
   private LogFile logFile = null;
 
   public static XfjointomoLog getInstance(BaseManager manager) {
-    XfjointomoLog instance = (XfjointomoLog) INSTANCE_LIST
-        .get(getUniqueKey(manager));
+    XfjointomoLog instance = (XfjointomoLog) INSTANCE_LIST.get(getUniqueKey(manager));
     if (instance != null) {
       return instance;
     }
@@ -98,8 +101,8 @@ public final class XfjointomoLog {
     return row.getMaxError();
   }
 
-  public synchronized boolean gapsExist()
-      throws LogFile.LockException, IOException, FileNotFoundException {
+  public synchronized boolean gapsExist() throws LogFile.LockException, IOException,
+      FileNotFoundException {
     load();
     boolean gapsExist = false;
     for (int i = 0; i < rowArray.size(); i++) {
@@ -114,8 +117,7 @@ public final class XfjointomoLog {
 
   private synchronized static XfjointomoLog createInstance(BaseManager manager) {
     //make sure another thread didn't already run createInstance for this manager
-    XfjointomoLog instance = (XfjointomoLog) INSTANCE_LIST
-        .get(getUniqueKey(manager));
+    XfjointomoLog instance = (XfjointomoLog) INSTANCE_LIST.get(getUniqueKey(manager));
     if (instance != null) {
       return instance;
     }
@@ -138,8 +140,8 @@ public final class XfjointomoLog {
    * Load data from the log file.  Or reload data, if reset() has been called.
    * @throws LogFile.ReadException
    */
-  private synchronized void load() throws LogFile.LockException,
-      FileNotFoundException, IOException {
+  private synchronized void load() throws LogFile.LockException, FileNotFoundException,
+      IOException {
     if (logFile != null) {
       return;
     }
@@ -159,8 +161,8 @@ public final class XfjointomoLog {
         if (boundary == null || boundary.equals("")) {
           continue;
         }
-        Row row = new Row(parseBestGap(stringArray),
-            parseMeanError(stringArray), parseMaxError(stringArray));
+        Row row = new Row(parseBestGap(stringArray), parseMeanError(stringArray),
+            parseMaxError(stringArray));
         rowList.put(boundary, row);
         rowArray.add(row);
       }

@@ -24,6 +24,9 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/03 06:07:07  sueh
+ * <p> bug# 1422 Added gpulocal.
+ * <p>
  * <p> Revision 1.2  2010/02/17 04:49:31  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -91,10 +94,9 @@ public final class Node {
     LOCAL_HOST_INSTANCE.name = LOCAL_HOST_NAME;
     //See if LOCAL_INSTANCE.number should be greater then 1 and set it if necessary.
     EtomoNumber imodProcessors = new EtomoNumber();
-    imodProcessors.set(EnvironmentVariable.INSTANCE.getValue(manager,
-        propertyUserDir, "IMOD_PROCESSORS", axisID));
-    UserConfiguration userConfiguration = EtomoDirector.INSTANCE
-        .getUserConfiguration();
+    imodProcessors.set(EnvironmentVariable.INSTANCE.getValue(manager, propertyUserDir,
+        "IMOD_PROCESSORS", axisID));
+    UserConfiguration userConfiguration = EtomoDirector.INSTANCE.getUserConfiguration();
     if (!imodProcessors.isNull() && imodProcessors.isValid()) {
       LOCAL_HOST_INSTANCE.number.set(imodProcessors);
     }
@@ -183,8 +185,7 @@ public final class Node {
    */
   public boolean isLocalHost(final BaseManager manager, final AxisID axisID,
       final String propertyUserDir) {
-    String localHostName = Network.getLocalHostName(manager, axisID,
-        propertyUserDir);
+    String localHostName = Network.getLocalHostName(manager, axisID, propertyUserDir);
     if (name.equals(localHostName)) {
       return true;
     }
@@ -201,7 +202,7 @@ public final class Node {
   public boolean isGpu() {
     return gpu;
   }
-  
+
   public boolean isGpuLocal() {
     return gpuLocal;
   }

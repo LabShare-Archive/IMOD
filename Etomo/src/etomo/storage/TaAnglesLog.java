@@ -22,6 +22,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2010/03/19 21:59:34  sueh
+ * <p> bug# 1335 Class can't be a n'ton because the dataset tabs.
+ * <p>
  * <p> Revision 1.3  2010/02/17 04:49:31  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -59,10 +62,9 @@ public final class TaAnglesLog {
   /**
    * Get center to center thickness from the log.
    */
-  public ConstEtomoNumber getCenterToCenterThickness()
-      throws LogFile.LockException, FileNotFoundException, IOException {
-    EtomoNumber centerToCenterThickness = new EtomoNumber(
-        EtomoNumber.Type.FLOAT);
+  public ConstEtomoNumber getCenterToCenterThickness() throws LogFile.LockException,
+      FileNotFoundException, IOException {
+    EtomoNumber centerToCenterThickness = new EtomoNumber(EtomoNumber.Type.FLOAT);
     //refresh the log file
     LogFile taAnglesLog = LogFile.getInstance(userDir, axisID,
         AlignLogGenerator.ANGLES_LOG_NAME);
@@ -90,10 +92,9 @@ public final class TaAnglesLog {
   /**
    * Get incremental shift to center from the log.
    */
-  public ConstEtomoNumber getIncrementalShiftToCenter()
-      throws LogFile.LockException, FileNotFoundException, IOException {
-    EtomoNumber incrementalShiftToCenter = new EtomoNumber(
-        EtomoNumber.Type.FLOAT);
+  public ConstEtomoNumber getIncrementalShiftToCenter() throws LogFile.LockException,
+      FileNotFoundException, IOException {
+    EtomoNumber incrementalShiftToCenter = new EtomoNumber(EtomoNumber.Type.FLOAT);
     //refresh the log file
     LogFile taAnglesLog = LogFile.getInstance(userDir, axisID,
         AlignLogGenerator.ANGLES_LOG_NAME);

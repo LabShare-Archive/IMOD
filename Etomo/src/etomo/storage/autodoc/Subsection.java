@@ -18,6 +18,9 @@ import etomo.storage.LogFile;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2009/02/04 23:30:00  sueh
+ * <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ * <p>
  * <p> Revision 1.3  2009/01/20 19:41:03  sueh
  * <p> bug# 1102 Added getSubsection.
  * <p>
@@ -77,8 +80,8 @@ public final class Subsection extends Statement {
     return subsection;
   }
 
-  void write(LogFile file, LogFile.WriterId writerId)
-      throws LogFile.LockException, IOException {
+  void write(LogFile file, LogFile.WriterId writerId) throws LogFile.LockException,
+      IOException {
     subsection.write(file, writerId);
   }
 

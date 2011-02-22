@@ -20,6 +20,9 @@ import etomo.ui.swing.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.15  2010/11/13 16:05:36  sueh
+ * <p> $bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p> $
  * <p> $Revision 1.14  2009/03/09 17:26:02  sueh
  * <p> $bug# 1199 Returning the last nameValuePair (duplicate attribute) all
  * <p> $functions that get the value, except print() which prints them all.
@@ -113,8 +116,7 @@ import etomo.ui.swing.Token;
  * <p> $$ </p>
  */
 
-final class Attribute extends WriteOnlyAttributeList implements
-    WritableAttribute {
+final class Attribute extends WriteOnlyAttributeList implements WritableAttribute {
   public static final String rcsid = "$$Id$$";
 
   private final WriteOnlyAttributeList parent;
@@ -273,8 +275,7 @@ final class Attribute extends WriteOnlyAttributeList implements
       }
       else {
         System.out.print(name.getValues() + " = ");
-        Token value = ((NameValuePair) nameValuePairList.get(0))
-            .getTokenValue();
+        Token value = ((NameValuePair) nameValuePairList.get(0)).getTokenValue();
         if (value == null) {
           System.out.println("null");
         }
@@ -368,7 +369,6 @@ final class Attribute extends WriteOnlyAttributeList implements
   }
 
   public String toString() {
-    return getClass().getName() + "[" + ",name=" + name + ",\nchildren="
-        + children + "]";
+    return getClass().getName() + "[" + ",name=" + name + ",\nchildren=" + children + "]";
   }
 }

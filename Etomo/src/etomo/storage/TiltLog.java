@@ -31,8 +31,7 @@ public final class TiltLog {
   private TiltLog() {
   }
 
-  public static TiltLog getInstance(final File file)
-      throws LogFile.LockException {
+  public static TiltLog getInstance(final File file) throws LogFile.LockException {
     TiltLog instance = new TiltLog();
     instance.file = LogFile.getInstance(file);
     return instance;
@@ -120,6 +119,10 @@ public final class TiltLog {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2010/02/17 04:49:31  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.4  2009/03/17 00:45:24  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>

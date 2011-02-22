@@ -21,6 +21,9 @@ import javax.swing.filechooser.FileFilter;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2009/10/29 19:52:45  sueh
+ * <p> bug# 1280 Allow additions of file extensions that the user uses.
+ * <p>
  * <p> Revision 1.4  2006/08/08 20:48:56  sueh
  * <p> bug# 592 Accepting .join files.
  * <p>
@@ -37,8 +40,7 @@ import javax.swing.filechooser.FileFilter;
  * <p> bug# 520 A file filter for .rec files
  * <p> </p>
  */
-public class TomogramFileFilter extends FileFilter implements
-    java.io.FileFilter {
+public class TomogramFileFilter extends FileFilter implements java.io.FileFilter {
   public static final String rcsid = "$Id$";
 
   private static final List extraExtensionList = new ArrayList();
@@ -91,7 +93,7 @@ public class TomogramFileFilter extends FileFilter implements
       extraExtensionList.add(fileName.substring(extensionIndex));
     }
   }
-  
+
   int getExtraExtensionListSize() {
     return extraExtensionList.size();
   }

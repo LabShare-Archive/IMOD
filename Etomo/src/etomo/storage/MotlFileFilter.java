@@ -16,6 +16,9 @@ import java.io.File;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2008/02/27 00:19:15  sueh
+ * <p> bug# 1089 Only accept .csv files.  PEET no longer supports .em files.
+ * <p>
  * <p> Revision 1.4  2008/02/18 23:35:30  sueh
  * <p> bug# 1079 Added .EM and .csv file extensions.
  * <p>
@@ -29,8 +32,8 @@ import java.io.File;
  * <p> bug# 964 File filter for MOTL files (PEET interface).
  * <p> </p>
  */
-public final class MotlFileFilter extends javax.swing.filechooser.FileFilter
-    implements java.io.FileFilter {
+public final class MotlFileFilter extends javax.swing.filechooser.FileFilter implements
+    java.io.FileFilter {
   public static final String rcsid = "$Id$";
 
   public boolean accept(File f) {

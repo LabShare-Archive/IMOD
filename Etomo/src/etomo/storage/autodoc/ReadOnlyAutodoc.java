@@ -20,6 +20,10 @@ import etomo.storage.autodoc.Autodoc.InternalTestType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2010/02/17 04:49:43  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.10  2010/01/11 23:57:43  sueh
  * <p> bug# 1299 Added exists.
  * <p>
@@ -57,14 +61,12 @@ import etomo.storage.autodoc.Autodoc.InternalTestType;
  * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
  * <p> </p>
  */
-public interface ReadOnlyAutodoc extends ReadOnlyStatementList,
-    ReadOnlySectionList {
+public interface ReadOnlyAutodoc extends ReadOnlyStatementList, ReadOnlySectionList {
   public static final String rcsid = "$Id$";
 
   public HashMap getAttributeValues(String sectionType, String attributeName);
 
-  public HashMap getAttributeMultiLineValues(String sectionType,
-      String attributeName);
+  public HashMap getAttributeMultiLineValues(String sectionType, String attributeName);
 
   public boolean isError();
 
@@ -80,8 +82,8 @@ public interface ReadOnlyAutodoc extends ReadOnlyStatementList,
 
   public ReadOnlySection nextSection(SectionLocation location);
 
-  void runInternalTest(InternalTestType type, boolean showTokens,
-      boolean showDetails) throws IOException, LogFile.LockException;
+  void runInternalTest(InternalTestType type, boolean showTokens, boolean showDetails)
+      throws IOException, LogFile.LockException;
 
   public boolean isDebug();
 

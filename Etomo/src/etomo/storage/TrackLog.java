@@ -22,6 +22,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2010/03/19 22:00:01  sueh
+ * <p> bug# 1335 Class can't be a n'ton because of the dataset tabs.
+ * <p>
  * <p> Revision 1.3  2010/02/17 04:49:31  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -65,8 +68,8 @@ public final class TrackLog implements Loggable {
   /**
    * Get a message to be logged in the LogPanel.
    */
-  public List getLogMessage() throws LogFile.LockException,
-      FileNotFoundException, IOException {
+  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+      IOException {
     lineList.clear();
     //refresh the log file
     LogFile trackLog = LogFile.getInstance(userDir, axisID, ProcessName.TRACK);

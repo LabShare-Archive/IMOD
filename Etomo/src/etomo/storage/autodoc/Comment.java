@@ -19,6 +19,9 @@ import etomo.ui.swing.Token;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2010/11/13 16:05:36  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.5  2010/02/17 04:49:43  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -49,40 +52,41 @@ final class Comment extends Statement {
   private final WriteOnlyStatementList parent;
   private final Token comment;
 
-  Comment(Token comment, WriteOnlyStatementList parent,Statement previousStatement) {
+  Comment(Token comment, WriteOnlyStatementList parent, Statement previousStatement) {
     super(previousStatement);
     this.parent = parent;
     this.comment = comment;
   }
-  
-  public Statement.Type getType(){
+
+  public Statement.Type getType() {
     return TYPE;
   }
-  
+
   public String getString() {
-    return AutodocTokenizer.COMMENT_CHAR+" "+comment.getValues();
+    return AutodocTokenizer.COMMENT_CHAR + " " + comment.getValues();
   }
-  
+
   public int sizeLeftSide() {
     return 0;
   }
-  
+
   public String getLeftSide(int index) {
     return null;
   }
-  
+
   public String getRightSide() {
     return comment.getValues();
   }
 
-  void write(LogFile file, LogFile.WriterId writerId) throws LogFile.LockException,IOException {
+  void write(LogFile file, LogFile.WriterId writerId) throws LogFile.LockException,
+      IOException {
     file.write(AutodocTokenizer.COMMENT_CHAR, writerId);
     comment.write(file, writerId);
     file.newLine(writerId);
     return;
   }
-  
- public ReadOnlySection getSubsection() {
+
+  public ReadOnlySection getSubsection() {
     return null;
   }
 

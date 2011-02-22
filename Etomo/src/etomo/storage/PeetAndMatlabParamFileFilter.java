@@ -19,15 +19,17 @@ import etomo.util.DatasetFiles;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/06/04 23:06:34  sueh
+ * <p> bug# 1005 Accepts .prm and .epe files.
+ * <p> </p>
  */
 public final class PeetAndMatlabParamFileFilter extends FileFilter {
   public static final String rcsid = "$Id$";
 
   public boolean accept(File f) {
     //  If this is a file test its extension, all others should return true
-    if (f.isFile()
-        && !f.getAbsolutePath().endsWith(DatasetFiles.MATLAB_PARAM_FILE_EXT)
+    if (f.isFile() && !f.getAbsolutePath().endsWith(DatasetFiles.MATLAB_PARAM_FILE_EXT)
         && !f.getAbsolutePath().endsWith(DatasetFiles.PEET_DATA_FILE_EXT)) {
       return false;
     }

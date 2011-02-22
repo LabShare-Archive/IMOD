@@ -17,9 +17,10 @@ import etomo.util.DatasetFiles;
 * 
 * @version $Revision$
 */
-public class ParallelFileFilter extends javax.swing.filechooser.FileFilter implements java.io.FileFilter {
-  public static  final String  rcsid =  "$Id$";
-  
+public class ParallelFileFilter extends javax.swing.filechooser.FileFilter implements
+    java.io.FileFilter {
+  public static final String rcsid = "$Id$";
+
   /**
    * returns true if a file is a parallel process data file
    * File must be in the form:  {rootname}.epp
@@ -41,5 +42,8 @@ public class ParallelFileFilter extends javax.swing.filechooser.FileFilter imple
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2006/03/20 17:53:30  sueh
+* <p> bug# 835 A file filter for the data file associated with ParallelManager (.epp).
+* <p> </p>
 */

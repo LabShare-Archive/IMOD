@@ -23,6 +23,10 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2010/02/17 04:49:31  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.1  2010/01/11 23:56:58  sueh
  * <p> bug# 1299 Removed responsibility anything other then cpu.adoc from
  * <p> CpuAdoc.  Placed responsibility for information about the network in the
@@ -65,7 +69,7 @@ public final class Network {
    */
   public static boolean isParallelProcessingSetExternally(BaseManager manager,
       AxisID axisID, String propertyUserDir) {
-    if (CpuAdoc.INSTANCE.exists(manager,axisID, propertyUserDir)) {
+    if (CpuAdoc.INSTANCE.exists(manager, axisID, propertyUserDir)) {
       return true;
     }
     return EnvironmentVariable.INSTANCE.exists(manager, propertyUserDir,
@@ -81,15 +85,15 @@ public final class Network {
    * @param managerKey
    * @return
    */
-  public static boolean isParallelProcessingEnabled(BaseManager manager,
-      AxisID axisID, String propertyUserDir) {
-    if (!CpuAdoc.INSTANCE.isComputerListEmpty(manager,axisID, propertyUserDir)
-        || !CpuAdoc.INSTANCE.isQueueListEmpty(manager,axisID, propertyUserDir)) {
+  public static boolean isParallelProcessingEnabled(BaseManager manager, AxisID axisID,
+      String propertyUserDir) {
+    if (!CpuAdoc.INSTANCE.isComputerListEmpty(manager, axisID, propertyUserDir)
+        || !CpuAdoc.INSTANCE.isQueueListEmpty(manager, axisID, propertyUserDir)) {
       return true;
     }
     EtomoNumber imodProcessors = new EtomoNumber();
-    imodProcessors.set(EnvironmentVariable.INSTANCE.getValue(manager,
-        propertyUserDir, "IMOD_PROCESSORS", axisID));
+    imodProcessors.set(EnvironmentVariable.INSTANCE.getValue(manager, propertyUserDir,
+        "IMOD_PROCESSORS", axisID));
     if (!imodProcessors.isNull() && imodProcessors.isValid()) {
       return true;
     }
@@ -103,9 +107,9 @@ public final class Network {
    * @param managerKey
    * @return
    */
-  public static boolean isGpuProcessingSetExternally(BaseManager manager,AxisID axisID,
+  public static boolean isGpuProcessingSetExternally(BaseManager manager, AxisID axisID,
       String propertyUserDir) {
-    return CpuAdoc.INSTANCE.exists(manager,axisID, propertyUserDir);
+    return CpuAdoc.INSTANCE.exists(manager, axisID, propertyUserDir);
   }
 
   /**
@@ -122,9 +126,8 @@ public final class Network {
   public static boolean isLocalHostGpuProcessingEnabled(BaseManager manager,
       AxisID axisID, String propertyUserDir) {
     Node localHost;
-    if (CpuAdoc.INSTANCE.exists(manager,axisID, propertyUserDir)) {
-      localHost = CpuAdoc.INSTANCE.getLocalHostComputer(manager, axisID,
-          propertyUserDir);
+    if (CpuAdoc.INSTANCE.exists(manager, axisID, propertyUserDir)) {
+      localHost = CpuAdoc.INSTANCE.getLocalHostComputer(manager, axisID, propertyUserDir);
     }
     else {
       if (Node.LOCAL_HOST_INSTANCE == null) {
@@ -150,11 +153,11 @@ public final class Network {
    */
   public static boolean hasComputers(BaseManager manager, AxisID axisID,
       String propertyUserDir) {
-    if (CpuAdoc.INSTANCE.exists(manager,axisID, propertyUserDir)) {
-      return !CpuAdoc.INSTANCE.isComputerListEmpty(manager,axisID, propertyUserDir);
+    if (CpuAdoc.INSTANCE.exists(manager, axisID, propertyUserDir)) {
+      return !CpuAdoc.INSTANCE.isComputerListEmpty(manager, axisID, propertyUserDir);
     }
-    if (EnvironmentVariable.INSTANCE.exists(manager, propertyUserDir,
-        "IMOD_PROCESSORS", axisID)
+    if (EnvironmentVariable.INSTANCE.exists(manager, propertyUserDir, "IMOD_PROCESSORS",
+        axisID)
         || EtomoDirector.INSTANCE.getUserConfiguration().isParallelProcessing()) {
       return true;
     }
@@ -171,9 +174,10 @@ public final class Network {
    * @param managerKey
    * @return
    */
-  public static int getNumComputers(BaseManager manager,AxisID axisID, String propertyUserDir) {
-    if (CpuAdoc.INSTANCE.exists(manager,axisID, propertyUserDir)) {
-      return CpuAdoc.INSTANCE.getComputerListSize(manager,axisID, propertyUserDir);
+  public static int getNumComputers(BaseManager manager, AxisID axisID,
+      String propertyUserDir) {
+    if (CpuAdoc.INSTANCE.exists(manager, axisID, propertyUserDir)) {
+      return CpuAdoc.INSTANCE.getComputerListSize(manager, axisID, propertyUserDir);
     }
     else {
       //Count Node.LOCAL_INSTANCE if cpu.adoc is missing or has no computers.
@@ -194,8 +198,8 @@ public final class Network {
    */
   public static Node getComputer(BaseManager manager, int index, AxisID axisID,
       String propertyUserDir) {
-    if (CpuAdoc.INSTANCE.exists(manager,axisID, propertyUserDir)) {
-      return CpuAdoc.INSTANCE.getComputer(manager,index, axisID, propertyUserDir);
+    if (CpuAdoc.INSTANCE.exists(manager, axisID, propertyUserDir)) {
+      return CpuAdoc.INSTANCE.getComputer(manager, index, axisID, propertyUserDir);
     }
     if (index == 0) {
       if (Node.LOCAL_HOST_INSTANCE == null) {
@@ -213,8 +217,9 @@ public final class Network {
    * @param managerKey
    * @return
    */
-  public static boolean hasQueues(BaseManager manager,AxisID axisID, String propertyUserDir) {
-    return !CpuAdoc.INSTANCE.isQueueListEmpty(manager,axisID, propertyUserDir);
+  public static boolean hasQueues(BaseManager manager, AxisID axisID,
+      String propertyUserDir) {
+    return !CpuAdoc.INSTANCE.isQueueListEmpty(manager, axisID, propertyUserDir);
   }
 
   /**
@@ -224,8 +229,9 @@ public final class Network {
    * @param managerKey
    * @return
    */
-  public static int getNumQueues(BaseManager manager,AxisID axisID, String propertyUserDir) {
-    return CpuAdoc.INSTANCE.getQueueListSize(manager,axisID, propertyUserDir);
+  public static int getNumQueues(BaseManager manager, AxisID axisID,
+      String propertyUserDir) {
+    return CpuAdoc.INSTANCE.getQueueListSize(manager, axisID, propertyUserDir);
   }
 
   /**
@@ -236,8 +242,9 @@ public final class Network {
    * @param managerKey
    * @return
    */
-  public static Node getQueue(BaseManager manager,String name, AxisID axisID, String propertyUserDir) {
-    return CpuAdoc.INSTANCE.getQueue(manager,name, axisID, propertyUserDir);
+  public static Node getQueue(BaseManager manager, String name, AxisID axisID,
+      String propertyUserDir) {
+    return CpuAdoc.INSTANCE.getQueue(manager, name, axisID, propertyUserDir);
   }
 
   /**
@@ -248,7 +255,8 @@ public final class Network {
    * @param managerKey
    * @return
    */
-  public static Node getQueue(BaseManager manager,int index, AxisID axisID, String propertyUserDir) {
-    return CpuAdoc.INSTANCE.getQueue(manager,index, axisID, propertyUserDir);
+  public static Node getQueue(BaseManager manager, int index, AxisID axisID,
+      String propertyUserDir) {
+    return CpuAdoc.INSTANCE.getQueue(manager, index, axisID, propertyUserDir);
   }
 }

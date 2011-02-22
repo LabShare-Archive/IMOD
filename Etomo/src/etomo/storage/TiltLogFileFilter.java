@@ -29,20 +29,22 @@ public class TiltLogFileFilter extends FileFilter {
     //  If this is a file test its extension, all others should return true
     if (!f.isFile()
         || name.equals(ProcessName.TILT.toString() + DatasetFiles.LOG_EXT)
-        || name.equals(ProcessName.TILT.toString()
-            + AxisID.FIRST.getExtension() + DatasetFiles.LOG_EXT)
-        || name.equals(ProcessName.TILT.toString()
-            + AxisID.SECOND.getExtension() + DatasetFiles.LOG_EXT)) {
+        || name.equals(ProcessName.TILT.toString() + AxisID.FIRST.getExtension()
+            + DatasetFiles.LOG_EXT)
+        || name.equals(ProcessName.TILT.toString() + AxisID.SECOND.getExtension()
+            + DatasetFiles.LOG_EXT)) {
       return true;
     }
     return false;
   }
 
   public String getDescription() {
-    return "Tilt Log (" + ProcessName.TILT.toString() + DatasetFiles.LOG_EXT
-        + ")";
+    return "Tilt Log (" + ProcessName.TILT.toString() + DatasetFiles.LOG_EXT + ")";
   }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/07/25 22:58:18  sueh
+ * <p> bug# 1027 Class to filter tilt log files.
+ * <p> </p>
  */

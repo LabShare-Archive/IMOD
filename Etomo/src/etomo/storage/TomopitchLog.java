@@ -35,14 +35,11 @@ public final class TomopitchLog {
   private static final int TOTAL_LABEL_INDEX = 5;
   private static final String TOTAL_LABEL = "Total:";
   private static final String ANGLE_OFFSET_TAG = "Angle offset";
-  private static final int ANGLE_OFFSET_OFFSET = ANGLE_OFFSET_TAG
-      .split(WHITESPACE).length;
+  private static final int ANGLE_OFFSET_OFFSET = ANGLE_OFFSET_TAG.split(WHITESPACE).length;
   private static final String AXIS_Z_SHIFT_TAG = "Z shift";
-  private static final int AXIS_Z_SHIFT_OFFSET = AXIS_Z_SHIFT_TAG
-      .split(WHITESPACE).length;
+  private static final int AXIS_Z_SHIFT_OFFSET = AXIS_Z_SHIFT_TAG.split(WHITESPACE).length;
   private static final String X_AXIS_TILT_TAG = "X axis tilt";
-  private static final int X_AXIS_TILT_OFFSET = X_AXIS_TILT_TAG
-      .split(WHITESPACE).length;
+  private static final int X_AXIS_TILT_OFFSET = X_AXIS_TILT_TAG.split(WHITESPACE).length;
   private static final String THICKNESS_TAG = "x-tilted";
   private static final String THICKNESS_LABEL = "to";
   private static final int THICKNESS_LABEL_INDEX = 12;
@@ -50,24 +47,15 @@ public final class TomopitchLog {
   private final BaseManager manager;
   private final AxisID axisID;
 
-  private final EtomoNumber angleOffsetOriginal = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE);
-  private final EtomoNumber angleOffsetAdded = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE);
-  private final EtomoNumber angleOffsetTotal = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE);
-  private final EtomoNumber axisZShiftOriginal = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE);
-  private final EtomoNumber axisZShiftAdded = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE);
-  private final EtomoNumber axisZShiftTotal = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE);
-  private final EtomoNumber xAxisTiltOriginal = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE);
-  private final EtomoNumber xAxisTiltAdded = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE);
-  private final EtomoNumber xAxisTiltTotal = new EtomoNumber(
-      EtomoNumber.Type.DOUBLE);
+  private final EtomoNumber angleOffsetOriginal = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+  private final EtomoNumber angleOffsetAdded = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+  private final EtomoNumber angleOffsetTotal = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+  private final EtomoNumber axisZShiftOriginal = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+  private final EtomoNumber axisZShiftAdded = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+  private final EtomoNumber axisZShiftTotal = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+  private final EtomoNumber xAxisTiltOriginal = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+  private final EtomoNumber xAxisTiltAdded = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+  private final EtomoNumber xAxisTiltTotal = new EtomoNumber(EtomoNumber.Type.DOUBLE);
   private final EtomoNumber thickness = new EtomoNumber();
 
   private File logFile = null;
@@ -91,26 +79,26 @@ public final class TomopitchLog {
         line = line.trim();
         if (line.startsWith(ANGLE_OFFSET_TAG)) {
           String[] array = line.split(WHITESPACE);
-          angleOffsetOriginal.set(get(array, ANGLE_OFFSET_OFFSET,
-              ORIGINAL_LABEL_INDEX, ORIGINAL_LABEL));
-          angleOffsetAdded.set(get(array, ANGLE_OFFSET_OFFSET,
-              ADDED_LABEL_INDEX, ADDED_LABEL));
-          angleOffsetTotal.set(get(array, ANGLE_OFFSET_OFFSET,
-              TOTAL_LABEL_INDEX, TOTAL_LABEL));
+          angleOffsetOriginal.set(get(array, ANGLE_OFFSET_OFFSET, ORIGINAL_LABEL_INDEX,
+              ORIGINAL_LABEL));
+          angleOffsetAdded.set(get(array, ANGLE_OFFSET_OFFSET, ADDED_LABEL_INDEX,
+              ADDED_LABEL));
+          angleOffsetTotal.set(get(array, ANGLE_OFFSET_OFFSET, TOTAL_LABEL_INDEX,
+              TOTAL_LABEL));
         }
         else if (line.startsWith(AXIS_Z_SHIFT_TAG)) {
           String[] array = line.split(WHITESPACE);
-          axisZShiftOriginal.set(get(array, AXIS_Z_SHIFT_OFFSET,
-              ORIGINAL_LABEL_INDEX, ORIGINAL_LABEL));
-          axisZShiftAdded.set(get(array, AXIS_Z_SHIFT_OFFSET,
-              ADDED_LABEL_INDEX, ADDED_LABEL));
-          axisZShiftTotal.set(get(array, AXIS_Z_SHIFT_OFFSET,
-              TOTAL_LABEL_INDEX, TOTAL_LABEL));
+          axisZShiftOriginal.set(get(array, AXIS_Z_SHIFT_OFFSET, ORIGINAL_LABEL_INDEX,
+              ORIGINAL_LABEL));
+          axisZShiftAdded.set(get(array, AXIS_Z_SHIFT_OFFSET, ADDED_LABEL_INDEX,
+              ADDED_LABEL));
+          axisZShiftTotal.set(get(array, AXIS_Z_SHIFT_OFFSET, TOTAL_LABEL_INDEX,
+              TOTAL_LABEL));
         }
         else if (line.startsWith(X_AXIS_TILT_TAG)) {
           String[] array = line.split(WHITESPACE);
-          xAxisTiltOriginal.set(get(array, X_AXIS_TILT_OFFSET,
-              ORIGINAL_LABEL_INDEX, ORIGINAL_LABEL));
+          xAxisTiltOriginal.set(get(array, X_AXIS_TILT_OFFSET, ORIGINAL_LABEL_INDEX,
+              ORIGINAL_LABEL));
           xAxisTiltAdded.set(get(array, X_AXIS_TILT_OFFSET, ADDED_LABEL_INDEX,
               ADDED_LABEL));
           xAxisTiltTotal.set(get(array, X_AXIS_TILT_OFFSET, TOTAL_LABEL_INDEX,
@@ -188,7 +176,7 @@ public final class TomopitchLog {
     read();
     return xAxisTiltTotal;
   }
-  
+
   public ConstEtomoNumber getThickness() {
     read();
     return thickness;
@@ -196,6 +184,9 @@ public final class TomopitchLog {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2007/02/05 23:08:18  sueh
+ * <p> bug# 962 Moved EtomoNumber type info to inner class.
+ * <p>
  * <p> Revision 1.1  2006/05/11 19:56:28  sueh
  * <p> bug# 838 Parses the tomopitch log file.
  * <p> </p>
