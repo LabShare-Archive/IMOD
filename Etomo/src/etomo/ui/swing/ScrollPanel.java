@@ -19,6 +19,9 @@ import javax.swing.Scrollable;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:35  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -42,20 +45,16 @@ public class ScrollPanel extends JPanel implements Scrollable {
   /**
    * @see javax.swing.Scrollable#getScrollableUnitIncrement(Rectangle, int, int)
    */
-  public int getScrollableUnitIncrement(
-    Rectangle visibleRect,
-    int orientation,
-    int direction) {
+  public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation,
+      int direction) {
     return 0;
   }
 
   /**
    * @see javax.swing.Scrollable#getScrollableBlockIncrement(Rectangle, int, int)
    */
-  public int getScrollableBlockIncrement(
-    Rectangle visibleRect,
-    int orientation,
-    int direction) {
+  public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation,
+      int direction) {
     return 0;
   }
 

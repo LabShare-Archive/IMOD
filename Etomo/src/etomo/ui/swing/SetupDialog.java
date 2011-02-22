@@ -38,7 +38,7 @@ import etomo.type.DialogType;
 import etomo.type.Run3dmodMenuOptions;
 
 final class SetupDialog extends ProcessDialog implements ContextMenu,
-    Run3dmodButtonContainer,Expandable {
+    Run3dmodButtonContainer, Expandable {
   public static final String rcsid = "$Id$";
 
   static final String DATASET_NAME_LABEL = "Dataset name: ";
@@ -56,8 +56,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   private final ImageIcon iconFolder = new ImageIcon(ClassLoader
       .getSystemResource("images/openFile.gif"));
 
-  private final LabeledTextField ltfDataset = new LabeledTextField(
-      DATASET_NAME_LABEL);
+  private final LabeledTextField ltfDataset = new LabeledTextField(DATASET_NAME_LABEL);
   private final SimpleButton btnDataset = new SimpleButton(iconFolder);
 
   private final LabeledTextField ltfBackupDirectory = new LabeledTextField(
@@ -76,20 +75,18 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   private final RadioButton rbSingleView = new RadioButton(SINGLE_FRAME_LABEL);
   private final RadioButton rbMontage = new RadioButton(MONTAGE_LABEL);
 
-  private final Run3dmodButton btnViewRawStackA = Run3dmodButton
-      .get3dmodInstance("View Raw Image Stack", this);
+  private final Run3dmodButton btnViewRawStackA = Run3dmodButton.get3dmodInstance(
+      "View Raw Image Stack", this);
   private Run3dmodButton btnViewRawStackB = Run3dmodButton.get3dmodInstance(
       "View Raw Image Stack", this);
 
   //  Image parameter objects
   private final JPanel pnlImageParams = new JPanel();
-  private final MultiLineButton btnScanHeader = new MultiLineButton(
-      "Scan Header");
+  private final MultiLineButton btnScanHeader = new MultiLineButton("Scan Header");
   private final JPanel pnlImageRows = new JPanel();
 
   private final JPanel pnlStackInfo = new JPanel();
-  private final LabeledTextField ltfPixelSize = new LabeledTextField(
-      "Pixel size (nm): ");
+  private final LabeledTextField ltfPixelSize = new LabeledTextField("Pixel size (nm): ");
   private final LabeledTextField ltfFiducialDiameter = new LabeledTextField(
       FIDUCIAL_DIAMETER_LABEL);
   private final LabeledTextField ltfImageRotation = new LabeledTextField(
@@ -111,16 +108,14 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 
   //  Tilt angle GUI objects
   //private TiltAnglePanel tiltAnglesA = new TiltAnglePanel();
-  private final LabeledTextField ltfExcludeListA = new LabeledTextField(
-      "Exclude views: ");
+  private final LabeledTextField ltfExcludeListA = new LabeledTextField("Exclude views: ");
   private final JPanel pnlAdjustedFocusA = new JPanel();
   private final CheckBox cbAdjustedFocusA = new CheckBox(
       "Focus was adjusted between montage frames");
 
   private final BeveledBorder borderAxisInfoB = new BeveledBorder("Axis B: ");
   //private TiltAnglePanel tiltAnglesB = new TiltAnglePanel();
-  private final LabeledTextField ltfExcludeListB = new LabeledTextField(
-      "Exclude views: ");
+  private final LabeledTextField ltfExcludeListB = new LabeledTextField("Exclude views: ");
   private final JPanel pnlAdjustedFocusB = new JPanel();
   private final CheckBox cbAdjustedFocusB = new CheckBox(
       "Focus was adjusted between montage frames");
@@ -129,9 +124,8 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   private final boolean calibrationAvailable;
 
   //  Construct the setup dialog
-  private SetupDialog(final SetupDialogExpert expert,
-      final ApplicationManager manager, final AxisID axisID,
-      final DialogType dialogType, boolean calibrationAvailable) {
+  private SetupDialog(final SetupDialogExpert expert, final ApplicationManager manager,
+      final AxisID axisID, final DialogType dialogType, boolean calibrationAvailable) {
     super(manager, axisID, dialogType);
     this.expert = expert;
     this.calibrationAvailable = calibrationAvailable;
@@ -176,8 +170,8 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   }
 
   static SetupDialog getInstance(final SetupDialogExpert expert,
-      final ApplicationManager manger, final AxisID axisID,
-      final DialogType dialogType, boolean calibrationAvailable) {
+      final ApplicationManager manger, final AxisID axisID, final DialogType dialogType,
+      boolean calibrationAvailable) {
     SetupDialog instance = new SetupDialog(expert, manger, axisID, dialogType,
         calibrationAvailable);
     instance.addListeners();
@@ -188,8 +182,8 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
    * Right mouse button context menu
    **/
   public void popUpContextMenu(final MouseEvent mouseEvent) {
-    ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
-        "INITIAL STEPS", applicationManager, axisID);
+    ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent, "INITIAL STEPS",
+        applicationManager, axisID);
   }
 
   public void done() {
@@ -226,9 +220,11 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   void setParallelProcessEnabled(final boolean input) {
     cbParallelProcess.setEnabled(input);
   }
+
   void setGpuProcessingEnabled(final boolean input) {
     cbGpuProcessing.setEnabled(input);
   }
+
   void setBackupDirectory(final String input) {
     ltfBackupDirectory.setText(input);
   }
@@ -309,6 +305,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   void setParallelProcessTooltip(final String tooltip) {
     cbParallelProcess.setToolTipText(tooltip);
   }
+
   void setGpuProcessingTooltip(final String tooltip) {
     cbGpuProcessing.setToolTipText(tooltip);
   }
@@ -423,7 +420,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   boolean isParallelProcessSelected() {
     return cbParallelProcess.isSelected();
   }
-  
+
   boolean isGpuProcessingSelected() {
     return cbGpuProcessing.isSelected();
   }
@@ -475,12 +472,12 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   boolean equalsScanHeaderActionCommand(final String actionCommand) {
     return actionCommand.equals(btnScanHeader.getActionCommand());
   }
-  
+
   public void expand(GlobalExpandButton button) {
     updateAdvanced(button.isExpanded());
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
-  
+
   public final void expand(final ExpandButton button) {
   }
 
@@ -527,8 +524,8 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 
   void backupDirectoryAction() {
     try {
-      ltfBackupDirectory.setText(getFile(expert.getCurrentBackupDirectory(),
-          null, JFileChooser.DIRECTORIES_ONLY).getCanonicalPath());
+      ltfBackupDirectory.setText(getFile(expert.getCurrentBackupDirectory(), null,
+          JFileChooser.DIRECTORIES_ONLY).getCanonicalPath());
     }
     catch (Exception excep) {
       excep.printStackTrace();
@@ -538,8 +535,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   void distortionFileAction() {
     try {
       ltfDistortionFile.setText(getFile(expert.getCurrentDistortionDir(),
-          new DistortionFileFilter(), JFileChooser.FILES_ONLY)
-          .getAbsolutePath());
+          new DistortionFileFilter(), JFileChooser.FILES_ONLY).getAbsolutePath());
     }
     catch (Exception excep) {
       excep.printStackTrace();
@@ -553,8 +549,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   void magGradientFileAction() {
     try {
       ltfMagGradientFile.setText(getFile(expert.getCurrentMagGradientDir(),
-          new MagGradientFileFilter(), JFileChooser.FILES_ONLY)
-          .getAbsolutePath());
+          new MagGradientFileFilter(), JFileChooser.FILES_ONLY).getAbsolutePath());
     }
     catch (Exception excep) {
       excep.printStackTrace();
@@ -577,11 +572,9 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 
   private void addListeners() {
     btnDataset.addActionListener(new DatasetActionListener(this));
-    btnBackupDirectory
-        .addActionListener(new BackupDirectoryActionListener(this));
+    btnBackupDirectory.addActionListener(new BackupDirectoryActionListener(this));
     btnDistortionFile.addActionListener(new DistortionFileActionListener(this));
-    btnMagGradientFile
-        .addActionListener(new MagGradientFileActionListener(this));
+    btnMagGradientFile.addActionListener(new MagGradientFileActionListener(this));
     btnViewRawStackA.addActionListener(new ViewRawStackAActionListener(this));
     btnViewRawStackB.addActionListener(new ViewRawStackBActionListener(this));
     SetupDialogActionListener listener = new SetupDialogActionListener(expert);
@@ -622,9 +615,9 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 
   private void createDataTypePanel() {
     //  Datatype subpnls: DataSource AxisType Viewtype
-    Dimension dimDataTypePref = new Dimension(
-        (int) (150 * UIParameters.INSTANCE.getFontSizeAdjustment()),
-        (int) (80 * UIParameters.INSTANCE.getFontSizeAdjustment()));
+    Dimension dimDataTypePref = new Dimension((int) (150 * UIParameters.INSTANCE
+        .getFontSizeAdjustment()), (int) (80 * UIParameters.INSTANCE
+        .getFontSizeAdjustment()));
 
     ButtonGroup bgAxisType = new ButtonGroup();
     bgAxisType.add(rbSingleAxis.getAbstractButton());
@@ -676,8 +669,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     pnlStackInfo.add(Box.createHorizontalGlue());
     pnlStackInfo.add(Box.createRigidArea(FixedDim.x5_y0));
 
-    pnlDistortionInfo.setLayout(new BoxLayout(pnlDistortionInfo,
-        BoxLayout.X_AXIS));
+    pnlDistortionInfo.setLayout(new BoxLayout(pnlDistortionInfo, BoxLayout.X_AXIS));
     pnlDistortionInfo.add(Box.createRigidArea(FixedDim.x10_y0));
     pnlDistortionInfo.add(ltfDistortionFile.getContainer());
     pnlDistortionInfo.add(btnDistortionFile);
@@ -685,25 +677,22 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     pnlDistortionInfo.add(spnBinning.getContainer());
     pnlDistortionInfo.add(Box.createRigidArea(FixedDim.x5_y0));
 
-    pnlMagGradientInfo.setLayout(new BoxLayout(pnlMagGradientInfo,
-        BoxLayout.X_AXIS));
+    pnlMagGradientInfo.setLayout(new BoxLayout(pnlMagGradientInfo, BoxLayout.X_AXIS));
     pnlMagGradientInfo.add(Box.createRigidArea(FixedDim.x10_y0));
     pnlMagGradientInfo.add(ltfMagGradientFile.getContainer());
     pnlMagGradientInfo.add(btnMagGradientFile);
     pnlMagGradientInfo.add(Box.createRigidArea(FixedDim.x10_y0));
 
     JPanel pnlParallelProcess = new JPanel();
-    pnlParallelProcess.setLayout(new BoxLayout(pnlParallelProcess,
-        BoxLayout.X_AXIS));
+    pnlParallelProcess.setLayout(new BoxLayout(pnlParallelProcess, BoxLayout.X_AXIS));
     pnlParallelProcess.add(Box.createRigidArea(FixedDim.x5_y0));
     pnlParallelProcess.add(cbParallelProcess);
     JPanel pnlGpuProcessing = new JPanel();
-    
-    pnlGpuProcessing.setLayout(new BoxLayout(pnlGpuProcessing,
-        BoxLayout.X_AXIS));
+
+    pnlGpuProcessing.setLayout(new BoxLayout(pnlGpuProcessing, BoxLayout.X_AXIS));
     pnlGpuProcessing.add(Box.createRigidArea(FixedDim.x5_y0));
     pnlGpuProcessing.add(cbGpuProcessing);
-    
+
     pnlImageRows.setLayout(new BoxLayout(pnlImageRows, BoxLayout.Y_AXIS));
     pnlImageRows.add(pnlStackInfo);
     pnlImageRows.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -721,8 +710,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     pnlImageParams.add(Box.createRigidArea(FixedDim.x5_y0));
 
     //  Create Data Parameters panel
-    pnlDataParameters.setLayout(new BoxLayout(pnlDataParameters,
-        BoxLayout.Y_AXIS));
+    pnlDataParameters.setLayout(new BoxLayout(pnlDataParameters, BoxLayout.Y_AXIS));
     pnlDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlDataParameters.add(pnlDataset);
     pnlDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -742,16 +730,14 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     pnlAxisInfoA.setLayout(new BoxLayout(pnlAxisInfoA, BoxLayout.Y_AXIS));
     ltfExcludeListA.setAlignmentX(Component.CENTER_ALIGNMENT);
     btnViewRawStackA.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlAxisInfoA.add(expert.getTiltAnglesPanelExpert(AxisID.FIRST)
-        .getComponent());
+    pnlAxisInfoA.add(expert.getTiltAnglesPanelExpert(AxisID.FIRST).getComponent());
     pnlAxisInfoA.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlAxisInfoA.add(ltfExcludeListA.getContainer());
     pnlAxisInfoA.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlAxisInfoA.add(btnViewRawStackA.getComponent());
     //Add adjusted focus checkbox
     pnlAdjustedFocusA.add(cbAdjustedFocusA);
-    pnlAdjustedFocusA.setLayout(new BoxLayout(pnlAdjustedFocusA,
-        BoxLayout.X_AXIS));
+    pnlAdjustedFocusA.setLayout(new BoxLayout(pnlAdjustedFocusA, BoxLayout.X_AXIS));
     cbAdjustedFocusA.setAlignmentX(Component.RIGHT_ALIGNMENT);
     cbAdjustedFocusA.setEnabled(false);
     pnlAxisInfoA.add(pnlAdjustedFocusA);
@@ -761,8 +747,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     pnlAxisInfoB.setLayout(new BoxLayout(pnlAxisInfoB, BoxLayout.Y_AXIS));
     ltfExcludeListB.setAlignmentX(Component.CENTER_ALIGNMENT);
     btnViewRawStackB.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlAxisInfoB.add(expert.getTiltAnglesPanelExpert(AxisID.SECOND)
-        .getComponent());
+    pnlAxisInfoB.add(expert.getTiltAnglesPanelExpert(AxisID.SECOND).getComponent());
     pnlAxisInfoB.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlAxisInfoB.add(ltfExcludeListB.getContainer());
     pnlAxisInfoB.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -770,8 +755,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     cbAdjustedFocusB.setAlignmentX(Component.RIGHT_ALIGNMENT);
     //Add adjusted focus checkbox
     pnlAdjustedFocusB.add(cbAdjustedFocusB);
-    pnlAdjustedFocusB.setLayout(new BoxLayout(pnlAdjustedFocusB,
-        BoxLayout.X_AXIS));
+    pnlAdjustedFocusB.setLayout(new BoxLayout(pnlAdjustedFocusB, BoxLayout.X_AXIS));
     cbAdjustedFocusB.setAlignmentX(Component.RIGHT_ALIGNMENT);
     cbAdjustedFocusB.setEnabled(false);
     pnlAxisInfoB.add(pnlAdjustedFocusB);
@@ -795,8 +779,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     }
   }
 
-  private static final class BackupDirectoryActionListener implements
-      ActionListener {
+  private static final class BackupDirectoryActionListener implements ActionListener {
 
     private final SetupDialog adaptee;
 
@@ -809,8 +792,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     }
   }
 
-  private static final class DistortionFileActionListener implements
-      ActionListener {
+  private static final class DistortionFileActionListener implements ActionListener {
 
     private final SetupDialog adaptee;
 
@@ -823,8 +805,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     }
   }
 
-  private static final class MagGradientFileActionListener implements
-      ActionListener {
+  private static final class MagGradientFileActionListener implements ActionListener {
 
     private SetupDialog adaptee;
 
@@ -837,8 +818,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     }
   }
 
-  private static final class ViewRawStackAActionListener implements
-      ActionListener {
+  private static final class ViewRawStackAActionListener implements ActionListener {
 
     private SetupDialog adaptee;
 
@@ -851,8 +831,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     }
   }
 
-  private static final class ViewRawStackBActionListener implements
-      ActionListener {
+  private static final class ViewRawStackBActionListener implements ActionListener {
 
     private SetupDialog adaptee;
 
@@ -865,8 +844,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     }
   }
 
-  private static final class SetupDialogActionListener implements
-      ActionListener {
+  private static final class SetupDialogActionListener implements ActionListener {
 
     private final SetupDialogExpert adaptee;
 
@@ -881,6 +859,9 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.71  2010/04/08 18:03:25  sueh
  * <p> bug# 1348 Passing image rotation as a string.
  * <p>

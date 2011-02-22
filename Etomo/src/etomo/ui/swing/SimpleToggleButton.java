@@ -21,6 +21,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.2  2009/11/20 17:35:33  sueh
  * <p> bug# 1282 Added prefixes to all of the field names, so that the fields that
  * <p> are actually abstract buttons (radio buttons, etc) won't be activated by a
@@ -30,7 +33,7 @@ import etomo.util.Utilities;
  * <p> bug# 1102 A self-naming JToggleButton.
  * <p> </p>
  */
-final class SimpleToggleButton extends JToggleButton  {
+final class SimpleToggleButton extends JToggleButton {
   public static final String rcsid = "$Id$";
 
   public SimpleToggleButton() {
@@ -48,12 +51,11 @@ final class SimpleToggleButton extends JToggleButton  {
   }
 
   public void setName(String text) {
-    String name= Utilities.convertLabelToName(text);
-    super.setName(UITestFieldType.BUTTON.toString()
-        + AutodocTokenizer.SEPARATOR_CHAR + name);
+    String name = Utilities.convertLabelToName(text);
+    super.setName(UITestFieldType.BUTTON.toString() + AutodocTokenizer.SEPARATOR_CHAR
+        + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
-          + ' ');
+      System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
 }

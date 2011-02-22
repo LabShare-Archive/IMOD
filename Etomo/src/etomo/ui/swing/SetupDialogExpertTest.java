@@ -21,6 +21,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.2  2009/10/23 23:51:20  sueh
  * <p> bug# 1275 No default manager.
  * <p>
@@ -30,9 +33,9 @@ import junit.framework.TestCase;
  */
 public final class SetupDialogExpertTest extends TestCase {
   public static final String rcsid = "$Id$";
-  
+
   protected void setUp() throws Exception {
-    EtomoDirector.INSTANCE.openTomogram(true,AxisID.ONLY);
+    EtomoDirector.INSTANCE.openTomogram(true, AxisID.ONLY);
   }
 
   public void testGetInstance() {
@@ -74,8 +77,7 @@ public final class SetupDialogExpertTest extends TestCase {
         .getCurrentManagerForTest();
     manager.openSetupDialog();
     SetupDialogExpert expert = manager.getSetupDialogExpert();
-    assertEquals("Should default to dual axis.", expert.getAxisType(),
-        AxisType.DUAL_AXIS);
+    assertEquals("Should default to dual axis.", expert.getAxisType(), AxisType.DUAL_AXIS);
   }
 
   public void testGetContainer() {
@@ -91,10 +93,8 @@ public final class SetupDialogExpertTest extends TestCase {
         .getCurrentManagerForTest();
     manager.openSetupDialog();
     SetupDialogExpert expert = manager.getSetupDialogExpert();
-    assertTrue(
-        "Backup directory was not entered so it should be the current directory.",
-        expert.getCurrentBackupDirectory().equals(
-            System.getProperty("user.dir")));
+    assertTrue("Backup directory was not entered so it should be the current directory.",
+        expert.getCurrentBackupDirectory().equals(System.getProperty("user.dir")));
   }
 
   public void testSetViewType() {
@@ -109,7 +109,6 @@ public final class SetupDialogExpertTest extends TestCase {
     ApplicationManager manager = (ApplicationManager) EtomoDirector.INSTANCE
         .getCurrentManagerForTest();
     manager.openSetupDialog();
-    assertFalse("Fields are not filled so done should fail.", manager
-        .doneSetupDialog());
+    assertFalse("Fields are not filled so done should fail.", manager.doneSetupDialog());
   }
 }

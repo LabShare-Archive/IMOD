@@ -52,6 +52,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.54  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
@@ -417,25 +420,21 @@ final class SectionTablePanel implements ContextMenu, Expandable,
   private final SpacedPanel pnlButtonsComponent2 = SpacedPanel.getInstance();
   private final SpacedPanel pnlButtonsComponent4 = SpacedPanel.getInstance();
   private final UIHarness uiHarness = UIHarness.INSTANCE;
-  private final MultiLineButton btnMoveSectionUp = new MultiLineButton(
-      "Move Section Up");
+  private final MultiLineButton btnMoveSectionUp = new MultiLineButton("Move Section Up");
   private final MultiLineButton btnMoveSectionDown = new MultiLineButton(
       "Move Section Down");
-  private final MultiLineButton btnAddSection = new MultiLineButton(
-      "Add Section");
-  private final MultiLineButton btnDeleteSection = new MultiLineButton(
-      "Delete Section");
+  private final MultiLineButton btnAddSection = new MultiLineButton("Add Section");
+  private final MultiLineButton btnDeleteSection = new MultiLineButton("Delete Section");
   private final MultiLineButton btnGetAngles = new MultiLineButton(
       "Get Angles from Slicer");
-  private final MultiLineButton btnInvertTable = new MultiLineButton(
-      "Invert Table");
+  private final MultiLineButton btnInvertTable = new MultiLineButton("Invert Table");
   //first header row
   private final HeaderCell header1ZOrder = new HeaderCell("Z Order");
-  private final HeaderCell header1SetupSections = new HeaderCell(
-      HEADER1_SECTIONS_LABEL, UIParameters.INSTANCE.getSectionsWidth());
+  private final HeaderCell header1SetupSections = new HeaderCell(HEADER1_SECTIONS_LABEL,
+      UIParameters.INSTANCE.getSectionsWidth());
   private ExpandButton button1ExpandSections = null;
-  private final HeaderCell header1JoinSections = new HeaderCell(
-      HEADER1_SECTIONS_LABEL, UIParameters.INSTANCE.getSectionsWidth());
+  private final HeaderCell header1JoinSections = new HeaderCell(HEADER1_SECTIONS_LABEL,
+      UIParameters.INSTANCE.getSectionsWidth());
   private final HeaderCell header1Sample = new HeaderCell("Sample Slices");
   private final HeaderCell header1SlicesInSample = new HeaderCell("Slices in");
   private final HeaderCell header1CurrentChunk = new HeaderCell("Current");
@@ -477,12 +476,12 @@ final class SectionTablePanel implements ContextMenu, Expandable,
       UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3JoinFinalEnd = new HeaderCell("End",
       UIParameters.INSTANCE.getNumericWidth());
-  private final HeaderCell header3RotationX = new HeaderCell("X",
-      UIParameters.INSTANCE.getNumericWidth());
-  private final HeaderCell header3RotationY = new HeaderCell("Y",
-      UIParameters.INSTANCE.getNumericWidth());
-  private final HeaderCell header3RotationZ = new HeaderCell("Z",
-      UIParameters.INSTANCE.getNumericWidth());
+  private final HeaderCell header3RotationX = new HeaderCell("X", UIParameters.INSTANCE
+      .getNumericWidth());
+  private final HeaderCell header3RotationY = new HeaderCell("Y", UIParameters.INSTANCE
+      .getNumericWidth());
+  private final HeaderCell header3RotationZ = new HeaderCell("Z", UIParameters.INSTANCE
+      .getNumericWidth());
   private final RowList rowList;
   private final GridBagLayout layout = new GridBagLayout();
   private final GridBagConstraints constraints = new GridBagConstraints();
@@ -512,9 +511,8 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     this.state = state;
     rowList = new RowList(manager);
     viewport = new Viewport(this, EtomoDirector.INSTANCE.getUserConfiguration()
-        .getJoinTableSize().getInt(), joinDialog.getSetupTabJComponent(),
-        joinDialog.getAlignTabJComponent(), joinDialog.getJoinTabJComponent(),
-        "Section");
+        .getJoinTableSize().getInt(), joinDialog.getSetupTabJComponent(), joinDialog
+        .getAlignTabJComponent(), joinDialog.getJoinTabJComponent(), "Section");
     //create root panel
     pnlBorder.setBoxLayout(BoxLayout.Y_AXIS);
     pnlBorder.setBorder(new EtchedBorder(LABEL).getBorder());
@@ -525,8 +523,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     pnlTable.setBorder(LineBorder.createBlackLineBorder());
     pnlTable.setLayout(layout);
     constraints.fill = GridBagConstraints.BOTH;
-    button1ExpandSections = ExpandButton.getInstance(this,
-        ExpandButton.Type.MORE);
+    button1ExpandSections = ExpandButton.getInstance(this, ExpandButton.Type.MORE);
     button1ExpandSections.setName(HEADER1_SECTIONS_LABEL);
     addTablePanelComponents();
     //buttons
@@ -740,8 +737,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     btnAddSection.setSize(true);
     btnAddSection.addActionListener(sectionTableActionListener);
     pnlButtonsComponent1.add(btnAddSection);
-    UIUtilities.setButtonSizeAll(pnlButtonsComponent1.getContainer(),
-        buttonDimension);
+    UIUtilities.setButtonSizeAll(pnlButtonsComponent1.getContainer(), buttonDimension);
     //second component
     pnlButtonsComponent2.setBoxLayout(BoxLayout.Y_AXIS);
     btnMoveSectionDown.setSize(true);
@@ -956,8 +952,8 @@ final class SectionTablePanel implements ContextMenu, Expandable,
       return;
     }
     if (index == 0) {
-      uiHarness.openMessageDialog(manager,
-          "Can't move the row up.  Its at the top.", "Wrong Row", AxisID.ONLY);
+      uiHarness.openMessageDialog(manager, "Can't move the row up.  Its at the top.",
+          "Wrong Row", AxisID.ONLY);
       return;
     }
     // rowList.removeRows(index - 1);
@@ -985,8 +981,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     }
     if (index == rowList.size() - 1) {
       uiHarness.openMessageDialog(manager,
-          "Can't move the row down.  Its at the bottom.", "Wrong Row",
-          AxisID.ONLY);
+          "Can't move the row down.  Its at the bottom.", "Wrong Row", AxisID.ONLY);
       return;
     }
     // rowList.removeRows(index);
@@ -1005,15 +1000,14 @@ final class SectionTablePanel implements ContextMenu, Expandable,
   private void addSection() {
     StringBuffer invalidBuffer = new StringBuffer();
     if (!Utilities.isValidFile(joinDialog.getWorkingDir(),
-        JoinDialog.WORKING_DIRECTORY_TEXT, invalidBuffer, true, true, true,
-        true)) {
+        JoinDialog.WORKING_DIRECTORY_TEXT, invalidBuffer, true, true, true, true)) {
       uiHarness.openMessageDialog(manager, invalidBuffer.toString(),
           "Unable to Add Section", AxisID.ONLY);
       return;
     }
     //  Open up the file chooser in the working directory
-    FileChooser chooser = new FileChooser(lastLocation == null ? new File(
-        manager.getPropertyUserDir()) : lastLocation);
+    FileChooser chooser = new FileChooser(lastLocation == null ? new File(manager
+        .getPropertyUserDir()) : lastLocation);
     chooser.setDialogTitle("Choose a section");
     TomogramFileFilter tomogramFilter = new TomogramFileFilter();
     chooser.setFileFilter(tomogramFilter);
@@ -1026,8 +1020,8 @@ final class SectionTablePanel implements ContextMenu, Expandable,
       if (isDuplicate(tomogram)) {
         return;
       }
-      MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
-          tomogram.getAbsolutePath(), AxisID.ONLY);
+      MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(), tomogram
+          .getAbsolutePath(), AxisID.ONLY);
       if (!readHeader(header)) {
         return;
       }
@@ -1039,8 +1033,8 @@ final class SectionTablePanel implements ContextMenu, Expandable,
         //Ask user if can rotate the tomogram
         String msgFlipped[] = {
             "It looks like you didn't rotate the tomogram in Post Processing",
-            "bacause the tomogram is thicker in Z then it is long in Y.",
-            flipWarning[0], flipWarning[1],
+            "bacause the tomogram is thicker in Z then it is long in Y.", flipWarning[0],
+            flipWarning[1],
             "Should Etomo use the clip rotx command to rotate -90 degrees in X?" };
         if (uiHarness.openYesNoDialog(manager, msgFlipped, AxisID.ONLY)) {
           manager.rotx(tomogram, joinDialog.getWorkingDir(), null);
@@ -1055,8 +1049,8 @@ final class SectionTablePanel implements ContextMenu, Expandable,
   private boolean readHeader(final MRCHeader header) {
     try {
       if (!header.read(manager)) {
-        uiHarness.openMessageDialog(manager, "File does not exist",
-            "System Error", AxisID.ONLY);
+        uiHarness.openMessageDialog(manager, "File does not exist", "System Error",
+            AxisID.ONLY);
         return false;
       }
     }
@@ -1066,8 +1060,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
           "The header command returned an error (InvalidParameterException).",
           "This file may not contain a tomogram.",
           "Are you sure you want to open this file?" };
-      if (!uiHarness.openYesNoDialog(manager, msgInvalidParameterException,
-          AxisID.ONLY)) {
+      if (!uiHarness.openYesNoDialog(manager, msgInvalidParameterException, AxisID.ONLY)) {
         return false;
       }
     }
@@ -1075,8 +1068,8 @@ final class SectionTablePanel implements ContextMenu, Expandable,
       if (header.getNRows() == -1 || header.getNSections() == -1) {
         String msgIOException[] = {
             "The header command returned an error (IOException).",
-            "Unable to tell if the tomogram is flipped.", flipWarning[0],
-            flipWarning[1], "Are you sure you want to open this file?" };
+            "Unable to tell if the tomogram is flipped.", flipWarning[0], flipWarning[1],
+            "Are you sure you want to open this file?" };
         if (!uiHarness.openYesNoDialog(manager, msgIOException, AxisID.ONLY)) {
           return false;
         }
@@ -1087,10 +1080,9 @@ final class SectionTablePanel implements ContextMenu, Expandable,
       if (header.getNRows() == -1 || header.getNSections() == -1) {
         String msgNumberFormatException[] = {
             "The header command returned an error (NumberFormatException).",
-            "Unable to tell if the tomogram is flipped.", flipWarning[0],
-            flipWarning[1], "Are you sure you want to open this file?" };
-        if (!uiHarness.openYesNoDialog(manager, msgNumberFormatException,
-            AxisID.ONLY)) {
+            "Unable to tell if the tomogram is flipped.", flipWarning[0], flipWarning[1],
+            "Are you sure you want to open this file?" };
+        if (!uiHarness.openYesNoDialog(manager, msgNumberFormatException, AxisID.ONLY)) {
           return false;
         }
       }
@@ -1118,14 +1110,14 @@ final class SectionTablePanel implements ContextMenu, Expandable,
       return;
     }
     if (!tomogram.isFile()) {
-      uiHarness.openMessageDialog(manager, tomogram.getAbsolutePath()
-          + " is not a file.", "File Error", AxisID.ONLY);
+      uiHarness.openMessageDialog(manager,
+          tomogram.getAbsolutePath() + " is not a file.", "File Error", AxisID.ONLY);
       return;
     }
     //Sections are only added in the Setup tab, so assume that the join
     //expand button is contracted.
-    int index = rowList.add(manager, this, tomogram, button1ExpandSections
-        .isExpanded(), mode);
+    int index = rowList.add(manager, this, tomogram, button1ExpandSections.isExpanded(),
+        mode);
     viewport.adjustViewport(index);
     rowList.removeRows();
     rowList.displayRows(pnlTable, viewport);
@@ -1288,8 +1280,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
    * Handle actions
    * @param event
    */
-  private void action(final String command,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
+  private void action(final String command, final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnMoveSectionUp.getActionCommand())) {
       moveSectionUp();
     }
@@ -1341,16 +1332,13 @@ final class SectionTablePanel implements ContextMenu, Expandable,
 
   private void setToolTipText() {
     btnMoveSectionUp.setToolTipText("Press to move the selected section up.");
-    btnMoveSectionDown
-        .setToolTipText("Press to move the selected section down.");
-    btnAddSection
-        .setToolTipText("Press to add a section to the joined tomogram.");
+    btnMoveSectionDown.setToolTipText("Press to move the selected section down.");
+    btnAddSection.setToolTipText("Press to add a section to the joined tomogram.");
     btnDeleteSection
         .setToolTipText("Press to delete the selected section from the joined tomogram.");
     btnGetAngles
         .setToolTipText("Press to get the X, Y, and Z rotation from the slicer in 3dmod for the selected section.");
-    btnDeleteSection
-        .setToolTipText("The order of the sections in the joined tomogram.");
+    btnDeleteSection.setToolTipText("The order of the sections in the joined tomogram.");
 
     String text = "The sections used in the joined tomogram.";
     header1SetupSections.setToolTipText(text);
@@ -1419,8 +1407,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     header1ZOrder.setToolTipText(text);
     header2ZOrder.setToolTipText(text);
     header3ZOrder.setToolTipText(text);
-    btnInvertTable
-        .setToolTipText("Reverse the order of the sections in the table.");
+    btnInvertTable.setToolTipText("Reverse the order of the sections in the table.");
   } //  //  Action listener adapters  //
 
   /**
@@ -1478,8 +1465,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
       return -1;
     }
 
-    private int setInverted(final JoinInfoFile joinInfoFile)
-        throws LogFile.LockException {
+    private int setInverted(final JoinInfoFile joinInfoFile) throws LogFile.LockException {
       int invertedCount = 0;
       for (int i = 0; i < list.size(); i++) {
         ConstEtomoNumber inverted = joinInfoFile.getInverted(manager, i);
@@ -1587,8 +1573,8 @@ final class SectionTablePanel implements ContextMenu, Expandable,
      */
     private int add(final JoinManager manager, final SectionTablePanel table,
         final File tomogram, final boolean expanded, final int mode) {
-      SectionTableRow row = new SectionTableRow(manager, table,
-          list.size() + 1, tomogram, expanded);
+      SectionTableRow row = new SectionTableRow(manager, table, list.size() + 1,
+          tomogram, expanded);
       row.setMode(mode);
       row.setNames();
       list.add(row);
@@ -1666,8 +1652,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
       list = newRows;
     }
 
-    private boolean getMetaData(final JoinMetaData metaData,
-        final BaseManager manager) {
+    private boolean getMetaData(final JoinMetaData metaData, final BaseManager manager) {
       boolean success = true;
       for (int i = 0; i < list.size(); i++) {
         SectionTableRow row = get(i);
@@ -1680,9 +1665,8 @@ final class SectionTablePanel implements ContextMenu, Expandable,
       return success;
     }
 
-    private void setMetaData(final ArrayList rowData,
-        final JoinManager manager, final SectionTablePanel table,
-        final int mode, JPanel pnlTable, Viewport viewport) {
+    private void setMetaData(final ArrayList rowData, final JoinManager manager,
+        final SectionTablePanel table, final int mode, JPanel pnlTable, Viewport viewport) {
       for (int i = 0; i < rowData.size(); i++) {
         SectionTableRowData data = (SectionTableRowData) rowData.get(i);
         SectionTableRow row = new SectionTableRow(manager, table, data, false);
@@ -1775,8 +1759,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     }
   }
 
-  private static final class SectionTableActionListener implements
-      ActionListener {
+  private static final class SectionTableActionListener implements ActionListener {
 
     private final SectionTablePanel adaptee;
 

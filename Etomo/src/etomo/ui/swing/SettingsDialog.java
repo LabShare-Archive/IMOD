@@ -32,8 +32,7 @@ public final class SettingsDialog extends JDialog {
   private final LabeledTextField ltfTooltipsDismissDelay = new LabeledTextField(
       "Tooltips dismiss delay: ");
   private final CheckBox cbNativeLAF = new CheckBox("Native look & feel");
-  private final CheckBox cbAdvancedDialogs = new CheckBox(
-      "Always use advanced dialogs");
+  private final CheckBox cbAdvancedDialogs = new CheckBox("Always use advanced dialogs");
   private final CheckBox cbAutoFit = new CheckBox("Auto-fit");
   private final CheckBox cbCompactDisplay = new CheckBox("Compact Display");
   private final JButton buttonCancel = new JButton("Cancel");
@@ -41,21 +40,18 @@ public final class SettingsDialog extends JDialog {
   private final JButton buttonDone = new JButton("Done");
   private final CheckBox cbParallelProcessing = new CheckBox("Enable "
       + ParallelPanel.FIELD_LABEL);
-  private final CheckBox cbGpuProcessing = new CheckBox(
-      "Enable graphics processing");
-  private final LabeledTextField ltfCpus = new LabeledTextField(
-      "# CPUs: ");
-  private final CheckBox cbSingleAxis = new CheckBox(
-      SetupDialog.AXIS_TYPE_LABEL + ":  " + SetupDialog.SINGLE_AXIS_LABEL);
-  private final CheckBox cbMontage = new CheckBox(SetupDialog.FRAME_TYPE_LABEL
-      + ":  " + SetupDialog.MONTAGE_LABEL);
+  private final CheckBox cbGpuProcessing = new CheckBox("Enable graphics processing");
+  private final LabeledTextField ltfCpus = new LabeledTextField("# CPUs: ");
+  private final CheckBox cbSingleAxis = new CheckBox(SetupDialog.AXIS_TYPE_LABEL + ":  "
+      + SetupDialog.SINGLE_AXIS_LABEL);
+  private final CheckBox cbMontage = new CheckBox(SetupDialog.FRAME_TYPE_LABEL + ":  "
+      + SetupDialog.MONTAGE_LABEL);
   private final CheckBox cbNoParallelProcessing = new CheckBox("Start with "
       + ParallelPanel.FIELD_LABEL + " off");
-  private final CheckBox cbTiltAnglesRawtltFile = new CheckBox(
-      "Angle Source:  " + TiltAnglePanel.EXISTING_RAWTILT_FILE);
+  private final CheckBox cbTiltAnglesRawtltFile = new CheckBox("Angle Source:  "
+      + TiltAnglePanel.EXISTING_RAWTILT_FILE);
   private final CheckBox cbSwapYAndZ = new CheckBox(
-      TrimvolPanel.REORIENTATION_GROUP_LABEL + "  "
-          + TrimvolPanel.SWAP_YZ_LABEL);
+      TrimvolPanel.REORIENTATION_GROUP_LABEL + "  " + TrimvolPanel.SWAP_YZ_LABEL);
   private final LabeledTextField ltfParallelTableSize = new LabeledTextField(
       "Parallel table size: ");
   private final LabeledTextField ltfJoinTableSize = new LabeledTextField(
@@ -103,8 +99,7 @@ public final class SettingsDialog extends JDialog {
     pnlSettings.setComponentAlignmentX(Box.LEFT_ALIGNMENT);
     pnlMain.add(pnlSettings);
     JPanel pnlGeneralSettings = new JPanel();
-    pnlGeneralSettings.setLayout(new BoxLayout(pnlGeneralSettings,
-        BoxLayout.Y_AXIS));
+    pnlGeneralSettings.setLayout(new BoxLayout(pnlGeneralSettings, BoxLayout.Y_AXIS));
     pnlSettings.add(pnlGeneralSettings);
     pnlGeneralSettings.add(cbAutoFit);
     //TEMP bug# 614
@@ -115,21 +110,20 @@ public final class SettingsDialog extends JDialog {
     pnlGeneralSettings.add(cbCompactDisplay);
     //enhanced processing settings
     EtomoPanel pnlEnhancedProcessing = new EtomoPanel();
-    pnlEnhancedProcessing.setLayout(new BoxLayout(pnlEnhancedProcessing,
-        BoxLayout.Y_AXIS));
-    pnlEnhancedProcessing.setBorder(new EtchedBorder(
-        "User Level Enhanced Processing").getBorder());
+    pnlEnhancedProcessing
+        .setLayout(new BoxLayout(pnlEnhancedProcessing, BoxLayout.Y_AXIS));
+    pnlEnhancedProcessing.setBorder(new EtchedBorder("User Level Enhanced Processing")
+        .getBorder());
     pnlSettings.add(pnlEnhancedProcessing);
     JPanel pnlCheckBoxParallelProcessing = new JPanel();
-    pnlCheckBoxParallelProcessing.setLayout(new BoxLayout(
-        pnlCheckBoxParallelProcessing, BoxLayout.X_AXIS));
+    pnlCheckBoxParallelProcessing.setLayout(new BoxLayout(pnlCheckBoxParallelProcessing,
+        BoxLayout.X_AXIS));
     pnlCheckBoxParallelProcessing.add(Box.createHorizontalGlue());
     pnlCheckBoxParallelProcessing.add(cbParallelProcessing);
     pnlEnhancedProcessing.add(pnlCheckBoxParallelProcessing);
     pnlEnhancedProcessing.add(ltfCpus.getContainer());
     JPanel pnlGpuProcessing = new JPanel();
-    pnlGpuProcessing
-        .setLayout(new BoxLayout(pnlGpuProcessing, BoxLayout.X_AXIS));
+    pnlGpuProcessing.setLayout(new BoxLayout(pnlGpuProcessing, BoxLayout.X_AXIS));
     pnlGpuProcessing.add(cbGpuProcessing);
     pnlGpuProcessing.add(Box.createHorizontalGlue());
     pnlEnhancedProcessing.add(pnlGpuProcessing);
@@ -170,8 +164,8 @@ public final class SettingsDialog extends JDialog {
   private void loadData(final BaseManager manager, final String propertyUserDir) {
     //Disable parallel processing checkbox if it was enabled by a method that
     //takes precidence over this one (cpu.adoc or IMOD_PROCESSORS).
-    cbParallelProcessing.setEnabled(!Network.isParallelProcessingSetExternally(
-        manager, AxisID.ONLY, propertyUserDir));
+    cbParallelProcessing.setEnabled(!Network.isParallelProcessingSetExternally(manager,
+        AxisID.ONLY, propertyUserDir));
     //Disable GPU processing checkbox if it was enabled by a method that takes
     //precidence over this one (cpu.adoc).
     cbGpuProcessing.setEnabled(!Network.isGpuProcessingSetExternally(manager,
@@ -193,10 +187,8 @@ public final class SettingsDialog extends JDialog {
 
   public void setParameters(final UserConfiguration userConfig) {
     //  Convert the tooltips times to seconds
-    ltfTooltipsInitialDelay
-        .setText(userConfig.getToolTipsInitialDelay() / 1000);
-    ltfTooltipsDismissDelay
-        .setText(userConfig.getToolTipsDismissDelay() / 1000);
+    ltfTooltipsInitialDelay.setText(userConfig.getToolTipsInitialDelay() / 1000);
+    ltfTooltipsDismissDelay.setText(userConfig.getToolTipsDismissDelay() / 1000);
     cbAutoFit.setSelected(userConfig.isAutoFit());
     cbNativeLAF.setSelected(userConfig.getNativeLookAndFeel());
     cbAdvancedDialogs.setSelected(userConfig.getAdvancedDialogs());
@@ -246,8 +238,7 @@ public final class SettingsDialog extends JDialog {
     userConfig.setAdvancedDialogs(cbAdvancedDialogs.isSelected());
     userConfig.setCompactDisplay(cbCompactDisplay.isSelected());
     userConfig.setFontSize(Integer.parseInt(ltfFontSize.getText()));
-    userConfig.setFontFamily(fontFamilies.getName(listFontFamily
-        .getSelectedIndex()));
+    userConfig.setFontFamily(fontFamilies.getName(listFontFamily.getSelectedIndex()));
     userConfig.setSingleAxis(cbSingleAxis.isSelected());
     userConfig.setMontage(cbMontage.isSelected());
     userConfig.setNoParallelProcessing(cbNoParallelProcessing.isSelected());
@@ -266,24 +257,19 @@ public final class SettingsDialog extends JDialog {
         || userConfig.getCompactDisplay() != cbCompactDisplay.isSelected()
         || userConfig.getSingleAxis() != cbSingleAxis.isSelected()
         || userConfig.getMontage() != cbMontage.isSelected()
-        || userConfig.getNoParallelProcessing() != cbNoParallelProcessing
-            .isSelected()
-        || userConfig.getTiltAnglesRawtltFile() != cbTiltAnglesRawtltFile
-            .isSelected()
+        || userConfig.getNoParallelProcessing() != cbNoParallelProcessing.isSelected()
+        || userConfig.getTiltAnglesRawtltFile() != cbTiltAnglesRawtltFile.isSelected()
         || userConfig.getSwapYAndZ() != cbSwapYAndZ.isSelected()
         || userConfig.getFontSize() != Integer.parseInt(ltfFontSize.getText())
         || !userConfig.getFontFamily().equals(
             fontFamilies.getName(listFontFamily.getSelectedIndex()))
-        || userConfig.isParallelProcessing() != cbParallelProcessing
-            .isSelected()
+        || userConfig.isParallelProcessing() != cbParallelProcessing.isSelected()
         || userConfig.isGpuProcessing() != cbGpuProcessing.isSelected()
         || !userConfig.getCpus().toString().equals(ltfCpus.getText())
         || !userConfig.getParallelTableSize().toString().equals(
             ltfParallelTableSize.getText())
-        || !userConfig.getJoinTableSize().toString().equals(
-            ltfJoinTableSize.getText())
-        || !userConfig.getPeetTableSize().toString().equals(
-            ltfPeetTableSize.getText())) {
+        || !userConfig.getJoinTableSize().toString().equals(ltfJoinTableSize.getText())
+        || !userConfig.getPeetTableSize().toString().equals(ltfPeetTableSize.getText())) {
       return true;
     }
     return false;

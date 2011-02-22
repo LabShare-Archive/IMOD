@@ -18,11 +18,13 @@ import etomo.type.Run3dmodMenuOptions;
 interface Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
-  public void action(Run3dmodButton button,
-      Run3dmodMenuOptions run3dmodMenuOptions);
+  public void action(Run3dmodButton button, Run3dmodMenuOptions run3dmodMenuOptions);
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.4  2008/05/13 23:06:32  sueh
  * <p> bug# 847 Reformatted.
  * <p>

@@ -34,6 +34,9 @@ import javax.swing.border.TitledBorder;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.26  2009/06/05 02:18:32  sueh
  * <p> bug# 1219 Moved adding spacing to after the component is added.  Got
  * <p> rid of xDescription and yDescription which where for debugging.
@@ -328,7 +331,7 @@ final class SpacedPanel {
   }
 
   void add(final CheckBox checkBox) {
-   // addSpacing();
+    // addSpacing();
     panel.add(checkBox);
     addSpacing();
     if (componentAlignmentX != null) {
@@ -337,7 +340,7 @@ final class SpacedPanel {
   }
 
   void add(final SpacedTextField spacedTextField) {
-   // addSpacing();
+    // addSpacing();
     panel.add(spacedTextField.getContainer());
     addSpacing();
     if (componentAlignmentX != null) {
@@ -353,7 +356,7 @@ final class SpacedPanel {
   }
 
   void add(final LabeledSpinner labeledSpinner) {
-     //addSpacing();
+    //addSpacing();
     panel.add(labeledSpinner.getContainer());
     addSpacing();
     if (componentAlignmentX != null) {

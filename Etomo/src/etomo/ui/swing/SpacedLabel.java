@@ -21,13 +21,12 @@ import javax.swing.JPanel;
 * @version $Revision$
 */
 final class SpacedLabel {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   private JLabel label = null;
   private JPanel labelPanel = null;
   private JPanel yAxisPanel = null;
-  
-  
+
   SpacedLabel(String label) {
     label = label.trim();
     this.label = new JLabel(label);
@@ -44,13 +43,13 @@ final class SpacedLabel {
     yAxisPanel.add(labelPanel);
     yAxisPanel.add(Box.createRigidArea(FixedDim.x0_y5));
   }
-  
+
   final void setToolTipText(String toolTipText) {
     label.setToolTipText(toolTipText);
     labelPanel.setToolTipText(toolTipText);
     yAxisPanel.setToolTipText(toolTipText);
   }
-  
+
   final Container getContainer() {
     if (yAxisPanel != null) {
       return yAxisPanel;
@@ -61,7 +60,7 @@ final class SpacedLabel {
   final void setVisible(boolean visible) {
     getContainer().setVisible(visible);
   }
-  
+
   final void setAlignmentX(float alignmentX) {
     if (label != null) {
       label.setAlignmentX(alignmentX);
@@ -76,6 +75,9 @@ final class SpacedLabel {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.1  2010/11/13 16:07:34  sueh
+* <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+* <p>
 * <p> Revision 1.1  2005/07/06 23:49:08  sueh
 * <p> bug# 437 Class to encapsulate rigid areas within the label.  Uses two
 * <p> panels to hold the label and x and y rigid areas.  Important for basic

@@ -31,6 +31,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.35  2010/02/26 20:38:28  sueh
  * <p> Changing the complex popup titles are making it hard to complete the
  * <p> uitests.
@@ -271,8 +274,8 @@ public final class SectionTableRow implements Highlightable {
   private final HighlighterButton highlighterButton;
 
   private SectionTableRowData data;
-  private final HeaderCell rowNumber = new HeaderCell(
-      (int) (30 * UIParameters.INSTANCE.getFontSizeAdjustment()));
+  private final HeaderCell rowNumber = new HeaderCell((int) (30 * UIParameters.INSTANCE
+      .getFontSizeAdjustment()));
   private int imodIndex = -1;
   private int imodRotIndex = -1;
   private boolean sectionExpanded = false;
@@ -284,8 +287,8 @@ public final class SectionTableRow implements Highlightable {
    * @param table
    * @param rowNumber
    */
-  public SectionTableRow(JoinManager manager, SectionTablePanel table,
-      int rowNumber, File tomogram, boolean sectionExpanded) {
+  public SectionTableRow(JoinManager manager, SectionTablePanel table, int rowNumber,
+      File tomogram, boolean sectionExpanded) {
     this(manager, table, sectionExpanded);
     data = new SectionTableRowData(manager, rowNumber);
     data.setSetupSection(tomogram);
@@ -494,8 +497,7 @@ public final class SectionTableRow implements Highlightable {
     if (prevRow == null) {
       return 0;
     }
-    return totalInRange(prevRow.data.getSampleTopStart(), prevRow.data
-        .getSampleTopEnd());
+    return totalInRange(prevRow.data.getSampleTopStart(), prevRow.data.getSampleTopEnd());
   }
 
   void setupCurTab(SectionTableRow prevRow, int totalRows) {
@@ -507,8 +509,8 @@ public final class SectionTableRow implements Highlightable {
       int topSampleSlices = getTopSampleSlices(totalRows, rowNum);
       int prevTopSampleSlices = getPrevTopSampleSlices(prevRow);
 
-      slicesInSample.setRangeValue(prevSampleEnd + 1, prevSampleEnd
-          + bottomSampleSlices + topSampleSlices);
+      slicesInSample.setRangeValue(prevSampleEnd + 1, prevSampleEnd + bottomSampleSlices
+          + topSampleSlices);
       if (prevRow == null) {
         currentChunk.setText("");
         currentSection.setValue();
@@ -657,79 +659,71 @@ public final class SectionTableRow implements Highlightable {
     valid = true;
     String errorInfo = "\nInvalid number in section " + rowNumber.getText();
     String errorTitle = "Invalid Number";
-    String errorMessage = data.setSampleBottomStart(
-        sampleBottomStart.getValue()).validate(null);
-    if (errorMessage != null && valid) {
-      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo,
-          errorTitle, AxisID.ONLY);
-      valid = false;
-    }
-    errorMessage = data.setSampleBottomEnd(sampleBottomEnd.getValue())
+    String errorMessage = data.setSampleBottomStart(sampleBottomStart.getValue())
         .validate(null);
     if (errorMessage != null && valid) {
-      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo,
-          errorTitle, AxisID.ONLY);
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo, errorTitle,
+          AxisID.ONLY);
       valid = false;
     }
-    errorMessage = data.setSampleTopStart(sampleTopStart.getValue()).validate(
-        null);
+    errorMessage = data.setSampleBottomEnd(sampleBottomEnd.getValue()).validate(null);
     if (errorMessage != null && valid) {
-      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo,
-          errorTitle, AxisID.ONLY);
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo, errorTitle,
+          AxisID.ONLY);
+      valid = false;
+    }
+    errorMessage = data.setSampleTopStart(sampleTopStart.getValue()).validate(null);
+    if (errorMessage != null && valid) {
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo, errorTitle,
+          AxisID.ONLY);
       valid = false;
     }
     errorMessage = data.setSampleTopEnd(sampleTopEnd.getValue()).validate(null);
     if (errorMessage != null && valid) {
-      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo,
-          errorTitle, AxisID.ONLY);
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo, errorTitle,
+          AxisID.ONLY);
       valid = false;
     }
-    errorMessage = data.setSetupFinalStart(setupFinalStart.getValue())
-        .validate(null);
+    errorMessage = data.setSetupFinalStart(setupFinalStart.getValue()).validate(null);
     if (errorMessage != null && valid) {
-      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo,
-          errorTitle, AxisID.ONLY);
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo, errorTitle,
+          AxisID.ONLY);
       valid = false;
     }
-    errorMessage = data.setSetupFinalEnd(setupFinalEnd.getValue()).validate(
-        null);
+    errorMessage = data.setSetupFinalEnd(setupFinalEnd.getValue()).validate(null);
     if (errorMessage != null && valid) {
-      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo,
-          errorTitle, AxisID.ONLY);
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo, errorTitle,
+          AxisID.ONLY);
       valid = false;
     }
-    errorMessage = data.setJoinFinalStart(joinFinalStart.getValue()).validate(
-        null);
+    errorMessage = data.setJoinFinalStart(joinFinalStart.getValue()).validate(null);
     if (errorMessage != null && valid) {
-      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo,
-          errorTitle, AxisID.ONLY);
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo, errorTitle,
+          AxisID.ONLY);
       valid = false;
     }
     errorMessage = data.setJoinFinalEnd(joinFinalEnd.getValue()).validate(null);
     if (errorMessage != null && valid) {
-      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo,
-          errorTitle, AxisID.ONLY);
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo, errorTitle,
+          AxisID.ONLY);
       valid = false;
     }
-    errorMessage = data.setRotationAngleX(rotationAngleX.getValue()).validate(
-        null);
+    errorMessage = data.setRotationAngleX(rotationAngleX.getValue()).validate(null);
     if (errorMessage != null && valid) {
-      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo,
-          errorTitle, AxisID.ONLY);
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo, errorTitle,
+          AxisID.ONLY);
       valid = false;
     }
-    errorMessage = data.setRotationAngleY(rotationAngleY.getValue()).validate(
-        null);
+    errorMessage = data.setRotationAngleY(rotationAngleY.getValue()).validate(null);
     if (errorMessage != null && valid) {
-      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo,
-          errorTitle, AxisID.ONLY);
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo, errorTitle,
+          AxisID.ONLY);
       valid = false;
     }
-    errorMessage = data.setRotationAngleZ(rotationAngleZ.getValue()).validate(
-        null);
+    errorMessage = data.setRotationAngleZ(rotationAngleZ.getValue()).validate(null);
     if (errorMessage != null && valid) {
-      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo,
-          errorTitle, AxisID.ONLY);
+      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage + errorInfo, errorTitle,
+          AxisID.ONLY);
       valid = false;
     }
     return valid;
@@ -753,31 +747,31 @@ public final class SectionTableRow implements Highlightable {
     if (start.isNull() && !end.isNull()) {
       UIHarness.INSTANCE.openMessageDialog(manager, start.getDescription()
           + " cannot be empty when " + end.getDescription()
-          + " has been entered.  Invalid numbers in section "
-          + rowNumber.getText(), "Entry Error", AxisID.ONLY);
+          + " has been entered.  Invalid numbers in section " + rowNumber.getText(),
+          "Entry Error", AxisID.ONLY);
       valid = false;
     }
     else if (!start.isNull() && end.isNull()) {
       UIHarness.INSTANCE.openMessageDialog(manager, end.getDescription()
           + " cannot be empty when " + start.getDescription()
-          + " has been entered.  Invalid numbers in section "
-          + rowNumber.getText(), "Entry Error", AxisID.ONLY);
+          + " has been entered.  Invalid numbers in section " + rowNumber.getText(),
+          "Entry Error", AxisID.ONLY);
       valid = false;
     }
     else if (validateValues) {
       if (start.isInt()) {
         if (start.getInt() > end.getInt()) {
           UIHarness.INSTANCE.openMessageDialog(manager, start.getDescription()
-              + " must be less then or equal to " + start.getDescription()
-              + ".", "Entry Error", AxisID.ONLY);
+              + " must be less then or equal to " + start.getDescription() + ".",
+              "Entry Error", AxisID.ONLY);
           valid = false;
         }
       }
       else if (start.getLong() > end.getLong()) {
         UIHarness.INSTANCE.openMessageDialog(manager, start.getDescription()
             + " must be less then or equal to " + start.getDescription()
-            + ".  Invalid numbers in section " + rowNumber.getText(),
-            "Entry Error", AxisID.ONLY);
+            + ".  Invalid numbers in section " + rowNumber.getText(), "Entry Error",
+            AxisID.ONLY);
         valid = false;
       }
     }
@@ -920,16 +914,14 @@ public final class SectionTableRow implements Highlightable {
   }
 
   public boolean equalsSetupSection(File section) {
-    if (data.getSetupSection().getAbsolutePath().equals(
-        section.getAbsolutePath())) {
+    if (data.getSetupSection().getAbsolutePath().equals(section.getAbsolutePath())) {
       return true;
     }
     return false;
   }
 
   public boolean equalsJoinSection(File section) {
-    if (data.getJoinSection().getAbsolutePath().equals(
-        section.getAbsolutePath())) {
+    if (data.getJoinSection().getAbsolutePath().equals(section.getAbsolutePath())) {
       return true;
     }
     return false;
@@ -950,34 +942,32 @@ public final class SectionTableRow implements Highlightable {
     return data.equalsSample(thatData);
   }
 
-  final void imodOpenSetupSectionFile(int binning,
-      Run3dmodMenuOptions menuOptions) {
+  final void imodOpenSetupSectionFile(int binning, Run3dmodMenuOptions menuOptions) {
     imodIndex = manager.imodOpen(ImodManager.TOMOGRAM_KEY, imodIndex, data
         .getSetupSection(), binning, menuOptions);
   }
 
-  final void imodOpenJoinSectionFile(int binning,
-      Run3dmodMenuOptions menuOptions) {
+  final void imodOpenJoinSectionFile(int binning, Run3dmodMenuOptions menuOptions) {
     File joinSection = data.getJoinSection();
     if (DatasetFiles.isRotatedTomogram(joinSection)) {
-      imodRotIndex = manager.imodOpen(ImodManager.ROT_TOMOGRAM_KEY,
-          imodRotIndex, joinSection, binning, menuOptions);
+      imodRotIndex = manager.imodOpen(ImodManager.ROT_TOMOGRAM_KEY, imodRotIndex,
+          joinSection, binning, menuOptions);
     }
     else {
-      imodIndex = manager.imodOpen(ImodManager.TOMOGRAM_KEY, imodIndex,
-          joinSection, binning, menuOptions);
+      imodIndex = manager.imodOpen(ImodManager.TOMOGRAM_KEY, imodIndex, joinSection,
+          binning, menuOptions);
     }
   }
 
   final boolean imodGetAngles() {
     if (imodIndex == -1) {
       UIHarness.INSTANCE.openMessageDialog(manager,
-          "Open in 3dmod and use the Slicer to change the angles.",
-          "Open 3dmod", AxisID.ONLY);
+          "Open in 3dmod and use the Slicer to change the angles.", "Open 3dmod",
+          AxisID.ONLY);
       return false;
     }
-    SlicerAngles slicerAngles = manager.imodGetSlicerAngles(
-        ImodManager.TOMOGRAM_KEY, imodIndex);
+    SlicerAngles slicerAngles = manager.imodGetSlicerAngles(ImodManager.TOMOGRAM_KEY,
+        imodIndex);
     if (slicerAngles == null || !slicerAngles.isComplete()) {
       return false;
     }
