@@ -195,12 +195,12 @@ Connections are created in three stages:
 .br
 1) If both contours are open and there is at least one gap adjacent to the
 opening, the program connects the two openings together.
-.br.
+.br
 2) The pair of remaining gaps with the least distance between their midpoints
 is found and connected provided that this distance is no bigger than the
 largest gap opening.  This process is repeated until all gaps have been
 considered.
-.br.
+.br
 3) If both contours are open and neither opening has been paired with another
 gap yet, the two openings are connected.
 .br
