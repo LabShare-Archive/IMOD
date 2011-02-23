@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/23/11: Clip: extended variance and standard deviation to 2D case within a
+single image stack; added scaling option for average/sd/variance; added
+processes to subtract, multiply, and divide two volumes or add instead of
+average multiple volumes; added a truncation operation; added -x and -y
+options to set starting and ending input coordinates.  Multiply can be used
+to apply a mask to a volume.
+
 2/23/11: Fixed Avgstack to take long filenames and to work with any size of 
 file.
 
