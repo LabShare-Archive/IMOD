@@ -32,16 +32,16 @@ void usage(void)
   fprintf(stderr, "----------------------------------------------------\n");
 
   fprintf(stderr, "%s usage:\n", name);
-  fprintf(stderr, 
-          "%s [process] [options] [input files...] [output file]\n", name);
+  fprintf(stderr, "%s [process] [options] [input files...] [output file]\n", name);
   fprintf(stderr, "\nprocess:\n");
-  /*     fprintf(stderr, "\tadd         - Add images together.(future)\n"); */
+  fprintf(stderr, "\tadd         - Add images together.\n");
   fprintf(stderr, "\taverage     - Average files together.\n");
   fprintf(stderr, "\tbrightness  - Increase or decrease brightness.\n");
   fprintf(stderr, "\tcolor       - Add false color.\n");
   fprintf(stderr, "\tcontrast    - Increase or decrease contrast.\n");
   fprintf(stderr, "\tcorrelation - Do a auto/cross correlation.\n");
   fprintf(stderr, "\tdiffusion   - Do 2-D anisotropic diffusion on slices.\n");
+  fprintf(stderr, "\tdivide      - Divide one image volume by another.\n");
   fprintf(stderr, "\tgradient    - Compute gradient as in 3dmod.\n");
   fprintf(stderr, "\tgraham      - Apply Graham filter as in 3dmod.\n");
   fprintf(stderr, "\tinfo        - Print information to stdout.\n");
@@ -52,6 +52,7 @@ void usage(void)
   fprintf(stderr, "\tjoinrgb     - Join 3 byte files into an RGB file.\n");
   fprintf(stderr, "\tlaplacian   - Apply Laplacian filter as in 3dmod.\n");
   fprintf(stderr, "\tmedian      - Do median filtering.\n");
+  fprintf(stderr, "\tmultiply    - Multiple one image volume by another.\n");
   fprintf(stderr, "\tprewitt     - Apply Prewitt filter as in 3dmod.\n");
   fprintf(stderr, "\tresize      - Cut out and/or pad image data.\n");
   fprintf(stderr, "\trotx        - Rotate volume by -90 about X axis.\n");
@@ -61,7 +62,11 @@ void usage(void)
   fprintf(stderr, "\tsmooth      - Smooth image as in 3dmod.\n");
   fprintf(stderr, "\tsobel       - Apply Sobel filter as in 3dmod.\n");
   fprintf(stderr, "\tsplitrgb    - Split RGB image file into 3 byte files.\n");
+  fprintf(stderr, "\tstandev     - Compute standard deviation for averaged images.\n");
   fprintf(stderr, "\tstats       - Print some stats on image file.\n");
+  fprintf(stderr, "\tsubtract    - Subtract one image volume from another.\n");
+  fprintf(stderr, "\ttruncate    - Limit image values at low or high end.");
+  fprintf(stderr, "\tvariance    - Compute variance for averaged images.\n");
   /* fprintf(stderr, "\ttranslate   - translate image.\n");
   fprintf(stderr, "\tzoom        - magnify image.\n"); */
   fprintf(stderr, "\noptions:\n");
@@ -69,10 +74,11 @@ void usage(void)
   fprintf(stderr, "\t[-3d] or [-2d] treat image as 3d (default) or 2d.\n");
   fprintf(stderr, "\t[-s] Switch, [-n #] Amount; Depends on function.\n");
   fprintf(stderr, "\t[-n #] [-l #] Iterations and Gaussian sigma for smoothing.\n");
-  fprintf(stderr, "\t[-h #] [-l #] values for high/low pass filters.\n");
+  fprintf(stderr, "\t[-h #] [-l #] values for high/low pass filters or truncation.\n");
   fprintf(stderr, "\t[-cc #] [-l #] [-k #] values for anisotropic diffusion.\n");
   fprintf(stderr, "\t[-r #] [-g #] [-b #] red, green, blue values.\n");
   /*  fprintf(stderr, "\t[-x #,#] [-y #,#] [-z #,#] input variables.\n"); */
+  fprintf(stderr, "\t[-x #,#]  [-y #,#]  starting and ending input coords.\n");
   fprintf(stderr, "\t[-cx #]  [-cy #]  [-cz #]  center coords.\n");
   fprintf(stderr, "\t[-ix #]  [-iy #]  [-iz #]  input sizes.\n");
   fprintf(stderr, "\t[-ox #]  [-oy #]  [-oz #]  output sizes.\n");
@@ -113,10 +119,11 @@ void default_options(ClipOptions *opt)
   opt->cx = IP_DEFAULT; opt->cy = IP_DEFAULT; opt->cz = IP_DEFAULT;
   opt->outBefore = opt->outAfter = IP_DEFAULT;
   opt->red = IP_DEFAULT; opt->green = IP_DEFAULT; opt->blue = IP_DEFAULT;
-  opt->high = 0; opt->low = IP_DEFAULT;
+  opt->high = IP_DEFAULT; opt->low = IP_DEFAULT;
   opt->thresh = IP_DEFAULT;
   opt->weight = IP_DEFAULT;
   opt->pad    = IP_DEFAULT;
+  opt->process = IP_NONE;
   opt->dim = 3;
   opt->add2file = IP_APPEND_FALSE;
   opt->sano = FALSE;
@@ -139,11 +146,11 @@ int main( int argc, char *argv[] )
   int process = IP_NONE;  /* command to run.             */
   int view    = FALSE;    /* view file at end?           */
   int procout = TRUE;     /* will process write output?. */
+  int needtwo = FALSE;    /* Does process need two input files? */
   int i, j;
   int retval = 0;
 
   char viewcmd[1024];
-  char *backupstr;
   char *progname = imodProgName(argv[0]);
 
   if (argc < 3){
@@ -154,8 +161,10 @@ int main( int argc, char *argv[] )
   opt.command = argv[1];
 
   /* Find which process to run */
-  /*if (!strncmp( argv[1], "add", 3))
-    process = IP_ADD; */
+  if (!strncmp( argv[1], "add", 3)) {
+    process = IP_ADD;
+    needtwo = TRUE;
+  }
   if ((!strncmp( argv[1], "avg", 3)) || 
       (!strncmp( argv[1], "average", 3)) )
     process = IP_AVERAGE;
@@ -163,6 +172,18 @@ int main( int argc, char *argv[] )
     process = IP_STANDEV;
   if (!strncmp( argv[1], "variance", 3))
     process = IP_VARIANCE;
+  if (!strncmp( argv[1], "multiply", 3)) {
+    process = IP_MULTIPLY;
+    needtwo = TRUE;
+  }
+  if (!strncmp( argv[1], "subtract", 3)) {
+    process = IP_SUBTRACT;
+    needtwo = TRUE;
+  }
+  if (!strncmp( argv[1], "divide", 3)) {
+    process = IP_DIVIDE;
+    needtwo = TRUE;
+  }
   if (!strncmp( argv[1], "brightness", 3))
     process = IP_BRIGHTNESS;
   if (!strncmp( argv[1], "color", 3))
@@ -227,6 +248,8 @@ int main( int argc, char *argv[] )
     process = IP_PROJECT;
     } */
 
+  if (!strncmp( argv[1], "truncate", 3))
+    process = IP_TRUNCATE;
   if (!strncmp( argv[1], "splitrgb", 3)){
     process = IP_SPLITRGB;
   }
@@ -240,6 +263,7 @@ int main( int argc, char *argv[] )
   }
 
   default_options(&opt);
+  opt.process = process;
   opt.pname = progname;
 
   /* get options */
@@ -294,11 +318,11 @@ int main( int argc, char *argv[] )
         sscanf(argv[++i], "%f", &(opt.high)); break;
 
       case 'x': case 'X':
-        sscanf(argv[++i], "%f%*c%f", &(opt.x), &(opt.x2)); break;
+        sscanf(argv[++i], "%d%*c%d", &(opt.x), &(opt.x2)); break;
       case 'y': case 'Y':
-        sscanf(argv[++i], "%f%*c%f", &(opt.y), &(opt.y2)); break;
-      case 'z': case 'Z':
-        sscanf(argv[++i], "%f%*c%f", &(opt.z), &(opt.z2)); break;
+        sscanf(argv[++i], "%d%*c%d", &(opt.y), &(opt.y2)); break;
+        /*case 'z': case 'Z':
+          sscanf(argv[++i], "%f%*c%f", &(opt.z), &(opt.z2)); break; */
 
       case 'o': case 'O':
         switch (argv[i][2]){
@@ -366,14 +390,14 @@ int main( int argc, char *argv[] )
 
   opt.fnames  = &(argv[i]);
 
-  if (!procout){
+  if (!procout) {
     /* check for at least one input file */
     if ((argc - 1) < i){
       usage();
       exit(3);
     }
     opt.infiles = argc - i;
-  }else{
+  } else {
     /* check for at least one input and one output file name. */
     if ((argc - 2) < i){
       usage();
@@ -381,6 +405,20 @@ int main( int argc, char *argv[] )
     }
     opt.infiles = argc - i - 1;
   }
+
+  if (opt.x != IP_DEFAULT) {
+    if (opt.cx != IP_DEFAULT || opt.ix != IP_DEFAULT) {
+      fprintf(stderr, "You cannot use -x together with -cx or -ix\n");
+      exit(1);
+    }
+  }
+  if (opt.y != IP_DEFAULT) {
+    if (opt.cy != IP_DEFAULT || opt.iy != IP_DEFAULT) {
+      fprintf(stderr, "You cannot use -y together with -cy or -iy\n");
+      exit(1);
+    }
+  }
+
 
   /* check and load files:
    * Always at least one input file.
@@ -428,8 +466,9 @@ int main( int argc, char *argv[] )
   }
 
 
-  /* Setup output file if needed. */
-  if (procout){
+  /* Setup output file if needed and there are enough - otherwise let the process give 
+     the error message . */
+  if (procout && (!needtwo || opt.infiles > 1)){
     opt.ofname = argv[argc - 1];
     if (opt.add2file){
       hout.fp = fopen(argv[argc - 1], "rb+");
@@ -490,22 +529,26 @@ int main( int argc, char *argv[] )
 
   /* run the selected process */
   switch(process){
-  case IP_ADD:
-    puts("add: (future)");
-    break;
   case IP_AVERAGE:
   case IP_STANDEV:
   case IP_VARIANCE:
-    retval = grap_average(&hin, &hin2, &hout, &opt);
+  case IP_ADD:
+  case IP_SUBTRACT:
+    retval = clip_average(&hin, &hin2, &hout, &opt);
+    break;
+  case IP_MULTIPLY:
+  case IP_DIVIDE:
+    retval = clip_multdiv(&hin, &hin2, &hout, &opt);
     break;
   case IP_BRIGHTNESS:
   case IP_CONTRAST:
   case IP_SHADOW:
   case IP_RESIZE:
-    retval = clip_scaling(&hin, &hout, &opt, process);
+  case IP_TRUNCATE:
+    retval = clip_scaling(&hin, &hout, &opt);
     break;
   case IP_COLOR:
-    retval = grap_color(&hin, &hout, &opt);
+    retval = clip_color(&hin, &hout, &opt);
     break;
   case IP_CORRELATE:
     retval = grap_corr(&hin, &hin2, &hout, &opt);
@@ -517,7 +560,7 @@ int main( int argc, char *argv[] )
   case IP_GRAHAM:
   case IP_PREWITT:
   case IP_SOBEL:
-    retval = clipEdge(&hin, &hout, &opt, process);
+    retval = clipEdge(&hin, &hout, &opt);
     break;
   case IP_INFO:
     retval = mrc_head_print(&hin);
@@ -530,7 +573,7 @@ int main( int argc, char *argv[] )
     retval = clip_bandpass_filter(&hin, &hout, &opt);
     break;
   case IP_FLIP:
-    retval = grap_flip(&hin, &hout, &opt);
+    retval = clip_flip(&hin, &hout, &opt);
     break;
   case IP_JOINRGB:
     retval = clip_joinrgb(&hin, &hin2, &hout, &opt);
@@ -538,7 +581,7 @@ int main( int argc, char *argv[] )
   case IP_LAPLACIAN:
   case IP_SMOOTH:
   case IP_SHARPEN:
-    retval = clip_convolve(&hin, &hout, &opt, process);
+    retval = clip_convolve(&hin, &hout, &opt);
     break;
   case IP_MEDIAN:
     retval = clipMedian(&hin, &hout, &opt);
@@ -553,7 +596,7 @@ int main( int argc, char *argv[] )
     retval = clip_splitrgb(&hin, &opt);
     break;
   case IP_STAT:
-    retval = grap_stat(&hin, &opt);
+    retval = clip_stat(&hin, &opt);
     break;
   case IP_TRANSLATE:
     retval = grap_trans(&hin, &hout, &opt);
@@ -636,6 +679,9 @@ int *clipMakeSecList(char *clst, int *nofsecs)
 
 /*
 $Log$
+Revision 3.23  2011/02/19 15:28:07  mast
+Added variance and standev options
+
 Revision 3.22  2009/11/21 22:10:04  mast
 Added -1 option for numbering Z from 1.
 
