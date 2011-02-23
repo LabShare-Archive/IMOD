@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/22/11: Fixed a problem reconnecting to processchunks in the PEET interface.
+
 2/21/11: Changed Imodmop to use an exact evaluation of pixels inside contours,
 and added options to make a mask output, to pad inside or outside contours or
 other features, to taper values to the background over the padding region, 
