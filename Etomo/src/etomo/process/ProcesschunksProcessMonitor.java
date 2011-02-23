@@ -43,7 +43,6 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   private static boolean debug = false;
   private final EtomoNumber nChunks = new EtomoNumber();
   private final EtomoNumber chunksFinished = new EtomoNumber();
-  private final ParallelProgressDisplay parallelProgressDisplay;
   private final String rootName;
   private final ProcessMessages messages = ProcessMessages
       .getInstanceForParallelProcessing();
@@ -74,13 +73,12 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   final AxisID axisID;
   final Map computerMap;
   private int tcshErrorCountDown = NO_TCSH_ERROR;
+  private ParallelProgressDisplay parallelProgressDisplay = null;
 
   ProcesschunksProcessMonitor(BaseManager manager, AxisID axisID, String rootName,
       Map computerMap) {
     this.manager = manager;
     this.axisID = axisID;
-    this.parallelProgressDisplay = manager.getProcessingMethodMediator(axisID)
-        .getParallelProgressDisplay();
     this.rootName = rootName;
     this.computerMap = computerMap;
     mediator = manager.getProcessingMethodMediator(axisID);
@@ -126,6 +124,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
           "Processchunks Error", axisID);
     }
+    if (parallelProgressDisplay == null) {
+      loadParallelProgressDisplay();
+    }
     if (reconnect && parallelProgressDisplay != null) {
       parallelProgressDisplay.setComputerMap(computerMap);
     }
@@ -167,6 +168,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
+    }
+    if (parallelProgressDisplay == null) {
+      loadParallelProgressDisplay();
     }
     if (parallelProgressDisplay != null) {
       parallelProgressDisplay.msgEndingProcess();
@@ -226,6 +230,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   public final void kill(SystemProcessInterface process, AxisID axisID) {
     try {
       writeCommand("Q");
+      if (parallelProgressDisplay == null) {
+        loadParallelProgressDisplay();
+      }
       if (parallelProgressDisplay != null) {
         parallelProgressDisplay.msgKillingProcess();
       }
@@ -258,6 +265,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   public final void pause(SystemProcessInterface process, AxisID axisID) {
     try {
       writeCommand("P");
+      if (parallelProgressDisplay == null) {
+        loadParallelProgressDisplay();
+      }
       if (parallelProgressDisplay != null) {
         parallelProgressDisplay.msgPausingProcess();
       }
@@ -329,6 +339,11 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       processOutput.closeReader(processOutputReaderId);
       processOutput = null;
     }
+  }
+
+  void loadParallelProgressDisplay() {
+    parallelProgressDisplay = manager.getProcessingMethodMediator(axisID)
+        .getParallelProgressDisplay();
   }
 
   boolean updateState() throws LogFile.LockException, FileNotFoundException, IOException {
@@ -414,6 +429,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       else {
         String[] strings = line.split("\\s+");
         //set nChunks and chunksFinished
+        if (parallelProgressDisplay == null) {
+          loadParallelProgressDisplay();
+        }
         if (strings.length > 2 && line.endsWith("DONE SO FAR")) {
           starting = false;
           if (!nChunks.equals(strings[2])) {
@@ -616,6 +634,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.55  2011/02/22 04:07:41  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.54  2011/02/03 06:02:00  sueh
  * <p> bug# 1422 Registering class with process method mediator.
  * <p>
