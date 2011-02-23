@@ -33,20 +33,20 @@
 /*
  * Common routine for the rescaling options including resize (no scale)
  */
-int clip_scaling(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt,
-                 int process)
+int clip_scaling(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
 {
-  int k, z;
+  int i,j,k, l, z;
+  Ival val;
   Islice *slice;
-  Istack *v;
   double min, alpha;
+  int truncLo = 0, truncHi = 0;
 
   z = set_options(opt, hin, hout);
   if (z < 0)
     return(z);
 
   /* give message, add title */
-  switch (process) {
+  switch (opt->process) {
   case IP_BRIGHTNESS:
     show_status("Brightness...\n");
     mrc_head_label(hout, "clip: brightness");
@@ -65,6 +65,17 @@ int clip_scaling(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt,
   case IP_RESIZE:
     mrc_head_label(hout, "clip: resized image");
     break;
+  case IP_TRUNCATE:
+    if (opt->low != IP_DEFAULT)
+      truncLo = 1;
+    if (opt->high != IP_DEFAULT)
+      truncHi = 1;
+    if (!truncLo && !truncHi) {
+      fprintf(stderr, "clip truncate: You must enter a low or a high limit\n");
+      return -1;
+    }
+    mrc_head_label(hout, "clip: truncated");
+    break;
   default:
     return(-1);
   }
@@ -82,17 +93,31 @@ int clip_scaling(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt,
     }
 
     /* 2D: Scale based on min/max/mean of individual slice */
-    if (opt->dim == 2 && process != IP_RESIZE) {
+    if (opt->dim == 2 && opt->process != IP_RESIZE) {
       sliceMMM(slice);
-      if (process == IP_BRIGHTNESS)
+      if (opt->process == IP_BRIGHTNESS)
         min = (double)slice->min;
-      else if (process == IP_SHADOW)
+      else if (opt->process == IP_SHADOW)
         min = (double)slice->max;
       else
         min = (double)slice->mean;
     }
       
-    if (process != IP_RESIZE)
+    if (opt->process == IP_TRUNCATE) {
+      for (j = 0; j < opt->iy; j++) {
+        for (i = 0; i < opt->ix; i++) {
+          sliceGetVal(slice, i, j, val);
+          for (l = 0; l < slice->csize; l++) {
+            if (truncLo)
+              val[l] = B3DMAX(opt->low, val[l]);
+            if (truncHi)
+              val[l] = B3DMIN(opt->high, val[l]);
+          }
+          slicePutVal(slice, i, j, val);
+        }
+      }
+
+    } else if (opt->process != IP_RESIZE)
       mrc_slice_lie(slice, min, alpha);
     if (clipWriteSlice(slice, hout, opt, k, &z, 1))
       return -1;
@@ -104,17 +129,16 @@ int clip_scaling(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt,
 /*
  * Common routine for the edge filters that are not simple convolutions
  */
-int clipEdge(MrcHeader *hin, MrcHeader *hout,
-             ClipOptions *opt, int process)
+int clipEdge(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
 {
   Islice *s;
-  int i, k, z;
+  int k, z;
   Islice *slice;
   char *message;
   double scale, fixval;
 
   if (opt->mode == IP_DEFAULT)
-    opt->mode = (process == IP_GRADIENT) ? hin->mode : MRC_MODE_BYTE;
+    opt->mode = (opt->process == IP_GRADIENT) ? hin->mode : MRC_MODE_BYTE;
 
   if (hin->mode != MRC_MODE_BYTE && hin->mode != MRC_MODE_SHORT && 
       hin->mode != MRC_MODE_USHORT && hin->mode != MRC_MODE_FLOAT) {
@@ -127,7 +151,7 @@ int clipEdge(MrcHeader *hin, MrcHeader *hout,
     return(z);
 
   /* give message, add title */
-  switch (process) {
+  switch (opt->process) {
   case IP_GRADIENT:
     message = "Taking gradient of";
     mrc_head_label(hout, "clip: gradient");
@@ -157,7 +181,7 @@ int clipEdge(MrcHeader *hin, MrcHeader *hout,
       return(-1);
     }
 
-    if (process == IP_GRADIENT) {
+    if (opt->process == IP_GRADIENT) {
 
       /* Do gradient */
       slice = sliceGradient(s);
@@ -180,9 +204,9 @@ int clipEdge(MrcHeader *hin, MrcHeader *hout,
 
       /* Do selected filter after getting min/max quickly */
       sliceMinMax(slice);
-      if (process == IP_GRAHAM)
+      if (opt->process == IP_GRAHAM)
         sliceByteGraham(slice);
-      else if (process == IP_SOBEL)
+      else if (opt->process == IP_SOBEL)
         sliceByteEdgeSobel(slice);
       else
         sliceByteEdgePrewitt(slice);
@@ -197,13 +221,11 @@ int clipEdge(MrcHeader *hin, MrcHeader *hout,
 /*
  * Common routine for kernel convolution filtering
  */
-int clip_convolve(MrcHeader *hin, 
-                 MrcHeader *hout,
-                 ClipOptions *opt, int process)
+int clip_convolve(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
 {
   Islice *s;
   float *blur;
-  int i, k, z, iter, dim = 3, niter = 1;
+  int k, z, iter, dim = 3, niter = 1;
   char title[60];
   float smoothKernel[] = {
     0.0625f, 0.125f, 0.0625f,
@@ -222,14 +244,14 @@ int clip_convolve(MrcHeader *hin,
   char *message;
 
   if (opt->mode == IP_DEFAULT)
-    opt->mode = (process == IP_SMOOTH) ? hin->mode : MRC_MODE_FLOAT;
+    opt->mode = (opt->process == IP_SMOOTH) ? hin->mode : MRC_MODE_FLOAT;
 
   z = set_options(opt, hin, hout);
   if (z < 0)
     return(z);
 
   /* give message, add title */
-  switch (process) {
+  switch (opt->process) {
   case IP_SMOOTH:
     if (opt->val > 1.)
       niter = B3DNINT(opt->val);
@@ -271,7 +293,7 @@ int clip_convolve(MrcHeader *hin,
 
     for (iter = 0; iter < niter; iter++) {
       s->mean = hin->amean;
-      if (process == IP_SMOOTH)
+      if (opt->process == IP_SMOOTH)
         sliceMMM(s);
       slice = slice_mat_filter(s, blur, dim);
       if (!slice) {
@@ -300,7 +322,7 @@ int clipMedian(MrcHeader *hin, MrcHeader *hout,
   Islice *slice;
   Istack v;
   char title[40];
-  int numInVol, firstInVol, lastInVol, firstNeed, lastNeed, depth, size;
+  int firstInVol, lastInVol, firstNeed, lastNeed, depth, size;
 
   if (hin->mode != MRC_MODE_BYTE && hin->mode != MRC_MODE_SHORT && 
       hin->mode != MRC_MODE_USHORT && hin->mode != MRC_MODE_FLOAT) {
@@ -391,7 +413,7 @@ int clipMedian(MrcHeader *hin, MrcHeader *hout,
  */
 int clipDiffusion(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
 {
-  int i, k, z;
+  int k, z;
   Islice *slice;
   double kk, lambda;
   int iterations, CC;
@@ -447,7 +469,7 @@ int clipDiffusion(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
 /*
  * All flipping operations
  */
-int grap_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
+int clip_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
 {
   int i,j,k, rotx, numDone, numTodo, maxSlices, yst, ynd, ydir, csize, dsize;
   int err;
@@ -684,7 +706,7 @@ int grap_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
 /*
  * 3-D color - conversion to shades of one color
  */
-int grap_color(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
+int clip_color(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
 {
   int xysize, k, i;
   unsigned char **idata;
@@ -749,9 +771,7 @@ int clip2d_color(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
 {
   Islice *slice;
   int k, z, i, j;
-  unsigned char bdata;
-  float pixel, pixin;
-  int xysize;
+  float pixin;
   Islice *s;
   Ival val;
 
@@ -998,71 +1018,83 @@ int clip_splitrgb(MrcHeader *h1, ClipOptions *opt)
 }
 
 /*
- * 3D averaging of multiple files
+ * 3D additive operations on multiple files
  */
-int grap_average(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
-                 ClipOptions *opt)
+int clip_average(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout, ClipOptions *opt)
 {
   Islice *s, *so, *sso;
   MrcHeader **hdr;
-  int i, j, k, l, f, variance = 0;
-  double valscale;
+  char *message;
+  int i, j, k, z, l, f, variance = 0;
+  double valscale = 1., varscale = 1.;
+  float factor = 1.;
   Ival val, oval;
 
-  if (!strncmp(opt->command, "variance", 3))
-    variance = 1;
-  if (!strncmp(opt->command, "standev", 4))
-    variance = 2;
-
-  if (variance && h1->mode == MRC_MODE_RGB) {
-    fprintf(stderr, "clip variance: You must use \"standev\" on RGB files\n");
-    return -1;
-  }
-  if (variance && opt->dim == 2) {
-    fprintf(stderr, "clip variance: Can only be run in 3D mode\n");
-    return -1;
-  }
-  
-  if (opt->dim == 2)
+  if (opt->infiles == 1 && (opt->process == IP_AVERAGE || opt->process == IP_VARIANCE || 
+                            opt->process == IP_STANDEV))
     return(clip2d_average(h1,hout,opt));
 
-  if (opt->infiles < 2){
-    fprintf(stderr, "clip average/variance: Need at least two input files.\n");
-    return(-1);
-  }
-
-  if (   (h1->nx != h2->nx)
-         || (h1->ny != h2->ny)
-         || (h1->nz != h2->nz)){
-    fprintf(stderr, "clip average/variance: All x,y,z sizes must equal\n");
-    return(-1);
-  }
-
-  mrc_head_new(hout, h1->nx, h1->ny, h1->nz, 2);
-
-  if (variance) 
-    mrc_head_label(hout, variance > 1 ? "3D Standard deviation" : "#D variance");
-  else
-    mrc_head_label(hout, "3D Averaged");
-  if (mrc_head_write(hout->fp, hout))
+  if (opt->add2file != IP_APPEND_FALSE) {
+    fprintf(stderr, "clip volume combining: you cannot add to an existing output file");
     return -1;
+  }
 
-  s = sliceCreate(h1->nx, h1->ny, h1->mode);
-  if (h1->mode == MRC_MODE_COMPLEX_FLOAT){
-    so = sliceCreate(h1->nx, h1->ny, SLICE_MODE_COMPLEX_FLOAT);
-    hout->mode = MRC_MODE_COMPLEX_FLOAT;
-    if (variance)
-      sso = sliceCreate(h1->nx, h1->ny, SLICE_MODE_COMPLEX_FLOAT);
-  }else if (h1->mode == MRC_MODE_RGB){
-    so = sliceCreate(h1->nx, h1->ny, SLICE_MODE_RGB);
-    hout->mode = MRC_MODE_RGB;
-  }else{
-    so = sliceCreate(h1->nx, h1->ny, SLICE_MODE_FLOAT);
-    if (variance)
-      sso = sliceCreate(h1->nx, h1->ny, SLICE_MODE_FLOAT);
+  if (opt->process == IP_SUBTRACT && opt->infiles != 2 || opt->infiles < 2) {
+    fprintf(stderr, "clip %s two input files.\n", opt->process == IP_SUBTRACT ?
+            "subtract: needs exactly" : "add: needs at least");
+    return(-1);
+  }
+  z = set_options(opt, h1, hout);
+  if (z < 0)
+    return(z);
+
+  if (opt->low != IP_DEFAULT) {
+    valscale = opt->low;
+    varscale = opt->low * opt->low;
+  }
+  
+  switch (opt->process) {
+  case IP_AVERAGE:
+    valscale /= opt->infiles;
+    message = "Averaging";
+    mrc_head_label(hout, "clip: 3D Averaged");
+    break;    
+  case IP_ADD:
+    message = "Adding";
+    mrc_head_label(hout, "clip: Summed");
+    break;
+  case IP_VARIANCE:
+    variance = 1;
+    valscale /= opt->infiles;
+    message = "Averaging";
+    mrc_head_label(hout, "clip: 3D Variance");
+    break;
+  case IP_STANDEV:
+    variance = 2;
+    valscale /= opt->infiles;
+    message = "Averaging";
+    mrc_head_label(hout, "clip: 3D Standard Deviation");
+    break;
+  case IP_SUBTRACT:
+    message = "Subtracting";
+    valscale = 1.;
+    mrc_head_label(hout, "clip: Subtract");
+    break;
+  default:
+    return -1;
+  }
+
+  if (variance) {
+    if (h1->mode == MRC_MODE_COMPLEX_FLOAT) {
+      sso = sliceCreate(opt->ix, opt->iy, SLICE_MODE_COMPLEX_FLOAT);
+    } else if (h1->mode == MRC_MODE_RGB){
+      sso = sliceCreate(opt->ix, opt->iy, SLICE_MODE_MAX);
+    } else {
+      sso = sliceCreate(opt->ix, opt->iy, SLICE_MODE_FLOAT);
+    }
   }
   hdr = (MrcHeader **)malloc(opt->infiles * sizeof(MrcHeader *));
-  if (!hdr || !s || !so || (variance && !sso))
+  if (!hdr || (variance && !sso))
     return(-1);
      
   for (f = 0; f < opt->infiles; f++){
@@ -1071,28 +1103,40 @@ int grap_average(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
       return(-1);
     hdr[f]->fp = fopen(opt->fnames[f], "rb");
     if (!hdr[f]->fp){
-      fprintf(stderr, "clip average: error opening %s.\n", opt->fnames[f]);
+      fprintf(stderr, "clip volume combining: error opening %s.\n", opt->fnames[f]);
       return(-1);
     }
     if (mrc_head_read(hdr[f]->fp, hdr[f])){
-      fprintf(stderr, "clip average: error reading %s.\n", opt->fnames[f]);
+      fprintf(stderr, "clip volume combining: error reading header of %s.\n", 
+              opt->fnames[f]);
       return(-1);
     }
     if ( (h1->nx != hdr[f]->nx) || (h1->ny != hdr[f]->ny) ||
-         (h1->nz != hdr[f]->nz) || (h1->mode != hdr[f]->mode) ){
-      fprintf(stderr, "clip average: all files must be same size and mode.");
+         (h1->nz != hdr[f]->nz) || (h1->mode != hdr[f]->mode )) {
+      fprintf(stderr, "clip volume combining: all files must be the same size and mode.");
       return(-1);
     }
   }
 
-  for(k = 0; k < h1->nz; k++){
-    printf("\r3D - Averaging section %d of %d", k + 1, h1->nz);
+  for (k = 0; k < opt->nofsecs; k++) {
+    printf("\rclip: %s slice %d of %d\n", message, k + 1, opt->nofsecs);
     fflush(stdout);
 
+    if (h1->mode == MRC_MODE_COMPLEX_FLOAT){
+      so = sliceCreate(opt->ix, opt->iy, SLICE_MODE_COMPLEX_FLOAT);
+    } else if (h1->mode == MRC_MODE_RGB){
+      so = sliceCreate(opt->ix, opt->iy, SLICE_MODE_MAX);
+    } else {
+      so = sliceCreate(opt->ix, opt->iy, SLICE_MODE_FLOAT);
+    }
+    if (!so)
+      return -1;
+
     /* Zero the slice(s) */
+    factor = 1.;
     val[0] = val[1] = val[2] = 0.;
-    for (j = 0; j < h1->ny; j++)
-      for(i = 0; i < h1->nx; i ++){
+    for (j = 0; j < opt->iy; j++)
+      for(i = 0; i < opt->ix; i ++){
         slicePutVal(so, i, j, val);
         if (variance)
           slicePutVal(sso, i, j, val);
@@ -1100,36 +1144,41 @@ int grap_average(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
 
     /* Accumulate sums and sum of squares */
     for (f = 0; f < opt->infiles; f++){
-      if (mrc_read_slice((void *)s->data.b, hdr[f]->fp, hdr[f], k, 'z'))
+      s = sliceReadSubm( hdr[f], opt->secs[k], 'z', opt->ix, opt->iy,
+                        (int)opt->cx, (int)opt->cy);
+      if (!s)
         return -1;
-      for (j = 0; j < h1->ny; j++)
-        for(i = 0; i < h1->nx; i ++){
+      for (j = 0; j < opt->iy; j++)
+        for(i = 0; i < opt->ix; i ++){
           sliceGetVal(s, i, j,   val);
           sliceGetVal(so, i, j, oval);
-          oval[0] += val[0];
-          oval[1] += val[1];
-          oval[2] += val[2];
+          oval[0] += factor * val[0];
+          oval[1] += factor * val[1];
+          oval[2] += factor * val[2];
           slicePutVal(so, i, j, oval);
           if (variance) {
             sliceGetVal(sso, i, j, oval);
             oval[0] += val[0] * val[0];
             oval[1] += val[1] * val[1];
-            oval[2] += val[2] * val[2];
+            oval[1] += val[2] * val[2];
             slicePutVal(sso, i, j, oval);
           }
         }
+      sliceFree(s);
+      if (opt->process == IP_SUBTRACT)
+        factor = -1.;
     }
 
     /* Compute mean and variance or SD */
-    valscale = 1.0 / (double)opt->infiles;
-    mrc_slice_valscale(so, valscale);
+    if (valscale != 1.)
+      mrc_slice_valscale(so, valscale);
     if (variance) {
-      for (j = 0; j < h1->ny; j++)
-        for(i = 0; i < h1->nx; i ++){
+      for (j = 0; j < opt->iy; j++)
+        for(i = 0; i < opt->ix; i ++){
           sliceGetVal(sso, i, j,   val);
           sliceGetVal(so, i, j, oval);
           for (l = 0; l < 3; l++) {
-            oval[l] = (val[l] - f * oval[l] * oval[l]) / (f - 1.);
+            oval[l] = (val[l] * varscale - f * oval[l] * oval[l]) / (f - 1.);
             oval[l] = B3DMAX(0., oval[l]);
             if (variance > 1)
               oval[l] = (float)sqrt(oval[l]);
@@ -1138,30 +1187,19 @@ int grap_average(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
         }
     }
 
-    if (mrc_write_slice((void *)so->data.b, hout->fp, hout, k, 'z'))
+    if (clipWriteSlice(so, hout, opt, k, &z, 1))
       return -1;
-    sliceMMM(so);
-    if (!k){
-      hout->amin = so->min;
-      hout->amax = so->max;
-      hout->amean = so->mean;
-      if (mrc_head_write(hout->fp, hout))
-        return -1;
-    }else{
-      if (so->min < hout->amin)
-        hout->amin = so->min;
-      if (so->max > hout->amax)
-        hout->amax = so->max;
-      hout->amean += so->mean;
-    }
   }
-  puts("");
+  printf("\n");
   hout->amean /= k;
   if (mrc_head_write(hout->fp, hout))
     return -1;
-  sliceFree(s);
-  sliceFree(so);
-  return(0);
+  if (variance)
+    sliceFree(sso);
+  for (f = 0; f < opt->infiles; f++)
+    free(hdr[f]);
+  free(hdr);
+  return set_mrc_coords(opt);
 }
 
 /*
@@ -1170,11 +1208,11 @@ int grap_average(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
 int clip2d_average(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
 {
   Islice *slice;
-  Islice *avgs, *cnts;
+  Islice *avgs, *cnts, *ssq;
   Ival val, aval;
-  int k, z, i, j;
+  int k, z, i, j, l, variance = 0;
   int thresh = FALSE;
-  float dval,scale;
+  float dval,scale,dscale;
      
   if (opt->ox != IP_DEFAULT || opt->oy != IP_DEFAULT || 
       opt->oz != IP_DEFAULT)
@@ -1188,15 +1226,31 @@ int clip2d_average(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     return(z);
 
   mrc_head_label_cp(hin, hout);
-  mrc_head_label(hout, "CLIP: 2D Average");
-
+  switch (opt->process) {
+  case IP_AVERAGE:
+    mrc_head_label(hout, "clip: 2D Average");
+    break;    
+    break;
+  case IP_VARIANCE:
+    variance = 1;
+    mrc_head_label(hout, "clip: 2D Variance");
+    break;
+  case IP_STANDEV:
+    variance = 2;
+    mrc_head_label(hout, "clip: 2D Standard Deviation");
+    break;
+  default:
+    return -1;
+  }
   if (opt->val != IP_DEFAULT)
     thresh = TRUE;
 
-  show_status("2D Average...\n");
+  show_status("2D Averaging...\n");
 
   avgs = sliceCreate(opt->ix, opt->iy, SLICE_MODE_MAX);
   cnts = sliceCreate(opt->ix, opt->iy, SLICE_MODE_FLOAT);
+  if (variance)
+    ssq = sliceCreate(opt->ix, opt->iy, SLICE_MODE_MAX);
 
   /* Initialize sums */
   aval[0] = aval[1] = aval[2] = 0.0f;
@@ -1204,6 +1258,8 @@ int clip2d_average(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     for(i = 0; i < avgs->xsize; i++){
       slicePutVal(avgs, i, j, aval);
       cnts->data.f[i + (j * cnts->xsize)] = 0.0f;
+      if (variance)
+        slicePutVal(ssq, i, j, aval);
     }
 
   for (k = 0; k < opt->nofsecs; k++) {
@@ -1215,69 +1271,209 @@ int clip2d_average(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     }
 
     /* Add each pixel into average */
-    for(j = 0; j < slice->ysize; j++)
-      for(i = 0; i < slice->xsize; i++){
+    for (j = 0; j < slice->ysize; j++) {
+      for (i = 0; i < slice->xsize; i++) {
+
+        /* If thresholding, only add to sums if magnitude is greater than threshold. */
+        if (thresh) {
+          dval = sliceGetPixelMagnitude(slice, i, j);
+          if (dval <= opt->val)
+            continue;
+        }
         sliceGetVal(slice, i, j,  val);
         sliceGetVal(avgs,  i, j, aval);
         aval[0] += val[0];
         aval[1] += val[1];
         aval[2] += val[2];
-		    
-        /* If thresholding, only put sum back if magnitude is greater than
-           threshold.  In any case, add up the number of items contributing 
-           to the average */
-        if (thresh){
-          dval = sliceGetPixelMagnitude(slice, i, j);
-          if (dval > opt->val){
-            cnts->data.f[i + (j * cnts->xsize)] += 1.0f;
-            slicePutVal(avgs,  i, j, aval);
-          }
-        }else{
-          cnts->data.f[i + (j * cnts->xsize)] += 1.0f;
-          slicePutVal(avgs,  i, j, aval);
+
+        /* Add up the number of items contributing to the average */
+        cnts->data.f[i + (j * cnts->xsize)] += 1.0f;
+        slicePutVal(avgs,  i, j, aval);
+        if (variance) {
+          sliceGetVal(ssq,  i, j, aval);
+          aval[0] += val[0] * val[0];
+          aval[1] += val[1] * val[1];
+          aval[2] += val[2] * val[2];
+          slicePutVal(ssq,  i, j, aval);
         }
       }
+    }
     sliceFree(slice);
   }
 
-  /* Set scaling to keep RGB output in byte range on top end */
+  /* Set scaling based on -l input (no longer special for RGB) */
   scale = 1.0;
-  if (opt->mode == MRC_MODE_RGB){
-    sliceMMM(avgs);
-    if (avgs->max > 0)
-      scale = opt->nofsecs * 255.0f/avgs->max;
-  }
+  if (opt->low != IP_DEFAULT)
+    scale = opt->low;
 
   /* create the output slice by dividing each value by counts */
-  slice = sliceCreate(opt->ix, opt->iy, opt->mode);
-  for(j = 0; j < slice->ysize; j++)
-    for(i = 0; i < slice->xsize; i++){
+  for (j = 0; j < avgs->ysize; j++) {
+    for (i = 0; i < avgs->xsize; i++) {
       sliceGetVal(avgs, i, j, aval);
       dval = cnts->data.f[i + (j * cnts->xsize)];
       if (dval){
-        dval = scale/dval;
-        aval[0] *= dval;
-        aval[1] *= dval;
-        aval[2] *= dval;
+        dscale = scale/dval;
+        aval[0] *= dscale;
+        aval[1] *= dscale;
+        aval[2] *= dscale;
+        if (variance) {
+          if (dval > 1.5) {
+            sliceGetVal(ssq, i, j, val);
+            for (l = 0; l < 3; l++) {
+              aval[l] = (val[l] * scale * scale - dval * aval[l] * aval[l]) / (dval-1.);
+              aval[l] = B3DMAX(0., aval[l]);
+              if (variance > 1)
+                aval[l] = (float)sqrt(aval[l]);
+            }
+          } else {
+            aval[0] = aval[1] = aval[2] = 0.;
+          }
+        }
+      } else {
+        aval[0] = aval[1] = aval[2] = 0.;
       }
-      slicePutVal(slice, i, j, aval);
+      slicePutVal(avgs, i, j, aval);
     }
+  }
 
   /* Take care of min/max/mean and write the slice */
-  sliceMMM(slice);
-  hout->amin = B3DMIN(slice->min, hout->amin);
-  hout->amax = B3DMAX(slice->max, hout->amax);
+  if (avgs->mode != hout->mode && sliceNewMode(avgs, hout->mode) < 0)
+    return -1;
+  sliceMMM(avgs);
+  hout->amin = B3DMIN(avgs->min, hout->amin);
+  hout->amax = B3DMAX(avgs->max, hout->amax);
   if (opt->add2file != IP_APPEND_OVERWRITE)
-    hout->amean += slice->mean / hout->nz;
-  if (mrc_write_slice((void *)slice->data.b, hout->fp, hout, z, 'z'))
+    hout->amean += avgs->mean / hout->nz;
+  if (mrc_write_slice((void *)avgs->data.b, hout->fp, hout, z, 'z'))
     return -1;
   if (mrc_head_write(hout->fp, hout))
     return -1;
   sliceFree(avgs);
   sliceFree(cnts);
+  if (variance)
+    sliceFree(ssq);
   return(0);
 }
 
+/*
+ * 3D multiplying or dividing
+ */
+int clip_multdiv(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
+                 ClipOptions *opt)
+{
+  Islice *s, *so;
+  char *message;
+  int i, j, k, z, dsize, csize1, csize2, divByZero = 0;
+  Ival val, oval;
+  float tmp, denom;
+
+  if (opt->infiles != 2) {
+    fprintf(stderr, "clip multiply/divide: Need exactly two input files.\n");
+    return(-1);
+  }
+
+  z = set_options(opt, h1, hout);
+  if (z < 0)
+    return(z);
+
+  if (opt->add2file != IP_APPEND_FALSE) {
+    fprintf(stderr, "clip multiply/divide: you cannot add to an existing output file");
+    return -1;
+  }
+
+  mrc_getdcsize(h1->mode, &dsize, &csize1);
+  mrc_getdcsize(h2->mode, &dsize, &csize2);
+  if (!(csize2 == 1 || (h1->mode == MRC_MODE_COMPLEX_FLOAT && 
+                        h2->mode == MRC_MODE_COMPLEX_FLOAT))) {
+    fprintf(stderr, "clip multiply/divide: second file must have single-channel data "
+            "unless both are FFTs\n");
+    return(-1);
+  }
+
+  
+  if ((h1->nx != h2->nx) || (h1->ny != h2->ny) || (h1->nz != h2->nz)){
+    fprintf(stderr, "clip  multiply/divide: x,y,z sizes must be equal\n");
+    return(-1);
+  }
+
+  switch (opt->process) {
+  case IP_MULTIPLY:
+    message = "Multiplying";
+    mrc_head_label(hout, "clip: Multiply");
+    break;
+  case IP_DIVIDE:
+    message = "Dividing";
+    mrc_head_label(hout, "clip: Divide");
+    break;
+  default:
+    return -1;
+  }
+
+  for (k = 0; k < opt->nofsecs; k++) {
+    printf("\rclip: %s slice %d of %d", message, k + 1, opt->nofsecs);
+    fflush(stdout);
+    so = sliceReadSubm(h1, opt->secs[k], 'z', opt->ix, opt->iy, (int)opt->cx,
+                       (int)opt->cy);
+    s = sliceReadSubm(h2, opt->secs[k], 'z', opt->ix, opt->iy, (int)opt->cx, 
+                      (int)opt->cy);
+    if (!s || !so)
+      return -1;
+    for (j = 0; j < opt->iy; j++) {
+      for (i = 0; i < opt->ix; i ++) {
+        sliceGetVal(s, i, j,   val);
+        sliceGetVal(so, i, j, oval);
+        if (csize2 == 1) {
+
+          /* Ordinary mult or div, possible multi-channel */
+          if (opt->process == IP_MULTIPLY) {
+            oval[0] *= val[0];
+            oval[1] *= val[0];
+            oval[2] *= val[0];
+          } else {
+            if (val[0] != 0) {
+              oval[0] /= val[0];
+              oval[1] /= val[0];
+              oval[2] /= val[0];
+            } else {
+              divByZero++;
+              oval[0] = oval[1] = oval[2] = 0.;
+            }
+          }
+        } else {
+         
+          /* Complex mult/div */
+          if (opt->process == IP_MULTIPLY) {
+            tmp = oval[0] * val[0] - oval[1] * val[1];
+            oval[1] = oval[0] * val[1] + val[0] * oval[1];
+            oval[0] = tmp;
+          } else {
+            denom = val[0] * val[0] + val[1] * val[1];
+            if (denom != 0) {
+              tmp = (oval[0] * val[0] + oval[1] * val[1]) / denom;
+              oval[1] = (oval[1] * val[0] - oval[0] * val[1]) / denom;
+              oval[0] = tmp;
+            } else {
+              divByZero++;
+              oval[0] = oval[1] = oval[2] = 0.;
+            }
+          }
+        }
+        slicePutVal(so, i, j, oval);
+      }
+    }
+    
+    if (clipWriteSlice(so, hout, opt, k, &z, 1))
+      return -1;
+    sliceFree(s);
+  }
+  printf("\n");
+  if (divByZero)
+    printf("WARNING: Division by zero occurred %d times\n", divByZero);
+  hout->amean /= k;
+  if (mrc_head_write(hout->fp, hout))
+    return -1;
+  return set_mrc_coords(opt);
+}
 
 int clip_parxyz(Istack *v, 
                 int xmax, int ymax, int zmax,
@@ -1411,17 +1607,15 @@ struct zstats {
   int xmin, ymin, outlier;
 };
 
-int grap_stat(MrcHeader *hin, ClipOptions *opt)
+int clip_stat(MrcHeader *hin, ClipOptions *opt)
 {
   int i, j, k, iz, di, dj, nsum, length, kk, outlast;
   int xmax, ymax, xmin, ymin, zmin, zmax;
-  Istack *v;
   Islice *slice;
-  float min, max, m, ptnum, minsum, minsq, maxsum, maxsq;
+  float min, max, m, ptnum;
   double mean, std, sumsq, vmean, vsumsq, cx, cy, data[3][3];
   float x,y;
   float vmin, vmax, kcrit = 2.24f;
-  FILE *fout;
   char starmin, starmax;
   b3dInt16 *sdata;
   struct zstats *stats;
@@ -1719,9 +1913,13 @@ int free_vol(Islice **vol, int z)
   }
 */
 /*
+
 $Log$
+Revision 3.30  2011/02/19 18:49:17  mast
+Adjust stat coordinates for a subarea offset
+
 Revision 3.29  2011/02/19 15:32:39  mast
-Added variance.standev maps
+Added variance/standev maps
 
 Revision 3.28  2009/11/21 22:10:20  mast
 Added outlier report for stats
