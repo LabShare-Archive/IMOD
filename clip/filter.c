@@ -6,19 +6,9 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
  */
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-Revision 3.4  2005/01/17 17:08:24  mast
-Put in proper option checks and convrted to new 2D processing scheme
-
-
-*/
 
 #include "mrcc.h"
 #include "clip.h"
@@ -68,6 +58,8 @@ int clip_bandpass_filter(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
 
   if (opt->low == IP_DEFAULT)
     opt->low = 1.;
+  if (opt->high == IP_DEFAULT)
+    opt->high = 0.;
 
   mrc_head_label(hout, "clip: fourier filter");
   show_status("Doing bandpass filter...\n");
@@ -90,3 +82,14 @@ int clip_bandpass_filter(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
   }
   return set_mrc_coords(opt);  
 }
+
+/*
+
+$Log$
+Revision 3.5  2005/01/28 05:42:43  mast
+Set default value for low here
+
+Revision 3.4  2005/01/17 17:08:24  mast
+Put in proper option checks and convrted to new 2D processing scheme
+
+*/
