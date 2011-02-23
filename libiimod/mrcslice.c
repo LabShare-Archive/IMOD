@@ -34,7 +34,7 @@ int sliceNewMode(Islice *s, int mode)
 {
   Islice *ns;
   Ival val;
-  int i, j;
+  int i, j, k;
   int default_copy = 0;
   int limit_val = 0;
   float minval, maxval;
@@ -141,8 +141,7 @@ int sliceNewMode(Islice *s, int mode)
       for(j = 0; j < s->ysize; j++)
         for(i = 0; i < s->xsize; i++){
           sliceGetVal(s,  i, j, val);
-          val[0] = (val[0] * 0.3f) +
-            (val[1] * 0.59f) + (val[2] * 0.11f);
+          val[0] = (val[0] * 0.3f) + (val[1] * 0.59f) + (val[2] * 0.11f);
           if (limit_val)
             val[0] = B3DMIN(maxval, B3DMAX(minval, val[0]));
           slicePutVal(ns, i, j, val);
@@ -154,8 +153,7 @@ int sliceNewMode(Islice *s, int mode)
       for(j = 0; j < s->ysize; j++)
         for(i = 0; i < s->xsize; i++){
           sliceGetVal(s,  i, j, val);
-          val[0] = (val[0] * 0.3f) +
-            (val[1] * 0.59f) + (val[2] * 0.11f);
+          val[0] = (val[0] * 0.3f) + (val[1] * 0.59f) + (val[2] * 0.11f);
           val[1] = 0;
           slicePutVal(ns, i, j, val);
         }
@@ -173,14 +171,28 @@ int sliceNewMode(Islice *s, int mode)
 
   }
 
-  if (default_copy){
-    for(j = 0; j < s->ysize; j++)
-      for(i = 0; i < s->xsize; i++){
-        sliceGetVal(s,  i, j, val);
-        if (limit_val)
+  if (default_copy) {
+    for (j = 0; j < s->ysize; j++) {
+      if (limit_val && s->csize > 1) {
+        for (i = 0; i < s->xsize; i++){
+          sliceGetVal(s,  i, j, val);
+          for (k = 0; k < s->csize; k++)
+            val[k] = B3DMIN(maxval, B3DMAX(minval, val[k]));
+          slicePutVal(ns, i, j, val);
+        }
+      } else if (limit_val) {
+        for (i = 0; i < s->xsize; i++){
+          sliceGetVal(s,  i, j, val);
           val[0] = B3DMIN(maxval, B3DMAX(minval, val[0]));
-        slicePutVal(ns, i, j, val);
+          slicePutVal(ns, i, j, val);
+        }
+      } else {
+        for (i = 0; i < s->xsize; i++) {
+          sliceGetVal(s,  i, j, val);
+          slicePutVal(ns, i, j, val);
+        }
       }
+    }
   }
      
   free(s->data.b);
@@ -1493,6 +1505,9 @@ int mrc_vol_wrap(struct MRCvolume *v)
 
 /*
 $Log$
+Revision 3.25  2011/02/02 16:58:02  mast
+fixed sliceFloat to convert a USHORT slice
+
 Revision 3.24  2008/12/01 15:32:58  mast
 Reduced edge artifacts in convolution filtering and in sliceGradient
 
