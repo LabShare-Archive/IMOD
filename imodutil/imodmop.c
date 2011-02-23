@@ -177,6 +177,8 @@ int main( int argc, char *argv[])
   ifThresh = 1 - PipGetFloat("Threshold", &thresh);
   Masking = 1 - PipGetFloat("MaskValue", &mask);
   MaskVal[0] = MaskVal[1] = MaskVal[2] = mask;
+  if (hdata.mode == MRC_MODE_COMPLEX_FLOAT || hdata.mode == MRC_MODE_COMPLEX_SHORT)
+    MaskVal[1] = MaskVal[2] = 0.;
   PipGetFloat("PaddingSize", &Padding);
   PipGetInteger("TaperOverPad", &Taper);
   if (Taper > 1)
@@ -1208,6 +1210,11 @@ static int itemOnList(int item, int *list, int num)
 /*
 
 $Log$
+Revision 3.14  2011/02/21 18:17:37  mast
+Added exact evaluation inside contours, options for mask output, padding,
+tapering over pad region, using contours or points on all sections, and
+changing the output mode.
+
 Revision 3.13  2009/02/27 17:13:35  mast
 Fixed 3D scattered point function, broken by adding planar tubes
 
