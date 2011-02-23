@@ -14,11 +14,11 @@
 /* processes */
 enum {IP_NONE = 0, IP_ADD, IP_AVERAGE, IP_VARIANCE, IP_STANDEV, IP_BRIGHTNESS, IP_COLOR, 
       IP_CONTRAST, IP_CORRELATE, IP_DIFFUSION, IP_FFT, IP_FILTER, IP_FLIP,
-      IP_GRADIENT, 
+      IP_GRADIENT, IP_SUBTRACT, IP_MULTIPLY, IP_DIVIDE,
       IP_GRAHAM, IP_INFO, IP_JOINRGB, IP_LAPLACIAN, IP_MEDIAN, IP_PEAK,
       IP_PREWITT,
       IP_PROJECT, IP_RESIZE, IP_ROTATE, IP_SHADOW, IP_SHARPEN, IP_SMOOTH,
-      IP_SOBEL, IP_SPLITRGB, IP_STAT, IP_TRANSLATE, IP_ZOOM};
+      IP_SOBEL, IP_SPLITRGB, IP_STAT, IP_TRANSLATE, IP_ZOOM, IP_TRUNCATE};
 
 
 #define IP_DEFAULT -99999
@@ -34,8 +34,9 @@ typedef struct Grap_options
   MrcHeader *hin;
   MrcHeader *hin2;
   MrcHeader *hout;
-  float x,  y,  z;
-  float x2, y2, z2;
+  int process;    /* The process */
+  int x,  y,  z;
+  int x2, y2, z2;
   int   ix, iy, iz, iz2;
   int   ox, oy, oz;
   float cx, cy, cz;
@@ -73,14 +74,13 @@ void default_options(ClipOptions *opt);
 int *clipMakeSecList(char *clst, int *nofsecs);
 
 /* clip_proc.c */
-int clip_scaling(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt,
-                 int process);
-int clipEdge(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt, int process);
-int grap_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt);
-int grap_color(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt);
+int clip_scaling(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt);
+int clipEdge(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt);
+int clip_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt);
+int clip_color(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt);
 int clip2d_color(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt);
-int grap_average(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
-                 ClipOptions *opt);
+int clip_average(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout, ClipOptions *opt);
+int clip_multdiv(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout, ClipOptions *opt);
 int clip_joinrgb(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
                  ClipOptions *opt);
 int clip_splitrgb(MrcHeader *h1, ClipOptions *opt);
@@ -92,9 +92,8 @@ int clip_stat3d(Istack *v);
 int clip_get_stat3d(Istack *v,
 		    float *rmin, float *rmax, float *rmean,
 		    int *rx, int *ry, int *rz);
-int grap_stat(MrcHeader *hin, ClipOptions *opt);
-int clip_convolve(MrcHeader *hin, MrcHeader *hout,
-		 ClipOptions *opt, int process);
+int clip_stat(MrcHeader *hin, ClipOptions *opt);
+int clip_convolve(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt);
 int clipMedian(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt);
 int clipDiffusion(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt);
 int write_vol(Islice **vol, MrcHeader *hout);
