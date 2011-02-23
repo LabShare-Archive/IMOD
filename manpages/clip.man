@@ -10,6 +10,9 @@ The processes that clip can do are listed below. One and only one
 process must be selected on the command line.  Only the first three or
 four letters of the process name have to be entered.
 .TP
+.I add
+Add several images together.
+.TP
 .I average (avg) 
 Average several images together.
 .PD 0
@@ -28,6 +31,9 @@ Do a auto/cross correlation.
 .TP
 .I diffusion
 Do 2d anisotropic diffusion.
+.TP
+.I divide
+Divide one image volume by another.
 .TP
 .I gradient
 Calculate a gradient as in 3dmod image processing.
@@ -55,6 +61,9 @@ Apply Laplacian filter as in 3dmod image processing.
 .TP
 .I median
 Apply median filter.
+.TP
+.I multiply
+Multiply one image volume by another.
 .TP
 .I prewitt
 Apply Prewitt filter as in 3dmod image processing.
@@ -84,10 +93,16 @@ Split an RGB file into 3 byte files.
 Print min, max, mean, standard deviation, and location of min and max.
 .TP
 .I standev
-Compute the standard deviation of a set of volumes.
+Compute the standard deviation of a set of images.
+.TP
+.I subtract
+Subtract one image volume from another.
+.TP
+.I truncate
+Limit pixel values at low or high end, or both.
 .TP
 .I variance
-Compute the variance of a set of volumes.
+Compute the variance of a set of images.
 .PD
 .SH Options
 These options are available to most processes.
@@ -164,6 +179,28 @@ option is included.  In the latter case, the
 is interpreted as a comma-separated list of ranges. Commas indicate individual
 section numbers and dashes (or minus symbol) indicate a range of sections.
 .TP
+.B -x <value,value>
+.PD 0
+.TP
+.B -y <value,value>
+.PD
+These options are an alternative way of specifying the size and center of the 
+input image.  The two values are the starting and ending coordinates,
+numbered from 0 (i.e., the first pixel in an image is (0, 0)).  The
+.B -x
+option sets the X coordinates, and neither 
+.B -cx
+nor
+.B -ix
+may be entered with it.  The
+.B -y
+option sets the Y coordinates, and neither 
+.B -cy
+nor
+.B -iy
+may be entered with it.  These coordinates are not constrained to lie within
+the volume; regions outside the volume will be filled with the padding value.
+.TP
 .B -ox <value>
 .PD 0
 .TP
@@ -176,7 +213,7 @@ options
 .B -a 
 and 
 .B -ov 
-overide these setting.
+override these setting.
 The 
 .B -ox 
 option sets the x output size,
@@ -211,8 +248,9 @@ Output modes: 'byte', 'short', 'float', 'complex', 'ushort', 'rgb', or 0-4,
 float, 6 = unsigned short, 16 = rgb.
 .TP
 .B -h <level>
-Level for high pass filter. Range is (0.0 - 0.71 / pixel).
-The default value is 0.
+Has two uses: 1) Level for high pass filter. Range is (0.0 - 0.71 / pixel).
+The default value is 0. 2) High level for image truncation; the default is no
+truncation.
 .TP
 .B -k <value>
 K threshold value for anisotropic diffusion; the default is 2.0.
@@ -223,7 +261,10 @@ The default value is 1.0.  2) Sigma of Gaussian kernel for smoothing; the
 default is to use the standard kernel shown below.
 3) With diffusion, this specifies the lambda value or 
 step size; the default is 0.2. 4) With statistics, sets the number of slices
-over which to determine outliers in the min and max values.
+over which to determine outliers in the min and max values. 5) When using
+"add" or taking an average, standard deviation, or variance, sets a factor for
+scaling the output values. 5) With image truncation, sets the low level for
+truncation (default is no truncation).
 .TP
 .B -cc <value>
 Specifies type of edge stopping function for diffusion: 1 for exponential
@@ -248,18 +289,26 @@ Blue value;  Range is (0.0 - 1.0) Default is 1.0.
 
 A brief description of each process is given below.
 .TP
+.B add
+Add image volumes together.  All of the input files (there must be at least
+two) are added together slice by slice.  All input images must be the same
+size.  Standard input and output options are available.  The output values can
+be scaled with
+.B -l
+and the output mode can be changed.
+.TP
 .B average 
-(avg) Average images together.
-Average 3d version:  Average will add all of the input 
-files together slice by slice and then divide the
-results by the number of input files.  All input images 
-must be the same size.
-(Standard options for input and output size not implemented.)
-Average 2d version: Averages slices from the input file together, use
-the
+(avg) Average images together.  If more than one input file is given, it adds
+all of the input files together slice by slice and then divides the sum by the
+number of input files.  All input images must be the same size.  Standard
+input and output options are available.  With one input file, it averages the
+2D slices to produce one output slice.  In this case, use the
 .B -n
-option to set a threshold such that pixels below threshold are not
-included in the average.  Standard options are available.
+option to set a threshold such that pixels below threshold are not included in
+the average.  Standard input options are available but output cannot be
+resized.  In either case, the output values can be scaled with
+.B -l
+and the output mode can be changed.
 .TP
 .B brightness 
 .PD 0
@@ -321,7 +370,7 @@ padded, FFT transformed, correlated and inverse FFT transformed.
 One or two input files can be given
 and one output file needs to be given.
 Input is automatically padded with the mean value
-unless the option
+unless the
 .B -p
 option is given to change the pad value. The 
 .B -n
@@ -440,6 +489,21 @@ median in cubes of data), but the
 option can be used to apply a 2D filter that considers only the pixels in one 
 section.  Note that an even size will offset the data by half a pixel.
 .TP
+.B multiply
+.PD 0
+.TP
+.B divide
+.PD
+Multiply or divide the first input file by the second input file.  Use
+"multiply" to apply a mask to a volume, such as one produced by Imodmop(1).
+The files must be the same size, but standard input and output options can be
+used.  The first input file may be any mode.  The second input file must have
+a single "data channel" (i.e., byte, integer, or float) unless the first input
+file is complex, in which case the second file can be either a single-channel
+or a complex file.  There is no provision for scaling the output, but the mode
+can be changed to preserve resulting values outside the range of the input
+mode.
+.TP
 .B resize 
 Cut out or pad an image to a new size without doing any other operations.
 Resize 3d cuts out an image of size ix, iy, iz, centered
@@ -451,6 +515,9 @@ size.
 The default padding is the average value of the 
 input file; the padding can be changed with the -p option.
 Resize 2d cuts out a list of slices specified by the
+.B
+-iz
+option.
 .TP
 .B rotx
 Rotate an image volume by -90 degrees about the X axis.  This rotation is
@@ -488,6 +555,32 @@ ending in .r, .g, and .b.  No options except
 .B -v
 will work with this process.
 .TP
+.B standev
+.PD 0
+.TP
+.B variance
+.PD
+Compute standard deviation or variance of a set of volumes or a set of images
+in a stack.  These operations work the same as the "average" option, so if the
+same options are given, the results should be usable together for statistical
+tests, such as with Subimstat(1).
+If more than one input file is given, it computes the statistics for each
+pixel from all of the input files and outputs a volume.  All input images must
+be the same size and mode. Standard input and output options are available in
+this case.  With one input file, it computes the
+statistics for each pixel in X/Y across the slices and produces one output slice.
+Just as with averaging, use the
+.B -n
+option to set a threshold such that pixels below threshold are not included in
+the statistic.  Standard input options are available but output cannot be
+resized in this case.  For both cases, if a scaling factor is entered with the
+.B -l
+option, then standard deviations will be scaled by this factor but variances
+will be scaled by the square of the factor.  to prevent saturation with byte
+input data, you will generally need either to scale the output appropriately
+or to change the output mode to floating point.
+
+.TP
 .B stats
 Calculate stats on a file. A table is printed with the
 minimum, maximum, mean and standard deviation.  The locations of the max and 
@@ -516,12 +609,21 @@ option; otherwise the comparison is with the values for all slices.  Each
 outlier is marked with a star, and at the end the slices with outlier values
 are listed.
 .TP
-.B standev
-.B variance
-Compute pixel-by-pixel standard deviation or variance of a set of volumes.
-This is implemented only in 3d.  All input images must be the same size and
-mode, and the standard options for input and output size are not implemented.
-
+.B subtract
+Subtract the second input file from the first one.  Both files must be the
+same size and mode, but standard input and output options are available.
+There is no provision for scaling, but the mode of the output can be 
+changed, .e.g., to preserve negative values.
+.TP
+.B truncate
+Truncate pixel values at a lower or upper limit, or both.  Enter the lower
+limit with 
+.B
+-l
+and the upper limit with
+.B
+-h.
+Standard input and output options can be used.
 .SH HISTORY
 Originally most processes loaded all data into memory unless the -2d option
 was given, and the -2d option did not provide for any output padding.
@@ -539,7 +641,8 @@ The anisotropic diffusion is based on a program by Alejandro Cantarero
 .fi
 
 .SH SEE ALSO
-3dmod(1), newstack(1), rotatevol(1), matchvol(1), fftrans(1)
+3dmod(1), newstack(1), rotatevol(1), matchvol(1), fftrans(1), subimstat(1),
+imodmop(1)
 
 .SH BUGS
 There are not checks for the validity of all input values, and some
