@@ -13,6 +13,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2006/03/23 20:25:11  mast
+c	  Fixed 0,0 being interpreted as do all sections
+c	
 c	  Revision 3.2  2005/04/14 00:35:45  mast
 c	  Rewrote to read in chunks, put big array in common, redimensioned
 c	
@@ -26,7 +29,7 @@ c
 	integer*4 nxyz(3), mxyz(3), nxyzst(3),nx,ny,nz,mode
 	equivalence (nxyz,nx)
 	common //nx,ny,nz
-	character*120 input, output
+	character*320 input, output
 	character dat*9, tim*8
 	data nxyzst / 0.,0.,0. /
         character*80 titlech
@@ -141,7 +144,7 @@ c	--- Write out the average ---
 	call exit(0)
 
 1000	format ( 1x, a6, ' file : ', $ )
-2000	format ( a50 )
+2000	format ( a )
 3000	format ( 'AVGSTACK: ', i4, ' sections averaged.', t57, a9, 2x, a8 )
 100	call errorexit('READING FILE')
 	end
