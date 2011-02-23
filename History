@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/23/11: Fixed Avgstack to take long filenames and to work with any size of 
+file.
+
 2/22/11: Fixed a problem reconnecting to processchunks in the PEET interface.
 
 2/21/11: Changed Imodmop to use an exact evaluation of pixels inside contours,
