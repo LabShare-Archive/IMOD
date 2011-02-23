@@ -308,7 +308,13 @@ option to set a threshold such that pixels below threshold are not included in
 the average.  Standard input options are available but output cannot be
 resized.  In either case, the output values can be scaled with
 .B -l
-and the output mode can be changed.
+and the output mode can be changed.  As of IMOD 4.2.15, the distinction
+between 2D and 3D averaging is controlled by the number of input files and not
+by the 
+.B -2d
+versus
+.B -3d
+options.
 .TP
 .B brightness 
 .PD 0
