@@ -126,6 +126,13 @@ void set_input_options(ClipOptions *opt, MrcHeader *hin)
       opt->oz = opt->nofsecs;
   }
 
+  /* Convert starting, ending X or Y to ix/cx entries - main routine already
+     checked for conflict */
+  if (opt->x != IP_DEFAULT) {
+    opt->x2 = B3DMAX(opt->x, opt->x2);
+    opt->cx = (opt->x + opt->x2 + 1) / 2.;
+    opt->ix = opt->x2 + 1 - opt->x;
+  }
   if (opt->ix == IP_DEFAULT)
     opt->ix = hin->nx;
   if ((int)opt->cx == IP_DEFAULT)
@@ -139,6 +146,11 @@ void set_input_options(ClipOptions *opt, MrcHeader *hin)
     }
   }
 
+  if (opt->y != IP_DEFAULT) {
+    opt->y2 = B3DMAX(opt->y, opt->y2);
+    opt->cy = (opt->y + opt->y2 + 1) / 2.;
+    opt->iy = opt->y2 + 1 - opt->y;
+  }
   if (opt->iy == IP_DEFAULT)
     opt->iy = hin->ny;
   if ((int)opt->cy == IP_DEFAULT)
@@ -645,6 +657,9 @@ int mrc_head_print(MrcHeader *data)
 
 /*
 $Log$
+Revision 3.10  2007/02/04 21:10:15  mast
+Function name changes from mrcslice cleanup
+
 Revision 3.9  2007/01/31 16:17:43  mast
 Transfer nxyzstart info in header to new file
 
