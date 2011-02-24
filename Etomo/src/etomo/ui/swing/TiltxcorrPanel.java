@@ -45,6 +45,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/22 21:40:17  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.2  2010/12/05 05:21:50  sueh
  * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.  Handling a
  * <p> possibly null btnTiltxcorr.
@@ -660,6 +663,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       MetaData metaData = applicationManager.getMetaData();
       TiltAngleSpec tiltAngleSpec = metaData.getTiltAngleSpec(axisID);
       tiltXcorrParams.setTiltAngleSpec(tiltAngleSpec);
+      tiltXcorrParams.setRotationAngle(metaData.getImageRotation(axisID));
     }
     String currentParam = "unknown";
     try {
