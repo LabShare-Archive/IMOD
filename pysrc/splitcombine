@@ -1,0 +1,185 @@
+#!/usr/bin/python -u
+# splitcombine - program to split volcombine for parallel processing
+#
+# Author: David Mastronarde
+#
+# $Id$
+# Log at end
+#
+progname = 'splitcombine'
+prefix = 'ERROR: ' + progname + ' - '
+
+def warning(text):
+   prnstr(' ', file=sys.stderr)
+   prnstr('WARNING: ' + text + '\n', file=sys.stderr)
+
+#### MAIN PROGRAM  ####
+#
+# load System Libraries
+import os, sys, os.path, signal, re, glob
+
+#
+# Setup runtime environment
+if sys.platform.find("win32") < 0:
+   try:
+      signal.signal(signal.SIGHUP, signal.SIG_IGN)
+   except:
+      pass
+if os.getenv('IMOD_DIR') != None:
+   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
+                        os.pathsep + os.environ['PATH']
+   sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import *
+from pysed import *
+
+# Fallbacks from ../manpages/autodoc2man 3 1 splitcombine
+options = ["comfile:CommandFile:FN:", "tempdir:TemporaryDirectory:FN:",
+           "local:LocalTempPath:FN:", "global:GlobalTempPath:FN:", "help:Usage:B:"]
+
+(numOpts, numNonOpts) = PipReadOrParseOptions(sys.argv, options, progname, 0, 0, 0)
+
+comfile = PipGetInOutFile('CommandFile', 0)
+if comfile == None:
+   comfile = 'volcombine.com'
+(comfile, rootname) = completeAndCheckComFile(comfile)
+
+tempdir = PipGetString('TemporaryDirectory', '')
+
+local = PipGetString('LocalTempPath', 'gibberish')
+iflocal = 1 - PipGetErrNo()
+globdir = PipGetString('GlobalTempPath', 'reallyjunk')
+if iflocal + 1 - PipGetErrNo() == 1:
+   exitError('If you enter one of -local and -global, you must enter both')
+
+# Escape both forward and backward slashes since this is going into pysedcd
+if iflocal:
+   local = local.replace('\\', '\\\\')
+   local = local.replace('/', '\\/')
+   globdir = globdir.replace('\\', '\\\\')
+   globdir = globdir.replace('/', '\\/')
+
+# Read command file
+comlines = readTextFile(comfile)
+optionLine1 = optionLine2 = optionLine3 = None
+sectStarts = []
+gotAssemble = False
+opt1Match = re.compile('set *combinefft_red.*=')
+opt2Match = re.compile('set *combinefft_low.*=')
+usingTmp = usingUsrTmp = False
+
+for ln in range(len(comlines)):
+   line = comlines[ln]
+   if not gotAssemble and line.find('COMBINING PIECE') >= 0:
+      sectStarts.append(ln)
+   if not gotAssemble and line.find('ASSEMBLING') >= 0:
+      sectStarts.append(ln)
+      gotAssemble = True
+   if not optionLine1 and re.search(opt1Match, line):
+      optionLine1 = line
+   if not optionLine2 and re.search(opt2Match, line):
+      optionLine2 = line
+   if not optionLine3 and line.find('setenv IMOD_BRIEF_HEADER') >= 0:
+      optionLine3 = line
+   if not usingUsrTmp and line.find('/usr/tmp') >= 0:
+      usingUsrTmp = True
+   if not usingTmp and line.find('/tmp') >= 0:
+      usingTmp = True
+   
+numChunks = len(sectStarts) - 1
+if numChunks < 1 or not gotAssemble:
+   exitError('The command file is missing chunks or the assemblevol section')
+
+if usingUsrTmp:
+   warning('This command file accesses /usr/tmp and will not run on multiple machines')
+elif usingTmp:
+   warning('This command file accesses /tmp and may not run on multiple machines')
+
+# Try to extract the master temporary directory from the first chunk
+inputFFTa = optionValue(comlines[sectStarts[0]:sectStarts[1]], 'AInputFFT', 0)
+inputFFTb = optionValue(comlines[sectStarts[0]:sectStarts[1]], 'BInputFFT', 0)
+outputFFT = optionValue(comlines[sectStarts[0]:sectStarts[1]], 'OutputFFT', 0)
+fftOpts = (inputFFTa, inputFFTb, outputFFT)
+sumdir = ''
+for line in fftOpts:
+   if line:
+      split = line.rsplit('/', 1)
+      if len(split) > 1:
+         sumdir = split[0]
+         break
+      split = line.rsplit('\\', 1)
+      if len(split) > 1:
+         sumdir = split[0]
+         break
+
+if sumdir and (not os.path.isdir(sumdir) or not os.access(sumdir, os.W_OK)):
+   exitError('Unable to write sum*.rec to directory ' + sumdir)
+
+tmprec = '$tmpdir\\/rec.'
+tmpmat = '$tmpdir\\/mat.'
+
+# Remove any previous files now in case the number has changed
+oldlist = glob.glob(rootname + '-[0-9][0-9][0-9]*.log')
+oldlist += glob.glob(rootname + '-[0-9][0-9][0-9]*.com')
+oldlist.append(rootname + '-start.com')
+oldlist.append(rootname + '-finish.com')
+try:
+   for f in oldlist:
+      os.remove(f)
+except:
+   pass
+
+localcom = fmtstr('/{}/s//{}/g', local, globdir)
+pysed(localcom, comlines[0:sectStarts[0]], rootname + '-start.com')
+
+for num in range(1,numChunks+1):
+   comname = fmtstr('{}-{:03d}.com', rootname, num)
+   outlines = ['$set tmpext = `hostname`.$$']
+   if tempdir:
+      outlines.append('$set tmpdir = "' + tempdir + '"')
+   else:
+      outlines.extend(['$set tmpdir = /usr/tmp',
+                       '$if ($?IMOD_DIR) then',
+                       '$if (-e "$IMOD_DIR/bin/settmpdir") source ' + \
+                       '"$IMOD_DIR/bin/settmpdir"',
+                       '$endif'])
+   if optionLine1:
+      outlines.append(optionLine1)
+   if optionLine2:
+      outlines.append(optionLine2)
+   if optionLine3:
+      outlines.append(optionLine3)
+   outlines.extend(comlines[sectStarts[num-1]:sectStarts[num]])
+
+   # doctor the filenames.  Need to replace all leading paths before rec. and
+   # mat. to get rid of temporary directory.  Match all back to space or tab
+   # But need to put escapes in front of the $tmpdir entries at start of line
+   sedcom = ['/STATUS:/d',
+             localcom,
+             '/rec\.st/s//rec.st.$tmpext/g',
+             '/mat\.st/s//mat.st.$tmpext/g',
+             '/rec\.fft/s//rec.fft.$tmpext/g',
+             '/mat\.fft/s//mat.fft.$tmpext/g',
+             '/^[^ 	]*rec\./s//\\' + tmprec + '/g',
+             '/^[^ 	]*mat\./s//\\' + tmpmat + '/g',
+             '/[ 	][^ 	]*rec\./s// ' + tmprec + '/g', 
+             '/[ 	][^ 	]*mat\./s// ' + tmpmat + '/g']
+   sedlines = pysed(sedcom, outlines, None)
+   writeTextFile(comname, sedlines)
+
+outlines = comlines[sectStarts[numChunks]:]
+outlines.append(fmtstr('$\\rm -f {0}-[0-9][0-9][0-9]*.com* {0}-[0-9][0-9][0-9]*.log*',
+                       rootname))
+pysed(localcom, outlines, rootname + '-finish.com')
+prnstr(fmtstr('{} command files created and ready to run with:\n'
+              '  processchunks machine_list {}', numChunks + 2, rootname))
+sys.exit(0)
+
+#
+# $Log$
