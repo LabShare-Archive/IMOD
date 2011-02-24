@@ -15,7 +15,7 @@ created and could be used at the command line instead of the matchorwarp
 step.
 
 .SS Options
-Processchunks uses the PIP package for input (see the manual page for pip(1)).
+Setupcombine uses the PIP package for input (see the manual page for pip(1)).
 Options can be specified either as command line arguments (with the -)
 or one per line in a command file (without the -):
 INSERT OPTION TEXT HERE
