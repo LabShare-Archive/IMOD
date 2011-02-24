@@ -28,6 +28,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.18  2011/02/22 03:34:29  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 3.17  2010/04/28 16:09:35  sueh
  * <p> bug# 1344 Added getOutputImageFileType functions.
  * <p>
@@ -840,6 +843,10 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
 
   public String getRotationAngleString() {
     return ParamUtilities.valueOf(rotationAngle);
+  }
+
+  public void setRotationAngle(final double input) {
+    rotationAngle = input;
   }
 
   public String getShiftLimitsXandY() {
