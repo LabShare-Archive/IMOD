@@ -29,6 +29,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.66  2011/02/14 18:22:51  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 3.65  2010/12/05 04:44:14  sueh
  * <p> bug# 1416 Added genCurTab.
  * <p>
@@ -411,8 +414,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private boolean useLocalAlignmentsA = true;
   private boolean useLocalAlignmentsB = true;
   private double fiducialDiameter = Double.NaN;
-  private float imageRotationA = Float.NaN;
-  private float imageRotationB = Float.NaN;
+  private double imageRotationA = Float.NaN;
+  private double imageRotationB = Float.NaN;
   private int binning = 1;
 
   private boolean fiducialessAlignmentA = false;
@@ -2123,7 +2126,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return fiducialDiameter;
   }
 
-  public float getImageRotation(AxisID axisID) {
+  public double getImageRotation(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return imageRotationB;
     }

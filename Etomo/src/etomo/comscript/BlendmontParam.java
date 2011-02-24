@@ -176,7 +176,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
    * @throws IOException
    */
   public void convertToStartingAndEndingXandY(String sizeToOutputInXandY,
-      final float imageRotation) throws FortranInputSyntaxException,
+      final double imageRotation) throws FortranInputSyntaxException,
       etomo.util.InvalidParameterException, IOException {
     //make sure an empty string really causes sizeToOutputInXandY to be empty.
     if (sizeToOutputInXandY.equals("")) {
@@ -553,6 +553,9 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.39  2011/02/21 21:11:08  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.38  2010/04/28 15:44:39  sueh
  * <p> bug# 1344 Added getOutputImageFileType functions.
  * <p>

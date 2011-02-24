@@ -68,6 +68,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2011/02/22 18:10:05  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.3  2011/02/03 06:22:16  sueh
  * <p> bug# 1422 Control of the processing method has been centralized in the
  * <p> processing method mediator class.  Implementing ProcessInterface.
@@ -446,7 +449,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     newstackOrBlendmontPanel.setFiducialessAlignment(input);
   }
 
-  void setImageRotation(float input) {
+  void setImageRotation(double input) {
     newstackOrBlendmontPanel.setImageRotation(input);
   }
 

@@ -35,6 +35,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.29  2011/02/22 03:18:13  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 3.28  2010/04/28 16:03:57  sueh
  * <p> bug# 1344 Added getOutputImageFileType functions.  Changed outputFile
  * <p> from Vector to String because current code does not work with an output
@@ -708,7 +711,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
    * dialog, can be set for newst_3dfind.com.
    */
   public void setSizeToOutputInXandY(String userSize, final int binning,
-      final float imageRotation) throws FortranInputSyntaxException,
+      final double imageRotation) throws FortranInputSyntaxException,
       etomo.util.InvalidParameterException, IOException {
     //make sure an empty string really causes sizeToOutputInXandY to be empty.
     if (userSize.equals("")) {

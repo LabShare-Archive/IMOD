@@ -33,7 +33,7 @@ public interface ConstMetaData {
 
   public ConstEtomoNumber getAdjustedFocusB();
 
-  public float getImageRotation(AxisID axisID);
+  public double getImageRotation(AxisID axisID);
 
   public String getBackupDirectory();
 
@@ -164,6 +164,9 @@ public interface ConstMetaData {
 
 /**public String getTrackMethod(AxisID axisID) 
  * <p> $Log$
+ * <p> Revision 3.60  2010/12/05 04:43:50  sueh
+ * <p> bug# 1416 Added getGenCurTab.
+ * <p>
  * <p> Revision 3.59  2010/05/27 16:49:34  sueh
  * <p> bug# 1378 Added isLambdaForSmoothingListEmpty.
  * <p>

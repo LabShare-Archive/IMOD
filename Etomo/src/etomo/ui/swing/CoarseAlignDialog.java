@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/22 18:06:17  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.2  2010/12/05 04:59:01  sueh
  * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
  * <p>
@@ -461,7 +464,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
     return cbFiducialess.isSelected();
   }
 
-  public void setImageRotation(float tiltAxisAngle) {
+  public void setImageRotation(double tiltAxisAngle) {
     ltfRotation.setText(tiltAxisAngle);
   }
 

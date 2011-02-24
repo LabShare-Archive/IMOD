@@ -33,6 +33,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/22 21:40:44  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.2  2010/12/05 05:23:50  sueh
  * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
  * <p>
@@ -506,7 +509,7 @@ final class TomogramPositioningDialog extends ProcessDialog implements ContextMe
     return cbUseGpu.isSelected();
   }
 
-  public void setImageRotation(float tiltAxisAngle) {
+  public void setImageRotation(double tiltAxisAngle) {
     ltfRotation.setText(tiltAxisAngle);
   }
 

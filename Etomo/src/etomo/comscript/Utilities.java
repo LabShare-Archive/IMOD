@@ -22,6 +22,9 @@ import etomo.util.Montagesize;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2011/02/22 03:38:32  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.3  2010/02/17 04:47:54  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -37,7 +40,7 @@ import etomo.util.Montagesize;
 final class Utilities {
   public static final String rcsid = "$Id$";
 
-  static boolean is90DegreeImageRotation(float imageRotation) {
+  static boolean is90DegreeImageRotation(double imageRotation) {
     return (imageRotation > 45 && imageRotation < 135)
         || (imageRotation < -45 && imageRotation > -135);
   }

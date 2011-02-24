@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.156  2011/02/21 21:04:21  sueh
+ * bug# 1437 Reformatting.
+ *
  * Revision 3.155  2011/02/03 06:04:20  sueh
  * bug# 1422 Sending the processing method to parallel processing
  * functions so it can be used for reconnecting.
@@ -1378,7 +1381,7 @@ public class ProcessManager extends BaseProcessManager {
    * @param axisID
    *          the AxisID to run midas on.
    */
-  public void midasRawStack(AxisID axisID, float imageRotation) {
+  public void midasRawStack(AxisID axisID, double imageRotation) {
 
     //  Construct the command line strings
     String[] commandArray = new String[3];
@@ -1394,7 +1397,7 @@ public class ProcessManager extends BaseProcessManager {
     startSystemProgramThread(command, axisID, appManager);
   }
 
-  public void midasBlendStack(AxisID axisID, float imageRotation) {
+  public void midasBlendStack(AxisID axisID, double imageRotation) {
 
     //  Construct the command line strings
     String[] commandArray = new String[3];

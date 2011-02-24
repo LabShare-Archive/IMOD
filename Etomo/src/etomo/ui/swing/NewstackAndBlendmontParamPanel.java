@@ -41,6 +41,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 18:16:19  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:35  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -207,7 +210,7 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
     updateFiducialess();
   }
 
-  void setImageRotation(float input) {
+  void setImageRotation(double input) {
     ltfRotation.setText(input);
   }
 

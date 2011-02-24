@@ -41,6 +41,9 @@ import etomo.util.Montagesize;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 19:29:29  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -543,7 +546,7 @@ public final class SetupDialogExpert {
     if (!Double.isNaN(metaData.getFiducialDiameter())) {
       dialog.setFiducialDiameter(metaData.getFiducialDiameter());
     }
-    if (!Float.isNaN(metaData.getImageRotation(AxisID.ONLY))) {
+    if (!Double.isNaN(metaData.getImageRotation(AxisID.ONLY))) {
       dialog.setImageRotation(metaData.getImageRotation(AxisID.ONLY));
     }
     dialog.setBinning(metaData.getBinning());
