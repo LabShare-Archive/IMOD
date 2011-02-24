@@ -500,6 +500,7 @@ int main( int argc, char *argv[] )
       /* DNM: 3/21/01: if it's a new output file, mark header as not
          swapped */
       hout.swapped = 0;
+      mrc_set_cmap_stamp(&hout);
       if (!hout.fp){
         fprintf(stderr, "Error opening %s\n", argv[argc - 1]);
         return(-1);
@@ -679,6 +680,9 @@ int *clipMakeSecList(char *clst, int *nofsecs)
 
 /*
 $Log$
+Revision 3.24  2011/02/23 22:19:26  mast
+Add volume combining and truncation options, deal with -x and -y properly
+
 Revision 3.23  2011/02/19 15:28:07  mast
 Added variance and standev options
 
