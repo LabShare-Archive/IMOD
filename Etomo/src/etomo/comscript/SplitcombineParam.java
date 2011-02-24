@@ -32,8 +32,10 @@ public class SplitcombineParam {
   
   private final void buildCommand() {
     ArrayList command = new ArrayList();
-    command.add("tcsh");
-    command.add("-f");
+    command.add("python");
+    command.add("-u");
+    //command.add("tcsh");
+    //command.add("-f");
     command.add(BaseManager.getIMODBinPath() + COMMAND_NAME);
     command.add("volcombine");
     int commandSize = command.size();
@@ -45,6 +47,9 @@ public class SplitcombineParam {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2005/10/28 19:34:03  sueh
+* <p> bug# 746 Removed temp directory.
+* <p>
 * <p> Revision 1.1  2005/09/16 17:48:46  sueh
 * <p> bug# 532 A param for splitcombine.
 * <p> </p>
