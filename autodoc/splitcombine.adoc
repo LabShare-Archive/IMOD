@@ -1,0 +1,49 @@
+Version = 1.0
+Pip = 1
+
+[Field = CommandFile]
+short = comfile
+type = FN
+usage = Volcombine command file (default volcombine.com)
+tooltip =
+manpage = Volcombine command file (default volcombine.com).  If this option is
+not entered and there is a non-option argument, it will be used for this
+filename.
+
+[Field = LocalTempPath]
+short = local
+type = FN
+usage = Local path to master temporary directory
+tooltip =
+manpage = The path to the master temporary directory that was placed into the
+command file by Setupcombine(1).  Only the portion of the path that differs
+from the globally accessible path needs to be supplied.
+
+[Field = GlobalTempPath]
+short = global
+type = FN
+usage = Globally accessible path to master temporary directory
+tooltip =
+manpage = The path by which all machines can access the master temporary
+directory.  Only the portion of the path that differs from the local path
+needs to be supplied
+
+[Field = TemporaryDirectory]
+short = tempdir
+type = FN
+usage = Local temporary directory (irrelevant after IMOD 4.2.8)
+tooltip =
+manpage = Local directory for temporary files other than sum*.rec, which are
+no longer produced after IMOD 4.2.8.  The default is either a directory 
+defined by the environment variable IMOD_TMPDIR, or /usr/tmp if it exists,
+or /tmp.  The local temporary directory was important for reducing network
+traffic and access of all machines to the same working directory.  This
+temporary directory need not be accessible to all machines.
+
+[Field = Usage]
+short = help
+type = B
+usage = Print usage summary 
+tooltip =
+manpage =
+
