@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/23/11: IMOD_4-2-15
+2/23/11: Temporary fix to splitcombine problem in Win 7.
+
 2/23/11: Clip: extended variance and standard deviation to 2D case within a
 single image stack; added scaling option for average/sd/variance; added
 processes to subtract, multiply, and divide two volumes or add instead of
