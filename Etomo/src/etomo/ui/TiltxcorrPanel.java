@@ -45,6 +45,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2010/03/08 21:15:43  sueh
+ * <p> bug# 1311 Hooking the imod button to the run button.
+ * <p>
  * <p> Revision 1.3  2010/03/05 04:04:56  sueh
  * <p> bug# 1311 Fixed typo.
  * <p>
@@ -646,6 +649,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       MetaData metaData = applicationManager.getMetaData();
       TiltAngleSpec tiltAngleSpec = metaData.getTiltAngleSpec(axisID);
       tiltXcorrParams.setTiltAngleSpec(tiltAngleSpec);
+      tiltXcorrParams.setRotationAngle(metaData.getImageRotation(axisID));
     }
     String currentParam = "unknown";
     try {
