@@ -33,6 +33,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.27  2010/02/17 04:47:53  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 3.26  2010/01/11 23:49:01  sueh
  * <p> bug# 1299 Added isMessageReporter.
  * <p>
@@ -698,7 +702,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
    * dialog, can be set for newst_3dfind.com.
    */
   public void setSizeToOutputInXandY(String userSize, final int binning,
-      final float imageRotation, final BaseManager manager)
+      final double imageRotation, final BaseManager manager)
       throws FortranInputSyntaxException, etomo.util.InvalidParameterException,
       IOException {
     //make sure an empty string really causes sizeToOutputInXandY to be empty.

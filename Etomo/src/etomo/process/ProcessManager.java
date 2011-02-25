@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.149.2.1  2010/05/10 21:54:14  sueh
+ * bug# 1372 In modelToPatch removing the imod2vatch command.
+ *
  * Revision 3.149  2010/03/19 21:58:08  sueh
  * bug# 1335 FlattenWarpLog no longer an n'ton.
  *
@@ -1360,7 +1363,7 @@ public class ProcessManager extends BaseProcessManager {
    * @param axisID
    *          the AxisID to run midas on.
    */
-  public void midasRawStack(AxisID axisID, float imageRotation) {
+  public void midasRawStack(AxisID axisID, double imageRotation) {
 
     //  Construct the command line strings
     String[] commandArray = new String[3];
@@ -1377,7 +1380,7 @@ public class ProcessManager extends BaseProcessManager {
     startSystemProgramThread(command, axisID, appManager);
   }
 
-  public void midasBlendStack(AxisID axisID, float imageRotation) {
+  public void midasBlendStack(AxisID axisID, double imageRotation) {
 
     //  Construct the command line strings
     String[] commandArray = new String[3];

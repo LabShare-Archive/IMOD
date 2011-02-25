@@ -69,7 +69,7 @@ public class ExtractmagradParam {
     this.gradientTable = gradientTable;
   }
 
-  public final void setRotationAngle(float rotationAngle) {
+  public final void setRotationAngle(double rotationAngle) {
     this.rotationAngle.set(rotationAngle);
   }
 
@@ -86,6 +86,10 @@ public class ExtractmagradParam {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2010/02/17 04:47:54  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.5  2009/03/17 00:31:44  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
  * <p>

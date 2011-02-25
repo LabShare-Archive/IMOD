@@ -171,7 +171,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
    * @throws IOException
    */
   public void convertToStartingAndEndingXandY(String sizeToOutputInXandY,
-      final float imageRotation) throws FortranInputSyntaxException,
+      final double imageRotation) throws FortranInputSyntaxException,
       etomo.util.InvalidParameterException, IOException {
     //make sure an empty string really causes sizeToOutputInXandY to be empty.
     if (sizeToOutputInXandY.equals("")) {
@@ -524,6 +524,10 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.37  2010/02/17 04:47:54  sueh
+ * <p> bug# 1301 Using the manager instead of the manager key do pop up
+ * <p> messages.
+ * <p>
  * <p> Revision 1.36  2010/01/11 23:49:01  sueh
  * <p> bug# 1299 Added isMessageReporter.
  * <p>

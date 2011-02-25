@@ -38,6 +38,11 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2  2009/09/17 19:12:58  sueh
+ * <p> bug# 1257 In NewstParam.setSizeToOutputInXandY forgot to read the
+ * <p> header.  Adding read call and throwing InvalidParameterException and
+ * <p> IOException.
+ * <p>
  * <p> Revision 3.1  2009/09/01 03:18:25  sueh
  * <p> bug# 1222
  * <p> </p>
@@ -178,7 +183,7 @@ abstract class NewstackOrBlendmontPanel implements Run3dmodButtonContainer,
     newstackAndBlendmontParamPanel.setFiducialessAlignment(input);
   }
 
-  void setImageRotation(float input) {
+  void setImageRotation(double input) {
     newstackAndBlendmontParamPanel.setImageRotation(input);
   }
 

@@ -35,6 +35,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.68  2010/03/30 00:05:47  sueh
+ * <p> bug# 1331 Added useGpu checkbox.
+ * <p>
  * <p> Revision 3.67  2009/09/20 21:34:09  sueh
  * <p> bug# 1268 Added a default value to LabeledSpinner.
  * <p>
@@ -525,7 +528,7 @@ final class TomogramPositioningDialog extends ProcessDialog implements
     return cbUseGpu.isSelected();
   }
 
-  public void setImageRotation(float tiltAxisAngle) {
+  public void setImageRotation(double tiltAxisAngle) {
     ltfRotation.setText(tiltAxisAngle);
   }
 

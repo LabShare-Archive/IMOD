@@ -41,6 +41,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 3.3  2009/09/20 21:32:51  sueh
  * <p> bug# 1268 Added a default value to LabeledSpinner.
  * <p>
@@ -201,7 +204,7 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
     updateFiducialess();
   }
 
-  void setImageRotation(float input) {
+  void setImageRotation(double input) {
     ltfRotation.setText(input);
   }
 

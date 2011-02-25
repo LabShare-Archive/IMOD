@@ -41,6 +41,9 @@ import etomo.util.Montagesize;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16.2.1  2010/09/29 22:52:30  sueh
+ * <p> bug# 1401 Merged from Head.
+ * <p>
  * <p> Revision 1.18  2010/09/08 19:20:13  sueh
  * <p> bug# 1401 In doAutomation handle dir equals ".".
  * <p>
@@ -553,7 +556,7 @@ public final class SetupDialogExpert {
     if (!Double.isNaN(metaData.getFiducialDiameter())) {
       dialog.setFiducialDiameter(metaData.getFiducialDiameter());
     }
-    if (!Float.isNaN(metaData.getImageRotation(AxisID.ONLY))) {
+    if (!Double.isNaN(metaData.getImageRotation(AxisID.ONLY))) {
       dialog.setImageRotation(metaData.getImageRotation(AxisID.ONLY));
     }
     dialog.setBinning(metaData.getBinning());

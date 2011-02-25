@@ -68,6 +68,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.28  2010/03/27 05:02:56  sueh
+ * <p> Reformatted
+ * <p>
  * <p> Revision 1.27  2010/03/19 02:39:45  sueh
  * <p> bug# 1325 Added setParameters(ConstTiltalignParam,boolean).
  * <p>
@@ -479,7 +482,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     newstackOrBlendmontPanel.setFiducialessAlignment(input);
   }
 
-  void setImageRotation(float input) {
+  void setImageRotation(double input) {
     newstackOrBlendmontPanel.setImageRotation(input);
   }
 

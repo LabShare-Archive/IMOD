@@ -31,7 +31,7 @@ public interface ConstMetaData {
 
   public ConstEtomoNumber getAdjustedFocusB();
 
-  public float getImageRotation(AxisID axisID);
+  public double getImageRotation(AxisID axisID);
 
   public String getBackupDirectory();
 
@@ -160,6 +160,9 @@ public interface ConstMetaData {
 
 /**public String getTrackMethod(AxisID axisID) 
  * <p> $Log$
+ * <p> Revision 3.58.2.1  2010/05/27 18:18:01  sueh
+ * <p> bug# 1378 Merged head fix into 4.1.
+ * <p>
  * <p> Revision 3.59  2010/05/27 16:49:34  sueh
  * <p> bug# 1378 Added isLambdaForSmoothingListEmpty.
  * <p>
