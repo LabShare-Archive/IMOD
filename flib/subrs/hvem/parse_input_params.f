@@ -164,8 +164,8 @@ c
         ierr = PipParseEntries(numOptArg, numNonOptArg)
       else
         ierr = PipGetError(errString)
-        print *,'PIP WARNING:', errString,
-     &      'Using fallback options in Fortran code'
+        print *,'PIP WARNING:', errString
+        print *,'Using fallback options in main program'
         ierr = PipParseInput(options, numOptions, '@', numOptArg,
      &      numNonOptArg)
       endif
@@ -253,6 +253,9 @@ c       prefix set by calling setExitPrefix
       
 c       
 c       $Log$
+c       Revision 3.13  2010/07/02 17:05:56  mast
+c       Added routine for simple memory error exit
+c
 c       Revision 3.12  2009/12/04 20:31:12  mast
 c       Add call to print entries
 c

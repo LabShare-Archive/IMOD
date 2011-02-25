@@ -1289,7 +1289,7 @@ void PipReadOrParseOptions(int argc, char *argv[], char *options[],
     if (!options || !numOpts)
       PipSetError(errString);
     if (errString) {
-      printf("PIP WARNING: %s\nUsing fallback options in C code\n", errString);
+      printf("PIP WARNING: %s\nUsing fallback options in main program\n", errString);
       free(errString);
     }
     PipParseInput(argc, argv, options, numOpts, numOptArgs,
@@ -1890,6 +1890,9 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
 
 /*
 $Log$
+Revision 1.7  2011/02/21 17:51:43  mast
+Modified fallback output for new line length standard of 90
+
 Revision 1.6  2009/12/11 19:59:31  mast
 Do not print entry header/tail if there are no entries
 

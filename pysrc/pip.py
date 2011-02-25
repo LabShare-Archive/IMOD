@@ -869,7 +869,7 @@ def PipReadOrParseOptions(argv, options, progName, minArgs, numInFiles,
          PipSetError(errString)
       if (errString):
           sys.stdout.write("PIP WARNING: " + errString + \
-                           "\nUsing fallback options in script\n\n")
+                           "\nUsing fallback options in main program\n\n")
 
       (numOptArgs, numNonOptArgs) = PipParseInput(argv, options)
 
@@ -1287,6 +1287,9 @@ def CheckKeyword(line, keyword, index):
    return (line[valStart:], index)
 
 # $Log$
+# Revision 1.6  2010/12/01 23:03:13  mast
+# Fixed some formatting and an error message
+#
 # Revision 1.5  2010/12/01 21:02:03  mast
 # Modifications for python 2/3 compatibility
 #
