@@ -74,7 +74,7 @@ def modifyUsageFile(controlHost, controlID, addlist):
       found = 0
       for ind in range(len(lines) - 1, -1, -1):
          line = lines[ind]
-         fields = line.split(' ')
+         fields = line.split()
          if len(fields) < 2:
             continue
 
@@ -202,7 +202,7 @@ checkList = []
 for ufile in usageFiles:
    lines = readTextFile(ufile)
    for line in lines:
-      lsplit = line.split(' ')
+      lsplit = line.split()
       if len(lsplit) >  0 and not checkList.count(lsplit[0]):
          checkList.append(lsplit[0])
    usageLists.append(lines)
@@ -227,7 +227,7 @@ for contHost in checkList:
       checked = []
       for ind in range(len(ulist) - 1, -1, -1):
          uline = ulist[ind]
-         lsplit = uline.split(' ')
+         lsplit = uline.split()
          if len(lsplit) < 2:
             continue
          lineHost = lsplit[0]
@@ -240,7 +240,7 @@ for contHost in checkList:
                while len(pline) > 0 and not pline[0].isdigit():
                   pline = pline[1:]
                if len(pline) > 0:
-                  psplit = pline.split(' ')
+                  psplit = pline.split()
                   if len(psplit) > 0 and psplit[0] == linePID:
                      found = True
                      break
@@ -268,7 +268,7 @@ if verbose:
 report = []
 for ulist in usageLists:
    for uline in ulist:
-      usplit = uline.split(' ')
+      usplit = uline.split()
       if len(usplit) == 4:
          rline = usplit[2] + ' ' + usplit[3]
          report.append(rline)
@@ -280,3 +280,6 @@ writeTextFile(rfile, report)
 sys.exit(0)
 
 #  $Log$
+#  Revision 1.1  2011/02/16 18:45:34  mast
+#  Added to package
+#
