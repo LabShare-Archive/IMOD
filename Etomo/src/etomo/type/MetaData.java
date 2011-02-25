@@ -29,6 +29,12 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.67  2011/02/24 23:36:53  sueh
+ * <p> bug# 1452 imageRotation needs to be double everywhere.
+ * <p>
+ * <p> Revision 3.61.2.1  2010/05/27 18:18:17  sueh
+ * <p> bug# 1378 Merged head fix into 4.1.
+ * <p>
  * <p> Revision 3.63  2010/05/27 16:49:48  sueh
  * <p> bug# 1378 Added isLambdaForSmoothingListEmpty.
  * <p>
@@ -402,8 +408,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private boolean useLocalAlignmentsA = true;
   private boolean useLocalAlignmentsB = true;
   private double fiducialDiameter = Double.NaN;
-  private float imageRotationA = Float.NaN;
-  private float imageRotationB = Float.NaN;
+  private double imageRotationA = Float.NaN;
+  private double imageRotationB = Float.NaN;
   private int binning = 1;
 
   private boolean fiducialessAlignmentA = false;
@@ -2157,7 +2163,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return fiducialDiameter;
   }
 
-  public float getImageRotation(AxisID axisID) {
+  public double getImageRotation(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return imageRotationB;
     }
