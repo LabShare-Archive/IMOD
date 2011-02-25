@@ -4,24 +4,31 @@
 # Author: David Mastronarde
 #
 # $Id$
-#
-#  $Log$
-#  Revision 1.3  2010/02/22 06:21:28  mast
-#  Added ability to pass in strings instead of filename and flag for
-#  case-insensitivity, fixed append to handle multiple lines
-#
-#  Revision 1.2  2009/10/22 05:47:22  mast
-#  Fixed writing to file
-#
-#  Revision 1.1  2006/09/26 23:02:48  mast
-#  Added to package
-#
+# Log at end
 #
 
 import sys, re
 from imodpy import *
 escslash = '#escSlash^'
 
+# A function to swap \( and (, and \) and ), before compiling a regexp
+def swapParenCompile(pattern, flags):
+   pat = pattern
+   if pat.find('(') >= 0:
+      pat = pattern.replace('\(', escslash)
+      pat = pat.replace('(', '\(')
+      pat = pat.replace(escslash, '(')
+      # print 'replacement 1:', pattern, pat
+
+   if pat.find(')') >= 0:
+      pat = pat.replace('\)', escslash)
+      pat = pat.replace(')', '\)')
+      pat = pat.replace(escslash, ')')
+      # print 'replacement 2:', pattern, pat
+
+   return re.compile(pat, flags)
+
+# The main routine
 def pysed(sedregsIn, src, dstfile = None, nocase = False, delim = '/'):
    """A module to take one or more sed regular expressions and apply them to 
 the list of strings in src, or, if src is a single string, to all lines of the
@@ -43,9 +50,10 @@ In other words, actions can be s, d, a, or p, and an expression can have a
 g (global) or p (print) modifier.
 The append action is completely non-standard to provide a convenient way to add
 a line after a matched line.
-Will not yet handle groups and parentheses, where \( and \) need to be 
-converted to ( and ), ( and ) need to be converted to \( and \), and 
-\1 in the replacement string needs to be converted to \\1
+As of IMOD 4.2.16, it will yet handle groups and parentheses in sed format by
+converting \( and \) to ( and ) while escaping unescaped ( and ).  The replacement
+reference can be in the form \\1 (\1 in a raw string) or \\g<1> to isolate from
+numbers that follow.
 """
 
    # Set error prefix and try to open input and output files
@@ -59,7 +67,7 @@ converted to ( and ), ( and ) need to be converted to \( and \), and
          srclines = sedin.readlines()
          sedin.close()
       except IOError:
-         prnstr(fmtstr("{} Opening or reading from {}: {}", prefix, src, \
+         prnstr(fmtstr("{} Opening or reading from {}: {}", prefix, src,
                        sys.exc_info()[1]))
          sys.exit(1)
    else:
@@ -94,13 +102,12 @@ converted to ( and ), ( and ) need to be converted to \( and \), and
       if delim == '/':
          line = sedregs[i].replace('\/', escslash)
          splt = line.split(delim)
-         for i in range(len(splt)):
-            splt[i] = splt[i].replace(escslash, '/')
+         for j in range(len(splt)):
+            splt[j] = splt[j].replace(escslash, '/')
       else:
          splt = sedregs[i].split(delim)
       if len(splt) < 3 or len(splt) > 6:
-         prnstr(fmtstr("{} Expression too short or too long: {}", \
-             prefix, sedregs[i]))
+         prnstr(fmtstr("{} Expression too short or too long: {}", prefix, sedregs[i]))
          sys.exit(1)
 
       # Initialize entries for this expression
@@ -113,7 +120,7 @@ converted to ( and ), ( and ) need to be converted to \( and \), and
             prnstr(fmtstr('{} Incorrect s/// entry: {}', prefix, sedregs[i]))
             sys.exit(1)
 
-         sea = re.compile(splt[1], flags)
+         sea = swapParenCompile(splt[1], flags)
          rep = splt[2]
          act = 's'
          if splt[3] == "g" :
@@ -127,15 +134,14 @@ converted to ( and ), ( and ) need to be converted to \( and \), and
       else:
          act = splt[2]
          if len(act) > 1 :
-            prnstr(fmtstr("{} Action must be a single letter: {}", \
-                 prefix, sedregs[i]))
+            prnstr(fmtstr("{} Action must be a single letter: {}", prefix, sedregs[i]))
             sys.exit(1)
          if act == 'd' or act == 'p':
             if len(splt) > 3 :
                prnstr(fmtstr("{} d or p must not be followed by pattern: {}", \
-                    prefix, sedregs[i]))
+                             prefix, sedregs[i]))
                sys.exit(1)
-            pat = re.compile(splt[1], flags)
+            pat = swapParenCompile(splt[1], flags)
             if act == 'p' :
                printind = i
 
@@ -143,13 +149,12 @@ converted to ( and ), ( and ) need to be converted to \( and \), and
             if len(splt) != 5 or splt[4] :
                prnstr(fmtstr("{} Incorrect 'a' entry: {}", prefix, sedregs[i]))
                sys.exit(1)
-            pat = re.compile(splt[1], flags)
+            pat = swapParenCompile(splt[1], flags)
             rep = splt[3]
             
          elif act == 's':
             if len(splt) < 6 :
-               prnstr(fmtstr("{} Too few elements for s command: {}", \
-                   prefix, sedregs[i]))
+               prnstr(fmtstr("{} Too few elements for s command: {}", prefix, sedregs[i]))
                sys.exit(1)
             rep = splt[4]
             for mod in splt[5] :
@@ -159,21 +164,21 @@ converted to ( and ), ( and ) need to be converted to \( and \), and
                   printind = i
                else:
                   prnstr(fmtstr("{} Only p and g are allowed modifiers: {}", \
-                      prefix, sedregs[i]))
+                                prefix, sedregs[i]))
                   sys.exit(1)
 
             rep = splt[4]
             if not splt[3] :
-               sea = re.compile(splt[1], flags)
+               sea = swapParenCompile(splt[1], flags)
                if printind == i :
                   pat = sea
             else:
-               sea = re.compile(splt[3], flags)
-               pat = re.compile(splt[1], flags)
+               sea = swapParenCompile(splt[3], flags)
+               pat = swapParenCompile(splt[1], flags)
 
          else:
             prnstr(fmtstr("{} Only s, d, a, and p are allowed actions: {}", \
-                prefix, sedregs[i]))
+                          prefix, sedregs[i]))
             sys.exit(1)
                
       pattern.append(pat)
@@ -217,3 +222,19 @@ converted to ( and ), ( and ) need to be converted to \( and \), and
       sedout.close()
       return None
    return outlines
+
+#
+#  $Log$
+#  Revision 1.5  2010/12/01 21:01:39  mast
+#  Modifications for python 2/3 compatibility
+#
+#  Revision 1.3  2010/02/22 06:21:28  mast
+#  Added ability to pass in strings instead of filename and flag for
+#  case-insensitivity, fixed append to handle multiple lines
+#
+#  Revision 1.2  2009/10/22 05:47:22  mast
+#  Fixed writing to file
+#
+#  Revision 1.1  2006/09/26 23:02:48  mast
+#  Added to package
+#
