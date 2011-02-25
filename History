@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/24/11: In eTomo fixing a bug where the RotationAngle was not added to the
+patch tracking comscript, xcorr_pt.com.
+
+2/24/11: In eTomo running the python version of splitcombine.
+
 2/23/11: IMOD_4-2-15
 2/23/11: Temporary fix to splitcombine problem in Win 7.
 
