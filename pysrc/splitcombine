@@ -109,13 +109,8 @@ fftOpts = (inputFFTa, inputFFTb, outputFFT)
 sumdir = ''
 for line in fftOpts:
    if line:
-      split = line.rsplit('/', 1)
-      if len(split) > 1:
-         sumdir = split[0]
-         break
-      split = line.rsplit('\\', 1)
-      if len(split) > 1:
-         sumdir = split[0]
+      sumdir = os.path.dirname(line)
+      if sumdir:
          break
 
 if sumdir and (not os.path.isdir(sumdir) or not os.access(sumdir, os.W_OK)):
@@ -183,3 +178,6 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.1  2011/02/24 22:37:41  mast
+# A fresh start
+#
