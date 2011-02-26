@@ -26,6 +26,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 18:08:09  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -73,6 +76,11 @@ final class EtomoLogger {
   }
 
   public void logMessage(String title, AxisID axisID, String[] message) {
+    SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(), title
+        + " - " + axisID + " axis:", message));
+  }
+  
+  public void logMessage(String title, AxisID axisID, List message) {
     SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(), title
         + " - " + axisID + " axis:", message));
   }

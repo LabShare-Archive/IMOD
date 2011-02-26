@@ -38,6 +38,9 @@ import etomo.type.ConstLogProperties;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 18:14:12  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -283,6 +286,10 @@ public final class LogPanel implements Storable, LogInterface {
   }
 
   public void logMessage(String title, AxisID axisID, String[] message) {
+    logger.logMessage(title, axisID, message);
+  }
+  
+  public void logMessage(String title, AxisID axisID, List message) {
     logger.logMessage(title, axisID, message);
   }
 

@@ -2,6 +2,7 @@ package etomo.ui.swing;
 
 import java.awt.Container;
 import java.awt.event.MouseEvent;
+import java.util.List;
 
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
@@ -31,6 +32,9 @@ import etomo.type.ToolType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/22 21:41:07  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.2  2011/02/03 06:22:16  sueh
  * <p> bug# 1422 Control of the processing method has been centralized in the
  * <p> processing method mediator class.  Implementing ProcessInterface.
@@ -84,6 +88,10 @@ public final class ToolsDialog implements ContextMenu, LogInterface {
   }
 
   public void logMessage(String title, AxisID axisID, String[] message) {
+    logger.logMessage(title, axisID, message);
+  }
+
+  public void logMessage(String title, AxisID axisID, List message) {
     logger.logMessage(title, axisID, message);
   }
 

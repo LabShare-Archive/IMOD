@@ -1,5 +1,7 @@
 package etomo.ui.swing;
 
+import java.util.List;
+
 import javax.swing.text.BadLocationException;
 
 import etomo.storage.Loggable;
@@ -21,6 +23,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 18:14:05  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -32,6 +37,8 @@ public interface LogInterface {
   public static final String rcsid = "$Id$";
 
   public void logMessage(String title, AxisID axisID, String[] message);
+
+  public void logMessage(String title, AxisID axisID, List message);
 
   public void logMessage(Loggable loggable, AxisID axisID);
 
