@@ -3,7 +3,7 @@ include ../configure
 #  $Id$
 #  No more Log
 
-SCRIPTS = copytomocoms finishjoin makejoincom matchorwarp matchshifts\
+SCRIPTS = finishjoin makejoincom matchorwarp matchshifts\
  newst onepatchcorr patchcorr3d patchcrawl3d recombine reduceby2 selfalign\
  setupcoms setuplong splitmrc squeezevol trimvol xf2xg xfalign\
  dm2mrc alignlog transferfid submfg imodpsview settmpdir matchrotpairs\
