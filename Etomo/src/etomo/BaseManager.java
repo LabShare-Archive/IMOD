@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
@@ -243,6 +244,21 @@ public abstract class BaseManager {
           + " axis:");
       for (int i = 0; i < message.length; i++) {
         System.err.println(message[i]);
+      }
+    }
+  }
+
+  public void logMessage(List message, String title, AxisID axisID) {
+    LogInterface logInterface = getLogInterface();
+    if (logInterface != null) {
+      logInterface.logMessage(title, axisID, message);
+    }
+    else {
+      System.err.println(Utilities.getDateTimeStamp() + "\n" + title + " - " + axisID
+          + " axis:");
+      Iterator i = message.iterator();
+      while (i.hasNext()) {
+        System.err.println((String) i.next());
       }
     }
   }
@@ -1696,6 +1712,9 @@ public abstract class BaseManager {
 /**
  * <p>
  * $Log$
+ * Revision 1.138  2011/02/08 21:40:29  sueh
+ * bug# 1437
+ *
  * Revision 1.137  2011/02/03 05:51:42  sueh
  * bug# 1422 Using ProcessingMethod to keep track of which type of
  * processing method is in use.  The decisions about when to display the
