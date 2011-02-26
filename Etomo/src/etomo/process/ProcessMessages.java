@@ -7,6 +7,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Vector;
 
 import etomo.storage.LogFile;
@@ -32,7 +35,7 @@ public final class ProcessMessages {
   private static final String CHUNK_ERROR_TAG = "CHUNK ERROR:";
   private static final String PIP_WARNING_TAG = "PIP WARNING:";
   private static final String INFO_TAG = "INFO:";
-  private static final String PIP_WARNING_END_TAG = "Using fallback options in Fortran code";
+  private static final String PIP_WARNING_END_TAG = "Using fallback options in main program";
 
   //multi line error, warning, and info strings; terminated by an empty line
   private final boolean multiLineMessages;
@@ -238,11 +241,34 @@ public final class ProcessMessages {
     return (String) warningList.get(warningIndex);
   }
 
-  final String getInfo(int infoIndex) {
+  public final String getInfo(int infoIndex) {
     if (infoList == null || infoIndex < 0 || infoIndex >= infoList.size()) {
       return null;
     }
     return (String) infoList.get(infoIndex);
+  }
+
+  /**
+   * Returns messages which contain matchString.
+   * @param matchString
+   * @return
+   */
+  public List getInfoList(String matchString) {
+    if (!isInfo()) {
+      return null;
+    }
+    List matches = new ArrayList();
+    Iterator i = infoList.iterator();
+    while (i.hasNext()) {
+      String message = (String) i.next();
+      if (message.indexOf(matchString) != -1) {
+        matches.add(message);
+      }
+    }
+    if (matches.size() != 0) {
+      return matches;
+    }
+    return null;
   }
 
   public String getLastChunkError() {
@@ -267,6 +293,10 @@ public final class ProcessMessages {
 
   boolean isError() {
     return errorList != null && errorList.size() > 0;
+  }
+
+  public boolean isInfo() {
+    return infoList != null && infoList.size() > 0;
   }
 
   boolean isSuccess() {
@@ -847,6 +877,9 @@ public final class ProcessMessages {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2011/02/22 04:09:08  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.14  2010/11/13 16:03:45  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
