@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.29  2011/02/21 21:23:41  sueh
+ * bug# 1437 Reformatting.
+ *
  * Revision 3.28  2010/11/13 16:03:15  sueh
  * bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  *
@@ -269,8 +272,10 @@ public final class CopyTomoComs {
     // Do not use the -e flag for tcsh since David's scripts handle the failure 
     // of commands and then report appropriately.  The exception to this is the
     // com scripts which require the -e flag.  RJG: 2003-11-06  
-    command.add("tcsh");
-    command.add("-f");
+    command.add("python");
+    command.add("-u");
+    //command.add("tcsh");
+    //command.add("-f");
     command.add(ApplicationManager.getIMODBinPath() + "copytomocoms");
     if (!genOptions()) {
       return false;
