@@ -119,6 +119,7 @@ void ivwInit(ImodView *vi, bool modview)
   vi->grayRGBs = 0;
   vi->reloadable = 0;
   vi->colormapImage = 0;
+  vi->equalScaling = 0;
 }
 
 /*
@@ -2027,7 +2028,7 @@ static int ivwProcessImageList(ImodView *vi)
   MrcHeader *header;
   FILE *fp;
   int xsize, ysize, zsize, i, midy, midz;
-  float naysum, zratio, mratio;
+  float naysum, zratio, mratio, smin, smax;
   int rgbs = 0, cmaps = 0;
 
   if (!ilist->size)
@@ -2036,6 +2037,13 @@ static int ivwProcessImageList(ImodView *vi)
   /* First get minimum x, y, z sizes of all the files and count up rgbs */
   for (i = 0; i < ilist->size; i++) {
     image = (ImodImageFile *)ilistItem(ilist, i);
+    if (i) {
+      smin = B3DMIN(smin, image->smin);
+      smax = B3DMAX(smax, image->smax);
+    } else {
+      smin = image->smin;
+      smax = image->smax;
+    }
 
     // See if mirroring of an FFT is needed:
     // MRC complex float odd size and not forbidden by option
@@ -2119,6 +2127,16 @@ static int ivwProcessImageList(ImodView *vi)
       vi->colormapImage = 1;
       vi->cramp->falsecolor = 2;
       vi->li->axis = 3;
+    }
+  }
+
+  /* Implement equal sacling of intensities */
+  if (vi->equalScaling) {
+    for (i = 0; i < ilist->size; i++) {
+      image = (ImodImageFile *)ilistItem(ilist, i);
+      vi->li->smin = smin;
+      vi->li->smax = smax;
+      iiSetMM(image, smin, smax);
     }
   }
 
@@ -2862,6 +2880,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 /*
 
 $Log$
+Revision 4.87  2011/02/07 16:12:39  mast
+Convert zap structure to class, most functions to members
+
 Revision 4.86  2011/01/15 06:20:48  mast
 Fixed bug in clearing extra object when freeing it
 

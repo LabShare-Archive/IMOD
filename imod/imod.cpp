@@ -82,46 +82,47 @@ void imod_usage(char *name)
   imodVersion(progName);
   imodCopyright();
   qstr.sprintf("Usage: %s [options] <Image files> <model file>\n", progName);
-  qstr += "Options: -xyz  Open xyz window first.\n";
-  qstr += "         -S    Open slicer window first.\n";
-  qstr += "         -V    Open model view window first.\n";
-  qstr += "         -Z    Open Zap window (use with -S, -xyz, or -V).\n";
-  qstr += "         -O    Set options with startup dialog box.\n";
-  qstr += "         -x min,max  Load in sub image.\n";
-  qstr += "         -y min,max  Load in sub image.\n";
-  qstr += "         -z min,max  Load in sub image.\n";
-  qstr += "         -s min,max  Scale input to range [min,max].\n";
-  qstr += "         -C #  Set # of sections or Mbytes to cache (#M or #m for"
+  qstr += "Options:\n";
+  qstr += "   -xyz  Open xyz window first.\n";
+  qstr += "   -S    Open slicer window first.\n";
+  qstr += "   -V    Open model view window first.\n";
+  qstr += "   -Z    Open Zap window (use with -S, -xyz, or -V).\n";
+  qstr += "   -O    Set options with startup dialog box.\n";
+  qstr += "   -x min,max  Load in sub image.\n";
+  qstr += "   -y min,max  Load in sub image.\n";
+  qstr += "   -z min,max  Load in sub image.\n";
+  qstr += "   -s min,max  Scale input to range [min,max] (0,0 for all files the same).\n";
+  qstr += "   -C #  Set # of sections or Mbytes to cache (#M or #m for"
     " Mbytes).\n";
-  qstr += "         -F    Fill cache right after starting program.\n";
-  qstr += "         -Y    Flip volume to model planes normal to Y axis.\n";
-  qstr += "         -B #  Bin images by # in X, Y, and Z.\n";
-  qstr += "         -b nxy,nz  Bin images by nxy in X and Y, by nz in Z (nz "
+  qstr += "   -F    Fill cache right after starting program.\n";
+  qstr += "   -Y    Flip volume to model planes normal to Y axis.\n";
+  qstr += "   -B #  Bin images by # in X, Y, and Z.\n";
+  qstr += "   -b nxy,nz  Bin images by nxy in X and Y, by nz in Z (nz "
     "default=1).\n";
-  qstr += "         -a <file name>  Load tilt angles from file.\n";
-  qstr += "         -p <file name>  Load piece list file.\n";
-  qstr += "         -pm   Load piece list from .mdoc metadata file\n";
-  qstr += "         -P nx,ny  Display images as montage in nx by ny array.\n";
-  qstr += "         -o nx,ny  Set X and X overlaps for montage display.\n";
-  qstr += "         -f    Load as frames even if image file has piece "
+  qstr += "   -a <file name>  Load tilt angles from file.\n";
+  qstr += "   -p <file name>  Load piece list file.\n";
+  qstr += "   -pm   Load piece list from .mdoc metadata file\n";
+  qstr += "   -P nx,ny  Display images as montage in nx by ny array.\n";
+  qstr += "   -o nx,ny  Set X and X overlaps for montage display.\n";
+  qstr += "   -f    Load as frames even if image file has piece "
     "coordinates.\n";
-  qstr += "         -r nx,ny,nz  Dimensions for raw image files.\n";
-  qstr += "         -t #  Mode for raw files: 0=byte, 1=int; 2=float, "
+  qstr += "   -r nx,ny,nz  Dimensions for raw image files.\n";
+  qstr += "   -t #  Mode for raw files: 0=byte, 1=int; 2=float, "
     "4=complex, 16=RGB.\n";
-  qstr += "         -H #  Header size in bytes in raw image files.\n";
-  qstr += "         -w    Swap bytes from raw image files.\n";
-  qstr += "         -R    Read image data from standard input, not from file."
+  qstr += "   -H #  Header size in bytes in raw image files.\n";
+  qstr += "   -w    Swap bytes from raw image files.\n";
+  qstr += "   -R    Read image data from standard input, not from file."
     "\n";
-  qstr += "         -m    Load model with model coords (override scaling).\n";
-  qstr += "         -2    Treat model as 2D only.\n";
-  qstr += "         -T    Display multiple single-image files as times not "
+  qstr += "   -m    Load model with model coords (override scaling).\n";
+  qstr += "   -2    Treat model as 2D only.\n";
+  qstr += "   -T    Display multiple single-image files as times not "
     "sections.\n";
-  qstr += "         -G    Display RGB-mode MRC file in gray-scale.\n";
-  qstr += "         -M    Do not mirror FFT data around Y axis.\n";
-  qstr += "         -ci   Display images in color index mode with colormap.\n";
-  qstr += "         -cm <file name>  Load custom false color table.\n";
-  qstr += "         -E <keys>  Open windows specified by key letters.\n";
-  qstr += "         -h    Print this help message.\n";
+  qstr += "   -G    Display RGB-mode MRC file in gray-scale.\n";
+  qstr += "   -M    Do not mirror FFT data around Y axis.\n";
+  qstr += "   -ci   Display images in color index mode with colormap.\n";
+  qstr += "   -cm <file name>  Load custom false color table.\n";
+  qstr += "   -E <keys>  Open windows specified by key letters.\n";
+  qstr += "   -h    Print this help message.\n";
   imodPrintInfo(LATIN1(qstr));
   return;
 }
@@ -380,7 +381,10 @@ int main( int argc, char *argv[])
         
         case 's':
           sscanf(argv[++i], "%f%*c%f", &(li.smin), &(li.smax));
-          iiRawSetScale(li.smin, li.smax);
+          if (li.smin || li.smax)
+            iiRawSetScale(li.smin, li.smax);
+          else
+            vi.equalScaling = 1;
           break;
         
         case 'b':
@@ -977,6 +981,9 @@ bool imodDebug(char key)
 /*
 
 $Log$
+Revision 4.76  2010/08/31 22:08:22  mast
+Added opetion to use metadata file for piece list
+
 Revision 4.75  2009/03/31 23:48:10  mast
 Filter out tiff warnings on unrecognized tags
 
