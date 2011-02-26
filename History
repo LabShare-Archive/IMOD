@@ -1,7 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/25/11: Converted Copytomocoms to Python and added INFO outputs when the log
+base is set to 32768, and WARNING outputs when it is not set but might need to
+be.
+
+2/24/11: Converted splitcombine to Python.
+
 2/24/11: In eTomo fixing a bug where the RotationAngle was not added to the
-patch tracking comscript, xcorr_pt.com.
+patch tracking comscript, xcorr_pt.com (in 4.1 FWIW).
 
 2/24/11: In eTomo running the python version of splitcombine.
 

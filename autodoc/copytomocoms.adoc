@@ -1,0 +1,230 @@
+Version = 1.0
+Pip = 1
+
+[Field = RootName]
+short = name
+type = FN
+usage = Root name of data set (omit a or b for dual-axis set)
+tooltip = 
+manpage = 
+
+[Field = DualAxis]
+short = dual
+type = B
+usage = Dual-axis data set
+tooltip = 
+manpage = 
+
+[Field = MontagedImages]
+short = montage
+type = B
+usage = Data are montaged
+tooltip = 
+manpage = 
+
+[Field = BackupDirectory]
+short = backup
+type = FN
+usage = Directory for backing up small files
+tooltip = 
+manpage = Directory for backing up small files.  Commands to save such files
+are placed ina script named "savework", which is run at end of every command
+file.  The directory need not exist yet.
+
+[Field = PixelSize]
+short = pixel
+type = F
+usage = Pixel size of images in nanometers (required)
+tooltip = 
+manpage = Pixel size of images in nanometers.  This entry is required.
+
+[Field = GoldBeadSize]
+short = gold
+type = 
+usage = Size of gold beads in nanometers (required)
+tooltip = 
+manpage = Size of gold beads in nanometers.  This entry is required.  Enter an
+arbitrary number like 1 if you are not going to track fiducials.
+
+[Field = RotationAngle]
+short = rotation
+type = F
+usage = Angle from the vertical to the tilt axis in raw images (required)
+tooltip = 
+manpage = Angle from the vertical to the tilt axis in raw images for the A
+axis or only axis.  This entry is required.
+
+[Field = BRotationAngle]
+short = brotation
+type = F
+usage = Angle from the vertical to the tilt axis for B axis
+tooltip = 
+manpage = Angle from the vertical to the tilt axis for B axis.  This entry
+is required for a dual-axis set.
+
+[Field = FirstAndIncAngle]
+short = firstinc
+type = FP
+usage = First tilt angle and tilt angle increment
+tooltip = 
+manpage = First tilt angle and tilt angle increment for the A axis or only
+axis.
+
+[Field = BFirstAndIncAngle]
+short = bfirstinc
+type = FP
+usage = First tilt angle and tilt angle increment for B axis
+tooltip = 
+manpage = 
+
+[Field = UseRawtltFile]
+short = userawtlt
+type = B
+usage = Take tilt angle from a .rawtlt file for A or only axis
+tooltip = 
+manpage = Take tilt angle from a .rawtlt file for the A axis or only axis.
+
+[Field = BUseRawtltFile]
+short = buserawtlt
+type = B
+usage = Take tilt angle from a .rawtlt file for B axis
+tooltip = 
+manpage = 
+
+[Field = ExtractAngles]
+short = extract
+type = B
+usage = Extract tilt angles from data file for A or only axis
+tooltip = 
+manpage = Extract tilt angles from data file for the A axis or only axis.
+This entry implies -userawtlt.
+
+[Field = BExtractAngles]
+short = bextract
+type = B
+usage = Extract tilt angles from data file for B axis
+tooltip = 
+manpage = 
+
+[Field = TiltAngles]
+short = angles
+type = LI
+usage = Complete list of tilt angles, on one line with no spaces
+tooltip = 
+manpage = Complete list of tilt angles for the A or only axis, on one line
+with no spaces.
+
+[Field = BTiltAngles]
+short = bangles
+type = LI
+usage = Complete list of tilt angles for the B axis
+tooltip = 
+manpage = 
+
+[Field = ViewsToSkip]
+short = skip
+type = LI
+usage = List of views to exclude from processing for A or only axis
+tooltip = 
+manpage = List of views to exclude from processing for A or only axis.  This
+entry and the next are fed into view exclusion lists in track*.com,
+align*.com, and tilt*.com.
+
+[Field = BViewsToSkip]
+short = bskip
+type = LI
+usage = List of views to exclude from processing for B axis
+tooltip = 
+manpage = 
+
+[Field = DistortionField]
+short = distort
+type = FN
+usage = Correct image distortion with the given .idf file
+tooltip = 
+manpage = Correct image distortion with the given .idf file.  The file will be
+copied to the current directory.
+
+[Field = BinningOfImages]
+short = binning
+type = I
+usage = Binning of raw images (needed to undistort if ambiguous)
+tooltip = 
+manpage = Binning of the raw images; this entry is needed for distortion
+correction unless there is no ambiguity about whether they are binned; i.e.,
+unless the images are not binned and are too large to be considered
+binned.
+
+[Field = GradientTable]
+short = gradient
+type = FN
+usage = Correct for magnification gradients using the given .mgt file
+tooltip = 
+manpage = Correct for magnification gradients using the given .mgt file.
+Extractmagrad(1) will be run to extract mag gradient files for each axis.
+
+[Field = FocusWasAdjusted]
+short = focus
+type = B
+usage = Focus was adjusted between frames when acquiring montage
+tooltip = 
+manpage = Focus was adjusted between frames when acquiring montage for the A
+axis or the only axis
+
+[Field = BFocusWasAdjusted]
+short = bfocus
+type = B
+usage = Focus was adjusted between montage frames for the B axis
+tooltip = 
+manpage = 
+
+[Field = VoltageInKV]
+short = voltage
+type = I
+usage = Microscope voltage in kV
+tooltip = 
+manpage = 
+
+[Field = SphericalAberration]
+short = Cs
+type = F
+usage = Spherical aberration
+tooltip = 
+manpage = 
+
+[Field = NoiseConfigFile]
+short = ctfnoise
+type = FN
+usage = Configuration file listing noise files for ctfplotter
+tooltip = 
+manpage = 
+
+[Field = Defocus]
+short = defocus
+type = F
+usage = Defocus in nanometers, with underfocus positive
+tooltip = 
+manpage = 
+
+[Field = CopyCTFfiles]
+short = CTFfiles
+type = I
+usage = Just copy files for CTF plotting and correction (1: plotting, 2:
+correction, 3: both)
+ tooltip = 
+manpage = Just copy files for CTF plotting and correction (1 for plotting, 2
+for correction, 3 for both) 
+
+[Field = XImageSize]
+short = xsize
+type = I
+usage = X size of image data (needed if data file not present)
+tooltip = 
+manpage = 
+
+[Field = YImageSize]
+short = ysize
+type = I
+usage = Y size of image data (needed if data file not present)
+tooltip = 
+manpage = 
