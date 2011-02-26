@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.157  2011/02/24 23:36:06  sueh
+ * bug# 1452 imageRotation needs to be double everywhere.
+ *
  * Revision 3.156  2011/02/21 21:04:21  sueh
  * bug# 1437 Reformatting.
  *
@@ -1063,7 +1066,7 @@ public class ProcessManager extends BaseProcessManager {
     setupComScripts(copyTomoComs, axisID);
   }
 
-  public boolean setupComScripts(AxisID axisID) {
+  public ProcessMessages setupComScripts(AxisID axisID) {
     CopyTomoComs copyTomoComs = new CopyTomoComs(appManager);
 
     if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
@@ -1081,9 +1084,9 @@ public class ProcessManager extends BaseProcessManager {
    *          a read-only MetaData object containing the information to run the
    *          copytomocoms script
    */
-  private boolean setupComScripts(CopyTomoComs copyTomoComs, AxisID axisID) {
+  private ProcessMessages setupComScripts(CopyTomoComs copyTomoComs, AxisID axisID) {
     if (!copyTomoComs.setup()) {
-      return false;
+      return null;
     }
     int exitValue = copyTomoComs.run();
     //process messages
@@ -1103,9 +1106,9 @@ public class ProcessManager extends BaseProcessManager {
     if (exitValue != 0) {
       UIHarness.INSTANCE.openMessageDialog(appManager, copyTomoComs.getStdErrorString(),
           "Copytomocoms Error", axisID);
-      return false;
+      return null;
     }
-    return true;
+    return messages;
   }
 
   /**
