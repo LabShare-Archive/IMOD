@@ -14,8 +14,9 @@ This module provides the following functions:
                                    its output or print to stdout or a file
   getmrcsize(file)     - run the 'header' command on <file>.
                          returns a triple of x,y,z size integers
-  getmrc(file)         - run the 'header' command on <file>.
-                         returns a 'tuple' of x,y,z,mode,px,py,pz
+  getmrc(file, doAll)  - run the 'header' command on <file>.
+                         returns a 'tuple' of x,y,z,mode,px,py,pz,
+                         plus ox,oy,oz,min,max,mean if doAll is True
   makeBackupFile(file)   - renames file to file~, deleting old file~
   exitFromImodError(pn, errout) - prints the error strings in errout and
                                   prepends 'ERROR: pn - ' to the last one
@@ -166,23 +167,33 @@ def runcmd(cmd, input=None, outfile=None):
 
 
 # Get essential data from the header of an MRC file
-def getmrc(file):
+def getmrc(file, doAll = False):
    """getmrc(file)     - run the 'header' command on <file>
     
-    Returns a tuple with seven elements (x,y,z,mode,px,py,pz)
-    (x,y,z are size in int, mode is int, px,py,pz are pixelsize in float."""
+    Returns a tuple with seven elements (x,y,z,mode,px,py,pz) by default
+    (x,y,z are size in int, mode is int, px,py,pz are pixelsize in float).
+    If doAll is True, returns a tuple with 13 elements:
+    (x,y,z,mode,px,py,pz,ox,oy,oz,min,max,mean)  where the added elements are
+    origin in x, y, z and min, max and mean, all in floats"""
 
    global errStrings
    input = ["InputFile " + file]
-   hdrout = runcmd("header -si -mo -pi -StandardInput", input)
+   if doAll:
+      hdrout = runcmd("header -si -mo -pi -ori -min -max -mean -StandardInput", input)
+      needed = 7
+   else:
+      hdrout = runcmd("header -si -mo -pi -StandardInput", input)
+      needed = 3
 
-   if len(hdrout) < 3:
+   if len(hdrout) < needed:
       errStrings = ["header " + file + ": too few lines of output"]
       raise ImodpyError(errStrings)
 
    nxyz = hdrout[0].split()
    pxyz = hdrout[2].split()
-   if len(nxyz) < 3 or len(pxyz) < 3:
+   if doAll:
+      orixyz = hdrout[3].split()
+   if len(nxyz) < 3 or len(pxyz) < 3 or (doAll and len(orixyz) < 3):
       errStrings = ["header " + file + ": too few numbers on lines"]
       raise ImodpyError(errStrings)
    ix = int(nxyz[0])
@@ -192,8 +203,17 @@ def getmrc(file):
    px = float(pxyz[0])
    py = float(pxyz[1])
    pz = float(pxyz[2])
-   
-   return (ix,iy,iz,mode,px,py,pz)
+
+   if not doAll:
+      return (ix,iy,iz,mode,px,py,pz)
+
+   orix = float(orixyz[0])
+   oriy = float(orixyz[1])
+   oriz = float(orixyz[2])
+   minv = float(hdrout[4])
+   maxv = float(hdrout[5])
+   meanv = float(hdrout[6])
+   return (ix,iy,iz,mode,px,py,pz,orix,oriy,oriz,minv,maxv,meanv)
 
 
 # Get size from an MRC file
@@ -594,6 +614,9 @@ def prnstr(string, file = sys.stdout, end = '\n'):
 
 
 #  $Log$
+#  Revision 1.14  2011/02/16 18:44:49  mast
+#  Added temp dir function
+#
 #  Revision 1.13  2010/12/07 00:09:30  mast
 #  Back to subprocess, it wasn't the problem in cygwin!
 #
