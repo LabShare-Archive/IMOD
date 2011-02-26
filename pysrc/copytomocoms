@@ -1,0 +1,886 @@
+#!/usr/bin/python -u
+# copytomocoms - program to set up command files for combine
+#
+# Author: David Mastronarde
+#
+# $Id$
+# Log at end
+#
+progname = 'copytomocoms'
+prefix = 'ERROR: ' + progname + ' - '
+
+SAMPLESIZE = 10               # Size of sample tomogram
+SAMPALISIZE = 60              # Size of aligned stack for sampling
+MINBORDER1 = 30                 # Minimum border size
+MINBORDER2 = 40                 # Minimum size if y dimension > borderstep1
+BORDERSTEP1 = 500               # threshold for using minborder2
+BORDERSTEP2 = 1000              # threshold for linearly increasing size
+BORDERFAC = 10                  # controls linear increase of border size
+CCDBORDERFAC = 2.0            # extra size of border for CCD images
+RESIDUAL_SCALE = 10           # scaling for tiltalign residuals
+MONTAGE_XCORR_MAX = 2048      # Max size for blended stack for doing xcorr
+backupname = "./savework"
+TILTSIZES = (950, 1400, 1900, 2850, 3800, 5700, 7600, 11400, 15200, 22800)
+TILTSCALES = (1000, 700, 500, 330,   250,  170,  125,    80,    60,    40)
+
+single_srcname = "g5a"
+seedname = "empty.seed"
+disttext = "-xf"
+srcext = '.com'
+backuplist = []
+backupline = '$if (-e ' + backupname + ') ' + backupname
+dstext = ""
+
+# This function does the boilerplate of defining source and destination files,
+# backing up the diestination file and adding it to the backuplist, running pysed,
+# adding the savework command to the output, and writing the output file
+def editAndWrite(srcRoot, dstRoot, sedcom):
+   srcfile = os.path.join(srcdir, srcRoot + srcext)
+   dstfile = dstRoot + dstext
+   backuplist.append(dstfile)
+   makeBackupFile(dstfile)
+   sedlines = pysed(sedcom, srcfile, None)
+   sedlines.append(backupline)
+   writeTextFile(dstfile, sedlines)
+
+
+# Function to run goodframe
+def runGoodframe(xsize):
+   try:
+      goodout = runcmd(fmtstr('goodframe {}', xsize))
+      if len(goodout):
+         return int(goodout[0])
+   except ImodpyError:
+      pass
+   exitError('Running goodframe to get full aligned or prealigned stack size')
+
+
+# Warning function prints to stderr AND adds another newline, since etomo parses
+# this output for multiline warnings terminated by a blank line
+def warning(text):
+   prnstr('\nWARNING: ' + text + '\n', file=sys.stderr)
+   
+def printInfo(text):
+   prnstr('\nINFO: ' + text + '\n', file=sys.stderr)
+   
+
+#### MAIN PROGRAM  ####
+#
+# load System Libraries
+import os, sys, os.path, signal, shutil, math
+
+#
+# Setup runtime environment
+if sys.platform.find("win32") < 0:
+   try:
+      signal.signal(signal.SIGHUP, signal.SIG_IGN)
+   except:
+      pass
+if os.getenv('IMOD_DIR') != None:
+   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
+                        os.pathsep + os.environ['PATH']
+   sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import *
+from pysed import *
+
+subdistort = 'gibberish'
+voltsub = "gibberish"
+sphersub = "gibberish"
+defocsub = "gibberish"
+ctfconfsub = "gibberish"
+logbase = 0
+srcname = single_srcname
+
+# Set the com directory
+srcdir = os.path.join(os.environ['IMOD_DIR'], 'com')
+if not os.path.exists(srcdir):
+   exitError("Source directory for command files, " + srcdir + ", not found")
+
+# Fallbacks from ../manpages/autodoc2man 3 1 copytomocoms
+options = ["name:RootName:FN:", "dual:DualAxis:B:", "montage:MontagedImages:B:",
+           "backup:BackupDirectory:FN:", "pixel:PixelSize:F:", "gold:GoldBeadSize::",
+           "rotation:RotationAngle:F:", "brotation:BRotationAngle:F:",
+           "firstinc:FirstAndIncAngle:FP:", "bfirstinc:BFirstAndIncAngle:FP:",
+           "userawtlt:UseRawtltFile:B:", "buserawtlt:BUseRawtltFile:B:",
+           "extract:ExtractAngles:B:", "bextract:BExtractAngles:B:",
+           "skip:ViewsToSkip:LI:", "bskip:BViewsToSkip:LI:",
+           "distort:DistortionField:FN:", "binning:BinningOfImages:I:",
+           "gradient:GradientTable:FN:", "focus:FocusWasAdjusted:B:",
+           "bfocus:BFocusWasAdjusted:B:", "voltage:VoltageInKV:I:",
+           "Cs:SphericalAberration:F:", "ctfnoise:NoiseConfigFile:FN:",
+           "defocus:Defocus:F:", "CTFfiles:CopyCTFfiles:I:", "xsize:XImageSize:I:",
+           "ysize:YImageSize:I:", "angles:TiltAngles:LI:", "bangles:BTiltAngles:LI:"]
+
+(numOpts, numNonOpts) = PipReadOrParseOptions(sys.argv, options, progname, 1, 0, 0)
+
+# Get options
+rootname = PipGetString("RootName", "")
+if not rootname:
+   exitError("A root name must be entered")
+
+naxis = PipGetBoolean('DualAxis', 0) + 1
+montage = PipGetBoolean('MontagedImages', 0)
+backupdir = PipGetString('BackupDirectory', '')
+backup = 1 - PipGetErrNo()
+xsize = PipGetInteger('XImageSize', -1)
+ysize = PipGetInteger('XImageSize', -1)
+
+pixsize = PipGetFloat('PixelSize', -1.)
+if pixsize < 0:
+   exitError('You must enter a pixel size in nanometers')
+
+beadnm = PipGetFloat('GoldBeadSize', -1.)
+if beadnm < 0:
+   exitError('You must enter a bead size in nanometers')
+
+axisangle = PipGetFloat('RotationAngle', 0.)
+if PipGetErrNo():
+   exitError('You must enter an axis rotation angle')
+
+baxisangle = PipGetFloat('BRotationAngle', 0.)
+if PipGetErrNo() and naxis > 1:
+   exitError('You must enter an axis rotation angle for the B axis')
+
+angles = PipGetString('TiltAngles', '')
+ifangles = 1 - PipGetErrNo()
+bangles = PipGetString('BTiltAngles', '')
+ifbangles = 1 - PipGetErrNo()
+(first, increm) = PipGetTwoFloats('FirstAndIncAngle', 0., 0.)
+firstinc = 1 - PipGetErrNo()
+(bfirst, bincrem) = PipGetTwoFloats('BFirstAndIncAngle', 0., 0.)
+bfirstinc = 1 - PipGetErrNo()
+userawtlt = PipGetBoolean('UseRawtltFile', 0)
+buserawtlt = PipGetBoolean('BUseRawtltFile', 0)
+ifextract = PipGetBoolean('ExtractAngles', 0)
+if ifextract:
+   userawtlt = 1
+bifextract = PipGetBoolean('BExtractAngles', 0)
+if bifextract:
+   buserawtlt = 1
+
+if ifangles + firstinc + userawtlt != 1:
+   exitError('You must enter one and only one of -angles, -firstinc, and -userawtlt')
+if naxis > 1 and ifbangles + bfirstinc + buserawtlt != 1:
+   exitError('You must enter one and only one of -bangles, -bfirstinc, and -buserawtlt')
+
+excludelistin = PipGetString('ViewsToSkip', '')
+bexcludelistin = PipGetString('BViewsToSkip', '')
+distort = PipGetString('DistortionField', '')
+binning = PipGetInteger('BinningOfImages', 1)
+gradient = PipGetString('GradientTable', '')
+focusAdj = PipGetBoolean('FocusWasAdjusted', 0)
+bFocusAdj = PipGetBoolean('BFocusWasAdjusted', 0)
+
+voltage = PipGetInteger('VoltageInKV', -1)
+if voltage > 0:
+   voltsub = "Voltage"
+
+spherab = PipGetFloat('SphericalAberration', -1.)
+if spherab > 0:
+   sphersub = "SphericalAberration"
+
+defocus = PipGetFloat('Defocus', 0.)
+if not PipGetErrNo():
+   defocsub = "ExpectedDefocus"
+
+# This is a full path to be used in sed commands: convert \ to / and escape /
+ctfconf = PipGetString('NoiseConfigFile', '')
+if ctfconf:
+   ctfconf = ctfconf.replace('\\', '/')
+   ctfconf = ctfconf.replace('/', '\\/')
+   ctfconfsub = "ConfigFile"
+
+CTFonly = PipGetInteger('CopyCTFfiles', 0)
+if CTFonly:
+   if CTFonly < 0 or CTFonly > 3:
+      exitError('The entry for -CTFonly must be 1, 2, or 3')
+
+# SKIP erase amd logbase
+
+# Set some names based on axis
+if naxis == 1:
+   stackname = rootname + '.st'
+   piecename = rootname + '.pl'
+else:
+   stackname = rootname + "a.st"
+   piecename = rootname + "a.pl"
+
+# Copy a distortion file to the current directory if it is elsewhere
+if distort:
+   distort = distort.replace('\\', '/')
+   tailInd = distort.rfind('/')
+   if tailInd >= 0:
+      newDistort = distort[tailInd+1:]
+      try:
+         shutil.copyfile(distort, newDistort)
+         distort = newDistort
+      except:
+         exitError('Copying distortion file ' + distort + ' to current directory')
+
+   # Then set the parameters
+   disttext = fmtstr("-distort {} -imagebinned {} -xf", distort, binning)
+   subdistort = "DistortionField"
+
+
+# SKIP ALLOWING STACKS IN BACKUP DIRECTORY AND MAKING LINKS TO THEM
+
+# Make sure X and Y size was entered if stack does not exist
+if not os.path.exists(stackname) and (xsize <= 0 or ysize <= 0):
+   exitError('Stack is not present; you must enter -xsize and -ysize')
+
+# Bead size in pixels, and radius for centroid
+beadsize = beadnm / pixsize
+beadrad = 0.5 * (beadsize + 3)
+if beadrad < 3.:
+   eraserad = 1.1
+   boxsize = 32
+elif beadrad < 5.:
+   boxsize = 32
+   eraserad = 2.1
+elif beadrad < 7.:
+   boxsize = 40
+   eraserad = 2.6
+else:
+   boxsize = 8 * int((2 * beadsize + 26) / 8)
+   boxsize = min(100, boxsize)
+   eraserad = 3.6
+
+try:
+   runcmd('chmod u+rwx .')
+except ImodpyError:
+   warning('Error running command to make current directory writable')
+
+# LOOP ON THE AXES
+for iaxis in range(naxis):
+   setname = rootname
+   dstext = ".com"
+   modext = ".mod"
+   logext = ".log"
+   recext = ".rec"
+   xftext = disttext
+   gradspec = " "
+   subgradient = 'gibberish'
+   if naxis > 1:
+      setlet = "a"
+      if iaxis:
+         setlet = "b"
+      setname = rootname + setlet
+      dstext = setlet + ".com"
+      modext = setlet + ".mod"
+      logext = setlet + ".log"
+      recext = setlet + ".rec"
+      if iaxis:
+         temp = xsize
+         xsize = ysize
+         ysize  = temp
+         axisangle = baxisangle
+         excludelistin = bexcludelistin
+         ifextract = bifextract
+         bangles = angles
+         (first, increm) = (bfirst, bincrem)
+         userawtlt = buserawtlt
+         firstinc = bfirstinc
+         focusAdj = bFocusAdj
+
+   dstname = setname
+   stackname = setname + ".st"
+   piecename = setname + ".pl"
+   srcToDist = 's/' + srcname + '/' + dstname + '/g'
+
+   # GET X AND Y SIZE FROM STACK IF IT EXISTS
+   stackExists = os.path.exists(stackname)
+   if stackExists:
+      try:
+
+         # Regardless of file type, run this full header once here
+         xsize = -1
+         (xsize,ysize,zsize,mode,pixelx,pixely,pixelz,orix,oriy,oriz,mindens,maxdens, \
+          meandens) = getmrc(stackname, True)
+         if montage:
+            montcmd = 'montagesize ' + stackname
+            if os.path.exists(piecename):
+               montcmd += ' ' + piecename
+            montlines = runcmd(montcmd)
+            for line in montlines:
+               if line.find('Total') >= 0:
+                  ind = line.find(':')
+                  if ind > 0:
+                     lsplit = line[ind+1:].split()
+                     if len(lsplit) > 1:
+                        xsize = int(lsplit[0])
+                        ysize = int(lsplit[1])
+                        break
+      except ImodpyError:
+         pass
+      if xsize <= 0:
+         exitError('extracting image size from stack header')
+
+   elif iaxis:
+      infol = fmtstr("{} does not exist yet, assuming size {} x {}\n", stackname,
+                     xsize, ysize) + \
+                     "   If the size is different, you will need to fix FULLIMAGE in " +\
+                     "tiltb.com\n   in order to use parallel processing"
+      if montage:
+         infol += '\n   Run   "montagesize ' + stackname + '"    to get the raw image' +\
+                  ' size (NX, NY, and NZ)\n'
+         infol += '   Then run   "goodframe NX NY"   to get the numbers to put in '+\
+                  'tiltb.com'
+      printInfo(infol)
+
+   # GET TILT ANGLE AND AXIS INFORMATION AND FULL OUTPUT SIZE
+   newstwidth = ""
+   fullx = xsize
+   fully = ysize
+   if montage:
+      fullx = runGoodframe(xsize)
+      fully = runGoodframe(ysize)
+         
+   # Also get the rotation relative to square to get indent in Y from rotation
+   indentangle = axisangle
+   if (axisangle > 45 and axisangle < 135) or (axisangle < -45 and axisangle > -135):
+      temp = fullx
+      fullx = fully
+      fully = temp
+      newstwidth = fullx
+      if axisangle > 0:
+         indentangle = 90 - axisangle
+      else:
+         indentangle = -90 - axisangle
+
+   else:
+      if axisangle > 90:
+         indentangle = 180 - axisangle
+      else:
+         indentangle = -180 - axisangle
+
+   if indentangle < 0:
+      indentangle = -indentangle
+   blxstart = xsize // 2 - fullx // 2
+   blxend = blxstart + fullx - 1
+   blystart = ysize // 2 - fully // 2
+   blyend = blystart + fully - 1
+
+   # EXTRACT A RAWTLT FILE
+   tiltspec = setname + ".rawtlt"
+   if not os.path.exists(tiltspec):
+      if ifextract:
+         if stackExists:
+            try:
+               extractlines = runcmd(fmtstr('extracttilts -warn {} {}', stackname,
+                                            tiltspec))
+            except ImodpyError:
+               exitFromImodError(progname)
+            if len(extractlines):
+               prnstr(extractlines[len(extractlines) - 1], end = '')
+         else:
+            printInfo("{0} does not exist yet.\n  When it does, you will have to"+\
+                   " run:\n  extracttilts {0} {1}", stackname, tiltspec)
+      elif userawtlt:
+         warning(tiltspec + " does not exist yet.  You need to create this file before"+\
+                 " running commands.")
+
+   # IF MONTAGED CCD, JUST EXTRACT THE PIECE LIST IF NEEDED
+   if montage:
+      if not os.path.exists(piecename):
+         if stackExists:
+            prnstr("Extracting piece list file from the image file...")
+            try:
+               extractlines = runcmd(fmtstr('extractpieces {} {}', stackname, piecename))
+            except ImodpyError:
+               exitFromImodError(progname)
+            if len(extractlines):
+               prnstr(extractlines[len(extractlines) - 1], end = '')
+         else:
+            printInfo("{0} does not exist yet.\n  When it does, you will have to"+\
+                   " run:\n  extractpieces {0} {1}", stackname, piecename)
+
+   # Set up mag gradient file
+   if gradient:
+      gradspec = setname + '.maggrad'
+      gradok = 1
+      if not os.path.exists(gradspec):
+         if stackExists:
+            prnstr("Extracting mag gradients from the image file...")
+            try:
+
+               # Use standard input in case of spaces in gradient table
+               input = ['InputImageFile ' + stackname,
+                        'OutputFile ' + gradspec,
+                        'GradientTable ' + gradient,
+                        fmtstr('RotationAngle {}', axisangle)]
+               if pixelx == 1.:
+                  input.append(fmtstr("PixelSize {}", pixsize)) 
+                      
+               extractlines = runcmd('extractmagrad -StandardInput', input)
+
+            except ImodpyError:
+               warning("Could not extract mag gradients from " + stackname)
+               gradok = 0
+
+            if len(extractlines) > 1:
+               prnstr(extractlines[len(extractlines) - 2], end = '')
+               prnstr(extractlines[len(extractlines) - 1], end = '')
+
+         else:
+            printInfo("{0} does not exist yet.\n  When it does, you will have to"+\
+                   " run:\n  extractmagrad {0} -rot {1} -grad {2} {0} {3}",
+                   stackname, axisangle, gradient, gradspec)
+
+      if gradok:
+         xftext = "-grad " + gradspec + " " + disttext
+         subgradient = "GradientFile"
+
+   # Set up tilt angle variables
+   if angles:
+      tiltopt = -1
+      tiltspec = angles
+   elif firstinc:
+      tiltopt = 1
+      tiltspec = fmtstr('{},{}', first, increm)
+   else:
+      tiltopt = 0
+      tiltspec = setname + ".rawtlt"
+
+   # Handle text for PIP-style tilt options
+   incDelText = "TiltIncrement"
+   tiltIncText = "gibberish232"
+   tiltStart = tiltspec
+   tiltInc = 1
+   if tiltopt < 0:
+      tiltTypeText = "TiltAngles"
+   elif tiltopt == 0:
+      tiltTypeText = "TiltFile"
+   else:
+      tiltTypeText = "FirstTiltAngle"
+      tiltStart = first
+      tiltInc = increm
+      tiltIncText = "TiltIncrement"
+      incDelText = "gibberish434"
+
+   excludelist = excludelistin.replace(' ', '')
+
+   wipeexclude = "ExcludeList"
+   wipeskip = "SkipViews"
+   if excludelist != "":
+      wipeexclude = "gibberish"
+      wipeskip = "gibberish"
+
+   backuplist.extend([piecename, setname + '.rawtlt', 'track' + logext,
+                      'align' + logext, 'findsec' + logext, 'tomopitch' + logext])
+
+   # Adjust mode in tilt output if float input, in newst output if byte
+   # Also adjust base for log if maximum denisty is negative and minimum is
+   # very negative and mode is 1
+   tiltmode = 1
+   newstmode = ""
+   if stackExists:
+      if mode == 2:
+         tiltmode = 2
+      if mode == 0:
+         newstmode = "-mode 1"
+      if mode == 1:
+         if  meandens < -1000 and mindens < -10000:
+            logbase = 32768
+            printInfo('Setting logarithm offset for Tilt to 32768 because the mean '+\
+                      'density of\n   ' + stackname + ' is negative and the minimum '+\
+                      'density is < -10000')
+         else:
+            try:
+
+               # Look for the Fei title, if it started
+               # as an FEI file and min is still negative, assume it is needs a base
+               headout = runcmd('header ' + stackname)
+            except ImodpyError:
+               exitFromImodError(progname)
+
+            isFEI = False
+            for l in headout:
+               if l.startswith('Fei Company'):
+                  isFEI = True
+                  if mindens < 0:
+                     logbase = 32768
+                     printInfo('Setting logarithm offset for Tilt to 32768 because '+\
+                               stackname + '\n   came from FEI software and has a '+\
+                               'minimum < 0')
+                  else:
+                     warning('You may need a logarithm offset of 32768 for Tilt '+\
+                               'because ' + stackname + '\n   came from FEI software, '+\
+                               'unless you already shifted the data up by 32768')
+                  break
+                  
+            if not isFEI and meandens < 0:
+               warning(fmtstr('{} has a negative mean density ({:.1f}) and you may need'+\
+                              '\n   a logarithm offset when running Tilt', stackname,
+                              meandens))
+
+   wipepl = "gibberish9876543"
+
+   # GET CTFPLOTTER AND CTFCORRECTION first, so that we can skip rest of loop
+   if CTFonly != 2:
+
+      sedcom = [srcToDist,
+                fmtstr("/^{}/s/[ 	].*/	{}/", ctfconfsub, ctfconf),
+                fmtstr("/^{}/s/[ 	].*/	{}/", voltsub, voltage),
+                fmtstr("/^{}/s/[ 	].*/	{}/", sphersub, spherab),
+                fmtstr("/^{}/s/[ 	].*/	{}/", defocsub, defocus),
+                fmtstr("/^PixelSize/s/[ 	].*/	{}/", pixsize),
+                fmtstr("/^AxisAngle/s/[ 	].*/	{}/", axisangle)]
+      editAndWrite("ctfplotter", "ctfplotter", sedcom)
+
+   if CTFonly != 1:
+
+      sedcom = [srcToDist,
+                fmtstr("/^{}/s/[ 	].*/	{}/", voltsub, voltage),
+                fmtstr("/^{}/s/[ 	].*/	{}/", sphersub, spherab),
+                fmtstr("/^PixelSize/s/[ 	].*/	{}/", pixsize)]
+      editAndWrite("ctfcorrection", "ctfcorrection", sedcom)
+
+   if CTFonly:
+      continue
+
+   wipepl = piecename
+   tiltxf = setname + '.tltxf'
+   tracksrc = setname + '.preali'
+
+   # GET ERASER
+   sedcom = [srcToDist,
+             fmtstr("s/^MaximumRadius.*/MaximumRadius   {}/", eraserad)]
+   editAndWrite('eraser', "eraser", sedcom)
+
+   # GET XCORR
+   dstfile = "xcorr" + dstext
+   backuplist.extend([dstfile, setname + '.prexf', setname + '.prexg',
+                      setname + '.tltxf'])
+   makeBackupFile(dstfile)
+
+   dstlines = ["# THIS IS A COMMAND FILE TO RUN TILTXCORR AND DETERMINE " +\
+               "CROSS-CORRELATION",
+               "# ALIGNMENT OF A TILT SERIES", '#']
+   xcsrc = stackname
+   preblend = 0
+   if montage:
+
+      # IF MONTAGED, START THE FILE WITH PREBLEND - LIMIT SIZE
+      dstlines.extend(["# Set the following goto to 'doxcorr' to skip the blend",
+                       "$goto doblend", "$doblend:"])
+      preblend = 1
+      srcfile = os.path.join(srcdir, 'blend' + srcext)
+      xcxsize = min(xsize, MONTAGE_XCORR_MAX)
+      xcysize = min(ysize, MONTAGE_XCORR_MAX)
+      xstart = (xsize - xcxsize) // 2
+      xend = (xsize + xcxsize) // 2 - 1
+      ystart = (ysize - xcysize) // 2
+      yend = (ysize + xcysize) // 2 - 1
+      xcsrc = setname + '.bl'
+      sedcom = [srcToDist,
+                's/' + setname + '.ali/' + xcsrc + '/',
+                "/^TransformFile/s/^T/#T/",
+                fmtstr("/^#*{}/s/.*/DistortionField	{}/", subdistort, distort),
+                fmtstr("/^ImagesAreBinned/s/1/{}/", binning),
+                fmtstr("/^#*{}/s/^#//", subgradient),
+                fmtstr("/^AdjustedFocus/s/0/{}/", focusAdj),
+                "/^SloppyMontage/s/0/1/",
+                "/^ShiftPieces/s/0/1/",
+                "/AdjustOrigin/d",
+                fmtstr("/^StartingAndEndingX/s/[ 	].*/	{} {}/", xstart, xend),
+                fmtstr("/^StartingAndEndingY/s/[ 	].*/	{} {}/", ystart, yend),
+                '/mrctaper/d']
+      sedlines = pysed(sedcom, srcfile, None)
+      dstlines.extend(sedlines)
+      dstlines.append('$doxcorr:')
+
+   # Now do tiltxcorr commands
+   srcfile = os.path.join(srcdir, 'xcorr' + srcext)
+   sedcom = [srcToDist,
+             fmtstr("/^FirstTiltAngle/s/.*/{}	{}/", tiltTypeText, tiltStart),
+             fmtstr("/^{}/s/[ 	].*/	{}/", tiltIncText, tiltInc),
+             fmtstr("/^{}/d", incDelText),
+             fmtstr("/^RotationAngle/s/[ 	].*/	{}/", axisangle),
+             fmtstr("s/{}.st/{}/", setname, xcsrc)]
+   sedlines = pysed(sedcom, srcfile, None)
+   dstlines.extend(sedlines)
+   dstlines.append(backupline)
+   writeTextFile(dstfile, dstlines)
+
+   if not montage:
+
+      # GET PRENEWST
+      sedcom = [srcToDist,
+                "/newst/s/-xf/" + xftext + "/"]
+      editAndWrite('prenewst', "prenewst", sedcom)
+
+      # GET NEWST
+      sedcom = [srcToDist,
+                "/newst/s/-xf/" + xftext + "/",
+                fmtstr("/newst/s/-size ,,/{} -size {},{}/g", newstmode,
+                       newstwidth, SAMPLESIZE)]
+      editAndWrite('ccdnewst', "newst", sedcom)
+      
+   else:
+
+      # OR, GET PREBLEND AND BLEND
+      sedcom = [srcToDist,
+                fmtstr("/^#*{}/s/.*/DistortionField	{}/", subdistort, distort),
+                fmtstr("/^ImagesAreBinned/s/1/{}/", binning),
+                fmtstr("/^#*{}/s/^#//", subgradient),
+                fmtstr("/^AdjustedFocus/s/0/{}/", focusAdj)]
+      editAndWrite('ccdpreblend', "preblend", sedcom)
+
+      sedcom = [srcToDist,
+                fmtstr("/^#*{}/s/.*/DistortionField	{}/", subdistort, distort),
+                fmtstr("/^ImagesAreBinned/s/1/{}/", binning),
+                fmtstr("/^#*{}/s/^#//", subgradient),
+                fmtstr("/^AdjustedFocus/s/0/{}/", focusAdj),
+                "/^SloppyMontage/s/0/1/",
+                "/^ShiftPieces/s/0/1/",
+                "/^ReadInXcorrs/s/0/1/",
+                "/^OldEdgeFunctions/s/0/1/",
+                fmtstr("/^StartingAndEndingX/s/[ 	].*/	{} {}/", blxstart,
+                       blxend),
+                fmtstr("/^StartingAndEndingY/s/[ 	].*/	{} {}/", blystart,
+                       blyend)]
+      editAndWrite('blend', "blend", sedcom)
+      backuplist.append(setname + '.ecd')
+
+   # GET TRACK: WIPE OUT PL ENTRY WHEN NO MONTAGE FOR FILM
+   # SET INPUT TO .PREALI FOR CCD
+
+   sedcom = [srcToDist,
+             fmtstr("/^FirstTiltAngle/s/.*/{}	{}/", tiltTypeText, tiltStart),
+             fmtstr("/^{}/s/[ 	].*/	{}/", tiltIncText, tiltInc),
+             fmtstr("/^{}/d", incDelText),
+             fmtstr("/^RotationAngle/s/[ 	].*/	{}/", axisangle),
+             fmtstr("/^#*SkipViews.*/s//SkipViews	{}/", excludelist),
+             fmtstr("/^#*{}/d", wipeskip),
+             fmtstr("/^BeadDiameter/s/[ 	].*/	{:.2f}/", beadsize),
+             fmtstr("/^BoxSizeXandY/s/[ 	].*/	{0},{0}/", boxsize),
+             fmtstr("s/$stackname/{}/", tracksrc),
+             fmtstr("s/{}//", wipepl)]
+   editAndWrite('track', "track", sedcom)
+   backuplist.extend([setname + 'seed', setname + 'fid'])
+
+   # COPY EMPTY SEED MODELS
+   seedhere = setname + '.seed'
+   if not os.path.exists(seedhere):
+      shutil.copyfile(os.path.join(srcdir, seedname), seedhere)
+
+   # GET ALIGN; zero FixXYZCoords IF SINGLE AXIS; SET OUTPUT TO .TLTXF FOR CCD
+                      
+   fixxyz = 1
+   if naxis == 1:
+      fixxyz = 0
+      
+   # set the frame size bigger if needed for a montage set
+      
+   alxsize = xsize
+   alysize = ysize
+   if preblend:
+      alxsize = runGoodframe(xsize)
+      alysize = runGoodframe(ysize)
+
+   # 5/3/02: change to using image file name, keep dimensions commented out
+
+   srcfile = os.path.join(srcdir, 'align' + srcext)
+   dstfile = "align" + dstext
+   makeBackupFile(dstfile)
+   sedcom = [srcToDist,
+             fmtstr("/^FirstTiltAngle/s/.*/{}	{}/", tiltTypeText, tiltStart),
+             fmtstr("/^{}/s/[ 	].*/	{}/", tiltIncText, tiltInc),
+             fmtstr("/^{}/d", incDelText),
+             fmtstr("/^RotationAngle/s/[ 	].*/	{}/", axisangle),
+             fmtstr("/ImageSizeXandY/s/[ 	].*/	{},{}/", alxsize, alysize),
+             fmtstr("/^#*ExcludeList.*/s//ExcludeList	{}/", excludelist),
+             fmtstr("s/{}/{}/", stackname, tracksrc),
+             fmtstr("s/{}.xf/{}/", setname, tiltxf),
+             fmtstr("/^FixXYZCoordinates/s/.*/FixXYZCoordinates	{}/", fixxyz),
+             fmtstr("/^#*{}/d", wipeexclude)]
+   sedlines = pysed(sedcom, srcfile, None)
+
+   sedlines.extend(["#",
+                   "# COMBINE TILT TRANSFORMS WITH PREALIGNMENT TRANSFORMS",
+                   "#",
+                   "$xfproduct -StandardInput",
+                   "InputFile1 " + setname + ".prexg",
+                   "InputFile2 " + setname + ".tltxf",
+                   "OutputFile " + setname + "_fid.xf",
+                   "$\\cp " + setname + "_fid.xf " + setname + ".xf",
+                   "$chmod u+rw " + setname + ".xf",
+                   "$\\cp  " + setname + ".tlt " + setname + "_fid.tlt",
+                   "$chmod u+rw " + setname + "_fid.tlt",
+                   "#",
+                   "# CONVERT RESIDUAL FILE TO MODEL",
+                   "#",
+                   fmtstr("$if (-e {0}.resid) patch2imod -s {1} {0}.resid {0}.resmod",
+                          setname, RESIDUAL_SCALE),
+                   backupline])
+   writeTextFile(dstfile, sedlines)
+   backuplist.extend([dstfile, setname + "local.xf", setname + "fid.xyz,",
+                      setname + ".xf", setname + ".tlt", setname + ".resid",
+                      setname + ".resmod", setname + ".3dmod"])
+   
+
+   # GET MTFFILTER
+   sedcom = [srcToDist]
+   editAndWrite("mtffilter", "mtffilter", sedcom)
+
+   # GET TILT
+   delexclude = "gibberish"
+   if excludelist == "":
+      delexclude = "EXCLUDELIST"
+
+   # Get a scaling for tilt appropriate to the X size: look up in table
+   for i in range(len(TILTSIZES) - 1, -1, -1):
+      tiltscale = TILTSCALES[i]
+      tiltsize = TILTSIZES[i]
+      if fullx >= tiltsize:
+         break
+
+   sedcom = [srcToDist,
+             fmtstr("/^LOG/s/LOG.*/LOG {}/", logbase),
+             fmtstr("/MODE/s/MODE.*/MODE {}/", tiltmode),
+             fmtstr("/SCALE/s/SCALE.*/SCALE 0 {}/", tiltscale),
+             fmtstr("/FULLIMAGE/s//FULLIMAGE {} {}/", fullx, fully),
+             fmtstr("/EXCLUDELIST/s//EXCLUDELIST {}/", excludelist),
+             fmtstr("/{}/d", delexclude)]
+   editAndWrite("tilt", "tilt", sedcom)
+
+   # COMPUTE OFFSET FOR SAMPLING
+
+   # get indent in Y where 3/4 of the X extent has data after rotation
+   # but limit it to 1/4 of Y extent
+   rotindent = int(0.25 * fullx * math.tan(indentangle * 3.14159/180))
+   rotindent = min(rotindent, fully // 4)
+
+   # Limit offsets to 1/4 of Y extent generally, and sample sizes to half of
+   # Y extent, in case of tiny tomograms
+   #
+   border = MINBORDER1
+   if fully > BORDERSTEP1:
+      border = MINBORDER2
+   if fully > BORDERSTEP2:
+      border = MINBORDER2 + (fully - BORDERSTEP2) // BORDERFAC
+   border = int(border * CCDBORDERFAC)
+   border = max(border, rotindent)
+   border = min(fully // 4 - 1, border)
+   sampalisize = min(SAMPALISIZE, fully // 2  - 2)
+   samplesize = min(SAMPLESIZE, sampalisize - 2)
+   offset = fully // 2 - border
+   halfsampali = min(sampalisize // 2, border - 10)
+   sampali = 2 * halfsampali
+   slmin = halfsampali - samplesize // 2
+   slmax = slmin + samplesize - 1
+   sllimit = sampalisize - 1
+
+   offarr = (0, offset, -offset)
+   bmtarr = ('mid' + recext, 'top' + recext, 'bot' + recext)
+
+   dstfile = "sample" + dstext
+   backuplist.append(dstfile)
+   makeBackupFile(dstfile)
+
+   # MAKE UP SAMPLE FILE WITH VARIOUS CASES
+   dstlines = ["# THIS IS A COMMAND FILE TO MAKE 3 TOMOGRAM SAMPLES",
+               "#",
+               "####CreatedVersion#### 3.8.25",
+               "# ",
+               fmtstr("# The sample aligned stacks will each be {} pixels in Y",
+                      sampalisize),
+               fmtstr("# The sample tomograms will have {} slices", samplesize),
+               fmtstr('# To get more slices in the samples, change "sampletilt {} {}" by',
+                      slmin, slmax),
+               fmtstr("# decreasing {} and increasing {} by equal amounts, up to 0 "+\
+                      "and {}", slmin, slmax, sllimit),
+               "#"]
+   for ind in range(3):
+      offind = offarr[ind]
+      ymin = ysize // 2 + offind - halfsampali
+      ymax = ysize // 2 + offind + halfsampali
+      ystart = fully // 2 + offind - halfsampali
+      if not montage:
+         sedcom = [fmtstr("s/-offset 0,0/-offset 0,{}/", offind),
+                   fmtstr("/\(-size *[0-9]*,\)[0-9]* /s//\\g<1>{} /", sampali),
+                   "/if (-e/d",
+                   "/-origin/s///",
+                   "/mrctaper/d",
+                   "/THIS IS A COMMAND FILE/s//THESE ARE COMMANDS/"]
+         sedlines = pysed(sedcom, 'newst' + dstext, None)
+      else:
+         sedcom = ["/^OldEdgeFunctions/s/0/1/",
+                   fmtstr("/^StartingAndEndingY/s/[ 	].*/	{} {}/", ymin, ymax),
+                   "/if (-e/d",
+                   "/AdjustOrigin/d",
+                   "/mrctaper/d",
+                   "/Command file/s//Commands/"]
+         sedlines = pysed(sedcom, 'blend' + dstext, None)
+
+      dstlines.extend(sedlines)
+      dstlines.append(fmtstr("$sampletilt {} {} {} {} {} tilt{}", slmin, slmax, ystart,
+                             setname, bmtarr[ind], dstext))
+
+   dstlines.append(backupline)
+   writeTextFile(dstfile, dstlines)
+
+   # SKIP FINDSEC until it is useful!
+
+   # GET TOMOPITCH
+   sedcom = [fmtstr("/^SpacingInY/s/[ 	].*/	-{}/", offset),
+             fmtstr("s/\.mod/{}/g", modext),
+             fmtstr("s/\.rec/{}/g", recext)]
+   editAndWrite("tomopitch", "tomopitch", sedcom)
+   backuplist.extend(['top' + modext, 'mid' + modext, 'bot' + modext,
+                      'tomopitch' + modext])
+    
+if CTFonly:
+   sys.exit(0)
+
+
+# OUTPUT THE BACKUP FILE
+
+if backup:
+
+   if naxis == 2:
+      backuplist.extend(['combine.com', 'solve.xf', 'refine.xf', 'inverse.xf', 'warp.xf',
+                        'patch.out', 'combine.log'])
+   dstlines = ["#! /bin/csh -f",
+               'set backupdir = "' + backupdir + '"',
+               'set backuplist = ( \\',]
+   line = ""
+   for num in range(len(backuplist)):
+      line += backuplist[num] + '  '
+      if (num + 1) % 4 == 0:
+         line += '\\'
+         dstlines.append(line)
+         line = ""
+
+   line += ')'
+   dstlines.extend([line,
+                    "while ($#backuplist > 0)",
+                    "  set flnm = $backuplist[1]",
+                    "  if (-e $flnm) then",
+                    '    if (! -e "$backupdir/$flnm") \\cp -p $flnm "$backupdir"',
+                    '    \\find . -name $flnm -newer "$backupdir/$flnm" -exec cp -p '+\
+                    '"{}" "$backupdir" \\;',
+                    "  endif",
+                    "  shift backuplist",
+                    "end"])
+
+   writeTextFile(backupname, dstlines)
+   try:
+      runcmd('chmod +x ' + backupname)
+   except ImodpyError:
+      exitFromImodError(progname)
+
+# Skip all the verbiage at the end
+prnstr("All command files successfully created")
+sys.exit(0)
+   
+
+#
+# Log: splitcombine,v $
