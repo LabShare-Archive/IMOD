@@ -1,0 +1,41 @@
+.na
+.nh
+.TH copytomocoms 1 4.2.9 BL3DEMC
+.SH NAME
+copytomocoms \- Create command files for generating tomograms
+.SH SYNOPSIS
+copytomocoms [options] -name rootname
+
+.SH DESCRIPTION
+Copytomocoms generates the command files needed for nearly all of the
+processing involved in generating a tomogram.  The program is run by the setup
+page of eTomo.
+.P
+There are several ways in which tilt angles can be entered: as a starting and
+increment tilt angle, in a file with a list of angles (which can be extracted
+from the image file or supplied separately), or directly as a list of angles. 
+For each axis, one of these option must be entered for the tilt angle entry,
+but only one way can be specified.
+.SS Options
+Copytomocoms uses the PIP package for input (see the manual page for pip(1)).
+Options can be specified either as command line arguments (with the -)
+or one per line in a command file (without the -):
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input
+
+.SH FILES
+All files are modified from the master files in the $IMOD_DIR/com directory.
+Existing copies of the command files will be made into backup files by adding
+the extension ~.
+
+.SH AUTHOR
+David Mastronarde
+.SH BUGS
+Email bug reports to mast@colorado.edu
+.SH SEE ALSO
+extracttilts(1), extractpieces(1), extractmagrad(1)
+.SH HISTORY
+Copytomocoms was a original a C-shell script.  In February 2011 it was
+converted to Python.
