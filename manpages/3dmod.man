@@ -167,7 +167,9 @@ The
 option will scale image intensities linearly so that the min and max values
 will be displayed as black (0) and white (255) on the screen.  Without this
 option, intensities are scaled between the minimum and maximum intensities in
-the image file.  Images can be rescaled after 3dmod is running using the
+the image file.  If you have multiple image files, enter 0,0 to have all files
+scaled the same, based on the overall minimum and maximum of all of the files.
+Images can be rescaled after 3dmod is running using the
 menu entry Edit-Image-Reload.  If raw image files are being read, entering 
 this option will set the scaling limits for these files and prevent them from
 being scanned for their minimum and maximum values.

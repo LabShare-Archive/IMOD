@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/26/11: 3dmod -s 0,0 will apply equal intensity scaling to all input files
+based on their overall min and max.
+
 2/25/11: Converted Copytomocoms to Python and added INFO outputs when the log
 base is set to 32768, and WARNING outputs when it is not set but might need to
 be.
