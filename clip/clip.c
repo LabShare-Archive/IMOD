@@ -66,6 +66,7 @@ void usage(void)
   fprintf(stderr, "\tstats       - Print some stats on image file.\n");
   fprintf(stderr, "\tsubtract    - Subtract one image volume from another.\n");
   fprintf(stderr, "\ttruncate    - Limit image values at low or high end.");
+  fprintf(stderr, "\tunwrap      - Undo a wraparound of integer intensity values.\n");
   fprintf(stderr, "\tvariance    - Compute variance for averaged images.\n");
   /* fprintf(stderr, "\ttranslate   - translate image.\n");
   fprintf(stderr, "\tzoom        - magnify image.\n"); */
@@ -250,6 +251,8 @@ int main( int argc, char *argv[] )
 
   if (!strncmp( argv[1], "truncate", 3))
     process = IP_TRUNCATE;
+  if (!strncmp( argv[1], "unwrap", 3))
+    process = IP_UNWRAP;
   if (!strncmp( argv[1], "splitrgb", 3)){
     process = IP_SPLITRGB;
   }
@@ -546,6 +549,7 @@ int main( int argc, char *argv[] )
   case IP_SHADOW:
   case IP_RESIZE:
   case IP_TRUNCATE:
+  case IP_UNWRAP:
     retval = clip_scaling(&hin, &hout, &opt);
     break;
   case IP_COLOR:
@@ -680,6 +684,9 @@ int *clipMakeSecList(char *clst, int *nofsecs)
 
 /*
 $Log$
+Revision 3.25  2011/02/24 00:12:26  mast
+Set MAP stamp for new file header
+
 Revision 3.24  2011/02/23 22:19:26  mast
 Add volume combining and truncation options, deal with -x and -y properly
 

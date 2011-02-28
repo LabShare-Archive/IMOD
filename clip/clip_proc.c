@@ -39,6 +39,7 @@ int clip_scaling(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
   Ival val;
   Islice *slice;
   double min, alpha;
+  float hival, loval;
   int truncLo = 0, truncHi = 0;
 
   z = set_options(opt, hin, hout);
@@ -66,6 +67,7 @@ int clip_scaling(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     mrc_head_label(hout, "clip: resized image");
     break;
   case IP_TRUNCATE:
+    show_status("Truncate...\n");
     if (opt->low != IP_DEFAULT)
       truncLo = 1;
     if (opt->high != IP_DEFAULT)
@@ -75,6 +77,21 @@ int clip_scaling(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
       return -1;
     }
     mrc_head_label(hout, "clip: truncated");
+    break;
+  case IP_UNWRAP:
+    show_status("Unwrap...\n");
+    if (hin->mode != MRC_MODE_SHORT && hin->mode != MRC_MODE_USHORT) {
+      fprintf(stderr, "clip truncate: Mode must be short or unsigned short integers\n");
+      return -1;
+    }
+    if (hin->mode == MRC_MODE_USHORT && opt->val == IP_DEFAULT) {
+      fprintf(stderr, "clip truncate: You must enter a value to add with -n for mode "
+              "6 input\n");
+      return -1;
+    }
+    if (opt->val == IP_DEFAULT)
+      opt->val = 32768.;
+    mrc_head_label(hout, "clip: unwrapped integer values");
     break;
   default:
     return(-1);
@@ -113,6 +130,23 @@ int clip_scaling(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
             if (truncHi)
               val[l] = B3DMIN(opt->high, val[l]);
           }
+          slicePutVal(slice, i, j, val);
+        }
+      }
+
+    } else if (opt->process == IP_UNWRAP) {
+
+      /* Unwrap: add a value and wrap values around */
+      hival = hin->mode == MRC_MODE_USHORT ? 65535 : 32767;
+      loval = hival - 65535.;
+      for (j = 0; j < opt->iy; j++) {
+        for (i = 0; i < opt->ix; i++) {
+          sliceGetVal(slice, i, j, val);
+          val[0] += opt->val;
+          if (val[0] > hival)
+            val[0] -= 65536.;
+          else if (val[0] < loval)
+            val[0] += 65536.;
           slicePutVal(slice, i, j, val);
         }
       }
@@ -1915,6 +1949,11 @@ int free_vol(Islice **vol, int z)
 /*
 
 $Log$
+Revision 3.31  2011/02/23 22:21:48  mast
+Add multiply, add, divide, subtract, and truncate options.  Add scaling to the
+average,sd, variance options.  Made 2D averaging happen based on number of
+input files, not -2d flag, and added 2D sd/variance to that routine.
+
 Revision 3.30  2011/02/19 18:49:17  mast
 Adjust stat coordinates for a subarea offset
 
