@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/28/11: In eTomo fixing a bug where the RotationAngle was not added to the
+patch tracking comscript, xcorr_pt.com (in 4.1 FWIW).
+
 2/28/11: 3dmod draws slice lines in Zap and XYZ when PageUp/Down used in
 slicer.
 
@@ -26,9 +29,6 @@ base is set to 32768, and WARNING outputs when it is not set but might need to
 be.
 
 2/24/11: Converted splitcombine to Python and made eTomo use it.
-
-2/24/11: In eTomo fixing a bug where the RotationAngle was not added to the
-patch tracking comscript, xcorr_pt.com (in 4.1 FWIW).
 
 2/23/11: IMOD_4-2-15
 2/23/11: Temporary fix to splitcombine problem in Win 7.
