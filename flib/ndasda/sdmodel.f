@@ -4,7 +4,7 @@
       integer*4 openimoddata
       include 'sda.inc'
       include 'model.inc'
-      integer*4 getimodmesh,getimodscat,getimodclip
+      integer*4 getimodmesh,getimodscat,getimodclip,getimodhead
       logical*1 neednorm(maxverts)
       integer*4 modind(maxverts*6)
       real*4 clipplanes(4,*)
@@ -35,7 +35,7 @@ c
         print *,'error opening model, try again'
         go to 91
       endif
-      call getimodhead(xyscal,zscal,xofs,yofs,zofs,ifflip)
+      ierr = getimodhead(xyscal,zscal,xofs,yofs,zofs,ifflip)
 c       print *,xyscal,zscal
 c       
 c       get all the clipping planes in the model and report on them
