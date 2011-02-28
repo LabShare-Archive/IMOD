@@ -1235,7 +1235,7 @@ void SlicerFuncs::keyInput(QKeyEvent *event)
           mLastZmouse = vi->zmouse;
           ivwBindMouse(vi);
           synchronizeSlicers();
-          imodDraw(vi, IMOD_DRAW_XYZ);
+          imodDraw(vi, IMOD_DRAW_XYZ | IMOD_DRAW_SLICE);
           dodraw = 0;        
         }
       }
@@ -2934,6 +2934,9 @@ void SlicerFuncs::cubePaint()
 /*
 
 $Log$
+Revision 4.76  2011/02/14 04:35:50  mast
+Converted slicer struct to a class
+
 Revision 4.75  2011/02/13 21:31:51  mast
 Switch to general function for finding top window
 
