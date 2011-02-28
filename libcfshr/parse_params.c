@@ -976,11 +976,11 @@ int PipReadOptionFile(char *progName, int helpLevel, int localDir)
      directly to where the file should be */
   if (!localDir) {
     pipDir = getenv(OPTDIR_VARIABLE);
-    if (strlen(pipDir) > bigSize - 100) {
-      PipSetError(OPTDIR_VARIABLE" is suspiciously long");
-      return -1;
-    }
     if (pipDir) {
+      if (strlen(pipDir) > bigSize - 100) {
+        PipSetError(OPTDIR_VARIABLE" is suspiciously long");
+        return -1;
+      } 
       sprintf(bigStr, "%s%c%s.%s", pipDir, PATH_SEPARATOR, progName, 
               OPTFILE_EXT);
       /* fprintf(stderr, "Looking for file %s\n", bigStr); */
@@ -989,11 +989,11 @@ int PipReadOptionFile(char *progName, int helpLevel, int localDir)
 
     if (!optFile) {
       pipDir = getenv("IMOD_DIR");
-      if (strlen(pipDir) > bigSize - 100) {
-        PipSetError("IMOD_DIR is suspiciously long");
-        return -1;
-      }
       if (pipDir) {
+        if (strlen(pipDir) > bigSize - 100) {
+          PipSetError("IMOD_DIR is suspiciously long");
+          return -1;
+        }
         sprintf(bigStr, "%s%c%s%c%s.%s", pipDir, PATH_SEPARATOR, OPTFILE_DIR,
                 PATH_SEPARATOR, progName, 
                 OPTFILE_EXT);
@@ -1898,6 +1898,9 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
 
 /*
 $Log$
+Revision 1.9  2011/02/28 02:50:56  mast
+Prevent buffer overruns from IMOD_DIR and AUTODOC_DIR
+
 Revision 1.8  2011/02/25 22:19:46  mast
 Changed fallback warning to be generic
 
