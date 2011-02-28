@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/27/11: Add standard deviation output to Sumdensity.
+
 2/27/11: Doubled number of model points that can be loaded into Fortran
 programs.
 
