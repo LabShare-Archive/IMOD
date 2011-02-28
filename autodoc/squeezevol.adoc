@@ -1,0 +1,73 @@
+Version = 1.0
+Pip = 1
+
+
+[Field = factor]
+short = f
+type = F
+usage = Global factor to squeeze by, default = 1.6
+tooltip =
+manpage =
+
+[Field = expand]
+short = e
+type = F
+usage = global expansion factor
+tooltip =
+manpage =
+
+[Field = xFactor]
+short = x
+type = F
+usage = Factor to squeeze in X dimension, default is global factor or 1/expansion
+tooltip =
+manpage =
+
+[Field = yFactor]
+short = y
+type = F
+usage = Factor to squeeze in Y dimension, default is global factor or 1/expansion
+tooltip =
+manpage =
+
+[Field = zFactor]
+short = z
+type = F
+usage = Factor to squeeze in Z dimension, default is global factor or 1/expansion
+tooltip =
+manpage =
+
+[Field = ixSize]
+short = ix
+type = I
+usage = Input size in X dimension, default is full X size of volume
+tooltip =
+manpage =
+
+[Field = iySize]
+short = iy
+type = I
+usage = input size in Y dimension, default is full Y size of volume
+tooltip =
+manpage =
+
+[Field = izSize]
+short = iz
+type = I
+usage = input size in Z dimension, default is full Z size of volume
+tooltip =
+manpage =
+
+[Field = tempdir]
+short = t
+type = FN
+usage = Directory to use for temporary files
+tooltip =
+manpage =
+
+[Field = linear]
+short = l
+type = B
+usage = Use linear interpolation; default is quadratic
+tooltip =
+manpage =
