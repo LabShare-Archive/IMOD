@@ -101,6 +101,9 @@ Subtract one image volume from another.
 .I truncate
 Limit pixel values at low or high end, or both.
 .TP
+.I unwrap
+Undo wraparound of values in integer data.
+.TP
 .I variance
 Compute the variance of a set of images.
 .PD
@@ -274,7 +277,8 @@ function, 2 for rational function, 3 for Tukey biweight.  The default is 2.
 Input number. Use depends on process: threshold for averaging, scaling factor
 for brightness/contrast/shadow, padding for correlations,
 iterations for smoothing or anisotropic diffusion, size for
-median filter, criterion for determining outliers in statistics. 
+median filter, criterion for determining outliers in statistics, value to add
+when undoing wraparound.
 .TP
 .B -r <value>
 Red value;   Range is (0.0 - 1.0) Default is 1.0.
@@ -630,6 +634,27 @@ and the upper limit with
 .B
 -h.
 Standard input and output options can be used.
+.TP
+.B unwrap
+Add the value specified by the 
+.B -n
+option (32768 by default for signed integer data) and adjust any values that
+are now out of range for the input data mode by adding or subtracting 65536.
+This process can be used to recover data that wrapped around when they
+were saved as integers.  Two examples of wraparound are: 1) Unsigned data that
+went higher that 32767 but were saved as signed integers, in which the values
+above 32767 now appear as large negative numbers.  2) Data with negative
+values that had 32768 subtracted before saving, in which the negative values
+became large positive ones (this has been seen with FEI acquisition software).
+In case 1, the default value to add (32768) is appropriate but the data then
+need to be saved as unsigned (mode 6) or as floating point.  In case 2, the
+default value is appropriate as long as the original data did not range higher
+than 32767; if they did, then you need to determine a different value to add,
+such as a small number just sufficient to bring the originally negative numbers
+above 0.  This process will also work with unsigned input data but a
+.B -n
+entry is required.  Standard input and output options can be used.
+
 .SH HISTORY
 Originally most processes loaded all data into memory unless the -2d option
 was given, and the -2d option did not provide for any output padding.
