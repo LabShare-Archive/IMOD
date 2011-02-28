@@ -1634,11 +1634,14 @@ int imodSetRefImage(Imod *imod, MrcHeader *hdata)
     ref->cscale.y = hdata->ylen/(float)hdata->my;
   if (hdata->xlen && hdata->mz)
     ref->cscale.z = hdata->zlen/(float)hdata->mz;
+  ref->oscale.x = ref->oscale.y = ref->oscale.z = 1.;
+  ref->orot.x = ref->orot.y = ref->orot.z = 0.;
+  ref->otrans.x = ref->otrans.y = ref->otrans.z = 0.;
   return 0;
 }
 
 /*!
- * Transforms the model in [imod] according the old and current shift, scale,
+ * Transforms the model in [imod] according to the old and current shift, scale,
  * and rotation in the @@IrefImage structure@ [iref], with the additional 
  * scaling required for binning in each dimension specified in [binScale].
  * Returns 1 for memory errors.
@@ -1741,7 +1744,6 @@ void imodTransFromMats(Imod *imod, Imat *mat, Imat *matNorm, Imat *matClip)
   int    ob, co, pt;
   int    me, i;
   Imesh *mesh;
-  IclipPlanes *clips;
 
   for (ob = 0; ob < imod->objsize; ob++){
     obj = &(imod->obj[ob]);
@@ -1816,6 +1818,9 @@ int   imodGetFlipped(Imod *imod)
 
 /*
 $Log$
+Revision 3.33  2010/11/09 00:24:22  mast
+Fix model clean to not remove isosurface objects
+
 Revision 3.32  2008/03/03 18:24:04  mast
 Fixed bum checkin
 
