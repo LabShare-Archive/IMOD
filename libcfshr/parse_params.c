@@ -976,6 +976,10 @@ int PipReadOptionFile(char *progName, int helpLevel, int localDir)
      directly to where the file should be */
   if (!localDir) {
     pipDir = getenv(OPTDIR_VARIABLE);
+    if (strlen(pipDir) > bigSize - 100) {
+      PipSetError(OPTDIR_VARIABLE" is suspiciously long");
+      return -1;
+    }
     if (pipDir) {
       sprintf(bigStr, "%s%c%s.%s", pipDir, PATH_SEPARATOR, progName, 
               OPTFILE_EXT);
@@ -985,6 +989,10 @@ int PipReadOptionFile(char *progName, int helpLevel, int localDir)
 
     if (!optFile) {
       pipDir = getenv("IMOD_DIR");
+      if (strlen(pipDir) > bigSize - 100) {
+        PipSetError("IMOD_DIR is suspiciously long");
+        return -1;
+      }
       if (pipDir) {
         sprintf(bigStr, "%s%c%s%c%s.%s", pipDir, PATH_SEPARATOR, OPTFILE_DIR,
                 PATH_SEPARATOR, progName, 
@@ -1890,6 +1898,9 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
 
 /*
 $Log$
+Revision 1.8  2011/02/25 22:19:46  mast
+Changed fallback warning to be generic
+
 Revision 1.7  2011/02/21 17:51:43  mast
 Modified fallback output for new line length standard of 90
 
