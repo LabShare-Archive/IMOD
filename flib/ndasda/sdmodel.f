@@ -378,6 +378,7 @@ c       READ IN PORES HERE
 c       
       ierr=getimodscat(ibase_obj,npt_in_obj,p_coord,obj_color,n_point,
      &    n_object)
+      call scale_model(0)
       if(ierr.ne.0)then
         print *,'error',ierr,' reading pore positions, try again'
         go to 91
@@ -530,7 +531,10 @@ c             print *,npore,itydrop
       character*80 modelout
       integer*4 in5
       common /nmsinput/ in5
+      integer*4 getimodhead,getimodscales,putimodscat
 c       
+      ierr=getimodhead(xyscal,zscale,xofs,yofs,zofs,ifflip)
+      ierr = getimodscales(ximscale, yimscale, zimscale)
       iobj=-1
       do ipore=1,npore
         if(itypore(ipore).ne.iobj)then
@@ -542,10 +546,17 @@ c
           iobj=itypore(ipore)
         endif
         ind=ind+1
+c         
+c         Scale back to index coords
         do i=1,3
           porout(i,ind)=pore(i,ipore)/xyscal
         enddo
         porout(3,ind)=porout(3,ind)/zscal
+c         
+c         Undo the effects of scale_model and get back to model coords
+        porout(1,ind)=ximscale*porout(1,ind)+xofs
+        porout(2,ind)=yimscale*porout(2,ind)+yofs
+        porout(3,ind)=zimscale*porout(3,ind)+zofs
       enddo
       ierr=putimodscat(iobj,porout)
       if(ierr.ne.0)print *,'error',ierr,' putting object', iobj
