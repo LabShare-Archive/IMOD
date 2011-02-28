@@ -35,6 +35,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.30  2011/02/24 23:34:54  sueh
+ * <p> bug# 1452 imageRotation needs to be double everywhere.
+ * <p>
  * <p> Revision 3.29  2011/02/22 03:18:13  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -219,7 +222,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   private final Vector offsetsInXandY = new Vector();
   private final FortranInputString contrastBlackWhite = new FortranInputString(2);
   private final FortranInputString testLimits = new FortranInputString(2);
-  private final EtomoNumber imageRotation = new EtomoNumber(EtomoNumber.Type.FLOAT);
+  private final EtomoNumber imageRotation = new EtomoNumber(EtomoNumber.Type.DOUBLE);
 
   private ProcessName processName = ProcessName.NEWST;
   /**

@@ -72,7 +72,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
       "StartingAndEndingX", 2);
   private final FortranInputString startingAndEndingY = new FortranInputString(
       "StartingAndEndingY", 2);
-  private final EtomoNumber imageRotation = new EtomoNumber(EtomoNumber.Type.FLOAT);
+  private final EtomoNumber imageRotation = new EtomoNumber(EtomoNumber.Type.DOUBLE);
 
   private boolean overrideModeForImageOutputFile = false;
 
@@ -553,6 +553,9 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.40  2011/02/24 23:34:06  sueh
+ * <p> bug# 1452 imageRotation needs to be double everywhere.
+ * <p>
  * <p> Revision 1.39  2011/02/21 21:11:08  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
