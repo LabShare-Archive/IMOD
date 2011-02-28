@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/28/11: Converted Squeezevol to Python, added an option to specify expansion
+instead of squeezing, and made it adjust origin for a subvolume.
+
 2/28/11: Added & and * as alternatives to F11 (contrast reversal) and F12
 (false color) hot keys.
 
