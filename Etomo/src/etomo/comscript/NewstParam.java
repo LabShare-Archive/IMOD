@@ -33,6 +33,13 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.31  2011/02/28 22:45:12  sueh
+ * <p> bug# 1452 Making imageRotation double.
+ * <p>
+ * <p> Revision 3.27.2.1  2011/02/25 00:22:15  sueh
+ * <p> bug# 1452 Merged changes from head into 4.1:  imageRotation needs to
+ * <p> be double everywhere.
+ * <p>
  * <p> Revision 3.27  2010/02/17 04:47:53  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -208,7 +215,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
       2);
   private final FortranInputString testLimits = new FortranInputString(2);
   private final EtomoNumber imageRotation = new EtomoNumber(
-      EtomoNumber.Type.FLOAT);
+      EtomoNumber.Type.DOUBLE);
 
   private ProcessName processName = ProcessName.NEWST;
   /**

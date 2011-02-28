@@ -70,7 +70,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
   private final FortranInputString startingAndEndingY = new FortranInputString(
       "StartingAndEndingY", 2);
   private final EtomoNumber imageRotation = new EtomoNumber(
-      EtomoNumber.Type.FLOAT);
+      EtomoNumber.Type.DOUBLE);
 
   private boolean overrideModeForImageOutputFile = false;
 
@@ -524,6 +524,13 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.41  2011/02/28 22:45:02  sueh
+ * <p> bug# 1452 Making imageRotation double.
+ * <p>
+ * <p> Revision 1.37.2.1  2011/02/25 00:22:15  sueh
+ * <p> bug# 1452 Merged changes from head into 4.1:  imageRotation needs to
+ * <p> be double everywhere.
+ * <p>
  * <p> Revision 1.37  2010/02/17 04:47:54  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
