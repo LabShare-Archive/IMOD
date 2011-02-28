@@ -327,7 +327,9 @@ void ivwReadZ(ImodView *vi, unsigned char *buf, int cz)
     int ox, oy; /* data offset/origin  */
     unsigned int i, mxy, bxy;
     int nxbin, nybin; 
-
+    float pixLoaded = 0.;
+    float checkCrit = 1.e7;
+      
     /* DNM 1/3/04: use function instead of explicit tests */
     int pixSize = ivwGetPixelBytes(vi->rawImageStore);
 
@@ -412,6 +414,15 @@ void ivwReadZ(ImodView *vi, unsigned char *buf, int cz)
                   xsize, ysize, pixSize,
                   iskip, iox, ioy, 
                   fskip, fox, foy);
+
+        // Periodically check for a user exit
+        pixLoaded += (float)xsize * ysize * vi->xybin * vi->xybin;
+        if (pixLoaded > checkCrit) {
+          imod_info_input();
+          if (App->exiting)
+            exit(0);
+          pixLoaded = 0.;
+        }
       }
     }
     return;
@@ -2880,6 +2891,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 /*
 
 $Log$
+Revision 4.88  2011/02/26 17:21:24  mast
+Added equal scaling option
+
 Revision 4.87  2011/02/07 16:12:39  mast
 Convert zap structure to class, most functions to members
 
