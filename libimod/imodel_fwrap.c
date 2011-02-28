@@ -20,8 +20,8 @@
 #include "imodel.h"
 
 /* These values should match max_obj_num and max_pt in model.inc */
-#define FWRAP_MAX_OBJECT 750000
-#define FWRAP_MAX_POINTS 10000000
+#define FWRAP_MAX_OBJECT 1000000
+#define FWRAP_MAX_POINTS 20000000
 #define FWRAP_MAX_CLIP_PLANES 100
 
 #define FWRAP_NOERROR              0
@@ -2031,6 +2031,9 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
 
 /*
 $Log$
+Revision 3.40  2010/03/03 05:51:01  mast
+Added calls for model name
+
 Revision 3.39  2010/03/01 15:02:27  mast
 Added function to set object name
 
