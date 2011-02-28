@@ -2769,7 +2769,7 @@ Icont *imodContoursFromImagePoints(unsigned char *data, unsigned char **imdata,
   int otherx[4] = {1, 0, -1, 0};
   int othery[4] = {0, 1, 0, -1};
   float frac;
-  int found, iedge, ixst, iyst, iedgest, nsum, nayx, nayy, polarity, diff;
+  int found, iedge, ixst, iyst, iedgest, nsum, nayx, nayy, polarity, diff = 0;
   double edgeSum;
 
   xs = xsize - 1;
@@ -2876,17 +2876,14 @@ Icont *imodContoursFromImagePoints(unsigned char *data, unsigned char **imdata,
         ixst = i;
         iyst = j;
         /* printf ("starting %d %d %d\n", ixst, iyst, iedge); */
-        while (!cont->psize || i != ixst || j != iyst || 
-               iedge != iedgest) {
+        while (!cont->psize || i != ixst || j != iyst || iedge != iedgest) {
 
           if (!diagonal) {
             /* If no diagonals, look for next edge first 
                around corner on same pixel */
-            if (data[i + j * xsize] & 
-                edgemask[(iedge + 1) % 4]) {
+            if (data[i + j * xsize] & edgemask[(iedge + 1) % 4]) {
               iedge = (iedge + 1) % 4;
-            } else if (data[i + nextx[iedge] + 
-                            (j + nexty[iedge]) * xsize] &
+            } else if (data[i + nextx[iedge] + (j + nexty[iedge]) * xsize] &
                        edgemask[iedge]) {
               /* same edge, next pixel */
               i += nextx[iedge];
@@ -2898,43 +2895,41 @@ Icont *imodContoursFromImagePoints(unsigned char *data, unsigned char **imdata,
               j += cornery[iedge];
               iedge = (iedge + 3) % 4;
               if (!(data[i + j * xsize] & edgemask[iedge]))
-                printf("no edge around corner at i %d, j %d, edge %d\n", 
-                       i, j, iedge);
+                printf("no edge around corner at i %d, j %d, edge %d\n", i, j, iedge);
             }
           } else {
             /* If diagonals, look for next edge first on pixel 
                around inside corner if it's legal */
             itst = i + cornerx[iedge];
             jtst = j + cornery[iedge];
-            if (itst >= 0 && itst < xsize && jtst >= 0 && 
-                jtst < ysize && (data[itst + jtst * xsize] & 
-                                 edgemask[(iedge + 3) % 4])){
+            if (itst >= 0 && itst < xsize && jtst >= 0 && jtst < ysize && 
+                (data[itst + jtst * xsize] & edgemask[(iedge + 3) % 4])){
               i = itst;
               j = jtst;
               iedge = (iedge + 3) % 4;
-            } else if (data[i + nextx[iedge] + 
-                            (j + nexty[iedge]) * xsize] &
-                       edgemask[iedge]) {
-              /* then same edge, next pixel */
-              i += nextx[iedge];
-              j += nexty[iedge];
             } else {
-              /* go around corner on this pixel - the
-                 edge has to be there, but put in check
-                 for testing */
-              iedge = (iedge + 1) % 4;
-              if (!(data[i + j * xsize] & 
-                    edgemask[iedge]))
-                printf("no edge around corner at i %d, j %d, edge %d\n", 
-                       i, j, iedge);
+              itst = i + nextx[iedge];
+              jtst = j + nexty[iedge];
+              if (itst >= 0 && itst < xsize && jtst >= 0 && jtst < ysize && 
+                  data[i + nextx[iedge] + (j + nexty[iedge]) * xsize] & edgemask[iedge]) {
+                /* then same edge, next pixel */
+                i += nextx[iedge];
+                j += nexty[iedge];
+              } else {
+                /* go around corner on this pixel - the
+                   edge has to be there, but put in check
+                   for testing */
+                iedge = (iedge + 1) % 4;
+                if (!(data[i + j * xsize] & edgemask[iedge]))
+                  printf("no edge around corner at i %d, j %d, edge %d\n", i, j, iedge);
+              }
             }
           }
           
           frac = 0.45;
           nayx = i + otherx[iedge];
           nayy = j + othery[iedge];
-          if (threshold > 0 && nayx >= 0 && nayx < xsize && nayy >= 0 &&
-              nayy < ysize) {
+          if (threshold > 0 && nayx >= 0 && nayx < xsize && nayy >= 0 && nayy < ysize) {
             diff = imdata[nayy][nayx] - imdata[j][i];
             if (polarity * diff < 0) {
               frac = (threshold - imdata[j][i]) / diff;
@@ -2950,8 +2945,8 @@ Icont *imodContoursFromImagePoints(unsigned char *data, unsigned char **imdata,
              point.y = j + dely[iedge]; */
           imodPointAdd(cont, &point, cont->psize);
           data[i + j * xsize] &= ~edgemask[iedge];
-          /*printf ("at %d %d %d, adding %f %f   diff %d  frac %.2f\n", 
-            i, j, iedge, point.x, point.y, diff, frac); */
+          /* printf ("at %d %d %d, adding %f %f   diff %d  frac %.2f\n", 
+             i, j, iedge, point.x, point.y, diff, frac); */
 
         }
         found = 1;
@@ -3514,6 +3509,9 @@ char *imodContourGetName(Icont *inContour)
 /* END_SECTION */
 /*
   $Log$
+  Revision 3.34  2011/01/20 17:15:29  mast
+  Remove unused variables
+
   Revision 3.33  2011/01/20 17:09:04  mast
   Added function to combine scan contours
 
