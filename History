@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/27/11: Doubled number of model points that can be loaded into Fortran
+programs.
+
 2/27/11: Fixed model scaling in sda.
 
 2/26/11: 3dmod -s 0,0 will apply equal intensity scaling to all input files
