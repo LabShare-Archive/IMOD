@@ -1,6 +1,17 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-2/27/11: Add standard deviation output to Sumdensity.
+2/28/11: 3dmod draws slice lines in Zap and XYZ when PageUp/Down used in
+slicer.
+
+2/28/11: Allowed user to exit 3dmod when a loading large montage.
+
+2/28/11: Added an unwrap process to Clip to fix integer data saved with
+wraparound.
+
+2/27/11: Fixed a problem with autocontouring when following diagonals or doing
+inside contours.
+
+2/27/11: Added standard deviation output to Sumdensity.
 
 2/27/11: Doubled number of model points that can be loaded into Fortran
 programs.
