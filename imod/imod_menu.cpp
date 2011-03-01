@@ -1038,10 +1038,10 @@ void InfoWindow::editPointSlot(int item)
     dist2d  = imodel_point_dist(cpt, ppt);
     dist3d  = imodPoint3DScaleDistance(cpt, ppt, &scale);
 
-    wprint("\nDistance to previous point :\n2D = %g pixels, %g %s\n",
+    wprint("\nDistance to previous point :\nX/Y only = %g pixels, %g %s\n",
            dist2d, dist2d * imod->pixsize * vi->xybin,
            imodUnits(imod));
-    wprint("3D = %g %spixels, %g %s\n",
+    wprint("In 3D     = %g %spixels, %g %s\n",
            dist3d, vi->xybin * vi->zbin > 1 ? "unbinned " : "",
            dist3d * imod->pixsize, imodUnits(imod));
     break;
@@ -1298,6 +1298,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 /*
 
 $Log$
+Revision 4.59  2011/01/13 20:31:26  mast
+warning cleanup
+
 Revision 4.58  2010/12/18 05:41:55  mast
 Move movie to file menu
 
