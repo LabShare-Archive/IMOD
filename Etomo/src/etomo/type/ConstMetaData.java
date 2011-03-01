@@ -33,7 +33,7 @@ public interface ConstMetaData {
 
   public ConstEtomoNumber getAdjustedFocusB();
 
-  public double getImageRotation(AxisID axisID);
+  public ConstEtomoNumber getImageRotation(AxisID axisID);
 
   public String getBackupDirectory();
 
@@ -164,6 +164,9 @@ public interface ConstMetaData {
 
 /**public String getTrackMethod(AxisID axisID) 
  * <p> $Log$
+ * <p> Revision 3.61  2011/02/24 23:36:19  sueh
+ * <p> bug# 1452 imageRotation needs to be double everywhere.
+ * <p>
  * <p> Revision 3.60  2010/12/05 04:43:50  sueh
  * <p> bug# 1416 Added getGenCurTab.
  * <p>
