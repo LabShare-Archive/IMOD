@@ -29,6 +29,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.68  2011/02/28 22:45:31  sueh
+ * <p> bug# 1452 Making imageRotation double.
+ * <p>
  * <p> Revision 3.67  2011/02/24 23:36:53  sueh
  * <p> bug# 1452 imageRotation needs to be double everywhere.
  * <p>
@@ -417,8 +420,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private boolean useLocalAlignmentsA = true;
   private boolean useLocalAlignmentsB = true;
   private double fiducialDiameter = Double.NaN;
-  private double imageRotationA = Double.NaN;
-  private double imageRotationB = Double.NaN;
+  private EtomoNumber imageRotationA = new EtomoNumber(EtomoNumber.Type.DOUBLE,
+      "ImageRotationA");
+  private EtomoNumber imageRotationB = new EtomoNumber(EtomoNumber.Type.DOUBLE,
+      "ImageRotationB");
   private int binning = 1;
 
   private boolean fiducialessAlignmentA = false;
@@ -987,21 +992,12 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     this.fiducialDiameter = Double.parseDouble(fiducialDiameter);
   }
 
-  public void setImageRotation(double rotation, AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      imageRotationB = rotation;
-    }
-    else {
-      imageRotationA = rotation;
-    }
-  }
-
   public void setImageRotation(String rotation, AxisID axisID) {
     if (axisID == AxisID.SECOND) {
-      imageRotationB = Double.parseDouble(rotation);
+      imageRotationB.set(rotation);
     }
     else {
-      imageRotationA = Double.parseDouble(rotation);
+      imageRotationA.set(rotation);
     }
   }
 
@@ -1281,10 +1277,14 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     // Read in the old single image rotation or the newer separate image
     // rotation for each axis
     String strOldRotation = props.getProperty(group + "ImageRotation", "0.0");
-    imageRotationA = Double.parseDouble(props.getProperty(group + "ImageRotationA",
-        strOldRotation));
-    imageRotationB = Double.parseDouble(props.getProperty(group + "ImageRotationB",
-        strOldRotation));
+    imageRotationA.load(props, prepend);
+    if (imageRotationA.isNull()) {
+      imageRotationA.set(strOldRotation);
+    }
+    imageRotationB.load(props, prepend);
+    if (imageRotationB.isNull()) {
+      imageRotationB.set(strOldRotation);
+    }
     excludeProjectionsA = props.getProperty(group + "AxisA.ExcludeProjections", "");
     tiltAngleSpecA.load(props, group + "AxisA");
 
@@ -2129,7 +2129,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return fiducialDiameter;
   }
 
-  public double getImageRotation(AxisID axisID) {
+  public ConstEtomoNumber getImageRotation(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return imageRotationB;
     }
