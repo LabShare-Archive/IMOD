@@ -36,6 +36,7 @@ extern "C" {
   char *imodProgName(char *fullname);
   int imodBackupFile(char *filename);
   int imodGetpid();
+  void pidToStderr();
   char *f2cString(char *str, int strSize);
   int c2fString(char *cStr, char *fStr, int fSize);
   void b3dSetStoreError(int ival);
