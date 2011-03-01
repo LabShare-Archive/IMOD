@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/1/11: In eTomo fixed empty tabs in Final Aligned Stack dialog.
+
 3/1/11: Added q hot key to Zap and Slicer windows to report distance between
 current image or model point and the mouse cursor.
 
