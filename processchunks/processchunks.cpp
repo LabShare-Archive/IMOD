@@ -210,8 +210,7 @@ void Processchunks::loadParams(int &argc, char **argv) {
   PipGetBoolean("P", &returnPid);
   if (returnPid) {
     mSkipProbe = true;
-    fprintf(stderr, "Shell PID: %d\n", imodGetpid());
-    fflush(stderr);
+    pidToStderr();
   }
   char *cpuList = NULL;
   PipGetNonOptionArg(0, &cpuList);
@@ -1673,6 +1672,9 @@ bool Processchunks::isVerbose(const QString &verboseClass, const QString verbose
 
 /*
  $Log$
+ Revision 1.70  2011/02/05 00:51:02  sueh
+ bug# 1426 Allowing small letters in the check file.
+
  Revision 1.69  2011/02/03 23:40:07  sueh
  bug# 1426 return the correct exit code.
 
