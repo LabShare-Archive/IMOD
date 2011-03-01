@@ -1105,8 +1105,12 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
   case Qt::Key_Asterisk:
     if (keypad)
       inputNextz(vw, ImodPrefs->getPageStep());
-    else
-      handled = 0;
+    else {
+      if (vw->cramp->falsecolor < 2)
+        xcramp_falsecolor(vw->cramp, 1 - vw->cramp->falsecolor);
+      if (App->rgba)
+      imodDraw(App->cvi, IMOD_DRAW_IMAGE);
+    }
     break;
 
   case Qt::Key_Up:
@@ -1445,11 +1449,14 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
     imod_info_setbw(vw->black, vw->white);
     break;
   case Qt::Key_F11:
+  case Qt::Key_Ampersand:
     xcramp_reverse(vw->cramp, !(vw->cramp->reverse));
     if (App->rgba){
       imodDraw(App->cvi, IMOD_DRAW_IMAGE);
     }
     break;
+
+    // Also do same for asterisk (duplicate code)
   case Qt::Key_F12:
     if (vw->cramp->falsecolor < 2)
       xcramp_falsecolor(vw->cramp, 1 - vw->cramp->falsecolor);
@@ -1513,6 +1520,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.56  2011/01/13 20:30:08  mast
+Hot key to toggle gap
+
 Revision 4.55  2010/04/01 02:41:48  mast
 Called function to test for closing keys, or warning cleanup
 
