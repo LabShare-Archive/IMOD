@@ -1210,7 +1210,7 @@ public final class ApplicationManager extends BaseManager implements
     }
 
     coarseAlignDialog.setFiducialessAlignment(metaData.isFiducialessAlignment(axisID));
-    coarseAlignDialog.setImageRotation(metaData.getImageRotation(axisID));
+    coarseAlignDialog.setImageRotation(metaData.getImageRotation(axisID).toString());
     coarseAlignDialog.setParameters(getScreenState(axisID));
     mainPanel.showProcess(coarseAlignDialog.getContainer(), axisID);
   }
@@ -1704,10 +1704,10 @@ public final class ApplicationManager extends BaseManager implements
       return;
     }
     if (metaData.getViewType() == ViewType.MONTAGE) {
-      processMgr.midasBlendStack(axisID, metaData.getImageRotation(axisID));
+      processMgr.midasBlendStack(axisID, metaData.getImageRotation(axisID).getDouble());
     }
     else {
-      processMgr.midasRawStack(axisID, metaData.getImageRotation(axisID));
+      processMgr.midasRawStack(axisID, metaData.getImageRotation(axisID).getDouble());
     }
     processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
     mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
@@ -3892,7 +3892,7 @@ public final class ApplicationManager extends BaseManager implements
     sendMsgProcessStarting(processResultDisplay);
     // Get the user input from the dialog
     if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(this, state
-        .getStackImageRotation(axisID).getFloat(), state
+        .getStackImageRotation(axisID).toString(), state
         .isNewstFiducialessAlignment(axisID), axisID)) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
@@ -4123,7 +4123,7 @@ public final class ApplicationManager extends BaseManager implements
     sendMsgProcessStarting(processResultDisplay);
     // Get the user input from the dialog
     if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(this, state
-        .getStackImageRotation(axisID).getFloat(), state
+        .getStackImageRotation(axisID).toString(), state
         .isNewstFiducialessAlignment(axisID), axisID)) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
@@ -4193,7 +4193,7 @@ public final class ApplicationManager extends BaseManager implements
     sendMsgProcessStarting(processResultDisplay);
     // Get the user input from the dialog
     if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(this, state
-        .getStackImageRotation(axisID).getFloat(), state
+        .getStackImageRotation(axisID).toString(), state
         .isNewstFiducialessAlignment(axisID), axisID)) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
@@ -7842,6 +7842,10 @@ public final class ApplicationManager extends BaseManager implements
 /**
  * <p>
  * $Log$
+ * Revision 3.367  2011/02/26 04:18:50  sueh
+ * bug# 1453 In doneSetupDialog sending a specific INFO message to the
+ * project log.
+ *
  * Revision 3.366  2011/02/07 22:49:09  sueh
  * bug# 1435 In imodModel, opened 3dmod in movie mode.
  *

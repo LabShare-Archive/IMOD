@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.52  2011/02/21 17:49:37  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 3.51  2010/11/13 16:03:15  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -1209,7 +1212,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
         int goodframeX;
         int goodframeY;
         if (etomo.comscript.Utilities.is90DegreeImageRotation(manager.getConstMetaData()
-            .getImageRotation(axisID))) {
+            .getImageRotation(axisID).getDouble())) {
           //transpose x and y
           goodframeX = goodframe.getOutput(1).getInt();
           goodframeY = goodframe.getOutput(0).getInt();
@@ -1257,7 +1260,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       int stackX;
       int stackY;
       if (etomo.comscript.Utilities.is90DegreeImageRotation(manager.getConstMetaData()
-          .getImageRotation(axisID))) {
+          .getImageRotation(axisID).getDouble())) {
         stackX = stackHeader.getNRows();
         stackY = stackHeader.getNColumns();
       }
@@ -1301,7 +1304,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
         manager);
     if (goodframe != null) {
       if (etomo.comscript.Utilities.is90DegreeImageRotation(manager.getConstMetaData()
-          .getImageRotation(axisID))) {
+          .getImageRotation(axisID).getDouble())) {
         fullImageX = goodframe.getOutput(1).getInt();
         fullImageY = goodframe.getOutput(0).getInt();
       }
@@ -1323,7 +1326,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
         return;
       }
       if (etomo.comscript.Utilities.is90DegreeImageRotation(manager.getConstMetaData()
-          .getImageRotation(axisID))) {
+          .getImageRotation(axisID).getDouble())) {
         fullImageX = header.getNRows();
         fullImageY = header.getNColumns();
       }

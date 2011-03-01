@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.util.DatasetFiles;
 import etomo.util.MRCHeader;
@@ -29,7 +30,7 @@ public class ExtractmagradParam {
   private final AxisID axisID;
   private final BaseManager manager;
 
-  private final EtomoNumber rotationAngle = new EtomoNumber(EtomoNumber.Type.FLOAT);
+  private final EtomoNumber rotationAngle = new EtomoNumber(EtomoNumber.Type.DOUBLE);
 
   private String gradientTable = null;
   private String[] commandArray = null;
@@ -68,7 +69,7 @@ public class ExtractmagradParam {
     this.gradientTable = gradientTable;
   }
 
-  public final void setRotationAngle(double rotationAngle) {
+  public final void setRotationAngle(ConstEtomoNumber rotationAngle) {
     this.rotationAngle.set(rotationAngle);
   }
 
@@ -85,6 +86,9 @@ public class ExtractmagradParam {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2011/02/24 23:34:42  sueh
+ * <p> bug# 1452 imageRotation needs to be double everywhere.
+ * <p>
  * <p> Revision 1.7  2011/02/21 21:26:24  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
