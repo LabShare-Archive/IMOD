@@ -872,10 +872,21 @@ if backup:
                     "end"])
 
    writeTextFile(backupname, dstlines)
-   try:
-      runcmd('chmod +x ' + backupname)
-   except ImodpyError:
-      exitFromImodError(progname)
+
+   # The chmod failed sporadically with broken pipe on Mac OS X Python 2.6.1
+   # So do it only on Windows, use the OS call otherwise.  Note that cygwin python
+   # CAN set the desired bits with os.chmod wih native python cannot
+   if sys.platform.find('win32') >= 0 or sys.platform.find('cygwin') >= 0:
+      try:
+         runcmd('chmod +x ' + backupname)
+      except ImodpyError:
+         exitFromImodError(progname)
+   else:
+      try:
+         os.chmod(backupname, stat.S_IRWXU | stat.S_IXGRP | stat.S_IRGRP |
+                  stat.S_IXOTH | stat.S_IROTH)
+      except:
+         exitError("Setting permissions of " + backupname)
 
 # Skip all the verbiage at the end
 prnstr("All command files successfully created")
