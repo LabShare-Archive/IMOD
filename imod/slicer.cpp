@@ -1001,11 +1001,11 @@ void SlicerFuncs::keyInput(QKeyEvent *event)
   int handled = 1;
   int docheck = 0;
   int keypad = event->modifiers() & Qt::KeypadModifier;
-  float unit;
-  Ipoint *p1, *p2;
-  int ob, co, pt, axis, start, end;
+  float unit, dist3d;
+  Ipoint *p1, *p2, *pnt;
+  int ob, co, pt, axis, start, end, ix, iy;
   Icont *cont;
-  Ipoint norm, vec = {0., 0., 0.};
+  Ipoint scale, moupt, norm, vec = {0., 0., 0.};
   ImodView *vi = mVi;
 
   if (inputTestMetaKey(event))
@@ -1079,6 +1079,27 @@ void SlicerFuncs::keyInput(QKeyEvent *event)
       mTimeLock = (keysym == Qt::Key_At) ? end + 1 : start + 1;
     } else
       handled = 0;
+    break;
+
+  case Qt::Key_Q:
+    ix = (mGlw->mapFromGlobal(QCursor::pos())).x();
+    iy = (mGlw->mapFromGlobal(QCursor::pos())).y();
+    getxyz(ix, iy, moupt.x, moupt.y, moupt.z);
+    pnt = imodPointGet(vi->imod);
+    norm.x = vi->xmouse;
+    norm.y = vi->ymouse;
+    norm.z = vi->zmouse;
+    if (!pnt || mMousemode == IMOD_MMOVIE)
+      pnt = &norm;
+    scale.x = vi->imod->xscale * vi->xybin;
+    scale.y = vi->imod->yscale * vi->xybin;
+    scale.z = vi->imod->zscale * vi->zbin;
+    dist3d  = imodPoint3DScaleDistance(pnt, &moupt, &scale);
+    wprint("From (%.1f, %.1f, %.1f) to (%.1f, %.1f, %.1f) ="
+           " %.1f %spixels, %g %s\n", pnt->x+1., pnt->y+1., pnt->z+1., moupt.x+1., 
+           moupt.y+1., moupt.z+1., dist3d, vi->zbin * vi->xybin > 1 ? "unbinned " : "",
+           dist3d * vi->imod->pixsize, imodUnits(vi->imod));
+
     break;
 
 
@@ -2934,6 +2955,9 @@ void SlicerFuncs::cubePaint()
 /*
 
 $Log$
+Revision 4.77  2011/02/28 20:39:16  mast
+Draw slice lines in zap/xyz after pageUp/Down steps here
+
 Revision 4.76  2011/02/14 04:35:50  mast
 Converted slicer struct to a class
 

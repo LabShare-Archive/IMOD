@@ -319,7 +319,7 @@ int getTopZapMouse(Ipoint *imagePt)
     return 1;
   mx = zap->mGfx->mapFromGlobal(QCursor::pos()).x();
   my = zap->mGfx->mapFromGlobal(QCursor::pos()).y();
-  zap->getixy(mx, my, &imagePt->x, &imagePt->y, &iz);
+  zap->getixy(mx, my, imagePt->x, imagePt->y, iz);
   imagePt->z = (float)iz;
   return 0;
 }
@@ -1262,6 +1262,7 @@ void ZapFuncs::keyInput(QKeyEvent *event)
   Iindex indadd;
   Iindex *indp;
   Ipoint selmin, selmax;
+  float dist2d, cx, cy, dx, dy;
   Iobj *obj;
   /* downtime.start(); */
 
@@ -1595,6 +1596,19 @@ void ZapFuncs::keyInput(QKeyEvent *event)
     handled = 1;
     break;
 
+  case Qt::Key_Q:
+    ix = (mGfx->mapFromGlobal(QCursor::pos())).x();
+    iy = (mGfx->mapFromGlobal(QCursor::pos())).y();
+    getixy(ix, iy, cx, cy, i);
+    dx = cx - vi->xmouse;
+    dy = cy - vi->ymouse;
+    dist2d  = (float)sqrt(vi->xybin * (dx * dx + dy * dy));
+    wprint("Distance from (%.1f, %.1f) to (%.1f, %.1f) =\n"
+           "  %.1f %spixels, %g %s\n", vi->xmouse+1., vi->ymouse+1., cx+1., cy+1.,
+           dist2d, vi->xybin > 1 ? "unbinned " : "",
+           dist2d * imod->pixsize, imodUnits(imod));
+    break;
+
     /*
       case Qt::Key_X:
       case Qt::Key_Y:
@@ -1674,7 +1688,7 @@ void ZapFuncs::generalEvent(QEvent *e)
     return;
   ix = (mGfx->mapFromGlobal(QCursor::pos())).x();
   iy = (mGfx->mapFromGlobal(QCursor::pos())).y();
-  getixy(ix, iy, &imx, &imy, &iz);
+  getixy(ix, iy, imx, imy, iz);
   ifdraw = imodPlugHandleEvent(mVi, e, imx, imy);
   if (ifdraw & 2 || (mDrewExtraCursor && e->type() == QEvent::Leave))
     draw();
@@ -1852,7 +1866,7 @@ void ZapFuncs::mouseRelease(QMouseEvent *event)
 
     // Fix the mouse position and update the other windows finally
     // Why call imod_info_setxyz again on release of single point add?
-    getixy(event->x(), event->y(), &imx, &imy, &imz);
+    getixy(event->x(), event->y(), imx, imy, imz);
     mVi->xmouse = imx;
     mVi->ymouse = imy;
     if (mDrawCurrentOnly) {
@@ -1907,7 +1921,7 @@ void ZapFuncs::mouseMove(QMouseEvent *event)
   }
 
   if (pixelViewOpen) {
-    getixy(ex, ey, &imx, &imy, &imz);
+    getixy(ex, ey, imx, imy, imz);
     pvNewMousePosition(mVi, imx, imy, imz);
   }
 
@@ -1992,7 +2006,7 @@ int ZapFuncs::checkPlugUseMouse(QMouseEvent *event, int but1,
   if (mNumXpanels)
     return 0;
   ivwControlActive(mVi, 0);
-  getixy(event->x(), event->y(), &imx, &imy, &imz);
+  getixy(event->x(), event->y(), imx, imy, imz);
   ifdraw = imodPlugHandleMouse(mVi, event, imx, imy, but1, but2, but3);
   if (ifdraw & 1) {
     if (ifdraw & 2) 
@@ -2113,7 +2127,7 @@ int ZapFuncs::b1Click(int x, int y, int controlDown)
   float ix, iy, dx, dy;
   float selsize = IMOD_SELSIZE / mZoom;
 
-  getixy(x, y, &ix, &iy, &iz);
+  getixy(x, y, ix, iy, iz);
   if (iz < 0)
     return 0;
      
@@ -2219,7 +2233,7 @@ int ZapFuncs::b2Click(int x, int y, int controlDown)
   float lastz;
   int cz, pz, iz;
 
-  getixy(x, y, &ix, &iy, &iz);
+  getixy(x, y, ix, iy, iz);
 
   if (vi->ax && !mNumXpanels){
     if (vi->ax->altmouse == AUTOX_ALTMOUSE_PAINT){
@@ -2345,7 +2359,7 @@ int ZapFuncs::delUnderCursor(int x, int y, Icont *cont)
   Ipoint *lpt;
   int deleted = 0;
 
-  getixy(x, y, &ix, &iy, &iz);
+  getixy(x, y, ix, iy, iz);
   critsq = crit * crit;
   for (i = 0; i < cont->psize  && cont->psize > 1; ) {
     lpt = &(cont->pts[i]);
@@ -2382,7 +2396,7 @@ int ZapFuncs::b3Click(int x, int y, int controlDown)
   int   pt, iz;
   float ix, iy;
 
-  getixy(x, y, &ix, &iy, &iz);
+  getixy(x, y, ix, iy, iz);
 
   if (vi->ax && !mNumXpanels) {
     if (vi->ax->altmouse == AUTOX_ALTMOUSE_PAINT){
@@ -2547,8 +2561,8 @@ int ZapFuncs::dragSelectContsCrossed(int x, int y)
 
   // Get image positions of starting and current mouse positions
   ob = imod->cindex.object;
-  getixy(x, y, &pnt2.x, &pnt2.y, &iz2);
-  getixy(mLmx, mLmy, &pnt1.x, &pnt1.y, &iz1);
+  getixy(x, y, pnt2.x, pnt2.y, iz2);
+  getixy(mLmx, mLmy, pnt1.x, pnt1.y, iz1);
   if (iz1 != iz2 || iz1 < 0)
     return 0;
   if (imodDebug('z'))
@@ -2634,7 +2648,7 @@ int ZapFuncs::b2Drag(int x, int y, int controlDown)
 
   if (vi->ax){
     if (vi->ax->altmouse == AUTOX_ALTMOUSE_PAINT){
-      getixy(x, y, &ix, &iy, &iz);
+      getixy(x, y, ix, iy, iz);
       /* DNM 2/1/01: need to call with int */
       autox_sethigh(vi, (int)ix, (int)iy);
       return 1;
@@ -2662,7 +2676,7 @@ int ZapFuncs::b2Drag(int x, int y, int controlDown)
   if (vi->imod->cindex.point < 0)
     return 0;
 
-  getixy(x, y, &ix, &iy, &iz);
+  getixy(x, y, ix, iy, iz);
 
   cpt.x = ix;
   cpt.y = iy;
@@ -2766,7 +2780,7 @@ int ZapFuncs::b3Drag(int x, int y, int controlDown, int shiftDown)
 
   if (vi->ax){
     if (vi->ax->altmouse == AUTOX_ALTMOUSE_PAINT){
-      getixy(x, y, &ix, &iy, &iz);
+      getixy(x, y, ix, iy, iz);
       /* DNM 2/1/01: need to call with int */
       autox_setlow(vi, (int)ix, (int)iy);
       return 1;
@@ -2807,7 +2821,7 @@ int ZapFuncs::b3Drag(int x, int y, int controlDown, int shiftDown)
     return 0;
 
   lpt = &(cont->pts[vi->imod->cindex.point]);
-  getixy(x, y, &(pt.x), &(pt.y), &iz);
+  getixy(x, y, (pt.x), (pt.y), iz);
   pt.z = lpt->z;
   if (imodel_point_dist(lpt, &pt) > scaleModelRes(vi->imod->res, mZoom)){
     ++vi->imod->cindex.point;
@@ -2939,7 +2953,7 @@ int ZapFuncs::startShiftingContour(int x, int y, int button,
   if (err)
     return 0;
 
-  getixy(x, y, &ix, &iy, &iz);
+  getixy(x, y, ix, iy, iz);
 
   // If button for marking center, save coordinates, set flag, show mark
   if (button == 2 && ctrlDown) {
@@ -3073,7 +3087,7 @@ void ZapFuncs::shiftContour(int x, int y, int button,
     
     // Shift by change from original mouse pos minus change in current 
     // point position
-    getixy(x, y, &ix, &iy, &iz);
+    getixy(x, y, ix, iy, iz);
     ix += contShiftBase.x - cont->pts[pt].x;
     iy += contShiftBase.y - cont->pts[pt].y;
   } else {
@@ -3318,8 +3332,7 @@ int ZapFuncs::ypos(float y)
 }
 
 /* returns image coords in x,y, z, given mouse coords mx, my */
-void ZapFuncs::getixy(int mx, int my, float *x, float *y, 
-                      int *z)
+void ZapFuncs::getixy(int mx, int my, float &x, float &y, int &z)
 {
   int indx, indy, indp, indmid;
 
@@ -3327,24 +3340,24 @@ void ZapFuncs::getixy(int mx, int my, float *x, float *y,
   my = mWiny - 1 - my;
 
   if (!mNumXpanels) {
-    *z = mSection;
+    z = mSection;
   } else {
     panelIndexAndCoord(mPanelXsize, mNumXpanels, mPanelGutter, 
                        mPanelXborder, mx, indx);
     panelIndexAndCoord(mPanelYsize, mNumYpanels, mPanelGutter, 
                        mPanelYborder, my, indy);
     if (indx < 0 || indy < 0) {
-      *z = -1;
+      z = -1;
     } else {
       indp = indx + indy * mNumXpanels;
       indmid = (mNumXpanels * mNumYpanels - 1) / 2;
-      *z = mSection + (indp - indmid) * mPanelZstep;
-      if (*z < 0 || *z >= mVi->zsize)
-        *z = -1;
+      z = mSection + (indp - indmid) * mPanelZstep;
+      if (z < 0 || z >= mVi->zsize)
+        z = -1;
     }
   }
-  *x = ((float)(mx - mXborder) / mXzoom) + (float)mXstart;
-  *y = ((float)(my - mYborder) / mZoom) + (float)mYstart;
+  x = ((float)(mx - mXborder) / mXzoom) + (float)mXstart;
+  y = ((float)(my - mYborder) / mZoom) + (float)mYstart;
 }
 
 // Determine which panel a point is in for one direction and get the position
@@ -3394,10 +3407,8 @@ void ZapFuncs::bandImageToMouse(int ifclip)
 void ZapFuncs::bandMouseToImage(int ifclip)
 {
   int iz;
-  getixy(mRbMouseX0 + 1, mRbMouseY1 - 1, &mRbImageX0, 
-            &mRbImageY0, &iz);
-  getixy(mRbMouseX1, mRbMouseY0, &mRbImageX1, 
-            &mRbImageY1, &iz);
+  getixy(mRbMouseX0 + 1, mRbMouseY1 - 1, mRbImageX0, mRbImageY0, iz);
+  getixy(mRbMouseX1, mRbMouseY0, mRbImageX1, mRbImageY1, iz);
   
   if (ifclip) {
     if (mRbImageX0 < 0)
@@ -3482,8 +3493,8 @@ QString ZapFuncs::printInfo(bool toInfoWindow)
     xr = mRbImageX1;
     yt = mRbImageY1;
   } else {
-    getixy(0, -1, &xl, &yt, &iz);
-    getixy(mWinx, mWiny-1, &xr, &yb, &iz);
+    getixy(0, -1, xl, yt, iz);
+    getixy(mWinx, mWiny-1, xr, yb, iz);
   }
   ixl = (int)floor(xl + 0.5);
   ixr = (int)floor(xr - 0.5);
@@ -3618,8 +3629,8 @@ void ZapFuncs::setAreaLimits()
       yt += delta;
     }
   } else {
-    getixy(0, 0, &xl, &yt, &iz);
-    getixy(mWinx, mWiny, &xr, &yb, &iz);
+    getixy(0, 0, xl, yt, iz);
+    getixy(mWinx, mWiny, xr, yb, iz);
   }
   subStartX = B3DMAX((int)(xl + 0.5), 0);
   subEndX = B3DMIN((int)(xr - 0.5), mVi->xsize - 1);
@@ -4777,6 +4788,9 @@ void ZapFuncs::setDrawCurrentOnly(int value)
 /*
 
 $Log$
+Revision 4.162  2011/02/12 05:11:11  mast
+Use preference to start in HQ mode; add method to return window drawing image
+
 Revision 4.161  2011/02/07 16:12:39  mast
 Convert zap structure to class, most functions to members
 
