@@ -1047,8 +1047,7 @@ int main (int argc, char **argv)
         writeArg = iarg;
         break;
       case 'P':
-        fprintf(stderr, "Shell PID: %d\n", imodGetpid());
-        fflush(stderr);
+        pidToStderr();
         break;
       default:
         exitError("Invalid option %s", argv[iarg]);
@@ -1268,6 +1267,9 @@ int main (int argc, char **argv)
 /*  
     
 $Log$
+Revision 3.15  2010/09/29 17:58:12  mast
+Fixed writing when input data has extra header
+
 Revision 3.14  2010/06/23 17:42:10  mast
 Switch to new pid function.  Couldn't figure out how this compiled in win
 
