@@ -51,6 +51,7 @@
 #define imodbackupfile IMODBACKUPFILE
 #define imodgetenv IMODGETENV
 #define imodgetpid IMODGETPID
+#define pidtostderr PIDTOSTDERR
 #define b3dheaderitembytes B3DHEADERITEMBYTES
 #define cputime CPUTIME
 #define walltime WALLTIME
@@ -59,6 +60,7 @@
 #define imodbackupfile imodbackupfile_
 #define imodgetenv imodgetenv_
 #define imodgetpid imodgetpid_
+#define pidtostderr pidtostderr_
 #define b3dheaderitembytes b3dheaderitembytes_
 #define cputime cputime_
 #define walltime walltime_
@@ -211,10 +213,23 @@ int imodGetpid()
   return (int)getpid();
 }
 
-/*! Fotran-callable routine to get the process ID */
+/*! Fortran-callable routine to get the process ID */
 int imodgetpid()
 {
   return (int)getpid();
+}
+
+/*! Prints the PID to standard error with the prefix expected by eTomo */
+void pidToStderr()
+{
+  fprintf(stderr, "Shell PID: %d\n", (int)getpid());
+  fflush(stderr);
+}
+
+/*! Fortran wrapper to @pidToStderr */ 
+void pidtostderr()
+{
+  pidToStderr();
 }
 
 /*! Creates a C string with a copy of a Fortran string described by [str] and 
@@ -687,6 +702,9 @@ int b3dompthreadnum()
 /*
 
 $Log$
+Revision 1.19  2011/02/12 04:39:45  mast
+Added line pointer routine
+
 Revision 1.18  2011/02/10 04:36:34  mast
 Added function to get thread number, and made function that gives number of
 threads return 1 if no openmp
