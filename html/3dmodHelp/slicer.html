@@ -270,7 +270,8 @@ The slice angles can be changed while movieing and these limits will
 be adjusted dynamically.
 
 <A NAME = "Hot Keys"><H3>Hot Keys</H3></A>
-<BR><B>-/=</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<UL>
+<BR><B>-/=</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Decrease/Increase zoom (also, <B>Keypad +</B> increases zoom)
 <BR><B>_/+</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Decrease/Increase displayed image thickness
@@ -282,18 +283,23 @@ Decrease/Increase displayed model thickness
 Toggle keeping slice centered on current point (classic mode)
 <BR><B>s</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Save model to file
-<BR><B>Ctrl-S</B> &nbsp;
+<BR><B>Ctrl-S</B> &nbsp;&nbsp;&nbsp;
 Snapshot to TIFF file
-<BR><B>Shift-S</B> &nbsp;
+<BR><B>Shift-S</B> &nbsp;&nbsp;
 Snapshot to primary type of non-TIFF file
 <BR><B>Ctrl-Shift-S</B> &nbsp;
 Snapshot to second type of non-TIFF file
-<BR><B>x/y/z</B> &nbsp;&nbsp;
+<BR><B>x/y/z</B> &nbsp;&nbsp;&nbsp;&nbsp;
 Align current and previous model points along X, Y or Z axis
-<BR><B>X/Y/Z</B> &nbsp;
+<BR><B>X/Y/Z</B> &nbsp;&nbsp;&nbsp;
 Align first and last points of contour along X, Y or Z axis
 <BR><B>W</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Change X and Y angles so that the current contour is flat in the slice.
+<BR><B>q</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Report distance in 3D between the current model or image point and the point under
+the mouse cursor.  If the current point appears in a
+bright color, it is on the plane being displayed, and the distance corresponds
+to a line length in the plane of the image.
 <P>
 <B>Numeric Keypad:</B> 
 <BR>With no Shift key and with <B>Sh</B> ("Shift lock") not on, manipulate the
@@ -302,9 +308,9 @@ X, Y, or Z angles:
 Decrease/Increase last adjusted angle by 0.1 degree
 <BR><B>2/8 (Down/Up)</B> &nbsp;&nbsp;&nbsp;
 Decrease/Increase last adjusted angle by 0.5 degree
-<BR><B>1/3 (End/PgDn)</B> &nbsp;
+<BR><B>1/3 (End/PgDn)</B> &nbsp;&nbsp;
 Decrease/Increase last adjusted angle by 15 degrees
-<BR><B>0 (Insert)</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<BR><B>0 (Insert)</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Set last adjusted angle to 0
 <P>
 With Shift key down or <B>Sh</B> on, rotate volume:
@@ -314,7 +320,8 @@ Rotate volume around Y axis in plane of viewed slice
 Rotate volume around X axis in plane of viewed slice
 <BR><B>9/3 (PgUp/PgDn)</B> &nbsp;
 Rotate in plane of displayed slice
-<BR><B>&lt;/&gt;</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<BR><B>&lt;/&gt;</B>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp; &nbsp;
 Decrease/Increase increment for these rotations; the increment can be 0.1,
 0.3, 1, 3, or 10 degrees and it starts at 1 degree.  With <B>Sh</B> on,
 <B>,/.</B> also change the increment.
