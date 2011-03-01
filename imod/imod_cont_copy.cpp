@@ -233,7 +233,7 @@ void imodContCopyUpdate(void)
 
 
 static char *buttonLabels[] = {"Apply", "Done", "Help"};
-static char *buttonTips[] = {"Copy the selected contours",
+static char *buttonTips[] = {"Copy the selected contours (hot key k)",
                              "Close dialog box", "Open help box"};
 
 ContourCopy::ContourCopy(QWidget *parent, const char *name)
@@ -599,6 +599,9 @@ void ContourCopy::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.21  2010/04/01 02:35:32  mast
+Added update call, and call for closing keys
+
 Revision 4.20  2009/03/22 19:54:25  mast
 Show with new geometry adjust routine for Mac OS X 10.5/cocoa
 
