@@ -34,6 +34,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2011/02/22 03:30:15  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.15  2010/04/28 16:06:05  sueh
  * <p> bug# 1344 Added getOutputImageFileType functions.
  * <p>
@@ -92,7 +95,7 @@ public final class SqueezevolParam implements ConstSqueezevolParam {
   private static final String GROUP_STRING = "Squeezevol";
   private static final String LINEAR_INTERPOLATION_STRING = "LinearInterpolation";
   private static final boolean DEFAULT_LINEAR_INTERPOLATION = false;
-  private static final int COMMAND_SIZE = 3;
+  private static final int COMMAND_SIZE = 4;
   public static final String COMMAND_NAME = "squeezevol";
 
   private final EtomoNumber reductionFactorX = new EtomoNumber(EtomoNumber.Type.DOUBLE,
@@ -192,7 +195,6 @@ public final class SqueezevolParam implements ConstSqueezevolParam {
     if (linearInterpolation) {
       options.add("-l");
     }
-    options.add("-P");
     options.add(inputFile);
     //output is dataset.sqz
     outputFile = ImageFileType.SQUEEZE_VOL_OUTPUT.getFile(manager);
@@ -237,9 +239,13 @@ public final class SqueezevolParam implements ConstSqueezevolParam {
   private void createCommand() {
     ArrayList options = genOptions();
     commandArray = new String[options.size() + COMMAND_SIZE];
-    commandArray[0] = "tcsh";
+    /*commandArray[0] = "tcsh";
     commandArray[1] = "-f";
-    commandArray[2] = BaseManager.getIMODBinPath() + COMMAND_NAME;
+    commandArray[2] = BaseManager.getIMODBinPath() + COMMAND_NAME;*/
+    commandArray[0] = "bash";
+    commandArray[1] = BaseManager.getIMODBinPath() + "runpyscript";
+    commandArray[2] = "-P";
+    commandArray[3] = COMMAND_NAME;
     for (int i = 0; i < options.size(); i++) {
       commandArray[i + COMMAND_SIZE] = (String) options.get(i);
     }
