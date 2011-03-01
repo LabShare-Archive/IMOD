@@ -68,6 +68,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2011/02/24 23:37:14  sueh
+ * <p> bug# 1452 imageRotation needs to be double everywhere.
+ * <p>
  * <p> Revision 1.4  2011/02/22 18:10:05  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -277,10 +280,9 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
   private boolean validAutodoc = false;
 
   private FinalAlignedStackDialog(ApplicationManager appMgr,
-      FinalAlignedStackExpert expert, AxisID axisID, Tab curTab) {
+      FinalAlignedStackExpert expert, AxisID axisID) {
     super(appMgr, axisID, DIALOG_TYPE);
     this.expert = expert;
-    this.curTab = curTab;
     mediator = appMgr.getProcessingMethodMediator(axisID);
     ProcessResultDisplayFactory displayFactory = appMgr
         .getProcessResultDisplayFactory(axisID);
@@ -331,8 +333,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
 
   public static FinalAlignedStackDialog getInstance(ApplicationManager appMgr,
       FinalAlignedStackExpert expert, AxisID axisID, Tab curTab) {
-    FinalAlignedStackDialog instance = new FinalAlignedStackDialog(appMgr, expert,
-        axisID, curTab);
+    FinalAlignedStackDialog instance = new FinalAlignedStackDialog(appMgr, expert, axisID);
     instance.addListeners();
     instance.tabbedPane.setSelectedIndex(curTab.toInt());
     return instance;
