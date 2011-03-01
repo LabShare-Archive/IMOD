@@ -52,7 +52,7 @@ class ZapFuncs
   void toggleContourShift();
   void bandImageToMouse(int ifclip); 
   void flushImage();
-  void getixy(int mx, int my, float *x, float *y, int *z);
+  void getixy(int mx, int my, float &x, float &y, int &z);
   void montageSnapshot(int snaptype);
   void setCursor(int mode, bool setAnyway = false);
   void setMouseTracking();
