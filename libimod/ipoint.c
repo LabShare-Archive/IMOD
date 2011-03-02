@@ -303,7 +303,7 @@ float imodPointLineSegDistance(Ipoint *lp1, Ipoint *lp2, Ipoint *p,
  */
 float imodPointContDistance(Icont *cont, Ipoint *pt, int open, int threeD, int *closest)
 {
-  float mindist = 1.e36, t, dist, dx, dy;
+  float mindist = 1.e36, t = 0., dist, dx, dy;
   Ipoint *cpts = cont->pts;
   Ipoint scale = {1., 1., 1.};
   int i, ni, numSeg = cont->psize;
@@ -322,7 +322,8 @@ float imodPointContDistance(Icont *cont, Ipoint *pt, int open, int threeD, int *
     } else {
       dx = cpts[ni].x - cpts[i].x;
       dy = cpts[ni].y - cpts[i].y;
-      t = ((pt->x - cpts[i].x) * dx + (pt->y - cpts[i].y) * dy) / (dx * dx + dy * dy);
+      if (dx || dy)
+        t = ((pt->x - cpts[i].x) * dx + (pt->y - cpts[i].y) * dy) / (dx * dx + dy * dy);
       t = B3DMIN(1., B3DMAX(0., t));
       dx = pt->x -(cpts[i].x + t * dx);
       dy = pt->y -(cpts[i].y + t * dy);
@@ -619,6 +620,9 @@ int imodPointInsideCont(Icont *cont, Ipoint *pt)
 /*
 
 $Log$
+Revision 3.13  2011/02/21 16:39:22  mast
+Added function for point to contour
+
 Revision 3.12  2010/06/21 16:30:07  mast
 fix log
 
