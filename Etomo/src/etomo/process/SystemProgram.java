@@ -17,6 +17,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.42  2011/02/22 04:10:36  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 3.41  2010/11/13 16:03:45  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -554,6 +557,11 @@ public class SystemProgram implements Runnable {
       exceptionMessage = except.getMessage();
       if (exceptionMessage.indexOf("Cannot run program \"tcsh\"") != -1) {
         UIHarness.INSTANCE.openMessageDialog(manager, exceptionMessage, "System Error");
+      }
+      if (exceptionMessage.indexOf("Cannot run program \"python\"") != -1) {
+        UIHarness.INSTANCE.openMessageDialog(manager,
+            "Python must be installed on this computer.\n" + exceptionMessage,
+            "System Error");
       }
     }
     processMessages.addProcessOutput(stdout);
