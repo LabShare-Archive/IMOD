@@ -41,6 +41,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4.2.1  2011/02/25 00:22:15  sueh
+ * <p> bug# 1452 Merged changes from head into 4.1:  imageRotation needs to
+ * <p> be double everywhere.
+ * <p>
  * <p> Revision 3.4  2010/02/17 05:03:12  sueh
  * <p> bug# 1301 Using manager instead of manager key for popping up messages.
  * <p>
@@ -163,7 +167,7 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
         .setLinearInterpolation(cbUseLinearInterpolation.isSelected());
     try {
       blendmontParam.convertToStartingAndEndingXandY(ltfSizeToOutputInXandY
-          .getText(), manager.getMetaData().getImageRotation(axisID));
+          .getText(), manager.getMetaData().getImageRotation(axisID).getDouble());
     }
     catch (FortranInputSyntaxException e) {
       e.printStackTrace();
@@ -189,7 +193,7 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
     }
     newstParam.setLinearInterpolation(cbUseLinearInterpolation.isSelected());
     newstParam.setSizeToOutputInXandY(ltfSizeToOutputInXandY.getText(),
-        getBinning(), manager.getMetaData().getImageRotation(axisID), manager);
+        getBinning(), manager.getMetaData().getImageRotation(axisID).getDouble(), manager);
   }
 
   void setParameters(ConstMetaData metaData) {
@@ -204,7 +208,7 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
     updateFiducialess();
   }
 
-  void setImageRotation(double input) {
+  void setImageRotation(String input) {
     ltfRotation.setText(input);
   }
 
@@ -224,8 +228,8 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
     ltfRotation.setEnabled(cbFiducialess.isSelected());
   }
 
-  public float getImageRotation() throws NumberFormatException {
-    return Float.parseFloat(ltfRotation.getText());
+  public String getImageRotation()   {
+    return ltfRotation.getText();
   }
 
   void updateAdvanced(boolean advanced) {

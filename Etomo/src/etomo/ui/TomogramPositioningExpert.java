@@ -173,7 +173,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     dialog.setWholeTomogram(metaData.isWholeTomogramSample(axisID));
 
     setFiducialess();
-    dialog.setImageRotation(metaData.getImageRotation(axisID));
+    dialog.setImageRotation(metaData.getImageRotation(axisID).toString());
     setButtonState(manager.getScreenState(axisID));
     fiducialessAction();
     openDialog(dialog);
@@ -639,7 +639,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       newstParam.setCommandMode(NewstParam.Mode.WHOLE_TOMOGRAM_SAMPLE);
       try {
         newstParam.setSizeToOutputInXandY("", getBinning(), metaData
-            .getImageRotation(axisID), manager);
+            .getImageRotation(axisID).getDouble(), manager);
       }
       catch (InvalidParameterException e) {
         e.printStackTrace();
@@ -683,7 +683,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     blendmontParam.setBlendmontState();
     blendmontParam.resetStartingAndEndingXandY();
     blendmontParam.convertToStartingAndEndingXandY("", metaData
-        .getImageRotation(axisID));
+        .getImageRotation(axisID).getDouble());
     comScriptMgr.saveBlend(blendmontParam, axisID);
     return blendmontParam;
   }
@@ -962,6 +962,10 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.40  2010/04/08 04:36:47  sueh
+ * <p> bug# 1348 Sending exception stack to log when tilt parameter error
+ * <p> happens.
+ * <p>
  * <p> Revision 1.39  2010/03/30 00:07:30  sueh
  * <p> bug# 1331 Added useGpu checkbox.  Added boolean initialize parameter
  * <p> to setTiltParam(ConstTiltParam).

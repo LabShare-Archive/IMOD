@@ -41,6 +41,10 @@ import etomo.util.Montagesize;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16.2.2  2011/02/25 00:22:15  sueh
+ * <p> bug# 1452 Merged changes from head into 4.1:  imageRotation needs to
+ * <p> be double everywhere.
+ * <p>
  * <p> Revision 1.16.2.1  2010/09/29 22:52:30  sueh
  * <p> bug# 1401 Merged from Head.
  * <p>
@@ -556,8 +560,8 @@ public final class SetupDialogExpert {
     if (!Double.isNaN(metaData.getFiducialDiameter())) {
       dialog.setFiducialDiameter(metaData.getFiducialDiameter());
     }
-    if (!Double.isNaN(metaData.getImageRotation(AxisID.ONLY))) {
-      dialog.setImageRotation(metaData.getImageRotation(AxisID.ONLY));
+    if (!metaData.getImageRotation(AxisID.ONLY).isNull()) {
+      dialog.setImageRotation(metaData.getImageRotation(AxisID.ONLY).toString());
     }
     dialog.setBinning(metaData.getBinning());
 

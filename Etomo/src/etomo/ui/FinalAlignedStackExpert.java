@@ -50,6 +50,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.24  2010/03/19 02:40:31  sueh
+ * <p> bug# 1325 In openDialog loading TiltalignParam and setting parameters.
+ * <p>
  * <p> Revision 1.23  2010/03/12 04:15:25  sueh
  * <p> bug# 1325 In doneDialog warning the user when a use button wasn't pressed.
  * <p>
@@ -285,7 +288,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     // Set the fidcialess state and tilt axis angle
     // From updateFiducialessParams
     dialog.setFiducialessAlignment(metaData.isFiducialessAlignment(axisID));
-    dialog.setImageRotation(metaData.getImageRotation(axisID));
+    dialog.setImageRotation(metaData.getImageRotation(axisID).toString());
     dialog.setEnabledTiltParameters(state, metaData);
     openDialog(dialog);
   }

@@ -45,6 +45,10 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4.2.1  2011/02/25 00:21:10  sueh
+ * <p> bug# 1452 Merged changes from head into 4.1:  in getParameters
+ * <p> TiltxcorrParam) setting RotationAngle.
+ * <p>
  * <p> Revision 1.4  2010/03/08 21:15:43  sueh
  * <p> bug# 1311 Hooking the imod button to the run button.
  * <p>
@@ -649,7 +653,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       MetaData metaData = applicationManager.getMetaData();
       TiltAngleSpec tiltAngleSpec = metaData.getTiltAngleSpec(axisID);
       tiltXcorrParams.setTiltAngleSpec(tiltAngleSpec);
-      tiltXcorrParams.setRotationAngle(metaData.getImageRotation(axisID));
+      tiltXcorrParams.setRotationAngle(metaData.getImageRotation(axisID).getDouble());
     }
     String currentParam = "unknown";
     try {

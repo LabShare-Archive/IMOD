@@ -68,6 +68,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.28.2.1  2011/02/25 00:22:14  sueh
+ * <p> bug# 1452 Merged changes from head into 4.1:  imageRotation needs to
+ * <p> be double everywhere.
+ * <p>
  * <p> Revision 1.28  2010/03/27 05:02:56  sueh
  * <p> Reformatted
  * <p>
@@ -482,7 +486,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     newstackOrBlendmontPanel.setFiducialessAlignment(input);
   }
 
-  void setImageRotation(double input) {
+  void setImageRotation(String input) {
     newstackOrBlendmontPanel.setImageRotation(input);
   }
 

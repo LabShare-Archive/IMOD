@@ -176,8 +176,8 @@ public final class UIExpertUtilities {
    * @return
    */
   public boolean updateFiducialessParams(ApplicationManager manager,
-      float imageRotation, boolean fiducialess, AxisID axisID) {
-    float tiltAxisAngle;
+      String imageRotation, boolean fiducialess, AxisID axisID) {
+    String tiltAxisAngle;
     try {
       tiltAxisAngle = imageRotation;
     }
@@ -202,7 +202,7 @@ public final class UIExpertUtilities {
    * @param axisID
    */
   private void updateRotationXF(BaseManager manager, String propertyUserDir,
-      float angle, AxisID axisID) {
+      String angle, AxisID axisID) {
     //  Open the appropriate rotation file
     String fnRotationXF = propertyUserDir + File.separator + "rotation"
         + axisID.getExtension() + ".xf";
@@ -210,7 +210,9 @@ public final class UIExpertUtilities {
     try {
       BufferedWriter out = new BufferedWriter(new FileWriter(rotationXF));
       //  Write out the transform to perform the rotation
-      double rads = -1 * angle * Math.PI / 180;
+      EtomoNumber nAngle = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+      nAngle.set(angle);
+      double rads = -1 * nAngle.getDouble() * Math.PI / 180;
       out.write(String.valueOf(Math.cos(rads)) + "   "
           + String.valueOf(Math.sin(-rads)) + "   "
           + String.valueOf(Math.sin(rads)) + "   "
@@ -441,6 +443,9 @@ public final class UIExpertUtilities {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 1.9  2009/10/01 18:52:18  sueh
  * <p> bug# 1233 In getStackBinningFromFileName returning a default instead of
  * <p> throwing IllegalStateException to make sure that etomo can't get stuck

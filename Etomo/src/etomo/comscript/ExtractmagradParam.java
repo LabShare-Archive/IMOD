@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.util.DatasetFiles;
 import etomo.util.MRCHeader;
@@ -30,7 +31,7 @@ public class ExtractmagradParam {
   private final BaseManager manager;
 
   private final EtomoNumber rotationAngle = new EtomoNumber(
-      EtomoNumber.Type.FLOAT);
+      EtomoNumber.Type.DOUBLE);
 
   private String gradientTable = null;
   private String[] commandArray = null;
@@ -69,7 +70,7 @@ public class ExtractmagradParam {
     this.gradientTable = gradientTable;
   }
 
-  public final void setRotationAngle(double rotationAngle) {
+  public final void setRotationAngle(ConstEtomoNumber rotationAngle) {
     this.rotationAngle.set(rotationAngle);
   }
 
@@ -86,6 +87,10 @@ public class ExtractmagradParam {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6.2.1  2011/02/25 00:22:15  sueh
+ * <p> bug# 1452 Merged changes from head into 4.1:  imageRotation needs to
+ * <p> be double everywhere.
+ * <p>
  * <p> Revision 1.6  2010/02/17 04:47:54  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.

@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.45.2.2  2010/09/29 22:11:15  sueh
+ * <p> bug# 1404 Merged from Head.
+ * <p>
  * <p> Revision 3.50  2010/09/24 00:55:28  sueh
  * <p> bug# 1404 Changed excludelist and excludelist2 to load mutliple entries
  * <p> and output one entry.
@@ -1181,7 +1184,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
         int goodframeX;
         int goodframeY;
         if (etomo.comscript.Utilities.is90DegreeImageRotation(manager
-            .getConstMetaData().getImageRotation(axisID))) {
+            .getConstMetaData().getImageRotation(axisID).getDouble())) {
           //transpose x and y
           goodframeX = goodframe.getOutput(1).getInt();
           goodframeY = goodframe.getOutput(0).getInt();
@@ -1229,7 +1232,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       int stackX;
       int stackY;
       if (etomo.comscript.Utilities.is90DegreeImageRotation(manager
-          .getConstMetaData().getImageRotation(axisID))) {
+          .getConstMetaData().getImageRotation(axisID).getDouble())) {
         stackX = stackHeader.getNRows();
         stackY = stackHeader.getNColumns();
       }
@@ -1281,7 +1284,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
         .getGoodframeFromMontageSize(axisID, manager);
     if (goodframe != null) {
       if (etomo.comscript.Utilities.is90DegreeImageRotation(manager
-          .getConstMetaData().getImageRotation(axisID))) {
+          .getConstMetaData().getImageRotation(axisID).getDouble())) {
         fullImageX = goodframe.getOutput(1).getInt();
         fullImageY = goodframe.getOutput(0).getInt();
       }
@@ -1303,7 +1306,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
         return;
       }
       if (etomo.comscript.Utilities.is90DegreeImageRotation(manager
-          .getConstMetaData().getImageRotation(axisID))) {
+          .getConstMetaData().getImageRotation(axisID).getDouble())) {
         fullImageX = header.getNRows();
         fullImageY = header.getNColumns();
       }

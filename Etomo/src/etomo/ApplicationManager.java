@@ -1199,7 +1199,7 @@ public final class ApplicationManager extends BaseManager implements
 
     coarseAlignDialog.setFiducialessAlignment(metaData
         .isFiducialessAlignment(axisID));
-    coarseAlignDialog.setImageRotation(metaData.getImageRotation(axisID));
+    coarseAlignDialog.setImageRotation(metaData.getImageRotation(axisID).toString());
     coarseAlignDialog.setParameters(getScreenState(axisID));
     mainPanel.showProcess(coarseAlignDialog.getContainer(), axisID);
     setParallelDialog(axisID, coarseAlignDialog.usingParallelProcessing());
@@ -1717,10 +1717,10 @@ public final class ApplicationManager extends BaseManager implements
       return;
     }
     if (metaData.getViewType() == ViewType.MONTAGE) {
-      processMgr.midasBlendStack(axisID, metaData.getImageRotation(axisID));
+      processMgr.midasBlendStack(axisID, metaData.getImageRotation(axisID).getDouble());
     }
     else {
-      processMgr.midasRawStack(axisID, metaData.getImageRotation(axisID));
+      processMgr.midasRawStack(axisID, metaData.getImageRotation(axisID).getDouble());
     }
     processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
     mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
@@ -3950,7 +3950,7 @@ public final class ApplicationManager extends BaseManager implements
     sendMsgProcessStarting(processResultDisplay);
     // Get the user input from the dialog
     if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(this, state
-        .getStackImageRotation(axisID).getFloat(), state
+        .getStackImageRotation(axisID).toString(), state
         .isNewstFiducialessAlignment(axisID), axisID)) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
@@ -4191,7 +4191,7 @@ public final class ApplicationManager extends BaseManager implements
     sendMsgProcessStarting(processResultDisplay);
     // Get the user input from the dialog
     if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(this, state
-        .getStackImageRotation(axisID).getFloat(), state
+        .getStackImageRotation(axisID).toString(), state
         .isNewstFiducialessAlignment(axisID), axisID)) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
@@ -4261,7 +4261,7 @@ public final class ApplicationManager extends BaseManager implements
     sendMsgProcessStarting(processResultDisplay);
     // Get the user input from the dialog
     if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(this, state
-        .getStackImageRotation(axisID).getFloat(), state
+        .getStackImageRotation(axisID).toString(), state
         .isNewstFiducialessAlignment(axisID), axisID)) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
@@ -8070,6 +8070,9 @@ public final class ApplicationManager extends BaseManager implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.355.2.1  2010/07/02 04:09:33  sueh
+ * <p> bug# 1388 Calling processchunks with popupChunkWarnings equals to true.
+ * <p>
  * <p> Revision 3.355  2010/04/08 04:36:08  sueh
  * <p> bug# 1348 Preventing a silent failure of rename fixed stack in
  * <p> replaceRawStack.  Resetting use fixed stack warning as early as possible.

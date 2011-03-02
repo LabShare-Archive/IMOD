@@ -38,6 +38,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.2.2.1  2011/02/25 00:22:15  sueh
+ * <p> bug# 1452 Merged changes from head into 4.1:  imageRotation needs to
+ * <p> be double everywhere.
+ * <p>
  * <p> Revision 3.2  2009/09/17 19:12:58  sueh
  * <p> bug# 1257 In NewstParam.setSizeToOutputInXandY forgot to read the
  * <p> header.  Adding read call and throwing InvalidParameterException and
@@ -183,7 +187,7 @@ abstract class NewstackOrBlendmontPanel implements Run3dmodButtonContainer,
     newstackAndBlendmontParamPanel.setFiducialessAlignment(input);
   }
 
-  void setImageRotation(double input) {
+  void setImageRotation(String input) {
     newstackAndBlendmontParamPanel.setImageRotation(input);
   }
 

@@ -26,6 +26,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4  2010/04/09 03:01:26  sueh
+ * <p> bug# 1352 Passing the ProcessResultDisplay via parameter instead of retrieving it with a function so that it always be passed.
+ * <p>
  * <p> Revision 3.3  2010/04/08 03:06:09  sueh
  * <p> bug# 1347 In setParameters, calling
  * <p> BlendmontParam.convertToStartingAndEndingXandY with
@@ -69,7 +72,7 @@ final class Blendmont3dFindPanel extends NewstackOrBlendmont3dFindPanel
     param.setMode(BlendmontParam.Mode.BLEND_3DFIND);
     param.convertToStartingAndEndingXandY(manager.getState()
         .getStackUserSizeToOutputInXandY(axisID), manager.getMetaData()
-        .getImageRotation(axisID));
+        .getImageRotation(axisID).getDouble());
   }
 
   void runProcess(final ProcessResultDisplay processResultDisplay,

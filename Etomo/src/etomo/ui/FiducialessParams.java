@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2008/10/16 21:20:16  sueh
+ * <p> bug# 1141 Removed functions from this interface which are not being used generically.
+ * <p>
  * <p> Revision 1.3  2006/07/28 19:45:44  sueh
  * <p> bug# 868 Changed isFiduciallessAlignment to isFiducialess
  * <p>
@@ -28,5 +31,5 @@ package etomo.ui;
 public interface FiducialessParams {
   public static final String rcsid = "$Id$";
   public boolean isFiducialess();
-  public float getImageRotation() throws NumberFormatException;
+  public String getImageRotation();
 }

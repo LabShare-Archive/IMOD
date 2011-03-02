@@ -35,6 +35,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.68.2.1  2011/02/25 00:22:15  sueh
+ * <p> bug# 1452 Merged changes from head into 4.1:  imageRotation needs to
+ * <p> be double everywhere.
+ * <p>
  * <p> Revision 3.68  2010/03/30 00:05:47  sueh
  * <p> bug# 1331 Added useGpu checkbox.
  * <p>
@@ -528,12 +532,12 @@ final class TomogramPositioningDialog extends ProcessDialog implements
     return cbUseGpu.isSelected();
   }
 
-  public void setImageRotation(double tiltAxisAngle) {
+  public void setImageRotation(String tiltAxisAngle) {
     ltfRotation.setText(tiltAxisAngle);
   }
 
-  public float getImageRotation() throws NumberFormatException {
-    return Float.parseFloat(ltfRotation.getText());
+  public String getImageRotation()   {
+    return ltfRotation.getText();
   }
 
   String getOrigTiltAngleOffset() {
