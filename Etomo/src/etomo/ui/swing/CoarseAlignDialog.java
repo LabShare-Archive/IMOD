@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2011/02/24 23:37:04  sueh
+ * <p> bug# 1452 imageRotation needs to be double everywhere.
+ * <p>
  * <p> Revision 1.3  2011/02/22 18:06:17  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -464,12 +467,12 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
     return cbFiducialess.isSelected();
   }
 
-  public void setImageRotation(double tiltAxisAngle) {
+  public void setImageRotation(String tiltAxisAngle) {
     ltfRotation.setText(tiltAxisAngle);
   }
 
-  public float getImageRotation() throws NumberFormatException {
-    return Float.parseFloat(ltfRotation.getText());
+  public String getImageRotation() {
+    return ltfRotation.getText();
   }
 
   void updateAdvanced() {

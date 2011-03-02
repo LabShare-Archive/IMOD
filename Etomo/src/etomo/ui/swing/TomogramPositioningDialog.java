@@ -33,6 +33,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2011/02/24 23:39:02  sueh
+ * <p> bug# 1452 imageRotation needs to be double everywhere.
+ * <p>
  * <p> Revision 1.3  2011/02/22 21:40:44  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -509,12 +512,12 @@ final class TomogramPositioningDialog extends ProcessDialog implements ContextMe
     return cbUseGpu.isSelected();
   }
 
-  public void setImageRotation(double tiltAxisAngle) {
+  public void setImageRotation(String tiltAxisAngle) {
     ltfRotation.setText(tiltAxisAngle);
   }
 
-  public float getImageRotation() throws NumberFormatException {
-    return Float.parseFloat(ltfRotation.getText());
+  public String getImageRotation() throws NumberFormatException {
+    return ltfRotation.getText();
   }
 
   String getOrigTiltAngleOffset() {

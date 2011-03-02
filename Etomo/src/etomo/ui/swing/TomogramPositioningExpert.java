@@ -169,7 +169,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     dialog.setWholeTomogram(metaData.isWholeTomogramSample(axisID));
 
     setFiducialess();
-    dialog.setImageRotation(metaData.getImageRotation(axisID));
+    dialog.setImageRotation(metaData.getImageRotation(axisID).toString());
     setButtonState(manager.getScreenState(axisID));
     fiducialessAction();
     openDialog(dialog);
@@ -616,7 +616,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       newstParam.setCommandMode(NewstParam.Mode.WHOLE_TOMOGRAM_SAMPLE);
       try {
         newstParam.setSizeToOutputInXandY("", getBinning(), metaData
-            .getImageRotation(axisID));
+            .getImageRotation(axisID).getDouble());
       }
       catch (InvalidParameterException e) {
         e.printStackTrace();
@@ -657,7 +657,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     blendmontParam.setMode(BlendmontParam.Mode.WHOLE_TOMOGRAM_SAMPLE);
     blendmontParam.setBlendmontState();
     blendmontParam.resetStartingAndEndingXandY();
-    blendmontParam.convertToStartingAndEndingXandY("", metaData.getImageRotation(axisID));
+    blendmontParam.convertToStartingAndEndingXandY("", metaData.getImageRotation(axisID).getDouble());
     comScriptMgr.saveBlend(blendmontParam, axisID);
     return blendmontParam;
   }
@@ -934,6 +934,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2011/02/22 21:40:51  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.3  2011/02/03 06:22:16  sueh
  * <p> bug# 1422 Control of the processing method has been centralized in the
  * <p> processing method mediator class.  Implementing ProcessInterface.

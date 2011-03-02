@@ -52,6 +52,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2011/02/21 19:51:19  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.3  2011/02/03 06:22:16  sueh
  * <p> bug# 1422 Control of the processing method has been centralized in the
  * <p> processing method mediator class.  Implementing ProcessInterface.
@@ -298,7 +301,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     // Set the fidcialess state and tilt axis angle
     // From updateFiducialessParams
     dialog.setFiducialessAlignment(metaData.isFiducialessAlignment(axisID));
-    dialog.setImageRotation(metaData.getImageRotation(axisID));
+    dialog.setImageRotation(metaData.getImageRotation(axisID).toString());
     dialog.setTiltState(state, metaData);
     openDialog(dialog);
   }

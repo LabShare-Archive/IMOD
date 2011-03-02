@@ -31,6 +31,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 18:16:11  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -94,7 +97,7 @@ final class Newstack3dFindPanel extends NewstackOrBlendmont3dFindPanel implement
     TomogramState state = manager.getState();
     newstParam.setLinearInterpolation(state.isStackUseLinearInterpolation(axisID));
     newstParam.setSizeToOutputInXandY(state.getStackUserSizeToOutputInXandY(axisID),
-        getBinning(), manager.getMetaData().getImageRotation(axisID));
+        getBinning(), manager.getMetaData().getImageRotation(axisID).getDouble());
     //Set output file because this file was copied from newst.com
     Vector outputFile = new Vector();
     outputFile.add(FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT.getFileName(manager, axisID));

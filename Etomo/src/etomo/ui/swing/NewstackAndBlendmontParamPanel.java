@@ -41,6 +41,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/24 23:37:23  sueh
+ * <p> bug# 1452 imageRotation needs to be double everywhere.
+ * <p>
  * <p> Revision 1.2  2011/02/22 18:16:19  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -170,7 +173,7 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
     blendmontParam.setLinearInterpolation(cbUseLinearInterpolation.isSelected());
     try {
       blendmontParam.convertToStartingAndEndingXandY(ltfSizeToOutputInXandY.getText(),
-          manager.getMetaData().getImageRotation(axisID));
+          manager.getMetaData().getImageRotation(axisID).getDouble());
     }
     catch (FortranInputSyntaxException e) {
       e.printStackTrace();
@@ -195,7 +198,7 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
     }
     newstParam.setLinearInterpolation(cbUseLinearInterpolation.isSelected());
     newstParam.setSizeToOutputInXandY(ltfSizeToOutputInXandY.getText(), getBinning(),
-        manager.getMetaData().getImageRotation(axisID));
+        manager.getMetaData().getImageRotation(axisID).getDouble());
   }
 
   void setParameters(ConstMetaData metaData) {
@@ -210,7 +213,7 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
     updateFiducialess();
   }
 
-  void setImageRotation(double input) {
+  void setImageRotation(String input) {
     ltfRotation.setText(input);
   }
 
@@ -230,8 +233,8 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
     ltfRotation.setEnabled(cbFiducialess.isSelected());
   }
 
-  public float getImageRotation() throws NumberFormatException {
-    return Float.parseFloat(ltfRotation.getText());
+  public String getImageRotation()  {
+    return ltfRotation.getText();
   }
 
   void updateAdvanced(boolean advanced) {

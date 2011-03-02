@@ -45,6 +45,9 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2011/02/24 23:38:47  sueh
+ * <p> bug# 1452 in getParameters(TiltxcorrParam) setting RotationAngle.
+ * <p>
  * <p> Revision 1.3  2011/02/22 21:40:17  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -663,7 +666,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       MetaData metaData = applicationManager.getMetaData();
       TiltAngleSpec tiltAngleSpec = metaData.getTiltAngleSpec(axisID);
       tiltXcorrParams.setTiltAngleSpec(tiltAngleSpec);
-      tiltXcorrParams.setRotationAngle(metaData.getImageRotation(axisID));
+      tiltXcorrParams.setRotationAngle(metaData.getImageRotation(axisID).getDouble());
     }
     String currentParam = "unknown";
     try {

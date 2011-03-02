@@ -171,9 +171,9 @@ public final class UIExpertUtilities {
    * @param dialog
    * @return
    */
-  public boolean updateFiducialessParams(ApplicationManager manager, float imageRotation,
-      boolean fiducialess, AxisID axisID) {
-    float tiltAxisAngle;
+  public boolean updateFiducialessParams(ApplicationManager manager,
+      String imageRotation, boolean fiducialess, AxisID axisID) {
+    String tiltAxisAngle;
     try {
       tiltAxisAngle = imageRotation;
     }
@@ -196,8 +196,8 @@ public final class UIExpertUtilities {
    * 
    * @param axisID
    */
-  private void updateRotationXF(BaseManager manager, String propertyUserDir, float angle,
-      AxisID axisID) {
+  private void updateRotationXF(BaseManager manager, String propertyUserDir,
+      String angle, AxisID axisID) {
     //  Open the appropriate rotation file
     String fnRotationXF = propertyUserDir + File.separator + "rotation"
         + axisID.getExtension() + ".xf";
@@ -205,7 +205,9 @@ public final class UIExpertUtilities {
     try {
       BufferedWriter out = new BufferedWriter(new FileWriter(rotationXF));
       //  Write out the transform to perform the rotation
-      double rads = -1 * angle * Math.PI / 180;
+      EtomoNumber nAngle = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+      nAngle.set(angle);
+      double rads = -1 * nAngle.getDouble() * Math.PI / 180;
       out.write(String.valueOf(Math.cos(rads)) + "   " + String.valueOf(Math.sin(-rads))
           + "   " + String.valueOf(Math.sin(rads)) + "   "
           + String.valueOf(Math.cos(rads)) + "   0   0");
@@ -432,6 +434,9 @@ public final class UIExpertUtilities {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 21:42:18  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>

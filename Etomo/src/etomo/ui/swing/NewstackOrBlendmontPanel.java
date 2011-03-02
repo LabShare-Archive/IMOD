@@ -38,6 +38,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/24 23:37:34  sueh
+ * <p> bug# 1452 imageRotation needs to be double everywhere.
+ * <p>
  * <p> Revision 1.2  2011/02/22 18:16:52  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -188,7 +191,7 @@ abstract class NewstackOrBlendmontPanel implements Run3dmodButtonContainer, Expa
     newstackAndBlendmontParamPanel.setFiducialessAlignment(input);
   }
 
-  void setImageRotation(double input) {
+  void setImageRotation(String input) {
     newstackAndBlendmontParamPanel.setImageRotation(input);
   }
 

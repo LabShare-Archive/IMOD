@@ -333,7 +333,8 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
 
   public static FinalAlignedStackDialog getInstance(ApplicationManager appMgr,
       FinalAlignedStackExpert expert, AxisID axisID, Tab curTab) {
-    FinalAlignedStackDialog instance = new FinalAlignedStackDialog(appMgr, expert, axisID);
+    FinalAlignedStackDialog instance = new FinalAlignedStackDialog(appMgr, expert,
+        axisID);
     instance.addListeners();
     instance.tabbedPane.setSelectedIndex(curTab.toInt());
     return instance;
@@ -450,7 +451,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     newstackOrBlendmontPanel.setFiducialessAlignment(input);
   }
 
-  void setImageRotation(double input) {
+  void setImageRotation(String input) {
     newstackOrBlendmontPanel.setImageRotation(input);
   }
 
@@ -1292,6 +1293,10 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
         return MTF_FILTER;
       }
       return DEFAULT;
+    }
+
+    private boolean isDefault() {
+      return this == DEFAULT;
     }
 
     private int toInt() {

@@ -41,6 +41,9 @@ import etomo.util.Montagesize;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/24 23:37:49  sueh
+ * <p> bug# 1452 imageRotation needs to be double everywhere.
+ * <p>
  * <p> Revision 1.2  2011/02/22 19:29:29  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -455,13 +458,18 @@ public final class SetupDialogExpert {
     metaData.setAdjustedFocusB(dialog.isAdjustedFocusSelected(AxisID.SECOND));
     metaData.setViewType(getViewType());
     String currentField = "";
+    currentField = "Image Rotation";
+    metaData.setImageRotation(dialog.getImageRotation(), AxisID.FIRST);
+    if (!metaData.getImageRotation(AxisID.FIRST).isValid()) {
+      UIHarness.INSTANCE.openMessageDialog(manager, currentField + " must be numeric.",
+          "Setup Dialog Error", AxisID.ONLY);
+      return null;
+    }
     try {
       currentField = "Pixel Size";
       metaData.setPixelSize(dialog.getPixelSize());
       currentField = "Fiducial Diameter";
       metaData.setFiducialDiameter(dialog.getFiducialDiameter());
-      currentField = "Image Rotation";
-      metaData.setImageRotation(dialog.getImageRotation(), AxisID.FIRST);
       if (axisType == AxisType.DUAL_AXIS) {
         metaData.setImageRotation(dialog.getImageRotation(), AxisID.SECOND);
       }
@@ -546,8 +554,8 @@ public final class SetupDialogExpert {
     if (!Double.isNaN(metaData.getFiducialDiameter())) {
       dialog.setFiducialDiameter(metaData.getFiducialDiameter());
     }
-    if (!Double.isNaN(metaData.getImageRotation(AxisID.ONLY))) {
-      dialog.setImageRotation(metaData.getImageRotation(AxisID.ONLY));
+    if (!metaData.getImageRotation(AxisID.ONLY).isNull()) {
+      dialog.setImageRotation(metaData.getImageRotation(AxisID.ONLY).toString());
     }
     dialog.setBinning(metaData.getBinning());
 

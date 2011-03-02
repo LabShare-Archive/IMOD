@@ -25,6 +25,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 18:13:44  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -310,7 +313,7 @@ final class LabeledTextField {
   }
 
   void setText(final double value) {
-    textField.setText(String.valueOf(value));
+    textField.setText(Double.toString(value));
   }
 
   void setEnabled(final boolean isEnabled) {
