@@ -525,14 +525,17 @@ zero, providing no orientation information, and, potentially, requiring
 a broad search.
 The next two options involve deriving an initial
 orientation from the line between one particle and its neighbor in the
-IMOD model.&nbsp;  When using either of these options, the reference 
-should also be be specified by a volume and particle numbers
+IMOD model.&nbsp;  When using either of these options, <b>Y Axis Type</b> (below)
+must be set to either <b>Particle model points</b> or <b>End points of
+contour</b>, and the reference 
+must be be specified by volume and particle numbers
 (rather than file name), so that the orientation of the reference
 can be estimated in the same manner.&nbsp;  If you are modeling particles 
 along more than one filament, each filament should be modeled in its
 own contour, so that PEET will not base any orientations on the 
 difference in positions between the end of one filament and 
-the start of the next. Finally, you can also choose to read initial
+the start of the next. A fourth option provides for random initialization
+of the motive list angles. Finally, you can also choose to read initial
 motive list(s) from specified .csv files. In this case, translational
 shifts as well as orientation can be specified.</p>
 
@@ -558,12 +561,20 @@ X-Y plane).</p>
 
 <H5>2.11.3. Initialize X and Z Axis</H5>
 
-<P>If the trajectory
-between particles does not lie in the X-Y plane, then this option can
-be used instead to compute a more general rotation that aligns the
-trajectory at a particle with that at the reference.</p>
+<P>If the trajectory between particles does not lie in the X-Y plane, 
+then this option can be used instead to compute a more general rotation 
+(around both X and Z axes) to align the trajectory at each particle with 
+that at the reference.</p>
 
-<H5>2.11.4. Use files</H5>
+<H5>2.11.4. Uniform random rotations</H5>
+
+<P>A random rotation drawn from a uniform distribution will be generated for 
+each particle.&nbsp; In conjunction with a limited range angular search, this can be 
+useful in avoiding missing wedge bias for isolated particles.&nbsp; With suspected
+icosahedral symmetry, for example, a useful approach is to use this option along 
+with angular search ranges of rougly 32 degrees.
+
+<H5>2.11.5. Use files</H5>
 
 <p>Use this option if you have a text file in .csv format specifying
 the approximate rotation (and, optionally, translation) required to
@@ -867,15 +878,7 @@ In early PEET releases, computation of the local approximation was
 considerably faster than normalized cross correlation. This is no longer the
 case, so we recommend always selecting <b>True local correlation</b>.&nbsp;
 
-<H5></A>3.11.2 Mean fill</H5>
-
-<p>In some cases, particles of interest may lie partially outside
-their parent volume.&nbsp; If <b>Mean fill</b> is checked, voxels in
-the missing region will be replaced with the mean of the data which are
-present.&nbsp; <b>Note: Mean fill</b> is now always treated as if it were
-checked.&nbsp; It will be removed at a future release.</p>
-
-<H5></A>3.11.3 Aligned base name</H5>
+<H5></A>3.11.2 Aligned base name</H5>
 
 <p>If a string is entered in the <b>Aligned base name</b> field,
 PEET will save volumes containing the individual aligned particles
@@ -884,7 +887,7 @@ is set to "aligned", a file aligned_tom1_P0002.mrc will
 contain the the second aligned particle from the 
 first tomogram.</p>
 
-<H5></A>3.11.4 Low frequency filter</H5>
+<H5></A>3.11.3 Low frequency filter</H5>
 
 <p>Just as PEET can be told to filter out high frequencies from both
 the reference and particles being aligned, it can also be told to filter
@@ -896,7 +899,7 @@ resulting high-pass filter.&nbsp; We have not found low frequency filtering to
 be useful, and do not recommend its use.</p>
 </body>
 
-<H5></A>3.11.5 Debug level</H5>
+<H5></A>3.11.4 Debug level</H5>
 <p>Select a number between 0 and 3 to control the contents of the 
 log files.&nbsp; 
 Higher numbers store progressively more information to the logs.</p>
