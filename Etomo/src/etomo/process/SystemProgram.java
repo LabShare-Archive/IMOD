@@ -17,6 +17,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.43  2011/03/02 18:16:08  sueh
+ * <p> bug# 1457 Popping up a warning when python is not available.
+ * <p>
  * <p> Revision 3.42  2011/02/22 04:10:36  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -560,8 +563,8 @@ public class SystemProgram implements Runnable {
       }
       if (exceptionMessage.indexOf("Cannot run program \"python\"") != -1) {
         UIHarness.INSTANCE.openMessageDialog(manager,
-            "Python must be installed on this computer.\n" + exceptionMessage,
-            "System Error");
+            "Unable to run python.  Please see the IMOD Users Guide.\n"
+                + exceptionMessage, "System Error");
       }
     }
     processMessages.addProcessOutput(stdout);
