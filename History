@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/1/11: In eTomo fixing a bug where the RotationAngle was not added to the
+patch tracking comscript, xcorr_pt.com (in 4.1 FWIW).
+
 3/1/11: In eTomo fixed empty tabs in Final Aligned Stack dialog.
 
 3/1/11: Added q hot key to Zap and Slicer windows to report distance between
@@ -10,9 +13,6 @@ instead of squeezing, and made it adjust origin for a subvolume.
 
 2/28/11: Added & and * as alternatives to F11 (contrast reversal) and F12
 (false color) hot keys.
-
-2/28/11: In eTomo fixing a bug where the RotationAngle was not added to the
-patch tracking comscript, xcorr_pt.com (in 4.1 FWIW).
 
 2/28/11: 3dmod draws slice lines in Zap and XYZ when PageUp/Down used in
 slicer.
