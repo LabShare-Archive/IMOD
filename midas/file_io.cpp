@@ -210,6 +210,11 @@ int load_transforms(MidasView *vw, char *filename)
     for (ixy = 0; ixy < 2; ixy++)
       for (k = 0 ; k < vw->nedge[ixy]; k++){
 	qline = stream.readLine();
+    
+        // Eat blank lines, needed thanks to blendmont bug
+        while (qline.isEmpty() && !stream.atEnd()) {
+          qline = stream.readLine();
+        }
 	if (qline.isEmpty()) {
           midas_error("Error reading displacement file.", "", 0);
 	  return(-2);
@@ -375,6 +380,9 @@ void load_angles(MidasView *vw)
 
 /*
 $Log$
+Revision 3.12  2010/06/29 22:30:02  mast
+Changes for binning option
+
 Revision 3.11  2009/01/15 16:30:19  mast
 Qt 4 port
 
