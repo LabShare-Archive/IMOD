@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/3/11: Fixed Blendmont writing a blank line to .ecd files for 1xn montage and
+made Midas accept files with blank lines.
+
 3/1/11: In eTomo fixing a bug where the RotationAngle was not added to the
 patch tracking comscript, xcorr_pt.com (in 4.1 FWIW).
 
