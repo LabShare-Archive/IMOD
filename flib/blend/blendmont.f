@@ -2001,10 +2001,10 @@ c
       call dopen(4,edgenam,'new','f')
       if (ixyFuncStart .eq. 1) write(4,'(2i7)')nedge(1),nedge(2)
       do ixy = ixyFuncStart, ixyFuncEnd
-        if (numSkip .eq. 0) then
+        if (numSkip .eq. 0 .and. nedge(ixy) .gt. 0) then
           write(4,'(f9.3,f10.3)')(edgedispx(i,ixy),edgedispy(i,ixy),
      &        i=1,nedge(ixy))
-        else
+        elseif (nedge(ixy) .gt. 0) then
           write(4,'(f9.3,f10.3,i4)')(edgedispx(i,ixy),edgedispy(i,ixy),
      &        ifskipEdge(i, ixy), i=1,nedge(ixy))
         endif
@@ -3408,6 +3408,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.48  2010/12/31 22:06:28  mast
+c       Fixed two errors in disjoint stuff, added arg for corr sizes
+c
 c       Revision 3.47  2010/12/28 17:50:28  mast
 c       Added robust fitting and options for changing binning and overlap from
 c       when the ecd was first computed
