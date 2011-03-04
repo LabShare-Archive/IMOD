@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/4/11: Kept 3dmod autocontrast from setting black/white range less 4 and
+fixed some problems with this and with the filtered high-quality zoom down.
+
 3/3/11: Fixed Splitblend when using an existing .ecd file.
 
 3/3/11: Fixed Blendmont writing a blank line to .ecd files for 1xn montage and
