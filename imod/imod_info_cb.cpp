@@ -645,12 +645,13 @@ void imod_info_float_clear(int section, int time)
 void imodInfoAutoContrast(int targetMean, int targetSD)
 {
   float mean, sd;
-  int black, white, floatSave;
+  int black, white, floatSave, loop, nloop;
   B3dCIImage *image = NULL;
   float sample, wbdiff;
   int ixStart, iyStart, nxUse, nyUse, nxim, nyim;
   unsigned char **lines = NULL;
   ZapFuncs *zap = getTopZapWindow(false);
+  nloop = 1;
 
   if (zap)
     image = zap->zoomedDownImage(float_subsets, nxim, nyim, ixStart, iyStart, nxUse,
@@ -658,47 +659,62 @@ void imodInfoAutoContrast(int targetMean, int targetSD)
 
   // If there is a top zap in HQ mode using zoomdown filters, analyze the RGBA image
   // for its mean/sd and change sliders to get the actual display to the target
-  if (image && nxUse > 0 && nyUse > 0 && nxUse * nyUse > 32 && image->buf > 0) {
-    /*imodPrintStderr("Got image %d %d %d %d %d %d\n", nxim, nyim, ixStart, iyStart, 
-      nxUse, nyUse); */
-    if (image->buf == 1)
-      lines = makeLinePointers(image->id1, nxim, nyim, 4);
-    else
-      lines = makeLinePointers(image->id2, nxim, nyim, 4);
-    if (!lines)
-      return;
-    sample = B3DMIN(1., 10000.0/(((double)nxUse) * nyUse));
-    nxim = sampleMeanSD(lines, 9, nxim, nyim, sample, ixStart, iyStart, nxUse, nyUse,
-                        &mean, &sd);
-    //imodPrintStderr("%d %f %f %f\n", nxim, sample, mean, sd);
-    free(lines);
-    if (nxim)
-      return;
-    wbdiff = (App->cvi->white - App->cvi->black) * sd / targetSD;
-    black = B3DNINT((wbdiff / 255.) * 
-                    (((255. * App->cvi->black) / (App->cvi->white - App->cvi->black) + 
-                      mean) * targetSD / sd - targetMean));
-    white = black + B3DNINT(wbdiff);
+  // But first do a standard analysis to make sure we have appropriate contrast there
+  if (image && nxUse > 0 && nyUse > 0 && nxUse * nyUse > 32 && image->buf > 0)
+    nloop = 2;
+  for (loop = 0; loop < nloop; loop++) {
+    if (loop) {
+      /*imodPrintStderr("Got image %d %d %d %d %d %d\n", nxim, nyim, ixStart, iyStart, 
+        nxUse, nyUse); */
+      
+      if (image->buf == 1)
+        lines = makeLinePointers(image->id1, nxim, nyim, 4);
+      else
+        lines = makeLinePointers(image->id2, nxim, nyim, 4);
+      if (!lines)
+        return;
+      sample = B3DMIN(1., 10000.0/(((double)nxUse) * nyUse));
+      nxim = sampleMeanSD(lines, 9, nxim, nyim, sample, ixStart, iyStart, nxUse, nyUse,
+                          &mean, &sd);
+      //imodPrintStderr("%d %f %f %f\n", nxim, sample, mean, sd);
+      free(lines);
+      if (nxim)
+        return;
 
-  } else {
+      wbdiff = (App->cvi->white - App->cvi->black) * sd / targetSD;
+      if (wbdiff) {
+        black = B3DNINT((wbdiff / 255.) * 
+                        (((255. * App->cvi->black) / (App->cvi->white - App->cvi->black) 
+                          + mean) * targetSD / sd - targetMean));
+        white = black + B3DNINT(wbdiff);
+      } else {
+        black = white = B3DNINT(mean);
+      }
+    } else {
 
-    // Otherwise get the mean of the current image
-    if (imodInfoCurrentMeanSD(mean, sd))
-      return;
-    black = B3DNINT(mean - sd * targetMean / targetSD);
-    white = B3DNINT(mean + sd * (255 - targetMean) / targetSD);
+      // Otherwise get the mean of the current image
+      if (imodInfoCurrentMeanSD(mean, sd))
+        return;
+      black = B3DNINT(mean - sd * targetMean / targetSD);
+      white = B3DNINT(mean + sd * (255 - targetMean) / targetSD);
+    }
+
+    black = B3DMIN(255, B3DMAX(0, black));
+    white = B3DMIN(255, B3DMAX(0, white));
+    if (white - black < 4) {
+      nxim = (white + black) / 2;
+      black = B3DMAX(0, nxim - 2);
+      white = B3DMIN(255, nxim + 2);
+    }
+    App->cvi->black = black;
+    App->cvi->white = white;
+    //imodPrintStderr("Setting %d %d\n", black, white);
+    xcramp_setlevels(App->cvi->cramp, black, white);
+    floatSave = float_on;
+    float_on = 0;
+    imod_info_setbw(black, white);
+    float_on = floatSave;
   }
-  if (black < 0)
-    black = 0;
-  if (white > 255)
-    white = 255;
-  App->cvi->black = black;
-  App->cvi->white = white;
-  xcramp_setlevels(App->cvi->cramp, black, white);
-  floatSave = float_on;
-  float_on = 0;
-  imod_info_setbw(black, white);
-  float_on = floatSave;
 }
 
 // Return the mean and Sd of the current image, potentially a subarea
@@ -872,6 +888,9 @@ void imod_imgcnt(const char *string)
 /*
 
 $Log$
+Revision 4.42  2011/02/14 18:32:17  mast
+Fixed floating after flipping volume (reset last_section so it's not out of range)
+
 Revision 4.41  2011/02/12 22:19:07  mast
 Removed debugging output
 
