@@ -183,10 +183,10 @@ if not useOldFunc:
       runLines.append(fmtstr('EdgeFunctionsOnly  {}', axis))
       pysed(sedlist, runLines, comname, True)
 
-   combineLines = [fmtstr('$if (-e {0}.ecd) \\mv -f {0}.ecd {0}.ecd~', \
-                          blendroot),
-                   fmtstr('$if (-e {0}.xecd && -e {0}.yecd) (cat {0}.xecd ' +\
-                          '{0}.yecd >! {0}.ecd)', blendroot)]
+   combineLines = [fmtstr('$if (-e {0}.xecd && -e {0}.yecd) then', blendroot),
+                   fmtstr('$  if (-e {0}.ecd) \\mv -f {0}.ecd {0}.ecd~', blendroot),
+                   fmtstr('$  (cat {0}.xecd {0}.yecd >! {0}.ecd)', blendroot),
+                   '$endif']
 
 if edgeFuncOnly:
    comnum += 1
@@ -263,6 +263,9 @@ sys.exit(0)
 
 #
 #  $Log$
+#  Revision 1.3  2010/12/06 22:31:09  mast
+#  Split off a new function
+#
 #  Revision 1.2  2010/12/01 23:02:47  mast
 #  Modified for python 2/3; fixed problem with catting ecd files that don't
 #  exist; stopped removing finish.log in finish.com
