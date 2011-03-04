@@ -239,9 +239,13 @@ int zoomWithFilter(unsigned char **slines, int aXsize, int aYsize, float aXoff,
     return 2;
   }
 
-  if (aXoff < 0. || aYoff < 0. || aXoff + bXsize * scale > aXsize ||
-      aYoff + bYsize * scale > aYsize)
+  if (aXoff < 0. || aYoff < 0. || (int)(aXoff + bXsize * scale) > aXsize ||
+      (int)(aYoff + bYsize * scale) > aYsize) {
+    /* printf("axo %f bxs %d sc %f xe %f axs %d   ayo %f bys %d ye %f ays %d\n", aXoff,
+           bXsize, scale, aXoff + bXsize * scale, aXsize, aYoff, bYsize,
+           aYoff + bYsize * scale, aYsize); */
     return 4;
+  }
 
   numThreads = B3DNINT(0.04 * sqrt((double)aXsize * aYsize));
   numThreads = numOMPthreads(B3DMIN(numThreads, MAX_THREADS));
@@ -769,6 +773,9 @@ static double filt_lanczos3(double x)
 /*
 
 $Log$
+Revision 1.2  2011/02/12 04:12:27  mast
+More filters
+
 Revision 1.1  2011/02/10 05:21:35  mast
 Added to package
 
