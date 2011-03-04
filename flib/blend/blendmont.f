@@ -1138,7 +1138,7 @@ c           read one file then the other.
           if(.not.exist)then
             edgenam=concat(rootname,xcorrext(0))
             write(*,'(/,a,a)')'ERROR: BLENDMONT - Edge correlation file does'//
-     &          ' not exist: ',edgenam
+     &          ' not exist: ',trim(edgenam)
             call exit(1)
           endif
           call dopen(5, edgename2, 'ro','f')
@@ -3408,6 +3408,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.49  2011/03/03 19:23:49  mast
+c       Don't write blank line to ecd file for a 1xn montage
+c
 c       Revision 3.48  2010/12/31 22:06:28  mast
 c       Fixed two errors in disjoint stuff, added arg for corr sizes
 c
