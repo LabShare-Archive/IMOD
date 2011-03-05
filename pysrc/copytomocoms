@@ -45,11 +45,11 @@ def editAndWrite(srcRoot, dstRoot, sedcom):
 
 
 # Function to run goodframe
-def runGoodframe(xsize):
+def runGoodframe(xsize, ysize):
    try:
-      goodout = runcmd(fmtstr('goodframe {}', xsize))
-      if len(goodout):
-         return int(goodout[0])
+      goodout = runcmd(fmtstr('goodframe {} {}', xsize, ysize))
+      if len(goodout) > 1:
+         return (int(goodout[0]), int(goodout[1])
    except ImodpyError:
       pass
    exitError('Running goodframe to get full aligned or prealigned stack size')
@@ -339,8 +339,7 @@ for iaxis in range(naxis):
    fullx = xsize
    fully = ysize
    if montage:
-      fullx = runGoodframe(xsize)
-      fully = runGoodframe(ysize)
+      (fullx, fully) = runGoodframe(xsize, ysize)
          
    # Also get the rotation relative to square to get indent in Y from rotation
    indentangle = axisangle
@@ -682,8 +681,7 @@ for iaxis in range(naxis):
    alxsize = xsize
    alysize = ysize
    if preblend:
-      alxsize = runGoodframe(xsize)
-      alysize = runGoodframe(ysize)
+      (alxsize, alysize) = runGoodframe(xsize, ysize)
 
    # 5/3/02: change to using image file name, keep dimensions commented out
 
@@ -895,6 +893,9 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.4  2011/03/01 18:09:08  mast
+# Needed to import stat, error messages were suppressed by being in try block
+#
 # Revision 1.3  2011/03/01 17:45:58  mast
 # reinstating the log, it lost its $
 #
