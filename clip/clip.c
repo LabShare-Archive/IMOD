@@ -496,7 +496,8 @@ int main( int argc, char *argv[] )
     } else if (process != IP_SPLITRGB) {
 
       /* DNm 10/20/03: switch to calling routine for backup file */
-      imodBackupFile(argv[argc - 1]);
+      if (!getenv("IMOD_NO_IMAGE_BACKUP"))
+        imodBackupFile(argv[argc - 1]);
 
       hout.fp = fopen(argv[argc - 1], "wb+");
         
@@ -684,6 +685,9 @@ int *clipMakeSecList(char *clst, int *nofsecs)
 
 /*
 $Log$
+Revision 3.26  2011/02/28 17:36:30  mast
+Add unwrap option
+
 Revision 3.25  2011/02/24 00:12:26  mast
 Set MAP stamp for new file header
 

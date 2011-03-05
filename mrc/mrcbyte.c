@@ -148,7 +148,7 @@ int main( int argc, char *argv[] )
     }
  
     i++;
-    if (imodBackupFile(argv[i])) {
+    if (!getenv("IMOD_NO_IMAGE_BACKUP") && imodBackupFile(argv[i])) {
       printf("WARNING: %s - Error making backup file from existing %s\n",
              progname, argv[i]);
     }
@@ -275,6 +275,9 @@ int main( int argc, char *argv[] )
 /*
 
 $Log$
+Revision 3.9  2009/11/27 16:37:55  mast
+Fixed error messages
+
 Revision 3.8  2008/05/31 03:48:37  mast
 Fixed min/max computation
 

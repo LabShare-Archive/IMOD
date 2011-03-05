@@ -1189,7 +1189,7 @@ int main (int argc, char **argv)
 
       /* open output file if not open yet */
       if (!fp_outfile) {
-        if (imodBackupFile(outFile))
+        if (!getenv("IMOD_NO_IMAGE_BACKUP") && imodBackupFile(outFile))
           fprintf(stderr, "WARNING: error renaming existing %s to %s~", 
                   outFile, outFile);
 
@@ -1267,6 +1267,9 @@ int main (int argc, char **argv)
 /*  
     
 $Log$
+Revision 3.16  2011/03/01 22:56:01  mast
+Switch to PID printing function
+
 Revision 3.15  2010/09/29 17:58:12  mast
 Fixed writing when input data has extra header
 

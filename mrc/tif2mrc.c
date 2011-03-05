@@ -226,7 +226,7 @@ int main( int argc, char *argv[])
         read_tiffentries(tiffp, &tiff);
       }
 
-      if (imodBackupFile(argv[argc - 1]))
+      if (!getenv("IMOD_NO_IMAGE_BACKUP") && imodBackupFile(argv[argc - 1]))
         exitError("Couldn't create backup file");
       mrcfp = fopen(argv[argc - 1], "wb");
       if (!mrcfp){
@@ -346,7 +346,7 @@ int main( int argc, char *argv[])
 
 
   /* Write out mrcheader */
-  if (imodBackupFile(argv[argc - 1]))
+  if (!getenv("IMOD_NO_IMAGE_BACKUP") && imodBackupFile(argv[argc - 1]))
     exitError("Couldn't create backup file");
   mrcfp = fopen(argv[argc - 1], "wb");
   if (!mrcfp){
@@ -736,6 +736,9 @@ static float minmaxmean(unsigned char *tifdata, int mode, int unsign,
 
 /* 
    $Log$
+   Revision 3.21  2011/01/31 17:35:14  mast
+   Fixed stacking of files of different sizes
+
    Revision 3.20  2010/12/18 18:47:08  mast
    Added ability to read in chunks and made it work with > 2 GB files.
 

@@ -452,7 +452,8 @@ int main( int argc, char *argv[])
   }
  
   /* Open final output file now */
-  imodBackupFile(outfile);
+  if (!getenv("IMOD_NO_IMAGE_BACKUP"))
+    imodBackupFile(outfile);
   gfout = fopen(outfile, "wb");
   if (gfout == NULL)
     exitError("Could not open %s", outfile);
@@ -1210,6 +1211,9 @@ static int itemOnList(int item, int *list, int num)
 /*
 
 $Log$
+Revision 3.15  2011/02/23 15:24:51  mast
+Output FFT mask as real component only
+
 Revision 3.14  2011/02/21 18:17:37  mast
 Added exact evaluation inside contours, options for mask output, padding,
 tapering over pad region, using contours or points on all sections, and

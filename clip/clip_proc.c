@@ -985,7 +985,8 @@ int clip_splitrgb(MrcHeader *h1, ClipOptions *opt)
   s = sliceCreate(h1->nx, h1->ny, MRC_MODE_RGB);
   for (i = 0; i < 3; i++) {
     sprintf(fname, "%s%s", opt->fnames[1], ext[i]);
-    imodBackupFile(fname);
+    if (!getenv("IMOD_NO_IMAGE_BACKUP"))
+      imodBackupFile(fname);
     hdr[i] = *h1;
     hdr[i].fp = fopen(fname, "wb+");
     if (!hdr[i].fp){
@@ -1949,6 +1950,9 @@ int free_vol(Islice **vol, int z)
 /*
 
 $Log$
+Revision 3.32  2011/02/28 17:36:31  mast
+Add unwrap option
+
 Revision 3.31  2011/02/23 22:21:48  mast
 Add multiply, add, divide, subtract, and truncate options.  Add scaling to the
 average,sd, variance options.  Made 2D averaging happen based on number of

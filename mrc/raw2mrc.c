@@ -207,8 +207,8 @@ int main( int argc, char *argv[] )
 
   /* printf("nfiles = %d, argc = %d\n",nfiles, argc); */
 
-  if (imodBackupFile(argv[argc - 1])) {
-    fprintf(stderr, "ERROR: %s - couldn't create backup", progname);
+  if (!getenv("IMOD_NO_IMAGE_BACKUP") && imodBackupFile(argv[argc - 1])) {
+    fprintf(stderr, "ERROR: %s - couldn't create backup file", progname);
     exit(3);
   }
   fout = fopen(argv[argc - 1], "wb");
@@ -540,6 +540,9 @@ int setintype(char *stype, int *size, int *otype)
 
 /*
 $Log$
+Revision 3.17  2009/08/04 15:50:15  mast
+Made it accept files starting in dash
+
 Revision 3.16  2005/11/11 21:55:08  mast
 Outputs unsigned mode
 

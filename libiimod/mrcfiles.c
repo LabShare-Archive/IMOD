@@ -1550,7 +1550,8 @@ int parallelWriteSlice(void *buf, FILE *fout, MrcHeader *hdata, int slice)
       b3dError(stdout, "ERROR: sliceWriteParallel - unknown mode.\n");
       return 1;
     }
-    imodBackupFile(filename);
+    if (!getenv("IMOD_NO_IMAGE_BACKUP"))
+      imodBackupFile(filename);
     fpBound = fopen(filename, "wb");
     if (!fpBound) {
       b3dError(stdout, "ERROR: sliceWriteParallel - opening boundary file %s"
@@ -2250,6 +2251,9 @@ void mrc_swap_floats(fb3dFloat *data, int amt)
 
 /*
 $Log$
+Revision 3.44  2010/03/27 19:22:23  mast
+Made stamp CCP4-compliant
+
 Revision 3.43  2009/04/01 03:52:02  mast
 Cleanup some warnings
 
