@@ -154,7 +154,11 @@ type = LI
 usage = Objects that contain boundary contours around points to be replaced
 tooltip = 
 manpage = List of objects that contain boundary contours around pixels to be
-replaced.  Ranges can be entered, and / to specify all objects.
+replaced.  Ranges can be entered, and / to specify all objects.  Boundary
+contours can be arbitrarily large.  When a contour encloses more than 1000
+pixels, a different procedure is use to erase the points, and intensities are
+tapered down over 8 pixels on the inside of the patch from the value of the
+nearest pixel just outside the patch to the mean of the surrounding pixels.
  
 [Field = AllSectionObjects]
 short = allsec
@@ -186,6 +190,20 @@ object's default sphere radius.  This entry is floating point and can be used
 to overcome the limitations of having an integer default sphere radius.  If
 there are multiple circle objects, enter one value to apply to all objects or
 a value for each object.
+
+[Field = ExpandCircleIterations]
+short = expand
+type = I
+usage = Number of iterations for expanding patches around circles
+tooltip = 
+manpage = Number of iterations of a procedure that expands the area erased
+around the points of a circle object.  This procedure analyzes the intensity
+of pixels adjacent to the patch being erased and adds pixels in the
+appropriate tail of the intensity distribution to the patch.  Iterating simply
+repeats the procedure.  If edges of gold particles are left because points are
+not very well centered, try this option instead of just increasing the radius,
+as it will tend to erase just the remaining points on the edge instead of a
+whole ring of points.
 
 [Field = MergePatches]
 short = merge
@@ -240,6 +258,13 @@ manpage = Analyze for replacement points without writing output image file.
 short = verbose
 type = B
 usage = Print details on patches being replaced
+tooltip = 
+manpage =
+
+[Field = ProcessID]
+short = PID
+type = B
+usage = Output process ID
 tooltip = 
 manpage =
 

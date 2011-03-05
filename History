@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/4/11: Ccderaser has a new option to expand areas being erased around
+circles, specifically erasing just the points that are part of the gold
+particle.  It can also erase inside arbitrarily large contours and tapers the
+edges inside contours containing > 100 pixels.  Dynamic memory allocation is
+now used for the image array and other limiting arrays.
+
 3/4/11: Kept 3dmod autocontrast from setting black/white range less 4 and
 fixed some problems with this and with the filtered high-quality zoom down.
 

@@ -87,8 +87,10 @@ DDEESSCCRRIIPPTTIIOONN
   because sometimes they are more discernable on particular sections.
   
   A boundary object should be the default, closed contour type.  Draw a
-  contour around each patch of pixels to be erased.  A pixel is will be
+  contour around each patch of pixels to be erased.  A pixel will be
   included in the erasure if its center is inside or on the boundary line.
+  Contours can be arbitrarily large, and there is tapering of intensities
+  inside contours that are bigger than 1000 pixels.
 
   A line object should be closed or open contour type.  To specify a line of
   points, make a contour with two points, at the start and end of the line
