@@ -57,9 +57,23 @@ path to the C shell executable plus flags.  The -f flag is always added.
 The path to the top IMOD directory; set by startup scripts, or can be set
 before startup script is run.
 .TP
+.B IMOD_DUMP_FSCACHE
+Makes 3dmod tell the system to dismiss the file system cache while
+loading a file on Linux.  This behavior was originally the default because,
+on early 64-bit systems with files bigger
+than about half of the system memory capacity,
+the system would swap out data within 3dmod while loading.
+This bad system behavior is no longer observed in testing on FC4, RHEL4 and 
+RHEL5.  Set this variable (no value needed) for working on systems that
+show this problem.
+.TP
 .B IMOD_JAVADIR
 Location of Java to be used to run eTomo; $IMOD_JAVADIR/bin is put on the
 front of the path in the etomo startup script.
+.TP
+.B IMOD_NO_IMAGE_BACKUP
+If this variable is set (no value needed), virtually all programs that create
+image files will no longer back up an existing file by adding ~ to the name.
 .TP
 .B IMOD_PLUGIN_DIR
 Main directory for IMOD plugins; set by startup scripts to be inside IMOD.
@@ -76,16 +90,6 @@ various graphics programs; Arial is good for going to Illustrator.
 .B IMOD_QTLIBDIR
 Directory in which IMOD's copy of Qt lives, if any.  Set by startup IMOD
 scripts.
-.TP
-.B IMOD_DUMP_FSCACHE
-Makes 3dmod tell the system to dismiss the file system cache while
-loading a file on Linux.  This behavior was originally the default because,
-on early 64-bit systems with files bigger
-than about half of the system memory capacity,
-the system would swap out data within 3dmod while loading.
-This bad system behavior is no longer observed in testing on FC4, RHEL4 and 
-RHEL5.  Set this variable (no value needed) for working on systems that
-show this problem.
 .TP
 .B IMOD_STEREO_COMMAND
 When using hardware stereo, system command for switching the monitor to

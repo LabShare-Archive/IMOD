@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/4/11: Added environment variable IMOD_NO_IMAGE_BACKUP to prevent programs
+from backing up and existing an image file by adding ~ to the name.
+
 3/4/11: Fixed Sirtsetup when list to clean up past start includes a ~ file.
 
 3/4/11: Ccderaser has a new option to expand areas being erased around
