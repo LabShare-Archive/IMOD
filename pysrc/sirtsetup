@@ -315,7 +315,10 @@ if cleanup:
       basename = setname + '.' + ext
       reclist = glob.glob(basename + '[0-9][0-9]*')
       for rec in reclist:
-         num = int(rec[len(basename):])
+         lastchar = len(rec)
+         while not rec[lastchar-1].isdigit():
+            lastchar -= 1
+         num = int(rec[len(basename):lastchar])
          if num > lastnum or startfirst:
             cleanlist += rec + ' '
 
@@ -386,14 +389,16 @@ if leaveStr:
    if not iterEntered:
       iterations = lastLeave - lastnum
       if iterations <= 0:
-         exitError("The last entry on the list to leave is before the " +
-                   "last iteration already done")
+         exitError(fmtstr("Trying to resume with iteration {}, but the last entry on " +\
+                          "the list to retain ({}) is before this iteration ",
+                          lastnum + 1, lastLeave))
 
    # Check validity of leave values
    for leave in leaveList:
       if leave <= lastnum or leave > lastnum + iterations:
-         exitError(fmtstr('A value on the list to leave ({}) is outside ',
-                          leave)+ 'the range of iterations being done')
+         exitError(fmtstr('A value on the list to retain ({}) is outside the range of' + \
+                          ' iterations being done ({} to {})', leave, lastnum + 1,
+                          lastnum + iterations))
 
 # Set up loop index, and add previous reconstruction and last iteration to
 # leave list to protect both of them
@@ -682,6 +687,9 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.9  2011/02/11 05:50:41  mast
+# Remove WIDTH entry and zero out X shift if any
+#
 # Revision 1.8  2010/12/18 17:41:55  mast
 # Stop putting out empty com files and doing scaling on every iteration
 #
