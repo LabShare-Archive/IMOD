@@ -194,7 +194,7 @@ void qopen(int *iunit, char *name, char *attribute, int name_l, int attr_l)
       
       /* DNM 10/20/03: check for existence of file before making backup,
          and delete old backup first */
-      if (!stat(oldfilename, &buf)) {
+      if (!getenv("IMOD_NO_IMAGE_BACKUP") && !stat(oldfilename, &buf)) {
         oldfilename[strlen(oldfilename) + 1] = 0x00;
         oldfilename[strlen(oldfilename)] = '~';
         remove(oldfilename);
@@ -584,6 +584,9 @@ Private undefines
  
 /*
 $Log$
+Revision 3.20  2008/11/21 02:16:27  mast
+Increased filename lengths so that 320-character filenames will work
+
 Revision 3.19  2007/10/14 17:10:06  mast
 Return file size in kilobytes, not 512-byte blocks
 
