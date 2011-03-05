@@ -21,30 +21,31 @@ c       Log at end of file
 c       
       implicit none
       include 'model.inc'
-      integer imsiz,mxd,limpatch,limobj,limptout,limdiff,limpatchout
-      parameter (imsiz=8200, limdiff = 512, limpatchout=40000)
+      integer mxd,limpatch,limptout,limdiff,limpatchout
+      parameter (limdiff = 512, limpatchout=40000)
 c
 c       Keep isdim synchronized to limpatch, mxd sync'd to cleanarea mxd
-      parameter (mxd=300,limpatch=10000,limobj=1000,limptout=25*limpatchout)
-      real*4 array(imsiz*imsiz),title(20)
+      parameter (mxd=300,limpatch=10000,limptout=25*limpatchout)
+      real*4 title(20)
       real*4 diffArr(limdiff, limdiff), exceedCrit(limpatchout)
       integer*4 nxyz(3),mxyz(3),nx,ny,nz
       equivalence (nx,nxyz(1)),(ny,nxyz(2)),(nz,nxyz(3))
-      character*160 infile,outfile,ptfile,modelout
+      character*320 infile,outfile,ptfile,modelout
       integer*4 ixfix(limpatch),iyfix(limpatch)
       integer*4 ixout(limptout),iyout(limptout),izout(limptout)
-      integer*4 indPatch(limpatchout), iobjCircle(limobj)
-      integer*4 iobjline(limobj),iobjdoall(limobj), iobjBound(limobj)
-      integer*4 indSize(max_obj_num)
-      real*4 sizes(max_pt),betterRadius(limobj),betterIn(limobj)
-      common /bigcom/array,diffArr,exceedCrit,indPatch,ixout,iyout,izout,
-     &    indSize, sizes
+      integer*4 indPatch(limpatchout)
+      integer*4, allocatable :: iobjline(:),iobjdoall(:), iobjBound(:), iobjCircle(:)
+      integer*4, allocatable :: indSize(:)
+      real*4, allocatable :: xbound(:), ybound(:), sizes(:), array(:)
+      real*4, allocatable :: betterRadius(:),betterIn(:)
+      logical*4, allocatable :: objTaper(:)
+      common /bigcom/diffArr,exceedCrit,indPatch,ixout,iyout,izout
 c
       character*80 titlech
       character dat*9, tim*8
       character*1024 line
 c       
-      integer*4 mode,imfilout,i,j,nobjdoall,nobjline,nborder,iorder
+      integer*4 mode,imfilout,i,j,nobjdoall,nobjline,nborder,iorder, imsiz, limobj
       integer*4 ifincadj,iobj,ibase,itype,imodobj,imodcont,ip,ipt,jtype,jobj
       real*4 dmin,dmax,dmean,tmin,tmax,tsum,dmint,dmaxt,dmeant,tmean
       real*4 zmin,zmax,xmin,xmax,ymin,ymax,diamMerge
@@ -55,13 +56,15 @@ c
       integer*4 ifPeakSearch, iScanSize,ifVerbose,numPatch,numPixels,ifTouch
       integer*4 ifTrialMode,nEdgePixels, maxObjectsOut, maxInDiffPatch,ifGrew
       integer*4 jp1,jp2,jx1,jx2,jy1,jy2,iborder, iBordLo, iBordHi, idir,jbase
-      integer*4 nobjBound, nobjCircle, numBetterIn, numCircleObj
+      integer*4 nobjBound, nobjCircle, numBetterIn, numCircleObj, numExpandIter
       integer*4 indfree, indcont, numSizes, loopst, loopnd, loop, numConSize
-      integer*4 ixfmin, ixfmax, iyfmin, iyfmax
-      logical*4 circleCont, allSecCont
+      integer*4 ixfmin, ixfmax, iyfmin, iyfmax, numGrowIter, taperedPatchCrit
+      integer*4 maxSizes, limSizes, maxBound, ntapering
+      logical*4 circleCont, allSecCont, contOnSecOrAllSec
       logical readw_or_imod, typeonlist, nearby
       integer*4 getImodObjSize,getImodSizes
-      integer*4 getContPointSizes
+      integer*4 getContPointSizes, imodGetPID
+      real*4 contourArea
 c       
       logical pipinput
       integer*4 numOptArg, numNonOptArg
@@ -91,13 +94,9 @@ c
 c       Set all defaults here
 c       
       nobjdoall=1
-      iobjdoall(1)=-999
       nobjline=1
-      iobjline(1)=-999
       nobjBound = 1
-      iobjBound(1)=-999
       nobjCircle = 1
-      iobjCircle(1) = -999
       nborder=2
       iorder=2
       ifincadj=1
@@ -116,10 +115,8 @@ c
       maxInDiffPatch = 2
       ifMerge = 0
       maxObjectsOut = 4
-      do i = 1, limobj
-        betterRadius(i) = -1.
-      enddo
-
+      numExpandIter = 0
+      taperedPatchCrit = 1000
       call date(dat)
       call time(tim)
 c       
@@ -155,7 +152,6 @@ c
       endif
 
       call irdhdr(1,nxyz,mxyz,mode,dmin,dmax,dmean)
-      if(nx*ny.gt.imsiz**2) call exitError('IMAGE TOO LARGE FOR ARRAYS')
 
       imfilout=1
       if(ifTrialMode .eq. 0 .and. outfile.ne.' ')then
@@ -173,13 +169,24 @@ c
         write(*,'(1x,a,$)')'Model file: '
         read(*,'(a)')ptfile
       endif
+      limobj = 10
       if (.not. pipinput .or. ierr .eq. 0) then
         if(.not.readw_or_imod(ptfile)) call exitError('READING MODEL FILE')
-        if (getImodObjSize() .gt. limobj) call exitError(
-     &      'TOO MANY OBJECTS IN MODEL FOR ARRAYS')
         call scaleModelToImage(1, 0)
+        limobj = getImodObjSize() + 10
       endif
       numObjOrig = max_mod_obj
+
+      allocate(iobjCircle(limobj), iobjline(limobj),iobjdoall(limobj), iobjBound(limobj),
+     &    betterRadius(limobj),betterIn(limobj), stat = ierr)
+      call memoryError(ierr, 'ARRAYS FOR MODEL OBJECT DATA')
+      do i = 1, limobj
+        betterRadius(i) = -1.
+      enddo
+      iobjdoall(1)=-999
+      iobjline(1)=-999
+      iobjBound(1)=-999
+      iobjCircle(1) = -999
 c       
       if (pipinput) then
 c         
@@ -207,7 +214,11 @@ c
         else
           nobjBound = 0
         endif
+        ierr2 = 0
+        ierr = PipGetBoolean('ProcessID', ierr2)
+        if (ierr2 .ne. 0) call pidToStderr()
 
+        ierr = PipGetInteger('ExpandCircleIterations', numExpandIter)
         ierr = PipGetInteger('BorderSize', nborder)
         ierr = PipGetInteger('PolynomialOrder', iorder)
         if (PipGetBoolean('ExcludeAdjacent', i) .eq. 0) ifincadj = 0
@@ -323,15 +334,40 @@ c       Check that lists are mutually exclusive
      &    numBetterIn) call exitError('THE NUMBER OF BETTER RADIUS VALUES '//
      &    'MUST BE EITHER 1 OR THE SAME AS THE NUMBER OF CIRCLE OBJECTS')
 c       
-c       Convert boundary objects to interior point collections
-      ibase = max_mod_obj
-      do iobj=1,ibase
+c       Determine maximum size needed for boundary array
+      maxBound = 0
+      maxsizes = 0
+      limSizes = 10
+      do iobj=1,max_mod_obj
+        ninobj = npt_in_obj(iobj)
         itype = 256-obj_color(2,iobj)
-        if(npt_in_obj(iobj).gt.2 .and. typeonlist(itype,iobjBound,nobjBound))
-     &      call convertBoundary(iobj, nx, ny, array, array(imsiz * imsiz / 2))
+        if(typeonlist(itype,iobjBound,nobjBound)) maxBound = max(maxBound, ninobj)
+        if (typeonlist(itype, iobjCircle, nobjCircle)) then
+          maxSizes = max(maxSizes, ninobj)
+          limSizes = limSizes + ninobj
+        endif
+      enddo
+      imsiz = max(nx * ny, maxSizes) + 10
+      allocate(xbound(maxBound+10), ybound(maxBound+10), objTaper(max_mod_obj+10),
+     &    sizes(limSizes), indSize(max_mod_obj+10), array(imsiz), stat = ierr)
+      call memoryError(ierr, 'ARRAYS FOR BOUNDARY CONTOURS, SIZES, AND IMAGE')
+
+c       
+c       Convert boundary objects to interior point collections
+      do iobj=1,max_mod_obj
+        itype = 256-obj_color(2,iobj)
+        objTaper(iobj) = .false.
+        if(npt_in_obj(iobj).gt.2 .and. typeonlist(itype,iobjBound,nobjBound)) then
+          if (contourArea(iobj) .lt. taperedPatchCrit) then
+            call fillBoundaryArrays(iobj, xbound, ybound, xmin, xmax, ymin, ymax)
+            call convertBoundary(iobj, nx, ny, xbound, ybound, xmin, xmax, ymin, ymax)
+          else
+            objTaper(iobj) = .true.
+          endif
+        endif
       enddo          
 c       
-c       Check all but circle objects
+c       Check all but circle objects and tapered patch opjects
       do iobj=1,max_mod_obj
         if(npt_in_obj(iobj).gt.0)then
           ibase=ibase_obj(iobj)
@@ -356,7 +392,8 @@ c       Check all but circle objects
      &            ' not horizontal or vertical'
               call exit(1)
             endif
-          else if (.not.typeonlist(itype,iobjCircle,nobjCircle)) then
+          else if (.not.typeonlist(itype,iobjCircle,nobjCircle) .and.
+     &          .not.objTaper(iobj)) then
             zmin=1.e10
             zmax=-1.e10
             xmin=zmin
@@ -397,8 +434,7 @@ c       Load point sizes
       sizemax = -1.
       do itype = 1, getImodObjSize()
         if(typeonlist(itype,iobjCircle,nobjCircle)) then
-          ierr = getImodSizes(itype, sizes(indfree), max_pt - indfree,
-     &        numSizes)
+          ierr = getImodSizes(itype, sizes(indfree), limSizes + 1 - indfree, numSizes)
           if (ierr .ne. 0) call exitError('LOADING POINT SIZES FROM MODEL')
 c           
 c           Make indexes to all contours in this object
@@ -411,11 +447,9 @@ c
 c               If there is a better radius for this object, get the sizes
 c               for this contour and replacethe defaults
               if (betterRadius(itype) .gt. 0) then
-                ierr = getContPointSizes(imodobj, imodcont, array, imsiz*imsiz,
-     &              numConSize)
+                ierr = getContPointSizes(imodobj, imodcont, array, imsiz, numConSize)
                 if (numConSize .gt. 0 .and. numConSize .ne. npt_in_obj(iobj))
-     &              call exitError(
-     &              'MISMATCH BETWEEN CONTOUR AND POINT ARRAY SIZE')
+     &              call exitError('MISMATCH BETWEEN CONTOUR AND POINT ARRAY SIZE')
                 do i = 1, npt_in_obj(iobj)
                   if (numConSize .eq. 0 .or. array(i) .lt. 0.)
      &                sizes(indSize(iobj)+i-1) = betterRadius(itype)
@@ -445,23 +479,24 @@ c
         call irdsec(1,array,*99)
         nfix=0
         linefix =0
+        ntapering = 0
 c         
 c         scan through points to see if any need fixing
 c         Go backwards in case this model is a peak model
 c         
         do iobj=numObjOrig,1,-1
-          if(npt_in_obj(iobj).gt.0)then
+          if (npt_in_obj(iobj).gt.0)then
             ibase=ibase_obj(iobj)
             itype = 256-obj_color(2,iobj)
             circleCont = typeonlist(itype,iobjCircle,nobjCircle)
             allSecCont = typeonlist(itype,iobjdoall,nobjdoall)
+            contOnSecOrAllSec = nint(p_coord(3,object(ibase+1))).eq.izsect .or. allSecCont
 c             
 c             first see if this has a line to do
 c             
-            if(typeonlist(itype,iobjline,nobjline))then
-              if(nint(p_coord(3,object(ibase+1))).eq.izsect .or. allSecCont)
-     &            then
-                if(linefix.eq.0)write(*,'(a,$)')' fixing lines -' 
+            if (typeonlist(itype,iobjline,nobjline))then
+              if (contOnSecOrAllSec) then
+                if (linefix.eq.0)write(*,'(a,$)')' fixing lines -' 
                 linefix=linefix+1
                 ip1=object(ibase+1)
                 ip2=object(ibase+2)
@@ -485,11 +520,11 @@ c
                     nearby = .false.
                     iborder = iborder + 1
                     do jobj = numObjOrig,1,-1
-                      if(npt_in_obj(jobj).gt.0)then
+                      if (npt_in_obj(jobj).gt.0)then
                         jbase=ibase_obj(jobj)
                         jtype = 256-obj_color(2,jobj)
-                        if(typeonlist(jtype,iobjline,nobjline))then
-                          if(nint(p_coord(3,object(jbase+1))).eq.izsect .or.
+                        if (typeonlist(jtype,iobjline,nobjline))then
+                          if (nint(p_coord(3,object(jbase+1))).eq.izsect .or.
      &                        typeonlist(jtype,iobjdoall,nobjdoall)) then
                             jp1=object(jbase+1)
                             jp2=object(jbase+2)
@@ -522,13 +557,26 @@ c                print *,ix1,iy1,ix2,iy2, iBordLo, iBordHi
                 call cleanline(array,nx,ny,ix1,iy1,ix2,iy2, iBordLo, iBordHi)
               endif
 c               
+c               Next taper-inside contour
+            elseif (contOnSecOrAllSec .and. objTaper(iobj)) then
+              if (ntapering.eq.0)write(*,'(a,$)')' tapering large patches -' 
+              ntapering=ntapering+1
+              call fillBoundaryArrays(iobj, xbound, ybound, xmin, xmax, ymin, ymax)
+              call taperInsideCont(array, nx, ny, xbound, ybound, npt_in_obj(iobj),
+     &            xmin, xmax, ymin, ymax, ierr)
+              if (ierr .ne. 0) then
+                call objtocont(iobj,obj_color,imodobj,imodcont)
+                write(*,107)imodobj,imodcont, 'does not have enough adjacent points'
+                call exit(1)
+              endif
+c               
 c               Then check circle or other contour at Z
-            elseif(nint(p_coord(3,object(ibase+1))).eq.izsect .or. circleCont
-     &            .or. allSecCont) then
+            elseif (contOnSecOrAllSec .or. circleCont) then
 c               
 c               Set up to loop once or on circle points
               loopst = 1
               loopnd = 1
+              numGrowIter = 0
               if (circleCont) loopnd  = npt_in_obj(iobj)
               do loop = loopst, loopnd
                 ixfmin = 100000000
@@ -536,6 +584,7 @@ c               Set up to loop once or on circle points
                 iyfmin = 100000000
                 iyfmax = -100000000
                 if (circleCont) then
+                  numGrowIter = numExpandIter
 c                   
 c                   add circle point to patch if on this Z
                   ipt = object(ibase + loop)
@@ -561,7 +610,7 @@ c                   Or add contour points to patch
                   diamMerge = 2*radiusMax
                 endif
 c
-                if(nfix.eq.0)write(*,'(a,$)')' fixing points -' 
+                if (nfix.eq.0)write(*,'(a,$)')' fixing points -' 
                 nfix=nfix+1
 c               
 c                 see if there are patches to merge - loop on objects until
@@ -690,8 +739,8 @@ c                   Zero out this contour or point
                   endif
                 endif
 c               
-                if (ninobj .gt. 0) call cleanarea(array,nx,ny,nx,ny,ixfix,
-     &              iyfix,ninobj,nborder,iorder,ifincadj,ifVerbose)
+                if (ninobj .gt. 0) call cleanarea(array,nx,ny,ixfix, iyfix,
+     &              ninobj,nborder,iorder,ifincadj,numGrowIter, ifVerbose)
               enddo
             endif
           endif
@@ -749,7 +798,7 @@ c
 c         
 c         write out if any changes or if new output file
 c         
-        if((nfix.gt.0.or.linefix.gt.0.or. numPatch.gt.0.or.imfilout.eq.2)
+        if ((nfix.gt.0.or.linefix.gt.0.or. numPatch.gt.0.or.imfilout.eq.2)
      &      .and. ifTrialMode .eq. 0)then
           call imposn(imfilout,izsect,0)
           call iwrsec(imfilout,array)
@@ -811,6 +860,8 @@ c
       end
 
 
+c       SEARCHPEAKS finds X rays given all the parameters being passed in
+c
       subroutine searchpeaks(array,nx,ny,diffarr,limdiff, izsect,
      &    iScanSize,scanOverlap, nEdgePixels, critMain, critDiff,
      &    critGrow, critScan,
@@ -982,8 +1033,8 @@ c
      &                array(ixPeak,iyPeak),sdDiff, ringAvg
 103               format(/,'Peak at',2i6,' = ',f8.0,',',f7.2,
      &                ' SDs above mean',f8.0,$)
-                  call cleanarea(array,nx,ny,nx,ny,ixfix,iyfix,
-     &                ninPatch,nborder,iorder,ifincadj,ifVerbose)
+                  call cleanarea(array,nx,ny,ixfix,iyfix, ninPatch,nborder,
+     &                iorder,ifincadj,0,ifVerbose)
                   numPatch=numPatch + 1
                   numPixels=numPixels + ninPatch
                 endif
@@ -1041,8 +1092,8 @@ c
                       if (minDistSq .gt. 0 .and. maxDistSq .le. 4. * radMaxSq
      &                    .and. jx .gt. ixStart .and. jx .lt. ixEnd .and.
      &                    jy .gt. iyStart .and. jy .lt. iyEnd .and.
-     &                    abs(diffArr(jx + ixofs, jy + iyofs) - diffAvg)
-     &                    .gt. growCrit .and. ninList .le. limlist) then
+     &                    abs(diffArr(jx + ixofs, jy + iyofs) - diffAvg) .gt. growCrit
+     &                    .and. ninList .lt. limlist) then
                         ninList = ninList + 1
                         ixlist(ninList) = jx
                         iylist(ninList) = jy
@@ -1163,8 +1214,8 @@ c
      &                array(ix,iy),pixDiff,sdDiff
 104               format(/,'Diff peak at',2i6,' = ',f8.0,', diff =',f8.0,
      &                ', ',f7.2, ' SDs above mean',$)
-                  call cleanarea(array,nx,ny,nx,ny,ixfix,iyfix,
-     &                ninPatch,nborder,iorder,ifincadj,ifVerbose)
+                  call cleanarea(array,nx,ny,ixfix,iyfix, ninPatch,nborder,
+     &                iorder,ifincadj,0,ifVerbose)
                   numPatch=numPatch + 1
                   numPixels=numPixels + ninPatch
 c                   
@@ -1244,72 +1295,151 @@ c
       end
 
 
-
-
-      subroutine cleanarea(array,ixdim,iydim,nx,ny,ixfix,iyfix,
-     &    ninobj,nborder,iorder,ifincadj,ifVerbose)
+c       CLEANAREA replaces a patch given the list of points in ixfix, iyfix, by finding 
+c       surrounding points, fitting a polynomial to them, and replacing points in the
+c       patch with fitted values.  Can grow the patch if numGrowIter is > 0
+c
+      subroutine cleanarea(array,nx,ny,ixfix,iyfix, ninobj,nborder,iorder,
+     &    ifincadj,numGrowIter,ifVerbose)
 c       
       implicit none
       integer mxd,isdim
 c       
-c       Keep isdim synchronized to limpatch, mxd syn'd to main
+c       Keep isdim synchronized to limpatch, mxd sync'd to main
       parameter (mxd=300)
       parameter (isdim=10000)
-      integer*4 ixdim,iydim,nx,ny,ifVerbose
-      real*4 array(ixdim,iydim)
+      integer*4 nx,ny,ifVerbose, numGrowIter
+      real*4 array(nx,ny)
       integer*4 ixfix(*), iyfix(*)
       integer*4 ninobj,nborder,iorder,ifincadj
-      logical*1 inlist(-mxd:mxd,-mxd:mxd),adjacent(-mxd:mxd,-mxd:mxd)
+      logical*1 inlist(-mxd:mxd,-mxd:mxd)
+      integer*2 adjacent(-mxd:mxd,-mxd:mxd)
+      real*4 adjValue(isdim)
       logical nearedge
       include 'statsize.inc'
       real*4 xr(msiz,isdim), sx(msiz), xm(msiz), sd(msiz)
      &    , ss(msiz,msiz), ssd(msiz,msiz), d(msiz,msiz), r(msiz,msiz)
      &    , b(msiz), b1(msiz),vect(msiz)
+      equivalence (adjValue, xr)
 c       
-      integer*4 ixcen,iycen,i,j,minxlist,minylist,maxxlist,maxylist
-      integer*4 k,ixl,iyl,nbordm1,ixbordlo,ixbordhi,iybordlo,iybordhi
-      integer*4 npixel,npnts,nindep,ix,iy,ixofs,iyofs
-      real*4 c1,rsq,fra,xsum
+      integer*4 ixcen,iycen,i,j,minxlist,minylist,maxxlist,maxylist, igrow,nvals,npat
+      integer*4 k,ixl,iyl,nbordm1,ixbordlo,ixbordhi,iybordlo,iybordhi,icut,nadded
+      integer*4 npixel,npnts,nindep,ix,iy,ixofs,iyofs,minAdjacent
+      real*4 c1,rsq,fra,xsum,patsum,polarity,cutoff,percentile,adjMedian,pctile
       logical warned/.false./
       save warned
-c       
-c       initialize list
-c       
-      minxlist=ixfix(1)
-      minylist=iyfix(1)
-      maxxlist=ixfix(1)
-      maxylist=iyfix(1)
-      do k=2,ninobj
-        minxlist=min(minxlist,ixfix(k))
-        minylist=min(minylist,iyfix(k))
-        maxxlist=max(maxxlist,ixfix(k))
-        maxylist=max(maxylist,iyfix(k))
-      enddo
-      ixcen=(maxxlist + minxlist) / 2
-      iycen=(maxylist + minylist) / 2
-c
-      do j=-mxd,mxd
-        do i=-mxd,mxd
-          inlist(i,j)=.false.
-          adjacent(i,j)=.false.
-        enddo
-      enddo
 
-      do k=1,ninobj
-        ixl=ixfix(k)-ixcen
-        iyl=iyfix(k)-iycen
-        inlist(ixl,iyl)=.true.
-        do i=-1,1
-          do j=-1,1
-            adjacent(ixl+i,iyl+j)=.true.
+      percentile = 0.05
+      do igrow = 0, numGrowIter
+c         
+c         get range of patch and initialize initialize inlist and adjacent arrays
+c         
+        minxlist=ixfix(1)
+        minylist=iyfix(1)
+        maxxlist=ixfix(1)
+        maxylist=iyfix(1)
+        do k=2,ninobj
+          minxlist=min(minxlist,ixfix(k))
+          minylist=min(minylist,iyfix(k))
+          maxxlist=max(maxxlist,ixfix(k))
+          maxylist=max(maxylist,iyfix(k))
+        enddo
+        ixcen=(maxxlist + minxlist) / 2
+        iycen=(maxylist + minylist) / 2
+c         
+        do j=-mxd,mxd
+          do i=-mxd,mxd
+            inlist(i,j) = .false.
+            adjacent(i,j) = 0
+          enddo
+        enddo
+c         
+c         Mark all points as inlist and all adjacent points as 1's
+        do k=1,ninobj
+          ixl=ixfix(k)-ixcen
+          iyl=iyfix(k)-iycen
+          inlist(ixl,iyl)=.true.
+          do i=-1,1
+            do j=-1,1
+              adjacent(ixl+i,iyl+j) = 1
+            enddo
+          enddo
+        enddo
+c         
+c         get limits of region including border 
+        nbordm1=nborder-1
+        ixbordlo=max(1,minxlist-nborder)
+        ixbordhi=min(nx,maxxlist+nborder)
+        iybordlo=max(1,minylist-nborder)
+        iybordhi=min(ny,maxylist+nborder)
+c         
+c         if growing, get the sum of points in patch and an array of adjacent points
+        if (igrow .eq. numGrowIter) exit
+        nvals = 0
+        npat = 0
+        patsum = 0.
+        do iy=iybordlo,iybordhi
+          do ix=ixbordlo,ixbordhi
+            ixofs=ix-ixcen
+            iyofs=iy-iycen
+            if (inlist(ixofs,iyofs)) then
+              npat = npat + 1
+              patsum = patsum + array(ix, iy)
+            elseif (adjacent(ixofs, iyofs) .gt. 0 .and. nvals .lt. isdim) then
+              nvals = nvals + 1
+              adjValue(nvals) = array(ix,iy)
+            endif
+          enddo
+        enddo
+c         
+c         Get the median to determine polarity and the percentile cutoff
+        call rsSortFloats(adjValue, nvals)
+        call rsMedianOfSorted(adjValue, nvals, adjMedian)
+        polarity = sign(1., patsum / max(1, npat) - adjMedian)
+        pctile = percentile
+        if (polarity .lt. 0) pctile = 1. - percentile
+        icut = min(nvals, max(1, int(pctile * nvals - 0.5) + 1))
+        cutoff = 2. * adjMedian - adjValue(icut)
+c        print *,adjMedian, polarity, icut, adjValue(icut), cutoff
+        nadded = 0
+c         
+c         Added adjacent points above the cutoff to the patch
+        do iy=iybordlo,iybordhi
+          do ix=ixbordlo,ixbordhi
+            ixofs=ix-ixcen
+            iyofs=iy-iycen
+            if (adjacent(ixofs, iyofs) .gt. 0 .and. .not.inlist(ixofs,iyofs) .and.
+     &          polarity * (array(ix,iy) - cutoff) .gt. 0. .and. ninobj .lt. isdim) then
+              inlist(ixofs,iyofs) = .true.
+              ninobj = ninobj + 1
+              ixfix(ninobj) = ix
+              iyfix(ninobj) = iy
+              nadded = nadded + 1
+            endif
+          enddo
+        enddo
+        if (ifVerbose .gt. 0) write(*,'(a,i2,i6,a)')'Iteration',igrow,nadded,
+     &      ' adjacent points added to patch'
+        if (nadded .eq. 0) exit
+      enddo
+c       
+c       Mark higher level adjacent points to get a region of width "nborder"
+      do igrow = 1, nborder - ifincadj
+        do iy=iybordlo,iybordhi
+          do ix=ixbordlo,ixbordhi
+            ixofs=ix-ixcen
+            iyofs=iy-iycen
+            if (adjacent(ixofs, iyofs) .eq. igrow .and. .not.inlist(ixofs,iyofs)) then
+              do i=-1,1
+                do j=-1,1
+                  if (adjacent(ixl+i,iyl+j) .eq. 0) adjacent(ixl+i,iyl+j) = igrow + 1
+                enddo
+              enddo
+            endif
           enddo
         enddo
       enddo
-      nbordm1=nborder-1
-      ixbordlo=max(1,minxlist-nborder)
-      ixbordhi=min(nx,maxxlist+nborder)
-      iybordlo=max(1,minylist-nborder)
-      iybordhi=min(ny,maxylist+nborder)
+
 c       total pixels in current area
       npixel=(iybordhi+1-iybordlo)*(ixbordhi+1-ixbordlo)
 c       
@@ -1319,6 +1449,7 @@ c
       npnts=0
       nindep=iorder*(iorder+3)/2
       xsum = 0.
+      minAdjacent = 2 - ifincadj
       do iy=iybordlo,iybordhi
         do ix=ixbordlo,ixbordhi
           ixofs=ix-ixcen
@@ -1327,8 +1458,8 @@ c
      &        ixbordhi-ix .lt. nbordm1 .or.
      &        iy-iybordlo .lt. nbordm1 .or.
      &        iybordhi-iy .lt. nbordm1
-          if(.not.inlist(ixofs,iyofs) .and. (ifincadj.eq.1 .or.
-     &        (nearedge.or. .not.adjacent(ixofs,iyofs)))) then
+          if (.not.inlist(ixofs,iyofs) .and.
+     &        (nearedge.or. adjacent(ixofs,iyofs) .ge. minAdjacent)) then
             npnts=npnts+1
             if (nindep .gt. 0) then
               if (npnts .gt. isdim) then
@@ -1349,7 +1480,7 @@ c
 c       do regression or just get mean for order 0
 c       
       if (ifVerbose.gt.0)write (*,104)ninobj,ixcen,iycen,npnts
-104   format(/,i4,' points to fix at',2i6,',',i4,' points being fit')
+104   format(/,i5,' points to fix at',2i6,',',i4,' points being fit')
       if (nindep .gt. 0 .and. npnts .le. isdim) then
         call multr(xr,nindep+1,npnts,sx,ss,ssd,d,r,xm,sd,b,b1,c1,rsq ,fra)
       endif
@@ -1362,7 +1493,7 @@ c
         do ix=ixbordlo,ixbordhi
           ixofs=ix-ixcen
           iyofs=iy-iycen
-          if(inlist(ixofs,iyofs))then
+          if (inlist(ixofs,iyofs))then
             if (nindep .gt. 0 .and. npnts .le. isdim) then
               call polyterm(ixofs,iyofs,iorder,vect)
               xsum=c1
@@ -1379,13 +1510,14 @@ c
       end
 
 
-      subroutine convertBoundary(iobj, nx, ny, xbound, ybound)
+c       FILLBOUNDARYARRAYS puts a contour into X and Y boundary arrays and returns the
+c       min and max values.
+c
+      subroutine fillBoundaryArrays(iobj, xbound, ybound, xmin, xmax, ymin, ymax)
       implicit none
       include 'model.inc'
-      real*4 xmin,xmax,ymin,ymax, xbound(*), ybound(*),xx,yy,zz
-      integer*4 iobj, ip, ipt, ixStart, iyStart, ixEnd, iyEnd, ibase, ninobj
-      integer*4 nx, ny, iy, ix
-      logical inside
+      real*4 xmin,xmax,ymin,ymax, xbound(*), ybound(*)
+      integer*4 iobj, ip, ipt, ibase
       ibase=ibase_obj(iobj)
       xmin = 1.e20
       xmax = -1.e20
@@ -1402,6 +1534,21 @@ c       Put points in boundary array and get min/max
         ymin = min(ymin, ybound(ip))
         ymax = max(ymax, ybound(ip))
       enddo
+      return
+      end
+      
+
+c       CONVERTBOUNDARY Converts a boundary contour to a list of interior
+c       points, in the same contour
+c
+      subroutine convertBoundary(iobj, nx, ny, xbound, ybound, xmin, xmax, ymin, ymax)
+      implicit none
+      include 'model.inc'
+      real*4 xmin,xmax,ymin,ymax, xbound(*), ybound(*),xx,yy,zz
+      integer*4 iobj, ip, ipt, ixStart, iyStart, ixEnd, iyEnd, ibase, ninobj
+      integer*4 nx, ny, iy, ix
+      logical inside
+      ibase=ibase_obj(iobj)
       zz = p_coord(3, object(ibase + 1))
       ibase_obj(iobj) = ibase_free
       ninobj = 0
@@ -1432,6 +1579,10 @@ c       Look at all pixels in range, add to object at new base
       return
       end
 
+
+c       ADDCIRCLETOPATCH adds a circle to the current patch, keeping track of
+c       the overall mins and maxes
+c
       subroutine addCircleToPatch(iobj, ipt, size, nx, ny, ixfix, iyfix,
      &    ninobj, ixfmin, ixfmax, iyfmin, iyfmax, limpatch)
       implicit none
@@ -1458,7 +1609,7 @@ c       Look at all pixels in range, add to object at new base
      &          iy .le. iyfmax) then
               do ip = 1, ninstart
                 if (ix .eq. ixfix(ip) .and. iy .eq. iyfix(ip)) then
-                  ifin = 0
+                  ifin = 1
                   exit
                 endif
               enddo
@@ -1482,20 +1633,168 @@ c               This is not supposed to happen, but better to check...
       return 
       end
 
+
+c       CONTOURAREA Measures the area of a contour
+c
+      real*4 function contourArea(iobj)
+      implicit none
+      include 'model.inc'
+      integer*4 ipt, npt, ip1, ip2, ninobj, ibase, iobj
+      contourArea = 0.
+      ninobj = npt_in_obj(iobj)
+      if (ninobj .lt. 3) return
+      ibase = ibase_obj(iobj)
+      do ipt = 1, ninobj
+        npt = mod(ipt, ninobj) + 1
+        ip1 = object(ibase + ipt)
+        ip2 = object(ibase + npt)
+        contourArea = contourArea + (p_coord(2,ip2) + p_coord(2,ip1)) *
+     &      (p_coord(1,ip2) - p_coord(1,ip1))
+      enddo
+      contourArea = abs(contourArea * 0.5)
+      return
+      end
+
+
+c       TAPERINSIDECONT erases points inside of a large contour and tapers down on the
+c       inside from a border value to the mean value.
+c
+      subroutine taperInsideCont(array, nx, ny, xbound, ybound, ninobj, xmin, xmax,
+     &    ymin, ymax, iferr)
+      implicit none
+      integer*4 nx, ny, ninobj,iferr
+      real*4 array(nx, ny), xbound(*), ybound(*), xmin, xmax, ymin, ymax
+      real*4 sum, segx, segy, veln, vecx, vecy, xline, yline, taper, dist, distmin
+      real*4 t, tmin, dx, dy, fill, xx, yy, frac, tapersq, vlen
+      integer*4 nsum, ip, ipn, ix, iy, ixf, iyf, nvec, ixst, ixnd, iyst, iynd, ipmin, i
+      logical inside
+      taper = 8.
+      tapersq = taper**2
+      iferr = 1
+c       
+c       First we need the mean outside the periphery
+      sum = 0.
+      nsum = 0
+      do ip = 1, ninobj
+        ipn = mod(ip, ninobj) + 1
+        segx = xbound(ipn) - xbound(ip)
+        segy = ybound(ipn) - ybound(ip)
+        vlen = sqrt(segx**2 + segy**2)
+        if (vlen .gt. 0.) then
+          vecx = 1.5 * segx / vlen
+          vecy = 1.5 * segy / vlen
+          nvec = vlen
+c
+c           Go to middle of line and test a point to one side
+          xline = xbound(ip) + segx * 0.5
+          yline = ybound(ip) + segy * 0.5
+          ix = nint(xline + vecy + 0.5)
+          iy = nint(yline - vecx + 0.5)
+          if (.not.inside(xbound, ybound, ninobj, ix - 0.5, iy - 0.5)) then
+c             
+c             If that wasn't inside, reverse direction and test that point and give up
+c             on segment if neither one is inside
+            vecx = -vecx
+            vecy = -vecy
+            ix = nint(xline + vecy + 0.5)
+            iy = nint(yline - vecx + 0.5)
+            if (.not.inside(xbound, ybound, ninobj, ix - 0.5, iy - 0.5)) cycle
+          endif
+c           
+c           Then loop along line and collect some points
+          do i = 1, nvec
+            xline = xbound(ip) + (segx * i) / nvec
+            yline = ybound(ip) + (segy * i) / nvec
+            ix = nint(xline + vecy + 0.5)
+            iy = nint(yline - vecx + 0.5)
+            if (ix .gt. 0 .and. ix. le. nx .and. iy .gt. 0 .and. iy. le. ny) then
+              sum = sum + array(ix,iy)
+              nsum = nsum + 1
+            endif
+          enddo
+        endif
+      enddo
+
+      if (nsum .lt. 3) return
+      iferr = 0
+      fill = sum / nsum
+      ixst = max(1,min(nx, floor(xmin - 0.5)))
+      iyst = max(1,min(ny, floor(ymin - 0.5)))
+      ixnd = max(1,min(nx, ceiling(xmax - 0.5)))
+      iynd = max(1,min(ny, ceiling(ymax - 0.5)))
+      do iy = iyst, iynd
+        do ix = ixst, ixnd
+          xx = ix - 0.5
+          yy = iy - 0.5
+          if (inside(xbound, ybound, ninobj, xx, yy)) then
+c
+c             Find nearest distance to contour
+            distmin = 1.e30
+            t = 0.
+            do ip = 1, ninobj
+              ipn = mod(ip, ninobj) + 1
+              dx = xbound(ipn) - xbound(ip)
+              dy = ybound(ipn) - ybound(ip)
+              if (dx .ne. 0. .or. dy .ne. 0.)
+     &            t = ((xx - xbound(ip)) * dx + (yy - ybound(ip)) * dy) / (dx**2 + dy**2)
+              t = min(1., max(0., t))
+              dist = (xx - (xbound(ip) + t * dx))**2 + (yy - (ybound(ip) + t * dy))**2
+              if (dist < distmin) then
+                distmin = dist
+                ipmin = ip
+                tmin = t
+              endif
+            enddo
+c            
+c             If it is close to contour, get pixel on other side
+            array(ix,iy) = fill
+            if (distmin .lt. tapersq) then
+              ipn = mod(ipmin, ninobj) + 1
+              dx = xbound(ipn) - xbound(ipmin)
+              dy = ybound(ipn) - ybound(ipmin)
+              xline = xbound(ipmin) + dx * tmin
+              yline = ybound(ipmin) + dy * tmin
+              segx = xline - xx
+              segy = yline - yy
+              vlen = sqrt(segx**2 + segy**2)
+              if (vlen .gt. 1.e-6) then
+                xx = xline + 1.2 * segx / vlen
+                yy = yline + 1.2 * segy / vlen
+                ixf = nint(xx + 0.5)
+                iyf = nint(yy + 0.5)
+                if (ixf .gt. 0 .and. ixf .le. nx .and. iyf .gt. 0 .and. iyf .le. ny) then
+                  frac = sqrt(distmin / tapersq)
+                  array(ix,iy) = frac * fill + (1. - frac) * array(ixf,iyf)
+                endif
+              endif
+            endif
+          endif
+        enddo
+      enddo
+      return
+      end
+
+
+
       logical function typeonlist(itype,ityplist,ntyplist)
       implicit none
       integer*4 ityplist(*),itype,ntyplist,i
       typeonlist=.true.
-      if(ntyplist.eq.1.and.ityplist(1).eq.-999)return
+      if (ntyplist.eq.1.and.ityplist(1).eq.-999)return
       do i=1,ntyplist
-        if(itype.eq.ityplist(i))return
+        if (itype.eq.ityplist(i))return
       enddo
       typeonlist=.false.
       return
       end
+
       
 c       
 c       $Log$
+c       Revision 3.29  2010/09/26 04:57:17  mast
+c       Doubled array sizes, made it eliminate duplicate points when merging,
+c       and fallback to taking mean when too many points for a fit.
+c
 c       Revision 3.28  2010/06/26 18:09:03  mast
 c       Fixed radMaxSq not being defined for difference search if it never got
 c       defined in the peak search
