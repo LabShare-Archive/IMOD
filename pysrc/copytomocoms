@@ -48,8 +48,10 @@ def editAndWrite(srcRoot, dstRoot, sedcom):
 def runGoodframe(xsize, ysize):
    try:
       goodout = runcmd(fmtstr('goodframe {} {}', xsize, ysize))
-      if len(goodout) > 1:
-         return (int(goodout[0]), int(goodout[1]))
+      if len(goodout) > 0:
+         gsplit = goodout[0].split()
+         if len(gsplit) > 1:
+            return (int(gsplit[0]), int(gsplit[1]))
    except ImodpyError:
       pass
    exitError('Running goodframe to get full aligned or prealigned stack size')
@@ -893,6 +895,9 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.6  2011/03/06 15:24:14  mast
+# Add parentesis
+#
 # Revision 1.5  2011/03/05 17:41:53  mast
 # Run goodframe properly with two numbers!
 #
