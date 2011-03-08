@@ -1550,8 +1550,7 @@ int parallelWriteSlice(void *buf, FILE *fout, MrcHeader *hdata, int slice)
       b3dError(stdout, "ERROR: sliceWriteParallel - unknown mode.\n");
       return 1;
     }
-    if (!getenv("IMOD_NO_IMAGE_BACKUP"))
-      imodBackupFile(filename);
+    imodBackupFile(filename);
     fpBound = fopen(filename, "wb");
     if (!fpBound) {
       b3dError(stdout, "ERROR: sliceWriteParallel - opening boundary file %s"
@@ -1663,11 +1662,14 @@ void mrcFreeDataMemory(unsigned char **idata, int contig, int zsize)
 /*!
  * Returns a pointer to a lookup table of 256 scaled intensities, given a
  * scaling specified by index * [slope] + [offset].  Output values will be
- * truncated at [outmin] and [outmax] (which should be between 0 and 255).
+ * truncated at [outmin] and [outmax].  If [outmax] is
+ * <= 255 then the map will indeed be unsigned bytes, but if [outmax] is > 255 then
+ * the map will be unsigned shorts instead.
  */
 unsigned char *get_byte_map(float slope, float offset, int outmin, int outmax)
 {
   static unsigned char map[256];
+  static b3dUInt16 smap[256];
   int i, ival;
   float fpixel;
 
@@ -1680,9 +1682,15 @@ unsigned char *get_byte_map(float slope, float offset, int outmin, int outmax)
       ival = outmin;
     if (ival > outmax)
       ival = outmax;
-    map[i] = ival;
+    if (outmax > 255)
+      smap[i] = ival;
+    else
+      map[i] = ival;
   }
-  return (map);
+  if (outmax > 255)
+    return ((unsigned char *)smap);
+  else
+    return (map);
 }
 
 /*!
@@ -1691,9 +1699,10 @@ unsigned char *get_byte_map(float slope, float offset, int outmin, int outmax)
  * scaling will be index * [slope] + [offset] for [ramptype] = MRC_RAMP_LIN,
  * exp(index) * [slope] + [offset] for [ramptype] = MRC_RAMP_EXP, and
  * log(index) * [slope] + [offset] for [ramptype] = MRC_RAMP_LOG.
- * Output values will be * truncated at [outmin] and [outmax] (which should be
- * between 0 and 255).  Set [swapbytes] nonzero to for a table that swaps 
- * bytes, and [signedint] nonzero for signed integer indices.  The table is
+ * Output values will be truncated at [outmin] and [outmax].  If [outmax] is
+ * <= 255 then the map will indeed be unsigned bytes, but if [outmax] is > 255 then
+ * the map will be unsigned shorts instead.  Set [swapbytes] nonzero to for a table that 
+ * swaps bytes, and [signedint] nonzero for signed integer indices.  The table is
  * allocated with {malloc} and should be freed by the caller.  Returns NULL for
  * error allocating memory.
  */
@@ -1701,10 +1710,11 @@ unsigned char *get_short_map(float slope, float offset, int outmin, int outmax,
                              int ramptype, int swapbytes, int signedint)
 {
   int i, ival;
-  unsigned short int index;
+  b3dUInt16 index;
   float fpixel;
-
-  unsigned char *map = (unsigned char *)malloc(65536);
+  int toShort = outmax > 255 ? 1 : 0;
+  unsigned char *map = (unsigned char *)malloc(65536 * (toShort + 1));
+  b3dUInt16 *smap = (b3dUInt16 *)map;
   if (!map) {
     b3dError(stderr, "ERROR: get_short_map - getting memory");
     return 0;
@@ -1726,8 +1736,11 @@ unsigned char *get_short_map(float slope, float offset, int outmin, int outmax,
       ival = outmax;
     index = i;
     if (swapbytes)
-      mrc_swap_shorts((short int *)&index, 1);
-    map[index] = ival;
+      mrc_swap_shorts((b3dInt16 *)&index, 1);
+    if (toShort)
+      smap[index] = ival;
+    else
+      map[index] = ival;
   }
   return (map);
 }
