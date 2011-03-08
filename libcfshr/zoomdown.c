@@ -174,8 +174,8 @@ int selectzoomfilter(int *type, float *zoom, int *outWidth)
  * the input in X or Y and into a subset of the output array ^
  * [bXdim] - X dimension of the full output image array ^
  * [bXoff] - Index of first pixel in X to fill in output array ^
- * [dtype] - Type of data, a SLICE_MODE_... value.  BYTE, FLOAT, and RGB are allowed; 
- * _SHORT is also allowed but is not tested and may be converted USHORT ^
+ * [dtype] - Type of data, a SLICE_MODE_... value.  BYTE, FLOAT, RGB, and USHORT are
+ * allowed ^
  * [outData] - Output array, or address of first line to fill in a larger output array.
  * The array is the same data type as the input unless mapping is being done, in which 
  * case it must be unsigned integers. ^
@@ -229,7 +229,7 @@ int zoomWithFilter(unsigned char **slines, int aXsize, int aYsize, float aXoff,
     psizeFilt = 4;
     psizeWgt = 4;
     break;
-  case SLICE_MODE_SHORT:
+  case SLICE_MODE_USHORT:
     if (cindex)
       mapping = 1;
     psizeFilt = 2;
@@ -460,7 +460,7 @@ static void scanline_accum(unsigned char *lineb, int dtype, int aXsize,
 {
   int i;
   b3dFloat *linef, *accumFbuf = (b3dFloat *)accumBuf;
-  b3dInt16 *lines;
+  b3dUInt16 *lines;
 
   switch (dtype) {
   case SLICE_MODE_BYTE:
@@ -482,8 +482,8 @@ static void scanline_accum(unsigned char *lineb, int dtype, int aXsize,
       accumFbuf[i] += fweight * *linef++;
     break;
     
-  case SLICE_MODE_SHORT:
-    lines = (b3dInt16 *)lineb;
+  case SLICE_MODE_USHORT:
+    lines = (b3dUInt16 *)lineb;
     for (i = 0; i < aXsize; i++)
       accumFbuf[i] += fweight * *lines++;
     break;
@@ -500,7 +500,8 @@ static void scanline_filter(b3dInt32 *lineb, int dtype, int aXsize,
 {
   int b, af, sum, sumr, sumb, sumg, t;
   b3dFloat *linef, *obuff, *wfp, *afp;
-  b3dInt16 *obufs, *wp;
+  b3dInt16 *wp;
+  b3dUInt16 *obufs;
   b3dInt32 *ap;
   float rsum;
 
@@ -543,14 +544,14 @@ static void scanline_filter(b3dInt32 *lineb, int dtype, int aXsize,
     }
     break;
     
-  case SLICE_MODE_SHORT:
+  case SLICE_MODE_USHORT:
     linef = (b3dFloat *)lineb;
-    obufs = (b3dInt16 *)obufb;
+    obufs = (b3dUInt16 *)obufb;
     for (b = 0; b < bXsize; b++, wtab++) {
       for (rsum = 0.5, wfp = wtab->weight.f, afp = &linef[wtab->i0],
              af = wtab->i1 - wtab->i0; af > 0; af--)
         rsum += *wfp++ * (*afp++);
-      *obufs++ = (b3dInt16)B3DMIN(32767., B3DMAX(-32767., rsum));
+      *obufs++ = (b3dUInt16)B3DMIN(65535., B3DMAX(0., rsum));
     }
     break;
   }
@@ -565,7 +566,7 @@ static void scanline_remap(unsigned char *filtBuf, int dtype, int bXsize,
 {
   int i;
   int *obufi = (int *)obufb;
-  b3dInt16 *filts = (b3dInt16 *)filtBuf;
+  b3dUInt16 *filts = (b3dUInt16 *)filtBuf;
   
   switch (dtype) {
   case SLICE_MODE_BYTE:
@@ -580,7 +581,7 @@ static void scanline_remap(unsigned char *filtBuf, int dtype, int bXsize,
       *obufb++ = 0;
     }
     break;
-  case SLICE_MODE_SHORT:
+  case SLICE_MODE_USHORT:
     for (i = 0; i < bXsize; i++)
       *obufi++ = cindex[*filts++];
     break;
@@ -773,6 +774,9 @@ static double filt_lanczos3(double x)
 /*
 
 $Log$
+Revision 1.3  2011/03/04 22:43:50  mast
+Truncate to integer in test for out of range output
+
 Revision 1.2  2011/02/12 04:12:27  mast
 More filters
 
