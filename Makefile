@@ -296,7 +296,7 @@ cleansrc : ALWAYS
 csrc : ALWAYS
 	mkdir -p $(ARCDIR)_src
 	cp Makefile setup README History .version original_dates vcimod.dsw \
-	installqtlib packMacApps setup2 $(ARCDIR)_src/
+	installqtlib packMacApps setup2 BUILDING $(ARCDIR)_src/
 	tar cBf - \
 	machines \
 	lib*/*.[ch] lib*/*.cpp lib[icm]*/Makefile libdiaqt/Makefile.dummy \
@@ -366,6 +366,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.88  2011/02/10 00:21:08  mast
+#  Switch to new processchunks again
+#
 #  Revision 3.87  2011/01/15 15:27:40  mast
 #  Add csv files in plugins
 #
