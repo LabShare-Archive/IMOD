@@ -102,7 +102,8 @@ typedef struct ViewInfo
   unsigned char **idata;  /* 8 bit 3-D grey scale data. */
 
   int   xsize, ysize, zsize;      /* Size of idata */
-  unsigned int xysize;                   /* section size. */
+  size_t xysize;                   /* section size. */
+  int  fullXsize, fullYsize, fullZsize;  /* Full size of image file(s) */
   float  xmouse, ymouse, zmouse;   /* Current point in idata. */
   int   xUnbinSize, yUnbinSize, zUnbinSize;  /* Original size of data */
 
