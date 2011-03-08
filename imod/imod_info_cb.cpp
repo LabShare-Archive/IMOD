@@ -436,7 +436,7 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
   int retval = 0;
 
   // Skip through if this is the first call; there is no reference
-  if (float_on && last_section >= 0 && !vw->fakeImage) {
+  if (float_on && last_section >= 0 && !vw->fakeImage && !vw->rawImageStore) {
 
     /* Make sure table exists and is the right size */
     tdim = ivwGetMaxTime(vw) + 1;
@@ -888,6 +888,10 @@ void imod_imgcnt(const char *string)
 /*
 
 $Log$
+Revision 4.43  2011/03/04 23:02:03  mast
+Prevented autocontrast from producing wild or very narrow ranges, stabilized
+the zoomdown autocontrast by running first with loaded data
+
 Revision 4.42  2011/02/14 18:32:17  mast
 Fixed floating after flipping volume (reset last_section so it's not out of range)
 
