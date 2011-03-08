@@ -45,6 +45,8 @@ static int ivwManageInitialFlips(ImodView *vi);
 static int ivwCheckLinePtrAllocation(ImodView *vi, int ysize);
 static int ivwCheckBinning(ImodView *vi, int nx, int ny, int nz);
 static void deletePlistBuf(void);
+static bool fixUnderSizeCoords(int size, int nx, int &llx, int &urx, int &offset, 
+                               int &leftPad, int &rightPad);
 
 /* default settings for the view info structure. */
 void ivwInit(ImodView *vi, bool modview)
@@ -56,6 +58,7 @@ void ivwInit(ImodView *vi, bool modview)
 
   vi->xmovie = vi->ymovie = vi->zmovie = vi->tmovie = 0;
   vi->xsize  = vi->ysize  = vi->zsize  = 0;
+  vi->fullXsize  = vi->fullYsize  = vi->fullZsize  = 0;
   vi->xysize = 0;
 
   vi->nt = 0; vi->ct = 0;
@@ -509,76 +512,172 @@ unsigned char **ivwMakeLinePointers(ImodView *vi, unsigned char *data,
 /* Read a section, potentially with binning */
 int ivwReadBinnedSection(ImodView *vi, char *buf, int section)
 {
-  int xsize, ysize, xbinned, ybinned, i, iz;
+  int xsize, ysize, ix, iy, iz, pixsize, xOffset, leftXpad, rightXpad;
+  int yOffset, leftYpad, rightYpad, zOffset, leftZpad, rightZpad;
+  bool blankX, blankY, blankZ;
   unsigned char *unbinbuf = NULL;
   unsigned char *usbuf = (unsigned char *)buf;
+  unsigned char *inbuf, *outbuf;;
+  unsigned char fill;
   b3dInt16 *binbuf = NULL;
   ImodImageFile im;
+  size_t xbinned, ybinned, i, numBytes;
+  double sum;
 
-  ivwGetFileStartPos(vi->image);
-
-  // If there is no binning, just call the raw or byte routines
-  if (vi->xybin * vi->zbin == 1) {
-    if (vi->rawImageStore) 
-      iiReadSection(vi->image, buf, section);
-    else
-      iiReadSectionByte(vi->image, buf, section);
-    ivwDumpFileSysCache(vi->image);
-    return 0;
-  }
+  pixsize = ivwGetPixelBytes(vi->rawImageStore);
 
   // Copy image structure and adjust load-in coordinates
   im = *(vi->image);
+  blankX  = fixUnderSizeCoords(vi->fullXsize, im.nx / vi->xybin, im.llx, im.urx, xOffset, 
+                               leftXpad, rightXpad);
+  blankY  = fixUnderSizeCoords(vi->fullYsize, im.ny / vi->xybin, im.lly, im.ury, yOffset, 
+                               leftYpad, rightYpad);
+  if (!vi->multiFileZ)
+    blankZ  = fixUnderSizeCoords(vi->fullZsize, im.nz / vi->zbin, im.llz, im.urz, zOffset,
+                                 leftZpad, rightZpad);
+
+  // Adjust the section number appropriately for the axis and see if section exists
+  if (!vi->multiFileZ && !(blankX || blankY || blankZ)) {
+    if (im.axis == 3) {
+      section -= zOffset;
+      blankZ = section < 0 || section >= im.nz / vi->zbin;
+    } else {
+      section -= yOffset;
+      blankY = section < 0 || section >= im.ny / vi->xybin;
+      leftYpad = leftZpad;
+      rightYpad = rightZpad;
+    }
+  }
+
+  // Fill a blank image if any axis is out of range
+  numBytes = (size_t)vi->xsize * (size_t)vi->ysize * pixsize;
+  if (blankX || blankY || blankZ) {
+    for (i = 0; i < numBytes; i++)
+      *usbuf++ = 127;
+    return 0;
+  }
+
+  // Now load the image normally with these adjusted coordinates
+  ivwGetFileStartPos(vi->image);
   xbinned = im.urx + 1 - im.llx;
   ybinned = im.axis == 3 ? im.ury + 1 - im.lly : im.urz + 1 - im.llz;
-  im.llx = vi->xybin * im.llx;
-  im.urx = vi->xybin * im.urx + vi->xybin - 1;
-  im.lly = vi->xybin * im.lly;
-  im.ury = vi->xybin * im.ury + vi->xybin - 1;
-  im.llz = vi->xybin * im.llz;
-  im.urz = vi->xybin * im.urz + vi->xybin - 1;
+  //imodPrintStderr("xbin %d  ybin %d\n", xbinned, ybinned);
+  
+  // If there is no binning, just call the raw or byte routines
+  if (vi->xybin * vi->zbin == 1) {
+    if (vi->rawImageStore) 
+      iiReadSection(&im, buf, section);
+    else
+      iiReadSectionByte(&im, buf, section);
+  } else {
 
-  // Get unbinned size, and get buffers for unbinned data and for adding
-  // up binned data if there is Z binning
-  xsize = im.urx + 1 - im.llx;
-  ysize = im.axis == 3 ? im.ury + 1 - im.lly : im.urz + 1 - im.llz;
-  unbinbuf = (unsigned char *)malloc((size_t)xsize * (size_t)ysize);
-  if (!unbinbuf)
-    return 1;
-  if (vi->zbin > 1) {
-    binbuf = (b3dInt16 *)malloc(xbinned * ybinned * sizeof(b3dInt16));
-    if (!binbuf) {
-      free (unbinbuf);
+    im.llx = vi->xybin * im.llx;
+    im.urx = vi->xybin * im.urx + vi->xybin - 1;
+    im.lly = vi->xybin * im.lly;
+    im.ury = vi->xybin * im.ury + vi->xybin - 1;
+    im.llz = vi->xybin * im.llz;
+    im.urz = vi->xybin * im.urz + vi->xybin - 1;
+
+    // Get unbinned size, and get buffers for unbinned data and for adding
+    // up binned data if there is Z binning
+    xsize = im.urx + 1 - im.llx;
+    ysize = im.axis == 3 ? im.ury + 1 - im.lly : im.urz + 1 - im.llz;
+    unbinbuf = (unsigned char *)malloc((size_t)xsize * (size_t)ysize);
+    if (!unbinbuf)
       return 1;
-    }
-  }
-
-  // Loop through the unbinned sections to read and bin them into buf
-  for (iz = 0; iz < vi->zbin; iz++) {
-    iiReadSectionByte(&im, (char *)unbinbuf, vi->zbin * section + iz);
-    ivwBinByN(unbinbuf, xsize, ysize, vi->xybin, (unsigned char *)buf);
-
-    // For multiple sections, move or add to the binned buffer
     if (vi->zbin > 1) {
-      if (!iz)
-        for (i = 0; i < xbinned * ybinned; i++)
-          binbuf[i] = usbuf[i];
-      else
-        for (i = 0; i < xbinned * ybinned; i++)
-          binbuf[i] += usbuf[i];
+      binbuf = (b3dInt16 *)malloc(xbinned * ybinned * sizeof(b3dInt16));
+      if (!binbuf) {
+        free (unbinbuf);
+        return 1;
+      }
     }
+
+    // Loop through the unbinned sections to read and bin them into buf
+    for (iz = 0; iz < vi->zbin; iz++) {
+      iiReadSectionByte(&im, (char *)unbinbuf, vi->zbin * section + iz);
+      ivwBinByN(unbinbuf, xsize, ysize, vi->xybin, (unsigned char *)buf);
+
+      // For multiple sections, move or add to the binned buffer
+      if (vi->zbin > 1) {
+        if (!iz)
+          for (i = 0; i < xbinned * ybinned; i++)
+            binbuf[i] = usbuf[i];
+        else
+          for (i = 0; i < xbinned * ybinned; i++)
+            binbuf[i] += usbuf[i];
+      }
+    }
+
+    // And divide binned value into final buffer
+    if (vi->zbin > 1)
+      for (i = 0; i < xbinned * ybinned; i++)
+        usbuf[i] = binbuf[i] / vi->zbin;
+
+    free(unbinbuf);
+    if (binbuf)
+      free(binbuf);
   }
-
-  // And divide binned value into final buffer
-  if (vi->zbin > 1)
-    for (i = 0; i < xbinned * ybinned; i++)
-      usbuf[i] = binbuf[i] / vi->zbin;
-
-  free(unbinbuf);
-  if (binbuf)
-    free(binbuf);
   ivwDumpFileSysCache(vi->image);
+
+  // If the image is at all undersized, now it needs to be copied up in array and
+  // padding applied
+  if (leftXpad || leftYpad || rightXpad || rightYpad) {
+    /*imodPrintStderr("llx %d urx %d left %d right %d\n", im.llx, im.urx, leftXpad, 
+      rightXpad); */
+
+    // Get an edge mean for byte data
+    fill = 127;
+    if (!vi->rawImageStore) {
+      sum = 0.;
+      for (i = 0; i < xbinned; i++)
+        sum += usbuf[i] + usbuf[i + (ybinned - 1) * xbinned];
+      for (i = 1; i < ybinned - 1; i++)
+        sum += usbuf[i * xbinned] + usbuf[xbinned - 1 + i * xbinned];
+      fill = B3DNINT(sum / (2. * (xbinned + ybinned - 2)));
+    }
+
+    outbuf = usbuf + numBytes - 1;
+    inbuf = usbuf + xbinned * ybinned * pixsize - 1;
+    // Do fill at end
+    for (i = 0; i < (vi->xsize * rightYpad + rightXpad) * pixsize; i++)
+      *outbuf-- = fill;
+
+    // For each line, copy data and fill left side and right side of previous line
+    for (iy = ybinned - 1; iy >= 0; iy--) {
+      for (i = 0; i < xbinned * pixsize; i++)
+        *outbuf-- = *inbuf--;
+      for (i = 0; i < (leftXpad + (iy ? rightXpad : 0)) * pixsize; i++)
+        *outbuf-- = fill;
+    }
+
+    // Do fill at start
+    for (i = 0; i < (vi->xsize * leftYpad) * pixsize; i++)
+      *outbuf-- = fill;
+  }
   return 0;
+}
+
+/*
+ * Sets up the load-in coordinates for a dimension where an image is not as large
+ * as the full size
+ */
+static bool fixUnderSizeCoords(int size, int nx, int &llx, int &urx, int &offset, 
+                               int &leftPad, int &rightPad)
+{
+  offset = (size - nx) / 2;
+  leftPad = rightPad = 0;
+  llx -= offset;
+  urx -= offset;
+  if (llx < 0) {
+    leftPad = -llx;
+    llx = 0;
+  }
+  if (urx >= nx) {
+    rightPad = urx + 1 - nx;
+    urx = nx - 1;
+  }
+  return urx < 0 || llx >= nx;
 }
 
 #ifdef __linux
@@ -1080,7 +1179,7 @@ int ivwFlip(ImodView *vi)
   //vi->xsize = nx;
   vi->ysize = ny;
   vi->zsize = nz;
-  vi->xysize = vi->xsize * vi->ysize;
+  vi->xysize = (size_t)vi->xsize * (size_t)vi->ysize;
   //vi->xmouse = 0;
   vi->ymouse = 0;
   vi->zmouse = 0;
@@ -2095,11 +2194,12 @@ static int ivwProcessImageList(ImodView *vi)
       }
     }
 
-    if (!i || image->nx < xsize)
+    // Keep track of largest image size
+    if (!i || image->nx > xsize)
       xsize = image->nx;
-    if (!i || image->ny < ysize)
+    if (!i || image->ny > ysize)
       ysize = image->ny;
-    if (!i || image->nz < zsize)
+    if (!i || image->nz > zsize)
       zsize = image->nz;
 
     /* Add to count if RGB or not, to see if all the same type.  Similarly
@@ -2141,7 +2241,7 @@ static int ivwProcessImageList(ImodView *vi)
     }
   }
 
-  /* Implement equal sacling of intensities */
+  /* Implement equal scaling of intensities */
   if (vi->equalScaling) {
     for (i = 0; i < ilist->size; i++) {
       image = (ImodImageFile *)ilistItem(ilist, i);
@@ -2317,16 +2417,16 @@ static int ivwCheckBinning(ImodView *vi, int nx, int ny, int nz)
              "single-section files.\n");
   }
 
+  // Get binned size of image file
+  nxbin = nx / vi->xybin;
+  nybin = ny / vi->xybin;
+  nzbin = nz / vi->zbin;
+
   if (vi->xybin * vi->zbin > 1) {
     
     // Forbid flipped loading for non-isotropic binning
     if (vi->xybin != vi->zbin)
       vi->flippable = 0;
-
-    // Get binned size of image file
-    nxbin = nx / vi->xybin;
-    nybin = ny / vi->xybin;
-    nzbin = nz / vi->zbin;
 
     // If montaged, adjust piece coordinates and compute new full size
     if (vi->li->plist) {
@@ -2370,7 +2470,10 @@ static int ivwCheckBinning(ImodView *vi, int nx, int ny, int nz)
   vi->xsize  = vi->li->xmax - vi->li->xmin + 1;
   vi->ysize  = vi->li->ymax - vi->li->ymin + 1;
   vi->zsize  = vi->li->zmax - vi->li->zmin + 1;
-  vi->xysize = vi->xsize * vi->ysize;
+  vi->xysize = (size_t)vi->xsize * (size_t)vi->ysize;
+  vi->fullXsize = nxbin;
+  vi->fullYsize = nybin;
+  vi->fullZsize = nzbin;
     
   return 0;
 }
@@ -2891,6 +2994,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 /*
 
 $Log$
+Revision 4.89  2011/02/28 20:25:36  mast
+Allow user exit during large montage load
+
 Revision 4.88  2011/02/26 17:21:24  mast
 Added equal scaling option
 
