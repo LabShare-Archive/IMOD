@@ -372,7 +372,6 @@ void InfoWindow::manageMenus()
   mActions[EIMAGE_MENU_FILLCACHE]->setEnabled(vi->vmSize != 0 || vi->nt > 0);
   mActions[EIMAGE_MENU_FILLER]->setEnabled(vi->vmSize != 0 || vi->nt > 0);
   mActions[IMAGE_MENU_SLICER]->setEnabled(vi->rawImageStore == 0);
-  mActions[IMAGE_MENU_XYZ]->setEnabled(vi->rawImageStore == 0);
   mActions[IMAGE_MENU_ISOSURFACE]->setEnabled(imageOK);
   mActions[ECONTOUR_MENU_AUTO]->setEnabled(imageOK);
   if (!imageOK) {
@@ -707,6 +706,9 @@ static char *truncate_name(char *name, int limit)
 /*
 
 $Log$
+Revision 4.61  2011/02/07 16:12:39  mast
+Convert zap structure to class, most functions to members
+
 Revision 4.60  2010/12/18 15:02:16  mast
 Change order
 

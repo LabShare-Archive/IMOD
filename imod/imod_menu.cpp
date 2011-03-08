@@ -1149,7 +1149,7 @@ void InfoWindow::imageSlot(int item)
 
   /* DNM: only model and zap and pixelview will work with raw (color) data */
   if (!(item == IMAGE_MENU_ZAP || item == IMAGE_MENU_MULTIZ || 
-        item == IMAGE_MENU_MODV || item == IMAGE_MENU_PIXEL) &&
+        item == IMAGE_MENU_MODV || item == IMAGE_MENU_PIXEL || item == IMAGE_MENU_XYZ) &&
       App->cvi->rawImageStore)
     return;
      
@@ -1298,6 +1298,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 /*
 
 $Log$
+Revision 4.60  2011/03/01 18:40:00  mast
+reworded output from point distance
+
 Revision 4.59  2011/01/13 20:31:26  mast
 warning cleanup
 
