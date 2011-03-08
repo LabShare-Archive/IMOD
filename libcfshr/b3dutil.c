@@ -55,6 +55,7 @@
 #define b3dheaderitembytes B3DHEADERITEMBYTES
 #define cputime CPUTIME
 #define walltime WALLTIME
+#define b3dmillisleep B3DMILLISLEEP
 #define numompthreads NUMOMPTHREADS
 #else
 #define imodbackupfile imodbackupfile_
@@ -64,6 +65,7 @@
 #define b3dheaderitembytes b3dheaderitembytes_
 #define cputime cputime_
 #define walltime walltime_
+#define b3dmillisleep b3dmillisleep_
 #define numompthreads numompthreads_
 #endif
 
@@ -594,7 +596,7 @@ double cputime(void)
 }
 
 /*!
- * Returns a measure of time with microsecond precision on Linux and Mac
+ * Returns a measure of time in seconds with microsecond precision on Linux and Mac
  * and the precision of the high performance counter on Windows.
  */
 double wallTime(void)
@@ -641,6 +643,12 @@ int b3dMilliSleep(int msecs)
   }
 #endif
   return retval;
+}
+
+/*! Fortran wrapper for @b3dMilliSleep */
+int b3dmillisleep(int *msecs)
+{ 
+  return b3dMilliSleep(*msecs);
 }
 
 /*!
@@ -702,6 +710,9 @@ int b3dompthreadnum()
 /*
 
 $Log$
+Revision 1.20  2011/03/01 22:57:18  mast
+Function to print the PID to stderr to standardize and allow from fortran
+
 Revision 1.19  2011/02/12 04:39:45  mast
 Added line pointer routine
 
