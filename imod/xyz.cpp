@@ -119,6 +119,7 @@ int xxyz_open(ImodView *vi)
 static void xyzDraw_cb(ImodView *vi, void *client, int drawflag)
 {
   XyzWindow *xyz = (XyzWindow *)client;
+  int pixSize = ivwGetPixelBytes(xyz->mVi->rawImageStore);
 
   if ((!vi) || (!xyz) || (!drawflag)) 
     return;
@@ -142,8 +143,8 @@ static void xyzDraw_cb(ImodView *vi, void *client, int drawflag)
       if (xyz->mToolMaxY != xyz->mVi->ysize || xyz->mToolMaxZ != xyz->mVi->zsize) {
         B3DFREE(xyz->mFdataxz);
         B3DFREE(xyz->mFdatayz);
-        xyz->mFdataxz  = (unsigned char *)malloc(vi->xsize * vi->zsize);
-        xyz->mFdatayz  = (unsigned char *)malloc(vi->ysize * vi->zsize);
+        xyz->mFdataxz  = (unsigned char *)malloc(vi->xsize * vi->zsize * pixSize);
+        xyz->mFdatayz  = (unsigned char *)malloc(vi->ysize * vi->zsize * pixSize);
         xyz->GetCIImages();
       }
     }
@@ -210,14 +211,15 @@ XyzWindow::XyzWindow(ImodView *vi, bool rgba, bool doubleBuffer,
   double newzoom;
   int needWinx, needWiny, maxWinx, maxWiny, xleft, ytop, toolHeight;
   int newHeight, newWidth;
+  int pixSize = ivwGetPixelBytes(vi->rawImageStore);
 
   mXydata = mXzdata = mYzdata = NULL;
   for (ytop = 0; ytop < NUM_AXIS; ytop++)
     mDisplayedAxisLocation[ytop] = -100;
 
   /* DNM 1/19/02: need separate fdata for each side panel */
-  mFdataxz  = (unsigned char *)malloc(vi->xsize * vi->zsize);
-  mFdatayz  = (unsigned char *)malloc(vi->ysize * vi->zsize);
+  mFdataxz  = (unsigned char *)malloc(vi->xsize * vi->zsize * pixSize);
+  mFdatayz  = (unsigned char *)malloc(vi->ysize * vi->zsize * pixSize);
   if ((!mFdataxz) || (!mFdatayz)) {
     B3DFREE(mFdataxz);
     B3DFREE(mFdatayz);
@@ -1256,29 +1258,56 @@ void XyzWindow::DrawImage()
       xslice = -1 - cx;
       mLx = cx;
       if (flipped && !mVi->fakeImage) {
-        for (y = 0; y < ny; y++)
+        for (y = 0; y < ny; y++) {
           if (imdata[y]) {
-            for (z = 0; z < nz; z++) 
-              fdata[z + y * nz] = imdata[y][cx + (z * imdataxsize)];
+            if (mVi->rawImageStore) {
+              for (z = 0; z < nz; z++) {
+                fdata[3 * (z + y * nz)] = imdata[y][3 * (cx + (z * imdataxsize))];
+                fdata[3 * (z + y * nz) + 1] = imdata[y][3 * (cx + (z * imdataxsize)) + 1];
+                fdata[3 * (z + y * nz) + 2] = imdata[y][3 * (cx + (z * imdataxsize)) + 2];
+              }
+            } else
+              for (z = 0; z < nz; z++) 
+                fdata[z + y * nz] = imdata[y][cx + (z * imdataxsize)];
           } else {
-            for (z = 0; z < nz; z++) 
-              fdata[z + y * nz] = 0;
+            if (mVi->rawImageStore) {
+              for (z = 0; z < nz; z++) {
+                fdata[3 * (z + y * nz)] = 0;
+                fdata[3 * (z + y * nz) + 1] = 0;
+                fdata[3 * (z + y * nz) + 2] = 0;
+              }
+            } else
+              for (z = 0; z < nz; z++) 
+                fdata[z + y * nz] = 0;
           }
+        }
       } else {
         for(z = 0; z < nz; z++) {
           if (!mVi->fakeImage && imdata[z]) {
-            for (i = z, y = 0; y < ny; y++, i += nz)
-              fdata[i] = imdata[z][cx + (y * imdataxsize)];
+            if (mVi->rawImageStore) {
+              for (i = z, y = 0; y < ny; y++, i += nz) {
+                fdata[3 * i] = imdata[z][3 *(cx + (y * imdataxsize))];
+                fdata[3 * i + 1] = imdata[z][3 *(cx + (y * imdataxsize))+ 1];
+                fdata[3 * i + 2] = imdata[z][3 *(cx + (y * imdataxsize))+ 2];
+              }
+            } else
+              for (i = z, y = 0; y < ny; y++, i += nz)
+                fdata[i] = imdata[z][cx + (y * imdataxsize)];
           } else {
-            for (i= z, y = 0; y < ny; y++, i += nz)
-              fdata[i] = 0;
+            if (mVi->rawImageStore)
+              for (i= z, y = 0; y < ny; y++, i += nz)
+                fdata[3 * i] = fdata[3 * i + 1] = fdata[3 * i + 2] = 0;
+            else
+              for (i= z, y = 0; y < ny; y++, i += nz)
+                fdata[i] = 0;
           }
         }
       }
     }
     
     //draw yz view
-    b3dDrawGreyScalePixelsHQ(ivwMakeLinePointers(mVi, mFdatayz, nz, ny, MRC_MODE_BYTE), 
+    b3dDrawGreyScalePixelsHQ(ivwMakeLinePointers(mVi, mFdatayz, nz, ny, 
+                                                 mVi->rawImageStore), 
                              nz, ny, xoffset2, yoffset1, wx2, wy1, width2, height1,
                              mYzdata, mVi->rampbase, mZoom, mZoom, mHq, xslice, 
                              App->rgba);
@@ -1293,21 +1322,39 @@ void XyzWindow::DrawImage()
       mLy = cy;
       for(i = 0,z = 0; z < nz; z++) {
         if (flipped && !mVi->fakeImage && imdata[cy]) {
-          for(x = 0; x < nx; x++, i++)
-            fdata[i] = imdata[cy][x + (z * imdataxsize)];
+          if (mVi->rawImageStore) {
+            for(x = 0; x < nx; x++, i++) {
+              fdata[3 * i] = imdata[cy][3 * (x + (z * imdataxsize))];
+              fdata[3 * i + 1] = imdata[cy][3 * (x + (z * imdataxsize)) + 1];
+              fdata[3 * i + 2] = imdata[cy][3 * (x + (z * imdataxsize)) + 2];
+            }
+          } else
+            for(x = 0; x < nx; x++, i++)
+              fdata[i] = imdata[cy][x + (z * imdataxsize)];
         } else if (!flipped && !mVi->fakeImage && imdata[z]) {
-          for(x = 0; x < nx; x++, i++)
-            fdata[i] = imdata[z][x + (cy * imdataxsize)];
+          if (mVi->rawImageStore) {
+            for(x = 0; x < nx; x++, i++) {
+              fdata[3 * i] = imdata[z][3 * (x + (cy * imdataxsize))];
+              fdata[3 * i + 1] = imdata[z][3 * (x + (cy * imdataxsize)) + 1];
+              fdata[3 * i + 2] = imdata[z][3 * (x + (cy * imdataxsize)) + 2];
+            }
+          } else
+            for(x = 0; x < nx; x++, i++)
+              fdata[i] = imdata[z][x + (cy * imdataxsize)];
         } else {
-          for(x = 0; x < nx; x++, i++)
-            fdata[i] = 0;
+          if (mVi->rawImageStore)
+            for(x = 0; x < nx; x++, i++)
+              fdata[3 * i] = fdata[3 * i + 1] = fdata[3 * i + 2] = 0;
+          else
+            for(x = 0; x < nx; x++, i++)
+              fdata[i] = 0;
         }
       }
     }
 
     //draw xz view    
     b3dDrawGreyScalePixelsHQ(ivwMakeLinePointers(mVi, mFdataxz, nx, nz,
-                                                 MRC_MODE_BYTE),
+                                                 mVi->rawImageStore),
                              nx, nz, xoffset1, yoffset2,
                              wx1, wy2, width1, height2, mXzdata,
                              mVi->rampbase, mZoom, mZoom, 
@@ -2388,6 +2435,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 /*
 
 $Log$
+Revision 4.62  2011/02/13 21:33:24  mast
+Moved structure into window class, allowed multiple instances, added lock button
+
 Revision 4.61  2011/02/12 05:10:27  mast
 Start in HQ mode if preference set
 
