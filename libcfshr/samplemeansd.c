@@ -1,11 +1,11 @@
-/* samplemeansd.c : estimate mean and Sd of image from sample of pixels */
-/*
+/* 
+ * samplemeansd.c : estimate mean and Sd of image from sample of pixels
+ *
  * $Id$
  * Log at end
  */
 
 #include <stdlib.h>
-#include <stdio.h>
 #include <math.h>
 #include "imodconfig.h"
 #include "b3dutil.h"
@@ -15,6 +15,7 @@
 #define UNSIGNED_SHORT 2
 #define SIGNED_SHORT 3
 #define FLOAT 6
+#define INTEGER 7
 #define RGB   8
 #define RGBA  9
 
@@ -27,16 +28,17 @@
 /*!
  * Estimates mean and SD of a sample of an image.  Returns nonzero for errors.
  * ^ [image] = array of pointers to each line of data 
- * ^ [type] = data type, 0 for bytes, 3 for signed shorts, 6 for floats, 8 for RGB
- * triples of bytes or 9 for RGBA bytes; RGB values are weighted with NTSC weighting
+ * ^ [type] = data type, 0 for bytes, 2 for unsigned shorts, 3 for signed shorts, 6 for 
+ * floats, 7 for 4-byte integers, 8 for RGB triples of bytes or 9 for RGBA bytes;
+ * RGB values are weighted with NTSC weighting
  * ^ [nx], [ny] = X and Y dimensions of image
  * ^ [sample] = fraction of pixels to sample
- * ^ [nxMatt], [nyMatt] = starting X and Y index to include
+ * ^ [ixStart], [iyStart] = starting X and Y index to include
  * ^ [nxUse], [nyUse] = number of pixels in X and Y to include
  * ^ [mean], [sd] = returned values of mean and sd
 */
 int sampleMeanSD(unsigned char **image, int type, int nx, int ny, 
-                 float sample, int nxMatt, int nyMatt, int nxUse, int nyUse,
+                 float sample, int ixStart, int iyStart, int nxUse, int nyUse,
                  float *mean, float *sd)
 {
   int nSample;
@@ -47,6 +49,7 @@ int sampleMeanSD(unsigned char **image, int type, int nx, int ny,
   unsigned short int **ushortp;
   short int **shortp;
   float **floatp;
+  int **intp;
 
   int ixUse, iyUse, dxSample;
   int i, j, nchan = type == RGBA ? 4 : 3;
@@ -59,19 +62,12 @@ int sampleMeanSD(unsigned char **image, int type, int nx, int ny,
   if (!image)
     return (-1);
 
-  /* get the area that will be used and offsets into it */  
-  // Not any more!
-  /*  nxMatt = (int)(nx * matt);
-  nxUse = nx - nxMatt;
-  nyMatt = (int)(ny * matt);
-  nyUse = ny - nyMatt; */
-  nPixUse = ((double)nxUse) * nyUse;
-
   /* get the number of points to sample, and sampling interval */
+  nPixUse = ((double)nxUse) * nyUse;
   nSample = (int)(sample * nPixUse);
   if (nSample >= nPixUse) 
     nSample = (int)nPixUse;
-  if (nxUse < 2 || nyUse < 2 || nSample < 5) 
+  if (nxUse < 2 || nyUse < 2 || nSample < 5)
     return(1);
 
   dxSample = (int)(nPixUse / nSample);
@@ -104,13 +100,16 @@ int sampleMeanSD(unsigned char **image, int type, int nx, int ny,
   case FLOAT :
     floatp = (float **)image;
     break;
+  case INTEGER :
+    intp = (int **)image;
+    break;
   default :
     return(2);
   }
 
   sum = 0.;
   sumsq = 0.;
-  if (dxSample == 1 && nxMatt == 0 && nyMatt == 0) {
+  if (dxSample == 1 && ixStart == 0 && iyStart == 0) {
 
     for (j = 0; j < nyUse; j++) {
       switch (type) {
@@ -164,6 +163,14 @@ int sampleMeanSD(unsigned char **image, int type, int nx, int ny,
         }
         break;
 
+      case INTEGER :
+        for (i = 0; i < nxUse; i++) {
+          fval = intp[j][i];
+          sum += fval;
+          sumsq += fval * fval;
+        }
+        break;
+
       }
     }
     nsum = (int)nPixUse;
@@ -177,30 +184,34 @@ int sampleMeanSD(unsigned char **image, int type, int nx, int ny,
       /* get the value */
       switch (type) {
       case BYTE :
-        fval = ubytep[iyUse + nyMatt][ixUse + nxMatt];
+        fval = ubytep[iyUse + iyStart][ixUse + ixStart];
         break;
 
       case RGBA:
       case RGB:
-        fval = 0.3 * ubytep[iyUse + nyMatt][nchan*(ixUse+nxMatt)] +
-          0.59 * ubytep[iyUse + nyMatt][nchan*(ixUse+nxMatt)+1] +
-          0.11 * ubytep[iyUse + nyMatt][nchan*(ixUse+nxMatt)+2];
+        fval = 0.3 * ubytep[iyUse + iyStart][nchan*(ixUse+ixStart)] +
+          0.59 * ubytep[iyUse + iyStart][nchan*(ixUse+ixStart)+1] +
+          0.11 * ubytep[iyUse + iyStart][nchan*(ixUse+ixStart)+2];
         break;
     
       case SIGNED_BYTE :
-        fval = bytep[iyUse + nyMatt][ixUse + nxMatt];
+        fval = bytep[iyUse + iyStart][ixUse + ixStart];
         break;
     
       case SIGNED_SHORT :
-        fval = shortp[iyUse + nyMatt][ixUse + nxMatt];
+        fval = shortp[iyUse + iyStart][ixUse + ixStart];
         break;
 
       case UNSIGNED_SHORT :
-        fval = ushortp[iyUse + nyMatt][ixUse + nxMatt];
+        fval = ushortp[iyUse + iyStart][ixUse + ixStart];
         break;
 
       case FLOAT :
-        fval = floatp[iyUse + nyMatt][ixUse + nxMatt];
+        fval = floatp[iyUse + iyStart][ixUse + ixStart];
+        break;
+
+      case INTEGER :
+        fval = intp[iyUse + iyStart][ixUse + ixStart];
         break;
 
       }
@@ -237,14 +248,14 @@ int sampleMeanSD(unsigned char **image, int type, int nx, int ny,
 /*!
  * Fortran wrapper for @sampleMeanSD with a floating point array in [image]
  */
-int samplemeansd(float *image, int *nx, int *ny, float *sample, int *nxMatt,
-                 int *nyMatt, int *nxUse, int *nyUse, float *mean, float *sd)
+int samplemeansd(float *image, int *nx, int *ny, float *sample, int *ixStart,
+                 int *iyStart, int *nxUse, int *nyUse, float *mean, float *sd)
 {
   int i;
   unsigned char **lines = makeLinePointers(image, *nx, *ny, 4);
   if (!lines)
     return -1;
-  i = sampleMeanSD(lines, FLOAT, *nx, *ny, *sample, *nxMatt, *nyMatt, *nxUse,
+  i = sampleMeanSD(lines, FLOAT, *nx, *ny, *sample, *ixStart, *iyStart, *nxUse,
                    *nyUse, mean, sd);
   free(lines);
   return i;
@@ -253,6 +264,9 @@ int samplemeansd(float *image, int *nx, int *ny, float *sample, int *nxMatt,
 /*
 
 $Log$
+Revision 1.5  2011/02/14 23:59:03  mast
+Fixed byte case and call to new line pointer routine
+
 Revision 1.4  2011/02/12 04:32:06  mast
 Added support for RGB
 
