@@ -21,6 +21,8 @@
 
 /* The resident check list */
 static Ilist *checkList = NULL;
+static int readWriteSection(ImodImageFile *inFile, char *buf, int inSection, 
+                            iiSectionFunc func);
 
 /* Initialize check list: if it does not exist, allocate it and place TIFF and
    MRC functions on the list */
@@ -100,6 +102,7 @@ ImodImageFile *iiNew()
   ofile->fp     = NULL;
   ofile->readSection     = NULL;
   ofile->readSectionByte = NULL;
+  ofile->readSectionUShort = NULL;
   ofile->cleanUp         = NULL;
   ofile->reopen          = NULL;
   ofile->close           = NULL;
@@ -232,12 +235,13 @@ int  iiReopen(ImodImageFile *inFile)
 
 /*!
  * Sets the scaling min and max ({smin} and {smax} in the image file structure
- * [inFile] and computes the scaling {slope} and {offset}.
+ * [inFile] and computes the scaling {slope} and {offset} that will map {smin} to
+ * and {smax} to [scaleMax] by scaling with value * slope + offset.
  * Uses the input values [inMin] and [inMax], or the file min and max if these
  * values are equal.  Returns 0.
  */
  /* 1/3/04: change from double to float for arguments */
-int  iiSetMM(ImodImageFile *inFile, float inMin, float inMax)
+int  iiSetMM(ImodImageFile *inFile, float inMin, float inMax, float scaleMax)
 {
   float range;
 
@@ -266,7 +270,7 @@ int  iiSetMM(ImodImageFile *inFile, float inMin, float inMax)
     mrcComplexSminSmax(inMin, inMax, &inMin, &inMax);
 
   range = inMax - inMin;
-  inFile->slope = 255.0 / range;
+  inFile->slope = scaleMax / range;
 
   inFile->offset = -inMin * inFile->slope;
 
@@ -317,13 +321,7 @@ void iiDelete(ImodImageFile *inFile)
  */
 int iiReadSection(ImodImageFile *inFile, char *buf, int inSection)
 {
-  if (!inFile->readSection) 
-    return -1;
-  if (!inFile->fp){
-    if (iiReopen(inFile))
-      return -1;
-  }
-  return( (*inFile->readSection)(inFile, buf, inSection) );
+  return( readWriteSection(inFile, buf, inSection, inFile->readSection) );
 }
 
 /*!
@@ -333,27 +331,43 @@ int iiReadSection(ImodImageFile *inFile, char *buf, int inSection)
  */
 int iiReadSectionByte(ImodImageFile *inFile, char *buf, int inSection)
 {
-  if (!inFile->readSectionByte) 
+  return( readWriteSection(inFile, buf, inSection, inFile->readSectionByte) );
+}
+
+/*!
+ * Reads the section [inSection] from the file [inFile] as scaled unsigned short data 
+ * into buffer [buf].  Returns -1 for undefined reading function or failure 
+ * to reopen file, otherwise passes along return value of the reading function.
+ */
+int iiReadSectionUShort(ImodImageFile *inFile, char *buf, int inSection)
+{
+  return( readWriteSection(inFile, buf, inSection, inFile->readSectionUShort) );
+}
+
+/*!
+ * Write data in the buffer [buf] to section [inSection] of the file [inFile].
+ * Returns -1 for undefined writing function or failure to reopen file; otherwise passes
+ * along return value of the writing function.  Note that neither iimrc nor iitiff define
+ * writing functions.
+ */
+int iiWriteSection(ImodImageFile *inFile, char *buf, int inSection)
+{
+  return( readWriteSection(inFile, buf, inSection, inFile->writeSection) );
+}
+
+/* The routine that does the work */
+static int readWriteSection(ImodImageFile *inFile, char *buf, int inSection, 
+                            iiSectionFunc func)
+{
+  if (!func) 
     return -1;
   if (!inFile->fp){
     if (iiReopen(inFile))
       return -1;
   }
-  return( (*inFile->readSectionByte)(inFile, buf, inSection) );
+  return( func(inFile, buf, inSection) );
 }
 
-/*!
- * Write data in the buffer [buf] to section [inSection] of the file [inFile].
- * Returns -1 for undefined writing function; otherwise passes along return 
- * value of the writing function.  Note that neither iimrc nor iitiff define
- * writing functions.
- */
-int iiWriteSection(ImodImageFile *inFile, char *buf, int inSection)
-{
-  if (!inFile->writeSection)
-    return -1;
-  return( (*inFile->writeSection)(inFile, buf, inSection) );
-}
 
 /*!
  * Loads piece coordinates from an MRC file [inFile] of size [nx], [ny], [nz]
@@ -376,6 +390,9 @@ int iiLoadPCoord(ImodImageFile *inFile, int useMdoc, IloadInfo *li, int nx,
 
 /*
 $Log$
+Revision 3.19  2010/12/18 18:43:58  mast
+Initialize nx/ny/nz so unitialized file can be detected
+
 Revision 3.18  2010/08/31 21:55:48  mast
 Load piece coordinates from image file or from metadata file
 

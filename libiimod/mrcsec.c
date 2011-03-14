@@ -21,6 +21,7 @@
 
 #define MRSA_BYTE 1
 #define MRSA_FLOAT 2
+#define MRSA_USHORT 3
 
 static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
                              unsigned char *buf, int cz, int readY, int type);
@@ -55,6 +56,16 @@ int mrcReadZByte(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 }
 
 /*!
+ * Reads one Z slice of data, like @mrcReadZ, and scales it to unsigned short integers.
+ * Scaling is controlled by [li] members {slope}, {offset}, and {ramp}, but
+ * {ramp} should be MRC_RAMP_LIN unless reading in integers or floats.
+ */
+int mrcReadZUShort(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
+{
+  return (mrcReadSectionAny(hdata, li, buf, z, 0, MRSA_USHORT));
+}
+
+/*!
  * Reads one Z slice of data, like @mrcReadZ, and returns it as floats.
  * Only works for real modes: byte, signed and unsigned short, float.
  */
@@ -86,6 +97,16 @@ int mrcReadYByte(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 }
 
 /*!
+ * Reads one Y slice of data, like @mrcReadY, and scales it to unsigned short integers.
+ * Scaling is controlled by [li] members {slope}, {offset}, and {ramp}, but
+ * {ramp} should be MRC_RAMP_LIN unless reading in integers or floats.
+ */
+int mrcReadYUShort(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
+{
+  return (mrcReadSectionAny(hdata, li, buf, z, 1, MRSA_USHORT));
+}
+
+/*!
  * Reads one Y slice of data, like @mrcReadY, and returns it as floats.
  * Only works for real modes: byte, signed and unsigned short, and float.
  */
@@ -114,11 +135,21 @@ int mrcReadSection(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
  * Scaling is controlled by [li] members {slope}, {offset}, and {ramp}, but
  * {ramp} should be MRC_RAMP_LIN unless reading in integers or floats.
  */
-int mrcReadSectionByte(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, 
-                       int z)
+int mrcReadSectionByte(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 {
   int readY = (li->axis == 2) ? 1 : 0;
   return (mrcReadSectionAny(hdata, li, buf, z, readY, MRSA_BYTE));
+}
+
+/*!
+ * Reads one slice of data, like @mrcReadSection, and scales it to bytes.
+ * Scaling is controlled by [li] members {slope}, {offset}, and {ramp}, but
+ * {ramp} should be MRC_RAMP_LIN unless reading in integers or floats.
+ */
+int mrcReadSectionUShort(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
+{
+  int readY = (li->axis == 2) ? 1 : 0;
+  return (mrcReadSectionAny(hdata, li, buf, z, readY, MRSA_USHORT));
 }
 
 /*!
@@ -148,6 +179,8 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
   int  ury = readY ? li->zmax : li->ymax;
   int xsize = urx - llx + 1;
   int byte = type == MRSA_BYTE ? 1 : 0;
+  int toShort = type == MRSA_USHORT ? 1 : 0;
+  int convert = byte + toShort;
      
   float slope  = li->slope;
   float offset = li->offset;
@@ -162,18 +195,20 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
   int needData = 0;
   b3dFloat fpixel;
   b3dFloat *fdata;
-  double returned;
-  /* Buffer to read lines into; may be replaced by temporary buffer for 
-     reading */
+
+  /* Buffer to read lines into; may be replaced by temporary buffer for reading */
   unsigned char *bdata = buf;
 
   /* Buffer to place complex data into; may be temporary for mirroring */
   unsigned char *fft = buf;
+  b3dUInt16 *usfft = (b3dUInt16 *)buf;
   unsigned char *map = NULL;
+  b3dUInt16 *usmap;
 
   /* Copies of buffer pointer that can be advanced after each line */
   unsigned char *bufp = buf;
   b3dFloat *fbufp = (b3dFloat *)buf;
+  b3dUInt16 *usbufp = (b3dUInt16 *)buf;
   int freeMap = 0;
   unsigned char *inptr;
   b3dInt16 *sdata;
@@ -181,13 +216,19 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
   int imXsize, imYmin, imYmax, ymin, ymax, llfx, llfy, ulfx, ulfy, urfx, urfy;
   int lrfx, lrfy, x0, x1, x2, x3, cury, toggleY, imNx;
   int llx2, llfx2, llfy2, ulfx2, ulfy2, ybase;
-
+  float eps = toShort ? 0.005 / 256. : 0.005;
   int doscale = (offset <= -1.0 || offset >= 1.0 || 
-                 slope < 0.995 || slope > 1.005);
-  /* printf ("read slope %f  offset %f\n", slope, offset); */
+                 slope < 1. - eps || slope > 1. + eps) ? 1 : 0;
+  /* printf ("read slope %f  offset %f  doscale %d toshort %d\n", slope, offset, doscale, 
+     toShort); */
   if (type == MRSA_FLOAT && sliceModeIfReal(hdata->mode) < 0) {
     b3dError(stderr, "ERROR: mrcReadSectionAny - Only real modes can be read"
              " as floats");
+    return 1;
+  }
+  if ((type == MRSA_BYTE && outmax > 255) || (type == MRSA_USHORT && outmax < 256)) {
+    b3dError(stderr, "ERROR: mrcReadSectionAny - outmax (%d) is not in right range for"
+             " conversion to %s", outmax, byte ? "bytes" : "shorts");
     return 1;
   }
 
@@ -195,7 +236,7 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
      This is hopelessly complex because it replicates the mirrored FFT produced
      by clip, with the extra right column placed on the left and the bottom
      left row a duplicate of the row above (except for first pixel) */
-  if (li->mirrorFFT && byte) {
+  if (li->mirrorFFT && convert) {
     imXsize = xsize;
     imNx = 2 * (nx - 1);
 
@@ -241,55 +282,59 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
   switch(hdata->mode){
   case MRC_MODE_BYTE:
     pixSize = 1;
-    if (byte && doscale) {
+    if ((byte && doscale) || toShort) {
       map = get_byte_map(slope, offset, outmin, outmax);
       if (!map)
         return 2;
     }
-    needData = type == MRSA_FLOAT ? 1 : 0;
+    needData = (type == MRSA_FLOAT || type == MRSA_USHORT) ? 1 : 0;
     break;
 
   case MRC_MODE_SHORT:
   case MRC_MODE_USHORT:
     pixSize = 2;
-    if (byte) {
+    if ((toShort && (doscale || hdata->mode == MRC_MODE_SHORT)) || byte) {
       map= get_short_map(slope, offset, outmin, outmax, li->ramp, 
                          hdata->swapped, 
                          (hdata->mode == MRC_MODE_SHORT) ? 1 : 0);
+      /*usmap = (b3dUInt16 *)map;
+      for (i = 0; i < 65000; i += 1000)
+      printf("%d %d %d\n", i, usmap[i], map[i]); */
       freeMap = 1;
       if (!map)
         return 2;
     }
-    needData = type;
+    needData = (type == MRSA_FLOAT || type == MRSA_BYTE) ? 1 : 0;
     break;
 
   case MRC_MODE_RGB:
     pixSize = 3;
-    needData = byte;
+    needData = convert;
     break;
 
   case MRC_MODE_FLOAT:
     pixSize = 4;
-    needData = byte;
+    needData = convert;
     break;
 
   case MRC_MODE_COMPLEX_SHORT:
     pixSize = 4;
-    if (byte)
+    if (convert)
       return 1;
     break;
 
   case MRC_MODE_COMPLEX_FLOAT:
     pixSize = 8;
-    needData = byte;
+    needData = convert;
     break;
 
   default:
-    if (byte)
+    if (convert)
       b3dError(stderr, "ERROR: mrcReadSectionAny - unsupported data type.");
       return 1;
     break;
   }
+  usmap = (b3dUInt16 *)map;
 
   /* Get the supplemental data array, set all pointers to it */
   if (needData) {
@@ -350,50 +395,99 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
     }
 
     /* Do data-dependent processing for byte conversions */
-    if (byte) {
+    if (convert) {
       switch(hdata->mode){
       case MRC_MODE_BYTE:
-        if (doscale)
-          for (i = 0; i < xsize; i++)
-            bdata[i] = map[bdata[i]];
-        bdata += xsize;
+        if (byte) {
+          if (doscale)
+            for (i = 0; i < xsize; i++)
+              bdata[i] = map[bdata[i]];
+          bdata += xsize;
+        } else {
+            for (i = 0; i < xsize; i++)
+              usbufp[i] = usmap[bdata[i]];
+            usbufp += xsize;
+        }
         break;
         
       case MRC_MODE_SHORT:
       case MRC_MODE_USHORT:
-        for (i = 0; i < xsize; i++)
-          bufp[i] = map[usdata[i]];
-        bufp += xsize;
+        if (byte) {
+          for (i = 0; i < xsize; i++)
+            bufp[i] = map[usdata[i]];
+          bufp += xsize;
+        } else {
+          if (doscale || hdata->mode == MRC_MODE_SHORT)
+            for (i = 0; i < xsize; i++)
+              usbufp[i] = usmap[usbufp[i]];
+          usbufp += xsize;
+          bdata = (unsigned char *)usbufp;
+        }
         break;
 
       case MRC_MODE_RGB:
         inptr = bdata;
-        for (i = 0; i < xsize; i++) {
-          fpixel = 0.3 * *inptr++;
-          fpixel += 0.59 * *inptr++;
-          fpixel += 0.11 * *inptr++;
-          bufp[i] = (int)(fpixel + 0.5f);
+        if (byte) {
+          for (i = 0; i < xsize; i++) {
+            fpixel = 0.3 * *inptr++;
+            fpixel += 0.59 * *inptr++;
+            fpixel += 0.11 * *inptr++;
+            bufp[i] = (int)(fpixel + 0.5f);
+          }
+          bufp += xsize;
+        } else {
+          for (i = 0; i < xsize; i++) {
+            fpixel = 255. * 0.3 * *inptr++;
+            fpixel += 255. * 0.59 * *inptr++;
+            fpixel += 255. * 0.11 * *inptr++;
+            usbufp[i] = (int)(fpixel + 0.5f);
+          }
+          usbufp += xsize;
         }
-        bufp += xsize;
         break;
         
       case MRC_MODE_FLOAT:
         if (hdata->swapped)
           mrc_swap_floats(fdata, xsize);
-        for (i = 0; i < xsize; i++){
-          fpixel =  fdata[i];
-          if (li->ramp == MRC_RAMP_LOG)
-            fpixel = (float)log((double)fpixel);
-          if (li->ramp == MRC_RAMP_EXP)
-            fpixel = (float)exp((double)fpixel);
-          fpixel = fpixel * slope + offset;
-          if (fpixel < outmin)
-            fpixel = outmin;
-          if (fpixel > outmax)
-            fpixel = outmax;
-          bufp[i] = fpixel + 0.5f;
+        if (byte) {
+
+          /* Do unused ramps separately to speed up the regular load */
+          if (li->ramp == MRC_RAMP_LOG || li->ramp == MRC_RAMP_EXP) {
+            for (i = 0; i < xsize; i++){
+              if (li->ramp == MRC_RAMP_LOG)
+                fpixel = (float)log((double)fdata[i]) * slope + offset;
+              else
+                fpixel = (float)exp((double)fdata[i]) * slope + offset;
+              fpixel = B3DMAX(outmin, fpixel);
+              bufp[i] = B3DMIN(outmax, fpixel) + 0.5f;
+            }
+          } else {
+            for (i = 0; i < xsize; i++) {
+              fpixel = fdata[i] * slope + offset;
+              fpixel = B3DMAX(outmin, fpixel);
+              bufp[i] = B3DMIN(outmax, fpixel) + 0.5f;
+            }
+          }
+          bufp += xsize;
+        } else {
+          if (li->ramp == MRC_RAMP_LOG || li->ramp == MRC_RAMP_EXP) {
+            for (i = 0; i < xsize; i++){
+              if (li->ramp == MRC_RAMP_LOG)
+                fpixel = (float)log((double)fdata[i]) * slope + offset;
+              else
+                fpixel = (float)exp((double)fdata[i]) * slope + offset;
+              fpixel = B3DMAX(outmin, fpixel);
+              usbufp[i] = B3DMIN(outmax, fpixel) + 0.5f;
+            }
+          } else {
+            for (i = 0; i < xsize; i++) {
+              fpixel = fdata[i] * slope + offset;
+              fpixel = B3DMAX(outmin, fpixel);
+              usbufp[i] = B3DMIN(outmax, fpixel) + 0.5f;
+            }
+          }
+          usbufp += xsize;
         }
-        bufp += xsize;
         break;
 
       case MRC_MODE_COMPLEX_FLOAT:
@@ -401,17 +495,19 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
           mrc_swap_floats(fdata, xsize * 2);
         if (li->mirrorFFT) {
           fft = bdata;
+          usfft = usdata;
           pindex = 0;
         }
         for (i = 0; i < xsize; i++, pindex++) {
           fpixel = sqrt((double)((fdata[i*2] * fdata[i*2]) + 
                                  (fdata[(i*2)+1] * fdata[(i*2)+1])));
           pixel = log((double)(1.0f + (kscale * fpixel))) * slope + offset;
-          if (pixel < outmin)
-            pixel = outmin;
-          if (pixel > outmax)
-            pixel = outmax;
-          fft[pindex] = pixel;
+          pixel = B3DMAX(outmin, pixel);
+          pixel = B3DMIN(outmax, pixel);
+          if (byte)
+            fft[pindex] = pixel;
+          else
+            usfft[pindex] = pixel;
         }
 
         /* MIRRORED FFT DATA */
@@ -427,15 +523,22 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
             if (x1 >= li->xmin && x0 <= li->xmax) {
               x2 = x0 > li->xmin ? x0 : li->xmin;
               x3 = x1 < li->xmax ? x1 : li->xmax;
-              memcpy(&buf[(x2 - li->xmin) + ybase * imXsize],
-                     &fft[x2 - x0], x3 + 1 - x2);
+              if (byte)
+                memcpy(&buf[(x2 - li->xmin) + ybase * imXsize], &fft[x2-x0], x3 + 1 - x2);
+              else
+                memcpy(&usbufp[(x2 - li->xmin) + ybase * imXsize], &usfft[x2-x0], 
+                       2 * (x3 + 1 - x2));
             }
             /* fprintf(stderr, "direct cury %d x0 %d x1 %d  ", cury, x0, x1);
                fprintf(stderr, "x2 %d x3 %d\n", x2, x3); */
 
             /* Is the rightmost pixel needed? */
-            if (urx == nx - 1 && li->xmin == 0) 
-              buf[ybase * imXsize] = fft[xsize - 1];
+            if (urx == nx - 1 && li->xmin == 0) {
+              if (byte)
+                buf[ybase * imXsize] = fft[xsize - 1];
+              else
+                usbufp[ybase * imXsize] = usfft[xsize - 1];
+            }
           }
 
           /* See if data are needed for mirror image */
@@ -456,15 +559,24 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
             if (cury >= imYmin && cury <= imYmax) {
               /* fprintf(stderr, "mirror cury %d x0 %d x1 %d  ", cury, x0, x1);
                  fprintf(stderr, "x2 %d x3 %d\n", x2, x3); */
-              for (i = x3 - x2; i >= 0; i--)
-                buf[i + x2 - li->xmin + ybase * imXsize] = fft[x1 - x2 - i];
+              if (byte)
+                for (i = x3 - x2; i >= 0; i--)
+                  buf[i + x2 - li->xmin + ybase * imXsize] = fft[x1 - x2 - i];
+              else
+                for (i = x3 - x2; i >= 0; i--)
+                  usbufp[i + x2 - li->xmin + ybase * imXsize] = usfft[x1 - x2 - i];
             }
 
             /* Replicate bottom left line if needed */
             ybase = readY ? j- lly : 0;
-            if (cury == 1 && imYmin == 0)
-              for (i = x3 - x2; i >= 0; i--)
-                buf[i + x2 - li->xmin + ybase * imXsize] = fft[x1 - x2 - i];
+            if (cury == 1 && imYmin == 0) {
+              if (byte)
+                for (i = x3 - x2; i >= 0; i--)
+                  buf[i + x2 - li->xmin + ybase * imXsize] = fft[x1 - x2 - i];
+              else
+                for (i = x3 - x2; i >= 0; i--)
+                  usbufp[i + x2 - li->xmin + ybase * imXsize] = usfft[x1 - x2 - i];
+            }
           }
 
           /* If toggling between lines, set up seek and next cz value */
@@ -546,6 +658,9 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
 
 /*
 $Log$
+Revision 3.17  2008/11/02 13:43:08  mast
+Added functions for reading float slice
+
 Revision 3.16  2008/05/31 03:48:52  mast
 Fixed the log and exp scaling
 

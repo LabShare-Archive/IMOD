@@ -17,6 +17,7 @@
 #include "b3dutil.h"
 
 static void iiMRCdelete(ImodImageFile *inFile);
+static int readSectionScaled(ImodImageFile *inFile, char *buf, int inSection, int outmax);
 
 int iiMRCCheck(ImodImageFile *iif)
 {
@@ -107,6 +108,7 @@ int iiMRCCheck(ImodImageFile *iif)
 
   iif->readSection = iiMRCreadSection;
   iif->readSectionByte = iiMRCreadSectionByte;
+  iif->readSectionUShort = iiMRCreadSectionUShort;
   iif->cleanUp = iiMRCdelete;
 
   return(0);
@@ -123,6 +125,7 @@ int iiMRCreadSection(ImodImageFile *inFile, char *buf, int inSection)
   struct LoadInfo li;
   MrcHeader *h = (MrcHeader *)inFile->header;
 
+  mrc_init_li(&li, NULL);
   li.xmin = inFile->llx;
   li.ymin = inFile->lly;
   li.zmin = inFile->llz;
@@ -140,6 +143,7 @@ int iiMRCreadSection(ImodImageFile *inFile, char *buf, int inSection)
     li.zmax = inFile->nz-1;
   else
     li.zmax = inFile->urz;
+
   li.slope = inFile->slope;
   li.offset = inFile->offset;
   li.outmin = inFile->smin;
@@ -154,10 +158,21 @@ int iiMRCreadSection(ImodImageFile *inFile, char *buf, int inSection)
 
 int iiMRCreadSectionByte(ImodImageFile *inFile, char *buf, int inSection)
 {
+  return readSectionScaled(inFile, buf, inSection, 255);
+}
+int iiMRCreadSectionUShort(ImodImageFile *inFile, char *buf, int inSection)
+{
+  return readSectionScaled(inFile, buf, inSection, 65535);
+}
+
+static int readSectionScaled(ImodImageFile *inFile, char *buf, int inSection, int outmax)
+{
   struct LoadInfo li;
   MrcHeader *h = (MrcHeader *)inFile->header;
-  li.xmin   = inFile->llx;
-  li.ymin   = inFile->lly;
+
+  mrc_init_li(&li, NULL);
+  li.xmin = inFile->llx;
+  li.ymin = inFile->lly;
   li.zmin = inFile->llz;
   if (inFile->urx < 0)
     li.xmax = inFile->nx-1;
@@ -172,14 +187,17 @@ int iiMRCreadSectionByte(ImodImageFile *inFile, char *buf, int inSection)
   else
     li.zmax = inFile->urz;
 
-  li.slope  = inFile->slope;
+  li.slope = inFile->slope;
   li.offset = inFile->offset;
   li.outmin   = 0;
-  li.outmax   = 255;
+  li.outmax   = outmax;
   li.axis   = inFile->axis;
   li.mirrorFFT = inFile->mirrorFFT;
   h->fp = inFile->fp; 
-  return (mrcReadSectionByte(h, &li, (unsigned char *)buf, inSection));
+  if (outmax > 255) 
+    return (mrcReadSectionUShort(h, &li, (unsigned char *)buf, inSection));
+  else
+    return (mrcReadSectionByte(h, &li, (unsigned char *)buf, inSection));
 }
 
 
@@ -264,6 +282,9 @@ int iiMRCLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny,
 /*
 
 $Log$
+Revision 3.16  2008/01/11 17:20:42  mast
+Mac warning cleanup
+
 Revision 3.15  2007/06/13 17:11:26  sueh
 bug# 1019 In iiMRCCheck, setting iif->sectionSkip to 0.
 

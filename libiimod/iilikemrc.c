@@ -43,7 +43,6 @@ typedef struct check_entry {
    functions on it */
 static int initCheckList()
 {
-  CheckEntry item;
   if (checkList)
     return 0;
   checkList = ilistNew(sizeof(CheckEntry), 6);
@@ -197,6 +196,7 @@ int iiSetupRawHeaders(ImodImageFile *inFile, RawImageInfo *info)
   inFile->header = (char *)hdr;
   inFile->readSection = iiMRCreadSection;
   inFile->readSectionByte = iiMRCreadSectionByte;
+  inFile->readSectionUShort = iiMRCreadSectionUShort;
   inFile->cleanUp = iiLikeMRCDelete;
   inFile->mode = hdr->mode;
   return 0;
@@ -292,7 +292,6 @@ static int checkWinkler(FILE *fp, char *filename, RawImageInfo *info)
  */
 static int checkPif(FILE *fp, char *filename, RawImageInfo *info)
 {
-  b3dUInt16 svals[4];
   b3dInt32 ivals[12];
   b3dByte cvals[6];
 
@@ -445,7 +444,7 @@ static int checkDM3(FILE *fp, char *filename, RawImageInfo *info)
  */
 int analyzeDM3(FILE *fp, char *filename, RawImageInfo *info, int *dmtype)
 {
-  int i,c, toffset, typeIndex;
+  int c, toffset, typeIndex;
   char buf[BUFSIZE];
   char *found;
   int lowbyte, hibyte;
@@ -455,7 +454,7 @@ int analyzeDM3(FILE *fp, char *filename, RawImageInfo *info, int *dmtype)
 
   /* The type-dependent values that were found after 
      D a t a % % % % 0 0 0 3 0 0 0 24 0 0 0 */
-  int datacode[MAX_TYPES] = {0, 2, 6, 0, 0, 0, 10, 3, 0, 9, 4, 5};
+  /*int datacode[MAX_TYPES] = {0, 2, 6, 0, 0, 0, 10, 3, 0, 9, 4, 5}; */
      
   int dataSize[MAX_TYPES] = {1, 2, 4, 1, 1, 1, 1, 4, 1, 1, 2, 4};
 
@@ -648,6 +647,10 @@ static int checkEM(FILE *fp, char *filename, RawImageInfo *info)
 /*  
 
 $Log$
+Revision 3.10  2009/08/04 15:51:08  mast
+Made it handle stack DM files and increased buffer size to accommodate
+larger distance of data string from start.
+
 Revision 3.9  2009/04/30 16:16:16  mast
 Fix DM3 scanning to not get fooled by unsupported image type or its size
 
