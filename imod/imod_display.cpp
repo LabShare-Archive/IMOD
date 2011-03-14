@@ -119,8 +119,7 @@ int imod_color_init(ImodApp *ap)
   ap->objbase      = RAMPMIN - 1;
 
   if (ap->cvi->imod){
-    ap->cvi->black = ap->cvi->imod->blacklevel;
-    ap->cvi->white = ap->cvi->imod->whitelevel;
+    ivwSetBlackWhiteFromModel(ap->cvi);
   }
   
   if (ap->rgba){
@@ -129,7 +128,8 @@ int imod_color_init(ImodApp *ap)
     ap->qColormap = NULL;
     ap->cvi->rampsize = 256;
     ap->cvi->rampbase = 0;
-    ap->cvi->cramp = xcramp_allinit(ap->depth, ap->qColormap, 0, 255);
+    ap->cvi->cramp = xcramp_allinit(ap->depth, ap->qColormap, 0, 255,
+                                    ap->cvi->ushortStore);
     /*  imod_info_setbw(ap->cvi->black, ap->cvi->white);  NOT YET */
     xcramp_setlevels(ap->cvi->cramp, ap->cvi->black, ap->cvi->white);
 
@@ -147,14 +147,13 @@ int imod_color_init(ImodApp *ap)
   if (ap->depth == 8){
     ap->cvi->rampbase = RAMPMIN;
     ap->cvi->rampsize = RAMPMAX + 1 - RAMPMIN;
-    ap->cvi->cramp = xcramp_allinit(ap->depth, ap->qColormap,
-                                    RAMPMIN, RAMPMAX);
+    ap->cvi->cramp = xcramp_allinit(ap->depth, ap->qColormap, RAMPMIN, RAMPMAX, 0);
   }else{
     ap->objbase    = ap->base + 257;
     ap->cvi->rampsize = 256;
     ap->cvi->rampbase = ap->base;
-    ap->cvi->cramp = xcramp_allinit(ap->depth, ap->qColormap,
-                                    ap->base, ap->base + 255);
+    ap->cvi->cramp = xcramp_allinit(ap->depth, ap->qColormap, ap->base, ap->base + 255,
+                                    0);
   }
 
   /* set colors for model objects and fixed colors */
@@ -325,7 +324,7 @@ int imodDraw(ImodView *vw, int flag)
      xyz window separately (it now has a control) */
 
 
-  if (flag & (IMOD_DRAW_XYZ | IMOD_DRAW_MOD)) {
+  if (flag & (IMOD_DRAW_XYZ | IMOD_DRAW_MOD | IMOD_DRAW_IMAGE)) {
     imod_info_setxyz();
     needModv = imodvIsosurfaceUpdate();
   }
@@ -333,8 +332,9 @@ int imodDraw(ImodView *vw, int flag)
   ivwControlListDraw(vw, flag);
 
   if (((flag & IMOD_DRAW_MOD) || 
-       ((flag & IMOD_DRAW_XYZ) && (Imodv->texMap || Imodv->curPointExtraObj))||
-       needModv) && ! (flag & IMOD_DRAW_SKIPMODV))
+       ((flag & IMOD_DRAW_IMAGE) && vw->ushortStore && Imodv->texMap) ||
+       ((flag & IMOD_DRAW_XYZ) && (Imodv->texMap || Imodv->curPointExtraObj)) || needModv)
+      && ! (flag & IMOD_DRAW_SKIPMODV))
     imodv_draw();
 
   scaleBarUpdate();
@@ -555,6 +555,9 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
 /*
 
 $Log$
+Revision 4.30  2011/01/31 04:44:24  mast
+Update isosurface if model changes too
+
 Revision 4.29  2010/03/09 19:51:06  mast
 Modernized error message about GL format
 

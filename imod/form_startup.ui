@@ -6,7 +6,7 @@
     <x>0</x>
     <y>0</y>
     <width>805</width>
-    <height>502</height>
+    <height>509</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -14,7 +14,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_4" >
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_4" >
+    <layout class="QHBoxLayout" name="horizontalLayout_3" >
      <item>
       <layout class="QVBoxLayout" >
        <item>
@@ -606,16 +606,6 @@
       </layout>
      </item>
      <item>
-      <widget class="Line" name="line2" >
-       <property name="frameShape" >
-        <enum>QFrame::VLine</enum>
-       </property>
-       <property name="frameShadow" >
-        <enum>QFrame::Sunken</enum>
-       </property>
-      </widget>
-     </item>
-     <item>
       <layout class="QVBoxLayout" name="verticalLayout_3" >
        <item>
         <widget class="QGroupBox" name="groupBox_2" >
@@ -670,6 +660,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="fillCacheBox" >
+         <property name="text" >
+          <string>Fill cache upon startup</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QCheckBox" name="flipCheckBox" >
          <property name="text" >
           <string>Flip Y and Z</string>
@@ -677,9 +674,9 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="fillCacheBox" >
+        <widget class="QCheckBox" name="loadUshortBox" >
          <property name="text" >
-          <string>Fill cache upon startup</string>
+          <string>Load non-byte data in as 16-bit integers</string>
          </property>
         </widget>
        </item>
@@ -1008,6 +1005,16 @@
       </layout>
      </item>
     </layout>
+   </item>
+   <item>
+    <widget class="Line" name="line2" >
+     <property name="frameShape" >
+      <enum>QFrame::VLine</enum>
+     </property>
+     <property name="frameShadow" >
+      <enum>QFrame::Sunken</enum>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="Line" name="line3" >

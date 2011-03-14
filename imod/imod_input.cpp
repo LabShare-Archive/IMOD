@@ -1,5 +1,5 @@
 /*
- *  imod_input.c -- Handels general mouse/keyboard input.
+ *  imod_input.c -- Handles general mouse/keyboard input.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -49,7 +49,7 @@
 #include "preferences.h"
 #include "undoredo.h"
 
-static void newContourOrSurface(ImodView *vw, int surface);
+static void newContourOrSurface(ImodView *vi, int surface);
 
 void inputRaiseWindows()
 {
@@ -92,282 +92,282 @@ int mouse_in_box(int llx, int lly, int urx, int  ury, int mousex, int mousey)
 
 /* DNM 3/11/03: This is used only by slicer.  Modified to behave like zap
    with respect to time matches */
-void inputInsertPoint(ImodView *vw)
+void inputInsertPoint(ImodView *vi)
 {
-  Iobj *obj = imodObjectGet(vw->imod);
+  Iobj *obj = imodObjectGet(vi->imod);
   Icont *cont;
   Ipoint point;
   int pt;
 
   /* create a new contour if there is no current contour */
-  if (obj && vw->imod->mousemode == IMOD_MMODEL) {
-    cont = ivwGetOrMakeContour(vw, obj, 0);
+  if (obj && vi->imod->mousemode == IMOD_MMODEL) {
+    cont = ivwGetOrMakeContour(vi, obj, 0);
     if (!cont)
       return;
 
     /* Add point only if at current time */
-    if (!ivwTimeMismatch(vw, 0, obj, cont)) {
-      point.x = vw->xmouse;
-      point.y = vw->ymouse;
-      point.z = vw->zmouse;
+    if (!ivwTimeMismatch(vi, 0, obj, cont)) {
+      point.x = vi->xmouse;
+      point.y = vi->ymouse;
+      point.z = vi->zmouse;
       
       // Set insertion point to next point, or to current point if inserting
       // backwards
-      pt = vw->imod->cindex.point + 1;
-      if (pt > 0 && vw->insertmode)
+      pt = vi->imod->cindex.point + 1;
+      if (pt > 0 && vi->insertmode)
         pt--;
 
-      ivwRegisterInsertPoint(vw, cont, &point, pt);
+      ivwRegisterInsertPoint(vi, cont, &point, pt);
     }
   }
-  vw->undo->finishUnit();
-  imodDraw(vw, IMOD_DRAW_XYZ | IMOD_DRAW_MOD);
+  vi->undo->finishUnit();
+  imodDraw(vi, IMOD_DRAW_XYZ | IMOD_DRAW_MOD);
 }
 
 /* 
  * Delete a single point, or whole contour
  */
-void inputDeletePoint(ImodView *vw)
+void inputDeletePoint(ImodView *vi)
 {
-  Icont *cont = imodContourGet(vw->imod);
+  Icont *cont = imodContourGet(vi->imod);
   Ipoint *pnt;
 
   // Must be in model mode, have contour and have a current point or be empty
-  if (vw->imod->mousemode == IMOD_MMODEL && cont && 
-      (!cont->psize || vw->imod->cindex.point >= 0)) {
+  if (vi->imod->mousemode == IMOD_MMODEL && cont && 
+      (!cont->psize || vi->imod->cindex.point >= 0)) {
     if (!cont->psize)
-      vw->undo->contourRemoval();
+      vi->undo->contourRemoval();
     else
-      vw->undo->pointRemoval();
+      vi->undo->pointRemoval();
 
-    if (imodDeletePoint(vw->imod) < 0)
-      vw->undo->flushUnit();
+    if (imodDeletePoint(vi->imod) < 0)
+      vi->undo->flushUnit();
     else
-      vw->undo->finishUnit();
+      vi->undo->finishUnit();
 
     /* If inserting in reverse, advance to next point unless at start
        of contour */
-    if (vw->insertmode && vw->imod->cindex.point > 0){
-      cont = imodContourGet(vw->imod);
+    if (vi->insertmode && vi->imod->cindex.point > 0){
+      cont = imodContourGet(vi->imod);
       if (cont){
-        vw->imod->cindex.point++;
-        if (vw->imod->cindex.point >= cont->psize)
-          vw->imod->cindex.point = cont->psize - 1;
+        vi->imod->cindex.point++;
+        if (vi->imod->cindex.point >= cont->psize)
+          vi->imod->cindex.point = cont->psize - 1;
       }
     }
 
     // Set current point position to the new current point if any
-    pnt = imodPointGet(vw->imod);
+    pnt = imodPointGet(vi->imod);
     if (pnt) {
-      vw->xmouse = pnt->x;
-      vw->ymouse = pnt->y;
-      vw->zmouse = pnt->z;
+      vi->xmouse = pnt->x;
+      vi->ymouse = pnt->y;
+      vi->zmouse = pnt->z;
     }
     imod_info_setxyz();
-    imodDraw(vw, IMOD_DRAW_MOD | IMOD_DRAW_XYZ);
+    imodDraw(vi, IMOD_DRAW_MOD | IMOD_DRAW_XYZ);
   }
   return;
 }
 
-void inputModifyPoint(ImodView *vw)
+void inputModifyPoint(ImodView *vi)
 {
-  Iobj *obj = imodObjectGet(vw->imod);
-  Icont *cont = imodContourGet(vw->imod);
-  Ipoint *point = imodPointGet(vw->imod);
+  Iobj *obj = imodObjectGet(vi->imod);
+  Icont *cont = imodContourGet(vi->imod);
+  Ipoint *point = imodPointGet(vi->imod);
      
-  if (point && cont && obj && !ivwTimeMismatch(vw, 0, obj, cont) &&
-      vw->imod->mousemode == IMOD_MMODEL) {
+  if (point && cont && obj && !ivwTimeMismatch(vi, 0, obj, cont) &&
+      vi->imod->mousemode == IMOD_MMODEL) {
 
     
     /* DNM: if z value is changing, need to set contour's wild flag */
-    if (point->z != vw->zmouse) {
+    if (point->z != vi->zmouse) {
       if (!(cont->flags & ICONT_WILD))
-        vw->undo->contourPropChg();
+        vi->undo->contourPropChg();
       cont->flags |= ICONT_WILD;
     }
-    vw->undo->pointShift();
-    point->x = vw->xmouse;
-    point->y = vw->ymouse;
-    point->z = vw->zmouse;
-    vw->undo->finishUnit();
+    vi->undo->pointShift();
+    point->x = vi->xmouse;
+    point->y = vi->ymouse;
+    point->z = vi->zmouse;
+    vi->undo->finishUnit();
   }
-  imodDraw(vw, IMOD_DRAW_MOD);
+  imodDraw(vi, IMOD_DRAW_MOD);
 }
 
 /* DNM 7/29/03: make correct nearest int tests for zmouse to avoid going 
    outside legal limits */
-void inputNextz(ImodView *vw, int step)
+void inputNextz(ImodView *vi, int step)
 {
-  if (B3DNINT(vw->zmouse) < (vw->zsize - 1)){
-    vw->zmouse = B3DMIN(vw->zmouse + step, vw->zsize - 1);
-    imodDraw(vw, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
+  if (B3DNINT(vi->zmouse) < (vi->zsize - 1)){
+    vi->zmouse = B3DMIN(vi->zmouse + step, vi->zsize - 1);
+    imodDraw(vi, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
   }
   return;
 }
 
-void inputPrevz(ImodView *vw, int step)
+void inputPrevz(ImodView *vi, int step)
 {
-  if (B3DNINT(vw->zmouse) > 0){
-    vw->zmouse = B3DMAX(vw->zmouse - step, 0);
-    imodDraw(vw, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
+  if (B3DNINT(vi->zmouse) > 0){
+    vi->zmouse = B3DMAX(vi->zmouse - step, 0);
+    imodDraw(vi, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
   }
   return;
 }
 
 /* DNM 7/29/03: treat Y just like X is now treated */
-void inputNexty(ImodView *vw)
+void inputNexty(ImodView *vi)
 {
-  if (vw->ymouse < (vw->ysize - 1)){
-    vw->ymouse += 1.0;
-    ivwBindMouse(vw);
-    imodDraw(vw, IMOD_DRAW_XYZ);
+  if (vi->ymouse < (vi->ysize - 1)){
+    vi->ymouse += 1.0;
+    ivwBindMouse(vi);
+    imodDraw(vi, IMOD_DRAW_XYZ);
   }
   return;
 }
 
-void inputPrevy(ImodView *vw)
+void inputPrevy(ImodView *vi)
 {
-  if (vw->ymouse > 0){
-    vw->ymouse -= 1.0;
-    ivwBindMouse(vw);
-    imodDraw(vw, IMOD_DRAW_XYZ);
+  if (vi->ymouse > 0){
+    vi->ymouse -= 1.0;
+    ivwBindMouse(vi);
+    imodDraw(vi, IMOD_DRAW_XYZ);
   }
   return;
 }
 
 /* DNM 2/13/03: add binding to limit mouse to possible values */
-void inputNextx(ImodView *vw)
+void inputNextx(ImodView *vi)
 {
-  if (vw->xmouse < (vw->xsize - 1)){
-    vw->xmouse += 1.0;
-    ivwBindMouse(vw);
-    imodDraw(vw, IMOD_DRAW_XYZ);
+  if (vi->xmouse < (vi->xsize - 1)){
+    vi->xmouse += 1.0;
+    ivwBindMouse(vi);
+    imodDraw(vi, IMOD_DRAW_XYZ);
   }
   return;
 }
 
-void inputPrevx(ImodView *vw)
+void inputPrevx(ImodView *vi)
 {
-  if (vw->xmouse > 0){
-    vw->xmouse -= 1.0;
-    ivwBindMouse(vw);
-    imodDraw(vw, IMOD_DRAW_XYZ);
+  if (vi->xmouse > 0){
+    vi->xmouse -= 1.0;
+    ivwBindMouse(vi);
+    imodDraw(vi, IMOD_DRAW_XYZ);
   }
   return;
 }
 
 /* DNM 6/16/01: To toggle ghost mode, save current mode if it is on; if it is
    off, transfer the next and previous section flags from the saved mode */
-void inputGhostmode(ImodView *vw)
+void inputGhostmode(ImodView *vi)
 {
-  if (vw->ghostmode & IMOD_GHOST_SECTION) {
-    vw->ghostlast = vw->ghostmode;
-    vw->ghostmode = vw->ghostmode & ~IMOD_GHOST_SECTION;
+  if (vi->ghostmode & IMOD_GHOST_SECTION) {
+    vi->ghostlast = vi->ghostmode;
+    vi->ghostmode = vi->ghostmode & ~IMOD_GHOST_SECTION;
   } else
-    vw->ghostmode |= (vw->ghostlast & IMOD_GHOST_SECTION);
+    vi->ghostmode |= (vi->ghostlast & IMOD_GHOST_SECTION);
 
-  imodDraw(vw, IMOD_DRAW_MOD);
+  imodDraw(vi, IMOD_DRAW_MOD);
   return;
 }
 
 // Make a new contour
-void inputNewContour(ImodView *vw)
+void inputNewContour(ImodView *vi)
 {
-  newContourOrSurface(vw, 0);
+  newContourOrSurface(vi, 0);
 }
 
 // Make a new contour on a new surface number
-void inputNewSurface(ImodView *vw)
+void inputNewSurface(ImodView *vi)
 {
-  newContourOrSurface(vw, 1);
+  newContourOrSurface(vi, 1);
 }
 
 // Make a new contour, optionally assigning it to a new surface
-static void newContourOrSurface(ImodView *vw, int surface)
+static void newContourOrSurface(ImodView *vi, int surface)
 {
-  Iobj *obj = imodObjectGet(vw->imod);
+  Iobj *obj = imodObjectGet(vi->imod);
   Icont *cont;
-  if (!obj || vw->imod->mousemode == IMOD_MMOVIE)
+  if (!obj || vi->imod->mousemode == IMOD_MMOVIE)
     return;
 
   // Register an object property change if there is a new surface
   if (surface)
-    vw->undo->objectPropChg();
-  vw->undo->contourAddition(obj->contsize);
+    vi->undo->objectPropChg();
+  vi->undo->contourAddition(obj->contsize);
 
-  imodNewContour(vw->imod);
-  cont = imodContourGet(vw->imod);
+  imodNewContour(vi->imod);
+  cont = imodContourGet(vi->imod);
   if (surface)
     imodel_contour_newsurf(obj, cont);
 
-  ivwSetNewContourTime(vw, obj, cont);
-  vw->undo->finishUnit();
-  if (imodSelectionListClear(vw))
+  ivwSetNewContourTime(vi, obj, cont);
+  vi->undo->finishUnit();
+  if (imodSelectionListClear(vi))
     imod_setxyzmouse();
   imod_info_setocp();
 }
 
 // Unused 11/16/04
-void inputContourDup(ImodView *vw)
+void inputContourDup(ImodView *vi)
 {
   Icont *cont, *ocont;
-  if (vw->imod->mousemode == IMOD_MMOVIE){
+  if (vi->imod->mousemode == IMOD_MMOVIE){
     wprint("\nMust be in model mode to edit model.\n");
     return;
   }
-  cont = imodContourGet(vw->imod);
+  cont = imodContourGet(vi->imod);
   if (!cont) return;
   ocont = imodContourDup(cont);
-  imodNewContour(vw->imod);
-  cont = imodContourGet(vw->imod);
+  imodNewContour(vi->imod);
+  cont = imodContourGet(vi->imod);
   if (!cont) return;
   *cont = *ocont;
   free(ocont);
   imod_info_setocp();
 }
 
-void inputNextObject(ImodView *vw)
+void inputNextObject(ImodView *vi)
 {
-  imodNextObject(vw->imod);
-  inputKeepContourAtSameTime(vw);
+  imodNextObject(vi->imod);
+  inputKeepContourAtSameTime(vi);
 
   /*  Drop tests for object in this and next function, setxyzmouse works OK 
       with no  object */
-  imodSelectionListClear(vw);
+  imodSelectionListClear(vi);
   imod_setxyzmouse();
 }
 
-void inputPrevObject(ImodView *vw)
+void inputPrevObject(ImodView *vi)
 {
-  imodPrevObject(vw->imod);
-  inputKeepContourAtSameTime(vw);
-  imodSelectionListClear(vw);
+  imodPrevObject(vi->imod);
+  inputKeepContourAtSameTime(vi);
+  imodSelectionListClear(vi);
   imod_setxyzmouse();
 }
 
 // Finds first contour in object that matches the current time and sets it as
 // current contour
-void inputKeepContourAtSameTime(ImodView *vw)
+void inputKeepContourAtSameTime(ImodView *vi)
 {
   Iobj *obj;
   Icont *cont;
   int currentTime, co;
   int objIndex, contIndex, pointIndex;
 
-  ivwGetTime(vw, &currentTime);
+  ivwGetTime(vi, &currentTime);
 
-  obj  = imodObjectGet(vw->imod);
+  obj  = imodObjectGet(vi->imod);
   if (!obj || !iobjFlagTime(obj)) 
     return;
 
-  cont = imodContourGet(vw->imod);
+  cont = imodContourGet(vi->imod);
   if (cont) {
-    imodGetIndex(vw->imod, &objIndex, &contIndex, &pointIndex);
+    imodGetIndex(vi->imod, &objIndex, &contIndex, &pointIndex);
 
     if (cont->time != currentTime){
       for(co = 0; co < obj->contsize; co++){
 	if (obj->cont[co].time ==  currentTime){
-	  imodSetIndex (vw->imod, objIndex, co, pointIndex);
+	  imodSetIndex (vi->imod, objIndex, co, pointIndex);
 	  break;
         }
       }
@@ -376,26 +376,26 @@ void inputKeepContourAtSameTime(ImodView *vw)
 }
 
 // Goes to adjacent available surfave in the given direction
-void inputAdjacentSurface(ImodView *vw, int direction)
+void inputAdjacentSurface(ImodView *vi, int direction)
 {
   Iobj *obj;
   int co, newsurf, newcont, cursurf;
 
   /* if no object selected, forget it. */
-  if (vw->imod->cindex.object < 0)
+  if (vi->imod->cindex.object < 0)
     return;
 
   /* Selected Object. */
-  obj = &(vw->imod->obj[vw->imod->cindex.object]);
+  obj = &(vi->imod->obj[vi->imod->cindex.object]);
 
   /* If object has no contours, or none is selected, return. */
   if (!obj->contsize)
     return;
 
-  if (vw->imod->cindex.contour < 0)
+  if (vi->imod->cindex.contour < 0)
     return;
 
-  cursurf = obj->cont[vw->imod->cindex.contour].surf;
+  cursurf = obj->cont[vi->imod->cindex.contour].surf;
      
   if (direction > 0) {
     /* Find the first contour with lowest surface # greater than the 
@@ -424,37 +424,37 @@ void inputAdjacentSurface(ImodView *vw, int direction)
       return;
   }
 
-  vw->imod->cindex.contour = newcont;
+  vi->imod->cindex.contour = newcont;
 
   /* if point index is too high or low, change it. */
-  if (vw->imod->cindex.point >= obj->cont[newcont].psize)
-    vw->imod->cindex.point = obj->cont[newcont].psize - 1;
-  if (vw->imod->cindex.point < 0 && obj->cont[newcont].psize > 0)
-    vw->imod->cindex.point = 0;
+  if (vi->imod->cindex.point >= obj->cont[newcont].psize)
+    vi->imod->cindex.point = obj->cont[newcont].psize - 1;
+  if (vi->imod->cindex.point < 0 && obj->cont[newcont].psize > 0)
+    vi->imod->cindex.point = 0;
 
   imod_setxyzmouse();
   return;
 }
 
 // Tries to go to the target surface number
-void inputGotoSurface(ImodView *vw, int target)
+void inputGotoSurface(ImodView *vi, int target)
 {
   Icont *cont;
   Iobj  *obj;
   int distmin = 1000000;
   int co, closest, dist;
       
-  obj = imodObjectGet(vw->imod);
+  obj = imodObjectGet(vi->imod);
 
   if (!obj || !obj->contsize)
     return;
 
   /* if target is next or previous surface, use the AdjacentSurface call */
   // But update the window in case contour didn't change
-  cont = imodContourGet(vw->imod);
+  cont = imodContourGet(vi->imod);
   if (cont)
     if (cont->surf == target + 1 || cont->surf == target - 1) {
-      inputAdjacentSurface(vw, target - cont->surf);
+      inputAdjacentSurface(vi, target - cont->surf);
       imodContEditSurfShow();
       return;
     }
@@ -472,42 +472,42 @@ void inputGotoSurface(ImodView *vw, int target)
     }
   }
      
-  vw->imod->cindex.contour = closest;
+  vi->imod->cindex.contour = closest;
 
   /* if point index is too high or low, change it. */
-  if (vw->imod->cindex.point >= obj->cont[closest].psize)
-    vw->imod->cindex.point = obj->cont[closest].psize - 1;
-  if (vw->imod->cindex.point < 0 && obj->cont[closest].psize > 0)
-    vw->imod->cindex.point = 0;
+  if (vi->imod->cindex.point >= obj->cont[closest].psize)
+    vi->imod->cindex.point = obj->cont[closest].psize - 1;
+  if (vi->imod->cindex.point < 0 && obj->cont[closest].psize > 0)
+    vi->imod->cindex.point = 0;
 
   imod_setxyzmouse();
   imodContEditSurfShow();
 }
 
 // Changes to adjacent contour in the current surface in the given direction
-void inputAdjacentContInSurf(ImodView *vw, int direction)
+void inputAdjacentContInSurf(ImodView *vi, int direction)
 {
   Iobj *obj;
   int co, newcont, cursurf;
 
   /* if no object selected, forget it. */
-  if (vw->imod->cindex.object < 0)
+  if (vi->imod->cindex.object < 0)
     return;
 
   /* Selected Object. */
-  obj = &(vw->imod->obj[vw->imod->cindex.object]);
+  obj = &(vi->imod->obj[vi->imod->cindex.object]);
 
   /* If object has no contours, or none is selected, return. */
   if (!obj->contsize)
     return;
 
-  if (vw->imod->cindex.contour < 0)
+  if (vi->imod->cindex.contour < 0)
     return;
 
-  cursurf = obj->cont[vw->imod->cindex.contour].surf;
+  cursurf = obj->cont[vi->imod->cindex.contour].surf;
   newcont = -1;
 
-  for (co = vw->imod->cindex.contour + direction; 
+  for (co = vi->imod->cindex.contour + direction; 
        co >= 0 && co < obj->contsize; co += direction)
     if (obj->cont[co].surf == cursurf) {
       newcont = co;
@@ -516,13 +516,13 @@ void inputAdjacentContInSurf(ImodView *vw, int direction)
   if (newcont == -1)
     return;
 
-  vw->imod->cindex.contour = newcont;
+  vi->imod->cindex.contour = newcont;
 
   /* if point index is too high or low, change it. */
-  if (vw->imod->cindex.point >= obj->cont[newcont].psize)
-    vw->imod->cindex.point = obj->cont[newcont].psize - 1;
-  if (vw->imod->cindex.point < 0 && obj->cont[newcont].psize > 0)
-    vw->imod->cindex.point = 0;
+  if (vi->imod->cindex.point >= obj->cont[newcont].psize)
+    vi->imod->cindex.point = obj->cont[newcont].psize - 1;
+  if (vi->imod->cindex.point < 0 && obj->cont[newcont].psize > 0)
+    vi->imod->cindex.point = 0;
 
   imod_setxyzmouse();
   return;
@@ -530,40 +530,40 @@ void inputAdjacentContInSurf(ImodView *vw, int direction)
 
 
 
-void inputNextContour(ImodView *vw)
+void inputNextContour(ImodView *vi)
 {
-  Iindex indOld = vw->imod->cindex;
-  imodNextContour(vw->imod);
-  inputRestorePointIndex(vw, &indOld);
+  Iindex indOld = vi->imod->cindex;
+  imodNextContour(vi->imod);
+  inputRestorePointIndex(vi, &indOld);
   imod_setxyzmouse();
 }
 
-void inputPrevContour(ImodView *vw)
+void inputPrevContour(ImodView *vi)
 {
-  Iindex indOld = vw->imod->cindex;
-  imodPrevContour(vw->imod);
-  inputRestorePointIndex(vw, &indOld);
+  Iindex indOld = vi->imod->cindex;
+  imodPrevContour(vi->imod);
+  inputRestorePointIndex(vi, &indOld);
   imod_setxyzmouse();
 }
 
 /* If the current point index is -1 and the new contour has points, set
    to starting point.  Otherwise, try to match Z if contour is not planar,
    or match the fractional position in the contour */
-void inputRestorePointIndex(ImodView *vw, Iindex *oldInd)
+void inputRestorePointIndex(ImodView *vi, Iindex *oldInd)
 {
-  Icont *cont = imodContourGet(vw->imod);
+  Icont *cont = imodContourGet(vi->imod);
   Icont *oldCont;
   int pt, oldz, indz, delz, mindelz = 10000000;
   float dist, mindist = 1.e30;
 
   if (cont && cont->psize) {
-    if (vw->imod->cindex.point == -1)
-      vw->imod->cindex.point = 0;
+    if (vi->imod->cindex.point == -1)
+      vi->imod->cindex.point = 0;
     else if (oldInd && oldInd->point >= 0)  {
       
       // Find the nearest point in X/Y on the closest Z plane 
       // in X/Y overall
-      oldCont = &vw->imod->obj[oldInd->object].cont[oldInd->contour];
+      oldCont = &vi->imod->obj[oldInd->object].cont[oldInd->contour];
       oldz = B3DNINT(oldCont->pts[oldInd->point].z);
       for (pt = 0; pt < cont->psize; pt++) {
         dist = imodPointDistance(&oldCont->pts[oldInd->point], &cont->pts[pt]);
@@ -576,27 +576,27 @@ void inputRestorePointIndex(ImodView *vw, Iindex *oldInd)
           indz = pt;
         } 
       }
-      vw->imod->cindex.point = indz;
+      vi->imod->cindex.point = indz;
     }
   }
 }
 
-void inputNextPoint(ImodView *vw)
+void inputNextPoint(ImodView *vi)
 {
-  imodNextPoint(vw->imod);
+  imodNextPoint(vi->imod);
   imod_setxyzmouse();
   return;
 }
 
 /* DNM 3/29/01: make it go to first point if point undefined */
-void inputPrevPoint(ImodView *vw)
+void inputPrevPoint(ImodView *vi)
 {
   Icont *cont;
-  if (imodPrevPoint(vw->imod) < 0) {
-    cont = imodContourGet(vw->imod);
+  if (imodPrevPoint(vi->imod) < 0) {
+    cont = imodContourGet(vi->imod);
     if (cont)
       if (cont->psize)
-        vw->imod->cindex.point = 0;
+        vi->imod->cindex.point = 0;
   }
   imod_setxyzmouse();
   return;
@@ -605,9 +605,9 @@ void inputPrevPoint(ImodView *vw)
 /* Set model index to a contour that exists
  * during the current time, if possible.
  */
-void inputSetModelTime(ImodView *vw, int time)
+void inputSetModelTime(ImodView *vi, int time)
 {
-  Iobj *obj = imodObjectGet(vw->imod);
+  Iobj *obj = imodObjectGet(vi->imod);
   Icont *cont;
   Ipoint *point;
   int ob,co;
@@ -618,116 +618,116 @@ void inputSetModelTime(ImodView *vw, int time)
   if (!obj) return;
   if (!iobjFlagTime(obj)) return;
      
-  cont = imodContourGet(vw->imod);
+  cont = imodContourGet(vi->imod);
   if (!cont) return;
 
-  point = imodPointGet(vw->imod);
+  point = imodPointGet(vi->imod);
   if (!point){
-    imodGetIndex(vw->imod,&ob,&nco,&npt);
+    imodGetIndex(vi->imod,&ob,&nco,&npt);
     for(co = 0; co < obj->contsize; co++){
       if (obj->cont[co].time == time)
         nco = co;
     }
-    imodSetIndex(vw->imod,ob,nco,npt);
+    imodSetIndex(vi->imod,ob,nco,npt);
   }else{
 
-    imodGetIndex(vw->imod,&ob,&nco,&npt);
+    imodGetIndex(vi->imod,&ob,&nco,&npt);
     for(co = 0; co < obj->contsize; co++){
       if (obj->cont[co].time == time)
         nco = co;
     }
-    imodSetIndex(vw->imod,ob,nco,npt);
+    imodSetIndex(vi->imod,ob,nco,npt);
   }
 }
 
-void inputNextTime(ImodView *vw)
+void inputNextTime(ImodView *vi)
 {
   int time, maxtime;
 
-  maxtime = ivwGetTime(vw, &time);
+  maxtime = ivwGetTime(vi, &time);
   if (!maxtime) 
     return;
      
   time++;
-  /*     inputSetModelTime(vw, time); */
-  ivwSetTime(vw, time);
+  /*     inputSetModelTime(vi, time); */
+  ivwSetTime(vi, time);
   slicerNewTime(false);
-  imodDraw(vw, IMOD_DRAW_ALL);
+  imodDraw(vi, IMOD_DRAW_ALL);
 }
 
-void inputMovieTime(ImodView *vw, int val)
+void inputMovieTime(ImodView *vi, int val)
 {
   int time;
-  int maxtime = ivwGetTime(vw, &time);
+  int maxtime = ivwGetTime(vi, &time);
   if (!maxtime)
     return;
-  imodMovieXYZT(vw, MOVIE_DEFAULT, MOVIE_DEFAULT, MOVIE_DEFAULT, val);
+  imodMovieXYZT(vi, MOVIE_DEFAULT, MOVIE_DEFAULT, MOVIE_DEFAULT, val);
 }
 
-void inputPrevTime(ImodView *vw)
+void inputPrevTime(ImodView *vi)
 {
   int time, maxtime;
      
-  maxtime = ivwGetTime(vw, &time);
+  maxtime = ivwGetTime(vi, &time);
   if (!maxtime)
     return;
      
   time--;
-  /*     inputSetModelTime(vw, time); */
-  ivwSetTime(vw, time);
+  /*     inputSetModelTime(vi, time); */
+  ivwSetTime(vi, time);
   slicerNewTime(false);
-  imodDraw(vw, IMOD_DRAW_ALL);
+  imodDraw(vi, IMOD_DRAW_ALL);
 }
 
-void inputLimitingTime(ImodView *vw, int dir)
+void inputLimitingTime(ImodView *vi, int dir)
 {
   int time, start, end;
-  if (!ivwGetTime(vw, &time))
+  if (!ivwGetTime(vi, &time))
     return;
-  imcGetStartEnd(vw, 3, &start, &end);
+  imcGetStartEnd(vi, 3, &start, &end);
   if (dir > 0)
-    ivwSetTime(vw, end + 1);
+    ivwSetTime(vi, end + 1);
   else
-    ivwSetTime(vw, start + 1);
+    ivwSetTime(vi, start + 1);
   slicerNewTime(false);
-  imodDraw(vw, IMOD_DRAW_ALL);
+  imodDraw(vi, IMOD_DRAW_ALL);
 }
 
-void inputFirstPoint(ImodView *vw)
+void inputFirstPoint(ImodView *vi)
 {
-  Icont *cont = imodContourGet(vw->imod);
+  Icont *cont = imodContourGet(vi->imod);
   if (!cont)
     return;
   if (!cont->psize)
     return;
-  vw->imod->cindex.point = 0;
+  vi->imod->cindex.point = 0;
   imod_setxyzmouse();
 }
 
-void inputLastPoint(ImodView *vw)
+void inputLastPoint(ImodView *vi)
 {
-  Icont *cont = imodContourGet(vw->imod);
+  Icont *cont = imodContourGet(vi->imod);
   if (!cont)
     return;
   if (!cont->psize)
     return;
      
-  vw->imod->cindex.point = cont->psize - 1;
+  vi->imod->cindex.point = cont->psize - 1;
   imod_setxyzmouse();
 }
 
-void inputMoveObject(ImodView *vw)
+void inputMoveObject(ImodView *vi)
 {
   imodContEditMove();
   imod_setxyzmouse();
 }
 
-void inputDeleteContour(ImodView *vw)
+void inputDeleteContour(ImodView *vi)
 {
   /* DNM 3/29/01: have it make the previous contour be the current contour,
      but keep current point undefined to keep image from popping to that
      contour */
-  Imod *imod = vw->imod;
+  Imod *imod = vi->imod;
   Iobj *obj;
   int conew = imod->cindex.contour -1;
   int obnew = imod->cindex.object;
@@ -735,16 +735,16 @@ void inputDeleteContour(ImodView *vw)
   QString qstr;
   static int lastDel = 0;
 
-  if (!ilistSize(vw->selectionList)) {
+  if (!ilistSize(vi->selectionList)) {
     if (!imodContourGet(imod))
       return;
-    vw->undo->contourRemoval();
+    vi->undo->contourRemoval();
     imodDelCurrentContour(imod);
 
   } else {
 
     // Multiple selection: first confirm if > 2 to delete
-    numDel = ilistSize(vw->selectionList);
+    numDel = ilistSize(vi->selectionList);
     if (numDel > 2 && lastDel < 2) {
       qstr.sprintf("Are you sure you want to delete these %d contours?", 
                    numDel);
@@ -755,15 +755,15 @@ void inputDeleteContour(ImodView *vw)
       wprint("%d contours deleted.\n", numDel);
 
     // Loop through objects, set each as current object
-    vw->undo->getOpenUnit();
+    vi->undo->getOpenUnit();
     for (ob = 0; ob < imod->objsize; ob++) {
       obj = &imod->obj[ob];
       imodSetIndex(imod, ob, -1, -1);
 
       // Loop backwards through object removing selected contours
       for (i = obj->contsize - 1; i >= 0; i--) {
-        if (imodSelectionListQuery(vw, ob, i) > -2) {
-          vw->undo->contourRemoval(ob, i);
+        if (imodSelectionListQuery(vi, ob, i) > -2) {
+          vi->undo->contourRemoval(ob, i);
           imodDeleteContour(imod, i);
           if (ob == obnew)
             conew = i - 1;
@@ -771,83 +771,83 @@ void inputDeleteContour(ImodView *vw)
       }
     }
   }
-  vw->undo->finishUnit();
+  vi->undo->finishUnit();
     
   obj = imodObjectGet(imod);
   if (conew < 0 && obj->contsize > 0)
     conew = 0;
   imodSetIndex(imod, obnew, conew, -1);
-  imodSelectionListClear(vw);
-  if (vw->modelViewVi)
+  imodSelectionListClear(vi);
+  if (vi->modelViewVi)
     imodvDraw(Imodv);
   else
     imod_setxyzmouse();
 }
 
 /* Truncate contour at the current point */
-void inputTruncateContour(ImodView *vw)
+void inputTruncateContour(ImodView *vi)
 {
-  Icont *cont = imodContourGet(vw->imod);
-  if (!cont || vw->imod->cindex.point < 0)
+  Icont *cont = imodContourGet(vi->imod);
+  if (!cont || vi->imod->cindex.point < 0)
     return;
-  vw->undo->contourDataChg();
-  cont->psize = vw->imod->cindex.point + 1;
-  vw->undo->finishUnit();
+  vi->undo->contourDataChg();
+  cont->psize = vi->imod->cindex.point + 1;
+  vi->undo->finishUnit();
   imod_setxyzmouse();
 }
 
-void inputToggleGap(ImodView *vw)
+void inputToggleGap(ImodView *vi)
 {
-  Icont *cont = imodContourGet(vw->imod);
+  Icont *cont = imodContourGet(vi->imod);
   int wasGap;
-  if (!cont || vw->imod->cindex.point < 0)
+  if (!cont || vi->imod->cindex.point < 0)
     return;
-  wasGap = istorePointIsGap(cont->store, vw->imod->cindex.point);
-  if (!ifgToggleGap(vw, cont, vw->imod->cindex.point, wasGap == 0))
+  wasGap = istorePointIsGap(cont->store, vi->imod->cindex.point);
+  if (!ifgToggleGap(vi, cont, vi->imod->cindex.point, wasGap == 0))
     wprint("%s gap at current point\n", wasGap ? "Removed" : "Added");
-  imodDraw(vw, IMOD_DRAW_MOD);
+  imodDraw(vi, IMOD_DRAW_MOD);
   fineGrainUpdate();
 }
 
-void inputFindValue(ImodView *vw)
+void inputFindValue(ImodView *vi)
 {
   float pixval;
   /*
 
-  if ((!vw->fp) | (!vw->hdr)){
+  if ((!vi->fp) | (!vi->hdr)){
   wprint("Error: Find Value can't read file.\n");
   return;
   }
 
   */
-  pixval = ivwGetFileValue(vw, (int)vw->xmouse, (int)vw->ymouse, 
-                           (int)vw->zmouse);
+  pixval = ivwGetFileValue(vi, (int)vi->xmouse, (int)vi->ymouse, 
+                           (int)vi->zmouse);
   wprint("Pixel (%g, %g, %g) = %g\n", 
-         vw->xmouse + 1, vw->ymouse + 1, vw->zmouse + 1, pixval);
+         vi->xmouse + 1, vi->ymouse + 1, vi->zmouse + 1, pixval);
 
-  imodDraw(vw, IMOD_DRAW_XYZ);
+  imodDraw(vi, IMOD_DRAW_XYZ);
   return;
 }
 
-void inputPointMove(ImodView *vw, int x, int y, int z)
+void inputPointMove(ImodView *vi, int x, int y, int z)
 {
   Iobj *obj;
   Icont *cont;
   Ipoint *pt;
 
-  if (vw->imod->cindex.point == -1)
+  if (vi->imod->cindex.point == -1)
     return;
-  cont = imodContourGet(vw->imod);
+  cont = imodContourGet(vi->imod);
   if (!cont)
     return;
 
-  vw->undo->pointShift();
-  pt = &(cont->pts[vw->imod->cindex.point]);
+  vi->undo->pointShift();
+  pt = &(cont->pts[vi->imod->cindex.point]);
   if (x){
     if (x > 0){
       pt->x += 1.0f;
-      if (pt->x > vw->xsize - 1)
-        pt->x = vw->xsize - 1;
+      if (pt->x > vi->xsize - 1)
+        pt->x = vi->xsize - 1;
     }else{
       pt->x -= 1.0f;
       if (pt->x < 0.0f)
@@ -858,8 +858,8 @@ void inputPointMove(ImodView *vw, int x, int y, int z)
   if (y){
     if (y > 0){
       pt->y += 1.0f;
-      if (pt->y > vw->ysize - 1)
-        pt->y = vw->ysize - 1;
+      if (pt->y > vi->ysize - 1)
+        pt->y = vi->ysize - 1;
     }else{
       pt->y -= 1.0f;
       if (pt->y < 0.0f)
@@ -870,110 +870,110 @@ void inputPointMove(ImodView *vw, int x, int y, int z)
   if (z){
     if (cont->psize > 1) {
       /* DNM: since z is changing, need to set contour's wild flag */
-      obj = imodObjectGet(vw->imod);
+      obj = imodObjectGet(vi->imod);
       if (iobjClose(obj->flags) && !(cont->flags & ICONT_WILD))
         wprint("\aContour is no longer in one Z plane. "
                "With this contour, you will not get a new"
                " contour automatically when you change Z.");
-      vw->undo->contourPropChg();
+      vi->undo->contourPropChg();
       cont->flags |= ICONT_WILD;
     }
     if (z > 0){
       pt->z += 1.0f;
-      vw->zmouse = pt->z;
-      if (pt->z > vw->zsize - 1){
-        pt->z = vw->zsize - 1;
-        vw->zmouse = vw->zsize - 1;
+      vi->zmouse = pt->z;
+      if (pt->z > vi->zsize - 1){
+        pt->z = vi->zsize - 1;
+        vi->zmouse = vi->zsize - 1;
       }
     }else{
       pt->z -= 1.0f;
-      vw->zmouse = pt->z;
+      vi->zmouse = pt->z;
       if (pt->z < 0.0f){
         pt->z = 0.0f;
-        vw->zmouse = 0;
+        vi->zmouse = 0;
       }
     }
   }
-  vw->undo->finishUnit();
-  imodDraw(vw, IMOD_DRAW_RETHINK | IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ);
+  vi->undo->finishUnit();
+  imodDraw(vi, IMOD_DRAW_RETHINK | IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ);
   return;
 }
 
 /* Find the maximum value within 5 pixels of the current location */
 /* DNM 1/31/03 fixed problem with mx, my being used for max and loop limits */
-void inputFindMaxValue(ImodView *vw)
+void inputFindMaxValue(ImodView *vi)
 {
   int mx, my;
   int  x,  y, maxx, maxy;
   float maxpixval, pixval;
 
   maxpixval = -1.e30;
-  mx = (int)(vw->xmouse - 5);
-  my = (int)(vw->ymouse - 5);
+  mx = (int)(vi->xmouse - 5);
+  my = (int)(vi->ymouse - 5);
   for (x = mx; x <= mx + 10; x++)
     for (y = my ; y <= my + 10; y++){
-      pixval = ivwGetFileValue(vw, x, y, (int)vw->zmouse);
+      pixval = ivwGetFileValue(vi, x, y, (int)vi->zmouse);
       if (pixval > maxpixval){
         maxpixval = pixval;
         maxx = x; maxy = y;
       }
     }
-  vw->xmouse = maxx;
-  vw->ymouse = maxy;
+  vi->xmouse = maxx;
+  vi->ymouse = maxy;
 
   wprint("Pixel %g %g %g = %g\n", 
-         vw->xmouse + 1, vw->ymouse + 1, vw->zmouse + 1, maxpixval);
+         vi->xmouse + 1, vi->ymouse + 1, vi->zmouse + 1, maxpixval);
 
-  imodDraw(vw, IMOD_DRAW_XYZ);
+  imodDraw(vi, IMOD_DRAW_XYZ);
   return;
 }
 
 // Create a new object
-void inputNewObject(ImodView *vw)
+void inputNewObject(ImodView *vi)
 {
   Iobj *obj;
-  vw->undo->objectAddition(vw->imod->objsize);
-  imodNewObject(vw->imod); 
-  vw->undo->finishUnit();
+  vi->undo->objectAddition(vi->imod->objsize);
+  imodNewObject(vi->imod); 
+  vi->undo->finishUnit();
 
-  obj = imodObjectGet(vw->imod);
+  obj = imodObjectGet(vi->imod);
 
   /* DNM: need to find pixel value for new object, but no longer allocate */
 
   if (!App->rgba && App->depth <= 8)
-    obj->fgcolor = App->objbase - vw->imod->cindex.object;
+    obj->fgcolor = App->objbase - vi->imod->cindex.object;
   else if (!App->rgba)
-    obj->fgcolor = App->objbase + vw->imod->cindex.object;
+    obj->fgcolor = App->objbase + vi->imod->cindex.object;
      
   /* DNM 5/16/02: if multiple image files, set time flag by default */
-  if (vw->nt)
+  if (vi->nt)
     obj->flags |= IMOD_OBJFLAG_TIME;
 
-  if (imodSelectionListClear(vw))
+  if (imodSelectionListClear(vi))
     imod_setxyzmouse();
   imod_info_setocp();
-  imod_cmap(vw->imod);
+  imod_cmap(vi->imod);
   return;
 }
 
-void inputSaveModel(ImodView *vw)
+void inputSaveModel(ImodView *vi)
 {
   if (ImodForbidLevel || App->cvi->doingInitialLoad)
     return;
 
   imod_info_forbid();
-  vw->imod->blacklevel = vw->black;
-  vw->imod->whitelevel = vw->white;
+  vi->imod->blacklevel = vi->black;
+  vi->imod->whitelevel = vi->white;
 
   /* DNM: the first FlipModel is unnecessary in normal cases and actually 
      messes up the saved model when there's a fakeimage; the second maybe
      restored the in-memory model in that case */
-  /*     ivwFlipModel(vw); */
-  if (SaveModel(vw->imod));
+  /*     ivwFlipModel(vi); */
+  if (SaveModel(vi->imod));
   /*        show_status("Error Saving Model.");   DNM: it already has messages
             else
             show_status("Done saving model."); */
-  /*     ivwFlipModel(vw); */
+  /*     ivwFlipModel(vi); */
 
   imod_info_enable();
   imod_draw_window();
@@ -981,13 +981,13 @@ void inputSaveModel(ImodView *vw)
 }
 
 // Do an undo or a redo
-void inputUndoRedo(ImodView *vw, bool redo)
+void inputUndoRedo(ImodView *vi, bool redo)
 {
   int err;
   if (redo)
-    err = vw->undo->redo();
+    err = vi->undo->redo();
   else
-    err = vw->undo->undo();
+    err = vi->undo->undo();
   if (err == UndoRedo::NoneAvailable)
     wprint("\aThere is no further %s information available.\n", 
            redo ? "redo" : "undo");
@@ -1002,7 +1002,7 @@ void inputUndoRedo(ImodView *vw, bool redo)
 }
 
 
-void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
+void inputQDefaultKeys(QKeyEvent *event, ImodView *vi)
 {
   int keysym = event->key();
   int keypad = event->modifiers() & Qt::KeypadModifier;
@@ -1023,6 +1023,8 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
 #endif
 
   inputConvertNumLock(keysym, keypad);
+  if (vi->ushortStore)
+    bwStep *= B3DNINT(B3DMAX(1., (vi->rangeHigh - vi->rangeLow) / 256.));
 
   // Set this to 0 when a case is NOT handling the key
   int handled = 1;
@@ -1036,78 +1038,78 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
 #endif
   case Qt::Key_Insert:
     if (!keypad) {
-      vw->zmouse = vw->zsize/2;
-      imodDraw(vw, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
+      vi->zmouse = vi->zsize/2;
+      imodDraw(vi, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
     } else
       handled = 0;
     break;
   case Qt::Key_Backspace:
   case Qt::Key_Delete:
     if (!keypad)
-      inputDeletePoint(vw);
+      inputDeletePoint(vi);
     else
       handled = 0;
     break;
   case Qt::Key_Home:
     if (!keypad) {
       if (shifted)
-        vw->zmouse = vw->zsize/2;
+        vi->zmouse = vi->zsize/2;
       else
-        vw->zmouse = vw->zsize - 1;
-      imodDraw(vw, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
+        vi->zmouse = vi->zsize - 1;
+      imodDraw(vi, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
     } else
       handled = 0;
     break;
   case Qt::Key_End:
     if (!keypad) {
-      vw->zmouse = 0;
-      imodDraw(vw, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
+      vi->zmouse = 0;
+      imodDraw(vi, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
     } else
       handled = 0;
     break;
 
   case Qt::Key_J:
     if (shifted) 
-      imodContEditJoin(vw);
+      imodContEditJoin(vi);
     else
       handled = 0;
     break;
 
   case Qt::Key_PageDown:
     if (!keypad && !shifted)
-      inputPrevz(vw);
+      inputPrevz(vi);
     else if (!keypad && shifted) {
-      obj = imodObjectGet(vw->imod);
-      vw->zmouse = utilNextSecWithCont(vw, obj, B3DNINT(vw->zmouse), -1);
-      imodDraw(vw, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
+      obj = imodObjectGet(vi->imod);
+      vi->zmouse = utilNextSecWithCont(vi, obj, B3DNINT(vi->zmouse), -1);
+      imodDraw(vi, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
     } else
       handled = 0;
     break;
 
   case Qt::Key_PageUp:
     if (!keypad && !shifted)
-      inputNextz(vw);
+      inputNextz(vi);
     else if (!keypad && shifted) {
-      obj = imodObjectGet(vw->imod);
-      vw->zmouse = utilNextSecWithCont(vw, obj, B3DNINT(vw->zmouse), 1);
-      imodDraw(vw, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
+      obj = imodObjectGet(vi->imod);
+      vi->zmouse = utilNextSecWithCont(vi, obj, B3DNINT(vi->zmouse), 1);
+      imodDraw(vi, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
     } else
       handled = 0;
     break;
 
   case Qt::Key_Slash:
     if (keypad)
-      inputPrevz(vw, ImodPrefs->getPageStep());
+      inputPrevz(vi, ImodPrefs->getPageStep());
     else
       handled = 0;
     break;
 
   case Qt::Key_Asterisk:
     if (keypad)
-      inputNextz(vw, ImodPrefs->getPageStep());
+      inputNextz(vi, ImodPrefs->getPageStep());
     else {
-      if (vw->cramp->falsecolor < 2)
-        xcramp_falsecolor(vw->cramp, 1 - vw->cramp->falsecolor);
+      if (vi->cramp->falsecolor < 2)
+        xcramp_falsecolor(vi->cramp, 1 - vi->cramp->falsecolor);
       if (App->rgba)
       imodDraw(App->cvi, IMOD_DRAW_IMAGE);
     }
@@ -1115,36 +1117,36 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
 
   case Qt::Key_Up:
     if (!keypad)
-      inputNexty(vw);
+      inputNexty(vi);
     else
       handled = 0;
     break;
   case Qt::Key_Down: 
     if (!keypad)
-      inputPrevy(vw);
+      inputPrevy(vi);
     else
       handled = 0;
     break;
   case Qt::Key_Right: 
     if (!keypad)
-      inputNextx(vw);
+      inputNextx(vi);
     else
       handled = 0;
     break;
   case Qt::Key_Left: 
     if (!keypad)
-      inputPrevx(vw);
+      inputPrevx(vi);
     else
       handled = 0;
     break;
 
   case Qt::Key_Backslash:
-    if (!vw->rawImageStore && !vw->doingInitialLoad)
-      sslice_open(vw);
+    if (!vi->doingInitialLoad)
+      sslice_open(vi);
     break; 
           
   case Qt::Key_A:
-    if (shifted && !vw->fakeImage && !vw->rawImageStore) {
+    if (shifted && !vi->fakeImage && !vi->rgbStore) {
       ImodPrefs->getAutoContrastTargets(mean, sd);
       imodInfoAutoContrast(mean, sd);
     } else
@@ -1158,16 +1160,16 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
 
   case Qt::Key_C:
     if (shifted)
-      inputNextContour(vw);
+      inputNextContour(vi);
     else
-      inputPrevContour(vw);
+      inputPrevContour(vi);
     break;
           
   case Qt::Key_D:
     if (shifted && !ctrl)
-      inputDeleteContour(vw);
+      inputDeleteContour(vi);
     else if (ctrl && !shifted)
-      inputTruncateContour(vw);
+      inputTruncateContour(vi);
     else if (ctrl && shifted)
       ImodInfoWin->editSurfaceSlot(ESURFACE_MENU_DELETE);
     else
@@ -1176,28 +1178,28 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
 
   case Qt::Key_E: /* erase current contour and/or point */
     if (shifted)
-      vw->imod->cindex.contour = -1;
-    vw->imod->cindex.point = -1;
+      vi->imod->cindex.contour = -1;
+    vi->imod->cindex.point = -1;
     imod_setxyzmouse();
     break;
           
   case Qt::Key_F:
     if (shifted)
-      inputFindMaxValue(vw);
+      inputFindMaxValue(vi);
     else
-      inputFindValue(vw);
+      inputFindValue(vi);
     break;
 
 
   case Qt::Key_G:
     if (shifted) {
       /* DMN 2/25/01: do not open with fake image */
-      if (!vw->rawImageStore && !vw->fakeImage)
-        xgraphOpen(vw);
+      if (!vi->rgbStore && !vi->fakeImage)
+        xgraphOpen(vi);
     } else if (ctrl) {
-      inputToggleGap(vw);
+      inputToggleGap(vi);
     } else  
-      inputGhostmode(vw);
+      inputGhostmode(vi);
     break;
 
   case Qt::Key_K:
@@ -1206,78 +1208,78 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
     
   case Qt::Key_M:
     if (shifted)
-      inputMoveObject(vw);
+      inputMoveObject(vi);
     else
       imod_set_mmode(IMOD_MM_TOGGLE);
     break;
           
   case Qt::Key_N:
     if (shifted)
-      inputNewSurface(vw);
+      inputNewSurface(vi);
     else
-      inputNewContour(vw);
+      inputNewContour(vi);
     break;
 
   case Qt::Key_0:
-    inputNewObject(vw);
+    inputNewObject(vi);
     imod_info_setobjcolor();
     imodvObjedNewView();
     break;
 
   case Qt::Key_Exclam:
-    inputMovieTime(vw, 0);
-    inputLimitingTime(vw, -1);
+    inputMovieTime(vi, 0);
+    inputLimitingTime(vi, -1);
     break;
 
   case Qt::Key_1:
-    inputMovieTime(vw, 0);
-    inputPrevTime(vw);
+    inputMovieTime(vi, 0);
+    inputPrevTime(vi);
     break;
 
   case Qt::Key_At:
-    inputMovieTime(vw, 0);
-    inputLimitingTime(vw, 1);
+    inputMovieTime(vi, 0);
+    inputLimitingTime(vi, 1);
     break;
 
   case Qt::Key_2:
-    inputMovieTime(vw, 0);
-    inputNextTime(vw);
+    inputMovieTime(vi, 0);
+    inputNextTime(vi);
     break;
 
   case Qt::Key_3:
-    inputMovieTime(vw, 1);
+    inputMovieTime(vi, 1);
     break;
   case Qt::Key_4:
-    inputMovieTime(vw, -1);
+    inputMovieTime(vi, -1);
     break;
 
   case Qt::Key_NumberSign:
-    imodMovieXYZT(vw, MOVIE_DEFAULT, MOVIE_DEFAULT, 1, MOVIE_DEFAULT);
+    imodMovieXYZT(vi, MOVIE_DEFAULT, MOVIE_DEFAULT, 1, MOVIE_DEFAULT);
     break;
   case Qt::Key_Dollar:
-    imodMovieXYZT(vw, MOVIE_DEFAULT, MOVIE_DEFAULT, -1, MOVIE_DEFAULT);
+    imodMovieXYZT(vi, MOVIE_DEFAULT, MOVIE_DEFAULT, -1, MOVIE_DEFAULT);
     break;
 
   case Qt::Key_5:
-    inputAdjacentContInSurf(vw, -1);
+    inputAdjacentContInSurf(vi, -1);
     break;
 
   case Qt::Key_6:
-    inputAdjacentContInSurf(vw, 1);
+    inputAdjacentContInSurf(vi, 1);
     break;
 
   case Qt::Key_7:
-    inputAdjacentSurface(vw, -1);
+    inputAdjacentSurface(vi, -1);
     break;
 
   case Qt::Key_8:
-    inputAdjacentSurface(vw, 1);
+    inputAdjacentSurface(vi, 1);
     break;
 
   case Qt::Key_O:
     if (shifted) {
-      obj = imodObjectGet(vw->imod);
-      cont = imodContourGet(vw->imod);
+      obj = imodObjectGet(vi->imod);
+      cont = imodContourGet(vi->imod);
       if (cont) {
         if (iobjClose(obj->flags))
           iceClosedOpen((cont->flags & ICONT_OPEN) ? 0 : 1);
@@ -1286,56 +1288,56 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
                  "closed contours\n");
       }
     } else
-    inputPrevObject(vw);
+    inputPrevObject(vi);
     break;
 
   case Qt::Key_P:
-    inputNextObject(vw);
+    inputNextObject(vi);
     break;
           
     // Brackets and braces are often not available without modifiers on
     // European keyboards, so add more keys for these
   case Qt::Key_BraceLeft:
   case Qt::Key_ParenLeft:
-    inputFirstPoint(vw);
+    inputFirstPoint(vi);
     break;
   case Qt::Key_BracketLeft:
   case Qt::Key_Less:
-    inputPrevPoint(vw);
+    inputPrevPoint(vi);
     break;
           
   case Qt::Key_BraceRight:
   case Qt::Key_ParenRight:
-    inputLastPoint(vw);
+    inputLastPoint(vi);
     break;
   case Qt::Key_BracketRight:
   case Qt::Key_Greater:
-    inputNextPoint(vw);
+    inputNextPoint(vi);
     break;
 
   case Qt::Key_T:
     if (shifted){
-      if (vw->drawcursor)
-        vw->drawcursor = FALSE;
+      if (vi->drawcursor)
+        vi->drawcursor = FALSE;
       else
-        vw->drawcursor = TRUE;
+        vi->drawcursor = TRUE;
     } else if (ctrl) {
-      obj = imodObjectGet(vw->imod);
+      obj = imodObjectGet(vi->imod);
       if (!obj)
         break;
       mean = (obj->flags & IMOD_OBJFLAG_OFF) ? 1 : 0;
       ioew_draw(mean);
       break;
     } else {
-      vw->imod->drawmode -= (2 * vw->imod->drawmode);
+      vi->imod->drawmode -= (2 * vi->imod->drawmode);
       imodModelEditUpdate();
     }
-    imodDraw(vw, IMOD_DRAW_MOD | IMOD_DRAW_NOSYNC);
+    imodDraw(vi, IMOD_DRAW_MOD | IMOD_DRAW_NOSYNC);
     break;
           
   case Qt::Key_U:
-    if (shifted && !vw->fakeImage && !vw->rawImageStore && 
-        !vw->doingInitialLoad) {
+    if (shifted && !vi->fakeImage && !vi->rgbStore && 
+        !vi->doingInitialLoad) {
       imodv_open();
       imodvIsosurfaceEditDialog(Imodv, 1);
     } else
@@ -1343,22 +1345,22 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
     break;
 
   case Qt::Key_V:
-    if (!vw->doingInitialLoad)
+    if (!vi->doingInitialLoad)
       imodv_open();
     break;
 
   case Qt::Key_Y:
     if (ctrl)
-      inputUndoRedo(vw, true);
+      inputUndoRedo(vi, true);
     else
       handled = 0;
     break;
 
   case Qt::Key_Z:
     if (ctrl)
-      inputUndoRedo(vw, false);
-    else if (!vw->doingInitialLoad)
-      imod_zap_open(vw, 0);
+      inputUndoRedo(vi, false);
+    else if (!vi->doingInitialLoad)
+      imod_zap_open(vi, 0);
     break;
           
   case Qt::Key_R:
@@ -1369,88 +1371,88 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
     break;
 
   case Qt::Key_Comma: /* slower movie */
-    imcSetMovierate(vw, vw->movierate + 1);
-    /* vw->movierate++; */
+    imcSetMovierate(vi, vi->movierate + 1);
+    /* vi->movierate++; */
     break;
   case Qt::Key_Period: /* faster movie */
-    imcSetMovierate(vw, vw->movierate - 1);
+    imcSetMovierate(vi, vi->movierate - 1);
     /*
-      vw->movierate--;
-      if (vw->movierate < 0)
-      vw->movierate = 0;
+      vi->movierate--;
+      if (vi->movierate < 0)
+      vi->movierate = 0;
     */
     break;
           
     /* DNM 3/14/01: took out the DRAW_GL versions for readability */
   case Qt::Key_F1:
-    xcramp_level(vw->cramp, -bwStep, 0);
-    xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
-    imod_info_setbw(vw->black, vw->white);
+    xcramp_level(vi->cramp, -bwStep, 0);
+    xcramp_getlevels(vi->cramp, &(vi->black), &(vi->white));
+    imod_info_setbw(vi->black, vi->white);
     break;
   case Qt::Key_F2:
     /* DNM: move in tandem if they're equal; xcramp_ramp takes care
        of it in the F3 case */
-    if (vw->black >= vw->white)
-      xcramp_level(vw->cramp, bwStep, bwStep);
+    if (vi->black >= vi->white)
+      xcramp_level(vi->cramp, bwStep, bwStep);
     else
-      xcramp_level(vw->cramp, bwStep, 0);
-    xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
-    imod_info_setbw(vw->black, vw->white);
+      xcramp_level(vi->cramp, bwStep, 0);
+    xcramp_getlevels(vi->cramp, &(vi->black), &(vi->white));
+    imod_info_setbw(vi->black, vi->white);
     break;
   case Qt::Key_F3:
-    xcramp_level(vw->cramp, 0, -bwStep);
-    xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
-    imod_info_setbw(vw->black, vw->white);
+    xcramp_level(vi->cramp, 0, -bwStep);
+    xcramp_getlevels(vi->cramp, &(vi->black), &(vi->white));
+    imod_info_setbw(vi->black, vi->white);
     break;
   case Qt::Key_F4:
-    xcramp_level(vw->cramp, 0, bwStep);
-    xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
-    imod_info_setbw(vw->black, vw->white);
+    xcramp_level(vi->cramp, 0, bwStep);
+    xcramp_getlevels(vi->cramp, &(vi->black), &(vi->white));
+    imod_info_setbw(vi->black, vi->white);
     break;
   case Qt::Key_F5:
-    xcramp_level(vw->cramp, -bwStep, bwStep);
-    xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
-    imod_info_setbw(vw->black, vw->white);
+    xcramp_level(vi->cramp, -bwStep, bwStep);
+    xcramp_getlevels(vi->cramp, &(vi->black), &(vi->white));
+    imod_info_setbw(vi->black, vi->white);
     break;
   case Qt::Key_F6:
     /* DNM 3/14/01: don't move if they are equal */
-    if (vw->black + bwStep > vw->white - bwStep)
+    if (vi->black + bwStep > vi->white - bwStep)
       break;
-    xcramp_level(vw->cramp, bwStep, -bwStep);
-    xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
-    imod_info_setbw(vw->black, vw->white);
+    xcramp_level(vi->cramp, bwStep, -bwStep);
+    xcramp_getlevels(vi->cramp, &(vi->black), &(vi->white));
+    imod_info_setbw(vi->black, vi->white);
     break;
 
     /* DNm 2/27/03: it makes more sense to decrease then increase brightness */
   case Qt::Key_F7:
-    xcramp_level(vw->cramp, bwStep, bwStep);
-    xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
-    imod_info_setbw(vw->black, vw->white);
+    xcramp_level(vi->cramp, bwStep, bwStep);
+    xcramp_getlevels(vi->cramp, &(vi->black), &(vi->white));
+    imod_info_setbw(vi->black, vi->white);
     break;
   case Qt::Key_F8:
-    xcramp_level(vw->cramp, -bwStep, -bwStep);
-    xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
-    imod_info_setbw(vw->black, vw->white);
+    xcramp_level(vi->cramp, -bwStep, -bwStep);
+    xcramp_getlevels(vi->cramp, &(vi->black), &(vi->white));
+    imod_info_setbw(vi->black, vi->white);
     break;
   case Qt::Key_F9:
-    xcrampSelectIndex(vw->cramp, 0);
-    xcramp_ramp(vw->cramp);
-    xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
-    autoxCrampSelected(vw);
-    imod_info_setbw(vw->black, vw->white);
+    xcrampSelectIndex(vi->cramp, 0);
+    xcramp_ramp(vi->cramp);
+    xcramp_getlevels(vi->cramp, &(vi->black), &(vi->white));
+    autoxCrampSelected(vi);
+    imod_info_setbw(vi->black, vi->white);
 
     break;
   case Qt::Key_F10:
-    xcrampSelectIndex(vw->cramp, 
-                      (vw->cramp->clevel + 1) % vw->cramp->noflevels);
-    xcramp_ramp(vw->cramp);
-    xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
-    autoxCrampSelected(vw);
-    imod_info_setbw(vw->black, vw->white);
+    xcrampSelectIndex(vi->cramp, 
+                      (vi->cramp->clevel + 1) % vi->cramp->noflevels);
+    xcramp_ramp(vi->cramp);
+    xcramp_getlevels(vi->cramp, &(vi->black), &(vi->white));
+    autoxCrampSelected(vi);
+    imod_info_setbw(vi->black, vi->white);
     break;
   case Qt::Key_F11:
   case Qt::Key_Ampersand:
-    xcramp_reverse(vw->cramp, !(vw->cramp->reverse));
+    xcramp_reverse(vi->cramp, !(vi->cramp->reverse));
     if (App->rgba){
       imodDraw(App->cvi, IMOD_DRAW_IMAGE);
     }
@@ -1458,8 +1460,8 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
 
     // Also do same for asterisk (duplicate code)
   case Qt::Key_F12:
-    if (vw->cramp->falsecolor < 2)
-      xcramp_falsecolor(vw->cramp, 1 - vw->cramp->falsecolor);
+    if (vi->cramp->falsecolor < 2)
+      xcramp_falsecolor(vi->cramp, 1 - vi->cramp->falsecolor);
     if (App->rgba){
       imodDraw(App->cvi, IMOD_DRAW_IMAGE);
     }
@@ -1520,6 +1522,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.57  2011/03/01 18:38:59  mast
+Added alternative hot keys for F11/F12
+
 Revision 4.56  2011/01/13 20:30:08  mast
 Hot key to toggle gap
 

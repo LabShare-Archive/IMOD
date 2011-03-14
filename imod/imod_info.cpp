@@ -254,6 +254,7 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, Qt::WFlags f)
   mStatusEdit = new QTextEdit(central);
   cenlay->addWidget(mStatusEdit);
   setFontDependentWidths();
+  mOldFontHeight = fontMetrics().height();
 
   setFocusPolicy(Qt::StrongFocus);
   mStatusEdit->setFocusPolicy(Qt::ClickFocus);
@@ -262,30 +263,53 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, Qt::WFlags f)
   setWindowIcon(*(App->iconPixmap));
 }
 
-// This is not really working well at this point - need to rethink info layouts
+void InfoWindow::setInitialHeights()
+{
+  imod_info_input();
+  int editHeight = mStatusEdit->height();
+  int newEdit = B3DNINT(INFO_MIN_LINES * mOldFontHeight);
+
+  // The height may be less than the hint, but things look crammed together then
+  QSize hint = ImodInfoWidget->sizeHint();
+  int delWidget = B3DMAX(0, ImodInfoWidget->height() - hint.height());
+  ImodInfoWidget->setMinimumHeight(hint.height());
+  mStatusEdit->setMinimumHeight(newEdit);
+  resizeToHeight(height() - (editHeight - newEdit) - delWidget);
+}
+
+void InfoWindow::resizeToHeight(int newHeight)
+{
+  int i;
+  for (i = 0; i < 5; i++) {
+    resize(width(), newHeight);
+    imod_info_input();
+    if (height() == newHeight)
+      break;
+  }
+  if (Imod_debug && i)
+    imodPrintStderr("Needed %d tries to resize info window\n", i);
+}
+
+// This is here in case something needs it
 void InfoWindow::setFontDependentWidths()
 {
-  // fix the minimum size of the status window
-  // set its starting size by adjusting the window size
-  mStatusEdit->setMinimumHeight((int)(INFO_MIN_LINES * 
-				      fontMetrics().height()));
-  // This is needed to get the right hint out of the info widget
-  imod_info_input();
-
-  // Fix the minimum size of the ImodInfoWidget
-  QSize hint = ImodInfoWidget->sizeHint();
-  ImodInfoWidget->setMinimumHeight(hint.height());
-  
-  QSize editHint = mStatusEdit->sizeHint();
-  hint = sizeHint();
-  resize(hint.width(), hint.height() - editHint.height() +
-	 (int)(INFO_STARTING_LINES * fontMetrics().height()));
 }
 
 void InfoWindow::fontChange( const QFont & oldFont )
 {
   ImodInfoWidget->setFontDependentWidths();
   setFontDependentWidths();
+  imod_info_input();
+
+  // Fix the minimum size of the ImodInfoWidget and status edit
+  int widgetHi = ImodInfoWidget->adjustedHeightHint();
+  int widgDelta  = widgetHi - ImodInfoWidget->minimumHeight();
+  int nlines = B3DNINT(mStatusEdit->height() / mOldFontHeight);
+  mOldFontHeight = fontMetrics().height();
+  int editDelta = B3DNINT(nlines * mOldFontHeight) - mStatusEdit->height();
+  mStatusEdit->setMinimumHeight(B3DNINT(INFO_MIN_LINES * mOldFontHeight));
+  ImodInfoWidget->setMinimumHeight(widgetHi);
+  resizeToHeight(height() + widgDelta + editDelta);
 }
 
 void InfoWindow::pluginSlot(int item)
@@ -363,15 +387,15 @@ bool InfoWindow::event(QEvent *e)
 void InfoWindow::manageMenus()
 {
   ImodView *vi = App->cvi;
-  bool imageOK = !(vi->fakeImage || vi->rawImageStore);
-  mActions[FILE_MENU_TIFF]->setEnabled(vi->rawImageStore != 0);
+  bool imageOK = !(vi->fakeImage || vi->rgbStore);
+  mActions[FILE_MENU_TIFF]->setEnabled(vi->rgbStore != 0);
   mActions[FILE_MENU_EXTRACT]->setEnabled
-    (vi->rawImageStore == 0 && vi->fakeImage == 0 && vi->multiFileZ <= 0 &&
+    (vi->rgbStore == 0 && vi->fakeImage == 0 && vi->multiFileZ <= 0 &&
      vi->noReadableImage == 0);
   /*fprintf(stderr, "vi->multiFileZ=%d\n", vi->multiFileZ);*/
   mActions[EIMAGE_MENU_FILLCACHE]->setEnabled(vi->vmSize != 0 || vi->nt > 0);
   mActions[EIMAGE_MENU_FILLER]->setEnabled(vi->vmSize != 0 || vi->nt > 0);
-  mActions[IMAGE_MENU_SLICER]->setEnabled(vi->rawImageStore == 0);
+  //mActions[IMAGE_MENU_SLICER]->setEnabled(vi->rawImageStore == 0);
   mActions[IMAGE_MENU_ISOSURFACE]->setEnabled(imageOK);
   mActions[ECONTOUR_MENU_AUTO]->setEnabled(imageOK);
   if (!imageOK) {
@@ -402,7 +426,7 @@ void InfoWindow::extract()
   char *imodDir = getenv("IMOD_DIR");
   char *cshell = getenv("IMOD_CSHELL");
   QStringList arguments;
-  if (App->cvi->rawImageStore != 0 || App->cvi->fakeImage != 0 ||
+  if (App->cvi->rgbStore != 0 || App->cvi->fakeImage != 0 ||
       App->cvi->multiFileZ > 0||App->cvi->image->file != IIFILE_MRC ||
       sliceModeIfReal(mrchead->mode) < 0) {
 	wprint("\aUnable to extract - not a real MRC file.\n");
@@ -545,7 +569,7 @@ void InfoWindow::timerEvent(QTimerEvent *e)
 
 void InfoWindow::openSelectedWindows(char *keys)
 {
-  bool imageOK = !(App->cvi->fakeImage || App->cvi->rawImageStore);
+  bool imageOK = !(App->cvi->fakeImage || App->cvi->rgbStore);
   if (!keys)
     return;
 
@@ -598,7 +622,7 @@ void InfoWindow::openSelectedWindows(char *keys)
     editSlot(EDIT_MENU_GRAIN);
   if (strchr(keys, 'P'))
     imodPlugOpenAllExternal();
-  if (strchr(keys, 'T'))
+  if (strchr(keys, 'T') && imageOK)
     imodPlugOpenByName("Line Track");
   if (strchr(keys, '1'))
     imod_set_mmode(IMOD_MMODEL);
@@ -636,7 +660,8 @@ int imod_info_open()
   imod_info_enable(); */
 
   ImodInfoWin->show();
-
+  ImodInfoWin->setInitialHeights();
+  
   // Initialize the model line (could we use MaintainModelName?)
   // Do this after show so the label size works for deciding on big label
   filename = imodwGivenName(" ", Imod_filename);
@@ -706,6 +731,9 @@ static char *truncate_name(char *name, int limit)
 /*
 
 $Log$
+Revision 4.62  2011/03/08 05:35:21  mast
+Changes for XYZ able to do color
+
 Revision 4.61  2011/02/07 16:12:39  mast
 Convert zap structure to class, most functions to members
 

@@ -534,8 +534,7 @@ static void initModelData(Imod *newModel, bool keepBW)
 
   /* DNM 6/3/04: avoid two draws by keeping levels in the first place */
   if (!keepBW) {
-    App->cvi->black = App->cvi->imod->blacklevel;
-    App->cvi->white = App->cvi->imod->whitelevel;
+    ivwSetBlackWhiteFromModel(App->cvi);
   }
 
   /* DNM 6/3/04: removed commented out code on setting object colors */
@@ -812,6 +811,9 @@ static int mapErrno(int errorCode)
 
 /*
 $Log$
+Revision 4.30  2010/04/01 02:41:48  mast
+Called function to test for closing keys, or warning cleanup
+
 Revision 4.29  2009/01/15 16:33:17  mast
 Qt 4 port
 

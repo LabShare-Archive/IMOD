@@ -150,6 +150,7 @@ void StartupForm::manageForModView()
   cacheSectionsButton->setEnabled(!mModvMode);
   megabyteButton->setEnabled(!mModvMode);
   flipCheckBox->setEnabled(!mModvMode);
+  loadUshortBox->setEnabled(!mModvMode);
   fillCacheBox->setEnabled(!mModvMode);
   showRGBGrayBox->setEnabled(!mModvMode);
   loadFramesBox->setEnabled(!mModvMode);
@@ -394,6 +395,8 @@ char ** StartupForm::getArguments( int & argc )
     addArg("-m");
   if (loadNoMirrorBox->isChecked())
     addArg("-M");
+  addArg("-I");
+  addArg(loadUshortBox->isChecked() ? "1" : "0");
   
   // Binning
   xybin = binXYSpinBox->value();
@@ -612,6 +615,7 @@ void StartupForm::setValues( ImodView *vi, char * *argv, int firstfile, int argc
   loadFramesBox->setChecked(frames > 0);
   loadUnscaledBox->setChecked(ImodTrans == 0);
   loadNoMirrorBox->setChecked(mirror < 0);
+  loadUshortBox->setChecked(vi->rawImageStore > 0);
   
   // Montage stuff
   mShowMontage = nframex > 0;
@@ -635,6 +639,9 @@ void StartupForm::helpClicked()
 /*
 
 $Log$
+Revision 4.2  2009/01/17 00:09:30  mast
+Don't delete on close
+
 Revision 4.1  2009/01/15 16:33:17  mast
 Qt 4 port
 

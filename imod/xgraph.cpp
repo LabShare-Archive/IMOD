@@ -463,6 +463,8 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
 {
   int dsize;
   unsigned char **image = NULL;
+  b3dUInt16 **usimage;
+  unsigned char *bmap;
   int cx, cy, cz, i, j, jy, nlines;
   int ixStart, iyStart, nxUse, nyUse, ixEnd, iyEnd;
   int cp;
@@ -497,6 +499,7 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
   switch(xg->axis){
   case GRAPH_XAXIS:
     image = ivwGetCurrentZSection(vi);
+    usimage = (b3dUInt16 **)image;
     dsize = nxUse;
     xg->subStart = ixStart;
     if (allocDataArray(dsize))
@@ -524,6 +527,9 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
       if (xg->highres)
         for(i = 0; i < dsize; i++)
           xg->data[i] += ivwGetFileValue(vi, i + ixStart, jy, cz);
+      else if (vi->ushortStore)
+        for(i = 0; i < dsize; i++)
+          xg->data[i] += usimage[jy][i + ixStart];
       else
         for(i = 0; i < dsize; i++)
           xg->data[i] += image[jy][i + ixStart];
@@ -536,6 +542,7 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
 
   case GRAPH_YAXIS:
     image = ivwGetCurrentZSection(vi);
+    usimage = (b3dUInt16 **)image;
     dsize = nyUse;
     xg->subStart = iyStart;
     if (allocDataArray(dsize))
@@ -563,6 +570,9 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
       if (xg->highres)
         for (i = 0; i < dsize; i++)
           xg->data[i] += ivwGetFileValue(vi, jy, i + iyStart, cz);
+      else if (vi->ushortStore)
+        for (i = 0; i < dsize; i++)
+          xg->data[i] += usimage[i + iyStart][jy];
       else
         for (i = 0; i < dsize; i++)
           xg->data[i] += image[i + iyStart][jy];
@@ -748,6 +758,7 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
 
   case GRAPH_HISTOGRAM:
     image = ivwGetCurrentZSection(vi);
+    usimage = (b3dUInt16 **)image;
     if (image){
       dsize = 256;
       sum = 0.;
@@ -755,14 +766,29 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
         return;
       xg->subStart = 0;
       cz = (int)(vi->zmouse + 0.5f);
-      for (j = iyStart; j < iyStart + nyUse; j++) {
-        for (i = ixStart; i < ixStart + nxUse; i++) {
-          pt = image[j][i];
-          xg->data[pt] += 1.0f;
-          sum += pt;
+      if (vi->ushortStore) {
+        bmap = ivwUShortInRangeToByteMap(vi);
+        if (!bmap)
+          return;
+        for (j = iyStart; j < iyStart + nyUse; j++) {
+          for (i = ixStart; i < ixStart + nxUse; i++) {
+            pt = bmap[usimage[j][i]];
+            xg->data[pt] += 1.0f;
+            sum += pt;
+          }
         }
+        xg->cpt = bmap[usimage[cy][cx]];
+        free(bmap);
+      } else {
+        for (j = iyStart; j < iyStart + nyUse; j++) {
+          for (i = ixStart; i < ixStart + nxUse; i++) {
+            pt = image[j][i];
+            xg->data[pt] += 1.0f;
+            sum += pt;
+          }
+        }
+        xg->cpt = image[cy][cx];
       }
-      xg->cpt = image[cy][cx];
 
       // For high res, too painful to get file mean
       /*if (xg->highres) {
@@ -826,9 +852,9 @@ void GraphWindow::xgraphDrawAxis(GraphStruct *xg)
   // Output pixel position axis
   str.sprintf("%d", xg->start);
   mPlabel1->setText(str);
-  str.sprintf("%d", xg->cpt);
+  str.sprintf("%d", (xg->start + xg->end) / 2);
   mPlabel2->setText(str);
-  str.sprintf("%d", xg->cpt + (xg->cpt-xg->start));
+  str.sprintf("%d", xg->end);
   mPlabel3->setText(str);
   str.sprintf(" %.5g", xg->mean);
   mMeanLabel->setText(str);
@@ -848,9 +874,17 @@ void GraphWindow::xgraphDrawPlot(GraphStruct *xg)
   spnt = xg->cpt - (int)(cpntx / zoom);
   epnt = xg->cpt + (int)(cpntx / zoom);
 
+  // Give a histogram no more than full range if possible
+  if (xg->axis == GRAPH_HISTOGRAM) {
+    spnt = B3DMAX(0, spnt);
+    epnt = B3DMIN(256, epnt);
+    zoom = (float)xg->width / (epnt - spnt);
+  }
+
   b3dColorIndex(App->foreground);
-  min = max = xg->data[xg->cpt - xg->subStart];
-  for(i = spnt - xg->subStart; i < epnt - xg->subStart; i++){
+  max = -1.e37;
+  min = 1.e37;
+  for (i = spnt - xg->subStart; i < epnt - xg->subStart; i++) {
     if (i < 0)
       continue;
     if (i >= xg->dsize)
@@ -893,6 +927,7 @@ void GraphWindow::xgraphDrawPlot(GraphStruct *xg)
   xg->offset = yoffset;
   xg->scale  = yscale;
   xg->start  = spnt;
+  xg->end    = epnt;
   return;
 }
 
@@ -1005,6 +1040,9 @@ static void makeBoundaryPoint(Ipoint pt1, Ipoint pt2, int ix1, int ix2,
 
 /*
     $Log$
+    Revision 4.19  2010/07/26 21:47:38  mast
+    Fixed rounding of mouse position and drawing of all Z planes
+
     Revision 4.18  2010/04/01 02:41:48  mast
     Called function to test for closing keys, or warning cleanup
 

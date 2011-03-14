@@ -172,7 +172,7 @@ void InfoWindow::fileSlot(int item)
     break;
 
   case FILE_MENU_TIFF:  /* Save raw image to tiff file */
-    if (!App->cvi->rawImageStore)
+    if (!App->cvi->rgbStore)
       wprint("This option works only with color images.\n");
     else {
       /* DNM 12/2/02: switch to dia_filename so that the forbid/enable can
@@ -1146,32 +1146,27 @@ void InfoWindow::imageSlot(int item)
 
   if (ImodForbidLevel || App->cvi->doingInitialLoad)
     return;
-
-  /* DNM: only model and zap and pixelview will work with raw (color) data */
-  if (!(item == IMAGE_MENU_ZAP || item == IMAGE_MENU_MULTIZ || 
-        item == IMAGE_MENU_MODV || item == IMAGE_MENU_PIXEL || item == IMAGE_MENU_XYZ) &&
-      App->cvi->rawImageStore)
-    return;
      
   switch(item){
 
   case IMAGE_MENU_GRAPH: /* graph */
     /* DMN 2/25/01: do not open with fake image */
-    if (!App->cvi->fakeImage)
+    if (!App->cvi->fakeImage || !App->cvi->rgbStore)
       xgraphOpen(App->cvi);
     break;
 
   case IMAGE_MENU_SLICER: /* slice */
     sslice_open(App->cvi);
-    /*    cut_open(); */
     break;
           
   case IMAGE_MENU_TUMBLER: /* tumble */
-    xtumOpen(App->cvi);
+    if (!App->cvi->rgbStore)
+      xtumOpen(App->cvi);
     break;
 
   case IMAGE_MENU_LOCATOR: /* locator */
-    locatorOpen(App->cvi);
+    if (!App->cvi->rgbStore)
+      locatorOpen(App->cvi);
     break;
 
   case IMAGE_MENU_MODV: /* model view */
@@ -1197,7 +1192,7 @@ void InfoWindow::imageSlot(int item)
     break;
 
   case IMAGE_MENU_ISOSURFACE:
-    if (!App->cvi->fakeImage && !App->cvi->rawImageStore) {
+    if (!App->cvi->fakeImage && !App->cvi->rgbStore) {
       imodv_open();
       imodvIsosurfaceEditDialog(Imodv, 1);
     }
@@ -1298,6 +1293,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 /*
 
 $Log$
+Revision 4.61  2011/03/08 05:35:21  mast
+Changes for XYZ able to do color
+
 Revision 4.60  2011/03/01 18:40:00  mast
 reworded output from point distance
 

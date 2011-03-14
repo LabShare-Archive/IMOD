@@ -718,7 +718,7 @@ int imodvByteImagesExist()
 {
   if (Imodv->standalone)
     return 0;
-  if (Imodv->vi->rawImageStore || Imodv->vi->fakeImage)
+  if (Imodv->vi->rgbStore || Imodv->vi->fakeImage)
     return 0;
   return 1;
 }
@@ -781,6 +781,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.50  2010/12/20 03:29:20  mast
+Added flag and menu item to invert model in Z
+
 Revision 4.49  2010/12/18 17:36:44  mast
 Changes for stereo image display
 

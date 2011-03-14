@@ -177,6 +177,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->scaleSnapDPI = false;
   prefs->slicerPanKbDflt = 3000;
   prefs->speedupSliderDflt = false;
+  prefs->loadUshortsDflt = false;
   prefs->isoHighThreshDflt = false;
   prefs->isoBoxLimitDflt = 320;
   prefs->isoBoxInitialDflt = 96;
@@ -217,6 +218,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   READBOOL(scaleSnapDPI);
   READNUM(slicerPanKb);
   READBOOL(speedupSlider);
+  READBOOL(loadUshorts);
   READBOOL(isoHighThresh);
   READNUM(isoBoxInitial);
   READNUM(isoBoxLimit);
@@ -542,6 +544,7 @@ void ImodPreferences::saveSettings(int modvAlone)
   WRITE_IF_CHANGED(scaleSnapDPI);
   WRITE_IF_CHANGED(slicerPanKb);
   WRITE_IF_CHANGED(speedupSlider);
+  WRITE_IF_CHANGED(loadUshorts);
   WRITE_IF_CHANGED(isoHighThresh);
   WRITE_IF_CHANGED(isoBoxLimit);
   WRITE_IF_CHANGED(isoBoxInitial);
@@ -697,6 +700,7 @@ void ImodPreferences::donePressed()
   curp->scaleSnapDPIChgd |= !equiv(newp->scaleSnapDPI, oldp->scaleSnapDPI);
   curp->slicerPanKbChgd |= newp->slicerPanKb != oldp->slicerPanKb;
   curp->speedupSliderChgd |= !equiv(newp->speedupSlider, oldp->speedupSlider);
+  curp->loadUshortsChgd |= !equiv(newp->loadUshorts, oldp->loadUshorts);
   curp->isoHighThreshChgd |= !equiv(newp->isoHighThresh, oldp->isoHighThresh);
   curp->isoBoxLimitChgd |= newp->isoBoxLimit != oldp->isoBoxLimit;
   curp->isoBoxInitialChgd |= newp->isoBoxInitial != oldp->isoBoxInitial;
@@ -803,6 +807,7 @@ void ImodPreferences::defaultPressed()
     prefs->autoConAtStart = prefs->autoConAtStartDflt;
     prefs->startAtMidZ = prefs->startAtMidZDflt;
     prefs->startInHQ = prefs->startInHQDflt;
+    prefs->loadUshorts = prefs->loadUshortsDflt;
     prefs->attachToOnObj = prefs->attachToOnObjDflt;
     prefs->slicerNewSurf = prefs->slicerNewSurfDflt;
     prefs->bwStep = prefs->bwStepDflt;
@@ -1270,6 +1275,9 @@ void PrefsDialog::closeEvent ( QCloseEvent * e )
 
 /*
 $Log$
+Revision 1.48  2011/02/19 15:20:10  mast
+Preferences for default and maximum isosurface volume and threshold polarity
+
 Revision 1.47  2011/02/12 04:45:26  mast
 Added option to start in HQ mode
 

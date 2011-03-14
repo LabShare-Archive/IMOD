@@ -43,11 +43,12 @@ Log at end of file
 #include "dia_qtutils.h"
 #include "xcramp.h"
 
-struct iscaleDataStruct{
+static struct iscaleDataStruct{
   ImageScaleWindow *dia;
   ImodView  *vi;
   float     min, max;
-}imodImageScaleData = {NULL, NULL, 0, 0};
+  int blackNew, whiteNew;
+} iisData = {NULL, NULL, 0, 0};
 
 #define BLACKNEW  32
 #define WHITENEW  223
@@ -55,31 +56,31 @@ struct iscaleDataStruct{
 void imodImageScaleDialog(ImodView *vi)
 {
      
-  if (imodImageScaleData.dia){
-    imodImageScaleData.dia->raise();
+  if (iisData.dia){
+    iisData.dia->raise();
     return;
   }
+  iisData.blackNew = BLACKNEW * (vi->ushortStore ? 256 : 1);
+  iisData.whiteNew = WHITENEW * (vi->ushortStore ? 256 : 1);
 
-  imodImageScaleData.vi = vi;
+  iisData.vi = vi;
   if ((!vi->li->smin) && (!vi->li->smax)){
     vi->li->smin = vi->hdr->amin;
     vi->li->smax = vi->hdr->amax;
   }
 
-  imodImageScaleData.dia = new ImageScaleWindow
+  iisData.dia = new ImageScaleWindow
     (imodDialogManager.parent(IMOD_DIALOG), "image scale");
 
-  imodDialogManager.add((QWidget *)imodImageScaleData.dia, IMOD_DIALOG);
-  adjustGeometryAndShow((QWidget *)imodImageScaleData.dia, IMOD_DIALOG);
-
-  return;
+  imodDialogManager.add((QWidget *)iisData.dia, IMOD_DIALOG);
+  adjustGeometryAndShow((QWidget *)iisData.dia, IMOD_DIALOG);
 }
 
 void imodImageScaleUpdate(ImodView *vi)
 {
-  if (imodImageScaleData.dia) {
-    imodImageScaleData.dia->showFileAndMMM();
-    // imodImageScaleData.dia->updateLimits();  // May not want!
+  if (iisData.dia) {
+    iisData.dia->showFileAndMMM();
+    // iisData.dia->updateLimits();  // May not want!
   }
 }
 
@@ -168,16 +169,16 @@ void ImageScaleWindow::timerEvent(QTimerEvent *e)
 void ImageScaleWindow::updateLimits()
 {
   QString str;
-  str.sprintf("%g", imodImageScaleData.min);
+  str.sprintf("%g", iisData.min);
   mEditBox[0]->setText(str);
-  str.sprintf("%g", imodImageScaleData.max);
+  str.sprintf("%g", iisData.max);
   mEditBox[1]->setText(str);
 }
 
 void ImageScaleWindow::showFileAndMMM()
 {
   int cz;
-  ImodView *vi = imodImageScaleData.vi;
+  ImodView *vi = iisData.vi;
   QString str;
   if (vi->multiFileZ > 0) {
     if (vi->loadingImage)
@@ -198,64 +199,64 @@ void ImageScaleWindow::showFileAndMMM()
 
 void ImageScaleWindow::computeScale()
 {
-  ImodView *vi = imodImageScaleData.vi;
+  ImodView *vi = iisData.vi;
   float slidecur, rangecur, slidenew, rangenew;
   float smin = vi->image->smin;
   float smax = vi->image->smax;
   float kscale = mrcGetComplexScale();
   float minSign = 1.;
+  float slideMax = vi->ushortStore ? 65535. : 255.;
 
   // Convert smin, smax to actual values used for scaling if complex
   if (vi->image->format == IIFORMAT_COMPLEX)
     mrcComplexSminSmax(smin, smax, &smin, &smax);
   slidecur = vi->white - vi->black;
   rangecur = smax - smin;
-  slidenew = WHITENEW - BLACKNEW;
+  slidenew = iisData.whiteNew - iisData.blackNew;
   rangenew = slidecur * rangecur / slidenew;
-  imodImageScaleData.min = smin + (slidenew * rangenew / 255.0f) *
-    (vi->black/slidecur - BLACKNEW/slidenew );
-  imodImageScaleData.max = imodImageScaleData.min + rangenew;
+  iisData.min = smin + (slidenew * rangenew / slideMax) *
+    (vi->black/slidecur - iisData.blackNew/slidenew );
+  iisData.max = iisData.min + rangenew;
 
   // Convert back for complex values
   if (vi->image->format == IIFORMAT_COMPLEX) {
-    imodImageScaleData.max = (float)(exp((double)imodImageScaleData.max) -
-                                     1.) / kscale;
-    if (imodImageScaleData.min < 0.) {
+    iisData.max = (float)(exp((double)iisData.max) - 1.) / kscale;
+    if (iisData.min < 0.) {
       minSign = -1.;
-      imodImageScaleData.min = -imodImageScaleData.min;
+      iisData.min = -iisData.min;
     }
-    imodImageScaleData.min = (float)(exp((double)imodImageScaleData.min) -
-                                     1.) / (kscale * minSign);
+    iisData.min = (float)(exp((double)iisData.min) - 1.) / (kscale * minSign);
   }
 }
 
 void ImageScaleWindow::applyLimits()
 {
-  ImodView *vi = imodImageScaleData.vi;
-  int black = BLACKNEW, white = WHITENEW;
+  ImodView *vi = iisData.vi;
+  int black = iisData.blackNew, white = iisData.whiteNew;
   int k;
 
   /* Don't do it if someone else is busy loading */
   if (vi->loadingImage)
     return;
 
-  imodImageScaleData.min = mEditBox[0]->text().toFloat();
-  imodImageScaleData.max = mEditBox[1]->text().toFloat();
+  iisData.min = mEditBox[0]->text().toFloat();
+  iisData.max = mEditBox[1]->text().toFloat();
 
   /* DNM: the min and max will take care of all the scaling needs, so no longer
      need the li-black and li->white to be anything but 0 and 255 */
   /* DNM 1/3/04: cleanup li->black, white, ivwSetScale, doubles to iiSetMM */
   vi->black = black;
   vi->white = white;
-  vi->li->smin = imodImageScaleData.min;
-  vi->li->smax = imodImageScaleData.max;
+  vi->li->smin = iisData.min;
+  vi->li->smax = iisData.max;
      
-  iiSetMM(vi->image, vi->li->smin, vi->li->smax);
+  iiSetMM(vi->image, vi->li->smin, vi->li->smax, vi->ushortStore ? 65535. : 255.);
 
   /* For multi-file sections, apply to all the files */
   if (vi->multiFileZ > 0)
     for (k = 0; k < vi->zsize; k++)
-      iiSetMM(&vi->imageList[k + vi->li->zmin], vi->li->smin, vi->li->smax);
+      iiSetMM(&vi->imageList[k + vi->li->zmin], vi->li->smin, vi->li->smax,
+          vi->ushortStore ? 65535. : 255.);
 
   /* Flip data back first if it is flipped and is either non-cache or
      full cache flipped */
@@ -315,8 +316,8 @@ void ImageScaleWindow::fontChange( const QFont & oldFont )
 // The window is closing, remove from manager
 void ImageScaleWindow::closeEvent ( QCloseEvent * e )
 {
-  imodDialogManager.remove((QWidget *)imodImageScaleData.dia);
-  imodImageScaleData.dia = NULL;
+  imodDialogManager.remove((QWidget *)iisData.dia);
+  iisData.dia = NULL;
   e->accept();
 }
 
@@ -336,6 +337,9 @@ void ImageScaleWindow::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.18  2010/04/01 02:41:48  mast
+Called function to test for closing keys, or warning cleanup
+
 Revision 4.17  2009/03/22 19:54:25  mast
 Show with new geometry adjust routine for Mac OS X 10.5/cocoa
 

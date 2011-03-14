@@ -1165,6 +1165,8 @@ void XyzWindow::DrawImage()
   int cx, cy, cz;
   int imdataxsize;
   unsigned char **imdata;
+  b3dUInt16 **usim;
+  b3dUInt16 *usdata;
   int wx1, wx2, wy1, wy2;
   int xoffset1, xoffset2, yoffset1, yoffset2;
   int width1, height1, width2, height2, cacheSum, xslice, yslice;
@@ -1199,6 +1201,7 @@ void XyzWindow::DrawImage()
   /* Just take the X size, do not allow for possibility of cached data 
      having different X sizes */
   imdataxsize = mVi->xsize;
+  usim = (b3dUInt16 **)imdata;
 
   if (mVi->vmSize) {
     mLx = mLy = -1;
@@ -1254,28 +1257,35 @@ void XyzWindow::DrawImage()
   if (width2 > 0 && height1 > 0) {
     xslice = cx;
     fdata  = mFdatayz;
+    usdata = (b3dUInt16 *)fdata;
     if (cx != mLx || cacheSum != mLastCacheSum) {
       xslice = -1 - cx;
       mLx = cx;
       if (flipped && !mVi->fakeImage) {
         for (y = 0; y < ny; y++) {
           if (imdata[y]) {
-            if (mVi->rawImageStore) {
+            if (mVi->rgbStore) {
               for (z = 0; z < nz; z++) {
                 fdata[3 * (z + y * nz)] = imdata[y][3 * (cx + (z * imdataxsize))];
                 fdata[3 * (z + y * nz) + 1] = imdata[y][3 * (cx + (z * imdataxsize)) + 1];
                 fdata[3 * (z + y * nz) + 2] = imdata[y][3 * (cx + (z * imdataxsize)) + 2];
               }
+            } else if (mVi->ushortStore) {
+              for (z = 0; z < nz; z++)
+                usdata[z + y * nz] = usim[y][cx + (z * imdataxsize)];
             } else
               for (z = 0; z < nz; z++) 
                 fdata[z + y * nz] = imdata[y][cx + (z * imdataxsize)];
           } else {
-            if (mVi->rawImageStore) {
+            if (mVi->rgbStore) {
               for (z = 0; z < nz; z++) {
                 fdata[3 * (z + y * nz)] = 0;
                 fdata[3 * (z + y * nz) + 1] = 0;
                 fdata[3 * (z + y * nz) + 2] = 0;
               }
+            } else if (mVi->ushortStore) {
+              for (z = 0; z < nz; z++) 
+                usdata[z + y * nz] = 0;
             } else
               for (z = 0; z < nz; z++) 
                 fdata[z + y * nz] = 0;
@@ -1284,19 +1294,25 @@ void XyzWindow::DrawImage()
       } else {
         for(z = 0; z < nz; z++) {
           if (!mVi->fakeImage && imdata[z]) {
-            if (mVi->rawImageStore) {
+            if (mVi->rgbStore) {
               for (i = z, y = 0; y < ny; y++, i += nz) {
                 fdata[3 * i] = imdata[z][3 *(cx + (y * imdataxsize))];
                 fdata[3 * i + 1] = imdata[z][3 *(cx + (y * imdataxsize))+ 1];
                 fdata[3 * i + 2] = imdata[z][3 *(cx + (y * imdataxsize))+ 2];
               }
+            } else if (mVi->ushortStore) {
+              for (i = z, y = 0; y < ny; y++, i += nz)
+                usdata[i] = usim[z][cx + (y * imdataxsize)];
             } else
               for (i = z, y = 0; y < ny; y++, i += nz)
                 fdata[i] = imdata[z][cx + (y * imdataxsize)];
           } else {
-            if (mVi->rawImageStore)
+            if (mVi->rgbStore)
               for (i= z, y = 0; y < ny; y++, i += nz)
                 fdata[3 * i] = fdata[3 * i + 1] = fdata[3 * i + 2] = 0;
+            else if (mVi->ushortStore)
+              for (i= z, y = 0; y < ny; y++, i += nz)
+                usdata[i] = 0;
             else
               for (i= z, y = 0; y < ny; y++, i += nz)
                 fdata[i] = 0;
@@ -1317,34 +1333,44 @@ void XyzWindow::DrawImage()
   if (width1 > 0 && height2 > 0) {
     yslice = cy;
     fdata  = mFdataxz;
+    usdata = (b3dUInt16 *)fdata;
     if (cy != mLy || cacheSum != mLastCacheSum) {
       yslice = -1 - cy;
       mLy = cy;
       for(i = 0,z = 0; z < nz; z++) {
         if (flipped && !mVi->fakeImage && imdata[cy]) {
-          if (mVi->rawImageStore) {
+          if (mVi->rgbStore) {
             for(x = 0; x < nx; x++, i++) {
               fdata[3 * i] = imdata[cy][3 * (x + (z * imdataxsize))];
               fdata[3 * i + 1] = imdata[cy][3 * (x + (z * imdataxsize)) + 1];
               fdata[3 * i + 2] = imdata[cy][3 * (x + (z * imdataxsize)) + 2];
             }
-          } else
+          } else if (mVi->ushortStore)
+            for(x = 0; x < nx; x++, i++)
+              usdata[i] = usim[cy][x + (z * imdataxsize)];
+          else
             for(x = 0; x < nx; x++, i++)
               fdata[i] = imdata[cy][x + (z * imdataxsize)];
         } else if (!flipped && !mVi->fakeImage && imdata[z]) {
-          if (mVi->rawImageStore) {
+          if (mVi->rgbStore) {
             for(x = 0; x < nx; x++, i++) {
               fdata[3 * i] = imdata[z][3 * (x + (cy * imdataxsize))];
               fdata[3 * i + 1] = imdata[z][3 * (x + (cy * imdataxsize)) + 1];
               fdata[3 * i + 2] = imdata[z][3 * (x + (cy * imdataxsize)) + 2];
             }
-          } else
+          } else if (mVi->ushortStore)
+            for(x = 0; x < nx; x++, i++)
+              usdata[i] = usim[z][x + (cy * imdataxsize)];
+          else
             for(x = 0; x < nx; x++, i++)
               fdata[i] = imdata[z][x + (cy * imdataxsize)];
         } else {
-          if (mVi->rawImageStore)
+          if (mVi->rgbStore)
             for(x = 0; x < nx; x++, i++)
               fdata[3 * i] = fdata[3 * i + 1] = fdata[3 * i + 2] = 0;
+          else if (mVi->ushortStore)
+            for(x = 0; x < nx; x++, i++)
+              usdata[i] = 0;
           else
             for(x = 0; x < nx; x++, i++)
               fdata[i] = 0;
@@ -2435,6 +2461,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 /*
 
 $Log$
+Revision 4.63  2011/03/08 05:34:45  mast
+Made it work for color images
+
 Revision 4.62  2011/02/13 21:33:24  mast
 Moved structure into window class, allowed multiple instances, added lock button
 

@@ -57,13 +57,8 @@ void autoxSlider(int which, int value)
     ax->shave = value * 0.01;
   else {
     ax->threshold = value;
-       
-    if (ax->contrast){
-      xcramp_setlevels(ax->vw->cramp, ax->threshold, ax->threshold + 1);
-      ax->vw->black = ax->threshold;
-      ax->vw->white = ax->threshold + 1;
-    }
-    imod_info_setbw(ax->vw->black, ax->vw->white);
+    if (ax->contrast)
+      autoxContrastSelected(1);
   }
 }
 
@@ -71,15 +66,18 @@ void autoxContrastSelected(int which)
 {
   Autox *ax = App->cvi->ax;
      
+  if (ax->contrast != which)
+    xcrampSelectIndex(ax->vw->cramp, which);
   ax->contrast = which;
-
-  xcrampSelectIndex(ax->vw->cramp, which);
   if (which) {
-    xcramp_setlevels(ax->vw->cramp, ax->threshold, ax->threshold + 1);
-    xcramp_ramp(ax->vw->cramp);
-    
-    ax->vw->black = ax->threshold;
-    ax->vw->white = ax->threshold + 1;
+    if (ax->vw->ushortStore) {
+      ax->vw->black = imodInfoSliderToLevel(ax->vw, ax->threshold);
+      ax->vw->white = imodInfoSliderToLevel(ax->vw, ax->threshold + 1);
+    } else {
+      ax->vw->black = ax->threshold;
+      ax->vw->white = ax->threshold + 1;
+    }
+    xcramp_setlevels(ax->vw->cramp, ax->vw->black, ax->vw->white);
   } else {
     xcramp_ramp(ax->vw->cramp);
     xcramp_getlevels(ax->vw->cramp, &(ax->vw->black), &(ax->vw->white));
@@ -110,14 +108,12 @@ void autoxClosing()
   autox_clear(ax, AUTOX_ALL);
   imod_info_setbw(ax->vw->black, ax->vw->white);
 
-  if (ax->xlist)
-    free(ax->xlist);
-  if (ax->ylist)
-    free(ax->ylist);
+  B3DFREE(ax->xlist);
+  B3DFREE(ax->ylist);
 
   imodDraw(ax->vw, IMOD_DRAW_IMAGE);
-  if (ax->data)
-    free(ax->data);
+  B3DFREE(ax->data);
+  B3DFREE(ax->byteSlice);
   free(ax);
   App->cvi->ax = NULL;
   imodDialogManager.remove((QWidget *)autoWindow);
@@ -152,6 +148,12 @@ void autoxBuild()
 
   if (!vw->ax->filled || !obj)
     return;
+
+  /* Refresh the line pointers */
+  if (vw->ushortStore)
+    autoImage = ivwMakeLinePointers(vw, vw->ax->byteSlice, vw->xsize, vw->ysize, 0);
+  else
+    autoImage = ivwGetZSection(vw, vw->ax->cz);
 
   /* First have to turn off any pixels that are marked as black */
   for(i = 0; i < vw->xysize; i++)
@@ -307,8 +309,14 @@ static void continueNext(void)
 /* Allocate the array given the current image size */
 static int allocate_arrays(ImodView *vw, Autox *ax)
 {
+  if (vw->ushortStore) {
+    ax->byteSlice = (unsigned char *)malloc(vw->xysize);
+    if (!ax->byteSlice)
+      return -1;
+  }
+
   /* data used to store segmentation data. */
-  ax->data = (unsigned char *)malloc(vw->xysize * sizeof(unsigned char));
+  ax->data = (unsigned char *)malloc(vw->xysize);
   ax->xysize = vw->xysize;
 
   /* list of pixels to check: make it twice perimeter size */
@@ -316,12 +324,10 @@ static int allocate_arrays(ImodView *vw, Autox *ax)
   ax->xlist = (int *)malloc(ax->listsize * sizeof(int));
   ax->ylist = (int *)malloc(ax->listsize * sizeof(int));
   if (!ax->data || !ax->xlist || !ax->ylist){
-    if (ax->data)
-      free(ax->data);
-    if (ax->xlist)
-      free(ax->xlist);
-    if (ax->ylist)
-      free(ax->ylist);
+    B3DFREE(ax->data);
+    B3DFREE(ax->xlist);
+    B3DFREE(ax->ylist);
+    B3DFREE(ax->byteSlice);
     return(-1);
   }
   return (0);
@@ -339,12 +345,10 @@ void autox_newsize(ImodView *vw)
 
   if (!ax)
     return;
-  if (ax->data)
-    free(ax->data);
-  if (ax->xlist)
-    free(ax->xlist);
-  if (ax->ylist)
-    free(ax->ylist);
+  B3DFREE(ax->data);
+  B3DFREE(ax->xlist);
+  B3DFREE(ax->ylist);
+  B3DFREE(ax->byteSlice);
   if (allocate_arrays(vw, ax)) {
     ax->data = NULL;
     ax->xlist = NULL;
@@ -386,6 +390,7 @@ int autox_open(ImodView *vw)
   ax->altmouse  = 0;
   ax->cz        = (int)(vw->zmouse + 0.5);
   ax->diagonal  = 0;
+  ax->byteSlice = NULL;
 
   autoWindow = new AutoxWindow(imodDialogManager.parent(IMOD_DIALOG),
                                Qt::Window);
@@ -508,7 +513,13 @@ static int autox_flood(Autox *ax)
   int test;
      
   autoImage = ivwGetCurrentSection(ax->vw);
-  if (!autoImage) return(0);
+  if (autoImage && ax->vw->ushortStore) {
+    if (ivwCopyImageToByteBuffer(ax->vw, autoImage, ax->byteSlice))
+      return 0;
+    autoImage = ivwMakeLinePointers(ax->vw, ax->byteSlice, xsize, ysize, 0);
+  }
+  if (!autoImage)
+    return(0);
 
   x = (int)ax->vw->xmouse;
   y = (int)ax->vw->ymouse;
@@ -836,6 +847,9 @@ static void autox_clear(Autox *ax, unsigned char bit)
 /*
 
 $Log$
+Revision 4.14  2009/03/22 19:54:24  mast
+Show with new geometry adjust routine for Mac OS X 10.5/cocoa
+
 Revision 4.13  2009/01/15 16:33:17  mast
 Qt 4 port
 

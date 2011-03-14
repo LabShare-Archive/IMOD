@@ -50,6 +50,8 @@ static void clearsec(ImodIProc *ip);
 static void savesec(ImodIProc *ip);
 static void cpdslice(Islice *sl, ImodIProc *ip);
 static void copyAndDisplay();
+static void imageToBuffer(ImodIProc *ip, unsigned char **image, unsigned char *buf);
+static int savedToImage(ImodIProc *ip);
 static void setSliceMinMax(bool actual);
 static void freeArrays(ImodIProc *ip);
 static void  setUnscaledK();
@@ -57,22 +59,17 @@ static void  setUnscaledK();
 static void edge_cb();
 static void mkedge_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout);
 static void thresh_cb();
-static void mkthresh_cb(IProcWindow *win, QWidget *parent, 
-                        QVBoxLayout *layout);
+static void mkthresh_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout);
 static void smooth_cb();
 static void sharpen_cb();
-static void mkFourFilt_cb(IProcWindow *win, QWidget *parent, 
-                          QVBoxLayout *layout);
+static void mkFourFilt_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout);
 static void fourFilt_cb();
 static void mkFFT_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout);
 static void fft_cb();
-static void mkMedian_cb(IProcWindow *win, QWidget *parent, 
-                        QVBoxLayout *layout);
-static void mkSmooth_cb(IProcWindow *win, QWidget *parent, 
-                        QVBoxLayout *layout);
+static void mkMedian_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout);
+static void mkSmooth_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout);
 static void median_cb();
-static void mkAnisoDiff_cb(IProcWindow *win, QWidget *parent,
-                           QVBoxLayout *layout);
+static void mkAnisoDiff_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout);
 static void anisoDiff_cb();
 
 #define NO_KERNEL_SIGMA 0.4f
@@ -231,7 +228,7 @@ static void median_cb()
 {
   unsigned char *to;
   unsigned char **from;
-  int i, j, k, z;
+  int i, j, z;
   ImodIProc *ip = &proc;
   int depth = ip->median3D ? ip->medianSize : 1;
   int zst = B3DMAX(0, ip->idatasec - depth / 2);
@@ -260,9 +257,7 @@ static void median_cb()
 
     // Copy data
     to = ip->medianVol.vol[i]->data.b;
-    for (j = 0; j < ip->vi->ysize; j++)
-      for (k = 0; k < ip->vi->xsize; k++)
-        *to++ = from[j][k];
+    imageToBuffer(ip, from, to);
   }
 
   sliceMedianFilter(&s, &ip->medianVol, ip->medianSize);
@@ -360,6 +355,12 @@ void iprocUpdate(void)
 /* Open the processing dialog box */
 int inputIProcOpen(struct ViewInfo *vi)
 {
+  size_t dataSize = (size_t)vi->xsize * (size_t)vi->ysize;
+  if (dataSize > 2147000000) {
+    wprint("\aData are too large too apply image processing to\n");
+    return 1;
+  }
+  dataSize *= ivwGetPixelBytes(vi->rawImageStore);
   if (!proc.dia){
     if (!proc.vi) {
       proc.procnum = 0;
@@ -394,8 +395,8 @@ int inputIProcOpen(struct ViewInfo *vi)
     proc.modified = 0;
     proc.andfIterDone = 0;
 
-    proc.isaved = (unsigned char *)malloc(vi->xsize * vi->ysize);
-    proc.iwork = (unsigned char *)malloc(vi->xsize * vi->ysize);
+    proc.isaved = (unsigned char *)malloc(dataSize);
+    proc.iwork = (unsigned char *)malloc(dataSize);
 
     if (!proc.isaved || !proc.iwork) {
       freeArrays(&proc);
@@ -486,12 +487,25 @@ static void copyAndDisplay()
   ImodIProc *ip = &proc;
   unsigned char **to = ivwGetZSectionTime(ip->vi, ip->idatasec, ip->idatatime);
   unsigned char *from = ip->iwork;
+  b3dUInt16 **usto = (b3dUInt16 **)to;
   int i, j;
+  float slope;
+  b3dUInt16 *usmap = NULL;
   int cz =  (int)(ip->vi->zmouse + 0.5f);
   
-  for (j = 0; j < ip->vi->ysize; j++)
-    for (i = 0; i < ip->vi->xsize; i++)
-      to[j][i] = *from++;
+  if (ip->vi->ushortStore) {
+    slope = (ip->rangeHigh - ip->rangeLow) / 255.;
+    usmap = (b3dUInt16 *)get_byte_map(slope, (float)ip->rangeLow, 0, 65535);
+  }
+  for (j = 0; j < ip->vi->ysize; j++) {
+    if (usmap)
+      for (i = 0; i < ip->vi->xsize; i++)
+
+        usto[j][i] = usmap[*from++];
+    else
+      for (i = 0; i < ip->vi->xsize; i++)
+        to[j][i] = *from++;
+  }
 
   imod_info_float_clear(cz, ip->vi->ct);
   imodDraw(ip->vi, IMOD_DRAW_IMAGE);
@@ -501,21 +515,18 @@ static void copyAndDisplay()
 /* clear the section back to original data. */
 static void clearsec(ImodIProc *ip)
 {
-  register unsigned char *from, *to;
-  unsigned char **to2;
-  int i, j;
+  unsigned char **savePtrs;
      
   if (ip->idatasec < 0 || !ip->modified)
     return;
 
-  from = ip->isaved;
-  to = ip->iwork;
-  to2 = ivwGetZSectionTime(ip->vi, ip->idatasec, ip->idatatime);
-  if (!to2)
+  savePtrs = ivwMakeLinePointers(ip->vi, ip->isaved, ip->vi->xsize, ip->vi->ysize,
+                                 ip->vi->rawImageStore);
+  if (!savePtrs)
     return;
-  for (j = 0; j < ip->vi->ysize; j++)
-    for (i = 0; i < ip->vi->xsize; i++)
-      *to++ = to2[j][i] = *from++;
+  imageToBuffer(ip, savePtrs, ip->iwork);
+  if (savedToImage(ip))
+    return;
 
   ip->modified = 0;
   imod_info_float_clear(ip->idatasec, ip->idatatime);
@@ -524,23 +535,50 @@ static void clearsec(ImodIProc *ip)
 /* save the displayed image to saved and working buffers. */
 static void savesec(ImodIProc *ip)
 {
-  register unsigned char *to, *to2;
-  unsigned char **from;
-  int i, j;
+  unsigned char **image;
+  int j;
+  unsigned char *isaved = ip->isaved;
+  int numbytes = ivwGetPixelBytes(ip->vi->rawImageStore) * ip->vi->xsize;
      
   if (ip->idatasec < 0)
     return;
 
-  to   = ip->isaved;
-  to2  = ip->iwork;
-  from = ivwGetZSectionTime(ip->vi, ip->idatasec, ip->idatatime);
-  if (!from) 
+  image = ivwGetZSectionTime(ip->vi, ip->idatasec, ip->idatatime);
+  if (!image) 
     return;
-  for (j = 0; j < ip->vi->ysize; j++)
-    for (i = 0; i < ip->vi->xsize; i++)
-      *to++ = *to2++ = from[j][i];
+  imageToBuffer(ip, image, ip->iwork);
+  for (j = 0; j < ip->vi->ysize; j++) {
+    memcpy(isaved, image[j], numbytes);
+    isaved += numbytes;
+  }
 }
 
+/* Copy an image described by line pointers to a byte buffer */
+static void imageToBuffer(ImodIProc *ip, unsigned char **image, unsigned char *buf)
+{
+  if (ivwCopyImageToByteBuffer(ip->vi, image, buf))
+    return;
+  if (ip->vi->ushortStore) {
+    ip->rangeLow = ip->vi->rangeLow;
+    ip->rangeHigh = ip->vi->rangeHigh;
+  }
+}
+
+/* Copy saved buffer back to current image */
+static int savedToImage(ImodIProc *ip)
+{
+  unsigned char *isaved = ip->isaved;
+  int numbytes = ivwGetPixelBytes(ip->vi->rawImageStore) * ip->vi->xsize;
+  int j;
+  unsigned char **image = ivwGetZSectionTime(ip->vi, ip->idatasec, ip->idatatime);
+  if (!image)
+    return 1;
+  for (j = 0; j < ip->vi->ysize; j++) {
+    memcpy(image[j], isaved, numbytes);
+    isaved += numbytes;
+  }
+  return 0;
+}
 
 /*
  * FUNCTIONS TO MAKE THE WIDGETS FOR PARTICULAR FILTERS
@@ -1041,9 +1079,6 @@ void IProcWindow::buttonClicked(int which)
 // but re-mark as modified
 void IProcWindow::buttonPressed(int which)
 {
-  unsigned char *from;
-  unsigned char **to2;
-  int i, j;
   ImodIProc *ip = &proc;
   int cz =  (int)(ip->vi->zmouse + 0.5f);
 
@@ -1051,14 +1086,8 @@ void IProcWindow::buttonPressed(int which)
       ip->vi->ct != ip->idatatime)
     return;
      
-  from = ip->isaved;
-  to2 = ivwGetZSectionTime(ip->vi, ip->idatasec, ip->idatatime);
-  if (!to2)
+  if (savedToImage(ip))
     return;
-  for (j = 0; j < ip->vi->ysize; j++)
-    for (i = 0; i < ip->vi->xsize; i++)
-      to2[j][i] = *from++;
-
   imod_info_float_clear(ip->idatasec, ip->idatatime);
   imodDraw(ip->vi, IMOD_DRAW_IMAGE);
 }
@@ -1253,6 +1282,9 @@ void IProcThread::run()
 /*
 
     $Log$
+    Revision 4.29  2010/04/01 02:41:48  mast
+    Called function to test for closing keys, or warning cleanup
+
     Revision 4.28  2010/03/30 05:28:23  mast
     Stopped scroll bars from appearing on list box in Windows
 

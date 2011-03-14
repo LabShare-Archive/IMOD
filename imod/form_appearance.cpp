@@ -108,7 +108,7 @@ void AppearanceForm::init()
   }
 #endif
   
-  if (App->cvi->fakeImage || App->cvi->rawImageStore) {
+  if (App->cvi->fakeImage || App->cvi->rgbStore) {
     setTargetButton->setEnabled(false);
     autoMeanSpinBox->setEnabled(false);
     autoSDspinBox->setEnabled(false);
@@ -208,12 +208,12 @@ void AppearanceForm::styleSelected(const QString &key )
 // Get the current mean and Sd and use to set the targets
 void AppearanceForm::setTargetClicked()
 {
-  float imageMean, imageSD;
+  float imageMean, imageSD, scaleLo, scaleHi;
   int targetMean, targetSD;
   int range = App->cvi->white - App->cvi->black;
   
   // Get current mean and SD, compute the target from current B/W settings
-  if (imodInfoCurrentMeanSD(imageMean, imageSD))
+  if (imodInfoCurrentMeanSD(imageMean, imageSD, scaleLo, scaleHi))
     return;
   if (range <= 0)
     range = 1;
@@ -314,6 +314,9 @@ void AppearanceForm::destroy()
 /*
 
 $Log$
+Revision 4.4  2011/02/19 15:20:10  mast
+Preferences for default and maximum isosurface volume and threshold polarity
+
 Revision 4.3  2011/02/12 04:47:42  mast
 Fixed default zoom output
 

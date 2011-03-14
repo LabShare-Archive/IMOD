@@ -762,6 +762,7 @@ void b3dDrawGreyScalePixels(unsigned char **dataPtrs,  /* input data      */
   unsigned int  *rgbadata;
   unsigned char *bidata;
   unsigned char *data;
+  b3dUInt16 *usdata;
   unsigned short rbase = base;
   GLenum type, format;
   GLint  unpack = b3dGetImageType(&type, &format);
@@ -795,6 +796,7 @@ void b3dDrawGreyScalePixels(unsigned char **dataPtrs,  /* input data      */
       idata = (unsigned int  *)sdata;
       for (j = 0, di = 0;  j < height; j++){
         data = dataPtrs[j + yoffset];
+        usdata = (b3dUInt16 *) data;
         istart = xoffset;
         ilim  = istart + width;
                  
@@ -816,6 +818,10 @@ void b3dDrawGreyScalePixels(unsigned char **dataPtrs,  /* input data      */
           case 1:  /* Look up from byte data */
             for (i = istart; i < ilim; i++,di++)
               idata[di] = cindex[data[i]];
+            break;
+          case 2:  /* Look up from ushort data */
+            for (i = istart; i < ilim; i++,di++)
+              idata[di] = cindex[usdata[i]];
             break;
           case 3:  /* copy RGB to RGBA */
             bidata = (unsigned char *)&(idata[di]);
@@ -888,6 +894,7 @@ static void b3dDrawGreyScalePixels15
   unsigned int   *indata;
   unsigned char  *bindata;
   unsigned char  *data;
+  b3dUInt16 *usdata;
   unsigned short rbase  = base;
   unsigned int *cindex = App->cvi->cramp->ramp;
   unsigned char *bindex = App->cvi->cramp->bramp;
@@ -929,6 +936,7 @@ static void b3dDrawGreyScalePixels15
     /*            if (rbase) */
     for (j = 0, di = 0;  j < maxj; j++){
       data = dataPtrs[j + yoffset];
+      usdata = (b3dUInt16 *) data;
       istart = xoffset;
 
       /* DNM: changed this to work with sw trimmed down to pixels
@@ -990,6 +998,20 @@ static void b3dDrawGreyScalePixels15
           }
           if (iextra){
             idata[di++] = cindex[data[i]];
+          }
+          break;
+
+        case 2:   /* Look up RGBA value from map with int */
+          for (i = istart; i < ilim; i++){
+            idata[di++] = cindex[usdata[i]];
+            idata[di++] = cindex[usdata[i++]];
+            idata[di++] = cindex[usdata[i]];
+          }
+          if (iextra){
+            idata[di++] = cindex[usdata[i]]; iextra--;
+          }
+          if (iextra){
+            idata[di++] = cindex[usdata[i]];
           }
           break;
 
@@ -1112,11 +1134,13 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
   cubicFactors *cubFacs, *cf;
   cubicFactors nullFacs;
   unsigned char *yptr;
+  b3dUInt16 *usptr;
+  b3dUInt16 usval;
   float fy1, fy2, fy3, fy4;
   int zoomFilters[] = {5, 4, 1, 0};  // lanczos3, 2, Blackman, box
   int numZoomFilt = sizeof(zoomFilters) / sizeof(int);
   int zoomWidthCrit = 20;
-  double wallstart = wallTime();
+  //double wallstart = wallTime();
 
   if (!dataPtrs){
     b3dColorIndex(base);
@@ -1195,8 +1219,9 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
       if (!j) {
         //imodPrintStderr("Filter selector index %d\n", i);
         i = zoomWithFilter(dataPtrs, xsize, ysize, (float)xoffset, (float)yoffset, dwidth,
-                           dheight, dwidth, 0, rgba > 1 ? 
-                           SLICE_MODE_RGB : SLICE_MODE_BYTE, bdata, cindex, bindex);
+                           dheight, dwidth, 0, rgba > 2 ? SLICE_MODE_RGB : 
+                           (rgba > 1 ? SLICE_MODE_USHORT : SLICE_MODE_BYTE), 
+                           bdata, cindex, bindex);
         if (i)
           imodPrintStderr("Error from zoomWithFilter %d\n", i);
       }
@@ -1221,7 +1246,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
   shared(dheight, yoffset, trans, zs, ysize, drawwidth, rgba, xoffset, dwidth, cubFacs, \
          bdata, sdata, idata, cindex, bindex, pixmax, pixmin, rbase, xsize)   \
   private(j, cy, pyi, yi, nyi, nyi2, fy1, fy2, fy3, fy4, ibase, i, cx, cf, yptr, a, \
-          b, c, d, val, ival, bpxi, bxi, bnxi, bnxi2, nullFacs, k)
+          b, c, d, val, ival, bpxi, bxi, bnxi, bnxi2, nullFacs, k, usptr, usval)
       for (j = 0; j < dheight; j++) {
         cy = yoffset + trans + j * zs;
 
@@ -1230,7 +1255,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
 
         ibase = j * drawwidth;
         
-        if (rgba < 2) {
+        if (rgba < 3) {
 
           // Loop across the line
           for (i = 0, cx = xoffset + trans; i < dwidth; cx += zs, i++) {
@@ -1244,41 +1269,69 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
               getCubicFactors(cx, xsize, cf->pxi, cf->xi, cf->nxi, cf->nxi2, 
                               cf->fx1, cf->fx2, cf->fx3, cf->fx4);
             }
-            yptr = dataPtrs[pyi];
-            a = cf->fx1 * yptr[cf->pxi] + cf->fx2 * yptr[cf->xi] + 
-              cf->fx3 * yptr[cf->nxi] + cf->fx4 * yptr[cf->nxi2];
-            yptr = dataPtrs[yi];
-            b = cf->fx1 * yptr[cf->pxi] + cf->fx2 * yptr[cf->xi] + 
-              cf->fx3 * yptr[cf->nxi] + cf->fx4 * yptr[cf->nxi2];
-            yptr = dataPtrs[nyi];
-            c = cf->fx1 * yptr[cf->pxi] + cf->fx2 * yptr[cf->xi] + 
-            cf->fx3 * yptr[cf->nxi] + cf->fx4 * yptr[cf->nxi2];
-            yptr = dataPtrs[nyi2];
-            d = cf->fx1 * yptr[cf->pxi] + cf->fx2 * yptr[cf->xi] + 
-              cf->fx3 * yptr[cf->nxi] + cf->fx4 * yptr[cf->nxi2];
-            ival = fy1 * a + fy2 * b + fy3 * c + fy4 * d;
-            
-            // Limit the value and put in the array
-            if (ival > pixmax)
-              val = (unsigned char)pixmax;
-            else if (ival < pixmin)
-              val = (unsigned char)pixmin;
-            else 
-              val = (unsigned char)(ival + 0.5f);
-            switch(unpack){
-            case 1:
-              bdata[i + ibase] = val;
-              break;
-            case 2:
-              sdata[i + ibase] = val + rbase;
-              break;
-            case 4:
-              idata[i + ibase] = cindex[val];
-              break;
-            } 
+            if (rgba == 2) {
+              usptr = (b3dUInt16 *)dataPtrs[pyi];
+              a = cf->fx1 * usptr[cf->pxi] + cf->fx2 * usptr[cf->xi] + 
+                cf->fx3 * usptr[cf->nxi] + cf->fx4 * usptr[cf->nxi2];
+              usptr = (b3dUInt16 *)dataPtrs[yi];
+              b = cf->fx1 * usptr[cf->pxi] + cf->fx2 * usptr[cf->xi] + 
+                cf->fx3 * usptr[cf->nxi] + cf->fx4 * usptr[cf->nxi2];
+              usptr = (b3dUInt16 *)dataPtrs[nyi];
+              c = cf->fx1 * usptr[cf->pxi] + cf->fx2 * usptr[cf->xi] + 
+                cf->fx3 * usptr[cf->nxi] + cf->fx4 * usptr[cf->nxi2];
+              usptr = (b3dUInt16 *)dataPtrs[nyi2];
+              d = cf->fx1 * usptr[cf->pxi] + cf->fx2 * usptr[cf->xi] + 
+                cf->fx3 * usptr[cf->nxi] + cf->fx4 * usptr[cf->nxi2];
+              ival = fy1 * a + fy2 * b + fy3 * c + fy4 * d;
+
+              if (ival > 65535)
+                usval = 65535;
+              else if (ival < 0)
+                usval = 0;
+              else 
+                usval = (b3dUInt16)(ival + 0.5f);
+              idata[i + ibase] = cindex[usval];
+              val = (unsigned char)cindex[usval];
+              //if (j < 20)printf("%d %d %d %d\n", i, j, usval, val);
+              
+            } else {
+              yptr = dataPtrs[pyi];
+              a = cf->fx1 * yptr[cf->pxi] + cf->fx2 * yptr[cf->xi] + 
+                cf->fx3 * yptr[cf->nxi] + cf->fx4 * yptr[cf->nxi2];
+              yptr = dataPtrs[yi];
+              b = cf->fx1 * yptr[cf->pxi] + cf->fx2 * yptr[cf->xi] + 
+                cf->fx3 * yptr[cf->nxi] + cf->fx4 * yptr[cf->nxi2];
+              yptr = dataPtrs[nyi];
+              c = cf->fx1 * yptr[cf->pxi] + cf->fx2 * yptr[cf->xi] + 
+                cf->fx3 * yptr[cf->nxi] + cf->fx4 * yptr[cf->nxi2];
+              yptr = dataPtrs[nyi2];
+              d = cf->fx1 * yptr[cf->pxi] + cf->fx2 * yptr[cf->xi] + 
+                cf->fx3 * yptr[cf->nxi] + cf->fx4 * yptr[cf->nxi2];
+              ival = fy1 * a + fy2 * b + fy3 * c + fy4 * d;
+              
+              // Limit the value and put in the array
+              if (ival > pixmax)
+                val = (unsigned char)pixmax;
+              else if (ival < pixmin)
+                val = (unsigned char)pixmin;
+              else 
+                val = (unsigned char)(ival + 0.5f);
+              
+              switch(unpack){
+              case 1:
+                bdata[i + ibase] = val;
+                break;
+              case 2:
+                sdata[i + ibase] = val + rbase;
+                break;
+              case 4:
+                idata[i + ibase] = cindex[val];
+                break;
+              } 
+            }
           }
         } else {
-
+          
           // Loop across the line
           for (i = 0, cx = xoffset + trans; i < dwidth; cx += zs, i++) {
             if (cubFacs) {
@@ -1392,12 +1445,24 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
 	case 4:
 	  switch (rgba) {
 	  case 1:   /* lookup from bytes */
+	    bdata = dataPtrs[yi];
             if (izs) {
               for (i = 0; xi < xistop; xi += izs, i++)
-                idata[i + ibase] = cindex[dataPtrs[yi][xi]];
+                idata[i + ibase] = cindex[bdata[xi]];
             }  else {
               for (i = 0; i < istop; i++) 
-                idata[i + ibase] = cindex[dataPtrs[yi][xindex[i]]];
+                idata[i + ibase] = cindex[bdata[xindex[i]]];
+            }
+	    break;
+
+	  case 2:   /* lookup from ushorts */
+	    usptr = (b3dUInt16 *)dataPtrs[yi];
+            if (izs) {
+              for (i = 0; xi < xistop; xi += izs, i++)
+                idata[i + ibase] = cindex[usptr[xi]];
+            }  else {
+              for (i = 0; i < istop; i++) 
+                idata[i + ibase] = cindex[usptr[xindex[i]]];
             }
 	    break;
 
@@ -2213,6 +2278,9 @@ int b3dSnapshot(QString fname)
 
 /*
 $Log$
+Revision 4.49  2011/02/12 04:42:52  mast
+Select a series of filters of decreasing complexity
+
 Revision 4.48  2011/02/10 05:35:23  mast
 Parallelized array filling for HQ, made it work for color images, and called
 new zoomdown routines for HQ zoom below 0.75.

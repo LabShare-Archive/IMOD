@@ -92,6 +92,7 @@ void imod_usage(char *name)
   qstr += "   -y min,max  Load in sub image.\n";
   qstr += "   -z min,max  Load in sub image.\n";
   qstr += "   -s min,max  Scale input to range [min,max] (0,0 for all files the same).\n";
+  qstr += "   -I #  Load data as 16-bit integers (# = 1) or as bytes (# = 0).\n";
   qstr += "   -C #  Set # of sections or Mbytes to cache (#M or #m for"
     " Mbytes).\n";
   qstr += "   -F    Fill cache right after starting program.\n";
@@ -145,7 +146,6 @@ int main( int argc, char *argv[])
   int fillCache    = FALSE;
   int new_model_created = FALSE;
   int i      = 0;
-  int cmap;
   int nx, ny, nz, mode;
   int namelen;
   int frames = 0;
@@ -158,7 +158,6 @@ int main( int argc, char *argv[])
   int overy = 0;
   int doStartup = 0;
   int hugeCache = 2000000000;
-  Iobj *obj;
   QString qname;
   int doFork = 1;
   char *cmdLineStyle = NULL;
@@ -169,7 +168,6 @@ int main( int argc, char *argv[])
   bool useStdin = false;
   bool dataFromStdin = false;
   int argScan;
-  int nChars;
   QRect infoGeom;
   StartupForm *startup;
 
@@ -285,14 +283,7 @@ int main( int argc, char *argv[])
     exit(0);
   }
 
-  /* DNM: Find out how many imods this user is running.  Used to be used for
-   SGI colormaps.  Could be used to offset Info window.  WEXITSTATUS needed
-  on Linux/SGI, not needed on Mac */
-  /*
-  cmap = system ("exit `\\ps -a | grep '[3 ][di]mod$' | wc -l`");
-  cmap = WEXITSTATUS(cmap);
-  printf("Returned cmap = %d\n", cmap); 
-  */
+  /* 3/14/11: eliminated old code for out how many imods this user is running. */
 
   /*******************/
   /* Loop once or twice on arguments; initialize Data each time */
@@ -301,6 +292,8 @@ int main( int argc, char *argv[])
     mrc_init_li(&li, NULL);
     ivwInit(&vi, false);
     vi.li = &li;
+    if (ImodPrefs->loadUshorts())
+      vi.rawImageStore = MRC_MODE_USHORT;
     plistfname = NULL;
     xyzwinopen   = FALSE;
     sliceropen   = FALSE;
@@ -500,6 +493,14 @@ int main( int argc, char *argv[])
           rawSet = 1;
           break;
         
+        case 'I':
+          sscanf(argv[++i], "%d", &mode);
+          if (mode)
+            vi.rawImageStore = MRC_MODE_USHORT;
+          else
+            vi.rawImageStore = 0;
+          break;
+
         case 'R':
           dataFromStdin = true;
           break;
@@ -540,7 +541,7 @@ int main( int argc, char *argv[])
     }
   }
   
-  /* Initialize the display system */
+  /* Initialize the display system - defer color ramps until image type is known */
   imod_display_init(App, argv);
 
   /* Load in all the imod plugins that we can use.*/
@@ -714,10 +715,10 @@ int main( int argc, char *argv[])
              
   /* If one file, use its smin, smax to set li's smin,smax - may not be
      needed but used to happen */
-  if (!vi.fakeImage && vi.nt <= 1) {
+  /*if (!vi.fakeImage && vi.nt <= 1) {
     li.smin = vi.image->smin;
     li.smax = vi.image->smax;
-  }
+    }*/
 
   /* Now look for piece coordinates - moved up from below 1/2/04 */
   if (!vi.fakeImage && vi.nt <= 1 && !vi.li->plist && !dataFromStdin) {
@@ -773,7 +774,7 @@ int main( int argc, char *argv[])
 
   if (Imod_debug)
     imodPuts("info opened");
-  imod_color_init(App);
+  //imod_color_init(App);
   imod_set_mmode(IMOD_MMOVIE);
 
   /* Copy filename into model structure */
@@ -854,9 +855,9 @@ int main( int argc, char *argv[])
 
   /*********************************/
   /* Open up default Image Windows. */
-  if (xyzwinopen && !vi.rawImageStore)
+  if (xyzwinopen)
     xxyz_open(&vi);
-  if (sliceropen && !vi.rawImageStore)
+  if (sliceropen)
     sslice_open(&vi);
   if (modelViewOpen) {
     imodv_open();
@@ -878,7 +879,7 @@ int main( int argc, char *argv[])
   imodPlugCall(&vi, 0, IMOD_REASON_STARTUP);
 
   nx = ImodPrefs->autoConAtStart();
-  if (!vi.fakeImage && !vi.rawImageStore && 
+  if (!vi.fakeImage && !vi.rgbStore && 
       (nx > 1 || (nx && new_model_created)))
     ImodInfoWin->setupAutoContrast();
 
@@ -981,6 +982,9 @@ bool imodDebug(char key)
 /*
 
 $Log$
+Revision 4.77  2011/02/26 17:20:37  mast
+Added equal scaling option
+
 Revision 4.76  2010/08/31 22:08:22  mast
 Added opetion to use metadata file for piece list
 

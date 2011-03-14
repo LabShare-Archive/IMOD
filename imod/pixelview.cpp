@@ -67,7 +67,7 @@ static bool fileReadable(ImodView *vi, int iz)
   if (vi->multiFileZ && iz >= 0 && iz < vi->multiFileZ)
     image = &vi->imageList[iz];
   return ((image->file == IIFILE_MRC || image->file == IIFILE_RAW) &&
-          !vi->rawImageStore && !vi->noReadableImage);
+          !vi->rgbStore && !vi->noReadableImage);
 }
 
 static void pviewClose_cb(ImodView *vi, void *client, int drawflag)
@@ -142,7 +142,7 @@ void pvNewMousePosition(ImodView *vi, float x, float y, int iz)
           vi->image->mode == MRC_MODE_SHORT ||
           vi->image->mode == MRC_MODE_USHORT))
         isFloat = 1;
-  } else if (vi->rawImageStore) {
+  } else if (vi->rgbStore) {
     ivwGetTime(vi, &red);
     data = ivwGetZSectionTime(vi, iz, red);
     value = getAndConvertRGB(data, ix, iy, red, green, blue);
@@ -198,7 +198,7 @@ PixelView::PixelView(QWidget *parent, const char *name, Qt::WFlags fl)
   mGridValBox->setEnabled(fileReadable(App->cvi, iz));
 
   mConvertBox = NULL;
-  if (App->cvi->rawImageStore) {
+  if (App->cvi->rgbStore) {
     mConvertBox = diaCheckBox("Convert RGB to gray scale", this, hBox);
     diaSetChecked(mConvertBox, convertRGB);
     connect(mConvertBox, SIGNAL(toggled(bool)), this, 
@@ -315,7 +315,7 @@ void PixelView::update()
     mGridValBox->setEnabled(readable);
     lastGridReadable = readable;
   }
-  if (vi->rawImageStore)
+  if (vi->rgbStore)
     data = ivwGetCurrentSection(vi);
 
   for (i = 0; i < PV_COLS; i++) {
@@ -337,7 +337,7 @@ void PixelView::update()
       else {
         if (readable && gridFromFile)
           pixel = ivwGetFileValue(vi, x, y, iz);
-        else if (vi->rawImageStore)
+        else if (vi->rgbStore)
           pixel = getAndConvertRGB(data, x, y, red, green, blue);
         else
           pixel = ivwGetValue(vi, x, y, iz);
@@ -354,7 +354,7 @@ void PixelView::update()
 
 	if (floats > 0)
 	  str.sprintf("%9g", pixel);
-        else if (vi->rawImageStore && !convertRGB)
+        else if (vi->rgbStore && !convertRGB)
           str.sprintf("%3d,%3d,%3d", red, green, blue);
 	else
 	  str.sprintf("%6d", (int)pixel);
@@ -454,7 +454,7 @@ void PixelView::adjustDialogSize()
   int mode = App->cvi->image->mode;
   if (showButs && (mode == MRC_MODE_BYTE || mode == MRC_MODE_SHORT ||
                    mode == MRC_MODE_USHORT || 
-                   (App->cvi->rawImageStore && convertRGB))) {
+                   (App->cvi->rgbStore && convertRGB))) {
     QSize hint = sizeHint();
     resize((int)(0.7 * hint.width()), hint.height());
   } else {
@@ -501,6 +501,9 @@ void PixelView::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.18  2010/04/01 02:41:48  mast
+Called function to test for closing keys, or warning cleanup
+
 Revision 4.17  2009/03/22 19:50:28  mast
 Changed buttons to a "conventional" style on Mac to avoid color problem
 with rounded buttons

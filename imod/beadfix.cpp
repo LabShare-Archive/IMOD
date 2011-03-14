@@ -1803,7 +1803,7 @@ int BeadFixer::findCenter(float &imx, float &imy, int curz)
   fullBead = (float *)malloc(boxSize * boxSize * sizeof(float));
   filtSlice = (float *)malloc(boxScaled * boxScaled * sizeof(float));
   splitBead = (float *)malloc(nxpdim * nypad * sizeof(float));
-  bytesl = sliceCreate(boxSize, boxSize, SLICE_MODE_BYTE);
+  bytesl = sliceCreate(boxSize, boxSize, SLICE_MODE_USHORT);
   if (!corrSlice || !fullBead || !filtSlice || !splitBead || !bytesl) {
     wprint("\aCannot get memory for autocentering bead\n");
     if (corrSlice)
@@ -1836,8 +1836,7 @@ int BeadFixer::findCenter(float &imx, float &imy, int curz)
     iyStart = ysize - boxSize;
   for (y = 0; y < boxSize; y++)
     for (x = 0; x < boxSize; x++)
-      bytesl->data.b[x + y * boxSize] = ivwGetValue(vw, x + ixStart, 
-                                                    y + iyStart, curz);
+      bytesl->data.us[x + y * boxSize] = ivwGetValue(vw, x + ixStart, y + iyStart, curz);
 
   // Filter
   scaledGaussianKernel(&kernel[0], &ndat, KERNEL_MAXSIZE, kernelSigma);
@@ -2328,7 +2327,7 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
                 "position");
   
 
-  if (App->rgba && !App->cvi->rawImageStore) {
+  if (App->rgba && !App->cvi->rgbStore) {
     overlayHbox = new QWidget(this);
     mLayout->addWidget(overlayHbox);
     diamlay =  new QHBoxLayout(overlayHbox);
@@ -2800,6 +2799,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.72  2010/09/21 04:32:28  mast
+Added message to clear the skip list
+
 Revision 1.71  2010/09/20 22:18:49  mast
 Don't make arrow on added point if it points to a skipped section
 

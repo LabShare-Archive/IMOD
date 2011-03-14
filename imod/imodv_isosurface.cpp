@@ -195,6 +195,9 @@ static bool isBoxChanged(const int *start, const int *end)
     iisData.dia->mCurrTime = currTime;
     return true;
   }
+  if (Imodv->vi->ushortStore && (iisData.dia->mRangeLow != Imodv->vi->rangeLow || 
+                                 iisData.dia->mRangeHigh != Imodv->vi->rangeHigh))
+    return true;
   setCoordLimits(iisData.dia->mLocalX, Imodv->vi->xsize, xDrawSize,
                  newStart, newEnd);
   if (start[0] != newStart || end[0] != newEnd) 
@@ -650,13 +653,21 @@ float ImodvIsosurface::fillVolumeArray()
 {
   unsigned char **imdata;
   int tempCacheSum;
-  /* Set up image pointer tables */
   int vmnullvalue = (mVi->white + mVi->black) / 2;
+  unsigned char *bmap = NULL;
+  int i;
+  int value;
+
+  /* Set up image pointer tables */
   if ( ivwSetupFastAccess(mVi, &imdata, vmnullvalue, &tempCacheSum) )
     return -1;
-
-  int i;
-  unsigned char value;
+  if (mVi->ushortStore) {
+    bmap = ivwUShortInRangeToByteMap(mVi);
+    if (!bmap)
+      return -1;
+    mRangeLow = mVi->rangeLow;
+    mRangeHigh = mVi->rangeHigh;
+  }
 
   //mVolume is a 3d array of Fortran type, i.e., column-major;
   //stride should be set to {1, mBoxSize[0], mBoxSize[0]*mBoxSize[1]};
@@ -671,6 +682,8 @@ float ImodvIsosurface::fillVolumeArray()
       for (int xi = mBoxOrigin[0]; xi<mBoxEnds[0]; xi++)
       {
         value = (*ivwFastGetValue)(xi, yi, zi);
+        if (bmap)
+          value = bmap[value];
         mVolume[(zi-mBoxOrigin[2])*mBoxSize[0]*mBoxSize[1]
                 + (yi-mBoxOrigin[1])*mBoxSize[0]
                 + xi-mBoxOrigin[0]] = value;
@@ -691,6 +704,7 @@ float ImodvIsosurface::fillVolumeArray()
 
   mHistPanel->update();
   mMedian = mHistPanel->computePercentile(0.5);
+  B3DFREE(bmap);
   //imodPrintStderr("Min=%d, Max=%d, Median=%.1f\n", mVolMin, mVolMax, mMedian);
   return mHistPanel->computePercentile(ImodPrefs->isoHighThresh() ? 
                                        1. - PERCENTILE : PERCENTILE);
@@ -2677,6 +2691,9 @@ void ImodvIsosurface::dumpVolume(char *filename)
 /*
 
 $Log$
+Revision 4.27  2011/02/19 15:20:10  mast
+Preferences for default and maximum isosurface volume and threshold polarity
+
 Revision 4.26  2011/02/09 05:35:36  mast
 Uncommented openmp in painting routine
 

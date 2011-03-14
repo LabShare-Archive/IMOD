@@ -632,7 +632,7 @@ void TumblerWindow::setSlice(TumblerStruct *xtum)
 
   xtum->slice   = sliceCreate(xsize, ysize, SLICE_MODE_SHORT);
   xtum->stslice = sliceCreate(xsize, ysize, SLICE_MODE_SHORT);
-  xtum->bwslice = sliceCreate(xsize, ysize, SLICE_MODE_BYTE);
+  xtum->bwslice = sliceCreate(xsize, ysize, xtum->vi->rawImageStore);
   xtum->count   = sliceCreate(xsize, ysize, SLICE_MODE_SHORT);
   newData(xtum);
   return;
@@ -719,12 +719,19 @@ void TumblerWindow::fillASlice(TumblerStruct *xtum)
   float dsum;
   int nsum, shortcut, izoom, ilimshort, jlimshort, ishort, fillval, nmax;
   float zoom = xtum->zoom;
+  unsigned char *bmap = NULL;
   sdata = (unsigned short *)xtum->slice->data.s;
 
   if (xtum->slice->xsize <= 0)
     return;
   if (xtum->slice->ysize <= 0)
     return;
+
+  if (xtum->vi->ushortStore) {
+    bmap = ivwUShortInRangeToByteMap(xtum->vi);
+    if (!bmap)
+      return;
+  }
 
   zoomfac = xtum->highres ? zoom : 1.0;
   xmin = xtum->cx - xtum->nx/2;
@@ -840,6 +847,8 @@ void TumblerWindow::fillASlice(TumblerStruct *xtum)
 	    val = (int) ((a * dx * dx) + (b * dy * dy) + (c * dz * dz)
 	      + (d * dx) + (e * dy) + (f * dz) + (float)val + 0.5);
 	  }
+          if (bmap)
+            val = bmap[B3DMAX(0, B3DMIN(65535, val))];
           if (val > maxval)
             val = maxval;
           if (val < minval)
@@ -891,10 +900,8 @@ void TumblerWindow::fillASlice(TumblerStruct *xtum)
   xtum->fillval = fillval * nmax;
 
   if (shortcut)
-    slicerCubicFillin(sdata, isize, jsize, izoom, ilimshort, jlimshort,
-    0, 65535);
-
-  return;
+    slicerCubicFillin(sdata, isize, jsize, izoom, ilimshort, jlimshort, 0, 65535, 0);
+  B3DFREE(bmap);
 }
 
 
@@ -960,12 +967,14 @@ void TumblerWindow::drawSubArea(TumblerStruct *xtum, unsigned short *sdata,
   float scale, offset;
   unsigned int i, xysize;
   unsigned char *data;
+  b3dUInt16 *usdata;
   float tf, tmax, tmin;
   int xo, yo;
   int zoom = xtum->zoom;
 
   xysize = xtum->slice->xsize * xtum->slice->ysize;
   data = xtum->bwslice->data.b;
+  usdata = xtum->bwslice->data.us;
 
   scaleData(xtum, sdata);
 
@@ -985,13 +994,17 @@ void TumblerWindow::drawSubArea(TumblerStruct *xtum, unsigned short *sdata,
       if (tf > tmax) tf = tmax;
       data[i] = (unsigned char)tf;
     }
-  }else{
-     
+  } else if (xtum->vi->ushortStore) {
+    tmax = 65535.;
+    scale *= 256.;
+    for (i = 0; i < xysize; i++) {
+      tf = (sdata[i] + offset) * scale;
+      usdata[i] = (b3dUInt16)B3DMAX(tmin, B3DMIN(tmax, tf));
+    }
+  } else {
     for(i = 0; i < xysize; i++){
       tf = (sdata[i] + offset) * scale;
-      if (tf < tmin) tf = tmin;
-      if (tf > tmax) tf = tmax;
-      data[i] = (unsigned char)tf;
+      data[i] = (unsigned char)B3DMAX(tmin, B3DMIN(tmax, tf));
     }
   }
 
@@ -1003,7 +1016,7 @@ void TumblerWindow::drawSubArea(TumblerStruct *xtum, unsigned short *sdata,
   
   b3dDrawGreyScalePixelsSubArea
     (xtum->image, ivwMakeLinePointers(xtum->vi, data, xtum->slice->xsize,
-                                      xtum->slice->ysize, MRC_MODE_BYTE),
+                                      xtum->slice->ysize, xtum->vi->rawImageStore),
      xtum->slice->xsize, xtum->slice->ysize,
      0, 0, llx, 0, urx, xtum->height,
      xtum->vi->rampbase, zoom,
@@ -1251,6 +1264,9 @@ void TumblerGL::paintGL()
 
 /*
 $Log$
+Revision 4.33  2010/04/01 02:41:48  mast
+Called function to test for closing keys, or warning cleanup
+
 Revision 4.32  2009/03/22 19:54:25  mast
 Show with new geometry adjust routine for Mac OS X 10.5/cocoa
 

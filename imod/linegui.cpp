@@ -229,7 +229,7 @@ void imodPlugExecute(ImodView *inImodView)
   plug = &thisPlug;
   double values[MAX_SETTINGS];
 
-  if (inImodView->rawImageStore || inImodView->fakeImage) {
+  if (inImodView->rgbStore || inImodView->fakeImage) {
     wprint("\aLine tracker will not work on RGB or blank data\n");
     return;
   }
@@ -427,10 +427,9 @@ void LineTrack::valueEntered(int which)
 void LineTrack::track(int client)
 {
   unsigned char **image;
-  unsigned char *datap;
   int npoint, maxpoint, curpt, iffail, closecont;
   Ipoint *pts;
-  int copytol, curx, cury, curz, i, j, flipped, zdiff;
+  int copytol, curx, cury, curz, i, flipped, zdiff;
   Icont *tmpcont;
   float *p_copy;
     
@@ -485,10 +484,10 @@ void LineTrack::track(int client)
   flipped = imodGetFlipped(theModel);
   
   if (curz != plug->idataSec || flipped != plug->idataFlipped) {
-    datap = plug->idata;
-    for (j = 0; j < plug->ysize; j++)
-      for (i = 0; i < plug->xsize; i++)
-        *datap++ = image[j][i];
+    if (ivwCopyImageToByteBuffer(plug->view, image, plug->idata)) {
+      wprint("\aLine Track failed to get memory for short to byte map.\n");
+      return;
+    }
   }
   plug->idataSec = curz;
   plug->idataFlipped = flipped;
@@ -746,6 +745,9 @@ void LineTrack::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.19  2010/04/01 02:41:48  mast
+Called function to test for closing keys, or warning cleanup
+
 Revision 1.18  2009/03/22 19:54:25  mast
 Show with new geometry adjust routine for Mac OS X 10.5/cocoa
 

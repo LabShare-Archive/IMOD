@@ -74,6 +74,7 @@ void BehaviorForm::update()
   diaSetChecked(startInHQBox, mPrefs->startInHQ);
   //  diaSetChecked(tooltipBox, mPrefs->tooltipsOn);
   diaSetChecked(startAtMidZBox, mPrefs->startAtMidZ);
+  diaSetChecked(loadUshortBox, mPrefs->loadUshorts);
   diaSetChecked(selectONcheckBox, mPrefs->attachToOnObj);
   diaSetChecked(slicerNewSurfBox, mPrefs->slicerNewSurf);
   autoConAtStartBox->setCurrentIndex(mPrefs->autoConAtStart);
@@ -96,6 +97,7 @@ void BehaviorForm::unload()
   mPrefs->startInHQ = startInHQBox->isChecked();
   //  mPrefs->tooltipsOn = tooltipBox->isChecked();
   mPrefs->startAtMidZ = startAtMidZBox->isChecked();
+  mPrefs->loadUshorts = loadUshortBox->isChecked();
   mPrefs->attachToOnObj = selectONcheckBox->isChecked();
   mPrefs->slicerNewSurf = slicerNewSurfBox->isChecked();
   mPrefs->autoConAtStart = autoConAtStartBox->currentIndex();
@@ -121,6 +123,9 @@ void BehaviorForm::toolTipsToggled( bool state )
 /*
 
 $Log$
+Revision 4.5  2011/02/12 04:46:20  mast
+Added option for starting in HQ mode
+
 Revision 4.4  2010/12/15 06:13:13  mast
 Changes for new snapshot preference panel
 

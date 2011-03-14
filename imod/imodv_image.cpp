@@ -234,10 +234,8 @@ static void imodvDrawTImage(Ipoint *p1, Ipoint *p2, Ipoint *p3, Ipoint *p4,
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
   // To use linear we need to provide border pixels and different tex coords
-  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-		  GL_LINEAR);
-  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-		  GL_NEAREST);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
          
@@ -313,6 +311,10 @@ static void setAlpha(int iz, int zst, int znd, int izdir)
   }
 }
 
+#define FILLDATA(a)  tdata[u][v][0] = Cmap[0][a]; \
+  tdata[u][v][1] = Cmap[1][a]; \
+  tdata[u][v][2] = Cmap[2][a];
+
 // The call from within the openGL calling routines to draw the image
 void imodvDrawImage(ImodvApp *a, int drawTrans)
 {
@@ -322,12 +324,15 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   int mix, miy, miz;
   int xstr, xend, ystr, yend, zstr, zend;
   unsigned char **idata;
+  b3dUInt16 **usidata;
   unsigned char pix;
   int i, mi, j, mj;
   int u, v;
   int ix, iy, iz, idir, numSave;
   int cacheSum, curtime;
   unsigned char **imdata;
+  b3dUInt16 **usimdata;
+  unsigned char *bmap = NULL;
   bool flipped, invertX, invertY, invertZ;
   Imat *mat;
   Ipoint inp, outp;
@@ -373,6 +378,12 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
       return;
     flipped = (!a->vi->vmSize || a->vi->fullCacheFlipped) && 
       a->vi->li->axis == 2;
+    usimdata = (b3dUInt16 **)imdata;
+  }
+  if (a->vi->ushortStore) {
+    bmap = ivwUShortInRangeToByteMap(a->vi);
+    if (!bmap)
+      return;
   }
 
   // If doing multiple slices, need to find direction in which to do them
@@ -419,6 +430,7 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
       idata = ivwGetZSection(a->vi, iz);
       if (!idata)
         continue;
+      usidata = (b3dUInt16 **)idata;
 
       // Loop on patches in X, get limits to fill and set corners
       for (ix = xstr; ix < xend; ix += tstep){
@@ -443,15 +455,23 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
           ul.y = ur.y = mj;
           
           // Fill the data for one patch then draw the patch
-          for (i = ix-1; i < mi+1; i++){
-            u = i - (ix-1);
-            for (j = iy-1; j < mj+1; j++){
-              v = (j - (iy-1));
-              pix = idata[j][i];
-              
-              tdata[u][v][0] = Cmap[0][pix];
-              tdata[u][v][1] = Cmap[1][pix];
-              tdata[u][v][2] = Cmap[2][pix];
+          if (a->vi->ushortStore) {
+            for (i = ix-1; i < mi+1; i++) {
+              u = i - (ix-1);
+              for (j = iy-1; j < mj+1; j++) {
+                v = (j - (iy-1));
+                pix = bmap[usidata[j][i]];
+                FILLDATA(pix);
+              }
+            }
+          } else {
+            for (i = ix-1; i < mi+1; i++) {
+              u = i - (ix-1);
+              for (j = iy-1; j < mj+1; j++) {
+                v = (j - (iy-1));
+                pix = idata[j][i];
+                FILLDATA(pix);
+              }
             }
           }
           
@@ -501,19 +521,23 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
             for (i = iy-1; i < mi+1; i++) {
               u = i - (iy-1);
               if (imdata[i]) {
-                for (j = iz-1; j < mj+1; j++) {
-                  v = j - (iz-1);
-                  pix = imdata[i][ix + (j * mix)];
-                  tdata[u][v][0] = Cmap[0][pix];
-                  tdata[u][v][1] = Cmap[1][pix];
-                  tdata[u][v][2] = Cmap[2][pix];
+                if (a->vi->ushortStore) {
+                  for (j = iz-1; j < mj+1; j++) {
+                    v = j - (iz-1);
+                    pix = bmap[usimdata[i][ix + (j * mix)]];
+                    FILLDATA(pix);
+                  }
+                } else {
+                  for (j = iz-1; j < mj+1; j++) {
+                    v = j - (iz-1);
+                    pix = imdata[i][ix + (j * mix)];
+                    FILLDATA(pix);
+                  }
                 }
               } else {
                 for (j = iz-1; j < mj+1; j++) {
                   v = j - (iz-1);
-                  tdata[u][v][0] = Cmap[0][0];
-                  tdata[u][v][1] = Cmap[1][0];
-                  tdata[u][v][2] = Cmap[2][0];
+                  FILLDATA(0);
                 }
               }
             }
@@ -521,19 +545,23 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
             for (j = iz-1; j < mj+1; j++) {
               v = j - (iz-1);
               if (imdata[j]) {
-                for (i = iy-1; i < mi+1; i++) {
-                  u = i - (iy-1);
-                  pix = imdata[j][ix + (i * mix)];
-                  tdata[u][v][0] = Cmap[0][pix];
-                  tdata[u][v][1] = Cmap[1][pix];
-                  tdata[u][v][2] = Cmap[2][pix];
+                if (a->vi->ushortStore) {
+                  for (i = iy-1; i < mi+1; i++) {
+                    u = i - (iy-1);
+                    pix = bmap[usimdata[j][ix + (i * mix)]];
+                    FILLDATA(pix);
+                  }
+                } else {
+                  for (i = iy-1; i < mi+1; i++) {
+                    u = i - (iy-1);
+                    pix = imdata[j][ix + (i * mix)];
+                    FILLDATA(pix);
+                  }
                 }
               } else {
                 for (i = iy-1; i < mi+1; i++) {
                   u = i - (iy-1);
-                  tdata[u][v][0] = Cmap[0][0];
-                  tdata[u][v][1] = Cmap[1][0];
-                  tdata[u][v][2] = Cmap[2][0];
+                  FILLDATA(0);
                 }
               }
             }
@@ -583,27 +611,37 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
           for (j = iz-1; j < mj+1; j++) {
             v = j - (iz-1);
             if (flipped && imdata[iy]) {
-              for (i = ix-1; i < mi+1; i++) {
-                u = i - (ix-1);
-                pix = imdata[iy][i + (j * mix)];
-                tdata[u][v][0] = Cmap[0][pix];
-                tdata[u][v][1] = Cmap[1][pix];
-                tdata[u][v][2] = Cmap[2][pix];
+              if (a->vi->ushortStore) {
+                for (i = ix-1; i < mi+1; i++) {
+                  u = i - (ix-1);
+                  pix = bmap[usimdata[iy][i + (j * mix)]];
+                  FILLDATA(pix);
+                }
+              } else {
+                for (i = ix-1; i < mi+1; i++) {
+                  u = i - (ix-1);
+                  pix = imdata[iy][i + (j * mix)];
+                  FILLDATA(pix);
+                }
               }
             } else if (!flipped && imdata[j]) {
-              for (i = ix-1; i < mi+1; i++) {
-                u = i - (ix-1);
-                pix = imdata[j][i + (iy * mix)];
-                tdata[u][v][0] = Cmap[0][pix];
-                tdata[u][v][1] = Cmap[1][pix];
-                tdata[u][v][2] = Cmap[2][pix];
+              if (a->vi->ushortStore) {
+                for (i = ix-1; i < mi+1; i++) {
+                  u = i - (ix-1);
+                  pix = bmap[usimdata[j][i + (iy * mix)]];
+                  FILLDATA(pix);
+                }
+              } else {
+                for (i = ix-1; i < mi+1; i++) {
+                  u = i - (ix-1);
+                  pix = imdata[j][i + (iy * mix)];
+                  FILLDATA(pix);
+                }
               }
             } else {
               for (i = ix-1; i < mi+1; i++) {
                 u = i - (ix-1);
-                tdata[u][v][0] = Cmap[0][0];
-                tdata[u][v][1] = Cmap[1][0];
-                tdata[u][v][2] = Cmap[2][0];
+                FILLDATA(0);
               }
             }
 
@@ -615,6 +653,7 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
     }
   }
 
+  B3DFREE(bmap);
   glDisable(GL_BLEND);
   numSlices = numSave;
   if (imodDebug('v'))
@@ -868,6 +907,9 @@ void ImodvImage::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.24  2011/01/13 20:27:08  mast
+warning cleanup
+
 Revision 4.23  2010/12/18 17:36:44  mast
 Changes for stereo image display
 

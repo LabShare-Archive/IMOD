@@ -64,13 +64,12 @@ void InfoControls::languageChange()
  * Image - model: spacing 4, margin 0
  * Inner vbox's all spacing 6
  * Outer Hboxes, spacing 6, margin 0
+ * Float Hbox, spacing 6, margin 0
  * Slider grid spacing 5
- * vbox with slider and button, spacing 2
- * Mode group, spacing 2, margin 8 
+ * vbox with slider grids and flat buttons, spacing 2
+ * Mode group, spacing -1, margins 5,2,5,5 
  * bottom hbox, spacing 10
- * whole widget, spacing 4, margin 3
- * As if that is not enough, editing the form on RH 9.0 screwed it up when compiled 
- * on RH 7.3 and it was necessary to run it through designer on 7.3
+ * whole widget, spacing 4, margin 3 except bottom margin 0
  */
 
 void InfoControls::init()
@@ -81,6 +80,8 @@ void InfoControls::init()
   mCtrlPressed = false;
   mBlackPressed = false;
   mWhitePressed = false;
+  mLowPressed = false;
+  mHighPressed = false;
   setShowPoint(true);
   imodInfoGetFloatFlags(floatOn, subarea);
   diaSetChecked(floatCheckBox, floatOn != 0);
@@ -146,6 +147,22 @@ void InfoControls::init()
   bigModelLabel->hide();
 }
 
+// Show the extra sliders after window has been opened
+void InfoControls::hideLowHighGrid()
+{
+  int delta = blackSlider->pos().y() - lowSlider->pos().y();
+  lowLabel->hide();
+  lowTextLabel->hide();
+  lowSlider->hide();
+  highLabel->hide();
+  highTextLabel->hide();
+  highSlider->hide();
+  imod_info_input();
+  setMinimumHeight(minimumHeight() - delta);
+  //imodPrintStderr("Win before %d  delta %d\n", ImodInfoWin->height(), delta);
+  ImodInfoWin->resizeToHeight(ImodInfoWin->height() - delta);
+}
+
 // Set a minimum width for spin boxes to keep arrows big
 void InfoControls::setFontDependentWidths()
 {
@@ -159,6 +176,17 @@ void InfoControls::setFontDependentWidths()
     mXYZLabel[i]->setMinimumWidth(minLabelWidth);
   }
 }
+
+int InfoControls::adjustedHeightHint()
+{
+  QSize hint = sizeHint();
+  if (lowSlider->isVisible())
+    return hint.height();
+  QSize sliHint = blackSlider->sizeHint();
+  QSize labHint = blackLabel->sizeHint();
+  return (hint.height() - 2 * B3DMAX(sliHint.height(), labHint.height()) - 4);
+}
+
 
 // X, Y, or Z changed: pass on the whole array
 void InfoControls::xyzChanged( int item )
@@ -243,6 +271,63 @@ void InfoControls::displayWhite( int value )
   mDisplayedWhite = value;
 }
 
+// Manage the low slider
+void InfoControls::lowChanged( int value )
+{
+  imodInfoNewLH(0, value, mLowPressed ? 1 : 0);
+}
+
+void InfoControls::lowPressed()
+{
+  mLowPressed = true;
+}
+
+void InfoControls::lowReleased()
+{
+  mLowPressed = false;
+  lowChanged(mDisplayedLow);
+}
+
+void InfoControls::displayLow( int value )
+{
+  formatLHvalue(value);
+  lowLabel->setText(mStr);
+  mDisplayedLow = value;
+}
+
+// Manage the high slider
+void InfoControls::highChanged( int value )
+{
+  imodInfoNewLH(1, value, mHighPressed ? 1 : 0);
+}
+
+void InfoControls::highPressed()
+{
+  mHighPressed = true;
+}
+
+void InfoControls::highReleased()
+{
+  mHighPressed = false;
+  highChanged(mDisplayedHigh);
+}
+
+void InfoControls::displayHigh( int value )
+{
+  formatLHvalue(value);
+  highLabel->setText(mStr);
+  mDisplayedHigh = value;
+}
+
+void InfoControls::formatLHvalue(int value)
+{
+  float scaledVal = value * (mScaleMax - mScaleMin) / 65535. + mScaleMin;
+  if (mShowLHReal)
+    mStr.sprintf("%.4g", scaledVal);
+  else
+    mStr.sprintf("%d", B3DNINT(scaledVal));
+}
+
 // The buttons
 void InfoControls::movieModelSelected( int item )
 {
@@ -315,6 +400,18 @@ void InfoControls::setBWSliders( int black, int white )
   diaSetSlider(blackSlider, black);
   displayWhite(white);
   diaSetSlider(whiteSlider, white);
+}
+
+// Set the sliders with new values
+void InfoControls::setLHSliders(int low, int high, float smin, float smax, bool showReal)
+{
+  mScaleMin = smin;
+  mScaleMax = smax;
+  mShowLHReal = showReal;
+  displayLow(low);
+  diaSetSlider(lowSlider, low);
+  displayHigh(high);
+  diaSetSlider(highSlider, high);
 }
 
 void InfoControls::setMovieModel( int which )
@@ -410,8 +507,8 @@ void InfoControls::setModelName( char *name )
     }
   }
   if (delHeight) {
-    resize(width(), height() + delHeight);
-    ImodInfoWin->setFontDependentWidths();
+    setMinimumHeight(minimumHeight() + delHeight);
+    ImodInfoWin->resizeToHeight(ImodInfoWin->height() + delHeight);
   }
 }
 
@@ -432,6 +529,9 @@ void InfoControls::setShowPoint( int state )
 /*
 
 $Log$
+Revision 4.3  2010/05/28 17:14:00  mast
+Fixed short labels going into big label line
+
 Revision 4.2  2010/04/01 02:29:56  mast
 Put model name on a new line when it is too long
 
