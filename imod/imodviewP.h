@@ -5,7 +5,7 @@
  *   Colorado.  See implementation file for full copyright notice.
  *
  *  $Id$
- *  Log at end
+ *  No more Log
  */                                                                           
 
 #ifndef IMODVIEWP_H
@@ -17,6 +17,7 @@ unsigned char **ivwMakeLinePointers(ImodView *iv, unsigned char *data,
                                     int xsize, int ysize, int mode);
 int ivwSetupFastAccess(ImodView *vi, unsigned char ***outImdata,
                        int inNullvalue, int *cacheSum, int time = -1);
+void ivwSetRGBChannel(int value);
 int ivwInitCache(ImodView *vi);
 
 /* Determines size of data unit */
@@ -65,46 +66,12 @@ void memLineCpy
 bool ivwTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont);
 int ivwRegisterInsertPoint(ImodView *vi, Icont *cont, Ipoint *pt, int index);
 void startExtraObjectIfNone(ImodView *vi);
+void ivwSetBlackWhiteFromModel(ImodView *vi);
+bool ivwFixUnderSizeCoords(int size, int nx, int &llx, int &urx, int &offset, 
+                           int &leftPad, int &rightPad);
+int ivwGetImagePadding(ImodView *vi, int cy, int section, int time, int &llX, 
+                       int &leftXpad, int &rightXpad, int &llY, int &leftYpad,
+                       int &rightYpad, int &llz, int &leftZpad, int &rightZpad);
 
 #endif
 
-/*
-
-$Log$
-Revision 1.12  2008/12/01 15:42:01  mast
-Changes for undo/redo and selection in 3dmodv standalone
-
-Revision 1.11  2008/11/28 06:39:12  mast
-Made extra object function global
-
-Revision 1.10  2007/11/27 17:56:38  mast
-Rearranged log
-
-Revision 1.9  2007/05/29 14:43:48  mast
-Added optional time argument to fast setup routine
-
-Revision 1.8  2005/12/08 05:57:13  mast
-Added time argument to cache flushing call
-
-Revision 1.7  2004/11/20 05:05:27  mast
-Changes for undo/redo capability
-
-Revision 1.6  2004/11/07 22:59:52  mast
-Make binning routine global
-
-Revision 1.5  2004/10/27 20:38:30  mast
-Changed arguments for cache dump routines
-
-Revision 1.4  2004/10/22 22:17:22  mast
-Added functions for dumping file system cache
-
-Revision 1.3  2004/01/05 17:55:45  mast
-Changes for binning
-
-Revision 1.2  2003/12/30 06:39:21  mast
-Make memreccpy globally available
-
-Revision 1.1  2003/10/01 05:01:29  mast
-Initial creation; functions pulled from imodP.h
-
-*/
