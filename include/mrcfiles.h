@@ -310,18 +310,16 @@ unsigned char **mrc_read_byte(FILE *fin, MrcHeader *hdata,
 			      struct LoadInfo *li,
 			      void (*func)(const char *));
 
-int mrcReadSectionByte(MrcHeader *hdata, struct LoadInfo *li,
-			unsigned char *buf, int z);
-int mrcReadZByte(MrcHeader *hdata, struct LoadInfo *li,
-		  unsigned char *buf, int z);
-int mrcReadYByte(MrcHeader *hdata, struct LoadInfo *li,
-		  unsigned char *buf, int y);
-int mrcReadZ(MrcHeader *hdata, struct LoadInfo *li,
-	      unsigned char *buf, int cz);
-int mrcReadY(MrcHeader *hdata, struct LoadInfo *li,
-			unsigned char *buf, int cy);
-int mrcReadSection(MrcHeader *hdata, struct LoadInfo *li,
-		    unsigned char *buf, int z);
+int mrcReadSectionByte(MrcHeader *hdata, struct LoadInfo *li, unsigned char *buf, int z);
+int mrcReadZByte(MrcHeader *hdata, struct LoadInfo *li, unsigned char *buf, int z);
+int mrcReadYByte(MrcHeader *hdata, struct LoadInfo *li, unsigned char *buf, int y);
+int mrcReadSectionUShort(MrcHeader *hdata, struct LoadInfo *li, unsigned char *buf, 
+                         int z);
+int mrcReadZUShort(MrcHeader *hdata, struct LoadInfo *li, unsigned char *buf, int z);
+int mrcReadYUShort(MrcHeader *hdata, struct LoadInfo *li, unsigned char *buf, int y);
+int mrcReadZ(MrcHeader *hdata, struct LoadInfo *li, unsigned char *buf, int cz);
+int mrcReadY(MrcHeader *hdata, struct LoadInfo *li, unsigned char *buf, int cy);
+int mrcReadSection(MrcHeader *hdata, struct LoadInfo *li, unsigned char *buf, int z);
 int mrcReadSectionFloat(MrcHeader *hdata, IloadInfo *li, b3dFloat *buf, int z);
 int mrcReadYFloat(MrcHeader *hdata, IloadInfo *li, b3dFloat *buf, int z);
 int mrcReadZFloat(MrcHeader *hdata, IloadInfo *li, b3dFloat *buf, int z);
@@ -365,6 +363,9 @@ void mrc_set_cmap_stamp(MrcHeader *hdata);
 /*
 
 $Log$
+Revision 3.24  2010/08/31 22:05:00  mast
+New function in plist.c
+
 Revision 3.23  2009/02/16 06:16:34  mast
 Add parallel write routine
 

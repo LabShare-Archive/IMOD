@@ -72,10 +72,11 @@ extern "C" {
 #define IIAXIS_Y 2
 #define IIAXIS_Z 3
 
-  struct  ImodImageFileStruct;
 
   /* DOC_CODE ImodImageFile structure */
   typedef struct  ImodImageFileStruct ImodImageFile;
+  typedef int (*iiSectionFunc)(ImodImageFile *inFile, char *buf, int inSection);
+
   struct  ImodImageFileStruct
   {
     char *filename;
@@ -116,10 +117,11 @@ extern "C" {
     int  rgbSamples;         /* Number of samples for RGB TIFF file */
 
     /* Callback functions used by different file formats. */
-    int (*readSection)(ImodImageFile *inFile, char *buf, int inSection);
-    int (*readSectionByte)(ImodImageFile *inFile, char *buf, int inSection);
+    iiSectionFunc readSection;
+    iiSectionFunc readSectionByte;
+    iiSectionFunc readSectionUShort;
+    iiSectionFunc writeSection;
     void (*cleanUp)(ImodImageFile *inFile);
-    int (*writeSection)(ImodImageFile *inFile, char *buf, int inSection);
     void (*close)(ImodImageFile *inFile);
     int (*reopen)(ImodImageFile *inFile);
 
@@ -155,10 +157,11 @@ extern "C" {
   int  iiReopen(ImodImageFile *inFile);
   void iiClose(ImodImageFile *inFile);
   void iiDelete(ImodImageFile *inFile);
-  int  iiSetMM(ImodImageFile *inFile, float inMin, float inMax);
+  int  iiSetMM(ImodImageFile *inFile, float inMin, float inMax, float scaleMax);
 
   int iiReadSection(ImodImageFile *inFile, char *buf, int inSection);
   int iiReadSectionByte(ImodImageFile *inFile, char *buf, int inSection);
+  int iiReadSectionUShort(ImodImageFile *inFile, char *buf, int inSection);
   int iiLoadPCoord(ImodImageFile *inFile, int useMdoc, struct LoadInfo *li,
                    int nx, int ny, int nz);
 
@@ -172,9 +175,11 @@ extern "C" {
   int iiMRCCheck(ImodImageFile *inFile);
   int iiMRCreadSection(ImodImageFile *inFile, char *buf, int inSection);
   int iiMRCreadSectionByte(ImodImageFile *inFile, char *buf, int inSection);
+  int iiMRCreadSectionUShort(ImodImageFile *inFile, char *buf, int inSection);
   int iiMRCLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx,
                       int ny, int nz);
   int tiffReadSectionByte(ImodImageFile *inFile, char *buf, int inSection);
+  int tiffReadSectionUShort(ImodImageFile *inFile, char *buf, int inSection);
   int tiffReadSection(ImodImageFile *inFile, char *buf, int inSection);
   void tiffClose(ImodImageFile *inFile);
   int tiffGetField(ImodImageFile *inFile, int tag, void *value);
@@ -207,6 +212,9 @@ extern "C" {
 
 /*
 $Log$
+Revision 3.21  2010/12/21 05:28:50  mast
+Added quality argument
+
 Revision 3.20  2010/12/18 18:42:15  mast
 Add includes for new TIFF routines and to prevent warnings in compiles
 
