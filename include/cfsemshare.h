@@ -34,6 +34,11 @@ extern "C" {
                    float sample, int nxMatt, int myMatt, int nxUse, int nyUse,
                    float *mean, float *sd);
 
+  /* pctstretch.c - for computing percentile limits quickly by sampling */
+  int percentileStretch(unsigned char **image, int mode, int nx, int ny, float sample,
+                        int ixStart, int iyStart, int nxUse, int nyUse, 
+                        float pctLo, float pctHi, float *scaleLo, float *scaleHi);
+
   /* colormap.c */
   int *cmapStandardRamp(void);
   int *cmapInvertedRamp(void);
