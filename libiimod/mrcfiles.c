@@ -50,7 +50,7 @@ int mrc_head_read(FILE *fin, MrcHeader *hdata)
 {
   int i;
   int retval = 0;
-  int filesize;
+  //int filesize;
   int datasize;
 
   if (!fin)
@@ -679,14 +679,12 @@ int mrc_read_slice(void *buf, FILE *fin, MrcHeader *hdata, int slice,
                    char axis)
 {
   unsigned char *data = NULL;
-  short *sdata = NULL;
-  float *fdata = NULL;
   int dsize, csize, sxsize, sysize;
   b3dInt16 *sbuf = (b3dInt16 *)buf;
   b3dFloat *fbuf = (b3dFloat *)buf;
 
   int dcsize;
-  int i,j,k;
+  int j,k;
 
   rewind(fin);
   fseek(fin, hdata->headerSize, SEEK_SET);
@@ -849,31 +847,23 @@ unsigned char **mrc_read_byte(FILE *fin,
                               void (*func)(const char *))
 {
   int  i, j, k;
-  unsigned int ui;
   int bytesRead;
   size_t xysize;               /* Size of each image.       */
   int xsize, ysize, zsize;  /* Size needed to be loaded. */
   int xoff,  yoff,  zoff;   /* Offsets into image data.  */
-  float conscale = 1.0f;
   float fpixel, ipixel, val;
   float kscale = mrcGetComplexScale();  /* scaling value for complex numbers */
   int seek_line, seek_endline, seek_endrow;
 
-  short spixel = 0;
   short pixel;
   int ramptype = MRC_RAMP_LIN;
-  float min;
-  float max;
   float smin= 0.0f, smax = 0.0f;
-  float rscale;
-  int range;
   int black  = 0;   /* value of black.                                    */
   int white  = 255; /* value of white. */
-  int imag = FALSE;
   int dsize;
   int doscale = 0;
   int contig = 0;
-  float slope, offset, total = 0;
+  float slope, offset;
   float xscale, yscale, zscale;
   char statstr[128];            /* message sent to callback function. */
   unsigned char **idata;        /* image data to return. */
@@ -1387,7 +1377,7 @@ int mrc_write_slice(void *buf, FILE *fout, MrcHeader *hdata, int slice,
 {
   int dsize, csize, retval = 0;
   size_t slicesize, sxsize, sysize;
-  int i,j,k, dcsize, nx, ny;
+  int j,k, dcsize, nx, ny;
   unsigned char *data = NULL;
   b3dInt16 *sbuf;
   b3dFloat *fbuf;
@@ -1827,6 +1817,7 @@ int mrc_init_li(IloadInfo *li, MrcHeader *hd)
     li->scale = 1.0f;
     li->offset = 0.0f;
     li->plist = 0;
+    li->ramp = MRC_RAMP_LIN;
     /* Check li values and change to default for bad data. */
   }else{
     mrc_fix_li(li, hd->nx, hd->ny, hd->nz);
@@ -1961,7 +1952,6 @@ void mrc_liso(MrcHeader *hdata, IloadInfo *li)
  */
 int get_loadinfo(MrcHeader *hdata, IloadInfo *li)
 {
-  int c;
   char line[128];
 
   fflush(stdout);
@@ -2264,6 +2254,9 @@ void mrc_swap_floats(fb3dFloat *data, int amt)
 
 /*
 $Log$
+Revision 3.46  2011/03/08 19:52:47  mast
+Changed map routines to return a short map if outmax is large
+
 Revision 3.44  2010/03/27 19:22:23  mast
 Made stamp CCP4-compliant
 
