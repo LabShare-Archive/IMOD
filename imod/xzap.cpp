@@ -3647,6 +3647,12 @@ void ZapFuncs::setAreaLimits()
 B3dCIImage *ZapFuncs::zoomedDownImage(int subset, int &nxim, int &nyim, int &ixStart,
                                       int &iyStart, int &nxUse, int &nyUse)
 {
+  int time, llX, leftXpad, rightXpad, llY, leftYpad, rightYpad, llZ, leftZpad, rightZpad;
+  if (mTimeLock)
+    time = mTimeLock;
+  else
+    ivwGetTime(mVi, &time);
+
   if (!mHqgfx || mZoom > b3dZoomDownCrit() || !App->rgba || !mImage || 
       mVi->cramp->falsecolor)
     return NULL;
@@ -3663,6 +3669,16 @@ B3dCIImage *ZapFuncs::zoomedDownImage(int subset, int &nxim, int &nyim, int &ixS
     nxUse = B3DMIN(nxUse - ixStart, mRbMouseX1 - mRbMouseX0 - 1);
     nyUse = B3DMIN(nyUse - iyStart, mRbMouseY1 - mRbMouseY0 - 1);
   }
+
+  // Get extent of padded region in image and use it to limit the subarea
+  if (ivwGetImagePadding(mVi, -1, mSection, time, llX, leftXpad, rightXpad, llY, leftYpad,
+                         rightYpad, llZ, leftZpad, rightZpad))
+    return mImage;
+
+  if (leftXpad || leftYpad || rightXpad || rightYpad)
+    imodInfoLimitSubarea(xpos(leftXpad) - mXborder, xpos(mVi->xsize - rightXpad) - 
+                         mXborder, ypos(leftYpad) - mYborder, ypos(mVi->ysize - rightYpad)
+                         - mYborder, ixStart, iyStart, nxUse, nyUse);
   return mImage;
 }
 
@@ -3979,7 +3995,7 @@ void ZapFuncs::drawGraphics()
     
     // If overlay section is set and legal, get an image buffer and fill it
     // with the color overlay
-    if (vi->overlaySec && App->rgba && !vi->rawImageStore && otherSec >= 0 &&
+    if (vi->overlaySec && App->rgba && !vi->rgbStore && otherSec >= 0 &&
         otherSec < vi->zsize) {
       overImage = (unsigned char *)malloc(3 * vi->xsize * vi->ysize);
       if (!overImage) {
@@ -4062,19 +4078,21 @@ void ZapFuncs::drawGraphics()
 void ZapFuncs::fillOverlayRGB(unsigned char **lines, int nx, int ny, int chan,
                               unsigned char *image)
 {
-  unsigned int *cindex = App->cvi->cramp->ramp;
-  unsigned char ramp[256];
+  b3dUInt16 **uslines = (b3dUInt16 **)lines;
   int i, j;
   
-  // Extract the second byte from the integers of the color table
-  for (i = 0; i < 256; i++)
-    ramp[i] = (unsigned char)(cindex[i] >> 8);
-
   image += chan;
   for (j = 0; j < ny; j++) {
-    for (i = 0; i < nx; i++) {
-      *image = ramp[*(lines[j] + i)];
-      image += 3;
+    if (App->cvi->ushortStore) {
+      for (i = 0; i < nx; i++) {
+        *image = *(uslines[j] + i) / 256;
+        image += 3;
+      }
+    } else {
+      for (i = 0; i < nx; i++) {
+        *image = *(lines[j] + i);
+        image += 3;
+      }
     }
   }
 }
@@ -4788,6 +4806,9 @@ void ZapFuncs::setDrawCurrentOnly(int value)
 /*
 
 $Log$
+Revision 4.163  2011/03/01 18:39:39  mast
+Added q hot key for measuring distance
+
 Revision 4.162  2011/02/12 05:11:11  mast
 Use preference to start in HQ mode; add method to return window drawing image
 
