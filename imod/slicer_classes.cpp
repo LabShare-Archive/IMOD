@@ -645,21 +645,21 @@ static int zsize;
 static float xzost, yzost, zzost;
 static int izoom, shortcut, ilimshort, jlimshort;
 static int isize, jsize, ksize;
-static unsigned char noDataVal;
-static b3dUInt16 *cidata;
+static int noDataVal;
+static b3dInt32 *cidata;
 static int maxval, minval;
 static int sshq, sswinx;
 
 
 // The top-level routine called to fill the image array
-void SlicerFuncs::fillImageArray(int panning, int meanOnly)
+void SlicerFuncs::fillImageArray(int panning, int meanOnly, int rgbChannel)
 {
   float maxPanPixels = 1000. * ImodPrefs->slicerPanKb();
   int i, j, k;
   unsigned short rbase;
   float xo, yo, zo;  /* coords of the lower left zap origin. */
   float xs = 1.0f, ys = 1.0f, zs = 1.0f;  /* scale factors.  */
-  float zoffset, sample, scale, offset, sumSD, sumMean, edge;
+  float zoffset, sample, scale, offset, sumSD, sumMean, edge, fftBaseScale;
   float matt = 0.1;
   int ixStart, iyStart, nxUse, nyUse, ntaper;
   float numPosSD = 4., numNegSD = 3.;
@@ -671,15 +671,20 @@ void SlicerFuncs::fillImageArray(int panning, int meanOnly)
   int crossget, crosswant;
   Ipoint pnt, tpnt;
   Imat *mat = mMat;
+  int tval;
 
   int cindex, pixsize;
   unsigned int *cmap = App->cvi->cramp->ramp;
+  unsigned char *bmap = App->cvi->cramp->bramp;
   b3dUByte **imdata;
   b3dUByte *bdata;
   b3dUInt32 *idata;
+  b3dUInt16 *usidata;
+  b3dUByte *ubidata;
   Islice *slice;
-  unsigned char *sclmap = NULL;
+  //unsigned char *sclmap = NULL;
   unsigned char *fftmap;
+  b3dUInt16 *usfftmap;
   unsigned char **linePtrs;
   int vmnullvalue;
   int numThreads = 1;
@@ -692,15 +697,18 @@ void SlicerFuncs::fillImageArray(int panning, int meanOnly)
   fillTime.start();
   if (!mImage)
       return;
-  cidata = mImage->id1;
+  cidata = (b3dInt32 *)mImage->id1;
   idata = (b3dUInt32 *)cidata;
+  usidata = (b3dUInt16 *)cidata;
+  ubidata = (b3dUByte *)cidata;
   pixsize  = b3dGetImageType(NULL, NULL);
 
   xsize = mVi->xsize;
   ysize = mVi->ysize;
   zsize = mVi->zsize;
   noDataVal = 0;
-  maxval = 255;
+  maxval = mVi->ushortStore ? 65535 : 255;
+  fftBaseScale = mVi->ushortStore ? 256. : 1.;
   minval = 0;
   sswinx = mWinx;
   izoom = (int) zoom;
@@ -792,6 +800,7 @@ void SlicerFuncs::fillImageArray(int panning, int meanOnly)
                          mTimeLock ? mTimeLock : mVi->ct))
     return;
 
+  ivwSetRGBChannel(rgbChannel);
   noDataVal = vmnullvalue;
 
   transStep();
@@ -984,15 +993,15 @@ void SlicerFuncs::fillImageArray(int panning, int meanOnly)
 
     /* DNM 1/9/03: deleted quadratic interpolation code, turned cubic code
        into a routine that can be used by tumbler */
-    slicerCubicFillin(cidata, mWinx, mWiny, izoom, ilimshort, jlimshort,
-		      minval * ksize, maxval * ksize);
+    slicerCubicFillin((b3dUInt16 *)cidata, mWinx, mWiny, izoom, ilimshort, jlimshort,
+		      minval * ksize, maxval * ksize, 1);
   }
 
   // If computing mean only or scaling to mean, get the mean and SD of the
   // slice with some edges cut off
   if (meanOnly || (mScaleToMeanSD && ksize > 1) || mFftMode) {
     linePtrs = ivwMakeLinePointers(mVi, (unsigned char *)cidata, mWinx, 
-                                   jsize, MRC_MODE_USHORT);
+                                   jsize, MRC_MODE_FLOAT);
     sumSD = 0.;
     if (linePtrs) {
       ixStart = matt * isize;
@@ -1002,7 +1011,7 @@ void SlicerFuncs::fillImageArray(int panning, int meanOnly)
       sample = 10000.0/(((double)nxUse) * nyUse);
       if (sample > 1.0)
         sample = 1.0;
-      if (sampleMeanSD(linePtrs, 2, isize, jsize, sample, ixStart, iyStart,
+      if (sampleMeanSD(linePtrs, 7, isize, jsize, sample, ixStart, iyStart,
                        nxUse, nyUse, &sumMean, &sumSD))
         sumSD = 0.;
       if (imodDebug('s'))
@@ -1025,10 +1034,9 @@ void SlicerFuncs::fillImageArray(int panning, int meanOnly)
   cindex = mImage->width * mImage->height;
   k = ksize;
 
+  scale = 1. / k;
+  offset = 0.;
   if (k > 1) {
-    scale = 1. / k;
-    offset = 0.;
-
     // If scaling to match one slice, set the scaling and adjust the mean and
     // SD to be after the scaling, for FFT scaling
     if (mScaleToMeanSD && sumSD > 0.1 && mOneSliceSD > 0.1) {
@@ -1042,11 +1050,11 @@ void SlicerFuncs::fillImageArray(int panning, int meanOnly)
       sumMean /= k;
       sumSD /= k;
     }
-    sclmap = get_short_map(scale, offset, 0, 255, MRC_RAMP_LIN, 0, 0);
+    /*sclmap = get_short_map(scale, offset, 0, 255, MRC_RAMP_LIN, 0, 0);
     if (!sclmap) {
       wprint("\aMemory error getting mapping array.\n");
       return;
-    }
+      }*/
   }
 
   // Take FFT if flag is set
@@ -1056,16 +1064,18 @@ void SlicerFuncs::fillImageArray(int panning, int meanOnly)
 
       // Pack data into a byte slice
       bdata = slice->data.b;
-      for (j = 0; j < jsize; j++) {
-        if (k > 1)
-          for (i = j * mWinx; i < j * mWinx + isize; i++)
-            *bdata++ = sclmap[cidata[i]];
-        else
-          for (i = j * mWinx; i < j * mWinx + isize; i++)
-            *bdata++ = (b3dUByte)cidata[i];
+      if (mVi->ushortStore) {
+        scale /= 256.;
+        offset /= 256.;
       }
-      slice->min = minval;
-      slice->max = maxval;
+      for (j = 0; j < jsize; j++) {
+        for (i = j * mWinx; i < j * mWinx + isize; i++) {
+          tval = (int)(cidata[i] * scale + offset);
+          *bdata++ = (b3dUByte)B3DMAX(0, B3DMIN(255, tval));
+        }
+      }
+      slice->min = 0;
+      slice->max = 255;
       if (imodDebug('s'))
         imodPrintStderr("Fill time %d\n", fillTime.elapsed());
       fillTime.start();
@@ -1080,8 +1090,7 @@ void SlicerFuncs::fillImageArray(int panning, int meanOnly)
       fillTime.start();
 
       // Take the FFT
-      if (sliceByteBinnedFFT(slice, 1, 0, isize - 1, 0, jsize - 1, &i, &j) 
-          > 0) {
+      if (sliceByteBinnedFFT(slice, 1, 0, isize - 1, 0, jsize - 1, &i, &j) > 0) {
 
         if (imodDebug('s'))
           imodPrintStderr("FFT time %d\n", fillTime.elapsed());
@@ -1098,19 +1107,26 @@ void SlicerFuncs::fillImageArray(int panning, int meanOnly)
 
         // Unpack the FFT data into the integer array
         // Map edge to mean - numNeg SD's, 255 to mean + numPos SD's
-        scale = 1. / k;
+        scale = fftBaseScale;
         offset = 0.;
         if (sumSD > 0.1 && edge < 254.5) {
-          scale = (numPosSD + numNegSD) * sumSD / (255. - edge);
-          offset = sumMean - scale * edge - numNegSD * sumSD;
+          scale = (numPosSD + numNegSD) * sumSD / (255 - edge);
+          offset = (sumMean - numNegSD * sumSD) - scale * edge;
         }
         if (imodDebug('s'))
           imodPrintStderr("FFT edge %f  scale %f  offset %f\n", edge, scale,
                           offset);
-        fftmap = get_byte_map(scale, offset, 0, 255);
-        for (j = 0; j < jsize; j++)
-          for (i = j * mWinx; i < j * mWinx + isize; i++)
-            cidata[i] = fftmap[*bdata++];
+        fftmap = get_byte_map(scale, offset, 0, maxval);
+        usfftmap = (b3dUInt16 *)fftmap;
+        for (j = 0; j < jsize; j++) {
+          if (!mVi->ushortStore)
+            for (i = j * mWinx; i < j * mWinx + isize; i++)
+              cidata[i] = fftmap[*bdata++];
+          else
+            for (i = j * mWinx; i < j * mWinx + isize; i++)
+              cidata[i] = usfftmap[*bdata++];
+        }
+
       }
       sliceFree(slice);
       k = 1;
@@ -1119,22 +1135,20 @@ void SlicerFuncs::fillImageArray(int panning, int meanOnly)
 
   /* for 8-bit displays, range is less then 256 gray scales. */
   if (!App->rgba && App->depth == 8){
-    int tval;
-    int minval = mVi->rampbase;
-    int maxval = minval + mVi->rampsize;
     if (k > 1)
       for (j = 0; j < jsize; j++)
         for(i = j * mWinx; i < j * mWinx + isize; i++){
-          tval = sclmap[cidata[i]];
+          tval = (int)(cidata[i] * scale + offset);
           if (tval > maxval) tval = maxval;
           if (tval < minval) tval = minval;
-          cidata[i] = tval;
+          ubidata[i] = tval;
         }
     else
       for (j = 0; j < jsize; j++)
         for(i = j * mWinx; i < j * mWinx + isize; i++){
           if (cidata[i] > maxval) cidata[i] = maxval;
           if (cidata[i] < minval) cidata[i] = minval;
+          ubidata[i] = cidata[i];
         }
 
   }else{
@@ -1143,39 +1157,57 @@ void SlicerFuncs::fillImageArray(int panning, int meanOnly)
       if (k > 1)
         for (j = 0; j < jsize; j++)
           for(i = j * mWinx; i < j * mWinx + isize; i++){
-            cidata[i] = sclmap[cidata[i]];
+            tval = (int)(cidata[i] * scale + offset);
+            ubidata[i]= (b3dUByte)B3DMAX(0., B3DMIN(255., tval));
           }
+      else
+        for (j = 0; j < jsize; j++)
+          for(i = j * mWinx; i < j * mWinx + isize; i++)
+            ubidata[i] = cidata[i];
       break;
     case 2:
       if (k > 1)
         for (j = 0; j < jsize; j++)
           for(i = j * mWinx; i < j * mWinx + isize; i++){
-            cidata[i] = sclmap[cidata[i]] + rbase;
+            tval = (int)(cidata[i] * scale + offset);
+            usidata[i]= (b3dUInt16)B3DMAX(0., B3DMIN(255., tval)) + rbase;
           }
       else
         for (j = 0; j < jsize; j++)
-          for(i = j * mWinx; i < j * mWinx + isize; i++){
-            cidata[i] = cidata[i] + rbase;
-          }
+          for(i = j * mWinx; i < j * mWinx + isize; i++)
+            usidata[i] = cidata[i] + rbase;
       break;
     case 4:
-      if (k > 1)
-        for (j = jsize - 1; j >= 0; j--)
-          for(i = j * mWinx + isize - 1; i >= j * mWinx; i--){
-            idata[i] = cmap[sclmap[cidata[i]]];
-          }
-      else
-	for (j = jsize - 1; j >= 0; j--) {
-	  for(i = j * mWinx + isize - 1; i >= j * mWinx; i--){
-	    idata[i] = cmap[cidata[i]];
-	  }
-	}
+      if (mVi->rgbStore) {
+        if (k > 1)
+          for (j = jsize - 1; j >= 0; j--)
+            for(i = j * mWinx + isize - 1; i >= j * mWinx; i--){
+              tval = (int)(cidata[i] * scale + offset);
+              cidata[i] = bmap[B3DMAX(0, B3DMIN(255, tval))];
+            }
+        else
+          for (j = jsize - 1; j >= 0; j--)
+            for(i = j * mWinx + isize - 1; i >= j * mWinx; i--)
+              cidata[i] = bmap[cidata[i]];
+
+      } else {
+        if (k > 1)
+          for (j = jsize - 1; j >= 0; j--)
+            for(i = j * mWinx + isize - 1; i >= j * mWinx; i--){
+              tval = (int)(cidata[i] * scale + offset);
+              idata[i] = cmap[B3DMAX(0, B3DMIN(maxval, tval))];
+            }
+        else
+          for (j = jsize - 1; j >= 0; j--)
+            for(i = j * mWinx + isize - 1; i >= j * mWinx; i--)
+              idata[i] = cmap[cidata[i]];
+      }
     }
   }
   mXzoom = xzoom;
   mYzoom = yzoom;
-  if (sclmap)
-    free(sclmap);
+  /*  if (sclmap)
+      free(sclmap); */
   if (imodDebug('s'))
     imodPrintStderr("Fill time %d\n", fillTime.elapsed());
   return;
@@ -1234,7 +1266,7 @@ static void fillArraySegment(int jstart, int jlimit)
   float a, b, c, d, e, f;
   float ival;
   int pxi, nxi, pyi, nyi, pzi, nzi;
-  unsigned char val;
+  int val;
 
   xzo = xzost;
   yzo = yzost;
@@ -1379,7 +1411,7 @@ static void fillArraySegment(int jstart, int jlimit)
               ival = maxval;
             if (ival < minval)
               ival = minval;
-            val = (unsigned char)(ival + 0.5f);
+            val = (int)(ival + 0.5f);
                               
           } else
             val = noDataVal;
@@ -1506,6 +1538,9 @@ static void fillArraySegment(int jstart, int jlimit)
 /*
 
 $Log$
+Revision 4.36  2011/02/14 04:35:50  mast
+Converted slicer struct to a class
+
 Revision 4.35  2010/12/18 05:47:00  mast
 Use the shortcut for non-integer zooms above 2
 

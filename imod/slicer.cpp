@@ -316,6 +316,7 @@ SlicerFuncs::SlicerFuncs(ImodView *vi)
   int newZoom;
   QString str;
   mVi = vi;
+  mRedTemp = NULL;
 
   /* DNM 5/16/02: if the current position is still in the lower left
      corner, move it to middle and draw other windows */
@@ -359,6 +360,8 @@ SlicerFuncs::SlicerFuncs(ImodView *vi)
   mScalez = 0;
   mDepth = 1.0;
   mImage = NULL;
+  mRedTemp = NULL;
+  mGreenTemp = NULL;
   mXstep[0]  = 1.0f; mXstep[1] = mXstep[2] = 0.0f;
   mYstep[1]  = 1.0f; mYstep[0] = mYstep[2] = 0.0f;
   mNslice = 1;
@@ -411,7 +414,7 @@ SlicerFuncs::SlicerFuncs(ImodView *vi)
 
   // Include this to get toolbar sizes right
   imod_info_input();
-  
+
   QSize toolSize1 = mQtWindow->mToolBar->sizeHint();
   QSize toolSize2 = mQtWindow->mToolBar2->sizeHint();
   mQtWindow->mToolBar2->setMaximumWidth(toolSize2.width() + 10);
@@ -2471,7 +2474,7 @@ void SlicerFuncs::transStep()
  to fill in array created by shortcut */
 
 void slicerCubicFillin(unsigned short *cidata, int winx, int winy, int izoom,
-		       int ilimshort, int jlimshort, int minval, int maxval)
+		       int ilimshort, int jlimshort, int minval, int maxval, int intData)
 {
   int ifill, jfill, deli, delj, joffset, yoffset;
   int xn, xn2, xp, ynoffset, yn2offset, ypoffset;
@@ -2481,7 +2484,7 @@ void slicerCubicFillin(unsigned short *cidata, int winx, int winy, int izoom,
   float yp, y0, yn, yn2;
   float dx, dy, ival;
   float zoom = (float)izoom;
-  unsigned short oldval;
+  int *idata = (int *)cidata;
 
   for (jfill = 0; jfill < izoom; jfill++) {
     dy = jfill / zoom;
@@ -2513,28 +2516,46 @@ void slicerCubicFillin(unsigned short *cidata, int winx, int winy, int izoom,
 	yn2offset = (yi + 2 * izoom) * winx;
 	ypoffset = (yi - izoom) * winx;
 
-	for (i = izoom + ifill; i < ilimshort; i += izoom) {
-	  xi = i + deli;
-	  xn = xi + izoom;
-	  xn2 = xn + izoom;
-	  xp = xi - izoom;
-	  yp = fxp * cidata[xp + ypoffset] + fx * cidata[xi + ypoffset] +
-	    fxn * cidata[xn + ypoffset] + fxn2 * cidata[xn2 + ypoffset];
-	  y0 = fxp * cidata[xp + yoffset] + fx * cidata[xi + yoffset] +
-	    fxn * cidata[xn + yoffset] + fxn2 * cidata[xn2 + yoffset];
-	  yn = fxp * cidata[xp + ynoffset] + fx * cidata[xi + ynoffset] +
-	    fxn * cidata[xn + ynoffset] + fxn2 * cidata[xn2 + ynoffset];
-	  yn2 = fxp * cidata[xp + yn2offset] + fx * cidata[xi + yn2offset] +
-	    fxn * cidata[xn + yn2offset] + fxn2 * cidata[xn2 + yn2offset];
-	  ival = fyp * yp + fy * y0 + fyn * yn + fyn2 * yn2;
+        if (intData) {
+          for (i = izoom + ifill; i < ilimshort; i += izoom) {
+            xi = i + deli;
+            xn = xi + izoom;
+            xn2 = xn + izoom;
+            xp = xi - izoom;
+            yp = fxp * idata[xp + ypoffset] + fx * idata[xi + ypoffset] +
+              fxn * idata[xn + ypoffset] + fxn2 * idata[xn2 + ypoffset];
+            y0 = fxp * idata[xp + yoffset] + fx * idata[xi + yoffset] +
+              fxn * idata[xn + yoffset] + fxn2 * idata[xn2 + yoffset];
+            yn = fxp * idata[xp + ynoffset] + fx * idata[xi + ynoffset] +
+              fxn * idata[xn + ynoffset] + fxn2 * idata[xn2 + ynoffset];
+            yn2 = fxp * idata[xp + yn2offset] + fx * idata[xi + yn2offset] +
+              fxn * idata[xn + yn2offset] + fxn2 * idata[xn2 + yn2offset];
+            ival = fyp * yp + fy * y0 + fyn * yn + fyn2 * yn2;
+            ival = B3DMIN(maxval, ival);
+            ival = B3DMAX(minval, ival);
+            idata[i + joffset] = (int)(ival + 0.5f);
+          }
+        } else {
+          for (i = izoom + ifill; i < ilimshort; i += izoom) {
+            xi = i + deli;
+            xn = xi + izoom;
+            xn2 = xn + izoom;
+            xp = xi - izoom;
+            yp = fxp * cidata[xp + ypoffset] + fx * cidata[xi + ypoffset] +
+              fxn * cidata[xn + ypoffset] + fxn2 * cidata[xn2 + ypoffset];
+            y0 = fxp * cidata[xp + yoffset] + fx * cidata[xi + yoffset] +
+              fxn * cidata[xn + yoffset] + fxn2 * cidata[xn2 + yoffset];
+            yn = fxp * cidata[xp + ynoffset] + fx * cidata[xi + ynoffset] +
+              fxn * cidata[xn + ynoffset] + fxn2 * cidata[xn2 + ynoffset];
+            yn2 = fxp * cidata[xp + yn2offset] + fx * cidata[xi + yn2offset] +
+              fxn * cidata[xn + yn2offset] + fxn2 * cidata[xn2 + yn2offset];
+            ival = fyp * yp + fy * y0 + fyn * yn + fyn2 * yn2;
                          
-	  if (ival > maxval)
-	    ival = maxval;
-	  if (ival < minval)
-	    ival = minval;
-	  oldval = cidata[i + joffset];
-	  cidata[i + joffset] = (unsigned short)(ival + 0.5f);
-	}
+            ival = B3DMIN(maxval, ival);
+            ival = B3DMAX(minval, ival);
+            cidata[i + joffset] = (unsigned short)(ival + 0.5f);
+          }
+        }
       }
     }
   }
@@ -2553,10 +2574,26 @@ void SlicerFuncs::resize(int winx, int winy)
 
   /* DNM: send 12 rather than App->mDepth to guarantee shorts */
   mImage   = b3dGetNewCIImageSize(mImage, 12, winx, winy);
+
+  // Allocate buffers for doing RGB 3 times and saving first two channels
+  if (mVi->rgbStore) {
+    B3DFREE(mRedTemp);
+    B3DFREE(mGreenTemp);
+    mRedTemp = B3DMALLOC(unsigned char, winx * winy);
+    mGreenTemp = B3DMALLOC(unsigned char, winx * winy);
+    if (!mRedTemp || !mGreenTemp || !mImage) {
+      B3DFREE(mRedTemp);
+      B3DFREE(mGreenTemp);
+      mRedTemp = NULL;
+      mGreenTemp = NULL;
+      b3dFreeCIImage(mImage);
+      mImage = NULL;
+    }
+  }
   if (!mImage)
     wprint("\aInsufficient memory to run this Slicer window.\n"
            "Try making it smaller or close it.\n");
- 
+
   ivwControlPriority(mVi, mCtrl);
 }
 
@@ -2601,13 +2638,15 @@ void SlicerFuncs::updateImage()
  */
 void SlicerFuncs::paint()
 {
-  int sliceScaleThresh = 4;
+  int i, ival, sliceScaleThresh = 4;
   int mousing = mousePanning + mouseRotating +
     (ImodPrefs->speedupSlider() ? sliderDragging : 0);
   QString qstr;
   if (!mImage)
     return;
 
+  b3dUInt32 *idata = (b3dUInt32 *)mImage->id1;
+  unsigned char *bdata = (unsigned char *)idata;
   GLenum format = GL_COLOR_INDEX;
   GLenum type   = GL_UNSIGNED_SHORT;
   GLint unpack = b3dGetImageType(&type, &format);
@@ -2628,11 +2667,26 @@ void SlicerFuncs::paint()
 
     // If filling array, first assess mean and SD for scaling multiple slices
     // to single slice, then fill array for real and update angles
-    if (!mousing && !mVi->colormapImage && mNslice > sliceScaleThresh)
-      fillImageArray(0, 1);
+    if (!mousing && !mVi->colormapImage && mNslice > sliceScaleThresh && !mVi->rgbStore)
+      fillImageArray(0, 1, 0);
     else if (!mousing)
       mScaleToMeanSD = false;
-    fillImageArray(mousing, 0);
+    fillImageArray(mousing, 0, 0);
+    if (mVi->rgbStore) {
+      for (i = 0; i < mWinx * mWiny; i++)
+        mRedTemp[i] = (unsigned char)idata[i];
+      fillImageArray(mousing, 0, 1);
+      for (i = 0; i < mWinx * mWiny; i++)
+        mGreenTemp[i] = (unsigned char)idata[i];
+      fillImageArray(mousing, 0, 2);
+      for (i = 0; i < mWinx * mWiny; i++) {
+        ival = idata[i];
+        *bdata++ = mRedTemp[i];
+        *bdata++ = mGreenTemp[i];
+        *bdata++ = (unsigned char)ival;
+        *bdata++ = 0;
+      }
+    }
 
     // Keep track of mouse where it was drawn, update slicer angle window
     mDrawnXmouse = mVi->xmouse;
@@ -2955,6 +3009,9 @@ void SlicerFuncs::cubePaint()
 /*
 
 $Log$
+Revision 4.78  2011/03/01 18:39:39  mast
+Added q hot key for measuring distance
+
 Revision 4.77  2011/02/28 20:39:16  mast
 Draw slice lines in zap/xyz after pageUp/Down steps here
 
