@@ -73,6 +73,8 @@ class InfoWindow : public QMainWindow
   void setFontDependentWidths();
   void openSelectedWindows(char *keys);
   void setupAutoContrast();
+  void setInitialHeights();
+  void resizeToHeight(int newHeight);
 
   public slots:
   void fileSlot(int item);
@@ -104,6 +106,7 @@ class InfoWindow : public QMainWindow
   bool mMinimized;
   int mTopTimerID;
   int mAutoTimerID;
+  int mOldFontHeight;
   QProcess *mTrimvolProcess;
   QString mTrimvolOutput;
 };
@@ -112,107 +115,5 @@ class InfoWindow : public QMainWindow
 void MaintainModelName(Imod *mod);
 int imod_info_open();
 
-/*
-    $Log$
-    Revision 3.28  2010/04/01 02:24:57  mast
-    menu option to save info text
-
-    Revision 3.27  2009/01/15 16:33:17  mast
-    Qt 4 port
-
-    Revision 3.26  2008/12/10 01:04:50  mast
-    Added menu item to set jpeg quality
-
-    Revision 3.25  2008/05/27 05:50:28  mast
-    New menu items and autocontrast after delay
-
-    Revision 3.24  2008/02/22 00:33:44  sueh
-    bug# 1076 Added extract menu option, and extract(), and trimvolExited().
-
-    Revision 3.23  2008/01/25 20:22:58  mast
-    Changes for new scale bar
-
-    Revision 3.22  2008/01/13 22:58:35  mast
-    Changes for multi-Z window
-
-    Revision 3.21  2007/11/10 04:07:10  mast
-    Changes for setting snapshot directory
-
-    Revision 3.20  2007/08/13 16:04:50  mast
-    Changes for locator window
-
-    Revision 3.19  2007/07/08 16:47:00  mast
-    Added object combine
-
-    Revision 3.18  2007/05/25 05:28:16  mast
-    Changes for addition of slicer angle storage
-
-    Revision 3.17  2006/09/01 20:49:29  mast
-    Added menu item to flatten contours in object
-
-    Revision 3.16  2005/10/14 22:04:39  mast
-    Changes for Model reload capability
-
-    Revision 3.15  2005/06/26 19:37:24  mast
-    Added fine-grain entries
-
-    Revision 3.14  2004/11/20 05:05:27  mast
-    Changes for undo/redo capability
-
-    Revision 3.13  2004/11/01 23:25:13  mast
-    Added delete surface menu entry
-
-    Revision 3.12  2004/09/21 20:17:11  mast
-    Added menu option to renumber object
-
-    Revision 3.11  2003/06/19 05:48:55  mast
-    Added object break by Z
-
-    Revision 3.10  2003/04/16 18:46:51  mast
-    hide/show changes
-
-    Revision 3.9  2003/04/11 18:56:34  mast
-    switch to watching event types to manage hide/show events
-
-    Revision 3.8  2003/03/28 23:51:10  mast
-    changes for Mac problems
-
-    Revision 3.7  2003/03/26 17:15:31  mast
-    Adjust sizes for font changes
-
-    Revision 3.6  2003/03/24 17:58:09  mast
-    Changes for new preferences capability
-
-    Revision 3.5  2003/03/18 19:30:36  mast
-    Add timer to keep window on top
-
-    Revision 3.4  2003/03/14 15:54:29  mast
-    New function to keep window on top
-
-    Revision 3.3  2003/02/27 19:33:51  mast
-    Add function to manage menus based on current state
-
-    Revision 3.2  2003/02/10 20:41:55  mast
-    Merge Qt source
-
-    Revision 3.1.2.5  2003/01/27 00:30:07  mast
-    Pure Qt version and general cleanup
-
-    Revision 3.1.2.4  2003/01/14 21:49:54  mast
-    add dialog hiding/showing control
-
-    Revision 3.1.2.3  2003/01/13 01:05:05  mast
-    Qt version
-
-    Revision 3.1.2.2  2002/12/19 04:37:13  mast
-    Cleanup of unused global variables and defines
-
-    Revision 3.1.2.1  2002/12/17 21:37:47  mast
-    Move global variable declarations outside extern "C" construct
-
-    Revision 3.1  2002/12/01 15:34:41  mast
-    Changes to get clean compilation with g++
-
-*/
 
 #endif    /* IMOD_INFO_H */

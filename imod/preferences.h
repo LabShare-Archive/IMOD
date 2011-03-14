@@ -99,6 +99,7 @@ typedef struct imod_pref_struct
   TRIPLET(bool, scaleSnapDPI);      // Scale the DPI value up when montaging
   TRIPLET(int, slicerPanKb);        // Maximum KB for slicer panning
   TRIPLET(bool, speedupSlider);     // Apply limit when using sliders too
+  TRIPLET(bool, loadUshorts);       // Load data as ushorts
   TRIPLET(bool, isoHighThresh);     // Set initial threshold above middle
   TRIPLET(int, isoBoxInitial);      // Initial box size
   TRIPLET(int, isoBoxLimit);        // Limit to box size
@@ -184,6 +185,7 @@ class ImodPreferences : public QObject
   void setSnapQuality(int value);
   int slicerPanKb() {return mCurrentPrefs.slicerPanKb;};
   bool speedupSlider() {return mCurrentPrefs.speedupSlider;};
+  bool loadUshorts() {return mCurrentPrefs.loadUshorts;};
   bool isoHighThresh() {return mCurrentPrefs.isoHighThresh;};
   int isoBoxInitial() {return mCurrentPrefs.isoBoxInitial;};
   int isoBoxLimit() {return mCurrentPrefs.isoBoxLimit;};

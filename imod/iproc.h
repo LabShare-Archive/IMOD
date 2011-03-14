@@ -9,7 +9,7 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end
+ *  No more Log
  */
 
 #ifndef BD_IPROC_H_
@@ -119,7 +119,8 @@ typedef struct
   int           procnum;
   int           modified;   /* flag that section data are modified */
   bool          autoApply;  /* Apply automatically when changing ssection */
-
+  int           rangeLow;   /* Low and high range values when image mapped to slice */
+  int           rangeHigh;
   int           threshold;  /* Parameters for individual filters */
   bool          threshGrow;
   bool          threshShrink;
@@ -174,60 +175,3 @@ void iprocUpdate(void);
 void iprocCallWhenFree(void (*func)());
 
 #endif /* BD_IPROC_H_ */
-/*
-    $Log$
-    Revision 3.17  2008/05/28 00:10:14  mast
-    Added callback function
-
-    Revision 3.16  2008/05/27 05:28:52  mast
-    Added autoapply, option for no scaling of smoothing
-
-    Revision 3.15  2007/11/22 20:49:17  mast
-    Added gaussian kernel smoothing
-
-    Revision 3.14  2006/06/24 16:04:23  mast
-    Added button to report frequency
-
-    Revision 3.13  2005/03/23 18:47:29  mast
-    Added threshold grow and shrink states
-
-    Revision 3.12  2005/03/09 21:20:12  mast
-    converted diffusion to floats
-
-    Revision 3.11  2005/01/28 05:39:44  mast
-    Added anisotropic diffusion
-
-    Revision 3.10  2005/01/07 21:59:13  mast
-    Added median filter
-
-    Revision 3.9  2004/11/11 15:55:34  mast
-    Changes to do FFT in a subarea
-
-    Revision 3.8  2004/11/07 23:04:47  mast
-    Changes for thread and FFT stuff
-
-    Revision 3.7  2004/11/04 23:30:55  mast
-    Changes for rounded button style
-
-    Revision 3.6  2004/01/22 19:10:12  mast
-    Added slot for real button press
-
-    Revision 3.5  2004/01/05 18:03:50  mast
-    renamed vw to vi
-
-    Revision 3.4  2003/09/16 02:10:55  mast
-    Added working array because displayed image data cannot be used directly
-
-    Revision 3.3  2003/02/10 20:41:56  mast
-    Merge Qt source
-
-    Revision 3.2.2.2  2003/01/27 00:30:07  mast
-    Pure Qt version and general cleanup
-
-    Revision 3.2.2.1  2003/01/23 19:57:06  mast
-    Qt version
-
-    Revision 3.2  2002/12/01 15:34:41  mast
-    Changes to get clean compilation with g++
-
-*/

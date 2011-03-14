@@ -139,7 +139,7 @@ void b3dDrawGreyScalePixelsSubArea(B3dCIImage *image,
 				   int xtrans, int ytrans,
 				   int llx, int lly,  int urx, int ury,
 				   int base, int zoom,
-				   int *xo, int *yo, int slice);
+                                   int *xo, int *yo, int slice);
 
 
 

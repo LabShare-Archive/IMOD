@@ -94,7 +94,7 @@ class SlicerFuncs {
                         float &transStart, float &transDelta, int &copyDelta,
                         int &fullSize);
   void montageSnapshot(int snaptype);
-  void fillImageArray(int panning, int meanOnly);
+  void fillImageArray(int panning, int meanOnly, int rgbChannel);
 
  public:
   SlicerWindow *mQtWindow;
@@ -119,6 +119,8 @@ class SlicerFuncs {
   int          mShiftLock;    /* toggle button state for shift key or mouse */
 
   B3dCIImage   *mImage;
+  unsigned char *mRedTemp;        /* Arrays to save channels for RGB */
+  unsigned char *mGreenTemp;
   
   int    mWinx, mWiny;
   float  mLx, mLy, mLz;  /* last set point for x, y, z */
@@ -172,7 +174,7 @@ class SlicerFuncs {
 };     
 
 void slicerCubicFillin(unsigned short *cidata, int winx, int winy, int izoom,
-                       int ilimshort, int jlimshort, int minval, int maxval);
+                       int ilimshort, int jlimshort, int minval, int maxval, int intData);
 int sslice_open(struct ViewInfo *vi);
 int slicerAnglesOpen();
 void slicerAnglesClosing();

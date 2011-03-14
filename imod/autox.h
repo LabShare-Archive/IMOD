@@ -5,7 +5,7 @@
  *  Revised by: David Mastronarde   email: mast@colorado.edu
  *
  *  $Id$
- *  Log at end of file
+ *  No more Log
  */
 
 #ifndef AUTOX_H
@@ -41,6 +41,7 @@ typedef struct imod_autox_struct
 {
   ImodView  *vw;            /* image data to model                       */
   unsigned char *data;      /* storage for classification                */
+  unsigned char *byteSlice; /* Storage for byte slice if ushorts loaded  */
   double        shave;      /* min dis. between points.                  */
   int           threshold;  /* segmentation threshold.                   */
   float         threshUsed; /* Threshold to pass to contour generator    */
@@ -83,27 +84,3 @@ void autoxCrampSelected(ImodView *vw);
   void autoxNext();
 
 #endif /* AUTOX_H */
-
-
-/*
-
-  $Log$
-  Revision 3.5  2008/05/27 22:48:59  mast
-  Added function to synchronize color ramp changes
-
-  Revision 3.4  2008/05/27 05:31:33  mast
-  Added member for threshold to sent to contour routine
-
-  Revision 3.3  2003/02/10 20:41:54  mast
-  Merge Qt source
-  
-  Revision 3.2.2.2  2003/01/27 00:30:07  mast
-  Pure Qt version and general cleanup
-  
-  Revision 3.2.2.1  2003/01/14 21:42:44  mast
-  Qt version
-  
-  Revision 3.2  2002/12/01 15:34:41  mast
-  Changes to get clean compilation with g++
-
-*/

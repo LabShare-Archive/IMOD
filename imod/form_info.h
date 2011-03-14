@@ -2,6 +2,9 @@
  *
  *  $Id$
  *  $Log$
+ *  Revision 4.1  2009/01/15 16:33:17  mast
+ *  Qt 4 port
+ *
  *
  */
 #ifndef INFOCONTROLS_H
@@ -33,6 +36,14 @@ class InfoControls : public QWidget, public Ui::InfoControls
   virtual void whitePressed();
   virtual void whiteReleased();
   virtual void displayWhite( int value );
+  virtual void lowChanged( int value );
+  virtual void lowPressed();
+  virtual void lowReleased();
+  virtual void displayLow( int value );
+  virtual void highChanged( int value );
+  virtual void highPressed();
+  virtual void highReleased();
+  virtual void displayHigh( int value );
   virtual void movieModelSelected( int item );
   virtual void floatToggled( bool state );
   virtual void raisePressed();
@@ -42,16 +53,24 @@ class InfoControls : public QWidget, public Ui::InfoControls
   virtual void autoClicked();
   virtual void undoClicked();
   virtual void redoClicked();
-  virtual void setFloat( int state );
-  virtual void setUndoRedo( bool undoOn, bool redoOn );
-  virtual void setBWSliders( int black, int white );
-  virtual void setMovieModel( int which );
-  virtual void updateOCP( int * newVal, int * maxVal );
-  virtual void updateXYZ( int * newVal, int * maxVal );
-  virtual void setObjectColor( QColor foreColor, QColor backColor );
-  virtual void setModelName( char * name );
-  virtual void setImageName( char * name );
-  virtual void setShowPoint( int state );
+
+ public:
+  void setFloat( int state );
+  void setUndoRedo( bool undoOn, bool redoOn );
+  void setBWSliders( int black, int white );
+  void setLHSliders( int low, int high, float smin, float smax, bool showReal );
+  void setLHSliders( int low, int high) {setLHSliders(low, high, mScaleMin, mScaleMax, 
+                                                      mShowLHReal);};
+  void setMovieModel( int which );
+  void updateOCP( int * newVal, int * maxVal );
+  void updateXYZ( int * newVal, int * maxVal );
+  void setObjectColor( QColor foreColor, QColor backColor );
+  void setModelName( char * name );
+  void setImageName( char * name );
+  void setShowPoint( int state );
+  void formatLHvalue(int value);
+  void hideLowHighGrid();
+  int adjustedHeightHint();
 
  protected:
   bool mShowPoint;
@@ -59,9 +78,16 @@ class InfoControls : public QWidget, public Ui::InfoControls
   QLabel *mXYZLabel[3];
   int mDisplayedWhite;
   int mDisplayedBlack;
+  int mDisplayedLow;
+  int mDisplayedHigh;
   bool mCtrlPressed;
   bool mBlackPressed;
   bool mWhitePressed;
+  bool mLowPressed;
+  bool mHighPressed;
+  float mScaleMin;
+  float mScaleMax;
+  bool mShowLHReal;
   int mLastXYZval[3];
   int mLastXYZmax[3];
   int mLastOCPval[3];

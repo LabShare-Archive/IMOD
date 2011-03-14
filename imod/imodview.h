@@ -5,7 +5,7 @@
  *   Colorado.  See implementation file for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
+ *  No more Log
  */                                                                           
 
 #ifndef IMODVIEW_H
@@ -45,12 +45,10 @@ void DLL_EX_IM ivwGetRamp(ImodView *inImodView, int *outRampBase,
 int DLL_EX_IM  ivwGetObjectColor(ImodView *inImodView, int inObject);
 
 /*! Gets the dimensions of the loaded image into [outX], [outY], [outZ] */
-void DLL_EX_IM ivwGetImageSize(ImodView *inImodView, int *outX, int *outY, 
-                               int *outZ);
+void DLL_EX_IM ivwGetImageSize(ImodView *inImodView, int *outX, int *outY, int *outZ);
 
 /*! Gets the current marker point location into [outX], [outY], [outZ] */
-void DLL_EX_IM ivwGetLocation(ImodView *inImodView, int *outX, int *outY,
-                              int *outZ);
+void DLL_EX_IM ivwGetLocation(ImodView *inImodView, int *outX, int *outY, int *outZ);
 
 /*! Gets the current marker point location into [outPoint] */
 void DLL_EX_IM ivwGetLocationPoint(ImodView *inImodView, Ipoint *outPoint);
@@ -94,10 +92,15 @@ char DLL_EX_IM *ivwGetTimeIndexLabel(ImodView *inImodView, int inIndex);
  */
 void DLL_EX_IM ivwSetNewContourTime(ImodView *vw, Iobj *obj, Icont *cont);
 
+/*! Gets the mode of the image data stored in the program.  It will be 0 for bytes,
+  MRC_MODE_USHORT (6) for unsigned shorts, or MRC_MODE_RGB (16) for RGB triplets. */
+int DLL_EX_IM ivwGetImageStoreMode(ImodView *inImodView);
+
 /*!
  * Returns line pointers to loaded image data for the given Z section, 
  * [inSection].  The line pointers are an array of pointers to the data on
- * each line in Y.
+ * each line in Y.  The return value must be cast to (b3dUInt16 **) to use to access 
+ * array values when unsigned shorts are loaded.
  */
 unsigned char DLL_EX_IM **ivwGetZSection(ImodView *inImodView, int inSection);
 
@@ -112,16 +115,30 @@ unsigned char DLL_EX_IM **ivwGetCurrentZSection(ImodView *inImodView);
  */
 unsigned char DLL_EX_IM **ivwGetZSectionTime(ImodView *vi, int section, 
                                              int time);
+/*!
+ * Returns a lookup table for mapping from unsigned short values to bytes based on the 
+ * current setting of the Low and High range sliders.  It calls 
+ * @@mrcfiles.html#get_short_map@, which returns an allocated map that must be freed.
+ */
+unsigned char DLL_EX_IM *ivwUShortInRangeToByteMap(ImodView *inImodView);
+
+/*!
+ * Copies one Z plane of a loaded image with line pointers in [image] as bytes to the
+ * buffer [buf].  If the loaded image is unsigned shorts, it is scaled based on the
+ * current settings of the Low and High range sliders.  Returns 1 for failure to get
+ * a lookup table.
+ */
+int DLL_EX_IM ivwCopyImageToByteBuffer(ImodView *inImodView, unsigned char **image, 
+                                       unsigned char *buf);
 
 /*!
  * Returns grey scale value in memory for given image coordinate [inX],
- * [inY], [inZ]. 
+ * [inY], [inZ].  Works when loaded data are bytes or unsigned shorts, but not RGB.
  */
 int DLL_EX_IM ivwGetValue(ImodView *inImodView, int inX, int inY, int inZ);
 
 /*! Return value from image file. */
-float DLL_EX_IM ivwGetFileValue(ImodView *inImodView, int inX, int inY, 
-                                int inZ);
+float DLL_EX_IM ivwGetFileValue(ImodView *inImodView, int inX, int inY, int inZ);
 
 /*!
  * Reads tilt angles, or any set of floating point values from the text file 
@@ -268,8 +285,7 @@ int DLL_EX_IM ivwGetTopZapMouse(ImodView *inImodView, Ipoint *imagePt);
  * and [imY], and its current Z coordinate in [imZ].  The return value is 1 if
  * there is no top Zap window.
  */
-int DLL_EX_IM ivwGetTopZapCenter(ImodView *inImodView, float &imX, float &imY,
-                                 int &imZ);
+int DLL_EX_IM ivwGetTopZapCenter(ImodView *inImodView, float &imX, float &imY, int &imZ);
 
 /*!
  * Sets the image coordinates at the center of the top Zap window to [imX]
@@ -346,68 +362,3 @@ int DLL_EX_IM prefSaveGenericSettings(char *key, int numVals, double *values);
 int DLL_EX_IM prefGetGenericSettings(char *key, double *values, int maxVals);
 
 #endif
-
-/* 
-
-$Log$
-Revision 1.20  2009/04/28 15:46:13  mast
-Added functions to get and set top zap center
-
-Revision 1.19  2008/08/01 15:37:20  mast
-Added function to set top zap zoom
-
-Revision 1.18  2008/06/20 16:12:22  mast
-Documentation fix
-
-Revision 1.17  2008/05/27 05:44:11  mast
-Added tilt angle reading and access functions
-
-Revision 1.16  2008/04/03 16:14:58  mast
-Documentation change for clearing extra object
-
-Revision 1.15  2008/03/01 01:24:09  mast
-Added wrappers for getting and saving generic settings
-
-Revision 1.14  2008/01/14 19:47:59  mast
-Added new functions for Andrew
-
-Revision 1.13  2007/12/05 15:30:48  mast
-Added DLL_EX_IM for some new functions
-
-Revision 1.12  2007/12/04 22:03:31  mast
-Changes for documentation and exposing selection functions
-
-Revision 1.11  2007/12/04 18:50:54  mast
-Added mouse tracking, extra objects enhancement, and documentation
-
-Revision 1.10  2007/11/27 17:56:57  mast
-Added function to enable stipple drawing
-
-Revision 1.9  2006/07/05 04:16:50  mast
-Added arguments for overlay mode
-
-Revision 1.8  2006/07/03 04:14:21  mast
-Changes for beadfixer overlay mode
-
-Revision 1.7  2006/02/13 05:11:32  mast
-Added function to get movie/mouse mode
-
-Revision 1.6  2005/02/19 01:29:38  mast
-Added function to clear extra object
-
-Revision 1.5  2004/11/20 05:05:27  mast
-Changes for undo/redo capability
-
-Revision 1.4  2004/07/11 18:19:38  mast
-Functions to set time of new contour and get/make contour for adding points
-
-Revision 1.3  2004/05/31 23:10:56  mast
-Added macros for exporting/importing under Windows
-
-Revision 1.2  2004/01/05 17:55:45  mast
-Changes for binning
-
-Revision 1.1  2003/10/01 05:01:01  mast
-Initial creation; declarations pulled from imod.h
-
-*/

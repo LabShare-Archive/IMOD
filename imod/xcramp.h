@@ -3,30 +3,9 @@
  *   Copyright (C) 1995-2002 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.  See implementation file for full copyright notice.
+ *
+ *  $Id$
  */
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-Revision 4.2  2006/08/28 05:14:52  mast
-Added functions for manipulating false color map
-
-Revision 4.1  2003/02/10 20:41:56  mast
-Merge Qt source
-
-Revision 1.1.2.2  2003/01/29 01:45:56  mast
-changes for color index mode
-
-Revision 1.1.2.1  2003/01/26 23:26:40  mast
-Qt version
-
-Revision 3.1  2002/12/01 15:39:50  mast
-Declare extern C if c++
-
-*/
 
 #ifndef XCRAMP_H
 #define XCRAMP_H
@@ -49,13 +28,17 @@ typedef struct xbldrcoloramp
   int    clevel;          /* current level index in use.              */
   int    *blacks;         /* Array of black levels.                   */
   int    *whites;         /* Array of white levels.                   */
+  int    minlevel;        /* Minimum value for ramp */
+  int    maxlevel;        /* Maximum value for ramp */
+  int    mapsize;         /* Number of values being mapped */
 
-  unsigned int   ramp[256];
+  unsigned int  *ramp;
   unsigned char bramp[256];
+  unsigned short *cmap;
 } Cramp;
 
 
-Cramp *xcramp_allinit(int depth, QGLColormap *qCmapPtr,  int low,  int high);
+Cramp *xcramp_allinit(int depth, QGLColormap *qCmapPtr, int low, int high, int ushort);
 int    xcramp_level(Cramp *xcramp, int black, int white);
 int    xcramp_falsecolor(Cramp *xcramp, int flag);
 int    xcramp_reverse(Cramp *xcramp, int flag);

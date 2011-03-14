@@ -5,7 +5,7 @@
  *   Colorado.  See implementation file for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
+ *  No more Log
  */                                                                           
 
 #ifndef XGRAPH_H
@@ -54,6 +54,7 @@ typedef struct imod_xgraph_struct
   float  min, max;
   float  mean;
   int    start;
+  int    end;
   int    ctrl;
   int    closing;
 } GraphStruct;
@@ -123,23 +124,3 @@ protected:
   GraphStruct *mGraph;
 };
 #endif     // XGRAPH_H
-
-/*
-
-$Log$
-Revision 4.3  2007/03/29 04:55:49  mast
-Fixed crash bug when closing window while focus is in edit/spinbox
-
-Revision 4.2  2006/08/24 21:31:39  mast
-New stuff for width, subarea, mean value output
-
-Revision 4.1  2003/02/10 20:41:56  mast
-Merge Qt source
-
-Revision 1.1.2.1  2003/01/10 23:59:59  mast
-Seems to have gotten lost in repository
-
-Revision 1.1.2.1  2003/01/06 15:48:55  mast
-initial creation
-
-*/

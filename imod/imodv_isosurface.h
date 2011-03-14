@@ -1,30 +1,6 @@
-//Added by qt3to4:
-#include <QLabel>
-#include <QKeyEvent>
-#include <QCloseEvent>
 /*  imodv_isosurface.h  -  declarations for imodv_isosurface.cpp
  *
  *  $Id$
- *
- * $Log$
- * Revision 4.11  2011/01/21 17:36:57  mast
- * changes for masking, outer limits, etc.
- *
- * Revision 4.10  2010/03/30 02:22:31  mast
- * Added to thread limit comment
- *
- * Revision 4.9  2009/01/15 16:33:18  mast
- * Qt 4 port
- *
- * Revision 4.8  2008/11/07 23:48:53  xiongq
- * seperate threshold for each stack
- *
- * Revision 4.7  2008/10/02 16:27:00  xiongq
- * add small piece filter, binning, and local XYZ functions
- *
- * Revision 4.6  2008/05/27 18:20:15  mast
- * Limited to 4 threads
- *
  *
  */
 
@@ -107,6 +83,7 @@ class ImodvIsosurface : public DialogFrame
   int mCurrTime;
   int mBoxOrigin[3];
   int mBoxEnds[3];
+  int mRangeLow, mRangeHigh;
   unsigned char *mVolume;
   int mCurrStackIdx; // wihich stack is current;
   std::vector<float> mStackThresholds;

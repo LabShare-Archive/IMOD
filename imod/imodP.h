@@ -131,8 +131,12 @@ typedef struct ViewInfo
   /* Image data scaleing for gray scale images. */
   int    rampbase;
   int    rampsize;
-  int    black;
+  int    black;               /* True values used for scaling (0-255 OR 0-65535*/
   int    white;
+  int    rangeLow;            /* If ints loaded, low and high range sliders (0-65535) */
+  int    rangeHigh;
+  int    whiteInRange;        /* The black/white slider values if ints loaded, 0-255 */
+  int    blackInRange;
 
   /* motion control */
   int movierate;
@@ -192,8 +196,11 @@ typedef struct ViewInfo
   short    rawImageStore; /* the MRC_MODE in which the raw image is stored. 
                            * if not 0, data will be cached.
                            * 0  = unsigned bytes.
+                           * 6  = unsigned shorts.
                            * 16 = color rgb unsigned byte triplets.
                            */
+  int     ushortStore;    /* Convenience flags for these modes */
+  int     rgbStore;
   int     colormapImage;  /* Flag that byte images with colormaps are loaded */
   int     grayRGBs;       /* Flag to load MRC RGBs as gray scale */
   int     multiFileZ;     /* Flag that multiple single-image files are sections
