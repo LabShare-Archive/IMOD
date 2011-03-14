@@ -26,6 +26,8 @@
 #include "iirawimage.h"
 #include "imod_display.h"
 #include "imod_info_cb.h"
+#include "form_info.h"
+#include "imod_info.h"
 #include "imod_io.h"
 #include "imod_edit.h"
 #include "imod_moviecon.h"
@@ -45,8 +47,6 @@ static int ivwManageInitialFlips(ImodView *vi);
 static int ivwCheckLinePtrAllocation(ImodView *vi, int ysize);
 static int ivwCheckBinning(ImodView *vi, int nx, int ny, int nz);
 static void deletePlistBuf(void);
-static bool fixUnderSizeCoords(int size, int nx, int &llx, int &urx, int &offset, 
-                               int &leftPad, int &rightPad);
 
 /* default settings for the view info structure. */
 void ivwInit(ImodView *vi, bool modview)
@@ -85,6 +85,10 @@ void ivwInit(ImodView *vi, bool modview)
   vi->doingInitialLoad = 0;
   vi->black      = 0;
   vi->white      = 255;
+  vi->blackInRange = 0;
+  vi->whiteInRange = 255;
+  vi->rangeLow   = 0;
+  vi->rangeHigh  = 65535;
   vi->fastdraw   = 0;
   vi->dim        = 1+2+4;
   vi->ax         = NULL;
@@ -113,6 +117,8 @@ void ivwInit(ImodView *vi, bool modview)
 
   vi->fakeImage     = 0;
   vi->rawImageStore = 0;
+  vi->ushortStore = 0;
+  vi->rgbStore = 0;
   vi->multiFileZ = 0;
   vi->noReadableImage = 0;
   vi->linePtrs = NULL;
@@ -163,14 +169,18 @@ unsigned char **ivwGetZSectionTime(ImodView *vi, int section, int time)
   int oldTime;
   unsigned char **imageData;
 
-  if (!vi) return NULL;
-  if (!vi->nt) return(ivwGetZSection(vi, section));
-  if (time < 1) return(NULL);
+  if (!vi)
+    return NULL;
+  if (!vi->nt)
+    return(ivwGetZSection(vi, section));
+
   /* DNM: make test > instead of >= */
-  if (time > vi->nt) return(NULL);
+  if (time < 1 || time > vi->nt)
+    return(NULL);
 
   ivwGetTime(vi, &oldTime);
-  if (time == oldTime) return(ivwGetZSection(vi, section));
+  if (time == oldTime) 
+    return(ivwGetZSection(vi, section));
 
   vi->ct = time;
   vi->hdr = vi->image = &vi->imageList[time-1];
@@ -514,27 +524,29 @@ int ivwReadBinnedSection(ImodView *vi, char *buf, int section)
 {
   int xsize, ysize, ix, iy, iz, pixsize, xOffset, leftXpad, rightXpad;
   int yOffset, leftYpad, rightYpad, zOffset, leftZpad, rightZpad;
-  bool blankX, blankY, blankZ;
+  bool blankX, blankY, blankZ = false;
   unsigned char *unbinbuf = NULL;
-  unsigned char *usbuf = (unsigned char *)buf;
-  unsigned char *inbuf, *outbuf;;
-  unsigned char fill;
-  b3dInt16 *binbuf = NULL;
+  unsigned char *ucbuf = (unsigned char *)buf;
+  b3dUInt16 *usbuf = (b3dUInt16 *)buf;
+  unsigned char *inbuf, *outbuf;
+  b3dUInt16 *usin, *usout;
+  unsigned short fill;
+  int *binbuf = NULL;
   ImodImageFile im;
-  size_t xbinned, ybinned, i, numBytes;
+  size_t xbinned, ybinned, xybinned, i, numBytes, numPix;;
   double sum;
 
   pixsize = ivwGetPixelBytes(vi->rawImageStore);
 
   // Copy image structure and adjust load-in coordinates
   im = *(vi->image);
-  blankX  = fixUnderSizeCoords(vi->fullXsize, im.nx / vi->xybin, im.llx, im.urx, xOffset, 
-                               leftXpad, rightXpad);
-  blankY  = fixUnderSizeCoords(vi->fullYsize, im.ny / vi->xybin, im.lly, im.ury, yOffset, 
-                               leftYpad, rightYpad);
+  blankX  = ivwFixUnderSizeCoords(vi->fullXsize, im.nx / vi->xybin, im.llx, im.urx, 
+                                  xOffset, leftXpad, rightXpad);
+  blankY  = ivwFixUnderSizeCoords(vi->fullYsize, im.ny / vi->xybin, im.lly, im.ury,
+                                  yOffset, leftYpad, rightYpad);
   if (!vi->multiFileZ)
-    blankZ  = fixUnderSizeCoords(vi->fullZsize, im.nz / vi->zbin, im.llz, im.urz, zOffset,
-                                 leftZpad, rightZpad);
+    blankZ  = ivwFixUnderSizeCoords(vi->fullZsize, im.nz / vi->zbin, im.llz, im.urz,
+                                    zOffset, leftZpad, rightZpad);
 
   // Adjust the section number appropriately for the axis and see if section exists
   if (!vi->multiFileZ && !(blankX || blankY || blankZ)) {
@@ -550,10 +562,15 @@ int ivwReadBinnedSection(ImodView *vi, char *buf, int section)
   }
 
   // Fill a blank image if any axis is out of range
-  numBytes = (size_t)vi->xsize * (size_t)vi->ysize * pixsize;
+  numPix = (size_t)vi->xsize * (size_t)vi->ysize;
+  numBytes = numPix * pixsize;
   if (blankX || blankY || blankZ) {
-    for (i = 0; i < numBytes; i++)
-      *usbuf++ = 127;
+    if (vi->ushortStore)
+      for (i = 0; i < numPix; i++)
+        *usbuf++ = 32767;
+    else
+      for (i = 0; i < numPix; i++)
+        *buf++ = 127;
     return 0;
   }
 
@@ -561,12 +578,15 @@ int ivwReadBinnedSection(ImodView *vi, char *buf, int section)
   ivwGetFileStartPos(vi->image);
   xbinned = im.urx + 1 - im.llx;
   ybinned = im.axis == 3 ? im.ury + 1 - im.lly : im.urz + 1 - im.llz;
+  xybinned = xbinned * ybinned;
   //imodPrintStderr("xbin %d  ybin %d\n", xbinned, ybinned);
   
   // If there is no binning, just call the raw or byte routines
   if (vi->xybin * vi->zbin == 1) {
-    if (vi->rawImageStore) 
+    if (vi->rgbStore) 
       iiReadSection(&im, buf, section);
+    else if (vi->ushortStore)
+      iiReadSectionUShort(&im, buf, section);
     else
       iiReadSectionByte(&im, buf, section);
   } else {
@@ -582,37 +602,48 @@ int ivwReadBinnedSection(ImodView *vi, char *buf, int section)
     // up binned data if there is Z binning
     xsize = im.urx + 1 - im.llx;
     ysize = im.axis == 3 ? im.ury + 1 - im.lly : im.urz + 1 - im.llz;
-    unbinbuf = (unsigned char *)malloc((size_t)xsize * (size_t)ysize);
+    unbinbuf = (unsigned char *)malloc((size_t)xsize * (size_t)ysize * pixsize);
     if (!unbinbuf)
       return 1;
     if (vi->zbin > 1) {
-      binbuf = (b3dInt16 *)malloc(xbinned * ybinned * sizeof(b3dInt16));
+      binbuf = B3DMALLOC(int, xybinned);
       if (!binbuf) {
         free (unbinbuf);
         return 1;
       }
+      for (i = 0; i < xybinned; i++)
+        binbuf[i] = 0;
     }
 
     // Loop through the unbinned sections to read and bin them into buf
     for (iz = 0; iz < vi->zbin; iz++) {
-      iiReadSectionByte(&im, (char *)unbinbuf, vi->zbin * section + iz);
-      ivwBinByN(unbinbuf, xsize, ysize, vi->xybin, (unsigned char *)buf);
+      if (vi->ushortStore)
+        iiReadSectionUShort(&im, (char *)unbinbuf, vi->zbin * section + iz);
+      else
+        iiReadSectionByte(&im, (char *)unbinbuf, vi->zbin * section + iz);
+      reduceByBinning(unbinbuf, vi->rawImageStore, xsize, ysize, vi->xybin, buf, 1, &ix,
+                      &iy);
 
       // For multiple sections, move or add to the binned buffer
       if (vi->zbin > 1) {
-        if (!iz)
-          for (i = 0; i < xbinned * ybinned; i++)
-            binbuf[i] = usbuf[i];
-        else
-          for (i = 0; i < xbinned * ybinned; i++)
+        if (vi->ushortStore)
+          for (i = 0; i < xybinned; i++)
             binbuf[i] += usbuf[i];
+        else
+          for (i = 0; i < xybinned; i++)
+            binbuf[i] += buf[i];
       }
     }
 
     // And divide binned value into final buffer
-    if (vi->zbin > 1)
-      for (i = 0; i < xbinned * ybinned; i++)
-        usbuf[i] = binbuf[i] / vi->zbin;
+    if (vi->zbin > 1) {
+      if (vi->ushortStore)
+        for (i = 0; i < xybinned; i++)
+          usbuf[i] = binbuf[i] / vi->zbin;
+      else
+        for (i = 0; i < xybinned; i++)
+          buf[i] = binbuf[i] / vi->zbin;
+    }
 
     free(unbinbuf);
     if (binbuf)
@@ -628,32 +659,62 @@ int ivwReadBinnedSection(ImodView *vi, char *buf, int section)
 
     // Get an edge mean for byte data
     fill = 127;
-    if (!vi->rawImageStore) {
+    if (!vi->rgbStore) {
       sum = 0.;
-      for (i = 0; i < xbinned; i++)
-        sum += usbuf[i] + usbuf[i + (ybinned - 1) * xbinned];
-      for (i = 1; i < ybinned - 1; i++)
-        sum += usbuf[i * xbinned] + usbuf[xbinned - 1 + i * xbinned];
+      if (vi->ushortStore) {
+        for (i = 0; i < xbinned; i++)
+          sum += (double)usbuf[i] + usbuf[i + (ybinned - 1) * xbinned];
+        for (i = 1; i < ybinned - 1; i++)
+          sum += (double)usbuf[i * xbinned] + usbuf[xbinned - 1 + i * xbinned];
+      } else {
+        for (i = 0; i < xbinned; i++)
+          sum += (double)ucbuf[i] + ucbuf[i + (ybinned - 1) * xbinned];
+        for (i = 1; i < ybinned - 1; i++)
+          sum += (double)ucbuf[i * xbinned] + ucbuf[xbinned - 1 + i * xbinned];
+      }
       fill = B3DNINT(sum / (2. * (xbinned + ybinned - 2)));
     }
 
-    outbuf = usbuf + numBytes - 1;
-    inbuf = usbuf + xbinned * ybinned * pixsize - 1;
-    // Do fill at end
-    for (i = 0; i < (vi->xsize * rightYpad + rightXpad) * pixsize; i++)
-      *outbuf-- = fill;
+    if (vi->ushortStore) {
+      usout = usbuf + numPix - 1;
+      usin = usbuf + xybinned - 1;
 
-    // For each line, copy data and fill left side and right side of previous line
-    for (iy = ybinned - 1; iy >= 0; iy--) {
-      for (i = 0; i < xbinned * pixsize; i++)
-        *outbuf-- = *inbuf--;
-      for (i = 0; i < (leftXpad + (iy ? rightXpad : 0)) * pixsize; i++)
+      // Do fill at end
+      for (i = 0; i < (vi->xsize * rightYpad + rightXpad); i++)
+        *usout-- = fill;
+
+      // For each line, copy data and fill left side and right side of previous line
+      for (iy = ybinned - 1; iy >= 0; iy--) {
+        for (i = 0; i < xbinned; i++)
+          *usout-- = *usin--;
+        for (i = 0; i < (leftXpad + (iy ? rightXpad : 0)); i++)
+          *usout-- = fill;
+      }
+
+      // Do fill at start
+      for (i = 0; i < (vi->xsize * leftYpad); i++)
+        *usout-- = fill;
+
+    } else {
+      outbuf = ucbuf + numBytes - 1;
+      inbuf = ucbuf + xybinned * pixsize - 1;
+
+      // Do fill at end
+      for (i = 0; i < (vi->xsize * rightYpad + rightXpad) * pixsize; i++)
+        *outbuf-- = fill;
+
+      // For each line, copy data and fill left side and right side of previous line
+      for (iy = ybinned - 1; iy >= 0; iy--) {
+        for (i = 0; i < xbinned * pixsize; i++)
+          *outbuf-- = *inbuf--;
+        for (i = 0; i < (leftXpad + (iy ? rightXpad : 0)) * pixsize; i++)
+          *outbuf-- = fill;
+      }
+
+      // Do fill at start
+      for (i = 0; i < (vi->xsize * leftYpad) * pixsize; i++)
         *outbuf-- = fill;
     }
-
-    // Do fill at start
-    for (i = 0; i < (vi->xsize * leftYpad) * pixsize; i++)
-      *outbuf-- = fill;
   }
   return 0;
 }
@@ -662,8 +723,8 @@ int ivwReadBinnedSection(ImodView *vi, char *buf, int section)
  * Sets up the load-in coordinates for a dimension where an image is not as large
  * as the full size
  */
-static bool fixUnderSizeCoords(int size, int nx, int &llx, int &urx, int &offset, 
-                               int &leftPad, int &rightPad)
+bool ivwFixUnderSizeCoords(int size, int nx, int &llx, int &urx, int &offset, 
+                           int &leftPad, int &rightPad)
 {
   offset = (size - nx) / 2;
   leftPad = rightPad = 0;
@@ -679,6 +740,57 @@ static bool fixUnderSizeCoords(int size, int nx, int &llx, int &urx, int &offset
   }
   return urx < 0 || llx >= nx;
 }
+
+/*
+ * Returns the load-in start and the padding around an image at the given section and 
+ * time value.  The Y value is also needed for flipped data when multifile Z is loaded;
+ * set this < 0 if the offsets are not specific to Y and undefined for multifile Z if 
+ * flipped.  Returns -1 if the * section is out of range for multifile case, or 1 if the 
+ * image is blank.
+ */
+int ivwGetImagePadding(ImodView *vi, int cy, int section, int time, int &llX, 
+                       int &leftXpad, int &rightXpad, int &llY, int &leftYpad,
+                       int &rightYpad, int &llZ, int &leftZpad, int &rightZpad)
+{
+  ImodImageFile im;
+
+  int fz;bool blankX, blankY, blankZ = false;
+
+  // Copy the right image file structure for the situation
+  leftZpad = rightZpad = llZ = 0;
+  if (vi->multiFileZ) {
+    fz = vi->li->axis == 3 ? section : cy;
+      if (fz < 0 || fz >= vi->multiFileZ)
+        return -1;
+      im = vi->imageList[fz];
+  } else
+    im = vi->imageList[B3DMAX(0, time - 1)];
+
+  // Get the padding on each axis
+  blankX = ivwFixUnderSizeCoords(vi->fullXsize, im.nx / vi->xybin, im.llx, im.urx, fz,
+                                 leftXpad, rightXpad);
+  blankY = ivwFixUnderSizeCoords(vi->fullYsize, im.ny / vi->xybin, im.lly, im.ury, fz,
+                                 leftYpad, rightYpad);
+  llX = im.llx;
+  llY = im.lly;
+  if (!vi->multiFileZ) {
+    blankZ = ivwFixUnderSizeCoords(vi->fullZsize, im.nz / vi->zbin, im.llz, im.urz,  fz,
+                                   leftZpad, rightZpad);
+    llZ = im.llz;
+  }
+  
+  // Swap Y and Z padding if flipped
+  if (vi->li->axis == 2) {
+    fz = leftYpad;
+    leftYpad = leftZpad;
+    leftZpad = fz;
+    fz = rightYpad;
+    rightYpad = rightZpad;
+    rightZpad = fz;
+  }
+  return (blankX || blankY || blankZ) ? 1 : 0;
+}
+
 
 #ifdef __linux
 static fpos_t startPos;
@@ -745,7 +857,9 @@ int cache_ivwGetValue(ImodView *vi, int x, int y, int z)
 {
   ivwSlice *tempSlicePtr = 0;
   unsigned char *image;
+  b3dUInt16 *usimage;
   int sl;
+  size_t index;
 
   /* find pixel in cache */
   /* If full cache and flipped, swap y and z */
@@ -761,19 +875,34 @@ int cache_ivwGetValue(ImodView *vi, int x, int y, int z)
     return(0);
 
   tempSlicePtr = &vi->vmCache[sl];
+  index = (size_t)y * (size_t)tempSlicePtr->sec->xsize + x;
 
-  image = tempSlicePtr->sec->data.b;
-  if (!image) return(0);
-     
   /* DNM: calling routine is responsible for limit checks */
-
-  return(image[(y * tempSlicePtr->sec->xsize) + x]);
+  if (vi->ushortStore) {
+    usimage = tempSlicePtr->sec->data.us;
+    if (!usimage)
+      return(0);
+    return(usimage[index]);
+  }
+  image = tempSlicePtr->sec->data.b;
+  if (!image)
+    return(0);
+  return(image[index]);
 }
 
 int fake_ivwGetValue(ImodView *vi, int x, int y, int z)
 {
   return(0);
 }
+
+/* A map that can be used for returned unsigned shorts */
+unsigned char *ivwUShortInRangeToByteMap(ImodView *vi)
+{
+  float slope = 255. / (vi->rangeHigh - vi->rangeLow);
+  float offset = -slope * vi->rangeLow;
+  return (get_short_map(slope, offset, 0, 255, MRC_RAMP_LIN, 0, 0));
+}
+
 
 /*
  * Routines for fast access from slicer, tumbler, and xyz
@@ -783,8 +912,10 @@ int fake_ivwGetValue(ImodView *vi, int x, int y, int z)
 static int imdataxsize;
 static int *vmdataxsize;
 static unsigned char **imdata;
+static b3dUInt16 **usimdata;
 static int imdataMax = 0;
 static int vmnullvalue;
+static int rgbChan;
 
 /* A global variable with the appropriate function - because I had trouble
    returning that from the setup function */
@@ -839,6 +970,102 @@ static int cache_BigGetFlipped(int x, int y, int z)
   return(imdata[y][x + ((size_t)z * (size_t)vmdataxsize[y])]);
 }
 
+static int idata_ChanValue(int x, int y, int z)
+{
+  return(imdata[z][3 * (x + (y * imdataxsize)) + rgbChan]);
+}
+
+static int idata_BigChanValue(int x, int y, int z)
+{
+  return(imdata[z][3 * (x + ((size_t)y * (size_t)imdataxsize)) + rgbChan]);
+}
+
+static int flipped_ChanValue(int x, int y, int z)
+{
+  return(imdata[y][3 * (x + (z * imdataxsize)) + rgbChan]);
+}
+
+static int flipped_BigChanValue(int x, int y, int z)
+{
+  return(imdata[y][3 * (x + ((size_t)z * (size_t)imdataxsize)) + rgbChan]);
+}
+
+static int cache_ChanValue(int x, int y, int z)
+{
+  if (!imdata[z])
+    return(vmnullvalue);
+  return(imdata[z][3 * (x + (y * vmdataxsize[z ])) + rgbChan]);
+}
+
+static int cache_BigChanValue(int x, int y, int z)
+{
+  if (!imdata[z])
+    return(vmnullvalue);
+  return(imdata[z][3 * (x + ((size_t)y * (size_t)vmdataxsize[z ])) + rgbChan]);
+}
+
+static int cache_ChanFlipped(int x, int y, int z)
+{
+  if (!imdata[y])
+    return(vmnullvalue);
+  return(imdata[y][3 * (x + (z * vmdataxsize[y])) + rgbChan]);
+}
+
+static int cache_BigChanFlipped(int x, int y, int z)
+{
+  if (!imdata[y])
+    return(vmnullvalue);
+  return(imdata[y][3 * (x + ((size_t)z * (size_t)vmdataxsize[y])) + rgbChan]);
+}
+
+static int idata_GetUSValue(int x, int y, int z)
+{
+  return(usimdata[z][x + (y * imdataxsize)]);
+}
+
+static int idata_BigGetUSValue(int x, int y, int z)
+{
+  return(usimdata[z][x + ((size_t)y * (size_t)imdataxsize)]);
+}
+
+static int flipped_GetUSValue(int x, int y, int z)
+{
+  return(usimdata[y][x + (z * imdataxsize)]);
+}
+
+static int flipped_BigGetUSValue(int x, int y, int z)
+{
+  return(usimdata[y][x + ((size_t)z * (size_t)imdataxsize)]);
+}
+
+static int cache_GetUSValue(int x, int y, int z)
+{
+  if (!usimdata[z])
+    return(vmnullvalue);
+  return(usimdata[z][x + (y * vmdataxsize[z])]);
+}
+
+static int cache_BigGetUSValue(int x, int y, int z)
+{
+  if (!usimdata[z])
+    return(vmnullvalue);
+  return(usimdata[z][x + ((size_t)y * (size_t)vmdataxsize[z])]);
+}
+
+static int cache_GetUSFlipped(int x, int y, int z)
+{
+  if (!usimdata[y])
+    return(vmnullvalue);
+  return(usimdata[y][x + (z * vmdataxsize[y])]);
+}
+
+static int cache_BigGetUSFlipped(int x, int y, int z)
+{
+  if (!usimdata[y])
+    return(vmnullvalue);
+  return(usimdata[y][x + ((size_t)z * (size_t)vmdataxsize[y])]);
+}
+
 static int fake_GetValue(int x, int y, int z)
 {
   return(0);
@@ -858,6 +1085,7 @@ int ivwSetupFastAccess(ImodView *vi, unsigned char ***outImdata,
 
   *cacheSum = 0;
   bigGets = ((double)vi->xsize) * vi->ysize > 2.e9 ? 1 : 0;
+  rgbChan = 0;
 
   if ((!vi->vmSize || vi->fullCacheFlipped) && vi->li->axis == 2) {
     size = vi->ysize;
@@ -905,10 +1133,22 @@ int ivwSetupFastAccess(ImodView *vi, unsigned char ***outImdata,
     }
     
     vmnullvalue = inNullvalue;
-    if (vi->fullCacheFlipped)
-      ivwFastGetValue = bigGets ? cache_BigGetFlipped : cache_GetFlipped;
-    else
-      ivwFastGetValue = bigGets ? cache_BigGetValue : cache_GetValue;
+    if (vi->ushortStore) {
+      if (vi->fullCacheFlipped)
+        ivwFastGetValue = bigGets ? cache_BigGetUSFlipped : cache_GetUSFlipped;
+      else
+        ivwFastGetValue = bigGets ? cache_BigGetUSValue : cache_GetUSValue;
+    } else if (vi->rgbStore) {
+      if (vi->fullCacheFlipped)
+        ivwFastGetValue = bigGets ? cache_BigChanFlipped : cache_ChanFlipped;
+      else
+        ivwFastGetValue = bigGets ? cache_BigChanValue : cache_ChanValue;
+    } else {
+      if (vi->fullCacheFlipped)
+        ivwFastGetValue = bigGets ? cache_BigGetFlipped : cache_GetFlipped;
+      else
+        ivwFastGetValue = bigGets ? cache_BigGetValue : cache_GetValue;
+    }
 
   } else {
     /* for loaded data, get pointers from idata */
@@ -916,15 +1156,32 @@ int ivwSetupFastAccess(ImodView *vi, unsigned char ***outImdata,
     for (i = 0; i < size; i++)
       imdata[i] = vi->idata[i];
     imdataxsize = vi->xsize;
-    if (vi->li->axis == 3)
-      ivwFastGetValue = bigGets ? idata_BigGetValue : idata_GetValue;
-    else
-      ivwFastGetValue = bigGets ? flipped_BigGetValue : flipped_GetValue;
+    if (vi->ushortStore) {
+      if (vi->li->axis == 3)
+        ivwFastGetValue = bigGets ? idata_BigGetUSValue : idata_GetUSValue;
+      else
+        ivwFastGetValue = bigGets ? flipped_BigGetUSValue : flipped_GetUSValue;
+    } else if (vi->rgbStore) {
+      if (vi->li->axis == 3)
+        ivwFastGetValue = bigGets ? idata_BigChanValue : idata_ChanValue;
+      else
+        ivwFastGetValue = bigGets ? flipped_BigChanValue : flipped_ChanValue;
+    } else {
+      if (vi->li->axis == 3)
+        ivwFastGetValue = bigGets ? idata_BigGetValue : idata_GetValue;
+      else
+        ivwFastGetValue = bigGets ? flipped_BigGetValue : flipped_GetValue;
+    }
   }
   *outImdata = imdata;
+  usimdata = (b3dUInt16 **)imdata;
   return 0;
 }
 
+void ivwSetRGBChannel(int value)
+{
+  rgbChan = B3DMAX(0, B3DMIN(2, value));
+}
 
 /* DNM 1/19/03: eliminated ivwShowstatus in favor of imod_imgcnt */
 
@@ -1016,12 +1273,7 @@ int ivwInitCache(ImodView *vi)
      
   /* get a slice array for each slice, mark each slice as empty */
   for (i = 0; i < vi->vmSize; i++){
-    if (vi->rawImageStore)
-      vi->vmCache[i].sec = sliceCreate
-        (xsize, ysize, vi->hdr->mode);
-    else
-      vi->vmCache[i].sec = sliceCreate
-        (xsize, ysize, MRC_MODE_BYTE);
+    vi->vmCache[i].sec = sliceCreate(xsize, ysize, vi->rawImageStore);
  
     /*  imodPrintStderr("cache %d : %d x %d\n", i, xsize, ysize); */
  
@@ -1044,7 +1296,9 @@ static int ivwSetCacheSize(ImodView *vi)
   int ysize = vi->li->ymax - vi->li->ymin + 1;
   int zsize = vi->li->zmax - vi->li->zmin + 1;
   int dzsize = zsize;
-  int pixSize = ivwGetPixelBytes(vi->hdr->mode);
+
+  // 3/8/11: This was the size of the data in the file!  It needs to be loaded data
+  int pixSize = ivwGetPixelBytes(vi->rawImageStore);
   int i;
 
   if (!xsize || !ysize || !zsize)
@@ -1052,8 +1306,7 @@ static int ivwSetCacheSize(ImodView *vi)
 
   /* If negative size, it is megabytes, convert to sections */
   if (vi->vmSize < 0) {
-    vi->vmSize = (int)((-1000000. * vi->vmSize) / 
-                       (xsize * ysize * pixSize));
+    vi->vmSize = (int)((-1000000. * vi->vmSize) / (xsize * ysize * pixSize));
     if (!vi->vmSize)
       vi->vmSize = 1;
   }
@@ -1303,6 +1556,10 @@ void ivwSetTime(ImodView *vi, int time)
 
   if (!vi->fakeImage){
     vi->hdr = vi->image = &vi->imageList[vi->ct-1];
+    if (vi->ushortStore)
+      ImodInfoWidget->setLHSliders(vi->rangeLow, vi->rangeHigh, vi->image->smin, 
+                                   vi->image->smax, vi-> image->type == IITYPE_FLOAT);
+      
     // ivwSetScale(vi);
 
     ivwReopen(vi->image);
@@ -1420,12 +1677,13 @@ float ivwGetFileValue(ImodView *vi, int cx, int cy, int cz)
   /* cx, cy, cz are in model file coords. */
   /* fx, fy, fz are in image file coords. */
   /* px, py, pz are in piece list coords. */
-  int fx, fy, fz;
+  int fx, fy, fz, llx, lly, llz, xpad, ypad, zpad;
   FILE *fp = NULL;
   MrcHeader *mrcheader = NULL;
 
-  if (!vi->image)
+  if (!vi->image || cz < 0 || cz >= vi->zsize)
     return 0.0f;
+
   if ((vi->image->file != IIFILE_MRC && vi->image->file != IIFILE_RAW) ||
       vi->noReadableImage) {
     if (!vi->rawImageStore)
@@ -1439,14 +1697,18 @@ float ivwGetFileValue(ImodView *vi, int cx, int cy, int cz)
   if (vi->li){
 
     /* get to index values in file from screen index values */
+    if (ivwGetImagePadding(vi, cy, cz, vi->ct, llx, xpad, fx, lly, ypad, fy, llz, 
+                           zpad, fz) < 0)
+        return 0.;
+
     /* DNM 7/13/04: changed to apply ymin, zmin after switching y and z */
-    fx = cx + vi->li->xmin;
+    fx = cx + llx - xpad;
     if (vi->li->axis == 3) {
-      fy = cy + vi->li->ymin;
-      fz = cz + vi->li->zmin;
+      fy = cy + lly - ypad;
+      fz = cz + llz - zpad;
     } else {
-      fy = cz + vi->li->ymin;
-      fz = cy + vi->li->zmin;
+      fy = cz + lly - zpad;
+      fz = cy + llz - ypad;
     }
 
     /* For multi-file sections in Z, make sure z is legal, reopen the right
@@ -1547,6 +1809,30 @@ void memLineCpy
     fb += fxsize * psize;
   }
 }
+
+/* Copies a loaded Z plane to a byte buffer */
+int ivwCopyImageToByteBuffer(ImodView *vi, unsigned char **image, unsigned char *buf)
+{
+  unsigned char *bmap = NULL;
+  b3dUInt16 **usimage = (b3dUInt16 **)image;
+  int i, j;
+  if (vi->ushortStore) {
+    bmap = ivwUShortInRangeToByteMap(vi);
+    if (!bmap)
+      return 1;
+  }
+  for (j = 0; j < vi->ysize; j++) {
+    if (bmap)
+      for (i = 0; i < vi->xsize; i++)
+        *buf++ = bmap[usimage[j][i]];
+    else
+      for (i = 0; i < vi->xsize; i++)
+        *buf++ = image[j][i];
+  }
+  B3DFREE(bmap);
+  return 0;
+}
+
 
 /* DNM: scan through all contours and set wild flag if Z is not the 
    same throughout.  But 4/20/06: base it on nearest integer. */
@@ -1918,7 +2204,6 @@ int ivwLoadIMODifd(ImodView *vi)
       /* DNM: set up scaling for this image, leave last file in hdr/image */
       if (image->file == IIFILE_RAW && !image->amin && !image->amax)
         iiRawScan(image);
-      iiSetMM(image, vi->li->smin, vi->li->smax);
       vi->hdr = vi->image = image;
       iiClose(image);
 
@@ -1991,7 +2276,6 @@ void ivwMultipleFiles(ImodView *vi, char *argv[], int firstfile, int lastimage)
     /* set up scaling for this image, scanning if needed */
     if (image->file == IIFILE_RAW && !image->amin && !image->amax)
       iiRawScan(image);
-    iiSetMM(image, vi->li->smin, vi->li->smax);
 
     /* Anyway, leave last file in vi->hdr/image */
     vi->fp = image->fp;
@@ -2062,7 +2346,7 @@ int ivwLoadImage(ImodView *vi)
   vi->doingInitialLoad = 1;
      
   /* Set up the cache and load it for a variety of conditions */
-  if (vi->li->plist || vi->nt || vi->multiFileZ || vi->vmSize) {
+  if (vi->li->plist || vi->nt || vi->multiFileZ || vi->vmSize || vi->ushortStore) {
 
     /* DNM: only one mode won't work now; just exit in either case */
     if (vi->hdr->mode == MRC_MODE_COMPLEX_SHORT){
@@ -2130,7 +2414,7 @@ int ivwLoadImage(ImodView *vi)
   return (ivwManageInitialFlips(vi));
 }
 
-/* Process an image list and set up the cache and do initial load */
+/* Process an image list and determine sizes and types of files */
 static int ivwProcessImageList(ImodView *vi)
 {
   ImodImageFile *image;
@@ -2139,7 +2423,7 @@ static int ivwProcessImageList(ImodView *vi)
   FILE *fp;
   int xsize, ysize, zsize, i, midy, midz;
   float naysum, zratio, mratio, smin, smax;
-  int rgbs = 0, cmaps = 0;
+  int rgbs = 0, cmaps = 0, allByte = 1, allCanReadInt = 1;
 
   if (!ilist->size)
     return -1;
@@ -2154,6 +2438,11 @@ static int ivwProcessImageList(ImodView *vi)
       smin = image->smin;
       smax = image->smax;
     }
+
+    if (image->format != IIFORMAT_LUMINANCE || image->type != IITYPE_UBYTE) 
+      allByte = 0;
+    if (!image->readSectionUShort)
+      allCanReadInt = 0;
 
     // See if mirroring of an FFT is needed:
     // MRC complex float odd size and not forbidden by option
@@ -2213,6 +2502,30 @@ static int ivwProcessImageList(ImodView *vi)
       cmaps++;
   }     
 
+  // Cancel integer loading if all files are bytes or there is color loading
+  if (allByte || rgbs || cmaps)
+    vi->rawImageStore = 0;
+  if (vi->rawImageStore == MRC_MODE_USHORT && !App->rgba) {
+    imodError(NULL, "3DMOD Error: You can not store data as integers with the "
+              "-ci option.\n");
+    exit(3);
+  }
+  if (vi->rawImageStore == MRC_MODE_USHORT && !allCanReadInt) {
+    imodError(NULL, "3DMOD Error: -I option cannot be used because some files cannot be"
+              " read from as integers.\n");
+    exit(3);
+  }
+  
+  // And now the color ramps can be initialized and other flags set
+  if (vi->rawImageStore == MRC_MODE_USHORT) {
+    App->rgba = 2;
+    vi->ushortStore = 1;
+    vi->white = 65535;
+    vi->li->outmax = 65535;
+  } else
+    ImodInfoWidget->hideLowHighGrid();
+  imod_color_init(App);
+
   /* Deal with color files */
   if (rgbs || cmaps) {
     if ((rgbs && rgbs < ilist->size) || (cmaps && cmaps < ilist->size)) {
@@ -2234,6 +2547,7 @@ static int ivwProcessImageList(ImodView *vi)
     if (rgbs) {
       App->rgba = 3;
       vi->rawImageStore = MRC_MODE_RGB;
+      vi->rgbStore = 1;
     } else {
       vi->colormapImage = 1;
       vi->cramp->falsecolor = 2;
@@ -2241,14 +2555,14 @@ static int ivwProcessImageList(ImodView *vi)
     }
   }
 
-  /* Implement equal scaling of intensities */
-  if (vi->equalScaling) {
-    for (i = 0; i < ilist->size; i++) {
-      image = (ImodImageFile *)ilistItem(ilist, i);
+  /* Set the scaling including equal scaling of intensities */
+  for (i = 0; i < ilist->size; i++) {
+    image = (ImodImageFile *)ilistItem(ilist, i);
+    if (vi->equalScaling) {
       vi->li->smin = smin;
       vi->li->smax = smax;
-      iiSetMM(image, smin, smax);
     }
+    iiSetMM(image, vi->li->smin, vi->li->smax, vi->ushortStore ? 65535. : 255.);
   }
 
   if (!vi->li->plist) {
@@ -2329,6 +2643,9 @@ static int ivwProcessImageList(ImodView *vi)
       ivwReopen(vi->image);
     }
   }
+  if (vi->ushortStore)
+    ImodInfoWidget->setLHSliders(vi->rangeLow, vi->rangeHigh, vi->image->smin, 
+                                 vi->image->smax, vi-> image->type == IITYPE_FLOAT);
           
   ilistDelete(ilist);
   return 0;
@@ -2400,11 +2717,10 @@ static int ivwCheckBinning(ImodView *vi, int nx, int ny, int nz)
   if (vi->zbin > nz)
     vi->zbin = nz;
 
-  // Forbid binning for raw images
-  if (vi->rawImageStore && vi->xybin * vi->zbin > 1) {
-    vi->xybin = 1;
+  // Forbid z binning for RGB images
+  if (vi->rgbStore && vi->zbin > 1) {
     vi->zbin = 1;
-    wprint("\a\nBinning cannot be used with RGB data.\n");
+    wprint("\a\nBinning in Z cannot be used with RGB data.\n");
   }
 
   // forbid Z binning for multifile Z or montage
@@ -2523,6 +2839,11 @@ void ivwGetImageSize(ImodView *inImodView, int *outX, int *outY, int *outZ)
   *outX = inImodView->xsize;
   *outY = inImodView->ysize;
   *outZ = inImodView->zsize;
+}
+
+int ivwGetImageStoreMode(ImodView *vi)
+{
+  return vi->rawImageStore;
 }
 
 int ivwGetMovieModelMode(ImodView *vw)
@@ -2904,6 +3225,22 @@ int  ivwGetObjectColor(ImodView *inImodView, int inObject)
   return(objIndex);
 }
 
+// Set the black and white levels from the values stored in a model, adjusting as needed
+void ivwSetBlackWhiteFromModel(ImodView *vi)
+{
+  vi->black = vi->imod->blacklevel;
+  vi->white = vi->imod->whitelevel;
+  if (vi->ushortStore) {
+    if (vi->black < 256 && vi->white < 256) {
+      vi->black *= 256;
+      vi->white *= 256;
+    }
+  } else if (vi->black > 255 || vi->white > 255) {
+    vi->black /= 256;
+    vi->white /= 256;
+  }
+}
+
 /* Bin an array by the binning factor */
 void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin, 
                       unsigned char *brray)
@@ -2994,6 +3331,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 /*
 
 $Log$
+Revision 4.90  2011/03/08 05:32:52  mast
+Load maximum instead of minimum size for multiple volumes and center smaller ones
+
 Revision 4.89  2011/02/28 20:25:36  mast
 Allow user exit during large montage load
 
