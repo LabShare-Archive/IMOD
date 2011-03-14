@@ -337,7 +337,7 @@ void LocatorGL::paintGL()
      mWinx, mWiny); */
   b3dDrawGreyScalePixelsHQ(imageData, mVi->xsize, mVi->ysize, 0, 0,
                            mXborder, mYborder, mVi->xsize, mVi->ysize, mImage,
-                           mVi->rampbase, mZoom, mZoom, 0, mSection, 
+                           mVi->rampbase, mZoom, mZoom, 1, mSection, 
                            App->rgba);
 
   // Get limits and draw the locator box
@@ -436,6 +436,9 @@ void LocatorGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 1.10  2010/04/01 02:41:48  mast
+Called function to test for closing keys, or warning cleanup
+
 Revision 1.9  2009/03/30 18:26:20  mast
 Call function to raise on mouse press if needed
 
