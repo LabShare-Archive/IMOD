@@ -57,17 +57,14 @@ Additional documentation is at <ftp://ftp.sgi.com/graphics/tiff/doc>
 #define vsnprintf _vsnprintf
 #endif
 
-static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
-                       int byte);
-static void copyLine(unsigned char *bdata, unsigned char *obuf, int xout,
-                     int byte, int pixsize, int type, int format, int samples,
-                     float slope, float offset, int doscale,
-                     unsigned char *map);
+static int ReadSection(ImodImageFile *inFile, char *buf, int inSection, int convert);
+static void copyLine(unsigned char *bdata, unsigned char *obuf, int xout, int byte,
+                     int toShort, int pixsize, int type, int format, int samples,
+                     float slope, float offset, int doscale, unsigned char *map);
 static TIFF *openWithoutBMode(ImodImageFile *inFile);
 static int setMatchingDirectory(ImodImageFile *inFile, int dirnum);
 static void closeWithError(ImodImageFile *inFile, char *message);
-typedef void (*TIFFWarningHandler)(const char *module, const char *fmt,
-                                   va_list ap);
+typedef void (*TIFFWarningHandler)(const char *module, const char *fmt, va_list ap);
 
 static TIFFWarningHandler oldHandler = NULL;
 static void warningHandler(const char *module, const char *fmt, va_list ap);
@@ -203,6 +200,7 @@ int iiTIFFCheck(ImodImageFile *inFile)
 
   /* 11/22/08: define this for all types, not just for 3-sample data */
   inFile->readSection = tiffReadSection;
+  inFile->readSectionUShort = tiffReadSectionUShort;
   inFile->readSectionByte = tiffReadSectionByte;
 
   if (bits == 8) {
@@ -215,6 +213,7 @@ int iiTIFFCheck(ImodImageFile *inFile)
       inFile->format = IIFORMAT_RGB;
       inFile->mode   = MRC_MODE_RGB;
       inFile->readSectionByte = NULL;
+      inFile->readSectionUShort = NULL;
     } else if (photometric == PHOTOMETRIC_PALETTE) {
 
       /* For palette images, define as colormap, better send byte reading
@@ -464,8 +463,7 @@ static void closeWithError(ImodImageFile *inFile, char *message)
 /* DNM 11/18/01: Added ability to read tiles, made tiffReadSection and 
    tiffReadSectionByte call a common routine to reduce duplicate code */
 
-static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
-                       int byte)
+static int ReadSection(ImodImageFile *inFile, char *buf, int inSection, int convert)
 {
   int nstrip, si, plane, sampOffset;
   int xout, xcopy;
@@ -476,14 +474,17 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
   int xstart, xend, ystart, yend, y, ofsin;
   size_t ofsout;
   int doscale;
+  int byte = convert == 1 ? 1: 0;
+  int toShort = convert == 2 ? 1: 0;
   float slope = inFile->slope;
   float offset = inFile->offset;
   int outmin = 0;
-  int outmax = 255;
+  int outmax = toShort ? 65535 : 255;
+  float eps = toShort ? 0.005 / 256. : 0.005;
   int stripsize;
   int xmin, xmax, ymin, ymax;
   int pixsize = 1;
-  int movesize = 1;
+  int movesize = toShort ? 2 : 1;
   unsigned char *obuf;
   unsigned char *tmp = NULL;
   unsigned char *bdata;
@@ -496,7 +497,7 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
   TIFF* tif = (TIFF *)inFile->header;
   if (inFile->axis == 2)
     return -1;
-  if (byte && (inFile->format != IIFORMAT_LUMINANCE))
+  if (convert && (inFile->format != IIFORMAT_LUMINANCE))
     return -1;
   if (!tif)
     iiReopen(inFile);
@@ -518,8 +519,8 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
     ymax = inFile->ury;
   xout = xmax + 1 - xmin;
   doscale = (offset <= -1.0 || offset >= 1.0 || 
-             slope < 0.995 || slope > 1.005);
-     
+             slope < 1. - eps || slope > 1. + eps) ? 1 : 0;
+       
   row = inSection / (inFile->planesPerImage * samples);
   setMatchingDirectory(inFile, row);
   plane = inSection % inFile->planesPerImage;
@@ -527,19 +528,21 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
   
   /* Set up pixsize which is the number of bytes in the input data, and 
      movesize which is number of bytes of output.  Also get scale maps */
-  if (byte) {
+  if (convert) {
     if (inFile->type == IITYPE_SHORT) {
       pixsize = 2;
       map = get_short_map(slope, offset, outmin, outmax, MRC_RAMP_LIN, 0, 1);
       freeMap = 1;
     } else if (inFile->type == IITYPE_USHORT) {
       pixsize = 2;
-      map = get_short_map(slope, offset, outmin, outmax, MRC_RAMP_LIN, 0, 0);
-      freeMap = 1;
+      if (byte || doscale) {
+        map = get_short_map(slope, offset, outmin, outmax, MRC_RAMP_LIN, 0, 0);
+        freeMap = 1;
+      }
     } else if (inFile->type == IITYPE_FLOAT || inFile->type == IITYPE_INT ||
                inFile->type == IITYPE_UINT) {
       pixsize = 4;
-    } else if (doscale)
+    } else if (toShort || doscale)
       map = get_byte_map(slope, offset, outmin, outmax);
   } else {
     if (inFile->format == IIFORMAT_RGB)
@@ -594,7 +597,7 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
         ofsout = movesize * (size_t)(y - ymin) * (size_t)xout;
         obuf = (unsigned char *)buf + ofsout;
         bdata = tmp + ofsin;
-        copyLine(bdata, obuf, xout, byte, pixsize, inFile->type, 
+        copyLine(bdata, obuf, xout, byte, toShort, pixsize, inFile->type, 
                  inFile->format, samples, slope, offset, doscale, map);
       }    
     }
@@ -656,7 +659,7 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
             ((size_t)(y - ymin) * (size_t)xout + xstart - xmin);
           obuf = (unsigned char *)buf + ofsout;
           bdata = tmp + ofsin;
-          copyLine(bdata, obuf, xcopy, byte, pixsize, inFile->type,
+          copyLine(bdata, obuf, xcopy, byte, toShort, pixsize, inFile->type,
                    inFile->format, samples, slope, offset, doscale, map);
         }
       }               
@@ -672,31 +675,41 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
 /*
  * Copy one line of data appropriately for the data type and conversion
  */
-static void copyLine(unsigned char *bdata, unsigned char *obuf, int xout,
-                     int byte, int pixsize, int type, int format, int samples,
-                     float slope, float offset, int doscale,
-                     unsigned char *map)
+static void copyLine(unsigned char *bdata, unsigned char *obuf, int xout, int byte,
+                     int toShort, int pixsize, int type, int format, int samples,
+                     float slope, float offset, int doscale, unsigned char *map)
 {
   b3dUInt16 *usdata;
   b3dUInt32 *uldata;
   b3dInt32 *ldata;
   b3dFloat *fdata;
-  int i, j;
+  b3dUInt16 *usmap = (b3dUInt16 *)map;
+  b3dUInt16 *usobuf = (b3dUInt16 *)obuf;
+  int outmax = toShort ? 65535 : 255;
+  int i, j, ival;
 
-  if (byte) {
+  if (byte || toShort) {
 
     /* Converted data */
     if (pixsize == 1) {
       
       /* Bytes */
       if (samples == 1) {
-        if (doscale)
+        if (toShort)
+          for (i = 0; i < xout; i++)
+            *usobuf++ = usmap[*bdata++];
+        else if (doscale)
           for (i = 0; i < xout; i++)
             *obuf++ = map[*bdata++];
         else
           memcpy(obuf, bdata, xout);
       } else {
-        if (doscale) 
+        if (toShort)
+          for (i = 0; i < xout; i++) {
+            *usobuf++ = usmap[*bdata];
+            bdata += samples;
+          }
+        else if (doscale) 
           for (i = 0; i < xout; i++) {
             *obuf++ = map[*bdata];
             bdata += samples;
@@ -713,55 +726,70 @@ static void copyLine(unsigned char *bdata, unsigned char *obuf, int xout,
       /* Integers */
       usdata = (b3dUInt16 *)bdata;
       if (samples == 1) {
-        for (i = 0; i < xout; i++)
-          *obuf++ = map[*usdata++];
+        if (toShort && map) 
+          for (i = 0; i < xout; i++)
+            *usobuf++ = usmap[*usdata++];
+        else if (toShort) 
+          for (i = 0; i < xout; i++)
+            *usobuf++ = *usdata++;
+        else 
+          for (i = 0; i < xout; i++)
+            *obuf++ = map[*usdata++];
       } else {
-        for (i = 0; i < xout; i++) {
-          *obuf++ = map[*usdata];
-          usdata += samples;
-        }
+        if (toShort && map) 
+          for (i = 0; i < xout; i++) {
+            *usobuf++ = usmap[*usdata];
+            usdata += samples;
+          }
+        else if (toShort)
+          for (i = 0; i < xout; i++) {
+            *usobuf++ = *usdata;
+            usdata += samples;
+          }
+        else
+          for (i = 0; i < xout; i++) {
+            *obuf++ = map[*usdata];
+            usdata += samples;
+          }
       }
       
     } else if (type == IITYPE_INT) {
 
       /* Long ints */
       ldata = (b3dInt32 *)bdata;
-      if (samples == 1) {
-        for (i = 0; i < xout; i++)
-          *obuf++ = slope * (*ldata++) + offset;
-      } else {
-        for (i = 0; i < xout; i++) {
-          *obuf++ = slope * (*ldata) + offset;
-          ldata += samples;
-        }
+      for (i = 0; i < xout; i++) {
+        ival = slope * (*ldata) + offset;
+        if (toShort)
+          *usobuf++ = B3DMAX(0, B3DMIN(outmax, ival));
+        else
+          *obuf++ = B3DMAX(0, B3DMIN(outmax, ival));
+        ldata += samples;
       }
 
     } else if (type == IITYPE_UINT) {
 
       /* Unsigned Long ints */
       uldata = (b3dUInt32 *)bdata;
-      if (samples == 1) {
-        for (i = 0; i < xout; i++)
-          *obuf++ = slope * (*uldata++) + offset;
-      } else {
-        for (i = 0; i < xout; i++) {
-          *obuf++ = slope * (*uldata) + offset;
-          uldata += samples;
-        }
+      for (i = 0; i < xout; i++) {
+        ival = slope * (*uldata) + offset;
+        if (toShort)
+          *usobuf++ = B3DMAX(0, B3DMIN(outmax, ival));
+        else
+          *obuf++ = B3DMAX(0, B3DMIN(outmax, ival));
+        uldata += samples;
       }
 
     } else {
       
       /* Floats */
       fdata = (b3dFloat *)bdata;
-      if (samples == 1) {
-        for (i = 0; i < xout; i++)
-                *obuf++ = slope * (*fdata++) + offset;
-      } else {
-        for (i = 0; i < xout; i++) {
-          *obuf++ = slope * (*fdata) + offset;
-          fdata += samples;
-        }
+      for (i = 0; i < xout; i++) {
+        ival = (int)(slope * (*fdata) + offset);
+        if (toShort)
+          *usobuf++ = B3DMAX(0, B3DMIN(outmax, ival));
+        else
+          *obuf++ = B3DMAX(0, B3DMIN(outmax, ival));
+        fdata += samples;
       }
     }
   } else {
@@ -794,6 +822,11 @@ static void copyLine(unsigned char *bdata, unsigned char *obuf, int xout,
 int tiffReadSectionByte(ImodImageFile *inFile, char *buf, int inSection)
 { 
   return(ReadSection(inFile, buf, inSection, 1));
+}
+
+int tiffReadSectionUShort(ImodImageFile *inFile, char *buf, int inSection)
+{ 
+  return(ReadSection(inFile, buf, inSection, 2));
 }
 
 int tiffReadSection(ImodImageFile *inFile, char *buf, int inSection)
@@ -1033,6 +1066,9 @@ int tiffVersion(int *minor)
 
 /*
   $Log$
+  Revision 3.25  2011/01/29 15:59:29  mast
+  Fixed test for output file size to include data size
+
   Revision 3.24  2010/12/21 05:28:40  mast
   Added quality argument to tiff writing
 
