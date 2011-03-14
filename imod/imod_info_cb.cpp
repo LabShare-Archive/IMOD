@@ -39,8 +39,11 @@
 #include "control.h"
 #include "finegrain.h"
 
-static void getSampleLimits(ViewInfo *vw, int &ixStart, int &iyStart, 
-                            int &nxUse, int &nyUse, float &sample);
+static void getSampleLimits(ViewInfo *vi, int &ixStart, int &iyStart, 
+                            int &nxUse, int &nyUse, float &sample, int section, int time);
+static int infoSliderInRangeToLevel(int slider, int low, int high);
+static int infoLevelToSliderInRange(int level, int low, int high);
+static int infoLevelToSlider(ImodView *vi, int level);
 
 /* Global variable: the forbid level, hope to eliminate */
 int ImodForbidLevel = 0;
@@ -131,11 +134,12 @@ void imodInfoNewXYZ(int *values)
 void imodInfoNewBW(int which, int value, int dragging)
 {
   int white, black;
+  ImodView *vi = App->cvi;
   int float_save = float_on;
 
   // THIS IS REALLY SCARY UNLESS WE ASSERT THE SLIDERS BACK
   if (ImodForbidLevel) {
-    ImodInfoWidget->setBWSliders(App->cvi->black, App->cvi->white);
+    ImodInfoWidget->setBWSliders(vi->blackInRange, vi->whiteInRange);
     return;
   }
 
@@ -145,24 +149,29 @@ void imodInfoNewBW(int which, int value, int dragging)
 
   // Keep the sliders from crossing
   if (which) {
-    white = value;
-    black = App->cvi->black;
-    if (black > white) {
+    vi->whiteInRange = value;
+    white = imodInfoSliderToLevel(vi, value);
+    black = vi->black;
+    if (black > white || vi->blackInRange > vi->whiteInRange) {
       black = white;
-      ImodInfoWidget->setBWSliders(black, white);
+      vi->blackInRange = vi->whiteInRange;
+      ImodInfoWidget->setBWSliders(vi->blackInRange, vi->whiteInRange);
     }
   } else {
-    white = App->cvi->white;
-    black = value;
-    if (black > white) {
+    vi->blackInRange = value;
+    white = vi->white;
+    black = imodInfoSliderToLevel(vi, value);
+    if (black > white || vi->blackInRange > vi->whiteInRange) {
       white = black;
-      ImodInfoWidget->setBWSliders(black, white);
+      vi->whiteInRange = vi->blackInRange;
+      ImodInfoWidget->setBWSliders(vi->blackInRange, vi->whiteInRange);
     }
   }
 
-  xcramp_setlevels(App->cvi->cramp,black,white);
-  App->cvi->black = black;
-  App->cvi->white = white;
+  //imodPrintStderr("Setting black %d white  %d\n", black, white);
+  xcramp_setlevels(vi->cramp,black,white);
+  vi->black = black;
+  vi->white = white;
 
   /* Set the float flag to false to prevent this change from being 
      undone in a redraw */
@@ -170,6 +179,74 @@ void imodInfoNewBW(int which, int value, int dragging)
   imod_info_setbw(black, white);
   float_on = float_save;
 }
+
+void imodInfoNewLH(int which, int value, int dragging)
+{
+  int low, high;
+  ImodView *vi = App->cvi;
+  int float_save = float_on;
+
+  // Exit if there is not a hot slider active
+  if (dragging && !ImodPrefs->hotSliderActive(ctrlPressed))
+    return;
+
+  // Keep the sliders from crossing
+  if (which) {
+    high = value;
+    low = vi->rangeLow;
+    if (high <= low) {
+      low = high - 1;
+      ImodInfoWidget->setLHSliders(low, high);
+    }
+  } else {
+    low = value;
+    high = vi->rangeHigh;
+    if (high <= low) {
+      high = low + 1;
+      ImodInfoWidget->setLHSliders(low, high);
+    }
+  }
+
+  vi->rangeLow = low;
+  vi->rangeHigh = high;
+  vi->black = imodInfoSliderToLevel(vi, vi->blackInRange);
+  vi->white = imodInfoSliderToLevel(vi, vi->whiteInRange);
+  //imodPrintStderr("Setting black %d white  %d\n", vi->black, vi->white);
+  xcramp_setlevels(vi->cramp,vi->black,vi->white);
+  float_on = FALSE;
+  imod_info_setbw(vi->black, vi->white);
+  float_on = float_save;
+}
+
+/* 
+ * Functions for getting from black/white slider to true black and white values with
+ * current or given low and high range settings
+ */
+int infoSliderInRangeToLevel(int slider, int low, int high)
+{
+  return B3DNINT(slider * (high - low) / 255. + low);
+}
+
+int infoLevelToSliderInRange(int level, int low, int high)
+{
+  return B3DNINT((255. * (level - low)) / B3DMAX(1,(high - low)));
+}
+
+int imodInfoSliderToLevel(ImodView *vi, int slider)
+{
+  if (!vi->ushortStore)
+    return slider;
+  return infoSliderInRangeToLevel(slider, vi->rangeLow, vi->rangeHigh);
+}
+
+int infoLevelToSlider(ImodView *vi, int level)
+{
+  if (!vi->ushortStore)
+    return level;
+  int slider = infoLevelToSliderInRange(level, vi->rangeLow, vi->rangeHigh);
+  return B3DMAX(0, B3DMIN(255, slider));
+}
+
 
 /*
  * Float button, movie-model mode, ctrl key, and quit
@@ -373,14 +450,42 @@ static float clearedMean, clearedSD = -1., clearedBlack, clearedWhite;
  */
 void imod_info_setbw(int black, int white)
 {
-  static int oblack = 0;
-  static int owhite = 255;
+  static int oblack = -1;
+  static int owhite = -1;
+  static int oLow = -1;
+  static int oHigh = -1;
+  ImodView *vi = App->cvi;
   int changed = FALSE;
+  int spread = 0;
+  bool rangeChanged = vi->ushortStore && (oLow != vi->rangeLow || oHigh != vi->rangeHigh);
 
-  if (oblack != black || owhite != white){
+  if (oblack != black || owhite != white || rangeChanged) {
     oblack = black;
     owhite = white;
-    ImodInfoWidget->setBWSliders(black, white);
+    if (vi->ushortStore) {
+      if (black < vi->rangeLow) {
+        spread = 1;
+        vi->rangeLow = black;
+      }
+      if (white > vi->rangeHigh) {
+        spread = 1;
+        vi->rangeHigh = white;
+      }
+      if (spread)
+        if (imodDebug('i'))
+          imodPrintStderr("imod_info_setbw spread low high %d %d\n", vi->rangeLow,
+                          vi->rangeHigh);
+      if (spread || rangeChanged)
+        ImodInfoWidget->setLHSliders(vi->rangeLow, vi->rangeHigh);
+      oLow = vi->rangeLow;
+      oHigh = vi->rangeHigh;
+    }
+    vi->blackInRange = infoLevelToSlider(vi, black);
+    vi->whiteInRange = infoLevelToSlider(vi, white);
+    if (imodDebug('i'))
+      imodPrintStderr("imod_info_setbw bl %d wh %d binr %d winr %d\n", black, white,
+                      vi->blackInRange, vi->whiteInRange);
+    ImodInfoWidget->setBWSliders(vi->blackInRange, vi->whiteInRange);
     changed = TRUE;
   }
 
@@ -407,40 +512,79 @@ void imod_info_setbw(int black, int white)
 
 // Get the limits for sampling: if we are not using subset floating or if
 // there is no useful data from a zap window, use the whole image
-static void getSampleLimits(ViewInfo *vw, int &ixStart, int &iyStart, 
-                            int &nxUse, int &nyUse, float &sample)
+static void getSampleLimits(ViewInfo *vi, int &ixStart, int &iyStart, 
+                            int &nxUse, int &nyUse, float &sample, int section, int time)
 {
   float matt = 0.05;
-  if (!float_subsets || zapSubsetLimits(vw, ixStart, iyStart, nxUse, nyUse)) {
-    ixStart = (int)(matt * vw->xsize);
-    nxUse = vw->xsize - 2 * ixStart;
-    iyStart = (int)(matt * vw->ysize);
-    nyUse = vw->ysize - 2 * iyStart;
+  int llX, leftXpad, rightXpad, llY, leftYpad, rightYpad, llZ, leftZpad, rightZpad;
+
+  if (!float_subsets || zapSubsetLimits(vi, ixStart, iyStart, nxUse, nyUse)) {
+    ixStart = (int)(matt * vi->xsize);
+    nxUse = vi->xsize - 2 * ixStart;
+    iyStart = (int)(matt * vi->ysize);
+    nyUse = vi->ysize - 2 * iyStart;
   }
   sample = 10000.0/(((double)nxUse) * nyUse);
   if (sample > 1.0)
     sample = 1.0;
+
+  // Constrain to real image if there are multiple images and caller wants it
+  if (time < 0 || (!vi->multiFileZ && time <= 0))
+    return;
+
+  // Get extent of padded region in image
+  if (ivwGetImagePadding(vi, -1, section, time, llX, leftXpad, rightXpad, llY, leftYpad,
+                         rightYpad, llZ, leftZpad, rightZpad))
+    return;
+
+  if (imodDebug('i'))
+    imodPrintStderr("lxpad %d rxpad %d lypad %d rypad %d\n", leftXpad, rightXpad,
+                    leftYpad,rightYpad);
+  // Change a limit in X or Y to remove padding if new limit has some pixels
+  if (leftXpad || leftYpad || rightXpad || rightYpad)
+    imodInfoLimitSubarea(leftXpad, vi->xsize - rightXpad, leftYpad, vi->ysize - rightYpad,
+                         ixStart, iyStart, nxUse, nyUse);
 }
+
+// Limits a subarea in X or Y by padding coordinates if it leaves some pixels
+void imodInfoLimitSubarea(int leftXpad, int rightX, int leftYpad, int rightY,
+                         int &ixStart, int &iyStart, int &nxUse, int &nyUse)
+{
+  int iEnd;
+  iEnd = B3DMIN(nxUse + ixStart, rightX);
+  if (B3DMAX(ixStart, leftXpad) < iEnd - 4) {
+    ixStart = B3DMAX(ixStart, leftXpad);
+    nxUse = iEnd - ixStart;
+  }
+  iEnd = B3DMIN(nyUse + iyStart, rightY);
+  if (B3DMAX(iyStart, leftYpad) < iEnd - 4) {
+    iyStart = B3DMAX(iyStart, leftYpad);
+    nyUse = iEnd - iyStart;
+  }
+}
+
 
 /* Implements floating; i.e. adjusting of sliders according to changes in the
    mean and SD between images 
    Returns 0 if nothing was changed, or 1 if black/white levels changed */
-int imod_info_bwfloat(ImodView *vw, int section, int time)
+int imod_info_bwfloat(ImodView *vi, int section, int time)
 {
   float sample;
   int i, newwhite, newblack, err1;
   int needsize, iref, isec;
-  int ixStart, iyStart, nxUse, nyUse;
+  int ixStart, iyStart, nxUse, nyUse, jxStart, jyStart, mxUse, myUse;
   float sloperatio, tmp_black, tmp_white, refMean, refSD;
   unsigned char **image;
   int retval = 0;
+  int sampleType = vi->ushortStore ? 2 : 0;
+  int rangeMax = vi->ushortStore ? 65535 : 255;
 
   // Skip through if this is the first call; there is no reference
-  if (float_on && last_section >= 0 && !vw->fakeImage && !vw->rawImageStore) {
+  if (float_on && last_section >= 0 && !vi->fakeImage && !vi->rgbStore) {
 
     /* Make sure table exists and is the right size */
-    tdim = ivwGetMaxTime(vw) + 1;
-    needsize = vw->zsize * tdim;
+    tdim = ivwGetMaxTime(vi) + 1;
+    needsize = vi->zsize * tdim;
     if (table_size == 0)
       secData = (MeanSDData *)malloc(needsize * sizeof(MeanSDData));
     else if (table_size != needsize)
@@ -464,9 +608,9 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
     if (time > 0 && last_time == 0)
       last_time = 1;
 
-    // Get the limits for sampling and if they do not match the last limits
+    // Get generic limits for sampling and if they do not match the last limits
     // then set up to recompute the mean/sd
-    getSampleLimits(vw, ixStart, iyStart, nxUse, nyUse, sample);
+    getSampleLimits(vi, ixStart, iyStart, nxUse, nyUse, sample, 0, -1);
     iref = tdim * last_section + last_time;
     isec = tdim * section + time;
 
@@ -497,17 +641,19 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
             nxUse != secData[iref].nxUse || nyUse != secData[iref].nyUse) &&
            (section != last_section || time != last_time || 
             float_subsets != last_subsets))) {
-        image = ivwGetZSectionTime(vw, last_section, last_time);
-        err1 = sampleMeanSD(image, 0, vw->xsize, vw->ysize, sample,
-                            ixStart, iyStart, nxUse, nyUse, 
+        image = ivwGetZSectionTime(vi, last_section, last_time);
+        getSampleLimits(vi, jxStart, jyStart, mxUse, myUse, sample, last_section, 
+                        last_time);
+        err1 = sampleMeanSD(image, sampleType, vi->xsize, vi->ysize, sample,
+                            jxStart, jyStart, mxUse, myUse, 
                             &secData[iref].mean, &secData[iref].sd);
         if (!err1 && secData[iref].sd < 0.1)
           secData[iref].sd = 0.1;
         
         /* Adjust for compressed data in 8-bit CI mode */
         if (!err1 && App->depth == 8)
-          secData[iref].mean = (secData[iref].mean - vw->rampbase) * 256. /
-            vw->rampsize;
+          secData[iref].mean = (secData[iref].mean - vi->rampbase) * 256. /
+            vi->rampsize;
       }
 
       // Otherwise, take existing data as the reference - allows change
@@ -519,15 +665,16 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
     if (!err1 && (secData[isec].sd < 0. || ixStart != secData[isec].ixStart || 
         iyStart != secData[isec].iyStart || 
         nxUse != secData[isec].nxUse || nyUse != secData[isec].nyUse)) {
-      image = ivwGetZSectionTime(vw, section, time);
-      err1 = sampleMeanSD(image, 0, vw->xsize, vw->ysize, sample,
-                          ixStart, iyStart, nxUse, nyUse, 
+      image = ivwGetZSectionTime(vi, section, time);
+      getSampleLimits(vi, jxStart, jyStart, mxUse, myUse, sample, section, time);
+      err1 = sampleMeanSD(image, sampleType, vi->xsize, vi->ysize, sample,
+                          jxStart, jyStart, mxUse, myUse, 
                           &secData[isec].mean, &secData[isec].sd);
       if (!err1 && secData[isec].sd < 0.1)
         secData[isec].sd = 0.1;
       if (!err1 && App->depth == 8)
-	secData[isec].mean = (secData[isec].mean - vw->rampbase) * 256. /
-          vw->rampsize;
+	secData[isec].mean = (secData[isec].mean - vi->rampbase) * 256. /
+          vi->rampsize;
     }
 	       
     if (!err1) {
@@ -554,22 +701,22 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
          that will be used to keep track of consistent contrast setting */
       newblack = (int)floor(tmp_black + 0.5);
       newwhite = (int)floor(tmp_white + 0.5);
-      newblack = B3DMAX(0, B3DMIN(newblack, 255));
-      newwhite = B3DMAX(newblack, B3DMIN(newwhite, 255));
+      newblack = B3DMAX(0, B3DMIN(newblack, rangeMax));
+      newwhite = B3DMAX(newblack, B3DMIN(newwhite, rangeMax));
       if (imodDebug('i')) {
-        int meanmap = (int)(255 * (secData[isec].mean - newblack) / 
+        int meanmap = (int)(rangeMax * (secData[isec].mean - newblack) / 
                             B3DMAX(1, newwhite - newblack));
-        float sdmap = 255 * (secData[isec].sd) / B3DMAX(1,newwhite - newblack);
+        float sdmap = rangeMax * (secData[isec].sd) / B3DMAX(1,newwhite - newblack);
         imodPrintStderr("mean = %d  sd = %.2f\n", meanmap, sdmap);
       }
 
       /* Set the sliders and the ramp if the integer values changed*/
-      if (newwhite != vw->white || newblack != vw->black) {
-        vw->black = newblack;
-        vw->white = newwhite;
-        xcramp_setlevels(vw->cramp, vw->black, vw->white);
+      if (newwhite != vi->white || newblack != vi->black) {
+        vi->black = newblack;
+        vi->white = newwhite;
+        xcramp_setlevels(vi->cramp, vi->black, vi->white);
 	doingFloat = 1;
-        imod_info_setbw(vw->black, vw->white);
+        imod_info_setbw(vi->black, vi->white);
 	doingFloat = 0;
         retval = 1;
       }
@@ -644,12 +791,14 @@ void imod_info_float_clear(int section, int time)
 // Change the contrast to meet the target mean and SD
 void imodInfoAutoContrast(int targetMean, int targetSD)
 {
-  float mean, sd;
-  int black, white, floatSave, loop, nloop;
+  float mean, sd, scaleLo, scaleHi;
+  int black, white, floatSave, loop, nloop, low, high;
   B3dCIImage *image = NULL;
   float sample, wbdiff;
-  int ixStart, iyStart, nxUse, nyUse, nxim, nyim;
+  int ixStart, iyStart, nxUse, nyUse, nxim, nyim, ierr;
   unsigned char **lines = NULL;
+  ImodView *vi = App->cvi;
+  int rampMax = vi->ushortStore ? 65535 : 255;
   ZapFuncs *zap = getTopZapWindow(false);
   nloop = 1;
 
@@ -673,18 +822,19 @@ void imodInfoAutoContrast(int targetMean, int targetSD)
         lines = makeLinePointers(image->id2, nxim, nyim, 4);
       if (!lines)
         return;
+
       sample = B3DMIN(1., 10000.0/(((double)nxUse) * nyUse));
-      nxim = sampleMeanSD(lines, 9, nxim, nyim, sample, ixStart, iyStart, nxUse, nyUse,
+      ierr = sampleMeanSD(lines, 9, nxim, nyim, sample, ixStart, iyStart, nxUse, nyUse,
                           &mean, &sd);
       //imodPrintStderr("%d %f %f %f\n", nxim, sample, mean, sd);
       free(lines);
-      if (nxim)
+      if (ierr)
         return;
 
-      wbdiff = (App->cvi->white - App->cvi->black) * sd / targetSD;
+      wbdiff = (vi->white - vi->black) * sd / targetSD;
       if (wbdiff) {
         black = B3DNINT((wbdiff / 255.) * 
-                        (((255. * App->cvi->black) / (App->cvi->white - App->cvi->black) 
+                        (((255. * vi->black) / (vi->white - vi->black) 
                           + mean) * targetSD / sd - targetMean));
         white = black + B3DNINT(wbdiff);
       } else {
@@ -693,23 +843,53 @@ void imodInfoAutoContrast(int targetMean, int targetSD)
     } else {
 
       // Otherwise get the mean of the current image
-      if (imodInfoCurrentMeanSD(mean, sd))
+      if (imodInfoCurrentMeanSD(mean, sd, scaleLo, scaleHi))
         return;
       black = B3DNINT(mean - sd * targetMean / targetSD);
       white = B3DNINT(mean + sd * (255 - targetMean) / targetSD);
+      if (vi->ushortStore) {
+
+        // Just change range values without setting them because setbw will take care
+        // of them, or not, as needed
+        vi->rangeLow = scaleLo;
+        vi->rangeHigh = scaleHi;
+        if (imodDebug('i'))
+          imodPrintStderr("low high from pctstretch %d %d\n", vi->rangeLow,vi->rangeHigh);
+      }
     }
 
-    black = B3DMIN(255, B3DMAX(0, black));
-    white = B3DMIN(255, B3DMAX(0, white));
+    black = B3DMIN(rampMax, B3DMAX(0, black));
+    white = B3DMIN(rampMax, B3DMAX(0, white));
     if (white - black < 4) {
-      nxim = (white + black) / 2;
-      black = B3DMAX(0, nxim - 2);
-      white = B3DMIN(255, nxim + 2);
+      ierr = (white + black) / 2;
+      black = B3DMAX(0, ierr - 2);
+      white = B3DMIN(rampMax, ierr + 2);
     }
-    App->cvi->black = black;
-    App->cvi->white = white;
-    //imodPrintStderr("Setting %d %d\n", black, white);
-    xcramp_setlevels(App->cvi->cramp, black, white);
+    vi->black = black;
+    vi->white = white;
+    if (vi->ushortStore) {
+      if (vi->rangeLow > B3DMAX(0, black - 1024) || 
+          vi->rangeHigh < B3DMIN(65535, white + 1024)) {
+        vi->rangeLow = B3DMIN(vi->rangeLow, B3DMAX(0, black - 1024));
+        vi->rangeHigh = B3DMAX(vi->rangeHigh, B3DMIN(65535, white + 1024));
+        if (imodDebug('i'))
+          imodPrintStderr("low high spread to exceed black/white %d %d\n",  vi->rangeLow,
+                          vi->rangeHigh);
+      }
+      low = black - (white - black) / 2;
+      high = low + 2 * (white - black);
+      low = B3DMAX(0, low);
+      high = B3DMIN(65536, high);
+      if (low < high && high - low < vi->rangeHigh - vi->rangeLow) {
+        vi->rangeLow = low;
+        vi->rangeHigh = high;
+        if (imodDebug('i'))
+          imodPrintStderr("low high to stretch bw sliders %d %d\n", low, high);
+      }
+    }
+    if (imodDebug('i'))
+      imodPrintStderr("Setting %d %d\n", black, white);
+    xcramp_setlevels(vi->cramp, black, white);
     floatSave = float_on;
     float_on = 0;
     imod_info_setbw(black, white);
@@ -718,21 +898,37 @@ void imodInfoAutoContrast(int targetMean, int targetSD)
 }
 
 // Return the mean and Sd of the current image, potentially a subarea
-int imodInfoCurrentMeanSD(float &mean, float &sd)
+int imodInfoCurrentMeanSD(float &mean, float &sd, float &scaleLo, float &scaleHi)
 {
   float sample;
   int ixStart, iyStart, nxUse, nyUse;
   unsigned char **image;
   ViewInfo *vi = App->cvi;
+  float pctLo = 0.1f, pctHi = 0.1f;  // Take fixed limits for now
 
   // Get the limits to compute within, get images, get the mean & sd
-  getSampleLimits(vi, ixStart, iyStart, nxUse, nyUse, sample);
-  image = ivwGetZSectionTime(vi, (int)floor(vi->zmouse + 0.5), vi->ct);
+  getSampleLimits(vi, ixStart, iyStart, nxUse, nyUse, sample, B3DNINT(vi->zmouse),
+                  vi->ct);
+  image = ivwGetZSectionTime(vi, B3DNINT(vi->zmouse), vi->ct);
   if (!image)
     return 1;
-  if (sampleMeanSD(image, 0, vi->xsize, vi->ysize, sample,
+  if (sampleMeanSD(image, vi->ushortStore ? 2 : 0, vi->xsize, vi->ysize, sample,
                     ixStart, iyStart, nxUse, nyUse, &mean, &sd))
     return 1;
+
+  scaleLo = mean - 3. * sd;
+  scaleHi = mean * 3. * sd;
+  if (vi->ushortStore) {
+    percentileStretch(image, SLICE_MODE_USHORT, vi->xsize, vi->ysize, sample,
+                      ixStart, iyStart, nxUse, nyUse, pctLo, pctHi, &scaleLo, &scaleHi);
+    scaleLo = B3DMAX(0., scaleLo);
+    scaleHi = B3DMIN(65535., scaleHi);
+    if ((int)scaleLo >= (int)scaleHi - 1) {
+      scaleLo = 0.5 * (scaleLo + scaleHi) - 1.;
+      scaleLo = B3DMAX(0, B3DMIN(65533., scaleLo));
+      scaleHi = scaleLo + 2.;
+    }
+  }
   /* imodPrintStderr("%d %d %d %d %.2f %.2f\n", ixStart, iyStart, nxUse,
      nyUse, mean, sd); */
 
@@ -888,6 +1084,9 @@ void imod_imgcnt(const char *string)
 /*
 
 $Log$
+Revision 4.44  2011/03/08 05:36:02  mast
+turn off float for RGB images
+
 Revision 4.43  2011/03/04 23:02:03  mast
 Prevented autocontrast from producing wild or very narrow ranges, stabilized
 the zoomdown autocontrast by running first with loaded data
