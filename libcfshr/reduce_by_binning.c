@@ -4,6 +4,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 1.4  2010/07/07 22:38:51  mast
+ * Added support for RGB images
+ *
  * Revision 1.3  2010/06/26 18:01:32  mast
  * Fixed test for keepByte value
  *
@@ -66,8 +69,6 @@ int reduceByBinning(void *array, int type, int nxin, int nyin, int nbin,
   b3dFloat *fdata = (b3dFloat *)brray;
   b3dFloat *fline1, *fline2, *fline3, *fline4;
 
-  if (type != SLICE_MODE_BYTE && type != SLICE_MODE_RGB && keepByte)
-    return 1;
   if (type != SLICE_MODE_BYTE && type != SLICE_MODE_SHORT && 
       type != SLICE_MODE_USHORT && type != SLICE_MODE_FLOAT && 
       type != SLICE_MODE_RGB)
