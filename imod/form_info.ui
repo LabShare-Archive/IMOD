@@ -137,7 +137,7 @@
         <enum>Qt::NoFocus</enum>
        </property>
        <property name="toolTip" >
-        <string>Show current point when changing object, contour, or point</string>
+        <string>Show current point when changing object or contour with spin boxes below</string>
        </property>
        <property name="text" >
         <string>Show</string>
