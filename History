@@ -1,5 +1,27 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/15/11: 3dmod can now store data internally as 16-bit integers, and a second
+pair of sliders in the Info window set the range of data that are displayed.
+Slicer, Zap, and XYZ windows work directly with the integer data; other
+components like isosurfacing scale the range to bytes.
+ - Scaled histogram in Graph window to exclude values out of the range 0-256
+ and fixed occasional problem in scaling a contour graph.
+ - Made Slicer display color images.
+ - Fixed the cache limit when it is specified in megabytes so it is now
+ corresponds to the memory usage in 3dmod and not the size of the data in the
+ file.
+ - Added a help page for the Info window.
+ - Made Locator window use high quality zoomed down display.
+ - Fixed problems caused by ability to adjust contrast of color images, which
+ was added in 4.2.15: disabled float and autocontrast and fixed Bead Fixer overlay
+ display to avoid double contrast adjustment.
+
+3/7/11: 3dmod will now display multiple image files of different sizes at the
+largest size, centering smaller volumes within the display.  Autocontrasting
+tries to ignore the padding region.
+
+3/7/11: XYZ window can now display color images.
+
 3/4/11: Added environment variable IMOD_NO_IMAGE_BACKUP to prevent programs
 from backing up and existing an image file by adding ~ to the name.
 
