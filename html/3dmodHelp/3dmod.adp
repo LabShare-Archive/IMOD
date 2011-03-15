@@ -13,6 +13,7 @@
   <section ref="./startup.html" title="3dmod Startup Window"/>
   <section ref="./index.html" title="Menu, Hot Key, Mouse Actions">
     <section ref="./menus.html" title="Info Window Menus"/>
+    <section ref="./infowin.html" title="Info Window Controls"/>
     <section ref="./keyboard.html" title="3dmod Hot Keys"/>
     <section ref="./modvMenus.html" title="Model View Menus"/>     
     <section ref="./modvKeyboard.html" title="Model View Hot Keys"/>

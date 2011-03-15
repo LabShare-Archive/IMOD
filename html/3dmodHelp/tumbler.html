@@ -6,7 +6,18 @@ The tumbler window displays a projected view of a rectangular portion
 of the image volume.  The subset is initially a small cube but the size 
 can be changed with the X, Y and Z spin button controls.  The volume 
 can be rotated with the keypad arrow keys just as in 3dmodv.
-
+<P>
+The intensity adjustment of the projected image may not work very.  If the
+image appears saturated, spread out the <B>Black</B> and <b>White</b> sliders
+in the <A HREF="infowin.html">Information window</A>.
+<P>
+If data have been loaded into the program as 16-bit integers instead of bytes,
+they are first converted to bytes using the scaling determined by the
+the <B>Low</B> and <B>High</B> sliders in the Info window.  For best results,
+be sure that the <B>Low</B> and <B>High</B> sliders are set so that images
+have a good contrast with a
+fairly wide range between the <B>Black</B> and <b>White</b> sliders.
+<P>
 <H3>Toolbar Controls</H3>
 The <B>zoom</B> spin box lets you increase, decrease, or type in a zoom 
 factor.

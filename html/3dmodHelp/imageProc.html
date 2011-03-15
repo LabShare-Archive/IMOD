@@ -11,6 +11,18 @@ section.  Note that many of these filters can be applied to a whole image
 stack through the
 <A HREF = "../man/clip.html">Clip</A> program.
 <P>
+<P>
+Image data are always analyzed as 8-bit bytes, even when they have been loaded
+into the program as 16-bit integers.  In the latter case, the current setting
+of the <B>Low</B> and <B>High</B> sliders in
+the <A HREF="infowin.html">Information window</A> determines how data are
+scaled to bytes.  For best results, be sure that the <B>Low</B>
+and <B>High</B> sliders are set so that images have a good contrast with a
+fairly wide range between the <B>Black</B> and <b>White</b> sliders.
+Using the autocontrast function generally leaves the sliders in positions that
+will allow good scaling when processing.
+
+<P>
 <BR><A HREF = "#General">General Controls</A>
 <BR><A HREF = "#FourierFilter">Fourier Filtering</A>
 <BR><A HREF = "#FFT">Fourier Transforms</A>

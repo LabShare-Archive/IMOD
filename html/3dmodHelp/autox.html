@@ -20,13 +20,26 @@ If you are in High Contrast mode, you should turn off the <B>Float</B> button
 in the 3dmod Information window unless you want the threshold from change when
 you go from section to section.
 <P>
+Image data are always analyzed as 8-bit bytes, even when they have been loaded
+into the program as 16-bit integers.  In the latter case, the current setting
+of the <B>Low</B> and <B>High</B> sliders in
+the <A HREF="infowin.html">Information window</A> determines how data are
+scaled to bytes.  For best results, be sure that the <B>Low</B>
+and <B>High</B> sliders are set so that images have a good contrast with a
+fairly wide range between the <B>Black</B> and <b>White</b> sliders.
+Using the autocontrast function generally leaves the sliders in positions that
+will allow good scaling for autocontouring.  Note that the threshold setting
+changes it meaning when the <B>Low</B> and <B>High</B> sliders are changed.
+<P>
 If you find that you can obtain usable contours with this approach, you can
 run the same operation on a defined region of the image stack using
 <A HREF = "../man/imodauto.html">Imodauto</A>.  A given threshold should have
 the same effect with that program as in this window, provided that data are
 loaded with the same intensity scaling.  The scaling will be the same by
 default, but if you set the scaling when loading data into 3dmod, you will
-need to use the same scaling when running Imodauto.
+need to use the same scaling when running Imodauto.  However, if data are
+loaded into the program as 16-bit integers, use the setting of the <B>Low</B>
+and <B>High</B> sliders as the scaling values when running Imodauto.
 <P>
 Smoother contours may be obtained by applying smoothing in the 
 <A HREF = "imageProc.html">image processing

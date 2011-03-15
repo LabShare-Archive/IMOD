@@ -13,14 +13,16 @@ The model filename
 is optional; if 3dmod is called without a model file it will create 
 a new model.  
 The user can load new model files using a menu 
-selection once 3dmod is running.  If the model file does not already
+selection once 3dmod is running.  The model must be in the IMOD model format. 
+If the model file does not already
 exist, 3dmod will create a new model under that name.  The image files
 may also be omitted, in which case 3dmod will draw the model on top of
 blank images.  A file containing a list of image files can be used in
 place of the image file names on the command line.  If multiple
 files of different sizes
 are loaded, then the size of the display in each dimension will be
-limited to the minimum size of the various files.
+set to the maximum size of the various files, with smaller images centered in
+the display.
 If 3dmod is invoked
 with options but no filenames, then a dialog window will open to allow
 selection of an image file.  If 3dmod is invoked with no options or
@@ -28,8 +30,8 @@ filenames, or with the
 .B -O
 option, then a startup dialog will open to allow options to
 be set.
-
-The model must be in the IMOD model format.  Images can be in the MRC
+.P
+ Images can be in the MRC
 image format; in the TIFF format, if the appropriate TIFF library is
 available; in any of the formats supported by the Qt image-reading
 function, which include JPEG, PNG, PPM, and BMP; or in a raw format where
@@ -53,14 +55,24 @@ and
 .B -H
 or through a dialog box that is brought up when a 
 file is encountered that cannot be read by other means.
-
+.P
+By default, all gray-scale data are scaled into 8-bit bytes when they are read
+into program memory, but the 
+.B -I
+option or a preference setting can be used to have data scaled into 16-bit
+integers instead.  The use of this option is discussed further below.  
+Color images are stored as sets of three bytes for the red, green, and blue channels.
+.P
 When multiple files are read
 in, they usually do not need to be the same mode or even the same format.
 The exceptions are that
 if any file is an RGB file, all files must be, and if any file has a colormap,
 all files must.  Images are loaded
 into an image cache under certain circumstances: whenever more than one
-file is specified, when montaged data are loaded, or when you enter the
+file is specified, when montaged data are loaded, when files other than
+MRC-like are loaded, when data are loaded as integers instead of bytes with the
+.B -I 
+option, or when you enter the
 .B -C
 option to limit the size of the cache.
 By default, the cache will be fully loaded upon
@@ -165,7 +177,8 @@ for no binning in Z.
 The 
 .B -s
 option will scale image intensities linearly so that the min and max values
-will be displayed as black (0) and white (255) on the screen.  Without this
+will be stored as 0 and 255, respectively, in program memory (or as 0 and
+65535 whe loading data as integers).  Without this
 option, intensities are scaled between the minimum and maximum intensities in
 the image file.  If you have multiple image files, enter 0,0 to have all files
 scaled the same, based on the overall minimum and maximum of all of the files.
@@ -173,6 +186,20 @@ Images can be rescaled after 3dmod is running using the
 menu entry Edit-Image-Reload.  If raw image files are being read, entering 
 this option will set the scaling limits for these files and prevent them from
 being scanned for their minimum and maximum values.
+.TP -I <0 or 1>
+This option controls whether images are stored in program memory as 16-bit
+integers instead of bytes.  The entered number overrides the default loading method
+selected in the 3dmod Preferences dialog.  Enter 1 to load data as integers,
+or 0 to load data as bytes after you have set the default to be integers.
+The option will have no effect when loading color images or when all files
+being loaded contain bytes.  When data are stored as integers, some parts of
+the program operate directly on the integer values (e.g., Zap, Slicer, and XYZ
+windows).  However, the Tumbler, autocontouring, image processing, the Line
+Tracker, isosurfacing, and image display in the Model View window all operate
+on byte values.  The scaling from integers to bytes is determined by the
+setting of the Low and High sliders in the Information window described
+below.  See the help pages of these individual windows for more information
+about the implications of this scaling.
 .TP
 .B -xyz
 This option causes the initial image window to be the
@@ -540,6 +567,13 @@ A       Autocontrast (see
 .I Auto Button
 below.)
 .fi
+.TP
+.I Low and High Sliders.
+When data are stored in the program as 16-bit integers instead of bytes,
+contrast is controlled as well by two additional sliders, Low and High.  These
+sliders determine an initial scaling of the stored data into the range 0 to
+255, while the Black and White sliders perform their usual function of setting
+the scaling from that range to the displayed intensities.
 .TP
 .I The Float Checkbox.
 When this box is checked, 3dmod will attempt to maintain comparable image

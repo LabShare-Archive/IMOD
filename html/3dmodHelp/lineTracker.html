@@ -11,6 +11,14 @@ This Plugin also has a Contour Copying function which will copy the current
 contour onto an adjacent section (the section being displayed) then adjust the
 position of the contour to match the image on that section.  It uses kernels
 that are shaped like the contour.
+<P>
+Image data are always analyzed as 8-bit bytes, even when they have been loaded
+into the program as 16-bit integers.  In the latter case, the current setting
+of the <B>Low</B> and <B>High</B> sliders in
+the <A HREF="infowin.html">Information window</A> determines how data are
+scaled to bytes.  For best results, be sure that the <B>Low</B>
+and <B>High</B> sliders are set so that images have a good contrast with a
+fairly wide range between the <B>Black</B> and <b>White</b> sliders.
 <H3>Hot Keys</H3>
 <UL>
 <LI>Space bar to add points between the last and the current point
