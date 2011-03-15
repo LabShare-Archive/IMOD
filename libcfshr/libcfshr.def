@@ -29,6 +29,7 @@ EXPORTS
 	cblas_ddot
 	PipGetInOutFile
 	PipReadNextLine
+	percentileStretch
 	AdocSetThreeIntegers
 	sliceGetXSize
 	PipExitOnError

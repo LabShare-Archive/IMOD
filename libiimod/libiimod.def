@@ -48,6 +48,7 @@ EXPORTS
 	mrc_get_scale
 	iiSetupRawHeaders
 	allocate2D_float
+	iiReadSectionUShort
 	tiffVersion
 	tiffReadSection
 	iiReopen
@@ -58,6 +59,7 @@ EXPORTS
 	mrc_slice_mat_getimat
 	loadtilts
 	mrc_init_li
+	mrcReadZUShort
 	mrc_slice_zooms
 	mrc_slice_resize
 	iiMRCreadSection
@@ -105,6 +107,7 @@ EXPORTS
 	iiDeleteRawCheckList
 	mrc_slice_translate
 	mrcFreeDataMemory
+	iiMRCreadSectionUShort
 	mrcGetComplexScale
 	get_byte_map
 	mrc_bandpass_filter
@@ -114,9 +117,11 @@ EXPORTS
 	niceFrame
 	mrcReadYFloat
 	sliceByteEdgeTwo
+	mrcReadYUShort
 	mrcReadSectionByte
 	iiDelete
 	mrc_default_status
+	mrcReadSectionUShort
 	tiffWriteStrip
 	sliceGaussianKernel
 	mrc_coord_cp
@@ -124,6 +129,7 @@ EXPORTS
 	mrc_vol_wrap
 	mrc_swap_shorts
 	sliceByteGraham
+	tiffReadSectionUShort
 	mrc_plist_proc
 	mrc_plist_li
 	sliceByteSmooth
