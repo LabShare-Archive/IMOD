@@ -2,9 +2,10 @@
 <title>Information Window</title>
 </head>
 <H2>Information Window Controls</H2>
-The Information Window allows one to see and change the selected point in the
-model and the current image point.  It contains menus for opening other
-windows and dialogs and performing modeling functions.  It has a set of
+The Information window (often referred to as the Info window) allows one to
+see and change the selected point in the model and the current image point.
+It contains menus for opening other
+windows and dialogs and performing modeling functions.  It has 
 controls to set the brightness and contrast of the display, and a pane at the
 bottom where text output appears.
 
@@ -13,9 +14,9 @@ The top line of the window has some tool buttons and also shows the name of
 the model file being edited.  The buttons here are as follows:
 <UL>
 <LI><B>Stay on Top</B>: The button with the pushpin can be pressed to keep the
-Info window on top of all other program windows.
+Info window on top of all other 3dmod windows.
 <LI><B>Raise Windows</B>: The button with the two triangles will raise all of
-the other 3dmod windows above other program windows.
+the 3dmod windows above windows from other programs.
 <LI><B>Undo</B>: The button with the curving arrow pointing left will undo
 changes to the model when it is enabled.  Nearly all modeling changes are kept
 track of in a list and can be undone.
@@ -44,8 +45,8 @@ the up arrow.  The contour box shows "--x--" when there is no current
 contour selected, or no contours in a new object.  Similarly, the point box
 shows "--x--" when there is no current point or no points in a contour, or it
 is blank when there is no current contour.
-The numbers of objects, contours in the current object, and points in te
-current object appear to right of these boxes.
+The numbers of objects, contours in the current object, and points in the
+current contour appear to the right of these boxes.
 <P>
 The spin boxes on the right show the position of the current image
 point.  In Movie mode, this position is always shown with a cross.  In Model
@@ -59,7 +60,7 @@ The <B>Black</B> and <b>White</b> sliders control the placement of an
 intensity ramp that is used to scale the image data stored in the program.
 Ordinarily, these data are stored as bytes with values ranging
 from 0 to 255.  Values below the <B>Black</B> setting are displayed as black
-on the screen; values above the <b>White</b> sliders setting are displayed as
+on the screen; values above the <b>White</b> setting are displayed as
 white; and the contrast is stretched for the values in between so that they
 occupy the full range from black to white.  Thus, moving the sliders closer
 together increases contrast; moving them both to the left or right increases
@@ -72,7 +73,7 @@ the Behavior tab of the Preferences dialog.  These sliders control an initial
 scaling of the data from their stored values into the range from 0 to 255,
 after which the <B>Black</B> and <b>White</b> sliders control the usual
 scaling from that range to the displayed values on the screen.  Values below
-The <B>Low</B> setting are truncated at zero and values above the <B>High</B>
+the <B>Low</B> setting are truncated at zero and values above the <B>High</B>
 setting are truncated at 255.  This
 arrangement allows a very small subset of the intensity range to be examined
 with a reasonable number of gray levels.  The number of displayed gray levels
@@ -87,8 +88,8 @@ The bottom row of controls govern the automatic scaling of contrast.
 <UL>
 <LI><B>Float</B>: With this option turned on, contrast is changed
   automatically when changing sections in the Zap window so that the mean and
-  standard deviation of the display values stays the same.  If data are loaded
-  as 16-bit integers, only the <B>Black</b> and <B>White</B> are changed,
+  standard deviation of the display intensities stay the same.  If data are loaded
+  as 16-bit integers, only the <B>Black</b> and <B>White</B> sliders are changed,
   unless it is necessary to spread out the <B>Low</B> and <B>High</B> sliders
   to achieve the needed contrast.
 <LI><B>Subarea</B>: With this option turned on, the matching of contrast when
@@ -104,12 +105,13 @@ The bottom row of controls govern the automatic scaling of contrast.
   tab of the Preferences dialog.  With <B>Subarea</B> on, the contrast is
   set for the image in the subarea.  When data are loaded as 16-bit integers,
   the autocontrast routine first sets the <B>Low</B> and <B>High</B> levels so
-  that 0.1% of pixels are saturated as black and white; then the <B>Black</b>
-  and <B>White</B> levels are set to achieve the target mean and standard deviation.
+  that 0.1% of pixels are saturated at 0 and 255 by the initial scaling of
+  data; then the <B>Black</b> and <B>White</B> levels are set to achieve the
+  target mean and standard deviation.
 </UL>
 <H3>Movie and Model Mode</H3>
 The radio buttons select whether the program is in movieing or modeling mode.
-The main difference is these modes is the behavior of the mouse buttons; they
+The main difference between these modes is the behavior of the mouse buttons; they
 either start and stop movieing through the slices, or perform modeling
 functions.  In addition, some of the modeling functions available through menus and hot
 keys do not work in Movie mode, but many other modeling functions can be performed.
