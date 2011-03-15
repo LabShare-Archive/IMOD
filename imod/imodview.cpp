@@ -631,7 +631,7 @@ int ivwReadBinnedSection(ImodView *vi, char *buf, int section)
             binbuf[i] += usbuf[i];
         else
           for (i = 0; i < xybinned; i++)
-            binbuf[i] += buf[i];
+            binbuf[i] += ucbuf[i];
       }
     }
 
@@ -763,8 +763,10 @@ int ivwGetImagePadding(ImodView *vi, int cy, int section, int time, int &llX,
       if (fz < 0 || fz >= vi->multiFileZ)
         return -1;
       im = vi->imageList[fz];
-  } else
-    im = vi->imageList[B3DMAX(0, time - 1)];
+  } else if (time > 0)
+    im = vi->imageList[time - 1];
+  else
+    im = *(vi->image);
 
   // Get the padding on each axis
   blankX = ivwFixUnderSizeCoords(vi->fullXsize, im.nx / vi->xybin, im.llx, im.urx, fz,
@@ -3331,6 +3333,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 /*
 
 $Log$
+Revision 4.91  2011/03/14 23:07:03  mast
+Changes for ushort loading and fixes and new routines related to undersize padding
+
 Revision 4.90  2011/03/08 05:32:52  mast
 Load maximum instead of minimum size for multiple volumes and center smaller ones
 
