@@ -1220,6 +1220,9 @@ void InfoWindow::helpSlot(int item)
   case HELP_MENU_MENUS:
     imodShowHelpPage("menus.html");
     break;
+  case HELP_MENU_CONTROLS:
+    imodShowHelpPage("infowin.html");
+    break;
   case HELP_MENU_HOTKEY:
     imodShowHelpPage("keyboard.html");
     break;
@@ -1293,6 +1296,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 /*
 
 $Log$
+Revision 4.62  2011/03/14 23:39:13  mast
+Changes for ushort loading
+
 Revision 4.61  2011/03/08 05:35:21  mast
 Changes for XYZ able to do color
 

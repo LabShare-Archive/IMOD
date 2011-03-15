@@ -212,9 +212,11 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, Qt::WFlags f)
   // Help menu
   menuBar()->addSeparator();
   QMenu *helpMenu = menuBar()->addMenu("&Help");
-  ADD_ACTION(help, "&Man Page", HELP_MENU_MAN);
   ADD_ACTION(help, "&Menus", HELP_MENU_MENUS);
+  ADD_ACTION(help, "&Controls", HELP_MENU_CONTROLS);
+  helpMenu->addSeparator();
   ADD_ACTION(help, "&Hot Keys", HELP_MENU_HOTKEY);
+  ADD_ACTION(help, "Ma&n Page", HELP_MENU_MAN);
   helpMenu->addSeparator();
   ADD_ACTION(help, "&About", HELP_MENU_ABOUT);
 
@@ -731,6 +733,9 @@ static char *truncate_name(char *name, int limit)
 /*
 
 $Log$
+Revision 4.63  2011/03/14 23:39:13  mast
+Changes for ushort loading
+
 Revision 4.62  2011/03/08 05:35:21  mast
 Changes for XYZ able to do color
 
