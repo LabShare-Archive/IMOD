@@ -2603,15 +2603,15 @@ public final class ApplicationManager extends BaseManager implements
       saveAlignmentEstimationDialog(fineAlignmentDialogB, AxisID.SECOND);
     }
 
-    getUIExpert(DialogType.TOMOGRAM_POSITIONING, AxisID.FIRST).saveDialog(
+    getUIExpert(DialogType.TOMOGRAM_POSITIONING, firstAxisID).saveDialog(
         DialogExitState.SAVE);
     getUIExpert(DialogType.TOMOGRAM_POSITIONING, AxisID.SECOND).saveDialog(
         DialogExitState.SAVE);
-    getUIExpert(DialogType.FINAL_ALIGNED_STACK, AxisID.FIRST).saveDialog(
+    getUIExpert(DialogType.FINAL_ALIGNED_STACK, firstAxisID).saveDialog(
         DialogExitState.SAVE);
     getUIExpert(DialogType.FINAL_ALIGNED_STACK, AxisID.SECOND).saveDialog(
         DialogExitState.SAVE);
-    getUIExpert(DialogType.TOMOGRAM_GENERATION, AxisID.FIRST).saveDialog(
+    getUIExpert(DialogType.TOMOGRAM_GENERATION, firstAxisID).saveDialog(
         DialogExitState.SAVE);
     getUIExpert(DialogType.TOMOGRAM_GENERATION, AxisID.SECOND).saveDialog(
         DialogExitState.SAVE);
@@ -7842,6 +7842,10 @@ public final class ApplicationManager extends BaseManager implements
 /**
  * <p>
  * $Log$
+ * Revision 3.368  2011/03/01 23:58:41  sueh
+ * bug# 1452 Removing conversion between float and double.  Using string
+ * where possible.
+ *
  * Revision 3.367  2011/02/26 04:18:50  sueh
  * bug# 1453 In doneSetupDialog sending a specific INFO message to the
  * project log.
