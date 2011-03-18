@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/18/11: In eTomo fixed a problem in single axis tomograms where an "a" was
+added onto the .com file names.
+
 3/17/11: Fixed movieing through time with cache not full.
 
 3/15/11: 3dmod can now store data internally as 16-bit integers, and a second
