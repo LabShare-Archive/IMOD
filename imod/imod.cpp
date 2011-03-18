@@ -732,7 +732,7 @@ int main( int argc, char *argv[])
 
     /* Or, check for piece coordinates in image header */
     if (!vi.li->plist && !frames && vi.image->file == IIFILE_MRC) {
-      iiReopen(vi.image);
+      ivwReopen(vi.image);
       iiLoadPCoord(vi.image, useMdoc, vi.li, vi.hdr->nx, vi.hdr->ny,
                    vi.hdr->nz);
       iiClose(vi.image);
@@ -982,6 +982,9 @@ bool imodDebug(char key)
 /*
 
 $Log$
+Revision 4.78  2011/03/14 23:39:13  mast
+Changes for ushort loading
+
 Revision 4.77  2011/02/26 17:20:37  mast
 Added equal scaling option
 

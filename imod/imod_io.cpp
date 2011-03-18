@@ -699,7 +699,7 @@ unsigned char **imod_io_image_load(struct ViewInfo *vi)
   QString message;
 
   if (!im->fp)
-    iiReopen(im);
+    ivwReopen(im);
   if (!im->fp)
     return NULL;
 
@@ -811,6 +811,9 @@ static int mapErrno(int errorCode)
 
 /*
 $Log$
+Revision 4.31  2011/03/14 23:39:13  mast
+Changes for ushort loading
+
 Revision 4.30  2010/04/01 02:41:48  mast
 Called function to test for closing keys, or warning cleanup
 

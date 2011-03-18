@@ -268,7 +268,7 @@ static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
       ct = time;
       vi->hdr = vi->image = &vi->imageList[time-1];
       //ivwSetScale(vi);
-      iiReopen(vi->image);
+      ivwReopen(vi->image);
     }
 
     if (loadAxis != 2) {
@@ -383,7 +383,7 @@ static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter)
   if (vi->nt) {
     vi->hdr = vi->image = &vi->imageList[vi->ct-1];
     //ivwSetScale(vi);
-    iiReopen(vi->image);
+    ivwReopen(vi->image);
     if (!Imod_IFDpath.isEmpty())
       QDir::setCurrent(Imod_cwdpath);
   }
@@ -680,6 +680,9 @@ void ImodCacheFill::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.14  2010/04/01 02:41:48  mast
+Called function to test for closing keys, or warning cleanup
+
 Revision 4.13  2009/03/22 19:54:25  mast
 Show with new geometry adjust routine for Mac OS X 10.5/cocoa
 
