@@ -522,9 +522,9 @@ unsigned char **ivwMakeLinePointers(ImodView *vi, unsigned char *data,
 /* Read a section, potentially with binning */
 int ivwReadBinnedSection(ImodView *vi, char *buf, int section)
 {
-  int xsize, ysize, ix, iy, iz, pixsize, xOffset, leftXpad, rightXpad;
-  int yOffset, leftYpad, rightYpad, zOffset, leftZpad, rightZpad;
-  bool blankX, blankY, blankZ = false;
+  int xsize, ysize, ix, iy, iz, pixsize, xOffset, leftXpad = 0, rightXpad = 0;
+  int yOffset, leftYpad = 0, rightYpad = 0, zOffset, leftZpad, rightZpad;
+  bool blankX = false, blankY = false, blankZ = false;
   unsigned char *unbinbuf = NULL;
   unsigned char *ucbuf = (unsigned char *)buf;
   b3dUInt16 *usbuf = (b3dUInt16 *)buf;
@@ -540,24 +540,26 @@ int ivwReadBinnedSection(ImodView *vi, char *buf, int section)
 
   // Copy image structure and adjust load-in coordinates
   im = *(vi->image);
-  blankX  = ivwFixUnderSizeCoords(vi->fullXsize, im.nx / vi->xybin, im.llx, im.urx, 
-                                  xOffset, leftXpad, rightXpad);
-  blankY  = ivwFixUnderSizeCoords(vi->fullYsize, im.ny / vi->xybin, im.lly, im.ury,
-                                  yOffset, leftYpad, rightYpad);
-  if (!vi->multiFileZ)
-    blankZ  = ivwFixUnderSizeCoords(vi->fullZsize, im.nz / vi->zbin, im.llz, im.urz,
+  if (!vi->li->plist) {
+    blankX  = ivwFixUnderSizeCoords(vi->fullXsize, im.nx / vi->xybin, im.llx, im.urx, 
+                                    xOffset, leftXpad, rightXpad);
+    blankY  = ivwFixUnderSizeCoords(vi->fullYsize, im.ny / vi->xybin, im.lly, im.ury,
+                                    yOffset, leftYpad, rightYpad);
+    if (vi->multiFileZ <= 0)
+      blankZ  = ivwFixUnderSizeCoords(vi->fullZsize, im.nz / vi->zbin, im.llz, im.urz,
                                     zOffset, leftZpad, rightZpad);
 
   // Adjust the section number appropriately for the axis and see if section exists
-  if (!vi->multiFileZ && !(blankX || blankY || blankZ)) {
-    if (im.axis == 3) {
-      section -= zOffset;
-      blankZ = section < 0 || section >= im.nz / vi->zbin;
-    } else {
-      section -= yOffset;
-      blankY = section < 0 || section >= im.ny / vi->xybin;
-      leftYpad = leftZpad;
-      rightYpad = rightZpad;
+    if (vi->multiFileZ <= 0 && !(blankX || blankY || blankZ)) {
+      if (im.axis == 3) {
+        section -= zOffset;
+        blankZ = section < 0 || section >= im.nz / vi->zbin;
+      } else {
+        section -= yOffset;
+        blankY = section < 0 || section >= im.ny / vi->xybin;
+        leftYpad = leftZpad;
+        rightYpad = rightZpad;
+      }
     }
   }
 
@@ -745,7 +747,7 @@ bool ivwFixUnderSizeCoords(int size, int nx, int &llx, int &urx, int &offset,
  * Returns the load-in start and the padding around an image at the given section and 
  * time value.  The Y value is also needed for flipped data when multifile Z is loaded;
  * set this < 0 if the offsets are not specific to Y and undefined for multifile Z if 
- * flipped.  Returns -1 if the * section is out of range for multifile case, or 1 if the 
+ * flipped.  Returns -1 if the section is out of range for multifile case, or 1 if the 
  * image is blank.
  */
 int ivwGetImagePadding(ImodView *vi, int cy, int section, int time, int &llX, 
@@ -754,11 +756,12 @@ int ivwGetImagePadding(ImodView *vi, int cy, int section, int time, int &llX,
 {
   ImodImageFile im;
 
-  int fz;bool blankX, blankY, blankZ = false;
+  int fz;
+  bool blankX, blankY, blankZ = false;
 
   // Copy the right image file structure for the situation
   leftZpad = rightZpad = llZ = 0;
-  if (vi->multiFileZ) {
+  if (vi->multiFileZ > 0) {
     fz = vi->li->axis == 3 ? section : cy;
       if (fz < 0 || fz >= vi->multiFileZ)
         return -1;
@@ -768,6 +771,14 @@ int ivwGetImagePadding(ImodView *vi, int cy, int section, int time, int &llX,
   else
     im = *(vi->image);
 
+  if (vi->li->plist) {
+    leftXpad = rightXpad = leftYpad = rightYpad = leftZpad = rightZpad = 0;
+    llX = im.llx;
+    llY = im.lly;
+    llZ = im.llz;
+    return 0;
+  }
+
   // Get the padding on each axis
   blankX = ivwFixUnderSizeCoords(vi->fullXsize, im.nx / vi->xybin, im.llx, im.urx, fz,
                                  leftXpad, rightXpad);
@@ -775,7 +786,7 @@ int ivwGetImagePadding(ImodView *vi, int cy, int section, int time, int &llX,
                                  leftYpad, rightYpad);
   llX = im.llx;
   llY = im.lly;
-  if (!vi->multiFileZ) {
+  if (vi->multiFileZ <= 0) {
     blankZ = ivwFixUnderSizeCoords(vi->fullZsize, im.nz / vi->zbin, im.llz, im.urz,  fz,
                                    leftZpad, rightZpad);
     llZ = im.llz;
@@ -2348,7 +2359,7 @@ int ivwLoadImage(ImodView *vi)
   vi->doingInitialLoad = 1;
      
   /* Set up the cache and load it for a variety of conditions */
-  if (vi->li->plist || vi->nt || vi->multiFileZ || vi->vmSize || vi->ushortStore) {
+  if (vi->li->plist || vi->nt || vi->multiFileZ > 0 || vi->vmSize || vi->ushortStore) {
 
     /* DNM: only one mode won't work now; just exit in either case */
     if (vi->hdr->mode == MRC_MODE_COMPLEX_SHORT){
@@ -2457,7 +2468,7 @@ static int ivwProcessImageList(ImodView *vi)
 
         // Analyze real MRC file for whether the hot pixel in the middle of
         // of the file is much higher than at the bottom, if so don't mirror
-        iiReopen(image);
+        ivwReopen(image);
         fp = image->fp;
         header = (MrcHeader *)image->header;
         midy = image->ny / 2;
@@ -2576,7 +2587,7 @@ static int ivwProcessImageList(ImodView *vi)
       zsize = ilist->size;
       vi->multiFileZ = ilist->size;
       vi->ct = vi->nt = 0;
-    }
+    } 
 
     /* Use this to fix the load-in coordinates, then use those to set the
        lower left and upper right coords in each file - except for Z in the
@@ -2607,6 +2618,9 @@ static int ivwProcessImageList(ImodView *vi)
     ivwCheckBinning(vi, image->nx, image->ny, image->nz);
   }
 
+  // 3/17/11: This fixes bugs from various places not testing <= 0 vs > 0
+  vi->multiFileZ = B3DMAX(0, vi->multiFileZ);
+
   if (ilist->size == 1){
 
     /* for single file, cancel times and copy "list" to vi->image */
@@ -2616,7 +2630,7 @@ static int ivwProcessImageList(ImodView *vi)
       exit(3);
     }
     memcpy(vi->image, ilist->data, sizeof(ImodImageFile));
-    iiReopen(vi->image);
+    ivwReopen(vi->image);
     vi->ct = vi->nt = 0;
     vi->imageList = NULL;
     if (cmaps) {
@@ -2633,12 +2647,11 @@ static int ivwProcessImageList(ImodView *vi)
       imodError(NULL, "Not enough memory.\n"); 
       exit(3);
     }
-    memcpy(vi->imageList, ilist->data,
-           sizeof(ImodImageFile) * ilist->size);
+    memcpy(vi->imageList, ilist->data, sizeof(ImodImageFile) * ilist->size);
     vi->hdr = vi->image = &vi->imageList[0];
 
     /* for times, set up initial time; for multifile Z, reopen first image */
-    if (vi->multiFileZ <= 0) {
+    if (!vi->multiFileZ) {
       ivwSetTime(vi, 1);
       vi->dim |= 8;
     } else {
@@ -2725,8 +2738,8 @@ static int ivwCheckBinning(ImodView *vi, int nx, int ny, int nz)
     wprint("\a\nBinning in Z cannot be used with RGB data.\n");
   }
 
-  // forbid Z binning for multifile Z or montage
-  if ((vi->multiFileZ || vi->li->plist) && vi->zbin > 1) {
+  // forbid Z binning for multifile Z or montage (need to test multiFileZ this way)
+  if ((vi->multiFileZ > 0 || vi->li->plist) && vi->zbin > 1) {
     vi->zbin = 1;
     if (vi->li->plist)
       wprint("\a\nThe Z dimension cannot be binned with montaged data.\n");
@@ -3333,6 +3346,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 /*
 
 $Log$
+Revision 4.92  2011/03/15 00:07:38  mast
+Fixed binning of byte data and subarea limiting when only one file
+
 Revision 4.91  2011/03/14 23:07:03  mast
 Changes for ushort loading and fixes and new routines related to undersize padding
 
