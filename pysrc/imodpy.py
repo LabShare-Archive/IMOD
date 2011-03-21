@@ -33,7 +33,7 @@ This module provides the following functions:
 """
 
 # other modules needed by imodpy
-import sys, os, re
+import sys, os, re, time
 from pip import exitError
 
 pyVersion = 100 * sys.version_info[0] + 10 * sys.version_info[1]
@@ -43,6 +43,8 @@ if pyVersion < 300:
 
 # The global place to stash error strings
 errStrings = []
+runRetryLimit = 10
+runMaxTimeForRetry = 0.5
 
 # Use the subprocess module if available except on cygwin where broken
 # pipes (early on) occurred occasionally; require it on win32
@@ -79,7 +81,10 @@ def runcmd(cmd, input=None, outfile=None):
        - spawn a command with optional input, either send its output to
        outfile or return its output in an array of strings.
        cmd is a string; input is an array; outfile is a file object or
-       the string 'stdout' to send output to standard out"""
+       the string 'stdout' to send output to standard out
+       If outfile is none and the command fails with a broken pipe within 0.5 second,
+       it will retry up to 10 times.  Call setRetryLimit() to modify the allowed number
+       of retries and the maximum run time for a failure to be retried."""
 
    global errStrings
 
@@ -92,64 +97,81 @@ def runcmd(cmd, input=None, outfile=None):
       if isinstance(outfile, str) and outfile == 'stdout':
          toStdout = 1
 
-   try:
-      if useSubprocess:
+   retryCount = 0
+   while retryCount <= runRetryLimit:
+      tryStart = time.time();
+      try:
+         if useSubprocess:
 
-         # The subprocess interface: input must be all one string
-         if input:
-            if isinstance(input, list):
-               joined = ''
-               for l in input:
-                  joined += l + '\n'
-               input = joined
-         else:
-            input = str(None)
+            # The subprocess interface: input must be all one string
+            if input:
+               if isinstance(input, list):
+                  joined = ''
+                  for l in input:
+                     joined += l + '\n'
+                  input = joined
+            else:
+               input = str(None)
 
-         if pyVersion >= 300:
-            input = input.encode()
-            
-         # Run it three different ways depending on where output goes
-         if collect:
-            p = Popen(cmd, shell=True, stdout=PIPE, stdin=PIPE)
-            kout, kerr = p.communicate(input)
             if pyVersion >= 300:
-               kout = kout.decode()
-            if kout:
-               output = kout.splitlines(True)
-         elif toStdout:
-            p = Popen(cmd, shell=True, stdin=PIPE)
-            p.communicate(input)
-         else:
-            p = Popen(cmd, shell=True, stdout=outfile, stdin=PIPE)
-            p.communicate(input)
-         ec = p.returncode
-         
-      else:
-
-         # The old way, use popen or popen2 depending on where the output
-         # is going
-         if toStdout:
-            kin = os.popen(cmd, 'w')
-            if input:
-               for l in input:
-                  prnstr(l, file=kin)
-            ec = kin.close()
-         else:
-            (kin, kout) = os.popen2(cmd)
-            if input:
-               for l in input:
-                  prnstr(l, file=kin)
-            kin.close()
-            output = kout.readlines()
-            kout.close()
-            kpid, ec = os.wait()
-            if not collect and output:
-               outfile.writelines(output)
+               input = input.encode()
+               
+            # Run it three different ways depending on where output goes
+            if collect:
+               p = Popen(cmd, shell=True, stdout=PIPE, stdin=PIPE)
+               kout, kerr = p.communicate(input)
+               if pyVersion >= 300:
+                  kout = kout.decode()
+               if kout:
+                  output = kout.splitlines(True)
+            elif toStdout:
+               p = Popen(cmd, shell=True, stdin=PIPE)
+               p.communicate(input)
+            else:
+               p = Popen(cmd, shell=True, stdout=outfile, stdin=PIPE)
+               p.communicate(input)
+            ec = p.returncode
             
-   except:
-      errStrings = ["command " + cmd + ": " + str(sys.exc_info()[1]) + "\n"]
-      raise ImodpyError(errStrings)
+         else:
 
+            # The old way, use popen or popen2 depending on where the output
+            # is going
+            if toStdout:
+               kin = os.popen(cmd, 'w')
+               if input:
+                  for l in input:
+                     prnstr(l, file=kin)
+               ec = kin.close()
+            else:
+               (kin, kout) = os.popen2(cmd)
+               if input:
+                  for l in input:
+                     prnstr(l, file=kin)
+               kin.close()
+               output = kout.readlines()
+               kout.close()
+               kpid, ec = os.wait()
+               if not collect and output:
+                  outfile.writelines(output)
+
+         # If it succeeds, break the retry loop
+         break
+      
+      except:
+
+         # If output is collected and it gets a broken pipe after a short enough time,
+         # run another trial.  Sleep a bit after trying twice, it helps break the cycle
+         # This problem is observed on MAC OSX with commands that take < 0.02 sec
+         if collect and str(sys.exc_info()[1]).find('Broken pipe') >= 0 and \
+            retryCount < runRetryLimit and time.time() - tryStart < runMaxTimeForRetry:
+            retryCount += 1
+            #prnstr(fmtstr("Retrying " + cmd + " after {} sec", time.time() - tryStart))
+            if retryCount > 1:
+               time.sleep(0.1)
+         else:
+            errStrings = ["command " + cmd + ": " + str(sys.exc_info()[1]) + "\n"]
+            raise ImodpyError(errStrings)
+      
    if ec:
       # look thru the output for 'ERROR' line(s) and put them before this
       errstr = cmd + fmtstr(": exited with status {} {}\n", (ec >> 8),
@@ -165,6 +187,18 @@ def runcmd(cmd, input=None, outfile=None):
       return output
    return None
 
+
+# Modify the retry limits if necessary
+def setRetryLimit(numRetries, maxTime = None):
+   """setRetryLimit(numRetries, [maxTime]) - Set max number of retries for runcmd
+   with collected output to numRetries (set to 0 to disable retries), and set the
+   maximum time after which it will retry to maxTime.
+   """
+   global runRetryLimit, runMaxTimeForRetry
+   runRetryLimit = max(0, numRetries)
+   if maxTime:
+      runMaxTimeForRetry = maxTime
+      
 
 # Get essential data from the header of an MRC file
 def getmrc(file, doAll = False):
@@ -614,6 +648,9 @@ def prnstr(string, file = sys.stdout, end = '\n'):
 
 
 #  $Log$
+#  Revision 1.15  2011/02/26 04:38:39  mast
+#  Jazzed up getmrc to return all possible easy entries
+#
 #  Revision 1.14  2011/02/16 18:44:49  mast
 #  Added temp dir function
 #
