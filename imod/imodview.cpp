@@ -2325,6 +2325,8 @@ int ivwLoadImage(ImodView *vi)
   int eret;
 
   if (vi->fakeImage){
+
+    // Initialize various things for no image
     vi->xsize = vi->imod->xmax;
     vi->ysize = vi->imod->ymax;
     vi->zsize = vi->imod->zmax;
@@ -2335,6 +2337,10 @@ int ivwLoadImage(ImodView *vi)
     vi->zUnbinSize = vi->zsize;
     if (vi->nt > 1)
       ivwSetTime(vi, 1);
+
+    vi->rawImageStore = 0;
+    ImodInfoWidget->hideLowHighGrid();
+    imod_color_init(App);
 
     wprint("Image size %d x %d, %d sections.\n",
            vi->xsize, vi->ysize, vi->zsize);
@@ -3346,6 +3352,10 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 /*
 
 $Log$
+Revision 4.93  2011/03/18 04:40:44  mast
+Fixed crash loading montage, fixed tests for multifileZ in padding setup,
+changed iiReopen to ivwReopen
+
 Revision 4.92  2011/03/15 00:07:38  mast
 Fixed binning of byte data and subarea limiting when only one file
 
