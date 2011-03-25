@@ -1,7 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/25/11: Fixed Edpiecepoint (broken for PIP input since 4.2.11) and added
+option to divide a piece list by a factor to use with binned images.
+
+3/25/11: Made mrcbyte work for images > 2 Gpixels.
+
 3/24/11: Fixed in problem in eTomo - NAD where all the iterations tried where
-not opened in 3dmod (4-1 only - problem does not exist in the latest version).
+not opened in 3dmod (4.1 only - problem does not exist in the latest version).
 
 3/23/11: Fixed Copytomocoms crash when second axis does not exist yet.
 
@@ -27,8 +32,8 @@ components like isosurfacing scale the range to bytes.
  - Added a help page for the Info window.
  - Made Locator window use high quality zoomed down display.
  - Fixed problems caused by ability to adjust contrast of color images, which
- was added in 4.2.15: disabled float and autocontrast and fixed Bead Fixer overlay
- display to avoid double contrast adjustment.
+ was added in 4.2.15: disabled float and autocontrast and fixed Bead Fixer
+ overlay display to avoid double contrast adjustment.
 
 3/7/11: 3dmod will now display multiple image files of different sizes at the
 largest size, centering smaller volumes within the display.  Autocontrasting
