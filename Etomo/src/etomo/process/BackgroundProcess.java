@@ -28,6 +28,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.44.2.2  2010/07/02 04:11:08  sueh
+ * <p> bug# 1388 Merging changes from head.
+ * <p>
  * <p> Revision 3.47  2010/07/02 03:14:48  sueh
  * <p> bug# 1388 Added popupChunkWarnings.
  * <p>
@@ -354,6 +357,23 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     commandArrayList = null;
     forceNextProcess = false;
     this.popupChunkWarnings = popupChunkWarnings;
+  }
+  
+  BackgroundProcess(BaseManager manager, CommandDetails commandDetails,
+      BaseProcessManager processManager, AxisID axisID,
+      ProcessName processName, ConstProcessSeries processSeries) {
+    this.manager = manager;
+    this.axisID = axisID;
+    this.command = commandDetails;
+    this.commandArray = command.getCommandArray();
+    this.processManager = processManager;
+    commandProcessID = new StringBuffer("");
+    processData = ProcessData.getManagedInstance(axisID, manager, processName);
+    this.processSeries = processSeries;
+    commandArrayList = null;
+    processDetails = null;
+    this.commandDetails = commandDetails;
+    forceNextProcess = false;
   }
 
   BackgroundProcess(BaseManager manager, Command command,
