@@ -40,7 +40,6 @@ int main( int argc, char *argv[] )
   int    i = 0, k;
   FILE   *fin, *fout;
   int resize = FALSE;
-  int cmap   = FALSE;
   int ramptype = MRC_RAMP_LIN;
   MrcHeader hdata, hout;
   IloadInfo  li;
@@ -50,7 +49,6 @@ int main( int argc, char *argv[] )
   int data_only = FALSE;
   int reverse_video = FALSE;
   float xscl, yscl, zscl;
-  int c;
   size_t xysize, ii;
   unsigned char *buf;
   double meansum = 0.;
@@ -219,7 +217,7 @@ int main( int argc, char *argv[] )
 
   mrc_head_label(&hout, "mrcbyte: Converted and scaled to byte mode.");
 
-  xysize = hout.nx * hout.ny;
+  xysize = (size_t)hout.nx * (size_t)hout.ny;
   buf = (unsigned char *)malloc(xysize);
   if (!buf) {
     printf("ERROR: %s - Allocating memory to read data into\n", progname);
@@ -275,6 +273,9 @@ int main( int argc, char *argv[] )
 /*
 
 $Log$
+Revision 3.10  2011/03/05 03:42:30  mast
+Allow environment variable to prevent backing up file
+
 Revision 3.9  2009/11/27 16:37:55  mast
 Fixed error messages
 
