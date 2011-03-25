@@ -255,7 +255,7 @@ int sliceGetYSize(Islice *slice)
  */
 int sliceGetVal(Islice *s, int x, int y, Ival val)
 {
-  int index = x + (y * s->xsize);
+  size_t index = x + ((size_t)y * (size_t)s->xsize);
      
   if ( (x < 0) || (y < 0) || (x >= s->xsize) || (y >= s->ysize)){
     val[0] = s->mean;
@@ -312,7 +312,7 @@ int sliceGetVal(Islice *s, int x, int y, Ival val)
  */
 int slicePutVal(Islice *s, int x, int y, Ival val)
 {
-  int index = x + (y * s->xsize);
+  size_t index = x + ((size_t)y * (size_t)s->xsize);
 
   if ( (x < 0) || (y < 0) || (x >= s->xsize) || (y >= s->ysize))
     return(-1);
