@@ -20,7 +20,8 @@ c
       integer*4 i, nlistz,nnew,ixadd,iyadd,izadd,ipc,newzval,indmov, ifcol
       integer*4 ixbase, iybase, inner, iouter, ninner, nouter, nyoverlap
       integer*4  nx, minxpiece, nxpieces, nxoverlap, ny, minypiece, nypieces
-      integer*4 iOutArg, ierr, newXoverlap, newYoverlap
+      integer*4 iOutArg, ierr, newXoverlap, newYoverlap, ifbin, ifadjust, newnx, newny
+      integer*4 newminx, newminy, ibinning
       character*10240 listString
 c       
       integer*4 numOptArg, numNonOptArg
@@ -59,7 +60,7 @@ c
 c       
       if (pipinput) then
         iOutArg = 2
-        if (PipGetInteger('DummySections', nzdummy) .eq. 0) then
+        if (PipGetInteger('CreateForSections', nzdummy) .eq. 0) then
           pclfil = ' '
           iOutArg = 1
         else
@@ -124,21 +125,46 @@ c
      &    call exitError('NO OUTPUT FILE SPECIFIED')
       call fill_listz(izpclist,npclist,listz,nlistz)
       if (pipinput) then
-        if (PipGetTwoIntegers('NewOverlapInXandY', newXoverlap, newYoverlap)
-     &      .eq. 0) then
-          if (PipGetTwoIntegers('SizeInXandY', nx, ny) .ne. 0) call exitError(
-     &        'YOU MUST ENTER IMAGE SIZE IN X AND Y TO ADJUST OVERLAPS')
-          call checklist(ixpclist,npclist, 1, nx, minxpiece ,nxpieces,
-     &        nxoverlap)
-          call checklist(iypclist,npclist, 1, ny, minypiece ,nypieces,
-     &        nyoverlap)
+        ibinning = 1
+        ifbin = 1 - PipGetInteger('DivideByBinning', ibinning)
+        ifadjust = 1 - PipGetTwoIntegers('NewOverlapInXandY', newXoverlap, newYoverlap)
+        if (ifbin .gt. 0 .and. ifadjust .gt. 0) call exitError(
+     &      'YOU CANNOT ENTER BOTH -divide AND -overlap')
+        if (ifbin .gt. 0 .or. ifadjust .gt. 0) then
+          if (PipGetTwoIntegers('SizeInXandY', nx, ny) .ne. 0) call exitError('YOU MUST'//
+     &        ' ENTER IMAGE SIZE IN X AND Y TO ADJUST OVERLAPS OR DIVIDE BY BINNING')
+          call checklist(ixpclist,npclist, 1, nx, minxpiece ,nxpieces, nxoverlap)
+          call checklist(iypclist,npclist, 1, ny, minypiece ,nypieces, nyoverlap)
+          if (nxpieces .lt. 1 .or. nypieces .lt. 1) call exitError(
+     &        'PIECE COORDINATES ARE NOT REGULARLY SPACED APART')
+          newnx = nx
+          newny = ny
+          if (ifbin .gt. 0) then
+            if (ibinning .lt. 2) call exitError('BINNING FACTOR MUST BE 2 OR HIGHER')
+            if (PipGetTwoIntegers('BinnedSizeInXandY', newnx, newny) .ne. 0)
+     &          call exitError('YOU MUST ENTER THE BINNED IMAGE SIZE TOO')
+c
+c             pick overlap that matches the original extent binned
+            newXoverlap = nxoverlap / ibinning
+            ipc = ((nxpieces - 1) * (nx - nxoverlap)) / ibinning
+            if (abs((nxpieces - 1) * (newnx - newXoverlap) - ipc) .gt.
+     &          abs((nxpieces - 1) * (newnx - newXoverlap - 1) - ipc))
+     &          newXoverlap = newXoverlap + 1
+            newYoverlap = nyoverlap / ibinning
+            ipc = ((nypieces - 1) * (ny - nyoverlap)) / ibinning
+            if (abs((nypieces - 1) * (newny - newYoverlap) - ipc) .gt.
+     &          abs((nypieces - 1) * (newny - newYoverlap - 1) - ipc))
+     &          newYoverlap = newYoverlap + 1
+          endif
 c           
 c           Adjust the piece coordinates
+          newminx = minxpiece / ibinning
+          newminy = minypiece / ibinning
           do i = 1, npclist
             ipc = (ixpclist(i) - minxpiece) / (nx - nxoverlap)
-            ixpclist(i) = minxpiece + ipc * (nx - newXoverlap)
+            ixpclist(i) = newminx + ipc * (newnx - newXoverlap)
             ipc = (iypclist(i) - minypiece) / (ny - nyoverlap)
-            iypclist(i) = minypiece + ipc * (ny - newYoverlap)
+            iypclist(i) = newminy + ipc * (newny - newYoverlap)
           enddo
         endif
       endif
@@ -206,13 +232,16 @@ c
         endif
       enddo
       call dopen(3,pclfil,'new','f')
-      write(3,'(3i6)')(ixpclist(i),iypclist(i),izpclist(i) ,i=1,npclist)
+      write(3,'(3i8)')(ixpclist(i),iypclist(i),izpclist(i) ,i=1,npclist)
       close(3)
       call exit(0)
       end
 
 c       
 c       $Log$
+c       Revision 3.4  2010/12/28 19:41:35  mast
+c       PIP conversion and overlap change option
+c
 c       Revision 3.3  2010/10/29 14:38:51  mast
 c       Added ability to control order of pieces in dummy
 c
