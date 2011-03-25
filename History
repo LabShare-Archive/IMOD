@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/24/11: Fixed in problem in eTomo - NAD where all the iterations tried where
+not opened in 3dmod (4-1 only - problem does not exist in the latest version).
+
 3/23/11: Fixed Copytomocoms crash when second axis does not exist yet.
 
 3/21/11: IMOD_4-2-16
