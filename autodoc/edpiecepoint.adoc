@@ -51,6 +51,17 @@ tooltip =
 manpage = Order pieces in a newly created piece list so that successive pieces
 occur in columns (in Y) rather than in rows (in X).
 
+[Field = DivideByBinning]
+short = divide
+type = I
+usage = Adjust coordinates for images binned by the given factor
+tooltip = 
+manpage = This option can be used to make a new piece list that works with
+binned images.  Rather than just dividing the existing coordinates by
+the binning, the program determines a new overlap value and makes sure that
+coordinates are regularly spaced apart.  To do this, it needs the image sizes
+before and after binning, entered with -size and -binned.
+
 [Field = NewOverlapInXandY]
 short = overlap
 type = IP
@@ -63,7 +74,16 @@ pieces with the -size option.
 [Field = SizeInXandY]
 short = size
 type = IP
-usage = Size of pieces in X and Y (required to adjust overlap)
+usage = Size of pieces in X and Y (required to adjust overlap or divide by binning)
+tooltip = 
+manpage = Size of pieces in X and Y.  This entry is required to adjust overlap
+or to divide by binning; in the latter case enter the full size of the
+unbinned images to which the input piece list corresponds.
+
+[Field = BinnedSizeInXandY]
+short = binned
+type = IP
+usage = New, binned size of pieces in X and Y (required to divide by binning)
 tooltip = 
 manpage = 
 
