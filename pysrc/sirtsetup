@@ -55,7 +55,7 @@ def outputScalingLines(comf, recnum):
 # Function to output final commands
 def commandsForFinish(comf, sirtname, testmode):
    prnstr("$grep -h 'iff rec mean' " + sirtname + \
-         "-[0-9]*.log | sort", file=comf)
+         "-[0-9]*.log | sort -k 4 -n | sort -s -k 2 -n", file=comf)
    if testmode < 2:
       prnstr("$\\rm -f " + sirtname + "-[0-9]*.*", file=comf)
    comf.close()
@@ -687,6 +687,9 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.11  2011/03/30 20:17:35  mast
+# Add -ignore option to densnorm to protect against 0 doses
+#
 # Revision 1.10  2011/03/05 02:59:44  mast
 # Fixed problem with cleanup past start list including a ~ file
 #
