@@ -334,8 +334,8 @@ if startfirst:
             comf = open(comname, 'w')
             action = 'Writing to'
             print >> comf, '$if (-e ' + aliuse + ') \\rm -f ' + aliuse
-            print >> comf, '$densnorm -log %f %s %s' % (logbase[0], alifile,
-                                                        aliuse)
+            print >> comf, '$densnorm -log %f -ignore %s %s' % (logbase[0], alifile,
+                                                                aliuse)
             comf.close()
          except:
             exitError(action + " file: " + comname)
@@ -565,6 +565,9 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.4.2.1  2010/12/08 00:25:08  mast
+# Stop putting out empty com files and doing scaling on every iteration
+#
 # Revision 1.4  2010/03/19 22:26:28  mast
 # Fixed conversion for first simple run, output subm command too
 #
