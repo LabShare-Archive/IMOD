@@ -23,7 +23,7 @@ c
 
       real*4, allocatable :: array(:)
 C       
-      integer*4 NXYZ(3),MXYZ(3),NXYZST(3), NXYZ2(3),MXYZ2(3), maxextra
+      integer*4 NXYZ(3),MXYZ(3),NXYZST(3), NXYZ2(3),MXYZ2(3), maxExtraIn,maxExtraOut
       real*4 CELL2(6),cell(6), TITLE(20), delt(3), xorig, yorig, zorig
 C       
       CHARACTER*320 xffil,filistin,filistout
@@ -176,7 +176,8 @@ c
       loadtime=0.
       savetime=0.
       rottime = 0.
-      maxextra = 0
+      maxextraIn = 0
+      maxextraOut = 0
       indFilter = 5
       linesShrink = 0
       iseriesBase = -1
@@ -921,15 +922,15 @@ c
         if(nbsymin.gt.0)then
 c           
 c           Deallocate array if it was allocated an is not big enough
-          if (maxextra .gt. 0 .and. nbsymin.gt.maxextra) then
-            deallocate(extrain, extraout, stat = ierr)
-            maxextra = 0
+          if (maxextraIn .gt. 0 .and. nbsymin.gt.maxextraIn) then
+            deallocate(extrain, stat = ierr)
+            maxextraIn = 0
           endif
 c           
 c           Allocate array if needed
-          if (maxextra .eq. 0) then
-            maxextra = nbsymin + 1024
-            allocate(extrain(maxextra),extraout(maxextra), stat = ierr)
+          if (maxextraIn .eq. 0) then
+            maxextraIn = nbsymin + 1024
+            allocate(extrain(maxextraIn), stat = ierr)
             if (ierr .ne. 0) call exitError(
      &          'ALLOCATING MEMORY FOR EXTRA HEADER ARRAYS')
           endif
@@ -1091,7 +1092,18 @@ c
             if(nbsymin.gt.0)then
               nbytexout=nbytexin
               nbsymout=nsecout(ifileout)*nbytexout
-              nbsymout=min(maxextra,nbsymout)
+              if (maxextraOut .gt. 0 .and. nbsymout.gt.maxextraOut) then
+                deallocate(extraout, stat = ierr)
+                maxextraOut = 0
+              endif
+c               
+c               Allocate array if needed
+              if (maxextraOut .eq. 0) then
+                maxextraOut = nbsymout + 1024
+                allocate(extraout(maxextraOut), stat = ierr)
+                if (ierr .ne. 0) call exitError(
+     &              'ALLOCATING MEMORY FOR EXTRA HEADER ARRAYS')
+              endif
               call ialnbsym(2,nbsymout)
               call imposn(2,0,0)
               indxout=0
@@ -2136,6 +2148,9 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.62  2011/02/12 04:38:30  mast
+c       Change default filter because of more filters added
+c
 c       Revision 3.61  2011/02/10 05:25:10  mast
 c       Added options for antialiased image reduction
 c
