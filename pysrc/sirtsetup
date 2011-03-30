@@ -454,7 +454,7 @@ if cleanlist != "" or (startfirst and (makeLog or doSubarea)):
 
       if startfirst and makeLog:
          prnstr('$if (-e ' + aliuse + ') \\rm -f ' + aliuse, file=comf)
-         prnstr(fmtstr('$densnorm -log {:f} {} {}', logbase[0], densin,
+         prnstr(fmtstr('$densnorm -log {:f} -ignore {} {}', logbase[0], densin,
                        aliuse), file=comf)
       comf.close()
    except:
@@ -687,6 +687,9 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.10  2011/03/05 02:59:44  mast
+# Fixed problem with cleanup past start list including a ~ file
+#
 # Revision 1.9  2011/02/11 05:50:41  mast
 # Remove WIDTH entry and zero out X shift if any
 #
