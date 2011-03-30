@@ -171,8 +171,19 @@ c         Image file unless ignoring
      &      maxdose, ndose, ixpiece, iypiece, izpcSrc, maxpiece, maxzSrc,
      &      npcSrc)
         if (iunit .eq. 2) call imclose(2)
+      elseif (ignoreExp) then
+c         
+c         Ignore means ignore!
+        ndose = 0
       endif
-c
+c       
+c       Test for bad doses
+      do i = 1, ndose
+        if (doses(i) .eq. 0) call exitError(
+     &      'SOME DOSES ARE ZERO; USE -ignore TO IGNORE DOSES IN IMAGE FILE HEADER')
+      enddo
+c       
+c       Deal with doses if they exist
       if (ndose .gt. 0) then
 c         
 c         Are there the right number of doses?
@@ -216,24 +227,24 @@ c
 c         Determine if the scaling is relative
         if (ifRefMean .eq. 1 .and. ifRefDose .eq. 1) relative = .false.
 c       
-c       If doing output, check state of subtractions
-      if (outfile .ne. ' ') then
-        if (subtracted .and. modeIn .ne. 1 .and. modeIn .ne. 2) call exitError(
-     &      'INPUT IMAGE FILE IS NOT THE RIGHT MODE TO CONTAIN '//
-     &      'SUBTRACTED VALUES')
-        if (resubtract .and. divideby2) call exitError(
-     &      'YOU CANNOT ENTER BOTH -resubtract AND -divideby2')
-        if ((resubtract .or. divideby2) .and. .not.subtracted) call exitError(
-     &      'YOU CANNOT ENTER -resubtract OR -divideby2 UNLESS DATA WERE '//
-     &      'SUBTRACTED')
-        if ((resubtract .or. divideby2) .and. (modeOut .ne. 1 .or.
-     &      .not.relative .or. ifLog .ne. 0)) call exitError(
-     &      'YOU CANNOT ENTER -resubtract OR -divideby2 UNLESS DOING '//
-     &      'RELATIVE NORMALIZATIONS WITH OUTPUT MODE OF 1 AND NO LOG')
-        if (subtracted .and. baselog .gt. 30000) call exitError(
-     &      'YOU SHOULD ENTER "-log 0" WITH -subtracted')
-      endif
-c       
+c         If doing output, check state of subtractions
+        if (outfile .ne. ' ') then
+          if (subtracted .and. modeIn .ne. 1 .and. modeIn .ne. 2) call exitError(
+     &        'INPUT IMAGE FILE IS NOT THE RIGHT MODE TO CONTAIN '//
+     &        'SUBTRACTED VALUES')
+          if (resubtract .and. divideby2) call exitError(
+     &        'YOU CANNOT ENTER BOTH -resubtract AND -divideby2')
+          if ((resubtract .or. divideby2) .and. .not.subtracted) call exitError(
+     &        'YOU CANNOT ENTER -resubtract OR -divideby2 UNLESS DATA WERE '//
+     &        'SUBTRACTED')
+          if ((resubtract .or. divideby2) .and. (modeOut .ne. 1 .or.
+     &        .not.relative .or. ifLog .ne. 0)) call exitError(
+     &        'YOU CANNOT ENTER -resubtract OR -divideby2 UNLESS DOING '//
+     &        'RELATIVE NORMALIZATIONS WITH OUTPUT MODE OF 1 AND NO LOG')
+          if (subtracted .and. baselog .gt. 30000) call exitError(
+     &        'YOU SHOULD ENTER "-log 0" WITH -subtracted')
+        endif
+c         
 c         Make the weights
         if (relative) then
 c           
@@ -433,6 +444,9 @@ c       pack the values down
       end
 
 c       $Log$
+c       Revision 3.3  2009/08/14 21:03:10  mast
+c       Fixed power option
+c
 c       Revision 3.2  2007/08/10 16:14:46  mast
 c       Added options for dealing with integers where 32768 was subtracted
 c
