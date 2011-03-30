@@ -1,8 +1,20 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/30/11: IMOD_4-1-9
+3/30/11: Fixed Newstack copying extra header data with multiple input files.
+
+3/30/11: Fixed Densnorm to protect against zero doses, and to truly ignore
+doses with the -ignore option; added -ignore when running from Sirtsetup.
+
+3/24/11: Fixed in problem in eTomo - NAD where all the iterations tried where
+not opened in 3dmod.
+
+3/1/11: In eTomo fixing a bug where the RotationAngle was not added to the
+patch tracking comscript, xcorr_pt.com.
+
 12/7/10: IMOD_4-1-8
 12/7/10: Fixed section range output from rubberband when there is binning in
-Z, which was wrong for trimvol extraction and messages to eTomo (In 4.1).
+Z, which was wrong for trimvol extraction and messages to eTomo.
 
 12/7/10: Stopped Sirtsetup from putting out empty com files and doing scaling
 on iterations not being left.
