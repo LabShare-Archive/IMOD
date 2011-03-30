@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/30/11: Fixed Newstack copying extra header data with multiple input files
+(In 4.1).
+
+3/30/11: Fixed Densnorm to protect against zero doses, and to truly ignore
+doses with the -ignore option; added -ignore when running from Sirtsetup
+(In 4.1).
+
 3/25/11: Fixed Edpiecepoint (broken for PIP input since 4.2.11) and added
 option to divide a piece list by a factor for use with binned images.
 
@@ -61,7 +68,7 @@ fixed some problems with this and with the filtered high-quality zoom down.
 made Midas accept files with blank lines.
 
 3/1/11: In eTomo fixing a bug where the RotationAngle was not added to the
-patch tracking comscript, xcorr_pt.com (in 4.1 FWIW).
+patch tracking comscript, xcorr_pt.com (in 4.1).
 
 3/1/11: In eTomo fixed empty tabs in Final Aligned Stack dialog.
 
