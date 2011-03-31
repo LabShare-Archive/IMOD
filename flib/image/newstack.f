@@ -23,7 +23,7 @@ c
 
       real*4, allocatable :: array(:)
 C       
-      integer*4 NXYZ(3),MXYZ(3),NXYZST(3), NXYZ2(3),MXYZ2(3), maxExtraIn,maxExtraOut,
+      integer*4 NXYZ(3),MXYZ(3),NXYZST(3), NXYZ2(3),MXYZ2(3), maxExtraIn,maxExtraOut
       real*4 CELL2(6),cell(6), TITLE(20), delt(3), xorig, yorig, zorig
 C       
       CHARACTER*320 FILIN(lmfil),FILOUT(lmfil),xffil,filistin,filistout
@@ -2068,6 +2068,9 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.57.2.1  2011/03/30 20:24:41  mast
+c       Fixed copying of extra header data for multiple input files
+c
 c       Revision 3.57  2009/10/14 23:50:41  mast
 c       allocate arrays for extra header data
 c
