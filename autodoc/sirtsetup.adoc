@@ -53,7 +53,10 @@ done up to the last interation number in the list being left.
 short = le
 type = LI
 usage = Leave reconstructions at the listed iterations
-tooltip =
+tooltip = Retain the reconstructions at the listed iterations, which are
+numbered by absolute iteration number, not by iteration number in this round.
+The highest number determines how many iterations will be run (if
+"IterationsToRun" is not entered).
 manpage = Leave reconstructions at the listed iterations, which are numbered
 by absolute iteration number.  For example, if 10 iterations have already been
 done and you are doing another 10, entering 14,17-19 will retain the
@@ -80,7 +83,8 @@ the beginning, the list will include all existing files.
 short = su
 type = IP
 usage = Size in X and Y of subarea to use from aligned stack, in binned pixels
-tooltip =
+tooltip = Size in X and Y of subarea to use from aligned stack, in binned
+pixels if the aligned stack is binned.
 manpage = Size in X and Y of a subarea to use from the aligned stack, in
 actual pixels of that stack, which might be binned relative to the original
 tilt series.
@@ -89,7 +93,8 @@ tilt series.
 short = yo
 type = I
 usage = Offset in Y from center of aligned image to center of subarea
-tooltip =
+tooltip = Offset in Y from center of aligned image to center of subarea, in
+binned pixels if the aligned stack is binned.
 manpage = Offset in Y from center of aligned image to center of subarea
 whose size is specified with the -su option.  The shifted subarea must lie
 completely within the image area.  Enter a value in actual pixels of the
@@ -101,7 +106,8 @@ started.
 short = sc
 type = FP
 usage = Convert retained reconstructions to integers with given min/max
-tooltip =
+tooltip = Convert retained reconstructions to integers with (eTomo sets
+the min and max for scaling to -20000/20000).
 manpage = Scale each retained reconstruction to integers, with the minimum and
 maximum in the reconstruction scaled to the given min and max values.  
 Values of -20000,20000 are recommended.  This scaling
@@ -130,10 +136,14 @@ be extracted from etomo_err.log after running the Trimvol step in eTomo.
 short = fl
 type = F
 usage = Flat filter fraction for starting reconstruction (default 1.)
-tooltip =
+tooltip = The fraction of a flat filter function to apply in the initial
+reconstruction.  The default is 1 to use just a flat filter; 0 will use just
+the standard radial weighting filter and give an R-weighted backprojection;
+values between 0 and 1 give a mixture between the two starting reconstructions
+and may give quicker convergence.
 manpage = Set the fraction of a flat filter function to apply in the initial
 reconstruction.  A flat function will be mixed with the standard radial filter
-if the fraction is less than 1; this may given quicker convergence. 
+if the fraction is less than 1; this may give quicker convergence. 
 The default is 1.0 for no mixing.
 
 [Field = RadiusAndSigma]
