@@ -52,6 +52,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2011/03/02 00:00:12  sueh
+ * <p> bug# 1452 Removing image rotation conversion between float and
+ * <p> double.  Using string where possible.
+ * <p>
  * <p> Revision 1.4  2011/02/21 19:51:19  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -318,7 +322,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       DialogType dialogType, ProcessDisplay display) {
     if (process.equals(ProcessName.PROCESSCHUNKS.toString())) {
       processchunks(manager, dialog, processResultDisplay, processSeries, process
-          .getSubprocessName(), process.getOutputImageFileType(), process
+          .getSubprocessName().toString(), process.getOutputImageFileType(), process
           .getProcessingMethod());
     }
     else if (process.equals(ProcessName.TILT_3D_FIND.toString())) {
