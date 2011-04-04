@@ -15,6 +15,7 @@ import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.ProcessingMethodMediator;
 import etomo.comscript.ProcesschunksParam;
+import etomo.comscript.SirtsetupParam;
 import etomo.storage.CpuAdoc;
 import etomo.storage.LogFile;
 import etomo.storage.Network;
@@ -51,6 +52,8 @@ public final class ParallelPanel implements Expandable, Storable {
   public static final String RESUME_LABEL = "Resume";
   static final String FIELD_LABEL = "Parallel processing";
   static final String MAX_CPUS_STRING = ":  Maximum number of CPUs recommended is ";
+  private final String CPUS_SELECTED_LABEL = "CPUs: ";
+  private final String GPUS_SELECTED_LABEL = "GPUs: ";
 
   private static HashedArray maxCPUList = null;
   private static EtomoBoolean2 validAutodoc = null;
@@ -59,17 +62,15 @@ public final class ParallelPanel implements Expandable, Storable {
   private final EtomoPanel computerTablePanel = new EtomoPanel();
   private final EtomoPanel queueTablePanel = new EtomoPanel();
   private final LabeledTextField ltfCPUsSelected = new LabeledTextField(
-      "CPUs: ");
+      CPUS_SELECTED_LABEL);
   private final LabeledTextField ltfChunksFinished = new LabeledTextField(
       "Chunks finished: ");
   private final MultiLineButton btnResume = new MultiLineButton(RESUME_LABEL);
   private final MultiLineButton btnPause = new MultiLineButton("Pause");
-  private final MultiLineButton btnSaveDefaults = new MultiLineButton(
-      "Save As Defaults");
+  private final MultiLineButton btnSaveDefaults = new MultiLineButton("Save As Defaults");
   private final SpacedPanel bodyPanel = SpacedPanel.getInstance();
   private final EtomoPanel rootPanel = new EtomoPanel();
-  private final MultiLineButton btnRestartLoad = new MultiLineButton(
-      "Restart Load");
+  private final MultiLineButton btnRestartLoad = new MultiLineButton("Restart Load");
   private final CheckBox cbQueues = new CheckBox("Use a cluster");
   private final EtomoVersion version = EtomoVersion.getDefaultInstance();
 
@@ -96,9 +97,9 @@ public final class ParallelPanel implements Expandable, Storable {
 
   private final boolean popupChunkWarnings;
 
-  static ParallelPanel getInstance(final BaseManager manager,
-      final AxisID axisID, final PanelHeaderState state,
-      final AxisProcessPanel parent, final boolean popupChunkWarnings) {
+  static ParallelPanel getInstance(final BaseManager manager, final AxisID axisID,
+      final PanelHeaderState state, final AxisProcessPanel parent,
+      final boolean popupChunkWarnings) {
     ParallelPanel instance = new ParallelPanel(manager, axisID, state, parent,
         popupChunkWarnings);
     instance.addListeners();
@@ -109,14 +110,12 @@ public final class ParallelPanel implements Expandable, Storable {
       final PanelHeaderState state, final AxisProcessPanel parent,
       final boolean popupChunkWarnings) {
     try {
-      ParameterStore parameterStore = EtomoDirector.INSTANCE
-          .getParameterStore();
+      ParameterStore parameterStore = EtomoDirector.INSTANCE.getParameterStore();
       parameterStore.load(this);
     }
     catch (LogFile.LockException e) {
-      UIHarness.INSTANCE.openMessageDialog(manager,
-          "Unable to load parameters.\n" + e.getMessage(), "Etomo Error",
-          axisID);
+      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to load parameters.\n"
+          + e.getMessage(), "Etomo Error", axisID);
     }
     this.manager = manager;
     this.axisID = axisID;
@@ -145,11 +144,10 @@ public final class ParallelPanel implements Expandable, Storable {
     southPanel.add(ltfCPUsSelected);
     southPanel.add(btnRestartLoad);
     //sNice
-    niceFloor = CpuAdoc.INSTANCE.getMinNice(manager, axisID, manager
-        .getPropertyUserDir());
+    niceFloor = CpuAdoc.INSTANCE
+        .getMinNice(manager, axisID, manager.getPropertyUserDir());
     sNice = Spinner.getLabeledInstance("Nice: ", manager
-        .getParallelProcessingDefaultNice(), niceFloor,
-        ProcesschunksParam.NICE_CEILING);
+        .getParallelProcessingDefaultNice(), niceFloor, ProcesschunksParam.NICE_CEILING);
     southPanel.add(sNice.getContainer());
     southPanel.add(btnPause);
     southPanel.add(btnResume);
@@ -163,8 +161,7 @@ public final class ParallelPanel implements Expandable, Storable {
     if (Network.hasQueues(manager, axisID, manager.getPropertyUserDir())) {
       if (Network.hasComputers(manager, axisID, manager.getPropertyUserDir())) {
         JPanel clusterPanel = new JPanel();
-        clusterPanel
-            .setLayout(new BoxLayout(clusterPanel, BoxLayout.LINE_AXIS));
+        clusterPanel.setLayout(new BoxLayout(clusterPanel, BoxLayout.LINE_AXIS));
         clusterPanel.setAlignmentX(Component.RIGHT_ALIGNMENT);
         clusterPanel.add(cbQueues);
         bodyPanel.add(clusterPanel);
@@ -178,11 +175,9 @@ public final class ParallelPanel implements Expandable, Storable {
     //rootPanel
     rootPanel.add(header);
     rootPanel.add(bodyPanel.getContainer());
-    ltfChunksFinished.setTextPreferredWidth(UIParameters.INSTANCE
-        .getFourDigitWidth());
+    ltfChunksFinished.setTextPreferredWidth(UIParameters.INSTANCE.getFourDigitWidth());
     ltfChunksFinished.setEditable(false);
-    ltfCPUsSelected.setTextPreferredWidth(UIParameters.INSTANCE
-        .getFourDigitWidth());
+    ltfCPUsSelected.setTextPreferredWidth(UIParameters.INSTANCE.getFourDigitWidth());
     ltfCPUsSelected.setEditable(false);
     btnPause.setEnabled(false);
     header.setState(state);
@@ -191,8 +186,7 @@ public final class ParallelPanel implements Expandable, Storable {
   }
 
   private void addListeners() {
-    ParallelPanelActionListener actionListener = new ParallelPanelActionListener(
-        this);
+    ParallelPanelActionListener actionListener = new ParallelPanelActionListener(this);
     btnResume.addActionListener(actionListener);
     btnPause.addActionListener(actionListener);
     btnSaveDefaults.addActionListener(actionListener);
@@ -259,8 +253,8 @@ public final class ParallelPanel implements Expandable, Storable {
   private void action(final ActionEvent event) {
     String command = event.getActionCommand();
     if (command == btnResume.getActionCommand()) {
-      manager.resume(axisID, processchunksParam, processResultDisplay, null,
-          rootPanel, null, popupChunkWarnings, mediator
+      manager.resume(axisID, processchunksParam, processResultDisplay, null, rootPanel,
+          null, popupChunkWarnings, mediator
               .getRunMethodForParallelPanel(getProcessingMethod()));
     }
     else if (command == btnPause.getActionCommand()) {
@@ -289,7 +283,7 @@ public final class ParallelPanel implements Expandable, Storable {
       }
     }
   }
-  
+
   public void load(final Properties props) {
     load(props, "");
   }
@@ -304,11 +298,11 @@ public final class ParallelPanel implements Expandable, Storable {
     }
     version.load(props, prepend);
   }
-  
+
   ConstEtomoVersion getVersion() {
     return version;
   }
-  
+
   public void store(final Properties props) {
     store(props, "");
   }
@@ -366,6 +360,12 @@ public final class ParallelPanel implements Expandable, Storable {
       currentTable.startLoad();
       currentTable.msgCPUsSelectedChanged();
       sNice.setEnabled(currentTable.isNiceable());
+      if (currentTable == gpuTable) {
+        ltfCPUsSelected.setLabel(GPUS_SELECTED_LABEL);
+      }
+      else {
+        ltfCPUsSelected.setLabel(CPUS_SELECTED_LABEL);
+      }
       UIHarness.INSTANCE.pack(axisID, manager);
     }
   }
@@ -431,6 +431,10 @@ public final class ParallelPanel implements Expandable, Storable {
     param.setCPUNumber(ltfCPUsSelected.getText());
     param.resetMachineName();
     currentTable.getParameters(param);
+  }
+
+  public void getParameters(final SirtsetupParam param) {
+    param.setNumberOfProcessors(ltfCPUsSelected.getText());
   }
 
   /**
@@ -509,12 +513,10 @@ public final class ParallelPanel implements Expandable, Storable {
         .setToolTipText("Finishes the processes that are currently running and then stops.");
     btnResume
         .setToolTipText("Starts the process but does not redo the chunks that are already completed.");
-    btnSaveDefaults
-        .setToolTipText("Saves the computers and number of CPUs selected.");
+    btnSaveDefaults.setToolTipText("Saves the computers and number of CPUs selected.");
   }
 
-  private static final class ParallelPanelActionListener implements
-      ActionListener {
+  private static final class ParallelPanelActionListener implements ActionListener {
     private final ParallelPanel adaptee;
 
     private ParallelPanelActionListener(final ParallelPanel adaptee) {
@@ -528,6 +530,10 @@ public final class ParallelPanel implements Expandable, Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/09 05:06:01  sueh
+ * <p> bug# 1439 In setProcessingMethod calling ProcessorTable.
+ * <p> msgCPUsSelectedChanged when starting load without changing the table.
+ * <p>
  * <p> Revision 1.2  2011/02/03 06:18:41  sueh
  * <p> bug# 1422 Registering with the processing method mediator class and
  * <p> letting it decide whether to display the processor table.
