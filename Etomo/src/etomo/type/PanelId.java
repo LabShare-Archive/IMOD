@@ -15,6 +15,9 @@ package etomo.type;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4  2010/12/05 04:44:57  sueh
+ * <p> bug# 1416 Added TILT_SIRT.
+ * <p>
  * <p> Revision 3.3  2010/03/27 04:51:56  sueh
  * <p> bug# 1333 Added panel IDs for AbstractTiltPanel.
  * <p>
@@ -29,11 +32,21 @@ package etomo.type;
 public final class PanelId {
   public static final String rcsid = "$Id$";
 
-  public static final PanelId POST_FLATTEN_VOLUME = new PanelId();
-  public static final PanelId TOOLS_FLATTEN_VOLUME = new PanelId();
-  public static final PanelId CROSS_CORRELATION = new PanelId();
-  public static final PanelId PATCH_TRACKING = new PanelId();
-  public static final PanelId TILT_3D_FIND = new PanelId();
-  public static final PanelId TILT = new PanelId();
-  public static final PanelId TILT_SIRT = new PanelId();
+  public static final PanelId POST_FLATTEN_VOLUME = new PanelId("POST_FLATTEN_VOLUME");
+  public static final PanelId TOOLS_FLATTEN_VOLUME = new PanelId("TOOLS_FLATTEN_VOLUME");
+  public static final PanelId CROSS_CORRELATION = new PanelId("CROSS_CORRELATION");
+  public static final PanelId PATCH_TRACKING = new PanelId("PATCH_TRACKING");
+  public static final PanelId TILT_3D_FIND = new PanelId("TILT_3D_FIND");
+  public static final PanelId TILT = new PanelId("TILT");
+  public static final PanelId SIRTSETUP = new PanelId("SIRTSETUP");
+
+  private final String string;
+
+  private PanelId(String string) {
+    this.string = string;
+  }
+
+  public String toString() {
+    return string;
+  }
 }
