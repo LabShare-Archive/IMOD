@@ -24,6 +24,9 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2011/02/22 04:52:05  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.3  2011/02/03 06:07:07  sueh
  * <p> bug# 1422 Added gpulocal.
  * <p>
@@ -146,7 +149,7 @@ public final class Node {
     }
     //gpu = 1
     //gpu.local = 1
-    attribute = section.getAttribute("gpu");
+    attribute = section.getAttribute(CpuAdoc.GPU_KEY);
     if (attribute != null) {
       //see if .local is used
       ReadOnlyAttribute parentAttribute = attribute;
