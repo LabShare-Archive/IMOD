@@ -40,6 +40,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.80  2010/11/13 16:03:45  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 3.79  2010/04/28 16:19:03  sueh
  * <p> bug# 1344 Added functions to find a specific ImodState in a Vector instead
  * <p> of always getting the first one:  get(String,AxisID,String), isOpen
@@ -557,20 +560,17 @@ public class ImodManager {
   public static final String FINE_ALIGNED_KEY = new String("fine aligned");
   public static final String SAMPLE_KEY = new String("sample");
   public static final String FULL_VOLUME_KEY = new String("full volume");
-  public static final String COMBINED_TOMOGRAM_KEY = new String(
-      "combined tomogram");
+  public static final String COMBINED_TOMOGRAM_KEY = new String("combined tomogram");
   public static final String FIDUCIAL_MODEL_KEY = new String("fiducial model");
   public static final String TRIMMED_VOLUME_KEY = new String("trimmed volume");
-  public static final String PATCH_VECTOR_MODEL_KEY = new String(
-      "patch vector model");
+  public static final String PATCH_VECTOR_MODEL_KEY = new String("patch vector model");
   public static final String MATCH_CHECK_KEY = new String("match check");
   public static final String TRIAL_TOMOGRAM_KEY = new String("trial tomogram");
   public static final String MTF_FILTER_KEY = new String("mtf filter");
   public static final String PREVIEW_KEY = new String("preview");
   public static final String TOMOGRAM_KEY = new String("tomogram");
   public static final String JOIN_SAMPLES_KEY = new String("joinSamples");
-  public static final String JOIN_SAMPLE_AVERAGES_KEY = new String(
-      "joinSampleAverages");
+  public static final String JOIN_SAMPLE_AVERAGES_KEY = new String("joinSampleAverages");
   public static final String JOIN_KEY = new String("join");
   public static final String ROT_TOMOGRAM_KEY = new String("rotTomogram");
   public static final String TRIAL_JOIN_KEY = new String("TrialJoinKey");
@@ -578,8 +578,7 @@ public class ImodManager {
   public static final String PATCH_VECTOR_CCC_MODEL_KEY = new String(
       "patch vector ccc model");
   public static final String MODELED_JOIN_KEY = new String("modeled join");
-  public static final String TRANSFORMED_MODEL_KEY = new String(
-      "transformed model");
+  public static final String TRANSFORMED_MODEL_KEY = new String("transformed model");
   public static final String AVG_VOL_KEY = new String("AvgVol");
   public static final String REF_KEY = new String("Ref");
   public static final String VOLUME_KEY = new String("Volume");
@@ -590,8 +589,7 @@ public class ImodManager {
   public static final String ANISOTROPIC_DIFFUSION_VOLUME_KEY = new String(
       "AnisotropicDiffusionVolume");
   public static final String CTF_CORRECTION_KEY = new String("CtfCorrection");
-  public static final String ERASED_FIDUCIALS_KEY = new String(
-      "erased fiducials");
+  public static final String ERASED_FIDUCIALS_KEY = new String("erased fiducials");
   public static final String FLAT_VOLUME_KEY = new String("flattened volume");
   public static final String FINE_ALIGNED_3D_FIND_KEY = new String(
       "fine aligned for findbeads3d");
@@ -599,10 +597,10 @@ public class ImodManager {
       "full volume for findbeads3d");
   public static final String SMOOTHING_ASSESSMENT_KEY = new String(
       "Smoothing assessment flattenwarp output");
-  public static final String FLATTEN_INPUT_KEY = new String(
-      "Flatten input file");
+  public static final String FLATTEN_INPUT_KEY = new String("Flatten input file");
   public static final String FLATTEN_TOOL_OUTPUT_KEY = new String(
       "Flatten tool output file");
+  public static final String SIRT_KEY = new String("SIRT output files");
 
   //private keys - used with imodMap
   private static final String rawStackKey = RAW_STACK_KEY;
@@ -644,6 +642,7 @@ public class ImodManager {
   private static final String smoothingAssessmentKey = SMOOTHING_ASSESSMENT_KEY;
   private static final String flattenInputKey = FLATTEN_INPUT_KEY;
   private static final String flattenToolOutputKey = FLATTEN_TOOL_OUTPUT_KEY;
+  private static final String sirtKey = SIRT_KEY;
 
   private boolean useMap = true;
   private final BaseManager manager;
@@ -660,8 +659,7 @@ public class ImodManager {
     //listening to stdin and it wants to exit, it sends a request to stderr to
     //ask that the stdin receive a stop listening command.  This is because
     //3dmod in Windows can't exit when it is listening to stdin.
-    if (Utilities.isWindowsOS()
-        && EtomoDirector.INSTANCE.getArguments().isListen()) {
+    if (Utilities.isWindowsOS() && EtomoDirector.INSTANCE.getArguments().isListen()) {
       requestHandler = ImodRequestHandler.getInstance(this);
     }
   }
@@ -731,11 +729,11 @@ public class ImodManager {
   }
 
   private int newImod(String key) throws AxisTypeException {
-    return newImod(key, (AxisID) null, null);
+    return newImod(key, (AxisID) null, (String) null);
   }
 
   public int newImod(String key, AxisID axisID) throws AxisTypeException {
-    return newImod(key, axisID, null);
+    return newImod(key, axisID, (String) null);
   }
 
   public int newImod(String key, AxisID axisID, String datasetName)
@@ -759,6 +757,27 @@ public class ImodManager {
     return vector.lastIndexOf(imodState);
   }
 
+  public int newImod(String key, final AxisID axisID, final File[] fileList)
+      throws AxisTypeException {
+    Vector vector;
+    ImodState imodState;
+    key = getPrivateKey(key);
+    vector = getVector(key, axisID);
+    if (vector == null) {
+      vector = newVector(key, axisID, fileList);
+      if (axisID == null) {
+        imodMap.put(key, vector);
+      }
+      else {
+        imodMap.put(key + axisID.getExtension(), vector);
+      }
+      return 0;
+    }
+    imodState = newImodState(key, axisID, fileList);
+    vector.add(imodState);
+    return vector.lastIndexOf(imodState);
+  }
+
   public int newImod(String key, File file) throws AxisTypeException {
     Vector vector;
     ImodState imodState;
@@ -774,8 +793,7 @@ public class ImodManager {
     return vector.lastIndexOf(imodState);
   }
 
-  public int newImod(String key, String[] fileNameArray)
-      throws AxisTypeException {
+  public int newImod(String key, String[] fileNameArray) throws AxisTypeException {
     Vector vector;
     ImodState imodState;
     key = getPrivateKey(key);
@@ -809,13 +827,13 @@ public class ImodManager {
     return vector.lastIndexOf(imodState);
   }
 
-  public void open(String key) throws AxisTypeException,
-      SystemProcessException, IOException {
+  public void open(String key) throws AxisTypeException, SystemProcessException,
+      IOException {
     open(key, null, null, null);
   }
 
-  public void open(String key, Run3dmodMenuOptions menuOptions)
-      throws AxisTypeException, SystemProcessException, IOException {
+  public void open(String key, Run3dmodMenuOptions menuOptions) throws AxisTypeException,
+      SystemProcessException, IOException {
     open(key, null, null, menuOptions);
     //used for:
     //openCombinedTomogram
@@ -833,8 +851,8 @@ public class ImodManager {
     open(key, axisID, null, menuOptions);
   }
 
-  public void open(String key, AxisID axisID, String model)
-      throws AxisTypeException, SystemProcessException, IOException {
+  public void open(String key, AxisID axisID, String model) throws AxisTypeException,
+      SystemProcessException, IOException {
     open(key, axisID, model, new Run3dmodMenuOptions());
   }
 
@@ -856,9 +874,8 @@ public class ImodManager {
     }
   }
 
-  public void open(String key, File file, Run3dmodMenuOptions menuOptions,
-      boolean swapYZ) throws AxisTypeException, SystemProcessException,
-      IOException {
+  public void open(String key, File file, Run3dmodMenuOptions menuOptions, boolean swapYZ)
+      throws AxisTypeException, SystemProcessException, IOException {
     key = getPrivateKey(key);
     ImodState imodState = get(key);
     if (imodState == null) {
@@ -872,8 +889,8 @@ public class ImodManager {
   }
 
   public void open(String key, AxisID axisID, String model,
-      Run3dmodMenuOptions menuOptions) throws AxisTypeException,
-      SystemProcessException, IOException {
+      Run3dmodMenuOptions menuOptions) throws AxisTypeException, SystemProcessException,
+      IOException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
@@ -890,8 +907,8 @@ public class ImodManager {
     }
   }
 
-  public void setOpenModelView(String key, AxisID axisID)
-      throws AxisTypeException, IOException, SystemProcessException {
+  public void setOpenModelView(String key, AxisID axisID) throws AxisTypeException,
+      IOException, SystemProcessException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
@@ -903,9 +920,8 @@ public class ImodManager {
     }
   }
 
-  public void open(String key, String[] fileNameArray,
-      Run3dmodMenuOptions menuOptions) throws AxisTypeException,
-      SystemProcessException, IOException {
+  public void open(String key, String[] fileNameArray, Run3dmodMenuOptions menuOptions)
+      throws AxisTypeException, SystemProcessException, IOException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, AxisID.ONLY);
     if (imodState == null || !imodState.equalsFileNameArray(fileNameArray)) {
@@ -917,9 +933,9 @@ public class ImodManager {
     }
   }
 
-  public void open(String key, String[] fileNameArray,
-      Run3dmodMenuOptions menuOptions, String subdirName, boolean swapYZ)
-      throws AxisTypeException, SystemProcessException, IOException {
+  public void open(String key, String[] fileNameArray, Run3dmodMenuOptions menuOptions,
+      String subdirName, boolean swapYZ) throws AxisTypeException,
+      SystemProcessException, IOException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, AxisID.ONLY);
     if (imodState == null || !imodState.equalsSubdirName(subdirName)
@@ -943,8 +959,8 @@ public class ImodManager {
    * @throws SystemProcessException
    */
   public void open(String key, AxisID axisID, String model, boolean modelMode,
-      Run3dmodMenuOptions menuOptions) throws AxisTypeException,
-      SystemProcessException, IOException {
+      Run3dmodMenuOptions menuOptions) throws AxisTypeException, SystemProcessException,
+      IOException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
@@ -969,8 +985,8 @@ public class ImodManager {
    * @throws SystemProcessException
    */
   public void open(String key, File file, String model, boolean modelMode,
-      Run3dmodMenuOptions menuOptions) throws AxisTypeException,
-      SystemProcessException, IOException {
+      Run3dmodMenuOptions menuOptions) throws AxisTypeException, SystemProcessException,
+      IOException {
     key = getPrivateKey(key);
     ImodState imodState = get(key);
     if (imodState == null) {
@@ -993,14 +1009,14 @@ public class ImodManager {
    * @throws SystemProcessException
    */
   public void open(String key, AxisID axisID, int vectorIndex,
-      Run3dmodMenuOptions menuOptions) throws AxisTypeException,
-      SystemProcessException, IOException {
+      Run3dmodMenuOptions menuOptions) throws AxisTypeException, SystemProcessException,
+      IOException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID, vectorIndex);
     if (imodState == null) {
       throw new IllegalArgumentException(key + " was not created in "
-          + axisType.toString() + " with axisID=" + axisID.getExtension()
-          + " at index " + vectorIndex);
+          + axisType.toString() + " with axisID=" + axisID.getExtension() + " at index "
+          + vectorIndex);
     }
     imodState.open(menuOptions);
   }
@@ -1016,9 +1032,9 @@ public class ImodManager {
     imodState.open(menuOptions);
   }
 
-  public void open(String key, int vectorIndex, String model,
-      boolean modelMode, Run3dmodMenuOptions menuOptions)
-      throws AxisTypeException, SystemProcessException, IOException {
+  public void open(String key, int vectorIndex, String model, boolean modelMode,
+      Run3dmodMenuOptions menuOptions) throws AxisTypeException, SystemProcessException,
+      IOException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, vectorIndex);
     if (imodState == null) {
@@ -1028,8 +1044,8 @@ public class ImodManager {
     imodState.open(model, modelMode, menuOptions);
   }
 
-  public void delete(String key, int vectorIndex) throws AxisTypeException,
-      IOException, SystemProcessException {
+  public void delete(String key, int vectorIndex) throws AxisTypeException, IOException,
+      SystemProcessException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, vectorIndex);
     if (imodState == null) {
@@ -1055,7 +1071,7 @@ public class ImodManager {
 
   public boolean isOpen(String key, AxisID axisID, String datasetName)
       throws AxisTypeException {
-    if (key==null) {
+    if (key == null) {
       return false;
     }
     key = getPrivateKey(key);
@@ -1085,8 +1101,7 @@ public class ImodManager {
     return false;
   }
 
-  public String getModelName(String key, AxisID axisID)
-      throws AxisTypeException {
+  public String getModelName(String key, AxisID axisID) throws AxisTypeException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
@@ -1107,8 +1122,8 @@ public class ImodManager {
     return imodState.getRubberbandCoordinates();
   }
 
-  public Vector getSlicerAngles(String key, int vectorIndex)
-      throws AxisTypeException, IOException, SystemProcessException {
+  public Vector getSlicerAngles(String key, int vectorIndex) throws AxisTypeException,
+      IOException, SystemProcessException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, vectorIndex);
     if (imodState == null || !imodState.isOpen()) {
@@ -1124,8 +1139,8 @@ public class ImodManager {
     quit(key, null);
   }
 
-  public void quit(String key, AxisID axisID) throws AxisTypeException,
-      IOException, SystemProcessException {
+  public void quit(String key, AxisID axisID) throws AxisTypeException, IOException,
+      SystemProcessException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState != null) {
@@ -1142,8 +1157,8 @@ public class ImodManager {
     }
   }
 
-  public void quitAll(String key, AxisID axisID) throws AxisTypeException,
-      IOException, SystemProcessException {
+  public void quitAll(String key, AxisID axisID) throws AxisTypeException, IOException,
+      SystemProcessException {
     Vector imodStateVector = getVector(getPrivateKey(key), axisID);
     if (imodStateVector == null || imodStateVector.size() == 0) {
       return;
@@ -1161,8 +1176,7 @@ public class ImodManager {
     }
   }
 
-  public void quit() throws AxisTypeException, IOException,
-      SystemProcessException {
+  public void quit() throws AxisTypeException, IOException, SystemProcessException {
     if (imodMap.size() == 0) {
       return;
     }
@@ -1237,8 +1251,7 @@ public class ImodManager {
     imodState.setSwapYZ(swapYZ);
   }
 
-  public void setSwapYZ(String key, File file, boolean swapYZ)
-      throws AxisTypeException {
+  public void setSwapYZ(String key, File file, boolean swapYZ) throws AxisTypeException {
     key = getPrivateKey(key);
     ImodState imodState = get(key);
     if (imodState == null) {
@@ -1256,8 +1269,7 @@ public class ImodManager {
       return;
     }
     if (imodState.isUseModv()) {
-      throw new UnsupportedOperationException(
-          "The Bead Fixer cannot be opened in 3dmodv");
+      throw new UnsupportedOperationException("The Bead Fixer cannot be opened in 3dmodv");
     }
     imodState.setOpenBeadFixer(openBeadFixer);
   }
@@ -1289,8 +1301,8 @@ public class ImodManager {
     imodState.setDeleteAllSections(on);
   }
 
-  public void setBeadfixerMode(String key, AxisID axisID,
-      ImodProcess.BeadFixerMode mode) throws AxisTypeException {
+  public void setBeadfixerMode(String key, AxisID axisID, ImodProcess.BeadFixerMode mode)
+      throws AxisTypeException {
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
       return;
@@ -1298,8 +1310,8 @@ public class ImodManager {
     imodState.setBeadfixerMode(mode);
   }
 
-  public void setOpenLog(String key, AxisID axisID, boolean openLog,
-      String logName) throws AxisTypeException {
+  public void setOpenLog(String key, AxisID axisID, boolean openLog, String logName)
+      throws AxisTypeException {
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
       return;
@@ -1333,8 +1345,7 @@ public class ImodManager {
     imodState.setNewContours(newContours);
   }
 
-  public void setBinning(String key, AxisID axisID, int binning)
-      throws AxisTypeException {
+  public void setBinning(String key, AxisID axisID, int binning) throws AxisTypeException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
@@ -1407,8 +1418,7 @@ public class ImodManager {
   }
 
   public void setContinuousListenerTarget(String key, AxisID axisID,
-      ContinuousListenerTarget continuousListenerTarget)
-      throws AxisTypeException {
+      ContinuousListenerTarget continuousListenerTarget) throws AxisTypeException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
@@ -1468,8 +1478,8 @@ public class ImodManager {
     }
   }
 
-  public void setPreserveContrast(String key, AxisID axisID,
-      boolean preserveContrast) throws AxisTypeException {
+  public void setPreserveContrast(String key, AxisID axisID, boolean preserveContrast)
+      throws AxisTypeException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
@@ -1494,8 +1504,8 @@ public class ImodManager {
     }
   }
 
-  public void setPieceListFileName(String key, AxisID axisID,
-      String pieceListFileName) throws AxisTypeException {
+  public void setPieceListFileName(String key, AxisID axisID, String pieceListFileName)
+      throws AxisTypeException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
@@ -1531,12 +1541,10 @@ public class ImodManager {
    * @return
    * @throws AxisTypeException
    */
-  public boolean warnStaleFile(String key, AxisID axisID)
-      throws AxisTypeException {
+  public boolean warnStaleFile(String key, AxisID axisID) throws AxisTypeException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
-    if (imodState != null && !imodState.isWarnedStaleFile()
-        && imodState.isOpen()) {
+    if (imodState != null && !imodState.isWarnedStaleFile() && imodState.isOpen()) {
       imodState.setWarnedStaleFile(true);
       return true;
     }
@@ -1551,57 +1559,64 @@ public class ImodManager {
     return vector;
   }
 
-  protected Vector newVector(String key) {
+  Vector newVector(final String key) {
     return newVector(newImodState(key));
   }
 
-  protected Vector newVector(String key, AxisID axisID) {
+  Vector newVector(final String key, final AxisID axisID) {
     return newVector(newImodState(key, axisID));
   }
 
-  protected Vector newVector(String key, AxisID axisID, String datasetName) {
+  Vector newVector(final String key, final AxisID axisID, final String datasetName) {
     return newVector(newImodState(key, axisID, datasetName));
   }
 
-  protected Vector newVector(String key, File file) {
+  Vector newVector(final String key, final File file) {
     return newVector(newImodState(key, file));
   }
 
-  protected Vector newVector(String key, String[] fileNameArray) {
+  Vector newVector(final String key, final String[] fileNameArray) {
     return newVector(newImodState(key, fileNameArray));
   }
 
-  protected Vector newVector(String key, String[] fileNameArray,
-      String subdirName) {
+  Vector newVector(final String key, final AxisID axisID, final File[] fileList) {
+    return newVector(newImodState(key, axisID, fileList));
+  }
+
+  Vector newVector(final String key, final String[] fileNameArray, final String subdirName) {
     return newVector(newImodState(key, fileNameArray, subdirName));
   }
 
-  protected ImodState newImodState(String key) {
-    return newImodState(key, null, null, null, null, null);
+  ImodState newImodState(final String key) {
+    return newImodState(key, null, null, null, null, null, null);
   }
 
-  ImodState newImodState(String key, AxisID axisID) {
-    return newImodState(key, axisID, null, null, null, null);
+  ImodState newImodState(final String key, final AxisID axisID) {
+    return newImodState(key, axisID, null, null, null, null, null);
+  }
+
+  ImodState newImodState(final String key, final AxisID axisID, final File[] fileList) {
+    return newImodState(key, axisID, null, null, null, null, fileList);
   }
 
   ImodState newImodState(String key, AxisID axisID, String datasetName) {
-    return newImodState(key, axisID, datasetName, null, null, null);
+    return newImodState(key, axisID, datasetName, null, null, null, null);
   }
 
   ImodState newImodState(String key, File file) {
-    return newImodState(key, null, null, file, null, null);
+    return newImodState(key, null, null, file, null, null, null);
   }
 
   ImodState newImodState(String key, String[] fileNameArray) {
-    return newImodState(key, null, null, null, fileNameArray, null);
+    return newImodState(key, null, null, null, fileNameArray, null, null);
   }
 
   ImodState newImodState(String key, String[] fileNameArray, String subdirName) {
-    return newImodState(key, null, null, null, fileNameArray, subdirName);
+    return newImodState(key, null, null, null, fileNameArray, subdirName, null);
   }
 
-  ImodState newImodState(String key, AxisID axisID, String datasetName,
-      File file, String[] fileNameArray, String subdirName) {
+  ImodState newImodState(String key, AxisID axisID, String datasetName, File file,
+      String[] fileNameArray, String subdirName, final File[] fileList) {
     if (key.equals(RAW_STACK_KEY) && axisID != null) {
       return newRawStack(axisID);
     }
@@ -1668,8 +1683,7 @@ public class ImodManager {
     if (key.equals(SQUEEZED_VOLUME_KEY)) {
       return newSqueezedVolume();
     }
-    if (key.equals(PATCH_VECTOR_CCC_MODEL_KEY)
-        && axisType == AxisType.DUAL_AXIS) {
+    if (key.equals(PATCH_VECTOR_CCC_MODEL_KEY) && axisType == AxisType.DUAL_AXIS) {
       return newPatchVectorCCCModel();
     }
     if (key.equals(TRANSFORMED_MODEL_KEY)) {
@@ -1719,6 +1733,9 @@ public class ImodManager {
     }
     if (key.equals(FLATTEN_TOOL_OUTPUT_KEY) && axisID != null) {
       return newFlattenToolOutput(axisID);
+    }
+    if (key.equals(SIRT_KEY) && axisID != null) {
+      return newSirt(fileList, axisID);
     }
     System.out.println("key=" + key);
     throw new IllegalArgumentException(key + " cannot be created in "
@@ -1815,8 +1832,7 @@ public class ImodManager {
   }
 
   private ImodState newErasedStack(AxisID axisID) {
-    ImodState imodState = new ImodState(manager, axisID, datasetName,
-        "_fixed.st");
+    ImodState imodState = new ImodState(manager, axisID, datasetName, "_fixed.st");
     return imodState;
   }
 
@@ -1832,8 +1848,8 @@ public class ImodManager {
   }
 
   private ImodState newSample(AxisID axisID) {
-    ImodState imodState = new ImodState(manager, axisID, "top", "mid", "bot",
-        ".rec", "tomopitch", ".mod");
+    ImodState imodState = new ImodState(manager, axisID, "top", "mid", "bot", ".rec",
+        "tomopitch", ".mod");
     imodState.setInitialMode(ImodState.MODEL_MODE);
     return imodState;
   }
@@ -1859,18 +1875,16 @@ public class ImodManager {
   }
 
   private ImodState newPatchVectorModel() {
-    ImodState imodState = new ImodState(manager,
-        DatasetFiles.PATCH_VECTOR_MODEL, ImodState.MODEL_VIEW, AxisID.ONLY,
-        ImodProcess.WindowOpenOption.IMODV_OBJECTS);
+    ImodState imodState = new ImodState(manager, DatasetFiles.PATCH_VECTOR_MODEL,
+        ImodState.MODEL_VIEW, AxisID.ONLY, ImodProcess.WindowOpenOption.IMODV_OBJECTS);
     imodState.setInitialMode(ImodState.MODEL_MODE);
     imodState.setNoMenuOptions(true);
     return imodState;
   }
 
   private ImodState newPatchVectorCCCModel() {
-    ImodState imodState = new ImodState(manager,
-        DatasetFiles.PATCH_VECTOR_CCC_MODEL, ImodState.MODV, AxisID.ONLY,
-        ImodProcess.WindowOpenOption.IMODV_OBJECTS);
+    ImodState imodState = new ImodState(manager, DatasetFiles.PATCH_VECTOR_CCC_MODEL,
+        ImodState.MODV, AxisID.ONLY, ImodProcess.WindowOpenOption.IMODV_OBJECTS);
     imodState.setNoMenuOptions(true);
     return imodState;
   }
@@ -1883,8 +1897,8 @@ public class ImodManager {
   }
 
   private ImodState newMatchCheck() {
-    ImodState imodState = new ImodState(manager, "matchcheck.mat",
-        "matchcheck.rec", AxisID.ONLY);
+    ImodState imodState = new ImodState(manager, "matchcheck.mat", "matchcheck.rec",
+        AxisID.ONLY);
     imodState.setAllowMenuBinningInZ(true);
     imodState.setInitialSwapYZ(true);
     return imodState;
@@ -1897,8 +1911,7 @@ public class ImodManager {
   }
 
   private ImodState newTrimmedVolume() {
-    ImodState imodState = new ImodState(manager, datasetName + ".rec",
-        AxisID.ONLY);
+    ImodState imodState = new ImodState(manager, datasetName + ".rec", AxisID.ONLY);
     imodState.setAllowMenuBinningInZ(true);
     return imodState;
   }
@@ -1911,8 +1924,7 @@ public class ImodManager {
   }
 
   private ImodState newMtfFilter(AxisID axisID) {
-    ImodState imodState = new ImodState(manager, axisID, datasetName,
-        "_filt.ali");
+    ImodState imodState = new ImodState(manager, axisID, datasetName, "_filt.ali");
     return imodState;
   }
 
@@ -1923,8 +1935,8 @@ public class ImodManager {
   }
 
   private ImodState newErasedFiducials(AxisID axisID) {
-    ImodState imodState = new ImodState(manager, axisID, datasetName,
-        DatasetFiles.getErasedFiducialsFileExtension());
+    ImodState imodState = new ImodState(manager, axisID, datasetName, DatasetFiles
+        .getErasedFiducialsFileExtension());
     return imodState;
   }
 
@@ -1935,8 +1947,8 @@ public class ImodManager {
   }
 
   private ImodState newFlattenToolOutput(AxisID axisID) {
-    ImodState imodState = new ImodState(manager, axisID,
-        FileType.FLATTEN_TOOL_OUTPUT.getFileName(manager, axisID));
+    ImodState imodState = new ImodState(manager, axisID, FileType.FLATTEN_TOOL_OUTPUT
+        .getFileName(manager, axisID));
     return imodState;
   }
 
@@ -1955,8 +1967,7 @@ public class ImodManager {
       new IllegalStateException("DatasetName is empty.").printStackTrace();
       System.err.println("manager=" + manager);
     }
-    ImodState imodState = new ImodState(manager, datasetName + ".sample",
-        AxisID.ONLY);
+    ImodState imodState = new ImodState(manager, datasetName + ".sample", AxisID.ONLY);
     return imodState;
   }
 
@@ -1965,14 +1976,12 @@ public class ImodManager {
       new IllegalStateException("DatasetName is empty.").printStackTrace();
       System.err.println("manager=" + manager);
     }
-    ImodState imodState = new ImodState(manager, datasetName + ".sampavg",
-        AxisID.ONLY);
+    ImodState imodState = new ImodState(manager, datasetName + ".sampavg", AxisID.ONLY);
     return imodState;
   }
 
   private ImodState newJoin() {
-    ImodState imodState = new ImodState(manager, datasetName + ".join",
-        AxisID.ONLY);
+    ImodState imodState = new ImodState(manager, datasetName + ".join", AxisID.ONLY);
     return imodState;
   }
 
@@ -2005,15 +2014,18 @@ public class ImodManager {
   }
 
   private ImodState newVaryingKTest(String[] fileNameArray, String subdirName) {
-    ImodState imodState = new ImodState(manager, fileNameArray, AxisID.ONLY,
-        subdirName);
+    ImodState imodState = new ImodState(manager, fileNameArray, AxisID.ONLY, subdirName);
     return imodState;
   }
 
-  private ImodState newVaryingIterationTest(String[] fileNameArray,
-      String subdirName) {
-    ImodState imodState = new ImodState(manager, fileNameArray, AxisID.ONLY,
-        subdirName);
+  private ImodState newSirt(final File[] fileList, final AxisID axisID) {
+    ImodState imodState = new ImodState(manager, fileList, axisID);
+    imodState.setInitialSwapYZ(true);
+    return imodState;
+  }
+
+  private ImodState newVaryingIterationTest(String[] fileNameArray, String subdirName) {
+    ImodState imodState = new ImodState(manager, fileNameArray, AxisID.ONLY, subdirName);
     return imodState;
   }
 
@@ -2031,14 +2043,12 @@ public class ImodManager {
   }
 
   private ImodState newTrialJoin() {
-    ImodState imodState = new ImodState(manager, datasetName + "_trial.join",
-        AxisID.ONLY);
+    ImodState imodState = new ImodState(manager, datasetName + "_trial.join", AxisID.ONLY);
     return imodState;
   }
 
   private ImodState newSqueezedVolume() {
-    ImodState imodState = new ImodState(manager, datasetName + ".sqz",
-        AxisID.ONLY);
+    ImodState imodState = new ImodState(manager, datasetName + ".sqz", AxisID.ONLY);
     imodState.setAllowMenuBinningInZ(true);
     return imodState;
   }
@@ -2051,8 +2061,8 @@ public class ImodManager {
   }
 
   private ImodState newFullVolume3dFind(AxisID axisID) {
-    ImodState imodState = new ImodState(manager, axisID,
-        FileType.TILT_3D_FIND_OUTPUT.getFileName(manager, axisID));
+    ImodState imodState = new ImodState(manager, axisID, FileType.TILT_3D_FIND_OUTPUT
+        .getFileName(manager, axisID));
     imodState.setAllowMenuBinningInZ(true);
     imodState.setInitialSwapYZ(true);
     return imodState;
@@ -2134,8 +2144,7 @@ public class ImodManager {
     return (ImodState) vector.get(vectorIndex);
   }
 
-  protected void deleteImodState(String key, int vectorIndex)
-      throws AxisTypeException {
+  protected void deleteImodState(String key, int vectorIndex) throws AxisTypeException {
     Vector vector = getVector(key);
     if (vector == null) {
       return;
@@ -2150,8 +2159,7 @@ public class ImodManager {
           "This operation is not supported when useMap is false");
     }
     if (axisType == AxisType.SINGLE_AXIS && isDualAxisOnly(key)) {
-      throw new AxisTypeException(key + " cannot be found in "
-          + axisType.toString());
+      throw new AxisTypeException(key + " cannot be found in " + axisType.toString());
     }
     if (isDualAxisOnly(key) && isPerAxis(key)) {
       throw new UnsupportedOperationException(key
@@ -2169,16 +2177,14 @@ public class ImodManager {
     return (Vector) vector;
   }
 
-  protected Vector getVector(String key, boolean axisIdInKey)
-      throws AxisTypeException {
+  protected Vector getVector(String key, boolean axisIdInKey) throws AxisTypeException {
     if (!axisIdInKey) {
       return getVector(key);
     }
     return (Vector) imodMap.get(key);
   }
 
-  protected Vector getVector(String key, AxisID axisID)
-      throws AxisTypeException {
+  protected Vector getVector(String key, AxisID axisID) throws AxisTypeException {
     Vector vector;
     if (axisID == null) {
       return getVector(key);
@@ -2189,8 +2195,7 @@ public class ImodManager {
     }
     if (axisType == AxisType.SINGLE_AXIS) {
       if (isDualAxisOnly(key)) {
-        throw new AxisTypeException(key + " cannot be found in "
-            + axisType.toString());
+        throw new AxisTypeException(key + " cannot be found in " + axisType.toString());
       }
       //Correct axis
       if (axisID == AxisID.FIRST) {
