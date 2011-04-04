@@ -45,8 +45,9 @@ public class CpuAdoc {
 
   public static final String COMPUTER_SECTION_TYPE = "Computer";
   public static final String QUEUE_SECTION_TYPE = "Queue";
-  public static final String UNITS_KEY = "units";
-
+  static final String GPU_KEY="gpu";
+  private static final String SPEED_KEY = "speed";
+  private static final String MEMORY_KEY = "memory";
   private static final int MIN_NICE_DEFAULT = 0;
 
   public static final CpuAdoc INSTANCE = new CpuAdoc();
@@ -63,6 +64,8 @@ public class CpuAdoc {
   private boolean usersColumn = false;
   private String speedUnits = "";
   private String memoryUnits = "";
+  private String gpuSpeedUnits = "";
+  private String gpuMemoryUnits = "";
   private String[] loadUnits = new String[0];
   private boolean envVar = false;
   private boolean userConfig = false;
@@ -220,14 +223,63 @@ public class CpuAdoc {
       separateChunks = loadBooleanAttribute(autodoc, "separate-chunks");
       loadAttribute(minNice, autodoc, "min", "nice");
       usersColumn = loadBooleanAttribute(autodoc, "users-column");
-      speedUnits = loadStringAttribute(autodoc, UNITS_KEY, "speed");
-      memoryUnits = loadStringAttribute(autodoc, UNITS_KEY, "memory");
-      loadAttribute(maxTilt, autodoc, "max", "tilt");
-      loadAttribute(maxVolcombine, autodoc, "max", "volcombine");
-      loadUnits = loadStringListAttribute(autodoc, UNITS_KEY, "load");
+      ReadOnlyAttribute attrib = autodoc.getAttribute("max");
+      if (attrib != null) {
+        loadAttribute(maxTilt, attrib, "tilt");
+        loadAttribute(maxVolcombine, attrib, "volcombine");
+      }
+      attrib = autodoc.getAttribute("units");
+      if (attrib != null) {
+        speedUnits = loadStringAttribute(attrib, SPEED_KEY);
+        memoryUnits = loadStringAttribute(attrib, MEMORY_KEY);
+        loadUnits = loadStringListAttribute(attrib, "load");
+        attrib = attrib.getAttribute(GPU_KEY);
+        if (attrib != null) {
+          gpuSpeedUnits = loadStringAttribute(attrib, SPEED_KEY);
+          gpuMemoryUnits = loadStringAttribute(attrib, MEMORY_KEY);
+        }
+      }
       loadComputers(autodoc);
       loadQueues(autodoc);
     }
+  }
+
+  private String loadStringAttribute(ReadOnlyAttribute attrib, String key) {
+    if (attrib == null) {
+      return "";
+    }
+    attrib = attrib.getAttribute(key);
+    if (attrib == null) {
+      return "";
+    }
+    return attrib.getValue();
+  }
+
+  private void loadAttribute(EtomoNumber number, ReadOnlyAttribute attrib, String key) {
+    number.reset();
+    if (attrib == null) {
+      return;
+    }
+    attrib = attrib.getAttribute(key);
+    if (attrib == null) {
+      return;
+    }
+    number.set(attrib.getValue());
+  }
+
+  private String[] loadStringListAttribute(ReadOnlyAttribute attrib, String key) {
+    if (attrib == null) {
+      return new String[0];
+    }
+    attrib = attrib.getAttribute(key);
+    if (attrib == null) {
+      return new String[0];
+    }
+    String list = attrib.getValue();
+    if (list == null) {
+      return new String[0];
+    }
+    return list.split("\\s*,\\s*");
   }
 
   private ReadOnlyAutodoc getAutodoc(BaseManager manager, AxisID axisID) {
@@ -339,6 +391,9 @@ public class CpuAdoc {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.20  2011/02/22 04:32:04  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.19  2010/11/04 21:02:25  sueh
  * <p> bug# 1415 Changed MIN_NICE_DEFAULT to 0.
  * <p>
