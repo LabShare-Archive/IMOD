@@ -37,6 +37,11 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/03 06:22:16  sueh
+ * <p> bug# 1422 Control of the processing method has been centralized in the
+ * <p> processing method mediator class.  Implementing ProcessInterface.
+ * <p> Supplying processes with the current processing method.
+ * <p>
  * <p> Revision 1.2  2010/12/05 05:24:51  sueh
  * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.  Added
  * <p> setEnabled(boolean).
@@ -55,16 +60,12 @@ final class TrialTiltPanel implements Expandable, Run3dmodButtonContainer,
     TrialTiltDisplay {
   public static final String rcsid = "$Id$";
 
-  private final TrialTiltActionListener actionListener = new TrialTiltActionListener(
-      this);
+  private final TrialTiltActionListener actionListener = new TrialTiltActionListener(this);
   private final EtomoPanel pnlRoot = new EtomoPanel();
   private final SpacedPanel pnlBody = SpacedPanel.getInstance();
-  private final JLabel lblTrialTomogramName = new JLabel(
-      "Trial tomogram filename: ");
-  private final ComboBox cmboTrialTomogramName = new ComboBox(
-      lblTrialTomogramName);
-  private final MultiLineButton btnTrial = new MultiLineButton(
-      "Generate Trial Tomogram");
+  private final JLabel lblTrialTomogramName = new JLabel("Trial tomogram filename: ");
+  private final ComboBox cmboTrialTomogramName = new ComboBox(lblTrialTomogramName);
+  private final MultiLineButton btnTrial = new MultiLineButton("Generate Trial Tomogram");
   private final Run3dmodButton btn3dmodTrial = Run3dmodButton.get3dmodInstance(
       "View Trial in 3dmod", this);
   private final MultiLineButton btnUseTrial;
@@ -78,7 +79,7 @@ final class TrialTiltPanel implements Expandable, Run3dmodButtonContainer,
   //A way to know what items are currently in the trial tomogram combo box.
   //It is set from MetaData, which is assumed to be not null.
   private IntKeyList trialTomogramList = null;
-  private boolean enabled = true;
+  private boolean resume = false;
 
   private TrialTiltPanel(ApplicationManager manager, AxisID axisID,
       DialogType dialogType, TrialTiltParent parent) {
@@ -94,8 +95,7 @@ final class TrialTiltPanel implements Expandable, Run3dmodButtonContainer,
 
   static TrialTiltPanel getInstance(ApplicationManager manager, AxisID axisID,
       DialogType dialogType, TrialTiltParent parent) {
-    TrialTiltPanel instance = new TrialTiltPanel(manager, axisID, dialogType,
-        parent);
+    TrialTiltPanel instance = new TrialTiltPanel(manager, axisID, dialogType, parent);
     instance.createPanel();
     instance.updateDisplay();
     instance.setToolTipText();
@@ -142,6 +142,13 @@ final class TrialTiltPanel implements Expandable, Run3dmodButtonContainer,
     btnUseTrial.addActionListener(actionListener);
   }
 
+  public boolean allowTiltComSave() {
+    return true;
+  }
+
+  public void msgTiltComSaved() {
+  }
+
   Component getComponent() {
     return pnlRoot;
   }
@@ -154,17 +161,16 @@ final class TrialTiltPanel implements Expandable, Run3dmodButtonContainer,
     pnlRoot.setVisible(visible);
   }
 
-  public final void setEnabled(boolean enable) {
-    enabled = enable;
+  public final void setResume(boolean resume) {
+    this.resume = resume;
     updateDisplay();
   }
 
   private void updateDisplay() {
-    lblTrialTomogramName.setEnabled(enabled);
-    cmboTrialTomogramName.setEnabled(enabled);
-    btnTrial.setEnabled(enabled);
-    btn3dmodTrial.setEnabled(enabled);
-    btnUseTrial.setEnabled(enabled);
+    cmboTrialTomogramName.setEnabled(!resume);
+    btnTrial.setEnabled(!resume);
+    btn3dmodTrial.setEnabled(!resume);
+    btnUseTrial.setEnabled(!resume);
   }
 
   void setTrialTomogramNameList(ConstIntKeyList input) {
@@ -200,8 +206,8 @@ final class TrialTiltPanel implements Expandable, Run3dmodButtonContainer,
     return trialTomogramName;
   }
 
-  public boolean getParameters(TiltParam tiltParam)
-      throws NumberFormatException, InvalidParameterException, IOException {
+  public boolean getParameters(TiltParam tiltParam) throws NumberFormatException,
+      InvalidParameterException, IOException {
     tiltParam.setCommandMode(TiltParam.Mode.TRIAL_TILT);
     return parent.getParameters(tiltParam);
   }
@@ -225,8 +231,8 @@ final class TrialTiltPanel implements Expandable, Run3dmodButtonContainer,
 
   final void setParameters(ReconScreenState screenState) {
     header.setState(screenState.getTomoGenTrialTiltHeaderState());
-    btnUseTrial.setButtonState(screenState.getButtonState(btnUseTrial
-        .getButtonStateKey()));
+    btnUseTrial.setButtonState(screenState
+        .getButtonState(btnUseTrial.getButtonStateKey()));
   }
 
   public void expand(final GlobalExpandButton button) {
@@ -254,8 +260,7 @@ final class TrialTiltPanel implements Expandable, Run3dmodButtonContainer,
    * @param deferred3dmodButton
    * @param run3dmodMenuOptions
    */
-  void action(final String command,
-      final Deferred3dmodButton deferred3dmodButton,
+  void action(final String command, final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnTrial.getActionCommand())) {
       manager.trialAction(btnTrial, null, this, axisID, dialogType, manager
@@ -277,8 +282,7 @@ final class TrialTiltPanel implements Expandable, Run3dmodButtonContainer,
     String text = "Current name of trial tomogram, which will be generated, viewed, or"
         + " used by the buttons below.";
     lblTrialTomogramName.setToolTipText(text);
-    cmboTrialTomogramName
-        .setToolTipText(TooltipFormatter.INSTANCE.format(text));
+    cmboTrialTomogramName.setToolTipText(TooltipFormatter.INSTANCE.format(text));
     btnTrial
         .setToolTipText("Compute a trial tomogram with the current parameters, using the "
             + "filename in the \" Trial tomogram filename \" box.");
