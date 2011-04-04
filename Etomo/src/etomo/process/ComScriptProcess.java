@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.62  2011/02/21 19:48:43  sueh
+ * bug# 1437 Reformatting.
+ *
  * Revision 3.61  2011/02/03 05:59:07  sueh
  * bug# 1422 Added setProcessingMethod.
  *
@@ -506,6 +509,10 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.processResultDisplay = processResultDisplay;
     processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
     processData.setDisplayKey(processResultDisplay);
+    if (processSeries!=null) {
+      processData.setDialogType(processSeries.getDialogType());
+      processData.setLastProcess(processSeries.getLastProcess());
+    }
     this.processSeries = processSeries;
     initialize(null);
   }
@@ -524,6 +531,10 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.processResultDisplay = processResultDisplay;
     processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
     processData.setDisplayKey(processResultDisplay);
+    if (processSeries!=null) {
+      processData.setDialogType(processSeries.getDialogType());
+      processData.setLastProcess(processSeries.getLastProcess());
+    }
     this.processSeries = processSeries;
     this.command = command;
     initialize(fileType);
@@ -561,6 +572,10 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.processDetails = processDetails;
     processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
     processData.setDisplayKey(processResultDisplay);
+    if (processSeries!=null) {
+      processData.setDialogType(processSeries.getDialogType());
+      processData.setLastProcess(processSeries.getLastProcess());
+    }
     this.processSeries = processSeries;
     initialize(null);
   }
@@ -580,6 +595,10 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.command = command;
     processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
     processData.setDisplayKey(processResultDisplay);
+    if (processSeries!=null) {
+      processData.setDialogType(processSeries.getDialogType());
+      processData.setLastProcess(processSeries.getLastProcess());
+    }
     this.processSeries = processSeries;
     initialize(null);
   }
@@ -601,6 +620,10 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.commandDetails = commandDetails;
     processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
     processData.setDisplayKey(processResultDisplay);
+    if (processSeries!=null) {
+      processData.setDialogType(processSeries.getDialogType());
+      processData.setLastProcess(processSeries.getLastProcess());
+    }
     this.processSeries = processSeries;
     initialize(null);
   }
@@ -616,6 +639,10 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.watchedFileName = watchedFileName;
     this.processMonitor = processMonitor;
     processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
+    if (processSeries!=null) {
+      processData.setDialogType(processSeries.getDialogType());
+      processData.setLastProcess(processSeries.getLastProcess());
+    }
     this.processSeries = processSeries;
     initialize(null);
   }
@@ -634,6 +661,10 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.commandDetails = commandDetails;
     this.processMonitor = processMonitor;
     processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
+    if (processSeries!=null) {
+      processData.setDialogType(processSeries.getDialogType());
+      processData.setLastProcess(processSeries.getLastProcess());
+    }
     this.processSeries = processSeries;
     initialize(null);
   }
@@ -656,6 +687,10 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
     processData.setDisplayKey(processResultDisplay);
     processData.setProcessingMethod(processingMethod);
+    if (processSeries!=null) {
+      processData.setDialogType(processSeries.getDialogType());
+      processData.setLastProcess(processSeries.getLastProcess());
+    }
     this.processSeries = processSeries;
     initialize(null);
   }
@@ -676,6 +711,10 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     processData = ProcessData.getManagedInstance(axisID, manager, getProcessName());
     processData.setDisplayKey(processResultDisplay);
     processData.setProcessingMethod(processingMethod);
+    if (processSeries!=null) {
+      processData.setDialogType(processSeries.getDialogType());
+      processData.setLastProcess(processSeries.getLastProcess());
+    }
     this.processSeries = processSeries;
     initialize(null);
   }
