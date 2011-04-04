@@ -330,7 +330,12 @@ final class ProcessorTableRow implements Storable {
   }
 
   public void setCPUsSelected(String cpusSelected) {
-    ((SpinnerCell) cellCPUsSelected).setValue(Integer.parseInt(cpusSelected));
+    if (numCpus == 1) {
+      ((FieldCell) cellCPUsSelected).setValue(Integer.parseInt(cpusSelected));
+    }
+    else  {
+      ((SpinnerCell) cellCPUsSelected).setValue(Integer.parseInt(cpusSelected));
+    }
   }
 
   private void updateSelected(boolean selected) {
@@ -591,6 +596,9 @@ final class ProcessorTableRow implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/22 18:20:22  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.2  2011/02/03 06:16:40  sueh
  * <p> bug# 1422 Passing a Node instead of values that came from a Node.
  * <p> Added the ability to turn off the load warning.
