@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.158  2011/02/26 04:21:30  sueh
+ * bug# 1453 In setupComScripts functions return ProcessMessages.
+ *
  * Revision 3.157  2011/02/24 23:36:06  sueh
  * bug# 1452 imageRotation needs to be double everywhere.
  *
@@ -1024,6 +1027,7 @@ import etomo.comscript.ExtracttiltsParam;
 import etomo.comscript.NewstParam;
 import etomo.comscript.RunraptorParam;
 import etomo.comscript.SetupCombine;
+import etomo.comscript.SirtsetupParam;
 import etomo.comscript.SplitcombineParam;
 import etomo.comscript.SplittiltParam;
 import etomo.comscript.SqueezevolParam;
@@ -1646,11 +1650,12 @@ public class ProcessManager extends BaseProcessManager {
     return comScriptProcess.getName();
   }
 
-  public boolean reconnectTilt(AxisID axisID, ProcessResultDisplay processResultDisplay) {
+  public boolean reconnectTilt(AxisID axisID, ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
     try {
       ReconnectProcess process = ReconnectProcess.getInstance(appManager, this,
           TiltProcessMonitor.getReconnectInstance(appManager, axisID),
-          getSavedProcessData(axisID), axisID);
+          getSavedProcessData(axisID), axisID, processSeries);
       process.setProcessResultDisplay(processResultDisplay);
       Thread thread = new Thread(process);
       thread.start();
@@ -1666,15 +1671,27 @@ public class ProcessManager extends BaseProcessManager {
     return true;
   }
 
+  public String sirtsetup(final AxisID axisID,
+      final ProcessResultDisplay processResultDisplay,
+      final ConstProcessSeries processSeries, final SirtsetupParam param,
+      final ProcessingMethod processingMethod) throws SystemProcessException {
+    //  Start the com script in the background
+    ComScriptProcess comScriptProcess = startComScript(param, null, axisID,
+        processResultDisplay, processSeries, processingMethod);
+    return comScriptProcess.getName();
+  }
+
   /**
    * Run the appropriate tilt com file for the given axis ID
    * Use this for sampling a whole tomogram
    * @param axisID
    *          the AxisID to run tilt on.
    */
-  public String tilt(AxisID axisID, ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries, ConstTiltParam param, String processTitle,
-      final ProcessingMethod processingMethod) throws SystemProcessException {
+  public String tilt(final AxisID axisID,
+      final ProcessResultDisplay processResultDisplay,
+      final ConstProcessSeries processSeries, final ConstTiltParam param,
+      final String processTitle, final ProcessingMethod processingMethod)
+      throws SystemProcessException {
     //  Instantiate the process monitor
     TiltProcessMonitor tiltProcessMonitor = new TiltProcessMonitor(appManager, axisID,
         ProcessName.TILT);
