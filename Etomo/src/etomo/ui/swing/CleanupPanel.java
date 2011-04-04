@@ -13,9 +13,11 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
-import etomo.storage.BackupFileFilter;
+import etomo.storage.FileFilterCollection;
 import etomo.storage.IntermediateFileFilter;
+import etomo.storage.SirtOutputFileFilter;
 import etomo.type.AxisID;
+import etomo.type.AxisType;
 import etomo.util.Utilities;
 
 /**
@@ -38,6 +40,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.2  2011/02/22 18:06:06  sueh
+ * bug# 1437 Reformatting.
+ *
  * Revision 1.1  2010/11/13 16:07:34  sueh
  * bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  *
@@ -174,10 +179,7 @@ final class CleanupPanel {
   private final MultiLineButton btnDelete = new MultiLineButton("Delete Selected");
   private final MultiLineButton btnRescanDir = new MultiLineButton("Rescan Directory");
   private final JFileChooser fileChooser = new JFileChooser();
-  private final BackupFileFilter backupFileFilter = new BackupFileFilter();
   private final JLabel lDirSize = new JLabel();
-
-  private final IntermediateFileFilter intermediateFileFilter;
   private final ApplicationManager applicationManager;
 
   private CleanupPanel(final ApplicationManager appMgr) {
@@ -188,14 +190,27 @@ final class CleanupPanel {
 
     //  Create the filechooser
     String datasetName = applicationManager.getMetaData().getDatasetName();
-    intermediateFileFilter = new IntermediateFileFilter(datasetName);
+    //Collect the file filters
+    FileFilterCollection fileFilterCollection = new FileFilterCollection();
+    IntermediateFileFilter intermediateFileFilter = new IntermediateFileFilter(
+        datasetName);
     File trimmedTomogram = new File(applicationManager.getPropertyUserDir(), datasetName
         + ".rec");
     intermediateFileFilter.setAcceptPretrimmedTomograms(trimmedTomogram.exists());
-
+    fileFilterCollection.addFileFilter(intermediateFileFilter);
+    if (appMgr.getMetaData().getAxisType() == AxisType.DUAL_AXIS) {
+      fileFilterCollection.addFileFilter(new SirtOutputFileFilter(appMgr, AxisID.FIRST,
+          true));
+      fileFilterCollection.addFileFilter(new SirtOutputFileFilter(appMgr, AxisID.SECOND,
+          true));
+    }
+    else {
+      fileFilterCollection.addFileFilter(new SirtOutputFileFilter(appMgr, AxisID.ONLY,
+          true));
+    }
+    //Setup the file chooser
     fileChooser.setDialogType(JFileChooser.CUSTOM_DIALOG);
-    fileChooser.setFileFilter(backupFileFilter);
-    fileChooser.setFileFilter(intermediateFileFilter);
+    fileChooser.setFileFilter(fileFilterCollection);
     fileChooser.setMultiSelectionEnabled(true);
     fileChooser.setControlButtonsAreShown(false);
     fileChooser.setCurrentDirectory(new File(applicationManager.getPropertyUserDir()));
