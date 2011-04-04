@@ -21,6 +21,7 @@ import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.ToolType;
 import etomo.util.EnvironmentVariable;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -41,7 +42,8 @@ final class EtomoMenu {
   static final String RECON_LABEL = "Tomogram";
   static final String JOIN_LABEL = "Join";
   static final String GENERIC_LABEL = "Generic Parallel Process";
-  static final String NAD_LABEL = "Nonlinear Anisotropic Diffusion";
+  static final String NAD_LABEL = "Nonlinear Anisotropic "
+      + (Utilities.isAprilFools() ? "Delusion" : "Diffusion");
   static final String PEET_LABEL = "PEET";
 
   private static final int nMRUFileMax = 10;
@@ -648,6 +650,9 @@ final class EtomoMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 18:08:24  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
