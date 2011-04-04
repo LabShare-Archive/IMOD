@@ -44,6 +44,9 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/22 18:16:04  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.2  2010/12/05 05:12:31  sueh
  * <p> bug# 1416 Added getUnformattedLabel.
  * <p>
@@ -448,7 +451,7 @@ class MultiLineButton implements ProcessResultDisplay {
     return getText();
   }
 
-  String getUnformattedLabel() {
+ public String getUnformattedLabel() {
     return unformattedLabel;
   }
 
