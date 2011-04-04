@@ -40,6 +40,7 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
   private final ProcessMonitor monitor;
   private final ProcessData processData;
   private final AxisID axisID;
+  private ConstProcessSeries processSeries;
   private ProcessEndState endState = null;
   private ProcessResultDisplay processResultDisplay = null;
   private ProcessMessages messages = null;
@@ -49,19 +50,21 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
   private boolean monitorControl = false;
 
   private ReconnectProcess(BaseManager manager, BaseProcessManager processManager,
-      ProcessMonitor monitor, ProcessData processData, AxisID axisID) {
+      ProcessMonitor monitor, ProcessData processData, AxisID axisID,
+      ConstProcessSeries processSeries) {
     this.manager = manager;
     this.processManager = processManager;
     this.monitor = monitor;
     this.processData = processData;
     this.axisID = axisID;
+    this.processSeries = processSeries;
   }
 
   static ReconnectProcess getInstance(BaseManager manager,
       BaseProcessManager processManager, ProcessMonitor monitor, ProcessData processData,
-      AxisID axisID) throws LogFile.LockException {
+      AxisID axisID, ConstProcessSeries processSeries) throws LogFile.LockException {
     ReconnectProcess instance = new ReconnectProcess(manager, processManager, monitor,
-        processData, axisID);
+        processData, axisID, processSeries);
     instance.logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
         processData.getProcessName());
     return instance;
@@ -70,9 +73,10 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
   static ReconnectProcess getLogInstance(BaseManager manager,
       BaseProcessManager processManager, ProcessMonitor monitor, ProcessData processData,
       AxisID axisID, String logFileName, String logSuccessTag,
-      ConstStringProperty subDirName) throws LogFile.LockException {
+      ConstStringProperty subDirName, ConstProcessSeries processSeries)
+      throws LogFile.LockException {
     ReconnectProcess instance = new ReconnectProcess(manager, processManager, monitor,
-        processData, axisID);
+        processData, axisID, processSeries);
     if (subDirName.isEmpty()) {
       instance.logFile = LogFile.getInstance(manager.getPropertyUserDir(), logFileName);
     }
@@ -94,7 +98,7 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
   }
 
   public ConstProcessSeries getProcessSeries() {
-    return null;
+    return processSeries;
   }
 
   public void setProcessingMethod(ProcessingMethod processingMethod) {
@@ -308,6 +312,9 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2011/02/22 04:09:57  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.14  2011/02/03 06:05:46  sueh
  * <p> bug# 1422 Getting the processing method when reconnecting.
  * <p>
