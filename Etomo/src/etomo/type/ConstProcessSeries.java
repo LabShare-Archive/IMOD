@@ -1,5 +1,6 @@
 package etomo.type;
 
+import etomo.process.ProcessData;
 
 /**
 * <p>Description: </p>
@@ -14,12 +15,24 @@ package etomo.type;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2008/05/03 00:44:39  sueh
+* <p> bug# 847 Interface for ProcessSeries to be used outside of manager andi expert classes and in process functions which to do not add to a process
+* <p> series.
+* <p> </p>
 */
 public interface ConstProcessSeries {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   public String peekNextProcess();
-  public boolean startNextProcess( AxisID axisID,
-       ProcessResultDisplay processResultDisplay);
+
+  public boolean startNextProcess(AxisID axisID, ProcessResultDisplay processResultDisplay);
+
+  public DialogType getDialogType();
+
+  public String getLastProcess();
+
+  public String toString();
+
+  public boolean willProcessBeDropped(ProcessData processData);
 }
