@@ -26,39 +26,34 @@ public final class ReconScreenState extends BaseScreenState {
    * @deprecated
    */
   public static final String TOMO_GEN_NEWST_HEADER_GROUP = DialogType.TOMOGRAM_GENERATION
-      .getStorableName()
-      + ".Newst" + HEADER_GROUP;
+      .getStorableName() + ".Newst" + HEADER_GROUP;
   /**
    * @deprecated
    */
   public static final String TOMO_GEN_MTFFILTER_HEADER_GROUP = DialogType.TOMOGRAM_GENERATION
-      .getStorableName()
-      + ".Mtffilter" + HEADER_GROUP;
+      .getStorableName() + ".Mtffilter" + HEADER_GROUP;
   public static final String STACK_NEWST_HEADER_GROUP = DialogType.FINAL_ALIGNED_STACK
-      .getStorableName()
-      + ".Newst" + HEADER_GROUP;
+      .getStorableName() + ".Newst" + HEADER_GROUP;
   public static final String STACK_MTFFILTER_HEADER_GROUP = DialogType.FINAL_ALIGNED_STACK
-      .getStorableName()
-      + ".Mtffilter" + HEADER_GROUP;
+      .getStorableName() + ".Mtffilter" + HEADER_GROUP;
   public static final String STACK_CTF_CORRECTION_HEADER_GROUP = DialogType.FINAL_ALIGNED_STACK
-      .getStorableName()
-      + ".CtfCorrection" + HEADER_GROUP;
+      .getStorableName() + ".CtfCorrection" + HEADER_GROUP;
   public static final String TOMO_GEN_TILT_HEADER_GROUP = DialogType.TOMOGRAM_GENERATION
-      .getStorableName()
-      + ".Tilt" + HEADER_GROUP;
+      .getStorableName() + ".Tilt" + HEADER_GROUP;
   public static final String TOMO_GEN_TRIAL_TILT_HEADER_GROUP = DialogType.TOMOGRAM_GENERATION
-      .getStorableName()
-      + ".TrialTilt" + HEADER_GROUP;
+      .getStorableName() + ".TrialTilt" + HEADER_GROUP;
 
   private static final String SETUP_GROUP = DialogType.TOMOGRAM_COMBINATION
-      .getStorableName()
-      + ".Setup.";
+      .getStorableName() + ".Setup.";
   private static final String SOLVEMATCH_GROUP = "Solvematch";
   private static final String PATCHCORR_GROUP = "Patchcorr";
   private static final String VOLCOMBINE_GROUP = "Volcombine";
   private static final String PATCHCORR_KERNEL_SIGMA_KEY = DialogType.TOMOGRAM_COMBINATION
       .getStorableName()
-      + '.' + ProcessName.PATCHCORR + '.' + Patchcrawl3DParam.KERNEL_SIGMA_KEY;
+      + '.'
+      + ProcessName.PATCHCORR
+      + '.'
+      + Patchcrawl3DParam.KERNEL_SIGMA_KEY;
 
   public static final String COMBINE_SETUP_TO_SELECTOR_HEADER_GROUP = SETUP_GROUP
       + "ToSelector." + HEADER_GROUP;
@@ -72,12 +67,10 @@ public final class ReconScreenState extends BaseScreenState {
       + "TempDir" + HEADER_GROUP;
 
   public static final String COMBINE_INITIAL_SOLVEMATCH_HEADER_GROUP = DialogType.TOMOGRAM_COMBINATION
-      .getStorableName()
-      + ".Initial." + SOLVEMATCH_GROUP + HEADER_GROUP;
+      .getStorableName() + ".Initial." + SOLVEMATCH_GROUP + HEADER_GROUP;
 
   private static final String FINAL_GROUP = DialogType.TOMOGRAM_COMBINATION
-      .getStorableName()
-      + ".Final.";
+      .getStorableName() + ".Final.";
 
   public static final String COMBINE_FINAL_PATCH_REGION_HEADER_GROUP = FINAL_GROUP
       + "PatchRegion" + HEADER_GROUP;
@@ -119,6 +112,9 @@ public final class ReconScreenState extends BaseScreenState {
       TOMO_GEN_TILT_HEADER_GROUP);
   private final PanelHeaderState tomoGenTrialTiltHeaderState = new PanelHeaderState(
       TOMO_GEN_TRIAL_TILT_HEADER_GROUP);
+  private final PanelHeaderState tomoGenSirtHeaderState = new PanelHeaderState(
+      DialogType.TOMOGRAM_GENERATION
+      .getStorableName() + ".Sirt" + HEADER_GROUP);
 
   private final PanelHeaderState combineSetupToSelectorHeaderState = new PanelHeaderState(
       COMBINE_SETUP_TO_SELECTOR_HEADER_GROUP);
@@ -176,6 +172,7 @@ public final class ReconScreenState extends BaseScreenState {
     stackEraseGoldNewstHeaderState.store(props, prepend);
     stackFindBeads3dHeaderState.store(props, prepend);
     stackAlignAndTiltHeaderState.store(props, prepend);
+    tomoGenSirtHeaderState.store(props, prepend);
     if (axisID == AxisID.FIRST) {
       combineSetupToSelectorHeaderState.store(props, prepend);
       combineSetupSolvematchHeaderState.store(props, prepend);
@@ -215,6 +212,7 @@ public final class ReconScreenState extends BaseScreenState {
     }
     stackCtfCorrectionHeaderState.load(props, prepend);
     tomoGenTiltHeaderState.load(props, prepend);
+    tomoGenSirtHeaderState.load(props, prepend);
     tomoGenTrialTiltHeaderState.load(props, prepend);
     fineAlignBeamTiltHeaderState.load(props, prepend);
     stackEraseGoldNewstHeaderState.load(props, prepend);
@@ -274,6 +272,10 @@ public final class ReconScreenState extends BaseScreenState {
 
   public PanelHeaderState getTomoGenTiltHeaderState() {
     return tomoGenTiltHeaderState;
+  }
+
+  public PanelHeaderState getTomoGenSirtHeaderState() {
+    return tomoGenSirtHeaderState;
   }
 
   public PanelHeaderState getTomoGenTrialTiltHeaderState() {
@@ -338,6 +340,9 @@ public final class ReconScreenState extends BaseScreenState {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2011/02/22 05:51:50  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.11  2009/09/01 03:15:35  sueh
  * <p> bug# 1222 Added stackAlignAndTiltHeaderState,
  * <p> stackEraseGoldNewstHeaderState, and stackFindBeads3dHeaderState.
