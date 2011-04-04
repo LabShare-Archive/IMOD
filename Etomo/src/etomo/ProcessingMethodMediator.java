@@ -25,6 +25,9 @@ import etomo.ui.swing.ProcessInterface;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2011/02/10 03:33:08  sueh
+* <p> bug# 1437 Reformatting.
+* <p>
 * <p> Revision 1.1  2011/02/03 05:54:15  sueh
 * <p> bug# 1422 Class that coordinates information about the current parallel
 * <p> processing method.
@@ -153,7 +156,9 @@ public final class ProcessingMethodMediator {
       //nothing to do - reconnectProcess locks everything
       return;
     }
-    //Set interface method
+    //Set interface method - needs to be called twice because of the interdependency of
+    //process interface and the parallel panel.
+    setInterfaceMethod(processInterface.getProcessingMethod());
     setInterfaceMethod(processInterface.getProcessingMethod());
   }
 
