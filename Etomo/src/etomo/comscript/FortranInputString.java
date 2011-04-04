@@ -23,6 +23,9 @@ import etomo.type.ConstEtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.19  2011/02/22 03:14:03  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 3.18  2010/03/03 04:52:10  sueh
  * <p> bug# 1311 Reformatted.
  * <p>
@@ -467,6 +470,17 @@ public class FortranInputString {
     }
     String string = toString();
     if (string.equals("/")) {
+      return "";
+    }
+    return string;
+  }
+
+  public String toString(int index, boolean defaultIsBlank) {
+    if (!defaultIsBlank) {
+      return toString(index);
+    }
+    String string = toString(index);
+    if (string.equals("Uninitialized!")) {
       return "";
     }
     return string;
