@@ -275,7 +275,7 @@ public final class ParallelMetaData extends BaseMetaData {
     memoryPerChunk.reset();
     overlapTimesFour.reset();
     //load
-    dialogType = DialogType.load(DataFileType.PARALLEL, props, DialogType.PROPERTIES_KEY);
+    dialogType = DialogType.load(DataFileType.PARALLEL, props);
     prepend = createPrepend(prepend);
     String group = prepend + ".";
     revision = props.getProperty(group + REVISION_KEY, CURRENT_REVISION);
@@ -303,7 +303,7 @@ public final class ParallelMetaData extends BaseMetaData {
     super.store(props, prepend);
     prepend = createPrepend(prepend);
     String group = prepend + ".";
-    dialogType.store(props, DialogType.PROPERTIES_KEY);
+    dialogType.store(props);
     props.setProperty(group + REVISION_KEY, CURRENT_REVISION);
     props.setProperty(group + ROOT_NAME_KEY, rootName);
     loadWithFlipping.store(props, prepend);
@@ -340,6 +340,9 @@ public final class ParallelMetaData extends BaseMetaData {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2011/02/22 05:47:35  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.10  2010/11/13 16:06:53  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
