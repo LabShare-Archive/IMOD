@@ -24,6 +24,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2011/02/18 22:51:44  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.18  2010/03/05 03:58:58  sueh
  * <p> bug# 1319 Added the tilt autodoc.
  * <p>
@@ -110,6 +113,7 @@ public final class AutodocFactory {
   public static final String WARP_VOL = "warpvol";
   public static final String FIND_BEADS_3D = "findbeads3d";
   public static final String TILT = "tilt";
+  public static final String SIRTSETUP = "sirtsetup";
 
   private static final String TEST = "test";
   private static final String UITEST_AXIS = "uitest_axis";
@@ -135,6 +139,7 @@ public final class AutodocFactory {
   private static Autodoc WARP_VOL_INSTANCE = null;
   private static Autodoc FIND_BEADS_3D_INSTANCE = null;
   private static Autodoc TILT_INSTANCE = null;
+  private static Autodoc SIRTSETUP_INSTANCE = null;
 
   private static final HashMap UITEST_AXIS_MAP = new HashMap();
 
@@ -408,6 +413,9 @@ public final class AutodocFactory {
     if (name.equals(TILT)) {
       return TILT_INSTANCE;
     }
+    if (name.equals(SIRTSETUP)) {
+      return SIRTSETUP_INSTANCE;
+    }
     throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
   }
 
@@ -478,6 +486,9 @@ public final class AutodocFactory {
     }
     else if (name.equals(TILT)) {
       TILT_INSTANCE = null;
+    }
+    else if (name.equals(SIRTSETUP)) {
+      SIRTSETUP_INSTANCE = null;
     }
     else {
       throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
