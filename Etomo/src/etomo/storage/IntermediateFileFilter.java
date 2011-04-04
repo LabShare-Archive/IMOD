@@ -17,6 +17,9 @@ import javax.swing.filechooser.FileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2011/02/22 04:34:39  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 3.6  2006/07/24 14:07:42  sueh
  * <p> bug# 878 Added .dcst to the files accepted by this filter.
  * <p>
@@ -69,7 +72,7 @@ public class IntermediateFileFilter extends FileFilter {
   public boolean accept(File f) {
     String[] endsWith = { "~", "matchcheck.rec", ".mat", ".ali", ".preali", "bot.rec",
         "bota.rec", "botb.rec", "mid.rec", "mida.rec", "midb.rec", "top.rec", "topa.rec",
-        "topb.rec", "volcombine.log", ".bl", ".dcst" };
+        "topb.rec", "volcombine.log", ".bl", ".dcst", ".alisub", ".alilog10" };
     String[] pretrimmedTomograms = { "sum.rec", "full.rec" };
     if (f.isFile()) {
       String path = f.getAbsolutePath();
