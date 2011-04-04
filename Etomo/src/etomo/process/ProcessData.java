@@ -15,6 +15,7 @@ import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstStringProperty;
+import etomo.type.DialogType;
 import etomo.type.EtomoNumber;
 import etomo.type.OSType;
 import etomo.type.ProcessName;
@@ -58,6 +59,7 @@ public final class ProcessData implements Storable {
   private final StringProperty subProcessName = new StringProperty("SubProcessName");
   private final StringProperty subDirName = new StringProperty("SubDirName");
   private final StringProperty hostName = new StringProperty("HostName");
+  private final StringProperty lastProcess = new StringProperty("LastProcess");
 
   private final AxisID axisID;
   private final String processDataPrepend;
@@ -77,6 +79,7 @@ public final class ProcessData implements Storable {
   //Only needed when more then one processing method is possible in a
   //reconnectable process.
   private ProcessingMethod processingMethod = null;
+  private DialogType dialogType = null;
 
   /**
    * Get an instance of ProcessData which is associated with a process managed
@@ -121,13 +124,33 @@ public final class ProcessData implements Storable {
     return "ProcessData values:" + "\nprocessName=" + processName + "\npid=" + pid
         + "\ngroupPid=" + groupPid + "\nstartTime=" + startTime + "\nsubProcessName="
         + subProcessName + "\nsubDirName=" + subDirName + "\nhostName=" + hostName
-        + "\nosType=" + osType + "\ndisplayKey=" + displayKey + "\n";
+        + "\nosType=" + osType + "\ndisplayKey=" + displayKey + "\ndialogType="
+        + dialogType + "\nlastProcess=" + lastProcess+"\n";
   }
 
   public void setDisplayKey(ProcessResultDisplay processResultDisplay) {
     if (processResultDisplay != null) {
       displayKey.set(processResultDisplay.getDependencyIndex());
     }
+  }
+
+  public void setDialogType(DialogType input) {
+    dialogType = input;
+  }
+
+  public DialogType getDialogType() {
+    return dialogType;
+  }
+
+  public void setLastProcess(String input) {
+    lastProcess.set(input);
+  }
+
+  public String getLastProcess() {
+    if (lastProcess.isEmpty()) {
+      return null;
+    }
+    return lastProcess.toString();
   }
 
   public void setSubProcessName(String input) {
@@ -301,6 +324,8 @@ public final class ProcessData implements Storable {
       subDirName.remove(props, prepend);
       hostName.remove(props, prepend);
       props.remove(group + OSType.KEY);
+      DialogType.remove(props, prepend);
+      lastProcess.remove(props, prepend);
     }
     else {
       props.setProperty(group + PID_KEY, pid);
@@ -328,6 +353,13 @@ public final class ProcessData implements Storable {
       else {
         osType.store(props, prepend);
       }
+      if (dialogType == null) {
+        DialogType.remove(props, prepend);
+      }
+      else {
+        dialogType.store(props, prepend);
+      }
+      lastProcess.store(props, prepend);
       //Store everything in computerMap in props.
       if (computerMap != null && !computerMap.isEmpty()) {
         Set computerSet = computerMap.entrySet();
@@ -359,6 +391,8 @@ public final class ProcessData implements Storable {
       computerMap.clear();
     }
     processingMethod = null;
+    dialogType = null;
+    lastProcess.reset();
   }
 
   private void load(Properties props, String prepend) {
@@ -389,6 +423,8 @@ public final class ProcessData implements Storable {
     hostName.load(props, prepend);
     processingMethod = ProcessingMethod.load(props, prepend);
     osType = OSType.getInstance(props, prepend);
+    dialogType = DialogType.load(props, prepend);
+    lastProcess.load(props, prepend);
     //Load from props to computerMap
     Enumeration keyEnumeration = props.keys();
     //Load anything that starts with group.COMPUTER_KEY.
@@ -409,6 +445,9 @@ public final class ProcessData implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2011/02/22 04:08:15  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.14  2011/02/03 06:03:56  sueh
  * <p> bug# 1422 Added processing method.
  * <p>
