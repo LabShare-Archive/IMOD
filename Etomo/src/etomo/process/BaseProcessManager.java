@@ -46,6 +46,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.97  2011/02/08 22:14:16  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.96  2011/02/03 05:58:48  sueh
  * <p> bug# 1422 Sending the processing method to parallel processing
  * <p> functions so it can be used for reconnecting.
@@ -565,7 +568,8 @@ public abstract class BaseProcessManager {
   }
 
   public final boolean reconnectProcesschunks(final AxisID axisID,
-      final ProcessData processData, final ProcessResultDisplay processResultDisplay) {
+      final ProcessData processData, final ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
     ProcesschunksProcessMonitor monitor = ProcesschunksProcessMonitor
         .getReconnectInstance(manager, axisID, processData);
     monitor.setSubdirName(processData.getSubDirName());
@@ -573,7 +577,7 @@ public abstract class BaseProcessManager {
     try {
       ReconnectProcess process = ReconnectProcess.getLogInstance(manager, this, monitor,
           getSavedProcessData(axisID), axisID, monitor.getLogFileName(),
-          ProcesschunksProcessMonitor.SUCCESS_TAG, processData.getSubDirName());
+          ProcesschunksProcessMonitor.SUCCESS_TAG, processData.getSubDirName(),processSeries);
       monitor.setProcess(process);
       process.setProcessResultDisplay(processResultDisplay);
       Thread thread = new Thread(process);
@@ -864,6 +868,16 @@ public abstract class BaseProcessManager {
       final ConstProcessSeries processSeries) throws SystemProcessException {
     return startComScript(new ComScriptProcess(manager, command, this, axisID, null,
         processMonitor, processResultDisplay, processSeries, null), command
+        .getCommandLine(), processMonitor, axisID);
+  }
+
+  final ComScriptProcess startComScript(final Command command,
+      final ProcessMonitor processMonitor, final AxisID axisID,
+      final ProcessResultDisplay processResultDisplay,
+      final ConstProcessSeries processSeries, final ProcessingMethod processingMethod)
+      throws SystemProcessException {
+    return startComScript(new ComScriptProcess(manager, command, this, axisID, null,
+        processMonitor, processResultDisplay, processSeries, processingMethod), command
         .getCommandLine(), processMonitor, axisID);
   }
 
