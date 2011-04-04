@@ -16,6 +16,9 @@ import java.util.Properties;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2011/02/22 05:37:32  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.16  2010/02/17 04:52:36  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -78,7 +81,7 @@ import java.util.Properties;
 public final class DialogType {
   public static final String rcsid = "$Id$";
 
-  public static final String PROPERTIES_KEY = "DialogType";
+  private static final String PROPERTIES_KEY = "DialogType";
 
   private static final int setupIndex = 0;
   private static final int preProcessingIndex = 1;
@@ -368,8 +371,23 @@ public final class DialogType {
     return getStorableName(dataFileType, index).equals(storableName);
   }
 
-  public void store(Properties props, String key) {
-    props.setProperty(key, getStorableName(dataFileType, index));
+  public void store(Properties props) {
+    props.setProperty(PROPERTIES_KEY, getStorableName(dataFileType, index));
+  }
+
+  static private String createKey(String prepend) {
+    if (prepend.endsWith(".")) {
+      return prepend + PROPERTIES_KEY;
+    }
+    return prepend + "." + PROPERTIES_KEY;
+  }
+
+  public void store(Properties props, String prepend) {
+    props.setProperty(createKey(prepend), getStorableName(dataFileType, index));
+  }
+
+  static public void remove(Properties props, String prepend) {
+    props.remove(createKey(prepend));
   }
 
   /**
@@ -429,12 +447,23 @@ public final class DialogType {
     return null;
   }
 
-  public static DialogType load(DataFileType dataFileType, Properties props, String key) {
+  /**
+   * Load property value without a default
+   * @param props
+   * @param prepend
+   * @return
+   */
+  public static DialogType load(Properties props, String prepend) {
+    return getInstance(props.getProperty(createKey(prepend)));
+  }
+
+  public static DialogType load(DataFileType dataFileType, Properties props) {
     DialogType defaultType = getDefault(dataFileType);
     if (defaultType != null) {
-      return getInstance(props.getProperty(key, defaultType.toString()));
+      return getInstance(props.getProperty(DialogType.PROPERTIES_KEY, defaultType
+          .toString()));
     }
-    return getInstance(props.getProperty(key));
+    return getInstance(props.getProperty(DialogType.PROPERTIES_KEY));
   }
 
   public static DialogType getDefault(DataFileType dataFileType) {
