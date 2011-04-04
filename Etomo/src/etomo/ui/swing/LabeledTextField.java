@@ -25,6 +25,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2011/03/02 00:00:12  sueh
+ * <p> bug# 1452 Removing image rotation conversion between float and
+ * <p> double.  Using string where possible.
+ * <p>
  * <p> Revision 1.2  2011/02/22 18:13:44  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -195,7 +199,9 @@ final class LabeledTextField {
   private final JPanel panel = new JPanel();
   private final JLabel label = new JLabel();
   private final JTextField textField = new JTextField();
+
   private boolean debug = false;
+  private String savedTextFieldValue = null;
 
   public String toString() {
     return getClass().getName() + "[" + paramString() + "]\n";
@@ -233,6 +239,23 @@ final class LabeledTextField {
       System.out.println(textField.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
           + ' ');
     }
+  }
+
+  /**
+   * Saves the current state of the textfield.
+   */
+  void checkpoint() {
+    savedTextFieldValue = textField.getText();
+  }
+
+  /**
+   * Returns true if a checkpoint was done and the text field text has changed since the
+   * checkpoint.
+   * @return
+   */
+  boolean isChanged() {
+    return savedTextFieldValue != null
+        && !savedTextFieldValue.equals(textField.getText());
   }
 
   void clear() {

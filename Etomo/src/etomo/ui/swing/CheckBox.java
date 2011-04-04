@@ -6,6 +6,7 @@ import javax.swing.JCheckBox;
 
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
+import etomo.type.EtomoBoolean2;
 import etomo.type.UITestFieldType;
 import etomo.util.Utilities;
 
@@ -23,6 +24,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 18:04:56  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -97,6 +101,8 @@ import etomo.util.Utilities;
 final class CheckBox extends JCheckBox {
   public static final String rcsid = "$Id$";
 
+  private EtomoBoolean2 savedValue = null;
+
   public CheckBox() {
     super();
   }
@@ -118,6 +124,26 @@ final class CheckBox extends JCheckBox {
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
+  }
+
+  /**
+   * Constructs savedValue (if it doesn't exist).  Saves the current state of the
+   * checkbox.
+   */
+  void checkpoint() {
+    if (savedValue == null) {
+      savedValue = new EtomoBoolean2();
+    }
+    savedValue.set(isSelected());
+  }
+
+  /**
+   * Returns true if a checkpoint was done and the checkbox selection state has changed
+   * since the checkpoint.
+   * @return
+   */
+  boolean isChanged() {
+    return savedValue != null && !savedValue.equals(isSelected());
   }
 
   public void setToolTipText(String text) {
@@ -144,6 +170,9 @@ final class CheckBox extends JCheckBox {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 18:04:56  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>

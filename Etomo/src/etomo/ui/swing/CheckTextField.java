@@ -29,6 +29,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/22 18:05:48  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.2  2010/12/05 04:58:39  sueh
  * <p> bug# 1416 Added setEnabled.
  * <p>
@@ -49,6 +52,8 @@ final class CheckTextField {
   private final CheckBox checkBox;
   private final JTextField textField = new JTextField();
   private final String label;
+
+  private String savedTextFieldValue = null;
 
   private CheckTextField(final String label) {
     this.label = label;
@@ -73,6 +78,25 @@ final class CheckTextField {
       System.out.println(textField.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
           + ' ');
     }
+  }
+
+  /**
+   * Checkpoints checkbox.  Saves the current state of the textfield.
+   */
+  void checkpoint() {
+    checkBox.checkpoint();
+    savedTextFieldValue = textField.getText();
+  }
+
+  /**
+   * Returns true if a checkpoint was done and either the checkbox is changed or the text
+   * field text has changed since the checkpoint.
+   * @return
+   */
+  boolean isChanged() {
+    return checkBox.isChanged()
+        || (savedTextFieldValue != null && !savedTextFieldValue.equals(textField
+            .getText()));
   }
 
   void setEnabled(final boolean enable) {
