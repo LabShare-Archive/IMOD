@@ -29,6 +29,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.69  2011/03/01 23:59:19  sueh
+ * <p> bug# 1452 Changed imageRotation to an EtomoNumber.  Removed
+ * <p> double getImageRotation.
+ * <p>
  * <p> Revision 3.68  2011/02/28 22:45:31  sueh
  * <p> bug# 1452 Making imageRotation double.
  * <p>
@@ -646,6 +650,34 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
    */
   private final EtomoBoolean2 posExistsA = new EtomoBoolean2(POS_KEY + ".A.Exists");
   private final EtomoBoolean2 posExistsB = new EtomoBoolean2(POS_KEY + ".B.Exists");
+  private final EtomoBoolean2 genBackProjectionA = new EtomoBoolean2(GEN_KEY + "."
+      + FIRST_AXIS_KEY + ".BackProjection");
+  private final EtomoBoolean2 genBackProjectionB = new EtomoBoolean2(GEN_KEY + "."
+      + SECOND_AXIS_KEY + ".BackProjection");
+  private final EtomoBoolean2 genSubareaA = new EtomoBoolean2(GEN_KEY + "."
+      + FIRST_AXIS_KEY + ".Subarea");
+  private final EtomoBoolean2 genSubareaB = new EtomoBoolean2(GEN_KEY + "."
+      + SECOND_AXIS_KEY + ".Subarea");
+  private final StringProperty genSubareaSizeA = new StringProperty(GEN_KEY + "."
+      + FIRST_AXIS_KEY + ".SubareaSize");
+  private final StringProperty genSubareaSizeB = new StringProperty(GEN_KEY + "."
+      + SECOND_AXIS_KEY + ".SubareaSize");
+  private final StringProperty genYOffsetOfSubareaA = new StringProperty(GEN_KEY + "."
+      + FIRST_AXIS_KEY + ".YOffsetOfSubarea");
+  private final StringProperty genYOffsetOfSubareaB = new StringProperty(GEN_KEY + "."
+      + SECOND_AXIS_KEY + ".YOffsetOfSubarea");
+  private final StringProperty genRadialRadiusA = new StringProperty(GEN_KEY + "."
+      + FIRST_AXIS_KEY + ".RadialRadius");
+  private final StringProperty genRadialRadiusB = new StringProperty(GEN_KEY + "."
+      + SECOND_AXIS_KEY + ".RadialRadius");
+  private final StringProperty genRadialSigmaA = new StringProperty(GEN_KEY + "."
+      + FIRST_AXIS_KEY + ".RadialSigma");
+  private final StringProperty genRadialSigmaB = new StringProperty(GEN_KEY + "."
+      + SECOND_AXIS_KEY + ".RadialSigma");
+  private final EtomoBoolean2 genResumeEnabledA = new EtomoBoolean2(GEN_KEY + "."
+      + FIRST_AXIS_KEY + ".ResumeEnabled");
+  private final EtomoBoolean2 genResumeEnabledB = new EtomoBoolean2(GEN_KEY + "."
+      + SECOND_AXIS_KEY + ".ResumeEnabled");
 
   public MetaData(ApplicationManager manager) {
     this.manager = manager;
@@ -681,6 +713,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
 
     stackEraseGoldModelUseFidA.setDisplayValue(ERASE_GOLD_MODEL_USE_FID_DEFAULT);
     stackEraseGoldModelUseFidB.setDisplayValue(ERASE_GOLD_MODEL_USE_FID_DEFAULT);
+    genBackProjectionA.setDisplayValue(true);
+    genBackProjectionB.setDisplayValue(true);
   }
 
   /**
@@ -1052,6 +1086,69 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
+  public void setGenBackProjection(AxisID axisID, boolean input) {
+    if (axisID == AxisID.SECOND) {
+      genBackProjectionB.set(input);
+    }
+    else {
+      genBackProjectionA.set(input);
+    }
+  }
+
+  public void setGenSubarea(AxisID axisID, boolean input) {
+    if (axisID == AxisID.SECOND) {
+      genSubareaB.set(input);
+    }
+    else {
+      genSubareaA.set(input);
+    }
+  }
+
+  public void setGenSubareaSize(AxisID axisID, String input) {
+    if (axisID == AxisID.SECOND) {
+      genSubareaSizeB.set(input);
+    }
+    else {
+      genSubareaSizeA.set(input);
+    }
+  }
+
+  public void setGenYOffsetOfSubarea(AxisID axisID, String input) {
+    if (axisID == AxisID.SECOND) {
+      genYOffsetOfSubareaB.set(input);
+    }
+    else {
+      genYOffsetOfSubareaA.set(input);
+    }
+  }
+
+  public void setGenRadialRadius(AxisID axisID, String input) {
+    if (axisID == AxisID.SECOND) {
+      genRadialRadiusB.set(input);
+    }
+    else {
+      genRadialRadiusA.set(input);
+    }
+  }
+
+  public void setGenRadialSigma(AxisID axisID, String input) {
+    if (axisID == AxisID.SECOND) {
+      genRadialSigmaB.set(input);
+    }
+    else {
+      genRadialSigmaA.set(input);
+    }
+  }
+
+  public void setGenResumeEnabled(AxisID axisID, boolean input) {
+    if (axisID == AxisID.SECOND) {
+      genResumeEnabledB.set(input);
+    }
+    else {
+      genResumeEnabledA.set(input);
+    }
+  }
+
   public void setTiltAngleSpecB(TiltAngleSpec tiltAngleSpec) {
     tiltAngleSpecB = tiltAngleSpec;
   }
@@ -1210,6 +1307,20 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     genExistsB.reset();
     posExistsA.reset();
     posExistsB.reset();
+    genBackProjectionA.reset();
+    genBackProjectionB.reset();
+    genSubareaA.reset();
+    genSubareaB.reset();
+    genSubareaSizeA.reset();
+    genSubareaSizeB.reset();
+    genYOffsetOfSubareaA.reset();
+    genYOffsetOfSubareaB.reset();
+    genRadialRadiusA.reset();
+    genRadialRadiusB.reset();
+    genRadialSigmaA.reset();
+    genRadialSigmaB.reset();
+    genResumeEnabledA.reset();
+    genResumeEnabledB.reset();
     //load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -1403,6 +1514,20 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     genExistsB.load(props, prepend);
     posExistsA.load(props, prepend);
     posExistsB.load(props, prepend);
+    genBackProjectionA.load(props, prepend);
+    genBackProjectionB.load(props, prepend);
+    genSubareaA.load(props, prepend);
+    genSubareaB.load(props, prepend);
+    genSubareaSizeA.load(props, prepend);
+    genSubareaSizeB.load(props, prepend);
+    genYOffsetOfSubareaA.load(props, prepend);
+    genYOffsetOfSubareaB.load(props, prepend);
+    genRadialRadiusA.load(props, prepend);
+    genRadialRadiusB.load(props, prepend);
+    genRadialSigmaA.load(props, prepend);
+    genRadialSigmaB.load(props, prepend);
+    genResumeEnabledA.load(props, prepend);
+    genResumeEnabledB.load(props, prepend);
     defaultGpuProcessing.load(props, prepend);
     tilt3dFindTiltParallelA = EtomoBoolean2.load(tilt3dFindTiltParallelA,
         TILT_3D_FIND_A_TILT_PARALLEL_KEY, props, prepend);
@@ -1672,6 +1797,20 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     defaultGpuProcessing.store(props, prepend);
     posExistsA.store(props, prepend);
     posExistsB.store(props, prepend);
+    genBackProjectionA.store(props, prepend);
+    genBackProjectionB.store(props, prepend);
+    genSubareaA.store(props, prepend);
+    genSubareaB.store(props, prepend);
+    genSubareaSizeA.store(props, prepend);
+    genSubareaSizeB.store(props, prepend);
+    genYOffsetOfSubareaA.store(props, prepend);
+    genYOffsetOfSubareaB.store(props, prepend);
+    genRadialRadiusA.store(props, prepend);
+    genRadialRadiusB.store(props, prepend);
+    genRadialSigmaA.store(props, prepend);
+    genRadialSigmaB.store(props, prepend);
+    genResumeEnabledA.store(props, prepend);
+    genResumeEnabledB.store(props, prepend);
   }
 
   public boolean getTrackRaptorUseRawStack() {
@@ -1903,6 +2042,48 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       return genLogB.toString();
     }
     return genLogA.toString();
+  }
+
+  public String getGenSubareaSize(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return genSubareaSizeB.toString();
+    }
+    return genSubareaSizeA.toString();
+  }
+
+  public boolean isGenSubarea(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return genSubareaB.is();
+    }
+    return genSubareaA.is();
+  }
+
+  public boolean isGenResumeEnabled(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return genResumeEnabledB.is();
+    }
+    return genResumeEnabledA.is();
+  }
+
+  public String getGenRadialRadius(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return genRadialRadiusB.toString();
+    }
+    return genRadialRadiusA.toString();
+  }
+
+  public String getGenRadialSigma(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return genRadialSigmaB.toString();
+    }
+    return genRadialSigmaA.toString();
+  }
+
+  public String getGenYOffsetOfSubarea(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return genYOffsetOfSubareaB.toString();
+    }
+    return genYOffsetOfSubareaA.toString();
   }
 
   public String getGenScaleFactorLog(AxisID axisID) {
@@ -2186,6 +2367,13 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       return posExistsB.is();
     }
     return posExistsA.is();
+  }
+
+  public boolean isGenBackProjection(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return genBackProjectionB.is();
+    }
+    return genBackProjectionA.is();
   }
 
   public boolean isGenScaleFactorLinearSet(AxisID axisID) {
