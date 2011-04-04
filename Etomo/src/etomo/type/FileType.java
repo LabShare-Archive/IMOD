@@ -27,6 +27,9 @@ import etomo.process.ImodManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2011/02/15 04:56:37  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.9  2010/04/28 16:27:44  sueh
  * <p> bug# 1344 Added a second imodManagerKey and inSubdirectory
  * <p> boolean.  Collecting the instances with file descriptions into
@@ -100,7 +103,7 @@ public final class FileType {
   public static final FileType FIDUCIAL_3D_MODEL = new FileType(true, true, "", ".3dmod",
       ImodManager.FIDUCIAL_MODEL_KEY);
   public static final FileType ALIGNED_STACK = new FileType(true, true, "", ".ali",
-      ImodManager.FINE_ALIGNED_KEY);
+      ImodManager.FINE_ALIGNED_KEY, null, "the final aligned stack");
   public static final FileType XCORR_BLEND_OUTPUT = new FileType(true, true, "", ".bl",
       null);
   public static final FileType DISTORTION_CORRECTED_STACK = new FileType(true, true, "",
@@ -119,13 +122,19 @@ public final class FileType {
   public static final FileType TRIM_VOL_OUTPUT = new FileType(true, false, "", ".rec",
       ImodManager.TRIMMED_VOLUME_KEY);
   public static final FileType DUAL_AXIS_TOMOGRAM = new FileType(true, true, "", ".rec",
-      ImodManager.FULL_VOLUME_KEY);
+      ImodManager.FULL_VOLUME_KEY, null, "the tomographic reconstruction");
   public static final FileType JOIN_SAMPLE_AVERAGES = new FileType(true, false, "",
       ".sampavg", ImodManager.JOIN_SAMPLE_AVERAGES_KEY);
   public static final FileType JOIN_SAMPLE = new FileType(true, false, "", ".sample",
       ImodManager.JOIN_SAMPLES_KEY);
   public static final FileType SQUEEZE_VOL_OUTPUT = new FileType(true, false, "", ".sqz",
       ImodManager.SQUEEZED_VOLUME_KEY);
+  //Template for .sintnn
+  public static final FileType SIRT_SCALED_OUTPUT_TEMPLATE = new FileType(true, true, "",
+      ".sint", ImodManager.SIRT_KEY);
+  //Template for .srecnn
+  public static final FileType SIRT_OUTPUT_TEMPLATE = new FileType(true, true, "",
+      ".srec", ImodManager.SIRT_KEY);
   public static final FileType RAW_STACK = new FileType(true, true, "", ".st",
       ImodManager.RAW_STACK_KEY, ImodManager.PREVIEW_KEY);
   public static final FileType NEWST_OR_BLEND_3D_FIND_OUTPUT = new FileType(true, true,
@@ -153,7 +162,7 @@ public final class FileType {
   public static final FileType FLATTEN_TOOL_COMSCRIPT = new FileType(true, false,
       "_flatten", ".com", null);
   public static final FileType SINGLE_AXIS_TOMOGRAM = new FileType(true, false, "_full",
-      ".rec", ImodManager.FULL_VOLUME_KEY);
+      ".rec", ImodManager.FULL_VOLUME_KEY, null, "the tomographic reconstruction");
   public static final FileType MODELED_JOIN = new FileType(true, false, "_modeled",
       ".join", ImodManager.MODELED_JOIN_KEY);
   public static final FileType ORIGINAL_RAW_STACK = new FileType(true, true, "_orig",
@@ -176,10 +185,14 @@ public final class FileType {
       "patch_vector", ".mod", ImodManager.PATCH_VECTOR_MODEL_KEY);
   public static final FileType PATCH_VECTOR_CCC_MODEL = new FileType(false, false,
       "patch_vector_ccc", ".mod", ImodManager.PATCH_VECTOR_CCC_MODEL_KEY);
+  public static final FileType SIRTSETUP_COMSCRIPT = new FileType(false, true,
+      "sirtsetup", ".com", null);
   public static final FileType COMBINED_VOLUME = new FileType(false, false, "sum",
       ".rec", ImodManager.COMBINED_TOMOGRAM_KEY);
   public static final FileType NAD_TEST_INPUT = new FileType(false, false, "test",
       ".input", ImodManager.TEST_VOLUME_KEY, true);
+  public static final FileType TILT_COMSCRIPT = new FileType(false, true, "tilt", ".com",
+      null);
   public static final FileType TRACK_COMSCRIPT = new FileType(false, true, "track",
       ".com", null);
   public static final FileType CROSS_CORRELATION_COMSCRIPT = new FileType(false, true,
@@ -208,6 +221,7 @@ public final class FileType {
   private final String typeString;
   private final String extension;
   private final boolean inSubdirectory;
+  private final String description;
 
   private FileType(boolean usesDataset, boolean usesAxisID, String typeString,
       String extension, String imodManagerKey) {
@@ -218,8 +232,9 @@ public final class FileType {
     this.typeString = typeString;
     this.extension = extension;
     this.inSubdirectory = false;
+    description = null;
     //Exlude FileTypes with no name description
-    if (hasNameDescription()) {
+    if (hasFixedName()) {
       namedFileTypeList.add(this);
     }
   }
@@ -233,8 +248,9 @@ public final class FileType {
     this.typeString = typeString;
     this.extension = extension;
     this.inSubdirectory = inSubdirectory;
+    description = null;
     //Exlude FileTypes with no name description
-    if (hasNameDescription()) {
+    if (hasFixedName()) {
       namedFileTypeList.add(this);
     }
   }
@@ -248,8 +264,25 @@ public final class FileType {
     this.typeString = typeString;
     this.extension = extension;
     this.inSubdirectory = false;
+    description = null;
     //Exlude FileTypes with no name description
-    if (hasNameDescription()) {
+    if (hasFixedName()) {
+      namedFileTypeList.add(this);
+    }
+  }
+
+  private FileType(boolean usesDataset, boolean usesAxisID, String typeString,
+      String extension, String imodManagerKey, String imodManagerKey2, String description) {
+    this.imodManagerKey = imodManagerKey;
+    this.imodManagerKey2 = imodManagerKey2;
+    this.usesAxisID = usesAxisID;
+    this.usesDataset = usesDataset;
+    this.typeString = typeString;
+    this.extension = extension;
+    this.inSubdirectory = false;
+    this.description = description;
+    //Exlude FileTypes with no name description
+    if (hasFixedName()) {
       namedFileTypeList.add(this);
     }
   }
@@ -364,8 +397,12 @@ public final class FileType {
     return FileType.getInstance(usesDataset, usesAxisID, typeString, extension);
   }
 
-  public boolean hasNameDescription() {
+  public boolean hasFixedName() {
     return usesAxisID || usesDataset || !extension.equals("") || !typeString.equals("");
+  }
+
+  public String getDescription() {
+    return description;
   }
 
   public String getExtension() {
@@ -381,7 +418,7 @@ public final class FileType {
   }
 
   public File getFile(BaseManager manager, AxisID axisID) {
-    if (manager == null || !hasNameDescription()) {
+    if (manager == null || !hasFixedName()) {
       return null;
     }
     String fileName = getFileName(manager, axisID);
@@ -404,14 +441,14 @@ public final class FileType {
    * @return
    */
   public String getFileName(BaseManager manager) {
-    if (manager == null || !hasNameDescription()) {
+    if (manager == null || !hasFixedName()) {
       return null;
     }
     return getFileName(manager, AxisID.ONLY);
   }
 
   public String getFileName(BaseManager manager, AxisID axisID) {
-    if (manager == null || !hasNameDescription()) {
+    if (manager == null || !hasFixedName()) {
       return null;
     }
     return getRoot(manager, axisID) + extension;
@@ -426,15 +463,12 @@ public final class FileType {
    * @return
    */
   public String getRoot(BaseManager manager, AxisID axisID) {
-    if (manager == null || !hasNameDescription()) {
+    if (manager == null || !hasFixedName()) {
       return null;
     }
     if (!usesDataset && !usesAxisID) {
       //Example:  flatten.com
       return typeString;
-    }
-    if (manager == null) {
-      return null;
     }
     BaseMetaData metaData = manager.getBaseMetaData();
     String axisIDExtension = "";
