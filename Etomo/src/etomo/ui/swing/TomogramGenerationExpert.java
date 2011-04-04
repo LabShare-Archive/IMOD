@@ -5,6 +5,7 @@ import etomo.ProcessSeries;
 import etomo.comscript.ComScriptManager;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.FortranInputSyntaxException;
+import etomo.comscript.SirtsetupParam;
 import etomo.comscript.TiltParam;
 import etomo.process.ImodManager;
 import etomo.type.AxisID;
@@ -12,7 +13,6 @@ import etomo.type.ConstMetaData;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
-import etomo.type.PanelId;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessTrack;
@@ -37,6 +37,8 @@ import etomo.util.Utilities;
 public final class TomogramGenerationExpert extends ReconUIExpert {
   public static final String rcsid = "$Id$";
 
+  public static final String SIRT_DONE = "sirtDone";
+
   private final ComScriptManager comScriptMgr;
   private final TomogramState state;
   private final ReconScreenState screenState;
@@ -48,6 +50,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
   public TomogramGenerationExpert(ApplicationManager manager,
       MainTomogramPanel mainPanel, ProcessTrack processTrack, AxisID axisID) {
     super(manager, mainPanel, processTrack, axisID, DialogType.TOMOGRAM_GENERATION);
+    System.out.println("B:axisID:" + axisID);
     comScriptMgr = manager.getComScriptManager();
     state = manager.getState();
     screenState = manager.getScreenState(axisID);
@@ -70,6 +73,11 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     // no longer managing image size
     setParameters(metaData);
     setParameters(screenState);
+    //load SIRT first because the resume radio buttons disable tilt fields
+    if (comScriptMgr.loadSirtsetup(axisID)) {
+      SirtsetupParam sirtsetupParam = comScriptMgr.getSirtsetupParam(axisID);
+      setParameters(sirtsetupParam);
+    }
     // Read in the tilt{|a|b}.com parameters and display the dialog panel
     comScriptMgr.loadTilt(axisID);
     TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
@@ -81,10 +89,17 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     }
     boolean genExists = metaData.isGenExists(axisID);
     setParameters(tiltParam, !genExists);
+    dialog.msgTiltComLoaded();
     // Set the fidcialess state and tilt axis angle
     setTiltState();
     metaData.setGenExists(axisID, true);
     openDialog(dialog);
+  }
+
+  public void msgSirtSucceeded() {
+    if (dialog != null) {
+      dialog.msgSirtSucceeded();
+    }
   }
 
   /**
@@ -93,16 +108,27 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
   public void startNextProcess(ProcessSeries.Process process,
       ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
       DialogType dialogType, ProcessDisplay display) {
+    System.out.println("C:axisID:" + axisID);
     if (process.equals(ProcessName.PROCESSCHUNKS.toString())) {
-      processchunks(manager, dialog, processResultDisplay, processSeries,
-          ProcessName.TILT, process.getOutputImageFileType(), process
-              .getProcessingMethod());
+      if (process.getSubprocessName() == ProcessName.TILT) {
+        processchunks(manager, dialog, processResultDisplay, processSeries,
+            ProcessName.TILT.toString() + axisID.getExtension(),
+            process.getOutputImageFileType(), process.getProcessingMethod());
+      }
+      else {
+        processchunks(manager, dialog, processResultDisplay, processSeries,
+            ProcessName.TILT.toString() + axisID.getExtension() + "_sirt",
+            process.getOutputImageFileType(), process.getProcessingMethod());
+      }
+    }
+    else if (process.equals(SIRT_DONE)) {
+      msgSirtSucceeded();
     }
   }
 
   public boolean reconnectTilt(ProcessName processName) {
     ProcessResultDisplay display = manager.getProcessResultDisplayFactory(axisID)
-        .getTilt(DialogType.TOMOGRAM_GENERATION, PanelId.TILT);
+        .getTilt(DialogType.TOMOGRAM_GENERATION);
     sendMsgProcessStarting(display);
     return manager.reconnectTilt(axisID, processName, display);
   }
@@ -137,14 +163,15 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     }
     advanced = dialog.isAdvanced();
     // Get the user input data from the dialog box
+    getParameters(screenState);
+    manager.updateTiltCom(dialog.getTiltDisplay(), axisID);
     try {
       getParameters(metaData);
     }
     catch (FortranInputSyntaxException e) {
       UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(), "Data File Error");
     }
-    getParameters(screenState);
-    manager.updateTiltCom(dialog.getTiltDisplay(), axisID);
+    manager.updateSirtSetupCom(axisID, dialog.getSirtsetupDisplay(), false);
     manager.saveStorables(axisID);
   }
 
@@ -194,9 +221,26 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     }
     dialog.setParameters(tiltParam, initialize);
   }
+
+  private void setParameters(SirtsetupParam param) {
+    if (dialog == null) {
+      return;
+    }
+    dialog.setParameters(param);
+  }
+
+  public TiltDisplay getTiltDisplay() {
+    if (dialog == null) {
+      return null;
+    }
+    return dialog.getTiltDisplay();
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2011/02/10 16:30:49  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.3  2011/02/03 06:22:16  sueh
  * <p> bug# 1422 Control of the processing method has been centralized in the
  * <p> processing method mediator class.  Implementing ProcessInterface.
