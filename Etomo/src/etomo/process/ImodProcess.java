@@ -37,6 +37,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.70  2011/02/21 16:58:25  sueh
+ * bug# 1437 Reformatting.
+ *
  * Revision 3.69  2010/11/13 16:03:45  sueh
  * bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  *
@@ -666,6 +669,7 @@ public class ImodProcess {
   private boolean openZap = false;
   private String tiltFile = null;
   private ContinuousListenerTarget continuousListenerTarget = null;
+  private File[] fileList = null;
 
   /**
    * If true, run 3dmod with -L.  This means that imodsentevent will not be used
@@ -741,6 +745,12 @@ public class ImodProcess {
   public ImodProcess(BaseManager manager, String[] datasetArray) {
     this.manager = manager;
     datasetNameArray = datasetArray;
+    continuousListener = new ContinuousListener(stderr, axisID);
+  }
+
+  public ImodProcess(final BaseManager manager, final File[] fileList) {
+    this.manager = manager;
+    this.fileList = fileList;
     continuousListener = new ContinuousListener(stderr, axisID);
   }
 
@@ -907,6 +917,17 @@ public class ImodProcess {
         }
         else {
           commandOptions.add(new File(subdirName, datasetNameArray[i]).getPath());
+        }
+      }
+    }
+
+    if (fileList != null) {
+      for (int i = 0; i < fileList.length; i++) {
+        if (subdirName == null) {
+          commandOptions.add(fileList[i].getName());
+        }
+        else {
+          commandOptions.add(new File(subdirName, fileList[i].getName()).getPath());
         }
       }
     }
