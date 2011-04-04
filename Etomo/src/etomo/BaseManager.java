@@ -336,13 +336,15 @@ public abstract class BaseManager {
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(this, "Unable to save or write to properties.  "
-          + e.getMessage(), "Etomo Error", axisID);
+      uiHarness.openMessageDialog(this,
+          "Unable to save or write to properties.  " + e.getMessage(), "Etomo Error",
+          axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(this, "Unable to save or write to properties.  "
-          + e.getMessage(), "Etomo Error", axisID);
+      uiHarness.openMessageDialog(this,
+          "Unable to save or write to properties.  " + e.getMessage(), "Etomo Error",
+          axisID);
     }
   }
 
@@ -371,13 +373,15 @@ public abstract class BaseManager {
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(this, "Unable to save or write to properties.  "
-          + e.getMessage(), "Etomo Error", axisID);
+      uiHarness.openMessageDialog(this,
+          "Unable to save or write to properties.  " + e.getMessage(), "Etomo Error",
+          axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(this, "Unable to save or write to properties.  "
-          + e.getMessage(), "Etomo Error", axisID);
+      uiHarness.openMessageDialog(this,
+          "Unable to save or write to properties.  " + e.getMessage(), "Etomo Error",
+          axisID);
     }
     parameterStore.setAutoStore(true);
     try {
@@ -385,13 +389,17 @@ public abstract class BaseManager {
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(this, "Unable to save or write to "
-          + paramFile.getAbsolutePath() + ".  " + e.getMessage(), "Etomo Error", axisID);
+      uiHarness.openMessageDialog(
+          this,
+          "Unable to save or write to " + paramFile.getAbsolutePath() + ".  "
+              + e.getMessage(), "Etomo Error", axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
-      uiHarness.openMessageDialog(this, "Unable to save or write to "
-          + paramFile.getAbsolutePath() + ".  " + e.getMessage(), "Etomo Error", axisID);
+      uiHarness.openMessageDialog(
+          this,
+          "Unable to save or write to " + paramFile.getAbsolutePath() + ".  "
+              + e.getMessage(), "Etomo Error", axisID);
     }
   }
 
@@ -502,28 +510,19 @@ public abstract class BaseManager {
       ArrayList messageArray = new ArrayList();
       ConstProcessSeries processSeriesA = null;
       ConstProcessSeries processSeriesB = null;
-      String nextProcessA = null;
-      String nextProcessB = null;
+      boolean droppedProcessA = false;
+      boolean droppedProcessB = false;
       if (processA != null && (processSeriesA = processA.getProcessSeries()) != null) {
-        nextProcessA = processSeriesA.peekNextProcess();
+        droppedProcessA = processSeriesA.willProcessBeDropped(processManager
+            .getProcessData(AxisID.FIRST));
       }
       if (processB != null && (processSeriesB = processB.getProcessSeries()) != null) {
-        nextProcessB = processSeriesB.peekNextProcess();
+        droppedProcessB = processSeriesB.willProcessBeDropped(processManager
+            .getProcessData(AxisID.SECOND));
       }
-      if (nextProcessA != null || nextProcessB != null) {
-        boolean twoProcesses = nextProcessA != null && nextProcessB != null;
+      if (droppedProcessA || droppedProcessB) {
         StringBuffer message = new StringBuffer(
-            "WARNING!!!\nIf you exit now then the current process(es) will not finish.  The subprocess(es)");
-        if (nextProcessA != null) {
-          message.append(" " + nextProcessA + " on Axis A");
-        }
-        if (twoProcesses) {
-          message.append(" and");
-        }
-        if (nextProcessB != null) {
-          message.append(" " + nextProcessB + " on Axis B");
-        }
-        message.append(" should run next.\n");
+            "WARNING!!!\nIf you exit now then not all processes will complete.");
         if (exiting) {
           message.append("Do you still wish to exit the program?");
         }
@@ -567,8 +566,8 @@ public abstract class BaseManager {
     }
     closeImod(fromFileType, axisID, true);
     closeImod(toFileType, axisID, true);
-    Utilities.renameFile(fromFileType.getFile(this, axisID), toFileType.getFile(this,
-        axisID));
+    Utilities.renameFile(fromFileType.getFile(this, axisID),
+        toFileType.getFile(this, axisID));
   }
 
   /**
@@ -1232,7 +1231,7 @@ public abstract class BaseManager {
     return true;
   }
 
-  void backupFile(File file, AxisID axisID) {
+  boolean backupFile(File file, AxisID axisID) {
     if (file != null && file.exists()) {
       File backupFile = new File(file.getAbsolutePath() + "~");
       try {
@@ -1243,8 +1242,10 @@ public abstract class BaseManager {
             + backupFile.getAbsolutePath());
         uiHarness.openMessageDialog(this, except.getMessage(), "File Rename Error",
             axisID);
+        return false;
       }
     }
+    return true;
   }
 
   /**
@@ -1364,24 +1365,26 @@ public abstract class BaseManager {
     String hostName = processData.getHostName();
     if (processData.isRunning()) {
       // Handles the case where ssh hostname ps finds the pid of this process.
-      if (uiHarness.openYesNoDialog(this, "WARNING:  Cannot connect to "
-          + processData.getProcessName() + ".  The process is running on " + hostName
-          + ".  Please exit Etomo, run xhost " + hostName + ", ssh to " + hostName
-          + ", and run etomo in order to connect to this process.  Exit " + "Etomo Y/N?",
-          axisID)) {
+      if (uiHarness.openYesNoDialog(this,
+          "WARNING:  Cannot connect to " + processData.getProcessName()
+              + ".  The process is running on " + hostName
+              + ".  Please exit Etomo, run xhost " + hostName + ", ssh to " + hostName
+              + ", and run etomo in order to connect to this process.  Exit "
+              + "Etomo Y/N?", axisID)) {
         // Exit from etomo.
         uiHarness.exit(AxisID.ONLY);
       }
     }
     else if (processData.isSshFailed()) {
       // Handles the case where the ssh fails.
-      uiHarness.openMessageDialog(this, "WARNING:  Cannot connect to "
-          + processData.getProcessName() + ".  This process may be running on "
-          + hostName + ".  Unable to connect to " + hostName + " to find out.  If "
-          + processData.getProcessName() + " is still running on " + hostName
-          + ", please exit Etomo, run xhost " + hostName + ", ssh to " + hostName
-          + ", and run etomo in order to connect to this process.", "Reconnect Warning",
-          axisID);
+      uiHarness.openMessageDialog(this,
+          "WARNING:  Cannot connect to " + processData.getProcessName()
+              + ".  This process may be running on " + hostName
+              + ".  Unable to connect to " + hostName + " to find out.  If "
+              + processData.getProcessName() + " is still running on " + hostName
+              + ", please exit Etomo, run xhost " + hostName + ", ssh to " + hostName
+              + ", and run etomo in order to connect to this process.",
+          "Reconnect Warning", axisID);
     }
   }
 
@@ -1444,8 +1447,14 @@ public abstract class BaseManager {
     }
     MainPanel mainPanel = getMainPanel();
     //FIXME - null pointer getPArallelPanel
-    boolean ret = getProcessManager()
-        .reconnectProcesschunks(axisID, processData, display);
+    String lastProcess = processData.getLastProcess();
+    ProcessSeries processSeries = null;
+    if (lastProcess != null) {
+      processSeries = new ProcessSeries(this, processData.getDialogType());
+      processSeries.setLastProcess(lastProcess);
+    }
+    boolean ret = getProcessManager().reconnectProcesschunks(axisID, processData,
+        display, processSeries);
     setThreadName(processData.getProcessName().toString(), axisID);
     return ret;
   }
@@ -1632,8 +1641,8 @@ public abstract class BaseManager {
 
   public static File chunkComscriptAction(Container root) {
     // Open up the file chooser in the working directory
-    JFileChooser chooser = new FileChooser(new File(EtomoDirector.INSTANCE
-        .getOriginalUserDir()));
+    JFileChooser chooser = new FileChooser(new File(
+        EtomoDirector.INSTANCE.getOriginalUserDir()));
     ChunkComscriptFileFilter filter = new ChunkComscriptFileFilter();
     chooser.setFileFilter(filter);
     chooser.setPreferredSize(new Dimension(400, 400));
@@ -1662,8 +1671,8 @@ public abstract class BaseManager {
    * @param root
    * @param subcommandDetails
    */
-  public final void resume(AxisID axisID, ProcesschunksParam param,
-      ProcessResultDisplay processResultDisplay, ConstProcessSeries processSeries,
+  public void resume(AxisID axisID, ProcesschunksParam param,
+      ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
       Container root, CommandDetails subcommandDetails, boolean popupChunkWarnings,
       ProcessingMethod processingMethod) {
     sendMsgProcessStarting(processResultDisplay);
@@ -1712,6 +1721,9 @@ public abstract class BaseManager {
 /**
  * <p>
  * $Log$
+ * Revision 1.139  2011/02/26 04:19:27  sueh
+ * bug# 1453 Added logMessage(List, String, AxisID).
+ *
  * Revision 1.138  2011/02/08 21:40:29  sueh
  * bug# 1437
  *
