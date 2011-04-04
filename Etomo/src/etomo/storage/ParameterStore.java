@@ -24,6 +24,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2011/02/22 04:52:30  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 3.13  2010/10/13 20:19:11  sueh
  * <p> bug# 1392 Added getFilelessInstance.  Handling null dataFile.
  * <p>
@@ -95,7 +98,7 @@ public final class ParameterStore {
   private LogFile dataFile = null;
 
   private boolean autoStore = true;
-  private boolean debug = false;
+  private int debug = 0;
 
   private ParameterStore() {
   }
@@ -164,7 +167,7 @@ public final class ParameterStore {
   }
 
   public void setDebug(boolean debug) {
-    this.debug = debug;
+    this.debug = debug ? 1 : 0;
   }
 
   /**
@@ -192,7 +195,7 @@ public final class ParameterStore {
         if (autoStore) {
           storeProperties();
         }
-        if (debug) {
+        if (debug == 1) {
           System.err.println("save:JoinState.Join.Version="
               + properties.getProperty("JoinState.Join.Version"));
         }
