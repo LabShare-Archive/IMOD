@@ -5,7 +5,6 @@ import java.util.Vector;
 import etomo.process.ProcessResultDisplayFactoryInterface;
 import etomo.type.BaseScreenState;
 import etomo.type.DialogType;
-import etomo.type.PanelId;
 import etomo.type.ProcessResultDisplay;
 
 /**
@@ -523,16 +522,11 @@ public final class ProcessResultDisplayFactory implements
     return findBeads3d;
   }
 
-  public ProcessResultDisplay getTilt(DialogType dialogType, PanelId panelId) {
+  public ProcessResultDisplay getTilt(DialogType dialogType) {
     if (dialogType == DialogType.FINAL_ALIGNED_STACK) {
       return stackTilt;
     }
-    else if (dialogType == DialogType.TOMOGRAM_GENERATION) {
-      if (panelId == PanelId.TILT) {
-        return genTilt;
-      }
-    }
-    return null;
+    return genTilt;
   }
 
   public ProcessResultDisplay getSirtsetup() {
@@ -569,11 +563,8 @@ public final class ProcessResultDisplayFactory implements
     return useTrialTomogram;
   }
 
-  public ProcessResultDisplay getDeleteAlignedStack(final PanelId panelId) {
-    if (panelId == PanelId.TILT) {
-      return deleteAlignedStack;
-    }
-    return null;
+  public ProcessResultDisplay getDeleteAlignedStack() {
+    return deleteAlignedStack;
   }
 
   //combination
@@ -630,6 +621,9 @@ public final class ProcessResultDisplayFactory implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/11 23:10:57  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/12/05 05:15:34  sueh
  * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.
  * <p>
