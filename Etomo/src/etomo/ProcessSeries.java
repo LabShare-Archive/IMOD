@@ -1,5 +1,6 @@
 package etomo;
 
+import etomo.process.ProcessData;
 import etomo.type.AxisID;
 import etomo.type.ConstProcessSeries;
 import etomo.type.DialogType;
@@ -114,6 +115,9 @@ import etomo.ui.swing.ProcessDisplay;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2011/02/21 21:07:53  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.11  2011/02/03 05:54:50  sueh
  * <p> bug# 1422 Added ProcessingMethod.
  * <p>
@@ -178,6 +182,10 @@ public final class ProcessSeries implements ConstProcessSeries {
   private Run3dmodMenuOptions run3dmodMenuOptions = null;
   private boolean debug = false;
 
+  public String toString() {
+    return "[nextProcess:" + nextProcess + ",lastProcess:" + lastProcess + "]";
+  }
+
   public ProcessSeries(final BaseManager manager, DialogType dialogType) {
     this.manager = manager;
     this.dialogType = dialogType;
@@ -232,6 +240,17 @@ public final class ProcessSeries implements ConstProcessSeries {
     debug = input;
   }
 
+  public DialogType getDialogType() {
+    return dialogType;
+  }
+
+  public String getLastProcess() {
+    if (lastProcess == null) {
+      return null;
+    }
+    return lastProcess.getProcess();
+  }
+
   /**
    * Keep final.  Adds next process 
    * @param axisID
@@ -279,6 +298,23 @@ public final class ProcessSeries implements ConstProcessSeries {
     lastProcess = null;
     run3dmodButton = null;
     run3dmodMenuOptions = null;
+  }
+
+  /**
+   * Return true if nextProcess exists, or lastProcess exists and hasn't been saved in
+   * processData.  Ignore run3dmodButton.
+   */
+  public boolean willProcessBeDropped(ProcessData processData) {
+    if (nextProcess != null) {
+      return true;
+    }
+    if (lastProcess == null) {
+      return false;
+    }
+    //Return true of the last process information in processData doesn't match the
+    //information in this instance.
+    return dialogType != processData.getDialogType()
+        || !lastProcess.equals(processData.getLastProcess());
   }
 
   public String peekNextProcess() {
