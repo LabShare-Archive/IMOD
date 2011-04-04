@@ -15,158 +15,7 @@ import etomo.comscript.FortranInputString;
  *
  * @version $Revision$
  *
- */
-public interface ConstMetaData {
-  public static final String rcsid = "$Id$";
-
-  public ConstEtomoNumber getPostCurTab();
-  
-  public ConstEtomoNumber getGenCurTab();
-
-  public AxisType getAxisType();
-
-  public String getDatasetName();
-
-  public boolean getComScriptCreated();
-
-  public ConstEtomoNumber getAdjustedFocusA();
-
-  public ConstEtomoNumber getAdjustedFocusB();
-
-  public ConstEtomoNumber getImageRotation(AxisID axisID);
-
-  public String getBackupDirectory();
-
-  public int getBinning();
-
-  public ViewType getViewType();
-
-  public double getPixelSize();
-
-  public DataSource getDataSource();
-
-  public double getFiducialDiameter();
-
-  public TiltAngleSpec getTiltAngleSpecA();
-
-  public String getExcludeProjectionsA();
-
-  public TiltAngleSpec getTiltAngleSpecB();
-
-  public String getDistortionFile();
-
-  public String getMagGradientFile();
-
-  public String getExcludeProjectionsB();
-
-  public CombineParams getCombineParams();
-
-  public ConstEtomoNumber getCombineVolcombineParallel();
-
-  public ConstEtomoNumber getDefaultParallel();
-
-  public ConstEtomoNumber getDefaultGpuProcessing();
-
-  public String getFirstAxisPrepend();
-
-  public String getSecondAxisPrepend();
-
-  public String getTargetPatchSizeXandY();
-
-  public ConstEtomoNumber getFixedBeamTiltSelected(AxisID axisID);
-
-  public String getNumberOfLocalPatchesXandY();
-
-  public ConstEtomoNumber getFixedBeamTilt(AxisID axisID);
-
-  public ConstEtomoNumber getNoBeamTiltSelected(AxisID axisID);
-
-  public EtomoNumber getSampleThickness(AxisID axisID);
-
-  public FortranInputString getSizeToOutputInXandY(AxisID axisID);
-
-  public int getPosBinning(AxisID axisID);
-
-  public int getStackBinning(AxisID axisID);
-
-  public int getStack3dFindBinning(AxisID axisID);
-
-  public ConstEtomoNumber getTiltParallel(AxisID axisID, PanelId panelId);
-
-  public ConstEtomoNumber getFinalStackCtfCorrectionParallel(AxisID axisID);
-
-  public boolean isDistortionCorrection();
-
-  public boolean isFinalStackBetterRadiusEmpty(AxisID axisID);
-
-  public String getFinalStackBetterRadius(AxisID axisID);
-
-  public boolean isFinalStackFiducialDiameterNull(AxisID axisID);
-
-  public String getFinalStackFiducialDiameter(AxisID axisID);
-
-  public int getFinalStackPolynomialOrder(AxisID axisID);
-
-  public IntKeyList getTomoGenTrialTomogramNameList(AxisID axisID);
-
-  public boolean getTrackRaptorUseRawStack();
-
-  public String getTrackRaptorMark();
-
-  public ConstEtomoNumber getTrackRaptorDiam();
-
-  public boolean getEraseGoldModelUseFid(final AxisID axisID);
-
-  public boolean isPostFlattenWarpInputTrimVol();
-
-  public boolean isPostFlattenWarpContoursOnOneSurface();
-
-  public String getPostFlattenWarpSpacingInX();
-
-  public String getPostFlattenWarpSpacingInY();
-
-  public boolean isPostSqueezeVolInputTrimVol();
-
-  public boolean isFiducialessAlignment(AxisID axisID);
-
-  public String getLambdaForSmoothing();
-
-  public String getLambdaForSmoothingList();
-
-  public boolean isLambdaForSmoothingListEmpty();
-
-  public String getTrackOverlapOfPatchesXandY(AxisID axisID);
-
-  public String getTrackNumberOfPatchesXandY(AxisID axisID);
-
-  public String getTrackLengthAndOverlap(AxisID axisID);
-
-  public boolean isTrackOverlapOfPatchesXandYSet(AxisID axisID);
-
-  public boolean isTrackLengthAndOverlapSet(AxisID axisID);
-
-  public String getTrackMethod(AxisID axisID);
-
-  public String getGenLog(AxisID axisID);
-
-  public String getGenScaleFactorLog(AxisID axisID);
-
-  public String getGenScaleOffsetLog(AxisID axisID);
-
-  public String getGenScaleFactorLinear(AxisID axisID);
-
-  public String getGenScaleOffsetLinear(AxisID axisID);
-
-  public boolean isGenScaleFactorLinearSet(AxisID axisID);
-
-  public boolean isGenScaleOffsetLinearSet(AxisID axisID);
-}
-
-/**public String getTrackMethod(AxisID axisID) 
  * <p> $Log$
- * <p> Revision 3.61  2011/02/24 23:36:19  sueh
- * <p> bug# 1452 imageRotation needs to be double everywhere.
- * <p>
  * <p> Revision 3.60  2010/12/05 04:43:50  sueh
  * <p> bug# 1416 Added getGenCurTab.
  * <p>
@@ -458,3 +307,162 @@ public interface ConstMetaData {
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
+public interface ConstMetaData {
+  public static final String rcsid = "$Id$";
+
+  public ConstEtomoNumber getPostCurTab();
+
+  public ConstEtomoNumber getGenCurTab();
+
+  public AxisType getAxisType();
+
+  public String getDatasetName();
+
+  public boolean getComScriptCreated();
+
+  public ConstEtomoNumber getAdjustedFocusA();
+
+  public ConstEtomoNumber getAdjustedFocusB();
+
+  public ConstEtomoNumber getImageRotation(AxisID axisID);
+
+  public String getBackupDirectory();
+
+  public int getBinning();
+
+  public ViewType getViewType();
+
+  public double getPixelSize();
+
+  public DataSource getDataSource();
+
+  public double getFiducialDiameter();
+
+  public TiltAngleSpec getTiltAngleSpecA();
+
+  public String getExcludeProjectionsA();
+
+  public TiltAngleSpec getTiltAngleSpecB();
+
+  public String getDistortionFile();
+
+  public String getMagGradientFile();
+
+  public String getExcludeProjectionsB();
+
+  public CombineParams getCombineParams();
+
+  public ConstEtomoNumber getCombineVolcombineParallel();
+
+  public ConstEtomoNumber getDefaultParallel();
+
+  public ConstEtomoNumber getDefaultGpuProcessing();
+
+  public String getFirstAxisPrepend();
+
+  public String getSecondAxisPrepend();
+
+  public String getTargetPatchSizeXandY();
+
+  public ConstEtomoNumber getFixedBeamTiltSelected(AxisID axisID);
+
+  public String getNumberOfLocalPatchesXandY();
+
+  public ConstEtomoNumber getFixedBeamTilt(AxisID axisID);
+
+  public ConstEtomoNumber getNoBeamTiltSelected(AxisID axisID);
+
+  public EtomoNumber getSampleThickness(AxisID axisID);
+
+  public FortranInputString getSizeToOutputInXandY(AxisID axisID);
+
+  public int getPosBinning(AxisID axisID);
+
+  public int getStackBinning(AxisID axisID);
+
+  public int getStack3dFindBinning(AxisID axisID);
+
+  public ConstEtomoNumber getTiltParallel(AxisID axisID, PanelId panelId);
+
+  public ConstEtomoNumber getFinalStackCtfCorrectionParallel(AxisID axisID);
+
+  public boolean isDistortionCorrection();
+
+  public boolean isFinalStackBetterRadiusEmpty(AxisID axisID);
+
+  public String getFinalStackBetterRadius(AxisID axisID);
+
+  public boolean isFinalStackFiducialDiameterNull(AxisID axisID);
+
+  public String getFinalStackFiducialDiameter(AxisID axisID);
+
+  public int getFinalStackPolynomialOrder(AxisID axisID);
+
+  public IntKeyList getTomoGenTrialTomogramNameList(AxisID axisID);
+
+  public boolean getTrackRaptorUseRawStack();
+
+  public String getTrackRaptorMark();
+
+  public ConstEtomoNumber getTrackRaptorDiam();
+
+  public boolean getEraseGoldModelUseFid(final AxisID axisID);
+
+  public boolean isPostFlattenWarpInputTrimVol();
+
+  public boolean isPostFlattenWarpContoursOnOneSurface();
+
+  public String getPostFlattenWarpSpacingInX();
+
+  public String getPostFlattenWarpSpacingInY();
+
+  public boolean isPostSqueezeVolInputTrimVol();
+
+  public boolean isFiducialessAlignment(AxisID axisID);
+
+  public String getLambdaForSmoothing();
+
+  public String getLambdaForSmoothingList();
+
+  public boolean isLambdaForSmoothingListEmpty();
+
+  public String getTrackOverlapOfPatchesXandY(AxisID axisID);
+
+  public String getTrackNumberOfPatchesXandY(AxisID axisID);
+
+  public String getTrackLengthAndOverlap(AxisID axisID);
+
+  public boolean isTrackOverlapOfPatchesXandYSet(AxisID axisID);
+
+  public boolean isTrackLengthAndOverlapSet(AxisID axisID);
+
+  public String getTrackMethod(AxisID axisID);
+
+  public String getGenLog(AxisID axisID);
+
+  public String getGenScaleFactorLog(AxisID axisID);
+
+  public String getGenScaleOffsetLog(AxisID axisID);
+
+  public String getGenScaleFactorLinear(AxisID axisID);
+
+  public String getGenScaleOffsetLinear(AxisID axisID);
+
+  public boolean isGenScaleFactorLinearSet(AxisID axisID);
+
+  public boolean isGenScaleOffsetLinearSet(AxisID axisID);
+
+  public boolean isGenBackProjection(AxisID axisID);
+
+  public String getGenSubareaSize(AxisID axisID);
+
+  public String getGenYOffsetOfSubarea(AxisID axisID);
+
+  public boolean isGenSubarea(AxisID axisID);
+
+  public String getGenRadialRadius(AxisID axisID);
+
+  public String getGenRadialSigma(AxisID axisID);
+  
+  public boolean isGenResumeEnabled(AxisID axisID);
+}
