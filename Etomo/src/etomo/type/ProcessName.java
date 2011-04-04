@@ -17,6 +17,9 @@ import etomo.util.DatasetFiles;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.26  2011/02/09 06:05:10  sueh
+ * <p> $bug# 1438 Added PROCHUNKS_CSH.
+ * <p> $
  * <p> $Revision 1.25  2010/03/03 04:58:47  sueh
  * <p> $bug# 1311 Added xcorr_pt.
  * <p> $
@@ -108,7 +111,6 @@ public class ProcessName {
   public static final String rcsid = "$$Id$$";
 
   //known process names  
-  private static final String eraser = "eraser";//comscript which runs ccderaser
   private static final String xcorr = "xcorr";
   private static final String prenewst = "prenewst";
   private static final String track = "track";
@@ -168,14 +170,14 @@ public class ProcessName {
   private static final String midas = "midas";
   private static final String xcorr_pt = "xcorr_pt";
   private static final String prochunks_csh = "prochunks.csh";
-  
+
   private final String name;
 
   private ProcessName(String name) {
     this.name = name;
   }
 
-  public static final ProcessName ERASER = new ProcessName(eraser);
+  public static final ProcessName ERASER = new ProcessName("eraser");//comscript which runs ccderaser
   public static final ProcessName XCORR = new ProcessName(xcorr);
   public static final ProcessName PRENEWST = new ProcessName(prenewst);
   public static final ProcessName TRACK = new ProcessName(track);
@@ -183,8 +185,7 @@ public class ProcessName {
   public static final ProcessName NEWST = new ProcessName(newst);
   public static final ProcessName TILT = new ProcessName(tilt);
   public static final ProcessName MTFFILTER = new ProcessName(mtffilter);
-  public static final ProcessName SOLVEMATCHSHIFT = new ProcessName(
-      solvematchshift);
+  public static final ProcessName SOLVEMATCHSHIFT = new ProcessName(solvematchshift);
   public static final ProcessName SOLVEMATCHMOD = new ProcessName(solvematchmod);
   public static final ProcessName PATCHCORR = new ProcessName(patchcorr);
   public static final ProcessName MATCHORWARP = new ProcessName(matchorwarp);
@@ -223,10 +224,8 @@ public class ProcessName {
       anisotropicDiffusion);
   public static final ProcessName CHUNKSETUP = new ProcessName(chunksetup);
   public static final ProcessName CTF_PLOTTER = new ProcessName(ctfPlotter);
-  public static final ProcessName CTF_CORRECTION = new ProcessName(
-      ctfCorrection);
-  public static final ProcessName SPLIT_CORRECTION = new ProcessName(
-      splitCorrection);
+  public static final ProcessName CTF_CORRECTION = new ProcessName(ctfCorrection);
+  public static final ProcessName SPLIT_CORRECTION = new ProcessName(splitCorrection);
   public static final ProcessName CCD_ERASER = new ProcessName(ccderaser);
   public static final ProcessName CLIP = new ProcessName(clip);
   public static final ProcessName RUNRAPTOR = new ProcessName(runraptor);
@@ -241,7 +240,10 @@ public class ProcessName {
   public static final ProcessName MIDAS = new ProcessName(midas);
   public static final ProcessName XCORR_PT = new ProcessName(xcorr_pt);
   public static final ProcessName PROCHUNKS_CSH = new ProcessName(prochunks_csh);
-  
+  public static final ProcessName SIRTSETUP = new ProcessName("sirtsetup");
+  //The axis letter goes after tilt.
+  public static final ProcessName TILT_SIRT = new ProcessName("tilt_sirt");
+
   /**
    * Returns a string representation of the object.
    */
@@ -276,8 +278,7 @@ public class ProcessName {
       return processName;
     }
     //check if name is process name plus axis extension
-    if (!axisID.getExtension().equals("")
-        && name.endsWith(axisID.getExtension())) {
+    if (!axisID.getExtension().equals("") && name.endsWith(axisID.getExtension())) {
       processName = getInstance(name.substring(0, name.length()
           - axisID.getExtension().length()));
       if (processName != null) {
@@ -295,8 +296,7 @@ public class ProcessName {
       return processName;
     }
     //check if file name is process name plus axis extension plus file extension
-    if (!axisID.getExtension().equals("")
-        && name.endsWith(axisID.getExtension())) {
+    if (!axisID.getExtension().equals("") && name.endsWith(axisID.getExtension())) {
       processName = getInstance(name.substring(0, name.length()
           - axisID.getExtension().length()));
       if (processName != null) {
@@ -314,8 +314,7 @@ public class ProcessName {
    * @param extension
    * @return
    */
-  public static ProcessName getInstance(String name, AxisID axisID,
-      String extension) {
+  public static ProcessName getInstance(String name, AxisID axisID, String extension) {
     if (extension == null || extension.equals("")) {
       return getInstance(name, axisID);
     }
@@ -340,7 +339,7 @@ public class ProcessName {
       int extIndex = name.lastIndexOf(DatasetFiles.COMSCRIPT_EXT);
       name = name.substring(0, extIndex);
     }
-    if (name.compareToIgnoreCase(eraser) == 0) {
+    if (name.compareToIgnoreCase(ERASER.name) == 0) {
       return ERASER;
     }
     if (name.compareToIgnoreCase(xcorr) == 0) {
@@ -520,6 +519,12 @@ public class ProcessName {
     if (name.compareToIgnoreCase(xcorr_pt) == 0) {
       return XCORR_PT;
     }
+    if (name.compareToIgnoreCase(SIRTSETUP.name) == 0) {
+      return SIRTSETUP;
+    }
+    if (name.compareToIgnoreCase(TILT_SIRT.name) == 0) {
+      return TILT_SIRT;
+    }
     return null;
   }
 
@@ -528,21 +533,19 @@ public class ProcessName {
       return null;
     }
     String fileName = file.getName();
-    StringBuffer processStringBuffer = new StringBuffer(fileName.substring(0,
-        fileName.lastIndexOf(excludeString)));
+    StringBuffer processStringBuffer = new StringBuffer(fileName.substring(0, fileName
+        .lastIndexOf(excludeString)));
     ProcessName processName;
     if ((processName = ProcessName.getInstance(processStringBuffer.toString())) != null) {
       return processName;
     }
     if (processStringBuffer.toString().endsWith(AxisID.FIRST.getExtension())) {
-      return ProcessName.getInstance(processStringBuffer
-          .substring(processStringBuffer.lastIndexOf(AxisID.FIRST
-              .getExtension())));
+      return ProcessName.getInstance(processStringBuffer.substring(processStringBuffer
+          .lastIndexOf(AxisID.FIRST.getExtension())));
     }
     if (processStringBuffer.toString().endsWith(AxisID.SECOND.getExtension())) {
-      return ProcessName.getInstance(processStringBuffer
-          .substring(processStringBuffer.lastIndexOf(AxisID.SECOND
-              .getExtension())));
+      return ProcessName.getInstance(processStringBuffer.substring(processStringBuffer
+          .lastIndexOf(AxisID.SECOND.getExtension())));
     }
     return null;
   }
@@ -552,7 +555,6 @@ public class ProcessName {
   }
 
   public String[] getComscriptArray(AxisID axisID) {
-    return new String[] { name + axisID.getExtension()
-        + DatasetFiles.COMSCRIPT_EXT };
+    return new String[] { name + axisID.getExtension() + DatasetFiles.COMSCRIPT_EXT };
   }
 }
