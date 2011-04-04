@@ -40,6 +40,11 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2011/02/03 06:22:16  sueh
+ * <p> bug# 1422 Control of the processing method has been centralized in the
+ * <p> processing method mediator class.  Implementing ProcessInterface.
+ * <p> Supplying processes with the current processing method.
+ * <p>
  * <p> Revision 1.3  2010/12/15 17:55:24  sueh
  * <p> bug# 1425 In updateDisplay call super.updateDisplay to correctly enable
  * <p> or disable the undisplayed parts of the panel.
@@ -104,9 +109,9 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
   private final Tilt3dFindParent parent;
   private final Component extraButton;
 
-  private Tilt3dFindPanel(final ApplicationManager manager,
-      final AxisID axisID, final DialogType dialogType,
-      final Tilt3dFindParent parent, final Component extraButton) {
+  private Tilt3dFindPanel(final ApplicationManager manager, final AxisID axisID,
+      final DialogType dialogType, final Tilt3dFindParent parent,
+      final Component extraButton) {
     super(manager, axisID, dialogType, null, PANEL_ID);
     this.parent = parent;
     this.extraButton = extraButton;
@@ -118,8 +123,8 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
   static Tilt3dFindPanel getInstance(final ApplicationManager manager,
       final AxisID axisID, DialogType dialogType, Tilt3dFindParent parent,
       Component extraButton) {
-    Tilt3dFindPanel instance = new Tilt3dFindPanel(manager, axisID, dialogType,
-        parent, extraButton);
+    Tilt3dFindPanel instance = new Tilt3dFindPanel(manager, axisID, dialogType, parent,
+        extraButton);
     instance.createPanel();
     instance.setToolTipText();
     instance.addListeners();
@@ -150,8 +155,7 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
     pnlRoot.add(pnlA);
     pnlRoot.add(pnlButtons);
     //Parallel process panel
-    pnlParallelProcess.setLayout(new BoxLayout(pnlParallelProcess,
-        BoxLayout.X_AXIS));
+    pnlParallelProcess.setLayout(new BoxLayout(pnlParallelProcess, BoxLayout.X_AXIS));
     pnlParallelProcess.add(getParallelProcessCheckBox());
     pnlParallelProcess.add(Box.createHorizontalGlue());
     //use GPU panel
@@ -175,24 +179,27 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
       pnlButtons.add(button);
     }
   }
+  
+  public boolean allowTiltComSave() {
+    return true;
+  }
 
   /**
    * Setting the usual parameters, then also setting input file, output file,
    * and process name.
    */
-  public boolean getParameters(final TiltParam param)
-      throws NumberFormatException, InvalidParameterException, IOException {
+  public boolean getParameters(final TiltParam param) throws NumberFormatException,
+      InvalidParameterException, IOException {
     //param.setThickness(ltfTomoThickness.getText());
     //param.setZShift(ltfZShift.getText());
     if (manager.getState().isStackUsingNewstOrBlend3dFindOutput(axisID)) {
-      param.setInputFile(FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT.getFileName(
-          manager, axisID));
+      param.setInputFile(FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT.getFileName(manager,
+          axisID));
     }
     else {
       param.setInputFile(FileType.ALIGNED_STACK.getFileName(manager, axisID));
     }
-    param.setOutputFile(FileType.TILT_3D_FIND_OUTPUT.getFileName(manager,
-        axisID));
+    param.setOutputFile(FileType.TILT_3D_FIND_OUTPUT.getFileName(manager, axisID));
     param.setCommandMode(TiltParam.Mode.TILT_3D_FIND);
     param.setProcessName(ProcessName.TILT_3D_FIND);
     super.getParameters(param);
@@ -210,8 +217,8 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
    */
   void setParameters(ConstTiltalignParam param, boolean initialize) {
     //set center to center thickness and additional diameters
-    TaAnglesLog taAnglesLog = TaAnglesLog.getInstance(manager
-        .getPropertyUserDir(), axisID);
+    TaAnglesLog taAnglesLog = TaAnglesLog.getInstance(manager.getPropertyUserDir(),
+        axisID);
     ConstEtomoNumber centerToCenterThickness = null;
     try {
       centerToCenterThickness = taAnglesLog.getCenterToCenterThickness();
@@ -246,16 +253,7 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
     }
   }
 
-  void updateDisplay() {
-    super.updateDisplay();
-    boolean enabled = getEnabled();
-    ltfCenterToCenterThickness.setEnabled(enabled);
-    ltfAdditionalDiameters.setEnabled(enabled);
-    extraButton.setEnabled(enabled);
-  }
-
-  void getParameters(final MetaData metaData)
-      throws FortranInputSyntaxException {
+  void getParameters(final MetaData metaData) throws FortranInputSyntaxException {
     metaData.setTiltParallel(axisID, PANEL_ID, isParallelProcess());
   }
 
@@ -297,14 +295,11 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
         .setToolTipText("Used to calculate the thickness of the findbeads3d.");
     ltfTomoThickness
         .setToolTipText("Thickness of tomogram in unbinned pixels.  The default "
-            + "is calculated from \""
-            + CENTER_TO_CENTER_THICKNESS_LABEL
-            + "\" plus \""
-            + FindBeads3dPanel.BEAD_SIZE_LABEL
-            + "\" multipled by \"" + ADDITION_UNBINNED_DIAMETERS_TO_ADD + "\".");
-    ltfZShift
-        .setToolTipText("Incremental unbinned shift needed to center range of "
-            + "fiducials in Z.  From the taAngles log.");
+            + "is calculated from \"" + CENTER_TO_CENTER_THICKNESS_LABEL + "\" plus \""
+            + FindBeads3dPanel.BEAD_SIZE_LABEL + "\" multipled by \""
+            + ADDITION_UNBINNED_DIAMETERS_TO_ADD + "\".");
+    ltfZShift.setToolTipText("Incremental unbinned shift needed to center range of "
+        + "fiducials in Z.  From the taAngles log.");
     setTiltButtonTooltip("If binning has changed, create a separate full aligned "
         + "stack.  Then compute a tomogram (tilt_3dfind.com).");
   }
