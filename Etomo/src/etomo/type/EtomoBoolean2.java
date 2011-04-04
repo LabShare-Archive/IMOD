@@ -20,6 +20,9 @@ import etomo.comscript.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.23  2011/02/22 05:38:14  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.22  2010/03/18 22:43:20  sueh
  * <p> bug# 1323 In load(EtomoBoolean2,String,Properties,String fix the way the
  * <p> key is derived from prepend and name.
@@ -230,9 +233,6 @@ public class EtomoBoolean2 extends ScriptParameter {
   public static EtomoBoolean2 set(EtomoBoolean2 instance, boolean value, String name) {
     if (instance == null) {
       instance = new EtomoBoolean2(name);
-    }
-    if (instance == null) {
-      return null;
     }
     instance.set(value);
     return instance;
