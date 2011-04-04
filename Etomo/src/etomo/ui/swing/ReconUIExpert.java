@@ -166,7 +166,7 @@ public abstract class ReconUIExpert implements UIExpert {
    */
   final void processchunks(BaseManager manager, AbstractParallelDialog dialog,
       ProcessResultDisplay processResultDisplay, ConstProcessSeries processSeries,
-      ProcessName processName, FileType outputImageFileType,
+      String processName, FileType outputImageFileType,
       ProcessingMethod processingMethod) {
     sendMsgProcessStarting(processResultDisplay);
     if (dialog == null) {
@@ -208,6 +208,9 @@ public abstract class ReconUIExpert implements UIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/22 19:07:28  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.2  2011/02/03 06:22:16  sueh
  * <p> bug# 1422 Control of the processing method has been centralized in the
  * <p> processing method mediator class.  Implementing ProcessInterface.
