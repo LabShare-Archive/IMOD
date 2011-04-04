@@ -176,6 +176,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.60  2011/02/21 16:59:41  sueh
+ * <p> $bug# 1437 Reformatting.
+ * <p> $
  * <p> $Revision 1.59  2010/09/21 16:27:11  sueh
  * <p> $bug# 1395 In open, when the process is already running and bead fixer is
  * <p> $in use, always set skiplist.  Null skiplist is being handled by ImodProcess.
@@ -466,6 +469,7 @@ public final class ImodState {
   //internal state information
   private final ImodProcess process;
   private String[] fileNameArray = null;
+  private File[] fileList = null;
   private boolean warnedStaleFile = false;
   //initial state information
   boolean initialModeSet = false;
@@ -578,6 +582,14 @@ public final class ImodState {
     this.fileNameArray = fileNameArray;
     process = new ImodProcess(manager, fileNameArray);
     process.setSubdirName(subdirName);
+    reset();
+  }
+
+  ImodState(final BaseManager manager, final File[] fileList, final AxisID axisID) {
+    this.manager = manager;
+    this.axisID = axisID;
+    this.fileList = fileList;
+    process = new ImodProcess(manager, fileList);
     reset();
   }
 
