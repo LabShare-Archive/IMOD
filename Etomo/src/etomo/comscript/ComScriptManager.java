@@ -34,6 +34,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.65  2011/02/21 21:40:18  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 3.64  2010/11/13 16:03:15  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -427,6 +430,8 @@ public final class ComScriptManager extends BaseComScriptManager {
   private ComScript scriptTilt3dFindReprojectB;
   private ComScript scriptXcorrPtA;
   private ComScript scriptXcorrPtB;
+  private ComScript scriptSirtsetupA;
+  private ComScript scriptSirtsetupB;
 
   public ComScriptManager(ApplicationManager appManager) {
     super(appManager);
@@ -724,6 +729,48 @@ public final class ComScriptManager extends BaseComScriptManager {
     scriptXcorrPtA = loadComScript(FileType.PATCH_TRACKING_COMSCRIPT.getFileName(
         appManager, axisID), axisID, true, required, false, false);
     return scriptXcorrPtA != null;
+  }
+
+  public boolean loadSirtsetup(AxisID axisID) {
+    //  Assign the new ComScriptObject object to the appropriate reference
+    if (axisID == AxisID.SECOND) {
+      scriptSirtsetupB = loadComScript(FileType.SIRTSETUP_COMSCRIPT.getFileName(
+          appManager, axisID), axisID, true, false, false, false);
+      return scriptSirtsetupB != null;
+    }
+    scriptSirtsetupA = loadComScript(FileType.SIRTSETUP_COMSCRIPT.getFileName(appManager,
+        axisID), axisID, true, false, false, false);
+    return scriptSirtsetupA != null;
+  }
+
+  public SirtsetupParam getSirtsetupParam(AxisID axisID) {
+    //  Get a reference to the appropriate script object
+    ComScript sirtsetup;
+    if (axisID == AxisID.SECOND) {
+      sirtsetup = scriptSirtsetupB;
+    }
+    else {
+      sirtsetup = scriptSirtsetupA;
+    }
+
+    // Initialize a SirtsetupParam object from the com script command object
+    SirtsetupParam param = new SirtsetupParam(appManager, axisID);
+    initialize(param, sirtsetup, FileType.SIRTSETUP_COMSCRIPT.getTypeString(), axisID,
+        true, true);
+    return param;
+  }
+
+  public void saveSirtsetup(SirtsetupParam param, AxisID axisID) {
+
+    //  Get a reference to the appropriate script object
+    ComScript script;
+    if (axisID == AxisID.SECOND) {
+      script = scriptSirtsetupB;
+    }
+    else {
+      script = scriptSirtsetupA;
+    }
+    modifyCommand(script, param, ProcessName.SIRTSETUP.toString(), axisID, false, false);
   }
 
   /**
