@@ -28,6 +28,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2011/02/22 19:07:48  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.3  2011/02/03 06:22:16  sueh
  * <p> bug# 1422 Control of the processing method has been centralized in the
  * <p> processing method mediator class.  Implementing ProcessInterface.
@@ -98,6 +101,13 @@ final class ReprojectModelPanel implements TiltDisplay, Run3dmodButtonContainer 
 
   Component getComponent() {
     return pnlRoot.getContainer();
+  }
+  
+  public boolean allowTiltComSave() {
+    return true;
+  }
+  
+  public void msgTiltComSaved() {
   }
 
   void done() {
