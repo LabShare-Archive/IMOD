@@ -68,6 +68,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2011/03/02 00:00:12  sueh
+ * <p> bug# 1452 Removing image rotation conversion between float and
+ * <p> double.  Using string where possible.
+ * <p>
  * <p> Revision 1.5  2011/02/24 23:37:14  sueh
  * <p> bug# 1452 imageRotation needs to be double everywhere.
  * <p>
@@ -212,8 +216,8 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
   // MTF Filter objects
   private final LabeledTextField ltfLowPassRadiusSigma = new LabeledTextField(
       "Low pass (cutoff,sigma): ");
-  private final ImageIcon iconFolder = new ImageIcon(ClassLoader
-      .getSystemResource("images/openFile.gif"));
+  private final ImageIcon iconFolder = new ImageIcon(
+      ClassLoader.getSystemResource("images/openFile.gif"));
   private final LabeledTextField ltfMtfFile = new LabeledTextField(MTF_FILE_LABEL);
   private final SimpleButton btnMtfFile = new SimpleButton(iconFolder);
   private final LabeledTextField ltfMaximumInverse = new LabeledTextField(
@@ -333,8 +337,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
 
   public static FinalAlignedStackDialog getInstance(ApplicationManager appMgr,
       FinalAlignedStackExpert expert, AxisID axisID, Tab curTab) {
-    FinalAlignedStackDialog instance = new FinalAlignedStackDialog(appMgr, expert,
-        axisID);
+    FinalAlignedStackDialog instance = new FinalAlignedStackDialog(appMgr, expert, axisID);
     instance.addListeners();
     instance.tabbedPane.setSelectedIndex(curTab.toInt());
     return instance;
@@ -997,8 +1000,8 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     }
     else if (command.equals(btnCtfCorrection.getActionCommand())) {
       expert.ctfCorrection(btnCtfCorrection, null, deferred3dmodButton,
-          run3dmodMenuOptions, mediator
-              .getRunMethodForProcessInterface(getProcessingMethod()));
+          run3dmodMenuOptions,
+          mediator.getRunMethodForProcessInterface(getProcessingMethod()));
     }
     else if (command.equals(btnImodCtfCorrection.getActionCommand())) {
       applicationManager.imodCtfCorrection(axisID, run3dmodMenuOptions);
@@ -1157,16 +1160,20 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
       ftfConfigFile.setToolTipText(EtomoAutodoc.getTooltip(autodoc, "ConfigFile"));
       ltfVoltage.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           CtfPhaseFlipParam.VOLTAGE_OPTION)
-          + "  Also used in " + CtfPhaseFlipParam.COMMAND + ".");
+          + "  Also used in "
+          + CtfPhaseFlipParam.COMMAND + ".");
       ltfSphericalAberration.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           CtfPhaseFlipParam.SPHERICAL_ABERRATION_OPTION)
-          + "  Also used in " + CtfPhaseFlipParam.COMMAND + ".");
+          + "  Also used in "
+          + CtfPhaseFlipParam.COMMAND + ".");
       cbInvertTiltAngles.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           CtfPhaseFlipParam.INVERT_TILT_ANGLES_OPTION)
-          + "  Also used in " + CtfPhaseFlipParam.COMMAND + ".");
+          + "  Also used in "
+          + CtfPhaseFlipParam.COMMAND + ".");
       ltfAmplitudeContrast.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           CtfPhaseFlipParam.AMPLITUDE_CONTRAST_OPTION)
-          + "  Also used in " + CtfPhaseFlipParam.COMMAND + ".");
+          + "  Also used in "
+          + CtfPhaseFlipParam.COMMAND + ".");
       ltfExpectedDefocus.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           CtfPlotterParam.EXPECTED_DEFOCUS_OPTION));
     }
