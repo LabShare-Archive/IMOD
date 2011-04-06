@@ -14,33 +14,40 @@ c
 c       $Id$
 c       
 c       $Log$
+c       Revision 3.2  2008/11/15 01:21:19  mast
+c       Standardized error messages and increased array sizes
+c
 c       Revision 3.1  2003/12/24 19:05:25  mast
 c       Changed to fit new form of get_nxyz
 c	
 c       
-      parameter (idim=4096,maxsamp=100000)
-      COMMON //NX,NY,NZ
+      implicit none
+      integer maxsamp
+      parameter (maxsamp=100000)
 C       
-      DIMENSION NXYZ(3),MXYZ(3),NXYZST(3),
-     &    ARRAY(idim*idim),BRRAY(idim*idim),TITLE(20)
+      integer*4 NXYZ(3),MXYZ(3),NXYZST(3)
+      real*4, allocatable :: ARRAY(:),BRRAY(:)
 C       
       CHARACTER*320 FILIN,FILOUT
 C       
-      real*4 cxyzin(3),cxyzout(3),dxyzin(3)
-      integer*4 nxyzin(3),mxyzin(3),nxyzout(3),indcen(3)
-      common /xyz/nxin,nyin,nzin,nxout,nyout,nzout,cxin,cyin,czin
-     &    ,cxout,cyout,czout
+      integer*4 nxin,nyin,nzin,nxout,nyout,nzout,NX,NY,NZ,mode
+      
+      real*4 cxyzin(3),cxyzout(3),TITLE(20), cxin,cyin,czin,cxout,cyout, czout
+      integer*4 nxyzin(3),mxyzin(3),nxyzout(3),indcen(3), idim
+      common /xyz/nxin,nyin,nzin,nxout,nyout,nzout,cxin,cyin,czin,cxout,cyout,
+     &    czout,NX,NY,NZ
       equivalence (nxyzin(1),nxin),(nxyzout(1),nxout)
       equivalence (cxyzin(1),cxin),(cxyzout(1),cxout)
       real*4 mfor(3,3),minv(3,3),mold(3,3),mnew(3,3),moldinv(3,3)
       EQUIVALENCE (NX,NXYZ)
       real*4 avg(2),sd(2)
       character dat*9,tim*8
-      common /bigarr/array,brray
-c       
-c       7/7/00 CER: remove the encode's; titlech is the temp space
-c       
       character*80 titlech
+      integer*4 i, nleftfill, nrightfill, nbotfill, ntopfill,iun,idsamp,nsx,ixs,nsy,iys
+      integer*4 nsz, izs,ndat,jz,jy,iy,jx,ix,nsecr,ifin, ind, kti, j, iz
+      real*4 sem, scl,fadd,zcen,ycen,xcen,xp, yp, zp, val,dminout,dmaxout,dmeanout
+      real*4 dmin, dmax, dmean
+      real*8 nptr
 c       
       call setExitPrefix('ERROR: FILLTOMO - ')
       write(*,'(1x,a,$)')'Name of combined tomogram file: '
@@ -53,7 +60,9 @@ c
       call irdhdr(2,nxyz,mxyz,mode,dmin,dmax,dmean)
       if(nx.ne.nxout.or.ny.ne.nyout.or.nz.ne.nzout)
      &    call exitError ('File sizes do not match')
-      if(nx*ny.ge.idim*idim)call exitError('IMAGE TOO LARGE FOR FILLTOMO')
+      idim = nx * ny
+      allocate(array(idim), brray(idim), stat = i)
+      call memoryError(i, 'ARRAYS FOR IMAGE')
 c       
       print *,'Enter either the X, Y and Z dimensions of the tomogram '
      &    ,'that was','transformed to match, or the name of that file'
@@ -156,15 +165,11 @@ c
       enddo
       call date(dat)
       call time(tim)
-c       
-c       7/7/00 CER: remove the encodes
-c       
-c       encode ( 80, 3000, title ) dat, tim
       write(titlech,3000) dat, tim
       read(titlech,'(20a4)')(title(kti),kti=1,20)
       call iwrhdr(1,title,1,dminout,dmaxout,dmeanout)
       call imclose(1)
-      print *,nptr,' points replaced on',nsecr,' sections'
+      write(*,'(f15.0,a,i7,a)') nptr,' points replaced on',nsecr,' sections'
       call exit(0)
 3000  format ( 'FILLTOMO: Replacing parts of combined tomogram',t57,
      &    a9,2x, a8)
