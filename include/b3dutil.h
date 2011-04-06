@@ -29,16 +29,16 @@
 extern "C" {
 #endif
 
-  int imodVersion(char *pname);
+  int imodVersion(const char *pname);
   void imodCopyright(void);
-  void imodUsageHeader(char *pname);
+  void imodUsageHeader(const char *pname);
   char *IMOD_DIR_or_default(int *assumed);
-  char *imodProgName(char *fullname);
-  int imodBackupFile(char *filename);
+  char *imodProgName(const char *fullname);
+  int imodBackupFile(const char *filename);
   int imodGetpid();
   void pidToStderr();
-  char *f2cString(char *str, int strSize);
-  int c2fString(char *cStr, char *fStr, int fSize);
+  char *f2cString(const char *str, int strSize);
+  int c2fString(const char *cStr, char *fStr, int fSize);
   void b3dSetStoreError(int ival);
   void b3dError(FILE *stream, char *format, ...);
   char *b3dGetError(void);

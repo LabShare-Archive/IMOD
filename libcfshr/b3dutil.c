@@ -73,7 +73,7 @@
    crash imod under Windows */
 /*! Prints program name provided in [pname], IMOD version and compilation 
   date */
-int imodVersion(char *pname)
+int imodVersion(const char *pname)
 {
   if (pname)
     printf("%s Version %s %s %s\n",
@@ -91,7 +91,7 @@ void imodCopyright(void)
 }
 
 /*! Calls imodVersion and imodCopyright */
-void imodUsageHeader(char *pname)
+void imodUsageHeader(const char *pname)
 {
   imodVersion(pname);
   imodCopyright();
@@ -126,7 +126,7 @@ char *IMOD_DIR_or_default(int *assumed)
  * given the full name (argv\[0\]) in [fullname].
  * It returns a pointer internal to argv\[0\], unless the name ends in .exe,
  * in which case it tries to return a duplicate copy.  Do not free it. */
-char *imodProgName(char *fullname)
+char *imodProgName(const char *fullname)
 {
   char *tail, *tailback, *exe;
   int indexe;
@@ -136,7 +136,7 @@ char *imodProgName(char *fullname)
     tail = tailback;
 
   if (!tail)
-    return fullname;
+    return (char *)fullname;
   tail++;
   exe = strstr(tail, ".exe");
   indexe = strlen(tail) - 4;
@@ -152,7 +152,7 @@ char *imodProgName(char *fullname)
 
 /*! Renames an existing file named [filename] to filename~ and
    deletes filename~ first if necessary */
-int imodBackupFile(char *filename)
+int imodBackupFile(const char *filename)
 {
   struct stat buf;
   int err;
@@ -182,7 +182,7 @@ int imodBackupFile(char *filename)
 
 /*! A fortran wrapper for imodBackupFile */
 
-int imodbackupfile(char *filename, int strlen)
+int imodbackupfile(const char *filename, int strlen)
 {
   int err;
   char *cstr = f2cString(filename, strlen);
@@ -236,7 +236,7 @@ void pidtostderr()
 
 /*! Creates a C string with a copy of a Fortran string described by [str] and 
   [strsize], using [malloc]. */
-char *f2cString(char *str, int strSize)
+char *f2cString(const char *str, int strSize)
 {
   int i;
   char *newStr;
@@ -260,7 +260,7 @@ char *f2cString(char *str, int strSize)
 
 /*! Converts a C string in [cStr] into a Fortran string [fStr] with size
   [fSize]; returns -1 for error if the string will not fit. */
-int c2fString(char *cStr, char *fStr, int fSize)
+int c2fString(const char *cStr, char *fStr, int fSize)
 {
   while (*cStr && fSize > 0) {
     *fStr++ = *cStr++;
@@ -710,6 +710,9 @@ int b3dompthreadnum()
 /*
 
 $Log$
+Revision 1.21  2011/03/08 06:02:28  mast
+Added fortran wrapper for sleep function
+
 Revision 1.20  2011/03/01 22:57:18  mast
 Function to print the PID to stderr to standardize and allow from fortran
 
