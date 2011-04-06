@@ -26,7 +26,7 @@ SIZE DATA    NAME	Description
 4    int     my;
 4    int     mz;
 
-4    float   xlen;       Cell size; pixel spacing = xlen/mx   
+4    float   xlen;       Cell size; pixel spacing = xlen/mx, ylen/my, zlen/mz
 4    float   ylen;
 4    float   zlen;
 
@@ -34,7 +34,8 @@ SIZE DATA    NAME	Description
 4    float   beta;
 4    float   gamma;
 
-			 Ignored by IMOD.
+			 These need to be set to 1, 2, and 3 for pixel spacing
+                           to be interpreted correctly
 4    int     mapc;       map column  1=x,2=y,3=z.       
 4    int     mapr;       map row     1=x,2=y,3=z.       
 4    int     maps;       map section 1=x,2=y,3=z.       
