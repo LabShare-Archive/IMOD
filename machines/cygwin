@@ -277,8 +277,6 @@ echo 'TILTOBJS = bpsumnox.$(O) bpsumxtilt.$(O) bpsumlocal.$(O)' >> $configure
 
 # Variables for building RAPTOR
 #
-echo 'LASIKOBJS = dirent.obj' >> $configure
-echo 'LASIKINC = -I./external/win32' >> $configure
 echo 'RAPTORLIBS = user32.lib' >> $configure
 echo 'MARCORLIBS = user32.lib Advapi32.lib' >> $configure 
 
