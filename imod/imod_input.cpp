@@ -553,30 +553,36 @@ void inputRestorePointIndex(ImodView *vi, Iindex *oldInd)
 {
   Icont *cont = imodContourGet(vi->imod);
   Icont *oldCont;
+  Iobj *obj;
   int pt, oldz, indz, delz, mindelz = 10000000;
   float dist, mindist = 1.e30;
 
   if (cont && cont->psize) {
     if (vi->imod->cindex.point == -1)
       vi->imod->cindex.point = 0;
-    else if (oldInd && oldInd->point >= 0)  {
+    else if (oldInd && oldInd->point >= 0 && oldInd->object >= 0 && 
+             oldInd->object < vi->imod->objsize)  {
+      obj = &vi->imod->obj[oldInd->object];
+      if (oldInd->contour >= 0 && oldInd->contour < obj->contsize &&
+          oldInd->point < obj->cont[oldInd->contour].psize) {
       
-      // Find the nearest point in X/Y on the closest Z plane 
-      // in X/Y overall
-      oldCont = &vi->imod->obj[oldInd->object].cont[oldInd->contour];
-      oldz = B3DNINT(oldCont->pts[oldInd->point].z);
-      for (pt = 0; pt < cont->psize; pt++) {
-        dist = imodPointDistance(&oldCont->pts[oldInd->point], &cont->pts[pt]);
-        delz = B3DNINT(cont->pts[pt].z) - oldz;
-        if (delz < 0)
-          delz = -delz;
-        if (delz < mindelz || (delz == mindelz && dist < mindist)) {
-          mindelz = delz;
-          mindist = dist;
-          indz = pt;
-        } 
+        // Find the nearest point in X/Y on the closest Z plane 
+        // in X/Y overall
+        oldCont = &obj->cont[oldInd->contour];
+        oldz = B3DNINT(oldCont->pts[oldInd->point].z);
+        for (pt = 0; pt < cont->psize; pt++) {
+          dist = imodPointDistance(&oldCont->pts[oldInd->point], &cont->pts[pt]);
+          delz = B3DNINT(cont->pts[pt].z) - oldz;
+          if (delz < 0)
+            delz = -delz;
+          if (delz < mindelz || (delz == mindelz && dist < mindist)) {
+            mindelz = delz;
+            mindist = dist;
+            indz = pt;
+          } 
+        }
+        vi->imod->cindex.point = indz;
       }
-      vi->imod->cindex.point = indz;
     }
   }
 }
@@ -1522,6 +1528,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.58  2011/03/14 23:39:13  mast
+Changes for ushort loading
+
 Revision 4.57  2011/03/01 18:38:59  mast
 Added alternative hot keys for F11/F12
 
