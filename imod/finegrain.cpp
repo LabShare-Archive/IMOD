@@ -113,7 +113,7 @@ void fineGrainUpdate()
   // contour/surface properties
   if (!fgd.ptContSurf && pt >= 0) {
     fgd.stateFlags = istorePointDrawProps(obj, &fgd.contProps, &props, co, pt);
-    nextEnable = (findNextChange(cont->store, pt, 0) >= 0);
+    nextEnable = (cont && (findNextChange(cont->store, pt, 0) >= 0));
   } else {
     if (!obj) {
       obj = imodObjectNew();
@@ -1287,6 +1287,9 @@ static void ifgHandleValue1(DrawProps *defProps, DrawProps *contProps,
 /*
 
 $Log$
+Revision 1.19  2011/01/13 19:45:34  mast
+Option to stipple gaps, rearrangement to allow external call toggle a gap.
+
 Revision 1.18  2010/02/15 06:32:38  mast
 Manage flag that point is off because of value out of range
 
