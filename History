@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/8/11: Fixed two bugs that crashed 3dmod when current contour/point is
+defined strangely. 
+
+4/5/11: Fixed Filltomo to properly report > 2 Gpixels filled, switched to
+memory allocation.
+
 3/30/11: Fixed Newstack copying extra header data with multiple input files
 (In 4.1).
 
