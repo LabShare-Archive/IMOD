@@ -27,6 +27,12 @@ import etomo.process.ImodManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2011/04/04 17:06:06  sueh
+ * <p> bug# 1416 Added/modified ALIGNED_STACK, description, DUAL_AXIS_TOMOGRAM,
+ * <p> SINGLE_AXIS_TOMOGRAM, SIRT_OUTPUT_TEMPLACE, SIRT_SCALE_OUTPUT_TEMPLATE,
+ * <p> SIRTSETUP_COMSCRIPT, TILT_COMSCRIPT, constructors, getDescription, getFile, getFileName, getRoot,
+ * <p> hasFixedName.  Removed hasNameDescription.
+ * <p>
  * <p> Revision 1.10  2011/02/15 04:56:37  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -121,20 +127,12 @@ public final class FileType {
       null);
   public static final FileType TRIM_VOL_OUTPUT = new FileType(true, false, "", ".rec",
       ImodManager.TRIMMED_VOLUME_KEY);
-  public static final FileType DUAL_AXIS_TOMOGRAM = new FileType(true, true, "", ".rec",
-      ImodManager.FULL_VOLUME_KEY, null, "the tomographic reconstruction");
   public static final FileType JOIN_SAMPLE_AVERAGES = new FileType(true, false, "",
       ".sampavg", ImodManager.JOIN_SAMPLE_AVERAGES_KEY);
   public static final FileType JOIN_SAMPLE = new FileType(true, false, "", ".sample",
       ImodManager.JOIN_SAMPLES_KEY);
   public static final FileType SQUEEZE_VOL_OUTPUT = new FileType(true, false, "", ".sqz",
       ImodManager.SQUEEZED_VOLUME_KEY);
-  //Template for .sintnn
-  public static final FileType SIRT_SCALED_OUTPUT_TEMPLATE = new FileType(true, true, "",
-      ".sint", ImodManager.SIRT_KEY);
-  //Template for .srecnn
-  public static final FileType SIRT_OUTPUT_TEMPLATE = new FileType(true, true, "",
-      ".srec", ImodManager.SIRT_KEY);
   public static final FileType RAW_STACK = new FileType(true, true, "", ".st",
       ImodManager.RAW_STACK_KEY, ImodManager.PREVIEW_KEY);
   public static final FileType NEWST_OR_BLEND_3D_FIND_OUTPUT = new FileType(true, true,
@@ -161,8 +159,6 @@ public final class FileType {
       ".rec", ImodManager.FLAT_VOLUME_KEY);
   public static final FileType FLATTEN_TOOL_COMSCRIPT = new FileType(true, false,
       "_flatten", ".com", null);
-  public static final FileType SINGLE_AXIS_TOMOGRAM = new FileType(true, false, "_full",
-      ".rec", ImodManager.FULL_VOLUME_KEY, null, "the tomographic reconstruction");
   public static final FileType MODELED_JOIN = new FileType(true, false, "_modeled",
       ".join", ImodManager.MODELED_JOIN_KEY);
   public static final FileType ORIGINAL_RAW_STACK = new FileType(true, true, "_orig",
@@ -193,6 +189,18 @@ public final class FileType {
       ".input", ImodManager.TEST_VOLUME_KEY, true);
   public static final FileType TILT_COMSCRIPT = new FileType(false, true, "tilt", ".com",
       null);
+  private static final FileType TILT_OUTPUT_SINGLE = new FileType(true, true, "_full",
+      ".rec");
+  private static final FileType TILT_OUTPUT_DUAL = new FileType(true, true, "", ".rec");
+  public static final FileType TILT_OUTPUT = new FileType(TILT_OUTPUT_SINGLE,
+      TILT_OUTPUT_DUAL, ImodManager.FULL_VOLUME_KEY, null,
+      "the tomographic reconstruction");
+  //Template for .sintnn
+  public static final FileType SIRT_SCALED_OUTPUT_TEMPLATE = new FileType(TILT_OUTPUT,
+      ".sint", ImodManager.SIRT_KEY);
+  //Template for .srecnn
+  public static final FileType SIRT_OUTPUT_TEMPLATE = new FileType(TILT_OUTPUT, ".srec",
+      ImodManager.SIRT_KEY);
   public static final FileType TRACK_COMSCRIPT = new FileType(false, true, "track",
       ".com", null);
   public static final FileType CROSS_CORRELATION_COMSCRIPT = new FileType(false, true,
@@ -214,17 +222,131 @@ public final class FileType {
   public static final FileType TRIAL_TOMOGRAM = FileType
       .getUnamedInstance(ImodManager.TRIAL_TOMOGRAM_KEY);
 
-  private final String imodManagerKey;
-  private final String imodManagerKey2;
-  private final boolean usesAxisID;
   private final boolean usesDataset;
+  private final boolean usesAxisID;
   private final String typeString;
   private final String extension;
-  private final boolean inSubdirectory;
+  private final String imodManagerKey;
+  private final String imodManagerKey2;
   private final String description;
+  private final boolean composite;
+  private final boolean inSubdirectory;
+  private final FileType subFileType;
+  private final FileType singleFileType;
+  private final FileType dualFileType;
+
+  private FileType parentFileType = null;
+
+  public String toString() {
+    return "[usesDataset:"
+        + usesDataset
+        + ",usesAxisID:"
+        + usesAxisID
+        + ",typeString:"
+        + typeString
+        + ",extension:"
+        + extension
+        + ",description:"
+        + description
+        + ",\nimodManagerKey:"
+        + imodManagerKey
+        + ",imodManagerKey2:"
+        + imodManagerKey2
+        + ",inSubdirectory:"
+        + inSubdirectory
+        + ",composite:"
+        + composite
+        + ",subFileType:"
+        + (subFileType == null ? "null" : subFileType.typeString + subFileType.extension)
+        + ",\nsingleFileType:"
+        + (singleFileType == null ? "null" : singleFileType.typeString
+            + singleFileType.extension)
+        + ",dualFileType:"
+        + (dualFileType == null ? "null" : dualFileType.typeString
+            + dualFileType.extension)
+        + ",parentFileType:"
+        + (parentFileType == null ? "null" : parentFileType.typeString
+            + parentFileType.extension) + "]";
+  }
+
+  /**
+   * Constructor for file type that are quite different in dual and single (BBa.rec and
+   * BBa_full.rec).
+   * @param single
+   * @param dual
+   */
+  private FileType(final FileType singleFileType, final FileType dualFileType,
+      String imodManagerKey, String imodManagerKey2, String description) {
+    composite = true;
+    this.singleFileType = singleFileType;
+    this.dualFileType = dualFileType;
+    this.imodManagerKey = imodManagerKey;
+    this.imodManagerKey2 = imodManagerKey2;
+    usesAxisID = false;
+    usesDataset = false;
+    typeString = null;
+    extension = null;
+    inSubdirectory = false;
+    this.description = description;
+    //Child file types are not valid by themselves
+    singleFileType.parentFileType = this;
+    dualFileType.parentFileType = this;
+    subFileType = null;
+    if (singleFileType != null || dualFileType != null) {
+      namedFileTypeList.add(this);
+    }
+  }
+
+  private FileType(boolean usesDataset, boolean usesAxisID, String typeString,
+      String extension) {
+    composite = false;
+    imodManagerKey = null;
+    imodManagerKey2 = null;
+    this.usesAxisID = usesAxisID;
+    this.usesDataset = usesDataset;
+    this.typeString = typeString;
+    this.extension = extension;
+    this.inSubdirectory = false;
+    description = null;
+    singleFileType = null;
+    dualFileType = null;
+    subFileType = null;
+    if (usesAxisID || usesDataset || !typeString.equals("") || !extension.equals("")) {
+      namedFileTypeList.add(this);
+    }
+  }
+
+  /**
+   * For use when everything is coming from another file type, except an extension which
+   * replaces replaceWithExtension in the file name (BBa.srec, BBa_full.srec, BBa.sint,
+   * BBa_full.sint).
+   * @param usesDataset
+   * @param usesAxisID
+   * @param typeString
+   * @param extension
+   * @param imodManagerKey
+   */
+  private FileType(FileType typeFileType, String extension, String imodManagerKey) {
+    composite = true;
+    this.imodManagerKey = imodManagerKey;
+    this.imodManagerKey2 = null;
+    usesAxisID = false;
+    usesDataset = false;
+    typeString = null;
+    this.extension = extension;
+    this.inSubdirectory = false;
+    description = null;
+    this.subFileType = typeFileType;
+    singleFileType = null;
+    dualFileType = null;
+    if (typeFileType != null) {
+      namedFileTypeList.add(this);
+    }
+  }
 
   private FileType(boolean usesDataset, boolean usesAxisID, String typeString,
       String extension, String imodManagerKey) {
+    composite = false;
     this.imodManagerKey = imodManagerKey;
     this.imodManagerKey2 = null;
     this.usesAxisID = usesAxisID;
@@ -233,14 +355,17 @@ public final class FileType {
     this.extension = extension;
     this.inSubdirectory = false;
     description = null;
-    //Exlude FileTypes with no name description
-    if (hasFixedName()) {
+    singleFileType = null;
+    dualFileType = null;
+    subFileType = null;
+    if (usesAxisID || usesDataset || !typeString.equals("") || !extension.equals("")) {
       namedFileTypeList.add(this);
     }
   }
 
   private FileType(boolean usesDataset, boolean usesAxisID, String typeString,
       String extension, String imodManagerKey, boolean inSubdirectory) {
+    composite = false;
     this.imodManagerKey = imodManagerKey;
     this.imodManagerKey2 = null;
     this.usesAxisID = usesAxisID;
@@ -249,14 +374,17 @@ public final class FileType {
     this.extension = extension;
     this.inSubdirectory = inSubdirectory;
     description = null;
-    //Exlude FileTypes with no name description
-    if (hasFixedName()) {
+    singleFileType = null;
+    dualFileType = null;
+    subFileType = null;
+    if (usesAxisID || usesDataset || !typeString.equals("") || !extension.equals("")) {
       namedFileTypeList.add(this);
     }
   }
 
   private FileType(boolean usesDataset, boolean usesAxisID, String typeString,
       String extension, String imodManagerKey, String imodManagerKey2) {
+    composite = false;
     this.imodManagerKey = imodManagerKey;
     this.imodManagerKey2 = imodManagerKey2;
     this.usesAxisID = usesAxisID;
@@ -265,14 +393,17 @@ public final class FileType {
     this.extension = extension;
     this.inSubdirectory = false;
     description = null;
-    //Exlude FileTypes with no name description
-    if (hasFixedName()) {
+    singleFileType = null;
+    dualFileType = null;
+    subFileType = null;
+    if (usesAxisID || usesDataset || !typeString.equals("") || !extension.equals("")) {
       namedFileTypeList.add(this);
     }
   }
 
   private FileType(boolean usesDataset, boolean usesAxisID, String typeString,
       String extension, String imodManagerKey, String imodManagerKey2, String description) {
+    composite = false;
     this.imodManagerKey = imodManagerKey;
     this.imodManagerKey2 = imodManagerKey2;
     this.usesAxisID = usesAxisID;
@@ -281,8 +412,10 @@ public final class FileType {
     this.extension = extension;
     this.inSubdirectory = false;
     this.description = description;
-    //Exlude FileTypes with no name description
-    if (hasFixedName()) {
+    singleFileType = null;
+    dualFileType = null;
+    subFileType = null;
+    if (usesAxisID || usesDataset || !typeString.equals("") || !extension.equals("")) {
       namedFileTypeList.add(this);
     }
   }
@@ -303,18 +436,82 @@ public final class FileType {
    * @param extension
    * @return
    */
-  public static FileType getInstance(boolean usesDataset, boolean usesAxisID,
-      String typeString, String extension) {
+  public static FileType getInstance(final BaseManager manager, boolean usesDataset,
+      boolean usesAxisID, String typeString, String extension) {
     Iterator iterator = namedFileTypeList.iterator();
     while (iterator.hasNext()) {
       FileType fileType = (FileType) iterator.next();
-      if (fileType.usesDataset == usesDataset && fileType.usesAxisID == usesAxisID
-          && fileType.typeString.equals(typeString)
-          && fileType.extension.equals(extension)) {
+      if (fileType.equals(manager, usesDataset, usesAxisID, typeString, extension)) {
+        //This is a child file type which is not valid by itself
+        if (fileType.parentFileType != null) {
+          return fileType.parentFileType;
+        }
         return fileType;
       }
     }
     return null;
+  }
+
+  /**
+   * Compares the member variables that make a file type unique:  usesDataset,
+   * usesAxisID, typeString, and extension.
+   * @param fileType
+   * @return
+   */
+  public boolean equals(final BaseManager manager, final FileType fileType) {
+    return equals(manager, fileType.usesDataset, fileType.usesAxisID,
+        fileType.typeString, fileType.extension);
+  }
+
+  /**
+   * Returns true if the dataset, axis, type string and extension are equal.
+   * @param usesDataset
+   * @param usesAxisID
+   * @param typeString
+   * @param extension
+   * @return
+   */
+  private boolean equals(final BaseManager manager, final boolean usesDataset,
+      final boolean usesAxisID, final String typeString, final String extension) {
+    if (composite) {
+      //Handle type files which are based on another file type but have their own
+      //extension.
+      if (subFileType != null && this.extension != null) {
+        return this.extension.equals(extension)
+            && subFileType.equals(manager, usesDataset, usesAxisID, typeString);
+      }
+      //Handle file types with single and dual file types instead of descriptions.
+      return getChildFileType(manager).equals(manager, usesDataset, usesAxisID,
+          typeString, extension);
+    }
+    return this.usesDataset == usesDataset && this.usesAxisID == usesAxisID
+        && this.typeString.equals(typeString) && this.extension.equals(extension);
+  }
+
+  /**
+   * Returns true if the dataset and axis settings, and type string are equal.  Ignores
+   * the extension.
+   * @param usesDataset
+   * @param usesAxisID
+   * @param typeString
+   * @return
+   */
+  private boolean equals(final BaseManager manager, final boolean usesDataset,
+      final boolean usesAxisID, final String typeString) {
+    if (composite) {
+      //Handle type files which are based on another file type
+      if (subFileType != null) {
+        return subFileType.equals(manager, usesDataset, usesAxisID, typeString);
+      }
+      //Handle file types with single and dual file types instead of descriptions.
+      return getChildFileType(manager).equals(manager, usesDataset, usesAxisID,
+          typeString);
+    }
+    if (this.usesDataset == usesDataset && this.usesAxisID == usesAxisID
+        && this.typeString.equals(typeString)) {
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -378,8 +575,8 @@ public final class FileType {
           //If the axisID extension is not at the end of the leftSide then it is
           //not a valid file name.
           if (leftSide.lastIndexOf(axisIDExtension) == leftSide.length() - 1) {
-            typeString = leftSide.substring(0, leftSide.length()
-                - axisIDExtension.length());
+            typeString = leftSide.substring(0,
+                leftSide.length() - axisIDExtension.length());
           }
         }
       }
@@ -394,31 +591,64 @@ public final class FileType {
     else {
       extension = fileName.substring(extensionIndex, fileName.length());
     }
-    return FileType.getInstance(usesDataset, usesAxisID, typeString, extension);
+    return FileType.getInstance(manager, usesDataset, usesAxisID, typeString, extension);
   }
 
-  public boolean hasFixedName() {
+  private FileType getChildFileType(final BaseManager manager) {
+    if (composite) {
+      if (singleFileType != null && dualFileType != null) {
+        if (manager.getBaseMetaData().getAxisType() == AxisType.DUAL_AXIS) {
+          return dualFileType;
+        }
+        return singleFileType;
+      }
+      else if (subFileType != null) {
+        return subFileType;
+      }
+    }
+    return this;
+  }
+
+  public boolean hasFixedName(final BaseManager manager) {
+    if (composite) {
+      if (subFileType != null && extension != null) {
+        return !extension.equals("") || subFileType.hasFixedName(manager);
+      }
+      return getChildFileType(manager).hasFixedName(manager);
+    }
     return usesAxisID || usesDataset || !extension.equals("") || !typeString.equals("");
   }
 
-  public String getDescription() {
-    return description;
+  public String getDescription(final BaseManager manager) {
+    if (description != null) {
+      return description;
+    }
+    if (imodManagerKey != null) {
+      return imodManagerKey;
+    }
+    return "";
   }
 
-  public String getExtension() {
+  public String getExtension(final BaseManager manager) {
+    if (composite) {
+      if (subFileType != null && extension != null) {
+        return extension;
+      }
+      return getChildFileType(manager).getExtension(manager);
+    }
     return extension;
   }
 
-  public String getImodManagerKey() {
+  public String getImodManagerKey(final BaseManager manager) {
     return imodManagerKey;
   }
 
-  public String getImodManagerKey2() {
+  public String getImodManagerKey2(final BaseManager manager) {
     return imodManagerKey2;
   }
 
   public File getFile(BaseManager manager, AxisID axisID) {
-    if (manager == null || !hasFixedName()) {
+    if (manager == null || !hasFixedName(manager)) {
       return null;
     }
     String fileName = getFileName(manager, axisID);
@@ -435,21 +665,12 @@ public final class FileType {
     return new File(manager.getPropertyUserDir(), fileName);
   }
 
-  /**
-   * Returns the file name.  Assumes that the axisID is ONLY.
-   * @param manager
-   * @return
-   */
-  public String getFileName(BaseManager manager) {
-    if (manager == null || !hasFixedName()) {
+  public String getFileName(BaseManager manager, AxisID axisID) {
+    if (manager == null || !hasFixedName(manager)) {
       return null;
     }
-    return getFileName(manager, AxisID.ONLY);
-  }
-
-  public String getFileName(BaseManager manager, AxisID axisID) {
-    if (manager == null || !hasFixedName()) {
-      return null;
+    if (composite && (subFileType == null || extension == null)) {
+      return getChildFileType(manager).getFileName(manager, axisID);
     }
     return getRoot(manager, axisID) + extension;
   }
@@ -462,9 +683,12 @@ public final class FileType {
    * @param axisID
    * @return
    */
-  public String getRoot(BaseManager manager, AxisID axisID) {
-    if (manager == null || !hasFixedName()) {
+  public String getRoot(final BaseManager manager, final AxisID axisID) {
+    if (manager == null || !hasFixedName(manager)) {
       return null;
+    }
+    if (composite) {
+      return getChildFileType(manager).getRoot(manager, axisID);
     }
     if (!usesDataset && !usesAxisID) {
       //Example:  flatten.com
@@ -491,7 +715,10 @@ public final class FileType {
    * for tilta.com is "tilt", and the type string for tilt.com is "tilt".
    * @return
    */
-  public String getTypeString() {
+  public String getTypeString(final BaseManager manager) {
+    if (composite) {
+      return getChildFileType(manager).getTypeString(manager);
+    }
     return typeString;
   }
 
@@ -523,40 +750,9 @@ public final class FileType {
   }
 
   /**
-   * @return a description of the file
-   */
-  public String toString() {
-    if (typeString.equals("") && extension.equals("")) {
-      return imodManagerKey;
-    }
-    return "the " + typeString + extension + " file";
-  }
-
-  /**
-   * @return a description of the file based on the second manager key
-   */
-  public String toString2() {
-    if (imodManagerKey2 == null) {
-      return "";
-    }
-    return imodManagerKey2;
-  }
-
-  /**
    * @return namedFileTypeList.iterator()
    */
   static Iterator iterator() {
     return namedFileTypeList.iterator();
-  }
-
-  /**
-   * Compares the member variables that make a file type unique:  usesDataset,
-   * usesAxisID, typeString, and extension.
-   * @param fileType
-   * @return
-   */
-  public boolean equals(FileType fileType) {
-    return fileType.usesDataset == usesDataset && fileType.usesAxisID == usesAxisID
-        && fileType.typeString.equals(typeString) && fileType.extension.equals(extension);
   }
 }
