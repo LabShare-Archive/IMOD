@@ -39,6 +39,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/22 18:02:09  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.2  2010/12/05 04:54:57  sueh
  * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
  * <p>
@@ -633,8 +636,8 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
         }
 
         badParameter = cbLocalAreaTracking.getText();
-        beadtrackParams.setLocalAreaTracking(cbLocalAreaTracking.isSelected()).validate(
-            badParameter);
+        errorMessage = beadtrackParams.setLocalAreaTracking(
+            cbLocalAreaTracking.isSelected()).validate(badParameter);
         if (errorMessage != null) {
           UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle, axisID);
           throw new InvalidEtomoNumberException(errorMessage);
@@ -649,8 +652,8 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
         }
 
         badParameter = ltfMinBeadsInArea.getText();
-        beadtrackParams.setMinBeadsInArea(ltfMinBeadsInArea.getText()).validate(
-            badParameter);
+        errorMessage = beadtrackParams.setMinBeadsInArea(ltfMinBeadsInArea.getText())
+            .validate(badParameter);
         if (errorMessage != null) {
           UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle, axisID);
           throw new InvalidEtomoNumberException(errorMessage);
