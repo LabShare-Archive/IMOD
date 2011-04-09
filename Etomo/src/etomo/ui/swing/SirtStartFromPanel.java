@@ -42,7 +42,10 @@ import etomo.type.MetaData;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2011/04/04 17:35:28  sueh
+* <p> bug# 1416 Factored SirtPanel start from fields into SirtStartFromPanel to handle their functionality better.
+* <p> </p>
 */
 public final class SirtStartFromPanel extends Observable implements Observer {
   public static final String rcsid = "$Id$";
@@ -220,7 +223,7 @@ public final class SirtStartFromPanel extends Observable implements Observer {
         .list(new SirtOutputFileFilter(manager, axisID, false));
     //Extract iteration numbers, sort them, and add them to the pulldown list.
     int[] fileNumberList = null;
-    String templateExt = FileType.SIRT_OUTPUT_TEMPLATE.getExtension();
+    String templateExt = FileType.SIRT_OUTPUT_TEMPLATE.getExtension(manager);
     if (fileNameList != null && fileNameList.length > 0) {
       fileNumberList = new int[fileNameList.length];
       for (int i = 0; i < fileNumberList.length; i++) {

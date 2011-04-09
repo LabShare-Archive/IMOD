@@ -50,6 +50,9 @@ import etomo.util.FrontEndLogic;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/22 18:11:07  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.2  2010/12/05 05:10:20  sueh
  * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
  * <p>
@@ -366,7 +369,7 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
     }
     else if (panelId == PanelId.TOOLS_FLATTEN_VOLUME) {
       param.setInputFile(ftfInputFile.getFile());
-      param.setOutputFile(FileType.FLATTEN_TOOL_OUTPUT.getFileName(manager));
+      param.setOutputFile(FileType.FLATTEN_TOOL_OUTPUT.getFileName(manager, AxisID.ONLY));
     }
     param.setTemporaryDirectory(ftfTemporaryDirectory.getText());
     return true;
@@ -503,10 +506,11 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
           + file.getAbsolutePath() + ", is unreadable.", "Warning", axisID);
     }
     else if (!rotated.is()) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "This tomogram, "
-          + file.getAbsolutePath() + ", looks like the volume hasn't been reoriented.   "
-          + "Flattening won't work on a volume that hasn't been reoriented.", "Warning",
-          axisID);
+      UIHarness.INSTANCE.openMessageDialog(manager,
+          "This tomogram, " + file.getAbsolutePath()
+              + ", looks like the volume hasn't been reoriented.   "
+              + "Flattening won't work on a volume that hasn't been reoriented.",
+          "Warning", axisID);
     }
   }
 

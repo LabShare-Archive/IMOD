@@ -42,6 +42,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/22 18:10:34  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.2  2010/12/05 05:09:59  sueh
  * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
  * <p>
@@ -279,7 +282,7 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
     }
     else if (command.equals(btn3dmodFindBeads3d.getActionCommand())) {
       manager.imodFindBeads3d(axisID, run3dmodMenuOptions, null,
-          FileType.TILT_3D_FIND_OUTPUT.getImodManagerKey(),
+          FileType.TILT_3D_FIND_OUTPUT.getImodManagerKey(manager),
           FileType.FIND_BEADS_3D_OUTPUT_MODEL.getFileName(manager, axisID), null,
           dialogType);
     }
