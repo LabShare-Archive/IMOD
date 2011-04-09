@@ -136,9 +136,6 @@ final class DetachedProcess extends BackgroundProcess {
       runFile.delete();
     }
     BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(runFile));
-    if (bufferedWriter == null) {
-      throw new IOException("unable to write to " + runFile.getAbsolutePath());
-    }
     bufferedWriter.write("nohup");
     bufferedWriter.newLine();
     if (subdirName != null) {
@@ -257,6 +254,9 @@ final class DetachedProcess extends BackgroundProcess {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.28  2011/02/22 03:59:58  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.27  2011/02/03 06:00:27  sueh
  * <p> bug# 1422 Added the processing method to the constructor so it can be
  * <p> used for reconnecting.
