@@ -635,8 +635,10 @@ public abstract class BaseManager {
     if (fileType == null) {
       return;
     }
-    closeImod(fileType.getImodManagerKey(), axisID, fileType.toString(), warnOnce);
-    closeImod(fileType.getImodManagerKey2(), axisID, fileType.toString2(), warnOnce);
+    closeImod(fileType.getImodManagerKey(this), axisID,
+        fileType.getFileName(this, axisID), warnOnce);
+    closeImod(fileType.getImodManagerKey2(this), axisID,
+        fileType.getFileName(this, axisID), warnOnce);
   }
 
   /**
@@ -652,10 +654,10 @@ public abstract class BaseManager {
     if (fileType == null) {
       return;
     }
-    closeImod(fileType.getImodManagerKey(), file.getName(), axisID, fileType.toString(),
-        warnOnce);
-    closeImod(fileType.getImodManagerKey2(), file.getName(), axisID,
-        fileType.toString2(), warnOnce);
+    closeImod(fileType.getImodManagerKey(this), file.getName(), axisID,
+        fileType.getDescription(this), warnOnce);
+    closeImod(fileType.getImodManagerKey2(this), file.getName(), axisID,
+        fileType.getImodManagerKey2(this), warnOnce);
   }
 
   /**
@@ -671,10 +673,10 @@ public abstract class BaseManager {
     if (fileType == null) {
       return;
     }
-    closeImod(fileType.getImodManagerKey(), fileName, axisID, fileType.toString(),
-        warnOnce);
-    closeImod(fileType.getImodManagerKey2(), fileName, axisID, fileType.toString2(),
-        warnOnce);
+    closeImod(fileType.getImodManagerKey(this), fileName, axisID,
+        fileType.getDescription(this), warnOnce);
+    closeImod(fileType.getImodManagerKey2(this), fileName, axisID,
+        fileType.getImodManagerKey2(this), warnOnce);
   }
 
   public boolean closeImod(String key, AxisID axisID, String description, boolean warnOnce) {
@@ -1721,6 +1723,9 @@ public abstract class BaseManager {
 /**
  * <p>
  * $Log$
+ * Revision 1.140  2011/04/04 16:44:52  sueh
+ * bug# 1416 Modified backFile, checkNextProcess, reconnectProcesschunks, resume.
+ *
  * Revision 1.139  2011/02/26 04:19:27  sueh
  * bug# 1453 Added logMessage(List, String, AxisID).
  *
