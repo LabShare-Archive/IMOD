@@ -35,6 +35,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.31  2011/02/28 22:45:12  sueh
+ * <p> bug# 1452 Making imageRotation double.
+ * <p>
  * <p> Revision 3.30  2011/02/24 23:34:54  sueh
  * <p> bug# 1452 imageRotation needs to be double everywhere.
  * <p>
@@ -922,12 +925,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     if (mode == Mode.WHOLE_TOMOGRAM_SAMPLE) {
       //Handle tiltParam here so the user doesn't have to wait.
       AxisType axisType = manager.getBaseMetaData().getAxisType();
-      if (axisType == AxisType.DUAL_AXIS) {
-        return FileType.DUAL_AXIS_TOMOGRAM;
-      }
-      else if (axisType == AxisType.SINGLE_AXIS) {
-        return FileType.SINGLE_AXIS_TOMOGRAM;
-      }
+      return FileType.TILT_OUTPUT;
     }
     return null;
   }

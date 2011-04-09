@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.53  2011/03/01 23:59:29  sueh
+ * <p> bug# 1452 Removing conversion between float and double.  Using string
+ * <p> where possible.
+ * <p>
  * <p> Revision 3.52  2011/02/21 17:49:37  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -494,12 +498,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       return FileType.POSITIONING_SAMPLE;
     }
     if (commandMode == Mode.TILT) {
-      if (axisType == AxisType.DUAL_AXIS) {
-        return FileType.DUAL_AXIS_TOMOGRAM;
-      }
-      else if (axisType == AxisType.SINGLE_AXIS) {
-        return FileType.SINGLE_AXIS_TOMOGRAM;
-      }
+      return FileType.TILT_OUTPUT;
     }
     if (commandMode == Mode.TILT_3D_FIND) {
       return FileType.TILT_3D_FIND_OUTPUT;
@@ -1202,8 +1201,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     Goodframe goodframe = etomo.comscript.Utilities.getGoodframeFromMontageSize(axisID,
         manager);
     if (goodframe != null) {
-      MRCHeader header = MRCHeader.getInstanceFromFileName(manager, axisID, inputFile
-          .toString());
+      MRCHeader header = MRCHeader.getInstanceFromFileName(manager, axisID,
+          inputFile.toString());
       try {
         if (!header.read(manager)) {
           //ok if tilt is being updated before .ali exists
@@ -1252,8 +1251,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       if (!stackHeader.read(manager)) {
         return true;
       }
-      MRCHeader aliHeader = MRCHeader.getInstanceFromFileName(manager, axisID, inputFile
-          .toString());
+      MRCHeader aliHeader = MRCHeader.getInstanceFromFileName(manager, axisID,
+          inputFile.toString());
       if (!aliHeader.read(manager)) {
         return true;
       }
@@ -1320,8 +1319,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
    */
   public void setFullImage(final File stack) {
     try {
-      MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(), stack
-          .getName(), axisID);
+      MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
+          stack.getName(), axisID);
       if (!header.read(manager)) {
         return;
       }

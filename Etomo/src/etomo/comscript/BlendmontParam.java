@@ -256,12 +256,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     if (mode == Mode.WHOLE_TOMOGRAM_SAMPLE) {
       //Handle tiltParam here so the user doesn't have to wait.
       AxisType axisType = manager.getBaseMetaData().getAxisType();
-      if (axisType == AxisType.DUAL_AXIS) {
-        return FileType.DUAL_AXIS_TOMOGRAM;
-      }
-      else if (axisType == AxisType.SINGLE_AXIS) {
-        return FileType.SINGLE_AXIS_TOMOGRAM;
-      }
+      return FileType.TILT_OUTPUT;
     }
     return null;
   }
@@ -553,6 +548,9 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.41  2011/02/28 22:45:02  sueh
+ * <p> bug# 1452 Making imageRotation double.
+ * <p>
  * <p> Revision 1.40  2011/02/24 23:34:06  sueh
  * <p> bug# 1452 imageRotation needs to be double everywhere.
  * <p>
