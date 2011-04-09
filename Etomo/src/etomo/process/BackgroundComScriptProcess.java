@@ -33,6 +33,9 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $Log$
+ * <p> Revision 1.36  2011/02/22 03:58:18  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.35  2010/05/21 00:11:08  sueh
  * <p> bug# 1374 Removed a null pointer exception
  * <p>
@@ -414,9 +417,6 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
       return;
     }
     BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(runCshFile));
-    if (bufferedWriter == null) {
-      throw new IOException("unable to write to " + runCshFile.getAbsolutePath());
-    }
     bufferedWriter.write("nohup");
     bufferedWriter.newLine();
     bufferedWriter.write("tcsh -f " + cshFileName + ">&" + outFileName + "&");
