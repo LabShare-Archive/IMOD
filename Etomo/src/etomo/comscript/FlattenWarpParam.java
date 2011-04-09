@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import etomo.BaseManager;
+import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
@@ -24,6 +25,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2011/02/22 03:13:35  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.5  2010/05/28 04:22:04  sueh
  * <p> bug# 1381 Added criterionForOutliers.
  * <p>
@@ -68,7 +72,7 @@ public final class FlattenWarpParam {
     command.add(BaseManager.getIMODBinPath() + ProcessName.FLATTEN_WARP.toString());
     command.add("-PID");
     command.add("-InputFile");
-    command.add(FileType.FLATTEN_WARP_INPUT_MODEL.getFileName(manager));
+    command.add(FileType.FLATTEN_WARP_INPUT_MODEL.getFileName(manager, AxisID.ONLY));
     command.add("-OutputFile");
     command.add(DatasetFiles.getFlattenWarpOutputName(manager));
     if (oneSurface) {
