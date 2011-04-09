@@ -50,7 +50,6 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
   public TomogramGenerationExpert(ApplicationManager manager,
       MainTomogramPanel mainPanel, ProcessTrack processTrack, AxisID axisID) {
     super(manager, mainPanel, processTrack, axisID, DialogType.TOMOGRAM_GENERATION);
-    System.out.println("B:axisID:" + axisID);
     comScriptMgr = manager.getComScriptManager();
     state = manager.getState();
     screenState = manager.getScreenState(axisID);
@@ -74,10 +73,15 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     setParameters(metaData);
     setParameters(screenState);
     //load SIRT first because the resume radio buttons disable tilt fields
+    SirtsetupParam sirtsetupParam ;
     if (comScriptMgr.loadSirtsetup(axisID)) {
-      SirtsetupParam sirtsetupParam = comScriptMgr.getSirtsetupParam(axisID);
-      setParameters(sirtsetupParam);
+       sirtsetupParam = comScriptMgr.getSirtsetupParam(axisID);
     }
+    else {
+      //create an empty param to get the defaults.
+      sirtsetupParam = new SirtsetupParam(manager, axisID);
+    }
+    setParameters(sirtsetupParam);
     // Read in the tilt{|a|b}.com parameters and display the dialog panel
     comScriptMgr.loadTilt(axisID);
     TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
@@ -108,7 +112,6 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
   public void startNextProcess(ProcessSeries.Process process,
       ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
       DialogType dialogType, ProcessDisplay display) {
-    System.out.println("C:axisID:" + axisID);
     if (process.equals(ProcessName.PROCESSCHUNKS.toString())) {
       if (process.getSubprocessName() == ProcessName.TILT) {
         processchunks(manager, dialog, processResultDisplay, processSeries,
@@ -238,6 +241,10 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2011/04/04 17:41:59  sueh
+ * <p> bug# 1416 Added SIRT_DONE, getTiltDisplay, msgSirtSucceeded, setParameters(SirtsetupParam).  Modified
+ * <p> constructor openDialog, reconnectTilt, saveDialog, startNextProcess.
+ * <p>
  * <p> Revision 1.4  2011/02/10 16:30:49  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
