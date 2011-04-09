@@ -23,6 +23,9 @@ import etomo.type.ProcessResultDisplay;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/22 04:12:40  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.2  2010/04/28 16:22:57  sueh
  * <p> bug# 1344 Passing params whose processes output image files to the
  * <p> start process functions.
@@ -49,7 +52,7 @@ public final class ToolsProcessManager extends BaseProcessManager {
       final ConstProcessSeries processSeries, final FileType fileType)
       throws SystemProcessException {
     //  Create the required tilt command
-    String command = fileType.getFileName(manager);
+    String command = fileType.getFileName(manager, AxisID.ONLY);
     //  Instantiate the process monitor
     Matchvol1ProcessMonitor monitor = Matchvol1ProcessMonitor.getFlattenInstance(manager,
         axisID, fileType);

@@ -35,7 +35,7 @@ public final class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
   public TiltxcorrProcessWatcher(final BaseManager manager, final AxisID id,
       FileType comscriptFileType) {
     super(manager, id);
-    logFileBasename = comscriptFileType.getTypeString();
+    logFileBasename = comscriptFileType.getTypeString(manager);
   }
 
   /**
@@ -122,6 +122,9 @@ public final class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2011/02/22 04:11:46  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.10  2010/03/03 04:54:57  sueh
  * <p> bug# 1311 Added capability to watch xcorr_pt.com
  * <p>
