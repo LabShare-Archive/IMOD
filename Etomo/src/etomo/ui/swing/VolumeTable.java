@@ -46,6 +46,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 21:48:15  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:35  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -661,7 +664,9 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
       return;
     }
     fnVolume = chooser.getSelectedFile();
-    parent.setLastLocation(fnVolume.getParentFile());
+    if (fnVolume != null) {
+      parent.setLastLocation(fnVolume.getParentFile());
+    }
     chooser = parent.getFileChooserInstance();
     chooser.setFileFilter(new ModelFileFilter());
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
@@ -759,8 +764,11 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
         }
         catch (LogFile.LockException e) {
           e.printStackTrace();
-          UIHarness.INSTANCE.openMessageDialog(manager, "Unable to open tilt log "
-              + file.getAbsolutePath() + "\n" + e.getMessage(), "File Open Failure");
+          UIHarness.INSTANCE
+              .openMessageDialog(
+                  manager,
+                  "Unable to open tilt log " + file.getAbsolutePath() + "\n"
+                      + e.getMessage(), "File Open Failure");
         }
       }
       else {
@@ -784,9 +792,9 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
    * orientation.
    */
   private void addRow(VolumeRow fromRow) {
-    VolumeRow row = rowList.add(manager, fromRow.getFnVolumeFile(), fromRow
-        .getFnModParticleFile(), this, pnlTable, layout, constraints, initMotlFileColumn,
-        tiltRangeColumn);
+    VolumeRow row = rowList.add(manager, fromRow.getFnVolumeFile(),
+        fromRow.getFnModParticleFile(), this, pnlTable, layout, constraints,
+        initMotlFileColumn, tiltRangeColumn);
     row.expandFnVolume(btnExpandFnVolume.isExpanded());
     row.expandFnModParticle(btnExpandFnModParticle.isExpanded());
     row.setInitMotlFile(fromRow.getInitMotlFile());
