@@ -33,6 +33,9 @@ import etomo.type.StringParameter;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.9  2011/02/22 03:13:02  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 3.8  2010/04/28 15:54:34  sueh
  * <p> bug# 1344 Added getOutputImageFileType functions.
  * <p>
@@ -262,7 +265,7 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam, CommandPar
   }
 
   public String getCommandName() {
-    return FileType.FIND_BEADS_3D_COMSCRIPT.getTypeString();
+    return FileType.FIND_BEADS_3D_COMSCRIPT.getTypeString(manager);
   }
 
   public File getCommandOutputFile() {

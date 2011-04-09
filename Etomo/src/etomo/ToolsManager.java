@@ -55,6 +55,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2011/02/21 21:08:13  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.6  2011/02/03 05:55:11  sueh
  * <p> bug# 1422 Using ProcessingMethod to keep track of which type of
  * <p> processing method is in use.  The decisions about when to display the
@@ -353,7 +356,7 @@ public final class ToolsManager extends BaseManager {
    */
   public void imodViewModel(AxisID axisID, FileType modelFileType) {
     try {
-      imodManager.open(modelFileType.getImodManagerKey(), axisID, modelFileType
+      imodManager.open(modelFileType.getImodManagerKey(this), axisID, modelFileType
           .getFileName(this, axisID));
     }
     catch (AxisTypeException except) {

@@ -2964,7 +2964,7 @@ public final class ApplicationManager extends BaseManager implements
    */
   public void imodViewModel(AxisID axisID, FileType modelFileType) {
     try {
-      imodManager.open(modelFileType.getImodManagerKey(), axisID,
+      imodManager.open(modelFileType.getImodManagerKey(this), axisID,
           modelFileType.getFileName(this, axisID));
     }
     catch (AxisTypeException except) {
@@ -2987,10 +2987,10 @@ public final class ApplicationManager extends BaseManager implements
     // was last used as input for tilt_3dfind.
     String key;
     if (state.isStackUsingNewstOrBlend3dFindOutput(axisID)) {
-      key = FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT.getImodManagerKey();
+      key = FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT.getImodManagerKey(this);
     }
     else {
-      key = FileType.ALIGNED_STACK.getImodManagerKey();
+      key = FileType.ALIGNED_STACK.getImodManagerKey(this);
     }
     try {
       File tiltFile = DatasetFiles.getTiltFile(this, axisID);
@@ -4403,7 +4403,6 @@ public final class ApplicationManager extends BaseManager implements
     }
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     if (!tiltProcessingMethod.isLocal()) {
-      System.out.println("A:axisID:"+axisID);
       splittilt(tilt, processSeries, display, axisID, dialogType, tiltProcessingMethod);
     }
     else {
@@ -4521,7 +4520,7 @@ public final class ApplicationManager extends BaseManager implements
         splittiltParam, dialogType);
     if (processResult == null) {
       processSeries.setNextProcess(ProcessName.PROCESSCHUNKS.toString(),
-          ProcessName.TILT, FileType.DUAL_AXIS_TOMOGRAM, tiltProcessingMethod);
+          ProcessName.TILT, FileType.TILT_OUTPUT, tiltProcessingMethod);
     }
     sendMsg(processResult, processResultDisplay);
   }
@@ -5100,7 +5099,7 @@ public final class ApplicationManager extends BaseManager implements
    */
   public void imod(FileType fileType, AxisID axisID, Run3dmodMenuOptions menuOptions) {
     try {
-      imodManager.open(fileType.getImodManagerKey(), axisID, menuOptions);
+      imodManager.open(fileType.getImodManagerKey(this), axisID, menuOptions);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -5125,7 +5124,7 @@ public final class ApplicationManager extends BaseManager implements
   public void imod(FileType fileType, FileType modelFileType, AxisID axisID,
       Run3dmodMenuOptions menuOptions) {
     try {
-      imodManager.open(fileType.getImodManagerKey(), axisID,
+      imodManager.open(fileType.getImodManagerKey(this), axisID,
           modelFileType.getFileName(this, axisID), menuOptions);
     }
     catch (AxisTypeException except) {
@@ -5157,7 +5156,7 @@ public final class ApplicationManager extends BaseManager implements
       fileType = FileType.ALIGNED_STACK;
     }
     try {
-      imodManager.open(fileType.getImodManagerKey(), axisID,
+      imodManager.open(fileType.getImodManagerKey(this), axisID,
           FileType.CCD_ERASER_BEADS_INPUT_MODEL.getFileName(this, axisID), menuOptions);
     }
     catch (AxisTypeException except) {
@@ -5216,13 +5215,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     // rename the trial tomogram to the output filename of appropriate
     // tilt.com
-    FileType outputFile;
-    if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
-      outputFile = FileType.SINGLE_AXIS_TOMOGRAM;
-    }
-    else {
-      outputFile = FileType.DUAL_AXIS_TOMOGRAM;
-    }
+    FileType outputFile = FileType.TILT_OUTPUT;
     mainPanel.setProgressBar("Using trial tomogram: " + trialTomogramName, 1, axisID);
     if (outputFile.getFile(this, axisID).exists() && trialTomogramFile.exists()) {
       try {
@@ -5512,13 +5505,14 @@ public final class ApplicationManager extends BaseManager implements
   public void imodModel(FileType fileType, FileType modelFileType, AxisID axisID,
       Run3dmodMenuOptions menuOptions) {
     try {
-      imodManager.open(fileType.getImodManagerKey(), axisID,
+      imodManager.open(fileType.getImodManagerKey(this), axisID,
           modelFileType.getFileName(this, axisID), false, menuOptions);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(), "Can't open 3dmod on "
-          + fileType.toString() + " for " + modelFileType.toString(), axisID);
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Can't open 3dmod on " + fileType.getFileName(this, axisID) + " for "
+              + modelFileType.getFileName(this, axisID), axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -7800,13 +7794,7 @@ public final class ApplicationManager extends BaseManager implements
   public boolean useSirt(final ProcessResultDisplay processResultDisplay,
       final File useFile, final String runButtonLabel, final AxisID axisID,
       final DialogType dialogType) {
-    FileType outputFileType;
-    if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
-      outputFileType = FileType.DUAL_AXIS_TOMOGRAM;
-    }
-    else {
-      outputFileType = FileType.SINGLE_AXIS_TOMOGRAM;
-    }
+    FileType outputFileType= FileType.TILT_OUTPUT;
     return useImageFile(processResultDisplay, FileType.SIRT_OUTPUT_TEMPLATE, useFile,
         outputFileType, runButtonLabel, axisID, dialogType);
   }
@@ -7834,7 +7822,7 @@ public final class ApplicationManager extends BaseManager implements
       return false;
     }
     mainPanel.setProgressBar("Using " + useFileType.getFileName(this, axisID) + " as "
-        + outputFileType.getDescription(), 1, axisID);
+        + outputFileType.getDescription(this), 1, axisID);
     if (!useFile.exists()) {
       UIHarness.INSTANCE.openMessageDialog(this, useFile.getName()
           + " doesn't exist.  Press " + runButtonLabel + " to create this file.",
@@ -8023,6 +8011,10 @@ public final class ApplicationManager extends BaseManager implements
 /**
  * <p>
  * $Log$
+ * Revision 3.370  2011/04/04 16:43:57  sueh
+ * bug# 1416 Added/modified openFilesInImod, reconnectTilt, resume, sirtsetup, tiltAction,updateSirtSetupCom,
+ * updateTiltCom, useFileAsFullAlignedStack, useImageFile, useSirt.
+ *
 
  * Revision 3.369  2011/03/18 18:04:27  sueh
  * bug# 1464 In saveDialogs fixed getUIExpert calls so they use firstAxis.

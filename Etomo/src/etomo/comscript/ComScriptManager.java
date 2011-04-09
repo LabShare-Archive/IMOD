@@ -34,6 +34,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.66  2011/04/04 16:46:35  sueh
+ * <p> bug# 1416 Added scriptSirtsetupA and B, getSirtsetupParam, loadSirtsetup, saveSirtsetup.
+ * <p>
  * <p> Revision 3.65  2011/02/21 21:40:18  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -755,7 +758,7 @@ public final class ComScriptManager extends BaseComScriptManager {
 
     // Initialize a SirtsetupParam object from the com script command object
     SirtsetupParam param = new SirtsetupParam(appManager, axisID);
-    initialize(param, sirtsetup, FileType.SIRTSETUP_COMSCRIPT.getTypeString(), axisID,
+    initialize(param, sirtsetup, FileType.SIRTSETUP_COMSCRIPT.getTypeString(appManager), axisID,
         true, true);
     return param;
   }

@@ -402,7 +402,7 @@ public final class ParallelManager extends BaseManager {
       return;
     }
     try {
-      imodManager.open(fileType.getImodManagerKey(), file, menuOptions, flip);
+      imodManager.open(fileType.getImodManagerKey(this), file, menuOptions, flip);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -805,6 +805,9 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.48  2011/02/21 21:07:05  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.47  2011/02/03 05:52:47  sueh
  * <p> bug# 1422 Using ProcessingMethod to keep track of which type of
  * <p> processing method is in use.  The decisions about when to display the
