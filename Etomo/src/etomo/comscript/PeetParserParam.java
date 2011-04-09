@@ -34,6 +34,9 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2011/02/22 03:22:24  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.17  2010/11/13 16:03:15  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -111,14 +114,10 @@ public final class PeetParserParam implements CommandDetails {
   }
 
   public String[] getCommandArray() {
-    String[] command = null;
-    if (command != null) {
-      return command;
-    }
-    command = new String[3];
+    String[] command = new String[3];
     command[0] = "sh";
-    String particleDir = EnvironmentVariable.INSTANCE.getValue(manager, manager
-        .getPropertyUserDir(), "PARTICLE_DIR", AxisID.ONLY);
+    String particleDir = EnvironmentVariable.INSTANCE.getValue(manager,
+        manager.getPropertyUserDir(), "PARTICLE_DIR", AxisID.ONLY);
     if (particleDir == null || particleDir.matches("\\s*")) {
       UIHarness.INSTANCE.openMessageDialog(manager,
           "The environment variables PARTICLE_DIR has not been set.  Set it "
@@ -129,8 +128,8 @@ public final class PeetParserParam implements CommandDetails {
       return null;
     }
     File commandFile = new File(new File(EnvironmentVariable.INSTANCE.getValue(manager,
-        manager.getPropertyUserDir(), "PARTICLE_DIR", AxisID.ONLY), "bin"), PROCESS_NAME
-        .toString());
+        manager.getPropertyUserDir(), "PARTICLE_DIR", AxisID.ONLY), "bin"),
+        PROCESS_NAME.toString());
     command[1] = commandFile.getAbsolutePath();
     command[2] = prmFile.getName();
     if (debug) {
