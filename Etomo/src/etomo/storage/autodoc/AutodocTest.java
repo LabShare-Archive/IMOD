@@ -212,15 +212,23 @@ public final class AutodocTest extends TestCase {
 
   public void testUitest() throws LogFile.LockException, IOException,
       SystemProcessException, InvalidParameterException {
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, new File(testsDir,
-        "uitest.adoc"));
+    String fileName = "uitest.adoc";
+    File file = new File(testsDir, fileName);
+    if (!file.exists() || !file.canRead()) {
+      file = new File(new File(new File("."), "tests"), fileName);
+    }
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
   public void testTests() throws LogFile.LockException, IOException,
       SystemProcessException, InvalidParameterException {
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, new File(testsDir,
-        "tests.adoc"));
+    String fileName = "tests.adoc";
+    File file = new File(testsDir, fileName);
+    if (!file.exists() || !file.canRead()) {
+      file = new File(new File(new File("."), "tests"), fileName);
+    }
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
@@ -228,43 +236,67 @@ public final class AutodocTest extends TestCase {
 
   public void testRecon() throws LogFile.LockException, IOException,
       SystemProcessException, InvalidParameterException {
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, new File(testsDir,
-        "recon.adoc"));
+    String fileName = "recon.adoc";
+    File file = new File(testsDir, fileName);
+    if (!file.exists() || !file.canRead()) {
+      file = new File(new File(new File("."), "tests"), fileName);
+    }
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
   public void testSetupRecon() throws LogFile.LockException, IOException,
       SystemProcessException, InvalidParameterException {
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, new File(testsDir,
-        "setup-recon.adoc"));
+    String fileName = "setup-recon.adoc";
+    File file = new File(testsDir, fileName);
+    if (!file.exists() || !file.canRead()) {
+      file = new File(new File(new File("."), "tests"), fileName);
+    }
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
   public void testPreProc() throws LogFile.LockException, IOException,
       SystemProcessException, InvalidParameterException {
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, new File(testsDir,
-        "pre-proc.adoc"));
+    String fileName = "pre-proc.adoc";
+    File file = new File(testsDir, fileName);
+    if (!file.exists() || !file.canRead()) {
+      file = new File(new File(new File("."), "tests"), fileName);
+    }
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
   public void testCoarseAlign() throws LogFile.LockException, IOException,
       SystemProcessException, InvalidParameterException {
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, new File(testsDir,
-        "coarse-align.adoc"));
+    String fileName = "coarse-align.adoc";
+    File file = new File(testsDir, fileName);
+    if (!file.exists() || !file.canRead()) {
+      file = new File(new File(new File("."), "tests"), fileName);
+    }
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
   public void testFidModel() throws LogFile.LockException, IOException,
       SystemProcessException, InvalidParameterException {
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, new File(testsDir,
-        "fid-model.adoc"));
+    String fileName = "fid-model.adoc";
+    File file = new File(testsDir, fileName);
+    if (!file.exists() || !file.canRead()) {
+      file = new File(new File(new File("."), "tests"), fileName);
+    }
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
   public void testFineAlign() throws LogFile.LockException, IOException,
       SystemProcessException, InvalidParameterException {
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, new File(testsDir,
-        "fine-align.adoc"));
+    String fileName = "fine-align.adoc";
+    File file = new File(testsDir, fileName);
+    if (!file.exists() || !file.canRead()) {
+      file = new File(new File(new File("."), "tests"), fileName);
+    }
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
     //only use with getTestInstance
     //autodoc.runInternalTest(AutodocFactory.InternalTestType.PARSER,false,false);
     //only use with getInstance
@@ -274,43 +306,67 @@ public final class AutodocTest extends TestCase {
 
   public void testTomoPos() throws LogFile.LockException, IOException,
       SystemProcessException, InvalidParameterException {
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, new File(testsDir,
-        "tomo-pos.adoc"));
+    String fileName = "tomo-pos.adoc";
+    File file = new File(testsDir, fileName);
+    if (!file.exists() || !file.canRead()) {
+      file = new File(new File(new File("."), "tests"), fileName);
+    }
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
   public void testStack() throws LogFile.LockException, IOException,
       SystemProcessException, InvalidParameterException {
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, new File(testsDir,
-        "stack.adoc"));
+    String fileName = "stack.adoc";
+    File file = new File(testsDir, fileName);
+    if (!file.exists() || !file.canRead()) {
+      file = new File(new File(new File("."), "tests"), fileName);
+    }
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
   public void testTomoGen() throws LogFile.LockException, IOException,
       SystemProcessException, InvalidParameterException {
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, new File(testsDir,
-        "tomo-gen.adoc"));
+    String fileName = "tomo-gen.adoc";
+    File file = new File(testsDir, fileName);
+    if (!file.exists() || !file.canRead()) {
+      file = new File(new File(new File("."), "tests"), fileName);
+    }
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
   public void testCombine() throws LogFile.LockException, IOException,
       SystemProcessException, InvalidParameterException {
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, new File(testsDir,
-        "combine.adoc"));
+    String fileName = "combine.adoc";
+    File file = new File(testsDir, fileName);
+    if (!file.exists() || !file.canRead()) {
+      file = new File(new File(new File("."), "tests"), fileName);
+    }
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
   public void testPostProc() throws LogFile.LockException, IOException,
       SystemProcessException, InvalidParameterException {
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, new File(testsDir,
-        "post-proc.adoc"));
+    String fileName = "post-proc.adoc";
+    File file = new File(testsDir, fileName);
+    if (!file.exists() || !file.canRead()) {
+      file = new File(new File(new File("."), "tests"), fileName);
+    }
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
   public void testCleanUp() throws LogFile.LockException, IOException,
       SystemProcessException, InvalidParameterException {
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, new File(testsDir,
-        "clean-up.adoc"));
+    String fileName = "clean-up.adoc";
+    File file = new File(testsDir, fileName);
+    if (!file.exists() || !file.canRead()) {
+      file = new File(new File(new File("."), "tests"), fileName);
+    }
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
@@ -318,41 +374,64 @@ public final class AutodocTest extends TestCase {
 
   public void testJoin() throws LogFile.LockException, IOException,
       SystemProcessException, InvalidParameterException {
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, new File(testsDir,
-        "join.adoc"));
+    String fileName = "join.adoc";
+    File file = new File(testsDir, fileName);
+    if (!file.exists() || !file.canRead()) {
+      file = new File(new File(new File("."), "tests"), fileName);
+    }
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
   public void testJoinSetup() throws LogFile.LockException, IOException,
       SystemProcessException, InvalidParameterException {
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, new File(testsDir,
-        "join-setup.adoc"));
+    String fileName = "join-setup.adoc";
+    File file = new File(testsDir, fileName);
+    if (!file.exists() || !file.canRead()) {
+      file = new File(new File(new File("."), "tests"), fileName);
+    }
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
   public void testJoinAlign() throws LogFile.LockException, IOException,
       SystemProcessException, InvalidParameterException {
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, new File(testsDir,
-        "join-align.adoc"));
+    String fileName = "join-align.adoc";
+    File file = new File(testsDir, fileName);
+    if (!file.exists() || !file.canRead()) {
+      file = new File(new File(new File("."), "tests"), fileName);
+    }
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
   public void testJoinModel() throws LogFile.LockException, IOException,
       SystemProcessException, InvalidParameterException {
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, new File(testsDir,
-        "join-model.adoc"));
+    String fileName = "join-model.adoc";
+    File file = new File(testsDir, fileName);
+    if (!file.exists() || !file.canRead()) {
+      file = new File(new File(new File("."), "tests"), fileName);
+    }
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
     assertTrue(autodoc != null && !autodoc.isError());
   }
 
   public void testJoinRejoin() throws LogFile.LockException, IOException,
       SystemProcessException, InvalidParameterException {
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, new File(testsDir,
-        "join-rejoin.adoc"));
+    String fileName = "join-rejoin.adoc";
+    File file = new File(testsDir, fileName);
+    if (!file.exists() || !file.canRead()) {
+      file = new File(new File(new File("."), "tests"), fileName);
+    }
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
     assertTrue(autodoc != null && !autodoc.isError());
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.28  2011/04/09 06:32:08  sueh
+ * <p> bug# 1416 Fixed a problem where the tests couldn't find the tests directory.
+ * <p>
  * <p> Revision 1.27  2011/02/22 05:04:38  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
