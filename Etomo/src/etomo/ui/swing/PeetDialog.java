@@ -51,6 +51,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2011/04/20 04:54:37  sueh
+ * <p> bug# 1445 Added originalInitMotlCode to hold onto unrecognized initMotlCode values.  Handling unrecognized
+ * <p> unrecognized initMotlCode values.
+ * <p>
  * <p> Revision 1.4  2011/02/23 05:10:09  sueh
  * <p> bug# 1450 In constructor call the mediator setMethod function with
  * <p> getProcessingMethod() instead of always using PP_CPU.
@@ -457,8 +461,11 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
       "Set all rotational values to zero", MatlabParam.InitMotlCode.ZERO, bgInitMotl);
   private final RadioButton rbInitMotlZAxis = new RadioButton("Initialize Z axis",
       MatlabParam.InitMotlCode.Z_AXIS, bgInitMotl);
+
   private final RadioButton rbInitMotlXAndZAxis = new RadioButton(
       "Initialize X and Z axis", MatlabParam.InitMotlCode.X_AND_Z_AXIS, bgInitMotl);
+  private final RadioButton rbInitMotlRandomRotations = new RadioButton(
+      "Uniform random rotations", MatlabParam.InitMotlCode.RANDOM_ROTATIONS, bgInitMotl);
   private final RadioButton rbInitMotlFiles = new RadioButton("Use files", bgInitMotl);
   private final ButtonGroup bgCcMode = new ButtonGroup();
   private final RadioButton rbCcModeNormalized = new RadioButton(
@@ -765,6 +772,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     else if (MatlabParam.InitMotlCode.X_AND_Z_AXIS.equals(origInitMotlCode)) {
       rbInitMotlXAndZAxis.setSelected(true);
     }
+    else if (MatlabParam.InitMotlCode.RANDOM_ROTATIONS.equals(origInitMotlCode)) {
+      rbInitMotlRandomRotations.setSelected(true);
+    }
     else {
       rbInitMotlZero.setSelected(false);
     }
@@ -911,6 +921,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     rbInitMotlZero.setSelected(false);
     rbInitMotlZAxis.setSelected(false);
     rbInitMotlXAndZAxis.setSelected(false);
+    rbInitMotlRandomRotations.setSelected(false);
     rbInitMotlFiles.setSelected(false);
     rbCcModeNormalized.setSelected(false);
     rbCcModeLocal.setSelected(false);
@@ -950,6 +961,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
         .setToolTipText("Rotate each particle about its X and Z axes to align "
             + "its Y axis with that of the reference prior to the 1st alignment "
             + "search.");
+    rbInitMotlRandomRotations.setToolTipText("Uniform random rotations");
     rbInitMotlFiles
         .setToolTipText("Use the Initial MOTL file(s) specified in the Volume "
             + "Table.");
@@ -1040,6 +1052,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     pnlInitMotl.add(rbInitMotlZero.getComponent());
     pnlInitMotl.add(rbInitMotlZAxis.getComponent());
     pnlInitMotl.add(rbInitMotlXAndZAxis.getComponent());
+    pnlInitMotl.add(rbInitMotlRandomRotations.getComponent());
     pnlInitMotl.add(rbInitMotlFiles.getComponent());
     //init MOTL and Y axis type
     JPanel pnlInitMotlAndYAxisType = new JPanel();
@@ -1152,6 +1165,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     else if (actionCommand.equals(rbInitMotlZero.getActionCommand())
         || actionCommand.equals(rbInitMotlZAxis.getActionCommand())
         || actionCommand.equals(rbInitMotlXAndZAxis.getActionCommand())
+        || actionCommand.equals(rbInitMotlRandomRotations.getActionCommand())
         || actionCommand.equals(rbInitMotlFiles.getActionCommand())
         || actionCommand.equals(cbFlgRemoveDuplicates.getActionCommand())) {
       updateDisplay();
@@ -1378,6 +1392,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     rbInitMotlZero.addActionListener(actionListener);
     rbInitMotlZAxis.addActionListener(actionListener);
     rbInitMotlXAndZAxis.addActionListener(actionListener);
+    rbInitMotlRandomRotations.addActionListener(actionListener);
     rbInitMotlFiles.addActionListener(actionListener);
     btnRun.addActionListener(actionListener);
     tabPane.addChangeListener(new TabChangeListener(this));
