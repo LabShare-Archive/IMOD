@@ -51,6 +51,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2011/02/23 05:10:09  sueh
+ * <p> bug# 1450 In constructor call the mediator setMethod function with
+ * <p> getProcessingMethod() instead of always using PP_CPU.
+ * <p>
  * <p> Revision 1.3  2011/02/22 18:19:14  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -496,6 +500,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
 
   private File lastLocation = null;
   private String correctPath = null;
+  private String origInitMotlCode = null;
 
   private PeetDialog(final PeetManager manager, final AxisID axisID) {
     System.err.println(Utilities.getDateTimeStamp() + "\nDialog: " + DialogType.PEET);
@@ -747,18 +752,21 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     iterationTable.setParameters(matlabParam);
     referencePanel.setParameters(matlabParam, parametersOnly);
     missingWedgeCompensationPanel.setParameters(matlabParam);
-    MatlabParam.InitMotlCode initMotlCode = matlabParam.getInitMotlCode();
-    if (initMotlCode == null) {
+    origInitMotlCode = matlabParam.getInitMotlCode();
+    if (origInitMotlCode == null) {
       rbInitMotlFiles.setSelected(true);
     }
-    else if (initMotlCode == MatlabParam.InitMotlCode.ZERO) {
+    else if (MatlabParam.InitMotlCode.ZERO.equals(origInitMotlCode)) {
       rbInitMotlZero.setSelected(true);
     }
-    else if (initMotlCode == MatlabParam.InitMotlCode.Z_AXIS) {
+    else if (MatlabParam.InitMotlCode.Z_AXIS.equals(origInitMotlCode)) {
       rbInitMotlZAxis.setSelected(true);
     }
-    else if (initMotlCode == MatlabParam.InitMotlCode.X_AND_Z_AXIS) {
+    else if (MatlabParam.InitMotlCode.X_AND_Z_AXIS.equals(origInitMotlCode)) {
       rbInitMotlXAndZAxis.setSelected(true);
+    }
+    else {
+      rbInitMotlZero.setSelected(false);
     }
     ltfSzVolX.setText(matlabParam.getSzVolX());
     ltfSzVolY.setText(matlabParam.getSzVolY());
@@ -797,9 +805,21 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     matlabParam.setFnOutput(ltfFnOutput.getText());
     referencePanel.getParameters(matlabParam);
     missingWedgeCompensationPanel.getParameters(matlabParam);
-    matlabParam
-        .setInitMotlCode(((RadioButton.RadioButtonModel) bgInitMotl.getSelection())
-            .getEnumeratedType());
+    if (rbInitMotlFiles.isSelected()) {
+      matlabParam.resetInitMotlCode();
+    }
+    else {
+      RadioButton.RadioButtonModel buttonModel = (RadioButton.RadioButtonModel) bgInitMotl
+          .getSelection();
+      if (buttonModel != null) {
+        matlabParam.setInitMotlCode(buttonModel.getEnumeratedType());
+      }
+      else {
+        //The init motl code is unknown and no radio button was selected, so return the
+        //original code.
+        matlabParam.setInitMotlCode(origInitMotlCode);
+      }
+    }
     matlabParam.setSzVolX(ltfSzVolX.getText());
     matlabParam.setSzVolY(ltfSzVolY.getText());
     matlabParam.setSzVolZ(ltfSzVolZ.getText());
@@ -1125,8 +1145,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     }
     else if (actionCommand.equals(btnRun.getActionCommand())) {
       if (validateRun()) {
-        manager.peetParser(null, DIALOG_TYPE, mediator
-            .getRunMethodForProcessInterface(getProcessingMethod()));
+        manager.peetParser(null, DIALOG_TYPE,
+            mediator.getRunMethodForProcessInterface(getProcessingMethod()));
       }
     }
     else if (actionCommand.equals(rbInitMotlZero.getActionCommand())
@@ -1331,11 +1351,12 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     yAxisTypePanel.updateDisplay();
     sphericalSamplingForThetaAndPsiPanel.updateDisplay();
     //iteration table - spherical sampling and FlgRemoveDuplicates
-    iterationTable.updateDisplay(!sphericalSamplingForThetaAndPsiPanel
-        .isSampleSphereNoneSelected(), cbFlgRemoveDuplicates.isSelected());
+    iterationTable.updateDisplay(
+        !sphericalSamplingForThetaAndPsiPanel.isSampleSphereNoneSelected(),
+        cbFlgRemoveDuplicates.isSelected());
     //volume table
-    volumeTable.updateDisplay(rbInitMotlFiles.isSelected(), missingWedgeCompensationPanel
-        .isTiltRangeSelected());
+    volumeTable.updateDisplay(rbInitMotlFiles.isSelected(),
+        missingWedgeCompensationPanel.isTiltRangeSelected());
     maskingPanel.updateDisplay();
     cbflgAlignAverages
         .setEnabled(yAxisTypePanel.getYAxisType() != MatlabParam.YAxisType.Y_AXIS);
