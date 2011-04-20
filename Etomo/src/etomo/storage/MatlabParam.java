@@ -44,6 +44,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.44  2011/02/22 04:47:53  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.43  2011/02/08 00:59:18  sueh
  * <p> bug# 1430 Making sampleInterval a float.
  * <p>
@@ -392,7 +395,7 @@ public final class MatlabParam {
   private final ParsedNumber flgAlignAverages = ParsedNumber.getMatlabInstance();
 
   private String lowCutoff = LOW_CUTOFF_DEFAULT;
-  private InitMotlCode initMotlCode = InitMotlCode.DEFAULT;
+  private ParsedNumber initMotlCode = ParsedNumber.getMatlabInstance();
   private CCMode ccMode = CCMode.DEFAULT;
   private boolean useReferenceFile = REFERENCE_FILE_DEFAULT;
   private YAxisType yAxisType = YAxisType.DEFAULT;
@@ -407,6 +410,7 @@ public final class MatlabParam {
     this.newFile = newFile;
     nWeightGroup.setDefault(N_WEIGHT_GROUP_DEFAULT);
     nWeightGroup.setFloor(N_WEIGHT_GROUP_MIN);
+    initMotlCode.setRawString(InitMotlCode.ZERO.toString());
     flgMeanFill.setDefault(FLG_MEAN_FILL_DEFAULT);
   }
 
@@ -433,21 +437,24 @@ public final class MatlabParam {
       ReadOnlyAutodoc autodoc = null;
       autodoc = (AutodocFactory.getMatlabInstance(manager, file));
       if (autodoc == null) {
-        UIHarness.INSTANCE.openMessageDialog(manager, "Unable to read "
-            + file.getAbsolutePath() + ".", "File Error");
+        UIHarness.INSTANCE.openMessageDialog(manager,
+            "Unable to read " + file.getAbsolutePath() + ".", "File Error");
         return false;
       }
       parseData(autodoc);
     }
     catch (IOException e) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to load "
-          + file.getAbsolutePath() + ".  IOException:  " + e.getMessage(), "File Error");
+      UIHarness.INSTANCE.openMessageDialog(
+          manager,
+          "Unable to load " + file.getAbsolutePath() + ".  IOException:  "
+              + e.getMessage(), "File Error");
       return false;
     }
     catch (LogFile.LockException e) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to read "
-          + file.getAbsolutePath() + ".  LogFile.ReadException:  " + e.getMessage(),
-          "File Error");
+      UIHarness.INSTANCE.openMessageDialog(
+          manager,
+          "Unable to read " + file.getAbsolutePath() + ".  LogFile.ReadException:  "
+              + e.getMessage(), "File Error");
       return false;
     }
     return true;
@@ -566,8 +573,11 @@ public final class MatlabParam {
     return ((Volume) volumeList.get(index)).getFnModParticleString();
   }
 
-  public InitMotlCode getInitMotlCode() {
-    return initMotlCode;
+  public String getInitMotlCode() {
+    if (initMotlCode.isEmpty()) {
+      return null;
+    }
+    return initMotlCode.getRawString();
   }
 
   public CCMode getCcMode() {
@@ -578,8 +588,22 @@ public final class MatlabParam {
     return yAxisType;
   }
 
+  /**
+   * Clear initMotlCode when init motl file is selected.
+   */
+  public void resetInitMotlCode() {
+    initMotlCode.clear();
+  }
+
   public void setInitMotlCode(EnumeratedType enumeratedType) {
-    initMotlCode = (InitMotlCode) enumeratedType;
+    if (enumeratedType == null) {
+      return;
+    }
+    initMotlCode.setRawString(((InitMotlCode) enumeratedType).toString());
+  }
+
+  public void setInitMotlCode(final String input) {
+    initMotlCode.setRawString(input);
   }
 
   public void setCcMode(EnumeratedType enumeratedType) {
@@ -755,7 +779,7 @@ public final class MatlabParam {
     referenceFile.clear();
     reference.clear();
     lowCutoff = LOW_CUTOFF_DEFAULT;
-    initMotlCode = InitMotlCode.DEFAULT;
+    initMotlCode.clear();
     ccMode = CCMode.DEFAULT;
     useReferenceFile = false;
     yAxisType = YAxisType.DEFAULT;
@@ -1083,13 +1107,13 @@ public final class MatlabParam {
     ParsedList initMotlFile = null;
     ReadOnlyAttribute attribute = autodoc.getAttribute(INIT_MOTL_KEY);
     if (ParsedList.isList(attribute)) {
-      initMotlCode = null;
+      initMotlCode.clear();
       initMotlFile = ParsedList.getStringInstance();
       initMotlFile.parse(attribute);
       size = Math.max(size, initMotlFile.size());
     }
     else {
-      initMotlCode = InitMotlCode.getInstance(attribute);
+      initMotlCode.parse(attribute);
     }
     //tiltRange
     ParsedList tiltRange = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
@@ -1101,7 +1125,7 @@ public final class MatlabParam {
       volume.setRelativeOrient(relativeOrient.getElement(i));
       volume.setFnVolume(fnVolume.getElement(i));
       volume.setFnModParticle(fnModParticle.getElement(i));
-      if (initMotlCode == null) {
+      if (initMotlCode.isEmpty()) {
         volume.setInitMotl(initMotlFile.getElement(i));
       }
       volume.setTiltRange(tiltRange.getElement(i));
@@ -1196,8 +1220,8 @@ public final class MatlabParam {
       valueMap.put(EDGE_SHIFT_KEY, edgeShift.getParsableString());
     }
     valueMap.put(CC_MODE_KEY, ccMode.toString());
-    if (initMotlCode != null) {
-      valueMap.put(INIT_MOTL_KEY, initMotlCode.toString());
+    if (!initMotlCode.isEmpty()) {
+      valueMap.put(INIT_MOTL_KEY, initMotlCode.getParsableString());
     }
     valueMap.put(FLG_MEAN_FILL_KEY, flgMeanFill.getParsableString());
     valueMap.put(ALIGNED_BASE_NAME_KEY, alignedBaseName.getParsableString());
@@ -1232,7 +1256,7 @@ public final class MatlabParam {
     ParsedList fnVolume = ParsedList.getStringInstance();
     ParsedList fnModParticle = ParsedList.getStringInstance();
     ParsedList initMotlFile = null;
-    if (initMotlCode == null) {
+    if (initMotlCode.isEmpty()) {
       initMotlFile = ParsedList.getStringInstance();
     }
     ParsedList tiltRange = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
@@ -1243,7 +1267,7 @@ public final class MatlabParam {
       Volume volume = (Volume) volumeList.get(i);
       fnVolume.addElement(volume.getFnVolume());
       fnModParticle.addElement(volume.getFnModParticle());
-      if (initMotlCode == null) {
+      if (initMotlCode.isEmpty()) {
         initMotlFile.addElement(volume.getInitMotl());
       }
       tiltRange.addElement(volume.getTiltRange());
@@ -1251,7 +1275,7 @@ public final class MatlabParam {
     }
     valueMap.put(FN_VOLUME_KEY, fnVolume.getParsableString());
     valueMap.put(FN_MOD_PARTICLE_KEY, fnModParticle.getParsableString());
-    if (initMotlCode == null) {
+    if (initMotlCode.isEmpty()) {
       valueMap.put(INIT_MOTL_KEY, initMotlFile.getParsableString());
     }
     if (tiltRangeEmpty) {
@@ -1297,10 +1321,10 @@ public final class MatlabParam {
     valueMap.put(LOW_CUTOFF_KEY, lowCutoff.getParsableString());
     valueMap.put(HI_CUTOFF_KEY, hiCutoff.getParsableString());
     valueMap.put(REF_THRESHOLD_KEY, refThreshold.getParsableString());
-    valueMap.put(DUPLICATE_SHIFT_TOLERANCE_KEY, duplicateShiftTolerance
-        .getParsableString());
-    valueMap.put(DUPLICATE_ANGULAR_TOLERANCE_KEY, duplicateAngularTolerance
-        .getParsableString());
+    valueMap.put(DUPLICATE_SHIFT_TOLERANCE_KEY,
+        duplicateShiftTolerance.getParsableString());
+    valueMap.put(DUPLICATE_ANGULAR_TOLERANCE_KEY,
+        duplicateAngularTolerance.getParsableString());
   }
 
   /**
@@ -1335,67 +1359,67 @@ public final class MatlabParam {
       final WritableAutodoc autodoc, final Map commentMap) {
     setVolumeNameValuePairValues(manager, valueMap, autodoc, commentMap);
     setIterationNameValuePairValues(manager, valueMap, autodoc, commentMap);
-    setNameValuePairValue(manager, autodoc, REFERENCE_KEY, (String) valueMap
-        .get(REFERENCE_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, FN_OUTPUT_KEY, (String) valueMap
-        .get(FN_OUTPUT_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, REFERENCE_KEY,
+        (String) valueMap.get(REFERENCE_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, FN_OUTPUT_KEY,
+        (String) valueMap.get(FN_OUTPUT_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, SZ_VOL_KEY,
         (String) valueMap.get(SZ_VOL_KEY), commentMap);
     if (isTiltRangeEmpty()) {
       removeNameValuePair(autodoc, EDGE_SHIFT_KEY);
     }
     else {
-      setNameValuePairValue(manager, autodoc, EDGE_SHIFT_KEY, (String) valueMap
-          .get(EDGE_SHIFT_KEY), commentMap);
+      setNameValuePairValue(manager, autodoc, EDGE_SHIFT_KEY,
+          (String) valueMap.get(EDGE_SHIFT_KEY), commentMap);
     }
-    setNameValuePairValue(manager, autodoc, CC_MODE_KEY, (String) valueMap
-        .get(CC_MODE_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, FLG_MEAN_FILL_KEY, (String) valueMap
-        .get(FLG_MEAN_FILL_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, ALIGNED_BASE_NAME_KEY, (String) valueMap
-        .get(ALIGNED_BASE_NAME_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, DEBUG_LEVEL_KEY, (String) valueMap
-        .get(DEBUG_LEVEL_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, LST_THRESHOLDS_KEY, (String) valueMap
-        .get(LST_THRESHOLDS_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, REF_FLAG_ALL_TOM_KEY, (String) valueMap
-        .get(REF_FLAG_ALL_TOM_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, LST_FLAG_ALL_TOM_KEY, (String) valueMap
-        .get(LST_FLAG_ALL_TOM_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, PARTICLE_PER_CPU_KEY, (String) valueMap
-        .get(PARTICLE_PER_CPU_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, YAXIS_TYPE_KEY, (String) valueMap
-        .get(YAXIS_TYPE_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, CC_MODE_KEY,
+        (String) valueMap.get(CC_MODE_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, FLG_MEAN_FILL_KEY,
+        (String) valueMap.get(FLG_MEAN_FILL_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, ALIGNED_BASE_NAME_KEY,
+        (String) valueMap.get(ALIGNED_BASE_NAME_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, DEBUG_LEVEL_KEY,
+        (String) valueMap.get(DEBUG_LEVEL_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, LST_THRESHOLDS_KEY,
+        (String) valueMap.get(LST_THRESHOLDS_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, REF_FLAG_ALL_TOM_KEY,
+        (String) valueMap.get(REF_FLAG_ALL_TOM_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, LST_FLAG_ALL_TOM_KEY,
+        (String) valueMap.get(LST_FLAG_ALL_TOM_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, PARTICLE_PER_CPU_KEY,
+        (String) valueMap.get(PARTICLE_PER_CPU_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, YAXIS_TYPE_KEY,
+        (String) valueMap.get(YAXIS_TYPE_KEY), commentMap);
     removeNameValuePair(autodoc, YAXIS_CONTOUR_KEY);
-    setNameValuePairValue(manager, autodoc, YAXIS_OBJECT_NUM_KEY, (String) valueMap
-        .get(YAXIS_OBJECT_NUM_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, YAXIS_CONTOUR_NUM_KEY, (String) valueMap
-        .get(YAXIS_CONTOUR_NUM_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, FLG_WEDGE_WEIGHT_KEY, (String) valueMap
-        .get(FLG_WEDGE_WEIGHT_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, SAMPLE_SPHERE_KEY, (String) valueMap
-        .get(SAMPLE_SPHERE_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, SAMPLE_INTERVAL_KEY, (String) valueMap
-        .get(SAMPLE_INTERVAL_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, MASK_TYPE_KEY, (String) valueMap
-        .get(MASK_TYPE_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, MASK_MODEL_PTS_KEY, (String) valueMap
-        .get(MASK_MODEL_PTS_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, INSIDE_MASK_RADIUS_KEY, (String) valueMap
-        .get(INSIDE_MASK_RADIUS_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, OUTSIDE_MASK_RADIUS_KEY, (String) valueMap
-        .get(OUTSIDE_MASK_RADIUS_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, YAXIS_OBJECT_NUM_KEY,
+        (String) valueMap.get(YAXIS_OBJECT_NUM_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, YAXIS_CONTOUR_NUM_KEY,
+        (String) valueMap.get(YAXIS_CONTOUR_NUM_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, FLG_WEDGE_WEIGHT_KEY,
+        (String) valueMap.get(FLG_WEDGE_WEIGHT_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, SAMPLE_SPHERE_KEY,
+        (String) valueMap.get(SAMPLE_SPHERE_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, SAMPLE_INTERVAL_KEY,
+        (String) valueMap.get(SAMPLE_INTERVAL_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, MASK_TYPE_KEY,
+        (String) valueMap.get(MASK_TYPE_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, MASK_MODEL_PTS_KEY,
+        (String) valueMap.get(MASK_MODEL_PTS_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, INSIDE_MASK_RADIUS_KEY,
+        (String) valueMap.get(INSIDE_MASK_RADIUS_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, OUTSIDE_MASK_RADIUS_KEY,
+        (String) valueMap.get(OUTSIDE_MASK_RADIUS_KEY), commentMap);
     if (useNWeightGroup) {
-      setNameValuePairValue(manager, autodoc, N_WEIGHT_GROUP_KEY, (String) valueMap
-          .get(N_WEIGHT_GROUP_KEY), commentMap);
+      setNameValuePairValue(manager, autodoc, N_WEIGHT_GROUP_KEY,
+          (String) valueMap.get(N_WEIGHT_GROUP_KEY), commentMap);
     }
     else {
       removeNameValuePair(autodoc, N_WEIGHT_GROUP_KEY);
     }
-    setNameValuePairValue(manager, autodoc, FLG_REMOVE_DUPLICATES_KEY, (String) valueMap
-        .get(FLG_REMOVE_DUPLICATES_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, FLG_ALIGN_AVERAGES_KEY, (String) valueMap
-        .get(FLG_ALIGN_AVERAGES_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, FLG_REMOVE_DUPLICATES_KEY,
+        (String) valueMap.get(FLG_REMOVE_DUPLICATES_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, FLG_ALIGN_AVERAGES_KEY,
+        (String) valueMap.get(FLG_ALIGN_AVERAGES_KEY), commentMap);
   }
 
   /**
@@ -1406,16 +1430,16 @@ public final class MatlabParam {
    */
   private void setVolumeNameValuePairValues(BaseManager manager, final Map valueMap,
       final WritableAutodoc autodoc, final Map commentMap) {
-    setNameValuePairValue(manager, autodoc, FN_VOLUME_KEY, (String) valueMap
-        .get(FN_VOLUME_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, FN_MOD_PARTICLE_KEY, (String) valueMap
-        .get(FN_MOD_PARTICLE_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, INIT_MOTL_KEY, (String) valueMap
-        .get(INIT_MOTL_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, TILT_RANGE_KEY, (String) valueMap
-        .get(TILT_RANGE_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, RELATIVE_ORIENT_KEY, (String) valueMap
-        .get(RELATIVE_ORIENT_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, FN_VOLUME_KEY,
+        (String) valueMap.get(FN_VOLUME_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, FN_MOD_PARTICLE_KEY,
+        (String) valueMap.get(FN_MOD_PARTICLE_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, INIT_MOTL_KEY,
+        (String) valueMap.get(INIT_MOTL_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, TILT_RANGE_KEY,
+        (String) valueMap.get(TILT_RANGE_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, RELATIVE_ORIENT_KEY,
+        (String) valueMap.get(RELATIVE_ORIENT_KEY), commentMap);
   }
 
   /**
@@ -1428,18 +1452,18 @@ public final class MatlabParam {
       final WritableAutodoc autodoc, final Map commentMap) {
     setNameValuePairValue(manager, autodoc, D_PHI_KEY, (String) valueMap.get(D_PHI_KEY),
         commentMap);
-    setNameValuePairValue(manager, autodoc, D_THETA_KEY, (String) valueMap
-        .get(D_THETA_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, D_THETA_KEY,
+        (String) valueMap.get(D_THETA_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, D_PSI_KEY, (String) valueMap.get(D_PSI_KEY),
         commentMap);
-    setNameValuePairValue(manager, autodoc, SEARCH_RADIUS_KEY, (String) valueMap
-        .get(SEARCH_RADIUS_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, LOW_CUTOFF_KEY, (String) valueMap
-        .get(LOW_CUTOFF_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, HI_CUTOFF_KEY, (String) valueMap
-        .get(HI_CUTOFF_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, REF_THRESHOLD_KEY, (String) valueMap
-        .get(REF_THRESHOLD_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, SEARCH_RADIUS_KEY,
+        (String) valueMap.get(SEARCH_RADIUS_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, LOW_CUTOFF_KEY,
+        (String) valueMap.get(LOW_CUTOFF_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, HI_CUTOFF_KEY,
+        (String) valueMap.get(HI_CUTOFF_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, REF_THRESHOLD_KEY,
+        (String) valueMap.get(REF_THRESHOLD_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, DUPLICATE_SHIFT_TOLERANCE_KEY,
         (String) valueMap.get(DUPLICATE_SHIFT_TOLERANCE_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, DUPLICATE_ANGULAR_TOLERANCE_KEY,
@@ -1491,8 +1515,8 @@ public final class MatlabParam {
       setNameValuePair(manager, autodoc, name, value, (String) null);
     }
     else {
-      setNameValuePair(manager, autodoc, name, value, commentAttribute
-          .getMultiLineValue());
+      setNameValuePair(manager, autodoc, name, value,
+          commentAttribute.getMultiLineValue());
     }
   }
 
@@ -1545,7 +1569,7 @@ public final class MatlabParam {
     public static final InitMotlCode ZERO = new InitMotlCode(0);
     public static final InitMotlCode Z_AXIS = new InitMotlCode(1);
     public static final InitMotlCode X_AND_Z_AXIS = new InitMotlCode(2);
-    public static final InitMotlCode DEFAULT = ZERO;
+    public static final InitMotlCode RANDOM_ROTATIONS = new InitMotlCode(3);
 
     private final EtomoNumber value = new EtomoNumber();
 
@@ -1557,31 +1581,15 @@ public final class MatlabParam {
       return value.toString();
     }
 
+    /**
+     * There is no default because there may be unrecongized values
+     */
     public boolean isDefault() {
-      if (this == DEFAULT) {
-        return true;
-      }
       return false;
     }
 
-    private static InitMotlCode getInstance(final ReadOnlyAttribute attribute) {
-      if (attribute == null) {
-        return DEFAULT;
-      }
-      String value = attribute.getValue();
-      if (value == null) {
-        return DEFAULT;
-      }
-      if (ZERO.value.equals(value)) {
-        return ZERO;
-      }
-      if (Z_AXIS.value.equals(value)) {
-        return Z_AXIS;
-      }
-      if (X_AND_Z_AXIS.value.equals(value)) {
-        return X_AND_Z_AXIS;
-      }
-      return DEFAULT;
+    public boolean equals(final String string) {
+      return value.equals(string);
     }
 
     public ConstEtomoNumber getValue() {
