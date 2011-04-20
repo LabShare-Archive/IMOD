@@ -64,7 +64,7 @@ def commandsForFinish(comf, sirtname, testmode):
 #### MAIN PROGRAM  ####
 #
 # load System Libraries
-import os, sys, os.path, signal, math, re, glob
+import os, sys, os.path, signal, math, re, glob, shutil
 
 #
 # Setup runtime environment
@@ -677,6 +677,16 @@ while loopIter < iterations:
 
 if madeStart:
    comnum += 1
+
+# Copy the tilt.com that was used for etomo to use as a checkpoint on resumability
+usedname = rootname + '_for_sirt.com'
+makeBackupFile(usedname)
+try:
+   shutil.copyfile(comfile, usedname)
+except:
+   prnstr('WARNING: ' + progname + ' - Failed to copy ' + comfile + ' to ' + usedname)
+
+
 prnstr(fmtstr('{} command files created and ready to run with:', comnum))
 prnstr("  processchunks machine_list " + sirtname)
 if numproc == 1:
@@ -687,6 +697,9 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.12  2011/03/30 22:46:18  mast
+# Fix the sort of the statistics in the finish file
+#
 # Revision 1.11  2011/03/30 20:17:35  mast
 # Add -ignore option to densnorm to protect against 0 doses
 #
