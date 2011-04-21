@@ -141,7 +141,7 @@ int main( int argc, char *argv[])
     imodVersion(progname);
     imodCopyright();
     imodinfo_usage(progname);
-    exit(1);
+    exit(0);
   }
   fout = stdout;
 
@@ -2236,6 +2236,10 @@ static void trim_scan_contour(Icont *cont, Ipoint min, Ipoint max, int doclip,
 /*
 
 $Log$
+Revision 3.22  2010/03/31 05:11:55  mast
+Fixed verbose contour center of mass for scattered points and contours
+with one or two points
+
 Revision 3.21  2009/02/24 18:03:00  mast
 Made object centroid be done differently for open object
 
