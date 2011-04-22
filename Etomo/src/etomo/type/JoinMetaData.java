@@ -25,6 +25,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2010/02/26 20:38:20  sueh
+ * <p> Changing the complex popup titles are making it hard to complete the
+ * <p> uitests.
+ * <p>
  * <p> Revision 1.16  2010/02/17 04:52:36  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -775,7 +779,15 @@ public final class JoinMetaData extends BaseMetaData implements
     return max - min + 1;
   }
 
-  public int getCoordinate(ConstEtomoNumber coordinate, JoinState state) {
+  public int getCoordinate(ConstEtomoNumber coordinate, JoinState state) 
+    throws NullRequiredNumberException {
+      ConstEtomoNumber binning = state.getJoinTrialBinning();
+      if (coordinate.isNull()) {
+        throw new NullRequiredNumberException("Coordinate is null");
+      }
+      if (binning.isNull()) {
+        throw new NullRequiredNumberException("Binning is null");
+      }
     return coordinate.getInt() * state.getJoinTrialBinning().getInt();
   }
 
