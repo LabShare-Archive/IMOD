@@ -956,16 +956,7 @@ else
     endif
 endif
 
-# Test for python and set up makefile in pysrc
-#
-set pythonexe = `which python`
-if ($status) then
-    echo "Python is not installed or not on the path, so Python files will be skipped"
-    \cp $etomo_dir/Makefile.dummy $pysrc_dir/Makefile
-else
-    echo "# THIS FILE WAS COPIED BY SETUP FROM Makefile.real - DO NOT EDIT" >! $pysrc_dir/Makefile
-    cat $pysrc_dir/Makefile.real >> $pysrc_dir/Makefile
-endif
+# 4/11/22: removed test for python and dummy Makefile provision
 
 # copy imodconfig.h unless it has not changed
 #
@@ -1020,6 +1011,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.72  2011/01/14 21:47:45  mast
+#  Try to keep from editing wrong Makefiles
+#
 #  Revision 1.71  2011/01/03 21:45:16  mast
 #  Need to quote $ltiff in set
 #
