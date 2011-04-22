@@ -25,6 +25,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2011/02/22 05:45:59  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.18  2010/11/13 16:06:53  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -524,16 +527,16 @@ public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaDat
       props.setProperty(group + sectionTableDataSizeString, "0");
     }
     else {
-      props.setProperty(group + sectionTableDataSizeString, Integer
-          .toString(sectionTableData.size()));
+      props.setProperty(group + sectionTableDataSizeString,
+          Integer.toString(sectionTableData.size()));
     }
     sigmaLowFrequency.store(props, prepend);
     cutoffHighFrequency.store(props, prepend);
     sigmaHighFrequency.store(props, prepend);
     Transform.store(alignTransform, props, prepend, ALIGN_TRANFORM_KEY);
     Transform.store(modelTransform, props, prepend, MODEL_TRANFORM_KEY);
-    props.setProperty(group + useAlignmentRefSectionString, Boolean
-        .toString(useAlignmentRefSection));
+    props.setProperty(group + useAlignmentRefSectionString,
+        Boolean.toString(useAlignmentRefSection));
     alignmentRefSection.store(props, prepend);
     sizeInX.store(props, prepend);
     sizeInY.store(props, prepend);
@@ -779,8 +782,16 @@ public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaDat
     return max - min + 1;
   }
 
-  public int getCoordinate(ConstEtomoNumber coordinate, JoinState state) {
-    return coordinate.getInt() * state.getJoinTrialBinning().getInt();
+  public int getCoordinate(ConstEtomoNumber coordinate, JoinState state)
+      throws NullRequiredNumberException {
+    ConstEtomoNumber binning = state.getJoinTrialBinning();
+    if (coordinate.isNull()) {
+      throw new NullRequiredNumberException("Coordinate is null");
+    }
+    if (binning.isNull()) {
+      throw new NullRequiredNumberException("Binning is null");
+    }
+    return coordinate.getInt() * binning.getInt();
   }
 
   public Transform getAlignTransform() {
