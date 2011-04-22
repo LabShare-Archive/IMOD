@@ -167,7 +167,7 @@ if (! $?ETOMO_LOG_DIR) setenv ETOMO_LOG_DIR "$HOME/.etomologs"
 if ("$ETOMO_LOG_DIR" == "") setenv ETOMO_LOG_DIR "$HOME/.etomologs"
 set grabnum = 10
 if (-r "$ETOMO_LOG_DIR" && -d "$ETOMO_LOG_DIR") then
-    set errlogs = `cd "$ETOMO_LOG_DIR" ; ls -t etomo_err*.log | tail -n $grabnum`
+    set errlogs = `cd "$ETOMO_LOG_DIR" ; ls -rt etomo_err*.log | tail -n $grabnum`
     # Copy each one over.  Don't need to put it on list, they are in loglist
     if ("$errlogs" != "") then
         foreach i ($errlogs)
@@ -225,12 +225,13 @@ end
 # Tar the file and clean up
 #
 tar -czvf "$outfile" $list
+set tarstat = $status
 #gzip -f "$outfile"
 if (-e uname.out) \rm -f uname.out
 if (-e lslrt.out) \rm -f lslrt.out
 if (-e $comdir) \rm -rf $comdir
 if ("$copylogs" != "") \rm -f $copylogs
-if ($status) then
+if ($tarstat) then
     echo "ERROR: $pn - making snapshot tar file"
     exit 1
 endif
@@ -254,6 +255,9 @@ Options:
 EOF
 
 #  $Log$
+#  Revision 3.25  2010/04/20 16:03:39  mast
+#  Add tomopitch models
+#
 #  Revision 3.24  2010/03/31 01:55:33  mast
 #  Added a few files
 #
