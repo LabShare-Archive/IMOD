@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/21/11: Fixed a bug where Etomo was unable to read a possibly damaged .ejf
+file.  Also fixed the probable cause of the damage which was only in 4.1 (In
+4.1).
+
 4/19/11: Added a radio button for Uniform random rotation to eTomo - PEET.
 
 4/8/11: Fixed two bugs that crashed 3dmod when current contour/point is
