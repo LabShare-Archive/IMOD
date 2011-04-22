@@ -20,6 +20,9 @@ import etomo.BaseManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2011/04/22 02:15:53  sueh
+ * <p> bug# 1474 In load, handling a damaged .efj file by looking for essential trial value under different groups.  Only loads when parameter is null.  Should handle backwards compatibility as well.s
+ * <p>
  * <p> Revision 1.16  2011/02/22 05:46:19  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -308,7 +311,7 @@ public final class JoinState extends BaseState implements ConstJoinState {
       joinStartList.load(props, prepend);
       joinEndList.load(props, prepend);
     }
-//     if (!joinTrialVersion.isNull() && isJoinVersionGe(true, MIN_REFINE_VERSION)) {
+    if (!joinTrialVersion.isNull() && isJoinVersionGe(true, MIN_REFINE_VERSION)) {
     joinTrialAlignmentRefSection.load(props, prepend);
     joinTrialShiftInX.load(props, prepend);
     joinTrialShiftInY.load(props, prepend);
@@ -317,19 +320,11 @@ public final class JoinState extends BaseState implements ConstJoinState {
     joinTrialBinning.load(props, prepend);
     joinTrialStartList.load(props, prepend);
     joinTrialEndList.load(props, prepend);
-    //This may load incorrectly.  User should fix it by hand.
     joinTrialUseEveryNSlices.load(props, prepend);
-//}
-//else{
-    //There may be is interference from meta data in terms of how these fields are saved.
-    //Attempt to load these essential fields from somewhere.  When they are loaded, they
-    //won't get reloaded.  They must be loaded from the Join Trial value.  If they can't
-    //be found there, rerun trial join.
-    makeSureEssentialJoinTrialValuesLoaded(props, group);
-    makeSureEssentialJoinTrialValuesLoaded(props, "Join.");
-    makeSureEssentialJoinTrialValuesLoaded(props, "JoinState.");
-    makeSureEssentialJoinTrialValuesLoaded(props, "JoinState.Join.");
-//  }
+    }
+    else {
+      loadJoinTrialVersion1_0(props, prepend);
+    }
     joinLocalFits.load(props, prepend);
     joinTrialLocalFits.load(props, prepend);
     doneMode.load(props, prepend);
@@ -386,36 +381,28 @@ public final class JoinState extends BaseState implements ConstJoinState {
   }
 
   /**
-   * Tries to load any of the fields listed below if they are blank.  Handling backwards
-   * compatibility using version numbers is not work, probably because of interferance
-   * between JoinMetaData and this class.  These fields have to be loaded.
-   * Was loadJoinTrialVersion1_0.
+   * Loads JoinState version 0.0 data into trialFinishjoin.  There is no
+   * version 0.0 data available for finishjoin.
    * @param props
    * @param prepend
-   * @param level "Trial", "RejoinTrial" or blank
    */
-  private void makeSureEssentialJoinTrialValuesLoaded(Properties props, String group) {
-    String key;
-    if (joinTrialBinning.isNull()) {
-      key = group + "TrialBinning";
-      joinTrialBinning.set(props.getProperty(key));
-    }
-    if (joinTrialShiftInX.isNull()) {
-      key = group + "TrialShiftInX";
-      joinTrialShiftInX.set(props.getProperty(key));
-    }
-    if (joinTrialShiftInY.isNull()) {
-      key = group + "TrialShiftInY";
-      joinTrialShiftInY.set(props.getProperty(key));
-    }
-    if (joinTrialSizeInX.isNull()) {
-      key = group + "TrialSizeInX";
-      joinTrialSizeInX.set(props.getProperty(key));
-    }
-    if (joinTrialSizeInY.isNull()) {
-      key = group + "TrialSizeInY";
-      joinTrialSizeInY.set(props.getProperty(key));
-    }
+  private void loadJoinTrialVersion1_0(Properties props, String prepend) {
+    prepend = "JoinState.Trial";
+    String key = prepend + "Binning";
+    joinTrialBinning.set(props.getProperty(key));
+    props.remove(key);
+    key = prepend + "ShiftInX";
+    joinTrialShiftInX.set(props.getProperty(key));
+    props.remove(key);
+    key = prepend + "ShiftInY";
+    joinTrialShiftInY.set(props.getProperty(key));
+    props.remove(key);
+    key = prepend + "SizeInX";
+    joinTrialSizeInX.set(props.getProperty(key));
+    props.remove(key);
+    key = prepend + "SizeInY";
+    joinTrialSizeInY.set(props.getProperty(key));
+    props.remove(key);
   }
 
   public void setCurrentJoinVersion(boolean trial) {
