@@ -42,6 +42,7 @@ import etomo.type.FileType;
 import etomo.type.JoinMetaData;
 import etomo.type.JoinScreenState;
 import etomo.type.JoinState;
+import etomo.type.NullRequiredNumberException;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.Transform;
 import etomo.util.DatasetFiles;
@@ -60,6 +61,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 18:13:21  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -857,7 +861,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
    * the last finishjoin trial.
    * @param coordinates
    */
-  private void setSizeAndShift(Vector coordinates) {
+  private void setSizeAndShift(Vector coordinates) throws NullRequiredNumberException {
     if (coordinates == null) {
       return;
     }
@@ -1473,8 +1477,8 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     param.setObjectsToInclude(ltfObjectsToInclude.getText());
     param.setPointsToFit(ltfPointsToFitMin.getText(), ltfPointsToFitMax.getText());
     if (cbGap.isSelected()) {
-      param.setGapStartEndInc(ltfGapStart.getText(), ltfGapEnd.getText(), ltfGapInc
-          .getText());
+      param.setGapStartEndInc(ltfGapStart.getText(), ltfGapEnd.getText(),
+          ltfGapInc.getText());
     }
   }
 
@@ -1767,8 +1771,17 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
           deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
     }
     else if (command.equals(btnGetSubarea.getActionCommand())) {
-      setSizeAndShift(manager.imodGetRubberbandCoordinates(ImodManager.TRIAL_JOIN_KEY,
-          AxisID.ONLY));
+      try {
+        setSizeAndShift(manager.imodGetRubberbandCoordinates(ImodManager.TRIAL_JOIN_KEY,
+            AxisID.ONLY));
+      }
+      catch (NullRequiredNumberException e) {
+        UIHarness.INSTANCE.openMessageDialog(manager,
+            "Unable to retrieve the trial join's binning, size and/or shift.  Please "
+                + "press " + btnGetMaxSize.getUnformattedLabel()
+                + " and then rebuild the trial join in order get a correct subarea "
+                + "size and " + "shift.\n" + e.getMessage(), "Rerun Trial Join");
+      }
     }
     else if (command.equals(btnChangeSetup.getActionCommand())) {
       //Prepare for Revert:  meta data file should match the screen
@@ -1837,12 +1850,12 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
           run3dmodMenuOptions);
     }
     else if (command.equals(b3bOpenTrialIn3dmod.getActionCommand())) {
-      manager.imodOpen(ImodManager.TRIAL_JOIN_KEY, b3bOpenTrialIn3dmod
-          .getBinningInXandY(), run3dmodMenuOptions);
+      manager.imodOpen(ImodManager.TRIAL_JOIN_KEY,
+          b3bOpenTrialIn3dmod.getBinningInXandY(), run3dmodMenuOptions);
     }
     else if (command.equals(btnMakeRefiningModel.getActionCommand())) {
-      manager.imodOpen(AxisID.ONLY, ImodManager.MODELED_JOIN_KEY, DatasetFiles
-          .getRefineModelFileName(manager), run3dmodMenuOptions, true);
+      manager.imodOpen(AxisID.ONLY, ImodManager.MODELED_JOIN_KEY,
+          DatasetFiles.getRefineModelFileName(manager), run3dmodMenuOptions, true);
     }
     else if (command.equals(b3bOpenRejoin.getActionCommand())) {
       manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenRejoin.getBinningInXandY(),
@@ -1852,13 +1865,13 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       ConstEtomoNumber useEveryNSlices = state.getRefineTrialUseEveryNSlices();
       if (useEveryNSlices.isNull() || useEveryNSlices.gt(1)) {
         //don't open the model if all the slices have not been included
-        manager.imodOpen(ImodManager.TRIAL_JOIN_KEY, b3bOpenTrialRejoin
-            .getBinningInXandY(), run3dmodMenuOptions);
+        manager.imodOpen(ImodManager.TRIAL_JOIN_KEY,
+            b3bOpenTrialRejoin.getBinningInXandY(), run3dmodMenuOptions);
       }
       else {
-        manager.imodOpen(ImodManager.TRIAL_JOIN_KEY, b3bOpenTrialRejoin
-            .getBinningInXandY(), DatasetFiles.getRefineAlignedModelFileName(manager),
-            run3dmodMenuOptions);
+        manager.imodOpen(ImodManager.TRIAL_JOIN_KEY,
+            b3bOpenTrialRejoin.getBinningInXandY(),
+            DatasetFiles.getRefineAlignedModelFileName(manager), run3dmodMenuOptions);
       }
     }
     else if (command.equals(b3bOpenRejoinWithModel.getActionCommand())) {
@@ -1961,16 +1974,16 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       System.out.println("backup " + FileType.MODELED_JOIN);
       manager.backupImageFile(FileType.MODELED_JOIN, axisID);
       System.out.println("rename " + joinFileType + "," + FileType.MODELED_JOIN);
-      Utilities.renameFile(joinFileType.getFile(manager, axisID), FileType.MODELED_JOIN
-          .getFile(manager, axisID));
+      Utilities.renameFile(joinFileType.getFile(manager, axisID),
+          FileType.MODELED_JOIN.getFile(manager, axisID));
       // LogFile.getInstance(manager.getPropertyUserDir(), joinFileName).move(
       //    LogFile.getInstance(manager.getPropertyUserDir(), DatasetFiles
       // .getModeledJoinFileName(manager)));
     }
     catch (IOException e) {
       e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to move join file.\n"
-          + e.getMessage(), "Failed File Move");
+      UIHarness.INSTANCE.openMessageDialog(manager,
+          "Unable to move join file.\n" + e.getMessage(), "Failed File Move");
       return;
     }
     //convertVersion is true when the .ejf file is an older version and the user
