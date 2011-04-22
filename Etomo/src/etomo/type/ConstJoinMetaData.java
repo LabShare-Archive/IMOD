@@ -16,6 +16,9 @@ import java.util.ArrayList;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2009/09/20 21:29:04  sueh
+ * <p> bug# 1268 Reformatted.
+ * <p>
  * <p> Revision 1.16  2008/08/18 22:37:20  sueh
  * <p> bug# 1130 Added isLocalFits.
  * <p>
@@ -162,7 +165,8 @@ public interface ConstJoinMetaData {
 
   public String getBoundariesToAnalyze();
 
-  public int getCoordinate(ConstEtomoNumber coordinate, JoinState state);
+  public int getCoordinate(ConstEtomoNumber coordinate, JoinState state)
+      throws NullRequiredNumberException;
 
   public ConstEtomoNumber getSigmaLowFrequency();
 
