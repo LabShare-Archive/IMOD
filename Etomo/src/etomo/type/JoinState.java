@@ -20,6 +20,9 @@ import etomo.BaseManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2011/02/22 05:46:19  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.15  2009/09/01 03:04:00  sueh
  * <p> bug# 1222 in isJoinVersionGe, changed minimumVersion parameter to
  * <p> EtomoVersion.
@@ -203,8 +206,8 @@ public final class JoinState extends BaseState implements ConstJoinState {
         SlicerAngles rotationAngles = (SlicerAngles) rotationAnglesList
             .get(new Integer(i));
         if (rotationAngles != null) {
-          rotationAngles.store(props, SectionTableRowData.createPrepend(prepend,
-              new EtomoNumber().set(i + 1)));
+          rotationAngles.store(props,
+              SectionTableRowData.createPrepend(prepend, new EtomoNumber().set(i + 1)));
         }
       }
     }
@@ -305,34 +308,42 @@ public final class JoinState extends BaseState implements ConstJoinState {
       joinStartList.load(props, prepend);
       joinEndList.load(props, prepend);
     }
-    if (!joinTrialVersion.isNull() && isJoinVersionGe(true, MIN_REFINE_VERSION)) {
-      joinTrialAlignmentRefSection.load(props, prepend);
-      joinTrialShiftInX.load(props, prepend);
-      joinTrialShiftInY.load(props, prepend);
-      joinTrialSizeInX.load(props, prepend);
-      joinTrialSizeInY.load(props, prepend);
-      joinTrialBinning.load(props, prepend);
-      joinTrialStartList.load(props, prepend);
-      joinTrialEndList.load(props, prepend);
-      joinTrialUseEveryNSlices.load(props, prepend);
-    }
-    else {
-      loadJoinTrialVersion1_0(props, prepend);
-    }
+//     if (!joinTrialVersion.isNull() && isJoinVersionGe(true, MIN_REFINE_VERSION)) {
+    joinTrialAlignmentRefSection.load(props, prepend);
+    joinTrialShiftInX.load(props, prepend);
+    joinTrialShiftInY.load(props, prepend);
+    joinTrialSizeInX.load(props, prepend);
+    joinTrialSizeInY.load(props, prepend);
+    joinTrialBinning.load(props, prepend);
+    joinTrialStartList.load(props, prepend);
+    joinTrialEndList.load(props, prepend);
+    //This may load incorrectly.  User should fix it by hand.
+    joinTrialUseEveryNSlices.load(props, prepend);
+//}
+//else{
+    //There may be is interference from meta data in terms of how these fields are saved.
+    //Attempt to load these essential fields from somewhere.  When they are loaded, they
+    //won't get reloaded.  They must be loaded from the Join Trial value.  If they can't
+    //be found there, rerun trial join.
+    makeSureEssentialJoinTrialValuesLoaded(props, group);
+    makeSureEssentialJoinTrialValuesLoaded(props, "Join.");
+    makeSureEssentialJoinTrialValuesLoaded(props, "JoinState.");
+    makeSureEssentialJoinTrialValuesLoaded(props, "JoinState.Join.");
+//  }
     joinLocalFits.load(props, prepend);
     joinTrialLocalFits.load(props, prepend);
     doneMode.load(props, prepend);
     sampleProduced = Boolean.valueOf(
-        props.getProperty(group + sampleProducedString, Boolean
-            .toString(defaultSampleProduced))).booleanValue();
+        props.getProperty(group + sampleProducedString,
+            Boolean.toString(defaultSampleProduced))).booleanValue();
     totalRows.load(props, prepend);
     //retrieve the rotation angles by row number
     rotationAnglesList = null;
     if (!totalRows.isNull()) {
       for (int i = 0; i < totalRows.getInt(); i++) {
         SlicerAngles rotationAngles = new SlicerAngles();
-        rotationAngles.load(props, SectionTableRowData.createPrepend(prepend,
-            new EtomoNumber().set(i + 1)));
+        rotationAngles.load(props,
+            SectionTableRowData.createPrepend(prepend, new EtomoNumber().set(i + 1)));
         if (!rotationAngles.isEmpty()) {
           if (rotationAnglesList == null) {
             rotationAnglesList = new Hashtable();
@@ -375,28 +386,36 @@ public final class JoinState extends BaseState implements ConstJoinState {
   }
 
   /**
-   * Loads JoinState version 0.0 data into trialFinishjoin.  There is no
-   * version 0.0 data available for finishjoin.
+   * Tries to load any of the fields listed below if they are blank.  Handling backwards
+   * compatibility using version numbers is not work, probably because of interferance
+   * between JoinMetaData and this class.  These fields have to be loaded.
+   * Was loadJoinTrialVersion1_0.
    * @param props
    * @param prepend
+   * @param level "Trial", "RejoinTrial" or blank
    */
-  private void loadJoinTrialVersion1_0(Properties props, String prepend) {
-    prepend = "JoinState.Trial";
-    String key = prepend + "Binning";
-    joinTrialBinning.set(props.getProperty(key));
-    props.remove(key);
-    key = prepend + "ShiftInX";
-    joinTrialShiftInX.set(props.getProperty(key));
-    props.remove(key);
-    key = prepend + "ShiftInY";
-    joinTrialShiftInY.set(props.getProperty(key));
-    props.remove(key);
-    key = prepend + "SizeInX";
-    joinTrialSizeInX.set(props.getProperty(key));
-    props.remove(key);
-    key = prepend + "SizeInY";
-    joinTrialSizeInY.set(props.getProperty(key));
-    props.remove(key);
+  private void makeSureEssentialJoinTrialValuesLoaded(Properties props, String group) {
+    String key;
+    if (joinTrialBinning.isNull()) {
+      key = group + "TrialBinning";
+      joinTrialBinning.set(props.getProperty(key));
+    }
+    if (joinTrialShiftInX.isNull()) {
+      key = group + "TrialShiftInX";
+      joinTrialShiftInX.set(props.getProperty(key));
+    }
+    if (joinTrialShiftInY.isNull()) {
+      key = group + "TrialShiftInY";
+      joinTrialShiftInY.set(props.getProperty(key));
+    }
+    if (joinTrialSizeInX.isNull()) {
+      key = group + "TrialSizeInX";
+      joinTrialSizeInX.set(props.getProperty(key));
+    }
+    if (joinTrialSizeInY.isNull()) {
+      key = group + "TrialSizeInY";
+      joinTrialSizeInY.set(props.getProperty(key));
+    }
   }
 
   public void setCurrentJoinVersion(boolean trial) {
@@ -449,7 +468,13 @@ public final class JoinState extends BaseState implements ConstJoinState {
     refineTrial.set(trial);
   }
 
-  public int getNewShiftInX(int min, int max) {
+  public int getNewShiftInX(int min, int max) throws NullRequiredNumberException {
+    if (joinTrialShiftInX.isNull()) {
+      throw new NullRequiredNumberException(joinTrialShiftInY.getName() + " is null.");
+    }
+    if (joinTrialSizeInX.isNull()) {
+      throw new NullRequiredNumberException(joinTrialSizeInY.getName() + " is null.");
+    }
     return joinTrialShiftInX.getInt() + (joinTrialSizeInX.getInt() + 1) / 2 - (max + min)
         / 2;
   }
@@ -682,7 +707,13 @@ public final class JoinState extends BaseState implements ConstJoinState {
    * @param max
    * @return
    */
-  public int getNewShiftInY(int min, int max) {
+  public int getNewShiftInY(int min, int max) throws NullRequiredNumberException {
+    if (joinTrialShiftInY.isNull()) {
+      throw new NullRequiredNumberException(joinTrialShiftInY.getName() + " is null.");
+    }
+    if (joinTrialSizeInY.isNull()) {
+      throw new NullRequiredNumberException(joinTrialSizeInY.getName() + " is null.");
+    }
     return joinTrialShiftInY.getInt() + (joinTrialSizeInY.getInt() + 1) / 2 - (max + min)
         / 2;
   }
