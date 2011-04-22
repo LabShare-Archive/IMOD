@@ -72,8 +72,10 @@ public final class TomosnapshotParam implements Command {
 
   private final void buildCommand() {
     ArrayList command = new ArrayList();
-    command.add("tcsh");
-    command.add("-f");
+    command.add("python");
+    command.add("-u");
+    //command.add("tcsh");
+    //command.add("-f");
     command.add(BaseManager.getIMODBinPath() + COMMAND_NAME);
     //    command.add("-e");
     //    command.add(manager.getBaseMetaData().getMetaDataFileName());
@@ -128,6 +130,9 @@ public final class TomosnapshotParam implements Command {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2011/02/22 03:36:18  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.12  2010/04/28 16:09:45  sueh
  * <p> bug# 1344 Added getOutputImageFileType functions.
  * <p>
