@@ -41,6 +41,7 @@ import etomo.type.EtomoNumber;
 import etomo.type.JoinMetaData;
 import etomo.type.JoinScreenState;
 import etomo.type.JoinState;
+import etomo.type.NullRequiredNumberException;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.Transform;
 import etomo.util.DatasetFiles;
@@ -59,6 +60,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.72  2010/02/17 05:03:12  sueh
+ * <p> bug# 1301 Using manager instead of manager key for popping up messages.
+ * <p>
  * <p> Revision 1.71  2009/11/20 17:26:41  sueh
  * <p> bug# 1282 Naming all the file choosers by constructing a FileChooser
  * <p> instance instead of a JFileChooser instance.  Added isMenuSaveEnabled to
@@ -858,7 +862,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
    * the last finishjoin trial.
    * @param coordinates
    */
-  private void setSizeAndShift(Vector coordinates) {
+  private void setSizeAndShift(Vector coordinates)  throws NullRequiredNumberException {
     if (coordinates == null) {
       return;
     }
@@ -1792,8 +1796,18 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
           deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
     }
     else if (command.equals(btnGetSubarea.getActionCommand())) {
+      try {
       setSizeAndShift(manager.imodGetRubberbandCoordinates(
           ImodManager.TRIAL_JOIN_KEY, AxisID.ONLY));
+      }
+      catch (NullRequiredNumberException e) {
+        UIHarness.INSTANCE.openMessageDialog(manager,
+            "Unable to retrieve the trial join's binning, size and/or shift.  Please "
+                + "press " + GET_MAX_SIZE_TEXT
+                + " and then rebuild the trial join in order get a correct subarea "
+                + "size and " + "shift.\n" + e.getMessage(), "Rerun Trial Join");
+      }
+
     }
     else if (command.equals(btnChangeSetup.getActionCommand())) {
       //Prepare for Revert:  meta data file should match the screen
