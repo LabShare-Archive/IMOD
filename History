@@ -1,8 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-4/21/11: Fixed a bug where Etomo was unable to read a possibly damaged .ejf
-file.  Also fixed the probable cause of the damage which was only in 4.1 (In
-4.1).
+4/22/11: In 4.1, fixed a bug where Etomo - Join was not saving fields to the
+.ejf file after "Finish Join".  This prevented "Get Subarea Size and Shift"
+from working.  Popping up a message with instructions to fix the damage done
+by this bug in the current version and in 4.1.
 
 4/19/11: Added a radio button for Uniform random rotation to eTomo - PEET.
 
