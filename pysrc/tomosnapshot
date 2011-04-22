@@ -1,0 +1,563 @@
+#!/usr/bin/python -u
+# tomosnapshot - program to collect small files from etomo processing
+#
+# Author: David Mastronarde
+#
+# $Id$
+# Log at end
+#
+
+progname = 'tomosnapshot'
+prefix = 'ERROR: ' + progname + ' - '
+
+# The lists of different kinds of files for each kind of etomo data set
+
+edfSetFiles = ['.rawtlt', '_peak.mod', '.prexf', '.prexg', '.seed', '.fid', '.3dmod',
+               '.tlt', 'fid.xyz', '.resid', '.resmod', '.tltxf', '_fid.xf', 'local.xf',
+               '.matmod', '.pl', '.ecd', '_orig.seed', '.xtilt', '.maggrad', '.zfac',
+               '.defocus', '_erase.fid', '_3dfind.mod', '_flat.mod', '_flat.mod']
+edfAxisHeaders = ['_orig.st', '.st', '.preali', '.ali', '.rec', '.mat _full.rec']
+edfSingleFiles = ['solvezero.xf', 'solve.xf', 'refine.xf', 'warp.xf', 'inverse.xf', 
+                  'patch.out', 'patch_vector.mod', 'patch_vector_ccc.mod',
+                  'patch_region.mod', 'processchunks.out',
+                  'processchunksa.out', 'processchunksb.out', 'processchunks.csh',
+                  'processchunksa.csh', 'processchunksb.csh', 'transferfid.coord', 
+                  'combine.out', 'volcombine.csh', 'tomopitcha.mod', 'tomopitchb.mod',
+                  'tomopitch.mod']
+edfSingleHeaders = []
+ejfSetFiles = ['.info', '.tomoxf', '.tomoxg', '.xf', '_auto.xcxf', '_auto.xf',
+               '_empty.xf', '_midas.xf', '.sqzxf', '.xpndxf', '_refine.mod', '_join.mod',
+               '_refine.alimod', '_refine.xf', '_refine.xg', '_refinejoin.xg']
+ejfAxisHeaders = []
+ejfSingleFiles = []
+ejfSingleHeaders = []
+epeSetFiles = ['.prm']
+epeAxisHeaders = []
+epeSingleFiles = ['processchunks.out', 'processchunks.csh']
+epeSingleHeaders = []
+nadSetFiles = []
+nadAxisHeaders = []
+nadSingleFiles = []
+nadSingleHeaders = []
+eppSetFiles = []
+eppAxisHeaders = []
+eppSingleFiles = ['processchunks.out', 'processchunks.csh']
+eppSingleHeaders = []
+allSetFiles = [edfSetFiles, ejfSetFiles, epeSetFiles, nadSetFiles, eppSetFiles]
+allAxisHeaders = [edfAxisHeaders, ejfAxisHeaders, epeAxisHeaders, nadAxisHeaders,
+                  eppAxisHeaders]
+allSingleFiles = [edfSingleFiles, ejfSingleFiles, epeSingleFiles, nadSingleFiles,
+                  eppSingleFiles]
+allSingleHeaders = [edfSingleHeaders, ejfSingleHeaders, epeSingleHeaders,
+                    nadSingleHeaders, eppSingleHeaders]
+# The extensions of file types
+extList = ['edf', 'ejf', 'epe', 'epp']
+
+# Keys for different types of files in each file type
+allSetKeys = [['Setup.DatasetName'], ['Join.RootName'], ['Peet.RootName'],
+               ['AnisotropicDiffusion.RootName', 'Parallel.RootName']]
+
+# Some global variables
+tempdir = '.'
+copylogs = []
+tarlist = []
+
+
+# FUNCTIONS
+
+# To get a value from the etomo file or a prm file
+def getKeyValue(etomoLines, key):
+   for i in range(len(etomoLines)):
+      line = etomoLines[i]
+      if line.startswith(key):
+         if line.find('{') >= 0 and line.find('}') < 0:
+            for j in range(i + 1, len(etomoLines)):
+               line += ' ' + etomoLines[j]
+               if etomoLines[j].find('}') >= 0:
+                  break
+         lsplit = line.split('=')
+         if len(lsplit) > 1:
+            return lsplit[1].strip().strip('{}').strip()
+   return None
+
+
+# Parse an entry in a prm file and if it contains strings, return list of unique ones
+def prmUniqueEntries(prmLines, key):
+   value = getKeyValue(prmLines, key)
+   if value == None or value.find("'") < 0:
+      return None
+   entries = []
+   vsplit = value.split(',')
+   for entry in vsplit:
+      entry = entry.strip().strip("'")
+      if entry not in entries:
+         entries.append(entry)
+   return entries
+
+
+# Copy an error log and change permissions; or copy other files to be deleted later
+def copyErrLog(errfile):
+   global copylogs, tarlist
+   base = os.path.basename(errfile)
+   if not os.path.exists(errfile) or base in copylogs:
+      return
+   try:
+
+      # You need to use copy2, not copy then copystat, to get dates right
+      shutil.copy2(errfile, tempdir)
+      copylogs.append(base)
+
+      # Add to tar list if it is other directory, or if it is not a log file; otherwise
+      # the globs of logs will take care of it
+      if tempdir != '.' or not base.endswith('.log'):
+         tarlist.append(base)
+      copiedFile = os.path.join(tempdir, base)
+      try:
+         os.chmod(copiedFile, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
+      except:
+         warning('Failed to change mode of ' + copiedFile)
+      
+   except:
+      warning('Failed to copy ' + errfile)
+
+
+# Print a warning
+def warning(message):
+   prnstr('WARNING: ' + progname + ' - ' + message)
+
+
+# Strip line endings from program output and write file
+def stripAndWrite(outfile, lines):
+   for i in range(len(lines)):
+      lines[i] = lines[i].rstrip('\r\n')
+   writeTextFile(outfile, lines)
+
+
+# Remove a file and warn if fails
+def removeWarn(rfile):
+   try:
+      os.remove(rfile)
+   except:
+      warning('Failed to remove ' + rfile)
+
+
+#### MAIN PROGRAM  ####
+#
+# load System Libraries
+import os, sys, os.path, signal, glob, shutil, tempfile, tarfile, stat
+
+#
+# Setup runtime environment
+if sys.platform.find("win32") < 0:
+   try:
+      signal.signal(signal.SIGHUP, signal.SIG_IGN)
+   except:
+      pass
+if os.getenv('IMOD_DIR') != None:
+   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
+                        os.pathsep + os.environ['PATH']
+   sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import *
+
+# Startup
+unameFile = 'uname.out'
+lslrtFile = 'lslrt.out'
+
+options = ["e:EtomoFile:FN:Etomo data file to define type of snapshot (can be " + \
+           "non-option argument)",
+           "o:OutputFile:FN:Name of tarred output file (default rootname-snapshot)",
+           "w:WriteableDirectory:FN:Location at which to place output and temporary "+ \
+           "files",
+           "help:usage:B:Print usage output"]
+PipExitOnError(0, prefix)
+(numOpts, numNonOpts) = PipParseInput(sys.argv, options)
+
+# Print help
+if PipGetBoolean('help', 0):
+   prnstr("""tomosnapshot collects small files and other information about
+   one form of eTomo processing.
+   If no etomo data file is specified, it searches for files in this order:
+   tomogram generation (.edj), joining (.ejf), PEET (.epe), NAD (.epe),
+   generic parallel processing (.epe)
+   It must be run from the data directory, but you do not need to have write
+   permission in that directory if you specify an alternate writeable directory.""")
+   
+   PipPrintHelp(progname, 0, 0, 0)
+   sys.exit(0)
+
+# Process options
+etomoFile = PipGetInOutFile('EtomoFile', 0)
+
+writeableDir = PipGetString('WriteableDirectory', '.')
+
+if not os.path.isdir(writeableDir):
+   exitError(writeableDir + ' is not a directory')
+if not os.access(writeableDir, os.W_OK):
+   exitError('You do not have permission to write in the directory ' + writeableDir)
+
+for ext in extList:
+   if etomoFile == None:
+      files = glob.glob('*.' + ext)
+      if len(files):
+         etomoFile = files[0]
+
+# If there is an etomo file at all, search it for the setname of appropriate type
+typeInd = 0
+setname = None
+axisType = None
+copylist = []
+tarlist = [unameFile, lslrtFile]
+if etomoFile:
+   copylist.append(etomoFile)
+   etomoLines = readTextFile(etomoFile)
+   for extInd in range(len(extList)):
+      if etomoFile.endswith(extList[extInd]):
+
+         # If the extension matches, check for the keys that go with that extension
+         for key in allSetKeys[extInd]:
+            setname = getKeyValue(etomoLines, key)
+            if setname:
+               break
+            typeInd += 1
+
+         # If no key is found, it is an error; except fall back to xcorr for an edf
+         else:
+            if typeInd > 1:
+               exitError('Data set root name not found in etomo data file')
+            warning('Data set root name not found in etomo data file')
+            etomoFile = None
+            break
+
+      # done looking if got setname or had to fall back; otherwise increment type
+      if setname or etomoFile == None:
+         break
+      typeInd += len(allSetKeys[extInd])
+
+   else:
+      exitError('Specified etomo file ' + etomoFile + ' does not have an appropriate' +\
+                ' extension')
+
+   # For edf, look up the axis type; fall back to looking at xcorr.com
+   if etomoFile and typeInd == 0:
+      axisType = getKeyValue(etomoLines, 'Setup.AxisType')
+      if not axisType:
+         warning('Cannot find axis type in edf file')
+         etomoFile = None
+
+# If there was no etomo file found or specified or failure occurred, now do the fallback
+if etomoFile == None:
+   typeInd = 0
+   if os.path.exists(inputDir + 'xcorr.com'):
+      xcorrFile = inputDir + 'xcorr.com'
+      axisType = 'Single Axis'
+   elif os.path.exists(inputDir + 'xcorra.com'):
+      xcorrFile = inputDir + 'xcorra.com'
+      axisType = 'Dual Axis'
+   else:
+      if setname:
+         exitError('Cannot find an xcorr com file in the input directory to determine' +\
+                   ' axis type')
+      else:
+         exitError('Cannot find an etomo file or xcorr com file in the input directory')
+
+   # Get the setname from the file if it is still needed
+   if not setname:
+      xcorrLines = readTextFile(xcorrFile)
+      inputFile = optionValue(xcorrLines, 'InputFile', 0)
+      if inputFile == None:
+         exitError('Cannot find dataset name in ' + xcorrFile)
+      (setname, ext) = os.path.splitext(inputFile)
+      if axisType == 'Single Axis':
+         setname = setname[:len(setname) - 1]
+         warning('no etomo data file found, taking data set name from ' + xcorrfile)
+
+# Now we know the data type, get file lists
+oneAxisSetFiles = allSetFiles[typeInd]
+oneAxisHeaders = allAxisHeaders[typeInd]
+singleFiles = allSingleFiles[typeInd]
+singleHeaders = allSingleHeaders[typeInd]
+
+naxis = 1
+axislet = ''
+if axisType == 'Dual Axis':
+   naxis = 2
+   axislet = 'a'
+
+outputFile = PipGetString('OutputFile', setname + '-snapshot')
+
+# Get a temporary dir if needed, and the com file dir
+if writeableDir != '.':
+   try:
+      tempdir = tempfile.mkdtemp(prefix = 'tomosnaptmp-', dir = writeableDir)
+   except:
+      exitError("Creating temporary directory to copy files into")
+try:
+   comdir =  tempfile.mkdtemp(prefix = 'tomosnapshot.cms.', dir = tempdir)
+except:
+   exitError("Creating temporary directory for com files")
+
+# Get the directory listing and the uname output
+# Find out if there is no cygwin: i.e., it is windows python and uname fails
+unameOut = []
+winOnly = False
+try:
+   unameOut = runcmd('uname -a', None, None, STDOUT)
+except:
+   winOnly = sys.platform.find('win32') >= 0
+   
+if winOnly:
+   winver = sys.getwindowsversion()
+   unameOut = [fmtstr('Windows version: {} - {} - {} - {} - {}', winver[0], winver[1],
+                      winver[2], winver[3], winver[4])]
+
+unameOut.append("Python version: " + sys.version)
+infolines = runcmd('imodinfo')
+if len(infolines):
+   unameOut.append(infolines[0])
+
+for k, v in os.environ.items():
+   unameOut.append(k + '=' + v)
+
+# Should we do the registry with -r?  It takes 3 seconds
+if (sys.platform.find('cygwin') >= 0 or sys.platform.find('win32') >= 0) and not winOnly:
+   unameOut += runcmd('cygcheck -s -v -r', None, None, STDOUT)
+
+# Type-specific additions to lists here:
+#
+# JOIN
+if typeInd == 1:
+   infofile = setname + '.info'
+   if os.path.exists(infofile):
+      infolines = readTextFile(infofile)
+      nlines = len(infolines)
+      if nlines > 3:
+         lsplit = infolines[0].split()
+         numfiles = 0
+         if len(lsplit) > 1:
+            numfiles = int(lsplit[0])
+         if numfiles > 0:
+            for i in range(max(3, nlines - numfiles), nlines):
+               singleHeaders.append(infolines[i])
+
+   oneAxisHeaders += ['.sampavg', '.sample', '.join', '_modeled.join', '_trial.join']
+
+
+#
+# PEET
+if typeInd == 2:
+   motls = glob.glob(setname + '_MOTL_*.csv')
+   singleFiles += motls
+   refs = glob.glob('*' + setname + '*_Ref*.mrc')
+   singleHeaders += refs
+   avgs = glob.glob('*' + setname + '*_AvgVol*.mrc')
+   singleHeaders += avgs
+   prmFile = setname + '.prm'
+   if os.path.exists(prmFile):
+      prmLines = readTextFile(prmFile)
+      volumes = prmUniqueEntries(prmLines, 'fnVolume')
+      if volumes:
+         singleHeaders += volumes
+      ref = getKeyValue(prmLines, 'reference')
+      if ref.find("'") >= 0:
+         singleHeaders.append(ref.strip("'"))
+      for key in ('fnModParticle', 'initMOTL'):
+         entries = prmUniqueEntries(prmLines, key)
+         if entries:
+            for entry in entries:
+
+               # If a file with the base name is here, use it by adding to list;
+               # if it is not, copy it here and have it deleted at end
+               base = os.path.basename(entry)
+               if os.path.exists(base):
+                  singleFiles.append(base)
+               else:
+                  copyErrLog(entry)
+
+#
+# NAD
+naddir = None
+if typeInd == 3:
+   naddir = 'naddir.' + setname
+   singleHeaders.append(setname)
+   singleFiles.append(naddir + '-pc.csh')
+   singleFiles.append(os.path.join(naddir, 'processchunks.out'))
+   singleHeaders.append(os.path.join(naddir, 'test.input'))
+   tests = glob.glob(os.path.join(naddir, 'test.K*[0-9]'))
+   singleHeaders += tests
+   
+
+# Run the file listing now that we know if we need a subdir
+if naddir:
+   os.chdir(naddir)
+if winOnly:
+   lslrt = runcmd('dir /OD')
+   winver = sys.getwindowsversion()
+   unameOut = [fmtstr('Windows version: {} - {} - {} - {} - {}', winver[0], winver[1],
+                      winver[2], winver[3], winver[4])]
+
+else:
+   lslrt = runcmd('ls -lrt')
+   lslrt += runcmd('ls -ld .')
+if naddir:
+   os.chdir('..')
+   
+stripAndWrite(os.path.join(tempdir, lslrtFile), lslrt)
+
+
+# Get error logs from elsewhere
+if os.path.exists('etomo_err.log'):
+   errlines = readTextFile('etomo_err.log')
+   for line in errlines:
+      if line.startswith('Error log'):
+         nameind = line.find('is in ') + 6
+         if nameind > 10:
+            copyErrLog(line[nameind:])
+
+# Get last 10 from the log directory (may be redundant)
+# NOTE csh tomosnapshot has a bug, should be ls -rt
+logDir = os.getenv('ETOMO_LOG_DIR')
+if logDir == None and os.getenv('HOME'):
+   logDir = os.path.join(os.getenv('HOME'), '.etomologs')
+if os.path.exists(logDir) and os.path.isdir(logDir) and os.access(logDir, os.R_OK):
+   errlogs = glob.glob(os.path.join(logDir, 'etomo_err*.log'))
+   numlogs = len(errlogs)
+   if numlogs:
+
+      # sort the logs by newest first (higher mtime)
+      sortInd = list(range(numlogs))
+      mtimes = []
+      for i in sortInd:
+         mtimes.append(os.path.getmtime(errlogs[i]))
+      if numlogs > 1:
+         for i in range(numlogs - 1):
+            for j in range(i + 1, numlogs):
+               if mtimes[sortInd[i]] < mtimes[sortInd[j]]:
+                  temp = sortInd[i]
+                  sortInd[i] = sortInd[j]
+                  sortInd[j] = temp
+      for i in range (min(10, numlogs)):
+         copyErrLog(errlogs[sortInd[i]])
+               
+# Get all com and log files and backups except the ta*.log
+# Look in naddir for NAD, or confine to setname-* for parallel processing
+globpref = ''
+if naddir:
+   globpref = naddir + os.sep
+elif typeInd == 4:
+   globpref = setname + '-'
+comlist = glob.glob(globpref + '*.com')
+comlistb = glob.glob(globpref + '*.com~')
+loglist = glob.glob(globpref + '*.log')
+loglistb = glob.glob(globpref + '*.log~')
+for logs in (loglist, loglistb):
+   if len(logs):
+      for i in range(len(logs) - 1, -1, -1):
+         if logs[i].startswith('ta'):
+            logs.pop(i)
+
+# Copy the com files to the com dir with .com stripped
+for comfile in comlist:
+   (base, ext) = os.path.splitext(os.path.basename(comfile))
+   try:
+      shutil.copy2(comfile, os.path.join(comdir, base))
+   except:
+      warning("Failed to copy " + comfile + " to " + comdir)
+
+tarlist.append(os.path.basename(comdir))
+
+# Put the logs and backup coms on a copy list
+copylist += comlistb + loglist + loglistb
+
+# Loop on axis files, adding files to the copy list if they exist, getting headers
+for axnum in range(naxis):
+   for ext in oneAxisSetFiles:
+      sfile = setname + axislet + ext
+      if os.path.exists(sfile):
+         copylist.append(sfile)
+
+   for ext in oneAxisHeaders:
+      sfile = setname + axislet + ext
+      if os.path.exists(sfile):
+         try:
+            unameOut += runcmd('header ' + sfile)
+         except:
+            warning('Failed to run header on ' + sfile)
+
+   axislet = 'b'
+
+# Add single files to copy list if they exist
+for sfile in singleFiles:
+   if os.path.exists(sfile):
+      copylist.append(sfile)
+
+# Get headers of single files if they exist.
+# They may have spaces in path so run header with standard input
+for sfile in singleHeaders:
+   if os.path.exists(sfile):
+      try:
+         unameOut += runcmd('header -StandardInput', ['InputFile ' + sfile])
+      except:
+         warning('Failed to run header on ' + sfile)
+
+# Add them all to the tar list, or copy them to other directory if needed and add to
+# tar list only if copy succeeds
+if tempdir == '.':
+   tarlist += copylist
+else:
+   for sfile in copylist:
+      try:
+         shutil.copy2(sfile, tempdir)
+         tarlist.append(os.path.basename(sfile))
+      except:
+         warning("Copying " + sfile + " to " + tempdir)
+
+# Write uname.out at last
+stripAndWrite(os.path.join(tempdir, unameFile), unameOut)
+
+# Tar the files
+outFile = outputFile
+if tempdir != '.':
+   os.chdir(tempdir)
+   outFile = os.path.join('..', outputFile)
+
+try:
+   tarFile = tarfile.open(outFile, 'w|gz')
+   for sfile in tarlist:
+      try:
+         tarFile.add(sfile)
+      except:
+         warning("Adding " + sfile + " to the tar file")
+   tarFile.close()
+except:
+   exitError('Opening or writing the tar file')
+
+# Clean up the com dir
+if tempdir != '.':
+   prnstr("Snapshot done, placed in " + os.path.join(writeableDir, outputFile))
+   os.chdir('..')
+   try:
+      shutil.rmtree(os.path.basename(tempdir))
+   except:
+      warning('Failed to remove temporary directory ' + tempdir)
+else:
+   prnstr("Snapshot done, placed in " + outputFile)
+   try:
+      shutil.rmtree(os.path.basename(comdir))
+   except:
+      warning('Failed to remove temporary com file directory ' + comdir)
+   removeWarn(unameFile)
+   removeWarn(lslrtFile)
+   for log in copylogs:
+      removeWarn(log)
+
+sys.exit(0)
+
+#
+# $Log$
