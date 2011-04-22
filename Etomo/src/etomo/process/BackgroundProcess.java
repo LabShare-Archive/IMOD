@@ -28,6 +28,10 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.44.2.3  2011/03/25 01:54:15  sueh
+ * <p> bug# 1465 Added constructor with CommandDetails so it can be used
+ * <p> during processDone() when nad_eed_3d is run.
+ * <p>
  * <p> Revision 3.44.2.2  2010/07/02 04:11:08  sueh
  * <p> bug# 1388 Merging changes from head.
  * <p>
@@ -371,7 +375,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
     this.processSeries = processSeries;
     commandArrayList = null;
-    processDetails = null;
+    processDetails = commandDetails;
     this.commandDetails = commandDetails;
     forceNextProcess = false;
   }
