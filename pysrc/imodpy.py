@@ -10,8 +10,8 @@
 """A collection of useful functions for use in IMOD scripts
 
 This module provides the following functions:
-  runcmd(cmd[, input][,outfile]) - spawn a command with optional input, return
-                                   its output or print to stdout or a file
+  runcmd(cmd[, input][,outfile][, inStderr]) - spawn a command with optional input,
+                                   return its output or print to stdout or a file
   getmrcsize(file)     - run the 'header' command on <file>.
                          returns a triple of x,y,z size integers
   getmrc(file, doAll)  - run the 'header' command on <file>.
@@ -76,12 +76,14 @@ def getErrStrings():
 # not None
 #  cmd is a STRING
 #
-def runcmd(cmd, input=None, outfile=None):
-   """runcmd(cmd[, input][, outfile])
+def runcmd(cmd, input=None, outfile=None, inStderr = None):
+   """runcmd(cmd[, input][, outfile][, inStderr])
        - spawn a command with optional input, either send its output to
        outfile or return its output in an array of strings.
        cmd is a string; input is an array; outfile is a file object or
        the string 'stdout' to send output to standard out
+       inStderr is used for the stderr argument when calling Popen and could be
+       PIPE for it to be swallowed or STDOUT for it to be combined with other output.
        If outfile is none and the command fails with a broken pipe within 0.5 second,
        it will retry up to 10 times.  Call setRetryLimit() to modify the allowed number
        of retries and the maximum run time for a failure to be retried."""
@@ -118,7 +120,7 @@ def runcmd(cmd, input=None, outfile=None):
                
             # Run it three different ways depending on where output goes
             if collect:
-               p = Popen(cmd, shell=True, stdout=PIPE, stdin=PIPE)
+               p = Popen(cmd, shell=True, stdout=PIPE, stdin=PIPE, stderr=inStderr)
                kout, kerr = p.communicate(input)
                if pyVersion >= 300:
                   kout = kout.decode()
@@ -648,6 +650,9 @@ def prnstr(string, file = sys.stdout, end = '\n'):
 
 
 #  $Log$
+#  Revision 1.16  2011/03/21 22:13:58  mast
+#  Made it retry commands after broken pipe
+#
 #  Revision 1.15  2011/02/26 04:38:39  mast
 #  Jazzed up getmrc to return all possible easy entries
 #
