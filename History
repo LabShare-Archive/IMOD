@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/23/11: IMOD_4-1-10
+4/22/11: Fixed a bug where Etomo - Join was not saving fields to the .ejf file
+after "Finish Join".  This prevented "Get Subarea Size and Shift" from
+working.  Popping up a message with instructions to fix the damage done by
+this bug.
+
 3/30/11: IMOD_4-1-9
 3/30/11: Fixed Newstack copying extra header data with multiple input files.
 
