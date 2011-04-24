@@ -284,7 +284,6 @@ cleansrc : ALWAYS
 	\find qtassist -type f -name "moc_*.cpp" -exec rm "{}" \;
 	\find plugs -type f -name "moc_*.cpp" -exec rm "{}" \;
 	(cd pysrc ; make clean)
-	/bin/rm -f pysrc/Makefile
 	(cd manpages ; make clean)
 	(cd flib/man ; make clean)
 	(cd autodoc ; make clean)
@@ -366,6 +365,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.89  2011/03/08 15:37:02  mast
+#  Add build notes to src
+#
 #  Revision 3.88  2011/02/10 00:21:08  mast
 #  Switch to new processchunks again
 #
