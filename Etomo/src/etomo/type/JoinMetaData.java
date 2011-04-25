@@ -25,6 +25,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2011/04/22 02:15:21  sueh
+ * <p> bug# 1474 In getCoordinate throwing NullRequiredNumberException when coordinate or state.joinTrialBinning
+ * <p> is null..
+ * <p>
  * <p> Revision 1.19  2011/02/22 05:45:59  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -231,7 +235,7 @@ public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaDat
   }
 
   public String toString() {
-    return getClass().getName() + "[" + paramString() + "]";
+    return "[rootName:" + rootName + "," + super.toString() + "]";
   }
 
   /**

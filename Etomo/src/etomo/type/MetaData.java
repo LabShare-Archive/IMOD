@@ -29,6 +29,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.70  2011/04/04 17:07:35  sueh
+ * <p> bug# 1416 Added genBackProjectionA and B, genRadialRadiusA and B, genRadialSigmaA and B,
+ * <p> genResumeEnabledA and B, genSubareaA and B, genYOffsetOfSubareaA and B.
+ * <p>
  * <p> Revision 3.69  2011/03/01 23:59:19  sueh
  * <p> bug# 1452 Changed imageRotation to an EtomoNumber.  Removed
  * <p> double getImageRotation.
@@ -346,20 +350,19 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private static final String newTomogramTitle = "Setup Tomogram";
 
   private static final String TOMO_GEN_A_TILT_PARALLEL_GROUP = DialogType.TOMOGRAM_GENERATION
-      .getStorableName()
-      + AxisID.FIRST.getExtension().toUpperCase() + ".Tilt.Parallel";
+      .getStorableName() + AxisID.FIRST.getExtension().toUpperCase() + ".Tilt.Parallel";
   private static final String TOMO_GEN_B_TILT_PARALLEL_GROUP = DialogType.TOMOGRAM_GENERATION
-      .getStorableName()
-      + AxisID.SECOND.getExtension().toUpperCase() + ".Tilt.Parallel";
+      .getStorableName() + AxisID.SECOND.getExtension().toUpperCase() + ".Tilt.Parallel";
   private static final String FINAL_STACK_A_CTF_CORRECTION_PARALLEL_GROUP = DialogType.FINAL_ALIGNED_STACK
       .getStorableName()
-      + AxisID.FIRST.getExtension().toUpperCase() + ".CtfCorrection.Parallel";
+      + AxisID.FIRST.getExtension().toUpperCase()
+      + ".CtfCorrection.Parallel";
   private static final String FINAL_STACK_B_CTF_CORRECTION_PARALLEL_GROUP = DialogType.FINAL_ALIGNED_STACK
       .getStorableName()
-      + AxisID.SECOND.getExtension().toUpperCase() + ".CtfCorrection.Parallel";
+      + AxisID.SECOND.getExtension().toUpperCase()
+      + ".CtfCorrection.Parallel";
   private static final String COMBINE_VOLCOMBINE_PARALLEL_GROUP = DialogType.TOMOGRAM_COMBINATION
-      .getStorableName()
-      + ".Volcombine.Parallel";
+      .getStorableName() + ".Volcombine.Parallel";
   private static final String B_STACK_PROCESSED_GROUP = "BStackProcessed";
   private static final int DEFAULT_SAMPLE_THICKNESS = 200;
   private static final String FIDUCIALESS_KEY = "Fiducialess";
@@ -481,21 +484,21 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private final EtomoBoolean2 fiducialessB = new EtomoBoolean2("B." + FIDUCIALESS_KEY);
   private String targetPatchSizeXandY = TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_DEFAULT;//backwards compatibility
   private String numberOfLocalPatchesXandY = TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_DEFAULT;
-  private final EtomoBoolean2 noBeamTiltSelectedA = new EtomoBoolean2(AxisID.FIRST
-      .getExtension()
-      + "." + DialogType.FINE_ALIGNMENT.getStorableName() + ".NoBeamTiltSelected");
-  private final EtomoBoolean2 fixedBeamTiltSelectedA = new EtomoBoolean2(AxisID.FIRST
-      .getExtension()
-      + "." + DialogType.FINE_ALIGNMENT.getStorableName() + ".FixedBeamTiltSelected");
+  private final EtomoBoolean2 noBeamTiltSelectedA = new EtomoBoolean2(
+      AxisID.FIRST.getExtension() + "." + DialogType.FINE_ALIGNMENT.getStorableName()
+          + ".NoBeamTiltSelected");
+  private final EtomoBoolean2 fixedBeamTiltSelectedA = new EtomoBoolean2(
+      AxisID.FIRST.getExtension() + "." + DialogType.FINE_ALIGNMENT.getStorableName()
+          + ".FixedBeamTiltSelected");
   private final EtomoNumber fixedBeamTiltA = new EtomoNumber(EtomoNumber.Type.FLOAT,
       AxisID.FIRST.getExtension() + "." + DialogType.FINE_ALIGNMENT.getStorableName()
           + ".FixedBeamTilt");
-  private final EtomoBoolean2 noBeamTiltSelectedB = new EtomoBoolean2(AxisID.SECOND
-      .getExtension()
-      + "." + DialogType.FINE_ALIGNMENT.getStorableName() + ".NoBeamTiltSelected");
-  private final EtomoBoolean2 fixedBeamTiltSelectedB = new EtomoBoolean2(AxisID.SECOND
-      .getExtension()
-      + "." + DialogType.FINE_ALIGNMENT.getStorableName() + ".FixedBeamTiltSelected");
+  private final EtomoBoolean2 noBeamTiltSelectedB = new EtomoBoolean2(
+      AxisID.SECOND.getExtension() + "." + DialogType.FINE_ALIGNMENT.getStorableName()
+          + ".NoBeamTiltSelected");
+  private final EtomoBoolean2 fixedBeamTiltSelectedB = new EtomoBoolean2(
+      AxisID.SECOND.getExtension() + "." + DialogType.FINE_ALIGNMENT.getStorableName()
+          + ".FixedBeamTiltSelected");
   private final EtomoNumber fixedBeamTiltB = new EtomoNumber(EtomoNumber.Type.FLOAT,
       AxisID.SECOND.getExtension() + "." + DialogType.FINE_ALIGNMENT.getStorableName()
           + ".FixedBeamTilt");
@@ -1404,8 +1407,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     combineParams.load(props, group);
     distortionFile = props.getProperty(group + "DistortionFile", distortionFile);
     magGradientFile = props.getProperty(group + "MagGradientFile", magGradientFile);
-    binning = Integer.parseInt(props.getProperty(group + "Binning", Integer
-        .toString(binning)));
+    binning = Integer.parseInt(props.getProperty(group + "Binning",
+        Integer.toString(binning)));
 
     fiducialessAlignmentA = Boolean.valueOf(
         props.getProperty(group + "FiducialessAlignmentA", "false")).booleanValue();
@@ -1680,25 +1683,25 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     props.setProperty(group + "ImageRotationA", String.valueOf(imageRotationA));
     props.setProperty(group + "ImageRotationB", String.valueOf(imageRotationB));
     tiltAngleSpecA.store(props, group + "AxisA");
-    props.setProperty(group + "AxisA.ExcludeProjections", String
-        .valueOf(excludeProjectionsA));
+    props.setProperty(group + "AxisA.ExcludeProjections",
+        String.valueOf(excludeProjectionsA));
 
     tiltAngleSpecB.store(props, group + "AxisB");
-    props.setProperty(group + "AxisB.ExcludeProjections", String
-        .valueOf(excludeProjectionsB));
+    props.setProperty(group + "AxisB.ExcludeProjections",
+        String.valueOf(excludeProjectionsB));
 
     combineParams.store(props, group);
     props.setProperty(group + "DistortionFile", distortionFile);
     props.setProperty(group + "MagGradientFile", magGradientFile);
     props.setProperty(group + "Binning", String.valueOf(binning));
-    props.setProperty(group + "FiducialessAlignmentA", String
-        .valueOf(fiducialessAlignmentA));
-    props.setProperty(group + "FiducialessAlignmentB", String
-        .valueOf(fiducialessAlignmentB));
-    props.setProperty(group + "WholeTomogramSampleA", String
-        .valueOf(wholeTomogramSampleA));
-    props.setProperty(group + "WholeTomogramSampleB", String
-        .valueOf(wholeTomogramSampleB));
+    props.setProperty(group + "FiducialessAlignmentA",
+        String.valueOf(fiducialessAlignmentA));
+    props.setProperty(group + "FiducialessAlignmentB",
+        String.valueOf(fiducialessAlignmentB));
+    props.setProperty(group + "WholeTomogramSampleA",
+        String.valueOf(wholeTomogramSampleA));
+    props.setProperty(group + "WholeTomogramSampleB",
+        String.valueOf(wholeTomogramSampleB));
     trimvolParam.store(props, group);
     squeezevolParam.store(props, prepend);
     useZFactorsA.store(props, prepend);
@@ -2157,6 +2160,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
 
   public String getDatasetName() {
     return datasetName;
+  }
+
+  public String toString() {
+    return "[datasetName:" + datasetName + "," + super.toString() + "]";
   }
 
   public String getMetaDataFileName() {

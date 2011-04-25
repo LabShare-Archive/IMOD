@@ -22,6 +22,9 @@ import etomo.util.Utilities;
  * @notthreadsafe
  * 
  * <p> $Log$
+ * <p> Revision 1.28  2011/02/22 05:49:48  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.27  2009/11/23 23:26:45  sueh
  * <p> bug# 1292 Removing yaxisContour.
  * <p>
@@ -198,6 +201,10 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
 
   public String getDatasetName() {
     return rootName.toString();
+  }
+
+  public String toString() {
+    return "[rootName:" + rootName + "," + super.toString() + "]";
   }
 
   public void setName(String name) {
