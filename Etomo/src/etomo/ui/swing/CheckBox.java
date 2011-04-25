@@ -3,6 +3,7 @@ package etomo.ui.swing;
 import java.awt.Container;
 
 import javax.swing.JCheckBox;
+import javax.swing.text.Document;
 
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
@@ -24,6 +25,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2011/04/04 17:17:19  sueh
+ * <p> bug# 1416 Added savedValue, checkpoint, isChanged.
+ * <p>
  * <p> Revision 1.2  2011/02/22 18:04:56  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -98,10 +102,11 @@ import etomo.util.Utilities;
  * <p> bug# 675 Extends JCheckBox.  Names the check box using the label.
  * <p> </p>
  */
-final class CheckBox extends JCheckBox {
+final class CheckBox extends JCheckBox implements StateChangeActionSource {
   public static final String rcsid = "$Id$";
 
-  private EtomoBoolean2 savedValue = null;
+  private EtomoBoolean2 checkpointValue = null;
+  private StateChangedReporter reporter = null;
 
   public CheckBox() {
     super();
@@ -110,6 +115,18 @@ final class CheckBox extends JCheckBox {
   public CheckBox(String text) {
     super(text);
     setName(text);
+  }
+
+  public boolean equals(final Object object) {
+    return object == this;
+  }
+
+  public boolean equals(final Document document) {
+    return false;
+  }
+
+  public String toString() {
+    return "[text:" + getText() + "]";
   }
 
   public void setText(String text) {
@@ -126,24 +143,40 @@ final class CheckBox extends JCheckBox {
     }
   }
 
-  /**
-   * Constructs savedValue (if it doesn't exist).  Saves the current state of the
-   * checkbox.
-   */
-  void checkpoint() {
-    if (savedValue == null) {
-      savedValue = new EtomoBoolean2();
-    }
-    savedValue.set(isSelected());
+  public void setReporter(StateChangedReporter reporter) {
+    this.reporter = reporter;
   }
 
   /**
-   * Returns true if a checkpoint was done and the checkbox selection state has changed
-   * since the checkpoint.
+   * Constructs savedValue (if it doesn't exist).  Saves the current state of the
+   * checkbox.  When checkpointValue is first constructed, it starts listening for
+   * actions.
+   */
+  void checkpoint() {
+    if (checkpointValue == null) {
+      checkpointValue = new EtomoBoolean2();
+    }
+    checkpointValue.set(isSelected());
+    if (reporter != null) {
+      reporter.msgCheckpointed(this);
+    }
+  }
+
+  boolean isCheckpointed() {
+    return checkpointValue != null;
+  }
+
+  /**
+   * Returns true if a checkpoint was done and the checkbox selection state has is
+   * different from the checkpoint.
    * @return
    */
-  boolean isChanged() {
-    return savedValue != null && !savedValue.equals(isSelected());
+  boolean isDifferentFromCheckpoint() {
+    return isCheckpointed() && !checkpointValue.equals(isSelected());
+  }
+
+  public boolean getState() {
+    return isDifferentFromCheckpoint();
   }
 
   public void setToolTipText(String text) {
@@ -170,6 +203,9 @@ final class CheckBox extends JCheckBox {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2011/04/04 17:17:19  sueh
+ * <p> bug# 1416 Added savedValue, checkpoint, isChanged.
+ * <p>
  * <p> Revision 1.2  2011/02/22 18:04:56  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
