@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
+import etomo.type.BaseMetaData;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
 
@@ -29,12 +30,14 @@ public final class TomosnapshotParam implements Command {
   public static final String OUTPUT_LINE = "Snapshot done";
   private static final String COMMAND_NAME = PROCESS_NAME.toString();
 
+  private final BaseManager manager;
   private final AxisID axisID;
 
   private String[] commandArray = null;
   private boolean debug = true;
 
-  public TomosnapshotParam(AxisID axisID) {
+  public TomosnapshotParam(final BaseManager manager, final AxisID axisID) {
+    this.manager = manager;
     this.axisID = axisID;
   }
 
@@ -77,6 +80,10 @@ public final class TomosnapshotParam implements Command {
     //command.add("tcsh");
     //command.add("-f");
     command.add(BaseManager.getIMODBinPath() + COMMAND_NAME);
+    if (manager != null) {
+      BaseMetaData metaData = manager.getBaseMetaData();
+      command.add(metaData.getDatasetName() + metaData.getFileExtension());
+    }
     //    command.add("-e");
     //    command.add(manager.getBaseMetaData().getMetaDataFileName());
     int commandSize = command.size();
@@ -130,6 +137,9 @@ public final class TomosnapshotParam implements Command {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2011/04/22 16:59:55  sueh
+ * <p> bug# 1475 Switch tomosnapshot to python.
+ * <p>
  * <p> Revision 1.13  2011/02/22 03:36:18  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
