@@ -6,13 +6,14 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.Observable;
-import java.util.Observer;
+import java.util.Arrays;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 
@@ -25,9 +26,12 @@ import etomo.storage.SirtOutputFileFilter;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
+import etomo.type.EtomoNumber;
+import etomo.type.FileType;
 import etomo.type.MetaData;
 import etomo.type.PanelId;
 import etomo.type.ReconScreenState;
@@ -47,6 +51,11 @@ import etomo.type.Run3dmodMenuOptions;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2011/04/04 17:33:42  sueh
+* <p> bug# 1416 Added/modified sirt and useSirt buttons; cleanUpPastStart, scaleToInteger, and subarea
+* <p> checkboxes, dialogType, flatFilterFraction, offsetInXAndY, subareaSize, yOffsetOfSubarea fields; parent.
+* <p> Standardized names to match sirtsetup.  Added an advanced/basic header for the sirtsetup parameter panel.
+* <p>
 * <p> Revision 1.3  2011/02/03 06:22:16  sueh
 * <p> bug# 1422 Control of the processing method has been centralized in the
 * <p> processing method mediator class.  Implementing ProcessInterface.
@@ -59,9 +68,10 @@ import etomo.type.Run3dmodMenuOptions;
 * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
 * <p> </p>
 */
-final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Observer,
-    Expandable {
+final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expandable {
   public static final String rcsid = "$Id$";
+
+  private static final String RESUME_FROM_LAST_ITERATION_LABEL = "Resume from last iteration";
 
   private final JPanel pnlRoot = new JPanel();
   private final CheckBox cbSubarea = new CheckBox("Reconstruct subarea");
@@ -75,12 +85,21 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Obse
       "Scale retained volumes to integers");
   private final ActionListener listener = new SirtActionListener(this);
   private final Run3dmodButton btn3dmodSirt = Run3dmodButton.get3dmodInstance(
-      "View Tomogram In 3dmod", this);
+      "View Tomogram(s) In 3dmod", this);
   private final CheckBox cbCleanUpPastStart = new CheckBox(
       "Delete existing reconstructions after starting point");
   private final LabeledTextField ltfFlatFilterFraction = new LabeledTextField(
       "Flat filter fraction: ");
   private final SpacedPanel pnlSirtsetupParamsBody = SpacedPanel.getInstance(true);
+  private final ButtonGroup bgStartingIteration = new ButtonGroup();
+  private final RadioButton rbStartFromZero = new RadioButton("Start from beginning",
+      bgStartingIteration);
+  private final RadioButton rbResumeFromLastIteration = new RadioButton(
+      RESUME_FROM_LAST_ITERATION_LABEL, bgStartingIteration);
+  private final RadioButton rbResumeFromIteration = new RadioButton(
+      "Go back, resume from iteration:", bgStartingIteration);
+  private final ComboBox cmbResumeFromIteration = new ComboBox(
+      rbResumeFromIteration.getText());
 
   private final AxisID axisID;
   private final ApplicationManager manager;
@@ -89,17 +108,17 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Obse
   private final SirtParent parent;
   private final DialogType dialogType;
   private final RadialPanel radiusAndSigmaPanel;
-  private final SirtStartFromPanel sirtStartFromPanel;
   private final PanelHeader sirtSetupParamsHeader;
+  private final TiltPanel tiltPanel;
 
   private SirtPanel(final ApplicationManager manager, final AxisID axisID,
       final DialogType dialogType, final GlobalExpandButton globalAdvancedButton,
-      final SirtParent parent) {
+      final TiltPanel tiltPanel, final SirtParent parent) {
     this.axisID = axisID;
     this.manager = manager;
     this.parent = parent;
     this.dialogType = dialogType;
-    sirtStartFromPanel = SirtStartFromPanel.getInstance(manager, axisID);
+    this.tiltPanel = tiltPanel;
     radiusAndSigmaPanel = RadialPanel.getInstance(manager, axisID, PanelId.SIRTSETUP);
     ProcessResultDisplayFactory factory = manager.getProcessResultDisplayFactory(axisID);
     btnSirt = (Run3dmodButton) factory.getSirtsetup();
@@ -110,21 +129,17 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Obse
 
   static SirtPanel getInstance(final ApplicationManager manager, final AxisID axisID,
       final DialogType dialogType, final GlobalExpandButton globalAdvancedButton,
-      final SirtParent parent) {
+      final TiltPanel tiltPanel, final SirtParent parent) {
     SirtPanel instance = new SirtPanel(manager, axisID, dialogType, globalAdvancedButton,
-        parent);
+        tiltPanel, parent);
     instance.createPanel();
     instance.setToolTipText();
-    instance.addListeners();
+    instance.addListeners(tiltPanel.getStateChangedReporter());
     return instance;
   }
 
   Component getRoot() {
     return pnlRoot;
-  }
-
-  SirtStartFromPanel getSirtStartFromPanel() {
-    return sirtStartFromPanel;
   }
 
   private void createPanel() {
@@ -134,6 +149,10 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Obse
     JPanel pnlSirtsetupParams = new JPanel();
     JPanel pnlScaleToInteger = new JPanel();
     JPanel pnlCleanUpPastStart = new JPanel();
+    JPanel pnlStartFrom = new JPanel();
+    JPanel pnlStartFromZero = new JPanel();
+    JPanel pnlResumeFromLastIteration = new JPanel();
+    JPanel pnlResumeFromIteration = new JPanel();
     JPanel pnlButtons = new JPanel();
     btnSirt.setSize();
     btnSirt.setContainer(this);
@@ -168,7 +187,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Obse
     pnlSirtsetupParamsBody.add(pnlScaleToInteger);
     pnlSirtsetupParamsBody.add(pnlCleanUpPastStart);
     pnlSirtsetupParamsBody.add(ltfFlatFilterFraction);
-    pnlSirtsetupParamsBody.add(sirtStartFromPanel.getRoot());
+    pnlSirtsetupParamsBody.add(pnlStartFrom);
     //ScaleToInteger panel
     pnlScaleToInteger.setLayout(new BoxLayout(pnlScaleToInteger, BoxLayout.X_AXIS));
     pnlScaleToInteger.setAlignmentX(Box.CENTER_ALIGNMENT);
@@ -179,31 +198,52 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Obse
     pnlCleanUpPastStart.setAlignmentX(Box.CENTER_ALIGNMENT);
     pnlCleanUpPastStart.add(cbCleanUpPastStart);
     pnlCleanUpPastStart.add(Box.createHorizontalGlue());
+    //start from panel
+    pnlStartFrom.setLayout(new BoxLayout(pnlStartFrom, BoxLayout.Y_AXIS));
+    pnlStartFrom.add(pnlStartFromZero);
+    pnlStartFrom.add(pnlResumeFromLastIteration);
+    pnlStartFrom.add(pnlResumeFromIteration);
+    //StartFromZero panel
+    pnlStartFromZero.setLayout(new BoxLayout(pnlStartFromZero, BoxLayout.X_AXIS));
+    pnlStartFromZero.setAlignmentX(Box.CENTER_ALIGNMENT);
+    pnlStartFromZero.add(rbStartFromZero.getComponent());
+    pnlStartFromZero.add(Box.createHorizontalGlue());
+    //ResumeFromLastIteration panel
+    pnlResumeFromLastIteration.setLayout(new BoxLayout(pnlResumeFromLastIteration,
+        BoxLayout.X_AXIS));
+    pnlResumeFromLastIteration.setAlignmentX(Box.CENTER_ALIGNMENT);
+    pnlResumeFromLastIteration.add(rbResumeFromLastIteration.getComponent());
+    pnlResumeFromLastIteration.add(Box.createHorizontalGlue());
+    //Resume from iteration panel
+    pnlResumeFromIteration.setLayout(new BoxLayout(pnlResumeFromIteration,
+        BoxLayout.X_AXIS));
+    pnlResumeFromIteration.add(rbResumeFromIteration.getComponent());
+    pnlResumeFromIteration.add(cmbResumeFromIteration);
     //Buttons panel
     pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
     pnlButtons.add(btnSirt.getComponent());
     pnlButtons.add(btn3dmodSirt.getComponent());
     pnlButtons.add(btnUseSirt.getComponent());
+    //defaults
+    rbStartFromZero.setSelected(true);
+    cbCleanUpPastStart.setSelected(true);
+    loadResumeFrom();
     updateDisplay();
   }
 
-  private void addListeners() {
+  private void addListeners(final StateChangedReporter reporter) {
     cbSubarea.addActionListener(listener);
     btnSirt.addActionListener(listener);
     btn3dmodSirt.addActionListener(listener);
     btnUseSirt.addActionListener(listener);
-  }
-
-  public void update(final Observable observable, final Object arg) {
-    if (observable instanceof SirtStartFromPanel) {
-      //This observable signals when the return value of sirtStartFromPanel.isResume()
-      //may have changed.
-      updateDisplay();
-    }
+    rbStartFromZero.addActionListener(listener);
+    rbResumeFromLastIteration.addActionListener(listener);
+    rbResumeFromIteration.addActionListener(listener);
+    reporter.addStateChangedListener(new SirtStateChangedListener(this));
   }
 
   private void updateDisplay() {
-    boolean resume = sirtStartFromPanel.isResume();
+    boolean resume = isResume();
     boolean subarea = cbSubarea.isSelected();
     cbSubarea.setEnabled(!resume);
     ltfSubareaSize.setEnabled(subarea && !resume);
@@ -211,8 +251,26 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Obse
     radiusAndSigmaPanel.setEnabled(!resume);
   }
 
+  private void updateDisplay(final boolean resumeEnabled) {
+    rbResumeFromLastIteration.setEnabled(resumeEnabled);
+    rbResumeFromIteration.setEnabled(resumeEnabled);
+    cmbResumeFromIteration
+        .setEnabled(resumeEnabled && rbResumeFromIteration.isSelected());
+    updateDisplay();
+  }
+
+  Boolean isResumeEnabled() {
+    return rbResumeFromLastIteration.isEnabled();
+  }
+
+  Boolean isResume() {
+    return (rbResumeFromLastIteration.isEnabled() && rbResumeFromLastIteration
+        .isSelected())
+        || (rbResumeFromIteration.isEnabled() && rbResumeFromIteration.isSelected());
+  }
+
   public void msgSirtSucceeded() {
-    sirtStartFromPanel.msgSirtSucceeded();
+    loadResumeFrom();
   }
 
   public final void setMethod(final TomogramGenerationDialog.MethodEnum method) {
@@ -225,35 +283,30 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Obse
     btnUseSirt.removeActionListener(listener);
   }
 
-  boolean isResume() {
-    return sirtStartFromPanel.isResume();
-  }
-
   void getParameters(final ReconScreenState screenState) {
     btnSirt.setButtonState(screenState.getButtonState(btnSirt.getButtonStateKey()));
     btnUseSirt.setButtonState(screenState.getButtonState(btnUseSirt.getButtonStateKey()));
     sirtSetupParamsHeader.getState(screenState.getTomoGenSirtHeaderState());
   }
-  
+
   final void setParameters(final ReconScreenState screenState) {
     sirtSetupParamsHeader.setState(screenState.getTomoGenSirtHeaderState());
     btnSirt.setButtonState(screenState.getButtonState(btnSirt.getButtonStateKey()));
-    btnUseSirt.setButtonState(screenState.getButtonState(btnUseSirt
-        .getButtonStateKey()));
+    btnUseSirt.setButtonState(screenState.getButtonState(btnUseSirt.getButtonStateKey()));
   }
 
   void getParameters(final MetaData metaData) {
     metaData.setGenSubarea(axisID, cbSubarea.isSelected());
     metaData.setGenSubareaSize(axisID, ltfSubareaSize.getText());
     metaData.setGenYOffsetOfSubarea(axisID, ltfYOffsetOfSubarea.getText());
-    sirtStartFromPanel.getParameters(metaData);
+    metaData.setGenResumeEnabled(axisID, rbResumeFromIteration.isEnabled());
   }
 
   void setParameters(final ConstMetaData metaData) {
     cbSubarea.setSelected(metaData.isGenSubarea(axisID));
     ltfSubareaSize.setText(metaData.getGenSubareaSize(axisID));
     ltfYOffsetOfSubarea.setText(metaData.getGenYOffsetOfSubarea(axisID));
-    sirtStartFromPanel.setParameters(metaData);
+    updateDisplay(metaData.isGenResumeEnabled(axisID));
   }
 
   public boolean getParameters(final SirtsetupParam param) {
@@ -287,7 +340,23 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Obse
           + " is an invalid list of integers.", "Entry Error", axisID);
       return false;
     }
-    if (!sirtStartFromPanel.getParameters(param)) {
+    if (rbStartFromZero.isSelected()) {
+      param.setStartFromZero(true);
+      param.resetResumeFromIteration();
+    }
+    else if (rbResumeFromLastIteration.isEnabled()
+        && rbResumeFromLastIteration.isSelected()) {
+      param.setStartFromZero(false);
+      param.resetResumeFromIteration();
+    }
+    else if (rbResumeFromIteration.isEnabled() && rbResumeFromIteration.isSelected()) {
+      param.setStartFromZero(false);
+      param.setResumeFromIteration((ConstEtomoNumber) cmbResumeFromIteration
+          .getSelectedItem());
+    }
+    else {
+      UIHarness.INSTANCE.openMessageDialog(manager,
+          "Please select an enabled starting option.", "Entry Error", axisID);
       return false;
     }
     return true;
@@ -305,31 +374,113 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Obse
     radiusAndSigmaPanel.setParameters(param);
     cbCleanUpPastStart.setSelected(param.isCleanUpPastStart());
     ltfFlatFilterFraction.setText(param.getFlatFilterFraction());
-    sirtStartFromPanel.setParameters(param);
+    if (param.isStartFromZero()) {
+      rbStartFromZero.setSelected(true);
+    }
+    else if (!param.isResumeFromIterationNull()) {
+      rbResumeFromIteration.setSelected(true);
+    }
+    else {
+      rbResumeFromLastIteration.setSelected(true);
+    }
+    updateDisplay(isResumeEnabled());
   }
 
-  public void openFilesInImod(final Run3dmodMenuOptions run3dmodMenuOptions) {
-    JFileChooser chooser = new FileChooser(new File(manager.getPropertyUserDir()));
-    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
-    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    chooser.setMultiSelectionEnabled(true);
-    chooser.setFileFilter(new SirtOutputFileFilter(manager, axisID, true));
-    int returnVal = chooser.showOpenDialog(pnlRoot);
-    if (returnVal != JFileChooser.APPROVE_OPTION) {
-      return;
+  /**
+   * Load all of the .srecdd files in the current directory (any number of digits).  Save
+   * the digits in the ResumeFromIteration pulldown list.
+   */
+  private void loadResumeFrom() {
+    //Clear pulldown list.
+    cmbResumeFromIteration.removeAllItems();
+    //Get file names.
+    String[] fileNameList = new File(manager.getPropertyUserDir())
+        .list(new SirtOutputFileFilter(manager, axisID, false));
+    //Extract iteration numbers, sort them, and add them to the pulldown list.
+    int[] fileNumberList = null;
+    String templateExt = FileType.SIRT_OUTPUT_TEMPLATE.getExtension(manager);
+    if (fileNameList != null && fileNameList.length > 0) {
+      fileNumberList = new int[fileNameList.length];
+      for (int i = 0; i < fileNumberList.length; i++) {
+        EtomoNumber fileNumber = new EtomoNumber();
+        fileNumber.set(fileNameList[i]
+            .substring(fileNameList[i].lastIndexOf(templateExt)).substring(
+                templateExt.length()));
+        //SirtOutputFileFilter only accepts files the end in a valid integer, so assume
+        //the number is valid.
+        fileNumberList[i] = fileNumber.getInt();
+      }
+      Arrays.sort(fileNumberList);
+      //Add sorted numbers to the pulldown list.
+      for (int i = fileNumberList.length - 1; i >= 0; i--) {
+        EtomoNumber fileNumber = new EtomoNumber();
+        fileNumber.set(fileNumberList[i]);
+        if (i == fileNumberList.length - 1) {
+          rbResumeFromLastIteration.setText(RESUME_FROM_LAST_ITERATION_LABEL + ": "
+              + fileNumber);
+        }
+        cmbResumeFromIteration.addItem(fileNumber);
+      }
+      if (fileNumberList.length > 1) {
+        cmbResumeFromIteration.setSelectedIndex(1);
+      }
     }
-    File[] fileList = chooser.getSelectedFiles();
-    if (fileList == null || fileList.length == 0) {
-      return;
+    else {
+      rbResumeFromLastIteration.setText(RESUME_FROM_LAST_ITERATION_LABEL);
+    }
+    updateDisplay(fileNumberList != null && fileNumberList.length != 0);
+  }
+
+  /**
+   * Ask the user to one or more files to open in 3dmod.  If only one file is available,
+   * open in 3dmod without asking.
+   * @param run3dmodMenuOptions
+   */
+  public void openFilesInImod(final Run3dmodMenuOptions run3dmodMenuOptions) {
+    //Don't open the file chooser if there is only one file to choose
+    SirtOutputFileFilter sirtOutputFileFilter = new SirtOutputFileFilter(manager, axisID,
+        true);
+    File[] fileList = new File(manager.getPropertyUserDir())
+        .listFiles((FilenameFilter) sirtOutputFileFilter);
+    if (fileList == null || fileList.length != 1) {
+      JFileChooser chooser = new FileChooser(new File(manager.getPropertyUserDir()));
+      chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+      chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+      chooser.setMultiSelectionEnabled(true);
+      chooser.setFileFilter(sirtOutputFileFilter);
+      int returnVal = chooser.showOpenDialog(pnlRoot);
+      if (returnVal != JFileChooser.APPROVE_OPTION) {
+        return;
+      }
+      fileList = chooser.getSelectedFiles();
+      if (fileList == null || fileList.length == 0) {
+        return;
+      }
     }
     manager.openFilesInImod(axisID, ImodManager.SIRT_KEY, fileList, run3dmodMenuOptions);
   }
 
+  /**
+   * Ask the user to pick a file to use.  If only one file is available to pick, ask the
+   * user if they want to use that file.
+   */
   public void useSirt() {
+    SirtOutputFileFilter sirtOutputFileFilter = new SirtOutputFileFilter(manager, axisID,
+        true);
+    File[] fileList = new File(manager.getPropertyUserDir())
+        .listFiles((FilenameFilter) sirtOutputFileFilter);
+    if (fileList != null && fileList.length == 1) {
+      if (UIHarness.INSTANCE.openYesNoDialog(manager, "Use " + fileList[0].getName()
+          + " as the tomogram?", axisID)) {
+        manager.useSirt(btnUseSirt, fileList[0], btnSirt.getUnformattedLabel(), axisID,
+            dialogType);
+      }
+      return;
+    }
     JFileChooser chooser = new FileChooser(new File(manager.getPropertyUserDir()));
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    chooser.setFileFilter(new SirtOutputFileFilter(manager, axisID, true));
+    chooser.setFileFilter(sirtOutputFileFilter);
     int returnVal = chooser.showOpenDialog(pnlRoot);
     if (returnVal != JFileChooser.APPROVE_OPTION) {
       return;
@@ -367,6 +518,15 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Obse
   }
 
   /**
+   * Enable/disable resume based on whether the lead source of the event is different from
+   * the checkpoint.
+   * @param event
+   */
+  public void stateChanged(StateChangedEvent event) {
+    updateDisplay(!event.getLeadSource().isDifferentFromCheckpoint());
+  }
+
+  /**
    * Executes the action associated with command.  Deferred3dmodButton is null
    * if it comes from the dialog's ActionListener.  Otherwise is comes from a
    * Run3dmodButton which called action(Run3dmodButton, Run3dmoMenuOptions).  In
@@ -387,6 +547,12 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Obse
     }
     else if (actionCommand.equals(btnUseSirt.getActionCommand())) {
       useSirt();
+    }
+    else if (actionCommand.equals(rbStartFromZero.getActionCommand())
+        || actionCommand.equals(rbResumeFromLastIteration.getActionCommand())
+        || actionCommand.equals(rbResumeFromIteration.getActionCommand())) {
+      updateDisplay(isResumeEnabled());
+      tiltPanel.msgResumeChanged(isResume());
     }
     else {
       updateDisplay();
@@ -437,9 +603,18 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Obse
         .setToolTipText("Opens a file chooser for picker SIRT iteration files to bring up in 3dmod");
     cbCleanUpPastStart.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         SirtsetupParam.CLEAN_UP_PAST_START_KEY));
+    rbStartFromZero.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        SirtsetupParam.START_FROM_ZERO_KEY));
+    rbResumeFromLastIteration
+        .setToolTipText("Iterate from the last existing reconstruction.");
+    String tooltip = EtomoAutodoc.getTooltip(autodoc,
+        SirtsetupParam.RESUME_FROM_ITERATION_KEY);
+    rbResumeFromIteration.setToolTipText(tooltip);
+    cmbResumeFromIteration.setToolTipText(tooltip);
     btnSirt
         .setToolTipText("Run sirtsetup, and then run the resulting .com files with processchunks.");
     btnUseSirt.setToolTipText("Use a SIRT result as the tomogram");
+
   }
 
   private static final class SirtActionListener implements ActionListener {
@@ -451,6 +626,18 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Obse
 
     public void actionPerformed(final ActionEvent event) {
       adaptee.action(event.getActionCommand(), null, null);
+    }
+  }
+
+  private static final class SirtStateChangedListener implements StateChangedListener {
+    private final SirtPanel adaptee;
+
+    private SirtStateChangedListener(final SirtPanel adaptee) {
+      this.adaptee = adaptee;
+    }
+
+    public void stateChanged(StateChangedEvent event) {
+      adaptee.stateChanged(event);
     }
   }
 }
