@@ -18,6 +18,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2011/02/22 05:30:49  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.7  2007/12/10 22:33:43  sueh
  * <p> bug# 1041 Added current processchunks root name and subdir name.
  * <p>
@@ -59,7 +62,8 @@ public abstract class BaseMetaData implements Storable {
   private static final String CURRENT_PROCESSCHUNKS_SUBDIR_NAME = "CurrentProcesschunksSubdirName";
 
   static final String revisionNumberString = "RevisionNumber";
-  static String fileExtension;
+
+  String fileExtension;
 
   //revisionNumber should be set only by load()
   EtomoVersion revisionNumber = EtomoVersion.getEmptyInstance(revisionNumberString);
@@ -86,13 +90,8 @@ public abstract class BaseMetaData implements Storable {
   abstract String createPrepend(String prepend);
 
   public String toString() {
-    return getClass().getName() + "[" + paramString() + "]";
-  }
-
-  String paramString() {
-    return "fileExtension=" + fileExtension + ",revisionNumber=" + revisionNumber
-        + ",\naxisType=" + axisType + ",invalidReason=" + invalidReason + ","
-        + super.toString();
+    return "[fileExtension:" + fileExtension + ",revisionNumber:" + revisionNumber
+        + ",\naxisType:" + axisType + ",invalidReason:" + invalidReason + "]";
   }
 
   public void store(Properties props) {
