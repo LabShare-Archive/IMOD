@@ -1,5 +1,6 @@
 package etomo.process;
 
+import etomo.BaseManager;
 import etomo.comscript.TomosnapshotParam;
 import etomo.type.AxisID;
 import etomo.ui.swing.UIHarness;
@@ -18,6 +19,9 @@ import etomo.ui.swing.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2011/02/22 04:12:01  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.4  2010/11/13 16:03:45  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -36,16 +40,18 @@ import etomo.ui.swing.UIHarness;
 final class TomosnapshotProcess implements Runnable {
   public static final String rcsid = "$Id$";
 
+  private final BaseManager manager;
   private final AxisID axisID;
 
-  TomosnapshotProcess(AxisID axisID) {
+  TomosnapshotProcess(final BaseManager manager,AxisID axisID) {
+    this.manager=manager;
     this.axisID = axisID;
   }
 
   public void run() {
     //Run tomosnapshot.
     SystemProgram sysProgram = new SystemProgram(null, System.getProperty("user.dir"),
-        new TomosnapshotParam(axisID).getCommandArray(), axisID);
+        new TomosnapshotParam(manager, axisID).getCommandArray(), axisID);
     Thread thread = new Thread(sysProgram);
     thread.start();
     //Wait until tomosnapshot is done.
@@ -60,8 +66,9 @@ final class TomosnapshotProcess implements Runnable {
     String[] stdout = sysProgram.getStdOutput();
     if (sysProgram.isDone() && sysProgram.getExitValue() == 0) {
       if (stdout == null || stdout.length == 0) {
-        UIHarness.INSTANCE.openMessageDialog(null, "Snapshot file created in "
-            + System.getProperty("user.dir"), "Snapshot Created", axisID);
+        UIHarness.INSTANCE.openMessageDialog(null,
+            "Snapshot file created in " + System.getProperty("user.dir"),
+            "Snapshot Created", axisID);
       }
       else {
         UIHarness.INSTANCE.openInfoMessageDialog(null, stdout[stdout.length - 1],
