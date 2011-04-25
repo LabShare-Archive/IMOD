@@ -25,10 +25,12 @@ import etomo.type.FileType;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2011/04/04 17:00:13  sueh
+* <p> bug# 1416 File filter for sirt output files (.srecdd and .sintdd).
+* <p> </p>
 */
-public final class SirtOutputFileFilter extends FileFilter implements java.io.FileFilter,
-    FilenameFilter {
+public final class SirtOutputFileFilter extends FileFilter implements FilenameFilter {
   public static final String rcsid = "$Id$";
 
   private final BaseManager manager;
