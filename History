@@ -1,6 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-4/22/11: Tomosnapshot converted to Python and enhanced to handle all kinds of
+4/25/11: Tomosnapshot converted to Python and enhanced to handle all kinds of
 processing in eTomo (join, PEET, NAD, parallel processing).
 
 4/22/11: In 4.1, fixed a bug where Etomo - Join was not saving fields to the
