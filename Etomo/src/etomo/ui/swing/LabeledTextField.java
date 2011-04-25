@@ -1,14 +1,17 @@
 package etomo.ui.swing;
 
 import java.awt.*;
-import java.awt.event.KeyListener;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseListener;
 
 import javax.swing.*;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.Document;
 
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
 import etomo.util.Utilities;
 
@@ -25,6 +28,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2011/04/04 17:20:46  sueh
+ * <p> bug# 1416 Added savedValue, checkpoint, isChanged.
+ * <p>
  * <p> Revision 1.3  2011/03/02 00:00:12  sueh
  * <p> bug# 1452 Removing image rotation conversion between float and
  * <p> double.  Using string where possible.
@@ -193,25 +199,37 @@ import etomo.util.Utilities;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-final class LabeledTextField {
+final class LabeledTextField implements StateChangeDocumentSource {
   public static final String rcsid = "$Id$";
 
   private final JPanel panel = new JPanel();
   private final JLabel label = new JLabel();
   private final JTextField textField = new JTextField();
+  private final EtomoNumber.Type numericType;
 
   private boolean debug = false;
   private String savedTextFieldValue = null;
+  private EtomoNumber nSavedTextFieldValue = null;
+  private StateChangedReporter reporter = null;
 
   public String toString() {
-    return getClass().getName() + "[" + paramString() + "]\n";
+    return "[label:" + getLabel() + "]";
   }
 
   String paramString() {
     return "label=" + label.getText() + ",textField=" + textField.getText();
   }
 
-  LabeledTextField(final String tfLabel) {
+  public boolean equals(final Object object) {
+    return object == textField;
+  }
+
+  public boolean equals(final Document document) {
+    return textField.getDocument() == document;
+  }
+
+  private LabeledTextField(final String tfLabel, final EtomoNumber.Type numericType) {
+    this.numericType = numericType;
     //set label
     setLabel(tfLabel);
 
@@ -231,6 +249,15 @@ final class LabeledTextField {
     textField.setMaximumSize(maxSize);
   }
 
+  LabeledTextField(final String tfLabel) {
+    this(tfLabel, null);
+  }
+
+  static LabeledTextField getNumericInstance(final String tfLabel,
+      final EtomoNumber.Type numericType) {
+    return new LabeledTextField(tfLabel, numericType);
+  }
+
   private void setName(final String tfLabel) {
     String name = Utilities.convertLabelToName(tfLabel);
     textField.setName(UITestFieldType.TEXT_FIELD.toString()
@@ -246,6 +273,25 @@ final class LabeledTextField {
    */
   void checkpoint() {
     savedTextFieldValue = textField.getText();
+    if (numericType != null) {
+      if (nSavedTextFieldValue == null) {
+        nSavedTextFieldValue = new EtomoNumber(numericType);
+      }
+      nSavedTextFieldValue.set(savedTextFieldValue);
+    }
+    reporter.msgCheckpointed(this);
+  }
+
+  public boolean getState() {
+    return isDifferentFromCheckpoint();
+  }
+
+  public void setReporter(StateChangedReporter reporter) {
+    this.reporter = reporter;
+  }
+
+  public void addActionListener(ActionListener listener) {
+    textField.addActionListener(listener);
   }
 
   /**
@@ -253,9 +299,14 @@ final class LabeledTextField {
    * checkpoint.
    * @return
    */
-  boolean isChanged() {
-    return savedTextFieldValue != null
-        && !savedTextFieldValue.equals(textField.getText());
+  boolean isDifferentFromCheckpoint() {
+    if (savedTextFieldValue == null) {
+      return false;
+    }
+    if (numericType == null) {
+      return !savedTextFieldValue.equals(textField.getText());
+    }
+    return !nSavedTextFieldValue.equals(textField.getText());
   }
 
   void clear() {
@@ -360,8 +411,8 @@ final class LabeledTextField {
     this.debug = debug;
   }
 
-  void addKeyListener(final KeyListener listener) {
-    textField.addKeyListener(listener);
+  public void addDocumentListener(final DocumentListener listener) {
+    textField.getDocument().addDocumentListener(listener);
   }
 
   void setTextPreferredWidth(final double minWidth) {
