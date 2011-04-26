@@ -40,6 +40,11 @@ import etomo.type.TomogramState;
  * 
  * <p>
  * $Log$
+ * Revision 1.5  2011/04/04 17:40:44  sueh
+ * bug# 1416 Added bgMethod; backProject and sirt radio buttons, action, allowTiltComSave,
+ * getProcessingMethod, getSirtsetupDIsplay.  Removed curTab, pnlTilt, tabbedPane, changeTab,
+ * getSirtTiltDisplay, initTab.  Modified constructor, addListeners, createPanel, done, getInstance, getParameters.
+ *
  * Revision 1.3  2011/02/03 06:22:16  sueh
  * bug# 1422 Control of the processing method has been centralized in the
  * processing method mediator class.  Implementing ProcessInterface.
@@ -686,13 +691,8 @@ public class TomogramGenerationDialog extends ProcessDialog implements ContextMe
     super(appMgr, axisID, DialogType.TOMOGRAM_GENERATION);
     this.expert = expert;
     tiltPanel = TiltPanel.getInstance(appMgr, axisID, dialogType, btnAdvanced, this);
-    sirtPanel = SirtPanel.getInstance(appMgr, axisID, dialogType, btnAdvanced, this);
-    //Observe resume state
-    SirtStartFromPanel sirtStartFromPanel = sirtPanel.getSirtStartFromPanel();
-    sirtStartFromPanel.addObserver(tiltPanel);
-    sirtStartFromPanel.addObserver(sirtPanel);
-    //Observe: tilt.com changed
-    tiltPanel.addObserver(sirtStartFromPanel);
+    sirtPanel = SirtPanel.getInstance(appMgr, axisID, dialogType, btnAdvanced, tiltPanel,
+        this);
   }
 
   static TomogramGenerationDialog getInstance(ApplicationManager appMgr,
