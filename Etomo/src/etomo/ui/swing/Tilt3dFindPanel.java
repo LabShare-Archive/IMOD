@@ -40,6 +40,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2011/04/04 17:36:05  sueh
+ * <p> bug# 1416 Added allowTiltComSave.  Removed updateDisplay.
+ * <p>
  * <p> Revision 1.4  2011/02/03 06:22:16  sueh
  * <p> bug# 1422 Control of the processing method has been centralized in the
  * <p> processing method mediator class.  Implementing ProcessInterface.
@@ -178,10 +181,6 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
     if (button != null) {
       pnlButtons.add(button);
     }
-  }
-  
-  public boolean allowTiltComSave() {
-    return true;
   }
 
   /**
