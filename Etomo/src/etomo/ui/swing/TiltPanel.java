@@ -2,7 +2,6 @@ package etomo.ui.swing;
 
 import java.awt.Component;
 import java.awt.event.MouseEvent;
-import java.util.Observer;
 
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
@@ -29,6 +28,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2011/04/04 17:37:14  sueh
+ * <p> bug# 1416  Added parent, sirtStartFromPanel, allowTiltComSave.
+ * <p>
  * <p> Revision 1.4  2011/02/10 04:32:43  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -57,14 +59,17 @@ import etomo.type.Run3dmodMenuOptions;
  * <p> bug# 1222
  * <p> </p>
  */
-final class TiltPanel extends AbstractTiltPanel implements Observer {
+final class TiltPanel extends AbstractTiltPanel {
   public static final String rcsid = "$Id$";
 
   private final JPanel pnlTiltPanelRoot = new JPanel();
+  private final StateChangedReporter reporter = new StateChangedReporter(
+      this);
 
   private final TomogramGenerationDialog parent;
 
-  private SirtStartFromPanel sirtStartFromPanel = null;
+  private boolean differentFromCheckpoint = false;
+  private boolean resume = false;
 
   private TiltPanel(final ApplicationManager manager, final AxisID axisID,
       final DialogType dialogType, final GlobalExpandButton globalAdvancedButton,
@@ -85,6 +90,11 @@ final class TiltPanel extends AbstractTiltPanel implements Observer {
     return instance;
   }
 
+  void addListeners() {
+    super.addListeners();
+    addStateChangedReporter(reporter);
+  }
+
   void createPanel() {
     super.createPanel();
     pnlTiltPanelRoot.setLayout(new BoxLayout(pnlTiltPanelRoot, BoxLayout.Y_AXIS));
@@ -98,6 +108,52 @@ final class TiltPanel extends AbstractTiltPanel implements Observer {
 
   public boolean allowTiltComSave() {
     return parent.allowTiltComSave();
+  }
+
+  void checkpoint() {
+    super.checkpoint();
+    differentFromCheckpoint = false;
+  }
+
+  void msgTiltComLoaded() {
+    checkpoint();
+  }
+
+  public void msgTiltComSaved() {
+    if (isDifferentFromCheckpoint()) {
+      setChanged();
+      notifyObservers();
+    }
+    checkpoint();
+  }
+
+  boolean isResume() {
+    return resume;
+  }
+
+  void msgResumeChanged(boolean resume) {
+    if (this.resume != resume) {
+      this.resume = resume;
+      updateDisplay();
+    }
+  }
+
+  StateChangedReporter getStateChangedReporter() {
+    return reporter;
+  }
+
+  /**
+   * If the checkpointed fields have just started diverging from the checkpoint or just
+   * stopped diverging, return true.
+   * @return
+   */
+  boolean isStateChanged() {
+    boolean diff = isDifferentFromCheckpoint();
+    if (differentFromCheckpoint != diff) {
+      differentFromCheckpoint = diff;
+      return true;
+    }
+    return false;
   }
 
   /**
