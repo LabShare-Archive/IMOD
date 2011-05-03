@@ -40,6 +40,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2011/04/26 00:04:11  sueh
+ * <p> bug# 1416 Moved allowTiltComSave to the parent class, since it returned the default value.
+ * <p>
  * <p> Revision 1.5  2011/04/04 17:36:05  sueh
  * <p> bug# 1416 Added allowTiltComSave.  Removed updateDisplay.
  * <p>
@@ -115,7 +118,7 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
   private Tilt3dFindPanel(final ApplicationManager manager, final AxisID axisID,
       final DialogType dialogType, final Tilt3dFindParent parent,
       final Component extraButton) {
-    super(manager, axisID, dialogType, null, PANEL_ID);
+    super(manager, axisID, dialogType, null, PANEL_ID, false);
     this.parent = parent;
     this.extraButton = extraButton;
     //Change some labels.
@@ -268,8 +271,8 @@ final class Tilt3dFindPanel extends AbstractTiltPanel {
       final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     manager.tilt3dFindAction(processResultDisplay, null, deferred3dmodButton,
-        run3dmodMenuOptions, this, axisID, dialogType, mediator
-            .getRunMethodForProcessInterface(getProcessingMethod()));
+        run3dmodMenuOptions, this, axisID, dialogType,
+        mediator.getRunMethodForProcessInterface(getProcessingMethod()));
   }
 
   void tiltAction(final ProcessResultDisplay processResultDisplay,
