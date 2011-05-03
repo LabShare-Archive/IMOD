@@ -2,11 +2,15 @@ package etomo.ui.swing;
 
 import java.awt.Component;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
+import etomo.comscript.ConstTiltParam;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.PanelId;
@@ -28,6 +32,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2011/04/26 00:07:01  sueh
+ * <p> bug# 1416 Moved responsibility of handling checkpointing and changed state to this class.  Field level calls
+ * <p> still handled in the parent.
+ * <p>
  * <p> Revision 1.5  2011/04/04 17:37:14  sueh
  * <p> bug# 1416  Added parent, sirtStartFromPanel, allowTiltComSave.
  * <p>
@@ -59,22 +67,20 @@ import etomo.type.Run3dmodMenuOptions;
  * <p> bug# 1222
  * <p> </p>
  */
-final class TiltPanel extends AbstractTiltPanel {
+final class TiltPanel extends AbstractTiltPanel implements ResumeObserver {
   public static final String rcsid = "$Id$";
 
   private final JPanel pnlTiltPanelRoot = new JPanel();
-  private final StateChangedReporter reporter = new StateChangedReporter(
-      this);
+  private final List<FieldObserver> fieldObservers = new ArrayList();
 
   private final TomogramGenerationDialog parent;
 
-  private boolean differentFromCheckpoint = false;
   private boolean resume = false;
 
   private TiltPanel(final ApplicationManager manager, final AxisID axisID,
       final DialogType dialogType, final GlobalExpandButton globalAdvancedButton,
       final PanelId panelId, final TomogramGenerationDialog parent) {
-    super(manager, axisID, dialogType, globalAdvancedButton, panelId);
+    super(manager, axisID, dialogType, globalAdvancedButton, panelId, true);
     this.parent = parent;
     mediator.register(this);
   }
@@ -92,7 +98,6 @@ final class TiltPanel extends AbstractTiltPanel {
 
   void addListeners() {
     super.addListeners();
-    addStateChangedReporter(reporter);
   }
 
   void createPanel() {
@@ -110,50 +115,39 @@ final class TiltPanel extends AbstractTiltPanel {
     return parent.allowTiltComSave();
   }
 
-  void checkpoint() {
-    super.checkpoint();
-    differentFromCheckpoint = false;
-  }
-
-  void msgTiltComLoaded() {
-    checkpoint();
-  }
-
-  public void msgTiltComSaved() {
-    if (isDifferentFromCheckpoint()) {
-      setChanged();
-      notifyObservers();
-    }
-    checkpoint();
+  void checkpoint(final ConstTiltParam param) {
+    super.checkpoint(param);
+    fieldChangeAction();
   }
 
   boolean isResume() {
     return resume;
   }
 
-  void msgResumeChanged(boolean resume) {
-    if (this.resume != resume) {
-      this.resume = resume;
-      updateDisplay();
-    }
+  void addFieldObserver(FieldObserver fieldObserver) {
+    fieldObservers.add(fieldObserver);
+    fieldChangeAction();
   }
 
-  StateChangedReporter getStateChangedReporter() {
-    return reporter;
-  }
-
-  /**
-   * If the checkpointed fields have just started diverging from the checkpoint or just
-   * stopped diverging, return true.
-   * @return
-   */
-  boolean isStateChanged() {
+  final void fieldChangeAction() {
     boolean diff = isDifferentFromCheckpoint();
-    if (differentFromCheckpoint != diff) {
-      differentFromCheckpoint = diff;
-      return true;
+    Iterator<FieldObserver> i = fieldObservers.iterator();
+    while (i.hasNext()) {
+      i.next().msgFieldChanged(diff);
     }
-    return false;
+  }
+
+  final boolean isBackProjection() {
+    return parent.isBackProjection();
+  }
+
+  final boolean isSirt() {
+    return parent.isSirt();
+  }
+
+  public void msgResumeChanged(boolean resume) {
+    this.resume = resume;
+    updateDisplay();
   }
 
   /**
