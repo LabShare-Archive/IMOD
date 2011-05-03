@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.159  2011/04/04 16:53:09  sueh
+ * bug# 1416 Added/modified reconnectTilt, sirtsetup, tilt.
+ *
  * Revision 3.158  2011/02/26 04:21:30  sueh
  * bug# 1453 In setupComScripts functions return ProcessMessages.
  *
@@ -1539,9 +1542,9 @@ public class ProcessManager extends BaseProcessManager {
     if (transferfidParam.getBToA().is()) {
       axisID = AxisID.FIRST;
     }
-    BackgroundProcess backgroundProcess = startBackgroundProcess(transferfidParam
-        .getCommand(), axisID, processResultDisplay, ProcessName.TRANSFERFID,
-        processSeries);
+    BackgroundProcess backgroundProcess = startBackgroundProcess(
+        transferfidParam.getCommand(), axisID, processResultDisplay,
+        ProcessName.TRANSFERFID, processSeries);
     transferfidCommandLine = backgroundProcess.getCommandLine();
     return backgroundProcess.getName();
   }
@@ -1796,9 +1799,9 @@ public class ProcessManager extends BaseProcessManager {
    */
   public String splitcombine(ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries) throws SystemProcessException {
-    BackgroundProcess backgroundProcess = startBackgroundProcess(new SplitcombineParam()
-        .getCommand(), AxisID.ONLY, processResultDisplay, ProcessName.SPLITCOMBINE,
-        processSeries);
+    BackgroundProcess backgroundProcess = startBackgroundProcess(
+        new SplitcombineParam().getCommand(), AxisID.ONLY, processResultDisplay,
+        ProcessName.SPLITCOMBINE, processSeries);
     return backgroundProcess.getName();
   }
 
@@ -2082,8 +2085,8 @@ public class ProcessManager extends BaseProcessManager {
    */
   private void runCommand(String[] commandArray, AxisID axisID, LogFile logFile)
       throws SystemProcessException, LogFile.LockException {
-    SystemProgram systemProgram = new SystemProgram(appManager, appManager
-        .getPropertyUserDir(), commandArray, axisID);
+    SystemProgram systemProgram = new SystemProgram(appManager,
+        appManager.getPropertyUserDir(), commandArray, axisID);
     systemProgram.setWorkingDirectory(new File(appManager.getPropertyUserDir()));
     systemProgram.setDebug(EtomoDirector.INSTANCE.getArguments().isDebug());
     LogFile.WritingId logWritingId = null;
@@ -2131,8 +2134,8 @@ public class ProcessManager extends BaseProcessManager {
   void postProcess(final DetachedProcess process) {
     super.postProcess(process);
     try {
-      if (process.getCommand().getCommandName().equals(
-          ProcessName.PROCESSCHUNKS.toString())) {
+      if (process.getCommand().getCommandName()
+          .equals(ProcessName.PROCESSCHUNKS.toString())) {
         CommandDetails commandDetails = process.getCommandDetails();
         if (commandDetails != null) {
           postProcess(commandDetails.getSubcommandProcessName(), process.getAxisID());
@@ -2171,15 +2174,15 @@ public class ProcessManager extends BaseProcessManager {
         copyFiducialAlignFiles(axisID);
         state.setMadeZFactors(axisID, processDetails
             .getBooleanValue(TiltalignParam.Fields.USE_OUTPUT_Z_FACTOR_FILE));
-        state.setUsedLocalAlignments(axisID, processDetails
-            .getBooleanValue(TiltalignParam.Fields.LOCAL_ALIGNMENTS));
+        state.setUsedLocalAlignments(axisID,
+            processDetails.getBooleanValue(TiltalignParam.Fields.LOCAL_ALIGNMENTS));
         appManager.setTiltState(script.getAxisID());
-        state.setAlignAxisZShift(axisID, processDetails
-            .getDoubleValue(TiltalignParam.Fields.AXIS_Z_SHIFT));
-        state.setAlignAngleOffset(axisID, processDetails
-            .getDoubleValue(TiltalignParam.Fields.ANGLE_OFFSET));
-        appManager.postProcess(axisID, processName, processDetails, script
-            .getProcessResultDisplay());
+        state.setAlignAxisZShift(axisID,
+            processDetails.getDoubleValue(TiltalignParam.Fields.AXIS_Z_SHIFT));
+        state.setAlignAngleOffset(axisID,
+            processDetails.getDoubleValue(TiltalignParam.Fields.ANGLE_OFFSET));
+        appManager.postProcess(axisID, processName, processDetails,
+            script.getProcessResultDisplay());
         appManager.logTaErrorLogMessage(axisID);
       }
       else if (processName == ProcessName.ERASER) {
@@ -2198,27 +2201,27 @@ public class ProcessManager extends BaseProcessManager {
       }
       else if (processName == ProcessName.NEWST) {
         if (commandDetails.getCommandMode() == NewstParam.Mode.FULL_ALIGNED_STACK) {
-          state.setNewstFiducialessAlignment(axisID, commandDetails
-              .getBooleanValue(NewstParam.Field.FIDUCIALESS_ALIGNMENT));
+          state.setNewstFiducialessAlignment(axisID,
+              commandDetails.getBooleanValue(NewstParam.Field.FIDUCIALESS_ALIGNMENT));
           appManager.setTiltState(axisID);
-          state.setStackUseLinearInterpolation(axisID, commandDetails
-              .getBooleanValue(NewstParam.Field.USE_LINEAR_INTERPOLATION));
-          state.setStackUserSizeToOutputInXandY(axisID, commandDetails
-              .getString(NewstParam.Field.USER_SIZE_TO_OUTPUT_IN_X_AND_Y));
-          state.setStackImageRotation(axisID, commandDetails
-              .getEtomoNumber(NewstParam.Field.IMAGE_ROTATION));
+          state.setStackUseLinearInterpolation(axisID,
+              commandDetails.getBooleanValue(NewstParam.Field.USE_LINEAR_INTERPOLATION));
+          state.setStackUserSizeToOutputInXandY(axisID,
+              commandDetails.getString(NewstParam.Field.USER_SIZE_TO_OUTPUT_IN_X_AND_Y));
+          state.setStackImageRotation(axisID,
+              commandDetails.getEtomoNumber(NewstParam.Field.IMAGE_ROTATION));
         }
       }
       else if (processName == ProcessName.BLEND) {
         if (commandDetails.getCommandMode() == BlendmontParam.Mode.BLEND) {
-          state.setStackUseLinearInterpolation(axisID, commandDetails
-              .getBooleanValue(BlendmontParam.Field.LINEAR_INTERPOLATION));
+          state.setStackUseLinearInterpolation(axisID,
+              commandDetails.getBooleanValue(BlendmontParam.Field.LINEAR_INTERPOLATION));
           state.setStackUserSizeToOutputInXandY(axisID, commandDetails
               .getString(BlendmontParam.Field.USER_SIZE_TO_OUTPUT_IN_X_AND_Y));
-          state.setStackImageRotation(axisID, commandDetails
-              .getEtomoNumber(BlendmontParam.Field.IMAGE_ROTATION));
-          state.setNewstFiducialessAlignment(axisID, commandDetails
-              .getBooleanValue(BlendmontParam.Field.FIDUCIALESS));
+          state.setStackImageRotation(axisID,
+              commandDetails.getEtomoNumber(BlendmontParam.Field.IMAGE_ROTATION));
+          state.setNewstFiducialessAlignment(axisID,
+              commandDetails.getBooleanValue(BlendmontParam.Field.FIDUCIALESS));
         }
       }
       else if (processName == ProcessName.UNDISTORT) {
@@ -2238,8 +2241,8 @@ public class ProcessManager extends BaseProcessManager {
           appManager.tomogramPositioningPostProcess(script.getAxisID(), processDetails);
         }
         if (commandDetails.getCommandMode() != TiltParam.Mode.SAMPLE) {
-          state.setAdjustOrigin(script.getAxisID(), processDetails
-              .getBooleanValue(TiltParam.Field.ADJUST_ORIGIN));
+          state.setAdjustOrigin(script.getAxisID(),
+              processDetails.getBooleanValue(TiltParam.Field.ADJUST_ORIGIN));
         }
       }
       else if (processName == ProcessName.NEWST_3D_FIND) {
@@ -2252,14 +2255,21 @@ public class ProcessManager extends BaseProcessManager {
         File fiducialFile = DatasetFiles.getFiducialModelFile(appManager, axisID);
         if (fiducialFile.exists()) {
           state.setFidFileLastModified(axisID, fiducialFile.lastModified());
-          appManager.logMessage(TrackLog.getInstance(appManager.getPropertyUserDir(),
-              axisID), axisID);
+          appManager.logMessage(
+              TrackLog.getInstance(appManager.getPropertyUserDir(), axisID), axisID);
         }
         else {
           state.resetFidFileLastModified(axisID);
         }
-        state.setTrackLightBeads(axisID, commandDetails
-            .getBooleanValue(BeadtrackParam.Field.LIGHT_BEADS));
+        state.setTrackLightBeads(axisID,
+            commandDetails.getBooleanValue(BeadtrackParam.Field.LIGHT_BEADS));
+      }
+      else if (processName == ProcessName.SIRTSETUP) {
+        appManager.msgSirtsetupSucceeded(axisID);
+        state.setGenSirtsetupSubareaSize(script.getAxisID(),
+            processDetails.getString(SirtsetupParam.Field.SUBAREA_SIZE));
+        state.setGenSirtsetupyOffsetOfSubarea(script.getAxisID(),
+            processDetails.getIntValue(SirtsetupParam.Field.Y_OFFSET_OF_SUBSET));
       }
       else {
         //For processes that can also be done with processchunks.
@@ -2287,8 +2297,8 @@ public class ProcessManager extends BaseProcessManager {
         setInvalidEdgeFunctions(script.getCommand(), false);
       }
       else if (processName == ProcessName.COMBINE) {
-        appManager.errorProcess(script.getAxisID(), processName, script
-            .getProcessDetails());
+        appManager.errorProcess(script.getAxisID(), processName,
+            script.getProcessDetails());
       }
     }
     catch (Exception e) {
@@ -2313,8 +2323,9 @@ public class ProcessManager extends BaseProcessManager {
         writeLogFile(process, process.getAxisID(), DatasetFiles.TRANSFER_FID_LOG);
         //showTransferfidLogFile(process.getAxisID());
         appManager.getState().setSeedingDone(process.getAxisID(), true);
-        appManager.logMessage(TransferFidLog.getInstance(appManager.getPropertyUserDir(),
-            process.getAxisID()), process.getAxisID());
+        appManager.logMessage(
+            TransferFidLog.getInstance(appManager.getPropertyUserDir(),
+                process.getAxisID()), process.getAxisID());
       }
       else if (process.getProcessName() == ProcessName.FLATTEN_WARP) {
         FlattenWarpLog flattenWarpLog = new FlattenWarpLog();
