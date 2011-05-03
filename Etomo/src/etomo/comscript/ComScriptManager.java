@@ -34,6 +34,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.67  2011/04/09 06:22:51  sueh
+ * <p> bug# 1416 Need to pass the manager to most FileType functions so that TILT_OUTPUT can distinguish
+ * <p> between single and dual axis type.
+ * <p>
  * <p> Revision 3.66  2011/04/04 16:46:35  sueh
  * <p> bug# 1416 Added scriptSirtsetupA and B, getSirtsetupParam, loadSirtsetup, saveSirtsetup.
  * <p>
@@ -435,6 +439,8 @@ public final class ComScriptManager extends BaseComScriptManager {
   private ComScript scriptXcorrPtB;
   private ComScript scriptSirtsetupA;
   private ComScript scriptSirtsetupB;
+  private ComScript scriptTiltForSirtA;
+  private ComScript scriptTiltForSirtB;
 
   public ComScriptManager(ApplicationManager appManager) {
     super(appManager);
@@ -520,12 +526,14 @@ public final class ComScriptManager extends BaseComScriptManager {
    */
   public void loadUndistort(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
-      scriptUndistortB = loadComScript(BlendmontParam
-          .getProcessName(BlendmontParam.Mode.UNDISTORT), axisID, true, false, false);
+      scriptUndistortB = loadComScript(
+          BlendmontParam.getProcessName(BlendmontParam.Mode.UNDISTORT), axisID, true,
+          false, false);
     }
     else {
-      scriptUndistortA = loadComScript(BlendmontParam
-          .getProcessName(BlendmontParam.Mode.UNDISTORT), axisID, true, false, false);
+      scriptUndistortA = loadComScript(
+          BlendmontParam.getProcessName(BlendmontParam.Mode.UNDISTORT), axisID, true,
+          false, false);
     }
   }
 
@@ -684,24 +692,28 @@ public final class ComScriptManager extends BaseComScriptManager {
   public void loadPreblend(AxisID axisID) {
     //  Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
-      scriptPreblendB = loadComScript(BlendmontParam
-          .getProcessName(BlendmontParam.Mode.PREBLEND), axisID, true, false, false);
+      scriptPreblendB = loadComScript(
+          BlendmontParam.getProcessName(BlendmontParam.Mode.PREBLEND), axisID, true,
+          false, false);
     }
     else {
-      scriptPreblendA = loadComScript(BlendmontParam
-          .getProcessName(BlendmontParam.Mode.PREBLEND), axisID, true, false, false);
+      scriptPreblendA = loadComScript(
+          BlendmontParam.getProcessName(BlendmontParam.Mode.PREBLEND), axisID, true,
+          false, false);
     }
   }
 
   public void loadBlend(AxisID axisID) {
     //  Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
-      scriptBlendB = loadComScript(BlendmontParam
-          .getProcessName(BlendmontParam.Mode.BLEND), axisID, true, false, false);
+      scriptBlendB = loadComScript(
+          BlendmontParam.getProcessName(BlendmontParam.Mode.BLEND), axisID, true, false,
+          false);
     }
     else {
-      scriptBlendA = loadComScript(BlendmontParam
-          .getProcessName(BlendmontParam.Mode.BLEND), axisID, true, false, false);
+      scriptBlendA = loadComScript(
+          BlendmontParam.getProcessName(BlendmontParam.Mode.BLEND), axisID, true, false,
+          false);
     }
   }
 
@@ -725,24 +737,28 @@ public final class ComScriptManager extends BaseComScriptManager {
   public boolean loadXcorrPt(AxisID axisID, boolean required) {
     //  Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
-      scriptXcorrPtB = loadComScript(FileType.PATCH_TRACKING_COMSCRIPT.getFileName(
-          appManager, axisID), axisID, true, required, false, false);
+      scriptXcorrPtB = loadComScript(
+          FileType.PATCH_TRACKING_COMSCRIPT.getFileName(appManager, axisID), axisID,
+          true, required, false, false);
       return scriptXcorrPtB != null;
     }
-    scriptXcorrPtA = loadComScript(FileType.PATCH_TRACKING_COMSCRIPT.getFileName(
-        appManager, axisID), axisID, true, required, false, false);
+    scriptXcorrPtA = loadComScript(
+        FileType.PATCH_TRACKING_COMSCRIPT.getFileName(appManager, axisID), axisID, true,
+        required, false, false);
     return scriptXcorrPtA != null;
   }
 
   public boolean loadSirtsetup(AxisID axisID) {
     //  Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
-      scriptSirtsetupB = loadComScript(FileType.SIRTSETUP_COMSCRIPT.getFileName(
-          appManager, axisID), axisID, true, false, false, false);
+      scriptSirtsetupB = loadComScript(
+          FileType.SIRTSETUP_COMSCRIPT.getFileName(appManager, axisID), axisID, true,
+          false, false, false);
       return scriptSirtsetupB != null;
     }
-    scriptSirtsetupA = loadComScript(FileType.SIRTSETUP_COMSCRIPT.getFileName(appManager,
-        axisID), axisID, true, false, false, false);
+    scriptSirtsetupA = loadComScript(
+        FileType.SIRTSETUP_COMSCRIPT.getFileName(appManager, axisID), axisID, true,
+        false, false, false);
     return scriptSirtsetupA != null;
   }
 
@@ -758,8 +774,8 @@ public final class ComScriptManager extends BaseComScriptManager {
 
     // Initialize a SirtsetupParam object from the com script command object
     SirtsetupParam param = new SirtsetupParam(appManager, axisID);
-    initialize(param, sirtsetup, FileType.SIRTSETUP_COMSCRIPT.getTypeString(appManager), axisID,
-        true, true);
+    initialize(param, sirtsetup, FileType.SIRTSETUP_COMSCRIPT.getTypeString(appManager),
+        axisID, true, true);
     return param;
   }
 
@@ -796,8 +812,9 @@ public final class ComScriptManager extends BaseComScriptManager {
   public boolean loadCtfCorrection(AxisID axisID, boolean required) {
     //  Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
-      scriptCtfCorrectionB = loadComScript(ProcessName.CTF_CORRECTION
-          .getComscript(axisID), axisID, true, required, false, false);
+      scriptCtfCorrectionB = loadComScript(
+          ProcessName.CTF_CORRECTION.getComscript(axisID), axisID, true, required, false,
+          false);
       return scriptCtfCorrectionB != null;
     }
     scriptCtfCorrectionA = loadComScript(ProcessName.CTF_CORRECTION.getComscript(axisID),
@@ -1428,6 +1445,22 @@ public final class ComScriptManager extends BaseComScriptManager {
   }
 
   /**
+   * Load the specified tilt_for_sirt com script
+   * @param axisID the AxisID to load.
+   */
+  public void loadTiltForSirt(AxisID axisID) {
+    //  Assign the new ComScriptObject object to the appropriate reference
+    if (axisID == AxisID.SECOND) {
+      scriptTiltForSirtB = loadComScript(FileType.TILT_FOR_SIRT_COMSCRIPT, axisID, false,
+          true, true);
+    }
+    else {
+      scriptTiltForSirtA = loadComScript(FileType.TILT_FOR_SIRT_COMSCRIPT, axisID, false,
+          true, true);
+    }
+  }
+
+  /**
    * Load the specified tilt_3dfind com script
    * @param axisID the AxisID to load.
    */
@@ -1477,6 +1510,28 @@ public final class ComScriptManager extends BaseComScriptManager {
     TiltParam tiltParam = new TiltParam(appManager, appManager.getMetaData()
         .getDatasetName(), axisID);
     initialize(tiltParam, tilt, "tilt", axisID, true, true);
+    return tiltParam;
+  }
+
+  /**
+   * Get the tilt parameters from the specified tilt script object
+   * @param axisID the AxisID to read.
+   * @return a TiltParam object that will be created and initialized
+   * with the input arguments from tilt in the tilt for sirt com script.
+   */
+  public TiltParam getTiltParamFromTiltForSirt(AxisID axisID) {
+    //  Get a reference to the appropriate script object
+    ComScript comScript;
+    if (axisID == AxisID.SECOND) {
+      comScript = scriptTiltForSirtB;
+    }
+    else {
+      comScript = scriptTiltForSirtA;
+    }
+    // Initialize a TiltParam object from the com script command object
+    TiltParam tiltParam = new TiltParam(appManager, appManager.getMetaData()
+        .getDatasetName(), axisID);
+    initialize(tiltParam, comScript, "tilt", axisID, true, true);
     return tiltParam;
   }
 
