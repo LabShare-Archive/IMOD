@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.54  2011/04/09 06:26:33  sueh
+ * <p> bug# 1416 Replaced FileType..DUAL_AXIS_TOMOGRAM and SINGLE_AXIS_TOMOGRAM with TILT_OUTPUT.
+ * <p>
  * <p> Revision 3.53  2011/03/01 23:59:29  sueh
  * <p> bug# 1452 Removing conversion between float and double.  Using string
  * <p> where possible.
@@ -1582,6 +1585,12 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
 
   public void setZFactorFileName(final String input) {
     zFactorFileName.set(input);
+  }
+  
+  public boolean hasZFactorFileName() {
+    if (zFactorFileName.equals(""))
+      return false;
+    return true;
   }
 
   public void resetXShift() {
