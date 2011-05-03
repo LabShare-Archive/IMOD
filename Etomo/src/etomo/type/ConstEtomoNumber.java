@@ -35,6 +35,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.68  2011/02/22 05:32:22  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.67  2010/02/17 04:52:36  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -1391,7 +1394,11 @@ public abstract class ConstEtomoNumber implements Storable {
    * @return
    */
   Number newNumber(String value, StringBuffer invalidBuffer) {
-    if (value == null || value.matches("\\s*")) {
+    if (value == null) {
+      return newNumber();
+    }
+    value = value.trim();
+    if (value.equals("")) {
       return newNumber();
     }
     try {
