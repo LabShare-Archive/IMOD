@@ -24,6 +24,7 @@ import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoVersion;
 import etomo.type.EtomoBoolean2;
+import etomo.type.EtomoNumber;
 import etomo.type.EtomoVersion;
 import etomo.type.PanelHeaderState;
 import etomo.type.ProcessResultDisplay;
@@ -433,8 +434,18 @@ public final class ParallelPanel implements Expandable, Storable {
     currentTable.getParameters(param);
   }
 
-  public void getParameters(final SirtsetupParam param) {
-    param.setNumberOfProcessors(ltfCPUsSelected.getText());
+  public boolean getParameters(final SirtsetupParam param) {
+    EtomoNumber numMachines = new EtomoNumber();
+    numMachines.setNullIsValid(false);
+    numMachines.setValidFloor(1);
+    numMachines.set(ltfCPUsSelected.getText());
+    if (!numMachines.isValid()) {
+      UIHarness.INSTANCE.openMessageDialog(manager, getCPUsSelectedLabel()
+          + " " + numMachines.getInvalidReason(), "Unable to run sirtsetup", axisID);
+      return false;
+    }
+    param.setNumberOfProcessors(numMachines.toString());
+    return true;
   }
 
   /**
@@ -530,6 +541,9 @@ public final class ParallelPanel implements Expandable, Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2011/04/04 17:22:26  sueh
+ * <p> bug# 1416 Changed the "number selected" label for the GPU table.  Added getParameters(SirtsetupParam).
+ * <p>
  * <p> Revision 1.3  2011/02/09 05:06:01  sueh
  * <p> bug# 1439 In setProcessingMethod calling ProcessorTable.
  * <p> msgCPUsSelectedChanged when starting load without changing the table.
