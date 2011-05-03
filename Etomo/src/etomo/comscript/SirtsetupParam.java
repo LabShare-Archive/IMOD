@@ -1,13 +1,20 @@
 package etomo.comscript;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Hashtable;
+import java.util.List;
 
 import etomo.BaseManager;
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
 import etomo.type.FileType;
+import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
 import etomo.type.StringParameter;
@@ -25,9 +32,12 @@ import etomo.type.StringParameter;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2011/04/04 16:47:34  sueh
+* <p> bug# 1416 Param class for sirtsetup.
+* <p> </p>
 */
-public final class SirtsetupParam implements CommandParam, Command {
+public final class SirtsetupParam implements CommandParam, CommandDetails {
   public static final String rcsid = "$Id$";
 
   public static final String CLEAN_UP_PAST_START_KEY = "CleanUpPastStart";
@@ -274,5 +284,68 @@ public final class SirtsetupParam implements CommandParam, Command {
 
   public boolean isMessageReporter() {
     return false;
+  }
+
+  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+      IOException {
+    return null;
+  }
+
+  public String getName() {
+    return ProcessName.SIRTSETUP.toString();
+  }
+
+  public boolean getBooleanValue(final etomo.comscript.FieldInterface fieldInterface) {
+    throw new IllegalArgumentException("field=" + fieldInterface);
+  }
+
+  public double getDoubleValue(final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
+  public ConstEtomoNumber getEtomoNumber(final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
+  public Hashtable getHashtable(final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
+  public float getFloatValue(final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
+  public ConstIntKeyList getIntKeyList(final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
+  public int getIntValue(final FieldInterface field) {
+    if (field == Field.Y_OFFSET_OF_SUBSET) {
+      return yOffsetOfSubarea.getInt();
+    }
+    throw new IllegalArgumentException("field=" + field);
+  }
+
+  public IteratorElementList getIteratorElementList(final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
+  public String getString(final FieldInterface field) {
+    if (field == Field.SUBAREA_SIZE) {
+      return subareaSize.toString(true);
+    }
+    throw new IllegalArgumentException("field=" + field);
+  }
+
+  public String[] getStringArray(final FieldInterface field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
+  public static final class Field implements etomo.comscript.FieldInterface {
+    public static final Field SUBAREA_SIZE = new Field();
+    public static final Field Y_OFFSET_OF_SUBSET = new Field();
+
+    private Field() {
+    }
   }
 }
