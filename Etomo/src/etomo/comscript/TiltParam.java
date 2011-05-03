@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.55  2011/05/03 02:43:38  sueh
+ * <p> bug# 1416 Added hasZFactorFileName.
+ * <p>
  * <p> Revision 3.54  2011/04/09 06:26:33  sueh
  * <p> bug# 1416 Replaced FileType..DUAL_AXIS_TOMOGRAM and SINGLE_AXIS_TOMOGRAM with TILT_OUTPUT.
  * <p>
@@ -360,7 +363,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   private final StringParameter projectModel = new StringParameter("ProjectModel");
   private final ScriptParameter useGpu = new ScriptParameter("UseGPU");
   private final StringParameter actionIfGPUFails = new StringParameter("ActionIfGPUFails");
-
+  private final EtomoBoolean2 done = new EtomoBoolean2("DONE");
+  
   private final String datasetName;
   private final ApplicationManager manager;
   private final AxisID axisID;
@@ -1014,11 +1018,10 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
    */
   public void updateComScriptCommand(final ComScriptCommand scriptCommand)
       throws BadComScriptException {
-    if (!scriptCommand.isKeywordValuePairs()) {
-    }
     //  Switch to keyword/value pairs
     scriptCommand.useKeywordValue();
-
+    //get rid of the DONE parameter from the old tilt.com
+    done.updateComScript(scriptCommand);
     inputFile.updateComScript(scriptCommand);
     outputFile.updateComScript(scriptCommand);
     imageBinned.updateComScript(scriptCommand);
