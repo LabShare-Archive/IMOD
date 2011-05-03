@@ -20,6 +20,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2011/04/04 17:36:31  sueh
+ * <p> bug# 1416 Added allowTiltComSave and msgTiltComSaved.
+ * <p>
  * <p> Revision 1.2  2011/02/03 06:22:16  sueh
  * <p> bug# 1422 Control of the processing method has been centralized in the
  * <p> processing method mediator class.  Implementing ProcessInterface.
@@ -41,6 +44,4 @@ public interface TiltDisplay extends ProcessDisplay {
   public boolean getParameters(final SplittiltParam param);
 
   public boolean allowTiltComSave();
-  
-  public void msgTiltComSaved();
 }
