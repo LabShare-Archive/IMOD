@@ -16,7 +16,8 @@ import etomo.type.UITestFieldType;
 import etomo.util.Utilities;
 
 /**
- * <p>Description: </p>
+ * <p>Description: A self-naming, labeled text field.  Implements StateChangeSource with
+ * its state equal to whether it has changed since it was checkpointed.</p>
  *
  * <p>Copyright: Copyright (c) 2002</p>
  *
@@ -28,6 +29,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.5  2011/04/25 23:36:21  sueh
+ * <p> bug# 1416 Implemented StateChangeActionSource.  Added equals(Object) and equals(Document) so
+ * <p> StateChangedReporter can find instances of this class.  Changed isChanged to isDifferentFromCheckpoint.
+ * <p> Added getState.
+ * <p>
  * <p> Revision 1.4  2011/04/04 17:20:46  sueh
  * <p> bug# 1416 Added savedValue, checkpoint, isChanged.
  * <p>
@@ -199,7 +205,7 @@ import etomo.util.Utilities;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-final class LabeledTextField implements StateChangeDocumentSource {
+final class LabeledTextField {
   public static final String rcsid = "$Id$";
 
   private final JPanel panel = new JPanel();
@@ -208,9 +214,8 @@ final class LabeledTextField implements StateChangeDocumentSource {
   private final EtomoNumber.Type numericType;
 
   private boolean debug = false;
-  private String savedTextFieldValue = null;
-  private EtomoNumber nSavedTextFieldValue = null;
-  private StateChangedReporter reporter = null;
+  private String checkpointValue = null;
+  private EtomoNumber nCheckpointValue = null;
 
   public String toString() {
     return "[label:" + getLabel() + "]";
@@ -258,6 +263,10 @@ final class LabeledTextField implements StateChangeDocumentSource {
     return new LabeledTextField(tfLabel, numericType);
   }
 
+  static LabeledTextField getNumericInstance(final String tfLabel) {
+    return new LabeledTextField(tfLabel, EtomoNumber.Type.INTEGER);
+  }
+
   private void setName(final String tfLabel) {
     String name = Utilities.convertLabelToName(tfLabel);
     textField.setName(UITestFieldType.TEXT_FIELD.toString()
@@ -269,25 +278,68 @@ final class LabeledTextField implements StateChangeDocumentSource {
   }
 
   /**
-   * Saves the current state of the textfield.
+   * Saves value as the checkpoint.
    */
-  void checkpoint() {
-    savedTextFieldValue = textField.getText();
+  void checkpoint(final float value) {
+    checkpointValue = new Float(value).toString();
     if (numericType != null) {
-      if (nSavedTextFieldValue == null) {
-        nSavedTextFieldValue = new EtomoNumber(numericType);
+      if (nCheckpointValue == null) {
+        nCheckpointValue = new EtomoNumber(numericType);
       }
-      nSavedTextFieldValue.set(savedTextFieldValue);
+      nCheckpointValue.set(checkpointValue);
     }
-    reporter.msgCheckpointed(this);
   }
 
-  public boolean getState() {
-    return isDifferentFromCheckpoint();
+  /**
+   * Saves value as the checkpoint.
+   */
+  void checkpoint(final int value) {
+    checkpointValue = new Integer(value).toString();
+    if (numericType != null) {
+      if (nCheckpointValue == null) {
+        nCheckpointValue = new EtomoNumber(numericType);
+      }
+      nCheckpointValue.set(checkpointValue);
+    }
   }
 
-  public void setReporter(StateChangedReporter reporter) {
-    this.reporter = reporter;
+  /**
+   * Saves value as the checkpoint.
+   */
+  void checkpoint(final ConstEtomoNumber value) {
+    checkpointValue = value.toString();
+    if (numericType != null) {
+      if (nCheckpointValue == null) {
+        nCheckpointValue = new EtomoNumber(numericType);
+      }
+      nCheckpointValue.set(checkpointValue);
+    }
+  }
+
+  /**
+   * Saves value as the checkpoint.
+   */
+  void checkpoint(final double value) {
+    checkpointValue = new Double(value).toString();
+    if (numericType != null) {
+      if (nCheckpointValue == null) {
+        nCheckpointValue = new EtomoNumber(numericType);
+      }
+      nCheckpointValue.set(checkpointValue);
+    }
+  }
+
+  /**
+   * Saves value as the checkpoint.
+   */
+  void checkpoint(final String value) {
+    checkpointValue = value;
+    if (numericType != null) {
+      if (nCheckpointValue == null) {
+        nCheckpointValue = new EtomoNumber(numericType);
+      }
+      nCheckpointValue.set(checkpointValue);
+    }
   }
 
   public void addActionListener(ActionListener listener) {
@@ -295,18 +347,24 @@ final class LabeledTextField implements StateChangeDocumentSource {
   }
 
   /**
-   * Returns true if a checkpoint was done and the text field text has changed since the
-   * checkpoint.
+   * If the field is disabled then return false because its value doesn't matter.
+   * First it returns true if the checkpoint has not been done; the checkpoint value is
+   * from an outside value, so the current value must be different from a non-existant
+   * checkpoint value.  After eliminating this possibility, it returns a boolean based on
+   * the difference between the text field value and the checkpointed value.
    * @return
    */
   boolean isDifferentFromCheckpoint() {
-    if (savedTextFieldValue == null) {
+    if (!textField.isEnabled() || !textField.isVisible()) {
       return false;
     }
-    if (numericType == null) {
-      return !savedTextFieldValue.equals(textField.getText());
+    if (checkpointValue == null) {
+      return true;
     }
-    return !nSavedTextFieldValue.equals(textField.getText());
+    if (numericType == null) {
+      return !checkpointValue.equals(textField.getText());
+    }
+    return !nCheckpointValue.equals(textField.getText());
   }
 
   void clear() {
