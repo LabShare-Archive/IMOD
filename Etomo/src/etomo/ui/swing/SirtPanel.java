@@ -3,12 +3,14 @@ package etomo.ui.swing;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -16,6 +18,8 @@ import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import etomo.ApplicationManager;
 import etomo.comscript.FortranInputSyntaxException;
@@ -36,6 +40,7 @@ import etomo.type.MetaData;
 import etomo.type.PanelId;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.type.TomogramState;
 
 /**
 * <p>Description: </p>
@@ -51,6 +56,9 @@ import etomo.type.Run3dmodMenuOptions;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.6  2011/04/25 23:49:22  sueh
+* <p> bug# 1416 Moved SirtStartFromPanel functionality to this class.  Handling one file when opening in 3dmod and using a SIRT tomogram as the dataset tomogram.  Removed the observer/observable code because their are enough observers and the response isn't standard enough.  Talking directly to TiltPanel.
+* <p>
 * <p> Revision 1.5  2011/04/04 17:33:42  sueh
 * <p> bug# 1416 Added/modified sirt and useSirt buttons; cleanUpPastStart, scaleToInteger, and subarea
 * <p> checkboxes, dialogType, flatFilterFraction, offsetInXAndY, subareaSize, yOffsetOfSubarea fields; parent.
@@ -68,15 +76,16 @@ import etomo.type.Run3dmodMenuOptions;
 * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
 * <p> </p>
 */
-final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expandable {
+final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expandable,
+    FieldObserver {
   public static final String rcsid = "$Id$";
 
   private static final String RESUME_FROM_LAST_ITERATION_LABEL = "Resume from last iteration";
 
   private final JPanel pnlRoot = new JPanel();
   private final CheckBox cbSubarea = new CheckBox("Reconstruct subarea");
-  private final LabeledTextField ltfYOffsetOfSubarea = new LabeledTextField(
-      " Offset in Y: ");
+  private final LabeledTextField ltfYOffsetOfSubarea = LabeledTextField
+      .getNumericInstance(" Offset in Y: ");
   private final LabeledTextField ltfSubareaSize = new LabeledTextField("Size in X and Y"
       + ": ");
   private final LabeledTextField ltfLeaveIterations = new LabeledTextField(
@@ -100,25 +109,24 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
       "Go back, resume from iteration:", bgStartingIteration);
   private final ComboBox cmbResumeFromIteration = new ComboBox(
       rbResumeFromIteration.getText());
+  private final List<ResumeObserver> resumeObservers = new ArrayList();
 
   private final AxisID axisID;
   private final ApplicationManager manager;
   private final Run3dmodButton btnSirt;
   private final MultiLineButton btnUseSirt;
-  private final SirtParent parent;
+  private final TomogramGenerationDialog parent;
   private final DialogType dialogType;
   private final RadialPanel radiusAndSigmaPanel;
   private final PanelHeader sirtSetupParamsHeader;
-  private final TiltPanel tiltPanel;
 
   private SirtPanel(final ApplicationManager manager, final AxisID axisID,
       final DialogType dialogType, final GlobalExpandButton globalAdvancedButton,
-      final TiltPanel tiltPanel, final SirtParent parent) {
+      final TomogramGenerationDialog parent) {
     this.axisID = axisID;
     this.manager = manager;
     this.parent = parent;
     this.dialogType = dialogType;
-    this.tiltPanel = tiltPanel;
     radiusAndSigmaPanel = RadialPanel.getInstance(manager, axisID, PanelId.SIRTSETUP);
     ProcessResultDisplayFactory factory = manager.getProcessResultDisplayFactory(axisID);
     btnSirt = (Run3dmodButton) factory.getSirtsetup();
@@ -129,12 +137,12 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
 
   static SirtPanel getInstance(final ApplicationManager manager, final AxisID axisID,
       final DialogType dialogType, final GlobalExpandButton globalAdvancedButton,
-      final TiltPanel tiltPanel, final SirtParent parent) {
+      final TomogramGenerationDialog parent) {
     SirtPanel instance = new SirtPanel(manager, axisID, dialogType, globalAdvancedButton,
-        tiltPanel, parent);
+        parent);
     instance.createPanel();
     instance.setToolTipText();
-    instance.addListeners(tiltPanel.getStateChangedReporter());
+    instance.addListeners();
     return instance;
   }
 
@@ -231,15 +239,30 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     updateDisplay();
   }
 
-  private void addListeners(final StateChangedReporter reporter) {
-    cbSubarea.addActionListener(listener);
+  private void addListeners() {
     btnSirt.addActionListener(listener);
     btn3dmodSirt.addActionListener(listener);
     btnUseSirt.addActionListener(listener);
     rbStartFromZero.addActionListener(listener);
     rbResumeFromLastIteration.addActionListener(listener);
     rbResumeFromIteration.addActionListener(listener);
-    reporter.addStateChangedListener(new SirtStateChangedListener(this));
+    cbSubarea.addActionListener(listener);
+    SirtDocumentListener documentListener = new SirtDocumentListener(this);
+    ltfSubareaSize.addDocumentListener(documentListener);
+    ltfYOffsetOfSubarea.addDocumentListener(documentListener);
+  }
+
+  void addResumeObserver(ResumeObserver resumeObserver) {
+    resumeObservers.add(resumeObserver);
+    resumeChanged();
+  }
+
+  private void msgFieldChanged() {
+    updateDisplay(!isDifferentFromCheckpoint());
+  }
+
+  public void msgFieldChanged(final boolean differentFromCheckpoint) {
+    updateDisplay(!differentFromCheckpoint && !isDifferentFromCheckpoint());
   }
 
   private void updateDisplay() {
@@ -256,29 +279,32 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     rbResumeFromIteration.setEnabled(resumeEnabled);
     cmbResumeFromIteration
         .setEnabled(resumeEnabled && rbResumeFromIteration.isSelected());
+    //Don't allow the resume radio buttons to be selected when they are disabled
+    if (!resumeEnabled
+        && (rbResumeFromLastIteration.isSelected() || rbResumeFromIteration.isSelected())) {
+      rbStartFromZero.setSelected(true);
+      resumeChanged();
+    }
     updateDisplay();
   }
 
-  Boolean isResumeEnabled() {
+  private Boolean isResumeEnabled() {
     return rbResumeFromLastIteration.isEnabled();
   }
 
   Boolean isResume() {
-    return (rbResumeFromLastIteration.isEnabled() && rbResumeFromLastIteration
-        .isSelected())
-        || (rbResumeFromIteration.isEnabled() && rbResumeFromIteration.isSelected());
+    return rbResumeFromLastIteration.isSelected() || rbResumeFromIteration.isSelected();
   }
 
-  public void msgSirtSucceeded() {
+  void msgSirtSucceeded() {
     loadResumeFrom();
   }
 
-  public final void setMethod(final TomogramGenerationDialog.MethodEnum method) {
-    boolean sirt = method == TomogramGenerationDialog.MethodEnum.SIRT;
-    pnlRoot.setVisible(sirt);
+  void msgMethodChanged() {
+    pnlRoot.setVisible(parent.isSirt());
   }
 
-  final void done() {
+  void done() {
     btnSirt.removeActionListener(listener);
     btnUseSirt.removeActionListener(listener);
   }
@@ -289,7 +315,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     sirtSetupParamsHeader.getState(screenState.getTomoGenSirtHeaderState());
   }
 
-  final void setParameters(final ReconScreenState screenState) {
+  void setParameters(final ReconScreenState screenState) {
     sirtSetupParamsHeader.setState(screenState.getTomoGenSirtHeaderState());
     btnSirt.setButtonState(screenState.getButtonState(btnSirt.getButtonStateKey()));
     btnUseSirt.setButtonState(screenState.getButtonState(btnUseSirt.getButtonStateKey()));
@@ -299,14 +325,12 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     metaData.setGenSubarea(axisID, cbSubarea.isSelected());
     metaData.setGenSubareaSize(axisID, ltfSubareaSize.getText());
     metaData.setGenYOffsetOfSubarea(axisID, ltfYOffsetOfSubarea.getText());
-    metaData.setGenResumeEnabled(axisID, rbResumeFromIteration.isEnabled());
   }
 
   void setParameters(final ConstMetaData metaData) {
     cbSubarea.setSelected(metaData.isGenSubarea(axisID));
     ltfSubareaSize.setText(metaData.getGenSubareaSize(axisID));
     ltfYOffsetOfSubarea.setText(metaData.getGenYOffsetOfSubarea(axisID));
-    updateDisplay(metaData.isGenResumeEnabled(axisID));
   }
 
   public boolean getParameters(final SirtsetupParam param) {
@@ -436,7 +460,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
    * open in 3dmod without asking.
    * @param run3dmodMenuOptions
    */
-  public void openFilesInImod(final Run3dmodMenuOptions run3dmodMenuOptions) {
+  private void openFilesInImod(final Run3dmodMenuOptions run3dmodMenuOptions) {
     //Don't open the file chooser if there is only one file to choose
     SirtOutputFileFilter sirtOutputFileFilter = new SirtOutputFileFilter(manager, axisID,
         true);
@@ -496,10 +520,10 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     ltfFlatFilterFraction.setVisible(advanced);
   }
 
-  public final void expand(final GlobalExpandButton button) {
+  public void expand(final GlobalExpandButton button) {
   }
 
-  public final void expand(final ExpandButton button) {
+  public void expand(final ExpandButton button) {
     if (sirtSetupParamsHeader != null) {
       if (sirtSetupParamsHeader.equalsOpenClose(button)) {
         pnlSirtsetupParamsBody.setVisible(button.isExpanded());
@@ -511,19 +535,46 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     UIHarness.INSTANCE.pack(axisID, manager);
   }
 
-  public final void action(final Run3dmodButton button,
+  public void action(final Run3dmodButton button,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     action(button.getActionCommand(), button.getDeferred3dmodButton(),
         run3dmodMenuOptions);
   }
 
+  private void resumeChanged() {
+    boolean resume = isResume();
+    Iterator<ResumeObserver> i = resumeObservers.iterator();
+    while (i.hasNext()) {
+      i.next().msgResumeChanged(resume);
+    }
+  }
+
+  private void fieldChangeAction() {
+    msgFieldChanged();
+  }
+
+  void checkpoint(TomogramState state) {
+    String subareaSize = state.getGenSirtsetupSubareaSize(axisID);
+    //Subarea was used if the size was set
+    cbSubarea.checkpoint(!subareaSize.matches("\\s*"));
+    ltfSubareaSize.checkpoint(subareaSize);
+    ltfYOffsetOfSubarea.checkpoint(state.getGenSirtsetupyOffsetOfSubarea(axisID));
+    fieldChangeAction();
+  }
+
   /**
-   * Enable/disable resume based on whether the lead source of the event is different from
-   * the checkpoint.
-   * @param event
+   * Checks the subarea fields.  Returns true if any of them are different from their
+   * checkpoint or haven't been checkpointed. It is unnecessary to check whether a field
+   * is active, because a disabled or invisible field returns false.
+   * @return
    */
-  public void stateChanged(StateChangedEvent event) {
-    updateDisplay(!event.getLeadSource().isDifferentFromCheckpoint());
+  boolean isDifferentFromCheckpoint() {
+    if (cbSubarea.isDifferentFromCheckpoint()
+        || ltfSubareaSize.isDifferentFromCheckpoint()
+        || ltfYOffsetOfSubarea.isDifferentFromCheckpoint()) {
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -535,7 +586,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
    * @param deferred3dmodButton
    * @param run3dmodMenuOptions
    */
-  final void action(final String actionCommand,
+  private void action(final String actionCommand,
       final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (actionCommand.equals(btnSirt.getActionCommand())) {
@@ -551,30 +602,20 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     else if (actionCommand.equals(rbStartFromZero.getActionCommand())
         || actionCommand.equals(rbResumeFromLastIteration.getActionCommand())
         || actionCommand.equals(rbResumeFromIteration.getActionCommand())) {
-      updateDisplay(isResumeEnabled());
-      tiltPanel.msgResumeChanged(isResume());
-    }
-    else {
       updateDisplay();
+      resumeChanged();
+    }
+    else if (actionCommand.equals(cbSubarea.getActionCommand())) {
+      updateDisplay();
+      fieldChangeAction();
     }
   }
 
-  /**
-   * Right mouse button context menu
-   */
-  void popUpContextMenu(final String anchor, final Component rootPanel,
-      final MouseEvent mouseEvent) {
-    String[] manPagelabel = { "Sirtsetup", "3dmod" };
-    String[] manPage = { "sirtsetup", "3dmod.html" };
-    String[] logFileLabel = { "Sirtsetup" };
-    String[] logFile = new String[1];
-    logFile[0] = "sirtsetup" + axisID.getExtension() + ".log";
-    ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent, anchor,
-        ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile, manager,
-        axisID);
+  private void documentAction() {
+    fieldChangeAction();
   }
 
-  void setToolTipText() {
+  private void setToolTipText() {
     ReadOnlyAutodoc autodoc = null;
     try {
       autodoc = AutodocFactory.getInstance(manager, AutodocFactory.SIRTSETUP, axisID);
@@ -629,15 +670,24 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     }
   }
 
-  private static final class SirtStateChangedListener implements StateChangedListener {
+  private static final class SirtDocumentListener implements DocumentListener {
     private final SirtPanel adaptee;
 
-    private SirtStateChangedListener(final SirtPanel adaptee) {
+    private SirtDocumentListener(final SirtPanel adaptee) {
       this.adaptee = adaptee;
     }
 
-    public void stateChanged(StateChangedEvent event) {
-      adaptee.stateChanged(event);
+    public void changedUpdate(final DocumentEvent event) {
+      adaptee.documentAction();
+    }
+
+    public void insertUpdate(final DocumentEvent event) {
+      adaptee.documentAction();
+    }
+
+    public void removeUpdate(final DocumentEvent event) {
+      adaptee.documentAction();
     }
   }
+
 }
