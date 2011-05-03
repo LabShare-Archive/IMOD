@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
+import java.util.regex.Pattern;
 
 import etomo.BaseManager;
 import etomo.process.ImodManager;
@@ -27,6 +28,11 @@ import etomo.process.ImodManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2011/04/09 06:34:52  sueh
+ * <p> bug# 1416 Added composite and composite file types (TILT_OUTPUT, and SIRT file types).  Made the functions
+ * <p> work with composite.  Removed DUAL_ and SINGLE_AXIS_TOMOGRAM.  Replaced toString and toString2 with
+ * <p> getDescription and getIModManagerKey2.
+ * <p>
  * <p> Revision 1.11  2011/04/04 17:06:06  sueh
  * <p> bug# 1416 Added/modified ALIGNED_STACK, description, DUAL_AXIS_TOMOGRAM,
  * <p> SINGLE_AXIS_TOMOGRAM, SIRT_OUTPUT_TEMPLACE, SIRT_SCALE_OUTPUT_TEMPLATE,
@@ -79,7 +85,7 @@ public final class FileType {
   private static final List namedFileTypeList = new Vector();
 
   //FileType instances should be placed in alphabetical order, sorted first by
-  //leftExtension and then by extension.  That should make it be easier to tell
+  //type string and then by extension.  That should make it be easier to tell
   //if we have a file name collision.  FileType instances may be used by
   //multiple types of dataset managers.
   //
@@ -106,115 +112,119 @@ public final class FileType {
   //any .edf, .ejf, or .epe as long as it has a different dataset name
 
   //File types with a name description
-  public static final FileType FIDUCIAL_3D_MODEL = new FileType(true, true, "", ".3dmod",
-      ImodManager.FIDUCIAL_MODEL_KEY);
-  public static final FileType ALIGNED_STACK = new FileType(true, true, "", ".ali",
-      ImodManager.FINE_ALIGNED_KEY, null, "the final aligned stack");
-  public static final FileType XCORR_BLEND_OUTPUT = new FileType(true, true, "", ".bl",
-      null);
-  public static final FileType DISTORTION_CORRECTED_STACK = new FileType(true, true, "",
-      ".dcst", null);
-  public static final FileType FIDUCIAL_MODEL = new FileType(true, true, "", ".fid", null);
-  public static final FileType FLATTEN_TOOL_OUTPUT = new FileType(true, false, "",
-      ".flat", ImodManager.FLATTEN_TOOL_OUTPUT_KEY);
-  public static final FileType JOIN = new FileType(true, false, "", ".join",
+  public static final FileType FIDUCIAL_3D_MODEL = FileType.getImodInstance(true, true,
+      "", ".3dmod", ImodManager.FIDUCIAL_MODEL_KEY);
+  public static final FileType ALIGNED_STACK = FileType.getDescribedImodInstance(true,
+      true, "", ".ali", ImodManager.FINE_ALIGNED_KEY, "the final aligned stack");
+  public static final FileType XCORR_BLEND_OUTPUT = FileType.getInstance(true, true, "",
+      ".bl");
+  public static final FileType DISTORTION_CORRECTED_STACK = FileType.getInstance(true,
+      true, "", ".dcst");
+  public static final FileType FIDUCIAL_MODEL = FileType.getInstance(true, true, "",
+      ".fid");
+  public static final FileType FLATTEN_TOOL_OUTPUT = FileType.getImodInstance(true,
+      false, "", ".flat", ImodManager.FLATTEN_TOOL_OUTPUT_KEY);
+  public static final FileType JOIN = FileType.getImodInstance(true, false, "", ".join",
       ImodManager.JOIN_KEY);
-  public static final FileType ANISOTROPIC_DIFFUSION_OUTPUT = new FileType(true, false,
-      "", ".nad", ImodManager.ANISOTROPIC_DIFFUSION_VOLUME_KEY);
-  public static final FileType PREALIGNED_STACK = new FileType(true, true, "", ".preali",
-      ImodManager.COARSE_ALIGNED_KEY);
-  public static final FileType RAW_TILT_ANGLES = new FileType(true, true, "", ".rawtlt",
-      null);
-  public static final FileType TRIM_VOL_OUTPUT = new FileType(true, false, "", ".rec",
-      ImodManager.TRIMMED_VOLUME_KEY);
-  public static final FileType JOIN_SAMPLE_AVERAGES = new FileType(true, false, "",
-      ".sampavg", ImodManager.JOIN_SAMPLE_AVERAGES_KEY);
-  public static final FileType JOIN_SAMPLE = new FileType(true, false, "", ".sample",
-      ImodManager.JOIN_SAMPLES_KEY);
-  public static final FileType SQUEEZE_VOL_OUTPUT = new FileType(true, false, "", ".sqz",
-      ImodManager.SQUEEZED_VOLUME_KEY);
-  public static final FileType RAW_STACK = new FileType(true, true, "", ".st",
-      ImodManager.RAW_STACK_KEY, ImodManager.PREVIEW_KEY);
-  public static final FileType NEWST_OR_BLEND_3D_FIND_OUTPUT = new FileType(true, true,
-      "_3dfind", ".ali", ImodManager.FINE_ALIGNED_3D_FIND_KEY);
-  public static final FileType FIND_BEADS_3D_OUTPUT_MODEL = new FileType(true, true,
-      "_3dfind", ".mod", null);
-  public static final FileType TILT_3D_FIND_OUTPUT = new FileType(true, true, "_3dfind",
-      ".rec", ImodManager.FULL_VOLUME_3D_FIND_KEY);
-  public static final FileType SMOOTHING_ASSESSMENT_OUTPUT_MODEL = new FileType(true,
-      true, "_checkflat", ".mod", ImodManager.SMOOTHING_ASSESSMENT_KEY);
-  public static final FileType CTF_CORRECTED_STACK = new FileType(true, true, "_ctfcorr",
-      ".ali", ImodManager.CTF_CORRECTION_KEY);
-  public static final FileType ERASED_BEADS_STACK = new FileType(true, true, "_erase",
-      ".ali", ImodManager.ERASED_FIDUCIALS_KEY);
-  public static final FileType CCD_ERASER_BEADS_INPUT_MODEL = new FileType(true, true,
-      "_erase", ".fid", null);
-  public static final FileType MTF_FILTERED_STACK = new FileType(true, true, "_filt",
-      ".ali", ImodManager.MTF_FILTER_KEY);
-  public static final FileType FIXED_XRAYS_STACK = new FileType(true, true, "_fixed",
-      ".st", ImodManager.ERASED_STACK_KEY);
-  public static final FileType FLATTEN_WARP_INPUT_MODEL = new FileType(true, false,
-      "_flat", ".mod", null);
-  public static final FileType FLATTEN_OUTPUT = new FileType(true, false, "_flat",
-      ".rec", ImodManager.FLAT_VOLUME_KEY);
-  public static final FileType FLATTEN_TOOL_COMSCRIPT = new FileType(true, false,
-      "_flatten", ".com", null);
-  public static final FileType MODELED_JOIN = new FileType(true, false, "_modeled",
-      ".join", ImodManager.MODELED_JOIN_KEY);
-  public static final FileType ORIGINAL_RAW_STACK = new FileType(true, true, "_orig",
-      ".st", null);
-  public static final FileType PATCH_TRACKING_BOUNDARY_MODEL = new FileType(true, true,
-      "_ptbound", ".mod", null);
-  public static final FileType TRANSFORMED_REFINING_MODEL = new FileType(true, false,
-      "_refine", ".alimod", ImodManager.TRANSFORMED_MODEL_KEY);
-  public static final FileType TRIAL_JOIN = new FileType(true, false, "_trial", ".join",
-      ImodManager.TRIAL_JOIN_KEY);
-  public static final FileType CTF_CORRECTION_COMSCRIPT = new FileType(false, true,
-      "ctfcorrection", ".com", null);
-  public static final FileType FIND_BEADS_3D_COMSCRIPT = new FileType(false, true,
-      "findbeads3d", ".com", null);
-  public static final FileType FLATTEN_COMSCRIPT = new FileType(false, false, "flatten",
-      ".com", null);
-  public static final FileType MTF_FILTER_COMSCRIPT = new FileType(false, true,
-      "mtffilter", ".com", null);
-  public static final FileType PATCH_VECTOR_MODEL = new FileType(false, false,
-      "patch_vector", ".mod", ImodManager.PATCH_VECTOR_MODEL_KEY);
-  public static final FileType PATCH_VECTOR_CCC_MODEL = new FileType(false, false,
-      "patch_vector_ccc", ".mod", ImodManager.PATCH_VECTOR_CCC_MODEL_KEY);
-  public static final FileType SIRTSETUP_COMSCRIPT = new FileType(false, true,
-      "sirtsetup", ".com", null);
-  public static final FileType COMBINED_VOLUME = new FileType(false, false, "sum",
-      ".rec", ImodManager.COMBINED_TOMOGRAM_KEY);
-  public static final FileType NAD_TEST_INPUT = new FileType(false, false, "test",
-      ".input", ImodManager.TEST_VOLUME_KEY, true);
-  public static final FileType TILT_COMSCRIPT = new FileType(false, true, "tilt", ".com",
-      null);
-  private static final FileType TILT_OUTPUT_SINGLE = new FileType(true, true, "_full",
+  public static final FileType ANISOTROPIC_DIFFUSION_OUTPUT = FileType.getImodInstance(
+      true, false, "", ".nad", ImodManager.ANISOTROPIC_DIFFUSION_VOLUME_KEY);
+  public static final FileType PREALIGNED_STACK = FileType.getImodInstance(true, true,
+      "", ".preali", ImodManager.COARSE_ALIGNED_KEY);
+  public static final FileType RAW_TILT_ANGLES = FileType.getInstance(true, true, "",
+      ".rawtlt");
+  public static final FileType TRIM_VOL_OUTPUT = FileType.getImodInstance(true, false,
+      "", ".rec", ImodManager.TRIMMED_VOLUME_KEY);
+  private static final FileType TILT_OUTPUT_DUAL = FileType.getInstance(true, true, "",
       ".rec");
-  private static final FileType TILT_OUTPUT_DUAL = new FileType(true, true, "", ".rec");
-  public static final FileType TILT_OUTPUT = new FileType(TILT_OUTPUT_SINGLE,
-      TILT_OUTPUT_DUAL, ImodManager.FULL_VOLUME_KEY, null,
-      "the tomographic reconstruction");
+  public static final FileType JOIN_SAMPLE_AVERAGES = FileType.getImodInstance(true,
+      false, "", ".sampavg", ImodManager.JOIN_SAMPLE_AVERAGES_KEY);
+  public static final FileType JOIN_SAMPLE = FileType.getImodInstance(true, false, "",
+      ".sample", ImodManager.JOIN_SAMPLES_KEY);
+  public static final FileType SQUEEZE_VOL_OUTPUT = FileType.getImodInstance(true, false,
+      "", ".sqz", ImodManager.SQUEEZED_VOLUME_KEY);
+  public static final FileType RAW_STACK = FileType.getTwoImodInstance(true, true, "",
+      ".st", ImodManager.RAW_STACK_KEY, ImodManager.PREVIEW_KEY);
+  public static final FileType NEWST_OR_BLEND_3D_FIND_OUTPUT = FileType.getImodInstance(
+      true, true, "_3dfind", ".ali", ImodManager.FINE_ALIGNED_3D_FIND_KEY);
+  public static final FileType FIND_BEADS_3D_OUTPUT_MODEL = FileType.getInstance(true,
+      true, "_3dfind", ".mod");
+  public static final FileType TILT_3D_FIND_OUTPUT = FileType.getImodInstance(true, true,
+      "_3dfind", ".rec", ImodManager.FULL_VOLUME_3D_FIND_KEY);
+  public static final FileType SMOOTHING_ASSESSMENT_OUTPUT_MODEL = FileType
+      .getImodInstance(true, true, "_checkflat", ".mod",
+          ImodManager.SMOOTHING_ASSESSMENT_KEY);
+  public static final FileType CTF_CORRECTED_STACK = FileType.getImodInstance(true, true,
+      "_ctfcorr", ".ali", ImodManager.CTF_CORRECTION_KEY);
+  public static final FileType CTF_CORRECTION_COMSCRIPT = FileType.getInstance(false,
+      true, "ctfcorrection", ".com");
+  public static final FileType ERASED_BEADS_STACK = FileType.getImodInstance(true, true,
+      "_erase", ".ali", ImodManager.ERASED_FIDUCIALS_KEY);
+  public static final FileType CCD_ERASER_BEADS_INPUT_MODEL = FileType.getInstance(true,
+      true, "_erase", ".fid");
+  public static final FileType MTF_FILTERED_STACK = FileType.getImodInstance(true, true,
+      "_filt", ".ali", ImodManager.MTF_FILTER_KEY);
+  public static final FileType FIND_BEADS_3D_COMSCRIPT = FileType.getInstance(false,
+      true, "findbeads3d", ".com");
+  public static final FileType FIXED_XRAYS_STACK = FileType.getImodInstance(true, true,
+      "_fixed", ".st", ImodManager.ERASED_STACK_KEY);
+  public static final FileType FLATTEN_WARP_INPUT_MODEL = FileType.getInstance(true,
+      false, "_flat", ".mod");
+  public static final FileType FLATTEN_COMSCRIPT = FileType.getInstance(false, false,
+      "flatten", ".com");
+  public static final FileType FLATTEN_OUTPUT = FileType.getImodInstance(true, false,
+      "_flat", ".rec", ImodManager.FLAT_VOLUME_KEY);
+  public static final FileType FLATTEN_TOOL_COMSCRIPT = FileType.getInstance(true, false,
+      "_flatten", ".com");
+  private static final FileType TILT_OUTPUT_SINGLE = FileType.getInstance(true, true,
+      "_full", ".rec");
+  public static final FileType TILT_OUTPUT = FileType.getDifferentDualSingleInstance(
+      TILT_OUTPUT_SINGLE, TILT_OUTPUT_DUAL, ImodManager.FULL_VOLUME_KEY, "the tomogram");
   //Template for .sintnn
-  public static final FileType SIRT_SCALED_OUTPUT_TEMPLATE = new FileType(TILT_OUTPUT,
-      ".sint", ImodManager.SIRT_KEY);
+  public static final FileType SIRT_SCALED_OUTPUT_TEMPLATE = FileType
+      .getDerivedTemplateInstance(TILT_OUTPUT, ".sint", ImodManager.SIRT_KEY);
   //Template for .srecnn
-  public static final FileType SIRT_OUTPUT_TEMPLATE = new FileType(TILT_OUTPUT, ".srec",
-      ImodManager.SIRT_KEY);
-  public static final FileType TRACK_COMSCRIPT = new FileType(false, true, "track",
-      ".com", null);
-  public static final FileType CROSS_CORRELATION_COMSCRIPT = new FileType(false, true,
-      "xcorr", ".com", null);
-  public static final FileType PATCH_TRACKING_COMSCRIPT = new FileType(false, true,
-      "xcorr_pt", ".com", null);
+  public static final FileType SIRT_OUTPUT_TEMPLATE = FileType
+      .getDerivedTemplateInstance(TILT_OUTPUT, ".srec", ImodManager.SIRT_KEY);
+  public static final FileType MODELED_JOIN = FileType.getImodInstance(true, false,
+      "_modeled", ".join", ImodManager.MODELED_JOIN_KEY);
+  public static final FileType MTF_FILTER_COMSCRIPT = FileType.getInstance(false, true,
+      "mtffilter", ".com");
+  public static final FileType ORIGINAL_RAW_STACK = FileType.getInstance(true, true,
+      "_orig", ".st");
+  public static final FileType PATCH_VECTOR_MODEL = FileType.getImodInstance(false,
+      false, "patch_vector", ".mod", ImodManager.PATCH_VECTOR_MODEL_KEY);
+  public static final FileType PATCH_VECTOR_CCC_MODEL = FileType.getImodInstance(false,
+      false, "patch_vector_ccc", ".mod", ImodManager.PATCH_VECTOR_CCC_MODEL_KEY);
+  public static final FileType PATCH_TRACKING_BOUNDARY_MODEL = FileType.getInstance(true,
+      true, "_ptbound", ".mod");
+  public static final FileType TRANSFORMED_REFINING_MODEL = FileType.getImodInstance(
+      true, false, "_refine", ".alimod", ImodManager.TRANSFORMED_MODEL_KEY);
+  public static final FileType SIRTSETUP_COMSCRIPT = FileType.getInstance(false, true,
+      "sirtsetup", ".com");
+  public static final FileType COMBINED_VOLUME = FileType.getImodInstance(false, false,
+      "sum", ".rec", ImodManager.COMBINED_TOMOGRAM_KEY);
+  public static final FileType NAD_TEST_INPUT = FileType.getImodInstanceInSubdirectory(
+      false, false, "test", ".input", ImodManager.TEST_VOLUME_KEY);
+  public static final FileType TILT_COMSCRIPT = FileType.getInstance(false, true, "tilt",
+      ".com");
+  public static final FileType TILT_FOR_SIRT_COMSCRIPT = FileType.getInstance(false,
+      true, "tilt", "_for_sirt.com");
+  public static final FileType TRACK_COMSCRIPT = FileType.getInstance(false, true,
+      "track", ".com");
+  public static final FileType TRIAL_JOIN = FileType.getImodInstance(true, false,
+      "_trial", ".join", ImodManager.TRIAL_JOIN_KEY);
+  public static final FileType CROSS_CORRELATION_COMSCRIPT = FileType.getInstance(false,
+      true, "xcorr", ".com");
+  public static final FileType PATCH_TRACKING_COMSCRIPT = FileType.getInstance(false,
+      true, "xcorr_pt", ".com");
 
-  //File types without a name description
+  //File types without a specific name
   public static final FileType AVERAGED_VOLUMES = FileType
       .getUnamedInstance(ImodManager.AVG_VOL_KEY);
-  public static final FileType NAD_TEST_VARYING_ITERATIONS = FileType.getUnamedInstance(
-      ImodManager.VARYING_ITERATION_TEST_KEY, true);
-  public static final FileType NAD_TEST_VARYING_K = FileType.getUnamedInstance(
-      ImodManager.VARYING_K_TEST_KEY, true);
+  public static final FileType NAD_TEST_VARYING_ITERATIONS = FileType
+      .getUnamedInstanceInSubdirectory(ImodManager.VARYING_ITERATION_TEST_KEY);
+  public static final FileType NAD_TEST_VARYING_K = FileType
+      .getUnamedInstanceInSubdirectory(ImodManager.VARYING_K_TEST_KEY);
   public static final FileType POSITIONING_SAMPLE = FileType
       .getUnamedInstance(ImodManager.SAMPLE_KEY);
   public static final FileType REFERENCE_VOLUMES = FileType
@@ -234,198 +244,110 @@ public final class FileType {
   private final FileType subFileType;
   private final FileType singleFileType;
   private final FileType dualFileType;
+  private final boolean unnamed;
+  private final boolean template;
 
   private FileType parentFileType = null;
 
-  public String toString() {
-    return "[usesDataset:"
-        + usesDataset
-        + ",usesAxisID:"
-        + usesAxisID
-        + ",typeString:"
-        + typeString
-        + ",extension:"
-        + extension
-        + ",description:"
-        + description
-        + ",\nimodManagerKey:"
-        + imodManagerKey
-        + ",imodManagerKey2:"
-        + imodManagerKey2
-        + ",inSubdirectory:"
-        + inSubdirectory
-        + ",composite:"
-        + composite
-        + ",subFileType:"
-        + (subFileType == null ? "null" : subFileType.typeString + subFileType.extension)
-        + ",\nsingleFileType:"
-        + (singleFileType == null ? "null" : singleFileType.typeString
-            + singleFileType.extension)
-        + ",dualFileType:"
-        + (dualFileType == null ? "null" : dualFileType.typeString
-            + dualFileType.extension)
-        + ",parentFileType:"
-        + (parentFileType == null ? "null" : parentFileType.typeString
-            + parentFileType.extension) + "]";
-  }
-
-  /**
-   * Constructor for file type that are quite different in dual and single (BBa.rec and
-   * BBa_full.rec).
-   * @param single
-   * @param dual
-   */
-  private FileType(final FileType singleFileType, final FileType dualFileType,
-      String imodManagerKey, String imodManagerKey2, String description) {
-    composite = true;
-    this.singleFileType = singleFileType;
-    this.dualFileType = dualFileType;
-    this.imodManagerKey = imodManagerKey;
-    this.imodManagerKey2 = imodManagerKey2;
-    usesAxisID = false;
-    usesDataset = false;
-    typeString = null;
-    extension = null;
-    inSubdirectory = false;
-    this.description = description;
-    //Child file types are not valid by themselves
-    singleFileType.parentFileType = this;
-    dualFileType.parentFileType = this;
-    subFileType = null;
-    if (singleFileType != null || dualFileType != null) {
-      namedFileTypeList.add(this);
-    }
-  }
-
-  private FileType(boolean usesDataset, boolean usesAxisID, String typeString,
-      String extension) {
-    composite = false;
-    imodManagerKey = null;
-    imodManagerKey2 = null;
-    this.usesAxisID = usesAxisID;
+  private FileType(final boolean usesDataset, final boolean usesAxisID,
+      final String typeString, final String extension, final String imodManagerKey,
+      final String imodManagerKey2, final String description, final boolean composite,
+      final boolean inSubdirectory, final FileType subFileType,
+      final FileType singleFileType, final FileType dualFileType, final boolean unnamed,
+      final boolean template) {
     this.usesDataset = usesDataset;
+    this.usesAxisID = usesAxisID;
     this.typeString = typeString;
     this.extension = extension;
-    this.inSubdirectory = false;
-    description = null;
-    singleFileType = null;
-    dualFileType = null;
-    subFileType = null;
-    if (usesAxisID || usesDataset || !typeString.equals("") || !extension.equals("")) {
+    this.imodManagerKey = imodManagerKey;
+    this.imodManagerKey2 = imodManagerKey2;
+    this.description = description;
+    this.composite = composite;
+    this.inSubdirectory = inSubdirectory;
+    this.subFileType = subFileType;
+    this.singleFileType = singleFileType;
+    this.dualFileType = dualFileType;
+    this.unnamed = unnamed;
+    this.template = template;
+    if (!unnamed) {
       namedFileTypeList.add(this);
     }
   }
 
   /**
-   * For use when everything is coming from another file type, except an extension which
-   * replaces replaceWithExtension in the file name (BBa.srec, BBa_full.srec, BBa.sint,
-   * BBa_full.sint).
+   * Get file types that are quite different in dual and single (BBa.rec and BBa_full.rec).
+   * @param singleFileType
+   * @param dualFileType
+   * @param imodManagerKey
+   * @param description
+   */
+  private static FileType getDifferentDualSingleInstance(final FileType singleFileType,
+      final FileType dualFileType, final String imodManagerKey, final String description) {
+    FileType instance = new FileType(false, false, null, null, imodManagerKey, null,
+        description, true, false, null, singleFileType, dualFileType, false, false);
+    //Child file types are not valid by themselves
+    singleFileType.parentFileType = instance;
+    dualFileType.parentFileType = instance;
+    return instance;
+  }
+
+  private static FileType getInstance(final boolean usesDataset,
+      final boolean usesAxisID, final String typeString, final String extension) {
+    return new FileType(usesDataset, usesAxisID, typeString, extension, null, null, null,
+        false, false, null, null, null, false, false);
+  }
+
+  /**
+   * For use when everything is coming from another file type, except the extension
+   * (BBa.srec, BBa_full.srec, BBa.sint, BBa_full.sint).
    * @param usesDataset
    * @param usesAxisID
    * @param typeString
    * @param extension
    * @param imodManagerKey
    */
-  private FileType(FileType typeFileType, String extension, String imodManagerKey) {
-    composite = true;
-    this.imodManagerKey = imodManagerKey;
-    this.imodManagerKey2 = null;
-    usesAxisID = false;
-    usesDataset = false;
-    typeString = null;
-    this.extension = extension;
-    this.inSubdirectory = false;
-    description = null;
-    this.subFileType = typeFileType;
-    singleFileType = null;
-    dualFileType = null;
-    if (typeFileType != null) {
-      namedFileTypeList.add(this);
-    }
+  private static FileType getDerivedTemplateInstance(final FileType subFileType,
+      final String extension, final String imodManagerKey) {
+    return new FileType(false, false, null, extension, imodManagerKey, null, null, true,
+        false, subFileType, null, null, false, true);
   }
 
-  private FileType(boolean usesDataset, boolean usesAxisID, String typeString,
-      String extension, String imodManagerKey) {
-    composite = false;
-    this.imodManagerKey = imodManagerKey;
-    this.imodManagerKey2 = null;
-    this.usesAxisID = usesAxisID;
-    this.usesDataset = usesDataset;
-    this.typeString = typeString;
-    this.extension = extension;
-    this.inSubdirectory = false;
-    description = null;
-    singleFileType = null;
-    dualFileType = null;
-    subFileType = null;
-    if (usesAxisID || usesDataset || !typeString.equals("") || !extension.equals("")) {
-      namedFileTypeList.add(this);
-    }
+  private static FileType getImodInstance(final boolean usesDataset,
+      final boolean usesAxisID, final String typeString, final String extension,
+      final String imodManagerKey) {
+    return new FileType(usesDataset, usesAxisID, typeString, extension, imodManagerKey,
+        null, null, false, false, null, null, null, false, false);
   }
 
-  private FileType(boolean usesDataset, boolean usesAxisID, String typeString,
-      String extension, String imodManagerKey, boolean inSubdirectory) {
-    composite = false;
-    this.imodManagerKey = imodManagerKey;
-    this.imodManagerKey2 = null;
-    this.usesAxisID = usesAxisID;
-    this.usesDataset = usesDataset;
-    this.typeString = typeString;
-    this.extension = extension;
-    this.inSubdirectory = inSubdirectory;
-    description = null;
-    singleFileType = null;
-    dualFileType = null;
-    subFileType = null;
-    if (usesAxisID || usesDataset || !typeString.equals("") || !extension.equals("")) {
-      namedFileTypeList.add(this);
-    }
+  private static FileType getImodInstanceInSubdirectory(final boolean usesDataset,
+      final boolean usesAxisID, final String typeString, final String extension,
+      final String imodManagerKey) {
+    return new FileType(usesDataset, usesAxisID, typeString, extension, imodManagerKey,
+        null, null, false, true, null, null, null, false, false);
   }
 
-  private FileType(boolean usesDataset, boolean usesAxisID, String typeString,
-      String extension, String imodManagerKey, String imodManagerKey2) {
-    composite = false;
-    this.imodManagerKey = imodManagerKey;
-    this.imodManagerKey2 = imodManagerKey2;
-    this.usesAxisID = usesAxisID;
-    this.usesDataset = usesDataset;
-    this.typeString = typeString;
-    this.extension = extension;
-    this.inSubdirectory = false;
-    description = null;
-    singleFileType = null;
-    dualFileType = null;
-    subFileType = null;
-    if (usesAxisID || usesDataset || !typeString.equals("") || !extension.equals("")) {
-      namedFileTypeList.add(this);
-    }
+  private static FileType getTwoImodInstance(final boolean usesDataset,
+      final boolean usesAxisID, final String typeString, final String extension,
+      final String imodManagerKey, final String imodManagerKey2) {
+    return new FileType(usesDataset, usesAxisID, typeString, extension, imodManagerKey,
+        imodManagerKey2, null, false, false, null, null, null, false, false);
   }
 
-  private FileType(boolean usesDataset, boolean usesAxisID, String typeString,
-      String extension, String imodManagerKey, String imodManagerKey2, String description) {
-    composite = false;
-    this.imodManagerKey = imodManagerKey;
-    this.imodManagerKey2 = imodManagerKey2;
-    this.usesAxisID = usesAxisID;
-    this.usesDataset = usesDataset;
-    this.typeString = typeString;
-    this.extension = extension;
-    this.inSubdirectory = false;
-    this.description = description;
-    singleFileType = null;
-    dualFileType = null;
-    subFileType = null;
-    if (usesAxisID || usesDataset || !typeString.equals("") || !extension.equals("")) {
-      namedFileTypeList.add(this);
-    }
+  private static FileType getDescribedImodInstance(final boolean usesDataset,
+      final boolean usesAxisID, final String typeString, final String extension,
+      final String imodManagerKey, final String description) {
+    return new FileType(usesDataset, usesAxisID, typeString, extension, imodManagerKey,
+        null, description, false, false, null, null, null, false, false);
   }
 
-  private static FileType getUnamedInstance(String imodManagerKey) {
-    return new FileType(false, false, "", "", imodManagerKey);
+  private static FileType getUnamedInstance(final String imodManagerKey) {
+    return new FileType(false, false, "", "", imodManagerKey, null, null, false, false,
+        null, null, null, true, false);
   }
 
-  private static FileType getUnamedInstance(String imodManagerKey, boolean inSubdirectory) {
-    return new FileType(false, false, "", "", imodManagerKey, inSubdirectory);
+  private static FileType getUnamedInstanceInSubdirectory(final String imodManagerKey) {
+    return new FileType(false, false, "", "", imodManagerKey, null, null, false, true,
+        null, null, null, true, false);
   }
 
   /**
@@ -442,14 +364,123 @@ public final class FileType {
     while (iterator.hasNext()) {
       FileType fileType = (FileType) iterator.next();
       if (fileType.equals(manager, usesDataset, usesAxisID, typeString, extension)) {
-        //This is a child file type which is not valid by itself
         if (fileType.parentFileType != null) {
+          //This is a child file type which is not valid by itself
           return fileType.parentFileType;
         }
         return fileType;
       }
     }
     return null;
+  }
+
+  /**
+   * Get FileType instance from its name description.  Uses regular expression pattern
+   * matching.
+   * @param manager
+   * @param axisID
+   * @param usesDataset
+   * @param usesAxisID
+   * @param fileName
+   * @return
+   */
+  public static FileType getInstance(final BaseManager manager, final AxisID axisID,
+      final boolean usesDataset, final boolean usesAxisID, final String fileName) {
+    if (fileName == null) {
+      return null;
+    }
+    //Create a pattern for the dataset + axis, or for the axis by itself
+    String fixedPattern = "";
+    String axisPattern = "";
+    String axisExtension = axisID.getExtension();
+    if (usesDataset) {
+      //If the dataset is part of the file name, then there is a fixed pattern
+      if (usesAxisID) {
+        fixedPattern = Pattern.quote(manager.getBaseMetaData().getName() + axisExtension);
+      }
+      else {
+        fixedPattern = Pattern.quote(manager.getBaseMetaData().getName());
+      }
+      //Eliminate file names that should start with the dataset but don't.
+      if (!fileName.matches(fixedPattern + ".*")) {
+        return null;
+      }
+    }
+    else if (usesAxisID && !axisExtension.equals("")) {
+      //If the dataset is not part of the file name, there is no fixed pattern, but the
+      //axis is part of the file name, so add it to axisPattern.
+      axisPattern = Pattern.quote(axisExtension);
+    }
+    Iterator iterator = namedFileTypeList.iterator();
+    while (iterator.hasNext()) {
+      FileType fileType = (FileType) iterator.next();
+      //Ignore child file types.  Return a file type that equals patterns and booleans.
+      if (fileType.parentFileType == null
+          && fileType.equals(manager, fileName, usesDataset, usesAxisID, fixedPattern,
+              axisPattern)) {
+        return fileType;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Returns true if the file name can be matched to the fixedPattern, typeString,
+   * axisPattern, and extension.
+   * @param manager
+   * @param fileName
+   * @param fixedPattern
+   * @param axisPattern
+   * @return
+   */
+  private boolean equals(final BaseManager manager, final String fileName,
+      final boolean usesDataset, final boolean usesAxisID, final String fixedPattern,
+      final String axisPattern) {
+    if (composite) {
+      //Handle type files which are based on another file type but have their own
+      //extension.
+      if (subFileType != null && extension != null) {
+        return subFileType.equals(manager, fileName, usesDataset, usesAxisID,
+            fixedPattern, axisPattern, Pattern.quote(extension));
+      }
+      //Handle file types with single and dual file types instead of descriptions.
+      return getChildFileType(manager).equals(manager, fileName, usesDataset, usesAxisID,
+          fixedPattern, axisPattern);
+    }
+    return usesDataset == this.usesDataset
+        && usesAxisID == this.usesAxisID
+        && fileName.matches(fixedPattern + Pattern.quote(typeString) + axisPattern
+            + Pattern.quote(extension));
+  }
+
+  /**
+   * Returns true if the file name can be matches to the fixedPattern, typeString,
+   * axisPattern, and extensionPattern.
+   * @param manager
+   * @param fileName
+   * @param fixedPattern
+   * @param axisPattern
+   * @param extensionPattern
+   * @return
+   */
+  private boolean equals(final BaseManager manager, final String fileName,
+      final boolean usesDataset, final boolean usesAxisID, final String fixedPattern,
+      final String axisPattern, final String extensionPattern) {
+    if (composite) {
+      //Handle type files which are based on another file type but have their own
+      //extension.
+      if (subFileType != null) {
+        return subFileType.equals(manager, fileName, usesDataset, usesAxisID,
+            fixedPattern, axisPattern, extensionPattern);
+      }
+      //Handle file types with single and dual file types instead of descriptions.
+      return getChildFileType(manager).equals(manager, fileName, usesDataset, usesAxisID,
+          fixedPattern, axisPattern, extensionPattern);
+    }
+    return usesDataset == this.usesDataset
+        && usesAxisID == this.usesAxisID
+        && fileName.matches(fixedPattern + Pattern.quote(typeString) + axisPattern
+            + extensionPattern);
   }
 
   /**
@@ -514,86 +545,6 @@ public final class FileType {
     return false;
   }
 
-  /**
-   * Get FileType instance from its name description.  Derives the typeString
-   * and the extension.
-   * @param manager
-   * @param axisID
-   * @param usesDataset
-   * @param usesAxisID
-   * @param fileName
-   * @return
-   */
-  public static FileType getInstance(BaseManager manager, AxisID axisID,
-      boolean usesDataset, boolean usesAxisID, String fileName) {
-    if (fileName == null) {
-      return null;
-    }
-    String typeString = null;
-    int extensionIndex = fileName.lastIndexOf('.');
-    String leftSide;
-    if (extensionIndex == -1) {
-      leftSide = fileName;
-    }
-    else {
-      leftSide = fileName.substring(0, fileName.lastIndexOf('.'));
-    }
-    if (!usesDataset && !usesAxisID) {
-      //Example:  flatten.com
-      typeString = leftSide;
-    }
-    if (manager != null) {
-      BaseMetaData metaData = manager.getBaseMetaData();
-      String axisIDExtension = "";
-      if (usesAxisID) {
-        axisIDExtension = correctAxisID(metaData.getAxisType(), axisID).getExtension();
-      }
-      if (usesDataset) {
-        //With the dataset the axis follows the dataset
-        //Example:  BBa_erase.fid
-        //Strip "BBa" off of BBa_erase (leftside) to get the typeString.
-        String dataset = metaData.getName() + axisIDExtension;
-        //If dataset + axisID extension is not at the beginning of the file name
-        //then it is not a valid file name.
-        if (leftSide.indexOf(dataset) == 0) {
-          if (dataset.length() == leftSide.length()) {
-            typeString = "";
-          }
-          else if (dataset.length() < leftSide.length()) {
-            typeString = leftSide.substring(dataset.length());
-          }
-        }
-      }
-      else {
-        //Without the dataset the axis follows the left extension
-        //Example:  tilta.com
-        //String the axisID off of the left side to get the typeString
-        if (axisIDExtension.equals("")) {
-          typeString = leftSide;
-        }
-        else {
-          //If the axisID extension is not at the end of the leftSide then it is
-          //not a valid file name.
-          if (leftSide.lastIndexOf(axisIDExtension) == leftSide.length() - 1) {
-            typeString = leftSide.substring(0,
-                leftSide.length() - axisIDExtension.length());
-          }
-        }
-      }
-    }
-    if (typeString == null) {
-      return null;
-    }
-    String extension;
-    if (extensionIndex == -1) {
-      extension = "";
-    }
-    else {
-      extension = fileName.substring(extensionIndex, fileName.length());
-    }
-    return FileType.getInstance(manager, usesDataset, usesAxisID, typeString, extension);
-  }
-
   private FileType getChildFileType(final BaseManager manager) {
     if (composite) {
       if (singleFileType != null && dualFileType != null) {
@@ -617,6 +568,10 @@ public final class FileType {
       return getChildFileType(manager).hasFixedName(manager);
     }
     return usesAxisID || usesDataset || !extension.equals("") || !typeString.equals("");
+  }
+
+  boolean isInSubdirectory() {
+    return inSubdirectory;
   }
 
   public String getDescription(final BaseManager manager) {
@@ -665,30 +620,57 @@ public final class FileType {
     return new File(manager.getPropertyUserDir(), fileName);
   }
 
-  public String getFileName(BaseManager manager, AxisID axisID) {
-    if (manager == null || !hasFixedName(manager)) {
-      return null;
-    }
-    if (composite && (subFileType == null || extension == null)) {
-      return getChildFileType(manager).getFileName(manager, axisID);
-    }
-    return getRoot(manager, axisID) + extension;
-  }
-
   /**
-   * Returns the file name without the dot or extension.  For example, the root
-   * of BBa_fixed.st is "BBa_fixed", the root of tilta.com is "tilta", and the
-   * root of tilt.com is "tilt".
+   * Return the file name, stripped of its extension.
    * @param manager
    * @param axisID
    * @return
    */
-  public String getRoot(final BaseManager manager, final AxisID axisID) {
+  public String getRoot(BaseManager manager, AxisID axisID) {
+    //Template OK at least for now - the current template types have extra text after the
+    //extension.
+    String fileName = getFileName(manager, axisID, true);
+    int index = fileName.lastIndexOf('.');
+    return fileName.substring(0, index);
+  }
+
+  public String getTemplate(final BaseManager manager, final AxisID axisID) {
+    return getFileName(manager, axisID, true);
+  }
+
+  public String getFileName(final BaseManager manager, final AxisID axisID) {
+    return getFileName(manager, axisID, false);
+  }
+
+  private String getFileName(final BaseManager manager, final AxisID axisID,
+      final boolean templateOK) {
+    if (manager == null || !hasFixedName(manager)) {
+      return null;
+    }
+    if (template && !templateOK) {
+      System.err.println("Warning:  Getting the file name of template " + toString());
+      Thread.dumpStack();
+    }
+    if (composite && (subFileType == null || extension == null)) {
+      return getChildFileType(manager).getFileName(manager, axisID, true);
+    }
+    return getLeftSide(manager, axisID) + extension;
+  }
+
+  /**
+   * Get the typeString with the dataset and axis letter added as necessary.  For example,
+   * the left side of BBa_fixed.st is "BBa_fixed", the left side of tilta.com is "tilta", the
+   * left side of tilt.com is "tilt", and the left side of tilta_for_sirt.com is "tilta".
+   * @param manager
+   * @param axisID
+   * @return
+   */
+  private String getLeftSide(final BaseManager manager, final AxisID axisID) {
     if (manager == null || !hasFixedName(manager)) {
       return null;
     }
     if (composite) {
-      return getChildFileType(manager).getRoot(manager, axisID);
+      return getChildFileType(manager).getLeftSide(manager, axisID);
     }
     if (!usesDataset && !usesAxisID) {
       //Example:  flatten.com
@@ -754,5 +736,177 @@ public final class FileType {
    */
   static Iterator iterator() {
     return namedFileTypeList.iterator();
+  }
+
+  public String toString() {
+    if (this == FIDUCIAL_3D_MODEL) {
+      return "FIDUCIAL_3D_MODEL";
+    }
+    if (this == ALIGNED_STACK) {
+      return "ALIGNED_STACK";
+    }
+    if (this == XCORR_BLEND_OUTPUT) {
+      return "XCORR_BLEND_OUTPUT";
+    }
+    if (this == DISTORTION_CORRECTED_STACK) {
+      return "DISTORTION_CORRECTED_STACK";
+    }
+    if (this == FIDUCIAL_MODEL) {
+      return "FIDUCIAL_MODEL";
+    }
+    if (this == FLATTEN_TOOL_OUTPUT) {
+      return "FLATTEN_TOOL_OUTPUT";
+    }
+    if (this == JOIN) {
+      return "JOIN";
+    }
+    if (this == ANISOTROPIC_DIFFUSION_OUTPUT) {
+      return "ANISOTROPIC_DIFFUSION_OUTPUT";
+    }
+    if (this == PREALIGNED_STACK) {
+      return "PREALIGNED_STACK";
+    }
+    if (this == RAW_TILT_ANGLES) {
+      return "RAW_TILT_ANGLES";
+    }
+    if (this == TRIM_VOL_OUTPUT) {
+      return "TRIM_VOL_OUTPUT";
+    }
+    if (this == TILT_OUTPUT_DUAL) {
+      return "TILT_OUTPUT_DUAL";
+    }
+    if (this == JOIN_SAMPLE_AVERAGES) {
+      return "JOIN_SAMPLE_AVERAGES";
+    }
+    if (this == JOIN_SAMPLE) {
+      return "JOIN_SAMPLE";
+    }
+    if (this == SQUEEZE_VOL_OUTPUT) {
+      return "SQUEEZE_VOL_OUTPUT";
+    }
+    if (this == NEWST_OR_BLEND_3D_FIND_OUTPUT) {
+      return "NEWST_OR_BLEND_3D_FIND_OUTPUT";
+    }
+    if (this == FIND_BEADS_3D_OUTPUT_MODEL) {
+      return "FIND_BEADS_3D_OUTPUT_MODEL";
+    }
+    if (this == TILT_3D_FIND_OUTPUT) {
+      return "TILT_3D_FIND_OUTPUT";
+    }
+    if (this == SMOOTHING_ASSESSMENT_OUTPUT_MODEL) {
+      return "SMOOTHING_ASSESSMENT_OUTPUT_MODEL";
+    }
+    if (this == CTF_CORRECTED_STACK) {
+      return "CTF_CORRECTED_STACK";
+    }
+    if (this == CTF_CORRECTION_COMSCRIPT) {
+      return "CTF_CORRECTION_COMSCRIPT";
+    }
+    if (this == ERASED_BEADS_STACK) {
+      return "ERASED_BEADS_STACK";
+    }
+    if (this == CCD_ERASER_BEADS_INPUT_MODEL) {
+      return "CCD_ERASER_BEADS_INPUT_MODEL";
+    }
+    if (this == MTF_FILTERED_STACK) {
+      return "MTF_FILTERED_STACK";
+    }
+    if (this == FIND_BEADS_3D_COMSCRIPT) {
+      return "FIND_BEADS_3D_COMSCRIPT";
+    }
+    if (this == FIXED_XRAYS_STACK) {
+      return "FIXED_XRAYS_STACK";
+    }
+    if (this == FLATTEN_WARP_INPUT_MODEL) {
+      return "FLATTEN_WARP_INPUT_MODEL";
+    }
+    if (this == FLATTEN_COMSCRIPT) {
+      return "FLATTEN_COMSCRIPT";
+    }
+    if (this == FLATTEN_OUTPUT) {
+      return "FLATTEN_OUTPUT";
+    }
+    if (this == FLATTEN_TOOL_COMSCRIPT) {
+      return "FLATTEN_TOOL_COMSCRIPT";
+    }
+    if (this == TILT_OUTPUT_SINGLE) {
+      return "TILT_OUTPUT_SINGLE";
+    }
+    if (this == TILT_OUTPUT) {
+      return "TILT_OUTPUT";
+    }
+    if (this == SIRT_SCALED_OUTPUT_TEMPLATE) {
+      return "SIRT_SCALED_OUTPUT_TEMPLATE";
+    }
+    if (this == SIRT_OUTPUT_TEMPLATE) {
+      return "SIRT_OUTPUT_TEMPLATE";
+    }
+    if (this == MODELED_JOIN) {
+      return "MODELED_JOIN";
+    }
+    if (this == MTF_FILTER_COMSCRIPT) {
+      return "MTF_FILTER_COMSCRIPT";
+    }
+    if (this == ORIGINAL_RAW_STACK) {
+      return "ORIGINAL_RAW_STACK";
+    }
+    if (this == PATCH_VECTOR_MODEL) {
+      return "PATCH_VECTOR_MODEL";
+    }
+    if (this == PATCH_VECTOR_CCC_MODEL) {
+      return "PATCH_VECTOR_CCC_MODEL";
+    }
+    if (this == PATCH_TRACKING_BOUNDARY_MODEL) {
+      return "PATCH_TRACKING_BOUNDARY_MODEL";
+    }
+    if (this == TRANSFORMED_REFINING_MODEL) {
+      return "TRANSFORMED_REFINING_MODEL";
+    }
+    if (this == SIRTSETUP_COMSCRIPT) {
+      return "SIRTSETUP_COMSCRIPT";
+    }
+    if (this == COMBINED_VOLUME) {
+      return "COMBINED_VOLUME";
+    }
+    if (this == NAD_TEST_INPUT) {
+      return "NAD_TEST_INPUT";
+    }
+    if (this == TILT_COMSCRIPT) {
+      return "TILT_COMSCRIPT";
+    }
+    if (this == TILT_FOR_SIRT_COMSCRIPT) {
+      return "TILT_FOR_SIRT_COMSCRIPT";
+    }
+    if (this == TRACK_COMSCRIPT) {
+      return "TRACK_COMSCRIPT";
+    }
+    if (this == TRIAL_JOIN) {
+      return "TRIAL_JOIN";
+    }
+    if (this == CROSS_CORRELATION_COMSCRIPT) {
+      return "CROSS_CORRELATION_COMSCRIPT";
+    }
+    if (this == PATCH_TRACKING_COMSCRIPT) {
+      return "PATCH_TRACKING_COMSCRIPT";
+    }
+    if (this == AVERAGED_VOLUMES) {
+      return "AVERAGED_VOLUMES";
+    }
+    if (this == NAD_TEST_VARYING_ITERATIONS) {
+      return "NAD_TEST_VARYING_ITERATIONS";
+    }
+    if (this == NAD_TEST_VARYING_K) {
+      return "NAD_TEST_VARYING_K";
+    }
+    if (this == POSITIONING_SAMPLE) {
+      return "POSITIONING_SAMPLE";
+    }
+    if (this == REFERENCE_VOLUMES) {
+      return "REFERENCE_VOLUMES";
+    }
+    if (this == TRIAL_TOMOGRAM) {
+      return "TRIAL_TOMOGRAM";
+    }
+    return super.toString();
   }
 }
