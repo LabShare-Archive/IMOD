@@ -73,9 +73,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     setParameters(metaData);
     setParameters(screenState);
     //load SIRT first because the resume radio buttons disable tilt fields
-    SirtsetupParam sirtsetupParam ;
+    SirtsetupParam sirtsetupParam;
     if (comScriptMgr.loadSirtsetup(axisID)) {
-       sirtsetupParam = comScriptMgr.getSirtsetupParam(axisID);
+      sirtsetupParam = comScriptMgr.getSirtsetupParam(axisID);
     }
     else {
       //create an empty param to get the defaults.
@@ -93,11 +93,23 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     }
     boolean genExists = metaData.isGenExists(axisID);
     setParameters(tiltParam, !genExists);
-    dialog.msgTiltComLoaded();
+    checkpoint();
     // Set the fidcialess state and tilt axis angle
     setTiltState();
     metaData.setGenExists(axisID, true);
     openDialog(dialog);
+  }
+
+  public void msgSirtsetupSucceeded() {
+    checkpoint();
+  }
+
+  private void checkpoint() {
+    if (dialog == null) {
+      return;
+    }
+    comScriptMgr.loadTiltForSirt(axisID);
+    dialog.checkpoint(comScriptMgr.getTiltParamFromTiltForSirt(axisID), state);
   }
 
   public void msgSirtSucceeded() {
@@ -241,6 +253,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2011/04/09 06:38:48  sueh
+ * <p> bug# 1416 Eliminating dead code in openDialog.
+ * <p>
  * <p> Revision 1.5  2011/04/04 17:41:59  sueh
  * <p> bug# 1416 Added SIRT_DONE, getTiltDisplay, msgSirtSucceeded, setParameters(SirtsetupParam).  Modified
  * <p> constructor openDialog, reconnectTilt, saveDialog, startNextProcess.
