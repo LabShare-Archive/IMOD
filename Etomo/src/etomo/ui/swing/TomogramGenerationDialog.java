@@ -40,6 +40,9 @@ import etomo.type.TomogramState;
  * 
  * <p>
  * $Log$
+ * Revision 1.6  2011/04/26 00:08:25  sueh
+ * bug# 1416 Removed the observer/observable code because there aren't enough observers and the response isn't standard enough.
+ *
  * Revision 1.5  2011/04/04 17:40:44  sueh
  * bug# 1416 Added bgMethod; backProject and sirt radio buttons, action, allowTiltComSave,
  * getProcessingMethod, getSirtsetupDIsplay.  Removed curTab, pnlTilt, tabbedPane, changeTab,
@@ -669,8 +672,7 @@ import etomo.type.TomogramState;
  * </p>
  */
 
-public class TomogramGenerationDialog extends ProcessDialog implements ContextMenu,
-    SirtParent {
+public class TomogramGenerationDialog extends ProcessDialog implements ContextMenu {
   public static final String rcsid = "$Id$";
 
   public static final String X_AXIS_TILT_TOOLTIP = "This line allows one to rotate the reconstruction around the X axis, so "
@@ -691,8 +693,9 @@ public class TomogramGenerationDialog extends ProcessDialog implements ContextMe
     super(appMgr, axisID, DialogType.TOMOGRAM_GENERATION);
     this.expert = expert;
     tiltPanel = TiltPanel.getInstance(appMgr, axisID, dialogType, btnAdvanced, this);
-    sirtPanel = SirtPanel.getInstance(appMgr, axisID, dialogType, btnAdvanced, tiltPanel,
-        this);
+    sirtPanel = SirtPanel.getInstance(appMgr, axisID, dialogType, btnAdvanced, this);
+    tiltPanel.addFieldObserver(sirtPanel);
+    sirtPanel.addResumeObserver(tiltPanel);
   }
 
   static TomogramGenerationDialog getInstance(ApplicationManager appMgr,
@@ -735,12 +738,13 @@ public class TomogramGenerationDialog extends ProcessDialog implements ContextMe
     rbSirt.addActionListener(listener);
   }
 
-  void msgTiltComLoaded() {
-    tiltPanel.msgTiltComLoaded();
-  }
-
   public void msgSirtSucceeded() {
     sirtPanel.msgSirtSucceeded();
+  }
+
+  void checkpoint(final ConstTiltParam param, final TomogramState state) {
+    tiltPanel.checkpoint(param);
+    sirtPanel.checkpoint(state);
   }
 
   public boolean allowTiltComSave() {
@@ -767,7 +771,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements ContextMe
     }
     tiltPanel.setParameters(metaData);
     sirtPanel.setParameters(metaData);
-    setMethod();
+    methodChanged();
   }
 
   /**
@@ -854,15 +858,17 @@ public class TomogramGenerationDialog extends ProcessDialog implements ContextMe
     return sirtPanel;
   }
 
-  private void setMethod() {
-    if (rbBackProjection.isSelected()) {
-      tiltPanel.setMethod(MethodEnum.BACK_PROJECTION);
-      sirtPanel.setMethod(MethodEnum.BACK_PROJECTION);
-    }
-    else {
-      tiltPanel.setMethod(MethodEnum.SIRT);
-      sirtPanel.setMethod(MethodEnum.SIRT);
-    }
+  boolean isBackProjection() {
+    return rbBackProjection.isSelected();
+  }
+
+  boolean isSirt() {
+    return rbSirt.isSelected();
+  }
+
+  private void methodChanged() {
+    tiltPanel.msgMethodChanged();
+    sirtPanel.msgMethodChanged();
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
@@ -874,7 +880,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements ContextMe
     String actionCommand = event.getActionCommand();
     if (actionCommand.equals(rbBackProjection.getActionCommand())
         || actionCommand.equals(rbSirt.getActionCommand())) {
-      setMethod();
+      methodChanged();
     }
   }
 
@@ -887,21 +893,6 @@ public class TomogramGenerationDialog extends ProcessDialog implements ContextMe
 
     public void actionPerformed(final ActionEvent event) {
       adaptee.action(event);
-    }
-  }
-
-  static final class MethodEnum {
-    static final MethodEnum BACK_PROJECTION = new MethodEnum();
-    static final MethodEnum SIRT = new MethodEnum();
-
-    public String toString() {
-      if (this == BACK_PROJECTION) {
-        return "BACK_PROJECTION";
-      }
-      if (this == SIRT) {
-        return "SIRT";
-      }
-      return "";
     }
   }
 }
