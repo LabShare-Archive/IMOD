@@ -29,6 +29,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.71  2011/04/25 16:46:40  sueh
+ * <p> bug# 1475 Improved toString.
+ * <p>
  * <p> Revision 3.70  2011/04/04 17:07:35  sueh
  * <p> bug# 1416 Added genBackProjectionA and B, genRadialRadiusA and B, genRadialSigmaA and B,
  * <p> genResumeEnabledA and B, genSubareaA and B, genYOffsetOfSubareaA and B.
@@ -677,10 +680,6 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       + FIRST_AXIS_KEY + ".RadialSigma");
   private final StringProperty genRadialSigmaB = new StringProperty(GEN_KEY + "."
       + SECOND_AXIS_KEY + ".RadialSigma");
-  private final EtomoBoolean2 genResumeEnabledA = new EtomoBoolean2(GEN_KEY + "."
-      + FIRST_AXIS_KEY + ".ResumeEnabled");
-  private final EtomoBoolean2 genResumeEnabledB = new EtomoBoolean2(GEN_KEY + "."
-      + SECOND_AXIS_KEY + ".ResumeEnabled");
 
   public MetaData(ApplicationManager manager) {
     this.manager = manager;
@@ -1143,15 +1142,6 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setGenResumeEnabled(AxisID axisID, boolean input) {
-    if (axisID == AxisID.SECOND) {
-      genResumeEnabledB.set(input);
-    }
-    else {
-      genResumeEnabledA.set(input);
-    }
-  }
-
   public void setTiltAngleSpecB(TiltAngleSpec tiltAngleSpec) {
     tiltAngleSpecB = tiltAngleSpec;
   }
@@ -1322,8 +1312,6 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     genRadialRadiusB.reset();
     genRadialSigmaA.reset();
     genRadialSigmaB.reset();
-    genResumeEnabledA.reset();
-    genResumeEnabledB.reset();
     //load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -1529,8 +1517,6 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     genRadialRadiusB.load(props, prepend);
     genRadialSigmaA.load(props, prepend);
     genRadialSigmaB.load(props, prepend);
-    genResumeEnabledA.load(props, prepend);
-    genResumeEnabledB.load(props, prepend);
     defaultGpuProcessing.load(props, prepend);
     tilt3dFindTiltParallelA = EtomoBoolean2.load(tilt3dFindTiltParallelA,
         TILT_3D_FIND_A_TILT_PARALLEL_KEY, props, prepend);
@@ -1812,8 +1798,6 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     genRadialRadiusB.store(props, prepend);
     genRadialSigmaA.store(props, prepend);
     genRadialSigmaB.store(props, prepend);
-    genResumeEnabledA.store(props, prepend);
-    genResumeEnabledB.store(props, prepend);
   }
 
   public boolean getTrackRaptorUseRawStack() {
@@ -2059,13 +2043,6 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       return genSubareaB.is();
     }
     return genSubareaA.is();
-  }
-
-  public boolean isGenResumeEnabled(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      return genResumeEnabledB.is();
-    }
-    return genResumeEnabledA.is();
   }
 
   public String getGenRadialRadius(AxisID axisID) {
