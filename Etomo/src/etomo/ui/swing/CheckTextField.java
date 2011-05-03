@@ -18,8 +18,9 @@ import etomo.type.UITestFieldType;
 import etomo.util.Utilities;
 
 /**
- * <p>Description: Check box and text field.  Text field is enabled only when
- * check box is checked.</p>
+ * <p>Description: A self-naming check box and text field.  The text field is enabled only
+ * when the check box is checked.  Implements StateChangeSource with its state equal to
+ * whether it has changed since it was checkpointed.</p>
  * 
  * <p>Copyright: Copyright 2010</p>
  *
@@ -32,6 +33,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2011/04/25 23:36:03  sueh
+ * <p> bug# 1416 Implemented StateChangeActionSource.  Added equals(Object) and equals(Document) so
+ * <p> StateChangedReporter can find instances of this class.  Changed isChanged to isDifferentFromCheckpoint.
+ * <p> Added getState.
+ * <p>
  * <p> Revision 1.4  2011/04/04 17:17:27  sueh
  * <p> bug# 1416 Added savedValue, checkpoint, isChanged.
  * <p>
@@ -51,7 +57,7 @@ import etomo.util.Utilities;
  * <p> bug# 1311 A checkbox which enables/disables a text field.
  * <p> </p>
  */
-final class CheckTextField implements StateChangeActionAndDocumentSource {
+final class CheckTextField {
   public static final String rcsid = "$Id$";
 
   private final JPanel pnlRoot = new JPanel();
@@ -60,9 +66,8 @@ final class CheckTextField implements StateChangeActionAndDocumentSource {
   private final String label;
   private final EtomoNumber.Type numericType;
 
-  private String savedTextFieldValue = null;
-  private EtomoNumber nSavedTextFieldValue = null;
-  private StateChangedReporter reporter = null;
+  private String checkpointValue = null;
+  private EtomoNumber nCheckpointValue = null;
 
   private CheckTextField(final String label, final EtomoNumber.Type numericType) {
     this.label = label;
@@ -104,47 +109,49 @@ final class CheckTextField implements StateChangeActionAndDocumentSource {
   }
 
   /**
-   * Checkpoints checkbox.  Saves the current state of the textfield.
+   * Checkpoints checkbox from checkboxValue.  Saves textValue as the text field
+   * checkpoint.
    */
-  void checkpoint() {
-    checkBox.checkpoint();
-    savedTextFieldValue = textField.getText();
+  void checkpoint(final boolean checkboxValue, final String textValue) {
+    checkBox.checkpoint(checkboxValue);
+    checkpointValue = textValue;
     if (numericType != null) {
-      if (nSavedTextFieldValue == null) {
-        nSavedTextFieldValue = new EtomoNumber(numericType);
+      if (nCheckpointValue == null) {
+        nCheckpointValue = new EtomoNumber(numericType);
       }
-      nSavedTextFieldValue.set(savedTextFieldValue);
+      nCheckpointValue.set(checkpointValue);
     }
-    reporter.msgCheckpointed(this);
   }
 
   /**
-   * Calls isDifferentFromCheckpoint()
-   */
-  public boolean getState() {
-    return isDifferentFromCheckpoint();
-  }
-
-  public void setReporter(StateChangedReporter reporter) {
-    this.reporter = reporter;
-  }
-
-  /**
-   * Returns true if a checkpoint was done, and either the checkbox is changed or (if the
-   * checkbox is selected) the text field text has changed since the checkpoint.
+   * First checks the checkbox and returns true if the checkbox is different from its
+   * checkpoint.  Then it returns false if the checkbox is not selected, since the value
+   * of the text field is not in use.  Also, if the field is disabled then return false
+   * because its value doesn't matter.  Then it returns true if the checkpoint has not
+   * been done; the checkpoint value is from an outside value, so the current value must
+   * be different from a non-existant checkpoint value.  After eliminating these
+   * possibilities, it returns a boolean based on the difference between the text field
+   * value and the checkpointed value.
    * @return
    */
   boolean isDifferentFromCheckpoint() {
+    if (!checkBox.isEnabled() && !textField.isEnabled()
+        || (!checkBox.isVisible() && !textField.isVisible())) {
+      return false;
+    }
     if (checkBox.isDifferentFromCheckpoint()) {
       return true;
     }
-    if (!checkBox.isSelected() || savedTextFieldValue == null) {
+    if (!checkBox.isSelected() || !textField.isEnabled() || !textField.isVisible()) {
       return false;
     }
-    if (numericType == null) {
-      return !savedTextFieldValue.equals(textField.getText());
+    if (checkpointValue == null) {
+      return true;
     }
-    return !nSavedTextFieldValue.equals(textField.getText());
+    if (numericType == null) {
+      return !checkpointValue.equals(textField.getText());
+    }
+    return !nCheckpointValue.equals(textField.getText());
   }
 
   void setEnabled(final boolean enable) {
@@ -184,6 +191,10 @@ final class CheckTextField implements StateChangeActionAndDocumentSource {
 
   void setText(final String input) {
     textField.setText(input);
+  }
+
+  String getActionCommand() {
+    return checkBox.getActionCommand();
   }
 
   String getLabel() {

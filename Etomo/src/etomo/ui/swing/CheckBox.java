@@ -12,7 +12,8 @@ import etomo.type.UITestFieldType;
 import etomo.util.Utilities;
 
 /**
- * <p>Description: </p>
+ * <p>Description: A self-naming check box.  Implements StateChangeSource with its state
+ * equal to whether it has changed since it was checkpointed.</p>
  * 
  * <p>Copyright: Copyright (c) 2005</p>
  *
@@ -25,6 +26,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2011/04/25 23:30:53  sueh
+ * <p> bug# 1416 Implemented StateChangeActionSource.  Added equals(Object) and equals(Document) so
+ * <p> StateChangedReporter can find instances of this class.
+ * <p>
  * <p> Revision 1.3  2011/04/04 17:17:19  sueh
  * <p> bug# 1416 Added savedValue, checkpoint, isChanged.
  * <p>
@@ -102,11 +107,11 @@ import etomo.util.Utilities;
  * <p> bug# 675 Extends JCheckBox.  Names the check box using the label.
  * <p> </p>
  */
-final class CheckBox extends JCheckBox implements StateChangeActionSource {
+final class CheckBox extends JCheckBox {
   public static final String rcsid = "$Id$";
 
   private EtomoBoolean2 checkpointValue = null;
-  private StateChangedReporter reporter = null;
+  private boolean debug = false;
 
   public CheckBox() {
     super();
@@ -143,40 +148,33 @@ final class CheckBox extends JCheckBox implements StateChangeActionSource {
     }
   }
 
-  public void setReporter(StateChangedReporter reporter) {
-    this.reporter = reporter;
-  }
-
   /**
-   * Constructs savedValue (if it doesn't exist).  Saves the current state of the
-   * checkbox.  When checkpointValue is first constructed, it starts listening for
-   * actions.
+   * Constructs savedValue (if it doesn't exist).  Saves the value parameter.
    */
-  void checkpoint() {
+  void checkpoint(final boolean value) {
     if (checkpointValue == null) {
       checkpointValue = new EtomoBoolean2();
     }
-    checkpointValue.set(isSelected());
-    if (reporter != null) {
-      reporter.msgCheckpointed(this);
-    }
+    checkpointValue.set(value);
   }
 
-  boolean isCheckpointed() {
-    return checkpointValue != null;
+  void setDebug(final boolean input) {
+    debug = input;
   }
 
   /**
-   * Returns true if a checkpoint was done and the checkbox selection state has is
-   * different from the checkpoint.
+   * If the field is disabled or not visible then return false because its value doesn't
+   * matter.  It returns true if the checkpoint has not been done; the checkpoint value is
+   * from an outside value, so the current value must be different from a non-existant
+   * checkpoint value.  After eliminating this possibility, it returns a boolean based on
+   * the difference between the selected state of the checkbox and the checkpointed value.
    * @return
    */
   boolean isDifferentFromCheckpoint() {
-    return isCheckpointed() && !checkpointValue.equals(isSelected());
-  }
-
-  public boolean getState() {
-    return isDifferentFromCheckpoint();
+    if (!isEnabled() || !isVisible()) {
+      return false;
+    }
+    return checkpointValue == null || !checkpointValue.equals(isSelected());
   }
 
   public void setToolTipText(String text) {
@@ -203,6 +201,10 @@ final class CheckBox extends JCheckBox implements StateChangeActionSource {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2011/04/25 23:30:53  sueh
+ * <p> bug# 1416 Implemented StateChangeActionSource.  Added equals(Object) and equals(Document) so
+ * <p> StateChangedReporter can find instances of this class.
+ * <p>
  * <p> Revision 1.3  2011/04/04 17:17:19  sueh
  * <p> bug# 1416 Added savedValue, checkpoint, isChanged.
  * <p>
