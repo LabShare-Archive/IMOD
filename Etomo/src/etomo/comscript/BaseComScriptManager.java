@@ -24,6 +24,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2011/02/21 21:10:30  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 3.2  2010/11/13 16:03:15  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -49,7 +52,7 @@ public abstract class BaseComScriptManager {
 
   /**
    * Load the comscript file in commandComScript.
-   * @param commandComScript - file name
+   * @param commandComScriptFileName - file name
    * @param axisID
    * @param parseComments
    * @param required
@@ -57,10 +60,10 @@ public abstract class BaseComScriptManager {
    * @param separateWithASpace
    * @return
    */
-  ComScript loadComScript(String commandComScript, AxisID axisID, boolean parseComments,
+  ComScript loadComScript(String commandComScriptFileName, AxisID axisID, boolean parseComments,
       boolean required, boolean caseInsensitive, boolean separateWithASpace) {
-    Utilities.timestamp("load", commandComScript, Utilities.STARTED_STATUS);
-    File comFile = new File(manager.getPropertyUserDir(), commandComScript);
+    Utilities.timestamp("load", commandComScriptFileName, Utilities.STARTED_STATUS);
+    File comFile = new File(manager.getPropertyUserDir(), commandComScriptFileName);
     //If the file isn't there and its not required then just return null without
     //any error messages.
     if (!required && !comFile.exists()) {
@@ -76,13 +79,13 @@ public abstract class BaseComScriptManager {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Com file: " + comScript.getComFileName();
       errorMessage[1] = except.getMessage();
-      JOptionPane.showMessageDialog(null, errorMessage, "Can't parse " + commandComScript
+      JOptionPane.showMessageDialog(null, errorMessage, "Can't parse " + commandComScriptFileName
           + axisID.getExtension() + ".com file: " + comScript.getComFileName(),
           JOptionPane.ERROR_MESSAGE);
-      Utilities.timestamp("load", commandComScript, Utilities.FAILED_STATUS);
+      Utilities.timestamp("load", commandComScriptFileName, Utilities.FAILED_STATUS);
       return null;
     }
-    Utilities.timestamp("load", commandComScript, Utilities.FINISHED_STATUS);
+    Utilities.timestamp("load", commandComScriptFileName, Utilities.FINISHED_STATUS);
     return comScript;
   }
 
