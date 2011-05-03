@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.18  2010/03/05 03:56:53  sueh
+ * <p> bug# 1319 Changed the return value of getLogShift to String.
+ * <p>
  * <p> Revision 3.17  2010/01/11 23:49:01  sueh
  * <p> bug# 1299 Added isMessageReporter.
  * <p>
@@ -179,4 +182,8 @@ public interface ConstTiltParam extends CommandDetails {
   public boolean hasZShift();
 
   public boolean isUseGpu();
+
+  public boolean hasLocalAlignFile();
+
+  public boolean hasZFactorFileName();
 }
