@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/2/11: Added an interface for SIRT to eTomo.
+
 4/25/11: Tomosnapshot converted to Python and enhanced to handle all kinds of
 processing in eTomo (join, PEET, NAD, parallel processing).
 
