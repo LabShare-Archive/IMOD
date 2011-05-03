@@ -22,6 +22,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2011/04/09 06:35:35  sueh
+ * <p> bug# 1416 Added testGetFileName, testGetImodManagerKey, and testGetImodManagerKey2.
+ * <p>
  * <p> Revision 1.2  2011/02/22 05:40:55  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -44,6 +47,7 @@ public class FileTypeTest extends TestCase {
    * Test the file types with name descriptions to make sure that none of them
    * are identical.
    */
+
   public void testForFileNameCollisions() {
     Iterator iterator = FileType.iterator();
     FrontPageManager manager = (FrontPageManager) EtomoDirector.INSTANCE
@@ -103,7 +107,9 @@ public class FileTypeTest extends TestCase {
     assertEquals("getInstance(boolean,boolean,string,string) failed",
         FileType.SIRT_OUTPUT_TEMPLATE,
         FileType.getInstance(manager, true, true, "", ".srec"));
-
+    assertEquals("getInstance(boolean,boolean,string,string) failed",
+        FileType.TILT_FOR_SIRT_COMSCRIPT,
+        FileType.getInstance(manager, false, true, "tilt", "_for_sirt.com"));
     metaData.setAxisType(AxisType.SINGLE_AXIS);
     assertEquals("getInstance(boolean,boolean,string,string) failed",
         FileType.TILT_OUTPUT, FileType.getInstance(manager, true, true, "_full", ".rec"));
@@ -113,6 +119,9 @@ public class FileTypeTest extends TestCase {
     assertEquals("getInstance(boolean,boolean,string,string) failed",
         FileType.SIRT_OUTPUT_TEMPLATE,
         FileType.getInstance(manager, true, true, "_full", ".srec"));
+    assertEquals("getInstance(boolean,boolean,string,string) failed",
+        FileType.TILT_FOR_SIRT_COMSCRIPT,
+        FileType.getInstance(manager, false, true, "tilt", "_for_sirt.com"));
   }
 
   public void testGetInstanceFromFileName() {
@@ -121,26 +130,105 @@ public class FileTypeTest extends TestCase {
     FrontPageMetaData metaData = manager.getMetaData();
     metaData.setAxisType(AxisType.DUAL_AXIS);
     metaData.setName("BB");
-    assertEquals(
-        "getInstance(BaseManager,AxisID,boolean,boolean,string) failed - axisID "
-            + "only should be translated to axisID first", FileType.FIDUCIAL_3D_MODEL,
-        FileType.getInstance(manager, AxisID.ONLY, true, true, "BBa.3dmod"));
-    assertEquals("getInstance(BaseManager,AxisID,boolean,boolean,string) failed",
-        FileType.FLATTEN_TOOL_OUTPUT,
+    assertEquals("getInstance failed", FileType.TILT_OUTPUT,
+        FileType.getInstance(manager, AxisID.FIRST, true, true, "BBa.rec"));
+    assertEquals("getInstance failed", FileType.TILT_OUTPUT,
+        FileType.getInstance(manager, AxisID.SECOND, true, true, "BBb.rec"));
+    assertEquals("getInstance failed", FileType.CCD_ERASER_BEADS_INPUT_MODEL,
+        FileType.getInstance(manager, AxisID.FIRST, true, true, "BBa_erase.fid"));
+    assertEquals("getInstance failed", FileType.CCD_ERASER_BEADS_INPUT_MODEL,
+        FileType.getInstance(manager, AxisID.SECOND, true, true, "BBb_erase.fid"));
+    assertEquals("getInstance failed", FileType.CROSS_CORRELATION_COMSCRIPT,
+        FileType.getInstance(manager, AxisID.FIRST, false, true, "xcorra.com"));
+    assertEquals("getInstance failed", FileType.CROSS_CORRELATION_COMSCRIPT,
+        FileType.getInstance(manager, AxisID.SECOND, false, true, "xcorrb.com"));
+    assertEquals("getInstance failed", FileType.DISTORTION_CORRECTED_STACK,
+        FileType.getInstance(manager, AxisID.FIRST, true, true, "BBa.dcst"));
+    assertEquals("getInstance failed", FileType.DISTORTION_CORRECTED_STACK,
+        FileType.getInstance(manager, AxisID.SECOND, true, true, "BBb.dcst"));
+    assertEquals("getInstance failed", FileType.FLATTEN_COMSCRIPT,
+        FileType.getInstance(manager, AxisID.FIRST, false, false, "flatten.com"));
+    assertEquals("getInstance failed", FileType.FLATTEN_COMSCRIPT,
+        FileType.getInstance(manager, AxisID.SECOND, false, false, "flatten.com"));
+    assertEquals("getInstance failed", FileType.FLATTEN_TOOL_COMSCRIPT,
+        FileType.getInstance(manager, AxisID.FIRST, true, false, "BB_flatten.com"));
+    assertEquals("getInstance failed", FileType.FLATTEN_TOOL_COMSCRIPT,
+        FileType.getInstance(manager, AxisID.SECOND, true, false, "BB_flatten.com"));
+    assertEquals("getInstance failed", FileType.TILT_FOR_SIRT_COMSCRIPT,
+        FileType.getInstance(manager, AxisID.FIRST, false, true, "tilta_for_sirt.com"));
+    assertEquals("getInstance failed", FileType.TILT_FOR_SIRT_COMSCRIPT,
+        FileType.getInstance(manager, AxisID.SECOND, false, true, "tiltb_for_sirt.com"));
+    assertEquals("getInstance failed", FileType.SIRT_OUTPUT_TEMPLATE,
+        FileType.getInstance(manager, AxisID.FIRST, true, true, "BBa.srec"));
+    assertEquals("getInstance failed", FileType.SIRT_OUTPUT_TEMPLATE,
+        FileType.getInstance(manager, AxisID.SECOND, true, true, "BBb.srec"));
+    assertEquals("getInstance failed", FileType.ANISOTROPIC_DIFFUSION_OUTPUT,
+        FileType.getInstance(manager, AxisID.FIRST, true, false, "BB.nad"));
+    assertEquals("getInstance failed", FileType.ANISOTROPIC_DIFFUSION_OUTPUT,
+        FileType.getInstance(manager, AxisID.SECOND, true, false, "BB.nad"));
+    assertEquals("getInstance failed", FileType.COMBINED_VOLUME,
+        FileType.getInstance(manager, AxisID.FIRST, false, false, "sum.rec"));
+    assertEquals("getInstance failed", FileType.COMBINED_VOLUME,
+        FileType.getInstance(manager, AxisID.SECOND, false, false, "sum.rec"));
+    assertEquals("getInstance failed", FileType.CTF_CORRECTED_STACK,
+        FileType.getInstance(manager, AxisID.FIRST, true, true, "BBa_ctfcorr.ali"));
+    assertEquals("getInstance failed", FileType.CTF_CORRECTED_STACK,
+        FileType.getInstance(manager, AxisID.SECOND, true, true, "BBb_ctfcorr.ali"));
+    assertEquals("getInstance failed", FileType.FIDUCIAL_3D_MODEL,
+        FileType.getInstance(manager, AxisID.FIRST, true, true, "BBa.3dmod"));
+    assertEquals("getInstance failed", FileType.FIDUCIAL_3D_MODEL,
+        FileType.getInstance(manager, AxisID.SECOND, true, true, "BBb.3dmod"));
+    assertEquals("getInstance failed", FileType.FLATTEN_TOOL_OUTPUT,
         FileType.getInstance(manager, AxisID.FIRST, true, false, "BB.flat"));
-    assertEquals("getInstance(BaseManager,AxisID,boolean,boolean,string) failed",
-        FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT,
-        FileType.getInstance(manager, AxisID.SECOND, true, true, "BBb_3dfind.ali"));
-    assertEquals("getInstance(BaseManager,AxisID,boolean,boolean,string) failed",
-        FileType.FLATTEN_WARP_INPUT_MODEL,
-        FileType.getInstance(manager, AxisID.FIRST, true, false, "BB_flat.mod"));
+    assertEquals("getInstance failed", FileType.FLATTEN_TOOL_OUTPUT,
+        FileType.getInstance(manager, AxisID.SECOND, true, false, "BB.flat"));
+    assertEquals("getInstance failed", FileType.NAD_TEST_INPUT,
+        FileType.getInstance(manager, AxisID.FIRST, false, false, "test.input"));
+    assertEquals("getInstance failed", FileType.NAD_TEST_INPUT,
+        FileType.getInstance(manager, AxisID.SECOND, false, false, "test.input"));
+    assertEquals("getInstance failed", FileType.RAW_STACK,
+        FileType.getInstance(manager, AxisID.FIRST, true, true, "BBa.st"));
+    assertEquals("getInstance failed", FileType.RAW_STACK,
+        FileType.getInstance(manager, AxisID.SECOND, true, true, "BBb.st"));
+    assertEquals("getInstance failed", FileType.ALIGNED_STACK,
+        FileType.getInstance(manager, AxisID.FIRST, true, true, "BBa.ali"));
+    assertEquals("getInstance failed", FileType.ALIGNED_STACK,
+        FileType.getInstance(manager, AxisID.SECOND, true, true, "BBb.ali"));
+
     metaData.setAxisType(AxisType.SINGLE_AXIS);
     metaData.setName("BBa");
-    assertEquals(
-        "getInstance(BaseManager,AxisID,boolean,boolean,string) failed - axisID "
-            + "first should be translated to axisID only",
-        FileType.FIND_BEADS_3D_COMSCRIPT,
-        FileType.getInstance(manager, AxisID.FIRST, false, true, "findbeads3d.com"));
+    assertEquals("getInstance failed", FileType.TILT_OUTPUT,
+        FileType.getInstance(manager, AxisID.ONLY, true, true, "BBa_full.rec"));
+    assertEquals("getInstance failed", FileType.CCD_ERASER_BEADS_INPUT_MODEL,
+        FileType.getInstance(manager, AxisID.ONLY, true, true, "BBa_erase.fid"));
+    assertEquals("getInstance failed", FileType.CROSS_CORRELATION_COMSCRIPT,
+        FileType.getInstance(manager, AxisID.ONLY, false, true, "xcorr.com"));
+    assertEquals("getInstance failed", FileType.DISTORTION_CORRECTED_STACK,
+        FileType.getInstance(manager, AxisID.ONLY, true, true, "BBa.dcst"));
+    assertEquals("getInstance failed", FileType.FLATTEN_COMSCRIPT,
+        FileType.getInstance(manager, AxisID.ONLY, false, false, "flatten.com"));
+    assertEquals("getInstance failed", FileType.FLATTEN_TOOL_COMSCRIPT,
+        FileType.getInstance(manager, AxisID.ONLY, true, false, "BBa_flatten.com"));
+    assertEquals("getInstance failed", FileType.TILT_FOR_SIRT_COMSCRIPT,
+        FileType.getInstance(manager, AxisID.ONLY, false, true, "tilt_for_sirt.com"));
+    assertEquals("getInstance failed", FileType.SIRT_OUTPUT_TEMPLATE,
+        FileType.getInstance(manager, AxisID.ONLY, true, true, "BBa_full.srec"));
+    assertEquals("getInstance failed", FileType.ANISOTROPIC_DIFFUSION_OUTPUT,
+        FileType.getInstance(manager, AxisID.ONLY, true, false, "BBa.nad"));
+    assertEquals("getInstance failed", FileType.COMBINED_VOLUME,
+        FileType.getInstance(manager, AxisID.ONLY, false, false, "sum.rec"));
+    assertEquals("getInstance failed", FileType.CTF_CORRECTED_STACK,
+        FileType.getInstance(manager, AxisID.ONLY, true, true, "BBa_ctfcorr.ali"));
+    assertEquals("getInstance failed", FileType.FIDUCIAL_3D_MODEL,
+        FileType.getInstance(manager, AxisID.ONLY, true, true, "BBa.3dmod"));
+    assertEquals("getInstance failed", FileType.FLATTEN_TOOL_OUTPUT,
+        FileType.getInstance(manager, AxisID.ONLY, true, false, "BBa.flat"));
+    assertEquals("getInstance failed", FileType.NAD_TEST_INPUT,
+        FileType.getInstance(manager, AxisID.ONLY, false, false, "test.input"));
+    assertEquals("getInstance failed", FileType.RAW_STACK,
+        FileType.getInstance(manager, AxisID.ONLY, true, true, "BBa.st"));
+    assertEquals("getInstance failed", FileType.ALIGNED_STACK,
+        FileType.getInstance(manager, AxisID.ONLY, true, true, "BBa.ali"));
   }
 
   public void testGetImodManagerKey() {
@@ -261,6 +349,8 @@ public class FileTypeTest extends TestCase {
         FileType.CROSS_CORRELATION_COMSCRIPT.getImodManagerKey(manager));
     assertNull("getImodManagerKey did not return null",
         FileType.PATCH_TRACKING_COMSCRIPT.getImodManagerKey(manager));
+    assertNull("getImodManagerKey did not return null",
+        FileType.TILT_FOR_SIRT_COMSCRIPT.getImodManagerKey(manager));
 
     metaData.setAxisType(AxisType.SINGLE_AXIS);
     assertSame("getImodManagerKey did not return the correct ImodManager key",
@@ -376,6 +466,8 @@ public class FileTypeTest extends TestCase {
         FileType.CROSS_CORRELATION_COMSCRIPT.getImodManagerKey(manager));
     assertNull("getImodManagerKey did not return null",
         FileType.PATCH_TRACKING_COMSCRIPT.getImodManagerKey(manager));
+    assertNull("getImodManagerKey did not return null",
+        FileType.TILT_FOR_SIRT_COMSCRIPT.getImodManagerKey(manager));
   }
 
   public void testGetImodManagerKey2() {
@@ -477,6 +569,8 @@ public class FileTypeTest extends TestCase {
         FileType.CROSS_CORRELATION_COMSCRIPT.getImodManagerKey2(manager));
     assertNull("getImodManagerKey2 did not return null",
         FileType.PATCH_TRACKING_COMSCRIPT.getImodManagerKey2(manager));
+    assertNull("getImodManagerKey2 did not return null",
+        FileType.TILT_FOR_SIRT_COMSCRIPT.getImodManagerKey2(manager));
 
     metaData.setAxisType(AxisType.SINGLE_AXIS);
     assertNull("getImodManagerKey2 did not return null",
@@ -573,6 +667,8 @@ public class FileTypeTest extends TestCase {
         FileType.CROSS_CORRELATION_COMSCRIPT.getImodManagerKey2(manager));
     assertNull("getImodManagerKey2 did not return null",
         FileType.PATCH_TRACKING_COMSCRIPT.getImodManagerKey2(manager));
+    assertNull("getImodManagerKey2 did not return null",
+        FileType.TILT_FOR_SIRT_COMSCRIPT.getImodManagerKey2(manager));
   }
 
   public void testGetFileName() {
@@ -817,6 +913,12 @@ public class FileTypeTest extends TestCase {
     assertEquals("file name is wrong",
         FileType.PATCH_TRACKING_COMSCRIPT.getFileName(manager, AxisID.SECOND),
         "xcorr_ptb.com");
+    assertEquals("file name is wrong",
+        FileType.TILT_FOR_SIRT_COMSCRIPT.getFileName(manager, AxisID.FIRST),
+        "tilta_for_sirt.com");
+    assertEquals("file name is wrong",
+        FileType.TILT_FOR_SIRT_COMSCRIPT.getFileName(manager, AxisID.SECOND),
+        "tiltb_for_sirt.com");
 
     //test single axis    
     metaData.setAxisType(AxisType.SINGLE_AXIS);
@@ -930,5 +1032,27 @@ public class FileTypeTest extends TestCase {
     assertEquals("file name is wrong",
         FileType.PATCH_TRACKING_COMSCRIPT.getFileName(manager, AxisID.ONLY),
         "xcorr_pt.com");
+    assertEquals("file name is wrong",
+        FileType.TILT_FOR_SIRT_COMSCRIPT.getFileName(manager, AxisID.ONLY),
+        "tilt_for_sirt.com");
+  }
+
+  public void testIsInSubdirectory() {
+    FrontPageManager manager = (FrontPageManager) EtomoDirector.INSTANCE
+        .getCurrentManagerForTest();
+    FrontPageMetaData metaData = manager.getMetaData();
+    metaData.setAxisType(AxisType.SINGLE_AXIS);
+    assertFalse("In subdirectory", FileType.TILT_OUTPUT.isInSubdirectory());
+    assertFalse("In subdirectory",
+        FileType.CCD_ERASER_BEADS_INPUT_MODEL.isInSubdirectory());
+    assertFalse("In subdirectory", FileType.SIRT_OUTPUT_TEMPLATE.isInSubdirectory());
+    assertFalse("In subdirectory",
+        FileType.ANISOTROPIC_DIFFUSION_OUTPUT.isInSubdirectory());
+    assertTrue("Not in subdirectory", FileType.NAD_TEST_INPUT.isInSubdirectory());
+    assertFalse("In subdirectory", FileType.RAW_STACK.isInSubdirectory());
+    assertFalse("In subdirectory", FileType.ALIGNED_STACK.isInSubdirectory());
+    assertFalse("In subdirectory", FileType.AVERAGED_VOLUMES.isInSubdirectory());
+    assertTrue("Not in subdirectory",
+        FileType.NAD_TEST_VARYING_ITERATIONS.isInSubdirectory());
   }
 }
