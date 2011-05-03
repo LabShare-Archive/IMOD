@@ -5,12 +5,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Observable;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import etomo.ApplicationManager;
 import etomo.ProcessingMethodMediator;
@@ -52,6 +53,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2011/04/25 23:21:20  sueh
+ * <p> bug# 1416 Moved responsibility of when to checkpoint to child class.  Added addStateChangedReporter.
+ * <p> Added a numeric type to checkpointed fields that contain a number.
+ * <p>
  * <p> Revision 1.5  2011/04/04 17:16:53  sueh
  * <p> bug# 1416 Removed enabled, getEnabled, setEnabled.  Added method, pnlButton, pnlSlicesInY,
  * <p> resume,trialPanel, checkpoint, isChanged, msgTiltComLoaded, msgTiltComSaved, setMethod, setVisible,
@@ -110,8 +115,8 @@ import etomo.util.InvalidParameterException;
  * <p> bug# 1222
  * <p> </p>
  */
-abstract class AbstractTiltPanel extends Observable implements Expandable,
-    TrialTiltParent, Run3dmodButtonContainer, TiltDisplay, ProcessInterface {
+abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
+    Run3dmodButtonContainer, TiltDisplay, ProcessInterface {
   public static final String rcsid = "$Id$";
 
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
@@ -176,6 +181,7 @@ abstract class AbstractTiltPanel extends Observable implements Expandable,
   private final MultiLineButton btnDeleteStack;
   private final PanelId panelId;
   final ProcessingMethodMediator mediator;
+  private final boolean listenForFieldChanges;
 
   private boolean gpuAvailable = false;
   private boolean gpuEnabled = true;
@@ -183,7 +189,6 @@ abstract class AbstractTiltPanel extends Observable implements Expandable,
   private boolean newstFiducialessAlignment = false;
   private boolean usedLocalAlignments = false;
   private boolean processingMethodLocked = false;
-  private TomogramGenerationDialog.MethodEnum method = TomogramGenerationDialog.MethodEnum.BACK_PROJECTION;
 
   abstract void tiltAction(ProcessResultDisplay processResultDisplay,
       final Deferred3dmodButton deferred3dmodButton,
@@ -196,11 +201,12 @@ abstract class AbstractTiltPanel extends Observable implements Expandable,
   //get binning from newst
   AbstractTiltPanel(final ApplicationManager manager, final AxisID axisID,
       final DialogType dialogType, final GlobalExpandButton globalAdvancedButton,
-      final PanelId panelId) {
+      final PanelId panelId, final boolean listenForFieldChanges) {
     this.manager = manager;
     this.axisID = axisID;
     this.dialogType = dialogType;
     this.panelId = panelId;
+    this.listenForFieldChanges = listenForFieldChanges;
     radialPanel = RadialPanel.getInstance(manager, axisID, panelId);
     mediator = manager.getProcessingMethodMediator(axisID);
     header = PanelHeader.getAdvancedBasicInstance("Tilt", this, dialogType,
@@ -336,46 +342,27 @@ abstract class AbstractTiltPanel extends Observable implements Expandable,
     cbParallelProcess.addActionListener(actionListener);
     cbUseGpu.addActionListener(actionListener);
     ctfLog.addActionListener(actionListener);
-  }
-
-  final void addStateChangedReporter(StateChangedReporter reporter) {
-    reporter.addSource(ctfLog);
-    reporter.addSource(ltfLogDensityScaleFactor);
-    reporter.addSource(ltfLogDensityScaleOffset);
-    reporter.addSource(ltfLinearDensityScaleFactor);
-    reporter.addSource(ltfLinearDensityScaleOffset);
-    reporter.addSource(ltfTomoThickness);
-    reporter.addSource(ltfZShift);
-    reporter.addSource(ltfXAxisTilt);
-    reporter.addSource(ltfTiltAngleOffset);
-    reporter.addSource(ltfExtraExcludeList);
-    reporter.addSource(cbUseLocalAlignment);
-    reporter.addSource(cbUseZFactors);
+    //If the child class has field listeners, it must set listenForFieldChanges to true.
+    //Otherwise changes in these fields will be ignored.
+    if (listenForFieldChanges) {
+      cbUseLocalAlignment.addActionListener(actionListener);
+      cbUseZFactors.addActionListener(actionListener);
+      DocumentListener documentListener = new TiltDocumentListener(this);
+      ctfLog.addDocumentListener(documentListener);
+      ltfLogDensityScaleFactor.addDocumentListener(documentListener);
+      ltfLogDensityScaleOffset.addDocumentListener(documentListener);
+      ltfLinearDensityScaleFactor.addDocumentListener(documentListener);
+      ltfLinearDensityScaleOffset.addDocumentListener(documentListener);
+      ltfTomoThickness.addDocumentListener(documentListener);
+      ltfZShift.addDocumentListener(documentListener);
+      ltfXAxisTilt.addDocumentListener(documentListener);
+      ltfTiltAngleOffset.addDocumentListener(documentListener);
+      ltfExtraExcludeList.addDocumentListener(documentListener);
+    }
   }
 
   Component getRoot() {
     return pnlRoot.getContainer();
-  }
-
-  void msgTiltComLoaded() {
-  }
-
-  public void msgTiltComSaved() {
-  }
-
-  void checkpoint() {
-    ctfLog.checkpoint();
-    ltfLogDensityScaleFactor.checkpoint();
-    ltfLogDensityScaleOffset.checkpoint();
-    ltfLinearDensityScaleFactor.checkpoint();
-    ltfLinearDensityScaleOffset.checkpoint();
-    ltfTomoThickness.checkpoint();
-    ltfZShift.checkpoint();
-    ltfXAxisTilt.checkpoint();
-    ltfTiltAngleOffset.checkpoint();
-    ltfExtraExcludeList.checkpoint();
-    cbUseLocalAlignment.checkpoint();
-    cbUseZFactors.checkpoint();
   }
 
   public boolean allowTiltComSave() {
@@ -383,27 +370,19 @@ abstract class AbstractTiltPanel extends Observable implements Expandable,
   }
 
   /**
-   * Return true if any of the checkpointed field values have changed since they where
-   * checkpointed.
+   * Checks the fields that are listened to when listenForFieldChanges is true.  Returns
+   * true if any of them are different from their checkpoint or haven't been checkpointed.
+   * It is unnecessary to check whether a field is active, because a disabled or invisible
+   * field returns false.
    * @return
    */
   boolean isDifferentFromCheckpoint() {
-    if (ctfLog.isDifferentFromCheckpoint()) {
-      return true;
-    }
-    if (ctfLog.isSelected()) {
-      if (ltfLogDensityScaleFactor.isDifferentFromCheckpoint()
-          || ltfLogDensityScaleOffset.isDifferentFromCheckpoint()) {
-        return true;
-      }
-    }
-    else {
-      if (ltfLinearDensityScaleFactor.isDifferentFromCheckpoint()
-          || ltfLinearDensityScaleOffset.isDifferentFromCheckpoint()) {
-        return true;
-      }
-    }
-    if (ltfTomoThickness.isDifferentFromCheckpoint()
+    if (ctfLog.isDifferentFromCheckpoint()
+        || ltfLogDensityScaleFactor.isDifferentFromCheckpoint()
+        || ltfLogDensityScaleOffset.isDifferentFromCheckpoint()
+        || ltfLinearDensityScaleFactor.isDifferentFromCheckpoint()
+        || ltfLinearDensityScaleOffset.isDifferentFromCheckpoint()
+        || ltfTomoThickness.isDifferentFromCheckpoint()
         || ltfZShift.isDifferentFromCheckpoint()
         || ltfXAxisTilt.isDifferentFromCheckpoint()
         || ltfTiltAngleOffset.isDifferentFromCheckpoint()
@@ -430,8 +409,7 @@ abstract class AbstractTiltPanel extends Observable implements Expandable,
     UIHarness.INSTANCE.pack(axisID, manager);
   }
 
-  public final void setMethod(final TomogramGenerationDialog.MethodEnum method) {
-    this.method = method;
+  final void msgMethodChanged() {
     setVisible(header.isAdvanced());
     mediator.setMethod(this, getProcessingMethod());
   }
@@ -446,7 +424,7 @@ abstract class AbstractTiltPanel extends Observable implements Expandable,
    * @param advanced
    */
   void setVisible(final boolean advanced) {
-    boolean backProjection = method == TomogramGenerationDialog.MethodEnum.BACK_PROJECTION;
+    boolean backProjection = isBackProjection();
     cbParallelProcess.setVisible(backProjection);
     ltfLogDensityScaleOffset.setVisible(advanced);
     ltfLogDensityScaleFactor.setVisible(advanced);
@@ -479,8 +457,16 @@ abstract class AbstractTiltPanel extends Observable implements Expandable,
     return false;
   }
 
+  boolean isBackProjection() {
+    return true;
+  }
+
+  boolean isSirt() {
+    return false;
+  }
+
   void updateDisplay() {
-    boolean backProjection = method == TomogramGenerationDialog.MethodEnum.BACK_PROJECTION;
+    boolean backProjection = isBackProjection();
     boolean resume = isResume();
     btn3dmodTomogram.setEnabled(backProjection || !resume);
     ctfLog.setEnabled(backProjection || !resume);
@@ -618,7 +604,7 @@ abstract class AbstractTiltPanel extends Observable implements Expandable,
   public ProcessingMethod getProcessingMethod() {
     //SIRT must use parallel processing.
     boolean parallelProcess = (cbParallelProcess.isEnabled() && cbParallelProcess
-        .isSelected()) || method == TomogramGenerationDialog.MethodEnum.SIRT;
+        .isSelected()) || isSirt();
     if (parallelProcess) {
       if (cbUseGpu.isEnabled() && cbUseGpu.isSelected()) {
         return ProcessingMethod.PP_GPU;
@@ -633,6 +619,25 @@ abstract class AbstractTiltPanel extends Observable implements Expandable,
 
   void registerProcessingMethodMediator() {
     mediator.register(this);
+  }
+
+  /**
+   * Checkpoint fields that are listened to when listenForFieldChanges is true. 
+   * @param tiltParam
+   */
+  void checkpoint(final ConstTiltParam tiltParam) {
+    ctfLog.checkpoint(tiltParam.hasLogOffset(), tiltParam.getLogShift());
+    ltfLogDensityScaleFactor.checkpoint(tiltParam.getScaleCoeff());
+    ltfLogDensityScaleOffset.checkpoint(tiltParam.getScaleFLevel());
+    ltfLinearDensityScaleFactor.checkpoint(tiltParam.getScaleCoeff());
+    ltfLinearDensityScaleOffset.checkpoint(tiltParam.getScaleFLevel());
+    ltfTomoThickness.checkpoint(tiltParam.getThickness());
+    ltfZShift.checkpoint(tiltParam.getZShift());
+    ltfXAxisTilt.checkpoint(tiltParam.getXAxisTilt());
+    ltfTiltAngleOffset.checkpoint(tiltParam.getTiltAngleOffset());
+    ltfExtraExcludeList.checkpoint(tiltParam.getExcludeList2());
+    cbUseLocalAlignment.checkpoint(tiltParam.hasLocalAlignFile());
+    cbUseZFactors.checkpoint(tiltParam.hasZFactorFileName());
   }
 
   /**
@@ -897,6 +902,9 @@ abstract class AbstractTiltPanel extends Observable implements Expandable,
         run3dmodMenuOptions);
   }
 
+  void fieldChangeAction() {
+  }
+
   /**
    * Executes the action associated with command.  Deferred3dmodButton is null
    * if it comes from the dialog's ActionListener.  Otherwise is comes from a
@@ -924,9 +932,21 @@ abstract class AbstractTiltPanel extends Observable implements Expandable,
     else if (command.equals(cbUseGpu.getActionCommand())) {
       mediator.setMethod(this, getProcessingMethod());
     }
+    else if (command.equals(ctfLog.getActionCommand())) {
+      updateDisplay();
+      fieldChangeAction();
+    }
+    else if (command.equals(cbUseLocalAlignment.getActionCommand())
+        || command.equals(cbUseZFactors.getActionCommand())) {
+      fieldChangeAction();
+    }
     else {
       updateDisplay();
     }
+  }
+
+  private void documentAction() {
+    fieldChangeAction();
   }
 
   /**
@@ -1026,6 +1046,26 @@ abstract class AbstractTiltPanel extends Observable implements Expandable,
 
     public void actionPerformed(final ActionEvent event) {
       adaptee.action(event.getActionCommand(), null, null);
+    }
+  }
+
+  private static final class TiltDocumentListener implements DocumentListener {
+    private final AbstractTiltPanel adaptee;
+
+    private TiltDocumentListener(final AbstractTiltPanel adaptee) {
+      this.adaptee = adaptee;
+    }
+
+    public void changedUpdate(final DocumentEvent event) {
+      adaptee.documentAction();
+    }
+
+    public void insertUpdate(final DocumentEvent event) {
+      adaptee.documentAction();
+    }
+
+    public void removeUpdate(final DocumentEvent event) {
+      adaptee.documentAction();
     }
   }
 }
