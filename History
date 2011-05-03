@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/3/11: In eTomo, removed the "DONE" tag from tilt.com files that where
+converted to PIP.
+
 5/2/11: Added an interface for SIRT to eTomo.
 
 4/25/11: Tomosnapshot converted to Python and enhanced to handle all kinds of
