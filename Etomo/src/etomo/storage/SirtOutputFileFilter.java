@@ -26,6 +26,9 @@ import etomo.type.FileType;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2011/04/25 23:18:36  sueh
+* <p> bug# 1416 Remove unnecessary interface java.io.FileFilter.
+* <p>
 * <p> Revision 1.1  2011/04/04 17:00:13  sueh
 * <p> bug# 1416 File filter for sirt output files (.srecdd and .sintdd).
 * <p> </p>
@@ -57,12 +60,12 @@ public final class SirtOutputFileFilter extends FileFilter implements FilenameFi
     if (fileName.endsWith("~")) {
       return false;
     }
-    String template = FileType.SIRT_OUTPUT_TEMPLATE.getFileName(manager, axisID);
+    String template = FileType.SIRT_OUTPUT_TEMPLATE.getTemplate(manager, axisID);
     if (fileName.startsWith(template)) {
       return acceptTemplate(fileName, template);
     }
     if (includeScaledOutput) {
-      template = FileType.SIRT_SCALED_OUTPUT_TEMPLATE.getFileName(manager, axisID);
+      template = FileType.SIRT_SCALED_OUTPUT_TEMPLATE.getTemplate(manager, axisID);
       if (fileName.startsWith(template)) {
         return acceptTemplate(fileName, template);
       }
