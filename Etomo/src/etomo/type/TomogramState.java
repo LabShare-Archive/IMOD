@@ -25,6 +25,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.40  2011/02/22 05:54:05  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.39  2010/03/12 04:08:17  sueh
  * <p> bug# 1325 Added use button warnings.
  * <p>
@@ -176,13 +179,11 @@ public class TomogramState extends BaseState {
   private static final String USE_FID_AS_SEED = "UseFidAsSeed";
   private static final String FIXED_FIDUCIALS_KEY = "FixedFiducials";
   private static final String COMBINE_MATCH_MODE_KEY = DialogType.TOMOGRAM_COMBINATION
-      .getStorableName()
-      + "." + "MatchMode";
+      .getStorableName() + "." + "MatchMode";
   private static final String COMBINE_MATCH_MODE_BACK_KEY = "Setup.Combine.MatchBtoA";
   private static final String COMBINE_SCRIPTS_CREATED_BACK_KEY = "Setup.ComScriptsCreated";
   private static final String SAMPLE_FIDUCIALESS_KEY = DialogType.TOMOGRAM_POSITIONING
-      .getStorableName()
-      + '.' + ProcessName.TILT + '.' + "Fiducialess";
+      .getStorableName() + '.' + ProcessName.TILT + '.' + "Fiducialess";
   private static final String X_AXIS_TILT_KEY = "XAXISTILT";
   private static final String ADJUST_ORIGIN_KEY = "AdjustOrigin";
   private static final String A_AXIS_KEY = "A";
@@ -193,6 +194,7 @@ public class TomogramState extends BaseState {
   private static final String PRE_KEY = "Pre";
   private static final String TRACK_KEY = "Track";
   private static final String STACK_KEY = "Stack";
+  private static final String GEN_KEY = "Gen";
 
   EtomoState trimvolFlipped = new EtomoState("TrimvolFlipped");
   EtomoState squeezevolFlipped = new EtomoState("SqueezevolFlipped");
@@ -244,21 +246,17 @@ public class TomogramState extends BaseState {
   private final EtomoNumber seedFileLastModifiedB = new EtomoNumber(
       EtomoNumber.Type.LONG, AxisID.SECOND.getExtension() + '.' + USE_FID_AS_SEED + '.'
           + LAST_MODIFIED);
-  private final EtomoBoolean2 fixedFiducialsA = new EtomoBoolean2(AxisID.FIRST
-      .getExtension()
-      + "." + FIXED_FIDUCIALS_KEY);
-  private final EtomoBoolean2 fixedFiducialsB = new EtomoBoolean2(AxisID.SECOND
-      .getExtension()
-      + "." + FIXED_FIDUCIALS_KEY);
+  private final EtomoBoolean2 fixedFiducialsA = new EtomoBoolean2(
+      AxisID.FIRST.getExtension() + "." + FIXED_FIDUCIALS_KEY);
+  private final EtomoBoolean2 fixedFiducialsB = new EtomoBoolean2(
+      AxisID.SECOND.getExtension() + "." + FIXED_FIDUCIALS_KEY);
   private MatchMode combineMatchMode = null;
   private final EtomoState combineScriptsCreated = new EtomoState(
       DialogType.TOMOGRAM_COMBINATION.getStorableName() + "." + "ScriptsCreated");
-  private final EtomoBoolean2 seedingDoneA = new EtomoBoolean2(AxisID.FIRST
-      .getExtension()
-      + '.' + "SeedingDone");
-  private final EtomoBoolean2 seedingDoneB = new EtomoBoolean2(AxisID.SECOND
-      .getExtension()
-      + '.' + "SeedingDone");
+  private final EtomoBoolean2 seedingDoneA = new EtomoBoolean2(
+      AxisID.FIRST.getExtension() + '.' + "SeedingDone");
+  private final EtomoBoolean2 seedingDoneB = new EtomoBoolean2(
+      AxisID.SECOND.getExtension() + '.' + "SeedingDone");
   private EtomoBoolean2 sampleFiducialessA = null;
   private EtomoBoolean2 sampleFiducialessB = null;
   private final ApplicationManager manager;
@@ -315,6 +313,15 @@ public class TomogramState extends BaseState {
       + ".A.UseFilteredStack.Warning");
   private final EtomoBoolean2 useFilteredStackWarningB = new EtomoBoolean2(STACK_KEY
       + ".B.UseFilteredStack.Warning");
+
+  private final StringProperty genSirtsetupSubareaSizeA = new StringProperty(GEN_KEY
+      + "." + A_AXIS_KEY + ".SirtsetupSubareaSize");
+  private final StringProperty genSirtsetupSubareaSizeB = new StringProperty(GEN_KEY
+      + "." + B_AXIS_KEY + ".SirtsetupSubareaSize");
+  private final EtomoNumber genSirtsetupyOffsetOfSubareaA = new EtomoNumber(GEN_KEY
+      + "." + A_AXIS_KEY + ".SirtsetupyOffsetOfSubarea");
+  private final EtomoNumber genSirtsetupyOffsetOfSubareaB = new EtomoNumber(GEN_KEY + "."
+      + B_AXIS_KEY + ".SirtsetupyOffsetOfSubarea");
 
   public TomogramState(ApplicationManager manager) {
     this.manager = manager;
@@ -411,6 +418,10 @@ public class TomogramState extends BaseState {
     useErasedStackWarningB.store(props, prepend);
     useFilteredStackWarningA.store(props, prepend);
     useFilteredStackWarningB.store(props, prepend);
+    genSirtsetupSubareaSizeA.store(props, prepend);
+    genSirtsetupSubareaSizeB.store(props, prepend);
+    genSirtsetupyOffsetOfSubareaA.store(props, prepend);
+    genSirtsetupyOffsetOfSubareaB.store(props, prepend);
 
     //backwards compatibility
     props.remove(COMBINE_MATCH_MODE_BACK_KEY);
@@ -418,8 +429,8 @@ public class TomogramState extends BaseState {
       props.remove(prepend + "." + COMBINE_MATCH_MODE_KEY);
     }
     else {
-      props.setProperty(prepend + "." + COMBINE_MATCH_MODE_KEY, combineMatchMode
-          .toString());
+      props.setProperty(prepend + "." + COMBINE_MATCH_MODE_KEY,
+          combineMatchMode.toString());
     }
     //backwards compatibility
     props.remove(COMBINE_SCRIPTS_CREATED_BACK_KEY);
@@ -504,6 +515,10 @@ public class TomogramState extends BaseState {
     useErasedStackWarningB.reset();
     useFilteredStackWarningA.reset();
     useFilteredStackWarningB.reset();
+    genSirtsetupSubareaSizeA.reset();
+    genSirtsetupSubareaSizeB.reset();
+    genSirtsetupyOffsetOfSubareaA.reset();
+    genSirtsetupyOffsetOfSubareaB.reset();
     //load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -562,6 +577,10 @@ public class TomogramState extends BaseState {
     useErasedStackWarningB.load(props, prepend);
     useFilteredStackWarningA.load(props, prepend);
     useFilteredStackWarningB.load(props, prepend);
+    genSirtsetupSubareaSizeA.load(props, prepend);
+    genSirtsetupSubareaSizeB.load(props, prepend);
+    genSirtsetupyOffsetOfSubareaA.load(props, prepend);
+    genSirtsetupyOffsetOfSubareaB.load(props, prepend);
     combineMatchMode = MatchMode.getInstance(props.getProperty(prepend + "."
         + COMBINE_MATCH_MODE_KEY));
     //backwards compatibility
@@ -742,6 +761,24 @@ public class TomogramState extends BaseState {
     }
   }
 
+  public void setGenSirtsetupSubareaSize(AxisID axisID, String input) {
+    if (axisID == AxisID.SECOND) {
+      genSirtsetupSubareaSizeB.set(input);
+    }
+    else {
+      genSirtsetupSubareaSizeA.set(input);
+    }
+  }
+
+  public void setGenSirtsetupyOffsetOfSubarea(AxisID axisID, int input) {
+    if (axisID == AxisID.SECOND) {
+      genSirtsetupyOffsetOfSubareaB.set(input);
+    }
+    else {
+      genSirtsetupyOffsetOfSubareaA.set(input);
+    }
+  }
+
   public void setUseRaptorResultWarning(boolean input) {
     useRaptorResultWarningA.set(input);
   }
@@ -819,6 +856,20 @@ public class TomogramState extends BaseState {
       return useFilteredStackWarningB.is();
     }
     return useFilteredStackWarningA.is();
+  }
+
+  public String getGenSirtsetupSubareaSize(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return genSirtsetupSubareaSizeB.toString();
+    }
+    return genSirtsetupSubareaSizeA.toString();
+  }
+  
+  public String getGenSirtsetupyOffsetOfSubarea(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return genSirtsetupyOffsetOfSubareaB.toString();
+    }
+    return genSirtsetupyOffsetOfSubareaA.toString();
   }
 
   public boolean isUseRaptorResultWarning() {
@@ -1133,13 +1184,13 @@ public class TomogramState extends BaseState {
     //flipped.
     EtomoDirector etomoDirector = EtomoDirector.INSTANCE;
     String datasetName = manager.getName();
-    File trimvolFile = new File(manager.getPropertyUserDir(), TrimvolParam
-        .getOutputFileName(datasetName));
+    File trimvolFile = new File(manager.getPropertyUserDir(),
+        TrimvolParam.getOutputFileName(datasetName));
     if (!trimvolFile.exists()) {
       return false;
     }
-    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(), trimvolFile
-        .getAbsolutePath(), AxisID.ONLY);
+    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
+        trimvolFile.getAbsolutePath(), AxisID.ONLY);
     try {
       if (!header.read(manager)) {
         return false;
