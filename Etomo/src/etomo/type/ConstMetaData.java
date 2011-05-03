@@ -16,6 +16,10 @@ import etomo.comscript.FortranInputString;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.63  2011/04/04 17:02:04  sueh
+ * <p> bug# 1416 Added getGenRadialRadius, getGenRadialSigma, getGenSubareaSize, getGenYOffsetOfSubarea,
+ * <p> isGenBackProjection, isGenResumeEnabled, isGenSubarea.
+ * <p>
  * <p> Revision 3.60  2010/12/05 04:43:50  sueh
  * <p> bug# 1416 Added getGenCurTab.
  * <p>
@@ -463,6 +467,4 @@ public interface ConstMetaData {
   public String getGenRadialRadius(AxisID axisID);
 
   public String getGenRadialSigma(AxisID axisID);
-  
-  public boolean isGenResumeEnabled(AxisID axisID);
 }
