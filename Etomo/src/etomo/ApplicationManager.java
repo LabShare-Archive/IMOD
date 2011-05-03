@@ -4984,7 +4984,6 @@ public final class ApplicationManager extends BaseManager implements
       UIHarness.INSTANCE.openMessageDialog(this, errorMessage, "Tilt Parameter", axisID);
       return null;
     }
-    display.msgTiltComSaved();
     return tiltParam;
   }
 
@@ -7711,9 +7710,16 @@ public final class ApplicationManager extends BaseManager implements
     if (!display.getParameters(param)) {
       return null;
     }
-    getMainPanel().getParallelPanel(axisID).getParameters(param);
+    if (!getMainPanel().getParallelPanel(axisID).getParameters(param)) {
+      return null;
+    }
     comScriptMgr.saveSirtsetup(param, axisID);
     return param;
+  }
+
+  public void msgSirtsetupSucceeded(final AxisID axisID) {
+    ((TomogramGenerationExpert) getUIExpert(DialogType.TOMOGRAM_GENERATION, axisID))
+        .msgSirtsetupSucceeded();
   }
 
   public void sirtsetup(final AxisID axisID,
@@ -7794,7 +7800,7 @@ public final class ApplicationManager extends BaseManager implements
   public boolean useSirt(final ProcessResultDisplay processResultDisplay,
       final File useFile, final String runButtonLabel, final AxisID axisID,
       final DialogType dialogType) {
-    FileType outputFileType= FileType.TILT_OUTPUT;
+    FileType outputFileType = FileType.TILT_OUTPUT;
     return useImageFile(processResultDisplay, FileType.SIRT_OUTPUT_TEMPLATE, useFile,
         outputFileType, runButtonLabel, axisID, dialogType);
   }
@@ -7821,8 +7827,9 @@ public final class ApplicationManager extends BaseManager implements
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return false;
     }
-    mainPanel.setProgressBar("Using " + useFileType.getFileName(this, axisID) + " as "
-        + outputFileType.getDescription(this), 1, axisID);
+    mainPanel.setProgressBar(
+        "Using " + useFile.getName() + " as " + outputFileType.getDescription(this), 1,
+        axisID);
     if (!useFile.exists()) {
       UIHarness.INSTANCE.openMessageDialog(this, useFile.getName()
           + " doesn't exist.  Press " + runButtonLabel + " to create this file.",
@@ -8011,6 +8018,10 @@ public final class ApplicationManager extends BaseManager implements
 /**
  * <p>
  * $Log$
+ * Revision 3.371  2011/04/09 06:19:17  sueh
+ * bug# 1416 Need to pass the manager to most FileType functions so that TILT_OUTPUT can distinguish
+ * between single and dual axis type.
+ *
  * Revision 3.370  2011/04/04 16:43:57  sueh
  * bug# 1416 Added/modified openFilesInImod, reconnectTilt, resume, sirtsetup, tiltAction,updateSirtSetupCom,
  * updateTiltCom, useFileAsFullAlignedStack, useImageFile, useSirt.
