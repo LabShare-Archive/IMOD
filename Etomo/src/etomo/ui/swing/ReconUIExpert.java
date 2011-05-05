@@ -178,7 +178,7 @@ public abstract class ReconUIExpert implements UIExpert {
     ParallelPanel parallelPanel = manager.getMainPanel().getParallelPanel(axisID);
     dialog.getParameters(param);
     if (!parallelPanel.getParameters(param)) {
-      manager.getMainPanel().stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
+      manager.getMainPanel().stopProgressBar(axisID, ProcessEndState.FAILED);
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
@@ -208,6 +208,9 @@ public abstract class ReconUIExpert implements UIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2011/04/04 17:27:17  sueh
+ * <p> bug# 1416 Passing the process name as a string to processchunks.
+ * <p>
  * <p> Revision 1.3  2011/02/22 19:07:28  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
