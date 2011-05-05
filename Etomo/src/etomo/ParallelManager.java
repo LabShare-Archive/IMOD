@@ -357,7 +357,14 @@ public final class ParallelManager extends BaseManager {
       return true;
     }
     //set paramFile and propertyUserDir
-    propertyUserDir = file.getParentFile().getAbsolutePath();
+    String parentDirPath =  file.getParentFile().getAbsolutePath();
+    if (parentDirPath.endsWith(" ")) {
+      uiHarness.openMessageDialog(this, "The directory, " + parentDirPath
+          + ", cannot be used because it ends with a space.",
+          "Unusable Directory Name", AxisID.ONLY);
+      return false;
+    }
+    propertyUserDir = parentDirPath;
     System.err.println("propertyUserDir: " + propertyUserDir);
     anisotropicDiffusionDialog.getInitialParameters(metaData);
     String errorMessage = metaData.validate();
@@ -481,15 +488,16 @@ public final class ParallelManager extends BaseManager {
     }
   }
 
-  public void makeSubdir(final String subdirName) {
+  public boolean makeSubdir(final String subdirName) {
     if (paramFile == null) {
       uiHarness.openMessageDialog(this, "Must pick a volume.", "Entry Error");
-      return;
+      return false;
     }
     File subdir = new File(propertyUserDir, subdirName);
     if (!subdir.exists()) {
       subdir.mkdir();
     }
+    return true;
   }
 
   private TrimvolParam updateTrimvolParam() {
@@ -782,7 +790,14 @@ public final class ParallelManager extends BaseManager {
       return true;
     }
     //set paramFile and propertyUserDir
-    propertyUserDir = parallelDialog.getWorkingDir().getAbsolutePath();
+    String workingDir =  parallelDialog.getWorkingDir().getAbsolutePath();
+    if (workingDir.endsWith(" ")) {
+      uiHarness.openMessageDialog(this, "The directory, " + workingDir
+          + ", cannot be used because it ends with a space.",
+          "Unusable Directory Name", AxisID.ONLY);
+      return false;
+    }
+    propertyUserDir = workingDir;
     System.err.println("propertyUserDir: " + propertyUserDir);
     parallelDialog.getParameters(metaData);
     String errorMessage = metaData.validate();
@@ -805,6 +820,10 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.49  2011/04/09 06:21:06  sueh
+ * <p> bug# 1416 Need to pass the manager to most FileType functions so that TILT_OUTPUT can distinguish
+ * <p> between single and dual axis type.
+ * <p>
  * <p> Revision 1.48  2011/02/21 21:07:05  sueh
  * <p> bug# 1437 Reformatting.
  * <p>

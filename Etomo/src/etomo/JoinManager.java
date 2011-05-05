@@ -73,6 +73,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.90  2011/02/21 21:06:14  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.89  2011/02/03 05:52:30  sueh
  * <p> bug# 1422 Using ProcessingMethod to keep track of which type of
  * <p> processing method is in use.  The decisions about when to display the
@@ -671,17 +674,25 @@ public final class JoinManager extends BaseManager {
    */
   public File getParamFile() {
     if (paramFile == null) {
-      doneJoinDialog();
+      if (!doneJoinDialog()) {
+        return null;
+      }
     }
     return paramFile;
   }
 
-  private void doneJoinDialog() {
+  private boolean doneJoinDialog() {
     if (joinDialog == null) {
-      return;
+      return false;
     }
     String workingDir = joinDialog.getWorkingDirName();
     if (!loadedParamFile && workingDir != null && !workingDir.matches("\\s*+")) {
+      if (workingDir.endsWith(" ")) {
+        uiHarness.openMessageDialog(this, "The directory, " + workingDir
+            + ", cannot be used because it ends with a space.",
+            "Unusable Directory Name", AxisID.ONLY);
+        return false;
+      }
       propertyUserDir = workingDir;
     }
     String rootName = joinDialog.getRootName();
@@ -700,6 +711,7 @@ public final class JoinManager extends BaseManager {
     joinDialog.getScreenState(screenState);
     state.setDoneMode(joinDialog.getMode());
     saveStorables(AxisID.ONLY);
+    return true;
   }
 
   public JoinScreenState getScreenState() {
@@ -989,6 +1001,12 @@ public final class JoinManager extends BaseManager {
     }
     String workingDirName = joinDialog.getWorkingDirName();
     if (!setMode(workingDirName)) {
+      return false;
+    }
+    if (workingDirName.endsWith(" ")) {
+      uiHarness.openMessageDialog(this, "The directory, " + workingDirName
+          + ", cannot be used because it ends with a space.",
+          "Unusable Directory Name", AxisID.ONLY);
       return false;
     }
     propertyUserDir = workingDirName;

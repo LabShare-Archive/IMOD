@@ -432,6 +432,13 @@ public final class ApplicationManager extends BaseManager implements
       // old user.dir property until the meta data is valid
       String oldUserDir = propertyUserDir;
       propertyUserDir = setupDialogExpert.getWorkingDirectory().getAbsolutePath();
+      if (propertyUserDir.endsWith(" ")) {
+        uiHarness.openMessageDialog(this, "The directory, " + propertyUserDir
+            + ", cannot be used because it ends with a space.",
+            "Unusable Directory Name", AxisID.ONLY);
+        propertyUserDir = oldUserDir;
+        return false;
+      }
       metaData = setupDialogExpert.getFields();
       if (metaData == null) {
         return false;
@@ -8018,6 +8025,11 @@ public final class ApplicationManager extends BaseManager implements
 /**
  * <p>
  * $Log$
+ * Revision 3.372  2011/05/03 02:38:17  sueh
+ * bug# 1416 Checkpointing from tilt_for_sirt.com when sirtsetup succeeds rather then after tilt.com saved.
+ * Added msgSirtsetupSucceeded, no longer telling the display to do a checkpoint when updateTiltCom is run.
+ * Fixed a bug in useImageFile - a template file name was being displayed.
+ *
  * Revision 3.371  2011/04/09 06:19:17  sueh
  * bug# 1416 Need to pass the manager to most FileType functions so that TILT_OUTPUT can distinguish
  * between single and dual axis type.

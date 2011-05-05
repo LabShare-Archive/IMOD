@@ -1194,7 +1194,14 @@ public abstract class BaseManager {
     // Uggh, stupid JAVA bug, getParent() only returns the parent if the File
     // was created with the full path
     paramFile = new File(paramFile.getAbsolutePath());
-    propertyUserDir = paramFile.getParent();
+    String paramFileParent =  paramFile.getParent();
+    if (paramFileParent.endsWith(" ")) {
+      uiHarness.openMessageDialog(this, "The directory, " + paramFileParent
+          + ", cannot be used because it ends with a space.",
+          "Unusable Directory Name", AxisID.ONLY);
+      return false;
+    }
+    propertyUserDir = paramFileParent;
     StringBuffer invalidReason = new StringBuffer();
     if (!Utilities.isValidFile(paramFile, "Parameter file", invalidReason, true, true,
         true, false)) {
@@ -1723,6 +1730,11 @@ public abstract class BaseManager {
 /**
  * <p>
  * $Log$
+ * Revision 1.141  2011/04/09 06:20:52  sueh
+ * bug# 1416 Need to pass the manager to most FileType functions so that TILT_OUTPUT can distinguish
+ * between single and dual axis type.  Replaced FileType.toString and toString2 with getDescription and
+ * getImodManagerKey2.  ToString wasn't working well with the composite file types.
+ *
  * Revision 1.140  2011/04/04 16:44:52  sueh
  * bug# 1416 Modified backFile, checkNextProcess, reconnectProcesschunks, resume.
  *
