@@ -52,6 +52,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2011/04/04 17:20:33  sueh
+ * <p> bug# 1416 Passing process name as a string to processchunks.
+ * <p>
  * <p> Revision 1.5  2011/03/02 00:00:12  sueh
  * <p> bug# 1452 Removing image rotation conversion between float and
  * <p> double.  Using string where possible.
@@ -209,8 +212,9 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
           ProcessName.BLEND_3D_FIND.getComscript(axisID));
       try {
         if (!blend3dFindCom.exists()) {
-          Utilities.copyFile(new File(manager.getPropertyUserDir(), ProcessName.BLEND
-              .getComscript(axisID)), blend3dFindCom);
+          Utilities.copyFile(
+              new File(manager.getPropertyUserDir(), ProcessName.BLEND
+                  .getComscript(axisID)), blend3dFindCom);
         }
         comScriptMgr.loadBlend3dFind(axisID);
         dialog.setEraseGoldParameters(comScriptMgr.getBlendParamFromBlend3dFind(axisID));
@@ -229,8 +233,9 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
           ProcessName.NEWST_3D_FIND.getComscript(axisID));
       try {
         if (!newst3dFindCom.exists()) {
-          Utilities.copyFile(new File(manager.getPropertyUserDir(), ProcessName.NEWST
-              .getComscript(axisID)), newst3dFindCom);
+          Utilities.copyFile(
+              new File(manager.getPropertyUserDir(), ProcessName.NEWST
+                  .getComscript(axisID)), newst3dFindCom);
         }
         comScriptMgr.loadNewst3dFind(axisID);
         dialog.setEraseGoldParameters(comScriptMgr.getNewstParamFromNewst3dFind(axisID));
@@ -242,14 +247,16 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       }
     }
     //if tilt_3dfind.com doesn't exist copy tilt.com to tilt_3dfind.com.
-    File tilt3dFindCom = new File(manager.getPropertyUserDir(), ProcessName.TILT_3D_FIND
-        .getComscript(axisID));
+    File tilt3dFindCom = new File(manager.getPropertyUserDir(),
+        ProcessName.TILT_3D_FIND.getComscript(axisID));
     boolean newTilt3dFindCom = false;
     try {
       if (!tilt3dFindCom.exists()) {
         newTilt3dFindCom = true;
-        Utilities.copyFile(new File(manager.getPropertyUserDir(), ProcessName.TILT
-            .getComscript(axisID)), tilt3dFindCom);
+        Utilities
+            .copyFile(
+                new File(manager.getPropertyUserDir(), ProcessName.TILT
+                    .getComscript(axisID)), tilt3dFindCom);
       }
       comScriptMgr.loadTilt3dFind(axisID);
       dialog.setParameters(comScriptMgr.getTiltParamFromTilt3dFind(axisID),
@@ -322,8 +329,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       DialogType dialogType, ProcessDisplay display) {
     if (process.equals(ProcessName.PROCESSCHUNKS.toString())) {
       processchunks(manager, dialog, processResultDisplay, processSeries, process
-          .getSubprocessName().toString(), process.getOutputImageFileType(), process
-          .getProcessingMethod());
+          .getSubprocessName().toString() + axisID.getExtension(),
+          process.getOutputImageFileType(), process.getProcessingMethod());
     }
     else if (process.equals(ProcessName.TILT_3D_FIND.toString())) {
       manager.tilt3dFindAction(processResultDisplay, processSeries, null, null,
@@ -353,7 +360,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       if (state.isUseErasedStackWarning(axisID)) {
         //The use button wasn't pressed and the user is moving on to the next
         //dialog.  Don't put this message in the log.
-        UIHarness.INSTANCE.openMessageDialog(null,
+        UIHarness.INSTANCE.openMessageDialog(
+            null,
             "To use the stack with the erased beads go back to Final Aligned "
                 + "Stack and press the \""
                 + FinalAlignedStackDialog.getUseErasedStackLabel() + "\" button in the "
@@ -408,8 +416,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(), "Data File Error");
     }
     dialog.getParameters(screenState);
-    UIExpertUtilities.INSTANCE.updateFiducialessParams(manager, dialog
-        .getFiducialessParams(), axisID);
+    UIExpertUtilities.INSTANCE.updateFiducialessParams(manager,
+        dialog.getFiducialessParams(), axisID);
     if (metaData.getViewType() == ViewType.MONTAGE) {
       try {
         manager.updateBlendCom(dialog.getBlendmontDisplay(), axisID);
@@ -596,9 +604,9 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       file.closeWriter(writerId);
     }
     if (!updateToDate) {
-      if (!UIHarness.INSTANCE.openYesNoDialog(manager, DatasetFiles
-          .getSimpleDefocusFileName(manager, axisID)
-          + " may not be up to date.  Continue?", axisID)) {
+      if (!UIHarness.INSTANCE.openYesNoDialog(manager,
+          DatasetFiles.getSimpleDefocusFileName(manager, axisID)
+              + " may not be up to date.  Continue?", axisID)) {
         return false;
       }
     }
@@ -654,8 +662,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
 
   void getParameters(final SplitCorrectionParam param) {
     param.setCpus(getParallelPanel().getCPUsSelected());
-    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(), DatasetFiles
-        .getFullAlignedStackFileName(manager, axisID), axisID);
+    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
+        DatasetFiles.getFullAlignedStackFileName(manager, axisID), axisID);
     try {
       if (header.read(manager)) {
         param.setMaxZ(header.getNSections());
@@ -739,9 +747,9 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
         manager.backupImageFile(FileType.ALIGNED_STACK, axisID);
       }
       catch (IOException except) {
-        UIHarness.INSTANCE.openMessageDialog(manager, "Unable to backup "
-            + FileType.ALIGNED_STACK.getFileName(manager, axisID) + "\n"
-            + except.getMessage(), "File Rename Error", axisID);
+        UIHarness.INSTANCE.openMessageDialog(manager,
+            "Unable to backup " + FileType.ALIGNED_STACK.getFileName(manager, axisID)
+                + "\n" + except.getMessage(), "File Rename Error", axisID);
         sendMsg(ProcessResult.FAILED, processResultDisplay);
         return;
       }
