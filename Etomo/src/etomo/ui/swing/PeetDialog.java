@@ -51,6 +51,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2011/04/20 05:02:57  sueh
+ * <p> bug# 1445 Added a radio button for uniform random rotation code for initMotlCode.
+ * <p>
  * <p> Revision 1.5  2011/04/20 04:54:37  sueh
  * <p> bug# 1445 Added originalInitMotlCode to hold onto unrecognized initMotlCode values.  Handling unrecognized
  * <p> unrecognized initMotlCode values.
@@ -463,7 +466,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
       MatlabParam.InitMotlCode.Z_AXIS, bgInitMotl);
 
   private final RadioButton rbInitMotlXAndZAxis = new RadioButton(
-      "Initialize X and Z axis", MatlabParam.InitMotlCode.X_AND_Z_AXIS, bgInitMotl);
+      "Initialize X and Z axes", MatlabParam.InitMotlCode.X_AND_Z_AXIS, bgInitMotl);
   private final RadioButton rbInitMotlRandomRotations = new RadioButton(
       "Uniform random rotations", MatlabParam.InitMotlCode.RANDOM_ROTATIONS, bgInitMotl);
   private final RadioButton rbInitMotlFiles = new RadioButton("Use files", bgInitMotl);
