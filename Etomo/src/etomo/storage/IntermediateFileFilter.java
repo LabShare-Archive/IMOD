@@ -1,6 +1,7 @@
 package etomo.storage;
 
 import java.io.File;
+import java.util.regex.Pattern;
 
 import javax.swing.filechooser.FileFilter;
 
@@ -17,6 +18,9 @@ import javax.swing.filechooser.FileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2011/04/04 16:58:01  sueh
+ * <p> bug# 1416 Added .alisub and .alilog10 to accept.
+ * <p>
  * <p> Revision 3.7  2011/02/22 04:34:39  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -75,6 +79,11 @@ public class IntermediateFileFilter extends FileFilter {
         "topb.rec", "volcombine.log", ".bl", ".dcst", ".alisub", ".alilog10" };
     String[] pretrimmedTomograms = { "sum.rec", "full.rec" };
     if (f.isFile()) {
+      //.rec.mat1659344 and .rec.wrp0905524
+      String name = f.getName();
+      if (name.matches("\\S+"+Pattern.quote(".rec.mat")+"\\S+")||name.matches("\\S+"+Pattern.quote(".rec.wrp")+"\\S+")) {
+        return true;
+      }
       String path = f.getAbsolutePath();
       for (int i = 0; i < endsWith.length; i++) {
         if (path.endsWith(endsWith[i])) {
@@ -95,7 +104,6 @@ public class IntermediateFileFilter extends FileFilter {
         return true;
       }
       //handle split... and processchunks files
-      String name = f.getName();
       if (name.matches(datasetName + "[ab]?-\\d\\d\\d\\.rec")) {
         return true;
       }
