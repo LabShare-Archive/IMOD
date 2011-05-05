@@ -53,8 +53,8 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   private final JPanel pnlDataParameters = new JPanel();
   //  Dataset GUI objects
   private final JPanel pnlDataset = new JPanel();
-  private final ImageIcon iconFolder = new ImageIcon(ClassLoader
-      .getSystemResource("images/openFile.gif"));
+  private final ImageIcon iconFolder = new ImageIcon(
+      ClassLoader.getSystemResource("images/openFile.gif"));
 
   private final LabeledTextField ltfDataset = new LabeledTextField(DATASET_NAME_LABEL);
   private final SimpleButton btnDataset = new SimpleButton(iconFolder);
@@ -159,8 +159,8 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     rootPanel.addMouseListener(mouseAdapter);
 
     // Resize the standard panel buttons
-    UIUtilities.setButtonSizeAll(pnlExitButtons, UIParameters.INSTANCE
-        .getButtonDimension());
+    UIUtilities.setButtonSizeAll(pnlExitButtons,
+        UIParameters.INSTANCE.getButtonDimension());
     if (!calibrationAvailable) {
       updateAdvanced(btnAdvanced.isExpanded());
       btnAdvanced.register(this);
@@ -513,6 +513,16 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     try {
       File file = getFile(expert.getDatasetDir(), new StackFileFilter(),
           JFileChooser.FILES_ONLY);
+      if (file == null) {
+        return;
+      }
+      String dir = file.getParent();
+      if (dir.endsWith(" ")) {
+        UIHarness.INSTANCE.openMessageDialog(applicationManager, "The directory, " + dir
+            + ", cannot be used because it ends with a space.",
+            "Unusable Directory Name", AxisID.ONLY);
+        return;
+      }
       if (file != null) {
         ltfDataset.setText(file.getAbsolutePath());
       }
@@ -615,9 +625,9 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 
   private void createDataTypePanel() {
     //  Datatype subpnls: DataSource AxisType Viewtype
-    Dimension dimDataTypePref = new Dimension((int) (150 * UIParameters.INSTANCE
-        .getFontSizeAdjustment()), (int) (80 * UIParameters.INSTANCE
-        .getFontSizeAdjustment()));
+    Dimension dimDataTypePref = new Dimension(
+        (int) (150 * UIParameters.INSTANCE.getFontSizeAdjustment()),
+        (int) (80 * UIParameters.INSTANCE.getFontSizeAdjustment()));
 
     ButtonGroup bgAxisType = new ButtonGroup();
     bgAxisType.add(rbSingleAxis.getAbstractButton());
@@ -859,6 +869,9 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 19:29:22  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>

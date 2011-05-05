@@ -61,6 +61,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2011/04/22 02:16:45  sueh
+ * <p> bug# 1474 Handling NullRequiredNumberException in action() when setSizeAndShift is called.
+ * <p>
  * <p> Revision 1.2  2011/02/22 18:13:21  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -1587,6 +1590,12 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     String workingDirName = ftfWorkingDir.getText();
     if (workingDirName == null || workingDirName.length() == 0
         || workingDirName.matches("\\s+")) {
+      return null;
+    }
+    if (workingDirName.endsWith(" ")) {
+      UIHarness.INSTANCE.openMessageDialog(manager, "The directory, " + workingDirName
+          + ", cannot be used because it ends with a space.", "Unusable Directory Name",
+          AxisID.ONLY);
       return null;
     }
     return new File(ftfWorkingDir.getText());
