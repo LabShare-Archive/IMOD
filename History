@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/4/11: In eTomo preventing datasets that end with a space from being used.
+
 5/3/11: In eTomo, removed the "DONE" tag from tilt.com files that where
 converted to PIP.
 
