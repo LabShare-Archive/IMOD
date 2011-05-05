@@ -43,6 +43,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/22 18:01:41  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.2  2011/02/03 06:22:16  sueh
  * <p> bug# 1422 Control of the processing method has been centralized in the
  * <p> processing method mediator class.  Implementing ProcessInterface.
@@ -509,7 +512,9 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     }
     if (subdirName == null) {
       subdirName = "naddir." + ftfVolume.getFileName();
-      manager.makeSubdir(subdirName);
+      if (!manager.makeSubdir(subdirName)) {
+        return false;
+      }
     }
     return true;
   }
@@ -593,10 +598,13 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
           "Entry Error");
       return;
     }
-    ftfVolume.setButtonEnabled(false);
     ftfVolume.setFile(volume);
     manager.setNewParamFile(volume);
-    initSubdir();
+    if (!initSubdir()) {
+      ftfVolume.setFile(null);
+      return;
+    }
+    ftfVolume.setButtonEnabled(false);
   }
 
   private static String getOutputFileName(String fileName) {
