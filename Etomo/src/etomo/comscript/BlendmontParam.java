@@ -214,7 +214,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     return null;
   }
 
-  public ProcessName getSubcommandProcessName() {
+  public String getSubcommandProcessName() {
     return null;
   }
 
@@ -548,6 +548,9 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.42  2011/04/09 06:22:28  sueh
+ * <p> bug# 1416 Replaced FileType..DUAL_AXIS_TOMOGRAM and SINGLE_AXIS_TOMOGRAM with TILT_OUTPUT.
+ * <p>
  * <p> Revision 1.41  2011/02/28 22:45:02  sueh
  * <p> bug# 1452 Making imageRotation double.
  * <p>

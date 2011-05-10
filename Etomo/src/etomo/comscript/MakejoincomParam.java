@@ -44,6 +44,9 @@ import etomo.util.DatasetFiles;
  * <p> </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.35  2011/02/22 03:15:50  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.34  2010/04/28 15:58:49  sueh
  * <p> bug# 1344 Added getOutputImageFileType functions.
  * <p>
@@ -397,7 +400,7 @@ public final class MakejoincomParam implements CommandDetails {
     return null;
   }
 
-  public ProcessName getSubcommandProcessName() {
+  public String getSubcommandProcessName() {
     return null;
   }
 

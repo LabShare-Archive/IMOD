@@ -25,6 +25,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2010/04/28 16:13:46  sueh
+ * <p> bug# 1344 Added getOutputImageFileType functions.
+ * <p>
  * <p> Revision 1.5  2010/01/11 23:49:01  sueh
  * <p> bug# 1299 Added isMessageReporter.
  * <p>
@@ -114,7 +117,7 @@ public final class XftoxgParam implements Command {
     return null;
   }
 
-  public ProcessName getSubcommandProcessName() {
+  public String getSubcommandProcessName() {
     return null;
   }
 

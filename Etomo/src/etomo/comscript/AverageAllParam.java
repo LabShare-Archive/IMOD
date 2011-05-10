@@ -34,6 +34,9 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2011/02/21 21:09:43  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.6  2010/11/13 16:03:15  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -185,7 +188,7 @@ public final class AverageAllParam implements CommandDetails {
     return null;
   }
 
-  public ProcessName getSubcommandProcessName() {
+  public String getSubcommandProcessName() {
     return null;
   }
 

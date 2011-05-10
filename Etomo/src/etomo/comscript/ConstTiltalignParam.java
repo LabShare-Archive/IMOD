@@ -491,7 +491,7 @@ public class ConstTiltalignParam implements CommandDetails {
     return null;
   }
 
-  public ProcessName getSubcommandProcessName() {
+  public String getSubcommandProcessName() {
     return null;
   }
 
@@ -1037,6 +1037,9 @@ public class ConstTiltalignParam implements CommandDetails {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.43  2011/02/21 21:22:38  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 3.42  2010/09/23 21:05:19  sueh
  * <p> bug# 1404 Allowing separateGroup to have multiple entries.
  * <p>

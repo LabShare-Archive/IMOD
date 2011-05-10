@@ -38,7 +38,7 @@ public interface Command {
 
   public CommandDetails getSubcommandDetails();
 
-  public ProcessName getSubcommandProcessName();
+  public String getSubcommandProcessName();
 
   public ProcessName getProcessName();
 
@@ -52,6 +52,9 @@ public interface Command {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2010/04/28 15:46:37  sueh
+ * <p> bug# 1344 Added getOutputImageFileType functions.
+ * <p>
  * <p> Revision 1.15  2010/01/11 23:49:01  sueh
  * <p> bug# 1299 Added isMessageReporter.
  * <p>

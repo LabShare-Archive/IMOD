@@ -24,6 +24,9 @@ import etomo.ui.swing.UIHarness;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2011/02/21 21:11:29  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 3.12  2010/11/13 16:03:15  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -613,7 +616,7 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
     return null;
   }
 
-  public ProcessName getSubcommandProcessName() {
+  public String getSubcommandProcessName() {
     return null;
   }
 

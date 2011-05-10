@@ -28,6 +28,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.19  2011/02/24 23:35:30  sueh
+ * <p> bug# 1452 Added setRotationAngle.
+ * <p>
  * <p> Revision 3.18  2011/02/22 03:34:29  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -977,7 +980,7 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
     return null;
   }
 
-  public ProcessName getSubcommandProcessName() {
+  public String getSubcommandProcessName() {
     return null;
   }
 

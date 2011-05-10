@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.56  2011/05/03 18:02:15  sueh
+ * <p> bug# 1399 Removed the DONE tag from tilt.com files that are being converted.
+ * <p>
  * <p> Revision 3.55  2011/05/03 02:43:38  sueh
  * <p> bug# 1416 Added hasZFactorFileName.
  * <p>
@@ -440,7 +443,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     return null;
   }
 
-  public ProcessName getSubcommandProcessName() {
+  public String getSubcommandProcessName() {
     return null;
   }
 

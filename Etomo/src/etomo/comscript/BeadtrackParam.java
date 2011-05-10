@@ -35,6 +35,9 @@ import etomo.type.ScriptParameter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.32  2011/02/21 21:10:48  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 3.31  2010/09/23 21:05:00  sueh
  * <p> bug# 1404 Allowing additionalViewGroups to have multiple entries.
  * <p>
@@ -877,7 +880,7 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
     return null;
   }
 
-  public ProcessName getSubcommandProcessName() {
+  public String getSubcommandProcessName() {
     return null;
   }
 

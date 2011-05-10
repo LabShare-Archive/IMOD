@@ -131,12 +131,16 @@ public final class TomosnapshotParam implements Command {
     return null;
   }
 
-  public ProcessName getSubcommandProcessName() {
+  public String getSubcommandProcessName() {
     return null;
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2011/04/25 16:43:04  sueh
+ * <p> bug# 1475 Added the BaseManager to the constructor (can be null).  If the manager is available, the dataset
+ * <p> file name is passed tomosnapshot.
+ * <p>
  * <p> Revision 1.14  2011/04/22 16:59:55  sueh
  * <p> bug# 1475 Switch tomosnapshot to python.
  * <p>

@@ -35,6 +35,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.32  2011/04/09 06:25:17  sueh
+ * <p> bug# 1416 Replaced FileType..DUAL_AXIS_TOMOGRAM and SINGLE_AXIS_TOMOGRAM with TILT_OUTPUT.
+ * <p>
  * <p> Revision 3.31  2011/02/28 22:45:12  sueh
  * <p> bug# 1452 Making imageRotation double.
  * <p>
@@ -817,7 +820,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     return null;
   }
 
-  public ProcessName getSubcommandProcessName() {
+  public String getSubcommandProcessName() {
     return null;
   }
 

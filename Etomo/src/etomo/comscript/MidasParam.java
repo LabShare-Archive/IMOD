@@ -27,6 +27,9 @@ import etomo.type.SectionTableRowData;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2011/02/22 03:17:27  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.19  2010/04/28 16:00:59  sueh
  * <p> bug# 1344 Added getOutputImageFileType functions.
  * <p>
@@ -168,7 +171,7 @@ public class MidasParam implements Command {
     return null;
   }
 
-  public ProcessName getSubcommandProcessName() {
+  public String getSubcommandProcessName() {
     return null;
   }
 

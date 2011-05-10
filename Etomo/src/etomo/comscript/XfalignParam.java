@@ -26,6 +26,9 @@ import etomo.type.Transform;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.23  2011/02/22 03:40:45  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.22  2010/04/28 16:12:55  sueh
  * <p> bug# 1344 Added getOutputImageFileType functions.
  * <p>
@@ -186,7 +189,7 @@ public class XfalignParam implements Command {
     return null;
   }
 
-  public ProcessName getSubcommandProcessName() {
+  public String getSubcommandProcessName() {
     return null;
   }
 

@@ -12,6 +12,9 @@
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.10  2011/02/22 03:17:56  sueh
+ * <p> $bug# 1437 Reformatting.
+ * <p> $
  * <p> $Revision 1.9  2010/04/28 16:01:59  sueh
  * <p> $bug# 1344 Implemented Command.  Added getOutputImageFileType
  * <p> $functions.  Made Const ancestor class an interface.
@@ -264,7 +267,7 @@ public final class MTFFilterParam implements ConstMTFFilterParam, CommandParam {
     return null;
   }
 
-  public ProcessName getSubcommandProcessName() {
+  public String getSubcommandProcessName() {
     return null;
   }
 

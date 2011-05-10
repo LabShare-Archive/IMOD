@@ -34,6 +34,9 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2011/04/09 06:26:11  sueh
+ * <p> bug# 1416 In getCommandArray removed dead code.
+ * <p>
  * <p> Revision 1.18  2011/02/22 03:22:24  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -218,7 +221,7 @@ public final class PeetParserParam implements CommandDetails {
     return null;
   }
 
-  public ProcessName getSubcommandProcessName() {
+  public String getSubcommandProcessName() {
     return null;
   }
 

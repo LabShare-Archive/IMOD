@@ -27,6 +27,9 @@ import etomo.type.StringParameter;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2011/02/21 21:24:05  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.5  2010/04/28 15:52:53  sueh
  * <p> bug# 1344 Implemented Command.  Added getOutputImageFileType
  * <p> functions.
@@ -226,7 +229,7 @@ public final class CtfPhaseFlipParam implements ConstCtfPhaseFlipParam, CommandP
     return null;
   }
 
-  public ProcessName getSubcommandProcessName() {
+  public String getSubcommandProcessName() {
     return null;
   }
 

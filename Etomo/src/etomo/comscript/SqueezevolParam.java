@@ -34,6 +34,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2011/03/01 04:49:24  sueh
+ * <p> bug# 1454 converted to python
+ * <p>
  * <p> Revision 1.16  2011/02/22 03:30:15  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -149,7 +152,7 @@ public final class SqueezevolParam implements ConstSqueezevolParam {
     return null;
   }
 
-  public ProcessName getSubcommandProcessName() {
+  public String getSubcommandProcessName() {
     return null;
   }
 

@@ -81,7 +81,7 @@ public class ArchiveorigParam implements Command {
     return null;
   }
   
-  public ProcessName getSubcommandProcessName() {
+  public String getSubcommandProcessName() {
     return null;
   }
   
@@ -126,6 +126,9 @@ public class ArchiveorigParam implements Command {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2010/04/28 15:43:12  sueh
+ * <p> bug# 1344 Added getOutputImageFileType functions.
+ * <p>
  * <p> Revision 1.14  2010/01/11 23:49:01  sueh
  * <p> bug# 1299 Added isMessageReporter.
  * <p>

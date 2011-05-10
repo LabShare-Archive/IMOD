@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.42  2011/02/22 03:38:12  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 3.41  2010/04/28 16:12:00  sueh
  * <p> bug# 1344 Added a list of modes.  Added mode to the constructor.  Added
  * <p> getOutputImageFileType functions.
@@ -976,7 +979,7 @@ public class TrimvolParam implements CommandDetails {
     return null;
   }
 
-  public ProcessName getSubcommandProcessName() {
+  public String getSubcommandProcessName() {
     return null;
   }
 

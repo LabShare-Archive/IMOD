@@ -33,6 +33,9 @@ import etomo.type.StringParameter;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2011/05/03 02:43:13  sueh
+* <p> but# 1416 Implemented CommandDetails.
+* <p>
 * <p> Revision 1.1  2011/04/04 16:47:34  sueh
 * <p> bug# 1416 Param class for sirtsetup.
 * <p> </p>
@@ -278,7 +281,7 @@ public final class SirtsetupParam implements CommandParam, CommandDetails {
     return null;
   }
 
-  public ProcessName getSubcommandProcessName() {
+  public String getSubcommandProcessName() {
     return null;
   }
 

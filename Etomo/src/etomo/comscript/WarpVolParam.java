@@ -29,6 +29,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2011/02/21 19:32:15  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.4  2010/04/28 16:12:36  sueh
  * <p> bug# 1344 Added a list of modes.  Added mode to the constructor.  Added
  * <p> getOutputImageFileType functions.  Implemented Command.
@@ -235,7 +238,7 @@ public final class WarpVolParam implements ConstWarpVolParam, CommandParam {
     return null;
   }
 
-  public ProcessName getSubcommandProcessName() {
+  public String getSubcommandProcessName() {
     return null;
   }
 

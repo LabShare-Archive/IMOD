@@ -32,6 +32,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2011/02/21 21:12:08  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.9  2010/04/28 15:45:10  sueh
  * <p> bug# 1344 Added getOutputImageFileType functions.
  * <p>
@@ -213,7 +216,7 @@ public final class ClipParam implements CommandDetails {
     return null;
   }
 
-  public ProcessName getSubcommandProcessName() {
+  public String getSubcommandProcessName() {
     return null;
   }
 

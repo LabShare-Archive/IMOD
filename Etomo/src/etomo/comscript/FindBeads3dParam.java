@@ -33,6 +33,10 @@ import etomo.type.StringParameter;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.10  2011/04/09 06:23:04  sueh
+ * <p> bug# 1416 Need to pass the manager to most FileType functions so that TILT_OUTPUT can distinguish
+ * <p> between single and dual axis type.
+ * <p>
  * <p> Revision 3.9  2011/02/22 03:13:02  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -280,7 +284,7 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam, CommandPar
     return null;
   }
 
-  public ProcessName getSubcommandProcessName() {
+  public String getSubcommandProcessName() {
     return null;
   }
 

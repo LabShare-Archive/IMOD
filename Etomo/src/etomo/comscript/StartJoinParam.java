@@ -63,7 +63,7 @@ public class StartJoinParam implements CommandDetails {
     return null;
   }
 
-  public ProcessName getSubcommandProcessName() {
+  public String getSubcommandProcessName() {
     return null;
   }
 
@@ -184,6 +184,9 @@ public class StartJoinParam implements CommandDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2011/02/22 03:30:42  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.15  2010/04/28 16:06:49  sueh
  * <p> bug# 1344 Added getOutputImageFileType functions.
  * <p>
