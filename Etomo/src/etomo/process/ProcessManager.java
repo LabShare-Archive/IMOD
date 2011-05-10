@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.160  2011/05/03 02:44:41  sueh
+ * bug# 1416 In postProcess(ComScriptProcess) added post-processing for sirtsetup.
+ *
  * Revision 3.159  2011/04/04 16:53:09  sueh
  * bug# 1416 Added/modified reconnectTilt, sirtsetup, tilt.
  *
@@ -2151,11 +2154,14 @@ public class ProcessManager extends BaseProcessManager {
    * @param processName
    * @param axisID
    */
-  private void postProcess(ProcessName processName, AxisID axisID) {
-    if (processName == ProcessName.TILT_3D_FIND) {
+  private void postProcess(String processName, AxisID axisID) {
+    if (processName == null) {
+      return;
+    }
+    if (processName.equals(ProcessName.TILT_3D_FIND.toString())) {
       appManager.copyTilt3dFindReprojectCom(axisID);
     }
-    else if (processName == ProcessName.CTF_CORRECTION) {
+    else if (processName.equals(ProcessName.CTF_CORRECTION.toString())) {
       appManager.getState().setUseCtfCorrectionWarning(axisID, true);
     }
   }
@@ -2274,7 +2280,7 @@ public class ProcessManager extends BaseProcessManager {
       else {
         //For processes that can also be done with processchunks.
         if (processName != null) {
-          postProcess(processName, axisID);
+          postProcess(processName.toString(), axisID);
         }
       }
     }
