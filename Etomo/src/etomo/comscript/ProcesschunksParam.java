@@ -68,13 +68,14 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
   private String subdirName = "";
   private boolean test = false;
   private CommandMode subcommandMode = null;
-  private ProcessName subcommandProcessName = null;
+  private String subcommandProcessName = null;
 
   public ProcesschunksParam(final BaseManager manager, final AxisID axisID,
       final String rootName, final FileType outputImageFileType) {
     this.manager = manager;
     this.axisID = axisID;
     this.rootName = rootName;
+    subcommandProcessName=rootName;
     this.outputImageFileType = outputImageFileType;
     init();
   }
@@ -90,7 +91,7 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
     this.manager = manager;
     this.axisID = axisID;
     this.rootName = processName.toString() + axisID.getExtension();
-    subcommandProcessName = processName;
+    subcommandProcessName = processName.toString();
     this.outputImageFileType = outputImageFileType;
     init();
   }
@@ -176,7 +177,7 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
     return subcommandDetails;
   }
 
-  public ProcessName getSubcommandProcessName() {
+  public String getSubcommandProcessName() {
     return subcommandProcessName;
   }
 
@@ -547,6 +548,11 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.49  2011/02/09 06:04:40  sueh
+ * <p> bug# 1438 In getProcessName changing the ProcessName returned based
+ * <p> on the number of CPUs selected and the OS.  Removed PROCESS_NAME in
+ * <p> favor of call getProcessName.
+ * <p>
  * <p> Revision 1.48  2011/02/08 23:03:43  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
