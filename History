@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/10/11: In eTomo - Final Aligned Stack, fixed a bug where _reproject.com
+wasn't being created.
+
 5/5/11: In eTomo corrected a label in PEET.
 
 5/4/11: In eTomo preventing datasets that end with a space from being used.
