@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/10/11: In eTomo - Tomogram Generation, fixed a bug where Trial Tilt was
+disabled.
+
 5/10/11: In eTomo - Final Aligned Stack, fixed a bug where _reproject.com
 wasn't being created.
 
