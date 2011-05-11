@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.161  2011/05/10 16:50:45  sueh
+ * big# 1482 In postProcess, handling getSubcommandProcessName returning a string.
+ *
  * Revision 3.160  2011/05/03 02:44:41  sueh
  * bug# 1416 In postProcess(ComScriptProcess) added post-processing for sirtsetup.
  *
@@ -2158,10 +2161,11 @@ public class ProcessManager extends BaseProcessManager {
     if (processName == null) {
       return;
     }
-    if (processName.equals(ProcessName.TILT_3D_FIND.toString())) {
+    if (processName.equals(ProcessName.TILT_3D_FIND.toString() + axisID.getExtension())) {
       appManager.copyTilt3dFindReprojectCom(axisID);
     }
-    else if (processName.equals(ProcessName.CTF_CORRECTION.toString())) {
+    else if (processName.equals(ProcessName.CTF_CORRECTION.toString()
+        + axisID.getExtension())) {
       appManager.getState().setUseCtfCorrectionWarning(axisID, true);
     }
   }
