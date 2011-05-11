@@ -53,6 +53,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2011/05/03 03:05:18  sueh
+ * <p> bug# 1416 Placed the field change listeners in this class.  Checkpoint from the tilt param (tilt_for_sirt.com).
+ * <p> Added fieldChangeAction.  Added overrideable functions isBackProjection and isSirt.
+ * <p>
  * <p> Revision 1.6  2011/04/25 23:21:20  sueh
  * <p> bug# 1416 Moved responsibility of when to checkpoint to child class.  Added addStateChangedReporter.
  * <p> Added a numeric type to checkpointed fields that contain a number.
@@ -496,7 +500,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
         && (backProjection || !resume));
 
     cbUseGpu.setEnabled(gpuAvailable && gpuEnabled && !processingMethodLocked);
-    trialTiltPanel.setResume(backProjection || !resume);
+    trialTiltPanel.setResume(!backProjection && resume);
     btnTilt.setEnabled(backProjection || !resume);
     btnDeleteStack.setEnabled(backProjection || !resume);
   }
