@@ -14,6 +14,9 @@ c
 c       $Id$
 c       
 c       $Log$
+c       Revision 3.3  2011/04/06 04:53:27  mast
+c       Added implicit none, memory allocation, counted > 2 Gigapoints properly
+c
 c       Revision 3.2  2008/11/15 01:21:19  mast
 c       Standardized error messages and increased array sizes
 c
@@ -61,7 +64,7 @@ c
       if(nx.ne.nxout.or.ny.ne.nyout.or.nz.ne.nzout)
      &    call exitError ('File sizes do not match')
       idim = nx * ny
-      allocate(array(idim), brray(idim), stat = i)
+      allocate(array(idim), brray(max(idim, 2 * maxsamp)), stat = i)
       call memoryError(i, 'ARRAYS FOR IMAGE')
 c       
       print *,'Enter either the X, Y and Z dimensions of the tomogram '
