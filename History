@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/12/11: Fixed memory allocation in Filltomo.
+
 5/11/11: In eTomo - Final Aligned Stack, fixed a bug where _reproject.com
 wasn't being created.
 
