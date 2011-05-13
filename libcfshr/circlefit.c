@@ -10,7 +10,7 @@
  */
 
 #include <math.h>
-#include "cfsemshare.h"
+#include "b3dutil.h"
 
 static void circleErr(float *y, float *error);
 static void sphereErr(float *y, float *error);
@@ -240,6 +240,9 @@ static void sphereErrWgt(float *y, float *error)
 
 /*
   $Log$
+  Revision 1.4  2011/05/13 17:35:33  mast
+  Move determ3 to b3dutil.h
+
   Revision 1.3  2010/10/22 05:36:34  mast
   Add weighting to circle fits
 
