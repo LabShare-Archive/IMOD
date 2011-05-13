@@ -371,10 +371,6 @@ void lsfit2pred(float *x1, float *x2, float *y, int *n, float *a, float *b,
   lsFit2Pred(x1, x2, y, *n, a, b, c, *x1pred, *x2pred, ypred, prederr);
 }
 
-/* Determinant of 3x3 matrix */
-#define determ3(a1,a2,a3,b1,b2,b3,c1,c2,c3) ((a1)*(b2)*(c3) - (a1)*(b3)*(c2) +\
-  (a2)*(b3)*(c1) - (a2)*(b1)*(c3) + (a3)*(b1)*(c2) - (a3)*(b2)*(c1))
-
 /*!
  * Does a linear regression fit of the [n] values in the array [y] to
  * the values in the arrays [x1], [x2], and [x3], namely, to the equation
@@ -444,6 +440,9 @@ void lsfit3(float *x1, float *x2, float *x3, float *y, int *n, float *a1,
 /*
 
 $Log$
+Revision 1.7  2010/06/02 21:20:12  mast
+Added lsFit3
+
 Revision 1.6  2008/11/15 00:44:59  mast
 Fix defines for Windows wrappers
 

@@ -17,10 +17,6 @@ static void sphereErr(float *y, float *error);
 static void circleErrWgt(float *y, float *error);
 static void sphereErrWgt(float *y, float *error);
 
-/* Determinant of 3x3 matrix */
-#define determ3(a1,a2,a3,b1,b2,b3,c1,c2,c3) ((a1)*(b2)*(c3) - (a1)*(b3)*(c2) +\
-  (a2)*(b3)*(c1) - (a2)*(b1)*(c3) + (a3)*(b1)*(c2) - (a3)*(b2)*(c1))
-
 /*!
  * Computes the radius [rad] and center ([xc], [yc]) for a circle through the 3
  * given points ([x1], [y1]), ([x2], [y2]), and ([x3], [y3]).  Returns 1 for
@@ -244,6 +240,9 @@ static void sphereErrWgt(float *y, float *error)
 
 /*
   $Log$
+  Revision 1.3  2010/10/22 05:36:34  mast
+  Add weighting to circle fits
+
   Revision 1.2  2007/10/19 19:43:40  mast
   Document
 
