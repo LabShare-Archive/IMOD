@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/12/11: Fixed the "Take logarithm of densities with offset" check box, which
+wasn't being display.
+
 5/12/11: Fixed memory allocation in Filltomo.
 
 5/11/11: In eTomo - Final Aligned Stack, fixed a bug where _reproject.com
