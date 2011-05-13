@@ -33,6 +33,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2011/05/03 03:13:51  sueh
+ * <p> bug# 1416 Checkpointing from a parameter instead of isSelected().  Removed the reporter (phased out).
+ * <p>
  * <p> Revision 1.5  2011/04/25 23:36:03  sueh
  * <p> bug# 1416 Implemented StateChangeActionSource.  Added equals(Object) and equals(Document) so
  * <p> StateChangedReporter can find instances of this class.  Changed isChanged to isDifferentFromCheckpoint.
@@ -86,7 +89,11 @@ final class CheckTextField {
 
   static CheckTextField getNumericInstance(final String tfLabel,
       final EtomoNumber.Type numericType) {
-    return new CheckTextField(tfLabel, numericType);
+    CheckTextField instance = new CheckTextField(tfLabel, numericType);
+    instance.createPanel();
+    instance.updateDisplay();
+    instance.addListeners();
+    return instance;
   }
 
   public boolean equals(final Object object) {
