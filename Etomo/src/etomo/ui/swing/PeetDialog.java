@@ -51,6 +51,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2011/05/05 23:48:00  sueh
+ * <p> bug# 1446 Corrected a label.
+ * <p>
  * <p> Revision 1.6  2011/04/20 05:02:57  sueh
  * <p> bug# 1445 Added a radio button for uniform random rotation code for initMotlCode.
  * <p>
@@ -763,7 +766,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     referencePanel.setParameters(matlabParam, parametersOnly);
     missingWedgeCompensationPanel.setParameters(matlabParam);
     origInitMotlCode = matlabParam.getInitMotlCode();
-    if (origInitMotlCode == null) {
+    if (MatlabParam.InitMotlCode.FILES.equals(origInitMotlCode)) {
       rbInitMotlFiles.setSelected(true);
     }
     else if (MatlabParam.InitMotlCode.ZERO.equals(origInitMotlCode)) {

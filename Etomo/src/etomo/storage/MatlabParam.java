@@ -44,6 +44,11 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.45  2011/04/20 04:42:59  sueh
+ * <p> bug# 1445 Change initMotlCode to a ParsedNumber so it can contain a value that is not in the InitMotlCode
+ * <p> enum class.  Added RANDOM_ROTATIONS to the InitMotlCode enum class.  Added resetInitMotlCode() for the
+ * <p> initMotlFile option.  Added setInitMotlCode(String) for values that are not in the InitMotlCode enum class.
+ * <p>
  * <p> Revision 1.44  2011/02/22 04:47:53  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -1107,7 +1112,7 @@ public final class MatlabParam {
     ParsedList initMotlFile = null;
     ReadOnlyAttribute attribute = autodoc.getAttribute(INIT_MOTL_KEY);
     if (ParsedList.isList(attribute)) {
-      initMotlCode.clear();
+      initMotlCode.setRawString(InitMotlCode.FILES.toString());
       initMotlFile = ParsedList.getStringInstance();
       initMotlFile.parse(attribute);
       size = Math.max(size, initMotlFile.size());
@@ -1125,7 +1130,7 @@ public final class MatlabParam {
       volume.setRelativeOrient(relativeOrient.getElement(i));
       volume.setFnVolume(fnVolume.getElement(i));
       volume.setFnModParticle(fnModParticle.getElement(i));
-      if (initMotlCode.isEmpty()) {
+      if (initMotlCode.equals(InitMotlCode.FILES.toString())) {
         volume.setInitMotl(initMotlFile.getElement(i));
       }
       volume.setTiltRange(tiltRange.getElement(i));
@@ -1220,7 +1225,8 @@ public final class MatlabParam {
       valueMap.put(EDGE_SHIFT_KEY, edgeShift.getParsableString());
     }
     valueMap.put(CC_MODE_KEY, ccMode.toString());
-    if (!initMotlCode.isEmpty()) {
+    System.out.println("A:initMotlCode:" + initMotlCode);
+    if (!initMotlCode.isEmpty() && !initMotlCode.equals(InitMotlCode.FILES.toString())) {
       valueMap.put(INIT_MOTL_KEY, initMotlCode.getParsableString());
     }
     valueMap.put(FLG_MEAN_FILL_KEY, flgMeanFill.getParsableString());
@@ -1256,7 +1262,7 @@ public final class MatlabParam {
     ParsedList fnVolume = ParsedList.getStringInstance();
     ParsedList fnModParticle = ParsedList.getStringInstance();
     ParsedList initMotlFile = null;
-    if (initMotlCode.isEmpty()) {
+    if (initMotlCode.equals(InitMotlCode.FILES.toString())) {
       initMotlFile = ParsedList.getStringInstance();
     }
     ParsedList tiltRange = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
@@ -1267,7 +1273,7 @@ public final class MatlabParam {
       Volume volume = (Volume) volumeList.get(i);
       fnVolume.addElement(volume.getFnVolume());
       fnModParticle.addElement(volume.getFnModParticle());
-      if (initMotlCode.isEmpty()) {
+      if (initMotlCode.equals(InitMotlCode.FILES.toString())) {
         initMotlFile.addElement(volume.getInitMotl());
       }
       tiltRange.addElement(volume.getTiltRange());
@@ -1275,7 +1281,7 @@ public final class MatlabParam {
     }
     valueMap.put(FN_VOLUME_KEY, fnVolume.getParsableString());
     valueMap.put(FN_MOD_PARTICLE_KEY, fnModParticle.getParsableString());
-    if (initMotlCode.isEmpty()) {
+    if (initMotlCode.equals(InitMotlCode.FILES.toString())) {
       valueMap.put(INIT_MOTL_KEY, initMotlFile.getParsableString());
     }
     if (tiltRangeEmpty) {
@@ -1566,6 +1572,7 @@ public final class MatlabParam {
   }
 
   public static final class InitMotlCode implements EnumeratedType {
+    public static final InitMotlCode FILES = new InitMotlCode(-1);
     public static final InitMotlCode ZERO = new InitMotlCode(0);
     public static final InitMotlCode Z_AXIS = new InitMotlCode(1);
     public static final InitMotlCode X_AND_Z_AXIS = new InitMotlCode(2);
