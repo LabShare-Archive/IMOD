@@ -218,7 +218,7 @@ int mrc_head_write(FILE *fout, MrcHeader *hdata)
  * with spaces to that length, and a standard date-time stamp will be added.
  * Returns 0.
  */
-int mrc_head_label(MrcHeader *hdata, char *label)
+int mrc_head_label(MrcHeader *hdata, const char *label)
 {
   struct tm *tmp;
   char *outlab;
@@ -2254,6 +2254,9 @@ void mrc_swap_floats(fb3dFloat *data, int amt)
 
 /*
 $Log$
+Revision 3.47  2011/03/14 22:50:38  mast
+cleanup; initialize li->ramp
+
 Revision 3.46  2011/03/08 19:52:47  mast
 Changed map routines to return a short map if outmax is large
 

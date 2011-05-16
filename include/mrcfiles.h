@@ -266,7 +266,7 @@ extern "C" {
 /******************************** Header functions **************************/
 int mrc_head_read (FILE *fin,  MrcHeader *hdata);
 int mrc_head_write(FILE *fout, MrcHeader *hdata);
-int mrc_head_label(MrcHeader *hdata, char *label);
+  int mrc_head_label(MrcHeader *hdata, const char *label);
 int mrc_head_new  (MrcHeader *hdata, int x, int y, int z, int mode);
 int mrc_byte_mmm  (MrcHeader *hdata, unsigned char **idata);
 int mrc_head_label_cp(MrcHeader *hin, MrcHeader *hout);
@@ -328,14 +328,14 @@ int mrcReadZFloat(MrcHeader *hdata, IloadInfo *li, b3dFloat *buf, int z);
 int  loadtilts(struct TiltInfo *ti, MrcHeader *hdata);
 int  getloadinfo(MrcHeader *hdata,  struct LoadInfo *li); 
 int  mrc_init_li(struct LoadInfo *li, MrcHeader *hd);
-int  mrc_plist_li(struct LoadInfo *li, MrcHeader *hdata, char *fname);
+int  mrc_plist_li(struct LoadInfo *li, MrcHeader *hdata, const char *fname);
 int  mrc_plist_load(struct LoadInfo *li, MrcHeader *hdata, FILE *fin);
 int  mrc_plist_proc(struct LoadInfo *li, int nx, int ny, int nz);
 int  mrc_plist_create(struct LoadInfo *li, int nx, int ny, int nz, int nfx, 
 		      int nfy, int ovx, int ovy);
 int  iiPlistLoadF(FILE *fin, struct LoadInfo *li, int nx, int ny, int nz);
-int  iiPlistLoad(char *filename, struct LoadInfo *li, int nx, int ny, int nz);
-int iiPlistFromMetadata(char *filename, int addMdoc, IloadInfo *li, int nx, 
+int  iiPlistLoad(const char *filename, struct LoadInfo *li, int nx, int ny, int nz);
+int iiPlistFromMetadata(const char *filename, int addMdoc, IloadInfo *li, int nx, 
                         int ny, int nz);
 void mrc_liso(MrcHeader *hdata, struct LoadInfo *li);
 int mrc_fix_li(struct LoadInfo *li, int nx, int ny, int nz);
@@ -363,6 +363,9 @@ void mrc_set_cmap_stamp(MrcHeader *hdata);
 /*
 
 $Log$
+Revision 3.25  2011/03/14 22:41:08  mast
+Changes for ushort loading
+
 Revision 3.24  2010/08/31 22:05:00  mast
 New function in plist.c
 

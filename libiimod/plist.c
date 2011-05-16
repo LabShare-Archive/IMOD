@@ -13,7 +13,7 @@ static int plist_load(FILE *fin, IloadInfo *li, int nx, int ny, int nz);
  * processes it with @mrc_plist_proc given the image dimensions in [hdata].
  * Returns 1 or -1 for errors.
  */
-int mrc_plist_li(IloadInfo *li, MrcHeader *hdata, char *fname)
+int mrc_plist_li(IloadInfo *li, MrcHeader *hdata, const char *fname)
 {
   FILE *fin;
   int retval;
@@ -185,7 +185,7 @@ int mrc_plist_create(IloadInfo *li, int nx, int ny, int nz,
  * processes it with @mrc_plist_proc given the image dimensions in [nx], [ny],
  * and [nz].  Returns 1 for all kinds of errors.
  */
-int iiPlistLoad(char *filename, IloadInfo *li, int nx, int ny, int nz)
+int iiPlistLoad(const char *filename, IloadInfo *li, int nx, int ny, int nz)
 {
   FILE *fin;
   int retval;
@@ -224,7 +224,7 @@ int iiPlistLoadF(FILE *fin, IloadInfo *li, int nx, int ny, int nz)
  * coordinates for every sections, and -3, -2, or -1 for an 
  * error in @autodoc.html#AdocOpenImageMetadata .
  */
-int iiPlistFromMetadata(char *filename, int addMdoc, IloadInfo *li, int nx, 
+int iiPlistFromMetadata(const char *filename, int addMdoc, IloadInfo *li, int nx, 
                         int ny, int nz)
 {
   int adocIndex, montage, numSect, sectType, i;

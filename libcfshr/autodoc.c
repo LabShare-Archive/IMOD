@@ -75,13 +75,13 @@ static char *newDelim = NULL;
 
 static void deleteAdoc(Autodoc *adoc);
 static int parseKeyValue(char *line, char *end, char **key, char **value);
-static int lookupKey(AdocSection *sect, char *key);
-static int lookupCollection(Autodoc *adoc, char *name);
-static int addKey(AdocSection *sect, char *key, char *value);
-static int addSection(Autodoc *adoc, int collInd, char *name);
-static int addCollection(Autodoc *adoc, char *name);
+static int lookupKey(AdocSection *sect, const char *key);
+static int lookupCollection(Autodoc *adoc, const char *name);
+static int addKey(AdocSection *sect, const char *key, const char *value);
+static int addSection(Autodoc *adoc, int collInd, const char *name);
+static int addCollection(Autodoc *adoc, const char *name);
 static int addAutodoc();
-static AdocSection *getSection(char *collName, int sectInd);
+static AdocSection *getSection(const char *collName, int sectInd);
 static int addComments(AdocSection *sect, char **comments, int *numComments,
                        int index);
 static int writeFile(FILE *afile, int writeAll);
@@ -90,7 +90,7 @@ static int writeFile(FILE *afile, int writeAll);
  * Reads an autodoc from the file specified by [filename], and returns the 
  * index of the new autodoc (numbered from zero) or -1 for an error.
  */
-int AdocRead(char *filename)
+int AdocRead(const char *filename)
 {
   int gotSection = 0;
   int err, i, lineLen, indst, icol, ikey, lastInd, index;
@@ -298,11 +298,11 @@ int AdocRead(char *filename)
  * error opening or reading the file, -2 if the file does not exist, or -3 if
  * it is neither type of metadata file.
  */
-int AdocOpenImageMetadata(char *filename, int addMdoc, int *montage,
+int AdocOpenImageMetadata(const char *filename, int addMdoc, int *montage,
                           int *numSect, int *sectType)
 {
   struct stat buf;
-  char *usename = filename;
+  char *usename = (char *)filename;
   int series, index;
 
   /* Attach extension to file if requested */
@@ -398,7 +398,7 @@ void AdocDone()
  * Writes the current autodoc to the file specified by [filename].  Returns 1
  * for failure to back up a previous file, and -1 for other errors 
  */
-int AdocWrite(char *filename)
+int AdocWrite(const char *filename)
 {
   int i,backerr;
   FILE *afile;
@@ -423,7 +423,7 @@ int AdocWrite(char *filename)
  * Appends the last section in the current autodoc to the file specified by 
  * [filename].  Returns -1 for errors.
  */
-int AdocAppendSection(char *filename)
+int AdocAppendSection(const char *filename)
 {
   FILE *afile;
   if (!curAdoc)
@@ -504,7 +504,7 @@ static int writeFile(FILE *afile, int writeAll)
  * Returns the index of the new section in the collection of sections of that
  * type, or -1 for error. 
  */
-int AdocAddSection(char *typeName, char *name)
+int AdocAddSection(const char *typeName, const char *name)
 {
   AdocCollection *coll;
   int collInd;
@@ -529,7 +529,7 @@ int AdocAddSection(char *typeName, char *name)
  * must already exist.  Replaces an existing value if any.  [value] may be 
  * NULL.  Returns -1 for error.
  */
-int AdocSetKeyValue(char *typeName, int sectInd, char *key, char *value)
+int AdocSetKeyValue(const char *typeName, int sectInd, const char *key, const char *value)
 {
   AdocSection *sect;
   int keyInd;
@@ -561,7 +561,7 @@ int AdocSetKeyValue(char *typeName, int sectInd, char *key, char *value)
  * must already exist.  Replaces an existing value if any.
  * Returns -1 for error.
  */
-int AdocSetInteger(char *typeName, int sectInd, char *key, int ival)
+int AdocSetInteger(const char *typeName, int sectInd, const char *key, int ival)
 {
   char str[30];
   sprintf(str, "%d", ival);
@@ -572,7 +572,7 @@ int AdocSetInteger(char *typeName, int sectInd, char *key, int ival)
  * Like @AdocSetInteger, except that the value is set to the two integers
  * [ival1] [ival2].
  */
-int AdocSetTwoIntegers(char *typeName, int sectInd, char *key, int ival1, 
+int AdocSetTwoIntegers(const char *typeName, int sectInd, const char *key, int ival1, 
                        int ival2)
 {
   char str[60];
@@ -584,7 +584,7 @@ int AdocSetTwoIntegers(char *typeName, int sectInd, char *key, int ival1,
  * Like @AdocSetInteger, except that the value is set to the three integers
  * [ival1] [ival2] [ival3].
  */
-int AdocSetThreeIntegers(char *typeName, int sectInd, char *key, int ival1,
+int AdocSetThreeIntegers(const char *typeName, int sectInd, const char *key, int ival1,
                          int ival2, int ival3)
 {
   char str[90];
@@ -598,7 +598,7 @@ int AdocSetThreeIntegers(char *typeName, int sectInd, char *key, int ival1,
  * must already exist.  Replaces an existing value if any.
  * Returns -1 for error.
  */
-int AdocSetFloat(char *typeName, int sectInd, char *key, float val)
+int AdocSetFloat(const char *typeName, int sectInd, const char *key, float val)
 {
   char str[30];
   sprintf(str, "%g", val);
@@ -609,7 +609,7 @@ int AdocSetFloat(char *typeName, int sectInd, char *key, float val)
  * Like @AdocSetFloat, except that the value is set to the two floats
  * [val1] [val2].
  */
-int AdocSetTwoFloats(char *typeName, int sectInd, char *key, float val1, 
+int AdocSetTwoFloats(const char *typeName, int sectInd, const char *key, float val1, 
                      float val2)
 {
   char str[60];
@@ -621,7 +621,7 @@ int AdocSetTwoFloats(char *typeName, int sectInd, char *key, float val1,
  * Like @AdocSetFloat, except that the value is set to the three floats
  * [val1] [val2] [val3].
  */
-int AdocSetThreeFloats(char *typeName, int sectInd, char *key, float val1,
+int AdocSetThreeFloats(const char *typeName, int sectInd, const char *key, float val1,
                        float val2, float val3)
 {
   char str[90];
@@ -634,7 +634,7 @@ int AdocSetThreeFloats(char *typeName, int sectInd, char *key, float val1,
  * [sectInd] in the collection of sections of type [typeName].  Clears out
  * both the key and the value.  Returns -1 for error. 
  */  
-int AdocDeleteKeyValue(char *typeName, int sectInd, char *key)
+int AdocDeleteKeyValue(const char *typeName, int sectInd, const char *key)
 {
   AdocSection *sect;
   int keyInd;
@@ -661,7 +661,7 @@ int AdocDeleteKeyValue(char *typeName, int sectInd, char *key)
  * sections of type [typeName].  Returns the name in [string].
  * Returns -1 for errors.
  */
-int AdocGetSectionName(char *typeName, int sectInd, char **string)
+int AdocGetSectionName(const char *typeName, int sectInd, char **string)
 {
   AdocSection *sect;
 
@@ -675,7 +675,7 @@ int AdocGetSectionName(char *typeName, int sectInd, char **string)
  * Returns the number of sections of type [typeName].  Returns -1 for errors,
  * and 0 if there are no sections of the given type.
  */
-int AdocGetNumberOfSections(char *typeName)
+int AdocGetNumberOfSections(const char *typeName)
 {
   int collInd;
   if (!curAdoc || !typeName)
@@ -690,7 +690,7 @@ int AdocGetNumberOfSections(char *typeName)
  * Returns the number of key-value pairs in the section with index [sectInd]
  * in the collection of sections of type [typeName].  Returns -1 for errors.
  */
-int AdocGetNumberOfKeys(char *typeName, int sectInd)
+int AdocGetNumberOfKeys(const char *typeName, int sectInd)
 {
   AdocSection *sect;
   if (!(sect = getSection(typeName, sectInd)))
@@ -705,7 +705,7 @@ int AdocGetNumberOfKeys(char *typeName, int sectInd)
  * null, the section does not exist, or for a memory error; returns 1 if the 
  * key does not occur in the given section or if the value is null.  
  */
-int AdocGetString(char *typeName, int sectInd, char *key, char **string)
+int AdocGetString(const char *typeName, int sectInd, const char *key, char **string)
 {
   AdocSection *sect;
   int keyInd;
@@ -725,7 +725,7 @@ int AdocGetString(char *typeName, int sectInd, char *key, char **string)
  * Like @AdocGetString, except that it extracts one integer from the value
  * string and returns its value in [val1].
  */
-int AdocGetInteger(char *typeName, int sectInd, char *key, int *val1)
+int AdocGetInteger(const char *typeName, int sectInd, const char *key, int *val1)
 {
   int err;
   int num = 1;
@@ -737,7 +737,7 @@ int AdocGetInteger(char *typeName, int sectInd, char *key, int *val1)
 }
 
 /*! Like @AdocGetInteger except that it returns a float */
-int AdocGetFloat(char *typeName, int sectInd, char *key, float *val1)
+int AdocGetFloat(const char *typeName, int sectInd, const char *key, float *val1)
 {
   int err;
   int num = 1;
@@ -752,7 +752,7 @@ int AdocGetFloat(char *typeName, int sectInd, char *key, float *val1)
  * Like @AdocGetString, except that it extracts two integers from the value
  * string and returns their values in [val1] and [val2].
  */
-int AdocGetTwoIntegers(char *typeName, int sectInd, char *key, int *val1,
+int AdocGetTwoIntegers(const char *typeName, int sectInd, const char *key, int *val1,
                          int *val2)
 {
   int err;
@@ -766,7 +766,7 @@ int AdocGetTwoIntegers(char *typeName, int sectInd, char *key, int *val1,
 }
 
 /*! Like @AdocGetTwoIntegers except that it returns floats */
-int AdocGetTwoFloats(char *typeName, int sectInd, char *key, float *val1,
+int AdocGetTwoFloats(const char *typeName, int sectInd, const char *key, float *val1,
                          float *val2)
 {
   int err;
@@ -783,7 +783,7 @@ int AdocGetTwoFloats(char *typeName, int sectInd, char *key, float *val1,
  * Like @AdocGetString, except that it extracts three integers from the value
  * string and returns their values in [val1], [val2], and [val3].
  */
-int AdocGetThreeIntegers(char *typeName, int sectInd, char *key, int *val1,
+int AdocGetThreeIntegers(const char *typeName, int sectInd, const char *key, int *val1,
                          int *val2, int *val3)
 {
   int err;
@@ -798,7 +798,7 @@ int AdocGetThreeIntegers(char *typeName, int sectInd, char *key, int *val1,
 }
 
 /*! Like @AdocGetThreeIntegers except that it returns floats */
-int AdocGetThreeFloats(char *typeName, int sectInd, char *key, float *val1,
+int AdocGetThreeFloats(const char *typeName, int sectInd, const char *key, float *val1,
                          float *val2, float *val3)
 {
   int err;
@@ -821,7 +821,7 @@ int AdocGetThreeFloats(char *typeName, int sectInd, char *key, float *val1,
  * the line, or not enough space in the array, as well as for failures in 
  * getting the value string.
  */
-int AdocGetIntegerArray(char *typeName, int sectInd, char *key, int *array,
+int AdocGetIntegerArray(const char *typeName, int sectInd, const char *key, int *array,
                         int *numToGet, int arraySize)
 {
   char *string;
@@ -835,7 +835,7 @@ int AdocGetIntegerArray(char *typeName, int sectInd, char *key, int *array,
 }
 
 /*! Like @AdocGetIntegerArray except that it returns floats */
-int AdocGetFloatArray(char *typeName, int sectInd, char *key, float *array,
+int AdocGetFloatArray(const char *typeName, int sectInd, const char *key, float *array,
                         int *numToGet, int arraySize)
 {
   char *string;
@@ -854,7 +854,7 @@ int AdocGetFloatArray(char *typeName, int sectInd, char *key, float *array,
 
 /* Adds a key-value pair to the given section, without checking for 
    duplication */
-static int addKey(AdocSection *sect, char *key, char *value)
+static int addKey(AdocSection *sect, const char *key, const char *value)
 {
 
   /* First allocate enough memory if needed */
@@ -890,7 +890,7 @@ static int addKey(AdocSection *sect, char *key, char *value)
 }
 
 /* Adds a section of the given name to the collection */
-static int addSection(Autodoc *adoc, int collInd, char *name)
+static int addSection(Autodoc *adoc, int collInd, const char *name)
 {
   AdocCollection *coll = &adoc->collections[collInd];
   AdocSection *sect;
@@ -945,7 +945,7 @@ static int addSection(Autodoc *adoc, int collInd, char *name)
 }
 
 /* Adds a collection of the given name to the autodoc */
-static int addCollection(Autodoc *adoc, char *name)
+static int addCollection(Autodoc *adoc, const char *name)
 {
   AdocCollection *coll;
 
@@ -1144,7 +1144,7 @@ static int parseKeyValue(char *line, char *end, char **key, char **value)
 }
 
 /* Looks up a key in a section and returns its index, or -1 if not present */
-static int lookupKey(AdocSection *sect, char *key)
+static int lookupKey(AdocSection *sect, const char *key)
 {
   int i;
   if (!key)
@@ -1157,7 +1157,7 @@ static int lookupKey(AdocSection *sect, char *key)
 
 /* Looks up a collection in the autodoc by name; returns index or -1 if not
    there */
-static int lookupCollection(Autodoc *adoc, char *name)
+static int lookupCollection(Autodoc *adoc, const char *name)
 {
   int i;
   if (!name || !adoc)
@@ -1170,7 +1170,7 @@ static int lookupCollection(Autodoc *adoc, char *name)
 
 /* Returns the section in the given collection and with given index, or NULL
    for error */
-static AdocSection *getSection(char *typeName, int sectInd)
+static AdocSection *getSection(const char *typeName, int sectInd)
 {
   AdocCollection *coll;
   int collInd;
@@ -1212,6 +1212,9 @@ static int addComments(AdocSection *sect, char **comments, int *numComments,
 
 /*
   $Log$
+  Revision 1.7  2010/09/02 15:43:36  mast
+  Add proper include for stat for linux at least
+
   Revision 1.6  2010/08/31 22:05:53  mast
   New function to open image metadata
 

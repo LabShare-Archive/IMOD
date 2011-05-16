@@ -45,7 +45,7 @@ void DLL_IM_EX diaSetEditText(QLineEdit *edit, const QString &text);
 void DLL_IM_EX diaShowWidget(QWidget *widget, bool state);
 QLabel DLL_IM_EX *diaLabel(const char *text, QWidget *parent,
                            QBoxLayout *layout);
-QRadioButton DLL_IM_EX *diaRadioButton(char *label, QWidget *parent,
+QRadioButton DLL_IM_EX *diaRadioButton(const char *label, QWidget *parent,
                                        QButtonGroup *group, QBoxLayout *layout,
                                        int id, char *tooltip);
 QPushButton DLL_IM_EX *diaPushButton(const char *text, QWidget *parent, 
@@ -90,6 +90,9 @@ void DLL_IM_EX dia_smsg(char **msg);
 /*
 
 $Log$
+Revision 3.10  2009/01/15 16:31:02  mast
+Qt 4 port
+
 Revision 3.9  2008/05/27 05:56:33  mast
 Added show/hide function
 

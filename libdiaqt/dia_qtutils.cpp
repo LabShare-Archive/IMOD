@@ -74,7 +74,7 @@ QCheckBox *diaCheckBox(const char *text, QWidget *parent, QBoxLayout *layout)
  * no focus, and sets [tooltip] as the tooltip if it is non-NULL.  [layout] 
  * can be a QHBoxLayout or a QVBoxLayout.
  */
-QRadioButton *diaRadioButton(char *label, QWidget *parent, QButtonGroup *group,
+QRadioButton *diaRadioButton(const char *label, QWidget *parent, QButtonGroup *group,
                              QBoxLayout *layout, int id, char *tooltip)
 {
   QRadioButton *radio = new QRadioButton(QString(label), parent);
@@ -660,6 +660,9 @@ void dia_smsg( char **msg)
 
 /*
 $Log$
+Revision 1.15  2009/03/27 22:53:54  mast
+Open file dialog in current directory explicitly for Mac Qt 4.4
+
 Revision 1.14  2009/01/26 04:39:25  mast
 Set page step of slider to 1: that is the left click step
 
