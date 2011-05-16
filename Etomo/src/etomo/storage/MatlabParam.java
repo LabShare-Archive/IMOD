@@ -44,6 +44,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.46  2011/05/15 01:54:52  sueh
+ * <p> bug# 1485 Keeping initMotlCode empty when there are init MOTL files conflicts with a new dataset.  Added
+ * <p> InitMotlCode.FILES.
+ * <p>
  * <p> Revision 1.45  2011/04/20 04:42:59  sueh
  * <p> bug# 1445 Change initMotlCode to a ParsedNumber so it can contain a value that is not in the InitMotlCode
  * <p> enum class.  Added RANDOM_ROTATIONS to the InitMotlCode enum class.  Added resetInitMotlCode() for the
@@ -400,7 +404,7 @@ public final class MatlabParam {
   private final ParsedNumber flgAlignAverages = ParsedNumber.getMatlabInstance();
 
   private String lowCutoff = LOW_CUTOFF_DEFAULT;
-  private ParsedNumber initMotlCode = ParsedNumber.getMatlabInstance();
+  private InitMotlCode initMotlCode = InitMotlCode.DEFAULT;
   private CCMode ccMode = CCMode.DEFAULT;
   private boolean useReferenceFile = REFERENCE_FILE_DEFAULT;
   private YAxisType yAxisType = YAxisType.DEFAULT;
@@ -415,7 +419,6 @@ public final class MatlabParam {
     this.newFile = newFile;
     nWeightGroup.setDefault(N_WEIGHT_GROUP_DEFAULT);
     nWeightGroup.setFloor(N_WEIGHT_GROUP_MIN);
-    initMotlCode.setRawString(InitMotlCode.ZERO.toString());
     flgMeanFill.setDefault(FLG_MEAN_FILL_DEFAULT);
   }
 
@@ -578,11 +581,8 @@ public final class MatlabParam {
     return ((Volume) volumeList.get(index)).getFnModParticleString();
   }
 
-  public String getInitMotlCode() {
-    if (initMotlCode.isEmpty()) {
-      return null;
-    }
-    return initMotlCode.getRawString();
+  public InitMotlCode getInitMotlCode() {
+    return initMotlCode;
   }
 
   public CCMode getCcMode() {
@@ -593,23 +593,9 @@ public final class MatlabParam {
     return yAxisType;
   }
 
-  /**
-   * Clear initMotlCode when init motl file is selected.
-   */
-  public void resetInitMotlCode() {
-    initMotlCode.clear();
-  }
-
   public void setInitMotlCode(EnumeratedType enumeratedType) {
-    if (enumeratedType == null) {
-      return;
+    initMotlCode = (InitMotlCode) enumeratedType;
     }
-    initMotlCode.setRawString(((InitMotlCode) enumeratedType).toString());
-  }
-
-  public void setInitMotlCode(final String input) {
-    initMotlCode.setRawString(input);
-  }
 
   public void setCcMode(EnumeratedType enumeratedType) {
     ccMode = (CCMode) enumeratedType;
@@ -784,7 +770,7 @@ public final class MatlabParam {
     referenceFile.clear();
     reference.clear();
     lowCutoff = LOW_CUTOFF_DEFAULT;
-    initMotlCode.clear();
+    initMotlCode = InitMotlCode.DEFAULT;
     ccMode = CCMode.DEFAULT;
     useReferenceFile = false;
     yAxisType = YAxisType.DEFAULT;
@@ -1112,13 +1098,13 @@ public final class MatlabParam {
     ParsedList initMotlFile = null;
     ReadOnlyAttribute attribute = autodoc.getAttribute(INIT_MOTL_KEY);
     if (ParsedList.isList(attribute)) {
-      initMotlCode.setRawString(InitMotlCode.FILES.toString());
+      initMotlCode = null;
       initMotlFile = ParsedList.getStringInstance();
       initMotlFile.parse(attribute);
       size = Math.max(size, initMotlFile.size());
     }
     else {
-      initMotlCode.parse(attribute);
+      initMotlCode = InitMotlCode.getInstance(attribute);
     }
     //tiltRange
     ParsedList tiltRange = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
@@ -1130,7 +1116,7 @@ public final class MatlabParam {
       volume.setRelativeOrient(relativeOrient.getElement(i));
       volume.setFnVolume(fnVolume.getElement(i));
       volume.setFnModParticle(fnModParticle.getElement(i));
-      if (initMotlCode.equals(InitMotlCode.FILES.toString())) {
+      if (initMotlCode == null) {
         volume.setInitMotl(initMotlFile.getElement(i));
       }
       volume.setTiltRange(tiltRange.getElement(i));
@@ -1225,9 +1211,8 @@ public final class MatlabParam {
       valueMap.put(EDGE_SHIFT_KEY, edgeShift.getParsableString());
     }
     valueMap.put(CC_MODE_KEY, ccMode.toString());
-    System.out.println("A:initMotlCode:" + initMotlCode);
-    if (!initMotlCode.isEmpty() && !initMotlCode.equals(InitMotlCode.FILES.toString())) {
-      valueMap.put(INIT_MOTL_KEY, initMotlCode.getParsableString());
+    if (initMotlCode != null) {
+      valueMap.put(INIT_MOTL_KEY, initMotlCode.toString());
     }
     valueMap.put(FLG_MEAN_FILL_KEY, flgMeanFill.getParsableString());
     valueMap.put(ALIGNED_BASE_NAME_KEY, alignedBaseName.getParsableString());
@@ -1262,7 +1247,7 @@ public final class MatlabParam {
     ParsedList fnVolume = ParsedList.getStringInstance();
     ParsedList fnModParticle = ParsedList.getStringInstance();
     ParsedList initMotlFile = null;
-    if (initMotlCode.equals(InitMotlCode.FILES.toString())) {
+    if (initMotlCode == null) {
       initMotlFile = ParsedList.getStringInstance();
     }
     ParsedList tiltRange = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
@@ -1273,7 +1258,7 @@ public final class MatlabParam {
       Volume volume = (Volume) volumeList.get(i);
       fnVolume.addElement(volume.getFnVolume());
       fnModParticle.addElement(volume.getFnModParticle());
-      if (initMotlCode.equals(InitMotlCode.FILES.toString())) {
+      if (initMotlCode == null) {
         initMotlFile.addElement(volume.getInitMotl());
       }
       tiltRange.addElement(volume.getTiltRange());
@@ -1281,7 +1266,7 @@ public final class MatlabParam {
     }
     valueMap.put(FN_VOLUME_KEY, fnVolume.getParsableString());
     valueMap.put(FN_MOD_PARTICLE_KEY, fnModParticle.getParsableString());
-    if (initMotlCode.equals(InitMotlCode.FILES.toString())) {
+    if (initMotlCode == null) {
       valueMap.put(INIT_MOTL_KEY, initMotlFile.getParsableString());
     }
     if (tiltRangeEmpty) {
@@ -1572,11 +1557,11 @@ public final class MatlabParam {
   }
 
   public static final class InitMotlCode implements EnumeratedType {
-    public static final InitMotlCode FILES = new InitMotlCode(-1);
     public static final InitMotlCode ZERO = new InitMotlCode(0);
     public static final InitMotlCode Z_AXIS = new InitMotlCode(1);
     public static final InitMotlCode X_AND_Z_AXIS = new InitMotlCode(2);
     public static final InitMotlCode RANDOM_ROTATIONS = new InitMotlCode(3);
+    public static final InitMotlCode DEFAULT = ZERO;
 
     private final EtomoNumber value = new EtomoNumber();
 
@@ -1588,15 +1573,31 @@ public final class MatlabParam {
       return value.toString();
     }
 
-    /**
-     * There is no default because there may be unrecongized values
-     */
     public boolean isDefault() {
+      if (this == DEFAULT) {
+        return true;
+      }
       return false;
     }
 
-    public boolean equals(final String string) {
-      return value.equals(string);
+    private static InitMotlCode getInstance(final ReadOnlyAttribute attribute) {
+      if (attribute == null) {
+        return DEFAULT;
+      }
+      String value = attribute.getValue();
+      if (value == null) {
+        return DEFAULT;
+      }
+      if (ZERO.value.equals(value)) {
+        return ZERO;
+      }
+      if (Z_AXIS.value.equals(value)) {
+        return Z_AXIS;
+      }
+      if (X_AND_Z_AXIS.value.equals(value)) {
+        return X_AND_Z_AXIS;
+      }
+      return DEFAULT;
     }
 
     public ConstEtomoNumber getValue() {

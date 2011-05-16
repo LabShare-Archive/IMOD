@@ -51,6 +51,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2011/05/15 01:55:33  sueh
+ * <p> bug# 1485 Keeping initMotlCode empty when there are init MOTL files conflicts with a new dataset.  Added
+ * <p> InitMotlCode.FILES.
+ * <p>
  * <p> Revision 1.7  2011/05/05 23:48:00  sueh
  * <p> bug# 1446 Corrected a label.
  * <p>
@@ -513,7 +517,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
 
   private File lastLocation = null;
   private String correctPath = null;
-  private String origInitMotlCode = null;
 
   private PeetDialog(final PeetManager manager, final AxisID axisID) {
     System.err.println(Utilities.getDateTimeStamp() + "\nDialog: " + DialogType.PEET);
@@ -765,24 +768,21 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     iterationTable.setParameters(matlabParam);
     referencePanel.setParameters(matlabParam, parametersOnly);
     missingWedgeCompensationPanel.setParameters(matlabParam);
-    origInitMotlCode = matlabParam.getInitMotlCode();
-    if (MatlabParam.InitMotlCode.FILES.equals(origInitMotlCode)) {
+    MatlabParam.InitMotlCode initMotlCode = matlabParam.getInitMotlCode();
+    if (initMotlCode == null) {
       rbInitMotlFiles.setSelected(true);
     }
-    else if (MatlabParam.InitMotlCode.ZERO.equals(origInitMotlCode)) {
+    else if (initMotlCode == MatlabParam.InitMotlCode.ZERO) {
       rbInitMotlZero.setSelected(true);
     }
-    else if (MatlabParam.InitMotlCode.Z_AXIS.equals(origInitMotlCode)) {
+    else if (initMotlCode == MatlabParam.InitMotlCode.Z_AXIS) {
       rbInitMotlZAxis.setSelected(true);
     }
-    else if (MatlabParam.InitMotlCode.X_AND_Z_AXIS.equals(origInitMotlCode)) {
+    else if (initMotlCode == MatlabParam.InitMotlCode.X_AND_Z_AXIS) {
       rbInitMotlXAndZAxis.setSelected(true);
     }
-    else if (MatlabParam.InitMotlCode.RANDOM_ROTATIONS.equals(origInitMotlCode)) {
+    else if (initMotlCode == MatlabParam.InitMotlCode.RANDOM_ROTATIONS) {
       rbInitMotlRandomRotations.setSelected(true);
-    }
-    else {
-      rbInitMotlZero.setSelected(false);
     }
     ltfSzVolX.setText(matlabParam.getSzVolX());
     ltfSzVolY.setText(matlabParam.getSzVolY());
@@ -821,21 +821,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     matlabParam.setFnOutput(ltfFnOutput.getText());
     referencePanel.getParameters(matlabParam);
     missingWedgeCompensationPanel.getParameters(matlabParam);
-    if (rbInitMotlFiles.isSelected()) {
-      matlabParam.resetInitMotlCode();
-    }
-    else {
-      RadioButton.RadioButtonModel buttonModel = (RadioButton.RadioButtonModel) bgInitMotl
-          .getSelection();
-      if (buttonModel != null) {
-        matlabParam.setInitMotlCode(buttonModel.getEnumeratedType());
-      }
-      else {
-        //The init motl code is unknown and no radio button was selected, so return the
-        //original code.
-        matlabParam.setInitMotlCode(origInitMotlCode);
-      }
-    }
+    matlabParam
+        .setInitMotlCode(((RadioButton.RadioButtonModel) bgInitMotl.getSelection())
+            .getEnumeratedType());
     matlabParam.setSzVolX(ltfSzVolX.getText());
     matlabParam.setSzVolY(ltfSzVolY.getText());
     matlabParam.setSzVolZ(ltfSzVolZ.getText());
