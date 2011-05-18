@@ -107,6 +107,7 @@ echo "CXX       = $cxx"              >> $configure
 
 # Figure out if 64-bit from Qt moc program and set name of LD_LIBRARY variable
 # Set -m32 as a default for gcc compiles (m32/m64 could be set for Intel too?)
+# Since setup puts out DYLD_FRAMEWORK_PATH, only DYLD_LIBRARY_PATH is needed
 #
 set filetext = `file $QTDIR/bin/moc | grep 64-bit`
 set m64flags = ""
@@ -118,7 +119,6 @@ if ("$filetext" != "") then
     set m64bit = true
     set m64notIA = true
     if ($ccomp == gcc) set m64flags = '-m64'
-    set ld_lib_var      = DYLD_FRAMEWORK_PATH
     if (-e /usr/local/lib/libtiff64.a) set tiffa = libtiff64.a
     if (-e /usr/local/lib/libjpeg64.a) set jpega = libjpeg64.a
 
