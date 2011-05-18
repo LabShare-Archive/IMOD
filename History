@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/18/11: Fixed imodhelp for Linux (In 4.1).
+
 5/14/11: Fixed a problem in PEET where using initMOTL files was the default.
 
 5/12/11: Fixed the "Take logarithm of densities with offset" check box, which
