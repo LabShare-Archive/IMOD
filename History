@@ -41,6 +41,8 @@ processing in eTomo (join, PEET, NAD, parallel processing).
 from working.  Popping up a message with instructions to fix the damage done
 by this bug in the current version and in 4.1.
 
+4/20/11: In eTomo - PEET recognizing initMOTL=3 (Random Rotations).
+
 4/19/11: Added a radio button for Uniform random rotation to eTomo - PEET.
 
 4/8/11: Fixed two bugs that crashed 3dmod when current contour/point is
