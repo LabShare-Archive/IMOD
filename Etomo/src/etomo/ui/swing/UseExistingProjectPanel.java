@@ -27,6 +27,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 21:47:09  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -122,10 +125,8 @@ final class UseExistingProjectPanel {
     btnCopyParameters.setEnabled(!paramFileSet);
   }
 
-  /**
-   * Create a project out of a matlab param file or an .epe file.
-   */
-  private void importParam() {
+ 
+  private void copyDataset(final boolean parametersOnly) {
     String path = parent.getDirectory().getText();
     if (path == null || path.matches("\\s*")) {
       UIHarness.INSTANCE.openMessageDialog(manager, "Please set the "
@@ -149,37 +150,7 @@ final class UseExistingProjectPanel {
       return;
     }
     file = chooser.getSelectedFile();
-    manager.loadParam(file, false);
-  }
-
-  /**
-   * Create a project out of a peet file or a .prm file from another directory.
-   * Copy fields not related to specific files.
-   */
-  private void copyParameters() {
-    String path = parent.getDirectory().getText();
-    if (path == null || path.matches("\\s*")) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "Please set the "
-          + PeetDialog.DIRECTORY_LABEL + " field before copying parameters.",
-          "Entry Error");
-      return;
-    }
-    File dir = new File(parent.getDirectory().getText());
-    if (!dir.exists()) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "Please create "
-          + dir.getAbsolutePath() + " before copy parameters.", "Entry Error");
-      return;
-    }
-    JFileChooser chooser = new FileChooser(dir);
-    chooser.setFileFilter(new PeetAndMatlabParamFileFilter());
-    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
-    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    int returnVal = chooser.showOpenDialog(pnlRoot);
-    if (returnVal != JFileChooser.APPROVE_OPTION) {
-      return;
-    }
-    File file = chooser.getSelectedFile();
-    manager.loadParam(file, true);
+    manager.copyDataset(file, parametersOnly);
   }
 
   /**
@@ -190,10 +161,10 @@ final class UseExistingProjectPanel {
   private void action(final String actionCommand,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (actionCommand.equals(btnImportMatlabParamFile.getActionCommand())) {
-      importParam();
+      copyDataset(false);
     }
     else if (actionCommand.equals(btnCopyParameters.getActionCommand())) {
-      copyParameters();
+      copyDataset(true);
     }
   }
 
