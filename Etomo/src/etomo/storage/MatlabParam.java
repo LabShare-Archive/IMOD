@@ -44,6 +44,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.47  2011/05/16 23:06:07  sueh
+ * <p> bug# 1487 Backing out bug# 1485 and some of bug# 1445.
+ * <p>
  * <p> Revision 1.46  2011/05/15 01:54:52  sueh
  * <p> bug# 1485 Keeping initMotlCode empty when there are init MOTL files conflicts with a new dataset.  Added
  * <p> InitMotlCode.FILES.
@@ -1121,6 +1124,12 @@ public final class MatlabParam {
       }
       volume.setTiltRange(tiltRange.getElement(i));
       volumeList.add(volume);
+    }
+  }
+
+  public void resetVolumeList() {
+    for (int i = 0; i < volumeList.size(); i++) {
+      volumeList.clear();
     }
   }
 
