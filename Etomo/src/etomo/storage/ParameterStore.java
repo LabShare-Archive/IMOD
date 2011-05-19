@@ -24,6 +24,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2011/04/04 16:59:38  sueh
+ * <p> bug# 1416 Changed to a numeric debug variable.  Modified save and setDebug.
+ * <p>
  * <p> Revision 3.14  2011/02/22 04:52:30  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -209,7 +212,7 @@ public final class ParameterStore {
    * @param storable
    * @throws IOException
    */
-  public void load(Storable storable) throws LogFile.LockException {
+  public void load(Storable storable)/* throws LogFile.LockException*/ {
     if (dataFile != null) {
       //If the file has been set, synchronize on it.
       synchronized (dataFile) {
