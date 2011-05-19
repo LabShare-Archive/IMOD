@@ -1,7 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/19/11: In eTomo - PEET preserving unknown parameters in the .prm and .epe
+files when importing an existing project or copying parameters.
+
 5/18/11: IMOD_4-2-17
 5/18/11: Fixed imodhelp for Linux (In 4.1).
+
+5/16/11: No longer allowing unknown values in initMOTL.
 
 5/14/11: Fixed a problem in PEET where using initMOTL files was the default.
 
