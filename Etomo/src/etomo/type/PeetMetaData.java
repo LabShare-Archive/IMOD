@@ -22,6 +22,9 @@ import etomo.util.Utilities;
  * @notthreadsafe
  * 
  * <p> $Log$
+ * <p> Revision 1.29  2011/04/25 16:46:52  sueh
+ * <p> bug# 1475 Improved toString.
+ * <p>
  * <p> Revision 1.28  2011/02/22 05:49:48  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -192,8 +195,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   }
 
   public String getName() {
-    if (rootName == null || rootName.toString() == null
-        || rootName.toString().matches("\\s*")) {
+    if (rootName.toString() == null || rootName.toString().matches("\\s*")) {
       return NEW_TITLE;
     }
     return rootName.toString();
@@ -207,7 +209,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     return "[rootName:" + rootName + "," + super.toString() + "]";
   }
 
-  public void setName(String name) {
+  public void setName(final String name) {
     rootName.set(name);
     Utilities.managerStamp(null, rootName.toString());
   }
@@ -231,11 +233,11 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     return null;
   }
 
-  public void load(Properties props) {
+  public void load(final Properties props) {
     load(props, "");
   }
 
-  public void load(Properties props, String prepend) {
+  public void load(final Properties props, String prepend) {
     super.load(props, prepend);
     //reset
     initMotlFile.reset();
@@ -284,14 +286,14 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
    * @param props
    * @param prepend
    */
-  public void load1_0(Properties props, String prepend) {
+  public void load1_0(final Properties props, final String prepend) {
     tiltRangeMin.load(props, prepend, "TILT_RANGE_KEY" + "." + START_KEY);
     tiltRangeMin.remove(props, prepend, "TILT_RANGE_KEY" + "." + START_KEY);
     tiltRangeMax.load(props, prepend, "TILT_RANGE_KEY" + "." + END_KEY);
     tiltRangeMax.remove(props, prepend, "TILT_RANGE_KEY" + "." + END_KEY);
   }
 
-  public void store(Properties props, String prepend) {
+  public void store(final Properties props, String prepend) {
     super.store(props, prepend);
     revisionNumber.set(LATEST_VERSION);
     prepend = createPrepend(prepend);
@@ -315,19 +317,27 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     revisionNumber.store(props, prepend);
   }
 
-  public void setMaskUseReferenceParticle(boolean input) {
+  public void setRootName(final String input) {
+    rootName.set(input);
+  }
+  
+  public String getRootName() {
+    return rootName.toString();
+  }
+
+  public void setMaskUseReferenceParticle(final boolean input) {
     maskUseReferenceParticle.set(input);
   }
 
-  public void setMaskModelPtsModelNumber(Number input) {
+  public void setMaskModelPtsModelNumber(final Number input) {
     maskModelPtsModelNumber.set(input);
   }
 
-  public void setMaskModelPtsParticle(String input) {
+  public void setMaskModelPtsParticle(final String input) {
     maskModelPtsParticle.set(input);
   }
 
-  public void setMaskTypeVolume(String input) {
+  public void setMaskTypeVolume(final String input) {
     maskTypeVolume.set(input);
   }
 
@@ -351,15 +361,15 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     return edgeShift.toString();
   }
 
-  public void setEdgeShift(String edgeShift) {
+  public void setEdgeShift(final String edgeShift) {
     this.edgeShift.set(edgeShift);
   }
 
-  public String getInitMotlFile(int key) {
+  public String getInitMotlFile(final int key) {
     return initMotlFile.getString(key);
   }
 
-  public void setInitMotlFile(String initMotlFile, int key) {
+  public void setInitMotlFile(final String initMotlFile, final int key) {
     this.initMotlFile.put(key, initMotlFile);
   }
 
@@ -367,7 +377,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     this.initMotlFile.reset();
   }
 
-  public void setTiltRangeMin(String input, int key) {
+  public void setTiltRangeMin(final String input, final int key) {
     tiltRangeMin.put(key, input);
   }
 
@@ -375,7 +385,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     tiltRangeMin.reset();
   }
 
-  public void setTiltRangeMax(String input, int key) {
+  public void setTiltRangeMax(final String input, final int key) {
     tiltRangeMax.put(key, input);
   }
 
@@ -383,11 +393,11 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     tiltRangeMax.reset();
   }
 
-  public String getTiltRangeMin(int key) {
+  public String getTiltRangeMin(final int key) {
     return tiltRangeMin.getString(key);
   }
 
-  public String getTiltRangeMax(int key) {
+  public String getTiltRangeMax(final int key) {
     return tiltRangeMax.getString(key);
   }
 
@@ -411,7 +421,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     return nWeightGroup;
   }
 
-  public void setTiltRange(boolean input) {
+  public void setTiltRange(final boolean input) {
     tiltRange.set(input);
   }
 
@@ -419,7 +429,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     return tiltRange.is();
   }
 
-  public void setReferenceFile(String referenceFile) {
+  public void setReferenceFile(final String referenceFile) {
     this.referenceFile.set(referenceFile);
   }
 
@@ -427,7 +437,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     this.referenceParticle.set(referenceParticle);
   }
 
-  public void setFlgWedgeWeight(boolean input) {
+  public void setFlgWedgeWeight(final boolean input) {
     flgWedgeWeight.set(input);
   }
 
@@ -435,19 +445,19 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     return flgWedgeWeight.is();
   }
 
-  public void setReferenceVolume(Number referenceVolume) {
+  public void setReferenceVolume(final Number referenceVolume) {
     this.referenceVolume.set(referenceVolume);
   }
 
-  public void setUseNWeightGroup(boolean input) {
+  public void setUseNWeightGroup(final boolean input) {
     useNWeightGroup.set(input);
   }
 
-  public void setNWeightGroup(Number input) {
+  public void setNWeightGroup(final Number input) {
     nWeightGroup.set(input);
   }
 
-  String createPrepend(String prepend) {
+  String createPrepend(final String prepend) {
     if (prepend == "") {
       return GROUP_KEY;
     }
