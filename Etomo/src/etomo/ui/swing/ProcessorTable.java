@@ -20,7 +20,6 @@ import etomo.process.LoadAverageMonitor;
 import etomo.process.LoadMonitor;
 import etomo.process.QueuechunkLoadMonitor;
 import etomo.storage.CpuAdoc;
-import etomo.storage.LogFile;
 import etomo.storage.Node;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
@@ -181,10 +180,10 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
   }
 
   private void initTable() {
-    speedUnits = CpuAdoc.INSTANCE.getSpeedUnits(manager, axisID, manager
-        .getPropertyUserDir());
-    memoryUnits = CpuAdoc.INSTANCE.getMemoryUnits(manager, axisID, manager
-        .getPropertyUserDir());
+    speedUnits = CpuAdoc.INSTANCE.getSpeedUnits(manager, axisID,
+        manager.getPropertyUserDir());
+    memoryUnits = CpuAdoc.INSTANCE.getMemoryUnits(manager, axisID,
+        manager.getPropertyUserDir());
     //loop through the nodes
     EtomoNumber number = new EtomoNumber();
     //loop on nodes
@@ -230,14 +229,14 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
     if (memoryColumn) {
       header2RAM.setText(memoryUnits);
     }
-    try {
-      ParameterStore parameterStore = EtomoDirector.INSTANCE.getParameterStore();
-      parameterStore.load(this);
-    }
-    catch (LogFile.LockException e) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to load parameters.\n"
-          + e.getMessage(), "Etomo Error", axisID);
-    }
+    //  try {
+    ParameterStore parameterStore = EtomoDirector.INSTANCE.getParameterStore();
+    parameterStore.load(this);
+    /*  }
+      catch (LogFile.LockException e) {
+        UIHarness.INSTANCE.openMessageDialog(manager, "Unable to load parameters.\n"
+            + e.getMessage(), "Etomo Error", axisID);
+      }*/
     setToolTipText();
     if (isSelectOnlyRow() && rowList.size() == 1) {
       rowList.setSelected(0, true);
@@ -775,6 +774,9 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/22 18:20:14  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.2  2011/02/03 06:15:08  sueh
  * <p> bug# 1422 Handling the three types of tables (queue, CPU, and GPU) by
  * <p> putting the differences into child classes.

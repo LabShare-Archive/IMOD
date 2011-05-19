@@ -17,7 +17,6 @@ import etomo.ProcessingMethodMediator;
 import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SirtsetupParam;
 import etomo.storage.CpuAdoc;
-import etomo.storage.LogFile;
 import etomo.storage.Network;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
@@ -110,14 +109,14 @@ public final class ParallelPanel implements Expandable, Storable {
   private ParallelPanel(final BaseManager manager, final AxisID axisID,
       final PanelHeaderState state, final AxisProcessPanel parent,
       final boolean popupChunkWarnings) {
-    try {
+  //  try {
       ParameterStore parameterStore = EtomoDirector.INSTANCE.getParameterStore();
       parameterStore.load(this);
-    }
+  /*  }
     catch (LogFile.LockException e) {
       UIHarness.INSTANCE.openMessageDialog(manager, "Unable to load parameters.\n"
           + e.getMessage(), "Etomo Error", axisID);
-    }
+    }*/
     this.manager = manager;
     this.axisID = axisID;
     this.parent = parent;
@@ -541,6 +540,9 @@ public final class ParallelPanel implements Expandable, Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2011/05/03 03:28:53  sueh
+ * <p> bug# 1416 In getParameters(SirtsetupParam) pop up error message when no computers are selected.
+ * <p>
  * <p> Revision 1.4  2011/04/04 17:22:26  sueh
  * <p> bug# 1416 Changed the "number selected" label for the GPU table.  Added getParameters(SirtsetupParam).
  * <p>
