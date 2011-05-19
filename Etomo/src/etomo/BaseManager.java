@@ -293,13 +293,6 @@ public abstract class BaseManager {
     return oldPropertyUserDir;
   }
 
-  void clearUIParameters() {
-    loadedParamFile = false;
-    paramFile = null;
-    initialized = false;
-    propertyUserDir = null;
-  }
-
   void initializeUIParameters(File dataFile, AxisID axisID,
       boolean loadedFromADifferentFile) {
     if (!headless) {
@@ -1730,6 +1723,9 @@ public abstract class BaseManager {
 /**
  * <p>
  * $Log$
+ * Revision 1.142  2011/05/05 01:26:55  sueh
+ * bug# 1396  Popping up an error message an failing when the dataset directory ends in a space.
+ *
  * Revision 1.141  2011/04/09 06:20:52  sueh
  * bug# 1416 Need to pass the manager to most FileType functions so that TILT_OUTPUT can distinguish
  * between single and dual axis type.  Replaced FileType.toString and toString2 with getDescription and
