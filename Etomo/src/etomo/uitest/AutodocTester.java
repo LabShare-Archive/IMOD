@@ -67,6 +67,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.44  2011/05/13 03:47:14  sueh
+ * <p> Increase formatApplication sleep.
+ * <p>
  * <p> Revision 1.43  2011/02/22 21:51:07  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -133,6 +136,9 @@ import etomo.util.Utilities;
  * <p>being fooled when kill button is disabled for a second.
  * <p>
  * $Log$
+ * Revision 1.44  2011/05/13 03:47:14  sueh
+ * Increase formatApplication sleep.
+ *
  * Revision 1.43  2011/02/22 21:51:07  sueh
  * bug# 1437 Reformatting.
  *
@@ -1976,7 +1982,13 @@ final class AutodocTester extends Assert implements VariableList {
     System.err.println("Formatting application");
     UIHarness.INSTANCE.pack(axisID, EtomoDirector.INSTANCE.getCurrentManagerForTest());
     try {
-      Thread.sleep(255);
+      Thread.sleep(500);
+    }
+    catch (InterruptedException e) {
+    }
+    UIHarness.INSTANCE.pack(axisID, EtomoDirector.INSTANCE.getCurrentManagerForTest());
+    try {
+      Thread.sleep(500);
     }
     catch (InterruptedException e) {
     }
