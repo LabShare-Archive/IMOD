@@ -23,6 +23,9 @@ import etomo.type.ConstEtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.20  2011/04/04 16:46:53  sueh
+ * <p> bug# 1416 Added toString.
+ * <p>
  * <p> Revision 3.19  2011/02/22 03:14:03  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -310,51 +313,55 @@ public class FortranInputString {
       }
       return;
     }
-
-    // Walk through the newValues string parsing the values
-    Double[] tempValue = new Double[value.length];
-    for (int i = 0; i < value.length; i++) {
-      tempValue[i] = new Double(Double.NaN);
-    }
-    int idxValue = 0;//current index of tempValue
-    int idxStart = 0;//current index of newValues
-    while (idxStart < newValues.length()) {
-      int idxDelim = newValues.indexOf(divider, idxStart);
-      if (idxDelim != -1) {
-        String currentToken = newValues.substring(idxStart, idxDelim);
-
-        // A default value
-        if (currentToken.length() == 0) {
-          tempValue[idxValue] = new Double(Double.NaN);
-        }
-        else {
-          tempValue[idxValue] = new Double(currentToken);
-          rangeCheck(tempValue[idxValue].doubleValue(), idxValue, newValues);
-        }
-        idxValue++;
-        idxStart = idxDelim + 1;
+    try {
+      // Walk through the newValues string parsing the values
+      Double[] tempValue = new Double[value.length];
+      for (int i = 0; i < value.length; i++) {
+        tempValue[i] = new Double(Double.NaN);
       }
-      //  This should be the last value
-      else {
-        String currentToken = newValues.substring(idxStart);
-        if (currentToken.endsWith("/")) {
-          tempValue[idxValue] = new Double(currentToken.substring(0, currentToken
-              .length() - 1));
-          rangeCheck(tempValue[idxValue].doubleValue(), idxValue, newValues);
-          idxValue++;
-          while (idxValue < nParams) {
+      int idxValue = 0;//current index of tempValue
+      int idxStart = 0;//current index of newValues
+      while (idxStart < newValues.length()) {
+        int idxDelim = newValues.indexOf(divider, idxStart);
+        if (idxDelim != -1) {
+          String currentToken = newValues.substring(idxStart, idxDelim);
+
+          // A default value
+          if (currentToken.length() == 0) {
             tempValue[idxValue] = new Double(Double.NaN);
-            idxValue++;
           }
+          else {
+            tempValue[idxValue] = new Double(currentToken);
+            rangeCheck(tempValue[idxValue].doubleValue(), idxValue, newValues);
+          }
+          idxValue++;
+          idxStart = idxDelim + 1;
         }
+        //  This should be the last value
         else {
-          tempValue[idxValue] = new Double(newValues.substring(idxStart));
+          String currentToken = newValues.substring(idxStart);
+          if (currentToken.endsWith("/")) {
+            tempValue[idxValue] = new Double(currentToken.substring(0,
+                currentToken.length() - 1));
+            rangeCheck(tempValue[idxValue].doubleValue(), idxValue, newValues);
+            idxValue++;
+            while (idxValue < nParams) {
+              tempValue[idxValue] = new Double(Double.NaN);
+              idxValue++;
+            }
+          }
+          else {
+            tempValue[idxValue] = new Double(newValues.substring(idxStart));
+          }
+          break;
         }
-        break;
       }
+      value = tempValue;
     }
-    value = tempValue;
-    return;
+    catch (NumberFormatException e) {
+      e.printStackTrace();
+      throw new FortranInputSyntaxException(e.getMessage());
+    }
   }
 
   /**
