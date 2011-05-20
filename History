@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/19/11: Fixed a problem where eTomo was not popping up an error message for
+incorrectly formatted numeric lists.(Bug# 1471)
+
 5/19/11: In eTomo - PEET preserving unknown parameters in the .prm and .epe
 files when importing an existing project or copying parameters.
 
