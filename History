@@ -24,6 +24,9 @@ wasn't being created.
 5/10/11: In eTomo - Tomogram Generation, fixed a bug where Trial Tilt was
 disabled.
 
+5/5/11: In eTomo - Clean Up, added temporary matchvol and warpvol files to the
+delete list.(Bug# 1398)
+
 5/5/11: In eTomo - Final Aligned Stack - fixed a problem where eTomo was
 looking for an incorrectly named ctfcorrection.com file.
 
