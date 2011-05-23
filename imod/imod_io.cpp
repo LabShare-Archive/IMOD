@@ -545,17 +545,17 @@ static void initModelData(Imod *newModel, bool keepBW)
   MaintainModelName(App->cvi->imod);
   newModel->drawmode = 1;
 
-  /* DNM: select the first color ramp; call xcramp_setlevels, 
-     not xcramp_ramp, and set the sliders too */
-  xcrampSelectIndex(App->cvi->cramp, 0);
-  xcramp_setlevels(App->cvi->cramp, App->cvi->black,
-                   App->cvi->white);
-  imod_info_setbw(App->cvi->black, App->cvi->white);
-
-  /* Scale model then notify imodv about the model */
+  /* Scale model then notify imodv about the model.  5/3/11: Do this before setting
+   black/white because that will cause a draw */
   if (!App->cvi->fakeImage)
     ivwTransModel(App->cvi);
   imodv_new_model(newModel);
+
+  /* DNM: select the first color ramp; call xcramp_setlevels, 
+     not xcramp_ramp, and set the sliders too */
+  xcrampSelectIndex(App->cvi->cramp, 0);
+  xcramp_setlevels(App->cvi->cramp, App->cvi->black, App->cvi->white);
+  imod_info_setbw(App->cvi->black, App->cvi->white);
 
   /* DNM: check wild flags here, after any changes in model */
   ivwCheckWildFlag(newModel);
@@ -811,6 +811,9 @@ static int mapErrno(int errorCode)
 
 /*
 $Log$
+Revision 4.32  2011/03/18 04:42:27  mast
+Use ivwReopen instead of iiReopen
+
 Revision 4.31  2011/03/14 23:39:13  mast
 Changes for ushort loading
 
