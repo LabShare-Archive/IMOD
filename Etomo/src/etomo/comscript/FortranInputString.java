@@ -23,6 +23,9 @@ import etomo.type.ConstEtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.21  2011/05/20 03:51:05  sueh
+ * <p> Bug# 1471 In validateAndSet catch NumberFormatException and throw FortranInputSyntaxException.
+ * <p>
  * <p> Revision 3.20  2011/04/04 16:46:53  sueh
  * <p> bug# 1416 Added toString.
  * <p>
@@ -299,10 +302,36 @@ public class FortranInputString {
   }
 
   /**
+   * Allow two different dividers (the default and a space) without calling setDivider.
+   * @param newValues
+   * @throws FortranInputSyntaxException
+   */
+  public void validateAndSet(final String newValues) throws FortranInputSyntaxException {
+    try {
+      validateAndSet(newValues, divider);
+    }
+    catch (NumberFormatException e) {
+      //Didn't work, try an alternative divider
+      char origDivider = divider;
+      if (divider == DEFAULT_DIVIDER) {
+        validateAndSet(newValues, ' ');
+      }
+      else if (divider == ' ') {
+        validateAndSet(newValues, DEFAULT_DIVIDER);
+      }
+      else {
+        //Unfamiliar divider, fall back to original functionality.
+        throw e;
+      }
+    }
+  }
+
+  /**
    * Set the String representation of the parameters and validate it against the
    * specified rules.
    */
-  public void validateAndSet(String newValues) throws FortranInputSyntaxException {
+  private void validateAndSet(String newValues, final char dividerParam)
+      throws FortranInputSyntaxException {
     if (newValues == null) {
       newValues = "";
     }
@@ -313,55 +342,49 @@ public class FortranInputString {
       }
       return;
     }
-    try {
-      // Walk through the newValues string parsing the values
-      Double[] tempValue = new Double[value.length];
-      for (int i = 0; i < value.length; i++) {
-        tempValue[i] = new Double(Double.NaN);
-      }
-      int idxValue = 0;//current index of tempValue
-      int idxStart = 0;//current index of newValues
-      while (idxStart < newValues.length()) {
-        int idxDelim = newValues.indexOf(divider, idxStart);
-        if (idxDelim != -1) {
-          String currentToken = newValues.substring(idxStart, idxDelim);
+    // Walk through the newValues string parsing the values
+    Double[] tempValue = new Double[value.length];
+    for (int i = 0; i < value.length; i++) {
+      tempValue[i] = new Double(Double.NaN);
+    }
+    int idxValue = 0;//current index of tempValue
+    int idxStart = 0;//current index of newValues
+    while (idxStart < newValues.length()) {
+      int idxDelim = newValues.indexOf(dividerParam, idxStart);
+      if (idxDelim != -1) {
+        String currentToken = newValues.substring(idxStart, idxDelim);
 
-          // A default value
-          if (currentToken.length() == 0) {
-            tempValue[idxValue] = new Double(Double.NaN);
-          }
-          else {
-            tempValue[idxValue] = new Double(currentToken);
-            rangeCheck(tempValue[idxValue].doubleValue(), idxValue, newValues);
-          }
-          idxValue++;
-          idxStart = idxDelim + 1;
+        // A default value
+        if (currentToken.length() == 0) {
+          tempValue[idxValue] = new Double(Double.NaN);
         }
-        //  This should be the last value
         else {
-          String currentToken = newValues.substring(idxStart);
-          if (currentToken.endsWith("/")) {
-            tempValue[idxValue] = new Double(currentToken.substring(0,
-                currentToken.length() - 1));
-            rangeCheck(tempValue[idxValue].doubleValue(), idxValue, newValues);
-            idxValue++;
-            while (idxValue < nParams) {
-              tempValue[idxValue] = new Double(Double.NaN);
-              idxValue++;
-            }
-          }
-          else {
-            tempValue[idxValue] = new Double(newValues.substring(idxStart));
-          }
-          break;
+          tempValue[idxValue] = new Double(currentToken);
+          rangeCheck(tempValue[idxValue].doubleValue(), idxValue, newValues);
         }
+        idxValue++;
+        idxStart = idxDelim + 1;
       }
-      value = tempValue;
+      //  This should be the last value
+      else {
+        String currentToken = newValues.substring(idxStart);
+        if (currentToken.endsWith("/")) {
+          tempValue[idxValue] = new Double(currentToken.substring(0,
+              currentToken.length() - 1));
+          rangeCheck(tempValue[idxValue].doubleValue(), idxValue, newValues);
+          idxValue++;
+          while (idxValue < nParams) {
+            tempValue[idxValue] = new Double(Double.NaN);
+            idxValue++;
+          }
+        }
+        else {
+          tempValue[idxValue] = new Double(newValues.substring(idxStart));
+        }
+        break;
+      }
     }
-    catch (NumberFormatException e) {
-      e.printStackTrace();
-      throw new FortranInputSyntaxException(e.getMessage());
-    }
+    value = tempValue;
   }
 
   /**
