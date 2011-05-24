@@ -207,6 +207,14 @@ extern "C" {
   int zoomFiltInterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
                      float xc, float yc, float xt, float yt, float dmean);
 
+  /* xformfuncs.f */
+  void xfUnit(float *f, float val, int rows);
+  void xfCopy(float *f1, float *f2, int rows);
+  void xfMult(float *f1, float *f2, float *prod, int rows);
+  void xfInvert(float *f, float *finv, int rows);
+  void xfApply(float *f, float xcen, float ycen, float x, float y, float *xp, float *yp,
+               int rows);
+
 #ifdef __cplusplus
 }
 #endif
