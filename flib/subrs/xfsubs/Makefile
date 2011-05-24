@@ -3,9 +3,8 @@ include ../../configure
 FFLAGS = $(LIBFFLAGS)
 
 O        = $(OBJEXT)
-OBJS = amat_to_rotmag.$(O) rotmag_to_amat.$(O)\
- xfapply.$(O) xfinvert.$(O) xflincom.$(O) xfcopy.$(O) \
- xfmult.$(O) xfrdall.$(O) xfread.$(O) xfunit.$(O) xfwrite.$(O) \
+OBJS = amat_to_rotmag.$(O) rotmag_to_amat.$(O) xflincom.$(O) \
+ xfrdall.$(O) xfread.$(O) xfwrite.$(O) \
  readdistortions.$(O) interpolategrid.$(O) maggradfield.$(O) findxf.$(O) \
  undistinterp.$(O) writedistortions.$(O)
 
