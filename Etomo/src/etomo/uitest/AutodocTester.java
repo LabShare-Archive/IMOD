@@ -67,6 +67,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.47  2011/05/24 15:49:39  sueh
+ * <p> FormatApplication was not being called in all cases - fixed.
+ * <p>
  * <p> Revision 1.46  2011/05/23 16:08:00  sueh
  * <p> Trying to get formatApplication to solve the missing Advanced button problem more often.  Increased
  * <p> the wait after formatting.  Made it easy to change the number of formats done.
@@ -143,6 +146,9 @@ import etomo.util.Utilities;
  * <p>being fooled when kill button is disabled for a second.
  * <p>
  * $Log$
+ * Revision 1.47  2011/05/24 15:49:39  sueh
+ * FormatApplication was not being called in all cases - fixed.
+ *
  * Revision 1.46  2011/05/23 16:08:00  sueh
  * Trying to get formatApplication to solve the missing Advanced button problem more often.  Increased
  * the wait after formatting.  Made it easy to change the number of formats done.
@@ -2071,13 +2077,13 @@ final class AutodocTester extends Assert implements VariableList {
           assertTrue(
               "combo box selected text is not equal to value - "
                   + comboBox.getSelectedItem() + "," + value + " (" + command + ")",
-              ((String) comboBox.getSelectedItem()).equals(value));
+              comboBox.getSelectedItem().toString().equals(value));
         }
         //assert.cbb.combo_box_label =
         else {
-          assertEquals(
-              "combo box selected text is not empty - " + comboBox.getSelectedItem()
-                  + "," + value + " (" + command + ")", null, comboBox.getSelectedItem());
+          assertEquals("combo box selected text is not empty - "
+              + comboBox.getSelectedItem().toString() + "," + value + " (" + command
+              + ")", null, comboBox.getSelectedItem().toString());
         }
       }
     }
