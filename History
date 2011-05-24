@@ -1,7 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-5/24/11: In eTomo, allowing spaces to be used as dividers in numeric lists.
-(Bug# 1471)
+5/24/11: In eTomo, allowing a single space to be used as a divider (instead of
+a comma) in numeric lists.(Bug# 1471)
 
 5/23/11: Fixed 3dmod crash when opening new model with isosurface open.
 
