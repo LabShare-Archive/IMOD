@@ -67,6 +67,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.46  2011/05/23 16:08:00  sueh
+ * <p> Trying to get formatApplication to solve the missing Advanced button problem more often.  Increased
+ * <p> the wait after formatting.  Made it easy to change the number of formats done.
+ * <p>
  * <p> Revision 1.45  2011/05/20 21:49:56  sueh
  * <p> Trying to get formatApplication to solve the missing Advanced button problem more often.
  * <p>
@@ -139,6 +143,10 @@ import etomo.util.Utilities;
  * <p>being fooled when kill button is disabled for a second.
  * <p>
  * $Log$
+ * Revision 1.46  2011/05/23 16:08:00  sueh
+ * Trying to get formatApplication to solve the missing Advanced button problem more often.  Increased
+ * the wait after formatting.  Made it easy to change the number of formats done.
+ *
  * Revision 1.45  2011/05/20 21:49:56  sueh
  * Trying to get formatApplication to solve the missing Advanced button problem more often.
  *
@@ -1639,7 +1647,9 @@ final class AutodocTester extends Assert implements VariableList {
     }
   }
 
-  private AbstractButton findButton(UITestFieldType fieldType, String name, int index) {
+  private AbstractButton findButton(final UITestFieldType fieldType, final String name,
+      final int index) {
+    int formatted = 0;
     try {
       Thread.sleep(1);
     }
@@ -1650,25 +1660,61 @@ final class AutodocTester extends Assert implements VariableList {
     if (debug) {
       finder.setDebug(true);
     }
-    return (AbstractButton) finder.find(currentPanel, index);
+    AbstractButton button = null;
+    while (button == null && formatted < MAX_FORMAT) {
+      button = (AbstractButton) finder.find(currentPanel, index);
+      if (button == null) {
+        formatApplication();
+        formatted++;
+      }
+    }
+    return button;
   }
 
-  private JCheckBox findCheckBox(String name, int index) {
+  private JCheckBox findCheckBox(final String name, final int index) {
+    int formatted = 0;
     setupNamedComponentFinder(JCheckBox.class, UITestFieldType.CHECK_BOX.toString()
         + AutodocTokenizer.SEPARATOR_CHAR + name);
-    return (JCheckBox) finder.find(currentPanel, index);
+    JCheckBox checkBox = null;
+    while (checkBox == null && formatted < MAX_FORMAT) {
+      checkBox = (JCheckBox) finder.find(currentPanel, index);
+      if (checkBox == null) {
+        formatApplication();
+        formatted++;
+      }
+    }
+    return checkBox;
   }
 
-  private JComboBox findComboBox(String name, int index) {
+  private JComboBox findComboBox(final String name, final int index) {
+    int formatted = 0;
     setupNamedComponentFinder(JComboBox.class, UITestFieldType.COMBO_BOX.toString()
         + AutodocTokenizer.SEPARATOR_CHAR + name);
-    return (JComboBox) finder.find(currentPanel, index);
+    JComboBox comboBox = null;
+    while (comboBox == null && formatted < MAX_FORMAT) {
+      comboBox = (JComboBox) finder.find(currentPanel, index);
+      if (comboBox == null) {
+        formatApplication();
+        formatted++;
+      }
+    }
+    return comboBox;
   }
 
-  private JMenuItem findMenuItem(String name, int index) {
+  private JMenuItem findMenuItem(final String name, final int index) {
+    int formatted = 0;
     setupNamedComponentFinder(JMenuItem.class, UITestFieldType.MENU_ITEM.toString()
         + AutodocTokenizer.SEPARATOR_CHAR + name);
-    return (JMenuItem) finder.find();
+    JMenuItem menuItem = null;
+    while (menuItem == null && formatted < MAX_FORMAT) {
+      menuItem = (JMenuItem) finder.find();
+      if (menuItem == null) {
+        formatApplication();
+        formatted++;
+
+      }
+    }
+    return menuItem;
   }
 
   private void findContainer(String name) {
@@ -1677,28 +1723,64 @@ final class AutodocTester extends Assert implements VariableList {
     currentPanel = (Container) finder.find();
   }
 
-  private JRadioButton findRadioButton(String name, int index) {
+  private JRadioButton findRadioButton(final String name, final int index) {
+    int formatted = 0;
     setupNamedComponentFinder(JRadioButton.class, UITestFieldType.RADIO_BUTTON.toString()
         + AutodocTokenizer.SEPARATOR_CHAR + name);
-    return (JRadioButton) finder.find(currentPanel, index);
+    JRadioButton radioButton = null;
+    while (radioButton == null && formatted < MAX_FORMAT) {
+      radioButton = (JRadioButton) finder.find(currentPanel, index);
+      if (radioButton == null) {
+        formatApplication();
+        formatted++;
+      }
+    }
+    return radioButton;
   }
 
-  private JSpinner findSpinner(String name, int index) {
+  private JSpinner findSpinner(final String name, final int index) {
+    int formatted = 0;
     setupNamedComponentFinder(JSpinner.class, UITestFieldType.SPINNER.toString()
         + AutodocTokenizer.SEPARATOR_CHAR + name);
-    return (JSpinner) finder.find(currentPanel, index);
+    JSpinner spinner = null;
+    while (spinner == null && formatted < MAX_FORMAT) {
+      spinner = (JSpinner) finder.find(currentPanel, index);
+      if (spinner == null) {
+        formatApplication();
+        formatted++;
+      }
+    }
+    return spinner;
   }
 
-  private JTabbedPane findTabbedPane(String name) {
+  private JTabbedPane findTabbedPane(final String name) {
+    int formatted = 0;
     setupNamedComponentFinder(JTabbedPane.class, UITestFieldType.TAB.toString()
         + AutodocTokenizer.SEPARATOR_CHAR + name);
-    return (JTabbedPane) finder.find(currentPanel, 0);
+    JTabbedPane tabbedPane = null;
+    while (tabbedPane == null && formatted < MAX_FORMAT) {
+      tabbedPane = (JTabbedPane) finder.find(currentPanel, 0);
+      if (tabbedPane == null) {
+        formatApplication();
+        formatted++;
+      }
+    }
+    return tabbedPane;
   }
 
-  private JTextComponent findTextField(String name, int index) {
+  private JTextComponent findTextField(final String name, final int index) {
+    int formatted = 0;
     setupNamedComponentFinder(JTextField.class, UITestFieldType.TEXT_FIELD.toString()
         + AutodocTokenizer.SEPARATOR_CHAR + name);
-    return (JTextComponent) finder.find(currentPanel, index);
+    JTextComponent textField = null;
+    while (textField == null && formatted < MAX_FORMAT) {
+      textField = (JTextComponent) finder.find(currentPanel, index);
+      if (textField == null) {
+        formatApplication();
+        formatted++;
+      }
+    }
+    return textField;
   }
 
   /**
@@ -1713,25 +1795,14 @@ final class AutodocTester extends Assert implements VariableList {
     UITestFieldType fieldType = field.getFieldType();
     String name = field.getName();
     int index = field.getIndex();
-    boolean formatted = false;
     String value = command.getValue();
     assertNotNull("missing field (" + command + ")", field);
     //BUTTON
     if (fieldType == UITestFieldType.BUTTON) {
-      AbstractButton button = null;
-      while (button == null) {
-        button = findButton(UITestFieldType.BUTTON, name, index);
-        if (button == null) {
-          if (!formatted) {
-            formatApplication();
-            formatted = true;
-          }
-          else {
-            fail("can't find field - " + command.getField().getName() + " (" + command
-                + ")");
-            return;
-          }
-        }
+      AbstractButton button = findButton(UITestFieldType.BUTTON, name, index);
+      if (button == null) {
+        fail("can't find field - " + command.getField().getName() + " (" + command + ")");
+        return;
       }
       //bn.button_name =
       assertNull("value not valid in a button command (" + command + ")", value);
@@ -1753,20 +1824,10 @@ final class AutodocTester extends Assert implements VariableList {
     }
     //CHECK BOX
     else if (fieldType == UITestFieldType.CHECK_BOX) {
-      JCheckBox checkBox = null;
-      while (checkBox == null) {
-        checkBox = findCheckBox(name, index);
-        if (checkBox == null) {
-          if (!formatted) {
-            formatApplication();
-            formatted = true;
-          }
-          else {
-            fail("can't find field - " + command.getField().getName() + " (" + command
-                + ")");
-            return;
-          }
-        }
+      JCheckBox checkBox = findCheckBox(name, index);
+      if (checkBox == null) {
+        fail("can't find field - " + command.getField().getName() + " (" + command + ")");
+        return;
       }
       //cb.check_box_name
       //if value is present,only click on check box to get it to match value
@@ -1781,20 +1842,10 @@ final class AutodocTester extends Assert implements VariableList {
     }
     //COMBO BOX
     else if (fieldType == UITestFieldType.COMBO_BOX) {
-      JComboBox comboBox = null;
-      while (comboBox == null) {
-        comboBox = findComboBox(name, index);
-        if (comboBox == null) {
-          if (!formatted) {
-            formatApplication();
-            formatted = true;
-          }
-          else {
-            fail("can't find field - " + command.getField().getName() + " (" + command
-                + ")");
-            return;
-          }
-        }
+      JComboBox comboBox = findComboBox(name, index);
+      if (comboBox == null) {
+        fail("can't find field - " + command.getField().getName() + " (" + command + ")");
+        return;
       }
       //cbb.combo_box_label
       comboBox.addItem(value);
@@ -1802,20 +1853,10 @@ final class AutodocTester extends Assert implements VariableList {
     }
     //MENU_ITEM
     else if (fieldType == UITestFieldType.MENU_ITEM) {
-      JMenuItem menuItem = null;
-      while (menuItem == null) {
-        menuItem = findMenuItem(name, index);
-        if (menuItem == null) {
-          if (!formatted) {
-            formatApplication();
-            formatted = true;
-          }
-          else {
-            fail("can't find field - " + command.getField().getName() + " (" + command
-                + ")");
-            return;
-          }
-        }
+      JMenuItem menuItem = findMenuItem(name, index);
+      if (menuItem == null) {
+        fail("can't find field - " + command.getField().getName() + " (" + command + ")");
+        return;
       }
       //mn.menu_item_label
       //if value is present, only click on menu item when it matches value
@@ -1829,20 +1870,10 @@ final class AutodocTester extends Assert implements VariableList {
     }
     //MINI BUTTON
     else if (fieldType == UITestFieldType.MINI_BUTTON) {
-      AbstractButton miniButton = null;
-      while (miniButton == null) {
-        miniButton = findButton(UITestFieldType.MINI_BUTTON, name, index);
-        if (miniButton == null) {
-          if (!formatted) {
-            formatApplication();
-            formatted = true;
-          }
-          else {
-            fail("can't find field - " + command.getField().getName() + " (" + command
-                + ")");
-            return;
-          }
-        }
+      AbstractButton miniButton = findButton(UITestFieldType.MINI_BUTTON, name, index);
+      if (miniButton == null) {
+        fail("can't find field - " + command.getField().getName() + " (" + command + ")");
+        return;
       }
       //mb.title_with_mini_button
       //if value is present,only click on mini-button when it matches value
@@ -1873,20 +1904,10 @@ final class AutodocTester extends Assert implements VariableList {
     }
     //RADIO BUTTON
     else if (fieldType == UITestFieldType.RADIO_BUTTON) {
-      JRadioButton radioButton = null;
-      while (radioButton == null) {
-        radioButton = findRadioButton(name, index);
-        if (radioButton == null) {
-          if (!formatted) {
-            formatApplication();
-            formatted = true;
-          }
-          else {
-            fail("can't find field - " + command.getField().getName() + " (" + command
-                + ")");
-            return;
-          }
-        }
+      JRadioButton radioButton = findRadioButton(name, index);
+      if (radioButton == null) {
+        fail("can't find field - " + command.getField().getName() + " (" + command + ")");
+        return;
       }
       //rb.radio_button_label
       assertNull("value not valid in a radio command (" + command + ")", value);
@@ -1899,20 +1920,10 @@ final class AutodocTester extends Assert implements VariableList {
     }
     //SPINNER
     else if (fieldType == UITestFieldType.SPINNER) {
-      JSpinner spinner = null;
-      while (spinner == null) {
-        spinner = findSpinner(name, index);
-        if (spinner == null) {
-          if (!formatted) {
-            formatApplication();
-            formatted = true;
-          }
-          else {
-            fail("can't find field - " + command.getField().getName() + " (" + command
-                + ")");
-            return;
-          }
-        }
+      JSpinner spinner = findSpinner(name, index);
+      if (spinner == null) {
+        fail("can't find field - " + command.getField().getName() + " (" + command + ")");
+        return;
       }
       EtomoNumber nValue = new EtomoNumber();
       nValue.set(value);
@@ -1932,20 +1943,10 @@ final class AutodocTester extends Assert implements VariableList {
     else if (fieldType == UITestFieldType.TAB) {
       //find the tabbed panel and click on the tab
       assertNull("value not valid in a tab command (" + command + ")", value);
-      JTabbedPane tabbedPane = null;
-      while (tabbedPane == null) {
-        tabbedPane = findTabbedPane(name);
-        if (tabbedPane == null) {
-          if (!formatted) {
-            formatApplication();
-            formatted = true;
-          }
-          else {
-            fail("can't find field - " + command.getField().getName() + " (" + command
-                + ")");
-            return;
-          }
-        }
+      JTabbedPane tabbedPane = findTabbedPane(name);
+      if (tabbedPane == null) {
+        fail("can't find field - " + command.getField().getName() + " (" + command + ")");
+        return;
       }
       helper.enterClickAndLeave(new JTabbedPaneMouseEventData(testRunner, tabbedPane,
           index, 1));
@@ -1957,20 +1958,10 @@ final class AutodocTester extends Assert implements VariableList {
     }
     //TEXT FIELD
     else if (fieldType == UITestFieldType.TEXT_FIELD) {
-      JTextComponent textField = null;
-      while (textField == null) {
-        textField = findTextField(name, index);
-        if (textField == null) {
-          if (!formatted) {
-            formatApplication();
-            formatted = true;
-          }
-          else {
-            fail("can't find field - " + command.getField().getName() + " (" + command
-                + ")");
-            return;
-          }
-        }
+      JTextComponent textField = findTextField(name, index);
+      if (textField == null) {
+        fail("can't find field - " + command.getField().getName() + " (" + command + ")");
+        return;
       }
       //tf.text_field_label
       textField.setText(value);
@@ -1988,7 +1979,7 @@ final class AutodocTester extends Assert implements VariableList {
     System.err.println("Formatting application");
     UIHarness.INSTANCE.pack(axisID, EtomoDirector.INSTANCE.getCurrentManagerForTest());
     try {
-      Thread.sleep(1000);
+      Thread.sleep(250);
     }
     catch (InterruptedException e) {
     }
@@ -2006,7 +1997,6 @@ final class AutodocTester extends Assert implements VariableList {
     UITestFieldType fieldType = field.getFieldType();
     String name = field.getName();
     int index = field.getIndex();
-    int formatted = 0;
     String value = command.getValue();
     assertNotNull("missing field (" + command + ")", field);
     assertEquals("function can only handle assert field commands (" + command + ")",
@@ -2016,14 +2006,7 @@ final class AutodocTester extends Assert implements VariableList {
     //assert.field
     //BUTTON
     if (fieldType == UITestFieldType.BUTTON) {
-      AbstractButton button = null;
-      while (button == null && formatted < MAX_FORMAT) {
-        button = findButton(UITestFieldType.BUTTON, name, index);
-        if (button == null) {
-          formatApplication();
-          formatted++;
-        }
-      }
+      AbstractButton button = findButton(UITestFieldType.BUTTON, name, index);
       if (button == null) {
         fail("can't find field - " + command.getField().getName() + " (" + command + ")");
         return;
@@ -2043,16 +2026,7 @@ final class AutodocTester extends Assert implements VariableList {
     }
     //CHECK BOX
     else if (fieldType == UITestFieldType.CHECK_BOX) {
-      setupNamedComponentFinder(JCheckBox.class, UITestFieldType.CHECK_BOX.toString()
-          + AutodocTokenizer.SEPARATOR_CHAR + name);
-      JCheckBox checkBox = null;
-      while (checkBox == null && formatted < MAX_FORMAT) {
-        checkBox = (JCheckBox) finder.find(currentPanel, index);
-        if (checkBox == null) {
-          formatApplication();
-          formatted++;
-        }
-      }
+      JCheckBox checkBox = findCheckBox(name, index);
       if (checkBox == null) {
         fail("can't find field - " + command.getField().getName() + " (" + command + ")");
         return;
@@ -2073,14 +2047,7 @@ final class AutodocTester extends Assert implements VariableList {
     }
     //COMBO BOX
     else if (fieldType == UITestFieldType.COMBO_BOX) {
-      JComboBox comboBox = null;
-      comboBox = findComboBox(name, index);
-      while (comboBox == null && formatted < MAX_FORMAT) {
-        if (comboBox == null) {
-          formatApplication();
-          formatted++;
-        }
-      }
+      JComboBox comboBox = findComboBox(name, index);
       if (comboBox == null) {
         fail("can't find field - " + command.getField().getName() + " (" + command + ")");
         return;
@@ -2116,15 +2083,7 @@ final class AutodocTester extends Assert implements VariableList {
     }
     //MENU_ITEM
     else if (fieldType == UITestFieldType.MENU_ITEM) {
-      JMenuItem menuItem = null;
-      while (menuItem == null && formatted < MAX_FORMAT) {
-        menuItem = findMenuItem(name, index);
-        if (menuItem == null) {
-          formatApplication();
-          formatted++;
-
-        }
-      }
+      JMenuItem menuItem = findMenuItem(name, index);
       if (menuItem == null) {
         fail("can't find field - " + command.getField().getName() + " (" + command + ")");
         return;
@@ -2136,14 +2095,7 @@ final class AutodocTester extends Assert implements VariableList {
     }
     //MINI BUTTON
     else if (fieldType == UITestFieldType.MINI_BUTTON) {
-      AbstractButton miniButton = null;
-      while (miniButton == null && formatted < MAX_FORMAT) {
-        miniButton = findButton(UITestFieldType.MINI_BUTTON, name, index);
-        if (miniButton == null) {
-          formatApplication();
-          formatted++;
-        }
-      }
+      AbstractButton miniButton = findButton(UITestFieldType.MINI_BUTTON, name, index);
       if (miniButton == null) {
         fail("can't find field - " + command.getField().getName() + " (" + command + ")");
         return;
@@ -2163,14 +2115,7 @@ final class AutodocTester extends Assert implements VariableList {
     }
     //RADIO BUTTON
     else if (fieldType == UITestFieldType.RADIO_BUTTON) {
-      JRadioButton radioButton = null;
-      while (radioButton == null && formatted < MAX_FORMAT) {
-        radioButton = findRadioButton(name, index);
-        if (radioButton == null) {
-          formatApplication();
-          formatted++;
-        }
-      }
+      JRadioButton radioButton = findRadioButton(name, index);
       if (radioButton == null) {
         fail("can't find field - " + command.getField().getName() + " (" + command + ")");
         return;
@@ -2192,14 +2137,7 @@ final class AutodocTester extends Assert implements VariableList {
     }
     //SPINNER
     else if (fieldType == UITestFieldType.SPINNER) {
-      JSpinner spinner = null;
-      while (spinner == null && formatted < MAX_FORMAT) {
-        spinner = findSpinner(name, index);
-        if (spinner == null) {
-          formatApplication();
-          formatted++;
-        }
-      }
+      JSpinner spinner = findSpinner(name, index);
       if (spinner == null) {
         fail("can't find field - " + command.getField().getName() + " (" + command + ")");
         return;
@@ -2227,14 +2165,7 @@ final class AutodocTester extends Assert implements VariableList {
     }
     //TEXT FIELD
     else if (fieldType == UITestFieldType.TEXT_FIELD) {
-      JTextComponent textField = null;
-      while (textField == null && formatted < MAX_FORMAT) {
-        textField = findTextField(name, index);
-        if (textField == null) {
-          formatApplication();
-          formatted++;
-        }
-      }
+      JTextComponent textField = findTextField(name, index);
       if (textField == null) {
         fail("can't find field - " + command.getField().getName() + " (" + command + ")");
         return;
