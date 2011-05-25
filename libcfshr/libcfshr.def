@@ -65,10 +65,12 @@ EXPORTS
 	imodUsageHeader
 	ilistLast
 	PipGetTwoIntegers
+	XFUNIT
 	ADOCWRITE
 	SUMS_TO_AVGSD
 	b3dRewind
 	PIPSETSPECIALFLAGS
+	XFCOPY
 	ADOCREAD
 	AdocWrite
 	AdocSetKeyValue
@@ -122,6 +124,7 @@ EXPORTS
 	XCorrMeanZero
 	cmapInvertedRamp
 	sumsToAvgSDdbl
+	xfMult
 	PIPSETMANPAGEOUTPUT
 	RSMADMEDIANOUTLIERS
 	normalizeColumns
@@ -181,11 +184,13 @@ EXPORTS
 	IMODGETPID
 	AdocClear
 	PipNextArg
+	xfCopy
 	ilistDup
 	rsMedianOfSorted
 	AdocSetTwoFloats
 	ZOOMFILTINTERP
 	sliceTaperOutPad
+	xfInvert
 	addValueToRow
 	lsFit2
 	PIPNUMBEROFENTRIES
@@ -216,6 +221,7 @@ EXPORTS
 	gaussj
 	INSIDECONTOUR
 	PipGetThreeFloats
+	XFMULT
 	PIPGETTHREEFLOATS
 	ADOCGETSTRING
 	REDUCE_BY_BINNING
@@ -245,6 +251,8 @@ EXPORTS
 	ADOCSETCURRENT
 	PipMemoryError
 	lnGamma
+	XFAPPLY
+	xfUnit
 	RSMEDIAN
 	ADOCGETTHREEINTEGERS
 	PIPGETNONOPTIONARG
@@ -254,6 +262,7 @@ EXPORTS
 	ADOCDELETEKEYVALUE
 	LSFITPRED
 	ADDROWTOMATRIX
+	xfApply
 	AdocDeleteKeyValue
 	ADOCNEW
 	LSFIT2NOC
@@ -286,6 +295,7 @@ EXPORTS
 	cmapStandardRamp
 	SETCTFNOSCL
 	sliceMode
+	XFINVERT
 	ADOCSETFLOAT
 	parabolicFitPosition
 	FILTERPART
