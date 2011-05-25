@@ -67,6 +67,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.48  2011/05/24 23:07:31  sueh
+ * <p> Bug# 1478 In assertField, fixed combo box comparison.
+ * <p>
  * <p> Revision 1.47  2011/05/24 15:49:39  sueh
  * <p> FormatApplication was not being called in all cases - fixed.
  * <p>
@@ -146,6 +149,9 @@ import etomo.util.Utilities;
  * <p>being fooled when kill button is disabled for a second.
  * <p>
  * $Log$
+ * Revision 1.48  2011/05/24 23:07:31  sueh
+ * Bug# 1478 In assertField, fixed combo box comparison.
+ *
  * Revision 1.47  2011/05/24 15:49:39  sueh
  * FormatApplication was not being called in all cases - fixed.
  *
@@ -1985,7 +1991,7 @@ final class AutodocTester extends Assert implements VariableList {
     System.err.println("Formatting application");
     UIHarness.INSTANCE.pack(axisID, EtomoDirector.INSTANCE.getCurrentManagerForTest());
     try {
-      Thread.sleep(250);
+      Thread.sleep(500);
     }
     catch (InterruptedException e) {
     }
