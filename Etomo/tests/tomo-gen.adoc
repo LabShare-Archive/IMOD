@@ -1,6 +1,7 @@
 Version = 1.2
 
 [function = main]
+run.function.sirt=
 run.function.tilt=
 if.var.build.bn.done=
 if.var.build.return=
@@ -25,6 +26,8 @@ if.var.single.set.var.tomo-ext=_full
 mb.tilt=+
 [[if = test-gui]]
 	# check values
+	assert.rb.back-projection=on
+	assert.rb.sirt=off
 	assert.cb.parallel-processing=on
 	assert.cb.take-logarithm-of-densities-with-offset=on
 	assert.tf.take-logarithm-of-densities-with-offset=0.0
@@ -248,3 +251,137 @@ assert.bn.use-current-trial-tomogram=on
 mb.trial-tilt=-
 mb.tilt.1=B
 mb.parallel-processing=+
+
+
+[function = sirt]
+rb.sirt=
+mb.tilt=-
+[[if = test-gui]]
+  # check values
+  assert.cb.reconstruct-subarea=off
+  assert.tf.size-in-x-and-y=
+  assert.tf.offset-in-y=
+  assert.tf.radial-filter-cutoff=0.4
+  assert.tf.falloff=0.05
+  assert.tf.iteration-#'s-to-retain=
+  assert.cb.scale-retained-volumes-to-integers=
+  assert.cb.delete-existing-reconstructions-after-starting-point=
+  assert.rb.start-from-beginning=on
+  assert.rb.resume-from-last-iterations=off
+  assert.rb.go-back,-resume-from-iteration=off
+  assert.cbb.go-back,-resume-from-iteration=
+  assert.bn.run-sirt=off
+  assert.bn.use-sirt-output-file=off
+  mb.sirt.1=A
+  assert.tf.flat-filter-fraction=
+  mb.sirt.1=B
+  # check enabled/disabled
+  rb.resume-from-last-iteration=
+  mb.sirt.1=A
+  cb.disabled.take-logarithm-of-densitities-with-offset=
+  tf.disabled.logarithm-density-scaling-factor=
+  tf.disabled.offset=
+  tf.disabled.linear-density-scaling-factor=
+  tf.disabled.offset.1=
+  tf.disabled.tomogram-thickness-in-z=
+  tf.disabled.z-shift=
+  tf.disabled.z-axis-tilt=
+  tf.disabled.tilt-angle-offset=
+  tf.disabled.extra-views-to-exclude=
+  cb.disabled.use-local-alignments=
+  cb.disabled.use-z-factors=
+  mb.sirt.1=B
+  cb.disabled.resconstruct-subarea=
+  tf.disabled.radial-filter-cutoff=
+  tf.disabled.falloff=
+  rb.start-from-beginning=
+  #
+  assert.enabled.cb.reconstruct-subarea=
+  assert.disabled.tf.size-in-x-and-y=
+  assert.disabled.tf.offset-in-y=
+  assert.enabled.tf.radial-filter-cutoff=
+  assert.enabled.tf.falloff=
+  assert.enabled.tf.iteration-#'s-to-retain=
+  assert.enabled.cb.scale-retained-volumes-to-integers=
+  assert.enabled.cb.delete-existing-reconstructions-after-starting-point=
+  assert.enabled.rb.start-from-beginning=
+  assert.enabled.rb.resume-from-last-iterations=
+  assert.enabled.rb.go-back,-resume-from-iteration=
+  assert.disabled.cbb.go-back,-resume-from-iteration=
+  assert.enabled.bn.run-sirt=
+  assert.enabled.bn.view-tomogram-in-3dmod=
+  assert.enabled.bn.use-sirt-output-file=
+  mb.sirt.1=A
+  assert.enabled.tf.flat-filter-fraction=
+  mb.sirt.1=B
+  #
+  cb.reconstruct-subarea=on
+  assert.enabled.tf.size-in-x-and-y=
+  assert.enabled.tf.offset-in-y=
+  rb.disable.resume-from-last-iteration=
+  rb.disable.go-back,-resume-from-iteration=
+  cb.reconstruct-subarea=off
+[[]]
+mb.tilt=+
+if.enabled.cb.use-the-gpu.run.function.turn-on-use-the-gpu=
+mb.tilt=-
+# tilt
+[[ifnot = montage]]
+  mb.tilt=+
+  # assuming they are on - turning them off
+  if.enabled.cb.use-local-alignments.run.function.change-use-local-alignments=
+  if.enabled.cb.use-z-factors.run.function.change-use-z-factors=
+  mb.tilt=-
+[[]]
+# subarea
+[[if = montage]]
+  cb.reconstruct-subarea=on
+  tf.size-in-x-and-y=256,256
+[[]]
+[[if = simple-align]]
+  cb.reconstruct-subarea=on
+  tf.size-in-x-and-y=256,256
+[[]]
+# SIRT
+tf.iteration-#'s-to-retain=2,4
+cb.scale-retained-volumes-to-integers=on
+bn.run-sirt=
+wait.process.processchunks-tilt%{axis}_sirt=done
+cb.scale-retained-volumes-to-integers=off
+tf.iteration-#'s-to-retain=6,8
+rb.resume-from-last-iteration=
+bn.run-sirt=
+wait.process.processchunks-tilt%{axis}_sirt=done
+tf.iteration-#'s-to-retain=7
+rb.go-back,-resume-from-iteration=
+bn.run-sirt=
+wait.process.processchunks-tilt%{axis}_sirt=done
+rb.start-from-beginning=
+cb.delete-existing-reconstructions-after-starting-point=on
+tf.iteration-#'s-to-retain=1
+bn.run-sirt=
+wait.process.processchunks-tilt%{axis}_sirt=done
+assert.cbb.go-back,-resume-from-iteration=1
+bn.view-tomogram-in-3dmod=
+bn.use-sirt-output-file=
+wait.popup.etomo-question=Yes
+# put things back the way they where for tilt
+[[ifnot = montage]]
+  mb.tilt=+
+  if.enabled.cb.use-local-alignments.run.function.change-use-local-alignments=
+  if.enabled.cb.use-z-factors.run.function.change-use-z-factors=
+    mb.tilt=-
+[[]]
+rb.back-projection=
+
+
+[function = turn-on-use-the-gpu]
+cb.use-the-gpu=on
+
+
+[function = change-use-local-alignments]
+cb.use-local-alignments=
+
+
+[function = change-use-z-factors]
+cb.use-z-factors=
