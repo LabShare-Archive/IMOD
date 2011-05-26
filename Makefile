@@ -93,6 +93,7 @@ install : configure man sourcedoc
 	cd libmesh    ; $(MAKE) $@
 	cd libdiaqt   ; $(MAKE) $@
 	cd libcfft    ; $(MAKE) $@
+	cd libwarp    ; $(MAKE) $@
 	cd imod       ; $(MAKE) $@
 	cd imodutil   ; $(MAKE) $@
 	cd sendevent  ; $(MAKE) $@
@@ -135,6 +136,7 @@ installclibs : configure
 	cd libmesh   ; $(MAKE) install
 	cd libdiaqt  ; $(MAKE) install
 	cd libcfft   ; $(MAKE) install
+	cd libwarp   ; $(MAKE) install
 
 installlibs : installclibs
 	cd flib; $(MAKE) installlibs
@@ -149,6 +151,7 @@ clean : configure ALWAYS
 	cd libmesh    ; $(MAKE) $@
 	cd libdiaqt   ; $(MAKE) $@
 	cd libcfft    ; $(MAKE) $@
+	cd libwarp    ; $(MAKE) $@
 	cd imod       ; $(MAKE) $@
 	cd imodutil   ; $(MAKE) $@
 	cd sendevent  ; $(MAKE) $@
@@ -183,6 +186,7 @@ cleanclibs : configure ALWAYS
 	cd libmesh   ; $(MAKE) clean
 	cd libdiaqt  ; $(MAKE) clean
 	cd libcfft   ; $(MAKE) clean
+	cd libwarp   ; $(MAKE) clean
 
 cleanlibs : cleanclibs
 	cd flib; $(MAKE) $@
@@ -220,6 +224,7 @@ clibs : configure
 	cd libmesh   ; $(MAKE) all
 	cd libdiaqt  ; $(MAKE) all
 	cd libcfft   ; $(MAKE) all
+	cd libwarp   ; $(MAKE) all
 
 libs : clibs 
 	cd flib; $(MAKE) $@
@@ -365,6 +370,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.90  2011/04/24 14:43:22  mast
+#  Don't remove pysrc/Makefile
+#
 #  Revision 3.89  2011/03/08 15:37:02  mast
 #  Add build notes to src
 #
