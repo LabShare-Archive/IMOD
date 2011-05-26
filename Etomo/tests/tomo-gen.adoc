@@ -366,6 +366,7 @@ bn.view-tomogram-in-3dmod=
 bn.use-sirt-output-file=
 wait.popup.etomo-question=Yes
 # put things back the way they where for tilt
+cb.use-the-gpu=off
 [[ifnot = montage]]
   mb.tilt=+
   if.enabled.cb.use-local-alignments.run.function.change-use-local-alignments=
