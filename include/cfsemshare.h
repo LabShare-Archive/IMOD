@@ -209,7 +209,7 @@ extern "C" {
 
   /* xformfuncs.f */
   void xfUnit(float *f, float val, int rows);
-  void xfCopy(float *f1, float *f2, int rows);
+  void xfCopy(float *f1, int rows1, float *f2, int rows2);
   void xfMult(float *f1, float *f2, float *prod, int rows);
   void xfInvert(float *f, float *finv, int rows);
   void xfApply(float *f, float xcen, float ycen, float x, float y, float *xp, float *yp,
