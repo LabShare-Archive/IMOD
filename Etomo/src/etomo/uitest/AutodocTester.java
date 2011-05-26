@@ -67,6 +67,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.49  2011/05/25 14:20:12  sueh
+ * <p> Increasing wait after formatting application.
+ * <p>
  * <p> Revision 1.48  2011/05/24 23:07:31  sueh
  * <p> Bug# 1478 In assertField, fixed combo box comparison.
  * <p>
@@ -149,6 +152,9 @@ import etomo.util.Utilities;
  * <p>being fooled when kill button is disabled for a second.
  * <p>
  * $Log$
+ * Revision 1.49  2011/05/25 14:20:12  sueh
+ * Increasing wait after formatting application.
+ *
  * Revision 1.48  2011/05/24 23:07:31  sueh
  * Bug# 1478 In assertField, fixed combo box comparison.
  *
@@ -318,7 +324,7 @@ final class AutodocTester extends Assert implements VariableList {
   public static final String rcsid = "$Id$";
 
   private static final int REDRAW_WAIT = 3;
-  private static final int MAX_FORMAT = 1;
+  private static final int MAX_FORMAT = 2;
 
   private final ReadOnlyAutodoc autodoc;
   private final JFCTestHelper helper;
@@ -2087,9 +2093,9 @@ final class AutodocTester extends Assert implements VariableList {
         }
         //assert.cbb.combo_box_label =
         else {
-          assertEquals("combo box selected text is not empty - "
-              + comboBox.getSelectedItem().toString() + "," + value + " (" + command
-              + ")", null, comboBox.getSelectedItem().toString());
+          assertEquals(
+              "combo box selected text is not empty - " + comboBox.getSelectedItem()
+                  + "," + value + " (" + command + ")", null, comboBox.getSelectedItem());
         }
       }
     }
