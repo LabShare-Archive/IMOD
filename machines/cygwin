@@ -38,6 +38,7 @@ if ($compiler == intel) then
     set fcomp = ifl
     set fcompFlags = "/4L132 /Qvec-report:0"
     set ccompFlags = "/Qvec-report:0 -D_CRT_SECURE_NO_WARNINGS"
+    set nnvulnflags = '/fp:source'
     
     # Get the version from icl, assuming we have matched c++/fortran compilers
     #
@@ -141,58 +142,59 @@ echo '#endif' >> $hconfigure
 
 #
 if ($compiler == intel) then
-        if ($shared_libs == default) set shared_libs = true
-	echo "AR      = link"                 >> $configure
-	echo "ARCPP   = link"                 >> $configure
-        if ($shared_libs == true) then
+    if ($shared_libs == default) set shared_libs = true
+    echo "AR      = link"                 >> $configure
+    echo "ARCPP   = link"                 >> $configure
+    if ($shared_libs == true) then
+    #
+    # to make dll's, set the extension, define the def files for the link 
+    # lines and provide libraries that the dll depends on, 
+    # and set the install directory to bin
+    #
+        set dllext = dll
+        echo "ARFLAGS = -dll /NOLOGO /out:"         >> $configure
+        echo 'MAKELIBCPP = link -dll /NOLOGO /out:' >> $configure
+        echo 'LIBIIMODDEF = /def:libiimod.def ../buildlib/libcfshr.lib ../buildlib/libtiff.lib'   >> $configure
+        echo 'LIBIMODDEF = /def:libimod.def ../buildlib/libcfshr.lib'  >> $configure
+        echo 'LIBCFSHRDEF = /def:libcfshr.def'     >> $configure
+        echo 'LIBIMESHDEF = /def:libimesh.def ../buildlib/libcfshr.lib ../buildlib/libimod.lib'     >> $configure
+        echo 'LIBIWARPDEF = /def:libiwarp.def ../buildlib/libcfshr.lib'     >> $configure
+        echo 'LIBMRCIMDEF = /def:libmrcim.def ../../buildlib/libifft.lib ../../buildlib/libcfshr.lib'  >> $configure
+        echo 'LIBHVEMDEF = /def:libhvem.def ../../buildlib/libmrcim.lib ../../buildlib/libcfshr.lib'  >> $configure
+        echo 'LIBIFFTDEF = /def:libifft.def'     >> $configure
+        echo 'LIBTRACKDEF = /def:libtrack.def ../../buildlib/libcfshr.lib'   >> $configure
+        set inst_lib_dir = $inst_dir/bin
         #
-        # to make dll's, set the extension, define the def files for the link 
-        # lines and provide libraries that the dll depends on, 
-        # and set the install directory to bin
+        # Define a command for making non-dll libs still, needed for 
+        # libdnmncar because it calls back to program.
+        # Also need to make separate static libwmod, because it accesses
+        # common in the program
         #
-            set dllext = dll
-            echo "ARFLAGS = -dll /NOLOGO /out:"         >> $configure
-            echo 'MAKELIBCPP = link -dll /NOLOGO /out:' >> $configure
-            echo 'LIBIIMODDEF = /def:libiimod.def ../buildlib/libcfshr.lib ../buildlib/libtiff.lib'   >> $configure
-            echo 'LIBIMODDEF = /def:libimod.def ../buildlib/libcfshr.lib'  >> $configure
-            echo 'LIBCFSHRDEF = /def:libcfshr.def'     >> $configure
-            echo 'LIBIMESHDEF = /def:libimesh.def ../buildlib/libcfshr.lib ../buildlib/libimod.lib'     >> $configure
-            echo 'LIBMRCIMDEF = /def:libmrcim.def ../../buildlib/libifft.lib ../../buildlib/libcfshr.lib'  >> $configure
-            echo 'LIBHVEMDEF = /def:libhvem.def ../../buildlib/libmrcim.lib ../../buildlib/libcfshr.lib'  >> $configure
-            echo 'LIBIFFTDEF = /def:libifft.def'     >> $configure
-            echo 'LIBTRACKDEF = /def:libtrack.def ../../buildlib/libcfshr.lib'   >> $configure
-            set inst_lib_dir = $inst_dir/bin
-            #
-            # Define a command for making non-dll libs still, needed for 
-            # libdnmncar because it calls back to program.
-            # Also need to make separate static libwmod, because it accesses
-            # common in the program
-            #
-            set makenmcar = '$(MAKESTATICLIB)'
-        else
-            echo "ARFLAGS = -lib /NOLOGO /out:"                >> $configure
-            echo 'MAKELIBCPP = $(ARCPP) $(ARFLAGS)' >> $configure
-        endif
-        set lwmod = 'libwmod.lib'
-        set lsmlmod = 'libsmlmod.lib'
-        set wmodext = 'lib'
-        set makewmod = '$(MAKESTATICLIB)'
-        echo "LIBEXT  = lib"                  >> $configure
-	echo "RANLIB    = true"            >> $configure
-        set makestaticlib = "link -lib /NOLOGO /out:"
-        set staticranlib = true
-        set staticext = lib
-else
-        #
-        # setup for cygwin static stuff
-        #
-        set shared_libs = false
-	echo "AR      = ar"                 >> $configure
-	echo "ARCPP   = ar"                 >> $configure
-	echo "ARFLAGS = ruv "                >> $configure
-	echo "RANLIB    = ranlib"            >> $configure
-	echo "LIBEXT  = a"                  >> $configure
+        set makenmcar = '$(MAKESTATICLIB)'
+    else
+        echo "ARFLAGS = -lib /NOLOGO /out:"                >> $configure
         echo 'MAKELIBCPP = $(ARCPP) $(ARFLAGS)' >> $configure
+    endif
+    set lwmod = 'libwmod.lib'
+    set lsmlmod = 'libsmlmod.lib'
+    set wmodext = 'lib'
+    set makewmod = '$(MAKESTATICLIB)'
+    echo "LIBEXT  = lib"                  >> $configure
+    echo "RANLIB    = true"            >> $configure
+    set makestaticlib = "link -lib /NOLOGO /out:"
+    set staticranlib = true
+    set staticext = lib
+else
+    #
+    # setup for cygwin static stuff
+    #
+    set shared_libs = false
+    echo "AR      = ar"                 >> $configure
+    echo "ARCPP   = ar"                 >> $configure
+    echo "ARFLAGS = ruv "                >> $configure
+    echo "RANLIB    = ranlib"            >> $configure
+    echo "LIBEXT  = a"                  >> $configure
+    echo 'MAKELIBCPP = $(ARCPP) $(ARFLAGS)' >> $configure
 endif
 
 echo 'MAKELIB   = $(AR) $(ARFLAGS)' >> $configure
@@ -205,6 +207,7 @@ if ($compiler == intel) then
     set lcfshr = libcfshr.lib
     set liimod = libiimod.lib
     set limesh = libimesh.lib
+    set liwarp = libiwarp.lib
     set lifft = libifft.lib
     set ltiff = libtiff.lib
     set lapacklibs = "liblapack.lib libblas.lib"

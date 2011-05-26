@@ -36,6 +36,7 @@ if ($compiler == intel) then
     set fcompFlags = '-132 -assume bscc -vec-report0'
     set ccompFlags = '-vec-report0'
     echo "      parameter (nbytes_recl_item=4)" >! $endian_dir/recl_bytes.inc
+    set nnvulnflags = '-fp-model source'
 
     icc -v >&! icc.tmp
     set iccnum = `sed 's/[^0-9]/ /g' icc.tmp`

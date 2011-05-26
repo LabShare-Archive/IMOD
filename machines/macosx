@@ -54,6 +54,7 @@ if ($compiler == ifort || $compiler == intel) then
             set openmpfFlags = "-openmp"
             set libmt = "mt"
         endif
+        set nnvulnflags = '-fp-model source'
     else
         if ($minorvers < 2) set openmp = false
     endif
