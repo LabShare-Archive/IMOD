@@ -15,6 +15,7 @@
  */
 /* 
  * Incorporated into IMOD and renamed from io.c
+ * changed WIN32 to _WIN32
  * $Id$ 
  */
 
@@ -56,7 +57,7 @@ FILE* efopen(char *file, char *mode) {
 }
 
 
-#ifndef WIN32
+#ifndef _WIN32
 FILE* epopen(char *com, char *mode) {
 	FILE* fp;
 	if (fp = popen(com, mode)) return fp;
@@ -232,7 +233,7 @@ void vlist_out(point *v, int vdim, FILE *Fin, int amble) {
 	return;
 }
 
-#ifdef WIN32
+#ifdef _WIN32
 void off_out(point *v, int vdim, FILE *Fin, int amble)
 {
 	fprintf(stderr, "Sorry, no OFF output on win32\n");
