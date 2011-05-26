@@ -15,57 +15,57 @@
  */
 /* 
  * Incorporated into IMOD and renamed from io.c
- * changed WIN32 to _WIN32
- * $Id$ 
- */
+ * changed WIN32 to _WIN32, made empty epopen function be made in WIN32
+/*  * $Id$  */
+/*  *\/ */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <assert.h>
-#include <float.h>
-#include <math.h>
+/* #include <stdio.h> */
+/* #include <stdlib.h> */
+/* #include <stdarg.h> */
+/* #include <assert.h> */
+/* #include <float.h> */
+/* #include <math.h> */
 
-#include "hull.h"
+/* #include "hull.h" */
 
-double mult_up = 1.0;
-Coord mins[MAXDIM]
-	= {DBL_MAX,DBL_MAX,DBL_MAX,DBL_MAX,DBL_MAX,DBL_MAX,DBL_MAX,DBL_MAX};
-Coord maxs[MAXDIM]
-	= {-DBL_MAX,-DBL_MAX,-DBL_MAX,-DBL_MAX,-DBL_MAX,-DBL_MAX,-DBL_MAX,-DBL_MAX};
+/* double mult_up = 1.0; */
+/* Coord mins[MAXDIM] */
+/* 	= {DBL_MAX,DBL_MAX,DBL_MAX,DBL_MAX,DBL_MAX,DBL_MAX,DBL_MAX,DBL_MAX}; */
+/* Coord maxs[MAXDIM] */
+/* 	= {-DBL_MAX,-DBL_MAX,-DBL_MAX,-DBL_MAX,-DBL_MAX,-DBL_MAX,-DBL_MAX,-DBL_MAX}; */
 
-void panic(char *fmt, ...) {
-	va_list args;
+/* void panic(char *fmt, ...) { */
+/* 	va_list args; */
 
-	va_start(args, fmt);
-	vfprintf(DFILE, fmt, args);
-	fflush(DFILE);
-	va_end(args);
+/* 	va_start(args, fmt); */
+/* 	vfprintf(DFILE, fmt, args); */
+/* 	fflush(DFILE); */
+/* 	va_end(args); */
 
-	exit(1);
-}
-
-
-char tmpfilenam[L_tmpnam];
-
-FILE* efopen(char *file, char *mode) {
-	FILE* fp;
-	if (fp = fopen(file, mode)) return fp;
-	fprintf(DFILE, "couldn't open file %s mode %s\n",file,mode);
-	exit(1);
-	return NULL;
-}
+/* 	exit(1); */
+/* } */
 
 
-#ifndef _WIN32
-FILE* epopen(char *com, char *mode) {
-	FILE* fp;
-	if (fp = popen(com, mode)) return fp;
-	fprintf(stderr, "couldn't open stream %s mode %s\n",com,mode);
-	exit(1);
+/* char tmpfilenam[L_tmpnam]; */
+
+/* FILE* efopen(char *file, char *mode) { */
+/* 	FILE* fp; */
+/* 	if (fp = fopen(file, mode)) return fp; */
+/* 	fprintf(DFILE, "couldn't open file %s mode %s\n",file,mode); */
+/* 	exit(1); */
+/* 	return NULL; */
+/* } */
+
+
+/* FILE* epopen(char *com, char *mode) { */
+/* #ifndef _WIN32 */
+/* 	FILE* fp; */
+/* 	if (fp = popen(com, mode)) return fp; */
+/* 	fprintf(stderr, "couldn't open stream %s mode %s\n",com,mode); */
+/* 	exit(1); */
+#endif
 	return 0;
 }
-#endif
 
 
 
