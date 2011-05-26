@@ -94,6 +94,8 @@ set ltiff           = -ltiff
 set ldnmncar        = -ldnmncar
 set lifft           = -lifft
 set limesh          = -limesh
+set liwarp          = -liwarp
+set nnvulnflags     = -ffloat-store
 set lapacklibs      = '-llapack -lblas'
 set lapack_flibs    = ''
 set lapacklink      = '$(CC)'
@@ -612,6 +614,8 @@ echo "LCFSHR =    $lcfshr" >> $configure
 echo "LIIMOD =    $liimod" >> $configure
 echo "LIFFT =     $lifft" >> $configure
 echo "LIMESH =    $limesh" >> $configure
+echo "LIWARP =    $liwarp" >> $configure
+echo "NNVULNFLAGS = $nnvulnflags" >> $configure
 echo "LAPACKLIBS =    $lapacklibs" >> $configure
 echo "LAPACKLINK =    $lapacklink" >> $configure
 echo "LAPACK_FLIBS =    $lapack_flibs" >> $configure
@@ -1011,6 +1015,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.75  2011/05/19 13:58:17  mast
+#  Oops, checked in a version with -liwarp
+#
 #  Revision 1.74  2011/05/18 21:11:49  mast
 #  Fixed setlibpath and imodhelp for Linux
 #
