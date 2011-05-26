@@ -33,10 +33,22 @@
  * the rows argument indicating the number of rows.  Existing values in a third row
  * are ignored, and the third row is returned with 0, 0, 1.  The Fortran wrappers call
  * with rows equal to 2.
+ *
+ * Linear transforms specify the following operation on centered coordinates:
+ *   xp = a11 * x + a12 * y + dx
+ *   yp = a21 * x + a22 * y + dy
+ * Here is a comprehensive list of the locations of these components:
+ *       generic  C [9]   C [6]  Fortran (2,3)
+ *  a11    0       0       0      (1,1)
+ *  a21    1       1       1      (2,1)
+ *  a12   rows     3       2      (1,2)
+ *  a22   rows+1   4       3      (2,2)
+ *  dx    2*rows   6       4      (1,3)
+ *  dy    2*rows+1 7       5      (2,3)
  */
 
 /*!
- * Initializes transform [f] with a11 and a22 set equal to [val]; use 1. for a unit 
+ * Initializes transform [f] with a11 and a22 set equal to [val]; use 1.0 for a unit 
  * transform.
  */
 void xfUnit(float *f, float val, int rows)
@@ -54,16 +66,19 @@ void xfUnit(float *f, float val, int rows)
 void xfunit(float *f, float *val) {xfUnit(f, *val, 2);}
 
 /*!
- * Copies transform [f1] to [f2].
+ * Copies transform [f1] to [f2], which have [rows1] and [rows2] rows, respectively.
  */
-void xfCopy(float *f1, float *f2, int rows)
+void xfCopy(float *f1, int rows1, float *f2, int rows2)
 {
-  int i;
-  for (i = 0; i < 3 * rows; i++)
-    f2[i] = f1[i];
+  int row, col;
+  if (rows2 > 2)
+    xfUnit(f2, 1., rows2);
+  for (col = 0; col < 3; col++) 
+    for (row = 0; row < 2; row++)
+      f2[row + col * rows2] = f1[row + col * rows1]; 
 }
 
-void xfcopy(float *f1, float *f2) {xfCopy(f1, f2, 2);}
+void xfcopy(float *f1, float *f2) {xfCopy(f1, 2, f2, 2);}
 
 /*!
  * Multiples transform [f1] (the one applied first) by [f2] (the one applied second)
@@ -118,7 +133,8 @@ void xfinvert(float *f, float *finv) {xfInvert(f, finv, 2);}
 
 /*!
  * Applies transform [f] to the point [x], [y], with the center of transformation at
- * [xcen], [ycen], and returns the result in [xp], [yp].
+ * [xcen], [ycen], and returns the result in [xp], [yp], which can be the same as
+ * [x], [y].
  */
 void xfApply(float *f, float xcen, float ycen, float x, float y, float *xp, float *yp,
              int rows)
@@ -138,5 +154,8 @@ void xfapply(float *f, float *xcen, float *ycen, float *x, float *y, float *xp, 
 /*
 
 $Log$
+Revision 1.1  2011/05/24 18:17:31  mast
+Initial version
+
 
 */
