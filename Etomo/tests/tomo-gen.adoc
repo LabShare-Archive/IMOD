@@ -278,6 +278,7 @@ mb.tilt=-
   # check enabled/disabled
   rb.resume-from-last-iteration=
   mb.tilt=+
+  mb.tilt.1=A
   assert.disabled.cb.take-logarithm-of-densities-with-offset=
   assert.disabled.tf.logarithm-density-scaling-factor=
   assert.disabled.tf.offset=
@@ -290,6 +291,7 @@ mb.tilt=-
   assert.disabled.tf.extra-views-to-exclude=
   assert.disabled.cb.use-local-alignments=
   assert.disabled.cb.use-z-factors=
+  mb.tilt.1=B
   mb.tilt=-
   assert.disabled.cb.resconstruct-subarea=
   assert.disabled.tf.radial-filter-cutoff=
