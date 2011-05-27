@@ -155,7 +155,6 @@ c
       call PipAllowCommaDefaults(1)
       ierr = PipReadOptionFile(progName, 1, 0)
       call PipExitOnError(0, exitString)
-      call setExitPrefix(exitString)
 c       
 c       If that is OK, go parse the entries;
 c       otherwise print error message and use fallback option list
@@ -220,10 +219,19 @@ c
       end
 
 
+      subroutine PipExitOnError(ifUseStderr, message)
+      implicit none
+      character*(*) message
+      integer*4 ifUseStderr
+      call PipExitOnErrorFW(ifUseStderr, message)
+      call setExitPrefix(message)
+      return
+      end
+
 c       Exits with error status after issuing the given message, with the
 c       prefix set by calling setExitPrefix
 
-      subroutine exiterror(message)
+      subroutine exitError(message)
       implicit none
       character*(*) message
       character*32 prefix
@@ -253,6 +261,9 @@ c       prefix set by calling setExitPrefix
       
 c       
 c       $Log$
+c       Revision 3.14  2011/02/25 22:20:02  mast
+c       Changed fallback warning to be generic
+c
 c       Revision 3.13  2010/07/02 17:05:56  mast
 c       Added routine for simple memory error exit
 c
