@@ -17,7 +17,7 @@
 
 #ifdef F77FUNCAP
 #define pipinitialize PIPINITIALIZE
-#define pipexitonerror PIPEXITONERROR
+#define pipexitonerrorfw PIPEXITONERRORFW
 #define pipaddoption PIPADDOPTION
 #define pipnextarg PIPNEXTARG
 #define pipnumberofargs PIPNUMBEROFARGS
@@ -47,7 +47,7 @@
 #define	pipreadstdinifset PIPREADSTDINIFSET
 #else
 #define pipinitialize pipinitialize_
-#define pipexitonerror pipexitonerror_
+#define pipexitonerrorfw pipexitonerrorfw_
 #define pipaddoption pipaddoption_
 #define pipnextarg pipnextarg_
 #define pipnumberofargs pipnumberofargs_
@@ -85,7 +85,8 @@ int pipinitialize(int *numOptions)
   return PipInitialize(*numOptions);
 }
 
-int pipexitonerror(int *useStdErr, char *prefix, int stringSize)
+/* The real pipexitonerror is a fortran routine that sets the fortran exit prefix too */
+int pipexitonerrorfw(int *useStdErr, char *prefix, int stringSize)
 {
   char *cStr;
   int err;
@@ -378,6 +379,9 @@ static char *pipf2cstr(char *str, int strSize)
 /*
 
 $Log$
+Revision 1.4  2011/02/10 04:38:14  mast
+Unused variable cleanup
+
 Revision 1.3  2009/12/04 21:32:32  mast
 Fixed define
 
