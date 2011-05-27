@@ -23,7 +23,7 @@
 #if !defined(_NAN_H)
 #define _NAN_H
 
-#if defined(__GNUC__SKIP)
+#if defined(__GNUC__) && !defined(__INTEL_COMPILER)
 
 static const double NaN = 0.0 / 0.0;
 
