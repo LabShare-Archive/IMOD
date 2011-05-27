@@ -278,7 +278,7 @@ mb.tilt=-
   # check enabled/disabled
   rb.resume-from-last-iteration=
   mb.tilt=+
-  assert.disabled.cb.take-logarithm-of-densitities-with-offset=
+  assert.disabled.cb.take-logarithm-of-densities-with-offset=
   assert.disabled.tf.logarithm-density-scaling-factor=
   assert.disabled.tf.offset=
   assert.disabled.tf.linear-density-scaling-factor=
