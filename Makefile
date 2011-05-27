@@ -303,7 +303,7 @@ csrc : ALWAYS
 	installqtlib packMacApps setup2 BUILDING $(ARCDIR)_src/
 	tar cBf - \
 	machines \
-	lib*/*.[ch] lib*/*.cpp lib[icm]*/Makefile libdiaqt/Makefile.dummy \
+	lib*/*.[ch] lib*/*.cpp lib[icmw]*/Makefile libdiaqt/Makefile.dummy \
 	libdiaqt/Makefile.unix lib*/*.dsp lib*/*.vcproj libimod/libimod.dsw \
 	sysdep/*/* \
 	imod/*.[ch] imod/*.cpp imod/*.ui imod/imod.pro \
@@ -370,6 +370,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.91  2011/05/26 22:27:03  mast
+#  Added libwarp
+#
 #  Revision 3.90  2011/04/24 14:43:22  mast
 #  Don't remove pysrc/Makefile
 #
