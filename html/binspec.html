@@ -340,11 +340,17 @@ size  char   surface label string padded to 4 byte chunks.
 view structure each has a clipping planes structure as a member, named
 clips.  The latter structures are currently defined to hold 6 clipping
 planes, but these chunks are written with only the number of planes
-that exist, so their size is 4 + 24 * count.
+that exist, so their size is 4 + 24 * (# of planes stored).
+<BR>Prior to IMOD 4.2.18, when there was only one plane and it was turned off,
+count was written as 0 for backwards compatibility to IMOD 2.4.  Thus, the
+number of planes to read must be determined from (chunk size - 4) / 24 rather
+than from the value of count that is read in, and if count is read in as zero
+it should be set to 1.
 <pre>
 Length     Type      Name  Description
 -------------------------------------------------------------------
-1         uchar      count  Number of additional clipping planes
+1         uchar      count  Number of clipping planes stored, or 0 if one
+                            turned-off plane was stored prior to IMOD 4.2.18
 1         uchar      flags  Which clipping planes are on; for object planes,
                              bit 7 means ignore global planes
 1         uchar      trans  Transparency for clipped area. (future)
