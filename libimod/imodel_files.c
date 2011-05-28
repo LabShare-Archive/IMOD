@@ -32,7 +32,7 @@
 #define IMODEL_FILES_VERSION_12
 #define IMODEL_FILES_VERSION 12   /* imod 1.2 */
 
-/*#define IMODEL_FILES_DEBUG*/
+/* #define IMODEL_FILES_DEBUG */
 
 static int imodel_read_v01(Imod *mod, FILE *fin);
 static int imodel_read(Imod *imod, int version);
@@ -239,7 +239,6 @@ static int imodel_write(Imod *mod, FILE *fout)
 {
   int i, error;
   unsigned int id;
-  int count;
   Ipoint scale;
   SlicerAngles *slan;
 
@@ -310,7 +309,6 @@ static int imodel_write_object(Iobj *obj, FILE *fout,
 {
   int i, error;
   int id;
-  b3dUByte clipOut;
   IclipPlanes *clips;
   Ipoint normScale;
 
@@ -752,8 +750,6 @@ static int imodel_read(Imod *imod, int version)
 
 static int imodel_read_header(Imod *imod, FILE *fin)
 {
-  double tst;
-
   imodGetBytes(fin,  (unsigned char *)imod->name, IMOD_STRSIZE); 
   imodGetInts(fin,  &imod->xmax, 9);
   imodGetFloats(fin, &imod->xoffset, 3);
@@ -767,10 +763,10 @@ static int imodel_read_header(Imod *imod, FILE *fin)
 
   if (ferror(fin)){
     imod->objsize = 0;
-    return(IMOD_ERROR_READ);
 #ifdef IMODEL_FILES_DEBUG
     perror("error in imodel_read_header: ");
 #endif
+    return(IMOD_ERROR_READ);
   }else{
     return(0);
   }
@@ -871,7 +867,6 @@ static int imodel_read_object_v01(Iobj *obj, FILE *fin)
 
 static int imodel_read_contour_v01(Icont *cont, FILE *fin)
 {
-  int i;
   int id;
 
   while(1){
@@ -904,7 +899,7 @@ static int imodel_read_contour_v01(Icont *cont, FILE *fin)
 
 static int imodel_read_contour(Icont *cont, FILE *fin)
 {
-  int i, error = 1;
+  int error = 1;
 
   cont->psize = imodGetInt(fin);
   cont->flags = imodGetInt(fin);
@@ -1640,7 +1635,7 @@ int imodWriteAscii(Imod *imod)
         fprintf(imod->file, "\n");
       }
       if (cont->flags)
-        fprintf(imod->file, "contflags %d\n", cont->flags);
+        fprintf(imod->file, "contflags %u\n", cont->flags);
       if (cont->time)
         fprintf(imod->file, "conttime %d\n", cont->time);
     }
@@ -1657,7 +1652,7 @@ int imodWriteAscii(Imod *imod)
       for(i = 0; i < mesh->lsize; i++)
         fprintf(imod->file, "%d\n", mesh->list[i]);
       if (mesh->flag)
-        fprintf(imod->file, "Meshflags %d\n", mesh->flag);
+        fprintf(imod->file, "Meshflags %u\n", mesh->flag);
       if (mesh->time)
         fprintf(imod->file, "Meshtime %d\n", mesh->time);
       if (mesh->surf)
@@ -1724,7 +1719,6 @@ static void byteswap(void *iptr, unsigned size)
   unsigned char *end;
   unsigned char tmp;
   int           i;
-  int           len;
      
   if ((size % 2) != 0)
     size--;
@@ -1814,7 +1808,6 @@ static void tovmsfloat(unsigned char *data, int amt)
 void imodFromVmsFloats(unsigned char *data, int amt)
 {
   unsigned char exp, temp;
-  int i;
   register unsigned char *ptr = (unsigned char *)data;
   register unsigned char *maxptr = (unsigned char *)data + (amt * 4);
      
@@ -1980,6 +1973,9 @@ int imodPutByte(FILE *fp, unsigned char *dat)
 /*
 
 $Log$
+Revision 3.37  2011/05/28 23:02:16  mast
+Stop writing clip->counts as 0 when there is one off plane.
+
 Revision 3.36  2009/01/15 15:23:03  mast
 More consts
 
