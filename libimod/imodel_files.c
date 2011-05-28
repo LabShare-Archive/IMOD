@@ -351,10 +351,11 @@ static int imodel_write_object(Iobj *obj, FILE *fout,
 
       /* For backward compatibility, if there is one clip plane and it is
          off, set clip to 0 */
-      clipOut = clips->count;
-      if (clipOut == 1 && (clips->flags & 1) == 0)
-        clipOut = 0;
-      imodPutBytes(fout, &clipOut, 1);
+      /* 5/28/11: eliminate the backwards compatibility to IMOD 2.4! */
+      /* clipOut = clips->count;
+         if (clipOut == 1 && (clips->flags & 1) == 0)
+         clipOut = 0; */
+      imodPutBytes(fout, &clips->count, 1);
       imodPutBytes(fout, &clips->flags, 3);
       normScale.x = 1. / scale->x;
       normScale.y = 1. / scale->y;
@@ -1979,6 +1980,9 @@ int imodPutByte(FILE *fp, unsigned char *dat)
 /*
 
 $Log$
+Revision 3.36  2009/01/15 15:23:03  mast
+More consts
+
 Revision 3.35  2009/01/02 05:18:48  mast
 const char * for Qt 4 port
 
