@@ -60,6 +60,7 @@ class pipOption:
       self.values = []
       self.multiple = 0
       self.count = 0
+      self.lenShort = 0
       
 optTable = None
 tableSize = 0
@@ -168,6 +169,8 @@ def PipAddOption(optionString):
       return -1
 
    optTable[nextOption].shortName = parts[0]
+   newSlen = len(parts[0])
+   optTable[nextOption].lenShort = newSlen
    optTable[nextOption].longName = parts[1]
 
    # If type ends in M, set multiple flag and strip M
@@ -189,14 +192,12 @@ def PipAddOption(optionString):
 
       oldShort = optTable[ind].shortName
       oldLong = optTable[ind].longName
-      if (PipStartsWith(parts[0], oldShort) or \
-         PipStartsWith(oldShort, parts[0]) or \
-         PipStartsWith(oldLong, parts[0]) or \
-         PipStartsWith(parts[0], oldLong) or \
-         PipStartsWith(oldShort, parts[1]) or \
-         PipStartsWith(parts[1], oldShort) or \
-         PipStartsWith(oldLong, parts[1]) or \
-         PipStartsWith(parts[1], oldLong)):
+      oldSlen = optTable[ind].lenShort
+      if (((PipStartsWith(parts[0], oldShort) or PipStartsWith(oldShort, parts[0])) and
+           ((newSlen > 1 and oldSlen > 1) or (newSlen == 1 and oldSlen == 1))) or \
+         PipStartsWith(oldLong, parts[0]) or PipStartsWith(parts[0], oldLong) or \
+         PipStartsWith(oldShort, parts[1]) or PipStartsWith(parts[1], oldShort) or \
+          PipStartsWith(oldLong, parts[1]) or PipStartsWith(parts[1], oldLong)):
          tempStr = "Option " + parts[0] + "  " + parts[1] + \
                    " is ambiguous with option " + oldShort + "  " + oldLong
          PipSetError(tempStr)
@@ -1196,20 +1197,23 @@ def AddValueString(optInd, strPtr):
 #
 def LookupOption(option, maxLookup):
    global optTable, LOOKUP_NOT_FOUND, LOOKUP_AMBIGUOUS, notFoundOK, noAbbrevs
-   lenopt = 0
+   lenopt = len(option)
    found = LOOKUP_NOT_FOUND
 
-   if (noAbbrevs):
-      lenopt = len(option)
-      
    # Look at all of the options specified by maxLookup
    for i in range(maxLookup):
       sname = optTable[i].shortName
       lname = optTable[i].longName
-      if (PipStartsWith(sname, option) and \
-         (not noAbbrevs or lenopt == len(sname))) or \
-         (PipStartsWith(lname, option) and \
-         (not noAbbrevs or lenopt == strlen(lname))):
+      lenShort = optTable[i].lenShort
+      starts = PipStartsWith(sname, option)
+
+      # First test for single letter short name match - if it passes, skip ambiguity test
+      if lenopt == 1 and starts and lenShort == 1:
+         found = i;
+         break
+      
+      if (starts and  (not noAbbrevs or lenopt == lenShort)) or \
+             (PipStartsWith(lname, option) and (not noAbbrevs or lenopt == len(lname))):
         
          # If it is found, it's an error if one has already been found
          if (found == LOOKUP_NOT_FOUND):
@@ -1287,6 +1291,9 @@ def CheckKeyword(line, keyword, index):
    return (line[valStart:], index)
 
 # $Log$
+# Revision 1.7  2011/02/25 22:20:42  mast
+# Changed fallback warning to be generic
+#
 # Revision 1.6  2010/12/01 23:03:13  mast
 # Fixed some formatting and an error message
 #

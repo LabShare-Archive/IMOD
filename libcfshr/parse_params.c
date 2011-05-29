@@ -49,6 +49,7 @@ typedef struct pipOptions {
   int multiple;         /* 0 if single value allowed, or number of next one
                            being returned (numbered from 1) */
   int count;            /* Number of values accumulated */
+  int lenShort;         /* Length of short name */
 } PipOptions;
 
 static char *types[] = {BOOLEAN_STRING, PARAM_FILE_STRING,
@@ -289,7 +290,7 @@ void PipSetSpecialFlags(int inCase, int inDone, int inStd, int inLines,
  */
 int PipAddOption(char *optionString)
 {
-  int ind, indEnd;
+  int ind, indEnd, oldSlen, newSlen;
   PipOptions *optp = &optTable[nextOption];
   char *colonPtr;
   char *oldShort;
@@ -310,10 +311,14 @@ int PipAddOption(char *optionString)
   if (colonPtr) {
 
     indEnd = colonPtr - subStr;
-    if (indEnd > 0)
+    
+    if (indEnd > 0) {
       optp->shortName = PipSubStrDup(subStr, 0, indEnd - 1);
-    else
+      optp->lenShort = indEnd;
+    } else {
       optp->shortName = strdup(nullString);
+      optp->lenShort = 0;
+    }
     if (PipMemoryError(optp->shortName, "PipAddOption"))
       return -1;
     subStr += indEnd + 1;
@@ -361,6 +366,7 @@ int PipAddOption(char *optionString)
            names and special names */
         newShort = optp->shortName;
         newLong = optp->longName;
+        newSlen = optp->lenShort;
         for (ind = 0; ind < tableSize; ind++) {
 
           /* after checking existing ones, skip to NonOptionArg and 
@@ -370,14 +376,12 @@ int PipAddOption(char *optionString)
 
           oldShort = optTable[ind].shortName;
           oldLong = optTable[ind].longName;
-          if (PipStartsWith(newShort, oldShort) || 
-              PipStartsWith(oldShort, newShort) ||
-              PipStartsWith(oldLong, newShort) ||
-              PipStartsWith(newShort, oldLong) ||
-              PipStartsWith(oldShort, newLong) ||
-              PipStartsWith(newLong, oldShort) ||
-              PipStartsWith(oldLong, newLong) ||
-              PipStartsWith(newLong, oldLong)) {
+          oldSlen = optTable[ind].lenShort;
+          if (((PipStartsWith(newShort, oldShort) || PipStartsWith(oldShort, newShort)) &&
+               ((newSlen > 1 && oldSlen > 1) || (newSlen == 1 && oldSlen == 1))) ||
+              PipStartsWith(oldLong, newShort) || PipStartsWith(newShort, oldLong) ||
+              PipStartsWith(oldShort, newLong) || PipStartsWith(newLong, oldShort) ||
+              PipStartsWith(oldLong, newLong) || PipStartsWith(newLong, oldLong)) {
             sprintf(tempStr, "Option %s  %s is ambiguous with option %s"
                     "  %s", newShort, newLong, oldShort, oldLong);
             PipSetError(tempStr);
@@ -1718,21 +1722,26 @@ static int AddValueString(int option, char *strPtr)
  */
 static int LookupOption(char *option, int maxLookup)
 {
-  int i, lenopt = 0;
+  int starts, i, lenopt, lenShort;
   int found = LOOKUP_NOT_FOUND;
   char *sname, *lname;
 
-  if (noAbbrevs)
-    lenopt = strlen(option);
+  lenopt = strlen(option);
 
   /* Look at all of the options specified by maxLookup */
   for (i = 0; i < maxLookup; i++) {
     sname = optTable[i].shortName;
     lname = optTable[i].longName;
-    if ((PipStartsWith(sname, option) && 
-         (!noAbbrevs || lenopt == strlen(sname))) ||
-        (PipStartsWith(lname, option) && 
-         (!noAbbrevs || lenopt == strlen(lname)))) {
+    lenShort = optTable[i].lenShort;
+    starts = PipStartsWith(sname, option);
+
+    /* First test for single letter short name match - if passes, skip ambiguity test */
+    if (lenopt == 1 && starts && lenShort == 1) {
+      found = i;
+      break;
+    }
+    if ((starts && (!noAbbrevs || lenopt == lenShort)) ||
+        (PipStartsWith(lname, option) && (!noAbbrevs || lenopt == strlen(lname)))) {
 
       /* If it is found, it's an error if one has already been found */
       if (found == LOOKUP_NOT_FOUND)
@@ -1898,6 +1907,9 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
 
 /*
 $Log$
+Revision 1.10  2011/02/28 05:57:13  mast
+Oops, trying to take length of NULL string
+
 Revision 1.9  2011/02/28 02:50:56  mast
 Prevent buffer overruns from IMOD_DIR and AUTODOC_DIR
 
