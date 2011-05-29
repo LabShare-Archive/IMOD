@@ -111,11 +111,13 @@ components:
   \fBshortName:longName:type:helpString\fR
 
 The short name is intended to be used predominantly on the command line, while
-the long name would be more suitable in parameter files.  However,
-PIP makes no distinction between the short and long names.  Either name can be
-abbreviated, either name can be preceded by either one or two dashes, and
-either name can be omitted.  Any of these 4 components can be omitted as long
-as there is either a short or a long name.  The string must have 3 colons.
+the long name would be more suitable in parameter files.  However, PIP makes
+only one distinction between the short and long names - if a short name
+consists of a single letter, there can be other short names starting with that
+letter.  Either name can be abbreviated, either name can be preceded by either
+one or two dashes, and either name can be omitted.  Any of these 4 components
+can be omitted as long as there is either a short or a long name.  The string
+must have 3 colons.
 
 .SS Option Types
 .nf
