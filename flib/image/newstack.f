@@ -66,7 +66,7 @@ c
       real*4, allocatable :: xcen(:),ycen(:),secmean(:),f(:,:,:)
       real*4 tiltAngles(lmgradsec), dmagPerUm(lmgradsec), rotPerUm(lmgradsec)
 c       
-      logical rescale,blankOutput,adjustOrigin
+      logical rescale,blankOutput,adjustOrigin, warping
       character dat*9,tim*8,tempext*9
       logical nbytes_and_flags
       character*80 titlech
@@ -92,7 +92,7 @@ c
       integer*4 ixOffset, iyOffset, lenTemp, ierr3, applyFirst,numTaper
       integer*4 nLineTemp,ifOnePerFile,ifUseFill,listIncrement,indout
       integer*4 ixOriginOff,iyOriginOff, numReplace, isecReplace, modeOld
-      integer*4 indFilter,linesShrink
+      integer*4 indFilter,linesShrink, numAllSec, minNumXF
       real*4 fieldMaxY, binRatio, rotateAngle, expandFactor, fillVal, shrinkFactor
       real*8 dsum,dsumsq,tsum,tsumsq, wallstart,walltime,loadtime,savetime
       real*8 rottime
@@ -182,10 +182,11 @@ c
       linesShrink = 0
       iseriesBase = -1
       seriesExt = ' '
+      minNumXF = 40000
 c       
 c       Preliminary allocation of array
       allocate(array(limdim), stat = ierr)
-      if (ierr. ne. 0) call exitError('ALLOCATING MAIN ARRAY')
+      call memoryError(ierr, 'ALLOCATING MAIN ARRAY')
 C       
 C       Read in list of input files
 C       
@@ -224,10 +225,10 @@ c
         read(inunit,*)nfilein
       endif
       listot=0
-      allocate(filin(nfilein), nlist(nfilein), listind(nfilein), 
-     &    linetmp(nfilein), scaleFacs(nfilein), scaleConsts(nfilein), 
-     &    stat = ierr)
-      if(ierr.ne.0)call exitError('ALLOCATING ARRAYS FOR INPUT FILES')
+      numAllSec = 0
+      allocate(filin(nfilein), nlist(nfilein), listind(nfilein),  linetmp(nfilein), 
+     &    scaleFacs(nfilein), scaleConsts(nfilein),  stat = ierr)
+      call memoryError(ierr, 'ARRAYS FOR INPUT FILES')
 c       
       do i=1,nfilein
 c         
@@ -265,6 +266,7 @@ c
         do isec = 1, nz
           inlist(min(listot + isec, lmsec)) = isec - 1
         enddo
+        numAllSec = numAllSec + nz
 c         
 c         get section list
 c         
@@ -279,8 +281,7 @@ c
 c         
 c         check list legality
 c         
-        if (listot + nlist(i) .gt. lmsec) call exitError(
-     &      'TOO MANY SECTIONS FOR ARRAYS')
+        if (listot + nlist(i) .gt. lmsec) call exitError('TOO MANY SECTIONS FOR ARRAYS')
         listind(i)=listot+1
         indout = listind(i)
         do isec = listot + 1, listot + nlist(i), max(1, listIncrement)
@@ -300,9 +301,9 @@ c
       close(7)
 101   FORMAT(A)
 c
-      allocate(lineuse(listot),listReplace(listot), idfUse(listot),
-     &    xcen(listot),ycen(listot),secmean(listot),f(2,3,listot), stat=ierr)
-      if (ierr .ne. 0) call exitError('ALLOCATING ARRAYS FOR INPUT FILES')
+      allocate(lineuse(listot),listReplace(listot), idfUse(listot), xcen(listot),
+     &    ycen(listot),secmean(listot),f(2,3,max(minNumXF, numAllSec)), stat=ierr)
+      call memoryError(ierr, 'ARRAYS FOR INPUT FILES')
 C       
 C       Read in list of output files
 C       
@@ -466,8 +467,7 @@ c
         write(*,'(1x,a,$)')'Output file X and Y dimensions'//
      &      ' (/ for same as first input file): '
         read(5,*)nx3,ny3
-        write(*,'(1x,a,$)')'Output file data mode (/ for same'//
-     &      ' as first input file): '
+        write(*,'(1x,a,$)')'Output file data mode (/ for same as first input file): '
         read(5,*)newmode
 c         
 c         get list of x,y coordinate offsets
@@ -480,8 +480,7 @@ c
           print *,'Enter X and Y center offsets for each section'
           read(5,*)(xcen(i),ycen(i),i=1,listot)
         elseif(ifoffset.lt.0)then
-          write(*,'(1x,a,$)')
-     &        'X and Y center offsets for all sections: '
+          write(*,'(1x,a,$)')'X and Y center offsets for all sections: '
           read(5,*)xofsall,yofsall
         endif
       ENDIF
@@ -520,8 +519,7 @@ c
         call dopen(3,xffil,'ro','f')
         call xfrdall(3,f,nxforms,*96)
         close(3)
-        if (nxforms .eq. 0) call exitError
-     &      ('THE TRANSFORM FILE CONTAINS NO TRANSFORMS')
+        if (nxforms .eq. 0) call exitError('THE TRANSFORM FILE CONTAINS NO TRANSFORMS')
 
         call getItemsToUse(nxforms, listot, inlist, 'UseTransformLines',
      &      listString, pipinput, 'TRANSFORM LINE', ifOnePerFile, nfilein,
@@ -2148,6 +2146,9 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.63  2011/03/30 20:24:30  mast
+c       Fixed copying of extra header data for multiple input files
+c
 c       Revision 3.62  2011/02/12 04:38:30  mast
 c       Change default filter because of more filters added
 c
