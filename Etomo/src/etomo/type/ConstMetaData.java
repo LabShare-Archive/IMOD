@@ -16,6 +16,10 @@ import etomo.comscript.FortranInputString;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.64  2011/05/03 02:49:47  sueh
+ * <p> bug# 1416 Removed isGenResumeEnabled because the resume radio button state should be set based on
+ * <p> the checkpoint value, not saved and reloaded.
+ * <p>
  * <p> Revision 3.63  2011/04/04 17:02:04  sueh
  * <p> bug# 1416 Added getGenRadialRadius, getGenRadialSigma, getGenSubareaSize, getGenYOffsetOfSubarea,
  * <p> isGenBackProjection, isGenResumeEnabled, isGenSubarea.
@@ -400,6 +404,10 @@ public interface ConstMetaData {
 
   public String getFinalStackFiducialDiameter(AxisID axisID);
 
+  public Number getFinalStackExpandCircleIterations(AxisID axisID);
+
+  public boolean isFinalStackExpandCircleIterationsSet(final AxisID axisID);
+
   public int getFinalStackPolynomialOrder(AxisID axisID);
 
   public IntKeyList getTomoGenTrialTomogramNameList(AxisID axisID);
@@ -467,4 +475,6 @@ public interface ConstMetaData {
   public String getGenRadialRadius(AxisID axisID);
 
   public String getGenRadialSigma(AxisID axisID);
+
+  public boolean isUseFinalStackExpandCircleIterations(AxisID axisID);
 }

@@ -29,6 +29,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.72  2011/05/03 02:55:53  sueh
+ * <p> bug# 1416 Removed genResumeEnabled because the resume radio button state should be set based on the
+ * <p> checkpoint value, not saved and reloaded.
+ * <p>
  * <p> Revision 3.71  2011/04/25 16:46:40  sueh
  * <p> bug# 1475 Improved toString.
  * <p>
@@ -130,7 +134,9 @@ import etomo.util.Utilities;
  * <p> bug# 1162 Added a manager stamp to setDatasetName.
  * <p>
  * <p> Revision 3.43  2008/12/02 21:20:57  sueh
- * <p> bug# 1157 Added finalStackFiducialDiameterA and B.  Deprecated finalStackBetterRadiusA and B.  Getting better radius for backwards compatibility.  Changed revision number to 1.10.
+ * <p> bug# 1157 Added finalStackFiducialDiameterA and B.  Deprecated
+ * <p> finalStackBetterRadiusA and B.  Getting better radius for backwards compatibility.
+ * <p> Changed revision number to 1.10.
  * <p>
  * <p> Revision 3.42  2008/11/20 01:36:22  sueh
  * <p> bug# 1147, bug# 1149 Added finalStackBetterRadiusA and B, and
@@ -139,7 +145,8 @@ import etomo.util.Utilities;
  * <p> Revision 3.41  2008/11/11 23:49:00  sueh
  * <p> bug# 1149 Changed tomoGenBinning to finalStackBinning.  Fixed the
  * <p> names of the CtfCorrectionParallel variables (should start with
- * <p> "finalStack", not "stack").  Changed latestRevionNumber to 1.9.  Added backward compatibility for 1.8.
+ * <p> "finalStack", not "stack").  Changed latestRevionNumber to 1.9.  Added backward
+ * <p> compatibility for 1.8.
  * <p>
  * <p> Revision 3.40  2008/10/27 19:24:58  sueh
  * <p> bug# 1141 Add stackCtfCorrectionParallelA and B.
@@ -533,6 +540,18 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private EtomoNumber finalStackFiducialDiameterB = new EtomoNumber(
       EtomoNumber.Type.DOUBLE, DialogType.FINAL_ALIGNED_STACK.getStorableName() + "."
           + AxisID.SECOND.getExtension() + "." + "FiducialDiameter");
+  private EtomoNumber finalStackExpandCircleIterationsA = new EtomoNumber(
+      DialogType.FINAL_ALIGNED_STACK.getStorableName() + "."
+          + AxisID.FIRST.getExtension() + "." + "ExpandCircleIterations");
+  private EtomoNumber finalStackExpandCircleIterationsB = new EtomoNumber(
+      DialogType.FINAL_ALIGNED_STACK.getStorableName() + "."
+          + AxisID.SECOND.getExtension() + "." + "ExpandCircleIterations");
+  private EtomoBoolean2 useFinalStackExpandCircleIterationsA = new EtomoBoolean2(
+      DialogType.FINAL_ALIGNED_STACK.getStorableName() + "."
+          + AxisID.FIRST.getExtension() + "." + "UseExpandCircleIterations");
+  private EtomoNumber useFinalStackExpandCircleIterationsB = new EtomoBoolean2(
+      DialogType.FINAL_ALIGNED_STACK.getStorableName() + "."
+          + AxisID.SECOND.getExtension() + "." + "UseExpandCircleIterations");
   private EtomoNumber finalStackPolynomialOrderA = new EtomoNumber(
       DialogType.FINAL_ALIGNED_STACK.getStorableName() + "."
           + AxisID.FIRST.getExtension() + "." + "PolynomialOrder");
@@ -681,7 +700,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private final StringProperty genRadialSigmaB = new StringProperty(GEN_KEY + "."
       + SECOND_AXIS_KEY + ".RadialSigma");
 
-  public MetaData(ApplicationManager manager) {
+  public MetaData(final ApplicationManager manager) {
     this.manager = manager;
     squeezevolParam = new SqueezevolParam(manager);
     combineParams = new CombineParams(manager);
@@ -723,7 +742,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
    * Set the dataset name, trimming any white space from the beginning and
    * end of the string
    */
-  public void setDatasetName(String fileName) {
+  public void setDatasetName(final String fileName) {
     String pathName = fileName.trim();
     File file = new File(pathName);
     String path = file.getPath();
@@ -757,7 +776,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setLambdaForSmoothing(String input) {
+  public void setLambdaForSmoothing(final String input) {
     lambdaForSmoothing.set(input);
   }
 
@@ -765,7 +784,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return lambdaForSmoothing.toString();
   }
 
-  public void setLambdaForSmoothingList(String input) {
+  public void setLambdaForSmoothingList(final String input) {
     lambdaForSmoothingList.set(input);
   }
 
@@ -777,15 +796,15 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return lambdaForSmoothingList.isEmpty();
   }
 
-  public void setTransferfidAFields(TransferfidParam param) {
+  public void setTransferfidAFields(final TransferfidParam param) {
     transferfidParamA.setStorableFields(param);
   }
 
-  public void setTransferfidBFields(TransferfidParam param) {
+  public void setTransferfidBFields(final TransferfidParam param) {
     transferfidParamB.setStorableFields(param);
   }
 
-  public void setSampleThickness(AxisID axisID, String thickness) {
+  public void setSampleThickness(final AxisID axisID, final String thickness) {
     if (axisID == AxisID.SECOND) {
       sampleThicknessB.set(thickness);
     }
@@ -798,44 +817,44 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
    * Set the backup diretory, trimming any white space from the beginning and
    * end of the string
    */
-  public void setBackupDirectory(String backupDir) {
+  public void setBackupDirectory(final String backupDir) {
     backupDirectory = backupDir.trim();
   }
 
-  public void setDistortionFile(String distortionFile) {
+  public void setDistortionFile(final String distortionFile) {
     this.distortionFile = distortionFile;
   }
 
-  public void setMagGradientFile(String magGradientFile) {
+  public void setMagGradientFile(final String magGradientFile) {
     this.magGradientFile = magGradientFile;
   }
 
-  public void setAdjustedFocusA(boolean adjustedFocus) {
+  public void setAdjustedFocusA(final boolean adjustedFocus) {
     this.adjustedFocusA.set(adjustedFocus);
   }
 
-  public void setAdjustedFocusB(boolean adjustedFocus) {
+  public void setAdjustedFocusB(final boolean adjustedFocus) {
     this.adjustedFocusB.set(adjustedFocus);
   }
 
-  public void setAxisType(AxisType at) {
+  public void setAxisType(final AxisType at) {
     axisType = at;
     setAxisPrepends();
   }
 
-  public void setViewType(ViewType vt) {
+  public void setViewType(final ViewType vt) {
     viewType = vt;
   }
 
-  public void setPixelSize(double pixelSize) {
+  public void setPixelSize(final double pixelSize) {
     this.pixelSize = pixelSize;
   }
 
-  public void setPixelSize(String pixelSize) {
+  public void setPixelSize(final String pixelSize) {
     this.pixelSize = Double.parseDouble(pixelSize);
   }
 
-  public void setUseLocalAlignments(AxisID axisID, boolean state) {
+  public void setUseLocalAlignments(final AxisID axisID, final boolean state) {
     if (axisID == AxisID.SECOND) {
       useLocalAlignmentsB = state;
     }
@@ -844,21 +863,21 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public final void setBStackProcessed(boolean bStackProcessed) {
+  public final void setBStackProcessed(final boolean bStackProcessed) {
     if (this.bStackProcessed == null) {
       this.bStackProcessed = new EtomoBoolean2(B_STACK_PROCESSED_GROUP);
     }
     this.bStackProcessed.set(bStackProcessed);
   }
 
-  public final void setBStackProcessed(String bStackProcessed) {
+  public final void setBStackProcessed(final String bStackProcessed) {
     if (this.bStackProcessed == null) {
       this.bStackProcessed = new EtomoBoolean2(B_STACK_PROCESSED_GROUP);
     }
     this.bStackProcessed.set(bStackProcessed);
   }
 
-  public void setSizeToOutputInXandY(AxisID axisID, String size)
+  public void setSizeToOutputInXandY(final AxisID axisID, final String size)
       throws FortranInputSyntaxException {
     if (axisID == AxisID.SECOND) {
       sizeToOutputInXandYB.validateAndSet(size);
@@ -868,7 +887,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setPosBinning(AxisID axisID, int binning) {
+  public void setPosBinning(final AxisID axisID, final int binning) {
     if (axisID == AxisID.SECOND) {
       posBinningB.set(binning);
     }
@@ -877,7 +896,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setStackBinning(AxisID axisID, int binning) {
+  public void setStackBinning(final AxisID axisID, final int binning) {
     if (axisID == AxisID.SECOND) {
       stackBinningB.set(binning);
     }
@@ -886,7 +905,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setStack3dFindBinning(AxisID axisID, int binning) {
+  public void setStack3dFindBinning(final AxisID axisID, final int binning) {
     if (axisID == AxisID.SECOND) {
       stack3dFindBinningB.set(binning);
     }
@@ -895,19 +914,19 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setPostCurTab(int input) {
+  public void setPostCurTab(final int input) {
     postCurTab.set(input);
   }
 
-  public void setGenCurTab(int input) {
+  public void setGenCurTab(final int input) {
     genCurTab.set(input);
   }
 
-  public void setPostExists(boolean input) {
+  public void setPostExists(final boolean input) {
     postExists.set(input);
   }
 
-  public void setCombineVolcombineParallel(boolean combineVolcombineParallel) {
+  public void setCombineVolcombineParallel(final boolean combineVolcombineParallel) {
     if (this.combineVolcombineParallel == null) {
       this.combineVolcombineParallel = new EtomoBoolean2(
           COMBINE_VOLCOMBINE_PARALLEL_GROUP);
@@ -915,7 +934,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     this.combineVolcombineParallel.set(combineVolcombineParallel);
   }
 
-  public void setCombineVolcombineParallel(String combineVolcombineParallel) {
+  public void setCombineVolcombineParallel(final String combineVolcombineParallel) {
     if (this.combineVolcombineParallel == null) {
       this.combineVolcombineParallel = new EtomoBoolean2(
           COMBINE_VOLCOMBINE_PARALLEL_GROUP);
@@ -923,7 +942,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     this.combineVolcombineParallel.set(combineVolcombineParallel);
   }
 
-  public void setTiltParallel(AxisID axisID, PanelId panelId, boolean tiltParallel) {
+  public void setTiltParallel(final AxisID axisID, final PanelId panelId,
+      final boolean tiltParallel) {
     if (panelId == PanelId.TILT) {
       if (axisID == AxisID.SECOND) {
         if (tomoGenTiltParallelB == null) {
@@ -954,7 +974,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setFinalStackCtfCorrectionParallel(AxisID axisID, boolean input) {
+  public void setFinalStackCtfCorrectionParallel(final AxisID axisID, final boolean input) {
     if (axisID == AxisID.SECOND) {
       if (finalStackCtfCorrectionParallelB == null) {
         finalStackCtfCorrectionParallelB = new EtomoBoolean2(
@@ -971,15 +991,16 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setDefaultParallel(boolean defaultParallel) {
+  public void setDefaultParallel(final boolean defaultParallel) {
     this.defaultParallel.set(defaultParallel);
   }
 
-  public void setDefaultGpuProcessing(boolean input) {
+  public void setDefaultGpuProcessing(final boolean input) {
     defaultGpuProcessing.set(input);
   }
 
-  private void setTomoGenTiltParallel(AxisID axisID, String tomoGenTiltParallel) {
+  private void setTomoGenTiltParallel(final AxisID axisID,
+      final String tomoGenTiltParallel) {
     if (axisID == AxisID.SECOND) {
       if (tomoGenTiltParallelB == null) {
         tomoGenTiltParallelB = new EtomoBoolean2(TOMO_GEN_B_TILT_PARALLEL_GROUP);
@@ -994,7 +1015,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setFinalStackCtfCorrectionParallel(AxisID axisID, String input) {
+  public void setFinalStackCtfCorrectionParallel(final AxisID axisID, final String input) {
     if (axisID == AxisID.SECOND) {
       if (finalStackCtfCorrectionParallelB == null) {
         finalStackCtfCorrectionParallelB = new EtomoBoolean2(
@@ -1011,7 +1032,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setUseZFactors(AxisID axisID, boolean useZFactors) {
+  public void setUseZFactors(final AxisID axisID, final boolean useZFactors) {
     if (axisID == AxisID.SECOND) {
       this.useZFactorsB.set(useZFactors);
     }
@@ -1020,15 +1041,15 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setFiducialDiameter(double fiducialDiameter) {
+  public void setFiducialDiameter(final double fiducialDiameter) {
     this.fiducialDiameter = fiducialDiameter;
   }
 
-  public void setFiducialDiameter(String fiducialDiameter) {
+  public void setFiducialDiameter(final String fiducialDiameter) {
     this.fiducialDiameter = Double.parseDouble(fiducialDiameter);
   }
 
-  public void setImageRotation(String rotation, AxisID axisID) {
+  public void setImageRotation(final String rotation, final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       imageRotationB.set(rotation);
     }
@@ -1037,15 +1058,15 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setBinning(Number binning) {
+  public void setBinning(final Number binning) {
     this.binning = binning.intValue();
   }
 
-  public void setTiltAngleSpecA(TiltAngleSpec tiltAngleSpec) {
+  public void setTiltAngleSpecA(final TiltAngleSpec tiltAngleSpec) {
     tiltAngleSpecA = tiltAngleSpec;
   }
 
-  public void setExcludeProjections(String list, AxisID axisID) {
+  public void setExcludeProjections(final String list, final AxisID axisID) {
     //Strip whitespace.
     String[] array = list.trim().split("\\s+");
     if (array != null && array.length > 1) {
@@ -1070,7 +1091,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setGenExists(AxisID axisID, boolean input) {
+  public void setGenExists(final AxisID axisID, final boolean input) {
     if (axisID == AxisID.SECOND) {
       genExistsB.set(input);
     }
@@ -1079,7 +1100,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setPosExists(AxisID axisID, boolean input) {
+  public void setPosExists(final AxisID axisID, final boolean input) {
     if (axisID == AxisID.SECOND) {
       posExistsB.set(input);
     }
@@ -1088,7 +1109,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setGenBackProjection(AxisID axisID, boolean input) {
+  public void setGenBackProjection(final AxisID axisID, final boolean input) {
     if (axisID == AxisID.SECOND) {
       genBackProjectionB.set(input);
     }
@@ -1097,7 +1118,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setGenSubarea(AxisID axisID, boolean input) {
+  public void setGenSubarea(final AxisID axisID, final boolean input) {
     if (axisID == AxisID.SECOND) {
       genSubareaB.set(input);
     }
@@ -1106,7 +1127,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setGenSubareaSize(AxisID axisID, String input) {
+  public void setGenSubareaSize(final AxisID axisID, final String input) {
     if (axisID == AxisID.SECOND) {
       genSubareaSizeB.set(input);
     }
@@ -1115,7 +1136,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setGenYOffsetOfSubarea(AxisID axisID, String input) {
+  public void setGenYOffsetOfSubarea(final AxisID axisID, final String input) {
     if (axisID == AxisID.SECOND) {
       genYOffsetOfSubareaB.set(input);
     }
@@ -1124,7 +1145,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setGenRadialRadius(AxisID axisID, String input) {
+  public void setGenRadialRadius(final AxisID axisID, final String input) {
     if (axisID == AxisID.SECOND) {
       genRadialRadiusB.set(input);
     }
@@ -1133,7 +1154,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setGenRadialSigma(AxisID axisID, String input) {
+  public void setGenRadialSigma(final AxisID axisID, final String input) {
     if (axisID == AxisID.SECOND) {
       genRadialSigmaB.set(input);
     }
@@ -1142,19 +1163,19 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setTiltAngleSpecB(TiltAngleSpec tiltAngleSpec) {
+  public void setTiltAngleSpecB(final TiltAngleSpec tiltAngleSpec) {
     tiltAngleSpecB = tiltAngleSpec;
   }
 
-  public void setComScriptCreated(boolean state) {
+  public void setComScriptCreated(final boolean state) {
     comScriptsCreated = state;
   }
 
-  public void setCombineParams(CombineParams combine) {
+  public void setCombineParams(final CombineParams combine) {
     combineParams = combine;
   }
 
-  public void setFiducialessAlignment(AxisID axisID, boolean state) {
+  public void setFiducialessAlignment(final AxisID axisID, final boolean state) {
     if (axisID == AxisID.SECOND) {
       fiducialessAlignmentB = state;
     }
@@ -1163,7 +1184,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setFineExists(AxisID axisID, boolean input) {
+  public void setFineExists(final AxisID axisID, final boolean input) {
     if (axisID == AxisID.SECOND) {
       fineExistsB.set(input);
     }
@@ -1172,7 +1193,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setWholeTomogramSample(AxisID axisID, boolean state) {
+  public void setWholeTomogramSample(final AxisID axisID, final boolean state) {
     if (axisID == AxisID.SECOND) {
       wholeTomogramSampleB = state;
     }
@@ -1184,7 +1205,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   /**
    *  Get the objects attributes from the properties object.
    */
-  public void load(Properties props) {
+  public void load(final Properties props) {
     load(props, "");
   }
 
@@ -1204,7 +1225,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void load(Properties props, String prepend) {
+  public void load(final Properties props, String prepend) {
     super.load(props, prepend);
     //reset
     revisionNumber.reset();
@@ -1250,6 +1271,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     finalStackBetterRadiusB.reset();
     finalStackFiducialDiameterA.reset();
     finalStackFiducialDiameterB.reset();
+    finalStackExpandCircleIterationsA.reset();
+    finalStackExpandCircleIterationsB.reset();
+    useFinalStackExpandCircleIterationsA.reset();
+    useFinalStackExpandCircleIterationsB.reset();
     finalStackPolynomialOrderA.reset();
     finalStackPolynomialOrderB.reset();
     tomoGenTrialTomogramNameListA.reset();
@@ -1353,7 +1378,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
     finalStackFiducialDiameterA.load(props, prepend);
     finalStackFiducialDiameterB.load(props, prepend);
-
+    finalStackExpandCircleIterationsA.load(props, prepend);
+    finalStackExpandCircleIterationsB.load(props, prepend);
+    useFinalStackExpandCircleIterationsA.load(props, prepend);
+    useFinalStackExpandCircleIterationsB.load(props, prepend);
     // Make this true for now until the variable is present in all of the
     // data files so as to not break existing files
     // May-03-2002
@@ -1524,7 +1552,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
         TILT_3D_FIND_B_TILT_PARALLEL_KEY, props, prepend);
   }
 
-  public void setNoBeamTiltSelected(AxisID axisID, boolean selected) {
+  public void setNoBeamTiltSelected(final AxisID axisID, final boolean selected) {
     if (axisID == AxisID.SECOND) {
       noBeamTiltSelectedB.set(selected);
     }
@@ -1533,7 +1561,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setFixedBeamTiltSelected(AxisID axisID, boolean selected) {
+  public void setFixedBeamTiltSelected(final AxisID axisID, final boolean selected) {
     if (axisID == AxisID.SECOND) {
       fixedBeamTiltSelectedB.set(selected);
     }
@@ -1542,7 +1570,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setGenLog(AxisID axisID, String input) {
+  public void setGenLog(final AxisID axisID, final String input) {
     if (axisID == AxisID.SECOND) {
       genLogB.set(input);
     }
@@ -1551,7 +1579,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setGenScaleFactorLog(AxisID axisID, String input) {
+  public void setGenScaleFactorLog(final AxisID axisID, final String input) {
     if (axisID == AxisID.SECOND) {
       genScaleFactorLogB.set(input);
     }
@@ -1560,7 +1588,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setGenScaleOffsetLog(AxisID axisID, String input) {
+  public void setGenScaleOffsetLog(final AxisID axisID, final String input) {
     if (axisID == AxisID.SECOND) {
       genScaleOffsetLogB.set(input);
     }
@@ -1569,7 +1597,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setGenScaleFactorLinear(AxisID axisID, String input) {
+  public void setGenScaleFactorLinear(final AxisID axisID, final String input) {
     if (axisID == AxisID.SECOND) {
       genScaleFactorLinearB.set(input);
     }
@@ -1578,7 +1606,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setGenScaleOffsetLinear(AxisID axisID, String input) {
+  public void setGenScaleOffsetLinear(final AxisID axisID, final String input) {
     if (axisID == AxisID.SECOND) {
       genScaleOffsetLinearB.set(input);
     }
@@ -1587,7 +1615,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setFixedBeamTilt(AxisID axisID, String fixedBeamTilt) {
+  public void setFixedBeamTilt(final AxisID axisID, final String fixedBeamTilt) {
     if (axisID == AxisID.SECOND) {
       this.fixedBeamTiltB.set(fixedBeamTilt);
     }
@@ -1596,7 +1624,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setFinalStackFiducialDiameter(AxisID axisID, String input) {
+  public void setFinalStackFiducialDiameter(final AxisID axisID, final String input) {
     if (axisID == AxisID.SECOND) {
       finalStackFiducialDiameterB.set(input);
     }
@@ -1605,7 +1633,26 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setFinalStackPolynomialOrder(AxisID axisID, String input) {
+  public void setFinalStackExpandCircleIterations(final AxisID axisID, final Object input) {
+    if (axisID == AxisID.SECOND) {
+      finalStackExpandCircleIterationsB.set((Number) input);
+    }
+    else {
+      finalStackExpandCircleIterationsA.set((Number) input);
+    }
+  }
+
+  public void setUseFinalStackExpandCircleIterations(final AxisID axisID,
+      final boolean input) {
+    if (axisID == AxisID.SECOND) {
+      useFinalStackExpandCircleIterationsB.set(input);
+    }
+    else {
+      useFinalStackExpandCircleIterationsA.set(input);
+    }
+  }
+
+  public void setFinalStackPolynomialOrder(final AxisID axisID, final String input) {
     if (axisID == AxisID.SECOND) {
       finalStackPolynomialOrderB.set(input);
     }
@@ -1614,15 +1661,15 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setTargetPatchSizeXandY(String targetPatchSizeXandY) {
+  public void setTargetPatchSizeXandY(final String targetPatchSizeXandY) {
     this.targetPatchSizeXandY = targetPatchSizeXandY;
   }
 
-  public void setNumberOfLocalPatchesXandY(String numberOfLocalPatchesXandY) {
+  public void setNumberOfLocalPatchesXandY(final String numberOfLocalPatchesXandY) {
     this.numberOfLocalPatchesXandY = numberOfLocalPatchesXandY;
   }
 
-  public void setFiducialess(AxisID axisID, boolean input) {
+  public void setFiducialess(final AxisID axisID, final boolean input) {
     if (axisID == AxisID.SECOND) {
       fiducialessB.set(input);
     }
@@ -1639,7 +1686,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return secondAxisPrepend;
   }
 
-  String createPrepend(String prepend) {
+  String createPrepend(final String prepend) {
     if (prepend.equals("")) {
       return "Setup";
     }
@@ -1649,7 +1696,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   /**
    *  Insert the objects attributes into the properties object.
    */
-  public void store(Properties props, String prepend) {
+  public void store(final Properties props, String prepend) {
     super.store(props, prepend);
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -1738,6 +1785,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     finalStackPolynomialOrderB.store(props, prepend);
     finalStackFiducialDiameterA.store(props, prepend);
     finalStackFiducialDiameterB.store(props, prepend);
+    finalStackExpandCircleIterationsA.store(props, prepend);
+    finalStackExpandCircleIterationsB.store(props, prepend);
+    useFinalStackExpandCircleIterationsA.store(props, prepend);
+    useFinalStackExpandCircleIterationsB.store(props, prepend);
     tomoGenTrialTomogramNameListA.store(props, prepend);
     tomoGenTrialTomogramNameListB.store(props, prepend);
     trackRaptorUseRawStackA.store(props, prepend);
@@ -1804,7 +1855,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return trackRaptorUseRawStackA.is();
   }
 
-  public void setTrackRaptorUseRawStack(boolean input) {
+  public void setTrackRaptorUseRawStack(final boolean input) {
     trackRaptorUseRawStackA.set(input);
   }
 
@@ -1812,7 +1863,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return trackRaptorMarkA.toString();
   }
 
-  public void setTrackRaptorMark(String input) {
+  public void setTrackRaptorMark(final String input) {
     trackRaptorMarkA.set(input);
   }
 
@@ -1820,7 +1871,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return trackRaptorDiamA;
   }
 
-  public void setTrackRaptorDiam(String input) {
+  public void setTrackRaptorDiam(final String input) {
     trackRaptorDiamA.set(input);
   }
 
@@ -1915,24 +1966,45 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return fixedBeamTiltA;
   }
 
-  public String getFinalStackFiducialDiameter(AxisID axisID) {
+  public String getFinalStackFiducialDiameter(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return finalStackFiducialDiameterB.toString();
     }
     return finalStackFiducialDiameterA.toString();
   }
 
+  public Number getFinalStackExpandCircleIterations(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return finalStackExpandCircleIterationsB.getNumber();
+    }
+    return finalStackExpandCircleIterationsA.getNumber();
+  }
+
+  public boolean isFinalStackExpandCircleIterationsSet(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return !finalStackExpandCircleIterationsB.isNull();
+    }
+    return !finalStackExpandCircleIterationsA.isNull();
+  }
+
+  public boolean isUseFinalStackExpandCircleIterations(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return useFinalStackExpandCircleIterationsB.is();
+    }
+    return useFinalStackExpandCircleIterationsA.is();
+  }
+
   /**
    * @deprecated in 1.10
    */
-  public String getFinalStackBetterRadius(AxisID axisID) {
+  public String getFinalStackBetterRadius(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return finalStackBetterRadiusB.toString();
     }
     return finalStackBetterRadiusA.toString();
   }
 
-  public int getFinalStackPolynomialOrder(AxisID axisID) {
+  public int getFinalStackPolynomialOrder(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return finalStackPolynomialOrderB.getInt();
     }
@@ -1967,14 +2039,14 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return trackOverlapOfPatchesXandYA.toString();
   }
 
-  public void setTomoGenTrialTomogramNameList(AxisID axisID, IntKeyList input) {
+  public void setTomoGenTrialTomogramNameList(final AxisID axisID, IntKeyList input) {
     if (axisID == AxisID.SECOND) {
       tomoGenTrialTomogramNameListB = input;
     }
     tomoGenTrialTomogramNameListA = input;
   }
 
-  public void setTrackLengthAndOverlap(AxisID axisID, String input) {
+  public void setTrackLengthAndOverlap(final AxisID axisID, String input) {
     if (axisID == AxisID.SECOND) {
       trackLengthAndOverlapB.set(input);
     }
@@ -1983,7 +2055,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setTrackMethod(AxisID axisID, String input) {
+  public void setTrackMethod(final AxisID axisID, final String input) {
     if (axisID == AxisID.SECOND) {
       trackMethodB.set(input);
     }
@@ -1992,7 +2064,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setTrackNumberOfPatchesXandY(AxisID axisID, String input) {
+  public void setTrackNumberOfPatchesXandY(final AxisID axisID, final String input) {
     if (axisID == AxisID.SECOND) {
       trackNumberOfPatchesXandYB.set(input);
     }
@@ -2001,7 +2073,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setTrackOverlapOfPatchesXandY(AxisID axisID, String input) {
+  public void setTrackOverlapOfPatchesXandY(final AxisID axisID, final String input) {
     if (axisID == AxisID.SECOND) {
       trackOverlapOfPatchesXandYB.set(input);
     }
@@ -2010,84 +2082,84 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public boolean isFinalStackFiducialDiameterNull(AxisID axisID) {
+  public boolean isFinalStackFiducialDiameterNull(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return finalStackFiducialDiameterB.isNull();
     }
     return finalStackFiducialDiameterA.isNull();
   }
 
-  public boolean isFineExists(AxisID axisID) {
+  public boolean isFineExists(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return fineExistsB.is();
     }
     return fineExistsA.is();
   }
 
-  public String getGenLog(AxisID axisID) {
+  public String getGenLog(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return genLogB.toString();
     }
     return genLogA.toString();
   }
 
-  public String getGenSubareaSize(AxisID axisID) {
+  public String getGenSubareaSize(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return genSubareaSizeB.toString();
     }
     return genSubareaSizeA.toString();
   }
 
-  public boolean isGenSubarea(AxisID axisID) {
+  public boolean isGenSubarea(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return genSubareaB.is();
     }
     return genSubareaA.is();
   }
 
-  public String getGenRadialRadius(AxisID axisID) {
+  public String getGenRadialRadius(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return genRadialRadiusB.toString();
     }
     return genRadialRadiusA.toString();
   }
 
-  public String getGenRadialSigma(AxisID axisID) {
+  public String getGenRadialSigma(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return genRadialSigmaB.toString();
     }
     return genRadialSigmaA.toString();
   }
 
-  public String getGenYOffsetOfSubarea(AxisID axisID) {
+  public String getGenYOffsetOfSubarea(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return genYOffsetOfSubareaB.toString();
     }
     return genYOffsetOfSubareaA.toString();
   }
 
-  public String getGenScaleFactorLog(AxisID axisID) {
+  public String getGenScaleFactorLog(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return genScaleFactorLogB.toString();
     }
     return genScaleFactorLogA.toString();
   }
 
-  public String getGenScaleOffsetLog(AxisID axisID) {
+  public String getGenScaleOffsetLog(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return genScaleOffsetLogB.toString();
     }
     return genScaleOffsetLogA.toString();
   }
 
-  public String getGenScaleFactorLinear(AxisID axisID) {
+  public String getGenScaleFactorLinear(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return genScaleFactorLinearB.toString();
     }
     return genScaleFactorLinearA.toString();
   }
 
-  public String getGenScaleOffsetLinear(AxisID axisID) {
+  public String getGenScaleOffsetLinear(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return genScaleOffsetLinearB.toString();
     }
@@ -2097,7 +2169,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   /**
    * @deprecated in 1.10
    */
-  public boolean isFinalStackBetterRadiusEmpty(AxisID axisID) {
+  public boolean isFinalStackBetterRadiusEmpty(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return finalStackBetterRadiusB.isEmpty();
     }
@@ -2112,7 +2184,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return numberOfLocalPatchesXandY;
   }
 
-  public boolean isFiducialess(AxisID axisID) {
+  public boolean isFiducialess(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return fiducialessB.is();
     }
@@ -2127,11 +2199,11 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return squeezevolParam;
   }
 
-  public void getTransferfidAFields(TransferfidParam transferfidParam) {
+  public void getTransferfidAFields(final TransferfidParam transferfidParam) {
     this.transferfidParamA.getStorableFields(transferfidParam);
   }
 
-  public void getTransferfidBFields(TransferfidParam transferfidParam) {
+  public void getTransferfidBFields(final TransferfidParam transferfidParam) {
     this.transferfidParamB.getStorableFields(transferfidParam);
   }
 
@@ -2150,7 +2222,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return datasetName + fileExtension;
   }
 
-  public String getTrackMethod(AxisID axisID) {
+  public String getTrackMethod(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return trackMethodB.toString();
     }
@@ -2177,7 +2249,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return distortionFile;
   }
 
-  public FortranInputString getSizeToOutputInXandY(AxisID axisID) {
+  public FortranInputString getSizeToOutputInXandY(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return sizeToOutputInXandYB;
     }
@@ -2208,28 +2280,28 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return pixelSize;
   }
 
-  public boolean getUseLocalAlignments(AxisID axisID) {
+  public boolean getUseLocalAlignments(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return useLocalAlignmentsB;
     }
     return useLocalAlignmentsA;
   }
 
-  public int getPosBinning(AxisID axisID) {
+  public int getPosBinning(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return posBinningB.getDefaultedInt();
     }
     return posBinningA.getDefaultedInt();
   }
 
-  public int getStackBinning(AxisID axisID) {
+  public int getStackBinning(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return stackBinningB.getDefaultedInt();
     }
     return stackBinningA.getDefaultedInt();
   }
 
-  public int getStack3dFindBinning(AxisID axisID) {
+  public int getStack3dFindBinning(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return stack3dFindBinningB.getDefaultedInt();
     }
@@ -2252,7 +2324,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return combineVolcombineParallel;
   }
 
-  public ConstEtomoNumber getTiltParallel(AxisID axisID, PanelId panelId) {
+  public ConstEtomoNumber getTiltParallel(final AxisID axisID, final PanelId panelId) {
     if (panelId == PanelId.TILT) {
       if (axisID == AxisID.SECOND) {
         return tomoGenTiltParallelB;
@@ -2268,7 +2340,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return null;
   }
 
-  public ConstEtomoNumber getFinalStackCtfCorrectionParallel(AxisID axisID) {
+  public ConstEtomoNumber getFinalStackCtfCorrectionParallel(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return finalStackCtfCorrectionParallelB;
     }
@@ -2283,7 +2355,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return defaultGpuProcessing;
   }
 
-  public ConstEtomoNumber getUseZFactors(AxisID axisID) {
+  public ConstEtomoNumber getUseZFactors(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return useZFactorsB;
     }
@@ -2294,7 +2366,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return fiducialDiameter;
   }
 
-  public ConstEtomoNumber getImageRotation(AxisID axisID) {
+  public ConstEtomoNumber getImageRotation(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return imageRotationB;
     }
@@ -2309,7 +2381,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return bStackProcessed;
   }
 
-  public EtomoNumber getSampleThickness(AxisID axisID) {
+  public EtomoNumber getSampleThickness(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return sampleThicknessB;
     }
@@ -2320,7 +2392,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return tiltAngleSpecA;
   }
 
-  public TiltAngleSpec getTiltAngleSpec(AxisID axisID) {
+  public TiltAngleSpec getTiltAngleSpec(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return tiltAngleSpecB;
     }
@@ -2339,35 +2411,35 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return excludeProjectionsB;
   }
 
-  public boolean isGenExists(AxisID axisID) {
+  public boolean isGenExists(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return genExistsB.is();
     }
     return genExistsA.is();
   }
 
-  public boolean isPosExists(AxisID axisID) {
+  public boolean isPosExists(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return posExistsB.is();
     }
     return posExistsA.is();
   }
 
-  public boolean isGenBackProjection(AxisID axisID) {
+  public boolean isGenBackProjection(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return genBackProjectionB.is();
     }
     return genBackProjectionA.is();
   }
 
-  public boolean isGenScaleFactorLinearSet(AxisID axisID) {
+  public boolean isGenScaleFactorLinearSet(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return !genScaleFactorLinearB.isNull();
     }
     return !genScaleFactorLinearA.isNull();
   }
 
-  public boolean isGenScaleOffsetLinearSet(AxisID axisID) {
+  public boolean isGenScaleOffsetLinearSet(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return !genScaleOffsetLinearB.isNull();
     }
@@ -2378,7 +2450,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return comScriptsCreated;
   }
 
-  public boolean isFiducialessAlignment(AxisID axisID) {
+  public boolean isFiducialessAlignment(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return fiducialessAlignmentB;
     }
@@ -2389,7 +2461,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return !distortionFile.equals("") || !magGradientFile.equals("");
   }
 
-  public boolean isWholeTomogramSample(AxisID axisID) {
+  public boolean isWholeTomogramSample(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return wholeTomogramSampleB;
     }
@@ -2408,15 +2480,15 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return isValid(true, null);
   }
 
-  public boolean isValid(boolean fromScreen) {
+  public boolean isValid(final boolean fromScreen) {
     return isValid(fromScreen, null);
   }
 
-  public boolean isValid(File paramFile) {
+  public boolean isValid(final File paramFile) {
     return isValid(false, paramFile);
   }
 
-  public boolean isValid(boolean fromScreen, File paramFile) {
+  public boolean isValid(final boolean fromScreen, final File paramFile) {
     invalidReason = "";
 
     String helpString;
@@ -2456,7 +2528,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return isDatasetNameValid(null);
   }
 
-  public boolean isDatasetNameValid(File paramFile) {
+  public boolean isDatasetNameValid(final File paramFile) {
     invalidReason = "";
     if (datasetName.equals("")) {
       invalidReason = "Dataset name has not been set.";
@@ -2475,7 +2547,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return false;
   }
 
-  public File getValidDatasetDirectory(String workingDirName) {
+  public File getValidDatasetDirectory(final String workingDirName) {
     // Does the working directory exist
     // If is doesn't then use the backup directory.    
     File workingDir = new File(workingDirName);
@@ -2542,7 +2614,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
    * @param writeable - If true, the file must be writeable
    * @return boolean
    */
-  static boolean isValid(File file, boolean writeable) {
+  static boolean isValid(final File file, final boolean writeable) {
     if (file == null) {
       return false;
     }
@@ -2575,7 +2647,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
    * @return Success:  directory where file found.  Failure: null.
    * @throws IllegalArgumentException if any parameter is null
    */
-  File findValidFile(String fileName, File curDir, File altDir) {
+  File findValidFile(final String fileName, File curDir, final File altDir) {
     if (fileName == null || curDir == null || altDir == null || !isValid(curDir, true)) {
       throw new IllegalArgumentException("ConstMetaData.findValidFile(String,File,File)");
     }
@@ -2613,7 +2685,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
    * @return Success:  directory where file found.  Failure: null.
    * @throws IllegalArgumentException if any parameter is null
    */
-  File findValidFile(String fileName, File curDir) {
+  File findValidFile(final String fileName, final File curDir) {
     if (fileName == null || curDir == null || !isValid(curDir, true)) {
       throw new IllegalArgumentException("ConstMetaData.findValidFile(String,File)");
     }
@@ -2634,7 +2706,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return curDir;
   }
 
-  public boolean equals(Object object) {
+  public boolean equals(final Object object) {
     if (!(object instanceof MetaData))
       return false;
 
