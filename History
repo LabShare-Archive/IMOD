@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/29/11: Fixed use of transforms with a section list in Newstack, broken since
+4.2.1.
+
 5/26/11: Add a UI test for SIRT interface in eTomo.(Bug# 1478)
 
 5/24/11: In eTomo, allowing a single space to be used as a divider (instead of
@@ -201,7 +204,7 @@ set of input volumes, upgraded Subimstat to calculate statistically
 significant differences between volumes conveniently.
 
 2/19/11: For isosurfacing, added options to 3dmod preferences to set polarity
-of the initial theshold and the default and maximum box size.
+of the initial threshold and the default and maximum box size.
 
 2/18/11: Made Tilt able to do reprojections at all angles for nonlocal
 alignments and removed limits on number of views.
