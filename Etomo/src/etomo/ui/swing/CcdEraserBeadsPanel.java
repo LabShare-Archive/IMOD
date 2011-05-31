@@ -3,19 +3,27 @@ package etomo.ui.swing;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
+import javax.swing.SpinnerNumberModel;
 
 import etomo.ApplicationManager;
 import etomo.comscript.CCDEraserParam;
 import etomo.comscript.FortranInputSyntaxException;
+import etomo.storage.LogFile;
+import etomo.storage.autodoc.AutodocFactory;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.EnumeratedType;
+import etomo.type.EtomoAutodoc;
 import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.type.MetaData;
@@ -37,6 +45,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/22 18:04:35  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.2  2010/12/05 04:56:19  sueh
  * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.
  * <p>
@@ -74,6 +85,8 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
   private final LabeledTextField ltfFiducialDiameter = new LabeledTextField(
       "Diameter to erase (pixels): ");
+  private final CheckBoxSpinner cbspExpandCircleIterations = new CheckBoxSpinner(
+      "Iterations to grow circular areas:");
   private final ButtonGroup bgPolynomialOrder = new ButtonGroup();
   private final RadioButton rbPolynomialOrderUseMean = new RadioButton(
       "Use mean of surrounding points", PolynomialOrder.USE_MEAN, bgPolynomialOrder);
@@ -88,7 +101,7 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
   private final ApplicationManager manager;
   private final DialogType dialogType;
 
-  private CcdEraserBeadsPanel(ApplicationManager manager, AxisID axisID,
+  private CcdEraserBeadsPanel(final ApplicationManager manager, final AxisID axisID,
       DialogType dialogType) {
     this.manager = manager;
     this.axisID = axisID;
@@ -99,8 +112,8 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
     btnUseCcdEraser = (MultiLineButton) displayFactory.getUseCcdEraserBeads();
   }
 
-  static CcdEraserBeadsPanel getInstance(ApplicationManager manager, AxisID axisID,
-      DialogType dialogType) {
+  static CcdEraserBeadsPanel getInstance(final ApplicationManager manager,
+      final AxisID axisID, final DialogType dialogType) {
     CcdEraserBeadsPanel instance = new CcdEraserBeadsPanel(manager, axisID, dialogType);
     instance.createPanel();
     instance.addListeners();
@@ -119,12 +132,15 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
     SpacedPanel ccdEraserParameterPanel = SpacedPanel.getInstance();
     JPanel polynomialOrderPanel = new JPanel();
     SpacedPanel ccdEraserButtonPanel = SpacedPanel.getInstance();
+    JPanel fiducialDiameterPanel = new JPanel();
     //initalization
     btnCcdEraser.setContainer(this);
     btnCcdEraser.setDeferred3dmodButton(btn3dmodCcdEraser);
     btnCcdEraser.setSize();
     btn3dmodCcdEraser.setSize();
     btnUseCcdEraser.setSize();
+    SpinnerNumberModel spinnerNumberModel = new SpinnerNumberModel(1, 1, 5, 1);
+    cbspExpandCircleIterations.setModel(spinnerNumberModel);
     //Root
     pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRoot.setBorder(new EtchedBorder("Erase Beads").getBorder());
@@ -132,8 +148,15 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
     pnlRoot.add(ccdEraserButtonPanel);
     //ccderaser parameters
     ccdEraserParameterPanel.setBoxLayout(BoxLayout.X_AXIS);
-    ccdEraserParameterPanel.add(ltfFiducialDiameter.getContainer());
+    ccdEraserParameterPanel.add(fiducialDiameterPanel);
     ccdEraserParameterPanel.add(polynomialOrderPanel);
+    //Fiducial diameter
+    fiducialDiameterPanel
+        .setLayout(new BoxLayout(fiducialDiameterPanel, BoxLayout.Y_AXIS));
+    fiducialDiameterPanel.add(ltfFiducialDiameter.getContainer());
+    fiducialDiameterPanel.add(Box.createVerticalGlue());
+    fiducialDiameterPanel.add(cbspExpandCircleIterations.getContainer());
+    fiducialDiameterPanel.add(Box.createVerticalGlue());
     //polynomial order
     polynomialOrderPanel.setLayout(new BoxLayout(polynomialOrderPanel, BoxLayout.Y_AXIS));
     polynomialOrderPanel.setBorder(new EtchedBorder("Polynomial Order").getBorder());
@@ -155,7 +178,7 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
         .getEnumeratedType().toString();
   }
 
-  void setPolynomialOrder(EnumeratedType enumeratedType) {
+  void setPolynomialOrder(final EnumeratedType enumeratedType) {
     if (rbPolynomialOrderUseMean.getEnumeratedType() == enumeratedType) {
       rbPolynomialOrderUseMean.setSelected(true);
     }
@@ -170,12 +193,16 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
    * @param metaData
    * @throws FortranInputSyntaxException
    */
-  void getParameters(MetaData metaData) throws FortranInputSyntaxException {
+  void getParameters(final MetaData metaData) throws FortranInputSyntaxException {
     metaData.setFinalStackFiducialDiameter(axisID, ltfFiducialDiameter.getText());
+    metaData.setFinalStackExpandCircleIterations(axisID,
+        cbspExpandCircleIterations.getValue());
+    metaData.setUseFinalStackExpandCircleIterations(axisID,
+        cbspExpandCircleIterations.isSelected());
     metaData.setFinalStackPolynomialOrder(axisID, getPolynomialOrder());
   }
 
-  void setParameters(ConstMetaData metaData) {
+  void setParameters(final ConstMetaData metaData) {
     if (!metaData.isFinalStackFiducialDiameterNull(axisID)) {
       ltfFiducialDiameter.setText((metaData.getFinalStackFiducialDiameter(axisID)));
     }
@@ -195,9 +222,15 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
     }
     setPolynomialOrder(PolynomialOrder.getInstance(metaData
         .getFinalStackPolynomialOrder(axisID)));
+    cbspExpandCircleIterations.setSelected(metaData
+        .isUseFinalStackExpandCircleIterations(axisID));
+    if (metaData.isFinalStackExpandCircleIterationsSet(axisID)) {
+      cbspExpandCircleIterations.setValue(metaData
+          .getFinalStackExpandCircleIterations(axisID));
+    }
   }
 
-  public boolean getParameters(CCDEraserParam param) {
+  public boolean getParameters(final CCDEraserParam param) {
     param.setInputFile(DatasetFiles.getFullAlignedStackFileName(manager, axisID));
     param
         .setModelFile(FileType.CCD_ERASER_BEADS_INPUT_MODEL.getFileName(manager, axisID));
@@ -205,6 +238,9 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
     EtomoNumber fiducialDiameter = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     fiducialDiameter.set(ltfFiducialDiameter.getText());
     param.setBetterRadius(fiducialDiameter.getDouble() / 2.0);
+    if (cbspExpandCircleIterations.isSelected()) {
+      param.setExpandCircleIterations(cbspExpandCircleIterations.getValue());
+    }
     param.setPolynomialOrder(getPolynomialOrder());
     return param.validate();
   }
@@ -215,7 +251,8 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
         run3dmodMenuOptions);
   }
 
-  private void action(final String command, Deferred3dmodButton deferred3dmodButton,
+  private void action(final String command,
+      final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnCcdEraser.getActionCommand())) {
       manager.ccdEraser(btnCcdEraser, null, deferred3dmodButton, run3dmodMenuOptions,
@@ -234,7 +271,7 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
     btnUseCcdEraser.removeActionListener(actionListener);
   }
 
-  final void setParameters(ReconScreenState screenState) {
+  final void setParameters(final ReconScreenState screenState) {
     btnCcdEraser.setButtonState(screenState.getButtonState(btnCcdEraser
         .getButtonStateKey()));
     btnUseCcdEraser.setButtonState(screenState.getButtonState(btnUseCcdEraser
@@ -242,9 +279,24 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
   }
 
   private void setToolTipText() {
+    ReadOnlyAutodoc autodoc = null;
+    try {
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.CCDERASER, axisID);
+    }
+    catch (FileNotFoundException except) {
+      except.printStackTrace();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+    }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+    }
     ltfFiducialDiameter
         .setToolTipText("The diameter, in pixels of the aligned stack, that will "
             + "be erased around each point.");
+    cbspExpandCircleIterations.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        CCDEraserParam.EXPAND_CIRCLE_ITERATIONS_KEY));
     rbPolynomialOrderUseMean
         .setToolTipText("Fill the erased pixel with the mean of surrounding " + "points.");
     rbPolynomialOrderFitAPlane
