@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/31/11: In eTomo - Bead Erasing added the ccderaser -ExpandCircleIterations
+parameter.(Bug# 1460)
+
 5/29/11: Fixed use of transforms with a section list in Newstack, broken since
 4.2.1.
 
