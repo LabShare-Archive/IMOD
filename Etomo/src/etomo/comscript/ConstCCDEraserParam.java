@@ -16,6 +16,9 @@ import etomo.type.FileType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2010/04/28 15:49:51  sueh
+ * <p> bug# 1344 Added outputFileType.
+ * <p>
  * <p> Revision 3.3  2007/12/13 21:54:13  sueh
  * <p> bug# 1057 Added boundaryReplacementList.
  * <p>
@@ -58,6 +61,7 @@ public class ConstCCDEraserParam {
   public static final String GROW_CRITERION_KEY = "GrowCriterion";
   public static final String SCAN_CRITERION_KEY = "ScanCriterion";
   public static final String MAXIMUM_RADIUS_KEY = "MaximumRadius";
+  public static final String EXPAND_CIRCLE_ITERATIONS_KEY = "ExpandCircleIterations";
   public static final String X_Y_SCAN_SIZE_KEY = "XYScanSize";
   public static final String EDGE_EXCLUSION_WIDTH_KEY = "EdgeExclusionWidth";
   public static final String LINE_OBJECTS_KEY = "LineObjects";
@@ -81,6 +85,7 @@ public class ConstCCDEraserParam {
   protected String scanCriterion = "";
   protected String edgeExclusion = "";
   protected String maximumRadius = "";
+  protected String expandCircleIterations = "";
   protected String annulusWidth;
   protected String xyScanSize = "";
   protected String pointModel = "";
@@ -183,6 +188,13 @@ public class ConstCCDEraserParam {
    */
   public String getMaximumRadius() {
     return maximumRadius;
+  }
+
+  /**
+   * @return
+   */
+  public String getExpandCircleIterations() {
+    return expandCircleIterations;
   }
 
   /**

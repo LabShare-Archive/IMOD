@@ -24,6 +24,10 @@ import etomo.ui.swing.UIHarness;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2011/05/10 16:49:35  sueh
+ * <p> bug# 1482 Changed getSubcommandProcessName to return a string so that the root name chould be set to
+ * <p> subcommandProcessName.
+ * <p>
  * <p> Revision 3.13  2011/02/21 21:11:29  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -167,6 +171,10 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
     options.add(betterRadius.toString());
     options.add("-" + POLYNOMIAL_ORDER_KEY);
     options.add(polynomialOrder);
+    if (expandCircleIterations.matches("\\S+")) {
+      options.add("-"+EXPAND_CIRCLE_ITERATIONS_KEY);
+      options.add(expandCircleIterations);
+    }
     options.add("-MergePatches");
     options.add("-ExcludeAdjacent");
     options.add("-CircleObjects");
@@ -221,7 +229,6 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
       borderPixels = scriptCommand.getValue(BORDER_SIZE_KEY);
       polynomialOrder = scriptCommand.getValue(POLYNOMIAL_ORDER_KEY);
       includeAdjacentPoints = !scriptCommand.hasKeyword("ExcludeAdjacent");
-
       //handle out-of-date parameters
       outerRadius = scriptCommand.getValue("OuterRadius");
       if (!outerRadius.equals("")) {
@@ -262,7 +269,6 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
    */
   public void updateComScriptCommand(ComScriptCommand scriptCommand)
       throws BadComScriptException {
-
     //  Check to be sure that it is a ccderaser xommand
     if (!scriptCommand.getCommand().equals("ccderaser")) {
       throw (new BadComScriptException("Not a ccderaser command"));
@@ -320,7 +326,6 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
     else {
       scriptCommand.deleteKey(MAXIMUM_RADIUS_KEY);
     }
-
     if (!annulusWidth.equals("")) {
       scriptCommand.setValue(ANNULUS_WIDTH_KEY, annulusWidth);
     }
@@ -551,6 +556,10 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
 
   public void setBetterRadius(double input) {
     betterRadius.set(input);
+  }
+
+  public void setExpandCircleIterations(Object input) {
+    expandCircleIterations = input.toString();
   }
 
   public AxisID getAxisID() {
