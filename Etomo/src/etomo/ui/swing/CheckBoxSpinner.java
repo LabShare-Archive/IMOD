@@ -6,6 +6,7 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
@@ -25,6 +26,9 @@ import javax.swing.SpinnerModel;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 18:05:39  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -60,8 +64,10 @@ final class CheckBoxSpinner {
     if (panel == null) {
       panel = new JPanel();
       panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+      panel.add(Box.createHorizontalGlue());
       panel.add(checkBox);
       panel.add(spinner);
+      panel.add(Box.createHorizontalGlue());
     }
     return panel;
   }
@@ -109,8 +115,8 @@ final class CheckBoxSpinner {
     if (panelBackground == null) {
       panelBackground = panel.getBackground();
       //greying out the highlight color to match the panel's original color
-      panelHighlightBackground = Colors.subtractColor(Colors.HIGHLIGHT_BACKGROUND, Colors
-          .subtractColor(Colors.BACKGROUND, panelBackground));
+      panelHighlightBackground = Colors.subtractColor(Colors.HIGHLIGHT_BACKGROUND,
+          Colors.subtractColor(Colors.BACKGROUND, panelBackground));
     }
     if (highlight) {
       checkBox.setBackground(panelHighlightBackground);
@@ -120,6 +126,11 @@ final class CheckBoxSpinner {
     }
     getContainer();
     UIUtilities.highlightJTextComponents(highlight, panel);
+  }
+
+  void setToolTipText(final String text) {
+    setCheckBoxToolTipText(text);
+    setSpinnerToolTipText(text);
   }
 
   void setCheckBoxToolTipText(String text) {
