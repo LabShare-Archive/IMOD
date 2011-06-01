@@ -5,7 +5,7 @@ include ../configure
 
 SCRIPTS = finishjoin makejoincom matchorwarp matchshifts\
  newst onepatchcorr patchcorr3d patchcrawl3d recombine reduceby2 selfalign\
- setupcoms setuplong splitmrc trimvol xf2xg xfalign\
+ setupcoms setuplong splitmrc xf2xg xfalign\
  dm2mrc alignlog transferfid submfg imodpsview settmpdir matchrotpairs\
  chunksetup clipflipyz prochunks.csh \
  archiveorig imodkillgroup collectmmm sampletilt runpyscript imodhelp\
