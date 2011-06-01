@@ -1,0 +1,148 @@
+Version = 1.0
+Pip = 1
+
+
+[Field = XStartAndEnd]
+short = x
+type = IP
+usage = Starting and ending X coordinate of region to cut out
+tooltip =
+manpage =
+
+[Field = YStartAndEnd]
+short = y
+type = IP
+usage = Starting and ending Y coordinate of region to cut out
+tooltip =
+manpage =
+
+[Field = ZStartAndEnd]
+short = z
+type = IP
+usage = Starting and ending Z coordinate of region to cut out
+tooltip =
+manpage =
+
+[Field = XSize]
+short = nx
+type = I
+usage = Number of pixels to cut out in X, centered on the middle in X
+tooltip =
+manpage =
+
+[Field = YSize]
+short = ny
+type = I
+usage = Number of pixels to cut out in Y, centered on the middle in Y
+tooltip =
+manpage =
+
+[Field = ZSize]
+short = nz
+type = I
+usage = Number of slices to cut out in Z, centered on the middle in Z
+tooltip =
+manpage =
+
+[Field = ZFindStartAndEnd]
+short = sz
+type = IP
+usage = Scale to bytes, finding contrast from given range of slices in Z
+tooltip =
+manpage = Scale to bytes, determining the optimal scaling to bytes by analyzing
+intensities from sections between the two given numbers, inclusive.
+Coordinates are treated as
+coming from a flipped volume only if the "-f"
+option is given.  Slices are numbered from 1 regardless of whether the "-i"
+option is used.
+
+[Field = XFindStartAndEnd]
+short = sx
+type = IP
+usage = Starting and ending X coordinates to use to find contrast for scaling
+to bytes
+tooltip =
+manpage = Analyze the region between this starting and ending coordinate in X
+to determine the scaling to bytes.  The default is to use 80% of the range in X.
+
+[Field = YFindStartAndEnd]
+short = sy
+type = IP
+usage = Starting and ending Y coordinates to use to find contrast for scaling
+to bytes
+tooltip =
+manpage = Analyze the region between this starting and ending coordinate in Y
+to determine the scaling to bytes.  The default is to use 80% of the range in Y.
+
+[Field = ContrastBlackWhite]
+short = c
+type = IP
+usage = Contrast levels for scaling and converting to bytes
+tooltip =
+manpage = Scale to bytes, with relative intensities between the two entered
+numbers (representing black and white values on a
+scale of 0 to 255) stretched to occupy the full range of byte values.
+
+[Field = IntegerMinMax]
+short = mm
+type = IP
+usage = New minimum and maximum for scaling to integers
+to bytes
+tooltip =
+manpage = Scale to integers (mode 1), so that the current minimum and maximum of the file
+would be scaled to the given values of minimum and maximum.  Newstack(1) is
+run with the -scale option and the entered values.  This option would be used
+to scale from mode 2 (floating point) to mode 1.
+
+[Field = FlipYZ]
+short = yz
+type = B
+usage = Exchange (flip) Y and Z in output volume
+tooltip =
+manpage = Flip Y and Z in the output volume by first creating a temporary trimmed volume
+with newstack then running "clip flipyz" on this volume to create the final
+output file.
+
+
+[Field = RotateX]
+short = rx
+type = B
+usage = Rotate volume by -90 degrees around X axis
+tooltip =
+manpage = Rotate the output volume by -90 degrees around the X axis, by first creating a
+temporary trimmed volume
+with newstack then running "clip rotx" on this volume to create the final
+output file.  The slices will look the same as with the "-eyz"
+option but rotating instead
+of flipping will preserve the handedness of structures.
+
+[Field = IndexCoordinates]
+short = i
+type = B
+usage = Treat as index coordinates (numbered from 0) rather than
+as 3dmod coordinates (numbered from 1, the default)
+tooltip =
+manpage = Interpret "-x", "-y", "-z", "-sx", and "-sy" entries as index
+coordinates numbered from 0, rather than as 3dmod coordinates numbered from 1.
+
+[Field = FlippedCoordinates]
+short = f
+type = B
+usage = Treat coordinates as coming from a flipped volume
+tooltip =
+manpage = Interpret "-y", "-z", "-ny", "-nz", "-sy", and "-sz"
+entries as referring to a flipped volume, with Y and Z transposed.  In other
+words, if the volume is loaded into 3dmod with flipping (the -Y option), this
+option allows you to enter the coordinates as they appear in 3dmod.
+
+[Field = KeepOrigin]
+short = k
+type = B
+usage = Keep origin the same in output from Newstack (legacy)
+tooltip =
+manpage = Keep the origin the same in the output from Newstack(1) instead of
+passing it the -origin option to adjust the origin for the location of the
+subvolume being created.  This option can be used to reproduce a volume
+created with earlier versions of IMOD.
+
+

@@ -1,0 +1,85 @@
+.na
+.nh
+.TH trimvol 1 2.30 BL3DEMC
+.SH NAME
+trimvol \- Trim a volume and optionally rotate or scale to bytes or integers
+.SH SYNOPSIS
+trimvol [options] <input file>  <output file>
+.SH DESCRIPTION
+Trimvol provides a command-line interface to the programs Findcontrast(1) and
+Newstack(1), for copying a selected portion of an MRC image volume into a new
+file, with automatic scaling to bytes.  
+There are options for specifying the volume to be extracted, and for 
+controlling the scaling to bytes.  There is also an option to scale 
+floating point numbers to integers.
+By default, coordinates are numbered from 1.
+
+If you use the 
+.B -sz
+option, then Findcontrast(1) will be run on the specified sections.  By
+default, regions
+within 10% of the lateral borders of each section are omitted, but a different
+region can be set with
+.B -sx
+and
+.B -sy.
+A scaling is
+chosen which saturates the intensities of one pixel per slice, on average, at
+the dark and the light end.  If you use 
+.B -sz
+The coordinates specified with these options will be treated as coming from 
+a flipped volume only if the
+.B -f
+option is entered.
+
+By default, the origin of the output file will be adjusted so that a model
+built on the input volume will display correctly on the output file.  This
+will even work for a volume rotated with
+.B -rx
+but not for one flipped with
+.B -yz.
+This adjustment can be turned off with the 
+.B -k
+option.
+
+.SS Options
+You can enter only one of
+.B -c,
+.B -sz
+or
+.B -mm.
+Similarly, you cannot enter both
+.B -x
+and
+.B -nx,
+both
+.B -y
+and
+.B -ny,
+or both
+.B -z
+and
+.B -nz.
+You can also enter only one of 
+.B -yz
+and
+.B -rx.
+.P
+Trimvol uses the PIP package for input (see the manual page for pip(1)).
+Options can be specified either as command line arguments (with the -)
+or one per line in a command file (without the -):
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input
+
+.SH FILES
+If the output file already exists a backup image
+of the original is created
+with the ~ extension.  The temporary file needed when flipping or rotating is
+created in the current directory with ".tmp.nnn" added to the input filename,
+where "nnn" is the process ID.
+.SH AUTHOR
+David Mastronarde  <mast@colorado.edu>
+.SH SEE ALSO
+newstack(1), findcontrast(1)
