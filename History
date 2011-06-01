@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/31/11: In eTomo fixing silent errors for badly formatted number lists.  Also
+allowing comma separators for these lists.(Bug# 1471)
+
 5/31/11: In eTomo - Bead Erasing added the ccderaser -ExpandCircleIterations
 parameter.(Bug# 1460)
 
