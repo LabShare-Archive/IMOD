@@ -465,6 +465,7 @@ void ProcessHandler::getErrorMessageFromLog(QString &errorMess) {
     line = stream.readLine();
     if (line.indexOf("ERROR:") != -1) {
       errorMess.append(line);
+      errorMess.append(" ");
     }
   } while (!stream.atEnd());
   mLogFile->close();
@@ -1077,6 +1078,10 @@ void ProcessHandler::stopProcess(const QString &pid) {
 
 /*
  $Log$
+ Revision 1.46  2011/02/05 00:51:17  sueh
+ bug# 1426 Preventing a lockup when the PID cannot be gotten and
+ processchunks thinks that the process is running.
+
  Revision 1.45  2011/02/02 22:43:22  sueh
  bug# 1426 Added killQProcesses.
 
