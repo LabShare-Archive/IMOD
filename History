@@ -6,7 +6,7 @@ parameter.(Bug# 1460)
 5/29/11: Fixed use of transforms with a section list in Newstack, broken since
 4.2.1.
 
-5/26/11: Add a UI test for SIRT interface in eTomo.(Bug# 1478)
+5/27/11: Add a UI test for SIRT interface in eTomo.(Bug# 1478)
 
 5/24/11: In eTomo, allowing a single space to be used as a divider (instead of
 a comma) in numeric lists.(Bug# 1471)
