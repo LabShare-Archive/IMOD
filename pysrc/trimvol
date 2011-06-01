@@ -1,0 +1,286 @@
+#!/usr/bin/python -u
+# Trimvol - 
+#
+# Author: David Mastronarde
+#
+# $Id$
+# Log at end
+
+progname = 'trimvol'
+prefix = 'ERROR: ' + progname + ' - '
+
+# load System Libraries
+import os, sys, os.path, signal
+
+#
+# Setup runtime environment
+if sys.platform.find("win32") < 0:
+   try:
+      signal.signal(signal.SIGHUP, signal.SIG_IGN)
+   except:
+      pass
+if os.getenv('IMOD_DIR') != None:
+   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
+                        os.pathsep + os.environ['PATH']
+   sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import *
+
+# Initializations
+adjust = '-ori'
+fliparg = ''
+sxarg = syarg = ''
+secout = ''
+
+# Fallbacks from ../manpages/autodoc2man 3 1 trimvol
+options = ["x:XStartAndEnd:IP:", "y:YStartAndEnd:IP:", "z:ZStartAndEnd:IP:",
+           "nx:XSize:I:", "ny:YSize:I:", "nz:ZSize:I:", "sz:ZFindStartAndEnd:IP:",
+           "sx:XFindStartAndEnd:IP:", "sy:YFindStartAndEnd:IP:",
+           "c:ContrastBlackWhite:IP:", "mm:IntegerMinMax:IP:", "yz:FlipYZ:B:",
+           "rx:RotateX:B:", "i:IndexCoordinates:B:", "f:FlippedCoordinates:B:",
+           "k:KeepOrigin:B:"]
+
+# Startup and get input and output files
+# Special case: give some good error messages for eliminated/renamed options
+if '-s' in sys.argv:
+   prnstr(prefix + 'The -s option has been eliminated; use -sz instead and add -f ' +\
+          'if coordinates are from a volume loaded with flipping')
+   sys.exit(1)
+      
+(opts, nonopts) = PipReadOrParseOptions(sys.argv, options, progname, 2, 1, 1)
+if nonopts != 2:
+   prnstr(prefix + "wrong number of arguments")
+   PipPrintHelp(progname, 0, 1, 1)
+   sys.exit(1)
+
+inputFile = PipGetNonOptionArg(0)
+outputFile = PipGetNonOptionArg(1)
+if not os.path.exists(inputFile):
+   exitError("input file " + inputFile + " does not exist")
+
+# Get scaling-related options
+(black, white) = PipGetTwoIntegers('ContrastBlackWhite', 0, 0)
+contrast = 1 - PipGetErrNo()
+
+(intmin, intmax) = PipGetTwoIntegers('IntegerMinMax', 0, 0)
+inmm = 1 - PipGetErrNo()
+
+(slicest, slicend) = PipGetTwoIntegers('ZFindStartAndEnd', 0, 0)
+zslices = 1 - PipGetErrNo()
+(xsmin, xsmax) = PipGetTwoIntegers('XFindStartAndEnd', -1, -1)
+(ysmin, ysmax) = PipGetTwoIntegers('YFindStartAndEnd', -1, -1)
+
+if contrast + inmm + zslices > 1:
+   exitError('You can enter only one of -c, -mm, and -sz')
+
+# Get size or coordinate limit options
+xsize = PipGetInteger('XSize', 0)
+ifxsz = 1 - PipGetErrNo()
+(xstart, xend) = PipGetTwoIntegers('XStartAndEnd', 0, 0)
+ifxse = 1 - PipGetErrNo()
+if ifxse + ifxsz > 1:
+   exitError('You cannot enter both -x and -nx options')
+
+ysize = PipGetInteger('YSize', 0)
+ifysz = 1 - PipGetErrNo()
+(ystart, yend) = PipGetTwoIntegers('YStartAndEnd', 0, 0)
+ifyse = 1 - PipGetErrNo()
+if ifyse + ifysz > 1:
+   exitError('You cannot enter both -y and -ny options')
+
+zsize = PipGetInteger('ZSize', 0)
+ifzsz = 1 - PipGetErrNo()
+(zstart, zend) = PipGetTwoIntegers('ZStartAndEnd', 0, 0)
+ifzse = 1 - PipGetErrNo()
+if ifzse + ifzsz > 1:
+   exitError('You cannot enter both -z and -nz options')
+
+# Flipping and rotation options
+flipyz = PipGetBoolean('FlippedCoordinates', 0)
+if flipyz:
+   fliparg = '-flip'
+
+doflip = PipGetBoolean('FlipYZ', 0)
+dorot = PipGetBoolean('RotateX', 0)
+if dorot and doflip:
+   exitError('You cannot use both -eyz and -rx options')
+if doflip:
+   doflip = 'flipyz'
+if dorot:
+   doflip = 'rotx'
+
+if PipGetBoolean('KeepOrigin', 0):
+   adjust = ''
+index = PipGetBoolean('IndexCoordinates', 0)
+
+# If flipped coordinated, swap appropriate entries
+if flipyz:
+   stmp = ysize
+   ysize = zsize
+   zsize = stmp
+   stmp = ifysz
+   ifysz = ifzsz
+   ifzsz = stmp
+   stmp = (ystart, yend)
+   (ystart, yend) = (zstart, zend)
+   (zstart, zend) = stmp
+   stmp = ifyse
+   ifyse = ifzse
+   ifzse = stmp
+
+# Get file size
+try:
+   (nx, ny, nz) = getmrcsize(inputFile)
+except ImodpyError:
+   exitFromImodError(progname)
+
+# Check and set up the X coordinates
+xoffset = 0
+yoffset = 0
+if ifxsz:
+   if xsize <= 0 or xsize > nx:
+      exitError(fmtstr('Illegal X size in -nx {}', xsize))
+else:
+   xsize = nx
+if ifxse:
+   if not index:
+      xstart -= 1
+      xend -= 1
+   if xstart < 0 or xend >= nx or xstart > xend:
+      exitError(fmtstr('X coordinates out of range for file in -x {},{}', xstart + index,
+                       xend + index))
+   xsize = xend + 1 - xstart
+   xoffset = xstart + xsize // 2 - nx // 2
+
+# Check and set up Y coordinates
+inlet = 'yz'[flipyz]
+if ifysz:
+   if ysize <= 0 or ysize > ny:
+      exitError(fmtstr('Illegal {} size in -n{} {}', inlet, inlet, ysize))
+else:
+   ysize = ny
+if ifyse:
+   if not index:
+      ystart -= 1
+      yend -= 1
+   if ystart < 0 or yend >= ny or ystart > yend:
+      exitError(fmtstr('{} coordinates out of range for file in -{} {},{}', inlet, inlet,
+                       ystart + index, yend + index))
+   ysize = yend + 1 - ystart
+   yoffset = ystart + ysize // 2 - ny // 2
+
+# Check and set up Z section list if either entry given
+inlet = 'zy'[flipyz]
+if ifzsz:
+   if zsize <= 0 or zsize > nz:
+      exitError(fmtstr('Illegal {} size in -n{} {}', inlet, inlet, zsize))
+   zstart = (nz - zsize) // 2
+   zend = zstart + zsize - 1
+   secout = fmtstr('-sec {}-{}', zstart, zend)
+
+if ifzse:
+   if not index:
+      zstart -= 1
+      zend -= 1
+   if zstart < 0 or zend >= nz or zstart > zend:
+      exitError(fmtstr('{} coordinates out of range for file in -{} {},{}', inlet, inlet,
+                       zstart + index, zend + index))
+   secout = fmtstr('-sec {}-{}', zstart, zend)
+
+# Process the entries for X and Y limits in findcontrast
+if xsmin >= 0 and xsmax > 0:
+   if not index:
+      xsmin -= 1
+      xsmax -= 1
+   sxarg = fmtstr('-xminmax {},{}', xsmin, xsmax)
+
+if ysmin >= 0 and ysmax > 0:
+   if not index:
+      ysmin -= 1
+      ysmax -= 1
+   syarg = fmtstr('-yminmax {},{}', ysmin, ysmax)
+
+# Take care of converting other contrast entries to arguments
+contout = ''
+if contrast:
+   contout = fmtstr('-mode 0 -con {},{}', black, white)
+if inmm:
+   contout = fmtstr('-mode 1 -sca {},{}', intmin, intmax)
+
+newstout = outputFile
+if doflip:
+   newstout = inputFile + '.tmp.' + str(os.getpid())
+
+# Run findcontrast if Z slices were entered
+if zslices:
+   slicelim = nz
+   if fliparg:
+      slicelim = ny
+   if slicest < 1 or slicend > slicelim or slicest > slicend:
+      exitError(fmtstr('Slices out of range for file in -sz {},{}', slicest, slicend))
+   prnstr('Determining byte scaling of ' + inputFile + '...')
+   findcom = fmtstr('findcontrast -slice {},{} {} {} {} {}', slicest, slicend, fliparg,
+                    sxarg, syarg, inputFile)
+   prnstr(findcom)
+   try:
+      findlines = runcmd(findcom)
+   except ImodpyError:
+      exitFromImodError(progname)
+
+   # Get the black white while printing the lines
+   black = None
+   for line in findlines:
+      prnstr(line.strip())
+      if black == None and line.find('Implied') >= 0:
+         ind = line.find('are ')
+         if ind > 0:
+            bwsplit = line[ind+3:].split()
+            if len(bwsplit) > 2:
+               black = int(bwsplit[0])
+               white = int(bwsplit[2])
+
+   if black == None:
+      exitError('Findcontrast failed to return scaling values')
+   contout = fmtstr('-mode 0 -con {},{}', black, white)
+
+# compose and run the newstack command
+newstcom = fmtstr('newstack -siz {},{} -off {},{} {} {} {} {} {}', xsize, ysize, xoffset,
+                  yoffset, adjust, contout, secout, inputFile, newstout)
+
+try:
+   runcmd(newstcom, None, 'stdout')
+except ImodpyError:
+   exitFromImodError(progname)
+
+if zslices:
+   prnstr(fmtstr('Contrast black/white levels determined from file were {},{}', black,
+                 white))
+prnstr(' ')
+prnstr('The newstack command was:')
+prnstr(newstcom)
+
+# Flip or rotate if requested
+if doflip:
+   prnstr('Running clip ' + doflip)
+   try:
+      runcmd(fmtstr('clip {} {} {}', doflip, newstout, outputFile))
+   except ImodpyError:
+      exitFromImodError(progname)
+   try:
+      os.remove(newstout)
+   except:
+      prnstr('WARNING: error trying to delete temporary file ' + newstout)
+
+sys.exit(0)
+
+#  $Log$
+
+
+                
+   
