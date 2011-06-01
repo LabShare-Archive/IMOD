@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/31/11: In processchunks, fixed the error output format.
+
 5/31/11: In eTomo fixing silent errors for badly formatted number lists.  Also
 allowing comma separators for these lists.(Bug# 1471)
 
