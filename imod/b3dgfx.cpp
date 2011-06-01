@@ -49,7 +49,7 @@ static int          CurWidth;
 static int          CurHeight;
 static float        CurXZoom;
 static bool         StippleNextLine = false;
-static float        zoomDownCrit = 0.7f;
+static float        zoomDownCrit = 0.8f;
 
 /* Set a current window size for the drawing routines */
 void b3dSetCurSize(int width, int height)
@@ -2278,6 +2278,9 @@ int b3dSnapshot(QString fname)
 
 /*
 $Log$
+Revision 4.50  2011/03/14 23:39:13  mast
+Changes for ushort loading
+
 Revision 4.49  2011/02/12 04:42:52  mast
 Select a series of filters of decreasing complexity
 
