@@ -2,6 +2,8 @@ IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 6/1/11: In eTomo, handling the new version of trimvol.(Bug# 1490)
 
+6/1/11: Translated trimvol to Python.  Option -s is removed.
+
 5/31/11: In processchunks, fixed the error output format.(Bug# 1491)
 
 5/31/11: In eTomo fixing silent errors for badly formatted number lists.  Also
