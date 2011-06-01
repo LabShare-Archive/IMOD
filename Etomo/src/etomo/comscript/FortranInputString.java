@@ -23,6 +23,10 @@ import etomo.type.ConstEtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.22  2011/05/24 23:10:45  sueh
+ * <p> Bug# 1471 Added a new, private validateAndSet which also takes a divider character.  Allowing both
+ * <p> comma and space dividers without calling setdivider.
+ * <p>
  * <p> Revision 3.21  2011/05/20 03:51:05  sueh
  * <p> Bug# 1471 In validateAndSet catch NumberFormatException and throw FortranInputSyntaxException.
  * <p>
@@ -310,18 +314,26 @@ public class FortranInputString {
     try {
       validateAndSet(newValues, divider);
     }
-    catch (NumberFormatException e) {
-      //Didn't work, try an alternative divider
-      char origDivider = divider;
-      if (divider == DEFAULT_DIVIDER) {
-        validateAndSet(newValues, ' ');
+    catch (NumberFormatException dividerException) {
+      try {
+        //Didn't work, try an alternative divider
+        char origDivider = divider;
+        if (divider == DEFAULT_DIVIDER) {
+          validateAndSet(newValues, ' ');
+        }
+        else if (divider == ' ') {
+          validateAndSet(newValues, DEFAULT_DIVIDER);
+        }
+        else {
+          //Unfamiliar divider, throw a FortranInputSyntaxException so the problem will be
+          //handled with a pop up.
+          throw new FortranInputSyntaxException(dividerException.getMessage());
+        }
       }
-      else if (divider == ' ') {
-        validateAndSet(newValues, DEFAULT_DIVIDER);
-      }
-      else {
-        //Unfamiliar divider, fall back to original functionality.
-        throw e;
+      catch (NumberFormatException e) {
+        //Error happened with the alternative divider, throw a FortranInputSyntaxException
+        //so the problem will be handled with a pop up.
+        throw new FortranInputSyntaxException(e.getMessage());
       }
     }
   }
