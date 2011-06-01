@@ -478,10 +478,14 @@ rb.none==
 rb.initialize-z-axis==
 save==
 assert.contains.file==pi.prm|initMOTL = 1
-#test initialize X and Z axis
-rb.initialize-x-and-z-axis==
+#test initialize X and Z axes
+rb.initialize-x-and-z-axes==
 save==
 assert.contains.file==pi.prm|initMOTL = 2
+#test uniform random rotations
+rb.uniform-random-rotation==
+save==
+assert.contains.file==pi.prm|initMOTL = 3
 #use files is tested in volume-table-check-prm
 rb.set-all-rotational-values-to-zero==
 
