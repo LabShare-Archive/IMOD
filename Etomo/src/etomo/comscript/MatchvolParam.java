@@ -30,25 +30,11 @@ public class MatchvolParam implements CommandParam {
       InvalidParameterException {
     String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
     reset();
-    try {
-      try {
-        outputSizeXYZ.validateAndSet(scriptCommand);
-      }
-      catch (NumberFormatException except) {
-        outputSizeXYZ.setDivider(' ');
-        outputSizeXYZ.validateAndSet(scriptCommand);
-        outputSizeXYZ.resetDivider();
-      }
-    }
-    catch (NumberFormatException except) {
-      outputSizeXYZ.resetDivider();
-      throw new BadComScriptException(except.getMessage());
-    }
+    outputSizeXYZ.validateAndSet(scriptCommand);
   }
 
   private void reset() {
     outputSizeXYZ.reset();
-    outputSizeXYZ.resetDivider();
   }
 
   /**
@@ -98,6 +84,9 @@ public class MatchvolParam implements CommandParam {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/22 03:17:15  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.2  2010/04/28 16:00:40  sueh
  * <p> bug# 1344 Reformatted.
  * <p>
