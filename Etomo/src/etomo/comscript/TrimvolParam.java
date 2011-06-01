@@ -11,6 +11,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.43  2011/05/10 16:49:36  sueh
+ * <p> bug# 1482 Changed getSubcommandProcessName to return a string so that the root name chould be set to
+ * <p> subcommandProcessName.
+ * <p>
  * <p> Revision 3.42  2011/02/22 03:38:12  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -250,7 +254,7 @@ public class TrimvolParam implements CommandDetails {
   public static final String INPUT_FILE = "InputFile";
   public static final String OUTPUT_FILE = "OutputFile";
 
-  private static final int commandSize = 3;
+  private static final int commandSize = 4;
   public static final String commandName = "trimvol";
 
   private EtomoNumber xMin = new EtomoNumber("XMin");
@@ -448,9 +452,12 @@ public class TrimvolParam implements CommandDetails {
     // Do not use the -e flag for tcsh since David's scripts handle the failure 
     // of commands and then report appropriately.  The exception to this is the
     // com scripts which require the -e flag.  RJG: 2003-11-06  
-    commandArray[0] = "tcsh";
-    commandArray[1] = "-f";
-    commandArray[2] = BaseManager.getIMODBinPath() + commandName;
+    //commandArray[0] = "tcsh";
+    //commandArray[1] = "-f";
+    commandArray[0] = "bash";
+    commandArray[1] = BaseManager.getIMODBinPath() + "runpyscript";
+    commandArray[2] = "-P";
+    commandArray[3] = commandName;
     for (int i = 0; i < options.size(); i++) {
       commandArray[i + commandSize] = (String) options.get(i);
     }
@@ -466,7 +473,7 @@ public class TrimvolParam implements CommandDetails {
    */
   public ArrayList genOptions() {
     ArrayList options = new ArrayList();
-    options.add("-P");
+    //options.add("-P");
 
     // TODO add error checking and throw an exception if the parameters have not
     // been set
@@ -489,7 +496,7 @@ public class TrimvolParam implements CommandDetails {
 
       }
       else {
-        options.add("-s");
+        options.add("-sz");
         options.add(String.valueOf(sectionScaleMin) + ","
             + String.valueOf(sectionScaleMax));
         if (!scaleXYParam.getXMin().isNull() && !scaleXYParam.getXMax().isNull()) {
