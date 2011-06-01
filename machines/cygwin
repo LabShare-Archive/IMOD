@@ -326,7 +326,7 @@ RC_FILE = 3dmod.rc
 EOF
 
 cat <<EOF >! $midas_qconf
-LIBS += libdiaqt.lib libiimod.lib libimod.lib libcfshr.lib libtiff.lib libifft.lib
+LIBS += libdiaqt.lib libiimod.lib libimod.lib libiwarp.lib libcfshr.lib libtiff.lib libifft.lib
 QMAKE_LFLAGS_RELEASE += /LIBPATH:"../buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib /LARGEADDRESSAWARE
 QMAKE_LFLAGS_DEBUG += /LIBPATH:"../buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib /LARGEADDRESSAWARE
 INCLUDEPATH += $QTDIR/include/QtOpenGL
@@ -586,7 +586,7 @@ echo "QTPLUGS_TOCOPY1 = qjpeg4.dll qico4.dll" >> $configure
 # Make sure critical scripts are in unix mode
 # ALL BASH/SH SCRIPTS MUST BE INCLUDED
 #
-(cd scripts ; dos2unix makejoincom transferfid xfalign matchorwarp newst dm2mrc matchrotpairs chunksetup finishjoin prochunks.csh splitcorrection trimvol queuechunk alignlog submfg runpyscript 3dmodbg 3dmodv processchunksbg patch2imod imod2patch imodhelp >& /dev/null)
+(cd scripts ; dos2unix makejoincom transferfid xfalign matchorwarp newst dm2mrc matchrotpairs chunksetup finishjoin prochunks.csh splitcorrection queuechunk alignlog submfg runpyscript 3dmodbg 3dmodv processchunksbg patch2imod imod2patch imodhelp >& /dev/null)
 (cd dist ; dos2unix installIMOD installStub IMOD-cygwin.sh >& /dev/null)
 (cd Etomo/scripts ; dos2unix etomo >& /dev/null)
 dos2unix installqtlib >& /dev/null
