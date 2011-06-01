@@ -8,6 +8,7 @@
 all : ALWAYS
 	cd beadfix        ;    $(MAKE) $@
 	cd beadhelper     ;    $(MAKE) $@
+	cd noskecommon    ;    $(MAKE) $@
 	cd drawingtools   ;    $(MAKE) $@
 	cd interpolator   ;    $(MAKE) $@
 	cd analysistools  ;    $(MAKE) $@
