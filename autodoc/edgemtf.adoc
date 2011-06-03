@@ -1,0 +1,120 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputFile]
+short = input
+type = FN
+usage = Input file with images of edges
+tooltip = 
+manpage = Input file with images of edges.  If this option is not entered, the
+first nonoption argument will be used for this entry.
+
+[Field = RootNameOfOutput]
+short = rootname
+type = FN
+usage = Root of names for output files
+tooltip = 
+manpage = Root of names for the output files.  If this option is not entered, the
+second nonoption argument will be used for this entry. The complete output
+file will be named with this root plus ".out"; MTF files for individual images
+will be named with this root plus "-n.mtf", where n is the section number.
+
+[Field = SectionsStartAndEnd]
+short = sections
+type = IP
+usage = Starting and ending sections to analyze (numbered from 0)
+tooltip = 
+manpage = Starting and ending sections to analyze (numbered from 0).  The
+default is to do all sections in the input file.
+
+[Field = NumberOfPoints]
+short = points
+type = I
+usage = Number of averaged points to produce in MTF (default 20)
+tooltip = 
+manpage = Number of points to produce in the averaged MTF curve.  If the curve
+appears irregular, reduce this value.  The default is 20.
+
+[Field = SummingOfLines]
+short = sum
+type = I
+usage = Number of lines to sum into each line for analysis 
+tooltip = 
+manpage = Number of lines to sum into each line for alignment and analysis.
+The default depends on the indicated binning: 3, 2, 1 and 1 for binnings 1, 2,
+3, and 4.  If data are particularly noisy, this number may need to be
+increased.  However, if the angle of the edge is more than a few degrees, it
+may be necessary to reduce this number to 1 to avoid blurring the edge by
+summing without aligning lines.
+
+[Field = AveragingForReference]
+short = average
+type = I
+usage = Number of summed lines to average for first referenece
+tooltip = 
+manpage = Number of summed lines to average together to make the initial
+reference for aligning other summed lines.  
+The default depends on the indicated binning: 2, 2, 2 and 1 for binnings 1, 2,
+3, and 4. 
+
+[Field = NormalizationComponents]
+short = components
+type = I
+usage = Number of Fourier components to average for normalizing curve
+tooltip = 
+manpage = Number of Fourier components near zero frequency to average together
+to normalize the curve to start at 1.0 for zero frequency.
+The default depends on the indicated binning: 4, 2, 2 and 1 for binnings 1, 2,
+3, and 4. This number may need to be decreased if images are not very wide.  
+If too many components are included, then the whole curve will be scaled too high,
+and the first averaged MTF value might even exceed 1.
+
+[Field = BinningOfImages]
+short = binning
+type = I
+usage = Binning of the images, used to select the defaults for summing and normalization
+tooltip = 
+manpage = Binning of the images, used to select the defaults for summing and
+normalization, as described above for the -sum, -average, and -components options.
+
+[Field = LinesForReference]
+short = lines
+type = IA
+usage = Y coordinate of middle line for first reference (one per section to do)
+tooltip = 
+manpage = Y coordinate of the middle line to use for making an initial
+reference.  When the edge is very sharp, this entry allows you to specify a
+place where the edge falls most strongly between two pixels.  The default is
+to take the middle coordinate in Y.  If you use this option, you must enter a
+value for each section that is being analyzed.
+
+[Field = CrossingValue]
+short = cross
+type = F
+usage = Report the frequency where MTF crosses this value (default 0.5)
+tooltip = 
+manpage = The program will report the frequency at which the MTF crosses below
+a particular value.  This single number can be useful for comparing different
+curves that have similar shapes.  The default is 0.5.
+
+[Field = ZeroDerivative]
+short = zero
+type = I
+usage = X coordinate beyond which to zero out the derivative
+tooltip = 
+manpage = X coordinate beyond which to zero out the derivative.  This option
+was apparently helpful for images that had a gradient on the right side.
+
+[Field = ParameterFile]
+short = param
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
+
+[Field = usage]
+short = help
+type = B
+usage = Print help output
+tooltip = 
+manpage = 
