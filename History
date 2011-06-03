@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/3/11: Added Edgemtf for computing a CCD camera MTF from an edge image.
+
 6/1/11: In eTomo, handling the new version of trimvol.(Bug# 1490)
 
 6/1/11: Translated trimvol to Python.  Option -s is removed.
