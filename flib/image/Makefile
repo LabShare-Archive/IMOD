@@ -1,5 +1,4 @@
 #  $Id$
-#  Log at end
 #
 include ../configure
 
@@ -8,7 +7,7 @@ E        = $(BINEXT)
 LDFLG    = $(LDFFLAGS)
 
 PROGS = addtostack$(E) alterheader$(E) assemblevol$(E) avganova$(E) \
- avgstack$(E) calc$(E) checkxforms$(E) combinefft$(E) \
+ avgstack$(E) calc$(E) checkxforms$(E) combinefft$(E) edgemtf$(E) \
  densmatch$(E) edpiecepoint$(E) enhance$(E) eraser$(E) excise$(E) \
  extposition$(E) extracttilts$(E) extractpieces$(E) extstack$(E) fftrans$(E) \
  filltomo$(E) findcontrast$(E) findsection$(E) fixmont$(E) goodframe$(E) \
@@ -60,6 +59,9 @@ densmatch$(E): densmatch.$(O)
 
 densnorm$(E): densnorm.$(O)
 	$(FC) -o densnorm densnorm.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+
+edgemtf$(E): edgemtf.$(O)
+	$(FC) -o edgemtf edgemtf.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
 edpiecepoint$(E): edpiecepoint.$(O)
 	$(FC) -o edpiecepoint edpiecepoint.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
@@ -213,76 +215,3 @@ giantfft.$(O): $(INCDIR)/ftbuf.inc
 enhance.$(O): $(INCDIR)/ftbuf.inc
 fftrans.$(O): $(INCDIR)/ftbuf.inc
 
-#  $Log$
-#  Revision 3.24  2010/07/26 19:29:51  mast
-#  Changed for separate opnemp flag for fortran
-#
-#  Revision 3.23  2010/07/02 17:05:23  mast
-#  Removed edmont, it went to model
-#
-#  Revision 3.22  2009/10/02 20:22:06  mast
-#  Removed tiltxcorr
-#
-#  Revision 3.21  2009/09/07 17:22:13  mast
-#  Convert stitchvars to module
-#
-#  Revision 3.20  2009/06/14 22:39:30  mast
-#  Changes for module and openmp in rotmatwarpsubs etc
-#
-#  Revision 3.19  2009/04/09 18:56:49  mast
-#  Add openmp flag for rotmatwarpsubs
-#
-#  Revision 3.18  2009/02/16 06:26:42  mast
-#  Added fixboundaries
-#
-#  Revision 3.17  2008/05/08 02:56:30  mast
-#  vmstocsh can be compiled normally - fixed bad assumption in there
-#
-#  Revision 3.16  2007/10/30 14:25:06  mast
-#  Renamed xcorr to xcorrstack
-#
-#  Revision 3.15  2007/10/21 17:38:37  mast
-#  Really remove boxavg
-#
-#  Revision 3.14  2007/10/21 17:14:05  mast
-#  Remove boxavg
-#
-#  Revision 3.13  2007/07/17 03:37:23  mast
-#  Added densnorm
-#
-#  Revision 3.12  2007/04/08 16:17:06  mast
-#  Added stitchalign
-#
-#  Revision 3.11  2006/06/22 01:09:45  mast
-#  Replaced LDFLAGS with LDFFLAGS for Intel Mac
-#
-#  Revision 3.10  2005/11/25 18:50:19  mast
-#  Made vmstocsh nonoptimized due to 64-bit Intel compiler bug
-#
-#  Revision 3.9  2005/05/12 05:07:40  mast
-#  Use strip variable
-#
-#  Revision 3.8  2005/04/16 15:35:13  mast
-#  Added numericdiff
-#
-#  Revision 3.7  2004/10/28 22:22:40  mast
-#  Added binvol
-#
-#  Revision 3.6  2004/10/28 21:14:36  mast
-#  Added maxjoinsize
-#
-#  Revision 3.5  2004/10/24 20:44:10  mast
-#  Added dependecies on ftbuf.inc
-#
-#  Revision 3.4  2004/03/30 18:53:13  mast
-#  Added mtffilter
-#
-#  Revision 3.3  2004/03/22 05:40:15  mast
-#  Added extractmagrad
-#
-#  Revision 3.2  2003/10/24 02:30:57  mast
-#  Changes for windows/Intel compiler
-#
-#  Revision 3.1  2003/10/10 20:46:01  mast
-#  Changed rotatevol, matchvol, warpvol to use common include and subroutines
-#
