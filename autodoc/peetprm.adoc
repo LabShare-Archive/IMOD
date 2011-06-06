@@ -10,12 +10,11 @@ comment = The file names of IMOD models corresponding to each tomogram.
 comment = A code specifying how to construct the initial motive list:
 ^0: Set all rotational values to zero
 ^
-^1: Use the particle model and reference index to
-^   initialize theta (rotation around the z axis), be sure
-^   the points are sorted along a direction of interest
+^1: Use the particle and reference model points to initialize
+^   rotation around the particle z axis
 ^
-^2: Use the particle model and reference index to initialize
-^   theta and psi (rotation around the z axis and x axis)
+^2: Use the particle and refernce model points to initialize
+^   rotation around the particle x and z axes
 ^
 ^3: Uniform random rotations
 ^
@@ -34,9 +33,8 @@ enum.3.tooltip = Initialize to uniform random rotations
 enum.4.tooltip = Random axial rotations around the particle y axis
 
 [Field = reference]
-comment = * If it is a string it should specify the name of an MRC file containing the reference
-^  volume.
-^* If it is [i  j]. It specifies the reference to be the jth particle of the ith tomogram.
+comment = * If a string, the name of an MRC file containing the reference volume.
+^* If [i  j], the reference will be the jth particle of the ith tomogram.
 
 comment = If it is a string it should specify the name of an MRC file containing
 ^the reference volume.  If it is [i  j]. It specifies the reference to be the
