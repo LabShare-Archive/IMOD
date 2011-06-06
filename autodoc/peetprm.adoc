@@ -19,6 +19,8 @@ comment = A code specifying how to construct the initial motive list:
 ^
 ^3: Uniform random rotations
 ^
+^4: Random axial rotations
+^
 ^or a string array to specify the filenames to load
 tooltip = A code specifying how to construct the initial motive list
 or a string array to specify the filenames to load
@@ -29,6 +31,7 @@ interest
 enum.2.tooltip = Use the particle model and reference index to initialize theta
 and psi (rotation around the z axis and x axis)
 enum.3.tooltip = Initialize to uniform random rotations
+enum.4.tooltip = Random axial rotations around the particle y axis
 
 [Field = reference]
 comment = * If it is a string it should specify the name of an MRC file containing the reference
@@ -181,12 +184,11 @@ comment = The number of pixels shift the edge of the wedge mask to ensure
 comment = Apply missing wedge compensation to the alignment search
 
 [Field = nWeightGroup]
-comment = Number of wedge weight groups to divide particles into for equalizing
-^CCCs between the groups.  When selecting particles for a new reference or
-^average after the first round of alignment, correlation coefficients will be
-^adjusted so that the median CCCs of the weight groups are about the same,
-^alleviating biases dues to deficiencies in the missing wedge compensation.  Use
-^0 for no adjustment.
+comment = Disable (0) or enable (> 0) equalization of cross-correlations
+^between groups based on missing wedge orientation. If enabled, equalization
+^will be applied to minimize missing wedge bias during averaging and new 
+^reference generation. NOTE: as of PEET 1.8.0 this parameter is an on / off 
+^ flag; the number of groups is no longer under direct user control. 
 
 [Field = lstThresholds]
 comment = The list of thresholds to use for computing the final volumes.
@@ -231,4 +233,3 @@ considered duplicates.
 comment = An array of integers giving the maximum orientation difference in
 ^degrees at which particles can be considered duplicates at each iteration.
 tooltip = The maximum orientation difference in degrees at which particles can be considered duplicates.
-
