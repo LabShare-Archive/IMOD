@@ -24,6 +24,8 @@ moc_customdialog.$(O) : moc_customdialog.cpp
 moc_customdialog.cpp : customdialog.h
 	$(MOC) customdialog.h -o moc_customdialog.cpp
 
+includes : $(IMODINCLUDES)
+
 imod.h : ../../imod/imod.h
 	$(CP) -f ../../imod/imod.h .
 imodview.h : ../../imod/imodview.h
