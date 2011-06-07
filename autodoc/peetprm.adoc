@@ -114,7 +114,8 @@ comment = If This is set to 'full' or 'half', for the fisrt iteration, dTheta an
 
 
 [Field = sampleInterval]
-comment = The interval in degrees at which the spherical surface is sampled.
+comment = The sampling interval in degrees for Theta and the equitorial
+^ sampling interval for Psi when spherical sampling is in effect.
 
 [Field = dPhi]
 comment = Phi is the rotation around the  Y-axis specified above by the parameter "yaxis".
