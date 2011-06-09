@@ -2385,6 +2385,8 @@ void XyzGL::mousePressEvent(QMouseEvent * event )
 
   mWin->mLmx = event->x();
   mWin->mLmy = event->y();
+  mWin->mFirstMx = mWin->mLmx;
+  mWin->mFirstMy = mWin->mLmy;
   //imodPrintStderr("Mouse press at %d %d\n", mWin->mLmx, mWin->mLmy);
 }
 
@@ -2442,12 +2444,11 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
   ivwControlPriority(mWin->mVi, mWin->mCtrl);
 
   if ( (button1) && (!button2) && (!button3)) {
-    cumdx = mWin->mLmx - ex;
-    cumdy = mWin->mLmy - ey;
-    if (but1downt.elapsed() > 250 || cumdx * cumdx + cumdy * cumdy > cumthresh)
+    cumdx = mWin->mFirstMx - ex;
+    cumdy = mWin->mFirstMy - ey;
+    if (!mWin->mWhichbox || mWin->mWhichbox > Z_SLICE_BOX || 
+        but1downt.elapsed() > 250 || cumdx * cumdx + cumdy * cumdy > cumthresh)
       mWin->B1Drag(ex, ey);
-    else if (mWin->mWhichbox == 7)
-      return;
   }
   if ( (!button1) && (button2) && (!button3))
     mWin->B2Drag(ex, ey);
@@ -2461,6 +2462,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 /*
 
 $Log$
+Revision 4.64  2011/03/14 23:39:13  mast
+Changes for ushort loading
+
 Revision 4.63  2011/03/08 05:34:45  mast
 Made it work for color images
 
