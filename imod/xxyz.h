@@ -74,6 +74,7 @@ class XyzWindow : public QMainWindow
   int mXwoffset1, mXwoffset2;  /* offset in window coordinates */
   int mYwoffset1, mYwoffset2;
   int mLmx, mLmy;           /* last mouse position for panning */
+  int mFirstMx, mFirstMy;   /* initial mouse position for panning threshsold */
   int mToolMaxX;
   int mToolMaxZ;
   int mWinXdim1,mWinXdim2,mWinYdim1,mWinYdim2;
