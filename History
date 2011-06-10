@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/9/11: Added ability to add and manipulate warping control points in Midas,
+and made Newstack, Xftoxg, Xfproduct, and Xfinverse handle warp transform
+files automatically in place of linear transform files.
+
 6/3/11: Added Edgemtf for computing a CCD camera MTF from an edge image.
 
 6/1/11: In eTomo, handling the new version of trimvol.(Bug# 1490)
@@ -18,6 +22,11 @@ parameter.(Bug# 1460)
 4.2.1.
 
 5/27/11: Add a UI test for SIRT interface in eTomo.(Bug# 1478)
+
+5/26/11: Added new library libiwarp with functions for manipulating warping
+transformations stored as regular grids or sets of control points.  It
+includes Pavel Sakov's natural neighbor interpolation code and Ken Clarkson's
+hull code for Delaunay triangulation.
 
 5/24/11: In eTomo, allowing a single space to be used as a divider (instead of
 a comma) in numeric lists.(Bug# 1471)
