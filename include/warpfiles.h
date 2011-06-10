@@ -74,6 +74,16 @@ extern "C" {
                         int nxGrid, int nyGrid, float xGridStrt, float xGridIntrv,
                         float yGridStrt, float yGridIntrv, float *xnew, float *ynew,
                         float *dx, float *dy);
+  int expandAndExtrapGrid(float *dxGrid, float *dyGrid, int xdim, int ydim, int *nxGrid,
+                          int *nyGrid, float *xStart, float *yStart, float xInterval, 
+                          float yInterval, float xBigStr, float yBigStr, float xBigEnd,
+                          float yBigEnd, int nx, int ny);
+
+  void warpInterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
+                  float amat[2][2], float xc, float yc, float xt, float yt, float scale,
+                  float dmean, int linear, int linFirst, float *dxGrid, float *dyGrid,
+                  int ixgDim, int nxGrid, float xGridStrt, float xGridIntrv, int nyGrid,
+                  float yGridStrt, float yGridIntrv);
 
 #ifdef __cplusplus
 }
