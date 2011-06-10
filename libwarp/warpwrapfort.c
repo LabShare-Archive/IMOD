@@ -40,6 +40,8 @@
 #define findinversepoint FINDINVERSEPOINT
 #define invertwarpgrid INVERTWARPGRID
 #define multiplywarpings MULTIPLYWARPINGS
+#define expandandextrapgrid EXPANDANDEXTRAPGRID
+#define warpinterp WARPINTERP
 #else
 #define newwarpfile newwarpfile_
 #define setcurrentwarpfile setcurrentwarpfile_
@@ -65,6 +67,8 @@
 #define findinversepoint findinversepoint_
 #define invertwarpgrid invertwarpgrid_
 #define multiplywarpings multiplywarpings_
+#define expandandextrapgrid expandandextrapgrid_
+#define warpinterp warpinterp_
 #endif
 
 
@@ -236,4 +240,23 @@ int multiplywarpings(float *dxGrid1, float *dyGrid1, int *ixgDim1, int *nxGrid1,
      2);
 }
 
+int expandandextrapgrid(float *dxGrid, float *dyGrid, int *xdim, int *ydim, int *nxGrid,
+                        int *nyGrid, float *xStart, float *yStart, float *xInterval, 
+                        float *yInterval, float *xBigStr, float *yBigStr, float *xBigEnd,
+                        float *yBigEnd, int *nx, int *ny)
+{
+  return expandAndExtrapGrid(dxGrid, dyGrid, *xdim, *ydim, nxGrid, nyGrid, xStart, yStart,
+                             *xInterval, *yInterval, *xBigStr, *yBigStr, *xBigEnd,
+                             *yBigEnd, *nx, *ny);
+}
 
+void warpinterp(float *array, float *bray, int *nxa, int *nya, int *nxb, int *nyb,
+                float amat[2][2], float *xc, float *yc, float *xt, float *yt,float *scale,
+                float *dmean, int *linear, int *linFirst, float *dxGrid, float *dyGrid,
+                int *ixgDim, int *nxGrid, float *xGridStrt, float *xGridIntrv, 
+                int *nyGrid, float *yGridStrt, float *yGridIntrv)
+{
+  warpInterp(array, bray, *nxa, *nya, *nxb, *nyb, amat, *xc, *yc, *xt, *yt, *scale,
+             *dmean, *linear, *linFirst, dxGrid, dyGrid, *ixgDim, *nxGrid, *xGridStrt, 
+             *xGridIntrv, *nyGrid, *yGridStrt, *yGridIntrv);
+}
