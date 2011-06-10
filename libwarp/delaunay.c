@@ -271,6 +271,10 @@ static void tio2delaunay(struct triangulateio* tio_out, delaunay* d)
  * @param nh Number of holes
  * @param holes Array of hole (x,y) coordinates [2*nh]
  * @return Delaunay triangulation structure with triangulation results
+ *
+ * For Clarkson Hull, there are no holes or segments; to prune triangles at edge of hull
+ * pass the minimum number of triangles to use pruning with in nh and in holes, pass an
+ * array with two criteria: a height/base ratio and a fraction of total area
  */
 delaunay* delaunay_build(int np, point points[], int ns, int segments[], int nh, double holes[])
 {
@@ -331,6 +335,14 @@ delaunay* delaunay_build(int np, point points[], int ns, int segments[], int nh,
      */
 #ifdef CLARKSON_HULL
     tio_in.verbose = nn_verbose;
+    tio_in.heightBaseCrit = 0.;
+    tio_in.minNumForPruning = 2;
+    tio_in.areaFractionCrit = 0.;
+    if (nh > 0 && holes != NULL) {
+      tio_in.minNumForPruning = ns;
+      tio_in.heightBaseCrit = holes[0];
+      tio_in.areaFractionCrit = holes[1];
+    }
     hull_triangulate(&tio_in);
 #else
     triangulate(cmd, &tio_in, &tio_out, NULL);
