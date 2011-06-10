@@ -12,20 +12,24 @@ c
       implicit none
       integer lmsc
       parameter (lmsc=100000)
-C	structure /xform/
-C       real*4 a(2,2),dx,dy
-C	end structure
       real*4 f(2,3,lmsc),g(2,3,lmsc),nat(2,3,lmsc) ,gav(2,3)
-      real*4 natav(2,3),ginv(2,3),prod(2,3),
-     &    slope(2,3,10),intcp(2,3),natpr(2,3)
+      real*4 natav(2,3),ginv(2,3),prod(2,3), slope(2,3,10),intcp(2,3),natpr(2,3)
       real*4 x(lmsc),y(lmsc),slop(10)
-      integer*4 igroup(lmsc)
+      integer*4 igroup(lmsc), nControl(lmsc)
       character*320 infil,outfil
+      real*4, allocatable :: dxGrid(:,:), dyGrid(:,:), dxCum(:,:,:), dyCum(:,:,:)
+      real*4, allocatable :: dxProd(:,:), dyProd(:,:)
 c       
-      integer*4 nhybrid, ifshift, iorder, nlist, kl, i, ilist, kllo, klhi
-      integer*4 j, ipow, nfit, ierr, lnblnk,numGroups, numInFirst,iordUse
-      integer*4 irefSec
-      real*4 deltang, angdiff, bint, angleRange
+      integer*4 nhybrid, ifshift, iorder, nlist, kl, i, ilist, kllo, klhi, nx, ny
+      integer*4 j, ipow, nfit, ierr, lnblnk,numGroups, numInFirst,iordUse, ibin
+      integer*4 irefSec, indWarpFile, nxGrid, nyGrid, nxGrTmp, nyGrTmp, iflags, iversion
+      real*4 xStart, yStart, xInterval, yInterval, xStrTmp, yStrTmp, xIntTmp, yIntTmp
+      logical*4 warping, control
+      real*4 deltang, angdiff, bint, angleRange, pixelSize, xcen, ycen, xEnd, yEnd
+      integer*4 readWarpFile, getNumWarpPoints, getLinearTransform, gridSizeFromSpacing
+      integer*4 getGridParameters, getWarpGrid, setWarpGrid, setGridSizeToMake
+      integer*4 setLinearTransform, writeWarpFile, multiplyWarpings, newWarpFile
+      integer*4 clearWarpFile, separateLinearTransform, expandAndExtrapGrid
 c       
       logical pipinput
       integer*4 numOptArg, numNonOptArg
@@ -53,8 +57,7 @@ c
 c       initialize
 c       
       call PipReadOrParseOptions(options, numOptions, 'xftoxg',
-     &    'ERROR: XFTOXG - ', .true., 1, 1, 1, numOptArg,
-     &    numNonOptArg)
+     &    'ERROR: XFTOXG - ', .true., 1, 1, 1, numOptArg, numNonOptArg)
       pipinput = numOptArg + numNonOptArg .gt. 0
 
 c       
@@ -62,13 +65,11 @@ c       get input parameters
 c       
       if (pipinput) then
         if (PipGetInteger('ReferenceSection', irefSec) .eq. 0) then
-          if (irefSec .lt. 1) call exitError(
-     &        'REFERENCE SECTION NUMBER MUST BE POSITIVE')
+          if (irefSec .lt. 1) call exitError('REFERENCE SECTION NUMBER MUST BE POSITIVE')
           ifshift = 0
         endif
         ierr = PipGetInteger('NumberToFit', ifshift)
-        if (ifshift .lt. 0) call exitError(
-     &      'A negative value for nfit is not allowed')
+        if (ifshift .lt. 0) call exitError('A negative value for nfit is not allowed')
         if (irefSec .gt. 0 .and. ifshift .gt. 0) call exitError(
      &      'A REFERENCE SECTION CAN ONLY BE USED WITH GLOBAL ALIGNMENT')
 
@@ -122,34 +123,184 @@ c
      &    outfil) .ne. 0) then
         i = lnblnk(infil)
         if (infil(i-1:i) .ne. 'xf')call exitError
-     &      ('No output file specified and input filename '//
-     &      'does not end in xf')
+     &      ('NO OUTPUT FILE SPECIFIED AND INPUT FILENAME DOES NOT END IN XF')
         outfil = infil
         outfil(i:i) = 'g'
       endif
 c       
-c       open files, read the whole list of f's
+c       Determine if there is warping
+      indWarpFile = readWarpFile(infil, nx, ny, nlist, ibin, pixelSize, iversion, iflags)
+      if (indWarpFile .lt. 0 .and. (iversion .ne. 0 .or. indWarpFile .ne. -3)) then
+        if (indWarpFile .gt. -3) call exitError('OPENING OR READING TRANSFORM FILE')
+        call exitError('INAPPROPRIATE VALUE OR MEMORY ERROR PROCESSING TRANSFORM FILE'
+     &      //' AS A WARPING FILE (IT DOES NOT APPEAR TO BE A LINEAR TRANSFORM FILE)')
+      endif
+      warping = indWarpFile .ge. 0
+      if (.not. warping) then
 c       
-      call dopen(1,infil,'old','f')
-      call dopen(2,outfil,'new','f')
-      call xfrdall(1,f,nlist,*96)
+c         Regular: open files, read the whole list of f's
+c         
+        call dopen(1,infil,'old','f')
+        call dopen(2,outfil,'new','f')
+        call xfrdall2(1,f,nlist,lmsc,ierr)
+        if (ierr .eq. 2) call exitError('READING TRANSFORM FILE')
+        if (ierr .eq. 1) call exitError('TOO MANY TRANSFORMS IN FILE FOR ARRAYS')
+      endif
       if (nlist .gt. lmsc) call exitError('TOO MANY TRANSFORMS FOR ARRAYS')
       if (irefSec .gt. nlist) call exitError(
      &    'REFERENCE SECTION NUMBER TOO LARGE FOR NUMBER OF TRANSFORMS')
-C       
-c       compute g's to align all sections to the first
-C	
-      call xfcopy(f(1,1,1),g(1,1,1))
-      do i=2,nlist
-        call xfmult(f(1,1,i),g(1,1,i-1),g(1,1,i))
-      enddo
 c       
-c       convert to "natural" transforms
+      if (ifshift .gt. 0 .and. nlist .lt. 3) then
+        write(*,'(/,a)')'WARNING: XFTOXG - COMPUTING A GLOBAL ALIGNMENT SINCE THERE '//
+     &      'ARE FEWER THAN 3 TRANSFORMS'
+        ifshift = 0
+      endif
+      if (warping) then
+c         
+c         warping: check that it is inverses
+        write(*,'(a,a)')'Warping file opened: ',trim(infil)
+        if (iflags .eq. 0) call exitError(
+     &      'A WARPING must BE IDENTIFIED AS AN INVERSE WARPING')
+
+        control = mod(iflags / 2, 2) .ne. 0
+        xcen = nx / 2.
+        ycen = ny / 2.
+c         
+c         Get the linear transforms and determine smallest spacing needed
+        xStart = nx
+        yStart = ny
+        xEnd = 0.
+        yEnd = 0.
+        xInterval = nx
+        yInterval = ny
+        nxGrid = 0
+        nyGrid = 0
+        do kl = 1, nlist
+          nControl(kl) = 4
+          if (control) then
+            if (getNumWarpPoints(kl, nControl(kl)) .ne. 0)
+     &          call exitError('GETTING NUMBER OF CONTROL POINTS')
+          endif
+c           IS THIS NEEDED?
+          if (nControl(kl) .gt. 2) then
+            if (separateLinearTransform(kl) .ne. 0) call exitError
+     &          ('SEPARATING OUT THE LINEAR TRANSFORM FROM THE WARPING')
+          endif
+          if (getLinearTransform(kl, f(1,1,kl)) .ne. 0) call exitError
+     &        ('GETTING LINEAR TRANSFORM FROM WARP FILE')
+          if (nControl(kl) .ge. 4) then
+            if (control) then
+              if (gridSizeFromSpacing(kl, -1., -1., 1) .ne. 0) call exitError
+     &            ('SETTING GRID SIZE FROM SPACING OF CONTROL POINTS')
+            endif
+            if (getGridParameters(kl, nxGrTmp, nyGrTmp, xStrTmp, yStrTmp, xIntTmp,
+     &          yIntTmp) .ne. 0) call exitError('GETTING GRID PARAMETERS')
+c            print *,nxGrTmp, nyGrTmp, xStrTmp, yStrTmp, xIntTmp,yIntTmp
+            xStart = min(xStart, xStrTmp)
+            xInterval = min(xInterval, xIntTmp)
+            xEnd = max(xEnd, (nxGrTmp - 1) * xInterval)
+            yStart = min(yStart, yStrTmp)
+            yInterval = min(yInterval, yIntTmp)
+            yEnd = max(yEnd, (nyGrTmp - 1) * yInterval)
+          endif
+        enddo
+c        print *,xStart,xEnd,xInterval,yStart,yEnd,yInterval
+        if (xStart .le. 0. .or. xEnd .ge. nx .or. yStart .le. 0. .or. yEnd .ge. ny)
+     &      call exitError('CANNOT WORK WITH GRIDS THAT EXTEND OUTSIDE THE DEFINED '//
+     &      'IMAGE AREA')
+c         
+c         Figure out the grid size and interval that fits in the range, but make it
+c         fill the range
+        xStart = min(xStart, xInterval / 2.)
+        xEnd = max(xEnd, nx - xInterval / 2.)
+        yStart = min(yStart, yInterval / 2.)
+        yEnd = max(yEnd, ny - yInterval / 2.)
+        nxGrid = max(2., (xEnd - xStart) / xInterval + 1.05)
+        xInterval = (xEnd - xStart) / (nxGrid - 1)
+        nyGrid = max(2., (yEnd - yStart) / yInterval + 1.05)
+        yInterval = (yEnd - yStart) / (nyGrid - 1)
+c        print *,xStart,xEnd,xInterval,yStart,yEnd,yInterval,nxGrid,nyGrid
+c
+        if (control) then
+c           
+c           Then set all the parameters for control point grids
+          do kl = 1, nlist
+            ierr = setGridSizeToMake(kl, nxGrid, nyGrid, xStart, yStart, xInterval,
+     &          yInterval)
+          enddo
+        endif
+c         
+c         Allocate arrays
+        allocate(dxGrid(nxGrid,nyGrid), dyGrid(nxGrid,nyGrid), dxCum(nxGrid,nyGrid,nlist),
+     &      dyCum(nxGrid,nyGrid,nlist), dxProd(nxGrid,nyGrid), dyProd(nxGrid,nyGrid),
+     &      stat = ierr)
+        call memoryError(ierr, 'ARRAYS FOR WARPING GRIDS')
+c         
+c         Form cumulative product to align to the first section: initialize to unit
+        call xfunit(g(1,1,1), 1.)
+        dxCum = 0.                              !ARRAY OPERATIONS
+        dyCum = 0.
+        do kl = 2, nlist
+          nxGrTmp = 0
+          nyGrTmp = 0
+          if (nControl(kl) .gt. 3) then
+            if (getWarpGrid(kl, nxGrTmp, nyGrTmp, xStrTmp, yStrTmp, xIntTmp, yIntTmp,
+     &          dxGrid, dyGrid, nxGrid) .ne. 0) call exitError('GETTING WARP GRID')
+c            print *,'raw grid', nxGrTmp, nyGrTmp
+c            write(*,'(f7.2,9f8.2)')((dxGrid(i,j),dyGrid(i,j),i=1,nxGrid),j=1,nyGrid)
+            if (.not.control) then
+              if (expandAndExtrapGrid(dxGrid, dyGrid, nxGrid, nyGrid, nxGrTmp, nyGrTmp,
+     &            xStrTmp, yStrTmp, xIntTmp, yIntTmp, xStart, yStart, xEnd, yEnd, nx, ny)
+     &            .ne. 0) call exitError('EXPANDING A WARP GRID')
+            endif
+          endif
+          if (multiplyWarpings(dxCum(1,1,kl-1), dyCum(1,1,kl-1), nxGrid, nxGrid, nyGrid,
+     &        xStart, xInterval, yStart, yInterval, g(1,1,kl-1), xcen, ycen, dxGrid,
+     &        dyGrid, nxGrid, nxGrTmp, nyGrTmp, xStrTmp, xIntTmp, yStrTmp, yIntTmp,
+     &        f(1,1,kl), dxCum(1,1,kl), dyCum(1,1,kl), g(1,1,kl), 0) .ne. 0)
+     &        call exitError ('MULTIPLYING TWO WARPINGS TOGETHER FOR CUMULATIVE WARPING')
+c          print *,g(1:2,1:3,kl)
+c          print *,'cumulative',nxGrid,nyGrid
+c          write(*,'(f7.2,9f8.2)')((dxCum(i,j,kl),dyCum(i,j,kl),i=1,nxGrid),j=1,nyGrid)
+        enddo
+c         
+c         Find the mean grid and take its inverse, leave in dxGrid, dyGrid
+        dxProd = 0.
+        dyProd = 0.
+        do kl = 1, nlist
+          do j = 1, nyGrid
+            do i = 1, nxGrid
+              dxProd(i,j) = dxProd(i,j) + dxCum(i,j,kl) / nlist
+              dyProd(i,j) = dyProd(i,j) + dyCum(i,j,kl) / nlist
+            enddo
+          enddo
+        enddo
+c        write(*,'(f7.2,9f8.2)')((dxProd(i,j),dyProd(i,j),i=1,nxGrid),j=1,nyGrid)
+        
+        call invertWarpGrid(dxProd, dyProd, nxGrid, nxGrid, nyGrid, xStart, xInterval,
+     &      yStart, yInterval, g(1,1,1), xcen, ycen, dxGrid, dyGrid, prod)
+c         
+c         Start a new warp file
+        ierr = clearWarpFile(indWarpFile)
+        iflags = 1
+        indWarpFile = newWarpFile(nx, ny, ibin, pixelSize, iflags)
+        if (indWarpFile .lt. 0) call exitError('OPENING A NEW WARPING FILE')
+      else
+C         
+c         Regular transforms: compute g's to align all sections to the first
+C         It seems wrong to copy f(1) instead of starting with a unit...
+        call xfcopy(f(1,1,1),g(1,1,1))
+        do i=2,nlist
+          call xfmult(f(1,1,i),g(1,1,i-1),g(1,1,i))
+        enddo
+      endif
+c       
+c       Usual treatment of regular transforms now that we have cumulative g in each case
+c       Convert to "natural" transforms
 c       
       deltang=0.
       do kl=1,nlist
-        call amat_to_rotmag(g(1,1,kl),nat(1,1,kl),nat(1,2,kl)
-     &      ,nat(2,1,kl),nat(2,2,kl))
+        call amat_to_rotmag(g(1,1,kl),nat(1,1,kl),nat(1,2,kl) ,nat(2,1,kl),nat(2,2,kl))
         nat(1,3,kl)=g(1,3,kl)
         nat(2,3,kl)=g(2,3,kl)
 c         
@@ -234,8 +385,7 @@ c
             enddo
           endif
           if(ifshift.eq.1.and.ilist.eq.1)then
-            print *,'constants and coefficients of fit to',nfit
-     &          ,' natural parameters'
+            print *,'constants and coefficients of fit to',nfit ,' natural parameters'
             call xfwrite(6,intcp,*97)
             do ipow=1,iordUse
               call xfwrite(6,slope(1,1,ipow),*99)
@@ -275,13 +425,31 @@ c         to the locally fitted center.  This stuff about the linearly fitted
 c         center position is pretty ad hoc and hokey, but it seems to give
 c         good results in the final images.
 c         
-        call xfmult(g(1,1,ilist),ginv,prod)
-        call xfwrite(2,prod,*97)
+        if (warping) then
+c           
+c           If there are warpings, multiply cumulative warp by inverse warp based on
+c           this transform and the inverse average warp
+          if (multiplyWarpings(dxCum(1,1,ilist), dyCum(1,1,ilist), nxGrid, nxGrid, nyGrid,
+     &        xStart, xInterval, yStart, yInterval, g(1,1,ilist), xcen, ycen, dxGrid,
+     &        dyGrid, nxGrid, nxGrid, nyGrid, xStart, xInterval, yStart, yInterval,
+     &        ginv, dxProd, dyProd, prod, 0) .ne. 0)
+     &        call exitError ('MULTIPLYING TWO WARPINGS TOGETHER FOR FINAL WARPING')
+          if (setLinearTransform(ilist, prod) .ne. 0 .or.
+     &        setWarpGrid(ilist, nxGrid, nyGrid, xStart, yStart,
+     &        xInterval, yInterval, dxProd, dyProd, nxGrid) .ne. 0)
+     &        call exitError('STORING FINAL WARPING')
+        else
+          call xfmult(g(1,1,ilist),ginv,prod)
+          call xfwrite(2,prod,*97)
+        endif
       enddo
-      close(2)
+      if (warping) then
+        if (writeWarpFile(outfil, 0) .ne. 0) call exitError('WRITING NEW WARP FILE')
+      else
+        close(2)
+      endif
       call exit(0)
-96    call exitError('reading file')
-97    call exitError('writing file')
+97    call exitError('WRITING FILE')
       end
 
 c       
@@ -378,6 +546,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.6  2008/11/21 20:03:12  mast
+c       Increased character size for filenames
+c
 c       Revision 3.5  2006/10/24 19:45:49  mast
 c       Added ability to set reference section
 c
