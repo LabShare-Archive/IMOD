@@ -7,8 +7,9 @@ Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells
 All portions of IMOD, except as noted below, are open source under the
 General Public License (GPL) version 2.0.  A copy of this license is in the
 file GPL.txt.  (All license files referred to here are in the directory
-'licenses'.)  Software may be modified and redistributed under the terms of
-this license.  The source can be found at 
+'licenses' in the binary distribution or 'dist' in the source code.)
+Software may be modified and redistributed under the terms of this license.
+The source can be found at
 http://bio3d.colorado.edu/imod/openSource
 
 THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,
