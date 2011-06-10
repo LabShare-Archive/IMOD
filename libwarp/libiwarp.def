@@ -6,6 +6,7 @@ EXPORTS
 	ht_getsize
 	GETWARPPOINTS
 	nnpi_get_nvertices
+	warpInterp
 	circle_build1
 	nnhpi_interpolate
 	getWarpPoints
@@ -50,6 +51,7 @@ EXPORTS
 	setGridSizeToMake
 	lpi_build
 	FINDINVERSEPOINT
+	expandAndExtrapGrid
 	newWarpFile
 	facets_print
 	WARPFILESDONE
@@ -136,6 +138,7 @@ EXPORTS
 	SETWARPGRID
 	nnpi_reset
 	check_triang
+	EXPANDANDEXTRAPGRID
 	points_thinlin
 	writeWarpFile
 	minell_rescalepoints
@@ -183,6 +186,7 @@ EXPORTS
 	INVERTWARPGRID
 	nnpi_get_weights
 	istack_pop
+	WARPINTERP
 	nnpi_setwmin
 	multiplyWarpings
 	print_basis
