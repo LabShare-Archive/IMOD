@@ -230,7 +230,7 @@ libs : clibs
 	cd flib; $(MAKE) $@
 
 #
-# These entries are no longer needed by the build script calls them
+# These entries are no longer needed but the build script calls them
 #
 o32libs : 
 
@@ -256,11 +256,13 @@ flibs: configure
 dist : ALWAYS
 	if [ -e $(ARCDIR) ] ; then /bin/rm -rf $(ARCDIR)/ ; fi
 	mkdir $(ARCDIR)
+	mkdir $(ARCDIR)/licenses
 	./setup -inst $(ARCDIR) $(LAST_OPTIONS)
 	(cd dist ; \find . -type f -name "*~" -exec rm "{}" \;)
 	($(MAKE) install)
 	-\cp buildlib/*.so $(ARCDIR)/lib/
-	\cp dist/COPYRIGHT dist/start.html dist/installIMOD dist/[A-Z]*.txt dist/CPOL.html $(ARCDIR)/
+	\cp dist/COPYRIGHT dist/start.html dist/installIMOD $(ARCDIR)/
+	\cp  dist/[a-zA-Z]*.txt dist/CPOL.html $(ARCDIR)/licenses/
 	-\find $(ARCDIR) -depth -name CVS -exec /bin/rm -rf {} \;
 	./installqtlib
 	@echo "Compressing..."
@@ -370,6 +372,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.92  2011/05/27 13:38:41  mast
+#  fix make src for libwarp Makefile
+#
 #  Revision 3.91  2011/05/26 22:27:03  mast
 #  Added libwarp
 #
