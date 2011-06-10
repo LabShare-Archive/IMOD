@@ -23,7 +23,8 @@
 #include "config.h"
 
 #define DEFAULT_PERCENTILE 0.5
-#define DEFAULT_FACTOR  0.25
+#define DEFAULT_FACTOR  0.15
+/*#define DO_DUMPS */
 
 typedef struct {
   int nx, ny;
@@ -52,6 +53,27 @@ static WarpFile *sWarpFiles = NULL;
 static int sNumWarpFiles = 0;
 static int sCurFileInd = -1;
 static WarpFile *sCurWarpFile = NULL;
+static double *sGridx = NULL;
+static double *sGridy = NULL;
+static char *sSolved = NULL;
+static point *sDpoints = NULL;
+static delaunay *sDelau = NULL;
+static nnai *sNninterp = NULL;
+static int sLastNumCont = 0;
+static int sLastNxGrid = 0;
+static int sLastNyGrid = 0;
+static float sLastXStart = -1.;
+static float sLastYStart = -1.;
+static float sLastXinterval = 0.;
+static float sLastYinterval = 0.;
+static int sLastXdim = 0;
+static int sLastZforSpacing = -1;
+static float sLastPercentile;
+static float sLastSpacing;
+static int sTimeOutput = 0;
+static double sHeightBaseCrit = 0.2;
+static double sAreaFractionCrit = 0.1;
+static int sMinNumForPruning = 2;
 
 static int readLineOfValues(FILE *fp, char *line, int limit, void *values, int floats, 
                             int *numToGet, int maxVals);
@@ -59,13 +81,17 @@ static void initWarping(Warping *warp);
 static int addWarpFile();
 static int addWarpingsIfNeeded(int iz);
 static void deleteWarpFile(WarpFile *warpFile);
+static void freeStaticArrays();
+static int pointsMatchStatArray(Warping *warp);
+#ifdef DO_DUMPS
 static void dumpGrid(float *dxGrid, float *dyGrid, char *solved, int xdim,
                      int nxGrid, int nyGrid, float xStart, float yStart, 
                      float xInterval, float yInterval, int doSolved, 
                      const char *fname);
 static void dumpControls(float *xControl, float *yControl, float *xVector, float *yVector,
                          int nControl, const char *fname);
-static void freeStaticArrays();
+#endif
+
 
 /* Initialize a warp */
 static void initWarping(Warping *warp)
@@ -581,7 +607,7 @@ int controlPointRange(int iz, float *xmin, float *xmax, float *ymin, float *ymax
  */
 int controlPointSpacing(int iz, float percentile, float *spacing)
 {
-  int i, j, sel;
+  int i, j, sel, match;
   float *nearest;
   float minsq, dx, dy, dxsq, dysq;
   Warping *warp;
@@ -593,6 +619,13 @@ int controlPointSpacing(int iz, float percentile, float *spacing)
   warp = ilistItem(sCurWarpFile->warpings, iz);
   if (warp->nControl < 2)
     return 1;
+  match = pointsMatchStatArray(warp);
+  if (match && iz == sLastZforSpacing && fabs((double)percentile - sLastPercentile) < 
+      1.e-6) {
+    *spacing = sLastSpacing;
+    return 0;
+  }
+
   nearest = B3DMALLOC(float, warp->nControl);
   if (PipMemoryError(nearest, "controlPointSpacing"))
     return 1;
@@ -612,9 +645,17 @@ int controlPointSpacing(int iz, float percentile, float *spacing)
     }
     nearest[i] = minsq;
   }
-  sel = 1 + percentile * warp->nControl;
-  *spacing = (float)sqrt((double)(percentileFloat(sel, nearest, warp->nControl)));
+  sel = B3DNINT(percentile * warp->nControl);
+  sel = B3DMIN(warp->nControl - 1, sel);
+  rsSortFloats(nearest, warp->nControl);
+  *spacing = (float)sqrt((double)(nearest[sel]));
   free(nearest);
+  if (match) {
+    sLastZforSpacing = iz;
+    sLastPercentile = percentile;
+    sLastSpacing = *spacing;
+  } else
+    sLastZforSpacing = -1;
   return 0;
 }
 
@@ -660,21 +701,6 @@ int gridSizeFromSpacing(int iz, float percentile, float factor, int fullExtent)
 }
 
 
-static double *sGridx = NULL;
-static double *sGridy = NULL;
-static char *sSolved = NULL;
-static point *sDpoints = NULL;
-static delaunay *sDelau = NULL;
-static nnai *sNninterp = NULL;
-static int sLastNumCont = 0;
-static int sLastNxGrid = 0;
-static int sLastNyGrid = 0;
-static float sLastXStart = -1.;
-static float sLastYStart = -1.;
-static float sLastXinterval = 0.;
-static float sLastYinterval = 0.;
-static int sLastXdim = 0;
-
 static void freeStaticArrays()
 {
   B3DFREE(sDpoints);
@@ -687,6 +713,19 @@ static void freeStaticArrays()
   if (sNninterp)
     nnai_destroy(sNninterp);
   sNninterp = NULL;
+  sLastZforSpacing = -1;
+}
+
+static int pointsMatchStatArray(Warping *warp)
+{
+  int ix;
+  if (!sDpoints || sLastNumCont != warp->nControl)
+    return 0;
+  for (ix = 0; ix < warp->nControl; ix++)
+    if (fabs(sDpoints[ix].x - warp->xControl[ix]) > 1.e-3 || 
+        fabs(sDpoints[ix].y - warp->yControl[ix]) > 1.e-3)
+      return 0;
+  return 1;  
 }
 
 /*!
@@ -708,8 +747,11 @@ int getWarpGrid(int iz, int *nxGrid, int *nyGrid, float *xStart, float *yStart,
   int needNew = 1;
   Warping *warp;
   double *dxyin, *dxyout;
+  double pruneCrit[2];
   float xmin, xmax, ymin, ymax;
-  double wallStart;
+  double wallStart, wallTop = wallTime();
+  pruneCrit[0] = sHeightBaseCrit;
+  pruneCrit[1] = sAreaFractionCrit;
   
   if (!sCurWarpFile || iz < 0 || iz >= sCurWarpFile->numFrames)
     return 1;
@@ -740,17 +782,12 @@ int getWarpGrid(int iz, int *nxGrid, int *nyGrid, float *xStart, float *yStart,
         warp->yStart == sLastYStart && warp->xInterval == sLastXinterval &&
         warp->yInterval == sLastYinterval && xdim == sLastXdim) {
       needNew = 0;
-      for (ix = 0; ix < warp->nControl; ix++) {
-        if (fabs(sDpoints[ix].x - warp->xControl[ix]) > 1.e-3 || 
-            fabs(sDpoints[ix].y - warp->yControl[ix]) > 1.e-3) {
-          needNew = 1;
-          break;
-        }
-      }      
+      if (!pointsMatchStatArray(warp))
+        needNew = 1;
     }
 
     /* Determine size of grid within the range */
-    ngrid = xdim * warp->nxGrid;
+    ngrid = xdim * warp->nyGrid;
     controlPointRange(iz, &xmin, &xmax, &ymin, &ymax);
     offXsolve = (int)ceil((xmin - 0.1 - warp->xStart) / warp->xInterval);
     offXsolve = B3DMAX(0, offXsolve);
@@ -818,8 +855,10 @@ int getWarpGrid(int iz, int *nxGrid, int *nyGrid, float *xStart, float *yStart,
 
     if (needNew) {
       wallStart = wallTime();
-      sDelau = delaunay_build(warp->nControl, sDpoints, 0, NULL, 0, NULL);
-      /* printf("Delaunay time %.3f\n", 1000. * ( wallTime() - wallStart)); */
+      sDelau = delaunay_build(warp->nControl, sDpoints, 0, NULL, sMinNumForPruning,
+                              pruneCrit);
+      if (sTimeOutput)
+        printf("Delaunay time %.3f\n", 1000. * ( wallTime() - wallStart));
       wallStart = wallTime();
       if (sDelau)
         sNninterp = nnai_build(sDelau, nsolve, sGridx, sGridy);
@@ -829,7 +868,8 @@ int getWarpGrid(int iz, int *nxGrid, int *nyGrid, float *xStart, float *yStart,
         free(dxyout);
         return 1;
       }
-      /* printf("nnai_build time %.3f\n", 1000. * ( wallTime() - wallStart)); */
+      if (sTimeOutput)
+        printf("nnai_build time %.3f\n", 1000. * ( wallTime() - wallStart));
     }
     wallStart = wallTime();
         
@@ -860,7 +900,9 @@ int getWarpGrid(int iz, int *nxGrid, int *nyGrid, float *xStart, float *yStart,
     for (ix = 0; ix < warp->nControl; ix++)
       dxyin[ix] = warp->yVector[ix];
     nnai_interpolate(sNninterp, dxyin, dxyout);
-    /* printf("nnai_interpolate time %.3f\n", 1000. * (wallTime() - wallStart)); */
+    if (sTimeOutput)
+      printf("nnai_interpolate time %.3f\n", 1000. * (wallTime() - wallStart));
+    wallStart = wallTime();
     for (iy = 0; iy < nySolve; iy++) {
       for (ix = 0; ix < nxSolve; ix++) {
         ind2 = ix + offXsolve + (iy + offYsolve) * xdim;
@@ -876,6 +918,8 @@ int getWarpGrid(int iz, int *nxGrid, int *nyGrid, float *xStart, float *yStart,
     if (extrapolateGrid(dxGrid, dyGrid, sSolved, xdim, warp->nxGrid, warp->nyGrid, 
                         warp->xInterval, warp->yInterval, 1 - needNew))
       sLastNumCont = 0;
+    if (sTimeOutput)
+      printf("extrapolate time %.3f\n", 1000. * (wallTime() - wallStart));
 
 #ifdef DO_DUMPS
     dumpControls(warp->xControl, warp->yControl, warp->xVector, warp->yVector, 
@@ -896,6 +940,8 @@ int getWarpGrid(int iz, int *nxGrid, int *nyGrid, float *xStart, float *yStart,
   *yStart = warp->yStart;
   *xInterval = warp->xInterval;
   *yInterval = warp->yInterval;
+  if (sTimeOutput)
+    printf("Total time in getWarpGrid %.3f\n", 1000. * (wallTime() - wallTop));
   return 0;
 }
 
@@ -1282,5 +1328,8 @@ static int readLineOfValues(FILE *fp, char *line, int limit, void *values, int f
 /*
 
 $Log$
+Revision 1.1  2011/05/26 22:28:41  mast
+Added to package
+
 
 */
