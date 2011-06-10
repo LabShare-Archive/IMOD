@@ -17,6 +17,9 @@
 #include "warpfiles.h"
 #include "b3dutil.h"
 
+static int newGridLimits(int *nxGrid, float *xStart, float xInterval, int xdim, int nx,
+                         float xBigStr, float xBigEnd);
+
 /*!
  * Returns a value from one position in a 2D warping grid.  ^
  * [x], [x] is the position in the grid ^
@@ -114,6 +117,10 @@ void invertWarpGrid(float *dxGrid, float *dyGrid, int ixgDim, int nxGrid, int ny
   }
 }
 
+/*static void printxf(float *xf)
+{  fprintf(stderr, "%f %f %f %f %f %f\n", xf[0], xf[2], xf[1], xf[3], xf[4], xf[5]);
+}*/
+
 /*!
  * Multiply two warp transforms together.  Each warping is specified by a linear
  * transform applied first, and the inverse of warp displacement vectors.  The warp
@@ -165,6 +172,10 @@ int multiplyWarpings(float *dxGrid1, float *dyGrid1, int ixgDim1, int nxGrid1,
 
   xfInvert(xform2, xfinv2, rows);
   xfInvert(xform1, xfinv1, rows);
+  /*printxf(xform1);
+  printxf(xfinv1);
+  printxf(xform2);
+  printxf(xfinv2); */
   for (iy = 0; iy < nyGrid; iy++) {
     ygrid = yGridStart + iy * yGridIntrv;
     for (ix = 0; ix < nxGrid; ix++) {
@@ -192,11 +203,11 @@ int multiplyWarpings(float *dxGrid1, float *dyGrid1, int ixgDim1, int nxGrid1,
     }
   }
   err = extractLinearXform(xpos, ypos, dxProd, dyProd, nxGrid * nyGrid, xcen, ycen, 
-                           dxProd, dyProd, xfinv1, rows);
+                           dxProd, dyProd, xfProd, rows);
   if (!err) {
 
     /* Get the linear transform and unpack into larger array if needed */
-    xfInvert(xfinv1, xfProd, rows);
+    /*printxf(xfProd);*/
     if (ixgDim != nxGrid) {
       for (iy = nyGrid - 1; iy >= 0; iy--) {
         for (ix = nxGrid - 1; ix >= 0; ix--) {
@@ -213,6 +224,59 @@ int multiplyWarpings(float *dxGrid1, float *dyGrid1, int ixgDim1, int nxGrid1,
   return err;
 }
 
+/*!
+ * Extracts the linear transform embedded in a set of positions and vectors, and modifies
+ * the vectors to remove the transform.  The positions of [nPoints] points are in [xPos],
+ * [yPos] and the X and Y displacements are in [xVector] and [yVector].  The center for 
+ * transformations is [xcen], [ycen].  The modified vectors are returned in [newXvec] and
+ * [newYvec], which can be the same as [xVector] and [yVector].  The inverse of the
+ * embedded transform is returned in [xfinv] with the number of rows specified in [rows].
+ * Returns 1 for a memory allocation error, fewer than 3 points, or [rows] not 2 or 3.
+ */
+int extractLinearXform(float *xPos, float *yPos, float *xVector, float *yVector,
+                       int nPoints, float xcen, float ycen, float *newXvec, 
+                       float *newYvec, float *xfinv, int rows)
+{
+  float *ptmp;
+  float mat[6], xtmp, ytmp;
+  int i;
+
+  if (nPoints < 3 || rows < 2 || rows > 3)
+    return 1;
+
+  ptmp = B3DMALLOC(float, nPoints);
+  if (!ptmp)
+    return 1;
+
+  /* Need to fit points as function of points plus vector; this gives the
+   inverse of the embedded transform.  This is the only use of [xy]Vector so new[XY]vec
+   can be the same */
+  for (i = 0; i < nPoints; i++) {
+    newXvec[i] = xPos[i] - xcen + xVector[i];
+    newYvec[i] = yPos[i] - ycen + yVector[i];
+    ptmp[i] = xPos[i] - xcen;
+    /* printf("%d %.2f %.2f %.2f\n", i, newXvec[i], newYvec[i], ptmp[i]); */
+  }
+  lsFit2(newXvec, newYvec, ptmp, nPoints, &mat[0], &mat[2], &mat[4]);
+  for (i = 0; i < nPoints; i++)
+    ptmp[i] = yPos[i] - ycen;
+  lsFit2(newXvec, newYvec, ptmp, nPoints, &mat[1], &mat[3], &mat[5]);
+  /* printf("   %.6f  %.6f  %.6f  %.6f  %.2f  %.2f\n", mat[0], mat[2], mat[1], mat[3], 
+     mat[4], mat[5]); */
+
+  /* Apply this transform and subtract the point positions to get the new vectors */
+  for (i = 0; i < nPoints; i++) {
+    xfApply(mat, 0., 0., newXvec[i], newYvec[i], &xtmp, &ytmp, 2);
+    newXvec[i] = xtmp + xcen - xPos[i];
+    newYvec[i] = ytmp + ycen - yPos[i];
+    /* printf("%d %.2f %.2f %.2f %.2f\n", i, xPos[i], yPos[i], newXvec[i], newYvec[i]);*/
+  }
+
+  /* Return the inverse of the embedded transform, let caller use it or take inverse */
+  xfCopy(mat, 2, xfinv, rows);
+  free(ptmp);
+  return 0;
+}
 
 #define MAX_THREADS 16
 static int *sNumNeigh = NULL;
@@ -243,8 +307,8 @@ int extrapolateGrid(float *dxGrid, float *dyGrid, char *solved, int xdim, int nx
   int dyAlong[4] = {0, 1, 0, -1};
   int ixstep[12] = {1,1,1,0,-1,-1,-1,0,1,1,1,0};
   int iystep[12] = {-1,0,1,1,1,0,-1,-1,-1,0,1,1};
-  char *blockType = solved + xdim * nxGrid;
-  int *indList = (int *)(blockType + xdim * nxGrid);
+  char *blockType = solved + xdim * nyGrid;
+  int *indList = (int *)(blockType + xdim * nyGrid);
   int lind, numAllNeigh, numThreads, thread;
   static int ninList = 0;
   int quantum = 1000;
@@ -258,7 +322,7 @@ int extrapolateGrid(float *dxGrid, float *dyGrid, char *solved, int xdim, int nx
   float dist, dmin, angle, dx, dy, wsum, distcrit, dlook, xyint, dxcen, dycen;
   float a11, a12, a21, a22, dx00, dx01, dx10, dx11, dy00, dy01, dy10, dy11;
   int nayx, nayy, is, indDom, jxmin, jxmax, jymin, jymax, i, boundary, jxyind, btype;
-  double wallStart = wallTime();
+  /* double wallStart = wallTime(); */
 
   if (reuse && !ninList)
     return 0;
@@ -500,6 +564,9 @@ int extrapolateGrid(float *dxGrid, float *dyGrid, char *solved, int xdim, int nx
         dy10 = dyGrid[jxyind + 1];
         dy01 = dyGrid[jxyind + xdim];
         dy11 = dyGrid[jxyind + xdim + 1];
+        /* if (!ix && iy == 18)
+          printf("%.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f\n", dx00, dx01, dx10, dx11, 
+          dy00, dy01, dy10, dy11); */
         switch (btype) {
 
           /* These are either an exact transform (1-4) or best linear (5) */
@@ -521,18 +588,18 @@ int extrapolateGrid(float *dxGrid, float *dyGrid, char *solved, int xdim, int nx
           break;
         case 3:
           a11 = dx10 - dx00;
-          a12 = dx11 - dx10;
-          dx = dx00;
-          a21 = dy10 - dy00;
-          a22 = dy11 - dy10;
-          dy = dy00;
-          break;
-        case 4:
-          a11 = dx10 - dx00;
           a12 = dx01 - dx00;
           dx = dx00;
           a21 = dy10 - dy00;
           a22 = dy01 - dy00;
+          dy = dy00;
+          break;
+        case 4:
+          a11 = dx10 - dx00;
+          a12 = dx11 - dx10;
+          dx = dx00;
+          a21 = dy10 - dy00;
+          a22 = dy11 - dy10;
           dy = dy00;
           break;
         case 5:
@@ -544,8 +611,8 @@ int extrapolateGrid(float *dxGrid, float *dyGrid, char *solved, int xdim, int nx
           dy = (3. * dy00 + dy01 + dy10 - dy11) / 4.;
           break;
         }
-                  
-        /* printf("Adding in %d %d  btype %d  w %f\n", jx, jy, btype, 1./dist);*/
+        /* if (!ix && iy == 18)
+           printf("Adding in %d %d  btype %d  w %f\n", jx, jy, btype, 1./dist); */
 
         /* Convert this to a coordinate transform centered on the point being
            filled in, in which case dx, dy are the vector there. */
@@ -553,10 +620,12 @@ int extrapolateGrid(float *dxGrid, float *dyGrid, char *solved, int xdim, int nx
         a12 = a12 / yInterval;
         a21 = a21 / xInterval;
         a22 = 1. + a22 / yInterval;
-        /* printf("  %.4f  %.4f  %.4f  %.4f  %.2f  %.2f", a11,a12,a21,a22, dx,dy);*/
+        /*  if (!ix && iy == 18)
+            printf("  %.4f  %.4f  %.4f  %.4f  %.2f  %.2f", a11,a12,a21,a22, dx,dy); */
         dx = dx + dxcen - a11 * dxcen - a12 * dycen;
         dy = dy + dycen - a21 * dxcen - a22 * dycen;
-        /* printf("  ->  %.2f  %.2f\n", dx,dy);*/
+        /* if (!ix && iy == 18)
+           printf("  ->  %.2f  %.2f\n", dx,dy); */
 
         dxGrid[ixyind] += dx / dist;
         dyGrid[ixyind] += dy / dist;
@@ -615,62 +684,108 @@ void extrapolateDone()
   B3DFREE(sNeighbors);
 }
 
+
 /*!
- * Extracts the linear transform embedded in a set of positions and vectors, and modifies
- * the vectors to remove the transform.  The positions of [nPoints] points are in [xPos],
- * [yPos] and the X and Y displacements are in [xVector] and [yVector].  The center for 
- * transformations is [xcen], [ycen].  The modified vectors are returned in [newXvec] and
- * [newYvec], which can be the same as [xVector] and [yVector].  The inverse of the
- * embedded transform is returned in [xfinv] with the number of rows specified in [rows].
- * Returns 1 for a memory allocation error, fewer than 3 points, or [rows] not 2 or 3.
+ * Expand a grid to a larger area by shifting it and then extrapolating it with
+ * @extrapolateGrid.  ^
+ * [dxGrid], [dyGrid] - grid arrays with displacements in X and Y ^
+ * [xdim], [ydim] - X and Y dimensions of arrays ^
+ * [nxGrid], [nyGrid] - call with original number of grid points in X and Y, returned 
+ * with new number ^
+ * [xStart], [yStart] - Starting X and Y coordinates of grid, returned with new values ^
+ * [xInterval], [yInterval] - Spacing between points in X and Y ^
+ * [xBigStr], [yBigStr] - Starting X and Y coordinates of larger area ^
+ * [xBigEnd], [yBigEnd] - Ending X and Y coordinates of larger area ^
+ * [nx], [ny] - dimensions of image, which limits the final dimensions ^
+ * The new area covered by the grid will be at least as large as the larger area, unless 
+ * that would make a grid point be out of bounds. Returns 1 for memory error.
  */
-int extractLinearXform(float *xPos, float *yPos, float *xVector, float *yVector,
-                       int nPoints, float xcen, float ycen, float *newXvec, 
-                       float *newYvec, float *xfinv, int rows)
+int expandAndExtrapGrid(float *dxGrid, float *dyGrid, int xdim, int ydim, int *nxGrid,
+                        int *nyGrid, float *xStart, float *yStart, float xInterval, 
+                        float yInterval, float xBigStr, float yBigStr, float xBigEnd,
+                        float yBigEnd, int nx, int ny)
 {
-  float *ptmp;
-  float mat[6], xtmp, ytmp;
-  int i;
+  char *solved;
+  int nxOrig = *nxGrid;
+  int nyOrig = *nyGrid;
+  int ix, iy, addx, addy, jin, jout;
 
-  if (nPoints < 3 || rows < 2 || rows > 3)
+  /* Determine new limits in X and Y */
+  addx = newGridLimits(nxGrid, xStart, xInterval, xdim, nx, xBigStr, xBigEnd);
+  addy = newGridLimits(nyGrid, yStart, yInterval, ydim, ny, yBigStr, yBigEnd);
+  if (*nxGrid == nxOrig && *nyGrid == nyOrig)
+    return 0;
+
+  /* Shift the grid and mark the solved array */
+  solved = B3DMALLOC(char, 6 * xdim * *nyGrid);
+  if (!solved)
     return 1;
-
-  ptmp = B3DMALLOC(float, nPoints);
-  if (!ptmp)
-    return 1;
-
-  /* Need to fit points as function of points plus vector; this gives the
-   inverse of the embedded transform.  This is the only use of [xy]Vector so new[XY]vec
-   can be the same */
-  for (i = 0; i < nPoints; i++) {
-    newXvec[i] = xPos[i] - xcen + xVector[i];
-    newYvec[i] = yPos[i] - ycen + yVector[i];
-    ptmp[i] = xPos[i] - xcen;
-    /* printf("%d %.2f %.2f %.2f\n", i, newXvec[i], newYvec[i], ptmp[i]); */
+  for (iy = *nyGrid - 1; iy >= 0; iy--) {
+    for (ix = *nxGrid - 1; ix >= 0; ix--) {
+      jout = ix + iy * xdim;
+      if (ix < addx || ix >= nxOrig + addx || iy < addy || iy >= nyOrig + addy) {
+        solved[jout] = 0;
+        dxGrid[jout] = 0.;
+        dyGrid[jout] = 0.;
+      } else {
+        solved[jout] = 1;
+        jin = ix - addx + (iy - addy) * xdim;
+        dxGrid[jout] = dxGrid[jin];
+        dyGrid[jout] = dyGrid[jin];
+      }
+    }
   }
-  lsFit2(newXvec, newYvec, ptmp, nPoints, &mat[0], &mat[2], &mat[4]);
-  for (i = 0; i < nPoints; i++)
-    ptmp[i] = yPos[i] - ycen;
-  lsFit2(newXvec, newYvec, ptmp, nPoints, &mat[1], &mat[3], &mat[5]);
-  /* printf("   %.6f  %.6f  %.6f  %.6f  %.2f  %.2f\n", mat[0], mat[2], mat[1], mat[3], 
-     mat[4], mat[5]); */
+  jout = extrapolateGrid(dxGrid, dyGrid, solved, xdim, *nxGrid, *nyGrid, xInterval,
+                         yInterval, 0);
+  extrapolateDone();
+  free(solved);
+  return jout;
+}
 
-  /* Apply this transform and subtract the point positions to get the new vectors */
-  for (i = 0; i < nPoints; i++) {
-    xfApply(mat, 0., 0., newXvec[i], newYvec[i], &xtmp, &ytmp, 2);
-    newXvec[i] = xtmp + xcen - xPos[i];
-    newYvec[i] = ytmp + ycen - yPos[i];
-    /* printf("%d %.2f %.2f %.2f %.2f\n", i, xPos[i], yPos[i], newXvec[i], newYvec[i]); */
+/* Determine new limits for expanding a grid into */
+static int newGridLimits(int *nxGrid, float *xStart, float xInterval, int xdim, int nx,
+                          float xBigStr, float xBigEnd)
+{
+  int nxgin = *nxGrid;
+  int addlo, addhi, extra, sublo, subhi;
+  
+  /* Add grid points to get outside the big start and end, but limit it to stay between
+     0 and nx */
+  /* fprintf(stderr, "new lim: %d %f %f %d %d %f %f\n", *nxGrid, *xStart, xInterval, xdim,
+     nx, xBigStr, xBigEnd); */
+  addlo = (int)ceil((*xStart - xBigStr) / xInterval);
+  while (*xStart - addlo * xInterval <= 0)
+    addlo--;
+  addlo = B3DMAX(0, addlo);
+  addhi = (int)ceil((xBigEnd - (*xStart + (nxgin - 1) * xInterval)) / xInterval);
+  addhi = B3DMAX(0, addhi);
+  while (*xStart + (addhi + nxgin - 1) * xInterval >= nx) 
+    addhi--;
+  addhi = B3DMAX(0, addhi);
+
+  /* Then if this is too many points for the array, trim equally from both sides */
+  extra = nxgin + addlo + addhi - xdim;
+  if (extra > 0) {
+    sublo = B3DMIN(extra / 2, addlo);
+    subhi = B3DMIN(extra - sublo, addhi);
+    
+    /* If that can't work without throwing away existing data, forget it */
+    if (sublo + subhi < extra)
+      return 0;
+    addlo -= sublo;
+    addhi -= extra - sublo;
   }
-
-  /* Return the inverse of the embedded transform, let caller use it or take inverse */
-  xfCopy(mat, 2, xfinv, rows);
-  free(ptmp);
-  return 0;
+  *xStart -= addlo * xInterval;
+  *nxGrid += addlo + addhi;
+  /* fprintf(stderr, "New: %d %d %d\n", *nxGrid, addlo, addhi); */
+  return addlo;
 }
 
 /*
 
 $Log$
+Revision 1.1  2011/05/26 22:28:41  mast
+Added to package
+
 
 */
