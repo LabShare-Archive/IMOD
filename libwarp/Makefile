@@ -14,7 +14,7 @@ NNOBJS = delaunay.$(O) hash.$(O) istack.$(O) lpi.$(O) minell.$(O) nnai.$(O) \
 
 #TRIOBJS = triangle.$(O)
 TRIOBJS = hullwrap.$(O) hull.$(O) hull-fg.$(O) hull-ch.$(O) hull-io.$(O) pointops.$(O)
-WARPOBJS = warpfiles.$(O) warputils.$(O) warpwrapfort.$(O)
+WARPOBJS = warpfiles.$(O) warputils.$(O) warpwrapfort.$(O) warpinterp.$(O)
 
 all : $(LIBW)
 
@@ -36,6 +36,9 @@ delaunay.$(O):	delaunay.c
 warputils.$(O) : warputils.c
 	$(CC) $(CFLAGS) $(OPENMP) -c warputils.c
 
+warpinterp.$(O) : warpinterp.c
+	$(CC) $(CFLAGS) $(OPENMP) -c warpinterp.c
+
 install : $(LIBW)
 	$(CP) $(LIBW) $(INSTLIBDIR)
 
@@ -50,3 +53,4 @@ clean :
 # Some depends.
 #
 $(WARPOBJS):	$(INCDIR)/warpfiles.h
+delaunay.$(O):  hullwrap.h
