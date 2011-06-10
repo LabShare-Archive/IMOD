@@ -12,6 +12,9 @@ struct hullio {
   int *trianglelist;
   int *neighborlist;
   int numberoftriangles;
+  double heightBaseCrit;
+  double areaFractionCrit;
+  int minNumForPruning;
   int verbose;
 };
 
