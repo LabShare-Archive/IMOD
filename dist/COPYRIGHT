@@ -1,12 +1,13 @@
-IMOD Version 4.2.17                     Copyright Notice and Credits
+IMOD Version 4.2.18                     Copyright Notice and Credits
 --------------------------------------------------------------------------
-Except as noted, ALL SOFTWARE LISTED IS Copyright (C) 1994-2010 by
+Except as noted, ALL SOFTWARE LISTED IS Copyright (C) 1994-2011 by
 Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells
 ("BL3DEMC") and the Regents of the University of Colorado.
 
 All portions of IMOD, except as noted below, are open source under the
 General Public License (GPL) version 2.0.  A copy of this license is in the
-file GPL.txt.  Software may be modified and redistributed under the terms of
+file GPL.txt.  (All license files referred to here are in the directory
+'licenses'.)  Software may be modified and redistributed under the terms of
 this license.  The source can be found at 
 http://bio3d.colorado.edu/imod/openSource
 
@@ -54,8 +55,9 @@ Visualization, and Informatics at the University of California, San
 Francisco, supported by NIH/NCRR grant P41-RR01081.
 
 The warping library uses modules from Pavel Sakov's 'nn' package, which are
-covered by the license in nn.txt.  The library also uses code from Ken
-Clarkson's 'hull' program, which is covered by the license in hull.txt.
+copyrighted by Sakov and CSIRO, and covered by the license in nn.txt.  The
+library also uses code from Ken Clarkson's 'hull' program, which is
+copyrighted by AT&T and covered by the license in hull.txt.
 
 IMOD uses TIFF libraries which are Copyright (c) 1988-1997 Sam Leffler
 and Copyright (c) 1991-1997 Silicon Graphics, Inc. (see TIFF.txt).
