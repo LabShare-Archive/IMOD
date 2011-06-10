@@ -30,7 +30,6 @@ MidasGL::MidasGL(QGLFormat inFormat, QWidget * parent, const char * name)
   if (!format().doubleBuffer() && inFormat.doubleBuffer())
     dia_puts("Midas warning: Single buffering is being used even "
 	    "though\n  double buffering was requested\n");
-  mSkipClearOnDraw = false;
   mMousePressed = false;
 }
 
@@ -51,9 +50,7 @@ void MidasGL::midas_clear()
    glPaint and take care of buffer swapping */
 void MidasGL::draw()
 {
-  mSkipClearOnDraw = true;
   glDraw();
-  mSkipClearOnDraw = false;
 }
 
 void MidasGL::paintGL()
@@ -61,14 +58,15 @@ void MidasGL::paintGL()
   int xdrawn, ydrawn;
   float xcut, ycut;
   double angle, tcrit;
-  int i;
+  int i, nControl;
   int numlines = 2;
-  float xcen, ycen;
+  float xcen, ycen, boxXcen, boxYcen;
+  bool boxCenSet = false;
   float zoom = VW->truezoom;
   float censize = 7.;
+  float *xControl, *yControl, *xVector, *yVector;
 
-  if (!mSkipClearOnDraw)
-    midas_clear();
+  midas_clear();
 
   /* DNM 2/5/01: set sdatSize here.  This may be redundant now that the
      expose_cb tests correctly for need for new array */
@@ -87,16 +85,38 @@ void MidasGL::paintGL()
     numlines = 0;
   else {
 
-    /* Draw the center of action and the possible fixed point */
-    xcen = zoom * VW->xcenter + VW->xoffset;
-    ycen = zoom * VW->ycenter + VW->yoffset;
-    glColor3f(1.0f, 1.0f, 0.0f);
-    drawStar(xcen, ycen, censize);
-    if (VW->useFixed) {
-      xcen = zoom * VW->xfixed + VW->xoffset;
-      ycen = zoom * VW->yfixed + VW->yoffset;
-      glColor3f(1.0f, 0.0f, 0.0f);
+    if (!(VW->curWarpFile >= 0 && VW->editWarps)) {
+
+      // If not in warp mode, draw the center of action and the possible fixed point
+      xcen = zoom * VW->xcenter + VW->xoffset;
+      ycen = zoom * VW->ycenter + VW->yoffset;
+      glColor3f(1.0f, 1.0f, 0.0f);
       drawStar(xcen, ycen, censize);
+      if (VW->useFixed) {
+        xcen = zoom * VW->xfixed + VW->xoffset;
+        ycen = zoom * VW->yfixed + VW->yoffset;
+        glColor3f(1.0f, 0.0f, 0.0f);
+        drawStar(xcen, ycen, censize);
+      }
+    }
+  }
+
+  // If there are control points, draw them
+  i = VW->numChunks ? VW->curChunk : VW->cz;
+  if (VW->curWarpFile >= 0 && i < VW->warpNz && !getNumWarpPoints(i, &nControl)) {
+    if (nControl && !getWarpPointArrays(i, &xControl, &yControl, &xVector, &yVector)) {
+      for (i = 0; i < nControl; i++) {
+        //printf("%d %f %f %f %f\n", i, xControl[i], yControl[i], xVector[i], yVector[i]);
+        xcen = zoom * xControl[i] / VW->warpScale + VW->xoffset;
+        ycen = zoom * yControl[i] / VW->warpScale + VW->yoffset;
+        glColor3f(1.0f, (VW->editWarps && i == VW->curControl) ? 1.f : 0.f, 0.0f);
+        drawStar(xcen, ycen, censize);
+        if (i == VW->curControl) {
+          boxXcen = xcen;
+          boxYcen = ycen;
+          boxCenSet = true;
+        }
+      }
     }
   }
      
@@ -133,17 +153,19 @@ void MidasGL::paintGL()
   }
 
   if (VW->drawCorrBox) {
-      glColor3f(VW->drawCorrBox > 1 ? 1.0f : 0.f, 
-                VW->drawCorrBox < 3 ? 1.0f : 0.0f, 0.0f);
-    xcen = zoom * VW->xcenter + VW->xoffset;
-    ycen = zoom * VW->ycenter + VW->yoffset;
+    glColor3f(VW->drawCorrBox > 1 ? 1.0f : 0.f, 
+              VW->drawCorrBox < 3 ? 1.0f : 0.0f, 0.0f);
+    if (!boxCenSet) {
+      boxXcen = zoom * VW->xcenter + VW->xoffset;
+      boxYcen = zoom * VW->ycenter + VW->yoffset;
+    }
     xcut = zoom * VW->corrBoxSize / 2.;
     glBegin(GL_LINE_STRIP);
-    glVertex2f(xcen - xcut, ycen - xcut);
-    glVertex2f(xcen - xcut, ycen + xcut);
-    glVertex2f(xcen + xcut, ycen + xcut);
-    glVertex2f(xcen + xcut, ycen - xcut);
-    glVertex2f(xcen - xcut, ycen - xcut);
+    glVertex2f(boxXcen - xcut, boxYcen - xcut);
+    glVertex2f(boxXcen - xcut, boxYcen + xcut);
+    glVertex2f(boxXcen + xcut, boxYcen + xcut);
+    glVertex2f(boxXcen + xcut, boxYcen - xcut);
+    glVertex2f(boxXcen - xcut, boxYcen - xcut);
     glEnd();
     VW->drawCorrBox = 0;
   }
@@ -444,7 +466,8 @@ int MidasGL::fill_viewdata( MidasView *vw)
 
 /* 
  *  update the just transformed slice,
- *  The slice must already be transformed if needed.
+ *  The slice must already be transformed if needed because a slice may be returned
+ * that needs shifting
  */
 int MidasGL::update_slice_view(void)
 {
@@ -512,29 +535,51 @@ void MidasGL::mousePressEvent(QMouseEvent * e )
   bool button3 = (button == Qt::RightButton);
   bool control = (state & Qt::ControlModifier) != 0;
   bool shift = (state & Qt::ShiftModifier) != 0;
+  float xcen, ycen, mindist, xcont, ycont, xvec, yvec, xit, yit, xst, yst;
+  float *xControl, *yControl, *xVector, *yVector;
+  int newcur, nControl, nxt, nyt;
+  int iz = VW->numChunks ? VW->curChunk : VW->cz;
 
   // Button press: record position (adjust for inverted Y),
   // set new center if Ctrl-middle
   VW->lastmx = e->x();
   VW->lastmy = VW->height - e->y();
+  VW->firstmx = VW->lastmx;
+  VW->firstmy = VW->lastmy;
+  xcen = (VW->lastmx - VW->xoffset) / VW->truezoom;
+  ycen = (VW->lastmy - VW->yoffset) / VW->truezoom;
+
+  // Convert position to warp file coordinates
+  if (VW->curWarpFile >= 0) {
+    xcont = xcen * VW->warpScale;
+    ycont = ycen * VW->warpScale;
+  }
 
   mMousePressed = true;
-  if (button2 && control) {
-    VW->xcenter = (VW->lastmx - VW->xoffset) / VW->truezoom;
-    VW->ycenter = (VW->lastmy - VW->yoffset) / VW->truezoom;
+  if (button2 && control && !VW->editWarps) {
+
+    // Set a new center
     VW->drawCorrBox = 2;
+    VW->xcenter = xcen;
+    VW->ycenter = ycen;
     draw();
-  } else if (button3 && control && VW->xtype != XTYPE_MONT) {
-    VW->xfixed = (VW->lastmx - VW->xoffset) / VW->truezoom;
-    VW->yfixed = (VW->lastmy - VW->yoffset) / VW->truezoom;
+
+  } else if (button3 && control && VW->xtype != XTYPE_MONT && !VW->editWarps) {
+
+    // Set fixed point
+    VW->xfixed = xcen;
+    VW->yfixed = ycen;
     VW->useFixed = 1 - VW->useFixed;
     manageMouseLabel(" ");
     draw();
-  } else if (button1 && control)
+  } else if (button1 && control) {
     manageMouseLabel("PANNING IMAGE");
-  else if (button1 && ! shift)
-    manageMouseLabel("TRANSLATING");
-  else if (VW->xtype != XTYPE_MONT) {
+  } else if (button1 && ! shift) {
+    manageMouseLabel(VW->editWarps ? "SHIFTING AT PT" : "TRANSLATING");
+    if (VW->editWarps)
+      mBut1downt.start();
+  
+  } else if (VW->xtype != XTYPE_MONT && !VW->editWarps) {
     if (button2 && !(control || shift))
       manageMouseLabel("ROTATING");
     if (button3 && !control) {
@@ -543,12 +588,65 @@ void MidasGL::mousePressEvent(QMouseEvent * e )
       else
         manageMouseLabel(VW->useFixed ? "2 PT STRETCHING" : "STRETCHING");
     }
+
+  } else if (VW->editWarps && button1 && shift) {
+    attachControlPoint();
+
+  } else if (VW->editWarps && !shift && !control) {
+
+    if (button3) {
+
+      // Move a warp point
+      if (VW->curControl >= 0 && 
+          !getWarpPointArrays(iz, &xControl, &yControl, &xVector, &yVector)) {
+        VW->drawCorrBox = 2;
+        xControl[VW->curControl] = xcont;
+        yControl[VW->curControl] = ycont;
+        update_slice_view();
+        VW->changed = 1;
+      }
+
+    } else if (button2) {
+
+      // Find nearest point in order to see if it is too close to existing one
+      nControl = 0;
+      if ((iz >= VW->warpNz || !getNumWarpPoints(iz, &nControl)) && 
+          nearestControlPoint(iz, mindist) > -2) {
+
+        
+        // Add a point
+        if (mindist > 20. * 20.) {
+          
+          // need to initialize to current warping there
+          xvec = 0.;
+          yvec = 0.;
+          if (nControl > 3) {
+            newcur = fillWarpingGrid(iz, &nxt, &nyt, &xst, &yst, &xit, &yit);
+            //printf("gwg %d\n", newcur);
+            if (!newcur) 
+              interpolateGridf(xcont, ycont, VW->gridDx, VW->gridDy, nxt, nxt, nyt, xst,
+                              xit, yst, yit, &xvec, &yvec);
+          }
+          newcur = addWarpPoint(iz, xcont, ycont, xvec, yvec) - 1;
+          //printf("newcur %d %f %f %f %f\n", newcur, xcont, ycont, xvec, yvec);
+          if (newcur >= 0) {
+            VW->warpNz = B3DMAX(VW->warpNz, iz + 1);
+            VW->changed = 1;
+            newCurrentControl(newcur, true);
+          }
+        }
+      }        
+    }
   }
 }
 
-// Release: update parameters now
+// Release: update parameters now, also do warp point attach
 void MidasGL::mouseReleaseEvent ( QMouseEvent * e )
 {
+  if (VW->editWarps && e->button() == Qt::LeftButton && 
+      (e->modifiers() & (Qt::ControlModifier | Qt::ShiftModifier)) == 0 &&
+      mBut1downt.elapsed() <= 250)
+    attachControlPoint();
   VW->midasSlots->update_parameters();
   mMousePressed = false;
   manageMouseLabel(" ");
@@ -565,6 +663,8 @@ void MidasGL::mouseMoveEvent ( QMouseEvent * e )
   bool button3 = (buttons & Qt::RightButton);
   bool control = (state & Qt::ControlModifier) != 0;
   bool shift = (state & Qt::ShiftModifier) != 0;
+  int cumdx, cumdy;
+  int cumthresh = 6 * 6;
 
   // Under windows, there is a spontaneous mouse move event when file dialog is
   // dismissed, so make sure we got the press beforehand
@@ -581,17 +681,28 @@ void MidasGL::mouseMoveEvent ( QMouseEvent * e )
     // Button 1 is either translation, or panning image
     if (control)
       VW->midasSlots->mouse_shift_image();
-    else if (! shift)
-      VW->midasSlots->mouse_translate();
+    else if (! shift) {
+      cumdx = VW->firstmx - VW->mx;
+      cumdy = VW->firstmy - VW->my;
+      if (!VW->editWarps || mBut1downt.elapsed() > 250 || 
+          cumdx * cumdx + cumdy * cumdy > cumthresh)
+        VW->midasSlots->mouse_translate();
+      else {
+
+        // For delayed shifting of control point, update last mouse to prevent lurch
+        VW->lastmx = VW->mx;
+        VW->lastmy = VW->my;
+      }
+    }
 
     // Button 2 is to rotate
-  } else if (VW->xtype != XTYPE_MONT &&
+  } else if (VW->xtype != XTYPE_MONT && !VW->editWarps && 
 	     !button1 && button2 && !button3  && !(control || shift)) {
     VW->midasSlots->mouse_rotate();
     
 
     // Button 3 is for stretch or mag
-  } else if (VW->xtype != XTYPE_MONT &&
+  } else if (VW->xtype != XTYPE_MONT && !VW->editWarps &&
 	     !button1 && !button2 && button3  && !control) {
     VW->midasSlots->mouse_stretch(state);
     
@@ -603,10 +714,61 @@ void MidasGL::mouseMoveEvent ( QMouseEvent * e )
   VW->mousemoving = 0;
 }
 
+/* Find the nearest control point to the stored mouse position */
+int MidasGL::nearestControlPoint(int iz, float &mindist)
+{
+  int newcur = -1, nControl = 0;
+  float *xControl, *yControl, *xVector, *yVector;
+  float dx, dy, dist;
+  float xcont = VW->warpScale * (VW->lastmx - VW->xoffset) / VW->truezoom;
+  float ycont = VW->warpScale * (VW->lastmy - VW->yoffset) / VW->truezoom;
+
+  if ((iz >= VW->warpNz || !getNumWarpPoints(iz, &nControl)) && 
+      (!nControl || !getWarpPointArrays(iz, &xControl, &yControl, &xVector, &yVector))) {
+    mindist = 1.e30;
+    for (int i = 0; i < nControl; i++) {
+      dx = xControl[i] - xcont;
+      dy = yControl[i] - ycont;
+      dist = dx * dx + dy * dy;
+      if (dist < mindist) {
+        newcur = i;
+        mindist = dist;
+      }
+    }
+    return newcur;
+  }
+  return -2;
+}
+
+/* Update display for a new current control point */ 
+void MidasGL::newCurrentControl(int newcur, bool updateSlice)
+{
+  VW->curControl = newcur;
+  reduceControlPoints(VW);
+  VW->midasSlots->updateWarpEdit();
+  VW->drawCorrBox = 2;
+  if (updateSlice)
+    update_slice_view();
+  else
+    draw();
+}
+
+/* Attach to the nearest control point */
+void MidasGL::attachControlPoint()
+{
+  float mindist;
+  int iz = VW->numChunks ? VW->curChunk : VW->cz;
+  int newcur = nearestControlPoint(iz, mindist);
+  if (newcur >= 0)
+    newCurrentControl(newcur, false);
+}
+
+/* Modify the mouse function labels as appropriate */    
 void MidasGL::manageMouseLabel(const char *string)
 {
   int i, active = 0;
   QString ctap = QString(CTRL_STRING).left(2);
+  QString label;
   if (VW->ctrlPressed)
     active = 2;
   else if (VW->shiftPressed)
@@ -616,15 +778,36 @@ void MidasGL::manageMouseLabel(const char *string)
                       QPalette::Foreground);
   if (mMousePressed)
     VW->mouseLabel[active]->setText(QString(string));
-  if (!mMousePressed || active != 0)
-    VW->mouseLabel[0]->setText(VW->useFixed ? "shift -- rotate -- 2 pt stretch"
-                              : "shift -- rotate -- stretch");
-  if (!mMousePressed || active != 1)
-    VW->mouseLabel[1]->setText("Sh:        --        -- magnify   ");
-  if (!mMousePressed || active != 2)
-    VW->mouseLabel[2]->setText(VW->useFixed ? 
-                               ctap + ": pan - new center - no 2 pt" :
-                               ctap + ": pan - new center - fixed pt");
+  if (!mMousePressed || active != 0) {
+    label = VW->editWarps ? "shift/sel -- " : "shift -- ";
+    if (VW->xtype == XTYPE_MONT)
+      label += "       -- ";
+    else
+      label += VW->editWarps ? "add pt -- " : "rotate -- ";
+    if (VW->xtype != XTYPE_MONT)
+      label += VW->editWarps ? "move pt" : (VW->useFixed ? "2 pt stretch" : "stretch");
+
+    VW->mouseLabel[0]->setText(label);
+  }
+  if (!mMousePressed || active != 1) {
+    if (VW->editWarps)
+      label = "Sh: Select pt --        --          ";
+    else
+      label = QString("Sh:        --        -- ") + 
+        (VW->xtype != XTYPE_MONT ? "magnify   " : "         ");
+    VW->mouseLabel[1]->setText(label);
+  }
+  if (!mMousePressed || active != 2) {
+    label = ctap + ": pan -";
+    if (VW->editWarps) 
+      label += "-       --        ";
+    else {
+      label += " new center - ";
+      label += VW->xtype == XTYPE_MONT ? "         " : 
+        (VW->useFixed ? "no 2 pt" : "fixed pt");
+    }
+    VW->mouseLabel[2]->setText(label);
+  }
 }
 
 void MidasGL::drawStar(float xcen, float ycen, float censize)
@@ -647,6 +830,9 @@ void MidasGL::drawStar(float xcen, float ycen, float censize)
 /*
 
 $Log$
+Revision 3.12  2010/06/29 22:37:45  mast
+Draw correlation box; call new function for getting previous image
+
 Revision 3.11  2009/01/15 16:30:19  mast
 Qt 4 port
 

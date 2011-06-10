@@ -23,6 +23,7 @@ class MidasSlots : public QObject
   void manage_xory(struct Midas_view *vw);
   void update_parameters(void);
   void update_sections(void);
+  void updateWarpEdit(void);
   int getParamDecimals(int param);
   int getIncDecimals(int param);
   int getParamDigits(int param);
@@ -58,7 +59,6 @@ class MidasSlots : public QObject
   void slotLeave_out();
   void slotTop_error(int item);
   void slotZoom(int upDown);
-  void slotBlock(int upDown);
   void slotInterpolate(bool state);
   void slotBlacklevel(int value);
   void slotWhitelevel(int value);
@@ -68,6 +68,7 @@ class MidasSlots : public QObject
   void slotWhiteReleased();
   void slotApplyone(bool state);
   void slotKeepdiff(bool state);
+  void slotEditWarp(bool state);
   void slotAlign_arm();
   void slotAlign_disarm();
   void slotReverse(bool state);
@@ -126,6 +127,9 @@ class MidasSlots : public QObject
 /*
   
 $Log$
+Revision 3.11  2010/12/28 18:23:10  mast
+Added robust fitting and checkbox to exclude edges
+
 Revision 3.10  2010/06/30 14:14:40  mast
 Fix duplicate parameter
 

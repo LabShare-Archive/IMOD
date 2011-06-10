@@ -3,6 +3,7 @@
 #include "midas.h"
 //Added by qt3to4:
 #include <QMouseEvent>
+#include <QTime>
 class MidasGL : public QGLWidget
 {
   Q_OBJECT
@@ -23,6 +24,9 @@ class MidasGL : public QGLWidget
   int update_slice_view(void);
   void manageMouseLabel(const char *string);
   void drawStar(float xcen, float ycen, float censize);
+  int nearestControlPoint(int iz, float &mindist);
+  void newCurrentControl(int newcur, bool updateSlice);
+  void attachControlPoint();
 
 protected:
   void initializeGL();
@@ -33,8 +37,8 @@ protected:
   void mouseMoveEvent ( QMouseEvent * e );
 
  private:
-  bool mSkipClearOnDraw;
   bool mMousePressed;
+  QTime mBut1downt;
 };
 
 #endif

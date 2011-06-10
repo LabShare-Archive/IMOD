@@ -73,11 +73,25 @@ int new_view(MidasView *vw)
   vw->refSpin = NULL;
   vw->wXedge = NULL;
   vw->wMeanerr = NULL;
-
+  vw->curWarpFile = -1;
+  vw->editWarps = false;
+  vw->numWarpBackup = 0;
+  vw->maxWarpBackup = 0;
+  vw->backupXcontrol = NULL;
+  vw->backupYcontrol = NULL;
+  vw->backupXvector = NULL;
+  vw->backupYvector = NULL;
+  vw->gridSize = 0;
+  vw->gridDx = NULL;
+  vw->gridDy = NULL;
+  vw->lastWarpedZ = -1;
+  vw->lastGridDx = NULL;
+  vw->lastGridDy = NULL;
+  vw->lastGridSize = 0;
   vw->cachein = 0;
   vw->sminin = 0;
   vw->smaxin = 0;
-  vw->boxsize = INITIAL_BOX_SIZE;
+  vw->boxsize = 1;  // Temporarily - may get rid of this and just have fastip
   vw->rotMode = 0;
   vw->globalRot = 0.;
   vw->cosStretch = 0;
@@ -148,22 +162,9 @@ int load_view(MidasView *vw, char *fname)
   vw->corrBoxSize = B3DMAX(32, 16 * B3DNINT(ix / 80.));
   vw->corrShiftLimit = B3DMAX(2, 2 * B3DNINT(ix / 20.));
 
-  if (vw->boxsize < 0) {
-    vw->boxsize = (int)((sqrt((double)vw->xysize) - 1.) / 128. + 1.);
-    if (vw->boxsize > 8)
-      vw->boxsize = 8;
-  }
-
-  /* Fix the box size that might have been entered */
-  if (vw->boxsize > vw->xsize / 4)
-    vw->boxsize = vw->xsize / 4;
-  if (vw->boxsize > vw->ysize / 4)
-    vw->boxsize = vw->ysize / 4;
-
   if (vw->boxsize == 0)
     vw->fastip = 0;
-  if (vw->boxsize < 1)
-    vw->boxsize = 1;
+  vw->boxsize = 1;
           
 
   /* Maximum cache size given memory allowed */
@@ -181,8 +182,7 @@ int load_view(MidasView *vw, char *fname)
   if (vw->cachesize < 4)
     vw->cachesize = 4;
 
-  vw->cache = (struct Midas_cache *)malloc(vw->cachesize * 
-                                           sizeof(struct Midas_cache));
+  vw->cache = (Midas_cache *)malloc(vw->cachesize * sizeof(Midas_cache));
   if (vw->binning > 1) {
     vw->unbinnedBuf = (unsigned char *)malloc(vw->hin->nx * vw->hin->ny);
     if (!vw->unbinnedBuf)
@@ -200,8 +200,7 @@ int load_view(MidasView *vw, char *fname)
       vw->li->offset;
   }
 
-  vw->tr = (struct Midas_transform *)
-    malloc((vw->zsize + 1) * sizeof(struct Midas_transform));
+  vw->tr = (Midas_transform *)malloc((vw->zsize + 1) * sizeof(Midas_transform));
   for (k = 0 ; k <= vw->zsize; k++){
     vw->tr[k].black = 0;
     vw->tr[k].white = 255;
@@ -450,6 +449,7 @@ Islice *getRawSlice(MidasView *vw, int zval)
   vw->cache[oldest].zval = zval;
   vw->cache[oldest].xformed = 0;
   vw->cache[oldest].used = vw->usecount++;
+  vw->cache[oldest].nControl = 0;
   midasReadZByte(vw, vw->hin, vw->li, vw->cache[oldest].sec->data.b, zval);
   return (vw->cache[oldest].sec);
 }
@@ -457,7 +457,7 @@ Islice *getRawSlice(MidasView *vw, int zval)
 static Islice *getXformSlice(MidasView *vw, int zval, int shiftOK,
                              int *xformed)
 {
-  int k;
+  int k, i, izwarp = -1, nControl;
   int minuse = vw->usecount + 1;
   int oldest = 0;
   Islice *orgSlice;
@@ -466,8 +466,12 @@ static Islice *getXformSlice(MidasView *vw, int zval, int shiftOK,
   int found = -1;
   int matchshift = 0;
   int match2x2 = 0;
+  int matchwarp = 0;
   double angle, lastAng, stretch;
-   *xformed = 1;
+  float *xControl, *yControl, *xVector, *yVector;
+  int nxGrid, nyGrid;
+  float xInterval, yInterval, meanSDs[8], sem, xStart, yStart;
+  *xformed = 1;
 
   /* Get the transformation that needs to be applied */
   tramat_copy(vw->tr[zval].mat, mat);
@@ -486,11 +490,32 @@ static Islice *getXformSlice(MidasView *vw, int zval, int shiftOK,
       tramat_copy(rmat, mat);
   }
 
+  // Set index of warping section as flag for warping
+  izwarp = VW->numChunks ? VW->curChunk : VW->cz;
+  if (VW->curWarpFile < 0 || izwarp >= VW->warpNz || getNumWarpPoints(izwarp, &nControl)
+      || nControl <= 3)
+    izwarp = -1;
+
+  // If warping, get all the factors needed to match cache values
+  if (izwarp >= 0) {
+    if (gridSizeFromSpacing(izwarp, -1., -1., 1) || 
+        getGridParameters(izwarp, &nxGrid, &nyGrid, &xStart, &yStart, &xInterval, 
+                          &yInterval) || getWarpPointArrays(izwarp, &xControl, &yControl,
+                                                            &xVector, &yVector)) {
+      izwarp = -1;
+    } else {
+      avgSD(xControl, nControl, &meanSDs[0], &meanSDs[1], &sem);
+      avgSD(yControl, nControl, &meanSDs[2], &meanSDs[3], &sem);
+      avgSD(xVector, nControl, &meanSDs[4], &meanSDs[5], &sem);
+      avgSD(yVector, nControl, &meanSDs[6], &meanSDs[7], &sem);
+    }
+  }
 
   /* search cache for transformed slice.  */
   for (k = 0; k < vw->cachesize; k++) {
     if (vw->cache[k].zval == zval && vw->cache[k].xformed) {
       vw->cache[k].used = vw->usecount++;
+      //printf("%d %d %d %d\n", k, vw->cache[k].zval, zval, vw->cache[k].xformed); 
 
       /* If slice is in cache, check for match of 2x2 matrix and shift terms */
       if (fabs((double)(vw->cache[k].mat[0] - mat[0])) < 0.00001 &&
@@ -501,14 +526,27 @@ static Islice *getXformSlice(MidasView *vw, int zval, int shiftOK,
       if (fabs((double)(vw->cache[k].mat[6] - mat[6])) < 0.0001 &&
           fabs((double)(vw->cache[k].mat[7] - mat[7])) < 0.0001)
         matchshift = 1;
+
+      // Check for match of warping parameters
+      //printf("%d %d\n", vw->cache[k].nControl, nControl);
+      if (match2x2 && matchshift && izwarp >= 0 && vw->cache[k].nControl == nControl &&
+          vw->cache[k].nxGrid == nxGrid && vw->cache[k].nyGrid == nyGrid && 
+          vw->cache[k].xStart == xStart && vw->cache[k].yStart == yStart && 
+          vw->cache[k].xInterval == xInterval && vw->cache[k].yInterval == yInterval) {
+        matchwarp = 1;
+        for (i = 0; i < 8; i++)
+          if (vw->cache[k].meanSDs[i] != meanSDs[i])
+            matchwarp = 0;
+      }
           
       /* All match, return slice as transformed */
-      if (match2x2 && matchshift) 
+      if (match2x2 && matchshift && 
+          (matchwarp || (izwarp < 0 && !vw->cache[k].nControl))) 
         return (vw->cache[k].sec);
 
       /* Shift mismatch and this is OK, copy matrix and return, mark as not
          transformed */
-      if (match2x2 && shiftOK) {
+      if (match2x2 && shiftOK && izwarp < 0 && !vw->cache[k].nControl) {
         *xformed = 0;
         tramat_copy(mat, vw->cache[k].mat);
         return (vw->cache[k].sec);
@@ -527,7 +565,7 @@ static Islice *getXformSlice(MidasView *vw, int zval, int shiftOK,
     /* If it's a unit transformation, just return the raw slice and mark
        as already transformed */
     if (mat[0] == 1.0 && mat[4] == 1.0 && mat[1] == 0.0 && mat[3] == 0.0 &&
-        fabs((double)mat[6]) < 0.0001 && fabs((double)mat[7]) < 0.0001) {
+        fabs((double)mat[6]) < 0.0001 && fabs((double)mat[7]) < 0.0001 && izwarp < 0) {
       *xformed = -1;
       return (getRawSlice(vw, zval));
     }
@@ -543,16 +581,30 @@ static Islice *getXformSlice(MidasView *vw, int zval, int shiftOK,
       }
     }
 
-    /* Allocate oldest spot to this slice */
+    /* Allocate oldest spot to this slice and mark grid as not reusable */
     vw->cache[oldest].zval = zval;
     vw->cache[oldest].xformed = 1;
     vw->cache[oldest].used = vw->usecount++;
     found = oldest;
+    VW->lastWarpedZ = -1;
   }
 
-  /* transform raw slice */
-  midas_transform(orgSlice, vw->cache[found].sec, mat);
+  // Transform raw slice and set the warping parameters
+  midas_transform(zval, orgSlice, vw->cache[found].sec, mat, izwarp);
   tramat_copy(mat, vw->cache[found].mat);
+  if (izwarp < 0)
+    vw->cache[found].nControl = 0;
+  else {
+    vw->cache[found].nControl = nControl;
+    vw->cache[found].nxGrid = nxGrid;
+    vw->cache[found].nyGrid = nyGrid;
+    vw->cache[found].xStart = xStart;
+    vw->cache[found].yStart = yStart;
+    vw->cache[found].xInterval = xInterval;
+    vw->cache[found].yInterval = yInterval;
+    for (i = 0; i < 8; i++)
+      vw->cache[found].meanSDs[i] = meanSDs[i];
+  }
   return (vw->cache[found].sec);
 }
 
@@ -716,26 +768,30 @@ int translate_slice(MidasView *vw, int xt, int yt)
 }
 
 /*
- * Transform a slice by the given transformation
+ * Transform a slice by the given transformation, possibly including warping
  */
-int midas_transform(Islice *slin, Islice *sout, float *trmat)
+int midas_transform(int zval, Islice *slin, Islice *sout, float *trmat, int izwarp)
 {
   int i, j, k, l, index;
-  int ix, iy;
+  int ix, iy, ixgrid, iygrid, indy[2], indx[2], ixlim[2], iylim[2];
   int xsize, ysize;
   float *mat;
   float ox, oy;
   float xdx, xdy, ydx, ydy;
   float x, y;
   unsigned char umean;
-  int nxa, nya, box;
-  int ixst, ixnd;
-  float xrt, xlft, xst, xnd;
-  float fx, fy;
+  int nxa, nya, box, timeOutput = 0;
+  int ixst, ixnd, nxGrid, nyGrid, ixgStart, ixgEnd, iygStart, iygEnd;
+  float xrt, xlft, xst, xnd, xInterval, yInterval, xstep, ystep, xStart, yStart;
+  float fx, fy, gridfy, xbox, ybox, xmap[2][2], ymap[2][2], xlim[2], ylim[2];
+  bool allIn;
   unsigned char *buf;
   float xc = VW->xsize / 2.;
   float yc = VW->ysize / 2.;
-  double wallstart;
+  double wallstart, arrStart;
+  const char *messages[3] = {"Error setting up grid from control points", 
+                             "Failed to get memory for warping grid",
+                             "Failed to get interpolated warping grid"};
 
   mat = tramat_inverse(trmat);
   if (!mat)
@@ -746,176 +802,439 @@ int midas_transform(Islice *slin, Islice *sout, float *trmat)
   ydy = mat[4];
   ox = mat[6] + xc - xc * xdx - yc * ydx;
   oy = mat[7] + yc - xc * xdy - yc * ydy;
-    /*  tramat_getxy(mat, &ox, &oy);
-  tramat_getxy(mat, &xdx, &xdy);
-  tramat_getxy(mat, &ydx, &ydy);
-  xdx -= ox;
-  xdy -= oy;
-  ydx -= ox;
-  ydy -= oy; */
 
   xsize = slin->xsize;
   ysize = slin->ysize;
   umean = (unsigned char)slin->mean;
-
-  box = VW->boxsize;
-  nxa = xsize - box;
-  nya = ysize - box;
-  if (!VW->fastip) {
-    box = 1;
-    nxa = xsize - 2;
-    nya = ysize - 2;
-  }
   wallstart = wallTime();
 
-#pragma omp parallel for                        \
+  // If warping, get the grid
+  if (izwarp >= 0) {
+    index = fillWarpingGrid(izwarp, &nxGrid, &nyGrid, &xStart, &yStart, &xInterval,
+                           &yInterval);
+    if (timeOutput)
+      printf("fillWarpingGrid after %.3f\n", 1000. * (wallTime()- wallstart));
+    if (index) {
+      midas_error(messages[index - 1], "No warping was done", 0);
+      izwarp = -1;
+    } else {
+      // convert the grid into loaded image coordinates
+      xStart /= VW->warpScale;
+      yStart /= VW->warpScale;
+      xInterval /= VW->warpScale;
+      yInterval /= VW->warpScale;
+      for (i = 0; i < nxGrid * nyGrid; i++) {
+        VW->gridDx[i] /= VW->warpScale;
+        VW->gridDy[i] /= VW->warpScale;
+      }
+    }
+    if (timeOutput)
+      printf("scaled grid after %.3f\n", 1000. * (wallTime()- wallstart));
+  }
+  
+  // All set to do warping
+  if (izwarp >= 0) {
+
+    // Evaluate whether only some of the image needs to be transformed
+    ixgStart = 0;
+    ixgEnd = nxGrid;
+    iygStart = 0;
+    iygEnd = nyGrid;
+    if (zval == VW->lastWarpedZ && nxGrid == VW->lastNxGrid && nyGrid == VW->lastNyGrid &&
+        fabs((double)(xStart - VW->lastXstart)) < 1.e-3 && 
+        fabs((double)(yStart - VW->lastYstart)) < 1.e-3 && 
+        fabs((double)(xInterval - VW->lastXinterv)) < 1.e-3 && 
+        fabs((double)(yInterval - VW->lastYinterv)) < 1.e-3 && 
+        mat[0] == VW->lastMat[0] && mat[1] == VW->lastMat[1] && 
+        mat[3] == VW->lastMat[3] && mat[4] == VW->lastMat[4] && 
+        mat[6] == VW->lastMat[6] && mat[7] == VW->lastMat[7]) {
+      
+      // Find domain of grid mismatch and set limits to do intervals outside edge of that
+      ixgStart = nxGrid;
+      ixgEnd = 0;
+      iygStart = nyGrid;
+      iygEnd = 0;
+      for (iy = 0; iy < nyGrid; iy++) {
+        for (ix = 0; ix < nxGrid; ix++) {
+          i = ix + iy * nxGrid;
+          if (VW->gridDx[i] != VW->lastGridDx[i] || VW->gridDy[i] != VW->lastGridDy[i]) {
+            //if (fabs((double)VW->gridDx[i] - VW->lastGridDx[i]) > 1.e-3 || fabs((double)VW->gridDy[i] - VW->lastGridDy[i]) > 1.e-3) {
+            ixgStart = B3DMIN(ixgStart, ix);
+            ixgEnd = B3DMAX(ixgEnd, ix + 1);
+            iygStart = B3DMIN(iygStart, iy);
+            iygEnd = B3DMAX(iygEnd, iy + 1);
+          }
+        }
+      }
+    }
+    arrStart = wallTime();
+    if (timeOutput)
+      printf("total grid time %.3f\n", 1000. * (wallTime()- wallstart));
+
+#pragma omp parallel for                                                \
+  shared(xdx, xdy, ydx, ydy, VW, ox, oy, umean, nxa, nya, xsize, ysize, nxGrid, nyGrid) \
+  shared(yStart, yInterval, xStart, xInterval, ixgStart, ixgEnd, iygStart, iygEnd) \
+  private(j, x, y, buf, i, ix, iy, index) \
+  private(fx, fy, iygrid, ixgrid, indx, indy, xlim, ylim, ixlim, iylim, allIn) \
+  private(xmap, ymap, xbox, ybox, gridfy, xstep, ystep)
+    for (iygrid = iygStart; iygrid <= iygEnd; iygrid++) {
+
+      // Get indexes of grid points in Y on low and high side of block, and y coordinates
+      indy[0] = B3DMAX(0, iygrid - 1);
+      indy[1] = B3DMIN(nyGrid - 1, iygrid);
+      ylim[0] = B3DMAX(0, yStart + yInterval * (iygrid - 1));
+      if (iygrid == 0)
+        ylim[0] = 0;
+      ylim[1] = B3DMIN(ysize, yStart + yInterval * iygrid);
+      if (iygrid == nyGrid)
+        ylim[1] = ysize;
+      iylim[0] = (int)ceil((double)ylim[0]);
+      iylim[1] = (int)ceil((double)ylim[1]) - 1;
+
+      // Loop on X blocks, get indexes and limiting coordinates in X
+      for (ixgrid = ixgStart; ixgrid <= ixgEnd; ixgrid++) {
+        indx[0] = B3DMAX(0, ixgrid - 1);
+        indx[1] = B3DMIN(nxGrid - 1, ixgrid);
+        xlim[0] = B3DMAX(0, xStart + xInterval * (ixgrid - 1));
+        if (ixgrid == 0)
+          xlim[0] = 0;
+        xlim[1] = B3DMIN(xsize, xStart + xInterval * ixgrid);
+        if (ixgrid == nxGrid)
+          xlim[1] = xsize;
+        ixlim[0] = (int)ceil((double)xlim[0]);
+        ixlim[1] = (int)ceil((double)xlim[1]) - 1;
+      
+        // Evaluate mapping of each corner point and see if inside 
+        allIn = true;
+        //printf("block %d %d:", ixgrid, iygrid);
+        for (iy = 0; iy < 2; iy++) {
+          for (ix = 0; ix < 2; ix++) {
+            index = indx[ix] + nxGrid * indy[iy];
+            x = xlim[ix] + VW->gridDx[index];
+            y = ylim[iy] + VW->gridDy[index];
+            //printf("  %.1f, %.1f", VW->gridDx[index], VW->gridDy[index]);
+            xmap[ix][iy] = x * xdx + y * ydx + ox;
+            ymap[ix][iy] = x * xdy + y * ydy + oy;
+            if (xmap[ix][iy] < 0. || xmap[ix][iy] >= xsize - 1 || ymap[ix][iy] < 0. || 
+                ymap[ix][iy] >= ysize - 1)
+              allIn = false;
+          }
+        }
+        //puts("");
+        xbox = xlim[1] - xlim[0];
+        ybox = ylim[1] - ylim[0];
+
+        // Loop on lines, set up start coordinate and steps
+        for (j = iylim[0]; j <= iylim[1]; j++) {
+          gridfy = (j - ylim[0]) / ybox;
+          xstep = ((1. - gridfy) * (xmap[1][0] - xmap[0][0]) + 
+                   gridfy * (xmap[1][1] - xmap[0][1])) / xbox;
+          ystep = ((1. - gridfy) * (ymap[1][0] - ymap[0][0]) + 
+                   gridfy * (ymap[1][1] - ymap[0][1])) / xbox;
+          x = (1. - gridfy) * xmap[0][0] + gridfy * xmap[0][1] + 
+            xstep * (ixlim[0] - xlim[0]);
+          y = (1. - gridfy) * ymap[0][0] + gridfy * ymap[0][1] +
+            ystep * (ixlim[0] - xlim[0]);
+
+          // Loop across lines in different cases
+          buf = &sout->data.b[ixlim[0] + j * xsize];
+          if (VW->fastip) {
+
+            /* nearest neighbor, add 0.5 for nearest int */
+            x += 0.5;
+            y += 0.5;
+            if (allIn) {
+              for (i = ixlim[0]; i <= ixlim[1]; i++, y += ystep, x += xstep){
+                ix = (int)x; 
+                iy = (int)y;
+                index = ix + (iy * xsize);
+                *buf++ = slin->data.b[index];
+              }
+            } else {
+              for (i = ixlim[0]; i <= ixlim[1]; i++, y += ystep, x += xstep){
+                ix = (int)x; 
+                iy = (int)y;
+                if (ix >= 0 && ix < xsize && iy >= 0 && iy < ysize) {
+                  index = ix + (iy * xsize);
+                  *buf++ = slin->data.b[index];
+                } else
+                  *buf++ = umean;
+              }
+            }
+
+          } else {
+
+            // Linear interpolation
+            if (allIn) {
+              for (i = ixlim[0]; i <= ixlim[1]; i++, y += ystep, x += xstep){
+                ix = (int)x; 
+                iy = (int)y;
+                fx = x - ix;
+                fy = y - iy;
+                index = ix + (iy * xsize);
+                *buf++ = (unsigned char)((1. - fy) * ((1. - fx) *slin->data.b[index] +
+                                                      fx * slin->data.b[index + 1]) +
+                                         fy * ((1. - fx) *slin->data.b[index + xsize] +
+                                               fx * slin->data.b[index + xsize + 1]));
+              }
+            } else {
+              for (i = ixlim[0]; i <= ixlim[1]; i++, y += ystep, x += xstep){
+                ix = (int)x; 
+                iy = (int)y;
+                fx = x - ix;
+                fy = y - iy;
+                if (ix >= 0 && ix < xsize - 1  && iy >= 0 && iy < ysize - 1) {
+                  index = ix + (iy * xsize);
+                  *buf++ = (unsigned char)((1. - fy) * ((1. - fx) *slin->data.b[index] +
+                                                        fx * slin->data.b[index + 1]) +
+                                           fy * ((1. - fx) *slin->data.b[index + xsize] +
+                                                 fx * slin->data.b[index + xsize + 1]));
+                } else
+                  *buf++ = umean;
+              }
+            }  
+          }
+        }
+      }
+    }
+    // End of parallel for
+
+    // Record parameters of this grid and copy the grid
+    VW->lastWarpedZ = zval;
+    tramat_copy(mat, VW->lastMat);
+    VW->lastNxGrid = nxGrid;
+    VW->lastNyGrid = nyGrid;
+    VW->lastXstart = xStart;
+    VW->lastYstart = yStart;
+    VW->lastXinterv = xInterval;
+    VW->lastYinterv = yInterval;
+    if (VW->lastGridSize < nxGrid * nyGrid) {
+      B3DFREE(VW->lastGridDx);
+      B3DFREE(VW->lastGridDy);
+      VW->lastGridSize = nxGrid * nyGrid;
+      VW->lastGridDx = B3DMALLOC(float, VW->lastGridSize);
+      VW->lastGridDy = B3DMALLOC(float, VW->lastGridSize);
+      if (!VW->lastGridDx || !VW->lastGridDy) {
+        VW->lastGridSize = 0;
+        VW->lastWarpedZ = -1;
+      }
+    }
+    if (VW->lastWarpedZ >= 0) {
+      memcpy(VW->lastGridDx, VW->gridDx, nxGrid * nyGrid * sizeof(float));
+      memcpy(VW->lastGridDy, VW->gridDy, nxGrid * nyGrid * sizeof(float));
+    }
+    if (timeOutput)
+      printf("array fill time %.3f    limits %d %d %d %d\n",
+             1000. * (wallTime()- arrStart), ixgStart, ixgEnd, iygStart, iygEnd);
+
+  } else {
+
+    // REGULAR TRANSFORMATION
+    box = VW->boxsize;
+    nxa = xsize - box;
+    nya = ysize - box;
+    if (!VW->fastip) {
+      box = 1;
+      nxa = xsize - 2;
+      nya = ysize - 2;
+    }
+
+#pragma omp parallel for                                                \
   shared(xdx, xdy, ydx, ydy, VW, ox, oy, umean, box, nxa, nya, xsize, ysize) \
   private(j, x, y, xst, xnd, xlft, xrt, ixnd, ixst, k, buf, i, ix, iy, index) \
   private(fx, fy, l)
-  for(j = 0; j < ysize + 1 - box; j += box){
-    x = ox + j * ydx;
-    y = oy + j * ydy;
+    for (j = 0; j < ysize + 1 - box; j += box) {
+      x = ox + j * ydx;
+      y = oy + j * ydy;
 
-    /* compute constrained, safe coordinates to use */
-    xst = 0;
-    xnd = xsize - 1;
+      /* compute constrained, safe coordinates to use */
+      xst = 0;
+      xnd = xsize - 1;
 
-    /* get intersection with left and right sides unless vertical */
-    if (xdx > 1.e-10 || xdx < -1.e-10) {
-      xlft = -x / xdx;
-      xrt = (nxa - 0.5 - x) / xdx;
-      if (xlft < xrt) {
-        if (xst < xlft)
-          xst = xlft;
-        if (xnd > xrt)
-          xnd = xrt;
+      /* get intersection with left and right sides unless vertical */
+      if (xdx > 1.e-10 || xdx < -1.e-10) {
+        xlft = -x / xdx;
+        xrt = (nxa - 0.5 - x) / xdx;
+        if (xlft < xrt) {
+          if (xst < xlft)
+            xst = xlft;
+          if (xnd > xrt)
+            xnd = xrt;
+        } else {
+          if (xst < xrt)
+            xst = xrt;
+          if (xnd > xlft)
+            xnd = xlft;
+        }
+      } else if (x < 0 || x >= nxa - 0.5) {
+        /* if vertical and outside limits, set up for fill */
+        xst = nxa;
+        xnd = 1;
+      }
+
+      /* get intersection with bottom and top unless horizontal */
+      if (xdy > 1.e-10 || xdy < -1.e-10) {
+        xlft = -y / xdy;
+        xrt = (nya - 0.5 - y) / xdy;
+        if (xlft < xrt) {
+          if (xst < xlft)
+            xst = xlft;
+          if (xnd > xrt)
+            xnd = xrt;
+        } else {
+          if (xst < xrt)
+            xst = xrt;
+          if (xnd > xlft)
+            xnd = xlft;
+        }
+      } else if (y < 0 || y >= nya - 0.5) {
+        xst = nxa;
+        xnd = 1;
+      }
+
+      /* Limit these values before truncating because they can be > 2147... */
+      if (xst > xsize + 10.)
+        xst = xsize + 10.;
+      if (xnd < -10)
+        xnd = -10.;
+
+      /* truncate ending down, starting up */
+      ixnd = (int)xnd;
+      ixst = nxa + 1 - (int)(nxa + 1. - xst);
+
+      /* If they are crossed, set up so fill does whole extent */
+      if (ixst > ixnd) {
+        ixst = nxa / 2;
+        ixnd = ixst - 1;
+      } else
+        /* otherwise, make sure it's an even box multiple */
+        ixnd = ixst + box * ((ixnd - ixst) / box);
+      while (ixnd > nxa)
+        ixnd -= box;
+
+      /* Do the left and right fills */
+      for (k = j; k < j + box; k++) {
+        buf = &sout->data.b[k * xsize];
+        for (i = 0; i < ixst; i++)
+          *buf++ = umean;
+        buf = &sout->data.b[ixnd + 1 + k * xsize];
+        for (i = ixnd + 1; i < xsize; i++)
+          *buf++ = umean;
+      }
+
+      /* displace to starting point */
+      x += ixst * xdx;
+      y += ixst * xdy;
+
+      if (VW->fastip && box < 2) {
+
+        /* nearest neighbor, no box copies, add 0.5 for nearest int */
+        x += 0.5;
+        y += 0.5;
+        buf = &sout->data.b[ixst + j * xsize];
+        for(i = ixst; i <= ixnd; i++, y += xdy, x += xdx){
+          ix = (int)x; iy = (int)y;
+          index = ix + (iy * xsize);
+          *buf++ = slin->data.b[index];
+        }
+
+      } else if (VW->fastip) {
+
+        /* Box copies */
+        x += 0.5;
+        y += 0.5;
+        for(i = ixst; i <= ixnd; i += box, y += xdy * box, 
+              x += xdx * box){
+          ix = (int)x; iy = (int)y;
+          for (k = j; k < j + box; k++) {
+            index = ix + ((iy + k - j) * xsize);
+            buf = &sout->data.b[i + k * xsize];
+            for (l = 0; l < box; l++)
+              *buf++ = slin->data.b[index++];
+          }
+        }
+
       } else {
-        if (xst < xrt)
-          xst = xrt;
-        if (xnd > xlft)
-          xnd = xlft;
-      }
-    } else if (x < 0 || x >= nxa - 0.5) {
-      /* if vertical and outside limits, set up for fill */
-      xst = nxa;
-      xnd = 1;
-    }
-
-    /* get intersection with bottom and top unless horizontal */
-    if (xdy > 1.e-10 || xdy < -1.e-10) {
-      xlft = -y / xdy;
-      xrt = (nya - 0.5 - y) / xdy;
-      if (xlft < xrt) {
-        if (xst < xlft)
-          xst = xlft;
-        if (xnd > xrt)
-          xnd = xrt;
-      } else {
-        if (xst < xrt)
-          xst = xrt;
-        if (xnd > xlft)
-          xnd = xlft;
-      }
-    } else if (y < 0 || y >= nya - 0.5) {
-      xst = nxa;
-      xnd = 1;
-    }
-
-    /* Limit these values before truncating because they can be > 2147... */
-    if (xst > xsize + 10.)
-      xst = xsize + 10.;
-    if (xnd < -10)
-      xnd = -10.;
-
-    /* truncate ending down, starting up */
-    ixnd = (int)xnd;
-    ixst = nxa + 1 - (int)(nxa + 1. - xst);
-
-    /* If they are crossed, set up so fill does whole extent */
-    if (ixst > ixnd) {
-      ixst = nxa / 2;
-      ixnd = ixst - 1;
-    } else
-      /* otherwise, make sure it's an even box multiple */
-      ixnd = ixst + box * ((ixnd - ixst) / box);
-    while (ixnd > nxa)
-      ixnd -= box;
-
-    /* Do the left and right fills */
-    for (k = j; k < j + box; k++) {
-      buf = &sout->data.b[k * xsize];
-      for (i = 0; i < ixst; i++)
-        *buf++ = umean;
-      buf = &sout->data.b[ixnd + 1 + k * xsize];
-      for (i = ixnd + 1; i < xsize; i++)
-        *buf++ = umean;
-    }
-
-    /* displace to starting point */
-    x += ixst * xdx;
-    y += ixst * xdy;
-
-    if (VW->fastip && box < 2) {
-
-      /* nearest neighbor, no box copies, add 0.5 for nearest int */
-      x += 0.5;
-      y += 0.5;
-      buf = &sout->data.b[ixst + j * xsize];
-      for(i = ixst; i <= ixnd; i++, y += xdy, x += xdx){
-        ix = (int)x; iy = (int)y;
-        index = ix + (iy * xsize);
-        *buf++ = slin->data.b[index];
-      }
-
-    } else if (VW->fastip) {
-
-      /* Box copies */
-      x += 0.5;
-      y += 0.5;
-      for(i = ixst; i <= ixnd; i += box, y += xdy * box, 
-            x += xdx * box){
-        ix = (int)x; iy = (int)y;
-        for (k = j; k < j + box; k++) {
-          index = ix + ((iy + k - j) * xsize);
-          buf = &sout->data.b[i + k * xsize];
-          for (l = 0; l < box; l++)
-            *buf++ = slin->data.b[index++];
+        /* bilinear interpolation */
+        buf = &sout->data.b[ixst + j * xsize];
+        for(i = ixst; i <= ixnd; i++, y += xdy, x += xdx){
+          ix = (int)x; iy = (int)y;
+          fx = x - ix;
+          fy = y - iy;
+          index = ix + (iy * xsize);
+          *buf++ = (unsigned char)((1. - fy) * ((1. - fx) *slin->data.b[index] +
+                                                fx * slin->data.b[index + 1]) +
+                                   fy * ((1. - fx) *slin->data.b[index + xsize] +
+                                         fx * slin->data.b[index + xsize + 1]));
         }
       }
 
-    } else {
-      /* bilinear interpolation */
-      buf = &sout->data.b[ixst + j * xsize];
-      for(i = ixst; i <= ixnd; i++, y += xdy, x += xdx){
-        ix = (int)x; iy = (int)y;
-        fx = x - ix;
-        fy = y - iy;
-        index = ix + (iy * xsize);
-        *buf++ = (unsigned char)((1. - fy) * ((1. - fx) *slin->data.b[index] +
-                                              fx * slin->data.b[index + 1]) +
-                                 fy * ((1. - fx) *slin->data.b[index + xsize] +
-                                       fx * slin->data.b[index + xsize + 1]));
-      }
     }
+    // End of parallel for
 
-  }
-
-  /* fill any top lines left undone */
-  for (j = ysize + 1 - box; j < ysize; j++) {
-    buf = &sout->data.b[j * xsize];
-    for (i = 0; i < xsize; i++)
-      *buf++ = umean;
+    /* fill any top lines left undone */
+    for (j = ysize + 1 - box; j < ysize; j++) {
+      buf = &sout->data.b[j * xsize];
+      for (i = 0; i < xsize; i++)
+        *buf++ = umean;
+    }
+    VW->lastWarpedZ = -1;
   }
 
   tramat_free(mat);
-  //printf("transform time %.6f\n", wallTime()- wallstart);
+  if (timeOutput)
+    printf("Total transform time %.3f\n", 1000. * (wallTime()- wallstart));
   return(0);
 }
 
 /*
+ * Get a full warping grid with standardized spacing parameters
+ */
+int fillWarpingGrid(int iz, int *nxGrid, int *nyGrid, float *xStart, float *yStart,
+                   float *xInterval, float *yInterval)
+{
+  int gridProd;
+  //double wallstart = wallTime();
+
+  // set up the grid size from point spacing
+  if (gridSizeFromSpacing(iz, -1., -1., 1))
+    return 1;
+  // printf("spacing time %.3f\n", 1000. * (wallTime()- wallstart));
+
+  // get the size and make sure array is big enough
+  getWarpGridSize(iz, nxGrid, nyGrid, &gridProd);
+  if (VW->gridSize < gridProd) {
+    B3DFREE(VW->gridDx);
+    B3DFREE(VW->gridDy);
+    VW->gridDx = B3DMALLOC(float, gridProd);
+    VW->gridDy = B3DMALLOC(float, gridProd);
+    VW->gridSize = gridProd;
+    if (!VW->gridDx || !VW->gridDy) {
+      B3DFREE(VW->gridDx);
+      B3DFREE(VW->gridDy);
+      VW->gridSize = 0;
+      return 2;
+    }
+  }
+
+  // Get the warp grid
+  if (getWarpGrid(iz, nxGrid, nyGrid, xStart, yStart, xInterval, yInterval, VW->gridDx,
+                  VW->gridDy, *nxGrid))
+    return 3;
+  /*for (int iy = 0; iy < *nyGrid; iy++) {
+    for (int ix = 0; ix < *nxGrid; ix++)
+      printf("   %.1f,%1.f", VW->gridDx[ix + iy * *nxGrid], VW->gridDy[ix+iy * *nxGrid]);
+    printf("\n");
+    }*/
+      
+  return 0;
+}
+
+
+/*
  * Matrix calculation functions.  
- * To do: use the IMOD library imat functions instead.
- *
+ * 6/9/11: modified to use new libcfshr functions instead of functions that
+ * generically handled 3x3 matrices
  */
 
 float *tramat_create(void)
@@ -937,58 +1256,36 @@ void tramat_free(float *mat)
 
 int tramat_idmat(float *mat)
 {
-  int i;
-
-  for(i = 0; i < 9; i++)
-    mat[i] = 0.0;
-  mat[0] = 1.0;
-  mat[4] = 1.0;
-  mat[8] = 1.0;
+  xfUnit(mat, 1., 3);
   return 0;
 }
 
 int tramat_copy(float *fmat, float *tomat)
 {
-  int i;
-
-  for(i = 0; i < 9; i++)
-    tomat[i] = fmat[i];
+  xfCopy(fmat, 3, tomat, 3);
   return 0;
 }
 
 int tramat_multiply(float *m2, float *m1, float *out)
 {
-  out[0] = (m1[0] * m2[0]) + (m1[3] * m2[1]) + (m1[6] * m2[2]);
-  out[1] = (m1[1] * m2[0]) + (m1[4] * m2[1]) + (m1[7] * m2[2]);
-  out[2] = (m1[2] * m2[0]) + (m1[5] * m2[1]) + (m1[8] * m2[2]);
-  out[3] = (m1[0] * m2[3]) + (m1[3] * m2[4]) + (m1[6] * m2[5]);
-  out[4] = (m1[1] * m2[3]) + (m1[4] * m2[4]) + (m1[7] * m2[5]);
-  out[5] = (m1[2] * m2[3]) + (m1[5] * m2[4]) + (m1[8] * m2[5]);
-  out[6] = (m1[0] * m2[6]) + (m1[3] * m2[7]) + (m1[6] * m2[8]);
-  out[7] = (m1[1] * m2[6]) + (m1[4] * m2[7]) + (m1[7] * m2[8]);
-  out[8] = (m1[2] * m2[6]) + (m1[5] * m2[7]) + (m1[8] * m2[8]);
+  xfMult(m2, m1, out, 3);
   return 0;
+}
+
+float *tramat_inverse(float *mat)
+{
+  float *imat;
+
+  imat = tramat_create();
+  xfInvert(mat, imat, 3);
+  return(imat);
 }
 
 int tramat_translate(float *mat, double x, double y)
 {
-  /*     float *tmat, *omat; */
-
   mat[6] += x;
   mat[7] += y;
   return(0);
-
-  /*
-    tmat = tramat_create();
-    omat = tramat_create();
-
-    tmat[6] += x;
-    tmat[7] += y;
-    tramat_multiply(mat, tmat, omat);
-    tramat_copy(omat, mat);
-    tramat_free(omat);
-    tramat_free(tmat);
-  */
 }
 
 int tramat_scale(float *mat, double x, double y)
@@ -1042,7 +1339,7 @@ int tramat_rot(float *mat, double angle)
   return 0;
 } */
 
-
+#ifdef TRAMAT_TEST
 static int tramat_testin(float *mat, float *imat)
 {
   float *idmat;
@@ -1090,33 +1387,7 @@ static int tramat_testin(float *mat, float *imat)
   }
   return(error);
 }
-
-
-float *tramat_inverse(float *mat)
-{
-  float *imat;
-  float mval;
-  int i;
-
-  imat = tramat_create();
-  mval = mat[8] * ( (mat[0] * mat[4]) - (mat[1] * mat[3]) );
-
-  imat[0] =  mat[4] * mat[8]; 
-  imat[1] = -mat[1] * mat[8];
-  imat[2] =  0.0;
-  imat[3] = -mat[3] * mat[8];
-  imat[4] =  mat[0] * mat[8];
-  imat[5] =  0.0;
-  imat[6] = (mat[3] * mat[7]) - (mat[4] * mat[6]);
-  imat[7] = (mat[1] * mat[6]) - (mat[0] * mat[7]);
-  imat[8] = (mat[0] * mat[4]) - (mat[1] * mat[3]);
-
-  for(i = 0; i < 9; i++)
-    imat[i] /= mval;
-
-  /*     tramat_testin(mat, imat); */
-  return(imat);
-}
+#endif
 
 /* Rotate a transform to new global rotation */
 void rotate_transform(float *mat, double angle)
@@ -1186,6 +1457,190 @@ void transform_model(const char *infname, const char *outfname, MidasView *vw)
   return;
 }
 
+/*
+ * If there are between 1 and 3 control points, find the equivalent transformation,
+ * add it to the current linear transform, and reduce the vectors to 0
+ */
+void reduceControlPoints(MidasView *vw)
+{
+  int iz = vw->numChunks ? vw->curChunk : vw->cz;
+  float xCont[3], yCont[3], xVect[3], yVect[3];
+  float *curmat = VW->tr[VW->cz].mat;
+  float mat[9], tmat[9], dist, denom, dx, dy, dxv, dyv, mag, distmax;
+  float samePtCrit = 3.;
+  float colinearCrit = 3.;
+  double theta;
+  bool allZero = false;
+  float *xControl, *yControl, *xVector, *yVector;
+  int i, j, ifar, nControl;
+
+  if (vw->curWarpFile < 0 || getNumWarpPoints(iz, &nControl))
+    return;
+  if (!nControl || nControl > 3 || getWarpPointArrays(iz, &xControl, &yControl, 
+                                                 &xVector, &yVector))
+    return;
+
+  // Return if they are all zero to avoid numeric drift
+  for (i = 0; i < nControl; i++)
+    if (xVector[i] || yVector[i])
+      break;
+  if (i >= nControl)
+    allZero = true;
+
+  // Scale and center the coordinates
+  tramat_idmat(mat);
+  for (i = 0; i < nControl; i++) {
+    xVect[i] = xVector[i] / vw->warpScale;
+    yVect[i] = yVector[i] / vw->warpScale;
+    xCont[i] = xControl[i] / vw->warpScale - vw->xsize / 2.;
+    yCont[i] = yControl[i] / vw->warpScale - vw->ysize / 2.;
+    //printf("%d %f %f %f %f\n", i, xCont[i], yCont[i], xVect[i], yVect[i]);
+  }
+
+  switch (nControl) {
+  case 1:       // 1 POINT
+    if (allZero)
+      return;
+    curmat[6] -= xVector[0];
+    curmat[7] -= yVector[0];
+    break;
+
+  case 2:       // 2 POINTS
+    dxv = xCont[0] + xVect[0] - (xCont[1] + xVect[1]);
+    dyv = yCont[0] + yVect[0] - (yCont[1] + yVect[1]);
+    dx = xCont[0] - xCont[1];
+    dy = yCont[0] - yCont[1];
+    denom = (float)sqrt((double)(dxv * dxv + dyv * dyv));
+    dist = (float)sqrt((double)(dx * dx + dy * dy));
+    //printf("%f %f %f %f %f %f\n", dx, dy, dist, dxv, dyv, denom);
+    if (denom < samePtCrit || dist < samePtCrit) {
+      removeWarpPoint(iz, 0);
+      vw->curControl = 0;
+      reduceControlPoints(vw);
+      return;
+    }
+    if (allZero)
+      return;
+    mag = dist / denom;
+    theta = atan2(dy, dx) - atan2(dyv, dxv);
+    //printf("mag %f  theta %f\n", mag, theta);
+    mat[0] = mag * cos(theta);
+    mat[3] = -mag * sin(theta);
+    mat[1] = -mat[3];
+    mat[4] = mat[0];
+    mat[6] = xCont[0] - mat[0] * (xCont[0] + xVect[0]) - mat[3] * (yCont[0] + yVect[0]);
+    mat[7] = yCont[0] - mat[1] * (xCont[0] + xVect[0]) - mat[4] * (yCont[0] + yVect[0]);
+    tramat_multiply(curmat, mat, tmat);
+    tramat_copy(tmat, curmat);
+    break;
+
+  case 3:       // 3 POINTS
+    
+    // This is actually 2x the area of the triangle
+    denom = determ3(xCont[0] + xVect[0], yCont[0] + yVect[0], 1.,
+                    xCont[1] + xVect[1], yCont[1] + yVect[1], 1.,
+                    xCont[2] + xVect[2], yCont[2] + yVect[2], 1.);
+    //printf("denom %f\n", denom);
+    if (fabs((double)denom) < colinearCrit) {
+
+      // if collinear, find farthest pair of points
+      distmax = -1.;
+      for (i = 0; i < 3; i++) {
+        j = (i + 1) % 3;
+        dx = xCont[i] + xVect[i] - (xCont[j] + xVect[j]);
+        dy = yCont[i] + yVect[i] - (yCont[j] + yVect[j]);
+        dist = dx * dx + dy * dy;
+        if (dist > distmax) {
+          distmax = dist;
+          ifar = i;
+        }
+      }
+      
+      // remove the other point then call this routine with remaining two
+      removeWarpPoint(iz, (ifar + 2) %3);
+      vw->curControl = B3DMIN(1, B3DMAX(0, vw->curControl));
+      reduceControlPoints(vw);
+      return;
+    }
+    if (allZero)
+      return;
+
+    // Find the transformation and modify current one
+    mat[0] = determ3(xCont[0], yCont[0] + yVect[0], 1.,
+                     xCont[1], yCont[1] + yVect[1], 1.,
+                     xCont[2], yCont[2] + yVect[2], 1.) / denom;
+    mat[3] = determ3(xCont[0] + xVect[0], xCont[0], 1.,
+                     xCont[1] + xVect[1], xCont[1], 1.,
+                     xCont[2] + xVect[2], xCont[2], 1.) / denom;
+    mat[6] = determ3(xCont[0] + xVect[0], yCont[0] + yVect[0], xCont[0],
+                     xCont[1] + xVect[1], yCont[1] + yVect[1], xCont[1],
+                     xCont[2] + xVect[2], yCont[2] + yVect[2], xCont[2]) / denom;
+    mat[1] = determ3(yCont[0], yCont[0] + yVect[0], 1.,
+                     yCont[1], yCont[1] + yVect[1], 1.,
+                     yCont[2], yCont[2] + yVect[2], 1.) / denom;
+    mat[4] = determ3(xCont[0] + xVect[0], yCont[0], 1.,
+                     xCont[1] + xVect[1], yCont[1], 1.,
+                     xCont[2] + xVect[2], yCont[2], 1.) / denom;
+    mat[7] = determ3(xCont[0] + xVect[0], yCont[0] + yVect[0], yCont[0],
+                     xCont[1] + xVect[1], yCont[1] + yVect[1], yCont[1],
+                     xCont[2] + xVect[2], yCont[2] + yVect[2], yCont[2]) / denom;
+    tramat_multiply(curmat, mat, tmat);
+    tramat_copy(tmat, curmat);
+    break;
+  }
+
+  // Zero the vectors
+  for (i = 0; i < nControl; i++)
+    xVector[i] = yVector[i] = 0.;
+
+  vw->midasSlots->synchronizeChunk(vw->cz);
+  vw->midasSlots->update_parameters();
+  vw->changed = 1;
+}
+
+/* Modify control points if underlying transform changes.  This was great for testing
+   but pointless for users to do */
+void adjustControlPoints(MidasView *vw)
+{
+  int iz = vw->numChunks ? vw->curChunk : vw->cz;
+  float *xControl, *yControl, *xVector, *yVector;
+  float *oldMat, *newMat, denom, ee, ff, xt, yt, xcen, ycen, xcvcen, ycvcen;
+  int nControl, i;
+  if (iz >= 0)
+    return;
+  if (vw->curWarpFile < 0 || iz >= vw->warpNz || getNumWarpPoints(iz, &nControl) ||
+      nControl < 4 || getWarpPointArrays(iz, &xControl, &yControl, &xVector, &yVector))
+    return;
+
+  // Take inverses of old and new matrices; the old matrix was saved by call to 
+  // getChangeLimits
+  newMat = tramat_inverse(vw->tr[vw->cz].mat);
+  oldMat = tramat_inverse(vw->oldMat);
+  denom = newMat[0] * newMat[4] - newMat[1] * newMat[3];
+  xcen = vw->xsize / 2.;
+  ycen = vw->ysize / 2.;
+  for (i = 0; i < nControl; i++) {
+
+    // Solve for vector that gives same final position
+    xcvcen = xControl[i] + xVector[i] - xcen;
+    ycvcen = yControl[i] + yVector[i] - ycen;
+    ee = oldMat[0] * xcvcen + oldMat[3] * ycvcen + oldMat[6] - 
+      (newMat[0] * (xControl[i] -xcen) + newMat[3] * (yControl[i] - ycen) + newMat[6]);
+    ff = oldMat[1] * xcvcen + oldMat[4] * ycvcen + oldMat[7] - 
+      (newMat[1] * (xControl[i] -xcen) + newMat[4] * (yControl[i] - ycen) + newMat[7]);
+    xt = xVector[i];
+    yt = yVector[i];
+    xVector[i] = ee * newMat[4] - ff * newMat[3];
+    yVector[i] = newMat[0] * ff - newMat[1] * ee;
+    printf("%d  %.1f, %.1f  to  %.1f, %.1f\n", i, xt, yt, xVector[i], yVector[i]);
+  }
+  free(newMat);
+  free(oldMat);
+}
+
+
+///////////////////////////////////////////////////
+// MONTAGE RELATED ROUTINES
 
 /* Check the list of piece coordinates for regularity and determine the 
    the number of pieces in the dimension and the overlap */
@@ -1705,10 +2160,10 @@ void find_local_errors(MidasView *vw, int leaveout, int ntoperr,
              edge and is included in area whose errors are
              being computed */
           if (localind > -1 &&
-              (ix > ixstin && elx > -1 && elx*2 == localind) ||
+              ((ix > ixstin && elx > -1 && elx*2 == localind) ||
               (iy > iystin && ely > -1 && ely * 2 + 1 == localind) ||
               (ix < ixndin && eux > -1 && eux* 2 == localind) ||
-              (iy < iyndin && euy > -1 && euy * 2 + 1 == localind))
+               (iy < iyndin && euy > -1 && euy * 2 + 1 == localind)))
             doarea = 1;
         }
       }
@@ -1836,13 +2291,27 @@ void crossCorrelate(MidasView *vw)
   int ix0, ix1, iy0, iy1, i, nxsmooth, nysmooth, minpad;
   int nxuse, nyuse, nxpad, nypad;
   float *array, *brray, *arfilt;
+  float xcenter = vw->xcenter;
+  float ycenter = vw->ycenter;
   int ipsave, nsum, imax;
   unsigned char *curImageData, *prevImageData;
+  float *xControl, *yControl, *xVector, *yVector;
   Islice *curSlice;
   double ccc, cccmax;
 
-  xcorrRange(vw->xsize, mat[6], vw->xcenter, border, vw->corrBoxSize, ix0,ix1);
-  xcorrRange(vw->ysize, mat[7], vw->ycenter, border, vw->corrBoxSize, iy0,iy1);
+  // Use control point if there is a current one
+  if (vw->editWarps && vw->curControl >= 0) {
+    i = vw->numChunks ? vw->curChunk : vw->cz;
+    if (getWarpPointArrays(i, &xControl, &yControl, &xVector, &yVector)) {
+      midas_error("Error getting control point position", "", 0);
+      return;
+    }
+    xcenter = xControl[vw->curControl] / vw->warpScale;
+    ycenter = yControl[vw->curControl] / vw->warpScale;
+  }
+
+  xcorrRange(vw->xsize, mat[6], xcenter, border, vw->corrBoxSize, ix0,ix1);
+  xcorrRange(vw->ysize, mat[7], ycenter, border, vw->corrBoxSize, iy0,iy1);
   nxuse = ix1 + 1 - ix0;
   nyuse = iy1 + 1 - iy0;
   if (nxuse < 32 || nyuse < 32) {
@@ -1877,7 +2346,7 @@ void crossCorrelate(MidasView *vw)
     vw->fastip = 0;
     flush_xformed(vw);
   }
-  curSlice = midasGetSlice(VW, MIDAS_SLICE_CURRENT);
+  curSlice = midasGetSlice(vw, MIDAS_SLICE_CURRENT);
   curImageData = curSlice->data.b;
   prevImageData = midasGetPrevImage(vw);
   vw->fastip = ipsave;
@@ -1929,8 +2398,8 @@ void crossCorrelate(MidasView *vw)
   free(brray);
   free(arfilt);
   if (cccmax > -1.) {
-    /*printf("Peak %d at %.2f,%.2f   ccc %.4f  raw ratio to first %f\n",imax+1,
-      xpeak[imax], ypeak[imax], cccmax, peaks[0] / peaks[imax]); */
+    /* printf("Peak %d at %.2f,%.2f   ccc %.4f  raw ratio to first %f\n",imax+1,
+       xpeak[imax], ypeak[imax], cccmax, peaks[0] / peaks[imax]); */
     vw->drawCorrBox = 1;
     vw->midasSlots->translate(xpeak[imax], ypeak[imax]);
     return;
@@ -1946,6 +2415,9 @@ void crossCorrelate(MidasView *vw)
 /*
 
 $Log$
+Revision 3.27  2010/12/31 22:03:30  mast
+Add arguments to find shifts call
+
 Revision 3.26  2010/12/28 18:22:22  mast
 Added robust fitting
 
