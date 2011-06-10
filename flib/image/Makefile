@@ -134,7 +134,7 @@ mtteach$(E): mtteach.$(O) mtsubs.$(O)
 	$(FC) -o mtteach mtteach.$(O) mtsubs.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
 newstack$(E): newstack.$(O)
-	$(FC) -o newstack newstack.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+	$(FC) -o newstack newstack.$(O) $(LDFLG) $(IMLIBS) $(LIWARP) $(LIBS) 
 
 numericdiff$(E): numericdiff.$(O)
 	$(FC) -o numericdiff numericdiff.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
@@ -186,16 +186,16 @@ xcorrstack$(E): xcorrstack.$(O)
 	$(FC) -o xcorrstack xcorrstack.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
 xfinverse$(E): xfinverse.$(O)
-	$(FC) -o xfinverse xfinverse.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+	$(FC) -o xfinverse xfinverse.$(O) $(LDFLG) $(IMLIBS) $(LIWARP) $(LIBS)
 
 xfproduct$(E): xfproduct.$(O)
-	$(FC) -o xfproduct xfproduct.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+	$(FC) -o xfproduct xfproduct.$(O) $(LDFLG) $(IMLIBS) $(LIWARP) $(LIBS)
 
 xfsimplex$(E): xfsimplex.$(O)
 	$(FC) -o xfsimplex xfsimplex.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
 xftoxg$(E): xftoxg.$(O)
-	$(FC) -o xftoxg xftoxg.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+	$(FC) -o xftoxg xftoxg.$(O) $(LDFLG) $(IMLIBS) $(LIWARP) $(LIBS)
 
 xyzproj$(E): xyzproj.$(O)
 	$(FC) -o xyzproj xyzproj.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
