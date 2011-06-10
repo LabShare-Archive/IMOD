@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include "hullwrap.h"
 #include "hull.h"
 
@@ -19,14 +20,19 @@ static int sNumPoints;
 static int sNextPoint;
 static int sNumTri;
 static int sListInd;
+static int sNumPrune;
+static int sPruneCrit;
+static double sTotalArea;
 static struct hullio *sHio;
 
 FILE *DFILE;
 
 static int site_numm(site p);
 static site get_next_site(void);
-static void *save_triangle(simplex *s, void *p);
-static void *mark_triangle(simplex *s, void *p);
+static void *saveTriangle(simplex *s, void *p);
+static void *markOutsideGetArea(simplex *s, void *p);
+static void *markForPruning(simplex *s, void *p);
+static void *setTriangleNumber(simplex *s, void *p);
 
 /* The external call to do the triangulation */
 int hull_triangulate(struct hullio *hio)
@@ -44,10 +50,23 @@ int hull_triangulate(struct hullio *hio)
   root = build_convex_hull(get_next_site, site_numm, 2, 1);
 
   sNumTri = 0;
-  visit_hull(root, mark_triangle);
+  sNumPrune = 0;
+  sTotalArea = 0.;
+  sPruneCrit = -1;
+  visit_hull(root, markOutsideGetArea);
+         
+  /* Prune triangles at edge if there are enough and criteria are set */
+  if (sNumTri >= hio->minNumForPruning && hio->areaFractionCrit > 0. && 
+      hio->heightBaseCrit > 0.) {
+    visit_hull(root, markForPruning);
+    sPruneCrit = 0;
+  }
 
+  sNumTri = 0;
+  visit_hull(root, setTriangleNumber);
   if (hio->verbose)
-    fprintf(stderr, "%d triangles\n", sNumTri);
+    fprintf(stderr, "%d triangles,  %d pruned at edge, total areax2 %.0f\n", 
+            sNumTri, sNumPrune, sTotalArea);
 
   /* Allocate output arrays */
   hio->numberoftriangles = sNumTri;
@@ -67,7 +86,7 @@ int hull_triangulate(struct hullio *hio)
   
   /* Build the lists */
   sListInd = 0;
-  visit_hull(root, save_triangle);
+  visit_hull(root, saveTriangle);
 
   free_hull_storage();
   return 0;
@@ -100,37 +119,100 @@ static site get_next_site(void)
   return &sPointArray[2 * sNextPoint++];
 }
 
-/* Count the triangles, skip ones that connect hull to infinity, and set mark value
- * to the triangle number */
-static void *mark_triangle(simplex *s, void *p)
+
+
+/* Mark triangles that connect hull to infinity, and compute a total area 
+   Sadly, it did not work to save an area as a structure member of simplex.  
+   After storing it here, it was zero on next visit */
+static void *markOutsideGetArea(simplex *s, void *p)
 {
   int i;
+  double dx10, dx20, dy10, dy20;
   if (!s)
     return NULL;
-  s->mark = -1;
-  for (i = 0; i < 3; i++) 
+  s->mark = -2;
+  for (i = 0; i < 3; i++)
     if (site_numm(s->neigh[i].vert) < 0)
       return NULL;
+
+  s->mark = 0;
+  dx10 = s->neigh[1].vert[0] - s->neigh[0].vert[0];
+  dx20 = s->neigh[2].vert[0] - s->neigh[0].vert[0];
+  dy10 = s->neigh[1].vert[1] - s->neigh[0].vert[1];
+  dy20 = s->neigh[2].vert[1] - s->neigh[0].vert[1];
+  sTotalArea += fabs(dx10 * dy20 - dx20 * dy10);
+  sNumTri++;
+  return NULL;
+}
+
+/* Check triangles at the hull edge for adequate height-base ratio or fraction of
+   total area */
+static void *markForPruning(simplex *s, void *p) {
+  int i, ip1, ip2;
+  simplex *sn;
+  double dx10, dx20, dy10, dy20, areax2, dxb, dyb, basesq, base;
+  if (!s || !s->mark)
+    return NULL;
+  for (i = 0; i < 3; i++) {
+    if (site_numm(s->neigh[i].vert) < 0) {
+      sn = s->neigh[i].simp;
+      if (sn) {
+        ip1 = (i+1) % 3;
+        ip2 = (i+2) % 3;
+        dxb = s->neigh[ip1].vert[0] - s->neigh[ip2].vert[0];
+        dyb = s->neigh[ip1].vert[1] - s->neigh[ip2].vert[1];
+        basesq = dxb * dxb + dyb * dyb;
+        dx10 = sn->neigh[1].vert[0] - sn->neigh[0].vert[0];
+        dx20 = sn->neigh[2].vert[0] - sn->neigh[0].vert[0];
+        dy10 = sn->neigh[1].vert[1] - sn->neigh[0].vert[1];
+        dy20 = sn->neigh[2].vert[1] - sn->neigh[0].vert[1];
+        areax2 = fabs(dx10 * dy20 - dx20 * dy10);
+        if (sHio->verbose) {
+          base = sqrt(basesq);
+          fprintf(stderr, "edge %.0f,%.0f to %.0f,%.0f, base %.1f, area %.0f, hgt %.1f"
+                  "  h/b %.3f",
+                  s->neigh[ip1].vert[0],s->neigh[ip1].vert[1], s->neigh[ip2].vert[0],
+                  s->neigh[ip2].vert[1], base, areax2, areax2 / base, areax2 / basesq);
+        }
+        if (areax2 / basesq < sHio->heightBaseCrit && 
+            areax2 / sTotalArea < sHio->areaFractionCrit) {
+          sn->mark = -1;
+          sNumPrune++;
+          if (sHio->verbose)
+            fprintf(stderr, " pruned");
+        }
+        if (sHio->verbose)
+          puts(" ");
+      }
+      return NULL;
+    }
+  }
+  return NULL;
+}
+
+/* Count the retained triangles, and set mark value to the triangle number */
+static void *setTriangleNumber(simplex *s, void *p)
+{
+  if (!s || s->mark < sPruneCrit)
+    return NULL;
   s->mark = sNumTri++;
   return NULL;
 }
 
 /* Save each triangle's vertices and neighbors to arrays in counterclockwise order */
-static void *save_triangle(simplex *s, void *p)
+static void *saveTriangle(simplex *s, void *p)
 {
   int i, ist = 0, iend = 2, idir = 1;
-  double x0, x1, x2, y0, y1, y2;
-  if (!s || s->mark < 0)
+  double dx10, dx20, dy10, dy20;
+  if (!s || s->mark < sPruneCrit)
     return NULL;
 
   /* Test for counterclockwise triangle */
-  x0 = s->neigh[0].vert[0];
-  x1 = s->neigh[1].vert[0];
-  x2 = s->neigh[2].vert[0];
-  y0 = s->neigh[0].vert[1];
-  y1 = s->neigh[1].vert[1];
-  y2 = s->neigh[2].vert[1];
-  if  ((x1 - x0) * (y2 - y0) - (x2 - x0) * (y1 - y0) < 0.) {
+  dx10 = s->neigh[1].vert[0] - s->neigh[0].vert[0];
+  dx20 = s->neigh[2].vert[0] - s->neigh[0].vert[0];
+  dy10 = s->neigh[1].vert[1] - s->neigh[0].vert[1];
+  dy20 = s->neigh[2].vert[1] - s->neigh[0].vert[1];
+  if  (dx10 * dy20 - dx20 *dy10 < 0.) {
     idir = -1;
     ist = 2;
     iend = 0;
