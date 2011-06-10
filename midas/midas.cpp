@@ -57,45 +57,38 @@ int Midas_debug = 0;
 
 static void usage(void)
 {
-     char *pname = "midas";
-     QString qstr;
-
-     printf("%s version %s\n", pname, MIDAS_VERSION_STRING);
-     imodCopyright();
-     qstr.sprintf("Usage: %s [options] <mrc filename> "
-	     "[transform filename]\n", pname);
-     qstr += "Options:\n";
-     qstr += "   -g\t\t Output global transforms (default"
-       " is local)\n";
-     qstr += "   -r <filename>\t Load reference image file\n";
-     qstr += "   -rz <section>\t Section # for reference (default 0)\n";
-     qstr += "   -p <filename>\t Load piece list file for fixing montages\n";
-     qstr += "   -c <size list>\t Align chunks of sections; list # of sections"
-       " in chunks\n";
-     qstr += "   -B <factor>\t Bin images by the given factor\n";
-     qstr += "   -C <size>\t Set cache size to given number of "
-       "sections\n"; 
-     qstr += "   -s <min,max>\t Set intensity scaling; min to 0 and"
-       " max to 255\n";
-     qstr += "   -b <size>\t Set initial size for block copies\n";
-     qstr += "   -a <angle>\t Rotate all images by angle.\n";
-     qstr += "   -t <filename>\t Load tilt angles from file and allow cosine "
-       "stretching.\n";
-     qstr += "   -o <filename>\t Output transforms to given file instead of "
-       "input file\n";
-     qstr += "   -e <number>\t Show given number of buttons with largest edge "
-       "errors\n";
-     qstr += "   -O <letters>\t Two letters for colors of previous/current in"
-       " overlay\n";
-     qstr += "   -S\t\t Use single-buffered visual\n";
-     qstr += "   -D\t\t Debug mode - do not run in background\n";
-     qstr += "   -q\t\t Suppress reminder message when fixing edges\n";
+  const char *pname = "midas";
+  QString qstr;
+  
+  printf("%s version %s\n", pname, MIDAS_VERSION_STRING);
+  imodCopyright();
+  qstr.sprintf("Usage: %s [options] <mrc filename> [transform filename]\n", pname);
+  qstr += "Options:\n";
+  qstr += "   -g\t\t Output global transforms (default is local)\n";
+  qstr += "   -r <filename>\t Load reference image file\n";
+  qstr += "   -rz <section>\t Section # for reference (default 0)\n";
+  qstr += "   -p <filename>\t Load piece list file for fixing montages\n";
+  qstr += "   -c <size list>\t Align chunks of sections; list # of sections"
+    " in chunks\n";
+  qstr += "   -B <factor>\t Bin images by the given factor\n";
+  qstr += "   -C <size>\t Set cache size to given number of sections\n"; 
+  qstr += "   -s <min,max>\t Set intensity scaling; min to 0 and max to 255\n";
+  qstr += "   -b 0\t Turn on interpolation\n";
+  qstr += "   -a <angle>\t Rotate all images by angle.\n";
+  qstr += "   -t <filename>\t Load tilt angles from file and allow cosine "
+    "stretching.\n";
+  qstr += "   -o <filename>\t Output transforms to given file instead of input file\n";
+  qstr += "   -e <number>\t Show given number of buttons with largest edge errors\n";
+  qstr += "   -O <letters>\t Two letters for colors of previous/current in overlay\n";
+  qstr += "   -S\t\t Use single-buffered visual\n";
+  qstr += "   -D\t\t Debug mode - do not run in background\n";
+  qstr += "   -q\t\t Suppress reminder message when fixing edges\n";
 #ifdef _WIN32
-     dia_puts(LATIN1(qstr));
+  dia_puts(LATIN1(qstr));
 #else
-     printf(LATIN1(qstr));
+  printf(LATIN1(qstr));
 #endif
-     exit(3);
+  exit(3);
 }
 
 int main (int argc, char **argv)
@@ -259,8 +252,7 @@ int main (int argc, char **argv)
   // Process overlay color entry
   if (oarg) {
     if (strlen(argv[oarg]) != 2)
-      midas_error("Two letters must be entered with -O: two of r g b c m y",
-                  "", 1);
+      midas_error("Two letters must be entered with -O: two of r g b c m y", "", 1);
     for (k = 0; k < 3; k++)
       vw->imageForChannel[k] = 0;
     for (k = 0; k < 2; k++) {
@@ -287,8 +279,7 @@ int main (int argc, char **argv)
         vw->imageForChannel[1] += k + 1;
         break;
       default:
-        midas_error("The letters entered with -O must be two of r g b c m y",
-                  "", 1);
+        midas_error("The letters entered with -O must be two of r g b c m y", "", 1);
       }
     }
 
@@ -320,22 +311,19 @@ int main (int argc, char **argv)
     vw->cosStretch = 0;
     if (vw->xtype == XTYPE_XG)
       dia_puts("The -g option has no effect with alignment to a "
-	      "reference section or in chunk.");
+	      "reference section or in chunk mode.");
     if (vw->refname)
       vw->xtype = XTYPE_XREF;
   }
 
   if (vw->cosStretch && vw->xtype == XTYPE_XG)
-    midas_error("Global alignment mode cannot be used with cosine stretching",
-                "", 1);
+    midas_error("Global alignment mode cannot be used with cosine stretching", "", 1);
 
   // If doing chunk mode, get sizes, make sure no zeros, defer further checking
   if (vw->numChunks) {
     if (vw->refname)
-      midas_error("Chunk alignment cannot be done in reference alignment mode",
-                  "", 1);
-    vw->chunk = (struct Midas_chunk *)malloc((vw->numChunks + 1) * 
-                                                  sizeof(struct Midas_chunk));
+      midas_error("Chunk alignment cannot be done in reference alignment mode", "", 1);
+    vw->chunk = (Midas_chunk *)malloc((vw->numChunks + 1) * sizeof(Midas_chunk));
     if (!vw->chunk)
       midas_error("Error getting memory for chunk data.", "", 3);
 
@@ -351,6 +339,7 @@ int main (int argc, char **argv)
       midas_error("The -c option must be followed by a comma-separated list",
                   " of the number of sections in each chunk.", 1);
   }
+  VW->warpingOK = VW->xtype != XTYPE_XG && VW->xtype != XTYPE_MONT && !VW->rotMode;
 
   if (load_view(VW, argv[i]))
     midas_error("Error opening ", argv[i], 3);
@@ -375,6 +364,7 @@ int main (int argc, char **argv)
   vw->midasSlots = new MidasSlots();
   vw->midasWindow = new MidasWindow(doubleBuffer);
   //myapp.setMainWidget(vw->midasWindow);
+  VW->midasSlots->updateWarpEdit();
 
   vw->midasWindow->show();
   vw->midasWindow->setFocus();
@@ -424,6 +414,9 @@ MidasWindow::MidasWindow(bool doubleBuffer, QWidget * parent, Qt::WFlags f)
   ADD_ACTION(edit, "Re&vert to stored transform", EDIT_MENU_REVERT);
   ADD_ACTION(edit, "&Mirror around X axis", EDIT_MENU_MIRROR);
   menuActions[EDIT_MENU_MIRROR]->setEnabled(VW->xtype != XTYPE_MONT);
+  ADD_ACTION_KEY(edit, "&Delete control point", EDIT_MENU_DELETEPT, 
+                 Qt::SHIFT + Qt::Key_D);
+  menuActions[EDIT_MENU_DELETEPT]->setEnabled(VW->warpingOK);
   
   // Create Help menu
   ADD_ACTION(help, "&Controls", HELP_MENU_CONTROLS);
@@ -545,8 +538,9 @@ void MidasWindow::makeSeparator(QVBoxLayout *parent, int width)
 }
 
 void MidasWindow::makeTwoArrows(QHBoxLayout *parent, int direction, int signal,
-                                QSignalMapper *mapper, bool repeat,
-                                char *tip1, char *tip2)
+                                QSignalMapper *mapper, bool repeat, const char *tip1, 
+                                const char *tip2, ArrowButton **arrow1,
+                                ArrowButton **arrow2)
   
 {
   parent->setSpacing(4);
@@ -560,6 +554,8 @@ void MidasWindow::makeTwoArrows(QHBoxLayout *parent, int direction, int signal,
     arrow->setToolTip(QString(tip1));
   mapper->setMapping(arrow, direction * signal);
   QObject::connect(arrow, SIGNAL(clicked()), mapper, SLOT(map()));
+  if (arrow1)
+    *arrow1 = arrow;
 
   arrow = new ArrowButton(direction < 0 ? Qt::RightArrow : Qt::DownArrow, 
                           NULL);
@@ -571,22 +567,27 @@ void MidasWindow::makeTwoArrows(QHBoxLayout *parent, int direction, int signal,
     arrow->setToolTip(QString(tip2));
   mapper->setMapping(arrow, -direction * signal);
   QObject::connect(arrow, SIGNAL(clicked()), mapper, SLOT(map()));
+  if (arrow2)
+    *arrow2 = arrow;
 }
 
-QLabel *MidasWindow::makeArrowRow(QVBoxLayout *parent, int direction, 
-                                  int signal, QSignalMapper *mapper, 
-                                  bool repeat, QString textlabel, int decimals,
-                                  int digits, float value, char *tip1, 
-                                  char *tip2)
+QLabel *MidasWindow::makeArrowRow(QVBoxLayout *parent, int direction, int signal, 
+                                  QSignalMapper *mapper, bool repeat, QString textlabel,
+                                  int decimals, int digits, float value, 
+                                  const char *tip1, const char *tip2,
+                                  ArrowButton **arrow1, ArrowButton **arrow2,
+                                  QLabel **textLabel)
 {
   char string[32];
   QLabel *label;
   QString str;
   QHBoxLayout *row = diaHBoxLayout(parent);
-  makeTwoArrows(row, direction, signal, mapper, repeat, tip1, tip2);
+  makeTwoArrows(row, direction, signal, mapper, repeat, tip1, tip2, arrow1, arrow2);
   
   label = diaLabel(LATIN1(textlabel), NULL, row);
   label->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+  if (textLabel)
+    *textLabel = label;
   VW->midasSlots->sprintf_decimals(string, decimals, digits, value);
   str = string;
   label = diaLabel(LATIN1(str), NULL, row);
@@ -594,10 +595,9 @@ QLabel *MidasWindow::makeArrowRow(QVBoxLayout *parent, int direction,
   return (label);
 }
 
-QSignalMapper *MidasWindow::makeLabeledArrows(QVBoxLayout *parent,
-                                              QString textlabel,
+QSignalMapper *MidasWindow::makeLabeledArrows(QVBoxLayout *parent, QString textlabel,
                                               QLabel **outLabel, bool repeat, 
-                                              char *tip1, char *tip2)
+                                              const char *tip1, const char *tip2)
 {
   QHBoxLayout *row = diaHBoxLayout(parent);
   QSignalMapper *mapper = new QSignalMapper();
@@ -610,7 +610,7 @@ QSignalMapper *MidasWindow::makeLabeledArrows(QVBoxLayout *parent,
   return (mapper);
 }
 
-QSpinBox *MidasWindow::makeSpinBoxRow(QHBoxLayout *row, char *labText,
+QSpinBox *MidasWindow::makeSpinBoxRow(QHBoxLayout *row, const char *labText,
                                       int minz, int maxz)
 {
   QSpinBox *spin = (QSpinBox *)diaLabeledSpin
@@ -650,34 +650,40 @@ void MidasWindow::createParameterDisplay(QVBoxLayout *col)
      VW->increment[2], "Make shift increment bigger", 
      "Make shift increment smaller");
   if (VW->xtype != XTYPE_MONT) {
+    VW->wLinearTrans = diaLabel("Linear trans:  0.0, 0.0", NULL, col);
+    VW->wLinearTrans->hide();
     makeSeparator(col, 1);
     VW->wParameter[0] = makeArrowRow
       (col, -1, 1, paramMapper, true, "Rotation    ",
        VW->midasSlots->getParamDecimals(0), VW->midasSlots->getParamDigits(0),
        -179., "Rotate current image counterclockwise (hot key o)", 
-       "Rotate current image clockwise (hot key l)");
+       "Rotate current image clockwise (hot key l)", &VW->arrowsToGray[0], 
+       &VW->arrowsToGray[1], &VW->labelsToGray[0]);
     VW->wIncrement[0] = makeArrowRow
       (col, 1, 1, incMapper, false, "   increment",
        VW->midasSlots->getIncDecimals(0), VW->midasSlots->getIncDigits(0),
        VW->increment[0], "Make rotation increment bigger",
-       "Make rotation increment smaller");
+       "Make rotation increment smaller", &VW->arrowsToGray[2], &VW->arrowsToGray[3],
+       &VW->labelsToGray[1]);
     makeSeparator(col, 1);
 
     VW->wParameter[1] = makeArrowRow
       (col, 1, 2, paramMapper, true, "Magnification",
        VW->midasSlots->getParamDecimals(1),  VW->midasSlots->getParamDigits(1),
-       1.0, "Scale current image up (hot key p)", 
-       "Scale current image down (hot key ;)");
+       1.0, "Scale current image up (hot key p)", "Scale current image down (hot key ;)",
+       &VW->arrowsToGray[4], &VW->arrowsToGray[5], &VW->labelsToGray[2]);
     VW->wParameter[2] = makeArrowRow
       (col, 1, 3, paramMapper, true, "Stretch      ",
        VW->midasSlots->getParamDecimals(2),  VW->midasSlots->getParamDigits(2),
        1.0, "Stretch current image along axis (hot key [)", 
-       "Compress current image along axis (hot key ')");
+       "Compress current image along axis (hot key ')", &VW->arrowsToGray[6], 
+       &VW->arrowsToGray[7], &VW->labelsToGray[3]);
     VW->wIncrement[1] = makeArrowRow
       (col, 1, 2, incMapper, false, "   factor    ", 
        VW->midasSlots->getIncDecimals(1),  VW->midasSlots->getIncDigits(1),
        VW->increment[1], "Increase amount by which to scale and stretch",
-       "Decrease amount by which to scale and stretch");
+       "Decrease amount by which to scale and stretch", &VW->arrowsToGray[8], 
+       &VW->arrowsToGray[9], &VW->labelsToGray[4]);
 
   }     
 
@@ -699,6 +705,8 @@ void MidasWindow::createParameterDisplay(QVBoxLayout *col)
 		     VW->midasSlots, SLOT(slotAngle(int)));
     VW->anglescale->setToolTip("Set angle at which new stretch is applied"
                                  " (hot keys ] and \\)");
+    VW->labelsToGray[5] = slideName;
+    VW->labelsToGray[6] = VW->anglelabel;
   }
 
   makeSeparator(col, 1);
@@ -856,8 +864,7 @@ void MidasWindow::createSectionControls(QVBoxLayout *parent)
   VW->curSpin = makeSpinBoxRow(row, "Current Sec. ", 1, maxz);
   QObject::connect(VW->curSpin, SIGNAL(valueChanged(int)),
                    VW->midasSlots, SLOT(slotCurValue(int)));
-  VW->curSpin->setToolTip("Set the current section to align (hot keys a and"
-                          " b)");
+  VW->curSpin->setToolTip("Set the current section to align (hot keys a and b)");
   
   if (VW->numChunks) {
 
@@ -869,21 +876,30 @@ void MidasWindow::createSectionControls(QVBoxLayout *parent)
     VW->chunkSpin->setToolTip("Set the chunk (tomogram) to align to the "
                               "previous one (hot keys A and B)");
   
-  } else if (VW->xtype != XTYPE_XREF && VW->xtype != XTYPE_MONT) {
+  } else if (VW->xtype != XTYPE_MONT) {
     
     // Non-montage: the difference checkbox and mode label
 
     VW->difftoggle  = diaCheckBox("Keep Curr - Ref diff = 1", NULL, col);
-    VW->difftoggle->setChecked(true);
+    VW->difftoggle->setChecked(VW->xtype != XTYPE_XREF);
     QObject::connect(VW->difftoggle, SIGNAL(toggled(bool)), 
-		     VW->midasSlots, SLOT(slotKeepdiff(bool)));
-    VW->difftoggle->setToolTip("Always align a section to the immediately "
-                               "previous one");
+                     VW->midasSlots, SLOT(slotKeepdiff(bool)));
+    VW->difftoggle->setToolTip("Always change current and reference sections together");
 
-    if (VW->xtype == XTYPE_XF)
-      label = diaLabel ("Local Alignment Mode", NULL, col);
-    else
+    if (VW->warpingOK) {
+      VW->warpToggle = diaCheckBox("Add/edit warp points", NULL, col);
+      QObject::connect(VW->warpToggle, SIGNAL(toggled(bool)), 
+                       VW->midasSlots, SLOT(slotEditWarp(bool)));
+      VW->warpToggle->setToolTip("Add or modify points for warping section");
+      // TEMPORARY
+      diaSetChecked(VW->warpToggle, false);
+    }
+
+    if (VW->xtype == XTYPE_XG)
       label = diaLabel ("Global Alignment Mode", NULL, col);
+    else
+      label = diaLabel(VW->xtype == XTYPE_XREF ? "Reference Alignment Mode" :
+                       "Local Alignment Mode", NULL, col);
     label->setAlignment(Qt::AlignCenter);
 
   } else if (VW->xtype == XTYPE_MONT) { 
@@ -935,9 +951,6 @@ void MidasWindow::createSectionControls(QVBoxLayout *parent)
 
     VW->midasSlots->manage_xory(VW);
     
-  } else {
-    label = diaLabel("Reference Alignment Mode", NULL, col);
-    label->setAlignment(Qt::AlignCenter);
   }
 }
 
@@ -951,14 +964,6 @@ void MidasWindow::createZoomBlock(QVBoxLayout *parent)
   QObject::connect(mapper, SIGNAL(mapped(int)), VW->midasSlots,
 		     SLOT(slotZoom(int)));
 
-  str.sprintf("Block size %2d", VW->boxsize);
-  mapper = makeLabeledArrows
-    (parent, str, &VW->blocklabel, false, "Increase the size of blocks copied"
-     " when transforming image", "Decrease the size of blocks copied"
-     " when transforming image");
-  QObject::connect(mapper, SIGNAL(mapped(int)), VW->midasSlots,
-		     SLOT(slotBlock(int)));
-  
   QCheckBox *check = diaCheckBox("Interpolate", NULL, parent);
   check->setChecked(VW->fastip == 0);
   QObject::connect(check, SIGNAL(toggled(bool)), VW->midasSlots,
@@ -1060,6 +1065,9 @@ void midas_error(const char *tmsg, const char *bmsg, int retval)
 /*
 
 $Log$
+Revision 3.28  2010/12/28 18:23:10  mast
+Added robust fitting and checkbox to exclude edges
+
 Revision 3.27  2010/06/29 22:31:11  mast
 New X and Y frame buttons, cross-correlate button and spin boxes, options
 to skip excluded edges and skip computing correlations

@@ -26,6 +26,7 @@
 #include <QKeyEvent>
 #include <QLabel>
 #include "dia_qtutils.h"
+#include "arrowbutton.h"
 #include "b3dutil.h"
 #include "imod_assistant.h"
 
@@ -99,6 +100,7 @@ void MidasSlots::update_parameters()
   float param[5], xc, yc;
   float meanerr, toperr[8], meanleave, topleave, curerrx, curerry;
   int topleavind, topxy, edge;
+  float *xControl, *yControl, *xVector, *yVector;
   float *mat = VW->tr[VW->cz].mat;
   amatToRotmagstr(mat[0], mat[3], mat[1], mat[4], &param[0], &param[1],
                     &param[2], &VW->phi);
@@ -109,6 +111,18 @@ void MidasSlots::update_parameters()
     param[3] = mat[6];
     param[4] = mat[7];
     first = 0;
+    if (VW->editWarps) {
+      i = VW->numChunks ? VW->curChunk : VW->cz;
+      str.sprintf("Linear trans: %.1f, %.1f", mat[6], mat[7]);
+      VW->wLinearTrans->setText(str);
+      param[3] = 0.;
+      param[4] = 0.;
+      if (VW->curControl >= 0 && !getWarpPointArrays(i, &xControl, &yControl, &xVector,
+                                                     &yVector)) {
+        param[3] = -xVector[VW->curControl] / VW->warpScale;
+        param[4] = -yVector[VW->curControl] / VW->warpScale;
+      }
+    }
   } else  {
     param[3] = VW->edgedx[VW->edgeind * 2 + VW->xory];
     param[4] = VW->edgedy[VW->edgeind * 2 + VW->xory];
@@ -182,6 +196,24 @@ void MidasSlots::update_sections()
   VW->difftoggle->setText( str);
 }
 
+void MidasSlots::updateWarpEdit()
+{
+  bool state = false;
+  int nControl = 0;
+  int iz = VW->numChunks ? VW->curChunk : VW->cz;
+  if (VW->curWarpFile >= 0 && iz < VW->warpNz && !getNumWarpPoints(iz, &nControl) &&
+    nControl > 0) {
+    state = true;
+    VW->curControl = B3DMAX(0, B3DMIN(nControl - 1, VW->curControl));
+  }
+  if (VW->warpingOK)
+    VW->warpToggle->setEnabled(nControl < 4);
+  if ((state ? 1 : 0) != (VW->editWarps ? 1 : 0)) {
+    diaSetChecked(VW->warpToggle, state);
+    slotEditWarp(state);
+  }
+}
+
 void MidasSlots::update_overlay()
 {
   VW->overlaytoggle->blockSignals(true);
@@ -192,7 +224,7 @@ void MidasSlots::update_overlay()
 /* To transform the current slice with a new transform */
 void MidasSlots::retransform_slice()
 {
-  midasGetSlice(VW, MIDAS_SLICE_CURRENT);
+  //midasGetSlice(VW, MIDAS_SLICE_CURRENT);  // Redundant! - first thing next call does
   VW->midasGL->update_slice_view();
 }
 
@@ -414,7 +446,7 @@ case FILE_MENU_QUIT: /* Quit */
 void MidasSlots::slotEditmenu(int item)
 {
   struct Midas_transform *tr;
-  int i, ist, ind;
+  int i, ist, ind, nControl;
   float prod[9];
   float *inv;
      
@@ -444,8 +476,14 @@ void MidasSlots::slotEditmenu(int item)
       set_mont_pieces(VW);
     }
 
+    if (VW->curWarpFile >= 0) {
+      i = VW->numChunks ? VW->curChunk : VW->cz;
+      setWarpPoints(i, 0, NULL, NULL, NULL, NULL);
+    }
+
     synchronizeChunk(VW->cz);
     update_parameters();
+    updateWarpEdit();
     retransform_slice();
     VW->changed = 1;
     break;
@@ -471,14 +509,26 @@ void MidasSlots::slotEditmenu(int item)
       set_mont_pieces(VW);
     }
 
+    if (VW->curWarpFile >= 0) {
+      i = VW->numChunks ? VW->curChunk : VW->cz;
+      if (setWarpPoints(i, VW->numWarpBackup, VW->backupXcontrol, VW->backupYcontrol,
+                        VW->backupXvector, VW->backupYvector))
+        midas_error("An error occurred restoring the warping points", "", 0);
+    }
+
     synchronizeChunk(VW->cz);
     update_parameters();
+    updateWarpEdit();
     retransform_slice();
     VW->changed = 1;
     break;
 
   case EDIT_MENU_MIRROR: /* Mirror around X axis  */
 	  /* get unit transform and modify to mirror */
+    i = VW->numChunks ? VW->curChunk : VW->cz;
+    if (VW->curWarpFile >= 0 && i < VW->warpNz && getNumWarpPoints(i, &nControl) &&
+        nControl > 3)
+      break;
     inv = tramat_create();
     inv[4] = -1.0;
     getChangeLimits(&ist, &ind);
@@ -496,7 +546,19 @@ void MidasSlots::slotEditmenu(int item)
     VW->changed = 1;
     break;
 	  
-
+  case EDIT_MENU_DELETEPT:  /* Delete current control point */
+    i = VW->numChunks ? VW->curChunk : VW->cz;
+    if (VW->curWarpFile < 0 || i >= VW->warpNz || getNumWarpPoints(i, &nControl) || 
+        !nControl || VW->curControl < 0 || VW->curControl >= nControl)
+      break;
+    removeWarpPoint(i, VW->curControl);
+    VW->curControl = B3DMIN(nControl - 2, VW->curControl);
+    reduceControlPoints(VW);
+    VW->warpToggle->setEnabled(nControl < 5);  // 5 not 4 because it is 1 too high
+    update_parameters();
+    retransform_slice();
+    VW->changed = 1;
+    break;
   }
   return;
 }
@@ -536,6 +598,9 @@ void MidasSlots::getChangeLimits (int *ist, int *ind)
   int cst, cnd, i, j;
   *ist = VW->cz;
   *ind = VW->cz;
+
+  // Copy current transform to use for modifying warp points
+  tramat_copy(VW->tr[VW->cz].mat, VW->oldMat);
   if (VW->xtype != XTYPE_XG)
     return;
 
@@ -573,6 +638,7 @@ void MidasSlots::rotate(float step)
     tramat_rot(tr->mat, step); 
     tramat_translate(tr->mat, xofs, yofs);
   }
+  adjustControlPoints(VW);
   synchronizeChunk(VW->cz);
   update_parameters();
   retransform_slice();
@@ -586,11 +652,27 @@ void MidasSlots::translate(float xstep, float ystep)
   int ix = (int)xstep;
   int iy = (int)ystep;
   int i, ist, ind;
-  getChangeLimits(&ist, &ind);
+  float *xControl, *yControl, *xVector, *yVector;
 
-  for (i = ist; i <= ind; i++) {
-    tr = &(VW->tr[i]);
-    tramat_translate(tr->mat, xstep, ystep);
+  if (VW->editWarps) {
+
+    // Translate a control point vector, use negative since it is an inverse
+    i = VW->numChunks ? VW->curChunk : VW->cz;
+    if (VW->curControl >= 0 && !getWarpPointArrays(i, &xControl, &yControl, &xVector,
+                                                   &yVector)) {
+      xVector[VW->curControl] -= xstep * VW->warpScale;
+      yVector[VW->curControl] -= ystep * VW->warpScale;
+      reduceControlPoints(VW);
+    }
+  } else {
+
+    // Translate images
+    getChangeLimits(&ist, &ind);
+    for (i = ist; i <= ind; i++) {
+      tr = &(VW->tr[i]);
+      tramat_translate(tr->mat, xstep, ystep);
+    }
+    adjustControlPoints(VW);
   }
 
   /* If montage, maintain edge displacements too */
@@ -601,7 +683,7 @@ void MidasSlots::translate(float xstep, float ystep)
 
   synchronizeChunk(VW->cz);
   update_parameters();
-  if (ix == xstep && iy == ystep && ++fastcount % 10) {
+  if (ix == xstep && iy == ystep && ++fastcount % 10 && !VW->editWarps) {
     translate_slice(VW, ix, iy);
     VW->midasGL->update_slice_view();
   } else {
@@ -625,6 +707,7 @@ void MidasSlots::scale(float step)
     tramat_scale(tr->mat, step, step); 
     tramat_translate(tr->mat, xofs, yofs);
   }
+  adjustControlPoints(VW);
   synchronizeChunk(VW->cz);
   update_parameters();
   retransform_slice();
@@ -647,6 +730,7 @@ void MidasSlots::stretch(float step, float angle)
     tramat_rot(tr->mat, angle);
     tramat_translate(tr->mat, xofs, yofs);
   }
+  adjustControlPoints(VW);
   synchronizeChunk(VW->cz);
   update_parameters();
   retransform_slice();
@@ -738,27 +822,48 @@ int MidasSlots::get_bw_index()
 
 void MidasSlots::try_section_change(int ds, int dsref)
 {
-  int ind;
+  int ind, doBlackWhite = 0;
   int newcur = ds + VW->cz;
   int newref = dsref + VW->refz;
-  if ( (newcur < 0) || (newcur >= VW->zsize) ||
-       ( (VW->xtype != XTYPE_XREF) &&
-	 ( (newref < 0) || (newref >= VW->zsize) ) ) ||
-       (VW->numChunks && ((newcur < VW->chunk[VW->curChunk].start) ||
-                          (newcur >= VW->chunk[VW->curChunk + 1].start) ||
-                          (newref < VW->chunk[VW->curChunk - 1].start) ||
-                          (newref >= VW->chunk[VW->curChunk].start)))) {
+  if (newcur < 0 || newcur >= VW->zsize || newref < 0 || 
+      (VW->xtype != XTYPE_XREF && newref >= VW->zsize) ||
+      (VW->xtype == XTYPE_XREF && newref >= VW->refzsize) ||
+      (VW->numChunks && (newcur < VW->chunk[VW->curChunk].start ||
+                         newcur >= VW->chunk[VW->curChunk + 1].start ||
+                         newref < VW->chunk[VW->curChunk - 1].start ||
+                         newref >= VW->chunk[VW->curChunk].start))) {
     update_sections();
     return;
   }
 
-  VW->cz += ds;
+  if (VW->xtype == XTYPE_XREF && dsref) {
+    VW->xsec = newref;    
+
+    // Try to load; if it fails, reload original
+    if (load_refimage(VW, VW->refname)) {
+      VW->xsec = VW->refz;
+      load_refimage(VW, VW->refname);
+      update_sections();
+      return;
+    }
+
+    // Do not fiddle with sliders if only the reference section changed
+    doBlackWhite = ds;
+  }
+
   VW->refz += dsref;
-  ind = get_bw_index();
+  VW->cz += ds;
   VW->xcenter = 0.5 * VW->xsize;
   VW->ycenter = 0.5 * VW->ysize;
+  updateWarpEdit();
   update_parameters();
-  setbwlevels(VW->tr[ind].black, VW->tr[ind].white, 1);
+  if (doBlackWhite) {
+    ind = get_bw_index();
+    setbwlevels(VW->tr[ind].black, VW->tr[ind].white, 1);
+  } else {
+    VW->midasGL->fill_viewdata(VW);
+    VW->midasGL->draw();
+  }
   update_sections();
   backup_current_mat();
 
@@ -818,36 +923,11 @@ void MidasSlots::slotRefValue(int sec)
 {
   int ds;
   sec--;
-  if (VW->xtype != XTYPE_XREF) {
-    sec -= VW->refz;
-    ds = 0;
-    if (VW->keepsecdiff)
-      ds = sec;
-    try_section_change(ds, sec);
-
-    /* Changing the reference section from other file : check legality */
-  } else if (sec < 0 || sec >= VW->refzsize) {
-    update_sections();
-
-  } else {
-
-    /* Try to load; if it fails, reload original */
-    VW->xsec = sec;
-    if (load_refimage(VW, VW->refname)) {
-      VW->xsec = VW->refz;
-      load_refimage(VW, VW->refname);
-      update_sections();
-    } else {
-
-      /* Finalize display, leave sliders alone */
-      VW->refz = VW->xsec;
-      update_sections();
-      backup_current_mat();
-      update_parameters();
-      VW->midasGL->fill_viewdata(VW);
-      VW->midasGL->draw();
-    }
-  }
+  sec -= VW->refz;
+  ds = 0;
+  if (VW->keepsecdiff)
+    ds = sec;
+  try_section_change(ds, sec);
   VW->midasWindow->setFocus();
 }
 
@@ -1207,31 +1287,6 @@ void MidasSlots::slotZoom(int upDown)
   VW->zoomlabel->setText( str);
 }
 
-void MidasSlots::slotBlock(int upDown)
-{
-  QString str;
-  int ds = upDown;
-
-  VW->boxsize += ds;
-
-  if (VW->boxsize < 1)
-    VW->boxsize = 1;
-  if (VW->boxsize > VW->xsize / 4)
-    VW->boxsize = VW->xsize / 4;
-  if (VW->boxsize > VW->ysize / 4)
-    VW->boxsize = VW->ysize / 4;
-
-  str.sprintf("Block size %2d", VW->boxsize);
-  VW->blocklabel->setText(str);
-
-  /* DNM 1/27/04: flush and retransform just as for interpolation change */
-  if (VW->fastip) {
-    flush_xformed(VW);
-    VW->midasGL->fill_viewdata(VW);
-    VW->midasGL->draw();
-  }
-}
-
 void MidasSlots::slotInterpolate(bool state)
 {
   VW->fastip = state ? 0 : 1;
@@ -1416,6 +1471,39 @@ void MidasSlots::slotKeepdiff(bool state)
 {
     VW->keepsecdiff = state ? 1 : 0;
 }
+
+void MidasSlots::slotEditWarp(bool state)
+{
+  int i;
+  float dx, dy, dz;
+  // Open a new warping file if there is not one yet
+  if (state && VW->curWarpFile < 0) {
+    VW->warpNz = 0;
+    mrc_get_scale(VW->hin, &dx, &dy, &dz);
+    VW->warpScale = VW->binning;
+    VW->curWarpFile = newWarpFile(VW->xsize * VW->binning, VW->ysize * VW->binning, 1,
+                                  dx, WARP_INVERSE | WARP_CONTROL_PTS);
+    if (VW->curWarpFile < 0) {
+      midas_error("Error creating new warping storage", "", 0);
+      diaSetChecked(VW->warpToggle, false);
+      return;
+    }
+  }
+  VW->editWarps = state;
+  for (i = 0; i < 10; i++)
+    VW->arrowsToGray[i]->setEnabled(!state);
+  for (i = 0; i < 7; i++)
+    VW->labelsToGray[i]->setEnabled(!state);
+  for (i = 0; i < 3; i++)
+    VW->wParameter[i]->setEnabled(!state);
+  VW->wIncrement[0]->setEnabled(!state);
+  VW->wIncrement[1]->setEnabled(!state);
+  VW->anglescale->setEnabled(!state);
+  diaShowWidget(VW->wLinearTrans, state);
+  VW->midasGL->manageMouseLabel(" ");
+  VW->midasGL->draw();
+}
+
 
 /* Auto contrast */
 void MidasSlots::slotAutoContrast()
@@ -1639,38 +1727,38 @@ void MidasSlots::midas_keyinput(QKeyEvent *event)
     break;
 
   case Qt::Key_O:
-    if (VW->xtype != XTYPE_MONT)
+    if (VW->xtype != XTYPE_MONT && !VW->editWarps)
       slotParameter(-1);
     break;
 	  
   case Qt::Key_L:
-    if (VW->xtype != XTYPE_MONT)
+    if (VW->xtype != XTYPE_MONT && !VW->editWarps)
       slotParameter(1);
     break;
 	  
   case Qt::Key_P:
-    if (VW->xtype != XTYPE_MONT)
+    if (VW->xtype != XTYPE_MONT && !VW->editWarps)
       slotParameter(2);
     break;
 	  
   case Qt::Key_Semicolon:
-    if (VW->xtype != XTYPE_MONT)
+    if (VW->xtype != XTYPE_MONT && !VW->editWarps)
       slotParameter(-2);
     break;
 	  
   case Qt::Key_BracketLeft:
-    if (VW->xtype != XTYPE_MONT)
+    if (VW->xtype != XTYPE_MONT && !VW->editWarps)
       slotParameter(3);
     break;
 	  
   case Qt::Key_Apostrophe:
-    if (VW->xtype != XTYPE_MONT)
+    if (VW->xtype != XTYPE_MONT && !VW->editWarps)
       slotParameter(-3);
     break;
 	  
   case Qt::Key_BracketRight:
   case Qt::Key_Backslash:
-    if (VW->xtype == XTYPE_MONT)
+    if (VW->xtype == XTYPE_MONT || VW->editWarps)
       break;
     if (keysym ==  Qt::Key_BracketRight)
       VW->sangle += 50;
@@ -1982,6 +2070,7 @@ void MidasSlots::mouse_stretch(unsigned int state)
         tramat_multiply(tr->mat, b, tmat);
         tramat_copy(tmat, tr->mat);
       }
+      adjustControlPoints(VW);
       synchronizeChunk(VW->cz);
       update_parameters();
       retransform_slice();
@@ -2029,13 +2118,39 @@ void MidasSlots::sprintf_decimals(char *string, int decimals, int digits,
 
 void MidasSlots::backup_current_mat()
 {
-  int i;
+  int i, nControl;
   for (i = 0; i < 9; i++)
     VW->backup_mat[i] = VW->tr[VW->cz].mat[i];
-  if (VW->xtype != XTYPE_MONT)
-    return;
-  VW->backup_edgedx = VW->edgedx[VW->edgeind * 2 + VW->xory];
-  VW->backup_edgedy = VW->edgedy[VW->edgeind * 2 + VW->xory];
+  if (VW->xtype == XTYPE_MONT) {
+    VW->backup_edgedx = VW->edgedx[VW->edgeind * 2 + VW->xory];
+    VW->backup_edgedy = VW->edgedy[VW->edgeind * 2 + VW->xory];
+  }
+  if (VW->curWarpFile >= 0) {
+    i = VW->numChunks ? VW->curChunk : VW->cz;
+    getNumWarpPoints(i, &nControl);
+    if (nControl > VW->maxWarpBackup) {
+      B3DFREE(VW->backupXcontrol);
+      B3DFREE(VW->backupYcontrol);
+      B3DFREE(VW->backupXvector);
+      B3DFREE(VW->backupYvector);
+      VW->backupXcontrol = B3DMALLOC(float, nControl);
+      VW->backupYcontrol = B3DMALLOC(float, nControl);
+      VW->backupXvector = B3DMALLOC(float, nControl);
+      VW->backupYvector = B3DMALLOC(float, nControl);
+      if (!VW->backupXcontrol || !VW->backupYcontrol || !VW->backupXvector ||
+          !VW->backupYvector) {
+        VW->maxWarpBackup = 0;
+        VW->numWarpBackup = 0;
+        return;
+      }
+      VW->maxWarpBackup = nControl;
+    }
+    VW->numWarpBackup = nControl;
+    if (!nControl)
+      return;
+    getWarpPoints(i, VW->backupXcontrol, VW->backupYcontrol, VW->backupXvector, 
+                  VW->backupYvector);
+  }
 }
 
 // Copy transform for given section to all the other sections in a chunk
@@ -2092,6 +2207,9 @@ int MidasSlots::showHelpPage(const char *page)
 
 /*
 $Log$
+Revision 3.23  2010/12/28 18:23:10  mast
+Added robust fitting and checkbox to exclude edges
+
 Revision 3.22  2010/06/29 22:36:01  mast
 New slots for various controls such as X and Y frame boxes, functions to
 move between edges in X and/or Y; changes for binning, skipped edges,

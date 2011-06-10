@@ -18,6 +18,7 @@ class MidasWindow;
 class MidasSlots;
 class MidasGL;
 class QDoubleSpinBox;
+class ArrowButton;
 #include <QKeyEvent>
 #include <QCloseEvent>
 #include <qlabel.h>
@@ -37,6 +38,8 @@ class QDoubleSpinBox;
 
 #include "imodconfig.h"
 #include "mrcc.h"
+#include "b3dutil.h"
+#include "warpfiles.h"
 #include <qgl.h>
 #include "slots.h"
 #include "graphics.h"
@@ -66,7 +69,6 @@ class QDoubleSpinBox;
 #define MIDAS_SLICE_OPREVIOUS 12
 #define MIDAS_SLICE_REFERENCE 4
 
-#define INITIAL_BOX_SIZE   -1
 #define MAX_CACHE_MBYTES   128
 #define MAX_ZOOMIND        13
 #define MAX_INCREMENTS      6
@@ -75,22 +77,10 @@ class QDoubleSpinBox;
 #define LATIN1(a) ((const char *)a.toLatin1())
 
 enum MenuIDs {
-  FILE_MENU_LOAD,
-  FILE_MENU_SAVE,
-  FILE_MENU_SAVE_AS,
-  FILE_MENU_SAVE_IMAGE,
-  FILE_MENU_TRANSFORM,
-  FILE_MENU_QUIT,
-  EDIT_MENU_STORE,
-  EDIT_MENU_RESET,
-  EDIT_MENU_REVERT,
-  EDIT_MENU_MIRROR,
-  HELP_MENU_ABOUT,
-  HELP_MENU_CONTROLS,
-  HELP_MENU_HOTKEYS,
-  HELP_MENU_MOUSE,
-  HELP_MENU_MANPAGE,
-  LAST_MENU_ID
+  FILE_MENU_LOAD, FILE_MENU_SAVE, FILE_MENU_SAVE_AS, FILE_MENU_SAVE_IMAGE,
+  FILE_MENU_TRANSFORM, FILE_MENU_QUIT, EDIT_MENU_STORE, EDIT_MENU_RESET,
+  EDIT_MENU_REVERT, EDIT_MENU_MIRROR, EDIT_MENU_DELETEPT, HELP_MENU_ABOUT,
+  HELP_MENU_CONTROLS, HELP_MENU_HOTKEYS, HELP_MENU_MOUSE, HELP_MENU_MANPAGE, LAST_MENU_ID
 };
 
 class MidasWindow : public QMainWindow
@@ -112,16 +102,18 @@ public slots:
  private:
  void makeSeparator(QVBoxLayout *parent, int width);
  void makeTwoArrows(QHBoxLayout *parent, int direction, int signal,
-                    QSignalMapper *mapper, bool repeat, char *tip1 = NULL,
-                    char *tip2 = NULL);
+                    QSignalMapper *mapper, bool repeat, const char *tip1 = NULL,
+                    const char *tip2 = NULL, ArrowButton **arrow1 = NULL, 
+                    ArrowButton **arrow2 = NULL);
  QSignalMapper *makeLabeledArrows(QVBoxLayout *parent, QString textlabel, 
                                   QLabel **outLabel, bool repeat,
-                                  char *tip1 = NULL, char *tip2 = NULL);
+                                  const char *tip1 = NULL, const char *tip2 = NULL);
  QLabel *makeArrowRow(QVBoxLayout *parent, int direction, int signal, 
                       QSignalMapper *mapper, bool repeat, QString textlabel, 
-                      int decimals, int digits, float value, char *tip1 = NULL,
-                      char *tip2 = NULL);
- QSpinBox *makeSpinBoxRow(QHBoxLayout *row, char *labText, int minz, int maxz);
+                      int decimals, int digits, float value, const char *tip1 = NULL,
+                      const char *tip2 = NULL, ArrowButton **arrow1 = NULL, 
+                      ArrowButton **arrow2 = NULL, QLabel **textLabel = NULL);
+ QSpinBox *makeSpinBoxRow(QHBoxLayout *row, const char *labText, int minz, int maxz);
  void createParameterDisplay(QVBoxLayout *parent);
  void createSectionControls(QVBoxLayout *parent);
  void createZoomBlock(QVBoxLayout *parent);
@@ -144,6 +136,11 @@ struct Midas_cache
   int xformed;  /* transformed or not */
   int used;     /* counter when last used */
   float mat[9]; /* Transformation matrix */
+  int nControl;   /* # of warp points if warped */
+  int nxGrid, nyGrid;   /* Warp grid characteristics */
+  float xStart, yStart;
+  float xInterval, yInterval;
+  float meanSDs[8];  /* Mean and Sd of control point arrays */
   Islice *sec;  /* pointer to data */
 };
 
@@ -183,20 +180,20 @@ typedef struct Midas_view
   int numChunks;    /* Number of chunks for chunk mode */
   int quiet;     /* Flag to avoid nag message when fixing edges */
   int imageForChannel[3];  /* Which image to send to each channel */
-  struct Midas_chunk *chunk;
+  Midas_chunk *chunk;
   float *tiltAngles;   /* Array for tilt angles */
 
   struct LoadInfo *li;
-  struct MRCheader *hin;
+  MrcHeader *hin;
 
   /* cache data */
   int usecount;  /* use counter */
   int cachesize; /* size */
-  struct Midas_cache *cache;
+  Midas_cache *cache;
   unsigned char *unbinnedBuf;
 	
   /* transformation data array */
-  struct Midas_transform *tr;
+  Midas_transform *tr;
 
   Islice *ref;  /* reference data */
   int showref;  /* flag to display reference sec */
@@ -227,6 +224,8 @@ typedef struct Midas_view
   /* used for mouse translation */
   int lastmx;
   int lastmy;
+  int firstmx;
+  int firstmy;
   int mx;
   int my;
   int mousemoving;
@@ -304,6 +303,34 @@ typedef struct Midas_view
   QSpinBox *chunkSpin;
   QCheckBox *difftoggle;
   int      keepsecdiff;  /* flag to keep Curr-Ref constant */
+  QCheckBox *warpToggle;
+  bool     editWarps;     /* Flag for editing warp points */
+  bool     warpingOK;     /* Flag that warping is allowed */
+  int      curControl;   /* Current control point */
+  int      curWarpFile;  /* Index of current warping file */
+  int      warpNz;       /* nz of warp file */
+  float    warpScale;    /* Product of pixel size ratio and binning */
+  int      maxWarpBackup;  /* Array size and number of backup elements */
+  int      numWarpBackup;
+  float    *backupXcontrol;  /* Backup values of warping */
+  float    *backupYcontrol;
+  float    *backupXvector;
+  float    *backupYvector;
+  float    *gridDx;          /* Grid for warping */
+  float    *gridDy;
+  int      gridSize;
+  float    oldMat[9];       /* Transform before changing, needed to adjust control pts */
+  float    *lastGridDx;     /* Grid of last transform */
+  float    *lastGridDy;
+  int      lastGridSize;
+  int      lastWarpedZ;     /* Z at which grid was used */
+  int      lastNxGrid;      /* All characteristics of grid to make sure they match */
+  int      lastNyGrid;
+  float    lastXstart;
+  float    lastYstart;
+  float    lastXinterv;
+  float    lastYinterv;
+  float    lastMat[9];       /* And last transformation for good measure */
   QButtonGroup *edgeGroup;
   QRadioButton *wXedge;
   QRadioButton *wYedge;
@@ -314,13 +341,15 @@ typedef struct Midas_view
   QCheckBox *wSkipExcluded;
   QCheckBox *wExcludeEdge;
   QLabel   *zoomlabel;
-  QLabel   *blocklabel;
   int      boxsize;      /* block size for transforms */
   QCheckBox *overlaytoggle;
   QLabel   *wIncrement[3];
   int      incindex[3];    /* index from parameters to increments */
   float    increment[3];   /* Current increments */
   QLabel   *wParameter[5];
+  QLabel   *wLinearTrans;
+  ArrowButton *arrowsToGray[10];
+  QLabel   *labelsToGray[7];
   QPushButton *wToperr[MAX_TOP_ERR];
   QLabel   *wMeanerr;
   QLabel   *wCurerr;
@@ -377,13 +406,15 @@ Islice *midasGetSlice(MidasView *vw, int sliceType);
 unsigned char *midasGetPrevImage(MidasView *vw);
 void flush_xformed(MidasView *vw);
 void midasGetSize(MidasView *vw, int *xs, int *ys);
+int fillWarpingGrid(int iz, int *nxGrid, int *nyGrid, float *xStart, float *yStart,
+                   float *xInterval, float *yInterval);
      
 int new_view(MidasView *vw);
 int load_view(MidasView *vw, char *fname);
 int translate_slice(MidasView *vw, int xt, int yt);
 int global_rot_transform(MidasView *vw, Islice *slin, Islice *slout, 
                           int zval);
-int midas_transform(Islice *slin, Islice *sout, float *trmat);
+int midas_transform(int zval, Islice *slin, Islice *sout, float *trmat, int izwarp);
 float *tramat_create(void);
 void tramat_free(float *mat);
 int tramat_idmat(float *mat);
@@ -399,6 +430,8 @@ void stretch_transform(MidasView *vw, float *mat, int index,
                        int destretch);
 void stretch_all_transforms(MidasView *vw, int destretch);
 void transform_model(const char *infname, const char *outfname, MidasView *vw);
+void reduceControlPoints(MidasView *vw);
+void adjustControlPoints(MidasView *vw);
 int includedEdge(int mapind, int xory);
 int nearest_edge(MidasView *vw, int z, int xory, int edgeno, 
 		 int direction, int *edgeind);
@@ -417,6 +450,9 @@ void crossCorrelate(MidasView *vw);
 /*
 
 $Log$
+Revision 3.19  2010/12/28 18:23:10  mast
+Added robust fitting and checkbox to exclude edges
+
 Revision 3.18  2010/06/29 22:29:26  mast
 changes for numerous improvements
 
