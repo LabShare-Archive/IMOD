@@ -303,9 +303,14 @@ if ($compiler == intel) then
         @ dllnum = 3
         set ccdir = `which icc`
         set cclibdir = $ccdir:h:h/lib
-        echo "DLLSOURCEDIR1 = $cclibdir" >> $configure
         set fortdir = `which ifort`
         set fortlibdir = $fortdir:h:h/lib
+        if ($iccversion > 10) then
+            set cclibdir = $ccdir:h:h:h/lib/ia32
+            if ($m64bit == true) set cclibdir = $ccdir:h:h:h/lib/intel64
+            set fortlibdir = $cclibdir
+        endif
+        echo "DLLSOURCEDIR1 = $cclibdir" >> $configure
         echo "DLLSOURCEDIR2 = $fortlibdir" >> $configure
         if ($iccversion > 9) then
             echo "DLLSTOCOPY2 = libifcore libifport libifcoremt" >> $configure
@@ -320,7 +325,11 @@ if ($compiler == intel) then
             echo "DLLDESTDIR = lib" >> $configure
         endif
         if ($openmp == true) then
-            set dllstocopy1 = "$dllstocopy1 libguide"
+            if ($iccversion > 10) then
+                set dllstocopy1 = "$dllstocopy1 libiomp5"
+            else
+                set dllstocopy1 = "$dllstocopy1 libguide"
+            endif
             if ($iccversion <= 9) set dllstocopy1 = "$dllstocopy1 libifcoremt"
         endif
     endif
