@@ -63,7 +63,9 @@ true, ON, or on.
 Options can be entered more than once.  In most cases a later value will
 supercede a previous entry, but in some cases the multiple entries will
 accumulate.  This is useful if multiple input file names are needed, or if
-more numbers need to be entered than will fit on a line.
+more numbers need to be entered than will fit on a line.  In rare cases, each
+entry of an option is associated with (linked to) the next entry of another
+option; this is the only situation where the order of entry matters.
 
 PIP provides a standard help output which the program should make available
 with an option such as \fB-help\fR or \fB-usage\fR.  Invoking a program with
@@ -136,10 +138,12 @@ must have 3 colons.
 \fBPF\fR   Parameter file
 .fi
 
-If an option specification ends in \fBM\fR, this indicates that multiple
-entries of the option will accumulate rather than supercede each other.  This
-allows multiple filenames of a particular type to be entered, or multiple
-lines of input for long lists of numbers.
+If an option specification ends in \fBM\fR or \fBL\fR, this indicates that
+multiple entries of the option will accumulate rather than supercede each
+other.  This allows multiple filenames of a particular type to be entered, or
+multiple lines of input for long lists of numbers.  The \fBL\fR designation
+indicates that the help output should indicate that the multiple entries are
+each associated with, or linked to, the next occurrence of some other option.
 
 PIP uses these types primarily to provide information in the help output and
 does not enforce the implications of these types, except as follows: 
@@ -287,6 +291,18 @@ taken as non-option arguments, up to a number of lines given by the value.
 .br
 The first four behaviors were required to convert Tilt(1) to PIP input without
 retaining the old input code, but none of this should be needed elsewhere.
+
+.ft B
+.nf
+int PipSetLinkedOption(char * \fIoption\fB);
+
+integer*4 function PipSetLinkedOption(\fIoption\fB)
+character*N \fIoption\fB
+.ft R
+.fi
+This function will set a specific option as the linked option, so that the
+current count (index of next occurrence) of that option will be recorded for
+each entry of other options.
 
 .ft B
 .nf
@@ -510,6 +526,22 @@ in the argument \fInumEntries\fR.  After calling this function, simply call
 a function to get the value of the option that number of times to
 retrieve all of the entered values.
 
+.nh
+.ft B
+.nf
+int PipLinkedIndex(char *\fIoption\fB, int *\Iindex\fB);
+
+integer*4 function PipLinkedIndex(\fIoption\fB, \fIindex\fB);
+character*N \fIoption\fB
+integer*4 \fIindex\fB     [Returned argument]
+.ft R
+.fi
+
+This function returns into the argument \fIindex\fR the index of the next
+entry of a linked option, for the next entry of the given option to be
+retrieved.  It returns the index of a specific linked option if one was
+identified with \fBPipSetLinkedOption\fR and if entries were made with that
+option; otherwise it returns the index of the next nonoption argument.
 
 .ft B
 .nf
@@ -880,6 +912,8 @@ Functions for Initialization:
 
 \fIstatus\fB = PipExitOnError(\fIuseStdErr\fB, \fIprefix\fB)
 
+PipSetLinkedOption(\fIoption\fB)
+
 (\fInumOptArgs\fB, \fInumNonOptArgs\fB) = PipParseInput(\fIsys.argv\fB, \fIoptions\fB)
 
 PipReadOptionFile(\fIprogName\fB)
@@ -917,6 +951,8 @@ argument value(s).
 .ft B
 
 \fInumEntries\fB = PipNumberOfEntries(\fIoption\fB)
+
+\fIindex\fB = PipLinkedIndex(\fIoption\fB)
 
 \fIstring\fB = PipGetNonOptionArg(\fInonOptArgNo\fB)
 
