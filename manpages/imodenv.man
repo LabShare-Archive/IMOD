@@ -131,7 +131,11 @@ at the beginning of the file.
 .B RAPTOR_BIN
 Directory where RAPTOR executables are located, if they are not in 
 /usr/local/RAPTOR/bin.
-
+.TP
+.B RUNCMD_VERBOSE
+Set this variable to 1 to have the runcmd function called by Python programs
+print each command, input to the command, and the output of the command unless
+the output was already printed on standard out.
 
 .SS Build and Test Variables
 
