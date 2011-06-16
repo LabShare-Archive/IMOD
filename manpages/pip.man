@@ -65,7 +65,8 @@ supercede a previous entry, but in some cases the multiple entries will
 accumulate.  This is useful if multiple input file names are needed, or if
 more numbers need to be entered than will fit on a line.  In rare cases, each
 entry of an option is associated with (linked to) the next entry of another
-option; this is the only situation where the order of entry matters.
+option; this is the only situation where the order of entering different 
+options matters.
 
 PIP provides a standard help output which the program should make available
 with an option such as \fB-help\fR or \fB-usage\fR.  Invoking a program with
@@ -141,9 +142,10 @@ must have 3 colons.
 If an option specification ends in \fBM\fR or \fBL\fR, this indicates that
 multiple entries of the option will accumulate rather than supercede each
 other.  This allows multiple filenames of a particular type to be entered, or
-multiple lines of input for long lists of numbers.  The \fBL\fR designation
-indicates that the help output should indicate that the multiple entries are
-each associated with, or linked to, the next occurrence of some other option.
+multiple lines of input for long lists of numbers.  The \fBL\fR ending
+indicates that each entry of the option is associated with, or linked to, the
+next occurrence of some other option.  It must be specified in order to use
+the \fBPipLinkedIndex\fR function.
 
 PIP uses these types primarily to provide information in the help output and
 does not enforce the implications of these types, except as follows: 
