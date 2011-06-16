@@ -1,0 +1,161 @@
+Version = 1.0
+Pip = 1
+
+[Field = RootName]
+short = root
+type = CH
+usage = Rootname for info file, joined tomogram, and other files
+tooltip =
+manpage = Rootname for info file, joined tomogram, and other intermediate files.
+If this option is not entered, the last non-option argument will be
+taken as the root name.
+
+[Field = InputTomogram]
+short = input
+type = FNM
+usage = Input tomogram from one section
+tooltip =
+manpage = Input tomogram from one section.  If this option is used to enter any
+tomogram name, it must be used for all of them.  If the option is not entered, the
+first and following non-option arguments will be used for the entries.  
+
+[SectionHeader = LinkedOptions]
+usage = OPTIONS THAT APPLY TO INDIVIDUAL TOMOGRAMS
+manpage = OPTIONS THAT APPLY TO INDIVIDUAL TOMOGRAMS
+^  These options apply only to a single tomogram.  All such options should be
+entered before the tomogram name is entered.  The name can be entered either
+with the -input option or as a non-option argument at the command line, but in
+either case it must be entered after all of the options that apply to it, and
+before the options that apply to the next tomogram.
+
+[Field = TopSlices]
+short = top
+type = IPL
+usage = Starting and ending slices of sample from top of section
+tooltip = 
+manpage = Starting and ending slices of sample from top of section.  "Top"
+does not necessarily mean high Z; it is the end of the Z range that is
+contiguous to the next section.  This option must be entered for all but the
+last section.
+
+[Field = BottomSlices]
+short = bottom
+type = IPL
+usage = Starting and ending slices of sample from bottom of section
+tooltip =
+manpage = Starting and ending slices of sample from bottom of section.
+"Bottom" means the end of the Z range that is contiguous to the previous
+section.  This option must be entered for all but the first section.
+
+[Field = FlipYandZ]
+short = flip
+type = BL
+usage = Flip Y and Z of tomogram to make X/Y be in plane of section
+tooltip =
+manpage = Flip Y and Z of tomogram to make X/Y be in plane of section.  This
+option will invert handedness. 
+
+[Field = RotateByAngles]
+short = rotate
+type = FTL
+usage = Run Rotatevol on tomogram with given rotation around X, Y, and Z axes
+tooltip =
+manpage = Run Rotatevol on tomogram with given rotation around X, Y, and Z
+axes, or just take account of this rotation if the -already option is entered. 
+
+[Field = AlreadyRotated]
+short = already
+type = BL
+usage = Rotatevol was already run with the rotations entered with -rotate
+tooltip =
+manpage = 
+
+[Field = XYZsizeForRotation]
+short = xyzsize
+type = ITL
+usage = Set output size from Rotatevol to given values in X, Y, Z
+tooltip =
+manpage = Set output size from Rotatevol to given values in X, Y, Z for this
+section.
+
+[Field = FullSizeRotation]
+short = fullsize
+type = BL
+usage = Set Rotatevol output size to maximum needed to hold whole volume
+tooltip =
+manpage = Set Rotatevol output size to the maximum needed to hold the whole
+rotated section in X, Y, and Z
+
+[Field = MaxXYsizeForRotation]
+short = maxxysize
+type = BL
+usage = Set Rotatevol output size in X and Y only to maximum needed to hold volume
+tooltip =
+manpage = Set Rotatevol output size in X and Y only to the maximum needed to
+hold this rotated section; some portions of the original tomogram will be out
+of range in Z, but those are probably portions that have no sectioned material
+in them.
+
+[SectionHeader = GeneralOptions]
+usage = GENERAL OPTIONS
+manpage = GENERAL OPTIONS
+^  These options are entered only once and can appear anywhere among the other
+entries.
+
+[Field = DirectoryOfSource]
+short = dir
+type = FN
+usage = Default directory for source tomograms
+tooltip =
+manpage = Default directory for source tomograms.  If this option is entered,
+tomograms that do not include a directory in their path will be sought in the
+given directory instead of the current directory.
+
+[Field = SourceExtension]
+short = srcext
+type = CH
+usage = Default extension for original tomograms (default is "rec")
+tooltip =
+manpage = It is possible to enter filenames without extensions, in which case
+a default extension will be attached.  This option sets the default, which is
+otherwise "rec".  This is an unsafe option to use because no extension will be
+attached to a filename that has a dot in it before the extension.
+
+[Field = TemporaryExtension]
+short = tmpext
+type = CH
+usage = Default extension for temporary tomograms (flipped or rotated, default
+tmp)
+tooltip =
+manpage = When a flipped or rotated file is created, a different extension is
+attached to it, which is "tmp" by default.  Use this option to change the
+extension.
+
+[Field = ReferenceForDensity]
+short = reference 
+type = I
+usage = Tomogram to use as reference for density scaling (numbered from 1)
+tooltip =
+manpage = Tomogram to use as the reference for density scaling (numbered from
+1).  This tomogram will be unscaled in the joined file and others will be
+scaled to match.  In addition, the mode of this tomogram will be used for the
+mode of the joined file.  The default is 1.
+
+[Field = MidasSizeLimit]
+short = midaslim
+type = I
+usage = Size to which samples will be squeezed for Midas if bigger than this.
+tooltip =
+manpage = Size to which sample slices will be squeezed for aligning in
+Midas(1), if they are larger than the given sizein X or Y.  The default is
+1024.  Sampled slices will be scaled down with antialiasing using the -shrink
+option in Newstack(1).
+
+[Field = TestMode]
+short = test
+type = B
+usage = Do not run anything that requires complete image files
+tooltip =
+manpage = Do not run anything that requires complete image files,
+specifically, Densmatch(1). 
+

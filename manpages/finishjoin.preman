@@ -1,0 +1,32 @@
+.na
+.nh
+.TH finishjoin 1 3.4.12 BL3DEMC
+.SH NAME
+finishjoin \- Join serial section tomograms after finding alignments
+.SH SYNOPSIS
+finishjoin [options] rootname
+.SH DESCRIPTION
+finishjoin will complete the operations required to join serial section
+tomograms together, after one has made a command file with "makejoincom", run
+the command file, and found alignments between the tomograms.  "rootname"
+is the root name for various intermediate files and the joined tomogram, as
+already specified to "makejoincom".  
+.SS Options
+Finishjoin uses the PIP package for input (see the manual page for pip(1)).
+Options can be specified either as command line arguments (with the -)
+or one per line in a command file (without the -):
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input
+
+.SH FILES
+The program assumes the existence of several files with the given root name,
+especially "rootname".info and "rootname".xf.
+.SH AUTHOR
+David Mastronarde  <mast@colorado.edu>
+.SH SEE ALSO
+newstack(1), xftoxg(1), xfjointomo(1)
+.SH HISTORY
+Makejoincom was a originally a C-shell script.  In June 2011 it was
+converted to Python.

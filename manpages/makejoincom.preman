@@ -1,0 +1,37 @@
+.na
+.nh
+.TH makejoincom 1 4.2.18 BL3DEMC
+.SH NAME
+makejoincom \- Create files for joining tomograms
+.SH SYNOPSIS
+makejoincom [options] rootname
+
+.SH DESCRIPTION
+Makejoincom generates a command file and an information file to start the
+process of joining (stacking) a set of serial tomograms into one volume.
+
+.SS Options
+Makejoincom uses the PIP package for input (see the manual page for pip(1)).
+Options can be specified either as command line arguments (with the -)
+or one per line in a command file (without the -):
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input
+
+.SH FILES
+The command file is always named "startjoin.com", the information file is
+"rootname".info, and transform files if sample images are shrunk are
+"rootname".sqzxf and "rootname".xpndxf.
+Existing copies of files will be made into backup files by adding
+the extension ~.
+
+.SH AUTHOR
+David Mastronarde
+.SH BUGS
+Email bug reports to mast@colorado.edu
+.SH SEE ALSO
+newstack(1), densmatch(1), midas(1)
+.SH HISTORY
+Makejoincom was a originally a C-shell script.  In June 2011 it was
+converted to Python.

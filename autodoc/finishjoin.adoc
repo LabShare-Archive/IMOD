@@ -1,0 +1,132 @@
+Version = 1.0
+Pip = 1
+
+[Field = RootName]
+short = root
+type = CH
+usage = Rootname for info file, joined tomogram, and other files
+tooltip =
+manpage = Rootname for info file, joined tomogram, and other intermediate files.
+If this option is not entered, the first non-option argument will be
+taken as the root name.
+
+[Field = UseSliceRange]
+short = use
+type = IPM
+usage = Starting and ending slices to include from one tomogram (required for each)
+tooltip =
+manpage = Starting and ending slices to include from one tomogram.
+This option must be entered for
+each tomogram if it is entered at all.  If the option is not entered, the
+second and following non-option arguments will be used for the entries.  Thus,
+the program may be run as
+^   finishjoin [options]  root_name  slice_range1  slice_range2
+
+[Field = ReferenceTomogram]
+short = ref
+type = I
+usage = Tomogram number to use as reference for alignment (numbered from 1)
+tooltip =
+manpage = Make the given tomogram be the reference for alignment, in which
+case slices from it will not be transformed, and other tomograms will be
+transformed into alignment with it.  By default, all tomograms will be
+transformed into alignment to a position averaged over all tomograms with
+similar orientations.
+
+[Field = AngleRange]
+short = angle
+type = F
+usage = Range of angles for tomograms used to compute the average rotation angle
+tooltip =
+manpage = Base the average alignment on tomograms whose rotation angles fall
+within the given range of each other (default 50 degrees).  If a minority of
+the tomograms are rotated by large angles like 90 or 180 degrees relative to
+the rest, then they will be excluded when determining the average alignment.
+This prevents all of the sections from being rotated to an intermediate
+orientation.
+
+[Field = SizeInXandY]
+short = size
+type = IP
+usage = The dimensions of the joined tomogram in X and Y in unbinned pixels
+tooltip =
+manpage = Set the size of the output slices to X by Y pixels.  The default size will
+be the maximum X size by the maximum Y size of the input tomograms.  Enter a
+size in unbinned pixels if binning is being used.
+
+[Field = OffsetInXandY]
+short = offset
+type = IP
+usage = Offsets in X and Y from center of image to point that will be new center
+tooltip =
+manpage = Set the X and Y offsets for the output slices, in unbinned pixels if
+binning is being used.  These follow the same sign convention as in
+Newstack(1); namely, the numbers entered should be the offsets from the center
+of the current image to the image point which is intended to end up in the
+center of the output image.  A positive offset in X will thus shift the image
+to the left.
+
+[Field = TrialInterval]
+short = trial
+type = I
+usage = Build trial joined file using slices at the given interval
+tooltip =
+manpage = Build a trial joined tomogram using only slices at the given interval.  The
+first and last slice of each slice range will always be included.  The output
+file will be named "rootname"_trial.join.
+
+[Field = BinningForTrial]
+short = binning
+type = I
+usage = Binning to apply to images in trial joined file
+tooltip =
+manpage = Bin images by the given value when building a trial joined tomogram.
+
+[Field = LocalFits]
+short = local
+type = B
+usage = Use local fits to 7 sections when running xftoxg
+tooltip =
+manpage = When running Xftoxg(1) on the primary alignment transforms, run the
+program in its default mode, which does local fits to 7 adjacent sections.
+This option may eliminate unwanted trends in data sets with many sections.
+When it is not entered, Xftoxg(1) is run with "-nfit 0", which computes a
+global alignment.  
+
+[Field = TransformFile]
+short = xform
+type = FN
+usage = Refine alignment with g transforms in the given file
+tooltip =
+manpage = Use the refinement transforms contained in the given file to compute
+the transforms to apply to the tomograms.  The file should contain global
+transforms as computed by Xfjointomo(1).
+
+[Field = MaximumSizeOnly]
+short = maxsize
+type = B
+usage = Just compute maximum size and offsets needed to contain transformed data
+tooltip =
+manpage = Just compute the maximum size and offsets needed to contain the transformed
+images from all of the sections, given the current transformations.  No
+image file will be created.
+
+[Field = FillGaps]
+short = gaps
+type = B
+usage = Fill gaps with blank slices for slice ranges out of bounds
+tooltip =
+manpage = Create blank slices when the slice ranges include values out of
+bounds (below 1 or above the number of slices in the file).  This option can
+be used to make the gap between two sections bigger than what would be
+provided by simply stacking all the slices from each file.  Without this
+option, values out of bounds are not allowed.
+
+[Field = TestMode]
+short = test
+type = B
+usage = Do not run anything that requires complete image files
+tooltip =
+manpage = Do not run anything that requires complete image files,
+specifically, Newstack(1), and output a file with the Newstack input.
+
