@@ -50,6 +50,9 @@ typedef struct pipOptions {
                            being returned (numbered from 1) */
   int count;            /* Number of values accumulated */
   int lenShort;         /* Length of short name */
+  int *nextLinked;      /* Array of indexes of next non-option argument or linked option,
+                           for associating an entry with another one */
+  int linked;           /* Flag that it is a linked option (needed for usage/manpage) */
 } PipOptions;
 
 static char *types[] = {BOOLEAN_STRING, PARAM_FILE_STRING,
@@ -135,6 +138,7 @@ static int takeStdIn = 0;
 static int nonOptLines = 0;
 static int noAbbrevs = 0;
 static int notFoundOK = 0;
+static char *linkedOption = NULL;
 
 /*
  * Initialize option tables for given number of options
@@ -166,6 +170,8 @@ int PipInitialize(int numOpts)
     optTable[i].valuePtr = NULL;
     optTable[i].multiple = 0;
     optTable[i].count = 0;
+    optTable[i].nextLinked = NULL;
+    optTable[i].linked = 0;
   }
 
   /* In the last slots, put non-option arguments, and also put the
@@ -206,6 +212,8 @@ void PipDone(void)
           free(optp->valuePtr[j]);
       free(optp->valuePtr);
     }
+    if (optp->nextLinked)
+      free(optp->nextLinked);
   }
   if (optTable)
     free(optTable);
@@ -215,6 +223,9 @@ void PipDone(void)
   if (errorString)
     free(errorString);
   errorString = NULL;
+  if (linkedOption)
+    free (linkedOption);
+  linkedOption = NULL;
   nextOption = 0;
   nextArgBelongsTo = -1;
   numOptionArguments = 0;
@@ -270,6 +281,16 @@ void PipSetManpageOutput(int val)
 void PipEnableEntryOutput(int val)
 {
   printEntries = val;
+}
+
+int PipSetLinkedOption(char *option)
+{
+  if (linkedOption)
+    free(linkedOption);
+  linkedOption = strdup(option);
+  if (PipMemoryError(linkedOption, "PipSetLinkedOption"))
+    return -1;
+  return 0;
 }
 
 /*
@@ -346,8 +367,10 @@ int PipAddOption(char *optionString)
         indEnd = colonPtr - subStr;
         if (indEnd > 0) {
           ind = indEnd - 1;
-          if (subStr[ind] == 'M') {
+          if (subStr[ind] == 'M' || subStr[ind] == 'L') {
             optp->multiple = 1;
+            if (subStr[ind] == 'L')
+              optp->linked = 1;
             ind--;
           }
           optp->type = PipSubStrDup(subStr, 0, ind);
@@ -708,7 +731,8 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
           linePos = 11;
         }
         fprintf(out, "%s:%s:%s%s%s", sname, lname, optTable[i].type, 
-                optTable[i].multiple ? "M:" : ":", lastOpt ? "'\n" : "@");
+                optTable[i].multiple ? (optTable[i].linked ? "L:" : "M:") : ":", 
+                lastOpt ? "'\n" : "@");
         linePos += optLen;
         numOut++;
         continue;
@@ -739,7 +763,7 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
           }
         }
         fprintf(out, "\"%s:%s:%s%s\"%s", sname, lname, optTable[i].type, 
-                optTable[i].multiple ? "M:" : ":", 
+                optTable[i].multiple ? (optTable[i].linked ? "L:" : "M:") : ":", 
                 lastOpt ? (outputManpage == 2 ? "};\n" : "]\n"): ", ");
         linePos += optLen;
         numOut++;
@@ -803,7 +827,10 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
       free(lname);
     }
 
-    if (optTable[i].multiple)
+    if (optTable[i].linked)
+      fprintf(out, "%s(Multiple entries linked to a different option)\n",
+              indentStr);
+    else if (optTable[i].multiple)
       fprintf(out, "%s(Successive entries accumulate)\n", indentStr);
   }
   return 0;
@@ -912,6 +939,37 @@ int PipNumberOfEntries(char *option, int *numEntries)
   if ((err = LookupOption(option, nonOptInd + 1)) < 0)
     return err;
   *numEntries = optTable[err].count;
+  return 0;
+}
+
+/*
+ * Return the index of the next non-option arg or linked option that was entered after 
+ * this option
+ */
+int PipLinkedIndex(char *option, int *index)
+{
+  int err, ind, ilink, which = 0;
+  if ((err = LookupOption(option, nonOptInd + 1)) < 0)
+    return err;
+  if (!optTable[err].linked) {
+    sprintf(tempStr, "Trying to get a linked index for option %s, which is not "
+            "identified as linked", option);
+    PipSetError(tempStr);
+    return -1;
+  }
+  ind = 0;
+  if (optTable[err].multiple)
+    ind = optTable[err].multiple - 1;
+
+  /* Use count from non-option args, but use the count from the linked option
+     instead if it was entered at all.  This allows other non-option args to be used */
+  if (linkedOption) {
+    if ((ilink = LookupOption(option, numOptions)) < 0)
+      return ilink;
+    if (optTable[ilink].count)
+      which = 1;
+  }
+  *index = optTable[err].nextLinked[2 * ind + which];
   return 0;
 }
 
@@ -1691,17 +1749,25 @@ static int GetNextValueString(char *option, char **strPtr)
  */
 static int AddValueString(int option, char *strPtr)
 {
+  int err;
   PipOptions *optp = &optTable[option];
 
   /* If the count is zero or we accept multiple values, need to allocate
-     array for address of string */
+     array for address of string, and array for next non option index */
   if (!optp->count || optp->multiple) {
-    if (optp->count)
+    if (optp->count) {
       optp->valuePtr = (char **)realloc(optp->valuePtr, (optp->count + 1) *
                                         sizeof(char *));
-    else
+      if (optp->linked)
+        optp->nextLinked = (int *)realloc(optp->nextLinked, (optp->count + 1) * 2 *
+                                          sizeof(int));
+    } else {
       optp->valuePtr = (char **)malloc(sizeof(char *));
-    if (PipMemoryError(optp->valuePtr, "AddValueString"))
+      if (optp->linked)
+        optp->nextLinked = (int *)malloc(2 * sizeof(int));
+    }
+    if (PipMemoryError(optp->valuePtr, "AddValueString") || 
+        (optp->linked && PipMemoryError(optp->nextLinked, "AddValueString")))
       return -1;
   } else {
 
@@ -1712,6 +1778,16 @@ static int AddValueString(int option, char *strPtr)
   }
   /* save address that was passed in.  The caller had to make a duplicate */
 
+  if (optp->linked) {
+    optp->nextLinked[2 * optp->count] = optTable[nonOptInd].count;
+    optp->nextLinked[2 * optp->count + 1] = 0;
+    if (linkedOption) {
+      err = LookupOption(linkedOption, numOptions);
+      if (err < 0)
+        return err;
+      optp->nextLinked[2 * optp->count + 1] = optTable[err].count;
+    }
+  }
   optp->valuePtr[optp->count++] = strPtr;
   return 0;
 }
@@ -1907,6 +1983,9 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
 
 /*
 $Log$
+Revision 1.11  2011/05/29 22:39:48  mast
+Allowed single-letter short name to be ambiguous to longer short names
+
 Revision 1.10  2011/02/28 05:57:13  mast
 Oops, trying to take length of NULL string
 
