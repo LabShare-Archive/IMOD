@@ -220,7 +220,7 @@ def PipAddOption(optionString):
 # Call this to process the next argument
 def PipNextArg(argString):
    global nextArgBelongsTo, optTable, STANDARD_INPUT_STRING
-   global numOptionArguments, nonOptInd, nextOption
+   global numOptionArguments, nonOptInd, nextOption, notFoundOK
 
    # If we are expecting a value for an option, add string to the option 
    if (nextArgBelongsTo >= 0):
@@ -257,24 +257,36 @@ def PipNextArg(argString):
          err = ReadParamFile(sys.stdin)
          return err
 
-      numOptionArguments += 1
+      # Next check if it is a potential numeric non-option arg
+      notFoundOK = 1
+      for ch in argString[indStart:]:
+         if ch != '-' and ch != ','  and ch != '.' and ch != ' ' and not ch.isdigit():
+           notFoundOK = 0
+           break
 
       # Lookup the option among true defined options 
       err = LookupOption(argString[indStart:], nextOption)
-      if (err < 0):
-         return err
 
-      # For an option with value, setup to get argument next time and
-      # return an indicator that there had better be another
-      if (optTable[err].type != 'B'):
-         nextArgBelongsTo = err
-         return 1
-      else:
-        
-         # for a boolean option, set the argument with a 1
-         return AddValueString(err, '1')
+      # Process as an option unless it could be numeric and was not found
+      if  not (notFoundOK and err == LOOKUP_NOT_FOUND):
+         notFoundOK = 0
+         if err < 0:
+            return err
+
+         numOptionArguments += 1
+
+         # For an option with value, setup to get argument next time and
+         # return an indicator that there had better be another
+         if (optTable[err].type != 'B'):
+            nextArgBelongsTo = err
+            return 1
+         else:
+           
+            # for a boolean option, set the argument with a 1
+            return AddValueString(err, '1')
 
    # A non-option argument
+   notFoundOK = 0
    return AddValueString(nonOptInd, argString)
 
 
@@ -1341,6 +1353,9 @@ def CheckKeyword(line, keyword, index):
    return (line[valStart:], index)
 
 # $Log$
+# Revision 1.9  2011/06/16 15:10:17  mast
+# Added ability to handle linked options
+#
 # Revision 1.8  2011/05/29 22:41:00  mast
 # Allowed single-letter short name to be ambiguous to longer short names
 #
