@@ -36,5 +36,5 @@ Email bug reports to mast@colorado.edu
 solvematch(1), corrsearch3d(1), matchorwarp(1), combinefft(1), densmatch(1), 
 filltomo(1)
 .SH HISTORY
-Setupcombine was a original a C-shell script.  In December 2010 it was
+Setupcombine was a originally a C-shell script.  In December 2010 it was
 converted to Python.
