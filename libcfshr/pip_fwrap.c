@@ -45,6 +45,8 @@
 #define pipenableentryoutput PIPENABLEENTRYOUTPUT 
 #define pipsetspecialflags PIPSETSPECIALFLAGS
 #define	pipreadstdinifset PIPREADSTDINIFSET
+#define pipsetlinkedoption PIPSETLINKEDOPTION
+#define piplinkedindex PIPLINKEDINDEX
 #else
 #define pipinitialize pipinitialize_
 #define pipexitonerrorfw pipexitonerrorfw_
@@ -75,6 +77,8 @@
 #define pipenableentryoutput pipenableentryoutput_
 #define pipsetspecialflags pipsetspecialflags_
 #define	pipreadstdinifset pipreadstdinifset_
+#define pipsetlinkedoption pipsetlinkedoption_
+#define piplinkedindex piplinkedindex_
 #endif
 
 static char *pipf2cstr(char *str, int strSize);
@@ -351,6 +355,32 @@ int pipseterror(char *errString, int stringSize)
   return err;
 }
 
+int pipsetlinkedoption(char *option, int optionSize)
+{
+  char *cStr;
+  int err;
+  if (!(cStr = pipf2cstr(option, optionSize))) {
+    PipSetError("Memory error in pipsetlinkedoption_");
+    return -1;
+  }
+  err = PipSetLinkedOption(cStr);
+  free(cStr);
+  return err;
+}
+
+int piplinkedindex(char *option, int *index, int optionSize)
+{
+  char *cStr;
+  int err;
+  if (!(cStr = pipf2cstr(option, optionSize)))
+    return -1;
+  err = PipLinkedIndex(cStr, index);
+  (*index)++;
+  free(cStr);
+  return err;
+}
+
+
 int pipnumberofentries(char *option, int *numEntries, int optionSize)
 {
   char *cStr;
@@ -379,6 +409,9 @@ static char *pipf2cstr(char *str, int strSize)
 /*
 
 $Log$
+Revision 1.5  2011/05/27 04:31:24  mast
+renamed pipexitonerror since there is now a higher level wrapper
+
 Revision 1.4  2011/02/10 04:38:14  mast
 Unused variable cleanup
 
