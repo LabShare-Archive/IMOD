@@ -429,7 +429,8 @@ int PipAddOption(char *optionString)
 int PipNextArg(char *argString)
 {
   char *argCopy;
-  int err;
+  int err, i, lenarg;
+  char ch;
   FILE *paramFile;
   int indStart;
 
@@ -461,9 +462,10 @@ int PipNextArg(char *argString)
   /* Is it a legal option starting with - or -- ? */
   if (argString[0] == '-') {
     indStart = 1;
-    if (strlen(argString) > 1 && argString[1] == '-')
+    lenarg = strlen(argString);
+    if (lenarg > 1 && argString[1] == '-')
       indStart = 2;
-    if (strlen(argString) == indStart) {
+    if (lenarg == indStart) {
       PipSetError("Illegal argument: - or --");
       return -1;
     }
@@ -473,26 +475,43 @@ int PipNextArg(char *argString)
       err = ReadParamFile(stdin);
       return err;
     }
-    numOptionArguments++;
+
+    /* Next check if it is a potential numeric non-option arg */
+    notFoundOK = 1;
+    for (i = indStart; i < lenarg; i++) {
+      ch = argString[i];
+      if (ch != '-' && ch != ','  && ch != '.' && ch != ' ' && (ch < '0' || ch > '9')) {
+        notFoundOK = 0;
+        break;
+      }
+    }
 
     /* Lookup the option among true defined options */
     err = LookupOption(argString + indStart, nextOption);
-    if (err < 0)
-      return err;
 
-    /* For an option with value, setup to get argument next time and
-       return an indicator that there had better be another */
-    if (strcmp(BOOLEAN_STRING, optTable[err].type)) {
-      nextArgBelongsTo = err;
-      return 1;
-    } else {
+    /* Process as an option unless it could be numeric and was not found */
+    if (!(notFoundOK && err == LOOKUP_NOT_FOUND)) {
+      notFoundOK = 0;
+      if (err < 0)
+        return err;
       
-      /* for a boolean option, set the argument with a 1 */
-      argCopy = strdup("1");
-      if (PipMemoryError(argCopy, "PipNextArg"))
-        return -1;
-      return AddValueString(err, argCopy);
+      numOptionArguments++;
+      
+      /* For an option with value, setup to get argument next time and
+         return an indicator that there had better be another */
+      if (strcmp(BOOLEAN_STRING, optTable[err].type)) {
+        nextArgBelongsTo = err;
+        return 1;
+      } else {
+        
+        /* for a boolean option, set the argument with a 1 */
+        argCopy = strdup("1");
+        if (PipMemoryError(argCopy, "PipNextArg"))
+          return -1;
+        return AddValueString(err, argCopy);
+      }
     }
+    notFoundOK = 0;
   }
 
   /* A non-option argument */
@@ -964,7 +983,7 @@ int PipLinkedIndex(char *option, int *index)
   /* Use count from non-option args, but use the count from the linked option
      instead if it was entered at all.  This allows other non-option args to be used */
   if (linkedOption) {
-    if ((ilink = LookupOption(option, numOptions)) < 0)
+    if ((ilink = LookupOption(linkedOption, numOptions)) < 0)
       return ilink;
     if (optTable[ilink].count)
       which = 1;
@@ -1983,6 +2002,9 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
 
 /*
 $Log$
+Revision 1.12  2011/06/16 15:11:01  mast
+Added ability to specify and handle linked options
+
 Revision 1.11  2011/05/29 22:39:48  mast
 Allowed single-letter short name to be ambiguous to longer short names
 
