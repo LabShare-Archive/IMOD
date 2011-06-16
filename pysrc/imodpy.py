@@ -84,7 +84,7 @@ def runcmd(cmd, input=None, outfile=None, inStderr = None):
        the string 'stdout' to send output to standard out
        inStderr is used for the stderr argument when calling Popen and could be
        PIPE for it to be swallowed or STDOUT for it to be combined with other output.
-       If outfile is none and the command fails with a broken pipe within 0.5 second,
+       If outfile is None and the command fails with a broken pipe within 0.5 second,
        it will retry up to 10 times.  Call setRetryLimit() to modify the allowed number
        of retries and the maximum run time for a failure to be retried."""
 
@@ -94,6 +94,16 @@ def runcmd(cmd, input=None, outfile=None, inStderr = None):
    collect = 1
    toStdout = 0
    output = None
+   verbose = os.getenv('RUNCMD_VERBOSE') == '1'
+   if verbose:
+      prnstr('+++++++++++++++++++++++++')
+      prnstr('   runcmd running command:')
+      prnstr(cmd)
+      if input:
+         prnstr('   With input:')
+         for l in input:
+            prnstr(l)
+   
    if outfile:
       collect = 0
       if isinstance(outfile, str) and outfile == 'stdout':
@@ -115,7 +125,7 @@ def runcmd(cmd, input=None, outfile=None, inStderr = None):
             else:
                input = str(None)
 
-            if pyVersion >= 300:
+            if pyVersion >= 300 and retryCount == 0:
                input = input.encode()
                
             # Run it three different ways depending on where output goes
@@ -167,12 +177,19 @@ def runcmd(cmd, input=None, outfile=None, inStderr = None):
          if collect and str(sys.exc_info()[1]).find('Broken pipe') >= 0 and \
             retryCount < runRetryLimit and time.time() - tryStart < runMaxTimeForRetry:
             retryCount += 1
-            #prnstr(fmtstr("Retrying " + cmd + " after {} sec", time.time() - tryStart))
+            prnstr(fmtstr("Retrying " + cmd + " after {} sec", time.time() - tryStart))
             if retryCount > 1:
                time.sleep(0.1)
          else:
             errStrings = ["command " + cmd + ": " + str(sys.exc_info()[1]) + "\n"]
             raise ImodpyError(errStrings)
+      
+   if verbose:
+      if output:
+         prnstr('    Output:')
+         for l in output:
+            prnstr(l, end='')
+      prnstr('-------------------------')
       
    if ec:
       # look thru the output for 'ERROR' line(s) and put them before this
@@ -650,6 +667,9 @@ def prnstr(string, file = sys.stdout, end = '\n'):
 
 
 #  $Log$
+#  Revision 1.17  2011/04/22 19:27:00  mast
+#  Added argument to runcmd to control destination of stderr
+#
 #  Revision 1.16  2011/03/21 22:13:58  mast
 #  Made it retry commands after broken pipe
 #
