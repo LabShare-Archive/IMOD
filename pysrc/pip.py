@@ -61,7 +61,8 @@ class pipOption:
       self.multiple = 0
       self.count = 0
       self.lenShort = 0
-      
+      self.nextLinked = []
+      self.linked = False
 optTable = None
 tableSize = 0
 numOptions = 0
@@ -84,7 +85,7 @@ takeStdIn = 0
 nonOptLines = 0
 noAbbrevs = 0
 notFoundOK = False
-
+linkedOption = None
 
 # Initialize for given number of options
 #
@@ -123,6 +124,7 @@ def PipDone():
    nextArgBelongsTo = -1
    numOptionArguments = 0
    allowDefaults = 0
+   linkedOption = None
 
 
 # Set up for Pip to handle exiting on error, with a prefix string
@@ -145,6 +147,12 @@ def setExitPrefix(prefix):
 def PipEnableEntryOutput(val):
    global printEntries
    printEntries = val
+
+# Set a linked option
+#
+def PipSetLinkedOption(option):
+   global linkedOption
+   linkedOption = option
 
 # Return the error number
 #
@@ -173,10 +181,11 @@ def PipAddOption(optionString):
    optTable[nextOption].lenShort = newSlen
    optTable[nextOption].longName = parts[1]
 
-   # If type ends in M, set multiple flag and strip M
-   if parts[2].endswith('M'):
+   # If type ends in M or L, set multiple flag and strip M or L
+   if parts[2].endswith('M') or parts[2].endswith('L'):
       optTable[nextOption].multiple = 1
-      if len(parts[2]) > 1: 
+      optTable[nextOption].linked = parts[2].endswith('L')
+      if len(parts[2]) > 1:
          parts[2] = parts[2][0:len(parts[2]) - 1]
       else:
          parts[2] = ''
@@ -584,6 +593,34 @@ def PipNumberOfEntries(option):
     
    return optTable[err].count
 
+
+# Return the index of the next non-option arg or linked option that was entered after
+# this option
+#
+def PipLinkedIndex(option):
+   global numOptions, linkedOption, pipErrno, nonOptInd
+   pipErrno = 0
+   err = LookupOption(option, numOptions)
+   if (err < 0):
+      pipErrno =  err
+      return None
+
+   ind = 0
+   if optTable[err].multiple:
+      ind = optTable[err].multiple - 1
+
+   # Set up to use count from non-option args, but use the count from the linked option
+   # instead if it was entered at all.  This allows other non-option args to be used
+   which = 0
+   if linkedOption != None:
+      ilink = LookupOption(linkedOption, numOptions)
+      if (ilink < 0):
+         pipErrno =  ilink
+         return None
+      if optTable[ilink].count:
+         which = 1
+   return optTable[err].nextLinked[2 * ind + which]
+                     
 
 # Top level routine to be called to process options and arguments
 #
@@ -1179,8 +1216,21 @@ def GetNextValueString(option):
 # Add a string to the set of values for an option whose index is optInd
 #
 def AddValueString(optInd, strPtr):
-   global optTable
+   global optTable, pipErrno
    optp = optTable[optInd]
+
+   # Add the index of the next non-option arg and the index of a linked option if
+   # one is defined to the array for these
+   if optp.linked:
+      optp.nextLinked.append(optTable[nonOptInd].count)
+      ind = 0
+      if linkedOption:
+         err = LookupOption(linkedOption, numOptions)
+         if (err < 0):
+            pipErrno =  err
+            return None
+         ind = optTable[err].count
+      optp.nextLinked.append(ind)
    
    # If we accept multiple values or have none yet, append;
    # otherwise set first element
@@ -1291,6 +1341,9 @@ def CheckKeyword(line, keyword, index):
    return (line[valStart:], index)
 
 # $Log$
+# Revision 1.8  2011/05/29 22:41:00  mast
+# Allowed single-letter short name to be ambiguous to longer short names
+#
 # Revision 1.7  2011/02/25 22:20:42  mast
 # Changed fallback warning to be generic
 #
