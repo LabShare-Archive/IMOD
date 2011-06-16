@@ -1,0 +1,331 @@
+#!/usr/bin/python -u
+# Finishjoin - to complete joining tomograms
+#
+# Author: David Mastronarde
+#
+# $Id$
+
+progname = 'finishjoin'
+prefix = 'ERROR: ' + progname + ' - '
+joinroot = ''
+
+# load System Libraries
+import os, sys, os.path, signal, re, shutil, glob
+
+# Cleanup temp files at end
+def cleanup():
+   try:
+      cleanlist = glob.glob(joinroot + '.tmp?*')
+      for f in cleanlist:
+         os.remove(f)
+   except:
+      pass
+
+
+# MAIN PROGRAM
+#
+# Setup runtime environment
+if sys.platform.find("win32") < 0:
+   try:
+      signal.signal(signal.SIGHUP, signal.SIG_IGN)
+   except:
+      pass
+if os.getenv('IMOD_DIR') != None:
+   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
+                        os.pathsep + os.environ['PATH']
+   sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import *
+
+# Initializations
+newmode = ''
+newsize = None
+trial = ''
+fitopt = '-nfit 0'
+refarg = ' '
+binning = 1
+
+# Fallbacks from ../manpages/autodoc2man 3 1 finishjoin
+options = ["root:RootName:CH:", "use:UseSliceRange:IPM:", "ref:ReferenceTomogram:I:",
+           "size:SizeInXandY:IP:", "offset:OffsetInXandY:IP:", "angle:AngleRange:F:",
+           "trial:TrialInterval:I:", "binning:BinningForTrial:I:",
+           "maxsize:MaximumSizeOnly:B:", "local:LocalFits:B:",
+           "xform:TransformFile:FN:", "gaps:FillGaps:B:", "test:TestMode:B:"]
+
+(numOpts, numNonOpts) = PipReadOrParseOptions(sys.argv, options, progname, 3, 0, 0)
+
+joinroot = PipGetInOutFile('RootName', 0)
+
+infoname = joinroot + '.info'
+if not os.path.exists(infoname):
+   exitError('Join Info file ' + infoname + ' not found')
+
+# Read in info file and get the number of tomos, version, etc from header line
+# 2nd version info file has default size in it
+# The fifth entry was added as a version number at version 3
+infolines = readTextFile(infoname, 'join Info file')
+try:
+   info1 = infolines[0].strip().split()
+   ntomo = int(info1[0])
+   ifsquoze = int(info1[1])
+   version = 1
+   if len(info1) > 2:
+      version = 2
+   if len(info1) > 4:
+      version = int(info1[4])
+   if version > 3:
+      newmode = info1[5]
+   if version > 1:
+      newsize = [int(info1[2]), int(info1[3])]
+except:
+   exitError('Getting information from first line of info file')
+
+# Make sure the number of slice entries is right
+numByOpt = PipNumberOfEntries('UseSliceRange')
+if (numByOpt != ntomo and numNonOpts != ntomo + 1) or numByOpt + numNonOpts != ntomo + 1:
+   if numByOpt + numNonOpts == ntomo + 1:
+      exitError('You must enter slice ranges either with -slice or as non-option '+\
+                'arguments, not both ways')
+   if not numByOpt and numNonOpts == ntomo:
+      exitError('You must enter the rootname as a non-option argument if you enter '+\
+                'slice ranges that way')
+   exitError('Number of slice ranges does not match number of tomograms')
+
+# Get the rest of the options
+nref = PipGetInteger('ReferenceTomogram', 0)
+if not PipGetErrNo():
+   if nref <= 0 or nref > ntomo:
+      exitError('Reference tomogram number out of range')
+   refarg = '-ref ' + str(nref)
+
+# Size entry overrides the info file option
+(xsize, ysize) = PipGetTwoIntegers('SizeInXandY', 0, 0)
+if not PipGetErrNo():
+   newsize = [xsize, ysize]
+
+(xoffset, yoffset) = PipGetTwoIntegers('OffsetInXandY', 0, 0)
+angleRange = PipGetFloat('AngleRange', 50.)
+trialInterval = PipGetInteger('TrialInterval', 0)
+if trialInterval > 0:
+   trial = '_trial'
+   binning = PipGetInteger('BinningForTrial', 1)
+   if binning < 1 or binning > 16:
+      exitError('Binning out of range of allowed values')
+
+sizeOnly = PipGetBoolean('MaximumSizeOnly', 0)
+localFits = PipGetBoolean('LocalFits', 0)
+if localFits:
+   fitopt = ' '
+xformFile = PipGetString('TransformFile', '')
+gaps = PipGetBoolean('FillGaps', 0)
+testMode = PipGetBoolean('TestMode', 0)
+
+# Build up tomo list and inversion and scale lists
+# Early versions just had list of filenames then list of inversion flags
+matlist = []
+if version < 3:
+   matlist = infolines[1].split()
+   invertlist = infolines[2].split()
+   scalelist = []
+   linesave = 0
+
+# Later versions have lines of information for all tomos, then tomo file names
+# one per line to handle spaces
+else:
+   invertlist = infolines[1].split()
+   scalelist = infolines[2].split()
+   linesave = 3
+   if len(scalelist) < ntomo:
+      exitError(infoname + ' does not have enough scaling entries')
+   for i in range(ntomo):
+      matlist.append(infolines[3+i].strip())
+
+# If trial mode with binning, adjust newsize (and not offset - 1/31/07)
+if binning > 1 and newsize:
+   newsize[0] = newsize[0] // binning
+   newsize[1] = newsize[1] // binning
+
+# Process the Z ranges
+rangelist = []
+for itomo in range(ntomo):
+
+   # Get Z size of tomogram
+   if os.path.exists(matlist[itomo]):
+      try:
+         (nx, ny, nz) = getmrcsize(matlist[itomo])
+      except ImodpyError:
+         exitFromImodError(progname)
+   else:
+      nz = 100
+      prnstr('WARNING: ' + matlist[itomo] + '  NO LONGER EXISTS.  SETTING THICKNESS '+\
+             'TO 100 FOR TESTING')
+
+   # Get slice entries from either place
+   if numByOpt:
+      (zst, znd) = PipGetTwoIntegers('UseSliceRange', -1,-1)
+   else:
+      sliceStr = PipGetNonOptionArg(itomo + 1)
+      sliceSpl = re.split('[, ]', sliceStr)
+      if len(sliceSpl) != 2:
+         exitError('Slice range ' + sliceStr + ' does not , have two numbers')
+      try:
+         zst = int(sliceSpl[0])
+         znd = int(sliceSpl[1])
+      except:
+         exitError('Converting slice range ' + sliceStr + ' to two numbers')
+
+   zst -= 1
+   znd -= 1
+   if not gaps and (zst < 0 or zst >= nz or znd < 0 or znd >= nz):
+      exitError(fmtstr('The Z range for tomogram # {}  has coordinates out of range',
+                       itomo + 1))
+   invert = int(invertlist[itomo])
+   if (zst < znd and invert) or (zst >= znd and not invert):
+      (zst, znd) = (znd, zst)
+
+   # Set up z range as simple range or as list of slices at interval
+   # DIFFERENCE: interval = 1 gives simple list
+   if trialInterval <= 1:
+      zrange = fmtstr('{}-{}', zst, znd)
+   else:
+      zrange = str(zst)
+      idir = 1
+      if zst > znd:
+         idir = -1
+      iz = zst + idir * trialInterval
+      while idir * (iz - znd) < 0:
+         zrange += ',' + str(iz)
+         zlast = iz
+         iz += idir * trialInterval
+      if zlast != znd:
+         zrange += ',' + str(znd)
+   rangelist.append(zrange)
+
+tomoxf = joinroot + '.tomoxf'
+makeBackupFile(tomoxf)
+
+# Read the transform file and make sure there is either 6 or 1 entry on first line
+xflines = readTextFile(joinroot + '.xf', 'alignment transform file')
+lenfirst = len(xflines[0].split())
+if lenfirst == 6 or lenfirst == 1:
+
+   # If so and there is either 1 entry or the right number of lines, copy file
+   if len(xflines) == ntomo or lenfirst == 1:
+      try:
+         shutil.copyfile(joinroot + '.xf', tomoxf)
+      except:
+         exitError('Copying ' + joinroot + '.xf to ' + tomoxf)
+
+      # Persistent broken pipes even in RHEL5/python 2.4, so just do in Windows
+      # Surely this is there just for Windows...
+      if sys.platform.find('win32') >= 0 or sys.platform.find('cygwin') >= 0:
+         try:
+            runcmd('chmod u+rw ' + tomoxf)
+         except ImodpyError:
+            prnstr('WARNING: ' + progname + \
+                   ' - Error running command to set permissions of ' + tomoxf)
+
+   # Otherwise, need to start with a unit transform line and
+   unit = '1.0000000   0.0000000   0.0000000   1.0000000       0.000       0.000'
+   outlines = [unit]
+   for l in xflines:
+      lsp = l.split()
+      try:
+         if float(lsp[0]) != 1. or float(lsp[3]) != 1. or float(lsp[1]) != 0. or \
+            float(lsp[2]) != 0. or float(lsp[4]) != 0. or float(lsp[5]) != 0.:
+            outlines.append(l)
+      except:
+         exitError('Interpreting lines of ' + tomoxf)
+
+   if len(outlines) != ntomo:
+      exitError(fmtstr('There are {} lines in {} with non-unit transform; there '+\
+                       'should be {} for joining {} tomograms', len(outlines) - 1,
+                       tomoxf, ntomo - 1, ntomo))
+
+else:
+   exitError(tomoxf + ' does not appear to be a linear or warping transform file')
+
+# Now run some programs
+try:
+
+   # Get the G transforms
+
+   tomoxg = joinroot + '.tomoxg'
+   runcmd(fmtstr('xftoxg -range {} {} {} {} {}', angleRange, refarg, fitopt, tomoxf,
+                 tomoxg))
+
+   # Adjust for squeezing
+   if ifsquoze:
+      try:
+         os.remove(joinroot + '.tmpxg')
+      except:
+         pass
+      os.rename(tomoxg, joinroot + '.tmpxg')
+      runcmd(fmtstr('xfproduct {0}.sqzxf {0}.tmpxg {0}.tmpsqz', joinroot))
+      runcmd(fmtstr('xfproduct {0}.tmpsqz {0}.xpndxf {0}.tomoxg', joinroot))
+
+   #  If a refinement file was entered, form product with that
+   if xformFile:
+      try:
+         os.remove(joinroot + '.tmpxg')
+      except:
+         pass
+      os.rename(tomoxg, joinroot + '.tmpxg')
+      runcmd(fmtstr('xfproduct {0}.tmpxg {1} {0}.tomoxg', joinroot, xformFile))
+
+   # Now if max size is wanted, call the program
+   if sizeOnly:
+      if linesave == 0:
+         exitError('INFO FILE IS TOO OLD TO GET THE MAXIMUM SIZE FROM')
+      runcmd(fmtstr('maxjoinsize {} {} {}', ntomo, linesave, joinroot), None, 'stdout')
+      cleanup()
+      sys.exit(0)
+
+   # Compose the newstack command
+   newstin = []
+   for i in range(ntomo):
+      newstin.append('InputFile ' + matlist[i])
+      newstin.append('SectionsToRead ' + rangelist[i])
+      if len(scalelist):
+         newstin.append('MultiplyAndAdd ' + scalelist[i])
+
+   if newsize:
+      newstin.append(fmtstr('SizeToOutputInXandY {},{}', newsize[0], newsize[1]))
+   if newmode:
+      newstin.append('ModeToOutput ' + newmode)
+   if gaps:
+      newstin.append('BlankOutput')
+   newstin.extend(['OneTransformPerFile',
+                  fmtstr('BinByFactor {}', binning),
+                  'OutputFile ' + joinroot + trial + '.join',
+                  fmtstr('OffsetsInXandY {},{}', xoffset, yoffset),
+                  'TransformFile ' + tomoxg])
+   if testMode:
+      writeTextFile('finishjoinNewst.input', newstin)
+   else:
+      runcmd('newstack -StandardInput', newstin, 'stdout')
+      prnstr('Truncations are a normal result of the scaling for density matching.')
+
+except ImodpyError:
+   cleanup()
+   exitFromImodError(progname)
+
+except OSError:
+   cleanup()
+   exitError('Renaming ' + tomoxg + ' to ' + joinroot + '.tmpxg')
+
+cleanup()
+sys.exit(0)
+
+                     
+   
+      
+
+
+   
