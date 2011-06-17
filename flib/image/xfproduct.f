@@ -12,12 +12,12 @@ c
       integer nflimit
       parameter (nflimit=100000)
       real*4 f(2,3,nflimit,2),ftmp(2,3,3)
-      character*320 gfile(2),outFile
+      character*320 gfile(2),outFile,errString
 c       
       integer*4 nfirst, nsecond, nout, ierr, i, nsingle, ifs, indcopy, inds(2)
       real*4 scales(2), xAllStr(2), xAllEnd(2), yAllStr(2), yAllEnd(2)
       logical*4 warping(2), controlPts(3), linear(2), linearOnly(3), needGrid
-      integer*4 indWarpFile(3), numXforms(2), iflags, ibin, iversion,nx(3), ny(3)
+      integer*4 indWarpFile(3), numXforms(2), iflags, ibin, nx(3), ny(3)
       equivalence (nfirst, numXforms(1)), (nsecond, numXforms(2))
       integer*4 j, iz, nxgDim, nygDim, nControl, nxGrTmp, nyGrTmp, maxControl(2)
       real*4 xAllInt, yAllInt, xIntTmp, yIntTmp, xStrTmp, yStrTmp, xcen, ycen
@@ -27,10 +27,10 @@ c
       integer*4 ifUse2nd, nxGrids(2), nyGrids(2), ifScales
       real*4 xNewCont, yNewCont, xNewCpv, yNewCpv, warpScale, xStarts(2), yStarts(2)
       real*4 xIntervals(2), yIntervals(2)
-      integer*4 readWarpFile, getNumWarpPoints, getLinearTransform, gridSizeFromSpacing
+      integer*4 readCheckWarpFile, getNumWarpPoints, getLinearTransform
       integer*4 getGridParameters, getWarpGrid, setWarpGrid, expandAndExtrapGrid
       integer*4 setLinearTransform, writeWarpFile, multiplyWarpings, newWarpFile
-      integer*4 getWarpPoints, setCurrentWarpFile, setWarpPoints
+      integer*4 getWarpPoints, setCurrentWarpFile, setWarpPoints, gridSizeFromSpacing
 c       
       logical pipinput
       integer*4 numOptArg, numNonOptArg
@@ -65,20 +65,13 @@ c       Get all the filenames
 c
 c       Open the input files and read transforms if linear files
       do ifs = 1, 2
-        indWarpFile(ifs) = readWarpFile(gfile(ifs), nx(ifs), ny(ifs), numXforms(ifs),
-     &      ibin, pixelSize(ifs), iversion, iflags)
-        if (indWarpFile(ifs) .lt. 0 .and. (iversion .ne. 0 .or. indWarpFile(ifs) .ne. -3))
-     &      then
-          if (indWarpFile(ifs) .gt. -3)call exitError('OPENING OR READING TRANSFORM FILE')
-          call exitError('INAPPROPRIATE VALUE OR MEMORY ERROR PROCESSING TRANSFORM FILE'
-     &        //' AS A WARPING FILE (IT DOES NOT APPEAR TO BE A LINEAR TRANSFORM FILE)')
-        endif
+        indWarpFile(ifs) = readCheckWarpFile(gfile(ifs), 0, 1, nx(ifs),
+     &      ny(ifs), numXforms(ifs), ibin, pixelSize(ifs), iflags, errString)
+      if (indWarpFile(ifs) .lt. -1) call exitError(errString)
         warping(ifs) = indWarpFile(ifs) .ge. 0
         if (warping(ifs)) then
-          if (mod(iflags, 2) .eq. 0) call exitError
-     &        ('ONLY WARPINGS WITH INVERSE WARP DISPLACEMENTS CAN BE MULTIPLIED')
           controlPts(ifs) = mod(iflags / 2, 2) .ne. 0
-          write(*,'(a,a)')'Warping file opened: ',trim(gfile(ifs))
+          write(*,'(a,a)')'Old warping file opened: ',trim(gfile(ifs))
         else
 c
 c           read regular linear xforms
@@ -412,10 +405,11 @@ c          print *,'putting out',controlPts(3), nControl
       enddo
       if (linearOnly(3)) then
         close(3)
+        print *,nout,' new transforms written'
       else
         if (writeWarpFile(outfile, 0) .ne. 0) call exitError('WRITING NEW WARPING FILE')
+        write(*,'(i5,a,a)')nout,' new transforms written to warping file: ', trim(outfile)
       endif
-      print *,nout,' new transforms written'
       call exit(0)
 c       
 92    call exitError('READING OLD TRANSFORM FILE')
@@ -424,6 +418,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.5  2011/06/10 04:10:11  mast
+c       Added warping
+c
 c       Revision 3.4  2008/11/02 14:03:20  mast
 c       Added option to multiply by one transform in multiple transform list
 c

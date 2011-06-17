@@ -20,12 +20,12 @@ c
       real*4 f(2,3,nflimit),prod(2,3)
       real*4, allocatable :: xControl(:), yControl(:), dxGrid(:), dyGrid(:)
       real*4, allocatable :: dxInv(:), dyInv(:)
-      character*320 filin, filout
-      integer*4 ifzero, i, nout, ierr, iversion, iflags, nx, ny, ibin, nxMax, nyMax
+      character*320 filin, filout, errString
+      integer*4 ifzero, i, nout, ierr, iflags, nx, ny, ibin, nxMax, nyMax
       integer*4 maxControl, nControl, j, nxGrid, nyGrid
       real*4 pixelSize, xcen, ycen, xnew, ynew, xcvinv, ycvinv
       real*4 xStart, yStart, xInterval, yInterval
-      integer*4 readWarpFile, getNumWarpPoints, getLinearTransform, getWarpPoints
+      integer*4 readCheckWarpFile, getNumWarpPoints, getLinearTransform, getWarpPoints
       integer*4 setWarpPoints, getGridParameters, getWarpGrid, setWarpGrid
       integer*4 setLinearTransform, writeWarpFile
 
@@ -59,12 +59,9 @@ c
       if (PipGetInOutFile('OutputFile', 2, 'Name of output piece list file',
      &    filout) .ne. 0) call exitError('NO OUTPUT FILE SPECIFIED')
 
-      ierr = readWarpFile(filin, nx, ny, nout, ibin, pixelSize, iversion, iflags)
-      if (ierr .ne. 0 .and. (iversion .ne. 0 .or. ierr .ne. -3)) then
-        if (ierr .gt. -3) call exitError('OPENING OR READING TRANSFORM FILE')
-        call exitError('INAPPROPRIATE VALUE OR MEMORY ERROR PROCESSING TRANSFORM FILE'
-     &      //' AS A WARPING FILE (IT DOES NOT APPEAR TO BE A LINEAR TRANSFORM FILE)')
-      endif
+      ierr = readCheckWarpFile(filin, 0, 0, nx, ny, nout, ibin, pixelSize,
+     &    iflags, errString)
+      if (ierr .lt. -1) call exitError(errString)
       if (.not. pipinput) then
         write(*,'(1x,a,$)') '0 to set shifts to zero, or 1 to retain them: '
         read(5,*)j
@@ -94,7 +91,7 @@ c
       else
 c         
 c         Warping: first figure out how much memory to allocate
-        write(*,'(a,a)')'Warping file opened: ',trim(filin)
+        write(*,'(a,a)')'Old warping file opened: ',trim(filin)
        if (iflags .eq. 0) call exitError('An inverse can be taken only if '//
      &      'warping grid is identified as an inverse warping')
 

@@ -16,20 +16,21 @@ c
       real*4 natav(2,3),ginv(2,3),prod(2,3), slope(2,3,10),intcp(2,3),natpr(2,3)
       real*4 x(lmsc),y(lmsc),slop(10)
       integer*4 igroup(lmsc), nControl(lmsc)
-      character*320 infil,outfil
+      character*320 infil,outfil,errString
       real*4, allocatable :: dxGrid(:,:), dyGrid(:,:), dxCum(:,:,:), dyCum(:,:,:)
       real*4, allocatable :: dxProd(:,:), dyProd(:,:)
 c       
       integer*4 nhybrid, ifshift, iorder, nlist, kl, i, ilist, kllo, klhi, nx, ny
       integer*4 j, ipow, nfit, ierr, lnblnk,numGroups, numInFirst,iordUse, ibin
-      integer*4 irefSec, indWarpFile, nxGrid, nyGrid, nxGrTmp, nyGrTmp, iflags, iversion
+      integer*4 irefSec, indWarpFile, nxGrid, nyGrid, nxGrTmp, nyGrTmp, iflags
       real*4 xStart, yStart, xInterval, yInterval, xStrTmp, yStrTmp, xIntTmp, yIntTmp
       logical*4 warping, control
       real*4 deltang, angdiff, bint, angleRange, pixelSize, xcen, ycen, xEnd, yEnd
-      integer*4 readWarpFile, getNumWarpPoints, getLinearTransform, gridSizeFromSpacing
+      integer*4 readCheckWarpFile, getNumWarpPoints, getLinearTransform
       integer*4 getGridParameters, getWarpGrid, setWarpGrid, setGridSizeToMake
       integer*4 setLinearTransform, writeWarpFile, multiplyWarpings, newWarpFile
       integer*4 clearWarpFile, separateLinearTransform, expandAndExtrapGrid
+      integer*4 gridSizeFromSpacing
 c       
       logical pipinput
       integer*4 numOptArg, numNonOptArg
@@ -129,12 +130,9 @@ c
       endif
 c       
 c       Determine if there is warping
-      indWarpFile = readWarpFile(infil, nx, ny, nlist, ibin, pixelSize, iversion, iflags)
-      if (indWarpFile .lt. 0 .and. (iversion .ne. 0 .or. indWarpFile .ne. -3)) then
-        if (indWarpFile .gt. -3) call exitError('OPENING OR READING TRANSFORM FILE')
-        call exitError('INAPPROPRIATE VALUE OR MEMORY ERROR PROCESSING TRANSFORM FILE'
-     &      //' AS A WARPING FILE (IT DOES NOT APPEAR TO BE A LINEAR TRANSFORM FILE)')
-      endif
+      indWarpFile = readCheckWarpFile(infil, 0, 1, nx, ny, nlist, ibin,
+     &    pixelSize, iflags, errString)
+      if (indWarpFile .lt. -1) call exitError(errString)
       warping = indWarpFile .ge. 0
       if (.not. warping) then
 c       
@@ -157,11 +155,8 @@ c
       endif
       if (warping) then
 c         
-c         warping: check that it is inverses
-        write(*,'(a,a)')'Warping file opened: ',trim(infil)
-        if (iflags .eq. 0) call exitError(
-     &      'A WARPING must BE IDENTIFIED AS AN INVERSE WARPING')
-
+c         warping
+        write(*,'(a,a)')'Old warping file opened: ',trim(infil)
         control = mod(iflags / 2, 2) .ne. 0
         xcen = nx / 2.
         ycen = ny / 2.
@@ -445,6 +440,7 @@ c           this transform and the inverse average warp
       enddo
       if (warping) then
         if (writeWarpFile(outfil, 0) .ne. 0) call exitError('WRITING NEW WARP FILE')
+        write(*,'(a,a)')'New warping file written: ',trim(outfil)
       else
         close(2)
       endif
@@ -546,6 +542,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.7  2011/06/10 04:10:11  mast
+c       Added warping
+c
 c       Revision 3.6  2008/11/21 20:03:12  mast
 c       Increased character size for filenames
 c
