@@ -809,7 +809,7 @@ int readCheckWarpFile(char *filename, int needDist, int needInv, int *nx, int *n
   }
   if (ierr < 0)
     ierr = -1;
-  if (needInv && *iflags % 2 == 0)
+  else if (needInv && *iflags % 2 == 0)
     ERR_RETURN("THIS PROGRAM WILL WORK ONLY WITH INVERSE WARP DISPLACEMENTS");
   return ierr;
 }
@@ -926,6 +926,9 @@ int getSizeAdjustedGrid(int iz, int nxwarp, int nywarp, int controlPts, float xn
 /*
 
 $Log$
+Revision 1.3  2011/06/17 05:47:10  mast
+Add routines for common fortran tasks
+
 Revision 1.2  2011/06/10 04:07:15  mast
 A bunch of fixes after things were tested
 
