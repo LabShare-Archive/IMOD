@@ -119,7 +119,7 @@ matchvol$(E): matchvol.$(O) rotmatwarpsubs.$(O) rotmatwarp.$(O)
 	$(LDFLG) $(IMLIBS) $(LIBS)
 
 maxjoinsize$(E): maxjoinsize.$(O)
-	$(FC) -o maxjoinsize maxjoinsize.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+	$(FC) -o maxjoinsize maxjoinsize.$(O) $(LDFLG) $(IMLIBS) $(LIWARP) $(LIBS)
 
 montagesize$(E): montagesize.$(O)
 	$(FC) -o montagesize montagesize.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
