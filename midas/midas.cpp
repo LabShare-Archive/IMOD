@@ -885,16 +885,16 @@ void MidasWindow::createSectionControls(QVBoxLayout *parent)
     QObject::connect(VW->difftoggle, SIGNAL(toggled(bool)), 
                      VW->midasSlots, SLOT(slotKeepdiff(bool)));
     VW->difftoggle->setToolTip("Always change current and reference sections together");
+  }
 
-    if (VW->warpingOK) {
-      VW->warpToggle = diaCheckBox("Add/edit warp points", NULL, col);
-      QObject::connect(VW->warpToggle, SIGNAL(toggled(bool)), 
-                       VW->midasSlots, SLOT(slotEditWarp(bool)));
-      VW->warpToggle->setToolTip("Add or modify points for warping section");
-      // TEMPORARY
-      diaSetChecked(VW->warpToggle, false);
-    }
+  if (VW->warpingOK) {
+    VW->warpToggle = diaCheckBox("Add/edit warp points", NULL, col);
+    QObject::connect(VW->warpToggle, SIGNAL(toggled(bool)), 
+                     VW->midasSlots, SLOT(slotEditWarp(bool)));
+    VW->warpToggle->setToolTip("Add or modify points for warping section");
+  }
 
+  if (!VW->numChunks && VW->xtype != XTYPE_MONT) {
     if (VW->xtype == XTYPE_XG)
       label = diaLabel ("Global Alignment Mode", NULL, col);
     else
@@ -1065,6 +1065,9 @@ void midas_error(const char *tmsg, const char *bmsg, int retval)
 /*
 
 $Log$
+Revision 3.29  2011/06/10 04:25:28  mast
+Changes for warping and keeping ref/current together with ref file
+
 Revision 3.28  2010/12/28 18:23:10  mast
 Added robust fitting and checkbox to exclude edges
 
