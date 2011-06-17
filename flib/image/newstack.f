@@ -48,10 +48,10 @@ C
 c       
       integer(kind=8) idim, limdim, i8, npix,ibchunk,ibbase,istart, limIfFail
       integer(kind=8) nmove,noff
-      integer*4 ifDistort, idfBinning, iBinning, idfNx, idfNy, iversion, iWarpFlags
+      integer*4 ifDistort, idfBinning, iBinning, idfNx, idfNy, iWarpFlags
       integer*4 ixGridStrt, iyGridStrt, nxGrid, nyGrid, numFields, numIdfUse
       real*4 xGridIntrv, yGridIntrv, pixelSize, xGridStrt, yGridStrt, warpScale
-      real*4 xIntMin, yIntMin, xnbig, ynbig, xBigDiff, yBigDiff
+      real*4 xIntMin, yIntMin, xnbig, ynbig
 c       
       integer*4 ifMagGrad, numMagGrad, magUse
       real*4 pixelMagGrad, axisRot
@@ -61,7 +61,7 @@ c
             
       real*4 tiltAngles(lmgradsec), dmagPerUm(lmgradsec), rotPerUm(lmgradsec)
 c       
-      logical rescale,blankOutput,adjustOrigin, controlPts, hasWarp
+      logical rescale,blankOutput,adjustOrigin, hasWarp
       character dat*9,tim*8,tempext*9
       logical nbytes_and_flags
       character*80 titlech
@@ -81,20 +81,21 @@ c
       integer*4 needyst,needynd,nload,nyload,nych,iseriesBase
       integer*4 ix1,ix2,nbcopy,nbclear,ifLinear, limEntered,insideTaper
       real*4 const,denoutmin,den, tmin2,tmax2,tmean2,avgsec
-      integer*4 numInputFiles, numSecLists, numOutputFiles, numToGet
+      integer*4 numInputFiles, numSecLists, numOutputFiles, numToGet, maxNxg, maxNyg
       integer*4 numOutValues, numOutEntries, ierr, ierr2, i, kti, iy
       integer*4 maxFieldY, inputBinning, nxFirst, nyFirst, nxBin, nyBin
       integer*4 ixOffset, iyOffset, lenTemp, ierr3, applyFirst,numTaper
       integer*4 nLineTemp,ifOnePerFile,ifUseFill,listIncrement,indout
       integer*4 ixOriginOff,iyOriginOff, numReplace, isecReplace, modeOld
-      integer*4 indFilter,linesShrink, numAllSec, maxNumXF
-      real*4 fieldMaxY, binRatio, rotateAngle, expandFactor, fillVal, shrinkFactor
+      integer*4 indFilter,linesShrink, numAllSec, maxNumXF, nxmax, nymax, ifControl
+      real*4 fieldMaxY, rotateAngle, expandFactor, fillVal, shrinkFactor
       real*8 dsum,dsumsq,tsum,tsumsq, wallstart,walltime,loadtime,savetime
       real*8 rottime
       real*4 cosd, sind
-      integer*4 lnblnk, taperAtFill, selectZoomFilter, zoomFiltInterp
-      integer*4 readWarpFile, getNumWarpPoints, getLinearTransform, gridSizeFromSpacing
+      integer*4 taperAtFill, selectZoomFilter, zoomFiltInterp, readCheckWarpFile
+      integer*4 getNumWarpPoints, getLinearTransform, gridSizeFromSpacing
       integer*4 getGridParameters, getWarpGrid, setGridSizeToMake, expandAndExtrapGrid
+      integer*4 findMaxGridSize, getSizeAdjustedGrid
       character*320 concat
 c       
       logical pipinput
@@ -181,7 +182,7 @@ c
       seriesExt = ' '
       maxNumXF = 40000
       ifWarping = 0
-      controlPts = .false.
+      ifControl = 0
       lmGrid = 200
 c       
 c       Preliminary allocation of array
@@ -230,6 +231,8 @@ c
      &    scaleFacs(nfilein), scaleConsts(nfilein),  stat = ierr)
       call memoryError(ierr, 'ARRAYS FOR INPUT FILES')
 c       
+      nxmax = 0
+      nymax = 0
       do i=1,nfilein
 c         
 c         get the next filename
@@ -263,6 +266,8 @@ c
           nyFirst = ny
           call irtdel(1, deltaFirst)
         endif
+        nxmax = max(nx, nxmax)
+        nymax = max(ny, nymax)
         nlist(i) = nz
         do isec = 1, nz
           inlist(min(listot + isec, lmsec)) = isec - 1
@@ -290,7 +295,7 @@ c
      &        (inlist(isec) .lt. 0 .or. inlist(isec) .ge. nz)) then
             write(*,'(/,a,i7,a,a)')'ERROR: NEWSTACK -',inlist(isec),
      &          ' IS AN ILLEGAL SECTION NUMBER FOR ',
-     &          filin(i)(1:lnblnk(filin(i)))
+     &          trim(filin(i))
             call exit(1)
           endif
           inlist(indout) = inlist(isec)
@@ -518,19 +523,13 @@ c
 c         read transforms, set default to section list unless there is just
 c         one line in file
 c         
-        ierr = readWarpFile(xffil, idfNx, idfNy, nxforms, idfBinning, pixelSize, iversion,
-     &      iWarpFlags)
-        if (ierr .lt. 0 .and. (iversion .ne. 0 .or. ierr .ne. -3)) then
-          if (ierr .gt. -3) call exitError('OPENING OR READING TRANSFORM FILE')
-          call exitError('INAPPROPRIATE VALUE OR MEMORY ERROR PROCESSING TRANSFORM FILE'
-     &        //' AS A WARPING FILE (IT DOES NOT APPEAR TO BE A LINEAR TRANSFORM FILE)')
-        endif
-        if (ierr .eq. 0) then
+        ierr = readCheckWarpFile(xffil, 0, 1, idfNx, idfNy, nxforms,
+     &      idfBinning, pixelSize,  iWarpFlags, listString)
+        if (ierr .lt. -1) call exitError(listString)
+        if (ierr .ge. 0) then
           write(*,'(a,a)')'Warping file opened: ',trim(xffil)
           ifWarping = 1
-          controlPts = mod(iWarpFlags / 2, 2) .ne. 0
-          if (mod(iWarpFlags, 2) .eq. 0) call exitError
-     &        ('WARPING CAN BE DONE ONLY WITH INVERSE WARP DISPLACEMENTS')
+          if (mod(iWarpFlags / 2, 2) .ne. 0) ifControl = 1
           if (nxforms .gt. maxNumXF) call exitError(
      &        'TOO MANY SECTIONS IN WARPING FILE FOR TRANSFORM ARRAY')
           warpScale = pixelSize / deltaFirst(1)
@@ -734,16 +733,9 @@ c         Distortion field
           ifDistort = 1
           xftext=', undistorted'
 
-          ierr = readWarpFile(idfFile, idfNx, idfNy, numFields, idfBinning, pixelSize,
-     &        iversion, iWarpFlags)
-          if (ierr .lt. 0) call exitError('OPENING OR READING DISTORTION FILE')
-          if (mod(iWarpFlags, 2) .eq. 0) call exitError
-     &        ('DISTORTION CORRECTION CAN BE DONE ONLY WITH INVERSE TRANSFORMS')
-          if (mod(iWarpFlags / 2, 2) .ne. 0) call exitError('DISTORTION CORRECTION '//
-     &        'CAN BE DONE ONLY WITH A WARPING GRID, NOT CONTROL POINTS')
-c          call loadDistortions(idfFile, allDx, allDy, lmAllGrid, idfNx, idfNy,
-c     &        numFields, idfBinning, pixelIdf, ixFieldStrt, xFieldIntrv,
-c     &        nxField, iyFieldStrt, yFieldIntrv, nyField, lmFields)
+          ierr = readCheckWarpFile(idfFile, 1, 1, idfNx, idfNy, numFields,
+     &        idfBinning, pixelSize, iWarpFlags, listString)
+        if (ierr .lt. 0) call exitError(listString)
 c           
           if (PipGetInteger('ImagesAreBinned', inputBinning) .ne. 0) then
             if (nxFirst .le. idfNx * idfBinning / 2 .and.
@@ -786,33 +778,10 @@ c       If warping or distortions, figure out how big to allocate the arrays
       if (ifDistort + ifWarping .ne. 0) then
         allocate(nControl(numFields), stat = ierr)
         call memoryError(ierr,'ARRAY FOR NUMBER OF CONTROL POINTS')
-        xIntMin = 1.e20
-        yintMin = 1.e20
-        do i = 1, numFields
-          nControl(i) = 4
-          if (controlPts) then
-            if (getNumWarpPoints(i, nControl(i)) .ne. 0)
-     &          call exitError('GETTING NUMBER OF CONTROL POINTS')
-          endif
-          if (nControl(i) .ge. 3) then
-            if (controlPts) then
-              if (gridSizeFromSpacing(i, -1., -1., 1) .ne. 0) call exitError
-     &            ('SETTING GRID SIZE FROM SPACING OF CONTROL POINTS')
-            endif
-            if (getGridParameters(i, nxGrid, nyGrid, xGridStrt, yGridStrt, xGridIntrv,
-     &          yGridIntrv) .ne. 0) call exitError('GETTING GRID PARAMETERS')
-            xIntMin = min(xIntMin, xGridIntrv)
-            yIntMin = min(yIntMin, yGridIntrv)
-          endif
-        enddo
-c         
-c         Allow the grid to be expanded to fit the actual image, at the minimum interval
-        if (xIntMin .lt. 1.e19) then
-          i = max(idfNx, nint(nxFirst / warpScale))
-          iy = max(idfNy, nint(nyFirst / warpScale))
-          lmGrid = max(ceiling(i / xIntMin) + 1, ceiling(iy / yIntMin) + 1, lmGrid)
-c          print *,idfnx, idfny,nxfirst,nyfirst, warpscale, i, iy, xIntMin, yIntMin,lmGrid
-        endif
+        if (findMaxGridSize(idfNx, idfNy, numFields, ifControl, nxmax / warpScale,
+     &      nymax / warpScale, nControl, maxNxg, maxNyg, listString) .ne. 0)
+     &      call exitError(listString)
+        lmGrid = max(lmGrid, maxNxg, maxNyg)
       endif
       if (ifDistort + ifMagGrad + ifWarping .ne. 0) then
         allocate(fieldDx(lmgrid,lmgrid), fieldDy(lmgrid,lmgrid), tmpDx(lmgrid,lmgrid),
@@ -1290,82 +1259,29 @@ c
             ynbig = iBinning * ny3 / warpScale
           endif
           if (hasWarp) then
-c             
-c             For control points, see if we need to expand the sampled grid
-            if (controlPts) then
-              ierr = gridSizeFromSpacing(iy, -1., -1., 1)
-              ierr = getGridParameters(iy, nxGrid, nyGrid, xGridStrt, yGridStrt,
-     &            xGridIntrv, yGridIntrv)
-              if (xnbig .gt. idfNx .or. ynbig .gt. idfNy) then
-                i = max(nxGrid, min(lmGrid, ceiling(xnbig / xGridIntrv) + 1))
-                xGridStrt = xGridStrt - (i - nxGrid) / 2.
-                nxGrid = i
-                i = max(nyGrid, min(lmGrid, ceiling(ynbig / yGridIntrv) + 1))
-                yGridStrt = yGridStrt - (i - nyGrid) / 2.
-                nyGrid = i
-                ierr = setGridSizeToMake(iy, nxGrid, nyGrid, xGridStrt, yGridStrt,
-     &            xGridIntrv, yGridIntrv)
-              endif
-            endif
-c            print *,'sec, iy', isec, iy,nxGrid,nyGrid
-            if (getWarpGrid(iy, nxGrid, nyGrid, xGridStrt, yGridStrt, xGridIntrv,
-     &          yGridIntrv, fieldDx, fieldDy, lmGrid) .ne. 0)
-     &          call exitError('GETTING WARP GRID')
-c            do ierr = 1,nyGrid
-c              write(*,'(f7.2,9f8.2)')(fieldDx(i,ierr),fieldDy(i,ierr),i=1,nxGrid)
-c            enddo
-            xBigDiff = (xnbig - idfNx) / 2.
-            yBigDiff = (ynbig - idfNy) / 2.
-c            print *,xnbig, ynbig, xGridStrt, yGridStrt,xBigDiff,yBigDiff
-c             
-c             If images are not full field, adjust grid start by half the
-c             difference between image and field size, still in warp file pixels
-            xGridStrt = xGridStrt + xBigDiff
-            yGridStrt = yGridStrt + yBigDiff
-c             
-c             Then expand a grid to fill the space
-            if (.not. controlPts) then
-              if (expandAndExtrapGrid(fieldDx, fieldDy, lmGrid, lmGrid, nxGrid, nyGrid,
-     &            xGridStrt, yGridStrt, xGridIntrv, yGridIntrv, 0., 0., 
-     &            xnbig, ynbig, nint(xnbig), nint(ynbig))
-     &            .ne. 0) call exitError(
-     &            'EXTRAPOLATING WARPING/DISTORTION GRID TO FULL AREA')
-c             print *,nxGrid,nyGrid
-c           do ierr = 1,nyGrid
-c             write(*,'(f7.2,9f8.2)')(fieldDx(i,ierr),fieldDy(i,ierr),i=1,nxGrid)
-c           enddo
-            endif
-c               
-c             Next adjust grid start and interval and field itself for the
-c             overall binning or change of scale
-            binRatio = warpScale / iBinning
-            xGridStrt = xGridStrt * binRatio
-            yGridStrt = yGridStrt * binRatio
-            xGridIntrv = xGridIntrv * binRatio
-            yGridIntrv = yGridIntrv * binRatio
-c             
+            if (getSizeAdjustedGrid(iy, idfNx, idfNy, ifControl, xnbig, ynbig, warpScale,
+     &          iBinning, nxGrid, nyGrid, xGridStrt, yGridStrt, xGridIntrv, yGridIntrv,
+     &          fieldDx, fieldDy, lmgrid, lmgrid, listString) .ne. 0)
+     &          call exitError(listString)
+
 c             For warping with center offset applied after, need to subtract the
 c             offset from the grid start and add it to the grid displacements
             xnbig = 0.
             ynbig = 0.
+c           print *,nxGrid,nyGrid
+c           do ierr = 1,nyGrid
+c           write(*,'(f7.2,9f8.2)')(fieldDx(i,ierr),fieldDy(i,ierr),i=1,nxGrid)
+c         enddo
             if (ifWarping .ne. 0 .and. applyFirst .eq. 0) then
               xGridStrt = xGridStrt - xcen(isec)
-              xnbig = xcen(isec)
               yGridStrt = yGridStrt - ycen(isec)
-              ynbig = ycen(isec)
+              fieldDx(1:nxGrid,1:nyGrid) = fieldDx(1:nxGrid,1:nyGrid) + xcen(isec)
+              fieldDy(1:nxGrid,1:nyGrid) = fieldDy(1:nxGrid,1:nyGrid) + ycen(isec)
             endif
 c             
-c             scale field and copy it to tmpDx,y in case there are mag grads
-c             
-c            print *,binRatio, xnbig, ynbig, xGridStrt, yGridStrt,xGridIntrv,yGridIntrv
-            do iy = 1, nyGrid
-              do i = 1, nxGrid
-                fieldDx(i, iy) = fieldDx(i, iy) * binRatio + xnbig
-                fieldDy(i, iy) = fieldDy(i, iy) * binRatio + ynbig
-                tmpDx(i, iy) = fieldDx(i, iy)
-                tmpDy(i, iy) = fieldDy(i, iy)
-              enddo
-            enddo
+c             copy field to tmpDx,y in case there are mag grads
+            tmpDx(1:nxGrid,1:nyGrid) = fieldDx(1:nxGrid,1:nyGrid)
+            tmpDy(1:nxGrid,1:nyGrid) = fieldDy(1:nxGrid,1:nyGrid)
           endif
 c         
 c           if doing mag gradients, set up or add to distortion field
@@ -2060,7 +1976,7 @@ c
       implicit none
       integer*4 nxforms, listot, inlist(*), numXfLines, lineUse(*), nLineUse
       integer*4 ifOnePerFile, nfilein
-      integer*4 lmsec, nLinetemp, iy, ierr, i, PipGetString, lnblnk
+      integer*4 lmsec, nLinetemp, iy, ierr, i, PipGetString
       character*(*) error, option, listString
       character*320 concat
       character*80 errString
@@ -2101,8 +2017,7 @@ c
             ierr = PipGetString(option, listString)
             call parselist(listString, lineuse(nLineUse + 1), nlineTemp)
             nLineUse = nLineUse + nLineTemp
-            if (nLineUse .gt. lmsec) call exitError
-     &          (errString(1:lnblnk(errString)))
+            if (nLineUse .gt. lmsec) call exitError(trim(errString))
           enddo
         endif
       else
@@ -2112,14 +2027,14 @@ c
         print *,' transform to all sections',
      &      ' (1st line is 0; ranges OK; / for section list)'
         call rdlist(5,lineuse,nlineuse)
-        if (nLineUse .gt. lmsec) call exitError(errString(1:lnblnk(errString)))
+        if (nLineUse .gt. lmsec) call exitError(trim(errString))
       endif
         
       do i = 1, nLineUse
         if (lineUse(i) .lt. 0 .or. lineUse(i) .ge. nxforms) then
           write(errString, '(a, a,i5)')error, ' NUMBER OUT OF BOUNDS:',
      &        lineUse(i)
-          call exitError(errString(1:lnblnk(errString)))
+          call exitError(trim(errString))
         endif
       enddo
       return
@@ -2265,6 +2180,9 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.65  2011/06/10 04:10:11  mast
+c       Added warping
+c
 c       Revision 3.64  2011/05/30 03:54:10  mast
 c       Fixed allocation of transforms so there are a minimum number and at least as
 c       many as total number of sections inall files
