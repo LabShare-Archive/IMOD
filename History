@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/16/11: Converted Makejoincom and Finishjoin to Python, modified Finishjoin
+and Maxjoinsize to handle warping transforms.
+
 6/9/11: Added ability to add and manipulate warping control points in Midas,
 and made Newstack, Xftoxg, Xfproduct, and Xfinverse handle warp transform
 files automatically in place of linear transform files.
