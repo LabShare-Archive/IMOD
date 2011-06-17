@@ -781,9 +781,154 @@ static int newGridLimits(int *nxGrid, float *xStart, float xInterval, int xdim, 
   return addlo;
 }
 
+#define ERR_RETURN(a) {                 \
+    strncpy(errString, a, lenString-1); \
+    return -2;                          \
+  }
+
+int readCheckWarpFile(char *filename, int needDist, int needInv, int *nx, int *ny, 
+                      int *nz, int *ibinning, float *pixelSize, int *iflags, 
+                      char *errString, int lenString)
+{
+  int iversion, ierr;
+  ierr = readWarpFile(filename, nx, ny, nz, ibinning, pixelSize, &iversion, iflags);
+  errString[lenString-1] = 0x00;
+  if (needDist) {
+    if (ierr < 0)
+      ERR_RETURN("OPENING OR READING DISTORTION FILE");
+    if (*iflags % 2 == 0)
+      ERR_RETURN("DISTORTION CORRECTION CAN BE DONE ONLY WITH INVERSE TRANSFORMS");
+    if ((*iflags / 2) % 2 != 0)
+      ERR_RETURN("DISTORTION CORRECTION CAN BE DONE ONLY WITH A WARPING GRID, "
+              "NOT CONTROL POINTS");
+  } else if (ierr < 0 && (iversion != 0 || ierr != -3)) {
+    if (ierr > -3)
+      ERR_RETURN("OPENING OR READING TRANSFORM FILE");
+    ERR_RETURN("INAPPROPRIATE VALUE OR MEMORY ERROR PROCESSING TRANSFORM FILE"
+               " AS A WARPING FILE (IT DOES NOT APPEAR TO BE A LINEAR TRANSFORM FILE)");
+  }
+  if (ierr < 0)
+    ierr = -1;
+  if (needInv && *iflags % 2 == 0)
+    ERR_RETURN("THIS PROGRAM WILL WORK ONLY WITH INVERSE WARP DISPLACEMENTS");
+  return ierr;
+}
+
+int findMaxGridSize(int nxwarp, int nywarp, int nzwarp, int controlPts, float xnbig,
+                    float ynbig, int *nControl, int *maxNxg, int *maxNyg, char *errString,
+                    int lenString)
+{
+  int iz, iy, nxGrid, nyGrid;
+  float yIntMin, xIntMin, xGridStrt, yGridStrt, xGridIntrv, yGridIntrv;
+  
+  xIntMin = 1.e20;
+  yIntMin = 1.e20;
+  *maxNxg = 0;
+  *maxNyg = 0;
+  for (iz = 0; iz < nzwarp; iz++) {
+    nControl[iz] = 4;
+    if (controlPts) {
+      if (getNumWarpPoints(iz, &nControl[iz]))
+        ERR_RETURN("GETTING NUMBER OF CONTROL POINTS");
+    }
+    if (nControl[iz] >= 3) {
+      if (controlPts) {
+        if (gridSizeFromSpacing(iz, -1., -1., 1)) 
+          ERR_RETURN("SETTING GRID SIZE FROM SPACING OF CONTROL POINTS");
+      }
+      if (getGridParameters(iz, &nxGrid, &nyGrid, &xGridStrt, &yGridStrt, &xGridIntrv,
+                            &yGridIntrv)) 
+        ERR_RETURN("GETTING GRID PARAMETERS");
+      xIntMin = B3DMIN(xIntMin, xGridIntrv);
+      yIntMin = B3DMIN(yIntMin, yGridIntrv);
+    }
+  }
+       
+  /* Allow the grid to be expanded to fit the actual image, at the minimum interval */
+  if (xIntMin < 1.e19) {
+    iz = B3DMAX(nxwarp, B3DNINT(xnbig));
+    iy = B3DMAX(nywarp, B3DNINT(ynbig));
+
+    *maxNxg = (int)ceil(iy / xIntMin) + 1;
+    *maxNyg = (int)ceil(iy / yIntMin) + 1;
+  }
+  return 0;
+}
+
+int getSizeAdjustedGrid(int iz, int nxwarp, int nywarp, int controlPts, float xnbig,
+                        float ynbig, float warpScale, int iBinning, int *nxGrid,
+                        int *nyGrid, float *xGridStrt, float *yGridStrt, 
+                        float *xGridIntrv, float *yGridIntrv, float *fieldDx,
+                        float *fieldDy, int ixgdim, int iygdim, char *errString, 
+                        int lenString)
+{
+  int ierr, i, iy;
+  float xBigDiff, yBigDiff, binRatio;
+
+  /* For control points, see if we need to expand the sampled grid */
+  if (controlPts) {
+    ierr = gridSizeFromSpacing(iz, -1., -1., 1);
+    ierr = getGridParameters(iz, nxGrid, nyGrid, xGridStrt, yGridStrt,
+                             xGridIntrv, yGridIntrv);
+    if (xnbig > nxwarp || ynbig > nywarp) {
+      i = B3DMAX(*nxGrid, B3DMIN(ixgdim, (int)ceil(xnbig / *xGridIntrv) + 1));
+      *xGridStrt = *xGridStrt - (i - *nxGrid) / 2.;
+      *nxGrid = i;
+      i = B3DMAX(*nyGrid, B3DMIN(iygdim, (int)ceil(ynbig / *yGridIntrv) + 1));
+      *yGridStrt = *yGridStrt - (i - *nyGrid) / 2.;
+      *nyGrid = i;
+      ierr = setGridSizeToMake(iz, *nxGrid, *nyGrid, *xGridStrt, *yGridStrt,
+                               *xGridIntrv, *yGridIntrv);
+    }
+  }
+  if (getWarpGrid(iz, nxGrid, nyGrid, xGridStrt, yGridStrt, xGridIntrv,
+                  yGridIntrv, fieldDx, fieldDy, ixgdim))
+    ERR_RETURN("GETTING WARP GRID");
+  xBigDiff = (xnbig - nxwarp) / 2.;
+  yBigDiff = (ynbig - nywarp) / 2.;
+
+  /* If images are not full field, adjust grid start by half the
+     difference between image and field size, still in warp file pixels */
+  *xGridStrt += xBigDiff;
+  *yGridStrt += yBigDiff;
+             
+  /* Then expand a grid to fill the space */
+  if (! controlPts) {
+    if (expandAndExtrapGrid(fieldDx, fieldDy, ixgdim, iygdim, nxGrid, nyGrid, xGridStrt,
+                            yGridStrt, *xGridIntrv, *yGridIntrv, 0., 0., xnbig, ynbig,
+                            B3DNINT(xnbig), B3DNINT(ynbig)))
+      ERR_RETURN("EXTRAPOLATING WARPING/DISTORTION GRID TO FULL AREA");
+  }
+  
+  /* Next adjust grid start and interval and field itself for the
+     overall binning or change of scale */
+  binRatio = warpScale / iBinning;
+  *xGridStrt *= binRatio;
+  *yGridStrt *= binRatio;
+  *xGridIntrv *= binRatio;
+  *yGridIntrv *= binRatio;
+
+  /* scale field */
+  for (iy = 0; iy < *nyGrid; iy++) {
+    for (i = 0; i < *nxGrid; i++) {
+      fieldDx[i + iy * ixgdim] *= binRatio;
+      fieldDy[i + iy * ixgdim] *= binRatio;
+    }
+  }
+  /*fprintf(stderr,"%d %d %f %f %f %f\n", *nxGrid, *nyGrid, *xGridStrt, *yGridStrt,
+          *xGridIntrv, *yGridIntrv);
+  for (i = 0; i < 6; i++)
+    fprintf(stderr," %.2f %.2f", fieldDx[i], fieldDy[i]);
+    puts(" "); */
+  return 0;
+}
+
 /*
 
 $Log$
+Revision 1.2  2011/06/10 04:07:15  mast
+A bunch of fixes after things were tested
+
 Revision 1.1  2011/05/26 22:28:41  mast
 Added to package
 
