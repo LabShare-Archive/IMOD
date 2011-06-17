@@ -122,8 +122,8 @@ be used to make the gap between two sections bigger than what would be
 provided by simply stacking all the slices from each file.  Without this
 option, values out of bounds are not allowed.
 
-[Field = TestMode]
-short = test
+[Field = NoImage]
+short = no
 type = B
 usage = Do not run anything that requires complete image files
 tooltip =
