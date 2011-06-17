@@ -4,6 +4,7 @@ LIBRARY      "libcfshr"
 
 EXPORTS
 	CUBINTERP
+	PipLinkedIndex
 	RSMADN
 	amoebaInit
 	PipGetFloat
@@ -71,6 +72,7 @@ EXPORTS
 	b3dRewind
 	PIPSETSPECIALFLAGS
 	XFCOPY
+	PIPSETLINKEDOPTION
 	ADOCREAD
 	AdocWrite
 	AdocSetKeyValue
@@ -113,6 +115,7 @@ EXPORTS
 	AdocGetIntegerArray
 	sliceSmoothOutPad
 	PIPGETERROR
+	PIPLINKEDINDEX
 	AdocSetInteger
 	RSSORTINDEXEDFLOATS
 	b3dGetError
@@ -131,6 +134,7 @@ EXPORTS
 	makeLinePointers
 	NORMALIZECOLUMNS
 	cubinterp
+	PipSetLinkedOption
 	findHistogramDip
 	fitSphere
 	c2fString

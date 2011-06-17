@@ -12,6 +12,7 @@ EXPORTS
 	getWarpPoints
 	get_normal_sede
 	istack_getentries
+	getSizeAdjustedGrid
 	SETLINEARTRANSFORM
 	lpi_interpolate_point
 	get_basis_sede
@@ -21,6 +22,7 @@ EXPORTS
 	delaunay_destroy
 	GRIDSIZEFROMSPACING
 	splay
+	READCHECKWARPFILE
 	off_out
 	istack_reset
 	epopen
@@ -83,6 +85,7 @@ EXPORTS
 	get_normal
 	extrapolateGrid
 	print_neighbor_snum
+	findMaxGridSize
 	GETNUMWARPPOINTS
 	ht_find
 	minell_destroy
@@ -113,6 +116,7 @@ EXPORTS
 	h_fg_far
 	printtree_flat
 	istack_push
+	FINDMAXGRIDSIZE
 	print_fg_alt
 	ht_insert
 	ht_create
@@ -150,6 +154,7 @@ EXPORTS
 	WRITEWARPFILE
 	visit_outside_ashape
 	new_block_Tree
+	GETSIZEADJUSTEDGRID
 	points_scale
 	print_site
 	nnpi_get_vertices
@@ -192,6 +197,7 @@ EXPORTS
 	print_basis
 	INTERPOLATEGRIDF
 	str2double
+	readCheckWarpFile
 	out_of_flat
 	print_point
 	mp_out
