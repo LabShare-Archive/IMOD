@@ -84,6 +84,19 @@ extern "C" {
                   float dmean, int linear, int linFirst, float *dxGrid, float *dyGrid,
                   int ixgDim, int nxGrid, float xGridStrt, float xGridIntrv, int nyGrid,
                   float yGridStrt, float yGridIntrv);
+  int readCheckWarpFile(char *filename, int needDist, int needInv, int *nx, int *ny, 
+                        int *nz, int *ibinning, float *pixelSize, int *iflags, 
+                        char *errString, int lenString);
+  int findMaxGridSize(int nxwarp, int nywarp, int nzwarp, int controlPts, float xnbig,
+                      float ynbig, int *nControl, int *maxNxg, int *maxNyg,
+                      char *errString, int lenString);
+  int getSizeAdjustedGrid(int iz, int nxwarp, int nywarp, int controlPts, float xnbig,
+                          float ynbig, float warpScale, int iBinning, int *nxGrid,
+                          int *nyGrid, float *xGridStrt, float *yGridStrt, 
+                          float *xGridIntrv, float *yGridIntrv, float *fieldDx,
+                          float *fieldDy, int ixgdim, int iygdim, char *errString, 
+                          int lenString);
+
 
 #ifdef __cplusplus
 }
