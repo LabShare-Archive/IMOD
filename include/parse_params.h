@@ -50,6 +50,8 @@ void PipAllowCommaDefaults(int val);
 void PipSetManpageOutput(int val);
 void PipEnableEntryOutput(int val);
 void PipPrintEntries();
+int PipSetLinkedOption(char *option);
+int PipLinkedIndex(char *option, int *index);
 void PipSetSpecialFlags(int inCase, int inDone, int inStd, int inLines, 
                         int inAbbrevs);
 int PipReadStdinIfSet(void);
@@ -70,6 +72,9 @@ int PipGetLineOfValues(char *option, char *strPtr, void *array, int valType,
 
 /*
 $Log$
+Revision 3.10  2009/12/04 20:31:33  mast
+Printing entry addition
+
 Revision 3.9  2007/08/03 16:40:04  mast
 Fixes for clean compile
 
