@@ -12,6 +12,7 @@
 #include "b3dutil.h"
 #include "warpfiles.h"
 #include "imodconfig.h"
+#include <string.h>
 
 /* NOTE that all wrappers subtract 1 from iz and omit rows arguments */
 
@@ -42,6 +43,9 @@
 #define multiplywarpings MULTIPLYWARPINGS
 #define expandandextrapgrid EXPANDANDEXTRAPGRID
 #define warpinterp WARPINTERP
+#define readcheckwarpfile READCHECKWARPFILE
+#define findmaxgridsize FINDMAXGRIDSIZE
+#define getsizeadjustedgrid GETSIZEADJUSTEDGRID
 #else
 #define newwarpfile newwarpfile_
 #define setcurrentwarpfile setcurrentwarpfile_
@@ -69,6 +73,9 @@
 #define multiplywarpings multiplywarpings_
 #define expandandextrapgrid expandandextrapgrid_
 #define warpinterp warpinterp_
+#define readcheckwarpfile readcheckwarpfile_
+#define findmaxgridsize findmaxgridsize_
+#define getsizeadjustedgrid getsizeadjustedgrid_
 #endif
 
 
@@ -259,4 +266,63 @@ void warpinterp(float *array, float *bray, int *nxa, int *nya, int *nxb, int *ny
   warpInterp(array, bray, *nxa, *nya, *nxb, *nyb, amat, *xc, *yc, *xt, *yt, *scale,
              *dmean, *linear, *linFirst, dxGrid, dyGrid, *ixgDim, *nxGrid, *xGridStrt, 
              *xGridIntrv, *nyGrid, *yGridStrt, *yGridIntrv);
+}
+
+static void padError(char *errString, int errlen)
+{
+  int i;
+  for (i = errlen - 1; i >= 0; i--) {
+    if (!errString[i])
+      errString[i] = ' ';
+    else
+      break;
+  }
+}
+
+int readcheckwarpfile(char *filename, int *needDist, int *needInv, int *nx, int *ny, 
+                      int *nz, int *ibinning, float *pixelSize, int *iflags, 
+                      char *errString, int namelen, int errlen)
+{
+  int err;
+  char *cname = f2cString(filename, namelen);
+  if (!cname) {
+    errString[errlen-1] = 0x00;
+    strncpy(errString, "FAILED TO ALLOCATE C STRING", errlen-1);
+    err = -1;
+  } else {
+    err = readCheckWarpFile(cname, *needDist, *needInv, nx, ny, nz, ibinning, pixelSize, 
+                            iflags, errString, errlen);
+    free(cname);
+  }
+  if (err)
+    padError(errString, errlen);
+  return err;
+}
+
+int findmaxgridsize(int *nxwarp, int *nywarp, int *nzwarp, int *controlPts, float *xnbig,
+                    float *ynbig, int *nControl, int *maxNxg, int *maxNyg,
+                    char *errString, int errlen)
+{
+  int err = findMaxGridSize(*nxwarp, *nywarp, *nzwarp, *controlPts, *xnbig, *ynbig,
+                            nControl, maxNxg, maxNyg, errString, errlen);
+  
+  if (err)
+    padError(errString, errlen);
+  return err;
+}
+
+int getsizeadjustedgrid(int *iz, int *nxwarp, int *nywarp, int *controlPts, float *xnbig,
+                        float *ynbig, float *warpScale, int *iBinning, int *nxGrid,
+                        int *nyGrid, float *xGridStrt, float *yGridStrt, 
+                        float *xGridIntrv, float *yGridIntrv, float *fieldDx,
+                        float *fieldDy, int *ixgdim, int *iygdim, char *errString, 
+                        int errlen)
+{
+  int err = getSizeAdjustedGrid(*iz-1, *nxwarp, *nywarp, *controlPts, *xnbig, *ynbig,
+                                *warpScale, *iBinning, nxGrid, nyGrid, xGridStrt,
+                                yGridStrt, xGridIntrv, yGridIntrv, fieldDx, fieldDy,
+                                *ixgdim, *iygdim, errString, errlen);
+  if (err)
+    padError(errString, errlen);
+  return err;
 }
