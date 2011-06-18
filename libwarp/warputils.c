@@ -849,7 +849,7 @@ int findMaxGridSize(int nxwarp, int nywarp, int nzwarp, int controlPts, float xn
     iz = B3DMAX(nxwarp, B3DNINT(xnbig));
     iy = B3DMAX(nywarp, B3DNINT(ynbig));
 
-    *maxNxg = (int)ceil(iy / xIntMin) + 1;
+    *maxNxg = (int)ceil(iz / xIntMin) + 1;
     *maxNyg = (int)ceil(iy / yIntMin) + 1;
   }
   return 0;
@@ -926,6 +926,9 @@ int getSizeAdjustedGrid(int iz, int nxwarp, int nywarp, int controlPts, float xn
 /*
 
 $Log$
+Revision 1.4  2011/06/17 21:06:17  mast
+Needed an else in the checker routine
+
 Revision 1.3  2011/06/17 05:47:10  mast
 Add routines for common fortran tasks
 
