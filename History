@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/17/11: Converted eTomo to handle the Python versions of Makejoincom and Finishjoin.
+(Bug# 1494)
+
 6/16/11: Converted Makejoincom and Finishjoin to Python, modified Finishjoin
 and Maxjoinsize to handle warping transforms.
 
