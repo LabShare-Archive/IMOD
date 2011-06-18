@@ -41,6 +41,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.45  2011/05/10 16:49:36  sueh
+ * <p> bug# 1482 Changed getSubcommandProcessName to return a string so that the root name chould be set to
+ * <p> subcommandProcessName.
+ * <p>
  * <p> Revision 1.44  2011/02/22 03:13:18  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -286,12 +290,17 @@ public final class FinishjoinParam implements CommandDetails {
         System.err.print("SUPPRESS_EXECUTION:");
       }
     }
-    commandArray = new String[options.size() + 3];
-    commandArray[0] = "tcsh";
+    int commandSize = 4;
+    commandArray = new String[options.size() + commandSize];
+    /*commandArray[0] = "tcsh";
     commandArray[1] = "-f";
-    commandArray[2] = BaseManager.getIMODBinPath() + COMMAND_NAME;
+    commandArray[2] = BaseManager.getIMODBinPath() + COMMAND_NAME;*/
+    commandArray[0] = "bash";
+    commandArray[1] = BaseManager.getIMODBinPath() + "runpyscript";
+    commandArray[2] = "-P";
+    commandArray[3] = COMMAND_NAME;
     for (int i = 0; i < options.size(); i++) {
-      commandArray[i + 3] = (String) options.get(i);
+      commandArray[i + commandSize] = (String) options.get(i);
     }
     if (debug >= 1) {
       StringBuffer buffer = new StringBuffer();
@@ -489,7 +498,7 @@ public final class FinishjoinParam implements CommandDetails {
    */
   private ArrayList genOptions() {
     ArrayList options = new ArrayList();
-    options.add("-P");
+    //options.add("-P");
     ConstJoinMetaData metaData = manager.getConstMetaData();
     if (metaData.isUseAlignmentRefSection()) {
       alignmentRefSection = new EtomoNumber(metaData.getAlignmentRefSection());
@@ -554,7 +563,7 @@ public final class FinishjoinParam implements CommandDetails {
    */
   private ArrayList genRejoinOptions() {
     ArrayList options = new ArrayList();
-    options.add("-P");
+    //options.add("-P");
     ConstJoinState state = manager.getState();
     boolean trial = state.getRefineTrial().is();
     if (!state.getJoinAlignmentRefSection(trial).isNull()) {
@@ -586,8 +595,8 @@ public final class FinishjoinParam implements CommandDetails {
       options.add("-t");
       useEveryNSlices = new EtomoNumber(metaData.getRejoinUseEveryNSlices());
       options.add(useEveryNSlices.toString());
-      ScriptParameter rejoinBinning = new ScriptParameter(metaData
-          .getRejoinTrialBinningParameter());
+      ScriptParameter rejoinBinning = new ScriptParameter(
+          metaData.getRejoinTrialBinningParameter());
       if (rejoinBinning.isNotNullAndNotDefault()) {
         options.add("-b");
         options.add(rejoinBinning.toString());
