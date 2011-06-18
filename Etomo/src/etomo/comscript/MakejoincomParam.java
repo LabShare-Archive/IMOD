@@ -44,6 +44,10 @@ import etomo.util.DatasetFiles;
  * <p> </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.36  2011/05/10 16:49:36  sueh
+ * <p> bug# 1482 Changed getSubcommandProcessName to return a string so that the root name chould be set to
+ * <p> subcommandProcessName.
+ * <p>
  * <p> Revision 1.35  2011/02/22 03:15:50  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -244,8 +248,10 @@ public final class MakejoincomParam implements CommandDetails {
     this.manager = manager;
     ArrayList options = genOptions();
     commandArray = new String[options.size() + commandSize];
-    commandArray[0] = "tcsh";
-    commandArray[1] = "-f";
+    commandArray[0] = "python";
+    commandArray[1] = "-u";
+    //commandArray[0] = "tcsh";
+    //commandArray[1] = "-f";
     commandArray[2] = BaseManager.getIMODBinPath() + commandName;
     for (int i = 0; i < options.size(); i++) {
       commandArray[i + commandSize] = (String) options.get(i);
