@@ -17,7 +17,6 @@ import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -61,6 +60,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2011/05/05 01:29:29  sueh
+ * <p> bug# 1396  Popping up an error message and failing when the dataset directory ends in a space.
+ * <p>
  * <p> Revision 1.3  2011/04/22 02:16:45  sueh
  * <p> bug# 1474 Handling NullRequiredNumberException in action() when setSizeAndShift is called.
  * <p>
@@ -1285,7 +1287,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlFinishJoin.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     //first component
     cbsAlignmentRefSection = new CheckBoxSpinner("Reference section for alignment: ");
-    SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1, numSections < 1 ? 1
+    SpinnerNumberModel spinnerModel = new SpinnerNumberModel(1, 1, numSections < 1 ? 1
         : numSections, 1);
     cbsAlignmentRefSection.setModel(spinnerModel);
     cbsAlignmentRefSection.setMaximumSize(dimSpinner);
@@ -1540,7 +1542,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     ltfSigmaHighFrequency.setText(metaData.getSigmaHighFrequency().toString());
     tcAlign.set(metaData.getAlignTransform());
     cbsAlignmentRefSection.setSelected(metaData.isUseAlignmentRefSection());
-    cbsAlignmentRefSection.setValue(metaData.getAlignmentRefSection().getNumber());
+    cbsAlignmentRefSection.setValue(metaData.getAlignmentRefSection().getInt());
     ltfShiftInX.setText(metaData.getShiftInX().toString());
     ltfShiftInY.setText(metaData.getShiftInY().toString());
     spinUseEveryNSlices.setValue(metaData.getUseEveryNSlices());
