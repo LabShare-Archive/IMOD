@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.44  2011/06/01 17:57:25  sueh
+ * <p> Bug# 1490 In genOptions changed -s to -sz.  Also modified the command to work with runpyscript.
+ * <p>
  * <p> Revision 3.43  2011/05/10 16:49:36  sueh
  * <p> bug# 1482 Changed getSubcommandProcessName to return a string so that the root name chould be set to
  * <p> subcommandProcessName.
@@ -222,13 +225,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Properties;
 
 import etomo.BaseManager;
+import etomo.logic.TrimvolInputFileState;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
-import etomo.type.BaseMetaData;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoNumber;
@@ -295,118 +297,28 @@ public class TrimvolParam implements CommandDetails {
     return axisID;
   }
 
-  /**
-   *  Insert the objects attributes into the properties object.
-   */
-  public void store(Properties props) {
-    store(props, "");
-  }
-
-  public void store(Properties props, String prepend) {
-    String group;
-    prepend += PARAM_ID;
-    group = prepend + ".";
-    props.setProperty(prepend + "." + VERSION_KEY, VERSION);
-    xMin.store(props, prepend);
-    xMax.store(props, prepend);
-    yMin.store(props, prepend);
-    yMax.store(props, prepend);
-    zMin.store(props, prepend);
-    zMax.store(props, prepend);
-    props.setProperty(group + CONVERT_TO_BYTES, String.valueOf(convertToBytes));
-    props.setProperty(group + FIXED_SCALING, String.valueOf(fixedScaling));
-    props.setProperty(group + FLIPPED_VOLUME, String.valueOf(flippedVolume));
-    sectionScaleMin.store(props, prepend);
-    sectionScaleMax.store(props, prepend);
-    fixedScaleMax.store(props, prepend);
-    fixedScaleMin.store(props, prepend);
-    fixedScaleMax.store(props, prepend);
-    props.setProperty(group + swapYZString, String.valueOf(swapYZ));
-    props.setProperty(group + ROTATE_X_KEY, String.valueOf(rotateX));
-    props.setProperty(group + INPUT_FILE, inputFile);
-    props.setProperty(group + OUTPUT_FILE, outputFile);
-    scaleXYParam.store(props, prepend);
-  }
-
-  /**
-   *  Get the objects attributes from the properties object.
-   */
-  public void load(Properties props) {
-    load(props, "");
-  }
-
-  public void load(Properties props, String prepend) {
-    String group;
-    prepend += PARAM_ID;
-    group = prepend + ".";
-    /* if (prepend == "") {
-     group = PARAM_ID + ".";
-     }
-     else {
-     group = prepend + PARAM_ID + ".";
-     }*/
-    oldVersion = props.getProperty(group + VERSION_KEY) == null;
-    // Load the trimvol values if they are present, don't change the
-    // current value if the property is not present
-    xMin.loadIfPresent(props, prepend);
-    xMax.loadIfPresent(props, prepend);
-    yMin.loadIfPresent(props, prepend);
-    yMax.loadIfPresent(props, prepend);
-    zMin.loadIfPresent(props, prepend);
-    zMax.loadIfPresent(props, prepend);
-    convertToBytes = Boolean.valueOf(
-        props.getProperty(group + CONVERT_TO_BYTES, Boolean.toString(convertToBytes)))
-        .booleanValue();
-
-    fixedScaling = Boolean.valueOf(
-        props.getProperty(group + FIXED_SCALING, Boolean.toString(fixedScaling)))
-        .booleanValue();
-    flippedVolume = Boolean.valueOf(
-        props.getProperty(group + FLIPPED_VOLUME, Boolean.toString(flippedVolume)))
-        .booleanValue();
-    sectionScaleMin.load(props, prepend);
-    sectionScaleMax.load(props, prepend);
-    fixedScaleMin.load(props, prepend);
-    fixedScaleMax.load(props, prepend);
-
-    swapYZ = Boolean.valueOf(
-        props.getProperty(group + swapYZString, Boolean.toString(swapYZ))).booleanValue();
-
-    rotateX = Boolean.valueOf(
-        props.getProperty(group + ROTATE_X_KEY, Boolean.toString(rotateX)))
-        .booleanValue();
-
-    inputFile = props.getProperty(group + INPUT_FILE, inputFile);
-
-    outputFile = props.getProperty(group + OUTPUT_FILE, outputFile);
-    scaleXYParam.load(props, prepend);
-    convertOldVersions();
-  }
-
-  private void convertOldVersions() {
-    if (!oldVersion) {
-      return;
-    }
+  public static void convertIndexCoordsToImodCoords(final EtomoNumber xMin,
+      final EtomoNumber xMax, final EtomoNumber yMin, final EtomoNumber yMax) {
     //In the old version, scale x and y min and max had been converted to index
     //coords.  In the current version, they should be imod coords.
     //shift X
     int min;
     int max;
     int shift;
-    if (!scaleXYParam.getXMin().isNull()) {
-      min = scaleXYParam.getXMin().getInt();
-      max = scaleXYParam.getXMax().getInt();
+    if (!xMin.isNull()) {
+      min = xMin.getInt();
+      max = xMax.getInt();
       shift = getScaleShift(min, max);
-      scaleXYParam.setXMin(min + shift);
-      scaleXYParam.setXMax(max + shift);
+      xMin.set(min + shift);
+      xMax.set(max + shift);
     }
     //shift Y
-    if (!scaleXYParam.getYMin().isNull()) {
-      min = scaleXYParam.getYMin().getInt();
-      max = scaleXYParam.getYMax().getInt();
+    if (!yMin.isNull()) {
+      min = yMin.getInt();
+      max = yMax.getInt();
       shift = getScaleShift(min, max);
-      scaleXYParam.setYMin(min + shift);
-      scaleXYParam.setYMax(max + shift);
+      yMin.set(min + shift);
+      yMax.set(max + shift);
     }
   }
 
@@ -418,7 +330,7 @@ public class TrimvolParam implements CommandDetails {
    * @param max
    * @return
    */
-  private int getScaleShift(int min, int max) {
+  static int getScaleShift(int min, int max) {
     //Possibilities:
     //min and max may be reduced by 1 or more
     //min and max may not be reduced at all
@@ -790,74 +702,56 @@ public class TrimvolParam implements CommandDetails {
    * @throws InvalidParameterException
    * @throws IOException
    */
-  public void setDefaultRange(TomogramState state, boolean dialogExists)
-      throws InvalidParameterException, IOException {
-    // Get the data size limits from the image stack
-    BaseMetaData metaData = manager.getBaseMetaData();
-    MRCHeader mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        TrimvolParam.getInputFileName(metaData.getAxisType(), metaData.getName()),
-        AxisID.ONLY);
-    if (!mrcHeader.read(manager)) {
-      throw new IOException("file does not exist");
-    }
+  public void setDefaultRange(TrimvolInputFileState inputFileState, boolean dialogExists) {
     //Don't override existing values unless the size of the trimvol input file
     //has changed since the last time trimvol was run.
-    if (dialogExists && xMin.getInt() != Integer.MIN_VALUE
-        && !hasInputFileSizeChanged(mrcHeader, state)) {
+    if (dialogExists && xMin.getInt() != Integer.MIN_VALUE && !inputFileState.isChanged()) {
       return;
     }
     //Refresh X and Y together.  Refresh Z separately.
     //Make sure that the dialog is refreshed the first time the dialog is
     //displayed.  Also fix any null values that may have appeared.  This is
     //done because there was a bug which caused null values.
-    if (!dialogExists || nColumnsChanged || ((swapYZ || rotateX) && nSectionsChanged)
-        || !swapYZ && !rotateX && nRowsChanged) {
+    if (!dialogExists || inputFileState.isNColumnsChanged()
+        || inputFileState.isNRowsChanged()) {
       xMin.set(1);
-      xMax.set(mrcHeader.getNColumns());
+      xMax.set(inputFileState.getNColumns());
     }
     else {
       if (xMin.isNull()) {
         xMin.set(1);
       }
       if (xMax.isNull()) {
-        xMax.set(mrcHeader.getNColumns());
+        xMax.set(inputFileState.getNColumns());
       }
     }
-    if (!dialogExists || nRowsChanged) {
+    if (!dialogExists || inputFileState.isNRowsChanged()) {
       yMin.set(1);
-      yMax.set(mrcHeader.getNRows());
+      yMax.set(inputFileState.getNRows());
     }
     else {
       if (yMin.isNull()) {
         yMin.set(1);
       }
       if (yMax.isNull()) {
-        yMax.set(mrcHeader.getNRows());
+        yMax.set(inputFileState.getNRows());
       }
     }
-    if (!dialogExists || nSectionsChanged) {
+    if (!dialogExists || inputFileState.isNSectionsChanged()) {
       zMin.set(1);
-      zMax.set(mrcHeader.getNSections());
+      zMax.set(inputFileState.getNSections());
     }
     else {
       if (zMin.isNull()) {
         zMin.set(1);
       }
       if (zMax.isNull()) {
-        zMax.set(mrcHeader.getNSections());
+        zMax.set(inputFileState.getNSections());
       }
     }
-
-    // Check the swapped YZ state or rotateX state to decide which dimension to use for the 
-    // section range
-    if (swapYZ || rotateX) {
-      sectionScaleMin.set(yMax.getInt() / 3);
-      sectionScaleMax.set(yMax.getInt() * 2 / 3);
-    }
-    else {
-      sectionScaleMin.set(zMax.getInt() / 3);
-      sectionScaleMax.set(zMax.getInt() * 2 / 3);
-    }
+    //zMax always contains the number of sections.
+    sectionScaleMin.set(zMax.getInt() / 3);
+    sectionScaleMax.set(zMax.getInt() * 2 / 3);
   }
 
   /**
