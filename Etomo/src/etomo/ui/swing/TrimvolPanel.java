@@ -13,10 +13,13 @@ import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
 import etomo.comscript.TrimvolParam;
+import etomo.logic.TrimvolInputFileState;
 import etomo.process.ImodManager;
 import etomo.type.AxisID;
+import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.InvalidEtomoNumberException;
+import etomo.type.MetaData;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 
@@ -33,6 +36,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 21:42:11  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:35  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -415,43 +421,72 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
     return pnlTrimvol;
   }
 
-  /**
-   * Set the panel values with the specified parameters
-   * @param trimvolParam
-   */
-  void setParameters(TrimvolParam trimvolParam) {
-    volumeRangePanel.setParameters(trimvolParam);
-    if (trimvolParam.isSwapYZ()) {
+  void setParameters(final TrimvolParam param) {
+    //volumeRangePanel.setParameters(param);
+    if (param.isSwapYZ()) {
       rbSwapYZ.setSelected(true);
     }
-    else if (trimvolParam.isRotateX()) {
+    else if (param.isRotateX()) {
       rbRotateX.setSelected(true);
     }
     else {
       rbNone.setSelected(true);
     }
 
-    cbConvertToBytes.setSelected(trimvolParam.isConvertToBytes());
-    if (trimvolParam.isFixedScaling()) {
-      ltfFixedScaleMin.setText(trimvolParam.getFixedScaleMin());
-      ltfFixedScaleMax.setText(trimvolParam.getFixedScaleMax());
+    cbConvertToBytes.setSelected(param.isConvertToBytes());
+    if (param.isFixedScaling()) {
       rbScaleFixed.setSelected(true);
     }
     else {
-      ltfSectionScaleMin.setText(trimvolParam.getSectionScaleMin());
-      ltfSectionScaleMax.setText(trimvolParam.getSectionScaleMax());
+      ltfSectionScaleMin.setText(param.getSectionScaleMin());
+      ltfSectionScaleMax.setText(param.getSectionScaleMax());
+      rbScaleSection.setSelected(true);
+    }
+    volumeRangePanel.setParameters(param);
+    pnlScaleRubberband.setScaleParameters(param);
+    setScaleState();
+  }
+
+  /**
+   * Set the panel values with the specified parameters
+   * @param trimvolParam
+   */
+  void setParameters(final ConstMetaData metaData, final boolean dialogExists) {
+    if (!dialogExists) {
+      //TrimvolParam can calculate the initial values, while metaData would have nothing
+      //from this panel if the dialog hadn't been created yet.
+      return;
+    }
+    volumeRangePanel.setParameters(metaData);
+    if (metaData.isPostTrimvolSwapYZ()) {
+      rbSwapYZ.setSelected(true);
+    }
+    else if (metaData.isPostTrimvolRotateX()) {
+      rbRotateX.setSelected(true);
+    }
+    else {
+      rbNone.setSelected(true);
+    }
+
+    cbConvertToBytes.setSelected(metaData.isPostTrimvolConvertToBytes());
+    if (metaData.isPostTrimvolFixedScaling()) {
+      ltfFixedScaleMin.setText(metaData.getPostTrimvolFixedScaleMin());
+      ltfFixedScaleMax.setText(metaData.getPostTrimvolFixedScaleMax());
+      rbScaleFixed.setSelected(true);
+    }
+    else {
+      ltfSectionScaleMin.setText(metaData.getPostTrimvolSectionScaleMin());
+      ltfSectionScaleMax.setText(metaData.getPostTrimvolSectionScaleMax());
       rbScaleSection.setSelected(true);
     }
     setScaleState();
-    pnlScaleRubberband.setParameters(trimvolParam.getScaleXYParam());
-    boolean nColumnsChanged = trimvolParam.isNColumnsChanged();
-    boolean nRowsChanged = trimvolParam.isNRowsChanged();
-    boolean nSectionsChanged = trimvolParam.isNSectionsChanged();
+    pnlScaleRubberband.setParameters(metaData);
+  }
 
+  void setStartupWarnings(final TrimvolInputFileState inputFileState) {
     //set warning
-    //  Y and Z  are swapped to present the user with Z as the depth domain
-    if (nColumnsChanged || nSectionsChanged) {
-      if (nRowsChanged) {
+    if (inputFileState.isNColumnsChanged() || inputFileState.isNRowsChanged()) {
+      if (inputFileState.isNSectionsChanged()) {
         warning.setText("Min and max values have been restored to defaults");
       }
       else {
@@ -459,7 +494,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
       }
     }
     else {
-      if (nRowsChanged) {
+      if (inputFileState.isNSectionsChanged()) {
         warning.setText("Z values have been restored to defaults");
       }
       else {
@@ -468,12 +503,29 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
     }
   }
 
+  public void getParameters(final MetaData metaData) {
+    volumeRangePanel.getParameters(metaData);
+    metaData.setPostTrimvolSwapYZ(rbSwapYZ.isSelected());
+    metaData.setPostTrimvolRotateX(rbRotateX.isSelected());
+    metaData.setPostTrimvolConvertToBytes(cbConvertToBytes.isSelected());
+    metaData.setPostTrimvolFixedScaling(rbScaleFixed.isSelected());
+    metaData.setPostTrimvolFixedScaleMin(ltfFixedScaleMin.getText());
+    metaData.setPostTrimvolFixedScaleMax(ltfFixedScaleMax.getText());
+    metaData.setPostTrimvolSectionScaleMin(ltfSectionScaleMin.getText());
+    metaData.setPostTrimvolSectionScaleMax(ltfSectionScaleMax.getText());
+    //get the xyParam and set the values in it
+    pnlScaleRubberband.getParameters(metaData);
+  }
+
   /**
    * Get the parameter values from the panel 
    * @param trimvolParam
    */
   public boolean getParameters(TrimvolParam trimvolParam) {
     volumeRangePanel.getParameters(trimvolParam);
+    //Assume volume is flipped and set flipped - this means that Y and Z don't have to be
+    //swapped when setting them.
+    trimvolParam.setFlippedVolume(true);
     trimvolParam.setSwapYZ(rbSwapYZ.isSelected());
     trimvolParam.setRotateX(rbRotateX.isSelected());
 
@@ -525,7 +577,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
       }
     }
     //get the xyParam and set the values in it
-    pnlScaleRubberband.getParameters(trimvolParam.getScaleXYParam());
+    pnlScaleRubberband.getScaleParameters(trimvolParam);
     return true;
   }
 
