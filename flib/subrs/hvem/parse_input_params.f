@@ -23,7 +23,7 @@ c
       character separator
       integer*4 numOptArg, numOptions, numNonOptArg
       integer*4 PipInitialize, PipAddOption, PipParseEntries
-      integer*4 i, lnblnk, j, indStr, indEnd, lenAll
+      integer*4 i, j, indStr, indEnd, lenAll
 c       
 c       initialize then pass the options one by one
 c       
@@ -39,7 +39,7 @@ c
 c         if options are all in one string with a separator
 c         
         indStr = 1
-        lenAll = lnblnk(options(1))
+        lenAll = len_trim(options(1))
         do i = 1, numOptions
           j = indStr
           indEnd = 0
@@ -72,7 +72,7 @@ c
       integer bufferSize
       parameter (bufferSize = 1024)
       integer*4 numOptArg, numNonOptArg
-      integer*4 iargc, i, lnblnk
+      integer*4 iargc, i
       integer*4 PipNextArg,PipReadStdinIfSet
       character*(bufferSize) string
 c       
@@ -80,7 +80,7 @@ c       pass the arguments in one by one
 c       
       do i = 1, iargc()
         call getarg(i, string)
-        if (lnblnk(string) .eq. bufferSize) then
+        if (len_trim(string) .eq. bufferSize) then
           call PipSetError(
      &        'Input argument too long for buffer in PipParseEntries')
           PipParseEntries = -1
@@ -236,8 +236,7 @@ c       prefix set by calling setExitPrefix
       character*(*) message
       character*32 prefix
       common /exitprefix/ prefix
-      integer*4 lnblnk
-      write(*,'(/,a,a,a)')prefix(1:lnblnk(prefix)),' ',message
+      write(*,'(/,a,a,a)')trim(prefix),' ',trim(message)
       call exit(1)
       end
 
@@ -261,6 +260,9 @@ c       prefix set by calling setExitPrefix
       
 c       
 c       $Log$
+c       Revision 3.15  2011/05/27 04:30:30  mast
+c       Added a PipExitOnError that takes care of setting exit prefix here too
+c
 c       Revision 3.14  2011/02/25 22:20:02  mast
 c       Changed fallback warning to be generic
 c
