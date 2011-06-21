@@ -30,27 +30,28 @@ c
       character*80 titlech
       data nxyzst / 0,0,0 /
       integer*4 limarr,mode,i,nasec,maxLines,numChunks, iChunk,numLines,ierr
-      real*4 dmin,dmax,dmean,dsum,tmin,tmax
+      real*4 dmin,dmax,dmean,dsum,tmin,tmax,realMin, realMax
       real*4 cmin,cmax,tmean,sd,lowThresh, highThresh
-      real*8 totpix,tsum,tsumsq,sdsum,sdsumsq,sum,sumsq,diffMean
+      real*8 totpix,tsum,tsumsq,sdsum,sdsumsq,sum,sumsq,diffMean,realSum
       integer*4 modeOut,ifZeroMean, ifLowThresh, ifHighThresh
+      integer*4 minXstat, minYstat, maxXstat, maxYstat, lineStart, iyst, iynd
 
       logical pipinput
       integer*4 numOptArg, numNonOptArg
-      integer*4 PipGetString,PipGetInteger,PipGetFloat
+      integer*4 PipGetString,PipGetInteger,PipGetFloat,PipGetTwoIntegers
       integer*4 PipGetInOutFile
 c       
 c       fallbacks from ../../manpages/autodoc2man -2 2  subimage
 c       
       integer numOptions
-      parameter (numOptions = 11)
+      parameter (numOptions = 13)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'afile:AFileSubtractFrom:FN:@bfile:BFileSubtractOff:FN:@'//
-     &    'output:OutputFile:FN:@mode:ModeOfOutput:I:@'//
-     &    'asections:ASectionList:LI:@bsections:BSectionList:LI:@'//
-     &    'zero:ZeroMeanOutput:B:@lower:LowerThreshold:F:@'//
-     &    'upper:UpperThreshold:F:@param:ParameterFile:PF:@help:usage:B:'
+     &    'output:OutputFile:FN:@mode:ModeOfOutput:I:@asections:ASectionList:LI:@'//
+     &    'bsections:BSectionList:LI:@zero:ZeroMeanOutput:B:@lower:LowerThreshold:F:@'//
+     &    'upper:UpperThreshold:F:@xstats:StatisticsXminAndMax:IP:@'//
+     &    'ystats:StatisticsYminAndMax:IP:@param:ParameterFile:PF:@help:usage:B:'
 
       limarr = maxarr**2
       cfile = ' '
@@ -119,7 +120,18 @@ c         ierr = PipGetInteger('TestLimit', limarr)
       if (nasec.ne.nbsec)call exitError('NUMBER OF SECTIONS DOES NOT MATCH')
       ierr = PipGetInOutFile('OutputFile', 3,
      &    'Name of file C, or return for statistics only', cfile)
-      call PipDone()
+
+      minXstat = 0
+      minYstat = 0
+      maxXstat = nx - 1
+      maxYstat = ny - 1
+      if (pipinput) then
+        ierr = PipGetTwoIntegers('StatisticsXminAndMax', minXstat, maxXstat)
+        ierr = PipGetTwoIntegers('StatisticsYminAndMax', minYstat, maxYstat)
+        if (minXstat < 0 .or. maxXstat .ge. nx .or. minXstat .ge. maxXstat .or.
+     &      minYstat < 0 .or. maxYstat .ge. ny .or. minYstat .ge. maxYstat) call exitError
+     &      ('COORDINATES FOR GETTING STATISTICS ARE OUT OF RANGE')
+      endif
 
       call ialprt(.true.)
       call imopen(2,bfile,'ro')
@@ -129,6 +141,7 @@ c         ierr = PipGetInteger('TestLimit', limarr)
 
       if(nxyz2(1).ne.nx.or.nxyz(2).ne.ny)
      &    call exitError( 'IMAGE SIZES DO NOT MATCH')
+      call PipDone()
 
       do i=1,nasec
         asec=listasec(i)
@@ -147,6 +160,9 @@ c         ierr = PipGetInteger('TestLimit', limarr)
       dsum=0.
       sdsum=0.
       sdsumsq=0.
+      realSum = 0.
+      realMin = 1.e37
+      realMax = -realMin
       print *,'Section      Min            Max            Mean'//
      &    '           S.D.'
       maxLines = limarr / nx
@@ -181,7 +197,8 @@ c         Get mean difference if needed
         tmin = 1.e37
         tmax = -tmin
         do iChunk = 1, numChunks
-          numLines = min(maxLines, ny - (iChunk - 1) * maxLines)
+          lineStart = (iChunk - 1) * maxLines
+          numLines = min(maxLines, ny - lineStart)
           call irdsecl(1,array, numLines, *100) 
           call irdsecl(2,brray, numLines, *100) 
 
@@ -208,12 +225,27 @@ c           --- Write out the difference  ---
 c           call iclden(array,nx,ny,1,nx,1,ny,tmin,tmax,tmean)
           call iclavgsd(array,nx,numLines,1,nx,1,numLines,cmin,cmax,
      &        tsum,tsumsq,tmean,sd)
-          sum = sum + tsum
-          sumsq = sumsq + tsumsq
-          tmin = min(tmin,cmin)
-          tmax = max(tmax,cmax)
+          realSum = realSum + tsum
+          realMin = min(realMin, cmin)
+          realMax = max(realMax, cmax)
+          if (lineStart .le. maxYstat .and. lineStart + numLines - 1 .ge. minYstat) then
+c             
+c             Add to stats if within Y range, replace temporary stats if it is subarea
+            if (minXstat .gt. 0 .or. maxXstat .lt. nx - 1 .or. minYstat .gt. 0 .or.
+     &          maxYstat .lt. ny - 1) then
+              iyst = max(minYstat - lineStart, 0) + 1
+              iynd = min(maxYstat - lineStart, numLines - 1) + 1
+              call iclavgsd(array,nx,numLines,minXstat+1,maxXstat+1,iyst,iynd,cmin,cmax,
+     &            tsum,tsumsq,tmean,sd)
+            endif
+            sum = sum + tsum
+            sumsq = sumsq + tsumsq
+            tmin = min(tmin,cmin)
+            tmax = max(tmax,cmax)
+          endif
         enddo
-        call sums_to_avgsd8(sum, sumsq, nx, ny, tmean, sd)
+        call sums_to_avgsd8(sum, sumsq, maxXstat + 1 - minXstat, maxYstat + 1 - minYstat,
+     &      tmean, sd)
         write(6,4000)asec,tmin,tmax,tmean,sd
         sdsum=sdsum+sum
         sdsumsq=sdsumsq+sumsq
@@ -232,12 +264,14 @@ c           call iclden(array,nx,ny,1,nx,1,ny,tmin,tmax,tmean)
       dmean=dsum/nasec
 c       
       totpix=float(nasec)
-      totpix=nx*ny*totpix
+      totpix=(maxXstat + 1 - minXstat) * (maxYstat + 1 - minYstat) * totpix
       sd=sqrt(max(0.,(sdsumsq-sdsum**2/totpix)/(totpix-1.)))
       if(nasec.gt.1)write(6,5000)dmin,dmax,dmean,sd
 
       if(cfile.eq.' ')call exit(0)
-
+      totpix=float(nasec)
+      totpix=nx*ny*totpix
+      dmean = realSum / totpix
       call irtcel(1, cell)
       nxyz(3) = nasec
       mxyz(3) = nasec
@@ -248,14 +282,10 @@ c
 
       call date(dat)
       call time(tim)
-c       
-c       7/7/00 CER: remove the encodes
-c       
-c       encode ( 80, 3000, title ) dat, tim
       write(titlech,3000) dat,tim
       read(titlech,'(20a4)')(title(kti),kti=1,20)
 
-      call iwrhdr(3,title,1,dmin,dmax,dmean)
+      call iwrhdr(3,title,1,realMin,realMax,dmean)
 
       call imclose(3)
 
@@ -272,6 +302,9 @@ c       encode ( 80, 3000, title ) dat, tim
       end
 
 c       $Log$
+c       Revision 3.7  2007/11/18 04:54:58  mast
+c       Redeclared concat at 320
+c
 c       Revision 3.6  2007/07/12 01:51:15  mast
 c       Changed high to upper to preserve -h for help
 c
