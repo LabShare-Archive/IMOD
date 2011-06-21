@@ -15,6 +15,8 @@ import etomo.comscript.TrimvolParam;
 import etomo.comscript.XYParam;
 import etomo.process.ImodProcess;
 import etomo.type.AxisID;
+import etomo.type.ConstMetaData;
+import etomo.type.MetaData;
 import etomo.type.ParallelMetaData;
 
 /**
@@ -247,11 +249,15 @@ public final class RubberbandPanel {
     pnlRubberband.setVisible(visible);
   }
 
-  public void getParameters(XYParam xyParam) {
-    xyParam.setXMin(ltfXMin.getText());
-    xyParam.setXMax(ltfXMax.getText());
-    xyParam.setYMin(ltfYMin.getText());
-    xyParam.setYMax(ltfYMax.getText());
+  public void getParameters(MetaData metaData) {
+    metaData.setPostTrimvolScaleXMin(ltfXMin.getText());
+    metaData.setPostTrimvolScaleXMax(ltfXMax.getText());
+    metaData.setPostTrimvolScaleYMin(ltfYMin.getText());
+    metaData.setPostTrimvolScaleYMax(ltfYMax.getText());
+    if (btnImod != null) {
+      metaData.setPostTrimvolSectionScaleMin(ltfZMin.getText());
+      metaData.setPostTrimvolSectionScaleMax(ltfZMax.getText());
+    }
   }
 
   public void getParameters(TrimvolParam trimvolParam) {
@@ -259,8 +265,22 @@ public final class RubberbandPanel {
     trimvolParam.setXMax(ltfXMax.getText());
     trimvolParam.setYMin(ltfYMin.getText());
     trimvolParam.setYMax(ltfYMax.getText());
-    trimvolParam.setZMin(ltfZMin.getText());
-    trimvolParam.setZMax(ltfZMax.getText());
+    if (btnImod != null) {
+      trimvolParam.setZMin(ltfZMin.getText());
+      trimvolParam.setZMax(ltfZMax.getText());
+    }
+  }
+
+  public void getScaleParameters(TrimvolParam trimvolParam) {
+    XYParam xyParam = trimvolParam.getScaleXYParam();
+    xyParam.setXMin(ltfXMin.getText());
+    xyParam.setXMax(ltfXMax.getText());
+    xyParam.setYMin(ltfYMin.getText());
+    xyParam.setYMax(ltfYMax.getText());
+    if (btnImod != null) {
+      trimvolParam.setSectionScaleMin(ltfZMin.getText());
+      trimvolParam.setSectionScaleMax(ltfZMax.getText());
+    }
   }
 
   public void getParameters(ParallelMetaData metaData) {
@@ -268,8 +288,44 @@ public final class RubberbandPanel {
     metaData.setXMax(ltfXMax.getText());
     metaData.setYMin(ltfYMin.getText());
     metaData.setYMax(ltfYMax.getText());
-    metaData.setZMin(ltfZMin.getText());
-    metaData.setZMax(ltfZMax.getText());
+    if (btnImod != null) {
+      metaData.setZMin(ltfZMin.getText());
+      metaData.setZMax(ltfZMax.getText());
+    }
+  }
+
+  public void setParameters(TrimvolParam param) {
+    ltfXMin.setText(param.getXMin());
+    ltfXMax.setText(param.getXMax());
+    ltfYMin.setText(param.getYMin());
+    ltfYMax.setText(param.getYMax());
+    if (btnImod != null) {
+      ltfZMin.setText(param.getZMin());
+      ltfZMax.setText(param.getZMax());
+    }
+  }
+
+  public void setScaleParameters(TrimvolParam trimvolParam) {
+    XYParam xyParam = trimvolParam.getScaleXYParam();
+    ltfXMin.setText(xyParam.getXMin());
+    ltfXMax.setText(xyParam.getXMax());
+    ltfYMin.setText(xyParam.getYMin());
+    ltfYMax.setText(xyParam.getYMax());
+    if (btnImod != null) {
+      ltfZMin.setText(trimvolParam.getSectionScaleMin());
+      ltfZMax.setText(trimvolParam.getSectionScaleMax());
+    }
+  }
+
+  public void setParameters(ConstMetaData metaData) {
+    ltfXMin.setText(metaData.getPostTrimvolScaleXMin());
+    ltfXMax.setText(metaData.getPostTrimvolScaleXMax());
+    ltfYMin.setText(metaData.getPostTrimvolScaleYMin());
+    ltfYMax.setText(metaData.getPostTrimvolScaleYMax());
+    if (btnImod != null) {
+      ltfZMin.setText(metaData.getPostTrimvolSectionScaleMin());
+      ltfZMax.setText(metaData.getPostTrimvolSectionScaleMax());
+    }
   }
 
   public void setParameters(ParallelMetaData metaData) {
@@ -277,15 +333,10 @@ public final class RubberbandPanel {
     ltfXMax.setText(metaData.getXMax());
     ltfYMin.setText(metaData.getYMin());
     ltfYMax.setText(metaData.getYMax());
-    ltfZMin.setText(metaData.getZMin());
-    ltfZMax.setText(metaData.getZMax());
-  }
-
-  public void setParameters(XYParam xyParam) {
-    ltfXMin.setText(xyParam.getXMin());
-    ltfXMax.setText(xyParam.getXMax());
-    ltfYMin.setText(xyParam.getYMin());
-    ltfYMax.setText(xyParam.getYMax());
+    if (btnImod != null) {
+      ltfZMin.setText(metaData.getZMin());
+      ltfZMax.setText(metaData.getZMax());
+    }
   }
 
   private void setToolTipText() {
@@ -315,6 +366,9 @@ public final class RubberbandPanel {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 19:08:03  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
