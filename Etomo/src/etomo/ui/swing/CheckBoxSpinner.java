@@ -9,8 +9,7 @@ import java.awt.event.ActionListener;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerModel;
+import javax.swing.SpinnerNumberModel;
 
 /**
  * <p>Description: </p>
@@ -26,6 +25,10 @@ import javax.swing.SpinnerModel;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2011/05/31 21:08:10  sueh
+ * <p> bug# 1460 In getContainer, used glue to prevent the spinner from expanding to its widest extent.
+ * <p> Added setToolTipText.
+ * <p>
  * <p> Revision 1.2  2011/02/22 18:05:39  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -47,15 +50,23 @@ import javax.swing.SpinnerModel;
 final class CheckBoxSpinner {
   public static final String rcsid = "$Id$";
 
-  private final JSpinner spinner = new JSpinner();
+  private final Spinner spinner;
   private final CheckBox checkBox;
+
   private JPanel panel = null;
   private Color panelBackground = null;
   private Color panelHighlightBackground = null;
 
   CheckBoxSpinner(String text) {
     checkBox = new CheckBox(text);
-    spinner.setName(checkBox.getName());
+    spinner = Spinner.getInstance(checkBox.getName());
+    spinner.setEnabled(false);
+    checkBox.addActionListener(new CheckBoxSpinnerActionListener(this));
+  }
+
+  CheckBoxSpinner(String text, final int value, final int minimum, final int maximum) {
+    checkBox = new CheckBox(text);
+    spinner = Spinner.getInstance(text, value, minimum, maximum);
     spinner.setEnabled(false);
     checkBox.addActionListener(new CheckBoxSpinnerActionListener(this));
   }
@@ -66,27 +77,17 @@ final class CheckBoxSpinner {
       panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
       panel.add(Box.createHorizontalGlue());
       panel.add(checkBox);
-      panel.add(spinner);
+      panel.add(spinner.getContainer());
       panel.add(Box.createHorizontalGlue());
     }
     return panel;
-  }
-
-  void setText(String text) {
-    checkBox.setText(text);
-    spinner.setName(checkBox.getName());
-  }
-
-  void setName(String text) {
-    checkBox.setName(text);
-    spinner.setName(checkBox.getName());
   }
 
   void enableSpinner() {
     spinner.setEnabled(checkBox.isSelected());
   }
 
-  void setModel(SpinnerModel model) {
+  void setModel(SpinnerNumberModel model) {
     spinner.setModel(model);
   }
 
@@ -107,7 +108,7 @@ final class CheckBoxSpinner {
     enableSpinner();
   }
 
-  void setValue(Object value) {
+  void setValue(int value) {
     spinner.setValue(value);
   }
 
