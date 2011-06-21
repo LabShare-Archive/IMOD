@@ -29,6 +29,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.73  2011/05/31 21:06:04  sueh
+ * <p> Bug# 1460 Added finalStackExpandCircleIterationsA and B.
+ * <p>
  * <p> Revision 3.72  2011/05/03 02:55:53  sueh
  * <p> bug# 1416 Removed genResumeEnabled because the resume radio button state should be set based on the
  * <p> checkpoint value, not saved and reloaded.
@@ -356,7 +359,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   //Strings and keys must not change without provisions for backwards
   //capatibility.
 
-  private static final String latestRevisionNumber = "1.11";
+  private static final String latestRevisionNumber = "1.12";
   private static final String newTomogramTitle = "Setup Tomogram";
 
   private static final String TOMO_GEN_A_TILT_PARALLEL_GROUP = DialogType.TOMOGRAM_GENERATION
@@ -462,7 +465,6 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private boolean comScriptsCreated = false;
 
   private CombineParams combineParams;
-  private final TrimvolParam trimvolParam;
   private final SqueezevolParam squeezevolParam;
   private final TransferfidParam transferfidParamA;
   private final TransferfidParam transferfidParamB;
@@ -699,12 +701,49 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       + FIRST_AXIS_KEY + ".RadialSigma");
   private final StringProperty genRadialSigmaB = new StringProperty(GEN_KEY + "."
       + SECOND_AXIS_KEY + ".RadialSigma");
+  private final StringProperty postTrimvolXMin = new StringProperty(POST_KEY
+      + ".Trimvol.XMin");
+  private final StringProperty postTrimvolXMax = new StringProperty(POST_KEY
+      + ".Trimvol.XMax");
+  private final StringProperty postTrimvolYMin = new StringProperty(POST_KEY
+      + ".Trimvol.YMin");
+  private final StringProperty postTrimvolYMax = new StringProperty(POST_KEY
+      + ".Trimvol.YMax");
+  private final StringProperty postTrimvolZMin = new StringProperty(POST_KEY
+      + ".Trimvol.ZMin");
+  private final StringProperty postTrimvolZMax = new StringProperty(POST_KEY
+      + ".Trimvol.ZMax");
+  private final EtomoBoolean2 postTrimvolConvertToBytes = new EtomoBoolean2(POST_KEY
+      + ".Trimvol.ConvertToBytes");
+  private final EtomoBoolean2 postTrimvolFixedScaling = new EtomoBoolean2(POST_KEY
+      + ".Trimvol.FixedScaling");
+  private final EtomoBoolean2 postTrimvolFlippedVolume = new EtomoBoolean2(POST_KEY
+      + ".Trimvol.FlippedVolume");
+  private final StringProperty postTrimvolSectionScaleMin = new StringProperty(POST_KEY
+      + ".Trimvol.SectionScaleMin");
+  private final StringProperty postTrimvolSectionScaleMax = new StringProperty(POST_KEY
+      + ".Trimvol.SectionScaleMax");
+  private final StringProperty postTrimvolFixedScaleMin = new StringProperty(POST_KEY
+      + ".Trimvol.FixedScaleMin");
+  private final StringProperty postTrimvolFixedScaleMax = new StringProperty(POST_KEY
+      + ".Trimvol.FixedScaleMax");
+  private final EtomoBoolean2 postTrimvolSwapYZ = new EtomoBoolean2(POST_KEY
+      + ".Trimvol.SwapYZ");
+  private final EtomoBoolean2 postTrimvolRotateX = new EtomoBoolean2(POST_KEY
+      + ".Trimvol.RotateX");
+  private final EtomoNumber postTrimvolScaleXMin = new EtomoNumber(POST_KEY
+      + ".Trimvol.ScaleXMin");
+  private final EtomoNumber postTrimvolScaleXMax = new EtomoNumber(POST_KEY
+      + ".Trimvol.ScaleXMax");
+  private final EtomoNumber postTrimvolScaleYMin = new EtomoNumber(POST_KEY
+      + ".Trimvol.ScaleYMin");
+  private final EtomoNumber postTrimvolScaleYMax = new EtomoNumber(POST_KEY
+      + ".Trimvol.ScaleYMax");
 
   public MetaData(final ApplicationManager manager) {
     this.manager = manager;
     squeezevolParam = new SqueezevolParam(manager);
     combineParams = new CombineParams(manager);
-    trimvolParam = new TrimvolParam(manager, TrimvolParam.Mode.POST_PROCESSING);
     transferfidParamA = new TransferfidParam(manager, AxisID.FIRST);
     transferfidParamB = new TransferfidParam(manager, AxisID.SECOND);
     fileExtension = DatasetFiles.RECON_DATA_FILE_EXT;
@@ -802,6 +841,54 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
 
   public void setTransferfidBFields(final TransferfidParam param) {
     transferfidParamB.setStorableFields(param);
+  }
+  
+  public void setPostTrimvolScaleXMin(final String input) {
+    postTrimvolScaleXMin.set(input);
+  }
+
+  public void setPostTrimvolScaleXMax(final String input) {
+    postTrimvolScaleXMax.set(input);
+  }
+
+  public void setPostTrimvolScaleYMin(final String input) {
+    postTrimvolScaleYMin.set(input);
+  }
+
+  public void setPostTrimvolScaleYMax(final String input) {
+    postTrimvolScaleYMax.set(input);
+  }
+  
+  public void setPostTrimvolSectionScaleMin(final String input) {
+    postTrimvolSectionScaleMin.set(input);
+  }
+
+  public void setPostTrimvolSectionScaleMax(final String input) {
+    postTrimvolSectionScaleMax.set(input);
+  }
+
+  public void setPostTrimvolXMin(final String input) {
+    postTrimvolXMin.set(input);
+  }
+
+  public void setPostTrimvolXMax(final String input) {
+    postTrimvolXMax.set(input);
+  }
+
+  public void setPostTrimvolYMin(final String input) {
+    postTrimvolYMin.set(input);
+  }
+
+  public void setPostTrimvolYMax(final String input) {
+    postTrimvolYMax.set(input);
+  }
+
+  public void setPostTrimvolZMin(final String input) {
+    postTrimvolZMin.set(input);
+  }
+
+  public void setPostTrimvolZMax(final String input) {
+    postTrimvolZMax.set(input);
   }
 
   public void setSampleThickness(final AxisID axisID, final String thickness) {
@@ -1337,6 +1424,25 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     genRadialRadiusB.reset();
     genRadialSigmaA.reset();
     genRadialSigmaB.reset();
+    postTrimvolXMin.reset();
+    postTrimvolXMax.reset();
+    postTrimvolYMin.reset();
+    postTrimvolYMax.reset();
+    postTrimvolZMin.reset();
+    postTrimvolZMax.reset();
+    postTrimvolConvertToBytes.reset();
+    postTrimvolFixedScaling.reset();
+    postTrimvolFlippedVolume.reset();
+    postTrimvolSectionScaleMin.reset();
+    postTrimvolSectionScaleMax.reset();
+    postTrimvolFixedScaleMin.reset();
+    postTrimvolFixedScaleMax.reset();
+    postTrimvolSwapYZ.reset();
+    postTrimvolRotateX.reset();
+    postTrimvolScaleXMin.reset();
+    postTrimvolScaleXMax.reset();
+    postTrimvolScaleYMin.reset();
+    postTrimvolScaleYMax.reset();
     //load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -1375,6 +1481,59 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
     else {
       trackMethodA.load(props, prepend);
+    }
+    if (revisionNumber.le(EtomoVersion.getDefaultInstance("1.11"))) {
+      postTrimvolXMin.loadFromOtherKey(props, prepend, "Trimvol.XMin");
+      postTrimvolXMax.loadFromOtherKey(props, prepend, "Trimvol.XMax");
+      //Don't use flipped data; this meta data should be the same as the screen, not match
+      //the param or the image.
+      postTrimvolYMin.loadFromOtherKey(props, prepend, "Trimvol.ZMin");
+      postTrimvolYMax.loadFromOtherKey(props, prepend, "Trimvol.ZMax");
+      postTrimvolZMin.loadFromOtherKey(props, prepend, "Trimvol.YMin");
+      postTrimvolZMax.loadFromOtherKey(props, prepend, "Trimvol.YMax");
+      postTrimvolConvertToBytes
+          .loadFromOtherKey(props, prepend, "Trimvol.ConvertToBytes");
+      postTrimvolFixedScaling.loadFromOtherKey(props, prepend, "Trimvol.FixedScaling");
+      postTrimvolFlippedVolume.loadFromOtherKey(props, prepend, "Trimvol.FlippedVolume");
+      postTrimvolSectionScaleMin.loadFromOtherKey(props, prepend,
+          "Trimvol.SectionScaleMin");
+      postTrimvolSectionScaleMax.loadFromOtherKey(props, prepend,
+          "Trimvol.SectionScaleMax");
+      postTrimvolFixedScaleMin.loadFromOtherKey(props, prepend, "Trimvol.FixedScaleMin");
+      postTrimvolFixedScaleMax.loadFromOtherKey(props, prepend, "Trimvol.FixedScaleMax");
+      postTrimvolSwapYZ.loadFromOtherKey(props, prepend, "Trimvol.SwapYZ");
+      postTrimvolRotateX.loadFromOtherKey(props, prepend, "Trimvol.RotateX");
+      postTrimvolScaleXMin.loadFromOtherKey(props, prepend, "Trimvol.ScaleXMin");
+      postTrimvolScaleXMax.loadFromOtherKey(props, prepend, "Trimvol.ScaleXMax");
+      postTrimvolScaleYMin.loadFromOtherKey(props, prepend, "Trimvol.ScaleYMin");
+      postTrimvolScaleYMax.loadFromOtherKey(props, prepend, "Trimvol.ScaleYMax");
+      if (props.getProperty(group + " Trimvol.Version") == null) {
+        //Handle backwards compatibility from TrimvolParam version 1.0 - the 1.0 version
+        //wasn't saved.
+        TrimvolParam.convertIndexCoordsToImodCoords(postTrimvolScaleXMin,
+            postTrimvolScaleXMax, postTrimvolScaleYMin, postTrimvolScaleYMax);
+      }
+    }
+    else {
+      postTrimvolXMin.load(props, prepend);
+      postTrimvolXMax.load(props, prepend);
+      postTrimvolYMin.load(props, prepend);
+      postTrimvolYMax.load(props, prepend);
+      postTrimvolZMin.load(props, prepend);
+      postTrimvolZMax.load(props, prepend);
+      postTrimvolConvertToBytes.load(props, prepend);
+      postTrimvolFixedScaling.load(props, prepend);
+      postTrimvolFlippedVolume.load(props, prepend);
+      postTrimvolSectionScaleMin.load(props, prepend);
+      postTrimvolSectionScaleMax.load(props, prepend);
+      postTrimvolFixedScaleMin.load(props, prepend);
+      postTrimvolFixedScaleMax.load(props, prepend);
+      postTrimvolSwapYZ.load(props, prepend);
+      postTrimvolRotateX.load(props, prepend);
+      postTrimvolScaleXMin.load(props, prepend);
+      postTrimvolScaleXMax.load(props, prepend);
+      postTrimvolScaleYMin.load(props, prepend);
+      postTrimvolScaleYMax.load(props, prepend);
     }
     finalStackFiducialDiameterA.load(props, prepend);
     finalStackFiducialDiameterB.load(props, prepend);
@@ -1434,7 +1593,6 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
         props.getProperty(group + "WholeTomogramSampleA", "false")).booleanValue();
     wholeTomogramSampleB = Boolean.valueOf(
         props.getProperty(group + "WholeTomogramSampleB", "false")).booleanValue();
-    trimvolParam.load(props, group);
     squeezevolParam.load(props, prepend);
     useZFactorsA.load(props, prepend);
     useZFactorsB.load(props, prepend);
@@ -1735,7 +1893,6 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
         String.valueOf(wholeTomogramSampleA));
     props.setProperty(group + "WholeTomogramSampleB",
         String.valueOf(wholeTomogramSampleB));
-    trimvolParam.store(props, group);
     squeezevolParam.store(props, prepend);
     useZFactorsA.store(props, prepend);
     useZFactorsB.store(props, prepend);
@@ -1849,6 +2006,25 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     genRadialRadiusB.store(props, prepend);
     genRadialSigmaA.store(props, prepend);
     genRadialSigmaB.store(props, prepend);
+    postTrimvolXMin.store(props, prepend);
+    postTrimvolXMax.store(props, prepend);
+    postTrimvolYMin.store(props, prepend);
+    postTrimvolYMax.store(props, prepend);
+    postTrimvolZMin.store(props, prepend);
+    postTrimvolZMax.store(props, prepend);
+    postTrimvolConvertToBytes.store(props, prepend);
+    postTrimvolFixedScaling.store(props, prepend);
+    postTrimvolFlippedVolume.store(props, prepend);
+    postTrimvolSectionScaleMin.store(props, prepend);
+    postTrimvolSectionScaleMax.store(props, prepend);
+    postTrimvolFixedScaleMin.store(props, prepend);
+    postTrimvolFixedScaleMax.store(props, prepend);
+    postTrimvolSwapYZ.store(props, prepend);
+    postTrimvolRotateX.store(props, prepend);
+    postTrimvolScaleXMin.store(props, prepend);
+    postTrimvolScaleXMax.store(props, prepend);
+    postTrimvolScaleYMin.store(props, prepend);
+    postTrimvolScaleYMax.store(props, prepend);
   }
 
   public boolean getTrackRaptorUseRawStack() {
@@ -1895,6 +2071,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return postFlattenWarpContoursOnOneSurface.is();
   }
 
+  public boolean isPostTrimvolRotateX() {
+    return postTrimvolRotateX.is();
+  }
+
   public void setPostFlattenWarpInputTrimVol(boolean input) {
     postFlattenInputTrimVol.set(input);
   }
@@ -1919,12 +2099,80 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return postFlattenWarpSpacingInY.toString();
   }
 
+  public String getPostTrimvolFixedScaleMax() {
+    return postTrimvolFixedScaleMax.toString();
+  }
+
+  public String getPostTrimvolFixedScaleMin() {
+    return postTrimvolFixedScaleMin.toString();
+  }
+
+  public String getPostTrimvolScaleXMax() {
+    return postTrimvolScaleXMax.toString();
+  }
+
+  public String getPostTrimvolScaleXMin() {
+    return postTrimvolScaleXMin.toString();
+  }
+
+  public String getPostTrimvolScaleYMin() {
+    return postTrimvolScaleYMin.toString();
+  }
+
+  public String getPostTrimvolScaleYMax() {
+    return postTrimvolScaleYMax.toString();
+  }
+
+  public String getPostTrimvolSectionScaleMax() {
+    return postTrimvolSectionScaleMax.toString();
+  }
+
+  public String getPostTrimvolSectionScaleMin() {
+    return postTrimvolSectionScaleMin.toString();
+  }
+
+  public String getPostTrimvolXMax() {
+    return postTrimvolXMax.toString();
+  }
+
+  public String getPostTrimvolXMin() {
+    return postTrimvolXMin.toString();
+  }
+
+  public String getPostTrimvolYMin() {
+    return postTrimvolYMin.toString();
+  }
+
+  public String getPostTrimvolYMax() {
+    return postTrimvolYMax.toString();
+  }
+
+  public String getPostTrimvolZMin() {
+    return postTrimvolZMin.toString();
+  }
+
+  public String getPostTrimvolZMax() {
+    return postTrimvolZMax.toString();
+  }
+
   public void setPostFlattenWarpSpacingInY(String input) {
     postFlattenWarpSpacingInY.set(input);
   }
 
   public boolean isPostSqueezeVolInputTrimVol() {
     return postSqueezeVolInputTrimVol.is();
+  }
+
+  public boolean isPostTrimvolConvertToBytes() {
+    return postTrimvolConvertToBytes.is();
+  }
+
+  public boolean isPostTrimvolFixedScaling() {
+    return postTrimvolFixedScaling.is();
+  }
+
+  public boolean isPostTrimvolSwapYZ() {
+    return postTrimvolSwapYZ.is();
   }
 
   public boolean isTrackLengthAndOverlapSet(AxisID axisID) {
@@ -1945,6 +2193,25 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     postSqueezeVolInputTrimVol.set(input);
   }
 
+  public void setPostTrimvolSwapYZ(final boolean input) {
+    postTrimvolSwapYZ.set(input);
+  }
+  
+  public void setPostTrimvolConvertToBytes(final boolean input) {
+    postTrimvolConvertToBytes.set(input);
+  }
+  public void setPostTrimvolFixedScaleMax(final String input) {
+    postTrimvolFixedScaleMax.set(input);
+  }
+  public void setPostTrimvolFixedScaleMin(final String input) {
+    postTrimvolFixedScaleMin.set(input);
+  }
+  public void setPostTrimvolFixedScaling(final boolean input) {
+    postTrimvolFixedScaling.set(input);
+  }
+  public void setPostTrimvolRotateX(final boolean input) {
+    postTrimvolRotateX.set(input);
+  }
   public ConstEtomoNumber getNoBeamTiltSelected(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return noBeamTiltSelectedB;
@@ -1973,11 +2240,11 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return finalStackFiducialDiameterA.toString();
   }
 
-  public Number getFinalStackExpandCircleIterations(final AxisID axisID) {
+  public int getFinalStackExpandCircleIterations(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
-      return finalStackExpandCircleIterationsB.getNumber();
+      return finalStackExpandCircleIterationsB.getInt();
     }
-    return finalStackExpandCircleIterationsA.getNumber();
+    return finalStackExpandCircleIterationsA.getInt();
   }
 
   public boolean isFinalStackExpandCircleIterationsSet(final AxisID axisID) {
@@ -2189,10 +2456,6 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       return fiducialessB.is();
     }
     return fiducialessA.is();
-  }
-
-  public TrimvolParam getTrimvolParam() {
-    return trimvolParam;
   }
 
   public SqueezevolParam getSqueezevolParam() {
@@ -2757,9 +3020,6 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     if (!(comScriptsCreated == cmd.getComScriptCreated()))
       return false;
     if (!combineParams.equals(cmd.getConstCombineParams())) {
-      return false;
-    }
-    if (!trimvolParam.equals(cmd.getTrimvolParam())) {
       return false;
     }
     if (!squeezevolParam.equals(cmd.getSqueezevolParam())) {
