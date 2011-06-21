@@ -67,6 +67,7 @@ import etomo.comscript.TrimvolParam;
 import etomo.comscript.WarpVolParam;
 import etomo.comscript.XfmodelParam;
 import etomo.comscript.XfproductParam;
+import etomo.logic.TrimvolInputFileState;
 import etomo.process.BaseProcessManager;
 import etomo.process.ContinuousListenerTarget;
 import etomo.process.ImodManager;
@@ -458,8 +459,7 @@ public final class ApplicationManager extends BaseManager implements
         paramFile = new File(propertyUserDir, metaData.getMetaDataFileName());
         mainPanel.setStatusBarText(paramFile, metaData, logPanel);
         if (userConfig.getSwapYAndZ()) {
-          TrimvolParam trimvolParam = metaData.getTrimvolParam();
-          trimvolParam.setSwapYZ(true);
+          metaData.setPostTrimvolSwapYZ(true);
         }
         userConfig.putDataFile(paramFile.getAbsolutePath());
         loadedParamFile = true;
@@ -6504,14 +6504,21 @@ public final class ApplicationManager extends BaseManager implements
     // processing
     setCurrentDialogType(DialogType.POST_PROCESSING, AxisID.ONLY);
     mainPanel.selectButton(AxisID.ONLY, DialogType.POST_PROCESSING.toString());
+    boolean dialogExists = true;
     if (postProcessingDialog == null) {
       Utilities.timestamp("new", "PostProcessingDialog", Utilities.STARTED_STATUS);
       postProcessingDialog = PostProcessingDialog.getInstance(this);
       Utilities.timestamp("new", "PostProcessingDialog", Utilities.FINISHED_STATUS);
       // Set the appropriate input and output files
-      TrimvolParam trimvolParam = metaData.getTrimvolParam();
+      TrimvolParam trimvolParam = new TrimvolParam(this,
+          TrimvolParam.Mode.POST_PROCESSING);
+      //Set the initial values from TrimvolParam only when postProcessingDialog in new.
+      TrimvolInputFileState trimvolInputFileState;
       try {
-        trimvolParam.setDefaultRange(state, metaData.isPostExists());
+        trimvolInputFileState = TrimvolInputFileState.getPostProcessingInstance(this,
+            AxisID.ONLY,
+            TrimvolParam.getInputFileName(metaData.getAxisType(), metaData.getName()),
+            state);
       }
       catch (InvalidParameterException except) {
         String[] detailedMessage = new String[4];
@@ -6520,7 +6527,8 @@ public final class ApplicationManager extends BaseManager implements
         detailedMessage[2] = "";
         detailedMessage[3] = except.getMessage();
         uiHarness.openMessageDialog(this, detailedMessage + "\n" + "Invalid parameter: "
-            + trimvolParam.getInputFileName(), "Invalid Parameter", AxisID.ONLY);
+            + TrimvolParam.getInputFileName(metaData.getAxisType(), metaData.getName()),
+            "Invalid Parameter", AxisID.ONLY);
         // Delete the dialog
         postProcessingDialog = null;
         mainPanel.showBlankProcess(AxisID.ONLY);
@@ -6528,19 +6536,24 @@ public final class ApplicationManager extends BaseManager implements
       }
       catch (IOException except) {
         uiHarness.openMessageDialog(this, except.getMessage(), "IO Error: "
-            + trimvolParam.getInputFileName(), AxisID.ONLY);
+            + TrimvolParam.getInputFileName(metaData.getAxisType(), metaData.getName()),
+            AxisID.ONLY);
         // Delete the dialog
         postProcessingDialog = null;
         mainPanel.showBlankProcess(AxisID.ONLY);
         return;
       }
+      postProcessingDialog.setStartupWarnings(trimvolInputFileState);
+      //Set the dialog from TrimvolParam defaults.
+      dialogExists = metaData.isPostExists();
+      trimvolParam.setDefaultRange(trimvolInputFileState, dialogExists);
+      postProcessingDialog.setParameters(trimvolParam);
       metaData.setPostExists(true);
       saveStorables(AxisID.ONLY);
-      postProcessingDialog.setTrimvolParams(trimvolParam);
       postProcessingDialog.setParameters(metaData.getSqueezevolParam());
     }
     postProcessingDialog.setParameters(getScreenState(AxisID.ONLY));
-    postProcessingDialog.setParameters(metaData);
+    postProcessingDialog.setParameters(metaData, dialogExists);
     comScriptMgr.loadFlatten(AxisID.ONLY);
     // Set from flatten.com after meta data. Flatten.com is not created by
     // copytomocoms and may be empty.
@@ -6592,7 +6605,6 @@ public final class ApplicationManager extends BaseManager implements
       mainPanel.showBlankProcess(AxisID.ONLY);
     }
     else {
-      updateTrimvolParam();
       updateFlattenWarpParam(postProcessingDialog.getFlattenWarpDisplay(), AxisID.ONLY);
       updateSqueezevolParam();
       postProcessingDialog.getParameters(metaData);
@@ -6699,7 +6711,7 @@ public final class ApplicationManager extends BaseManager implements
    */
   public void imodTrimmedVolume(Run3dmodMenuOptions menuOptions, AxisID axisID) {
     TrimvolParam trimvolParam = new TrimvolParam(this, TrimvolParam.Mode.POST_PROCESSING);
-    if (!postProcessingDialog.getTrimvolParams(trimvolParam)) {
+    if (!postProcessingDialog.getParameters(trimvolParam)) {
       return;
     }
     try {
@@ -7183,34 +7195,28 @@ public final class ApplicationManager extends BaseManager implements
 
   /**
    * updates ConstMetaData.trimvolParam with data from postProcessingDialog.
-   * Sets isDataParamDirty if necessary
    * 
    * @return the updated TrimvolParam
    * 
    */
   private TrimvolParam updateTrimvolParam() {
     // Get trimvol param data from dialog.
-    TrimvolParam dialogTrimvolParam = new TrimvolParam(this,
-        TrimvolParam.Mode.POST_PROCESSING);
-    if (!postProcessingDialog.getTrimvolParams(dialogTrimvolParam)) {
+    TrimvolParam param = new TrimvolParam(this, TrimvolParam.Mode.POST_PROCESSING);
+    if (!postProcessingDialog.getParameters(param)) {
       return null;
     }
-    // Get the metadata trimvol param.
-    TrimvolParam trimvolParam = metaData.getTrimvolParam();
-    postProcessingDialog.getTrimvolParams(trimvolParam);
     // Add input and output files.
-    trimvolParam.setInputFileName(metaData.getAxisType(), metaData.getDatasetName());
-    trimvolParam.setOutputFileName(metaData.getDatasetName() + ".rec");
+    param.setInputFileName(metaData.getAxisType(), metaData.getDatasetName());
+    param.setOutputFileName(metaData.getDatasetName() + ".rec");
     if (metaData.getAxisType() == AxisType.SINGLE_AXIS
         && !state.isAdjustOrigin(AxisID.ONLY)) {
-      trimvolParam.setKeepSameOrigin(true);
+      param.setKeepSameOrigin(true);
     }
-    return trimvolParam;
+    return param;
   }
 
   /**
    * updates ConstMetaData.squeezevolParam with data from postProcessingDialog.
-   * Sets isDataParamDirty if necessary
    * 
    * @return the updated SqueezevolParam
    * 
@@ -8025,6 +8031,9 @@ public final class ApplicationManager extends BaseManager implements
 /**
  * <p>
  * $Log$
+ * Revision 3.373  2011/05/05 01:26:55  sueh
+ * bug# 1396  Popping up an error message an failing when the dataset directory ends in a space.
+ *
  * Revision 3.372  2011/05/03 02:38:17  sueh
  * bug# 1416 Checkpointing from tilt_for_sirt.com when sirtsetup succeeds rather then after tilt.com saved.
  * Added msgSirtsetupSucceeded, no longer telling the display to do a checkpoint when updateTiltCom is run.
