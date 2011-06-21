@@ -14,6 +14,7 @@ import etomo.comscript.ConstWarpVolParam;
 import etomo.comscript.SqueezevolParam;
 import etomo.comscript.TrimvolParam;
 import etomo.comscript.WarpVolParam;
+import etomo.logic.TrimvolInputFileState;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
@@ -116,8 +117,13 @@ public final class PostProcessingDialog extends ProcessDialog implements Context
     trimvolPanel.setParameters(screenState);
     squeezeVolPanel.setParameters(screenState);
   }
+  
+  public void setParameters(final TrimvolParam param) {
+    trimvolPanel.setParameters(param);
+  }
 
-  public void setParameters(ConstMetaData metaData) {
+  public void setParameters(final ConstMetaData metaData, final boolean dialogExists) {
+    trimvolPanel.setParameters(metaData, dialogExists);
     flattenVolumePanel.setParameters(metaData);
     squeezeVolPanel.setParameters(metaData);
     changeTab(metaData.getPostCurTab());
@@ -126,8 +132,13 @@ public final class PostProcessingDialog extends ProcessDialog implements Context
   public FlattenWarpDisplay getFlattenWarpDisplay() {
     return flattenVolumePanel.getFlattenWarpDisplay();
   }
+  
+  public void setStartupWarnings(final TrimvolInputFileState inputFileState) {
+    trimvolPanel.setStartupWarnings(inputFileState);
+  }
 
-  public void getParameters(MetaData metaData) {
+  public void getParameters(final MetaData metaData) {
+    trimvolPanel.getParameters(metaData);
     flattenVolumePanel.getParameters(metaData);
     squeezeVolPanel.getParameters(metaData);
     metaData.setPostCurTab(curTab.index);
@@ -150,18 +161,10 @@ public final class PostProcessingDialog extends ProcessDialog implements Context
   }
 
   /**
-   * Set the trimvol panel values with the specified parameters
-   * @param trimvolParam
-   */
-  public void setTrimvolParams(TrimvolParam trimvolParam) {
-    trimvolPanel.setParameters(trimvolParam);
-  }
-
-  /**
    * Get the trimvol parameter values from the panel 
    * @param trimvolParam
    */
-  public boolean getTrimvolParams(TrimvolParam trimvolParam) {
+  public boolean getParameters(final TrimvolParam trimvolParam) {
     return trimvolPanel.getParameters(trimvolParam);
   }
 
@@ -230,6 +233,9 @@ public final class PostProcessingDialog extends ProcessDialog implements Context
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/22 18:19:28  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.2  2010/12/05 05:14:08  sueh
  * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
  * <p>
