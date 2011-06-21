@@ -16,6 +16,9 @@ import etomo.comscript.FortranInputString;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.65  2011/05/31 21:06:13  sueh
+ * <p> Bug# 1460 Added finalStackExpandCircleIterationsA and B.
+ * <p>
  * <p> Revision 3.64  2011/05/03 02:49:47  sueh
  * <p> bug# 1416 Removed isGenResumeEnabled because the resume radio button state should be set based on
  * <p> the checkpoint value, not saved and reloaded.
@@ -404,7 +407,7 @@ public interface ConstMetaData {
 
   public String getFinalStackFiducialDiameter(AxisID axisID);
 
-  public Number getFinalStackExpandCircleIterations(AxisID axisID);
+  public int getFinalStackExpandCircleIterations(AxisID axisID);
 
   public boolean isFinalStackExpandCircleIterationsSet(final AxisID axisID);
 
@@ -429,6 +432,12 @@ public interface ConstMetaData {
   public String getPostFlattenWarpSpacingInY();
 
   public boolean isPostSqueezeVolInputTrimVol();
+
+  public boolean isPostTrimvolConvertToBytes();
+
+  public boolean isPostTrimvolFixedScaling();
+
+  public boolean isPostTrimvolRotateX();
 
   public boolean isFiducialessAlignment(AxisID axisID);
 
@@ -477,4 +486,34 @@ public interface ConstMetaData {
   public String getGenRadialSigma(AxisID axisID);
 
   public boolean isUseFinalStackExpandCircleIterations(AxisID axisID);
+
+  public boolean isPostTrimvolSwapYZ();
+
+  public String getPostTrimvolFixedScaleMax();
+
+  public String getPostTrimvolFixedScaleMin();
+
+  public String getPostTrimvolScaleXMax();
+
+  public String getPostTrimvolScaleXMin();
+
+  public String getPostTrimvolScaleYMin();
+
+  public String getPostTrimvolScaleYMax();
+
+  public String getPostTrimvolSectionScaleMax();
+
+  public String getPostTrimvolSectionScaleMin();
+
+  public String getPostTrimvolXMax();
+
+  public String getPostTrimvolXMin();
+
+  public String getPostTrimvolYMin();
+
+  public String getPostTrimvolYMax();
+
+  public String getPostTrimvolZMin();
+
+  public String getPostTrimvolZMax();
 }
