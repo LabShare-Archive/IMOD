@@ -80,6 +80,26 @@ tooltip =
 manpage = Truncate the output by replacing values above this theshold with
 the threshold value.
 
+[Field = StatisticsXminAndMax]
+short = xstats
+type = IP
+usage = Minimum and maximum X for computing reported statistics (numbered from 0)
+tooltip = 
+manpage = Minimum and maximum X for computing the minimum, maximum, mean and
+SD of the difference that are reported in the output. Coordinates are numbered
+from 0; the default is the full area in X.
+
+[Field = StatisticsYminAndMax]
+short = ystats
+type = IP
+usage = Minimum and maximum Y for computing reported statistics (numbered from 0)
+tooltip = 
+manpage = Minimum and maximum Y for computing the minimum, maximum, mean and
+SD of the difference that are reported in the output.  Coordinates are numbered
+from 0; the default is the full area in Y.  This entry and the next one do not
+affect the size of the output images; use Clip(1) to obtain a difference
+volume from a subarea in one step.
+
 #[Field = TestLimit]
 #short = test
 #type = I
