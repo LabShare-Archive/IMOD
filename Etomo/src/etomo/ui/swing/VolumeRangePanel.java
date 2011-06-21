@@ -6,6 +6,8 @@ import java.util.Vector;
 
 import etomo.comscript.TrimvolParam;
 import etomo.process.ImodProcess;
+import etomo.type.ConstMetaData;
+import etomo.type.MetaData;
 
 /**
  * <p>Description: </p>
@@ -21,6 +23,9 @@ import etomo.process.ImodProcess;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 21:47:44  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -64,19 +69,41 @@ final class VolumeRangePanel {
   Component getComponent() {
     return pnlRoot;
   }
+  
 
   /**
    * Set the panel values with the specified parameters
    * @param trimvolParam
    */
-  void setParameters(TrimvolParam trimvolParam) {
-    ltfXMin.setText(trimvolParam.getXMin());
-    ltfXMax.setText(trimvolParam.getXMax());
-    //  Y and Z  are swapped to present the user with Z as the depth domain
-    ltfYMin.setText(trimvolParam.getZMin());
-    ltfYMax.setText(trimvolParam.getZMax());
-    ltfZMin.setText(trimvolParam.getYMin());
-    ltfZMax.setText(trimvolParam.getYMax());
+  void setParameters(final TrimvolParam param) {
+    ltfXMin.setText(param.getXMin());
+    ltfXMax.setText(param.getXMax());
+    ltfYMin.setText(param.getYMin());
+    ltfYMax.setText(param.getYMax());
+    ltfZMin.setText(param.getZMin());
+    ltfZMax.setText(param.getZMax());
+  }
+
+  /**
+   * Set the panel values with the specified parameters
+   * @param trimvolParam
+   */
+  void setParameters(final ConstMetaData metaData) {
+    ltfXMin.setText(metaData.getPostTrimvolXMin());
+    ltfXMax.setText(metaData.getPostTrimvolXMax());
+    ltfYMin.setText(metaData.getPostTrimvolYMin());
+    ltfYMax.setText(metaData.getPostTrimvolYMax());
+    ltfZMin.setText(metaData.getPostTrimvolZMin());
+    ltfZMax.setText(metaData.getPostTrimvolZMax());
+  }
+  
+  void getParameters(MetaData metaData) {
+    metaData.setPostTrimvolXMin(ltfXMin.getText());
+    metaData.setPostTrimvolXMax(ltfXMax.getText());
+    metaData.setPostTrimvolYMin(ltfYMin.getText());
+    metaData.setPostTrimvolYMax(ltfYMax.getText());
+    metaData.setPostTrimvolZMin(ltfZMin.getText());
+    metaData.setPostTrimvolZMax(ltfZMax.getText());
   }
 
   /**
@@ -86,11 +113,10 @@ final class VolumeRangePanel {
   void getParameters(TrimvolParam trimvolParam) {
     trimvolParam.setXMin(ltfXMin.getText());
     trimvolParam.setXMax(ltfXMax.getText());
-    //  Y and Z  are swapped to present the user with Z as the depth domain
-    trimvolParam.setYMin(ltfZMin.getText());
-    trimvolParam.setYMax(ltfZMax.getText());
-    trimvolParam.setZMin(ltfYMin.getText());
-    trimvolParam.setZMax(ltfYMax.getText());
+    trimvolParam.setYMin(ltfYMin.getText());
+    trimvolParam.setYMax(ltfYMax.getText());
+    trimvolParam.setZMin(ltfZMin.getText());
+    trimvolParam.setZMax(ltfZMax.getText());
   }
 
   void setXYMinAndMax(Vector coordinates) {
