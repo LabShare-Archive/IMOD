@@ -10,7 +10,6 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
-import javax.swing.SpinnerNumberModel;
 
 import etomo.ApplicationManager;
 import etomo.comscript.CCDEraserParam;
@@ -45,6 +44,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2011/05/31 21:06:53  sueh
+ * <p> Bug# 1460 Added cbspExpandCircleIterations.
+ * <p>
  * <p> Revision 1.3  2011/02/22 18:04:35  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -86,7 +88,7 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
   private final LabeledTextField ltfFiducialDiameter = new LabeledTextField(
       "Diameter to erase (pixels): ");
   private final CheckBoxSpinner cbspExpandCircleIterations = new CheckBoxSpinner(
-      "Iterations to grow circular areas:");
+      "Iterations to grow circular areas:",1, 1, 5);
   private final ButtonGroup bgPolynomialOrder = new ButtonGroup();
   private final RadioButton rbPolynomialOrderUseMean = new RadioButton(
       "Use mean of surrounding points", PolynomialOrder.USE_MEAN, bgPolynomialOrder);
@@ -139,8 +141,6 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
     btnCcdEraser.setSize();
     btn3dmodCcdEraser.setSize();
     btnUseCcdEraser.setSize();
-    SpinnerNumberModel spinnerNumberModel = new SpinnerNumberModel(1, 1, 5, 1);
-    cbspExpandCircleIterations.setModel(spinnerNumberModel);
     //Root
     pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRoot.setBorder(new EtchedBorder("Erase Beads").getBorder());
