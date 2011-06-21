@@ -32,6 +32,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 21:37:35  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -95,42 +98,53 @@ import etomo.util.Utilities;
 final class Spinner {
   public static final String rcsid = "$Id$";
 
-  private final SpinnerNumberModel model;
   private final JSpinner spinner;
   private final Number defaultValue;
+  private final boolean labeled;
+
+  private SpinnerNumberModel model = null;
   private JPanel panel = null;
   private JLabel label = null;
 
-  private Spinner(final String label, final boolean labeled, final int value,
+  private Spinner(final String text, final boolean labeled, final int value,
       final int minimum, final int maximum, int step) {
+    this.labeled = labeled;
     model = new SpinnerNumberModel(value, minimum, maximum, step);
     spinner = new JSpinner(model);
     this.defaultValue = new Integer(value);
-    String name = UITestFieldType.SPINNER.toString() + AutodocTokenizer.SEPARATOR_CHAR
-        + Utilities.convertLabelToName(label);
-    spinner.setName(name);
-    if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(spinner.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
-          + ' ');
-    }
     if (labeled) {
       panel = new JPanel();
       panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-      this.label = new JLabel(label);
+      this.label = new JLabel(text);
       panel.add(this.label);
       panel.add(spinner);
     }
     // Set the maximum height of the text field box to twice the
     // font size since it is not set by default
     Dimension maxSize = spinner.getMaximumSize();
-    if (this.label != null
-        && this.label.getFont().getSize() > spinner.getFont().getSize()) {
-      maxSize.setSize(maxSize.getWidth(), 2 * this.label.getFont().getSize());
+    if (label != null && label.getFont().getSize() > spinner.getFont().getSize()) {
+      maxSize.setSize(maxSize.getWidth(), 2 * label.getFont().getSize());
     }
     else {
       maxSize.setSize(maxSize.getWidth(), 2 * spinner.getFont().getSize());
     }
     spinner.setMaximumSize(maxSize);
+    setName(text);
+  }
+
+  void setName(final String text) {
+    String name = UITestFieldType.SPINNER.toString() + AutodocTokenizer.SEPARATOR_CHAR
+        + Utilities.convertLabelToName(text);
+    spinner.setName(name);
+    if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
+      System.out.println(spinner.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
+          + ' ');
+    }
+  }
+
+  void setModel(SpinnerNumberModel input) {
+    model = input;
+    spinner.setModel(model);
   }
 
   private final JFormattedTextField getTextField() {
@@ -192,6 +206,10 @@ final class Spinner {
     if (label != null) {
       label.setEnabled(enabled);
     }
+  }
+
+  void setMaximumSize(Dimension maximumSize) {
+    spinner.setMaximumSize(maximumSize);
   }
 
   void reset() {
