@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/21/11: In eTomo, handling the new version of trimvol.  Also removed the trimvol
+subsection from the .edf file and replaced it with individual files.(Bug# 1490)
+
 6/17/11: Converted eTomo to handle the Python versions of Makejoincom and Finishjoin.
 (Bug# 1494)
 
@@ -11,8 +14,6 @@ and made Newstack, Xftoxg, Xfproduct, and Xfinverse handle warp transform
 files automatically in place of linear transform files.
 
 6/3/11: Added Edgemtf for computing a CCD camera MTF from an edge image.
-
-6/1/11: In eTomo, handling the new version of trimvol.(Bug# 1490)
 
 6/1/11: Translated trimvol to Python.  Option -s is removed.
 
