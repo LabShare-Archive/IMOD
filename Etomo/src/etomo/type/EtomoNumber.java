@@ -18,6 +18,9 @@ import etomo.comscript.FortranInputString;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.25  2011/02/22 05:38:26  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.24  2010/03/09 01:41:00  sueh
  * <p> bug# 1323 In load(Properties,String) handling a prepend which ends with ".".
  * <p>
@@ -189,7 +192,26 @@ public class EtomoNumber extends ConstEtomoNumber {
     set(props.getProperty(name));
   }
 
-  public void load(Properties props, String prepend) {
+  private String createKey(String prepend, final String key) {
+    if (prepend == null || prepend.matches("\\s*")) {
+      return key;
+    }
+    if (prepend.endsWith(".")) {
+      return prepend + key;
+    }
+    return prepend + "." + key;
+  }
+
+  void loadFromOtherKey(final Properties props, final String prepend, final String key) {
+    if (props == null) {
+      reset();
+    }
+    else {
+      set(props.getProperty(createKey(prepend, key)));
+    }
+  }
+
+  public void load(final Properties props, final String prepend) {
     if (prepend == null || prepend.matches("\\s*")) {
       load(props);
     }
