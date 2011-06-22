@@ -1,0 +1,83 @@
+.na
+.nh
+.TH nad_eed_3d 1 3.5.2 BL3DEMC
+.SH NAME
+RAPTOR \- Automatic alignment of tilt series with fiducial markers
+.SH SYNOPSIS
+RAPTOR [options]
+.SH DESCRIPTION
+RAPTOR (Robust Alignment and Projection Estimation for Tomographic
+Reconstruction) aligns tomographic tilt series obtained from electron
+microscopes.  It is intended to automatically obtain a full-precision
+alignment comparable to the one obtained with extended manual
+intervention. Fiducial particles are needed in the image for the alignment.
+RAPTOR has been tested in many different datasets (cryo-EM, plastic, thick
+sections) and has given very good results.  However, any feedback, questions, 
+or suggestions will be greatly appreciated.
+.P
+RAPTOR was developed primarily by Fernando Amat and Farshid Moussavi while
+they were at Stanford University.  They have contributed it for incorporation
+into IMOD and still maintain and develop it.
+.P
+If you use RAPTOR in your research, please cite the following paper:
+.P
+F. Amat, F. Moussavi,L.R. Comolli, G. Elidan, K.H. Downing,
+M. Horowitz. "Markov random field based automatic image alignment for electron
+tomography". Journal of Structural Biology , March 2008, pages 260-275.
+.P
+Inside IMOD, RAPTOR is run by eTomo using a wrapper script, "runraptor".
+This script must be run from inside the data directory where a reconstruction
+is being done.  It takes care of adding the 
+.B -exec, -path, -input, -track,
+and
+.B -output
+options, and it passes other options through to RAPTOR.  It requires that 
+the
+.B -diam
+and 
+.B -mark
+options be entered.  It places output in a numbered series of
+subdirectories, "raptor1", "raptor2", etc. if it is run multiple times.
+It takes care of making an IMOD model that can be loaded onto the image stack
+in 3dmod(1).
+.SS Options
+RAPTOR uses the PIP package for input (see the manual page
+for pip(1)).  Options can be specified either as command line
+arguments (with the -) or one per line in a command file
+(without the -):
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input
+
+.SS Output
+In the folder specified as output you will find the following subfolders:
+IMOD, align, temp and debug (if the option "-verb 2" was specified).
+
+A. align folder: contains an aligned stack (*.ali), a RAPTOR report of
+execution (*_RAPTOR.log), and a report of IMOD commands executed within RAPTOR
+(*_IMOD.log). If you specified -rec it will contain the tomogram as well
+(*.rec)
+
+B. IMOD folder: contains a final fiducial model (*.fid.txt), the align script
+used to generate an aligned stack (*_tiltalignScript.txt), and final refined
+tilt angles (*.tlt).
+
+Note: you can use the original stack (input file or binned file in case you
+specified -bin) and the fiducial model *.fid.txt to check if the fiducial
+tracking was successful. Just open both the model and stack with 3dmod(1) to
+visualize. You can also correct the model.  To create a new aligned stack just
+run tiltalign -param *_tiltAlignScript.txt from the output/IMOD folder.
+
+C. debug folder: if -verb 2 was specified it contains intermediate files to
+check RAPTOR performance. For example, it contains the template used to detect
+markers or fiducial models at different steps of the program.
+
+.SH AUTHORS
+.nf
+Fernando Amat and Farshid Moussavi
+.fi
+.SH SEE ALSO
+3dmod(1), tilt(1), tiltalign(1)
+.SH BUGS
+Email bug reports to mast@colorado.edu.
