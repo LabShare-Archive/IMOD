@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/21/11: In eTomo, loading the raw stack as integers.(Bug# 1492)
+
 6/21/11: In eTomo, handling the new version of trimvol.  Also removed the trimvol
 subsection from the .edf file and replaced it with individual files.(Bug# 1490)
 
