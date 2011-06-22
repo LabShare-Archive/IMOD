@@ -40,6 +40,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.81  2011/04/04 16:50:29  sueh
+ * <p> bug# 1416 Added/modified SIRT_KEY, sirtKey, newImod, newImodState, newSirt, and newVector.
+ * <p>
  * <p> Revision 3.80  2010/11/13 16:03:45  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -1954,6 +1957,7 @@ public class ImodManager {
 
   private ImodState newPreview(AxisID axisID) {
     ImodState imodState = new ImodState(manager, axisID, datasetName, ".st");
+    imodState.setLoadAsIntegers();
     return imodState;
   }
 
