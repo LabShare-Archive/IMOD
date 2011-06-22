@@ -37,6 +37,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.71  2011/04/04 16:51:11  sueh
+ * bug# 1416 Added fileList and a constructor.  Modified open.
+ *
  * Revision 3.70  2011/02/21 16:58:25  sueh
  * bug# 1437 Reformatting.
  *
@@ -670,6 +673,7 @@ public class ImodProcess {
   private String tiltFile = null;
   private ContinuousListenerTarget continuousListenerTarget = null;
   private File[] fileList = null;
+  private boolean loadAsIntegers = false;
 
   /**
    * If true, run 3dmod with -L.  This means that imodsentevent will not be used
@@ -796,6 +800,10 @@ public class ImodProcess {
   public void setWorkingDirectory(File workingDirectory) {
     this.workingDirectory = workingDirectory;
   }
+  
+  void setLoadAsIntegers() {
+    loadAsIntegers=true;
+  }
 
   /**
    * When openWithModel is true 3dmod will open with a model, if a model is set.
@@ -869,6 +877,11 @@ public class ImodProcess {
 
     if (openZap) {
       commandOptions.add("-Z");
+    }
+    
+    if (loadAsIntegers) {
+      commandOptions.add("-I");
+      commandOptions.add("1");
     }
 
     if (tiltFile != null) {
