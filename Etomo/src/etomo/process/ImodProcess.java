@@ -37,6 +37,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.72  2011/06/22 02:22:05  sueh
+ * bug# 1462 Added loadAsIntegers.
+ *
  * Revision 3.71  2011/04/04 16:51:11  sueh
  * bug# 1416 Added fileList and a constructor.  Modified open.
  *
@@ -800,9 +803,9 @@ public class ImodProcess {
   public void setWorkingDirectory(File workingDirectory) {
     this.workingDirectory = workingDirectory;
   }
-  
+
   void setLoadAsIntegers() {
-    loadAsIntegers=true;
+    loadAsIntegers = true;
   }
 
   /**
@@ -878,7 +881,7 @@ public class ImodProcess {
     if (openZap) {
       commandOptions.add("-Z");
     }
-    
+
     if (loadAsIntegers) {
       commandOptions.add("-I");
       commandOptions.add("1");
@@ -911,8 +914,8 @@ public class ImodProcess {
 
     if (windowOpenOptionList != null) {
       commandOptions.add(WindowOpenOption.OPTION);
-      StringBuffer buffer = new StringBuffer(((WindowOpenOption) windowOpenOptionList
-          .get(0)).toString());
+      StringBuffer buffer = new StringBuffer(
+          ((WindowOpenOption) windowOpenOptionList.get(0)).toString());
       for (int i = 1; i < windowOpenOptionList.size(); i++) {
         buffer.append(((WindowOpenOption) windowOpenOptionList.get(i)).toString());
       }
@@ -1261,16 +1264,16 @@ public class ImodProcess {
 
   public void setBeadfixerDiameter(long beadfixerDiameter) {
     beadfixerDiameterSet = true;
-    addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_DIAMETER, String
-        .valueOf(beadfixerDiameter));
+    addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_DIAMETER,
+        String.valueOf(beadfixerDiameter));
   }
 
   public void setAutoCenter(boolean autoCenter) {
     addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_AUTO_CENTER, autoCenter ? MESSAGE_ON
         : MESSAGE_OFF);
     if (!beadfixerDiameterSet) {
-      addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_DIAMETER, String
-          .valueOf(ImodManager.DEFAULT_BEADFIXER_DIAMETER));
+      addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_DIAMETER,
+          String.valueOf(ImodManager.DEFAULT_BEADFIXER_DIAMETER));
     }
   }
 
