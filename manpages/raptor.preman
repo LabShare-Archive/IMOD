@@ -1,6 +1,6 @@
 .na
 .nh
-.TH nad_eed_3d 1 3.5.2 BL3DEMC
+.TH RAPTOR 1 4.1.19 BL3DEMC
 .SH NAME
 RAPTOR \- Automatic alignment of tilt series with fiducial markers
 .SH SYNOPSIS
