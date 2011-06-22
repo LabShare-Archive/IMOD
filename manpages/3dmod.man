@@ -186,7 +186,8 @@ Images can be rescaled after 3dmod is running using the
 menu entry Edit-Image-Reload.  If raw image files are being read, entering 
 this option will set the scaling limits for these files and prevent them from
 being scanned for their minimum and maximum values.
-.TP -I <0 or 1>
+.TP 
+.B -I <0 or 1>
 This option controls whether images are stored in program memory as 16-bit
 integers instead of bytes.  The entered number overrides the default loading method
 selected in the 3dmod Preferences dialog.  Enter 1 to load data as integers,
