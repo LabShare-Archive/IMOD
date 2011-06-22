@@ -176,6 +176,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.61  2011/04/04 16:51:26  sueh
+ * <p> $bug# 1416 Added fileList and a constructor.
+ * <p> $
  * <p> $Revision 1.60  2011/02/21 16:59:41  sueh
  * <p> $bug# 1437 Reformatting.
  * <p> $
@@ -953,6 +956,10 @@ public final class ImodState {
   public void setModelName(String modelName) {
     this.modelName = modelName;
     process.setModelName(modelName);
+  }
+  
+  void setLoadAsIntegers() {
+    process.setLoadAsIntegers();
   }
 
   /**
