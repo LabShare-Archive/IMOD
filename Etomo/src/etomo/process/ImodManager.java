@@ -40,6 +40,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.82  2011/06/22 02:21:32  sueh
+ * <p> Bug# 1462 Added loadAsIntegers to newPreview.
+ * <p>
  * <p> Revision 3.81  2011/04/04 16:50:29  sueh
  * <p> bug# 1416 Added/modified SIRT_KEY, sirtKey, newImod, newImodState, newSirt, and newVector.
  * <p>
@@ -1831,6 +1834,7 @@ public class ImodManager {
 
   private ImodState newRawStack(AxisID axisID) {
     ImodState imodState = new ImodState(manager, axisID, datasetName, ".st");
+    imodState.setLoadAsIntegers();
     return imodState;
   }
 
