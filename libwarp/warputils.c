@@ -17,8 +17,10 @@
 #include "warpfiles.h"
 #include "b3dutil.h"
 
-static int newGridLimits(int *nxGrid, float *xStart, float xInterval, int xdim, int nx,
-                         float xBigStr, float xBigEnd);
+static int newGridLimits(int *nxGrid, float *xStart, float xInterval, int xdim, int ixmin,
+                         int ixmax, float xBigStr, float xBigEnd);
+static int adjustSizeAndStart(int nxwarp, int ixgdim, float xmin, float xmax,
+                              float xGridIntrv, float *xGridStrt);
 
 /*!
  * Returns a value from one position in a 2D warping grid.  ^
@@ -29,9 +31,9 @@ static int newGridLimits(int *nxGrid, float *xStart, float xInterval, int xdim, 
  * [xGridIntrv], [yGridIntrv] are the spacing between grid points in X and Y ^
  * [dx] and [dy] are returned with the interpolated values at the given position.
  */
-void interpolateGridf(float x, float y, float *dxGrid, float *dyGrid, int ixgDim,
-                      int nxGrid, int nyGrid, float xGridStart, float xGridIntrv,
-                      float yGridStart, float yGridIntrv, float *dx, float *dy)
+void interpolateGrid(float x, float y, float *dxGrid, float *dyGrid, int ixgDim,
+                      int nxGrid, int nyGrid, float xGridStart, float yGridStart,
+                      float xGridIntrv, float yGridIntrv, float *dx, float *dy)
 {
   float xgrid,ygrid,fx1,fx,fy1,fy,c00,c10,c01,c11;
   int ixg,iyg,ixg1,iyg1;
@@ -62,12 +64,13 @@ void interpolateGridf(float x, float y, float *dxGrid, float *dyGrid, int ixgDim
 
 /*!
  * Finds the point that a grid maps to [x], [y] by iteration.  Returns the coordinates
- * of that point in [xnew], [ynew] and the interpolated grid values at that point in
- * [dx] and [dy].  Grid parameters are the same as in @interpolateGrid.
+ * of that point in [xnew], [ynew] (which can be the same as [x], [y]) and the 
+ * interpolated grid values at that point in [dx] and [dy].  Grid parameters are the same 
+ * as in @interpolateGrid.
  */
 void findInversePoint(float x, float y, float *dxGrid, float *dyGrid, int ixgDim,
-                      int nxGrid, int nyGrid, float xGridStart, float xGridIntrv,
-                      float yGridStart, float yGridIntrv, float *xnew, float *ynew,
+                      int nxGrid, int nyGrid, float xGridStart, float yGridStart, 
+                      float xGridIntrv, float yGridIntrv, float *xnew, float *ynew,
                       float *dx, float *dy)
 {
   int maxIter = 10;
@@ -76,8 +79,8 @@ void findInversePoint(float x, float y, float *dxGrid, float *dyGrid, int ixgDim
   float xlast = x, ylast = y;
 
   for (iter = 0; iter < maxIter; iter++) {
-    interpolateGridf(xlast, ylast, dxGrid, dyGrid, ixgDim, nxGrid, nyGrid, xGridStart, 
-                     xGridIntrv, yGridStart, yGridIntrv, dx, dy);
+    interpolateGrid(xlast, ylast, dxGrid, dyGrid, ixgDim, nxGrid, nyGrid, xGridStart, 
+                     yGridStart, xGridIntrv, yGridIntrv, dx, dy);
     *xnew = x - *dx;
     *ynew = y - *dy;
     if (fabs((double)(*xnew - xlast)) < changeCrit && 
@@ -97,7 +100,7 @@ void findInversePoint(float x, float y, float *dxGrid, float *dyGrid, int ixgDim
  * calling from Fortran).  Grid parameters are the same as in @interpolateGrid.
  */
 void invertWarpGrid(float *dxGrid, float *dyGrid, int ixgDim, int nxGrid, int nyGrid,
-                    float xGridStart, float xGridIntrv, float yGridStart, 
+                    float xGridStart, float yGridStart, float xGridIntrv, 
                     float yGridIntrv, float *xform, float xcen, float ycen, float *dxInv,
                     float *dyInv, float *xfInv, int rows)
 {
@@ -110,7 +113,7 @@ void invertWarpGrid(float *dxGrid, float *dyGrid, int ixgDim, int nxGrid, int ny
       xgrid = xGridStart + ix * xGridIntrv;
       xfApply(xform, xcen, ycen, xgrid, ygrid, &xgrid, &ygrid, rows);
       findInversePoint(xgrid, ygrid, dxGrid, dyGrid, ixgDim, nxGrid, nyGrid, xGridStart,
-                       xGridIntrv, yGridStart, yGridIntrv, &xnew, &ynew, &dx, &dy);
+                       yGridStart, xGridIntrv, yGridIntrv, &xnew, &ynew, &dx, &dy);
       dxInv[ix + iy * ixgDim] = -dx;
       dyInv[ix + iy * ixgDim] = -dy;
     }
@@ -137,11 +140,11 @@ void invertWarpGrid(float *dxGrid, float *dyGrid, int ixgDim, int nxGrid, int ny
  * but the first warp grid must exist.  Returns 1 for memory or other errors.
  */
 int multiplyWarpings(float *dxGrid1, float *dyGrid1, int ixgDim1, int nxGrid1, 
-                      int nyGrid1, float xStart1, float xIntrv1, float yStart1,
+                      int nyGrid1, float xStart1, float yStart1, float xIntrv1, 
                       float yIntrv1, float *xform1, float xcen, float ycen, 
                       float *dxGrid2, float *dyGrid2, int ixgDim2, int nxGrid2,
-                      int nyGrid2, float xStart2, float xIntrv2, 
-                      float yStart2, float yIntrv2, float *xform2, float *dxProd,
+                      int nyGrid2, float xStart2, float yStart2, float xIntrv2, 
+                      float yIntrv2, float *xform2, float *dxProd,
                       float *dyProd, float *xfProd, int useSecond, int rows)
 {
 
@@ -186,13 +189,13 @@ int multiplyWarpings(float *dxGrid1, float *dyGrid1, int ixgDim1, int nxGrid1,
 
       /* Back-transform through the second grid if it exists */
       if (nxGrid2)
-        interpolateGridf(xgrid, ygrid, dxGrid2, dyGrid2, ixgDim2, nxGrid2, nyGrid2,
-                         xStart2, xIntrv2, yStart2, yIntrv2, &dx, &dy);
+        interpolateGrid(xgrid, ygrid, dxGrid2, dyGrid2, ixgDim2, nxGrid2, nyGrid2,
+                         xStart2, yStart2, xIntrv2, yIntrv2, &dx, &dy);
 
       /* Then by inverse of f2, then through the first grid, then by inverse of f1 */
       xfApply(xfinv2, xcen, ycen, xgrid + dx, ygrid + dy, &xnew, &ynew, rows);
-      interpolateGridf(xnew, ynew, dxGrid1, dyGrid1, ixgDim1, nxGrid1, nyGrid1, xStart1,
-                       xIntrv1, yStart1, yIntrv1, &dx, &dy);
+      interpolateGrid(xnew, ynew, dxGrid1, dyGrid1, ixgDim1, nxGrid1, nyGrid1, xStart1,
+                       yStart1, xIntrv1, yIntrv1, &dx, &dy);
       xfApply(xfinv1, xcen, ycen, xnew + dx, ynew + dy, &xnew, &ynew, rows);
 
       /* Store data packed contiguously */
@@ -696,14 +699,15 @@ void extrapolateDone()
  * [xInterval], [yInterval] - Spacing between points in X and Y ^
  * [xBigStr], [yBigStr] - Starting X and Y coordinates of larger area ^
  * [xBigEnd], [yBigEnd] - Ending X and Y coordinates of larger area ^
- * [nx], [ny] - dimensions of image, which limits the final dimensions ^
+ * [ixmin], [ixmax] - limiting coordinates in X; grid will not go outside this ^
+ * [iymin], [iymax] - limiting coordinates in X; grid will not go outside this ^
  * The new area covered by the grid will be at least as large as the larger area, unless 
  * that would make a grid point be out of bounds. Returns 1 for memory error.
  */
 int expandAndExtrapGrid(float *dxGrid, float *dyGrid, int xdim, int ydim, int *nxGrid,
                         int *nyGrid, float *xStart, float *yStart, float xInterval, 
                         float yInterval, float xBigStr, float yBigStr, float xBigEnd,
-                        float yBigEnd, int nx, int ny)
+                        float yBigEnd, int ixmin, int ixmax, int iymin, int iymax)
 {
   char *solved;
   int nxOrig = *nxGrid;
@@ -711,8 +715,8 @@ int expandAndExtrapGrid(float *dxGrid, float *dyGrid, int xdim, int ydim, int *n
   int ix, iy, addx, addy, jin, jout;
 
   /* Determine new limits in X and Y */
-  addx = newGridLimits(nxGrid, xStart, xInterval, xdim, nx, xBigStr, xBigEnd);
-  addy = newGridLimits(nyGrid, yStart, yInterval, ydim, ny, yBigStr, yBigEnd);
+  addx = newGridLimits(nxGrid, xStart, xInterval, xdim, ixmin, ixmax, xBigStr, xBigEnd);
+  addy = newGridLimits(nyGrid, yStart, yInterval, ydim, iymin, iymax, yBigStr, yBigEnd);
   if (*nxGrid == nxOrig && *nyGrid == nyOrig)
     return 0;
 
@@ -743,23 +747,23 @@ int expandAndExtrapGrid(float *dxGrid, float *dyGrid, int xdim, int ydim, int *n
 }
 
 /* Determine new limits for expanding a grid into */
-static int newGridLimits(int *nxGrid, float *xStart, float xInterval, int xdim, int nx,
-                          float xBigStr, float xBigEnd)
+static int newGridLimits(int *nxGrid, float *xStart, float xInterval, int xdim, int ixmin,
+                         int ixmax, float xBigStr, float xBigEnd)
 {
   int nxgin = *nxGrid;
   int addlo, addhi, extra, sublo, subhi;
   
   /* Add grid points to get outside the big start and end, but limit it to stay between
-     0 and nx */
+     ixmin and ixmax */
   /* fprintf(stderr, "new lim: %d %f %f %d %d %f %f\n", *nxGrid, *xStart, xInterval, xdim,
      nx, xBigStr, xBigEnd); */
   addlo = (int)ceil((*xStart - xBigStr) / xInterval);
-  while (*xStart - addlo * xInterval <= 0)
+  while (*xStart - addlo * xInterval <= ixmin)
     addlo--;
   addlo = B3DMAX(0, addlo);
   addhi = (int)ceil((xBigEnd - (*xStart + (nxgin - 1) * xInterval)) / xInterval);
   addhi = B3DMAX(0, addhi);
-  while (*xStart + (addhi + nxgin - 1) * xInterval >= nx) 
+  while (*xStart + (addhi + nxgin - 1) * xInterval >= ixmax) 
     addhi--;
   addhi = B3DMAX(0, addhi);
 
@@ -786,6 +790,16 @@ static int newGridLimits(int *nxGrid, float *xStart, float xInterval, int xdim, 
     return -2;                          \
   }
 
+/*!
+ * Attempts to open a transform file in [filename] as a warping file and performs basic 
+ * checks on it.  Set [needDist] to 1 if the file must be a distortion field file with
+ * an inverse transform grid, or [needInv] to 1 if a warping file must contain inverse 
+ * transforms.  The return value is a warping file index, -1 for a linear transform file,
+ * or -2 for an error.  In case of an error, [errString] is filled with an error message;
+ * [lenString] is the size of [errString] (omitted when calling from Fortran).  For a 
+ * warping file, returns the image size in [nx], [ny]. number of sections in [nz], 
+ * binning of images in [ibinning], pixel size in [pixelSize], and flags in [iflags].
+ */
 int readCheckWarpFile(char *filename, int needDist, int needInv, int *nx, int *ny, 
                       int *nz, int *ibinning, float *pixelSize, int *iflags, 
                       char *errString, int lenString)
@@ -814,12 +828,22 @@ int readCheckWarpFile(char *filename, int needDist, int needInv, int *nx, int *n
   return ierr;
 }
 
-int findMaxGridSize(int nxwarp, int nywarp, int nzwarp, int controlPts, float xnbig,
-                    float ynbig, int *nControl, int *maxNxg, int *maxNyg, char *errString,
-                    int lenString)
+/*!
+ * Determines the maximum grid size needed in X and Y for all of the transforms in the
+ * current warping file.  Set the needed minimum and maximum 
+ * X and Y coordinates to be composed in [xmin], [xmax], [ymin], and [ymax].  The number 
+ * of control points, or 4 for a grid, is returned in [nControl], which must be allocated 
+ * before calling.  The maximum grid sizes in X amd Y are returned in [maxNxg] and
+ * [maxNyg].  Returns -2 for an error and places an error message in [errString];
+ * [lenString] is the size of [errString] (omitted when calling from Fortran).
+ */
+int findMaxGridSize(float xmin, float xmax, float ymin, float ymax, int *nControl,
+                    int *maxNxg, int *maxNyg, char *errString, int lenString)
 {
-  int iz, iy, nxGrid, nyGrid;
+  int nxwarp, nywarp, nzwarp, controlPts, iz, iy, nxGrid, nyGrid;
   float yIntMin, xIntMin, xGridStrt, yGridStrt, xGridIntrv, yGridIntrv;
+  if (getWarpFileSize(&nxwarp, &nywarp, &nzwarp, &controlPts))
+    ERR_RETURN("GETTING MAX GRID SIZE - THERE IS NO CURRENT WARP FILE");
   
   xIntMin = 1.e20;
   yIntMin = 1.e20;
@@ -844,59 +868,92 @@ int findMaxGridSize(int nxwarp, int nywarp, int nzwarp, int controlPts, float xn
     }
   }
        
-  /* Allow the grid to be expanded to fit the actual image, at the minimum interval */
+  /* Allow the grid to be expanded to fit the actual image, at the minimum interval.
+     Allow an extra position by adding 2 */
   if (xIntMin < 1.e19) {
-    iz = B3DMAX(nxwarp, B3DNINT(xnbig));
-    iy = B3DMAX(nywarp, B3DNINT(ynbig));
-
-    *maxNxg = (int)ceil(iz / xIntMin) + 1;
-    *maxNyg = (int)ceil(iy / yIntMin) + 1;
+    iz = B3DNINT(B3DMAX(nxwarp, xmax) - B3DMIN(0.,xmin));
+    iy = B3DNINT(B3DMAX(nywarp, ymax) - B3DMIN(0.,ymin));
+    *maxNxg = (int)ceil(iz / xIntMin) + 2;
+    *maxNyg = (int)ceil(iy / yIntMin) + 2;
   }
   return 0;
 }
 
-int getSizeAdjustedGrid(int iz, int nxwarp, int nywarp, int controlPts, float xnbig,
-                        float ynbig, float warpScale, int iBinning, int *nxGrid,
+/*!
+ * Gets a warping grid for section [iz] of the current warping file, expanded to fill
+ * the needed area and adjusted for size changes and offsets.  ^
+ * [xnbig, ynbig] - Size of the needed area, in warp file coordinates ^
+ * [xOffset], [yOffset] - Offset of needed area from the image used to get the warping ^
+ * [adjustStart] - Set to 1 to have starting coordinates adjusted for difference in size
+ * and for the offset, and to have the grid vectors adjusted for the offset too ^
+ * [warpScale] - Scaling between input image pixel size and warp file pixel size ^
+ * [iBinning] - Binning of pixels for output.  Vectors, starts, and intervals will be all
+ * be multiplied by [warpScale] / [iBinning] ^
+ * [nxGrid], [nyGrid] - Number of positions in returned grid in X and Y ^
+ * [xGridStrt], [yGridStrt] - Returned starting coordinate of grid ^
+ * [xGridIntrv], [yGridIntrv] - Returned interval between grid points ^
+ * [fieldDx], [fieldDy] - Grid of displacements in X and Y ^
+ * [ixgDim], [iygDim] - Dimensions of grid arrays in X and Y ^
+ * Returns -2 for an error and places an error message in [errString], whose size should
+ * be supplied in [lenString] (but not when calling from Fortran).
+ */
+int getSizeAdjustedGrid(int iz, float xnbig, float ynbig, float xOffset, float yOffset,
+                        int adjustStart, float warpScale, int iBinning, int *nxGrid,
                         int *nyGrid, float *xGridStrt, float *yGridStrt, 
                         float *xGridIntrv, float *yGridIntrv, float *fieldDx,
-                        float *fieldDy, int ixgdim, int iygdim, char *errString, 
+                        float *fieldDy, int ixgdim, int iygdim, char *errString,
                         int lenString)
 {
-  int ierr, i, iy;
-  float xBigDiff, yBigDiff, binRatio;
+  int nxwarp, nywarp, nzwarp, controlPts, ierr, i, iy;
+  float binRatio, xAdd, yAdd, xmin, xmax, ymin, ymax;
+  if (getWarpFileSize(&nxwarp, &nywarp, &nzwarp, &controlPts))
+    ERR_RETURN("GETTING SIZE-ADJUSTED GRID - THERE IS NO CURRENT WARP FILE");
 
-  /* For control points, see if we need to expand the sampled grid */
+  /* For control points, see if we need to expand the sampled grid.  For stability, we
+   always provide the full grid over the aligned area and expand by extrapolation */
   if (controlPts) {
     ierr = gridSizeFromSpacing(iz, -1., -1., 1);
     ierr = getGridParameters(iz, nxGrid, nyGrid, xGridStrt, yGridStrt,
                              xGridIntrv, yGridIntrv);
-    if (xnbig > nxwarp || ynbig > nywarp) {
-      i = B3DMAX(*nxGrid, B3DMIN(ixgdim, (int)ceil(xnbig / *xGridIntrv) + 1));
-      *xGridStrt = *xGridStrt - (i - *nxGrid) / 2.;
-      *nxGrid = i;
-      i = B3DMAX(*nyGrid, B3DMIN(iygdim, (int)ceil(ynbig / *yGridIntrv) + 1));
-      *yGridStrt = *yGridStrt - (i - *nyGrid) / 2.;
-      *nyGrid = i;
+    /* fprintf(stderr, "iz %d nxyg %d %d st %f %f int %f %f\n", iz, *nxGrid, *nyGrid,
+     *xGridStrt, *yGridStrt, *xGridIntrv, *xGridIntrv); */
+
+    /* The area actually needed */
+    xmin = nxwarp / 2. - xnbig / 2. + xOffset;
+    xmax = xmin + xnbig;
+    ymin = nywarp / 2. - ynbig / 2. + yOffset;
+    ymax = ymin + ynbig;
+    if (xmax > nxwarp || xmin < 0 || ymax > nywarp || ymin < 0) {
+
+      /* If the area is larger, get new size and starting points */
+      *nxGrid = adjustSizeAndStart(nxwarp, ixgdim, xmin, xmax, *xGridIntrv, xGridStrt);
+      *nyGrid = adjustSizeAndStart(nywarp, iygdim, ymin, ymax, *yGridIntrv, yGridStrt);
       ierr = setGridSizeToMake(iz, *nxGrid, *nyGrid, *xGridStrt, *yGridStrt,
                                *xGridIntrv, *yGridIntrv);
     }
   }
   if (getWarpGrid(iz, nxGrid, nyGrid, xGridStrt, yGridStrt, xGridIntrv,
                   yGridIntrv, fieldDx, fieldDy, ixgdim))
-    ERR_RETURN("GETTING WARP GRID");
-  xBigDiff = (xnbig - nxwarp) / 2.;
-  yBigDiff = (ynbig - nywarp) / 2.;
+    ERR_RETURN("GETTING WARP GRID OR DISTORTION FIELD");
 
-  /* If images are not full field, adjust grid start by half the
-     difference between image and field size, still in warp file pixels */
-  *xGridStrt += xBigDiff;
-  *yGridStrt += yBigDiff;
+  /* If images are not full field, adjust grid start by half the difference between 
+     image and field size, still in warp file pixels. 
+     Also subtract the offset and set up to add it to the vectors */
+  xAdd = 0.;
+  yAdd = 0.;
+  if (adjustStart) {
+    *xGridStrt += (xnbig - nxwarp) / 2. - xOffset;
+    *yGridStrt += (ynbig - nywarp) / 2. - yOffset;
+    xAdd = xOffset;
+    yAdd = yOffset;
+  }
              
   /* Then expand a grid to fill the space */
   if (! controlPts) {
     if (expandAndExtrapGrid(fieldDx, fieldDy, ixgdim, iygdim, nxGrid, nyGrid, xGridStrt,
                             yGridStrt, *xGridIntrv, *yGridIntrv, 0., 0., xnbig, ynbig,
-                            B3DNINT(xnbig), B3DNINT(ynbig)))
+                            B3DNINT(xOffset), B3DNINT(xnbig + xOffset), B3DNINT(yOffset),
+                            B3DNINT(ynbig + yOffset)))
       ERR_RETURN("EXTRAPOLATING WARPING/DISTORTION GRID TO FULL AREA");
   }
   
@@ -911,8 +968,8 @@ int getSizeAdjustedGrid(int iz, int nxwarp, int nywarp, int controlPts, float xn
   /* scale field */
   for (iy = 0; iy < *nyGrid; iy++) {
     for (i = 0; i < *nxGrid; i++) {
-      fieldDx[i + iy * ixgdim] *= binRatio;
-      fieldDy[i + iy * ixgdim] *= binRatio;
+      fieldDx[i + iy * ixgdim] = (fieldDx[i + iy * ixgdim] + xAdd) * binRatio;
+      fieldDy[i + iy * ixgdim] = (fieldDy[i + iy * ixgdim] + yAdd) * binRatio;
     }
   }
   /*fprintf(stderr,"%d %d %f %f %f %f\n", *nxGrid, *nyGrid, *xGridStrt, *yGridStrt,
@@ -923,9 +980,31 @@ int getSizeAdjustedGrid(int iz, int nxwarp, int nywarp, int controlPts, float xn
   return 0;
 }
 
+/* Routine to adjust size and starting point of one dimension for a control grid */
+static int adjustSizeAndStart(int nxwarp, int ixgdim, float xmin, float xmax,
+                              float xGridIntrv, float *xGridStrt)
+{
+  int nxgr;
+  float gstr, gend;
+
+  /* compute starts and ends that encompass the needed area and get new grid size */
+  gstr = B3DMIN(0, xmin) + xGridIntrv / 10.;
+  gend = B3DMAX(nxwarp, xmax) - xGridIntrv / 10.;
+  nxgr = B3DMIN(ixgdim, (int)ceil((gend - gstr) / xGridIntrv) + 1);
+
+  /* Get ideal new starting point and then shift to nearest point that keeps points
+     on the same grid - this stabilizes the grid against changes in amount of expansion */
+  gstr = (gend + gstr) / 2. - xGridIntrv * (nxgr - 1) / 2.;
+  *xGridStrt -= B3DNINT((*xGridStrt - gstr) / xGridIntrv) * xGridIntrv;
+  return nxgr;
+}
+
 /*
 
 $Log$
+Revision 1.5  2011/06/18 13:22:56  mast
+Fix x/y bug in finding max grid size
+
 Revision 1.4  2011/06/17 21:06:17  mast
 Needed an else in the checker routine
 
