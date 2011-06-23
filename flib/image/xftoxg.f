@@ -245,13 +245,14 @@ c            print *,'raw grid', nxGrTmp, nyGrTmp
 c            write(*,'(f7.2,9f8.2)')((dxGrid(i,j),dyGrid(i,j),i=1,nxGrid),j=1,nyGrid)
             if (.not.control) then
               if (expandAndExtrapGrid(dxGrid, dyGrid, nxGrid, nyGrid, nxGrTmp, nyGrTmp,
-     &            xStrTmp, yStrTmp, xIntTmp, yIntTmp, xStart, yStart, xEnd, yEnd, nx, ny)
+     &            xStrTmp, yStrTmp, xIntTmp, yIntTmp, xStart, yStart, xEnd, yEnd, 0, nx,
+     &            0, ny)
      &            .ne. 0) call exitError('EXPANDING A WARP GRID')
             endif
           endif
           if (multiplyWarpings(dxCum(1,1,kl-1), dyCum(1,1,kl-1), nxGrid, nxGrid, nyGrid,
-     &        xStart, xInterval, yStart, yInterval, g(1,1,kl-1), xcen, ycen, dxGrid,
-     &        dyGrid, nxGrid, nxGrTmp, nyGrTmp, xStrTmp, xIntTmp, yStrTmp, yIntTmp,
+     &        xStart, yStart, xInterval, yInterval, g(1,1,kl-1), xcen, ycen, dxGrid,
+     &        dyGrid, nxGrid, nxGrTmp, nyGrTmp, xStrTmp, yStrTmp, xIntTmp, yIntTmp,
      &        f(1,1,kl), dxCum(1,1,kl), dyCum(1,1,kl), g(1,1,kl), 0) .ne. 0)
      &        call exitError ('MULTIPLYING TWO WARPINGS TOGETHER FOR CUMULATIVE WARPING')
 c          print *,g(1:2,1:3,kl)
@@ -272,8 +273,8 @@ c         Find the mean grid and take its inverse, leave in dxGrid, dyGrid
         enddo
 c        write(*,'(f7.2,9f8.2)')((dxProd(i,j),dyProd(i,j),i=1,nxGrid),j=1,nyGrid)
         
-        call invertWarpGrid(dxProd, dyProd, nxGrid, nxGrid, nyGrid, xStart, xInterval,
-     &      yStart, yInterval, g(1,1,1), xcen, ycen, dxGrid, dyGrid, prod)
+        call invertWarpGrid(dxProd, dyProd, nxGrid, nxGrid, nyGrid, xStart, yStart,
+     &      xInterval, yInterval, g(1,1,1), xcen, ycen, dxGrid, dyGrid, prod)
 c         
 c         Start a new warp file
         ierr = clearWarpFile(indWarpFile)
@@ -425,8 +426,8 @@ c
 c           If there are warpings, multiply cumulative warp by inverse warp based on
 c           this transform and the inverse average warp
           if (multiplyWarpings(dxCum(1,1,ilist), dyCum(1,1,ilist), nxGrid, nxGrid, nyGrid,
-     &        xStart, xInterval, yStart, yInterval, g(1,1,ilist), xcen, ycen, dxGrid,
-     &        dyGrid, nxGrid, nxGrid, nyGrid, xStart, xInterval, yStart, yInterval,
+     &        xStart, yStart, xInterval, yInterval, g(1,1,ilist), xcen, ycen, dxGrid,
+     &        dyGrid, nxGrid, nxGrid, nyGrid, xStart, yStart, xInterval, yInterval,
      &        ginv, dxProd, dyProd, prod, 0) .ne. 0)
      &        call exitError ('MULTIPLYING TWO WARPINGS TOGETHER FOR FINAL WARPING')
           if (setLinearTransform(ilist, prod) .ne. 0 .or.
@@ -542,6 +543,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.8  2011/06/17 04:08:21  mast
+c       Switched to new routines for warping
+c
 c       Revision 3.7  2011/06/10 04:10:11  mast
 c       Added warping
 c

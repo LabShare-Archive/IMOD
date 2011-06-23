@@ -143,8 +143,8 @@ c             Grid: get them, call inverse routine, save them back
      &          .ne. 0) call exitError('Getting warp grid parameters')
             if (getWarpGrid(i, nxGrid, nyGrid, xStart, yStart, xInterval, yInterval,
      &          dxGrid, dyGrid, nxGrid) .ne. 0) call exitError('Getting a warp grid')
-            call invertWarpGrid(dxGrid, dyGrid, nxGrid, nxGrid, nyGrid, xStart, xInterval,
-     &          yStart, yInterval, f, xcen, ycen, dxInv, dyInv, prod)
+            call invertWarpGrid(dxGrid, dyGrid, nxGrid, nxGrid, nyGrid, xStart, yStart,
+     &          xInterval, yInterval, f, xcen, ycen, dxInv, dyInv, prod)
             if (setWarpGrid(i, nxGrid, nyGrid, xStart, yStart, xInterval, yInterval,
      &          dxInv, dyInv, nxGrid) .ne. 0) call exitError('Saving a warp grid')
           endif

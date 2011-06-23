@@ -4,6 +4,9 @@ c
 c       $Id$
 c       
 c       $Log$
+c       Revision 3.4  2011/06/17 05:43:40  mast
+c       Modified for warping
+c
 c       Revision 3.3  2008/12/03 21:50:02  mast
 c       Increased field width in outputs, -1000 shift in Y was unparseable
 c
@@ -105,9 +108,8 @@ c       Set up for warping
         warpScale = pixelSize / deltaFirst(1)
         allocate(nControl(numFiles), stat = ierr)
         call memoryError(ierr, 'ARRAY FOR NUMBER OF CONTROL POINTS')
-        if (findMaxGridSize(nxwarp, nywarp, numFiles, ifControl, maxx /warpScale,
-     &      maxy / warpScale, nControl, maxNxg, maxNyg, errString) .ne. 0)
-     &      call exitError(errString)
+        if (findMaxGridSize(0., maxx /warpScale, 0., maxy / warpScale, nControl, maxNxg,
+     &      maxNyg, errString) .ne. 0) call exitError(errString)
         if (maxNxg * maxNyg .gt. 0) then
           allocate(dxGrid(maxNxg, maxNyg), dyGrid(maxNxg, maxNyg), stat = ierr)
           call memoryError(ierr, 'ARRAYS FOR WARPING FIELDS')
@@ -131,9 +133,9 @@ c
      &        'GETTING LINEAR TRANSFORM FROM WARP FILE')
           hasWarp = nControl(i) .gt. 2
           if (hasWarp) then
-            if (getSizeAdjustedGrid(i, nxwarp, nywarp, ifControl, maxx / warpScale,
-     &          maxy / warpScale, warpScale, 1, nxGrid, nyGrid, xGridStrt, yGridStrt,
-     &          xGridIntrv, yGridIntrv, dxGrid, dyGrid, maxNxg, maxNyg, errString) .ne. 0)
+            if (getSizeAdjustedGrid(i, maxx / warpScale, maxy / warpScale, 0., 0., 1,
+     &          warpScale, 1, nxGrid, nyGrid, xGridStrt, yGridStrt, xGridIntrv,
+     &          yGridIntrv, dxGrid, dyGrid, maxNxg, maxNyg, errString) .ne. 0)
      &          call exitError(errString)
           endif
         endif
@@ -144,7 +146,7 @@ c
             if (hasWarp) then
 c              print *,i,idirx,idiry,xcorn,ycorn
               call findInversePoint(xcorn, ycorn, dxGrid, dyGrid, maxNxg, nxgrid, nyGrid,
-     &            xGridStrt, yGridIntrv, yGridStrt, yGridIntrv, xcorn, ycorn, dx,dy)
+     &            xGridStrt, yGridStrt, yGridIntrv, yGridIntrv, xcorn, ycorn, dx,dy)
 c              print *,xcorn,ycorn, dx, dy
             endif
             xmin = min(xmin, xcorn)

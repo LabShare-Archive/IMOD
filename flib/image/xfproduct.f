@@ -327,7 +327,7 @@ c               Now get a grid and scale it
                 if (expandAndExtrapGrid(dxGrid(1,1,ifs), dyGrid(1,1,ifs), nxgDim, nygDim,
      &              nxGrids(ifs), nyGrids(ifs), xStarts(ifs),yStarts(ifs),
      &              xIntervals(ifs), yIntervals(ifs),  xAllStr(ifs), yAllStr(ifs),
-     &              xAllEnd(ifs), yAllEnd(ifs), nx(ifs), ny(ifs)) .ne. 0)
+     &              xAllEnd(ifs), yAllEnd(ifs), 0, nx(ifs), 0, ny(ifs)) .ne. 0)
      &              call exitError('EXPANDING A WARP GRID')
               endif
               dxGrid(1:nxGrids(ifs), 1:nyGrids(ifs), ifs) =
@@ -377,9 +377,9 @@ c               multiplication of two grids: make new grid the one with smaller 
      &              ifUse2nd = 1
               endif
               if (multiplyWarpings(dxGrid(1,1,1), dyGrid(1,1,1), nxgDim, nxGrids(1),
-     &            nyGrids(1), xStarts(1), xIntervals(1), yStarts(1), yIntervals(1), 
+     &            nyGrids(1), xStarts(1), yStarts(1), xIntervals(1), yIntervals(1), 
      &            ftmp(1,1,1), xcen, ycen, dxGrid(1,1,2), dyGrid(1,1,2), nxgDim,
-     &            nxGrids(2), nyGrids(2), xStarts(2), xIntervals(2), yStarts(2),
+     &            nxGrids(2), nyGrids(2), xStarts(2), yStarts(2), xIntervals(2), 
      &            yIntervals(2), ftmp(1,1,2), dxGrid(1,1,3), dyGrid(1,1,3), ftmp(1,1,3),
      &            ifUse2nd) .ne. 0) call exitError('MULTIPLYING WARPINGS')
               indcopy = 3
@@ -418,6 +418,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.6  2011/06/17 04:08:21  mast
+c       Switched to new routines for warping
+c
 c       Revision 3.5  2011/06/10 04:10:11  mast
 c       Added warping
 c
