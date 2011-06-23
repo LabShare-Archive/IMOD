@@ -43,7 +43,7 @@ solvematch$(E): solvematch.$(O) solve_wo_outliers.$(O)
 	$(FC) -o solvematch solvematch.$(O) solve_wo_outliers.$(O) $(LDFLG) $(WLIBS)
 
 xfmodel$(E): xfmodel.$(O)
-	$(FC) -o xfmodel xfmodel.$(O) $(LDFLG) $(WLIBS)
+	$(FC) -o xfmodel xfmodel.$(O) $(LDFLG) $(LIWARP) $(WLIBS)
 
 boxstartend$(E): boxstartend.$(O)
 	$(FC) -o boxstartend boxstartend.$(O) $(LDFLG) $(SMALLLIBS)
@@ -173,6 +173,9 @@ clean:
 	-\rm -f *.o* *~ *.exe $(PROGS)
 
 #  $Log$
+#  Revision 3.22  2010/07/26 19:30:07  mast
+#  Changed for separate opnemp flag for fortran
+#
 #  Revision 3.21  2010/07/02 17:05:08  mast
 #  Added edmont
 #
