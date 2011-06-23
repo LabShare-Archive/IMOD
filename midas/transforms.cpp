@@ -882,27 +882,27 @@ int midas_transform(int zval, Islice *slin, Islice *sout, float *trmat, int izwa
       // Get indexes of grid points in Y on low and high side of block, and y coordinates
       indy[0] = B3DMAX(0, iygrid - 1);
       indy[1] = B3DMIN(nyGrid - 1, iygrid);
-      ylim[0] = B3DMAX(0, yStart + yInterval * (iygrid - 1));
-      if (iygrid == 0)
-        ylim[0] = 0;
-      ylim[1] = B3DMIN(ysize, yStart + yInterval * iygrid);
-      if (iygrid == nyGrid)
-        ylim[1] = ysize;
+      ylim[0] = yStart + yInterval * (iygrid - 1);
+      ylim[1] = yStart + yInterval * iygrid;
       iylim[0] = (int)ceil((double)ylim[0]);
+      if (iygrid == 0)
+        iylim[0] = 0;
       iylim[1] = (int)ceil((double)ylim[1]) - 1;
+      if (iygrid == nyGrid)
+        iylim[1] = ysize - 1;
 
       // Loop on X blocks, get indexes and limiting coordinates in X
       for (ixgrid = ixgStart; ixgrid <= ixgEnd; ixgrid++) {
         indx[0] = B3DMAX(0, ixgrid - 1);
         indx[1] = B3DMIN(nxGrid - 1, ixgrid);
-        xlim[0] = B3DMAX(0, xStart + xInterval * (ixgrid - 1));
-        if (ixgrid == 0)
-          xlim[0] = 0;
-        xlim[1] = B3DMIN(xsize, xStart + xInterval * ixgrid);
-        if (ixgrid == nxGrid)
-          xlim[1] = xsize;
+        xlim[0] = xStart + xInterval * (ixgrid - 1);
+        xlim[1] = xStart + xInterval * ixgrid;
         ixlim[0] = (int)ceil((double)xlim[0]);
+        if (ixgrid == 0)
+          ixlim[0] = 0;
         ixlim[1] = (int)ceil((double)xlim[1]) - 1;
+        if (ixgrid == nxGrid)
+          ixlim[1] = xsize - 1;
       
         // Evaluate mapping of each corner point and see if inside 
         allIn = true;
@@ -2415,6 +2415,9 @@ void crossCorrelate(MidasView *vw)
 /*
 
 $Log$
+Revision 3.28  2011/06/10 04:26:53  mast
+Changes for warping
+
 Revision 3.27  2010/12/31 22:03:30  mast
 Add arguments to find shifts call
 
