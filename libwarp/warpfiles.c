@@ -242,6 +242,21 @@ static void deleteWarpFile(WarpFile *warpFile)
   ilistTruncate(warpFile->warpings, 0);
 }
 
+/*!
+ * For the current warp file, returns the image size in [nx] and [ny], number of sections
+ * in [nz], and 1 in [ifControl] if it has control points.  Return value is 1 if there is
+ * no current warp file.
+ */
+int getWarpFileSize(int *nx, int *ny, int *nz, int *ifControl)
+{
+  if (!sCurWarpFile)
+    return 1;
+  *nx = sCurWarpFile->nx;
+  *ny = sCurWarpFile->ny;
+  *nz = sCurWarpFile->numFrames;
+  *ifControl = (sCurWarpFile->flags & WARP_CONTROL_PTS) ? 1 : 0;
+  return 0;
+}
 
 /*!
  * Sets the linear transform for section [iz] in the current warp file to [xform]; [rows]
@@ -682,9 +697,9 @@ int gridSizeFromSpacing(int iz, float percentile, float factor, int fullExtent)
   warp = ilistItem(sCurWarpFile->warpings, iz);
   spacing *= factor;
   if (fullExtent) {
-    xmin = spacing / 2.;
+    xmin = spacing / 10.;
     xmax = sCurWarpFile->nx - xmin;
-    ymin = spacing / 2.;
+    ymin = spacing / 10.;
     ymax = sCurWarpFile->ny - ymin;
   } else
     controlPointRange(iz, &xmin, &xmax, &ymin, &ymax);
@@ -1328,6 +1343,10 @@ static int readLineOfValues(FILE *fp, char *line, int limit, void *values, int f
 /*
 
 $Log$
+Revision 1.2  2011/06/10 04:04:42  mast
+Added ability to skip recomputation of spacing, better sorting, and parameters
+for pruning
+
 Revision 1.1  2011/05/26 22:28:41  mast
 Added to package
 
