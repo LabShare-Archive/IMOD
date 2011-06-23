@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/23/11: In eTomo, fixed a problem that prevented the GPU from being specified by a
+"localhost" cpu.adoc section.(Bug# 1495)
+
 6/23/11: Modified Blendmont and Xfmodel to handle warping.
 
 6/21/11: In eTomo, loading the raw stack as integers.(Bug# 1492)
