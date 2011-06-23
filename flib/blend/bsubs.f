@@ -152,7 +152,7 @@ c
       if (doFields) then
         call interpolateGrid(xp, yp, fieldDx(1,1,memIndex(izpc)),
      &      fieldDy(1,1,memIndex(izpc)), lmField, nxField, nyField,
-     &      ixFieldstrt, xFieldIntrv, iyFieldStrt, yFieldIntrv, dx, dy)
+     &      xFieldstrt, yFieldStrt, xFieldIntrv, yFieldIntrv, dx, dy)
         xp = xp + dx
         yp = yp + dy
       endif
@@ -282,13 +282,14 @@ c
       real*4 amat(2,2),dx,dy,fdx,fdy,xbase,ybase
       integer*4 indy,iyout,indx,ixout,ixp,iyp,ixpp1,ixpm1,iypp1,iypm1
       integer*4 ixpp2,iypp2
-      real*4 pixval,xp,yp,v2,v4,v6,v8,v5,a,b,c,d,vmin,vmax
+      real*4 pixval,xp,yp,v2,v4,v6,v8,v5,a,b,c,d,vmin,vmax,rx,ry
       real*4 dxm1,dxdxm1,fx1,fx2,fx3,fx4,dym1,dydym1,v1,v3
 c       
       do indy=indylo,indyhi
         iyout=indy+1-indylo
-        xbase = amat(1,2)*indy+fdx
-        ybase = amat(2,2)*indy+fdy
+        ry = indy
+        xbase = amat(1,2)*ry+fdx
+        ybase = amat(2,2)*ry+fdy
         if (interpOrder .le. 1) then
 c           
 c           Linear interpolation
@@ -296,12 +297,22 @@ c
           do indx=indxlo,indxhi
             ixout=indx+1-newpcxll
             pixval=dmean
-            xp=amat(1,1)*indx+xbase
-            yp=amat(2,1)*indx+ybase
+            rx = indx
+            if (secHasWarp) then
+              call interpolateGrid(rx - 0.5, indy - 0.5, warpDx, warpDy, lmWarpX, nxWarp,
+     &            nyWarp, xWarpstrt, yWarpStrt, xWarpIntrv, yWarpIntrv, dx, dy)
+c              if (indy .eq. 3845) print *,'fi',indx,rx,ry,dx,dy
+              rx = rx + dx
+              ry = indy + dy
+              xbase = amat(1,2)*ry+fdx
+              ybase = amat(2,2)*ry+fdy
+            endif
+            xp=amat(1,1)*rx+xbase
+            yp=amat(2,1)*rx+ybase
             if (doFields) then
               call interpolateGrid(xp, yp, fieldDx(1,1,memIndex(izpc)),
      &            fieldDy(1,1,memIndex(izpc)), lmField, nxField, nyField,
-     &            ixFieldstrt, xFieldIntrv, iyFieldStrt, yFieldIntrv, dx, dy)
+     &            xFieldstrt, yFieldStrt, xFieldIntrv, yFieldIntrv, dx, dy)
               xp = xp + dx
               yp = yp + dy
             endif
@@ -328,12 +339,21 @@ c
           do indx=indxlo,indxhi
             ixout=indx+1-newpcxll
             pixval=dmean
-            xp=amat(1,1)*indx+xbase
-            yp=amat(2,1)*indx+ybase
+            rx = indx
+            if (secHasWarp) then
+              call interpolateGrid(rx - 0.5, indy - 0.5, warpDx, warpDy, lmWarpX, nxWarp,
+     &            nyWarp, xWarpstrt, yWarpStrt, xWarpIntrv, yWarpIntrv, dx, dy)
+              rx = rx + dx
+              ry = indy + dy
+              xbase = amat(1,2)*ry+fdx
+              ybase = amat(2,2)*ry+fdy
+            endif
+            xp=amat(1,1)*rx+xbase
+            yp=amat(2,1)*rx+ybase
             if (doFields) then
               call interpolateGrid(xp, yp, fieldDx(1,1,memIndex(izpc)),
      &            fieldDy(1,1,memIndex(izpc)), lmField, nxField, nyField,
-     &            ixFieldstrt, xFieldIntrv, iyFieldStrt, yFieldIntrv, dx, dy)
+     &            xFieldstrt, yFieldStrt, xFieldIntrv, yFieldIntrv, dx, dy)
               xp = xp + dx
               yp = yp + dy
             endif
@@ -390,12 +410,21 @@ c
           do indx=indxlo,indxhi
             ixout=indx+1-newpcxll
             pixval=dmean
-            xp=amat(1,1)*indx+xbase
-            yp=amat(2,1)*indx+ybase
+            rx = indx
+            if (secHasWarp) then
+              call interpolateGrid(rx - 0.5, indy - 0.5, warpDx, warpDy, lmWarpX, nxWarp,
+     &            nyWarp, xWarpstrt, yWarpStrt, xWarpIntrv, yWarpIntrv, dx, dy)
+              rx = rx + dx
+              ry = indy + dy
+              xbase = amat(1,2)*ry+fdx
+              ybase = amat(2,2)*ry+fdy
+            endif
+            xp=amat(1,1)*rx+xbase
+            yp=amat(2,1)*rx+ybase
             if (doFields) then
               call interpolateGrid(xp, yp, fieldDx(1,1,memIndex(izpc)),
      &            fieldDy(1,1,memIndex(izpc)), lmField, nxField, nyField,
-     &            ixFieldstrt, xFieldIntrv, iyFieldStrt, yFieldIntrv, dx, dy)
+     &            xFieldstrt, yFieldStrt, xFieldIntrv, yFieldIntrv, dx, dy)
               xp = xp + dx
               yp = yp + dy
             endif
@@ -1161,6 +1190,13 @@ c       get frame # that it is nominally in: actual one or nearby valid frame
 c       
       xg=indx
       yg=indy
+      if (secHasWarp) then
+        call interpolateGrid(xg - 0.5, yg - 0.5, warpDx, warpDy, lmWarpX, nxWarp, nyWarp,
+     &      xWarpStrt, yWarpStrt, xWarpIntrv, yWarpIntrv, xtmp, ytmp)
+c        if (indy .eq. 3845) print *,'ce',indx,xg,yg,xtmp,ytmp
+        xg = xg + xtmp
+        yg = yg + ytmp
+      endif
       if(dogxforms)then
         xtmp=xg
         xg=ginv(1,1)*xtmp+ginv(1,2)*yg+ginv(1,3)
@@ -3234,6 +3270,11 @@ c
 
 c       
 c       $Log$
+c       Revision 3.37  2010/12/31 22:10:35  mast
+c       Pick up 4th edge if there are 4 pieces, add limit on lateral shift in
+c       overlap zone and limited padding by this shift limit, added a little trim
+c       in real-space correlation
+c
 c       Revision 3.36  2010/12/28 17:57:45  mast
 c       Made real-space correlations be based on filtered correlated images.
 c       Added robust argument and switch to iterative fitting for > 10 pieces.

@@ -67,14 +67,14 @@ c
       real*4 edgefrac(2),title(20),distout(2)
       real*4 edgefracx,edgefracy
       equivalence (edgefrac(1),edgefracx),(edgefrac(2),edgefracy)
-      integer*4, allocatable :: mapAllPc(:,:,:)
+      integer*4, allocatable :: mapAllPc(:,:,:), nControl(:)
       integer*4, allocatable :: ixpctmp(:), iypctmp(:), izpctmp(:), negtmp(:)
       logical, allocatable :: multineg(:), multitmp(:), edgedone(:,:)
       logical active4(3,2)
       logical anypixels,inframe,dofast,anyneg,anylinesout,xinlong,testMode
       logical shifteach,docross,fromedge,exist,xcreadin,xclegacy,outputpl
       logical xcorrDebug,verySloppy,useEdges,edgesIncomplete,adjustOrigin
-      logical edgesSeparated,fromCorrOnly, samePieces, noFFTsizes, yChunks
+      logical edgesSeparated,fromCorrOnly, samePieces, noFFTsizes, yChunks, doWarp
       real*4, allocatable :: dxgridmean(:,:),dygridmean(:,:)
       real*4, allocatable :: edgedispx(:,:),edgedispy(:,:)
       real*4 aftermean(2),aftermax(2)
@@ -111,7 +111,7 @@ c
       integer*4 iwhich,neglo,negup,indlo,indup,joint,ied,iedge,ipclo,ipcup
       integer*4 maxswing,ishift,nshiftneg,idum1,idum2,inde,nbestedge,indbest
       real*4 erradj,errlim,dxsum,dysum,sumx,sumy,xdisp,ydisp
-      real*4 beforemean,beforemax
+      real*4 beforemean,beforemax, warpScale, warpXoffset, warpYoffset
       integer*4 indgl,ilis,niter,linebase,nedgesum,indedg,indlower
       real*4 x1,y1,w1,w2,c11,c12,c21
       real*4 xgconst,ygconst,c22,denom,fb11,fb12,fb21,fb22,x1last,y1last
@@ -122,14 +122,17 @@ c
       real*4 dy3,dx3,bx,by,emin,w4,f4b11,f4b12,f4b21,f4b22,dden14,dden43
       integer*4 ipiece3,ipiece4,nxgr,nygr,indbray1,indbray2,jndp4
       real*4 x4,y4,dx4,dy4,xg,yg, delDmagPerUm, delRotPerUm, delIndent(2)
-      real*4 dmagnew,rotnew,tiltOffset,edstart,edend,bwof, ecdBin
+      real*4 dmagnew,rotnew,tiltOffset,edstart,edend,bwof, ecdBin, warpPixel,xtmp
       integer*4 iBinning, nyWrite, nlineTot,indentXC,numZero, mostNeeded
       integer*4 lineOffset, ixOffset, iyOffset, linesBuffered, iBufferBase
       integer*4 maxXcorrBinning, nxyXcorrTarget, numSkip, lineStart, lineEnd
       integer*4 nxyPadded, nxyBoxed, ifUseAdjusted, iyOutOffset, ifEdgeFuncOnly
       integer*4 ipfirst(4), numfirst, ixyFuncStart, ixyFuncEnd, nlinesWrite
-      integer*4 iedgeDelX, iedgeDelY
-      integer*4 imodBackupFile, parWrtInitialize
+      integer*4 iedgeDelX, iedgeDelY, ixUnaliStart, iyUnaliStart
+      integer*4 iwarpNx, iwarpNy, indWarpFile
+      integer*4 imodBackupFile, parWrtInitialize, getWarpGrid, readCheckWarpFile
+      integer*4 getGridParameters, findMaxGridSize, getSizeAdjustedGrid,getLinearTransform
+      integer*4 setCurrentWarpFile
       character*320 concat
       real*4 sind,cosd,oneintrp
       real*8 walltime, wallstart, fastcum, slowcum
@@ -252,6 +255,8 @@ c
       maxXcorrBinning = 3
       nxyXcorrTarget = 1024
       verySloppy = .false.
+      lmField = 1
+      maxFields = 1
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
 c       
@@ -265,6 +270,7 @@ c
      &    'NO INPUT IMAGE FILE SPECIFIED')
       call imopen(1,filnam,'ro')
       call irdhdr(1,nxyzin,mxyzin,modein,dmin,dmax,dmean)
+      call irtdel(1,delta)
       if (pipinput) ierr = PipGetInteger('EdgeFunctionsOnly', ifEdgeFuncOnly)
       ifEdgeFuncOnly = max(0, min(3, ifEdgeFuncOnly))
       if (ifEdgeFuncOnly .eq. 1 .or. ifEdgeFuncOnly .eq. 2) then
@@ -360,14 +366,35 @@ c
       call fill_listz(izpclist,npclist,listz,nlistz)
 c
       dogxforms=.false.
+      doWarp = .false.
       if(filnam.ne.' ' .and. .not.undistortOnly)then
-        call dopen(3,filnam,'ro','f')
-        call xfrdall2(3,gl,nglist,limsect,ierr)
-        close(3)
-c         
-c         It is OK if ierr=-1 : more transforms than sections
-        if (ierr .gt. 0) call exitError ('READING TRANSFORMS')
         dogxforms=.true.
+c         
+c         Open as warping file if possible
+        indWarpFile = readCheckWarpFile(filnam, 0, 1, iwarpNx, iwarpNy, nglist, ix,
+     &      warpPixel, iy, edgenam)
+        if (indWarpFile .lt. -1) call exitError(edgenam)
+        doWarp = indWarpFile .ge. 0
+        if (doWarp) then
+          if (nglist .gt. limsect)  call exitError(
+     &        'TOO MANY SECTIONS IN WARPING FILE FOR TRANSFORM ARRAY')
+          warpScale = warpPixel / delta(1)
+          do i = 1, nglist
+            if (getLinearTransform(i, gl(1,1,i)) .ne. 0)
+     &          call exitError('GETTING LINEAR TRANSFORM FROM WARP FILE')
+            gl(1,3,i) = gl(1,3,i) * warpScale
+            gl(2,3,i) = gl(2,3,i) * warpScale
+          enddo
+        else
+c           
+c           Get regular transforms
+          call dopen(3,filnam,'ro','f')
+          call xfrdall2(3,gl,nglist,limsect,ierr)
+          close(3)
+c         
+c           It is OK if ierr=-1 : more transforms than sections
+          if (ierr .gt. 0) call exitError ('READING TRANSFORMS')
+        endif
       endif
 
 
@@ -726,6 +753,8 @@ c
         newminypiece=minywant-(newytotpix-nytotwant)/2
         actionStr = 'blended and recut'
       endif
+      write(*,'(a,2i7)')'Starting coordinates of output in X and Y =',newminxpiece,
+     &    newminypiece
 c       
       nxout=newxframe
       nyout=newyframe
@@ -1205,25 +1234,25 @@ c
         ierr = PipGetLogical('AdjustedFocus', focusAdjusted)
         if (PipGetString('GradientFile', filnam) .eq. 0) then
           doMagGrad = .true.
-          call readMagGradients(filnam, limsect, pixelMagGrad, axisRot,
-     &        tiltAngles, dmagPerUm, rotPerUm, numMagGrad)
+          call readMagGradients(filnam, limsect, pixelMagGrad, axisRot, tiltAngles,
+     &        dmagPerUm, rotPerUm, numMagGrad)
           if (numMagGrad .ne. nlistz)
      &        print *,'WARNING: BLENDMONT - # OF MAG GRADIENTS (',
      &        numMagGrad,') DOES NOT MATCH # OF SECTIONS (',nlistz,')'
           numAngles = numMagGrad
+          lmField = 200
+          maxFields = 16
         endif
 c         
 c         Look for tilt angles if no mag gradients, then adjust if any
 c
-        if (numAngles .eq. 0 .and. PipGetString('TiltFile', filnam) .eq. 0)
-     &      then
+        if (numAngles .eq. 0 .and. PipGetString('TiltFile', filnam) .eq. 0) then
           call read_tilt_file(numAngles, 14, filnam, tiltAngles, limsect)
           if (numAngles .ne. nlistz)
      &        print *,'WARNING: BLENDMONT - # OF TILT ANGLES (',
      &        numAngles,') DOES NOT MATCH # OF SECTIONS (',nlistz,')'
         endif
-        if (numAngles .gt. 0 .and. PipGetFloat('OffsetTilts', tiltOffset)
-     &      .eq. 0) then
+        if (numAngles .gt. 0 .and. PipGetFloat('OffsetTilts', tiltOffset) .eq. 0) then
           do i = 1, numAngles
             tiltAngles(i) = tiltAngles(i) + tiltOffset
           enddo
@@ -1232,17 +1261,15 @@ c
 c         If doing added gradients, use a tiltgeometry entry only if no
 c         gradient file
 c         
-        if (PipGetTwoFloats('AddToGradient', delDmagPerUm, delRotPerUm) .eq.
-     &      0) then
+        if (PipGetTwoFloats('AddToGradient', delDmagPerUm, delRotPerUm) .eq. 0) then
           if (doMagGrad) then
             do i = 1, numMagGrad
               dmagPerUm(i) = dmagPerUm(i) + delDmagPerUm
               rotPerUm(i) = rotPerUm(i) + delRotPerUm
             enddo
           else
-            if (PipGetThreeFloats('TiltGeometry', pixelMagGrad, axisRot,
-     &          tiltOffset) .ne. 0) call exitError(
-     &          '-tilt OR -gradient MUST BE ENTERED WITH -add')
+            if (PipGetThreeFloats('TiltGeometry', pixelMagGrad, axisRot, tiltOffset)
+     &          .ne. 0) call exitError('-tilt OR -gradient MUST BE ENTERED WITH -add')
             pixelMagGrad = pixelMagGrad * 10.
             numMagGrad = 1
             dmagPerUm(1) = delDmagPerUm
@@ -1257,40 +1284,54 @@ c
 c         
         if (PipGetString('DistortionField', filnam) .eq. 0) then
           undistort = .true.
-          call readDistortions(filnam, distDx, distDy, lmField, idfNx,
-     &        idfNy, idfBinning, pixelIdf, ixFieldStrt, xFieldIntrv, nxField,
-     &        iyFieldStrt, yFieldIntrv, nyField)
-c           
+          ierr = readCheckWarpFile(filnam, 1, 1, idfNx, idfNy, ix, idfBinning,
+     &        pixelIdf, iy, edgenam)
+          if (ierr .lt. 0) call exitError(edgenam)
+      
+          ierr = getGridParameters(1, nxField, nyField, xFieldStrt, yFieldStrt,
+     &        xFieldIntrv, yFieldIntrv)
+          lmField = max(lmField, nxField, nyField)
+
           if (PipGetInteger('ImagesAreBinned', inputBinning) .ne. 0) then
 c             
 c             If input binning was not specified object if it is ambiguous
 c	      
-            if (nxin .le. idfNx * idfBinning / 2 .and.
-     &          nyin .le. idfNy * idfBinning / 2) call exitError
-     &		('YOU MUST SPECIFY BINNING OF IMAGES BECAUSE THEY '//
+            if (nxin .le. idfNx * idfBinning / 2 .and. nyin .le. idfNy * idfBinning / 2)
+     &          call exitError('YOU MUST SPECIFY BINNING OF IMAGES BECAUSE THEY '//
      &          'ARE NOT LARGER THAN HALF THE CAMERA SIZE')
           endif
           if (inputBinning .le. 0) call exitError
      &        ('IMAGE BINNING MUST BE A POSITIVE NUMBER')
-          
 c           
 c           Adjust grid start and interval and field itself for the
 c           overall binning
 c           
           binRatio = idfBinning / float(inputBinning)
-          ixFieldStrt = nint(ixFieldStrt * binRatio)
-          iyFieldStrt = nint(iyFieldStrt * binRatio)
+          xFieldStrt = xFieldStrt * binRatio
+          yfieldStrt = yfieldStrt * binRatio
           xFieldIntrv = xFieldIntrv * binRatio
           yFieldIntrv = yFieldIntrv * binRatio
 c           
 c           if images are not full field, adjust grid start by half the
 c           difference between field and image size
 c           
-          ixFieldStrt = ixFieldStrt - nint((idfNx * binRatio -  nxin) / 2.)
-          iyFieldStrt = iyFieldStrt - nint((idfNy * binRatio -  nyin) / 2.)
+          xFieldStrt = xFieldStrt - (idfNx * binRatio -  nxin) / 2.
+          yfieldStrt = yfieldStrt - (idfNy * binRatio -  nyin) / 2.
+        endif
+c         
+c         Allocate field arrays and load distortion field
+        if (doMagGrad .or. undistort) then
+          allocate(distDx(lmField,lmField),distDy(lmField,lmField),
+     &        fieldDx(lmField,lmField,maxFields), fieldDy(lmField,lmField,maxFields),
+     &        stat = ierr)
+          call memoryError(ierr, 'ARRAYS FOR DISTORTION FIELDS')
+        endif
+        if (undistort) then
+          if (getWarpGrid(1, nxField, nyField, xFieldStrt, yFieldStrt, xFieldIntrv,
+     &        yFieldIntrv, distDx, distDy, lmField) .ne. 0) call exitError(
+     &        'GETTING DISTORTION FIELD FROM WARP FILE')
 c           
 c           scale field
-c           
           do iy = 1, nyField
             do i = 1, nxField
               distDx(i, iy) = distDx(i, iy) * binRatio
@@ -1335,6 +1376,48 @@ c
      &    'ENTER -gradient AND/OR -distort WITH -justUndistort')
       if (undistortOnly .and. testMode) call exitError(
      &    'YOU CANNOT ENTER BOTH -test AND -justUndistort')
+
+c       
+c       Set up for warping
+      if (doWarp) then
+        if (PipGetTwoIntegers('UnalignedStartingXandY', ixUnaliStart, iyUnaliStart)
+     &      .ne. 0) then
+c           
+c           If there is no unaligned start entered and the output area matches the
+c           warp file area, then assume the same start as the current output
+          ixUnaliStart = newminxpiece
+          iyUnaliStart = newminypiece
+c           
+c           Otherwise issue warning if sizes don't match and assume it was centered on
+c           input / full output
+          if (nint(warpscale * iwarpNx) .ne. newxtotpix .or.
+     &        nint(warpscale * iwarpNy) .ne. newytotpix) then
+            ixUnaliStart = nint(minxpiece + nxtotpix / 2. - warpScale * iwarpNx / 2.)
+            iyUnaliStart = nint(minypiece + nytotpix / 2. - warpScale * iwarpNy / 2.)
+            write(edgenam,'(a,a,a,2i7)')'WARNING: BLENDMONT - AREA BEING OUTPUT IS ',
+     &          'DIFFERENT SIZE FROM UNALIGNED AREA; YOU MAY NEED TO ENTER ',
+     &          'UnalignedStartingXandY FOR WARPING TO WORK RIGHT; ASSUMING STARTS OF',
+     &          ixUnaliStart,iyUnaliStart
+            write(*,'(/,a)')trim(edgenam)
+          endif
+        endif
+c           
+c         Given starting coordinate for warping coordinates, get an offset from that
+c         Just divide the offset by warpScale here, it's never needed otherwise
+        warpXoffset = (newminxpiece + newxtotpix / 2. -
+     &      (ixUnaliStart + warpScale * iwarpNx / 2.)) / warpScale
+        warpYoffset = (newminypiece + newytotpix / 2. -
+     &      (iyUnaliStart + warpScale * iwarpNy / 2.)) / WarpScale
+        if (setCurrentWarpFile(indWarpFile) .ne. 0) call exitError(
+     &      'SETTING CURRENT WARP FILE')
+        allocate(nControl(nglist), stat = ierr)
+        call memoryError(ierr,'ARRAY FOR NUMBER OF CONTROL POINTS')
+        if (findMaxGridSize(warpXoffset, warpXoffset + newxtotpix / warpScale,
+     &      warpYoffset, warpYoffset + newytotpix / warpScale, nControl, lmWarpX, lmWarpY,
+     &      edgenam) .ne. 0) call exitError(edgenam)
+        allocate(warpDx(lmWarpX, lmWarpY), warpDy(lmWarpX, lmWarpY), stat = ierr)
+        call memoryError(ierr,'ARRAYS FOR WARPING GRIDS')
+      endif
 
       call PipDone()
 c       
@@ -1409,7 +1492,6 @@ c         Do as much of header as possible, shift origin same as in newstack
         call ialsymtyp(2,0,0)
         call ialmod(2,modeout)
         call ialsiz(2,nxyzbin,nxyzst)
-        call irtdel(1,delta)
         call irtorg(1, xorig, yorig, zorig)
         xorig = xorig - delta(1) * ixOffset
         yorig = yorig - delta(2) * iyOffset
@@ -1622,6 +1704,25 @@ c
         doingEdgeFunc = .false.
         if (doFields) call clearShuffle()
         if (testMode .or. ifEdgeFuncOnly .ne. 0) cycle ! To end of section loop
+c         
+c         If warping, find out if there is warping on this section and get grid
+        secHasWarp = .false.
+        if (doWarp) then
+          secHasWarp = nControl(indgl) .gt. 2
+        endif
+        if (secHasWarp) then
+c           
+c           Get the grid without adjustment of coordinates for any offset, then adjust
+c           the grid start for the old starting X coordinate
+          if (getSizeAdjustedGrid(indgl, newxtotpix / warpScale, newytotpix / warpScale,
+     &        warpXoffset, warpYoffset, 0, warpScale, 1, nxWarp, nyWarp, xWarpStrt,
+     &        yWarpStrt, xWarpIntrv, yWarpIntrv, warpDx, warpDy, lmWarpX, lmWarpY,
+     &        edgenam) .ne. 0) call exitError(edgenam)
+          xWarpStrt = xWarpStrt + ixUnaliStart
+          yWarpStrt = yWarpStrt + iyUnaliStart
+c          print *,nxWarp, nyWarp, xWarpStrt, yWarpStrt, xWarpIntrv, yWarpIntrv
+c          write(*,'(10f7.2)')((warpDx(ix,iy), warpDy(ix,iy), ix=1,10),iy=3,4)
+        endif
 c         
 c         if floating, need to get current input min and max
 c         To pad edges properly, need current mean: put it into dmean
@@ -1838,9 +1939,17 @@ c                         If it is all the same pieces in this box, then update
 c                         the positions in the pieces
                         xg = indx
                         yg = indy
+                        if (secHasWarp) then
+                          call interpolateGrid(xg - 0.5, yg - 0.5, warpDx, warpDy,
+     &                        lmWarpX, nxWarp, nyWarp, xWarpStrt, yWarpStrt, xWarpIntrv,
+     &                        yWarpIntrv, xg, yg)
+                          xg = xg + indx
+                          yg = yg + indy
+                        endif
                         if (dogxforms) then
-                          xg = ginv(1,1)*indx + ginv(1,2)*indy + ginv(1,3)
-                          yg = ginv(2,1)*indx + ginv(2,2)*indy + ginv(2,3)
+                          xtmp = ginv(1,1)*xg + ginv(1,2)*yg + ginv(1,3)
+                          yg = ginv(2,1)*xg + ginv(2,2)*yg + ginv(2,3)
+                          xg = xtmp
                         endif
                         do i = 1, numPieces
                           call positionInPiece(xg, yg, inpiece(i), xinpiece(i),
@@ -3408,6 +3517,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.50  2011/03/04 21:22:21  mast
+c       Trim name before issuing in error message
+c
 c       Revision 3.49  2011/03/03 19:23:49  mast
 c       Don't write blank line to ecd file for a 1xn montage
 c
