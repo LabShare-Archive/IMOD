@@ -3,7 +3,7 @@ c
       module blendvars
       implicit none
       integer ifastsiz,maxbin,liminit,memMinimum,memPreferred
-      integer memlim,limedgbf,lmField,maxFields,memMaximum
+      integer memlim,limedgbf,memMaximum
       integer maxPcNear, maxDistNear,maxUseEdge,maxInPc
       integer limXcorrPeaks
 c       
@@ -80,16 +80,14 @@ c
       real*4, allocatable :: dxgrid(:,:), dygrid(:,:),ddengrid(:,:),sdgrid(:,:)
       integer*4 jusedgct,needbyteswap,izUnsmoothedPatch, izSmoothedPatch
 c       
-      parameter (lmField = 200, maxFields = 16)
-      real*4 distDx(lmField,lmField),distDy(lmField,lmField)
-      real*4 fieldDx(lmField,lmField,maxFields)
-      real*4 fieldDy(lmField,lmField,maxFields)
-      logical doFields,undistort,doMagGrad,focusAdjusted, doingEdgeFunc,debug
-      real*4 pixelMagGrad, axisRot
+      real*4, allocatable :: distDx(:,:),distDy(:,:), fieldDx(:,:,:), fieldDy(:,:,:)
+      real*4, allocatable :: warpDx(:,:),warpDy(:,:)
+      logical doFields,undistort,doMagGrad,focusAdjusted, doingEdgeFunc,debug,secHasWarp
+      real*4 pixelMagGrad, axisRot, xFieldStrt, yFieldStrt, xFieldIntrv, yFieldIntrv
       real*4, allocatable :: tiltAngles(:), dmagPerUm(:), rotPerUm(:)
-      integer*4 ixFieldStrt, iyFieldStrt, nxField, nyField, numMagGrad
-      integer*4 numAngles
-      real*4 xFieldIntrv, yFieldIntrv
+      integer*4 nxField, nyField, numMagGrad, lmField, maxFields, nxWarp, nyWarp
+      integer*4 numAngles, lmWarpX, lmWarpY
+      real*4 xWarpStrt, yWarpStrt, xWarpIntrv, yWarpIntrv
 
       integer*4 ifDumpXY(2),nzOutXY(2),nxOutXY(2),nyOutXY(2),ipcBelowEdge
       integer*4 ifillTreatment, numXcorrPeaks,nbinXcorr,ixdebug,iydebug
