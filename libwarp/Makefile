@@ -14,7 +14,8 @@ NNOBJS = delaunay.$(O) hash.$(O) istack.$(O) lpi.$(O) minell.$(O) nnai.$(O) \
 
 #TRIOBJS = triangle.$(O)
 TRIOBJS = hullwrap.$(O) hull.$(O) hull-fg.$(O) hull-ch.$(O) hull-io.$(O) pointops.$(O)
-WARPOBJS = warpfiles.$(O) warputils.$(O) warpwrapfort.$(O) warpinterp.$(O)
+WARPOBJS = warpfiles.$(O) warputils.$(O) warpwrapfort.$(O) warpinterp.$(O) \
+	maggradfield.$(O)
 
 all : $(LIBW)
 
