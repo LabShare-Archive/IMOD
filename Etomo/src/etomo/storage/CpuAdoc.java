@@ -45,7 +45,7 @@ public class CpuAdoc {
 
   public static final String COMPUTER_SECTION_TYPE = "Computer";
   public static final String QUEUE_SECTION_TYPE = "Queue";
-  static final String GPU_KEY="gpu";
+  static final String GPU_KEY = "gpu";
   private static final String SPEED_KEY = "speed";
   private static final String MEMORY_KEY = "memory";
   private static final int MIN_NICE_DEFAULT = 0;
@@ -151,16 +151,23 @@ public class CpuAdoc {
    * @return
    */
   Node getLocalHostComputer(BaseManager manager, AxisID axisID, String propertyUserDir) {
+    //Search for "localhost":
+    Node localHost = getComputer(manager, Node.LOCAL_HOST_NAME, axisID, propertyUserDir);
+    if (localHost != null) {
+      return localHost;
+    }
+    //Search for the computer name:
     String localHostName = Network.getLocalHostName(manager, axisID, propertyUserDir);
-    Node localHost = getComputer(manager, localHostName, axisID, propertyUserDir);
+    localHost = getComputer(manager, localHostName, axisID, propertyUserDir);
+    if (localHost != null) {
+      return localHost;
+    }
     //Local host not found.  Try removing everything from the local host name
     //starting with the first ".".
-    if (localHost == null) {
-      int index = localHostName.indexOf('.');
-      if (index != -1) {
-        localHostName = localHostName.substring(0, index);
-        localHost = getComputer(manager, localHostName, axisID, propertyUserDir);
-      }
+    int index = localHostName.indexOf('.');
+    if (index != -1) {
+      localHostName = localHostName.substring(0, index);
+      localHost = getComputer(manager, localHostName, axisID, propertyUserDir);
     }
     return localHost;
   }
@@ -391,6 +398,10 @@ public class CpuAdoc {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.21  2011/04/04 16:56:54  sueh
+ * <p> bug# 1469 Added/modified GPU_KEY, gpuMemoryUnits, gpuSpeedUnits, MEMORY_KEY, load (refactored),
+ * <p> loadAttribute, loadStringAttribute, loadStringListAttribute.  Removed UNITS_KEY.
+ * <p>
  * <p> Revision 1.20  2011/02/22 04:32:04  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
