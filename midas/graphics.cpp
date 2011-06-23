@@ -624,8 +624,8 @@ void MidasGL::mousePressEvent(QMouseEvent * e )
             newcur = fillWarpingGrid(iz, &nxt, &nyt, &xst, &yst, &xit, &yit);
             //printf("gwg %d\n", newcur);
             if (!newcur) 
-              interpolateGridf(xcont, ycont, VW->gridDx, VW->gridDy, nxt, nxt, nyt, xst,
-                              xit, yst, yit, &xvec, &yvec);
+              interpolateGrid(xcont, ycont, VW->gridDx, VW->gridDy, nxt, nxt, nyt, xst,
+                              yst, xit, yit, &xvec, &yvec);
           }
           newcur = addWarpPoint(iz, xcont, ycont, xvec, yvec) - 1;
           //printf("newcur %d %f %f %f %f\n", newcur, xcont, ycont, xvec, yvec);
@@ -830,6 +830,9 @@ void MidasGL::drawStar(float xcen, float ycen, float censize)
 /*
 
 $Log$
+Revision 3.13  2011/06/10 04:26:53  mast
+Changes for warping
+
 Revision 3.12  2010/06/29 22:37:45  mast
 Draw correlation box; call new function for getting previous image
 
