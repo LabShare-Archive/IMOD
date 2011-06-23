@@ -37,7 +37,7 @@
 #define separatelineartransform SEPARATELINEARTRANSFORM
 #define readwarpfile READWARPFILE
 #define writewarpfile WRITEWARPFILE
-#define interpolategridf INTERPOLATEGRIDF
+#define interpolategrid INTERPOLATEGRID
 #define findinversepoint FINDINVERSEPOINT
 #define invertwarpgrid INVERTWARPGRID
 #define multiplywarpings MULTIPLYWARPINGS
@@ -46,6 +46,9 @@
 #define readcheckwarpfile READCHECKWARPFILE
 #define findmaxgridsize FINDMAXGRIDSIZE
 #define getsizeadjustedgrid GETSIZEADJUSTEDGRID
+#define maggradientshift MAGGRADIENTSHIFT
+#define addmaggradfield ADDMAGGRADFIELD
+#define makemaggradfield MAKEMAGGRADFIELD
 #else
 #define newwarpfile newwarpfile_
 #define setcurrentwarpfile setcurrentwarpfile_
@@ -67,7 +70,7 @@
 #define separatelineartransform separatelineartransform_
 #define readwarpfile readwarpfile_
 #define writewarpfile writewarpfile_
-#define interpolategridf interpolategridf_
+#define interpolategrid interpolategrid_
 #define findinversepoint findinversepoint_
 #define invertwarpgrid invertwarpgrid_
 #define multiplywarpings multiplywarpings_
@@ -76,6 +79,9 @@
 #define readcheckwarpfile readcheckwarpfile_
 #define findmaxgridsize findmaxgridsize_
 #define getsizeadjustedgrid getsizeadjustedgrid_
+#define maggradientshift maggradientshift_
+#define addmaggradfield addmaggradfield_
+#define makemaggradfield makemaggradfield_
 #endif
 
 
@@ -206,30 +212,30 @@ int writewarpfile(const char *filename, int *skipBackup, int namelen)
 }  
 
 
-void interpolategridf(float *x, float *y, float *dxGrid, float *dyGrid, int *ixgDim,
-                     int *nxGrid, int *nyGrid, float *xGridStart, float *xGridIntrv,
-                     float *yGridStart, float *yGridIntrv, float *dx, float *dy)
+void interpolategrid(float *x, float *y, float *dxGrid, float *dyGrid, int *ixgDim,
+                      int *nxGrid, int *nyGrid, float *xGridStart, float *yGridStart, 
+                      float *xGridIntrv, float *yGridIntrv, float *dx, float *dy)
 {
-  interpolateGridf(*x, *y, dxGrid, dyGrid, *ixgDim, *nxGrid, *nyGrid, *xGridStart,
-                   *xGridIntrv, *yGridStart, *yGridIntrv, dx, dy);
+  interpolateGrid(*x, *y, dxGrid, dyGrid, *ixgDim, *nxGrid, *nyGrid, *xGridStart,
+                   *yGridStart, *xGridIntrv, *yGridIntrv, dx, dy);
 }
 
 void findinversepoint(float *x, float *y, float *dxGrid, float *dyGrid, int *ixgDim,
-                      int *nxGrid, int *nyGrid, float *xGridStart, float *xGridIntrv,
-                      float *yGridStart, float *yGridIntrv, float *xnew, float *ynew,
+                      int *nxGrid, int *nyGrid, float *xGridStart, float *yGridStart, 
+                      float *xGridIntrv, float *yGridIntrv, float *xnew, float *ynew,
                       float *dx, float *dy)
 {
   findInversePoint(*x, *y, dxGrid, dyGrid, *ixgDim, *nxGrid, *nyGrid, *xGridStart, 
-                   *xGridIntrv, *yGridStart, *yGridIntrv, xnew, ynew, dx, dy);
+                   *yGridStart, *xGridIntrv, *yGridIntrv, xnew, ynew, dx, dy);
 }
 
 void invertwarpgrid(float *dxGrid, float *dyGrid, int *ixgDim, int *nxGrid, int *nyGrid,
-                    float *xGridStart, float *xGridIntrv, float *yGridStart, 
+                    float *xGridStart, float *yGridStart, float *xGridIntrv, 
                     float *yGridIntrv, float *xform, float *xcen, float *ycen,
                     float *dxInv, float *dyInv, float *xfInv)
 {
-  invertWarpGrid(dxGrid, dyGrid, *ixgDim, *nxGrid, *nyGrid, *xGridStart, *xGridIntrv, 
-                 *yGridStart, *yGridIntrv, xform, *xcen, *ycen, dxInv, dyInv, xfInv, 2);
+  invertWarpGrid(dxGrid, dyGrid, *ixgDim, *nxGrid, *nyGrid, *xGridStart, *yGridStart, 
+                 *xGridIntrv, *yGridIntrv, xform, *xcen, *ycen, dxInv, dyInv, xfInv, 2);
 }
 
 int multiplywarpings(float *dxGrid1, float *dyGrid1, int *ixgDim1, int *nxGrid1, 
@@ -250,22 +256,22 @@ int multiplywarpings(float *dxGrid1, float *dyGrid1, int *ixgDim1, int *nxGrid1,
 int expandandextrapgrid(float *dxGrid, float *dyGrid, int *xdim, int *ydim, int *nxGrid,
                         int *nyGrid, float *xStart, float *yStart, float *xInterval, 
                         float *yInterval, float *xBigStr, float *yBigStr, float *xBigEnd,
-                        float *yBigEnd, int *nx, int *ny)
+                        float *yBigEnd, int *ixmin, int *ixmax, int *iymin, int *iymax)
 {
   return expandAndExtrapGrid(dxGrid, dyGrid, *xdim, *ydim, nxGrid, nyGrid, xStart, yStart,
                              *xInterval, *yInterval, *xBigStr, *yBigStr, *xBigEnd,
-                             *yBigEnd, *nx, *ny);
+                             *yBigEnd, *ixmin, *ixmax, *iymin, *iymax);
 }
 
 void warpinterp(float *array, float *bray, int *nxa, int *nya, int *nxb, int *nyb,
                 float amat[2][2], float *xc, float *yc, float *xt, float *yt,float *scale,
                 float *dmean, int *linear, int *linFirst, float *dxGrid, float *dyGrid,
-                int *ixgDim, int *nxGrid, float *xGridStrt, float *xGridIntrv, 
-                int *nyGrid, float *yGridStrt, float *yGridIntrv)
+                int *ixgDim, int *nxGrid, int *nyGrid, float *xGridStrt, float *yGridStrt,
+                float *xGridIntrv, float *yGridIntrv)
 {
   warpInterp(array, bray, *nxa, *nya, *nxb, *nyb, amat, *xc, *yc, *xt, *yt, *scale,
-             *dmean, *linear, *linFirst, dxGrid, dyGrid, *ixgDim, *nxGrid, *xGridStrt, 
-             *xGridIntrv, *nyGrid, *yGridStrt, *yGridIntrv);
+             *dmean, *linear, *linFirst, dxGrid, dyGrid, *ixgDim, *nxGrid, *nyGrid, 
+             *xGridStrt, *yGridStrt, *xGridIntrv, *yGridIntrv);
 }
 
 static void padError(char *errString, int errlen)
@@ -299,30 +305,59 @@ int readcheckwarpfile(char *filename, int *needDist, int *needInv, int *nx, int 
   return err;
 }
 
-int findmaxgridsize(int *nxwarp, int *nywarp, int *nzwarp, int *controlPts, float *xnbig,
-                    float *ynbig, int *nControl, int *maxNxg, int *maxNyg,
-                    char *errString, int errlen)
+int findmaxgridsize(float *xmin, float *xmax, float *ymin, float *ymax, int *nControl,
+                    int *maxNxg, int *maxNyg, char *errString, int errlen)
 {
-  int err = findMaxGridSize(*nxwarp, *nywarp, *nzwarp, *controlPts, *xnbig, *ynbig,
-                            nControl, maxNxg, maxNyg, errString, errlen);
+  int err = findMaxGridSize(*xmin, *xmax, *ymin, *ymax, nControl, maxNxg, maxNyg,
+                            errString, errlen);
   
   if (err)
     padError(errString, errlen);
   return err;
 }
 
-int getsizeadjustedgrid(int *iz, int *nxwarp, int *nywarp, int *controlPts, float *xnbig,
-                        float *ynbig, float *warpScale, int *iBinning, int *nxGrid,
-                        int *nyGrid, float *xGridStrt, float *yGridStrt, 
+int getsizeadjustedgrid(int *iz, float *xnbig, float *ynbig, float *xOffset,
+                        float *yOffset, int *adjustStart, float *warpScale, int *iBinning,
+                        int *nxGrid, int *nyGrid, float *xGridStrt, float *yGridStrt,
                         float *xGridIntrv, float *yGridIntrv, float *fieldDx,
-                        float *fieldDy, int *ixgdim, int *iygdim, char *errString, 
+                        float *fieldDy, int *ixgdim, int *iygdim, char *errString,
                         int errlen)
 {
-  int err = getSizeAdjustedGrid(*iz-1, *nxwarp, *nywarp, *controlPts, *xnbig, *ynbig,
+  int err = getSizeAdjustedGrid(*iz-1, *xnbig, *ynbig, *xOffset, *yOffset, *adjustStart,
                                 *warpScale, *iBinning, nxGrid, nyGrid, xGridStrt,
                                 yGridStrt, xGridIntrv, yGridIntrv, fieldDx, fieldDy,
                                 *ixgdim, *iygdim, errString, errlen);
   if (err)
     padError(errString, errlen);
   return err;
+}
+
+void maggradientshift(float *xx, float *yy, int *imageNx, int *imageNy, float *xcen, 
+                      float *ycen, float *pixelSize, float *axisRot, float *tilt,
+                      float *dmagPerUm, float *rotPerUm, float *dx, float *dy)
+{
+  magGradientShift(*xx, *yy, *imageNx, *imageNy, *xcen, *ycen, *pixelSize, *axisRot,
+                   *tilt, *dmagPerUm, *rotPerUm, dx, dy);
+}
+
+void addmaggradfield(float *idfDx, float *idfDy, float *gradDx, float *gradDy, 
+                     int *lmGrid, int *imageNx, int *imageNy, int *nxGrid, int *nyGrid,
+                     float *xGridStrt, float *yGridStrt, float *xGridIntrv, 
+                     float *yGridIntrv, float *xcen, float *ycen, float *pixelSize,
+                     float *axisRot, float *tilt, float *dmagPerUm, float *rotPerUm)
+{
+  addMagGradField(idfDx, idfDy, gradDx, gradDy, *lmGrid, *imageNx, *imageNy, *nxGrid,
+                  *nyGrid, *xGridStrt, *yGridStrt, *xGridIntrv, *yGridIntrv, *xcen,
+                  *ycen, *pixelSize, *axisRot, *tilt, *dmagPerUm, *rotPerUm);
+}
+
+void makemaggradfield(float *idfDx, float *idfDy, float *gradDx, float *gradDy, 
+                     int *lmGrid, int *imageNx, int *imageNy, int *nxGrid, int *nyGrid,
+                     float *xGridStrt, float *yGridStrt, float *xGridIntrv, 
+                     float *yGridIntrv, float *xcen, float *ycen, float *pixelSize,
+                     float *axisRot, float *tilt, float *dmagPerUm, float *rotPerUm)
+{
+  makeMagGradField(idfDx, idfDy, gradDx, gradDy, *lmGrid, *imageNx, *imageNy, nxGrid,
+                   nyGrid, xGridStrt, yGridStrt, xGridIntrv, yGridIntrv, *xcen,
+                   *ycen, *pixelSize, *axisRot, *tilt, *dmagPerUm, *rotPerUm);
 }
