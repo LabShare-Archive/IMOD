@@ -1,29 +1,6 @@
+# Makefile for distortion-related programs
 #
-#  $Author$
-#
-#  $Date$
-#
-#  $Revision$
-#
-#  $Log$
-#  Revision 1.6  2006/10/05 18:01:43  mast
-#  *** empty log message ***
-#
-#  Revision 1.5  2006/06/22 01:09:45  mast
-#  Replaced LDFLAGS with LDFFLAGS for Intel Mac
-#
-#  Revision 1.4  2006/03/04 00:35:46  mast
-#  Added fitrotsearch
-#
-#  Revision 1.3  2006/02/06 21:31:21  mast
-#  Added several programs
-#
-#  Revision 1.2  2005/05/12 05:07:40  mast
-#  Use strip variable
-#
-#  Revision 1.1  2003/12/12 20:53:22  mast
-#  Preliminary addition to repository
-#
+# $Id$
 #
 
 include ../configure
@@ -40,7 +17,7 @@ DISTOBJS = finddistort.$(O) edgesubs.$(O) smoothgrid.$(O) \
 all: $(PROGS)
 
 finddistort$(E): $(DISTOBJS)
-	$(FC) -o finddistort $(DISTOBJS) $(LDFLG) $(IMLIBS) $(FORTCLIBS)
+	$(FC) -o finddistort $(DISTOBJS) $(LDFLG) $(LIWARP) $(IMLIBS) $(FORTCLIBS)
 
 edgesubs.$(O):       ../blend/edgesubs.f
 	$(FC) $(FFLAGS) -c -o edgesubs.$(O) ../blend/edgesubs.f
@@ -55,7 +32,7 @@ sdcalc.$(O):       ../blend/sdcalc.f
 	$(FC) $(FFLAGS) -c -o sdcalc.$(O) ../blend/sdcalc.f
 
 idfprocess$(E): idfprocess.$(O)
-	$(FC) -o idfprocess idfprocess.$(O) $(LDFLG) $(IMLIBS) $(FORTCLIBS)
+	$(FC) -o idfprocess idfprocess.$(O) $(LDFLG) $(LIWARP) $(IMLIBS) $(FORTCLIBS)
 
 findgradient$(E): findgradient.$(O)
 	$(FC) -o findgradient findgradient.$(O) $(LDFLG) $(IMLIBS) $(FORTCLIBS)

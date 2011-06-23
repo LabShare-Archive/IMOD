@@ -507,8 +507,8 @@ c               shift values
 c               
               call interpolateGrid(xData, yData, dxGrid(1,1,iPair),
      &            dyGrid(1,1,iPair), iGridDim, nxGrid(iPair),
-     &            nyGrid(iPair), iGridStrt(1, iPair), gridIntrv,
-     &            iGridStrt(2, iPair), gridIntrv, xShift, yShift)
+     &            nyGrid(iPair), float(iGridStrt(1, iPair)), 
+     &            float(iGridStrt(2, iPair)), gridIntrv, gridIntrv, xShift, yShift)
               xShift = xShift + fracDelXY(1, iPair)
               yShift = yShift + fracDelXY(2, iPair)
 c               print *,'at',xData,yData,' shift=',xShift,yShift
@@ -935,8 +935,8 @@ c
       done = .false.
       do while (iter .lt. 10 .and. .not.done)
         call interpolateGrid(xlast, ylast, fieldDx, fieldDy, ixgDim,
-     &      nPtField(1), nPtField(2), iFieldStrt(1), fieldIntrv(1),
-     &      iFieldStrt(2), fieldIntrv(2), dx, dy)
+     &      nPtField(1), nPtField(2), float(iFieldStrt(1)), 
+     &      float(iFieldStrt(2)), fieldIntrv(1), fieldIntrv(2), dx, dy)
         xnew = x - dx
         ynew = y - dy
         done = abs(xnew - xlast) .lt. sourceTol .and. abs(ynew - ylast) .lt.
@@ -1079,6 +1079,10 @@ c$$$      end
 
 c
 c       $Log$
+c       Revision 1.16  2010/09/26 17:51:45  mast
+c       Fixed it to give stretch of 1 when it has numerical problem solving for
+c       stretch
+c
 c       Revision 1.15  2010/06/23 23:35:15  mast
 c       Call lsqr with double 0. and use default btol
 c
