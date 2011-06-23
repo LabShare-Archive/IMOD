@@ -105,6 +105,17 @@ tooltip =
 manpage = X and Y coordinates of center of transformations.  The default is the
 center of the input image.
 
+[Field = UnalignedStartingXandY]
+short = unaligned
+type = IP
+usage = Starting X and Y coordinates of file used to find warping transforms
+tooltip = 
+manpage = Starting X and Y coordinates of file used to align images with
+warping.  If warping transforms are being applied and the image region being
+output does not match the region used to align the images, these coordinates
+should be entered.  If they are not entered, the program will assume that the
+unaligned file was centered on the input montage.
+
 [Field = InterpolationOrder]
 short = order
 type = I
