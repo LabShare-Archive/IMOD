@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/23/11: Modified Blendmont and Xfmodel to handle warping.
+
 6/21/11: In eTomo, loading the raw stack as integers.(Bug# 1492)
 
 6/21/11: In eTomo, handling the new version of trimvol.  Also removed the trimvol
