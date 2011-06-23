@@ -50,8 +50,8 @@
 void warpInterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
                 float amat[2][2], float xc, float yc, float xt, float yt, float scale,
                 float dmean, int linear, int linFirst, float *dxGrid, float *dyGrid,
-                int ixgDim, int nxGrid, float xGridStrt, float xGridIntrv, int nyGrid,
-                float yGridStrt, float yGridIntrv)
+                int ixgDim, int nxGrid, int nyGrid, float xGridStrt, float yGridStrt,
+                float xGridIntrv, float yGridIntrv)
 {
   float xcen,ycen,xco,yco,denom,a11,a12,a22,a21,dyo,xbase,ybase;
   float xp,yp,dx,dy,v2,v4, ox, oy, xstep, ystep;
@@ -104,8 +104,8 @@ void warpInterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
         for (ix = 1; ix <= nxb; ix++) {
           xp = a11*ix + xbase;
           yp = a21*ix + ybase;
-          interpolateGridf(xp, yp, dxGrid, dyGrid, ixgDim, nxGrid, nyGrid, xGridStrt, 
-                           xGridIntrv, yGridStrt, yGridIntrv, &dx, &dy);
+          interpolateGrid(xp, yp, dxGrid, dyGrid, ixgDim, nxGrid, nyGrid, xGridStrt, 
+                           yGridStrt, xGridIntrv, yGridIntrv, &dx, &dy);
           xp = xp + dx;
           yp = yp + dy;
           ixp = xp;
@@ -129,8 +129,8 @@ void warpInterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
         for (ix = 1; ix <= nxb; ix++) {
           xp = a11*ix + xbase;
           yp = a21*ix + ybase;
-          interpolateGridf(xp, yp, dxGrid, dyGrid, ixgDim, nxGrid, nyGrid, xGridStrt, 
-                           xGridIntrv, yGridStrt, yGridIntrv, &dx, &dy);
+          interpolateGrid(xp, yp, dxGrid, dyGrid, ixgDim, nxGrid, nyGrid, xGridStrt, 
+                           yGridStrt, xGridIntrv, yGridIntrv, &dx, &dy);
           xp = xp + dx;
           yp = yp + dy;
           ixp = xp;
@@ -191,6 +191,7 @@ void warpInterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
     iygStart = B3DMAX(0, iygStart);
     iygEnd = (int)ceil((nyb - 1. - yGridStrt) / yGridIntrv);
     iygEnd = B3DMIN(nyGrid, iygEnd);
+    /* fprintf(stderr, "ixgs,e %d %d  y %d %d\n", ixgStart, ixgEnd, iygStart, iygEnd);*/
 
 #pragma omp parallel for num_threads(numThreads) \
   shared(array,bray,nxa,nya,nxb,nyb,scale, dmean,linear, dxGrid, dyGrid, ixgDim, \
@@ -207,33 +208,33 @@ void warpInterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
          coordinates */
       indy[0] = B3DMAX(0, iygrid - 1);
       indy[1] = B3DMIN(nyGrid - 1, iygrid);
-      ylim[0] = B3DMAX(0, yGridStrt + yGridIntrv * (iygrid - 1));
-      if (iygrid == iygStart)
-        ylim[0] = 0;
-      ylim[1] = B3DMIN(nyb, yGridStrt + yGridIntrv * iygrid);
-      if (iygrid == iygEnd)
-        ylim[1] = nyb;
+      ylim[0] = yGridStrt + yGridIntrv * (iygrid - 1);
+      ylim[1] = yGridStrt + yGridIntrv * iygrid;
       iylim[0] = (int)ceil((double)ylim[0]);
+      if (iygrid == iygStart)
+        iylim[0] = 0;
       iylim[1] = (int)ceil((double)ylim[1]) - 1;
-      /* fprintf(stderr, "Y: %d %f %f  %d %d\n", iygrid, ylim[0], ylim[1], iylim[0], 
+      if (iygrid == iygEnd)
+        iylim[1] = nyb - 1;
+      /* fprintf(stderr, "Y: %d %f %f  %d %d\n", iygrid, ylim[0], ylim[1], iylim[0],
          iylim[1]); */
 
       /* Loop on X blocks, get indexes and limiting coordinates in X */
       for (ixgrid = ixgStart; ixgrid <= ixgEnd; ixgrid++) {
         indx[0] = B3DMAX(0, ixgrid - 1);
         indx[1] = B3DMIN(nxGrid - 1, ixgrid);
-        xlim[0] = B3DMAX(0, xGridStrt + xGridIntrv * (ixgrid - 1));
-        if (ixgrid == ixgStart)
-          xlim[0] = 0;
-        xlim[1] = B3DMIN(nxb, xGridStrt + xGridIntrv * ixgrid);
-        if (ixgrid == ixgEnd)
-          xlim[1] = nxb;
+        xlim[0] = xGridStrt + xGridIntrv * (ixgrid - 1);
+        xlim[1] = xGridStrt + xGridIntrv * ixgrid;
         ixlim[0] = (int)ceil((double)xlim[0]);
+        if (ixgrid == ixgStart)
+          ixlim[0] = 0;
         ixlim[1] = (int)ceil((double)xlim[1]) - 1;
+        if (ixgrid == ixgEnd)
+          ixlim[1] = nxb - 1;
       
         /* Evaluate mapping of each corner point and see if inside */
         allIn = 0;
-        /* printf("block %d %d:", ixgrid, iygrid); */
+        /* printf("block %d %d:", ixgrid, iygrid);*/
         for (iy = 0; iy < 2; iy++) {
           for (ix = 0; ix < 2; ix++) {
             index = indx[ix] + ixgDim * indy[iy];
@@ -266,8 +267,8 @@ void warpInterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
             xstep * (ixlim[0] - xlim[0]);
           y = (1. - gridfy) * ymap[0][0] + gridfy * ymap[0][1] +
             ystep * (ixlim[0] - xlim[0]);
-          /* fprintf(stderr, "gridfy %f  x,y %f %f  steps %f %f\n", gridfy, x, y, xstep,
-             ystep); */
+          /*fprintf(stderr, "gridfy %f  x,y %f %f  steps %f %f\n", gridfy, x, y, xstep,
+            ystep); */
 
           /* Loop across lines in different cases */
           buf = &bray[ixlim[0] + (size_t)j * nxb];
