@@ -49,7 +49,7 @@ c
       integer(kind=8) idim, limdim, i8, npix,ibchunk,ibbase,istart, limIfFail
       integer(kind=8) nmove,noff
       integer*4 ifDistort, idfBinning, iBinning, idfNx, idfNy, iWarpFlags
-      integer*4 ixGridStrt, iyGridStrt, nxGrid, nyGrid, numFields, numIdfUse
+      integer*4 nxGrid, nyGrid, numFields, numIdfUse
       real*4 xGridIntrv, yGridIntrv, pixelSize, xGridStrt, yGridStrt, warpScale
       real*4 xIntMin, yIntMin, xnbig, ynbig
 c       
@@ -94,7 +94,7 @@ c
       real*4 cosd, sind
       integer*4 taperAtFill, selectZoomFilter, zoomFiltInterp, readCheckWarpFile
       integer*4 getNumWarpPoints, getLinearTransform, gridSizeFromSpacing
-      integer*4 getGridParameters, getWarpGrid, setGridSizeToMake, expandAndExtrapGrid
+      integer*4 getGridParameters, getWarpGrid, setGridSizeToMake
       integer*4 findMaxGridSize, getSizeAdjustedGrid
       character*320 concat
 c       
@@ -535,7 +535,7 @@ c
           warpScale = pixelSize / deltaFirst(1)
           do i = 1, nxforms
             if (getLinearTransform(i, f(1,1,i)) .ne. 0)
-     &          call exitError('GETTING LINEAR TRANSFROM FROM WARP FILE')
+     &          call exitError('GETTING LINEAR TRANSFORM FROM WARP FILE')
             f(1,3,i) = f(1,3,i) * warpScale
             f(2,3,i) = f(2,3,i) * warpScale
           enddo
@@ -774,21 +774,6 @@ c
       endif
       call PipDone()
 c       
-c       If warping or distortions, figure out how big to allocate the arrays
-      if (ifDistort + ifWarping .ne. 0) then
-        allocate(nControl(numFields), stat = ierr)
-        call memoryError(ierr,'ARRAY FOR NUMBER OF CONTROL POINTS')
-        if (findMaxGridSize(idfNx, idfNy, numFields, ifControl, nxmax / warpScale,
-     &      nymax / warpScale, nControl, maxNxg, maxNyg, listString) .ne. 0)
-     &      call exitError(listString)
-        lmGrid = max(lmGrid, maxNxg, maxNyg)
-      endif
-      if (ifDistort + ifMagGrad + ifWarping .ne. 0) then
-        allocate(fieldDx(lmgrid,lmgrid), fieldDy(lmgrid,lmgrid), tmpDx(lmgrid,lmgrid),
-     &      tmpDy(lmgrid,lmgrid), stat = ierr)
-        call memoryError(ierr, 'ARRAYS FOR WARPING FIELDS')
-      endif
-c       
 c       if not transforming and distorting, rotating, or expanding, set up
 c       a unit transform
 c       
@@ -1006,6 +991,45 @@ c
             if(nx3.le.0)nx3=nint(nxbin * expandFactor)
             if(ny3.le.0)ny3=nint(nybin * expandFactor)
             if(newmode.lt.0)newmode=mode
+c       
+c             If warping or distortions, figure out how big to allocate the arrays
+            if (ifDistort + ifWarping .ne. 0) then
+              allocate(nControl(numFields), stat = ierr)
+              call memoryError(ierr,'ARRAY FOR NUMBER OF CONTROL POINTS')
+              dx = 0.
+              dy = 0.
+c               
+c               Expanded grid size is based on the input size for distortion and the
+c               output size for warping
+              if (ifDistort .ne. 0) then
+                xnbig = nxmax / warpScale
+                ynbig = nymax / warpScale
+              else
+                xnbig = iBinning * nx3 / warpScale
+                ynbig = iBinning * ny3 / warpScale
+                if (applyFirst .eq. 0) then
+                  do i = 1, listot
+                    dx = 1.e20
+                    dy = 1.e20
+                    xnbig = -dx
+                    xnbig = -dx
+                    xnbig = max(xnbig, (nx3 + xcen(i)) * iBinning / warpScale)
+                    dx = min(dx, xcen(i) * iBinning / warpScale)
+                    ynbig = max(ynbig, (ny3 + ycen(i)) * iBinning / warpScale)
+                    dy = min(dy, ycen(i) * iBinning / warpScale)
+                  enddo
+                endif
+              endif
+              if (findMaxGridSize(dx, xnbig, dy, ynbig, nControl, maxNxg, maxNyg,
+     &            listString) .ne. 0) call exitError(listString)
+c              print *,maxNxg, maxNyg
+              lmGrid = max(lmGrid, maxNxg, maxNyg)
+            endif
+            if (ifDistort + ifMagGrad + ifWarping .ne. 0) then
+              allocate(fieldDx(lmgrid,lmgrid), fieldDy(lmgrid,lmgrid),
+     &            tmpDx(lmgrid,lmgrid), tmpDy(lmgrid,lmgrid), stat = ierr)
+              call memoryError(ierr, 'ARRAYS FOR WARPING FIELDS')
+            endif
           endif
 c           
 c           Now that output size is finally known, make sure memory is enough
@@ -1226,27 +1250,17 @@ c
           endif
           if (iVerbose.gt.0) print *,'rescale', rescale
 c           
-c           if transforming, and apply first is selected, get the shifts by
-c           applying the offset first then multiplying that by the transform
-c           Otherwise do it the old way, subtract offset from final xform, but only
-c           if not warping
+c           Get the index of the transform
           if (ifxform .ne. 0) then
             lnu=lineuse(isec)+1
             call xfcopy(f(1,1,lnu), fprod)
-            if (applyFirst .ne. 0) then
-              call xfunit(frot, 1.)
-              frot(1,3) = -xcen(isec)
-              frot(2,3) = -ycen(isec)
-              call xfmult(frot, f(1,1,lnu), fprod)
-            elseif (ifWarping .eq. 0) then
-              fprod(1,3) = fprod(1,3) - xcen(isec)
-              fprod(2,3) = fprod(2,3) - ycen(isec)
-            endif
           endif
 c           
 c           If doing distortions or warping, get the grid
 c           
           hasWarp = .false.
+          dx = 0.
+          dy = 0.
           if (ifDistort .gt. 0) then
             iy = idfUse(isec) + 1
             hasWarp = .true.
@@ -1257,28 +1271,25 @@ c
             hasWarp = nControl(iy) .gt. 2
             xnbig = iBinning * nx3 / warpScale
             ynbig = iBinning * ny3 / warpScale
+c             
+c             For warping with center offset applied after, it will subtract the
+c             offset from the grid start and add it to the grid displacements
+            if (applyFirst .eq. 0) then
+              dx = iBinning * xcen(isec) / warpScale
+              dy = iBinning * ycen(isec) / warpScale
+            endif
           endif
           if (hasWarp) then
-            if (getSizeAdjustedGrid(iy, idfNx, idfNy, ifControl, xnbig, ynbig, warpScale,
-     &          iBinning, nxGrid, nyGrid, xGridStrt, yGridStrt, xGridIntrv, yGridIntrv,
-     &          fieldDx, fieldDy, lmgrid, lmgrid, listString) .ne. 0)
-     &          call exitError(listString)
-
-c             For warping with center offset applied after, need to subtract the
-c             offset from the grid start and add it to the grid displacements
-            xnbig = 0.
-            ynbig = 0.
-c           print *,nxGrid,nyGrid
-c           do ierr = 1,nyGrid
-c           write(*,'(f7.2,9f8.2)')(fieldDx(i,ierr),fieldDy(i,ierr),i=1,nxGrid)
-c         enddo
-            if (ifWarping .ne. 0 .and. applyFirst .eq. 0) then
-              xGridStrt = xGridStrt - xcen(isec)
-              yGridStrt = yGridStrt - ycen(isec)
-              fieldDx(1:nxGrid,1:nyGrid) = fieldDx(1:nxGrid,1:nyGrid) + xcen(isec)
-              fieldDy(1:nxGrid,1:nyGrid) = fieldDy(1:nxGrid,1:nyGrid) + ycen(isec)
-            endif
-c             
+            if (getSizeAdjustedGrid(iy, xnbig, ynbig, dx, dy, 1, warpScale, iBinning,
+     &          nxGrid, nyGrid, xGridStrt, yGridStrt, xGridIntrv, yGridIntrv, fieldDx,
+     &          fieldDy, lmgrid, lmgrid, listString) .ne. 0) call exitError(listString)
+c
+c             print *,nxGrid,nyGrid, xGridIntrv, yGridIntrv, xGridStrt, xGridStrt +(nxGrid
+c             &          - 1) * xGridIntrv, yGridStrt, yGridStrt + (nyGrid - 1)*yGridIntrv
+c             do ierr = 1,nyGrid
+c             write(*,'(f7.2,9f8.2)')(fieldDx(i,ierr),fieldDy(i,ierr),i=1,nxGrid)
+c             enddo
+c
 c             copy field to tmpDx,y in case there are mag grads
             tmpDx(1:nxGrid,1:nyGrid) = fieldDx(1:nxGrid,1:nyGrid)
             tmpDy(1:nxGrid,1:nyGrid) = fieldDy(1:nxGrid,1:nyGrid)
@@ -1290,17 +1301,31 @@ c
             magUse = min(nsecred + 1, numMagGrad)
             if (ifDistort .ne. 0) then
               call addMagGradField(tmpDx, tmpDy, fieldDx, fieldDy, lmGrid, nxbin,
-     &            nybin, nint(xGridStrt), xGridIntrv, nxGrid, nint(yGridStrt),
-     &            yGridIntrv, nyGrid, nxbin / 2., nybin / 2., pixelMagGrad, axisRot,
+     &            nybin, nxGrid, nyGrid, xGridStrt, yGridStrt, xGridIntrv, 
+     &            yGridIntrv, nxbin / 2., nybin / 2., pixelMagGrad, axisRot,
      &            tiltAngles(magUse), dmagPerUm(magUse), rotPerUm(magUse))
             else
               call makeMagGradField(tmpDx, tmpDy, fieldDx, fieldDy, lmGrid,
-     &            nxbin, nybin, ixGridStrt, xGridIntrv, nxGrid,
-     &            iyGridStrt, yGridIntrv, nyGrid, nxbin / 2., nybin / 2.,
+     &            nxbin, nybin, nxGrid, nyGrid, xGridStrt, yGridStrt, xGridIntrv, 
+     &            yGridIntrv, nxbin / 2., nybin / 2.,
      &            pixelMagGrad, axisRot, tiltAngles(magUse),
      &            dmagPerUm(magUse), rotPerUm(magUse))
-              xGridStrt = ixGridStrt
-              yGridStrt = iyGridStrt
+            endif
+          endif
+c           
+c           if transforming, and apply first is selected, get the shifts by
+c           applying the offset first then multiplying that by the transform
+c           Otherwise do it the old way, subtract offset from final xform, but only
+c           if not warping (now that warping is known for this section)
+          if (ifxform .ne. 0) then
+            if (applyFirst .ne. 0) then
+              call xfunit(frot, 1.)
+              frot(1,3) = -xcen(isec)
+              frot(2,3) = -ycen(isec)
+              call xfmult(frot, f(1,1,lnu), fprod)
+            elseif (.not. hasWarp) then
+              fprod(1,3) = fprod(1,3) - xcen(isec)
+              fprod(2,3) = fprod(2,3) - ycen(isec)
             endif
           endif
 c           
@@ -1558,8 +1583,8 @@ c		dy=(ny3-nych)/2.+f(2,3,lnu) - ycen(isec) - lineOutSt(ichunk)
               else
                 call warpInterp(array,array(ibchunk),nxbin,nyload,
      &              nx3, nych, fprod,xci ,yci, dx,dy,1.,dmeansec, ifLinear, ifWarping,
-     &              fieldDx, fieldDy, lmGrid, nxGrid, xGridStrt, xGridIntrv,
-     &              nyGrid, yGridStrt, yGridIntrv)
+     &              fieldDx, fieldDy, lmGrid, nxGrid, nyGrid, xGridStrt, yGridStrt,
+     &              xGridIntrv, yGridIntrv)
               endif
               rottime = rottime + walltime() - wallstart
             else
@@ -2180,6 +2205,9 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.66  2011/06/17 02:41:49  mast
+c       Use new routines for sizing and getting/expanding warp/distort fields
+c
 c       Revision 3.65  2011/06/10 04:10:11  mast
 c       Added warping
 c
