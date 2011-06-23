@@ -4,9 +4,8 @@ FFLAGS = $(LIBFFLAGS)
 
 O        = $(OBJEXT)
 OBJS = amat_to_rotmag.$(O) rotmag_to_amat.$(O) xflincom.$(O) \
- xfrdall.$(O) xfread.$(O) xfwrite.$(O) \
- readdistortions.$(O) interpolategrid.$(O) maggradfield.$(O) findxf.$(O) \
- undistinterp.$(O) writedistortions.$(O)
+ xfrdall.$(O) xfread.$(O) xfwrite.$(O) readdistortions.$(O) findxf.$(O) \
+ writedistortions.$(O)
 
 all: $(OBJS)
 
