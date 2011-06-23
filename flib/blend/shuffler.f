@@ -73,18 +73,14 @@ c           add mag gradient to distortion or make field up
 c           
           if (undistort) then
             call addMagGradField(distDx, distDy, fieldDx(1,1,ioldest),
-     &          fieldDy(1,1,ioldest), lmField,
-     &          nxin, nyin, ixFieldStrt, xFieldIntrv, nxField,
-     &          iyFieldStrt, yFieldIntrv, nyField, xcen, ycen,
-     &          pixelMagGrad, axisRot, tiltAngles(iangUse),
-     &          dmagPerUm(magUse), rotPerUm(magUse))
+     &          fieldDy(1,1, ioldest), lmField, nxin, nyin, nxField, nyField, xFieldStrt,
+     &          yFieldStrt, xFieldIntrv, yFieldIntrv, xcen, ycen, pixelMagGrad, axisRot,
+     &          tiltAngles(iangUse), dmagPerUm(magUse), rotPerUm(magUse))
           else
             call makeMagGradField(distDx, distDy, fieldDx(1,1,ioldest),
-     &          fieldDy(1,1,ioldest), lmField,
-     &          nxin, nyin, ixFieldStrt, xFieldIntrv, nxField,
-     &          iyFieldStrt, yFieldIntrv, nyField, xcen, ycen,
-     &          pixelMagGrad, axisRot, tiltAngles(iangUse),
-     &          dmagPerUm(magUse), rotPerUm(magUse))
+     &          fieldDy(1,1, ioldest), lmField, nxin, nyin, nxField, nyField, xFieldStrt,
+     &          yFieldStrt, xFieldIntrv, yFieldIntrv, xcen, ycen, pixelMagGrad, axisRot,
+     &          tiltAngles(iangUse), dmagPerUm(magUse), rotPerUm(magUse))
           endif
         else
 c           
@@ -105,11 +101,10 @@ c
           amat(2,2) = 1.
           amat(1,2) = 0.
           amat(2,1) = 0.
-          call undistInterp(array(indRead),array(index),nxin, nyin,
-     &        nxin, nyin, amat,nxin/2. ,nyin/2., 0.,0.,1.,dmean, 1,
-     &        fieldDx(1,1,ioldest), fieldDy(1,1,ioldest), lmField,
-     &        nxField, ixFieldStrt, xFieldIntrv,
-     &        nyField, iyFieldStrt, yFieldIntrv)
+          call warpInterp(array(indRead),array(index),nxin, nyin, nxin, nyin, amat,
+     &        nxin/2. ,nyin/2., 0.,0.,1.,dmean, 1, 0, fieldDx(1,1,ioldest),
+     &        fieldDy(1,1,ioldest), lmField, nxField, nyField, xFieldStrt, yFieldStrt,
+     &        xFieldIntrv, yFieldIntrv)
         endif
       endif
       return
@@ -137,6 +132,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.6  2010/04/19 03:13:23  mast
+c       Switch to module, fixed allocation of big arrays in common
+c
 c       Revision 3.5  2007/04/07 21:35:29  mast
 c       Switched to exitError
 c
