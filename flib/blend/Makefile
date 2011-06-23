@@ -1,34 +1,6 @@
+# Makefile for blendmont and related programs
 #
-#  $Author$
-#
-#  $Date$
-#
-#  $Revision$
-#
-#  $Log$
-#  Revision 3.8  2010/04/19 03:13:23  mast
-#  Switch to module, fixed allocation of big arrays in common
-#
-#  Revision 3.7  2006/06/22 01:09:45  mast
-#  Replaced LDFLAGS with LDFFLAGS for Intel Mac
-#
-#  Revision 3.6  2005/11/23 16:50:36  mast
-#  Remove dependency on recl_bytes since it is created by setup
-#
-#  Revision 3.5  2005/11/19 17:01:44  mast
-#  Added dependency on recl_bytes.inc
-#
-#  Revision 3.4  2005/05/12 05:07:40  mast
-#  Use strip variable
-#
-#  Revision 3.3  2003/12/12 20:47:53  mast
-#  Added edgesubs.f
-#
-#  Revision 3.2  2003/10/24 02:30:57  mast
-#  Changes for windows/Intel compiler
-#
-#  Revision 3.1  2002/08/19 04:29:03  mast
-#  Added dependencies on blend.inc
+# $Id$
 #
 
 include ../configure
@@ -50,14 +22,14 @@ all: $(PROGS)
 # Add $(LAPACKLIBS) to test find_best_shifts with SVD
 blendmont$(E): $(BLOBJS)
 	$(FC)  -o blendmont $(BLOBJS) $(LDFLG) $(LSMLMOD) $(LIMOD) \
-	$(IMLIBS) $(FORTCLIBS)
+	$(LIWARP) $(IMLIBS) $(FORTCLIBS)
 
 
 reducemont$(E): $(REDOBJS)
-	$(FC) -o reducemont $(REDOBJS) $(LDFLG) $(IMLIBS) $(FORTCLIBS)
+	$(FC) -o reducemont $(REDOBJS) $(LDFLG) $(LIWARP) $(IMLIBS) $(FORTCLIBS)
 
 sloppymont$(E): $(SLOPOBJS)
-	$(FC) -o sloppymont $(SLOPOBJS) $(LDFLG) $(IMLIBS) $(FORTCLIBS)
+	$(FC) -o sloppymont $(SLOPOBJS) $(LDFLG) $(LIWARP) $(IMLIBS) $(FORTCLIBS)
 
 install: $(PROGS)
 	$(STRIP) $(PROGS)
