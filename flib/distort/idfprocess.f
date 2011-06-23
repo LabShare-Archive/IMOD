@@ -15,6 +15,9 @@ c
 c       $Revision$
 c
 c       $Log$
+c       Revision 1.2  2006/09/28 21:24:57  mast
+c       changed call to avgsd8
+c
 c       Revision 1.1  2006/01/24 06:46:35  mast
 c       Added to package
 c
@@ -222,9 +225,9 @@ c
           xlast = xgrid
           ylast = ygrid
           do while (iter .lt. 10 .and. .not.done)
-            call interpolateGrid(xlast, ylast, fieldDx,
-     &          fieldDy, lmGrid, nxGrid, nyGrid, ixGridstrt, xGridIntrv,
-     &          iyGridStrt, yGridIntrv, dx, dy)
+            call interpolateGrid(xlast, ylast, fieldDx, fieldDy, lmGrid, nxGrid,
+     &          nyGrid, float(ixGridstrt), float(iyGridStrt), xGridIntrv, yGridIntrv,
+     &          dx, dy)
 c            print *, ix, iy, xlast, ylast, -dx, -dy
             xnew = xgrid - dx
             ynew = ygrid - dy
@@ -256,9 +259,9 @@ c
         ygrid = iyGridStrt + (iy - 1) * yGridIntrv
         do ix = 1, nxGrid
           xgrid = ixGridStrt + (ix - 1) * xGridIntrv
-          call interpolateGrid(xgrid + dx1(ix, iy), ygrid + dy1(ix, iy), dx2,
-     &        dy2, lmGrid, nxGrid, nyGrid, ixGridstrt, xGridIntrv,
-     &        iyGridStrt, yGridIntrv, dx, dy)
+          call interpolateGrid(xgrid + dx1(ix, iy), ygrid + dy1(ix, iy), dx2, dy2,
+     &        lmGrid, nxGrid, nyGrid, float(ixGridstrt), float(iyGridStrt), xGridIntrv,
+     &        yGridIntrv, dx, dy)
           dxProd(ix, iy) = dx1(ix, iy) + dx
           dyProd(ix, iy) = dy1(ix, iy) + dy
         enddo
@@ -280,8 +283,8 @@ c
         ygrid = iyStrt2 + (iy - 1) * yIntrv2
         do ix = 1, nx2
           xgrid = ixStrt2 + (ix - 1) * xIntrv2
-          call interpolateGrid(xgrid, ygrid, dx1, dy1, lmGrid, nx1, ny1,
-     &        ixStrt1, xIntrv1, iyStrt1, yIntrv1, dx2(ix, iy), dy2(ix, iy))
+          call interpolateGrid(xgrid, ygrid, dx1, dy1, lmGrid, nx1, ny1, float(ixStrt1),
+     &        float(iyStrt1), xIntrv1, yIntrv1, dx2(ix, iy), dy2(ix, iy))
         enddo
       enddo
       return
