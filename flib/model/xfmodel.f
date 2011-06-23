@@ -11,26 +11,25 @@ c       Log at end of file
 c       
       implicit none
       include 'model.inc'
-      integer nflimit,limpcl,idim,lmGrid
-      parameter (nflimit=10000,limpcl=100000)
+      integer nflimit,limpcl,idim
+      parameter (nflimit=100000,limpcl=100000)
       real*4 f(2,3,nflimit),g(2,3,nflimit),gtmp(2,3)
       integer*4 nxyz(3),mxyz(3),nx,ny,nz,mode
       equivalence (nxyz(1),nx),(nxyz(2),ny),(nxyz(3),nz)
-c       real*4 delt(3)
+      real*4 delt(3)/0.,0.,0./
       integer*4 nsec(nflimit),listz(nflimit),indfl(nflimit)
       integer*4 numInChunks(nflimit), numChunks
       integer*4 ixpclist(limpcl),iypclist(limpcl),izpclist(limpcl)
       parameter (idim=1000)
-      parameter (lmGrid = 200)
       include 'statsize.inc'
       real*4 xr(msiz,idim)
       character*320 modelfile,newmodel,oldxfgfile,oldxffile,newxffile,idfFile
       character*320 magGradFile
       logical gotthis,gotlast,exist,readw_or_imod
-      integer*4 getimodmaxes
+      integer*4 getimodmaxes,getimodscales
       integer*4 limpnts/4/                      !min # of points for regression
 c       
-      integer*4 i,nlistz,nfout,npclist,izrange,iffillgap,indf,indval
+      integer*4 i,nlistz,nfout,npclist,izrange,iffillgap,indf,indval,ifShiftScale
       integer*4 minxpiece,nxpieces,nxoverlap,minypiece,nypieces,nyoverlap
       real*4 xhaf,yhaf,xcen,ycen,critmean,critmax,dmin,dmax,dmean
       integer*4 ifxfmod,iftrans,ifrotrans,ifprealign,ntofind, ifmagrot
@@ -41,18 +40,23 @@ c
       real*4 const,rsq,fra,theta,sinth,costh,gmag,devmax
       real*4 xdev,ydev,devpnt,devavg,devsd,xx,yy,xlast,ylast,xnew,ynew
       integer*4 loop,noldg,izsec,il,indobj,maxx,maxy,maxz, ifBack, iter
-      integer*4 lineUse, lineToUse, ifMagGrad
+      integer*4 lineUse, lineToUse, ifMagGrad, indControl
       logical done
       real*4 atan2d
 c       
-      integer*4 ifDistort, idfBinning, iBinning, idfNx, idfNy
-      integer*4 ixGridStrt, iyGridStrt, nxGrid, nyGrid
-      real*4 xGridIntrv, yGridIntrv, pixelIdf, binRatio, dx, dy, dx1, dy1
-      real*4 fieldDx(lmGrid, lmGrid), fieldDy(lmGrid, lmGrid)
+      integer*4 ifDistort, idfBinning, iBinning, idfNx, idfNy, indIdf,indPreWarp
+      integer*4 nxGrid, nyGrid, lmGrid, ipreWarpNx, ipreWarpNy, iwarpNx, iwarpNy
+      real*4 xGridStrt, yGridStrt, xGridIntrv, yGridIntrv, pixelIdf, binRatio
+      real*4 pixelModel, pixelWarp, pixelPrewarp, prewarpScale, warpScale
+      real*4, allocatable :: fieldDx(:,:), fieldDy(:,:), warpDx(:,:,:), warpDy(:,:,:)
+      real*4, allocatable :: xWarpStrt(:), yWarpStrt(:), xWarpIntrv(:), yWarpIntrv(:)
+      integer*4, allocatable :: nControl(:,:), nxWarp(:), nyWarp(:)
       character*10240 stringList
-      real*4 pixelMagGrad, axisRot
-      real*4 tiltAngles(nflimit), dmagPerUm(nflimit), rotPerUm(nflimit)
-      integer*4 numMagGrad, lnblnk
+      real*4 pixelMagGrad, axisRot, xmodMin,xmodMax,ymodMin,ymodMax,gridExtendFrac
+      real*4 tiltAngles(nflimit), dmagPerUm(nflimit), rotPerUm(nflimit), dx, dy, dx1, dy1
+      integer*4 numMagGrad,indWarpFile,lmWarpX, lmWarpY,lmWarpZ
+      integer*4 getSizeAdjustedGrid,readCheckWarpFile,getGridParameters,clearWarpFile
+      integer*4 setCurrentWarpFile, findMaxGridSize, getLinearTransform
 c       
       logical pipinput
       integer*4 numOptArg, numNonOptArg
@@ -90,6 +94,7 @@ c
       ifMagGrad = 0
       numChunks = 0
       shiftScale = 1.
+      gridExtendFrac = 0.1
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
 c       
@@ -133,7 +138,7 @@ c         otherwise get header info from image file
 c         
 c         get header info for proper coordinate usage
         call irdhdr(1,nxyz,mxyz,mode,dmin,dmax,dmean)
-c         call irtdel(1,delt)
+        call irtdel(1,delt)
 c         call irtorg(1,xorig,yorig,zorig)
 c         write(*,'(/,a,a,/)')' This header info MUST be the'
 c         &           ,' same as when model was built'
@@ -264,7 +269,7 @@ c
         ierr = PipGetBoolean('RotationTranslation', ifrotrans)
         ierr = PipGetBoolean('MagRotTrans', ifmagrot)
         ierr = PipGetInteger('UseTransformLine', lineUse)
-        ierr = PipGetFloat('ScaleShifts', shiftScale)
+        ifShiftScale = 1 - PipGetFloat('ScaleShifts', shiftScale)
 
         if (PipGetString('XformsToApply', oldxffile) .eq. 0) ifxfmod = 1
         if (PipGetString('DistortionField', idfFile) .eq. 0) ifxfmod = 1
@@ -299,7 +304,7 @@ c
         if (iftrans + ifrotrans + ifmagrot .gt. 0 .and. ifxfmod .ne. 0)
      &      call exitError('You cannot both find transforms '//
      &      'and transform a model')
-        if (ifxfmod .eq. 0 .and. shiftScale .ne. 1.) call exitError
+        if (ifxfmod .eq. 0 .and. ifShiftScale .ne. 0) call exitError
      &      ('You cannot enter -scale unless you are transforming a model')
         if (iftrans .ne. 0) ifxfmod = 2
         if (ifrotrans .ne. 0) ifxfmod = 3
@@ -340,6 +345,33 @@ c
         limpnts=3
       endif
 c       
+c       read in the model now since its range is needed
+      exist=readw_or_imod(modelfile)
+      if(.not.exist)go to 91
+c       
+c       shift the data to image coordinates before using
+      call scale_model(0)
+c       
+c       Get model range
+      xmodMin = 1.e38
+      xmodMax = -1.e38
+      ymodMin = 1.e38
+      ymodMax = -1.e38
+      do i = 1, n_point
+        xmodMin = min(xmodMin, p_coord(1, i))
+        xmodMax = max(xmodMax, p_coord(1, i))
+        ymodMin = min(ymodMin, p_coord(2, i))
+        ymodMax = max(ymodMax, p_coord(2, i))
+      enddo
+c       
+c       Extend the range so that properly extrapolated grids can be used to find inverse
+c       point for forward transforms
+      xlast = xmodMax + 1 - xmodMin
+      xmodMin = xmodMin - gridExtendFrac * xlast
+      xmodMax = xmodMax + gridExtendFrac + xlast
+      ylast = ymodMax + 1 - ymodMin
+      ymodMin = ymodMin - gridExtendFrac * ylast
+      ymodMax = ymodMax + gridExtendFrac + ylast
 c       
       ifsingle=0
       iffullrpt = 0
@@ -360,9 +392,15 @@ c
           newmodel = newxffile
           if (idfFile .ne. ' ') then
             ifDistort = 1
-            call readDistortions(idfFile, fieldDx, fieldDy, lmGrid, idfNx,
-     &          idfNy, idfBinning, pixelIdf, ixGridStrt, xGridIntrv, nxGrid,
-     &          iyGridStrt, yGridIntrv, nyGrid)
+            indIdf = readCheckWarpFile(idfFile, 1, 1, idfNx, idfNy, i, idfBinning,
+     &          pixelIdf, iz, stringList)
+            if (indIdf .lt. 0) call exitError(stringList)
+            if (getGridParameters(1, nxGrid, nyGrid, xGridStrt, yGridStrt, xGridIntrv,
+     &          yGridIntrv) .ne. 0) call exitError('GETTING DISTORTION FIELD PARAMETERS')
+            lmGrid = max(nxGrid, ceiling((xmodMax - xModMin) / xGridIntrv),
+     &          nyGrid, ceiling((ymodMax - yModMin) / yGridIntrv)) + 2
+            allocate(fieldDx(lmGrid,lmGrid), fieldDy(lmGrid,lmGrid), stat=ierr)
+            call memoryError(ierr, 'ARRAYS FOR DISTORTION FIELD')
 c             
 c             if the center is not yet defined, need to get it now
 c             
@@ -389,25 +427,21 @@ c
             if (iBinning .le. 0) call exitError
      &          ('IMAGE BINNING MUST BE A POSITIVE NUMBER')
             binRatio = 1.
-            if (iBinning .ne. idfBinning) then
-              binRatio = idfBinning / float(iBinning)
-              ixGridStrt = nint(ixGridStrt * binRatio)
-              iyGridStrt = nint(iyGridStrt * binRatio)
-              xGridIntrv = xGridIntrv * binRatio
-              yGridIntrv = yGridIntrv * binRatio
-              do j = 1, nyGrid
-                do i = 1, nxGrid
-                  fieldDx(i, j) = fieldDx(i, j) * binRatio
-                  fieldDy(i, j) = fieldDy(i, j) * binRatio
-                enddo
-              enddo
-            endif
+            if (iBinning .ne. idfBinning) binRatio = idfBinning / float(iBinning)
+            if (getSizeAdjustedGrid(1, (xmodMax - xmodMin) / binRatio,
+     &          (ymodMax - ymodMin) / binRatio,
+     &          ((xmodMax + xmodMin) / binRatio - idfNx) / 2.,
+     &          ((ymodMax + ymodMin) / binRatio - idfNy) / 2., 0, binRatio, 1, 
+     &          nxGrid, nyGrid, xGridStrt, yGridStrt, xGridIntrv,
+     &          yGridIntrv, fieldDx, fieldDy, lmGrid, lmGrid, stringList) .ne. 0)
+     &          call exitError(stringList)
+            ierr = clearWarpFile(indIdf)
 c             
 c             Need to shift field by difference between image and camera
 c             centers
 c             
-            ixGridStrt = ixGridStrt - nint(idfNx * binRatio / 2. - xcen)
-            iyGridStrt = iyGridStrt - nint(idfNy * binRatio / 2. - ycen)
+            xGridStrt = xGridStrt - (idfNx * binRatio / 2. - xcen)
+            yGridStrt = yGridStrt - (idfNy * binRatio / 2. - ycen)
 c             print *,ixGridStrt,ixGridStrt,xcen,ycen,idfnx,idfny,binratio
           endif
         endif
@@ -482,20 +516,13 @@ c
           read(*,'(a)')newmodel
 c           
           if(ifxfmod.gt.0)then
-            write(*,'(1x,a,$)')
-     &          'File for list of g transforms to apply: '
+            write(*,'(1x,a,$)') 'File for list of g transforms to apply: '
             read(*,'(a)')oldxffile
           endif
 c           
         endif
       endif
-      call PipDone()
-c       
-c       read in the model
-c       
-      exist=readw_or_imod(modelfile)
-      if(.not.exist)go to 91
-c       
+      call PipDone()       
 c       
 c       if the center is not yet defined, use the model header sizes
 c       
@@ -507,24 +534,96 @@ c
      &      'center coordinates:', xcen, ycen
       endif
 c       
-c       shift the data to image coordinates before using
-c       
-      call scale_model(0)
-c       
 c       first fill array with unit transforms in case things get weird
 c       
       do i=1,nflimit
         call xfunit(f(1,1,i),1.)
       enddo
 c       
+c       Assess whether either file is a warping file
+      indPreWarp = -1
+      indWarpFile = -1
+      lmWarpX = 0
+      lmWarpY = 0
+      lmWarpZ = 0
+      if (ifprealign.ne.0) then
+        indPreWarp = readCheckWarpFile(oldxfgfile, 0, 1, ipreWarpNx, iPreWarpNy, noldg, i,
+     &      pixelPreWarp, iz, stringList)
+        if (indPreWarp .lt. -1) call exitError(stringList)
+        if (indPreWarp .ge. 0) lmWarpZ = noldg
+      endif
+      if (oldxffile.ne.' ') then
+        indWarpFile = readCheckWarpFile(oldxffile, 0, 1, iwarpNx, iwarpNy, nfgin, i,
+     &      pixelWarp, iz, stringList)
+        if (indWarpFile .lt. -1) call exitError(stringList)
+        if (indWarpFile .ge. 0) lmWarpZ = max(lmWarpZ, nfgin)
+      endif
+c       
+c       One or other warping exists
+      if (lmWarpZ .gt. 0) then
+        allocate(nControl(lmWarpZ,2), stat = ierr)
+        call memoryError(ierr, 'ARRAY FOR NUMBER OF CONTROL POINTS')
+c         
+c         Need to know the pixel size of the model.  Take image pixel first.
+        pixelModel = delt(1)
+        if (delt(1) .le. 0) ierr = getimodscales(pixelModel, xlast, ylast)
+c         
+c         Find out how big grids need to be
+        if (indPreWarp .ge. 0) then
+          write(*,'(a,a)')'Warping file opened: ',trim(oldxfgfile)
+          prewarpScale = pixelPrewarp / pixelModel
+          ierr = setCurrentWarpFile(indPreWarp)
+          if (findMaxGridSize(xmodMin / prewarpScale, xModMax / prewarpScale,
+     &        yModMin / prewarpScale, yModMax / prewarpScale, nControl(1,1), lmWarpX,
+     &        lmWarpY, stringList) .ne. 0) call exitError(stringList)
+        endif
+        if (indWarpFile .ge. 0) then
+          write(*,'(a,a)')'Warping file opened: ',trim(oldxffile)
+          warpScale = pixelWarp / pixelModel
+          ierr = setCurrentWarpFile(indWarpFile)
+          if (findMaxGridSize(xmodMin / warpScale, xModMax / warpScale,
+     &        yModMin / warpScale, yModMax / warpScale, nControl(1,2), i, iz,
+     &        stringList) .ne. 0) call exitError(stringList)
+          lmWarpX = max(lmWarpX, i)
+          lmWarpY = max(lmWarpY, iz)
+        endif
+c         
+c         Allocate arrays for grid and parameters for each section
+        allocate(warpDx(lmWarpX,lmWarpY,lmWarpZ), warpDy(lmWarpX,lmWarpY,lmWarpZ),
+     &      nxWarp(lmWarpZ), xWarpStrt(lmWarpZ), xWarpIntrv(lmWarpZ), nyWarp(lmWarpZ),
+     &      yWarpStrt(lmWarpZ), yWarpIntrv(lmWarpZ), stat = ierr)
+        call memoryError(ierr, 'ARRAYS FOR WARPING GRIDS')
+      endif
+c       
 c       back-transform if necessary
       if(ifprealign.ne.0)then
-        call dopen(3,oldxfgfile,'ro','f')
+        if (indPreWarp .ge. 0) then
+          ierr = setCurrentWarpFile(indPreWarp)
+          if (noldg .gt. nflimit) call exitError(
+     &        'too many sections in warp file for transform array')
+          if (ifShiftScale .eq. 0) shiftScale = prewarpScale
+          indControl = 1
+          do i = 1, noldg
+            if (getLinearTransform(i, g(1,1,i)) .ne. 0)
+     &          call exitError('GETTING LINEAR TRANSFORM FROM WARP FILE')
+            if (nControl(i,1) .gt. 2) then
+              if (getSizeAdjustedGrid(i, (xmodMax - xmodMin) / prewarpScale,
+     &            (ymodMax - ymodMin) / prewarpScale,
+     &            ((xmodMax + xmodMin) / prewarpScale - ipreWarpNx) / 2.,
+     &            ((ymodMax + ymodMin) / prewarpScale - ipreWarpNy) / 2., 0, prewarpScale,
+     &            1,  nxWarp(i), nyWarp(i), xWarpStrt(i), yWarpStrt(i), xWarpIntrv(i),
+     &            yWarpIntrv(i), warpDx(1,1,i), warpDy(1,1,i), lmWarpX, lmWarpY,
+     &            stringList) .ne. 0) call exitError(stringList)
+            endif
+          enddo
+        else
+          call dopen(3,oldxfgfile,'ro','f')
 c         
-c         get g transforms into g list
-        call xfrdall(3,g,noldg,*92)
-        if (noldg.gt.nflimit)call exitError('too many transforms for arrays')
-        close(3)
+c           get g transforms into g list
+          call xfrdall2(3,g,noldg,nflimit,ierr)
+          if (ierr .ne. 0) call exitError('too many transforms for arrays')
+          close(3)
+        endif
 c         
 c         invert the g's into the g list
         do indg=1,noldg
@@ -547,10 +646,11 @@ c
      &          ' applied at all Z values'
           endif
         endif
-        print *,'Back-transforming model with inverse of XGs from ',
-     &      oldxfgfile(1:lnblnk(oldxfgfile))
-        call transformModel(g, noldg, nflimit, xcen, ycen, indfl,
-     &      listz, lineToUse, nundefine)
+        write(*,'(a,a)')'Back-transforming model with inverse of transforms from ',
+     &      trim(oldxfgfile)
+        if (indPreWarp .ge. 0) call warpModel(noldg, 1)
+        call transformModel(g, noldg, nflimit, xcen, ycen, indfl, listz, lineToUse,
+     &      nundefine)
         
         if(ifxfmod.lt.0 .and. ifDistort + ifMagGrad .eq. 0)then
 c           
@@ -562,13 +662,34 @@ c           write out back-transformed model
 c       
 c       read in the old f's or g's for whatever purpose 
 c       
-      nfgin=0
+      if (indWarpFile .lt. 0) nfgin=0
       lineToUse = -1
       if(oldxffile.ne.' ')then
-        call dopen(1,oldxffile,'ro','f')
-        call xfrdall(1,f,nfgin,*92)
-        if (nfgin.gt.nflimit)call exitError('too many transforms for arrays')
-        close(1)
+        if (indWarpFile .ge. 0) then
+          ierr = setCurrentWarpFile(indWarpFile)
+          if (nfgin .gt. nflimit) call exitError(
+     &        'too many sections in warp file for transform array')
+          if (ifShiftScale .eq. 0) shiftScale = warpScale
+          indControl = 2
+          do i = 1, nfgin
+            if (getLinearTransform(i, f(1,1,i)) .ne. 0)
+     &          call exitError('GETTING LINEAR TRANSFORM FROM WARP FILE')
+            if (nControl(i,2) .gt. 2) then
+              if (getSizeAdjustedGrid(i, (xmodMax - xmodMin) / warpScale,
+     &            (ymodMax - ymodMin) / warpScale,
+     &            ((xmodMax + xmodMin) / warpScale - iWarpNx) / 2.,
+     &            ((ymodMax + ymodMin) / warpScale - iWarpNy) / 2., 0, warpScale,
+     &            1,  nxWarp(i), nyWarp(i), xWarpStrt(i), yWarpStrt(i), xWarpIntrv(i),
+     &            yWarpIntrv(i), warpDx(1,1,i), warpDy(1,1,i), lmWarpX, lmWarpY,
+     &            stringList) .ne. 0) call exitError(stringList)
+            endif
+          enddo
+        else
+          call dopen(1,oldxffile,'ro','f')
+          call xfrdall2(1,f,nfgin,nflimit,ierr)
+          if (ierr .ne. 0) call exitError('too many transforms for arrays')
+          close(1)
+        endif
         do indg=1,nfgin
           f(1,3,indg) = f(1,3,indg) * shiftScale
           f(2,3,indg) = f(2,3,indg) * shiftScale
@@ -610,15 +731,14 @@ c
                 dx = 0.
                 dy = 0.
                 if (IfMagGrad .ne. 0)
-     &              call magGradientShift(xlast, ylast, nint(2. * xcen),
-     &              nint(2. * ycen),
-     &              xcen, ycen, pixelMagGrad, axisRot, tiltAngles(iz),
-     &              dmagPerUm(iz), rotPerUm(iz), dx1, dy1)
+     &              call magGradientShift(xlast, ylast, nint(2. * xcen), nint(2. * ycen),
+     &              xcen, ycen, pixelMagGrad, axisRot, tiltAngles(iz), dmagPerUm(iz),
+     &              rotPerUm(iz), dx1, dy1)
 
                 if (ifDistort .ne. 0)
-     &              call interpolateGrid(xlast + dx1, ylast + dy1, fieldDx,
-     &              fieldDy, lmGrid, idfNx, idfNy, ixGridstrt, xGridIntrv,
-     &              iyGridStrt, yGridIntrv, dx, dy)
+     &              call interpolateGrid(xlast + dx1, ylast + dy1, fieldDx, fieldDy,
+     &              lmGrid, nxGrid, nyGrid, xGridstrt, yGridStrt, xGridIntrv,
+     &              yGridIntrv, dx, dy)
                 xnew = p_coord(1,i) - (dx + dx1)
                 ynew = p_coord(2,i) - (dy + dy1)
                 done = abs(xnew - xlast) .lt. 0.01 .and.
@@ -644,10 +764,9 @@ c
      &            dmagPerUm(iz), rotPerUm(iz), dx1, dy1)
 
               if (ifDistort .ne. 0)
-     &            call interpolateGrid(p_coord(1,i) + dx1,
-     &            p_coord(2,i) + dy1,
-     &            fieldDx, fieldDy, lmGrid, idfNx, idfNy, ixGridstrt,
-     &            xGridIntrv, iyGridStrt, yGridIntrv, dx, dy)
+     &            call interpolateGrid(p_coord(1,i) + dx1, p_coord(2,i) + dy1,
+     &            fieldDx, fieldDy, lmGrid, nxGrid, nyGrid, xGridstrt,
+     &            yGridStrt,  xGridIntrv, yGridIntrv, dx, dy)
               p_coord(1,i) = p_coord(1,i) + dx1 + dx
               p_coord(2,i) = p_coord(2,i) + dy1 + dy
             endif
@@ -656,17 +775,15 @@ c
 c           if there was prealignment and no new transforms, get the 
 c           prealignment transforms back by inversion and set up to use them
 c           
-          if (nfgin .ne. 0) then
-            print *,'Transforming model with XGs from ',
-     &          oldxffile(1:lnblnk(oldxffile))
-          else if (nfgin .eq. 0 .and. ifprealign .ne. 0 .and.
+          if (nfgin .eq. 0 .and. ifprealign .ne. 0 .and.
      &          ifxfmod .gt. 0) then
-            print *,'Transforming model with reinverted XGs from ',
-     &          oldxfgfile(1:lnblnk(oldxfgfile))
+            write(*,'(a,a)')'Transforming model with reinverted transforms from ',
+     &          trim(oldxfgfile)
             do indg=1,noldg
               call xfinvert(g(1,1,indg), f(1,1,indg))
             enddo
             nfgin = noldg
+            indWarpFile = indPreWarp
           endif
         endif
 c         
@@ -674,8 +791,11 @@ c
 c         
 c         transform the model
 c         
+        if (oldxffile .ne. ' ') write(*,'(a,a)')
+     &      'Transforming model with transforms from ', trim(oldxffile)
         if (nfgin .ne. 0) call transformModel(f, nfgin, nflimit,
      &      xcen, ycen, indfl, listz, lineToUse, nundefine)
+        if (indWarpFile .ge. 0) call warpModel(nfgin, 0)
         
         call rescaleWriteModel(newmodel, nundefine)
       else
@@ -831,6 +951,51 @@ c
 91    call exitError('reading model file')
 92    call exitError('reading old f/g file')
 94    call exitError('writing out f file')
+
+
+      CONTAINS
+
+      subroutine warpModel(nsecin, ifback)
+      integer*4 nsecin
+      integer*4 iobj, ipt, i, iz, indind, indg, ifback
+      real*4 zz,dx,dy
+c       
+      nundefine=0
+      do iobj=1,max_mod_obj
+        do ipt=1,npt_in_obj(iobj)
+          i=abs(object(ibase_obj(iobj)+ipt))
+          zz=p_coord(3,i)
+          iz=int(zz-nint(zz)+0.5) + nint(zz)
+          indind=iz+1 -listz(1)
+          if (.not. ((indind.lt.1.or.indind.gt.nflimit) .and. lineToUse .lt. 0)) then
+            if (lineToUse .lt. 0) then
+              indg=indfl(indind)
+            else
+              indg = lineToUse + 1
+            endif
+            if (indg.ge.1 .and. indg.le.nsecin) then
+              if (nControl(indg, indControl) .gt. 2) then
+                if (ifback .ne. 0) then
+                  call interpolateGrid(p_coord(1,i),  p_coord(2,i), warpDx(1,1,indg),
+     &                warpDy(1,1,indg), lmWarpX, nxWarp(indg), nyWarp(indg),
+     &                xWarpStrt(indg), yWarpStrt(indg), xWarpIntrv(indg),
+     &                yWarpIntrv(indg), dx, dy)
+                  p_coord(1,i) = p_coord(1,i) + dx
+                  p_coord(2,i) = p_coord(2,i) + dy
+                else
+                  call findInversePoint( p_coord(1,i),  p_coord(2,i), warpDx(1,1,indg),
+     &                warpDy(1,1,indg), lmWarpX, nxWarp(indg), nyWarp(indg),
+     &                xWarpStrt(indg), yWarpStrt(indg), xWarpIntrv(indg),
+     &                yWarpIntrv(indg), p_coord(1,i),  p_coord(2,i), dx, dy)
+                endif
+              endif
+            endif
+          endif
+        enddo
+      enddo
+      return
+      end subroutine warpModel
+
       end
 
 
@@ -841,16 +1006,14 @@ c
       real*4 f(2,3,*), xcen, ycen
       integer*4 nfgin, nflimit, nundefine, indfl(*), listz(*), lineToUse
       integer*4 iobj, ipt, i, iz, indind, indg
-      real*4 zdex,zz
+      real*4 zz
 c       
       nundefine=0
       do iobj=1,max_mod_obj
         do ipt=1,npt_in_obj(iobj)
           i=abs(object(ibase_obj(iobj)+ipt))
           zz=p_coord(3,i)
-c           zdex=(zz+zorig)/delt(3)
-          zdex=zz
-          iz=int(zdex-nint(zdex)+0.5) + nint(zdex)
+          iz=int(zz-nint(zz)+0.5) + nint(zz)
           indind=iz+1 -listz(1)
           if ((indind.lt.1.or.indind.gt.nflimit) .and. lineToUse .lt. 0)then
             nundefine=nundefine+1
@@ -872,6 +1035,7 @@ c           zdex=(zz+zorig)/delt(3)
       return
       end
 
+
       subroutine rescaleWriteModel(newmodel, nundefine)
       implicit none
       include 'model.inc'
@@ -892,6 +1056,9 @@ c
 c       
 c       
 c       $Log$
+c       Revision 3.16  2009/06/10 22:00:03  mast
+c       Fixed problem running with PIP input for finding transforms
+c
 c       Revision 3.15  2008/11/21 22:05:24  mast
 c       Increased filename size
 c
