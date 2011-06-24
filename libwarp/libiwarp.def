@@ -17,6 +17,7 @@ EXPORTS
 	lpi_interpolate_point
 	get_basis_sede
 	find_alpha
+	INTERPOLATEGRID
 	free_simplex_storage
 	SEPARATELINEARTRANSFORM
 	delaunay_destroy
@@ -28,6 +29,7 @@ EXPORTS
 	epopen
 	build_fg
 	add_to_fg
+	MAGGRADIENTSHIFT
 	invertWarpGrid
 	p_fg_x
 	nnhpi_destroy
@@ -52,12 +54,16 @@ EXPORTS
 	nnpi_create
 	setGridSizeToMake
 	lpi_build
+	magGradientShift
 	FINDINVERSEPOINT
+	makeMagGradField
 	expandAndExtrapGrid
 	newWarpFile
 	facets_print
 	WARPFILESDONE
+	interpolateGrid
 	ps_out
+	getWarpFileSize
 	MULTIPLYWARPINGS
 	find_volumes
 	nnpi_interpolate_points
@@ -76,6 +82,7 @@ EXPORTS
 	print_neighbor_full
 	cpr_out
 	warpFilesDone
+	MAKEMAGGRADFIELD
 	CLEARWARPFILE
 	minell_scalepoints
 	delaunay_build
@@ -100,7 +107,6 @@ EXPORTS
 	lpi_interpolate_points
 	build_convex_hull
 	istack_contains
-	interpolateGridf
 	addWarpPoint
 	visit_hull
 	free_basis_s_storage
@@ -184,6 +190,7 @@ EXPORTS
 	istack_destroy
 	visit_triang_gen
 	insert
+	ADDMAGGRADFIELD
 	ht_delete
 	delete
 	nnpi_interpolate_point
@@ -195,7 +202,6 @@ EXPORTS
 	nnpi_setwmin
 	multiplyWarpings
 	print_basis
-	INTERPOLATEGRIDF
 	str2double
 	readCheckWarpFile
 	out_of_flat
@@ -206,3 +212,4 @@ EXPORTS
 	getWarpGrid
 	getWarpGridSize
 	panic
+	addMagGradField
