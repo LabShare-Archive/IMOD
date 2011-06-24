@@ -1,17 +1,22 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-6/23/11: In eTomo, fixed a problem that prevented the GPU from being specified by a
-"localhost" cpu.adoc section.(Bug# 1495)
+6/24/11: In eTomo - Fiducial Model dialog, no longer checking for RAPTOR
+before adding it as an option.  Also added the RAPTOR man-page to the right-
+click menu.(Bug# 1466)
+
+6/23/11: In eTomo, fixed a problem that prevented the GPU from being specified
+by a "localhost" cpu.adoc section.(Bug# 1495)
 
 6/23/11: Modified Blendmont and Xfmodel to handle warping.
 
 6/21/11: In eTomo, loading the raw stack as integers.(Bug# 1492)
 
-6/21/11: In eTomo, handling the new version of trimvol.  Also removed the trimvol
-subsection from the .edf file and replaced it with individual files.(Bug# 1490)
+6/21/11: In eTomo, handling the new version of trimvol.  Also removed the
+trimvol subsection from the .edf file and replaced it with individual files.
+(Bug# 1490)
 
-6/17/11: Converted eTomo to handle the Python versions of Makejoincom and Finishjoin.
-(Bug# 1494)
+6/17/11: Converted eTomo to handle the Python versions of Makejoincom and
+Finishjoin. (Bug# 1494)
 
 6/16/11: Converted Makejoincom and Finishjoin to Python, modified Finishjoin
 and Maxjoinsize to handle warping transforms.
