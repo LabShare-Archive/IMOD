@@ -1,0 +1,1 @@
+g++ optimizationTest.cpp SFMestimationWithBA.cpp estimation3d.cpp sparseMat.cpp std_qp.cpp contour.cpp /usr/lib/opencv/lib/libcxcore.so /usr/lib/opencv/lib/libcv.so
