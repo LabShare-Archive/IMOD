@@ -1302,6 +1302,19 @@ c
           endif
           if (inputBinning .le. 0) call exitError
      &        ('IMAGE BINNING MUST BE A POSITIVE NUMBER')
+        endif
+c         
+c         Allocate field arrays and load distortion field
+        if (doMagGrad .or. undistort) then
+          allocate(distDx(lmField,lmField),distDy(lmField,lmField),
+     &        fieldDx(lmField,lmField,maxFields), fieldDy(lmField,lmField,maxFields),
+     &        stat = ierr)
+          call memoryError(ierr, 'ARRAYS FOR DISTORTION FIELDS')
+        endif
+        if (undistort) then
+          if (getWarpGrid(1, nxField, nyField, xFieldStrt, yFieldStrt, xFieldIntrv,
+     &        yFieldIntrv, distDx, distDy, lmField) .ne. 0) call exitError(
+     &        'GETTING DISTORTION FIELD FROM WARP FILE')
 c           
 c           Adjust grid start and interval and field itself for the
 c           overall binning
@@ -1317,19 +1330,6 @@ c           difference between field and image size
 c           
           xFieldStrt = xFieldStrt - (idfNx * binRatio -  nxin) / 2.
           yfieldStrt = yfieldStrt - (idfNy * binRatio -  nyin) / 2.
-        endif
-c         
-c         Allocate field arrays and load distortion field
-        if (doMagGrad .or. undistort) then
-          allocate(distDx(lmField,lmField),distDy(lmField,lmField),
-     &        fieldDx(lmField,lmField,maxFields), fieldDy(lmField,lmField,maxFields),
-     &        stat = ierr)
-          call memoryError(ierr, 'ARRAYS FOR DISTORTION FIELDS')
-        endif
-        if (undistort) then
-          if (getWarpGrid(1, nxField, nyField, xFieldStrt, yFieldStrt, xFieldIntrv,
-     &        yFieldIntrv, distDx, distDy, lmField) .ne. 0) call exitError(
-     &        'GETTING DISTORTION FIELD FROM WARP FILE')
 c           
 c           scale field
           do iy = 1, nyField
@@ -1339,6 +1339,9 @@ c           scale field
             enddo
           enddo
         endif
+c         print *,nxField,nyField,lmField
+c         print *,xFieldStrt,yfieldStrt,xFieldIntrv,yFieldIntrv
+c         write(*,'(10f7.2)')(distDx(i, 5),distDy(i, 5),i=1,min(nxField,10))
 c         
 c         Handle debug output - open files and set flags
 c         
@@ -3517,6 +3520,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.51  2011/06/23 15:07:52  mast
+c       Changes for warping
+c
 c       Revision 3.50  2011/03/04 21:22:21  mast
 c       Trim name before issuing in error message
 c
