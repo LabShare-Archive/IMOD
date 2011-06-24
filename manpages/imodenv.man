@@ -129,8 +129,8 @@ a command file, add a line
 at the beginning of the file.
 .TP
 .B RAPTOR_BIN
-Directory where RAPTOR executables are located, if they are not in 
-/usr/local/RAPTOR/bin.
+Directory where alternative RAPTOR executables are located; leave this
+undefined to run the executables in IMOD.
 .TP
 .B RUNCMD_VERBOSE
 Set this variable to 1 to have the runcmd function called by Python programs

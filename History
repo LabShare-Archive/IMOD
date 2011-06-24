@@ -4,6 +4,9 @@ IMOD History
 before adding it as an option.  Also added the RAPTOR man-page to the right-
 click menu.(Bug# 1466)
 
+6/24/11: Incorporated RAPTOR source into IMOD.  Runraptor will now run the
+executables in IMOD unless RAPTOR_DIR points to alternative ones.
+
 6/23/11: In eTomo, fixed a problem that prevented the GPU from being specified
 by a "localhost" cpu.adoc section.(Bug# 1495)
 
