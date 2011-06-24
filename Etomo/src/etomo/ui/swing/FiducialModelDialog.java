@@ -2,7 +2,6 @@ package etomo.ui.swing;
 
 import java.awt.Component;
 import java.awt.event.*;
-import java.io.File;
 
 import javax.swing.*;
 
@@ -20,7 +19,6 @@ import etomo.type.MetaData;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.util.DatasetFiles;
-import etomo.util.EnvironmentVariable;
 import etomo.comscript.BeadtrackParam;
 import etomo.comscript.ConstTiltxcorrParam;
 import etomo.comscript.RunraptorParam;
@@ -39,6 +37,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/22 18:09:04  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.2  2010/12/05 05:03:16  sueh
  * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
  * <p>
@@ -444,25 +445,6 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     //set dialog display state
     if (axisType == AxisType.DUAL_AXIS && axisID == AxisID.SECOND) {
       turnOffRaptor();
-    }
-    else {
-      File raptorBin = new File("/usr/local/RAPTOR/bin");
-      //RAPTOR_BIN environment variable overrides the default location of RAPTOR.
-      String envVar = "RAPTOR_BIN";
-      String raptorBinEnvVar = EnvironmentVariable.INSTANCE.getValue(appMgr, appMgr
-          .getPropertyUserDir(), envVar, axisID);
-      if (raptorBinEnvVar != null && !raptorBinEnvVar.matches("\\s*")) {
-        raptorBin = new File(raptorBinEnvVar);
-      }
-      if (!raptorBin.exists() || !raptorBin.isDirectory()) {
-        if (EnvironmentVariable.INSTANCE.exists(appMgr, appMgr.getPropertyUserDir(),
-            envVar, axisID)) {
-          System.err.println("WARNING:  " + raptorBin.getAbsolutePath()
-              + " cannot be found.  The environment variable " + envVar
-              + " may be incorrect.");
-        }
-        turnOffRaptor();
-      }
     }
     updateAdvanced();
     updateEnabled();
