@@ -75,6 +75,7 @@ all : configure clibs
 	cd mrc        ; $(MAKE) all
 	cd clip       ; $(MAKE) all
 	cd midas      ; $(MAKE) all
+	cd raptor     ; $(MAKE) all
 	cd pysrc      ; $(MAKE) all
 	cd plugs      ; $(MAKE) all
 
@@ -102,6 +103,7 @@ install : configure man sourcedoc
 	cd processchunks ; $(MAKE) $@
 	cd mrc        ; $(MAKE) $@
 	cd midas      ; $(MAKE) $@
+	cd raptor     ; $(MAKE) $@
 	cd pysrc      ; $(MAKE) $@
 	cd plugs      ; $(MAKE) $@
 	cd clip       ; $(MAKE) $@
@@ -160,6 +162,7 @@ clean : configure ALWAYS
 	cd processchunks ; $(MAKE) $@
 	cd mrc        ; $(MAKE) $@
 	cd midas      ; $(MAKE) $@
+	cd raptor     ; $(MAKE) $@
 	cd pysrc      ; $(MAKE) $@
 	cd plugs      ; $(MAKE) $@
 	cd clip       ; $(MAKE) $@
@@ -290,6 +293,7 @@ cleansrc : ALWAYS
 	\find sendevent -type f -name "moc_*.cpp" -exec rm "{}" \;
 	\find qtassist -type f -name "moc_*.cpp" -exec rm "{}" \;
 	\find plugs -type f -name "moc_*.cpp" -exec rm "{}" \;
+	(cd raptor ; make clean)
 	(cd pysrc ; make clean)
 	(cd manpages ; make clean)
 	(cd flib/man ; make clean)
@@ -329,7 +333,7 @@ csrc : ALWAYS
 	html/*.* html/Makefile html/3dmodimages html/etomoImages \
 	html/3dmodHelp html/joinImages html/adpStub html/makeadp \
 	html/ctfHelp html/midasHelp html/libdoc/Makefile html/libdoc/*.html \
-	dist scripts pysrc com manpages autodoc \
+	raptor dist scripts pysrc com manpages autodoc \
 	plugs/*/*.[chf] plugs/*/*.cpp plugs/*/*.html plugs/*/*.csv plugs/*/Makefile \
 	plugs/*/*.png plugs/Makefile.unix plugs/Makefile.dummy \
 	include/*.h include/*.inc | (cd $(ARCDIR)_src; tar xBf -)
@@ -372,6 +376,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.93  2011/06/10 05:38:03  mast
+#  Put licenses in new directory in the distribution
+#
 #  Revision 3.92  2011/05/27 13:38:41  mast
 #  fix make src for libwarp Makefile
 #
