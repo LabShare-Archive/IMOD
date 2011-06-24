@@ -5,11 +5,11 @@
 #
 #  Log at end
 #
-if (! $?RAPTOR_BIN) setenv RAPTOR_BIN /usr/local/RAPTOR/bin
+if (! $?RAPTOR_BIN) setenv RAPTOR_BIN "$IMOD_DIR/bin"
 
-if (! -r $RAPTOR_BIN) then
+if (! -r "$RAPTOR_BIN") then
     echo "ERROR: Runraptor - $RAPTOR_BIN does not exist or is not readable"
-    echo "ERROR: You need to define RAPTOR_BIN with the path to the RAPTOR executable"
+    echo "ERROR: You need to leave RAPTOR_BIN undefined to use the RAPTOR in IMOD, or define it with the path to an RAPTOR executable"
     exit 1
 endif
 
@@ -121,7 +121,7 @@ if ("$ext" == "st" && (-e prenewst.com || -e prenewsta.com)) then
 endif
 
 echo "RAPTOR results for this run will be in $outdir"
-$RAPTOR_BIN/RAPTOR -exec $RAPTOR_BIN -path . -inp $infile $options -track -out $outdir
+"$RAPTOR_BIN"/RAPTOR -exec "$RAPTOR_BIN" -path . -inp $infile $options -track -out $outdir
 
 set stat = $status
 if ($stat) then
@@ -162,6 +162,9 @@ echo "The model that will load on the coarse aligned stack is:"
 echo "$outname"
 
 #  $Log$
+#  Revision 3.4  2009/05/26 19:48:51  mast
+#  Remove message to ignore warnings, delete incorrect symbol entries
+#
 #  Revision 3.3  2009/05/01 18:23:03  mast
 #  Added error report if it crashes
 #
