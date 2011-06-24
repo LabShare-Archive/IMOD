@@ -7,9 +7,10 @@ Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells
 All portions of IMOD, except as noted below, are open source under the
 General Public License (GPL) version 2.0.  A copy of this license is in the
 file GPL.txt.  (All license files referred to here are in the directory
-'licenses' in the binary distribution or 'dist' in the source code.)
-Software may be modified and redistributed under the terms of this license.
-The source can be found at
+'licenses' in the binary distribution or 'dist' in the source code.)  The 
+libraries written entirely in C/C++ are released under the Lesser GPL (see
+LGPL.txt).  Software may be modified and redistributed under the terms of
+these licenses.  The source can be found at
 http://bio3d.colorado.edu/imod/openSource
 
 THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,
@@ -28,7 +29,7 @@ copyright Max-Planck-Institut for Biochemistry, Martinsried, Germany.
 
 The LSQR routine by Michael Saunders is used in some programs.  IMOD uses a
 C version of LSQR and some BLAS routines from the BCLS package of Michael
-Friedlander, which are covered by the Lesser GPL (see LPGL.txt).
+Friedlander, which are covered by the Lesser GPL (see LGPL.txt).
 
 IMOD uses a subset of the LAPACK routines developed at Univ. of Tennessee,
 Univ. of California Berkeley, NAG Ltd., Courant Institute, Argonne National
@@ -54,6 +55,17 @@ The isosurface display in 3dmod uses contouring and surface smoothing
 modules from Chimera, developed at the Resource for Biocomputing,
 Visualization, and Informatics at the University of California, San
 Francisco, supported by NIH/NCRR grant P41-RR01081.
+
+RAPTOR was developed by Fernando Amat Farshid Moussavi, and Mark Horowitz
+at Stanford University and is copyrighted by them.  It is covered by the
+license in RAPTORlicense.txt.  It uses three libraries, parts of which are
+included in the IMOD source code distribution:
+OpenCV (http://sourceforge.net/projects/opencvlibrary/), 
+covered by the license in OpenCV.txt, 
+SuiteSparse (http://www.cise.ufl.edu/research/sparse/SuiteSparse/), 
+covered by the licenses in CSparse.txt and LGPL.txt, and 
+Stair Vision Library (http://sourceforge.net/projects/stairvision/), 
+covered by the license in StairVision.txt.
 
 The warping library uses modules from Pavel Sakov's 'nn' package, which are
 copyrighted by Sakov and CSIRO, and covered by the license in nn.txt.  The
