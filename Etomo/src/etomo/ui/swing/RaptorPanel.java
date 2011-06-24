@@ -35,6 +35,9 @@ import etomo.type.ViewType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/22 18:21:50  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.2  2010/12/05 05:16:25  sueh
  * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.
  * <p>
@@ -120,8 +123,8 @@ final class RaptorPanel implements Run3dmodButtonContainer, ContextMenu {
    * Right mouse button context menu
    */
   public void popUpContextMenu(final MouseEvent mouseEvent) {
-    String[] manPagelabel = { "Beadtrack", "3dmod" };
-    String[] manPage = { "beadtrack.html", "3dmod.html" };
+    String[] manPagelabel = { "Raptor", "Beadtrack", "3dmod" };
+    String[] manPage = { "raptor.html", "beadtrack.html", "3dmod.html" };
 
     String[] logFileLabel = { "Track" };
     String[] logFile = new String[1];
