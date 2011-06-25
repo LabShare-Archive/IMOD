@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/24/11: In eTomo, avoiding an exception triggered by no CPUs selected.
+(Bug# 1499)
+
 6/24/11: In eTomo - Fiducial Model dialog, no longer checking for RAPTOR
 before adding it as an option.  Also added the RAPTOR man-page to the right-
 click menu.(Bug# 1466)
