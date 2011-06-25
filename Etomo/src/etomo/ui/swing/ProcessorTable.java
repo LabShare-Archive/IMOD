@@ -671,6 +671,9 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
     }
 
     private ProcessorTableRow get(final int index) {
+      if (index == -1) {
+        return null;
+      }
       return (ProcessorTableRow) list.get(index);
     }
 
@@ -747,7 +750,11 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
     }
 
     private String getComputer(final int index) {
-      return get(index).getComputer();
+      ProcessorTableRow row = get(index);
+      if (row == null) {
+        return null;
+      }
+      return row.getComputer();
     }
 
     private void clearFailureReason(final boolean selectedComputers) {
@@ -774,6 +781,9 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2011/05/19 16:33:13  sueh
+ * <p> bug# 1473 In ParameterStore.load, removed unused throw.
+ * <p>
  * <p> Revision 1.3  2011/02/22 18:20:14  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
