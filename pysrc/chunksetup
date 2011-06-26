@@ -1,0 +1,207 @@
+#!/usr/bin/python -u
+# Chunksetup - A script to set up command files to process volumes in chunks
+#
+# Author: David Mastronarde
+#
+# $Id$
+# Log at end
+
+progname = 'chunksetup'
+prefix = 'ERROR: ' + progname + ' - '
+
+# load System Libraries
+import os, sys, os.path, signal, glob
+
+#
+# Setup runtime environment
+if sys.platform.find("win32") < 0:
+   try:
+      signal.signal(signal.SIGHUP, signal.SIG_IGN)
+   except:
+      pass
+if os.getenv('IMOD_DIR') != None:
+   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
+                        os.pathsep + os.environ['PATH']
+   sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import *
+from pysed import *
+
+# Initializations - defaults for filename identifiers and tomopieces call
+masterin = 'INPUTFILE'
+masterout = 'OUTPUTFILE'
+padstring = ''
+overlap = ''
+mega = ''
+nofft = ''
+
+# Fallbacks from ../manpages/autodoc2man 3 1 chunksetup
+options = ["master:MasterComFile:FN:", "input:InputImageFile:FN:",
+           "output:OutputImageFile:FN:", "p:PaddingPixels:I:", "o:OverlapPixels:I:",
+           "m:MegavoxelMaximum:I:", "xm:XMaximumPieces:I:", "ym:YMaximumPieces:I:",
+           "no:NoFFTSizes:B:", "param:ParameterFile:PF:"]
+
+(opts, nonopts) = PipReadOrParseOptions(sys.argv, options, progname, 3, 2, 1)
+
+# Get file names
+mastercom = PipGetInOutFile('MasterComFile', 0)
+if not mastercom:
+   exitError('Master command file must be entered')
+infile = PipGetInOutFile('InputImageFile', 1)
+if not infile:
+   exitError('Image input file must be entered')
+outfile = PipGetInOutFile('OutputImageFile', 2)
+if not outfile:
+   exitError('Image output file must be entered')
+
+(fullroot, ext) = os.path.splitext(mastercom)
+rootname = os.path.basename(fullroot)
+allname = fullroot + '-all.com'
+finishname = fullroot + '-finish.com'
+
+# The input and output files may be relative to the location of the command
+# file which need not be in current dir
+masthead = os.path.dirname(mastercom)
+infromhere = infile
+cleandir = '.'
+if masthead:
+   infromhere = os.path.join(masthead, infile)
+   cleandir = masthead
+
+if not os.path.exists(mastercom):
+   exitError('Command file ' + mastercom + ' does not exist')
+if not os.path.exists(infromhere):
+   exitError('Image file file ' + infile + ' does not exist')
+
+# Get rest of arguments
+pad = PipGetInteger('PaddingPixels', 8)
+overin = PipGetInteger('OverlapPixels', 0)
+if not PipGetErrNo():
+   overlap = '-min ' + str(overin)
+megain = PipGetInteger('MegavoxelMaximum', 0)
+if not PipGetErrNo():
+   mega = '-mega ' + str(megain)
+maxxp = PipGetInteger('XMaximumPieces', -1)   
+maxyp = PipGetInteger('YMaximumPieces', -1)
+nof = PipGetBoolean('NoFFTSizes', 0)
+if nof:
+   nofft = '-nofft'
+
+masterLines = readTextFile(mastercom, 'master command file')
+testin = False
+testout = False
+for l in masterLines:
+   if l.find(masterin) >= 0:
+      testin = True
+   if l.find(masterout) >= 0:
+      testout = True
+   if testout and testin:
+      break
+else:
+   exitError(fmtstr('The master command file does not contain both {} and {}', masterin,
+                    masterout))
+
+tomopcom = fmtstr('tomopieces -tomo {} {} {} -xp {} -yp {} -zp {} {} -xmax {} -ymax {}',
+                  infromhere, mega, nofft, pad, pad, pad, overlap, maxxp, maxyp)
+try:
+   ranlist = runcmd(tomopcom)
+except ImodpyError:
+   exitFromImodError(progname)
+
+# Remove any previous files now in case the number has changed
+oldlist = glob.glob(fullroot + '-[0-9][0-9][0-9]*.log')
+oldlist += glob.glob(fullroot + '-[0-9][0-9][0-9]*.com')
+oldlist += glob.glob(fullroot + '-start.*')
+try:
+   for f in oldlist:
+      os.remove(f)
+except:
+   pass
+
+# Get the number of pieces in X/Y/Z
+if len(ranlist) < 3:
+   exitError('First line of output from tomopieces does not have correct form')
+npl = ranlist[0].split()
+if len(npl) < 3:
+   exitError('First line of output from tomopieces does not have correct form')
+try:
+   npiecex = int(npl[0])
+   npiecey = int(npl[1])
+   npiecez = int(npl[2])
+except:
+   exitError('First line of output from tomopieces does not have correct form')
+npiecetot = npiecex * npiecey * npiecez
+if len(ranlist) != 1 + npiecetot + npiecex + npiecey + npiecez:
+   exitError('Output from tomopieces does not have correct number of lines')
+
+# Make the chunk coms
+allines = ['# THIS IS A COMMAND FILE TO RUN ALL THE PIECES AND PUT THEM TOGETHER','#']
+for ipc in range(npiecetot):
+   numtext = fmtstr('-{:03d}', ipc + 1)
+   minmaxes = ranlist[ipc + 1].strip().split(',')
+   comfile = fullroot + numtext + '.com'
+   imagein = rootname + numtext + '.in'
+   imageout = rootname + numtext + '.out'
+   comlines = ['$taperoutvol -StandardInput',
+               'InputFile ' + infile,
+               'OutputFile ' + imagein,
+               fmtstr('XMinAndMax {},{}', minmaxes[0], minmaxes[1]),
+               fmtstr('YMinAndMax {},{}', minmaxes[2], minmaxes[3]),
+               fmtstr('ZMinAndMax {},{}', minmaxes[4], minmaxes[5]),
+               fmtstr('TaperPadsInXYZ {0},{0},{0}', pad)]
+   if nofft:
+      comlines.append('NoFFTSizes')
+
+   comlines += pysed([fmtstr('/{}/s//{}/g', masterin, imagein),
+                      fmtstr('/{}/s//{}/g', masterout, imageout)], masterLines)
+   comlines += ["", fmtstr('$if (-e {0}) \\rm -f {0}', imagein)]
+   
+   writeTextFile(comfile, comlines)
+
+   allines += [fmtstr('$echo Working on piece  {}  of {}', ipc + 1, npiecetot),
+               fmtstr('$vmstocsh {}{}.log < {} | csh -ef', rootname, numtext,
+                      os.path.basename(comfile))]
+   
+# Make the reassembly file
+finishlines= ['# THIS COMMAND FILE REASSEMBLES THE PIECES', '#',
+              '$assemblevol',
+              outfile,
+              fmtstr('{},{},{}', npiecex, npiecey, npiecez)]
+for ipc in range(npiecex + npiecey + npiecez):
+   finishlines.append(ranlist[npiecetot + 1 + ipc].strip())
+
+for ipc in range(npiecetot):
+   numtext = fmtstr('-{:03d}', ipc + 1)
+   finishlines.append(rootname + numtext + '.out')
+
+finishlines.append('$\\rm -f ' + rootname + '-[0-9][0-9][0-9]*.com* ' + rootname + \
+                   '-[0-9][0-9][0-9]*.log*' + rootname + '-[0-9][0-9][0-9]*.out*')
+allines += ['$echo Reassembling pieces',
+            '$vmstocsh ' + rootname + '-finish.log < ' + os.path.basename(finishname) + \
+            ' | csh -ef']
+
+writeTextFile(finishname, finishlines)
+writeTextFile(allname, allines)
+
+prnstr(fmtstr("""{} command files were generated and are ready to run.
+
+You can run {} (with subm) to run all command files in 
+sequence, reassemble the volume, and clean up intermediate image and 
+command files.
+
+If you have multiple processors available, you can use 
+  processchunks machine_list {}
+to do these operations in parallel, where machine_list is a comma-separated 
+list of available machines or just the number of local processors""", npiecetot,
+              os.path.basename(allname), rootname))
+
+sys.exit(0)
+
+#
+#  $Log$
