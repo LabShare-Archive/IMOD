@@ -76,34 +76,14 @@ where machine_list is a list of the machines to use, or just the number of
 processor to use on the local machine.
 
 .SS Options
+Chunksetup uses the PIP package for input (see the manual page for pip(1)).
+Options can be specified either as command line arguments (with the -)
+or one per line in a command file (without the -):
+INSERT OPTION TEXT HERE
 .TP
-.B -p <value>
-Set the number of pixels of padding on each edge to the given value.  The
-default is 8 pixels.
-.TP
-.B -o <value>
-Set the number of pixels of overlap between the subvolumes to the given value.
-The default is 8.
-.TP
-.B -m <size>
-Limit each subvolume to "size" megavoxels.  The default is whatever the
-default is for Tomopieces (20 megaVoxels).  
-.TP
-.B -xm <value>
-Set the maximum number of chunks in the X direction to the given value.
-The default is -1, which is effectively no limit.  See the man page for
-Tomopieces for more details on the choices for maximum number of pieces.
-.TP
-.B -ym <value>
-Set the maximum number of chunks in the Y direction to the given value.
-The default is -1, which is effectively no limit.
-.TP
-.B -no
-No FFTs will be done on the volumes, so do not increase padding to suitable
-for an FFT.  This option causes the "-nofft" option to be sent to
-Tomopieces(1) and to be added to the input to Taperoutvol(1) that is placed in
-the command files.
-to 
+.B -StandardInput
+Read parameter entries from standard input
+
 .SH AUTHOR
 David Mastronarde  <mast@colorado.edu>
 .SH SEE ALSO

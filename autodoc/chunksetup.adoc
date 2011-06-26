@@ -1,0 +1,88 @@
+Version = 1.0
+Pip = 1
+
+[Field = MasterComFile]
+short = master
+type = FN
+usage = Name of master command file
+tooltip =
+manpage = Name of master command file.
+If this option is not entered, the first non-option argument will be
+taken as this name.
+
+[Field = InputImageFile]
+short = input
+type = FN
+usage = Name of input image file
+tooltip =
+manpage = Name of input image file.  If this option is not entered, the second
+non-option argument will be taken as this name.
+
+[Field = OutputImageFile]
+short =output
+type = FN
+usage = Name of output image file
+tooltip =
+manpage = Name of output image file.  If this option is not entered, the third
+non-option argument will be taken as this name.
+
+[Field = PaddingPixels]
+short = p
+type = I
+usage = Pixels to pad and taper each subvolume on each edge
+tooltip =
+manpage = Number of pixels of padding on each edge of each subvolume.  The
+default is 8.
+
+[Field = OverlapPixels]
+short = o
+type = I
+usage = Minimum # of pixels of overlap between subvolumes
+tooltip =
+manpage = Minimum number of pixels of overlap between the subvolumes.  The
+default is 8.
+
+[Field = MegavoxelMaximum]
+short = m
+type = I
+usage = Maximum # of megavoxels in each subvolume
+tooltip =
+manpage = Limit each subvolume to the given number of megavoxels.  The default
+is whatever the default is for Tomopieces(1) (20 megaVoxels).
+
+[Field = XMaximumPieces]
+short = xm
+type = I
+usage = Maximum # of pieces in X direction
+tooltip = 
+manpage = The maximum number of chunks in the X direction.  The default is -1,
+which is effectively no limit.  See the man page for Tomopieces for more
+details on the choices for maximum number of pieces.
+
+[Field = YMaximumPieces]
+short = ym
+type = I
+usage = Maximum # of pieces in Y direction
+tooltip = 
+manpage = The maximum number of chunks in the Y direction.  The default is -1,
+which is effectively no limit.
+
+[Field = NoFFTSizes]
+short = no
+type = B
+usage = Do not adjust padding to allow FFTs (use if no FFTs will be taken)
+tooltip =
+manpage = Do not increase padding to make suitable sizes for an FFT.  Use this
+option if no FFTs will be taken of the volumes.  It causes the "-nofft" option
+to be sent to Tomopieces(1) and to be added to the input to Taperoutvol(1)
+that is placed in the command files.
+
+[Field = ParameterFile]
+short = param
+long = ParameterFile
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
+
+
