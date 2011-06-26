@@ -1323,7 +1323,7 @@ c           if not warping (now that warping is known for this section)
               frot(1,3) = -xcen(isec)
               frot(2,3) = -ycen(isec)
               call xfmult(frot, f(1,1,lnu), fprod)
-            elseif (.not. hasWarp) then
+            elseif (.not. (ifWarping .ne. 0 .and. hasWarp)) then
               fprod(1,3) = fprod(1,3) - xcen(isec)
               fprod(2,3) = fprod(2,3) - ycen(isec)
             endif
@@ -2205,6 +2205,9 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.67  2011/06/23 14:58:40  mast
+c       Many changes as warping routines evolved
+c
 c       Revision 3.66  2011/06/17 02:41:49  mast
 c       Use new routines for sizing and getting/expanding warp/distort fields
 c
