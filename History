@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/26/11: Converted chunksetup to python.
+
 6/24/11: In eTomo, avoiding an exception triggered by no CPUs selected.
 (Bug# 1499)
 
