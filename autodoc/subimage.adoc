@@ -100,6 +100,22 @@ from 0; the default is the full area in Y.  This entry and the next one do not
 affect the size of the output images; use Clip(1) to obtain a difference
 volume from a subarea in one step.
 
+[Field = ErrorMinMaxLimit]
+short = minmax
+type = F
+usage = Exit with error if absolute value of min or max exceeds this value
+tooltip = 
+manpage = Exit with error if the absolute value of the minimum or maximum
+exceeds the given value, over the region where statistics were computed.
+
+[Field = ErrorSDLimit]
+short = sdlimit
+type = F
+usage = Exit with error if overall standard deviation exceeds this value
+tooltip = 
+manpage = Exit with error if the overall standard deviation over the region
+where statistics were computed exceeds the given value.
+
 #[Field = TestLimit]
 #short = test
 #type = I
