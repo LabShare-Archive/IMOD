@@ -30,8 +30,8 @@ c
       character*80 titlech
       data nxyzst / 0,0,0 /
       integer*4 limarr,mode,i,nasec,maxLines,numChunks, iChunk,numLines,ierr
-      real*4 dmin,dmax,dmean,dsum,tmin,tmax,realMin, realMax
-      real*4 cmin,cmax,tmean,sd,lowThresh, highThresh
+      real*4 dmin,dmax,dmean,dsum,tmin,tmax,realMin, realMax, realMean
+      real*4 cmin,cmax,tmean,sd,lowThresh, highThresh, sdLimit, diffLimit
       real*8 totpix,tsum,tsumsq,sdsum,sdsumsq,sum,sumsq,diffMean,realSum
       integer*4 modeOut,ifZeroMean, ifLowThresh, ifHighThresh
       integer*4 minXstat, minYstat, maxXstat, maxYstat, lineStart, iyst, iynd
@@ -44,14 +44,15 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  subimage
 c       
       integer numOptions
-      parameter (numOptions = 13)
+      parameter (numOptions = 15)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'afile:AFileSubtractFrom:FN:@bfile:BFileSubtractOff:FN:@'//
      &    'output:OutputFile:FN:@mode:ModeOfOutput:I:@asections:ASectionList:LI:@'//
      &    'bsections:BSectionList:LI:@zero:ZeroMeanOutput:B:@lower:LowerThreshold:F:@'//
      &    'upper:UpperThreshold:F:@xstats:StatisticsXminAndMax:IP:@'//
-     &    'ystats:StatisticsYminAndMax:IP:@param:ParameterFile:PF:@help:usage:B:'
+     &    'ystats:StatisticsYminAndMax:IP:@minmax:ErrorMinMaxLimit:F:@'//
+     &    'sdlimit:ErrorSDLimit:F:@param:ParameterFile:PF:@help:usage:B:'
 
       limarr = maxarr**2
       cfile = ' '
@@ -59,6 +60,8 @@ c
       ifZeroMean = 0
       ifLowThresh = 0
       ifHighThresh = 0
+      sdLimit = 0.
+      diffLimit = 0.
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
 c       
@@ -131,6 +134,8 @@ c         ierr = PipGetInteger('TestLimit', limarr)
         if (minXstat < 0 .or. maxXstat .ge. nx .or. minXstat .ge. maxXstat .or.
      &      minYstat < 0 .or. maxYstat .ge. ny .or. minYstat .ge. maxYstat) call exitError
      &      ('COORDINATES FOR GETTING STATISTICS ARE OUT OF RANGE')
+        ierr = PipGetFloat('ErrorMinMaxLimit', diffLimit)
+        ierr = PipGetFloat('ErrorSDLimit', sdLimit)
       endif
 
       call ialprt(.true.)
@@ -268,10 +273,19 @@ c
       sd=sqrt(max(0.,(sdsumsq-sdsum**2/totpix)/(totpix-1.)))
       if(nasec.gt.1)write(6,5000)dmin,dmax,dmean,sd
 
-      if(cfile.eq.' ')call exit(0)
+      ierr = 0
+      if (diffLimit .gt. 0. .and. max(abs(dmin), abs(dmax)) .gt. diffLimit) then
+        write(*, '(a,g15.5)')'THE MAXIMUM DIFFERENCE EXCEEDS ',diffLimit
+        ierr = 1
+      endif
+      if (sdLimit .gt. 0. .and. sd .gt. sdLimit) then
+        write(*, '(a,g15.5)')'THE STANDARD DEVIATION OF THE DIFFERENCE EXCEEDS ', sdLimit
+        ierr = 1
+      endif
+      if(cfile.eq.' ')call exit(ierr)
       totpix=float(nasec)
       totpix=nx*ny*totpix
-      dmean = realSum / totpix
+      realMean = realSum / totpix
       call irtcel(1, cell)
       nxyz(3) = nasec
       mxyz(3) = nasec
@@ -285,11 +299,10 @@ c
       write(titlech,3000) dat,tim
       read(titlech,'(20a4)')(title(kti),kti=1,20)
 
-      call iwrhdr(3,title,1,realMin,realMax,dmean)
+      call iwrhdr(3,title,1,realMin,realMax,realMean)
 
       call imclose(3)
-
-      call exit(0)
+      call exit(ierr)
 
 1000  format ( 1x, a6, ' file : ', $ )
 2000  format ( a30 )
@@ -302,6 +315,9 @@ c
       end
 
 c       $Log$
+c       Revision 3.8  2011/06/21 19:55:37  mast
+c       Added options for subarea for statistics
+c
 c       Revision 3.7  2007/11/18 04:54:58  mast
 c       Redeclared concat at 320
 c
