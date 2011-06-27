@@ -148,6 +148,8 @@ c       Determine maximum number of control points and array sizes
             if (needGrid) then
               if (getGridParameters(iz, nxGrTmp, nyGrTmp, xStrTmp, yStrTmp, xIntTmp,
      &            yIntTmp) .ne. 0) call exitError('GETTING GRID PARAMETERS')
+              nxgDim = max(nxgDim, nxGrTmp)
+              nygDim = max(nygDim, nyGrTmp)
               xAllStr(ifs) = min(xAllStr(ifs), xStrTmp)
               xAllInt = min(xAllInt, xIntTmp)
               xAllEnd(ifs) = max(xAllEnd(ifs), (nxGrTmp - 1) * xIntTmp)
@@ -418,6 +420,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.7  2011/06/23 14:57:05  mast
+c       Reorder arguments to calls for consistency
+c
 c       Revision 3.6  2011/06/17 04:08:21  mast
 c       Switched to new routines for warping
 c
