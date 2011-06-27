@@ -27,7 +27,7 @@ c
       real*4 xStart, yStart, xInterval, yInterval
       integer*4 readCheckWarpFile, getNumWarpPoints, getLinearTransform, getWarpPoints
       integer*4 setWarpPoints, getGridParameters, getWarpGrid, setWarpGrid
-      integer*4 setLinearTransform, writeWarpFile
+      integer*4 setLinearTransform, writeWarpFile, getWarpGridSize
 
       integer*4 numOptArg, numNonOptArg
       integer*4 PipGetInOutFile, PipParseInput, PipGetBoolean,PipGetLogical
@@ -49,7 +49,7 @@ c
       pipinput = numOptArg + numNonOptArg .gt. 0
       if (pipinput) then
         if (PipGetBoolean('help', ierr) .eq. 0) then
-          call PipPrintHelp('extractpieces', 0, 1, 1)
+          call PipPrintHelp('xfinverse', 0, 1, 1)
           call exit(0)
         endif
         ierr = PipGetBoolean('ZeroShifts', ifzero)
@@ -103,7 +103,7 @@ c         Warping: first figure out how much memory to allocate
      &        dyGrid(maxControl), stat = ierr)
           call memoryError(ierr, 'ARRAYS FOR CONTROL POINTS')
         else
-          if (getNumWarpPoints(-1, nxMax, nyMax, maxControl) .ne. 0) call exitError(
+          if (getWarpGridSize(-1, nxMax, nyMax, maxControl) .ne. 0) call exitError(
      &        'Getting maximum size of warp grids')
           allocate(dxInv(maxControl), dyInv(maxControl), dxGrid(maxControl), 
      &        dyGrid(maxControl), stat = ierr)
