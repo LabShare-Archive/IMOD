@@ -181,7 +181,7 @@ for ipc in range(npiecetot):
    finishlines.append(rootname + numtext + '.out')
 
 finishlines.append('$\\rm -f ' + rootname + '-[0-9][0-9][0-9]*.com* ' + rootname + \
-                   '-[0-9][0-9][0-9]*.log*' + rootname + '-[0-9][0-9][0-9]*.out*')
+                   '-[0-9][0-9][0-9]*.log* ' + rootname + '-[0-9][0-9][0-9]*.out*')
 allines += ['$echo Reassembling pieces',
             '$vmstocsh ' + rootname + '-finish.log < ' + os.path.basename(finishname) + \
             ' | csh -ef']
@@ -205,3 +205,6 @@ sys.exit(0)
 
 #
 #  $Log$
+#  Revision 1.1  2011/06/26 19:25:18  mast
+#  Initial conversion
+#
