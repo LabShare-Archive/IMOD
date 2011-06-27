@@ -299,6 +299,9 @@ echo "NOOPFFLAGS = $fflags $exefflags -O0" >> $configure
 echo "LIBCFLAGS  = $cflags" >> $configure
 echo "LIBFFLAGS  = $fflags" >> $configure
 
+# RAPTOR on ppc64: The safest course for getting it to compile
+if ($intel != true && $m64bit == true) echo "EIGENFLAGS = -DEIGEN_DONT_VECTORIZE" >> $configure
+
 # 7/6/05: took out the fallbacks; no longer needed on SGI
 #
 
