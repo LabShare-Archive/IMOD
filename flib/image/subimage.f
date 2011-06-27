@@ -275,11 +275,11 @@ c
 
       ierr = 0
       if (diffLimit .gt. 0. .and. max(abs(dmin), abs(dmax)) .gt. diffLimit) then
-        write(*, '(a,g15.5)')'THE MAXIMUM DIFFERENCE EXCEEDS ',diffLimit
+        write(*, '(a,f14.4)')'THE MAXIMUM DIFFERENCE EXCEEDS ',diffLimit
         ierr = 1
       endif
       if (sdLimit .gt. 0. .and. sd .gt. sdLimit) then
-        write(*, '(a,g15.5)')'THE STANDARD DEVIATION OF THE DIFFERENCE EXCEEDS ', sdLimit
+        write(*, '(a,f14.4)')'THE STANDARD DEVIATION OF THE DIFFERENCE EXCEEDS ', sdLimit
         ierr = 1
       endif
       if(cfile.eq.' ')call exit(ierr)
@@ -315,6 +315,9 @@ c
       end
 
 c       $Log$
+c       Revision 3.9  2011/06/26 23:40:07  mast
+c       Added options for getting error exit when exceed limits
+c
 c       Revision 3.8  2011/06/21 19:55:37  mast
 c       Added options for subarea for statistics
 c
