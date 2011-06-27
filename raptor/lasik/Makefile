@@ -18,7 +18,7 @@ OBJS = ap.$(O) lbfgs.$(O) xmlParser.$(O) svlBitArray.$(O) \
  svlGraphUtils.$(O) svlMessagePassing.$(O)
 
 
-LASFLAGS = $(CXXFLAGS) -I. -I./external -I./include
+LASFLAGS = $(CXXFLAGS) -I. -I./external -I./include $(EIGENFLAGS)
 
 
 ap.$(O):  $(LBFGS)/ap.cpp
