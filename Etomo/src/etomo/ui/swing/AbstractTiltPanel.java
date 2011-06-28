@@ -53,6 +53,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2011/05/11 01:35:39  sueh
+ * <p> bug# 1483 In updateDisplay fixed the boolean value used to call TrialTiltPanel.setResume.
+ * <p>
  * <p> Revision 1.7  2011/05/03 03:05:18  sueh
  * <p> bug# 1416 Placed the field change listeners in this class.  Checkpoint from the tilt param (tilt_for_sirt.com).
  * <p> Added fieldChangeAction.  Added overrideable functions isBackProjection and isSirt.
@@ -187,7 +190,8 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   final ProcessingMethodMediator mediator;
   private final boolean listenForFieldChanges;
 
-  private boolean gpuAvailable = false;
+  private boolean gpusAvailable = false;
+  private boolean localGpuAvailable = true;
   private boolean gpuEnabled = true;
   private boolean madeZFactors = false;
   private boolean newstFiducialessAlignment = false;
@@ -415,6 +419,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
 
   final void msgMethodChanged() {
     setVisible(header.isAdvanced());
+    updateDisplay();
     mediator.setMethod(this, getProcessingMethod());
   }
 
@@ -498,8 +503,13 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
         && (backProjection || !resume));
     cbUseZFactors.setEnabled(madeZFactors && !newstFiducialessAlignment
         && (backProjection || !resume));
-
-    cbUseGpu.setEnabled(gpuAvailable && gpuEnabled && !processingMethodLocked);
+    //A local GPU installed on this computer means that GPU processing is available
+    //with or without parallel processing.  Non-local GPU(s) installed in the network mean
+    //that GPU processing is available with parallel processing.
+    cbUseGpu.setEnabled((((gpusAvailable || localGpuAvailable) && (cbParallelProcess
+        .isSelected() || isSirt())) || (localGpuAvailable
+        && !cbParallelProcess.isSelected() && !isSirt()))
+        && gpuEnabled && !processingMethodLocked);
     trialTiltPanel.setResume(!backProjection && resume);
     btnTilt.setEnabled(backProjection || !resume);
     btnDeleteStack.setEnabled(backProjection || !resume);
@@ -567,7 +577,9 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     boolean validAutodoc = Network.isParallelProcessingEnabled(manager, axisID,
         manager.getPropertyUserDir());
     //Use GPU
-    gpuAvailable = Network.isLocalHostGpuProcessingEnabled(manager, axisID,
+    gpusAvailable = Network.isGpuParallelProcessingEnabled(manager, axisID,
+        manager.getPropertyUserDir());
+    localGpuAvailable = Network.isLocalHostGpuProcessingEnabled(manager, axisID,
         manager.getPropertyUserDir());
     cbUseGpu.setSelected(metaData.getDefaultGpuProcessing().is());
     //updateUseGpu();
