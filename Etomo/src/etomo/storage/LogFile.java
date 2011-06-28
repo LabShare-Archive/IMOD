@@ -244,7 +244,7 @@ public final class LogFile {
       else {
         System.err.println(backupFile.getAbsolutePath() + " does not exist");
       }
-      System.err.println("Unable to rename log file to: " + backupFile.getAbsolutePath());
+      System.err.println("Unable to rename file to: " + backupFile.getAbsolutePath());
       System.err.println("lock.isThrowException()=" + lock.isThrowException());
       StringBuffer message = new StringBuffer("Unable to rename "
           + file.getAbsolutePath() + " to " + backupFile.getAbsolutePath());
@@ -1380,6 +1380,9 @@ public final class LogFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.33  2011/02/22 04:45:15  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.32  2010/11/13 16:05:03  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>

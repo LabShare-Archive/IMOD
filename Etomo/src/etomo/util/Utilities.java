@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.77  2011/02/22 21:54:38  sueh
+ * <p> $bug# 1437 Reformatting.
+ * <p> $
  * <p> $Revision 3.76  2010/11/13 16:08:59  sueh
  * <p> $bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p> $
@@ -513,7 +516,7 @@ public class Utilities {
         else {
           System.err.println(destination.getAbsolutePath() + " does not exist");
         }
-        System.err.println("Unable to rename log file to: "
+        System.err.println("Unable to rename file to: "
             + destination.getAbsolutePath());
         StringBuffer message = new StringBuffer("Unable to rename "
             + source.getAbsolutePath() + " to " + destination.getAbsolutePath());
