@@ -23,6 +23,9 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/22 04:51:43  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.2  2010/02/17 04:49:31  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -112,6 +115,11 @@ public final class Network {
     return CpuAdoc.INSTANCE.exists(manager, axisID, propertyUserDir);
   }
 
+  public static boolean isGpuParallelProcessingEnabled(BaseManager manager, AxisID axisID,
+      String propertyUserDir) {
+    return !CpuAdoc.INSTANCE.isGpuComputerListEmpty(manager, axisID, propertyUserDir);
+  }
+
   /**
    * Returns true if GPU processing is enabled in the cpu.adoc section for the
    * current computer.  If cpu.adoc is not in use, returns true if GPU
@@ -157,8 +165,7 @@ public final class Network {
       return !CpuAdoc.INSTANCE.isComputerListEmpty(manager, axisID, propertyUserDir);
     }
     if (EnvironmentVariable.INSTANCE.exists(manager, propertyUserDir, "IMOD_PROCESSORS",
-        axisID)
-        || EtomoDirector.INSTANCE.getUserConfiguration().isParallelProcessing()) {
+        axisID) || EtomoDirector.INSTANCE.getUserConfiguration().isParallelProcessing()) {
       return true;
     }
     return false;
