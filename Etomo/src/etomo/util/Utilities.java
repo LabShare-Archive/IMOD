@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.79  2011/06/28 16:57:11  sueh
+ * <p> $In windowsOS added print statement during test.
+ * <p> $
  * <p> $Revision 3.78  2011/06/28 02:34:00  sueh
  * <p> $Bug# 1501 Corrected error message.
  * <p> $
@@ -900,9 +903,6 @@ public class Utilities {
       String osName = System.getProperty("os.name").toLowerCase();
       windowsOS = osName.indexOf("windows") != -1;
       setWindowsOS = true;
-    }
-    if (EtomoDirector.INSTANCE.getArguments().isTest()){
-      System.err.println("windowsOS:"+windowsOS);
     }
     return windowsOS;
   }
