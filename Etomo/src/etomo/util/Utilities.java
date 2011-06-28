@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.78  2011/06/28 02:34:00  sueh
+ * <p> $Bug# 1501 Corrected error message.
+ * <p> $
  * <p> $Revision 3.77  2011/02/22 21:54:38  sueh
  * <p> $bug# 1437 Reformatting.
  * <p> $
@@ -897,6 +900,9 @@ public class Utilities {
       String osName = System.getProperty("os.name").toLowerCase();
       windowsOS = osName.indexOf("windows") != -1;
       setWindowsOS = true;
+    }
+    if (EtomoDirector.INSTANCE.getArguments().isTest()){
+      System.err.println("windowsOS:"+windowsOS);
     }
     return windowsOS;
   }
