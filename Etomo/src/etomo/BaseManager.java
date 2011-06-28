@@ -688,6 +688,10 @@ public abstract class BaseManager {
    */
   public boolean closeImods(String key1, String key2, String key3, AxisID axisID,
       String fullMessage) {
+    if (EtomoDirector.INSTANCE.getArguments().isTest()) {
+      System.err.println("closeImods:key1:" + key1 + "key2:" + key2 + "key3:" + key3
+          + ",axisID:" + axisID + ",fullMessage:" + fullMessage);
+    }
     if (key1 == null && key2 == null && key3 == null) {
       return true;
     }
@@ -761,6 +765,10 @@ public abstract class BaseManager {
    */
   public boolean closeImod(String key, AxisID axisID, String description, String message,
       boolean warnOnce) {
+    if (EtomoDirector.INSTANCE.getArguments().isTest()) {
+      System.err.println("closeImod:key:" + key + ",axisID:" + axisID + ",description:"
+          + description + ",message:" + message);
+    }
     if (key == null) {
       return true;
     }
@@ -824,6 +832,10 @@ public abstract class BaseManager {
    */
   private void closeImod(String key, String fileName, AxisID axisID, String description,
       boolean stale) {
+    if (EtomoDirector.INSTANCE.getArguments().isTest()) {
+      System.err.println("closeImod:key:" + key + ",fileName:" + fileName + ",axisID:"
+          + axisID + ",description:" + description + ",stale:" + stale);
+    }
     if (key == null) {
       return;
     }
@@ -880,6 +892,9 @@ public abstract class BaseManager {
   }
 
   private void close3dmods(AxisID axisID) {
+    if (EtomoDirector.INSTANCE.getArguments().isTest()) {
+      System.err.println("close3dmods:axisID:" + axisID);
+    }
     // Should we close the 3dmod windows
     try {
       if (imodManager.isOpen()) {
@@ -1187,11 +1202,11 @@ public abstract class BaseManager {
     // Uggh, stupid JAVA bug, getParent() only returns the parent if the File
     // was created with the full path
     paramFile = new File(paramFile.getAbsolutePath());
-    String paramFileParent =  paramFile.getParent();
+    String paramFileParent = paramFile.getParent();
     if (paramFileParent.endsWith(" ")) {
       uiHarness.openMessageDialog(this, "The directory, " + paramFileParent
-          + ", cannot be used because it ends with a space.",
-          "Unusable Directory Name", AxisID.ONLY);
+          + ", cannot be used because it ends with a space.", "Unusable Directory Name",
+          AxisID.ONLY);
       return false;
     }
     propertyUserDir = paramFileParent;
@@ -1723,6 +1738,9 @@ public abstract class BaseManager {
 /**
  * <p>
  * $Log$
+ * Revision 1.144  2011/06/28 03:02:23  sueh
+ * Bug# 1501 In releaseFile, increase the wait time for Windows to release the file.
+ *
  * Revision 1.143  2011/05/19 16:25:06  sueh
  * bug# 1473 Removed unused function clearUIParameters.
  *

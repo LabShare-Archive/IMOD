@@ -2768,6 +2768,10 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   public void closeImods(String key, AxisID axisID, String description) {
+    if (EtomoDirector.INSTANCE.getArguments().isTest()) {
+      System.err.println("closeImods:key:" + key + ",axisID:" + axisID + ",description:"
+          + description);
+    }
     // Check to see if the user wants to keep any imods open. Don't log message.
     try {
       if (imodManager.isOpen(key, axisID)) {
@@ -2802,6 +2806,9 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   private void closeImod(String key, String description) {
+    if (EtomoDirector.INSTANCE.getArguments().isTest()) {
+      System.err.println("closeImod:key:" + key + ",description:" + description);
+    }
     if (key == null) {
       return;
     }
@@ -2850,6 +2857,10 @@ public final class ApplicationManager extends BaseManager implements
    */
   public void closeImod(String key, AxisID frameAxisID, AxisID imodAxisID,
       String description) {
+    if (EtomoDirector.INSTANCE.getArguments().isTest()) {
+      System.err.println("closeImod:key:" + key + ",frameAxisID:" + frameAxisID
+          + ",imodAxisID:" + imodAxisID + ",description:" + description);
+    }
     // Check to see if the user wants to keep any imods open
     try {
       if (imodManager.isOpen(key, imodAxisID)) {
@@ -8031,6 +8042,13 @@ public final class ApplicationManager extends BaseManager implements
 /**
  * <p>
  * $Log$
+ * Revision 3.374  2011/06/21 16:59:35  sueh
+ * Bug# 1490 Removed TrimvolParam from MetaData because it would be hard to keep it backwards
+ * compatible.  In doneSetupDialog setting swapYZ in metaData instead of metaData.trimvolParam.  In
+ * openPostProcessingDialog set default values in an instance of TrimvolParam and load them into the
+ * dialog the first time it is created.  Also tell the dialog to add a warning if necessary.  In
+ * savePostProcessing remove the call to updateTrimvolParam because trimvol isn't stored in a .com file.
+ *
  * Revision 3.373  2011/05/05 01:26:55  sueh
  * bug# 1396  Popping up an error message an failing when the dataset directory ends in a space.
  *
