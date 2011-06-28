@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/28/11: In eTomo - Tomogram Generation, giving access to parallel processing
+with GPUs when there is no GPU installed on the local machine.(Bug# 1480)
+
 6/27/11: In eTomo, running chunksetup with python.(Bug# 1500)
 
 6/26/11: Converted chunksetup to python.
