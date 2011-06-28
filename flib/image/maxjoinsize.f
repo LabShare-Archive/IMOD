@@ -4,6 +4,9 @@ c
 c       $Id$
 c       
 c       $Log$
+c       Revision 3.5  2011/06/23 14:57:06  mast
+c       Reorder arguments to calls for consistency
+c
 c       Revision 3.4  2011/06/17 05:43:40  mast
 c       Modified for warping
 c
@@ -63,8 +66,8 @@ c
       ierr = readCheckWarpFile(filename, 0, 1, nxwarp, nywarp, numF,
      &    ibinning, pixelSize, iflags, errString)
       if (ierr .lt. -1) call exitError(errString)
-      if (ierr .ge. 0) then
-        warping = .true.
+      warping = ierr .ge. 0
+      if (warping) then
         if (mod(iflags / 2, 2) .ne. 0) ifControl = 1
       else
         open(3,file=filename,form='formatted',status='old' ,err=92)
