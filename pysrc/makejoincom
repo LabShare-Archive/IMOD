@@ -333,8 +333,8 @@ if xymax > midasLimit:
    newsize = newxy[0] + ',' + newxy[1]
    makeBackupFile(joinroot + '.sqzxf')
    makeBackupFile(joinroot + '.xpndxf')
-   writeTextFile(joinroot + '.sqzxf', [fmtstr('{0} 0. 0. {0} 0. 0.', squeeze)])
-   writeTextFile(joinroot + '.xpndxf', [fmtstr('{0} 0. 0. {0} 0. 0.', expand)])
+   writeTextFile(joinroot + '.sqzxf', [fmtstr('{0:.7f} 0. 0. {0:.7f} 0. 0.', squeeze)])
+   writeTextFile(joinroot + '.xpndxf', [fmtstr('{0:.7f} 0. 0. {0:.7f} 0. 0.', expand)])
 
 # Get the scaling
 newmode = 0
@@ -413,7 +413,7 @@ joinlines += [fmtstr('ModeToOutput {}', newmode),
               'OutputFile ' + joinroot + '.sample',
               'SizeToOutputInXandY ' + newsize]
 if ifsquoze:
-   joinlines.append(fmtstr('ShrinkByFactor {}', expand))
+   joinlines.append(fmtstr('ShrinkByFactor {:.7f}', expand))
 
 # Now make the average commands
 startsec = 0
