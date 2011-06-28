@@ -67,6 +67,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.50  2011/05/26 02:42:35  sueh
+ * <p> First format isn't always working - allow a maximum of two.
+ * <p>
  * <p> Revision 1.49  2011/05/25 14:20:12  sueh
  * <p> Increasing wait after formatting application.
  * <p>
@@ -152,6 +155,9 @@ import etomo.util.Utilities;
  * <p>being fooled when kill button is disabled for a second.
  * <p>
  * $Log$
+ * Revision 1.50  2011/05/26 02:42:35  sueh
+ * First format isn't always working - allow a maximum of two.
+ *
  * Revision 1.49  2011/05/25 14:20:12  sueh
  * Increasing wait after formatting application.
  *
@@ -324,7 +330,7 @@ final class AutodocTester extends Assert implements VariableList {
   public static final String rcsid = "$Id$";
 
   private static final int REDRAW_WAIT = 3;
-  private static final int MAX_FORMAT = 2;
+  private static final int MAX_FORMAT = 3;
 
   private final ReadOnlyAutodoc autodoc;
   private final JFCTestHelper helper;
