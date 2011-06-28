@@ -873,7 +873,7 @@ public abstract class BaseManager {
     }
     // Give Windows a chance to release control of the file.
     try {
-      Thread.sleep(1500);
+      Thread.sleep(2000);
     }
     catch (InterruptedException e) {
     }
@@ -1723,6 +1723,9 @@ public abstract class BaseManager {
 /**
  * <p>
  * $Log$
+ * Revision 1.143  2011/05/19 16:25:06  sueh
+ * bug# 1473 Removed unused function clearUIParameters.
+ *
  * Revision 1.142  2011/05/05 01:26:55  sueh
  * bug# 1396  Popping up an error message an failing when the dataset directory ends in a space.
  *
