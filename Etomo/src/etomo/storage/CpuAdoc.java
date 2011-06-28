@@ -120,6 +120,28 @@ public class CpuAdoc {
     return maxVolcombine;
   }
 
+  /**
+   * Returns true if there is no computerList entries, or if none of the computerList
+   * entries have a non-local GPU.
+   * @param manager
+   * @param axisID
+   * @param propertyUserDir
+   * @return
+   */
+  boolean isGpuComputerListEmpty(BaseManager manager, AxisID axisID,
+      String propertyUserDir) {
+    load(manager, axisID, propertyUserDir);
+    if (computerList.isEmpty()) {
+      return true;
+    }
+    for (int i = 0; i < computerList.size(); i++) {
+      if (((Node) computerMap.get(computerList.get(i))).isGpu()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   boolean isComputerListEmpty(BaseManager manager, AxisID axisID, String propertyUserDir) {
     load(manager, axisID, propertyUserDir);
     return computerList.isEmpty();
@@ -398,6 +420,9 @@ public class CpuAdoc {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.22  2011/06/23 14:59:11  sueh
+ * <p> Bug# 1495 In getLocalHostComputer added a search for "localhost".
+ * <p>
  * <p> Revision 1.21  2011/04/04 16:56:54  sueh
  * <p> bug# 1469 Added/modified GPU_KEY, gpuMemoryUnits, gpuSpeedUnits, MEMORY_KEY, load (refactored),
  * <p> loadAttribute, loadStringAttribute, loadStringListAttribute.  Removed UNITS_KEY.
