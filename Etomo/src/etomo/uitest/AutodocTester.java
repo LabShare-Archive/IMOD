@@ -67,6 +67,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.51  2011/06/28 02:33:02  sueh
+ * <p> Allow an extra reformat because the advanced button could not be found in a UITest.
+ * <p>
  * <p> Revision 1.50  2011/05/26 02:42:35  sueh
  * <p> First format isn't always working - allow a maximum of two.
  * <p>
@@ -155,6 +158,9 @@ import etomo.util.Utilities;
  * <p>being fooled when kill button is disabled for a second.
  * <p>
  * $Log$
+ * Revision 1.51  2011/06/28 02:33:02  sueh
+ * Allow an extra reformat because the advanced button could not be found in a UITest.
+ *
  * Revision 1.50  2011/05/26 02:42:35  sueh
  * First format isn't always working - allow a maximum of two.
  *
@@ -2003,7 +2009,7 @@ final class AutodocTester extends Assert implements VariableList {
     System.err.println("Formatting application");
     UIHarness.INSTANCE.pack(axisID, EtomoDirector.INSTANCE.getCurrentManagerForTest());
     try {
-      Thread.sleep(500);
+      Thread.sleep(550);
     }
     catch (InterruptedException e) {
     }
