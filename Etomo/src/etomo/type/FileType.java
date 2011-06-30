@@ -28,6 +28,13 @@ import etomo.process.ImodManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2011/05/03 02:54:19  sueh
+ * <p> bug# 1416 Added tilt_for_sirt.com, which has its axis letter after "tilt".  Modified equals(...String filename) to
+ * <p> handle an extension which doesn't start with a ".".  Using static getInstance functions to avoid having the
+ * <p> instances jump constructors.  Add template boolean so that a warning is printed when a getFileName is run on
+ * <p> a template file type.  Added getTemplate to avoid printing a warning when a template file name is intentionally
+ * <p> retrieved.
+ * <p>
  * <p> Revision 1.12  2011/04/09 06:34:52  sueh
  * <p> bug# 1416 Added composite and composite file types (TILT_OUTPUT, and SIRT file types).  Made the functions
  * <p> work with composite.  Removed DUAL_ and SINGLE_AXIS_TOMOGRAM.  Replaced toString and toString2 with
@@ -649,7 +656,6 @@ public final class FileType {
     }
     if (template && !templateOK) {
       System.err.println("Warning:  Getting the file name of template " + toString());
-      Thread.dumpStack();
     }
     if (composite && (subFileType == null || extension == null)) {
       return getChildFileType(manager).getFileName(manager, axisID, true);
