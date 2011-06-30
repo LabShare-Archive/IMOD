@@ -5247,7 +5247,8 @@ public final class ApplicationManager extends BaseManager implements
       }
     }
     try {
-      renameImageFile(FileType.TRIAL_TOMOGRAM, trialTomogramFile, outputFile, axisID);
+      renameImageFile(FileType.TRIAL_TOMOGRAM, trialTomogramFile, outputFile, axisID,
+          true);
     }
     catch (IOException except) {
       uiHarness.openMessageDialog(this, except.getMessage(), "File Rename Error", axisID);
@@ -7888,7 +7889,7 @@ public final class ApplicationManager extends BaseManager implements
         renameImageFile(useFileType, outputFileType, axisID);
       }
       else {
-        renameImageFile(useFileType, useFile, outputFileType, axisID);
+        renameImageFile(useFileType, useFile, outputFileType, axisID, false);
       }
     }
     catch (IOException except) {
@@ -8042,6 +8043,9 @@ public final class ApplicationManager extends BaseManager implements
 /**
  * <p>
  * $Log$
+ * Revision 3.375  2011/06/28 20:01:55  sueh
+ * Added test prints to closeImod functions.
+ *
  * Revision 3.374  2011/06/21 16:59:35  sueh
  * Bug# 1490 Removed TrimvolParam from MetaData because it would be hard to keep it backwards
  * compatible.  In doneSetupDialog setting swapYZ in metaData instead of metaData.trimvolParam.  In
