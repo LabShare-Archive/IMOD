@@ -300,7 +300,7 @@ int readcheckwarpfile(char *filename, int *needDist, int *needInv, int *nx, int 
                             iflags, errString, errlen);
     free(cname);
   }
-  if (err)
+  if (err < 0)
     padError(errString, errlen);
   return err;
 }
