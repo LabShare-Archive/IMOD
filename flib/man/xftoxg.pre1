@@ -12,7 +12,8 @@ DDEESSCCRRIIPPTTIIOONN
 
   XFTOXG takes a list of transformations (f) from each section to
   the previous one, and computes a list of xforms (g) to apply to each
-  section to obtain a single consistent set of alignments.
+  section to obtain a single consistent set of alignments.  Transforms can be
+  simple 6-component linear transforms or warping transformations.
 
   Three different modes of operation can be selected.	 In the first, all
   sections will be transformed to a single position in the "center" of
@@ -60,6 +61,20 @@ DDEESSCCRRIIPPTTIIOONN
   if a range of 45 degrees is given, then the program will find the largest
   group of sections whose angles span a range of 45 degrees or less, and use
   only these sections to compute the global average alignment.
+
+  The input file can contain warping transformations, which can be specified
+  either as displacements at a set of control points, or as displacements on a
+  regular grid.  In either case, the output will consist of a regular grid of
+  displacements, with the same grid locations for every section.  The program
+  first analyzes each warping transform to remove the linear component from it
+  and combine that with the separate linear transformation.  The linear
+  transforms are treated as usual, according to the various options that are
+  given.  The remaining warp transforms are currently analyzed in a way
+  similar that the way in which a global alignment is produced for linear
+  transforms.  This means that trends will be retained, which could be
+  problematic.  This analysis is done by multiplying the warping transforms
+  that remain after removing the linear component to form cumulative products,
+  which are then multiplied by the inverse of the average transform.
 
   To do the averaging and fitting, the program converts the A matrix of the
   g transforms to the "semi-natural" parameters: global rotation and
