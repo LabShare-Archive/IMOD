@@ -419,9 +419,9 @@ void MidasSlots::slotFilemenu(int item)
     break; 
 
   case FILE_MENU_TRANSFORM: /* transform model */
-    if (VW->xtype == XTYPE_XF || VW->xtype == XTYPE_MONT) {
+    if (VW->xtype == XTYPE_XF || VW->xtype == XTYPE_MONT || VW->curWarpFile >= 0) {
       dia_puts("Models may not be transformed in local "
-	       "alignment or montage fixing mode");
+	       "alignment or montage fixing mode or when warping");
       break;
     }
     inName = diaOpenFileName
@@ -2207,6 +2207,9 @@ int MidasSlots::showHelpPage(const char *page)
 
 /*
 $Log$
+Revision 3.24  2011/06/10 04:25:28  mast
+Changes for warping and keeping ref/current together with ref file
+
 Revision 3.23  2010/12/28 18:23:10  mast
 Added robust fitting and checkbox to exclude edges
 
