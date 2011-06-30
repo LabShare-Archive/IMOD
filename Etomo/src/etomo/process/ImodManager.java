@@ -40,6 +40,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.83  2011/06/22 03:49:41  sueh
+ * <p> Bug# 1462 Added loadAsIntegers to newRawStack.
+ * <p>
  * <p> Revision 3.82  2011/06/22 02:21:32  sueh
  * <p> Bug# 1462 Added loadAsIntegers to newPreview.
  * <p>
@@ -1897,8 +1900,8 @@ public class ImodManager {
   }
 
   private ImodState newTransformedModel() {
-    ImodState imodState = new ImodState(manager, DatasetFiles
-        .getRefineAlignedModelFileName(manager), ImodState.MODV, AxisID.ONLY);
+    ImodState imodState = new ImodState(manager,
+        DatasetFiles.getRefineAlignedModelFileName(manager), ImodState.MODV, AxisID.ONLY);
     imodState.setNoMenuOptions(true);
     return imodState;
   }
@@ -1942,8 +1945,8 @@ public class ImodManager {
   }
 
   private ImodState newErasedFiducials(AxisID axisID) {
-    ImodState imodState = new ImodState(manager, axisID, datasetName, DatasetFiles
-        .getErasedFiducialsFileExtension());
+    ImodState imodState = new ImodState(manager, axisID, datasetName,
+        DatasetFiles.getErasedFiducialsFileExtension());
     return imodState;
   }
 
@@ -1954,8 +1957,8 @@ public class ImodManager {
   }
 
   private ImodState newFlattenToolOutput(AxisID axisID) {
-    ImodState imodState = new ImodState(manager, axisID, FileType.FLATTEN_TOOL_OUTPUT
-        .getFileName(manager, axisID));
+    ImodState imodState = new ImodState(manager, axisID,
+        FileType.FLATTEN_TOOL_OUTPUT.getFileName(manager, axisID));
     return imodState;
   }
 
@@ -2069,8 +2072,8 @@ public class ImodManager {
   }
 
   private ImodState newFullVolume3dFind(AxisID axisID) {
-    ImodState imodState = new ImodState(manager, axisID, FileType.TILT_3D_FIND_OUTPUT
-        .getFileName(manager, axisID));
+    ImodState imodState = new ImodState(manager, axisID,
+        FileType.TILT_3D_FIND_OUTPUT.getFileName(manager, axisID));
     imodState.setAllowMenuBinningInZ(true);
     imodState.setInitialSwapYZ(true);
     return imodState;
