@@ -17,7 +17,7 @@ $(LHD)/mod_fwrap.html $(LHD)/b3dutil.html $(LHD)/autodoc.html \
 $(LHD)/mrcfiles.html $(LHD)/iimage.html $(LHD)/plist.html \
 $(LHD)/mrcslice.html $(LHD)/sliceproc.html $(LHD)/libmesh.html \
 $(LHD)/libifft.html $(LHD)/libdiaqt.html $(LHD)/libcfshr.html \
-$(LHD)/cfutils.html $(LHD)/3dmodplug.html
+$(LHD)/cfutils.html $(LHD)/3dmodplug.html $(LHD)/libwarp.html
 
 CFUTILS = $(CFD)/parselist.c $(CFD)/circlefit.c $(CFD)/filtxcorr.c \
 $(CFD)/amoeba.c $(CFD)/samplemeansd.c $(CFD)/colormap.c $(CFD)/taperpad.c \
@@ -102,6 +102,10 @@ $(LHD)/sliceproc.html: sliceproc.html $(IIMD)/sliceproc.c
 $(LHD)/libmesh.html: libmesh.html ../../libmesh/objprep.c \
 	../../libmesh/remesh.c ../../libmesh/mkmesh.c ../../libmesh/skinobj.c
 	$(SDEXE) -d ../../libmesh libmesh.html $(LHD)/libmesh.html
+
+$(LHD)/libwarp.html: libwarp.html ../../libwarp/warputils.c \
+	../../libwarp/warpfiles.c ../../libwarp/warpinterp.c ../../libwarp/maggradfield.c
+	$(SDEXE) -d ../../libwarp libwarp.html $(LHD)/libwarp.html
 
 $(LHD)/libifft.html: libifft.html ../../libcfft/odfft.c \
 	../../libcfft/todfft.c  ../../libcfft/thrdfft.c
