@@ -573,8 +573,9 @@ public abstract class BaseManager {
    * @param toFileType
    * @param axisID
    */
-  void renameImageFile(FileType fromFileType, File fromFile, FileType toFileType,
-      AxisID axisID) throws IOException {
+  void renameImageFile(final FileType fromFileType, final File fromFile,
+      final FileType toFileType, final AxisID axisID, final boolean useFileNameInClose)
+      throws IOException {
     if (fromFileType == null || toFileType == null) {
       return;
     }
@@ -583,7 +584,12 @@ public abstract class BaseManager {
           + " doesn't exist.", "Entry Error", axisID);
       return;
     }
-    closeImod(fromFileType, fromFile, axisID, true);
+    if (useFileNameInClose) {
+      closeImod(fromFileType, fromFile, axisID, true);
+    }
+    else {
+      closeImod(fromFileType, axisID, true);
+    }
     closeImod(toFileType, axisID, true);
     Utilities.renameFile(fromFile, toFileType.getFile(this, axisID));
   }
@@ -1738,6 +1744,9 @@ public abstract class BaseManager {
 /**
  * <p>
  * $Log$
+ * Revision 1.145  2011/06/28 20:01:55  sueh
+ * Added test prints to closeImod functions.
+ *
  * Revision 1.144  2011/06/28 03:02:23  sueh
  * Bug# 1501 In releaseFile, increase the wait time for Windows to release the file.
  *
