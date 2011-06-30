@@ -294,13 +294,13 @@ int readcheckwarpfile(char *filename, int *needDist, int *needInv, int *nx, int 
   if (!cname) {
     errString[errlen-1] = 0x00;
     strncpy(errString, "FAILED TO ALLOCATE C STRING", errlen-1);
-    err = -1;
+    err = -2;
   } else {
     err = readCheckWarpFile(cname, *needDist, *needInv, nx, ny, nz, ibinning, pixelSize, 
                             iflags, errString, errlen);
     free(cname);
   }
-  if (err < 0)
+  if (err < -1)
     padError(errString, errlen);
   return err;
 }
