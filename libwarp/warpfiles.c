@@ -156,6 +156,241 @@ int newWarpFile(int nx, int ny, int binning, float pixelSize, int flags)
   return err;
 }
 
+/*!
+ * Reads in a warping file whose name is in [filename].  Returns the X and Y sizes given
+ * in the file in [nx] and [ny], the number of sections of warpings in [nz], the binning
+ * factor into [binning], the pixel size in Angstroms into [pixelSize], the original file
+ * version into [version], and the sum of 1 for inverse warpings and 2 for control points
+ * into [flags].  The return value is the index of the warp file, or
+ * -1 for failure to open the file, -2 for an error reading values from the file, -3 for
+ * the wrong number of values on the first line or nothing following that line, -4 for a
+ * version number out of range or an error reading values or the wrong number of values 
+ * on the header line, -5 for [nz], [ny], [nz], or [binning] out of range, -6 for memory
+ * errors, or -7 for an error or inconsistency reading warpings.  [version] will be -1
+ * for errors -1, -2, or -3, or 0 if the error is -3 and there are 6 values on the first
+ * line, which is a signal that the file contains ordinary transforms.
+ */
+int readWarpFile(char *filename, int *nx, int *ny, int *nz, int *binning,
+                 float *pixelSize, int *version, int *flags)
+{
+#define MAX_LINE 1024
+#define MAX_VALS 50
+  FILE *fp;
+  char line[MAX_LINE];
+  float values[MAX_VALS];
+  int numVals, err, i, iz, numRead;
+  Warping *warp;
+
+  *version = -1;
+  fp = fopen(filename, "r");
+  if (!fp)
+    return -1;
+  numVals = 0;
+  err = readLineOfValues(fp, line, MAX_LINE, values, 1, &numVals, MAX_VALS);
+  if (err < 0) {
+    fclose(fp);
+    return -2;
+  }
+  if (numVals == 6)
+    *version = 0;
+  if (numVals != 1 || err > 0) {
+    fclose(fp);
+    return -3;
+  }
+  *version = B3DNINT(values[0]);
+  if (*version < 1 || *version > 3) {
+    fclose(fp);
+    return -4;
+  }
+
+  numVals = 0;
+  err = readLineOfValues(fp, line, MAX_LINE, values, 1, &numVals, MAX_VALS);
+  if (numVals != *version + 3) {
+    fclose(fp);
+    return -4;
+  }
+  i = 0;
+  *nx = B3DNINT(values[i++]);
+  *ny = B3DNINT(values[i++]);
+  *nz = 1;
+  if (*version > 1)
+    *nz = B3DNINT(values[i++]);
+  *binning = B3DNINT(values[i++]);
+  *pixelSize = values[i++];
+  *flags = WARP_INVERSE;
+  if (*version == 3)
+    *flags = B3DNINT(values[i++]);
+  if (*nx <= 0 || *ny <= 0 || *nz <= 0 || *binning <= 0) {
+    fclose(fp);
+    return -5;
+  }
+  
+  /* Ready to create a structure */
+  err = newWarpFile(*nx, *ny, *binning, *pixelSize, *flags);
+  if (err < 0) {
+    fclose(fp);
+    return -6;
+  }
+  
+  /* Loop on the frames */
+  for (iz = 0; iz < *nz; iz++) {
+    if (addWarpingsIfNeeded(iz)) {
+      err = -6;
+      break;
+    }
+    warp = ilistItem(sCurWarpFile->warpings, iz);
+    numVals = 0;
+    err = readLineOfValues(fp, line, MAX_LINE, values, 1, &numVals, MAX_VALS);
+    if (err)
+      break;
+
+    /* Read the header line and allocate arrays */
+    if (!(*flags & WARP_CONTROL_PTS)) {
+      warp->nxGrid = B3DNINT(values[2]);
+      warp->nyGrid = B3DNINT(values[5]);
+      warp->xStart  = values[0];
+      warp->yStart  = values[3];
+      warp->xInterval = values[1];
+      warp->yInterval = values[4];
+      warp->xVector = B3DMALLOC(float, warp->nxGrid * warp->nyGrid);
+      warp->yVector = B3DMALLOC(float, warp->nxGrid * warp->nyGrid);
+      if (PipMemoryError(warp->xVector, "readWarpFile") || 
+          PipMemoryError(warp->yVector, "readWarpFile"))
+        return -6;
+      warp->maxVectors = warp->nxGrid * warp->nyGrid;
+    } else {
+      warp->nControl = B3DNINT(values[0]);
+      if (warp->nControl > 0) {
+        warp->xVector = B3DMALLOC(float, warp->nControl);
+        warp->yVector = B3DMALLOC(float, warp->nControl);
+        warp->xControl = B3DMALLOC(float, warp->nControl);
+        warp->yControl = B3DMALLOC(float, warp->nControl);
+        if (PipMemoryError(warp->xVector, "readWarpFile") || 
+            PipMemoryError(warp->yVector, "readWarpFile") ||
+            PipMemoryError(warp->xControl, "readWarpFile") || 
+            PipMemoryError(warp->yControl, "readWarpFile"))
+          return -6;
+        warp->maxVectors = warp->nControl;
+      }
+    }
+
+    /* All version 3 files have a transform so read it */
+    if (*version > 2) {
+      numVals = 0;
+      err = readLineOfValues(fp, line, MAX_LINE, values, 1, &numVals, MAX_VALS);
+      if (err < 0 || warp->nControl < 0 || numVals != 6) {
+        if (err >= 0)
+          err = -7;
+        break;
+      }
+      warp->xform[0] = values[0];
+      warp->xform[2] = values[1];
+      warp->xform[1] = values[2];
+      warp->xform[3] = values[3];
+      warp->xform[4] = values[4];
+      warp->xform[5] = values[5];
+    }
+
+    /* Read the grid */
+    err = 0;
+    if (!(*flags & WARP_CONTROL_PTS)) {
+      numRead = 0;
+      while (numRead < warp->nxGrid * warp->nyGrid && !err) {
+        numVals = 0;
+        err = readLineOfValues(fp, line, MAX_LINE, values, 1, &numVals, MAX_VALS);
+        if (err < 0)
+          break;
+        if (numVals % 2) {
+          err = -7;
+          break;
+        }
+        for (i = 0; i < numVals; i += 2) {
+          warp->xVector[numRead] = values[i];
+          warp->yVector[numRead++] = values[i+1];
+        }
+      }
+      if (numRead < warp->nxGrid * warp->nyGrid)
+        break;
+    } else {
+
+      /* OR read the control points */
+      for (i = 0; i < warp->nControl; i++) {
+        if (err)
+          break;
+        numVals = 4;
+        err = readLineOfValues(fp, line, MAX_LINE, values, 1, &numVals, MAX_VALS);
+        if (err < 0)
+          break;
+        warp->xControl[i] = values[0];
+        warp->yControl[i] = values[1];
+        warp->xVector[i] = values[2];
+        warp->yVector[i] = values[3];
+      }
+      if (i < warp->nControl)
+        break;
+    }
+    err = 0;
+  }
+  if (err) {
+    if (err > 0)
+      err = -7;
+    deleteWarpFile(sCurWarpFile);
+    setCurrentWarpFile(-1);
+  }
+  fclose(fp);
+  return sCurFileInd;
+}
+
+/*!
+ * Writes the current warping file as a version 3 file to [filename].  Backs up an
+ * existing file to filename~ unless [skipBackup] is non-zero.  Returns -1 for
+ * no filename or failure to open the file, or 1 for an error backing up an existing file.
+ */
+int writeWarpFile(const char *filename, int skipBackup)
+{
+  int i,j,backerr = 0, iz;
+  FILE *fp;
+  Warping *warp;
+  if (!sCurWarpFile)
+    return -1;
+  if (!skipBackup)
+    backerr = imodBackupFile(filename);
+  fp = fopen(filename, "w");
+  if (!fp)
+    return -1;
+  fprintf(fp, "3\n");
+  fprintf(fp, "%d %d %d %d %f %d\n", sCurWarpFile->nx, sCurWarpFile->ny,
+          sCurWarpFile->numFrames, sCurWarpFile->binning, sCurWarpFile->pixelSize,
+          sCurWarpFile->flags);
+  for (iz = 0; iz < sCurWarpFile->numFrames; iz++) {
+    warp = (Warping *)ilistItem(sCurWarpFile->warpings, iz);
+    if (sCurWarpFile->flags & WARP_CONTROL_PTS)
+      fprintf(fp, "%d\n", warp->nControl);
+    else
+      fprintf(fp, "%f  %f  %d  %f  %f  %d\n", warp->xStart, warp->xInterval, 
+              warp->nxGrid, warp->yStart, warp->yInterval, warp->nyGrid);
+    fprintf(fp, "%.6f  %.6f  %.6f  %.6f  %.3f %.3f\n", warp->xform[0], warp->xform[2],
+            warp->xform[1], warp->xform[3], warp->xform[4], warp->xform[5]);
+
+    if (sCurWarpFile->flags & WARP_CONTROL_PTS) {
+      for (i = 0; i < warp->nControl; i++)
+        fprintf(fp, "%.3f %.3f %.3f %.3f\n", warp->xControl[i], warp->yControl[i], 
+                warp->xVector[i], warp->yVector[i]);
+    } else {
+      for (j = 0; j < warp->nyGrid; j++) {
+        for (i = 0; i < warp->nxGrid; i++) {
+          fprintf(fp, "  %.3f  %.3f", warp->xVector[i + j * warp->nxGrid],
+                 warp->yVector[i + j * warp->nxGrid]);
+          if (i % 4 == 3 || i == warp->nxGrid - 1)
+            fprintf(fp, "\n");
+        }
+      }
+    }
+  }
+  fclose(fp);
+  return backerr;
+}
+
 /* Add additional initialized warp structures to the current file so that all sections
    through iz exist. */
 static int addWarpingsIfNeeded(int iz)
@@ -365,7 +600,9 @@ int setWarpPoints(int iz, int nControl, float *xControl, float *yControl, float 
 }
 
 /*!
- * 
+ * Adds one control point specified by position [xControl], [yControl] and displacement
+ * [xVector], [yVector] to section [iz] of the current warp file.  Returns -1 for no 
+ * current warp file, not a control point file, [iz] out of range, or memory errors.
  */
 int addWarpPoint(int iz, float xControl, float yControl, float xVector, float yVector)
 {
@@ -471,7 +708,7 @@ int getNumWarpPoints(int iz, int *nControl)
 /*!
  * Returns control points for section [iz] in the current warp file, with positions placed
  * into [xControl], [yControl] and displacements placed into [xVector], [yVector].
- * Returns 1 for [iz[ out if range or no warp file.
+ * Returns 1 for [iz] out if range or no warp file.
  */
 int getWarpPoints(int iz, float *xControl, float *yControl, float *xVector,
                   float *yVector)
@@ -494,7 +731,7 @@ int getWarpPoints(int iz, float *xControl, float *yControl, float *xVector,
 /*!
  * Returns pointers to control point arrays for section [iz] in the current warp file, 
  * with positions pointers placed into [xControl], [yControl] and displacement pointers
- * placed into [xVector], [yVector].  Returns 1 for [iz[ out if range or no warp file.
+ * placed into [xVector], [yVector].  Returns 1 for [iz] out if range or no warp file.
  */
 int getWarpPointArrays(int iz, float **xControl, float **yControl, float **xVector,
                   float **yVector)
@@ -1066,241 +1303,6 @@ int separateLinearTransform(int iz)
   return ix;
 }
 
-/*!
- * Reads in a warping file whose name is in [filename].  Returns the X and Y sizes given
- * in the file in [nx] and [ny], the number of sections of warpings in [nz], the binning
- * factor into [binning], the pixel size in Angstroms into [pixelSize], the original file
- * version into [version], and the sum of 1 for inverse warpings and 2 for control points
- * into [flags].  The return value is the index of the warp file, or
- * -1 for failure to open the file, -2 for an error reading values from the file, -3 for
- * the wrong number of values on the first line or nothing following that line, -4 for a
- * version number out of range or an error reading values or the wrong number of values 
- * on the header line, -5 for [nz], [ny], [nz], or [binning] out of range, -6 for memory
- * errors, or -7 for an error or inconsistency reading warpings.  [version] will be -1
- * for errors -1, -2, or -3, or 0 if the error is -3 and there are 6 values on the first
- * line, which is a signal that the file contains ordinary transforms.
- */
-int readWarpFile(char *filename, int *nx, int *ny, int *nz, int *binning,
-                 float *pixelSize, int *version, int *flags)
-{
-#define MAX_LINE 1024
-#define MAX_VALS 50
-  FILE *fp;
-  char line[MAX_LINE];
-  float values[MAX_VALS];
-  int numVals, err, i, iz, numRead;
-  Warping *warp;
-
-  *version = -1;
-  fp = fopen(filename, "r");
-  if (!fp)
-    return -1;
-  numVals = 0;
-  err = readLineOfValues(fp, line, MAX_LINE, values, 1, &numVals, MAX_VALS);
-  if (err < 0) {
-    fclose(fp);
-    return -2;
-  }
-  if (numVals == 6)
-    *version = 0;
-  if (numVals != 1 || err > 0) {
-    fclose(fp);
-    return -3;
-  }
-  *version = B3DNINT(values[0]);
-  if (*version < 1 || *version > 3) {
-    fclose(fp);
-    return -4;
-  }
-
-  numVals = 0;
-  err = readLineOfValues(fp, line, MAX_LINE, values, 1, &numVals, MAX_VALS);
-  if (numVals != *version + 3) {
-    fclose(fp);
-    return -4;
-  }
-  i = 0;
-  *nx = B3DNINT(values[i++]);
-  *ny = B3DNINT(values[i++]);
-  *nz = 1;
-  if (*version > 1)
-    *nz = B3DNINT(values[i++]);
-  *binning = B3DNINT(values[i++]);
-  *pixelSize = values[i++];
-  *flags = WARP_INVERSE;
-  if (*version == 3)
-    *flags = B3DNINT(values[i++]);
-  if (*nx <= 0 || *ny <= 0 || *nz <= 0 || *binning <= 0) {
-    fclose(fp);
-    return -5;
-  }
-  
-  /* Ready to create a structure */
-  err = newWarpFile(*nx, *ny, *binning, *pixelSize, *flags);
-  if (err < 0) {
-    fclose(fp);
-    return -6;
-  }
-  
-  /* Loop on the frames */
-  for (iz = 0; iz < *nz; iz++) {
-    if (addWarpingsIfNeeded(iz)) {
-      err = -6;
-      break;
-    }
-    warp = ilistItem(sCurWarpFile->warpings, iz);
-    numVals = 0;
-    err = readLineOfValues(fp, line, MAX_LINE, values, 1, &numVals, MAX_VALS);
-    if (err)
-      break;
-
-    /* Read the header line and allocate arrays */
-    if (!(*flags & WARP_CONTROL_PTS)) {
-      warp->nxGrid = B3DNINT(values[2]);
-      warp->nyGrid = B3DNINT(values[5]);
-      warp->xStart  = values[0];
-      warp->yStart  = values[3];
-      warp->xInterval = values[1];
-      warp->yInterval = values[4];
-      warp->xVector = B3DMALLOC(float, warp->nxGrid * warp->nyGrid);
-      warp->yVector = B3DMALLOC(float, warp->nxGrid * warp->nyGrid);
-      if (PipMemoryError(warp->xVector, "readWarpFile") || 
-          PipMemoryError(warp->yVector, "readWarpFile"))
-        return -6;
-      warp->maxVectors = warp->nxGrid * warp->nyGrid;
-    } else {
-      warp->nControl = B3DNINT(values[0]);
-      if (warp->nControl > 0) {
-        warp->xVector = B3DMALLOC(float, warp->nControl);
-        warp->yVector = B3DMALLOC(float, warp->nControl);
-        warp->xControl = B3DMALLOC(float, warp->nControl);
-        warp->yControl = B3DMALLOC(float, warp->nControl);
-        if (PipMemoryError(warp->xVector, "readWarpFile") || 
-            PipMemoryError(warp->yVector, "readWarpFile") ||
-            PipMemoryError(warp->xControl, "readWarpFile") || 
-            PipMemoryError(warp->yControl, "readWarpFile"))
-          return -6;
-        warp->maxVectors = warp->nControl;
-      }
-    }
-
-    /* All version 3 files have a transform so read it */
-    if (*version > 2) {
-      numVals = 0;
-      err = readLineOfValues(fp, line, MAX_LINE, values, 1, &numVals, MAX_VALS);
-      if (err < 0 || warp->nControl < 0 || numVals != 6) {
-        if (err >= 0)
-          err = -7;
-        break;
-      }
-      warp->xform[0] = values[0];
-      warp->xform[2] = values[1];
-      warp->xform[1] = values[2];
-      warp->xform[3] = values[3];
-      warp->xform[4] = values[4];
-      warp->xform[5] = values[5];
-    }
-
-    /* Read the grid */
-    err = 0;
-    if (!(*flags & WARP_CONTROL_PTS)) {
-      numRead = 0;
-      while (numRead < warp->nxGrid * warp->nyGrid && !err) {
-        numVals = 0;
-        err = readLineOfValues(fp, line, MAX_LINE, values, 1, &numVals, MAX_VALS);
-        if (err < 0)
-          break;
-        if (numVals % 2) {
-          err = -7;
-          break;
-        }
-        for (i = 0; i < numVals; i += 2) {
-          warp->xVector[numRead] = values[i];
-          warp->yVector[numRead++] = values[i+1];
-        }
-      }
-      if (numRead < warp->nxGrid * warp->nyGrid)
-        break;
-    } else {
-
-      /* OR read the control points */
-      for (i = 0; i < warp->nControl; i++) {
-        if (err)
-          break;
-        numVals = 4;
-        err = readLineOfValues(fp, line, MAX_LINE, values, 1, &numVals, MAX_VALS);
-        if (err < 0)
-          break;
-        warp->xControl[i] = values[0];
-        warp->yControl[i] = values[1];
-        warp->xVector[i] = values[2];
-        warp->yVector[i] = values[3];
-      }
-      if (i < warp->nControl)
-        break;
-    }
-    err = 0;
-  }
-  if (err) {
-    if (err > 0)
-      err = -7;
-    deleteWarpFile(sCurWarpFile);
-    setCurrentWarpFile(-1);
-  }
-  fclose(fp);
-  return sCurFileInd;
-}
-
-/*!
- * Writes the current warping file as a version 3 file to [filename].  Backs up an
- * existing file to filename~ unless [skipBackup] is non-zero.  Returns -1 for
- * no filename or failure to open the file, or 1 for an error backing up an existing file.
- */
-int writeWarpFile(const char *filename, int skipBackup)
-{
-  int i,j,backerr = 0, iz;
-  FILE *fp;
-  Warping *warp;
-  if (!sCurWarpFile)
-    return -1;
-  if (!skipBackup)
-    backerr = imodBackupFile(filename);
-  fp = fopen(filename, "w");
-  if (!fp)
-    return -1;
-  fprintf(fp, "3\n");
-  fprintf(fp, "%d %d %d %d %f %d\n", sCurWarpFile->nx, sCurWarpFile->ny,
-          sCurWarpFile->numFrames, sCurWarpFile->binning, sCurWarpFile->pixelSize,
-          sCurWarpFile->flags);
-  for (iz = 0; iz < sCurWarpFile->numFrames; iz++) {
-    warp = (Warping *)ilistItem(sCurWarpFile->warpings, iz);
-    if (sCurWarpFile->flags & WARP_CONTROL_PTS)
-      fprintf(fp, "%d\n", warp->nControl);
-    else
-      fprintf(fp, "%f  %f  %d  %f  %f  %d\n", warp->xStart, warp->xInterval, 
-              warp->nxGrid, warp->yStart, warp->yInterval, warp->nyGrid);
-    fprintf(fp, "%.6f  %.6f  %.6f  %.6f  %.3f %.3f\n", warp->xform[0], warp->xform[2],
-            warp->xform[1], warp->xform[3], warp->xform[4], warp->xform[5]);
-
-    if (sCurWarpFile->flags & WARP_CONTROL_PTS) {
-      for (i = 0; i < warp->nControl; i++)
-        fprintf(fp, "%.3f %.3f %.3f %.3f\n", warp->xControl[i], warp->yControl[i], 
-                warp->xVector[i], warp->yVector[i]);
-    } else {
-      for (j = 0; j < warp->nyGrid; j++) {
-        for (i = 0; i < warp->nxGrid; i++) {
-          fprintf(fp, "  %.3f  %.3f", warp->xVector[i + j * warp->nxGrid],
-                 warp->yVector[i + j * warp->nxGrid]);
-          if (i % 4 == 3 || i == warp->nxGrid - 1)
-            fprintf(fp, "\n");
-        }
-      }
-    }
-  }
-  fclose(fp);
-  return backerr;
-}
-
 /* Reads a line of values as ints or floats */
 static int readLineOfValues(FILE *fp, char *line, int limit, void *values, int floats, 
                      int *numToGet, int maxVals)
@@ -1343,6 +1345,9 @@ static int readLineOfValues(FILE *fp, char *line, int limit, void *values, int f
 /*
 
 $Log$
+Revision 1.3  2011/06/23 14:15:54  mast
+Added routine to get file size; changed default border to spacing/10
+
 Revision 1.2  2011/06/10 04:04:42  mast
 Added ability to skip recomputation of spacing, better sorting, and parameters
 for pruning
