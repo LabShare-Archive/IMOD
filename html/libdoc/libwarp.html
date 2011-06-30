@@ -1,0 +1,141 @@
+<html><head><title>IMOD Library libiwarp</title>
+<body>
+<H2  align="center">IMOD Library libiwarp</H2>
+The libiwarp library contains routines used for working with nonlinear
+transformations, referred to as warping transforms.  These warping
+transforms are an extension of image distortion fields.  Current versions of
+warping files can contain multiple transforms (e.g., one per section).  Each
+transform consists of a linear component and a warping component.  The latter
+can consist either of an array of X and Y displacements on a regular grid, or
+of a list of arbitrarily located points an X/Y displacement at each (referred
+to as control points).  
+<P>
+Calls from Fortran take the identical arguments, except as noted (string
+lengths are omitted from Fortran calls).  Sections are numbered from 1 instead
+of zero when calling from Fortran.
+<P>
+<a href="#formats">Warping File Format</a>
+<P>
+<H3 style="color: rgb(0,128,0);">Functions for Manipulating Warping Files</H3>
+LIST FUNCTIONS FROM warpfiles.c
+<H3 style="color: rgb(0,128,0);">Utility Functions for Warping Transformations</H3>
+LIST FUNCTIONS FROM warputils.c
+<H3 style="color: rgb(0,128,0);">Warping Interpolation Function</H3>
+LIST FUNCTIONS FROM warpinterp.c
+<H3 style="color: rgb(0,128,0);">Functions for Magnification Gradients</H3>
+LIST FUNCTIONS FROM maggradfield.c
+<P>
+<h3><a name="formats">Warping File Format</a></h3>
+The library outputs files in version 3 and can read
+files in versions 1, 2, or 3.
+Version 3 files start with the header lines:
+<pre>
+   3
+   nx   ny  nz  binning  pixelSize flags
+</pre>
+Here
+<code>nx</code> and <code>ny</code> are the sizes of the images on which
+a warping or distortion field was measured,  
+<br>
+<code>binning</code> is relevant only for distortion fields, and is the
+absolute binning of the images, including any binning on the camera
+<br>
+<code>pixelSize</code> is the pixel size in Angstroms of the images,
+corresponding to the pixel spacing reported by the standard header output.
+<br>
+<code>flags</code> is an OR of a set of bit flags:
+<br>
+1 if the warping component is an inverse transform
+<br>
+2 if the warping specified by control points instead of a regular grid
+<br>
+For a regular grid, each transformation then has the following lines
+<pre>
+   xStart  xInterval   nxGrid  yStart  yInterval  nyGrid
+   a11  a12  a21  a22  dx  dy
+   deltaX deltaY deltaX deltaY ...
+   ...
+</pre>
+Here,
+<br>
+<code>xStart, yStart</code> are coordinates of the lower left point of the grid
+<br>
+<code>xInterval, yInterval</code>  are the spacing between grid points in X
+and Y
+<br>
+<code>nxGrid, nyGrid</code>  are the number of grid points in X and Y
+<br>
+<code>a11, a12, a21, a22, dx, dy</code> specify a forward linear transform in the
+usual way, i.e.
+<pre>
+   x' = a11 * (x - xci) + a12 * (y - yci) + xco
+   y' = a21 * (x - xci) + a22 * (y - yci) + yco
+</pre>
+where <code>(x, y)</code> and <code>(x', y')</code> are positions in the input and
+output images, and <code>(xci, yci)</code> and <code>(xco, yco)</code> are the
+centers of the input and output images.  Finally,
+<br>
+<code>deltaX, deltaY</code>  are the displacement vectors at the grid points,
+in order by increasing X for one Y, then by increasing Y.
+There may be variable numbers of entries per line (up to 50), but vectors at a new Y
+value should start a new line.
+<P>
+The vectors and positions describe an inverse transform: a point at a grid
+position in a transformed image corresponds to that position plus its
+displacement vector in the original image.
+<P>
+For a warping file with control points, each transformation has the
+following lines after the header:
+<pre>
+   nControl
+   a11  a12  a21  a22  dx  dy
+   xControl yControl deltaX deltaY
+   xControl yControl deltaX deltaY
+   ...
+</pre>
+where 
+<br>
+<code>nControl</code> is the number of control points, which can be zero,
+<br>
+<code>a11, a12, a21, a22, dx, dy</code> specify a forward linear transform as
+above,
+<br>
+<code>xControl, yControl</code> are the coordinates of one control point in
+the warped image
+<br>
+<code>deltaX, deltaY</code>  is the displacement vector at that point, which
+is added to the control point position to get the corresponding position in
+the original image.
+<P>
+Version 2 files could contain multiple grids of displacements, which are assumed to 
+be inverse transforms, and no linear transforms.  Its form was:
+<pre>
+   2
+   nx   ny  nz  binning    pixelSize
+   xStart  xInterval   nxGrid  yStart  yInterval  nyGrid
+   deltaX deltaY deltaX deltaY ...
+   ...
+   xStart  xInterval   nxGrid  yStart  yInterval  nyGrid
+   deltaX deltaY deltaX deltaY ...
+   ...
+</pre>
+Here one grid follows another, starting with
+a line specifying the parameters for that grid
+<P>
+Version 1 files contained only a single grid of displacements, again assumed
+to be an inverse transform, and no linear transformations.  Its form was:
+<pre>
+   1
+   nx   ny   binning    pixelSize
+   xStart  xInterval   nxGrid  yStart  yInterval  nyGrid
+   deltaX deltaY deltaX deltaY ...
+</pre>
+<H3 style="color: rgb(0,128,0);">Functions for Manipulating Warping Files</H3>
+DESCRIBE FUNCTIONS FROM warpfiles.c
+<H3 style="color: rgb(0,128,0);">Utility Functions for Warping Transformations</H3>
+DESCRIBE FUNCTIONS FROM warputils.c
+<H3 style="color: rgb(0,128,0);">Warping Interpolation Function</H3>
+DESCRIBE FUNCTIONS FROM warpinterp.c
+<H3 style="color: rgb(0,128,0);">Functions for Magnification Gradients</H3>
+DESCRIBE FUNCTIONS FROM maggradfield.c
+</body>
