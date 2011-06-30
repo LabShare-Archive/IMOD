@@ -14,7 +14,9 @@ image.  There
 are interactive controls for adjusting translation, rotation, magnification
 (scale), and stretch along an axis.  Linear transformations are used to apply
 the translation, rotation or distortion.  This means that the same amount of
-translation, rotation or distortion happens everywhere in an image.
+translation, rotation or distortion happens everywhere in an image.  A
+nonlinear transformation, or warping, can be added by marking selected
+points and locally aligning images at those locations.
 
 All transformation parameters can be adjusted by dragging a
 point on the image with the mouse.
@@ -80,7 +82,8 @@ image that may be in another image file.  The other image file is specified
 with the 
 .B -r
 option.  In this mode, advancing or backing up by a section changes only the
-current section; the reference section is changed only by typing a
+current section unless you turn on the "Keep Curr-Ref Diff" option; with that
+option off, the reference section is changed only by typing a
 new number into its text box.  If your reference section happens to be in the
 same file as the images being aligned to it, then you can either specify
 that file as both the reference and the image file, or start Midas in local
@@ -90,6 +93,45 @@ reference and current sections independently.
 In global or reference alignment mode, a menu option can be used to transform
 a model file using the transformations available for each section, just as
 with imodtrans(1).
+
+.SS Warping Images
+Warping can introduced by adding a set of points, referred to as control
+points, and applying an appropriate shift at each point.  This warping is in
+addition to whatever linear transformation has been set.  To start adding
+points, turn on "Add/edit warp points".  You can then add a point with the
+middle mouse button and shift images into alignment at that location with
+either the left mouse button, the X and Y translation buttons, or the arrow
+keys.  The shift at the point is shown on the lines with the X and Y
+translation buttons, while the translation component of the linear
+transformation is shown on a separate line.
+
+Until there are at least four points, shifting a control point
+will just change the linear transformation.  With one point, it will shift the
+whole image; with two points, shifting at one point will rotate and magnify
+the image to keep it stationary at the other point; with three points,
+shifting at one point will stretch the image to keep it aligned at the other
+two points.  You can thus use three points in this way to set a linear
+transformation.  If the linear transformation is already set, you should
+probably add four or more points before shifting any of them.  Once there are
+at least four points, you can no longer turn off the option to edit warp
+points because the linear translation is fixed.
+
+Make the control points widely spaced and distributed over as much of the area
+as possible.  The program will warp the image inside the region bounded by the
+control points but has to use extrapolated transformations outside that region.
+
+A control point is considered to be fixed on the reference image.  You can
+thus add the point at a recognizable feature on the reference image, then
+shift the current image to center that feature on the point.  You can change
+the fixed location of the point by clicking with the right mouse button.  The
+currently active point is shown in yellow and other points are shown in red.
+Click with the left mouse button to select the nearest point as the active
+point.  There is a menu entry and a hot key for deleting the current point.
+
+Warping transformations can be specified only in local or reference alignment
+mode.  Xftoxg(1) can convert them to global transformations.  They can be used
+interchangeably with linear transforms in Xfproduct(1), Xfinverse(1),
+Newstack(1), Blendmont(1), Xfmodel(1), and serial tomogram joining.
 
 .SS Storage of Transforms
 The transformation for the current section is automatically stored on the
@@ -351,7 +393,7 @@ Run in debug mode, which means do not run the program in the background.
 Suppress reminder to rebuild edge functions when exiting after fixing montage
 edges.
 .SH FILES
-The transformation files that Midas uses are in the following format.
+The linear transformation files that Midas uses are in the following format.
 The files are in ascii format with one line for each image in the image stack.
 Each line contains 6 numerical parameters that are used
 to calculate the linear transformation.
@@ -360,12 +402,15 @@ A11 A12 A21 A22 DX DY
 .br
 
 Where for each pixel with the coordinates (X, Y) a new location
-(X', Y') is given by the equations below.
+(X', Y') is given by the equations below (Xc, Yc is the center of the image).
 .br
-	X' = A11 * X + A12 * Y + DX
+	X' = A11 * (X - Xc) + A12 * (Y - Yc) + DX + Xc
 .br
-	Y' = A21 * X + A22 * Y + DY
-
+	Y' = A21 * (X - Xc) + A22 * (Y - Yc) + DY + Yc
+.P
+Warping transformation files contain a linear transformation of this form plus
+the set of control points for each section.  Their format is described in the
+libiwarp library documentation.
 .SH HISTORY
 Midas (Manual Image Deformation and Alignment System) was first written in
 Fortran for

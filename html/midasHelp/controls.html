@@ -17,8 +17,8 @@ reference and current sections.  The section can be changed as desired by typing
 a number in one of the text boxes or by pressing the up or down arrow buttons.
 <DT><B>Keep Cur - Ref diff = 1</B>
 <DD>If the <B>Keep Cur - Ref diff = 1</B> check box is selected, both reference
-and current sections will be changed in tandem.  (This control is not present in
-reference alignment mode or when aligning chunks.)
+and current sections will be changed in tandem.  (This control is not present
+when aligning chunks.)
 <DT><B>Current Chunk</B>
 <DD>When aligning chunks of sections, there is another spin box for selecting
 the current chunk.  Alignment is always between successive chunks.  The current
@@ -53,15 +53,10 @@ the default for auto contrast setting in 3dmod.
 <DT><B>Zoom</B>
 <DD>The Up and Down Arrows for <B>Zoom</B> increase and decrease the zoom of the
 display.  Fractional zooms are possible, and needed for large images.
-<DT><B>Block size</B>
-<DD>The Up and Down Arrows for <B>Block size</B> increase and decrease the block
-size for image transformation.  The larger the size, the faster images can be
-transformed, but the poorer the image quality, especially if there is
-substantial rotation of the transformed image.
 <DT><B>Interpolate</B>
 <DD>The <B>Interpolate</B> check box can be used to turn on bilinear
 interpolation in the image transformation, which will give the most accurate
-transformed image of the current section but will be slow for large images.
+transformed image of the current section but may be slow for large images.
 <DT><B>Overlay view</B>
 <DD>The <B>Overlay view</B> box can be used to toggle between showing one
 section and showing the two sections in overlay, with the current section in
@@ -77,6 +72,12 @@ Ctrl key is pressed, the third shows actions when the Shift key is pressed,
 and the first shows actions when neither is pressed.  The currently active
 line will appear in red, and it will change to indicate the current action
 when a mouse button is pressed.
+<P>
+The <B>Add/edit warp points</B> check box can be used to warp the image, using
+local shifts at a set of points called control points.  Once this is turned on,
+the only transformation parameter that can be changed is the shift of the
+current control point.  See the <B>Warping Images</B> section of the man page 
+for a description of using warping.
 <P>
 The Arrow buttons allow each transformation parameter to be changed by a
 selected increment.  There is an additive increment for translation, an
@@ -107,6 +108,19 @@ point:
 <LI>If the images are still not aligned well enough, pick a new center point
 and second fixed point at two well-separated places where they now seem best
 aligned, and stretch again.
+</OL>
+<P>
+The same thing can be accomplished in a similar way
+by adding only 3 warping points, which still leaves just a linear
+transformation.
+<OL>
+<LI>Translate to align the images at some location.
+<LI>Turn on <B>Add/edit warp points</B>.
+<LI>Add one point at the aligned location.
+<LI>Add a second point at a second, distant location and shift to align the
+images there.
+<LI>Add a third point and shift it to give the best overall alignment with a
+stretch.
 </OL>
 <P>
 The <B>Cross-Correlate</B> button can be used to align the images by
