@@ -67,8 +67,9 @@ c       Open the input files and read transforms if linear files
       do ifs = 1, 2
         indWarpFile(ifs) = readCheckWarpFile(gfile(ifs), 0, 1, nx(ifs),
      &      ny(ifs), numXforms(ifs), ibin, pixelSize(ifs), iflags, errString)
-      if (indWarpFile(ifs) .lt. -1) call exitError(errString)
+        if (indWarpFile(ifs) .lt. -1) call exitError(errString)
         warping(ifs) = indWarpFile(ifs) .ge. 0
+        controlPts(ifs) = .false.
         if (warping(ifs)) then
           controlPts(ifs) = mod(iflags / 2, 2) .ne. 0
           write(*,'(a,a)')'Old warping file opened: ',trim(gfile(ifs))
@@ -110,13 +111,16 @@ c       Check that warpings are the same size except for scaling
       endif
 c       
 c       Determine maximum number of control points and array sizes
+c       Use preliminary assessment of whether there is control point output
+      controlPts(3) = (warping(1) .neqv. warping(2)) .and.
+     &    (controlPts(1) .or. controlPts(2))
       nxgDim = 0
       nygDim = 0
       do ifs = 1, 2
+        maxControl(ifs) = 0
         linearOnly(ifs) = .not. warping(ifs)
         if (warping(ifs)) then
           ierr = setCurrentWarpFile(indWarpFile(ifs))
-          maxControl(ifs) = 0
           xAllStr(ifs) = nx(ifs)
           yAllStr(ifs) = ny(ifs)
           xAllEnd(ifs) = 0.
@@ -156,14 +160,15 @@ c       Determine maximum number of control points and array sizes
               yAllStr(ifs) = min(yAllStr(ifs), yStrTmp)
               yAllInt = min(yAllInt, yIntTmp)
               yAllEnd(ifs) = max(yAllEnd(ifs), (nyGrTmp - 1) * yIntTmp)
-          if (xAllStr(ifs) .le. 0. .or. xAllEnd(ifs) .ge. nx(ifs) .or. yAllStr(ifs) .le. 0. .or. yAllEnd(ifs)
-     &            .ge. ny(ifs)) print *,'OUTSIDE NOW',xAllStr(ifs),xAllEnd(ifs), yAllStr(ifs),yAllEnd(ifs)
+c               if (xAllStr(ifs) .le. 0. .or. xAllEnd(ifs) .ge. nx(ifs) .or. yAllStr(ifs)
+c     &            .le. 0. .or. yAllEnd(ifs) .ge. ny(ifs)) print *,'OUTSIDE NOW',
+c     &            xAllStr(ifs),xAllEnd(ifs), yAllStr(ifs),yAllEnd(ifs)
             endif
           enddo
           
-          if (xAllStr(ifs) .le. 0. .or. xAllEnd(ifs) .ge. nx(ifs) .or. yAllStr(ifs) .le. 0. .or. yAllEnd(ifs)
-     &        .ge. ny(ifs)) call exitError('CANNOT WORK WITH GRIDS THAT EXTEND '//
-     &        'OUTSIDE THE DEFINED IMAGE AREA')
+          if (xAllStr(ifs) .le. 0. .or. xAllEnd(ifs) .ge. nx(ifs) .or.
+     &        yAllStr(ifs) .le. 0. .or. yAllEnd(ifs) .ge. ny(ifs)) call exitError(
+     &        'CANNOT WORK WITH GRIDS THAT EXTEND OUTSIDE THE DEFINED IMAGE AREA')
           if (xAllStr(ifs) .lt. nx(ifs)) then
             xAllStr(ifs) = min(xAllStr(ifs), xAllInt / 2.)
             xAllEnd(ifs) = max(xAllEnd(ifs), nx(ifs) - xAllInt / 2.)
@@ -414,12 +419,14 @@ c          print *,'putting out',controlPts(3), nControl
       endif
       call exit(0)
 c       
-92    call exitError('READING OLD TRANSFORM FILE')
 94    call exitError('WRITING OUT NEW TRANSFORM FILE')
       end
 
 c       
 c       $Log$
+c       Revision 3.8  2011/06/27 01:47:58  mast
+c       Make sure maximum dimension is big enough for actual grids
+c
 c       Revision 3.7  2011/06/23 14:57:05  mast
 c       Reorder arguments to calls for consistency
 c
