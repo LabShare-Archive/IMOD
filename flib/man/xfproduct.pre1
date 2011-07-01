@@ -34,6 +34,27 @@ DDEESSCCRRIIPPTTIIOONN
   would be needed to make transforms to align the original unbinned
   images.
 
+  Either or both input files can contain warping transformations instead of
+  simple linear transforms.  The transforms can be either displacements at a
+  set of control points or displacements on a regular grid of positions.  If
+  two warping files are multiplied, the output will consist of grids of
+  displacements regardless of the type of input.  If one file is a warping
+  file and the other has linear transforms, then the output will have the same
+  type of displacements as the warping input file.
+
+  Warping transform files contain information about the pixel size and number
+  of pixels of the images for which they were obtained.  When both input files
+  have warping transforms, they must be for images of the same total size (the
+  product of pixel size and pixel number must match).  If the pixel sizes
+  differ, the transforms from the first file will be scaled to match that of
+  the second one.  If you enter the -scale option, it overrides this default
+  scaling but is not allowed to change the relative scaling between the two
+  files.  Since an entry is not needed, since Newstack(1) and Blendmont(1) will
+  compensate for a difference between the pixel size in the warping file and
+  the pixel size of the images being transformed.  However, a -scale entry
+  might be needed if one file has linear transforms and the other has warping
+  transforms.
+
   The easiest way to run the program is on the command line, as shown in
   the synopsis.  Xfproduct uses the PIP package for input (see the
   manual page for pip(1)). Thus, the following options can be specified
