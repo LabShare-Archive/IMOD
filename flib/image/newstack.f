@@ -14,7 +14,7 @@ c       $Id$
 c       Log at end of file
 c       
       implicit none
-      integer maxdim,maxtemp,lmsec,maxchunks,lmGradSec
+      integer maxtemp,lmsec,maxchunks,lmGradSec
       parameter (lmsec=1000000,maxchunks=250,lmGradSec=10000)
       parameter (maxtemp=1000000)
       integer*4 nx,ny,nz
@@ -51,7 +51,7 @@ c
       integer*4 ifDistort, idfBinning, iBinning, idfNx, idfNy, iWarpFlags
       integer*4 nxGrid, nyGrid, numFields, numIdfUse
       real*4 xGridIntrv, yGridIntrv, pixelSize, xGridStrt, yGridStrt, warpScale
-      real*4 xIntMin, yIntMin, xnbig, ynbig
+      real*4 xnbig, ynbig
 c       
       integer*4 ifMagGrad, numMagGrad, magUse
       real*4 pixelMagGrad, axisRot
@@ -76,7 +76,7 @@ c
       real*4 dmin,dmax,dmean,dmin2,dmax2,dmean2,optin,optout,bottomin
       real*4 bottomout,xci,yci,dx,dy,xp1,yp1,xp2,yp2,xp3,yp3,xp4,yp4
       integer*4 linesleft,nchunk,nextline,ichunk,ifOutChunk,iscan,iytest
-      integer*4 iybase,iy1,iy2,lnu,maxin,numScaleFacs,numXfLines
+      integer*4 iybase,iy1,iy2,lnu,maxin,numScaleFacs
       real*4 dmeansec,tmpmin,tmpmax,val,tsum2,sclfac
       integer*4 needyst,needynd,nload,nyload,nych,iseriesBase
       integer*4 ix1,ix2,nbcopy,nbclear,ifLinear, limEntered,insideTaper
@@ -85,17 +85,16 @@ c
       integer*4 numOutValues, numOutEntries, ierr, ierr2, i, kti, iy
       integer*4 maxFieldY, inputBinning, nxFirst, nyFirst, nxBin, nyBin
       integer*4 ixOffset, iyOffset, lenTemp, ierr3, applyFirst,numTaper
-      integer*4 nLineTemp,ifOnePerFile,ifUseFill,listIncrement,indout
+      integer*4 ifOnePerFile,ifUseFill,listIncrement,indout
       integer*4 ixOriginOff,iyOriginOff, numReplace, isecReplace, modeOld
       integer*4 indFilter,linesShrink, numAllSec, maxNumXF, nxmax, nymax, ifControl
       real*4 fieldMaxY, rotateAngle, expandFactor, fillVal, shrinkFactor
       real*8 dsum,dsumsq,tsum,tsumsq, wallstart,walltime,loadtime,savetime
       real*8 rottime
       real*4 cosd, sind
-      integer*4 taperAtFill, selectZoomFilter, zoomFiltInterp, readCheckWarpFile
-      integer*4 getNumWarpPoints, getLinearTransform, gridSizeFromSpacing
-      integer*4 getGridParameters, getWarpGrid, setGridSizeToMake
-      integer*4 findMaxGridSize, getSizeAdjustedGrid
+      integer*4 taperAtFill, selectZoomFilter, zoomFiltInterp
+      integer*4 readCheckWarpFile
+      integer*4 getLinearTransform, findMaxGridSize, getSizeAdjustedGrid
       character*320 concat
 c       
       logical pipinput
@@ -684,13 +683,15 @@ c
         endif
         if (ifWarping .ne. 0 .and. (idfFile .ne. ' ' .or. magGradFile .ne. ' ')) call
      &      exitError('YOU CANNOT USE DISTORTION CORRECTIONS WITH WARPING TRANSFORMS')
-c
+c         
+        if (ifWarping .ne. 0 .and. (rotateAngle .ne. 0 .or. expandFactor .ne. 0.)) call
+     &      exitError('YOU CANNOT USE -expand or -rotate WITH WARPING TRANSFORMS')
         if (iBinning .le. 0) call exitError
      &      ('BINNING FACTOR MUST BE A POSITIVE NUMBER')
 c         
 c         Shrinkage
         if (PipGetFloat('ShrinkByFactor', shrinkFactor) .eq. 0) then
-          if (ifxform .ne. 0 .or. rotateAngle .ne. 0. or. expandFactor .ne. 0. .or.
+          if (ifxform .ne. 0 .or. rotateAngle .ne. 0. .or. expandFactor .ne. 0. .or.
      &        idfFile .ne. ' ' .or. magGradFile .ne. ' ') call exitError('YOU CANNOT'//
      &        ' USE -shrink WITH -xform, -rotate, -expand, -distort, or -gradient')
           if (shrinkFactor .le. 1.) call exitError(
@@ -1410,13 +1411,13 @@ c
                     dy = fprod(2,3)
 c		      dx=f(1,3,lnu)-xcen(isec)
 c		      dy=f(2,3,lnu)-ycen(isec)
-                    call backxform(nxbin,nybin,nx3,ny3,fprod,xci ,yci,dx,dy,
+                    call backxform(nx3,ny3,fprod,xci ,yci,dx,dy,
      &                  1,lineOutSt(ichunk)+1,xp1,yp1)
-                    call backxform(nxbin,nybin,nx3,ny3,fprod,xci ,yci,dx,dy,
+                    call backxform(nx3,ny3,fprod,xci ,yci,dx,dy,
      &                  nx3,lineOutSt(ichunk)+1,xp2,yp2)
-                    call backxform(nxbin,nybin,nx3,ny3,fprod,xci ,yci,dx,dy,
+                    call backxform(nx3,ny3,fprod,xci ,yci,dx,dy,
      &                  1,nextline,xp3,yp3)
-                    call backxform(nxbin,nybin,nx3,ny3,fprod,xci ,yci,dx,dy,
+                    call backxform(nx3,ny3,fprod,xci ,yci,dx,dy,
      &                  nx3,nextline,xp4,yp4)
                     iy1=min(nybin-1,max(0,int(min(yp1,yp2,yp3,yp4))-2 -
      &                  maxFieldY - linesShrink))
@@ -2001,9 +2002,8 @@ c
       implicit none
       integer*4 nxforms, listot, inlist(*), numXfLines, lineUse(*), nLineUse
       integer*4 ifOnePerFile, nfilein
-      integer*4 lmsec, nLinetemp, iy, ierr, i, PipGetString
+      integer*4 lmsec, nLinetemp, ierr, i, PipGetString
       character*(*) error, option, listString
-      character*320 concat
       character*80 errString
       logical*4 pipinput
 c       
@@ -2164,7 +2164,6 @@ c
       loadynd=iline-1
       loadyst=iline-nlines
       return
-99    call exitError( 'READ ERROR')
       end
 
 
@@ -2175,9 +2174,9 @@ c       NXA by NYA; the output image is NXB by NYB; XC, YC is the center
 c       coordinate of the input image; AMAT is the 2x2 transformation matrix
 c       and XT, YT are the translations.
 c       
-      SUBROUTINE backxform(NXA,NYA,NXB,NYB,AMAT,XC,YC,XT,YT,ix,iy,xp,yp)
+      SUBROUTINE backxform(NXB,NYB,AMAT,XC,YC,XT,YT,ix,iy,xp,yp)
       implicit none
-      integer*4 NXA,NYA,NXB,NYB,ix,iy
+      integer*4 NXB,NYB,ix,iy
       real*4 AMAT(2,2),XC,YC,XT,YT,xp,yp
       real*4 xcen,ycen,xco,yco,denom,a11,a12,a21,a22,dyo,dxo
 C       
@@ -2205,6 +2204,9 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.68  2011/06/26 22:57:11  mast
+c       Fix offsets with distortion
+c
 c       Revision 3.67  2011/06/23 14:58:40  mast
 c       Many changes as warping routines evolved
 c
