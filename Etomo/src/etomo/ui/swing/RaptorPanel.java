@@ -35,6 +35,9 @@ import etomo.type.ViewType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2011/06/24 17:03:16  sueh
+ * <p> Bug# 1466 Added the raptor manpage.
+ * <p>
  * <p> Revision 1.3  2011/02/22 18:21:50  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -206,7 +209,6 @@ final class RaptorPanel implements Run3dmodButtonContainer, ContextMenu {
 
   public void setParameters(final ConstMetaData metaData) {
     if (axisID != AxisID.SECOND) {
-
       if (metaData.getTrackRaptorUseRawStack()) {
         rbInputRaw.setSelected(true);
       }
@@ -222,7 +224,8 @@ final class RaptorPanel implements Run3dmodButtonContainer, ContextMenu {
     if (parent.isPickVisible()) {
       if (manager.getMetaData().getViewType() == ViewType.MONTAGE) {
         rbInputPreali.setSelected(true);
-        pnlInput.setVisible(false);
+        rbInputRaw.setEnabled(false);
+        //pnlInput.setVisible(false);
       }
     }
   }
