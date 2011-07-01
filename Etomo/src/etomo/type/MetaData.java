@@ -29,6 +29,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.74  2011/06/21 18:05:30  sueh
+ * <p> Bug# 1490 Replaced trimvolParam with individual parameters.  Maintained backwards compatibility.
+ * <p>
  * <p> Revision 3.73  2011/05/31 21:06:04  sueh
  * <p> Bug# 1460 Added finalStackExpandCircleIterationsA and B.
  * <p>
@@ -754,7 +757,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     noBeamTiltSelectedA.setDisplayValue(true);//backwards compatibility
     noBeamTiltSelectedB.setDisplayValue(true);//backwards compatibility
     trackUseRaptorA.set(false);
-    trackRaptorUseRawStackA.set(true);
+    trackRaptorUseRawStackA.set(false);
 
     sizeToOutputInXandYA.setIntegerType(new boolean[] { true, true });
     sizeToOutputInXandYB.setIntegerType(new boolean[] { true, true });
