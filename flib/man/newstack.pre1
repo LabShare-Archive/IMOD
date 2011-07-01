@@ -118,11 +118,12 @@ INSERT OPTION TEXT HERE
 AADDDDIITTIIOONNAALL NNOOTTEESS
 
   The program will adjust the pixel spacing in the header of the output file
-  if binning and/or the expansion option are used.  Models built on the input
-  file in 3dmod should display correctly on a file scaled by these two
-  options.  However, the image origin is not adjusted for images that are a
-  subset of the input image, so it would be necessary to shift a model
-  manually in 3dmod to display it on a subset.
+  if binning and/or the expansion or skrinkage options are used.  Models built
+  on the input file in 3dmod should display correctly on a file scaled by
+  these three options.  However, the image origin is not adjusted for images
+  that are a subset of the input image unless the -origin option is entered as
+  well.  Without this option, it would be necessary to shift a model manually
+  in 3dmod to display it on a subset.
 
   When there is a change of modes, data are rescaled optimally in most
   cases. If floating is not selected, the scaling is by an amount that would
@@ -142,6 +143,33 @@ AADDDDIITTIIOONNAALL NNOOTTEESS
   At the end, the program will report how many pixels have been truncated at
   the low or high limits of the output range.  If this happens after shifting
   with a specified output range, try again with a slightly smaller range.
+
+  The transformation file entered with -xform can contain warping
+  transformations as well as simple linear transforms.  The transforms can
+  consist of either displacements at a set of control points, as output
+  directly by Midas(1), or displacements on a regular grid, as produced by
+  Xftoxg(1).  Such warping files contain information about the size of the
+  images that were aligned and their pixel size.  The transforms will be
+  adjusted for a difference between that pixel size and the pixel size of the
+  image file being transformed.  They will also be extrapolated as necessary
+  to cover an image area larger than that specified in the warping file;
+  however, the program assumes that the input images are centered on the
+  images with which the warping file was prepared.  The warping will be
+  incorrect if this is not the case.
+
+  Warping cannot be used with distortion corrections.  If this is necessary,
+  consider using Blendmont(1), which can combine such operations.  The -expand
+  and -rotate options also cannot be used with warping transformations because
+  such transformation would occur after the warping while the linear transform
+  included in a warping file occurs before the warping.  If these operations
+  are necessary, you can avoid transforming the images twice by preparing a
+  one-line text file with
+     factor  0.  0.  factor  0.  0.     
+  for expansion by the factor, or with
+     cos(angle)  -sin(angle)  sin(angle)  cos(angle)  0.  0.
+  for rotation by the angle.  Then use Xfproduct(1) to multiply the warping
+  transforms by the single linear transform, and transform the images with the
+  product.
 
   Complex data (Fourier transforms) can be stacked but not otherwise  
   manipulated.  Don't try to change the size or center of the FFT's.
