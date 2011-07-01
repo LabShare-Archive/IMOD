@@ -197,7 +197,8 @@ tooltip = Rotate all images by the given angle in degrees, counterclockwise
 positive.
 manpage =  Rotate all images by the given angle in degrees, positive for a
 counterclockwise rotation.  Rotation is applied after binning and 
-transformation, if any. If 
+transformation, if any.  It can be combined with
+linear transforms but not with warping transforms.  If 
 the rotation is by +90 or -90 degrees and no
 output size
 is specified, then the X and Y sizes of the image will be transposed so
@@ -212,7 +213,8 @@ usage = Scale all images up in size by the given factor
 tooltip =
 manpage = Scale all images up in size by the given factor, greater than 1 to 
 expand, or less than 1 to shrink with ordinary interpolation.  Scaling is
-applied after binning and transformation, if any.  If no output size is
+applied after binning and transformation, if any.  It can be combined with
+linear transforms but not with warping transforms.  If no output size is
 specified, the size of the input image will be scaled appropriately so that
 the output will contain the entire image.
 
@@ -377,7 +379,8 @@ manpage = A list of the distortion fields to apply for each section (numbered
 from 0).  Ranges are allowed.  The default is for the field numbers to match
 the input section numbers, unless there is only one field in the file.  To
 have a single field applied to all of the sections, just enter a single
-number.
+number.  This option was added when the only way to warp images was with
+distortion field files but it is not needed with current warping files.
 
 [Field = GradientFile]
 short  = gradient

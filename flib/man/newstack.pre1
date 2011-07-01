@@ -201,8 +201,10 @@ AADDDDIITTIIOONNAALL NNOOTTEESS
   six numbers:
     A11 A12 A21 A22 DX DY
   where the coordinate (X, Y) is transformed to (X', Y') by:
-    X' = A11 * X + A12 * Y + DX
-    Y' = A21 * X + A22 * Y + DY
+    X' = A11 * (X - Xci) + A12 * (Y - Yci) + DX + Xco
+    X' = A21 * (X - Xci) + A22 * (Y - Yci) + DY + Yco
+  where (Xci, Yci) and (Xco, Yco) are the center coordinates of the input and
+  output images, respectively.
 
 HHIISSTTOORRYY
 	
@@ -220,6 +222,7 @@ HHIISSTTOORRYY
 	11/16/94: DNM added shifting to mean, rationalized scaling somewhat
         9/24/01: changed to read and write in chunks if images are big
         12/24/03: converted to PIP input, added undistorting and binning
+        June 2011: Added support for warping
 
 SEE ALSO
 	mrcbyte(1), tif2mrc(1), clip(1)
