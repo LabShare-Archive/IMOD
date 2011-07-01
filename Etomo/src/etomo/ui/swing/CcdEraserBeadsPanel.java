@@ -44,6 +44,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2011/06/21 18:07:25  sueh
+ * <p> Bug# 1490 In CheckBoxSpinner, changed spinner to a Spinner type (from JSpinner), so it would work
+ * <p> with the UITests.
+ * <p>
  * <p> Revision 1.4  2011/05/31 21:06:53  sueh
  * <p> Bug# 1460 Added cbspExpandCircleIterations.
  * <p>
@@ -88,7 +92,7 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
   private final LabeledTextField ltfFiducialDiameter = new LabeledTextField(
       "Diameter to erase (pixels): ");
   private final CheckBoxSpinner cbspExpandCircleIterations = new CheckBoxSpinner(
-      "Iterations to grow circular areas:",1, 1, 5);
+      "Iterations to grow circular areas:",2, 1, 5);
   private final ButtonGroup bgPolynomialOrder = new ButtonGroup();
   private final RadioButton rbPolynomialOrderUseMean = new RadioButton(
       "Use mean of surrounding points", PolynomialOrder.USE_MEAN, bgPolynomialOrder);
