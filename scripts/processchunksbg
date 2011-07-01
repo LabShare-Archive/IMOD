@@ -1,4 +1,4 @@
 #!/bin/sh
 # Script to run processchunks in background under Windows
 #
-processchunks "$@" &
+processchunks -g "$@" &
