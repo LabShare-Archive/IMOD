@@ -73,3 +73,4 @@ INSERT OPTION TEXT HERE
 HHIISSTTOORRYY
   Written by David Mastronarde, 1989
   Converted to PIP input and added scaling option, 1/25/04
+  Added support for warping transforms, June 2011

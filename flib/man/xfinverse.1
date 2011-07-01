@@ -6,15 +6,41 @@ NNAAMMEE
 	xfinverse - forms the inverse of a list of transformations
 
 SSYYNNOOPPSSIISS
-	xfinverse
+	xfinverse input_file output_file
 
 DDEESSCCRRIIPPTTIIOONN
-  XFINVERSE will take the inverse of each transformation in a file.
+  Xfinverse will take the inverse of each transformation in a file.
   The only option is whether to set the translations to zero or retain
   them in the output.  The latter would give the true inverse, but the
   former has been useful in arcane realignment procedures.
+
+  The transform file can consist of warping transformations instead of simple
+  linear transforms.  The warping transforms can consist either of
+  displacements at sets of control points or displacements on a regular grid.
+  The output file has the same form as the input file.
+
+  Xfinverse uses the PIP package for input (see the
+  manual page for pip(1)). Thus, the following options can be specified
+  either as command line arguments (with the -) or one per line in a
+  command file (without the -):
+
+ -input OR -InputFile   File name
+    File with transforms to be inverted.  If this option is not entered, the
+    first non-option argument will be used for this input file.
+
+ -output OR -OutputFile   File name
+    Output file for inverse transforms.  If this option is not entered, the
+    second non-option argument will be used for the output file.
+
+ -zero OR -ZeroShifts
+    Set shifts to zero when taking inverse of linear transforms.
+
+ -help OR -usage
+    Print help output
+
   
-  Inputs to the program:
+  If no command line arguments are entered, the program takes the following
+  inputs sequentially:
   
   Input file with list of transformations
   
@@ -24,4 +50,5 @@ DDEESSCCRRIIPPTTIIOONN
   and output the true inverse transformation
   
 HHIISSTTOORRYY
-	  Written by David Mastronarde, added to IMOD 4/21/00
+  Written by David Mastronarde, added to IMOD 4/21/00
+  Warping added, June 2011
