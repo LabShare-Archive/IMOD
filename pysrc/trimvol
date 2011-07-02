@@ -225,7 +225,7 @@ if zslices:
    if slicest < 1 or slicend > slicelim or slicest > slicend:
       exitError(fmtstr('Slices out of range for file in -sz {},{}', slicest, slicend))
    prnstr('Determining byte scaling of ' + inputFile + '...')
-   findcom = fmtstr('findcontrast -slice {},{} {} {} {} {}', slicest, slicend, fliparg,
+   findcom = fmtstr('findcontrast -slice {},{} {} {} {} "{}"', slicest, slicend, fliparg,
                     sxarg, syarg, inputFile)
    prnstr(findcom)
    try:
@@ -250,8 +250,8 @@ if zslices:
    contout = fmtstr('-mode 0 -con {},{}', black, white)
 
 # compose and run the newstack command
-newstcom = fmtstr('newstack -siz {},{} -off {},{} {} {} {} {} {}', xsize, ysize, xoffset,
-                  yoffset, adjust, contout, secout, inputFile, newstout)
+newstcom = fmtstr('newstack -siz {},{} -off {},{} {} {} {} "{}" "{}"', xsize, ysize,
+                  xoffset, yoffset, adjust, contout, secout, inputFile, newstout)
 
 try:
    runcmd(newstcom, None, 'stdout')
@@ -269,7 +269,7 @@ prnstr(newstcom)
 if doflip:
    prnstr('Running clip ' + doflip)
    try:
-      runcmd(fmtstr('clip {} {} {}', doflip, newstout, outputFile))
+      runcmd(fmtstr('clip {} "{}" "{}"', doflip, newstout, outputFile))
    except ImodpyError:
       exitFromImodError(progname)
    try:
@@ -280,7 +280,6 @@ if doflip:
 sys.exit(0)
 
 #  $Log$
-
-
-                
-   
+#  Revision 1.1  2011/06/01 21:20:23  mast
+#  Translated
+#
