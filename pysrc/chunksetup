@@ -60,6 +60,8 @@ outfile = PipGetInOutFile('OutputImageFile', 2)
 if not outfile:
    exitError('Image output file must be entered')
 
+# Any names that are going to be split for directory need to have forward slashes
+mastercom = mastercom.replace('\\', '/')
 (fullroot, ext) = os.path.splitext(mastercom)
 rootname = os.path.basename(fullroot)
 allname = fullroot + '-all.com'
@@ -107,7 +109,8 @@ else:
    exitError(fmtstr('The master command file does not contain both {} and {}', masterin,
                     masterout))
 
-tomopcom = fmtstr('tomopieces -tomo {} {} {} -xp {} -yp {} -zp {} {} -xmax {} -ymax {}',
+# Any filenames passed in a command line that could have a path must be quoted
+tomopcom = fmtstr('tomopieces -tomo "{}" {} {} -xp {} -yp {} -zp {} {} -xmax {} -ymax {}',
                   infromhere, mega, nofft, pad, pad, pad, overlap, maxxp, maxyp)
 try:
    ranlist = runcmd(tomopcom)
@@ -205,6 +208,9 @@ sys.exit(0)
 
 #
 #  $Log$
+#  Revision 1.2  2011/06/27 20:24:14  mast
+#  Fixed missing space in cleanup line
+#
 #  Revision 1.1  2011/06/26 19:25:18  mast
 #  Initial conversion
 #
