@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/1/11: Fixed 3dmod File Extract to run new Python Trimvol.
+
 7/1/11: Fixed Chunksetup and Trimvol when running with Windows paths to other
 directories, fixed a similar problem in Splitcombine, and fixed many problems
 with running tomosnapshot from another directory on Windows and elsewhere.
