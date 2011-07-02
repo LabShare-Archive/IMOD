@@ -426,7 +426,7 @@ void InfoWindow::extract()
   MrcHeader *mrchead = (MrcHeader *)App->cvi->image->header;
   int i;
   char *imodDir = getenv("IMOD_DIR");
-  char *cshell = getenv("IMOD_CSHELL");
+  char *cshell = "python";
   QStringList arguments;
   if (App->cvi->rgbStore != 0 || App->cvi->fakeImage != 0 ||
       App->cvi->multiFileZ > 0||App->cvi->image->file != IIFILE_MRC ||
@@ -438,8 +438,6 @@ void InfoWindow::extract()
     wprint("\aCannot run trimvol; IMOD_DIR not defined.\n");
     return;
   }
-  if (!cshell)
-    cshell = "tcsh";
   ZapFuncs *zap = getTopZapWindow(true);
   if (!zap) {
     zap = getTopZapWindow(false);
@@ -469,7 +467,7 @@ void InfoWindow::extract()
     filePath = App->cvi->image->filename;
   }
   mTrimvolProcess = new QProcess();
-  arguments << "-f";
+  arguments << "-u";
   QStringList command = commandString.split(" ", QString::SkipEmptyParts);
   command[0] = QDir::convertSeparators(QString(imodDir) + "/bin/trimvol");
   for (i = 0; i < command.count(); i++)
@@ -733,6 +731,9 @@ static char *truncate_name(char *name, int limit)
 /*
 
 $Log$
+Revision 4.64  2011/03/15 20:18:38  mast
+Add info window help file
+
 Revision 4.63  2011/03/14 23:39:13  mast
 Changes for ushort loading
 
