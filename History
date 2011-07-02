@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/2/11: Made Ctrl-C and Ctrl-V work in edit pane of 3dmod info window.
+
 7/1/11: Fixed 3dmod File Extract to run new Python Trimvol.
 
 7/1/11: Fixed Chunksetup and Trimvol when running with Windows paths to other
