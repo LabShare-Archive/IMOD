@@ -99,6 +99,7 @@ def prmUniqueEntries(prmLines, key):
 # Copy an error log and change permissions; or copy other files to be deleted later
 def copyErrLog(errfile):
    global copylogs, tarlist
+   errfile = errfile.replace('\\', '/')
    base = os.path.basename(errfile)
    if not os.path.exists(errfile) or base in copylogs:
       return
@@ -195,6 +196,10 @@ if PipGetBoolean('help', 0):
 
 # Process options
 etomoFile = PipGetInOutFile('EtomoFile', 0)
+inputDir = ''
+if etomoFile:
+   etomoFile = etomoFile.replace('\\', '/')
+   inputDir = os.path.dirname(etomoFile) + os.sep
 
 writeableDir = PipGetString('WriteableDirectory', '.')
 
@@ -294,13 +299,14 @@ if axisType == 'Dual Axis':
 outputFile = PipGetString('OutputFile', setname + '-snapshot')
 
 # Get a temporary dir if needed, and the com file dir
-if writeableDir != '.':
+if writeableDir != '.' or inputDir:
    try:
       tempdir = tempfile.mkdtemp(prefix = 'tomosnaptmp-', dir = writeableDir)
    except:
       exitError("Creating temporary directory to copy files into")
 try:
    comdir =  tempfile.mkdtemp(prefix = 'tomosnapshot.cms.', dir = tempdir)
+   comdir = comdir.replace('\\', '/')
 except:
    exitError("Creating temporary directory for com files")
 
@@ -327,8 +333,8 @@ for k, v in os.environ.items():
    unameOut.append(k + '=' + v)
 
 # Should we do the registry with -r?  It takes 3 seconds
-if (sys.platform.find('cygwin') >= 0 or sys.platform.find('win32') >= 0) and not winOnly:
-   unameOut += runcmd('cygcheck -s -v -r', None, None, STDOUT)
+#if (sys.platform.find('cygwin') >= 0 or sys.platform.find('win32') >= 0) and not winOnly:
+#   unameOut += runcmd('cygcheck -s -v -r', None, None, STDOUT)
 
 # Type-specific additions to lists here:
 #
@@ -375,6 +381,7 @@ if typeInd == 2:
 
                # If a file with the base name is here, use it by adding to list;
                # if it is not, copy it here and have it deleted at end
+               entry = entry.replace('\\', '/')
                base = os.path.basename(entry)
                if os.path.exists(base):
                   singleFiles.append(base)
@@ -395,8 +402,11 @@ if typeInd == 3:
    
 
 # Run the file listing now that we know if we need a subdir
+curDir = os.getcwd()
 if naddir:
    os.chdir(naddir)
+elif inputDir:
+   os.chdir(inputDir)
 if winOnly:
    lslrt = runcmd('dir /OD')
    winver = sys.getwindowsversion()
@@ -406,8 +416,8 @@ if winOnly:
 else:
    lslrt = runcmd('ls -lrt')
    lslrt += runcmd('ls -ld .')
-if naddir:
-   os.chdir('..')
+if naddir or inputDir:
+   os.chdir(curDir)
    
 stripAndWrite(os.path.join(tempdir, lslrtFile), lslrt)
 
@@ -448,11 +458,11 @@ if os.path.exists(logDir) and os.path.isdir(logDir) and os.access(logDir, os.R_O
                
 # Get all com and log files and backups except the ta*.log
 # Look in naddir for NAD, or confine to setname-* for parallel processing
-globpref = ''
+globpref = inputDir
 if naddir:
-   globpref = naddir + os.sep
+   globpref += naddir + os.sep
 elif typeInd == 4:
-   globpref = setname + '-'
+   globpref += setname + '-'
 comlist = glob.glob(globpref + '*.com')
 comlistb = glob.glob(globpref + '*.com~')
 loglist = glob.glob(globpref + '*.log')
@@ -460,12 +470,12 @@ loglistb = glob.glob(globpref + '*.log~')
 for logs in (loglist, loglistb):
    if len(logs):
       for i in range(len(logs) - 1, -1, -1):
-         if logs[i].startswith('ta'):
+         if os.path.basename(logs[i]).startswith('ta'):
             logs.pop(i)
 
 # Copy the com files to the com dir with .com stripped
 for comfile in comlist:
-   (base, ext) = os.path.splitext(os.path.basename(comfile))
+   (base, ext) = os.path.splitext(os.path.basename(comfile.replace('\\', '/')))
    try:
       shutil.copy2(comfile, os.path.join(comdir, base))
    except:
@@ -479,12 +489,12 @@ copylist += comlistb + loglist + loglistb
 # Loop on axis files, adding files to the copy list if they exist, getting headers
 for axnum in range(naxis):
    for ext in oneAxisSetFiles:
-      sfile = setname + axislet + ext
+      sfile = inputDir + setname + axislet + ext
       if os.path.exists(sfile):
          copylist.append(sfile)
 
    for ext in oneAxisHeaders:
-      sfile = setname + axislet + ext
+      sfile = inputDir + setname + axislet + ext
       if os.path.exists(sfile):
          try:
             unameOut += runcmd('header ' + sfile)
@@ -495,12 +505,14 @@ for axnum in range(naxis):
 
 # Add single files to copy list if they exist
 for sfile in singleFiles:
+   sfile = inputDir + sfile
    if os.path.exists(sfile):
       copylist.append(sfile)
 
 # Get headers of single files if they exist.
 # They may have spaces in path so run header with standard input
 for sfile in singleHeaders:
+   sfile = inputDir + sfile
    if os.path.exists(sfile):
       try:
          unameOut += runcmd('header -StandardInput', ['InputFile ' + sfile])
@@ -513,11 +525,12 @@ if tempdir == '.':
    tarlist += copylist
 else:
    for sfile in copylist:
+      sfile.replace('\\', '/')
       try:
          shutil.copy2(sfile, tempdir)
          tarlist.append(os.path.basename(sfile))
       except:
-         warning("Copying " + sfile + " to " + tempdir)
+         warning("Error copying " + sfile + " to " + tempdir)
 
 # Write uname.out at last
 stripAndWrite(os.path.join(tempdir, unameFile), unameOut)
@@ -534,7 +547,7 @@ try:
       try:
          tarFile.add(sfile)
       except:
-         warning("Adding " + sfile + " to the tar file")
+         warning("Error adding " + sfile + " to the tar file")
    tarFile.close()
 except:
    exitError('Opening or writing the tar file')
@@ -544,7 +557,7 @@ if tempdir != '.':
    prnstr("Snapshot done, placed in " + os.path.join(writeableDir, outputFile))
    os.chdir('..')
    try:
-      shutil.rmtree(os.path.basename(tempdir))
+      shutil.rmtree(os.path.basename(tempdir.replace('\\', '/')))
    except:
       warning('Failed to remove temporary directory ' + tempdir)
 else:
@@ -562,6 +575,9 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.2  2011/04/28 15:02:09  mast
+# Add _fid.tlt
+#
 # Revision 1.1  2011/04/22 18:08:29  mast
 # converted to python
 #
