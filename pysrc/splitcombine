@@ -109,6 +109,7 @@ fftOpts = (inputFFTa, inputFFTb, outputFFT)
 sumdir = ''
 for line in fftOpts:
    if line:
+      line = line.replace('\\', '/')
       sumdir = os.path.dirname(line)
       if sumdir:
          break
@@ -178,6 +179,9 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.2  2011/02/25 15:45:31  mast
+# Use dirname instead of rsplit to find temp dir
+#
 # Revision 1.1  2011/02/24 22:37:41  mast
 # A fresh start
 #
