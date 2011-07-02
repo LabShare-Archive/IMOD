@@ -278,5 +278,7 @@ void imod_quit(void);
 bool imodDebug(char key);
 void wprintWidget(QTextEdit *edit);
 void wprintWriteFile(void);
+void wprintPaste(void);
+void wprintCopy(void);
 
 #endif     

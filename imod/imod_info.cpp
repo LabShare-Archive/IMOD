@@ -332,6 +332,17 @@ void InfoWindow::keyPressEvent ( QKeyEvent * e )
     return;
   }
 #endif
+
+  // These are needed on all architectures to pass Ctrl-C and Ctrl-V through to info pane
+  if (e->key() == Qt::Key_C && (e->modifiers() & Qt::ControlModifier)) {
+    wprintCopy();
+    return;
+  }
+  if (e->key() == Qt::Key_V && (e->modifiers() & Qt::ControlModifier)) {
+    wprintPaste();
+    return;
+  }
+  
   if (e->key() != Qt::Key_Escape)
     ivwControlKey(0, e);
 }
@@ -731,6 +742,9 @@ static char *truncate_name(char *name, int limit)
 /*
 
 $Log$
+Revision 4.65  2011/07/02 05:58:49  mast
+Fixed to run the python trimvol
+
 Revision 4.64  2011/03/15 20:18:38  mast
 Add info window help file
 

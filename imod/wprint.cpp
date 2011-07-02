@@ -42,7 +42,21 @@ void wprintWidget(QTextEdit *edit)
 
   // 3/31/10: Allow editing
   //edit->setReadOnly(true);
+  edit->setTextInteractionFlags(Qt::TextEditorInteraction);
   //edit->setTextFormat(Qt::PlainText);
+}
+
+// So that info window can pass on Ctrl-C and Ctrl-V for copy and paste
+void wprintCopy(void)
+{
+  if (wprintText)
+    wprintText->copy();
+}
+
+void wprintPaste(void)
+{
+  if (wprintText)
+    wprintText->paste();
 }
 
 /*VARARGS*/
@@ -166,6 +180,9 @@ void wprintWriteFile(void)
 /*
 
 $Log$
+Revision 4.12  2010/04/19 23:52:15  mast
+Switched to method that does not splat on clipboard
+
 Revision 4.11  2010/04/01 02:31:30  mast
 Changed to edit the text document directly and appropriately, which was needed
 with the text edit editable, and added a call to save to file
