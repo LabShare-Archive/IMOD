@@ -64,7 +64,7 @@ c
       integer*4, allocatable :: listz(:),izwant(:), izAllWant(:)
       logical skipxforms,undistortOnly,xcWriteOut
       character dat*9, tim*8
-      real*4 edgefrac(2),title(20),distout(2)
+      real*4 edgefrac(2),title(20)
       real*4 edgefracx,edgefracy
       equivalence (edgefrac(1),edgefracx),(edgefrac(2),edgefracy)
       integer*4, allocatable :: mapAllPc(:,:,:), nControl(:)
@@ -87,12 +87,12 @@ c       the former rotrans structures
       integer*4  minxwant, maxxwant, modeParallel, nzAllWant, numOut, numChunks
       integer*4  minywant, maxywant, numExtra, nxybox(2), nExtra(2)
 c       
-      character*320 idfFile, magGradFile, boundfile
+      character*320 boundfile
       integer*4 inputBinning,idfNx, idfNy, idfBinning
       real*4 pixelIdf, binRatio
 c       
       integer*4 modein,nlistz,minzpc,maxzpc,nsect,nxtotpix,nytotpix
-      integer*4 maxxpiece,maxypiece,modeout,iffloat,i,minxoverlap
+      integer*4 modeout,iffloat,i,minxoverlap
       integer*4 minyoverlap,ntrial,ifsloppy,ioptabs,nxmissing,nymissing
       integer*4 nxtotwant,nytotwant,newxpieces,newypieces,ifoldedge
       integer*4 newxtotpix,newytotpix,newxframe,newyframe,newminxpiece
@@ -103,13 +103,13 @@ c
       integer*4 ixfrm,iyfrm,ipc,nshort,nlong,ishort,ilong,indbray
       integer*4 newuse,newpcxll,newpcyll,nxfast,nyfast,iyfast,ixfast
       integer*4 indylo,indyhi,nlinesout,indxlo,indxhi,inonepiece,ioptneg
-      integer*4 indx,indy,ixneg,iyneg,nxneg,nyneg,iz,ineg,listfirst,ipchi
+      integer*4 indx,indy,ixneg,iyneg,nxneg,iz,ineg,listfirst,ipchi
       integer*4 ix,iy,ilineout,ifill,nalong,ncross,ned,ixy,lenrec,j
       real*4 dminout,dmaxout,tmean,sdcrit,devcrit,gridScale
-      integer*4 nzwant,newxoverlap,newyoverlap,kti,izsect,iwant,ifdiddle
+      integer*4 nzwant,newxoverlap,newyoverlap,izsect,iwant,ifdiddle
       integer*4 ixout,iyout,ifrevise,norder,iedgedir,iyx,imem,jedge,numneg
       integer*4 iwhich,neglo,negup,indlo,indup,joint,ied,iedge,ipclo,ipcup
-      integer*4 maxswing,ishift,nshiftneg,idum1,idum2,inde,nbestedge,indbest
+      integer*4 maxswing,ishift,nshiftneg,inde,nbestedge,indbest
       real*4 erradj,errlim,dxsum,dysum,sumx,sumy,xdisp,ydisp
       real*4 beforemean,beforemax, warpScale, warpXoffset, warpYoffset
       integer*4 indgl,ilis,niter,linebase,nedgesum,indedg,indlower
@@ -123,7 +123,7 @@ c
       integer*4 ipiece3,ipiece4,nxgr,nygr,indbray1,indbray2,jndp4
       real*4 x4,y4,dx4,dy4,xg,yg, delDmagPerUm, delRotPerUm, delIndent(2)
       real*4 dmagnew,rotnew,tiltOffset,edstart,edend,bwof, ecdBin, warpPixel,xtmp
-      integer*4 iBinning, nyWrite, nlineTot,indentXC,numZero, mostNeeded
+      integer*4 iBinning, nyWrite, indentXC,numZero, mostNeeded
       integer*4 lineOffset, ixOffset, iyOffset, linesBuffered, iBufferBase
       integer*4 maxXcorrBinning, nxyXcorrTarget, numSkip, lineStart, lineEnd
       integer*4 nxyPadded, nxyBoxed, ifUseAdjusted, iyOutOffset, ifEdgeFuncOnly
@@ -134,7 +134,6 @@ c
       integer*4 getGridParameters, findMaxGridSize, getSizeAdjustedGrid,getLinearTransform
       integer*4 setCurrentWarpFile
       character*320 concat
-      real*4 sind,cosd,oneintrp
       real*8 walltime, wallstart, fastcum, slowcum
 c       
       logical pipinput
@@ -142,7 +141,7 @@ c
       integer*4 PipGetInteger,PipGetBoolean, PipGetThreeFloats
       integer*4 PipGetString,PipGetFloat, PipGetIntegerArray
       integer*4 PipGetTwoIntegers, PipGetTwoFloats,PipGetLogical
-      integer*4 PipGetNonOptionArg,PipGetInOutFile,PipNumberOfEntries
+      integer*4 PipGetInOutFile,PipNumberOfEntries
 c       
 c       cut and pasted from ../../manpages/autodoc2man -2 2 blendmont
 c       
@@ -836,9 +835,10 @@ c       Allocate data depending on number of pieces (limvar)
         if (ierr .ne. 0) call exitError('ALLOCATING ARRAYS FOR FINDING SHIFTS')
 c
         if (testMode) then
-          allocate(gradXcenLo(limvar),gradXcenHi(limvar), gradYcenLo(limvar),
-     &        gradYcenHi(limvar), overXcenLo(limvar),overXcenHi(limvar),
-     &        overYcenLo(limvar),overYcenHi(limvar), dxedge(limedge,2),
+          i = 2 * limvar
+          allocate(gradXcenLo(i),gradXcenHi(i), gradYcenLo(i),
+     &        gradYcenHi(i), overXcenLo(i),overXcenHi(i),
+     &        overYcenLo(i),overYcenHi(i), dxedge(limedge,2),
      &        dyedge(limedge,2),dxadj(limedge,2),dyadj(limedge,2), stat = ierr)
           if (ierr .ne. 0) call exitError('ALLOCATING ARRAYS FOR TEST MODE')
         endif
@@ -1240,8 +1240,6 @@ c
      &        print *,'WARNING: BLENDMONT - # OF MAG GRADIENTS (',
      &        numMagGrad,') DOES NOT MATCH # OF SECTIONS (',nlistz,')'
           numAngles = numMagGrad
-          lmField = 200
-          maxFields = 16
         endif
 c         
 c         Look for tilt angles if no mag gradients, then adjust if any
@@ -1280,6 +1278,10 @@ c
               tiltAngles(1) = tiltOffset
             endif
           endif
+        endif
+        if (doMagGrad) then
+          lmField = 200
+          maxFields = 16
         endif
 c         
         if (PipGetString('DistortionField', filnam) .eq. 0) then
@@ -1339,7 +1341,7 @@ c           scale field
             enddo
           enddo
         endif
-c         print *,nxField,nyField,lmField
+         print *,nxField,nyField,lmField
 c         print *,xFieldStrt,yfieldStrt,xFieldIntrv,yFieldIntrv
 c         write(*,'(10f7.2)')(distDx(i, 5),distDy(i, 5),i=1,min(nxField,10))
 c         
@@ -3520,6 +3522,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.52  2011/06/24 02:29:18  mast
+c       Fixed scaling of distortion field
+c
 c       Revision 3.51  2011/06/23 15:07:52  mast
 c       Changes for warping
 c
