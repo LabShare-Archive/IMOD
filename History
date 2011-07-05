@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/5/11: Fixed Blendmont for finding mag gradients.
+
 7/3/11: IMOD_4-2-18
 7/2/11: Made Ctrl-C and Ctrl-V work in edit pane of 3dmod info window.
 
