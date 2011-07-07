@@ -449,11 +449,11 @@ mb.find-beads-3d=-
 	# check values
 	assert.tf.diameter-to-erase=%{rounded-unbinned-bead-diameter}
 	assert.cb.iterations-to-grow-circular-areas=off
-	assert.sp.iterations-to-grow-circular-areas=1
+	assert.sp.iterations-to-grow-circular-areas=2
 	cb.iterations-to-grow-circular-areas=on
   sp.iterations-to-grow-circular-areas=up
   cb.iterations-to-grow-circular-areas=off
-  assert.sp.iterations-to-grow-circular-areas=2
+  assert.sp.iterations-to-grow-circular-areas=3
 	assert.rb.use-mean-of-surrounding-points=on
 	assert.rb.fit-a-plane-to-surrounding-points=off
 	assert.bn.erase-beads=off
