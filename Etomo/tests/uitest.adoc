@@ -266,6 +266,7 @@ set.var.maximum-radius=2.1
 #FidModel
 set.var.pixels-to-trim=26,26
 set.var.search-box-size=32,32
+set.var.#-of-beads-to-choose=15
 #FinalStack
 set.var.size-to-output-x=550
 set.var.size-to-output-y=550
@@ -316,6 +317,7 @@ set.var.needs-pre-proc=
 set.var.pixels-to-trim.a=98,51
 set.var.pixels-to-trim.b=51,98
 set.var.search-box-size=40,40
+set.var.#-of-beads-to-choose=30
 #FinalStack
 set.var.size-to-output-x.a=2000
 set.var.size-to-output-y.a=1050
