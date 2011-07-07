@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/6/11: Prevented copytomocoms from trying to copy distortion file if it
+already exists or when doing CTF files only.
+
 7/5/11: Fixed Blendmont for finding mag gradients.
 
 7/3/11: IMOD_4-2-18
