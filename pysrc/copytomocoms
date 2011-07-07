@@ -217,16 +217,15 @@ else:
 # Copy a distortion file to the current directory if it is elsewhere
 if distort:
    distort = distort.replace('\\', '/')
-   tailInd = distort.rfind('/')
-   if tailInd >= 0:
-      newDistort = distort[tailInd+1:]
+   (distDir, newDistort) = os.path.split(distort)
+   if not CTFonly and distDir and not os.path.exists(newDistort):
       try:
          shutil.copyfile(distort, newDistort)
-         distort = newDistort
       except:
          exitError('Copying distortion file ' + distort + ' to current directory')
 
    # Then set the parameters
+   distort = newDistort
    disttext = fmtstr("-distort {} -imagebinned {} -xf", distort, binning)
    subdistort = "DistortionField"
 
@@ -895,6 +894,9 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.8  2011/03/23 17:58:51  mast
+# Added fmtstr to printInfo calls
+#
 # Revision 1.7  2011/03/07 16:32:35  mast
 # Corrected the running of goodframe
 #
