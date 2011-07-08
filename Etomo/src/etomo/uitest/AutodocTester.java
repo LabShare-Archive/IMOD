@@ -67,6 +67,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.52  2011/06/29 03:13:46  sueh
+ * <p> In formatApplication increasing format wait time.
+ * <p>
  * <p> Revision 1.51  2011/06/28 02:33:02  sueh
  * <p> Allow an extra reformat because the advanced button could not be found in a UITest.
  * <p>
@@ -158,6 +161,9 @@ import etomo.util.Utilities;
  * <p>being fooled when kill button is disabled for a second.
  * <p>
  * $Log$
+ * Revision 1.52  2011/06/29 03:13:46  sueh
+ * In formatApplication increasing format wait time.
+ *
  * Revision 1.51  2011/06/28 02:33:02  sueh
  * Allow an extra reformat because the advanced button could not be found in a UITest.
  *
@@ -2009,7 +2015,7 @@ final class AutodocTester extends Assert implements VariableList {
     System.err.println("Formatting application");
     UIHarness.INSTANCE.pack(axisID, EtomoDirector.INSTANCE.getCurrentManagerForTest());
     try {
-      Thread.sleep(550);
+      Thread.sleep(600);
     }
     catch (InterruptedException e) {
     }
