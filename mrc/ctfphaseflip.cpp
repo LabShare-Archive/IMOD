@@ -93,17 +93,18 @@ int main(int argc, char *argv[])
   PipGetBoolean("InvertTiltAngles", &invertAngles);
   angleSign = invertAngles ? -1. : 1.;
   
-  printf("stackFn = %s, angleFn=%s,  invertAngles=%d\n", stackFn, angleFn, 
-         invertAngles);
+  printf("stackFn = %s, angleFn=%s,  invertAngles=%d\n", stackFn, angleFn, invertAngles);
   printf("volt=%d Kv, interpolationWidth=%d pixels, defocusTol=%d nm \n", 
       volt, iWidth, defocusTol);
-  printf("pixelSize=%f nm, cs=%f mm, ampContrast=%f \n", 
-         pixelSize, cs, ampContrast);
+  printf("pixelSize=%f nm, cs=%f mm, ampContrast=%f \n", pixelSize, cs, ampContrast);
 
   FILE *fpStack;
   if ((fpStack = fopen(stackFn, "rb")) == 0)
     exitError("could not open input file %s", stackFn);
   defocusList = readDefocusFile(defFn);
+  if (!ilistSize(defocusList))
+    exitError("The defocus file %s is non-existent or empty - did you save in ctfplotter?"
+              , defFn);
  
   FILE *foutput;
 
@@ -122,8 +123,7 @@ int main(int argc, char *argv[])
   PipGetTwoIntegers("StartingEndingViews", &startingView, &endingView);
   sliceMode = sliceModeIfReal(header.mode);
   if (sliceMode < 0)
-    exitError("File mode is %d; only byte, short integer, or real allowed",
-              header.mode);
+    exitError("File mode is %d; only byte, short integer, or real allowed", header.mode);
 
   //The number of slices this run deals with;
   int currNz = endingView-startingView+1;
@@ -447,6 +447,9 @@ int main(int argc, char *argv[])
 /*
 
 $Log$
+Revision 3.18  2010/04/03 20:55:21  mast
+Skip checking the defocus list when only one line: it fails with "simple" file
+
 Revision 3.17  2010/04/02 00:22:09  mast
 Made it use utility functions for getting tilt angles and defocus and for
 adjusting old data for view numbers being off by 1
