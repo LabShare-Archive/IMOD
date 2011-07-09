@@ -23,8 +23,8 @@ c
       integer*4 lsstart,lsend,lslice,needstart,needend,itryend, ibaseSIRT
       integer*4 itry,ifenough,laststart,lastend,i,lsmin,lsmax, nextReadFree
       integer*4 iv,iy,nalready, lsProjEnd,lReadStart, lReadEnd, nReadInRing
-      real*4 dmin,dmax,ycenfix,abssal,tanalpha, dmin4,dmax4,dmin5,dmax5
-      real*4 valmin,xsum,stmean, vslcen, vycenfix, riBot, riTop
+      real*4 dmin,dmax,ycenfix,abssal,tanalpha, dmin4,dmax4,dmin5,dmax5,dmin6,dmax6,tmin
+      real*4 valmin,xsum,stmean, vslcen, vycenfix, riBot, riTop,tmax,tmean
       integer*4 lriMin, lriMax, loadstart, loadEnd, lri, isirt, ierr, j, k
       integer*4 ibase,lstart,nv,ISTART,NL,iyload,nsum,ix,ipad,ioffset
       integer*4 iringstart,mode,needGpuStart,needGpuEnd,keepOnGpu,numLoadGpu
@@ -34,7 +34,7 @@ c
       integer*4 jsirt,iset,ixSum,mapEnd,nz5,lfillStart,lfillEnd
       real*8 dtot8
       logical*4 shiftedGpuLoad, composedOne, truncations, extremes
-      integer*4 gpuLoadProj,gpuShiftProj, gpuReprojOneSlice
+      integer*4 gpuLoadProj,gpuShiftProj, gpuReprojOneSlice,parWrtSetCurrent
       real*8 walltime, tstart, dsum, dpix
 c
       interhsave=20
@@ -46,6 +46,8 @@ c
       DMAX4=-1.E30
       DMIN5=1.E30
       DMAX5=-1.E30
+      DMIN6=1.E30
+      DMAX6=-1.E30
       nz5 = 0
       debug = .false.
 C       
@@ -65,21 +67,25 @@ c
 c       recompute items not in common
       NXPRJ2=NXPRJ+2+npad
 c       
-c       initialize variables for loaded slices and for ring buffer of
-c       vertical slices and ring buffer of read-in slices
+c       initialize variables for loaded slices
       inloadstr=0
       inloadend=0
       lastready=0
       lastcalc=0
+c       
+c       initialize variables for ring buffer of vertical slices: # in the ring, next free 
+c       position, starting and ending slice number of slices in ring
+      nvsinring=0
       nextfreevs=1
       lvsstart=-1
       lvsend=-1
-      nvsinring=0
+c
+c       initialize similar variables for ring buffer of read-in slices
       nReadInRing = 0
+      nextReadFree = 1
       lreadStart = -1
       lreadEnd = -1
       lfillStart = -1
-      nextReadFree = 1
       ycenfix=ycen
       abssal=abs(sal(1))
       composedOne = ifalpha .ge. 0
@@ -366,8 +372,7 @@ c
 c                 Backproject and mask/taper edges
                 call project(iworkPlane, lslice)
                 if (mask) call maskSlice(imap, ithick)
-                array(ibaseSIRT:ibaseSIRT+ithwid-1) = array(imap:mapEnd) /
-     &              recscale
+                array(ibaseSIRT:ibaseSIRT+ithwid-1) = array(imap:mapEnd) / recscale
                 iset = 2
                 if (ifoutSirtRec .eq. 3) then
                   print *,'writing zero iteration slice',lslice
@@ -390,45 +395,50 @@ c                 Read in single slice
                 ibaseSIRT = ireadBase
               else
 c                 
-c                 Decompose vertical slice from read-in slices
-c                 First see if necessary slices are loaded in ring
-                vslcen = lslice - slicen
-                vycenfix = (ithick/2 + 0.5) - nint(tanalpha * (lslice -slicen))
-     &              + yoffset / cal(1)
-                riBot = slicen + vslcen * cal(1) + (1 - vycenfix)*sal(1)
-                riTop = riBot + (ithick - 1) * sal(1)
-                lriMin = max(1, floor(min(riBot, riTop)))
-                lriMax = min(nyprj, ceiling(max(riBot, riTop)))
-
-                loadstart = lriMin
-                if(lriMin.ge.lReadStart .and. lriMin.le.lReadEnd)
-     &              loadStart = lReadEnd+1
-                loadEnd = lriMax
-c                 
-c                 Read into ring and manage the ring pointers
-                if (debug .and. loadEnd .ge. loadStart)
-     &              print *,'reading into ring', loadstart, loadEnd
-                do lri = loadstart, loadEnd
-                  call imposn(3, lri - 1, 0)
-                  ioffset = iReadBase + (nextReadFree - 1) * ithickOut* iwide
-                  call irdsec(3, array(ioffset), *999)
-                  do i = 0, ithicKOut * iwide - 1
-                    array(i + ioffset) = (array(i + ioffset) / scale - flevl)
-                  enddo
-                  call manageRing(nreadNeed, nreadInRing, nextReadFree,
-     &                lReadStart, lreadEnd, lri)
-                enddo
-                iringstart=1
-                if(nreadInRing .eq. nreadNeed)iringstart=nextReadFree
+c                 Vertical slices: read file directly if it is vertical slices
                 ibaseSIRT = imap + ithwid+(nextfreevs-1)*ithick*iwide
-                call decompose(lslice, lReadStart, lreadEnd, iringstart,
-     &              ibaseSIRT)
+                if (vertSirtInput) then
+                  if (debug) print *,'loading vertical slice', lslice
+                  call imposn(3, lslice - 1, 0)
+                  call irdsec(3, array(ibaseSIRT), *999)
+                else
+c                 
+c                   Decompose vertical slice from read-in slices
+c                   First see if necessary slices are loaded in ring
+                  vslcen = lslice - slicen
+                  vycenfix = (ithick/2 + 0.5) - nint(tanalpha * (lslice -slicen))
+     &                + yoffset / cal(1)
+                  riBot = slicen + vslcen * cal(1) + (1 - vycenfix)*sal(1)
+                  riTop = riBot + (ithick - 1) * sal(1)
+                  lriMin = max(1, floor(min(riBot, riTop)))
+                  lriMax = min(nyprj, ceiling(max(riBot, riTop)))
+                  
+                  loadstart = lriMin
+                  if(lriMin.ge.lReadStart .and. lriMin.le.lReadEnd) loadStart = lReadEnd+1
+                  loadEnd = lriMax
+c                   
+c                   Read into ring and manage the ring pointers
+                  if (debug .and. loadEnd .ge. loadStart)
+     &                print *,'reading into ring', loadstart, loadEnd
+                  do lri = loadstart, loadEnd
+                    call imposn(3, lri - 1, 0)
+                    ioffset = iReadBase + (nextReadFree - 1) * ithickOut* iwide
+                    call irdsec(3, array(ioffset), *999)
+                    do i = 0, ithicKOut * iwide - 1
+                      array(i + ioffset) = (array(i + ioffset) / scale - flevl)
+                    enddo
+                    call manageRing(nreadNeed, nreadInRing, nextReadFree, lReadStart,
+     &                  lreadEnd, lri)
+                  enddo
+                  iringstart=1
+                  if (nreadInRing .eq. nreadNeed) iringstart = nextReadFree
+                  call decompose(lslice, lReadStart, lreadEnd, iringstart, ibaseSIRT)
+                endif
                 if (ifoutSirtRec .eq. 4) then
                   print *,'writing decomposed slice',lslice
                   call writeInternalSlice(5, ibaseSIRT)
                 endif
-                call manageRing(nvertneed, nvsinring, nextfreevs, lvsstart,
-     &              lvsend, lslice)
+                call manageRing(nvertneed, nvsinring, nextfreevs, lvsstart, lvsend,lslice)
               endif
 c
 c               Ready to iterate.  First get the starting slice mean
@@ -458,8 +468,7 @@ c     &                  nrayinc(i), nraymax(iv), pmean, array(j), 1, 1)
      &                  slicen, 0, 0., 0., rpfill)
                   enddo
                 endif
-                if (debug) write(*,'(a,f8.4)')'Reproj time = ', walltime() -
-     &              tstart
+                if (debug) write(*,'(a,f8.4)')'Reproj time = ', walltime() - tstart
                 if (isirt .eq. numSIRTiter .and. ifoutSirtProj .eq. 1)
      &              call writeInternalSlice(4, iworkPlane)
 c                 
@@ -511,8 +520,7 @@ c                 for output by 1 / nviews and the fact that input slice was
 c                 descaled by 1/filterScale
                 i = ibaseSIRT + ithwid - 1
                 if (isignConstraint .eq. 0) then
-                  array(ibaseSIRT:i) = array(ibaseSIRT:i) - array(imap:mapEnd)
-     &                / recscale
+                  array(ibaseSIRT:i) = array(ibaseSIRT:i) - array(imap:mapEnd) / recscale
                 else if (isignConstraint .lt. 0) then
                   array(ibaseSIRT:i) = min(0., array(ibaseSIRT:i) - 
      &                array(imap:mapEnd) / recscale)
@@ -521,9 +529,20 @@ c                 descaled by 1/filterScale
      &                array(imap:mapEnd) / recscale)
                 endif
                 if (mask) call maskSlice(ibaseSIRT, ithick)
-                if (isirt .eq. numSIRTiter .and. ifoutSirtRec .eq. 2) then
+                if (isirt .eq. numSIRTiter - 2 .and. ifoutSirtRec .eq. 2) then
                   print *,'writing internal slice',lslice
                   call writeInternalSlice(5, ibaseSIRT)
+                endif
+                if (isirt .eq. numSIRTiter .and. saveVertSlices .and.
+     &              lslice .ge. islice .and. lslice .le. jslice) then
+                  if (debug) print *,'writing vertical slice', lslice
+                  ierr = parWrtSetCurrent(2)
+                  call iclden(array(ibaseSIRT), iwide, ithick, 1, iwide, 1, ithick, tmin,
+     &                tmax, tmean)
+                  dmin6 = min(dmin6, tmin)
+                  dmax6 = max(dmax6, tmax)
+                  call parWrtSec(6, array(ibaseSIRT))
+                  ierr = parWrtSetCurrent(1)
                 endif
 c                 
 c                 Adjust fill value by change in mean
@@ -623,11 +642,12 @@ c       necessary
           WRITE(6,930)'reprojection'
         endif
         CALL IRDHDR(2,nxyztmp,nxyzst,MODE,DMIN,DMAX,DMEAN)
+        if (saveVertSlices) call iwrhdr(6,title,1,dmin6, dmax6, (dmin6 + dmax6) / 2.)
       else
-        write(*,'(a,3g15.7,f15.0)')'Min, max, mean, # pixels=',dmin,dmax,dmean,
-     &      pixelTot
+        write(*,'(a,3g15.7,f15.0)')'Min, max, mean, # pixels=',dmin,dmax,dmean, pixelTot
       endif
       CALL IMCLOSE(2)
+      if (saveVertSlices) call imclose(6)
       if (.not.(reproj.or.recReproj .or. numSIRTiter .gt. 0)) then
         recscale=nviews*235./(unscmax-unscmin)
         recflevl=(10.*(unscmax-unscmin)/235.-unscmin)/nviews
@@ -1711,7 +1731,7 @@ c
         vycen = j - (ithick/2+0.5 - nint(tanalpha * cenl) + yoffset / cal(1))
         outsl = slicen + vslcen * cal(1) + vycen * sal(1)
         outj = outcen + yoffset - vslcen * sal(1) + vycen * cal(1)
-        print *,j,vycen,outsl,outj
+c        print *,j,vycen,outsl,outj
 c        if (outsl .ge. lreadStart - 0.5 .and. outsl .le. lreadEnd + 0.5
 c     &      .and. outj .ge. 0.5 .and.outj .le. ithickOut + 0.5) then
 c           
@@ -1971,7 +1991,7 @@ C
       character*80 titlech
 C       
       Character*1024 card
-      CHARACTER*320 FILIN,FILOUT,recfile,basefile,boundfile
+      CHARACTER*320 FILIN,FILOUT,recfile,basefile,boundfile,vertBoundFile,vertOutFile
       integer*4 nfields,inum(limnum)
       real*4 XNUM(limnum)
 c       
@@ -1993,8 +2013,9 @@ c
       integer*4 minMemory, nGPU,iactGpuFailOption,iactGpuFailEnviron
       integer*4 ifGpuByEnviron, memNeed, indDelta, ifexit
       logical*4 adjustOrigin, projModel, readw_or_imod
-      integer*4 niceframe, parWrtInitialize, gpuAvailable, imodGetEnv
+      integer*4 niceframe, parWrtInitialize, gpuAvailable, imodGetEnv,parWrtSetCurrent
       integer*4 gpuAllocArrays, allocateArray, gpuLoadLocals, gpuLoadFilter
+      real*8 wallTime, wallstart
 c
       integer*4 numOptArg, numNonOptArg
       integer*4 PipGetInteger,PipGetBoolean,PipGetLogical,PipGetTwoFloats
@@ -2038,6 +2059,8 @@ c
       sirtFromZero = .false.
       recSubtraction = .false.
       projSubtraction = .false.
+      vertSirtInput = .false.
+      saveVertSlices = .false.
       flatFrac = 0.
       iterForReport = 0
 c       
@@ -2231,6 +2254,8 @@ c...... Default double-width linear interpolation in cosine stretching
       ifoutSirtProj = 0
       ifoutSirtRec = 0
       isignConstraint = 0
+      vertOutFile = ' '
+      vertBoundFile = ' '
 c       
 c...... Default title
       CALL DATE(DAT)
@@ -2594,12 +2619,16 @@ c         Sort the angles
         enddo
       endif
 c       
+c       SIRT-related options
       ierr = PipGetInteger('ConstrainSign', isignConstraint)
 c       
       ierr = PipGetTwoIntegers('InternalSIRTSlices', ifoutSirtProj,
      &    ifoutSirtRec)
       if (numSIRTiter .gt. 0 .or. recSubtraction)
      &    ierr = PipGetInteger('StartingIteration', iterForReport)
+      ierr = PipGetLogical('VertForSIRTInput', vertSirtInput)
+      ierr = PipGetString('VertSliceOutputFile', vertOutFile)
+      ierr = PipGetString('VertBoundaryFile', vertBoundFile)
 c
       call PipDone()
 c       
@@ -2652,8 +2681,7 @@ c
         endif
       endif
       if (recReproj) then
-        if (debug)
-     &      print *,minTotSlice,maxTotSlice,minZreproj,maxZreproj,nrxyz(3)
+        if (debug) print *,minTotSlice,maxTotSlice,minZreproj,maxZreproj,nrxyz(3)
         if ((minTotSlice .le. 0 .and. (minZreproj .le. 0 .or. maxZreproj .gt.
      &      nrxyz(3))) .or. (minTotSlice .ge. 0 .and.
      &      maxTotSlice .gt. nrxyz(3))) call exitError(
@@ -2677,8 +2705,8 @@ c         Check conditions of SIRT (would slice increment work?)
      &        (ifalpha .eq. 1 .and. intordxtilt .eq. 0))
      &        call exitError('Cannot do SIRT with  local alignments, Z '//
      &        'factors, or variable or old-style X tilt')
-          if (iwide .ne. nxprj .or. (.not. sirtFromZero .and. (iwide .ne.
-     &        nrxyz(1) .or. ithick .ne. nrxyz(2) .or. nrxyz(3) .ne. nyprj)))
+          if (iwide .ne. nxprj .or. (.not. sirtFromZero .and. (iwide .ne. nrxyz(1) .or.
+     &        (ithick .ne. nrxyz(2) .and. .not.vertSirtInput) .or. nrxyz(3) .ne. nyprj)))
      &        call exitError( 'For SIRT, sizes of input projections, rec '//
      &        'file, and width/thickness entries must match')
           write(6,3501)numSIRTiter
@@ -2864,10 +2892,8 @@ c         print *,'NSLICE',minTotSlice,maxTotSlice,islice,nslice
         if(nslice.le.0)call exitError( 'SLICE NUMBERS REVERSED')
         if (reproj .or. readBase) then
           allocate(projline(iwide), stat = ierr)
-          if (ierr .ne. 0) call exitError(
-     &        'ALLOCATING ARRAY FOR PROJECTION LINE')
+          call memoryError(ierr, 'ARRAY FOR PROJECTION LINE')
         endif
-        
 c       
 c         DNM 7/27/02: transfer pixel sizes depending on orientation of output
 c         
@@ -2975,7 +3001,7 @@ c           Legacy origin.  All kinds of wrong.
       endif
 c       
 c       Initialize parallel writing routines if bound file entered
-      ierr = parWrtInitialize(boundFile, 6, noxyz(1), noxyz(2), noxyz(3))
+      ierr = parWrtInitialize(boundFile, 7, noxyz(1), noxyz(2), noxyz(3))
       if (ierr. ne. 0) then
         write(*,'(a,i3)')'ERROR: TILT - INITIALIZING PARALLEL WRITE '//
      &      'BOUNDARY FILE, ERROR',ierr
@@ -3084,10 +3110,6 @@ c
 c       
       WRITE(6,51)(ANGLES(NV),NV=1,NVIEWS)
       WRITE(6,52)
-      if (ifexit .ne. 0) then
-        print *,'Exiting after setting up output file for chunk writing'
-        call exit(0)
-      endif
 c       
 c       Turn off cosine stretch for high angles
       if (angles(1) .lt. -80. .or. angles(nviews) .gt. 80.) then
@@ -3145,8 +3167,53 @@ c
         ithick=ithick/cal(1)+4.5
         nvertneed=ithickout*abs(sal(1))+5.
         nReadNeed = 0
-        if (numSIRTiter .gt. 0 .and. .not.sirtFromZero)
-     &      nReadNeed = ithick * abs(sal(1)) + 4.
+        if (numSIRTiter .gt. 0) then
+          saveVertSlices = vertOutFile .ne. ' '
+          if (.not.sirtFromZero .and. .not.vertSirtInput)
+     &        nReadNeed = ithick * abs(sal(1)) + 4.
+          if (.not.sirtFromZero .and. vertSirtInput .and. ithick .ne. nrxyz(2))
+     &        call exitError(
+     &        'THICKNESS OF VERTICAL SLICE INPUT FILE DOES NOT MATCH NEEDED THICKNESS')
+        endif
+      endif
+      if (ifalpha .ne. -1 .and. numSIRTiter .gt. 0 .and. (vertSirtInput .or. vertOutFile
+     &    .ne. ' ')) call exitError('VertForSIRTInput OR VertSliceOutputFile '//
+     &    'CANNOT BE ENTERED UNLESS VERTICAL SLICES ARE BEING COMPUTED')
+c       
+c       Now that we know vertical slices, open or set up output file for them under SIRT
+      if (numSIRTiter .gt. 0 .and. saveVertSlices) then
+        if (minTotSlice .gt. 0 .and. islice .gt. 0) then
+          CALL IMOPEN(6,vertOutFile,'OLD')
+          CALL IRDHDR(6,nsxyz,MPXYZ,newmode,dmint,dmaxt,dmeant)
+        else
+          nsxyz = noxyz
+          nsxyz(2) = ithick
+          CALL IMOPEN(6,vertOutFile,'NEW')
+          CALL ICRHDR(6,nsxyz,nsxyz,2,title,0)
+        endif
+c       
+c         Initialize parallel writing if vertical bound file
+        ierr = parWrtInitialize(vertBoundFile, 8, nsxyz(1), nsxyz(2), nsxyz(3))
+        if (ierr. ne. 0) then
+          write(*,'(a,i3)')'ERROR: TILT - INITIALIZING PARALLEL WRITE '//
+     &        'BOUNDARY FILE FOR VERTICAL SLICES, ERROR',ierr
+          call exit(1)
+        endif
+c       
+c       chunk mode: either write header, or set up to write correct location
+        if (ifexit .ne. 0) then
+          CALL IWRHDR(6,TITLE,0,PMIN,PMAX,PMEAN)
+          CALL IMCLOSE(6)
+        elseif (minTotSlice .gt. 0) then
+          call parWrtPosn(6, islice - minTotSlice, 0)
+        endif
+        ierr = parWrtSetCurrent(1)
+      endif
+
+
+      if (ifexit .ne. 0) then
+        print *,'Exiting after setting up output file for chunk writing'
+        call exit(0)
       endif
 C       
 C       Set center of output plane and center of input for transformations
@@ -3160,9 +3227,8 @@ c
       xoffAdj=xoffset-(npxyz(1)/2+ixsubset-nxfull/2)
       XCEN=IWIDE/2+0.5+delxx+xoffAdj
       YCEN=ITHICK/2+0.5+yoffset
-      if (numSIRTiter .gt. 0 .and. abs(xoffAdj + delxx) .gt. 0.1)
-     &    call exitError('CANNOT DO SIRT WITH A TILT AXIS OFFSET FROM CENTER'//
-     &    ' OF INPUT IMAGES')
+      if (numSIRTiter .gt. 0 .and. abs(xoffAdj + delxx) .gt. 0.1) call exitError(
+     &    'CANNOT DO SIRT WITH A TILT AXIS OFFSET FROM CENTER OF INPUT IMAGES')
 c       
 c       if doing warping, convert the angles to radians and set sign
 c       Also cancel the z factors if global entry was not made
@@ -3292,8 +3358,7 @@ c
           endif
           if (useGPU) then
             useGPU = 4 * ind .le. gpuMemoryFrac * gpuMemory
-            if (.not. useGPU) print *,
-     &          'GPU is available but it has insufficient memory'
+            if (.not. useGPU) print *, 'GPU is available but it has insufficient memory'
           endif
           if (useGPU)  call allocateGpuPlanes(iex, nxwarp * nywarp, kti, 0,
      &          nplanes, iwideReproj, ithickReproj)
@@ -3400,7 +3465,10 @@ c       Determine if GPU can be used, but don't try to allocate yet
       if (useGPU) then
         ind = 0
         if (debug) ind = 1
+        wallstart = wallTime()
         useGPU = gpuAvailable(nGPU, gpuMemory, ind) .ne. 0
+        if (debug) write(*,'(a,f8.4)')'Time to test if GPU available: ',
+     &      wallTime()-wallstart
         if (useGPU) then
 c           
 c           Basic need is input planes for reconstructing one slice plus 2
@@ -3506,6 +3574,7 @@ c       If Using GPU, make sure memory is OK now and allocate and load things
         ind = ind + 4 * nviews * iwide + 12 * limwpos * nviews
         call packLocalData()
       endif
+      wallstart = wallTime()
       if (useGPU) then
         if (ifalpha .le. 0 .and. nxwarp .eq. 0) then
           iv = 0
@@ -3517,12 +3586,18 @@ c       If Using GPU, make sure memory is OK now and allocate and load things
         else
           call allocateGpuPlanes(ind, nxwarp*nywarp,0,1,ithick, nxprj2, nviews)
         endif
+        if (debug .and. useGPU) write(*,'(a,f8.4)')'Time to allocate on GPU: ',
+     &      wallTime()-wallstart
+
 c        print *,useGPU
+        wallstart = wallTime()
         if (useGPU) useGPU = gpuLoadFilter(array) .eq. 0
 c        print *,useGPU
         if (useGPU .and. nxwarp .ne. 0)
      &      useGPU = gpuLoadLocals(packLocal, nxwarp*nywarp) .eq. 0
 c        print *,useGPU
+        if (debug .and. useGPU) write(*,'(a,f8.4)')'Time to load filter/locals on GPU: ',
+     &      wallTime()-wallstart
         if (useGPU) then
           print *,'Using GPU for backprojection'
         else
@@ -5312,6 +5387,9 @@ c       Set to open contour, show values etc., and show sphere on section only
 
 c       
 c       $Log$
+c       Revision 3.62  2011/02/18 22:56:56  mast
+c       Removed limit on views and made reprojections work with all angles
+c
 c       Revision 3.61  2010/09/15 22:50:08  mast
 c       Fixed problems at tilt near 90 with X axis offsets
 c
