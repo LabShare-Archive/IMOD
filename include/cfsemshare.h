@@ -172,6 +172,7 @@ extern "C" {
   int parWrtProperties(int *allSec, int *linesBound, int *nfiles);
   int parWrtFindRegion(int secNum, int lineNum, int nlWrite, char **filename, 
                        int *sections, int *startLines);
+  int parWrtSetCurrent(int index);
 
   /* statfuncs.f */
   double tValue(double signif, int ndf);
