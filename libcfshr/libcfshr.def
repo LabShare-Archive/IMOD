@@ -142,6 +142,7 @@ EXPORTS
 	PipGetBoolean
 	InsideContour
 	f2cString
+	parWrtSetCurrent
 	SAMPLEMEANSD
 	AdocGetNumberOfKeys
 	amatToRotmagstr
@@ -164,6 +165,7 @@ EXPORTS
 	parWrtInitialize
 	ADOCGETTHREEFLOATS
 	PipSetSpecialFlags
+	PARWRTSETCURRENTFW
 	sliceSplitFill
 	PipReadOrParseOptions
 	lsFitPred
