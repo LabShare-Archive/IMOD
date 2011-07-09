@@ -3,6 +3,9 @@ c       in parallel to a file.
 c       
 c       $Id$
 c       $Log$
+c       Revision 1.4  2010/06/23 15:23:48  mast
+c       switched to module for parallel write vars
+c
 c       Revision 1.3  2009/08/04 22:41:55  mast
 c       Fixed another problem with uninitialized ierr for line writing
 c
@@ -14,8 +17,12 @@ c       Added to package
 c       
 c       Module for common variables
       module parWrtVars
-      integer*4 izcur, iycur, nxpw, nypw, nzpw, linesBound, iunBound
-      integer*4 izBound(2), iyBound(2), ifopen, ifAllSec
+      integer maxInfos
+      parameter (maxInfos = 5)
+      integer*4 izcur(maxInfos), iycur(maxInfos), nxpw(maxInfos), nypw(maxInfos)
+      integer*4 nzpw(maxInfos), linesBound(maxInfos), iunBound(maxInfos), ifopen(maxInfos)
+      integer*4 izBound(2,maxInfos), iyBound(2,maxInfos), ifAllSec(maxInfos)
+      integer*4 infoCur /0/, numInfos /0/
       end module parWrtVars
 c       
 c
@@ -34,19 +41,35 @@ c
       integer*4 iunit, nxin, nyin, nzin, ierr, nfiles
       integer*4 parWrtInitializeFW, parWrtProperties
 
-      iunBound = iunit
-      nxpw = nxin
-      nypw = nyin
-      nzpw = nzin
-      izcur = 0
-      iycur = 0
-      linesBound = 0
-      ifopen = 0
-      parWrtInitialize = 0
-      if (filename .ne. ' ') then
-        parWrtInitialize = parWrtInitializeFW(filename, nxpw, nypw)
-        ierr = parWrtProperties(ifAllSec, linesBound, nfiles)
+      parWrtInitialize = 5
+      if (numInfos .ge. maxInfos) return
+      iunBound(numInfos+1) = iunit
+      nxpw(numInfos+1) = nxin
+      nypw(numInfos+1) = nyin
+      nzpw(numInfos+1) = nzin
+      izcur(numInfos+1) = 0
+      iycur(numInfos+1) = 0
+      linesBound(numInfos+1) = 0
+      ifopen(numInfos+1) = 0
+      parWrtInitialize = parWrtInitializeFW(filename, nxpw(numInfos+1),nypw(numInfos+1))
+      if (parWrtInitialize .eq. 0) then
+        numInfos = numInfos + 1
+        infoCur = numInfos
+        if (filename .ne. ' ') ierr = parWrtProperties(ifAllSec(infoCur),
+     &      linesBound(infoCur), nfiles)
       endif
+      return
+      end
+
+C       !
+c       Sets the index of the current info file, numbered from 1
+c       
+      integer*4 function parWrtSetCurrent(index)
+      use parWrtVars
+      implicit none
+      integer*4 index, parWrtSetCurrentFW
+      parWrtSetCurrent = parWrtSetCurrentFW(index)
+      if (parWrtSetCurrent .eq. 0) infoCur = index
       return
       end
 
@@ -58,10 +81,11 @@ c
       use parWrtVars
       implicit none
       integer*4 iunit, iz, iy
-c
+c       
       call imposn(iunit, iz, iy)
-      izcur = iz
-      iycur = iy
+      if (numInfos .le. 0 .or. infoCur .le. 0) return
+      izcur(infoCur) = iz
+      iycur(infoCur) = iy
       return
       end
 
@@ -76,23 +100,25 @@ c
       real*4 array(*)
 c
       call iwrsec(iunit, array)
-      if (linesBound .eq. 0) return
-      call pwOpenIfNeeded(izcur, 0, nypw, ierr)
+      if (numInfos .le. 0 .or. infoCur .le. 0) return
+      if (linesBound(infoCur) .eq. 0) return
+      call pwOpenIfNeeded(izcur(infoCur), 0, nypw(infoCur), ierr)
       if (ierr .ne. 0) then
         write(*,'(/,a,i5,a,i2)')'ERROR: parWrtSec - Finding parallel write'//
-     &      ' boundary region sec',izcur,' err',ierr
+     &      ' boundary region sec',izcur(infoCur),' err',ierr
         call exit(1)
       endif
-      if (izcur .eq. izBound(1)) then
-        call imposn(iunBound, 0, 0)
-        call iwrsec(iunBound, array)
+      if (izcur(infoCur) .eq. izBound(1, infoCur)) then
+        call imposn(iunBound(infoCur), 0, 0)
+        call iwrsec(iunBound(infoCur), array)
       endif
-      if (izcur .eq. izBound(2)) then
-        call imposn(iunBound, 1, 0)
-        call iwrsec(iunBound, array(nxpw * (nypw - linesBound) + 1))
+      if (izcur(infoCur) .eq. izBound(2, infoCur)) then
+        call imposn(iunBound(infoCur), 1, 0)
+        call iwrsec(iunBound(infoCur), array(nxpw(infoCur) * (nypw(infoCur) -
+     &      linesBound(infoCur)) + 1))
       endif
-      izcur = izcur + 1
-      iycur = 0
+      izcur(infoCur) = izcur(infoCur) + 1
+      iycur(infoCur) = 0
       return
       end
 
@@ -107,42 +133,47 @@ c
       real*4 array(*)
 c
       call iwrlin(iunit, array)
-      if (linesBound .eq. 0) return
-      if (ifopen .eq. 0) then
-        call pwOpenIfNeeded(izcur, iycur, 1, ierr)
+      if (numInfos .le. 0 .or. infoCur .le. 0) return
+      if (linesBound(infoCur) .eq. 0) return
+      if (ifopen(infoCur) .eq. 0) then
+        call pwOpenIfNeeded(izcur(infoCur), iycur(infoCur), 1, ierr)
         if (ierr .ne. 0) then
           write(*,'(/,a,i5,a,i5,a,i2)')'ERROR: parWrtLin - Finding parallel'//
-     &        ' write boundary region at',izcur,',',iycur,' err',ierr
+     &        ' write boundary region at',izcur(infoCur),',',iycur(infoCur),' err',ierr
           call exit(1)
         endif
       endif
 c     
 c       The find region return modified non-boundary numbers for Y chunks
 c       so that these simple tests work with them too.
-      if (ifAllSec .ne. 0) then
-        if (iycur .lt. iyBound(1) + linesBound) then
-          call imposn(iunBound, 2 * izcur, iycur - iyBound(1))
-          call iwrlin(iunBound, array)
+      if (ifAllSec(infoCur) .ne. 0) then
+        if (iycur(infoCur) .lt. iyBound(infoCur, 1) + linesBound(infoCur)) then
+          call imposn(iunBound(infoCur), 2 * izcur(infoCur),
+     &        iycur(infoCur) - iyBound(infoCur, 1))
+          call iwrlin(iunBound(infoCur), array)
         endif
-        if (iycur .ge. iyBound(2))then
-          call imposn(iunBound, 2 * izcur + 1, iycur - iyBound(2))
-          call iwrlin(iunBound, array)
+        if (iycur(infoCur) .ge. iyBound(2, infoCur))then
+          call imposn(iunBound(infoCur), 2 * izcur(infoCur) + 1,
+     &        iycur(infoCur) - iyBound(2, infoCur))
+          call iwrlin(iunBound(infoCur), array)
         endif
       else
-        if (izcur .eq. izBound(1) .and. iycur .lt. iyBound(1) + linesBound)then
-          call imposn(iunBound, 0, iycur - iyBound(1))
-          call iwrlin(iunBound, array)
+        if (izcur(infoCur) .eq. izBound(1, infoCur) .and.
+     &      iycur(infoCur) .lt. iyBound(1, infoCur) + linesBound(infoCur)) then
+          call imposn(iunBound(infoCur), 0, iycur(infoCur) - iyBound(1, infoCur))
+          call iwrlin(iunBound(infoCur), array)
         endif
-        if (izcur .eq. izBound(2) .and. iycur .ge. iyBound(2))then
-          call imposn(iunBound, 1, iycur - iyBound(2))
-          call iwrlin(iunBound, array)
+        if (izcur(infoCur) .eq. izBound(2, infoCur) .and.
+     &      iycur(infoCur) .ge. iyBound(2, infoCur))then
+          call imposn(iunBound(infoCur), 1, iycur(infoCur) - iyBound(2, infoCur))
+          call iwrlin(iunBound(infoCur), array)
         endif
       endif
 c
-      iycur = iycur + 1
-      if (iycur .ge. nypw) then
-        iycur = 0
-        izcur = izcur + 1
+      iycur(infoCur) = iycur(infoCur) + 1
+      if (iycur(infoCur) .ge. nypw(infoCur)) then
+        iycur(infoCur) = 0
+        izcur(infoCur) = izcur(infoCur) + 1
       endif
       return
       end
@@ -161,19 +192,20 @@ c
       integer*4 parWrtFindRegion
 
       ierr = 0
-      if (ifopen .ne. 0) return
-      ierr = parWrtFindRegion(izsec, iyline, nlwrite, filename, izBound,
-     &    iyBound)
+      if (numInfos .le. 0 .or. infoCur .le. 0) return
+      if (ifopen(infoCur) .ne. 0 .or. linesBound(infoCur) .eq. 0) return
+      ierr = parWrtFindRegion(izsec, iyline, nlwrite, filename, izBound(1, infoCur),
+     &    iyBound(1, infoCur))
       if (ierr .ne. 0) return
-      nxyz(1) = nxpw
-      nxyz(2) = linesBound
+      nxyz(1) = nxpw(infoCur)
+      nxyz(2) = linesBound(infoCur)
       nxyz(3) = 2
-      if (ifAllSec .ne. 0) nxyz(3) = 2 * nzpw
+      if (ifAllSec(infoCur) .ne. 0) nxyz(3) = 2 * nzpw(infoCur)
       read(titlech,'(20a4)')(title(kti),kti=1,20)
-      call imopen(iunBound, filename, 'new')
-      call icrhdr(iunBound, nxyz, nxyz, 2, title, 0)
-      call ialsiz_sam_cel(iunBound, nxpw, linesBound, nxyz(3))
-      call iwrhdr(iunBound, title, 0, -32000., 32000., 0.)
-      ifopen = 1
+      call imopen(iunBound(infoCur), filename, 'new')
+      call icrhdr(iunBound(infoCur), nxyz, nxyz, 2, title, 0)
+      call ialsiz_sam_cel(iunBound(infoCur), nxpw(infoCur), linesBound(infoCur), nxyz(3))
+      call iwrhdr(iunBound(infoCur), title, 0, -32000., 32000., 0.)
+      ifopen(infoCur) = 1
       return
       end
