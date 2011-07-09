@@ -484,6 +484,31 @@ manpage = List of views to reproject from a reconstruction file, numbered from
 is to project just the views that were included in the reconstruction.  To
 project all views in the input projection file, enter 0.
 
+[Field = VertBoundaryFile]
+type = FN
+usage = File with information for writing vertical slice file in parallel
+tooltip =
+manpage = File with information about boundaries and temporary files when
+writing a vertical slice output file and running multiple chunks in parallel.
+
+[Field = VertSliceOutputFile]
+type = FN
+usage = File for saving vertical slices when running SIRT internally
+tooltip =
+manpage = File for saving internally produced vertical slices at the last
+iteration when running SIRT internally.  When such a file is saved, SIRT can
+be resumed with it and the vertical slices will not be degraded by being
+interpolated on output and input.
+
+[Field = VertForSIRTInput]
+type = B
+usage = The file being reprojected for resuming SIRT is a vertical slice file
+tooltip =
+manpage = The file to be reprojected when resuming internal SIRT is a vertical
+slice file, specified by VertSliceOutputFile on the previous run.  When such a
+file is provided, the program will use its slices directly instead of having
+to interpolate from the slices of the reconstruction file.
+
 [Field = WeightAngleFile]
 type = FN
 usage = File with full list of angles to use for weighting
