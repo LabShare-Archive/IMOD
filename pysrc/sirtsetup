@@ -12,6 +12,7 @@ prefix = 'ERROR: ' + progname + ' - '
 sirtext = 'srec'
 intext = 'sint'
 trimext = 'strm'
+vsext = 'vsr'
 setname = ""
 scMinMax = ""
 trimarg = ""
@@ -29,7 +30,7 @@ def findSplitComNumber(splitout, descrip):
          if numstr and numstr != "":
             retval = int(numstr)
    if retval < 0:
-      exitError('Cannot determine com file number from splittilt on ' +descrip)
+      exitError('Cannot determine com file number from splittilt on ' + descrip)
    return retval
 
 # Simple rename function in a try block
@@ -49,8 +50,7 @@ def outputScalingLines(comf, recnum):
    if trimarg != "":
       convname = fmtstr('{}.{}{:02d}', setname, trimext, recnum)
       prnstr('$if (-e ' + convname + ') \\rm -f ' + convname, file=comf)
-      prnstr(fmtstr('$trimvol {} {} {}', trimarg, srecname, convname), file=
-             comf)
+      prnstr(fmtstr('$trimvol {} {} {}', trimarg, srecname, convname), file=comf)
 
 # Function to output final commands
 def commandsForFinish(comf, sirtname, testmode):
@@ -93,18 +93,16 @@ recchunk = ""
 projchunk = ""
 
 # Fallbacks from ../manpages/autodoc2man 3 1 sirtsetup
-options = ["co:CommandFile:FN:", "nu:NumberOfProcessors:I:",
-           "st:StartFromZero:B:", "re:ResumeFromIteration:I:",
-           "it:IterationsToRun:I:", "le:LeaveIterations:LI:",
-           "cl:CleanUpPastStart:B:", "su:SubareaSize:IP:",
-           "yo:YOffsetOfSubarea:I:", "sc:ScaleToInteger:FP:",
-           "tr:TrimvolOptions:CH:", "fl:FlatFilterFraction:F:",
-           "rd:RadiusAndSigma:FP:", "cs:ConstrainSign:B:",
-           "ch:SeparateRecChunks:B:", "pc:SeparateProjChunks:B:",
-           "bo:BoundaryPixels:I:", "mo:OutputMode:I:", "te:TestMode:I:"]
+options = ["co:CommandFile:FN:", "nu:NumberOfProcessors:I:", "st:StartFromZero:B:",
+           "re:ResumeFromIteration:I:", "it:IterationsToRun:I:",
+           "le:LeaveIterations:LI:", "sk:SkipVertSliceOutput:B:",
+           "cl:CleanUpPastStart:B:", "su:SubareaSize:IP:", "yo:YOffsetOfSubarea:I:",
+           "sc:ScaleToInteger:FP:", "tr:TrimvolOptions:CH:", "fl:FlatFilterFraction:F:",
+           "rd:RadiusAndSigma:FP:", "cs:ConstrainSign:B:", "ch:SeparateRecChunks:B:",
+           "pc:SeparateProjChunks:B:", "bo:BoundaryPixels:I:", "mo:OutputMode:I:",
+           "te:TestMode:I:"]
 
-(numOpts, numNonOpts) = PipReadOrParseOptions(sys.argv, options, progname, 1, \
-                                              1, 0)
+(numOpts, numNonOpts) = PipReadOrParseOptions(sys.argv, options, progname, 1, 1, 0)
 
 # Get the com file name, derive a root name and new com file name, check exists
 comfile = PipGetInOutFile('CommandFile', 0)
@@ -140,6 +138,7 @@ subOffset = PipGetInteger('YOffsetOfSubarea', 0)
 
 signConstraint = PipGetInteger('ConstrainSign', 0)
 mode = PipGetInteger('OutputMode', 2)
+skipVert = PipGetInteger('SkipVertSliceOutput', 0)
 
 (scaleMin, scaleMax) = PipGetTwoFloats("ScaleToInteger", 0., 0.)
 scMinMax = ""
@@ -190,6 +189,8 @@ if simpleBP and xtiltFile:
          simpleBP = False
    else:
       xtilt += firstxt
+
+doingVert = simpleBP and xtilt != 0.
 
 # Get the input image file name from the command file if necessary
 if alifile == None:
@@ -308,10 +309,38 @@ if not startfirst:
    else:
       startfirst = True
 
+# If resuming and doing vertical internal slices, look for the vertical slice rec
+startingVSrec = None
+if not startfirst and doingVert:
+   vsrec = basename + '.' + vsext + lastrec[len(basename):]
+   if os.path.exists(vsrec):
+      startingVSrec = vsrec
+
+# Make sure the rec to resume from is the right size
+if not startfirst:
+   try:
+      (usex, usey, usez) = getmrcsize(lastrec)
+
+      # Also check starting vert slice rec and cancel if it doesn't match
+      if startingVSrec:
+         (vsrx, vsry, vsrz) = getmrcsize(startingVSrec)
+         if usex != vsrx or usez != vsrz:
+            prnstr('WARNING: ' + progname + ' - Vertical slice file ' + startingVSrec +\
+                   ' does not have the right dimensions; using interpolation to resume' +
+                   ' from regular reconstruction')
+            startingVSrec = None
+            
+   except ImodpyError:
+      exitFromImodError(progname)
+   if usex != alix or usez != aliy:
+      exitError(fmtstr('The X/Z size of the existing file {} ({}/{}), does ' +\
+                       'not match the X/Y size of the aligned stack ({}/{})',
+                       lastrec, usex, usez, alix, aliy))
+
 # Set up cleanup lists
 cleanlist = ''
 if cleanup:
-   for ext in [sirtext, intext, trimext]:
+   for ext in [sirtext, intext, trimext, vsext]:
       basename = setname + '.' + ext
       reclist = glob.glob(basename + '[0-9][0-9]*')
       for rec in reclist:
@@ -325,17 +354,6 @@ if cleanup:
    if cleanlist != "":
       prnstr('INFO: The following files will be deleted when the run starts')
       prnstr('INFO: ' + cleanlist)
-
-# Make sure the rec to resume from is the right size
-if not startfirst:
-   try:
-      (usex, usey, usez) = getmrcsize(lastrec)
-   except ImodpyError:
-      exitFromImodError(progname)
-   if usex != alix or usez != aliy:
-      exitError(fmtstr('The X/Z size of the existing file {} ({}/{}), does ' +\
-                       'not match the X/Y size of the aligned stack ({}/{})',
-                       lastrec, usex, usez, alix, aliy))
 
 # Get proper name of the input aligned stack after processing
 aliuse = alifile
@@ -483,11 +501,14 @@ if startfirst:
       sedlist.append(fmtstr('/THICKNESS/a/SIRTIterations   {}/', internalIter))
       sedlist.append('/THICKNESS/a/StartingIteration  1/')
       if signConstraint:
-         sedlist.append(fmtstr('/THICKNESS/a/ConstrainSign  {}/',
-                               signConstraint))
+         sedlist.append(fmtstr('/THICKNESS/a/ConstrainSign  {}/', signConstraint))
+      if doingVert and not skipVert:
+         startingVSrec = setname + '.' + vsext + fmtstr('{:02d}', internalIter)
+         sedlist.append(fmtstr('/THICKNESS/a/VertSliceOutputFile  {}/', startingVSrec))
    else:
       sedlist.append(r'/^\s*LOG/d')
    pysed(sedlist, comlines, sirtcom, True)
+
    if numproc > 1:
       try:
          cmdline = fmtstr('splittilt -d {},{} -n {} -o {} -b {} -i {} {} {}', \
@@ -547,9 +568,14 @@ while loopIter < iterations:
    srecname = fmtstr('{}.{}{:02d}', setname, sirtext, recnum)
    lastname = fmtstr('{}.{}{:02d}', setname, sirtext, lastnum)
 
+   # Set rec file to reproject from a vert slice file if any
+   recToReproj = lastname
+   if startingVSrec:
+      recToReproj = startingVSrec
+
    # Make commands for reprojection or SIRT iterations
    sedlist = sedbase + [fmtstr('/{}/s//{}/', alifile, aliuse),
-                        fmtstr('/THICKNESS/a/RecFileToReproj  {}/', lastname)]
+                        fmtstr('/THICKNESS/a/RecFileToReproj  {}/', recToReproj)]
 
    if simpleBP:
       sedlist.append(fmtstr('/{}/s//{}/', recfile, srecname))
@@ -560,9 +586,18 @@ while loopIter < iterations:
                             recnum - lastnum))
       sedlist.append(fmtstr('/THICKNESS/a/StartingIteration  {}/', lastnum))
       if signConstraint:
-         sedlist.append(fmtstr('/THICKNESS/a/ConstrainSign  {}/',
-                               signConstraint))
+         sedlist.append(fmtstr('/THICKNESS/a/ConstrainSign  {}/', signConstraint))
+
+      # If using starting vertical slices, indicate so and use them only once unless...
+      # If outputting vertical slices, set up filename to use it on next round
+      if startingVSrec:
+         sedlist.append('/THICKNESS/a/VertForSIRTInput/')
+         startingVSrec = None
+      if doingVert and not skipVert:
+         startingVSrec = fmtstr('{}.{}{:02d}', setname, vsext, recnum)
+         sedlist.append(fmtstr('/THICKNESS/a/VertSliceOutputFile  {}/', startingVSrec))
       thisChunk = recchunk
+                        
    else:
       sedlist.append(fmtstr('/{}/s//{}/', recfile, diffname))
       sedlist.append('/THICKNESS/a/ViewsToReproj  0/')
@@ -656,7 +691,10 @@ while loopIter < iterations:
             lastconv = fmtstr('{}.{}{:02d}', setname, intext, lastnum)
             if trimarg:
                lastconv = fmtstr('{}.{}{:02d}', setname, trimext, lastnum)
-            prnstr('$if (-e ' + lastconv + ') \\rm -f ' + lastname, file=comf)
+            rmstring = '$if (-e ' + lastconv + ') \\rm -f ' + lastname
+            if doingVert and not skipVert:
+               rmstring += ' ' + fmtstr('{}.{}{:02d}', setname, vsext, lastnum)
+            prnstr(rmstring, file=comf)
 
          # Set up conversion if requested
          if recnum in leaveList and (scMinMax or trimarg):
@@ -697,6 +735,9 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.13  2011/04/20 19:38:09  mast
+# Make a tilt_for_sirt copy of the tilt.com used
+#
 # Revision 1.12  2011/03/30 22:46:18  mast
 # Fix the sort of the statistics in the finish file
 #
