@@ -47,10 +47,11 @@ from pysed import *
 # Initializations (defaults are above or in Pip calls)
 oldstyle = "#"
 boundext = 'rbound'
+vsBoundExt = 'vsbound'
 
 # Fallbacks from ../manpages/autodoc2man 3 1 splittilt
 options = [":CommandFile:FN:", "n:ProcessorNumber:I:", "s:SliceMinimum:I:",
-           "t:TargetChunks:I:", "m:ChunkMininum:I:",
+           "t:TargetChunks:I:", "m:ChunkMinimum:I:",
            "p:OldStyleXtiltPenalty:F:", "v:VerticalSlices:B:",
            "c:SeparateChunks:B:", "b:BoundaryPixels:I:",
            "i:InitialComNumber:I:", "o:OpenForMoreComs:B:",
@@ -68,7 +69,7 @@ numproc = PipGetInteger('ProcessorNumber', numproc)
 minslices = PipGetInteger('SliceMinimum', minslices)
 penalty = PipGetFloat('OldStyleXtiltPenalty', penalty)
 targetslabs = PipGetInteger('TargetChunks', 0)
-minslabs = PipGetInteger('ChunkMininum', 0)
+minslabs = PipGetInteger('ChunkMinimum', 0)
 vertical = PipGetBoolean('VerticalSlices', 0)
 direct = PipGetBoolean('SeparateChunks', 0) == 0
 boundpixels = PipGetInteger('BoundaryPixels', boundpixels)
@@ -91,7 +92,7 @@ xtiltArr = optionValue(comlines, 'xaxistilt', 2, 1)
 fullimage = optionValue(comlines, 'fullimage', 1, 1)
 thickArr = optionValue(comlines, 'thickness', 1, 1)
 slices = optionValue(comlines, 'slice', 1, 1)
-local = optionValue(comlines, 'localfile', 0, 1)
+localali = optionValue(comlines, 'localfile', 0, 1)
 binningArr = optionValue(comlines, 'imagebinned', 1, 1)
 alifile = optionValue(comlines, 'inputproj', 0, 1)
 recfile = optionValue(comlines, 'outputfile', 0, 1)
@@ -101,6 +102,7 @@ widthArr = optionValue(comlines, 'width', 1, 1)
 intsirt = optionValue(comlines, 'sirtiterations', 1, 1)
 xtiltFile = optionValue(comlines, 'xtiltfile', 0, 1)
 zfactors = optionValue(comlines, 'zfactorfile', 0, 1)
+vsOutFile = optionValue(comlines, 'vertsliceoutputfile', 0, 1)
 
 binval = 1
 if binningArr:
@@ -108,18 +110,6 @@ if binningArr:
 xaxistilt = 0.
 if xtiltArr:
    xaxistilt = xtiltArr[0]
-
-zfactors = optionValue(comlines, 'zfactorfile', 0, 1)
-localali = optionValue(comlines, 'localfile', 0, 1)
-substart = optionValue(comlines, 'subsetstart', 1, 1)
-binningArr = optionValue(comlines, 'imagebinned', 1, 1)
-binning = 1
-if binningArr:
-   binning = binningArr[0]
-xtilt = 0.
-if xtiltArr:
-   xtilt = xtiltArr[0]
-   
 reproj = 0
 if intsirt == None and (rectoproj or sliceproj):
    reproj = 1
@@ -294,6 +284,8 @@ boundsed = 'gibberish'
 boundfile = rootname + '-bound.info'
 if reproj:
    boundfile = rootname + '-rpbound.info'
+if vsOutFile:
+   vsBoundFile = rootname + '-vsbound.info'
 if direct:
     totsed = 'THICKNESS'
     recsed = 'gibberish'
@@ -303,7 +295,7 @@ if direct:
        thiscom = fmtstr(rootname + '-{:03d}-sync.com', startnum)
        startnum += 1
 
-    sedcom = ["/" + slicedel + "/d",
+    sedcom = [r"/^\s*" + slicedel + "/d",
               '/savework/d',
               '/^ *THICKNESS/a/' + slicedel + ' -1 -1/',
               fmtstr("/^ *THICKNESS/a/TOTALSLICES {} {}/", mintotslice,
@@ -312,8 +304,10 @@ if direct:
     sedlines.append('$sync')
     writeTextFile(thiscom, sedlines)
 
-    boundtext = [fmtstr("1 {} {} {} {}", reproj, widthnum, boundlines,
-                         numslabs)]
+    boundhead = fmtstr("1 {} {} {} {}", reproj, widthnum, boundlines, numslabs)
+    boundtext= [boundhead]
+    if vsOutFile:
+       vsBoundText = [boundhead]
 
 firstofall = firstslice
 for num in range(1, numslabs+1):
@@ -333,13 +327,14 @@ for num in range(1, numslabs+1):
    # Modify the command file: delete existing slice, get rid of savework,
    # Set the new slice command and the xtiltinterp control
    sedcom = ["/" + recsed + "/s//" + tempname + "/",
-             "/" + slicedel + "/d",
+             r"/^\s*" + slicedel + "/d",
              '/savework/d',
              fmtstr("/^ *THICKNESS/a/{} {} {}/", slicedel, ubfirst, ublast),
              "/^ *THICKNESS/a/" + oldstyle + "/",
-             fmtstr("/{}/a/TOTALSLICES {} {}/", totsed, mintotslice,
-                    maxtotslice),
+             fmtstr("/{}/a/TOTALSLICES {} {}/", totsed, mintotslice, maxtotslice),
              "/" + boundsed + "/a/BoundaryInfoFile " + boundfile + "/"]
+   if vsOutFile:
+      sedcom.append("/" + boundsed + "/a/VertBoundaryFile " + vsBoundFile + "/")
    sedlines = pysed(sedcom, comlines, None, True)
    sedlines.insert(0, '$sync')
    writeTextFile(thiscom, sedlines)
@@ -354,15 +349,21 @@ for num in range(1, numslabs+1):
       if num == numslabs:
          boundend = -1
       if reproj:
-         boundtext.append(fmtstr("-1 {} -1 {}", boundstart, boundend))
+         boundtmp = fmtstr("-1 {} -1 {}", boundstart, boundend)
       else:
-         boundtext.append(fmtstr("{} 0 {} -1", boundstart, boundend))
+         boundtmp = fmtstr("{} 0 {} -1", boundstart, boundend)
+      boundtext.append(boundtmp)
+      if vsOutFile:
+         vsBoundText.append(recroot + '-' + numtext + '.' + vsBoundExt)
+         vsBoundText.append(boundtmp)
    firstslice = lastslice + 1
 
 finish = rootname + '-finish.com'
 cleanup = '$\\rm -f ' + rootname + '-[0-9][0-9][0-9]*.com* ' + rootname +\
           '-[0-9][0-9][0-9]*.log* '
 cleanbound = boundfile
+if vsOutFile:
+   cleanbound += ' ' + vsBoundFile
 if leaveopen:
    finish = fmtstr(rootname + '-{:03d}-sync.com', num + startnum);
    cleanup = '$\\rm -f '
@@ -390,21 +391,28 @@ elif not direct:
 else:
 
    finishlines = ['$fixboundaries ' + recfile + ' ' + boundfile,
-                  fmtstr('$collectmmm pixels= {} {} {} {}', rootname,
-                         numslabs, recfile, startnum),
-                  cleanup + recroot + '-[0-9][0-9][0-9]*.' + boundext + ' ' +\
-                  cleanbound]
-
+                  fmtstr('$collectmmm pixels= {} {} {} {}', rootname, numslabs, recfile,
+                         startnum),
+                  cleanup + recroot + '-[0-9][0-9][0-9]*.' + boundext + ' ' + cleanbound]
+   if vsOutFile:
+      finishlines.insert(1, '$fixboundaries ' + vsOutFile + ' ' + vsBoundFile)
+      finishlines.append(cleanup + recroot + '-[0-9][0-9][0-9]*.' + vsBoundExt)
 
 writeTextFile(finish, finishlines)
 if direct:
    writeTextFile(boundfile, boundtext)
+   if vsOutFile:
+      writeTextFile(vsBoundFile, vsBoundText)
+      
 
 prnstr(fmtstr("Command files for {} chunks created and ready to run with:",
               numslabs))
 prnstr("  processchunks machine_list " + rootname)
 
 #  $Log$
+#  Revision 1.2  2010/12/09 04:38:12  mast
+#  reproj needs to be 0 and 1 since it is printed to file!
+#
 #  Revision 1.1  2010/12/07 21:38:38  mast
 #  Converted to python
 #
