@@ -62,9 +62,29 @@ by absolute iteration number.  For example, if 10 iterations have already been
 done and you are doing another 10, entering 14,17-19 will retain the
 reconstructions named setname.srec14, setname.srec17, etc, produced at the
 4th, 7th, 8th and 9th new iteration.  In addition, the reconstruction from the
-final iteration is always retained.  If you have cryoEM data with an X-axis
-tilt, oscillations could build up if you leave too many reconstructions, so
-leave only what you need (see above).
+final iteration is always retained.  
+
+[Field = SkipVertSliceOutput]
+short = sk
+type = B
+usage = Do not make vertical slice output files when running SIRT internally.
+tooltip = Do not produce the vertical slice files that are output
+along with each retained reconstruction when SIRT is done internally.  Such
+files are used to avoid repeated interpolations.  Use this option for a large
+reconstruction if disk space is an issue and you are leaving only the final
+iteration.
+manpage = Do not make the vertical slice output files that are needed for
+resuming without interpolation when SIRT is done internally.  If the
+iterations will be run internally in Tilt(1) and there is a non-zero X-axis
+tilt, the default is to create an output file containing the internal,
+vertical slices along with every regular reconstruction file.  When resuming
+for the next iteration, using such a file avoids the effects of interpolating
+twice between internal slices and reconstruction slices.  These effects are
+much more severe for cryo data than plastic section data.  Use this option if
+storage space is an issue and if you are leaving one iteration that you do not
+anticipate resuming from.  The entry is irrelevant if you have Z-factors,
+local alignments, no X-axis tilt, or varying X-axis tilt resulting from
+solving for beam tilt.
 
 [Field = CleanUpPastStart]
 short = cl
