@@ -68,8 +68,14 @@ DDEESSCCRRIIPPTTIIOONN
   values, where the rotations are applied the order gamma (around Z), beta
   (around Y), alpha (around X).
 
-  LAB - Delete labels.  You will a numbered list of labels and can enter a
-  range (comma-separated list) of numbers to delete.
+  LAB - Delete a list of labels, or add a label.  You will see a numbered list
+  of existing labels.  To delete some labels, enter a range (comma-separated
+  list) of the numbers to delete.  To add a label, enter the negative of the
+  label number after which you want the new label to appear.  Enter 0 to have
+  the new label become the first one, or -9 to have it added after the last
+  one.  Then enter the complete label (the date/time stamp will not be
+  added).  If you need to program this operation in a script, first delete the
+  tenth label, if any, with entries "lab - 10 - 1 - lab -9 your_new_label".
 
   MMM - Read the file to recompute the minimum, maximum, and mean
   densities and the RMS density.
