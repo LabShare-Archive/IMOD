@@ -13,8 +13,7 @@ C
       parameter (nfunc=20)
       parameter (idim=2100, maxextra = idim*idim * 4)
       integer*4 NXYZ(3),MXYZ(3),NXYZST(3),mcrs(3),listdel(1000)
-      real*4 delt(3),tilt(3),
-     &    TITLE(20,10),cell(6),array(idim*idim)
+      real*4 delt(3),tilt(3), TITLE(20,10),cell(6),array(idim*idim)
       equivalence (nxyz(1),nx),(nxyz(2),ny),(nxyz(3),nz)
       common /bigimg/ array
 C       
@@ -225,38 +224,54 @@ c
 c       TILT_ROT - rotate current angles
 c       
 9     write(*,119)
-119   format(' Rotate current tilt angles.',
-     &    /,'Angles to rotate by: ',$)
+119   format(' Rotate current tilt angles.', /,'Angles to rotate by: ',$)
       read(5,*)(tilt(i),i=1,3)
       call ialtlt_rot(2,tilt)
       go to 30
 c       
-c       LAB - delete selected labels
+c       LAB - delete selected labels or add one
 c       
 10    call irtlab(2,title,ntitle)
-      write(*,'(a,/)')' Delete labels.  Current labels are:'
+      write(*,'(a,/)')' Delete labels or add one label.  Current labels are:'
       write(*,'(i3,1x,19a4)')(i,(title(j,i),j=1,19),i=1,ntitle)
-      write(*,'(/,a)')
-     &    ' Enter numbers of labels to delete (ranges ok)'
+      write(*,'(/,a,a,/,a,a)')'To delete labels, enter numbers of labels to delete ',
+     &    '(ranges ok)', 'To add a label, enter 0 or the NEGATIVE of the label ',
+     &    'number to add it after'
       call rdlist(5,listdel,ndel)
-      newtitle=0
-      do iold=1,ntitle
-        ifdel=0
-        do id=1,ndel
-          if(iold.eq.listdel(id))ifdel=1
-        enddo
-        if(ifdel.eq.0)then
-          newtitle=newtitle+1
-          do j=1,20
-            title(j,newtitle)=title(j,iold)
-          enddo
+      if (ndel .eq. 1 .and. listdel(1) .le. 0) then
+        if (ntitle .ge. 10) then
+          print *,'You need to delete some labels before adding any'
+          go to 30
         endif
-      enddo
-      newtitle=max(1,newtitle)
+        ifdel = min(-listdel(1), ntitle)
+        do iold = ntitle, ifdel + 1, -1
+          do j=1,20
+            title(j,iold+1)=title(j,iold)
+          enddo
+        enddo
+        print *,'Enter new label'
+        read(6, '(a)') filin
+        read(filin,'(20a4)')(title(j,iold+1),j=1,20)
+        newtitle = ntitle + 1
+      else
+        newtitle=0
+        do iold=1,ntitle
+          ifdel=0
+          do id=1,ndel
+            if(iold.eq.listdel(id))ifdel=1
+          enddo
+          if(ifdel.eq.0)then
+            newtitle=newtitle+1
+            do j=1,20
+              title(j,newtitle)=title(j,iold)
+            enddo
+          endif
+        enddo
+        newtitle=max(1,newtitle)
+      endif
       write(*,'(a,/)')' New label list would be:'
       write(*,'(i3,1x,19a4)')(i,(title(j,i),j=1,19),i=1,newtitle)
-      write(*,'(/,1x,a,$)')
-     &    '1 to confirm changing to this label list, 0 not to: '
+      write(*,'(/,1x,a,$)') '1 to confirm changing to this label list, 0 not to: '
       read(5,*)ifok
       if(ifok.ne.0)call iallab(2,title,newtitle)
       go to 30
@@ -437,6 +452,9 @@ c
       END
 c       
 c       $Log$
+c       Revision 3.8  2009/02/16 06:32:18  mast
+c       Added invertorg and feipixel
+c
 c       Revision 3.7  2006/09/28 21:44:30  mast
 c       Turn off brief header, read data in chunks for mmm/rms
 c       
