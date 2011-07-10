@@ -36,6 +36,8 @@ c       reproj     Flag to reproject at zero tilt
 c       nreadNeed    # of tilted slices to read into ring
 c       numSIRTiter  # of SIRT iterations
 c       sirtFromZero Do zero iteration of SIRT too
+c       vertSirtInput  Input for SIRT is vertical slices
+c       saveVertSlices Save vertical slices at last SIRT iteration
 c       ireadBase    Index of start of ring of tilted slices
 c       iworkPlane   Index of plane of reprojected lines
 c       nWarpDelz    Number of positions in warpDelz array when reproj local
@@ -58,7 +60,7 @@ c
       equivalence (nxprj,npxyz(1)),(nyprj,npxyz(2)),(nviews,npxyz(3))
 c       
       LOGICAL*4 MASK,PERP,reproj,recReproj,debug,readBase,useGPU, sirtFromZero
-      logical*4 recSubtraction, projSubtraction
+      logical*4 recSubtraction, projSubtraction, vertSirtInput, saveVertSlices
 c       
       real*4 DELXX,xcenin,slicen,XCEN,YCEN,baselog,yoffset
       real*4, allocatable ::  xzfac(:), yzfac(:), compress(:), expWeight(:), ANGLES(:)

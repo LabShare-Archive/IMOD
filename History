@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/9/11: IMOD_4-2-19
 7/9/11: Made Tilt able to output and read in internal vertical slices when
 running SIRT internally, to prevent double interpolations between internal and
 reconstruction slices when there is a fixed X-axis tilt.  Modified Sirtsetup

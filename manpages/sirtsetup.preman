@@ -41,35 +41,21 @@ setname.srec00, setname.srec01, etc.
 After running some iterations of SIRT, it is easy to
 do additional iterations simply by running this script again.
 
-For cryoEM data sets with X-axis tilt (but no correction for beam tilt), the
-ability to save data from multiple iterations or restart from an iteration is
-of limited value.  Each time that Tilt(1) finishes a set of internal
-iterations, it writes the data by interpolating from the untilted slices that
-were computed; then to resume for another set of internal iterations, it
-interpolates from the saved data to get back to utilted slices.  These
-interpolations will blur out the reconstruction.  If you do a run that saves
-reconstructions at 4,7,10,13, and 16 iterations, iteration 16 will look
-much blurrier than if it was done in one run.  Even saving the data once (such
-as at iteration 8) will produce a slightly blurrier reconstruction than one
-done in one run.  Thus, if you are running a test volume with such data, there
-are two ways to 
-see exactly what will be produced with different
-numbers of iterations: 
-1) set the X-axis tilt to zero for the test volume; or
-2) do a separate run on the test volume with each desired number of
-iterations.
-(For example, run with options "-it 4" the first time, "-it 7 -st" the second
-time, "-it 10 -st" the third time, etc.)  In practice, you may find that the
-result on the test volume if representative enough if you save reconstructions
-at only one or two intermediate iterations.  In any case, this precaution is
-not needed when there are no X-axis tilts, or when there is a beam tilt
-correction that prevents Tilt(1) from running the iterations internally.
-
-Another reason to avoid saving reconstructions from many iterations for cryoEM
-data sets with X-axis tilt is that such sets can develop waves that increase
-through the iterations, because of the interpolations just described.  It
-appears that the problem builds up in the early iterations, which means you
-should particularly avoid leaving reconstructions in the first 5 iterations.
+For data sets with X-axis tilt where the iterations are done internally,
+the default is to save the untilted slices that
+were computed in a file separate from the reconstruction slices, which are
+obtained by interpolating from the untilted slices.  This capability is
+crucial when saving data from several different iterations with cryoEM data sets,
+because otherwise the multiple interpolations of the data blur out the
+reconstruction and lead to instabilities.  When doing a large reconstruction,
+this secondary output can be suppressed with the "-sk" option (see below).
+Edge effects may still build up with cryoEM data when the computations are
+stopped and restarted several times, so it is recommended that the full
+reconstruction be produced in a single run after the desired number of
+iterations is determined.  These considerations do not apply (and no vertical
+slice file is produced) when there is no X-axis tilt or when there is a beam
+tilt correction or other alignment features that prevent Tilt(1) from running
+the iterations internally.
 
 Sirtsetup is meant to be used with a command file for running Tilt(1) that has
 all of the entries produced when running through eTomo.  There is one main

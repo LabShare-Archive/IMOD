@@ -30,7 +30,7 @@ usage = Target number of chunks (default 5 times expected # of machines)
 tooltip =
 manpage =
 
-[Field = ChunkMininum]
+[Field = ChunkMinimum]
 short = m
 type = I
 usage = Minimum number of chunks (default 2 times expected # of machines)
