@@ -199,10 +199,11 @@ setname.srecnn      Numbered iterative reconstructions
 setname.diff        Difference of reprojection and original projections
 setname.sintnn      Iterative reconstruction scaled to integers
 setname.strmnn      Iterative reconstruction run through Trimvol(1)
+setname.vsrnn       Vertical slice file used with internal iterations
 .fi
 .br
-When SIRT is done internally, only setname.srecnn, setname.sintnn, and
-setname.strmnn are produced.
+When SIRT is done internally, only setname.srecnn, setname.sintnn, 
+setname.strmnn, and setname.vsrnn are produced.
 .SH AUTHOR
 David Mastronarde  
 
