@@ -450,7 +450,7 @@ def optionValue(linelist, option, type, ignorecase = False):
    flags = 0
    if ignorecase:
       flags = re.IGNORECASE
-   optre = re.compile(option, flags)
+   optre = re.compile(r'^\s*' + option, flags)
    subre = re.compile('.*' + option + r'[^\s]*([^#]*).*', flags)
    comre = re.compile(r'\s*#\s*' + option, flags)
    retval = None
@@ -483,7 +483,7 @@ def optionValue(linelist, option, type, ignorecase = False):
                      retval.append(float(val))
             except:
                prnstr("WARNING: optionValue - Bad character in numeric " + \
-                     + "entry in: " + line)
+                     "entry in: " + line)
                
    return retval
 
@@ -667,6 +667,10 @@ def prnstr(string, file = sys.stdout, end = '\n'):
 
 
 #  $Log$
+#  Revision 1.18  2011/06/16 20:55:26  mast
+#  Added verbose output from runcmd based on environment variable; fixed
+#  repeating a command with python 3
+#
 #  Revision 1.17  2011/04/22 19:27:00  mast
 #  Added argument to runcmd to control destination of stderr
 #
