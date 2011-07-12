@@ -1524,10 +1524,10 @@ int parallelWriteSlice(void *buf, FILE *fout, MrcHeader *hdata, int slice)
   if (err)
     return err;
   if (linesBound < 0) {
-    if (parWrtProperties(&allsec, &linesBound, &nfiles)) {
+    if (parWrtProperties(&allsec, &linesBound, &nfiles))
       linesBound = 0;
+    if (!linesBound)
       return 0;
-    }
     mrc_head_new(&hbound, hdata->nx, linesBound, 2, hdata->mode);
     err = parWrtFindRegion(slice, 0, hdata->ny, &filename, sections, 
                            startLines);
@@ -2254,6 +2254,9 @@ void mrc_swap_floats(fb3dFloat *data, int amt)
 
 /*
 $Log$
+Revision 3.48  2011/05/16 14:36:17  mast
+adding const
+
 Revision 3.47  2011/03/14 22:50:38  mast
 cleanup; initialize li->ramp
 
