@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/11/11: IMOD_4-2-20
 7/11/11: Fixed Ctfphaseflip, broken in 4.2.19 when run without parallel
 processing.
 
