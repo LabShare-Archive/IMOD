@@ -411,8 +411,7 @@ mb.volume-table-3-vol-#==
 bn.set-initial-motive-list-file==
 wait.file-chooser.open==%{dataset}_MOTL_Tom3_Iter0.csv
 save==
-assert.contains.file==pi.prm|initMOTL = {'*/UITests/peet-test-gui/pi_MOTL_Tom1_Iter0.csv', '*/UITests/peet-test-gui/pi_MOTL_Tom2_Iter0.csv', '*/UITests/peet-test-gui/pi_MOTL_Tom3_Iter0.csv'}
-
+assert.contains.file==pi.prm|initMOTL = {'*pi_MOTL_Tom1_Iter0.csv', '*pi_MOTL_Tom2_Iter0.csv', '*pi_MOTL_Tom3_Iter0.csv'}
 assert.contains.file==pi.prm|tiltRange = {[-10, 10], [-20, 20], [-10, 10]}
 cb.use-tilt-range-in-averaging==off
 rb.set-all-rotational-values-to-zero==
@@ -423,7 +422,7 @@ rb.reference-file==
 bn.reference-file==
 wait.file-chooser.open==unMaskedpi_Ref1.mrc
 save==
-assert.contains.file==pi.prm|reference = '*/UITests/peet-test-gui/unMaskedpi_Ref1.mrc'
+assert.contains.file==pi.prm|reference = '*unMaskedpi_Ref1.mrc'
 rb.volume-#==
 
 
@@ -446,7 +445,7 @@ rb.volume==
 bn.volume==
 wait.file-chooser.open==unMaskedpi_Ref1.mrc
 save==
-assert.contains.file==pi.prm|maskType = '*/UITests/peet-test-gui/unMaskedpi_Ref1.mrc'
+assert.contains.file==pi.prm|maskType = '*unMaskedpi_Ref1.mrc'
 #test sphere
 rb.sphere==
 tf.inner==10
