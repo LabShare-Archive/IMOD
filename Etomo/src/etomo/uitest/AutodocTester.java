@@ -67,6 +67,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.53  2011/07/08 18:34:01  sueh
+ * <p> In formatApplication, Increasing format time.
+ * <p>
  * <p> Revision 1.52  2011/06/29 03:13:46  sueh
  * <p> In formatApplication increasing format wait time.
  * <p>
@@ -161,6 +164,9 @@ import etomo.util.Utilities;
  * <p>being fooled when kill button is disabled for a second.
  * <p>
  * $Log$
+ * Revision 1.53  2011/07/08 18:34:01  sueh
+ * In formatApplication, Increasing format time.
+ *
  * Revision 1.52  2011/06/29 03:13:46  sueh
  * In formatApplication increasing format wait time.
  *
@@ -1106,7 +1112,8 @@ final class AutodocTester extends Assert implements VariableList {
         else {
           wait = false;
           File file;
-          if (value.startsWith(File.separator)) {
+          if (value.startsWith(File.separator)
+              || (Utilities.isWindowsOS() && value.charAt(1) == ':')) {
             file = new File(value);
           }
           else {
