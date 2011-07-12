@@ -1,0 +1,103 @@
+#!/usr/bin/python -u
+# collectmmm - to collect min, max, mean and pixel # values from a set of
+# log files and set the min/max/mean in an image file header
+#
+# $Id$
+#
+
+progname = 'collectmmm'
+prefix = 'ERROR: ' + progname + ' - '
+
+
+#### MAIN PROGRAM  ####
+#
+# load System Libraries
+import os, sys, os.path, signal
+
+#
+# Setup runtime environment
+if sys.platform.find("win32") < 0:
+   try:
+      signal.signal(signal.SIGHUP, signal.SIG_IGN)
+   except:
+      pass
+if os.getenv('IMOD_DIR') != None:
+   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
+                        os.pathsep + os.environ['PATH']
+   sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import *
+
+if len(sys.argv) < 5:
+   prnstr("""
+Usage: collectmmm tag rootname #_of_logs image_file [starting_#]
+   tag  =  a unique text string prefix to the min, max, mean, and pixel #
+   rootname = root name of numbered log files, rootname-nnn.log
+   #_of_logs = number of log files
+   image_file = image file to correct the header of 
+   starting_# = optional entry of number of first file, default is 1""")
+   sys.exit(1)
+
+setExitPrefix(prefix)
+tag = sys.argv[1]
+root = sys.argv[2]
+imfile = sys.argv[4]
+try:
+   numlogs = int(sys.argv[3])
+   startnum = 1
+   if len(sys.argv) > 5:
+      startnum = int(sys.argv[5])
+except:
+   exitError("Converting number of logs or number of first file to an integer")
+
+allmin = 1.e37
+allmax = -allmin
+allsum = 0.
+pixsum = 0.
+for num in range(numlogs):
+   numrec = num + startnum
+   numtext = fmtstr('{:03d}', numrec)
+   thislog = root + '-' + numtext + '.log'
+   loglines = readTextFile(thislog)
+
+   # get the line from the log file and insist it has 4 entries
+   for l in loglines:
+      index = l.find(tag)
+      if index >= 0:
+         valstr = l[index + len(tag):]
+         vsplit = valstr.split()
+         if len(vsplit) != 4:
+            exitError(thislog + ' does not contain 4 values after tag: ' + valstr)
+         break
+   else:
+      exitError(thislog + ' does not contain a line with "' + tag + '"')
+
+   # Convert values to float
+   logmmm = []
+   for v in vsplit:
+      try:
+         logmmm.append(float(v))
+      except:
+         exitError('Converting ' + v + ' in ' + thislog + ' to a numeric value')
+
+   # Maintain min/max and sums
+   allmin = min(allmin, logmmm[0])
+   allmax = max(allmax, logmmm[1])
+   allsum += logmmm[2] * logmmm[3]
+   pixsum += logmmm[3]
+
+# Compute final mean and set into header
+mean = allsum / pixsum
+altlines = [imfile, 'setmmm', fmtstr('{},{},{}', allmin, allmax, mean), 'done']
+try:
+   runcmd('alterheader', altlines, 'stdout')
+except ImodpyError:
+   exitFromImodError(progname)
+
+sys.exit(0)
