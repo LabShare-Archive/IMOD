@@ -41,8 +41,9 @@ pyVersion = 100 * sys.version_info[0] + 10 * sys.version_info[1]
 if pyVersion < 300:
    import exceptions
 
-# The global place to stash error strings
+# The global place to stash error strings and last exit status
 errStrings = []
+errStatus = 0
 runRetryLimit = 10
 runMaxTimeForRetry = 0.5
 
@@ -88,9 +89,10 @@ def runcmd(cmd, input=None, outfile=None, inStderr = None):
        it will retry up to 10 times.  Call setRetryLimit() to modify the allowed number
        of retries and the maximum run time for a failure to be retried."""
 
-   global errStrings
+   global errStrings, errStatus
 
    # Set up flags for whether to collect output or send to stderr
+   errStatus = 0
    collect = 1
    toStdout = 0
    output = None
@@ -193,9 +195,9 @@ def runcmd(cmd, input=None, outfile=None, inStderr = None):
       
    if ec:
       # look thru the output for 'ERROR' line(s) and put them before this
-      errstr = cmd + fmtstr(": exited with status {} {}\n", (ec >> 8),
-                            (ec & 255))
+      errstr = cmd + fmtstr(": exited with status {} {}\n", (ec >> 8), (ec & 255))
       errStrings = []
+      errStatus = ec & 255
       if collect and output:
          errStrings = [l for l in output
                if l.find('ERROR:') >= 0]
@@ -217,7 +219,10 @@ def setRetryLimit(numRetries, maxTime = None):
    runRetryLimit = max(0, numRetries)
    if maxTime:
       runMaxTimeForRetry = maxTime
-      
+
+# Get exit status of last command that was run
+def getLastExitStatus():
+   return errStatus
 
 # Get essential data from the header of an MRC file
 def getmrc(file, doAll = False):
@@ -667,6 +672,9 @@ def prnstr(string, file = sys.stdout, end = '\n'):
 
 
 #  $Log$
+#  Revision 1.19  2011/07/10 05:38:43  mast
+#  Fixed optionValue to make sure line starts with option name
+#
 #  Revision 1.18  2011/06/16 20:55:26  mast
 #  Added verbose output from runcmd based on environment variable; fixed
 #  repeating a command with python 3
