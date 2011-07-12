@@ -1,0 +1,167 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputVolume]
+type = FN
+usage = Input file to be transformed
+tooltip = 
+manpage = Input file to be transformed.  If this option is not entered, the
+first nonoption argument is taken as the input volume.
+
+[Field = OutputVolume]
+type = FN
+usage = Transformed output file
+tooltip = 
+manpage = Name of transformed file to be produced.  If this option is not entered, the
+second nonoption argument is taken as this name.
+
+[Field = size]
+type = CH
+usage = Either name or X,Y,Z size of file being matched to
+tooltip = 
+manpage = Specifies the size of the volume being matched to;
+the entry can be either the name of that file or its NX,NY,NZ dimensions.
+
+[Field = refinelimit]
+type = F
+usage = Mean residual limit for using refinematch and matchvol (default 0.3)
+tooltip =
+manpage = The maximum mean residual that will be allowed when running 
+Refinematch(1) and Matchvol(1).
+
+[Field = warplimit]
+type = CH
+usage = Mean residual limits which findwarp will try to achieve, or 0 not to
+warp (default 0.2,0.27,0.35)
+tooltip =
+manpage = A list of mean residuals that Warpvol(1) will attempt to achieve
+automatically.  Values should be in increasing order and separated by commas.
+
+[Field = modelfile]
+type = FN
+usage = Model file defining patches to include
+tooltip =
+manpage = Name of a model file with contours enclosing the patches to include
+in fits.
+
+[Field = patchfile]
+type = FN
+usage = File of patch displacements (default patch.out)
+tooltip =
+manpage = Name of the existing file with list of patch displacements (default
+patch.out). 
+
+[Field = solvefile]
+type = FN
+usage = Initial transform file (default solve.xf)
+tooltip =
+manpage = Name of the existing file with the initial transformation between
+volumes (default solve.xf).
+
+[Field = refinefile]
+type = FN
+usage = Refining transform output file (default refine.xf)
+tooltip =
+manpage = Name of the file into which Refinematch(1) will place the refining
+transformation (default refine.xf).
+
+[Field = inversefile]
+type = FN
+usage = Inverse transform output file (default inverse.xf)
+tooltip =
+manpage = Name of the file into which Matchvol(1) will place the inverse cumulative
+transformation (default inverse.xf).
+
+[Field = warpfile]
+type = FN
+usage = Warp transform output file (default warp.xf)
+tooltip =
+manpage = Name of the file into which Warpvol(1) will place the inverse warping 
+transformations (default warp.xf).
+
+
+[Field = residualfile]
+type = FN
+usage = Output file for patch displacements with residuals
+tooltip =
+manpage = Name of the file into which Refinematch(1) and/or Warpvol(1) will place a new
+list of the patches, their displacements, and the residual from the fits.
+
+[Field = vectormodel]
+type = FN
+usage = Output file for model of patches with residuals
+tooltip =
+manpage = Name of patch vector model file to create from the residual file with 
+Patch2imod(1).
+
+[Field = clipsize]
+type = I
+usage = Size of clipping plane box in patch model
+tooltip =
+manpage = If writing a patch vector model, set up four clipping planes enclosing a
+square central area of the given size.
+
+[Field = tempdir]
+type = FN
+usage = Directory for temporary files
+tooltip =
+manpage = Path name of directory into which Matchvol or Warpvol can place temporary
+files.
+
+[Field = xlowerexclude]
+type = I
+usage = Columns to exclude on the left side
+tooltip = 
+manpage = The number of columns of patches to exclude on the left side of
+the volume.
+
+[Field = xupperexclude]
+type = I
+usage = Columns to exclude on the right side
+tooltip =
+manpage = The number of columns of patches to exclude on the right side of
+the volume.
+
+[Field = ylowerexclude]
+type = I
+usage = Rows or slabs to exclude at low Y
+tooltip =
+manpage = The number of rows or slabs of patches to exclude on the lower Y side
+of the volume.
+
+[Field = yupperexclude]
+type = I
+usage = Rows or slabs to exclude at high Y
+tooltip =
+manpage = The number of rows or slabs of patches to exclude on the upper Y side
+of the volume.
+
+[Field = zlowerexclude]
+type = I
+usage = Slabs or rows to exclude at low Z
+tooltip = 
+manpage = The number of slabs or rows of patches to exclude on the lower Z
+side of the volume.  This would be used to specify rows on the bottom when 
+viewing a volume in flipped orientation.
+
+[Field = zupperexclude]
+type = I
+usage = Slabs or rows to exclude at high Z
+tooltip =
+manpage = The number of slabs or rows of patches to exclude on the upper Z
+side of the volume.  This would be used to specify rows on the top when 
+viewing a volume in flipped orientation.
+
+[Field = linear]
+type = B
+usage = Use linear interpolation in Matchvol/Warpvol
+tooltip =
+manpage = Use linear instead of quadratic interpolation for transforming the volume
+with Matchvol(1) or Warpvol(1).
+
+[Field = trial]
+type = B
+usage = Run Refinewarp/Findwarp but not Matchvol/Warpvol
+tooltip =
+manpage = Use a trial mode, in which the program exits after finding a good fit
+rather than going on to Matchvol or Warpvol.
