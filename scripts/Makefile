@@ -3,7 +3,7 @@ include ../configure
 #  $Id$
 #  No more Log
 
-SCRIPTS = matchorwarp matchshifts\
+SCRIPTS = matchshifts\
  newst onepatchcorr patchcorr3d patchcrawl3d recombine reduceby2 selfalign\
  setupcoms setuplong splitmrc xf2xg xfalign\
  dm2mrc alignlog transferfid submfg imodpsview settmpdir matchrotpairs\
