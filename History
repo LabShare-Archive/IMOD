@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/11/11: Fixed Ctfphaseflip, broken in 4.2.19 when run without parallel
+processing.
+
 7/9/11: IMOD_4-2-19
 7/9/11: Made Tilt able to output and read in internal vertical slices when
 running SIRT internally, to prevent double interpolations between internal and
