@@ -65,7 +65,7 @@ void usage(void)
   fprintf(stderr, "\tstandev     - Compute standard deviation for averaged images.\n");
   fprintf(stderr, "\tstats       - Print some stats on image file.\n");
   fprintf(stderr, "\tsubtract    - Subtract one image volume from another.\n");
-  fprintf(stderr, "\ttruncate    - Limit image values at low or high end.");
+  fprintf(stderr, "\ttruncate    - Limit image values at low or high end.\n");
   fprintf(stderr, "\tunwrap      - Undo a wraparound of integer intensity values.\n");
   fprintf(stderr, "\tvariance    - Compute variance for averaged images.\n");
   /* fprintf(stderr, "\ttranslate   - translate image.\n");
@@ -685,6 +685,9 @@ int *clipMakeSecList(char *clst, int *nofsecs)
 
 /*
 $Log$
+Revision 3.27  2011/03/05 03:32:01  mast
+Allow environment variable to prevent backing up file
+
 Revision 3.26  2011/02/28 17:36:30  mast
 Add unwrap option
 
