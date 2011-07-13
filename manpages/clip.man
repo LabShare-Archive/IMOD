@@ -246,7 +246,7 @@ The following options are valid for selected processes:
 Switch, use depends on process.
 .TP
 .B -m <mode>
-Output modes: 'byte', 'short', 'float', 'complex', 'ushort', 'rgb', or 0-4, 
+Output modes: "byte", "short", "float", "complex", "ushort", "rgb", or 0-4, 
 6, or 16.  0 = byte, 1 = short, 2 = float, 3 = complex short, 4 = complex
 float, 6 = unsigned short, 16 = rgb.
 .TP
@@ -384,7 +384,7 @@ unless the
 .B -p
 option is given to change the pad value. The 
 .B -n
-option selects the type of padding: '-n 0' selects no padding; '-n 1' 
+option selects the type of padding: "-n 0" selects no padding; "-n 1"
 selects padding with mean value. (default)
 Float is the only output mode supported.
 Input sizes must have dimensions that fit the requirements for an FFT:
