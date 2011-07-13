@@ -48,6 +48,9 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2011/02/10 04:33:00  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.3  2011/02/03 06:22:16  sueh
  * <p> bug# 1422 Control of the processing method has been centralized in the
  * <p> processing method mediator class.  Implementing ProcessInterface.
@@ -485,8 +488,6 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     pnlSetup.setDeferred3dmodButtons();
     pnlInitial.setDeferred3dmodButtons();
     updateDisplay();
-    mediator.register(this);
-    mediator.setMethod(this, ProcessingMethod.LOCAL_CPU);
   }
 
   /**
@@ -568,6 +569,8 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
   }
 
   public void show() {
+    mediator.register(this);
+    mediator.setMethod(this, ProcessingMethod.LOCAL_CPU);
     pnlSetup.show(!isChanged(applicationManager.getState()));
     setDisplayed(true);
   }
