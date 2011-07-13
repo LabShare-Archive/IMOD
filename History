@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/12/11: Fixed a bug in eTomo where the Parallel Processing table could not be
+displayed in Tomogram Combination.(Bug# 1511)
+
 7/12/11: Converted Matchorwarp to Python.
 
 7/11/11: Converted Collectmmm and Sampletilt to Python.
