@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="var" path="ECLIPSE_HOME/plugins/org.junit_3.8.1/junit.jar" sourcepath="JUNIT_DOC/src.jar"/>
 	<classpathentry kind="lib" path="/home/sueh/bin/plugins/junit.extensions.jfcunit/jakarta-regexp-1.2.jar"/>
 	<classpathentry kind="lib" path="/home/sueh/bin/plugins/junit.extensions.jfcunit/jfcunit.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="/home/sueh/bin/plugins/org.junit_3.8.1/junit.jar" sourcepath="/home/sueh/bin/plugins/org.junit_3.8.1/src.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
