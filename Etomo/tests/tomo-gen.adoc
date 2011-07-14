@@ -1,7 +1,9 @@
 Version = 1.2
 
 [function = main]
-run.function.sirt=
+[[if = run_sirt]]
+  run.function.sirt=
+[[]]
 run.function.tilt=
 if.var.build.bn.done=
 if.var.build.return=
