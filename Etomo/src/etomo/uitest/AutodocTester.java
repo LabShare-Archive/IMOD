@@ -67,6 +67,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.54  2011/07/12 03:33:27  sueh
+ * <p> In executeCommand handled a file chooser in Windows.
+ * <p>
  * <p> Revision 1.53  2011/07/08 18:34:01  sueh
  * <p> In formatApplication, Increasing format time.
  * <p>
@@ -164,6 +167,9 @@ import etomo.util.Utilities;
  * <p>being fooled when kill button is disabled for a second.
  * <p>
  * $Log$
+ * Revision 1.54  2011/07/12 03:33:27  sueh
+ * In executeCommand handled a file chooser in Windows.
+ *
  * Revision 1.53  2011/07/08 18:34:01  sueh
  * In formatApplication, Increasing format time.
  *
@@ -2022,7 +2028,7 @@ final class AutodocTester extends Assert implements VariableList {
     System.err.println("Formatting application");
     UIHarness.INSTANCE.pack(axisID, EtomoDirector.INSTANCE.getCurrentManagerForTest());
     try {
-      Thread.sleep(600);
+      Thread.sleep(650);
     }
     catch (InterruptedException e) {
     }
