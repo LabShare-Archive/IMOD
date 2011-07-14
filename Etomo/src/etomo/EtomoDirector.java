@@ -995,7 +995,7 @@ public class EtomoDirector {
       settingsDialog.setParameters(userConfig);
       Dimension frmSize = UIHarness.INSTANCE.getSize(getCurrentManager());
       Point loc = UIHarness.INSTANCE.getLocation(getCurrentManager());
-      settingsDialog.setLocation(loc.x, loc.y + frmSize.height);
+      settingsDialog.setLocation(loc.x, loc.y + 20);
       settingsDialog.setModal(false);
     }
     settingsDialog.setVisible(true);
@@ -1171,6 +1171,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.104  2011/02/21 21:05:27  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.103  2010/11/13 16:02:54  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
