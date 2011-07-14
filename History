@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/14/11: In eTomo - Tomogram Combination updated the progress area when
+replacing the patch vector model.(Bug# 1512)
+
 7/13/11: In eTomo - Post-Processing - Flatten added an error message for an
 empty Smoothing Factor.(Bug# 1514)
 
