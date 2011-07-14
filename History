@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/14/11: In eTomo - Tomogram Combination - SIRT fixed the enabling and
+disabling of the Resume from... radio buttons and combobox.(Bug# 1510)
+
 7/14/11: In eTomo - Tomogram Combination updated the progress area when
 replacing the patch vector model.(Bug# 1512)
 
