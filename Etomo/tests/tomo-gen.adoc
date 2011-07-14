@@ -358,6 +358,9 @@ bn.run-sirt=
 wait.process.processchunks-tilt%{axis}_sirt=done
 tf.iteration-#'s-to-retain=7
 rb.go-back,-resume-from-iteration=
+[[if = test-gui]]
+  assert.enabled.cbb.go-back,-resume-from-iteration=
+[[]]
 bn.run-sirt=
 wait.process.processchunks-tilt%{axis}_sirt=done
 rb.start-from-beginning=
@@ -365,7 +368,9 @@ cb.delete-existing-reconstructions-after-starting-point=on
 tf.iteration-#'s-to-retain=1
 bn.run-sirt=
 wait.process.processchunks-tilt%{axis}_sirt=done
-assert.cbb.go-back,-resume-from-iteration=1
+[[if = test-gui]]
+  assert.cbb.go-back,-resume-from-iteration=1
+[[]]
 bn.view-tomogram-in-3dmod=
 bn.use-sirt-output-file=
 wait.popup.etomo-question=Yes
