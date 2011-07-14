@@ -50,6 +50,10 @@ import etomo.util.FrontEndLogic;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2011/04/09 06:37:25  sueh
+ * <p> bug# 1416 Need to pass the manager to most FileType functions so that TILT_OUTPUT can distinguish
+ * <p> between single and dual axis type.
+ * <p>
  * <p> Revision 1.3  2011/02/22 18:11:07  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -332,7 +336,13 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
   }
 
   public boolean getParameters(final FlattenWarpParam param) {
-    String errorMessage = param.setLambdaForSmoothing(ltfLambdaForSmoothing.getText());
+    String lambdaForSmoothing = ltfLambdaForSmoothing.getText();
+    if (lambdaForSmoothing == null || lambdaForSmoothing.matches("\\s*")) {
+      UIHarness.INSTANCE.openMessageDialog(manager, LAMBDA_FOR_SMOOTHING_LABEL
+          + " is a required field.", "Entry Error", axisID);
+      return false;
+    }
+    String errorMessage = param.setLambdaForSmoothing(lambdaForSmoothing);
     if (errorMessage != null) {
       UIHarness.INSTANCE.openMessageDialog(manager, "Error in "
           + LAMBDA_FOR_SMOOTHING_LABEL + ":  " + errorMessage, "Entry Error", axisID);
