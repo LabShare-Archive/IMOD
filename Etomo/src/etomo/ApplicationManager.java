@@ -6481,6 +6481,7 @@ public final class ApplicationManager extends BaseManager implements
    * 
    */
   public void modelToPatch() {
+    mainPanel.startProgressBar("Replacing patch vectors", AxisID.ONLY);
     try {
       processMgr.modelToPatch(AxisID.ONLY);
     }
@@ -6490,6 +6491,7 @@ public final class ApplicationManager extends BaseManager implements
       errorMessage[1] = except.getMessage();
       uiHarness.openMessageDialog(this, errorMessage, "Patch vector model error",
           AxisID.ONLY);
+      mainPanel.stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
       return;
     }
     catch (LogFile.LockException except) {
@@ -6498,8 +6500,10 @@ public final class ApplicationManager extends BaseManager implements
       errorMessage[1] = except.getMessage();
       uiHarness.openMessageDialog(this, errorMessage, "Patch vector model error",
           AxisID.ONLY);
+      mainPanel.stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
       return;
     }
+    mainPanel.stopProgressBar(AxisID.ONLY, ProcessEndState.DONE);
   }
 
   /**
@@ -8043,6 +8047,10 @@ public final class ApplicationManager extends BaseManager implements
 /**
  * <p>
  * $Log$
+ * Revision 3.376  2011/06/30 00:19:22  sueh
+ * Bug# 1502 In commitTestVolume and useImageFile, added useFileNameInClose parameter to
+ * BaseManager.renameImageFile
+ *
  * Revision 3.375  2011/06/28 20:01:55  sueh
  * Added test prints to closeImod functions.
  *
