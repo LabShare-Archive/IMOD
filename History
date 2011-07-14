@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/13/11: In eTomo, opening the Setting dialog over the main frame, since
+opening it below the frame doesn't work well on Windows.(Bug# 1411)
+
 7/12/11: Fixed a bug in eTomo where the Parallel Processing table could not be
 displayed in Tomogram Combination.(Bug# 1511)
 
