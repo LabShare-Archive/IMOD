@@ -56,6 +56,9 @@ import etomo.type.TomogramState;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.7  2011/05/03 03:36:27  sueh
+* <p> bug# 1416 Added checkpointing  and listening for subarea fields.  Removed  StateChangedReporter.
+* <p>
 * <p> Revision 1.6  2011/04/25 23:49:22  sueh
 * <p> bug# 1416 Moved SirtStartFromPanel functionality to this class.  Handling one file when opening in 3dmod and using a SIRT tomogram as the dataset tomogram.  Removed the observer/observable code because their are enough observers and the response isn't standard enough.  Talking directly to TiltPanel.
 * <p>
@@ -272,6 +275,8 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     ltfSubareaSize.setEnabled(subarea && !resume);
     ltfYOffsetOfSubarea.setEnabled(subarea && !resume);
     radiusAndSigmaPanel.setEnabled(!resume);
+    cmbResumeFromIteration.setEnabled(rbResumeFromIteration.isEnabled()
+        && rbResumeFromIteration.isSelected());
   }
 
   private void updateDisplay(final boolean resumeEnabled) {
