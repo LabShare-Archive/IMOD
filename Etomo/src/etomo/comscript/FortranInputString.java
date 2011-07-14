@@ -23,6 +23,10 @@ import etomo.type.ConstEtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.23  2011/06/01 01:12:35  sueh
+ * <p> Bug# 1471 In validateAndSet(String) throwing FortranInputSyntaxException instead of
+ * <p> NumberFormatException.
+ * <p>
  * <p> Revision 3.22  2011/05/24 23:10:45  sueh
  * <p> Bug# 1471 Added a new, private validateAndSet which also takes a divider character.  Allowing both
  * <p> comma and space dividers without calling setdivider.
@@ -509,6 +513,15 @@ public class FortranInputString {
   public String toString(boolean defaultIsBlank) {
     if (!defaultIsBlank) {
       return toString();
+    }
+    if (isDefault()) {
+      return "";
+    }
+    if (isNull()) {
+      return "";
+    }
+    if (isEmpty()) {
+      return "";
     }
     String string = toString();
     if (string.equals("/")) {
