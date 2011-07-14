@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/13/11: In eTomo - Post-Processing - Flatten added an error message for an
+empty Smoothing Factor.(Bug# 1514)
+
 7/13/11: In eTomo, opening the Setting dialog over the main frame, since
 opening it below the frame doesn't work well on Windows.(Bug# 1411)
 
