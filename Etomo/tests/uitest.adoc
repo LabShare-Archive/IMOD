@@ -11,6 +11,7 @@ set.param = --autoclose3dmod
 set.param = --ignoreloc
 #set.param = %{dataset}.edf
 set.var.single=
+set.var.run_sirt=
 set.interface.Recon=
 #set.var.build=
 
@@ -27,6 +28,7 @@ set.param = --autoclose3dmod
 set.param = --ignoreloc
 #set.param = %{dataset}.edf
 set.var.dual=
+set.var.run_sirt=
 set.interface.Recon=
 
 [Test = single-test-gui]
@@ -42,6 +44,7 @@ set.param = --ignoreloc
 set.var.single=
 set.var.test-gui=
 set.var.run-raptor=
+set.var.run_sirt=
 set.interface.Recon=
 
 [Test = dual-test-gui]
@@ -58,6 +61,7 @@ set.param = --ignoreloc
 #set.param = %{dataset}.edf
 set.var.dual=
 set.var.test-gui=
+set.var.run_sirt=
 set.interface.Recon=
 
 [Test = single-fidless]
@@ -71,6 +75,7 @@ set.param = --ignoreloc
 #set.param = %{dataset}.edf
 set.var.single=
 set.var.fidless=
+set.var.run_sirt=
 set.interface.Recon=
 #set.var.build=
 
@@ -86,6 +91,7 @@ set.param = --ignoreloc
 #set.param = %{dataset}.edf
 set.var.single=
 set.var.simple-align=
+set.var.run_sirt=
 set.interface.Recon=
 
 [Test = single-patch-tracking-test-gui]
@@ -101,6 +107,7 @@ set.param = --ignoreloc
 set.var.single=
 set.var.test-gui=
 set.var.patch-tracking=
+set.var.run_sirt=
 set.interface.Recon=
 
 
@@ -114,6 +121,7 @@ set.param = --autoclose3dmod
 set.param = --ignoreloc
 #set.param = %{dataset}.edf
 set.var.single=
+set.var.run_sirt=
 set.var.montage=
 
 [Test = dual-montage]
@@ -127,6 +135,7 @@ set.param = --autoclose3dmod
 set.param = --ignoreloc
 #set.param = %{dataset}.edf
 set.var.dual=
+set.var.run_sirt=
 set.var.montage=
 
 [Test = single-montage-test-gui]
@@ -138,6 +147,7 @@ set.param = --autoclose3dmod
 set.param = --ignoreloc
 set.var.single=
 set.var.montage=
+set.var.run_sirt=
 set.var.test-gui=
 
 [Test = dual-montage-test-gui]
@@ -154,6 +164,7 @@ set.param = --ignoreloc
 set.var.dual=
 set.var.montage=
 set.var.test-gui=
+set.var.run_sirt=
 set.var.run-raptor=
 
 [Test = dual-montage-patch-tracking]
@@ -168,6 +179,7 @@ set.param = --ignoreloc
 #set.param = midzone2.edf
 set.var.dual=
 set.var.montage=
+set.var.run_sirt=
 set.var.patch-tracking=
 
 [Test = join]
