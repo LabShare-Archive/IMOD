@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/18/11: In eTomo - Tomogram Generation always selecting the row in a single
+CPU or GPU parallel processing table.(Bug# 1515)
+
 7/14/11: In eTomo - Tomogram Combination - SIRT fixed the enabling and
 disabling of the Resume from... radio buttons and combobox.(Bug# 1510)
 
