@@ -97,8 +97,6 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
 
   abstract String getHeader1ComputerText();
 
-  abstract boolean isSelectOnlyRow();
-
   abstract void addHeader1Load(JPanel tablePanel, GridBagLayout layout,
       GridBagConstraints constraints);
 
@@ -238,7 +236,7 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
             + e.getMessage(), "Etomo Error", axisID);
       }*/
     setToolTipText();
-    if (isSelectOnlyRow() && rowList.size() == 1) {
+    if (rowList.size() == 1) {
       rowList.setSelected(0, true);
     }
   }
@@ -781,6 +779,9 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2011/06/25 03:11:41  sueh
+ * <p> Bug# 1499 In RowList.get(int) and getComputer(int) handling index == -1.
+ * <p>
  * <p> Revision 1.4  2011/05/19 16:33:13  sueh
  * <p> bug# 1473 In ParameterStore.load, removed unused throw.
  * <p>
