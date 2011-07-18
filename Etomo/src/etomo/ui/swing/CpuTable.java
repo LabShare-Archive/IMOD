@@ -32,6 +32,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2011/02/22 18:07:08  sueh
+* <p> bug# 1437 Reformatting.
+* <p>
 * <p> Revision 1.1  2011/02/03 06:13:39  sueh
 * <p> bug# 1422 Child of ProcessorTable that makes a ProcessorTable display
 * <p> CPUs.
@@ -88,10 +91,6 @@ class CpuTable extends ProcessorTable {
 
   String getHeader1ComputerText() {
     return "Computer";
-  }
-
-  final boolean isSelectOnlyRow() {
-    return false;
   }
 
   final void addHeader1Load(final JPanel tablePanel, final GridBagLayout layout,

@@ -31,6 +31,9 @@ import etomo.type.EtomoNumber;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2011/02/22 18:20:39  sueh
+* <p> bug# 1437 Reformatting.
+* <p>
 * <p> Revision 1.1  2011/02/03 06:17:02  sueh
 * <p> bug# 1422 Child of ProcessorTable that makes a ProcessorTable display
 * <p> queues.
@@ -106,10 +109,6 @@ final class QueueTable extends ProcessorTable {
 
   String getHeader1ComputerText() {
     return "Queue";
-  }
-
-  boolean isSelectOnlyRow() {
-    return true;
   }
 
   void addHeader1Load(final JPanel tablePanel, final GridBagLayout layout,
