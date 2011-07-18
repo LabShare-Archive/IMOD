@@ -145,6 +145,8 @@ def runcmd(cmd, input=None, outfile=None, inStderr = None):
                p = Popen(cmd, shell=True, stdout=outfile, stdin=PIPE)
                p.communicate(input)
             ec = p.returncode
+            if ec:
+               errStatus = ec
             
          else:
 
@@ -167,6 +169,10 @@ def runcmd(cmd, input=None, outfile=None, inStderr = None):
                kpid, ec = os.wait()
                if not collect and output:
                   outfile.writelines(output)
+
+            # Error status is high byte of os.wait() return value
+            if ec:
+               errStatus = ec >> 8
 
          # If it succeeds, break the retry loop
          break
@@ -195,9 +201,8 @@ def runcmd(cmd, input=None, outfile=None, inStderr = None):
       
    if ec:
       # look thru the output for 'ERROR' line(s) and put them before this
-      errstr = cmd + fmtstr(": exited with status {} {}\n", (ec >> 8), (ec & 255))
+      errstr = cmd + fmtstr(": exited with status {}\n", errStatus)
       errStrings = []
-      errStatus = ec & 255
       if collect and output:
          errStrings = [l for l in output
                if l.find('ERROR:') >= 0]
@@ -672,6 +677,9 @@ def prnstr(string, file = sys.stdout, end = '\n'):
 
 
 #  $Log$
+#  Revision 1.20  2011/07/12 17:50:07  mast
+#  Needed function to fetch last exit status
+#
 #  Revision 1.19  2011/07/10 05:38:43  mast
 #  Fixed optionValue to make sure line starts with option name
 #
