@@ -31,6 +31,9 @@ import etomo.type.EtomoNumber;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2011/07/18 22:44:59  sueh
+* <p> Bug# 1515 Removed isSelectOnlyRow - no longer needed.
+* <p>
 * <p> Revision 1.2  2011/02/22 18:20:39  sueh
 * <p> bug# 1437 Reformatting.
 * <p>
@@ -109,6 +112,10 @@ final class QueueTable extends ProcessorTable {
 
   String getHeader1ComputerText() {
     return "Queue";
+  }
+  
+  String getNoCpusSelectedErrorMessage() {
+    return "A queue must be selected.";
   }
 
   void addHeader1Load(final JPanel tablePanel, final GridBagLayout layout,

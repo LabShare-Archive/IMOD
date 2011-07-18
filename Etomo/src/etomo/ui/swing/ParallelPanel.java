@@ -109,14 +109,14 @@ public final class ParallelPanel implements Expandable, Storable {
   private ParallelPanel(final BaseManager manager, final AxisID axisID,
       final PanelHeaderState state, final AxisProcessPanel parent,
       final boolean popupChunkWarnings) {
-  //  try {
-      ParameterStore parameterStore = EtomoDirector.INSTANCE.getParameterStore();
-      parameterStore.load(this);
-  /*  }
-    catch (LogFile.LockException e) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to load parameters.\n"
-          + e.getMessage(), "Etomo Error", axisID);
-    }*/
+    //  try {
+    ParameterStore parameterStore = EtomoDirector.INSTANCE.getParameterStore();
+    parameterStore.load(this);
+    /*  }
+      catch (LogFile.LockException e) {
+        UIHarness.INSTANCE.openMessageDialog(manager, "Unable to load parameters.\n"
+            + e.getMessage(), "Etomo Error", axisID);
+      }*/
     this.manager = manager;
     this.axisID = axisID;
     this.parent = parent;
@@ -146,8 +146,9 @@ public final class ParallelPanel implements Expandable, Storable {
     //sNice
     niceFloor = CpuAdoc.INSTANCE
         .getMinNice(manager, axisID, manager.getPropertyUserDir());
-    sNice = Spinner.getLabeledInstance("Nice: ", manager
-        .getParallelProcessingDefaultNice(), niceFloor, ProcesschunksParam.NICE_CEILING);
+    sNice = Spinner.getLabeledInstance("Nice: ",
+        manager.getParallelProcessingDefaultNice(), niceFloor,
+        ProcesschunksParam.NICE_CEILING);
     southPanel.add(sNice.getContainer());
     southPanel.add(btnPause);
     southPanel.add(btnResume);
@@ -237,6 +238,10 @@ public final class ParallelPanel implements Expandable, Storable {
     return ltfCPUsSelected.getLabel();
   }
 
+  String getNoCpusSelectedErrorMessage() {
+    return currentTable.getNoCpusSelectedErrorMessage();
+  }
+
   Container getContainer() {
     return rootPanel;
   }
@@ -254,8 +259,8 @@ public final class ParallelPanel implements Expandable, Storable {
     String command = event.getActionCommand();
     if (command == btnResume.getActionCommand()) {
       manager.resume(axisID, processchunksParam, processResultDisplay, null, rootPanel,
-          null, popupChunkWarnings, mediator
-              .getRunMethodForParallelPanel(getProcessingMethod()));
+          null, popupChunkWarnings,
+          mediator.getRunMethodForParallelPanel(getProcessingMethod()));
     }
     else if (command == btnPause.getActionCommand()) {
       manager.pause(axisID);
@@ -439,9 +444,16 @@ public final class ParallelPanel implements Expandable, Storable {
     numMachines.setValidFloor(1);
     numMachines.set(ltfCPUsSelected.getText());
     if (!numMachines.isValid()) {
-      UIHarness.INSTANCE.openMessageDialog(manager, getCPUsSelectedLabel()
-          + " " + numMachines.getInvalidReason(), "Unable to run sirtsetup", axisID);
-      return false;
+      if (numMachines.equals(0)) {
+        UIHarness.INSTANCE.openMessageDialog(manager, getNoCpusSelectedErrorMessage(),
+            "Unable to run splittilt", axisID);
+        return false;
+      }
+      else {
+        UIHarness.INSTANCE.openMessageDialog(manager, getCPUsSelectedLabel() + " "
+            + numMachines.getInvalidReason(), "Unable to run sirtsetup", axisID);
+        return false;
+      }
     }
     param.setNumberOfProcessors(numMachines.toString());
     return true;
@@ -462,8 +474,8 @@ public final class ParallelPanel implements Expandable, Storable {
     if (error == null) {
       return true;
     }
-    UIHarness.INSTANCE.openMessageDialog(manager, error + "  "
-        + currentTable.getHelpMessage(), "Table Error", axisID);
+    UIHarness.INSTANCE.openMessageDialog(manager,
+        error + "  " + currentTable.getHelpMessage(), "Table Error", axisID);
     return false;
   }
 
@@ -540,6 +552,9 @@ public final class ParallelPanel implements Expandable, Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2011/05/19 16:32:46  sueh
+ * <p> bug# 1473 In ParameterStore.load, removed unused throw.
+ * <p>
  * <p> Revision 1.5  2011/05/03 03:28:53  sueh
  * <p> bug# 1416 In getParameters(SirtsetupParam) pop up error message when no computers are selected.
  * <p>

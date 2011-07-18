@@ -32,6 +32,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.3  2011/07/18 22:44:44  sueh
+* <p> Bug# 1515 Removed isSelectOnlyRow - no longer needed.
+* <p>
 * <p> Revision 1.2  2011/02/22 18:07:08  sueh
 * <p> bug# 1437 Reformatting.
 * <p>
@@ -91,6 +94,10 @@ class CpuTable extends ProcessorTable {
 
   String getHeader1ComputerText() {
     return "Computer";
+  }
+  
+  String getNoCpusSelectedErrorMessage() {
+    return "At least one computer must be selected.";
   }
 
   final void addHeader1Load(final JPanel tablePanel, final GridBagLayout layout,

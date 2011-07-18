@@ -128,6 +128,8 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
   abstract String getLoadPrepend(final ConstEtomoVersion version);
 
   abstract void initRow(ProcessorTableRow row);
+  
+  abstract String getNoCpusSelectedErrorMessage();
 
   ProcessorTable(final BaseManager manager, final ParallelPanel parent,
       final AxisID axisID, final boolean displayQueues) {
@@ -237,7 +239,8 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
       }*/
     setToolTipText();
     if (rowList.size() == 1) {
-      rowList.setSelected(0, true);
+      //TEMP
+      //rowList.setSelected(0, true);
     }
   }
 
@@ -779,6 +782,10 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2011/07/18 22:45:52  sueh
+ * <p> Bug# 1515 In initTable always selecting a single row.  Removed isSelectOnlyRow, which is no longer
+ * <p> being called.
+ * <p>
  * <p> Revision 1.5  2011/06/25 03:11:41  sueh
  * <p> Bug# 1499 In RowList.get(int) and getComputer(int) handling index == -1.
  * <p>
