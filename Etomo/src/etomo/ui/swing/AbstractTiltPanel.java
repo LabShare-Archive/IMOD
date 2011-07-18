@@ -53,6 +53,11 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2011/06/28 21:49:38  sueh
+ * <p> Bug# 1480 Change gpuAvailable to gpusAvailable - non-local GPUs.  Added localGpuAvailable.  Calling
+ * <p> updateDisplay from msgMethodChanged so that the display is up to date before the method is
+ * <p> changed.  Corrected enabling the GPU checkbox in updateDisplay.
+ * <p>
  * <p> Revision 1.8  2011/05/11 01:35:39  sueh
  * <p> bug# 1483 In updateDisplay fixed the boolean value used to call TrialTiltPanel.setResume.
  * <p>
@@ -733,9 +738,18 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     }
     ConstEtomoNumber numMachines = param.setNumMachines(parallelPanel.getCPUsSelected());
     if (!numMachines.isValid()) {
-      UIHarness.INSTANCE.openMessageDialog(manager, parallelPanel.getCPUsSelectedLabel()
-          + " " + numMachines.getInvalidReason(), "Unable to run splittilt", axisID);
-      return false;
+      if (numMachines.equals(0)) {
+        UIHarness.INSTANCE.openMessageDialog(manager,
+            parallelPanel.getNoCpusSelectedErrorMessage(), "Unable to run splittilt",
+            axisID);
+        return false;
+      }
+      else {
+        UIHarness.INSTANCE.openMessageDialog(manager,
+            parallelPanel.getCPUsSelectedLabel() + " " + numMachines.getInvalidReason(),
+            "Unable to run splittilt", axisID);
+        return false;
+      }
     }
     return true;
   }
