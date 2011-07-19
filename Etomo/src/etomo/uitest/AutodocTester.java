@@ -67,6 +67,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.55  2011/07/14 21:21:26  sueh
+ * <p> Increasing waiting in formatApplication.
+ * <p>
  * <p> Revision 1.54  2011/07/12 03:33:27  sueh
  * <p> In executeCommand handled a file chooser in Windows.
  * <p>
@@ -167,6 +170,9 @@ import etomo.util.Utilities;
  * <p>being fooled when kill button is disabled for a second.
  * <p>
  * $Log$
+ * Revision 1.55  2011/07/14 21:21:26  sueh
+ * Increasing waiting in formatApplication.
+ *
  * Revision 1.54  2011/07/12 03:33:27  sueh
  * In executeCommand handled a file chooser in Windows.
  *
@@ -353,8 +359,8 @@ import etomo.util.Utilities;
 final class AutodocTester extends Assert implements VariableList {
   public static final String rcsid = "$Id$";
 
-  private static final int REDRAW_WAIT = 3;
-  private static final int MAX_FORMAT = 3;
+  private static final int REDRAW_WAIT = 4;
+  private static final int MAX_FORMAT = 4;
 
   private final ReadOnlyAutodoc autodoc;
   private final JFCTestHelper helper;
