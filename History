@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/19/11: In eTomo, left justified checkboxes and shortened spinners.
+(Bug# 1459)
+
 7/18/11: In eTomo - Tomogram Generation, always select the row in a single CPU
 or GPU parallel processing table.(Bug# 1515)
 
