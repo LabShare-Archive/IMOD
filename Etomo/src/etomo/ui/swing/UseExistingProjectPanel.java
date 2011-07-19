@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JFileChooser;
 
@@ -27,6 +28,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2011/05/19 16:35:24  sueh
+ * <p> bug# 1473 Added copyDataset to PeetManager.copyDataset.  Removed the functions it replaces: copyParameters and importParam.
+ * <p>
  * <p> Revision 1.2  2011/02/22 21:47:09  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -88,13 +92,16 @@ final class UseExistingProjectPanel {
    * Create the panel.
    */
   private void createPanel() {
+    btnImportMatlabParamFile.setSize();
+    btnCopyParameters.setSize();
     //use existing project
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.X_AXIS));
     pnlRoot.setBorder(new EtchedBorder("Use Existing Project").getBorder());
-    btnImportMatlabParamFile.setSize();
+    pnlRoot.add(Box.createRigidArea(FixedDim.x5_y0));
     pnlRoot.add(btnImportMatlabParamFile.getComponent());
-    btnCopyParameters.setSize();
+    pnlRoot.add(Box.createRigidArea(FixedDim.x5_y0));
     pnlRoot.add(btnCopyParameters.getComponent());
+    pnlRoot.add(Box.createRigidArea(FixedDim.x5_y0));
   }
 
   /**

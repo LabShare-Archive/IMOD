@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
@@ -30,6 +31,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/22 18:09:55  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.2  2011/02/03 06:22:16  sueh
  * <p> bug# 1422 Control of the processing method has been centralized in the
  * <p> processing method mediator class.  Implementing ProcessInterface.
@@ -118,9 +122,12 @@ final class FilterFullVolumePanel implements Run3dmodButtonContainer {
     pnlFields.add(ltfKValue);
     pnlFields.add(spIteration);
     pnlFields.add(spMemoryPerChunk);
+    pnlFields.add(Box.createHorizontalGlue());
     //checkbox panel
     pnlCheckBox.setLayout(new BoxLayout(pnlCheckBox, BoxLayout.X_AXIS));
+    pnlCheckBox.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlCheckBox.add(cbOverlapTimesFour);
+    pnlCheckBox.add(Box.createHorizontalGlue());
     //buttons panel
     pnlButtons.setBoxLayout(BoxLayout.X_AXIS);
     btnRunFilterFullVolume.setDeferred3dmodButton(btnViewFilteredVolume);

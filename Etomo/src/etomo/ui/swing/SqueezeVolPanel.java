@@ -35,6 +35,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 21:37:52  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -126,7 +129,13 @@ final class SqueezeVolPanel implements Run3dmodButtonContainer, ContextMenu {
     pnlRoot.add(pnlReductionFactor);
     //Linear interpolation panel
     cbLinearInterpolation.setAlignmentX(Component.RIGHT_ALIGNMENT);
-    pnlRoot.add(cbLinearInterpolation);
+    JPanel pnlLinearInterpolation = new JPanel();
+    pnlLinearInterpolation.setLayout(new BoxLayout(pnlLinearInterpolation,
+        BoxLayout.X_AXIS));
+    pnlLinearInterpolation.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlLinearInterpolation.add(cbLinearInterpolation);
+    pnlLinearInterpolation.add(Box.createHorizontalGlue());
+    pnlRoot.add(pnlLinearInterpolation);
     //third component
     SpacedPanel pnlButtons = SpacedPanel.getInstance();
     pnlButtons.setBoxLayout(BoxLayout.X_AXIS);

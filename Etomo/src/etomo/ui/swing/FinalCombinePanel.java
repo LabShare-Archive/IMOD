@@ -60,6 +60,9 @@ import etomo.util.DatasetFiles;
  * 
  * <p>
  * $Log$
+ * Revision 1.4  2011/02/22 18:10:23  sueh
+ * bug# 1437 Reformatting.
+ *
  * Revision 1.3  2011/02/03 06:22:16  sueh
  * bug# 1422 Control of the processing method has been centralized in the
  * processing method mediator class.  Implementing ProcessInterface.
@@ -684,8 +687,18 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlVolcombineBody.setLayout(new BoxLayout(pnlVolcombineBody, BoxLayout.Y_AXIS));
     cbParallelProcess = new CheckBox(
         tomogramCombinationDialog.parallelProcessCheckBoxText);
-    pnlVolcombineBody.add(cbParallelProcess);
-    pnlVolcombineBody.add(cbNoVolcombine);
+    JPanel pnlParallelProcess = new JPanel();
+    pnlParallelProcess.setLayout(new BoxLayout(pnlParallelProcess,BoxLayout.X_AXIS));
+    pnlParallelProcess.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlParallelProcess.add(cbParallelProcess);
+    pnlParallelProcess.add(Box.createHorizontalGlue());
+    pnlVolcombineBody.add(pnlParallelProcess);
+    JPanel pnlNoVolcombine = new JPanel();
+    pnlNoVolcombine.setLayout(new BoxLayout(pnlNoVolcombine,BoxLayout.X_AXIS));
+    pnlNoVolcombine.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlNoVolcombine.add(cbNoVolcombine);
+    pnlNoVolcombine.add(Box.createHorizontalGlue());
+    pnlVolcombineBody.add(pnlNoVolcombine);
     pnlVolcombineBody.add(ltfReductionFactor.getContainer());
     pnlVolcombineBody.add(ltfLowFromBothRadius.getContainer());
     pnlVolcombineBody.add(Box.createRigidArea(FixedDim.x0_y5));

@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
@@ -33,6 +34,9 @@ import etomo.type.JoinScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 18:03:20  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -128,6 +132,8 @@ final class BoundaryTable implements Viewable {
     rootPanel.setFocusable(true);
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.add(pnlBorder);
+    rootPanel.add(Box.createRigidArea(FixedDim.x0_y40));
+    rootPanel.add(Box.createRigidArea(FixedDim.x0_y20));
     //border pane
     pnlBorder.setLayout(new BoxLayout(pnlBorder, BoxLayout.X_AXIS));
     pnlBorder.setBorder(new EtchedBorder(TABLE_LABEL).getBorder());

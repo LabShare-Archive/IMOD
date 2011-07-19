@@ -746,8 +746,10 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     pnlAxisInfoA.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlAxisInfoA.add(btnViewRawStackA.getComponent());
     //Add adjusted focus checkbox
-    pnlAdjustedFocusA.add(cbAdjustedFocusA);
     pnlAdjustedFocusA.setLayout(new BoxLayout(pnlAdjustedFocusA, BoxLayout.X_AXIS));
+    pnlAdjustedFocusA.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlAdjustedFocusA.add(cbAdjustedFocusA);
+    pnlAdjustedFocusA.add(Box.createHorizontalGlue());
     cbAdjustedFocusA.setAlignmentX(Component.RIGHT_ALIGNMENT);
     cbAdjustedFocusA.setEnabled(false);
     pnlAxisInfoA.add(pnlAdjustedFocusA);
@@ -764,8 +766,10 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     pnlAxisInfoB.add(btnViewRawStackB.getComponent());
     cbAdjustedFocusB.setAlignmentX(Component.RIGHT_ALIGNMENT);
     //Add adjusted focus checkbox
-    pnlAdjustedFocusB.add(cbAdjustedFocusB);
     pnlAdjustedFocusB.setLayout(new BoxLayout(pnlAdjustedFocusB, BoxLayout.X_AXIS));
+    pnlAdjustedFocusB.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlAdjustedFocusB.add(cbAdjustedFocusB);
+    pnlAdjustedFocusB.add(Box.createHorizontalGlue());
     cbAdjustedFocusB.setAlignmentX(Component.RIGHT_ALIGNMENT);
     cbAdjustedFocusB.setEnabled(false);
     pnlAxisInfoB.add(pnlAdjustedFocusB);
@@ -869,6 +873,9 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2011/05/05 01:29:29  sueh
+ * <p> bug# 1396  Popping up an error message and failing when the dataset directory ends in a space.
+ * <p>
  * <p> Revision 1.2  2011/02/22 19:29:22  sueh
  * <p> bug# 1437 Reformatting.
  * <p>

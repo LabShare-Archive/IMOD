@@ -1161,6 +1161,7 @@ final class TiltalignPanel implements Expandable {
     pnlRBResidual.setLayout(new BoxLayout(pnlRBResidual, BoxLayout.Y_AXIS));
     createRadioBox(pnlRBResidual, bgResidualThreshold, items, 300);
     bottomResidualPanel.add(pnlRBResidual);
+    bottomResidualPanel.add(Box.createHorizontalGlue());
     pnlResidualThreshold.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlResidualThreshold.add(bottomResidualPanel.getContainer());
 
@@ -1212,8 +1213,13 @@ final class TiltalignPanel implements Expandable {
     pnlLocalParameters.setLayout(new BoxLayout(pnlLocalParameters, BoxLayout.Y_AXIS));
     pnlLocalParameters.setBorder(new EtchedBorder("Local Alignment Parameters")
         .getBorder());
+    JPanel pnlLocalAlignments = new JPanel();
+    pnlLocalAlignments.setLayout(new BoxLayout(pnlLocalAlignments,BoxLayout.X_AXIS));
+    pnlLocalAlignments.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlLocalAlignments.add(cbLocalAlignments);
+    pnlLocalAlignments.add(Box.createHorizontalGlue());
     cbLocalAlignments.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlLocalParameters.add(cbLocalAlignments);
+    pnlLocalParameters.add(pnlLocalAlignments);
     pnlLocalPatches.setBoxLayout(BoxLayout.Y_AXIS);
     pnlLocalPatches.setBorder(new EtchedBorder("Local Patch Layout:").getBorder());
     pnlLocalPatches.add(rtfTargetPatchSizeXandY.getContainer());
@@ -1308,6 +1314,11 @@ final class TiltalignPanel implements Expandable {
     pnlBeamTilt.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlBeamTilt.add(phBeamTilt);
     //beam tilt body
+    JPanel opnlBeamTiltBody = new JPanel();
+    opnlBeamTiltBody.setLayout(new BoxLayout(opnlBeamTiltBody,BoxLayout.X_AXIS));
+    opnlBeamTiltBody.setAlignmentX(Component.CENTER_ALIGNMENT);
+    opnlBeamTiltBody.add(pnlBeamTiltBody);
+    opnlBeamTiltBody.add(Box.createHorizontalGlue());
     pnlBeamTiltBody.setLayout(new BoxLayout(pnlBeamTiltBody, BoxLayout.Y_AXIS));
     //no beam tilt
     bgBeamTiltOption.add(rbNoBeamTilt.getAbstractButton());
@@ -1318,7 +1329,7 @@ final class TiltalignPanel implements Expandable {
     bgBeamTiltOption.add(rbSolveForBeamTilt.getAbstractButton());
     pnlBeamTiltBody.add(rbSolveForBeamTilt.getComponent());
     UIUtilities.alignComponentsX(pnlBeamTiltBody, Component.LEFT_ALIGNMENT);
-    pnlBeamTilt.add(pnlBeamTiltBody);
+    pnlBeamTilt.add(opnlBeamTiltBody);
     pnlGlobalVariableBody.add(pnlBeamTilt);
     pnlGlobalVariableBody.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlGlobalVariableBody.add(Box.createVerticalGlue());
@@ -1450,8 +1461,13 @@ final class TiltalignPanel implements Expandable {
       fieldPanel.add(field4);
     }
     if (checkBox != null) {
+      JPanel pnlCheckBox = new JPanel();
+      pnlCheckBox.setLayout(new BoxLayout(pnlCheckBox,BoxLayout.X_AXIS));
+      pnlCheckBox.setAlignmentX(Component.CENTER_ALIGNMENT);
+      pnlCheckBox.add(checkBox);
+      pnlCheckBox.add(Box.createHorizontalGlue());
       checkBox.setAlignmentX(Component.RIGHT_ALIGNMENT);
-      fieldPanel.add(checkBox);
+      fieldPanel.add(pnlCheckBox);
     }
     panel.add(fieldPanel.getContainer());
     if (title != null) {
@@ -1824,6 +1840,9 @@ final class TiltalignPanel implements Expandable {
 
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 21:39:39  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>

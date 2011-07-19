@@ -8,6 +8,7 @@ import java.io.IOException;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JPanel;
 import javax.swing.SpinnerNumberModel;
 
 import etomo.ApplicationManager;
@@ -41,6 +42,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2011/03/02 00:00:12  sueh
+ * <p> bug# 1452 Removing image rotation conversion between float and
+ * <p> double.  Using string where possible.
+ * <p>
  * <p> Revision 1.3  2011/02/24 23:37:23  sueh
  * <p> bug# 1452 imageRotation needs to be double everywhere.
  * <p>
@@ -135,7 +140,12 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
     pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRoot.setComponentAlignmentX(Box.LEFT_ALIGNMENT);
     pnlRoot.add(cbUseLinearInterpolation);
-    pnlRoot.add(spinBinning);
+    JPanel pnlBinning = new JPanel();
+    pnlBinning.setLayout(new BoxLayout(pnlBinning,BoxLayout.X_AXIS));
+    pnlBinning.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlBinning.add(spinBinning.getContainer());
+    pnlBinning.add(Box.createHorizontalGlue());
+    pnlRoot.add(pnlBinning);
     pnlRoot.add(cbFiducialess);
     pnlRoot.add(ltfRotation);
     pnlRoot.add(ltfSizeToOutputInXandY);

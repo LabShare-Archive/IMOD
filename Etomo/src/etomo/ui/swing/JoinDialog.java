@@ -60,6 +60,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.5  2011/06/21 18:07:49  sueh
+ * <p> Bug# 1490 In CheckBoxSpinner, changed spinner to a Spinner type (from JSpinner), so it will work with
+ * <p> the UITests.
+ * <p>
  * <p> Revision 1.4  2011/05/05 01:29:29  sueh
  * <p> bug# 1396  Popping up an error message and failing when the dataset directory ends in a space.
  * <p>
@@ -812,8 +816,11 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     //control gap text fields with checkbox
     boolean enable = cbGap.isSelected();
     ltfGapStart.setEnabled(enable);
+    ltfGapStart.setTextPreferredWidth(UIParameters.INSTANCE.getIntegerWidth());
     ltfGapEnd.setEnabled(enable);
+    ltfGapEnd.setTextPreferredWidth(UIParameters.INSTANCE.getIntegerWidth());
     ltfGapInc.setEnabled(enable);
+    ltfGapInc.setTextPreferredWidth(UIParameters.INSTANCE.getIntegerWidth());
     //.join file must exist before it can be opened
     enable = DatasetFiles.getJoinFile(false, manager).exists();
     b3bOpenRejoinWithModel.setEnabled(enable);
@@ -1045,7 +1052,6 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     //sixth component
     setupPanel2 = SpacedPanel.getInstance();
     setupPanel2.setBoxLayout(BoxLayout.X_AXIS);
-    setupPanel2.setBorder(BorderFactory.createEtchedBorder());
     btnChangeSetup = new MultiLineButton("Change Setup");
     //btnChangeSetup.addActionListener(joinActionListener);
     btnChangeSetup.setSize();
@@ -1067,7 +1073,13 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlSetupTab.add(pnlSectionTable.getRootPanel());
     pnlSectionTable.displayCurTab();
     pnlSetupTab.add(pnlMidasLimit);
-    pnlSetupTab.add(spinDensityRefSection);
+    JPanel pnlDensityRefSection = new JPanel();
+    pnlDensityRefSection.setLayout(new BoxLayout(pnlDensityRefSection,BoxLayout.X_AXIS));
+    pnlDensityRefSection.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlDensityRefSection.add(spinDensityRefSection.getContainer());
+    pnlDensityRefSection.add(Box.createHorizontalGlue());
+    pnlSetupTab.add(pnlDensityRefSection);
+    pnlSetupTab.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlSetupTab.add(setupPanel2);
     btnMakeSamples.setSize();
     pnlSetupTab.add(btnMakeSamples);
@@ -1111,7 +1123,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     alignPanel2.add(alignPanel2A);
     SpacedPanel alignPanel2B = SpacedPanel.getInstance();
     alignPanel2B.setBoxLayout(BoxLayout.Y_AXIS);
-    alignPanel2B.setBorder(BorderFactory.createEtchedBorder());
+    //alignPanel2B.setBorder(BorderFactory.createEtchedBorder());
     btnRevertToMidas = new MultiLineButton("Revert Auto Alignment to Midas");
     //btnRevertToMidas.addActionListener(joinActionListener);
     btnRevertToMidas.setSize();
@@ -1159,9 +1171,22 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlTransformations.add(pnlGapStartEndInc);
     pnlTransformations.add(pnlPointsToFit);
     btnXfjointomo.setSize();
-    pnlTransformations.add(btnXfjointomo);
+    JPanel pnlXfjointomo = new JPanel();
+    pnlXfjointomo.setLayout(new BoxLayout(pnlXfjointomo,BoxLayout.X_AXIS));
+    pnlXfjointomo.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlXfjointomo.add(Box.createHorizontalGlue());
+    pnlXfjointomo.add(btnXfjointomo.getComponent());
+    pnlXfjointomo.add(Box.createHorizontalGlue());
+    pnlTransformations.add(pnlXfjointomo);
+    pnlTransformations.add(Box.createRigidArea(FixedDim.x0_y5));
     btnTransformAndViewModel.setSize();
-    pnlTransformations.add(btnTransformAndViewModel);
+    JPanel pnlTransformAndViewModel = new JPanel();
+    pnlTransformAndViewModel.setLayout(new BoxLayout(pnlTransformAndViewModel,BoxLayout.X_AXIS));
+    pnlTransformAndViewModel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlTransformAndViewModel.add(Box.createHorizontalGlue());
+    pnlTransformAndViewModel.add(btnTransformAndViewModel.getComponent());
+    pnlTransformAndViewModel.add(Box.createHorizontalGlue());
+    pnlTransformations.add(pnlTransformAndViewModel);
     //gap panel
     pnlGapStartEndInc.setBoxLayout(BoxLayout.X_AXIS);
     pnlGapStartEndInc.add(cbGap);
@@ -1312,7 +1337,12 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     ltfShiftInY = new LabeledTextField("Y: ");
     finishJoinPanel3.add(ltfShiftInY);
     pnlFinishJoin.add(finishJoinPanel3);
-    pnlFinishJoin.add(cbLocalFits);
+    JPanel pnlLocalFits = new JPanel();
+    pnlLocalFits.setLayout(new BoxLayout(pnlLocalFits, BoxLayout.X_AXIS));
+    pnlLocalFits.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlLocalFits.add(cbLocalFits);
+    pnlLocalFits.add(Box.createHorizontalGlue());
+    pnlFinishJoin.add(pnlLocalFits);
     //fifth component
     createTrialJoinPanel();
     //sixth component
@@ -1324,7 +1354,12 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
         .setSpinnerToolTipText("The binning to use when opening the joined tomogram in 3dmod.");
     pnlFinishJoin.add(b3bOpenIn3dmod.getContainer());
     //eight component
-    pnlFinishJoin.add(cbRefineWithTrial);
+    JPanel pnlRefineWithTrial = new JPanel();
+    pnlRefineWithTrial.setLayout(new BoxLayout(pnlRefineWithTrial, BoxLayout.X_AXIS));
+    pnlRefineWithTrial.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlRefineWithTrial.add(cbRefineWithTrial);
+    pnlRefineWithTrial.add(Box.createHorizontalGlue());
+    pnlFinishJoin.add(pnlRefineWithTrial);
     btnRefineJoin.setSize();
     pnlFinishJoin.add(btnRefineJoin);
   }
@@ -2312,15 +2347,21 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       if (pnlTranslationChooser == null) {
         pnlTranslationChooser = new JPanel();
         pnlTranslationChooser.setLayout(new BoxLayout(pnlTranslationChooser,
+            BoxLayout.X_AXIS));
+        JPanel ipnlTranslationChooser = new JPanel();
+        pnlTranslationChooser.add(ipnlTranslationChooser);
+        pnlTranslationChooser.add(Box.createHorizontalGlue());
+        ipnlTranslationChooser.setLayout(new BoxLayout(ipnlTranslationChooser,
             BoxLayout.Y_AXIS));
-        pnlTranslationChooser.add(new JLabel("Search For:"));
+        ipnlTranslationChooser.setAlignmentX(Component.CENTER_ALIGNMENT);
+        ipnlTranslationChooser.add(new JLabel("Search For:"));
         ButtonGroup group = new ButtonGroup();
         group.add(rbFullLinearTransformation.getAbstractButton());
         group.add(rbRotationTranslationMagnification.getAbstractButton());
         group.add(rbRotationTranslation.getAbstractButton());
-        pnlTranslationChooser.add(rbFullLinearTransformation.getComponent());
-        pnlTranslationChooser.add(rbRotationTranslationMagnification.getComponent());
-        pnlTranslationChooser.add(rbRotationTranslation.getComponent());
+        ipnlTranslationChooser.add(rbFullLinearTransformation.getComponent());
+        ipnlTranslationChooser.add(rbRotationTranslationMagnification.getComponent());
+        ipnlTranslationChooser.add(rbRotationTranslation.getComponent());
         //set default
         set(null);
         rbFullLinearTransformation
@@ -2331,7 +2372,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
             .setToolTipText("Use translation and rotation to align images.");
         if (includeTranslation) {
           group.add(rbTranslation.getAbstractButton());
-          pnlTranslationChooser.add(rbTranslation.getComponent());
+          ipnlTranslationChooser.add(rbTranslation.getComponent());
           rbTranslation.setToolTipText("Use translation to align images.");
         }
       }

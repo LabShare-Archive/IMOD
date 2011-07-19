@@ -39,6 +39,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2011/04/09 06:36:47  sueh
+ * <p> bug# 1416 In getParameters(BeadtrackParam) eliminating dead code by assigning errorMessage correctly.
+ * <p>
  * <p> Revision 1.3  2011/02/22 18:02:09  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -323,10 +326,16 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     pnlLightBeads.setLayout(new BoxLayout(pnlLightBeads, BoxLayout.Y_AXIS));
     pnlLightBeads.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlLightBeads.add(cbLightBeads);
+    pnlLightBeads.add(Box.createHorizontalGlue());
     panelBeadtrackBody.add(pnlLightBeads);
     pnlCheckbox.setLayout(new BoxLayout(pnlCheckbox, BoxLayout.Y_AXIS));
     pnlCheckbox.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlCheckbox.add(cbFillGaps);
+    JPanel pnlFillGaps = new JPanel();
+    pnlFillGaps.setLayout(new BoxLayout(pnlFillGaps,BoxLayout.X_AXIS));
+    pnlFillGaps.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlFillGaps.add(cbFillGaps);
+    pnlFillGaps.add(Box.createHorizontalGlue());
+    pnlCheckbox.add(pnlFillGaps);
 
     panelBeadtrackBody.add(pnlCheckbox);
     panelBeadtrackBody.add(ltfMaxGap.getContainer());
@@ -334,6 +343,7 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     pnlLocalAreaTracking.setLayout(new BoxLayout(pnlLocalAreaTracking, BoxLayout.Y_AXIS));
     pnlLocalAreaTracking.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlLocalAreaTracking.add(cbLocalAreaTracking);
+    pnlLocalAreaTracking.add(Box.createHorizontalGlue());
     panelBeadtrackBody.add(pnlLocalAreaTracking);
 
     panelBeadtrackBody.add(ltfLocalAreaTargetSize.getContainer());

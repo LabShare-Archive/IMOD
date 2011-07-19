@@ -56,6 +56,9 @@ import etomo.util.MRCHeader;
  * 
  * <p>
  * $Log$
+ * Revision 1.4  2011/02/22 19:29:14  sueh
+ * bug# 1437 Reformatting.
+ *
  * Revision 1.3  2011/02/03 06:22:16  sueh
  * bug# 1422 Control of the processing method has been centralized in the
  * processing method mediator class.  Implementing ProcessInterface.
@@ -548,8 +551,18 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
         dialogType);
     pnlToSelector.setLayout(new BoxLayout(pnlToSelector, BoxLayout.Y_AXIS));
     pnlRBToSelector.setLayout(new BoxLayout(pnlRBToSelector, BoxLayout.Y_AXIS));
-    pnlRBToSelector.add(rbBtoA.getComponent());
-    pnlRBToSelector.add(rbAtoB.getComponent());
+    JPanel pnlBtoA = new JPanel();
+    pnlBtoA.setLayout(new BoxLayout(pnlBtoA, BoxLayout.X_AXIS));
+    pnlBtoA.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlBtoA.add(rbBtoA.getComponent());
+    pnlBtoA.add(Box.createHorizontalGlue());
+    pnlRBToSelector.add(pnlBtoA);
+    JPanel pnlAtoB = new JPanel();
+    pnlAtoB.setLayout(new BoxLayout(pnlAtoB, BoxLayout.X_AXIS));
+    pnlAtoB.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlAtoB.add(rbAtoB.getComponent());
+    pnlAtoB.add(Box.createHorizontalGlue());
+    pnlRBToSelector.add(pnlAtoB);
     pnlToSelector.add(toSelectorHeader);
     pnlToSelector.add(pnlRBToSelector);
     pnlToSelector.add(Box.createHorizontalGlue());
@@ -573,18 +586,22 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     lTomogramSizeWarning.setForeground(ProcessControlPanel.colorNotStarted);
     lTomogramSizeWarning.setVisible(false);
     lTomogramSizeWarning.setAlignmentX(Component.CENTER_ALIGNMENT);
+    JPanel opnlPatchRB = new JPanel();
+    opnlPatchRB.setLayout(new BoxLayout(opnlPatchRB, BoxLayout.X_AXIS));
+    opnlPatchRB.setAlignmentX(Component.CENTER_ALIGNMENT);
     JPanel pnlPatchRB = new JPanel();
     pnlPatchRB.setLayout(new BoxLayout(pnlPatchRB, BoxLayout.Y_AXIS));
+    opnlPatchRB.add(pnlPatchRB);
+    opnlPatchRB.add(Box.createHorizontalGlue());
     pnlPatchRB.add(rbSmallPatch.getComponent());
     pnlPatchRB.add(rbMediumPatch.getComponent());
     pnlPatchRB.add(rbLargePatch.getComponent());
 
     pnlPatchRegionModel.setLayout(new BoxLayout(pnlPatchRegionModel, BoxLayout.X_AXIS));
-    pnlPatchRegionModel.add(pnlPatchRB);
-    pnlPatchRegionModel.add(Box.createRigidArea(FixedDim.x20_y0));
-    pnlPatchRegionModel.add(Box.createRigidArea(FixedDim.x20_y0));
+    pnlPatchRegionModel.add(opnlPatchRB);
     pnlPatchRegionModel.add(cbPatchRegionModel);
     pnlPatchRegionModel.add(btnPatchRegionModel.getComponent());
+    pnlPatchRegionModel.add(Box.createHorizontalGlue());
     pnlPatchParamsBody.add(pnlPatchRegionModel);
     binningWarning.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlPatchParamsBody.add(binningWarning);
@@ -622,8 +639,18 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
         BoxLayout.Y_AXIS));
     cbParallelProcess = new CheckBox(
         tomogramCombinationDialog.parallelProcessCheckBoxText);
-    pnlVolcombineControlsBody.add(cbParallelProcess);
-    pnlVolcombineControlsBody.add(cbNoVolcombine);
+    JPanel pnlParallelProcess = new JPanel();
+    pnlParallelProcess.setLayout(new BoxLayout(pnlParallelProcess, BoxLayout.X_AXIS));
+    pnlParallelProcess.setAlignmentX(Box.CENTER_ALIGNMENT);
+    pnlParallelProcess.add(cbParallelProcess);
+    pnlParallelProcess.add(Box.createHorizontalGlue());
+    pnlVolcombineControlsBody.add(pnlParallelProcess);
+    JPanel pnlNoVolcombine = new JPanel();
+    pnlNoVolcombine.setLayout(new BoxLayout(pnlNoVolcombine,BoxLayout.X_AXIS));
+    pnlNoVolcombine.setAlignmentX(Box.CENTER_ALIGNMENT);
+    pnlNoVolcombine.add(cbNoVolcombine);
+    pnlNoVolcombine.add(Box.createHorizontalGlue());
+    pnlVolcombineControlsBody.add(pnlNoVolcombine);
     UIUtilities.alignComponentsX(pnlVolcombineControlsBody, Component.CENTER_ALIGNMENT);
     pnlVolcombineControls.add(pnlVolcombineControlsBody);
 
@@ -631,7 +658,12 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     pnlTempDirectoryBody.setLayout(new BoxLayout(pnlTempDirectoryBody, BoxLayout.Y_AXIS));
     pnlTempDirectoryBody.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlTempDirectoryBody.add(ltfTempDirectory.getContainer());
-    pnlTempDirectoryBody.add(cbManualCleanup);
+    JPanel pnlManualCleanup = new JPanel();
+    pnlManualCleanup.setLayout(new BoxLayout(pnlManualCleanup,BoxLayout.X_AXIS));
+    pnlManualCleanup.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlManualCleanup.add(cbManualCleanup);
+    pnlManualCleanup.add(Box.createHorizontalGlue());
+    pnlTempDirectoryBody.add(pnlManualCleanup);
 
     pnlTempDirectory.setBorder(BorderFactory.createEtchedBorder());
     tempDirectoryHeader = PanelHeader.getInstance("Intermediate Data Storage", this,
@@ -710,8 +742,8 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
 
   private boolean isTomogramSizeChanged() {
     AxisID toAxisID = matchBtoA ? AxisID.FIRST : AxisID.SECOND;
-    return !applicationManager.getState().getTomogramSize(toAxisID).equals(
-        applicationManager.getTomogramSize(toAxisID));
+    return !applicationManager.getState().getTomogramSize(toAxisID)
+        .equals(applicationManager.getTomogramSize(toAxisID));
   }
 
   private void updateTomogramSizeWarning(boolean enableCombine) {
@@ -719,13 +751,13 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     boolean different = false;
     if (!enableCombine) {
       AxisID toAxisID = matchBtoA ? AxisID.FIRST : AxisID.SECOND;
-      MRCHeader toMrcHeader = MRCHeader.getInstance(applicationManager
-          .getPropertyUserDir(), DatasetFiles.getTomogramName(applicationManager,
-          toAxisID), AxisID.ONLY);
+      MRCHeader toMrcHeader = MRCHeader.getInstance(
+          applicationManager.getPropertyUserDir(),
+          DatasetFiles.getTomogramName(applicationManager, toAxisID), AxisID.ONLY);
       AxisID fromAxisID = matchBtoA ? AxisID.SECOND : AxisID.FIRST;
-      MRCHeader fromMrcHeader = MRCHeader.getInstance(applicationManager
-          .getPropertyUserDir(), DatasetFiles.getTomogramName(applicationManager,
-          fromAxisID), AxisID.ONLY);
+      MRCHeader fromMrcHeader = MRCHeader.getInstance(
+          applicationManager.getPropertyUserDir(),
+          DatasetFiles.getTomogramName(applicationManager, fromAxisID), AxisID.ONLY);
       try {
         if (toMrcHeader.read(applicationManager)) {
           fromMrcHeader.read(applicationManager);
@@ -1144,8 +1176,8 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     }
     else if (command.equals(btnCombine.getActionCommand())) {
       applicationManager.combine(btnCombine, null, deferred3dmodButton,
-          run3dmodMenuOptions, dialogType, tomogramCombinationDialog
-              .getRunProcessingMethod());
+          run3dmodMenuOptions, dialogType,
+          tomogramCombinationDialog.getRunProcessingMethod());
     }
     else if (command.equals(cbParallelProcess.getActionCommand())) {
       sendProcessingMethodMessage();

@@ -51,6 +51,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2011/05/16 23:06:22  sueh
+ * <p> bug# 1487 Backing out bug# 1485 and some of bug# 1445.
+ * <p>
  * <p> Revision 1.8  2011/05/15 01:55:33  sueh
  * <p> bug# 1485 Keeping initMotlCode empty when there are init MOTL files conflicts with a new dataset.  Added
  * <p> InitMotlCode.FILES.
@@ -1096,9 +1099,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     //ParticlePerCPU
     JPanel pnlParticlePerCPU = new JPanel();
     pnlParticlePerCPU.setLayout(new BoxLayout(pnlParticlePerCPU, BoxLayout.X_AXIS));
-    pnlParticlePerCPU.add(Box.createRigidArea(FixedDim.x200_y0));
+    pnlParticlePerCPU.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlParticlePerCPU.add(lsParticlePerCPU.getContainer());
-    pnlParticlePerCPU.add(Box.createRigidArea(FixedDim.x200_y0));
+    pnlParticlePerCPU.add(Box.createHorizontalGlue());
     //advanced right panel
     JPanel pnlAdvancedRight = new JPanel();
     pnlAdvancedRight.setLayout(new BoxLayout(pnlAdvancedRight, BoxLayout.Y_AXIS));
@@ -1115,22 +1118,46 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     pnlButton.setLayout(new BoxLayout(pnlButton, BoxLayout.X_AXIS));
     btnRun.setSize();
     pnlButton.add(btnRun.getComponent());
+    pnlButton.add(Box.createRigidArea(FixedDim.x5_y0));
     btnAvgVol.setSize();
     pnlButton.add(btnAvgVol.getComponent());
+    pnlButton.add(Box.createRigidArea(FixedDim.x5_y0));
     btnRef.setSize();
     pnlButton.add(btnRef.getComponent());
+    pnlButton.add(Box.createRigidArea(FixedDim.x5_y0));
     pnlButton.add(btnAverageAll.getComponent());
     //body
     pnlRunBody.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRunBody.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     pnlRunBody.add(iterationTable.getContainer());
     pnlRunBody.add(sphericalSamplingForThetaAndPsiPanel.getComponent());
-    pnlRunBody.add(cbFlgRemoveDuplicates);
+    JPanel pnlFlgRemoveDuplicates = new JPanel();
+    pnlFlgRemoveDuplicates.setLayout(new BoxLayout(pnlFlgRemoveDuplicates,
+        BoxLayout.X_AXIS));
+    pnlFlgRemoveDuplicates.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlFlgRemoveDuplicates.add(cbFlgRemoveDuplicates);
+    pnlFlgRemoveDuplicates.add(Box.createHorizontalGlue());
+    pnlRunBody.add(pnlFlgRemoveDuplicates);
     pnlRunBody.add(pnlSzVol);
-    pnlRunBody.add(cbRefFlagAllTom);
+    JPanel pnlRefFlagAllTom = new JPanel();
+    pnlRefFlagAllTom.setLayout(new BoxLayout(pnlRefFlagAllTom,BoxLayout.X_AXIS));
+    pnlRefFlagAllTom.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlRefFlagAllTom.add(cbRefFlagAllTom);
+    pnlRefFlagAllTom.add(Box.createHorizontalGlue());
+    pnlRunBody.add(pnlRefFlagAllTom);
     pnlRunBody.add(pnlLstThresholds);
-    pnlRunBody.add(cbLstFlagAllTom);
-    pnlRunBody.add(cbflgAlignAverages);
+    JPanel pnlLstFlagAllTom = new JPanel();
+    pnlLstFlagAllTom.setLayout(new BoxLayout(pnlLstFlagAllTom,BoxLayout.X_AXIS));
+    pnlLstFlagAllTom.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlLstFlagAllTom.add(cbLstFlagAllTom);
+    pnlLstFlagAllTom.add(Box.createHorizontalGlue());
+    pnlRunBody.add(pnlLstFlagAllTom);
+    JPanel pnlflgAlignAverages = new JPanel();
+    pnlflgAlignAverages.setLayout(new BoxLayout(pnlflgAlignAverages,BoxLayout.X_AXIS));
+    pnlflgAlignAverages.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlflgAlignAverages.add(cbflgAlignAverages);
+    pnlflgAlignAverages.add(Box.createHorizontalGlue());
+    pnlRunBody.add(pnlflgAlignAverages);
     pnlRunBody.add(pnlParticlePerCPU);
     pnlRunBody.add(pnlAdvanced);
     pnlRunBody.add(pnlButton);

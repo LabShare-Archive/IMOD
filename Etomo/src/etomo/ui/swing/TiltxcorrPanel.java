@@ -45,6 +45,10 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.5  2011/03/02 00:00:12  sueh
+ * <p> bug# 1452 Removing image rotation conversion between float and
+ * <p> double.  Using string where possible.
+ * <p>
  * <p> Revision 1.4  2011/02/24 23:38:47  sueh
  * <p> bug# 1452 in getParameters(TiltxcorrParam) setting RotationAngle.
  * <p>
@@ -424,7 +428,12 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       pnlRoot.add(ltfSizeOfPatchesXandY.getContainer());
       pnlRoot.add(pnlPatchLayout);
       pnlRoot.add(pnlBoundaryModel);
-      pnlRoot.add(spIterateCorrelations.getContainer());
+      JPanel pnlIterateCorrelations = new JPanel();
+      pnlIterateCorrelations.setLayout(new BoxLayout(pnlIterateCorrelations,BoxLayout.X_AXIS));
+      pnlIterateCorrelations.setAlignmentX(Component.CENTER_ALIGNMENT);
+      pnlIterateCorrelations.add(spIterateCorrelations.getContainer());
+      pnlIterateCorrelations.add(Box.createHorizontalGlue());
+      pnlRoot.add(pnlIterateCorrelations);
       pnlRoot.add(ltfShiftLimitsXandY.getContainer());
       pnlRoot.add(ctfLengthAndOverlap.getRootComponent());
       pnlRoot.add(ltfAngleOffset);
@@ -442,7 +451,9 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       //boundary model panel
       pnlBoundaryModel.setLayout(new BoxLayout(pnlBoundaryModel, BoxLayout.X_AXIS));
       pnlBoundaryModel.add(cbBoundaryModel);
+      pnlBoundaryModel.add(Box.createHorizontalGlue());
       pnlBoundaryModel.add(btn3dmodBoundaryModel.getComponent());
+      pnlBoundaryModel.add(Box.createHorizontalGlue());
       //advanced 2 panel
       pnlAdvanced2.setLayout(new BoxLayout(pnlAdvanced2, BoxLayout.Y_AXIS));
       UIUtilities.addWithYSpace(pnlAdvanced2, ltfFilterSigma1.getContainer());

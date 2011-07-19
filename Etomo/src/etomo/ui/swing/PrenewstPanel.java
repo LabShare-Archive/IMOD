@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/22 18:19:35  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.2  2010/12/05 05:14:25  sueh
  * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
  * <p>
@@ -208,7 +211,12 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
     //if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
     //  spinBinning.setEnabled(false);
     //}
-    UIUtilities.addWithYSpace(pnlBody, spinBinning.getContainer());
+    JPanel pnlBinning = new JPanel();
+    pnlBinning.setLayout(new BoxLayout(pnlBinning,BoxLayout.X_AXIS));
+    pnlBinning.setAlignmentX(Box.CENTER_ALIGNMENT);
+    pnlBinning.add(spinBinning.getContainer());
+    pnlBinning.add(Box.createHorizontalGlue());
+    UIUtilities.addWithYSpace(pnlBody, pnlBinning);
     if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
       header = PanelHeader.getAdvancedBasicInstance("Blendmont", this, dialogType,
           globalAdvancedButton);
@@ -216,7 +224,12 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
     else {
       header = PanelHeader.getAdvancedBasicInstance("Newstack", this, dialogType,
           globalAdvancedButton);
-      UIUtilities.addWithYSpace(pnlCheckBoxes, cbByteModeToOutput);
+      JPanel pnlByteModeToOutput = new JPanel();
+      pnlByteModeToOutput.setLayout(new BoxLayout(pnlByteModeToOutput,BoxLayout.X_AXIS));
+      pnlByteModeToOutput.setAlignmentX(Box.CENTER_ALIGNMENT);
+      pnlByteModeToOutput.add(cbByteModeToOutput);
+      pnlByteModeToOutput.add(Box.createHorizontalGlue());
+      UIUtilities.addWithYSpace(pnlCheckBoxes, pnlByteModeToOutput);
       UIUtilities.addWithYSpace(pnlCheckBoxes, cbMeanFloatDensities);
     }
     pnlBody.add(pnlCheckBoxes);

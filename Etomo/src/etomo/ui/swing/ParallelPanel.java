@@ -162,9 +162,10 @@ public final class ParallelPanel implements Expandable, Storable {
     if (Network.hasQueues(manager, axisID, manager.getPropertyUserDir())) {
       if (Network.hasComputers(manager, axisID, manager.getPropertyUserDir())) {
         JPanel clusterPanel = new JPanel();
-        clusterPanel.setLayout(new BoxLayout(clusterPanel, BoxLayout.LINE_AXIS));
-        clusterPanel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+        clusterPanel.setLayout(new BoxLayout(clusterPanel, BoxLayout.X_AXIS));
+        clusterPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         clusterPanel.add(cbQueues);
+        clusterPanel.add(Box.createHorizontalGlue());
         bodyPanel.add(clusterPanel);
       }
       else {
@@ -552,6 +553,9 @@ public final class ParallelPanel implements Expandable, Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2011/07/18 23:13:17  sueh
+ * <p> Bug# 1515 Added getNoCpusSelectedErrorMessage
+ * <p>
  * <p> Revision 1.6  2011/05/19 16:32:46  sueh
  * <p> bug# 1473 In ParameterStore.load, removed unused throw.
  * <p>

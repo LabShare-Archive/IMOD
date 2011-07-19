@@ -37,6 +37,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2011/06/24 17:02:45  sueh
+ * <p> Bug# 1466 Removed check for the existance of RAPTOR.
+ * <p>
  * <p> Revision 1.3  2011/02/22 18:09:04  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -399,7 +402,13 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
         DialogType.FIDUCIAL_MODEL, btnAdvanced);
     //root panel
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
-    pnlFiducialModel.add(pnlMethod);
+    JPanel opnlMethod = new JPanel();
+    opnlMethod.setLayout(new BoxLayout(opnlMethod, BoxLayout.X_AXIS));
+    opnlMethod.setAlignmentX(Component.CENTER_ALIGNMENT);
+    opnlMethod.add(Box.createHorizontalGlue());
+    opnlMethod.add(pnlMethod);
+    opnlMethod.add(Box.createHorizontalGlue());
+    pnlFiducialModel.add(opnlMethod);
     rootPanel.add(pnlFiducialModel.getContainer());
     //fiducial model panel
     pnlFiducialModel.setBoxLayout(BoxLayout.Y_AXIS);
@@ -415,7 +424,13 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     }
     pnlFiducialModel.add(tiltxcorrPanel.getPanel());
     pnlFiducialModel.add(raptorPanel.getComponent());
-    pnlFiducialModel.add(btnSeed.getComponent());
+    JPanel pnlSeed = new JPanel();
+    pnlSeed.setLayout(new BoxLayout(pnlSeed, BoxLayout.X_AXIS));
+    pnlSeed.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlSeed.add(Box.createHorizontalGlue());
+    pnlSeed.add(btnSeed.getComponent());
+    pnlSeed.add(Box.createHorizontalGlue());
+    pnlFiducialModel.add(pnlSeed);
     pnlFiducialModel.add(pnlBeadtrack.getContainer());
     //transfer fiducials panel
     if (pnlTransferfid != null) {
@@ -647,9 +662,9 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     }
     else if (command.equals(btnSeed.getActionCommand())) {
       applicationManager.imodSeedModel(axisID, run3dmodMenuOptions, btnSeed,
-          ImodManager.COARSE_ALIGNED_KEY, DatasetFiles.getSeedFileName(
-              applicationManager, axisID), DatasetFiles.getRawTiltFile(
-              applicationManager, axisID), dialogType);
+          ImodManager.COARSE_ALIGNED_KEY,
+          DatasetFiles.getSeedFileName(applicationManager, axisID),
+          DatasetFiles.getRawTiltFile(applicationManager, axisID), dialogType);
     }
   }
 

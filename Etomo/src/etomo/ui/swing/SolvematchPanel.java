@@ -43,6 +43,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2011/02/22 19:30:16  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.3  2011/02/03 06:22:16  sueh
  * <p> bug# 1422 Control of the processing method has been centralized in the
  * <p> processing method mediator class.  Implementing ProcessInterface.
@@ -279,6 +282,11 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     bgFiducialParams.add(rbOneSideInverted.getAbstractButton());
     bgFiducialParams.add(rbUseModel.getAbstractButton());
     bgFiducialParams.add(rbUseModelOnly.getAbstractButton());
+    JPanel opnlFiducialRadio = new JPanel();
+    opnlFiducialRadio.setLayout(new BoxLayout(opnlFiducialRadio,BoxLayout.X_AXIS));
+    opnlFiducialRadio.setAlignmentX(Component.CENTER_ALIGNMENT);
+    opnlFiducialRadio.add(pnlFiducialRadio);
+    opnlFiducialRadio.add(Box.createHorizontalGlue());
     pnlFiducialRadio.add(rbBothSides.getComponent());
     pnlFiducialRadio.add(rbOneSide.getComponent());
     pnlFiducialRadio.add(rbOneSideInverted.getComponent());
@@ -288,21 +296,23 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     pnlImodMatchModels.setLayout(new BoxLayout(pnlImodMatchModels, BoxLayout.Y_AXIS));
     pnlImodMatchModels.add(cbBinBy2);
     pnlImodMatchModels.add(btnImodMatchModels.getComponent());
-    UIUtilities.setButtonSizeAll(pnlImodMatchModels, UIParameters.INSTANCE
-        .getButtonDimension());
+    UIUtilities.setButtonSizeAll(pnlImodMatchModels,
+        UIParameters.INSTANCE.getButtonDimension());
 
     pnlFiducialSelect.setLayout(new BoxLayout(pnlFiducialSelect, BoxLayout.X_AXIS));
-    UIUtilities.addWithSpace(pnlFiducialSelect, pnlFiducialRadio, FixedDim.x20_y0);
-    pnlFiducialSelect.add(Box.createRigidArea(FixedDim.x20_y0));
-    pnlFiducialSelect.add(Box.createRigidArea(FixedDim.x20_y0));
-    pnlFiducialSelect.add(Box.createRigidArea(FixedDim.x20_y0));
-    pnlFiducialSelect.add(Box.createRigidArea(FixedDim.x20_y0));
-    pnlFiducialSelect.add(Box.createRigidArea(FixedDim.x20_y0));
+    UIUtilities.addWithSpace(pnlFiducialSelect, opnlFiducialRadio, FixedDim.x20_y0);
     pnlFiducialSelect.add(pnlImodMatchModels);
+    pnlFiducialSelect.add(Box.createHorizontalGlue());
 
     pnlBody.setLayout(new BoxLayout(pnlBody, BoxLayout.Y_AXIS));
     UIUtilities.addWithSpace(pnlBody, pnlFiducialSelect, FixedDim.x0_y10);
-    UIUtilities.addWithYSpace(pnlBody, cbUseCorrespondingPoints);
+    JPanel pnlUseCorrespondingPoints = new JPanel();
+    pnlUseCorrespondingPoints.setLayout(new BoxLayout(pnlUseCorrespondingPoints,
+        BoxLayout.X_AXIS));
+    pnlUseCorrespondingPoints.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlUseCorrespondingPoints.add(cbUseCorrespondingPoints);
+    pnlUseCorrespondingPoints.add(Box.createHorizontalGlue());
+    UIUtilities.addWithYSpace(pnlBody, pnlUseCorrespondingPoints);
     UIUtilities.addWithYSpace(pnlBody, ltfUseList.getContainer());
     UIUtilities.addWithYSpace(pnlBody, ltfFiducialMatchListA.getContainer());
     UIUtilities.addWithYSpace(pnlBody, ltfFiducialMatchListB.getContainer());
@@ -310,13 +320,19 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
       UIUtilities.addWithYSpace(pnlBody, ltfResidulThreshold.getContainer());
       UIUtilities.addWithYSpace(pnlBody, ltfCenterShiftLimit.getContainer());
       btnRestart.setSize();
-      UIUtilities.addWithYSpace(pnlBody, btnRestart.getComponent());
+      JPanel pnlRestart = new JPanel();
+      pnlRestart.setLayout(new BoxLayout(pnlRestart,BoxLayout.X_AXIS));
+      pnlRestart.setAlignmentX(Component.CENTER_ALIGNMENT);
+      pnlRestart.add(Box.createHorizontalGlue());
+      pnlRestart.add(btnRestart.getComponent());
+      pnlRestart.add(Box.createHorizontalGlue());
+      UIUtilities.addWithYSpace(pnlBody, pnlRestart);
     }
     pnlRoot.setBorder(BorderFactory.createEtchedBorder());
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     if (initialPanel) {
-      header = PanelHeader.getAdvancedBasicInstance(HEADER_LABEL, this, parent
-          .getDialogType());
+      header = PanelHeader.getAdvancedBasicInstance(HEADER_LABEL, this,
+          parent.getDialogType());
     }
     else {
       header = PanelHeader.getInstance(HEADER_LABEL, this, parent.getDialogType());
@@ -408,8 +424,8 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     if (initialPanel) {
       btnRestart.setButtonState(screenState.getButtonState(btnRestart
           .createButtonStateKey(tomogramCombinationDialog.getDialogType())));
-      btnRestart.setButtonState(screenState
-          .getButtonState(btnRestart.getButtonStateKey()));
+      btnRestart
+          .setButtonState(screenState.getButtonState(btnRestart.getButtonStateKey()));
     }
   }
 
@@ -616,8 +632,8 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
       }
       else if (initialPanel && command.equals(btnRestart.getActionCommand())) {
         applicationManager.combine(btnRestart, null, deferred3dmodButton,
-            run3dmodMenuOptions, dialogType, tomogramCombinationDialog
-                .getProcessingMethod());
+            run3dmodMenuOptions, dialogType,
+            tomogramCombinationDialog.getProcessingMethod());
       }
       else if (command.equals(btnImodMatchModels.getActionCommand())) {
         applicationManager.imodMatchingModel(cbBinBy2.isSelected(), run3dmodMenuOptions);

@@ -68,6 +68,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2011/04/04 17:19:43  sueh
+ * <p> Refactored.
+ * <p>
  * <p> Revision 1.7  2011/03/02 00:00:12  sueh
  * <p> bug# 1452 Removing image rotation conversion between float and
  * <p> double.  Using string where possible.
@@ -742,7 +745,12 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     ctfCorrectionBodyPanel.add(ltfVoltage);
     ctfCorrectionBodyPanel.add(ltfSphericalAberration);
     ctfCorrectionBodyPanel.add(ltfAmplitudeContrast);
-    ctfCorrectionBodyPanel.add(cbInvertTiltAngles);
+    JPanel pnlInvertTiltAngles = new JPanel();
+    pnlInvertTiltAngles.setLayout(new BoxLayout(pnlInvertTiltAngles, BoxLayout.X_AXIS));
+    pnlInvertTiltAngles.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlInvertTiltAngles.add(cbInvertTiltAngles);
+    pnlInvertTiltAngles.add(Box.createHorizontalGlue());
+    ctfCorrectionBodyPanel.add(pnlInvertTiltAngles);
     //ctf plotter
     SpacedPanel ctfPlotterPanel = SpacedPanel.getInstance();
     ctfPlotterPanel.setBoxLayout(BoxLayout.Y_AXIS);
@@ -761,11 +769,17 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     JPanel useExpectedDefocusPanel = new JPanel();
     useExpectedDefocusPanel.setLayout(new BoxLayout(useExpectedDefocusPanel,
         BoxLayout.X_AXIS));
+    useExpectedDefocusPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
     ctfCorrectionPanel.add(useExpectedDefocusPanel);
-    useExpectedDefocusPanel.add(Box.createHorizontalGlue());
     useExpectedDefocusPanel.add(cbUseExpectedDefocus);
+    useExpectedDefocusPanel.add(Box.createHorizontalGlue());
 
-    ctfCorrectionPanel.add(cbParallelProcess);
+    JPanel pnlParallelProcess = new JPanel();
+    pnlParallelProcess.setLayout(new BoxLayout(pnlParallelProcess, BoxLayout.X_AXIS));
+    pnlParallelProcess.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlParallelProcess.add(cbParallelProcess);
+    pnlParallelProcess.add(Box.createHorizontalGlue());
+    ctfCorrectionPanel.add(pnlParallelProcess);
     ctfCorrectionPanel.add(ltfInterpolationWidth);
     ctfCorrectionPanel.add(ltfDefocusTol);
     //buttons

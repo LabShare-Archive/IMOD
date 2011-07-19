@@ -50,6 +50,9 @@ import etomo.util.FrontEndLogic;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2011/07/14 02:09:04  sueh
+ * <p> Bug# 1514 In getParameters(FlattenWarpParam) added error message for Smoothing Factor.
+ * <p>
  * <p> Revision 1.4  2011/04/09 06:37:25  sueh
  * <p> bug# 1416 Need to pass the manager to most FileType functions so that TILT_OUTPUT can distinguish
  * <p> between single and dual axis type.
@@ -274,6 +277,7 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
     pnlOneSurface.setLayout(new BoxLayout(pnlOneSurface, BoxLayout.Y_AXIS));
     pnlOneSurface.setAlignmentX(Box.CENTER_ALIGNMENT);
     pnlOneSurface.add(cbOneSurface);
+    pnlOneSurface.add(Box.createHorizontalGlue());
     //Warp Spacing panel
     pnlWarpSpacing.setLayout(new BoxLayout(pnlWarpSpacing, BoxLayout.X_AXIS));
     pnlWarpSpacing.setAlignmentX(Box.CENTER_ALIGNMENT);
@@ -289,6 +293,7 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
         .setLayout(new BoxLayout(pnlInterpolationOrder, BoxLayout.X_AXIS));
     pnlInterpolationOrder.setAlignmentX(Box.CENTER_ALIGNMENT);
     pnlInterpolationOrder.add(cbInterpolationOrderLinear);
+    pnlInterpolationOrder.add(Box.createHorizontalGlue());
     //Flatten panel
     pnlFlatten.setBoxLayout(BoxLayout.X_AXIS);
     pnlFlatten.setAlignmentX(Box.CENTER_ALIGNMENT);

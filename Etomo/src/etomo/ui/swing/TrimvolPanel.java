@@ -36,6 +36,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2011/06/21 18:40:03  sueh
+ * <p> Bug# 1490 Replaced getTrimvolParams with getParameters.  Placed warnings setup in
+ * <p> setStartupWarnings.  Added setParameters(ConstMetaData, dialogExists) since there is no
+ * <p> TrimvolParam in metaData anymore.
+ * <p>
  * <p> Revision 1.2  2011/02/22 21:42:11  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -337,7 +342,12 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
     pnlScale.setBorder(new EtchedBorder("Scaling").getBorder());
 
     cbConvertToBytes.setAlignmentX(Component.RIGHT_ALIGNMENT);
-    pnlScale.add(cbConvertToBytes);
+    JPanel pnlConvertToBytes = new JPanel();
+    pnlConvertToBytes.setLayout(new BoxLayout(pnlConvertToBytes,BoxLayout.X_AXIS));
+    pnlConvertToBytes.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlConvertToBytes.add(cbConvertToBytes);
+    pnlConvertToBytes.add(Box.createHorizontalGlue());
+    pnlScale.add(pnlConvertToBytes);
     pnlScale.add(pnlScaleFixed);
     pnlScale.add(pnlScaleSection);
     pnlScale.add(pnlScaleRubberband.getComponent());

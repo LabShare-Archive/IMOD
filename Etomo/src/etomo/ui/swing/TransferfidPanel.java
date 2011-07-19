@@ -67,8 +67,13 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
     header = PanelHeader.getAdvancedBasicInstance("Transfer Fiducials", this, dialogType,
         globalAdvancedButton);
     panelTransferfidBody.setLayout(new BoxLayout(panelTransferfidBody, BoxLayout.Y_AXIS));
+    JPanel pnlRunMidas = new JPanel();
+    pnlRunMidas.setLayout(new BoxLayout(pnlRunMidas,BoxLayout.X_AXIS));
+    pnlRunMidas.setAlignmentX(Box.CENTER_ALIGNMENT);
+    pnlRunMidas.add(cbRunMidas);
+    pnlRunMidas.add(Box.createHorizontalGlue());
     cbRunMidas.setAlignmentX(Component.RIGHT_ALIGNMENT);
-    panelTransferfidBody.add(cbRunMidas);
+    panelTransferfidBody.add(pnlRunMidas);
 
     //  Add a horizontal strut to keep the panel a minimum size    
     panelTransferfidBody.add(Box.createHorizontalStrut(300));
@@ -79,23 +84,35 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
     bgSearchDirection.add(rbSearchBoth.getAbstractButton());
     bgSearchDirection.add(rbSearchPlus90.getAbstractButton());
     bgSearchDirection.add(rbSearchMinus90.getAbstractButton());
+    JPanel opnlSearchDirection = new JPanel();
+    opnlSearchDirection.setLayout(new BoxLayout(opnlSearchDirection,BoxLayout.X_AXIS));
+    opnlSearchDirection.setAlignmentX(Box.CENTER_ALIGNMENT);
+    opnlSearchDirection.add(Box.createHorizontalGlue());
+    opnlSearchDirection.add(panelSearchDirection);
+    opnlSearchDirection.add(Box.createHorizontalGlue());
     panelSearchDirection.setLayout(new BoxLayout(panelSearchDirection, BoxLayout.Y_AXIS));
     panelSearchDirection.setBorder(new EtchedBorder("Search Direction").getBorder());
     panelSearchDirection.add(rbSearchBoth.getComponent());
     panelSearchDirection.add(rbSearchPlus90.getComponent());
     panelSearchDirection.add(rbSearchMinus90.getComponent());
     panelSearchDirection.setAlignmentX(Component.CENTER_ALIGNMENT);
-    panelTransferfidBody.add(panelSearchDirection);
+    panelTransferfidBody.add(opnlSearchDirection);
     cbMirrorInX.setAlignmentX(Component.RIGHT_ALIGNMENT);
     panelTransferfidBody.add(cbMirrorInX);
     panelTransferfidBody.add(Box.createRigidArea(FixedDim.x0_y5));
 
+    JPanel pnlTransferfid = new JPanel();
+    pnlTransferfid.setLayout(new BoxLayout(pnlTransferfid,BoxLayout.X_AXIS));
+    pnlTransferfid.setAlignmentX(Box.CENTER_ALIGNMENT);
+    pnlTransferfid.add(Box.createHorizontalGlue());
     buttonTransferfid = (Run3dmodButton) manager.getProcessResultDisplayFactory(axisID)
         .getTransferFiducials();
     buttonTransferfid.setContainer(this);
     buttonTransferfid.setAlignmentX(Component.CENTER_ALIGNMENT);
     buttonTransferfid.setSize();
-    panelTransferfidBody.add(buttonTransferfid.getComponent());
+    pnlTransferfid.add(buttonTransferfid.getComponent());
+    pnlTransferfid.add(Box.createHorizontalGlue());
+    panelTransferfidBody.add(pnlTransferfid);
     panelTransferfidBody.add(Box.createRigidArea(FixedDim.x0_y5));
     panelTransferfid.setLayout(new BoxLayout(panelTransferfid, BoxLayout.Y_AXIS));
     panelTransferfid.setBorder(BorderFactory.createEtchedBorder());
@@ -297,6 +314,9 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
 
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/22 21:41:30  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.2  2010/12/05 05:24:13  sueh
  * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
  * <p>
