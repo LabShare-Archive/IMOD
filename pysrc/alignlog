@@ -1,0 +1,182 @@
+#!/usr/bin/python -u
+# alignlog - parse portions of alignment log
+#
+# Author: David Mastronarde
+#
+# $Id$
+#
+
+progname = 'alignlog'
+prefix = 'ERROR: ' + progname + ' - '
+output = 0
+
+# Like doing awk from starting to ending line
+def pyawk(lines, start, end, excludeEnd = False):
+   reStart = re.compile(start)
+   reEnd = re.compile(end)
+   gotStart = False
+   for l in lines:
+      if not gotStart and re.search(reStart, l):
+         gotStart = True
+      putout = gotStart
+      if gotStart and re.search(reEnd, l):
+         gotStart = False
+         putout = not excludeEnd
+
+      if putout:
+         prnstr(l.rstrip())
+
+
+# Like doing grep on a single simple string
+def pygrep(lines, string):
+   for l in lines:
+      if l.find(string) >= 0:
+         prnstr(l.rstrip())
+
+
+# Put out a separator if there has been output already
+def separator():
+   global output
+   if output:
+      prnstr(' ')
+      prnstr('* * * * * * * * * * * * * * * * * * * * * * * * * * * *')
+      prnstr(' ')
+   output = 1
+
+
+#### MAIN PROGRAM  ####
+#
+# load System Libraries
+import os, sys, os.path, signal, re
+
+#
+# Setup runtime environment
+if sys.platform.find("win32") < 0:
+   try:
+      signal.signal(signal.SIGHUP, signal.SIG_IGN)
+   except:
+      pass
+if os.getenv('IMOD_DIR') != None:
+   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
+                        os.pathsep + os.environ['PATH']
+   sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import *
+
+clipsize = ''
+
+# Fallbacks from ../manpages/autodoc2man 3 1 alignlog
+options = [":m:B:", ":e:B:", ":s:B:", ":l:B:", ":c:B:", ":r:B:", ":a:B:", ":b:B:"]
+
+(numOpts, numNonOpts) = PipReadOrParseOptions(sys.argv, options, progname, 1, 1, 0)
+
+infile = 'align.log'
+if numNonOpts:
+   infile = PipGetNonOptionArg(0)
+
+if infile == 'a' or infile == 'b':
+   infile = 'align' + infile + '.log'
+if not os.path.exists(infile):
+   exitError('Alignment log file ' + infile + ' does not exist')
+lines = readTextFile(infile)
+
+if not numOpts:
+   sys.exit(0)
+
+# Get options that are needed for 
+error = PipGetBoolean('e', 0)
+solution = PipGetBoolean('s', 0)
+angle = PipGetBoolean('a', 0)
+
+# initialize variables as 1's and set up for searches
+# Sorry, replicating grep output status with these variables
+newsurface = 1    # for angle
+pipinput = 1      # for angle
+newratios = 1     # for error
+oneratio = 1      # for error
+nobeamtilt = 1    # for solution
+noprogentry = 1   # for angle
+nolocals = 1      # for angle
+
+totalRat = re.compile('Ratio .*to total unknown')
+formerRat = re.compile('Ratio .*formerly')
+
+# find values of needed variables
+for l in lines:
+   if angle and newsurface and l.find('SURFACE ANALYSIS') >= 0:
+      newsurface = 0
+   if angle and pipinput and l.find("to do series") >= 0:
+      pipinput = 0
+   if error and newratios and re.search(totalRat, l):
+      newratios = 0
+   if error and oneratio and re.search(formerRat, l):
+      oneratio = 0
+   if solution and nobeamtilt and l.find("olved beam tilt") >= 0:
+      nobeamtilt = 0
+   if angle and noprogentry and l.find("ntries to program") >= 0:
+      noprogentry = 0
+   if angle and nolocals and l.find("Doing local area") >= 0:
+      nolocals = 0
+
+# Go through the arguments
+for optind in range(1,numOpts+1):
+   opt = sys.argv[optind]
+   if opt == '-m':
+      separator()
+      pyawk(lines, '^ *Variable mappings', '^$')
+
+   if opt == '-e':
+      separator()
+      if not newratios:
+         pyawk(lines, '^ *Final   F', '^  Ratio')
+      elif oneratio:
+         pyawk(lines, '^.*Final   F', '^  Ratio of')
+      else:
+         pyawk(lines, '^.*Final   F', '^  Ratio to')
+
+      pygrep(lines, 'Residual error')
+
+   if opt == '-s':
+      separator()
+      if nobeamtilt == 0:
+         pygrep(lines, 'Beam tilt angle is')
+         prnstr(' ')
+      pyawk(lines, '^ view.*deltilt', '^$')
+
+   if opt == '-l':
+      separator()
+      for l in lines:
+         if l.find('Doing local area') >= 0 or l.find('on bottom and') >= 0 or \
+                l.find('Residual error') >= 0:
+            prnstr(l.rstrip())
+
+   if opt == '-c':
+      separator()
+      pyawk(lines, '^ *3-D point', '^ Midpoint', True)
+
+   if opt == '-r':
+      separator()
+      pyawk(lines, '^ *Projection points', '^$')
+      
+   if opt == '-a':
+      separator()
+      if newsurface == 1:
+         pyawk(lines, '^ Fit to all', '^ 1 to do', True)
+      elif pipinput == 0:
+         pyawk(lines, '^ SURFACE ANALYSIS', '^ 1 to do', True)
+      elif noprogentry == 1 or nolocals == 0:
+         pyawk(lines, '^ SURFACE ANALYSIS', 'file opened', True)
+      else:
+         pyawk(lines, '^ SURFACE ANALYSIS', 'ntries to program', True)
+
+   if opt == '-b':
+      separator()
+      pygrep(lines, ' beam tilt =')
+
+sys.exit(0)

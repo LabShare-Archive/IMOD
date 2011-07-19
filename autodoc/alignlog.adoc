@@ -1,0 +1,52 @@
+Version = 1.0
+Pip = 1
+
+[Field = m]
+type = B
+usage = Mappings: print variable mappings
+tooltip =
+manpage = 
+
+[Field = e]
+type = B
+usage = Errors: print errors and ratio of measured to unknowns
+tooltip =
+manpage = 
+
+[Field = s]
+type = B
+usage = Solution: print the alignment solution for each view
+tooltip =
+manpage = 
+
+[Field = l]
+type = B
+usage = Print results from local alignments
+tooltip =
+manpage = Local: print the location and size of each local area, the number
+of fiducials on each surface, and the mean residual.
+
+[Field = c]
+type = B
+usage = Coordinates: print the 3-D coordinates of the fiducials
+tooltip =
+manpage = 
+
+[Field = r]
+type = B
+usage = Residuals: print large residuals
+tooltip =
+manpage = 
+
+[Field = a]
+type = B
+usage = Angles: print planar fits and recommended change in angles
+tooltip =
+manpage = 
+
+[Field = b]
+type = B
+usage = Beam tilt: print F values from beam tilt searc
+tooltip =
+manpage = 
+
