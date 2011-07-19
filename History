@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/19/11: In eTomo, calling the python version of alignLog.(Bug# 1516)
+
 7/19/11: In eTomo, left justified checkboxes and shortened spinners.
 (Bug# 1459)
 
