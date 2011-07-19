@@ -32,13 +32,18 @@ run.function.flatten-volume=
 #run 3dmod
 bn.make-surface-model=
 [[if = test-gui]]
+  #check error - smoothing factor required.
+  bn.run-flattenwarp=
+  wait.popup.entry-error=OK
+[[]]
+tf.smoothing-factor=2.5
+[[if = test-gui]]
 	#check error - can't run flattenwarp when the model hasn't been created.
 	bn.run-flattenwarp=
 	wait.popup.flattenwarp-terminated=OK
 [[]]
 copy.file=BBa_flat.mod|%{dataset}_flat.mod
 run.function.smoothing-asessment=
-tf.smoothing-factor=2.5
 [[if = test-gui]]
 	#check error - can't run from squeezevol output when it hasn't been created.
 	bn.flatten=
