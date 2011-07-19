@@ -330,7 +330,7 @@ mb.tilt=+
 if.enabled.cb.use-the-gpu.run.function.turn-on-use-the-gpu=
 mb.tilt=-
 # tilt
-[[ifnot = montage]]
+[[if = montage]]
   mb.tilt=+
   # assuming they are on - turning them off
   if.enabled.cb.use-local-alignments.run.function.change-use-local-alignments=
@@ -377,7 +377,7 @@ wait.popup.etomo-question=Yes
 # put things back the way they where for tilt
 mb.tilt=+
 cb.use-the-gpu=off
-[[ifnot = montage]]
+[[if = montage]]
   if.enabled.cb.use-local-alignments.run.function.change-use-local-alignments=
   if.enabled.cb.use-z-factors.run.function.change-use-z-factors=
 [[]]
