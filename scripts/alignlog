@@ -67,7 +67,7 @@ while ($#argv > $numarg)
 		echo "* * * * * * * * * * * * * * * * * * * * * * * * * * * *"
 		echo " "
 	    endif
-	    awk '/^ *Variable mappings/, /^$/' $file
+	    awk '/^ *Variable mappings/, /^ *$/' $file
 	    set output = 1
 	    shift
 	breaksw
@@ -100,7 +100,7 @@ while ($#argv > $numarg)
                 grep 'Beam tilt angle is' $file
                 echo ' '
             endif
-	    awk '/^ view.*deltilt/, /^$/' $file
+	    awk '/^ view.*deltilt/, /^ *$/' $file
 	    set output = 1
 	    shift
 	breaksw
@@ -134,7 +134,7 @@ while ($#argv > $numarg)
 		echo "* * * * * * * * * * * * * * * * * * * * * * * * * * * *"
 		echo " "
 	    endif
-	    awk '/^ *Projection points/, /^$/' $file
+	    awk '/^ *Projection points/, /^ *$/' $file
 	    set output = 1
 	    shift
 	breaksw
@@ -178,6 +178,9 @@ end
 
 #
 #  $Log$
+#  Revision 3.10  2010/05/26 22:28:01  mast
+#  Fixed angle output when locals are done
+#
 #  Revision 3.9  2010/03/17 23:15:13  mast
 #  Fixed to exclude entries to xfproduct from angles output
 #
