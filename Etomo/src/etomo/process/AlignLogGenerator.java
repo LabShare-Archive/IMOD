@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.12  2011/02/22 03:58:04  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 3.11  2010/02/17 04:49:20  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -73,8 +76,10 @@ public class AlignLogGenerator {
     else {
       alignLogCommand = new String[5];
     }
-    alignLogCommand[0] = "tcsh";
-    alignLogCommand[1] = "-f";
+    //alignLogCommand[0] = "tcsh";
+    //alignLogCommand[1] = "-f";
+    alignLogCommand[0] = "python";
+    alignLogCommand[1] = "-u";
     alignLogCommand[2] = ApplicationManager.getIMODBinPath() + "alignlog";
     if (id != AxisID.ONLY) {
       alignLogCommand[4] = axisID.getExtension();
