@@ -133,7 +133,10 @@ if linear:
    volbase.append('InterpolationOrder 1')
 
 # Run refinematch
+# The flush is needed because in old python (2.5 or below) the output printed from the
+# runcmd somehow gets ahead of this output
 prnstr("MATCHORWARP: RUNNING REFINEMATCH TO TRY TO FIND SINGLE TRANSFORMATION")
+sys.stdout.flush()
 
 skipwarp = warplimit == "0" or warplimit == "0." or warplimit == ".0" or \
            warplimit == "0.0"
@@ -170,6 +173,7 @@ try:
       prnstr("MATCHORWARP: REFINEMATCH FOUND A GOOD TRANSFORMATION: NEXT RUNNING " +\
              "MATCHVOL")
       prnstr(" ")
+      sys.stdout.flush()
       
       comlines = volbase + ['TransformFile ' + solvefile,
                             'TransformFile ' + refinefile,
@@ -186,6 +190,7 @@ try:
 
    prnstr(" ")
    prnstr("MATCHORWARP: RUNNING FINDWARP TO FIND A WARPING WITH GIVEN RESIDUAL LIMITS")
+   sys.stdout.flush()
 
    comlines = findbase + ['TargetMeanResidual ' + warplimit,
                           'InitialTransformFile ' + solvefile,
@@ -220,6 +225,7 @@ try:
 
       prnstr("MATCHORWARP: FINDWARP FOUND A GOOD WARPING: NEXT RUNNING WARPVOL")
       prnstr(" ")
+      sys.stdout.flush()
       comlines = volbase + ['TransformFile ' + warpfile];
       
       runcmd('warpvol -StandardInput', comlines, 'stdout')
