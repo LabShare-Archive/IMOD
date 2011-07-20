@@ -25,6 +25,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2011/04/09 06:25:01  sueh
+ * <p> bug# 1416 Removed FileType.getFileName(BaseManager) because it lead to a file name being created with
+ * <p> no axis letter.  GetFileName(BaseManager,AxisID) can be used instead.
+ * <p>
  * <p> Revision 1.6  2011/02/22 03:13:35  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -50,7 +54,7 @@ public final class FlattenWarpParam {
   public static final String ONE_SURFACE_OPTION = "OneSurface";
   public static final String WARP_SPACING_X_AND_Y_OPTION = "WarpSpacingXandY";
   public static final String LAMBDA_FOR_SMOOTHING_OPTION = "LambdaForSmoothing";
-  public static final String LAMBDA_FOR_SMOOTHING_ASSESSMENT_DEFAULT = "2,2.5,3,3.5,4";
+  public static final String LAMBDA_FOR_SMOOTHING_ASSESSMENT_DEFAULT = "1,1.5,2,2.5,3";
 
   private final List command = new ArrayList();
   private final FortranInputString warpSpacingXandY = new FortranInputString(2);//optional
