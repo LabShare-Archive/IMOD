@@ -50,6 +50,10 @@ import etomo.util.FrontEndLogic;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2011/07/19 20:01:14  sueh
+ * <p> Bug# 1459 Wrapped checkboxes in a panel and used glue to left justify them.  Prevented spinners
+ * <p> which have a value when they are first displayed from going all the way to the right.
+ * <p>
  * <p> Revision 1.5  2011/07/14 02:09:04  sueh
  * <p> Bug# 1514 In getParameters(FlattenWarpParam) added error message for Smoothing Factor.
  * <p>
@@ -219,6 +223,7 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
   }
 
   void done() {
+    btnFlattenWarp.removeActionListener(actionListener);
     btnFlatten.removeActionListener(actionListener);
     smoothingAssessmentPanel.done();
   }
@@ -340,14 +345,18 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
     smoothingAssessmentPanel.getParameters(metaData);
   }
 
-  public boolean getParameters(final FlattenWarpParam param) {
+  private boolean validateFlattenWarp() {
     String lambdaForSmoothing = ltfLambdaForSmoothing.getText();
     if (lambdaForSmoothing == null || lambdaForSmoothing.matches("\\s*")) {
       UIHarness.INSTANCE.openMessageDialog(manager, LAMBDA_FOR_SMOOTHING_LABEL
           + " is a required field.", "Entry Error", axisID);
       return false;
     }
-    String errorMessage = param.setLambdaForSmoothing(lambdaForSmoothing);
+    return true;
+  }
+
+  public boolean getParameters(final FlattenWarpParam param) {
+    String errorMessage = param.setLambdaForSmoothing(ltfLambdaForSmoothing.getText());
     if (errorMessage != null) {
       UIHarness.INSTANCE.openMessageDialog(manager, "Error in "
           + LAMBDA_FOR_SMOOTHING_LABEL + ":  " + errorMessage, "Entry Error", axisID);
@@ -446,8 +455,10 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
             btnMakeSurfaceModel.getBinningInXandY(), getInputFileType());
       }
       else if (command.equals(btnFlattenWarp.getActionCommand())) {
-        applicationManager.flattenWarp(btnFlattenWarp, null, deferred3dmodButton,
-            run3dmodMenuOptions, dialogType, axisID, this);
+        if (validateFlattenWarp()) {
+          applicationManager.flattenWarp(btnFlattenWarp, null, deferred3dmodButton,
+              run3dmodMenuOptions, dialogType, axisID, this);
+        }
       }
       else {
         throw new IllegalStateException("Unknown command " + command);
@@ -470,8 +481,10 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
             btnMakeSurfaceModel.getBinningInXandY(), ftfInputFile.getFile());
       }
       else if (command.equals(btnFlattenWarp.getActionCommand())) {
-        toolsManager.flattenWarp(btnFlattenWarp, null, deferred3dmodButton,
-            run3dmodMenuOptions, dialogType, axisID, this);
+        if (validateFlattenWarp()) {
+          toolsManager.flattenWarp(btnFlattenWarp, null, deferred3dmodButton,
+              run3dmodMenuOptions, dialogType, axisID, this);
+        }
       }
       else {
         throw new IllegalStateException("Unknown command " + command);
