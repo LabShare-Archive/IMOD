@@ -1575,9 +1575,13 @@ c
 c		dx=f(1,3,lnu)-xcen(isec)
 c		dy=(ny3-nych)/2.+f(2,3,lnu) - ycen(isec) - lineOutSt(ichunk)
               if (linesShrink .gt. 0) then
-                if (zoomFiltInterp(array,array(ibchunk),nxbin,nyload, nx3, nych,
-     &              xci ,yci, dx,dy,dmeansec) .ne. 0) call exitError(
-     &              'CALLING zoomFiltInterp FOR IMAGE REDUCTION')
+                ierr=zoomFiltInterp(array,array(ibchunk),nxbin,nyload, nx3, nych,
+     &              xci ,yci, dx,dy,dmeansec) 
+                if (ierr.ne. 0) then 
+                  write(listString, '(a,i3)')
+     &                'CALLING zoomFiltInterp FOR IMAGE REDUCTION, ERROR', ierr
+                  call exitError(listString)
+                endif
               elseif (.not. hasWarp .and. ifMagGrad .eq. 0) then
                 call cubinterp(array,array(ibchunk),nxbin,nyload, nx3, nych,
      &              fprod,xci ,yci, dx,dy,1.,dmeansec, ifLinear)
@@ -2204,6 +2208,9 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.69  2011/07/01 04:41:41  mast
+c       Forbid -expand and -rotate with warping
+c
 c       Revision 3.68  2011/06/26 22:57:11  mast
 c       Fix offsets with distortion
 c
