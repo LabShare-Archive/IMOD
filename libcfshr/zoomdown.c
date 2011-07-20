@@ -387,7 +387,7 @@ int zoomFiltInterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb
     return 5;
   interpLimits(nxa, nxb, xc, xt, &aXoff, &bXsize, &bXoff);
   interpLimits(nya, nyb, yc, yt, &aYoff, &bYsize, &bYoff);
-  /* printf("%f %d %d  %f %d %d\n", aXoff, bXsize, bXoff, aYoff, bYsize, bYoff);*/
+  /* printf("%f %d %d  %f %d %d\n", aXoff, bXsize, bXoff, aYoff, bYsize, bYoff); */
   if (bXsize > 0 && bYsize > 0) {
     i = zoomWithFilter(linePtrs, nxa, nya, aXoff, aYoff, bXsize, bYsize, nxb, bXoff,
                        SLICE_MODE_FLOAT, &bray[nxb * bYoff], NULL, NULL);
@@ -445,6 +445,9 @@ static void interpLimits(int na, int nb, float cen, float trans, float *aOff, in
   bdEnd = (int)floor(bcEnd + 0.001) - 1;
   *bOff = bdStart;
   *aOff = scale * (bdStart - nb / 2. - trans) + cen;
+
+  /* Make sure this is not negative; roundoff errors can give negative values */
+  *aOff = B3DMAX(0., *aOff);
   *bSize = bdEnd + 1 - bdStart;
 
   /* Make sure the output size will pass the test below too */
@@ -774,6 +777,9 @@ static double filt_lanczos3(double x)
 /*
 
 $Log$
+Revision 1.4  2011/03/08 19:53:41  mast
+Switched SHORT to USHORT as anticipated
+
 Revision 1.3  2011/03/04 22:43:50  mast
 Truncate to integer in test for out of range output
 
