@@ -40,6 +40,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/22 19:30:05  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.2  2010/12/05 05:18:34  sueh
  * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
  * <p>
@@ -181,6 +184,15 @@ final class SmoothingAssessmentPanel implements FlattenWarpDisplay,
     metaData.setLambdaForSmoothingList(ltfLambdaForSmoothing.getText());
   }
 
+  private boolean validateFlattenWarp() {
+    if (ltfLambdaForSmoothing.isEmpty()) {
+      UIHarness.INSTANCE.openMessageDialog(manager, LAMBDA_FOR_SMOOTHING_LABEL
+          + " is required.", "Entry Error", axisID);
+      return false;
+    }
+    return true;
+  }
+
   public boolean getParameters(final FlattenWarpParam param) {
     String errorMessage = param.setLambdaForSmoothing(ltfLambdaForSmoothing.getText());
     if (errorMessage != null) {
@@ -213,8 +225,10 @@ final class SmoothingAssessmentPanel implements FlattenWarpDisplay,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (panelId == PanelId.POST_FLATTEN_VOLUME) {
       if (command.equals(btnFlattenWarp.getActionCommand())) {
-        applicationManager.flattenWarp(btnFlattenWarp, null, deferred3dmodButton,
-            run3dmodMenuOptions, dialogType, axisID, this);
+        if (validateFlattenWarp()) {
+          applicationManager.flattenWarp(btnFlattenWarp, null, deferred3dmodButton,
+              run3dmodMenuOptions, dialogType, axisID, this);
+        }
       }
       else if (command.equals(btn3dmod.getActionCommand())) {
         applicationManager.imodViewModel(axisID,
@@ -226,8 +240,10 @@ final class SmoothingAssessmentPanel implements FlattenWarpDisplay,
     }
     else if (panelId == PanelId.TOOLS_FLATTEN_VOLUME) {
       if (command.equals(btnFlattenWarp.getActionCommand())) {
-        toolsManager.flattenWarp(btnFlattenWarp, null, deferred3dmodButton,
-            run3dmodMenuOptions, dialogType, axisID, this);
+        if (validateFlattenWarp()) {
+          toolsManager.flattenWarp(btnFlattenWarp, null, deferred3dmodButton,
+              run3dmodMenuOptions, dialogType, axisID, this);
+        }
       }
       else if (command.equals(btn3dmod.getActionCommand())) {
         toolsManager.imodViewModel(axisID, FileType.SMOOTHING_ASSESSMENT_OUTPUT_MODEL);
