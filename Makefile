@@ -356,7 +356,7 @@ fsrc :
 etomosrc :
 	mkdir -p $(ARCDIR)_src/Etomo/
 	cp -r Etomo/Makefile.real Etomo/Makefile.dummy Etomo/build.xml \
-	Etomo/*MANIFEST.MF Etomo/.classpath Etomo/.project Etomo/src \
+	Etomo/*MANIFEST.MF Etomo/.project Etomo/src \
 	Etomo/scripts Etomo/doc Etomo/tests $(ARCDIR)_src/Etomo
 
 #
@@ -376,6 +376,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.94  2011/06/24 16:00:25  mast
+#  Added RAPTOR
+#
 #  Revision 3.93  2011/06/10 05:38:03  mast
 #  Put licenses in new directory in the distribution
 #
