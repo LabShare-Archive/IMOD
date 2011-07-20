@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/20/11: In eTomo - Flatten moved the smoothing factor error message to
+process-level validation.  Added an error message for an empty trial smoothing
+factors list.  Also fixed a bug where the flatten warp button may respond
+multiple times to being pressed.(Bug# 1514)
+
 7/19/11: IMOD_4-2-21
 7/19/11: In eTomo, calling the python version of alignLog.(Bug# 1516)
 
