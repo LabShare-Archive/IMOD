@@ -263,7 +263,7 @@ void StartupForm::imageSelectClicked()
     (this,  mModvMode ? "Select model file(s) to load" :
      "Select image file(s) to load", QString(),
      mModvMode ? "Model files (*.*mod)" : 
-     "MRC files (*.*st *.*ali *.*rec *.*mrc *.*join);;TIFF files (*.tif);;"
+     "MRC files (*.*st *.*ali *.*rec* *.*mrc *.*join);;TIFF files (*.tif);;"
      "JPEG files (*.jpg);;PNG files (*.png);;All files (*)");
   enableButtons(true);
   
@@ -639,6 +639,9 @@ void StartupForm::helpClicked()
 /*
 
 $Log$
+Revision 4.3  2011/03/14 23:39:13  mast
+Changes for ushort loading
+
 Revision 4.2  2009/01/17 00:09:30  mast
 Don't delete on close
 
