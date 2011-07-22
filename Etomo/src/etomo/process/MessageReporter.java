@@ -2,6 +2,8 @@ package etomo.process;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.swing.SwingUtilities;
 
@@ -25,6 +27,9 @@ import etomo.ui.swing.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2010/11/13 16:03:45  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
  * <p> Revision 1.3  2010/02/17 04:49:20  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
@@ -41,6 +46,8 @@ final class MessageReporter {
   public static final String rcsid = "$Id$";
 
   private static final String TOKEN = "MESSAGE:";//"Error returned";
+
+  private final Set printedMessageSet = new HashSet<String>();
 
   private final LogFile file;
   private final AxisID axisID;
@@ -69,8 +76,11 @@ final class MessageReporter {
       try {
         while ((line = file.readLine(id)) != null) {
           if (line.trim().startsWith(TOKEN)) {
-            SwingUtilities.invokeLater(new PopupLater(manager, axisID, line
-                .substring(line.indexOf(TOKEN) + TOKEN.length())));
+            if (!printedMessageSet.contains(line)) {
+              printedMessageSet.add(line);
+              SwingUtilities.invokeLater(new PopupLater(manager, axisID, line
+                  .substring(line.indexOf(TOKEN) + TOKEN.length())));
+            }
           }
         }
       }
