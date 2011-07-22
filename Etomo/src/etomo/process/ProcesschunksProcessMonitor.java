@@ -74,6 +74,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   final Map computerMap;
   private int tcshErrorCountDown = NO_TCSH_ERROR;
   private ParallelProgressDisplay parallelProgressDisplay = null;
+  private MessageReporter messageReporter = null;
 
   ProcesschunksProcessMonitor(BaseManager manager, AxisID axisID, String rootName,
       Map computerMap) {
@@ -334,6 +335,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   }
 
   synchronized void closeProcessOutput() {
+    if (messageReporter != null) {
+      messageReporter.close();
+    }
     if (processOutput != null && processOutputReaderId != null
         && !processOutputReaderId.isEmpty()) {
       processOutput.closeReader(processOutputReaderId);
@@ -516,6 +520,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     }
     manager.getMainPanel().setProgressBarValue(chunksFinished.getInt(),
         getStatusString(), axisID);
+    if (messageReporter != null) {
+      messageReporter.checkForMessages(manager);
+    }
   }
 
   private void initializeProgressBar() {
@@ -624,6 +631,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       processOutput = LogFile.getInstance(manager.getPropertyUserDir(), DatasetFiles
           .getOutFileName(manager, subdirName, ProcessName.PROCESSCHUNKS.toString(),
               axisID));
+      messageReporter = new MessageReporter(axisID, processOutput);
       //Don't remove the file if this is a reconnect.
       if (!reconnect) {
         //Avoid looking at a file from a previous run.
@@ -634,6 +642,10 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.56  2011/02/23 05:09:00  sueh
+ * <p> bug# 1450 Setting parallelProgressDisplay right before it is used.  The
+ * <p> mediator doesn't have it immediately.
+ * <p>
  * <p> Revision 1.55  2011/02/22 04:07:41  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
