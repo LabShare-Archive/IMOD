@@ -239,8 +239,7 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
       }*/
     setToolTipText();
     if (rowList.size() == 1) {
-      //TEMP
-      //rowList.setSelected(0, true);
+      rowList.setSelected(0, true);
     }
   }
 
@@ -782,6 +781,9 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2011/07/18 23:13:31  sueh
+ * <p> Bug# 1515 Added getNoCpusSelectedErrorMessage
+ * <p>
  * <p> Revision 1.6  2011/07/18 22:45:52  sueh
  * <p> Bug# 1515 In initTable always selecting a single row.  Removed isSelectOnlyRow, which is no longer
  * <p> being called.
