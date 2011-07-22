@@ -529,7 +529,7 @@ void ProcessHandler::incrementNumChunkErr() {
   }
 }
 
-void ProcessHandler::printWarnings() {
+void ProcessHandler::printWarnings(const QString &machineName) {
   if (mComFileJobIndex == -1) {
     mProcesschunks->getOutStream() << "ERROR:" << mDecoratedClassName << ":" << __func__
         << ":No mComFileJobIndex" << endl;
@@ -545,7 +545,7 @@ void ProcessHandler::printWarnings() {
       mProcesschunks->getOutStream() << line;
     }
     else if (line.indexOf("MESSAGE:") != -1) {
-      mProcesschunks->getOutStream() << line;
+      mProcesschunks->getOutStream() << line << " - on " << machineName;
     }
   } while (!mLogFile->atEnd());
   mLogFile->close();
@@ -1081,6 +1081,9 @@ void ProcessHandler::stopProcess(const QString &pid) {
 
 /*
  $Log$
+ Revision 1.48  2011/07/22 20:59:04  sueh
+ Bug# 1521 In printWarnings, printing MESSAGE:-tagged lines.
+
  Revision 1.47  2011/06/01 03:07:48  sueh
  Bug# 1491 In getErrorMessageFromLog added a space between error messages.
 
