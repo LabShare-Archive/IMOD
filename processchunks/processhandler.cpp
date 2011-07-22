@@ -538,14 +538,26 @@ void ProcessHandler::printWarnings(const QString &machineName) {
   if (!mLogFile->open(QIODevice::ReadOnly)) {
     return;
   }
-  QByteArray line = mLogFile->readLine();
+  QString line = mLogFile->readLine();
   do {
     line = mLogFile->readLine();
     if (line.indexOf("WARNING:") != -1) {
       mProcesschunks->getOutStream() << line;
     }
     else if (line.indexOf("MESSAGE:") != -1) {
-      mProcesschunks->getOutStream() << line << " - on " << machineName;
+      int eolIndex = -1;
+#ifdef _WIN32
+      eolIndex = line.lastIndexOf("\r\n");
+#else
+      eolIndex = line.lastIndexOf('\n');
+#endif
+      if (eolIndex == -1) {
+        mProcesschunks ->getOutStream() << line;
+      }
+      else {
+        mProcesschunks ->getOutStream() << line.mid(0, line.size() - eolIndex);
+      }
+      mProcesschunks->getOutStream() << " - on " << machineName << endl;
     }
   } while (!mLogFile->atEnd());
   mLogFile->close();
@@ -683,9 +695,9 @@ void ProcessHandler::runProcess(MachineHandler &machine) {
       //Escaping the single quote shouldn't be necessary because this is not
       //being run from a shell.
       QString param = QString("\"cd %1 && (csh -ef < %2 ; \\rm -f %3)\"").arg(
-          mEscapedRemoteDirPath, mProcesschunks->getComFileJobs()->getCshFileName(
-              mComFileJobIndex), mProcesschunks->getComFileJobs()->getCshFileName(
-              mComFileJobIndex));
+          mEscapedRemoteDirPath,
+          mProcesschunks->getComFileJobs()->getCshFileName(mComFileJobIndex),
+          mProcesschunks->getComFileJobs()->getCshFileName(mComFileJobIndex));
       paramList = new QStringList();
       paramList->append("-x");
       QStringList sshOpts = mProcesschunks->getSshOpts();
@@ -699,11 +711,12 @@ void ProcessHandler::runProcess(MachineHandler &machine) {
      process pipe count would be 6.  In that case the total number of CPUs
      allowed (Processchunks::setupMachineList::numCpusLimit) would have to be
      reduced.*/
-    mProcess->setStandardOutputFile(QString("%1.stdout").arg(
-        mProcesschunks->getComFileJobs()->getCshFileName(mComFileJobIndex)),
+    mProcess->setStandardOutputFile(
+        QString("%1.stdout").arg(
+            mProcesschunks->getComFileJobs()->getCshFileName(mComFileJobIndex)),
         QProcess::Truncate);
-    mProcess->setStandardInputFile(mProcesschunks->getComFileJobs()->getCshFileName(
-        mComFileJobIndex));
+    mProcess->setStandardInputFile(
+        mProcesschunks->getComFileJobs()->getCshFileName(mComFileJobIndex));
   }
   //Run command
   resetSignalValues();
@@ -890,8 +903,9 @@ void ProcessHandler::handleFinished(const int exitCode,
       mProcesschunks->getCurrentDir().remove(
           mProcesschunks->getComFileJobs()->getCshFileName(mComFileJobIndex));
     }
-    mProcesschunks->getCurrentDir().remove(QString("%1.stdout").arg(
-        mProcesschunks->getComFileJobs()->getCshFileName(mComFileJobIndex)));
+    mProcesschunks->getCurrentDir().remove(
+        QString("%1.stdout").arg(
+            mProcesschunks->getComFileJobs()->getCshFileName(mComFileJobIndex)));
     if (!mKill) {
       mMachine = NULL;
     }
@@ -1081,6 +1095,9 @@ void ProcessHandler::stopProcess(const QString &pid) {
 
 /*
  $Log$
+ Revision 1.49  2011/07/22 22:09:26  sueh
+ Bug# 1521 In printWarnings, appending the machine name to the MESSAGE-tagged line.
+
  Revision 1.48  2011/07/22 20:59:04  sueh
  Bug# 1521 In printWarnings, printing MESSAGE:-tagged lines.
 
