@@ -544,6 +544,9 @@ void ProcessHandler::printWarnings() {
     if (line.indexOf("WARNING:") != -1) {
       mProcesschunks->getOutStream() << line;
     }
+    else if (line.indexOf("MESSAGE:") != -1) {
+      mProcesschunks->getOutStream() << line;
+    }
   } while (!mLogFile->atEnd());
   mLogFile->close();
 }
@@ -1078,6 +1081,9 @@ void ProcessHandler::stopProcess(const QString &pid) {
 
 /*
  $Log$
+ Revision 1.47  2011/06/01 03:07:48  sueh
+ Bug# 1491 In getErrorMessageFromLog added a space between error messages.
+
  Revision 1.46  2011/02/05 00:51:17  sueh
  bug# 1426 Preventing a lockup when the PID cannot be gotten and
  processchunks thinks that the process is running.
