@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/22/11: In eTomo - Tomogram Generation, always select the row in a single CPU
+or GPU parallel processing table.(Bug# 1515)
+
 7/20/11: In eTomo - Flatten moved the smoothing factor error message to
 process-level validation.  Added an error message for an empty trial smoothing
 factors list.  Also fixed a bug where the flatten warp button may respond
@@ -12,9 +15,6 @@ multiple times to being pressed.(Bug# 1514)
 
 7/19/11: In eTomo, left justified checkboxes and shortened spinners.
 (Bug# 1459)
-
-7/18/11: In eTomo - Tomogram Generation, always select the row in a single CPU
-or GPU parallel processing table.(Bug# 1515)
 
 7/14/11: In eTomo - Tomogram Combination - SIRT fixed the enabling and
 disabling of the Resume from... radio buttons and combobox.(Bug# 1510)
