@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/22/11: In eTomo - Tomogram Generation, popping up a message when a GPU can't
+be used on a machine being used for parallel processing.(Bug# 1521)
+
 7/22/11: In eTomo - Tomogram Generation, always select the row in a single CPU
 or GPU parallel processing table.(Bug# 1515)
 
