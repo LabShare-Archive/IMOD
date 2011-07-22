@@ -74,12 +74,12 @@ Using Matching Models
   of points that can be localized well in both tomograms and enter them in
   the same order into a model for each tomogram.  The points can be in the
   same or in different objects or contours, as long as they occur in the
-  same order in each model.  The points should be well-distributed in in
-  all dimensions.  At least 8 points are recommended.  If this is to
-  provide the basis for the final alignment of the volumes, they should be
-  relatively near the 8 corners of the volume, and more points should be
-  used for greater accuracy; but if the alignment is to be refined with
-  correlation, this is not necessary.
+  same order in each model.  The points should be well-distributed in
+  all dimensions, and they must not all be in one plane.  At least 8 points
+  are recommended.  If this is to provide the basis for the final alignment of
+  the volumes, they should be relatively near the 8 corners of the volume, and
+  more points should be used for greater accuracy; but if the alignment is to
+  be refined with correlation, this is not necessary.
 
 Using Old, Relative Fiducial Coordinates
   With fiducial coordinates from older versions of Tiltalign(1), the program
