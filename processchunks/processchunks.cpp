@@ -1237,7 +1237,7 @@ bool Processchunks::handleChunkDone(MachineHandler &machine, ProcessHandler *pro
   mNumDone++;
   *mOutStream << process->getComFileName() << " finished on " << machine.getName()
       << endl;
-  process->printWarnings();
+  process->printWarnings(machine.getName());
   if (mSingleFile) {
     if (!mSkipProbe) {
       cleanupAndExit();
@@ -1672,6 +1672,9 @@ bool Processchunks::isVerbose(const QString &verboseClass, const QString verbose
 
 /*
  $Log$
+ Revision 1.71  2011/03/01 22:56:52  mast
+ Switch to PID-printing function
+
  Revision 1.70  2011/02/05 00:51:02  sueh
  bug# 1426 Allowing small letters in the check file.
 
