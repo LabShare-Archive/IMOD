@@ -45,7 +45,7 @@ public:
   bool cshFileExists();
   int getNumChunkErr();
   const QString getComFileName();
-  void printWarnings();
+  void printWarnings(const QString &machineName);
   const QString getLogFileName();
   const QByteArray readAllLogFile();
   bool isLogFileEmpty();
@@ -146,6 +146,10 @@ private:
 
 /*
  $Log$
+ Revision 1.24  2011/02/05 00:51:27  sueh
+ bug# 1426 Preventing a lockup when the PID cannot be gotten and
+ processchunks thinks that the process is running.
+
  Revision 1.23  2011/02/02 22:43:32  sueh
  bug# 1426 Added killQProcesses.
 
