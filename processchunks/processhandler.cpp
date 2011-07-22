@@ -545,19 +545,7 @@ void ProcessHandler::printWarnings(const QString &machineName) {
       mProcesschunks->getOutStream() << line;
     }
     else if (line.indexOf("MESSAGE:") != -1) {
-      int eolIndex = -1;
-#ifdef _WIN32
-      eolIndex = line.lastIndexOf("\r\n");
-#else
-      eolIndex = line.lastIndexOf('\n');
-#endif
-      if (eolIndex == -1) {
-        mProcesschunks ->getOutStream() << line;
-      }
-      else {
-        mProcesschunks ->getOutStream() << line.mid(0, line.size() - eolIndex);
-      }
-      mProcesschunks->getOutStream() << " - on " << machineName << endl;
+      mProcesschunks->getOutStream() << line.trimmed() << " - on " << machineName << endl;
     }
   } while (!mLogFile->atEnd());
   mLogFile->close();
@@ -1095,6 +1083,10 @@ void ProcessHandler::stopProcess(const QString &pid) {
 
 /*
  $Log$
+ Revision 1.50  2011/07/22 22:49:03  sueh
+ Bug# 1521 In printWarnings, stripping the end-of-line character(s) from the MESSAGE-tagged line,
+ and adding an endl after the machine name.
+
  Revision 1.49  2011/07/22 22:09:26  sueh
  Bug# 1521 In printWarnings, appending the machine name to the MESSAGE-tagged line.
 
