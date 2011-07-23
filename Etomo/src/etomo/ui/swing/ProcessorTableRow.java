@@ -460,10 +460,10 @@ final class ProcessorTableRow implements Storable {
   void setCPUUsage(double cpuUsage, final ConstEtomoNumber numberOfProcessors) {
     double usage;
     if (numberOfProcessors == null || numberOfProcessors.isNull()) {
-      usage = cpuUsage * numberOfProcessors.getInt() / 100.0;
+      usage = cpuUsage / 100.0;
     }
     else {
-      usage = cpuUsage / 100.0;
+      usage = cpuUsage * numberOfProcessors.getInt() / 100.0;
     }
     if (loadWarning) {
       cellCPUUsage.setWarning(cpuUsage > 75);
@@ -602,6 +602,10 @@ final class ProcessorTableRow implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2011/07/23 03:05:33  sueh
+ * <p> Bug# 1517 In setCPUUsage, incorporate the numberOfProcessors into the CPU usage, and set the
+ * <p> warning and 75%.
+ * <p>
  * <p> Revision 1.4  2011/04/04 17:24:16  sueh
  * <p> bug# 1416 Fixed a bug in setCPUsSelected - class wasn't handling a computer with a single CPU or GPU.
  * <p>
