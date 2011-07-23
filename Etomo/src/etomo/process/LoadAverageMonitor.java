@@ -1,7 +1,9 @@
 package etomo.process;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
 import etomo.ui.swing.LoadDisplay;
 import etomo.util.Utilities;
 
@@ -55,7 +57,7 @@ public class LoadAverageMonitor extends LoadMonitor {
         if (stdout[i].indexOf(OUTPUT_KEY_PHRASE_WINDOWS) != -1) {
           programState.setWaitForCommand(0);
           String[] array = stdout[i].trim().split("\\s+");
-          cpuUsage = getLoad(array[array.length - 1]);
+          cpuUsage = getWindowsLoad(array[array.length - 1]);
         }
       }
       else if (stdout[i].indexOf(OUTPUT_KEY_PHRASE) != -1) {
@@ -103,6 +105,16 @@ public class LoadAverageMonitor extends LoadMonitor {
     return null;
   }
 
+  private double getWindowsLoad(final String loadString) {
+    double load = getLoad(loadString);
+    ConstEtomoNumber numberOfProcessors = EtomoDirector.INSTANCE
+        .getNumberOfProcessorsWindows();
+    if (numberOfProcessors == null || numberOfProcessors.isNull()) {
+      return load;
+    }
+    return load * numberOfProcessors.getInt();
+  }
+
   private double getLoad(String load) {
     load = load.trim();
     if (load.charAt(load.length() - 1) == ',') {
@@ -113,6 +125,9 @@ public class LoadAverageMonitor extends LoadMonitor {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.28  2011/02/22 04:03:42  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.27  2010/11/13 16:03:45  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
