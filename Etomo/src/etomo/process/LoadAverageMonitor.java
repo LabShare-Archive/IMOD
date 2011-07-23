@@ -27,6 +27,9 @@ public class LoadAverageMonitor extends LoadMonitor {
   private static final String OUTPUT_KEY_PHRASE = "load average";
   private static final String OUTPUT_KEY_PHRASE_WINDOWS = "Percent CPU usage";
 
+  private final ConstEtomoNumber numberOfProcessorsWindows = EtomoDirector.INSTANCE
+      .getNumberOfProcessorsWindows();
+
   public LoadAverageMonitor(LoadDisplay display, AxisID axisID, BaseManager manager) {
     super(display, axisID, manager);
   }
@@ -57,7 +60,7 @@ public class LoadAverageMonitor extends LoadMonitor {
         if (stdout[i].indexOf(OUTPUT_KEY_PHRASE_WINDOWS) != -1) {
           programState.setWaitForCommand(0);
           String[] array = stdout[i].trim().split("\\s+");
-          cpuUsage = getWindowsLoad(array[array.length - 1]);
+          cpuUsage = getLoad(array[array.length - 1]);
         }
       }
       else if (stdout[i].indexOf(OUTPUT_KEY_PHRASE) != -1) {
@@ -86,7 +89,8 @@ public class LoadAverageMonitor extends LoadMonitor {
       if (cpuUsage == -1) {
         return;
       }
-      display.setCPUUsage(programState.getCommand().getComputer(), cpuUsage);
+      display.setCPUUsage(programState.getCommand().getComputer(), cpuUsage,
+          numberOfProcessorsWindows);
     }
     else {
       if (load1 == -1) {
@@ -105,16 +109,6 @@ public class LoadAverageMonitor extends LoadMonitor {
     return null;
   }
 
-  private double getWindowsLoad(final String loadString) {
-    double load = getLoad(loadString);
-    ConstEtomoNumber numberOfProcessors = EtomoDirector.INSTANCE
-        .getNumberOfProcessorsWindows();
-    if (numberOfProcessors == null || numberOfProcessors.isNull()) {
-      return load;
-    }
-    return load * numberOfProcessors.getInt();
-  }
-
   private double getLoad(String load) {
     load = load.trim();
     if (load.charAt(load.length() - 1) == ',') {
@@ -125,6 +119,9 @@ public class LoadAverageMonitor extends LoadMonitor {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.29  2011/07/23 02:26:57  sueh
+ * <p> Bug# 1517 Added getWindowsLoad.
+ * <p>
  * <p> Revision 1.28  2011/02/22 04:03:42  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
