@@ -14,6 +14,7 @@ import javax.swing.event.ChangeListener;
 import etomo.comscript.ProcesschunksParam;
 import etomo.storage.Node;
 import etomo.storage.Storable;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.util.Utilities;
 
@@ -132,12 +133,12 @@ final class ProcessorTableRow implements Storable {
       return;
     }
     if (numCpus == 1) {
-      props.setProperty(group + STORE_CPUS_SELECTED, String
-          .valueOf(((FieldCell) cellCPUsSelected).getValue()));
+      props.setProperty(group + STORE_CPUS_SELECTED,
+          String.valueOf(((FieldCell) cellCPUsSelected).getValue()));
     }
     else if (cellCPUsSelected != null) {
-      props.setProperty(group + STORE_CPUS_SELECTED, String
-          .valueOf(((SpinnerCell) cellCPUsSelected).getIntValue()));
+      props.setProperty(group + STORE_CPUS_SELECTED,
+          String.valueOf(((SpinnerCell) cellCPUsSelected).getIntValue()));
     }
   }
 
@@ -333,7 +334,7 @@ final class ProcessorTableRow implements Storable {
     if (numCpus == 1) {
       ((FieldCell) cellCPUsSelected).setValue(Integer.parseInt(cpusSelected));
     }
-    else  {
+    else {
       ((SpinnerCell) cellCPUsSelected).setValue(Integer.parseInt(cpusSelected));
     }
   }
@@ -456,11 +457,16 @@ final class ProcessorTableRow implements Storable {
     cellComputer.setWarning(false);
   }
 
-  void setCPUUsage(double cpuUsage) {
-    int numberCPUs = cellNumberCpus.getIntValue();
-    double usage = cpuUsage * numberCPUs / 100.0;
+  void setCPUUsage(double cpuUsage, final ConstEtomoNumber numberOfProcessors) {
+    double usage;
+    if (numberOfProcessors == null || numberOfProcessors.isNull()) {
+      usage = cpuUsage * numberOfProcessors.getInt() / 100.0;
+    }
+    else {
+      usage = cpuUsage / 100.0;
+    }
     if (loadWarning) {
-      cellCPUUsage.setWarning(numberCPUs - usage <= .25);
+      cellCPUUsage.setWarning(cpuUsage > 75);
     }
     cellCPUUsage.setValue(usage);
     cellComputer.setWarning(false);
@@ -596,6 +602,9 @@ final class ProcessorTableRow implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2011/04/04 17:24:16  sueh
+ * <p> bug# 1416 Fixed a bug in setCPUsSelected - class wasn't handling a computer with a single CPU or GPU.
+ * <p>
  * <p> Revision 1.3  2011/02/22 18:20:22  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
