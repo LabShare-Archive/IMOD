@@ -76,7 +76,7 @@ public class EtomoDirector {
   private boolean testFailed = false;
   private final EtomoNumber javaMemoryLimit = new EtomoNumber(EtomoNumber.Type.LONG);
   private boolean imodBriefHeader = false;
-  private EtomoNumber numberOfProcessorsWindows = new EtomoNumber();
+  private EtomoNumber numberOfProcessorsWindows = null;
 
   //state
   private ManagerKey currentManagerKey = null;
@@ -197,6 +197,7 @@ public class EtomoDirector {
     if (Utilities.isWindowsOS()
         && EnvironmentVariable.INSTANCE.exists(null, homeDirectory,
             "NUMBER_OF_PROCESSORS", AxisID.ONLY)) {
+      numberOfProcessorsWindows = new EtomoNumber();
       numberOfProcessorsWindows.set(EnvironmentVariable.INSTANCE.getValue(null,
           homeDirectory, "NUMBER_OF_PROCESSORS", AxisID.ONLY));
     }
@@ -1183,6 +1184,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.106  2011/07/23 02:26:32  sueh
+ * <p> Bug# 1517 Added numberOfProcessorsWindows.
+ * <p>
  * <p> Revision 1.105  2011/07/14 00:29:12  sueh
  * <p> Bug# 1411 In openSettingsDialog open the Settings dialog a small, fixed amount below the main frame
  * <p> location, rather then below the entire frame.
