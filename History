@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/22/11: In the eTomo parallel processing table, fixed the Windows usage
+column so that is reflects the actual number of processors the computer
+contains.(Bug# 1517)
+
 7/22/11: In eTomo - Tomogram Generation, popping up a message when a GPU can't
 be used on a machine being used for parallel processing.(Bug# 1521)
 
