@@ -26,6 +26,7 @@ import etomo.storage.ParallelFileFilter;
 import etomo.storage.ParameterStore;
 import etomo.storage.PeetFileFilter;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.DialogType;
 import etomo.type.EtomoNumber;
 import etomo.type.ImodVersion;
@@ -75,6 +76,7 @@ public class EtomoDirector {
   private boolean testFailed = false;
   private final EtomoNumber javaMemoryLimit = new EtomoNumber(EtomoNumber.Type.LONG);
   private boolean imodBriefHeader = false;
+  private EtomoNumber numberOfProcessorsWindows = new EtomoNumber();
 
   //state
   private ManagerKey currentManagerKey = null;
@@ -192,6 +194,12 @@ public class EtomoDirector {
     }
     imodBriefHeader = EnvironmentVariable.INSTANCE.exists(null, homeDirectory,
         "IMOD_BRIEF_HEADER", AxisID.ONLY);
+    if (Utilities.isWindowsOS()
+        && EnvironmentVariable.INSTANCE.exists(null, homeDirectory,
+            "NUMBER_OF_PROCESSORS", AxisID.ONLY)) {
+      numberOfProcessorsWindows.set(EnvironmentVariable.INSTANCE.getValue(null,
+          homeDirectory, "NUMBER_OF_PROCESSORS", AxisID.ONLY));
+    }
     //  Set the user preferences
     userConfig = new UserConfiguration();
     //  Create a File object specifying the user configuration file
@@ -945,6 +953,10 @@ public class EtomoDirector {
     return new File(IMODDirectory.getAbsolutePath());
   }
 
+  public ConstEtomoNumber getNumberOfProcessorsWindows() {
+    return numberOfProcessorsWindows;
+  }
+
   /**
    * Return the IMOD calibration directory
    */
@@ -1171,6 +1183,10 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.105  2011/07/14 00:29:12  sueh
+ * <p> Bug# 1411 In openSettingsDialog open the Settings dialog a small, fixed amount below the main frame
+ * <p> location, rather then below the entire frame.
+ * <p>
  * <p> Revision 1.104  2011/02/21 21:05:27  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
