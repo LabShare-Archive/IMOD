@@ -24,6 +24,7 @@ import etomo.storage.Node;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstEtomoVersion;
 import etomo.type.EtomoNumber;
 
@@ -128,7 +129,7 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
   abstract String getLoadPrepend(final ConstEtomoVersion version);
 
   abstract void initRow(ProcessorTableRow row);
-  
+
   abstract String getNoCpusSelectedErrorMessage();
 
   ProcessorTable(final BaseManager manager, final ParallelPanel parent,
@@ -495,8 +496,9 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
     ((ProcessorTableRow) rowList.get(computer)).setLoad(loadArray);
   }
 
-  public void setCPUUsage(final String computer, final double cpuUsage) {
-    ((ProcessorTableRow) rowList.get(computer)).setCPUUsage(cpuUsage);
+  public void setCPUUsage(final String computer, final double cpuUsage,
+      final ConstEtomoNumber numberOfProcessors) {
+    ((ProcessorTableRow) rowList.get(computer)).setCPUUsage(cpuUsage, numberOfProcessors);
   }
 
   /**
@@ -781,6 +783,9 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2011/07/22 19:55:51  sueh
+ * <p> Bug# 1515 In initTable, replaced to select a single row.
+ * <p>
  * <p> Revision 1.7  2011/07/18 23:13:31  sueh
  * <p> Bug# 1515 Added getNoCpusSelectedErrorMessage
  * <p>

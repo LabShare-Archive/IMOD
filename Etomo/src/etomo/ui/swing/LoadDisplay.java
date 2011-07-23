@@ -1,5 +1,7 @@
 package etomo.ui.swing;
 
+import etomo.type.ConstEtomoNumber;
+
 /**
 * <p>Description: </p>
 * 
@@ -24,7 +26,8 @@ public interface LoadDisplay {
   public void msgStartingProcess(String computer, String failureReason1,
       String failureReason2);
 
-  public void setCPUUsage(String computer, double CPUUsage);
+  public void setCPUUsage(String computer, double CPUUsage,
+      ConstEtomoNumber numberOfProcessors);
 
   public void startLoad();
 
@@ -36,6 +39,9 @@ public interface LoadDisplay {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2011/02/22 18:13:51  sueh
+* <p> bug# 1437 Reformatting.
+* <p>
 * <p> Revision 1.1  2010/11/13 16:07:34  sueh
 * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
 * <p>
