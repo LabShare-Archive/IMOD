@@ -200,6 +200,7 @@ public class EtomoDirector {
       numberOfProcessorsWindows = new EtomoNumber();
       numberOfProcessorsWindows.set(EnvironmentVariable.INSTANCE.getValue(null,
           homeDirectory, "NUMBER_OF_PROCESSORS", AxisID.ONLY));
+      System.err.println("NUMBER_OF_PROCESSORS:" + numberOfProcessorsWindows);
     }
     //  Set the user preferences
     userConfig = new UserConfiguration();
@@ -1184,6 +1185,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.107  2011/07/23 02:59:39  sueh
+ * <p> Bug# 1517 Set numberOfProcessorsWindows to null unless the OS is Windows.
+ * <p>
  * <p> Revision 1.106  2011/07/23 02:26:32  sueh
  * <p> Bug# 1517 Added numberOfProcessorsWindows.
  * <p>
