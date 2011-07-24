@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/23/11: IMOD_4-2-22
+7/23/11: Made install script look in a new subdirectory for libtiff.so.4,
+needed for latest Ubuntu.
+
+7/23/11: Changed Tilt to keep edge artifacts from building up when repeatedly
+resuming internal SIRT.
+
 7/22/11: In the eTomo parallel processing table, fixed the Windows usage
 column so that is reflects the actual number of processors the computer
 contains.(Bug# 1517)
