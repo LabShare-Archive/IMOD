@@ -5,7 +5,6 @@
 #
 #  $Id$
 #
-#  Log at end of file
 
 set installdir = ""
 set scriptdir = ""
@@ -563,7 +562,19 @@ if ($os == linux) then
 
     # Manage link to libtiff.so.4 if it exists and so.3 does not
     set libtiff = "$g2cdir/libtiff.so"
-    if (! -e "$libtiff.3" && -e "$libtiff.4") ln -s "$libtiff.4" lib/libtiff.so.3
+    set alttiff = "$g2cdir/x86_64-linux-gnu/libtiff.so"
+    if (! -e "$libtiff.3" && ! -e "$alttiff.3") then
+        if (-e "$libtiff.4") then
+            ln -s "$libtiff.4" lib/libtiff.so.3
+        else if (-e "$alttiff.4") then
+            ln -s "$alttiff.4" lib/libtiff.so.3
+        else
+            echo ""
+            echo "WARNING: cannot find libtiff.so.3 or libtiff.so.4 on the system"
+            echo "         If programs fail to work and you can locate a libtiff, then use:"
+            echo '           ln -s full_path_to_libtiff.so.4 $IMOD_DIR/lib/libtiff.so.3'
+        endif
+    endif
 endif
 
 # List files and offer to clean up
@@ -626,101 +637,3 @@ Usage: installIMOD [options] [package file name]
 EOF
 exit 0
 
-#
-#  $Log$
-#  Revision 3.30  2010/05/21 18:13:47  mast
-#  But there is no 64-bit before Darwin 9
-#
-#  Revision 3.28.2.1  2010/05/20 23:37:53  mast
-#  backport
-#
-#  Revision 3.29  2010/05/20 22:05:45  mast
-#  Fixed detection of 64-bit on Mac for powerPC
-#
-#  Revision 3.28  2010/03/02 23:28:22  mast
-#  Try the rename multiple times for Win 7, Chuck's laptop
-#
-#  Revision 3.27  2010/01/06 16:14:41  mast
-#  Moved mismatch warning to end, eliminated \n from it
-#
-#  Revision 3.26  2010/01/06 07:00:02  mast
-#  Moved MS dlls up for Win2K and tested 32 vs 64 bit in Mac/Linux
-#
-#  Revision 3.25  2009/05/29 03:06:10  mast
-#  Handle libg2c possibilities when gfortran or intel package
-#
-#  Revision 3.24  2008/09/26 21:05:29  mast
-#  Added option to name directory, eliminated \n
-#
-#  Revision 3.23  2008/07/31 17:32:43  mast
-#  Modifications for Ubuntu/Debian installs
-#
-#  Revision 3.22  2008/06/17 17:09:30  mast
-#  Added -yes flag for automatic installs
-#
-#  Revision 3.21  2008/01/26 02:02:49  mast
-#  Made it rename libg2c from imod- so it is inactive if someone just untars
-#
-#  Revision 3.20  2008/01/25 23:27:19  mast
-#  Added option for using libg2c in package
-#
-#  Revision 3.19  2008/01/04 22:01:32  mast
-#  Fixed statement of custom Windows path
-#
-#  Revision 3.18  2007/12/11 02:35:08  mast
-#  Renamed mac.bashrc to mac.profile to reflect preferred destination
-#
-#  Revision 3.17  2007/10/25 02:22:08  mast
-#  Expanded writability test on Windows for vista, allowed install dir also
-#
-#  Revision 3.16  2007/09/17 17:37:32  mast
-#  Made the chcon more elaborate as Nvidia hints, and it works better
-#
-#  Revision 3.15  2007/09/17 04:02:53  mast
-#  Implemented options for specifying or skipping the script copying and
-#  for getting help; tested for existence of directories; handled relative 
-#  script directory; tested for targeted security context and said error 
-#  probably OK
-#
-#  Revision 3.14  2007/07/19 15:45:35  mast
-#  Limited depth of search for IMOD versions
-#
-#  Revision 3.13  2006/11/10 22:39:43  mast
-#  Tried to change security contect of libs if selinux is on
-#
-#  Revision 3.12  2006/10/19 19:13:45  mast
-#  Removed current version from old version list
-#
-#  Revision 3.11  2006/10/05 22:19:43  mast
-#  Offered to remove other versions
-#
-#  Revision 3.10  2005/01/10 17:51:36  mast
-#  Fixed for Mac - switched to editing startup scripts in IMOD
-#
-#  Revision 3.9  2005/01/10 16:32:13  mast
-#  Added option to install elsewhere
-#
-#  Revision 3.8  2004/08/27 05:48:20  mast
-#  Switched to tail -n
-#
-#  Revision 3.7  2004/07/08 23:23:50  mast
-#  Added message to open new window and warning about other source lines
-#
-#  Revision 3.6  2004/07/06 16:55:20  mast
-#  Switch from link to rename for Mac
-#
-#  Revision 3.5  2004/07/04 13:47:31  mast
-#  Added details for user and made it work with spaces in directory path
-#
-#  Revision 3.4  2004/04/24 17:42:04  mast
-#  Remove gzcat error warning, it happened because editing file added a newline
-#
-#  Revision 3.3  2004/04/24 04:32:59  mast
-#  Fixes for SGI; decided not to put source command in /etc/profile
-#
-#  Revision 3.2  2004/04/24 01:21:57  mast
-#  Needed to separate : from varaiable
-#
-#  Revision 3.1  2004/04/24 01:10:03  mast
-#  Initial creation
-#
