@@ -444,7 +444,9 @@ c
 c               Ready to iterate.  First get the starting slice mean
               call iclden(array(ibaseSIRT), iwide, ithick, 1, iwide, 1,
      &            ithick, unscmin, unscmax, firstmean)
-              if (sirtFromZero) rpfill = firstmean
+c               It seems to give less edge artifacts using the mean all the time
+c               if (sirtFromZero) rpfill = firstmean
+              rpfill = firstmean
 c
               do isirt = 1, numSIRTiter
                 ierr = 1
@@ -551,11 +553,14 @@ c                 slice has been composed, and set composeFill from mean
                 if (isirt .lt. numSIRTiter .or. ifalpha .lt. 0) then
                   call iclden(array(ibaseSIRT), iwide, ithick, 1, iwide, 1,
      &                ithick, unscmin, unscmax, curmean)
-                  if (sirtFromZero) then
-                    rpfill = curmean
-                  else
-                    rpfill = pmean + curmean - firstmean
-                  endif
+c                   
+c                   Doing it the same way with restarts as with going from 0 seems
+c                   to prevent low frequency artifacts
+c                  if (sirtFromZero) then
+                  rpfill = curmean
+c                  else
+c                    rpfill = pmean + curmean - firstmean
+c                  endif
                   if (isirt .eq. numSIRTiter .and. .not. composedOne) then
                     vertSum = vertSum + curmean
                     numVertSum = numVertSum + 1
@@ -5387,6 +5392,9 @@ c       Set to open contour, show values etc., and show sphere on section only
 
 c       
 c       $Log$
+c       Revision 3.63  2011/07/09 18:22:31  mast
+c       Added ability to read and write vertical slices for internal SIRT
+c
 c       Revision 3.62  2011/02/18 22:56:56  mast
 c       Removed limit on views and made reprojections work with all angles
 c
