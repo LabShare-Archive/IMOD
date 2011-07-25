@@ -230,6 +230,9 @@ int main( int argc, char *argv[] )
     exit(3);
   }
 
+  /* 7/21/11: make header now so signed byte output is known */
+  mrc_head_new(&hdata, x, y, nsecs, outtype);
+
   for (j = i ; j < argc-1 ; j++) {
     fin = fopen(argv[j], "rb");
     if (!fin){
@@ -326,7 +329,7 @@ int main( int argc, char *argv[] )
         bdata = (b3dUByte *)indata;
         for (i = 0; i < xysize; i++) {
           val = sbdata[i];
-          val += 127;
+          val += 128;
           bdata[i] = val;
         }
         break;
@@ -385,6 +388,7 @@ int main( int argc, char *argv[] )
           if (max < pixel)
             max = pixel;
         }
+        mrcShiftBytes(bdata, (char *)bdata, x, y, 1, hdata.bytesSigned);
         break;
 
       default:
@@ -418,7 +422,6 @@ int main( int argc, char *argv[] )
   /* write out MRC header */
   /* DNM 11/5/02: change from raw writes of each element to calling
      library routines.  Added label.  1/17/04: eliminate unneeded rewind */
-  mrc_head_new(&hdata, x, y, nsecs, outtype);
   hdata.amin = min;
   hdata.amax = max;
   hdata.amean = mean;
@@ -540,6 +543,9 @@ int setintype(char *stype, int *size, int *otype)
 
 /*
 $Log$
+Revision 3.18  2011/03/05 03:42:13  mast
+Allow environment variable to prevent backing up file
+
 Revision 3.17  2009/08/04 15:50:15  mast
 Made it accept files starting in dash
 

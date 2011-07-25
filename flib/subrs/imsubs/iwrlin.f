@@ -142,12 +142,17 @@ c
             CALL QWRITE(J,FLINE,N*4)
             NWRITE = NWRITE - n
           enddo
-          
         else
-c           everything else just writes out straight
+c
+c           almost everything else just writes out straight; signed bytes need to be
+c           shifted down then back up
           do while (NWRITE .GT. 0)
             N = int(min(1000000000,NWRITE), kind=4)
+            if (jmode .eq. 0 .and. bytesSigned(j))
+     &          call b3dShiftBytes(ARRAY(INDEX), ARRAY(INDEX), N, 1, 1, 1)
             CALL QWRITE(J,ARRAY(INDEX),N)
+            if (jmode .eq. 0 .and. bytesSigned(j))
+     &          call b3dShiftBytes(ARRAY(INDEX), ARRAY(INDEX), N, 1, -1, 1)
             NWRITE = NWRITE - n
             index = index + n/4
           enddo
@@ -169,6 +174,7 @@ c             denval, use a single if statement
             BLINE(K) = QB(lowbyte)
             INDEX = INDEX + 1
           enddo
+          if (bytesSigned(j)) call b3dShiftBytes(bline, bline, n, 1, 1, 1)
           CALL QWRITE(J,BLINE,N)
           NWRITE = NWRITE - n
         enddo
@@ -297,6 +303,9 @@ C       is a real array (but which its caller thinks is integer*2!!!)
       end
 c       
 c       $Log$
+c       Revision 3.8  2009/06/22 20:20:26  mast
+c       Switch to module, make work for huge images
+c
 c       Revision 3.7  2009/06/16 04:39:17  mast
 c       Increased buffer size 10-fold
 c

@@ -89,12 +89,17 @@ int mrc_head_read(FILE *fin, MrcHeader *hdata)
       return(1);
   }
           
-
+  /* Set other run-time data and adjust min/max/mean up for signed bytes */
   hdata->headerSize = 1024;
   hdata->sectionSkip = 0;
-  /*     if (hdata->creatid == -16224){ */
   hdata->headerSize += hdata->next;
-     
+  hdata->bytesSigned = readBytesSigned(hdata->imodStamp, hdata->imodFlags, hdata->mode,
+                                       hdata->amin, hdata->amax);
+  if (hdata->bytesSigned) {
+    hdata->amin += 128.;
+    hdata->amax += 128.;
+    hdata->amean += 128.;
+  }
 
   for ( i = 0; i < MRC_NLABELS; i ++){
     if (fread(hdata->labels[i], MRC_LABEL_SIZE, 1, fin) == 0){  
@@ -181,22 +186,35 @@ int mrc_head_write(FILE *fout, MrcHeader *hdata)
 {
   int i;
   MrcHeader hcopy;
-  MrcHeader *hptr;
-  hptr = hdata;
 
   if (!fout)
     return(1);
 
-  /* DNM 6/26/02: copy the header and swap if needed */
-  if (hdata->swapped) {
-    hcopy = *hdata;
-    hptr = &hcopy;
-    mrc_swap_header(&hcopy);
+  /* Set the IMOD stamp and flags and clear out old creator field when writing */
+  hdata->imodStamp = IMOD_MRC_STAMP;
+  hdata->imodFlags = hdata->bytesSigned ? MRC_FLAGS_SBYTES : 0;
+  hdata->creatid = 0;
+  hdata->blank[0] = 0;
+  hdata->blank[1] = 0;
+
+  /* DNM 7/20/11: copy the header regardless, clamp byte min/max to limits, shift 
+     min/max/mean for unsigned output, and swap if needed */
+  hcopy = *hdata;
+  if (!hdata->mode) {
+    hcopy.amin = B3DMAX(0., hcopy.amin);
+    hcopy.amax = B3DMIN(255., hcopy.amax);
+    if (hdata->bytesSigned) {
+      hcopy.amin -= 128.;
+      hcopy.amax -= 128.;
+      hcopy.amean -= 128.;
+    }
   }
+  if (hdata->swapped)
+    mrc_swap_header(&hcopy);
 
   rewind(fout);
      
-  if (fwrite(hptr, 56, 4, fout) != 4) {
+  if (fwrite(&hcopy, 56, 4, fout) != 4) {
     b3dError(stderr, "ERROR: mrc_head_write - writing header to file\n");
     return 1;
   }
@@ -269,8 +287,6 @@ int mrc_head_label_cp(MrcHeader *hin, MrcHeader *hout)
 int mrc_head_new(MrcHeader *hdata,
                  int x, int y, int z, int mode)
 {
-
-  hdata->swapped = 0;
   hdata->nx = x;
   hdata->ny = y;
   hdata->nz = z;
@@ -300,17 +316,17 @@ int mrc_head_new(MrcHeader *hdata,
   hdata->nsymbt = 0;
 
   hdata->next    = 0;
-  hdata->creatid = 1000;
+  hdata->creatid = 0;   /* 7/13/11: changed to 0  for compatibility with CCP4 */
   hdata->nint    = 0;
   hdata->nreal   = 0;
-  hdata->sub     = 1;
-  hdata->zfac    = 1;
+  hdata->sub     = 0;   /* 7/13/11: changed these two from 1 to 0 */
+  hdata->zfac    = 0;
   hdata->min2    = 0.0f;
   hdata->max2    = 0.0f;
   hdata->min3    = 0.0f;
   hdata->max3    = 0.0f;
-  hdata->min4    = 0.0f;
-  hdata->max4    = 0.0f;
+  hdata->imodStamp = IMOD_MRC_STAMP;
+  hdata->imodFlags = 0;
 
   hdata->idtype = 0;
   hdata->lens = 0;
@@ -319,19 +335,12 @@ int mrc_head_new(MrcHeader *hdata,
   hdata->vd1 = 0;
   hdata->vd2 = 0;
      
+  for(x = 0; x < 30; x++)  /* 7/13/11: This should be cleared out */
+    hdata->blank[x] = 0;
   for(x = 0; x < 6; x++)
     hdata->tiltangles[x] = 0.0f;
-#ifdef OLD_STYLE_HEADER
-  hdata->nwave = 0;
-  hdata->wave1 = 0;
-  hdata->wave2 = 0;
-  hdata->wave3 = 0;
-  hdata->wave4 = 0;
-  hdata->wave5 = 0;
-#else
   hdata->rms = 0.;
-  mrc_set_cmap_stamp(hdata);
-#endif
+  /* 7/20/11: get rid of old header stuff */
   hdata->zorg = 0.0f;
   hdata->xorg = 0.0f;
   hdata->yorg = 0.0f;
@@ -343,14 +352,30 @@ int mrc_head_new(MrcHeader *hdata,
   /*     hdata->fp = 0;    */
   /*     hdata->li = NULL; */
 
-  hdata->headerSize = 1024;
-  hdata->sectionSkip = 0;
+  mrcInitOutputHeader(hdata);
   hdata->pathname = NULL;
   hdata->filedesc = NULL;
   hdata->userData = NULL;
      
   return(0);
 
+}
+
+/*!
+ * Initialize the header in [hdata] for a new output file by eliminating extra header 
+ * data, setting the MAP stamp, setting the swapped member to 0, and setting the 
+ * bytesSigned member appropriately.
+ */
+void mrcInitOutputHeader(MrcHeader *hdata)
+{
+  hdata->swapped = 0;
+  mrc_set_cmap_stamp(hdata);
+  hdata->headerSize = 1024;
+  hdata->sectionSkip = 0;
+  hdata->bytesSigned = writeBytesSigned();
+  hdata->next = 0;
+  hdata->nint = 0;
+  hdata->nreal = 0;
 }
 
 /* DNM 12/25/00: Scale is defined as ratio of sample to cell, so change the
@@ -479,7 +504,8 @@ void mrc_swap_header(MrcHeader *hdata)
   mrc_swap_longs(&hdata->next, 1);
   mrc_swap_shorts(&hdata->creatid, 1);
   mrc_swap_shorts(&hdata->nint, 4);
-  mrc_swap_floats(&hdata->min2, 6);
+  mrc_swap_floats(&hdata->min2, 4);
+  mrc_swap_longs(&hdata->imodStamp, 2);
   mrc_swap_shorts(&hdata->idtype, 6);
   mrc_swap_floats(&hdata->tiltangles[0], 6);
 #ifdef OLD_STYLE_HEADER
@@ -533,6 +559,7 @@ float mrc_read_point( FILE *fin, MrcHeader *hdata, int x, int y, int z)
 {
   int pixsize = 1;
   unsigned char bdata;
+  char sbdata;
   b3dInt16 sdata;
   b3dInt16 sidata, srdata;
   b3dUInt16 usdata;
@@ -566,8 +593,13 @@ float mrc_read_point( FILE *fin, MrcHeader *hdata, int x, int y, int z)
               hdata->nx, hdata->ny, channel * pixsize, SEEK_SET);
   switch(hdata->mode){
   case MRC_MODE_BYTE:
-    fread(&bdata, pixsize, 1, fin);     
-    fdata = bdata;
+    if (hdata->bytesSigned) {
+      fread(&sbdata, pixsize, 1, fin);     
+      fdata = sbdata + 128;
+    } else {
+      fread(&bdata, pixsize, 1, fin);     
+      fdata = bdata;
+    }
     break;
   case MRC_MODE_SHORT:
     fread(&sdata, pixsize, 1, fin);
@@ -675,13 +707,13 @@ void *mrc_mread_slice(FILE *fin, MrcHeader *hdata, int slice, char axis)
  * [hdata] and swaps bytes if necessary.  Should work with planes > 4 GB on
  * 64-bit systems.  Returns -1 for errors.
  */
-int mrc_read_slice(void *buf, FILE *fin, MrcHeader *hdata, int slice, 
-                   char axis)
+int mrc_read_slice(void *buf, FILE *fin, MrcHeader *hdata, int slice, char axis)
 {
   unsigned char *data = NULL;
   int dsize, csize, sxsize, sysize;
   b3dInt16 *sbuf = (b3dInt16 *)buf;
   b3dFloat *fbuf = (b3dFloat *)buf;
+  char *sbbuf = (char *)buf;
 
   int dcsize;
   int j,k;
@@ -708,8 +740,7 @@ int mrc_read_slice(void *buf, FILE *fin, MrcHeader *hdata, int slice,
     for(k = 0; k < hdata->nz; k++){
       for (j = 0; j < hdata->ny; j++){
         if (fread(data, dcsize, 1, fin) != 1){
-          b3dError(stderr, 
-                   "ERROR: mrc_read_slice x - fread error.\n");
+          b3dError(stderr, "ERROR: mrc_read_slice x - fread error.\n");
           return(-1);
         }
         data += dcsize;
@@ -784,6 +815,14 @@ int mrc_read_slice(void *buf, FILE *fin, MrcHeader *hdata, int slice,
     default:
       break;
     }
+
+  /* shift signed bytes up if necessary */
+  if (!hdata->mode && hdata->bytesSigned) {
+    data = (unsigned char *)buf;
+    for (j = 0; j < sysize; j++)
+      for (k = 0; k < sxsize; k++)
+        *data++ = (unsigned char *)(*sbbuf++ + 128);
+  }
 
   fflush(fin);
   return(0);
@@ -944,10 +983,10 @@ unsigned char **mrc_read_byte(FILE *fin,
   switch(hdata->mode){
   case MRC_MODE_BYTE:
     dsize = 1;
-    doscale = (offset <= -1.0 || offset >= 1.0 ||
-               slope < 0.995 || slope > 1.005);
+    doscale = (offset <= -1.0 || offset >= 1.0 || slope < 0.995 || slope > 1.005 ||
+               hdata->bytesSigned) ? 1 : 0;
     if (doscale)
-      map = get_byte_map(slope, offset, 0, 255);
+      map = get_byte_map(slope, offset, 0, 255, hdata->bytesSigned);
     break;
   case MRC_MODE_SHORT:
   case MRC_MODE_USHORT:
@@ -1247,65 +1286,22 @@ void mrcContrastScaling(MrcHeader *hdata, float smin, float smax, int black,
  * Write image data functions
  */
 
-/* stupid function: check who is using it. JRK  */
-/* 2 calls from clip_transform.c.  DNM - which is now abandoned */
-int mrc_data_new(FILE *fout, MrcHeader *hdata)
-{
-  int dsize, i;
-  unsigned char cdata = 0;
-  short sdata = 0;
-  float fdata = 0;
-
-  /* 6/26/01: change from error message to swapping fdata */
-  if (hdata->swapped) {
-    mrc_swap_floats(&fdata, 1);
-  }
-
-  dsize = hdata->nx * hdata->ny * hdata->nz;
-  rewind(fout);
-
-  fseek(fout, hdata->headerSize, SEEK_CUR);
-
-  switch(hdata->mode)
-    {
-    case MRC_MODE_BYTE:
-      for (i = 0; i < dsize; i++)
-        if (!fwrite(&cdata, 1, 1, fout))
-          return(-1);
-      break;
-
-    case MRC_MODE_SHORT:
-      for (i = 0; i < dsize; i++)
-        if (!fwrite(&sdata, 2, 1, fout))
-          return(-1);
-      break;
-
-    case MRC_MODE_FLOAT:
-      for (i = 0; i < dsize; i++)
-        if (!fwrite(&fdata, 4, 1, fout))
-          return(-1);
-      break;
-
-    default:
-      return(-1);
-
-    }
-  return(0);
-}
-
 /*!
  * Writes byte data in [data] to the file with pointer [fout] according to the 
  * dimensions in header [hdata].  [data] must be an array of pointers to 
  * {hdata->nz} planes of data.  Returns 0 (no error checks).  Unused 5/7/05.
+ * Should write bytes as signed when appropriate, but this is untested.
  */
 int mrc_write_byte(FILE *fout, MrcHeader *hdata, unsigned char **data)
 {
   int k;
   int xysize = hdata->nx * hdata->ny;
      
-  for (k = 0; k < hdata->nz; k++)
+  for (k = 0; k < hdata->nz; k++) {
+    b3dShiftBytes(data[k], (char *)(data[k]), hdata->nx, hdata->ny,1, hdata->bytesSigned);
     fwrite(data[k], 1, xysize, fout);
-
+    b3dShiftBytes(data[k], (char *)(data[k]), hdata->nx, hdata->ny,-1,hdata->bytesSigned);
+  }
   return(0);
 }
 
@@ -1316,7 +1312,7 @@ int mrc_write_byte(FILE *fout, MrcHeader *hdata, unsigned char **data)
  * array of pointers to {hdata->nz} planes of data.  Should be able to handle
  * planes > 4 GB.  Returns -1 for attempt to write a byte-swapped file, 0 for 
  * improper mode, -2 for a write error, or 1 for success.  Was used by mrcbyte
- * until 5/30/08.
+ * until 5/30/08.  Should write bytes as signed when appropriate, but this is untested.
  */
 int mrc_write_idata(FILE *fout, MrcHeader *hdata, void *data[])
 {
@@ -1326,8 +1322,7 @@ int mrc_write_idata(FILE *fout, MrcHeader *hdata, void *data[])
   b3dFloat         **fdata;
 
   if (hdata->swapped) {
-    b3dError(stderr, "ERROR: mrc_write_idata - cannot write to a"
-             " byte-swapped file.\n");
+    b3dError(stderr, "ERROR: mrc_write_idata - cannot write to a byte-swapped file.\n");
     return(-1);
   }
 
@@ -1337,7 +1332,11 @@ int mrc_write_idata(FILE *fout, MrcHeader *hdata, void *data[])
     switch (hdata->mode) {
     case MRC_MODE_BYTE:
       bdata = (unsigned char **)data;
-      nwrote = fwrite(data[k], hdata->nx, hdata->ny, fout);
+      b3dShiftBytes(bdata[k], (char *)(bdata[k]), hdata->nx, hdata->ny, 1, 
+                 hdata->bytesSigned);
+      nwrote = fwrite(bdata[k], hdata->nx, hdata->ny, fout);
+      b3dShiftBytes(bdata[k], (char *)(bdata[k]), hdata->nx, hdata->ny, -1, 
+                 hdata->bytesSigned);
       break;
       
     case MRC_MODE_SHORT:
@@ -1381,6 +1380,7 @@ int mrc_write_slice(void *buf, FILE *fout, MrcHeader *hdata, int slice,
   unsigned char *data = NULL;
   b3dInt16 *sbuf;
   b3dFloat *fbuf;
+  int bytesSigned = (!hdata->mode && hdata->bytesSigned) ? 1 : 0;
 
   if (!buf || slice < 0)
     return(-1);
@@ -1430,23 +1430,26 @@ int mrc_write_slice(void *buf, FILE *fout, MrcHeader *hdata, int slice,
   slicesize = sxsize * sysize;
 
   /* if swapped,  get memory, copy slice, and swap it in one gulp */
-  if (hdata->swapped && dsize > 1) {
+  if ((hdata->swapped && dsize > 1) || bytesSigned) {
     data = malloc(slicesize * dcsize);
     if (!data) {
-      b3dError(stderr, "ERROR: mrc_write_slice - "
-               "failure to allocate memory.\n");
+      b3dError(stderr, "ERROR: mrc_write_slice - failure to allocate memory.\n");
       return(-1);
     }
-    memcpy(data, buf, slicesize * dcsize);
-    sbuf = (b3dInt16 *)data;
-    fbuf = (b3dFloat *)data;
-    for (j = 0; j < sysize; j++) {
-      if (dsize == 2) {
-        mrc_swap_shorts(sbuf, sxsize * csize);
-        sbuf += sxsize * csize;
-      } else {
-        mrc_swap_floats(fbuf, sxsize * csize);
-        fbuf += sxsize * csize;
+    if (bytesSigned) {
+      b3dShiftBytes((unsigned char *)buf, (char *)data, sxsize, sysize, 1, 1);
+    } else {
+      memcpy(data, buf, slicesize * dcsize);
+      sbuf = (b3dInt16 *)data;
+      fbuf = (b3dFloat *)data;
+      for (j = 0; j < sysize; j++) {
+        if (dsize == 2) {
+          mrc_swap_shorts(sbuf, sxsize * csize);
+          sbuf += sxsize * csize;
+        } else {
+          mrc_swap_floats(fbuf, sxsize * csize);
+          fbuf += sxsize * csize;
+        }
       }
     }
   }
@@ -1498,7 +1501,7 @@ int mrc_write_slice(void *buf, FILE *fout, MrcHeader *hdata, int slice,
     b3dError(stderr, "ERROR: mrc_write_slice - axis error.\n");
     retval = -1;
   }
-  if (hdata->swapped && dsize > 1)
+  if ((hdata->swapped && dsize > 1) || bytesSigned)
     free(data);
   return(retval);
 }
@@ -1654,14 +1657,19 @@ void mrcFreeDataMemory(unsigned char **idata, int contig, int zsize)
  * scaling specified by index * [slope] + [offset].  Output values will be
  * truncated at [outmin] and [outmax].  If [outmax] is
  * <= 255 then the map will indeed be unsigned bytes, but if [outmax] is > 255 then
- * the map will be unsigned shorts instead.
+ * the map will be unsigned shorts instead.  If [bytesSigned] is nonzero, then the map 
+ * will be wrapped around so that signed values read from file and used as unsigned values
+ * when indexing the map will be shifted up by 128.
  */
-unsigned char *get_byte_map(float slope, float offset, int outmin, int outmax)
+unsigned char *get_byte_map(float slope, float offset, int outmin, int outmax, 
+                            int bytesSigned)
 {
   static unsigned char map[256];
   static b3dUInt16 smap[256];
-  int i, ival;
+  int i, ival, base = 0;
   float fpixel;
+  if (bytesSigned)
+    base = 128;
 
   for (i = 0; i < 256; i++) {
     fpixel = i;
@@ -1673,9 +1681,9 @@ unsigned char *get_byte_map(float slope, float offset, int outmin, int outmax)
     if (ival > outmax)
       ival = outmax;
     if (outmax > 255)
-      smap[i] = ival;
+      smap[(i+base) % 256] = ival;
     else
-      map[i] = ival;
+      map[(i+base) % 256] = ival;
   }
   if (outmax > 255)
     return ((unsigned char *)smap);
@@ -2254,6 +2262,9 @@ void mrc_swap_floats(fb3dFloat *data, int amt)
 
 /*
 $Log$
+Revision 3.49  2011/07/12 03:45:51  mast
+Fixed parallel writing routine for new return value from properties routine
+
 Revision 3.48  2011/05/16 14:36:17  mast
 adding const
 

@@ -15,9 +15,11 @@ C       DMIN,DMAX,DMEAN   : Min, Max, & Mean densities
 c       
 c       stuff(1) = ispg and the real nbsym
 c       stuff(2) = next # of extra header bytes (stored here as nbsym)
-c       stuff(3) = first int*2 is creator id
+c       stuff(3) = first int*2 used to be creator ID
 c       stuff(11) = bytes per section and flags for type of extended data
 c       or number of integers and number of reals per section
+c       stuff(17) = imodStamp
+c       stuff(18) = imodFlags; bit 1 means bytes are signed
 c       stuff(19) = idtype data type and lens
 c       stuff(20) = data value 1
 c       stuff(21) = data value 2
@@ -34,6 +36,8 @@ c       reads the next 4 bytes and calls it nbsym, but it is really next,
 c       the number of bytes of extra header.  This is essential to allow
 c       big enough extra headers, but it means values in the true locations
 c       of ispg and nbsym will not be treated correctly.
+c       DNM 7/21/11: It's now clear that officially nbsym is where it is but it
+c       was an Agard extension to allow it to be other than 0 or 80.
 c       
 c       $Id$
 c       Log at end
@@ -59,7 +63,7 @@ C
       character*80 string80
       character*4 feichar
       logical nbytes_and_flags
-      character*27 modeNames(8), modeLabel
+      character*27 modeNames(8), modeLabel, minLabel, maxLabel, meanLabel
       data modeNames/'(byte)','(16-bit integer)', '(32-bit real)',
      &    '(complex integer)', '(complex)', '(unknown)',
      &    '(unsigned 16-bit integer)','RGB color'/
@@ -71,7 +75,8 @@ c
       integer*4 nleft,iblock,nbread,indconv,nl,ml,ntflag,jstream
       integer*4 itype,lensnum,n1,n2,istart,nextra,mbsym
       integer*4 itype1,itype2,m,jextra
-      real*4 dmin,dmax,dmean,vd1,vd2,v1,v2,xorig,yorig,zorig,rmsval
+      real*4 dmin,dmax,dmean,vd1,vd2,v1,v2,xorig,yorig,zorig,rmsval,baseMMM
+      integer*4 readBytesSigned, writeBytesSigned, imodGetStamp
 
 C       
 C       Read header
@@ -203,7 +208,10 @@ c
 1007    format(/,'  Assuming that the header entry for 128 ',
      &      'integers per section is an error')
       endif
-
+c       
+c       Determine whether bytes are to be read signed
+      bytesSigned(j) = readBytesSigned(istuff(17,j), istuff(18,j), imode, dmin, dmax)
+     &    .ne. 0
 c       
 c       after reading the header, need to set to first section now
 c       
@@ -219,19 +227,30 @@ C
       call move(idat,stuff(19,j),12)
       idtype = idat(1)
       lens = idat(2)
+      minLabel = ' '
+      maxLabel = ' '
+      meanLabel = ' '
       if (imode .lt. 0 .or. imode .gt. 16) then
         modeLabel = '(unknown)'
       else if (imode .ge. 9 .and. imode .le. 15) then
         write(modeLabel, '(a,i2,a)')'(',imode,'-bit integer)'
+      else if (bytesSigned(j)) then
+        modeLabel = '(bytes - signed in file)'
+        write(minLabel, 1010)dmin
+        write(maxLabel, 1010)dmax
+        write(meanLabel, 1010)dmean
+1010    format(' (',G13.5,' in file)')
+        dmin = dmin + 128.
+        dmax = dmax + 128.
+        dmean = dmean + 128.
       else
         modeLabel = modeNames(nameMap(imode))
       endif
       if (print .and. ifBrief .le. 0)WRITE(6,1000) INXYZ,IMODE,modeLabel,
-     &      (NCRST(K,J), K=1,3), MXYZ, delt,(CEL(K,J),K=4,6),
-     &      (LXYZ(MAPCRS(K,J)),K=1,3), (ORIGXYZ(K,J),K=1,3),DMIN,DMAX,DMEAN,
-     &      (stuff(k,j),k=22,27),ispg,nbsym(j),
-     &      idtype,lens,
-     &      nlab(j),((LABLS(I,K,J),I=1,20),K=1,NLAB(J))
+     &    (NCRST(K,J), K=1,3), MXYZ, delt,(CEL(K,J),K=4,6), (LXYZ(MAPCRS(K,J)),K=1,3),
+     &    (ORIGXYZ(K,J),K=1,3),DMIN,minLabel,DMAX,maxLabel,DMEAN,
+     &    meanLabel, (stuff(k,j),k=22,27),ispg,nbsym(j), idtype,lens,
+     &    nlab(j),((LABLS(I,K,J),I=1,20),K=1,NLAB(J))
 C       
 C       for unix output without carriagecontrol:
 C       DNM changed leading 2X to 1X on each line, changed tilt angle output
@@ -246,9 +265,9 @@ C
      &    1X,'Cell angles ...........................',3F9.3,/,
      &    1X,'Fast, medium, slow axes ...............',3(4X,A1),/,
      &    1X,'Origin on x,y,z .......................',1x,3G12.4,/,
-     &    1X,'Minimum density .......................',G13.5,/,
-     &    1X,'Maximum density .......................',G13.5,/,
-     &    1X,'Mean density ..........................',G13.5,/,
+     &    1X,'Minimum density .......................',G13.5,a,/,
+     &    1X,'Maximum density .......................',G13.5,a,/,
+     &    1X,'Mean density ..........................',G13.5,a,/,
      &    1X,'tilt angles (original,current) ........',6f6.1,/,
      &    1X,'Space group,# extra bytes,idtype,lens .',4I9,//,
      &    1X,i5,' Titles :'/10(19A4,A3/))
@@ -341,9 +360,17 @@ c
       NLAB(J) = K + 1
 c       
 20    FLAG(J) = .FALSE.
-      DENMMM(1,J) = DMIN
-      DENMMM(2,J) = DMAX
-      DENMMM(3,J) = DMEAN
+      istuff(17,j) = imodGetStamp()
+      istuff(18,j) = 0
+      istuff(3,j) = 0
+      baseMMM = 0.
+      if (mode(j) .eq. 0 .and. bytesSigned(j)) then
+        istuff(18,j) = istuff(18,j) + 1
+        baseMMM = 128.
+      endif
+      DENMMM(1,J) = max(0., DMIN) - baseMMM
+      DENMMM(2,J) = min(255., DMAX) - baseMMM
+      DENMMM(3,J) = DMEAN - baseMMM
 C       
       if(spider(j))then
         print *
@@ -449,6 +476,7 @@ C
       call set_cmap_stamp(j)
       NLAB(J) = NLAB(K)
       CALL MOVE(LABLS(1,1,J),LABLS(1,1,K),NBL)
+      bytesSigned(j) = writeBytesSigned() .ne. 0
 c       call move(ibsym(1,j),ibsym(1,k),nbsym(j))
 C       
       go to 127
@@ -607,6 +635,7 @@ c       call zero(ibsym(1,j),nbw*256)
 c       DNM: change fill that doesn't work to a zero
       CALL zero(LABLS(1,1,J),NBL)
       IF (ML .GT. 0) CALL MOVE(LABLS(1,1,J),LABELS,ML*80)
+      bytesSigned(j) = writeBytesSigned() .ne. 0
 C       
       RETURN
 C       
@@ -706,6 +735,15 @@ C
       CALL MOVE(STUFF(ISTART+2,J),EXTRA,NBW*JEXTRA)
 C       
       RETURN
+c       
+c       
+c       *IALSIGNED
+c       
+c       Change flag to write bytes as signed
+      entry ialsigned(istream, ntflag)
+      j = lstream(istream)
+      bytesSigned(j) = ntflag .ne. 0
+      return
 C       
 C       
 C       *IALLAB
@@ -1217,7 +1255,8 @@ c
       call convert_longs(stuff(2,j),1)
       call convert_shorts(stuff(3,j),1)
       call convert_shorts(stuff(11,j),4)
-      call convert_floats(stuff(13,j),6)
+      call convert_floats(stuff(13,j),4)
+      call convert_longs(stuff(17,j),2)
       call convert_shorts(stuff(19,j),6)
       call convert_floats(stuff(22,j),6)
 c       old-style header
@@ -1271,6 +1310,9 @@ c
       end
 
 c       $Log$
+c       Revision 3.21  2010/06/26 18:04:14  mast
+c       allow format for -180. for all tilt angles
+c
 c       Revision 3.20  2010/03/27 19:22:44  mast
 c       Made stamp CCP4 compliant
 c

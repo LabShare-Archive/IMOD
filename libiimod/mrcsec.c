@@ -180,6 +180,7 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
   int xsize = urx - llx + 1;
   int byte = type == MRSA_BYTE ? 1 : 0;
   int toShort = type == MRSA_USHORT ? 1 : 0;
+  int mapSbytes = (!hdata->mode && hdata->bytesSigned) ? 1 : 0;
   int convert = byte + toShort;
      
   float slope  = li->slope;
@@ -219,6 +220,11 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
   float eps = toShort ? 0.005 / 256. : 0.005;
   int doscale = (offset <= -1.0 || offset >= 1.0 || 
                  slope < 1. - eps || slope > 1. + eps) ? 1 : 0;
+
+  /* Raw bytes need to be treated like a conversion if they need signed->unsigned map */
+  if (!type && mapSbytes)
+    convert = 1;
+
   /* printf ("read slope %f  offset %f  doscale %d toshort %d\n", slope, offset, doscale, 
      toShort); */
   if (type == MRSA_FLOAT && sliceModeIfReal(hdata->mode) < 0) {
@@ -282,11 +288,13 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
   switch(hdata->mode){
   case MRC_MODE_BYTE:
     pixSize = 1;
-    if ((byte && doscale) || toShort) {
-      map = get_byte_map(slope, offset, outmin, outmax);
-      if (!map)
-        return 2;
-    }
+
+    /* Get a scaling map if going to bytes with scaling or if going to shorts, or get a
+       signed->unsigned map if signed bytes go to raw or float or unscaled bytes */
+    if ((byte && doscale) || toShort)
+      map = get_byte_map(slope, offset, outmin, outmax, hdata->bytesSigned);
+    else if (mapSbytes)
+      map = get_byte_map(1.0, 0., 0, 255, 1);
     needData = (type == MRSA_FLOAT || type == MRSA_USHORT) ? 1 : 0;
     break;
 
@@ -294,8 +302,7 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
   case MRC_MODE_USHORT:
     pixSize = 2;
     if ((toShort && (doscale || hdata->mode == MRC_MODE_SHORT)) || byte) {
-      map= get_short_map(slope, offset, outmin, outmax, li->ramp, 
-                         hdata->swapped, 
+      map= get_short_map(slope, offset, outmin, outmax, li->ramp, hdata->swapped, 
                          (hdata->mode == MRC_MODE_SHORT) ? 1 : 0);
       /*usmap = (b3dUInt16 *)map;
       for (i = 0; i < 65000; i += 1000)
@@ -394,19 +401,19 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
       return 3;
     }
 
-    /* Do data-dependent processing for byte conversions */
+    /* Do data-dependent processing for byte conversions or mappings */
     if (convert) {
       switch(hdata->mode){
       case MRC_MODE_BYTE:
-        if (byte) {
-          if (doscale)
+        if (byte || (!toShort && mapSbytes)) {
+          if (doscale || mapSbytes)
             for (i = 0; i < xsize; i++)
               bdata[i] = map[bdata[i]];
           bdata += xsize;
         } else {
-            for (i = 0; i < xsize; i++)
-              usbufp[i] = usmap[bdata[i]];
-            usbufp += xsize;
+          for (i = 0; i < xsize; i++)
+            usbufp[i] = usmap[bdata[i]];
+          usbufp += xsize;
         }
         break;
         
@@ -603,8 +610,12 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
       /* Float conversions */
       switch(hdata->mode){
       case MRC_MODE_BYTE:
-        for (i = 0; i < xsize; i++)
-          fbufp[i] = bdata[i];
+        if (mapSbytes) 
+          for (i = 0; i < xsize; i++)
+            fbufp[i] = map[bdata[i]];
+        else
+          for (i = 0; i < xsize; i++)
+            fbufp[i] = bdata[i];
         break;
         
       case MRC_MODE_SHORT:
@@ -658,6 +669,9 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
 
 /*
 $Log$
+Revision 3.18  2011/03/14 22:55:48  mast
+Changes for scaling to ushorts
+
 Revision 3.17  2008/11/02 13:43:08  mast
 Added functions for reading float slice
 

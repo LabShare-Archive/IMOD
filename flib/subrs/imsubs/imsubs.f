@@ -16,20 +16,23 @@ c
       real*4 DENMMM(3,maxunit),STUFF(27,maxunit),ORIGXYZ(3,maxunit),
      &    CEL(6,maxunit),rms(maxunit)
       integer*1 cmap(4,maxunit),stamp(4,maxunit)
-      logical FLAG(maxunit),NOCON(maxunit),spider(maxunit),
-     &    mrcflip(maxunit),print
+      logical FLAG(maxunit),NOCON(maxunit),spider(maxunit), mrcflip(maxunit),print
+      logical bytesSigned(maxunit)
       integer*4 istuff(27,maxunit)
       equivalence (istuff,stuff)
 
       integer*4  ibleft(maxunit)
       integer*1 bytcur(maxunit)
       DATA NBHDR/1024/, NBW/4/, NBW3/12/, NB/1,2,4,4,8,2,2/, NBL/800/
-      DATA FLAG/maxunit*.TRUE./, NOCON/maxunit*.FALSE./, numopen/0/
+      DATA FLAG/maxunit*.true./, NOCON/maxunit*.false./, numopen/0/
       data spider/maxunit*.false./, print/.true./, ifBrief/-1/
-      data ibleft/maxunit*0/
+      data ibleft/maxunit*0/, bytesSigned/maxunit*.false./
       end module imsubs
 
 c       $Log$
+c       Revision 3.1  2009/06/22 20:05:06  mast
+c       Switch to module
+c
 c       Revision 3.6  2006/09/28 21:23:00  mast
 c       Added brief header output variable
 c

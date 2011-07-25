@@ -266,7 +266,9 @@ int main( int argc, char *argv[])
                            ysize, &min, &max);
 
         mrc_big_seek( mrcfp, 1024, section * xsize, ysize * pixSize, SEEK_SET);
-         
+     
+        if (!mode && hdata.bytesSigned)
+          mrcShiftBytes(tifdata, (char *)tifdata, xsize, ysize, 1, 1);
         b3dFwrite(tifdata, pixSize * xsize, ysize, mrcfp);
           
         free(tifdata);
@@ -464,6 +466,9 @@ int main( int argc, char *argv[])
                          &max);
       mean += (tmean * nlines) / ysize;
 
+      if (!hdata.mode && hdata.bytesSigned)
+        mrcShiftBytes(tifdata, (char *)tifdata, xsize, nlines, 1, 1);
+
       if ((xsize == mrcxsize) && (ysize == mrcysize)) {
 
         /* Write out mrc file */    
@@ -476,6 +481,8 @@ int main( int argc, char *argv[])
         switch (mode) {
         case MRC_MODE_BYTE:
           byteFill[0] = tmean;
+          if (hdata.bytesSigned)
+            byteFill[0] = (unsigned char)(((int)tmean - 128) & 255);
           fillPtr = &byteFill[0];
           break;
         case MRC_MODE_RGB:
@@ -736,6 +743,9 @@ static float minmaxmean(unsigned char *tifdata, int mode, int unsign,
 
 /* 
    $Log$
+   Revision 3.22  2011/03/05 03:42:02  mast
+   Allow environment variable to prevent backing up file
+
    Revision 3.21  2011/01/31 17:35:14  mast
    Fixed stacking of files of different sizes
 
