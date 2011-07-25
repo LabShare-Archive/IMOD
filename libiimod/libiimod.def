@@ -18,7 +18,6 @@ EXPORTS
 	mrc_swap_floats
 	mrc_slice_zoom
 	mrcGetDataMemory
-	mrc_data_new
 	mrc_set_scale
 	mrc_fix_li
 	mrc_head_label
@@ -156,6 +155,7 @@ EXPORTS
 	mrc_swap_header
 	mrc_read_byte
 	mrc_slice_rotate
+	mrcInitOutputHeader
 	mrcMirrorSource
 	tiffOpenNew
 	mrc_write_byte

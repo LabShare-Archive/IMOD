@@ -11,11 +11,14 @@ EXPORTS
 	percentileFloat
 	PipSetManpageOutput
 	KERNELHISTOGRAM
+	overrideWriteBytes
+	readBytesSigned
 	ilistQuantum
 	ZOOMWITHFILTER
 	IMODGETENV
 	setExitPrefix
 	AdocGetTwoIntegers
+	OVERRIDEWRITEBYTES
 	sliceTaperAtFill
 	b3dMilliSleep
 	ilistFirst
@@ -42,6 +45,7 @@ EXPORTS
 	PipDone
 	PipAddOption
 	numOMPthreads
+	B3DSHIFTBYTES
 	ADOCGETINTEGERARRAY
 	IMOD_DIR_or_default
 	findPieceShifts
@@ -153,11 +157,13 @@ EXPORTS
 	cmapConvertRamp
 	SCANHISTOGRAM
 	ADOCSETTHREEFLOATS
+	WRITEBYTESSIGNED
 	zoomWithFilter
 	AdocGetThreeIntegers
 	conjugateProduct
 	XCorrSetCTFnoScl
 	surfaceSort
+	IMODGETSTAMP
 	ADOCSETTHREEINTEGERS
 	PipGetTwoFloats
 	AdocSetThreeFloats
@@ -171,7 +177,9 @@ EXPORTS
 	lsFitPred
 	DFVALUE
 	PIPPRINTENTRIES
+	writeBytesSigned
 	TAPEROUTPAD
+	b3dShiftBytes
 	PIPGETTHREEINTEGERS
 	pidToStderr
 	ADOCGETINTEGER
@@ -181,6 +189,7 @@ EXPORTS
 	AdocSetFloat
 	sliceTaperInPad
 	PipPrintHelp
+	READBYTESSIGNED
 	rsMADN
 	AMAT_TO_ROTMAGSTR
 	ADOCSETINTEGER
