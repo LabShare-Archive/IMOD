@@ -156,6 +156,7 @@ int iiSetupRawHeaders(ImodImageFile *inFile, RawImageInfo *info)
   hdr->swapped = info->swapBytes;
   hdr->headerSize = info->headerSize;
   hdr->sectionSkip = info->sectionSkip;
+  hdr->bytesSigned = 0;
   hdr->fp = inFile->fp;
 
   /* Set flags for type of data */
@@ -647,6 +648,9 @@ static int checkEM(FILE *fp, char *filename, RawImageInfo *info)
 /*  
 
 $Log$
+Revision 3.11  2011/03/14 22:55:48  mast
+Changes for scaling to ushorts
+
 Revision 3.10  2009/08/04 15:51:08  mast
 Made it handle stack DM files and increased buffer size to accommodate
 larger distance of data string from start.
