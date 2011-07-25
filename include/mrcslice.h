@@ -29,6 +29,8 @@
 /* Other modes */
 #define SLICE_MODE_MAX           99  /* float data with max channels.        */
 #define SLICE_MODE_UNDEFINED     -1  /* float data with max channels.        */
+#define SLICE_MODE_SBYTE         -2  /* values for sliceMode to return when  */
+#define SLICE_MODE_UBYTE         -3  /* user enters 'sbyte' or 'ubyte'       */
 
 /* The maximum values for channels and bytes/channel */
 #define SLICE_MAX_CSIZE          3   /* max channels.                        */
@@ -169,6 +171,9 @@ extern "C" {
 
 /*
   $Log$
+  Revision 3.9  2008/11/02 13:43:17  mast
+  Added functions for reading float slice
+
   Revision 3.8  2007/11/22 20:47:42  mast
   Added gaussian kernel functions
 

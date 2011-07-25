@@ -184,12 +184,17 @@ void sliceClear(Islice *s, Ival val)
 /*!
  * Returns a slice mode corresponding to the string in [mst], which can
  * contain either an MRC mode number or {byte}, {short}, {float}, {complex},
- * {ushort}, or {rgb}.
+ * {ushort}, or {rgb}.  Returns SLICE_MODE_SBYTE (-2) for {sbyte} or SLICE_MODE_UBYTE 
+ * (-3) for {ubyte}.
  */ 
 int sliceMode(char *mst)
 {
   if (strcmp(mst, "byte") == 0)
     return(SLICE_MODE_BYTE);
+  if (strcmp(mst, "sbyte") == 0)
+    return(SLICE_MODE_SBYTE);
+  if (strcmp(mst, "ubyte") == 0)
+    return(SLICE_MODE_UBYTE);
   if (strcmp(mst, "0") == 0)
     return(SLICE_MODE_BYTE);
   if (strcmp(mst, "short") == 0)

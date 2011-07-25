@@ -26,6 +26,14 @@
 #define B3DMALLOC(a,b) (a *)malloc((b) * sizeof(a))
 #define B3DREALLOC(a,b,c) a = (b *)realloc(a, (c) * sizeof(b))
 
+#define MakeID(a,b,c,d) ((b3dInt32)(d)<<24L | (b3dInt32)(c)<<16L | (b)<<8 | (a))
+
+#define IMOD_MRC_STAMP MakeID('I', 'M', 'O', 'D')
+#define WRITE_SBYTES_DEFAULT 0
+#define WRITE_SBYTES_ENV_VAR "WRITE_MODE0_SIGNED"
+#define READ_SBYTES_ENV_VAR "READ_MODE0_SIGNED"
+#define MRC_FLAGS_SBYTES  1
+
 /* Determinant of 3x3 matrix */
 #define determ3(a1,a2,a3,b1,b2,b3,c1,c2,c3) ((a1)*(b2)*(c3) - (a1)*(b3)*(c2) +\
   (a2)*(b3)*(c1) - (a2)*(b1)*(c3) + (a3)*(b1)*(c2) - (a3)*(b2)*(c1))
@@ -67,6 +75,12 @@ extern "C" {
   int b3dMilliSleep(int msecs);
   int numOMPthreads(int optimalThreads);
   int b3dOMPthreadNum();
+  void overrideWriteBytes(int value);
+  int writeBytesSigned();
+  int readBytesSigned(int stamp, int flags, int mode, float dmin, float dmax);
+  void b3dShiftBytes(unsigned char *usbuf, char *sbuf, int nx, int ny, int direction,
+                     int bytesSigned);
+
 
 #ifdef __cplusplus
 }

@@ -52,6 +52,11 @@
 #define imodgetenv IMODGETENV
 #define imodgetpid IMODGETPID
 #define pidtostderr PIDTOSTDERR
+#define imodgetstamp IMODGETSTAMP
+#define overridewritebytes OVERRIDEWRITEBYTES
+#define readbytessigned READBYTESSIGNED
+#define writebytessigned WRITEBYTESSIGNED
+#define b3dshiftbytes B3DSHIFTBYTES
 #define b3dheaderitembytes B3DHEADERITEMBYTES
 #define cputime CPUTIME
 #define walltime WALLTIME
@@ -62,6 +67,11 @@
 #define imodgetenv imodgetenv_
 #define imodgetpid imodgetpid_
 #define pidtostderr pidtostderr_
+#define imodgetstamp imodgetstamp_
+#define overridewritebytes overridewritebytes_
+#define readbytessigned readbytessigned_
+#define writebytessigned writebytessigned_
+#define b3dshiftbytes b3dshiftbytes_
 #define b3dheaderitembytes b3dheaderitembytes_
 #define cputime cputime_
 #define walltime walltime_
@@ -232,6 +242,123 @@ void pidToStderr()
 void pidtostderr()
 {
   pidToStderr();
+}
+
+/*! Fortran-callable function to return the IMOD stamp for MRC files */
+int imodgetstamp()
+{
+  return IMOD_MRC_STAMP;
+}
+
+static int sWriteBytesOverride = -1;
+
+/*! 
+ * Sets the value to be returned by @writeBytesSigned overriding both the default value
+ * and the value of the environment variable WRITE_MODE0_SIGNED.
+ */
+void overrideWriteBytes(int value)
+{
+  sWriteBytesOverride = value;
+}
+
+/*! Fortran-callable  version of @overrideWriteBytes */
+void overridewritebytes(int *value)
+{
+  sWriteBytesOverride = *value;
+}
+
+/*! 
+ * Returns 0 if bytes are to be written unsigned, or non-zero if they are to be written,
+ * based on the default value, WRITE_SBYTES_DEFAULT, the value of environment variable 
+ * WRITE_MODE0_SIGNED, and whether @overrideWriteBytes has been called.
+ */
+int writeBytesSigned()
+{
+  int value = WRITE_SBYTES_DEFAULT;
+  char *envPtr = getenv(WRITE_SBYTES_ENV_VAR);
+  if (sWriteBytesOverride >= 0)
+    return sWriteBytesOverride;
+  if (envPtr)
+    value = atoi(envPtr);
+  return value;
+}
+
+/*! Fortran wrapper for @writeBytesSigned */
+int writebytessigned()
+{
+  return writeBytesSigned();
+}
+
+/*!
+ * Returns 1 if bytes are to be read as signed and the file mode in [mode] is 0, otherwise
+ * returns 0.  [stamp] is the {imodStamp} header entry, [flags] is the {imodFlags} entry,
+ * [dmin] and [dmax] are the minimum and maximum from the header.  If the [stamp] is for
+ * an IMOD file, the value of the first bit of [flags] determines the result unless it
+ * is overridden by environment variable READ_MODE0_SIGNED having a value < -1 or > 1.
+ * Otherwise, the values of [dmin] and [dmax] determine the value unless READ_MODE0_SIGNED
+ * is nonzero.
+ */
+int readBytesSigned(int stamp, int flags, int mode, float dmin, float dmax)
+{
+  int value, envVal = 0;
+  char *envPtr;
+  if (mode)
+    return 0;
+  envPtr = getenv(READ_SBYTES_ENV_VAR);
+  if (envPtr)
+    envVal = atoi(envPtr);
+  if (stamp == IMOD_MRC_STAMP) {
+
+    /* If the IMOD stamp exists, take the flag value but allow variable to override */
+    value = flags & MRC_FLAGS_SBYTES;
+    if (envVal < -1)
+      value = 0;
+    if (envVal > 1)
+      value = 1;
+  } else {
+    
+    /* Otherwise make decision based on min/max, and override that */
+    if (dmin < 0. && dmax < 128.)
+      value = 1;
+    else if (dmin >=0 && dmax >= 128.)
+      value = 0;
+    else if (dmin < 0 && dmax >= 128)
+      value = (-dmin > dmax - 128.) ? 1 : 0;
+    else
+      value = 0;    /* dmin >= 0 and dmax < 128.: Could be either */
+    if (envVal < 0)
+      value = 0;
+    if (envVal > 0)
+      value = 1;
+  }
+  return value;
+}
+
+/*! Fortran wrapper for @readBytesSigned */
+int readbytessigned(int *stamp, int *flags, int *mode, float *dmin, float *dmax)
+{
+  return readBytesSigned(*stamp, *flags, *mode, *dmin, *dmax);
+}
+
+void b3dShiftBytes(unsigned char *usbuf, char *sbuf, int nx, int ny, int direction,
+                       int bytesSigned)
+{
+  if (!bytesSigned)
+    return;
+  size_t i, nxy;
+  nxy = (size_t)nx * ny;
+  if (direction >= 0)
+    for (i = 0; i < nxy; i++)
+      *sbuf++ = (char)((int)(*usbuf++) - 128);
+  else
+    for (i = 0; i < nxy; i++)
+      *usbuf++ = (unsigned char)((int)(*sbuf++) + 128);
+}
+
+void b3dshiftbytes(unsigned char *usbuf, char *sbuf, int *nx, int *ny, int *direction,
+                       int *bytesSigned)
+{
+  b3dShiftBytes(usbuf, sbuf, *nx, *ny, *direction, *bytesSigned);
 }
 
 /*! Creates a C string with a copy of a Fortran string described by [str] and 
@@ -710,6 +837,9 @@ int b3dompthreadnum()
 /*
 
 $Log$
+Revision 1.22  2011/04/06 04:55:04  mast
+Added some consts
+
 Revision 1.21  2011/03/08 06:02:28  mast
 Added fortran wrapper for sleep function
 
