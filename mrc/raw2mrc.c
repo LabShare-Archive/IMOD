@@ -388,7 +388,7 @@ int main( int argc, char *argv[] )
           if (max < pixel)
             max = pixel;
         }
-        mrcShiftBytes(bdata, (char *)bdata, x, y, 1, hdata.bytesSigned);
+        b3dShiftBytes(bdata, (char *)bdata, x, y, 1, hdata.bytesSigned);
         break;
 
       default:
@@ -543,6 +543,9 @@ int setintype(char *stype, int *size, int *otype)
 
 /*
 $Log$
+Revision 3.19  2011/07/25 02:45:17  mast
+Changes for working with signed bytes
+
 Revision 3.18  2011/03/05 03:42:13  mast
 Allow environment variable to prevent backing up file
 

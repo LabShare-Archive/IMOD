@@ -268,7 +268,7 @@ int main( int argc, char *argv[])
         mrc_big_seek( mrcfp, 1024, section * xsize, ysize * pixSize, SEEK_SET);
      
         if (!mode && hdata.bytesSigned)
-          mrcShiftBytes(tifdata, (char *)tifdata, xsize, ysize, 1, 1);
+          b3dShiftBytes(tifdata, (char *)tifdata, xsize, ysize, 1, 1);
         b3dFwrite(tifdata, pixSize * xsize, ysize, mrcfp);
           
         free(tifdata);
@@ -467,7 +467,7 @@ int main( int argc, char *argv[])
       mean += (tmean * nlines) / ysize;
 
       if (!hdata.mode && hdata.bytesSigned)
-        mrcShiftBytes(tifdata, (char *)tifdata, xsize, nlines, 1, 1);
+        b3dShiftBytes(tifdata, (char *)tifdata, xsize, nlines, 1, 1);
 
       if ((xsize == mrcxsize) && (ysize == mrcysize)) {
 
@@ -743,6 +743,9 @@ static float minmaxmean(unsigned char *tifdata, int mode, int unsign,
 
 /* 
    $Log$
+   Revision 3.23  2011/07/25 02:45:17  mast
+   Changes for working with signed bytes
+
    Revision 3.22  2011/03/05 03:42:02  mast
    Allow environment variable to prevent backing up file
 

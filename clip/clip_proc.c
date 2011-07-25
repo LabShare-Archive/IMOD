@@ -667,7 +667,7 @@ int clip_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
           return -1;
         }
         if (!hout->mode && hout->bytesSigned)
-          mrcShiftBytes(yslice[k]->data.b, (char *)yslice[k]->data.b, hout->nx, 
+          b3dShiftBytes(yslice[k]->data.b, (char *)yslice[k]->data.b, hout->nx, 
                         li.ymax + 1 - li.ymin, 1, 1);
       }
       
@@ -1951,6 +1951,9 @@ int free_vol(Islice **vol, int z)
 /*
 
 $Log$
+Revision 3.34  2011/07/25 02:44:58  mast
+Add option for controlling byte output, changes for that
+
 Revision 3.33  2011/03/05 03:34:52  mast
 Allow environment variable to prevent backing up file
 
