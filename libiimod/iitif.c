@@ -543,7 +543,7 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection, int conv
                inFile->type == IITYPE_UINT) {
       pixsize = 4;
     } else if (toShort || doscale)
-      map = get_byte_map(slope, offset, outmin, outmax);
+      map = get_byte_map(slope, offset, outmin, outmax, 0);
   } else {
     if (inFile->format == IIFORMAT_RGB)
       pixsize = inFile->rgbSamples;
@@ -1066,6 +1066,10 @@ int tiffVersion(int *minor)
 
 /*
   $Log$
+  Revision 3.26  2011/03/14 22:55:07  mast
+  Changes for scaling to ushorts; also simplified integer and float loading with
+  scaling and limited the values from scaling without a map.
+
   Revision 3.25  2011/01/29 15:59:29  mast
   Fixed test for output file size to include data size
 
