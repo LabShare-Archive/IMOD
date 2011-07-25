@@ -1116,7 +1116,7 @@ void SlicerFuncs::fillImageArray(int panning, int meanOnly, int rgbChannel)
         if (imodDebug('s'))
           imodPrintStderr("FFT edge %f  scale %f  offset %f\n", edge, scale,
                           offset);
-        fftmap = get_byte_map(scale, offset, 0, maxval);
+        fftmap = get_byte_map(scale, offset, 0, maxval, 0);
         usfftmap = (b3dUInt16 *)fftmap;
         for (j = 0; j < jsize; j++) {
           if (!mVi->ushortStore)
@@ -1538,6 +1538,9 @@ static void fillArraySegment(int jstart, int jlimit)
 /*
 
 $Log$
+Revision 4.37  2011/03/14 23:30:13  mast
+Changes for ushort loading and color support
+
 Revision 4.36  2011/02/14 04:35:50  mast
 Converted slicer struct to a class
 
