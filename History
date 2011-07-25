@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/24/11: Defined an IMOD stamp in MRC header and added a flag to indicate
+whether bytes in a mode 0 file are unsigned or signed.  Made all programs able
+to read and write unsigned or signed byte files.  Added environment variables
+READ_MODE0_SIGNED to control interpretation of files if necessary and
+WRITE_MODE0_SIGNED to control form of output globally, and added options to
+control form of output from Clip and Newstack.
+
 7/23/11: IMOD_4-2-22
 7/23/11: Made install script look in a new subdirectory for libtiff.so.4,
 needed for latest Ubuntu.
