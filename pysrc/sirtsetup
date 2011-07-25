@@ -312,7 +312,7 @@ if not startfirst:
 # If resuming and doing vertical internal slices, look for the vertical slice rec
 startingVSrec = None
 if not startfirst and doingVert:
-   vsrec = basename + '.' + vsext + lastrec[len(basename):]
+   vsrec = setname + '.' + vsext + lastrec[len(basename):]
    if os.path.exists(vsrec):
       startingVSrec = vsrec
 
@@ -735,6 +735,9 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.14  2011/07/09 17:16:40  mast
+# Added support for vertical slice output and option to skip it
+#
 # Revision 1.13  2011/04/20 19:38:09  mast
 # Make a tilt_for_sirt copy of the tilt.com used
 #
