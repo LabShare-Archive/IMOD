@@ -139,6 +139,20 @@ manpage = The storage mode of the output file; 0 for byte, 1 for 16-bit
 signed integer, 6 for 16-bit unsigned integer, or 2 for 32-bit floating point.
 The default is the mode of the first input file.
 
+[Field = BytesSignedInOutput]
+short = bytes
+type = I
+usage = Output bytes as signed (1) or unsigned (0) regardless of other settings
+tooltip = 
+manpage = This entry controls how bytes are stored in the output file and
+overrides both the default for this version of IMOD and the setting of the
+environment variable WRITE_MODE0_SIGNED.  Enter 0 for unsigned numbers
+or 1 for signed numbers.  Unsigned output is needed to work with versions of IMOD
+before IMOD 4.2.23; signed output may be needed for compatibility with
+external software that has followed recent documentation of the MRC format.
+Regardless of the representation in the file, bytes are read into IMOD programs as
+unsigned with a range of 0 to 255.
+
 [Field = OffsetsInXandY]
 short = offset
 type = FAM
