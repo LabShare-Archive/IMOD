@@ -132,10 +132,32 @@ at the beginning of the file.
 Directory where alternative RAPTOR executables are located; leave this
 undefined to run the executables in IMOD.
 .TP
+.B READ_MODE0_SIGNED
+Set this variable non-zero to override the default for whether an MRC file in
+mode 0 should be read as signed or unsigned bytes.  Potential values are:
+.br
+   -2   to read all mode 0 files as unsigned, even ones with an IMOD stamp
+.br
+   -1   to read mode 0 files lacking an IMOD stamp as unsigned
+.br
+   1    to read mode 0 files lacking an IMOD stamp as signed
+.br
+   -2   to read all mode 0 files as signed, even ones with an IMOD stamp
+.br
+The values of -1 and 1 could be useful if a file header has incorrect entries
+for the minimum and maximum.  Values of -2 or 2 would be needed if other
+software changed the representation of bytes in a file without modifying the
+IMOD stamp and flag values. 
+.TP
 .B RUNCMD_VERBOSE
 Set this variable to 1 to have the runcmd function called by Python programs
 print each command, input to the command, and the output of the command unless
 the output was already printed on standard out.
+.TP
+.B WRITE_MODE0_SIGNED
+Set this variable to 1 to have all MRC files in mode 0 written as signed
+bytes.  In some future IMOD version, this may be the default behavior, and
+then the variable can be set to 0 to have files written as unsigned bytes.
 
 .SS Build and Test Variables
 

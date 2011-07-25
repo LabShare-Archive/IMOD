@@ -10,12 +10,13 @@ OFFSET  SIZE DATA    NAME	Description
   8 010  4   int     nz;        Number of Sections.
 
  12 014  4   int     mode;      Types of pixel in image.  Values used by IMOD:
-         	       	 0 = unsigned bytes, 
-         	       	 1 = signed short integers (16 bits), 
-         	       	 2 = float,  
+         	       	 0 = unsigned or signed bytes depending on flag in imodStamp
+                             only unsigned bytes before IMOD 4.2.23
+         	       	 1 = signed short integers (16 bits)
+         	       	 2 = float
          	       	 3 = short * 2, (used for complex data)
          	       	 4 = float * 2, (used for complex data)
-                                 6 = unsigned 16-bit integers (non-standard)
+                         6 = unsigned 16-bit integers (non-standard)
          	       	16 = unsigned char * 3 (for rgb data, non-standard)
 
  16 020  4   int     nxstart;     Starting point of sub image (not used in IMOD)  
@@ -48,8 +49,8 @@ OFFSET  SIZE DATA    NAME	Description
  88 130  2   short   ispg;       image type 
  90 132  2   short   nsymbt;     space group number 
  92 134  4   int     next;       number of bytes in extended header 
- 96 140  2   short   creatid;    Creator ID 
- 98 142  30  ---     extra data (not used)
+ 96 140  2   short   creatid;    used to be an ID number, is 0 as of IMOD 4.2.23
+ 98 142  30  ---     extra data  (not used, first two bytes should be 0)
 
                                  These two values specify the structure of data in the
                                  extended header; their meaning depend on whether the
@@ -75,7 +76,12 @@ OFFSET  SIZE DATA    NAME	Description
                                  not add up to the value in nint, then nint and nreal
                                  are interpreted as ints and reals per section
 
-132 204  28  ---     extra data (not used)
+132 204  20  ---     extra data (not used)
+
+152 230  4   int     imodStamp   1146047817 indicates that file was created by IMOD or 
+                                 other software that uses flags in the following field
+156 234  4   int     imodFlags   Flags:
+                                 1 = bytes are stored as signed
 
                               Explanation of type of data.
 160 240  2   short   idtype;  ( 0 = mono, 1 = tilt, 2 = tilts, 3 = lina, 4 = lins)
