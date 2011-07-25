@@ -364,13 +364,18 @@ c
       istuff(18,j) = 0
       istuff(3,j) = 0
       baseMMM = 0.
-      if (mode(j) .eq. 0 .and. bytesSigned(j)) then
-        istuff(18,j) = istuff(18,j) + 1
-        baseMMM = 128.
+      DENMMM(1,J) = DMIN
+      DENMMM(2,J) = DMAX
+      DENMMM(3,J) = DMEAN
+      if (mode(j) .eq. 0) then
+        if (bytesSigned(j)) then
+          istuff(18,j) = istuff(18,j) + 1
+          baseMMM = 128.
+        endif
+        DENMMM(1,J) = max(0., DMIN) - baseMMM
+        DENMMM(2,J) = min(255., DMAX) - baseMMM
+        DENMMM(3,J) = DMEAN - baseMMM
       endif
-      DENMMM(1,J) = max(0., DMIN) - baseMMM
-      DENMMM(2,J) = min(255., DMAX) - baseMMM
-      DENMMM(3,J) = DMEAN - baseMMM
 C       
       if(spider(j))then
         print *
@@ -1310,6 +1315,9 @@ c
       end
 
 c       $Log$
+c       Revision 3.22  2011/07/25 02:40:17  mast
+c       Changes for working with signed bytes
+c
 c       Revision 3.21  2010/06/26 18:04:14  mast
 c       allow format for -180. for all tilt angles
 c
