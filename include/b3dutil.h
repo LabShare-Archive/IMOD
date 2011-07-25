@@ -26,9 +26,7 @@
 #define B3DMALLOC(a,b) (a *)malloc((b) * sizeof(a))
 #define B3DREALLOC(a,b,c) a = (b *)realloc(a, (c) * sizeof(b))
 
-#define MakeID(a,b,c,d) ((b3dInt32)(d)<<24L | (b3dInt32)(c)<<16L | (b)<<8 | (a))
-
-#define IMOD_MRC_STAMP MakeID('I', 'M', 'O', 'D')
+#define IMOD_MRC_STAMP 1146047817
 #define WRITE_SBYTES_DEFAULT 0
 #define WRITE_SBYTES_ENV_VAR "WRITE_MODE0_SIGNED"
 #define READ_SBYTES_ENV_VAR "READ_MODE0_SIGNED"
