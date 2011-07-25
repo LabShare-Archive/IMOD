@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/25/11: Fixed Sirtsetup looking for existing vertical slice file when
+resuming (forced into IMOD_4-2-22).
+
+7/25/11: Turned off entry output in alignlog (forced into IMOD_4-2-22).
+
 7/24/11: Defined an IMOD stamp in MRC header and added a flag to indicate
 whether bytes in a mode 0 file are unsigned or signed.  Made all programs able
 to read and write unsigned or signed byte files.  Added environment variables
