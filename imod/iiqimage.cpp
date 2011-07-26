@@ -171,7 +171,7 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int byte)
 
     // Get a map for scaling the bytes, then get composite map to go from
     // pixel indexes to scaled value;
-    map2 = get_byte_map(slope, offset, outmin, outmax);
+    map2 = get_byte_map(slope, offset, outmin, outmax, 0);
     maxind = image->numColors() - 1;
     for (i = 0; i < 256; i++) {
       pixel = qRed(colorTable[B3DMIN(i, maxind)]);
@@ -216,6 +216,9 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int byte)
 /*
 
 $Log$
+Revision 1.3  2009/01/15 16:33:17  mast
+Qt 4 port
+
 Revision 1.2  2006/09/03 21:36:28  mast
 Switched to proper error codes
 

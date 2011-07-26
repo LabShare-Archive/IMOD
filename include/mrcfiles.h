@@ -127,9 +127,8 @@ typedef struct MRCheader
   /* 64 bytes */
 
   b3dInt32   next;
-  b3dInt16   creatid;  /* Creator id, hvem = 1000, DeltaVision = -16224 */
+  b3dInt16   creatid;  /* Used to be creator id, hvem = 1000, now 0 */
 
-  
   b3dByte    blank[30];
   
   b3dInt16   nint;
@@ -141,8 +140,8 @@ typedef struct MRCheader
   b3dFloat   max2;
   b3dFloat   min3;
   b3dFloat   max3;
-  b3dFloat   min4;
-  b3dFloat   max4;
+  b3dInt32   imodStamp;
+  b3dInt32   imodFlags;
 
   /*  UINT   extra[MRC_NEXTRA];*/
 
@@ -190,6 +189,7 @@ typedef struct MRCheader
   int    headerSize;
   int    sectionSkip;
   int    swapped;
+  int    bytesSigned;
 
   char *pathname;
   char *filedesc;
@@ -266,7 +266,8 @@ extern "C" {
 /******************************** Header functions **************************/
 int mrc_head_read (FILE *fin,  MrcHeader *hdata);
 int mrc_head_write(FILE *fout, MrcHeader *hdata);
-  int mrc_head_label(MrcHeader *hdata, const char *label);
+void mrcInitOutputHeader(MrcHeader *hdata);
+int mrc_head_label(MrcHeader *hdata, const char *label);
 int mrc_head_new  (MrcHeader *hdata, int x, int y, int z, int mode);
 int mrc_byte_mmm  (MrcHeader *hdata, unsigned char **idata);
 int mrc_head_label_cp(MrcHeader *hin, MrcHeader *hout);
@@ -340,7 +341,8 @@ int iiPlistFromMetadata(const char *filename, int addMdoc, IloadInfo *li, int nx
 void mrc_liso(MrcHeader *hdata, struct LoadInfo *li);
 int mrc_fix_li(struct LoadInfo *li, int nx, int ny, int nz);
 int get_loadinfo(MrcHeader *hdata, struct LoadInfo *li);
-unsigned char *get_byte_map(float slope, float offset, int outmin, int outmax);
+unsigned char *get_byte_map(float slope, float offset, int outmin, int outmax, 
+                            int bytesSigned);
 unsigned char *get_short_map(float slope, float offset, int outmin, int outmax,
 			     int ramptype, int swapbytes, int signedint);
 
@@ -363,6 +365,9 @@ void mrc_set_cmap_stamp(MrcHeader *hdata);
 /*
 
 $Log$
+Revision 3.26  2011/05/16 14:35:32  mast
+adding const
+
 Revision 3.25  2011/03/14 22:41:08  mast
 Changes for ushort loading
 

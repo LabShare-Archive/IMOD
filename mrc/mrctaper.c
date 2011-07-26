@@ -145,15 +145,9 @@ int main( int argc, char *argv[] )
       exit(3);
     }
     hout = hdata;
-    /* DNM: eliminate extra header info in the output, and mark it as not
-       swapped  */
-    hout.headerSize = 1024;
-    hout.sectionSkip = 0;
-    hout.next = 0;
-    hout.nint = 0;
-    hout.nreal = 0;
+    /* DNM: eliminate extra header info in the output, and mark it as not swapped  */
+    mrcInitOutputHeader(&hout);
     hout.nsymbt = 0;
-    hout.swapped = 0;
     hptr = &hout;
     hout.nz = zmax + 1 - zmin;
     hout.mz = hout.nz;
@@ -213,6 +207,9 @@ int main( int argc, char *argv[] )
 
 /*
 $Log$
+Revision 3.10  2008/05/20 22:01:18  mast
+Changed to make taper length be 1% of image size between 16 and 127
+
 Revision 3.9  2007/06/13 17:13:42  sueh
 bug# 1019 In main, setting hout.sectionSkip to 0.
 

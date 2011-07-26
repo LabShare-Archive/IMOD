@@ -1145,10 +1145,7 @@ int main (int argc, char **argv)
 
   // Fix things in header for an output file.  You have to set header size
   // not just set next to 0
-  header.swapped = 0;
-  header.headerSize = 1024;
-  header.sectionSkip = 0;
-  header.next = 0;
+  mrcInitOutputHeader(&header);
 
   /* ---- process image ---- */
 
@@ -1267,6 +1264,9 @@ int main (int argc, char **argv)
 /*  
     
 $Log$
+Revision 3.17  2011/03/05 03:42:22  mast
+Allow environment variable to prevent backing up file
+
 Revision 3.16  2011/03/01 22:56:01  mast
 Switch to PID printing function
 

@@ -1,5 +1,27 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/26/11: Fixed a bug that caused resuming SIRT to fail when the Tomogram
+Positioning dialog was opened before resuming.(Bug# 1523)
+
+7/26/11: Fixed tif2mrc's test for whether all files had the same mode.
+
+7/25/11: Turned down lighting in model produced by Flattenwarp (into 4.2.22).
+
+7/25/11: Fixed error message from Tomopitch when there is only one point in a
+contour and detected lines too short to use to avoid infinite looping.
+
+7/25/11: Fixed Sirtsetup looking for existing vertical slice file when
+resuming (forced into IMOD_4-2-22).
+
+7/25/11: Turned off entry output in alignlog (forced into IMOD_4-2-22).
+
+7/24/11: Defined an IMOD stamp in MRC header and added a flag to indicate
+whether bytes in a mode 0 file are unsigned or signed.  Made all programs able
+to read and write unsigned or signed byte files.  Added environment variables
+READ_MODE0_SIGNED to control interpretation of files if necessary and
+WRITE_MODE0_SIGNED to control form of output globally, and added options to
+control form of output from Clip and Newstack.
+
 7/23/11: IMOD_4-2-22
 7/23/11: Made install script look in a new subdirectory for libtiff.so.4,
 needed for latest Ubuntu.

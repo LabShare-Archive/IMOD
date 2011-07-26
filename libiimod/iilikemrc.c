@@ -156,6 +156,7 @@ int iiSetupRawHeaders(ImodImageFile *inFile, RawImageInfo *info)
   hdr->swapped = info->swapBytes;
   hdr->headerSize = info->headerSize;
   hdr->sectionSkip = info->sectionSkip;
+  hdr->bytesSigned = 0;
   hdr->fp = inFile->fp;
 
   /* Set flags for type of data */
@@ -389,14 +390,16 @@ static int checkPif(FILE *fp, char *filename, RawImageInfo *info)
 static int checkDM3(FILE *fp, char *filename, RawImageInfo *info)
 {
   unsigned char bvals[12];
-  int err, dmtype;
+  int err, dmtype, dmf;
+  int applicOff[2] = {21, 29};
 
   rewind(fp);
   if (fread(bvals, 1, 4, fp) != 4)
     return IIERR_IO_ERROR;
-  if (bvals[3] != 3)
+  if (bvals[3] != 3 && bvals[3] != 4)
     return IIERR_NOT_FORMAT;
-  if (fseek(fp, 21, SEEK_SET))
+  dmf = (int)bvals[3];
+  if (fseek(fp, applicOff[bvals[3] - 3], SEEK_SET))
     return IIERR_IO_ERROR;
   if (fread(bvals, 1, 11, fp) != 11) 
     return IIERR_IO_ERROR;
@@ -405,7 +408,7 @@ static int checkDM3(FILE *fp, char *filename, RawImageInfo *info)
   if (strcmp((char *)bvals, "Application"))
     return IIERR_NOT_FORMAT;
 
-  if ((err = analyzeDM3(fp, filename, info, &dmtype)))
+  if ((err = analyzeDM3(fp, filename, dmf, info, &dmtype)))
     return err;
 
   switch (dmtype) {
@@ -442,9 +445,9 @@ static int checkDM3(FILE *fp, char *filename, RawImageInfo *info)
  * {headerSize}, and {type} members.  Returns IOERR_IO_ERROR for errors reading
  * the file or IOERR_NO_SUPPORT for other errors in analyzing the file.
  */
-int analyzeDM3(FILE *fp, char *filename, RawImageInfo *info, int *dmtype)
+int analyzeDM3(FILE *fp, char *filename, int dmformat, RawImageInfo *info, int *dmtype)
 {
-  int c, toffset, typeIndex;
+  int c, toffset, typeIndex, dmind;
   char buf[BUFSIZE];
   char *found;
   int lowbyte, hibyte;
@@ -457,12 +460,23 @@ int analyzeDM3(FILE *fp, char *filename, RawImageInfo *info, int *dmtype)
   /*int datacode[MAX_TYPES] = {0, 2, 6, 0, 0, 0, 10, 3, 0, 9, 4, 5}; */
      
   int dataSize[MAX_TYPES] = {1, 2, 4, 1, 1, 1, 1, 4, 1, 1, 2, 4};
+  int dimensOff[2] = {15, 27};
+  int xsizeOff[2] = {31, 59};
+  int ysizeOff[2] = {50, 94};
+  int zsizeOff[2] = {69, 129};
+  int dtypeOff[2] = {20, 36};
+  int dataOff[2] = {24, 48};
 
   offset = 0;
   xsize = 0;
   ysize = 0;
   type = -1;
   typeOffset = 0;
+  dmind = dmformat - 3;
+  if (dmind < 0 || dmind > 1) {
+    b3dError(stderr, "ERROR: analyzeDM3 - DM format %d not supported\n", dmformat);
+    return IIERR_NO_SUPPORT;
+  }
 
   if (stat(filename, &statbuf)) {
       b3dError(stderr, "ERROR: analyzeDM3 - Doing stat of %s\n", filename);
@@ -491,17 +505,17 @@ int analyzeDM3(FILE *fp, char *filename, RawImageInfo *info, int *dmtype)
 
   /* Look past a DataType enough to see another Dimensions - it is supposed
      to be after it */
-  for (c = 0; c < maxread && (xsize == 0 || type < 0 || c < typeIndex + 64);
-       c++) {
+  for (c = 0; c < maxread && (xsize == 0 || type < 0 || 
+                              c < typeIndex + 64 + (dmind ? 20 : 0)); c++) {
 
     /* Look for D, then check if it is Dimensions or DataType */
     if (buf[c] == 68) {
       found = strstr(&buf[c], "Dimensions");
       if (found) {
-        lowbyte = (unsigned char)buf[c + 15];
+        lowbyte = (unsigned char)buf[c + dimensOff[dmind]];
         if (lowbyte == 3) {
-          lowbyte =  (unsigned char)buf[c + 69];
-          hibyte =  (unsigned char)buf[c + 70];
+          lowbyte =  (unsigned char)buf[c + zsizeOff[dmind]];
+          hibyte =  (unsigned char)buf[c + zsizeOff[dmind] + 1];
           zsize = lowbyte + 256 * hibyte;
         } else if (lowbyte == 2) {
           zsize = 1;
@@ -510,16 +524,16 @@ int analyzeDM3(FILE *fp, char *filename, RawImageInfo *info, int *dmtype)
                    "to be %d, not 2 or 3, in %s\n", lowbyte, filename);
           return IIERR_NO_SUPPORT;
         }
-        lowbyte =  (unsigned char)buf[c + 31];
-        hibyte =  (unsigned char)buf[c + 32];
+        lowbyte =  (unsigned char)buf[c + xsizeOff[dmind]];
+        hibyte =  (unsigned char)buf[c + xsizeOff[dmind] + 1];
         xsize = lowbyte + 256 * hibyte;
-        lowbyte =  (unsigned char)buf[c + 50];
-        hibyte =  (unsigned char)buf[c + 51];
+        lowbyte =  (unsigned char)buf[c + ysizeOff[dmind]];
+        hibyte =  (unsigned char)buf[c + ysizeOff[dmind] + 1];
         ysize = lowbyte + 256 * hibyte;
       } else {
         found = strstr(&buf[c], "DataType");
-        if (found && buf[c + 20] < MAX_TYPES) {
-          type = buf[c + 20];
+        if (found && buf[c + dtypeOff[dmind]] < MAX_TYPES) {
+          type = buf[c + dtypeOff[dmind]];
           if (!typeOffset)
             typeOffset = c + statbuf.st_size - (maxread + 1);
           typeIndex = c;
@@ -544,9 +558,14 @@ int analyzeDM3(FILE *fp, char *filename, RawImageInfo *info, int *dmtype)
   buf[maxread - 1] = 0x00;
   for (c = 0; c < maxread; c++) {
     if (buf[c] == 68) {
-      found = strstr(&buf[c], "Data%%%%");
+      if (dmind)  {
+        found = strstr(&buf[c], "Data");
+        if (found && !strstr(&buf[c + 12], "%%%%"))
+          found = NULL;
+      } else
+        found = strstr(&buf[c], "Data%%%%");
       if (found) {
-        toffset = found + 24 - buf;
+        toffset = found + dataOff[dmind] - buf;
 
         /* If this is the first data string, or any data
            string that could still be far enough in front of the datatype
@@ -647,6 +666,12 @@ static int checkEM(FILE *fp, char *filename, RawImageInfo *info)
 /*  
 
 $Log$
+Revision 3.12  2011/07/25 02:39:01  mast
+initialize header as unsigned bytes
+
+Revision 3.11  2011/03/14 22:55:48  mast
+Changes for scaling to ushorts
+
 Revision 3.10  2009/08/04 15:51:08  mast
 Made it handle stack DM files and increased buffer size to accommodate
 larger distance of data string from start.

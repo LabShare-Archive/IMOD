@@ -1,12 +1,6 @@
 /* iimage.h - definitions and declarations for IMOD image files
+ *  $Id$
  */
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end
-*/
 
 #ifndef IIMAGE_H
 #define IIMAGE_H
@@ -202,77 +196,10 @@ extern "C" {
   int iiLikeMRCCheck(ImodImageFile *inFile);
   void iiLikeMRCDelete(ImodImageFile *inFile);
   int iiSetupRawHeaders(ImodImageFile *inFile, RawImageInfo *info);
-  int analyzeDM3(FILE *fp, char *filename, RawImageInfo *info, int *dmtype);
+  int analyzeDM3(FILE *fp, char *filename, int dmformat, RawImageInfo *info, int *dmtype);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif
-
-/*
-$Log$
-Revision 3.21  2010/12/21 05:28:50  mast
-Added quality argument
-
-Revision 3.20  2010/12/18 18:42:15  mast
-Add includes for new TIFF routines and to prevent warnings in compiles
-
-Revision 3.19  2010/12/15 06:22:17  mast
-New arg fro tiff writing
-
-Revision 3.18  2010/08/31 22:04:44  mast
-New arg for piece list function
-
-Revision 3.17  2009/06/19 19:50:14  mast
-Add member for samples in RGB TIFF file
-
-Revision 3.16  2009/03/31 23:44:30  mast
-New TIFF functions
-
-Revision 3.15  2009/01/02 05:19:19  mast
-const char * for Qt 4 port
-
-Revision 3.14  2008/11/24 23:50:07  mast
-Changes for using in SerialEM
-
-Revision 3.13  2008/11/18 22:43:54  mast
-Changed include to eliminate mrcc.h
-
-Revision 3.12  2007/06/13 17:07:45  sueh
-bug# 1019 Adding sectionSkip to ImodImageFile and RawImageInfo.
-
-Revision 3.11  2006/09/21 22:26:35  mast
-Adedd function to insert check function earlier in list
-
-Revision 3.10  2006/09/03 22:17:07  mast
-Fiddled for raw checking function, documented
-
-Revision 3.9  2006/09/02 23:50:33  mast
-Added mrc-like structure and functions
-
-Revision 3.8  2006/08/27 23:47:12  mast
-Added colormap
-
-Revision 3.7  2005/02/11 01:42:33  mast
-Warning cleanup: implicit declarations, main return type, parentheses, etc.
-
-Revision 3.6  2004/12/02 21:49:44  mast
-Add declarations for mrc functions needed elsewhere
-
-Revision 3.5  2004/11/30 03:47:10  mast
-Declared new function to add check functions
-
-Revision 3.4  2004/11/05 18:52:53  mast
-Include local files with quotes, not brackets
-
-Revision 3.3  2004/11/04 17:08:29  mast
-Added element for mirroring FFTs
-
-Revision 3.2  2004/01/05 17:24:00  mast
-Renamed imin/imax to smin/smax and changed iiSetMM arguments to float
-
-Revision 3.1  2002/12/01 15:39:50  mast
-Declare extern C if c++
-
-*/

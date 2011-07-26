@@ -12,6 +12,9 @@
 
 /*
 $Log$
+Revision 3.4  2007/02/04 21:19:48  mast
+Eliminated mrcspectral includes
+
 Revision 3.3  2007/02/04 21:10:15  mast
 Function name changes from mrcslice cleanup
 
@@ -169,7 +172,7 @@ int grap_trans(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     return(0);
   }
 
-  mrc_data_new(hout->fp, hout);
+  /* mrc_data_new(hout->fp, hout);  This cleared the file out! */
   sin  = sliceCreate(opt->ox, hin->nz, hin->mode);
   sout = sliceCreate(opt->ox, opt->oz, hin->mode);
   for (j = 0; j < vol[0]->ysize; j++){
@@ -278,7 +281,7 @@ int grap_zoom(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     return(0);
   }
 
-  mrc_data_new(hout->fp, hout);
+  /* mrc_data_new(hout->fp, hout); */
   sin  = sliceCreate(opt->ox, hin->nz, hin->mode);
   sout = sliceCreate(opt->ox, opt->oz, hin->mode);
   for (j = 0; j < vol[0]->ysize; j++){

@@ -495,7 +495,7 @@ static void copyAndDisplay()
   
   if (ip->vi->ushortStore) {
     slope = (ip->rangeHigh - ip->rangeLow) / 255.;
-    usmap = (b3dUInt16 *)get_byte_map(slope, (float)ip->rangeLow, 0, 65535);
+    usmap = (b3dUInt16 *)get_byte_map(slope, (float)ip->rangeLow, 0, 65535, 0);
   }
   for (j = 0; j < ip->vi->ysize; j++) {
     if (usmap)
@@ -1282,6 +1282,9 @@ void IProcThread::run()
 /*
 
     $Log$
+    Revision 4.30  2011/03/14 23:39:13  mast
+    Changes for ushort loading
+
     Revision 4.29  2010/04/01 02:41:48  mast
     Called function to test for closing keys, or warning cleanup
 

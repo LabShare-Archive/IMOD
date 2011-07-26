@@ -786,7 +786,7 @@ integer*4 \fIenable\fB
 .fi
 
 This call controls whether \fBPipPrintEntries\fR will print the entries to
-the program.  If \fIenable\fB is 1, printing is enabled; if it is 0 printing is
+the program.  If \fIenable\fR is 1, printing is enabled; if it is 0 printing is
 disabled, and if it is -1 then printing is controlled by the value of the
 environment variable PIP_PRINT_ENTRIES.
 

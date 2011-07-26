@@ -18,6 +18,9 @@ c
 c       $Id$
 c       
 c       $Log$
+c       Revision 3.6  2009/06/22 20:20:26  mast
+c       Switch to module, make work for huge images
+c
 C       
       SUBROUTINE IRDLIN(ISTREAM,ARRAY,*)
       implicit none
@@ -68,7 +71,7 @@ C
       parameter (linesize = 40960)
       INTEGER*2 LINE(linesize/2),IB,iscratch(7300)
       INTEGER*1 BLINE(linesize),QB(2),bstore(4),bcur
-      integer*4 lcompos
+      integer*4 lcompos, ibyteShift
       real*4 rline(linesize/4)
       EQUIVALENCE (LINE,BLINE),(IB,QB),(lcompos,bstore(1)), (line,rline)
       integer*4  nlines, nx1, nx2, j, jmode, jb, n, k, maxpix, nbytes,indst,i
@@ -155,7 +158,9 @@ C         DNM: straight no-conversion is silly for bit modes, will return intege
             elseif(jmode.eq.1.or.jmode.eq.3)then
               call convert_shorts(array(index),n/2)
             endif
-          endif    
+          endif
+          if (jmode .eq. 0 .and. bytesSigned(j)) call b3dShiftBytes(array(index),
+     &        array(index), n, 1, -1, 1)
           nread = nread - n
           index = index + n / 4
         enddo
@@ -165,6 +170,7 @@ C         DNM: straight no-conversion is silly for bit modes, will return intege
           N = int(MIN(int(linesize, kind=8),NREAD), kind=4)
           CALL QREAD(J,BLINE,N,IER)
           IF (IER .NE. 0) GOTO 99
+          if (bytesSigned(j)) call b3dShiftBytes(bline, bline, n, 1, -1, 1)
           QB(3-lowbyte) = 0
           DO K = 1,N
             QB(lowbyte) = BLINE(K)

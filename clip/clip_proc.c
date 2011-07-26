@@ -30,6 +30,8 @@
 #endif
 #define KERNEL_MAXSIZE 7
 
+static void writeBytePixel(float pixel, MrcHeader *hout);
+
 /*
  * Common routine for the rescaling options including resize (no scale)
  */
@@ -657,21 +659,24 @@ int clip_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
         yst = 0;
       }
 
-      /* Load the slices within the Y range*/
+      /* Load the slices within the Y range and shift bytes for output if needed */
       for (k = 0; k < hin->nz; k++) {
         if ((err = mrcReadZ(hin, &li, yslice[k]->data.b, k))) {
           printf("ERROR: CLIP - Reading section %d, y %d to %d (error # %d)\n",
                  k, li.ymin, li.ymax, err);
           return -1;
         }
+        if (!hout->mode && hout->bytesSigned)
+          b3dShiftBytes(yslice[k]->data.b, (char *)yslice[k]->data.b, hout->nx, 
+                        li.ymax + 1 - li.ymin, 1, 1);
       }
       
       /* Write Z slices in order, line by line */
       for (j = yst; j * ydir <= ynd * ydir; j += ydir) {
         lineOfs = (size_t)(hout->nx * dsize) * (size_t)j;
         for (k = 0; k < hin->nz; k++) {
-          if (b3dFwrite(yslice[k]->data.b + lineOfs, dsize, hout->nx, hout->fp)
-              != hout->nx) {
+          if (b3dFwrite(yslice[k]->data.b + lineOfs, dsize, hout->nx, hout->fp) != 
+              hout->nx) {
             printf("ERROR: CLIP - Writing section %d, line %d\n", numDone + 
                    ydir * (j - yst), k);
             return -1;
@@ -778,24 +783,23 @@ int clip_color(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     for (i = 0; i < xysize; i++){
 
       pixin = idata[k][i];
-      pixel = pixin * opt->red;
-      if (pixel > 255.0) pixel = 255.0;
-      bdata = pixel + 0.5;
-      b3dFwrite(&bdata,  sizeof(unsigned char), 1, hout->fp);
-
-      pixel = pixin * opt->green;
-      if (pixel > 255.0) pixel = 255.0;
-      bdata = pixel + 0.5;
-      b3dFwrite(&bdata,  sizeof(unsigned char), 1, hout->fp);
-	       
-      pixel = pixin * opt->blue;
-      if (pixel > 255.0) pixel = 255.0;
-      bdata = pixel + 0.5;
-      b3dFwrite(&bdata,  sizeof(unsigned char), 1, hout->fp);
-
+      writeBytePixel((float)(pixin * opt->red), hout);
+      writeBytePixel((float)(pixin * opt->green), hout);
+      writeBytePixel((float)(pixin * opt->blue), hout);
     }
   }
   return(0);
+}
+
+static void writeBytePixel(float pixel, MrcHeader *hout)
+{
+  unsigned char bdata;
+  if (pixel > 255.0)
+    pixel = 255.0;
+  bdata = pixel + 0.5;
+  if (hout->bytesSigned)
+    bdata = (unsigned char)(((int)bdata - 128) & 255);
+  b3dFwrite(&bdata,  sizeof(unsigned char), 1, hout->fp);
 }
 
 /*
@@ -993,14 +997,11 @@ int clip_splitrgb(MrcHeader *h1, ClipOptions *opt)
       fprintf(stderr, "Error opening %s\n", fname);
       return(-1);
     }
-    hdr[i].swapped = 0;
     hdr[i].mode = 0;
+    mrcInitOutputHeader(&hdr[i]);
     hdr[i].amin = 255;
     hdr[i].amean = 0;
     hdr[i].amax = 0;
-    hdr[i].headerSize = 1024;
-    hdr[i].sectionSkip = 0;
-    hdr[i].next = 0;
     mrc_head_label(&hdr[i], "CLIP Split RGB into 3 files");
     if (mrc_head_write(hdr[i].fp, &hdr[i]))
       return -1;
@@ -1950,6 +1951,12 @@ int free_vol(Islice **vol, int z)
 /*
 
 $Log$
+Revision 3.34  2011/07/25 02:44:58  mast
+Add option for controlling byte output, changes for that
+
+Revision 3.33  2011/03/05 03:34:52  mast
+Allow environment variable to prevent backing up file
+
 Revision 3.32  2011/02/28 17:36:31  mast
 Add unwrap option
 

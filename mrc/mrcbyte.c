@@ -202,13 +202,8 @@ int main( int argc, char *argv[] )
 
   /* DNM: eliminate extra header info in the output, and mark it as not
      swapped now that we're done reading data */
-  hout.headerSize = 1024;
-  hout.sectionSkip = 0;
-  hout.next = 0;
-  hout.nint = 0;
-  hout.nreal = 0;
+  mrcInitOutputHeader(&hout);
   hout.nsymbt = 0;
-  hout.swapped = 0;
   hout.nx = li.xmax + 1 - li.xmin;
   hout.ny = li.ymax + 1 - li.ymin;
   hout.nz = li.zmax + 1 - li.zmin;
@@ -273,6 +268,9 @@ int main( int argc, char *argv[] )
 /*
 
 $Log$
+Revision 3.11  2011/03/25 22:10:15  mast
+Made it work for > 2Gb images
+
 Revision 3.10  2011/03/05 03:42:30  mast
 Allow environment variable to prevent backing up file
 

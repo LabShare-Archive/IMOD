@@ -293,7 +293,16 @@ int main( int argc, char *argv[] )
         sscanf(argv[++i], "%f", &(opt.val)); break;
 		    
       case 'm':
-        opt.mode = sliceMode(argv[++i]); break;
+        opt.mode = sliceMode(argv[++i]); 
+        if (opt.mode == SLICE_MODE_UNDEFINED) {
+          fprintf(stderr, "%s: invalid mode entry %s.\n", progname, argv[i]);
+          exit(3);
+        }
+        if (opt.mode == SLICE_MODE_SBYTE || opt.mode == SLICE_MODE_UBYTE) {
+          overrideWriteBytes(opt.mode == SLICE_MODE_SBYTE ? 1 : 0);
+          opt.mode = 0;
+        }
+        break;
 
       case 'v':
         view = TRUE; break;
@@ -342,8 +351,7 @@ int main( int argc, char *argv[] )
         case 'z': case 'Z':
           sscanf(argv[++i], "%d", &(opt.oz)); break;
         default:
-          fprintf(stderr, "%s: invalid option %s.\n",
-                  progname, argv[i]);
+          fprintf(stderr, "%s: invalid option %s.\n", progname, argv[i]);
           exit(3);
         }
         break;
@@ -359,8 +367,7 @@ int main( int argc, char *argv[] )
           opt.secs = clipMakeSecList(argv[i], &opt.nofsecs);
           break;
         default:
-          fprintf(stderr, "%s: invalid option %s.\n",
-                  progname, argv[i]);
+          fprintf(stderr, "%s: invalid option %s.\n", progname, argv[i]);
           exit(3);
         }
         break;
@@ -376,15 +383,13 @@ int main( int argc, char *argv[] )
         case 'c': case 'C':
           sscanf(argv[++i], "%f", &(opt.thresh)); break;
         default:
-          fprintf(stderr, "%s: invalid option %s.\n",
-                  progname, argv[i]);
+          fprintf(stderr, "%s: invalid option %s.\n", progname, argv[i]);
           exit(3);
         }
         break;
 
       default:
-        fprintf(stderr, "%s: invalid option %s.\n",
-			    progname, argv[i]);
+        fprintf(stderr, "%s: invalid option %s.\n", progname, argv[i]);
         exit(3);
       }
     else
@@ -439,12 +444,11 @@ int main( int argc, char *argv[] )
 
   /* Set output header default same as first input file. */
   hout = hin;
-     
-  /* DNM 4/2/04: in addition to setting header size, need to zero out "next" */
-  hout.headerSize = 1024;
-  hout.sectionSkip = 0;
-  hout.next = 0;
-  hout.creatid    = 1000;
+
+  /* 7/20/11: Consolidate all changes for output header into this call; eliminate 
+   * setting swapped to 0 below; this header is replaced if appending
+   * There is also a new header made in lots of places, not sure how much this is used */
+  mrcInitOutputHeader(&hout);
 
   /* Load additional input files. */
   i++;
@@ -485,14 +489,6 @@ int main( int argc, char *argv[] )
         return(-1);
       }
 
-      /* DNM 3/21/01: Give explicit error message here if file is
-         swapped.  6/26/02: it should be OK now */
-      /* if (hout.swapped) {
-         fprintf(stderr, "clip error: Attempting to write to a "
-         "byte-swapped file, %s\n", argv[i]);
-         return(-1);
-         } */
-
     } else if (process != IP_SPLITRGB) {
 
       /* DNm 10/20/03: switch to calling routine for backup file */
@@ -501,10 +497,6 @@ int main( int argc, char *argv[] )
 
       hout.fp = fopen(argv[argc - 1], "wb+");
         
-      /* DNM: 3/21/01: if it's a new output file, mark header as not
-         swapped */
-      hout.swapped = 0;
-      mrc_set_cmap_stamp(&hout);
       if (!hout.fp){
         fprintf(stderr, "Error opening %s\n", argv[argc - 1]);
         return(-1);
@@ -685,6 +677,9 @@ int *clipMakeSecList(char *clst, int *nofsecs)
 
 /*
 $Log$
+Revision 3.28  2011/07/13 19:14:43  mast
+Fix usage statement
+
 Revision 3.27  2011/03/05 03:32:01  mast
 Allow environment variable to prevent backing up file
 

@@ -206,6 +206,7 @@ c
         call PipNumberOfEntries('SectionsToRead', numSecLists)
         ierr = PipGetInteger('SkipSectionIncrement', listIncrement)
         ierr = PipGetLogical('BlankOutput', blankOutput)
+        if (PipGetInteger('BytesSignedInOutput', i) .eq. 0) call overrideWriteBytes(i)
       else
         write(*,'(1x,a,$)')'# of input files (or -1 to read list'//
      &      ' of input files from file): '
@@ -2208,6 +2209,9 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.70  2011/07/20 17:08:50  mast
+c       Added error code to zoomfilter error exit
+c
 c       Revision 3.69  2011/07/01 04:41:41  mast
 c       Forbid -expand and -rotate with warping
 c
