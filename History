@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/25/11: Fixed error message from Tomopitch when there is only one point in a
+contour and detected lines too short to use to avoid infinite looping.
+
 7/25/11: Fixed Sirtsetup looking for existing vertical slice file when
 resuming (forced into IMOD_4-2-22).
 
