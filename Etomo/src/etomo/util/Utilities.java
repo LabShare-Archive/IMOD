@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.80  2011/06/28 20:02:20  sueh
+ * <p> $Removed test print from isWindowsOS.
+ * <p> $
  * <p> $Revision 3.79  2011/06/28 16:57:11  sueh
  * <p> $In windowsOS added print statement during test.
  * <p> $
@@ -391,8 +394,7 @@ public class Utilities {
    */
   public static boolean fileExists(BaseManager manager, String extension, AxisID axisID) {
     File file = new File(manager.getPropertyUserDir(), manager.getBaseMetaData()
-        .getName()
-        + axisID.getExtension() + extension);
+        .getName() + axisID.getExtension() + extension);
     if (file.exists()) {
       return true;
     }
@@ -522,8 +524,7 @@ public class Utilities {
         else {
           System.err.println(destination.getAbsolutePath() + " does not exist");
         }
-        System.err.println("Unable to rename file to: "
-            + destination.getAbsolutePath());
+        System.err.println("Unable to rename file to: " + destination.getAbsolutePath());
         StringBuffer message = new StringBuffer("Unable to rename "
             + source.getAbsolutePath() + " to " + destination.getAbsolutePath());
         if (isWindowsOS()) {
@@ -578,6 +579,11 @@ public class Utilities {
       return file3;
     }
     return file4;
+  }
+
+  public static void copyFile(final FileType source, final FileType destination,
+      final BaseManager manager, final AxisID axisID) throws IOException {
+    copyFile(source.getFile(manager, axisID), destination.getFile(manager, axisID));
   }
 
   /**
