@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/25/11: Turned down lighting in model produced by Flattenwarp (into 4.2.22).
+
 7/25/11: Fixed error message from Tomopitch when there is only one point in a
 contour and detected lines too short to use to avoid infinite looping.
 
