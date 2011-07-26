@@ -74,6 +74,7 @@ clipsize = ''
 # Fallbacks from ../manpages/autodoc2man 3 1 alignlog
 options = [":m:B:", ":e:B:", ":s:B:", ":l:B:", ":c:B:", ":r:B:", ":a:B:", ":b:B:"]
 
+PipEnableEntryOutput(0)
 (numOpts, numNonOpts) = PipReadOrParseOptions(sys.argv, options, progname, 1, 1, 0)
 
 infile = 'align.log'

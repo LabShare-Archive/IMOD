@@ -7764,6 +7764,20 @@ public final class ApplicationManager extends BaseManager implements
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
+    //Copy from tilt_for_sirt.com to tilt.com when resuming in case tilt.com was
+    //overwritten by Tomo Pos.
+    if (!param.isStartFromZero()) {
+      if (isAxisBusy(axisID, processResultDisplay)) {
+        return;
+      }
+      try {
+        Utilities.copyFile(FileType.TILT_FOR_SIRT_COMSCRIPT, FileType.TILT_COMSCRIPT,
+            this, axisID);
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
     if (processTrack != null) {
       processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
     }
@@ -8047,6 +8061,9 @@ public final class ApplicationManager extends BaseManager implements
 /**
  * <p>
  * $Log$
+ * Revision 3.377  2011/07/14 15:49:50  sueh
+ * Bug# 1512 In modelToPatch updated the progress area.
+ *
  * Revision 3.376  2011/06/30 00:19:22  sueh
  * Bug# 1502 In commitTestVolume and useImageFile, added useFileNameInClose parameter to
  * BaseManager.renameImageFile

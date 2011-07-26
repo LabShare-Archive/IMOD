@@ -137,7 +137,6 @@ int main( int argc, char *argv[])
   float scatSpaceFac = 0.33f;
   float fracOmit = 0.0;
   Ilist *clist = ilistNew(sizeof(ContData), 1000);
-  char *strtmp;
   char *patchfile = NULL;
   char *midfile = NULL;
   char *namePrefix[3];
@@ -158,7 +157,6 @@ int main( int argc, char *argv[])
   float lambda[MAX_LAMBDAS];
   double *lmat, *yvec;
   int numLambdas = 0;
-  int one = 1;
   int *iwrk, *ia, *ja;
   float *rwrk, *sumEntries;
   double *xx, *uu1, *uu2, *ww, *vv;
@@ -170,7 +168,7 @@ int main( int argc, char *argv[])
   float *scx, *scy, *bx, *by;
   int *ipiv;
   float xmin, xmax, ymin, ymax, zval, zval2, frac, xcen, ycen, zcen,xloc, yloc;
-  int iyval, i, j, planar, found, co, ob, pt, ptl, ptm, minint, numXloc;
+  int iyval, i, j, planar, found, co, ob, pt, minint, numXloc;
   int numYloc, numLoc, indc, ind00, ind01, ind02, ind10, ind11, ind12;
   int ind20, ind21, ind22, ndat, ix, iy, delind,ind2, indmin, ind, numTied;
   int maxRows, maxVals, numRows, numInRow, err, itnlim, itndone, istop;
@@ -180,7 +178,7 @@ int main( int argc, char *argv[])
   float coef, aa, bb, cc, zmid, alpha, localYspace, resampX, windowX;
   float medianDev, MADN;
   double atol, btol, conlim, anorm, acond, rnorm, arnorm, xnorm;
-  int pp3, numPoints, pt2, row, col, lwork, numBound, numObj, loop;
+  int numPoints, lwork, numBound, numObj, loop;
   Ipoint *ptp;
   float boundArea, scmin, scmax, xleft, xright, xcenpts, ycenpts, pad;
 
@@ -1386,7 +1384,7 @@ static void  rotateModel(Imod *imod, int dir)
   Icont *cont;
   Imesh *mesh;
   float tmp;
-  int    ob, co, pt, i;
+  int    ob, co, pt;
 
   for(ob = 0; ob < imod->objsize; ob++){
     obj = &(imod->obj[ob]);
@@ -1441,6 +1439,11 @@ static void adjustAndMeshObj(Iobj *obj, float lambda, Ipoint *scale,
     if (lambda > -999. && !showcont) 
       obj->flags |= IMOD_OBJFLAG_MESH | IMOD_OBJFLAG_NOLINE |
         IMOD_OBJFLAG_FILL | IMOD_OBJFLAG_OFF;
+
+    /* Tone down the lighting to allow bumps to show up better */
+    obj->ambient = 116;
+    obj->diffuse = 130;
+    obj->specular = 68;
   }
 }
 
