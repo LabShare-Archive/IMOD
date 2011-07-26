@@ -375,8 +375,8 @@ c
             call exit(1)
           endif
           if(npt_in_obj(iobj1).lt.2.or.npt_in_obj(iobj2).lt.2)then
-            write(*, '(/,a,i3)')'ERROR: TOMOPITCH - THERE ARE NOT TWO POINTS ',
-     &          'IN FIRST TWO CONTOURS OF MODEL OR TIME',ifile
+            write(*, '(/,a,a,i3)')'ERROR: TOMOPITCH - THERE ARE FEWER THAN TWO POINTS ',
+     &          'IN ONE OF THE FIRST TWO CONTOURS OF MODEL OR TIME',ifile
             call exit(1)
           endif
 
@@ -448,14 +448,28 @@ c
         y1=scaleFac * p_coord(indy,ip1)
         x2=scaleFac * p_coord(1,ip2)
         y2=scaleFac * p_coord(indy,ip2)
+        if (abs(x2 - x1) .lt. 0.1 * abs(y1 - y2)) then
+          write(*, '(a,2f7.0,a,2f7.0,a)')'ERROR: TOMOPITCH - LINE FROM',x1,y1,' TO',x2,y2,
+     &        ' IS TOO STEEP TO USE'
+          call exit(1)
+        endif
         slope(line)=(y2-y1)/(x2-x1)
         bintcp(line)=y2-slope(line)*x2
         xleft(line)=min(x1,x2)
         xright(line)=max(x1,x2)
-      enddo	  
+      enddo
       
       xlo=min(xleft(1),xleft(2),-0.45 * scaleFac * maxx)
       xhi=max(xright(1),xright(2),0.45 * scaleFac * maxx)
+      if (xright(1) - xleft(1) .lt. 0.1 * (xhi - xlo) .or.
+     &    xright(2) - xleft(2) .lt. 0.1 * (xhi - xlo)) then
+        line = 2
+        if (xright(1) - xleft(1) .lt. 0.1 * (xhi - xlo)) line = 1
+        write(*, '(a,f7.0,a,f7.0,a)')'ERROR: TOMOPITCH - THE LINE GOING FROM',
+     &      xleft(line), ' TO',xright(line), ' IS TOO SHORT TO USE'
+        call exit(1)
+      endif
+
       yll=xlo*slope(1)+bintcp(1)
       ylr=xhi*slope(1)+bintcp(1)
       yul=xlo*slope(2)+bintcp(2)
@@ -494,6 +508,8 @@ c
 c       
       write (6,101)fillab
 101   format(//,' Analysis of positions from ',a,':')
+      if (nspots .gt. 1 .and. thkmid(1) .lt. 0. .or. thkmid(2) .lt. 0)
+     &    call exitError('LINES CROSS WHEN EXTRAPOLATED TO THE FULL RANGE IN X')
       call findshift('unrotated',ycen,thkmid,ifuse,nspots, shiftAdd)
       nd=0
       do i=1,nspots
@@ -584,6 +600,9 @@ c
       end
 
 c       $Log$
+c       Revision 3.17  2010/07/26 21:57:42  mast
+c       Give better error message when error reading model
+c
 c       Revision 3.16  2009/03/19 05:50:43  mast
 c       Fix bug when contours are drawn in opposite direction and overlap in Z
 c
