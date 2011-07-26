@@ -415,11 +415,14 @@ int main( int argc, char *argv[])
         manageMode(&tiff, keepUshort, forceSigned, makegray, &pixSize, &mode);
       }
 
-      if ((tiff.BitsPerSample == 16 && mode != MRC_MODE_SHORT && mode != 
-           MRC_MODE_USHORT) ||
+      if ((tiff.BitsPerSample == 16 && mode != MRC_MODE_SHORT && 
+           mode != MRC_MODE_USHORT) ||
           (tiff.BitsPerSample == 32 &&  mode != MRC_MODE_FLOAT) ||
-          (tiff.PhotometricInterpretation / 2 == 1 && !makegray 
-           && mode != MRC_MODE_RGB))
+          (tiff.PhotometricInterpretation / 2 == 1 && !makegray && 
+           mode != MRC_MODE_RGB) ||
+          ((tiff.PhotometricInterpretation / 2 == 1 && makegray) ||
+           (tiff.PhotometricInterpretation / 2 == 0 && tiff.BitsPerSample == 8) &&
+           mode != MRC_MODE_BYTE))
         exitError("All files must have the same data type.");
 
       if (tiff.PhotometricInterpretation == 3)
@@ -743,6 +746,9 @@ static float minmaxmean(unsigned char *tifdata, int mode, int unsign,
 
 /* 
    $Log$
+   Revision 3.24  2011/07/25 02:53:10  mast
+   Fix name of byte shifting function
+
    Revision 3.23  2011/07/25 02:45:17  mast
    Changes for working with signed bytes
 
