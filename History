@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/26/11: Fixed tif2mrc's test for whether all files had the same mode.
+
 7/25/11: Turned down lighting in model produced by Flattenwarp (into 4.2.22).
 
 7/25/11: Fixed error message from Tomopitch when there is only one point in a
