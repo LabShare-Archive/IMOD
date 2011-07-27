@@ -420,8 +420,8 @@ int main( int argc, char *argv[])
           (tiff.BitsPerSample == 32 &&  mode != MRC_MODE_FLOAT) ||
           (tiff.PhotometricInterpretation / 2 == 1 && !makegray && 
            mode != MRC_MODE_RGB) ||
-          ((tiff.PhotometricInterpretation / 2 == 1 && makegray) ||
-           (tiff.PhotometricInterpretation / 2 == 0 && tiff.BitsPerSample == 8) &&
+          (((tiff.PhotometricInterpretation / 2 == 1 && makegray) ||
+            (tiff.PhotometricInterpretation / 2 == 0 && tiff.BitsPerSample == 8)) &&
            mode != MRC_MODE_BYTE))
         exitError("All files must have the same data type.");
 
@@ -746,6 +746,9 @@ static float minmaxmean(unsigned char *tifdata, int mode, int unsign,
 
 /* 
    $Log$
+   Revision 3.25  2011/07/26 17:41:51  mast
+   Fixed test for files having same mode to include byte output
+
    Revision 3.24  2011/07/25 02:53:10  mast
    Fix name of byte shifting function
 
