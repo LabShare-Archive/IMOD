@@ -343,9 +343,9 @@ int readbytessigned(int *stamp, int *flags, int *mode, float *dmin, float *dmax)
 void b3dShiftBytes(unsigned char *usbuf, char *sbuf, int nx, int ny, int direction,
                        int bytesSigned)
 {
+  size_t i, nxy;
   if (!bytesSigned)
     return;
-  size_t i, nxy;
   nxy = (size_t)nx * ny;
   if (direction >= 0)
     for (i = 0; i < nxy; i++)
@@ -837,6 +837,9 @@ int b3dompthreadnum()
 /*
 
 $Log$
+Revision 1.23  2011/07/25 02:34:39  mast
+Changes for working with signed bytes
+
 Revision 1.22  2011/04/06 04:55:04  mast
 Added some consts
 
