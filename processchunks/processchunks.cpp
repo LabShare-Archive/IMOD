@@ -337,7 +337,7 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
     return;
   }
   int i, cpuIndex;
-  if (isVerbose(mDecoratedClassName, __func__)) {
+  if (isVerbose(mDecoratedClassName, __func__, 2)) {
     *mOutStream << mDecoratedClassName << ":" << __func__ << ":mNumDone:" << mNumDone
         << ",mSizeJobArray:" << mSizeJobArray << endl;
   }
@@ -1674,6 +1674,9 @@ bool Processchunks::isVerbose(const QString &verboseClass, const QString verbose
 
 /*
  $Log$
+ Revision 1.73  2011/07/29 00:20:58  sueh
+ Bug# 1492 In setupMachineList assigning mQueuej to mNumCpus.
+
  Revision 1.72  2011/07/22 22:04:34  sueh
  Bug# 1521 In handleChunkDone pass machine name to ProcessHandler.printWarnings.
 
