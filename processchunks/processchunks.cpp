@@ -40,22 +40,23 @@ using namespace std;
  make autodoc2man
  */
 static char
-    *options[] = {
-        ":help:B:Print usage message",
-        ":r:B:Resume, retaining existing finished files (the default is to remove all log files and redo everything)",
-        ":s:B:Run a single command file named root_name or root_name.com",
-        ":g:B:Go process, without asking for confirmation after probing machines",
-        ":n:I:Set the \"nice\" value to the given number (default 18, range 0-19).  No effect when running on a queue.",
-        ":w:FN:Full path to working directory on remote machines",
-        ":d:I:Drop a machine after given number of failures in a row (default 5)",
-        ":e:I:Quit after the given # of processing errors for a chunk (default 5)",
-        ":c:FN:Check file \"name\" for commands P, Q, and D (default processchunks.input)",
-        ":q:I:Run on cluster queue with given maximum # of jobs at once",
-        ":Q:CH:Machine name to use for the queue (default queue)",
-        //":m:I:Milliseconds to pause before killing each process (default 50)",
-        ":P:B:Output process ID",
-        ":v:B:Verbose.",
-        ":V:CH:?|?,2|class[,function[,...]][,2]|2  Verbose instructions:  case insensitive, matches from the end of the class or function name." };
+    *options[] =
+        {
+            ":help:B:Print usage message",
+            ":r:B:Resume, retaining existing finished files (the default is to remove all log files and redo everything)",
+            ":s:B:Run a single command file named root_name or root_name.com",
+            ":g:B:Go process, without asking for confirmation after probing machines",
+            ":n:I:Set the \"nice\" value to the given number (default 18, range 0-19).  No effect when running on a queue.",
+            ":w:FN:Full path to working directory on remote machines",
+            ":d:I:Drop a machine after given number of failures in a row (default 5)",
+            ":e:I:Quit after the given # of processing errors for a chunk (default 5)",
+            ":c:FN:Check file \"name\" for commands P, Q, and D (default processchunks.input)",
+            ":q:I:Run on cluster queue with given maximum # of jobs at once",
+            ":Q:CH:Machine name to use for the queue (default queue)",
+            //":m:I:Milliseconds to pause before killing each process (default 50)",
+            ":P:B:Output process ID",
+            ":v:B:Verbose.",
+            ":V:CH:?|?,2|class[,function[,...]][,2]|2  Verbose instructions:  case insensitive, matches from the end of the class or function name." };
 static char *queueNameDefault = "queue";
 Processchunks *processchunksInstance;
 
@@ -839,6 +840,7 @@ void Processchunks::setupMachineList(QStringList &machineNameList, int *numCpusL
   int i;
   //Not implementing $IMOD_ALL_MACHINES since no one seems to have used it.
   if (mQueue) {
+    mNumCpus = mQueue;
     mQueueParamList = mCpuList.split(QRegExp("\\s+"), QString::SkipEmptyParts);
     mQueueCommand = mQueueParamList.takeAt(0);
     mMachineListSize = 1;
@@ -1160,11 +1162,11 @@ bool Processchunks::readCheckFile() {
 void Processchunks::exitIfDropped(const int minFail, const int failTot,
     const int assignTot) {
   if (isVerbose(mDecoratedClassName, __func__, 2)) {
-    *mOutStream << "minFail=" << minFail << ",failTot:" << failTot << ",assignTot:"
-        << assignTot << ",mDropCrit:" << mDropCrit << ",mNumCpus:" << mNumCpus
-        << ",mNumDone:" << mNumDone << ",mPausing:" << mPausing << ",mSyncing:"
-        << mSyncing << ",mQueue:" << mQueue << ",mMachineListSize:" << mMachineListSize
-        << endl;
+    *mOutStream << mDecoratedClassName << ":" << __func__ << ":minFail=" << minFail
+        << ",failTot:" << failTot << ",assignTot:" << assignTot << ",mDropCrit:"
+        << mDropCrit << ",mNumCpus:" << mNumCpus << ",mNumDone:" << mNumDone
+        << ",mPausing:" << mPausing << ",mSyncing:" << mSyncing << ",mQueue:" << mQueue
+        << ",mMachineListSize:" << mMachineListSize << endl;
   }
   if (minFail >= mDropCrit) {
     *mOutStream << "ERROR: ALL MACHINES HAVE BEEN DROPPED DUE TO FAILURES" << endl;
@@ -1672,6 +1674,9 @@ bool Processchunks::isVerbose(const QString &verboseClass, const QString verbose
 
 /*
  $Log$
+ Revision 1.72  2011/07/22 22:04:34  sueh
+ Bug# 1521 In handleChunkDone pass machine name to ProcessHandler.printWarnings.
+
  Revision 1.71  2011/03/01 22:56:52  mast
  Switch to PID-printing function
 
