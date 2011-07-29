@@ -743,6 +743,10 @@ void ProcessHandler::runProcess(MachineHandler &machine) {
 void ProcessHandler::startKill() {
   mKill = true;
   mIgnoreKill = !isJobValid();
+  if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+    mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
+        << ":mIgnoreKill:" << mIgnoreKill << endl;
+  }
 }
 
 /*
@@ -756,25 +760,22 @@ void ProcessHandler::killSignal() {
   //For remote machines imodkillgroup can be used to kill all the processes
   if (!mKillStarted) {
     if (mProcesschunks->isQueue()) {
-      //check for available pipes
-      if (mProcesschunks->resourcesAvailableForKill()) {
-        mKillStarted = true;//This starts the 15-count timeout
-        setJobNotDone();
-        mProcesschunks->incrementKills();
-        //Kill the process
-        char ans = mProcesschunks->getAns();
-        QString action(ans);
-        if (ans != 'P') {
-          action = "K";
-          //Don't know if this waits until the kill is does
-          //$queuecom -w "$curdir" -a $action $comlist[$ind]:r
-          //The second to last parameter is the action letter
-          mParamList.replace(mParamList.size() - 2, action);
-          mKillProcess->start(mCommand, mParamList);
-          mKillProcess->waitForFinished(1000);
-          //Put mParamList back to its regular form
-          mParamList.replace(mParamList.size() - 2, "R");
-        }
+      mKillStarted = true;//This starts the 15-count timeout
+      setJobNotDone();
+      mProcesschunks->incrementKills();
+      //Kill the process
+      char ans = mProcesschunks->getAns();
+      QString action(ans);
+      if (ans != 'P') {
+        action = "K";
+        //Don't know if this waits until the kill is does
+        //$queuecom -w "$curdir" -a $action $comlist[$ind]:r
+        //The second to last parameter is the action letter
+        mParamList.replace(mParamList.size() - 2, action);
+        mKillProcess->start(mCommand, mParamList);
+        mKillProcess->waitForFinished(1000);
+        //Put mParamList back to its regular form
+        mParamList.replace(mParamList.size() - 2, "R");
       }
     }
     else {
@@ -1083,6 +1084,9 @@ void ProcessHandler::stopProcess(const QString &pid) {
 
 /*
  $Log$
+ Revision 1.51  2011/07/22 23:07:32  sueh
+ Bug# 1521 In printWarnings, use trimmed to strip eol, instead of index of and mid.
+
  Revision 1.50  2011/07/22 22:49:03  sueh
  Bug# 1521 In printWarnings, stripping the end-of-line character(s) from the MESSAGE-tagged line,
  and adding an endl after the machine name.
