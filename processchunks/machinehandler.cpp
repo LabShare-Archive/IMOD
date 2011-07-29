@@ -61,6 +61,9 @@ void MachineHandler::setValues(const char *machineName, const int numCpus) {
 
 //Setup done before starting to kill processes.
 void MachineHandler::startKill() {
+  if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
+    mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__ << endl;
+  }
   mIgnoreKill = false;
   if (mDropped) {
     mIgnoreKill = true;
@@ -164,8 +167,8 @@ void MachineHandler::killSignal() {
             //found, then no further attempt will be made because killStarted
             //has been turned on.
             mKillWarning = true;
-            mProcesschunks->getOutStream() << "Unable to kill any processes on "
-                << mName << endl;
+            mProcesschunks->getOutStream() << "Unable to kill any processes on " << mName
+                << endl;
             mKillFinishedSignalReceived = true;
           }
           paramList.clear();
@@ -292,6 +295,10 @@ int MachineHandler::getFailureCount() {
 
 /*
  $Log$
+ Revision 1.30  2011/02/05 00:50:21  sueh
+ bug# 1426 Preventing a lockup when the PID cannot be gotten and
+ processchunks thinks that the process is running.
+
  Revision 1.29  2011/02/04 00:19:34  sueh
  *** empty log message ***
 
