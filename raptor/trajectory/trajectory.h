@@ -19,8 +19,8 @@ public:
 
 //famatnote: why are these functions outside the class?
 vector<trajectory> findTrajectories(vector<frame>* frames, vector< vector<pairCorrespondence> >* correspondences, int numFrames, unsigned int maxMarkersPrevFrame);
-trajectory buildTrajectoryForward(Point2D* point, int);
-void buildTrajectoryBackward(vector<trajectory>* t, vector<frame>*, int, int, unsigned int);
+trajectory buildTrajectoryForward(Point2D* point, int,unsigned int);
+void buildTrajectoryBackward(vector<trajectory>* t, vector<frame>*, int, int, unsigned int,unsigned int);
 Point2D* findMarkerInPrevFrame(Point2D* cur, int jump);
 Point2D* findMarkerInNextFrame(Point2D* cur, int jump, int);
 void writeIMODfidModel(vector<trajectory> T, int width, int height, int num_frames, string basename,ostream &out);

@@ -291,7 +291,7 @@ vector<Point2D*> findPeaks(float* fv, int width, int height, float threshold, un
         {
             ii=(int)(*iter)->x;
             jj=(int)(*iter)->y;
-            if (ii<radius || jj<radius || ii>height-radius-1 || jj>width-radius-1)
+            if (ii<radius || jj<radius || ii>width-radius-1 || jj>height-radius-1)
                 continue;//avoid segmentation fault
             //we use center mass to find the center
             wTotal=0.0f;

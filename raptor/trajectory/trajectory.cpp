@@ -49,7 +49,10 @@ trajectory::~trajectory()
 vector<trajectory> findTrajectories(vector<frame>* frames, vector< vector<pairCorrespondence> >* correspondences, int numFrames, unsigned int maxMarkersPrevFrame)
 {
     const int zerotilt = numFrames / 2 + numFrames % 2 - 1;
-    const unsigned int minTrajectoryLength = (10 > (int)(numFrames * 0.1)) ? 10 : (int)(numFrames * 0.1);
+    unsigned int minTrajectoryLength = (10 > (int)(numFrames * 0.1)) ? 10 : (int)(numFrames * 0.1);
+	if(minTrajectoryLength>(unsigned int)numFrames)
+		minTrajectoryLength=numFrames;
+	
     vector<trajectory> trajectories;
 //  int countCorresp = 0;
     for (unsigned int i = zerotilt; i < frames->size() - 1; i++)
@@ -60,20 +63,26 @@ vector<trajectory> findTrajectories(vector<frame>* frames, vector< vector<pairCo
         {
             if (j < maxMarkersPrevFrame || !frames->at(i).p.at(j)->used)
             {
-                trajectory temp = buildTrajectoryForward(frames->at(i).p.at(j), numFrames);
-                if (temp.p.size() > minTrajectoryLength)
+                trajectory temp = buildTrajectoryForward(frames->at(i).p.at(j), numFrames,minTrajectoryLength);
+                if (temp.p.size() > minTrajectoryLength/2)//otherwise we are counting that min trajectory has to be for half the trajectories
                     trajectories.push_back(temp);
             }
         }
     }
     //cout << "start building backward" << endl;
-    buildTrajectoryBackward(&trajectories, frames, numFrames, zerotilt, maxMarkersPrevFrame);
+    buildTrajectoryBackward(&trajectories, frames, numFrames, zerotilt, maxMarkersPrevFrame,minTrajectoryLength);
+	
+	if(trajectories.empty())
+	{
+		cout<<"ERROR: after pairwise correspondence no trajectory with minimum length of "<<minTrajectoryLength<<" projections could be found"<<endl;
+		cout<<"Thus, RAPTOR has to stop before optimization to find microscope alignment"<<endl;
+		exit(2);
+	}
     return trajectories;
 }
 
-trajectory buildTrajectoryForward(Point2D* point, int numFrames)
+trajectory buildTrajectoryForward(Point2D* point, int numFrames, unsigned int minTrajectoryLength)
 {
-    const unsigned int minTrajectoryLength = (10 > (int)(numFrames * 0.1)) ? 10 : (int)(numFrames * 0.1);
     trajectory ans;
     ans.p.push_back(point);
     Point2D* cur = point;
@@ -105,7 +114,7 @@ trajectory buildTrajectoryForward(Point2D* point, int numFrames)
             ans.p.push_back(cur);
         }
     }
-    if (ans.p.size() < minTrajectoryLength)
+    if (ans.p.size() < minTrajectoryLength/2)
     {
         for (unsigned int i = 0; i < ans.p.size(); i++)
         {
@@ -115,9 +124,8 @@ trajectory buildTrajectoryForward(Point2D* point, int numFrames)
     return ans;
 }
 
-void buildTrajectoryBackward(vector<trajectory>* t, vector<frame>* frames, int numFrames, int zerotilt, unsigned int maxMarkersPrevFrame)
+void buildTrajectoryBackward(vector<trajectory>* t, vector<frame>* frames, int numFrames, int zerotilt, unsigned int maxMarkersPrevFrame,unsigned int minTrajectoryLength)
 {
-    const unsigned int minTrajectoryLength = (10 > (int)(numFrames * 0.1)) ? 10 : (int)(numFrames * 0.1);
     for (unsigned int i = 0; i < t->size(); i++)
     {
         unsigned int nextJump = 1;
@@ -189,7 +197,7 @@ void buildTrajectoryBackward(vector<trajectory>* t, vector<frame>* frames, int n
                         cur = temp;
                     }
                 }
-                if (ans.p.size() < minTrajectoryLength)
+                if (ans.p.size() < minTrajectoryLength/2)
                 {
                     for (unsigned int i = 0; i < ans.p.size(); i++)
                     {

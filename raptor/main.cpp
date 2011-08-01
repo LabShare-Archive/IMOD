@@ -32,7 +32,7 @@
 #include "sys/stat.h"
 #include <time.h>
 
-//#pragma warning(disable : ) // Ignore warnings for deprecated conversion from string constant to char* produced by pip source code
+//#pragma warning(disable : ) // Ignore warnings for deprecated conversion from string constant to ‘char*’ produced by pip source code
 using namespace std;
 int *diameter;
 int zerotilt;
@@ -174,7 +174,7 @@ int main(int argc, char* argv[])
     if (binPATH.find_last_of("\\")!=binPATH.size()-1)
         binPATH.append("\\");
 #else
-    if (inputDir.find_last_of("/")!=inputDir.size()-1)
+	if (inputDir.find_last_of("/")!=inputDir.size()-1)
         inputDir.append("/");
     if (outputDir.find_last_of("/")!=outputDir.size()-1)
         outputDir.append("/");
@@ -443,6 +443,7 @@ int main(int argc, char* argv[])
 
     if (debugMode==true)
     {
+		cout<<"Recovered "<<T.size()<<" provisional trajectories before optimization"<<endl;
         ofstream out;
 		#if  defined(_WIN32) || defined(WIN32) || defined(__WIN32__) 
 			out.open((outputDir + "debug\\" + basename + "_trajectoryBeforeOptimization.fid.txt").c_str());
