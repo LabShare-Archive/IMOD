@@ -1,10 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-7/28/11: Fixed bugs in processchunks that where preventing the correct running
+7/31/11: Fixed bugs in RAPTOR that made it carsh in Windows on non-square
+areas.
+
+7/28/11: Fixed bugs in processchunks that were preventing the correct running
 of sync files and the killing of jobs on a cluster.(Bug# 1492)
 
 7/26/11: Fixed a bug that caused resuming SIRT to fail when the Tomogram
-Positioning dialog was opened before resuming.(Bug# 1523)
+Positioning dialog was opened before resuming (into 4.2.22).(Bug# 1523)
 
 7/26/11: Fixed tif2mrc's test for whether all files had the same mode.
 
