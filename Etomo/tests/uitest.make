@@ -1,17 +1,5 @@
 all: single dual single-test-gui dual-test-gui single-fidless single-simple-align single-patch-tracking-test-gui single-montage dual-montage single-montage-test-gui dual-montage-test-gui dual-montage-patch-tracking join join-test-gui generic nad peet peet-test-gui flatten-volume flatten-volume-test-gui
-all-no-peet: single dual single-test-gui dual-test-gui single-fidless single-simple-align single-patch-tracking-test-gui single-montage dual-montage single-montage-test-gui dual-montage-test-gui dual-montage-patch-tracking join join-test-gui generic nad flatten-volume flatten-volume-test-gui
-small: single dual single-montage join generic nad peet
-small-no-peet: single dual single-montage join generic nad
-build: single dual single-fidless single-simple-align single-montage dual-montage join generic nad peet
-test-gui: single-test-gui dual-test-gui single-montage-test-gui dual-montage-test-gui join-test-gui peet-test-gui
-edf: single dual single-test-gui dual-test-gui single-fidless single-simple-align single-montage dual-montage single-montage-test-gui dual-montage-test-gui
-ejf: join join-test-gui
-epp: generic nad
-epe: peet peet-test-gui
-bb: single dual single-test-gui dual-test-gui single-fidless single-simple-align single-montage dual-montage single-montage-test-gui dual-montage-test-gui generic
-midzone2: single-montage dual-montage single-montage-test-gui dual-montage-test-gui
-unicross: join join-test-gui nad
-pi: peet peet-test-gui
+midzone2: single-montage dual-montage single-montage-test-gui dual-montage-test-gui dual-montage-patch-tracking
 temp: 
 single: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest single
