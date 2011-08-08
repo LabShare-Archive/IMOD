@@ -453,8 +453,7 @@ void InfoWindow::extract()
   if (!zap) {
     zap = getTopZapWindow(false);
     if (zap)
-      wprint("\aExtracting region of single section visible in zap window"
-             ".\n");
+      wprint("\aExtracting region visible in top zap window.\n");
     else {
       wprint("\aThere is no zap window with or without a rubberband.\n");
       return;
@@ -742,6 +741,9 @@ static char *truncate_name(char *name, int limit)
 /*
 
 $Log$
+Revision 4.66  2011/07/02 20:48:54  mast
+Making Ctrl-C and Ctrl-V work in info window edit pane
+
 Revision 4.65  2011/07/02 05:58:49  mast
 Fixed to run the python trimvol
 
