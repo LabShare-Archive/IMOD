@@ -47,6 +47,7 @@
 #define	pipreadstdinifset PIPREADSTDINIFSET
 #define pipsetlinkedoption PIPSETLINKEDOPTION
 #define piplinkedindex PIPLINKEDINDEX
+#define pipexit PIPEXIT
 #else
 #define pipinitialize pipinitialize_
 #define pipexitonerrorfw pipexitonerrorfw_
@@ -79,6 +80,7 @@
 #define	pipreadstdinifset pipreadstdinifset_
 #define pipsetlinkedoption pipsetlinkedoption_
 #define piplinkedindex piplinkedindex_
+#define pipexit pipexit_
 #endif
 
 static char *pipf2cstr(char *str, int strSize);
@@ -99,6 +101,13 @@ int pipexitonerrorfw(int *useStdErr, char *prefix, int stringSize)
   err = PipExitOnError(*useStdErr, cStr);
   free(cStr);
   return err;
+}
+
+/* This is here for the Fortran exitError to exit via, due to exit status being lost
+   when exiting tilt on Windows */
+void pipexit(int *val)
+{
+  exit(*val);
 }
 
 void pipallowcommadefaults(int *val)
@@ -409,6 +418,9 @@ static char *pipf2cstr(char *str, int strSize)
 /*
 
 $Log$
+Revision 1.6  2011/06/16 15:11:13  mast
+linked options
+
 Revision 1.5  2011/05/27 04:31:24  mast
 renamed pipexitonerror since there is now a higher level wrapper
 
