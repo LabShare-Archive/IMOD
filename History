@@ -1,6 +1,16 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-7/31/11: Fixed bugs in RAPTOR that made it carsh in Windows on non-square
+8/8/11: Made Beadfixer pass through a Tiltalign ERROR when Save & Run.
+ 
+8/8/11: Fixed moving clip planes with mouse, broken by point modeling changes.
+
+8/8/11: Added a program, Gputilttest, to test a GPU by running Tilt repeatedly
+to see if it gives a reproducible result.
+
+8/8/11: Fixed a problem with error exit status of Tilt not being passed
+through on Windows.
+
+7/31/11: Fixed bugs in RAPTOR that made it crash in Windows on non-square
 areas.
 
 7/28/11: Fixed bugs in processchunks that were preventing the correct running
