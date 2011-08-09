@@ -49,6 +49,7 @@ EXPORTS
 	ADOCGETINTEGERARRAY
 	IMOD_DIR_or_default
 	findPieceShifts
+	PIPEXIT
 	PipGetNonOptionArg
 	PIPENABLEENTRYOUTPUT
 	ilistPop
