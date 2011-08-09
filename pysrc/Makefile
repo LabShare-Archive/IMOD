@@ -8,7 +8,8 @@ include ../configure
 
 SCRIPTS = vmstopy tomostitch edgepatches fitpatches sirtsetup splitblend setupcombine \
 splittilt imodcpuload gpumonitor splitcombine copytomocoms squeezevol tomosnapshot \
-trimvol makejoincom finishjoin chunksetup collectmmm sampletilt matchorwarp alignlog
+trimvol makejoincom finishjoin chunksetup collectmmm sampletilt matchorwarp alignlog \
+gputilttest
 MODULES = imodpy.py pysed.py supermont.py pip.py
 
 all:
