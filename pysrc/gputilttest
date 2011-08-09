@@ -1,5 +1,5 @@
 #!/usr/bin/python -u
-# Chunksetup - A script to set up command files to process volumes in chunks
+# Gputilttest - to test a GPU by repeated runs of Tilt
 #
 # Author: David Mastronarde
 #
