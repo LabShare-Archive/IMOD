@@ -463,6 +463,8 @@ int BeadFixer::reread()
   QString globalResLine, localResLine;
   QStringList strList;
 
+  mLastLogError = "";
+
   if (plug->filename == NULL) 
     return -1;
 
@@ -510,6 +512,10 @@ int BeadFixer::reread()
           globalResLine = "Global mean residual: " + strList[5];
       }
     }
+
+    // Look for ERROR: lines
+    if (PipStartsWith(line, "ERROR:"))
+      mLastLogError = QString(line);
 
     // Look for 3D coordinates with contour mean residuals
     if (strstr(line, " Z ") != NULL && strstr(line, " obj ") != NULL && 
@@ -2668,6 +2674,8 @@ void BeadFixer::alignExited(int exitCode, QProcess::ExitStatus exitStatus)
     runAlignBut->setEnabled(true);
     openFileBut->setEnabled(true);
   }
+  if (!mLastLogError.isEmpty())
+    wprint("\a%s", LATIN1(mLastLogError));
 }
 
 // The window is closing, remove from manager
@@ -2799,6 +2807,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.73  2011/03/14 23:39:13  mast
+Changes for ushort loading
+
 Revision 1.72  2010/09/21 04:32:28  mast
 Added message to clear the skip list
 
