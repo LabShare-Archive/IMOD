@@ -237,7 +237,7 @@ c       prefix set by calling setExitPrefix
       character*32 prefix
       common /exitprefix/ prefix
       write(*,'(/,a,a,a)')trim(prefix),' ',trim(message)
-      call exit(1)
+      call pipexit(1)
       end
 
 
@@ -260,6 +260,9 @@ c       prefix set by calling setExitPrefix
       
 c       
 c       $Log$
+c       Revision 3.16  2011/06/21 01:44:02  mast
+c       Use Trim on messages and replace lnblnk with trim_len
+c
 c       Revision 3.15  2011/05/27 04:30:30  mast
 c       Added a PipExitOnError that takes care of setting exit prefix here too
 c
