@@ -615,7 +615,7 @@ void imodvMouseMove(QMouseEvent *event)
   }
   if (midDown && shift && !ctrl)
     imodv_light_move(a, ex, ey);
-  else if ((midDown && !ctrl) || (rightDown && shift))
+  else if ((midDown && !shift) || (rightDown && shift))
     imodv_rotate(a, ex, ey, 0, rightDown);
   else if (rightDown && ctrl)
     imodvSelect(a, ex, ey, true, false, false);
@@ -1493,6 +1493,12 @@ void imodvMovieTimeout()
 /*
 
 $Log$
+Revision 4.53  2011/01/31 05:38:56  mast
+Add scattered point moving, adding, deleting and selecting with Ctrl-Shift,
+as well as size changing with scroll wheel.  Eliminated imodv_translate and
+renamed imodv_translated.  When picking a contourless or extra object, detach
+from current model point as well as setting current image point
+
 Revision 4.52  2011/01/13 20:28:11  mast
 Change in picking hit analysis to find matching point in contour from mesh hit
 
