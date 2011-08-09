@@ -417,7 +417,7 @@ def readTextFile(filename, descrip = None):
       lines = textfile.readlines()
    except IOError:
       exitError(fmtstr("{} {} {}: {}", errString, descrip, filename, \
-                       sys.exc_info()[1]))
+                       str(sys.exc_info()[1])))
    textfile.close()
    for i in range(len(lines)):
       lines[i] = lines[i].rstrip(' \t\r\n')
@@ -437,7 +437,7 @@ def writeTextFile(filename, strings):
          prnstr(line, file=comf)
       comf.close()
    except IOError:
-      exitError(action + " file: " + filename + "  - " + sys.exc_info()[1])
+      exitError(action + " file: " + filename + "  - " + str(sys.exc_info()[1]))
 
 
 
@@ -677,6 +677,9 @@ def prnstr(string, file = sys.stdout, end = '\n'):
 
 
 #  $Log$
+#  Revision 1.21  2011/07/18 17:44:27  mast
+#  Fixed translation  of error codes to error status
+#
 #  Revision 1.20  2011/07/12 17:50:07  mast
 #  Needed function to fetch last exit status
 #
