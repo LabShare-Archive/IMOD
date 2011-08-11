@@ -1,0 +1,62 @@
+#!/usr/bin/python -u
+# b3dremove - Utility to remove files, for use in com files.  The argument -g
+# makes it glob all the filenames.  Will try numerous times with a wait and not
+# exit with an error if there is a failure.  Works with nonexistent files or no files 
+# in the argument list at all
+#
+# Author: David Mastronarde
+#
+# $Id$
+
+retryWait = 0.5
+maxTrials = 10
+
+import sys, os, os.path, time
+
+if len(sys.argv) < 2:
+   sys.exit(0)
+
+numStart = 1
+doglob = False
+if sys.argv[1] == '-g':
+   import glob
+   doglob = True
+   numStart = 2
+
+if len(sys.argv) <= numStart:
+   sys.exit(0)
+
+files = []
+for arg in sys.argv[numStart:]:
+   if doglob:
+      files += glob.glob(arg)
+   elif os.path.exists(arg):
+      files.append(arg)
+
+numToDel = len(files)
+trial = 0
+failMess = ''
+while numToDel and trial < maxTrials:
+   trial += 1
+   for ind in range(len(files)):
+      onef = files[ind]
+      if onef:
+         try:
+            os.remove(onef)
+            numToDel -= 1
+            files[ind] = None
+            if trial > 1:
+               sys.stdout.write('It took ' + str(trial) + ' tries to remove ' + onef+'\n')
+         except:
+            if trial == maxTrials:
+               if failMess:
+                  failMess += ', '
+               failMess += onef
+   
+   if numToDel:
+      time.sleep(retryWait)
+
+if failMess:
+   sys.stdout.write('WARNING: b3dremove - Could not remove: ' + failMess + '\n')
+      
+sys.exit(0)
