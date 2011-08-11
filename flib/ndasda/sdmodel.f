@@ -287,8 +287,10 @@ c               enddo
       if(newfile)print *,'Maximum extent of volume is',volsize
       if(newfile)print *,'Volume =',volsumz
       secthick=zscal*xyscal
-      dropcrit=3.*secthick
-      bigcrit=1.9*secthick
+c       
+c       8/10/11: computers are much faster these days, make the criteria big
+      dropcrit=30.*secthick
+      bigcrit=dropcrit
 c       print *,'sec,big,drop',secthick,bigcrit,dropcrit
 c       dropcrit=3.*trisize
 c       bigcrit=3.*dropcrit
