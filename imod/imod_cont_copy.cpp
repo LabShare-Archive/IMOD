@@ -350,30 +350,21 @@ void ContourCopy::update()
   case COPY_TO_OBJECT:
     minVal = 1;
     maxVal = vw->imod->objsize;
-    if (ThisDialog.objectNumber < 1)
-      ThisDialog.objectNumber = 1;
-    if (ThisDialog.objectNumber < maxVal)
-      ThisDialog.objectNumber = maxVal;
+    ThisDialog.objectNumber = B3DMAX(1, B3DMIN(maxVal, ThisDialog.objectNumber));
     curVal = ThisDialog.objectNumber;
     break;
 
   case COPY_TO_SECTION:
     minVal = 1;
     maxVal = vw->zsize;
-    if (ThisDialog.sectionNumber < 1)
-      ThisDialog.sectionNumber = 1;
-    if (ThisDialog.sectionNumber < maxVal)
-      ThisDialog.sectionNumber = maxVal;
+    ThisDialog.sectionNumber = B3DMAX(1, B3DMIN(maxVal, ThisDialog.sectionNumber));
     curVal = ThisDialog.sectionNumber;
     break;
 
   case COPY_TO_TIME:
     minVal = 1;
     maxVal = vw->nt;
-    if (ThisDialog.timeIndex < 1)
-      ThisDialog.timeIndex = 1;
-    if (ThisDialog.timeIndex < maxVal)
-      ThisDialog.timeIndex = maxVal;
+    ThisDialog.timeIndex = B3DMAX(1, B3DMIN(maxVal, ThisDialog.timeIndex));
     curVal = ThisDialog.timeIndex;
     break;
 
@@ -599,6 +590,9 @@ void ContourCopy::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.22  2011/03/01 18:38:26  mast
+Added hot ky to apply tool tip
+
 Revision 4.21  2010/04/01 02:35:32  mast
 Added update call, and call for closing keys
 
