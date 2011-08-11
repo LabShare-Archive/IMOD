@@ -1,5 +1,15 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/11/12: Made Vmstopy translate setenv and add a -g to b3dremove on Windows;
+fixed problems with setting library path and closing standard out.
+
+8/11/11: Added b3dremove to remove files with multiple trials and not generate
+an error upon failure, to alleviate problems running com files on Windows.
+Modified Splitcorrection to use this for final cleanup.
+
+8/10/11: In 3dmod, fixed updating of spin box Contour Copy, and made it redraw
+after a new object is added.
+
 8/8/11: Made Beadfixer pass through a Tiltalign ERROR when Save & Run.
  
 8/8/11: Fixed moving clip planes with mouse, broken by point modeling changes.

@@ -58,8 +58,8 @@ space between the $ and the command.  Standard input lines need not be
 indented.
 .P
 The program will enclose text, such as that used to run a command, in single
-quotes (').  If you need to pass a command line argument containing spaces
-to a program, enclose it in double quotes (").
+quotes (' ').  If you need to pass a command line argument containing spaces
+to a program, enclose it in double quotes (" ").
 .SS Translations
 The following translations will occur:
 
@@ -87,6 +87,11 @@ $set variable = value   becomes   >variable = value
 If "$set" has been used at all, $variable will be substituted just like
 %variable. 
 
+$setenv variable value   becomes   >os.environ['variable'] = value
+
+This is to set the environment for programs that will be run; such variables
+should not be used in the command file.
+
 \\rm   becomes   rm -f
 .br
 \\mv   becomes   mv -f
@@ -97,10 +102,15 @@ $exit
 .br
 will cause the rest of the command file to be skipped.
 
->print "text"   becomes   >print >> log, "text"
+>print "text"   becomes   >prnstr("text", file=log)
 .br
 In other words, in Python statements, print commands not directed to a file
 will be redirected to the log file.
+
+b3dremove      becomes     b3dremove -g    on Windows
+.br
+On other systems, wildcards in the filename list are expanded by the shell
+that runs the command, but on Windows, b3dremove needs to glob the filenames.
 
 .SS Options
 .TP
