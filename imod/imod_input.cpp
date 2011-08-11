@@ -931,7 +931,6 @@ void inputFindMaxValue(ImodView *vi)
          vi->xmouse + 1, vi->ymouse + 1, vi->zmouse + 1, maxpixval);
 
   imodDraw(vi, IMOD_DRAW_XYZ);
-  return;
 }
 
 // Create a new object
@@ -959,7 +958,7 @@ void inputNewObject(ImodView *vi)
     imod_setxyzmouse();
   imod_info_setocp();
   imod_cmap(vi->imod);
-  return;
+  imodDraw(vi, IMOD_DRAW_MOD);
 }
 
 void inputSaveModel(ImodView *vi)
@@ -983,7 +982,6 @@ void inputSaveModel(ImodView *vi)
 
   imod_info_enable();
   imod_draw_window();
-  return;
 }
 
 // Do an undo or a redo
@@ -1004,7 +1002,6 @@ void inputUndoRedo(ImodView *vi, bool redo)
     wprint("\aError - insufficient memory for operation!\n");
   if (err == UndoRedo::NoBackupItem)
     wprint("\aError - a needed backup item was not found.\n");
-
 }
 
 
@@ -1528,6 +1525,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.59  2011/04/08 15:18:35  mast
+Fixed crash bug switching away from weirdly undefined contour
+
 Revision 4.58  2011/03/14 23:39:13  mast
 Changes for ushort loading
 
