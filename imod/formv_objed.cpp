@@ -127,9 +127,10 @@ void imodvObjedForm::setFontDependentSizes(int width, int height)
 
   // Qt 4: this stretched out, so just set it to a fixed width
   //QSize hint = panelListBox->sizeHint();
-  panelListBox->setFixedWidth(maxWidth + 16);
+  // 8/10/11: Increase both by 2 pixels, need to test on ITS lab computer
+  panelListBox->setFixedWidth(maxWidth + 18);
   panelListBox->setFixedHeight(B3DNINT(1.1 * panelListBox->count() * 
-                             panelListBox->fontMetrics().height() + 8));
+                             panelListBox->fontMetrics().height() + 10));
   /*imodPrintStderr("panel max width %d  hint width %d  count *fontheight %d "
     "hint %d\n", maxWidth, hint.width(), panelListBox->count() *
     panelListBox->fontMetrics().height(), hint.height()); */
@@ -286,6 +287,9 @@ void imodvObjedForm::keyReleaseEvent( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.4  2011/01/13 19:57:08  mast
+Move meshing progress next to combo boxes
+
 Revision 4.3  2010/04/01 02:41:48  mast
 Called function to test for closing keys, or warning cleanup
 
