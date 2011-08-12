@@ -1116,6 +1116,7 @@ def PipGetLineOfValues(option, strPtr, valType, numToGet):
    fullStr = strPtr
    array = []
    numGot = 0
+   gotComma = 0
 
    while (len(strPtr)):
       matchObj = re.search(valueSep, strPtr)
@@ -1353,6 +1354,9 @@ def CheckKeyword(line, keyword, index):
    return (line[valStart:], index)
 
 # $Log$
+# Revision 1.10  2011/06/16 20:00:53  mast
+# Added ability to have numeric non-option arguments starting with minus
+#
 # Revision 1.9  2011/06/16 15:10:17  mast
 # Added ability to handle linked options
 #
