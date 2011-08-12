@@ -388,7 +388,8 @@ bool ProcessHandler::isComProcessDone() {
       return false;
     }
   }
-  bool done = mFinishedSignalReceived && logFileExists(true);
+  bool done = mFinishedSignalReceived && logFileExists(true) && getFlag()
+      != CHUNK_NOT_DONE;
   if (done && mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
     mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__ << ":"
         << mProcesschunks->getComFileJobs()->getComFileName(mComFileJobIndex)
@@ -1084,6 +1085,9 @@ void ProcessHandler::stopProcess(const QString &pid) {
 
 /*
  $Log$
+ Revision 1.52  2011/07/29 04:20:27  sueh
+ Bug# 1492 In killSignal don't check for available pipes.  MaxKills is only set for non-queue.
+
  Revision 1.51  2011/07/22 23:07:32  sueh
  Bug# 1521 In printWarnings, use trimmed to strip eol, instead of index of and mid.
 
