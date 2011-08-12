@@ -13,6 +13,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.5  2011/02/23 20:00:12  mast
+c       Used memory allocation
+c
 c       Revision 3.4  2011/02/23 19:30:27  mast
 c       Allow filenames longer than 50 characters
 c	
@@ -83,11 +86,8 @@ c	--- Clear the storage array ---
       mxyz(3) = 1
       call ialsam(2,mxyz)
       call ialsiz(2,nxyz,nxyzst)
-
-      do i=1,3
-        cell(i)=nxyz(i)
-        cell(i+3)=90.
-      enddo
+      call irtcel(2,cell)
+      cell(3) = cell(1) / mxyz(1)
       call ialcel(2,cell)
 
       call date(dat)
