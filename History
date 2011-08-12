@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/12/11: In processchunks fixed a bug that caused warning and errors when a
+computer was dropped.(Bug# 1527)
+
 8/11/11: IMOD_4-2-23
 8/11/11: Made Vmstopy translate setenv and add a -g to b3dremove on Windows;
 fixed problems with setting library path and closing standard out.
