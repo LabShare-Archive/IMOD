@@ -52,7 +52,7 @@ refarg = ' '
 binning = 1
 
 # Fallbacks from ../manpages/autodoc2man 3 1 finishjoin
-options = ["root:RootName:CH:", "use:UseSliceRange:IPM:", "ref:ReferenceTomogram:I:",
+options = ["name:RootName:CH:", "use:UseSliceRange:IPM:", "ref:ReferenceTomogram:I:",
            "size:SizeInXandY:IP:", "offset:OffsetInXandY:IP:", "angle:AngleRange:F:",
            "trial:TrialInterval:I:", "binning:BinningForTrial:I:",
            "maxsize:MaximumSizeOnly:B:", "local:LocalFits:B:",
