@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/12/11: Changed short name of RootName option to Finishjoin to -name to fix
+tomogram joining through etomo with a reference section specified.
+
 8/12/11: Made Avgstack preserve pixel size.
 
 8/12/11: In processchunks fixed a bug that caused warning and errors when a

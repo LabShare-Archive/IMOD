@@ -2,7 +2,7 @@ Version = 1.0
 Pip = 1
 
 [Field = RootName]
-short = root
+short = name
 type = CH
 usage = Rootname for info file, joined tomogram, and other files
 tooltip =
