@@ -236,8 +236,6 @@ c         Form cumulative product to align to the first section: initialize to u
         dxCum = 0.                              !ARRAY OPERATIONS
         dyCum = 0.
         do kl = 2, nlist
-          nxGrTmp = 0
-          nyGrTmp = 0
           if (nControl(kl) .gt. 3) then
             if (getWarpGrid(kl, nxGrTmp, nyGrTmp, xStrTmp, yStrTmp, xIntTmp, yIntTmp,
      &          dxGrid, dyGrid, nxGrid) .ne. 0) call exitError('GETTING WARP GRID')
@@ -249,13 +247,19 @@ c            write(*,'(f7.2,9f8.2)')((dxGrid(i,j),dyGrid(i,j),i=1,nxGrid),j=1,ny
      &            0, ny)
      &            .ne. 0) call exitError('EXPANDING A WARP GRID')
             endif
+          else
+            nxGrTmp = nxGrid
+            nyGrTmp = nyGrid
+            dxGrid = 0.
+            dyGrid = 0.
           endif
-          if (multiplyWarpings(dxCum(1,1,kl-1), dyCum(1,1,kl-1), nxGrid, nxGrid, nyGrid,
-     &        xStart, yStart, xInterval, yInterval, g(1,1,kl-1), xcen, ycen, dxGrid,
-     &        dyGrid, nxGrid, nxGrTmp, nyGrTmp, xStrTmp, yStrTmp, xIntTmp, yIntTmp,
-     &        f(1,1,kl), dxCum(1,1,kl), dyCum(1,1,kl), g(1,1,kl), 0) .ne. 0)
+          if (multiplyWarpings(dxGrid, dyGrid, nxGrid, nxGrTmp, nyGrTmp, xStrTmp,
+     &        yStrTmp, xIntTmp, yIntTmp, f(1,1,kl), xcen, ycen,
+     &        dxCum(1,1,kl-1), dyCum(1,1,kl-1), nxGrid, nxGrid, nyGrid,
+     &        xStart, yStart, xInterval, yInterval, g(1,1,kl-1),
+     &        dxCum(1,1,kl), dyCum(1,1,kl), g(1,1,kl), 0) .ne. 0)
      &        call exitError ('MULTIPLYING TWO WARPINGS TOGETHER FOR CUMULATIVE WARPING')
-c          print *,g(1:2,1:3,kl)
+c          call xfwrite(6,g(1,1,kl))
 c          print *,'cumulative',nxGrid,nyGrid
 c          write(*,'(f7.2,9f8.2)')((dxCum(i,j,kl),dyCum(i,j,kl),i=1,nxGrid),j=1,nyGrid)
         enddo
@@ -288,6 +292,7 @@ C         It seems wrong to copy f(1) instead of starting with a unit...
         call xfcopy(f(1,1,1),g(1,1,1))
         do i=2,nlist
           call xfmult(f(1,1,i),g(1,1,i-1),g(1,1,i))
+c          call xfwrite(6,g(1,1,i))
         enddo
       endif
 c       
@@ -543,6 +548,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.9  2011/06/23 14:57:05  mast
+c       Reorder arguments to calls for consistency
+c
 c       Revision 3.8  2011/06/17 04:08:21  mast
 c       Switched to new routines for warping
 c
