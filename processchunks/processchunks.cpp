@@ -307,15 +307,9 @@ void Processchunks::startTimers() {
   //Make sure there isn't already a timer going
   if (mTimerId != 0) {
     killTimer(mTimerId);
-    if (isVerbose(mDecoratedClassName, __func__)) {
-      *mOutStream << "startTimers:The timer is off" << endl;
-    }
     mTimerId = 0;
   }
   //The timer event function should be called immediately and then put on a timer
-  if (isVerbose(mDecoratedClassName, __func__)) {
-    *mOutStream << "startTimers:Turning the timer on" << endl;
-  }
   QTimer::singleShot(0, this, SLOT(timerEvent()));
   if (mQueue) {
     //Must look at files instead of stdout/err.  Prevent program from being a hog.
@@ -337,10 +331,6 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
     return;
   }
   int i, cpuIndex;
-  if (isVerbose(mDecoratedClassName, __func__, 2)) {
-    *mOutStream << mDecoratedClassName << ":" << __func__ << ":mNumDone:" << mNumDone
-        << ",mSizeJobArray:" << mSizeJobArray << endl;
-  }
   if (mNumDone >= mSizeJobArray) {
     cleanupAndExit();
     return;
@@ -484,11 +474,6 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
     *mOutStream << mNumDone << " OF " << mSizeJobArray << " DONE SO FAR" << endl;
   }
   mLastNumDone = mNumDone;
-  if (isVerbose(mDecoratedClassName, __func__, 2)) {
-    *mOutStream << mDecoratedClassName << ":" << __func__ << ":mNumDone:" << mNumDone
-        << ",mNextSyncIndex:" << mNextSyncIndex << ",mSizeJobArray:" << mSizeJobArray
-        << endl;
-  }
   //Old:  if we have finished up to the sync file, then allow the loop to run it
   if (mNumDone - 1 >= mNextSyncIndex - 1) {
     QString endComName = QString("%1-finish.com").arg(mRootName);
@@ -510,9 +495,6 @@ void Processchunks::cleanupAndExit(int exitCode) {
   int i;
   if (mTimerId != 0) {
     killTimer(mTimerId);
-    if (isVerbose(mDecoratedClassName, __func__)) {
-      *mOutStream << "cleanupAndExit:The timer is off" << endl;
-    }
     mTimerId = 0;
   }
   if (exitCode == 0) {
@@ -627,17 +609,8 @@ void Processchunks::killProcesses(QStringList *dropList) {
     //Continue with timer loop
     return;
   }
-  if (isVerbose(mDecoratedClassName, __func__)) {
-    *mOutStream << "Turning on ProcessChunks::mKill" << endl;
-  }
   killTimer(mTimerId);
-  if (isVerbose(mDecoratedClassName, __func__)) {
-    *mOutStream << "killProcesses:The timer is off" << endl;
-  }
   //Slow down the timer for killing
-  if (isVerbose(mDecoratedClassName, __func__)) {
-    *mOutStream << "killProcesses:Turning the timer on" << endl;
-  }
   mKill = true;
   //killProcessOnNextMachine();
   //Run startKill on machines.  Increment mNumMachinesDropped for each matching
@@ -736,9 +709,6 @@ void Processchunks::setupSshOpts() {
     if (version >= 309) {
       mSshOpts.prepend("-o ConnectTimeout=5 ");
     }
-  }
-  if (isVerbose(mDecoratedClassName, __func__)) {
-    *mOutStream << "mSshOpts:" << mSshOpts.join(" ") << endl;
   }
 }
 
@@ -1087,9 +1057,6 @@ void Processchunks::probeMachines(QStringList &machineNameList) {
         QStringList *params = &remoteParams;
         if (unameStatus == 0 && !output.isEmpty()) {
           QString unameOutput = output;
-          if (isVerbose(mDecoratedClassName, __func__)) {
-            *mOutStream << "unameOutput:" << unameOutput << endl;
-          }
           if (unameOutput.contains("cygwin", Qt::CaseInsensitive)
               || unameOutput.contains("nt", Qt::CaseInsensitive)) {
             params = &remoteWinParams;
@@ -1103,16 +1070,10 @@ void Processchunks::probeMachines(QStringList &machineNameList) {
       if (status != 0) {
         *mOutStream << "Dropping " << machName
             << " from list because it does not respond" << endl << endl;
-        if (isVerbose(mDecoratedClassName, __func__)) {
-          *mOutStream << "status:" << status << endl;
-        }
         //Drops failed machine from the machine list
         machineNameList[i] = "";
       }
       i++;
-    }
-    if (isVerbose(mDecoratedClassName, __func__)) {
-      *mOutStream << "end probe machines" << endl;
     }
   }
 }
@@ -1170,9 +1131,6 @@ void Processchunks::exitIfDropped(const int minFail, const int failTot,
   }
   if (minFail >= mDropCrit) {
     *mOutStream << "ERROR: ALL MACHINES HAVE BEEN DROPPED DUE TO FAILURES" << endl;
-    if (isVerbose(mDecoratedClassName, __func__)) {
-      *mOutStream << "minFail:" << minFail << ",mDropCrit:" << mDropCrit << endl;
-    }
     if (!mQueue) {
       cleanupAndExit(1);
     }
@@ -1189,9 +1147,6 @@ void Processchunks::exitIfDropped(const int minFail, const int failTot,
   if (assignTot == 0 && mNumDone == 0) {
     if (failTot == mNumCpus) {
       *mOutStream << "ERROR: NO CHUNKS HAVE WORKED AND EVERY MACHINE HAS FAILED" << endl;
-      if (isVerbose(mDecoratedClassName, __func__)) {
-        *mOutStream << "failTot:" << failTot << ",mNumCpus:" << mNumCpus << endl;
-      }
       cleanupAndExit(1);
     }
     //Handle the case where the start.com cannot be run.
@@ -1200,19 +1155,12 @@ void Processchunks::exitIfDropped(const int minFail, const int failTot,
         if (failTot == mMachineListSize) {
           *mOutStream << "ERROR: NO CHUNKS HAVE WORKED AND EVERY MACHINE HAS FAILED"
               << endl;
-          if (isVerbose(mDecoratedClassName, __func__)) {
-            *mOutStream << "failTot:" << failTot << ",mMachineList.size():"
-                << mMachineListSize << endl;
-          }
           cleanupAndExit(1);
         }
       }
       else if (failTot == 1 && minFail == mQueue) {
         *mOutStream << "ERROR: NO CHUNKS HAVE WORKED AND EVERY MACHINE HAS FAILED"
             << endl;
-        if (isVerbose(mDecoratedClassName, __func__)) {
-          *mOutStream << "failTot:" << failTot << ",mQueue:" << mQueue << endl;
-        }
         cleanupAndExit(1);
       }
     }
@@ -1260,9 +1208,6 @@ bool Processchunks::handleChunkDone(MachineHandler &machine, ProcessHandler *pro
   //copy the log for the first non-sync chunk
   if (jobIndex == mCopyLogIndex) {
     QString rootLogName = QString("%1.log").arg(mRootName);
-    if (isVerbose(mDecoratedClassName, __func__)) {
-      *mOutStream << "rootLogName:" << rootLogName << endl;
-    }
     //Backup the root log if it exists
     imodBackupFile(rootLogName.toLatin1().data());
     QFile rootLog(rootLogName);
@@ -1418,10 +1363,6 @@ bool Processchunks::checkChunk(int &runFlag, bool &noChunks, int &undoneIndex,
   //But if the next com is a sync, record number and break loop
   if (runFlag == CHUNK_SYNC && !mSyncing) {
     mNextSyncIndex = jobIndex;
-    if (isVerbose(mDecoratedClassName, __func__)) {
-      *mOutStream << mDecoratedClassName << ":" << __func__ << ":mNextSyncIndex:"
-          << mNextSyncIndex << ",jobIndex:" << jobIndex << endl;
-    }
     if (!foundChunks) {
       noChunks = true;
     }
@@ -1432,15 +1373,6 @@ bool Processchunks::checkChunk(int &runFlag, bool &noChunks, int &undoneIndex,
   }
   //If any chunks found set that flag
   if (runFlag == CHUNK_SYNC || runFlag == CHUNK_NOT_DONE) {
-    if (isVerbose(mDecoratedClassName, __func__, 2)) {
-      *mOutStream << mDecoratedClassName << ":" << __func__ << ":"
-          << mComFileJobs->getComFileName(jobIndex) << ":runFlag:" << runFlag
-          << ":undoneIndex:" << undoneIndex << ",processIndex:" << jobIndex << endl
-          << ",mProcessArray[processIndex].getNumChunkErr():"
-          << mComFileJobs->getNumChunkErr(jobIndex) << ",machine->isChunkErred():"
-          << machine.isChunkErred() << endl << ",chunkErrTot:" << chunkErrTot
-          << ",mNumCpus:" << mNumCpus << endl;
-    }
     foundChunks = true;
     //Skip a chunk if it has errored, if this machine has given chunk
     //error, and not all machines have done so
@@ -1459,10 +1391,6 @@ bool Processchunks::checkChunk(int &runFlag, bool &noChunks, int &undoneIndex,
 //Build the .csh file and run the process
 void Processchunks::runProcess(MachineHandler &machine, ProcessHandler *process,
     const int jobIndex) {
-  if (isVerbose(mDecoratedClassName, __func__)) {
-    *mOutStream << mDecoratedClassName << ":" << __func__ << ":jobIndex:" << jobIndex
-        << endl;
-  }
   //Lock the pipe counter until the process either starts or fails to start.
   //Since there is a delay between
   process->setJob(jobIndex);
@@ -1525,13 +1453,6 @@ void Processchunks::buildFilters(const char *reg, const char *sync, QStringList 
   QString filter2(mRootName);
   filter2.append(sync);
   filters.append(filter2);
-  if (isVerbose(mDecoratedClassName, __func__)) {
-    *mOutStream << "filters:" << endl;
-    for (i = 0; i < filters.size(); i++) {
-      *mOutStream << i << ":" << filters.at(i) << endl;
-    }
-    *mOutStream << endl;
-  }
 }
 
 void Processchunks::cleanupList(const char *remove, QStringList &list) {
@@ -1550,18 +1471,9 @@ void Processchunks::cleanupList(const char *remove, QStringList &list) {
 int Processchunks::runGenericProcess(QByteArray &output, QProcess &process,
     const QString &command, const QStringList &params, const int numLinesToPrint) {
   int i;
-  if (isVerbose(mDecoratedClassName, __func__)) {
-    *mOutStream << "command:" << command << " " << params.join(" ") << endl;
-  }
   process.start(command, params);
   if (process.waitForFinished()) {
     output = process.readAllStandardOutput();
-    if (isVerbose(mDecoratedClassName, __func__)) {
-      const QByteArray errArray = process.readAllStandardError();
-      if (!errArray.isEmpty()) {
-        *mOutStream << "stderr:" << errArray << endl;
-      }
-    }
     //Output first lines up to numLinesToPrint
     int startIndex = 0;
     int endIndex = -1;
@@ -1615,10 +1527,6 @@ void Processchunks::makeCshFile(ProcessHandler *process) {
   QString command("vmstocsh");
   QStringList paramList;
   paramList.append(process->getLogFileName());
-  if (isVerbose(mDecoratedClassName, __func__)) {
-    *mOutStream << "running: " << command << " " << paramList.join(" ") << endl
-        << "input file: " << comFileName << endl;
-  }
   mVmstocsh->start(command, paramList);
   if (!mVmstocsh->waitForFinished()) {
     if (mVmstocsh->exitStatus() == QProcess::CrashExit) {
@@ -1674,6 +1582,10 @@ bool Processchunks::isVerbose(const QString &verboseClass, const QString verbose
 
 /*
  $Log$
+ Revision 1.74  2011/07/29 04:18:55  sueh
+ Bug# 1492 In timerEvent change the verbosity level to 2 for an output
+ which goes out when the timer goes off.
+
  Revision 1.73  2011/07/29 00:20:58  sueh
  Bug# 1492 In setupMachineList assigning mQueuej to mNumCpus.
 
