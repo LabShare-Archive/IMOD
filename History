@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/12/11: In processchunks removed the excessive verbose print statements and
+cleaned up the non-verbose print statements.(Bug# 1528)
+
 8/12/11: Changed short name of RootName option to Finishjoin to -name to fix
 tomogram joining through etomo with a reference section specified.
 
