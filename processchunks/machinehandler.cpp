@@ -61,9 +61,6 @@ void MachineHandler::setValues(const char *machineName, const int numCpus) {
 
 //Setup done before starting to kill processes.
 void MachineHandler::startKill() {
-  if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
-    mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__ << endl;
-  }
   mIgnoreKill = false;
   if (mDropped) {
     mIgnoreKill = true;
@@ -181,11 +178,6 @@ void MachineHandler::killSignal() {
     else {
       //Waiting for kill to finish
       mKillCounter++;
-      if (mProcesschunks->isVerbose(mDecoratedClassName, __func__, 2)) {
-        mProcesschunks->getOutStream() << mDecoratedClassName << ":" << __func__
-            << ":mKillCounter:" << mKillCounter << ",mKillFinishedSignalReceived:"
-            << mKillFinishedSignalReceived << endl;
-      }
       if (mKillCounter > 15 && !mKillFinishedSignalReceived) {
         mKillProcess->kill();
         mProcesschunks->decrementKills();
@@ -295,6 +287,9 @@ int MachineHandler::getFailureCount() {
 
 /*
  $Log$
+ Revision 1.31  2011/07/29 04:21:53  sueh
+ Bug# 1492 Added a verbose print to startKill.
+
  Revision 1.30  2011/02/05 00:50:21  sueh
  bug# 1426 Preventing a lockup when the PID cannot be gotten and
  processchunks thinks that the process is running.
