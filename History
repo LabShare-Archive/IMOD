@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/12/11: Fixed Xftoxg to multiply warping transforms in the right order to
+get the  cumulative transform.
+
 8/12/11: In processchunks removed the excessive verbose print statements and
 cleaned up the non-verbose print statements.(Bug# 1528)
 
