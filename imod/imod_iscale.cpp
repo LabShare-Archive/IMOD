@@ -38,6 +38,8 @@ Log at end of file
 #include "imod_io.h"
 #include "imod_cachefill.h"
 #include "imod_info_cb.h"
+#include "imod_info.h"
+#include "form_info.h"
 #include "control.h"
 #include "preferences.h"
 #include "dia_qtutils.h"
@@ -251,6 +253,9 @@ void ImageScaleWindow::applyLimits()
   vi->li->smax = iisData.max;
      
   iiSetMM(vi->image, vi->li->smin, vi->li->smax, vi->ushortStore ? 65535. : 255.);
+  if (vi->ushortStore)
+    ImodInfoWidget->setLHSliders(vi->rangeLow, vi->rangeHigh, vi->image->smin, 
+                                 vi->image->smax, vi-> image->type == IITYPE_FLOAT);
 
   /* For multi-file sections, apply to all the files */
   if (vi->multiFileZ > 0)
@@ -337,6 +342,9 @@ void ImageScaleWindow::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.19  2011/03/14 23:39:13  mast
+Changes for ushort loading
+
 Revision 4.18  2010/04/01 02:41:48  mast
 Called function to test for closing keys, or warning cleanup
 
