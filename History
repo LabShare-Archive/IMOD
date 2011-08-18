@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/19/11: Fixed Xfsimplex/Xfalign crash from uninitialized variable with
+identical images.
+
 8/12/11: Fixed Xftoxg to multiply warping transforms in the right order to
 get the  cumulative transform.
 
