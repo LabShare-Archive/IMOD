@@ -633,11 +633,13 @@ C
         do i=1,ivend
           a(i)=pp(jmin,i)
         enddo
+        deltmin = yy(jmin)
+      else
+        deltmin = 0.
       endif
 c       
 c       DEPENDENCY: transferfid expects two lines with natural params
       PRINT *,' FINAL VALUES'
-      deltmin = yy(jmin)
       if (ifCCC .ne. 0) deltmin = 1 - deltmin
       write(*,72)ntrial,deltmin,(a(ii),ii=3,6),rds*a(1),rds*a(2)
 72    format(i5,f14.7,4f10.5,2f10.3)
@@ -1093,6 +1095,9 @@ c       SCALING = 1 BUT THIS SHOULD BE DOCUMENTED
       end
 c       
 c       $Log$
+c       Revision 3.17  2010/06/30 04:41:34  mast
+c       Fix for shortcircuit assumption
+c
 c       Revision 3.16  2010/03/11 04:45:19  mast
 c       Copied fixed values of rest of variables in func when fewer than 6
 c       variables - fixes bug in latest version
