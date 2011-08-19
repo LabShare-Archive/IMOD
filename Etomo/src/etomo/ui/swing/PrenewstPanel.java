@@ -12,6 +12,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2011/07/19 20:01:14  sueh
+ * <p> Bug# 1459 Wrapped checkboxes in a panel and used glue to left justify them.  Prevented spinners
+ * <p> which have a value when they are first displayed from going all the way to the right.
+ * <p>
  * <p> Revision 1.3  2011/02/22 18:19:35  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -203,16 +207,16 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
     pnlBody.setLayout(new BoxLayout(pnlBody, BoxLayout.Y_AXIS));
     pnlCheckBoxes.setLayout(new BoxLayout(pnlCheckBoxes, BoxLayout.Y_AXIS));
 
-    //  Construct the binning spinner
+    // Construct the binning spinner
     SpinnerNumberModel integerModel = new SpinnerNumberModel(1, 1, 8, 1);
     spinBinning = new LabeledSpinner("Coarse aligned image stack binning ", integerModel,
         1);
     spinBinning.setTextMaxmimumSize(UIParameters.INSTANCE.getSpinnerDimension());
-    //if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
-    //  spinBinning.setEnabled(false);
-    //}
+    // if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
+    // spinBinning.setEnabled(false);
+    // }
     JPanel pnlBinning = new JPanel();
-    pnlBinning.setLayout(new BoxLayout(pnlBinning,BoxLayout.X_AXIS));
+    pnlBinning.setLayout(new BoxLayout(pnlBinning, BoxLayout.X_AXIS));
     pnlBinning.setAlignmentX(Box.CENTER_ALIGNMENT);
     pnlBinning.add(spinBinning.getContainer());
     pnlBinning.add(Box.createHorizontalGlue());
@@ -225,7 +229,7 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
       header = PanelHeader.getAdvancedBasicInstance("Newstack", this, dialogType,
           globalAdvancedButton);
       JPanel pnlByteModeToOutput = new JPanel();
-      pnlByteModeToOutput.setLayout(new BoxLayout(pnlByteModeToOutput,BoxLayout.X_AXIS));
+      pnlByteModeToOutput.setLayout(new BoxLayout(pnlByteModeToOutput, BoxLayout.X_AXIS));
       pnlByteModeToOutput.setAlignmentX(Box.CENTER_ALIGNMENT);
       pnlByteModeToOutput.add(cbByteModeToOutput);
       pnlByteModeToOutput.add(Box.createHorizontalGlue());
@@ -245,14 +249,14 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
     pnlButtons.add(Box.createHorizontalGlue());
     UIUtilities.addWithYSpace(pnlBody, pnlButtons);
 
-    //  Align the UI objects along their left sides
+    // Align the UI objects along their left sides
     UIUtilities.alignComponentsX(pnlBody, Component.CENTER_ALIGNMENT);
     UIUtilities.alignComponentsX(pnlCheckBoxes, Component.LEFT_ALIGNMENT);
     pnlPrenewst.setBorder(BorderFactory.createEtchedBorder());
     pnlPrenewst.add(header);
     pnlPrenewst.add(pnlBody);
 
-    //  Mouse adapter for context menu
+    // Mouse adapter for context menu
     actionListener = new PrenewstPanelActionListener(this);
     btnCoarseAlign.addActionListener(actionListener);
     btnImod.addActionListener(actionListener);
@@ -304,8 +308,8 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
   }
 
   public void setParameters(BaseScreenState screenState) {
-    //btnCoarseAlign.setButtonState(screenState.getButtonState(btnCoarseAlign
-    //   .getButtonStateKey()));
+    // btnCoarseAlign.setButtonState(screenState.getButtonState(btnCoarseAlign
+    // .getButtonStateKey()));
     header.setButtonStates(screenState);
   }
 
@@ -320,11 +324,11 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
     }
   }
 
-  public void getParameters(NewstParam prenewstParams) {
+  public boolean getParameters(NewstParam prenewstParams) {
     int binning = ((Integer) spinBinning.getValue()).intValue();
 
     // Only explcitly write out the binning if its value is something other than
-    // the default of 1 to keep from cluttering up the com script  
+    // the default of 1 to keep from cluttering up the com script
     if (binning > 1) {
       prenewstParams.setBinByFactor(binning);
     }
@@ -343,6 +347,7 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
     else {
       prenewstParams.setFloatDensities(NewstParam.FLOAT_DENSITIES_DEFAULT);
     }
+    return true;
   }
 
   public ProcessName getProcessName() {
@@ -352,8 +357,9 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
     return ProcessName.PRENEWST;
   }
 
-  public void getParameters(BlendmontParam blendmontParam) {
+  public boolean getParameters(BlendmontParam blendmontParam) {
     blendmontParam.setBinByFactor(((Integer) spinBinning.getValue()).intValue());
+    return true;
   }
 
   /**

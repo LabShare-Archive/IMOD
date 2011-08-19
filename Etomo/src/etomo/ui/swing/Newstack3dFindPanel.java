@@ -31,6 +31,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2011/03/02 00:00:12  sueh
+ * <p> bug# 1452 Removing image rotation conversion between float and
+ * <p> double.  Using string where possible.
+ * <p>
  * <p> Revision 1.2  2011/02/22 18:16:11  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -79,30 +83,32 @@ final class Newstack3dFindPanel extends NewstackOrBlendmont3dFindPanel implement
     setBinning(param.getBinByFactor());
   }
 
-  public void getParameters(NewstParam newstParam) throws FortranInputSyntaxException,
+  public boolean getParameters(NewstParam newstParam) throws FortranInputSyntaxException,
       InvalidParameterException, IOException {
     newstParam.setCommandMode(NewstParam.Mode.FULL_ALIGNED_STACK);
     newstParam.setFiducialessAlignment(manager.getMetaData().isFiducialessAlignment(
         axisID));
     int binning = getBinning();
     // Only explicitly write out the binning if its value is something other than
-    // the default of 1 to keep from cluttering up the com script  
+    // the default of 1 to keep from cluttering up the com script
     if (binning > 1) {
       newstParam.setBinByFactor(binning);
     }
     else {
       newstParam.setBinByFactor(Integer.MIN_VALUE);
     }
-    //Get the rest of the parameters from current state of the final stack
+    // Get the rest of the parameters from current state of the final stack
     TomogramState state = manager.getState();
     newstParam.setLinearInterpolation(state.isStackUseLinearInterpolation(axisID));
+    // State values should be valid - opt out of validate
     newstParam.setSizeToOutputInXandY(state.getStackUserSizeToOutputInXandY(axisID),
-        getBinning(), manager.getMetaData().getImageRotation(axisID).getDouble());
-    //Set output file because this file was copied from newst.com
+        getBinning(), manager.getMetaData().getImageRotation(axisID).getDouble(), null);
+    // Set output file because this file was copied from newst.com
     Vector outputFile = new Vector();
     outputFile.add(FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT.getFileName(manager, axisID));
     newstParam.setOutputFile(FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT);
     newstParam.setProcessName(ProcessName.NEWST_3D_FIND);
+    return true;
   }
 
   void runProcess(final ProcessResultDisplay processResultDisplay,
