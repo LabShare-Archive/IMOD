@@ -26,6 +26,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2011/03/02 00:00:12  sueh
+ * <p> bug# 1452 Removing image rotation conversion between float and
+ * <p> double.  Using string where possible.
+ * <p>
  * <p> Revision 1.2  2011/02/22 18:02:36  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -70,13 +74,16 @@ final class Blendmont3dFindPanel extends NewstackOrBlendmont3dFindPanel implemen
   public void setParameters(BlendmontParam param) {
   }
 
-  public void getParameters(BlendmontParam param) throws FortranInputSyntaxException,
+  public boolean getParameters(BlendmontParam param) throws FortranInputSyntaxException,
       InvalidParameterException, IOException {
     param.setBinByFactor(getBinning());
     param.setMode(BlendmontParam.Mode.BLEND_3DFIND);
+    // Opt out of validation because state should be correct sinces it's data is from a
+    // process that ran.
     param.convertToStartingAndEndingXandY(manager.getState()
-        .getStackUserSizeToOutputInXandY(axisID), manager.getMetaData().getImageRotation(
-        axisID).getDouble());
+        .getStackUserSizeToOutputInXandY(axisID),
+        manager.getMetaData().getImageRotation(axisID).getDouble(), null);
+    return true;
   }
 
   void runProcess(final ProcessResultDisplay processResultDisplay,

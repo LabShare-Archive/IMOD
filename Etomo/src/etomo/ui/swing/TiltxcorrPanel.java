@@ -45,6 +45,10 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.6  2011/07/19 20:01:14  sueh
+ * <p> Bug# 1459 Wrapped checkboxes in a panel and used glue to left justify them.  Prevented spinners
+ * <p> which have a value when they are first displayed from going all the way to the right.
+ * <p>
  * <p> Revision 1.5  2011/03/02 00:00:12  sueh
  * <p> bug# 1452 Removing image rotation conversion between float and
  * <p> double.  Using string where possible.
@@ -283,7 +287,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
   private final CrossCorrelationActionListener actionListener = new CrossCorrelationActionListener(
       this);
 
-  //Patch tracking
+  // Patch tracking
   private final LabeledTextField ltfSizeOfPatchesXandY = new LabeledTextField(
       "Size of patches (X,Y): ");
   private final ButtonGroup bgPatchLayout = new ButtonGroup();
@@ -356,11 +360,11 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
   }
 
   private void createPanel() {
-    //initialize
+    // initialize
     if (btnTiltxcorr != null) {
       btnTiltxcorr.setSize();
     }
-    //root panel
+    // root panel
     pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
     // Construct the min and max subpanels
     pnlXMinAndMax.setLayout(new BoxLayout(pnlXMinAndMax, BoxLayout.X_AXIS));
@@ -370,10 +374,10 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
     pnlYMinAndMax.setLayout(new BoxLayout(pnlYMinAndMax, BoxLayout.X_AXIS));
     UIUtilities.addWithXSpace(pnlYMinAndMax, ltfYMin.getContainer());
     UIUtilities.addWithXSpace(pnlYMinAndMax, ltfYMax.getContainer());
-    //advanced panel
+    // advanced panel
     pnlAdvanced.setLayout(new BoxLayout(pnlAdvanced, BoxLayout.Y_AXIS));
     if (panelId == PanelId.CROSS_CORRELATION) {
-      //  Construct the advanced panel
+      // Construct the advanced panel
       UIUtilities.addWithYSpace(pnlAdvanced, ltfAngleOffset.getContainer());
       UIUtilities.addWithYSpace(pnlAdvanced, ltfFilterSigma1.getContainer());
       UIUtilities.addWithYSpace(pnlAdvanced, ltfFilterRadius2.getContainer());
@@ -406,7 +410,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       pnlRoot.add(pnlBody);
     }
     else if (panelId == PanelId.PATCH_TRACKING) {
-      //initialize
+      // initialize
       rtfOverlapOfPatchesXandY.setText(TiltxcorrParam.OVERLAP_OF_PATCHES_X_AND_Y_DEFAULT);
       ctfLengthAndOverlap.setTextPreferredWidth(35);
       ctfLengthAndOverlap.setText(TiltxcorrParam.getLengthAndOverlapDefault(
@@ -419,17 +423,18 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       ltfFilterSigma1.setText(TiltxcorrParam.FILTER_SIGMA_1_DEFAULT);
       ltfFilterRadius2.setText(TiltxcorrParam.FILTER_RADIUS_2_DEFAULT);
       ltfFilterSigma2.setText(TiltxcorrParam.FILTER_SIGMA_2_DEFAULT);
-      //local panels
+      // local panels
       JPanel pnlPatchLayout = new JPanel();
       JPanel pnlBoundaryModel = new JPanel();
       JPanel pnlButtons = new JPanel();
-      //root panel
+      // root panel
       pnlRoot.setBorder(new EtchedBorder("Patch Tracking").getBorder());
       pnlRoot.add(ltfSizeOfPatchesXandY.getContainer());
       pnlRoot.add(pnlPatchLayout);
       pnlRoot.add(pnlBoundaryModel);
       JPanel pnlIterateCorrelations = new JPanel();
-      pnlIterateCorrelations.setLayout(new BoxLayout(pnlIterateCorrelations,BoxLayout.X_AXIS));
+      pnlIterateCorrelations.setLayout(new BoxLayout(pnlIterateCorrelations,
+          BoxLayout.X_AXIS));
       pnlIterateCorrelations.setAlignmentX(Component.CENTER_ALIGNMENT);
       pnlIterateCorrelations.add(spIterateCorrelations.getContainer());
       pnlIterateCorrelations.add(Box.createHorizontalGlue());
@@ -443,28 +448,28 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       pnlRoot.add(pnlYMinAndMax);
       pnlRoot.add(pnlAdvanced);
       pnlRoot.add(pnlButtons);
-      //patch layout panel
+      // patch layout panel
       pnlPatchLayout.setLayout(new BoxLayout(pnlPatchLayout, BoxLayout.Y_AXIS));
       pnlPatchLayout.setBorder(new EtchedBorder("Patch Layout").getBorder());
       pnlPatchLayout.add(rtfOverlapOfPatchesXandY.getContainer());
       pnlPatchLayout.add(rtfNumberOfPatchesXandY.getContainer());
-      //boundary model panel
+      // boundary model panel
       pnlBoundaryModel.setLayout(new BoxLayout(pnlBoundaryModel, BoxLayout.X_AXIS));
       pnlBoundaryModel.add(cbBoundaryModel);
       pnlBoundaryModel.add(Box.createHorizontalGlue());
       pnlBoundaryModel.add(btn3dmodBoundaryModel.getComponent());
       pnlBoundaryModel.add(Box.createHorizontalGlue());
-      //advanced 2 panel
+      // advanced 2 panel
       pnlAdvanced2.setLayout(new BoxLayout(pnlAdvanced2, BoxLayout.Y_AXIS));
       UIUtilities.addWithYSpace(pnlAdvanced2, ltfFilterSigma1.getContainer());
       UIUtilities.addWithYSpace(pnlAdvanced2, ltfFilterRadius2.getContainer());
       UIUtilities.addWithYSpace(pnlAdvanced2, ltfFilterSigma2.getContainer());
-      //advanced panel
+      // advanced panel
       UIUtilities.addWithYSpace(pnlAdvanced, ltfPadPercent.getContainer());
       UIUtilities.addWithYSpace(pnlAdvanced, ltfTaperPercent.getContainer());
       UIUtilities.addWithYSpace(pnlAdvanced, ltfTestOutput.getContainer());
       UIUtilities.addWithYSpace(pnlAdvanced, ltfViewRange.getContainer());
-      //button panel
+      // button panel
       pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
       pnlButtons.add(Box.createHorizontalGlue());
       if (btnTiltxcorr != null) {
@@ -554,7 +559,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
    */
   void setParameters(final ConstTiltxcorrParam tiltXcorrParams) {
     ltfAngleOffset.setText(tiltXcorrParams.getAngleOffset());
-    //Avoid overriding the default
+    // Avoid overriding the default
     if (tiltXcorrParams.isBordersInXandYSet()) {
       ltfTrim.setText(tiltXcorrParams.getBordersInXandY());
     }
@@ -611,7 +616,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
    */
   void setParameters(ConstMetaData metaData) {
     if (panelId == PanelId.PATCH_TRACKING) {
-      //Don't override defaults unless there is a value in meta data
+      // Don't override defaults unless there is a value in meta data
       if (metaData.isTrackOverlapOfPatchesXandYSet(axisID)) {
         rtfOverlapOfPatchesXandY.setText(metaData.getTrackOverlapOfPatchesXandY(axisID));
       }
@@ -635,8 +640,8 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
   }
 
   void setParameters(BaseScreenState screenState) {
-    //btnCrossCorrelate.setButtonState(screenState
-    //    .getButtonState(btnCrossCorrelate.getButtonStateKey()));
+    // btnCrossCorrelate.setButtonState(screenState
+    // .getButtonState(btnCrossCorrelate.getButtonStateKey()));
     header.setButtonStates(screenState);
   }
 
@@ -658,9 +663,9 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       String errorMessage = tiltXcorrParams.setIterateCorrelations(spIterateCorrelations
           .getValue());
       if (errorMessage != null) {
-        UIHarness.INSTANCE.openMessageDialog(applicationManager, spIterateCorrelations
-            .getLabel()
-            + ": " + errorMessage, "Entry Error", axisID);
+        UIHarness.INSTANCE
+            .openMessageDialog(applicationManager, spIterateCorrelations.getLabel()
+                + ": " + errorMessage, "Entry Error", axisID);
         return false;
       }
       tiltXcorrParams.setInputFile(FileType.PREALIGNED_STACK.getFileName(
@@ -715,7 +720,10 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       }
       else if (panelId == PanelId.PATCH_TRACKING) {
         currentParam = ltfSizeOfPatchesXandY.getLabel();
-        tiltXcorrParams.setSizeOfPatchesXandY(ltfSizeOfPatchesXandY.getText());
+        if (!tiltXcorrParams.setSizeOfPatchesXandY(ltfSizeOfPatchesXandY.getText(),
+            ltfSizeOfPatchesXandY.getLabel())) {
+          return false;
+        }
         currentParam = rtfOverlapOfPatchesXandY.getLabel();
         if (rtfOverlapOfPatchesXandY.isSelected()) {
           tiltXcorrParams.setOverlapOfPatchesXandY(rtfOverlapOfPatchesXandY.getText());
@@ -766,9 +774,8 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
   private boolean validate() {
     if (panelId == PanelId.PATCH_TRACKING) {
       if (ltfSizeOfPatchesXandY.isEmpty()) {
-        UIHarness.INSTANCE.openMessageDialog(applicationManager, ltfSizeOfPatchesXandY
-            .getLabel()
-            + " is required.", "Entry Error", axisID);
+        UIHarness.INSTANCE.openMessageDialog(applicationManager,
+            ltfSizeOfPatchesXandY.getLabel() + " is required.", "Entry Error", axisID);
         return false;
       }
     }
@@ -779,7 +786,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
     buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(), menuOptions);
   }
 
-  //  Action functions for setup panel buttons
+  // Action functions for setup panel buttons
   void buttonAction(final String actionCommand,
       final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
@@ -833,7 +840,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
     try {
       autodoc = AutodocFactory.getInstance(applicationManager, AutodocFactory.TILTXCORR,
           axisID);
-      //autodoc.print();
+      // autodoc.print();
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

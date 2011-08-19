@@ -42,6 +42,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2011/07/19 20:01:14  sueh
+ * <p> Bug# 1459 Wrapped checkboxes in a panel and used glue to left justify them.  Prevented spinners
+ * <p> which have a value when they are first displayed from going all the way to the right.
+ * <p>
  * <p> Revision 1.4  2011/03/02 00:00:12  sueh
  * <p> bug# 1452 Removing image rotation conversion between float and
  * <p> double.  Using string where possible.
@@ -136,12 +140,12 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
   }
 
   private void createPanel() {
-    //Root panel
+    // Root panel
     pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRoot.setComponentAlignmentX(Box.LEFT_ALIGNMENT);
     pnlRoot.add(cbUseLinearInterpolation);
     JPanel pnlBinning = new JPanel();
-    pnlBinning.setLayout(new BoxLayout(pnlBinning,BoxLayout.X_AXIS));
+    pnlBinning.setLayout(new BoxLayout(pnlBinning, BoxLayout.X_AXIS));
     pnlBinning.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlBinning.add(spinBinning.getContainer());
     pnlBinning.add(Box.createHorizontalGlue());
@@ -149,7 +153,7 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
     pnlRoot.add(cbFiducialess);
     pnlRoot.add(ltfRotation);
     pnlRoot.add(ltfSizeToOutputInXandY);
-    //update
+    // update
     updateFiducialess();
   }
 
@@ -177,13 +181,16 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
     metaData.setStackBinning(axisID, getBinning());
   }
 
-  public void getParameters(BlendmontParam blendmontParam)
+  public boolean getParameters(BlendmontParam blendmontParam)
       throws FortranInputSyntaxException, InvalidParameterException, IOException {
     blendmontParam.setBinByFactor(getBinning());
     blendmontParam.setLinearInterpolation(cbUseLinearInterpolation.isSelected());
     try {
-      blendmontParam.convertToStartingAndEndingXandY(ltfSizeToOutputInXandY.getText(),
-          manager.getMetaData().getImageRotation(axisID).getDouble());
+     if (! blendmontParam.convertToStartingAndEndingXandY(ltfSizeToOutputInXandY.getText(),
+          manager.getMetaData().getImageRotation(axisID).getDouble(),
+          ltfSizeToOutputInXandY.getLabel())) {
+       return false;
+     }
     }
     catch (FortranInputSyntaxException e) {
       e.printStackTrace();
@@ -192,14 +199,15 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
               + e.getMessage());
     }
     blendmontParam.setFiducialess(cbFiducialess.isSelected());
+    return true;
   }
 
-  //  Copy the newstack parameters from the GUI to the NewstParam object
-  public void getParameters(NewstParam newstParam) throws FortranInputSyntaxException,
+  // Copy the newstack parameters from the GUI to the NewstParam object
+  public boolean getParameters(NewstParam newstParam) throws FortranInputSyntaxException,
       InvalidParameterException, IOException {
     int binning = getBinning();
     // Only explicitly write out the binning if its value is something other than
-    // the default of 1 to keep from cluttering up the com script  
+    // the default of 1 to keep from cluttering up the com script
     if (binning > 1) {
       newstParam.setBinByFactor(binning);
     }
@@ -207,8 +215,9 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
       newstParam.setBinByFactor(Integer.MIN_VALUE);
     }
     newstParam.setLinearInterpolation(cbUseLinearInterpolation.isSelected());
-    newstParam.setSizeToOutputInXandY(ltfSizeToOutputInXandY.getText(), getBinning(),
-        manager.getMetaData().getImageRotation(axisID).getDouble());
+   return newstParam.setSizeToOutputInXandY(ltfSizeToOutputInXandY.getText(), getBinning(),
+        manager.getMetaData().getImageRotation(axisID).getDouble(),
+        ltfSizeToOutputInXandY.getLabel());
   }
 
   void setParameters(ConstMetaData metaData) {
@@ -243,7 +252,7 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
     ltfRotation.setEnabled(cbFiducialess.isSelected());
   }
 
-  public String getImageRotation()  {
+  public String getImageRotation() {
     return ltfRotation.getText();
   }
 
