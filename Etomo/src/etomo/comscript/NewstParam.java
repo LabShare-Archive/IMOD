@@ -20,6 +20,7 @@ import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
+import etomo.ui.swing.UIHarness;
 import etomo.util.MRCHeader;
 
 /**
@@ -35,6 +36,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.33  2011/05/10 16:49:36  sueh
+ * <p> bug# 1482 Changed getSubcommandProcessName to return a string so that the root name chould be set to
+ * <p> subcommandProcessName.
+ * <p>
  * <p> Revision 3.32  2011/04/09 06:25:17  sueh
  * <p> bug# 1416 Replaced FileType..DUAL_AXIS_TOMOGRAM and SINGLE_AXIS_TOMOGRAM with TILT_OUTPUT.
  * <p>
@@ -200,17 +205,17 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   public static final String rcsid = "$Id$";
 
   public static final String SIZE_TO_OUTPUT_IN_X_AND_Y = "SizeToOutputInXandY";
-  //data mode
+  // data mode
   public static final String DATA_MODE_OPTION = "-mo";
   public static final int DATA_MODE_DEFAULT = Integer.MIN_VALUE;
   public static final int DATA_MODE_BYTE = 0;
 
-  //float densities
+  // float densities
   public static final String FLOAT_DENSITIES_OPTION = "-fl";
   public static final int FLOAT_DENSITIES_DEFAULT = Integer.MIN_VALUE;
   public static final int FLOAT_DENSITIES_MEAN = 2;
 
-  //defaults
+  // defaults
   public static final int BIN_BY_FACTOR_DEFAULT = 1;
 
   private static final String COMMAND_FILE_EXTENSION = ".com";
@@ -259,6 +264,8 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   private final AxisID axisID;
   private final BaseManager manager;
 
+  private boolean validate = false;
+
   public NewstParam(final BaseManager manager, final AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
@@ -270,7 +277,12 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     reset();
   }
 
+  public void setValidate(final boolean validate) {
+    this.validate = validate;
+  }
+
   private void reset() {
+    validate = false;
     inputFile.clear();
     outputFile = null;
     outputFileType = null;
@@ -312,7 +324,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
     reset();
     for (int i = 0; i < cmdLineArgs.length; i++) {
-      //  Is it an argument or filename
+      // Is it an argument or filename
       if (cmdLineArgs[i].startsWith("-")) {
         if (cmdLineArgs[i].toLowerCase().startsWith("-in")) {
           i++;
@@ -719,24 +731,25 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
    * image rotation so that fiducialess parameters, which usually come from the
    * dialog, can be set for newst_3dfind.com.
    */
-  public void setSizeToOutputInXandY(String userSize, final int binning,
-      final double imageRotation) throws FortranInputSyntaxException,
-      etomo.util.InvalidParameterException, IOException {
-    //make sure an empty string really causes sizeToOutputInXandY to be empty.
+  public boolean setSizeToOutputInXandY(String userSize, final int binning,
+      final double imageRotation, final String description)
+      throws FortranInputSyntaxException, etomo.util.InvalidParameterException,
+      IOException {
+    // make sure an empty string really causes sizeToOutputInXandY to be empty.
     if (userSize.equals("")) {
       userSize = "/";
     }
     sizeToOutputInXandY.validateAndSet(userSize);
     userSizeToOutputInXandY.validateAndSet(userSize);
     this.imageRotation.set(imageRotation);
-    //UserSize is empty, check for an angle close to 90 degrees.
+    // UserSize is empty, check for an angle close to 90 degrees.
     if ((sizeToOutputInXandY.isDefault() || sizeToOutputInXandY.isEmpty())
         && Utilities.is90DegreeImageRotation(imageRotation)) {
       MRCHeader header = MRCHeader.getInstance(manager, axisID, ".st");
       header.read(manager);
-      //Set y from columns (x)
+      // Set y from columns (x)
       sizeToOutputInXandY.set(1, header.getNColumns());
-      //Set x from rows (y)
+      // Set x from rows (y)
       sizeToOutputInXandY.set(0, header.getNRows());
     }
     if (binning != 1 && !sizeToOutputInXandY.isDefault()
@@ -746,6 +759,14 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
       iSize = sizeToOutputInXandY.getInt(1);
       sizeToOutputInXandY.set(1, (int) iSize / binning);
     }
+    if (validate && description != null) {
+      if (!userSizeToOutputInXandY.isNull(0) && userSizeToOutputInXandY.isNull(1)) {
+        UIHarness.INSTANCE.openMessageDialog(manager, "Two values are required for "
+            + description + ".", "Entry Error", axisID);
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
@@ -926,7 +947,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
 
   public FileType getOutputImageFileType2() {
     if (mode == Mode.WHOLE_TOMOGRAM_SAMPLE) {
-      //Handle tiltParam here so the user doesn't have to wait.
+      // Handle tiltParam here so the user doesn't have to wait.
       AxisType axisType = manager.getBaseMetaData().getAxisType();
       return FileType.TILT_OUTPUT;
     }
