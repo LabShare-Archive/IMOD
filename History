@@ -3,6 +3,9 @@ IMOD History
 8/19/11: Fixed Xfsimplex/Xfalign crash from uninitialized variable with
 identical images.
 
+8/18/11: In eTomo added error for patch size (Fiducial Model) and output size
+(Final Aligned Stack).(Bug# 1539)
+
 8/12/11: Fixed Xftoxg to multiply warping transforms in the right order to
 get the  cumulative transform.
 
