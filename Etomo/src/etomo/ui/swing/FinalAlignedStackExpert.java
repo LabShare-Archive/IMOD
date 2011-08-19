@@ -52,6 +52,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2011/05/05 20:24:21  sueh
+ * <p> bug# 1481 In startNextProcess correcting the root name passed to processchunks.
+ * <p>
  * <p> Revision 1.6  2011/04/04 17:20:33  sueh
  * <p> bug# 1416 Passing process name as a string to processchunks.
  * <p>
@@ -191,12 +194,12 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     if (showDialog(dialog)) {
       return;
     }
-    //Create the dialog and show it.
+    // Create the dialog and show it.
     Utilities.timestamp("new", "FinalAlignedStackDialog", Utilities.STARTED_STATUS);
     dialog = FinalAlignedStackDialog.getInstance(manager, this, axisID, curTab);
     Utilities.timestamp("new", "FinalAlignedStackDialog", Utilities.FINISHED_STATUS);
 
-    dialog.setParameters(metaData);//TEMP metadata
+    dialog.setParameters(metaData);// TEMP metadata
 
     // no longer managing image size
 
@@ -207,7 +210,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     if (metaData.getViewType() == ViewType.MONTAGE) {
       comScriptMgr.loadBlend(axisID);
       dialog.setParameters(comScriptMgr.getBlendParam(axisID));
-      //if blend_3dfind.com doesn't exist copy blend.com to blend_3dfind.com.
+      // if blend_3dfind.com doesn't exist copy blend.com to blend_3dfind.com.
       File blend3dFindCom = new File(manager.getPropertyUserDir(),
           ProcessName.BLEND_3D_FIND.getComscript(axisID));
       try {
@@ -227,8 +230,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     }
     else {
       comScriptMgr.loadNewst(axisID);
-      dialog.setParameters(comScriptMgr.getNewstComNewstParam(axisID));//TEMP newstparam
-      //if newst_3dfind.com doesn't exist copy newst.com to newst_3dfind.com.
+      dialog.setParameters(comScriptMgr.getNewstComNewstParam(axisID));// TEMP newstparam
+      // if newst_3dfind.com doesn't exist copy newst.com to newst_3dfind.com.
       File newst3dFindCom = new File(manager.getPropertyUserDir(),
           ProcessName.NEWST_3D_FIND.getComscript(axisID));
       try {
@@ -246,7 +249,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
                 + "able to use findbeads3d when erasing gold.", "Etomo Error");
       }
     }
-    //if tilt_3dfind.com doesn't exist copy tilt.com to tilt_3dfind.com.
+    // if tilt_3dfind.com doesn't exist copy tilt.com to tilt_3dfind.com.
     File tilt3dFindCom = new File(manager.getPropertyUserDir(),
         ProcessName.TILT_3D_FIND.getComscript(axisID));
     boolean newTilt3dFindCom = false;
@@ -272,24 +275,24 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
           "Unable to copy to blend.com to blend_3d_find.com.  Will not be "
               + "able to use findbeads3d when erasing gold.", "Etomo Error");
     }
-    //Backwards compatibility
-    //If track light beads isn't be saved to state, get light beads from
-    //track.com.
+    // Backwards compatibility
+    // If track light beads isn't be saved to state, get light beads from
+    // track.com.
     comScriptMgr.loadTrack(axisID);
     comScriptMgr.loadFindBeads3d(axisID);
     dialog.setParameters(comScriptMgr.getFindBeads3dParam(axisID), newTilt3dFindCom);
     comScriptMgr.loadTilt3dFindReproject(axisID);
 
-    // Get the align{|a|b}.com parameters 
+    // Get the align{|a|b}.com parameters
     comScriptMgr.loadAlign(axisID);
     dialog.setParameters(comScriptMgr.getTiltalignParam(axisID), newTilt3dFindCom);
 
-    //backward compatibility
-    //Try loading ctfcorrection.com first.  If it isn't there, copy it with
-    //copytomocoms and load it.
-    //Then try loading ctfplotter.com.  If it isn't there, copy it with
-    //copytomocoms, using the voltage, etc from ctfcorrection.com.
-    //Ignore ctfplotter.param.
+    // backward compatibility
+    // Try loading ctfcorrection.com first. If it isn't there, copy it with
+    // copytomocoms and load it.
+    // Then try loading ctfplotter.com. If it isn't there, copy it with
+    // copytomocoms, using the voltage, etc from ctfcorrection.com.
+    // Ignore ctfplotter.param.
     if (!comScriptMgr.loadCtfCorrection(axisID, false)) {
       manager.setupCtfCorrectionComScript(axisID);
       comScriptMgr.loadCtfCorrection(axisID, true);
@@ -297,8 +300,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     CtfPhaseFlipParam ctfPhaseFlipParam = comScriptMgr.getCtfPhaseFlipParam(axisID);
     setParameters(ctfPhaseFlipParam);
     if (!comScriptMgr.loadCtfPlotter(axisID, false)) {
-      //Get the voltage, etc from ctfcorrection.com, since it has been loaded, and it
-      //is somewhat more likely that it was updated
+      // Get the voltage, etc from ctfcorrection.com, since it has been loaded, and it
+      // is somewhat more likely that it was updated
       manager.setupCtfPlotterComScript(axisID, ctfPhaseFlipParam);
       comScriptMgr.loadCtfPlotter(axisID, true);
     }
@@ -306,7 +309,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     dialog.setParameters(screenState);
     comScriptMgr.loadMTFFilter(axisID);
     setParameters(comScriptMgr.getMTFFilterParam(axisID));
-    //updateDialog()
+    // updateDialog()
     updateFilter(Utilities.fileExists(manager, ".ali", axisID));
 
     // Set the fidcialess state and tilt axis angle
@@ -347,19 +350,19 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     if (exitState != DialogExitState.CANCEL && !manager.isExiting()
         && exitState != DialogExitState.POSTPONE) {
       if (state.isUseCtfCorrectionWarning(axisID)) {
-        //The use button wasn't pressed and the user is moving on to the next
-        //dialog.  Don't put this message in the log.
+        // The use button wasn't pressed and the user is moving on to the next
+        // dialog. Don't put this message in the log.
         UIHarness.INSTANCE.openMessageDialog(null,
             "To use the CTF correction go back to Final Aligned Stack and press "
                 + "the \"" + FinalAlignedStackDialog.USE_CTF_CORRECTION_LABEL
                 + "\" button in the " + FinalAlignedStackDialog.CTF_TAB_LABEL + " tab.",
             "Entry Warning", axisID);
-        //Only warn once.
+        // Only warn once.
         state.setUseCtfCorrectionWarning(axisID, false);
       }
       if (state.isUseErasedStackWarning(axisID)) {
-        //The use button wasn't pressed and the user is moving on to the next
-        //dialog.  Don't put this message in the log.
+        // The use button wasn't pressed and the user is moving on to the next
+        // dialog. Don't put this message in the log.
         UIHarness.INSTANCE.openMessageDialog(
             null,
             "To use the stack with the erased beads go back to Final Aligned "
@@ -367,19 +370,19 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
                 + FinalAlignedStackDialog.getUseErasedStackLabel() + "\" button in the "
                 + FinalAlignedStackDialog.getErasedStackTabLabel() + " tab.",
             "Entry Warning", axisID);
-        //Only warn once.
+        // Only warn once.
         state.setUseErasedStackWarning(axisID, false);
       }
       if (state.isUseFilteredStackWarning(axisID)) {
-        //The use button wasn't pressed and the user is moving on to the next
-        //dialog.  Don't put this message in the log.
+        // The use button wasn't pressed and the user is moving on to the next
+        // dialog. Don't put this message in the log.
         UIHarness.INSTANCE.openMessageDialog(null,
             "To use the MTF filtered stack go back to Final Aligned "
                 + "Stack and press the \""
                 + FinalAlignedStackDialog.USE_FILTERED_STACK_LABEL + "\" button in the "
                 + FinalAlignedStackDialog.MTF_FILTER_TAB_LABEL + " tab.",
             "Entry Warning", axisID);
-        //Only warn once.
+        // Only warn once.
         state.setUseFilteredStackWarning(axisID, false);
       }
     }
@@ -399,8 +402,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     }
     // Clean up the existing dialog
     leaveDialog(exitState);
-    //Hold onto the finished dialog (don't set dialog to null) in case anything
-    //is running that needs it or there are next processes that need it.
+    // Hold onto the finished dialog (don't set dialog to null) in case anything
+    // is running that needs it or there are next processes that need it.
   }
 
   void saveDialog() {
@@ -420,8 +423,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
         dialog.getFiducialessParams(), axisID);
     if (metaData.getViewType() == ViewType.MONTAGE) {
       try {
-        manager.updateBlendCom(dialog.getBlendmontDisplay(), axisID);
-        manager.updateBlend3dFindCom(dialog.getBlendmont3dFindDisplay(), axisID);
+        manager.updateBlendCom(dialog.getBlendmontDisplay(), axisID, false);
+        manager.updateBlend3dFindCom(dialog.getBlendmont3dFindDisplay(), axisID, false);
       }
       catch (FortranInputSyntaxException e) {
         UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(), "Update Com Error");
@@ -434,8 +437,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       }
     }
     else {
-      manager.updateNewstCom(dialog.getNewstackDisplay(), axisID);
-      manager.updateNewst3dFindCom(dialog.getNewstack3dFindDisplay(), axisID);
+      manager.updateNewstCom(dialog.getNewstackDisplay(), axisID, false);
+      manager.updateNewst3dFindCom(dialog.getNewstack3dFindDisplay(), axisID, false);
     }
     updateMTFFilterCom();
     updateCtfPlotterCom();
@@ -789,7 +792,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     }
     String startingAndEndingZ = dialog.getStartingAndEndingZ();
     if (startingAndEndingZ.length() == 0 || startingAndEndingZ.matches("\\s+")) {
-      //btnFilter.setSelected(false);
+      // btnFilter.setSelected(false);
       dialog.setUseFilterEnabled(true);
     }
     else {
