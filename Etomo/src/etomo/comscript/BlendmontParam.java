@@ -19,6 +19,7 @@ import etomo.type.FileType;
 import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
+import etomo.ui.swing.UIHarness;
 import etomo.util.Goodframe;
 import etomo.util.Montagesize;
 
@@ -75,6 +76,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
   private final EtomoNumber imageRotation = new EtomoNumber(EtomoNumber.Type.DOUBLE);
 
   private boolean overrideModeForImageOutputFile = false;
+  private boolean validate = false;
 
   public BlendmontParam(final ApplicationManager manager, final String datasetName,
       final AxisID axisID) {
@@ -136,7 +138,12 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     adjustOrigin.updateComScript(scriptCommand);
   }
 
+  public void setValidate(final boolean validate) {
+    this.validate = validate;
+  }
+
   private void reset() {
+    validate = false;
     readInXcorrs.reset();
     oldEdgeFunctions.reset();
     interpolationOrder.reset();
@@ -175,10 +182,12 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
    * @throws etomo.util.InvalidParameterException
    * @throws IOException
    */
-  public void convertToStartingAndEndingXandY(String sizeToOutputInXandY,
-      final double imageRotation) throws FortranInputSyntaxException,
-      etomo.util.InvalidParameterException, IOException {
-    //make sure an empty string really causes sizeToOutputInXandY to be empty.
+  public boolean convertToStartingAndEndingXandY(String sizeToOutputInXandY,
+      final double imageRotation, final String description)
+      throws FortranInputSyntaxException, etomo.util.InvalidParameterException,
+      IOException {
+    boolean retval = true;
+    // make sure an empty string really causes sizeToOutputInXandY to be empty.
     if (sizeToOutputInXandY.equals("")) {
       sizeToOutputInXandY = "/";
     }
@@ -194,13 +203,20 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
       Goodframe goodframe = etomo.comscript.Utilities.getGoodframeFromMontageSize(axisID,
           manager);
       if (goodframe != null) {
-        //transposing x and y
+        // transposing x and y
         fisSizeToOutputInXandY.set(1, goodframe.getOutput(0));
         fisSizeToOutputInXandY.set(0, goodframe.getOutput(1));
       }
     }
+    if (validate && description != null) {
+      if (!fisSizeToOutputInXandY.isNull(0) && fisSizeToOutputInXandY.isNull(1)) {
+        UIHarness.INSTANCE.openMessageDialog(manager, "Two values are required for "
+            + description + ".", "Entry Error", axisID);
+        retval = false;
+      }
+    }
     if (fisSizeToOutputInXandY.isDefault() || fisSizeToOutputInXandY.isEmpty()) {
-      return;
+      return retval;
     }
     Montagesize montagesize = Montagesize.getInstance(manager, axisID);
     montagesize.read(manager);
@@ -208,6 +224,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
         fisSizeToOutputInXandY.getInt(0));
     convertToStartingAndEnding(startingAndEndingY, montagesize.getY().getInt(),
         fisSizeToOutputInXandY.getInt(1));
+    return retval;
   }
 
   public CommandDetails getSubcommandDetails() {
@@ -254,7 +271,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
 
   public FileType getOutputImageFileType2() {
     if (mode == Mode.WHOLE_TOMOGRAM_SAMPLE) {
-      //Handle tiltParam here so the user doesn't have to wait.
+      // Handle tiltParam here so the user doesn't have to wait.
       AxisType axisType = manager.getBaseMetaData().getAxisType();
       return FileType.TILT_OUTPUT;
     }
@@ -274,7 +291,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
    * to be run
    */
   public boolean setBlendmontState() {
-    //TEMP
+    // TEMP
     System.err.println("setBlendmontState:mode=" + mode);
     if (mode == Mode.UNDISTORT) {
       if (!overrideModeForImageOutputFile) {
@@ -313,10 +330,10 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
         + axisID.getExtension() + ".st");
     File blendFile = new File(manager.getPropertyUserDir(), datasetName
         + axisID.getExtension() + BLENDMONT_STACK_EXTENSION);
-    //Read in xcorr output if it exists.  Turn on for preblend and blend.
+    // Read in xcorr output if it exists. Turn on for preblend and blend.
     readInXcorrs.set(mode == Mode.PREBLEND || mode == Mode.BLEND
         || mode == Mode.WHOLE_TOMOGRAM_SAMPLE || ecdFile.exists());
-    //Use existing edge functions, if they are up to date and valid.  Turn on for blend.
+    // Use existing edge functions, if they are up to date and valid. Turn on for blend.
     oldEdgeFunctions
         .set(mode == Mode.BLEND
             || mode == Mode.WHOLE_TOMOGRAM_SAMPLE
@@ -325,9 +342,9 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
                 && yefFile.exists()
                 && ecdFile.lastModified() <= xefFile.lastModified() && ecdFile
                 .lastModified() <= yefFile.lastModified()));
-    //If xcorr output exists and the edge functions are up to date, then don't
-    //run blendmont, as long as the blendmont output is more recent then the
-    //stack.
+    // If xcorr output exists and the edge functions are up to date, then don't
+    // run blendmont, as long as the blendmont output is more recent then the
+    // stack.
     if (readInXcorrs.is() && oldEdgeFunctions.is() && blendFile.exists()
         && stackFile.lastModified() < blendFile.lastModified()) {
       return false;
@@ -548,6 +565,10 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.43  2011/05/10 16:49:35  sueh
+ * <p> bug# 1482 Changed getSubcommandProcessName to return a string so that the root name chould be set to
+ * <p> subcommandProcessName.
+ * <p>
  * <p> Revision 1.42  2011/04/09 06:22:28  sueh
  * <p> bug# 1416 Replaced FileType..DUAL_AXIS_TOMOGRAM and SINGLE_AXIS_TOMOGRAM with TILT_OUTPUT.
  * <p>
