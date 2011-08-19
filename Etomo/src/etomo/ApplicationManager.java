@@ -480,7 +480,7 @@ public final class ApplicationManager extends BaseManager implements
         if (messages == null) {
           return false;
         }
-        //Send a specific INFO: message to the project log
+        // Send a specific INFO: message to the project log
         if (messages.isInfo()) {
           List infoMessages = messages.getInfoList("Setting logarithm offset");
           if (infoMessages != null && infoMessages.size() != 0) {
@@ -1276,11 +1276,11 @@ public final class ApplicationManager extends BaseManager implements
     else {
       coarseAlignDialog.getParameters(getScreenState(axisID));
       // Get the user input data from the dialog box
-      updateXcorrCom(coarseAlignDialog.getTiltXcorrDisplay(), axisID);
+      updateXcorrCom(coarseAlignDialog.getTiltXcorrDisplay(), axisID, false);
       updateBlendmontInXcorrCom(axisID);
       try {
         if (metaData.getViewType() != ViewType.MONTAGE) {
-          updatePrenewstCom(coarseAlignDialog.getNewstackDisplay(), axisID);
+          updatePrenewstCom(coarseAlignDialog.getNewstackDisplay(), axisID, false);
         }
       }
       catch (InvalidParameterException e) {
@@ -1330,7 +1330,7 @@ public final class ApplicationManager extends BaseManager implements
       processSeries = new ProcessSeries(this, dialogType);
     }
     // Get the parameters from the dialog box
-    ConstTiltxcorrParam tiltxcorrParam = updateXcorrCom(display, axisID);
+    ConstTiltxcorrParam tiltxcorrParam = updateXcorrCom(display, axisID, true);
     if (tiltxcorrParam == null) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
@@ -1605,7 +1605,10 @@ public final class ApplicationManager extends BaseManager implements
     NewstParam prenewstParam = null;
     if (metaData.getViewType() == ViewType.MONTAGE) {
       try {
-        blendmontParam = updatePreblendCom(blendmontDisplay, axisID);
+        blendmontParam = updatePreblendCom(blendmontDisplay, axisID, true);
+        if (blendmontParam == null) {
+          return;
+        }
       }
       catch (FortranInputSyntaxException e) {
         UIHarness.INSTANCE.openMessageDialog(this, e.getMessage(), "Update Com Error");
@@ -1620,7 +1623,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     else {
       try {
-        if ((prenewstParam = updatePrenewstCom(newstackDisplay, axisID)) == null) {
+        if ((prenewstParam = updatePrenewstCom(newstackDisplay, axisID, true)) == null) {
           sendMsgProcessFailedToStart(processResultDisplay);
           return;
         }
@@ -1776,7 +1779,8 @@ public final class ApplicationManager extends BaseManager implements
    * @return true if successful in getting the parameters and saving the com
    *         script
    */
-  private ConstTiltxcorrParam updateXcorrCom(TiltXcorrDisplay display, AxisID axisID) {
+  private ConstTiltxcorrParam updateXcorrCom(TiltXcorrDisplay display, AxisID axisID,
+      final boolean validate) {
     TiltxcorrParam tiltXcorrParam = null;
     TiltxcorrParam toParam = null;
     PanelId panelId = display.getPanelId();
@@ -1793,6 +1797,7 @@ public final class ApplicationManager extends BaseManager implements
         comScriptMgr.loadXcorr(axisID);
         toParam = comScriptMgr.getTiltxcorrParam(axisID);
       }
+      tiltXcorrParam.setValidate(validate);
       if (!display.getParameters(tiltXcorrParam)) {
         return null;
       }
@@ -1886,11 +1891,14 @@ public final class ApplicationManager extends BaseManager implements
    * @param axisID
    * @return
    */
-  private NewstParam updatePrenewstCom(NewstackDisplay display, AxisID axisID)
-      throws InvalidParameterException, IOException {
+  private NewstParam updatePrenewstCom(NewstackDisplay display, AxisID axisID,
+      final boolean validate) throws InvalidParameterException, IOException {
     NewstParam prenewstParam = comScriptMgr.getPrenewstParam(axisID);
+    prenewstParam.setValidate(validate);
     try {
-      display.getParameters(prenewstParam);
+      if (!display.getParameters(prenewstParam)) {
+        return null;
+      }
     }
     catch (FortranInputSyntaxException except) {
       String[] errorMessage = new String[3];
@@ -1911,10 +1919,13 @@ public final class ApplicationManager extends BaseManager implements
    * @param axisID
    * @return
    */
-  private BlendmontParam updatePreblendCom(BlendmontDisplay display, AxisID axisID)
-      throws FortranInputSyntaxException, InvalidParameterException, IOException {
+  private BlendmontParam updatePreblendCom(BlendmontDisplay display, AxisID axisID,
+      final boolean validate) throws FortranInputSyntaxException,
+      InvalidParameterException, IOException {
     BlendmontParam preblendParam = comScriptMgr.getPreblendParam(axisID);
-    display.getParameters(preblendParam);
+    if (display.getParameters(preblendParam)) {
+      return null;
+    }
     preblendParam.setBlendmontState();
     comScriptMgr.savePreblend(preblendParam, axisID);
     return preblendParam;
@@ -2043,7 +2054,7 @@ public final class ApplicationManager extends BaseManager implements
       fiducialModelDialog.getParameters(metaData);
       // Get the user input data from the dialog box
       updateTrackCom(fiducialModelDialog.getBeadTrackDisplay(), axisID);
-      updateXcorrCom(fiducialModelDialog.getTiltxcorrDisplay(), axisID);
+      updateXcorrCom(fiducialModelDialog.getTiltxcorrDisplay(), axisID, false);
       if (exitState == DialogExitState.EXECUTE) {
         processTrack.setFiducialModelState(ProcessState.COMPLETE, axisID);
         mainPanel.setFiducialModelState(ProcessState.COMPLETE, axisID);
@@ -2252,15 +2263,12 @@ public final class ApplicationManager extends BaseManager implements
     }
     if (!okToMakeFiducialModelSeedModel(axisID)) {
       return false;
-    }/*
-     * if (seedModel.exists() && seedModel.lastModified() >
-     * fiducialModel.lastModified()) { String[] message = new String[3];
-     * message[0] = "WARNING: The seed model file is more recent the fiducial
-     * model file"; message[1] = "To avoid losing your changes to the seed
-     * model file,"; message[2] = "track fiducials before pressing Use
-     * Fiducial Model as Seed."; uiHarness.openMessageDialog(message, "Use
-     * Fiducial Model as Seed Failed", axisID); return; }
-     */
+    }/* if (seedModel.exists() && seedModel.lastModified() > fiducialModel.lastModified())
+      * { String[] message = new String[3]; message[0] = "WARNING: The seed model file is
+      * more recent the fiducial model file"; message[1] = "To avoid losing your changes
+      * to the seed model file,"; message[2] = "track fiducials before pressing Use
+      * Fiducial Model as Seed."; uiHarness.openMessageDialog(message, "Use Fiducial Model
+      * as Seed Failed", axisID); return; } */
     mainPanel.setProgressBar("Using Fiducial Model as Seed", 1, axisID);
     processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
     mainPanel.setFiducialModelState(ProcessState.INPROGRESS, axisID);
@@ -3764,7 +3772,8 @@ public final class ApplicationManager extends BaseManager implements
    * @param axisID
    * @return true if successful
    */
-  public ConstNewstParam updateNewstCom(NewstackDisplay display, AxisID axisID) {
+  public ConstNewstParam updateNewstCom(NewstackDisplay display, AxisID axisID,
+      final boolean validate) {
     // Set a reference to the correct object
     if (display == null) {
       UIHarness.INSTANCE.openMessageDialog(this,
@@ -3775,11 +3784,14 @@ public final class ApplicationManager extends BaseManager implements
     NewstParam newstParam = null;
     try {
       newstParam = comScriptMgr.getNewstComNewstParam(axisID);
+      newstParam.setValidate(validate);
       // Make sure the size output is removed, it was only there for a
       // copytomocoms template
       newstParam.setCommandMode(NewstParam.Mode.FULL_ALIGNED_STACK);
       newstParam.setFiducialessAlignment(metaData.isFiducialessAlignment(axisID));
-      display.getParameters(newstParam);
+      if (!display.getParameters(newstParam)) {
+        return null;
+      }
       comScriptMgr.saveNewst(newstParam, axisID);
     }
     catch (NumberFormatException except) {
@@ -3821,7 +3833,8 @@ public final class ApplicationManager extends BaseManager implements
    * @param axisID
    * @return true if successful
    */
-  public ConstNewstParam updateNewst3dFindCom(NewstackDisplay display, AxisID axisID) {
+  public ConstNewstParam updateNewst3dFindCom(NewstackDisplay display, AxisID axisID,
+      final boolean validate) {
     // Set a reference to the correct object
     if (display == null) {
       UIHarness.INSTANCE.openMessageDialog(this,
@@ -3832,7 +3845,10 @@ public final class ApplicationManager extends BaseManager implements
     NewstParam newstParam = null;
     try {
       newstParam = comScriptMgr.getNewstParamFromNewst3dFind(axisID);
-      display.getParameters(newstParam);
+      newstParam.setValidate(true);
+      if (!display.getParameters(newstParam)) {
+        return null;
+      }
       comScriptMgr.saveNewst3dFind(newstParam, axisID);
     }
     catch (NumberFormatException except) {
@@ -3879,11 +3895,15 @@ public final class ApplicationManager extends BaseManager implements
    * @param axisID
    * @return
    */
-  public BlendmontParam updateBlendCom(BlendmontDisplay display, AxisID axisID)
-      throws FortranInputSyntaxException, InvalidParameterException, IOException {
+  public BlendmontParam updateBlendCom(BlendmontDisplay display, AxisID axisID,
+      final boolean validate) throws FortranInputSyntaxException,
+      InvalidParameterException, IOException {
     BlendmontParam blendParam;
     blendParam = comScriptMgr.getBlendParam(axisID);
-    display.getParameters(blendParam);
+    blendParam.setValidate(validate);
+    if (!display.getParameters(blendParam)) {
+      return null;
+    }
     blendParam.setMode(BlendmontParam.Mode.BLEND);
     blendParam.setBlendmontState();
     comScriptMgr.saveBlend(blendParam, axisID);
@@ -3896,11 +3916,15 @@ public final class ApplicationManager extends BaseManager implements
    * @param axisID
    * @return
    */
-  public BlendmontParam updateBlend3dFindCom(BlendmontDisplay display, AxisID axisID)
-      throws FortranInputSyntaxException, InvalidParameterException, IOException {
+  public BlendmontParam updateBlend3dFindCom(BlendmontDisplay display, AxisID axisID,
+      final boolean validate) throws FortranInputSyntaxException,
+      InvalidParameterException, IOException {
     // Update blendmont
     BlendmontParam blendParam = comScriptMgr.getBlendParamFromBlend3dFind(axisID);
-    display.getParameters(blendParam);
+    blendParam.setValidate(validate);
+    if (!display.getParameters(blendParam)) {
+      return null;
+    }
     blendParam.setMode(BlendmontParam.Mode.BLEND_3DFIND);
     blendParam.setBlendmontState();
     blendParam.setImageOutputFile(FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT);
@@ -3942,7 +3966,11 @@ public final class ApplicationManager extends BaseManager implements
     }
     BlendmontParam param = null;
     try {
-      param = updateBlend3dFindCom(blendmontDisplay, axisID);
+      param = updateBlend3dFindCom(blendmontDisplay, axisID, true);
+      if (param == null) {
+        sendMsgProcessFailedToStart(processResultDisplay);
+        return;
+      }
     }
     catch (FortranInputSyntaxException e) {
       UIHarness.INSTANCE.openMessageDialog(this, e.getMessage(), "Update Com Error");
@@ -4017,7 +4045,11 @@ public final class ApplicationManager extends BaseManager implements
     }
     BlendmontParam param = null;
     try {
-      param = updateBlendCom(blendmontDisplay, axisID);
+      param = updateBlendCom(blendmontDisplay, axisID, true);
+      if (param == null) {
+        sendMsgProcessFailedToStart(processResultDisplay);
+        return;
+      }
     }
     catch (FortranInputSyntaxException e) {
       UIHarness.INSTANCE.openMessageDialog(this, e.getMessage(), "Update Com Error");
@@ -4102,7 +4134,7 @@ public final class ApplicationManager extends BaseManager implements
       return;
     }
     ConstNewstParam param = null;
-    param = updateNewstCom(newstackDisplay, axisID);
+    param = updateNewstCom(newstackDisplay, axisID, true);
     if (param == null) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
@@ -4172,7 +4204,7 @@ public final class ApplicationManager extends BaseManager implements
       return;
     }
     ConstNewstParam param = null;
-    param = updateNewst3dFindCom(newstackDisplay, axisID);
+    param = updateNewst3dFindCom(newstackDisplay, axisID, true);
     if (param == null) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
@@ -6528,7 +6560,7 @@ public final class ApplicationManager extends BaseManager implements
       // Set the appropriate input and output files
       TrimvolParam trimvolParam = new TrimvolParam(this,
           TrimvolParam.Mode.POST_PROCESSING);
-      //Set the initial values from TrimvolParam only when postProcessingDialog in new.
+      // Set the initial values from TrimvolParam only when postProcessingDialog in new.
       TrimvolInputFileState trimvolInputFileState;
       try {
         trimvolInputFileState = TrimvolInputFileState.getPostProcessingInstance(this,
@@ -6560,7 +6592,7 @@ public final class ApplicationManager extends BaseManager implements
         return;
       }
       postProcessingDialog.setStartupWarnings(trimvolInputFileState);
-      //Set the dialog from TrimvolParam defaults.
+      // Set the dialog from TrimvolParam defaults.
       dialogExists = metaData.isPostExists();
       trimvolParam.setDefaultRange(trimvolInputFileState, dialogExists);
       postProcessingDialog.setParameters(trimvolParam);
@@ -7764,8 +7796,8 @@ public final class ApplicationManager extends BaseManager implements
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
-    //Copy from tilt_for_sirt.com to tilt.com when resuming in case tilt.com was
-    //overwritten by Tomo Pos.
+    // Copy from tilt_for_sirt.com to tilt.com when resuming in case tilt.com was
+    // overwritten by Tomo Pos.
     if (!param.isStartFromZero()) {
       if (isAxisBusy(axisID, processResultDisplay)) {
         return;
@@ -8061,6 +8093,9 @@ public final class ApplicationManager extends BaseManager implements
 /**
  * <p>
  * $Log$
+ * Revision 3.378  2011/07/26 22:08:01  sueh
+ * Bug# 1523 In sirtsetup copying from tilt_for_sirt.com to tilt.com before running sirtsetup.
+ *
  * Revision 3.377  2011/07/14 15:49:50  sueh
  * Bug# 1512 In modelToPatch updated the progress area.
  *
