@@ -13,6 +13,7 @@ import etomo.type.ScriptParameter;
 import etomo.type.StringParameter;
 import etomo.type.TiltAngleSpec;
 import etomo.type.TiltAngleType;
+import etomo.ui.swing.UIHarness;
 import etomo.util.MRCHeader;
 
 /**
@@ -28,6 +29,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.20  2011/05/10 16:49:36  sueh
+ * <p> bug# 1482 Changed getSubcommandProcessName to return a string so that the root name chould be set to
+ * <p> subcommandProcessName.
+ * <p>
  * <p> Revision 3.19  2011/02/24 23:35:30  sueh
  * <p> bug# 1452 Added setRotationAngle.
  * <p>
@@ -153,35 +158,35 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
   public static final String FILTER_RADIUS_2_DEFAULT = "0.25";
   public static final String FILTER_SIGMA_2_DEFAULT = "0.05";
 
-  //PIP and sequential input
+  // PIP and sequential input
   private String inputFile;
   private String pieceListFile;
   private String outputFile;
   private boolean excludeCentralPeak;
-  private double rotationAngle; //was imageRotation
-  private final FortranInputString bordersInXandY; //was trim
+  private double rotationAngle; // was imageRotation
+  private final FortranInputString bordersInXandY; // was trim
   private final FortranInputString xMinAndMax;
   private final FortranInputString yMinAndMax;
   private final FortranInputString padsInXandY; // was padPercent;
-  private final FortranInputString tapersInXandY; //was taperPercent
+  private final FortranInputString tapersInXandY; // was taperPercent
 
   private boolean cumulativeCorrelation;
   private boolean absoluteCosineStretch;
   private boolean noCosineStretch;
   private String testOutput;
-  private final FortranInputString startingEndingViews; //was viewRange
+  private final FortranInputString startingEndingViews; // was viewRange
 
   private final AxisID axisID;
   private final BaseManager manager;
 
-  //PIP only
-  //was tiltAngleSpec
+  // PIP only
+  // was tiltAngleSpec
   private double firstTiltAngle;
   private double tiltIncrement;
   private String tiltFile;
   private double[] tiltAngles;
 
-  //was filterParams
+  // was filterParams
   private double filterRadius1;
   private ScriptParameter filterRadius2 = new ScriptParameter(EtomoNumber.Type.DOUBLE,
       "FilterRadius2");
@@ -192,11 +197,11 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
   private final ScriptParameter angleOffset = new ScriptParameter(
       EtomoNumber.Type.DOUBLE, "AngleOffset");
 
-  //sequential input only
+  // sequential input only
   private final TiltAngleSpec tiltAngleSpec;
   private final FortranInputString filterParams;
 
-  //Patch tracking
+  // Patch tracking
   private final FortranInputString sizeOfPatchesXandY;
   private final FortranInputString overlapOfPatchesXandY;
   private final FortranInputString numberOfPatchesXandY;
@@ -208,6 +213,7 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
   private final ProcessName processName;
 
   private boolean partialSave = false;
+  private boolean validate = false;
 
   public TiltxcorrParam(final BaseManager manager, final AxisID axisID,
       ProcessName processName) {
@@ -253,6 +259,13 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
   }
 
   /**
+   * Set validate to true to cause validations to happen.
+   */
+  public void setValidate(final boolean validate) {
+    this.validate = validate;
+  }
+
+  /**
    * For patch tracking of the prealigned stack.  Returns the default values of
    * LengthAndOverlap.
    * @param manager
@@ -265,8 +278,8 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
     int lengthAndOverlapFloor = 16;
     lengthAndOverlap.setFloor(lengthAndOverlapFloor);
     lengthAndOverlap.setDisplayValue(lengthAndOverlapFloor);
-    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(), fileType
-        .getFileName(manager, axisID), axisID);
+    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
+        fileType.getFileName(manager, axisID), axisID);
     try {
       header.read(manager);
       int z = header.getNSections();
@@ -287,8 +300,8 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
       FileType fileType) {
     EtomoNumber bordersInX = new EtomoNumber();
     EtomoNumber bordersInY = new EtomoNumber();
-    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(), fileType
-        .getFileName(manager, axisID), axisID);
+    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
+        fileType.getFileName(manager, axisID), axisID);
     try {
       header.read(manager);
       int x = header.getNColumns();
@@ -314,6 +327,7 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
   }
 
   private void reset() {
+    validate = false;
     inputFile = new String();
     pieceListFile = new String();
     outputFile = new String();
@@ -397,7 +411,7 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
       throws BadComScriptException, FortranInputSyntaxException,
       InvalidParameterException {
 
-    //  get the input arguments from the command
+    // get the input arguments from the command
     ComScriptInputArg[] inputArgs;
     try {
       inputArgs = getInputArguments(scriptCommand);
@@ -530,7 +544,7 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
    */
   public void updateComScriptCommand(final ComScriptCommand scriptCommand)
       throws BadComScriptException {
-    //  get the input arguments from the command
+    // get the input arguments from the command
     ComScriptInputArg[] inputArgs;
     try {
       inputArgs = getInputArguments(scriptCommand);
@@ -539,10 +553,10 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
       throw (except);
     }
 
-    //When partialSave is on, don't require any fields.
+    // When partialSave is on, don't require any fields.
     boolean required = true && !partialSave;
 
-    //  Switch to keyword/value pairs
+    // Switch to keyword/value pairs
     scriptCommand.useKeywordValue();
     ParamUtilities.updateScriptParameter(scriptCommand, "InputFile", inputFile, required);
     ParamUtilities.updateScriptParameter(scriptCommand, "PieceListFile", pieceListFile);
@@ -594,7 +608,7 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
   }
 
   private void sequentialInputToPip() {
-    //LIST is not implemented and EXTRACT isn't used with tiltxcorr
+    // LIST is not implemented and EXTRACT isn't used with tiltxcorr
     if (tiltAngleSpec.getType() == TiltAngleType.FILE) {
       tiltFile = tiltAngleSpec.getTiltAngleFilename();
     }
@@ -639,9 +653,17 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
     this.pieceListFile = pieceListFile;
   }
 
-  public void setSizeOfPatchesXandY(final String input)
+  public boolean setSizeOfPatchesXandY(final String input, final String description)
       throws FortranInputSyntaxException {
     sizeOfPatchesXandY.validateAndSet(input);
+    if (validate) {
+      if (!sizeOfPatchesXandY.isNull(0) && sizeOfPatchesXandY.isNull(1)) {
+        UIHarness.INSTANCE.openMessageDialog(manager, "Two values are required for "
+            + description + ".", "Entry Error", axisID);
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
@@ -779,12 +801,12 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
   private ComScriptInputArg[] getInputArguments(final ComScriptCommand scriptCommand)
       throws BadComScriptException {
 
-    //  Check to be sure that it is a tiltxcorr xommand
+    // Check to be sure that it is a tiltxcorr xommand
     if (!scriptCommand.getCommand().equals("tiltxcorr")) {
       throw (new BadComScriptException("Not a tiltxcorr command"));
     }
 
-    //  Get the input arguments parameters to preserve the comments
+    // Get the input arguments parameters to preserve the comments
     ComScriptInputArg[] inputArgs = scriptCommand.getInputArguments();
     return inputArgs;
   }
