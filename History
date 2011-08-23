@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/22/11: Changed processchunks so that it closes and reopens the check file.
+This prevents problems caused by replacing the check file.  Modified eTomo so
+that it no longer deletes the check file, which is already being done by
+processchunks (and the original prochunks script).(Bug# 1524)
+
 8/19/11: Fixed Xfsimplex/Xfalign crash from uninitialized variable with
 identical images.
 
