@@ -32,6 +32,7 @@ static const int maxLocalByNum = 32;
 //converting old timeout counter to milliseconds
 static const int runProcessTimeout = 30 * 2 * 1000;
 static const int numOptions = 14;
+static const int checkFileReconnectReset = 10;
 
 static char *commandName = "processchunks";
 using namespace std;
@@ -104,6 +105,7 @@ Processchunks::Processchunks(int &argc, char **argv) :
   mMachineListSize = 0;
   mNumMachinesDropped = 0;
   mMaxKills = 0;
+  mCheckFileReconnect = checkFileReconnectReset;
 }
 
 Processchunks::~Processchunks() {
@@ -118,6 +120,7 @@ Processchunks::~Processchunks() {
   delete mOutStream;
   mOutStream = NULL;
   delete[] mMachineList;
+  mSaveCheckFileLines.clear();
 }
 
 void Processchunks::printOsInformation() {
@@ -1081,17 +1084,43 @@ void Processchunks::probeMachines(QStringList &machineNameList) {
 //Look for commands in mCheckFile.  CheckFile is kept open so already processed
 //commands are not read twice.
 //Return true if a valid command is found in the check file
+//Handle a deleted check file by closing and reopening the checkFile at intervals.
 bool Processchunks::readCheckFile() {
   //Handle mCheckFile
   if (mCheckFile != NULL) {
     if (mCheckFile->exists()) {
+      bool openedFile = false;
       if (!mCheckFile->isOpen()) {
         mCheckFile->open(QIODevice::ReadOnly);
+        openedFile = true;
       }
+      mCheckFileReconnect--;
       if (mCheckFile->isReadable()) {
         QTextStream stream(mCheckFile);
         QString comLine = stream.readLine();
+        //Go past the lines in the file that have already been read.
+        if (openedFile && !mSaveCheckFileLines.isEmpty()) {
+          int i = 0;
+          //Get the next line in the file while comLine is the same as the saved line.
+          while (!comLine.isNull() && i < mSaveCheckFileLines.size() && comLine
+              == mSaveCheckFileLines.at(i)) {
+            comLine = stream.readLine();
+            i++;
+          }
+          //Remove lines that are different - that's where it will start reading the new file.
+          if (i == 0) {
+            mSaveCheckFileLines.clear();
+          }
+          else {
+            int j;
+            for (j = i; j < mSaveCheckFileLines.size(); j++) {
+              mSaveCheckFileLines.removeAt(j);
+            }
+          }
+        }
+        //Process the lines in the check file.
         while (!comLine.isNull()) {
+          mSaveCheckFileLines.append(comLine);
           mAns = comLine.at(0).toUpper().toLatin1();
           if (mAns == 'D' && comLine.size() > 1) {
             //machine name(s) are required
@@ -1112,6 +1141,10 @@ bool Processchunks::readCheckFile() {
             *mOutStream << "BAD COMMAND IGNORED: " << comLine << endl;
           }
           comLine = stream.readLine();
+        }
+        if (mCheckFileReconnect <= 0) {
+          mCheckFile->close();
+          mCheckFileReconnect = checkFileReconnectReset;
         }
       }
     }
@@ -1582,6 +1615,9 @@ bool Processchunks::isVerbose(const QString &verboseClass, const QString verbose
 
 /*
  $Log$
+ Revision 1.75  2011/08/13 02:24:39  sueh
+ Bug# 1528 Deleted most of the verbose prints.
+
  Revision 1.74  2011/07/29 04:18:55  sueh
  Bug# 1492 In timerEvent change the verbosity level to 2 for an output
  which goes out when the timer goes off.
