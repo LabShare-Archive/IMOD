@@ -227,9 +227,10 @@ private:
 
   //loop
   int mNumDone, mLastNumDone, mHoldCrit, mTimerId, mFirstUndoneIndex, mNextSyncIndex,
-      mSyncing;
+      mSyncing, mCheckFileReconnect;
   bool mPausing, mAnyDone;
   char mAns;
+  QStringList mSaveCheckFileLines;
 
   //killing processes
   bool mKill;
@@ -245,6 +246,9 @@ private:
 
 /*
  $Log$
+ Revision 1.34  2011/02/19 04:00:48  mast
+ This time really do include <typeinfo> for fedora 12 compile
+
  Revision 1.33  2011/02/03 23:40:17  sueh
  bug# 1426 return the correct exit code.
 
