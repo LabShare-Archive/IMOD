@@ -60,6 +60,13 @@ The number attribute is necessary if you have a computer with multiple
 processors.  If you do not enter this attribute, a single processor is assumed.
 
 .TP
+.B gpu\fR[\fB.local\fR]\fB = 1
+This attribute means that the GPU (graphics processing unit) of a video card installed in
+this computer is available for running compatible IMOD processes.  If the \fBlocal\fR
+modifier is used, then the GPU is only available to an eTomo that is being run on this
+computer.  Only video cards with CUDA can be used in this way.
+
+.TP
 .B type = \fICPU_type
 This attribute goes into the table under the heading \fBCPU Type\fR and can
 contain a description of the computer's processor.
