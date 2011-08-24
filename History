@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/23/11: Added gpu information to the cpuadoc man page.
+
 8/22/11: Changed processchunks so that it closes and reopens the check file.
 This prevents problems caused by replacing the check file.  Modified eTomo so
 that it no longer deletes the check file, which is already being done by
