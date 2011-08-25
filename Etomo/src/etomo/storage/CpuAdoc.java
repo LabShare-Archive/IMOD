@@ -64,8 +64,8 @@ public class CpuAdoc {
   private boolean usersColumn = false;
   private String speedUnits = "";
   private String memoryUnits = "";
-  private String gpuSpeedUnits = "";
-  private String gpuMemoryUnits = "";
+  private String gpuSpeedUnits = "";//Not in use - has not been added to cpuadoc man page
+  private String gpuMemoryUnits = "";//Not in use - has not been added to cpuadoc man page
   private String[] loadUnits = new String[0];
   private boolean envVar = false;
   private boolean userConfig = false;
@@ -420,6 +420,9 @@ public class CpuAdoc {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.23  2011/06/28 21:09:37  sueh
+ * <p> Bug# 1480 Added isGpuComputerListEmpty.
+ * <p>
  * <p> Revision 1.22  2011/06/23 14:59:11  sueh
  * <p> Bug# 1495 In getLocalHostComputer added a search for "localhost".
  * <p>
