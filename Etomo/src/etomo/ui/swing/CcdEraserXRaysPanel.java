@@ -75,8 +75,6 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
       "Boundary replacement list: ");
   private final Run3dmodButton btnCreateModel = Run3dmodButton.get3dmodInstance(
       "Create Manual Replacement Model", this);
-  private final LabeledTextField ltfInputImage = new LabeledTextField("Input file: ");
-  private final LabeledTextField ltfOutputImage = new LabeledTextField("Output file: ");
   private final LabeledTextField ltfBorderPixels = new LabeledTextField("Border pixels: ");
   private final LabeledTextField ltfPolynomialOrder = new LabeledTextField(
       "Polynomial order: ");
@@ -163,8 +161,6 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     pnlCCDEraser.setLayout(new BoxLayout(pnlCCDEraser, BoxLayout.Y_AXIS));
     UIUtilities.addWithYSpace(pnlCCDEraser, pnlXRayReplacement);
     UIUtilities.addWithYSpace(pnlCCDEraser, pnlManualReplacement);
-    UIUtilities.addWithYSpace(pnlCCDEraser, ltfInputImage.getContainer());
-    UIUtilities.addWithYSpace(pnlCCDEraser, ltfOutputImage.getContainer());
     UIUtilities.addWithYSpace(pnlCCDEraser, ltfBorderPixels.getContainer());
     UIUtilities.addWithYSpace(pnlCCDEraser, ltfPolynomialOrder.getContainer());
     UIUtilities.addWithYSpace(pnlCCDEraser, cbIncludeAdjacentPoints);
@@ -242,9 +238,6 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
    * @param ccdEraserParams
    */
   void setParameters(final ConstCCDEraserParam ccdEraserParams) {
-    ltfInputImage.setText(ccdEraserParams.getInputFile());
-    ltfOutputImage.setText(ccdEraserParams.getOutputFile());
-
     cbXrayReplacement.setSelected(ccdEraserParams.isFindPeaks());
     ltfPeakCriterion.setText(ccdEraserParams.getPeakCriterion());
     ltfDiffCriterion.setText(ccdEraserParams.getDiffCriterion());
@@ -292,8 +285,6 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     ccdEraserParams.setAnnulusWidth(ltfAnnulusWidth.getText());
     ccdEraserParams.setXyScanSize(ltfScanRegionSize.getText());
     ccdEraserParams.setEdgeExclusion(ltfEdgeExclusion.getText());
-    ccdEraserParams.setInputFile(ltfInputImage.getText());
-    ccdEraserParams.setOutputFile(ltfOutputImage.getText());
     ccdEraserParams.setGlobalReplacementList(ltfGlobalReplacementList.getText());
     ccdEraserParams.setLocalReplacementList(ltfLocalReplacementList.getText());
     ccdEraserParams.setBoundaryReplacementList(ltfBoundaryReplacementList.getText());
@@ -333,8 +324,6 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     ltfBorderPixels.setVisible(state);
     ltfPolynomialOrder.setVisible(state);
     cbIncludeAdjacentPoints.setVisible(state);
-    ltfInputImage.setVisible(state);
-    ltfOutputImage.setVisible(state);
   }
 
   public void expand(GlobalExpandButton button) {
@@ -454,10 +443,6 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     catch (LogFile.LockException except) {
       except.printStackTrace();
     }
-    ltfInputImage.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        CCDEraserParam.INPUT_FILE_KEY));
-    ltfOutputImage.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        CCDEraserParam.OUTPUT_FILE_KEY));
     cbXrayReplacement.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         CCDEraserParam.FIND_PEAKS_KEY));
     ltfPeakCriterion.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
@@ -533,6 +518,9 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
 
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2011/02/21 17:50:15  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.2  2010/12/05 04:56:37  sueh
  * <p> bug# 1420 Moved ProcessResultDisplayFactory to etomo.ui.swing package.  Removed static button construction functions.
  * <p>
