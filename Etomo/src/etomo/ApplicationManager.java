@@ -875,8 +875,8 @@ public final class ApplicationManager extends BaseManager implements
     }
     try {
       if (metaData.getViewType() == ViewType.MONTAGE) {
-        //imodManager.setPieceListFileName(ImodManager.ERASED_STACK_KEY, axisID,
-        //    metaData.getDatasetName() + axisID.getExtension() + ".pl");
+        // imodManager.setPieceListFileName(ImodManager.ERASED_STACK_KEY, axisID,
+        // metaData.getDatasetName() + axisID.getExtension() + ".pl");
         imodManager.setFrames(ImodManager.ERASED_STACK_KEY, axisID, true);
       }
       File tiltFile = DatasetFiles.getRawTiltFile(this, axisID);
@@ -7167,6 +7167,12 @@ public final class ApplicationManager extends BaseManager implements
     if (isAxisBusy(axisID, processResultDisplay)) {
       return;
     }
+    File raptorDatasetFile = DatasetFiles.getRaptorFiducialModel(this, axisID);
+    if (!raptorDatasetFile.exists()) {
+      uiHarness.openMessageDialog(this, raptorDatasetFile.getName() + " does not exist",
+          "Entry Error", axisID);
+      return;
+    }
     mainPanel.setProgressBar("Using RAPTOR result as fiducial model", 1, axisID);
     processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
     // Back up .fid file
@@ -7186,14 +7192,13 @@ public final class ApplicationManager extends BaseManager implements
     // Rename _raptor.fid file
     LogFile raptorFile = null;
     try {
-      raptorFile = LogFile.getInstance(DatasetFiles.getRaptorFiducialModel(this, axisID));
+      raptorFile = LogFile.getInstance(raptorDatasetFile);
       raptorFile.move(fidFile);
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(this,
-          "Unable to rename " + DatasetFiles.getRaptorFiducialModelName(this, axisID),
-          "File Error");
+          "Unable to rename " + raptorDatasetFile.getName(), "File Error");
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
@@ -8094,6 +8099,10 @@ public final class ApplicationManager extends BaseManager implements
 /**
  * <p>
  * $Log$
+ * Revision 3.380  2011/08/25 04:40:56  sueh
+ * Bug# 1530 in imodErasedStack, for montages no longer setting the piece list file - instead setting
+ * frames.
+ *
  * Revision 3.379  2011/08/19 04:28:17  sueh
  * Bug# 1539 Set validate to true when running newst or blendmont.  Handle updateCom for
  * blendmont returning null.
