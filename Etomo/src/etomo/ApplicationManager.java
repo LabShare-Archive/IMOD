@@ -875,8 +875,9 @@ public final class ApplicationManager extends BaseManager implements
     }
     try {
       if (metaData.getViewType() == ViewType.MONTAGE) {
-        imodManager.setPieceListFileName(ImodManager.ERASED_STACK_KEY, axisID,
-            metaData.getDatasetName() + axisID.getExtension() + ".pl");
+        //imodManager.setPieceListFileName(ImodManager.ERASED_STACK_KEY, axisID,
+        //    metaData.getDatasetName() + axisID.getExtension() + ".pl");
+        imodManager.setFrames(ImodManager.ERASED_STACK_KEY, axisID, true);
       }
       File tiltFile = DatasetFiles.getRawTiltFile(this, axisID);
       if (tiltFile.exists()) {
@@ -8093,6 +8094,10 @@ public final class ApplicationManager extends BaseManager implements
 /**
  * <p>
  * $Log$
+ * Revision 3.379  2011/08/19 04:28:17  sueh
+ * Bug# 1539 Set validate to true when running newst or blendmont.  Handle updateCom for
+ * blendmont returning null.
+ *
  * Revision 3.378  2011/07/26 22:08:01  sueh
  * Bug# 1523 In sirtsetup copying from tilt_for_sirt.com to tilt.com before running sirtsetup.
  *
