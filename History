@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/25/11: In eTomo - Fiducial Model, fixed "Use Raptor...", so that it fails
+when there is no Raptor output file available.(Bug# 1532)
+
 8/24/11: In eTomo - Preprocessing, opening montaged fixed stacks in frames
 rather then montaged together so that the clip stats output will be more
 useful.(Bug# 1530)
