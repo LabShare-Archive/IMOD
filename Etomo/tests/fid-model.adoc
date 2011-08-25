@@ -391,3 +391,6 @@ bn.open-raptor-model-in-3dmod=
 bn.use-raptor-result-as-fiducial-model=
 assert.not-exists.file=%{dataset}%{axis}_raptor.fid
 assert.exists.file=%{dataset}%{axis}.fid
+bn.use-raptor-result-as-fiducial-model=
+wait.popup.entry-error=OK
+
