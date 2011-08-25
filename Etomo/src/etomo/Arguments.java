@@ -23,6 +23,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2011/02/10 04:30:49  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.13  2010/10/13 20:17:21  sueh
  * <p> bug# 1392 Added ignoreSettings.  Added another suptopic in the help
  * <p> mesage.
@@ -91,45 +94,85 @@ public final class Arguments {
   private static final String AUTO_CLOSE_3DMOD_TAG = "--autoclose3dmod";
   private static final String IGNORE_LOC_TAG = "--ignoreloc";
   private static final String IGNORE_SETTINGS_TAG = "--ignoresettings";
+  private static final String ACTIONS_TAG = "--actions";
 
-  static final String HELP_MESSAGE = "Options:\n  " + HELP1_TAG + ", " + HELP2_TAG
-      + "\tSend this message to standard out and exit." + "\n\n  " + LISTEN_TAG
+  static final String HELP_MESSAGE = "Options:\n  "
+      + HELP1_TAG
+      + ", "
+      + HELP2_TAG
+      + "\tSend this message to standard out and exit."
+      + "\n\n  "
+      + LISTEN_TAG
       + "\tForces all 3dmods to be run with the -L option.  This only has an "
       + "\n\t\teffect on Windows computers because -L is always used on Linux "
-      + "\n\t\tand Mac." + "\n\n  " + TIMESTAMP_TAG
+      + "\n\t\tand Mac."
+      + "\n\n  "
+      + TIMESTAMP_TAG
       + "\tSend timestamps to standard error before and after processes are run."
-      + "\n\n" + "Automation Options:\n  " + FG_TAG
+      + "\n\n"
+      + "Automation Options:\n  "
+      + FG_TAG
       + "\t\tUsed with automation.  Must be the first option.  Causes Etomo to "
       + "\n\t\tbe run in the foreground rather then in the background.  This is "
       + "\n\t\tuseful when running Etomo with automation from a script; a "
       + "\n\t\tscript will not wait until Etomo is done unless Etomo is running "
-      + "\n\t\tin the foreground." + "\n\n  " + AXIS_TAG + " "
-      + AxisType.SINGLE_AXIS.getValue() + "|" + AxisType.DUAL_AXIS.getValue()
+      + "\n\t\tin the foreground."
+      + "\n\n  "
+      + AXIS_TAG
+      + " "
+      + AxisType.SINGLE_AXIS.getValue()
+      + "|"
+      + AxisType.DUAL_AXIS.getValue()
       + "\n\t\tFor automation.  Sets the Axis Type in the Setup Tomogram dialog."
-      + "\n\n  " + CREATE_TAG
+      + "\n\n  "
+      + CREATE_TAG
       + "\tFor automation.  Runs Create Com Scripts in the Setup Tomogram "
-      + "\n\t\tdialog." + "\n\n  " + DATASET_TAG + " tilt_series_file|dataset_name"
+      + "\n\t\tdialog."
+      + "\n\n  "
+      + DATASET_TAG
+      + " tilt_series_file|dataset_name"
       + "\n\t\tFor automation.  Sets Dataset Name in the Setup  Tomogram dialog.  "
       + "\n\t\tCan be set to a file containing a tilt series or to the dataset "
       + "\n\t\tname.  A dataset name is the root name of the tilt series file, "
       + "\n\t\texcluding the extension - and the axis extension (\"a\" or \"b\") "
       + "\n\t\tin the case of dual axis.  Must be in the local directory "
-      + "\n\t\tunless the " + DIR_TAG + " option is used." + "\n\n  " + DIR_TAG
+      + "\n\t\tunless the "
+      + DIR_TAG
+      + " option is used."
+      + "\n\n  "
+      + DIR_TAG
       + " \"directory_path\""
       + "\n\t\tFor automation.  The absolute or relative directory containing "
-      + "\n\t\tthe file or dataset specified with the " + DATASET_TAG + " option."
-      + "\n\n  " + EXIT_TAG
+      + "\n\t\tthe file or dataset specified with the "
+      + DATASET_TAG
+      + " option."
+      + "\n\n  "
+      + EXIT_TAG
       + "\tFor automation.  Causes Etomo to exit after the Setup Tomogram "
-      + "\n\t\tdialog is completed." + "\n\n  " + FIDUCIAL_TAG + " fiducial_diameter"
+      + "\n\t\tdialog is completed."
+      + "\n\n  "
+      + FIDUCIAL_TAG
+      + " fiducial_diameter"
       + "\n\t\tFor automation.  Sets the Fiducial Diameter (a double) in the "
-      + "\n\t\tSetup Tomogram dialog." + "\n\n  " + FRAME_TAG + " "
-      + ViewType.SINGLE_VIEW.getValue() + "|" + ViewType.MONTAGE.getValue()
+      + "\n\t\tSetup Tomogram dialog."
+      + "\n\n  "
+      + FRAME_TAG
+      + " "
+      + ViewType.SINGLE_VIEW.getValue()
+      + "|"
+      + ViewType.MONTAGE.getValue()
       + "\n\t\tFor automation.  Sets the Frame Type in the Setup Tomogram "
-      + "\n\t\tdialog." + "\n\n  " + SCAN_TAG
-      + "\tFor automation.  Runs Scan Header in the Setup Tomogram dialog." + "\n\n"
-      + "Diagnostic Options:\n  " + DEBUG_TAG + " [level]"
-      + "\n\t\tSend extra information to standard error.  The " + DEBUG_TAG + " option"
-      + "\n\t\tincludes the following options:  " + MEMORY_TAG + " and " + TIMESTAMP_TAG
+      + "\n\t\tdialog."
+      + "\n\n  "
+      + SCAN_TAG
+      + "\tFor automation.  Runs Scan Header in the Setup Tomogram dialog."
+      + "\n\n"
+      + "Diagnostic Options:\n  "
+      + ACTIONS_TAG
+      + "\tPrint most actions and file names, without printing other debug\n\t\tinformation.\n\n  "
+      + DEBUG_TAG + " [level]" + "\n\t\tSend extra information to standard error.  The "
+      + DEBUG_TAG + " option" + "\n\t\tincludes the following options:  " + MEMORY_TAG
+      + " and " + TIMESTAMP_TAG
       + ".\n\t\tLevel can be 0 (debug is off), 1 (default) or 2 (more "
       + "\n\t\tinformation)." + "\n\n  " + IGNORE_SETTINGS_TAG
       + "\n\t\tPrevents the .etomo from loading from and saving to the .etomo "
