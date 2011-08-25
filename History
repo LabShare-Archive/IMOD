@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/24/11: Removed fields for input and output files in Pre-processing.
+
 8/23/11: Added gpu information to the cpuadoc man page.
 
 8/22/11: Changed processchunks so that it closes and reopens the check file.
