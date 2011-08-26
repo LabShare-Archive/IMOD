@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/25/11: In eTomo - Coarse Alignment, fixed the process monitor for generating
+the coarse aligned stack to that it works when the stack is not converted to
+bytes.(Bug# 1536)
+
 8/25/11: In eTomo - Fiducial Model, fixed "Use Raptor...", so that it fails
 when there is no Raptor output file available.(Bug# 1532)
 
