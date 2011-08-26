@@ -249,7 +249,7 @@ copy.file=%{dataset}_flat.mod
 [function = smoothing-asessment]
 [[if = test-gui]]
 	#check values
-	assert.tf.smoothing-factors-to-try=2,2.5,3,3.5,4
+	assert.tf.smoothing-factors-to-try=1,1.5,2,2.5,3
 	assert.bn.run-flattenwarp-to-assess-smoothing=off
 [[]]
 #check enabled/disabled
