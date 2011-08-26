@@ -60,6 +60,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.6  2011/07/19 20:01:14  sueh
+ * <p> Bug# 1459 Wrapped checkboxes in a panel and used glue to left justify them.  Prevented spinners
+ * <p> which have a value when they are first displayed from going all the way to the right.
+ * <p>
  * <p> Revision 1.5  2011/06/21 18:07:49  sueh
  * <p> Bug# 1490 In CheckBoxSpinner, changed spinner to a Spinner type (from JSpinner), so it will work with
  * <p> the UITests.
@@ -570,7 +574,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   private LabeledSpinner spinUseEveryNSlices;
   private LabeledSpinner spinRejoinUseEveryNSlices;
 
-  //state
+  // state
   private int numSections = 0;
   private Tab curTab = Tab.SETUP;
   private String invalidReason = null;
@@ -792,9 +796,9 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
    */
   private void createTabPane(String workingDirName) {
     tabPane = new TabbedPane();
-    //tabPane.addMouseListener(new GenericMouseAdapter(this));
-    //TabChangeListener tabChangeListener = new TabChangeListener(this);
-    //tabPane.addChangeListener(tabChangeListener);
+    // tabPane.addMouseListener(new GenericMouseAdapter(this));
+    // TabChangeListener tabChangeListener = new TabChangeListener(this);
+    // tabPane.addChangeListener(tabChangeListener);
     createSetupPanel(workingDirName);
     tabPane.addTab("Setup", pnlSetupTab);
     createAlignPanel();
@@ -810,10 +814,10 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   }
 
   public void updateDisplay() {
-    //must be refining join to have access to model and rejoin tabs
+    // must be refining join to have access to model and rejoin tabs
     tabPane.setEnabledAt(Tab.MODEL.getIndex(), refiningJoin);
     tabPane.setEnabledAt(Tab.REJOIN.getIndex(), refiningJoin);
-    //control gap text fields with checkbox
+    // control gap text fields with checkbox
     boolean enable = cbGap.isSelected();
     ltfGapStart.setEnabled(enable);
     ltfGapStart.setTextPreferredWidth(UIParameters.INSTANCE.getIntegerWidth());
@@ -821,15 +825,15 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     ltfGapEnd.setTextPreferredWidth(UIParameters.INSTANCE.getIntegerWidth());
     ltfGapInc.setEnabled(enable);
     ltfGapInc.setTextPreferredWidth(UIParameters.INSTANCE.getIntegerWidth());
-    //.join file must exist before it can be opened
+    // .join file must exist before it can be opened
     enable = DatasetFiles.getJoinFile(false, manager).exists();
     b3bOpenRejoinWithModel.setEnabled(enable);
     b3bOpenRejoin.setEnabled(enable);
-    //Need boundary list to transform model
+    // Need boundary list to transform model
     enable = !state.isRefineStartListEmpty();
     btnTransformModel.setEnabled(enable);
-    //Can't only refine if a join exists
-    //A trial join is only refinable if it was created with all slices
+    // Can't only refine if a join exists
+    // A trial join is only refinable if it was created with all slices
     boolean trialJoinRefinable = DatasetFiles.getJoinFile(true, manager).exists()
         && state.getJoinTrialUseEveryNSlices().equals(1);
     cbRefineWithTrial.setEnabled(trialJoinRefinable);
@@ -1033,35 +1037,35 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
 
   private void createSetupPanel(String workingDirName) {
     pnlSetupTab.setBoxLayout(BoxLayout.Y_AXIS);
-    //first component
+    // first component
     ftfWorkingDir = new FileTextField(WORKING_DIRECTORY_TEXT + ": ");
     ftfWorkingDir.setText(workingDirName);
-    //second component
+    // second component
     ltfRootName = new LabeledTextField("Root name for output file: ");
-    //third component    
+    // third component
     pnlSectionTable = new SectionTablePanel(this, manager, state);
-    //midas limit panel
+    // midas limit panel
     pnlMidasLimit.setBoxLayout(BoxLayout.X_AXIS);
     pnlMidasLimit.add(ltfMidasLimit.getContainer());
     pnlMidasLimit.add(lblMidasLimit);
-    //fifth component
+    // fifth component
     SpinnerNumberModel spinnerModel = new SpinnerNumberModel(1, 1, numSections < 1 ? 1
         : numSections, 1);
     spinDensityRefSection = new LabeledSpinner(
         "Reference section for density matching: ", spinnerModel, 1);
-    //sixth component
+    // sixth component
     setupPanel2 = SpacedPanel.getInstance();
     setupPanel2.setBoxLayout(BoxLayout.X_AXIS);
     btnChangeSetup = new MultiLineButton("Change Setup");
-    //btnChangeSetup.addActionListener(joinActionListener);
+    // btnChangeSetup.addActionListener(joinActionListener);
     btnChangeSetup.setSize();
     setupPanel2.add(btnChangeSetup);
     btnRevertToLastSetup = new MultiLineButton("Revert to Last Setup");
     setRevertState(true);
-    //btnRevertToLastSetup.addActionListener(joinActionListener);
+    // btnRevertToLastSetup.addActionListener(joinActionListener);
     btnRevertToLastSetup.setSize();
     setupPanel2.add(btnRevertToLastSetup);
-    //seventh component
+    // seventh component
     btnMakeSamples.setDeferred3dmodButton(btnOpenSampleAverages);
     btnMakeSamples.setSize();
     btnMakeSamples.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -1074,7 +1078,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlSectionTable.displayCurTab();
     pnlSetupTab.add(pnlMidasLimit);
     JPanel pnlDensityRefSection = new JPanel();
-    pnlDensityRefSection.setLayout(new BoxLayout(pnlDensityRefSection,BoxLayout.X_AXIS));
+    pnlDensityRefSection.setLayout(new BoxLayout(pnlDensityRefSection, BoxLayout.X_AXIS));
     pnlDensityRefSection.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlDensityRefSection.add(spinDensityRefSection.getContainer());
     pnlDensityRefSection.add(Box.createHorizontalGlue());
@@ -1087,7 +1091,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
 
   private void createAlignPanel() {
     pnlAlignTab.setBoxLayout(BoxLayout.Y_AXIS);
-    //second component
+    // second component
     alignPanel1 = SpacedPanel.getInstance();
     alignPanel1.setBoxLayout(BoxLayout.X_AXIS);
     btnOpenSample = Run3dmodButton.get3dmodInstance("Open Sample in 3dmod", this);
@@ -1095,7 +1099,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     alignPanel1.add(btnOpenSample);
     btnOpenSampleAverages.setSize();
     alignPanel1.add(btnOpenSampleAverages);
-    //third componentadd
+    // third componentadd
     pnlXfalign = SpacedPanel.getInstance();
     pnlXfalign.setBoxLayout(BoxLayout.Y_AXIS);
     pnlXfalign.setBorder(new EtchedBorder("Auto Alignment Parameters").getBorder());
@@ -1106,7 +1110,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     ltfSigmaHighFrequency = new LabeledTextField("Sigma for high-frequency filter: ");
     pnlXfalign.add(ltfSigmaHighFrequency);
     pnlXfalign.add(tcAlign.getContainer());
-    //fourth component
+    // fourth component
     alignPanel2 = SpacedPanel.getInstance();
     alignPanel2.setBoxLayout(BoxLayout.X_AXIS);
     SpacedPanel alignPanel2A = SpacedPanel.getInstance();
@@ -1123,45 +1127,45 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     alignPanel2.add(alignPanel2A);
     SpacedPanel alignPanel2B = SpacedPanel.getInstance();
     alignPanel2B.setBoxLayout(BoxLayout.Y_AXIS);
-    //alignPanel2B.setBorder(BorderFactory.createEtchedBorder());
+    // alignPanel2B.setBorder(BorderFactory.createEtchedBorder());
     btnRevertToMidas = new MultiLineButton("Revert Auto Alignment to Midas");
-    //btnRevertToMidas.addActionListener(joinActionListener);
+    // btnRevertToMidas.addActionListener(joinActionListener);
     btnRevertToMidas.setSize();
     alignPanel2B.add(btnRevertToMidas);
     btnRevertToEmpty = new MultiLineButton("Revert to No Transforms");
-    //btnRevertToEmpty.addActionListener(joinActionListener);
+    // btnRevertToEmpty.addActionListener(joinActionListener);
     btnRevertToEmpty.setSize();
     alignPanel2B.add(btnRevertToEmpty);
     alignPanel2.add(alignPanel2B);
   }
 
   private void addAlignPanelComponents() {
-    //first component
+    // first component
     pnlAlignTab.add(pnlSectionTable.getRootPanel());
     pnlSectionTable.displayCurTab();
-    //second component
+    // second component
     pnlAlignTab.add(alignPanel1);
-    //third component
+    // third component
     pnlAlignTab.add(pnlXfalign);
-    //fourth component
+    // fourth component
     pnlAlignTab.add(alignPanel2);
   }
 
   private void createModelPanel() {
-    //create model panel only once
+    // create model panel only once
     if (pnlTransformations != null) {
       return;
     }
-    //construct panels
+    // construct panels
     pnlTransformations = SpacedPanel.getInstance();
     SpacedPanel pnlGapStartEndInc = SpacedPanel.getInstance();
     SpacedPanel pnlPointsToFit = SpacedPanel.getInstance();
-    //initialize
+    // initialize
     btnRefineJoin.setSize();
-    //build panels
+    // build panels
     pnlModelTab.setBoxLayout(BoxLayout.Y_AXIS);
     pnlModelTab.alignComponentsX(Component.CENTER_ALIGNMENT);
-    //transformations panel
+    // transformations panel
     pnlTransformations.setBoxLayout(BoxLayout.Y_AXIS);
     pnlTransformations.setBorder(new EtchedBorder("Transformations").getBorder());
     tcModel.includeTranslation();
@@ -1172,7 +1176,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlTransformations.add(pnlPointsToFit);
     btnXfjointomo.setSize();
     JPanel pnlXfjointomo = new JPanel();
-    pnlXfjointomo.setLayout(new BoxLayout(pnlXfjointomo,BoxLayout.X_AXIS));
+    pnlXfjointomo.setLayout(new BoxLayout(pnlXfjointomo, BoxLayout.X_AXIS));
     pnlXfjointomo.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlXfjointomo.add(Box.createHorizontalGlue());
     pnlXfjointomo.add(btnXfjointomo.getComponent());
@@ -1181,19 +1185,20 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlTransformations.add(Box.createRigidArea(FixedDim.x0_y5));
     btnTransformAndViewModel.setSize();
     JPanel pnlTransformAndViewModel = new JPanel();
-    pnlTransformAndViewModel.setLayout(new BoxLayout(pnlTransformAndViewModel,BoxLayout.X_AXIS));
+    pnlTransformAndViewModel.setLayout(new BoxLayout(pnlTransformAndViewModel,
+        BoxLayout.X_AXIS));
     pnlTransformAndViewModel.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlTransformAndViewModel.add(Box.createHorizontalGlue());
     pnlTransformAndViewModel.add(btnTransformAndViewModel.getComponent());
     pnlTransformAndViewModel.add(Box.createHorizontalGlue());
     pnlTransformations.add(pnlTransformAndViewModel);
-    //gap panel
+    // gap panel
     pnlGapStartEndInc.setBoxLayout(BoxLayout.X_AXIS);
     pnlGapStartEndInc.add(cbGap);
     pnlGapStartEndInc.add(ltfGapStart);
     pnlGapStartEndInc.add(ltfGapEnd);
     pnlGapStartEndInc.add(ltfGapInc.getContainer());
-    //points to fit panel
+    // points to fit panel
     pnlPointsToFit.setBoxLayout(BoxLayout.X_AXIS);
     pnlPointsToFit.add(new JLabel("Points to fit: "));
     pnlPointsToFit.add(ltfPointsToFitMin);
@@ -1228,7 +1233,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlTables.setLayout(new BoxLayout(pnlTables, BoxLayout.X_AXIS));
     pnlRejoin = new JPanel();
     pnlRejoin.setLayout(new BoxLayout(pnlRejoin, BoxLayout.Y_AXIS));
-    //use every spinner
+    // use every spinner
     SpacedPanel pnlUseEvery = SpacedPanel.getInstance();
     pnlUseEvery.setBoxLayout(BoxLayout.X_AXIS);
     int zMax = pnlSectionTable.getZMax();
@@ -1239,7 +1244,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
         currentValue);
     pnlUseEvery.add(spinRejoinUseEveryNSlices);
     pnlUseEvery.add(new JLabel("slices"));
-    //trial rejoin button
+    // trial rejoin button
     SpacedPanel pnlTrialRejoinButton = SpacedPanel.getInstance();
     pnlTrialRejoinButton.setBoxLayout(BoxLayout.Y_AXIS);
     pnlTrialRejoinButton.setBorder(BorderFactory.createEtchedBorder());
@@ -1251,7 +1256,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     btnTrialRejoin.setAlignmentX(Component.CENTER_ALIGNMENT);
     btnTrialRejoin.setSize();
     pnlTrialRejoinButton.add(btnTrialRejoin);
-    //trial rejoin buttons
+    // trial rejoin buttons
     EtomoPanel pnlTrialRejoinButtons = new EtomoPanel();
     pnlTrialRejoinButtons
         .setLayout(new BoxLayout(pnlTrialRejoinButtons, BoxLayout.X_AXIS));
@@ -1260,7 +1265,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlTrialRejoinButtons.add(pnlTrialRejoinButton.getContainer());
     pnlTrialRejoinButtons.add(b3bOpenTrialRejoin.getContainer());
     pnlRejoin.add(pnlTrialRejoinButtons);
-    //rejoin buttons
+    // rejoin buttons
     EtomoPanel pnlRejoinButtons = new EtomoPanel();
     pnlRejoinButtons.setLayout(new BoxLayout(pnlRejoinButtons, BoxLayout.X_AXIS));
     pnlRejoinButtons.setBorder(new EtchedBorder("Final Rejoin").getBorder());
@@ -1270,7 +1275,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     btnRejoin.setSize();
     pnlRejoinButtons.add(b3bOpenRejoin.getContainer());
     pnlRejoin.add(pnlRejoinButtons);
-    //transform model
+    // transform model
     SpacedPanel pnlTransformModel = SpacedPanel.getInstance();
     pnlTransformModel.setBoxLayout(BoxLayout.Y_AXIS);
     pnlTransformModel.setBorder(new EtchedBorder("Transform Model").getBorder());
@@ -1278,7 +1283,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlTransformModel.add(ftfModelFile.getContainer());
     ltfTransformedModel = new LabeledTextField("Output file: ");
     pnlTransformModel.add(ltfTransformedModel.getContainer());
-    //transform model buttons
+    // transform model buttons
     JPanel pnlTransformModelButtons = new JPanel();
     pnlTransformModelButtons.setLayout(new BoxLayout(pnlTransformModelButtons,
         BoxLayout.X_AXIS));
@@ -1293,15 +1298,15 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
 
   private void createJoinPanel() {
     pnlJoinTab.setBoxLayout(BoxLayout.X_AXIS);
-    //second component
+    // second component
     createFinishJoinPanel();
   }
 
   private void addJoinPanelComponents() {
-    //first component
+    // first component
     pnlJoinTab.add(pnlSectionTable.getRootPanel());
     pnlSectionTable.displayCurTab();
-    //second component
+    // second component
     pnlJoinTab.add(pnlFinishJoin);
   }
 
@@ -1310,18 +1315,18 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlFinishJoin.setBoxLayout(BoxLayout.Y_AXIS);
     pnlFinishJoin.setBorder(BorderFactory.createEtchedBorder());
     pnlFinishJoin.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
-    //first component
+    // first component
     cbsAlignmentRefSection = new CheckBoxSpinner("Reference section for alignment: ");
     SpinnerNumberModel spinnerModel = new SpinnerNumberModel(1, 1, numSections < 1 ? 1
         : numSections, 1);
     cbsAlignmentRefSection.setModel(spinnerModel);
     cbsAlignmentRefSection.setMaximumSize(dimSpinner);
     pnlFinishJoin.add(cbsAlignmentRefSection.getContainer());
-    //second component
+    // second component
     btnGetMaxSize = new MultiLineButton(GET_MAX_SIZE_TEXT);
     btnGetMaxSize.setSize();
     pnlFinishJoin.add(btnGetMaxSize);
-    //third component
+    // third component
     SpacedPanel finishJoinPanel2 = SpacedPanel.getInstance();
     finishJoinPanel2.setBoxLayout(BoxLayout.X_AXIS);
     ltfSizeInX = new LabeledTextField("Size in X: ");
@@ -1329,7 +1334,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     ltfSizeInY = new LabeledTextField("Y: ");
     finishJoinPanel2.add(ltfSizeInY);
     pnlFinishJoin.add(finishJoinPanel2);
-    //fourth component
+    // fourth component
     SpacedPanel finishJoinPanel3 = SpacedPanel.getInstance();
     finishJoinPanel3.setBoxLayout(BoxLayout.X_AXIS);
     ltfShiftInX = new LabeledTextField("Shift in X: ");
@@ -1343,17 +1348,17 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlLocalFits.add(cbLocalFits);
     pnlLocalFits.add(Box.createHorizontalGlue());
     pnlFinishJoin.add(pnlLocalFits);
-    //fifth component
+    // fifth component
     createTrialJoinPanel();
-    //sixth component
+    // sixth component
     btnFinishJoin.setDeferred3dmodButton(b3bOpenIn3dmod);
     btnFinishJoin.setSize();
     pnlFinishJoin.add(btnFinishJoin);
-    //seventh component
+    // seventh component
     b3bOpenIn3dmod
         .setSpinnerToolTipText("The binning to use when opening the joined tomogram in 3dmod.");
     pnlFinishJoin.add(b3bOpenIn3dmod.getContainer());
-    //eight component
+    // eight component
     JPanel pnlRefineWithTrial = new JPanel();
     pnlRefineWithTrial.setLayout(new BoxLayout(pnlRefineWithTrial, BoxLayout.X_AXIS));
     pnlRefineWithTrial.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -1369,7 +1374,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlTrialJoin.setBoxLayout(BoxLayout.Y_AXIS);
     pnlTrialJoin.setBorder(new EtchedBorder(TRIAL_JOIN_TEXT).getBorder());
     pnlTrialJoin.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
-    //first component
+    // first component
     SpacedPanel trialJoinPanel1 = SpacedPanel.getInstance();
     trialJoinPanel1.setBoxLayout(BoxLayout.X_AXIS);
     int zMax = pnlSectionTable.getZMax();
@@ -1380,19 +1385,19 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     trialJoinPanel1.add(spinUseEveryNSlices);
     trialJoinPanel1.add(new JLabel("slices"));
     pnlTrialJoin.add(trialJoinPanel1);
-    //second component
+    // second component
     spinnerModel = new SpinnerNumberModel(1, 1, 50, 1);
     spinTrialBinning = new LabeledSpinner("Binning in X and Y: ", spinnerModel, 1);
     pnlTrialJoin.add(spinTrialBinning);
-    //third component
+    // third component
     btnTrialJoin.setDeferred3dmodButton(b3bOpenTrialIn3dmod);
     btnTrialJoin.setSize();
     pnlTrialJoin.add(btnTrialJoin);
-    //fourth component
+    // fourth component
     b3bOpenTrialIn3dmod
         .setSpinnerToolTipText("The binning to use when opening the trial joined tomogram in 3dmod.");
     pnlTrialJoin.add(b3bOpenTrialIn3dmod.getContainer());
-    //fifth component
+    // fifth component
     btnGetSubarea = new MultiLineButton("Get Subarea Size And Shift");
     btnGetSubarea.setSize();
     pnlTrialJoin.add(btnGetSubarea);
@@ -1410,19 +1415,19 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
    */
   void setNumSections(int numSections) {
     this.numSections = numSections;
-    //density matching (setup)
+    // density matching (setup)
     EtomoNumber spinnerValue = new EtomoNumber(EtomoNumber.Type.INTEGER);
     spinnerValue.set(spinDensityRefSection.getValue());
     spinnerValue.setDisplayValue(1);
     SpinnerNumberModel spinnerModel = new SpinnerNumberModel(spinnerValue.getInt(), 1,
         numSections < 1 ? 1 : numSections, 1);
     spinDensityRefSection.setModel(spinnerModel);
-    //alignment (join)
+    // alignment (join)
     spinnerValue.set((Integer) cbsAlignmentRefSection.getValue());
     spinnerModel = new SpinnerNumberModel(spinnerValue.getInt(), 1, numSections < 1 ? 1
         : numSections, 1);
     cbsAlignmentRefSection.setModel(spinnerModel);
-    //every n sections (join)
+    // every n sections (join)
     int zMax = pnlSectionTable.getZMax();
     if (zMax == 0) {
       spinnerValue.set(1);
@@ -1453,7 +1458,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
    * Will override the values on the screen if xMax and yMax have changed
    */
   void defaultSizeInXY() {
-    //update size in X and Y defaults
+    // update size in X and Y defaults
     ConstJoinMetaData metaData = manager.getConstMetaData();
     int xMax = pnlSectionTable.getXMax();
     int yMax = pnlSectionTable.getYMax();
@@ -1830,7 +1835,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       }
     }
     else if (command.equals(btnChangeSetup.getActionCommand())) {
-      //Prepare for Revert:  meta data file should match the screen
+      // Prepare for Revert: meta data file should match the screen
       JoinMetaData metaData = manager.getJoinMetaData();
       getMetaData(metaData);
       try {
@@ -1910,7 +1915,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     else if (command.equals(b3bOpenTrialRejoin.getActionCommand())) {
       ConstEtomoNumber useEveryNSlices = state.getRefineTrialUseEveryNSlices();
       if (useEveryNSlices.isNull() || useEveryNSlices.gt(1)) {
-        //don't open the model if all the slices have not been included
+        // don't open the model if all the slices have not been included
         manager.imodOpen(ImodManager.TRIAL_JOIN_KEY,
             b3bOpenTrialRejoin.getBinningInXandY(), run3dmodMenuOptions);
       }
@@ -1960,16 +1965,16 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     }
     String buttonName = useTrial ? TRIAL_JOIN_TEXT : FINISH_JOIN_TEXT;
     String joinFileName = joinFileType.getFileName(manager, axisID);
-    //make sure the file to be moved exists
+    // make sure the file to be moved exists
     if (!DatasetFiles.getJoinFile(useTrial, manager).exists()) {
       UIHarness.INSTANCE.openMessageDialog(manager, joinFileName
           + " does not exist.  Press " + buttonName + " to create it.",
           "Failed File Move");
       return;
     }
-    //Make sure that there is data available about the .join file which will be
-    //used in the refine.  If there is not, ask for the user's assurance that
-    //data on the screen corresponds to the .join file.
+    // Make sure that there is data available about the .join file which will be
+    // used in the refine. If there is not, ask for the user's assurance that
+    // data on the screen corresponds to the .join file.
     boolean convertVersion = false;
     if (!state.isJoinVersionGe(useTrial, JoinState.MIN_REFINE_VERSION)) {
       setRefineDataHighlight(true);
@@ -1987,8 +1992,8 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
         return;
       }
     }
-    //The _modeled.join file already exists and there is a model that may be
-    //associated with it.  Warn the user before overwriting it.
+    // The _modeled.join file already exists and there is a model that may be
+    // associated with it. Warn the user before overwriting it.
     if (DatasetFiles.getModeledJoinFile(manager).exists()
         && DatasetFiles.getRefineModelFile(manager).exists()) {
       if (!UIHarness.INSTANCE.openYesNoDialog(manager,
@@ -2010,20 +2015,20 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     if (!manager.closeImod(imodKey, axisID, joinFileName + " file in 3dmod",
         "This file will be moved to " + DatasetFiles.getModeledJoinFileName(manager),
         false)) {
-      /*UIHarness.INSTANCE.openMessageDialog(manager, "Please close the "
-          + joinFileName + " file in 3dmod.  This file will be moved to "
-          + DatasetFiles.getModeledJoinFileName(manager) + '.', "Close 3dmod");*/
+      /* UIHarness.INSTANCE.openMessageDialog(manager, "Please close the " + joinFileName
+       * + " file in 3dmod.  This file will be moved to " +
+       * DatasetFiles.getModeledJoinFileName(manager) + '.', "Close 3dmod"); */
       return;
     }
     try {
-      //move the join file (or trial join) to the _modeled.join file
+      // move the join file (or trial join) to the _modeled.join file
       System.out.println("backup " + FileType.MODELED_JOIN);
       manager.backupImageFile(FileType.MODELED_JOIN, axisID);
       System.out.println("rename " + joinFileType + "," + FileType.MODELED_JOIN);
       Utilities.renameFile(joinFileType.getFile(manager, axisID),
           FileType.MODELED_JOIN.getFile(manager, axisID));
       // LogFile.getInstance(manager.getPropertyUserDir(), joinFileName).move(
-      //    LogFile.getInstance(manager.getPropertyUserDir(), DatasetFiles
+      // LogFile.getInstance(manager.getPropertyUserDir(), DatasetFiles
       // .getModeledJoinFileName(manager)));
     }
     catch (IOException e) {
@@ -2032,8 +2037,8 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
           "Unable to move join file.\n" + e.getMessage(), "Failed File Move");
       return;
     }
-    //convertVersion is true when the .ejf file is an older version and the user
-    //wishes to use screen values to convert it.
+    // convertVersion is true when the .ejf file is an older version and the user
+    // wishes to use screen values to convert it.
     if (convertVersion) {
       if (!pnlSectionTable.getMetaData(manager.getJoinMetaData())) {
         UIHarness.INSTANCE.openMessageDialog(manager,
@@ -2058,7 +2063,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   }
 
   protected void workingDirAction() {
-    //  Open up the file chooser in the current working directory
+    // Open up the file chooser in the current working directory
     JFileChooser chooser = new FileChooser(new File(manager.getPropertyUserDir()));
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -2075,7 +2080,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   }
 
   protected void modelFileAction() {
-    //  Open up the file chooser in the current working directory
+    // Open up the file chooser in the current working directory
     JFileChooser chooser = new FileChooser(new File(manager.getPropertyUserDir()));
     ModelFileFilter modelFilter = new ModelFileFilter();
     chooser.setFileFilter(modelFilter);
@@ -2229,7 +2234,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   }
 
   //
-  //  Action listener adapters
+  // Action listener adapters
   //
   private final class JoinActionListener implements ActionListener {
 
@@ -2362,7 +2367,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
         ipnlTranslationChooser.add(rbFullLinearTransformation.getComponent());
         ipnlTranslationChooser.add(rbRotationTranslationMagnification.getComponent());
         ipnlTranslationChooser.add(rbRotationTranslation.getComponent());
-        //set default
+        // set default
         set(null);
         rbFullLinearTransformation
             .setToolTipText("Use rotation, translation, magnification, and stretching to align images.");
