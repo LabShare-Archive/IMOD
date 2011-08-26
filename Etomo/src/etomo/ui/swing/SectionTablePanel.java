@@ -52,6 +52,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 19:28:53  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -1682,8 +1685,9 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     }
 
     private boolean validateMakejoincom() {
+      String maxRow = new Integer(list.size()).toString();
       for (int i = 0; i < list.size(); i++) {
-        if (!get(i).validateMakejoincom()) {
+        if (!get(i).validateMakejoincom(maxRow)) {
           return false;
         }
       }
