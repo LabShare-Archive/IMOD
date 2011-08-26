@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/25/11: In eTomo - Join adding more validation for Make Samples.(Bug# 1526)
+
 8/25/11: In eTomo - Coarse Alignment, fixed the process monitor for generating
 the coarse aligned stack to that it works when the stack is not converted to
 bytes.(Bug# 1536)
