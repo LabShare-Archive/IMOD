@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.16  2011/02/22 04:07:17  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 3.15  2010/03/03 04:55:35  sueh
  * <p> bug# 1311 Removed unnecessary ProcessName references.
  * <p>
@@ -140,6 +143,9 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
     if (binBy > 1) {
       nX = nX / binBy;
       nY = nY / binBy;
+    }
+    if (prenewstParam.getModeToOutput() != NewstParam.DATA_MODE_BYTE) {
+      modeBytes = getModeBytes(rawStack.getMode());
     }
     long fileSize = 1024 + ((long) nX * nY) * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
