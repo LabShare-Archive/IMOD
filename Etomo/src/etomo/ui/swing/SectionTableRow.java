@@ -31,6 +31,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 19:28:59  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -274,8 +277,8 @@ public final class SectionTableRow implements Highlightable {
   private final HighlighterButton highlighterButton;
 
   private SectionTableRowData data;
-  private final HeaderCell rowNumber = new HeaderCell((int) (30 * UIParameters.INSTANCE
-      .getFontSizeAdjustment()));
+  private final HeaderCell rowNumber = new HeaderCell(
+      (int) (30 * UIParameters.INSTANCE.getFontSizeAdjustment()));
   private int imodIndex = -1;
   private int imodRotIndex = -1;
   private boolean sectionExpanded = false;
@@ -318,24 +321,24 @@ public final class SectionTableRow implements Highlightable {
   }
 
   void setNames() {
-    sampleBottomStart.setHeaders(SectionTablePanel.LABEL, rowNumber, table
-        .getSampleHeaderCell());
-    sampleBottomEnd.setHeaders(SectionTablePanel.LABEL, rowNumber, table
-        .getSampleHeaderCell());
-    sampleTopStart.setHeaders(SectionTablePanel.LABEL, rowNumber, table
-        .getSampleHeaderCell());
-    sampleTopEnd.setHeaders(SectionTablePanel.LABEL, rowNumber, table
-        .getSampleHeaderCell());
-    rotationAngleX.setHeaders(SectionTablePanel.LABEL, rowNumber, table
-        .getRotationHeaderCell());
-    rotationAngleY.setHeaders(SectionTablePanel.LABEL, rowNumber, table
-        .getRotationHeaderCell());
-    rotationAngleZ.setHeaders(SectionTablePanel.LABEL, rowNumber, table
-        .getRotationHeaderCell());
-    joinFinalStart.setHeaders(SectionTablePanel.LABEL, rowNumber, table
-        .getJoinFinalHeaderCell());
-    joinFinalEnd.setHeaders(SectionTablePanel.LABEL, rowNumber, table
-        .getJoinFinalHeaderCell());
+    sampleBottomStart.setHeaders(SectionTablePanel.LABEL, rowNumber,
+        table.getSampleHeaderCell());
+    sampleBottomEnd.setHeaders(SectionTablePanel.LABEL, rowNumber,
+        table.getSampleHeaderCell());
+    sampleTopStart.setHeaders(SectionTablePanel.LABEL, rowNumber,
+        table.getSampleHeaderCell());
+    sampleTopEnd.setHeaders(SectionTablePanel.LABEL, rowNumber,
+        table.getSampleHeaderCell());
+    rotationAngleX.setHeaders(SectionTablePanel.LABEL, rowNumber,
+        table.getRotationHeaderCell());
+    rotationAngleY.setHeaders(SectionTablePanel.LABEL, rowNumber,
+        table.getRotationHeaderCell());
+    rotationAngleZ.setHeaders(SectionTablePanel.LABEL, rowNumber,
+        table.getRotationHeaderCell());
+    joinFinalStart.setHeaders(SectionTablePanel.LABEL, rowNumber,
+        table.getJoinFinalHeaderCell());
+    joinFinalEnd.setHeaders(SectionTablePanel.LABEL, rowNumber,
+        table.getJoinFinalHeaderCell());
   }
 
   void setInUse() {
@@ -376,12 +379,12 @@ public final class SectionTableRow implements Highlightable {
     rotationAngleX.remove();
     rotationAngleY.remove();
     rotationAngleZ.remove();
-    //align
+    // align
     slicesInSample.remove();
     currentChunk.remove();
     referenceSection.remove();
     currentSection.remove();
-    //join
+    // join
     joinSection.remove();
     joinFinalStart.remove();
     joinFinalEnd.remove();
@@ -401,7 +404,7 @@ public final class SectionTableRow implements Highlightable {
   }
 
   private void setCellHighlight(boolean highlight, InputCell cell) {
-    //avoid turning off highlighting in a highlighted row
+    // avoid turning off highlighting in a highlighted row
     if (!highlight && highlighterButton.isHighlighted()) {
       return;
     }
@@ -469,7 +472,7 @@ public final class SectionTableRow implements Highlightable {
   }
 
   private int getPrevSampleEnd(SectionTableRow prevRow) {
-    //first row
+    // first row
     if (prevRow == null) {
       return 0;
     }
@@ -477,7 +480,7 @@ public final class SectionTableRow implements Highlightable {
   }
 
   private int getBottomSampleSlices(SectionTableRow prevRow) {
-    //first row
+    // first row
     if (prevRow == null) {
       return 0;
     }
@@ -485,7 +488,7 @@ public final class SectionTableRow implements Highlightable {
   }
 
   private int getTopSampleSlices(int totalRows, ConstEtomoNumber rowNum) {
-    //last row
+    // last row
     if (rowNum.equals(totalRows)) {
       return 0;
     }
@@ -493,7 +496,7 @@ public final class SectionTableRow implements Highlightable {
   }
 
   private int getPrevTopSampleSlices(SectionTableRow prevRow) {
-    //first row
+    // first row
     if (prevRow == null) {
       return 0;
     }
@@ -501,7 +504,7 @@ public final class SectionTableRow implements Highlightable {
   }
 
   void setupCurTab(SectionTableRow prevRow, int totalRows) {
-    //Set align display only fields
+    // Set align display only fields
     if (table.isAlignTab()) {
       ConstEtomoNumber rowNum = data.getRowNumber();
       int prevSampleEnd = getPrevSampleEnd(prevRow);
@@ -729,52 +732,75 @@ public final class SectionTableRow implements Highlightable {
     return valid;
   }
 
-  boolean validateMakejoincom() {
+  boolean validateMakejoincom(String maxRow) {
     retrieveData(false);
-    validate(data.getSampleBottomStart(), data.getSampleBottomEnd(), true);
-    validate(data.getSampleTopStart(), data.getSampleTopEnd(), true);
-    return valid;
+    String rowNumberText = rowNumber.getText();
+    if (!validate(data.getSampleBottomStart(), data.getSampleBottomEnd(), true,
+        rowNumberText.equals("1"))) {
+      return false;
+    }
+    return validate(data.getSampleTopStart(), data.getSampleTopEnd(), true,
+        rowNumberText.equals(maxRow));
   }
 
   boolean validateFinishjoin() {
     retrieveData(false);
-    validate(data.getJoinFinalStart(), data.getJoinFinalEnd(), false);
-    return valid;
+    return validate(data.getJoinFinalStart(), data.getJoinFinalEnd(), false, true);
+
   }
 
   private boolean validate(ConstEtomoNumber start, ConstEtomoNumber end,
-      boolean validateValues) {
+      boolean validateValues, final boolean optional) {
     if (start.isNull() && !end.isNull()) {
       UIHarness.INSTANCE.openMessageDialog(manager, start.getDescription()
           + " cannot be empty when " + end.getDescription()
           + " has been entered.  Invalid numbers in section " + rowNumber.getText(),
           "Entry Error", AxisID.ONLY);
       valid = false;
+      return valid;
     }
-    else if (!start.isNull() && end.isNull()) {
+    if (!start.isNull() && end.isNull()) {
       UIHarness.INSTANCE.openMessageDialog(manager, end.getDescription()
           + " cannot be empty when " + start.getDescription()
           + " has been entered.  Invalid numbers in section " + rowNumber.getText(),
           "Entry Error", AxisID.ONLY);
       valid = false;
+      return valid;
     }
-    else if (validateValues) {
-      if (start.isInt()) {
-        if (start.getInt() > end.getInt()) {
-          UIHarness.INSTANCE.openMessageDialog(manager, start.getDescription()
-              + " must be less then or equal to " + start.getDescription() + ".",
-              "Entry Error", AxisID.ONLY);
-          valid = false;
-        }
+    if (validateValues) {
+      if (start.isInt() && start.getInt() > end.getInt()) {
+        UIHarness.INSTANCE.openMessageDialog(manager, start.getDescription()
+            + " must be less then or equal to " + start.getDescription() + ".",
+            "Entry Error", AxisID.ONLY);
+        valid = false;
+        return valid;
       }
-      else if (start.getLong() > end.getLong()) {
+      if (start.getLong() > end.getLong()) {
         UIHarness.INSTANCE.openMessageDialog(manager, start.getDescription()
             + " must be less then or equal to " + start.getDescription()
             + ".  Invalid numbers in section " + rowNumber.getText(), "Entry Error",
             AxisID.ONLY);
         valid = false;
+        return valid;
       }
     }
+    if (!optional) {
+      if (start.isNull()) {
+        UIHarness.INSTANCE.openMessageDialog(manager, start.getDescription()
+            + " is required in section " + rowNumber.getText(), "Entry Error",
+            AxisID.ONLY);
+        valid = false;
+        return valid;
+      }
+      if (end.isNull()) {
+        UIHarness.INSTANCE.openMessageDialog(manager, end.getDescription()
+            + " is required in section " + rowNumber.getText(), "Entry Error",
+            AxisID.ONLY);
+        valid = false;
+        return valid;
+      }
+    }
+    valid = true;
     return valid;
   }
 
@@ -830,15 +856,8 @@ public final class SectionTableRow implements Highlightable {
     this.rowNumber.setText(String.valueOf(rowNumber));
   }
 
-  /*
-   void setImodIndex(int imodIndex) {
-   this.imodIndex = imodIndex;
-   }
-
-   void setImodRotIndex(int imodRotIndex) {
-   this.imodRotIndex = imodRotIndex;
-   }
-   */
+  /* void setImodIndex(int imodIndex) { this.imodIndex = imodIndex; } void
+   * setImodRotIndex(int imodRotIndex) { this.imodRotIndex = imodRotIndex; } */
   void setRotationAngles(SlicerAngles slicerAngles) {
     rotationAngleX.setValue(slicerAngles.getX().toString());
     rotationAngleY.setValue(slicerAngles.getY().toString());
@@ -943,8 +962,8 @@ public final class SectionTableRow implements Highlightable {
   }
 
   final void imodOpenSetupSectionFile(int binning, Run3dmodMenuOptions menuOptions) {
-    imodIndex = manager.imodOpen(ImodManager.TOMOGRAM_KEY, imodIndex, data
-        .getSetupSection(), binning, menuOptions);
+    imodIndex = manager.imodOpen(ImodManager.TOMOGRAM_KEY, imodIndex,
+        data.getSetupSection(), binning, menuOptions);
   }
 
   final void imodOpenJoinSectionFile(int binning, Run3dmodMenuOptions menuOptions) {
