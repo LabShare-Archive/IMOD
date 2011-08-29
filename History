@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/29/11: In eTomo - Tomogram Generation and Post-Processing handling duplicate
+listeners and a null pointer exception.(Bug# 1503)
+
 8/25/11: In eTomo - Join adding more validation for Make Samples.(Bug# 1526)
 
 8/25/11: In eTomo - Coarse Alignment, fixed the process monitor for generating
