@@ -6588,6 +6588,7 @@ public final class ApplicationManager extends BaseManager implements
             + TrimvolParam.getInputFileName(metaData.getAxisType(), metaData.getName()),
             AxisID.ONLY);
         // Delete the dialog
+        postProcessingDialog.buttonCancelAction(null);
         postProcessingDialog = null;
         mainPanel.showBlankProcess(AxisID.ONLY);
         return;
@@ -7764,6 +7765,14 @@ public final class ApplicationManager extends BaseManager implements
    */
   public SirtsetupParam updateSirtSetupCom(final AxisID axisID,
       final SirtsetupDisplay display, final boolean required) {
+    ParallelPanel parallelPanel = getMainPanel().getParallelPanel(axisID);
+    if (parallelPanel == null) {
+      if (required) {
+        System.out
+            .println("Error: eTomo is attempting to run SIRT without parallel processing.");
+      }
+      return null;
+    }
     File sirtSetupComFile = FileType.SIRTSETUP_COMSCRIPT.getFile(this, axisID);
     SirtsetupParam param = null;
     if (!sirtSetupComFile.exists()) {
@@ -7777,7 +7786,7 @@ public final class ApplicationManager extends BaseManager implements
     if (!display.getParameters(param)) {
       return null;
     }
-    if (!getMainPanel().getParallelPanel(axisID).getParameters(param)) {
+    if (!parallelPanel.getParameters(param)) {
       return null;
     }
     comScriptMgr.saveSirtsetup(param, axisID);
@@ -8099,6 +8108,9 @@ public final class ApplicationManager extends BaseManager implements
 /**
  * <p>
  * $Log$
+ * Revision 3.381  2011/08/25 20:42:31  sueh
+ * Bug# 1532 in useRunraptorResult failing if _raptor.fid is missing.
+ *
  * Revision 3.380  2011/08/25 04:40:56  sueh
  * Bug# 1530 in imodErasedStack, for montages no longer setting the piece list file - instead setting
  * frames.
