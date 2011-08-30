@@ -21,7 +21,7 @@ when there is no Raptor output file available.(Bug# 1532)
 rather then montaged together so that the clip stats output will be more
 useful.(Bug# 1530)
 
-8/24/11: Removed fields for input and output files in Pre-processing.
+8/24/11: In eTomo, removed fields for input and output files in Pre-processing.
 (Bug# 1531)
 
 8/23/11: Added gpu information to the cpuadoc man page.(Bug# 1540)
