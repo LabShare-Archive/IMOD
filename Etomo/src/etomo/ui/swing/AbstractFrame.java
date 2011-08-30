@@ -18,6 +18,7 @@ import etomo.process.ProcessMessages;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
 import etomo.type.BaseMetaData;
+import etomo.type.FrameType;
 import etomo.type.UITestActionType;
 import etomo.type.UITestSubjectType;
 import etomo.type.UserConfiguration;
@@ -64,12 +65,16 @@ abstract class AbstractFrame extends JFrame {
 
   abstract LogFrame getLogFrame();
 
+  abstract FrameType getFrameType();
+
   public void setVisible(boolean visible) {
-    UserConfiguration userConfiguration = EtomoDirector.INSTANCE.getUserConfiguration();
-    if (!EtomoDirector.INSTANCE.getArguments().isIgnoreLoc()
-        && userConfiguration.isLastLocationSet()) {
-      setLocation(userConfiguration.getLastLocationX(), userConfiguration
-          .getLastLocationY());
+    if (visible) {
+      UserConfiguration userConfiguration = EtomoDirector.INSTANCE.getUserConfiguration();
+      if (!EtomoDirector.INSTANCE.getArguments().isIgnoreLoc()
+          && userConfiguration.isLastLocationSet(getFrameType())) {
+        setLocation(userConfiguration.getLastLocationX(getFrameType()),
+            userConfiguration.getLastLocationY(getFrameType()));
+      }
     }
     super.setVisible(visible);
   }
@@ -371,11 +376,11 @@ abstract class AbstractFrame extends JFrame {
       messageArray.add(" ");
       return messageArray;
     }
-    //first - break up the message piece by line
+    // first - break up the message piece by line
     String[] messagePieceArray = messagePiece.split("\n");
-    //second - break up each line by maximum length
+    // second - break up each line by maximum length
     for (int i = 0; i < messagePieceArray.length; i++) {
-      //handle empty lines
+      // handle empty lines
       if (messagePieceArray[i] == null || messagePieceArray[i].length() == 0) {
         messageArray.add(" ");
       }
@@ -386,7 +391,7 @@ abstract class AbstractFrame extends JFrame {
           int endIndex = Math.min(messageLength, messageIndex + MESSAGE_WIDTH);
           StringBuffer newLine = new StringBuffer(messagePieceArray[i].substring(
               messageIndex, endIndex));
-          //overflowing line - look for whitespace or a comma
+          // overflowing line - look for whitespace or a comma
           messageIndex = endIndex;
           char lastChar = ' ';
           while (messageIndex < messageLength
@@ -480,12 +485,12 @@ abstract class AbstractFrame extends JFrame {
   private synchronized final void printName(String name, String[] optionStrings,
       String title, String[] message) {
     if (PRINT_NAMES) {
-      //print waitfor popup name/value pair
+      // print waitfor popup name/value pair
       StringBuffer buffer = new StringBuffer(UITestActionType.WAIT.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + UITestSubjectType.POPUP.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
-      //if there are options, then print a popup name/value pair
+      // if there are options, then print a popup name/value pair
       if (optionStrings != null && optionStrings.length > 0) {
         buffer.append(optionStrings[0]);
         for (int i = 1; i < optionStrings.length; i++) {
@@ -495,7 +500,7 @@ abstract class AbstractFrame extends JFrame {
       }
     }
     if (verbose) {
-      //if verbose then print the popup title and message
+      // if verbose then print the popup title and message
       System.err.println("Popup:");
       System.err.println(title);
       if (message != null) {
