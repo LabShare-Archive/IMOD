@@ -15,6 +15,7 @@ import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
+import etomo.type.FrameType;
 import etomo.type.UITestFieldType;
 import etomo.util.UniqueKey;
 import etomo.util.Utilities;
@@ -32,6 +33,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 18:14:39  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -539,6 +543,10 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     mainFrame = this;
     main = true;
   }
+  
+  final FrameType getFrameType() {
+    return FrameType.Main;
+  }
 
   void setCurrentManager(BaseManager currentManager, UniqueKey managerKey,
       boolean newWindow) {
@@ -591,15 +599,6 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
           showAxisB();
         }
       }
-    }
-  }
-
-  /**
-   * Saves the current location of the frame to UserConfiguration.
-   */
-  void saveLocation() {
-    if (!EtomoDirector.INSTANCE.getArguments().isIgnoreLoc()) {
-      EtomoDirector.INSTANCE.getUserConfiguration().setLastLocation(getLocation());
     }
   }
 
