@@ -61,6 +61,16 @@ abstract class EtomoFrame extends AbstractFrame {
     createMenus();
   }
 
+  /**
+   * Saves the current location of the frame to UserConfiguration.
+   */
+  void saveLocation() {
+    if (!EtomoDirector.INSTANCE.getArguments().isIgnoreLoc()) {
+      EtomoDirector.INSTANCE.getUserConfiguration().setLastLocation(getFrameType(),
+          getLocation());
+    }
+  }
+
   void moveSubFrame() {
     if (singleFrame) {
       return;
@@ -149,13 +159,14 @@ abstract class EtomoFrame extends AbstractFrame {
       if (currentManager.saveParamFile()) {
         return;
       }
-      //Don't allow the user to do the equivalent of a Save As if Save As isn't available.
+      // Don't allow the user to do the equivalent of a Save As if Save As isn't
+      // available.
       if (!currentManager.canChangeParamFileName()) {
         UIHarness.INSTANCE.openMessageDialog(currentManager,
             "Please set the name of dataset or the join before saving", "Cannot Save");
         return;
       }
-      //Do a Save As
+      // Do a Save As
       if (getParamFilename()) {
         currentManager.saveParamFile();
       }
@@ -209,7 +220,7 @@ abstract class EtomoFrame extends AbstractFrame {
    * @param event
    */
   public void menuViewAction(ActionEvent event) {
-    //Run fitWindow on both frames.
+    // Run fitWindow on both frames.
     if (menu.equalsFitWindow(event)) {
       UIHarness.INSTANCE.pack(true, currentManager);
       if (getOtherFrame() != null) {
@@ -396,7 +407,7 @@ abstract class EtomoFrame extends AbstractFrame {
    * @return true if succeeded
    */
   private boolean getParamFilename() {
-    //  Open up the file chooser in current working directory
+    // Open up the file chooser in current working directory
     File workingDir = new File(currentManager.getPropertyUserDir());
     JFileChooser chooser = new FileChooser(workingDir);
     DataFileFilter fileFilter = mainPanel.getDataFileFilter();
@@ -463,7 +474,7 @@ abstract class EtomoFrame extends AbstractFrame {
    * was selected. 
    */
   private File openDataFileDialog() {
-    //  Open up the file chooser in current working directory
+    // Open up the file chooser in current working directory
     JFileChooser chooser = new FileChooser(new File(System.getProperty("user.dir")));
     DataFileFilter fileFilter = new DataFileFilter();
     chooser.setFileFilter(fileFilter);
@@ -523,10 +534,12 @@ abstract class EtomoFrame extends AbstractFrame {
     }
     return mainFrame;
   }
-
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 18:07:55  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:35  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
