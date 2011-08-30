@@ -3341,7 +3341,9 @@ public final class ApplicationManager extends BaseManager implements
     }
     else {
       try {
-        processMgr.setupFiducialAlign(axisID);
+        if (!processMgr.setupFiducialAlign(axisID, processResultDisplay)) {
+          return ProcessResult.FAILED_TO_START;
+        }
       }
       catch (IOException except) {
         except.printStackTrace();
@@ -3386,7 +3388,9 @@ public final class ApplicationManager extends BaseManager implements
     }
     else {
       try {
-        processMgr.setupFiducialAlign(axisID);
+        if (!processMgr.setupFiducialAlign(axisID, processResultDisplay)) {
+          return ProcessResult.FAILED_TO_START;
+        }
       }
       catch (IOException except) {
         except.printStackTrace();
@@ -3429,7 +3433,9 @@ public final class ApplicationManager extends BaseManager implements
     }
     else {
       try {
-        processMgr.setupFiducialAlign(axisID);
+        if (!processMgr.setupFiducialAlign(axisID, processResultDisplay)) {
+          return ProcessResult.FAILED_TO_START;
+        }
       }
       catch (IOException except) {
         except.printStackTrace();
@@ -3992,7 +3998,10 @@ public final class ApplicationManager extends BaseManager implements
     }
     else {
       try {
-        processMgr.setupFiducialAlign(axisID);
+        if (!processMgr.setupFiducialAlign(axisID, processResultDisplay)) {
+          sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
+          return;
+        }
       }
       catch (IOException except) {
         except.printStackTrace();
@@ -4071,7 +4080,10 @@ public final class ApplicationManager extends BaseManager implements
     }
     else {
       try {
-        processMgr.setupFiducialAlign(axisID);
+        if (!processMgr.setupFiducialAlign(axisID, processResultDisplay)) {
+          sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
+          return;
+        }
       }
       catch (IOException except) {
         except.printStackTrace();
@@ -4150,7 +4162,10 @@ public final class ApplicationManager extends BaseManager implements
     }
     else {
       try {
-        processMgr.setupFiducialAlign(axisID);
+        if (!processMgr.setupFiducialAlign(axisID, processResultDisplay)) {
+          sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
+          return;
+        }
       }
       catch (IOException except) {
         except.printStackTrace();
@@ -4220,7 +4235,10 @@ public final class ApplicationManager extends BaseManager implements
     }
     else {
       try {
-        processMgr.setupFiducialAlign(axisID);
+        if (!processMgr.setupFiducialAlign(axisID, processResultDisplay)) {
+          sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
+          return;
+        }
       }
       catch (IOException except) {
         except.printStackTrace();
@@ -8108,6 +8126,11 @@ public final class ApplicationManager extends BaseManager implements
 /**
  * <p>
  * $Log$
+ * Revision 3.382  2011/08/29 22:50:28  sueh
+ * Bug# 1503 In openPostProcessingDialog, running PostProcessingDialog.buttonCancelAction when
+ * there is a failure so that the done() function, which removes listeners, will be called.  In
+ * updateSirtSetupCom handling null parallel processing panel.
+ *
  * Revision 3.381  2011/08/25 20:42:31  sueh
  * Bug# 1532 in useRunraptorResult failing if _raptor.fid is missing.
  *
