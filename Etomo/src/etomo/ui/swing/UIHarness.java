@@ -252,13 +252,13 @@ public final class UIHarness {
       abstractFrame.repaint(axisID);
       abstractFrame.pack(axisID);
       Component focusComponent = manager.getFocusComponent();
-      //System.out.println("focusComponent=" + focusComponent);
+      // System.out.println("focusComponent=" + focusComponent);
       if (focusComponent != null) {
         focusComponent.requestFocus();
       }
-      //else {
-      //  new Exception().printStackTrace();
-      //}
+      // else {
+      // new Exception().printStackTrace();
+      // }
     }
   }
 
@@ -268,13 +268,13 @@ public final class UIHarness {
       abstractFrame.repaint(axisID);
       abstractFrame.pack(axisID, force);
       Component focusComponent = manager.getFocusComponent();
-      //System.out.println("focusComponent=" + focusComponent);
+      // System.out.println("focusComponent=" + focusComponent);
       if (focusComponent != null) {
         focusComponent.requestFocus();
       }
-      //else {
-      //  new Exception().printStackTrace();
-      //}
+      // else {
+      // new Exception().printStackTrace();
+      // }
     }
   }
 
@@ -463,11 +463,15 @@ public final class UIHarness {
   }
 
   public void exit(AxisID axisID) {
-    //Store the current location of the frame in case etomo exits.
+    // Store the current location of the frame in case etomo exits.
     if (isHead()) {
       mainFrame.saveLocation();
+      EtomoFrame subFrame = mainFrame.getOtherFrame();
+      if (subFrame != null) {
+        subFrame.saveLocation();
+      }
     }
-    //Check to see if etomo an exit, save data, and then exit.
+    // Check to see if etomo an exit, save data, and then exit.
     if (EtomoDirector.INSTANCE.exitProgram(axisID)) {
       System.exit(0);
     }
@@ -581,6 +585,9 @@ public final class UIHarness {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 21:42:34  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
