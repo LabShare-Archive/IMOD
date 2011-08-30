@@ -20,6 +20,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2011/02/22 05:54:56  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 3.14  2010/11/13 16:06:53  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -124,8 +127,10 @@ public final class UserConfiguration implements Storable {
   private final EtomoNumber joinTableSize = new EtomoNumber("JoinTableSize");
   private final EtomoNumber peetTableSize = new EtomoNumber("PeetTableSize");
   private ConstLogProperties logProperties = new LogProperties();
-  private final EtomoNumber lastLocationX = new EtomoNumber("LastLocationX");
-  private final EtomoNumber lastLocationY = new EtomoNumber("LastLocationY");
+  private final EtomoNumber mainLastLocationX = new EtomoNumber("Main.LastLocationX");
+  private final EtomoNumber mainLastLocationY = new EtomoNumber("Main.LastLocationY");
+  private final EtomoNumber subLastLocationX = new EtomoNumber("Sub.LastLocationX");
+  private final EtomoNumber subLastLocationY = new EtomoNumber("Sub.LastLocationY");
 
   private EtomoBoolean2 montage = null;
   private EtomoBoolean2 parallelProcessing = null;
@@ -172,14 +177,14 @@ public final class UserConfiguration implements Storable {
 
     revisionNumber.set(CURRENT_REVISION_NUMBER);
     revisionNumber.store(props, origPrepend);
-    //props.setProperty(group + "RevisionNumber", revisionNumber);
+    // props.setProperty(group + "RevisionNumber", revisionNumber);
     props.setProperty(group + "NativeLookAndFeel", String.valueOf(nativeLookAndFeel));
     props.setProperty(group + "AdvancedDialogs", String.valueOf(advancedDialogs));
     props.setProperty(group + COMPACT_DISPLAY_KEY, String.valueOf(compactDisplay));
-    props.setProperty(group + "ToolTipsInitialDelay", String
-        .valueOf(toolTipsInitialDelay));
-    props.setProperty(group + "ToolTipsDismissDelay", String
-        .valueOf(toolTipsDismissDelay));
+    props.setProperty(group + "ToolTipsInitialDelay",
+        String.valueOf(toolTipsInitialDelay));
+    props.setProperty(group + "ToolTipsDismissDelay",
+        String.valueOf(toolTipsDismissDelay));
     props.setProperty(group + "FontFamily", String.valueOf(fontFamily));
     props.setProperty(group + "FontSize", String.valueOf(fontSize));
     EtomoBoolean2.store(singleAxis, props, prepend, SINGLE_AXIS_KEY);
@@ -197,16 +202,18 @@ public final class UserConfiguration implements Storable {
     if (logProperties != null) {
       logProperties.store(props, prepend);
     }
-    lastLocationX.store(props, prepend);
-    lastLocationY.store(props, prepend);
+    mainLastLocationX.store(props, prepend);
+    mainLastLocationY.store(props, prepend);
+    subLastLocationX.store(props, prepend);
+    subLastLocationY.store(props, prepend);
 
     props.setProperty(group + "MainWindowWidth", String.valueOf(mainWindowWidth));
     props.setProperty(group + "MainWindowHeight", String.valueOf(mainWindowHeight));
 
     props.setProperty(group + "NMRUFiles", String.valueOf(nMRUFiles));
     for (int i = 0; i < nMRUFiles; i++) {
-      props.setProperty(group + "EtomoDataFile" + String.valueOf(i), (String) MRUFileList
-          .get());
+      props.setProperty(group + "EtomoDataFile" + String.valueOf(i),
+          (String) MRUFileList.get());
     }
 
     props.setProperty(group + "AutoFit", String.valueOf(autoFit));
@@ -245,7 +252,7 @@ public final class UserConfiguration implements Storable {
     prepend = getPrepend(prepend);
     String group = getGroup(prepend);
     //
-    //  Get the user configuration data from the Properties object
+    // Get the user configuration data from the Properties object
     //
     revisionNumber.load(props, origPrepend);
     parallelProcessing = EtomoBoolean2.load(parallelProcessing, PARALLEL_PROCESSING_KEY,
@@ -261,10 +268,10 @@ public final class UserConfiguration implements Storable {
         TILT_ANGLES_RAWTLT_FILE_KEY, props, prepend);
     joinTableSize.load(props, prepend);
     peetTableSize.load(props, prepend);
-    //Backward compatibility
+    // Backward compatibility
     if (revisionNumber.le(EtomoVersion.getDefaultInstance("1.2"))) {
-      //Fields where mistakenly saved with a "." in front of them - use backward
-      //compatibility to fix.
+      // Fields where mistakenly saved with a "." in front of them - use backward
+      // compatibility to fix.
       if (parallelProcessing == null) {
 
         parallelProcessing = EtomoBoolean2.load(parallelProcessing,
@@ -300,7 +307,7 @@ public final class UserConfiguration implements Storable {
         peetTableSize.load(props, ".");
       }
     }
-    //revisionNumber = props.getProperty(group + "RevisionNumber", "1.0");
+    // revisionNumber = props.getProperty(group + "RevisionNumber", "1.0");
     nativeLookAndFeel = Boolean.valueOf(
         props.getProperty(group + "NativeLookAndFeel", "false")).booleanValue();
     advancedDialogs = Boolean.valueOf(
@@ -326,14 +333,22 @@ public final class UserConfiguration implements Storable {
     }
     autoFit = Boolean.valueOf(props.getProperty(group + "AutoFit", "false"))
         .booleanValue();
-    //TEMP bug# 614
+    // TEMP bug# 614
     autoFit = true;
     gpuProcessing.load(props, prepend);
     if (logProperties != null) {
       logProperties.load(props, prepend);
     }
-    lastLocationX.load(props, prepend);
-    lastLocationY.load(props, prepend);
+    mainLastLocationX.load(props, prepend);
+    if (mainLastLocationX.isNull()) {
+      mainLastLocationX.loadFromOtherKey(props, prepend, "LastLocationX");
+    }
+    mainLastLocationY.load(props, prepend);
+    if (mainLastLocationY.isNull()) {
+      mainLastLocationY.loadFromOtherKey(props, prepend, "LastLocationY");
+    }
+    subLastLocationX.load(props, prepend);
+    subLastLocationY.load(props, prepend);
   }
 
   /**
@@ -539,26 +554,56 @@ public final class UserConfiguration implements Storable {
     return peetTableSize;
   }
 
-  public boolean isLastLocationSet() {
-    return !lastLocationX.isNull() && !lastLocationY.isNull();
+  public boolean isLastLocationSet(final FrameType frameType) {
+    if (frameType == FrameType.Main) {
+      return !mainLastLocationX.isNull() && !mainLastLocationY.isNull();
+    }
+    if (frameType == FrameType.Sub) {
+      return !subLastLocationX.isNull() && !subLastLocationY.isNull();
+    }
+    return false;
   }
 
-  public int getLastLocationX() {
-    return lastLocationX.getInt();
+  public int getLastLocationX(final FrameType frameType) {
+    if (frameType == FrameType.Main) {
+      return mainLastLocationX.getInt();
+    }
+    if (frameType == FrameType.Sub) {
+      return subLastLocationX.getInt();
+    }
+    return EtomoNumber.INTEGER_NULL_VALUE;
   }
 
-  public int getLastLocationY() {
-    return lastLocationY.getInt();
+  public int getLastLocationY(final FrameType frameType) {
+    if (frameType == FrameType.Main) {
+      return mainLastLocationY.getInt();
+    }
+    if (frameType == FrameType.Sub) {
+      return subLastLocationY.getInt();
+    }
+    return EtomoNumber.INTEGER_NULL_VALUE;
   }
 
-  public void setLastLocation(Point point) {
+  public void setLastLocation(final FrameType frameType, Point point) {
     if (point == null) {
-      lastLocationX.reset();
-      lastLocationY.reset();
+      if (frameType == FrameType.Main) {
+        subLastLocationX.reset();
+        subLastLocationY.reset();
+      }
+      else if (frameType == FrameType.Sub) {
+        mainLastLocationX.reset();
+        mainLastLocationY.reset();
+      }
     }
     else {
-      lastLocationX.set(point.x);
-      lastLocationY.set(point.y);
+      if (frameType == FrameType.Main) {
+        mainLastLocationX.set(point.x);
+        mainLastLocationY.set(point.y);
+      }
+      else if (frameType == FrameType.Sub) {
+        subLastLocationX.set(point.x);
+        subLastLocationY.set(point.y);
+      }
     }
   }
 
