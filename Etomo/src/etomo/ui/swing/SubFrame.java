@@ -12,6 +12,7 @@ import javax.swing.JScrollPane;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
+import etomo.type.FrameType;
 import etomo.type.UITestFieldType;
 import etomo.util.Utilities;
 
@@ -36,7 +37,6 @@ public final class SubFrame extends EtomoFrame {
   private final MainFrame mainFrame;
   private JPanel rootPanel;
   private JLabel statusBar;
-  private Rectangle bounds = null;
 
   SubFrame(MainFrame mainFrame) {
     register();
@@ -65,7 +65,7 @@ public final class SubFrame extends EtomoFrame {
     mainPanel = mainFrame.getMainPanel();
     rootPanel = (JPanel) getContentPane();
     rootPanel.setLayout(new BorderLayout());
-    //set name
+    // set name
     String name = Utilities.convertLabelToName(NAME);
     rootPanel.setName(UITestFieldType.PANEL.toString() + AutodocTokenizer.SEPARATOR_CHAR
         + name);
@@ -75,10 +75,14 @@ public final class SubFrame extends EtomoFrame {
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
     statusBar = new JLabel(mainPanel.getStatusBarText());
-    //menu.setEnabled(currentManager);
+    // menu.setEnabled(currentManager);
     menu.setEnabled(getOtherFrame().menu);
     menu.setMRUFileLabels(mRUList);
     setVisible(true);
+  }
+
+  final FrameType getFrameType() {
+    return FrameType.Sub;
   }
 
   /**Overridden so we can exit when window is closed*/
@@ -119,13 +123,7 @@ public final class SubFrame extends EtomoFrame {
   }
 
   public void setVisible(boolean visible) {
-    if (!visible) {
-      Rectangle deviceBounds = mainFrame.getGraphicsConfiguration().getBounds();
-      bounds = getBounds();
-      bounds.x += deviceBounds.x;
-      bounds.y += deviceBounds.y;
-    }
-    else {
+    if (visible) {
       setAxis();
     }
     super.setVisible(visible);
@@ -143,16 +141,10 @@ public final class SubFrame extends EtomoFrame {
       rootPanel.add(axis, BorderLayout.CENTER);
     }
     rootPanel.add(statusBar, BorderLayout.SOUTH);
-    if (bounds == null) {
-      setLocation();
-    }
-    else {
-      setLocation(bounds.x, bounds.y);
-    }
     validate();
   }
 
-  private void setLocation() {
+  void moveSubFrame() {
     Rectangle mainFrameBounds = mainFrame.getBounds();
     Rectangle deviceBounds = mainFrame.getGraphicsConfiguration().getBounds();
     int xLocation = deviceBounds.x + mainFrameBounds.x + mainFrameBounds.width;
@@ -161,18 +153,12 @@ public final class SubFrame extends EtomoFrame {
     }
     setLocation(xLocation, deviceBounds.y + mainFrameBounds.y);
   }
-
-  void move() {
-    bounds = null;
-    setLocation();
-  }
-
-  void moveSubFrame() {
-    move();
-  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 21:37:59  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:35  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
