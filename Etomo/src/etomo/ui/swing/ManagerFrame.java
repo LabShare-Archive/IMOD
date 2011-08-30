@@ -12,6 +12,7 @@ import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
+import etomo.type.FrameType;
 import etomo.type.UITestFieldType;
 import etomo.util.Utilities;
 
@@ -29,6 +30,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 18:15:10  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -79,6 +83,10 @@ public final class ManagerFrame extends AbstractFrame {
     rootPanel.add(manager.getMainPanel());
     rootPanel.repaint();
     setVisible(true);
+  }
+  
+  public FrameType getFrameType() {
+    return null;
   }
 
   private void addListeners() {
