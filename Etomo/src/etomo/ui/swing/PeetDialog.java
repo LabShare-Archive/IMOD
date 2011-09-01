@@ -6,7 +6,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.io.IOException;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -33,8 +32,6 @@ import etomo.type.PeetMetaData;
 import etomo.type.PeetScreenState;
 import etomo.type.ProcessingMethod;
 import etomo.type.Run3dmodMenuOptions;
-import etomo.util.Goodframe;
-import etomo.util.InvalidParameterException;
 import etomo.util.Utilities;
 
 /**
@@ -51,6 +48,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2011/09/01 04:27:17  sueh
+ * <p> Bug# 1543 in validateRun, removed particle volume validation based on goodframe.
+ * <p>
  * <p> Revision 1.10  2011/07/19 20:01:14  sueh
  * <p> Bug# 1459 Wrapped checkboxes in a panel and used glue to left justify them.  Prevented spinners
  * <p> which have a value when they are first displayed from going all the way to the right.
