@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 18:14:27  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -88,6 +91,9 @@ import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -99,8 +105,10 @@ import javax.swing.JPanel;
 import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.process.SystemProgram;
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ImodVersion;
+import etomo.util.EnvironmentVariable;
 
 public class MainFrame_AboutBox extends JDialog {
   public static final String rcsid = "$Id$";
@@ -148,7 +156,32 @@ public class MainFrame_AboutBox extends JDialog {
     pnlText.add(lblAuthors);
     pnlText.add(Box.createRigidArea(FixedDim.x0_y20));
     pnlText.add(lbl3dmodVersion);
-    pnlText.add(Box.createRigidArea(FixedDim.x0_y20));
+    pnlText.add(Box.createRigidArea(FixedDim.x0_y5));
+    // Add PEET version
+    LogFile peetVersionFile = null;
+    LogFile.ReaderId id = null;
+    try {
+      peetVersionFile = LogFile.getInstance(
+          new File(EnvironmentVariable.INSTANCE.getValue(null, null, "PARTICLE_DIR",
+              AxisID.ONLY)), "PEETVersion.txt");
+      id = peetVersionFile.openReader();
+      String version = peetVersionFile.readLine(id);
+      if (version != null && !version.matches("\\s*")) {
+        pnlText.add(new JLabel("PEET Version: " + version));
+      }
+    }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+    }
+    catch (FileNotFoundException e) {
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+    if (peetVersionFile != null && id != null) {
+      peetVersionFile.closeReader(id);
+    }
+    pnlText.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlButton.add(btnOK);
 
     pnlAbout.add(pnlText);
