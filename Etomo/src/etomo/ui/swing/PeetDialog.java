@@ -51,6 +51,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2011/07/19 20:01:14  sueh
+ * <p> Bug# 1459 Wrapped checkboxes in a panel and used glue to left justify them.  Prevented spinners
+ * <p> which have a value when they are first displayed from going all the way to the right.
+ * <p>
  * <p> Revision 1.9  2011/05/16 23:06:22  sueh
  * <p> bug# 1487 Backing out bug# 1485 and some of bug# 1445.
  * <p>
@@ -1278,47 +1282,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
       UIHarness.INSTANCE.openMessageDialog(manager, "In " + PARTICLE_VOLUME_LABEL + ", "
           + Z_LABEL + " is required.", "Entry Error");
       return false;
-    }
-    Goodframe goodframe = new Goodframe(manager.getPropertyUserDir(), AxisID.FIRST);
-    try {
-      goodframe.run(manager, new String[] { ltfSzVolX.getText(), ltfSzVolY.getText(),
-          ltfSzVolZ.getText() });
-      if (!goodframe.getOutput(0).equals(ltfSzVolX.getText())) {
-        UIHarness.INSTANCE.openMessageDialog(manager, "In " + PARTICLE_VOLUME_LABEL
-            + ", " + X_LABEL + " is invalid.  Try " + goodframe.getOutput(0) + ".",
-            "Entry Error");
-        return false;
-      }
-      if (!goodframe.getOutput(1).equals(ltfSzVolY.getText())) {
-        UIHarness.INSTANCE.openMessageDialog(manager, "In " + PARTICLE_VOLUME_LABEL
-            + ", " + Y_LABEL + " is invalid.  Try " + goodframe.getOutput(1) + ".",
-            "Entry Error");
-        return false;
-      }
-      if (!goodframe.getOutput(2).equals(ltfSzVolZ.getText())) {
-        UIHarness.INSTANCE.openMessageDialog(manager, "In " + PARTICLE_VOLUME_LABEL
-            + ", " + Z_LABEL + " is invalid.  Try " + goodframe.getOutput(2) + ".",
-            "Entry Error");
-        return false;
-      }
-    }
-    catch (IOException e) {
-      if (!UIHarness.INSTANCE.openYesNoDialog(manager, "Unable to validate "
-          + PARTICLE_VOLUME_LABEL + ".  Continue?\n\n" + e.getMessage(), AxisID.ONLY)) {
-        return false;
-      }
-    }
-    catch (InvalidParameterException e) {
-      if (!UIHarness.INSTANCE.openYesNoDialog(manager, "Unable to validate "
-          + PARTICLE_VOLUME_LABEL + ".  Continue?\n\n" + e.getMessage(), AxisID.ONLY)) {
-        return false;
-      }
-    }
-    catch (NumberFormatException e) {
-      if (!UIHarness.INSTANCE.openYesNoDialog(manager, "Unable to validate "
-          + PARTICLE_VOLUME_LABEL + ".  Continue?\n\n" + e.getMessage(), AxisID.ONLY)) {
-        return false;
-      }
     }
     //Number of particles
     boolean startIsEmpty = ltfLstThresholdsStart.isEmpty();
