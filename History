@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/31/11: In eTomo - PEET, removed Particle Volume validation based on
+goodframe.(Bug# 1543)
+
 8/31/11: In eTomo - Parallel Processing, failing when no CPUs have been
 chosen.(Bug# 1405)
 
