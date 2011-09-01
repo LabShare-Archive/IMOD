@@ -1469,7 +1469,7 @@ public abstract class BaseManager {
       sendMsgProcessStarting(display);
     }
     MainPanel mainPanel = getMainPanel();
-    //FIXME - null pointer getPArallelPanel
+    // FIXME - null pointer getPArallelPanel
     String lastProcess = processData.getLastProcess();
     ProcessSeries processSeries = null;
     if (lastProcess != null) {
@@ -1716,7 +1716,10 @@ public abstract class BaseManager {
       }
     }
     ParallelPanel parallelPanel = getMainPanel().getParallelPanel(axisID);
-    parallelPanel.getResumeParameters(param);
+    if (!parallelPanel.getResumeParameters(param)) {
+      sendMsgProcessFailedToStart(processResultDisplay);
+      return;
+    }
     metaData.setCurrentProcesschunksRootName(axisID, param.getRootName());
     metaData.setCurrentProcesschunksSubdirName(axisID, param.getSubdirName());
     saveStorable(axisID, metaData);
@@ -1744,6 +1747,9 @@ public abstract class BaseManager {
 /**
  * <p>
  * $Log$
+ * Revision 1.146  2011/06/30 00:18:17  sueh
+ * Bug# 1502 Added useFileNameInClose parameter to renameImageFile.  This allows the rename function to use the from file name to rename, but not use it to close 3dmod.  This is useful for 3dmod types that open a group of files.
+ *
  * Revision 1.145  2011/06/28 20:01:55  sueh
  * Added test prints to closeImod functions.
  *
