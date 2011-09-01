@@ -188,8 +188,12 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
   public void setQueueCommand(final String command) {
     queueCommand = command;
   }
-
+  
   public void setCPUNumber(final String input) {
+    cpuNumber.set(input);
+  }
+
+  public void setCPUNumber(final ConstEtomoNumber input) {
     cpuNumber.set(input);
   }
 
@@ -548,6 +552,10 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.50  2011/05/10 16:49:26  sueh
+ * <p> bug# 1482 Always setting subcommandProcessName.  Changed getSubcommandProcessName to return a
+ * <p> string so that the root name chould be set to subcommandProcessName.
+ * <p>
  * <p> Revision 1.49  2011/02/09 06:04:40  sueh
  * <p> bug# 1438 In getProcessName changing the ProcessName returned based
  * <p> on the number of CPUs selected and the OS.  Removed PROCESS_NAME in
