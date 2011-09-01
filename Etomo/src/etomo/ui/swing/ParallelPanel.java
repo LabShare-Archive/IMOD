@@ -85,13 +85,13 @@ public final class ParallelPanel implements Expandable, Storable {
   private final int niceFloor;
   private final ProcessingMethodMediator mediator;
 
-  //private ParallelProcessMonitor parallelProcessMonitor = null;
+  // private ParallelProcessMonitor parallelProcessMonitor = null;
   private boolean visible = true;
   private boolean open = true;
   private boolean pauseEnabled = false;
   private ProcesschunksParam processchunksParam = null;
   private ProcessResultDisplay processResultDisplay = null;
-  private ProcessorTable currentTable;//the visible table - should never be null
+  private ProcessorTable currentTable;// the visible table - should never be null
   private boolean processingMethodLocked = false;
   private boolean processingRunning = false;
 
@@ -109,20 +109,17 @@ public final class ParallelPanel implements Expandable, Storable {
   private ParallelPanel(final BaseManager manager, final AxisID axisID,
       final PanelHeaderState state, final AxisProcessPanel parent,
       final boolean popupChunkWarnings) {
-    //  try {
+    // try {
     ParameterStore parameterStore = EtomoDirector.INSTANCE.getParameterStore();
     parameterStore.load(this);
-    /*  }
-      catch (LogFile.LockException e) {
-        UIHarness.INSTANCE.openMessageDialog(manager, "Unable to load parameters.\n"
-            + e.getMessage(), "Etomo Error", axisID);
-      }*/
+    /* } catch (LogFile.LockException e) { UIHarness.INSTANCE.openMessageDialog(manager,
+     * "Unable to load parameters.\n" + e.getMessage(), "Etomo Error", axisID); } */
     this.manager = manager;
     this.axisID = axisID;
     this.parent = parent;
     mediator = manager.getProcessingMethodMediator(axisID);
     this.popupChunkWarnings = popupChunkWarnings;
-    //initialize table
+    // initialize table
     cpuTable = new CpuTable(manager, this, axisID);
     cpuTable.createTable();
     currentTable = cpuTable;
@@ -133,17 +130,17 @@ public final class ParallelPanel implements Expandable, Storable {
     gpuTable = new GpuTable(manager, this, axisID);
     gpuTable.createTable();
     gpuTable.setVisible(false);
-    //panels
+    // panels
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(BorderFactory.createEtchedBorder());
     tablePanel.setLayout(new BoxLayout(tablePanel, BoxLayout.X_AXIS));
     bodyPanel.setBoxLayout(BoxLayout.Y_AXIS);
     SpacedPanel southPanel = SpacedPanel.getInstance();
     southPanel.setBoxLayout(BoxLayout.X_AXIS);
-    //southPanel;
+    // southPanel;
     southPanel.add(ltfCPUsSelected);
     southPanel.add(btnRestartLoad);
-    //sNice
+    // sNice
     niceFloor = CpuAdoc.INSTANCE
         .getMinNice(manager, axisID, manager.getPropertyUserDir());
     sNice = Spinner.getLabeledInstance("Nice: ",
@@ -153,9 +150,9 @@ public final class ParallelPanel implements Expandable, Storable {
     southPanel.add(btnPause);
     southPanel.add(btnResume);
     southPanel.add(btnSaveDefaults);
-    //tablePanel
+    // tablePanel
     buildTablePanel();
-    //bodyPanel
+    // bodyPanel
     bodyPanel.addRigidArea();
     bodyPanel.add(tablePanel);
     bodyPanel.add(southPanel);
@@ -172,9 +169,9 @@ public final class ParallelPanel implements Expandable, Storable {
         cbQueues.setSelected(true);
       }
     }
-    //header
+    // header
     header = PanelHeader.getMoreLessInstance(TITLE, this, null);
-    //rootPanel
+    // rootPanel
     rootPanel.add(header);
     rootPanel.add(bodyPanel.getContainer());
     ltfChunksFinished.setTextPreferredWidth(UIParameters.INSTANCE.getFourDigitWidth());
@@ -281,9 +278,9 @@ public final class ParallelPanel implements Expandable, Storable {
         mediator.setMethod(this, ProcessingMethod.QUEUE);
       }
       else {
-        //dialogs can turn on GPU check box
+        // dialogs can turn on GPU check box
         mediator.setMethod(this, null);
-        //Need to know whether to use the CPU or GPU table
+        // Need to know whether to use the CPU or GPU table
         setProcessingMethod(mediator.getRunMethodForParallelPanel(null));
         currentTable.restartLoadMonitor();
       }
@@ -335,19 +332,19 @@ public final class ParallelPanel implements Expandable, Storable {
    * @param method
    */
   public void setProcessingMethod(ProcessingMethod method) {
-    //Handle local method
+    // Handle local method
     if (method.isLocal()) {
       currentTable.stopLoad();
       return;
     }
-    //Handle parallel method
-    //The queue checkbox overrides the dialog's parallel processing settings
-    //and this class's default.
+    // Handle parallel method
+    // The queue checkbox overrides the dialog's parallel processing settings
+    // and this class's default.
     if (cbQueues.isSelected()) {
       method = ProcessingMethod.QUEUE;
     }
-    //The table load is stopped when the panel is hidden - needs to be started
-    //when the panel is shown.
+    // The table load is stopped when the panel is hidden - needs to be started
+    // when the panel is shown.
     if (currentTable == getTable(method)) {
       if (currentTable.isStopped()) {
         currentTable.startLoad();
@@ -355,12 +352,12 @@ public final class ParallelPanel implements Expandable, Storable {
       }
     }
     else {
-      //Stop and hide the current table
+      // Stop and hide the current table
       if (!currentTable.isStopped()) {
         currentTable.stopLoad();
       }
       currentTable.setVisible(false);
-      //Show and start a different table
+      // Show and start a different table
       currentTable = getTable(method);
       currentTable.setVisible(true);
       currentTable.startLoad();
@@ -429,14 +426,22 @@ public final class ParallelPanel implements Expandable, Storable {
    * until that parameters have been used.
    * @param param
    */
-  public void getResumeParameters(final ProcesschunksParam param) {
+  public boolean getResumeParameters(final ProcesschunksParam param) {
     processingRunning = true;
     cbQueues.setEnabled(!processingMethodLocked && !processingRunning);
     param.setResume(true);
     param.setNice(sNice.getValue());
-    param.setCPUNumber(ltfCPUsSelected.getText());
+    EtomoNumber cpusSelected = new EtomoNumber();
+    cpusSelected.set(ltfCPUsSelected.getText());
+    if (cpusSelected.equals(0)) {
+      UIHarness.INSTANCE.openMessageDialog(manager, getNoCpusSelectedErrorMessage(),
+          "Unable to resume", axisID);
+      return false;
+    }
+    param.setCPUNumber(cpusSelected);
     param.resetMachineName();
     currentTable.getParameters(param);
+    return true;
   }
 
   public boolean getParameters(final SirtsetupParam param) {
@@ -553,6 +558,10 @@ public final class ParallelPanel implements Expandable, Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2011/07/19 20:01:14  sueh
+ * <p> Bug# 1459 Wrapped checkboxes in a panel and used glue to left justify them.  Prevented spinners
+ * <p> which have a value when they are first displayed from going all the way to the right.
+ * <p>
  * <p> Revision 1.7  2011/07/18 23:13:17  sueh
  * <p> Bug# 1515 Added getNoCpusSelectedErrorMessage
  * <p>
