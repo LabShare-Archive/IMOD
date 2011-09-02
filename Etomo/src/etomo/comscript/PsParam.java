@@ -66,6 +66,8 @@ public final class PsParam {
   private boolean userIdColumn = false;
   private boolean startTimeColumn = true;
 
+  private int debug = 0;
+
   /**
    * Builds the ps commmand.  Uses the pid to limit the output to one process.
    * @param pid
@@ -78,11 +80,11 @@ public final class PsParam {
     startTimeCommand = osType == OSType.MAC ? "start" : "lstart";
     if (hostName != null
         && !hostName.matches("\\*")
-        && !hostName.equals(Network.getLocalHostName(manager, axisID, manager
-            .getPropertyUserDir()))) {
-      //If the timeout option cannot be added to ssh then only ssh if the caller
-      //of this constructor promises to run the command in a worker thread.  An
-      //ssh on the main thread can lock up the user interface.
+        && !hostName.equals(Network.getLocalHostName(manager, axisID,
+            manager.getPropertyUserDir()))) {
+      // If the timeout option cannot be added to ssh then only ssh if the caller
+      // of this constructor promises to run the command in a worker thread. An
+      // ssh on the main thread can lock up the user interface.
       if (willRunOnWorkerThread || SshParam.INSTANCE.isTimeoutAvailable(manager)) {
         List sshCommand = SshParam.INSTANCE.getCommand(manager, true, hostName);
         if (sshCommand != null) {
@@ -96,8 +98,8 @@ public final class PsParam {
         }
       }
     }
-    //The calling function expects at least one line be returned even when the
-    //pid is not found.
+    // The calling function expects at least one line be returned even when the
+    // pid is not found.
     command.add("ps");
     if (osType == OSType.WINDOWS) {
       parentPidColumn = true;
@@ -137,7 +139,7 @@ public final class PsParam {
     if (output == null || output.length < 2) {
       return;
     }
-    //set the indexes based on the header
+    // set the indexes based on the header
     int endIndex = -1;
     if (pidColumn) {
       pidStartIndex = endIndex + 1;
@@ -211,13 +213,17 @@ public final class PsParam {
    * @param startTime
    */
   public boolean findRow(String pid, String groupPid, Time startTime) {
-    System.err.println("Looking for a ps row with pid=" + pid + ",groupPid=" + groupPid
-        + ",startTime=" + startTime);
+    if (debug > 1) {
+      System.err.println("Looking for a ps row with pid=" + pid + ",groupPid=" + groupPid
+          + ",startTime=" + startTime);
+    }
     for (int i = 0; i < valuesArray.size(); i++) {
       Values values = (Values) valuesArray.get(i);
       if (values.getPid().equals(pid) && values.getGroupPid().equals(groupPid)) {
-        System.err.println("Checking the startTime of a ps row with pid=" + pid
-            + ",groupPid=" + groupPid + ",startTime=" + startTime);
+        if (debug > 1) {
+          System.err.println("Checking the startTime of a ps row with pid=" + pid
+              + ",groupPid=" + groupPid + ",startTime=" + startTime);
+        }
         if (values.getStartTime().almostEquals(startTime)) {
           return true;
         }
@@ -340,6 +346,9 @@ public final class PsParam {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2011/02/22 03:24:53  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.11  2010/02/17 04:47:54  sueh
  * <p> bug# 1301 Using the manager instead of the manager key do pop up
  * <p> messages.
