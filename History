@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/1/11: In eTomo, remove excessive logging to the err log that happened when
+eTomo was rerun while a non-parallel tilt was running.(Bug# 1489)
+
 9/1/11: In eTomo, added the PEET version to the About box.(Bug# 1519)
 
 8/31/11: In eTomo - PEET, removed Particle Volume validation based on
