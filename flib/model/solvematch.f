@@ -758,6 +758,8 @@ c
         dxyz(1) = 0.
         dxyz(2) = 0.
         dxyz(3) = 0.
+        call exitError('RELATIVE FIDUCIAL COORDINATES ARE NO LONGER ALLOWED; RERUN '//
+     &      'TILTALIGN FOR BOTH AXES TO GET ABSOLUTE COORDINATES')
       else
 c         
 c         Absolute fiducials: just make sure they are not exactly zero
@@ -1300,6 +1302,9 @@ c
 
 c
 c       $Log$
+c       Revision 3.24  2010/07/01 04:10:30  mast
+c       Fixed problem with undefined variable with matching models only
+c
 c       Revision 3.23  2009/12/02 05:42:47  mast
 c       *** empty log message ***
 c
