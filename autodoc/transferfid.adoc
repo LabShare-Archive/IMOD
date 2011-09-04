@@ -1,0 +1,129 @@
+Version = 1.0
+Pip = 1
+
+[Field = Setname]
+short = s
+type = CH
+usage = Root name of dataset
+tooltip =
+manpage = Root name of dataset (omit the a or b)
+
+[Field = TransferBtoA]
+short = b
+type = B
+usage = Transfer fiducials in backwards direction, from B to A
+tooltip =
+manpage = Transfer backwards, from the "b" axis to the "a" axis.  You will generally
+not need to specify any filenames with this option.
+
+[Field = AImageFile]
+short = ia
+type = FN
+usage = Name of axis A image file (default taken from tracka.com)
+tooltip =
+manpage = Set the name of the image file upon which the fiducial model for the "a" axis
+tilt series was built; the default is to take the name from the tracka.com
+command file.
+
+[Field = BImageFile]
+short = ib
+type = FN
+usage = Name of axis B image file (default taken from trackb.com)
+tooltip =
+manpage = Set the name of the image file for tracking beads in the "b" axis tilt series;
+the default is to take the name from the trackb.com command file.
+
+[Field = FiducialModel]
+short = f
+type = FN
+usage = Name of source axis fiducial model (default setnamea.fid, or
+setnameb.fid with -b option)
+tooltip =
+manpage = Set the name of the fiducial model file for the first, already tracked tilt 
+series; the default is setnamea.fid (or setnameb.fid with the "-b" option.)
+
+[Field = SeedModel]
+short = o
+type = FN
+usage = Name of output file (default setnameb.seed, or 
+setnamea.seed with -b option)
+tooltip =
+manpage = Set the name of the output file for the seed model; the default is
+setnameb.seed (or setnamea.fid with the "-b" option.)
+
+
+[Field = ViewsToSearch]
+short = n
+type = I
+usage = Number of views to search to find best pair (default $nviews)
+tooltip =
+manpage = Set the number of views from each data set to include in the search for the
+best matching pair of views; the default is 5.
+
+[Field = ACenterView]
+short = za
+type = I
+usage = Number of view in A to center search around (default is 
+view closest to zero tilt in setnamea.rawtlt)
+tooltip =
+manpage = Set the number of the view from the "a" axis tilt series around which to search
+for the best match; the default is the view nearest to zero tilt, using
+tilt angles in the file setnamea.rawtlt or tilt angles implied by
+FirstTiltAngle and TiltIncrement entries in tracka.com.
+
+[Field = BCenterView]
+short = zb
+type = I
+usage = Number of view in B to center search around (default is 
+view closest to zero tilt in setnameb.rawtlt)
+tooltip =
+manpage = Set the number of the view from the "b" axis tilt series around which to search
+for the best match; the default is the view nearest to zero tilt, using
+tilt angles in the file setnameb.rawtlt or tilt angles implied by
+FirstTiltAngle and TiltIncrement entries in trackb.com.
+
+
+[Field = AngleOfRotation]
+short = a
+type = I
+usage = Rotation direction or angle to search (+1, -1, +90, -90
+all work, default is to search both directions)
+tooltip =
+manpage = Use this option to specify the direction of rotation from the first to the
+second axis.  Only the sign of this number matters, so you can enter -1 or -90
+for clockwise rotations, or 1 or 90 for counterclockwise rotations.  In the
+absence of this option, the program will consider both directions of rotation.
+
+[Field = MirrorXaxis]
+short = x
+type = B
+usage = Mirror one image around X axis
+tooltip =
+manpage = Mirror one image around the X axis before rotating by 90 degrees.
+
+[Field = RunMidas]
+short = m
+type = B
+usage = Run Midas to set initial translational/rotational alignment
+tooltip =
+manpage = Run Midas on the first pair of views, and use the alignment that you set in
+Midas as the initial alignment for all pairs of views that are considered.
+
+[Field = CorrespondingCoordFile]
+short = c
+type = FN
+usage = File to place corresponding coordinates in
+tooltip =
+manpage = Use this option to have corresponding fiducial coordinates on the best matching
+views placed into an output file.  This file will also record the section
+numbers in the two sets and whether the transfer was from "b" to "a".
+
+[Field = LeaveTempFiles]
+short = t
+type = B
+usage = Leave temporary files in temporary directory
+tooltip =
+manpage = For diagnosing problems, leave temporary files in the standard
+temporary directory (/usr/tmp, /tmp, or defined by IMOD_TMPDIR) or in the
+current directory if there is no temporary directory.
+
