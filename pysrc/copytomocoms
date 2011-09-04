@@ -709,10 +709,8 @@ for iaxis in range(naxis):
                    "InputFile1 " + setname + ".prexg",
                    "InputFile2 " + setname + ".tltxf",
                    "OutputFile " + setname + "_fid.xf",
-                   "$\\cp " + setname + "_fid.xf " + setname + ".xf",
-                   "$chmod u+rw " + setname + ".xf",
-                   "$\\cp  " + setname + ".tlt " + setname + "_fid.tlt",
-                   "$chmod u+rw " + setname + "_fid.tlt",
+                   "$b3dcopy -p " + setname + "_fid.xf " + setname + ".xf",
+                   "$b3dcopy -p " + setname + ".tlt " + setname + "_fid.tlt",
                    "#",
                    "# CONVERT RESIDUAL FILE TO MODEL",
                    "#",
@@ -720,7 +718,7 @@ for iaxis in range(naxis):
                           setname, RESIDUAL_SCALE),
                    backupline])
    writeTextFile(dstfile, sedlines)
-   backuplist.extend([dstfile, setname + "local.xf", setname + "fid.xyz,",
+   backuplist.extend([dstfile, setname + "local.xf", setname + "fid.xyz",
                       setname + ".xf", setname + ".tlt", setname + ".resid",
                       setname + ".resmod", setname + ".3dmod"])
    
@@ -847,40 +845,48 @@ if backup:
    if naxis == 2:
       backuplist.extend(['combine.com', 'solve.xf', 'refine.xf', 'inverse.xf', 'warp.xf',
                         'patch.out', 'combine.log'])
-   dstlines = ["#! /bin/csh -f",
-               'set backupdir = "' + backupdir + '"',
-               'set backuplist = ( \\',]
+   dstlines = ["#!/usr/bin/python -u",
+               "import os, os.path, shutil",
+               "backupdir = '" + backupdir + "'",
+               'backuplist = [ \\',]
    line = ""
    for num in range(len(backuplist)):
-      line += backuplist[num] + '  '
+      line += "'" + backuplist[num] + "'"
+      if num < len(backuplist) - 1:
+         line += ', '
       if (num + 1) % 4 == 0:
          line += '\\'
          dstlines.append(line)
          line = ""
 
-   line += ')'
+   line += ']'
    dstlines.extend([line,
-                    "while ($#backuplist > 0)",
-                    "  set flnm = $backuplist[1]",
-                    "  if (-e $flnm) then",
-                    '    if (! -e "$backupdir/$flnm") \\cp -p $flnm "$backupdir"',
-                    '    \\find . -name $flnm -newer "$backupdir/$flnm" -exec cp -p '+\
-                    '"{}" "$backupdir" \\;',
-                    "  endif",
-                    "  shift backuplist",
-                    "end"])
+                    "for flnm in backuplist:",
+                    "  if os.path.exists(flnm):",
+                    "    flback = backupdir + '/' + flnm",
+                    "    if not os.path.exists(flback) or \\",
+                    "       os.stat(flback).st_mtime < os.stat(flnm).st_mtime:",
+                    "      try:",
+                    "        shutil.copyfile(flnm, flback)",
+                    "      except:",
+                    "        pass"])
 
    writeTextFile(backupname, dstlines)
 
    # The chmod failed sporadically with broken pipe on Mac OS X Python 2.6.1
    # So do it only on Windows, use the OS call otherwise.  Note that cygwin python
    # CAN set the desired bits with os.chmod wih native python cannot
+   needChmod = True
    if sys.platform.find('win32') >= 0 or sys.platform.find('cygwin') >= 0:
       try:
          runcmd('chmod +x ' + backupname)
+         needChmod = False
       except ImodpyError:
-         exitFromImodError(progname)
-   else:
+         pass
+
+   # If it fails fall through to using python method.  Note that if cygwin does not exist
+   # vmstopy will run savework explicitly with python
+   if needChmod:
       try:
          os.chmod(backupname, stat.S_IRWXU | stat.S_IXGRP | stat.S_IRGRP |
                   stat.S_IXOTH | stat.S_IROTH)
@@ -894,6 +900,9 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.9  2011/07/07 02:34:42  mast
+# Do not copy idf files if doing ctf only or it already exists
+#
 # Revision 1.8  2011/03/23 17:58:51  mast
 # Added fmtstr to printInfo calls
 #
