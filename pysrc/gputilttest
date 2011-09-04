@@ -25,7 +25,7 @@ def cleanup():
          if os.path.exists(fname):
             try:
                os.remove(fname)
-            except:
+            except Exception:
                pass
 
 # Do the operations in a function that is called after the global variables are defined
@@ -57,7 +57,7 @@ def runTests():
       cleanup()
       sys.exit(0)
 
-   except:
+   except Exception:
       cleanup()
       exitError(errstr)
 
@@ -82,7 +82,7 @@ def runTests():
       cleanup()
       sys.exit(0)
 
-   except:
+   except Exception:
       cleanup()
       exitError("Creating raw file with aligned stack")
 
@@ -195,7 +195,7 @@ import os, sys, os.path, signal, uu, gzip, random, struct, datetime, copy
 if sys.platform.find("win32") < 0:
    try:
       signal.signal(signal.SIGHUP, signal.SIG_IGN)
-   except:
+   except Exception:
       pass
 if os.getenv('IMOD_DIR') != None:
    os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
@@ -213,6 +213,7 @@ from pip import exitError, setExitPrefix
 gpunum = 0
 minutes = 1.
 setExitPrefix(prefix)
+passOnKeyInterrupt(True)
 
 try:
    if len(sys.argv) > 1:
