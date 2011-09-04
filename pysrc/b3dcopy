@@ -1,0 +1,62 @@
+#!/usr/bin/python -u
+# b3dcopy - Utility to copy file and make sure permission is set for the copy
+#
+# Author: David Mastronarde
+#
+# $Id$
+
+retryWait = 0.2
+maxTrials = 10
+
+import sys, os, os.path, time, shutil, stat
+
+doperm = 0
+if len(sys.argv) > 1 and sys.argv[1] == '-p':
+   doperm = 1
+
+if len(sys.argv) < 3 + doperm:
+   sys.stdout.write('ERROR: b3dcopy - not enough arguments\n')
+   sys.exit(1)
+
+fromfile = sys.argv[1 + doperm]
+tofile = sys.argv[2 + doperm]
+if not os.path.exists(fromfile):
+   sys.stdout.write('ERROR: b3dcopy - file to copy does not exist: ' + fromfile + '\n')
+   sys.exit(1)
+
+if os.path.exists(tofile):
+   try:
+      os.remove(tofile)
+   except IOError:
+      sys.stdout.write('WARNING: b3dcopy - Could not remove existing ' + tofile + '\n')
+
+for trial in range(maxTrials):
+   try:
+      shutil.copyfile(fromfile, tofile)
+      if trial:
+         sys.stdout.write('It took ' + str(trial+1) + ' tries to copy ' + fromfile + '\n')
+      break
+   except:
+      pass
+else:
+   sys.stdout.write('WARNING: b3dcopy - Could not copy ' + fromfile + ' to ' + tofile + \
+                    ' in ' + str(maxTrials) + ' tries\n')
+
+if not doperm:
+   sys.exit(0)
+
+for trial in range(maxTrials):
+   try:
+      mode = stat.S_IMODE(os.stat(tofile)[stat.ST_MODE]) | stat.S_IRUSR | stat.S_IWUSR
+      os.chmod(tofile, mode)
+      if trial:
+         sys.stdout.write('It took ' + str(trial+1) + ' tries to set permissions of ' +\
+                          tofile +'\n')
+      break
+   except:
+      pass
+else:
+   sys.stdout.write('WARNING: b3dcopy - Could not set permissions of ' + tofile + \
+                    ' in ' + str(maxTrials) + ' tries\n')
+
+sys.exit(0)
