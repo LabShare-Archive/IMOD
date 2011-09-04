@@ -1,0 +1,296 @@
+#!/usr/bin/python -u
+# dm2mrc - convert DigitalMicrograph files
+#
+# Author: David Mastronarde
+#
+# $Id$
+#
+
+progname = 'dm2mrc'
+prefix = 'ERROR: ' + progname + ' - '
+tmplist = []
+
+# Clean up the temporary files
+def cleanTemps():
+   if not len(tmplist):
+      return
+   prnstr("Removing temporary files..")
+   try:
+      for f in tmplist:
+         os.remove(f)
+   except Exception:
+      pass
+   
+
+#### MAIN PROGRAM  ####
+#
+# load System Libraries
+import os, sys, os.path, signal, struct
+
+#
+# Setup runtime environment
+if sys.platform.find("win32") < 0:
+   try:
+      signal.signal(signal.SIGHUP, signal.SIG_IGN)
+   except Exception:
+      pass
+if os.getenv('IMOD_DIR') != None:
+   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
+                        os.pathsep + os.environ['PATH']
+   sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import *
+
+options = ['s::B:Treat unsigned data as signed (use if < 32768)',
+           'r::B:Reduce (divide by 2) unsigned 16-bit data or 32-bit integer data',
+           'u::B:Save unsigned data in unsigned 16-bit file mode',
+           'c::B:Convert 32-bit integer data to 16-bit integers instead of floats']
+
+
+PipExitOnError(False, prefix)
+(numOpts, numNonOpts) = PipParseInput(sys.argv, options)
+
+if numNonOpts < 2:
+   PipPrintHelp(progname, 0, 2, 1)
+   sys.exit(0)
+
+passOnKeyInterrupt(True)
+divide = ""
+convert = ""
+unsigned = ""
+signed = 0
+signopt = 0
+
+if PipGetBoolean('c', 0):
+   convert = '-c'
+if PipGetBoolean('r', 0):
+   divide = '-d'
+   signopt += 1
+if PipGetBoolean('u', 0):
+   unsigned = '-u'
+   signopt += 1
+if PipGetBoolean('s', 0):
+   signed = 1
+   signopt += 1
+
+if signopt > 1:
+   exitError('You can enter only one of -r, -u, and -s')
+
+# Spaces in filenames will be taken care of by quoting all the non-option args
+
+# Build arrays of critical values when we scan the data
+
+fnames = []
+xsizes = []
+ysizes = []
+zsizes = []
+dmtypes = []
+offsets = []
+
+sizedif = 0
+typedif = 0
+differ = 0
+swap = 0
+dm2 = 0
+dm3 = 0
+
+# Read all files
+prnstr('Scanning files...')
+nfiles = numNonOpts - 1
+for num in range(nfiles):
+   fname = PipGetNonOptionArg(num)
+   fnames.append('"' + fname + '"')
+   if not os.path.exists(fname):
+      exitError('Input file ' + fname + ' does not exist')
+
+   try:
+      bfile = open(fname, 'rb')
+      bytein = bfile.read(24)
+      header = struct.unpack('BBBBBBBBBBBBBBBBBBBBBBBB', bytein)
+      ddump = struct.unpack('hhhhhhhhhhhh', bytein)
+      bfile.close()
+   except Exception:
+      exitError('Reading header values from ' + fname)
+
+   # od had 16 numbers in line after address, so subtract 2 from
+   # csh indexes <= 17 and 3 from csh indexes > 17
+   byte2 = header[1]
+   byte4 = header[3]
+
+   if byte2 == 61:
+
+      # old DM2 format
+
+      if swap == 0:
+         swap = ''
+         if ddump[0] != 61:
+            swap = '-s'
+
+      xsizet = 256 * header[16] + header[17]
+      ysizet = 256 * header[18] + header[19]
+      dmtypet = header[23]
+      props = (xsizet, ysizet, 1, dmtypet, 24)
+      dm2 = 1
+
+   elif byte2 == 255:
+
+      # NEw DM 2 format
+      if swap == 0:
+         swap = ''
+         if ddump[6] > 100:
+            swap = '-s'
+      xsizet = 256 * header[6] + header[7]
+      ysizet = 256 * header[8] + header[9]
+      dmtypet = header[13]
+      props = (xsizet, ysizet, 1, dmtypet, 14)
+      dm2 = 1
+
+   elif byte4 == 3 or byte4 == 4:
+
+      # DM3 or DM4 format
+      if swap == 0:
+         swap = ''
+         if ddump[1] == byte4:
+            swap = '-s'
+
+      try:
+         propsarr = runcmd(fmtstr('dm3props {} {}', byte4, fnames[num]))
+         propstxt = propsarr[0].split()
+         try:
+            props = []
+            for txt in propstxt:
+               props.append(int(txt))
+         except Exception:
+            exitError('Converting output of dm3props to integers')
+      except ImodpyError:
+         exitFromImodError(progname)
+         
+
+   else:
+      exitError(fname + ' is not recognized as a DM file')
+
+
+   # add properties to wordlists, and check for consistency
+   xsizes.append(props[0])
+   ysizes.append(props[1])
+   zsizes.append(props[2])
+   dmtypes.append(props[3])
+   offsets.append(props[4])
+   if num:
+      if props[0] != xsize or props[1] != ysize:
+         sizedif = 1
+      if props[2] != zsize:
+         differ = 1
+      if props[3] != dmtype:
+         typedif = 1
+      if props[4] != offset:
+         differ = 1
+   else:
+      xsize = props[0]
+      ysize = props[1]
+      zsize = props[2]
+      dmtype = props[3]
+      offset = props[4]
+
+differ = differ or sizedif or typedif
+if sizedif:
+   prnstr('WARNING: images are not all of the same dimensions')
+if typedif:
+   prnstr('WARNING: images are not all of the same data type')
+if dm2 and dm3:
+   exitError('You can not stack both DM2 and DM3 files in one operation')
+
+# scan the types next, build a list of them too
+end = 1
+if differ:
+   end = nfiles
+types = []
+for num in range(end):
+   if dmtypes[num] == 6:
+      type = 'byte'
+   elif dmtypes[num] == 9:
+      type = 'sbyte'
+   elif dmtypes[num] == 10:
+      type = 'ushort'
+      if signed:
+         type = 'short'
+   elif dmtypes[num] == 1:
+      type = 'short'
+   elif dmtypes[num] == 11:
+      type = 'ulong'
+      if signed:
+         type = 'long'
+   elif dmtypes[num] == 7:
+      type = 'long'
+   elif dmtypes[num] == 2:
+      type = 'float'
+   else:
+      exitError('Unrecognized data type for file ' + fnames[num])
+
+   types.append(type)
+
+# make a backup file if output exists
+outfile = PipGetNonOptionArg(nfiles)
+if os.path.exists(outfile):
+   prnstr(fmtstr('Output file {0} already exists - saving it as {0}~', outfile))
+   makeBackupFile(outfile)
+
+prnstr('Converting files...')
+if not differ:
+   rawcom = fmtstr('raw2mrc -f -o {} {} -t {} -x {} -y {} -z {} {} {} {}', offset, swap,
+                   type, xsize, ysize, zsize, convert, divide, unsigned)
+   for fname in fnames:
+      rawcom += ' ' + fname
+   rawcom += ' "' + outfile + '"'
+   try:
+      runcmd(rawcom, None, 'stdout')
+   except Exception:
+      exitFromImodError(progname)
+   sys.exit(0)
+
+# Otherwise, loop and convert each one to temp file, then stack the temp files
+newstcom = []
+pid = '.' + str(os.getpid())
+try:
+   for i in range(nfiles):
+      fname = PipGetNonOptionArg(i)
+      outtmp = fname + pid
+      tmplist.append(outtmp)
+      rawcom = fmtstr('raw2mrc -f -o {} {} -t {} -x {} -y {} -z {} {} {} {} "{}" "{}"',
+                      offsets[i], swap, types[i], xsizes[i], ysizes[i], zsizes[i],
+                      convert, divide, unsigned, fname, outtmp)
+      try:
+         runcmd(rawcom, None, 'stdout')
+      except ImodpyError:
+         cleanTemps()
+         exitFromImodError(progname)
+
+      newstcom.append('InputFile ' + outtmp)
+      if zsizes[i] > 1:
+         newstcom.append(fmtstr('Sections 0-{}', zsizes[i] - 1))
+      else:
+         newstcom.append('Sections 0')
+
+   newstcom.append('OutputFile ' + outfile)
+   newstcom.append('ScaleMinAndMax 1,1')
+   newstcom.append(fmtstr('Size {},{}', max(xsizes), max(ysizes)))
+
+   prnstr('Stacking temporary files...')
+   try:
+      runcmd('newstack -StandardInput', newstcom)
+   except ImodpyError:
+      cleanTemps()
+      exitFromImodError(progname)
+
+
+except KeyboardInterrupt:
+   pass
+
+cleanTemps()
+sys.exit(0)
