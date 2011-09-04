@@ -9,7 +9,7 @@ include ../configure
 SCRIPTS = vmstopy tomostitch edgepatches fitpatches sirtsetup splitblend setupcombine \
 splittilt imodcpuload gpumonitor splitcombine copytomocoms squeezevol tomosnapshot \
 trimvol makejoincom finishjoin chunksetup collectmmm sampletilt matchorwarp alignlog \
-gputilttest b3dremove b3dcopy
+gputilttest b3dremove b3dcopy dm2mrc
 MODULES = imodpy.py pysed.py supermont.py pip.py
 
 all:
