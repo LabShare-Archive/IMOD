@@ -42,7 +42,7 @@ def modifyUsageFile(controlHost, controlID, addlist):
                prnstr("Removing lock file")
             try:
                os.remove(lockfile)
-            except:
+            except Exception:
                if verbose:
                   prnstr("Error removing lock file")
             break
@@ -92,7 +92,7 @@ def modifyUsageFile(controlHost, controlID, addlist):
    if os.path.exists(filename):
       try:
          os.remove(filename)
-      except:
+      except Exception:
          if verbose:
             prnstr("Error removing existing usage log " + filename)
 
@@ -103,7 +103,7 @@ def modifyUsageFile(controlHost, controlID, addlist):
    if lockfile:
       try:
          os.remove(lockfile)
-      except:
+      except Exception:
          if verbose:
             prnstr("Error removing lock file when done: " + lockfile)
 
@@ -118,7 +118,7 @@ import os, sys, os.path, signal, socket, getpass, glob, datetime, time
 if sys.platform.find("win32") < 0:
    try:
       signal.signal(signal.SIGHUP, signal.SIG_IGN)
-   except:
+   except Exception:
       pass
 if os.getenv('IMOD_DIR') != None:
    os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
@@ -145,7 +145,7 @@ options = ['add::CH:List of machines and GPUs to add (e.g., host:1:2,host2,host3
 
 try:
    username = getpass.getuser()
-except:
+except Exception:
    if verbose:
       prnstr("Cannot get username")
    pass
@@ -156,6 +156,7 @@ PipEnableEntryOutput(False)
 
 if not numOpts:
    PipPrintHelp(progname, 0, 0, 0)
+   sys.exit(0)
 
 tempdir = imodTempDir()
 if not tempdir:
@@ -280,6 +281,9 @@ writeTextFile(rfile, report)
 sys.exit(0)
 
 #  $Log$
+#  Revision 1.2  2011/02/25 17:07:10  mast
+#  Take away separators from split() calls to throw away space strings
+#
 #  Revision 1.1  2011/02/16 18:45:34  mast
 #  Added to package
 #
