@@ -1,0 +1,159 @@
+#!/usr/bin/python -u
+# runraptor - Runs RAPTOR, taking care of several options and post-processing the model
+#
+# Author: David Mastronarde
+#
+# $Id$
+
+progname = 'runraptor'
+prefix = 'ERROR: ' + progname + ' - '
+
+# load System Libraries
+import os, sys, os.path, signal
+
+#
+# Setup runtime environment
+if sys.platform.find("win32") < 0:
+   try:
+      signal.signal(signal.SIGHUP, signal.SIG_IGN)
+   except Exception:
+      pass
+if os.getenv('IMOD_DIR') != None:
+   raptorBin = os.path.join(os.environ['IMOD_DIR'], 'bin')
+   os.environ['PATH'] =  raptorBin + os.pathsep + os.environ['PATH']
+   sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pysed import *
+from pip import exitError, setExitPrefix
+setExitPrefix(prefix)
+
+if os.getenv('RAPTOR_BIN'):
+   raptorBin = os.environ['RAPTOR_BIN']
+if not os.path.exists(raptorBin):
+   exitError(raptorBin + 'does not exist.   You need to leave RAPTOR_BIN undefined to '+\
+             'use the RAPTOR in IMOD, or define it with the path to a RAPTOR executable')
+
+if len(sys.argv) < 5:
+   prnstr("""Usage: runraptor [options] image_stack
+   Runs RAPTOR on the given image_stack, which may be a .st or .preali file
+   Options are RAPTOR options and MUST include:
+     -diam #  Bead diameter in pixels
+     -mark #  Number of markers to track
+
+   This script takes care of adding -exec, -path, -input, -track, and -output
+       options.
+   It must be run inside the data directory where files are located.
+   Coarse alignment must be run first""")
+   sys.exit(1)
+
+# Set up a unique directory for the run
+outdir = 'raptor1'
+for i in range(1, 100):
+   if not os.path.exists('raptor' + str(i)):
+      outdir = 'raptor' + str(i)
+      break
+
+# Get options and build option string for raptor
+options = []
+gotmark = 0
+gotdiam = 0
+for i in range(1, len(sys.argv)):
+   options.append(sys.argv[i])
+   if sys.argv[i].startswith('-ma'):
+      gotmark = 1
+   if sys.argv[i].startswith('-di'):
+      gotdiam = 1
+
+infile = sys.argv[len(sys.argv) - 1]
+
+# The extension from splitext includes the . !
+(rootname, ext) = os.path.splitext(infile)
+useraw = ext == '.st'
+if os.path.basename(rootname) != rootname:
+   exitError('You must run this script in the data directory')
+if not os.path.exists(infile):
+   exitError('The input file ' + infile + ' does not exist in the current directory')
+if useraw and not os.path.exists(rootname + '.prexg'):
+   exitError('Should be run on a raw stack only after running coarse alignment')
+
+if not gotmark or not gotdiam:
+   exitError('You must enter options with a diameter in pixels and a number of markers')
+
+outname = rootname + '_raptor.fid'
+
+# For a raw stack, figure out distortion parameters to send to xfmodel
+distort = ""
+binning = ""
+gradient = ""
+if useraw:
+   for comf in ['prenewst.com', 'prenewsta.com']:
+      if os.path.exists(comf):
+         newstlines = readTextFile(comf)
+         for l in newstlines:
+            if l.find('newstack') >= 0 and l.find(infile) >= 0:
+               lsplit = l.split()
+               for ind in range(len(lsplit) - 1):
+                  if lsplit[ind].startswith('-dist'):
+                     distort = '-distort ' + lsplit[ind+1]
+                  if lsplit[ind].startswith('-image'):
+                     binning = '-binning ' + lsplit[ind+1]
+                  if lsplit[ind].startswith('-grad'):
+                     gradient = '-gradient ' + lsplit[ind+1]
+                  
+# Build a command string with quoted arguments
+comstr = fmtstr('"{0}/RAPTOR" -exec "{0}" -path . -inp {1} -track -out {2}', raptorBin,
+                infile, outdir)
+for opt in options:
+   comstr += ' "' + opt + '"'
+
+prnstr('RAPTOR results for this run will be in ' + outdir)
+sys.stdout.flush()
+try:
+   runcmd(comstr, None)
+except ImodpyError:
+   logfile = outdir + '/align/' + rootname + '_RAPTOR.log'
+   if os.path.exists(logfile):
+      loglines = readTextFile(logfile)
+      for l in loglines:
+         if l.find('ERROR:') >= 0:
+            prnstr(l)
+   exitFromImodError(progname)
+
+makeBackupFile(outname)
+
+# Fix the pixel size and other features in the model
+sedout = outname
+if useraw:
+   sedout = rootname + '.' + str(os.getpid())
+try:
+   (nx, ny, nz, mode, px, py, pz) = getmrc(infile)
+except ImodpyError:
+   exitFromImodError(progname)
+
+sedcom = ["/symbol *circle/d",
+          "/^size *7/d",
+          fmtstr("/^units/a/refcurscale {} {} {}/", px, py, pz),
+          "/^drawmode/a/symbol    0/",
+          "/^drawmode/a/symsize   7/"]
+
+pysed(sedcom, outdir + '/IMOD/' + rootname + '.fid.txt', sedout)
+
+# If did raw stack, now align the model to the preali
+if useraw:
+   try:
+      runcmd(fmtstr('xfmodel -xf {}.prexg {} {} {} {} {}',
+                    rootname, distort, binning, gradient, sedout, outname), None)
+   except ImodpyError:
+      exitFromImodError(progname)
+
+   cleanupFiles([sedout])
+
+prnstr("The model that will load on the coarse aligned stack is:")
+prnstr(outname)
+sys.exit(0)
