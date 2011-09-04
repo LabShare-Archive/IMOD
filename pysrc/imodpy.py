@@ -27,13 +27,15 @@ This module provides the following functions:
   optionValue(linelist, option, type, ignorecase = False) - finds option value
                                                               in list of lines
   completeAndCheckComFile(comfile) - returns complete com file name and root
+  cleanChunkFiles(rootname[, logOnly]) - cleans up log and com files from chunks
+  cleanupFiles(files) - Removes a list of files with multiple trials if it fails
   imodTempDir() - returns a temporary directory: IMOD_TEMPDIR, /usr/tmp, or /tmp
   fmtstr(string, *args) - formats a string with replacement fields
   prnstr(string, file = sys.stdout, end = '\n') - replaces print function
 """
 
 # other modules needed by imodpy
-import sys, os, re, time
+import sys, os, re, time, glob
 from pip import exitError
 
 pyVersion = 100 * sys.version_info[0] + 10 * sys.version_info[1]
@@ -46,6 +48,8 @@ errStrings = []
 errStatus = 0
 runRetryLimit = 10
 runMaxTimeForRetry = 0.5
+raiseKeyInterrupt = False
+
 
 # Use the subprocess module if available except on cygwin where broken
 # pipes (early on) occurred occasionally; require it on win32
@@ -60,6 +64,7 @@ else:
       prnstr("ERROR: imodpy - Windows Python must be at least version 2.4")
       sys.exit(1)
 
+
 # define a new exception class so our caller can more easily catch errors
 # raised here
 class ImodpyError(Exception):
@@ -68,9 +73,11 @@ class ImodpyError(Exception):
 #   def __str__(self):
 #      return repr(self.args)
 
+
 # Use this call to get the error strings from the exception
 def getErrStrings():
    return errStrings
+
 
 # output_lines = imodpy.runcmd(cmd, input_lines, output_file)
 #  output_lines, input_lines are ARRAYs; output_lines is None if output_file
@@ -176,8 +183,13 @@ def runcmd(cmd, input=None, outfile=None, inStderr = None):
 
          # If it succeeds, break the retry loop
          break
+
+      except KeyboardInterrupt:
+         if raiseKeyInterrupt:
+            raise KeyboardInterrupt
+         sys.exit(1)
       
-      except:
+      except Exception:
 
          # If output is collected and it gets a broken pipe after a short enough time,
          # run another trial.  Sleep a bit after trying twice, it helps break the cycle
@@ -225,9 +237,16 @@ def setRetryLimit(numRetries, maxTime = None):
    if maxTime:
       runMaxTimeForRetry = maxTime
 
+
+# Us this call to control whether ctrl C interrupting runcmd will raise an interrupt
+def passOnKeyInterrupt(passOn = True):
+   raiseKeyInterrupt = passOn
+   
+
 # Get exit status of last command that was run
 def getLastExitStatus():
    return errStatus
+
 
 # Get essential data from the header of an MRC file
 def getmrc(file, doAll = False):
@@ -297,7 +316,7 @@ def makeBackupFile(filename):
          if os.path.exists(backname):
             os.remove(backname)
          os.rename(filename, backname)
-      except:
+      except Exception:
          prnstr(fmtstr('WARNING: Failed to rename existing file {} to {}',
                        filename, backname))
 
@@ -491,7 +510,7 @@ def optionValue(linelist, option, type, ignorecase = False):
                      retval.append(int(val))
                   else:
                      retval.append(float(val))
-            except:
+            except Exception:
                prnstr("WARNING: optionValue - Bad character in numeric " + \
                      "entry in: " + line)
                
@@ -522,14 +541,61 @@ def completeAndCheckComFile(comfile):
    return (comfile, rootname)
 
 
+# Clean up log files from chunks, and com files too if logOnly False
+def cleanChunkFiles(rootname, logOnly = False):
+   rmlist = glob.glob(rootname + '-[0-9][0-9][0-9]*.log')
+   if os.path.exists(rootname + '-start.log'):
+      rmlist.append(rootname + '-start.log')
+   if os.path.exists(rootname + '-finish.log'):
+      rmlist.append(rootname + '-finish.log')
+   if not logOnly:
+      rmlist += glob.glob(rootname + '-[0-9][0-9][0-9]*.com')
+      if os.path.exists(rootname + '-start.com'):
+         rmlist.append(rootname + '-start.com')
+      if os.path.exists(rootname + '-finish.com'):
+         rmlist.append(rootname + '-finish.com')
+   try:
+      for filename in rmlist:
+         os.remove(filename)
+   except Exception:
+      pass
+
+
+# Clean up a list of files with multiple trials if it fails
+def cleanupFiles(files):
+
+   # Even wih a wait of 0.01 it only took two trials, so try 0.1 for this
+   retryWait = 0.1
+   maxTrials = 10
+   numToDo = len(files)
+   stillToDo = numToDo * [1]
+   trial = 0
+   while trial < maxTrials and numToDo:
+      trial += 1
+      for ind in range(len(files)):
+         if stillToDo[ind]:
+            removed = -1
+            try:
+               os.remove(files[ind])
+               removed = 1
+            except OSError:
+               removed = str(sys.exc_info()[1]).find('No such')
+            if removed >= 0:
+               stillToDo[ind] = 0
+               numToDo -= 1
+
+      if numToDo:
+         time.sleep(retryWait)
+               
+
 # Return the windows path for path using cygpath if windows is not None
 def getCygpath(windows, path):
    if windows:
       try:
          cygtemp = runcmd('cygpath -m ' + path)
          if cygtemp != None and len(cygtemp) > 0:
-            return cygtemp[0]
-      except:
+            return cygtemp[0].strip()
+      except Exception:
          pass
    return path
 
@@ -675,8 +741,10 @@ def prnstr(string, file = sys.stdout, end = '\n'):
       file.flush()
 
 
-
 #  $Log$
+#  Revision 1.22  2011/08/09 04:44:20  mast
+#  Fixed problem with printing IO error message
+#
 #  Revision 1.21  2011/07/18 17:44:27  mast
 #  Fixed translation  of error codes to error status
 #
