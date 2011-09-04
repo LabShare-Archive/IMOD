@@ -6,7 +6,7 @@ include ../configure
 SCRIPTS = matchshifts\
  newst onepatchcorr patchcorr3d patchcrawl3d recombine reduceby2 selfalign\
  setupcoms setuplong splitmrc xf2xg xfalign\
- dm2mrc transferfid submfg imodpsview settmpdir matchrotpairs\
+ transferfid submfg imodpsview settmpdir matchrotpairs\
  clipflipyz prochunks.csh archiveorig imodkillgroup runpyscript imodhelp\
  queuechunk splitcorrection runraptor $(GENERATED_SCRIPTS)
 
