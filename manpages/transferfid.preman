@@ -79,90 +79,18 @@ option and to specify the direction of rotation between the axes with the
 .B -a
 option.  The latter option alone will save only 15% of the time, because
 the program will abandon one rotation direction if it is clearly worse after
-considering four pairs of views.
+considering four pairs of views, or only two if the difference between
+directions is very large.
 
 .SS Options
+Transferfid uses the PIP package for input (see the manual page for pip(1)).
+Options can be specified either as command line arguments (with the -)
+or one per line in a command file (without the -):
+INSERT OPTION TEXT HERE
 .TP
-.B -b
-Transfer backwards, from the "b" axis to the "a" axis.  You will generally
-not need to specify any filenames with this option.
-.TP
-.B -ia <image file>
-Set the name of the image file upon which the fiducial model for the "a" axis
-tilt series was built; the default is to take the name from the tracka.com
-command file.
-.TP
-.B -ib <image file>
-Set the name of the image file for tracking beads in the "b" axis tilt series;
-the default is to take the name from the trackb.com command file.
-.TP
-.B -f <model file>
-Set the name of the fiducial model file for the first, already tracked tilt 
-series; the default is setnamea.fid (or setnameb.fid with the 
-.B -b
-option.)
-.TP
-.B -o <model file>
-Set the name of the output file for the seed model; the default is
-setnameb.seed (or setnamea.fid with the
-.B -b
-option.)
-.TP
-.B -n <value>
-Set the number of views from each data set to include in the search for the
-best matching pair of views; the default is 5.
-.TP
-.B -za <value>
-Set the number of the view from the "a" axis tilt series around which to search
-for the best match; the default is the view nearest to zero tilt, using
-tilt angles in the file setnamea.rawtlt.
-.TP
-.B -zb <value>
-Set the number of the view from the "b" axis tilt series around which to search
-for the best match; the default is the view nearest to zero tilt, using
-tilt angles in the file setnameb.rawtlt.
-.TP
-.B -a <value>
-Use this option to specify the direction of rotation from the first to the
-second axis.  Only the sign of this number matters, so you can enter -1 or -90
-for clockwise rotations, or 1 or 90 for counterclockwise rotations.  In the
-absence of this option, the program will consider both directions of rotation.
-.TP
-.B -x
-Mirror one image around the X axis before rotating by 90 degrees.
-.TP
-.B -m
-Run Midas on the first pair of views, and use the alignment that you set in
-Midas as the initial alignment for all pairs of views that are considered.
-.TP
-.B -d <value>
-Set the value of the bead diameter in pixels in the images being used; the
-default is to take the value from tracka.com (or trackb.com with the
-.B -b
-option.)  Specifically, if a radius for centroid is found there it is 
-converted to a diameter by 2 * radius - 3; if a bead diameter is found it
-is treated as a diameter in unbinned pixels and the image binning is also
-extracted from tracka.com.
-.TP
-.B -l
-Use this option to specify that beads are light on a dark background.  It has
-an effect only if the 
-.B -d
-option is used; otherwise this parameter is taken from tracka.com (or 
-trackb.com with the
-.B -b
-option.)
-.TP
-.B -c <file name>
-Use this option to have corresponding fiducial coordinates on the best matching
-views placed into an output file.  This file will also record the section
-numbers in the two sets and whether the transfer was from "b" to "a".
-.TP 
-.B -t
-Leave temporary files in /usr/tmp for diagnosing problems.
-.TP 
-.B -P
-Output process ID.
+.B -StandardInput
+Read parameter entries from standard input
+
 .SH FILES
 Whether or not they fit the default naming conventions, the image files for
 fiducial tracking for each tilt series and the first fiducial model
