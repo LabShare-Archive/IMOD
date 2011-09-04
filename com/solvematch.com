@@ -1,6 +1,6 @@
 # THIS COMMAND FILE RUNS SOLVEMATCH
 #
-####CreatedVersion#### 3.8.23
+####CreatedVersion#### 4.1.24
 #
 # It contains all of the entries needed for the three different modes of
 # operation: fiducials only, fiducials and matching models (obsolete), and
@@ -39,11 +39,4 @@ MaximumResidual	8.
 LocalFitting	10
 CenterShiftLimit	10.
 #
-$echo "STATUS: SOLVEMATCH RAN SUCCESSFULLY, NEXT RUNNING MATCHSHIFTS"
-#
-# Run matchshifts.  If solvezero.xf has shifts, it will just be copied to 
-# solve.xf.  Otherwise, if the coordinates in the fiducial lists were not
-# absolute, it will get the absolute shifts; the three numbers are the nx, ny,
-# and nz of the block used for 3-D cross-correlation.
-#
-$matchshifts g5a g5b 64 32 64
+$echo "STATUS: SOLVEMATCH RAN SUCCESSFULLY"
