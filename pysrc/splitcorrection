@@ -1,0 +1,135 @@
+#!/usr/bin/python -u
+# splitcorrection - program to set up command files for parallel ctf correction
+#
+# Author: David Mastronarde
+#
+# $Id$
+#
+
+progname = 'splitcorrection'
+prefix = 'ERROR: ' + progname + ' - '
+
+#### MAIN PROGRAM  ####
+#
+# load System Libraries
+import os, sys, os.path, signal
+
+#
+# Setup runtime environment
+if sys.platform.find("win32") < 0:
+   try:
+      signal.signal(signal.SIGHUP, signal.SIG_IGN)
+   except Exception:
+      pass
+if os.getenv('IMOD_DIR') != None:
+   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
+                        os.pathsep + os.environ['PATH']
+   sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import *
+from pysed import *
+
+boundext = 'cbound'
+
+options = ['m::I:Maximum number of slices to be corrected per chunk',
+           'b::I:Number of boundary pixels for direct writing']
+PipExitOnError(False, prefix)
+(numOpts, numNonOpts) = PipParseInput(sys.argv, options)
+
+if not numNonOpts:
+   PipPrintHelp(progname, 0, 1, 0)
+   sys.exit(0)
+
+# Get the com file name, derive a root name and new com file name, check exists
+comfile = PipGetNonOptionArg(0)
+(comfile, rootname) = completeAndCheckComFile(comfile)
+
+# Get options
+maxslices = PipGetInteger('m', 5)
+boundpixels = PipGetInteger('b', 2048)
+
+comlines = readTextFile(comfile, 'ctfphaseflip command file')
+outfile = optionValue(comlines, 'OutputFileName', 0)
+inStack = optionValue(comlines, 'InputStack', 0)
+if not outfile or not inStack:
+   exitError('Cannot find name of input file or output file in ' + comfile)
+
+if not os.path.exists(inStack):
+   exitError('Input stack ' + inStack + ' does not exist')
+
+try:
+   dimensions = getmrcsize(inStack)
+except ImodpyError:
+   exitFromImodError(progname)
+
+
+views = optionValue(comlines, 'StartingEndingViews', 1)
+if not views:
+   views = (1, dimensions[2])
+
+cleanChunkFiles(rootname)
+
+viewdel = 'StartingEndingViews'
+total = 1 + views[1] - views[0]
+
+numslabs = (total + maxslices - 1) // maxslices
+slabsize = total // numslabs
+remainder = total % numslabs
+
+(outroot, outext) = os.path.splitext(outfile)
+thiscom = rootname + '-start.com'
+
+sedlist = ['/' + viewdel + '/d',
+           '/DefocusFile/a/StartingEndingViews -1  -1/',
+            fmtstr('/DefocusFile/a/TotalViews {} {}/', views[0], views[1])]
+sedlines = pysed(sedlist, comlines)
+sedlines.append('$sync')
+writeTextFile(thiscom, sedlines)
+
+boundfile = rootname + '-bound.info'
+width = dimensions[0]
+boundlines = (boundpixels + width - 1) // width
+ny = dimensions[1]
+boundlines = min(boundlines, ny // 2 + 1)
+
+boundout = [fmtstr('1 0 {} {} {}', width, boundlines, numslabs)]
+
+origOffset = views[0]
+firstview = views[0]
+for num in range(1, numslabs + 1):
+   thiscom = rootname + fmtstr('-{:03d}.com', num)
+   origEnd = origOffset + slabsize - 1 
+   if num <= remainder:
+      origEnd += 1
+   sedlist = ['/' + viewdel + '/d',
+              fmtstr('/DefocusFile/a/StartingEndingViews {}  {}/', origOffset, origEnd),
+              fmtstr('/DefocusFile/a/TotalViews {} {}/', views[0], views[1]),
+              '/DefocusFile/a/BoundaryInfoFile ' + boundfile + '/']
+   pysed(sedlist, comlines, thiscom)
+
+   boundstart = origOffset - firstview
+   boundend = origEnd - firstview
+   if num == 1:
+      boundstart = -1
+   if num == numslabs:
+      boundend = -1
+   boundout.append(fmtstr('{}-{:03d}.{}', outroot, num, boundext))
+   boundout.append(fmtstr('{} 0 {} -1', boundstart, boundend))
+
+   origOffset = origEnd + 1
+
+writeTextFile(boundfile, boundout)
+
+finlines = ['$fixboundaries ' + outfile + ' ' + boundfile,
+            fmtstr('$collectmmm pixels= {} {} {}', rootname, numslabs, outfile),
+            fmtstr('$b3dremove {0}-[0-9][0-9][0-9]*.com* {0}-[0-9][0-9][0-9]*.log* ' +
+                   '{0}-start*.* {0}-finish*.com* {1}-[0-9][0-9][0-9]*.{2} {3}',
+                   rootname, outroot, boundext, boundfile)]
+writeTextFile(rootname + '-finish.com', finlines)
+sys.exit(0)
