@@ -6,9 +6,9 @@ splitcorrection \- Produce multiple command files for running ctfphaseflip in pa
 .SH SYNOPSIS
 splitcorrection [options] <ctfphaseflip command file>
 .SH DESCRIPTION
-splitcorrection will take a command file for running the ctfphaseflip(1) program 
-and produce multiple command files that can be run in parallel by
-Processchunks(1). 
+splitcorrection is a Python script that will take a command file for running
+the ctfphaseflip(1) program and produce multiple command files that can be run
+in parallel by Processchunks(1). 
 .P
 The only argument that the typical user needs to give is
 .B -m
@@ -25,7 +25,8 @@ task and clean up intermediate files. One can then enter
 .br
    processchunks machine_list correction
 .br
-where "machine_list" is the comma-separated list of machines to use.
+where "machine_list" is the comma-separated list of machines to use, the
+number of processors to use on a single machine.
 
 .SS Options
 When the program is invoked with no arguments, it gives a usage statement that
@@ -43,6 +44,6 @@ The finishing command file deletes all the
 command and log files for the chunks after collecting minimun, maximum, and
 mean density information from the log files.
 .SH AUTHOR
-Quanren Xiong  <xiongq@colorado.edu>
+David Mastronarde  <mast@colorado.edu>
 .SH SEE ALSO
 processchunks(1), ctfphaseflip(1) 
