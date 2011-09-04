@@ -57,11 +57,14 @@ If you use no Python at all, all command lines must have the same amount of
 space between the $ and the command.  Standard input lines need not be
 indented.
 .P
-The program will enclose text, such as that used to run a command, in single
-quotes (' ').  If you need to pass a command line argument containing spaces
+The program will enclose the text that used to run a command, in single
+quotes (' ') and text that is input to programs in triple quotes (""" """).  
+If you need to pass a command line argument containing spaces
 to a program, enclose it in double quotes (" ").
 .SS Translations
-The following translations will occur:
+The following translations will occur.  Some of these are generally useful,
+some are needed to support constructs in existing command files for tomogram
+processing.
 
 $goto label 
 .br
@@ -83,42 +86,73 @@ will be converted to
 $   command
 
 $set variable = value   becomes   >variable = value
+.br
+and "value" is quoted unless it can be assigned to a numeric variable
 
 If "$set" has been used at all, $variable will be substituted just like
 %variable. 
 
-$setenv variable value   becomes   >os.environ['variable'] = value
+$setenv variable value   becomes   >os.environ['variable'] = 'value'
 
 This is to set the environment for programs that will be run; such variables
 should not be used in the command file.
 
-\\rm   becomes   rm -f
+\\rm, \\rm -f, rm, and rm -f   all become   b3dremove -g
+.br
+cp or \\cp   become   b3dcopy, and if the following line has a chmod, -p is
+added to the b3dcopy
 .br
 \\mv   becomes   mv -f
+.br
+$if (-e file) mv file file~    is replaced by a call to the makeBackupFile function
 
-$echo text   becomes   >print "text"
+$echo text   becomes   >print "text"   after substituting variables in "text"
 
 $exit
 .br
-will cause the rest of the command file to be skipped.
+will cause the rest of the command file to be skipped, whereas
+.br
+$exit n
+.br
+will result in calling a function that terminates with sys.exit(n), but
+further lines will be processed.
 
 >print "text"   becomes   >prnstr("text", file=log)
 .br
 In other words, in Python statements, print commands not directed to a file
-will be redirected to the log file.
+will be redirected to the log file.  prnstr is function that works for
+printing with both Python 2.x and Python 3.x.
 
 b3dremove      becomes     b3dremove -g    on Windows
 .br
 On other systems, wildcards in the filename list are expanded by the shell
 that runs the command, but on Windows, b3dremove needs to glob the filenames.
 
+$if ($status) goto label
+.br
+When this construct is present, the program will collect lines between "label:" and
+"exit n" and move them into a function.  When the construct is encountered
+after running a command, a call to the function is inserted in the exception
+handler for the command.  
+
+$vmstocsh com.log < com.com
+.br
+When this construct is encountered, the line containing it, through a line
+containing "csh -ef", are replaced with commands to run vmstopy and to run the
+resulting script.
+
+Certain commands are eliminated from the command file:
+.br
+$set nonomatch
+.br
+$matchshifts
+.br
+$sync    (on Windows)
+
 .SS Options
 .TP
 .B -x
-Execute the script with execfile() in the same Python interpreter that is
-doing the conversion.  This throws an exception for no discernable reason so
-it is not possible to detect errors in execution.  Piping to a second Python
-interpreter is more useful.
+Execute the script with a new Python instance.
 .TP
 .B -q
 Suppress output messages about the progress of running the script.
