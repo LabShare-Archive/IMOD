@@ -1,0 +1,164 @@
+#!/usr/bin/python -u
+# archiveorig - script to get compressed file for archiving original stack
+#
+# Author: David Mastronarde
+#
+# $Id$
+#
+
+progname = 'archiveorig'
+prefix = 'ERROR: ' + progname + ' - '
+
+xrayname = ''
+origname = ''
+compname = ''
+
+# cleanup after error or interrupt: call with 1 for restore or 2 for archive
+def cleanup(which):
+   try:
+      if xrayname:
+         os.remove(xrayname)
+      if which == 1 and origname:
+         os.remove(origname)
+   except Exception:
+      pass
+
+def spoolGzip(which):
+   chunksize = 10000000
+   try:
+      if which == 1:
+         errstr = 'Uncompressing ' + compname
+         infile = gzip.open(compname, 'rb')
+         outfile = open(xrayname, 'wb')
+         inname = compname
+      else:
+         errstr = 'Compressing ' + xrayname
+         outfile = gzip.open(compname, 'wb')
+         infile = open(xrayname, 'rb')
+         inname = xrayname
+
+      prnstr(errstr + ' ...')
+
+      while True:
+         data = infile.read(chunksize)
+         lendata = len(data)
+         if not lendata:
+            break
+         outfile.write(data)
+         if lendata < chunksize:
+            break
+
+      infile.close()
+      outfile.close()
+   except KeyboardInterrupt:
+      cleanup(which)
+      sys.exit(1)
+   except Exception:
+      cleanup(which)
+      exitError(errstr)
+
+   try:
+      os.remove(inname)
+   except Exception:
+      prnstr('WARNING: ' + progname + ' - Failed to remove ' + inname)
+
+   
+
+#### MAIN PROGRAM  ####
+#
+# load System Libraries
+import os, sys, os.path, signal, gzip
+
+#
+# Setup runtime environment
+if sys.platform.find("win32") < 0:
+   try:
+      signal.signal(signal.SIGHUP, signal.SIG_IGN)
+   except Exception:
+      pass
+if os.getenv('IMOD_DIR') != None:
+   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
+                        os.pathsep + os.environ['PATH']
+   sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import *
+
+options = ['r::B:Restore setname_orig.st from setname.st and setname_xray.st.gz',
+           'd::B:Delete setname_orig.st after computing difference']
+
+PipExitOnError(False, prefix)
+(numOpts, numNonOpts) = PipParseInput(sys.argv, options)
+
+if numNonOpts < 1:
+   PipPrintHelp(progname, 0, 1, 0)
+   sys.exit(0)
+
+restore = PipGetBoolean('r', 0)
+delete = PipGetBoolean('d', 0)
+passOnKeyInterrupt(True)
+
+stack = PipGetNonOptionArg(0)
+if not os.path.exists(stack):
+   exitError('File ' + stack + ' does not exist')
+
+setname = (os.path.splitext(stack))[0]
+origname = setname + '_orig.st'
+xrayname = setname + '_xray.st'
+compname = xrayname + '.gz'
+
+if restore:
+   if not os.path.exists(compname):
+      exitError('File ' + compname + ' does not exist')
+   spoolGzip(1)
+   
+   prnstr('Restoring ' + origname + ' ...')
+   try:
+      runcmd(fmtstr('subimage "{}" "{}" "{}"', stack, xrayname, origname))
+   except ImodpyError:
+      cleanup(1)
+      exitFromImodError(progname)
+   except KeyboardInterrupt:
+      cleanup(1)
+      sys.exit(1)
+
+   prnstr('DONE')
+   sys.exit(0)
+
+# Archiving
+if not os.path.exists(origname):
+   exitError('File ' + origname + ' does not exist')
+
+if os.path.exists(xrayname):
+   try:
+      os.remove(xrayname)
+   except Exception:
+      prnstr('WARNING: ' + progname + ' - Could not remove existing ' + xrayname)
+makeBackupFile(compname)
+prnstr("Getting difference image ...")
+try:
+   runcmd(fmtstr('subimage -mode 2 "{}" "{}" "{}"', stack, origname, xrayname))
+except ImodpyError:
+   cleanup(2)
+   exitFromImodError(progname)
+
+spoolGzip(2)
+          
+statinfo = os.stat(compname)
+prnstr(fmtstr('Compressed difference file  {}  has size {:.2f} MB', compname,
+              statinfo.st_size / (1024. * 1024.)))
+if delete:
+   prnstr('Deleting ' + origname + ' ...')
+   try:
+      os.remove(origname)
+   except Exception:
+      prnstr('WARNING: ' + progname + ' - Could not remove ' + origname)
+else:
+   prnstr('It is now safe to delete ' + origname)
+prnstr('To restore it, enter:   ' + progname + ' -r ' + stack)
+sys.exit(0)
