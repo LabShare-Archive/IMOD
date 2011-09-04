@@ -240,6 +240,7 @@ def setRetryLimit(numRetries, maxTime = None):
 
 # Us this call to control whether ctrl C interrupting runcmd will raise an interrupt
 def passOnKeyInterrupt(passOn = True):
+   global raiseKeyInterrupt
    raiseKeyInterrupt = passOn
    
 
@@ -742,6 +743,10 @@ def prnstr(string, file = sys.stdout, end = '\n'):
 
 
 #  $Log$
+#  Revision 1.23  2011/09/04 17:19:24  mast
+#  Handle Ctrl C exceptions and pass themon if desired, add functions for
+#  cleaning up chunk and other files without generating errors
+#
 #  Revision 1.22  2011/08/09 04:44:20  mast
 #  Fixed problem with printing IO error message
 #
