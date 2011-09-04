@@ -24,12 +24,22 @@ anyset = 0
 def quoteSubstitute(lin):
    if anyset:
       lin = lin.replace('$', '%')
-   lin = "'" + lin + "'"
+   lin = "\"\"\"" + lin + "\"\"\""
    indv = lin.find('%')
    while indv >= 0:
       lin = re.sub('%(\w+)', r"' + str(\1) + '", lin)
       indv = lin.find('%')
    return lin        
+
+# Print error message, close file and exit
+def closeErrorExit(message):
+   prnstr("ERROR: vmstopy - " + message)
+   if closeout:
+      out.close()
+   if usetemp:
+      os.remove(outfile)
+   sys.exit(1)
+   
    
 # Process arguments
 lenarg = len(sys.argv)
@@ -69,8 +79,8 @@ logname = sys.argv[argind + 1]
 closeout = False
 try:
    com = open(sys.argv[argind])
-except:
-   prnstr("ERROR: vmstopy - Opening command file" + sys.argv[argind])
+except Exception:
+   prnstr("ERROR: vmstopy - Opening command file " + sys.argv[argind])
    sys.exit(1)
 try:
    if execute or lenarg - argind > 2:
@@ -87,7 +97,7 @@ try:
    else:
       out = sys.stdout
 
-except:
+except Exception:
    prnstr("ERROR: vmstopy - Opening file for Python script")
    com.close();
    sys.exit(1)
@@ -101,7 +111,7 @@ prnstr("import os, sys, os.path, signal", file=out)
 prnstr("if sys.platform.find('win32') < 0:", file=out)
 prnstr("  try:", file=out)
 prnstr("    signal.signal(signal.SIGHUP, signal.SIG_IGN)", file=out)
-prnstr("  except:", file=out)
+prnstr("  except Exception:", file=out)
 prnstr("    pass", file=out)
 prnstr("if os.getenv('IMOD_DIR') != None:", file=out)
 prnstr("  os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + os.pathsep + os.environ['PATH']", file=out)
@@ -117,24 +127,63 @@ prnstr("# Back up and open log file", file=out)
 prnstr("makeBackupFile('" + logname + "')", file=out)
 prnstr("try:", file=out)
 prnstr("  log = open('" + logname + "', 'wb')", file=out)
-prnstr("except:", file=out)
+prnstr("except Exception:", file=out)
 prnstr("  prnstr('ERROR: Cannot open log file " + logname + " for writing')", file=out)
 prnstr("  sys.exit(1)", file=out)
 
-# Read the file, throwing away comments, labels, or all lines while seeking a
-# label.  Keep blank lines, they could be input lines
+# Output the PID, flush stderr needed for Windows Python
+prnstr("PID = 'Python PID: ' + str(os.getpid()) + '\\n'", file=out)
+prnstr("if sys.platform.find('win32') >= 0:", file=out)
+prnstr("  PID = 'Windows ' + PID", file=out)
+prnstr("elif sys.platform.find('cygwin') >= 0:", file=out)
+prnstr("  PID = 'Cygwin ' + PID", file=out)
+prnstr("sys.stderr.write(PID)", file=out)
+prnstr("sys.stderr.flush()", file=out)
+
+# Read the file, throwing away comments, labels, selected items, or all lines while
+# seeking a label.  Keep blank lines, they could be input lines
+labelMatch = re.compile('^\$ *(\w+): *$')
+exitMatch = re.compile('^\$ *exit *$')
+errexitMatch = re.compile('^\$( *)exit *([0-9]*) *$')
+gotoMatch = re.compile('^\$ *goto +(\w+) *$')
+statgoMatch = re.compile('^\$ *if +\( *\$status *\) *goto +(\w+) *$')
+endMatch = re.compile('[\r\n]')
+commentMatch = re.compile('^ *#|\$!')
+setMatch = re.compile('^\$( *)set +([^=]+= *)([^ ].*)')
+nonoMatch = re.compile('^\$( *)set +nonomatch')
+syncMatch = re.compile('^\$( *)sync$')
+shiftsMatch = re.compile('^\$( *)matchshifts')
+seekLabel = None
+seekError = None
+seekExit = False
+lines = []
+errlines = []
 try:
-   labelMatch = re.compile('^\$ *(\w+): *$')
-   exitMatch = re.compile('^\$ *exit *$')
-   gotoMatch = re.compile('^\$ *goto +(\w+) *$')
-   endMatch = re.compile('[\r\n]')
-   commentMatch = re.compile('^ *#')
-   seekLabel = None
-   lines = []
    line = com.readline()
    while line:
       keep = 1
-      if seekLabel:
+
+      # Find out if there is an error function to be made
+      if not errlines and re.search(statgoMatch, line):
+         seekError = re.sub(statgoMatch, r'\1', line)
+
+      # Make sure we know about need to substitute variables before any processing
+      if not anyset and re.search(setMatch, line):
+         anyset = 1
+         
+      # If we've reached the error label, start saving lines and looking for exit
+      if seekError and re.sub(labelMatch, r'\1', line) == seekError:
+         seekExit = True
+         seekError = None
+         keep = 0
+
+      elif seekExit:
+         keep = 0
+         errlines.append(line.rstrip())
+         if re.search(errexitMatch, line):
+            seekExit = False
+      
+      elif seekLabel:
          keep = 0
          if re.sub(labelMatch, r'\1', line) == seekLabel:
             seekLabel = None
@@ -144,60 +193,112 @@ try:
          seekLabel = re.sub(gotoMatch, r'\1', line)
          keep = 0
       elif re.search(exitMatch, line):
-         break;
+         break
       elif re.search(commentMatch, line):
+         keep = 0
+      elif re.search(nonoMatch, line):
+         keep = 0
+      elif windows and re.search(syncMatch, line.rstrip()):
+         keep = 0
+      elif re.search(shiftsMatch, line):
          keep = 0
 
       if keep:
          line = re.sub(endMatch, '', line)
          lines.append(line)
       line = com.readline()
-except:
-   prnstr("ERROR: vmstopy - Reading from command file")
-   if closeout:
-      out.close()
+
+except Exception:
    com.close()
-   if usetemp:
-      os.remove(outfile)
-   sys.exit(1)
+   closeErrorExit("Reading from command file")
 
 com.close()
-prnstr("try:", file=out)
+
+prnstr("", file=out)
+prnstr("def closeExit(exitCode):", file=out)
+prnstr("  if not exitCode:", file=out)
+prnstr("    prnstr('SUCCESSFULLY COMPLETED', file=log)", file=out)
+prnstr("  log.close()", file=out)
+prnstr("  sys.exit(exitCode)", file=out)
+
+prnstr("", file=out)
+prnstr("def printErrorExit(doExit):", file=out)
+prnstr("  for l in getErrStrings():", file=out)
+prnstr("    prnstr('ERROR: ' + l, end='', file=log)", file=out)
+prnstr("  if doExit:", file=out)
+prnstr("    closeExit(1)", file=out)
+
+tryline = len(errlines)
+if tryline:
+   prnstr("", file=out)
+   prnstr('def errorFunc():', file = out)
+   lines = errlines + lines
 
 ind = 0
-echoMatch = re.compile('^\$( *)echo ')
-setMatch = re.compile('^\$( *)set +')
-setenvMatch = re.compile('^\$( *)setenv +(\S*)')
+echoMatch = re.compile('^\$( *)echo *([^ ].*)')
+setenvMatch = re.compile('^\$( *)setenv +(\S* *)')
 continueMatch = re.compile(r'\\ *$')
-existMatch = re.compile('^\$( *)if *\( *-e +([^) ]+)\) *(.*)')
+existMatch = re.compile('^\$( *)if *\( *-e +([^) ]+) *\) *(.*)')
+rmMatch = re.compile(r'\\?rm -?f? ?')
 removeMatch = re.compile('^\$( *)b3dremove +([^-])')
+vmsMatch = re.compile('.*vmstocsh +(\w+.log) *< *(\w+.com).*')
+backupMatch = re.compile(r'^\$( *)if *\( *-e +([^) ]+) *\) *\\?mv +([^ ]*) +([^ ~]*)~ *')
+copyMatch = re.compile(r'\\?cp -?f? ?')
 while ind < len(lines):
+   if ind == tryline:
+      prnstr("", file=out)
+      prnstr("try:", file=out)
+
    line = lines[ind]
    ind += 1
 
-   # Replace $echo with >print 
+   # Replace $echo with >print and substitute variable
    if re.search('^\$ *echo', line):
       if re.search(echoMatch, line):
-         line = re.sub(echoMatch, r'>\1print ', line)
-         if line.find('"') < 0:
-            line = re.sub('print (.*)$', r'print "\1"', line)
-      elif re.search('^\$ *echo$', line):
-         line = re.sub('\$( *)echo', r'>\1print " "', line)
+         prncom = re.sub(echoMatch, r'>\1print ', line)
+         message = re.sub(echoMatch, r'\2', line)
+         message = quoteSubstitute(message.strip('"'))
+         line = prncom + message
+      elif re.search('^\$ *echo *$', line):
+         line = re.sub('\$( *)echo *', r'>\1print " "', line)
 
-   # Replace $set with >
+   # Replace $set with > and quote a non-numeric value
    if re.search(setMatch, line):
-      line = re.sub(setMatch, r'>\1', line)
-      anyset = 1
+      setcom = re.sub(setMatch, r'>\1\2', line)
+      value = re.sub(setMatch, r'\3', line)
+      numeric = 1
+      try:
+         valtest = float(value)
+      except Exception:
+         numeric = 0
+      if value.find('"') < 0 and value.find("'") < 0 and not numeric:
+         value = "'" + value + "'"
+      line = setcom + value
 
    # Replace $setenv with setting of environ
    if re.search(setenvMatch, line):
-      line = re.sub(setenvMatch, r">\1os.environ['\2'] =", line)
+      line = re.sub(setenvMatch, r">\1os.environ['\2'] = '", line) + "'"
 
    # Look for 'if (-e file)' construct and replace with added line
    if re.search(existMatch, line):
-      addline = re.sub(existMatch,  r'$\1  \3', line)
-      lines.insert(ind, addline)
-      line = re.sub(existMatch,  r'>\1if os.path.exists("\2"):', line)
+      needsub = 1
+
+      # But intercept a backup command and use function
+      if re.search(backupMatch, line):
+         testfile = re.sub(backupmatch, r'\2', line)
+         fromfile = re.sub(backupmatch, r'\3', line)
+         tofile = re.sub(backupmatch, r'\4', line)
+         if testfile == fromfile and fromfile == tofile:
+            line = re.sub(backupmatch, r'>\1makeBackupFile(\3)', line)
+            needsub = 0
+      if needsub:
+         addline = re.sub(existMatch,  r'$\1  \3', line)
+         lines.insert(ind, addline)
+         line = re.sub(existMatch,  r'>\1if os.path.exists("\2"):', line)
+
+   # Replace exit n with a call to closeExit
+   if re.search(errexitMatch, line):
+      line =  re.sub(errexitMatch, r'>\1closeExit(\2)', line)
 
    # For Windows, add a -g to b3dremove; other shells glob for us and we can't count
    # on Windows Python not being used to run, even if this is cygwin python
@@ -216,61 +317,110 @@ while ind < len(lines):
       # First gather continuation lines
       while re.search(continueMatch, line):
          if ind >= len(lines):
-            prnstr("ERROR: vmstopy - continued line at end of command file")
-            if closeout:
-               out.close()
-            if usetemp:
-               os.remove(outfile)
-            sys.exit(1)
+            closeErrorExit("Continued line at end of command file")
          line = re.sub(continueMatch, ' ', line) + lines[ind]
          ind += 1
 
-      # Now strip $ and indented spaces, quote and substitute
       indent = re.sub('^\$( *).*', r'\1', line)
-      line = re.sub('^\$ *', '', line)
-      if line.find('\\') >= 0:
-         line = line.replace('\\rm ', 'rm -f ')
-         line = line.replace('\\mv ', 'mv -f ')
-      line = quoteSubstitute(line)
-      prnstr("  " + indent + "command = " + line, file=out)
+      vmspy = ''
 
-      # gather input if any
-      prnstr("  " + indent + 'input = [', end='', file=out)
-      inputout = 0
-      while ind < len(lines) and not \
-         (lines[ind].startswith('$') or lines[ind].startswith('>')):
-         line = quoteSubstitute(lines[ind])
+      # Convert vmstocsh to vmstopy and run the converted file (for combine.com)
+      if re.search(vmsMatch, line):
+         vmslog = re.sub(vmsMatch, r'\1', line)
+         vmscom = re.sub(vmsMatch, r'\2', line)
+         vmspy = vmscom + '.py'
+         while line.find('csh -ef') < 0:
+            if ind >= len(lines):
+               closeErrorExit("Cannot find csh -ef after a vmstocsh")
+            line = lines[ind]
+            ind += 1
+         prnstr("  " + indent + 'try:', file=out)
+         prnstr("  " + indent + fmtstr('  runcmd("vmstopy {} {} {}")', vmscom, vmslog,
+                                       vmspy), file=out)
+         prnstr("  " + indent + "except ImodpyError:", file=out)
+         prnstr("  " + indent + '  printErrorExit(1)', file=out)
+         prnstr("  " + indent + "command = 'python -u " + vmspy + "'",  file=out)
+         prnstr("  " + indent + "input = '[]'", file=out)
+         
+      else:
+
+         # Now strip $ and indented spaces, quote and substitute
+         line = re.sub('^\$ *', '', line)
+         if re.match(rmMatch, line):
+            line = re.sub(rmMatch, 'b3dremove -g ', line)
+         if re.match(copyMatch, line):
+            subtext = 'b3dcopy '
+            if ind < len(lines) and lines[ind].find('chmod') >= 0:
+               ind += 1
+               subtext += '-p '
+            line = re.sub(copyMatch, subtext, line)
+         if line.find('\\') >= 0:
+            line = line.replace('\\rm -f ', 'rm -f ')
+            line = line.replace('\\rm ', 'rm -f ')
+            line = line.replace('\\mv ', 'mv -f ')
+
+         # For windows, see if it is a script and try to run with the interpreter
+         comstr = line.split()[0]
+         if windows and os.path.exists(comstr):
+            try:
+               comfile = open(comstr, 'r')
+               try:
+                  firstline = comfile.readline()
+                  if firstline.startswith('#!'):
+                     firstline = firstline.replace('#!', '').strip()
+                     lsplit = firstline.split()
+                     combase = os.path.basename(lsplit[0])
+                     if len(lsplit) > 1:
+                        combase += ' ' + lsplit[1]
+                     line = combase + ' ' + line
+               except Exception:
+                  pass
+               comfile.close()
+            except Exception:
+               pass
+            
+         line = quoteSubstitute(line)
+            
+         prnstr("  " + indent + "command = " + line, file=out)
+
+         # gather input if any
+         prnstr("  " + indent + 'input = [', end='', file=out)
+         inputout = 0
+         while ind < len(lines) and not \
+                   (lines[ind].startswith('$') or lines[ind].startswith('>')):
+            line = quoteSubstitute(lines[ind])
+            ind += 1
+            if inputout:
+               prnstr(',\n' + indent + ' '*11, end='', file=out)
+            prnstr(line, end='', file=out)
+            inputout = 1
+
+         prnstr(']', file=out)
+         
+      prnstr("  " + indent + 'try:', file=out)
+      prnstr("  " + indent + '  runcmd(command, input, log)', file=out)
+      prnstr("  " + indent + "except ImodpyError:", file=out)
+      if vmspy:
+         prnstr("  " + indent + '  cleanupFiles("' + vmspy + '")', file=out)
+      if ind < len(lines) and errlines and re.search(statgoMatch, lines[ind]):
+         prnstr("  " + indent + '  printErrorExit(0)', file=out)
+         prnstr("  " + indent + '  errorFunc()', file=out)
          ind += 1
-         if inputout:
-            prnstr(',\n' + indent + ' '*11, end='', file=out)
-         prnstr(line, end='', file=out)
-         inputout = 1
+      else:
+         prnstr("  " + indent + '  printErrorExit(1)', file=out)
 
-      prnstr(']', file=out)
-      prnstr("  " + indent + 'runcmd(command, input, log)', file=out)
-      
+      if vmspy:
+         prnstr("  " + indent + 'cleanupFiles("' + vmspy + '")', file=out)
 
    # skip blank lines, object to anything else
    elif line:
-      prnstr("ERROR: vmstopy - Expected command or Python line: " + line)
-      if closeout:
-         out.close()
-      if usetemp:
-         os.remove(outfile)
-      sys.exit(1)
+      closeErrorExit("Expected command or Python line: " + line)
 
-prnstr("except ImodpyError:", file=out)
-prnstr("  for l in getErrStrings():", file=out)
-prnstr("    prnstr('ERROR: ' + l, end='', file=log)", file=out)
-prnstr("  log.close()", file=out)
-prnstr("  sys.exit(1)", file=out)
-prnstr("except:", file=out)
+prnstr("except Exception:", file=out)
 prnstr("  prnstr('ERROR: Unknown error running commands: ' +  str(sys.exc_info()[1]), file=log)", file=out)
 prnstr("  log.close()", file=out)
 prnstr("  sys.exit(1)", file=out)
-prnstr("prnstr('SUCCESSFULLY COMPLETED', file=log)", file=out)
-prnstr("log.close()", file=out)
-prnstr("sys.exit(0)", file=out)
+prnstr("closeExit(0)", file=out)
 if closeout:
    out.close()
 
@@ -283,10 +433,14 @@ try:
       if mode & stat.S_IROTH:
          mode |= stat.S_IXOTH
       os.chmod(outfile, mode)
-except:
+except Exception:
    prnstr("ERROR: vmstopy - Making script file executable")
    retval = 1
 
+# Run with a new python interpreter if called for
+# Note, the problems with execfile were 1) it exits with SytemException and that
+# has the exit code 2) it requires globals() and locals() as arguments and executes in
+# current scope which is not understood, 3) it is replaced by exec in python 3
 try:
    if execute:
       if not quiet:
@@ -303,7 +457,7 @@ except ImodpyError:
 try:
    if usetemp:
       os.remove(outfile)
-except:
+except Exception:
    prnstr("ERROR: vmstopy - Removing temporary file " + outfile)
    retval = 1   
 
@@ -312,6 +466,10 @@ sys.exit(retval)
 
 #
 #  $Log$
+#  Revision 1.8  2011/08/11 18:19:06  mast
+#  Fixed problem with setting library path and with closing stdout, added setenv
+#  and b3dremove translations
+#
 #  Revision 1.7  2010/12/02 00:37:12  mast
 #  Changes for python 2/3 compatibility
 #
