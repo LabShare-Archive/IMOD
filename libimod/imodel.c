@@ -1812,12 +1812,19 @@ float imodGetZScale(Imod *imod)
 float imodGetPixelSize(Imod *imod)
 { return(imod->pixsize); }
 
+/*! Get a pointer to the filename of model [imod] */
+const char *imodGetFilename(Imod *imod)
+{ return imod->fileName; }
+
 /*! Returns non-zero if model [imod] is flipped */
 int   imodGetFlipped(Imod *imod) 
 { return(imod->flags & IMODF_FLIPYZ); }
 
 /*
 $Log$
+Revision 3.34  2011/02/28 05:29:28  mast
+Initialized all components of image ref structure
+
 Revision 3.33  2010/11/09 00:24:22  mast
 Fix model clean to not remove isosurface objects
 
