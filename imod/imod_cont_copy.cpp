@@ -72,7 +72,7 @@ static struct
   int   currentObject;
 }
 
-ThisDialog = 
+sData = 
   { 
     NULL, NULL , 
     0, 0, 0, 
@@ -128,16 +128,16 @@ static int copyContour(Icont *cont, int coNum)
   Iobj *toObj;
   int co,pt;
   int section;
-  ImodView *vw = ThisDialog.vw;
+  ImodView *vw = sData.vw;
   int obnum = vw->imod->cindex.object;
 
   if (!cont) return(-1);
   if (!cont->psize) return(-1);
 
-  switch(ThisDialog.copyOperation){
+  switch(sData.copyOperation){
 
   case COPY_TO_OBJECT:
-    obnum = ThisDialog.objectNumber - 1;
+    obnum = sData.objectNumber - 1;
     toObj = &vw->imod->obj[obnum];
 
     /* Don't copy if duplicate contour already exists. */
@@ -165,7 +165,7 @@ static int copyContour(Icont *cont, int coNum)
   case COPY_TO_NEXT_SECTION:
   case COPY_TO_PREV_SECTION:
     toObj   = imodObjectGet(vw->imod);
-    section = ThisDialog.sectionNumber-1; 
+    section = sData.sectionNumber-1; 
     for(pt = 0; pt < cont->psize; pt++){
       cont->pts[pt].z = section;
     }
@@ -175,18 +175,18 @@ static int copyContour(Icont *cont, int coNum)
 
   case COPY_TO_TIME:
   case COPY_TO_NEXT_TIME:
-    toObj   = &vw->imod->obj[ThisDialog.currentObject];
-    cont->time = ThisDialog.timeIndex;
+    toObj   = &vw->imod->obj[sData.currentObject];
+    cont->time = sData.timeIndex;
     vw->undo->contourAddition(obnum, toObj->contsize);
     imodObjectAddContour(toObj, cont);
     break;
   }
 
   // Copy any contour properties from source to destination object
-  if (istoreCountContSurfItems(vw->imod->obj[ThisDialog.currentObject].store, 
+  if (istoreCountContSurfItems(vw->imod->obj[sData.currentObject].store, 
                                coNum, 0)) {
     vw->undo->objectPropChg(obnum);
-    istoreCopyContSurfItems(vw->imod->obj[ThisDialog.currentObject].store, 
+    istoreCopyContSurfItems(vw->imod->obj[sData.currentObject].store, 
                              &toObj->store, coNum, toObj->contsize - 1, 0);
   }
 
@@ -197,36 +197,36 @@ static int copyContour(Icont *cont, int coNum)
 int openContourCopyDialog(ImodView *vw)
 {
      
-  if (ThisDialog.dia){
-    ThisDialog.dia->raise();
+  if (sData.dia){
+    sData.dia->raise();
     return(0);
   }
      
-  ThisDialog.vw = vw;
-  ThisDialog.dia = new ContourCopy(imodDialogManager.parent(IMOD_DIALOG), 
+  sData.vw = vw;
+  sData.dia = new ContourCopy(imodDialogManager.parent(IMOD_DIALOG), 
                                    "contour join");
 
-  if (!ThisDialog.dia) return(1);
+  if (!sData.dia) return(1);
 
-  imodDialogManager.add((QWidget *)ThisDialog.dia, IMOD_DIALOG);
-  adjustGeometryAndShow((QWidget *)ThisDialog.dia, IMOD_DIALOG);
+  imodDialogManager.add((QWidget *)sData.dia, IMOD_DIALOG);
+  adjustGeometryAndShow((QWidget *)sData.dia, IMOD_DIALOG);
   return(0);
 }
 
 // Entry for hot key copying
 void iccCopyContour(void)
 {
-  if (!ThisDialog.dia)
+  if (!sData.dia)
     wprint("\aContour Copy dialog must be open to copy with this hot key.\n");
   else
-    ThisDialog.dia->apply();
+    sData.dia->apply();
 }
 
 // External entry for updating
 void imodContCopyUpdate(void)
 {
-  if (ThisDialog.dia)
-    ThisDialog.dia->update();
+  if (sData.dia)
+    sData.dia->update();
 }
 
 /****************************************************************************/
@@ -250,10 +250,10 @@ ContourCopy::ContourCopy(QWidget *parent, const char *name)
   mToCombo->addItem("Copy to Next Section");
   mToCombo->addItem("Copy to Prev Section");
   mToCombo->addItem("Duplicate");
-  if (ThisDialog.vw->nt)
+  if (sData.vw->nt)
     mToCombo->addItem("Copy to Time Index #");
   mToCombo->setFocusPolicy(Qt::NoFocus);
-  mToCombo->setCurrentIndex(ThisDialog.copyOperation);
+  mToCombo->setCurrentIndex(sData.copyOperation);
   mToCombo->setToolTip("Select type of place to copy contours to");
   connect(mToCombo, SIGNAL(currentIndexChanged(int)), this,
           SLOT(placeSelected(int)));
@@ -273,15 +273,15 @@ ContourCopy::ContourCopy(QWidget *parent, const char *name)
   connect(mRadioGroup, SIGNAL(buttonClicked(int)), this, 
           SLOT(rangeSelected(int)));
 
-  radio = diaRadioButton("Just the current contour", gbox, mRadioGroup, 
-                         gbLayout, 0, "Copy only the current contour");
+  radio = diaRadioButton("Just the current contour(s)", gbox, mRadioGroup, gbLayout, 0,
+                         "Copy only the selected contour(s) in the current object");
   radio = diaRadioButton
     ("All contours in surface", gbox, mRadioGroup, gbLayout, 1, 
      "Copy contours with same surface number as current one");
   radio = diaRadioButton("All contours in object", gbox, mRadioGroup, 
                          gbLayout, 2, "Copy all eligible contours in object");
 
-  if (ThisDialog.vw->nt) {
+  if (sData.vw->nt) {
     mTimeRadio = diaRadioButton
       ("All contours in all objects", gbox, mRadioGroup, 
        gbLayout, 3, "Copy all contours at this time to selected time");
@@ -290,11 +290,11 @@ ContourCopy::ContourCopy(QWidget *parent, const char *name)
   // Figure out initial radio button settings, enforce flag settings and
   // set the button
   int radioVal = 0;
-  if (ThisDialog.doSurface)
+  if (sData.doSurface)
     radioVal = 1;
-  if (ThisDialog.doAll)
+  if (sData.doAll)
     radioVal = 2;
-  if (ThisDialog.vw->nt && ThisDialog.doAllObj)
+  if (sData.vw->nt && sData.doAllObj)
     radioVal = 3;
   rangeSelected(radioVal);
   diaSetGroup(mRadioGroup, radioVal);
@@ -308,22 +308,22 @@ ContourCopy::ContourCopy(QWidget *parent, const char *name)
 // Operation is passed directly when selected
 void ContourCopy::placeSelected(int which)
 {
-  ThisDialog.copyOperation = which;
+  sData.copyOperation = which;
   update();
 }
 
 void ContourCopy::toValueChanged(int value)
 {
   setFocus();
-  switch (ThisDialog.copyOperation) {
+  switch (sData.copyOperation) {
   case COPY_TO_OBJECT:
-    ThisDialog.objectNumber = value;
+    sData.objectNumber = value;
     break;
   case COPY_TO_SECTION:
-    ThisDialog.sectionNumber = value;
+    sData.sectionNumber = value;
     break;
   case COPY_TO_TIME:
-    ThisDialog.timeIndex = value;
+    sData.timeIndex = value;
     break;
   default:
     break;
@@ -333,39 +333,39 @@ void ContourCopy::toValueChanged(int value)
 // Set flags from radio button value
 void ContourCopy::rangeSelected(int which)
 {
-  ThisDialog.doSurface = (which == 1) ? 1 : 0;
-  ThisDialog.doAll = (which == 2) ? 1 : 0;
-  ThisDialog.doAllObj = (which == 3) ? 1 : 0;
+  sData.doSurface = (which == 1) ? 1 : 0;
+  sData.doAll = (which == 2) ? 1 : 0;
+  sData.doAllObj = (which == 3) ? 1 : 0;
 }
 
 
 void ContourCopy::update()
 {
   int minVal, maxVal, curVal;
-  ImodView *vw = ThisDialog.vw;
+  ImodView *vw = sData.vw;
 
   // For each operation that uses spin box, set up min and max value
   // and adjust the current value if necessary
-  switch(ThisDialog.copyOperation){
+  switch(sData.copyOperation){
   case COPY_TO_OBJECT:
     minVal = 1;
     maxVal = vw->imod->objsize;
-    ThisDialog.objectNumber = B3DMAX(1, B3DMIN(maxVal, ThisDialog.objectNumber));
-    curVal = ThisDialog.objectNumber;
+    sData.objectNumber = B3DMAX(1, B3DMIN(maxVal, sData.objectNumber));
+    curVal = sData.objectNumber;
     break;
 
   case COPY_TO_SECTION:
     minVal = 1;
     maxVal = vw->zsize;
-    ThisDialog.sectionNumber = B3DMAX(1, B3DMIN(maxVal, ThisDialog.sectionNumber));
-    curVal = ThisDialog.sectionNumber;
+    sData.sectionNumber = B3DMAX(1, B3DMIN(maxVal, sData.sectionNumber));
+    curVal = sData.sectionNumber;
     break;
 
   case COPY_TO_TIME:
     minVal = 1;
     maxVal = vw->nt;
-    ThisDialog.timeIndex = B3DMAX(1, B3DMIN(maxVal, ThisDialog.timeIndex));
-    curVal = ThisDialog.timeIndex;
+    sData.timeIndex = B3DMAX(1, B3DMIN(maxVal, sData.timeIndex));
+    curVal = sData.timeIndex;
     break;
 
   case COPY_TO_NEXT_SECTION:
@@ -385,7 +385,7 @@ void ContourCopy::update()
 
   // Enable the time radio button if appropriate
   if (vw->nt)
-    mTimeRadio->setEnabled(ThisDialog.copyOperation == COPY_TO_TIME);
+    mTimeRadio->setEnabled(sData.copyOperation == COPY_TO_TIME);
 
 }
 
@@ -397,7 +397,7 @@ void ContourCopy::apply()
          "Object out of range or invalid\n.";
   */
 
-  Imod *imod = ThisDialog.vw->imod;
+  Imod *imod = sData.vw->imod;
   Iobj *obj   = imodObjectGet(imod);
   Icont *cont = imodContourGet(imod);
   Icont *ncont;
@@ -410,25 +410,25 @@ void ContourCopy::apply()
 
   /* DNM: check validity of current contour: here test on all the
      conditions where a current contour is not needed */
-  if (!((ThisDialog.doAll || ThisDialog.doAllObj) && 
-        (ThisDialog.copyOperation == COPY_TO_OBJECT ||
-         ThisDialog.copyOperation == COPY_TO_CURRENT || 
-         ThisDialog.copyOperation == COPY_TO_TIME))) {
+  if (!((sData.doAll || sData.doAllObj) && 
+        (sData.copyOperation == COPY_TO_OBJECT ||
+         sData.copyOperation == COPY_TO_CURRENT || 
+         sData.copyOperation == COPY_TO_TIME))) {
     if ((!cont) || (cont->psize <= 0)){
       wprint("\a%sBad input contour.\n", badCopy);
       return;
     }
     
     /* Set surface number here since we know we have a contour */
-    ThisDialog.surfaceNumber = cont->surf;
+    sData.surfaceNumber = cont->surf;
   }
 
   /* check copy to place is valid. */
-  switch(ThisDialog.copyOperation){
+  switch(sData.copyOperation){
   case COPY_TO_OBJECT:
-    if ((ThisDialog.objectNumber < 1) ||
-        (ThisDialog.objectNumber > (int)imod->objsize) ||
-        (ThisDialog.objectNumber == imod->cindex.object + 1)){
+    if ((sData.objectNumber < 1) ||
+        (sData.objectNumber > (int)imod->objsize) ||
+        (sData.objectNumber == imod->cindex.object + 1)){
       wprint("\a%sBad destination object.\n", badCopy);
       return;
     }
@@ -439,22 +439,22 @@ void ContourCopy::apply()
 
   case COPY_TO_SECTION:
     /* get section number to copy from.*/
-    ThisDialog.currentSection = (int)floor(cont->pts->z + 0.5);
+    sData.currentSection = (int)floor(cont->pts->z + 0.5);
 
     /* check section number to copy to. */
-    if ((ThisDialog.sectionNumber <= 0) || 
-        ( ThisDialog.sectionNumber > ThisDialog.vw->zsize ) ||
-        (ThisDialog.currentSection + 1 == ThisDialog.sectionNumber)){
+    if ((sData.sectionNumber <= 0) || 
+        ( sData.sectionNumber > sData.vw->zsize ) ||
+        (sData.currentSection + 1 == sData.sectionNumber)){
       wprint("\a%sBad destination section.\n", badCopy);
       return;
     }
     break;
 
   case COPY_TO_TIME:
-    ThisDialog.currentTime = cont->time;
-    if ((ThisDialog.timeIndex > ThisDialog.vw->nt) ||
-        ( ThisDialog.timeIndex < 1) || 
-        (ThisDialog.timeIndex ==  ThisDialog.vw->ct)) {
+    sData.currentTime = cont->time;
+    if ((sData.timeIndex > sData.vw->nt) ||
+        ( sData.timeIndex < 1) || 
+        (sData.timeIndex ==  sData.vw->ct)) {
       wprint("\a%sBad destination time index.\n", badCopy);
       return;
     }
@@ -463,39 +463,39 @@ void ContourCopy::apply()
     /* DNM 2/16/01: made these work relative to section of current
        contour */
   case COPY_TO_NEXT_SECTION:
-    ThisDialog.currentSection = (int)floor(cont->pts->z + 0.5);
-    if (ThisDialog.currentSection == (ThisDialog.vw->zsize - 1)){
+    sData.currentSection = (int)floor(cont->pts->z + 0.5);
+    if (sData.currentSection == (sData.vw->zsize - 1)){
       wprint("\a%sNext section invalid.\n", badCopy);
       return;
     }
-    ThisDialog.sectionNumber = ThisDialog.currentSection + 2;
+    sData.sectionNumber = sData.currentSection + 2;
     break;
 
   case COPY_TO_PREV_SECTION:
-    ThisDialog.currentSection = (int)floor(cont->pts->z + 0.5);
-    if (!ThisDialog.currentSection){
+    sData.currentSection = (int)floor(cont->pts->z + 0.5);
+    if (!sData.currentSection){
       wprint("\a%sPrevious section invalid.\n", badCopy);
       return;
     }
-    ThisDialog.sectionNumber = ThisDialog.currentSection;
+    sData.sectionNumber = sData.currentSection;
     break;
 
   }
 
 
-  if (!(ThisDialog.doAll || ThisDialog.doAllObj || ThisDialog.doSurface)){
-    ThisDialog.currentObject = imod->cindex.object;
+  /*  if (!(sData.doAll || sData.doAllObj || sData.doSurface)){
+    sData.currentObject = imod->cindex.object;
     ncont = imodContourDup(cont);
     copyContour(ncont, imod->cindex.contour);
     free(ncont);
-  }else{
+    }else{ */
 
     /* Loop on all objects, skip if not doing all or it is not current one */
     for (ob = 0; ob < (int)imod->objsize; ob++) {
-      if (!(ThisDialog.doAllObj || ob == imod->cindex.object))
+      if (!(sData.doAllObj || ob == imod->cindex.object))
         continue;
 
-      ThisDialog.currentObject = ob;
+      sData.currentObject = ob;
       obj = &imod->obj[ob];
       maxcont = obj->contsize;
 
@@ -504,26 +504,28 @@ void ContourCopy::apply()
         cont = &obj->cont[co];
 
         /* If copying to section, check for being at source section */
-        if (ThisDialog.copyOperation == COPY_TO_SECTION ||
-            ThisDialog.copyOperation == COPY_TO_NEXT_SECTION ||
-            ThisDialog.copyOperation == COPY_TO_PREV_SECTION){
+        if (sData.copyOperation == COPY_TO_SECTION ||
+            sData.copyOperation == COPY_TO_NEXT_SECTION ||
+            sData.copyOperation == COPY_TO_PREV_SECTION){
           if (!cont->psize)
             continue;
-          if (floor(cont->pts->z + 0.5) != ThisDialog.currentSection)
+          if (floor(cont->pts->z + 0.5) != sData.currentSection)
             continue;
         }
         
         /* If copying to time, check for being at source time */
-        if ((ThisDialog.copyOperation == COPY_TO_TIME) &&
-            (cont->time != ThisDialog.currentTime))
+        if ((sData.copyOperation == COPY_TO_TIME) &&
+            (cont->time != sData.currentTime))
           continue;
 
         /* If copying surface, make sure surface matches */
-        if (ThisDialog.doSurface && cont->surf != ThisDialog.surfaceNumber)
+        if (sData.doSurface && cont->surf != sData.surfaceNumber)
           continue;
 
         /* copy the entire contour */
-        if (cont->psize){
+        if (cont->psize && (sData.doAll || sData.doAllObj || 
+                            sData.doSurface || co == imod->cindex.contour || 
+                            imodSelectionListQuery(sData.vw, ob, co) > -2)) {
           ncont  = imodContourDup(cont);
           errcode = copyContour(ncont, co);
           free(ncont);
@@ -532,10 +534,10 @@ void ContourCopy::apply()
         }
       }
     }
-  }
-  ThisDialog.vw->undo->finishUnit();
+    //}
+  sData.vw->undo->finishUnit();
   wprint("Copy operation completed\n");
-  imodDraw(ThisDialog.vw, IMOD_DRAW_MOD);
+  imodDraw(sData.vw, IMOD_DRAW_MOD);
   imod_setxyzmouse();
 }
 
@@ -568,8 +570,8 @@ void ContourCopy::fontChange( const QFont & oldFont )
 // The window is closing, remove from manager
 void ContourCopy::closeEvent ( QCloseEvent * e )
 {
-  imodDialogManager.remove((QWidget *)ThisDialog.dia);
-  ThisDialog.dia = NULL;
+  imodDialogManager.remove((QWidget *)sData.dia);
+  sData.dia = NULL;
   e->accept();
 }
 
@@ -590,6 +592,9 @@ void ContourCopy::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.23  2011/08/11 04:23:36  mast
+Fixed updating of spin box so it didn't keep going to max value
+
 Revision 4.22  2011/03/01 18:38:26  mast
 Added hot ky to apply tool tip
 
