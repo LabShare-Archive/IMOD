@@ -1,0 +1,222 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputImageFile]
+type = FN
+usage = Input file with images to align
+tooltip =
+manpage = 
+
+[Field = OutputTransformFile]
+type = FN
+usage = Output file for transforms
+tooltip =
+manpage = 
+
+[Field = SizeToAnalyze]
+short = size
+type = IP
+usage = Size of image area to analyze in X and Y
+tooltip =
+manpage = Size of image area to analyze in X and Y.  The default is to analyze
+the whole image, ignoring the amount around the edges specified by the -matt
+option.
+
+[Field = OffsetToSubarea]
+short = offset
+type = IP
+usage = Offset to center of subarea being analyzed
+tooltip =
+manpage = When analyzing a subarea, this entry specifies the offfset
+to the center of subarea being analyzed in X and Y.  Positive
+offsets are used for an area up from and to the right of the center.
+
+[Field = EdgeToIgnore]
+short = matt
+type = F
+usage = Fraction of image to omit at edges, or # of pixels (default 0.05)
+tooltip =
+manpage = In Xfsimplex, omit areas of images near their edges.  Enter a
+value < 1 to indicate the fraction of the image extent to omit, or > 1 to indicate
+the number of pixels to omit.  
+If a subarea is being analyzed, this amount is ignored inside the subarea and
+the fraction is relative to the subarea size. The default is 0.05.
+
+[Field = ReduceByBinning]
+short = reduce
+type = I
+usage = Binning factor to reduce by (default 2)
+tooltip =
+manpage =  
+
+[Field = FilterParameters]
+short = filter
+type = FA
+usage = Sigma1, sigma2, radius1, and radius2 for prefilter
+tooltip =
+manpage = Filter images before searching with the given sigma1, sigma2,
+radius1, and radius2 values, which have the same meaning as in many other
+programs.  See Xfsimplex(1) for description.
+
+[Field = SobelFilter]
+short = sobel
+type = B
+usage = Apply edge-detecting Sobel filter to images
+tooltip = 
+manpage = Apply edge-detecting Sobel filter to each image.  This filter will
+be applied after binning and filtering if any.
+
+[Field = ParametersToSearch]
+short = params
+type = I
+usage = 0 for formal params, or # of semi-natural params
+tooltip =
+manpage = In Xfsimplex, search for the given number of semi-natural parameters.
+Enter 2 to search only for translations, 3 to search for rotations in
+addition, 4 to search for magnifications as well, or 6 to search for the
+full transformation as represented by semi-natural parameters (rotation,
+magnification, difference between X and Y axis stretch, difference between
+X and Y axis rotation.)  
+The default is 0, in which case Xfsimplex searches
+for the transformation by varying the formal parameters of the 2 by 2
+transformation matrix.  The one advantage of using 6 instead of 0 is that the
+search can be limited, and the amount of stretch is limited by default.
+
+[Field = LimitsOnSearch]
+short = limits
+type = FA
+usage = Limits for each of the variables being searched
+tooltip = 
+manpage = Limits for each of the variables being searched.  Each number
+entered specifies the maximum amount that the respective variable can change
+from its initial value.  Enter a 0 to avoid limiting a parameter.  If the
+search is being done on formal parameters, then only the first two (shift in X
+and Y) can be limited, so only 1 or 2 values will be meaningful.  If the search is
+on semi-natural parameters, then you can enter more or fewer values than the
+number of variables being searched.  Extra values are ignored, missing values
+retain their default values.  The default is 0,0,0,0,0.1,4; i.e., difference
+between X and Y axis stretch is limited to 10% and difference between X and Y
+axis rotation is limited to 4 degrees.
+
+[Field = BilinearInterpolation]
+short = bilinear
+type = B
+usage = Use linear instead of nearest neighbor interpolation
+tooltip =
+manpage = With this option, Xfsimplex will use bilinear rather than nearest neighbor
+interpolation when transforming an image.  This slower option should be
+used when trying to find accurate alignments between small images.
+
+[Field = CorrelationCoefficient]
+short = ccc
+type = B
+usage = Compute correlation coefficient instead of image difference
+tooltip = 
+manpage = Compute the standard cross-correlation coefficient instead of
+difference between images.  The difference measure that is minimized will
+be 1 minus the CCC, but the CCC itself is printed in the trace and final 
+output.  It takes < 5% more time to compute the CCC.
+
+[Field = LocalPatchSize]
+short = local
+type = I
+usage = Size of square subareas within which to compute SD of difference or CCC
+tooltip = 
+manpage = Size of square subareas (patches) within which to compute a measure
+of image difference, in pixels before binning, if any.  This option should
+prevent the need for low frequency filtering, which would increase execution
+time by roughly 10%.  Patch sizes on the order of 1/20 to 1/10 of the image
+size should be effective.  see Xfsimplex(1) for more details.
+
+[Field = ReferenceFile]
+short = reference
+type = FN
+usage = Image file to align whole image stack to
+tooltip =
+manpage = Align each image in the input image stack to the single image in the given
+image file.  Images can be skipped.
+
+[Field = PreCrossCorrelation]
+short = prexcorr
+type = B
+usage = Do initial alignment by cross-correlation
+tooltip =
+manpage = Find preliminary translational alignments with tiltxcorr(1).  This
+option is not available with a reference file.
+
+[Field = XcorrFilter]
+short = xcfilter
+type = FA
+usage = Sigmas and radii for filter used in initial cross-correlation
+tooltip =
+manpage = Change the filter that is used in cross-correlation by tiltxcorr(1) to
+have the given sigma1, sigma2, radius1, radius2.  The default is 0.01,0.05,0,0.25.
+
+[Field = InitialTransforms]
+short = initial
+type = FN
+usage = Start with initial F transformations from this file
+tooltip =
+manpage = Search for transformations starting from the transforms in the given
+existing file.
+
+[Field = SkipSections]
+short = skip
+type = LI
+usage = List of sections to skip, aligning across skipped sections (ranges OK)
+tooltip =
+manpage = List of sections to skip, while maintaining alignment across skipped
+sections.  The program will not find the transform for aligning a listed section to
+the previous one.  Section numbers are separated by the ',' character
+for single sections or the '-' character for ranges.
+Section numbers start with zero and go up to nz-1.  When a section is skipped,
+the following section will be aligned to the last unskipped section and a unit
+transform will be output for the skipped section.
+The default is to use all of the sections.
+
+[Field = BreakAtSections]
+short = break
+type = LI
+usage = List of sections to break alignment at (ranges OK)
+tooltip =
+manpage = List of sections to break alignment at.  This option is like
+"-skip"
+in that no transform is found for aligning a listed section to
+the previous one and a unit transform is written for the listed section.
+However, the following section will be aligned to the
+listed section, and nothing will be aligned to the previous section.  This
+breaks the chain of alignment through the series of sections.
+
+[Field = PairedImages]
+short = bpair
+type = B
+usage = Break alignment for paired images
+tooltip =
+manpage = Break the alignment after every pair of sections, i.e., at all even
+section numbers.
+
+[Field = TomogramAverages]
+short = tomo
+type = B
+usage = Align top/bottom averages from serial tomograms
+tooltip =
+manpage = Align averaged slices from the top and bottom of tomograms of serial
+sections. The image file is assumed to contain pairs of top and bottom
+averages, i.e., from the top of the first tomogram, the bottom of the second,
+the top of the second, etc., ending in the bottom of the last tomogram.  The
+program will align only a bottom average to the previous top average, and the
+number of transforms output will equal the number of tomograms, not the number
+of averages in the image file.  The same number of transforms are assumed to
+be present in a file of initial alignments entered with the "-initial" option.
+
+[Field = DifferenceOutput]
+short = diff
+type = B
+usage = Output final difference measure or correlation coefficient for each pair
+tooltip =
+manpage = Output the final difference measure or cross-correlation coefficient
+found by Xfsimplex for each pair of images.
+The difference measure is the mean difference per pixel expressed as a multiple of the
+image standard deviation.
+
+
