@@ -704,14 +704,38 @@ int imodObjectSetName(Iobj *obj, char *inName)
   return(retval);
 }
 
+/*!
+ * Returns a pointer to the {label} element of object [obj], or NULL if the label or [obj]
+ * is NULL.
+ */
+Ilabel *imodObjectGetLabel(Iobj *obj)
+{
+  if (!obj)
+    return NULL;
+  return obj->label;
+}
+
+/*!
+ * Makes a new, empty {label} element in ojbect [obj], deleting an existing one if any,
+ * and returns a pointer to the new label.  Returns NULL if label allocation failed or
+ * [obj] is NULL.
+ */
+Ilabel *imodObjectNewLabel(Iobj *obj)
+{
+  if (!obj)
+    return NULL;
+  imodLabelDelete(obj->label);
+  obj->label = imodLabelNew();
+  return obj->label;
+}
 
 /*!
  * Returns one value for [inObject]; possible values for [inValueType] are
  * {IobjMaxContour}, {IobjLineWidth}, {IobjLineWidth2}, {IobjPointSize},
- * {IobjMaxMesh}, {IobjMaxSurface}, {IobjFlagClosed}, {IobjFlagConnected}, 
- * {IobjFlagFilled}, {IobjFlagDraw}, {IobjFlagMesh}, {IobjFlagLine},
- * {IobjFlagTime}, and {IobjFlagExtraInModv}.  {IobjFlagConnected} is 0 for 
- * scattered point objects.
+ * {IobjMaxMesh}, {IobjMaxSurface}, {IobjSymType}, {IobjSymSize}, {IobjSymFlags},
+ * {IobjFlagClosed}, {IobjFlagConnected}, {IobjFlagFilled}, {IobjFlagDraw}, 
+ * {IobjFlagMesh}, {IobjFlagLine}, {IobjFlagTime}, {IobjFlagExtraInModv}, and 
+ * {IobjFlagPntOnSec}.  {IobjFlagConnected} is 0 for scattered point objects.
  */
 int   imodObjectGetValue(Iobj *inObject, int inValueType)
 {
@@ -729,7 +753,12 @@ int   imodObjectGetValue(Iobj *inObject, int inValueType)
     return(inObject->meshsize);
   case IobjMaxSurface:
     return(inObject->surfsize);
-      
+  case IobjSymType:
+    return(inObject->symbol);
+  case IobjSymSize:
+    return(inObject->symsize);
+  case IobjSymFlags:
+    return(inObject->symflags);
 
   case IobjFlagClosed:
     return(iobjClose(inObject->flags));
@@ -755,6 +784,9 @@ int   imodObjectGetValue(Iobj *inObject, int inValueType)
   case IobjFlagExtraInModv:
     return(inObject->flags & IMOD_OBJFLAG_EXTRA_MODV);
 
+  case IobjFlagPntOnSec:
+    return(inObject->flags & IMOD_OBJFLAG_PNT_ON_SEC);
+
   default:
     return(0);
   }
@@ -772,10 +804,11 @@ static void setObjFlag(Iobj *inObject, b3dUInt32 flag, int state)
 
 /*!
  * Sets one value for [inObject] to [inValue]; possible values for
- * [inValueType] are {IobjLineWidth}, {IobjLineWidth2}, {IobjPointSize}, 
+ * [inValueType] are {IobjLineWidth}, {IobjLineWidth2}, {IobjPointSize}, {IobjSymType},
+ * {IobjSymSize}, {IobjSymFlags},
  * {IobjFlagClosed}, {IobjFlagConnected}, {IobjFlagFilled}, {IobjFlagDraw}, 
- * {IobjFlagMesh}, {IobjFlagLine}, and {IobjFlagExtraInModv} (for drawing an 
- * extra object in model view window).
+ * {IobjFlagMesh}, {IobjFlagLine}, {IobjFlagExtraInModv} (for drawing an 
+ * extra object in model view window), and {IobjFlagPntOnSec}.
  */
 void  imodObjectSetValue(Iobj *inObject, int inValueType, int inValue)
 {
@@ -790,6 +823,18 @@ void  imodObjectSetValue(Iobj *inObject, int inValueType, int inValue)
 
   case IobjPointSize:
     inObject->pdrawsize = inValue;
+    return;
+
+  case IobjSymType:
+    inObject->symbol = inValue;
+    return;
+
+  case IobjSymSize:
+    inObject->symsize = inValue;
+    return;
+
+  case IobjSymFlags:
+    inObject->symflags = inValue;
     return;
 
   case IobjFlagClosed:
@@ -818,6 +863,10 @@ void  imodObjectSetValue(Iobj *inObject, int inValueType, int inValue)
 
   case IobjFlagExtraInModv:
     setObjFlag(inObject, IMOD_OBJFLAG_EXTRA_MODV, inValue);
+    return;
+
+  case IobjFlagPntOnSec:
+    setObjFlag(inObject, IMOD_OBJFLAG_PNT_ON_SEC, inValue);
 
   }
 }
@@ -825,6 +874,9 @@ void  imodObjectSetValue(Iobj *inObject, int inValueType, int inValue)
 /*
 
 $Log$
+Revision 3.23  2010/06/14 21:51:39  mast
+Documentation
+
 Revision 3.22  2009/02/24 18:01:50  mast
 Brought object centroid routine up to snuff and workable for open obj
 
