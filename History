@@ -1,5 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/5/11: Converted dm2mrc, Transferfid, Runraptor, Xfalign, Splitcorrection,
+and Archiveorig to  Python.  Added local, sobel, limits and cc options to
+Xfalign to access the corresponding options in Xfsimplex, and limited the
+stretch search by default.
+
+9/4/11: Modified Vmstopy to handle additional c-shell constructs and fixed
+some problems; it can now run all existing standard com files including
+combine.com.
+
 9/1/11: In eTomo, remove excessive logging to the err log that happened when
 eTomo was rerun while a non-parallel tilt was running.(Bug# 1489)
 
