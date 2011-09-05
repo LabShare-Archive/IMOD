@@ -9,7 +9,7 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
+ *  No more Log
  */
 
 #ifndef IMODEL_H
@@ -613,6 +613,7 @@ extern "C" {
   float imodGetPixelSize(Imod *imod);
   int   imodGetFlipped(Imod *imod);
   int   imodTransform(Imod *imod, Imat *mat);
+  const char *imodGetFilename(Imod *imod);
 
   double  imodel_dist(Imod *imod);
   void    imodel_minpt(Imod *imod, Ipoint *pnt);
@@ -684,163 +685,21 @@ extern "C" {
   Ilabel *imodLabelNew(void);
   void    imodLabelDelete(Ilabel *label);
   Ilabel *imodLabelDup(Ilabel *label);
-  void    imodLabelName(Ilabel *label, const char *val);
+  int     imodLabelName(Ilabel *label, const char *val);
   void    imodLabelItemAdd(Ilabel *label, const char *val, int index);
   void    imodLabelItemMove(Ilabel *label, int to_index, int from_index);
   void    imodLabelItemDelete(Ilabel *label, int index);
-  char   *imodLabelItemGet(Ilabel *label, int index);
+  const char *imodLabelItemGet(Ilabel *label, int index);
+  const char *imodLabelNameGet(Ilabel *label);
   void    imodLabelPrint(Ilabel *lab, FILE *fout);
   int     imodLabelWrite(Ilabel *lab, b3dUInt32 tag, FILE *fout);
   Ilabel *imodLabelRead(FILE *fin, int *err);
-  int     imodLabelMatch(Ilabel *label, char *tstr);
-  int     imodLabelItemMatch(Ilabel *label, char *tstr, int index);
-  int     ilabelMatchReg(char *exp, char *str);
+  int     imodLabelMatch(Ilabel *label, const char *tstr);
+  int     imodLabelItemMatch(Ilabel *label, const char *tstr, int index);
+  int     ilabelMatchReg(const char *exp, const char *str);
 
 #ifdef __cplusplus
 }
 #endif
 
-/*    
-    $Log$
-    Revision 3.46  2010/03/10 05:30:45  mast
-    Added runtime value entry for contour
-
-    Revision 3.45  2009/01/14 20:03:19  mast
-    Adding a const
-
-    Revision 3.44  2009/01/02 05:19:19  mast
-    const char * for Qt 4 port
-
-    Revision 3.43  2008/01/27 06:25:36  mast
-    Added object group list
-
-    Revision 3.42  2007/12/04 18:27:35  mast
-    Exposed Ipoint definition for plugins
-
-    Revision 3.41  2007/11/28 01:30:31  mast
-    Added conditional sections so it can be used instead of model.h
-
-    Revision 3.40  2007/09/25 15:45:05  mast
-    Added ref image function
-
-    Revision 3.39  2007/09/22 00:05:28  mast
-    Renamed mat3b2 to matflags2, removed lock and redraw variables
-
-    Revision 3.38  2007/08/26 06:56:34  mast
-    Documentation changes
-
-    Revision 3.37  2007/06/22 04:58:54  mast
-    Doc changes
-
-    Revision 3.36  2007/05/25 05:18:11  mast
-    Changes for slicer angle storage
-
-    Revision 3.35  2006/11/02 07:15:15  mast
-    Added doc tags
-
-    Revision 3.34  2006/09/12 15:18:18  mast
-    Various meshing changes, and new meshparam structure
-
-    Revision 3.33  2006/08/31 21:04:00  mast
-    New flags and redefinition of mat1 and mat3 variables
-
-    Revision 3.32  2006/06/26 14:49:09  mast
-    Moved miscellaneous functions to b3dutil
-
-    Revision 3.31  2006/06/18 19:35:14  mast
-    Changed function type in amoeba
-
-    Revision 3.30  2006/06/06 16:25:06  mast
-    Added amoeba declarations
-
-    Revision 3.29  2005/12/11 18:24:36  mast
-    Added world flag for kicking extreme clipping planes farther out
-
-    Revision 3.28  2005/10/16 20:25:40  mast
-    Split transformation function into two
-
-    Revision 3.27  2005/10/13 20:01:41  mast
-    Added model transform function
-
-    Revision 3.26  2005/06/29 05:34:20  mast
-    Added istore include
-
-    Revision 3.25  2005/06/20 22:23:15  mast
-    Changes for new istore
-
-    Revision 3.24  2005/04/23 23:36:23  mast
-    Moved some functions into imodel.c
-
-    Revision 3.23  2005/03/22 16:46:26  mast
-    Fixed return type of imodDeleteObject
-
-    Revision 3.22  2005/03/20 19:55:48  mast
-    Eliminating duplicate functions
-
-    Revision 3.21  2004/12/06 22:00:08  mast
-    Removed DelPoint
-
-    Revision 3.20  2004/11/20 04:05:26  mast
-    removed virtual stuff, added contour store and function to move object
-
-    Revision 3.19  2004/11/05 18:52:53  mast
-    Include local files with quotes, not brackets
-
-    Revision 3.18  2004/09/28 22:21:59  mast
-    Added parselist declaration
-
-    Revision 3.17  2004/09/21 20:08:04  mast
-    Defined new clipping structures
-
-    Revision 3.16  2004/09/17 19:48:19  mast
-    Document use of mat1b3 for point quality
-
-    Revision 3.15  2004/04/28 05:30:00  mast
-    defined world flags with bit shifts
-
-    Revision 3.14  2004/01/05 17:22:25  mast
-    Added binning run-time member of model structure
-
-    Revision 3.13  2003/10/24 04:07:51  mast
-    move some functions to new b3dutil
-
-    Revision 3.12  2003/09/16 02:05:53  mast
-    Add function to return flipping state of model
-
-    Revision 3.11  2003/06/27 20:07:52  mast
-    Defined bits in world flag for quality;
-    changed imodChecksum return type from long to int
-
-    Revision 3.10  2003/03/03 22:45:31  mast
-    Changes sizes and a few other variables from unsigned to signed ints
-
-    Revision 3.9  2003/02/21 22:17:47  mast
-    Implement new b3d types
-
-    Revision 3.8  2002/12/01 15:40:44  mast
-    move ilabel declarations so they are inside the extern "C" construct
-
-    Revision 3.7  2002/09/04 23:13:10  mast
-    Add a flag to indicate mat and mat3 are stored as bytes
-
-    Revision 3.6  2002/09/03 20:06:14  mast
-    Changed mat1 and mat3 in object this time; last time was in object view
-
-    Revision 3.5  2002/09/03 19:37:01  mast
-    Redefine object materials mat1 and mat3 from UINT to 4 UBYTES each because
-    code accesses them as individual bytes in numbered positions
-
-    Revision 3.4  2002/08/03 22:46:56  mast
-    Changed some comments
-
-    Revision 3.3  2002/07/20 23:26:44  mast
-    Define a flag to signify that refImage.otrans has image origin info
-
-    Revision 3.2  2002/05/20 15:27:15  mast
-    Fix documentation of contour type and surf
-
-    Revision 3.1  2001/12/05 16:02:06  mast
-    Add declaration of imodFromVmsFloats in imodel_files.c
-
-*/
 #endif /* imodel.h */
