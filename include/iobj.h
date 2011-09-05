@@ -95,11 +95,15 @@
 #define IobjMaxMesh       36
 #define IobjMaxSurface    37
 #define IobjLineWidth2    38
+#define IobjSymType       39
+#define IobjSymSize       40
+#define IobjSymFlags      41
 
 #define IobjFlagClosed    3
 #define IobjFlagConnected 9
 #define IobjFlagFilled    8
 #define IobjFlagDraw      1
+#define IobjFlagPntOnSec  7
 #define IobjFlagMesh      10
 #define IobjFlagLine      11
 #define IobjFlagTime      12
@@ -139,6 +143,8 @@ extern "C" {
   int   imodObjectGetMaxContour(Iobj *inObject);
   char *imodObjectGetName(Iobj *inObject);
   int   imodObjectSetName(Iobj *inObject, char *inName);
+  Ilabel *imodObjectGetLabel(Iobj *obj);
+  Ilabel *imodObjectNewLabel(Iobj *obj);
   int   imodObjectGetValue(Iobj *inObject, int inValueType);
   void  imodObjectSetValue(Iobj *inObject, int inValueType, int inValue);
   void  imodObjectGetColor(Iobj *inObject,
@@ -161,6 +167,9 @@ extern "C" {
 /*
 
 $Log$
+Revision 3.20  2008/12/09 23:27:50  mast
+Changed flag from line to noline
+
 Revision 3.19  2008/11/28 06:05:33  mast
 New flag for drawing only in model view
 
