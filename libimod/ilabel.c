@@ -84,9 +84,9 @@ Ilabel *imodLabelDup(Ilabel *label)
 
 /*!
  * Give [label] the title in [val], i.e., set the {name} element of the 
- * @@Ilabel structure@.
+ * @@Ilabel structure@.  Returns 2 for memory allocation error.
  */
-void imodLabelName(Ilabel *label, const char *val)
+int imodLabelName(Ilabel *label, const char *val)
 {
   int len;
 
@@ -95,16 +95,24 @@ void imodLabelName(Ilabel *label, const char *val)
      
   if (!(label->name)){
     label->name = malloc(len+1);
+    if (!label->name) {
+      label->len = 0;
+      return 1;
+    }
     label->len  = len+1;
   }else{
     if (label->len < (len + 1)){
-      if (label->name) free(label->name);
+      B3DFREE(label->name);
       label->name = malloc(len+1);
+      if (!label->name) {
+        label->len = 0;
+        return 1;
+      }
       label->len  = len+1;
     }
   }
   memcpy(label->name, val, len+1);
-  return;
+  return 0;
 }
 
 /*!
@@ -205,11 +213,22 @@ void imodLabelItemDelete(Ilabel *label, int index)
 }
 
 /*!
+ * Returns a pointer to the {name} element of [label].
+ * Returns NULL if the label or the {name} is NULL.
+ */
+const char *imodLabelNameGet(Ilabel *label)
+{
+  if (!label)
+    return(NULL);
+  return label->name;
+}
+
+/*!
  * Returns a pointer to the {name} element of the first label item in [label]
  * that has the {index} value [index].  Returns NULL if none is found or
  * the label is NULL or has no items.
  */
-char *imodLabelItemGet(Ilabel *label, int index)
+const char *imodLabelItemGet(Ilabel *label, int index)
 {
   int i;
 
@@ -242,7 +261,7 @@ void imodLabelPrint(Ilabel *lab, FILE *fout)
 /*
  * return true if label name matches the test strin tstr.
  */
-int imodLabelMatch(Ilabel *label, char *tstr)
+int imodLabelMatch(Ilabel *label, const char *tstr)
 {
   if ((!label) || (!tstr))
     return(0);
@@ -251,9 +270,9 @@ int imodLabelMatch(Ilabel *label, char *tstr)
 }
 
 
-int imodLabelItemMatch(Ilabel *label, char *tstr, int index)
+int imodLabelItemMatch(Ilabel *label, const char *tstr, int index)
 {
-  char *lstr;
+  const char *lstr;
   if ((!label) || (!tstr))
     return(0);
 
@@ -264,7 +283,7 @@ int imodLabelItemMatch(Ilabel *label, char *tstr, int index)
 }
 
 
-int ilabelMatchReg(char *exp, char *str)
+int ilabelMatchReg(const char *exp, const char *str)
 {
   int i, len;
   int n = -1;
@@ -444,6 +463,9 @@ Ilabel *imodLabelRead(FILE *fin, int *err)
 /*
 
 $Log$
+Revision 3.10  2010/06/21 16:32:08  mast
+fix log
+
 Revision 3.9  2009/01/14 20:04:15  mast
 adding some consts
 
