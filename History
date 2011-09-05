@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/5/11: Made 3dmod contour copy able to copy multiple selected contours.
+
 9/5/11: Converted dm2mrc, Transferfid, Runraptor, Xfalign, Splitcorrection,
 and Archiveorig to  Python.  Added local, sobel, limits and cc options to
 Xfalign to access the corresponding options in Xfsimplex, and limited the
