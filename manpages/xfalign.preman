@@ -1,0 +1,109 @@
+.na
+.nh
+.TH xfalign 1 2.50 BL3DEMC
+.SH NAME
+xfalign \- Automatic image alignment using xfsimplex
+.SH SYNOPSIS
+xfalign [options] <input image file>  <output transform file>
+.SH DESCRIPTION
+xfalign will search for the linear transformations that align each section to
+the previous one in an image stack, or that align each section to a single
+reference image.  It runs Xfsimplex(1) repeatedly to find these 
+transformations.  Because Xfsimplex performs an incremental search for a local
+optimum in alignment, it cannot find the right alignment if there is a large
+displacement between the images.  Xfalign has options for initially finding
+such displacements by cross-correlation using tiltxcorr(1), and for working
+from a set of initial displacements computed previously.
+
+These methods will work only on images where there are enough similar features 
+between one section and the next to guide the alignment.  It may take some
+experimentation to find settings that will give good results with a particular
+kind of data.  The major factors to vary would be the choice of filter to be
+applied before the search, and the amount of binning to apply to the images
+in the search.  If images are not already roughly in alignment, the other
+variable is whether cross-correlation will work adequately or whether another
+method of prealignment is needed.
+
+The images can be reduced in size by binning.  More reduction will make the
+search run faster and remove or average out more high-frequency noise.  The
+default reduction is by a factor of 2; no reduction should be needed for very
+small images and more reduction might be helpful for large images (say, 1K x
+1K or bigger).
+
+Prefiltering uses the four parameters sigma1,
+sigma2, radius1, radius2 that are used to specify filtering for several other
+programs (see Filterplot(1).  Low-pass filtering to reduce noise (e.g., sigma2 =
+0.05, radius2 = 0.25) is somewhat redundant to binning the images, and may not
+be needed with the default image reduction.  If the images contain large areas
+of light and dark that correspond between sections and so are good cues for
+alignment, then prefiltering, if any, should not include a high-pass filter
+(i.e., leave sigma1 at 0 or do not filter).  However, if there are large areas
+of light and dark that do not correspond and would be misleading, a high-pass
+filter should be applied (e.g., sigma1 = 0.05 to flatten the contrast of areas
+larger than 20-40 pixels).  If the cues for alignment are mostly relatively
+fine features, it may help to enhance them with a band-pass filter.  This
+can be done by setting a sigma2 such as 0.05 and both radius1 and radius2,
+such as 0.15 and 0.2, to provide a Gaussian fall-off with sigma of 0.05 around
+the band from 0.15 to 0.2 reciprocal pixels.  Alternatively, a band-pass
+filter can be specified with a single parameter, a negative entry for sigma1,
+such as -0.1 to get a band-pass filter centered at 0.14 reciprocal pixels.
+Another filtering option is to use a Sobel filter, which will highlight edges
+in the image.
+
+If initial cross-correlations are chosen, a filter is included whose default
+values will remove some high frequency noise (sigma2 = 0.05, radius2 = 0.25)
+and prevent the correlation from being thrown off by very low frequency trends
+in the images (sigma1 = 0.01).  If there are large light and dark patches that
+do not correspond well between images, the low frequency filter set by Sigma1
+should be increased.  If images are particularly noisy, radius2 could be
+decreased.
+
+When initial cross-correlation is used, the program will produce two transform
+files, the one specified as your output file, and another file with the
+initial transformations.  The name of the latter file will be the root name
+of your output file, with the extension .xcxf (e.g., setname.xcxf if your
+output file is setname.xf).
+If some of the initial displacements are bad, there are two possible 
+approaches to repairing the deficiencies.
+You can use midas(1) to correct the final transformations, in which case you
+will have to introduce any rotations, size changes or stretches manually as
+well.  Alternatively, you can edit the initial transformations, then rerun
+xfalign with the 
+.B -initial
+option specifying that existing .xcxf file, instead of the 
+.B -prexcorr
+option.  This would give xfalign a chance to find the more complex
+linear transformations properly for the sections that had bad initial 
+alignments the first time.
+
+.SS Options
+Options may be abbreviated to one to three letters, the minimum needed to
+unambiguously specify the particular option.  The
+.B -prexcorr
+option cannot be used with either the
+.B -ref
+or the
+.B -initial
+options.
+
+Xfalign uses the PIP package for input (see the manual page for pip(1)).
+Options can be specified either as command line arguments (with the -)
+or one per line in a command file (without the -):
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input
+
+.SH FILES
+When using prealignment by cross-correlation, the initial transforms will
+be placed into a file with the same root name as the transform output file but
+with the extension .xcxf.
+If an output file already exists a backup image
+of the original is created
+with the ~ extension.
+.SH AUTHOR
+David Mastronarde
+.SH SEE ALSO
+xfsimplex(1), tiltxcorr(1)
+.SH BUGS
+Report bugs to mast@colorado.edu
