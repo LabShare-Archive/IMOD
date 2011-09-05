@@ -1,0 +1,295 @@
+#!/usr/bin/python -u
+# Xfalign - 
+#
+# Author: David Mastronarde
+#
+# $Id$
+
+progname = 'xfalign'
+prefix = 'ERROR: ' + progname + ' - '
+tmpxf = ''
+
+def cleanup():
+   cleanupFiles([tmpxf, tmpxf + '~'])
+
+# load System Libraries
+import os, sys, os.path, signal, time
+
+#
+# Setup runtime environment
+if sys.platform.find("win32") < 0:
+   try:
+      signal.signal(signal.SIGHUP, signal.SIG_IGN)
+   except:
+      pass
+if os.getenv('IMOD_DIR') != None:
+   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
+                        os.pathsep + os.environ['PATH']
+   sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import *
+
+# Initializations
+tmpdir = imodTempDir()
+xcfilter = [0.01,0.05,0,0.25]
+tmpxf = tmpdir + '/' + progname + '.xf.' + str(os.getpid())
+breakList = []
+skipList = []
+limits = [0, 0, 0, 0, .1, 4]
+
+# Fallbacks from ../manpages/autodoc2man 3 1 xfalign
+options = [":InputImageFile:FN:", ":OutputTransformFile:FN:", "size:SizeToAnalyze:IP:",
+           "offset:OffsetToSubarea:IP:", "matt:EdgeToIgnore:F:",
+           "reduce:ReduceByBinning:I:", "filter:FilterParameters:FA:",
+           "sobel:SobelFilter:B:", "params:ParametersToSearch:I:",
+           "limits:LimitsOnSearch:FA:", "bilinear:BilinearInterpolation:B:",
+           "ccc:CorrelationCoefficient:B:", "local:LocalPatchSize:I:",
+           "reference:ReferenceFile:FN:", "prexcorr:PreCrossCorrelation:B:",
+           "xcfilter:XcorrFilter:FA:", "initial:InitialTransforms:FN:",
+           "skip:SkipSections:LI:", "break:BreakAtSections:LI:",
+           "bpair:PairedImages:B:", "tomo:TomogramAverages:B:",
+           "diff:DifferenceOutput:B:"]
+
+(opts, nonopts) = PipReadOrParseOptions(sys.argv, options, progname, 2, 1, 1)
+passOnKeyInterrupt(True)
+
+infile = PipGetInOutFile('InputImageFile', 0)
+if not infile:
+   exitError('Input image file must be entered')
+xflistfile = PipGetInOutFile('OutputTransformFile', 1)
+if not xflistfile:
+   exitError('Output file for transforms must be entered')
+
+newsize = PipGetTwoIntegers('SizeToExtract', 0, 0)
+ifsize = 1 - PipGetErrNo()
+newcen = PipGetTwoIntegers('OffsetToSubarea', 0, 0)
+filterparam = PipGetFloatArray('FilterParameters', 4)
+nreduce = PipGetInteger('ReduceByBinning', 2)
+ifskip = PipGetString('SkipSections', '')
+if ifskip:
+   skipList = parselist(ifskip)
+   if not skipList:
+      exitError('Parsing the skip list')
+ifbreak = PipGetString('BreakAtSections', '')
+if ifbreak:
+   breakList = parselist(ifbreak)
+   if not breakList:
+      exitError('Parsing the break list')
+
+ifpair = PipGetBoolean('PairedImages', 0)
+fracmatt = PipGetFloat('EdgeToIgnore', 0.05)
+nparam = PipGetInteger('ParametersToSearch', 0)
+if nparam and (nparam < 0 or (nparam + 3) // 5 != 1):
+   exitError('Number of parameters to search must be 0 or 2-6')
+ifbilinear = PipGetBoolean('BilinearInterpolation', 0)
+reffile = PipGetString('ReferenceFile', '')
+prexcorr = PipGetBoolean('PreCrossCorrelation', 0)
+xcfin = PipGetFloatArray('XcorrFilter', 4)
+if xcfin:
+   xcfilter = xcfin
+prexffile = PipGetString('InitialTransforms', '')
+iftomo = PipGetBoolean('TomogramAverages', 0)
+diffout = PipGetBoolean('DifferenceOutput', 0)
+doCCC = PipGetBoolean('CorrelationCoefficient', 0)
+sobel = PipGetBoolean('SobelFilter', 0)
+local = PipGetInteger('LocalPatchSize', 0)
+limitsIn = PipGetFloatArray('LimitsOnSearch', 0)
+if limitsIn:
+   for i in range(min(6, len(limitsIn))):
+      limits[i] = limitsIn[i]
+
+# Error checks
+if prexcorr and reffile:
+   exitError('You cannot use initial cross-correlation with alignment to one reference')
+if prexcorr and prexffile:
+   exitError('You cannot use initial cross-correlation with initial transforms')
+if skipList and breakList:
+   exitError('You cannot use both a break list and skip list')
+if breakList and reffile:
+   exitError('It is meaningless to use a break list with alignment to a reference')
+if not os.path.exists(infile):
+   exitError('Input image file ' + infile + ' does not exist')
+if prexffile and not os.path.exists(prexffile):
+   exitError('Initial transform file ' + prexffile + ' does not exist')
+if reffile and not os.path.exists(reffile):
+   exitError('Reference image file ' + reffile + ' does not exist')
+
+try:
+   (nx, ny, numsec) = getmrcsize(infile)
+except ImodpyError:
+   exitFromImodError(progname)
+
+# If serial tomograms or paired images, check other options
+if iftomo or ifpair:
+   if ifskip or ifbreak:
+      exitError('You cannot enter a break or a skip list in tomogram or pair mode')
+   if reffile:
+      exitError('You cannot use alignment to one reference with tomograms or pairs')
+
+   # set up break list as even sections
+   breakList = range(2,numsec,2)
+   ifbreak = True
+
+# Given new size and center, compute min/max of ranges
+if ifsize:
+   xmin = (nx - newsize[0]) // 2 + newcen[0]
+   xmax = (nx + newsize[0]) // 2 + newcen[0] - 1
+   ymin = (ny - newsize[1]) // 2 + newcen[1]
+   ymax = (ny + newsize[1]) // 2 + newcen[1] - 1
+   if xmin < 0 or xmax >= nx or xmin >= xmax or ymin < 0 or ymax >= ny or ymin >= ymax:
+      exitError('New center or subarea offset gives an area outside range of image')
+else:
+   newsize = [nx, ny]
+
+# Check matt entry
+xtrim = int(fracmatt)
+ytrim = xtrim
+if fracmatt < 1.:
+   xtrim = int(newsize[0] * fracmatt)
+   ytrim = int(newsize[1] * fracmatt)
+if newsize[0] - 2 * xtrim < 10 or newsize[1] - 2 * ytrim < 10:
+   exitError('Entry for new size or for edge to ignore leaves too small an area')
+
+# Set up initial cross-correlation (TODO: be able to skip or break in tiltxcorr)
+if prexcorr:
+   (preroot, ext) = os.path.splitext(xflistfile)
+   prexffile = preroot + '.xcxf'
+   prnstr('RUNNING TILTXCORR FOR INITIAL CROSS-CORRELATION ALIGNMENTS...')
+   sys.stdout.flush()
+   tiltcom = ['InputFile ' + infile,
+              'OutputFile ' + prexffile,
+              'RotationAngle 0', 'FirstTiltAngle 0.', 'TiltIncrement 0.',
+              'FilterSigma1 ' + str(xcfilter[0]),
+              'FilterSigma2 ' + str(xcfilter[1]),
+              'FilterRadius1 ' + str(xcfilter[2]),
+              'FilterRadius2 ' + str(xcfilter[3])]
+   if ifsize:
+      tiltcom += [fmtstr('XMinAndMax {},{}', xmin, xmax),
+                  fmtstr('YMinAndMax {},{}', ymin, ymax)]
+   try:
+      runcmd('tiltxcorr -StandardInput', tiltcom)
+   except ImodpyError:
+      exitFromImodError(progname)
+
+   prexflist = readTextFile(prexffile)
+
+   # trim the transform list for tomos
+   if iftomo:
+      idel = 2
+      while idel < len(prexflist):
+         prexflist.pop(idel)
+         idel += 1
+      writeTextFile(prexffile, prexflist)
+
+   prnstr('X, Y SHIFTS FOUND:')
+   for l in prexflist:
+      try:
+         lsplit = l.split()
+         prnstr(fmtstr('{:9.2f}  {:9.2f}', float(lsplit[4]),  float(lsplit[5])))
+      except:
+         exitError('Getting shifts from ' + prexffile)
+   sys.stdout.flush()
+
+# Loop on all the sections in file
+try:
+   nextRef = -1
+   xfoutList = []
+   prnstr('TRANSFORMS FOUND BY XFSIMPLEX:')
+   for sec in range(numsec):
+      fileref = infile
+      refsec = nextRef
+      if reffile:
+         refsec = 0
+         fileref = reffile
+
+      doskip = 0
+      dobreak = 0
+      if (ifskip and sec in skipList) or (ifbreak and sec in breakList):
+         doskip = ifskip
+         dobreak = ifbreak
+         if ifbreak:
+            nextRef = sec
+      else:
+         nextRef = sec
+         
+      if doskip or dobreak or refsec < 0:
+         if not sec or not iftomo:
+            xfoutList.append('   1.0000000   0.0000000   0.0000000   1.0000000       ' +\
+                             '0.000       0.000')
+
+      else:
+         simpcom = ['AImageFile ' + fileref,
+                    'BImageFile ' + infile,
+                    'OutputFile ' + tmpxf,
+                    fmtstr('SectionsToUse {},{}', refsec, sec),
+                    fmtstr('VariablesToSearch {}', nparam),
+                    fmtstr('BinningToApply {}', nreduce),
+                    fmtstr('LinearInterpolation {}', ifbilinear),
+                    fmtstr('EdgeToIgnore {}', fracmatt),
+                    fmtstr('CorrelationCoefficient {}', doCCC),
+                    fmtstr('SobelFilter {}', sobel),
+                    'FloatOption 1']
+
+         if local:
+            simpcom.append(fmtstr('LocalPatchSize {}', local))
+
+         # Set up initial transform
+         if prexffile:
+            presec = sec
+            if iftomo:
+               presec = (sec + 1) // 2
+            simpcom += ['InitialTransformFile ' + prexffile,
+                        fmtstr('UseTransformLine {}', presec)]
+
+         # Add filter
+         if filterparam:
+            simpcom += ['FilterSigma1 ' + str(filterparam[0]),
+                        'FilterSigma2 ' + str(filterparam[1]),
+                        'FilterRadius1 ' + str(filterparam[2]),
+                        'FilterRadius2 ' + str(filterparam[3])]
+
+         # Handle subarea
+         if ifsize:
+            simpcom += [fmtstr('XMinAndMax {},{}', xmin + xtrim, xmax - xtrim),
+                        fmtstr('YMinAndMax {},{}', ymin + ytrim, ymax - ytrim)]
+
+         if nparam:
+            simpcom.append(fmtstr('LimitsOnSearch {},{},{},{},{},{}', limits[0],
+                                  limits[1], limits[2], limits[3], limits[4], limits[5]))
+         else:
+            simpcom.append(fmtstr('LimitsOnSearch {},{}', limits[0], limits[1]))
+
+         try:
+            simplines = runcmd('xfsimplex -StandardInput', simpcom)
+         except ImodpyError:
+            cleanup()
+            exitFromImodError(progname)
+
+         if diffout:
+            for i in range(len(simplines)):
+               if simplines[i].find('FINAL VALUES') >= 0 and i < len(simplines) - 1:
+                  lsplit = simplines[i+1].split()
+                  if len(lsplit) > 1:
+                     label = 'Difference:  '
+                     if doCCC:
+                        label = 'CCC:  '
+                     prnstr(label + lsplit[1])
+
+         xfone = readTextFile(tmpxf)
+         prnstr(fmtstr('{} : {}', sec, xfone[0]))
+         sys.stdout.flush()
+         xfoutList.append(xfone[0])
+
+except KeyboardInterrupt:
+   cleanup()
+   sys.exit(1)
+
+writeTextFile(xflistfile, xfoutList)
+cleanup()
+sys.exit(0)
