@@ -1029,7 +1029,7 @@ void imodContEditMove(void)
   double rad, dz, delAng, circRad;
   int dzLim, iz, izCen, npts;
   float xCen, yCen, zCen, zscale;
-  char *surfLabel = NULL;
+  const char *surfLabel = NULL;
 
   /* Check that user has set up the move operation. */
   if (movefirst){
@@ -1660,7 +1660,7 @@ void imodContEditSurfShow(void)
   Icont *cont;
   Iobj  *obj;
   QString surfLabel, contLabel, ptLabel;
-  char *plabel = NULL;
+  const char *plabel = NULL;
   int max, val, defval, noCont, noPoint, noSurf, closedOpen, enabled;
   float size;
   int pt;
@@ -1956,6 +1956,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.41  2011/02/07 16:12:39  mast
+Convert zap structure to class, most functions to members
+
 Revision 4.40  2011/01/13 20:32:16  mast
 Only warn about labels on join if they are meaningful
 
