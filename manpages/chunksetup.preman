@@ -36,7 +36,9 @@ Define a variable at the top of your command file:
 .br
 $set tmpext `hostname`.$$
 .br
-and end your temporary file names with ".$tmpext".  In this case, you should
+and end your temporary file names with ".$tmpext".  (Note that "hostname" must
+be enclosed in back-quotes not regular quotes - this character may not appear
+properly here.)  In this case, you should
 remove the files at the end of the command file with statements like:
 .br
 $if (-e chunktemp.$tmpext) rm -f chunktemp.$tmpext
