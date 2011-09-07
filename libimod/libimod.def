@@ -113,6 +113,7 @@ EXPORTS
 	imodObjectVolume
 	imodel_contour_nearest
 	imodIMNXRead
+	imodObjectGetLabel
 	imodContourGetNext
 	imodPutInt
 	istoreGetMinMax
@@ -153,6 +154,7 @@ EXPORTS
 	imodViewUse
 	imodContourSetTimeIndex
 	imodContourCheckNesting
+	imodLabelNameGet
 	imodContourScanAdd
 	FROMVMSFLOATS
 	imodContourClearPoints
@@ -251,6 +253,7 @@ EXPORTS
 	objGroupNew
 	imodContourUnique
 	istoreClearChange
+	imodObjectNewLabel
 	imodObjectGetMaxContour
 	PUTSCATSIZE
 	imodPutByte
@@ -380,6 +383,7 @@ EXPORTS
 	GETSCATSIZE
 	imodMeshGetVert
 	IMODARRAYLIMITS
+	imodGetFilename
 	imodel_contour_newsurf
 	imodel_contour_area
 	objGroupListDelete
