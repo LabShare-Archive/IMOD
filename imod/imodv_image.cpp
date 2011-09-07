@@ -36,7 +36,7 @@
 #include "xcramp.h"
 
 
-#define TexImageSize 64
+#define MAX_SLICES 1024
 
 enum {IIS_X_COORD = 0, IIS_Y_COORD, IIS_Z_COORD, IIS_X_SIZE, IIS_Y_SIZE,
       IIS_Z_SIZE, IIS_SLICES, IIS_TRANSPARENCY, IIS_BLACK, IIS_WHITE};
@@ -50,78 +50,77 @@ static void setSliceLimits(int ciz, int miz, bool invertZ, int drawTrans,
                            int &zst, int &znd, int &izdir);
 static void setCoordLimits(int cur, int maxSize, int drawSize, 
                            int &str, int &end);
+static void endTexMapping();
 
-static GLubyte tdata[TexImageSize+2][TexImageSize+2][3];
-static GLubyte Cmap[3][256];
-static int BlackLevel = 0;
-static int WhiteLevel = 255;
-static int Falsecolor = 0;
-static int ImageTrans = 0;
-static int cmapInit = 0;
+// 3/23/11: NEW NAMING CONVENTION, sVariable for all static variables
+
+static GLubyte *sTdata = NULL;
+static int sTexImageSize = 0;
+static GLubyte sCmap[3][256];
+static int sBlackLevel = 0;
+static int sWhiteLevel = 255;
+static int sFalsecolor = 0;
+static int sImageTrans = 0;
+static int sCmapInit = 0;
 static int cmapZ = 0;
 static int cmapTime = 0;
-static int numSlices = 1;
-static int xDrawSize = -1;
-static int yDrawSize = -1;
-static int zDrawSize = -1;
-static int lastYsize = -1;
-
-#define MAX_SLICES 1024
-
-struct imodvImageDataStruct {
-  ImodvImage *dia;
-  ImodvApp  *a;
-
-  int    flags;
+static int sNumSlices = 1;
+static int sXdrawSize = -1;
+static int sYdrawSize = -1;
+static int sZdrawSize = -1;
+static int sLastYsize = -1;
+ImodvImage *sDia = NULL;
+ImodvApp  *sA = NULL;
+int    sFlags = 0;
   
   /* DNM 12/30/02: unused currently */
   /* int    xsize, ysize, zsize;
      int    *xd, *yd, *zd; */
 
-}imodvImageData = {0, 0, 0};
+static double sWallLoad, sWallDraw;
 
 // Open, close, or raise the dialog box
 void imodvImageEditDialog(ImodvApp *a, int state)
 {
   if (!state){
-    if (imodvImageData.dia)
-      imodvImageData.dia->close();
+    if (sDia)
+      sDia->close();
     return;
   }
-  if (imodvImageData.dia) {
-    imodvImageData.dia->raise();
+  if (sDia) {
+    sDia->raise();
     return;
   }
 
-  imodvImageData.dia = new ImodvImage(imodvDialogManager.parent(IMODV_DIALOG),
+  sDia = new ImodvImage(imodvDialogManager.parent(IMODV_DIALOG),
                                       "image view");
-  imodvImageData.a = a;
+  sA = a;
 
   mkcmap();
-  imodvDialogManager.add((QWidget *)imodvImageData.dia, IMODV_DIALOG);
-  adjustGeometryAndShow((QWidget *)imodvImageData.dia, IMODV_DIALOG);
+  imodvDialogManager.add((QWidget *)sDia, IMODV_DIALOG);
+  adjustGeometryAndShow((QWidget *)sDia, IMODV_DIALOG);
   imodvImageUpdate(a);
 }
 
 // Update the dialog box (just the view flag for now)
 void imodvImageUpdate(ImodvApp *a)
 {
-  if (a->texMap && !imodvImageData.flags) {
-    imodvImageData.flags |= IMODV_DRAW_CZ;
-    if (imodvImageData.dia)
-      diaSetChecked(imodvImageData.dia->mViewZBox, true);
-  } else if (!a->texMap && imodvImageData.flags) {
-    imodvImageData.flags = 0;
-    if (imodvImageData.dia) {
-      diaSetChecked(imodvImageData.dia->mViewXBox, false);
-      diaSetChecked(imodvImageData.dia->mViewYBox, false);
-      diaSetChecked(imodvImageData.dia->mViewZBox, false);
+  if (a->texMap && !sFlags) {
+    sFlags |= IMODV_DRAW_CZ;
+    if (sDia)
+      diaSetChecked(sDia->mViewZBox, true);
+  } else if (!a->texMap && sFlags) {
+    sFlags = 0;
+    if (sDia) {
+      diaSetChecked(sDia->mViewXBox, false);
+      diaSetChecked(sDia->mViewYBox, false);
+      diaSetChecked(sDia->mViewZBox, false);
     }
   }
-  if (imodvImageData.dia) {
-    imodvImageData.dia->mViewXBox->setEnabled(!(a->stereo && a->imageStereo));
-    imodvImageData.dia->mViewYBox->setEnabled(!(a->stereo && a->imageStereo));
-    imodvImageData.dia->mSliders->setEnabled(IIS_SLICES, 
+  if (sDia) {
+    sDia->mViewXBox->setEnabled(!(a->stereo && a->imageStereo));
+    sDia->mViewYBox->setEnabled(!(a->stereo && a->imageStereo));
+    sDia->mSliders->setEnabled(IIS_SLICES, 
                                              !(a->stereo && a->imageStereo));
   }
 }
@@ -136,26 +135,26 @@ void imodvImageSetThickTrans(int slices, int trans)
     slices = 1;
   if (slices > maxSlices)
     slices = maxSlices;
-  numSlices = slices;
+  sNumSlices = slices;
   if (trans < 0)
     trans = 0;
   if (trans > 100)
     trans = 100;
-  ImageTrans = trans;
-  if (imodvImageData.dia) {
-    imodvImageData.dia->mSliders->setValue(IIS_SLICES, numSlices);
-    imodvImageData.dia->mSliders->setValue(IIS_TRANSPARENCY, ImageTrans);
+  sImageTrans = trans;
+  if (sDia) {
+    sDia->mSliders->setValue(IIS_SLICES, sNumSlices);
+    sDia->mSliders->setValue(IIS_TRANSPARENCY, sImageTrans);
   }
 }
 
 // Return the number of slices and transparancy
 int imodvImageGetThickness(void)
 {
-  return numSlices;
+  return sNumSlices;
 }
 int imodvImageGetTransparency(void)
 {
-  return ImageTrans;
+  return sImageTrans;
 }
 
 /****************************************************************************/
@@ -169,8 +168,8 @@ static void mkcmap(void)
   float slope, point;
   int r,g,b,i;
   ImodvApp *a = Imodv;
-  int white = a->vi->colormapImage ? 255 : WhiteLevel;
-  int black = a->vi->colormapImage ? 0 : BlackLevel;
+  int white = a->vi->colormapImage ? 255 : sWhiteLevel;
+  int black = a->vi->colormapImage ? 0 : sBlackLevel;
 
   /* DNM 10/26/03: kept it from reversing the actual levels by copying to
      separate variables; simplified reversal */
@@ -185,33 +184,33 @@ static void mkcmap(void)
   if (rampsize < 1) rampsize = 1;
      
   for (i = 0; i < black; i++)
-    Cmap[0][i] = 0;
+    sCmap[0][i] = 0;
   for (i = white; i < 256; i++)
-    Cmap[0][i] = 255;
+    sCmap[0][i] = 255;
   slope = 256.0 / (float)rampsize;
   for (i = black; i < white; i++){
     point = (float)(i - black) * slope;
-    Cmap[0][i] = (unsigned char)point;
+    sCmap[0][i] = (unsigned char)point;
   }
      
   if (cmapReverse && !a->vi->colormapImage){
     for(i = 0; i < 256; i++)
-      Cmap[0][i] = 255 - Cmap[0][i];
+      sCmap[0][i] = 255 - sCmap[0][i];
   }
-  if (Falsecolor || a->vi->colormapImage){
+  if (sFalsecolor || a->vi->colormapImage){
     for(i = 0; i < 256; i++){
-      xcramp_mapfalsecolor(Cmap[0][i], &r, &g, &b);
-      Cmap[0][i] = (unsigned char)r;
-      Cmap[1][i] = (unsigned char)g;
-      Cmap[2][i] = (unsigned char)b;
+      xcramp_mapfalsecolor(sCmap[0][i], &r, &g, &b);
+      sCmap[0][i] = (unsigned char)r;
+      sCmap[1][i] = (unsigned char)g;
+      sCmap[2][i] = (unsigned char)b;
     }
   }else{
     for(i = 0; i < 256; i++){
-      Cmap[1][i] = Cmap[2][i] = Cmap[0][i];
+      sCmap[1][i] = sCmap[2][i] = sCmap[0][i];
     }
   }
 
-  cmapInit = 1;
+  sCmapInit = 1;
 }
 
 static void imodvDrawTImage(Ipoint *p1, Ipoint *p2, Ipoint *p3, Ipoint *p4,
@@ -220,17 +219,24 @@ static void imodvDrawTImage(Ipoint *p1, Ipoint *p2, Ipoint *p3, Ipoint *p4,
                             int width, int height)
 {
   float xclamp, yclamp;
+  double wallStart = wallTime();
+  static int first = 1;
 
   // 5/16/04: swap here instead of before calling
-  xclamp = clamp->y;
-  yclamp = clamp->x;
+  // No need to swap anymore
+  xclamp = clamp->x;
+  yclamp = clamp->y;
 
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-  glTexImage2D(GL_TEXTURE_2D, 0, 3, width+2, height+2, 
-	       1, GL_RGB, GL_UNSIGNED_BYTE,
-	       data);
+  // glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+  //if (first)
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, width+2, height+2, 
+                 1, GL_RGB, GL_UNSIGNED_BYTE,
+                 data);
+  first = 0;
+  sWallLoad += wallTime() - wallStart;
+  wallStart = wallTime();
 
-  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+  /* glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
   // To use linear we need to provide border pixels and different tex coords
@@ -239,27 +245,28 @@ static void imodvDrawTImage(Ipoint *p1, Ipoint *p2, Ipoint *p3, Ipoint *p4,
   
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
          
-  glEnable(GL_TEXTURE_2D);
+  glEnable(GL_TEXTURE_2D); */
 
   glBegin(GL_QUADS);
   glTexCoord2f(0.0, 0.0); glVertex3fv((GLfloat *)p1);
-  glTexCoord2f(0.0, yclamp); glVertex3fv((GLfloat *)p2);
+  glTexCoord2f(xclamp, 0.0); glVertex3fv((GLfloat *)p2);
   glTexCoord2f(xclamp, yclamp); glVertex3fv((GLfloat *)p3);
-  glTexCoord2f(xclamp, 0.0); glVertex3fv((GLfloat *)p4);
+  glTexCoord2f(0.0, yclamp); glVertex3fv((GLfloat *)p4);
 
 
   glEnd();
+  sWallDraw += wallTime() - wallStart;
 
-  glFlush();
-  glDisable(GL_TEXTURE_2D);
+  /*  glFlush();
+      glDisable(GL_TEXTURE_2D); */
 }
 
 // Determine starting and ending slice and direction, and set the alpha
 static void setSliceLimits(int ciz, int miz, bool invertZ, int drawTrans, 
                            int &zst, int &znd, int &izdir)
 {
-  zst = ciz - numSlices / 2;
-  znd = zst + numSlices - 1;
+  zst = ciz - sNumSlices / 2;
+  znd = zst + sNumSlices - 1;
   if (zst < 0)
     zst = 0;
   if (znd >= miz)
@@ -268,8 +275,8 @@ static void setSliceLimits(int ciz, int miz, bool invertZ, int drawTrans,
 
   // If transparency is needed and it is time to draw solid, or no transparency
   // is needed and it time to draw transparent, set up for no draw
-  if (((znd > zst || ImageTrans) && !drawTrans) ||
-      (zst == znd && !ImageTrans && drawTrans))
+  if (((znd > zst || sImageTrans) && !drawTrans) ||
+      (zst == znd && !sImageTrans && drawTrans))
     znd = zst - 1;
 
   // Swap direction if needed
@@ -302,24 +309,25 @@ static void setAlpha(int iz, int zst, int znd, int izdir)
 
   // b is the final alpha factor for each plane after all drawing
   // alpha is computed from b for the plane # m
-  b = (float)(0.01 * (100 - ImageTrans) / nDraw);
+  b = (float)(0.01 * (100 - sImageTrans) / nDraw);
   alpha = (float)(b / (1. - (nDraw - m) * b));
   glColor4f(alpha, alpha, alpha, alpha);
-  if (ImageTrans || nDraw > 1) {
+  if (sImageTrans || nDraw > 1) {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);
   }
 }
 
-#define FILLDATA(a)  tdata[u][v][0] = Cmap[0][a]; \
-  tdata[u][v][1] = Cmap[1][a]; \
-  tdata[u][v][2] = Cmap[2][a];
+#define FILLDATA(a)  uvind = 3 * ((sTexImageSize + 2) * v + u); \
+  sTdata[uvind] = sCmap[0][a];                                  \
+  sTdata[uvind + 1] = sCmap[1][a];                              \
+  sTdata[uvind + 2] = sCmap[2][a];
 
 // The call from within the openGL calling routines to draw the image
 void imodvDrawImage(ImodvApp *a, int drawTrans)
 {
   Ipoint ll, lr, ur, ul, clamp;
-  int tstep = TexImageSize;
+  int tstep;
   int cix, ciy, ciz;
   int mix, miy, miz;
   int xstr, xend, ystr, yend, zstr, zend;
@@ -327,7 +335,7 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   b3dUInt16 **usidata;
   unsigned char pix;
   int i, mi, j, mj;
-  int u, v;
+  int u, v, uvind;
   int ix, iy, iz, idir, numSave;
   int cacheSum, curtime;
   unsigned char **imdata;
@@ -338,29 +346,30 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   Ipoint inp, outp;
   QTime drawTime;
   drawTime.start();
+  sWallLoad = sWallDraw = 0.;
      
   mix = a->vi->xsize;
   miy = a->vi->ysize;
   miz = a->vi->zsize;
-  if (imodvImageData.dia)
-    imodvImageData.dia->updateCoords();
+  if (sDia)
+    sDia->updateCoords();
 
-  if (!imodvImageData.flags) 
+  if (!sFlags) 
     return;
 
   ivwGetLocation(a->vi, &cix, &ciy, &ciz);
   ivwGetTime(a->vi, &curtime);
-  if (!cmapInit || (a->vi->colormapImage && 
+  if (!sCmapInit || (a->vi->colormapImage && 
                     (ciz != cmapZ || curtime != cmapTime))) {
     mkcmap();
     cmapTime = curtime;
     cmapZ = ciz;
   }
 
-  if (xDrawSize < 0) {
-    xDrawSize = mix;
-    yDrawSize = miy;
-    zDrawSize = miz;
+  if (sXdrawSize < 0) {
+    sXdrawSize = mix;
+    sYdrawSize = miy;
+    sZdrawSize = miz;
   }
 
   // If doing stereo pairs, draw the pair as long as the step up stays in the
@@ -372,7 +381,7 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   }
 
   // Get data pointers if doing X or Y planes
-  if ((imodvImageData.flags & (IMODV_DRAW_CX | IMODV_DRAW_CY)) &&
+  if ((sFlags & (IMODV_DRAW_CX | IMODV_DRAW_CY)) &&
        !(a->imageStereo && a->stereo)) {
     if (ivwSetupFastAccess(a->vi, &imdata, 0, &cacheSum))
       return;
@@ -388,16 +397,16 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
 
   // If doing multiple slices, need to find direction in which to do them
   invertX = invertY = invertZ = false;
-  if (a->vi->colormapImage && numSlices > 1) {
-    numSlices = 1;
-    if (imodvImageData.dia)
-      imodvImageData.dia->mSliders->setValue(IIS_SLICES, numSlices);
+  if (a->vi->colormapImage && sNumSlices > 1) {
+    sNumSlices = 1;
+    if (sDia)
+      sDia->mSliders->setValue(IIS_SLICES, sNumSlices);
   }
-  numSave = numSlices;
+  numSave = sNumSlices;
   if (a->imageStereo && a->stereo)
-    numSlices = 1;
+    sNumSlices = 1;
 
-  if (numSlices > 1) {
+  if (sNumSlices > 1) {
     mat = imodMatNew(3);
     imodMatRot(mat, (double)a->imod->view->rot.z, b3dZ);
     imodMatRot(mat, (double)a->imod->view->rot.y, b3dY);
@@ -418,12 +427,47 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
     imodMatDelete(mat);
   }
 
+  // Set up OpenGL stuff, starting with assessing the texture size that works
+  for (tstep = 520; tstep > 64; tstep /= 2) {
+    glTexImage2D(GL_PROXY_TEXTURE_2D, 0, 3, tstep+2, tstep+2, 1, GL_RGB, GL_UNSIGNED_BYTE,
+                 NULL);
+    glGetTexLevelParameteriv(GL_PROXY_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &u);
+    if (u > 0)
+      break;
+  }
+
+  // Allocate a big enough array if necessary
+  if (tstep > sTexImageSize) {
+    B3DFREE(sTdata);
+    sTdata = B3DMALLOC(GLubyte, 3 * (tstep + 2) * (tstep + 2));
+    if (!sTdata) {
+      imodPrintStderr("Failed to allocate array for image display");
+      endTexMapping();
+      return;
+    }
+    sTexImageSize = tstep;
+  }
+
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+  // To use linear we need to provide border pixels and different tex coords
+  // This will have to be changed when border pixels are not allowed in OpenGL 3+
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  
+  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+         
+  glEnable(GL_TEXTURE_2D);
+
   /* Draw Current Z image. */
-  if (imodvImageData.flags & IMODV_DRAW_CZ) {
+  if (sFlags & IMODV_DRAW_CZ) {
 
     setSliceLimits(ciz, miz, invertZ, drawTrans, zstr, zend, idir);
-    setCoordLimits(cix, mix, xDrawSize, xstr, xend);
-    setCoordLimits(ciy, miy, yDrawSize, ystr, yend);
+    setCoordLimits(cix, mix, sXdrawSize, xstr, xend);
+    setCoordLimits(ciy, miy, sYdrawSize, ystr, yend);
     for (iz = zstr; idir * (zend - iz) >= 0 ; iz += idir) {
       setAlpha(iz, zstr, zend, idir);
       ll.z = lr.z = ur.z = ul.z = iz;
@@ -432,43 +476,43 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
         continue;
       usidata = (b3dUInt16 **)idata;
 
-      // Loop on patches in X, get limits to fill and set corners
-      for (ix = xstr; ix < xend; ix += tstep){
-        clamp.x = 1.0f;
-        mi = ix + tstep;
-        if (mi > xend) {
-          mi = xend;
-          clamp.x = (xend-ix) / (float)tstep;
+      // Loop on patches in Y, get limits to fill and set corners
+      for (iy = ystr; iy < yend; iy += tstep){
+        clamp.y = 1.0f;
+        mj = iy + tstep;
+        if (mj > yend) {
+          mj = yend;
+          clamp.y = (yend - iy) / (float)tstep;
         }
-        ul.x = ll.x = ix;
-        ur.x = lr.x = mi;
-        
-        // Loop on patches in Y, get limits to fill and set corners
-        for (iy = ystr; iy < yend; iy += tstep){
-          clamp.y = 1.0f;
-          mj = iy + tstep;
-          if (mj > yend) {
-            mj = yend;
-            clamp.y = (yend - iy) / (float)tstep;
-          }
-          lr.y = ll.y = iy;
-          ul.y = ur.y = mj;
+        lr.y = ll.y = iy;
+        ul.y = ur.y = mj;
           
+        // Loop on patches in X, get limits to fill and set corners
+        for (ix = xstr; ix < xend; ix += tstep){
+          clamp.x = 1.0f;
+          mi = ix + tstep;
+          if (mi > xend) {
+            mi = xend;
+            clamp.x = (xend-ix) / (float)tstep;
+          }
+          ul.x = ll.x = ix;
+          ur.x = lr.x = mi;
+        
           // Fill the data for one patch then draw the patch
           if (a->vi->ushortStore) {
-            for (i = ix-1; i < mi+1; i++) {
-              u = i - (ix-1);
-              for (j = iy-1; j < mj+1; j++) {
-                v = (j - (iy-1));
+            for (j = iy-1; j < mj+1; j++) {
+              v = (j - (iy-1));
+              for (i = ix-1; i < mi+1; i++) {
+                u = i - (ix-1);
                 pix = bmap[usidata[j][i]];
                 FILLDATA(pix);
               }
             }
           } else {
-            for (i = ix-1; i < mi+1; i++) {
-              u = i - (ix-1);
-              for (j = iy-1; j < mj+1; j++) {
-                v = (j - (iy-1));
+            for (j = iy-1; j < mj+1; j++) {
+              v = (j - (iy-1));
+              for (i = ix-1; i < mi+1; i++) {
+                u = i - (ix-1);
                 pix = idata[j][i];
                 FILLDATA(pix);
               }
@@ -476,7 +520,7 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
           }
           
           imodvDrawTImage(&ll, &lr, &ur, &ul, &clamp,
-                          (unsigned char *)tdata, tstep, tstep);
+                          (unsigned char *)sTdata, tstep, tstep);
         }
       }
     }
@@ -484,37 +528,37 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   glDisable(GL_BLEND);
 
   /* Draw Current X image. */
-  if ((imodvImageData.flags & IMODV_DRAW_CX) && 
+  if ((sFlags & IMODV_DRAW_CX) && 
       !(a->stereo && a->imageStereo)) {
 
     setSliceLimits(cix, mix, invertX, drawTrans, xstr, xend, idir);
-    setCoordLimits(ciy, miy, yDrawSize, ystr, yend);
-    setCoordLimits(ciz, miz, zDrawSize, zstr, zend);
+    setCoordLimits(ciy, miy, sYdrawSize, ystr, yend);
+    setCoordLimits(ciz, miz, sZdrawSize, zstr, zend);
 
     for (ix = xstr; idir * (xend - ix) >= 0 ; ix += idir) {
       setAlpha(ix, xstr, xend, idir);
       ll.x = lr.x = ur.x = ul.x = ix;
 
-      for (iy = ystr; iy < yend; iy += tstep){
-        clamp.x = 1.0f;
-        mi = iy + tstep;
-        if (mi > yend) {
-          mi = yend;
-          clamp.x = (yend - iy) / (float)tstep;
+      for (iz = zstr; iz < zend; iz += tstep){
+        clamp.y = 1.0f;
+        mj = iz + tstep;
+        if (mj > zend) {
+          mj = zend;
+          clamp.y = (zend - iz) / (float)tstep;
         }
-        ul.y = ll.y = iy;
-        ur.y = lr.y = mi;
+        lr.z = ll.z = iz;
+        ul.z = ur.z = mj;
         
-        for (iz = zstr; iz < zend; iz += tstep){
-          clamp.y = 1.0f;
-          mj = iz + tstep;
-          if (mj > zend) {
-            mj = zend;
-            clamp.y = (zend - iz) / (float)tstep;
+        for (iy = ystr; iy < yend; iy += tstep){
+          clamp.x = 1.0f;
+          mi = iy + tstep;
+          if (mi > yend) {
+            mi = yend;
+            clamp.x = (yend - iy) / (float)tstep;
           }
-          lr.z = ll.z = iz;
-          ul.z = ur.z = mj;
-          
+          ul.y = ll.y = iy;
+          ur.y = lr.y = mi;
+        
           // Handle cases of flipped or not with different loops to put test
           // on presence of data in the outer loop
           if (flipped) {
@@ -568,7 +612,7 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
           }
           
           imodvDrawTImage(&ll, &lr, &ur, &ul, &clamp,
-                          (unsigned char *)tdata, tstep, tstep);
+                          (unsigned char *)sTdata, tstep, tstep);
         }
       }
     }       
@@ -576,36 +620,36 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   glDisable(GL_BLEND);
 
   /* Draw Current Y image. */
-  if ((imodvImageData.flags & IMODV_DRAW_CY) && 
+  if ((sFlags & IMODV_DRAW_CY) && 
       !(a->stereo && a->imageStereo)) {
     setSliceLimits(ciy, miy, invertY, drawTrans, ystr, yend, idir);
-    setCoordLimits(cix, mix, xDrawSize, xstr, xend);
-    setCoordLimits(ciz, miz, zDrawSize, zstr, zend);
+    setCoordLimits(cix, mix, sXdrawSize, xstr, xend);
+    setCoordLimits(ciz, miz, sZdrawSize, zstr, zend);
 
     for (iy = ystr; idir * (yend - iy) >= 0 ; iy += idir) {
       setAlpha(iy, ystr, yend, idir);
       ll.y = lr.y = ur.y = ul.y = iy;
 
-      for (ix = xstr; ix < xend; ix += tstep) {
-        clamp.x = 1.0f;
-        mi = ix + tstep;
-        if (mi > xend) {
-          mi = xend;
-          clamp.x = (xend - ix) / (float)tstep;
+      for (iz = zstr; iz < zend; iz += tstep) {
+        clamp.y = 1.0f;
+        mj = iz + tstep;
+        if (mj > zend) {
+          mj = zend;
+          clamp.y = (zend - iz) / (float)tstep;
         }
-        ul.x = ll.x = ix;
-        ur.x = lr.x = mi;
-        
-        for (iz = zstr; iz < zend; iz += tstep) {
-          clamp.y = 1.0f;
-          mj = iz + tstep;
-          if (mj > zend) {
-            mj = zend;
-            clamp.y = (zend - iz) / (float)tstep;
-          }
-          lr.z = ll.z = iz;
-          ul.z = ur.z = mj;
+        lr.z = ll.z = iz;
+        ul.z = ur.z = mj;
 
+        for (ix = xstr; ix < xend; ix += tstep) {
+          clamp.x = 1.0f;
+          mi = ix + tstep;
+          if (mi > xend) {
+            mi = xend;
+            clamp.x = (xend - ix) / (float)tstep;
+          }
+          ul.x = ll.x = ix;
+          ur.x = lr.x = mi;
+          
           // This one is easier, one outer loop and flipped, non-flipped, or
           // no data cases for inner loop
           for (j = iz-1; j < mj+1; j++) {
@@ -647,7 +691,7 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
 
           }
           imodvDrawTImage(&ll, &lr, &ur, &ul, &clamp,
-                          (unsigned char *)tdata, tstep, tstep);
+                          (unsigned char *)sTdata, tstep, tstep);
         }
       }
     }
@@ -655,9 +699,22 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
 
   B3DFREE(bmap);
   glDisable(GL_BLEND);
-  numSlices = numSave;
+  glFlush();
+  glDisable(GL_TEXTURE_2D);
+  sNumSlices = numSave;
   if (imodDebug('v'))
-      imodPrintStderr("Draw time %d\n", drawTime.elapsed());
+    imodPrintStderr("Draw time %d  load %.2f draw %.2f\n", drawTime.elapsed(),
+                    sWallLoad * 1000., sWallDraw * 1000.);
+}
+
+// Take care of all flags associated with texture mapping being on
+static void endTexMapping()
+{
+  sFlags = 0;
+  Imodv->texMap = 0;
+  B3DFREE(sTdata);
+  sTexImageSize = 0;
+  sTdata = NULL;
 }
 
 
@@ -677,13 +734,13 @@ ImodvImage::ImodvImage(QWidget *parent, const char *name)
 
   // Make view checkboxes
   mViewXBox = diaCheckBox("View X image", this, mLayout);
-  mViewXBox->setChecked(imodvImageData.flags & IMODV_DRAW_CX);
+  mViewXBox->setChecked(sFlags & IMODV_DRAW_CX);
   connect(mViewXBox, SIGNAL(toggled(bool)), this, SLOT(viewXToggled(bool)));
   mViewYBox = diaCheckBox("View Y image", this, mLayout);
-  mViewYBox->setChecked(imodvImageData.flags & IMODV_DRAW_CY);
+  mViewYBox->setChecked(sFlags & IMODV_DRAW_CY);
   connect(mViewYBox, SIGNAL(toggled(bool)), this, SLOT(viewYToggled(bool)));
   mViewZBox = diaCheckBox("View Z image", this, mLayout);
-  mViewZBox->setChecked(imodvImageData.flags & IMODV_DRAW_CZ);
+  mViewZBox->setChecked(sFlags & IMODV_DRAW_CZ);
   connect(mViewZBox, SIGNAL(toggled(bool)), this, SLOT(viewZToggled(bool)));
   mViewXBox->setToolTip("Display YZ plane at current X");
   mViewYBox->setToolTip("Display XZ plane at current Y");
@@ -694,22 +751,22 @@ ImodvImage::ImodvImage(QWidget *parent, const char *name)
 
   mSliders->setRange(IIS_X_COORD, 1, Imodv->vi->xsize);
   mSliders->setRange(IIS_X_SIZE, 1, Imodv->vi->xsize);
-  if (lastYsize < 0) {
-    xDrawSize = Imodv->vi->xsize;
-    yDrawSize = Imodv->vi->ysize;
-    zDrawSize = Imodv->vi->zsize;
-    lastYsize = Imodv->vi->ysize;
+  if (sLastYsize < 0) {
+    sXdrawSize = Imodv->vi->xsize;
+    sYdrawSize = Imodv->vi->ysize;
+    sZdrawSize = Imodv->vi->zsize;
+    sLastYsize = Imodv->vi->ysize;
   }
   updateCoords();
-  mSliders->setValue(IIS_X_SIZE, xDrawSize);
-  mSliders->setValue(IIS_Y_SIZE, yDrawSize);
-  mSliders->setValue(IIS_Z_SIZE, zDrawSize);
+  mSliders->setValue(IIS_X_SIZE, sXdrawSize);
+  mSliders->setValue(IIS_Y_SIZE, sYdrawSize);
+  mSliders->setValue(IIS_Z_SIZE, sZdrawSize);
   mSliders->setRange(IIS_SLICES, 1, 64);
-  mSliders->setValue(IIS_SLICES, numSlices);
+  mSliders->setValue(IIS_SLICES, sNumSlices);
   mSliders->setRange(IIS_TRANSPARENCY, 0, 100);
-  mSliders->setValue(IIS_TRANSPARENCY, ImageTrans);
-  mSliders->setValue(IIS_BLACK, BlackLevel);
-  mSliders->setValue(IIS_WHITE, WhiteLevel);
+  mSliders->setValue(IIS_TRANSPARENCY, sImageTrans);
+  mSliders->setValue(IIS_BLACK, sBlackLevel);
+  mSliders->setValue(IIS_WHITE, sWhiteLevel);
   mLayout->addLayout(mSliders->getLayout());
   (mSliders->getLayout())->setSpacing(4);
   connect(mSliders, SIGNAL(sliderChanged(int, int, bool)), this, 
@@ -737,7 +794,7 @@ ImodvImage::ImodvImage(QWidget *parent, const char *name)
 
   // Make false color checkbox
   mFalseBox = diaCheckBox("False color", this, mLayout);
-  mFalseBox->setChecked(Falsecolor);
+  mFalseBox->setChecked(sFalsecolor);
   connect(mFalseBox, SIGNAL(toggled(bool)), this, SLOT(falseToggled(bool)));
   mFalseBox->setToolTip("Display image in false color");
 
@@ -766,16 +823,16 @@ void ImodvImage::updateCoords()
   mSliders->setRange(IIS_Z_SIZE, 1, Imodv->vi->zsize);
   mSliders->setRange(IIS_SLICES, 1, maxSlices);
   
- if (lastYsize != Imodv->vi->ysize) {
-    int tmpSize = yDrawSize;
-    yDrawSize = zDrawSize;
-    zDrawSize = tmpSize;
-    mSliders->setValue(IIS_Y_SIZE, yDrawSize);
-    mSliders->setValue(IIS_Z_SIZE, zDrawSize);
-    lastYsize = Imodv->vi->ysize;
-    if (numSlices > maxSlices) {
-      numSlices = maxSlices;
-      mSliders->setValue(IIS_SLICES, numSlices);
+ if (sLastYsize != Imodv->vi->ysize) {
+    int tmpSize = sYdrawSize;
+    sYdrawSize = sZdrawSize;
+    sZdrawSize = tmpSize;
+    mSliders->setValue(IIS_Y_SIZE, sYdrawSize);
+    mSliders->setValue(IIS_Z_SIZE, sZdrawSize);
+    sLastYsize = Imodv->vi->ysize;
+    if (sNumSlices > maxSlices) {
+      sNumSlices = maxSlices;
+      mSliders->setValue(IIS_SLICES, sNumSlices);
     }
   }
 }
@@ -784,11 +841,11 @@ void ImodvImage::updateCoords()
 void ImodvImage::viewToggled(bool state, int flag)
 {
   if (!state) {
-    imodvImageData.flags &= ~flag;
-    if (!imodvImageData.flags)
+    sFlags &= ~flag;
+    if (!sFlags)
       Imodv->texMap = 0;
   } else {
-    imodvImageData.flags |= flag;
+    sFlags |= flag;
     Imodv->texMap = 1;
   }
   imodvStereoUpdate();
@@ -813,30 +870,30 @@ void ImodvImage::sliderMoved(int which, int value, bool dragging)
     break;
 
   case IIS_X_SIZE:
-    xDrawSize = value;
+    sXdrawSize = value;
     break;
   case IIS_Y_SIZE:
-    yDrawSize = value;
+    sYdrawSize = value;
     break;
   case IIS_Z_SIZE:
-    zDrawSize = value;
+    sZdrawSize = value;
     break;
 
   case IIS_SLICES: 
-    numSlices = value;
+    sNumSlices = value;
     break;
 
   case IIS_TRANSPARENCY: 
-    ImageTrans = value;
-    Imodv->texTrans = ImageTrans;
+    sImageTrans = value;
+    Imodv->texTrans = sImageTrans;
     break;
 
   case IIS_BLACK:
-    BlackLevel = value;
+    sBlackLevel = value;
     mkcmap();
     break;
   case IIS_WHITE:
-    WhiteLevel = value;
+    sWhiteLevel = value;
     mkcmap();
     break;
   }
@@ -853,7 +910,7 @@ void ImodvImage::sliderMoved(int which, int value, bool dragging)
 // User toggles false color
 void ImodvImage::falseToggled(bool state)
 {
-  Falsecolor = state ? 1 : 0;
+  sFalsecolor = state ? 1 : 0;
   mkcmap();
   imodvDraw(Imodv);
 }
@@ -876,8 +933,8 @@ void ImodvImage::fontChange( const QFont & oldFont )
 // Accept a close event and set dia to null
 void ImodvImage::closeEvent ( QCloseEvent * e )
 {
-  imodvDialogManager.remove((QWidget *)imodvImageData.dia);
-  imodvImageData.dia = NULL;
+  imodvDialogManager.remove((QWidget *)sDia);
+  sDia = NULL;
   e->accept();
 }
 
@@ -906,7 +963,11 @@ void ImodvImage::keyReleaseEvent ( QKeyEvent * e )
 }
 
 /*
+
 $Log$
+Revision 4.25  2011/03/14 23:39:13  mast
+Changes for ushort loading
+
 Revision 4.24  2011/01/13 20:27:08  mast
 warning cleanup
 
