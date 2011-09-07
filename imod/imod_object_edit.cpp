@@ -136,7 +136,7 @@ void ioew_nametext(const char *name)
 
   if (name){
     App->cvi->undo->objectPropChg();
-    for(i = 0; (i < (IMOD_STRSIZE - 1))&&(name[i]); i++)
+    for(i = 0; (i < (IOBJ_STRSIZE - 1))&&(name[i]); i++)
       obj->name[i] = name[i];
     obj->name[i] = 0x00;
     App->cvi->undo->finishUnit();
@@ -433,6 +433,9 @@ void ImodObjColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.22  2009/03/22 19:54:25  mast
+Show with new geometry adjust routine for Mac OS X 10.5/cocoa
+
 Revision 4.21  2009/01/15 16:33:17  mast
 Qt 4 port
 
