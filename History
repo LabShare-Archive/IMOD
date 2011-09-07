@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/7/11: Made image display in model view use linear interpolation and picked
+bigger texture sizes to improve performance.
+
 9/7/11: Modified Vmstopy to handle additional c-shell constructs and fixed
 some problems; it can now run all existing standard com files including
 combine.com.
