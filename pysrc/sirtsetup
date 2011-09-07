@@ -44,20 +44,19 @@ def tryRename(sirtcom, comname):
 def outputScalingLines(comf, recnum):
    if scMinMax != "":
       convname = fmtstr('{}.{}{:02d}', setname, intext, recnum)
-      prnstr('$if (-e ' + convname + ') \\rm -f ' + convname, file=comf)
+      prnstr('$b3dremove ' + convname, file=comf)
       prnstr(fmtstr('$newstack -mode 1 -scale {} {} {}', \
             scMinMax, srecname, convname), file=comf)
    if trimarg != "":
       convname = fmtstr('{}.{}{:02d}', setname, trimext, recnum)
-      prnstr('$if (-e ' + convname + ') \\rm -f ' + convname, file=comf)
+      prnstr('$b3dremove ' + convname, file=comf)
       prnstr(fmtstr('$trimvol {} {} {}', trimarg, srecname, convname), file=comf)
 
 # Function to output final commands
 def commandsForFinish(comf, sirtname, testmode):
-   prnstr("$grep -h 'iff rec mean' " + sirtname + \
-         "-[0-9]*.log | sort -k 4 -n | sort -s -k 2 -n", file=comf)
+   prnstr("$findsirtdiffs " + sirtname, file=comf)
    if testmode < 2:
-      prnstr("$\\rm -f " + sirtname + "-[0-9]*.*", file=comf)
+      prnstr("$b3dremove -g " + sirtname + "-[0-9]*.*", file=comf)
    comf.close()
    
 
@@ -377,13 +376,7 @@ if not startfirst and aliuse != alifile:
                        aliy, aliz))
 
 # Clean up previous stuff that splittilt might not get
-oldlist = glob.glob(sirtname + '-[0-9]*.*') + glob.glob(sirtname + '-start.*')\
-          + glob.glob(sirtname + '-finish.*')
-try:
-   for f in oldlist:
-      os.remove(f)
-except:
-   pass
+cleanChunkFiles(sirtname)
 
 # Figure out iterations and leave list
 leaveList = []
@@ -462,16 +455,16 @@ if cleanlist != "" or (startfirst and (makeLog or doSubarea)):
       comf = open(comname, 'w')
       action = 'Writing to'
       if cleanlist:
-         prnstr('$\\rm -f ' + cleanlist, file=comf)
+         prnstr('$b3dremove ' + cleanlist, file=comf)
       densin = alifile
       if startfirst and doSubarea:
          densin = alifile + 'sub'
-         prnstr('$if (-e ' + densin + ') \\rm -f ' + densin, file=comf)
+         prnstr('$b3dremove ' + densin, file=comf)
          prnstr(fmtstr('$newstack -size {},{} -off 0,{} {} {}', alix, aliy,
                        subOffset, alifile, densin), file=comf)
 
       if startfirst and makeLog:
-         prnstr('$if (-e ' + aliuse + ') \\rm -f ' + aliuse, file=comf)
+         prnstr('$b3dremove ' + aliuse, file=comf)
          prnstr(fmtstr('$densnorm -log {:f} -ignore {} {}', logbase[0], densin,
                        aliuse), file=comf)
       comf.close()
@@ -681,17 +674,17 @@ while loopIter < iterations:
             deldiff = diffname
             if testmode:
                deldiff = ""
-            prnstr(fmtstr('$\\rm -f {} {}~',  deldiff, lastname), file=comf)
+            prnstr(fmtstr('$b3dremove {} {}~',  deldiff, lastname), file=comf)
 
          # Delete something not on the leave list unconditionally, or delete
          # something on the list if it got converted
          if lastnum not in leaveList:
-            prnstr('$\\rm -f ' + lastname, file=comf)
+            prnstr('$b3dremove ' + lastname, file=comf)
          elif scMinMax or trimarg:
             lastconv = fmtstr('{}.{}{:02d}', setname, intext, lastnum)
             if trimarg:
                lastconv = fmtstr('{}.{}{:02d}', setname, trimext, lastnum)
-            rmstring = '$if (-e ' + lastconv + ') \\rm -f ' + lastname
+            rmstring = '$if (-e ' + lastconv + ') b3dremove ' + lastname
             if doingVert and not skipVert:
                rmstring += ' ' + fmtstr('{}.{}{:02d}', setname, vsext, lastnum)
             prnstr(rmstring, file=comf)
@@ -735,6 +728,9 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.15  2011/07/25 23:29:14  mast
+# Fixed looking for existing vsr file
+#
 # Revision 1.14  2011/07/09 17:16:40  mast
 # Added support for vertical slice output and option to skip it
 #
