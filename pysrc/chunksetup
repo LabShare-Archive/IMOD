@@ -17,7 +17,7 @@ import os, sys, os.path, signal, glob
 if sys.platform.find("win32") < 0:
    try:
       signal.signal(signal.SIGHUP, signal.SIG_IGN)
-   except:
+   except Exception:
       pass
 if os.getenv('IMOD_DIR') != None:
    os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
@@ -118,14 +118,7 @@ except ImodpyError:
    exitFromImodError(progname)
 
 # Remove any previous files now in case the number has changed
-oldlist = glob.glob(fullroot + '-[0-9][0-9][0-9]*.log')
-oldlist += glob.glob(fullroot + '-[0-9][0-9][0-9]*.com')
-oldlist += glob.glob(fullroot + '-start.*')
-try:
-   for f in oldlist:
-      os.remove(f)
-except:
-   pass
+cleanChunkFiles(fullroot)
 
 # Get the number of pieces in X/Y/Z
 if len(ranlist) < 3:
@@ -137,7 +130,7 @@ try:
    npiecex = int(npl[0])
    npiecey = int(npl[1])
    npiecez = int(npl[2])
-except:
+except Exception:
    exitError('First line of output from tomopieces does not have correct form')
 npiecetot = npiecex * npiecey * npiecez
 if len(ranlist) != 1 + npiecetot + npiecex + npiecey + npiecez:
@@ -163,7 +156,7 @@ for ipc in range(npiecetot):
 
    comlines += pysed([fmtstr('/{}/s//{}/g', masterin, imagein),
                       fmtstr('/{}/s//{}/g', masterout, imageout)], masterLines)
-   comlines += ["", fmtstr('$if (-e {0}) \\rm -f {0}', imagein)]
+   comlines += ["", fmtstr('$b3dremove {0}', imagein)]
    
    writeTextFile(comfile, comlines)
 
@@ -183,7 +176,7 @@ for ipc in range(npiecetot):
    numtext = fmtstr('-{:03d}', ipc + 1)
    finishlines.append(rootname + numtext + '.out')
 
-finishlines.append('$\\rm -f ' + rootname + '-[0-9][0-9][0-9]*.com* ' + rootname + \
+finishlines.append('$b3dremove -g ' + rootname + '-[0-9][0-9][0-9]*.com* ' + rootname + \
                    '-[0-9][0-9][0-9]*.log* ' + rootname + '-[0-9][0-9][0-9]*.out*')
 allines += ['$echo Reassembling pieces',
             '$vmstocsh ' + rootname + '-finish.log < ' + os.path.basename(finishname) + \
@@ -208,6 +201,9 @@ sys.exit(0)
 
 #
 #  $Log$
+#  Revision 1.3  2011/07/02 05:49:26  mast
+#  Fixed path splits for Windows paths, and running with command lines
+#
 #  Revision 1.2  2011/06/27 20:24:14  mast
 #  Fixed missing space in cleanup line
 #
