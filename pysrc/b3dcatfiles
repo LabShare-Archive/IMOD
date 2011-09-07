@@ -1,0 +1,45 @@
+#!/usr/bin/python -u
+# b3dcatfiles - Utility to concatenate two files (for parallel blend!)
+#
+# Author: David Mastronarde
+#
+# $Id$
+
+progname = 'b3dcatfiles'
+prefix = 'ERROR: ' + progname + ' - '
+
+# load System Libraries
+import sys, os, os.path
+
+#
+# Setup runtime environment (bare minimum)
+if os.getenv('IMOD_DIR') != None:
+   sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import exitError, setExitPrefix
+
+numfiles = len(sys.argv) - 1
+if numfiles < 3:
+   exitError('At least three filenames must be entered')
+
+# First check that all the input files exist, if not just exit
+for ind in range(1, numfiles):
+   if not os.path.exists(sys.argv[ind]):
+      prnstr('WARNING: ' + progname + ' - Input file ' + sys.argv[ind] + \
+                ' does not exist')
+      sys.exit(0)
+
+# Backup the output, read the files and write all lines
+outfile = sys.argv[numfiles]
+makeBackupFile(outfile)
+lines = []
+for ind in range(1, numfiles):
+   lines += readTextFile(sys.argv[ind])
+writeTextFile(outfile, lines)
+sys.exit(0)
