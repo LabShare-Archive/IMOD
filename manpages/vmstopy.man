@@ -167,7 +167,9 @@ When this construct is encountered, the line containing it, through a line
 containing "csh -ef", are replaced with commands to run vmstopy and to run the
 resulting script.
 
-`hostname`    is substituted with the computer hostname upon execution
+`hostname`    is substituted with the computer hostname upon execution; Note
+that "hostname" must be enclosed in back-quotes (as for command execution in
+a shell); this character may not appear properly here.
 
 $$     is replaced by the PID of the Python running the command file
 
