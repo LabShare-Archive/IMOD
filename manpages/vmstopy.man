@@ -41,7 +41,8 @@ variable to a string, so the value can be an unquoted string or a simple
 numeric value.  Lists of numbers should be quoted (e.g., '1-5').
 
 # at the start of a line with a comment.  A # later in a line will not be
-recognized as starting a comment.
+recognized as starting a comment.  $! at the start of a line is also
+recognized as a comment
 
 Standard input lines do not start with a special character.  The program will
 consider any lines between a command line and the next command line or Python
@@ -85,6 +86,23 @@ will be converted to
 .br
 $   command
 
+$if (! -e file) command
+.br
+will be converted to 
+.br
+> if not os.path.exists(file):
+.br
+$   command
+
+$set tmpdir = 
+.br
+and the 1-3 following lines will replaced by 
+.br
+> tmpdir = imodTempDir() 
+.br
+provided that either the following line contains "settmpdir", or the next
+three lines contain "if", "settmpdir", and "endif"
+
 $set variable = value   becomes   >variable = value
 .br
 and "value" is quoted unless it can be assigned to a numeric variable
@@ -94,16 +112,24 @@ If "$set" has been used at all, $variable will be substituted just like
 
 $setenv variable value   becomes   >os.environ['variable'] = 'value'
 
-This is to set the environment for programs that will be run; such variables
-should not be used in the command file.
+This is generally to set the environment for programs that will be run, but
+these and other environment variables may be accessed within the command file
+provided that they are all upper case (A-Z, 0-9, and underscore are allowed)
+and enclosed in braces.  In other words, 
+.br
+${ENV_VAR}     becomes     os.environ('ENV_VAR').
 
 \\rm, \\rm -f, rm, and rm -f   all become   b3dremove -g
-.br
+
 cp or \\cp   become   b3dcopy, and if the following line has a chmod, -p is
 added to the b3dcopy
-.br
+
+\\rm -r, \\rm -rf, rm -r and rm -rf   are all replaced by a call to shutil.rmtree
+
+mkdir   is replaced by a call to os.mkdir
+
 \\mv   becomes   mv -f
-.br
+
 $if (-e file) mv file file~    is replaced by a call to the makeBackupFile function
 
 $echo text   becomes   >print "text"   after substituting variables in "text"
@@ -141,6 +167,10 @@ When this construct is encountered, the line containing it, through a line
 containing "csh -ef", are replaced with commands to run vmstopy and to run the
 resulting script.
 
+`hostname`    is substituted with the computer hostname upon execution
+
+$$     is replaced by the PID of the Python running the command file
+
 Certain commands are eliminated from the command file:
 .br
 $set nonomatch
@@ -156,6 +186,10 @@ Execute the script with a new Python instance.
 .TP
 .B -q
 Suppress output messages about the progress of running the script.
+.TP
+.B -c
+Output "CHUNK DONE" to the log file after successful execution.
+
 .SH EXAMPLES
 .nf
 # Example 1: Command file to align an image stack
