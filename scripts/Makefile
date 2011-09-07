@@ -3,12 +3,10 @@ include ../configure
 #  $Id$
 #  No more Log
 
-SCRIPTS = matchshifts\
- newst onepatchcorr patchcorr3d patchcrawl3d recombine reduceby2 selfalign\
- setupcoms setuplong splitmrc xf2xg xfalign\
- transferfid submfg imodpsview settmpdir matchrotpairs\
- clipflipyz prochunks.csh archiveorig imodkillgroup runpyscript imodhelp\
- queuechunk splitcorrection runraptor $(GENERATED_SCRIPTS)
+SCRIPTS = matchshifts onepatchcorr patchcorr3d patchcrawl3d recombine selfalign\
+ setupcoms setuplong splitmrc  submfg imodpsview settmpdir matchrotpairs\
+ clipflipyz prochunks.csh imodkillgroup runpyscript imodhelp\
+ queuechunk $(GENERATED_SCRIPTS)
 
 all:
 
