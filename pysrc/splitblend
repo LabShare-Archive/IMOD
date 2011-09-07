@@ -20,7 +20,7 @@ import os, sys, os.path, signal, copy, glob
 if sys.platform.find("win32") < 0:
    try:
       signal.signal(signal.SIGHUP, signal.SIG_IGN)
-   except:
+   except Exception:
       pass
 if os.getenv('IMOD_DIR') != None:
    os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
@@ -151,18 +151,7 @@ if not edgeFuncOnly:
       exitError('Could not find chunk information in output from blendmont')
 
 # Clean up existing coms and logs if any
-try:
-   rmlist = glob.glob(rootname + '-[0-9][0-9][0-9]*.com')
-   rmlist2 = glob.glob(rootname + '-[0-9][0-9][0-9]*.log')
-   rmlist.extend(rmlist2)
-   if os.path.exists(rootname + '-finish.com'):
-      rmlist.append(rootname + '-finish.com')
-   if os.path.exists(rootname + '-finish.log'):
-      rmlist.append(rootname + '-finish.log')
-   for filename in rmlist:
-      os.remove(filename)
-except:
-   pass
+cleanChunkFiles(rootname)
 
 # Start with two chunks for edge functions, with possible sync before it
 comnum = 0
@@ -183,10 +172,7 @@ if not useOldFunc:
       runLines.append(fmtstr('EdgeFunctionsOnly  {}', axis))
       pysed(sedlist, runLines, comname, True)
 
-   combineLines = [fmtstr('$if (-e {0}.xecd && -e {0}.yecd) then', blendroot),
-                   fmtstr('$  if (-e {0}.ecd) \\mv -f {0}.ecd {0}.ecd~', blendroot),
-                   fmtstr('$  (cat {0}.xecd {0}.yecd >! {0}.ecd)', blendroot),
-                   '$endif']
+   combineLines = [fmtstr('$b3dcatfiles {0}.xecd {0}.yecd {0}.ecd)', blendroot)]
 
 if edgeFuncOnly:
    comnum += 1
@@ -249,7 +235,7 @@ else:
                       rootname, numChunks, outputFile, comnum + 1 - numChunks)]
    if afterInd > 0:
       runLines.extend(comlines[afterInd:])
-   runLines.append('$\\rm -f ' + rootname + '-[0-9][0-9][0-9]*.com* ' + \
+   runLines.append('$b3dremove -g ' + rootname + '-[0-9][0-9][0-9]*.com* ' + \
                    rootname + '-[0-9][0-9][0-9]*.log* ' + rootname + \
                    '-finish.com ' + setname + '-[0-9][0-9][0-9]*.bound* ' + \
                    boundFile)
@@ -263,6 +249,9 @@ sys.exit(0)
 
 #
 #  $Log$
+#  Revision 1.4  2011/03/04 05:21:09  mast
+#  Fixed problem with sync file backing up ecd file even when no xecd/yecd
+#
 #  Revision 1.3  2010/12/06 22:31:09  mast
 #  Split off a new function
 #
