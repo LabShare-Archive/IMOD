@@ -22,14 +22,26 @@ anyset = 0
 
 # Function to enclose a line in quotes and change variables
 def quoteSubstitute(lin):
+   if needPID:
+      lin = lin.replace('$$', '""" + str(os.getpid()) + """')
    if anyset:
+      lin = lin.replace('\\$', '%')
       lin = lin.replace('$', '%')
    lin = "\"\"\"" + lin + "\"\"\""
    indv = lin.find('%')
    while indv >= 0:
-      lin = re.sub('%(\w+)', r"' + str(\1) + '", lin)
+      envar = re.search('%\{([A-Z0-9_]+)\}', lin)
+      regvar = re.search('.*%(\w+)', lin)
+      if envar:
+         lin = re.sub('%\{([A-Z0-9_]+)\}', r'""" + os.environ("\1") + """', lin, 1)
+      elif regvar:
+         lin = re.sub('%(\w+)', r'""" + str(\1) + """', lin, 1)
+      else:
+         break
       indv = lin.find('%')
+
    return lin        
+
 
 # Print error message, close file and exit
 def closeErrorExit(message):
@@ -47,12 +59,19 @@ argind = 1
 execute = 0
 usetemp = 0
 quiet = 0
+chunk = 0
+needShutil = 0
+needSocket = 0
+needPID = 0
 windows = sys.platform.find('win32') >= 0 or sys.platform.find('cygwin') >= 0
 if lenarg < 2:
-   prnstr("Usage: vmstopy [-x|-q] comfile logfile [pyscript]")
+   prnstr("Usage: vmstopy [-x|-q|-c] comfile logfile [pyscript]")
    prnstr("  Converts an IMOD command file to a python script")
    prnstr('  Outputs script on standard out if "pyscript" is not given')
-   prnstr('  Option -x will execute the script; -q will suppress messages')
+   prnstr('  Options:')
+   prnstr('    -x will execute the script')
+   prnstr('    -q will suppress messages')
+   prnstr('    -c will add output of CHUNK DONE at end')
    sys.exit(0)
 
 while lenarg - argind > 2:
@@ -62,6 +81,8 @@ while lenarg - argind > 2:
          execute = 1
       elif oarg == '-q':
          quiet = 1
+      elif oarg == '-c':
+         chunk = 1
       else:
          prnstr("ERROR: vmstopy - Unrecognized argument " + oarg)
          sys.exit(1)
@@ -153,6 +174,8 @@ setMatch = re.compile('^\$( *)set +([^=]+= *)([^ ].*)')
 nonoMatch = re.compile('^\$( *)set +nonomatch')
 syncMatch = re.compile('^\$( *)sync$')
 shiftsMatch = re.compile('^\$( *)matchshifts')
+envarMatch = re.compile('\$\{[A-Z0-9_]+\}')
+rmrMatch = re.compile(r'^\$( *)\\?rm -rf? +')
 seekLabel = None
 seekError = None
 seekExit = False
@@ -168,8 +191,16 @@ try:
          seekError = re.sub(statgoMatch, r'\1', line)
 
       # Make sure we know about need to substitute variables before any processing
-      if not anyset and re.search(setMatch, line):
+      if not anyset and (re.search(setMatch, line) or re.search(envarMatch, line)):
          anyset = 1
+
+      # Look for some other features
+      if not needSocket and line.find('`hostname`') >= 0:
+         needSocket = 1
+      if not needShutil and re.search(rmrMatch, line):
+         needShutil = 1
+      if not needPID and line.find('$$') >= 0:
+         needPID = 1
          
       # If we've reached the error label, start saving lines and looking for exit
       if seekError and re.sub(labelMatch, r'\1', line) == seekError:
@@ -214,10 +245,17 @@ except Exception:
 
 com.close()
 
+if needShutil:
+   prnstr("import shutil", file=out)
+if needSocket:
+   prnstr("import socket", file=out)
+   
 prnstr("", file=out)
 prnstr("def closeExit(exitCode):", file=out)
 prnstr("  if not exitCode:", file=out)
 prnstr("    prnstr('SUCCESSFULLY COMPLETED', file=log)", file=out)
+if chunk:
+   prnstr("    prnstr('CHUNK DONE', file=log)", file=out)
 prnstr("  log.close()", file=out)
 prnstr("  sys.exit(exitCode)", file=out)
 
@@ -238,12 +276,13 @@ ind = 0
 echoMatch = re.compile('^\$( *)echo *([^ ].*)')
 setenvMatch = re.compile('^\$( *)setenv +(\S* *)')
 continueMatch = re.compile(r'\\ *$')
-existMatch = re.compile('^\$( *)if *\( *-e +([^) ]+) *\) *(.*)')
+existMatch = re.compile('^\$( *)if *\( *!? *-e +([^) ]+) *\) *(.*)')
 rmMatch = re.compile(r'\\?rm -?f? ?')
 removeMatch = re.compile('^\$( *)b3dremove +([^-])')
 vmsMatch = re.compile('.*vmstocsh +(\w+.log) *< *(\w+.com).*')
 backupMatch = re.compile(r'^\$( *)if *\( *-e +([^) ]+) *\) *\\?mv +([^ ]*) +([^ ~]*)~ *')
 copyMatch = re.compile(r'\\?cp -?f? ?')
+mkdirMatch = re.compile('^\$( *)mkdir *')
 while ind < len(lines):
    if ind == tryline:
       prnstr("", file=out)
@@ -262,6 +301,18 @@ while ind < len(lines):
       elif re.search('^\$ *echo *$', line):
          line = re.sub('\$( *)echo *', r'>\1print " "', line)
 
+   # Replace $set tmpdir and following lines
+   if re.search('^\$ *set tmpdir', line):
+      addInd = 0
+      if ind < len(lines) and lines[ind].find('settmpdir') >= 0:
+         addInd = 1
+      elif ind < len(lines) - 2 and lines[ind+1].find('settmpdir') >= 0 and \
+             lines[ind].find('if ') >= 0 and lines[ind+2].find('endif') >= 0:
+         addInd = 3
+      if addInd:
+         line = re.sub('\$( *)set.*$', r'>\1tmpdir = imodTempDir()', line)
+         ind += addInd
+         
    # Replace $set with > and quote a non-numeric value
    if re.search(setMatch, line):
       setcom = re.sub(setMatch, r'>\1\2', line)
@@ -273,6 +324,11 @@ while ind < len(lines):
          numeric = 0
       if value.find('"') < 0 and value.find("'") < 0 and not numeric:
          value = "'" + value + "'"
+         if needPID:
+            value = value.replace('$$', "' + str(os.getpid()) + '")
+         if needSocket:
+            value = value.replace('`hostname`', "' + socket.gethostname() + '")
+
       line = setcom + value
 
    # Replace $setenv with setting of environ
@@ -294,7 +350,18 @@ while ind < len(lines):
       if needsub:
          addline = re.sub(existMatch,  r'$\1  \3', line)
          lines.insert(ind, addline)
-         line = re.sub(existMatch,  r'>\1if os.path.exists("\2"):', line)
+         if re.search('if *\( *! *-e', line):
+            line = re.sub(existMatch,  r'>\1if not os.path.exists("\2"):', line)
+         else:
+            line = re.sub(existMatch,  r'>\1if os.path.exists("\2"):', line)
+
+   # Replace mkdir with a python function
+   if re.search(mkdirMatch, line):
+      line = re.sub(mkdirMatch, r'>\1os.mkdir("', line.rstrip()) + '", 0766)'
+
+   # Replace rm -r with a python function
+   if re.search(rmrMatch, line):
+      line = re.sub(rmrMatch, r'>\1shutil.rmtree("', line) + '", True)'
 
    # Replace exit n with a call to closeExit
    if re.search(errexitMatch, line):
@@ -466,6 +533,14 @@ sys.exit(retval)
 
 #
 #  $Log$
+#  Revision 1.9  2011/09/04 13:21:47  mast
+#  Output PID; provide error function to call if $status tested after command;
+#  eliminate nonomatch, matchshifts, sync on Windows; fix quoting for setenv and
+#  set with non-numeric values; fix bare excepts; handle vmstocsh; substitute
+#  variables in echo; run a script command with interpreter on Windows; handle
+#  exit n properly; substitute b3dremove for rm, b3dcopy for cp, makeBackupFile
+#  for mv x x~; quote command input with """
+#
 #  Revision 1.8  2011/08/11 18:19:06  mast
 #  Fixed problem with setting library path and with closing stdout, added setenv
 #  and b3dremove translations
