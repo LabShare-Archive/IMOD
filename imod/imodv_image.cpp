@@ -345,6 +345,7 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   Imat *mat;
   Ipoint inp, outp;
   QTime drawTime;
+  GLint texwid;
   drawTime.start();
   sWallLoad = sWallDraw = 0.;
      
@@ -431,8 +432,8 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   for (tstep = 520; tstep > 64; tstep /= 2) {
     glTexImage2D(GL_PROXY_TEXTURE_2D, 0, 3, tstep+2, tstep+2, 1, GL_RGB, GL_UNSIGNED_BYTE,
                  NULL);
-    glGetTexLevelParameteriv(GL_PROXY_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &u);
-    if (u > 0)
+    glGetTexLevelParameteriv(GL_PROXY_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &texwid);
+    if (texwid > 0)
       break;
   }
 
@@ -965,6 +966,9 @@ void ImodvImage::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.26  2011/09/07 15:55:07  mast
+Switch to linear display and using much larger texture patches
+
 Revision 4.25  2011/03/14 23:39:13  mast
 Changes for ushort loading
 
