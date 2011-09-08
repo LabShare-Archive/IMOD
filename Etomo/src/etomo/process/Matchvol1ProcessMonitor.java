@@ -23,6 +23,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2011/02/22 04:04:49  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.8  2010/03/03 04:55:35  sueh
  * <p> bug# 1311 Removed unnecessary ProcessName references.
  * <p>
@@ -122,7 +125,7 @@ final class Matchvol1ProcessMonitor extends LogFileProcessMonitor {
       lastLineRead = line;
     }
     if (currentSection >= nSections) {
-      waitingForExit++;
+      ending = true;
     }
   }
 

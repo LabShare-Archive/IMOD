@@ -19,6 +19,9 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.13  2011/02/22 04:13:07  sueh
+ * <p> $bug# 1437 Reformatting.
+ * <p> $
  * <p> $Revision 1.12  2010/03/03 04:55:35  sueh
  * <p> $bug# 1311 Removed unnecessary ProcessName references.
  * <p> $
@@ -177,7 +180,7 @@ public class VolcombineProcessMonitor extends LogFileProcessMonitor {
   }
 
   protected void updateProgressBar() {
-    if (waitingForExit <= 0) {
+    if (!ending) {
       if (subprocess.isFilltomo()) {
         manager.getMainPanel().setProgressBarValue(0, "Filltomo", axisID);
       }

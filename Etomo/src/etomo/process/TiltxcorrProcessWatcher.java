@@ -79,7 +79,7 @@ public final class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
 
     if (lastLineRead != null
         && lastLineRead.trim().startsWith("PROGRAM EXECUTED TO END.")) {
-      waitingForExit++;
+      ending = true;
     }
   }
 
@@ -122,6 +122,10 @@ public final class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2011/04/09 06:29:04  sueh
+ * <p> bug# 1416 Need to pass the manager to most FileType functions so that TILT_OUTPUT can distinguish
+ * <p> between single and dual axis type.
+ * <p>
  * <p> Revision 1.11  2011/02/22 04:11:46  sueh
  * <p> bug# 1437 Reformatting.
  * <p>

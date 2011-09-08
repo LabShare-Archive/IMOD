@@ -14,6 +14,9 @@ package etomo.process;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.12  2011/02/22 04:06:39  sueh
+ * <p> $bug# 1437 Reformatting.
+ * <p> $
  * <p> $Revision 1.11  2010/03/03 04:55:35  sueh
  * <p> $bug# 1311 Removed unnecessary ProcessName references.
  * <p> $
@@ -107,7 +110,7 @@ public class PatchcorrProcessWatcher extends LogFileProcessMonitor {
       lastLineRead = line;
     }
     if (currentSection >= nSections) {
-      waitingForExit++;
+      ending = true;
     }
   }
 

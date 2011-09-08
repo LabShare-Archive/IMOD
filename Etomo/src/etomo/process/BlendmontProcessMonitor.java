@@ -69,7 +69,7 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
       line = line.trim();
       if (line.startsWith("working on section #")) {
         String[] strings = line.split("\\s+");
-        //set currentSection - section in log starts from 0
+        // set currentSection - section in log starts from 0
         currentSection = Integer.parseInt(strings[4]) + 1;
       }
       else if (mode == BlendmontParam.Mode.BLEND
@@ -84,11 +84,11 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
         }
       }
     }
-    //Start timeout on last section
+    // Set ending on the last section
     if (currentSection >= nSections
         && ((mode != BlendmontParam.Mode.BLEND
             && mode != BlendmontParam.Mode.BLEND_3DFIND && mode != BlendmontParam.Mode.WHOLE_TOMOGRAM_SAMPLE) || lastLineFound)) {
-      waitingForExit++;
+      ending = true;
     }
   }
 
@@ -102,6 +102,9 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.21  2011/02/22 03:58:51  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.20  2010/03/03 04:55:35  sueh
  * <p> bug# 1311 Removed unnecessary ProcessName references.
  * <p>

@@ -20,6 +20,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2011/02/22 04:04:37  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.9  2010/03/03 04:55:35  sueh
  * <p> bug# 1311 Removed unnecessary ProcessName references.
  * <p>
@@ -69,8 +72,7 @@ public final class MatchorwarpProcessMonitor extends LogFileProcessMonitor {
   }
 
   /* (non-Javadoc)
-   * @see etomo.process.LogFileProcessMonitor#intializeProgressBar()
-   */
+   * @see etomo.process.LogFileProcessMonitor#intializeProgressBar() */
   void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
       manager.getMainPanel().setProgressBar("Combine: matchorwarp", 1, axisID);
@@ -81,8 +83,7 @@ public final class MatchorwarpProcessMonitor extends LogFileProcessMonitor {
   }
 
   /* (non-Javadoc)
-   * @see etomo.process.LogFileProcessMonitor#getCurrentSection()
-   */
+   * @see etomo.process.LogFileProcessMonitor#getCurrentSection() */
   void getCurrentSection() throws NumberFormatException, LogFile.LockException,
       IOException {
     String line;
@@ -95,7 +96,7 @@ public final class MatchorwarpProcessMonitor extends LogFileProcessMonitor {
       lastLineRead = line;
     }
     if (currentSection >= nSections) {
-      waitingForExit++;
+      ending = true;
     }
   }
 
@@ -104,7 +105,7 @@ public final class MatchorwarpProcessMonitor extends LogFileProcessMonitor {
    */
   void findNSections() throws InterruptedException, NumberFormatException,
       LogFile.LockException, IOException {
-    //  Search for the number of sections, we should see a header ouput first
+    // Search for the number of sections, we should see a header ouput first
     boolean foundNSections = false;
     nSections = -1;
     Thread.sleep(UPDATE_PERIOD);

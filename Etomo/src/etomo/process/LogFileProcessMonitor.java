@@ -25,6 +25,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.38  2011/02/22 04:04:22  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 3.37  2010/10/07 04:48:31  sueh
  * <p> bug$ 1409 Increased stop waiting timeout.
  * <p>
@@ -214,15 +217,13 @@ import etomo.util.Utilities;
 public abstract class LogFileProcessMonitor implements ProcessMonitor {
   public static final String rcsid = "$Id$";
 
-  private static final int STOP_WAITING = 100;
   static final int UPDATE_PERIOD = 500;
 
   private long processStartTime;
-  //protected BufferedReader logFileReader;
+  // protected BufferedReader logFileReader;
   int nSections = Integer.MIN_VALUE;
   int currentSection;
   private int remainingTime;
-  int waitingForExit = 0;
   private boolean processRunning = true;
   private boolean done = false;
 
@@ -232,8 +233,9 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
   private ProcessEndState endState = null;
   private boolean stop = false;
   private boolean running = false;
+  boolean ending = false;
 
-  //  This needs to be set in the concrete class constructor
+  // This needs to be set in the concrete class constructor
   String logFileBasename;
   private LogFile logFile;
   private LogFile.ReaderId logFileReaderId = null;
@@ -281,24 +283,24 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
   public final void run() {
     running = true;
     initializeProgressBar();
-    //  Instantiate the logFile object
+    // Instantiate the logFile object
     try {
       if (standardLogFileName) {
-        //logFileName = logFileBasename + axisID.getExtension() + ".log";
+        // logFileName = logFileBasename + axisID.getExtension() + ".log";
         logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
             logFileBasename);
       }
       else {
-        //logFileName = logFileBasename;
+        // logFileName = logFileBasename;
         logFile = LogFile.getInstance(manager.getPropertyUserDir(), logFileBasename);
 
       }
-      //  Wait for the log file to exist
+      // Wait for the log file to exist
       waitForLogFile();
       findNSections();
       initializeProgressBar();
 
-      while (processRunning && waitingForExit < STOP_WAITING && !stop) {
+      while (processRunning && !stop) {
         Thread.sleep(UPDATE_PERIOD);
         getCurrentSection();
         calcRemainingTime();
@@ -309,6 +311,7 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
       e.printStackTrace();
     }
     catch (InterruptedException e) {
+      e.printStackTrace();
       processRunning = false;
     }
     catch (NumberFormatException e) {
@@ -321,12 +324,12 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
       e.printStackTrace();
     }
     setProcessEndState(ProcessEndState.DONE);
-    //  Close the log file reader
+    // Close the log file reader
     Utilities.debugPrint("LogFileProcessMonitor: Closing the log file reader for "
         + logFile.getAbsolutePath());
-    //if (logFileReader != null) {
+    // if (logFileReader != null) {
     // logFileReader.close();
-    //}
+    // }
     if (logFile != null && logFileReaderId != null && !logFileReaderId.isEmpty()) {
       logFile.closeReader(logFileReaderId);
       logFileReaderId = null;
@@ -395,8 +398,8 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
         Thread.sleep(UPDATE_PERIOD);
       }
     }
-    //  Open the log file
-    //logFileReader = new BufferedReader(new FileReader(logFile));
+    // Open the log file
+    // logFileReader = new BufferedReader(new FileReader(logFile));
     logFileReaderId = logFile.openReader();
   }
 
@@ -407,7 +410,7 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
   void findNSections() throws InterruptedException, NumberFormatException,
       LogFile.LockException, InvalidParameterException, IOException {
 
-    //  Search for the number of sections, we should see a header ouput first
+    // Search for the number of sections, we should see a header ouput first
     boolean foundNSections = false;
 
     nSections = -1;
@@ -438,11 +441,11 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
    * @param remainingTime
    */
   void updateProgressBar() {
-    if (waitingForExit > 0) {
+    if (ending) {
       manager.getMainPanel().setProgressBarValue(0, "Ending...", axisID);
       return;
     }
-    //  Calculate the percetage done
+    // Calculate the percetage done
     double fractionDone = (double) currentSection / nSections;
     int percentage = (int) Math.round(fractionDone * 100);
     if (percentage < 0) {
