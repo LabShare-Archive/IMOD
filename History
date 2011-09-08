@@ -1,6 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-9/7/11: Removed xf2xg, newst, and reduceby2 wrapper scripts
+9/8/11: Added option to View menu of Model View so that JPEG and PNG snapshots
+can be taken with a transparent background.
+
+9/7/11: Removed xf2xg, newst, and reduceby2 wrapper scripts, and clipflipyz.
 
 9/7/11: Made image display in model view use linear interpolation and picked
 bigger texture sizes to improve performance.
