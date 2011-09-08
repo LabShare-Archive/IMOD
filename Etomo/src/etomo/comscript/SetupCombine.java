@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.24  2011/02/21 21:32:38  sueh
+ * bug# 1437 Reformatting.
+ *
  * Revision 3.23  2010/12/03 19:35:52  sueh
  * bug# 1419 In SetupCombine, running command with python.
  *
@@ -248,12 +251,7 @@ public class SetupCombine {
     // com scripts which require the -e flag.  RJG: 2003-11-06 
     command.add("python");
     command.add("-u");
-    //if (debug) {
-    //  command.add("-v");
-    //}
     command.add(ApplicationManager.getIMODBinPath() + "setupcombine");
-    //StringBuffer commandLine = new StringBuffer("tcsh -f "
-    //    + ApplicationManager.getIMODBinPath() + "setupcombine");
     genOptions();
     String[] commandArray = new String[command.size()];
     for (int i = 0; i < commandArray.length; i++) {

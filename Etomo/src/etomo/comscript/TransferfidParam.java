@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2011/09/08 05:38:34  sueh
+ * <p> Bug# 1545 running with runpyscript.
+ * <p>
  * <p> Revision 3.15  2011/02/22 03:37:49  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -329,8 +332,6 @@ public final class TransferfidParam implements Storable {
     command.add(ApplicationManager.getIMODBinPath() + "runpyscript");
     command.add("-P");
     command.add("transferfid");
-    // StringBuffer commandLine = new StringBuffer("tcsh -f "
-    // + ApplicationManager.getIMODBinPath() + "transferfid -P ");
 
     if (bToA.is()) {
       command.add("-b");
