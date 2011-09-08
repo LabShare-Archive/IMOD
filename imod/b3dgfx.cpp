@@ -19,6 +19,7 @@
 #include <qfiledialog.h>
 #include <qimage.h>
 #include "imod.h"
+#include "imodv.h"
 #include "b3dgfx.h"
 #include "b3dfile.h"
 #include "xcramp.h"
@@ -1795,6 +1796,7 @@ int b3dSnapshot_NonTIF(QString fname, int rgbmode, int *limits,
   int j;
   bool imret = true;
   unsigned char *pixout, tmp;
+  bool transBkgd = fname.startsWith("modv") && Imodv->transBkgd;
   int rpx = 0; 
   int rpy = 0;
   int rpWidth = CurWidth;
@@ -1840,10 +1842,11 @@ int b3dSnapshot_NonTIF(QString fname, int rgbmode, int *limits,
     glFlush();
 
     /* have to swap bytes and fill in 0 for A, because RGB routine wants
-       ABGR*/
+       ABGR.  Or put in the alpha value for transparent background. */
     for (i = 0; i < xysize; i++) {
+      tmp = transBkgd ? pixout[3] : 0;
       pixout[3] = pixout[0];
-      pixout[0] = 0;
+      pixout[0] = tmp;
       pixout++;
       tmp = *pixout;
       *pixout = pixout[1];
@@ -1921,19 +1924,29 @@ int b3dSnapshot_NonTIF(QString fname, int rgbmode, int *limits,
       pixin = pixels + 4 * j * rpWidth;
       memcpy(pixels + 4 * xysize, rgbout, 4 * rpWidth);
       for (i = 0; i < rpWidth; i++) {
-        *rgbout++ = qRgb(pixin[3], pixin[2], pixin[1]);
+        *rgbout++ = qRgba(pixin[3], pixin[2], pixin[1], pixin[0]);
         pixin += 4;
       }
       pixin = pixels + 4 * xysize;
       rgbout = (b3dUInt32 *)pixels + j * rpWidth;
-      for (i = 0; i < rpWidth; i++) {
-        *rgbout++ = qRgb(pixin[3], pixin[2], pixin[1]);
-        pixin += 4;
+      if (transBkgd) {
+        for (i = 0; i < rpWidth; i++) {
+          *rgbout++ = qRgba(pixin[3], pixin[2], pixin[1], pixin[0]);
+          pixin += 4;
+        }
+      } else {
+        for (i = 0; i < rpWidth; i++) {
+          *rgbout++ = qRgb(pixin[3], pixin[2], pixin[1]);
+          pixin += 4;
+        }
       }
     }
 
     // Save the image with the given format and quality (JPEG only)
-    QImage *qim = new QImage(pixels, rpWidth, rpHeight, QImage::Format_RGB32);
+    QImage *qim = new QImage(pixels, rpWidth, rpHeight, 
+                             transBkgd ? QImage::Format_ARGB32 : QImage::Format_RGB32);
+    if (transBkgd)
+      imodPrintStderr("   with transparent background");
     qim->setDotsPerMeterX(resolution);
     qim->setDotsPerMeterY(resolution);
     j = format == "JPEG" ? ImodPrefs->snapQuality() : -1;
@@ -2278,6 +2291,9 @@ int b3dSnapshot(QString fname)
 
 /*
 $Log$
+Revision 4.51  2011/06/01 19:54:28  mast
+Set criteerion for filtered zoom to 0.8
+
 Revision 4.50  2011/03/14 23:39:13  mast
 Changes for ushort loading
 
