@@ -20,7 +20,10 @@ import etomo.type.ProcessName;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2008/10/27 17:49:45  sueh
+ * <p> bug # 1141 Class to create a splitcorrection call.
+ * <p> </p>
  */
 public final class SplitCorrectionParam implements ConstSplitCorrectionParam {
   public static final String rcsid = "$Id$";
@@ -44,8 +47,8 @@ public final class SplitCorrectionParam implements ConstSplitCorrectionParam {
 
   private void buildCommand() {
     ArrayList command = new ArrayList();
-    command.add("tcsh");
-    command.add("-f");
+    command.add("python");
+    command.add("-u");
     command.add(BaseManager.getIMODBinPath() + ProcessName.SPLIT_CORRECTION);
     if (!cpus.isNull() && !cpus.equals(0)) {
       command.add("-m");
