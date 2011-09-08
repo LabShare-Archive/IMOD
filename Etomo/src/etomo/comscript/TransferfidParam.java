@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2011/02/22 03:37:49  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 3.14  2007/03/07 21:03:58  sueh
  * <p> bug# 981 Changed ScriptParameter.isUseInScript to isNotNullAndNotDefault for
  * <p> clarity.
@@ -162,7 +165,7 @@ public final class TransferfidParam implements Storable {
   private String datasetName;
   private final EtomoBoolean2 bToA = new EtomoBoolean2("BToA");
   private final EtomoBoolean2 runMidas = new EtomoBoolean2("RunMidas");
-  //null => both, -1 => -90, 1=> +90  
+  // null => both, -1 => -90, 1=> +90
   private final EtomoNumber searchDirection = new EtomoNumber(EtomoNumber.Type.INTEGER,
       "SearchDirection");
   private final EtomoNumber centerViewA = new EtomoNumber(EtomoNumber.Type.LONG,
@@ -180,8 +183,8 @@ public final class TransferfidParam implements Storable {
 
   public TransferfidParam(ApplicationManager manager, AxisID axisID) {
     this.manager = manager;
-    //MetaData always uses FIRST and SECOND to store, so create groupString with
-    //FIRST or SECOND
+    // MetaData always uses FIRST and SECOND to store, so create groupString with
+    // FIRST or SECOND
     if (axisID == AxisID.ONLY) {
       axisID = AxisID.FIRST;
     }
@@ -318,16 +321,16 @@ public final class TransferfidParam implements Storable {
    * Get the command string specified by the current state
    */
   public ArrayList getCommand() {
-    // Do not use the -e flag for tcsh since David's scripts handle the failure 
-    // of commands and then report appropriately.  The exception to this is the
-    // com scripts which require the -e flag.  RJG: 2003-11-06
+    // Do not use the -e flag for tcsh since David's scripts handle the failure
+    // of commands and then report appropriately. The exception to this is the
+    // com scripts which require the -e flag. RJG: 2003-11-06
     ArrayList command = new ArrayList();
-    command.add("tcsh");
-    command.add("-f");
-    command.add(ApplicationManager.getIMODBinPath() + "transferfid");
+    command.add("bash");
+    command.add(ApplicationManager.getIMODBinPath() + "runpyscript");
     command.add("-P");
-    //StringBuffer commandLine = new StringBuffer("tcsh -f "
-    //     + ApplicationManager.getIMODBinPath() + "transferfid -P ");
+    command.add("transferfid");
+    // StringBuffer commandLine = new StringBuffer("tcsh -f "
+    // + ApplicationManager.getIMODBinPath() + "transferfid -P ");
 
     if (bToA.is()) {
       command.add("-b");

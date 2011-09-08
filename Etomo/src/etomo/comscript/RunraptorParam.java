@@ -24,6 +24,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2011/02/22 03:26:56  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.4  2010/11/13 16:03:15  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -60,9 +63,10 @@ public final class RunraptorParam {
   }
 
   private void buildCommand() {
-    command.add("tcsh");
-    command.add("-f");
-    command.add(BaseManager.getIMODBinPath() + ProcessName.RUNRAPTOR.toString());
+    command.add("bash");
+    command.add(BaseManager.getIMODBinPath() + "runpyscript");
+    command.add("-P");
+    command.add(ProcessName.RUNRAPTOR.toString());
     command.add("-" + DIAM_OPTION);
     command.add(diam.toString());
     command.add("-" + MARK_OPTION);

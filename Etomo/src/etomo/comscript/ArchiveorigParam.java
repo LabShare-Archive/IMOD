@@ -41,8 +41,8 @@ public class ArchiveorigParam implements Command {
       mode = Mode.AXIS_B;
     }
     File stack = Utilities.getFile(manager, false, axisID, ".st", "");
-    commandArray = new String[] { "tcsh", "-f",
-        BaseManager.getIMODBinPath() + COMMAND_NAME, "-P", stack.getName() };
+    commandArray = new String[] { "bash", BaseManager.getIMODBinPath() + "runpyscript",
+        "-P", COMMAND_NAME, stack.getName() };
     outputFile = Utilities.getFile(manager, false, axisID, "_xray.st.gz", "");
   }
 
@@ -57,8 +57,8 @@ public class ArchiveorigParam implements Command {
   public String getCommand() {
     return COMMAND_NAME;
   }
-  
- public ProcessName getProcessName() {
+
+  public ProcessName getProcessName() {
     return PROCESS_NAME;
   }
 
@@ -80,11 +80,11 @@ public class ArchiveorigParam implements Command {
   public CommandDetails getSubcommandDetails() {
     return null;
   }
-  
+
   public String getSubcommandProcessName() {
     return null;
   }
-  
+
   public boolean isMessageReporter() {
     return false;
   }
@@ -92,14 +92,15 @@ public class ArchiveorigParam implements Command {
   public File getCommandOutputFile() {
     return outputFile;
   }
-  
+
   public FileType getOutputImageFileType() {
     return null;
   }
+
   public FileType getOutputImageFileType2() {
     return null;
   }
-  
+
   public File getCommandInputFile() {
     return null;
   }
@@ -126,6 +127,10 @@ public class ArchiveorigParam implements Command {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2011/05/10 16:48:36  sueh
+ * <p> bug# 1482 Changed getSubcommandProcessName to return a string so that the root name chould be set to
+ * <p> subcommandProcessName.
+ * <p>
  * <p> Revision 1.15  2010/04/28 15:43:12  sueh
  * <p> bug# 1344 Added getOutputImageFileType functions.
  * <p>

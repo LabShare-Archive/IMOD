@@ -26,6 +26,10 @@ import etomo.type.Transform;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.24  2011/05/10 16:49:36  sueh
+ * <p> bug# 1482 Changed getSubcommandProcessName to return a string so that the root name chould be set to
+ * <p> subcommandProcessName.
+ * <p>
  * <p> Revision 1.23  2011/02/22 03:40:45  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -169,9 +173,10 @@ public class XfalignParam implements Command {
     outputFile = new File(workingDir, outputFileName);
     ArrayList options = genOptions();
     commandArray = new String[options.size() + commandSize];
-    commandArray[0] = "tcsh";
-    commandArray[1] = "-f";
-    commandArray[2] = BaseManager.getIMODBinPath() + commandName;
+    commandArray[0] = "bash";
+    commandArray[2] = BaseManager.getIMODBinPath() + "runpyscript";
+    commandArray[1] = "-P";
+    commandArray[2] = commandName;
     for (int i = 0; i < options.size(); i++) {
       commandArray[i + commandSize] = (String) options.get(i);
     }
@@ -281,12 +286,12 @@ public class XfalignParam implements Command {
     ScriptParameter sigmaLowFrequency = metaData.getSigmaLowFrequencyParameter();
     ScriptParameter cutoffHighFrequency = metaData.getCutoffHighFrequencyParameter();
     ScriptParameter sigmaHighFrequency = metaData.getSigmaHighFrequencyParameter();
-    //optional
+    // optional
     if (sigmaLowFrequency.isNotNullAndNotDefault()
         || cutoffHighFrequency.isNotNullAndNotDefault()
         || sigmaHighFrequency.isNotNullAndNotDefault()) {
       options.add("-fil");
-      //all three numbers must exist
+      // all three numbers must exist
       options.add(sigmaLowFrequency.toString() + "," + sigmaHighFrequency.toString()
           + ",0," + cutoffHighFrequency.toString());
     }
