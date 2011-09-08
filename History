@@ -1,7 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/8/11: In eTomo removed the time-out some of the process monitors where using
+to exit.(Bug# 1542)
+
 9/8/11: Added option to View menu of Model View so that JPEG and PNG snapshots
 can be taken with a transparent background.
+
+9/7/11: In eTomo, handled the conversion of processes to Python scripts.
+(Bug# 1545)
 
 9/7/11: Removed xf2xg, newst, and reduceby2 wrapper scripts, and clipflipyz.
 
