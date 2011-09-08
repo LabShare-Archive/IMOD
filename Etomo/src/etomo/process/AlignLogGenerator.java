@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.13  2011/07/19 20:25:32  sueh
+ * <p> Bug# 1492 In AlignLogGenerator, switched call to run with python.
+ * <p>
  * <p> Revision 3.12  2011/02/22 03:58:04  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -76,8 +79,6 @@ public class AlignLogGenerator {
     else {
       alignLogCommand = new String[5];
     }
-    //alignLogCommand[0] = "tcsh";
-    //alignLogCommand[1] = "-f";
     alignLogCommand[0] = "python";
     alignLogCommand[1] = "-u";
     alignLogCommand[2] = ApplicationManager.getIMODBinPath() + "alignlog";

@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.30  2011/02/26 04:19:59  sueh
+ * bug# 1453 In setup making a python call instead of a tcsh call.
+ *
  * Revision 3.29  2011/02/21 21:23:41  sueh
  * bug# 1437 Reformatting.
  *
@@ -274,8 +277,6 @@ public final class CopyTomoComs {
     // com scripts which require the -e flag.  RJG: 2003-11-06  
     command.add("python");
     command.add("-u");
-    //command.add("tcsh");
-    //command.add("-f");
     command.add(ApplicationManager.getIMODBinPath() + "copytomocoms");
     if (!genOptions()) {
       return false;

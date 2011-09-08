@@ -34,6 +34,10 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2011/05/10 16:49:36  sueh
+ * <p> bug# 1482 Changed getSubcommandProcessName to return a string so that the root name chould be set to
+ * <p> subcommandProcessName.
+ * <p>
  * <p> Revision 1.17  2011/03/01 04:49:24  sueh
  * <p> bug# 1454 converted to python
  * <p>
@@ -242,9 +246,6 @@ public final class SqueezevolParam implements ConstSqueezevolParam {
   private void createCommand() {
     ArrayList options = genOptions();
     commandArray = new String[options.size() + COMMAND_SIZE];
-    /*commandArray[0] = "tcsh";
-    commandArray[1] = "-f";
-    commandArray[2] = BaseManager.getIMODBinPath() + COMMAND_NAME;*/
     commandArray[0] = "bash";
     commandArray[1] = BaseManager.getIMODBinPath() + "runpyscript";
     commandArray[2] = "-P";

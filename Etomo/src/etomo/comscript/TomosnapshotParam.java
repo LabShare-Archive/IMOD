@@ -77,8 +77,6 @@ public final class TomosnapshotParam implements Command {
     ArrayList command = new ArrayList();
     command.add("python");
     command.add("-u");
-    //command.add("tcsh");
-    //command.add("-f");
     command.add(BaseManager.getIMODBinPath() + COMMAND_NAME);
     if (manager != null) {
       BaseMetaData metaData = manager.getBaseMetaData();
@@ -137,6 +135,10 @@ public final class TomosnapshotParam implements Command {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2011/05/10 16:49:35  sueh
+ * <p> bug# 1482 Changed getSubcommandProcessName to return a string so that the root name chould be set to
+ * <p> subcommandProcessName.
+ * <p>
  * <p> Revision 1.15  2011/04/25 16:43:04  sueh
  * <p> bug# 1475 Added the BaseManager to the constructor (can be null).  If the manager is available, the dataset
  * <p> file name is passed tomosnapshot.

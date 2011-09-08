@@ -44,6 +44,9 @@ import etomo.util.DatasetFiles;
  * <p> </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.37  2011/06/18 04:22:20  sueh
+ * <p> Bug# 1494 Makejoincom is now a python script.
+ * <p>
  * <p> Revision 1.36  2011/05/10 16:49:36  sueh
  * <p> bug# 1482 Changed getSubcommandProcessName to return a string so that the root name chould be set to
  * <p> subcommandProcessName.
@@ -250,8 +253,6 @@ public final class MakejoincomParam implements CommandDetails {
     commandArray = new String[options.size() + commandSize];
     commandArray[0] = "python";
     commandArray[1] = "-u";
-    //commandArray[0] = "tcsh";
-    //commandArray[1] = "-f";
     commandArray[2] = BaseManager.getIMODBinPath() + commandName;
     for (int i = 0; i < options.size(); i++) {
       commandArray[i + commandSize] = (String) options.get(i);

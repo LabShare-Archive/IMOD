@@ -41,6 +41,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.46  2011/06/18 04:20:47  sueh
+ * <p> Bug# 1494 finishjoin is now a python script.
+ * <p>
  * <p> Revision 1.45  2011/05/10 16:49:36  sueh
  * <p> bug# 1482 Changed getSubcommandProcessName to return a string so that the root name chould be set to
  * <p> subcommandProcessName.
@@ -292,9 +295,6 @@ public final class FinishjoinParam implements CommandDetails {
     }
     int commandSize = 4;
     commandArray = new String[options.size() + commandSize];
-    /*commandArray[0] = "tcsh";
-    commandArray[1] = "-f";
-    commandArray[2] = BaseManager.getIMODBinPath() + COMMAND_NAME;*/
     commandArray[0] = "bash";
     commandArray[1] = BaseManager.getIMODBinPath() + "runpyscript";
     commandArray[2] = "-P";

@@ -11,6 +11,12 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.45  2011/06/21 17:58:51  sueh
+ * <p> Bug# 1490 Changed convertOldVersions to convertIndexCoordsToImodCoords.  The scale parameters
+ * <p> are passed in.  Removed functions that made this class a properties class (store and load).  In
+ * <p> setDefaultRange:  use TrimvolInputFileState, stop using swapYZ and rotateX, and move the handling of
+ * <p> the flipped Y and Z to TrimvolInputFileState.
+ * <p>
  * <p> Revision 3.44  2011/06/01 17:57:25  sueh
  * <p> Bug# 1490 In genOptions changed -s to -sz.  Also modified the command to work with runpyscript.
  * <p>
@@ -364,8 +370,6 @@ public class TrimvolParam implements CommandDetails {
     // Do not use the -e flag for tcsh since David's scripts handle the failure 
     // of commands and then report appropriately.  The exception to this is the
     // com scripts which require the -e flag.  RJG: 2003-11-06  
-    //commandArray[0] = "tcsh";
-    //commandArray[1] = "-f";
     commandArray[0] = "bash";
     commandArray[1] = BaseManager.getIMODBinPath() + "runpyscript";
     commandArray[2] = "-P";
