@@ -26,7 +26,7 @@ enum {VFILE_MENU_LOAD, VFILE_MENU_SAVE, VFILE_MENU_SAVEAS, VFILE_MENU_SNAPRGB,
       VEDIT_MENU_CONTROLS, VEDIT_MENU_OBJLIST, VEDIT_MENU_BKG,
       VEDIT_MENU_MODELS, VEDIT_MENU_VIEWS, VEDIT_MENU_IMAGE,
       VEDIT_MENU_ISOSURFACE, VVIEW_MENU_DB, VVIEW_MENU_BOUNDBOX, 
-      VVIEW_MENU_CURPNT, VVIEW_MENU_INVERTZ,
+      VVIEW_MENU_CURPNT, VVIEW_MENU_INVERTZ, VVIEW_MENU_TRANSBKGD,
       VVIEW_MENU_LIGHTING, VVIEW_MENU_WIREFRAME, VVIEW_MENU_LOWRES, 
       VVIEW_MENU_STEREO, VVIEW_MENU_DEPTH, VVIEW_MENU_SCALEBAR,
       VHELP_MENU_MENUS, VHELP_MENU_KEYBOARD, VHELP_MENU_MOUSE,
@@ -47,13 +47,16 @@ class ImodvWindow : public QMainWindow
               Qt::WFlags f = Qt::Window) ;
   ~ImodvWindow();
   void setCheckableItem(int id, bool state);
-  int setGLWidget(ImodvApp *a, int db, int stereo);
+  void setEnabledMenuItem(int id, bool state);
+  int setGLWidget(ImodvApp *a, int db, int stereo, int alpha);
   ImodvGL *addGLWidgetToStack(QGLFormat *glFormat, bool db, int enableDepth,
-                              bool stereo);
+                              bool stereo, bool alpha);
 
   ImodvGL *mDBw;    // Double buffer widget
+  ImodvGL *mDBalw;    // Double buffer alpha widget
   ImodvGL *mSBw;    // Single buffer widget
   ImodvGL *mDBstw;    // Double buffer stereo widget
+  ImodvGL *mDBstAlw;    // Double buffer stereo alpha widget
   ImodvGL *mSBstw;    // Single buffer stereo widget
   ImodvGL *mCurGLw; // Current widget
   QTimer  *mTimer;  // Timer for movieing
@@ -104,6 +107,9 @@ protected:
 /*
 
 $Log$
+Revision 4.13  2010/12/20 03:29:20  mast
+Added flag and menu item to invert model in Z
+
 Revision 4.12  2009/01/15 16:33:18  mast
 Qt 4 port
 

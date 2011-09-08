@@ -477,7 +477,10 @@ void imodvKeyPress(QKeyEvent *event)
       inputDeleteContour(a->vi);
       pickedContour = -1;
     } else if (!shifted) {
-      imodv_setbuffer(a, 1 - a->db, -1);
+      imodv_setbuffer(a, 1 - a->db, -1, -1);
+      a->mainWin->setEnabledMenuItem(VVIEW_MENU_TRANSBKGD, a->db && !a->transBkgd &&
+                                     (a->enableDepthDBal >= 0 ||
+                                      a->enableDepthDBstAl >= 0));
       imodvDraw(Imodv);
     }
     break;
@@ -1493,6 +1496,9 @@ void imodvMovieTimeout()
 /*
 
 $Log$
+Revision 4.54  2011/08/09 05:35:47  mast
+Fixed clip plane moving with mouse
+
 Revision 4.53  2011/01/31 05:38:56  mast
 Add scattered point moving, adding, deleting and selecting with Ctrl-Shift,
 as well as size changing with scroll wheel.  Eliminated imodv_translate and

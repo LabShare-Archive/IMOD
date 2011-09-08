@@ -49,7 +49,7 @@ ImodvWindow::ImodvWindow(ImodvApp *a,
   char *helpStr = "&Help";
   char *altHelp = ".&Help.";
   char *useHelp = helpStr;
-  mDBw = mSBw = mDBstw = mSBstw = NULL;
+  mDBw = mSBw = mDBstw = mSBstw = mDBalw = mDBstAlw = NULL;
   mMinimized = false;
   setAttribute(Qt::WA_DeleteOnClose);
   setAttribute(Qt::WA_AlwaysShowToolTips);
@@ -132,13 +132,13 @@ ImodvWindow::ImodvWindow(ImodvApp *a,
   mActions[VVIEW_MENU_WIREFRAME]->setCheckable(true);
   connect(viewMapper, SIGNAL(mapped(int)), this, SLOT(viewMenuSlot(int)));
 
+  ADD_ACTION(view, "&Transparent Bkgd", VVIEW_MENU_TRANSBKGD);
+  mActions[VVIEW_MENU_TRANSBKGD]->setCheckable(true);
   ADD_ACTION(view, "Do&uble Buffer", VVIEW_MENU_DB);
 
   // This made it act on a shifted D only and steal it from imodv_input
   //mViewMenu->setAccel(Qt::Key_D, VVIEW_MENU_DB);
   mActions[VVIEW_MENU_DB]->setCheckable(true);
-  mActions[VVIEW_MENU_DB]->setChecked(a->db > 0);
-  mActions[VVIEW_MENU_DB]->setEnabled(a->db > 0 && a->enableDepthSB >= 0);
 
   // Help menu
   // To stabilize the 3dmod menu with model view open, it had to have a 
@@ -165,34 +165,72 @@ ImodvWindow::ImodvWindow(ImodvApp *a,
   QGLFormat glFormat;
 
   if (a->enableDepthDB >= 0) { 
-    mDBw = addGLWidgetToStack(&glFormat, true, a->enableDepthDB, false);
+    mDBw = addGLWidgetToStack(&glFormat, true, a->enableDepthDB, false, false);
     mCurGLw = mDBw;
     numWidg++;
   }
 
+  if (a->enableDepthDBal >= 0) { 
+    mDBalw = addGLWidgetToStack(&glFormat, true, a->enableDepthDB, false, true);
+    if (!numWidg) {
+      mCurGLw = mDBalw;
+      a->alphaVisual = 1;
+    }
+    numWidg++;
+  }
+
   if (!numWidg && a->enableDepthDBst >= 0) { 
-    mDBstw = addGLWidgetToStack(&glFormat, true, a->enableDepthDBst, true);
+    mDBstw = addGLWidgetToStack(&glFormat, true, a->enableDepthDBst, true, false);
     if (!numWidg)
       mCurGLw = mDBstw;
     numWidg++;
   }
 
+  if (!numWidg && a->enableDepthDBstAl >= 0) { 
+    mDBstAlw = addGLWidgetToStack(&glFormat, true, a->enableDepthDBstAl, true, true);
+    if (!numWidg) {
+      mCurGLw = mDBstAlw;
+      a->alphaVisual = 1;
+    }
+    numWidg++;
+  }
+
   if (a->enableDepthSB >= 0) { 
-    mSBw = addGLWidgetToStack(&glFormat, false, a->enableDepthSB, false);
-    if (!numWidg)
+    mSBw = addGLWidgetToStack(&glFormat, false, a->enableDepthSB, false, false);
+    if (!numWidg) {
       mCurGLw = mSBw;
+      a->db = 0;
+    }
     numWidg++;
   }
 
   if (!numWidg && a->enableDepthSBst >= 0) { 
-    mSBstw = addGLWidgetToStack(&glFormat, true, a->enableDepthSBst, true);
-    if (!numWidg)
+    mSBstw = addGLWidgetToStack(&glFormat, true, a->enableDepthSBst, true, false);
+    if (!numWidg) {
       mCurGLw = mSBstw;
+      a->db = 0;
+    }
     numWidg++;
+  }
+  a->dbPossible = a->db;
+
+  if (a->transBkgd) {
+    if (a->db && a->enableDepthDBal >= 0) {
+      mCurGLw = mDBalw;
+      a->alphaVisual = 1;
+    } else {
+      a->transBkgd = 0;
+    }
   }
 
   // Set the topmost widget of the stack
   mStack->setCurrentWidget(mCurGLw);
+  mActions[VVIEW_MENU_DB]->setChecked(a->db > 0);
+  mActions[VVIEW_MENU_DB]->setEnabled(a->db > 0 && a->enableDepthSB >= 0 && 
+                                      !a->transBkgd);
+  mActions[VVIEW_MENU_TRANSBKGD]->setChecked(a->transBkgd > 0);
+  mActions[VVIEW_MENU_TRANSBKGD]->setEnabled(a->db > 0 && (a->enableDepthDBal >= 0 || 
+                                                           a->enableDepthDBstAl >= 0));
 
   mTimer = new QTimer(this);
   connect(mTimer, SIGNAL(timeout()), this, SLOT(timeoutSlot()));
@@ -204,7 +242,7 @@ ImodvWindow::~ImodvWindow()
 
 // Makes a GL widget with the goven properties and adds it to the stack
 ImodvGL *ImodvWindow::addGLWidgetToStack(QGLFormat *glFormat, bool db,
-                                         int enableDepth, bool stereo)
+                                         int enableDepth, bool stereo, bool alpha)
 {
   ImodvGL *GLw;
   int id;
@@ -212,11 +250,12 @@ ImodvGL *ImodvWindow::addGLWidgetToStack(QGLFormat *glFormat, bool db,
   glFormat->setDoubleBuffer(db);
   glFormat->setDepth(enableDepth > 0);
   glFormat->setStereo(stereo);
+  glFormat->setAlpha(alpha);
   GLw = new ImodvGL(*glFormat, mStack);
   id = mStack->addWidget(GLw);
   if (Imod_debug)
-    imodPrintStderr("Added widget %d  db %d depth %d stereo %d\n", id, db?1:0,
-                    enableDepth, stereo ? 1: 0);
+    imodPrintStderr("Added widget %d  db %d depth %d stereo %d alpha %d\n", id, db?1:0,
+                    enableDepth, stereo ? 1: 0, alpha ? 1 : 0);
   return GLw;
 }
 
@@ -252,26 +291,38 @@ void ImodvWindow::setCheckableItem(int id, bool state)
     mActions[id]->setChecked(state);
 }
 
+void ImodvWindow::setEnabledMenuItem(int id, bool state)
+{
+  if (id > 0 && id < LAST_VMENU_ID)
+    mActions[id]->setEnabled(state);
+}
+
 // Bring the selected widget to the top if it exists
-int ImodvWindow::setGLWidget(ImodvApp *a, int db, int stereo)
+int ImodvWindow::setGLWidget(ImodvApp *a, int db, int stereo, int alpha)
 {
   QGLFormat glFormat;
 
   // First create stereo widgets if going into stereo
   if (stereo) {
     if (Imodv->enableDepthDBst >= 0 && !mDBstw)
-      mDBstw = addGLWidgetToStack(&glFormat, true, a->enableDepthDBst, true);
+      mDBstw = addGLWidgetToStack(&glFormat, true, a->enableDepthDBst, true, false);
+    if (Imodv->enableDepthDBstAl >= 0 && !mDBstAlw)
+      mDBstAlw = addGLWidgetToStack(&glFormat, true, a->enableDepthDBstAl, true, true);
     if (Imodv->enableDepthSBst >= 0 && !mSBstw)
-      mSBstw = addGLWidgetToStack(&glFormat, false, a->enableDepthSBst, true);
+      mSBstw = addGLWidgetToStack(&glFormat, false, a->enableDepthSBst, true, false);
   }
 
   // Get the desired widget to top of stack
-  if (db && !stereo && mDBw)
+  if (db && !stereo && !alpha && mDBw)
     mCurGLw = mDBw;
+  else if (db && !stereo && alpha && mDBalw)
+    mCurGLw = mDBalw;
   else if (!db && !stereo && mSBw)
     mCurGLw = mSBw;
-  else if (db && stereo && mDBstw)
+  else if (db && stereo && !alpha && mDBstw)
     mCurGLw = mDBstw;
+  else if (db && stereo && alpha && mDBstAlw)
+    mCurGLw = mDBstAlw;
   else if (!db && stereo && mSBstw)
     mCurGLw = mSBstw;
   else
@@ -281,14 +332,14 @@ int ImodvWindow::setGLWidget(ImodvApp *a, int db, int stereo)
   // Now remove and destroy stereo widgets unless needed - won't work
   // all the time if there is no nonstereo DB widget, but that doesn't matter
   if (!stereo) {
-    if (mDBw && mDBstw) {
+    if ((mDBw || mDBalw) && mDBstw) {
       mStack->removeWidget(mDBstw);
       delete mDBstw;
       mDBstw = NULL;
       if (Imod_debug)
         imodPuts("Deleting DB stereo widget");
     }
-    if (mSBstw && (mDBw || mDBstw || mSBw)) {
+    if (mSBstw && (mDBw || mDBalw || mDBstw || mSBw)) {
       mStack->removeWidget(mSBstw);
       delete mSBstw;
       mSBstw = NULL;
@@ -406,6 +457,9 @@ void ImodvGL::wheelEvent ( QWheelEvent * e)
 /*
 
 $Log$
+Revision 4.29  2011/01/31 04:48:06  mast
+call scroll wheel function in input module
+
 Revision 4.28  2011/01/13 20:32:57  mast
 warning cleanup
 

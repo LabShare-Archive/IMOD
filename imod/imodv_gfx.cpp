@@ -76,13 +76,11 @@ static void imodv_clear(ImodvApp *a)
 {
   imodv_winset(a);
   glClearColor(a->rbgcolor->red() / 256., a->rbgcolor->green() / 256.,
-	       a->rbgcolor->blue() / 256., 1.0);
+	       a->rbgcolor->blue() / 256., a->transBkgd ? 0.0 : 1.0);
   if (a->clearAfterStereo) {
-#ifndef __sgi
     glDrawBuffer(a->db ? GL_BACK_RIGHT : GL_RIGHT);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDrawBuffer(a->db ? GL_BACK : GL_FRONT);
-#endif
     a->clearAfterStereo = 0;
   }
      
@@ -94,23 +92,32 @@ static void imodv_clear(ImodvApp *a)
  * Exchange double and single buffers (db >= 0)
  * OR switch between stereo and non stereo (db < 0) 
 */
-void imodv_setbuffer(ImodvApp *a, int db, int stereo)
+void imodv_setbuffer(ImodvApp *a, int db, int stereo, int alpha)
 {
   int useStereo, useDb = a->db;
   int inStereo = a->stereo == IMODV_STEREO_HW ? 1 : 0;
+  int useAlpha = a->alphaVisual;
 
   // Skip if the requested change doesn't have a visual
   if (db >= 0) {
     if ((db && (!inStereo && a->enableDepthSB < 0 || 
-                inStereo && a->enableDepthSBst < 0 )) ||
-        (!db && (!inStereo && a->enableDepthDB < 0 || 
-                 inStereo && a->enableDepthDBst < 0 )))
+                inStereo && a->enableDepthSBst < 0 || useAlpha)) ||
+        (!db && (!inStereo && a->enableDepthDB < 0 && a->enableDepthDBal < 0 || 
+                 inStereo && a->enableDepthDBst < 0 && a->enableDepthDBstAl < 0)))
       return;
     useStereo = inStereo;
     useDb = db;
+  } else if (alpha >= 0) {
+    if ((alpha && (!inStereo && a->enableDepthDB < 0 || 
+                   inStereo && a->enableDepthDBst < 0)) ||
+        (!alpha && (!inStereo && a->enableDepthDBal < 0 ||
+                    inStereo && a->enableDepthDBstAl < 0 || !useDb)))
+      return;
+    useStereo = inStereo;
+    useAlpha = alpha;
   } else {
-    if ((a->db && (!stereo && a->enableDepthDB < 0 || 
-                   stereo && a->enableDepthDBst < 0 )) ||
+    if ((a->db && (!stereo && a->enableDepthDB < 0 && a->enableDepthDBal < 0 || 
+                   stereo && a->enableDepthDBst < 0 && a->enableDepthDBstAl < 0)) ||
         (!a->db && (!stereo && a->enableDepthSB < 0 || 
                     stereo && a->enableDepthSBst < 0 )))
       return;
@@ -119,11 +126,12 @@ void imodv_setbuffer(ImodvApp *a, int db, int stereo)
     
   imodv_clear(a);
 
-  if (a->mainWin->setGLWidget(a, useDb, useStereo))
+  if (a->mainWin->setGLWidget(a, useDb, useStereo, useAlpha))
     return;
 
   // Only if it succeeds do we update the state items
   a->db = useDb;
+  a->alphaVisual = useAlpha;
   a->mainWin->setCheckableItem(VVIEW_MENU_DB, useDb);
   imodvStereoUpdate();
   imodv_winset(a);
@@ -494,6 +502,9 @@ static int imodv_snapshot(ImodvApp *a, QString fname)
 /*
 
 $Log$
+Revision 4.27  2011/01/13 20:28:40  mast
+warning cleanup
+
 Revision 4.26  2009/03/03 15:53:55  mast
 Screwed up commenting out
 

@@ -9,6 +9,9 @@
 $Date$
 
 $Log$
+Revision 4.4  2007/11/16 23:11:52  mast
+Added routines for redefining and restting ghost color
+
 Revision 4.3  2004/11/02 20:15:04  mast
 Added call to map all named colors
 
@@ -49,6 +52,7 @@ typedef struct imodglvisual {
   int dbRequested;
   int rgbaRequested;
   int depthEnabled;
+  int alpha;
 } ImodGLVisual;
 
 typedef struct imodglrequest {
@@ -57,6 +61,7 @@ typedef struct imodglrequest {
   int colorBits;      // Color index depth, or r + b + g
   int depthBits;
   int stereo;
+  int alpha;
 } ImodGLRequest;
 
 void imodAssessVisuals();

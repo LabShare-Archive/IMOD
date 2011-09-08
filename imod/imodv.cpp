@@ -69,12 +69,13 @@ static int onceOpened = 0;
 static QRect lastGeom;
 
 /* the default graphics rendering attributes for OpenGL */
-static ImodGLRequest True24 = {1, 1, 24, 1, 1};
-static ImodGLRequest True15 = {1, 1, 15, 1, 1};
-static ImodGLRequest True12 = {1, 1, 12, 1, 1};
-static ImodGLRequest True24nodep = {1, 1, 24, 0, 1};
-static ImodGLRequest True15nodep = {1, 1, 15, 0, 1};
-static ImodGLRequest True12nodep = {1, 1, 12, 0, 1};
+// The numbers are single/double buffer, rgba, colorBits, depthBits, stereo, alpha
+static ImodGLRequest True24 = {1, 1, 24, 1, 1, 1};
+static ImodGLRequest True15 = {1, 1, 15, 1, 1, 1};
+static ImodGLRequest True12 = {1, 1, 12, 1, 1, 1};
+static ImodGLRequest True24nodep = {1, 1, 24, 0, 1, 1};
+static ImodGLRequest True15nodep = {1, 1, 15, 0, 1, 1};
+static ImodGLRequest True12nodep = {1, 1, 12, 0, 1, 1};
 
 /* List the attribute lists in order of priority */
 static ImodGLRequest *OpenGLAttribList[] = {
@@ -126,6 +127,9 @@ static int imodv_init(ImodvApp *a, struct Mod_Draw *md)
   a->wpid = 0;
   a->stereo = IMODV_STEREO_OFF;
   a->clearAfterStereo = 0;
+  if (!onceOpened)
+    a->transBkgd = 0;
+  a->alphaVisual = 0;
   a->plax = 5.0f;
   a->imageStereo = 0;
   a->imagesPerArea = 2;
@@ -227,49 +231,74 @@ static void initstruct(ImodView *vw, ImodvApp *a)
 
 static int getVisuals(ImodvApp *a)
 {
-  int i, colorDB, colorSB, colorDBst, colorSBst;
+  int i, colorDB, colorDBal, colorSB, colorDBst, colorDBstAl, colorSBst;
   int depthSB = -1;
   int depthDB = -1;
+  int depthDBal = -1;
   int depthSBst = -1;
   int depthDBst = -1;
+  int depthDBstAl = -1;
   ImodGLVisual *visual;
   
   // Keep track of what depth request is used to get the visuals selected
   // and of the actual depth bits that result
   a->enableDepthSB = -1;
   a->enableDepthDB = -1;
+  a->enableDepthDBal = -1;
   a->enableDepthSBst = -1;
   a->enableDepthDBst = -1;
+  a->enableDepthDBstAl = -1;
   
   // Loop through all requests, asking first for double buffer stereo, then
   // no stereo, then for single buffer stereo, then no stereo.
   // When one is found, the depth is set for that visual type
   for (i = 0; OpenGLAttribList[i] != NULL; i++) {
+    if (depthDBstAl < 0) {
+      visual = imodFindGLVisual(*OpenGLAttribList[i]);
+      if (visual && visual->stereo && visual->alpha) {
+        a->enableDepthDBstAl = visual->depthEnabled;
+        depthDBstAl = visual->depthBits;
+        colorDBstAl = visual->colorBits;
+      }
+    }
     if (depthDBst < 0) {
+      OpenGLAttribList[i]->alpha = 0;
       visual = imodFindGLVisual(*OpenGLAttribList[i]);
       if (visual && visual->stereo) {
         a->enableDepthDBst = visual->depthEnabled;
         depthDBst = visual->depthBits;
         colorDBst = visual->colorBits;
       }
+      OpenGLAttribList[i]->alpha = 1;
+    }
+    OpenGLAttribList[i]->stereo = 0;
+    if (depthDBal < 0) {
+      visual = imodFindGLVisual(*OpenGLAttribList[i]);
+      if (visual && visual->alpha) {
+        a->enableDepthDBal = visual->depthEnabled;
+        depthDBal = visual->depthBits;
+        colorDBal = visual->colorBits;
+      }
     }
     if (depthDB < 0) {
-      OpenGLAttribList[i]->stereo = 0;
+      OpenGLAttribList[i]->alpha = 0;
       visual = imodFindGLVisual(*OpenGLAttribList[i]);
       if (visual) {
         a->enableDepthDB = visual->depthEnabled;
         depthDB = visual->depthBits;
         colorDB = visual->colorBits;
       }
-      OpenGLAttribList[i]->stereo = 1;
+      OpenGLAttribList[i]->alpha = 1;
     }
+    OpenGLAttribList[i]->stereo = 1;
 
-    // It is almost certainly unnecessary to restore the table entries because
-    // the find visual machinery stores a table of visuals, but do so anyway
+    // There was a comment about not needing to restore table entries, but it seems like
+    // you do need to if this ever happens more that once
     OpenGLAttribList[i]->doubleBuffer = 0;
+    OpenGLAttribList[i]->alpha = 0;
     if (depthSBst < 0) {
       visual = imodFindGLVisual(*OpenGLAttribList[i]);
-      if (visual) {
+      if (visual && visual->stereo) {
         a->enableDepthSBst = visual->depthEnabled;
         depthSBst = visual->depthBits;
         colorSBst = visual->colorBits;
@@ -286,6 +315,7 @@ static int getVisuals(ImodvApp *a)
       OpenGLAttribList[i]->stereo = 1;
     }
     OpenGLAttribList[i]->doubleBuffer = 1;
+    OpenGLAttribList[i]->alpha = 1;
     
     /* If got both, stop the loop (i.e., ignore lesser capability stereo 
        visuals */
@@ -294,47 +324,59 @@ static int getVisuals(ImodvApp *a)
   }
 
   /* error if no visuals */
-  if (depthDB < 0 && depthSB < 0 && depthDBst < 0 && depthSBst < 0)
+  if (depthDB < 0 && depthSB < 0 && depthDBst < 0 && depthSBst < 0 && depthDBal < 0 && 
+      depthDBstAl < 0)
     return 1;
   
-  // If somehow there is stereo with depth and regular with not, just pretend
-  // the non-stereo does not exist
-  if (!depthDB && depthDBst > 0) {
+  // If somehow there is stereo with depth or alpha and regular with not, just pretend
+  // the non-stereo does not exist; similarly for alpha and stereo
+  if (!depthDB && (depthDBst > 0 || depthDBal > 0)) {
     depthDB = -1;
     a->enableDepthDB = -1;
+  }
+  if (!depthDBal && depthDBstAl > 0) {
+    depthDBal = -1;
+    a->enableDepthDBal = -1;
   }
   if (!depthSB && depthSBst > 0) {
     depthSB = -1;
     a->enableDepthSB = -1;
   }
 
-  // Priority sequence will be DB, DB stereo, SB, SB stereo
-  if (!depthDB || (!depthDBst && depthDB < 0) || 
-      (!depthSB && depthDB < 0 && depthDBst < 0) ||
-      (!depthSBst && depthDB < 0 && depthDBst < 0 && depthSB < 0))
-    imodError(NULL, "3dmodv warning: using a visual with"
-            " no depth buffer\n");
+  // Priority sequence will be DB, DB alpha, DB stereo, DB stereo alpha, SB, SB stereo
+  if (!depthDB || (!depthDBal && depthDB < 0) || 
+      (!depthDBst && depthDB < 0 && depthDBal < 0) || 
+      (!depthDBstAl && depthDB < 0 && depthDBal < 0 && depthDBst < 0) || 
+      (!depthSB && depthDB < 0 && depthDBst < 0 && depthDBal < 0 && depthDBstAl < 0) ||
+      (!depthSBst && depthDB < 0 && depthDBst < 0 && depthSB < 0 && depthDBal < 0 && 
+       depthDBstAl < 0 && depthSB < 0))
+    imodError(NULL, "3dmodv warning: using a visual with no depth buffer\n");
 
   if (depthDB < 0)
     imodError(NULL, "3dmodv warning: no %sdouble buffer visual available.\n",
-              depthDBst >= 0 ? "non-stereo " : "");
+              (depthDBst >= 0 || depthDBal >= 0|| depthDBstAl >= 0) ? 
+              "non-stereo, non-alpha " : "");
   else if (Imod_debug)
-    imodPrintStderr("DB visual: %d color bits, %d depth bits\n",
-	   colorDB, depthDB);
+    imodPrintStderr("DB visual: %d color bits, %d depth bits\n", colorDB, depthDB);
   if (Imod_debug && depthDBst >= 0)
-    imodPrintStderr("DB stereo visual: %d color bits, %d depth bits\n",
-                    colorDBst, depthDBst);
+    imodPrintStderr("DB stereo visual: %d color bits, %d depth bits\n", colorDBst, 
+                    depthDBst);
+  if (Imod_debug && depthDBal >= 0)
+    imodPrintStderr("DB alpha visual: %d color bits, %d depth bits\n", colorDBal, 
+                    depthDBal);
+  if (Imod_debug && depthDBstAl >= 0)
+    imodPrintStderr("DB alpha stereo visual: %d color bits, %d depth bits\n",
+                    colorDBstAl, depthDBstAl);
   if (depthSB < 0)
     imodError(NULL, "3dmodv warning: no single buffer visual available.\n");
   else if (Imod_debug)
-    imodPrintStderr("SB visual: %d color bits, %d depth bits\n",
-	   colorSB, depthSB);
+    imodPrintStderr("SB visual: %d color bits, %d depth bits\n", colorSB, depthSB);
   if (Imod_debug && depthSBst >= 0)
     imodPrintStderr("SB stereo visual: %d color bits, %d depth bits\n",
                     colorSBst, depthSBst);
 
   // set to double buffer if visual exists
-  a->db = depthDB >= 0 || depthDBst >= 0 ? 1 : 0;
+  a->db = (depthDB >= 0 || depthDBst >= 0 || depthDBal >= 0 || depthDBstAl >= 0) ? 1 : 0;
   return 0;
 }
 
@@ -781,6 +823,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.51  2011/03/14 23:39:13  mast
+Changes for ushort loading
+
 Revision 4.50  2010/12/20 03:29:20  mast
 Added flag and menu item to invert model in Z
 

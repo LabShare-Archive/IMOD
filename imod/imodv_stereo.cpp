@@ -90,7 +90,7 @@ void imodvStereoUpdate(void)
  */
 static void stereoEnable(void)
 {
-  imodv_setbuffer(Imodv, -1, 1);
+  imodv_setbuffer(Imodv, -1, 1, -1);
   if (imodvStereoData.stereoCommand)
     system(imodvStereoData.stereoCommand);
 }
@@ -98,7 +98,7 @@ static void stereoEnable(void)
 /* call to turn off stereo viewing */
 static void stereoDisable(void)
 {
-  imodv_setbuffer(Imodv, -1, 0);
+  imodv_setbuffer(Imodv, -1, 0, -1);
   stereoHWOff();
 }
 
@@ -527,6 +527,9 @@ void ImodvStereo::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.21  2011/01/19 21:15:49  mast
+Try again
+
 Revision 4.20  2011/01/19 18:50:52  mast
 Fixed enabling of angle slider
 

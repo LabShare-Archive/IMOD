@@ -62,12 +62,15 @@ typedef struct __imodv_struct
   int          enableDepthDB;
   int          enableDepthSBst;
   int          enableDepthDBst;
+  int          enableDepthDBal;
+  int          enableDepthDBstAl;
 
   /* global viewing flags */
   int cnear;       /* clipping planes.                        */
   int cfar;
   int fovy;        /* field of view angle for perspective.    */
   int db;          /* use doublebuffer widget if true         */
+  int dbPossible;  /* Flag that double buffer is possible     */
   int winx, winy;  /* current drawing window size.            */
   int lmx, lmy;    /* last x,y mouse location.                */
   int lightx,
@@ -77,6 +80,8 @@ typedef struct __imodv_struct
   int stereo;      /* 0 = no stereo view.                     */
                    /* 1 = cross, 2 = wall, 3 = red/green      */
                    /* 4 = display hardware stereo.            */
+  int alphaVisual; /* Flag that the current visual has alpha  */
+  int transBkgd;   /* Flag that alpha visual is being used for transparent background */
   int clearAfterStereo;   /* Flag to clear right buffer after leaving stereo */
   float plax;      /* parallax for stereo separation.         */
   int imageStereo;    /* draw images as stereo pairs             */
@@ -151,6 +156,9 @@ void imodvNewModelAngles(Ipoint *rot);
 /*
 
 $Log$
+Revision 3.28  2010/12/20 03:29:20  mast
+Added flag and menu item to invert model in Z
+
 Revision 3.27  2010/12/18 17:36:44  mast
 Changes for stereo image display
 

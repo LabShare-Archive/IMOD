@@ -38,16 +38,18 @@
 #endif
 
 static void mapOneNamedColor(int index);
+static void imodAssessVisual(int ind, int db, int rgba, int depth, int askStereo, 
+                             int alpha);
 
-// The numbers are single/double buffer, rgba, colorBits, depthBits, stereo
-static ImodGLRequest qtPseudo12DB = {1, 0, 12, 0, 0};
-static ImodGLRequest qtPseudo12SB = {0, 0, 12, 0, 0};
-static ImodGLRequest qtPseudo8DB = {1, 0, 8, 0, 0};
-static ImodGLRequest qtPseudo8SB = {0, 0, 8, 0, 0};
-static ImodGLRequest qtTrue24DB = {1, 1, 24, 0, 0};
-static ImodGLRequest qtTrue24SB = {0, 1, 24, 0, 0};
-static ImodGLRequest qtTrue12DB = {1, 1, 12, 0, 0};
-static ImodGLRequest qtTrue12SB = {0, 1, 12, 0, 0};
+// The numbers are single/double buffer, rgba, colorBits, depthBits, stereo, alpha
+static ImodGLRequest qtPseudo12DB = {1, 0, 12, 0, 0, 0};
+static ImodGLRequest qtPseudo12SB = {0, 0, 12, 0, 0, 0};
+static ImodGLRequest qtPseudo8DB = {1, 0, 8, 0, 0, 0};
+static ImodGLRequest qtPseudo8SB = {0, 0, 8, 0, 0, 0};
+static ImodGLRequest qtTrue24DB = {1, 1, 24, 0, 0, 0};
+static ImodGLRequest qtTrue24SB = {0, 1, 24, 0, 0, 0};
+static ImodGLRequest qtTrue12DB = {1, 1, 12, 0, 0, 0};
+static ImodGLRequest qtTrue12SB = {0, 1, 12, 0, 0, 0};
 
 static ImodGLRequest *qtGLRequestList[] = {
   &qtTrue24DB, &qtTrue24SB, &qtPseudo12DB, &qtPseudo12SB,
@@ -349,11 +351,11 @@ int imodDraw(ImodView *vw, int flag)
 
 
 
-#define MAX_VISUALS 8
+#define MAX_VISUALS 32
 static ImodGLVisual glVisualTable[MAX_VISUALS];
 
-static void imodAssessVisual(int ind, int db, int rgba, int depth, 
-                             int askStereo)
+static void imodAssessVisual(int ind, int db, int rgba, int depth, int askStereo, 
+                             int alpha)
 {
   int depthEnabled;
   QGLWidget *glw;
@@ -364,6 +366,7 @@ static void imodAssessVisual(int ind, int db, int rgba, int depth,
   glFormat.setDoubleBuffer(db);
   glFormat.setRgba(rgba);
   glFormat.setDepth(depth > 0);
+  glFormat.setAlpha(alpha > 0);
   glFormat.setStereo(askStereo > 0);
   glVisualTable[ind].dbRequested = db;
   glVisualTable[ind].rgbaRequested = rgba;
@@ -373,17 +376,18 @@ static void imodAssessVisual(int ind, int db, int rgba, int depth,
   glVisualTable[ind].depthBits = 0;
   glVisualTable[ind].doubleBuffer = 0;
   glVisualTable[ind].rgba = 0;
+  glVisualTable[ind].alpha = 0;
   depthEnabled = 0;
 
   glw = new QGLWidget(glFormat);
   if (glw && glw->isValid()) {
     glw->makeCurrent();
     QGLFormat format = glw->format();
-    // Record if it is direct, and actually doublebuffer
-    glVisualTable[ind].validDirect = 
-      format.directRendering() ? 1 : 0;
-    glVisualTable[ind].doubleBuffer = 
-      format.doubleBuffer() ? 1 : 0;
+
+    // Record if it is direct, and actually doublebuffer, and alpha status
+    glVisualTable[ind].validDirect = format.directRendering() ? 1 : 0;
+    glVisualTable[ind].doubleBuffer = format.doubleBuffer() ? 1 : 0;
+    glVisualTable[ind].alpha = format.alpha() ? 1 : 0;
 
     if (format.rgba()) {
 
@@ -393,21 +397,13 @@ static void imodAssessVisual(int ind, int db, int rgba, int depth,
       glGetIntegerv(GL_GREEN_BITS, &green);
       glGetIntegerv(GL_BLUE_BITS, &blue);
       glVisualTable[ind].colorBits = red + green + blue;
+      glGetIntegerv(GL_ALPHA_BITS, &red);
     } else {
 
       // color index mode, get index size
       glVisualTable[ind].rgba = 0;
       glGetIntegerv(GL_INDEX_BITS, &red);
       glVisualTable[ind].colorBits = red;
-
-      // If pseudocolor is broken, disable this visual
-#ifdef __sgi
-      char *vendor = (char *)glGetString(GL_VENDOR);
-      char *renderer = (char *)glGetString(GL_RENDERER);
-      if (!strcmp(vendor, "SGI") && !strncmp(renderer, "VPRO", 4))
-	glVisualTable[ind].validDirect = -1;
-#endif
-
     }       
 
     // Get stereo property
@@ -422,12 +418,12 @@ static void imodAssessVisual(int ind, int db, int rgba, int depth,
     delete glw;
   }
   if (Imod_debug)
-    imodPrintStderr("for db %d rgba %d dep %d stro %d: direct %d db %d "
-                    "rgba %d color %d dep %d enab %d stro %d\n", db, rgba,
-                    depth, askStereo, glVisualTable[ind].validDirect,
+    imodPrintStderr("for db %d rgb %d dep %d str %d al %d: dir %d db %d "
+                    "rgb %d col %d dep %d ena %d str %d al %d\n", db, rgba,
+                    depth, askStereo, alpha, glVisualTable[ind].validDirect,
                     glVisualTable[ind].doubleBuffer,  glVisualTable[ind].rgba,
                     glVisualTable[ind].colorBits, glVisualTable[ind].depthBits,
-                    depthEnabled, glVisualTable[ind].stereo);
+                    depthEnabled, glVisualTable[ind].stereo, glVisualTable[ind].alpha);
 }
 
 // Unused, for early experimentation
@@ -439,7 +435,7 @@ void imodAssessVisuals()
   for (db = 0; db < 2; db++) {
     for (rgba = 0; rgba < 2; rgba++) {
       for (depth = 0; depth < 2; depth++) {
-        imodAssessVisual(ind, db, rgba, depth, 0);
+        imodAssessVisual(ind, db, rgba, depth, 0, 0);
         ind++;
       }
     }
@@ -461,10 +457,11 @@ ImodGLVisual *imodFindGLVisual(ImodGLRequest request)
     needToInitializeVTab = 0;
   }
 
-  // Index of the one requested without depth enabled: needed regardless
-  ind = request.doubleBuffer * 4 + request.rgba * 2;
+  // Index of the one requested without depth enabled or stereo: needed regardless
+  ind = request.alpha * 16 + request.stereo * 8 + request.doubleBuffer * 4 +
+    request.rgba * 2;
   if (glVisualTable[ind].validDirect == -2)
-    imodAssessVisual(ind, request.doubleBuffer, request.rgba, 0, 0);
+    imodAssessVisual(ind, request.doubleBuffer, request.rgba, 0, 0, request.alpha);
 
   // We are all set if we don't want depth or stereo and request is satisfied
   if (!request.depthBits && !request.stereo &&
@@ -474,8 +471,8 @@ ImodGLVisual *imodFindGLVisual(ImodGLRequest request)
 
   // Otherwise, need the one with depth enabled too
   if (glVisualTable[ind + 1].validDirect == -2)
-    imodAssessVisual(ind + 1, request.doubleBuffer, request.rgba, 1, 
-                     request.stereo);
+    imodAssessVisual(ind + 1, request.doubleBuffer, request.rgba, 1, request.stereo,
+                     request.alpha);
 
   // Evaluate overall suitability of each
   noDepthOK = glVisualTable[ind].validDirect >= 0 && 
@@ -493,6 +490,14 @@ ImodGLVisual *imodFindGLVisual(ImodGLRequest request)
       if (glVisualTable[ind].stereo && !glVisualTable[ind + 1].stereo)
         return &glVisualTable[ind];
       if (!glVisualTable[ind].stereo && glVisualTable[ind + 1].stereo)
+        return &glVisualTable[ind + 1];
+    }
+
+    // take the one with alpha if requested and only one has it
+    if (request.alpha) {
+      if (glVisualTable[ind].alpha && !glVisualTable[ind + 1].alpha)
+        return &glVisualTable[ind];
+      if (!glVisualTable[ind].alpha && glVisualTable[ind + 1].alpha)
         return &glVisualTable[ind + 1];
     }
 
@@ -555,6 +560,9 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
 /*
 
 $Log$
+Revision 4.31  2011/03/14 23:39:13  mast
+Changes for ushort loading
+
 Revision 4.30  2011/01/31 04:44:24  mast
 Update isosurface if model changes too
 

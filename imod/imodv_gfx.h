@@ -10,6 +10,9 @@
 /*  
 
 $Log$
+Revision 4.5  2011/01/13 20:28:42  mast
+warning cleanup
+
 Revision 4.4  2008/12/15 21:25:56  mast
 Changed set buffer command
 
@@ -46,7 +49,7 @@ void imodvDraw(ImodvApp *a);
 void imodvPaintGL();
 void imodvResizeGL(ImodvGL *GLw, int winx, int winy);
 void imodvInitializeGL();
-void imodv_setbuffer(ImodvApp *a, int db, int stereo);
+void imodv_setbuffer(ImodvApp *a, int db, int stereo, int alpha);
 void imodv_swapbuffers(ImodvApp *a);
 
 #endif

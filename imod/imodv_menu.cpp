@@ -367,7 +367,21 @@ void imodvViewMenu(int item)
   bool freeXobj;
   switch (item) {
   case VVIEW_MENU_DB:
-    imodv_setbuffer(a, 1 - a->db, -1);
+    imodv_setbuffer(a, 1 - a->db, -1, -1);
+    a->mainWin->setEnabledMenuItem(VVIEW_MENU_TRANSBKGD, a->db &&
+                                   (a->enableDepthDBal >= 0 ||
+                                    a->enableDepthDBstAl >= 0));
+    break;
+
+  case VVIEW_MENU_TRANSBKGD:
+    imodv_setbuffer(a, -1, -1, 1 - a->transBkgd);
+    if (a->transBkgd)
+      a->transBkgd = 0;
+    else
+      a->transBkgd = a->alphaVisual;
+    a->mainWin->setCheckableItem(VVIEW_MENU_TRANSBKGD, a->transBkgd);
+    a->mainWin->setEnabledMenuItem(VVIEW_MENU_DB, a->dbPossible && a->enableDepthSB >= 0
+                                   && !a->transBkgd);
     break;
 
   case VVIEW_MENU_INVERTZ:
@@ -646,6 +660,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.35  2010/12/28 03:45:21  mast
+Call to set invert Z menu item
+
 Revision 4.34  2010/12/20 03:29:20  mast
 Added flag and menu item to invert model in Z
 
