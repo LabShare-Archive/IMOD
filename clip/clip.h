@@ -16,7 +16,7 @@ enum {IP_NONE = 0, IP_ADD, IP_AVERAGE, IP_VARIANCE, IP_STANDEV, IP_BRIGHTNESS, I
       IP_CONTRAST, IP_CORRELATE, IP_DIFFUSION, IP_FFT, IP_FILTER, IP_FLIP,
       IP_GRADIENT, IP_SUBTRACT, IP_MULTIPLY, IP_DIVIDE,
       IP_GRAHAM, IP_INFO, IP_JOINRGB, IP_LAPLACIAN, IP_MEDIAN, IP_PEAK,
-      IP_PREWITT, IP_UNWRAP,
+      IP_PREWITT, IP_UNWRAP, IP_QUADRANT,
       IP_PROJECT, IP_RESIZE, IP_ROTATE, IP_SHADOW, IP_SHARPEN, IP_SMOOTH,
       IP_SOBEL, IP_SPLITRGB, IP_STAT, IP_TRANSLATE, IP_ZOOM, IP_TRUNCATE};
 
@@ -78,6 +78,7 @@ int clip_scaling(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt);
 int clipEdge(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt);
 int clip_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt);
 int clip_color(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt);
+int clip_quadrant(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt);
 int clip2d_color(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt);
 int clip_average(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout, ClipOptions *opt);
 int clip_multdiv(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout, ClipOptions *opt);

@@ -54,6 +54,7 @@ void usage(void)
   fprintf(stderr, "\tmedian      - Do median filtering.\n");
   fprintf(stderr, "\tmultiply    - Multiple one image volume by another.\n");
   fprintf(stderr, "\tprewitt     - Apply Prewitt filter as in 3dmod.\n");
+  fprintf(stderr, "\tquadrant    - Correct quadrant disparities from 4-port camera.\n");
   fprintf(stderr, "\tresize      - Cut out and/or pad image data.\n");
   fprintf(stderr, "\trotx        - Rotate volume by -90 about X axis.\n");
   /* fprintf(stderr, "\trotation    - Rotate image\n"); */
@@ -78,7 +79,6 @@ void usage(void)
   fprintf(stderr, "\t[-h #] [-l #] values for high/low pass filters or truncation.\n");
   fprintf(stderr, "\t[-cc #] [-l #] [-k #] values for anisotropic diffusion.\n");
   fprintf(stderr, "\t[-r #] [-g #] [-b #] red, green, blue values.\n");
-  /*  fprintf(stderr, "\t[-x #,#] [-y #,#] [-z #,#] input variables.\n"); */
   fprintf(stderr, "\t[-x #,#]  [-y #,#]  starting and ending input coords.\n");
   fprintf(stderr, "\t[-cx #]  [-cy #]  [-cz #]  center coords.\n");
   fprintf(stderr, "\t[-ix #]  [-iy #]  [-iz #]  input sizes.\n");
@@ -131,6 +131,7 @@ void default_options(ClipOptions *opt)
   opt->val = IP_DEFAULT;
   opt->mode = IP_DEFAULT;
   opt->nofsecs = IP_DEFAULT;
+  opt->secs = NULL;
   opt->ocanresize = TRUE;
   opt->ocanchmode = TRUE;
   opt->fromOne = FALSE;
@@ -253,6 +254,10 @@ int main( int argc, char *argv[] )
     process = IP_TRUNCATE;
   if (!strncmp( argv[1], "unwrap", 3))
     process = IP_UNWRAP;
+  if (!strncmp( argv[1], "quadrant", 2)) {
+    process = IP_QUADRANT;
+    opt.dim = 2;
+  } 
   if (!strncmp( argv[1], "splitrgb", 3)){
     process = IP_SPLITRGB;
   }
@@ -278,7 +283,9 @@ int main( int argc, char *argv[] )
         opt.add2file = IP_APPEND_ADD;  break;
 
       case '3':
-        opt.dim = 3; break;
+        if (process != IP_QUADRANT)
+          opt.dim = 3;
+        break;
 
       case '2':
         opt.dim = 2; break;
@@ -548,6 +555,9 @@ int main( int argc, char *argv[] )
   case IP_COLOR:
     retval = clip_color(&hin, &hout, &opt);
     break;
+  case IP_QUADRANT:
+    retval = clip_quadrant(&hin, &hout, &opt);
+    break;
   case IP_CORRELATE:
     retval = grap_corr(&hin, &hin2, &hout, &opt);
     break;
@@ -677,6 +687,9 @@ int *clipMakeSecList(char *clst, int *nofsecs)
 
 /*
 $Log$
+Revision 3.29  2011/07/25 02:44:58  mast
+Add option for controlling byte output, changes for that
+
 Revision 3.28  2011/07/13 19:14:43  mast
 Fix usage statement
 

@@ -31,6 +31,11 @@
 #define KERNEL_MAXSIZE 7
 
 static void writeBytePixel(float pixel, MrcHeader *hout);
+static int quadrantSample(Islice *slice, int llx, int lly, int urx, int ury, 
+                          double *mean);
+static void correctQuadrant(Islice *slice, int llx, int lly, int urx, int ury, double g,
+                            double base);
+
 
 /*
  * Common routine for the rescaling options including resize (no scale)
@@ -743,14 +748,271 @@ int clip_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
 }
 
 /*
+ * Quadrant correction based on averaging
+ */
+int clip_quadrant(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
+{
+  int width = 20;
+  int numGroups, itmp, group, lastOut, newMode = -1;
+  int nx = hin->nx, ny = hin->ny, nz = hin->nz;
+  int numTodo = nz;
+  int groupSize = 1;
+  int iz, jz, ind, indStart, indEnd, i, ninGroup;
+  double d[8], dt[8], g1, g2, g3, g4, base, c2, c3, c4, qmin, qmax, denom, userBase = 0;
+  int vx1, vx2, vx3, vx4, hx1, hx2, hx3, hx4, vy1, vy2, vy3, vy4, hy1, hy2, hy3, hy4;
+  Islice *slice;
+
+  if ((opt->ix !=  IP_DEFAULT) || (opt->iy !=  IP_DEFAULT) || (opt->ox !=  IP_DEFAULT) ||
+      (opt->oy !=  IP_DEFAULT) || (opt->oz !=  IP_DEFAULT))
+    show_warning("clip quadrant - input and output sizes ignored.");
+  
+  if (opt->nofsecs != IP_DEFAULT) {
+    numTodo = opt->nofsecs;
+
+    /* Sort the entries */
+    for (iz = 0; iz < numTodo - 1; iz++) {
+      for (jz = iz + 1; jz < numTodo; jz++) {
+        if (opt->secs[jz] < opt->secs[iz]) {
+          itmp = opt->secs[jz];
+          opt->secs[jz] = opt->secs[iz];
+          opt->secs[iz] = itmp;
+        }
+      }
+    }
+
+    /* Eliminate duplicates */
+    jz = 0;
+    for (iz = 0; iz < numTodo; iz++)
+      if (!jz || opt->secs[jz - 1] != opt->secs[iz])
+        opt->secs[jz++] = opt->secs[iz];
+    numTodo = jz;
+
+  } else
+
+    /* Or else get the default list */
+    set_input_options(opt, hin);
+  opt->nofsecs = nz;
+  if (opt->val != IP_DEFAULT)
+    groupSize = B3DNINT(opt->val);
+  if (opt->high != IP_DEFAULT)
+    width = B3DNINT(opt->high);
+  if (opt->low != IP_DEFAULT)
+    userBase = opt->low;
+  if (width < 2 || width > nx / 4 || width > ny / 4) {
+    show_error("clip: width entry too small or too large.");
+    return -1;
+  }
+  groupSize = B3DMAX(1, B3DMIN(nz, groupSize));
+  numGroups = B3DMAX(1, numTodo / groupSize);
+
+  hout->mode = hin->mode;
+  if (opt->mode != IP_DEFAULT && opt->mode != hin->mode) {
+    newMode = sliceModeIfReal(opt->mode);
+    hout->mode = opt->mode;
+    if (newMode < 0) {
+      show_error("clip: Inappropriate new mode entry.");
+      return(-1);
+    }
+  }
+
+  hout->amean = 0.;
+  hout->amin = 1.e37;
+  hout->amax = -1.e37;
+  if (mrcCopyExtraHeader(hin, hout))
+    show_warning("clip warning: failed to copy extra header data");
+
+  /* Get quadrant sample coordinates */
+  vx3 = nx / 2 + 1;
+  vx4 = vx3 + width;
+  vx2 = vx3 - 2;
+  vx1 = vx2 - width;
+  hx1 = nx / 20;
+  hx2 = nx / 2 - 10;
+  hx3 = nx / 2 + 10;
+  hx4 = 19 * nx / 20;
+  hy3 = ny / 2 + 1;
+  hy4 = hy3 + width;
+  hy2 = hy3 - 2;
+  hy1 = hy2 - width;
+  vy1 = ny / 20;
+  vy2 = ny / 2 - 10;
+  vy3 = ny / 2 + 10;
+  vy4 = 19 * ny / 20;
+
+  /* Loop on the groups */
+  indStart = 0;
+  lastOut = -1;
+  for (group = 0; group < numGroups; group++) {
+    ninGroup = groupSize;
+    if (group < numTodo % groupSize)
+      ninGroup++;
+    
+    /* Read each slice for sampling */
+    for (i = 0; i < 8; i++)
+      d[i] = 0.;
+    for (ind = indStart; ind < indStart + ninGroup; ind++) {
+      iz = opt->secs[ind];
+      slice = sliceReadMRC(hin, iz, 'z');
+      if (!slice){
+        show_error("clip: Error reading slice.");
+        return(-1);
+      }
+
+      /* Get samples and accumulate means */
+      if (quadrantSample(slice, hx3, hy3, hx4, hy4, &dt[0]) || 
+          quadrantSample(slice, vx3, vy3, vx4, vy4, &dt[1]) || 
+          quadrantSample(slice, vx1, vy3, vx2, vy4, &dt[3]) || 
+          quadrantSample(slice, hx1, hy3, hx2, hy4, &dt[2]) || 
+          quadrantSample(slice, hx1, hy1, hx2, hy2, &dt[4]) || 
+          quadrantSample(slice, vx1, vy1, vx2, vy2, &dt[5]) || 
+          quadrantSample(slice, vx3, vy1, vx4, vy2, &dt[7]) || 
+          quadrantSample(slice, hx3, hy1, hx4, hy2, &dt[6]))
+        return -1;
+      for (i = 0; i < 8; i++)
+        d[i] += dt[i];
+      sliceFree(slice);
+    }
+
+    /* Determine min and max in case a base is needed for logs */
+    qmin = 1.e30;
+    qmax = -qmin;
+    for (i = 0; i < 8; i++) {
+      d[i] /= ninGroup;
+      qmin = B3DMIN(qmin, d[i]);
+      qmax = B3DMAX(qmax, d[i]);
+    }
+
+    /* Set or adjust base including the user value */
+    base = (userBase ? 0.01 : 0.05) * (qmax - qmin) - qmin - userBase;
+    if (base > 0)
+      show_warning("clip - intensities being adjusted to avoid taking log of small "
+                   "or negative values");
+    base = B3DMAX(0., base) + userBase;
+
+    /* printf("%.0f %.0f %.0f %.0f %.0f %.0f %.0f %.0f \n", d[1], d[3], d[2], d[4], d[5],
+       d[7], d[6], d[0]); */
+
+    /* Take logs and solve equations for log scaling */
+    for (i = 0; i < 8; i++)
+      dt[i] = log10(d[i] + base);
+    /* printf("%f %f %f %f %f %f %f %f \n", dt[1], dt[3], dt[2], dt[4], dt[5], dt[7], 
+       dt[6], dt[0]); */
+    c2 = dt[0] - dt[6] + 2. * dt[1] - 2. * dt[3] + dt[4] - dt[2];
+    c3 = dt[0] - dt[6] + dt[1] - dt[3] + dt[2] - dt[4] + dt[7] - dt[5];
+    c4 = 2. * dt[0] - 2. * dt[6] + dt[1] - dt[3] + dt[5] - dt[7];
+    denom = determ3(6., 2., 4., 2., 4., 2., 4., 2., 6.);
+    g2 = determ3(c2, 2., 4., c3, 4., 2., c4, 2., 6.) / denom;
+    g3 = determ3(6., c2, 4., 2., c3, 2., 4., c4, 6.) / denom;
+    g4 = determ3(6., 2., c2, 2., 4., c3, 4., 2., c4) / denom;
+    /* printf("c's: %f %f %f  denom %f lg's: %f %f %f\n", c2, c3, c4, denom, g2, 
+       g3, g4); */
+    g1 = pow(10., -(g2 + g3 + g4));
+    g2 = pow(10., g2);
+    g3 = pow(10., g3);
+    g4 = pow(10., g4);
+    if (ninGroup > 1)
+      printf("Group from %d to %d:", opt->secs[indStart], iz);
+    else
+      printf("Section %d:", iz);
+    printf(" scale factors %.4f %.4f %.4f %.4f\n", g1, g2, g3, g4);
+    printf("Boundary diffs before: %6.1f %6.1f %6.1f %6.1f\n", d[0] - d[6], d[3] - d[1],
+           d[4] - d[2], d[7] - d[5]);
+    printf("Boundary diffs after: %6.1f %6.1f %6.1f %6.1f\n", 
+           g1 * (d[0]+base) - g4 * (d[6]+base), g2 * (d[3]+base) - g1 * (d[1]+base),
+           g3 * (d[4]+base) - g2 * (d[2]+base), g4 * (d[7]+base) - g3 * (d[5]+base));
+
+    indEnd = iz;
+    if (group == numGroups - 1)
+      indEnd = nz - 1;
+
+    /* Loop on all slices in group range and correct or just write */
+    for (iz = lastOut + 1; iz <= indEnd; iz++) {
+      slice = sliceReadMRC(hin, iz, 'z');
+      if (!slice){
+        show_error("clip: Error reading slice.");
+        return(-1);
+      }
+
+      /* Convert if needed */
+      if (newMode >= 0 && sliceNewMode(slice, newMode) < 0) {
+        show_error("clip: Error converting slice to new mode.");
+        return(-1);
+      }
+
+      /* Correct if section is in the list */
+      for (ind = indStart; ind < indStart + ninGroup; ind++) {
+        if (iz == opt->secs[ind]) {
+          correctQuadrant(slice, nx / 2, ny / 2, nx, ny, g1, base);
+          correctQuadrant(slice, 0, ny / 2, nx / 2, ny, g2, base);
+          correctQuadrant(slice, 0, 0, nx / 2, ny / 2, g3, base);
+          correctQuadrant(slice, nx / 2, 0, nx, ny / 2, g4, base);
+          break;
+        }
+      }
+
+      /* Maintain MMM and write */
+      sliceMMM(slice);
+      hout->amin = B3DMIN(hout->amin, slice->min);
+      hout->amax = B3DMAX(hout->amax, slice->max);
+      hout->amean += slice->mean / nz;
+      if (mrc_write_slice((void *)slice->data.b, hout->fp, hout, iz, 'z')) {
+        show_error("clip: Error writing slice.");
+        return(-1);
+      }
+      sliceFree(slice);
+      lastOut = iz;
+    }
+    indStart += ninGroup; 
+  }
+  mrc_head_label(hout, "clip: quadrant correction");
+  if (mrc_head_write(hout->fp, hout))
+    return -1;
+  return 0;
+}
+
+static int quadrantSample(Islice *slice, int llx, int lly, int urx, int ury, double *mean)
+{
+  Islice *box = sliceBox(slice, llx, lly, urx, ury);
+  if (!box) {
+    show_error("clip: Error extracting subslice.");
+    return(-1);
+  }
+  sliceMMM(box);
+  *mean = box->mean;
+  sliceFree(box);
+  return 0;
+}
+
+static void correctQuadrant(Islice *slice, int llx, int lly, int urx, int ury, double g,
+                             double base)
+{
+  Ival val;
+  int ix, iy;
+  for (iy = lly; iy < ury; iy++) {
+    if (slice->mode == SLICE_MODE_FLOAT) {
+      for (ix = llx; ix < urx; ix++) {
+        sliceGetVal(slice, ix, iy, val);
+        val[0] = (float)(g * (val[0] + base) - base);
+        slicePutVal(slice, ix, iy, val);
+      }
+    } else {
+      for (ix = llx; ix < urx; ix++) {
+        sliceGetVal(slice, ix, iy, val);
+        val[0] = (float)floor(g * (val[0] + base) - base + 0.5);
+        slicePutVal(slice, ix, iy, val);
+      }
+    }
+  }
+}
+
+/*
  * 3-D color - conversion to shades of one color
  */
 int clip_color(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
 {
   int xysize, k, i;
   unsigned char **idata;
-  unsigned char bdata;
-  float pixel, pixin;
+  float pixin;
 
   if (opt->red == IP_DEFAULT)
     opt->red = 1.0f;
@@ -1951,6 +2213,9 @@ int free_vol(Islice **vol, int z)
 /*
 
 $Log$
+Revision 3.35  2011/07/25 02:54:03  mast
+Fix name of byte shifting function
+
 Revision 3.34  2011/07/25 02:44:58  mast
 Add option for controlling byte output, changes for that
 
