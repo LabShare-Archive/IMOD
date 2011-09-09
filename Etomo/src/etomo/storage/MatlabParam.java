@@ -44,6 +44,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.48  2011/05/19 16:30:40  sueh
+ * <p> bug# 1473 Added resetVolumeList.
+ * <p>
  * <p> Revision 1.47  2011/05/16 23:06:07  sueh
  * <p> bug# 1487 Backing out bug# 1485 and some of bug# 1445.
  * <p>
@@ -374,6 +377,8 @@ public final class MatlabParam {
   private static final int VOLUME_INDEX = 0;
   private static final int PARTICLE_INDEX = 1;
   private static final int RELATIVE_ORIENT_DEFAULT = 0;
+  private static final int Z_ROTATION_INDEX = 0;
+  private static final int Y_ROTATION_INDEX = 1;
 
   private final ParsedNumber particlePerCpu = ParsedNumber.getMatlabInstance();
   private final ParsedArray szVol = ParsedArray.getMatlabInstance();
@@ -440,7 +445,7 @@ public final class MatlabParam {
    */
   public synchronized boolean read(BaseManager manager) {
     clear();
-    //if newFile is on, either there is no file, or the user doesn't want to read it
+    // if newFile is on, either there is no file, or the user doesn't want to read it
     if (newFile) {
       return true;
     }
@@ -475,14 +480,14 @@ public final class MatlabParam {
    * Write stored data to the .prm autodoc.
    */
   public synchronized void write(BaseManager manager) {
-    //Place the string representation of each value in a map.
-    //This allows the values to be passed to updateOrBuildAutodoc().
-    //When building a new .prm autodoc, this also allows the values to be
-    //accessed in the same order as the FieldInterface sections in peetprm.adoc.
+    // Place the string representation of each value in a map.
+    // This allows the values to be passed to updateOrBuildAutodoc().
+    // When building a new .prm autodoc, this also allows the values to be
+    // accessed in the same order as the FieldInterface sections in peetprm.adoc.
     Map valueMap = new HashMap();
     buildParsableValues(valueMap);
-    //try to get the peetprm.adoc, which contains the comments for the .prm file
-    //in its FieldInterface sections.
+    // try to get the peetprm.adoc, which contains the comments for the .prm file
+    // in its FieldInterface sections.
     ReadOnlyAutodoc commentAutodoc = null;
     try {
       commentAutodoc = AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM,
@@ -499,7 +504,7 @@ public final class MatlabParam {
     try {
       WritableAutodoc autodoc = AutodocFactory.getMatlabInstance(manager, file);
       if (autodoc == null) {
-        //get an empty .prm autodoc if the file doesn't exist
+        // get an empty .prm autodoc if the file doesn't exist
         autodoc = AutodocFactory.getEmptyMatlabInstance(manager, file);
       }
       else {
@@ -507,38 +512,35 @@ public final class MatlabParam {
         logFile.backup();
       }
       if (commentAutodoc == null) {
-        //The peetprm.adoc is not available.
-        //Build a new .prm autodoc with no comments
+        // The peetprm.adoc is not available.
+        // Build a new .prm autodoc with no comments
         updateOrBuildAutodoc(manager, valueMap, autodoc, null);
       }
       else {
-        //Get the FieldInterface sections from the peetprm.adoc
+        // Get the FieldInterface sections from the peetprm.adoc
         SectionLocation secLoc = commentAutodoc
             .getSectionLocation(EtomoAutodoc.FIELD_SECTION_NAME);
         if (secLoc == null) {
-          //There are no FieldInterface sections in the peetprm.adoc.
-          //Build a new .prm autodoc with no comments
+          // There are no FieldInterface sections in the peetprm.adoc.
+          // Build a new .prm autodoc with no comments
           updateOrBuildAutodoc(manager, valueMap, autodoc, null);
         }
         else {
-          //Build a new .prm autodoc.  Use the FieldInterface sections from the
-          //peetprm.adoc to dictate the order of the name/value pairs.
-          //Also use the comments from the peetprm.adoc FieldInterface sections.
-          //This makes MatlabParam dependent on peetprm.adoc so peetprm.adoc
-          //must be the responsibility of the Etomo developer.
+          // Build a new .prm autodoc. Use the FieldInterface sections from the
+          // peetprm.adoc to dictate the order of the name/value pairs.
+          // Also use the comments from the peetprm.adoc FieldInterface sections.
+          // This makes MatlabParam dependent on peetprm.adoc so peetprm.adoc
+          // must be the responsibility of the Etomo developer.
           updateOrBuildAutodoc(manager, valueMap, autodoc, commentAutodoc);
-          /*ReadOnlySection section = null;
-           System.out.println("setNameValuePair");
-           while ((section = commentAutodoc.nextSection(secLoc)) != null) {
-           setNameValuePair(autodoc, section.getName(), (String) valueMap
-           .get(section.getName()), section
-           .getAttribute(EtomoAutodoc.COMMENT_KEY));
-           }*/
+          /* ReadOnlySection section = null; System.out.println("setNameValuePair"); while
+           * ((section = commentAutodoc.nextSection(secLoc)) != null) {
+           * setNameValuePair(autodoc, section.getName(), (String) valueMap
+           * .get(section.getName()), section .getAttribute(EtomoAutodoc.COMMENT_KEY)); } */
         }
       }
-      //write the autodoc file (the backup is done by autodoc)
+      // write the autodoc file (the backup is done by autodoc)
       autodoc.write();
-      //the file is written, so it is no longer new
+      // the file is written, so it is no longer new
       newFile = false;
     }
     catch (IOException e) {
@@ -598,7 +600,7 @@ public final class MatlabParam {
 
   public void setInitMotlCode(EnumeratedType enumeratedType) {
     initMotlCode = (InitMotlCode) enumeratedType;
-    }
+  }
 
   public void setCcMode(EnumeratedType enumeratedType) {
     ccMode = (CCMode) enumeratedType;
@@ -717,16 +719,16 @@ public final class MatlabParam {
     useNWeightGroup = input;
   }
 
-  public void setMaskModelPtsVolume(final Number input) {
-    maskModelPts.setRawString(VOLUME_INDEX, input.toString());
+  public void setMaskModelPtsZRotation(final String input) {
+    maskModelPts.setRawString(Z_ROTATION_INDEX, input);
   }
 
-  public String getMaskModelPtsParticle() {
-    return maskModelPts.getRawString(PARTICLE_INDEX);
+  public String getMaskModelPtsYRotation() {
+    return maskModelPts.getRawString(Y_ROTATION_INDEX);
   }
 
-  public ParsedElement getMaskModelPtsVolume() {
-    return maskModelPts.getElement(VOLUME_INDEX);
+  public String getMaskModelPtsZRotation() {
+    return maskModelPts.getRawString(Z_ROTATION_INDEX);
   }
 
   public String getReferenceParticle() {
@@ -915,8 +917,8 @@ public final class MatlabParam {
     reference.setRawString(PARTICLE_INDEX, referenceParticle);
   }
 
-  public void setMaskModelPtsParticle(final String input) {
-    maskModelPts.setRawString(PARTICLE_INDEX, input);
+  public void setMaskModelPtsYRotation(final String input) {
+    maskModelPts.setRawString(Y_ROTATION_INDEX, input);
   }
 
   public void clearMaskModelPts() {
@@ -949,24 +951,24 @@ public final class MatlabParam {
   }
 
   public void setVolumeListSize(final int size) {
-    //if volume list is too small, add new Volumes
+    // if volume list is too small, add new Volumes
     for (int i = volumeList.size(); i < size; i++) {
       volumeList.add(new Volume());
     }
-    //if volume list is too big, remove Volumes from the end
+    // if volume list is too big, remove Volumes from the end
     for (int i = size; i < volumeList.size(); i++) {
       volumeList.remove(i);
     }
   }
 
   public void setIterationListSize(final int size) {
-    //if iteration list is too small, add new Iterations
+    // if iteration list is too small, add new Iterations
     for (int i = iterationList.size(); i < size; i++) {
       Iteration iteration = new Iteration();
       iteration.setLowCutoff(lowCutoff);
       iterationList.add(iteration);
     }
-    //if iteration list is too big, remove Iterations from the end
+    // if iteration list is too big, remove Iterations from the end
     for (int i = size; i < iterationList.size(); i++) {
       iterationList.remove(i);
     }
@@ -1019,7 +1021,7 @@ public final class MatlabParam {
   private void parseData(final ReadOnlyAutodoc autodoc) {
     parseVolumeData(autodoc);
     parseIterationData(autodoc);
-    //reference
+    // reference
     ReadOnlyAttribute attribute = autodoc.getAttribute(REFERENCE_KEY);
     if (ParsedQuotedString.isQuotedString(attribute)) {
       useReferenceFile = true;
@@ -1029,51 +1031,51 @@ public final class MatlabParam {
       useReferenceFile = false;
       reference.parse(attribute);
     }
-    //particlePerCPU
+    // particlePerCPU
     particlePerCpu.parse(autodoc.getAttribute(PARTICLE_PER_CPU_KEY));
-    //szVol
+    // szVol
     szVol.parse(autodoc.getAttribute(SZ_VOL_KEY));
-    //fnOutput
+    // fnOutput
     fnOutput.parse(autodoc.getAttribute(FN_OUTPUT_KEY));
-    //CCMode
+    // CCMode
     ccMode = CCMode.getInstance(autodoc.getAttribute(CC_MODE_KEY));
-    //refFlagAllTom
+    // refFlagAllTom
     refFlagAllTom.parse(autodoc.getAttribute(REF_FLAG_ALL_TOM_KEY));
-    //edgeShift
+    // edgeShift
     edgeShift.parse(autodoc.getAttribute(EDGE_SHIFT_KEY));
-    //lstThresholds
+    // lstThresholds
     lstThresholds.parse(autodoc.getAttribute(LST_THRESHOLDS_KEY));
-    //lstFlagAllTom
+    // lstFlagAllTom
     lstFlagAllTom.parse(autodoc.getAttribute(LST_FLAG_ALL_TOM_KEY));
-    //alignedBaseName
+    // alignedBaseName
     alignedBaseName.parse(autodoc.getAttribute(ALIGNED_BASE_NAME_KEY));
-    //debugLevel
+    // debugLevel
     debugLevel.parse(autodoc.getAttribute(DEBUG_LEVEL_KEY));
-    //YaxisType
+    // YaxisType
     yAxisType = YAxisType.getInstance(autodoc.getAttribute(YAXIS_TYPE_KEY));
-    //YaxisObjectNum
+    // YaxisObjectNum
     yaxisObjectNum.parse(autodoc.getAttribute(YAXIS_OBJECT_NUM_KEY));
-    //YaxisContourNum
+    // YaxisContourNum
     yaxisContourNum.parse(autodoc.getAttribute(YAXIS_CONTOUR_NUM_KEY));
-    //flgWedgeWeight
+    // flgWedgeWeight
     flgWedgeWeight.parse(autodoc.getAttribute(FLG_WEDGE_WEIGHT_KEY));
-    //sampleSphere
+    // sampleSphere
     sampleSphere.parse(autodoc.getAttribute(SAMPLE_SPHERE_KEY));
-    //sampleInterval
+    // sampleInterval
     sampleInterval.parse(autodoc.getAttribute(SAMPLE_INTERVAL_KEY));
-    //maskType
+    // maskType
     maskType.parse(autodoc.getAttribute(MASK_TYPE_KEY));
-    //maskModelPts
+    // maskModelPts
     maskModelPts.parse(autodoc.getAttribute(MASK_MODEL_PTS_KEY));
-    //insideMaskRadius
+    // insideMaskRadius
     insideMaskRadius.parse(autodoc.getAttribute(INSIDE_MASK_RADIUS_KEY));
-    //outsideMaskRadius
+    // outsideMaskRadius
     outsideMaskRadius.parse(autodoc.getAttribute(OUTSIDE_MASK_RADIUS_KEY));
-    //nWeightGroup
+    // nWeightGroup
     nWeightGroup.parse(autodoc.getAttribute(N_WEIGHT_GROUP_KEY));
-    //flgRemoveDuplicates
+    // flgRemoveDuplicates
     flgRemoveDuplicates.parse(autodoc.getAttribute(FLG_REMOVE_DUPLICATES_KEY));
-    //flgAlignAverages
+    // flgAlignAverages
     flgAlignAverages.parse(autodoc.getAttribute(FLG_ALIGN_AVERAGES_KEY));
   }
 
@@ -1084,20 +1086,20 @@ public final class MatlabParam {
   private void parseVolumeData(final ReadOnlyAutodoc autodoc) {
     volumeList.clear();
     int size = 0;
-    //relativeOrient
+    // relativeOrient
     ParsedList relativeOrient = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
     relativeOrient.setDefault(RELATIVE_ORIENT_DEFAULT);
     relativeOrient.parse(autodoc.getAttribute(RELATIVE_ORIENT_KEY));
     size = Math.max(size, relativeOrient.size());
-    //fnVolume
+    // fnVolume
     ParsedList fnVolume = ParsedList.getStringInstance();
     fnVolume.parse(autodoc.getAttribute(FN_VOLUME_KEY));
     size = Math.max(size, fnVolume.size());
-    //fnModParticle
+    // fnModParticle
     ParsedList fnModParticle = ParsedList.getStringInstance();
     fnModParticle.parse(autodoc.getAttribute(FN_MOD_PARTICLE_KEY));
     size = Math.max(size, fnModParticle.size());
-    //initMOTL
+    // initMOTL
     ParsedList initMotlFile = null;
     ReadOnlyAttribute attribute = autodoc.getAttribute(INIT_MOTL_KEY);
     if (ParsedList.isList(attribute)) {
@@ -1109,11 +1111,11 @@ public final class MatlabParam {
     else {
       initMotlCode = InitMotlCode.getInstance(attribute);
     }
-    //tiltRange
+    // tiltRange
     ParsedList tiltRange = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
     tiltRange.parse(autodoc.getAttribute(TILT_RANGE_KEY));
     size = Math.max(size, tiltRange.size());
-    //Add elements to volumeList
+    // Add elements to volumeList
     for (int i = 0; i < size; i++) {
       Volume volume = new Volume();
       volume.setRelativeOrient(relativeOrient.getElement(i));
@@ -1140,41 +1142,41 @@ public final class MatlabParam {
   private void parseIterationData(final ReadOnlyAutodoc autodoc) {
     iterationList.clear();
     int size = 0;
-    //dPhi
+    // dPhi
     ParsedList dPhi = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
     dPhi.parse(autodoc.getAttribute(D_PHI_KEY));
     size = Math.max(size, dPhi.size());
-    //dTheta
+    // dTheta
     ParsedList dTheta = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
     dTheta.parse(autodoc.getAttribute(D_THETA_KEY));
     size = Math.max(size, dTheta.size());
-    //dPsi
+    // dPsi
     ParsedList dPsi = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
     dPsi.parse(autodoc.getAttribute(D_PSI_KEY));
     size = Math.max(size, dPsi.size());
-    //searchRadius
+    // searchRadius
     ParsedList searchRadius = ParsedList.getMatlabInstance();
     searchRadius.parse(autodoc.getAttribute(SEARCH_RADIUS_KEY));
     size = Math.max(size, searchRadius.size());
-    //lowCutoff
+    // lowCutoff
     ParsedList lowCutoff = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
     lowCutoff.parse(autodoc.getAttribute(LOW_CUTOFF_KEY));
-    //hiCutoff
+    // hiCutoff
     ParsedList hiCutoff = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
     hiCutoff.parse(autodoc.getAttribute(HI_CUTOFF_KEY));
     size = Math.max(size, hiCutoff.size());
-    //refThreshold
+    // refThreshold
     ParsedList refThreshold = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
     refThreshold.parse(autodoc.getAttribute(REF_THRESHOLD_KEY));
-    //duplicateShiftTolerance
+    // duplicateShiftTolerance
     ParsedArray duplicateShiftTolerance = ParsedArray.getMatlabInstance();
     duplicateShiftTolerance.parse(autodoc.getAttribute(DUPLICATE_SHIFT_TOLERANCE_KEY));
-    //duplicateAngularTolerance
+    // duplicateAngularTolerance
     ParsedArray duplicateAngularTolerance = ParsedArray.getMatlabInstance();
     duplicateAngularTolerance
         .parse(autodoc.getAttribute(DUPLICATE_ANGULAR_TOLERANCE_KEY));
     size = Math.max(size, refThreshold.size());
-    //add elements to iterationList
+    // add elements to iterationList
     for (int i = 0; i < size; i++) {
       Iteration iteration = new Iteration();
       iteration.setDPhi(dPhi.getElement(i));
@@ -1205,7 +1207,7 @@ public final class MatlabParam {
       valueMap.put(REFERENCE_KEY, reference.getParsableString());
     }
     valueMap.put(FN_OUTPUT_KEY, fnOutput.getParsableString());
-    //copy szVol X value to Y and Z when Y and/or Z is empty
+    // copy szVol X value to Y and Z when Y and/or Z is empty
     ParsedElement szVolX = szVol.getElement(X_INDEX);
     if (szVolX != null && !szVolX.isEmpty()) {
       if (szVol.isEmpty(Y_INDEX)) {
@@ -1262,7 +1264,7 @@ public final class MatlabParam {
     ParsedList tiltRange = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
     ParsedList relativeOrient = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
     relativeOrient.setDefault(RELATIVE_ORIENT_DEFAULT);
-    //build the lists
+    // build the lists
     for (int i = 0; i < volumeList.size(); i++) {
       Volume volume = (Volume) volumeList.get(i);
       fnVolume.addElement(volume.getFnVolume());
@@ -1300,7 +1302,7 @@ public final class MatlabParam {
     ParsedList refThreshold = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
     ParsedArray duplicateShiftTolerance = ParsedArray.getMatlabInstance();
     ParsedArray duplicateAngularTolerance = ParsedArray.getMatlabInstance();
-    //build the lists
+    // build the lists
     for (int i = 0; i < iterationList.size(); i++) {
       Iteration iteration = (Iteration) iterationList.get(i);
       dPhi.addElement(iteration.getDPhi());
@@ -1342,10 +1344,10 @@ public final class MatlabParam {
       commentMap = commentAutodoc.getAttributeMultiLineValues(
           EtomoAutodoc.FIELD_SECTION_NAME, EtomoAutodoc.COMMENT_KEY);
     }
-    //write to a autodoc, name/value pairs as necessary
-    //the order doesn't matter, because this is either an existing autodoc 
-    //(so new entries will end up at the bottom), or the comment autodoc (which
-    //provides the order) is not usable.
+    // write to a autodoc, name/value pairs as necessary
+    // the order doesn't matter, because this is either an existing autodoc
+    // (so new entries will end up at the bottom), or the comment autodoc (which
+    // provides the order) is not usable.
     setNameValuePairValues(manager, valueMap, autodoc, commentMap);
   }
 
@@ -1485,11 +1487,11 @@ public final class MatlabParam {
     WritableAttribute attribute = autodoc.getWritableAttribute(name);
     if (attribute == null) {
       if (commentMap == null) {
-        //new attribute, so add attribute and name/value pair
+        // new attribute, so add attribute and name/value pair
         setNameValuePair(manager, autodoc, name, value, (String) null);
       }
       else {
-        //new attribute, so add comment, attribute, and name/value pair
+        // new attribute, so add comment, attribute, and name/value pair
         setNameValuePair(manager, autodoc, name, value, (String) commentMap.get(name));
       }
     }
@@ -1522,12 +1524,12 @@ public final class MatlabParam {
 
   private void removeNameValuePair(final WritableAutodoc autodoc, final String name) {
     WritableStatement previousStatement = autodoc.removeNameValuePair(name);
-    //remove the associated comments
+    // remove the associated comments
     while (previousStatement != null
         && previousStatement.getType() == Statement.Type.COMMENT) {
       previousStatement = autodoc.removeStatement(previousStatement);
     }
-    //remove the associated empty line
+    // remove the associated empty line
     if (previousStatement != null
         && previousStatement.getType() == Statement.Type.EMPTY_LINE) {
       autodoc.removeStatement(previousStatement);
@@ -1546,21 +1548,21 @@ public final class MatlabParam {
       final String attributeName, String attributeValue, String comment) {
     WritableAttribute attribute = autodoc.getWritableAttribute(attributeName);
     if (attribute == null) {
-      //If the attribute doesn't exist try to add a comment and add the attribute
+      // If the attribute doesn't exist try to add a comment and add the attribute
       if (comment != null) {
-        //there's a comment, so add an empty line first
+        // there's a comment, so add an empty line first
         autodoc.addEmptyLine();
-        //Format and add the comment
+        // Format and add the comment
         String[] commentArray = EtomoAutodoc.format(attributeName + ":\n" + comment);
         for (int i = 0; i < commentArray.length; i++) {
           autodoc.addComment(" " + commentArray[i]);
         }
       }
-      //Add the attribute and name/value pair
+      // Add the attribute and name/value pair
       autodoc.addNameValuePair(attributeName, attributeValue);
     }
     else {
-      //If atttribute does exist, change its value
+      // If atttribute does exist, change its value
       attribute.setValue(attributeValue);
     }
   }
@@ -2006,7 +2008,7 @@ public final class MatlabParam {
     private final ParsedNumber duplicateAngularTolerance = ParsedNumber
         .getMatlabInstance();
 
-    //search spaces
+    // search spaces
     private final SearchAngleArea dPhi = new SearchAngleArea();
     private final SearchAngleArea dTheta = new SearchAngleArea();
     private final SearchAngleArea dPsi = new SearchAngleArea();
