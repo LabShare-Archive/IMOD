@@ -1,6 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-9/8/11: In eTomo removed the time-out some of the process monitors where using
+9/9/11: Added a quadrant correction process to Clip.
+
+9/8/11: In eTomo removed the time-out some of the process monitors were using
 to exit.(Bug# 1542)
 
 9/8/11: Added option to View menu of Model View so that JPEG and PNG snapshots
