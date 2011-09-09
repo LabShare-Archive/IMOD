@@ -68,6 +68,9 @@ Multiply one image volume by another.
 .I prewitt
 Apply Prewitt filter as in 3dmod image processing.
 .TP
+.I quadrant
+Correct disparities between quadrants in images from 4-port readout camera.
+.TP
 .I resize
 Box out image to a new size.
 .TP
@@ -259,9 +262,9 @@ Regardless of the representation in the file, bytes are read into IMOD programs 
 unsigned with a range of 0 to 255.
 .TP
 .B -h <level>
-Has two uses: 1) Level for high pass filter. Range is (0.0 - 0.71 / pixel).
+Has three uses: 1) Level for high pass filter. Range is (0.0 - 0.71 / pixel).
 The default value is 0. 2) High level for image truncation; the default is no
-truncation.
+truncation.  3) Width of area analyzed in quadrant correction.
 .TP
 .B -k <value>
 K threshold value for anisotropic diffusion; the default is 2.0.
@@ -275,7 +278,8 @@ step size; the default is 0.2. 4) With statistics, sets the number of slices
 over which to determine outliers in the min and max values. 5) When using
 "add" or taking an average, standard deviation, or variance, sets a factor for
 scaling the output values. 5) With image truncation, sets the low level for
-truncation (default is no truncation).
+truncation (default is no truncation). 6) With quadrant correction, sets a
+base to be added to values for scaling.
 .TP
 .B -cc <value>
 Specifies type of edge stopping function for diffusion: 1 for exponential
@@ -286,7 +290,8 @@ Input number. Use depends on process: threshold for averaging, scaling factor
 for brightness/contrast/shadow, padding for correlations,
 iterations for smoothing or anisotropic diffusion, size for
 median filter, criterion for determining outliers in statistics, value to add
-when undoing wraparound.
+when undoing wraparound, number of images to analyze together for quadrant
+correction.
 .TP
 .B -r <value>
 Red value;   Range is (0.0 - 1.0) Default is 1.0.
@@ -522,6 +527,48 @@ or a complex file.  There is no provision for scaling the output, but the mode
 can be changed to preserve resulting values outside the range of the input
 mode.
 .TP
+.B quadrant
+Analyze and correct for differences between quadrants in images from
+4-port-readout cameras.  The boundary between quadrants must be in the exact
+image center in X and Y.  By default, the program analyzes and corrects each
+section separately by finding the mean in areas adjacent to the boundary that
+are 20 pixels wide and extend parallel to the boundary from the center out to
+within 5% of the image edge.  Scaling factors are computed that do the best
+job of equalizing these means across the boundaries.  There are four options
+that affect this behavior:
+.br
+1) The 
+.B -iz
+option can specify a list of sections to correct; all other sections are
+simply copied to the output file.  This option allows you to run the
+correction on subsets of the data with different parameter settings if necessary.
+.br
+2) The
+.B -n
+option sets the number of images to analyze together.  The sections are
+considered in successive groups of this size.  An overall mean is
+obtained from the average of the boundary areas, and a single scaling is
+computed and applied to all the sections in the group.  Enter any number larger
+than the number of sections in the file to have all images analyzed together.
+.br
+3) The
+.B -l
+option sets a base amount to add to the data.  By default, the program will add
+a base if necessary to avoid analyzing negative mean values from boundary
+areas, but this may not work well.  If you have data from FEI software that
+have had 32768 subtracted, you must enter "-l 32768" to have the correction
+work correctly.
+.br
+4) The
+.B -h
+option sets the width of the boundary areas.
+.br
+The output file will have the same dimensions as the input file; options for
+selecting subareas are ignored.  
+Extra header data are copied over to the output file.  The 
+.B -m
+option can be used to change the mode of the output.
+.TP
 .B resize 
 Cut out or pad an image to a new size without doing any other operations.
 Resize 3d cuts out an image of size ix, iy, iz, centered
@@ -686,6 +733,7 @@ imodmop(1)
 .SH BUGS
 There are not checks for the validity of all input values, and some
 nonsensical mode conversions are allowed.  Disk-based 3D FFTs (invoked with
--s) do not work.
+-s) do not work.  The extended header is not copied over to the output file,
+except by the quadrant process.
 
 Email bug reports to mast@colorado.edu.
