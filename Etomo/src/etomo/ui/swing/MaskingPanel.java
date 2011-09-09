@@ -31,6 +31,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 18:15:17  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -75,7 +78,7 @@ final class MaskingPanel implements CylinderOrientationParent,
   private MaskingPanel(BaseManager manager, MaskingParent parent) {
     this.manager = manager;
     this.parent = parent;
-    cylinderOrientationPanel = CylinderOrientationPanel.getInstance(this);
+    cylinderOrientationPanel = CylinderOrientationPanel.getInstance(manager, this);
     radiiOfSphereOrCylinderPanel = RadiiOfSphereOrCylinderPanel.getInstance(this);
   }
 
@@ -97,12 +100,12 @@ final class MaskingPanel implements CylinderOrientationParent,
   }
 
   private void createPanel() {
-    //local panels
+    // local panels
     JPanel pnlMaskType = new JPanel();
     JPanel pnlMaskVolumeRadii = new JPanel();
-    //initalization
+    // initalization
     ftfMaskTypeVolume.setFieldWidth(UIParameters.INSTANCE.getFileWidth());
-    //root panel
+    // root panel
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.X_AXIS));
     pnlRoot.setBorder(new EtchedBorder(MASK_TYPE_LABEL).getBorder());
     pnlRoot.add(pnlMaskType);
@@ -110,13 +113,13 @@ final class MaskingPanel implements CylinderOrientationParent,
     pnlRoot.add(pnlMaskVolumeRadii);
     pnlRoot.add(Box.createRigidArea(FixedDim.x10_y0));
     pnlRoot.add(cylinderOrientationPanel.getComponent());
-    //mask type
+    // mask type
     pnlMaskType.setLayout(new BoxLayout(pnlMaskType, BoxLayout.Y_AXIS));
     pnlMaskType.add(rbMaskTypeNone.getComponent());
     pnlMaskType.add(rbMaskTypeVolume.getComponent());
     pnlMaskType.add(rbMaskTypeSphere.getComponent());
     pnlMaskType.add(rbMaskTypeCylinder.getComponent());
-    //mask type volume and sphere details
+    // mask type volume and sphere details
     pnlMaskVolumeRadii.setLayout(new BoxLayout(pnlMaskVolumeRadii, BoxLayout.Y_AXIS));
     pnlMaskVolumeRadii.add(ftfMaskTypeVolume.getContainer());
     pnlMaskVolumeRadii.add(radiiOfSphereOrCylinderPanel.getComponent());
@@ -254,19 +257,19 @@ final class MaskingPanel implements CylinderOrientationParent,
    * @return null if valid, error message if invalid.
    */
   String validateRun() {
-    //Masking
-    //volume
+    // Masking
+    // volume
     if (rbMaskTypeVolume.isSelected() && ftfMaskTypeVolume.isEmpty()) {
       return "In " + MaskingPanel.MASK_TYPE_LABEL + ", " + MASK_TYPE_VOLUME_LABEL
           + " is required when " + MASK_TYPE_VOLUME_LABEL + " "
           + MaskingPanel.MASK_TYPE_LABEL + " is selected. ";
     }
-    //validate radii
+    // validate radii
     String errorMessage = radiiOfSphereOrCylinderPanel.validateRun();
     if (errorMessage != null) {
       return errorMessage;
     }
-    //validate cylinder orientation
+    // validate cylinder orientation
     errorMessage = cylinderOrientationPanel.validateRun();
     if (errorMessage != null) {
       return errorMessage;
