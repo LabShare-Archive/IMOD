@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/9/11:In eTomo - PEET changed cylinder orientation from model and particle to
+rotations.(Bug# 1507)
+
 9/9/11: Added a quadrant correction process to Clip.
 
 9/8/11: In eTomo removed the time-out some of the process monitors were using
