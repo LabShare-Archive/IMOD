@@ -13,6 +13,9 @@ package etomo.type;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.14  2009/11/23 23:26:12  sueh
+* <p> bug# 1292 Removing yaxisContour.
+* <p>
 * <p> Revision 1.13  2009/09/01 02:43:00  sueh
 * <p> bug# 1222 Made functions public.
 * <p>
@@ -67,9 +70,8 @@ public interface ConstPeetMetaData {
   public ConstEtomoNumber getReferenceVolume();
   public String getEdgeShift();
   public boolean isFlgWedgeWeight();
-  public boolean isMaskUseReferenceParticle();
-  public ConstEtomoNumber getMaskModelPtsModelNumber();
-  public String getMaskModelPtsParticle();
+  public ConstEtomoNumber getMaskModelPtsZRotation();
+  public String getMaskModelPtsYRotation();
   public String getMaskTypeVolume();
   public ConstEtomoNumber getNWeightGroup();
   public boolean isUseNWeightGroup();

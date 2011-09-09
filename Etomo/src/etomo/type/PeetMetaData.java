@@ -22,6 +22,9 @@ import etomo.util.Utilities;
  * @notthreadsafe
  * 
  * <p> $Log$
+ * <p> Revision 1.30  2011/05/19 16:32:09  sueh
+ * <p> bug# 1473 Added getRootName and setRootName.
+ * <p>
  * <p> Revision 1.29  2011/04/25 16:46:52  sueh
  * <p> bug# 1475 Improved toString.
  * <p>
@@ -118,7 +121,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
 
   public static final String NEW_TITLE = "PEET";
 
-  //do not change these unless backward compatibility work is done
+  // do not change these unless backward compatibility work is done
   private static final String TILT_RANGE_KEY = "TiltRange";
   private static final String GROUP_KEY = "Peet";
   private static final String REFERENCE_KEY = "Reference";
@@ -130,10 +133,10 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   private static final String PARTICLE_KEY = "Particle";
   private static final String VOLUME_KEY = "Volume";
 
-  //latest version should change when new backwards compatibility issue come up
+  // latest version should change when new backwards compatibility issue come up
   private static final EtomoVersion LATEST_VERSION = VERSION_1_1;
 
-  //do not change the names of these veriables unless backward compatibility work is done
+  // do not change the names of these veriables unless backward compatibility work is done
   private final StringProperty rootName = new StringProperty("RootName");
   private final IntKeyList initMotlFile = IntKeyList.getStringInstance("InitMotlFile");
   private final IntKeyList tiltRangeMin = IntKeyList.getStringInstance(TILT_RANGE_KEY
@@ -147,12 +150,27 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   private final StringProperty referenceFile = new StringProperty(REFERENCE_KEY + ".File");
   private final EtomoNumber edgeShift = new EtomoNumber("EdgeShift");
   private final EtomoBoolean2 flgWedgeWeight = new EtomoBoolean2("FlgWedgeWeight");
+  /**
+   * @deprecated
+   */
   private final EtomoBoolean2 maskUseReferenceParticle = new EtomoBoolean2(
       "Mask.UseReferenceParticle");
+  /**
+   * @deprecated replaced by maskModelPtsZRotation
+   * Replacement fields is not equivalent - no backward compatibility.
+   */
   private final EtomoNumber maskModelPtsModelNumber = new EtomoNumber(MASK_MODEL_PTS_KEY
       + "." + MODEL_NUMBER_KEY);
+  private final EtomoNumber maskModelPtsZRotation = new EtomoNumber(MASK_MODEL_PTS_KEY
+      + ".ZRotation");
+  /**
+   * @deprecated replaced by maskModelPtsYRotation
+   * Replacement fields is not equivalent - no backward compatibility.
+   */
   private final EtomoNumber maskModelPtsParticle = new EtomoNumber(MASK_MODEL_PTS_KEY
       + "." + PARTICLE_KEY);
+  private final EtomoNumber maskModelPtsYRotation = new EtomoNumber(MASK_MODEL_PTS_KEY
+      + ".YRotation");
   private final StringProperty maskTypeVolume = new StringProperty("MastType."
       + VOLUME_KEY);
   private final EtomoBoolean2 useNWeightGroup = new EtomoBoolean2("UseNWeightGroup");
@@ -177,9 +195,8 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     referenceFile.set(input.referenceFile);
     edgeShift.set(input.edgeShift);
     flgWedgeWeight.set(input.flgWedgeWeight);
-    maskUseReferenceParticle.set(input.maskUseReferenceParticle);
-    maskModelPtsModelNumber.set(input.maskModelPtsModelNumber);
-    maskModelPtsParticle.set(input.maskModelPtsParticle);
+    maskModelPtsZRotation.set(input.maskModelPtsZRotation);
+    maskModelPtsYRotation.set(input.maskModelPtsYRotation);
     maskTypeVolume.set(input.maskTypeVolume);
     useNWeightGroup.set(input.useNWeightGroup);
     nWeightGroup.set(input.nWeightGroup);
@@ -239,19 +256,18 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
 
   public void load(final Properties props, String prepend) {
     super.load(props, prepend);
-    //reset
+    // reset
     initMotlFile.reset();
     tiltRangeMin.reset();
     tiltRangeMax.reset();
     referenceVolume.reset();
     referenceParticle.reset();
     referenceFile.reset();
-    maskUseReferenceParticle.reset();
     useNWeightGroup.reset();
     nWeightGroup.reset();
     tiltRange.reset();
     revisionNumber.reset();
-    //load
+    // load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
     rootName.load(props, prepend);
@@ -263,9 +279,8 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     referenceFile.load(props, prepend);
     edgeShift.load(props, prepend);
     flgWedgeWeight.load(props, prepend);
-    maskUseReferenceParticle.load(props, prepend);
-    maskModelPtsModelNumber.load(props, prepend);
-    maskModelPtsParticle.load(props, prepend);
+    maskModelPtsZRotation.load(props, prepend);
+    maskModelPtsYRotation.load(props, prepend);
     maskTypeVolume.load(props, prepend);
     useNWeightGroup.load(props, prepend);
     nWeightGroup.load(props, prepend);
@@ -273,7 +288,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
 
     revisionNumber.load(props, prepend);
     if (revisionNumber.isNull() || revisionNumber.lt(LATEST_VERSION)) {
-      //backwards compatibility
+      // backwards compatibility
       if (revisionNumber.isNull() || revisionNumber.lt(VERSION_1_1)) {
         load1_0(props, prepend);
       }
@@ -307,9 +322,11 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     referenceFile.store(props, prepend);
     edgeShift.store(props, prepend);
     flgWedgeWeight.store(props, prepend);
-    maskUseReferenceParticle.store(props, prepend);
-    maskModelPtsModelNumber.store(props, prepend);
-    maskModelPtsParticle.store(props, prepend);
+    maskUseReferenceParticle.remove(props, prepend);
+    maskModelPtsModelNumber.remove(props, prepend);
+    maskModelPtsZRotation.store(props, prepend);
+    maskModelPtsParticle.remove(props, prepend);
+    maskModelPtsYRotation.store(props, prepend);
     maskTypeVolume.store(props, prepend);
     useNWeightGroup.store(props, prepend);
     nWeightGroup.store(props, prepend);
@@ -320,37 +337,29 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   public void setRootName(final String input) {
     rootName.set(input);
   }
-  
+
   public String getRootName() {
     return rootName.toString();
   }
 
-  public void setMaskUseReferenceParticle(final boolean input) {
-    maskUseReferenceParticle.set(input);
+  public void setMaskModelPtsZRotation(final String input) {
+    maskModelPtsZRotation.set(input);
   }
 
-  public void setMaskModelPtsModelNumber(final Number input) {
-    maskModelPtsModelNumber.set(input);
-  }
-
-  public void setMaskModelPtsParticle(final String input) {
-    maskModelPtsParticle.set(input);
+  public void setMaskModelPtsYRotation(final String input) {
+    maskModelPtsYRotation.set(input);
   }
 
   public void setMaskTypeVolume(final String input) {
     maskTypeVolume.set(input);
   }
 
-  public boolean isMaskUseReferenceParticle() {
-    return maskUseReferenceParticle.is();
+  public ConstEtomoNumber getMaskModelPtsZRotation() {
+    return maskModelPtsZRotation;
   }
 
-  public ConstEtomoNumber getMaskModelPtsModelNumber() {
-    return maskModelPtsModelNumber;
-  }
-
-  public String getMaskModelPtsParticle() {
-    return maskModelPtsParticle.toString();
+  public String getMaskModelPtsYRotation() {
+    return maskModelPtsYRotation.toString();
   }
 
   public String getMaskTypeVolume() {
