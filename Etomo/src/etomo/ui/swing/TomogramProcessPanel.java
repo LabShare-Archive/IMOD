@@ -30,6 +30,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2011/02/22 21:40:59  sueh
+ * <p> bug# 1437 Reformatting.
+ * <p>
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  * <p>
@@ -193,8 +196,8 @@ public class TomogramProcessPanel extends AxisProcessPanel {
   private UIHarness uiHarness = UIHarness.INSTANCE;
   private final ApplicationManager applicationManager;
 
-  //private int buttonWidth = 0;
-  //private int buttonHeight = 0;
+  // private int buttonWidth = 0;
+  // private int buttonHeight = 0;
 
   /**
    * @param appManager
@@ -203,7 +206,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
   public TomogramProcessPanel(ApplicationManager appManager, AxisID axis) {
     super(axis, appManager, true);
     applicationManager = (ApplicationManager) manager;
-    //  Create the process control panel    
+    // Create the process control panel
     createProcessControlPanel();
     initializePanels();
   }
@@ -237,6 +240,9 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     Utilities.buttonTimestamp(command);
     applicationManager.saveCurrentDialog(axisID);
     ProcessControlPanel currentProcess = null;
+    if (EtomoDirector.INSTANCE.getArguments().isActions()) {
+      System.err.println("Etomo Action:" + command + " dialog");
+    }
 
     if (command.equals(procCtlPreProc.getCommand())) {
       applicationManager.openPreProcDialog(axisID);
@@ -428,18 +434,14 @@ public class TomogramProcessPanel extends AxisProcessPanel {
 
   private void setButton(SimpleButton button, String label, String tooltip) {
     button.setText(label);
-    /*Rectangle2D buttonSize = button.getFontMetrics(button.getFont())
-     .getStringBounds(AXIS_A_LABEL.toCharArray(), 0, label.length(),
-     button.getGraphics());
-     System.out.println("buttonSize="+buttonSize);
-     if (buttonWidth < buttonSize.getWidth()) {
-     buttonWidth = (int) buttonSize.getWidth();
-     }
-     if (buttonHeight <buttonSize.getHeight()) {
-     buttonHeight = (int) buttonSize.getHeight();
-     }
-     System.out.println("buttonWidth="+buttonWidth+",buttonHeight="+buttonHeight);
-     button.setSize(buttonWidth, buttonHeight);*/
+    /* Rectangle2D buttonSize = button.getFontMetrics(button.getFont())
+     * .getStringBounds(AXIS_A_LABEL.toCharArray(), 0, label.length(),
+     * button.getGraphics()); System.out.println("buttonSize="+buttonSize); if
+     * (buttonWidth < buttonSize.getWidth()) { buttonWidth = (int) buttonSize.getWidth();
+     * } if (buttonHeight <buttonSize.getHeight()) { buttonHeight = (int)
+     * buttonSize.getHeight(); }
+     * System.out.println("buttonWidth="+buttonWidth+",buttonHeight="+buttonHeight);
+     * button.setSize(buttonWidth, buttonHeight); */
     button.setPreferredSize(UIParameters.INSTANCE.getAxisButtonDimension());
     button.setMaximumSize(UIParameters.INSTANCE.getAxisButtonDimension());
     button.setToolTipText(tooltip);
@@ -447,7 +449,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
 
   protected void createProcessControlPanel() {
     super.createProcessControlPanel();
-    //  Bind each button to action listener and the generic mouse listener
+    // Bind each button to action listener and the generic mouse listener
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     ProcessButtonActionListener buttonListener = new ProcessButtonActionListener(this);
     AxisButtonActionListener axisButtonListener = new AxisButtonActionListener(this);
