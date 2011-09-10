@@ -59,6 +59,7 @@ EXPORTS
 	loadtilts
 	mrc_init_li
 	mrcReadZUShort
+	mrcCopyExtraHeader
 	mrc_slice_zooms
 	mrc_slice_resize
 	iiMRCreadSection
