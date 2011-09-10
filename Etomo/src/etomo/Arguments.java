@@ -23,6 +23,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2011/08/25 21:49:24  sueh
+ * <p> Bug# 1441 Added --actions parameter.
+ * <p>
  * <p> Revision 1.14  2011/02/10 04:30:49  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -234,6 +237,7 @@ public final class Arguments {
   private boolean ignoreLoc = false;
   private boolean reconAutomation = false;
   private boolean ignoreSettings = false;
+  private boolean actions = false;
 
   private final EtomoNumber fiducial = new EtomoNumber(EtomoNumber.Type.DOUBLE);
 
@@ -330,6 +334,10 @@ public final class Arguments {
 
   public boolean isIgnoreSettings() {
     return ignoreSettings;
+  }
+  
+  public boolean isActions() {
+    return actions;
   }
 
   /**
@@ -480,6 +488,9 @@ public final class Arguments {
       }
       else if (args[i].equals(IGNORE_SETTINGS_TAG)) {
         ignoreSettings = true;
+      }
+      else if (args[i].equals(ACTIONS_TAG)) {
+        actions = true;
       }
       else {
         System.err.println("WARNING:  unknown argument, " + args[i] + ", ignored.");
