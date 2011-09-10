@@ -267,6 +267,7 @@ extern "C" {
 int mrc_head_read (FILE *fin,  MrcHeader *hdata);
 int mrc_head_write(FILE *fout, MrcHeader *hdata);
 void mrcInitOutputHeader(MrcHeader *hdata);
+int mrcCopyExtraHeader(MrcHeader *hin, MrcHeader *hout);
 int mrc_head_label(MrcHeader *hdata, const char *label);
 int mrc_head_new  (MrcHeader *hdata, int x, int y, int z, int mode);
 int mrc_byte_mmm  (MrcHeader *hdata, unsigned char **idata);
@@ -365,6 +366,9 @@ void mrc_set_cmap_stamp(MrcHeader *hdata);
 /*
 
 $Log$
+Revision 3.27  2011/07/25 02:34:26  mast
+Changes for working with signed bytes
+
 Revision 3.26  2011/05/16 14:35:32  mast
 adding const
 

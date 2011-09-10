@@ -281,6 +281,68 @@ int mrc_head_label_cp(MrcHeader *hin, MrcHeader *hout)
 }
 
 /*!
+ * Copy extra header data from MRC file whose header is in [hin] to MRC file whose header 
+ * is in [hout], swapping data if necessary after determining whether it consists of
+ * short integers or floats and ints.  Returns 1 if [hin] or [hout] is NULL or the output
+ * file is swapped, 2 for seek errors, 3 for memory allocation error, 4 for read or write 
+ * errors.
+ */
+int mrcCopyExtraHeader(MrcHeader *hin, MrcHeader *hout)
+{
+  int nflags, nbytes[32], ntotal = 0;
+  int i, ntmp, ind, nsecs;
+  unsigned char *extdata;
+
+  if (!hin || !hout || hout->swapped)
+    return 1;
+  if (!hin->next)
+    return 0;
+  if (fseek(hin->fp, 1024, SEEK_SET) || fseek(hout->fp, 1024, SEEK_SET))
+    return 2;
+  extdata = B3DMALLOC(unsigned char, hin->next);
+  if (!extdata)
+    return 3;
+  if (fread(extdata, 1, hin->next, hin->fp) != hin->next) {
+    free(extdata);
+    return 4;
+  }
+  if (hin->swapped) {
+    b3dHeaderItemBytes(&nflags, nbytes);
+    ntmp = hin->nreal;
+    for (i = 0; i < nflags; i++) {
+      if (ntmp % 2)
+        ntotal += nbytes[i];
+      ntmp /= 2;
+    }
+    if (ntmp == 0 && ntotal == hin->nint) {
+      mrc_swap_shorts((b3dInt16 *)extdata, hin->next / 2);
+    } else {
+      nsecs = hin->next / (4 * (hin->nint + hin->nreal));
+      ind = 0;
+      for (i = 0; i < nsecs; i++) {
+        if (hin->nint)
+          mrc_swap_longs((b3dInt32 *)extdata + ind, hin->nint);
+        ind += 4 * hin->nint;
+        if (hin->nreal)
+          mrc_swap_floats((b3dFloat *)extdata + ind, hin->nreal);
+        ind += 4 * hin->nreal;
+      }
+    }
+  }
+  if (fwrite(extdata, 1, hin->next, hout->fp) != hin->next) {
+    free(extdata);
+    return 4;
+  }
+
+  hout->next = hin->next;
+  hout->headerSize = 1024 + hin->next;
+  hout->nint = hin->nint;
+  hout->nreal = hin->nreal;
+  free(extdata);
+  return 0;
+}
+
+/*!
  * Fills in the header structure [hdata] to default settings for the given
  * file size [x], [y], [z] and the given [mode].  Returns 0.
 */
@@ -1418,8 +1480,11 @@ int mrc_write_slice(void *buf, FILE *fout, MrcHeader *hdata, int slice,
           
   case 'z':
   case 'Z':
-    if (slice >= hdata->nz)
+    if (slice >= hdata->nz) {
+      b3dError(stderr, "ERROR: mrc_write_slice - slice number (%d) bigger than nz(%d).\n",
+               slice, hdata->nz);
       return(-1);
+    }
     sxsize = nx;
     sysize = ny;
     break;
@@ -1491,8 +1556,9 @@ int mrc_write_slice(void *buf, FILE *fout, MrcHeader *hdata, int slice,
   case 'Z':
     /*  fseek( fout, slice * nx * ny * dcsize, SEEK_CUR); */
     mrcHugeSeek(fout, 0, 0, 0, slice, nx, ny, dcsize, SEEK_CUR);
-    if (fwrite(data, dcsize * nx, ny, fout) != ny) {
-      b3dError(stderr, "ERROR: mrc_write_slice z - fwrite error.\n");
+  if ((k = fwrite(data, dcsize * nx, ny, fout)) != ny) {
+    b3dError(stderr, "ERROR: mrc_write_slice z - fwrite error, ny=%d, return value=%d.\n",
+             ny, k);
       retval = -1;
     }
     break;
@@ -2262,6 +2328,9 @@ void mrc_swap_floats(fb3dFloat *data, int amt)
 
 /*
 $Log$
+Revision 3.50  2011/07/25 02:39:52  mast
+Changes for working with signed bytes
+
 Revision 3.49  2011/07/12 03:45:51  mast
 Fixed parallel writing routine for new return value from properties routine
 
