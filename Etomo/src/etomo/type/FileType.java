@@ -7,6 +7,7 @@ import java.util.Vector;
 import java.util.regex.Pattern;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.process.ImodManager;
 
 /**
@@ -28,6 +29,9 @@ import etomo.process.ImodManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2011/06/30 00:20:23  sueh
+ * <p> Bug# 1502 In getFileName removed Thread.dumpStack call.
+ * <p>
  * <p> Revision 1.13  2011/05/03 02:54:19  sueh
  * <p> bug# 1416 Added tilt_for_sirt.com, which has its axis letter after "tilt".  Modified equals(...String filename) to
  * <p> handle an extension which doesn't start with a ".".  Using static getInstance functions to avoid having the
@@ -91,34 +95,34 @@ public final class FileType {
 
   private static final List namedFileTypeList = new Vector();
 
-  //FileType instances should be placed in alphabetical order, sorted first by
-  //type string and then by extension.  That should make it be easier to tell
-  //if we have a file name collision.  FileType instances may be used by
-  //multiple types of dataset managers.
+  // FileType instances should be placed in alphabetical order, sorted first by
+  // type string and then by extension. That should make it be easier to tell
+  // if we have a file name collision. FileType instances may be used by
+  // multiple types of dataset managers.
   //
-  //Dataset coexistence:
+  // Dataset coexistence:
   //
-  //.edf can coexist with:
-  //any .epp
-  //any ToolsManager unless it has a different dataset name
+  // .edf can coexist with:
+  // any .epp
+  // any ToolsManager unless it has a different dataset name
   //
-  //.ejf can coexist with:
-  //Other .ejfs
-  //any .epp
-  //any ToolsManager unless it has a different dataset name
+  // .ejf can coexist with:
+  // Other .ejfs
+  // any .epp
+  // any ToolsManager unless it has a different dataset name
   //
-  //.epe can coexist with:
-  //any .epp
-  //any ToolsManager unless it has a different dataset name
+  // .epe can coexist with:
+  // any .epp
+  // any ToolsManager unless it has a different dataset name
   //
-  //.epp can coexist with:
-  //anything
+  // .epp can coexist with:
+  // anything
   //
-  //ToolsManager can coexist with
-  //any .epp
-  //any .edf, .ejf, or .epe as long as it has a different dataset name
+  // ToolsManager can coexist with
+  // any .epp
+  // any .edf, .ejf, or .epe as long as it has a different dataset name
 
-  //File types with a name description
+  // File types with a name description
   public static final FileType FIDUCIAL_3D_MODEL = FileType.getImodInstance(true, true,
       "", ".3dmod", ImodManager.FIDUCIAL_MODEL_KEY);
   public static final FileType ALIGNED_STACK = FileType.getDescribedImodInstance(true,
@@ -186,10 +190,10 @@ public final class FileType {
       "_full", ".rec");
   public static final FileType TILT_OUTPUT = FileType.getDifferentDualSingleInstance(
       TILT_OUTPUT_SINGLE, TILT_OUTPUT_DUAL, ImodManager.FULL_VOLUME_KEY, "the tomogram");
-  //Template for .sintnn
+  // Template for .sintnn
   public static final FileType SIRT_SCALED_OUTPUT_TEMPLATE = FileType
       .getDerivedTemplateInstance(TILT_OUTPUT, ".sint", ImodManager.SIRT_KEY);
-  //Template for .srecnn
+  // Template for .srecnn
   public static final FileType SIRT_OUTPUT_TEMPLATE = FileType
       .getDerivedTemplateInstance(TILT_OUTPUT, ".srec", ImodManager.SIRT_KEY);
   public static final FileType MODELED_JOIN = FileType.getImodInstance(true, false,
@@ -225,7 +229,7 @@ public final class FileType {
   public static final FileType PATCH_TRACKING_COMSCRIPT = FileType.getInstance(false,
       true, "xcorr_pt", ".com");
 
-  //File types without a specific name
+  // File types without a specific name
   public static final FileType AVERAGED_VOLUMES = FileType
       .getUnamedInstance(ImodManager.AVG_VOL_KEY);
   public static final FileType NAD_TEST_VARYING_ITERATIONS = FileType
@@ -292,7 +296,7 @@ public final class FileType {
       final FileType dualFileType, final String imodManagerKey, final String description) {
     FileType instance = new FileType(false, false, null, null, imodManagerKey, null,
         description, true, false, null, singleFileType, dualFileType, false, false);
-    //Child file types are not valid by themselves
+    // Child file types are not valid by themselves
     singleFileType.parentFileType = instance;
     dualFileType.parentFileType = instance;
     return instance;
@@ -372,7 +376,7 @@ public final class FileType {
       FileType fileType = (FileType) iterator.next();
       if (fileType.equals(manager, usesDataset, usesAxisID, typeString, extension)) {
         if (fileType.parentFileType != null) {
-          //This is a child file type which is not valid by itself
+          // This is a child file type which is not valid by itself
           return fileType.parentFileType;
         }
         return fileType;
@@ -396,32 +400,32 @@ public final class FileType {
     if (fileName == null) {
       return null;
     }
-    //Create a pattern for the dataset + axis, or for the axis by itself
+    // Create a pattern for the dataset + axis, or for the axis by itself
     String fixedPattern = "";
     String axisPattern = "";
     String axisExtension = axisID.getExtension();
     if (usesDataset) {
-      //If the dataset is part of the file name, then there is a fixed pattern
+      // If the dataset is part of the file name, then there is a fixed pattern
       if (usesAxisID) {
         fixedPattern = Pattern.quote(manager.getBaseMetaData().getName() + axisExtension);
       }
       else {
         fixedPattern = Pattern.quote(manager.getBaseMetaData().getName());
       }
-      //Eliminate file names that should start with the dataset but don't.
+      // Eliminate file names that should start with the dataset but don't.
       if (!fileName.matches(fixedPattern + ".*")) {
         return null;
       }
     }
     else if (usesAxisID && !axisExtension.equals("")) {
-      //If the dataset is not part of the file name, there is no fixed pattern, but the
-      //axis is part of the file name, so add it to axisPattern.
+      // If the dataset is not part of the file name, there is no fixed pattern, but the
+      // axis is part of the file name, so add it to axisPattern.
       axisPattern = Pattern.quote(axisExtension);
     }
     Iterator iterator = namedFileTypeList.iterator();
     while (iterator.hasNext()) {
       FileType fileType = (FileType) iterator.next();
-      //Ignore child file types.  Return a file type that equals patterns and booleans.
+      // Ignore child file types. Return a file type that equals patterns and booleans.
       if (fileType.parentFileType == null
           && fileType.equals(manager, fileName, usesDataset, usesAxisID, fixedPattern,
               axisPattern)) {
@@ -444,13 +448,13 @@ public final class FileType {
       final boolean usesDataset, final boolean usesAxisID, final String fixedPattern,
       final String axisPattern) {
     if (composite) {
-      //Handle type files which are based on another file type but have their own
-      //extension.
+      // Handle type files which are based on another file type but have their own
+      // extension.
       if (subFileType != null && extension != null) {
         return subFileType.equals(manager, fileName, usesDataset, usesAxisID,
             fixedPattern, axisPattern, Pattern.quote(extension));
       }
-      //Handle file types with single and dual file types instead of descriptions.
+      // Handle file types with single and dual file types instead of descriptions.
       return getChildFileType(manager).equals(manager, fileName, usesDataset, usesAxisID,
           fixedPattern, axisPattern);
     }
@@ -474,13 +478,13 @@ public final class FileType {
       final boolean usesDataset, final boolean usesAxisID, final String fixedPattern,
       final String axisPattern, final String extensionPattern) {
     if (composite) {
-      //Handle type files which are based on another file type but have their own
-      //extension.
+      // Handle type files which are based on another file type but have their own
+      // extension.
       if (subFileType != null) {
         return subFileType.equals(manager, fileName, usesDataset, usesAxisID,
             fixedPattern, axisPattern, extensionPattern);
       }
-      //Handle file types with single and dual file types instead of descriptions.
+      // Handle file types with single and dual file types instead of descriptions.
       return getChildFileType(manager).equals(manager, fileName, usesDataset, usesAxisID,
           fixedPattern, axisPattern, extensionPattern);
     }
@@ -512,13 +516,13 @@ public final class FileType {
   private boolean equals(final BaseManager manager, final boolean usesDataset,
       final boolean usesAxisID, final String typeString, final String extension) {
     if (composite) {
-      //Handle type files which are based on another file type but have their own
-      //extension.
+      // Handle type files which are based on another file type but have their own
+      // extension.
       if (subFileType != null && this.extension != null) {
         return this.extension.equals(extension)
             && subFileType.equals(manager, usesDataset, usesAxisID, typeString);
       }
-      //Handle file types with single and dual file types instead of descriptions.
+      // Handle file types with single and dual file types instead of descriptions.
       return getChildFileType(manager).equals(manager, usesDataset, usesAxisID,
           typeString, extension);
     }
@@ -537,11 +541,11 @@ public final class FileType {
   private boolean equals(final BaseManager manager, final boolean usesDataset,
       final boolean usesAxisID, final String typeString) {
     if (composite) {
-      //Handle type files which are based on another file type
+      // Handle type files which are based on another file type
       if (subFileType != null) {
         return subFileType.equals(manager, usesDataset, usesAxisID, typeString);
       }
-      //Handle file types with single and dual file types instead of descriptions.
+      // Handle file types with single and dual file types instead of descriptions.
       return getChildFileType(manager).equals(manager, usesDataset, usesAxisID,
           typeString);
     }
@@ -617,8 +621,8 @@ public final class FileType {
     if (fileName == null || fileName.equals("")) {
       return null;
     }
-    //Make the file.  The file may be in a subdirectory below the dataset
-    //location.
+    // Make the file. The file may be in a subdirectory below the dataset
+    // location.
     String subdirName;
     if (inSubdirectory && (subdirName = manager.getFileSubdirectoryName()) != null) {
       File subdir = new File(manager.getPropertyUserDir(), subdirName);
@@ -634,8 +638,8 @@ public final class FileType {
    * @return
    */
   public String getRoot(BaseManager manager, AxisID axisID) {
-    //Template OK at least for now - the current template types have extra text after the
-    //extension.
+    // Template OK at least for now - the current template types have extra text after the
+    // extension.
     String fileName = getFileName(manager, axisID, true);
     int index = fileName.lastIndexOf('.');
     return fileName.substring(0, index);
@@ -660,7 +664,11 @@ public final class FileType {
     if (composite && (subFileType == null || extension == null)) {
       return getChildFileType(manager).getFileName(manager, axisID, true);
     }
-    return getLeftSide(manager, axisID) + extension;
+    String fileName = getLeftSide(manager, axisID) + extension;
+    if (EtomoDirector.INSTANCE.getArguments().isActions()) {
+      System.err.println(EtomoDirector.ACTION_TAG + fileName);
+    }
+    return fileName;
   }
 
   /**
@@ -679,7 +687,7 @@ public final class FileType {
       return getChildFileType(manager).getLeftSide(manager, axisID);
     }
     if (!usesDataset && !usesAxisID) {
-      //Example:  flatten.com
+      // Example: flatten.com
       return typeString;
     }
     BaseMetaData metaData = manager.getBaseMetaData();
@@ -688,12 +696,12 @@ public final class FileType {
       axisIDExtension = correctAxisID(metaData.getAxisType(), axisID).getExtension();
     }
     if (usesDataset) {
-      //With the dataset the axis follows the dataset
-      //Example:  BBa_erase.fid
+      // With the dataset the axis follows the dataset
+      // Example: BBa_erase.fid
       return metaData.getName() + axisIDExtension + typeString;
     }
-    //Without the dataset the axis follows the left extension
-    //Example:  tilta.com
+    // Without the dataset the axis follows the left extension
+    // Example: tilta.com
     return typeString + axisIDExtension;
   }
 
