@@ -1,14 +1,14 @@
 /*
  *  iobj.h -- Image model object header.
  *
- *  Author: James Kremer email: kremer@colorado.edu
+ *  Original author: James Kremer
+ *  Revised by: David Mastronarde   email: mast@colorado.edu
  *
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #ifndef IOBJ_H
@@ -139,6 +139,7 @@ extern "C" {
   int   imodObjectGetBBox(Iobj *obj, Ipoint *ll, Ipoint *ur);
   int   imodObjectRemoveContour(Iobj *obj, int index);
   void  imodObjectCleanSurf(Iobj *obj);
+  int imodObjectSortSurf(Iobj *obj);
 
   int   imodObjectGetMaxContour(Iobj *inObject);
   char *imodObjectGetName(Iobj *inObject);
@@ -163,68 +164,3 @@ extern "C" {
 }
 #endif
 #endif /* iobj.h */
-
-/*
-
-$Log$
-Revision 3.20  2008/12/09 23:27:50  mast
-Changed flag from line to noline
-
-Revision 3.19  2008/11/28 06:05:33  mast
-New flag for drawing only in model view
-
-Revision 3.18  2008/07/16 04:31:41  mast
-Added new define for extra array index
-
-Revision 3.17  2008/06/17 20:09:51  mast
-Yet another flag defined
-
-Revision 3.16  2008/05/22 15:38:44  mast
-Added flag for editable extra object
-
-Revision 3.15  2008/04/24 18:51:12  mast
-Added flag for setting @D line width
-
-Revision 3.14  2008/03/05 20:07:38  mast
-Added flag for drawing extra object in model view
-
-Revision 3.13  2007/09/22 00:05:55  mast
-Added matflags2 defines
-
-Revision 3.12  2007/06/08 04:44:29  mast
-Added planar flag and macro to test for planar contours
-
-Revision 3.11  2006/08/31 21:02:45  mast
-Flag definitions
-
-Revision 3.10  2006/06/09 20:30:17  mast
-Added flag for osphere display on-section only
-
-Revision 3.9  2005/09/11 19:19:15  mast
-Added temporary flag
-
-Revision 3.8  2005/06/06 17:27:23  mast
-Dropped 2DPOINT and 3DPOINT flags and added FCOLOR_PNT flag
-
-Revision 3.7  2005/04/23 23:36:23  mast
-Moved some functions into imodel.c
-
-Revision 3.6  2005/03/20 19:55:48  mast
-Eliminating duplicate functions
-
-Revision 3.5  2004/11/20 04:04:16  mast
-cleaned up, removed virtual, added dup and insert contour functions
-
-Revision 3.4  2004/11/05 19:15:51  mast
-Include local files with quotes, not brackets
-
-Revision 3.3  2004/09/21 20:09:30  mast
-Added clean surface call
-
-Revision 3.2  2004/04/28 05:30:24  mast
-Added flag for drawing current contour thicker
-
-Revision 3.1  2003/06/27 20:10:28  mast
-Add functions to set object color and get specific contour from object
-
-*/
