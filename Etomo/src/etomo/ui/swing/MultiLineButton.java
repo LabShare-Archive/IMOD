@@ -44,6 +44,9 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2011/04/04 17:21:11  sueh
+ * <p> bug# 1416 Made getUnformattedLabel public.
+ * <p>
  * <p> Revision 1.3  2011/02/22 18:16:04  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -303,10 +306,11 @@ class MultiLineButton implements ProcessResultDisplay {
   void setHighlight(boolean highlight) {
     if (buttonForeground == null) {
       buttonForeground = button.getForeground();
-      //creating a readable foreground highlight color
-      buttonHighlightForeground = Colors.subtractColor(Colors.HIGHLIGHT_BACKGROUND,
-          UIUtilities.divideColor(Colors.subtractColor(new Color(255, 255, 255),
-              buttonForeground), 2));
+      // creating a readable foreground highlight color
+      buttonHighlightForeground = Colors.subtractColor(
+          Colors.HIGHLIGHT_BACKGROUND,
+          UIUtilities.divideColor(
+              Colors.subtractColor(new Color(255, 255, 255), buttonForeground), 2));
     }
     if (highlight) {
       button.setForeground(buttonHighlightForeground);
@@ -451,7 +455,7 @@ class MultiLineButton implements ProcessResultDisplay {
     return getText();
   }
 
- public String getUnformattedLabel() {
+  public String getUnformattedLabel() {
     return unformattedLabel;
   }
 
@@ -460,6 +464,10 @@ class MultiLineButton implements ProcessResultDisplay {
   }
 
   final String getActionCommand() {
+    if (EtomoDirector.INSTANCE.getArguments().isActions()) {
+      System.err
+          .println(EtomoDirector.ACTION_TAG + button.getActionCommand() + " button");
+    }
     return button.getActionCommand();
   }
 
@@ -563,8 +571,8 @@ class MultiLineButton implements ProcessResultDisplay {
   }
 
   public final boolean getOriginalState() {
-    //button has just been pushed, so that original state is the state of the
-    //button before it was pushed
+    // button has just been pushed, so that original state is the state of the
+    // button before it was pushed
     return !isSelected();
   }
 
@@ -584,12 +592,12 @@ class MultiLineButton implements ProcessResultDisplay {
     return button.isDisplayable();
   }
 
-  //private implementation
+  // private implementation
 
   private static ColorUIResource enabledTextColor = null;
   private static ColorUIResource disabledTextColor = null;
 
-  //if changing this class to inheritable, make this method protected
+  // if changing this class to inheritable, make this method protected
   private void init() {
     button.setMargin(new Insets(2, 2, 2, 2));
     enabledTextColor = getDefaultUIColor(ENABLED_TEXT_COLOR_PROPERTY);
