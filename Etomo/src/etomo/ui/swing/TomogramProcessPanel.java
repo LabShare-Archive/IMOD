@@ -30,6 +30,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2011/09/10 03:42:49  sueh
+ * <p> Bug# 1441 In buttonProcessAction printing an action.
+ * <p>
  * <p> Revision 1.2  2011/02/22 21:40:59  sueh
  * <p> bug# 1437 Reformatting.
  * <p>
@@ -241,7 +244,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     applicationManager.saveCurrentDialog(axisID);
     ProcessControlPanel currentProcess = null;
     if (EtomoDirector.INSTANCE.getArguments().isActions()) {
-      System.err.println("Etomo Action:" + command + " dialog");
+      System.err.println(EtomoDirector.ACTION_TAG + command + " dialog");
     }
 
     if (command.equals(procCtlPreProc.getCommand())) {
