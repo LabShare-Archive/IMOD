@@ -193,7 +193,7 @@ if ($compiler == intel) then
         #  remark #2259: non-pointer conversion from ... to ... may lose significant bits
         set qmcxxFlags = "-Wall -wd310,383,424,444,593,810,869,981,1418,1572,2259"
         set optimization = "-g -O0"
-        set fcompFlags = ($fcompFlags -check -traceback -W1)
+        set fcompFlags = ($fcompFlags -check -traceback -fpe0 -W1)
         set ccompFlags = ($ccompFlags -traceback $qmcxxFlags)
     endif
 else
