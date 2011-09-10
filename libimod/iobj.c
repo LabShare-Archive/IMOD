@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  * 
  * $Id$
- * Log at end
  */
 
 #include <stdio.h>
@@ -524,6 +523,198 @@ void imodObjectCleanSurf(Iobj *obj)
   }
 }
 
+/*!
+ * Analyzes the mesh of object [obj] to determine which contours are connected by the 
+ * mesh and assigns a separate surface number to each set of separately connected 
+ * contours.  Returns 1 if there is no mesh information or 2 for memory error.
+ */
+int imodObjectSortSurf(Iobj *obj)
+{
+  int npoly, me, i, j, poly, ninpoly, iwork, nwork, scan, found;
+  int refvert, work, nsurfs, co, pt, ind, resol, vertBase, normAdd;
+  int *listp, *surfs, *meshes, *nverts, *towork, *refp, *scanp, *lincs;
+  int **starts;
+  float *zmins, *zmaxs;
+  Ipoint *vertp;
+  float zmin, zmax, ptx, pty, ptz;
+
+  imodMeshNearestRes(obj->mesh, obj->meshsize, 0, &resol);
+
+  /* Count polygons in all meshes based on start flags */
+
+  npoly = 0;
+  for (me = 0; me < obj->meshsize; me++) {
+    if (imeshResol(obj->mesh[me].flag) == resol) {
+      listp = obj->mesh[me].list;
+      for (i = 0; i < obj->mesh[me].lsize; i++) {
+        if (*listp == IMOD_MESH_BGNPOLYNORM || 
+            *listp == IMOD_MESH_BGNPOLYNORM2)
+          npoly++;
+        listp++;
+      }
+    }
+  }
+
+  if (!npoly)
+    return (1);
+     
+  /* Get arrays for Z values and surface assignment for each polygon, which
+     mesh it is in, address of start of polygons, for number of
+     vertices in the polygon, and for list of polys to work on */
+
+  zmins = (float *)malloc (npoly * sizeof(float));
+  zmaxs = (float *)malloc (npoly * sizeof(float));
+  surfs = (int *)malloc (npoly * sizeof(int));
+  meshes = (int *)malloc (npoly * sizeof(int));
+  starts = (int **)malloc (npoly * sizeof(int *));
+  nverts = (int *)malloc (npoly * sizeof(int));
+  towork = (int *)malloc (npoly * sizeof(int));
+  lincs = (int *)malloc ((npoly + 2) * sizeof(int));
+     
+  if (!zmins || !zmaxs || !surfs || !meshes || !starts || !nverts || 
+      !towork || !lincs) {
+    if (zmins) free(zmins);
+    if (zmaxs) free(zmaxs);
+    if (meshes) free(meshes);
+    if (surfs) free(surfs);
+    if (starts) free(starts);
+    if (nverts) free(nverts);
+    if (towork) free(towork);
+    if (lincs) free(lincs);
+
+    return (2);
+  }
+
+  /* Find min and max Z values of each polygon, and collect other info */
+
+  poly = 0;
+  for (me = 0; me < obj->meshsize; me++) {
+    if (imeshResol(obj->mesh[me].flag) != resol)
+      continue;
+    listp = obj->mesh[me].list;
+    vertp = obj->mesh[me].vert;
+    i = 0;
+    while (i < obj->mesh[me].lsize) {
+      if (imodMeshPolyNormFactors(listp[i++], &lincs[poly], &vertBase,
+                                  &normAdd)) {
+        zmin = vertp[listp[i + vertBase]].z;
+        zmax = zmin;
+        surfs[poly] = 0;
+        meshes[poly] = me;
+        starts[poly] = listp + i + vertBase; /* point to first vert ind */
+        ninpoly = 0;
+        while (listp[i] != IMOD_MESH_ENDPOLY) {
+          ind = listp[i + vertBase];
+          i += lincs[poly];
+          if (vertp[ind].z < zmin)
+            zmin = vertp[ind].z;
+          if (vertp[ind].z > zmax)
+            zmax = vertp[ind].z;
+          ninpoly++;
+        }
+        nverts[poly] = ninpoly;
+        zmins[poly] = zmin;
+        zmaxs[poly++] = zmax;
+      }
+    }
+  }
+
+  /* loop through all polygons, looking for next one that's not assigned
+     yet */
+
+  nsurfs = 0;
+  for (poly = 0; poly < npoly; poly ++) {
+    if (!surfs[poly]) {
+      nsurfs++;
+      surfs[poly] = nsurfs;
+      towork[0] = poly;
+      nwork = 1;
+      iwork = 0;
+      while (iwork < nwork) {
+
+        /* To work on a polygon, scan through all the rest that are not
+           assigned yet, find ones that overlap in Z */
+
+        work = towork[iwork];
+        for (scan = 0; scan < npoly; scan++) {
+          if (!surfs[scan] && zmins[work] <= zmaxs[scan] &&
+              zmins[scan] <= zmaxs[work]) {
+           
+            /* Look for common vertices between the polygons */
+           
+            refp = starts[work];
+            found = 0;
+            i = 0;
+            while (i < nverts[work] && !found) {
+              refvert = *refp;
+              refp += lincs[work];
+              scanp = starts[scan];
+              for (j = 0; j < nverts[scan]; j++) {
+                if (*scanp == refvert) {
+                  found = 1;
+                  break;
+                }
+                scanp += lincs[scan];
+              }
+              i++;
+            }
+
+            /* If found a match, then add the scan polygon to work list as 
+               well as assigning it to this surface */
+
+            if (found) {
+              towork[nwork++] = scan;
+              surfs[scan] = nsurfs;
+            }
+          }
+        }
+        iwork++;
+      }
+    }
+  }
+
+  /* Now go through contours, looking for polygons with a matching vertex */
+
+  obj->surfsize = 0;
+  for (co = 0; co < obj->contsize; co++) {
+    found = 0;
+    obj->cont[co].surf = 0;
+    for (pt = 0; pt < obj->cont[co].psize && !found; pt++) {
+      ptx = obj->cont[co].pts[pt].x;
+      pty = obj->cont[co].pts[pt].y;
+      ptz = obj->cont[co].pts[pt].z;
+      for (poly = 0; poly < npoly && !found; poly++) {
+        if (ptz >= zmins[poly] && ptz <= zmaxs[poly]) {
+          vertp = obj->mesh[meshes[poly]].vert;
+          scanp = starts[poly];
+          for (j = 0; j < nverts[poly]; j++) {
+            ind = *scanp;
+            if (vertp[ind].x == ptx && vertp[ind].y == pty && 
+                vertp[ind].z == ptz) {
+              found = 1;
+              obj->cont[co].surf = surfs[poly];
+              if (surfs[poly] > obj->surfsize)
+                obj->surfsize = surfs[poly];
+              break;
+            }
+            scanp += lincs[poly];
+          }
+        }
+      }
+    } 
+  }
+  free(zmins);
+  free(zmaxs);
+  free(meshes);
+  free(surfs);
+  free(starts);
+  free(nverts);
+  free(towork);
+  free(lincs);
+  imodObjectCleanSurf(obj);
+  return (0);
+}
+
 /* Unused and suspect, 3/20/05 */
 Iobj *imodObjectClip(Iobj *obj, Iplane *plane, int planes)
 {
@@ -598,7 +789,6 @@ int imodObjectGetBBox(Iobj *obj, Ipoint *ll, Ipoint *ur)
 {
   Ipoint min;
   Ipoint max;
-  Icont *cont;
   int co;
 
   min.x = min.y = min.z = FLT_MAX;
@@ -871,77 +1061,3 @@ void  imodObjectSetValue(Iobj *inObject, int inValueType, int inValue)
   }
 }
 
-/*
-
-$Log$
-Revision 3.23  2010/06/14 21:51:39  mast
-Documentation
-
-Revision 3.22  2009/02/24 18:01:50  mast
-Brought object centroid routine up to snuff and workable for open obj
-
-Revision 3.21  2008/12/09 23:26:48  mast
-Changed flag from line to noline
-
-Revision 3.20  2008/05/07 04:44:20  mast
-Made bounding box function measure meshes if no contours
-
-Revision 3.19  2008/04/24 18:50:22  mast
-Added support for plugin to change 2D line width
-
-Revision 3.18  2008/04/04 21:21:04  mast
-Free contour after adding to object, clarify documentation
-
-Revision 3.17  2008/03/05 20:08:00  mast
-Added ability to set flag for drawing extra object in model view
-
-Revision 3.16  2007/12/06 20:13:21  mast
-Allowed sort of open contour objects
-
-Revision 3.15  2007/09/22 00:09:37  mast
-rename mat3b2
-
-Revision 3.14  2006/09/12 15:23:14  mast
-Handled mesh parameters and member renames
-
-Revision 3.13  2006/08/31 21:11:29  mast
-Changed mat1 and mt3 to real names
-
-Revision 3.12  2005/10/06 19:52:10  mast
-Maintained surfsize in contour insert function
-
-Revision 3.11  2005/09/11 19:15:26  mast
-Managed contour store info when sorting contours
-
-Revision 3.10  2005/06/29 05:35:32  mast
-Changed a store function call
-
-Revision 3.9  2005/06/26 19:32:22  mast
-Manage storage lists when inserting or removing contours
-
-Revision 3.8  2005/05/27 04:53:33  mast
-Make surface cleaning always compute surfsize.
-
-Revision 3.7  2005/04/23 23:36:54  mast
-Moved some functions to imodel.c
-
-Revision 3.6  2005/03/20 19:56:43  mast
-Documenting and eliminating duplicate functions
-
-Revision 3.5  2004/11/20 04:42:10  mast
-Added duplicate and insert contours, functions, removed virtual stuff
-
-Revision 3.4  2004/11/05 18:53:00  mast
-Include local files with quotes, not brackets
-
-Revision 3.3  2004/09/21 20:12:48  mast
-Added function to maintain surface labels and max surface number
-
-Revision 3.2  2003/06/27 20:16:26  mast
-Added functions to get specific contour in object and to set object color,
-fixed problem with setting closed property, made sure mat bytes are all zeroed
-
-Revision 3.1  2003/02/21 22:22:02  mast
-Use new b3d types
-
-*/
