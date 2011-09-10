@@ -68,6 +68,7 @@ public class EtomoDirector {
   public static final double MIN_AVAILABLE_MEMORY_REQUIRED = 2 * TO_BYTES * TO_BYTES;
   public static final int NUMBER_STORABLES = 2;
   private static final String JAVA_MEMORY_LIMIT_ENV_VAR = "ETOMO_MEM_LIM";
+  public static final String ACTION_TAG = "Etomo Action:";
 
   public static final EtomoDirector INSTANCE = new EtomoDirector();
   private SettingsDialog settingsDialog = null;
@@ -1185,6 +1186,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.108  2011/07/23 03:23:04  sueh
+ * <p> Bug# 1517 In initialize printing the value of NUMBER_OF_PROCESSORS (Windows).
+ * <p>
  * <p> Revision 1.107  2011/07/23 02:59:39  sueh
  * <p> Bug# 1517 Set numberOfProcessorsWindows to null unless the OS is Windows.
  * <p>
