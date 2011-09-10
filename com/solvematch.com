@@ -1,6 +1,6 @@
 # THIS COMMAND FILE RUNS SOLVEMATCH
 #
-####CreatedVersion#### 4.1.24
+####CreatedVersion#### 4.2.24
 #
 # It contains all of the entries needed for the three different modes of
 # operation: fiducials only, fiducials and matching models (obsolete), and
@@ -34,7 +34,7 @@ BFiducialModel	g5b.fid
 MatchingAtoB	0
 ATomogramOrSizeXYZ	g5a.rec
 BTomogramOrSizeXYZ	g5b.rec
-OutputFile	solvezero.xf
+OutputFile	solve.xf
 MaximumResidual	8.
 LocalFitting	10
 CenterShiftLimit	10.
