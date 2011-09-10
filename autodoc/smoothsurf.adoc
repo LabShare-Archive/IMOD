@@ -3,7 +3,6 @@ Pip = 1
 
 [Field = InputFile]
 short = input
-long = InputFile
 type = FN
 usage = Input model file
 tooltip = 
@@ -11,7 +10,6 @@ manpage = Input model file.
 
 [Field = OutputFile]
 short = output
-long = OutputFile
 type = FN
 usage = Output model file
 tooltip = 
@@ -19,7 +17,6 @@ manpage = Output model file.
 
 [Field = ObjectsToSmooth]
 short = objects
-long = ObjectsToSmooth
 type = LI
 usage = List of objects to smooth (default is to do all objects)
 tooltip = 
@@ -29,7 +26,6 @@ one plane.
 
 [Field = NumberOfSections]
 short = nz
-long = NumberOfSections
 type = I
 usage = Number of sections in Z over which to fit surfaces (default 7)
 tooltip = 
@@ -38,7 +34,6 @@ numbers smooth more.  The default is 7.
 
 [Field = MaximumDistance]
 short = distance
-long = MaximumDistance
 type = F
 usage = Maximum distance for points included in fits (default 15)
 tooltip = 
@@ -48,7 +43,6 @@ pixels.
 
 [Field = ContourOrder]
 short = contorder
-long = ContourOrder
 type = I
 usage = Polynomial order for smoothing contours, or 0 for none (default 2)
 tooltip = 
@@ -59,7 +53,6 @@ will probably oversmooth and contract the contours.
 
 [Field = SurfaceOrder]
 short = surforder
-long = SurfaceOrder
 type = I
 usage = Polynomial order for surface fit to points in 3D (default 3)
 tooltip = 
@@ -67,9 +60,21 @@ manpage = Order of the polynomials fit to the surface.  Higher orders smooth
 less.  The default is order 3.  Note that a second-order polynomial has 5
 terms and a third-order has 9 terms.
 
+[Field = SortSurfaces]
+short = sort
+type = I
+usage = Analyze mesh to sort contours into surfaces (1), use existing surface
+data (-1), or do neither (0) (default 1)
+tooltip = 
+manpage = This option controls whether the program uses surface assignments of
+contours to keep from including points from contours that belong to different
+surfaces in a surface fit.  With the default value of 1, the program will
+analyze the object mesh, if any, to sort contours into surfaces (see
+ImodSortSurf(1)).  Enter -1 to have the program use existing surface values of
+the contours, or 0 to ignore surface information.
+
 [Field = usage]
 short = help
-long = usage
 type = B
 usage = Print help output
 tooltip = 
