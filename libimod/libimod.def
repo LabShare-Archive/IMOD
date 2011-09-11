@@ -131,6 +131,7 @@ EXPORTS
 	imodContourFreeZTables
 	imodel_contour_double
 	DELETEIOBJ
+	GETOBJSURFACES
 	imodMeshDelete
 	imodObjectGetNext
 	objGroupListExpand
@@ -218,6 +219,7 @@ EXPORTS
 	imodel_model_clean
 	imodObjviewFromObject
 	imodObjectGetColor
+	imodObjectSortSurf
 	DELETEIMOD
 	PUTSYMSIZE
 	imeshParamsDup
