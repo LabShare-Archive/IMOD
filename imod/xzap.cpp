@@ -60,6 +60,7 @@ static void zapClose_cb(ImodView *vi, void *client, int drawflag);
 static void zapKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e);
 
 static int sDragRegisterSize = 10;
+static int sHqDrawTimeCrit = 100;
 
 /* DNM 1/19/01: add this to allow key to substitute for middle mouse button */
 static int sInsertDown = 0;
@@ -478,6 +479,7 @@ ZapFuncs::ZapFuncs(ImodView *vi, int wintype)
   else
     mHqgfx  = ImodPrefs->startInHQ() ? 1 : 0;
   sNextOpenHQstate = -1;
+  mLastHqDrawTime = 0;
   mHide   = 0;
   mZoom   = 1.0;
   mData   = NULL;
@@ -1015,6 +1017,9 @@ void ZapFuncs::paint()
   int ob, ix, iy, ind, delInd, xborderSave, yborderSave, sectionSave;
   int panelX, panelY;
   QObjectList objList;
+  QTime drawtime;
+
+  drawtime.start();
   if (imodDebug('z'))
     imodPrintStderr("Paint:");
 
@@ -1107,6 +1112,8 @@ void ZapFuncs::paint()
 
   if (imodDebug('z'))
     imodPrintStderr("\n");
+  if (mHqgfx)
+    mLastHqDrawTime = drawtime.elapsed();
 }
 
 
@@ -1126,8 +1133,10 @@ void ZapFuncs::enteredZoom(float newZoom)
     return;
   setControlAndLimits();
   mZoom = newZoom;
-  if (mZoom <= 0.001)
+  if (mZoom <= 0.001) {
     mZoom = 0.001;
+    mToolZoom = newZoom;
+  }
   draw();
   mQtWindow->setFocus();
 }
@@ -1481,8 +1490,8 @@ void ZapFuncs::keyInput(QKeyEvent *event)
         if (indp->object < imod->objsize) {
           obj = &imod->obj[indp->object];
           if (indp->contour < obj->contsize) {
-            if (contInSelectArea(obj, &(obj->cont[indp->contour]), selmin,
-                                 selmax))
+            if (utilContInSelectArea(obj, &(obj->cont[indp->contour]), selmin,
+                                     selmax))
               continue;
           }
         }
@@ -1503,7 +1512,7 @@ void ZapFuncs::keyInput(QKeyEvent *event)
         indadd.point = -1;
         for (i = 0; i < obj->contsize; i++) {
           indadd.contour = i;
-          if (contInSelectArea(obj, &(obj->cont[i]), selmin, selmax)) {
+          if (utilContInSelectArea(obj, &(obj->cont[i]), selmin, selmax)) {
             imodSelectionListAdd(vi, indadd);
             imod->cindex = indadd;
           }
@@ -2514,42 +2523,14 @@ int ZapFuncs::b1Drag(int x, int y)
     mYtrans -= (int)floor(transFac * (y - mLmy) + 0.5);
   }
 
-  mHqgfxsave = mHqgfx;
-  mHqgfx = 0;
-  draw();
-  mHqgfx = mHqgfxsave;
-  return 1;
-}
-
-/* Tests whether the contour is in the selection area.  Either it must be 
-   entirely within the area, or it must be an open wild contour and have points
-   on the current section that are all within the area */
-int ZapFuncs::contInSelectArea(Iobj *obj, Icont *cont, Ipoint selmin, Ipoint selmax)
-{
-  Ipoint pmin, pmax;
-  int pt, inRange = 0;
-  Ipoint *pnt;
-
-  imodContourGetBBox(cont, &pmin, &pmax);
-  if (pmin.x >= selmin.x && pmax.x <= selmax.x &&
-      pmin.y >= selmin.y && pmax.y <= selmax.y &&
-      pmin.z >= selmin.z && pmax.z <= selmax.z)
-    return 1;
-  if (!(iobjOpen(obj->flags) && (cont->flags & ICONT_WILD)))
-    return 0;
-
-  // Wild open contour is no good if a point in the Z range is outside the
-  // X/Y range
-  for (pt = 0; pt < cont->psize; pt++) {
-    pnt = &cont->pts[pt];
-    if (pnt->z >= selmin.z && pnt->z <= selmax.z) {
-      inRange = 1;
-      if (pnt->x < selmin.x || pnt->x > selmax.x ||
-          pnt->y < selmin.y || pnt->y > selmax.y)
-        return 0;
-    }
+  if (mLastHqDrawTime > sHqDrawTimeCrit) {
+    mHqgfxsave = mHqgfx;
+    mHqgfx = 0;
   }
-  return inRange;
+  draw();
+  if (mLastHqDrawTime > sHqDrawTimeCrit)
+    mHqgfx = mHqgfxsave;
+  return 1;
 }
 
 
@@ -2672,10 +2653,13 @@ int ZapFuncs::b2Drag(int x, int y, int controlDown)
     idy = (mLmy - y) / mZoom;
     shiftRubberband(idx, idy);
 
-    mHqgfxsave = mHqgfx;
-    mHqgfx = 0;
+    if (mLastHqDrawTime > sHqDrawTimeCrit) {
+      mHqgfxsave = mHqgfx;
+      mHqgfx = 0;
+    }
     draw();
-    mHqgfx = mHqgfxsave;
+    if (mLastHqDrawTime > sHqDrawTimeCrit)
+      mHqgfx = mHqgfxsave;
     mBandChanged = 1;
     return 1;
   }
@@ -4702,7 +4686,6 @@ int ZapFuncs::drawAuto()
   // send a new value of section, zoom, or time label if it has changed
 void ZapFuncs::drawTools()
 {
-  QString qstr;
   int winx, winy;
 
   if (mToolMaxZ != mVi->zsize) {
@@ -4743,9 +4726,7 @@ void ZapFuncs::drawTools()
     int time = mTimeLock ? mTimeLock : mVi->ct;
     if (mToolTime != time){
       mToolTime = time;
-      qstr.sprintf(" (%3d)", time);
-      qstr += ivwGetTimeIndexLabel(mVi, time);
-      mQtWindow->setTimeLabel(qstr);
+      mQtWindow->setTimeLabel(time, QString(ivwGetTimeIndexLabel(mVi, time)));
     }
   }
 }
