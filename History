@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/10/11: In Corrsearch3d, normalized values to prevent overflow when computing
+correlation coefficients with SIRT data.
+
 9/10/11: Fixed some problems with Smoothsurf when points are very closely
 spaced, made it include points only from contours in same surface if mesh data
 are available, and extended surface fits to end of a Z range.
