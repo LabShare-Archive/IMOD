@@ -7,7 +7,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  * $Id$
- * Log at end of file
  */                                                                           
 
 /* include needed Qt headers and imod headers
@@ -65,6 +64,7 @@
 #include "imodv_objed.h"
 #include "preferences.h"
 #include "undoredo.h"
+#include "xzap.h"
 
 // 2) Declare the internal functions as static
 // And set them into the member variables in the constructor
@@ -2021,16 +2021,34 @@ void BeadFixer::threshChanged(int slider, int value, bool dragging)
 
 void BeadFixer::deleteBelow()
 {
-  Imod *imod = ivwGetModel(plug->view);
+  ImodView *vi = plug->view;
+  Imod *imod = ivwGetModel(vi);
+  
   Iobj *obj;
   int ob, i, del, ix, iy, iz, pt, curobj, anydel = 0;
   Istore *store;
   Iindex index;
   Icont *cont;
   float thresh, min, max;
+  Ipoint selmin, selmax;
+
   index.point = -1;
-  ivwGetLocation(plug->view, &ix, &iy, &iz);
+  ivwGetLocation(vi, &ix, &iy, &iz);
   imodGetIndex(imod, &curobj, &ix, &iy);
+
+  // Set up selection subvolume based on rubberband if any and whether doing all secs
+  selmin.x = -vi->xsize;
+  selmax.x = 2 * vi->xsize;
+  selmin.y = -vi->ysize;
+  selmax.y = 2 * vi->ysize;
+  selmin.z = iz - 0.5;
+  selmax.z = iz + 0.5;
+  if (plug->delOnAllSec) {
+    selmin.z = 0;
+    selmax.z = vi->zsize;
+  }
+  zapRubberbandCoords(selmin.x, selmax.x, selmin.y, selmax.y);
+
   for (ob = 0; ob < imod->objsize; ob++) {
     obj = &imod->obj[ob];
     index.object = ob;
@@ -2044,23 +2062,10 @@ void BeadFixer::deleteBelow()
             !(store->flags & GEN_STORE_SURFACE) && store->value.f < thresh) {
           index.contour = store->index.i;
           if (index.contour > 0 && index.contour < obj->contsize) {
-            del = 1;
-
-            // If not deleting on all sections, look for a point on section
-            if (!plug->delOnAllSec) {
-              del = 0;
-              cont = &obj->cont[index.contour];
-              for (pt = 0; pt < cont->psize; pt++) {
-                if (B3DNINT(cont->pts[pt].z) == iz) {
-                  del = 1;
-                  break;
-                }
-              }
-            }
-            if (del) {
+            if (utilContInSelectArea(obj, &obj->cont[index.contour], selmin, selmax)) {
               if (!anydel)
-                imodSelectionListClear(plug->view);
-              imodSelectionListAdd(plug->view, index);
+                imodSelectionListClear(vi);
+              imodSelectionListAdd(vi, index);
               anydel = 1;
             }
           }
@@ -2069,7 +2074,7 @@ void BeadFixer::deleteBelow()
     }
   }
   if (anydel)
-    inputDeleteContour(plug->view);
+    inputDeleteContour(vi);
 }
 
 
@@ -2803,259 +2808,3 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 {
   ivwControlKey(1, e);
 }
-
-/*
-
-$Log$
-Revision 1.73  2011/03/14 23:39:13  mast
-Changes for ushort loading
-
-Revision 1.72  2010/09/21 04:32:28  mast
-Added message to clear the skip list
-
-Revision 1.71  2010/09/20 22:18:49  mast
-Don't make arrow on added point if it points to a skipped section
-
-Revision 1.70  2010/09/17 03:49:10  mast
-Fixed crash when entering empty skip list
-
-Revision 1.69  2010/06/30 20:02:55  mast
-Fixed problem with pushing Move All button after readinglog with 0 residuals
-
-Revision 1.68  2010/04/19 23:51:24  mast
-Fixed some width issues
-
-Revision 1.67  2010/04/01 02:41:47  mast
-Called function to test for closing keys, or warning cleanup
-
-Revision 1.66  2010/03/19 19:27:51  mast
-Reread log file on open message if already open, disabled move by res button
-after reading log, disabled many new buttons and some old when running align
-
-Revision 1.65  2010/03/19 16:36:29  mast
-Forgot to initialize max contour residual
-
-Revision 1.64  2010/03/19 01:35:21  mast
-Fixed reporting of mean contour residuals when switch to countour mode
-
-Revision 1.63  2010/03/10 05:30:10  mast
-Added contour mode
-
-Revision 1.62  2010/03/02 19:09:06  mast
-Take align*.log out of filter list for Mac Qt 10.5 since it doesn't work
-
-Revision 1.61  2009/11/17 05:28:12  mast
-Added button to move in all local areas, and ability to move all global
-residuals, and a progress line.
-
-Revision 1.60  2009/08/13 02:16:40  mast
-Add check on threshold slider before setting del on all sec
-
-Revision 1.59  2009/08/11 15:51:38  mast
-Added message to control delete on all sec
-
-Revision 1.58  2009/03/22 19:54:24  mast
-Show with new geometry adjust routine for Mac OS X 10.5/cocoa
-
-Revision 1.57  2009/03/20 21:29:37  mast
-Added tag for ran message
-
-Revision 1.56  2009/02/27 23:46:33  mast
-Output message for etomo when ran align
-
-Revision 1.55  2009/01/22 02:52:11  mast
-stopped fixed width for overlay box
-
-Revision 1.54  2009/01/16 06:07:33  mast
-Fixed size problem, stopped it from deleting current contour with ones below
-threshold
-
-Revision 1.53  2009/01/15 16:33:17  mast
-Qt 4 port
-
-Revision 1.52  2008/12/13 01:25:48  mast
-Improved criteria for accepting farther peak in autocenter
-
-Revision 1.51  2008/12/10 00:58:59  mast
-Save the binning that goes along with a diameter
-
-Revision 1.50  2008/12/01 15:41:31  mast
-Switched to correlating with sobel-filtered model bead for autocenter
-
-Revision 1.49  2008/11/29 23:27:41  mast
-Oops, needed to ceck for keypad on that insert button
-
-Revision 1.48  2008/11/29 22:09:53  mast
-Added skip list, mean residual output, Insert key, used extra object properly
-
-Revision 1.47  2008/11/12 03:32:17  mast
-Fixed for stack loaded binned
-
-Revision 1.46  2008/11/12 00:38:09  mast
-Fixed ability of threshold slider to move by single-click
-
-Revision 1.45  2008/07/16 20:13:00  mast
-Added delete in all objects, fixed some problems with deletion, made it
-restart gap index when new model is loaded
-
-Revision 1.44  2008/04/04 21:22:03  mast
-Free contour after adding to object
-
-Revision 1.43  2008/01/19 23:19:42  mast
-Warning cleanup
-
-Revision 1.42  2008/01/17 22:35:51  mast
-Added update function and turn off below threshold checkbox, and made
-thresholding operations object specific to work together with modv_objed
-
-Revision 1.41  2007/11/03 05:05:06  mast
-Added stop-gap slider and button for working with values
-
-Revision 1.40  2006/10/18 21:22:24  mast
-Made it remember auto new center mode across sessions
-
-Revision 1.39  2006/09/06 22:14:45  mast
-Really make it ignore the reopne message regardless of state
-
-Revision 1.38  2006/08/24 16:53:34  mast
-Reopen message should not generate error if align log not open yet
-
-Revision 1.37  2006/07/18 04:17:30  mast
-Removed show up down checkbox, made it not sync image position on mouse
-actions, enabled keys only in correct mode, required points to be
-within 15 pixels of position in log file
-
-Revision 1.36  2006/07/05 04:18:26  mast
-Added reverse contrast in overlay and reattach in gap mode
-
-Revision 1.35  2006/07/04 17:24:19  mast
-Added output of number of residuals to examine
-
-Revision 1.34  2006/07/04 03:50:56  mast
-Switched running align from a thread to a QProcess
-
-Revision 1.33  2006/07/03 23:28:11  mast
-Converted system call to call tcsh submfg to fix windows hang with -L mode
-
-Revision 1.32  2006/07/03 21:16:49  mast
-Fixed saving of show mode and made it move arrow up as well as down
-
-Revision 1.31  2006/07/03 04:13:53  mast
-Added seed overlay mode, set up 3 mode radio button and morphing of
-window depending on modes, made gap finding keep track of position and
-be able to go backwards
-
-Revision 1.30  2006/07/01 00:42:06  mast
-Changed message to open a log file only if one not open yet
-
-Revision 1.29  2006/03/01 19:13:06  mast
-Moved window size/position routines from xzap to dia_qtutils
-
-Revision 1.28  2006/03/01 18:20:51  mast
-Made fixing all in local area stop displaying image and listing residuals
-
-Revision 1.27  2006/02/13 05:16:06  mast
-Added mouse processing, autocentering and seed mode
-
-Revision 1.26  2005/06/13 16:39:52  mast
-Clarified message when points are missing before current point.
-
-Revision 1.25  2005/06/13 16:24:50  mast
-Added rounded style argument when constructing window
-
-Revision 1.24  2005/04/13 19:12:26  mast
-fixed tooltip
-
-Revision 1.23  2005/04/12 18:57:47  mast
-Added move all in local area, improved some button enabling
-
-Revision 1.22  2005/02/19 01:29:50  mast
-Removed function to clear extra object
-
-Revision 1.21  2004/12/22 22:22:05  mast
-Fixed bug in reading "old" log files
-
-Revision 1.20  2004/11/20 05:05:27  mast
-Changes for undo/redo capability
-
-Revision 1.19  2004/11/04 23:30:55  mast
-Changes for rounded button style
-
-Revision 1.18  2004/09/24 17:58:01  mast
-Added ability to execute messages for opening/rereading file
-
-Revision 1.17  2004/07/09 21:26:55  mast
-Strip directory path off when running align, to avoid spaces in path
-
-Revision 1.16  2004/06/25 20:05:40  mast
-Based the move by residual on residual data instead of current point value,
-and rewrote to make most plug variables be class members
-
-Revision 1.15  2004/06/24 15:34:15  mast
-Rewrote to read in all data to internal structures at once, and made it
-move between areas automatically, improved backup logic
-
-Revision 1.14  2004/06/23 04:12:32  mast
-Stupid change just before checking in
-
-Revision 1.13  2004/06/23 03:32:19  mast
-Changed to save and restore window position
-
-Revision 1.12  2004/06/20 22:43:15  mast
-Fixed problem that made no residuals be found.
-
-Revision 1.11  2004/06/12 15:13:03  mast
-Needed some new Qt includes
-
-Revision 1.10  2004/06/12 00:58:11  mast
-Switched to reading in whole file at once
-
-Revision 1.9  2004/05/11 14:17:53  mast
-Needed to put an enable of the run align button inside conditional
-
-Revision 1.8  2004/05/07 22:14:53  mast
-Switched to a variable other than QT_THREAD_SUPPORT for the run align button
-
-Revision 1.7  2004/05/04 17:52:32  mast
-Forgot to put AlignThread::run inside ifdef.
-
-Revision 1.6  2004/05/03 19:32:20  mast
-had to decalre exit code as int
-
-Revision 1.5  2004/05/03 19:17:43  mast
-Added ability to run tiltalign if there is thread support
-
-Revision 1.4  2004/04/29 00:28:40  mast
-Added button to keep window on top
-
-Revision 1.3  2004/03/30 18:56:26  mast
-Added hot key for next local set
-
-Revision 1.2  2004/01/22 19:12:43  mast
-changed from pressed() to clicked() or accomodated change to actionClicked
-
-Revision 1.1  2003/10/01 05:09:36  mast
-Conversion to internal module in 3dmod
-
-Revision 3.9  2003/08/01 00:16:51  mast
-Made "examine once" be default and rearranged buttons
-
-Revision 3.8  2003/07/07 21:32:49  mast
-Fix stupid malloc/realloc problem in pointer list
-
-Revision 3.7  2003/06/29 14:34:41  mast
-Fix problem of multiple vector displays
-
-Revision 3.6  2003/06/29 14:23:20  mast
-Added ability to back up to previous residual
-
-Revision 3.5  2003/06/27 20:25:11  mast
-Implemented display of residual vectors in extra object
-
-Revision 3.4  2003/05/29 05:03:43  mast
-Make filter for align*.log only
-
-Revision 3.3  2003/05/12 19:13:39  mast
-Add hot key summary and fix spelling
-
-*/
