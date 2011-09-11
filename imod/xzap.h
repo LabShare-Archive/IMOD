@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  No more Log
  */
 
 #ifndef XZAP_H
@@ -220,5 +219,6 @@ void zapSetImageOrBandCenter(float imx, float imy, bool incremental);
 int zapRubberbandCoords(float &rbX0, float &rbX1, float &rbY0, float &rbY1);
 void zapPixelViewState(bool state);
 void zapSetMouseTracking();
+void zapSetNextOpenHQstate(int state);
 
 #endif

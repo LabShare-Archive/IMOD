@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <math.h>
@@ -60,29 +59,30 @@ static void zapDraw_cb(ImodView *vi, void *client, int drawflag);
 static void zapClose_cb(ImodView *vi, void *client, int drawflag);
 static void zapKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e);
 
-static int dragRegisterSize = 10;
+static int sDragRegisterSize = 10;
 
 /* DNM 1/19/01: add this to allow key to substitute for middle mouse button */
-static int insertDown = 0;
-static bool pixelViewOpen = false;
+static int sInsertDown = 0;
+static bool sPixelViewOpen = false;
 
-static QTime insertTime;
-static QTime but1downt;
+static QTime sInsertTime;
+static QTime sBut1downt;
 
-static int numZapWindows = 0;
-static int subStartX = 0;
-static int subStartY = 0;
-static int subEndX = 0;
-static int subEndY = 0;
+static int sNumZapWindows = 0;
+static int sSubStartX = 0;
+static int sSubStartY = 0;
+static int sSubEndX = 0;
+static int sSubEndY = 0;
 
-static int firstdrag = 0;
-static int moveband = 0;
-static int dragband;
-static int dragging[4];
-static int firstmx, firstmy;
-static int maxMultiZarea = 0;
-static int scaleSizes = 1;
-static bool mousePressed = false;
+static int sFirstDrag = 0;
+static int sMoveBand = 0;
+static int sDragBand;
+static int sDragging[4];
+static int sFirstmx, sFirstmy;
+static int sMaxMultiZarea = 0;
+static int sScaleSizes = 1;
+static bool sMousePressed = false;
+static int sNextOpenHQstate = -1;
 
 /*
  * Open the zap window
@@ -114,8 +114,8 @@ void zapReportBiggestMultiZ()
 
   for (i = 0; i < objList.count(); i++) {
     zap = ((ZapWindow *)objList.at(i))->mZap;
-    if (maxMultiZarea < zap->mWinx * zap->mWiny) {
-      maxMultiZarea = zap->mWinx * zap->mWiny;
+    if (sMaxMultiZarea < zap->mWinx * zap->mWiny) {
+      sMaxMultiZarea = zap->mWinx * zap->mWiny;
       pos = ivwRestorableGeometry(zap->mQtWindow);
       ImodPrefs->recordMultiZparams(pos, zap->mNumXpanels, zap->mNumYpanels,
                                     zap->mPanelZstep, zap->mDrawInCenter,
@@ -287,7 +287,7 @@ void zapSetImageOrBandCenter(float imx, float imy, bool incremental)
  */
 void zapPixelViewState(bool state)
 {
-  pixelViewOpen = state;
+  sPixelViewOpen = state;
   zapSetMouseTracking();
 }
 
@@ -329,14 +329,20 @@ int getTopZapMouse(Ipoint *imagePt)
  */
 int zapSubsetLimits(ViewInfo *vi, int &ixStart, int &iyStart, int &nxUse, int &nyUse)
 {
-  if (numZapWindows <= 0 || subStartX >= subEndX || subStartY >= subEndY ||
-      subEndX >= vi->xsize || subEndY >= vi->ysize)
+  if (sNumZapWindows <= 0 || sSubStartX >= sSubEndX || sSubStartY >= sSubEndY ||
+      sSubEndX >= vi->xsize || sSubEndY >= vi->ysize)
     return 1;
-  ixStart = subStartX;
-  nxUse = subEndX + 1 - subStartX;
-  iyStart = subStartY;
-  nyUse = subEndY + 1 - subStartY;
+  ixStart = sSubStartX;
+  nxUse = sSubEndX + 1 - sSubStartX;
+  iyStart = sSubStartY;
+  nyUse = sSubEndY + 1 - sSubStartY;
   return 0;
+}
+
+/* This sets a flag for the HQ state of the next opened window */
+void zapSetNextOpenHQstate(int state)
+{
+  sNextOpenHQstate = state;
 }
 
 /*
@@ -467,7 +473,11 @@ ZapFuncs::ZapFuncs(ImodView *vi, int wintype)
   mCtrl   = 0;
   mXtrans = mYtrans = 0;
   mZtrans = 0;
-  mHqgfx  = ImodPrefs->startInHQ() ? 1 : 0;
+  if (sNextOpenHQstate >= 0)
+    mHqgfx = sNextOpenHQstate ? 1 : 0;
+  else
+    mHqgfx  = ImodPrefs->startInHQ() ? 1 : 0;
+  sNextOpenHQstate = -1;
   mHide   = 0;
   mZoom   = 1.0;
   mData   = NULL;
@@ -709,8 +719,8 @@ ZapFuncs::ZapFuncs(ImodView *vi, int wintype)
   /* DNM: set cursor after window created so it has model mode cursor if
      an existing window put us in model mode */
   setCursor(vi->imod->mousemode);
-  numZapWindows++;
-  insertTime.start();
+  sNumZapWindows++;
+  sInsertTime.start();
 }
 
 
@@ -735,7 +745,7 @@ void ZapFuncs::closing()
   ivwRemoveControl(mVi, mCtrl);
   imodDialogManager.remove((QWidget *)mQtWindow);
   if (!mNumXpanels)
-    numZapWindows--;
+    sNumZapWindows--;
 
   // What for?  flush any events that might refer to this zap
   imod_info_input();     
@@ -743,7 +753,7 @@ void ZapFuncs::closing()
   if (!mNumXpanels)
     b3dFreeCIImage(mImage);
   else {
-    if (!maxMultiZarea) {
+    if (!sMaxMultiZarea) {
       QRect pos = ivwRestorableGeometry(mQtWindow);
       ImodPrefs->recordMultiZparams(pos, mNumXpanels, mNumYpanels, 
                                     mPanelZstep, mDrawInCenter, 
@@ -1415,7 +1425,7 @@ void ZapFuncs::keyInput(QKeyEvent *event)
   case Qt::Key_Insert:
 
     /* But skip out if in movie mode or already active */
-    if (!keypad || imod->mousemode == IMOD_MMOVIE || insertDown || 
+    if (!keypad || imod->mousemode == IMOD_MMOVIE || sInsertDown || 
         mNumXpanels)
       break;
 
@@ -1424,15 +1434,15 @@ void ZapFuncs::keyInput(QKeyEvent *event)
     iy = (mGfx->mapFromGlobal(QCursor::pos())).y();
 
     // Set a flag, set continuous tracking, grab keyboard and mouse
-    insertDown = 1;
+    sInsertDown = 1;
     mGfx->setMouseTracking(true);
     mQtWindow->grabKeyboard();
     mGfx->grabMouse();
 
     /* Use time since last event to determine whether to treat like
        single click or drag */
-    rx = insertTime.elapsed();
-    insertTime.restart();
+    rx = sInsertTime.elapsed();
+    sInsertTime.restart();
     /* imodPrintStderr(" %d %d %d\n ", rx, ix, iy); */
     if(rx > 250)
       b2Click(ix, iy, 0);
@@ -1659,10 +1669,10 @@ void ZapFuncs::keyInput(QKeyEvent *event)
 void ZapFuncs::keyRelease(QKeyEvent *event)
 {
   /*  imodPrintStderr ("%d down\n", downtime.elapsed()); */
-  if (!insertDown || !(event->modifiers() & Qt::KeypadModifier) ||
+  if (!sInsertDown || !(event->modifiers() & Qt::KeypadModifier) ||
       (event->key() != Qt::Key_Insert && event->key() != Qt::Key_0))
     return;
-  insertDown = 0;
+  sInsertDown = 0;
   registerDragAdditions();
   setMouseTracking();
   mQtWindow->releaseKeyboard();
@@ -1727,12 +1737,12 @@ void ZapFuncs::mousePress(QMouseEvent *event)
   button3 = event->buttons() & ImodPrefs->actualButton(3) ? 1 : 0;
   x = event->x();
   y = event->y();
-  but1downt.start();
-  firstmx = x;
-  firstmy = y;
+  sBut1downt.start();
+  sFirstmx = x;
+  sFirstmy = y;
   mLmx = x;
   mLmy = y;
-  mousePressed = true;
+  sMousePressed = true;
   utilRaiseIfNeeded(mQtWindow, event);
 
   if (imodDebug('m'))
@@ -1741,7 +1751,7 @@ void ZapFuncs::mousePress(QMouseEvent *event)
 
   // Check for starting a band move before offering to plugin
   if (event->button() == ImodPrefs->actualButton(2) && !button1 && !button3) {
-    moveband = 0;
+    sMoveBand = 0;
     
     /* If rubber band is on and within criterion distance of any edge, set
        flag to move whole band and return */
@@ -1755,7 +1765,7 @@ void ZapFuncs::mousePress(QMouseEvent *event)
                                     dxur < rcrit && dxur > -rcrit)) ||
           (dxll > 0 && dxur < 0 && (dyll < rcrit && dyll > -rcrit ||
                                     dyur < rcrit && dyur > -rcrit))) {
-        moveband = 1;
+        sMoveBand = 1;
         setCursor(mMousemode);
         return;
       }
@@ -1774,11 +1784,11 @@ void ZapFuncs::mousePress(QMouseEvent *event)
   // Check for regular actions
   if (event->button() == ImodPrefs->actualButton(1)) {
     if (mShiftingCont)
-      drew = startShiftingContour(firstmx, firstmy, 1, ctrlDown);
+      drew = startShiftingContour(sFirstmx, sFirstmy, 1, ctrlDown);
     else if (mStartingBand)
-      drew = b1Click(firstmx, firstmy, ctrlDown);
+      drew = b1Click(sFirstmx, sFirstmy, ctrlDown);
     else
-      firstdrag = 1;
+      sFirstDrag = 1;
       
   } else if (event->button() == ImodPrefs->actualButton(2) &&
 	     !button1 && !button3) {
@@ -1809,7 +1819,7 @@ void ZapFuncs::mouseRelease(QMouseEvent *event)
   button1 = event->button() == ImodPrefs->actualButton(1) ? 1 : 0;
   button2 = event->button() == ImodPrefs->actualButton(2) ? 1 : 0;
   button3 = event->button() == ImodPrefs->actualButton(3) ? 1 : 0;
-  mousePressed = false;
+  sMousePressed = false;
 
   if (imodDebug('m'))
     imodPrintStderr("release at %d %d   buttons %d %d %d\n", event->x(), 
@@ -1830,13 +1840,13 @@ void ZapFuncs::mouseRelease(QMouseEvent *event)
   }
 
   if (button1 && !(ifdraw & 1)) {
-    if (dragband) {
-      dragband = 0;
+    if (sDragBand) {
+      sDragBand = 0;
       setCursor(mMousemode);
     }
-    firstdrag = 0;
+    sFirstDrag = 0;
 
-    if (but1downt.elapsed() > 250) {
+    if (sBut1downt.elapsed() > 250) {
       if (mHqgfxsave || ifdraw)
         draw();
       mHqgfxsave  = 0;
@@ -1847,8 +1857,8 @@ void ZapFuncs::mouseRelease(QMouseEvent *event)
   }
  
   // Button 2 and band moving, release the band
-  if (button2 && mRubberband && moveband) {
-    moveband = 0;
+  if (button2 && mRubberband && sMoveBand) {
+    sMoveBand = 0;
     setCursor(mMousemode);
     if (mHqgfxsave) {
       draw();
@@ -1860,7 +1870,7 @@ void ZapFuncs::mouseRelease(QMouseEvent *event)
   } else if (button2 && !mNumXpanels && !(ifdraw & 1) &&
              mVi->imod->mousemode == IMOD_MMODEL) {
     if (imodDebug('z'))
-      imodPrintStderr("Down time %d msec\n", but1downt.elapsed());
+      imodPrintStderr("Down time %d msec\n", sBut1downt.elapsed());
 
     registerDragAdditions();
 
@@ -1920,13 +1930,13 @@ void ZapFuncs::mouseMove(QMouseEvent *event)
     return;
   }
 
-  if (pixelViewOpen) {
+  if (sPixelViewOpen) {
     getixy(ex, ey, imx, imy, imz);
     pvNewMousePosition(mVi, imx, imy, imz);
   }
 
-  if (!(mRubberband && moveband)  && 
-      (mousePressed || insertDown || mVi->trackMouseForPlugs)) {
+  if (!(mRubberband && sMoveBand)  && 
+      (sMousePressed || sInsertDown || mVi->trackMouseForPlugs)) {
     ifdraw = checkPlugUseMouse(event, button1, button2, button3);
     if (ifdraw & 1) {
       if (ifdraw & 2)
@@ -1936,7 +1946,7 @@ void ZapFuncs::mouseMove(QMouseEvent *event)
   } else
     setControlAndLimits();
 
-  if (!(mousePressed || insertDown)) {
+  if (!(sMousePressed || sInsertDown)) {
     if (mRubberband)
       analyzeBandEdge(ex, ey);
     if (ifdraw)
@@ -1946,7 +1956,7 @@ void ZapFuncs::mouseMove(QMouseEvent *event)
 
   // For first button or band moving, eat any pending move events and use 
   // latest position
-  if ( (button1 && !button2 && !button3) || (mRubberband && moveband)) {
+  if ( (button1 && !button2 && !button3) || (mRubberband && sMoveBand)) {
     processing = 1;
     imod_info_input();
     if (imodDebug('m') && processing > 1)
@@ -1954,13 +1964,13 @@ void ZapFuncs::mouseMove(QMouseEvent *event)
     processing = 0;
 
     // If this processed a release, then turn off the buttons
-    if (!mousePressed)
+    if (!sMousePressed)
       button1 = button2 = button3 = 0;
   }
 
-  cumdx = ex - firstmx;
-  cumdy = ey - firstmy;
-  button2 = (button2 || insertDown) ? 1 : 0;
+  cumdx = ex - sFirstmx;
+  cumdy = ey - sFirstmy;
+  button2 = (button2 || sInsertDown) ? 1 : 0;
   if (imodDebug('m'))
     imodPrintStderr("move %d,%d  mb  %d|%d|%d  c %x s %x\n", ex, ey, button1,
                     button2, button3, ctrlDown, shiftDown);
@@ -1971,7 +1981,7 @@ void ZapFuncs::mouseMove(QMouseEvent *event)
     } else {
       /* DNM: wait for a bit of time or until enough distance moved, but if we
          do not replace original lmx, lmy, there is a disconcerting lurch */
-      if ((but1downt.elapsed()) > 250 || cumdx * cumdx + cumdy * cumdy >
+      if ((sBut1downt.elapsed()) > 250 || cumdx * cumdx + cumdy * cumdy >
           cumthresh)
         drew = b1Drag(ex, ey);
     }
@@ -1979,7 +1989,7 @@ void ZapFuncs::mouseMove(QMouseEvent *event)
 
   // DNM 8/1/08: Reject small movements soon after the button press
   if ( (!button1) && (button2) && (!button3)) {
-    if ((but1downt.elapsed()) > 150 || cumdx * cumdx + cumdy * cumdy > 
+    if ((sBut1downt.elapsed()) > 150 || cumdx * cumdx + cumdy * cumdy > 
         dragthresh)
       drew = b2Drag(ex, ey, ctrlDown);
   }
@@ -2028,10 +2038,10 @@ void ZapFuncs::analyzeBandEdge(int ix, int iy)
 
   bandImageToMouse(0);    
   dminsq = rubbercrit * rubbercrit;
-  dragband = 0;
+  sDragBand = 0;
   minedgex = -1;
   for (i = 0; i < 4; i++)
-    dragging[i] = 0;
+    sDragging[i] = 0;
   dxll = ix - mRbMouseX0;
   dxur = ix - mRbMouseX1;
   dyll = iy - mRbMouseY0;
@@ -2065,9 +2075,9 @@ void ZapFuncs::analyzeBandEdge(int ix, int iy)
 
   /* If we are close to a corner, set up to drag the band */
   if (minedgex >= 0) {
-    dragband = 1;
-    dragging[minedgex] = 1;
-    dragging[minedgey] = 1;
+    sDragBand = 1;
+    sDragging[minedgex] = 1;
+    sDragging[minedgey] = 1;
   } else {
     /* Otherwise look at each edge in turn */
     dmin = rubbercrit;
@@ -2092,10 +2102,10 @@ void ZapFuncs::analyzeBandEdge(int ix, int iy)
       minedgex = 3;
     }
     if (minedgex < 0)
-      dragband = 0;
+      sDragBand = 0;
     else {
-      dragging[minedgex] = 1;
-      dragband = 1;
+      sDragging[minedgex] = 1;
+      sDragBand = 1;
     }
   }
   setCursor(mMousemode);
@@ -2164,18 +2174,18 @@ int ZapFuncs::b1Click(int x, int y, int controlDown)
       bandImageToMouse(1);
       QCursor::setPos(mGfx->mapToGlobal(QPoint(mRbMouseX0, 
                                                    mRbMouseY0)));
-      firstmx = mRbMouseX0;
-      firstmy = mRbMouseY0;
+      sFirstmx = mRbMouseX0;
+      sFirstmy = mRbMouseY0;
     }
 
     mStartingBand = 0;
     mRubberband = 1;
     mGfx->setMouseTracking(true);
-    dragband = 1;
-    dragging[0] = 0;
-    dragging[1] = 1;
-    dragging[2] = 0;
-    dragging[3] = 1;
+    sDragBand = 1;
+    sDragging[0] = 0;
+    sDragging[1] = 1;
+    sDragging[2] = 0;
+    sDragging[3] = 1;
     mBandChanged = 1;
     setCursor(mMousemode);
     draw();
@@ -2458,35 +2468,35 @@ int ZapFuncs::b1Drag(int x, int y)
   }
 
   // First time mouse moves, lock in the band drag position
-  if (mRubberband && firstdrag)
+  if (mRubberband && sFirstDrag)
     analyzeBandEdge(x, y);
-  firstdrag = 0;
+  sFirstDrag = 0;
      
-  if (mRubberband && dragband) {
+  if (mRubberband && sDragBand) {
 
     /* Move the rubber band */
-    if (dragging[0]) {
+    if (sDragging[0]) {
       mRbImageX0 += (x - mLmx) / mXzoom;
       if (mRbImageX0 < 0)
         mRbImageX0 = 0;
       if (mRbImageX0 >= mRbImageX1)
         mRbImageX0 = mRbImageX1 - 1;
     }
-    if (dragging[1]) {
+    if (sDragging[1]) {
       mRbImageX1 += (x - mLmx) / mXzoom;
       if (mRbImageX1 > mVi->xsize)
         mRbImageX1 = mVi->xsize;
       if (mRbImageX1 <= mRbImageX0)
         mRbImageX1 = mRbImageX0 + 1;
     }
-    if (dragging[3]) {
+    if (sDragging[3]) {
       mRbImageY0 += (mLmy - y) / mXzoom;
       if (mRbImageY0 < 0)
         mRbImageY0 = 0;
       if (mRbImageY0 >= mRbImageY1)
         mRbImageY0 = mRbImageY1 - 1;
     }
-    if (dragging[2]) {
+    if (sDragging[2]) {
       mRbImageY1 += (mLmy - y) / mXzoom;
       if (mRbImageY1 > mVi->ysize)
         mRbImageY1 = mVi->ysize;
@@ -2655,7 +2665,7 @@ int ZapFuncs::b2Drag(int x, int y, int controlDown)
     }
   }
 
-  if (mRubberband && moveband) {
+  if (mRubberband && sMoveBand) {
     /* Moving rubber band: get desired move and constrain it to keep
        band in the image */
     idx = (x - mLmx) / mXzoom;
@@ -2725,7 +2735,7 @@ int ZapFuncs::b2Drag(int x, int y, int controlDown)
 
     // Register previous additions if the count is up or if the object or
     // contour has changed
-    if (mDragAddCount >= dragRegisterSize || 
+    if (mDragAddCount >= sDragRegisterSize || 
         mDragAddIndex.object != vi->imod->cindex.object ||
         mDragAddIndex.contour != vi->imod->cindex.contour)
       registerDragAdditions();
@@ -3632,13 +3642,13 @@ void ZapFuncs::setAreaLimits()
     getixy(0, 0, xl, yt, iz);
     getixy(mWinx, mWiny, xr, yb, iz);
   }
-  subStartX = B3DMAX((int)(xl + 0.5), 0);
-  subEndX = B3DMIN((int)(xr - 0.5), mVi->xsize - 1);
-  subStartY = B3DMAX((int)(yb + 0.5), 0);
-  subEndY = B3DMIN((int)(yt - 0.5), mVi->ysize - 1);
+  sSubStartX = B3DMAX((int)(xl + 0.5), 0);
+  sSubEndX = B3DMIN((int)(xr - 0.5), mVi->xsize - 1);
+  sSubStartY = B3DMAX((int)(yb + 0.5), 0);
+  sSubEndY = B3DMIN((int)(yt - 0.5), mVi->ysize - 1);
   if (imodDebug('z'))
-    imodPrintStderr("Set area %d %d %d %d\n", subStartX, subEndX, subStartY,
-                    subEndY);
+    imodPrintStderr("Set area %d %d %d %d\n", sSubStartX, sSubEndX, sSubStartY,
+                    sSubEndY);
 }     
 
 /*
@@ -3736,8 +3746,8 @@ void ZapFuncs::shiftRubberband(float idx, float idy)
  */
 void ZapFuncs::setMouseTracking()
 {
-  mGfx->setMouseTracking(insertDown != 0 || mRubberband ||
-                             pixelViewOpen || mVi->trackMouseForPlugs);
+  mGfx->setMouseTracking(sInsertDown != 0 || mRubberband ||
+                             sPixelViewOpen || mVi->trackMouseForPlugs);
 }
 
 /*
@@ -3810,9 +3820,9 @@ void ZapFuncs::montageSnapshot(int snaptype)
 
   // Set up scaling
   if (imcGetScaleSizes()) {
-    scaleSizes = imcGetSizeScaling();
-    if (scaleSizes == 1)
-      scaleSizes = B3DNINT(scalingFactor * B3DMIN(1., mZoom));
+    sScaleSizes = imcGetSizeScaling();
+    if (sScaleSizes == 1)
+      sScaleSizes = B3DNINT(scalingFactor * B3DMIN(1., mZoom));
   }
 
   // Loop on frames, getting pixels and copying them
@@ -3886,7 +3896,7 @@ void ZapFuncs::montageSnapshot(int snaptype)
   mXtrans = xTransSave;
   mYtrans = yTransSave;
   mZoom = zoomSave;
-  scaleSizes = 1;
+  sScaleSizes = 1;
   mHqgfx = hqSave;
   draw();
   utilFreeMontSnapArrays(fullPix, numChunks, framePix, linePtrs);
@@ -4116,7 +4126,7 @@ void ZapFuncs::drawModel()
     if (iobjOff(vi->imod->obj[ob].flags))
       continue;
     imodSetObjectColor(ob); 
-    b3dLineWidth(scaleSizes * vi->imod->obj[ob].linewidth2); 
+    b3dLineWidth(sScaleSizes * vi->imod->obj[ob].linewidth2); 
     ifgSetupValueDrawing(&vi->imod->obj[ob], GEN_STORE_MINMAX1);
 
     for (co = 0; co < vi->imod->obj[ob].contsize; co++){
@@ -4225,7 +4235,7 @@ void ZapFuncs::drawContour(int co, int ob)
   // get draw properties
   selected = imodSelectionListQuery(vi, ob, co) > -2;
   nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, &stateFlags,
-                                   handleFlags, selected, scaleSizes);
+                                   handleFlags, selected, sScaleSizes);
   if (contProps.gap)
     return;
 
@@ -4239,7 +4249,7 @@ void ZapFuncs::drawContour(int co, int ob)
       if (!nextChange)
         nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
                                          &ptProps, &stateFlags, &changeFlags, 
-                                         handleFlags, selected, scaleSizes);
+                                         handleFlags, selected, sScaleSizes);
 
       if (stippleGaps)
         glLineStipple(1, 0x0707);
@@ -4267,7 +4277,7 @@ void ZapFuncs::drawContour(int co, int ob)
           nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
                                            &ptProps, &stateFlags,
                                            &changeFlags, handleFlags, 
-                                           selected, scaleSizes);
+                                           selected, sScaleSizes);
         if (ptProps.gap && stippleGaps) {
           b3dStippleNextLine(true);
           ptProps.gap = 0;
@@ -4307,7 +4317,7 @@ void ZapFuncs::drawContour(int co, int ob)
   if (ilistSize(cont->store))
     nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, 
                                      &stateFlags, handleFlags, selected, 
-                                     scaleSizes);
+                                     sScaleSizes);
   if ((iobjScat(obj->flags) || checkSymbol) && 
       (contProps.symtype != IOBJ_SYM_NONE || nextChange >= 0)) {
     for (pt = 0; pt < cont->psize; pt++) {
@@ -4315,14 +4325,14 @@ void ZapFuncs::drawContour(int co, int ob)
       if (pt == nextChange)
         nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
                                          &ptProps, &stateFlags, &changeFlags, 
-                                         handleFlags, selected, scaleSizes);
+                                         handleFlags, selected, sScaleSizes);
 
       if (ptProps.symtype != IOBJ_SYM_NONE && !(ptProps.gap && ptProps.valskip)
           && pointVisable(&(cont->pts[pt]))){
         utilDrawSymbol(xpos(cont->pts[pt].x),
                        ypos(cont->pts[pt].y),
                        ptProps.symtype,
-                       ptProps.symsize * scaleSizes,
+                       ptProps.symsize * sScaleSizes,
                        ptProps.symflags);
       }
     }
@@ -4333,13 +4343,13 @@ void ZapFuncs::drawContour(int co, int ob)
     if (ilistSize(cont->store))
       nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, 
                                        &stateFlags, handleFlags, selected, 
-                                       scaleSizes);
+                                       sScaleSizes);
     for (pt = 0; pt < cont->psize; pt++){
       ptProps.gap = 0;
       if (pt == nextChange)
         nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
                                          &ptProps, &stateFlags, &changeFlags, 
-                                         handleFlags, selected, scaleSizes);
+                                         handleFlags, selected, sScaleSizes);
 
       drawsize = imodPointGetSize(obj, cont, pt) / vi->xybin;
       if (drawsize > 0 && !(ptProps.gap && ptProps.valskip))
@@ -4350,7 +4360,7 @@ void ZapFuncs::drawContour(int co, int ob)
                         (int)(drawsize * mZoom));
           if (drawsize > 3 && drawPntOffSec)
             b3dDrawPlus(xpos(cont->pts[pt].x), 
-                        ypos(cont->pts[pt].y), 3 * scaleSizes);
+                        ypos(cont->pts[pt].y), 3 * sScaleSizes);
         } else if (drawsize > 1 && drawPntOffSec) {
           /* DNM: fixed this at last, but let size round
              down so circles get smaller*/
@@ -4378,13 +4388,13 @@ void ZapFuncs::drawContour(int co, int ob)
       b3dColorIndex(App->endpoint);
       b3dDrawCross(xpos(cont->pts[cont->psize-1].x),
                    ypos(cont->pts[cont->psize-1].y), 
-                   scaleSizes * obj->symsize/2);
+                   sScaleSizes * obj->symsize/2);
     }
     if (pointVisable(cont->pts)){
       b3dColorIndex(App->bgnpoint);
       b3dDrawCross(xpos(cont->pts->x),
                    ypos(cont->pts->y),
-                   scaleSizes * obj->symsize/2);
+                   sScaleSizes * obj->symsize/2);
     }
     imodSetObjectColor(ob);
   }
@@ -4410,7 +4420,7 @@ void ZapFuncs::drawContour(int co, int ob)
      first two points visible or last point visible and next to last is not */
 
   if (selected)
-    b3dLineWidth(scaleSizes * obj->linewidth2); 
+    b3dLineWidth(sScaleSizes * obj->linewidth2); 
 }
 
 /*
@@ -4431,18 +4441,18 @@ void ZapFuncs::drawCurrentPoint()
 
   // 11/11/04: Reset line width for slice lines or current image point,
   // set it below with object-specific thickness
-  b3dLineWidth(scaleSizes);
+  b3dLineWidth(sScaleSizes);
 
   if ((vi->imod->mousemode == IMOD_MMOVIE)||(!pnt)){
     x = xpos((float)((int)vi->xmouse + 0.5));
     y = ypos((float)((int)vi->ymouse + 0.5));
     b3dColorIndex(App->curpoint);
-    b3dDrawPlus(x, y, imPtSize * scaleSizes);
+    b3dDrawPlus(x, y, imPtSize * sScaleSizes);
           
   }else{
     if ((cont) && (cont->psize) && (pnt)){
 
-      b3dLineWidth(scaleSizes * obj->linewidth2);
+      b3dLineWidth(sScaleSizes * obj->linewidth2);
       curSize = modPtSize;
       if (cont->psize > 1 && 
           (pnt == cont->pts || pnt == cont->pts + cont->psize - 1))
@@ -4457,7 +4467,7 @@ void ZapFuncs::drawCurrentPoint()
       }else{
         b3dColorIndex(App->shadow);
       }
-      b3dDrawCircle(x, y, scaleSizes * curSize);
+      b3dDrawCircle(x, y, sScaleSizes * curSize);
     }
   }
      
@@ -4470,24 +4480,24 @@ void ZapFuncs::drawCurrentPoint()
       symbol = IOBJ_SYM_TRIANGLE;
       openAdd = 1;
     }
-    b3dLineWidth(scaleSizes * obj->linewidth2);
+    b3dLineWidth(sScaleSizes * obj->linewidth2);
     if (cont->psize > 1){
       if (pointVisable(cont->pts)){
         b3dColorIndex(App->bgnpoint);
         utilDrawSymbol(xpos(cont->pts->x),
                        ypos(cont->pts->y), symbol, 
-                       scaleSizes * (modPtSize + openAdd), flags);
+                       sScaleSizes * (modPtSize + openAdd), flags);
       }
       if (pointVisable(&(cont->pts[cont->psize - 1]))){
         b3dColorIndex(App->endpoint);
         utilDrawSymbol(xpos(cont->pts[cont->psize - 1].x),
                        ypos(cont->pts[cont->psize - 1].y), 
-                       symbol, scaleSizes * (modPtSize + openAdd), flags);
+                       symbol, sScaleSizes * (modPtSize + openAdd), flags);
       }
     }
   }
 
-  b3dLineWidth(scaleSizes);
+  b3dLineWidth(sScaleSizes);
   mShowedSlice = mShowslice;
   if (mShowslice){
     b3dColorIndex(App->foreground);
@@ -4551,7 +4561,7 @@ void ZapFuncs::drawGhost()
       cont = &(obj->cont[co]);
       nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps,
                                        &stateFlags, handleFlags, 0,
-                                       scaleSizes);
+                                       sScaleSizes);
       if (contProps.gap)
         continue;
       setGhostColor(contProps.red, contProps.green, contProps.blue);
@@ -4592,7 +4602,7 @@ void ZapFuncs::drawGhost()
                 nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
                                                  &ptProps, &stateFlags,
                                                  &changeFlags, handleFlags, 0,
-                                                 scaleSizes);
+                                                 sScaleSizes);
                 if (changeFlags & CHANGED_COLOR)
                   setGhostColor(ptProps.red, ptProps.green, 
                                    ptProps.blue);
@@ -4745,17 +4755,17 @@ void ZapFuncs::setCursor(int mode, bool setAnyway)
   Qt::CursorShape shape;
 
   // Set up a special cursor for the rubber band
-  if (mStartingBand || (mRubberband && (moveband || dragband)) ||
+  if (mStartingBand || (mRubberband && (sMoveBand || sDragBand)) ||
       mShiftingCont) {
-    if (mStartingBand || moveband || mShiftingCont)
+    if (mStartingBand || sMoveBand || mShiftingCont)
       shape = Qt::SizeAllCursor;
-    else if (dragging[0] && dragging[2] || dragging[1] && dragging[3])
+    else if (sDragging[0] && sDragging[2] || sDragging[1] && sDragging[3])
       shape = Qt::SizeFDiagCursor;
-    else if (dragging[1] && dragging[2] || dragging[0] && dragging[3])
+    else if (sDragging[1] && sDragging[2] || sDragging[0] && sDragging[3])
       shape = Qt::SizeBDiagCursor;
-    else if (dragging[0] || dragging[1])
+    else if (sDragging[0] || sDragging[1])
       shape = Qt::SizeHorCursor;
-    else if (dragging[2] || dragging[3])
+    else if (sDragging[2] || sDragging[3])
       shape = Qt::SizeVerCursor;
     if (shape != mLastShape || setAnyway) {
 
@@ -4803,627 +4813,3 @@ void ZapFuncs::setDrawCurrentOnly(int value)
   imodInfoUpdateOnly(value);
 }
 
-/*
-
-$Log$
-Revision 4.163  2011/03/01 18:39:39  mast
-Added q hot key for measuring distance
-
-Revision 4.162  2011/02/12 05:11:11  mast
-Use preference to start in HQ mode; add method to return window drawing image
-
-Revision 4.161  2011/02/07 16:12:39  mast
-Convert zap structure to class, most functions to members
-
-Revision 4.160  2011/02/04 03:53:18  mast
-Added second fixed point to mouse stretching
-
-Revision 4.159  2011/01/31 04:21:54  mast
-Use new wheel scaling function and make scroll wheel size change undoable
-
-Revision 4.158  2011/01/13 20:29:29  mast
-stipple gaps; draw connector squares one pixel bigger
-
-Revision 4.157  2010/12/18 05:44:30  mast
-Use new common functions for montage snapshots
-
-Revision 4.156  2010/12/15 06:14:41  mast
-Changes for setting resolution in image snapshots
-
-Revision 4.155  2010/12/08 05:34:16  mast
-Fixed rubberband Z limits when there is Z binning for message and trimvol
-
-Revision 4.154  2010/04/21 22:47:54  mast
-Allowed full size piece for panel with scale bar in montage snapshot
-
-Revision 4.153  2010/04/21 05:04:18  mast
-Copy montage snapshot pieces from middle of overlap to minimize scalebar
- truncation; improve scaling with whole 1:1 montage
-
-Revision 4.152  2010/04/01 02:41:48  mast
-Called function to test for closing keys, or warning cleanup
-
-Revision 4.151  2010/02/22 21:34:09  mast
-Stop drawing points below threshold
-
-Revision 4.150  2010/01/22 03:05:51  mast
-Call new function to make scale bar work when doing montage snapshot
-
-Revision 4.149  2009/11/11 19:28:46  mast
-Changes for hot key to break contour
-
-Revision 4.148  2009/09/02 18:41:02  mast
-Fixed crash when adding with limited points per contour and empty contours
-
-Revision 4.147  2009/06/05 15:44:02  mast
-Keep track of mouse press/release and adjust button state after flushing
-mouse moves so there is no move after a release
-
-Revision 4.146  2009/04/22 03:43:44  mast
-Store last mouse position on mouse click
-
-Revision 4.145  2009/04/21 05:43:29  mast
-debug version
-
-Revision 4.144  2009/04/06 19:37:54  mast
-Changes to preserve cursor state in Mac Qt 4.5
-
-Revision 4.143  2009/03/30 18:27:09  mast
-Check in the right file
-
-Revision 4.141  2009/03/26 05:42:01  mast
-New nearest section ghost mode
-
-Revision 4.140  2009/03/22 21:18:49  mast
-Keep general events from being processed whenever app or window is closing
-
-Revision 4.139  2009/03/22 19:41:51  mast
-Changes for cocoa/OS 10.5: fill toolbar text boxes 3 times, test if window
-open before passing on general events
-
-Revision 4.138  2009/03/14 00:43:33  mast
-Made sure mouse move set limits regardless, fixed rubberband moving float
-
-Revision 4.137  2009/03/10 04:34:33  mast
-Draw triangles for open contour ends, draw squares at connectors
-
-Revision 4.136  2009/03/05 00:59:16  mast
-Flush mouse move events to get to most recent one when appropriate
-
-Revision 4.135  2009/02/25 05:35:08  mast
-Turn off dialog updates during continuous draw; add shift-Page commands
-
-Revision 4.134  2009/01/15 16:33:18  mast
-Qt 4 port
-
-Revision 4.133  2008/12/17 00:10:06  mast
-Switched trimvol statement from -yz to -rx
-
-Revision 4.132  2008/12/08 17:27:42  mast
-Fixed crash potential and background line problems with montage snapshots
-Added scaling of sizes and thicknesses; added whole 1:1 snapshot
-
-Revision 4.131  2008/11/28 06:39:45  mast
-Don't draw extra ojects with odel view only flag set
-
-Revision 4.130  2008/11/14 20:05:52  mast
-Stopped drawing cross in center of sphere if on section only
-
-Revision 4.129  2008/11/07 19:27:53  mast
-Fixed setting of subarea at end of dragging rubberband
-
-Revision 4.128  2008/09/24 02:40:03  mast
-Call new attach function
-
-Revision 4.127  2008/09/23 15:13:44  mast
-Added mouse wheel scrolling of point size
-
-Revision 4.126  2008/08/19 20:01:40  mast
-Made it zoom with + as well as =
-
-Revision 4.125  2008/08/01 19:24:01  mast
-Added protection against small movements soon after button 2 press
-
-Revision 4.124  2008/08/01 15:37:55  mast
-Moved draw routine to global so imodview can draw top zap
-
-Revision 4.123  2008/07/16 04:29:46  mast
-Made drag drawing respect contour limit
-
-Revision 4.122  2008/05/27 05:41:12  mast
-Adapted to gray-scale snapshot, fixed current point change on mouse up
-
-Revision 4.121  2008/05/23 04:31:44  mast
-Changed to do nontiff montage snapshots
-
-Revision 4.120  2008/05/02 20:40:50  mast
-Do not draw extra object if its OFF flag is set
-
-Revision 4.119  2008/04/04 21:22:19  mast
-Free contour after adding to object, fix freeing of extra obj
-
-Revision 4.118  2008/03/06 00:08:38  mast
-Made rubber band moving happen before letting a plugin take a mouse event
-
-Revision 4.117  2008/02/22 00:35:43  sueh
-bug# 1076 In zapPrintInfo removed \n from the return string because it
-messes up the trimvol process.
-
-Revision 4.116  2008/02/06 16:33:06  sueh
-bug# 1065, bug# 1076 Simplified getLowHighSection.  Made drawing optional in
-zapToggleRubberband.  Turn off rubberband when flipping.  Send an error to the
-info windows when the low and high sections are out of range.  Pass the trimvol
-string back from zapPrintInfo.  In zapPrintInfo made printing the info optional.
-
-Revision 4.115  2008/02/05 20:30:00  sueh
-bug# 1065 In zapPrintInfo removed test call to zapReportRubberband.
-
-Revision 4.114  2008/02/05 19:57:47  sueh
-bug# 1065 Added getLowHighSection to get the low and high section numbers
-from the ZaP windows.  Added low and high section numbers to the output from
-zapPrintInfo and zapReportRubberband.  In zapToggleRubberband set the low
-and high section toolbar field state in the ZaP window.
-
-Revision 4.113  2008/01/25 20:22:58  mast
-Changes for new scale bar
-
-Revision 4.112  2008/01/20 17:40:36  mast
-Oops, needed to multiply not divide by 255 for setting ghost color
-
-Revision 4.111  2008/01/19 22:29:49  mast
-Fixed call to set custom ghost color in extra object draw, although
-not clear why it is there!
-
-Revision 4.110  2008/01/14 19:48:22  mast
-Added function to return mouse image coords to plugin
-
-Revision 4.109  2008/01/13 23:19:22  mast
-Fixed some compilation issues
-
-Revision 4.108  2008/01/13 22:58:35  mast
-Changes for multi-Z window
-
-Revision 4.107  2007/12/04 18:46:13  mast
-Moved functions to util, added cursor-like and other drawing capabilities and
-expanded draw control when plugin uses mouse.
-
-Revision 4.106  2007/11/27 17:53:32  mast
-Add stipple display if enabled
-
-Revision 4.105  2007/11/16 23:12:12  mast
-Use new routines to set and restore ghost color
-
-Revision 4.104  2007/11/10 04:07:10  mast
-Changes for setting snapshot directory
-
-Revision 4.103  2007/09/20 22:05:37  mast
-Defined RADIANS_PER_DEGREE once
-
-Revision 4.102  2007/08/13 16:04:50  mast
-Changes for locator window
-
-Revision 4.101  2007/07/19 22:29:19  mast
-Added hot keys for jumping to set limits in time
-
-Revision 4.100  2007/07/12 17:32:07  mast
-Changed for new version of offset routine
-
-Revision 4.99  2007/06/26 21:57:56  sueh
-bug# 1021 Removed win_support.
-
-Revision 4.98  2007/06/26 17:08:40  sueh
-bug# 1021 Moved the bodies of shared functions setControlAndLimits,
-zapDraw, and zapStepZoom to win_support.
-
-Revision 4.97  2007/06/15 21:19:07  mast
-Save and restore ctrlist current item when scanning list just to be safe
-
-Revision 4.96  2007/06/08 04:45:15  mast
-Implemented ability to constrain open contours to planes
-
-Revision 4.95  2007/06/07 03:56:39  mast
-Fix xyzmouse position when a drag draw finishes, and update info
-
-Revision 4.94  2007/05/31 16:23:10  mast
-Changes for using hot toolbar
-
-Revision 4.93  2007/05/29 14:51:00  mast
-Found most recent active zap for rubberband report, changed info output
-to give trimvol info with size, offset info secondary
-
-Revision 4.92  2007/05/06 03:26:09  mast
-Added calls to b3dSetMovieSnapping
-
-Revision 4.91  2007/03/29 04:55:49  mast
-Fixed crash bug when closing window while focus is in edit/spinbox
-
-Revision 4.90  2007/03/09 15:27:50  mast
-Added ability to autosnapshot montages
-
-Revision 4.89  2006/10/05 15:41:32  mast
-Provided for primary and second non-TIFF snapshot format
-
-Revision 4.88  2006/10/04 20:08:23  mast
-Fixed window size being too small for toolbar due to new size text
-
-Revision 4.87  2006/09/18 15:51:51  mast
-Stopped time movie with a time step action
-
-Revision 4.86  2006/09/17 18:15:59  mast
-Changes to provide mouse position to pixelview
-
-Revision 4.85  2006/09/06 23:11:29  mast
-Fixed Ctrl-A with no rubberband and added Ctrl-Shift A for all objects
-
-Revision 4.84  2006/08/31 23:27:45  mast
-Changes for stored value display
-
-Revision 4.83  2006/08/24 21:28:25  mast
-Refresh graph windows when rubber band changes, fixed an initialization bug
-
-Revision 4.82  2006/07/05 04:16:04  mast
-Use flag to determine which color to give which image in overlay
-
-Revision 4.81  2006/07/03 04:14:21  mast
-Changes for beadfixer overlay mode
-
-Revision 4.80  2006/06/09 20:25:39  mast
-Added ability to display spheres on center section only
-
-Revision 4.79  2006/04/01 23:43:14  mast
-Added size output to toolbar
-
-Revision 4.78  2006/03/01 19:13:06  mast
-Moved window size/position routines from xzap to dia_qtutils
-
-Revision 4.77  2006/02/13 05:13:04  mast
-Call plugins with mouse events
-
-Revision 4.76  2006/01/26 18:45:04  mast
-Set up montage snapshot to defer swapping and read from back buffer
-
-Revision 4.75  2006/01/25 23:11:41  mast
-Fixed zap montage snapshot for quadro card and prevented negative overlaps
-
-Revision 4.74  2005/09/15 14:31:52  mast
-Added montage snapshot
-
-Revision 4.73  2005/09/12 14:24:06  mast
-Added function to get rubber band coordinates
-
-Revision 4.72  2005/09/11 19:29:23  mast
-Added fine-grained display properties to ghost display
-
-Revision 4.71  2005/06/29 05:41:03  mast
-Register changes properly on drag additions with fine grain storage
-
-Revision 4.70  2005/06/26 19:38:10  mast
-Added logic for fine-grained changes
-
-Revision 4.69  2005/06/16 21:46:59  mast
-Allowed Ctrl-A selection of open contours passing through selection area
-
-Revision 4.68  2005/06/15 23:08:36  mast
-Made 1 and 2 change locked time, fixed buffer flushing problem with locked
-time, and allowed Ctrl A to select contours outside the image range
-
-Revision 4.67  2005/04/12 14:47:39  mast
-Changed handling of subset area recording so that it occurs right
-within the draw, after area is determined, then bwfloat is called to
-adjust contrast before the pixel draw is done.  This happens for
-active window and also on external draw of single zap.
-
-Revision 4.66  2005/03/30 02:39:15  mast
-Fixed bugs in yesterdays additions
-
-Revision 4.65  2005/03/29 00:59:11  mast
-Made mouse change when moved over rubber band; moved time to 2nd toolbar
-
-Revision 4.64  2005/03/20 19:55:37  mast
-Eliminating duplicate functions
-
-Revision 4.63  2005/03/08 02:30:21  mast
-Made sure subarea is set properly after a resize and translations
-
-Revision 4.62  2005/03/07 06:17:23  mast
-Synchronized toolbar button properly when turning off rubberband
-
-Revision 4.61  2005/02/24 22:36:00  mast
-Implemented multiple-object selection for Ctrl-A and the drag-select,
-and allowed contours from multiple objects to be shifted/transformed
-
-Revision 4.60  2005/02/19 01:30:46  mast
-Set center of rotation wih ctrl-button 2; allow shift/xform when no
-current point is defined
-
-Revision 4.59  2005/02/09 01:18:45  mast
-Added ability to rotate/stretch/scale contours, made it work with multiple
-contours
-
-Revision 4.58  2004/12/22 15:21:15  mast
-Fixed problems discovered with Visual C compiler
-
-Revision 4.57  2004/12/02 21:41:59  mast
-Fixed method for detecting segment crossing in new drag select
-
-Revision 4.56  2004/12/01 18:19:14  mast
-Added Ctrl-drag selection, converted help to html
-
-Revision 4.55  2004/11/29 19:25:21  mast
-Changes to do QImage instead of RGB snapshots
-
-Revision 4.54  2004/11/21 05:50:34  mast
-Switch from int to float for nearest point distance measurement
-
-Revision 4.53  2004/11/20 05:05:27  mast
-Changes for undo/redo capability
-
-Revision 4.52  2004/11/12 01:21:55  mast
-Made line thicknesses be 1 for current image point and band, and have
-object's thickness for current contour markers
-
-Revision 4.51  2004/11/04 17:02:41  mast
-Changes for switching to shifting contour as a mode that is turned on
-
-Revision 4.50  2004/11/02 20:22:35  mast
-Added contour shift capability; switched to curpoint color for current point
-
-Revision 4.49  2004/11/02 00:52:32  mast
-Added multiple selection logic and image-based rubber band
-
-Revision 4.48  2004/09/10 02:31:04  mast
-replaced long with int
-
-Revision 4.47  2004/08/31 01:27:15  mast
-Changed info output to be in unbinned coordinates and used floor instead
-of int to avoid rounding error of negative coordinates
-
-Revision 4.46  2004/07/11 18:32:17  mast
-Fixed bug in detecting when to start new contour after autocontouring.
-Implemented light ghost option and all object ghost option.  Used new
-functions for getting contour to add points to and setting new contour time.
-
-Revision 4.45  2004/07/10 23:30:49  mast
-FIxed subset area for autocontrast, made ghost have object line thickness
-
-Revision 4.44  2004/06/23 04:46:28  mast
-Fixed hang on opening window at 0.1 zoom in Windows
-
-Revision 4.43  2004/05/31 23:35:26  mast
-Switched to new standard error functions for all debug and user output
-
-Revision 4.42  2004/05/31 02:16:15  mast
-Changed to starting a new contour if time does not match for any kind of
-object, not just closed contour
-
-Revision 4.41  2004/05/07 22:10:45  mast
-Added text to identify rubberband report
-
-Revision 4.40  2004/05/05 17:34:51  mast
-Added rubberband toolbutton and call to report coordinates from first\zap window with
-
-Revision 4.39  2004/01/05 18:35:46  mast
-Divide point sizes by xy binning for display
-
-Revision 4.38  2003/12/18 22:47:27  mast
-Fixed problem with float when starting movie snapshots, implemented ability
-to start at current point, and made changes because of slicer movies
-
-Revision 4.37  2003/11/25 01:15:02  mast
-Move the window again after the show for Mac OS 10.3
-
-Revision 4.36  2003/11/13 20:08:16  mast
-made spillover factor in setting zoom to a remembered window size the
-same as factor when no remembered size is available
-
-Revision 4.35  2003/10/31 01:29:24  mast
-Reset drawn area when rubber band is turned off
-
-Revision 4.34  2003/10/30 06:28:44  mast
-Specified that "a" hot key is lower case
-
-Revision 4.33  2003/09/25 21:10:04  mast
-Keep zap window on the screen when it is positioned from settings
-
-Revision 4.32  2003/09/24 17:40:31  mast
-Switch to restorable geometry call for resizing
-
-Revision 4.31  2003/09/24 00:49:04  mast
-Switched from keeping track of geometry to keeping track of pos() and
-size() when saving and restoring positions and sizes
-
-Revision 4.30  2003/09/18 00:47:20  mast
-Added some functions for limiting window area to the desktop, with system-
-dependent Y positions; got geometry setting stable by setting it after the
-window is first displayed; changed mouse panning to move image along with
-mouse instead of slower than mouse for fractional zooms; added ability to
-keep track of window or rubberband limits of image for last active window.
-
-Revision 4.28  2003/09/17 04:45:37  mast
-Added ability to use window size from settings, made it zoom images
-up or down as appropriate to fit window, and rationalized the window
-size and position limiting logic
-
-Revision 4.27  2003/09/16 02:58:39  mast
-Changed to access image data using new line pointers and adjust for
-slight changes in X zoom with fractional zooms
-
-Revision 4.26  2003/09/13 04:30:31  mast
-Switch to getting and setting geometry when resize to fit, to prevent the
-window from moving when there is no size change.
-Also add a hack to prevent bad drawing after resize on Mac with Qt 3.2.1
-
-Revision 4.25  2003/08/08 16:40:51  mast
-Fixed problem with current point display when model display turned off
-
-Revision 4.24  2003/06/27 19:25:28  mast
-Add ability to draw extra object that is not part of model
-
-Revision 4.23  2003/06/18 05:54:33  mast
-Start a new contour if section or time changes while dragging
-
-Revision 4.22  2003/05/23 02:44:20  mast
-Fix syncing to new point in other Zap windows
-
-Revision 4.21  2003/05/04 18:37:14  mast
-Fixing help
-
-Revision 4.20  2003/05/03 00:16:59  mast
-Fixed problem on connecting lines being drawn between non-contiguous points
-for wild contours; drawing non-wild contours separately shuld also speed
-them up.
-
-Revision 4.19  2003/04/25 03:28:33  mast
-Changes for name change to 3dmod
-
-Revision 4.18  2003/04/18 20:16:39  mast
-Rename meta test function
-
-Revision 4.17  2003/04/18 20:08:55  mast
-Reject the Ctrl (meta) key on the Mac
-
-Revision 4.16  2003/04/17 19:06:50  mast
-various changes for Mac
-
-Revision 4.15  2003/04/14 15:38:10  mast
-Fixing help error
-
-Revision 4.14  2003/04/14 15:31:02  mast
-fixing documentation
-
-Revision 4.13  2003/03/25 23:01:35  mast
-Take nearest int in checking for current point Z value when adding points
-
-Revision 4.12  2003/03/24 17:56:46  mast
-Register with dialogManager so it can be parked with info window
-
-Revision 4.11  2003/03/13 01:20:08  mast
-Convert numlock keypad keys so num lock can be on
-
-Revision 4.10  2003/03/12 21:35:23  mast
-Test if no CIImage is returned and give error message
-
-Revision 4.9  2003/03/12 06:36:53  mast
-Fixed problem of adding or modifying points at the wrong time
-
-Revision 4.8  2003/03/04 05:38:48  mast
-cleanup
-
-Revision 4.7  2003/03/04 05:35:48  mast
-Fix current point size bug
-
-Revision 4.6  2003/03/03 22:43:43  mast
-Added ability to display spheres for all points with size and eliminated
-separate routine for drawing current contour.
-Made rubber band work by initially defining it, and added cursor changes
-when the rubber band is grabbed.
-Implemented dynamic sizes for current and end point markers.
-Added continuous mouse tracking while the Insert key is down, so it works
-with or without keyboard repeat being set.
-Improved tracking of initial movements with left mouse button.
-
-Revision 4.5  2003/02/28 20:58:55  mast
-adjusting geometry for Windows
-
-Revision 4.4  2003/02/27 19:49:39  mast
-Set geometry to stay on screen for Windows
-
-Revision 4.3  2003/02/20 16:02:15  mast
-Make current contour not display at wrong time
-
-Revision 4.2  2003/02/14 01:12:47  mast
-cleanup unused variables
-
-Revision 4.1  2003/02/10 20:29:03  mast
-autox.cpp
-
-Revision 1.1.2.20  2003/02/04 19:08:29  mast
-fix syncing to model point when changing contour or point via hotkey
-
-Revision 1.1.2.19  2003/01/30 06:17:47  mast
-Add ability to change range of Z slider on image flip
-
-Revision 1.1.2.18  2003/01/30 00:46:27  mast
-New timer logic and cleanup
-
-Revision 1.1.2.17  2003/01/29 01:49:33  mast
-changes for colormap mode, fix closing calls to ivwControl
-
-Revision 1.1.2.16  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.15  2003/01/23 20:12:47  mast
-implement variable ghost distance
-
-Revision 1.1.2.14  2003/01/14 21:52:38  mast
-include new movie controller include file
-
-Revision 1.1.2.13  2003/01/13 01:15:43  mast
-changes for Qt version of info window
-
-Revision 1.1.2.12  2003/01/06 15:51:17  mast
-Use imodcaption and viewport setting routines
-
-Revision 1.1.2.11  2003/01/04 03:42:05  mast
-simplified closing logic
-
-Revision 1.1.2.10  2003/01/02 15:44:19  mast
-accept key input from controller
-
-Revision 1.1.2.9  2002/12/17 22:28:21  mast
-cleanup of unused variables and SGI errors
-
-Revision 1.1.2.8  2002/12/17 18:28:47  mast
-Adding timer for second draw after resize
-
-Revision 1.1.2.7  2002/12/14 05:23:42  mast
-backing out the fancy subclass, adjusting for new visual detection
-
-Revision 1.1.2.6  2002/12/13 07:09:19  mast
-GLMainWindow needed different name for mouse event processors
-
-Revision 1.1.2.5  2002/12/13 06:06:29  mast
-using new glmainwindow and mainglwidget classes
-
-Revision 1.1.2.4  2002/12/12 01:24:50  mast
-Added Z slider
-
-Revision 1.1.2.3  2002/12/10 16:57:34  mast
-preventing multiple draws, implementing current contour draw while dragging
-
-Revision 1.1.2.2  2002/12/09 23:23:49  mast
-Plugged image memory leak
-
-Revision 1.1.2.1  2002/12/09 17:50:33  mast
-Qt version
-
-Revision 3.9  2002/12/01 16:51:34  mast
-Changes to eliminate warnings on SGI
-
-Revision 3.8  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.7  2002/11/14 01:15:56  mast
-Prevent 3rd mouse button drag from moving scattered points or points off
-the section
-
-Revision 3.6  2002/10/22 22:41:47  mast
-Changed some debug messages for the expose timeouts
-
-Revision 3.5  2002/09/13 21:03:58  mast
-Changes to minimize crashes with Ti4600 when resizing window with R -
-elimination of interfering draws, and postpone of draw after expose events
-
-Revision 3.4  2002/07/28 22:58:42  mast
-Made I pop Info window to front and added a button to toolbar to do this
-
-Revision 3.3  2002/07/21 20:29:50  mast
-changed number of columns for section number to 4
-
-Revision 3.2  2002/01/28 16:53:59  mast
-Added section number to call to b3dDrawGreyScalePixelsHQ
-
-Revision 3.1  2001/12/17 18:52:40  mast
-Added hotkeys to do smoothing and next section in autocontouring
-
-*/
