@@ -99,7 +99,7 @@ int main( int argc, char *argv[])
   int invert = 0, reverse = 0, ifThresh = 0, ifProj = 0, rgbOut = 0;
   int numFiles, objnum, allsec = 0;
   int nxout, nyout, nzout, inside, numOptArgs,numNonOptArgs;
-  float start_tilt, end_tilt, inc_tilt;
+  float start_tilt, end_tilt, inc_tilt, xscl, yscl, zscl;
   float thresh, smin, smax, revMax, size, mask = 0.;
   Ival val, pval;
 
@@ -483,6 +483,8 @@ int main( int argc, char *argv[])
     outMode = MRC_MODE_RGB;
   for (i = 0; i < numFiles; i++) {
     mrc_head_new(&hdout[i], nxout, nyout, nzout, outMode);
+    mrc_get_scale(&hdata, &xscl, &yscl, &zscl);
+    mrc_set_scale(&hdout[i], (double)xscl, (double)yscl, (double)zscl);
     mrc_head_label_cp(&hdata, &hdout[i]);
     sprintf(comStr, "%s: Painted image from model", progname);
     mrc_head_label(&hdout[i], comStr);
@@ -1211,6 +1213,9 @@ static int itemOnList(int item, int *list, int num)
 /*
 
 $Log$
+Revision 3.16  2011/03/05 03:36:08  mast
+Allow environment variable to prevent backing up file
+
 Revision 3.15  2011/02/23 15:24:51  mast
 Output FFT mask as real component only
 
