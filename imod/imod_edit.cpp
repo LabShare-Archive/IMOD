@@ -24,47 +24,35 @@ static float imod_distance( float *x, float *y, Ipoint *pnt);
 /* DNM 1/23/03: eliminate imod_movepoint */
 /* moved point by adding x,y, and z to current model point. */
 
-
-/* sets the current graphics position to the same as the current model
- * position. 
- *
- * Sets current time also.
- */
-
-int imod_setxyzmouse()
+/* Tests whether the contour is in the selection area.  Either it must be 
+   entirely within the area, or it must be an open wild contour and have points
+   on the current section that are all within the area */
+int imodContInSelectArea(Iobj *obj, Icont *cont, Ipoint selmin, Ipoint selmax)
 {
-  return(imod_redraw(App->cvi));
-}
+  Ipoint pmin, pmax;
+  int pt, inRange = 0;
+  Ipoint *pnt;
 
-int imod_redraw(ImodView *vw)
-{
-  Imod *imod = ivwGetModel(vw);
-  Iobj  *obj = NULL;
-  Icont *cont = NULL;
-  int   index;
+  imodContourGetBBox(cont, &pmin, &pmax);
+  if (pmin.x >= selmin.x && pmax.x <= selmax.x &&
+      pmin.y >= selmin.y && pmax.y <= selmax.y &&
+      pmin.z >= selmin.z && pmax.z <= selmax.z)
+    return 1;
+  if (!(iobjOpen(obj->flags) && (cont->flags & ICONT_WILD)))
+    return 0;
 
-  if ( (index = imod->cindex.point) < 0){
-    imodDraw(vw, IMOD_DRAW_MOD);
-    return(1);
+  // Wild open contour is no good if a point in the Z range is outside the
+  // X/Y range
+  for (pt = 0; pt < cont->psize; pt++) {
+    pnt = &cont->pts[pt];
+    if (pnt->z >= selmin.z && pnt->z <= selmax.z) {
+      inRange = 1;
+      if (pnt->x < selmin.x || pnt->x > selmax.x ||
+          pnt->y < selmin.y || pnt->y > selmax.y)
+        return 0;
+    }
   }
-
-  cont = imodContourGet(imod);
-  if (cont == NULL){
-    imodDraw(vw, IMOD_DRAW_MOD);
-    return(1);
-  }
-  if ((cont->pts == NULL) || (cont->psize <= index)){
-    imodDraw(vw, IMOD_DRAW_MOD);
-    return(1);
-  }
-
-  obj = imodObjectGet(imod);
-  if (iobjFlagTime(obj))
-    ivwSetTime(vw, cont->time);
-
-  ivwSetLocationPoint(vw, &(cont->pts[index]));
-
-  return(0);
+  return inRange;
 }
 
 
@@ -459,6 +447,9 @@ void imodSelectionNewCurPoint(ImodView *vi, Imod *imod, Iindex indSave,
 
 /*
 $Log$
+Revision 4.12  2008/09/24 02:38:51  mast
+Added function for finding nearest point in all objects (on or not)
+
 Revision 4.11  2007/07/08 16:45:23  mast
 Added functions to count number of selected objects and move all contours in
 object to new object

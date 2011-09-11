@@ -1632,6 +1632,49 @@ void ivwSetLocationPoint(ImodView *vi, Ipoint *pnt)
   imodDraw(vi, IMOD_DRAW_ALL);
 }
 
+/* sets the current graphics position to the same as the current model
+ * position. 
+ *
+ * Sets current time also.
+ */
+
+int imod_setxyzmouse()
+{
+  return(imod_redraw(App->cvi));
+}
+
+int imod_redraw(ImodView *vw)
+{
+  Imod *imod = ivwGetModel(vw);
+  Iobj  *obj = NULL;
+  Icont *cont = NULL;
+  int   index;
+
+  if ( (index = imod->cindex.point) < 0){
+    imodDraw(vw, IMOD_DRAW_MOD);
+    return(1);
+  }
+
+  cont = imodContourGet(imod);
+  if (cont == NULL){
+    imodDraw(vw, IMOD_DRAW_MOD);
+    return(1);
+  }
+  if ((cont->pts == NULL) || (cont->psize <= index)){
+    imodDraw(vw, IMOD_DRAW_MOD);
+    return(1);
+  }
+
+  obj = imodObjectGet(imod);
+  if (iobjFlagTime(obj))
+    ivwSetTime(vw, cont->time);
+
+  ivwSetLocationPoint(vw, &(cont->pts[index]));
+
+  return(0);
+}
+
+
 void ivwSetMovieModelMode(ImodView *vi, int mode)
 {
   imod_set_mmode(mode);

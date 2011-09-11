@@ -2062,7 +2062,7 @@ void BeadFixer::deleteBelow()
             !(store->flags & GEN_STORE_SURFACE) && store->value.f < thresh) {
           index.contour = store->index.i;
           if (index.contour > 0 && index.contour < obj->contsize) {
-            if (utilContInSelectArea(obj, &obj->cont[index.contour], selmin, selmax)) {
+            if (imodContInSelectArea(obj, &obj->cont[index.contour], selmin, selmax)) {
               if (!anydel)
                 imodSelectionListClear(vi);
               imodSelectionListAdd(vi, index);

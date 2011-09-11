@@ -357,7 +357,7 @@ static void zapDraw_cb(ImodView *vi, void *client, int drawflag)
   int snaptype = imcGetSnapshot(zap->mVi);
 
   if (imodDebug('z'))
-    imodPrintStderr("Zap Draw\n");
+    imodPrintStderr("Zap Draw  flags %x\n", drawflag);
 
   if (!zap)
     return;
@@ -1490,7 +1490,7 @@ void ZapFuncs::keyInput(QKeyEvent *event)
         if (indp->object < imod->objsize) {
           obj = &imod->obj[indp->object];
           if (indp->contour < obj->contsize) {
-            if (utilContInSelectArea(obj, &(obj->cont[indp->contour]), selmin,
+            if (imodContInSelectArea(obj, &(obj->cont[indp->contour]), selmin,
                                      selmax))
               continue;
           }
@@ -1512,7 +1512,7 @@ void ZapFuncs::keyInput(QKeyEvent *event)
         indadd.point = -1;
         for (i = 0; i < obj->contsize; i++) {
           indadd.contour = i;
-          if (utilContInSelectArea(obj, &(obj->cont[i]), selmin, selmax)) {
+          if (imodContInSelectArea(obj, &(obj->cont[i]), selmin, selmax)) {
             imodSelectionListAdd(vi, indadd);
             imod->cindex = indadd;
           }

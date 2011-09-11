@@ -31,6 +31,8 @@ int  ivwScale(ImodView *vw);
 int  ivwFlip(ImodView *vw);
 void ivwInit(ImodView *vi, bool modview);
 int  ivwPointVisible(ImodView *vw, Ipoint *pnt);
+int imod_setxyzmouse(void);
+int imod_redraw(ImodView *vw);
 
 int  imodImageFileDesc(FILE *fin);
 int  ivwLoadIMODifd(ImodView *vi);

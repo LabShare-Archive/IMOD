@@ -29,7 +29,6 @@ void utilDrawSymbol(int mx, int my, int sym, int size, int flags);
 void utilCurrentPointSize(Iobj *obj, int *modPtSize, int *backupSize,
                           int *imPtSize);
 void utilGetLongestTimeString(ImodView *vi, QString *str);
-int utilContInSelectArea(Iobj *obj, Icont *cont, Ipoint selmin, Ipoint selmax);
 bool utilEnableStipple(ImodView *vi, Icont *cont);
 void utilDisableStipple(ImodView *vi, Icont *cont);
 void utilClearWindow(int index);

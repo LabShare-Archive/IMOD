@@ -10,6 +10,8 @@
  *  $Id$
  */
 
+// NOTE: purely model-related utilities go in imod_edit.cpp
+
 #include <stdarg.h>
 #include <qcolor.h>
 #include <qicon.h>
@@ -123,37 +125,6 @@ void utilCurrentPointSize(Iobj *obj, int *modPtSize, int *backupSize,
     *backupSize = symSize + 2;
   if (symSize - *imPtSize < 2 && *imPtSize - symSize < 2)
     *imPtSize = symSize + 2;
-}
-
-/* Tests whether the contour is in the selection area.  Either it must be 
-   entirely within the area, or it must be an open wild contour and have points
-   on the current section that are all within the area */
-int utilContInSelectArea(Iobj *obj, Icont *cont, Ipoint selmin, Ipoint selmax)
-{
-  Ipoint pmin, pmax;
-  int pt, inRange = 0;
-  Ipoint *pnt;
-
-  imodContourGetBBox(cont, &pmin, &pmax);
-  if (pmin.x >= selmin.x && pmax.x <= selmax.x &&
-      pmin.y >= selmin.y && pmax.y <= selmax.y &&
-      pmin.z >= selmin.z && pmax.z <= selmax.z)
-    return 1;
-  if (!(iobjOpen(obj->flags) && (cont->flags & ICONT_WILD)))
-    return 0;
-
-  // Wild open contour is no good if a point in the Z range is outside the
-  // X/Y range
-  for (pt = 0; pt < cont->psize; pt++) {
-    pnt = &cont->pts[pt];
-    if (pnt->z >= selmin.z && pnt->z <= selmax.z) {
-      inRange = 1;
-      if (pnt->x < selmin.x || pnt->x > selmax.x ||
-          pnt->y < selmin.y || pnt->y > selmax.y)
-        return 0;
-    }
-  }
-  return inRange;
 }
 
 /* Turn on stippling if globally enabled and contour has flag set */
