@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <stdarg.h>
@@ -124,6 +123,37 @@ void utilCurrentPointSize(Iobj *obj, int *modPtSize, int *backupSize,
     *backupSize = symSize + 2;
   if (symSize - *imPtSize < 2 && *imPtSize - symSize < 2)
     *imPtSize = symSize + 2;
+}
+
+/* Tests whether the contour is in the selection area.  Either it must be 
+   entirely within the area, or it must be an open wild contour and have points
+   on the current section that are all within the area */
+int utilContInSelectArea(Iobj *obj, Icont *cont, Ipoint selmin, Ipoint selmax)
+{
+  Ipoint pmin, pmax;
+  int pt, inRange = 0;
+  Ipoint *pnt;
+
+  imodContourGetBBox(cont, &pmin, &pmax);
+  if (pmin.x >= selmin.x && pmax.x <= selmax.x &&
+      pmin.y >= selmin.y && pmax.y <= selmax.y &&
+      pmin.z >= selmin.z && pmax.z <= selmax.z)
+    return 1;
+  if (!(iobjOpen(obj->flags) && (cont->flags & ICONT_WILD)))
+    return 0;
+
+  // Wild open contour is no good if a point in the Z range is outside the
+  // X/Y range
+  for (pt = 0; pt < cont->psize; pt++) {
+    pnt = &cont->pts[pt];
+    if (pnt->z >= selmin.z && pnt->z <= selmax.z) {
+      inRange = 1;
+      if (pnt->x < selmin.x || pnt->x > selmax.x ||
+          pnt->y < selmin.y || pnt->y > selmax.y)
+        return 0;
+    }
+  }
+  return inRange;
 }
 
 /* Turn on stippling if globally enabled and contour has flag set */
@@ -728,54 +758,3 @@ int imodColorValue(int inColor)
   b3dColorIndex(pixel);
   return pixel;
 }
-
-/*
-
-$Log$
-Revision 1.15  2011/01/13 20:30:56  mast
-Change stipple enabling to return bool
-
-Revision 1.14  2010/12/18 05:33:47  mast
-Added common functions for montage snapshots
-
-Revision 1.13  2010/04/01 02:41:48  mast
-Called function to test for closing keys, or warning cleanup
-
-Revision 1.12  2009/04/06 19:36:52  mast
-Added function to give flag for needing  to fix cursor
-
-Revision 1.11  2009/03/30 18:25:44  mast
-Added function to handle raising on mouse event, workaround Mac Qt 4.5.0
-
-Revision 1.10  2009/03/26 05:41:01  mast
-Change nearest section function to work for an object passed as argument
-
-Revision 1.9  2009/02/26 20:02:54  mast
-Set toolbar arrows to no focus
-
-Revision 1.8  2009/02/25 05:35:53  mast
-Add function for getting next/prev Z with contours
-
-Revision 1.7  2009/02/05 05:23:44  tempuser
-Change stipple to start with on bit instead of off bit to see dense lines
-
-Revision 1.6  2009/01/15 16:33:17  mast
-Qt 4 port
-
-Revision 1.5  2008/07/16 04:31:09  mast
-Add function to set object flag
-
-Revision 1.4  2008/02/06 21:28:00  mast
-Prevented writing to stdout/stderr if -L input (from etomo) has disconnected
-
-Revision 1.3  2008/02/03 18:36:14  mast
-Added function for converting mouse movement to in-plane rotation
-
-Revision 1.2  2008/01/13 22:26:13  mast
-Added clearing function
-
-Revision 1.1  2007/12/04 18:41:51  mast
-Added to get common functions out of xzap.cpp and imod.cpp
-
-
-*/
