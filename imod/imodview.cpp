@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */                                                                           
 
 #include <stdlib.h>
@@ -98,6 +97,7 @@ void ivwInit(ImodView *vi, bool modview)
   vi->fp         = NULL;
 
   vi->imageList  = NULL;
+  vi->image = NULL;
   vi->numTiltAngles = 0;
   vi->tiltAngles = NULL;
 
@@ -1893,7 +1893,7 @@ IrefImage *ivwGetImageRef(ImodView *vi)
   float xtrans, ytrans, ztrans;
   float xrot, yrot, zrot;
      
-  if (!ref) 
+  if (!ref || !vi->image) 
     return(NULL);
 
   xscale = vi->image->xscale;
@@ -1943,6 +1943,9 @@ void ivwSetModelTrans(ImodView *vi)
 {
   Imod *imod = vi->imod;
   IrefImage *ref, *iref;
+
+  if (vi->fakeImage)
+    return;
 
   // If there is not an existing refImage, get a new one
   if (!imod->refImage){
@@ -3348,334 +3351,3 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
     break;
   }
 }
-
-/*
-
-$Log$
-Revision 4.93  2011/03/18 04:40:44  mast
-Fixed crash loading montage, fixed tests for multifileZ in padding setup,
-changed iiReopen to ivwReopen
-
-Revision 4.92  2011/03/15 00:07:38  mast
-Fixed binning of byte data and subarea limiting when only one file
-
-Revision 4.91  2011/03/14 23:07:03  mast
-Changes for ushort loading and fixes and new routines related to undersize padding
-
-Revision 4.90  2011/03/08 05:32:52  mast
-Load maximum instead of minimum size for multiple volumes and center smaller ones
-
-Revision 4.89  2011/02/28 20:25:36  mast
-Allow user exit during large montage load
-
-Revision 4.88  2011/02/26 17:21:24  mast
-Added equal scaling option
-
-Revision 4.87  2011/02/07 16:12:39  mast
-Convert zap structure to class, most functions to members
-
-Revision 4.86  2011/01/15 06:20:48  mast
-Fixed bug in clearing extra object when freeing it
-
-Revision 4.85  2011/01/12 02:53:19  mast
-Added update function for plugins that change color/name etc
-
-Revision 4.84  2010/12/18 05:45:40  mast
-Added function for line-pointer based rectangle copy
-
-Revision 4.83  2009/08/19 21:31:16  mast
-Switched to having a variable to enable dumping FS cache
-
-Revision 4.82  2009/04/28 15:46:13  mast
-Added functions to get and set top zap center
-
-Revision 4.81  2009/03/26 05:41:44  mast
-Change to new near ghost mode as default
-
-Revision 4.80  2009/01/24 00:24:54  mast
-initialized bin variables for model view
-
-Revision 4.79  2009/01/16 20:23:24  mast
-Initialize fullCacheFlipped since it's going to be tested on
-
-Revision 4.78  2009/01/15 16:33:18  mast
-Qt 4 port
-
-Revision 4.77  2008/12/07 05:21:27  mast
-Set xyzmouse position with floating point if given an Ipoint
-
-Revision 4.76  2008/12/03 04:32:57  mast
-Made it detect 3D FFT and not mirror it
-
-Revision 4.75  2008/12/01 15:42:01  mast
-Changes for undo/redo and selection in 3dmodv standalone
-
-Revision 4.74  2008/11/28 06:38:56  mast
-Made start extra object function global
-
-Revision 4.73  2008/08/22 23:59:17  mast
-Mark default extra object as in use so it will be returned
-
-Revision 4.72  2008/08/01 15:37:20  mast
-Added function to set top zap zoom
-
-Revision 4.71  2008/07/16 04:28:17  mast
-Changed get or make contour function to get new one if point limit reached
-
-Revision 4.70  2008/07/13 16:59:36  mast
-Do not return extra object by number if it is not in use
-
-Revision 4.69  2008/07/02 15:07:46  mast
-Fixed bad bug in tilt angles when no image loaded
-
-Revision 4.68  2008/06/20 16:12:50  mast
-Return pointer to appropriate subset of tilt angles if read in subset in Z
-
-Revision 4.67  2008/05/27 05:44:22  mast
-Added tilt angle reading and access functions
-
-Revision 4.66  2008/04/29 22:30:37  mast
-Used an array for keeping track of extra objects instead of TEMPUSE flag
-
-Revision 4.65  2008/04/04 21:22:49  mast
-Fix allocating and freeing of extra objects
-
-Revision 4.64  2008/04/03 18:24:21  mast
-Made extra object clearing remove mesh too
-
-Revision 4.63  2008/04/02 04:14:21  mast
-Changes for reading from stdin
-
-Revision 4.62  2008/03/01 01:23:59  mast
-Added wrappers for getting and saving generic settings
-
-Revision 4.61  2008/01/14 19:47:59  mast
-Added new functions for Andrew
-
-Revision 4.60  2007/12/07 19:16:50  mast
-Fixed so that info window reads out the right pixel when going to a model pt
-
-Revision 4.59  2007/12/04 18:50:32  mast
-Added mouse tracking function and unlimited extra object capability
-
-Revision 4.58  2007/11/27 17:57:14  mast
-Added function to enable stipple drawing
-
-Revision 4.57  2007/09/17 19:10:23  mast
-Added environment variable to skip dumping the FS cache
-
-Revision 4.56  2007/05/29 14:43:48  mast
-Added optional time argument to fast setup routine
-
-Revision 4.55  2007/04/26 19:10:31  mast
-Adjusted reference scaling info for FFT mirroring
-
-Revision 4.54  2007/04/12 00:26:35  mast
-Set time for fake image load on multi-time model
-
-Revision 4.53  2006/10/02 15:33:13  mast
-Fixed for > 2 Gpixel image
-
-Revision 4.52  2006/09/28 21:17:28  mast
-Changes to test for impossible slice sizes and handle slices >2-4Gpixel
-
-Revision 4.51  2006/09/12 15:47:02  mast
-Handled contour member renames
-
-Revision 4.50  2006/09/03 21:30:11  mast
-Handled file opening error string properly
-
-Revision 4.49  2006/09/02 23:54:06  mast
-Added calls to scan intensities for raw type files
-
-Revision 4.48  2006/08/28 05:24:59  mast
-Changes to handle colormapped images
-
-Revision 4.47  2006/07/30 20:22:13  mast
-Do not sync on redraw after changing overlay mode
-
-Revision 4.46  2006/07/05 04:17:37  mast
-Added independent color ramp and reverse contrast for overlay mode
-
-Revision 4.45  2006/07/03 04:14:21  mast
-Changes for beadfixer overlay mode
-
-Revision 4.44  2006/04/20 23:06:30  mast
-Make wild check based on nearest integer to fix ghost displays
-
-Revision 4.43  2006/02/13 05:11:32  mast
-Added function to get movie/mouse mode
-
-Revision 4.42  2005/12/08 05:57:56  mast
-Chnage cache flushing routine to be able to flush images at one time
-
-Revision 4.41  2005/11/26 16:49:31  mast
-Made image list reading handle DOS ending and strip spaces from names
-
-Revision 4.40  2005/11/11 23:04:29  mast
-Changes for unsigned integers
-
-Revision 4.39  2005/10/16 20:26:42  mast
-Changed name of transformation function
-
-Revision 4.38  2005/10/14 22:03:56  mast
-Initialized reloadable, removed setting of maxes and bin values in model
-
-Revision 4.37  2005/10/13 20:08:44  mast
-Handle clip plane scaling then move sclae function to libimod
-
-Revision 4.36  2005/08/15 02:07:58  mast
-Fixed scaling when a model with no refImage is displayed on binned data
-
-Revision 4.35  2005/03/20 19:55:36  mast
-Eliminating duplicate functions
-
-Revision 4.34  2005/02/19 01:29:38  mast
-Added function to clear extra object
-
-Revision 4.33  2004/12/02 21:42:23  mast
-Changes for raw image loading
-
-Revision 4.32  2004/11/20 05:05:27  mast
-Changes for undo/redo capability
-
-Revision 4.31  2004/11/07 22:59:52  mast
-Make binning routine global
-
-Revision 4.30  2004/11/04 17:01:31  mast
-Changes for loading FFTs with internal mirroring
-
-Revision 4.29  2004/11/01 23:34:56  mast
-Initialized selection list
-
-Revision 4.28  2004/10/27 20:37:39  mast
-Changed cache dumper to take ImodImageFile and only dump for MRC file
-
-Revision 4.27  2004/10/22 22:18:04  mast
-Added functions for dumping file system cache after each section is
-loaded, works in Linux only
-
-Revision 4.26  2004/07/13 22:29:54  mast
-Fixed bug in getting file values for flipped data leaded as a subset
-
-Revision 4.25  2004/07/11 18:19:38  mast
-Functions to set time of new contour and get/make contour for adding points
-
-Revision 4.24  2004/07/07 19:25:29  mast
-Changed exit(-1) to exit(3) for Cygwin
-
-Revision 4.23  2004/05/31 23:35:26  mast
-Switched to new standard error functions for all debug and user output
-
-Revision 4.22  2004/01/07 01:54:25  mast
-Needed to add a '/' in using IMGDIR as prefix
-
-Revision 4.21  2004/01/06 16:55:32  mast
-Fixed handling of rgb files to do it first when processing image list
-
-Revision 4.20  2004/01/05 17:21:39  mast
-Added binning option, cleaned up file started, reorganized file
-
-Revision 4.19  2003/12/31 05:31:30  mast
-Fix problem in getFileValue when switching files
-
-Revision 4.18  2003/12/30 06:27:37  mast
-Implemented treatment of multiple single-image files as sections in Z
-
-Revision 4.17  2003/12/04 22:57:17  mast
-Set info window position for fake images too
-
-Revision 4.16  2003/11/01 18:12:17  mast
-changed to put out virtually all error messages to a window
-
-Revision 4.15  2003/10/01 05:09:11  mast
-Changes for recreation of plugin compilation capability
-
-Revision 4.14  2003/09/26 00:07:36  mast
-No longer ask for contiguous memory for more than 1 GB or image data
-
-Revision 4.13  2003/09/24 17:33:31  mast
-Add setting of info window geometry as soon as image size is known
-
-Revision 4.12  2003/09/18 00:42:43  mast
-Fixed an error message
-
-Revision 4.11  2003/09/16 02:46:18  mast
-Changed to return line pointers to images instead of actually flipping data
-and consolidated fast pixel access routines from xyz, slicer, and tumbler.
-
-Revision 4.10  2003/08/02 22:44:14  mast
-Made it possible to kill program during flip operation
-
-Revision 4.9  2003/06/27 19:28:04  mast
-Made the extra object when initializing view, and added function to
-pass the extra object.
-
-Revision 4.8  2003/05/06 02:19:13  mast
-Made ivwPointVisible use proper rounding in test
-
-Revision 4.7  2003/04/25 03:28:32  mast
-Changes for name change to 3dmod
-
-Revision 4.6  2003/03/26 01:52:39  mast
-Make decision about whether to request contiguous data or not depending
-on whether data are to be flipped, and catch and report errors when flipping
-
-Revision 4.5  2003/03/13 01:19:23  mast
-Make ivwGetTimeIndexLabel return empty string instead of NULL
-
-Revision 4.4  2003/02/27 19:42:14  mast
-Changes to filename and directory handling to work under windows
-
-Revision 4.3  2003/02/22 00:00:29  mast
-Open image files in binary mode
-
-Revision 4.2  2003/02/14 01:15:44  mast
-treat zmouse values more carefully, cleanup unused variables
-
-Revision 4.1  2003/02/10 20:29:01  mast
-autox.cpp
-
-Revision 1.1.2.4  2003/01/29 17:54:18  mast
-changed ivwGetLocation to get nearest intgere from zmouse
-
-Revision 1.1.2.3  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.2  2003/01/23 20:12:25  mast
-initialize new ghostdist variable
-
-Revision 1.1.2.1  2003/01/18 01:12:48  mast
-convert to cpp
-
-Revision 3.4.2.5  2003/01/14 21:52:38  mast
-include new movie controller include file
-
-Revision 3.4.2.4  2003/01/13 01:15:43  mast
-changes for Qt version of info window
-
-Revision 3.4.2.3  2002/12/19 04:37:13  mast
-Cleanup of unused global variables and defines
-
-Revision 3.4.2.2  2002/12/12 01:21:53  mast
-xyz no longer a member of ImodView structure
-
-Revision 3.4.2.1  2002/12/11 00:39:45  mast
-Kept it from flipping images while loading data
-
-Revision 3.4  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.3  2002/07/20 23:28:14  mast
-Store image origin in model's refImage.otrans so programs can get back
-to index corrdinates of full-sized volume
-
-Revision 3.2  2002/01/28 16:56:07  mast
-Moved setting of vi->[xyz]size up before image loading so that movie
-controller will have good sizes if it is opened while image is loading
-
-Revision 3.1  2001/12/17 18:50:42  mast
-Changed the way section usage in the cache is kept track of and added
-logic for cache filling
-
-*/
