@@ -53,7 +53,7 @@ c
       integer*4 ixstart,iystart,izstart,ixdelta,iydelta,izdelta
       integer*4 nbsrcxlo,nbsrcxhi,nbsrczlo,nbsrczhi,indv
       real*4 dmin,dmax,dmean,dum,a11,a12,a21,a22,dxsrc,dzsrc,xx,zz
-      real*4 tmp, radius2, sigma1, sigma2, sigmak, delta
+      real*4 tmp, radius2, sigma1, sigma2, sigmak, delta, ascale, bscale
       integer*4 i,j,indyb,numSeq,nxctf,nyctf,nzctf,nxptmp,nyptmp,nzptmp
       integer*4 nxpad,nypad,nzpad,npixpatch,indpatcha
       integer*4 indpatchb,indloada,indloadb,maxxload,ncont
@@ -167,9 +167,16 @@ C
 c       
       CALL IMOPEN(1,filea,'RO')
       CALL IRDHDR(1,NXYZ,MXYZ,MODE,DMIN,DMAX,DMEAN)
+      ascale = 1.
+      if (dmax - dmin .gt. 0.) ascale = 1.e10
+      if (dmax - dmin .gt. 1.e-10) ascale = 100. / (dmax - dmin)
 C       
       CALL IMOPEN(2,fileb,'RO')
       CALL IRDHDR(2,NXYZ2,MXYZ,MODE,DMIN,DMAX,DMEAN)
+      bscale = 1.
+      if (dmax - dmin .gt. 0.) bscale = 1.e10
+      if (dmax - dmin .gt. 1.e-10) bscale = 100. / (dmax - dmin)
+c      print *,'scaling factors', ascale, bscale
 C       
       if (pipinput) then
         if (PipGetThreeIntegers('PatchSizeXYZ', nxpatch,nypatch,nzpatch) .ne.
@@ -656,7 +663,7 @@ c
 c               get the a patch from the loaded data into an exact fit,
 c               taper, pad, kernel filter optionally and set to zero mean
 c               
-              call loadExtractProcess(1, buf, indloada, indpatcha, indpatchb,
+              call loadExtractProcess(1, buf, ascale, indloada, indpatcha, indpatchb,
      &            ix0, ix1, iy0, iy1, iz0, iz1, 0, ixdir, ixdelta, maxxload,
      &            nxyz, loadx0, loadx1, nxload, loady0, loady1, nyload, loadz0,
      &            loadz1, nzload, nxptmp, nyptmp, nzptmp, nxptmp, nxptmp,
@@ -664,7 +671,7 @@ c
 c               
 c               get the b patch from the loaded data padded to maximum shift
 c               
-              call loadExtractProcess(2, buf, indloadb, indpatchb, indpatchb,
+              call loadExtractProcess(2, buf, bscale, indloadb, indpatchb, indpatchb,
      &            ixb0, ixb1, iyb0, iyb1, izb0, izb1, loadex, ixdir, ixdelta,
      &            maxxload, nxyz2, loadxb0, loadxb1, nxloadb, loadyb0,
      &            loadyb1, nyloadb, loadzb0, loadzb1, nzloadb, nxptmp,
@@ -744,7 +751,7 @@ c     &            ix0, ix1,iy0, iy1,iz0, iz1,ixb0, ixb1,iyb0, iyb1,izb0, izb1
 c               
 c               get the both patches from the loaded data padded for XCorr
 c               
-              call loadExtractProcess(1, buf, indloada, indpatcha, indpatchb,
+              call loadExtractProcess(1, buf, ascale, indloada, indpatcha, indpatchb,
      &            ix0, ix1, iy0, iy1, iz0, iz1, 0, ixdir, ixdelta,
      &            maxxload, nxyz, loadx0, loadx1, nxload, loady0,
      &            loady1, nyload, loadz0, loadz1, nzload, nxptmp,
@@ -752,7 +759,7 @@ c
      &            nxtap, nytap, nztap, kernelSize, sigmak)
 c              call dumpVolume(buf(indpatcha), nxXCpad + 2, nxXCpad,
 c     &            nyXCpad, nzXCpad, 'dumpa.')
-              call loadExtractProcess(2, buf, indloadb, indpatchb, indpatchb,
+              call loadExtractProcess(2, buf, bscale, indloadb, indpatchb, indpatchb,
      &            ixb0, ixb1, iyb0, iyb1, izb0, izb1, loadex, ixdir, ixdelta,
      &            maxxload, nxyz2, loadxb0, loadxb1, nxloadb, loadyb0,
      &            loadyb1, nyloadb, loadzb0, loadzb1, nzloadb, nxptmp,
@@ -774,13 +781,13 @@ c     &            nyXCpad, nzXCpad, 'dumpcorr.')
 c               
 c               For coef, reload the patches without the 2-pixel X padding
 c
-              call loadExtractProcess(1, buf, indloada, indpatcha, indpatchb,
+              call loadExtractProcess(1, buf, ascale, indloada, indpatcha, indpatchb,
      &            ix0, ix1, iy0, iy1, iz0, iz1, 0, ixdir, ixdelta,
      &            maxxload, nxyz, loadx0, loadx1, nxload, loady0,
      &            loady1, nyload, loadz0, loadz1, nzload, nxptmp,
      &            nyptmp, nzptmp, nxXCpad, nxXCpad, nyXCpad, nzXCpad,
      &            nxtap, nytap, nztap, kernelSize, sigmak)
-              call loadExtractProcess(2, buf, indloadb, indpatchb, indpatchb,
+              call loadExtractProcess(2, buf, bscale, indloadb, indpatchb, indpatchb,
      &            ixb0, ixb1, iyb0, iyb1, izb0, izb1, loadex, ixdir, ixdelta,
      &            maxxload, nxyz2, loadxb0, loadxb1, nxloadb, loadyb0,
      &            loadyb1, nyloadb, loadzb0, loadzb1, nzloadb, nxptmp,
@@ -1162,7 +1169,7 @@ c       to +/-1
           corr2 = corr2 / denom
         endif
       endif
-c	print *,idx,idy,idz,corr2
+c	print *,idx,idy,idz,corr2,denom
       return
       end
 
@@ -1412,20 +1419,20 @@ c       given unit IUNIT into the right area of BUF, extracting the desired
 c       patch from there, tapering it, and smoothing via a scratch patch
 c       area if sepecified
 c
-      subroutine loadExtractProcess(iunit, buf, indloada, indpatcha,
+      subroutine loadExtractProcess(iunit, buf, scale, indloada, indpatcha,
      &    indScratch, ix0, ix1, iy0, iy1, iz0, iz1, loadex, ixdir, ixdelta,
      &    maxxload, nxyz, loadx0, loadx1, nxload, loady0, loady1, nyload,
      &    loadz0, loadz1, nzload, nxpatch,nypatch, nzpatch, nxpadDim, nxpad,
      &    nypad, nzpad, nxtap, nytap,nztap, kernelSize, sigmak)
       implicit none
-      real*4 buf(*), sigmak
+      real*4 buf(*), sigmak, scale
       integer*4 indloada, indpatcha, indScratch, ix0, ix1, iy0, iy1, iz0, iz1
       integer*4 loadex, ixdir, ixdelta, maxxload, nxyz, loadx0, loadx1, nxload
       integer*4 loady0, loady1, nyload, loadz0, loadz1, nzload, nxpatch,nypatch
       integer*4 nzpatch, nxpadDim, nxpad, nypad, nzpad, nxtap, nytap,nztap
       integer*4 indTaper, iunit, kernelSize
 
-      call manageLoad(iunit, buf(indloada), ix0, ix1, iy0, iy1, iz0, iz1,
+      call manageLoad(iunit, buf(indloada), scale, ix0, ix1, iy0, iy1, iz0, iz1,
      &    loadex / 2, ixdir, ixdelta, maxxload, nxyz, loadx0, loadx1, nxload,
      &    loady0, loady1, nyload, loadz0, loadz1, nzload)
 c       
@@ -1456,11 +1463,11 @@ c       IY0, IY1, IZ0, IZ1 is already loaded, given the loaded limits in
 c       LOADX0, etc.  If not, it loads the data, with extra amounts specified
 c       by LOADEXH and a maximum load in X specified by MAXXLOAD
 c
-      subroutine manageLoad(iunit,buf, ix0, ix1, iy0, iy1, iz0, iz1, loadexh,
+      subroutine manageLoad(iunit,buf, scale, ix0, ix1, iy0, iy1, iz0, iz1, loadexh,
      &    ixdir, ixdelta, maxxload, nxyz, loadx0, loadx1, nxload, loady0,
      &    loady1, nyload, loadz0, loadz1, nzload)
       implicit none
-      real*4 buf(*)
+      real*4 buf(*), scale
       integer*4 ix0, ix1, iy0, iy1, iz0, iz1, loadexh, ixdir, ixdelta, maxxload
       integer*4 loadx0, loadx1, nxload, loady0, loady1, nyload, loadz0, loadz1
       integer*4 nzload, nmore, nxyz(3), iunit
@@ -1497,7 +1504,7 @@ c     &    loadx1,  loady0, loady1, loadz0, loadz1
       nyload=loady1+1-loady0
       nzload=loadz1+1-loadz0
       call loadvol(iunit,buf,nxload, nyload,loadx0, loadx1, loady0, loady1,
-     &    loadz0,loadz1)
+     &    loadz0,loadz1,scale)
       return
       end
 
@@ -1506,10 +1513,10 @@ c       LOADVOL loads a subset of the volume from unit IUNIT, into ARRAY
 c       assuming dimensions of NXDIM by NYDIM, from index coordinates
 c       IX0, IX1, IY0, IY1, IZ0, IZ1.
 c       
-      subroutine loadvol(iunit,array,nxdim,nydim,ix0,ix1,iy0,iy1,iz0,iz1)
+      subroutine loadvol(iunit,array,nxdim,nydim,ix0,ix1,iy0,iy1,iz0,iz1,scale)
       implicit none
       integer*4 nxdim,nydim,ix0,ix1,iy0,iy1,iz0,iz1,iunit,indz,iz
-      real*4 array(nxdim,nydim,*)
+      real*4 array(nxdim,nydim,*),scale
 c       
 c       print *,iunit,nxdim,nydim,ix0,ix1,iy0,iy1,iz0,iz1
       indz=0
@@ -1517,6 +1524,8 @@ c       print *,iunit,nxdim,nydim,ix0,ix1,iy0,iy1,iz0,iz1
         indz=indz+1
         call imposn(iunit,iz,0)
         call irdpas(iunit,array(1,1,indz),nxdim,nydim,ix0,ix1,iy0,iy1,*99)
+        array(1:ix1+1-ix0, 1: iy1+1-iy0, indz) = scale *
+     &      array(1:ix1+1-ix0, 1: iy1+1-iy0, indz)
       enddo
       return
 99    call exitError('ERROR READING FILE')
@@ -1811,6 +1820,9 @@ c
 
 
 c       $Log$
+c       Revision 3.21  2009/10/14 23:54:54  mast
+c       Make sure B corners are always transformed
+c
 c       Revision 3.20  2008/02/28 20:03:34  mast
 c       Increased main array size 40%
 c
