@@ -159,6 +159,7 @@ class ZapFuncs
   int    mHqgfx, mHide;
   int    mHqgfxsave;           /* Place to save hqgfx when dragging */
   int    mDrawCurrentOnly;
+  int    mLastHqDrawTime;
 
   int    mShiftingCont;   /* Flag for shifting contour */
   Ipoint mXformCenter;    /* Center defined by mouse */
