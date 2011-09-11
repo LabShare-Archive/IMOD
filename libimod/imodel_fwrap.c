@@ -80,6 +80,7 @@
 #define getcontpointsizes  GETCONTPOINTSIZES
 #define putcontpointsizes  PUTCONTPOINTSIZES
 #define getimodsurfaces  GETIMODSURFACES
+#define getobjsurfaces  GETOBJSURFACES
 #define getimodobjname  GETIMODOBJNAME
 #define putimodobjname  PUTIMODOBJNAME
 #define getmodelname  GETMODELNAME
@@ -131,6 +132,7 @@
 #define getcontpointsizes  getcontpointsizes_
 #define putcontpointsizes  putcontpointsizes_
 #define getimodsurfaces  getimodsurfaces_
+#define getobjsurfaces  getobjsurfaces_
 #define getimodobjname  getimodobjname_
 #define putimodobjname  putimodobjname_
 #define getmodelname  getmodelname_
@@ -854,6 +856,52 @@ int getimodsurfaces(int *surfs)
   }
 
   return FWRAP_NOERROR;
+}
+
+/*!
+ * Returns surface numbers for all contours in object [ob] into the array [surfs].
+ * If [sortSurfs] > 0, it analyzes a mesh to sort contours into surfaces using 
+ * @iobj.html#imodObjectSortSurf .
+ */
+int getobjsurfaces(int *ob, int *sortSurfs, int *surfs)
+{
+  Iobj *obj;
+  Icont *contSave = NULL;
+  int retval = FWRAP_NOERROR;
+  int co;
+
+  if (!Fimod)
+    return(FWRAP_ERROR_NO_MODEL);
+  if (*ob < 1 || *ob > Fimod->objsize)
+    return(FWRAP_ERROR_BAD_OBJNUM);
+  obj = &Fimod->obj[*ob - 1];
+  if (*sortSurfs > 0 && obj->contsize > 0) {
+
+    /* Duplicate the contour array so that surfaces can be assigned in it */
+    contSave = B3DMALLOC(Icont, obj->contsize);
+    if (!contSave)
+      return FWRAP_ERROR_MEMORY;
+    for (co = 0; co < obj->contsize; co++)
+      imodContourCopy(&obj->cont[co], &contSave[co]);
+
+    /* Sort the surfaces.  If no meshes, return all zeros; otherwise return surfaces */
+    co = imodObjectSortSurf(obj);
+    if (co == 2)
+      retval = FWRAP_ERROR_MEMORY;
+    else if (co == 1)
+      for (co = 0; co < obj->contsize; co++)
+        surfs[co] = 0;
+    else
+      for (co = 0; co < obj->contsize; co++)
+        surfs[co] = obj->cont[co].surf;
+    free(obj->cont);
+    obj->cont = contSave;
+  } else 
+
+    /* If not sorting surfaces, return existing values */
+    for (co = 0; co < obj->contsize; co++)
+      surfs[co] = obj->cont[co].surf;
+  return retval;
 }
 
 /*!
@@ -1656,8 +1704,6 @@ int getimodflags(int *flags, int *limflags)
  */
 int getmodelname(char *fname, int fsize)
 {
-  int i = 0;
-
   if (!Fimod)
     return(FWRAP_ERROR_NO_MODEL);
   if (c2fString(Fimod->name, fname, fsize))
@@ -2031,6 +2077,9 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
 
 /*
 $Log$
+Revision 3.41  2011/02/28 00:33:51  mast
+Increased model size
+
 Revision 3.40  2010/03/03 05:51:01  mast
 Added calls for model name
 
