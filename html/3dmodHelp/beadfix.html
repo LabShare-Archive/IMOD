@@ -266,12 +266,18 @@ threshold, but can then be toggled to see points below threshold.
 You will see a message telling how many contours will be deleted and asking
 you to confirm the deletion.  If you answer <I>Yes Always</I> then you will
 not see such a message again.  These deletions can be undone with the standard
-Undo button in the Info Window or the Ctrl-Z hot key.
+Undo button in the Info Window or the Ctrl-Z hot key.  If there is a Zap
+window with a rubber band, then the deletion will include only the contours
+inside the rubber band.  Specifically, for planar contours, they must be
+completely inside the rubber band; for open contours that pass between
+sections, they must have a point within the rubber band.
 <LI>When <B>Delete on all sections</B> is turned off, contours below
 threshold will be deleted
-only if they have a point on the current section.  When this option is on,
-contours will be deleted regardless of the Z values of their points.  Thus,
-you can delete points found by 
+only if they have a point on the current section.  With the rubber band on,
+that point must be inside the rubber band.  When this option is on,
+contours will be deleted regardless of the Z values of their points.  With the
+rubber band on, there must be a point at some Z value inside the rubber band
+With this option, you can delete points found by 
 <A HREF = "../man/imodfindbeads.html">Imodfindbeads</A>
 from all planes at once.
 <LI>When <B>Delete in all objects</B> is turned off, only contours below
