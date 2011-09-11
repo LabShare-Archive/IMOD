@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <stdlib.h>
@@ -235,7 +234,10 @@ ZapWindow::ZapWindow(ZapFuncs *zap, QString timeLabel, bool panels,
     connect(upArrow, SIGNAL(clicked()), this, SLOT(timeForward()));
     upArrow->setAutoRepeat(true);
 
+    mTimeNumLabel = new QLabel(" (999)", this);
     mTimeLabel = new QLabel(timeLabel, this);
+    setTimeLabel(ivwGetTime(mZap->mVi, &j), timeLabel);
+    mToolBar2->addWidget(mTimeNumLabel);
     mToolBar2->addWidget(mTimeLabel);
     mToolBar2->setAllowedAreas(Qt::TopToolBarArea);
     addToolBar(mToolBar2);
@@ -481,8 +483,11 @@ void ZapWindow::setMaxZ(int maxZ)
   mSecSlider->blockSignals(false);
 }
 
-void ZapWindow::setTimeLabel(QString label)
+void ZapWindow::setTimeLabel(int time, QString label)
 {
+  QString str;
+  str.sprintf(" (%3d)", time);
+  mTimeNumLabel->setText(str);
   mTimeLabel->setText(label);
 }
 
@@ -637,151 +642,3 @@ void ZapGL::leaveEvent ( QEvent * e)
   mZap->generalEvent(e);
 }
 
-/*
-$Log$
-Revision 4.33  2009/06/05 15:43:04  mast
-Stop passing mouse pressed to move move event
-
-Revision 4.32  2009/01/15 16:33:18  mast
-Qt 4 port
-
-Revision 4.31  2008/05/27 22:48:33  mast
-Moved angle to separate label after Z slider
-
-Revision 4.30  2008/05/27 05:41:56  mast
-Changes for tilt angle display
-
-Revision 4.29  2008/02/06 16:34:41  sueh
-bug# 1065 In setLowHighSectionState reset section fields when hiding.
-
-Revision 4.28  2008/02/05 19:59:06  sueh
-bug# 1065 Added a low section button and edit field and a high section button
-and edit field to the tool bar.  Fields are associated with the rubberband button.
-
-Revision 4.27  2008/01/13 22:58:35  mast
-Changes for multi-Z window
-
-Revision 4.26  2008/01/11 18:15:04  mast
-Took out message for wheel event
-
-Revision 4.25  2008/01/11 18:12:52  mast
-Fixed event handlers for wheel, dropped GL handler as not needed
-
-Revision 4.24  2007/12/04 18:48:01  mast
-Passed on some more events to allow cursor-like drawing and wheel (?)
-
-Revision 4.23  2007/07/08 16:04:50  mast
-Used new hot slider function
-
-Revision 4.22  2007/06/26 21:58:07  sueh
-bug# 1021 Removed win_support.
-
-Revision 4.21  2007/06/26 17:08:54  sueh
-bug# 1021 Moved BM_HEIGHT and _WIDTH to win_support.
-
-Revision 4.20  2007/05/31 16:23:10  mast
-Changes for using hot toolbar
-
-Revision 4.19  2007/05/29 14:49:20  mast
-Moved keep center and snart center bits to files
-
-Revision 4.18  2006/04/01 23:43:15  mast
-Added size output to toolbar
-
-Revision 4.17  2005/03/29 00:59:25  mast
-Moved time to second toolbar
-
-Revision 4.16  2004/11/04 23:30:55  mast
-Changes for rounded button style
-
-Revision 4.15  2004/06/08 16:24:26  mast
-Stopped fooling around and just made it do two draws on starting window
-
-Revision 4.14  2004/05/07 22:15:59  mast
-Fixed array dimension problems caused by new toolbutton
-
-Revision 4.13  2004/05/05 17:32:16  mast
-Added rubberband tool button
-
-Revision 4.12  2004/03/26 04:58:24  mast
-Made it do a clear on first call, because of problems with 53xx Nvidia driver
-
-Revision 4.11  2003/10/01 05:04:19  mast
-change include from imodP to imod after eliminating imod.h from imodP.h
-
-Revision 4.10  2003/09/24 00:47:12  mast
-Eliminated second setting geometry now that move is used instead
-
-Revision 4.9  2003/09/18 00:48:14  mast
-Set the geometry when timer event comes in to do the first real draw
-
-Revision 4.8  2003/09/15 21:04:19  mast
-Allow zooms to 4 decimal places
-
-Revision 4.7  2003/04/11 21:47:28  mast
-adding tooltips
-
-Revision 4.6  2003/03/26 23:23:15  mast
-switched from hotslider.h to preferences.h
-
-Revision 4.5  2003/03/26 06:30:56  mast
-adjusting to font changes
-
-Revision 4.4  2003/03/07 15:49:26  mast
-Put z section slider under hot slider control
-
-Revision 4.3  2003/03/03 22:28:02  mast
-Pass on all mouse move events with the pressed flag to allow tracking
-
-Revision 4.2  2003/02/28 21:40:15  mast
-Changing name of tooledit focus signal
-
-Revision 4.1  2003/02/10 20:29:03  mast
-autox.cpp
-
-Revision 1.1.2.15  2003/01/30 06:23:18  mast
-fiddling with first draw
-
-Revision 1.1.2.14  2003/01/30 06:17:47  mast
-Add ability to change range of Z slider on image flip
-
-Revision 1.1.2.13  2003/01/30 00:48:43  mast
-New timer logic
-
-Revision 1.1.2.12  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.11  2003/01/13 01:15:43  mast
-changes for Qt version of info window
-
-Revision 1.1.2.10  2003/01/02 15:40:27  mast
-use dia call to block signals when setting toolbar slider
-
-Revision 1.1.2.9  2002/12/17 17:30:50  mast
-Adding timer for redraws, using tooledit with column specifier
-
-Revision 1.1.2.8  2002/12/17 04:45:54  mast
-Use new ability to set columns in tooledits
-
-Revision 1.1.2.7  2002/12/14 05:23:42  mast
-backing out the fancy subclass, adjusting for new visual detection
-
-Revision 1.1.2.6  2002/12/13 07:09:19  mast
-GLMainWindow needed different name for mouse event processors
-
-Revision 1.1.2.5  2002/12/13 06:06:29  mast
-using new glmainwindow and mainglwidget classes
-
-Revision 1.1.2.4  2002/12/12 01:25:14  mast
-added z slider
-
-Revision 1.1.2.3  2002/12/09 23:24:06  mast
-*** empty log message ***
-
-Revision 1.1.2.2  2002/12/09 22:00:29  mast
-include stdio and stdlib for atof/atoi calls
-
-Revision 1.1.2.1  2002/12/09 17:47:51  mast
-Initial addition to source
-
-*/

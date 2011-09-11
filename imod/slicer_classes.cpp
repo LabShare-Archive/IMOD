@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 #include <stdlib.h>
 #include <stdio.h>
@@ -223,7 +222,10 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[],
     connect(upArrow, SIGNAL(clicked()), this, SLOT(timeForward()));
     upArrow->setAutoRepeat(true);
 
+    mTimeNumLabel = new QLabel(" (999)", this);
     mTimeLabel = new QLabel(timeLabel, this);
+    setTimeLabel(ivwGetTime(funcs->mVi, &j), timeLabel);
+    mTimeBar->addWidget(mTimeNumLabel);
     mTimeBar->addWidget(mTimeLabel);
     mTimeBar->setAllowedAreas(Qt::TopToolBarArea);
   }
@@ -523,8 +525,11 @@ void SlicerWindow::setZoomText(float zoom)
   mZoomEdit->setText(str);
 }
 
-void SlicerWindow::setTimeLabel(QString label)
+void SlicerWindow::setTimeLabel(int time, QString label)
 {
+  QString str;
+  str.sprintf(" (%3d)", time);
+  mTimeNumLabel->setText(str);
   mTimeLabel->setText(label);
 }
 
@@ -1534,133 +1539,3 @@ static void fillArraySegment(int jstart, int jlimit)
     zzo += zsz;
   }
 }
-
-/*
-
-$Log$
-Revision 4.37  2011/03/14 23:30:13  mast
-Changes for ushort loading and color support
-
-Revision 4.36  2011/02/14 04:35:50  mast
-Converted slicer struct to a class
-
-Revision 4.35  2010/12/18 05:47:00  mast
-Use the shortcut for non-integer zooms above 2
-
-Revision 4.34  2010/03/17 21:30:30  mast
-Fixed crash when rotated in Z to -180 for some window sizes/shifts
-
-Revision 4.33  2009/11/21 23:03:42  mast
-Chnaged it to use ideal thread count
-
-Revision 4.32  2009/02/26 22:39:35  mast
-Fix keyboard tracking of image thickness
-
-Revision 4.31  2009/01/24 01:04:49  mast
-Turn of keyboard tracking on spin boxes
-
-Revision 4.30  2009/01/16 18:27:03  mast
-Commented out debug output on the angle bar break
-
-Revision 4.29  2009/01/15 16:33:18  mast
-Qt 4 port
-
-Revision 4.28  2008/11/29 22:10:30  mast
-Added ability to link slicers
-
-Revision 4.27  2008/03/06 06:16:27  mast
-Fixed artifact on right edge in zoomed HQ image
-
-Revision 4.26  2008/01/28 19:11:31  mast
-Fixed hot key in tooltip for show slice
-
-Revision 4.25  2007/11/13 19:11:44  mast
-Used the IMOD_PROCESSORS value to increase the max voxels to compute,
-made it reduce quality before number of slices if slices are below 75%
-of requested number, get voxel limit from settings
-
-Revision 4.24  2007/11/10 17:25:45  mast
-Do not sync angles when auto button is turned on
-
-Revision 4.23  2007/08/15 19:50:18  mast
-Added 1 pixel margin in computation of index limits to avoid crashes
-
-Revision 4.22  2007/06/26 21:53:42  sueh
-bug# 1021 Removed win_support.
-
-Revision 4.21  2007/06/26 17:04:53  sueh
-bug# 1021 Moved BM_HEIGHT and _WIDTH to win_support.
-
-Revision 4.20  2007/06/15 21:19:54  mast
-Added shift lock toolbar botton
-
-Revision 4.19  2007/06/07 17:39:38  mast
-Fixed use of wrong variable in testing for whether to take mean/SD
-
-Revision 4.18  2007/06/04 15:06:34  mast
-Added hot key to tooltip
-
-Revision 4.17  2007/05/31 16:32:28  mast
-Changes for slicer angle toolbar, classic setting and warning
-
-Revision 4.16  2007/05/29 14:52:35  mast
-Changes for new slicer mode and toolbar buttons
-
-Revision 4.15  2007/05/25 05:28:16  mast
-Changes for addition of slicer angle storage
-
-Revision 4.14  2006/10/12 19:02:55  mast
-Added toolbar button for W function
-
-Revision 4.13  2006/10/06 19:38:08  mast
-Made array filling routine multithreaded and moved it here
-
-Revision 4.12  2006/09/12 15:36:09  mast
-Added mouse move slot
-
-Revision 4.11  2005/03/08 15:49:23  mast
-Added FT/IM toggle button
-
-Revision 4.10  2004/11/04 23:30:55  mast
-Changes for rounded button style
-
-Revision 4.9  2004/08/12 17:14:43  mast
-Left out Z-scale after option when binnings differ
-
-Revision 4.8  2004/01/22 19:12:43  mast
-changed from pressed() to clicked() or accomodated change to actionClicked
-
-Revision 4.7  2003/12/16 23:54:13  mast
-Move floatspinbox to libdiaqt
-
-Revision 4.6  2003/10/01 05:04:19  mast
-change include from imodP to imod after eliminating imod.h from imodP.h
-
-Revision 4.5  2003/09/15 21:04:02  mast
-Allow zooms to 4 decimal places
-
-Revision 4.4  2003/04/11 21:47:28  mast
-adding tooltips
-
-Revision 4.3  2003/03/26 17:15:30  mast
-Adjust sizes for font changes
-
-Revision 4.2  2003/02/28 21:39:32  mast
-Changing name of tooledit focus signal
-
-Revision 4.1  2003/02/10 20:29:02  mast
-autox.cpp
-
-Revision 1.1.2.4  2003/01/30 00:52:36  mast
-new timer logic for getting clean first image
-
-Revision 1.1.2.3  2003/01/29 01:45:29  mast
-Make cube be a rgb widget regardless
-
-Revision 1.1.2.2  2003/01/06 18:59:43  mast
-fixing problems with float spin box
-
-Revision 1.1.2.1  2003/01/06 15:48:30  mast
-initial creation
-
-*/

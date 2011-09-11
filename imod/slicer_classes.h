@@ -11,7 +11,6 @@
  *   Colorado.  See implementation file for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */                                                                           
 
 #ifndef SLICER_CLASSES_H
@@ -83,7 +82,7 @@ class SlicerWindow : public QMainWindow
   void modelThicknessChanged(double depth);
   void showslicePressed();
   void contourPressed();
-  void setTimeLabel(QString label);
+  void setTimeLabel(int time, QString label);
   void zScaleSelected(int item);
   void toolKeyPress(QKeyEvent *e) {keyPressEvent(e);};
   void toolKeyRelease(QKeyEvent *e) {keyReleaseEvent(e);};
@@ -111,6 +110,7 @@ class SlicerWindow : public QMainWindow
   QDoubleSpinBox *mModelBox;
   MultiSlider *mSliders;
   QComboBox *mZscaleCombo;
+  QLabel *mTimeNumLabel;
   QLabel *mTimeLabel;
   QPushButton *mHelpButton;
   int mBreakBeforeAngBar;

@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #ifndef ZAP_CLASSES_H
@@ -63,7 +62,7 @@ class ZapWindow : public QMainWindow
   void setZoomText(float zoom);
   void setSectionText(int section);
   void setMaxZ(int maxZ);
-  void setTimeLabel(QString label);
+  void setTimeLabel(int time, QString label);
   void setSizeText(int winx, int winy);
   void setLowHighSectionState(int state);
   void setSizeAngleState();
@@ -115,6 +114,7 @@ class ZapWindow : public QMainWindow
     ToolEdit *mZoomEdit;
     ToolEdit *mSectionEdit;
     QLabel *mTimeLabel;
+    QLabel *mTimeNumLabel;
     QSlider *mSecSlider;
     QPushButton *mInfoButton;
     QPushButton *mHelpButton;
@@ -167,88 +167,5 @@ protected:
   int mTimerID;
 };
 
-/*
-
-$Log$
-Revision 4.16  2009/01/15 16:33:18  mast
-Qt 4 port
-
-Revision 4.15  2008/05/27 22:48:35  mast
-Moved angle to separate label after Z slider
-
-Revision 4.14  2008/02/05 19:59:23  sueh
-bug# 1065 Added a low section button and edit field and a high section button
-and edit field.
-
-Revision 4.13  2008/01/13 22:58:35  mast
-Changes for multi-Z window
-
-Revision 4.12  2008/01/11 18:12:55  mast
-Fixed event handlers for wheel, dropped GL handler as not needed
-
-Revision 4.11  2007/12/04 18:48:20  mast
-Added event handlers
-
-Revision 4.10  2007/05/31 16:23:10  mast
-Changes for using hot toolbar
-
-Revision 4.9  2006/09/17 18:15:59  mast
-Changes to provide mouse position to pixelview
-
-Revision 4.8  2006/04/01 23:43:15  mast
-Added size output to toolbar
-
-Revision 4.7  2006/01/26 18:45:20  mast
-Enabled swapping control
-
-Revision 4.6  2005/03/29 00:59:57  mast
-Added 2nd toolbar
-
-Revision 4.5  2004/05/07 22:16:07  mast
-Fixed array dimension problems caused by new toolbutton
-
-Revision 4.4  2004/05/05 17:32:00  mast
-Added rubberband definition and made mZap public
-
-Revision 4.3  2003/03/26 06:30:56  mast
-adjusting to font changes
-
-Revision 4.2  2003/03/07 15:49:11  mast
-Put z section slider under hot slider control
-
-Revision 4.1  2003/02/10 20:41:56  mast
-Merge Qt source
-
-Revision 1.1.2.10  2003/01/30 06:17:05  mast
-Allow range of slider to change
-
-Revision 1.1.2.9  2003/01/30 00:48:53  mast
-new timer logic
-
-Revision 1.1.2.8  2003/01/10 23:56:56  mast
-move some declarations out of slots
-
-Revision 1.1.2.7  2002/12/17 17:30:22  mast
-Adding timer for redraws
-
-Revision 1.1.2.6  2002/12/14 05:23:42  mast
-backing out the fancy subclass, adjusting for new visual detection
-
-Revision 1.1.2.5  2002/12/13 07:09:19  mast
-GLMainWindow needed different name for mouse event processors
-
-Revision 1.1.2.4  2002/12/13 06:06:29  mast
-using new glmainwindow and mainglwidget classes
-
-Revision 1.1.2.3  2002/12/12 01:25:23  mast
-added Z slider
-
-Revision 1.1.2.2  2002/12/09 23:24:12  mast
-*** empty log message ***
-
-Revision 1.1.2.1  2002/12/09 17:48:09  mast
-Initial addition to source
-
-*/
 
 #endif     // ZAP_CLASSES_H
