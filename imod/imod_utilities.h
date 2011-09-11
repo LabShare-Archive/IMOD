@@ -2,7 +2,6 @@
  *       Publicly exposed utilities are in imod.h
  *
  *  $Id$
- *  Log at end
  */
 
 #ifndef UTILITIES_H
@@ -30,6 +29,7 @@ void utilDrawSymbol(int mx, int my, int sym, int size, int flags);
 void utilCurrentPointSize(Iobj *obj, int *modPtSize, int *backupSize,
                           int *imPtSize);
 void utilGetLongestTimeString(ImodView *vi, QString *str);
+int utilContInSelectArea(Iobj *obj, Icont *cont, Ipoint selmin, Ipoint selmax);
 bool utilEnableStipple(ImodView *vi, Icont *cont);
 void utilDisableStipple(ImodView *vi, Icont *cont);
 void utilClearWindow(int index);
@@ -74,43 +74,3 @@ char *imodwGivenName(const char *intro, const char *filein);
 QString imodCaption(const char *intro);
 #endif
 
-/*
- *
- *  $Log$
- *  Revision 1.12  2011/01/13 20:30:59  mast
- *  Change stipple enabling to return bool
- *
- *  Revision 1.11  2010/12/18 05:33:59  mast
- *  Added common functions for montage snapshots
- *
- *  Revision 1.10  2010/04/01 02:41:48  mast
- *  Called function to test for closing keys, or warning cleanup
- *
- *  Revision 1.9  2009/04/06 19:36:52  mast
- *  Added function to give flag for needing  to fix cursor
- *
- *  Revision 1.8  2009/03/30 18:25:44  mast
- *  Added function to handle raising on mouse event, workaround Mac Qt 4.5.0
- *
- *  Revision 1.7  2009/03/26 05:41:01  mast
- *  Change nearest section function to work for an object passed as argument
- *
- *  Revision 1.6  2009/02/25 05:35:53  mast
- *  Add function for getting next/prev Z with contours
- *
- *  Revision 1.5  2009/01/15 16:33:17  mast
- *  Qt 4 port
- *
- *  Revision 1.4  2008/07/16 04:30:50  mast
- *  Add function to set object flag
- *
- *  Revision 1.3  2008/02/03 18:36:14  mast
- *  Added function for converting mouse movement to in-plane rotation
- *
- *  Revision 1.2  2008/01/13 22:26:13  mast
- *  Added clearing function
- *
- *  Revision 1.1  2007/12/04 18:42:02  mast
- *  Added to get common functions out of xzap.cpp and imod.
- *
- */                                                                           
