@@ -86,7 +86,7 @@ static int sUpdateInfoOnly = 0;
  *
  * New object, contour, or point
  */
-void imodInfoNewOCP(int which, int value, int edited)
+void imodInfoNewOCP(int which, int value, int noShow)
 {
   int ob, co, pt;
   Imod *imod = App->cvi->imod;
@@ -104,8 +104,8 @@ void imodInfoNewOCP(int which, int value, int edited)
 
   switch (which) {
   case 0:
-    // Object change.  If via the edit box, detach from contour/point
-    if (edited) {
+    // Object change.  If show button is off, detach from contour/point
+    if (noShow) {
       imod->cindex.object = value;
       imod->cindex.contour =  - 1;
       imod->cindex.point =  - 1;
@@ -116,20 +116,20 @@ void imodInfoNewOCP(int which, int value, int edited)
     break;
 
   case 1:
-    // Contour change.  If via edit box, detach from point
-    if (edited) {
-      imod->cindex.contour = value;
-      imod->cindex.point = -1;
-    } else {
-      imodSetIndex(imod, ob, value, pt);
-      inputRestorePointIndex(App->cvi, &indOld);
-    }
+    // Contour change.  Stay attached regardless of show button (9/11/11) but draw here
+    imodSetIndex(imod, ob, value, pt);
+    inputRestorePointIndex(App->cvi, &indOld);
     break;
 
   case 2:
     // Point change
     imodSetIndex(imod, ob, co, value);
     break;
+  }
+  
+  if (noShow && imod->cindex.point > 0) {
+    imodDraw(App->cvi, IMOD_DRAW_ALL | IMOD_DRAW_NOSYNC);
+    return;
   }
 
   // This takes care of many updates through redraw and imod_info_setocp
