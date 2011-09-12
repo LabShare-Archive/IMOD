@@ -36,6 +36,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.3  2004/10/24 21:13:22  mast
+c	  Converted to PIP, added declarations, added 3D FFT, mode, and quiet
+c	  options, did some cleanup.
+c	
 c	  Revision 3.2  2002/07/30 17:57:28  mast
 c	  Forget increasing buffer size for now
 c	
@@ -56,7 +60,7 @@ c
 	integer*4 NX,NY,NZ,ifor,ibak,mode,ny2,ny21,nzm1,nxm1,nym1,nx2,nx21
 	integer*4 nxp2,isec,index,nxr,iy,indBase,ierr,modeOut
 	EQUIVALENCE (NX,NXYZR(1)),(NY,NXYZR(2)),(NZ,NXYZR(3))
-	real*4 zero,DMIN,DMAX,DMEAN,TMIN,TMAX,TMEAN
+	real*4 zero,DMIN,DMAX,DMEAN,TMIN,TMAX,TMEAN, cell(6)
 	character*120 filin,filout
 	DATA IFOR/0/,IBAK/1/,ZERO/0.0/, LARGE/.FALSE./, NXYZST/3*0/
 C
@@ -92,11 +96,11 @@ c
 	if (verbose) WRITE(6,1000)
 1000	FORMAT(//' FFTRANS: Fourier Transform Program  V1.10',//)
 C
-	if (PipGetInOutFile('InputFile', 1, 'Name of input file', filin) .ne.
-     &	    0) call errorexit('NO INPUT FILE SPECIFIED')
+	if (PipGetInOutFile('InputFile', 1, 'Name of input file', filin) .ne. 0)
+     &      call errorexit('NO INPUT FILE SPECIFIED')
 c
-	if (PipGetInOutFile('OutputFile', 2, 'Name of output file', filout)
-     &	    .ne. 0) call errorexit('NO OUTPUT FILE SPECIFIED')
+	if (PipGetInOutFile('OutputFile', 2, 'Name of output file', filout) .ne. 0)
+     &      call errorexit('NO OUTPUT FILE SPECIFIED')
 	CALL IMOPEN(1,filin,'RO')
 	CALL IMOPEN(2,filout,'NEW')
 	CALL DATE(DAT)
@@ -277,7 +281,14 @@ c
 	    enddo
 	  endif
 	endif
-C
+C         
+c         Adjust MX value but adjust cell to retain the pixel size
+        if (nx .eq. mxyzr(1) .and. ny .eq. mxyzr(2) .and. nz .eq. mxyzr(3)) then
+          call ialsam(2, nxyzf)
+          call irtcel(1, cell)
+          cell(1) = (cell(1) * nxyzf(1)) / nx
+          call ialcel(2, cell)
+        endif
 	TMEAN = TMEAN/NZ
 	if (verbose) WRITE(6,1800) TMIN,TMAX,TMEAN
 1800	FORMAT(/,' Overall Min,Max,Mean values are: ',3G13.5)
