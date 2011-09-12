@@ -94,6 +94,21 @@ set.var.simple-align=
 set.var.run_sirt=
 set.interface.Recon=
 
+[Test = single-patch-tracking]
+set.testdir = single-patch-tracking
+#set.keep.testdir = single-test-gui
+set.adoc.dialog = recon.adoc
+set.var.dataset = BBa
+set.dataset = BB
+copy.file = %{dataset}.st
+set.param = --autoclose3dmod
+set.param = --ignoreloc
+#set.param = %{dataset}.edf
+set.var.single=
+set.var.patch-tracking=
+set.var.run_sirt=
+set.interface.Recon=
+
 [Test = single-patch-tracking-test-gui]
 set.testdir = single-patch-tracking-test-gui
 #set.keep.testdir = single-test-gui
