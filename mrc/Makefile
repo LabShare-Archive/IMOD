@@ -2,7 +2,6 @@
 # Makefile for mrc programs.
 #
 # $Id$
-# Log at end
 #
 
 include ../configure
@@ -85,6 +84,7 @@ clean :
 	$(FIND) . -name "*~" -exec rm "{}" \;
 	$(FIND) . -type f -name "core*" -exec rm "{}" \;
 	$(FIND) . -type f -name "*.exe" -exec rm "{}" \;
+	-\rm -f $(PROGS)
 
 ##############################################################################
 #
@@ -123,38 +123,3 @@ mrcshort$(E) : mrcshort.$(O)
 
 mrcmmm$(E) : mrcmmm.$(O) 
 	$(CC) -o mrcmmm mrcmmm.$(O) -L$(LIBDIR) $(LIBS)
-
-#  $Log$
-#  Revision 3.11  2009/01/21 04:47:09  mast
-#  Stop deleting mode 755 files!
-#
-#  Revision 3.10  2007/09/19 23:49:19  mast
-#  Changes for library rearrangements
-#
-#  Revision 3.9  2007/09/18 05:07:53  mast
-#  Added ctfphaseflip
-#
-#  Revision 3.8  2005/11/23 16:24:17  mast
-#  Use strip variable
-#
-#  Revision 3.7  2005/03/11 19:42:13  mast
-#  Added nad_eed_3d
-#
-#  Revision 3.6  2003/11/01 14:36:14  mast
-#  *** empty log message ***
-#
-#  Revision 3.5  2003/10/24 02:30:40  mast
-#  Changes for windows/Intel compiler
-#
-#  Revision 3.4  2003/02/28 18:09:32  mast
-#  Changes for cygwin/windows
-#
-#  Revision 3.3  2002/11/05 23:20:19  mast
-#  Made raw2mrc use libiimod also
-#
-#  Revision 3.2  2002/11/05 23:56:07  mast
-#  Added -limod to be able to call imodCopyright
-#
-#  Revision 3.1  2001/12/31 19:21:25  mast
-#  Added dm3props
-#

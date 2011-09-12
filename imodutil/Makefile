@@ -2,7 +2,6 @@
 # Makefile for IMOD model utility programs
 #
 # $Id$
-# Log at end
 #
 include ../configure
 
@@ -107,6 +106,7 @@ clean :
 	$(FIND) . -type f -name "*~" -exec rm "{}" \;
 	$(FIND) . -type f -name "core*" -exec rm "{}" \;
 	$(FIND) . -type f -name "*.exe" -exec rm "{}" \;
+	-\rm -f $(PROGS)
 
 
 ##############################################################################
@@ -133,77 +133,4 @@ imodold : imodold.$(O)
 
 imodmkhv : imodmkhv.$(O) 
 	$(CC) -o imodmkhv imodmkhv.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
-
-
-#  $Log$
-#  Revision 3.23  2009/09/22 14:29:01  mast
-#  Change libs for point2model
-#
-#  Revision 3.22  2009/01/21 04:47:46  mast
-#  Step deleting mode 755 files
-#
-#  Revision 3.21  2009/01/07 03:13:29  mast
-#  Added flattenwarp
-#
-#  Revision 3.20  2008/06/19 23:27:11  mast
-#  Added imodfindbeads
-#
-#  Revision 3.19  2007/10/18 22:20:20  mast
-#  Added point2model
-#
-#  Revision 3.18  2007/09/19 23:48:39  mast
-#  Changes for library rearrangements
-#
-#  Revision 3.17  2007/04/26 19:13:48  mast
-#  Removed imodcmopp
-#
-#  Revision 3.16  2006/09/19 22:24:47  mast
-#  Added a flag for imodwincpu
-#
-#  Revision 3.15  2006/09/12 15:01:36  mast
-#  imodmesh uses library
-#
-#  Revision 3.14  2006/06/14 04:28:17  mast
-#  Added imodcurvature
-#
-#  Revision 3.13  2005/11/23 16:24:37  mast
-#  Use strip variable
-#
-#  Revision 3.12  2005/10/19 14:42:52  mast
-#  Switched imodtrans to using libiimod
-#
-#  Revision 3.11  2005/10/13 20:18:24  mast
-#  Switched imodjoin to using libiimod
-#
-#  Revision 3.10  2005/08/18 04:16:35  mast
-#  Added imodwincpu via a flag
-#
-#  Revision 3.9  2005/07/06 20:54:20  mast
-#  Removed fallback for imodtrans; regular n32 build now works
-#
-#  Revision 3.8  2004/09/28 22:18:46  mast
-#  Removed parselist entries since it is libimod now
-#
-#  Revision 3.7  2004/09/28 15:15:37  mast
-#  Add parselist for imodinfo
-#
-#  Revision 3.6  2003/11/01 14:36:23  mast
-#  Put libiimod befor libimod because of new error calls
-#
-#  Revision 3.5  2003/10/24 02:30:40  mast
-#  Changes for windows/Intel compiler
-#
-#  Revision 3.4  2003/02/28 18:09:32  mast
-#  Changes for cygwin/windows
-#
-#  Revision 3.3  2003/02/27 16:43:46  mast
-#  Remove imodsendevent
-#
-#  Revision 3.2  2002/09/13 22:08:17  mast
-#  Added imodsendevent
-#
-#  Revision 3.1  2001/12/17 18:53:27  mast
-#  Added imodfillin
-
-
 
