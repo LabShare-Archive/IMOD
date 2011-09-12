@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/11/11: Made Imodmop preserve coordinate system; made FFT's have grid X =
+NX.
+
 9/11/11: In Midas, saving to file updates the "stored transform" that can be
 reverted to; also maybe fixed a problem with updating the white level label.
 
