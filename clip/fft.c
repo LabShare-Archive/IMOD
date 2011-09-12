@@ -110,7 +110,10 @@ int clip_fft(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     if (clipWriteSlice(slice, hout, opt, k, &z, 1))
       return -1;
   }
-  return set_mrc_coords(opt);  
+  mrc_coord_cp(hout, hin);
+  if (hin->nx == hin->mx && hin->ny == hin->my && hin->nz == hin->mz)
+    hout->mx = hout->nx;
+  return mrc_head_write(hout->fp, hout);  
 }
 
 /*
@@ -272,14 +275,11 @@ int clip_3dfft(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
   if (grap_volume_write(v, hout, opt))
     return(-1);
 
-  /* DNM 7/31/02: Copy cell and sample sizes over just like fftrans
-     so that inverse transform will retain pixel spacing */
-  hout->mx = hin->mx;
-  hout->my = hin->my;
-  hout->mz = hin->mz;
-  hout->xlen = hin->xlen;
-  hout->ylen = hin->ylen;
-  hout->zlen = hin->zlen;
+  /* DNM 7/31/02: Copy cell and sample sizes over just like fftrans so that inverse
+     transform will retain pixel spacing. 9/11/11: use function, adjust mx */
+  mrc_coord_cp(hout, hin);
+  if (hin->nx == hin->mx && hin->ny == hin->my && hin->nz == hin->mz)
+    hout->mx = hout->nx;
   if (mrc_head_write(hout->fp, hout))
     return -1;
 
@@ -707,6 +707,9 @@ int clip_nicesize(int size)
 
 /*
 $Log$
+Revision 3.8  2007/02/04 21:10:15  mast
+Function name changes from mrcslice cleanup
+
 Revision 3.7  2005/01/17 17:08:48  mast
 Rarranged file, put in option checks, converted to new 2D processing
 
