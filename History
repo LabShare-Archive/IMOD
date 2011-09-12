@@ -1,5 +1,18 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/11/11: In Midas, saving to file updates the "stored transform" that can be
+reverted to; also maybe fixed a problem with updating the white level label.
+
+9/11/11: In 3dmod, added message for setting Zap HQ mode; made Zap window drop
+out of HQ for panning and rubberband change only if display time > 100 ms;
+made sure time number shows up in time toolbars even when filename is too
+long; made blank slices show up as gray not white when float is on; changed
+behavior with Info windows "Show" button off to remain attached to a point
+when changing contours and to not sync when changing points.
+
+9/11/11: Beadfixer delete contours below threshold will now delete points only
+inside the rubber band.
+
 9/10/11: In Corrsearch3d, normalized values to prevent overflow when computing
 correlation coefficients with SIRT data.
 
