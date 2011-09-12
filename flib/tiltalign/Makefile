@@ -32,5 +32,5 @@ install: $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
 
 clean:
-	-\rm -f *.o* *.exe *~ tiltalign xfforfidless
+	-\rm -f *.o* tiltvars.mod *.exe *~ tiltalign xfforfidless
 
