@@ -279,10 +279,11 @@ int MidasSlots::save_transforms()
     return 1;
   }
 
-  /* success: mark that save was done, no unsaved changes */
+  /* success: mark that save was done, no unsaved changes, and "store" current xform */
   dia_puts("Transforms saved to file.");
   VW->didsave = 1;
   VW->changed = 0;
+  backup_current_mat();
   if (renamedold)
     free(filename);
   return 0;
@@ -1299,6 +1300,10 @@ void MidasSlots::display_bwslider_value(QLabel *w, int white)
 {
   QString str;
   str.sprintf("%03d", white);
+
+  // In RHEL6 and FC12, the white failed to update for several seconds or at all.
+  // Printing any diagnostic made it work!  This one call seems to fix the problem
+  qApp->processEvents();
   w->setText(str);
 }
 
@@ -1310,14 +1315,14 @@ int MidasSlots::setbwlevels(int black, int white, int draw)
 
   if (VW->blackstate != black){
     VW->blackstate = black;
-    VW->wBlacklevel->setValue(black);
+    diaSetSlider(VW->wBlacklevel, black);
     display_bwslider_value(VW->wBlackval, black);
     remute = TRUE;
   }
 
   if (VW->whitestate != white){
     VW->whitestate = white;
-    VW->wWhitelevel->setValue(white);
+    diaSetSlider(VW->wWhitelevel, white);
     display_bwslider_value(VW->wWhiteval, white);
     remute = TRUE;
   }
@@ -2207,6 +2212,9 @@ int MidasSlots::showHelpPage(const char *page)
 
 /*
 $Log$
+Revision 3.25  2011/06/30 21:34:47  mast
+Disallow model transformation when warping too (reference mode)
+
 Revision 3.24  2011/06/10 04:25:28  mast
 Changes for warping and keeping ref/current together with ref file
 
