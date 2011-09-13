@@ -6493,7 +6493,7 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Execute the combine script starting at volcombine
    */
-  public void volcombine(ProcessResultDisplay processResultDisplay,
+  public void volcombine(final ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
       Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType) {
     if (processSeries == null) {
