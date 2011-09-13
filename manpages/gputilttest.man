@@ -1,0 +1,27 @@
+.na
+.nh
+.TH gputilttest 1 4.2.23 BL3DEMC
+.SH NAME
+gputilttest -\ Test reliability of GPU with repeated runs of Tilt program
+.SH SYNOPSIS
+gputilttest [#_of_minutes] [GPU_#]
+.SH DESCRIPTION
+gputilttest is a Python script to test the reliability of a GPU for
+computations in IMOD by running Tilt(1) repeatedly and comparing the results
+on each run to the previous run.  Any nonzero difference is counted as a
+failure.  The program alternates between 10 runs with no local alignments and
+10 runs with local alignments.
+.P
+It is important to test a GPU before using it for generating tomograms.  The
+GPU should be tested again if it is moved to a new machine, if the NVIDIA
+drivers are changed, or if there is a major upgrade to the operating system.
+.P
+There are two optional arguments.  The first argument can be used to set the
+number of minutes to run the test; the default is 1 minute, which is
+generally sufficient to flush out problems.  Fractional values may be
+entered.  The second argument is the GPU number, numbered from 1.  The default
+is to use the only GPU or the fastest GPU.
+.P
+.SH FILES
+The program creates a number of files in the current directory, and removes
+all of them when it exits, or when it is interrupted with Ctrl-C.
