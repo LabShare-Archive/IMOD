@@ -2,7 +2,7 @@
 <title>Interpolator Plugin Help</title>
 </head>
 <body>
-<h3>Interpolator Plugin Help</h3><br>
+<h3>Interpolator Plugin Help - TEST FOR MECURIAL....</h3><br>
 --------------------------<br><br>
 This plugin allows for rapid segmentation of surfaces
 by automatically generating <b>"interpolated"</b> contours between
@@ -36,38 +36,52 @@ form a smooth, curved surfaces. </li>
 <li><b>Smooth Pts</b> - as previous, but more sensitive to changes
 on different sides of the contour. </li>
 </ol>
+<br>
+<br>
+<b>Hot Key Summary</b><br>
+---------------------<br>
+<table width="100%" border="0" cellpadding="3" cellspacing="0">
+  <tr>
+    <td width="10%"><b>[Enter] </b></td>
+    <td width="90%">Interpolate selected contour and start new contour</td>
+  </tr>
+  <tr>
+    <td><b>[n]</b></td>
+    <td>Start new contour (without interpolating current contour)</td>
+  </tr>
+  <tr>
+    <td><b>[u]</b></td>
+    <td>Toggle current contour between key/interpolated</td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><b>[g]</b></td>
+    <td>Find next gap or isolated contour (NOTE: to enable ghosting, 
+  try pressing [ctrl+g])</td>
+  </tr>
+  <tr>
+    <td><b>[h]</b></td>
+    <td>Find next large hole between key contours (ie. a large region of 
+  consecutive interpolated contours)</td>
+  </tr>
+</table>
 <p><br>
-  <br>
-  <b>Hot Key Summary</b><br>
-  ---------------------<br>
-  <b>[Enter]</b>&nbsp;&nbsp;&nbsp;
-  Interpolate selected contour and start new contour<br>
-  <b>[n]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  Start new contour (without interpolating current contour)<br>
-  <b>[u]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  Toggle current contour between key/interpolated<br>
-  <br>
-  <b>[g]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  Find next gap or isolated contour (NOTE: to enable ghosting, 
-  try pressing [ctrl+g])<br>
-  <b>[h]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  Find next large hole between key contours (ie. a large region of 
-  consecutive interpolated contours)<br>
   <br>
   <br>
   <b>Tips</b><br>
   ---------------------<br>
-  <br> 
-  Get used to pressing [enter] to interpolate each contour you draw or modify. If contours are too far in XY to join, try changing the &quot;surface method&quot; to touching or hold [shift] and [enter] to force the current contour to linearly interpolate with the last contour you interpolated (in the same object).
-</p>
-<p>If you are not happy with the shape of interpolated contours you can 
+  <br>
+  If you are not happy with the shape of interpolated contours you can 
   either undo [apple+u], add/modify more contours, or change the 
   interpolation options and type.
   Select <b>'Clear all Interp'</b> to delete all interpolated contours
   and 'Regenerate Interp' to regenerate all key contours.<br>
   <br>
-  All of these interpolation types are intended for use with <strong>closed 
-    contours</strong> and so may give undesirable results for open or 
+  All of these interpolation types are intended for use with closed 
+  contours and so may give undesirable results for open or 
   scattered point objects which span multiple slices.<br>
   <br>
   Interpolation can become sluggish for objects with numerous contours. 
@@ -86,7 +100,9 @@ on different sides of the contour. </li>
   use either 'Linear' or 'Smooth' interpolation.
   In the end, trial and error is the only way to find the best settings -
   don't forget you can fine-tune some of these settings by clicking
-  the 'More Settings' button.<br>
+  the <strong>'More Settings'</strong> button. Note also you can force
+  linear interpolation between the current contour and the last contour you
+  interpolated with [shift+enter], regardless of Z Bridge.<br>
   <br>
   For more information on what each button/option does hover your
   mouse over it.<br>
@@ -99,6 +115,17 @@ on different sides of the contour. </li>
   IMOD group (to reduce traffic). <br>
   In your e-mail please tell me exactly how and when the problem
   occurred and attach the model file you were using with
-  enough information that I can replicate the error/crash.
-</p>
-</body>
+  enough information that I can replicate the error/crash.</p>
+<p><i>NOTE: Maintaining this plugin is part of the is part of the
+  "<a href="http://www.slashsegmentation.com/">SLASH segmententation</a>"
+  initiative. Please contact me for citation information.</i><br>
+<hr>
+<p><font size="2"> <b>Acknowledgements:</b> <i>Brad Marsh</i> at the
+Institute for Molecular Bioscience (www.imb.uq.edu.au) for helping 
+encourage this work - without this nor any of my other plugins would exist.
+<em>Mark Ellisman</em> and the The National Center for Microscopy and
+Imaging Research (www.ncmir.ucsd.edu) for ongoing support and funding 
+of these expedited segmentation tools.
+<i> David Mastronarde</i> and the team at The Boulder Lab for 3-D Electron 
+Microscopy (bio3d.colorado.edu) for their wonderful support of all my
+plugins.</font></body>
