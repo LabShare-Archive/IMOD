@@ -115,7 +115,7 @@ fi
 path_separator=${IMOD_PATH_SEPARATOR:=/}
 
 class_path=$IMOD_JUNIT_HOME${path_separator}$IMOD_JUNIT_JAR\
-$class_separator"$IMOD_DIR"${path_separator}bin${path_separator}etomoUITest.jar\
+$class_separator$IMOD_ETOMO_HOME${path_separator}etomoUITest.jar\
 $class_separator$IMOD_JFCUNIT_HOME${path_separator}$IMOD_JFCUNIT_JAR\
 $class_separator$IMOD_JAKARTA_REGEXP_HOME${path_separator}\
 $IMOD_JAKARTA_REGEXP_JAR
