@@ -956,7 +956,8 @@ else
     if ($use_etomo != "" && -e $use_etomo/etomo.jar) then
         echo "Copying etomo.jar from $use_etomo and omitting etomo tests"
         mkdir -p $etomo_dir/jar_dir
-        \cp -p $use_etomo/etomo.jar $etomo_dir/jar_dir
+        \cp -f $use_etomo/etomo.jar $etomo_dir/jar_dir
+        touch $etomo_dir/jar_dir/etomo.jar
         sed -e '/^tests:/s//realtests:/' \
             -e '/^uitestinstall:/s//realuitestinstall:/' \
           $etomo_dir/Makefile.real >> $etomo_dir/Makefile
