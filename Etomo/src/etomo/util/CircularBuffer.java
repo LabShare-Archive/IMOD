@@ -81,7 +81,7 @@ public final class CircularBuffer {
   /**
    * Place an object into the next position on circular buffer.
    */
-  public void put(Object obj) {
+  public void put(final Object obj) {
     if (iHead == buffer.size() - 1) {
       iHead = 0;
     }
