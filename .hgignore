@@ -1,0 +1,22 @@
+syntax: glob
+
+*.o
+*.a
+*.so
+*.obj
+*.dll
+*.lib
+*.exe
+*.mod
+*.dylib
+*.pyc
+*~
+*.\#*
+\#*\#
+
+bin
+lib
+buildlib
+man
+html/man
+html/libhelp
