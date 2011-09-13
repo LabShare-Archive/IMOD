@@ -349,7 +349,9 @@ set strip = "strip -x"
 #
 
 # get target executable name pattern from sendevent
+# This is just enough in qconfigure to keep it happy
 #
+echo target.path = $inst_bin_dir >! $sendevent_qconf
 (cd $sendevent_dir ; qmake imodsendevent.pro)
 set send_target = `sed -n '/^TARGET *= */s///p' $sendevent_dir/Makefile`
 set imod_target = `echo $send_target | sed '/imod/s/imodsendevent/3dmod/g'`
