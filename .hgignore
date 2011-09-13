@@ -20,3 +20,5 @@ buildlib
 man
 html/man
 html/libhelp
+Etomo/Makefile
+Etomo/jar_dir
