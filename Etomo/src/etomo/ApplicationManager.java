@@ -258,7 +258,7 @@ public final class ApplicationManager extends BaseManager implements
    * Does initialization and loads the .edf file. Opens the setup dialog if
    * there is no .edf file.
    */
-  ApplicationManager(String paramFileName, AxisID axisID) {
+  ApplicationManager(final String paramFileName, AxisID axisID) {
     super();
     metaData = new MetaData(this);
     createState();
