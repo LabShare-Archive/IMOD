@@ -5,38 +5,6 @@
  *   Colorado.  See implementation file for full copyright notice.
  */                                                                           
 
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-Revision 4.5  2006/01/14 18:15:39  mast
-Added incremental Z scale
-
-Revision 4.4  2004/11/20 05:05:27  mast
-Changes for undo/redo capability
-
-Revision 4.3  2004/11/04 23:30:55  mast
-Changes for rounded button style
-
-Revision 4.2  2004/11/01 23:28:42  mast
-Added function to scale resolution
-
-Revision 4.1  2003/02/10 20:41:55  mast
-Merge Qt source
-
-Revision 1.1.2.3  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.2  2003/01/23 20:01:14  mast
-Full Qt version
-
-Revision 1.1.2.1  2003/01/18 01:17:33  mast
-Initial creation
-
-*/
 #ifndef MODELOFFSETWINDOW_H
 #define MODELOFFSETWINDOW_H
 
@@ -68,6 +36,7 @@ class ModelHeaderWindow : public DialogFrame
   void valueEntered();
   void drawToggled(bool state);
   void setIncToggled(bool state);
+  void setPixelClicked();
 
  protected:
   void closeEvent ( QCloseEvent * e );

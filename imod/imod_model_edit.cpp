@@ -7,22 +7,16 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-Log at end of file
-*/
 
 #include <math.h>
 #include <qlineedit.h>
 #include <qcheckbox.h>
 #include <qlabel.h>
 #include <qlayout.h>
+#include <qpushbutton.h>
 #include <qtooltip.h>
 //Added by qt3to4:
 #include <QCloseEvent>
@@ -32,6 +26,7 @@ Log at end of file
 #include "tooledit.h"
 
 #include "imod.h"
+#include "imod_io.h"
 #include "imod_display.h"
 #include "imod_info_cb.h"
 #include "imod_model_edit.h"
@@ -47,31 +42,31 @@ static struct
   ModelHeaderWindow  *dia;
   ImodView      *vw;        /* image data to model                       */
 
-}HeaderDialog = { NULL, 0 };
+} sData = { NULL, 0 };
 
 
 int openModelEdit(ImodView *vw)
 {
      
-  if (HeaderDialog.dia){
-    HeaderDialog.dia->raise();
+  if (sData.dia){
+    sData.dia->raise();
     return(0);
   }
      
-  HeaderDialog.vw = vw;
-  HeaderDialog.dia = new ModelHeaderWindow
+  sData.vw = vw;
+  sData.dia = new ModelHeaderWindow
     (imodDialogManager.parent(IMOD_DIALOG), "model offset");
 
-  imodDialogManager.add((QWidget *)HeaderDialog.dia, IMOD_DIALOG);
-  adjustGeometryAndShow((QWidget *)HeaderDialog.dia, IMOD_DIALOG);
+  imodDialogManager.add((QWidget *)sData.dia, IMOD_DIALOG);
+  adjustGeometryAndShow((QWidget *)sData.dia, IMOD_DIALOG);
   return 0;
 
 }
 
 void imodModelEditUpdate()
 {
-  if (HeaderDialog.dia)
-    HeaderDialog.dia->update();
+  if (sData.dia)
+    sData.dia->update();
 }
 
 /****************************************************************************/
@@ -142,6 +137,7 @@ ModelHeaderWindow::ModelHeaderWindow(QWidget *parent, const char *name)
      "Pixel size and units (m, mm, um, nm, A)"}; 
   QString str;
   QLabel *label;
+  QPushButton *button;
 
   mSettingInc = false;
 
@@ -160,7 +156,7 @@ ModelHeaderWindow::ModelHeaderWindow(QWidget *parent, const char *name)
   mSetIncBox = diaCheckBox("Set incremental Z-scale", this, mLayout);
   connect(mSetIncBox, SIGNAL(toggled(bool)), this, SLOT(setIncToggled(bool)));
   mSetIncBox->setToolTip("Enter ratio of section thickness to Z pixel "
-                "size instead of total Z-scale");
+                         "size instead of total Z-scale");
 
   str.sprintf("Z/X pixel size ratio = %.3f", mPixRatio);
   label = new QLabel(str, this);
@@ -180,6 +176,13 @@ ModelHeaderWindow::ModelHeaderWindow(QWidget *parent, const char *name)
   }
 
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
+
+  button = diaPushButton("Set Pixel Size from Image", this, mLayout);
+  diaSetButtonWidth(button, ImodPrefs->getRoundedStyle(), 1.25,
+                    "Set Pixel Size from Image");
+  button->setToolTip("Set the model pixel size from pixel spacing in image file header");
+  connect(button, SIGNAL(clicked()), this, SLOT(setPixelClicked()));
+
   setWindowTitle(imodCaption("3dmod Model Header"));
   mEditBox[0]->setEnabled(false);
 
@@ -204,30 +207,40 @@ void ModelHeaderWindow::valueEntered()
   setFocus();
   for (i = 0; i < 4; i++)
     mEditBox[i]->blockSignals(false);
-  HeaderDialog.vw->undo->modelChange();
+  sData.vw->undo->modelChange();
 
   if (mSettingInc)
-    HeaderDialog.vw->imod->zscale = mPixRatio * mEditBox[0]->text().toFloat();
+    sData.vw->imod->zscale = mPixRatio * mEditBox[0]->text().toFloat();
   else
-    HeaderDialog.vw->imod->zscale = mEditBox[1]->text().toFloat();
+    sData.vw->imod->zscale = mEditBox[1]->text().toFloat();
 
-  HeaderDialog.vw->imod->res = atoi(LATIN1(mEditBox[2]->text()));
+  sData.vw->imod->res = atoi(LATIN1(mEditBox[2]->text()));
 
-  setPixsizeAndUnits(HeaderDialog.vw->imod, LATIN1(mEditBox[3]->text()));
+  setPixsizeAndUnits(sData.vw->imod, LATIN1(mEditBox[3]->text()));
 
   update();
   imodvPixelChanged();
-  HeaderDialog.vw->undo->finishUnit();
-  imodDraw(HeaderDialog.vw, IMOD_DRAW_MOD);
+  sData.vw->undo->finishUnit();
+  imodDraw(sData.vw, IMOD_DRAW_MOD);
+}
+
+// Set pixel size from image header
+void ModelHeaderWindow::setPixelClicked()
+{
+  sData.vw->undo->modelChange();
+  setModelScalesFromImage(sData.vw->imod, false);
+  imodvPixelChanged();
+  update();
+  sData.vw->undo->finishUnit();
 }
 
 // The draw box has been toggled
 void ModelHeaderWindow::drawToggled(bool state)
 {
-  if (state && HeaderDialog.vw->imod->drawmode <= 0 ||
-      !state &&HeaderDialog.vw->imod->drawmode > 0)
-    HeaderDialog.vw->imod->drawmode = -HeaderDialog.vw->imod->drawmode;
-  imodDraw(HeaderDialog.vw, IMOD_DRAW_MOD);
+  if (state && sData.vw->imod->drawmode <= 0 ||
+      !state &&sData.vw->imod->drawmode > 0)
+    sData.vw->imod->drawmode = -sData.vw->imod->drawmode;
+  imodDraw(sData.vw, IMOD_DRAW_MOD);
 }
 
 // The box for setting incremental Z is toggled
@@ -244,19 +257,19 @@ void ModelHeaderWindow::update()
   QString str;
   char *units;
 
-  diaSetChecked(mDrawBox, HeaderDialog.vw->imod->drawmode > 0);
+  diaSetChecked(mDrawBox, sData.vw->imod->drawmode > 0);
  
-  str.sprintf("%g", HeaderDialog.vw->imod->zscale / mPixRatio);
+  str.sprintf("%g", sData.vw->imod->zscale / mPixRatio);
   mEditBox[0]->setText(str);
 
-  str.sprintf("%g", HeaderDialog.vw->imod->zscale);
+  str.sprintf("%g", sData.vw->imod->zscale);
   mEditBox[1]->setText(str);
 
-  str.sprintf("%g", (float)HeaderDialog.vw->imod->res);
+  str.sprintf("%g", (float)sData.vw->imod->res);
   mEditBox[2]->setText(str);
 
-  str.sprintf("%g ", HeaderDialog.vw->imod->pixsize);
-  units = imodUnits(HeaderDialog.vw->imod);
+  str.sprintf("%g ", sData.vw->imod->pixsize);
+  units = imodUnits(sData.vw->imod);
   if (units)
     str += units;
   mEditBox[3]->setText(str);
@@ -272,8 +285,8 @@ void ModelHeaderWindow::fontChange( const QFont & oldFont )
 void ModelHeaderWindow::closeEvent ( QCloseEvent * e )
 {
   valueEntered();
-  imodDialogManager.remove((QWidget *)HeaderDialog.dia);
-  HeaderDialog.dia = NULL;
+  imodDialogManager.remove((QWidget *)sData.dia);
+  sData.dia = NULL;
   e->accept();
 }
 
@@ -505,63 +518,3 @@ void ModelOffsetWindow::keyReleaseEvent ( QKeyEvent * e )
     ivwControlKey(1, e);
 }
 
-/*
-$Log$
-Revision 4.14  2009/03/22 19:54:25  mast
-Show with new geometry adjust routine for Mac OS X 10.5/cocoa
-
-Revision 4.13  2009/01/15 16:33:17  mast
-Qt 4 port
-
-Revision 4.12  2006/01/14 18:14:16  mast
-Added incremental Z scale
-
-Revision 4.11  2005/06/26 19:39:21  mast
-cleanup
-
-Revision 4.10  2004/11/20 05:05:27  mast
-Changes for undo/redo capability
-
-Revision 4.9  2004/11/05 19:08:12  mast
-Include local files with quotes, not brackets
-
-Revision 4.8  2004/11/04 23:30:55  mast
-Changes for rounded button style
-
-Revision 4.7  2004/11/01 23:29:01  mast
-Added resolution scaling and help screen
-
-Revision 4.6  2004/01/22 19:12:43  mast
-changed from pressed() to clicked() or accomodated change to actionClicked
-
-Revision 4.5  2003/04/25 03:28:32  mast
-Changes for name change to 3dmod
-
-Revision 4.4  2003/04/17 18:43:38  mast
-adding parent to window creation
-
-Revision 4.3  2003/04/11 21:47:28  mast
-adding tooltips
-
-Revision 4.2  2003/02/28 21:40:57  mast
-Changing name of tooledit focus signal
-
-Revision 4.1  2003/02/10 20:29:00  mast
-autox.cpp
-
-Revision 1.1.2.3  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.2  2003/01/23 20:01:04  mast
-Full Qt version
-
-Revision 1.1.2.1  2003/01/18 01:16:20  mast
-half Qt version
-
-Revision 3.0.2.2  2003/01/13 01:15:43  mast
-changes for Qt version of info window
-
-Revision 3.0.2.1  2002/12/23 04:59:19  mast
-Make routine for parsing pixel size string
-
-*/
