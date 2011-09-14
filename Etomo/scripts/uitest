@@ -48,6 +48,25 @@ if [ ! -e "$IMOD_DIR" ]; then
   exit
 fi
 
+if [ -z "$IMOD_ETOMO_HOME" ]; then
+  echo "The IMOD_ETOMO_HOME environment variable has not been set"
+  echo "Set it to point to the directory containing the etomoUITest* jar"
+  exit
+fi
+
+if [ ! -e "$IMOD_ETOMO_HOME" ]; then
+  echo "IMOD_ETOMO_HOME=" ${IMOD_ETOMO_HOME} " does not exist"
+  echo "Set it to point to the directory containing the etomoUITest* jar"
+  exit
+fi
+
+if [ -z "$IMOD_ETOMO_JAR" ]; then
+  echo "The IMOD_ETOMO_JAR environment variable has not been set"
+  echo "Set it to the name of the etomoUITest* jar"
+  exit
+fi
+
+
 if [ -z "$IMOD_JUNIT_HOME" ]; then
   echo "The IMOD_JUNIT_HOME environment variable has not been set"
   echo "Set it to point to the directory containing the JUnit jar"
@@ -115,7 +134,7 @@ fi
 path_separator=${IMOD_PATH_SEPARATOR:=/}
 
 class_path=$IMOD_JUNIT_HOME${path_separator}$IMOD_JUNIT_JAR\
-$class_separator$IMOD_ETOMO_HOME${path_separator}etomoUITest.jar\
+$class_separator$IMOD_ETOMO_HOME${path_separator}$IMOD_ETOMO_JAR\
 $class_separator$IMOD_JFCUNIT_HOME${path_separator}$IMOD_JFCUNIT_JAR\
 $class_separator$IMOD_JAKARTA_REGEXP_HOME${path_separator}\
 $IMOD_JAKARTA_REGEXP_JAR
