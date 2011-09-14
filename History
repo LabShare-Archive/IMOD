@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/14/11: Added button to Edit-Model-Header dialog to set model pixel size from
+current image file pixel size.
+
 9/13/11: Made model montage snapshot work with multiple models displayed.
 
 9/11/11: Made Imodmop preserve coordinate system; made FFT's have grid X =
