@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <math.h>
@@ -234,17 +233,20 @@ void imodvPixelChanged()
     updateWorkArea();
 }
 
-/*  
-
-$Log$
-Revision 4.11  2009/01/15 16:33:18  mast
-Qt 4 port
-
-Revision 4.10  2008/12/01 15:42:01  mast
-Changes for undo/redo and selection in 3dmodv standalone
-
-Revision 4.9  2008/11/28 06:47:14  mast
-Update bounding box when model changes
-
-
-*/
+// Returns starting and ending models to draw based on value of drawall option
+void imodvModelDrawRange(ImodvApp *a, int &mstart, int &mend)
+{
+  mstart = mend = a->cm;
+  switch (a->drawall) {
+  case 2:
+    mend = B3DMIN(a->cm + 1, a->nm - 1);
+    break;
+  case 1:
+    mstart = B3DMAX(a->cm - 1, 0);
+    break;
+  case 3:
+    mstart = 0;
+    mend = a->nm - 1;
+    break;
+  }
+}

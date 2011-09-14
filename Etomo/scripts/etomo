@@ -45,8 +45,9 @@ fi
 
 jversion=`java -version 2>&1 | cat`
 if echo $jversion | grep GNU > /dev/null ; then
-  echo "eTomo will not work with GNU java.  You should install a Sun version"
-  echo "of the Java runtime environment and put it on your command search path"
+  echo "eTomo will not work with GNU java.  You should install a Sun/Oracle or"
+  echo "OpenJDK version of the Java runtime environment and put it on your"
+  echo "command search path"
   if [ ! -z "$IMOD_JAVADIR" ]; then
       echo "or make a link to it from $IMOD_JAVADIR"
   fi
@@ -56,9 +57,9 @@ fi
 if echo $jversion | grep '1\.4' > /dev/null ; then
   echo "You are trying to run a 1.4 version of Java, located at:"
   which java
-  echo "eTomo will no longer work with java 1.4.  You should install a Sun"
+  echo "eTomo will no longer work with java 1.4.  You should install a Sun/Oracle"
   echo "version of the Java runtime environment, version 1.5 or higher, and"
-  echo "put it on your command search path, point IMOD_JAVADIR to it"
+  echo "put it on your command search path, or point IMOD_JAVADIR to it"
   if [ ! -z "$IMOD_JAVADIR" ]; then
       echo "or make a link to it from $IMOD_JAVADIR"
   fi
@@ -76,13 +77,23 @@ if [ $osname == 'Linux' ] ; then
   fi
 fi
 
+if ! echo $osname | grep -q CYGWIN ; then
+
+  # Windows: must run a cygwin python to maintain process control
+  export PATH=/bin:${PATH}
+  if [ ! -e /usr/bin/python ] ; then
+    echo "You must have python installed in Cygwin in order to use eTomo"
+    exit
+  fi
+fi
+
 #  Make sure awk produces . not , for decimal in floating point output
 export LC_NUMERIC=C
 
 # Make sure all PIP programs print entries
 export PIP_PRINT_ENTRIES=1
 
-# Test for existance of IMOD_DIR
+# Test for existence of IMOD_DIR
 if [ -z "$IMOD_DIR" ]; then
   echo "The IMOD_DIR environment variable has not been set"
   echo "Set it to point to the directory where IMOD is installed"
