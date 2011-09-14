@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/14/11: In eTomo - Coarse Aligned Stack, fixed the Generate Coarse Aligned
+Stack button.(Bug# 1546)
+
 9/14/11: Added button to Edit-Model-Header dialog to set model pixel size from
 current image file pixel size.
 
