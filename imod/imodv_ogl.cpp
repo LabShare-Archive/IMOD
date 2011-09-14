@@ -26,6 +26,7 @@
 #include "imodv_objed.h"
 #include "imodv_input.h"
 #include "imodv_light.h"
+#include "imodv_modeled.h"
 #include "imodv_stereo.h"
 #include "istore.h"
 #include "finegrain.h"
@@ -387,7 +388,7 @@ static void setStereoProjection(ImodvApp *a)
 
 void imodvDraw_models(ImodvApp *a)
 {
-  int m;
+  int m, mstart, mend;
 
   /* DNM 11/30/02: change all glPushName(-1) to NO_NAME since it is supposed
      to be unsigned */
@@ -402,40 +403,11 @@ void imodvDraw_models(ImodvApp *a)
     imodvDrawImage(a, 0);
   }
 
-  switch (a->drawall){
-  case 0:
-    modBeingDrawn = a->cm;
-    glLoadName(a->cm);
-    imodvDraw_model(a, a->imod);
-    break;
-  case 2:
-    modBeingDrawn = a->cm;
-    imodvDraw_model(a, a->imod);
-    m = a->cm + 1;
-    if (m < a->nm){
-      modBeingDrawn = m;
-      glLoadName(m);
-      imodvDraw_model(a, a->mod[m]);
-    }
-    break;
-
-  case 1:
-    imodvDraw_model(a, a->imod);
-    m = a->cm - 1;
-    if (m >= 0){
-      modBeingDrawn = m;
-      glLoadName(m);
-      imodvDraw_model(a, a->mod[m]);
-    }
-    break;
-
-  case 3:
-    for (m = 0; m < a->nm; m++){
-      modBeingDrawn = m;
-      glLoadName(m);
-      imodvDraw_model(a, a->mod[m]);
-    }
-    break;
+  imodvModelDrawRange(a, mstart, mend);
+  for (m = mstart; m <= mend; m++){
+    modBeingDrawn = m;
+    glLoadName(m);
+    imodvDraw_model(a, a->mod[m]);
   }
 
   // DNM 5/14/04: now tell routine to draw transparent stuff
