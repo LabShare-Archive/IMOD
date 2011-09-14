@@ -258,7 +258,7 @@ public final class ApplicationManager extends BaseManager implements
    * Does initialization and loads the .edf file. Opens the setup dialog if
    * there is no .edf file.
    */
-  ApplicationManager(String paramFileName, AxisID axisID) {
+  ApplicationManager(final String paramFileName, AxisID axisID) {
     super();
     metaData = new MetaData(this);
     createState();
@@ -6493,7 +6493,7 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Execute the combine script starting at volcombine
    */
-  public void volcombine(ProcessResultDisplay processResultDisplay,
+  public void volcombine(final ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
       Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType) {
     if (processSeries == null) {

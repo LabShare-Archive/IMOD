@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <qapplication.h>
@@ -23,6 +22,7 @@
 #include "imodv_image.h"
 #include "imodv_movie.h"
 #include "imodv_window.h"
+#include "imodv_modeled.h"
 #include "preferences.h"
 #include "control.h"
 #include "scalebar.h"
@@ -412,16 +412,23 @@ static void imodvMakeMovie(int frames)
   return;
 }
 
+typedef struct {
+  Ipoint transave;
+  float radsave;
+  Ipoint xunit;
+  Ipoint yunit;
+} MontModelData;
+
 /* Routine to make a montage */
 static void imodvMakeMontage(int frames, int overlap)
 {
   ImodvApp *a = movie->a;
-  Iview *vw = a->imod->view;
-  Ipoint transave;
+  Iview *vw;
+  MontModelData *mmd;
   Imat *mat;
-  Ipoint ipt, spt, xunit, yunit;
-  float scrnscale, radsave;
-  int ix, iy, xFullSize, yFullSize, numChunks;
+  Ipoint ipt, spt;
+  float scrnscale;
+  int ix, iy, xFullSize, yFullSize, numChunks, m, mstart, mend;
   float zoom, yzoom;
   unsigned char *framePix = NULL;
   unsigned char **fullPix = NULL;
@@ -441,72 +448,87 @@ static void imodvMakeMontage(int frames, int overlap)
 
   xFullSize = frames * a->winx - (frames - 1) * overlap;
   yFullSize = frames * a->winy - (frames - 1) * overlap;
+  imodvModelDrawRange(a, mstart, mend);
 
   // Check for perspective and give error message
-  if (vw->fovy >= 1.0f) {
-    imodError(NULL, "This model has a perspective setting of %d (see "
-              "Edit-Controls window).\nThe montage will not work right "
-              "with perspective.", (int)vw->fovy);
-    return;
+  for (m = mstart; m <= mend; m++) {
+    vw = a->mod[m]->view;
+    if (vw->fovy >= 1.0f) {
+      imodError(NULL, "%s model has a perspective setting of %d (see "
+                "Edit-Controls window).\nThe montage will not work right "
+                "with perspective.", a->nm > 1 ? "One" : "This", (int)vw->fovy);
+      return;
+    }
   }
 
   a->md->xrotm = a->md->yrotm = a->md->zrotm = 0;
   a->movie = 0;
   a->moveall = 0;
   movie->abort = 0;
-
-  /* Save current zoom and translations */
-  radsave = vw->rad;
-  transave = vw->trans;
+  mmd = B3DMALLOC(MontModelData, a->nm);
+  if (!mmd) {
+    imodError(NULL, "Failed to get memory for saving data per model.\n");
+    return;
+  }
 
   /* new zoom is minimum of zoom needed to get each dimension to work */
   zoom = (a->winx + (frames - 1) * (a->winx - overlap)) / (float)a->winx;
   yzoom = (a->winy + (frames - 1) * (a->winy - overlap)) / (float)a->winy;
   if (zoom > yzoom)
     zoom = yzoom;
-  vw->rad /= zoom;
 
   // Set up memory allocations and scale bar stuff now that zoom is known
   if (utilStartMontSnap(a->winx, a->winy, xFullSize, yFullSize, zoom, barSaved,
                         numChunks, &framePix, &fullPix, &linePtrs)) {
     imodError(NULL, "Failed to get memory for snapshot buffers.\n");
+    free(mmd);
     return;
   }
 
-  /* Compute translation offsets implied by the given pixel shifts in X and
-     Y in the display, using same code as imodv_translated */
-  mat = imodMatNew(3);
-  imodMatId(mat);
-  imodMatRot(mat, -(double)vw->rot.x, b3dX);
-  imodMatRot(mat, -(double)vw->rot.y, b3dY);
-  imodMatRot(mat, -(double)vw->rot.z, b3dZ);
-     
-  scrnscale = 0.5 * B3DMIN(a->winx, a->winy) / vw->rad;
-    
-  spt.x = 1.0f/scrnscale;
-  spt.y = 1.0f/scrnscale;
-  spt.z = 1.0f/scrnscale * 1.0f/a->imod->zscale;
-  imodMatScale(mat, &spt);
-    
-  ipt.x = a->winx - overlap;
-  ipt.y = 0.;
-  ipt.z = 0.;
-  imodMatTransform(mat, &ipt, &xunit);
-  xunit.x *= (1.0/ vw->scale.x);
-  xunit.y *= (1.0/ vw->scale.y);
-  xunit.z *= (1.0/ vw->scale.z);
+  for (m = mstart; m <= mend; m++) {
+    vw = a->mod[m]->view;
 
-  ipt.x = 0.;
-  ipt.y = a->winy - overlap;
-  imodMatTransform(mat, &ipt, &yunit);
-  yunit.x *= (1.0/ vw->scale.x);
-  yunit.y *= (1.0/ vw->scale.y);
-  yunit.z *= (1.0/ vw->scale.z);
+    /* Save current zoom and translations */
+    mmd[m].radsave = vw->rad;
+    mmd[m].transave = vw->trans;
+
+    vw->rad /= zoom;
+
+    /* Compute translation offsets implied by the given pixel shifts in X and
+       Y in the display, using same code as imodv_translated */
+    mat = imodMatNew(3);
+    imodMatId(mat);
+    imodMatRot(mat, -(double)vw->rot.x, b3dX);
+    imodMatRot(mat, -(double)vw->rot.y, b3dY);
+    imodMatRot(mat, -(double)vw->rot.z, b3dZ);
     
-  /* do initial displacement to lower left corner */
-  vw->trans.x += 0.5 * (frames - 1.) * (xunit.x + yunit.x) ;
-  vw->trans.y += 0.5 * (frames - 1.) * (xunit.y + yunit.y) ;
-  vw->trans.z += 0.5 * (frames - 1.) * (xunit.z + yunit.z) ;
+    scrnscale = 0.5 * B3DMIN(a->winx, a->winy) / vw->rad;
+    
+    spt.x = 1.0f/scrnscale;
+    spt.y = 1.0f/scrnscale;
+    spt.z = 1.0f/scrnscale * 1.0f/a->mod[m]->zscale;
+    imodMatScale(mat, &spt);
+    
+    ipt.x = a->winx - overlap;
+    ipt.y = 0.;
+    ipt.z = 0.;
+    imodMatTransform(mat, &ipt, &mmd[m].xunit);
+    mmd[m].xunit.x *= (1.0/ vw->scale.x);
+    mmd[m].xunit.y *= (1.0/ vw->scale.y);
+    mmd[m].xunit.z *= (1.0/ vw->scale.z);
+
+    ipt.x = 0.;
+    ipt.y = a->winy - overlap;
+    imodMatTransform(mat, &ipt, &mmd[m].yunit);
+    mmd[m].yunit.x *= (1.0/ vw->scale.x);
+    mmd[m].yunit.y *= (1.0/ vw->scale.y);
+    mmd[m].yunit.z *= (1.0/ vw->scale.z);
+    
+    /* do initial displacement to lower left corner */
+    vw->trans.x += 0.5 * (frames - 1.) * (mmd[m].xunit.x + mmd[m].yunit.x) ;
+    vw->trans.y += 0.5 * (frames - 1.) * (mmd[m].xunit.y + mmd[m].yunit.y) ;
+    vw->trans.z += 0.5 * (frames - 1.) * (mmd[m].xunit.z + mmd[m].yunit.z) ;
+  }
 
   /* 12/28/03: Disabling the auto swap and reading from back buffer for db 
      did not work here for protecting from occluding stuff (nor does it work 
@@ -536,22 +558,32 @@ static void imodvMakeMontage(int frames, int overlap)
                  (a->winx - overlap), iy * (a->winy - overlap), a->winx, 0, 0);
         
       xinput(); 
-      if (ImodvClosed)
+      if (ImodvClosed) {
+        free(mmd);
+        // Shouldn't it do this too?
+        utilFreeMontSnapArrays(fullPix, numChunks, framePix, linePtrs);
         return;
+      }
 
       if (movie->abort)
         break;
 
       /* Each X, advance along row */
-      vw->trans.x -= xunit.x;
-      vw->trans.y -= xunit.y;
-      vw->trans.z -= xunit.z;
+      for (m = mstart; m <= mend; m++) {
+        vw = a->mod[m]->view;
+        vw->trans.x -= mmd[m].xunit.x;
+        vw->trans.y -= mmd[m].xunit.y;
+        vw->trans.z -= mmd[m].xunit.z;
+      }
     }
 
     /* End of row: advance in Y, move X back to start of next row */
-    vw->trans.x -= yunit.x - frames * xunit.x;
-    vw->trans.y -= yunit.y - frames * xunit.y;
-    vw->trans.z -= yunit.z - frames * xunit.z;
+    for (m = mstart; m <= mend; m++) {
+      vw = a->mod[m]->view;
+      vw->trans.x -= mmd[m].yunit.x - frames * mmd[m].xunit.x;
+      vw->trans.y -= mmd[m].yunit.y - frames * mmd[m].xunit.y;
+      vw->trans.z -= mmd[m].yunit.z - frames * mmd[m].xunit.z;
+    }
     if (movie->abort)
       break;
   }
@@ -569,84 +601,14 @@ static void imodvMakeMontage(int frames, int overlap)
     a->mainWin->mCurGLw->setBufferSwapAuto(true);
   }
   movie->abort = 1;
-  vw->rad = radsave;
-  vw->trans = transave;
+  for (m = mstart; m <= mend; m++) {
+    vw = a->mod[m]->view;
+    vw->rad = mmd[m].radsave;
+    vw->trans = mmd[m].transave;
+  }
   *barReal = barSaved;
   imodvDraw(a);
   imodMatDelete(mat);
+  free(mmd);
   return;
 }
-
-/*
-    $Log$
-    Revision 4.24  2010/12/18 05:43:37  mast
-    Use new common functions for montage snapshots
-
-    Revision 4.23  2010/12/15 06:14:41  mast
-    Changes for setting resolution in image snapshots
-
-    Revision 4.22  2010/01/22 03:06:03  mast
-    Call new function to make scale bar work when doing montage snapshot
-
-    Revision 4.21  2009/03/22 19:54:25  mast
-    Show with new geometry adjust routine for Mac OS X 10.5/cocoa
-
-    Revision 4.20  2009/01/15 16:33:18  mast
-    Qt 4 port
-
-    Revision 4.19  2008/05/27 05:45:38  mast
-    Adapting to changes in snapshot calls
-
-    Revision 4.18  2008/05/23 04:31:44  mast
-    Changed to do nontiff montage snapshots
-
-    Revision 4.17  2008/05/22 15:40:51  mast
-    Prevented crash if window closed during montage
-
-    Revision 4.16  2008/01/25 20:22:58  mast
-    Changes for new scale bar
-
-    Revision 4.15  2007/11/10 04:07:10  mast
-    Changes for setting snapshot directory
-
-    Revision 4.14  2006/11/22 18:16:45  mast
-    Added check for perspective, which does not work
-
-    Revision 4.13  2006/10/05 15:41:32  mast
-    Provided for primary and second non-TIFF snapshot format
-
-    Revision 4.12  2006/05/10 14:16:23  mast
-    Fixed to avoid two initial shots at same x/y/z position
-
-    Revision 4.11  2005/04/06 15:52:25  mast
-    Disabled buffer swap and read from back buffer in montage mode to
-    prevent getting wrong buffer on mustang
-
-    Revision 4.10  2004/11/29 19:25:21  mast
-    Changes to do QImage instead of RGB snapshots
-
-    Revision 4.9  2004/06/15 01:15:18  mast
-    Added image transparency and thickness
-
-    Revision 4.8  2004/05/31 23:35:26  mast
-    Switched to new standard error functions for all debug and user output
-
-    Revision 4.7  2004/05/17 05:01:33  mast
-    Allow it to movie if only slices are changing
-
-    Revision 4.6  2004/05/03 19:11:13  mast
-    Added X, Y, Z slices to movie parameters
-
-    Revision 4.5  2003/12/30 06:29:51  mast
-    Switched to having montage compose and save whole image
-
-    Revision 4.4  2003/04/25 03:28:32  mast
-    Changes for name change to 3dmod
-
-    Revision 4.3  2003/04/17 18:43:38  mast
-    adding parent to window creation
-
-    Revision 4.2  2003/02/27 17:29:20  mast
-    Use new b3dX,Y,Z
-
-*/
