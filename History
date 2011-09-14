@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/13/11: Made model montage snapshot work with multiple models displayed.
+
 9/11/11: Made Imodmop preserve coordinate system; made FFT's have grid X =
 NX.
 
