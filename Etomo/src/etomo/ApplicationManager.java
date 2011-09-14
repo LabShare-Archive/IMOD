@@ -1924,7 +1924,7 @@ public final class ApplicationManager extends BaseManager implements
       final boolean validate) throws FortranInputSyntaxException,
       InvalidParameterException, IOException {
     BlendmontParam preblendParam = comScriptMgr.getPreblendParam(axisID);
-    if (display.getParameters(preblendParam)) {
+    if (!display.getParameters(preblendParam)) {
       return null;
     }
     preblendParam.setBlendmontState();
