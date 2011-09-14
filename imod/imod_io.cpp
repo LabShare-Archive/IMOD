@@ -13,7 +13,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end
  */
 
 // TODO:
@@ -660,7 +659,6 @@ int createNewModel(const char *modelFilename)
 void initNewModel(Imod *imod)
 {
   Iobj *obj;
-  ImodImageFile *image = App->cvi->image;
   imodvViewsInitialize(imod);
   imodNewObject(imod);
 
@@ -668,7 +666,13 @@ void initNewModel(Imod *imod)
   obj = imodObjectGet(imod);
   if (App->cvi->nt)
     obj->flags |= IMOD_OBJFLAG_TIME;
+  setModelScalesFromImage(imod, true);
+}
 
+// Set the pixel size and the zscale from the imge file header
+void setModelScalesFromImage(Imod *imod, bool doZscale)
+{
+  ImodImageFile *image = App->cvi->image;
   /* 1/13/06: Set header pixel size and zscale */
   if (!App->cvi->fakeImage && image->xscale) {
     if (image->xscale != 1.0f) {
@@ -678,7 +682,7 @@ void initNewModel(Imod *imod)
 
     // Round pixel-size based Z-scale to 3 digits, keep this consistent with
     // edit-model-header treatment of pixel ratio
-    if (image->zscale)
+    if (image->zscale && doZscale)
       imod->zscale = (float)
         (0.001 * floor(1000. * image->zscale / image->xscale + 0.5));
   }
@@ -809,163 +813,3 @@ static int mapErrno(int errorCode)
 
 /* 10/14/05: Removed SaveImage and WriteImage (file version 4.19) */
 
-/*
-$Log$
-Revision 4.32  2011/03/18 04:42:27  mast
-Use ivwReopen instead of iiReopen
-
-Revision 4.31  2011/03/14 23:39:13  mast
-Changes for ushort loading
-
-Revision 4.30  2010/04/01 02:41:48  mast
-Called function to test for closing keys, or warning cleanup
-
-Revision 4.29  2009/01/15 16:33:17  mast
-Qt 4 port
-
-Revision 4.28  2008/12/04 06:50:58  mast
-Turn model on when loading
-
-Revision 4.27  2008/07/17 05:01:19  mast
-Notify plugins when new model loaded
-
-Revision 4.26  2008/05/29 22:16:45  mast
-Prevented model view from being drawn in intermediate stage of creating model
-
-Revision 4.25  2007/11/10 17:24:46  mast
-Syncronize slicer angle to created model
-
-Revision 4.24  2007/06/13 23:51:49  mast
-Inform slicer of new model
-
-Revision 4.23  2006/09/28 21:17:27  mast
-Changes to test for impossible slice sizes and handle slices >2-4Gpixel
-
-Revision 4.22  2006/09/13 00:49:38  mast
-Chnaged to using imodNew to get model structure
-
-Revision 4.21  2006/01/14 18:14:45  mast
-Added function for new model initialization and set pizel size and z scale
-
-Revision 4.20  2005/10/14 21:59:47  mast
-Added reload capability, made function to set various state variables into
-model just before saving, added function to set Imod_filename, and cleaned
-up SaveModel and SaveasModel by putting common actions in one function.
-
-Revision 4.19  2005/10/13 00:55:23  mast
-Move notification of imodv to after model scaling
-
-Revision 4.18  2005/03/27 20:32:44  mast
-Change filter to any extension ending in seed or fid
-
-Revision 4.17  2005/03/23 16:52:12  mast
-Add seed to filter
-
-Revision 4.16  2005/03/20 19:55:36  mast
-Eliminating duplicate functions
-
-Revision 4.15  2004/11/04 17:01:31  mast
-Changes for loading FFTs with internal mirroring
-
-Revision 4.14  2004/10/22 22:16:18  mast
-Added call to start cache dumping for mrc_read_byte data load
-
-Revision 4.13  2004/09/10 02:31:03  mast
-replaced long with int
-
-Revision 4.12  2004/06/04 03:17:03  mast
-Added argument to openModel to keep black/white level
-
-Revision 4.11  2004/06/01 01:31:34  mast
-Remove extern int errno statement - there is an include for it
-
-Revision 4.10  2004/01/06 16:53:35  mast
-Use proper test for when to use mrc_read_byte
-
-Revision 4.9  2004/01/05 18:01:53  mast
-Implemented full loading of non-cache images through ivwReadBinnedSection
-
-Revision 4.8  2003/09/13 04:36:06  mast
-Protected the global array with the model filename from being overrun.
-Got the model checksum at the right points to prevent unneeded requests
-to save the model; and eliminated unneeded computations of model checksum.
-
-Revision 4.7  2003/06/27 19:26:36  mast
-Changes to implement new view scheme when reading, saving, or making a
-new model
-
-Revision 4.6  2003/04/25 03:28:32  mast
-Changes for name change to 3dmod
-
-Revision 4.5  2003/03/24 17:58:09  mast
-Changes for new preferences capability
-
-Revision 4.4  2003/03/03 22:14:34  mast
-cleanup
-
-Revision 4.3  2003/02/28 18:33:44  mast
-fix = to == in if statement
-
-Revision 4.2  2003/02/27 19:37:26  mast
-Changes for windows version in filename handling
-
-Revision 4.1  2003/02/10 20:29:00  mast
-autox.cpp
-
-Revision 1.1.2.9  2003/01/27 03:22:17  mast
-Stripped model filename of directories when appending to an autosave dir
-
-Revision 1.1.2.8  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.7  2003/01/23 20:07:45  mast
-rely on imod_infor_setocp updating dialogs
-
-Revision 1.1.2.6  2003/01/13 01:15:42  mast
-changes for Qt version of info window
-
-Revision 1.1.2.5  2003/01/06 15:52:16  mast
-changes for Qt version of slicer
-
-Revision 1.1.2.4  2002/12/19 04:37:13  mast
-Cleanup of unused global variables and defines
-
-Revision 1.1.2.3  2002/12/18 04:15:14  mast
-new includes for imodv modules
-
-Revision 1.1.2.2  2002/12/17 18:41:49  mast
-Changes to get imodv to set file name correctly in window title
-
-Revision 1.1.2.1  2002/12/15 21:14:02  mast
-conversion to cpp
-
-Revision 4.1.2.2  2002/12/09 17:42:32  mast
-remove include of zap
-
-Revision 4.1.2.1  2002/12/05 16:30:00  mast
-Add include of imod_object_edit.h
-
-Revision 4.2  2002/12/03 16:08:28  mast
-Switched SavasModel to using dia_filename so that there would be no callback
-returns from file dialogs (thus preventing multiple file dialogs).  Refined
-the error return protocols and minimized error messages if user cancelled;
-also let user cancel as well as yes/no when asked whether to save current
-model upon new model or model load.
-
-Revision 4.1  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 4.0  2002/09/27 20:15:24  rickg
-Significant restructuring of the model io code
-- io funtionality moved imod_menu_cb to this module
-- added error reporting methods imodIOGetError*
-- reverted LoadModel to orignally calling structure and added LoadModelFile
-  to allow for cleaner handling of different cases especially w.r.t. freeing
-  allocated variables and arguments
-- still plenty left todo
-
-Revision 3.1  2002/09/13 21:07:07  mast
-Added argument to LoadModel so it can work from a filename passed in, and
-removed old version of imod_io_image_reload
-
-*/
