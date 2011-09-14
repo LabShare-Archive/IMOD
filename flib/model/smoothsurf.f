@@ -13,36 +13,7 @@ c       See man page for more details
 c       
 c       David Mastronarde, 9/9/97
 c       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
-c       $Log$
-c       Revision 3.7  2010/07/02 02:12:41  mast
-c       Increased some array limits
-c
-c       Revision 3.6  2006/03/02 00:25:25  mast
-c       Move polyterm to library
-c
-c       Revision 3.5  2005/12/09 04:43:27  mast
-c       gfortran: .xor., continuation, format tab continuation or byte fixes
-c
-c       Revision 3.4  2005/05/31 00:56:23  mast
-c       Switched to loading one object at a time
-c       
-c       Revision 3.3  2004/06/18 03:10:36  mast
-c       Called PipDone and added a reminder to remesh
-c       
-c       Revision 3.2  2004/06/17 16:38:03  mast
-c       Fixed to work with index coordinates instead of pixel-size dependent
-c       model coordinates, fixed bug in contour smoothing that might have
-c       kept it from happened, converted to PIP and provided defaults
-c       
-c       Revision 3.1  2003/09/22 19:29:08  mast
-c       removed mysterious common /dumcom/dummy(1500000) - failed on Cygwin
-c       
+c       $Id$
 c       
       implicit none
       integer idim, limpt, idzlim, limflags
@@ -344,7 +315,9 @@ c
                   dx=p_coord(1,ipnex)-p_coord(1,iplas)
                   dy=p_coord(2,ipnex)-p_coord(2,iplas)
                   dlen=sqrt(dx**2+dy**2)
-                  if (dlen .gt. 2) exit
+                  if (dlen .gt. 2) then
+                    exit
+                  endif
                 enddo
                 if(dlen.gt.2..and.((idzmin.lt.0.and.idzmax.gt.0) .or.
      &              idzmax - idzmin .ge. (3 * nzfit) / 4)) then
@@ -489,7 +462,9 @@ c
                     dx=p_new(1,ipnex)-p_new(1,iplas)
                     dy=p_new(2,ipnex)-p_new(2,iplas)
                     dlen=sqrt(dx**2+dy**2)
-                    if (dlen .gt. 2) exit
+                    if (dlen .gt. 2) then
+                      exit
+                    endif
                   enddo
                   if(dlen.gt.2.)then
                     sinth=-dy/dlen
