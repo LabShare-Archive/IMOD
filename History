@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/15/11: In eTomo - Clean Up, fixed a problem where eTomo doesn't recognize a
+successful archiveorig run.(Bug# 1549)
+
+9/14/11: In eTomo - Coarse Aligned Stack, fixed the Generate Coarse Aligned
+Stack button.(Bug# 1546)
+
 9/14/11: Added button to Edit-Model-Header dialog to set model pixel size from
 current image file pixel size.
 

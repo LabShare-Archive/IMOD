@@ -990,12 +990,33 @@ public final class ApplicationManager extends BaseManager implements
       return;
     }
     File originalStack = Utilities.getFile(this, false, axisID, "_orig.st", "");
-    // This function is only run is archiveorig succeeds so this "if" statement
-    // should always fail.
-    if (!originalStack.exists() || output == null || output.length != 6
-        || !output[4].equals("It is now safe to delete " + originalStack.getName())) {
-      throw new IllegalStateException("Unexpected result from running archiveorig"
-          + output.toString());
+    String errTag = "Unexpected result from running archiveorig";
+    StringBuffer errMess = new StringBuffer();
+    if (!originalStack.exists()) {
+      errMess.append(errTag);
+      errMess.append(" - original stack doesn't exist.");
+    }
+    else if (output == null) {
+      errMess.append(errTag);
+      errMess.append(" - no output returned.");
+    }
+    else {
+      int i = 0;
+      for (i = 0; i < output.length; i++) {
+        if (output[i].equals("It is now safe to delete " + originalStack.getName())) {
+          break;
+        }
+      }
+      if (i >= output.length) {
+        errMess.append(errTag);
+        errMess.append(" - success message missing from output:");
+        for (i = 0; i < output.length; i++) {
+          errMess.append(output[i]);
+        }
+      }
+      if (errMess.length() > 0) {
+        throw new IllegalStateException(errMess.toString());
+      }
     }
     String[] message = new String[output.length - 2 + 3];
     message[0] = "Result of " + archiveorigParam.getCommandLine() + ":\n";
@@ -1924,7 +1945,7 @@ public final class ApplicationManager extends BaseManager implements
       final boolean validate) throws FortranInputSyntaxException,
       InvalidParameterException, IOException {
     BlendmontParam preblendParam = comScriptMgr.getPreblendParam(axisID);
-    if (display.getParameters(preblendParam)) {
+    if (!display.getParameters(preblendParam)) {
       return null;
     }
     preblendParam.setBlendmontState();
