@@ -26,16 +26,16 @@ moc_customdialog.cpp : customdialog.h
 
 includes : $(IMODINCLUDES)
 
-imod.h : ../../imod/imod.h
-	$(CP) -f ../../imod/imod.h .
-imodview.h : ../../imod/imodview.h
-	$(CP) -f ../../imod/imodview.h .
-imodplug.h : ../../imod/imodplug.h
-	$(CP) -f ../../imod/imodplug.h .
-control.h : ../../imod/control.h
-	$(CP) -f ../../imod/control.h .
-undoredo.h : ../../imod/undoredo.h
-	$(CP) -f ../../imod/undoredo.h .
+imod.h : ../../3dmod/imod.h
+	$(CP) -f ../../3dmod/imod.h .
+imodview.h : ../../3dmod/imodview.h
+	$(CP) -f ../../3dmod/imodview.h .
+imodplug.h : ../../3dmod/imodplug.h
+	$(CP) -f ../../3dmod/imodplug.h .
+control.h : ../../3dmod/control.h
+	$(CP) -f ../../3dmod/control.h .
+undoredo.h : ../../3dmod/undoredo.h
+	$(CP) -f ../../3dmod/undoredo.h .
 
 clean :
 	$(FIND) . -type f -name "*.o*"  -exec rm "{}" \;

@@ -11,8 +11,8 @@ PLUGS = $(MODULE).$(DLLEXT)
 
 IMODINCLUDES = imod.h imodview.h imodplug.h control.h undoredo.h
 COMMINCLUDES = icontextra.h _common_functions.h customdialog.h
-IMODREALINCLUDES = ../../imod/imod.h ../../imod/imodview.h \
-	../../imod/imodplug.h ../../imod/control.h ../../imod/undoredo.h
+IMODREALINCLUDES = ../../3dmod/imod.h ../../3dmod/imodview.h \
+	../../3dmod/imodplug.h ../../3dmod/control.h ../../3dmod/undoredo.h
 
 CONTEXTRA = ../noskecommon/icontextra
 QTDIALOG = ../noskecommon/customdialog
@@ -54,16 +54,16 @@ $(QTDLGMOC).cpp : $(QTDIALOG).h
 
 # Copy IMOD includes
 #
-imod.h : ../../imod/imod.h
-	$(CP) -f ../../imod/imod.h .
-imodview.h : ../../imod/imodview.h
-	$(CP) -f ../../imod/imodview.h .
-imodplug.h : ../../imod/imodplug.h
-	$(CP) -f ../../imod/imodplug.h .
-control.h : ../../imod/control.h
-	$(CP) -f ../../imod/control.h .
-undoredo.h : ../../imod/undoredo.h
-	$(CP) -f ../../imod/undoredo.h .
+imod.h : ../../3dmod/imod.h
+	$(CP) -f ../../3dmod/imod.h .
+imodview.h : ../../3dmod/imodview.h
+	$(CP) -f ../../3dmod/imodview.h .
+imodplug.h : ../../3dmod/imodplug.h
+	$(CP) -f ../../3dmod/imodplug.h .
+control.h : ../../3dmod/control.h
+	$(CP) -f ../../3dmod/control.h .
+undoredo.h : ../../3dmod/undoredo.h
+	$(CP) -f ../../3dmod/undoredo.h .
 
 # Copy common includes
 #

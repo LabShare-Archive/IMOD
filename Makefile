@@ -66,7 +66,7 @@ default : all
 all : configure clibs
 	cd Etomo      ; $(MAKE) all
 	cd flib       ; $(MAKE) all
-	cd imod       ; $(MAKE) all
+	cd 3dmod      ; $(MAKE) all
 	cd imodutil   ; $(MAKE) all
 	cd sendevent  ; $(MAKE) all
 	cd qtassist   ; $(MAKE) all
@@ -95,7 +95,7 @@ install : configure man sourcedoc
 	cd libdiaqt   ; $(MAKE) $@
 	cd libcfft    ; $(MAKE) $@
 	cd libwarp    ; $(MAKE) $@
-	cd imod       ; $(MAKE) $@
+	cd 3dmod      ; $(MAKE) $@
 	cd imodutil   ; $(MAKE) $@
 	cd sendevent  ; $(MAKE) $@
 	cd qtassist   ; $(MAKE) $@
@@ -154,7 +154,7 @@ clean : configure ALWAYS
 	cd libdiaqt   ; $(MAKE) $@
 	cd libcfft    ; $(MAKE) $@
 	cd libwarp    ; $(MAKE) $@
-	cd imod       ; $(MAKE) $@
+	cd 3dmod      ; $(MAKE) $@
 	cd imodutil   ; $(MAKE) $@
 	cd sendevent  ; $(MAKE) $@
 	cd qtassist   ; $(MAKE) $@
@@ -200,7 +200,7 @@ cleanlibs : cleanclibs
 cleanqt : configure ALWAYS
 	cd libdiaqt   ; $(MAKE) clean
 	cd plugs      ; $(MAKE) clean
-	cd imod       ; $(MAKE) clean
+	cd 3dmod      ; $(MAKE) clean
 	cd midas      ; $(MAKE) clean
 	cd sendevent  ; $(MAKE) clean
 	cd qtassist   ; $(MAKE) clean
@@ -251,7 +251,7 @@ flibs: configure
 3dmod : configure clibs
 	cd flib      ;  $(MAKE) configure
 	cd flib/subrs  ; $(MAKE) track
-	cd imod      ; $(MAKE) all
+	cd 3dmod     ; $(MAKE) all
 
 #
 # Make the full software distribution.  Use the options from last setup
