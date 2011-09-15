@@ -6,7 +6,6 @@
  *   Colorado.
  *
  *   $Id$
- *   No more Log
  */                                                                           
 
 #ifndef B3DUTIL_H
@@ -21,6 +20,7 @@
 
 #define B3DMIN(a,b) ((a) < (b) ? (a) : (b))
 #define B3DMAX(a,b) ((a) > (b) ? (a) : (b))
+#define B3DCLAMP(a,b,c) a = B3DMAX((b), B3DMIN((c), (a)))
 #define B3DNINT(a) (int)floor((a) + 0.5)
 #define B3DFREE(a) if (a) {free(a); a = NULL;}
 #define B3DMALLOC(a,b) (a *)malloc((b) * sizeof(a))
