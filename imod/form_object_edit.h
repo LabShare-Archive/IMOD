@@ -38,6 +38,13 @@ class objectEditForm : public QWidget, public Ui::objectEditForm
   virtual void toggledOnSection( bool state );
   virtual void widthChanged( int value );
   virtual void toggledPlanar( bool state );
+  virtual void copyClicked();
+  virtual void setDefaultsClicked();
+  virtual void restoreClicked();
+  virtual void keyPressEvent( QKeyEvent * e );
+  virtual void keyReleaseEvent( QKeyEvent * e );
+
+ public:
   virtual void setSymbolProperties( int which, bool fill, bool markEnds, int size );
   virtual void setDrawBox( bool state );
   virtual void setObjectName( char * name );
@@ -49,8 +56,7 @@ class objectEditForm : public QWidget, public Ui::objectEditForm
   virtual void setLineWidth( int value );
   virtual void setPlanarBox( bool state, bool enabled );
   virtual void setPointLimit( int value );
-  virtual void keyPressEvent( QKeyEvent * e );
-  virtual void keyReleaseEvent( QKeyEvent * e );
+  virtual void setCopyObjLimit( int value );
 
  protected:
   QButtonGroup *typeButtonGroup;
