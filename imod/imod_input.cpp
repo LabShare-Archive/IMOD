@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <math.h>
@@ -937,11 +936,20 @@ void inputFindMaxValue(ImodView *vi)
 void inputNewObject(ImodView *vi)
 {
   Iobj *obj;
+  NewObjectProps *props = ImodPrefs->newObjectProps();
   vi->undo->objectAddition(vi->imod->objsize);
-  imodNewObject(vi->imod); 
-  vi->undo->finishUnit();
 
+  // Get a new object and set the default properties
+  imodNewObject(vi->imod);
   obj = imodObjectGet(vi->imod);
+  obj->flags = props->flags;
+  obj->pdrawsize = props->pdrawsize;
+  obj->symbol = props->symbol;
+  obj->symsize = props->symsize;
+  obj->linewidth2 = props->linewidth2;
+  obj->symflags = props->symflags;
+  obj->extra[IOBJ_EX_PNT_LIMIT] = props->pointLimit;
+  vi->undo->finishUnit();
 
   /* DNM: need to find pixel value for new object, but no longer allocate */
 
@@ -1522,237 +1530,3 @@ bool inputTestMetaKey(QKeyEvent *event)
 #endif
   return false;
 }
-
-/*
-$Log$
-Revision 4.59  2011/04/08 15:18:35  mast
-Fixed crash bug switching away from weirdly undefined contour
-
-Revision 4.58  2011/03/14 23:39:13  mast
-Changes for ushort loading
-
-Revision 4.57  2011/03/01 18:38:59  mast
-Added alternative hot keys for F11/F12
-
-Revision 4.56  2011/01/13 20:30:08  mast
-Hot key to toggle gap
-
-Revision 4.55  2010/04/01 02:41:48  mast
-Called function to test for closing keys, or warning cleanup
-
-Revision 4.54  2010/03/30 16:11:24  mast
-Added new hot keys for []{} for Europeans
-
-Revision 4.53  2009/11/11 19:28:46  mast
-Changes for hot key to break contour
-
-Revision 4.52  2009/04/16 15:00:23  mast
-Do not sync image when toggling with t/T
-
-Revision 4.51  2009/03/26 05:41:01  mast
-Change nearest section function to work for an object passed as argument
-
-Revision 4.50  2009/03/10 04:36:11  mast
-Added hot key to toggle open/closed contours
-
-Revision 4.49  2009/02/26 20:03:32  mast
-Add paging by big steps
-
-Revision 4.48  2009/02/25 05:35:29  mast
-Add shift-Page commands
-
-Revision 4.47  2009/01/15 16:33:17  mast
-Qt 4 port
-
-Revision 4.46  2008/12/10 01:05:15  mast
-Added hot key for contour copy
-
-Revision 4.45  2008/12/01 15:37:12  mast
-Changed the way current point index is set after changing contours
-
-Revision 4.44  2008/11/28 06:42:19  mast
-Make it update current point when model point moves with keys
-
-Revision 4.43  2008/11/27 22:32:36  mast
-Added Shift-Home to supplement Insert
-
-Revision 4.42  2008/07/13 16:44:52  mast
-Keep image windows from opening on initial load
-
-Revision 4.41  2008/07/13 15:03:38  mast
-Prevent saving of model during initial load
-
-Revision 4.40  2008/05/27 22:47:42  mast
-Synchronized F9/F10 to autox window
-
-Revision 4.39  2008/05/27 05:55:18  mast
-Added isosurface and object toggling items
-
-Revision 4.38  2008/05/22 15:41:30  mast
-Synced model view objects when added object
-
-Revision 4.37  2008/01/13 22:58:35  mast
-Changes for multi-Z window
-
-Revision 4.36  2007/12/06 23:43:33  mast
-Try adding Backspace as alternative to Delete for Macbook
-
-Revision 4.35  2007/10/04 02:23:44  mast
-Stopped zap window from syncing to model point on home/end/middle keys
-
-Revision 4.34  2007/08/07 00:53:13  mast
-Added hot keys to start and stop movies in Z
-
-Revision 4.33  2007/07/19 22:29:19  mast
-Added hot keys for jumping to set limits in time
-
-Revision 4.32  2007/07/08 16:49:24  mast
-Added use of yes always option
-
-Revision 4.31  2007/06/08 04:47:29  mast
-Added hot key for surface delete
-
-Revision 4.30  2007/06/07 03:57:24  mast
-Fix xyzmouse after deleting a point
-
-Revision 4.29  2007/05/25 05:28:16  mast
-Changes for addition of slicer angle storage
-
-Revision 4.28  2006/09/18 15:51:51  mast
-Stopped time movie with a time step action
-
-Revision 4.27  2006/09/12 15:46:14  mast
-Handled contour member renames
-
-Revision 4.26  2006/08/28 05:24:04  mast
-Do not toggle false color mode with colormapped images
-
-Revision 4.25  2006/02/27 19:47:11  mast
-Moved go to surface function here from imod_cont_edit.cpp
-
-Revision 4.24  2005/03/20 19:55:36  mast
-Eliminating duplicate functions
-
-Revision 4.23  2005/02/24 22:36:46  mast
-Switched to ability to delete selected contours from multiple objects
-
-Revision 4.22  2004/12/03 17:24:50  mast
-Fixed bug in deleting point with no contour, and changed Delete behavior
-
-Revision 4.21  2004/11/20 05:05:27  mast
-Changes for undo/redo capability
-
-Revision 4.20  2004/11/01 23:38:06  mast
-Changes for multiple selection and deletion of multiple contours
-
-Revision 4.19  2004/09/21 20:28:44  mast
-Backed out an erroneous checkin
-
-Revision 4.17  2004/07/11 18:29:52  mast
-Consolidated code for new contour or surface and used new function
-for getting the contour to add points to
-
-Revision 4.16  2003/12/18 22:44:43  mast
-Disable A hot key for fake or raw image
-
-Revision 4.15  2003/11/02 00:07:21  mast
-Raise doesnt work in windows, add command that makes it flash
-
-Revision 4.14  2003/10/30 06:19:16  mast
-Add A hotkey for autocontrast
-
-Revision 4.13  2003/07/30 00:15:51  mast
-Fixed bug that let Z go outside legal limits
-
-Revision 4.12  2003/06/04 23:32:47  mast
-Output integer coordinates numbered from one in f and F outputs
-
-Revision 4.11  2003/05/23 02:44:58  mast
-Raise windows in order of image then dialog
-
-Revision 4.10  2003/04/18 20:16:39  mast
-Rename meta test function
-
-Revision 4.9  2003/04/18 20:08:18  mast
-Implement function to reject Ctrl key and give message on Mac
-
-Revision 4.8  2003/04/17 19:27:13  mast
-keypad workaround for Mac
-
-Revision 4.7  2003/03/24 17:58:09  mast
-Changes for new preferences capability
-
-Revision 4.6  2003/03/13 07:15:33  mast
-Make raise window function global
-
-Revision 4.5  2003/03/13 01:17:25  mast
-Add function to convert numlocked keypad keys, and add function and
-hotkey to raise all windows
-
-Revision 4.4  2003/03/12 06:35:35  mast
-Modified inputInsertPoint to work like the xyz window insert in terms of
-times and creating a new contour; modified inputModifyPoint to respect time
-
-Revision 4.3  2003/02/27 23:45:42  mast
-Add function to truncate contour
-
-Revision 4.2  2003/02/14 01:15:20  mast
-Try to prevent bad pageup's
-
-Revision 4.1  2003/02/10 20:29:00  mast
-autox.cpp
-
-Revision 1.1.2.13  2003/02/03 05:38:45  mast
-fixed problem in finding highest pixel (F)
-
-Revision 1.1.2.12  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.11  2003/01/23 20:05:43  mast
-*** empty log message ***
-
-Revision 1.1.2.10  2003/01/18 01:15:25  mast
-remove keypad include
-
-Revision 1.1.2.9  2003/01/14 21:52:38  mast
-include new movie controller include file
-
-Revision 1.1.2.8  2003/01/13 01:15:42  mast
-changes for Qt version of info window
-
-Revision 1.1.2.7  2003/01/10 23:52:54  mast
-add new xgraoh include
-
-Revision 1.1.2.6  2003/01/06 15:52:16  mast
-changes for Qt version of slicer
-
-Revision 1.1.2.5  2003/01/04 03:47:42  mast
-add include of imod_input.h (!) and control.h
-
-Revision 1.1.2.4  2002/12/19 04:37:13  mast
-Cleanup of unused global variables and defines
-
-Revision 1.1.2.3  2002/12/17 18:40:24  mast
-Changes and new includes with Qt version of imodv
-
-Revision 1.1.2.2  2002/12/13 06:09:09  mast
-include file changes
-
-Revision 1.1.2.1  2002/12/09 17:51:07  mast
-Conversion to cpp and inclusion of a Qt version for default input keys
-
-Revision 3.2.2.1  2002/12/05 16:23:52  mast
-No changes - CVS detected as modified in branch
-
-Revision 3.3  2002/12/03 15:50:15  mast
-Before a save, have it test the forbid level, then set forbid level
-during the save, to prevent multiple file dialogs
-
-Revision 3.2  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.1  2002/05/20 15:34:47  mast
-Made time index modeling be the default for a new object if multiple files
-are open
-
-*/
