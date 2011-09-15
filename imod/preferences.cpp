@@ -14,7 +14,8 @@
  * Add structure variable for item, default value, and boolean for change
  * Add function for returning current value
  * Set default value of the Dflt variable
- * Read the setting, including any checks on validity
+ * Read the setting, including any checks on validity.  If not using READBOOL or READNUM,
+ *    first set the Chgd variable from settings->contains()
  * Write the setting if changed in saveSettings()
  * In donePressed, record change in value
  * In defaultPressed, restore value in appropriate section
@@ -115,14 +116,18 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   QCoreApplication::setOrganizationDomain("bio3d.colorado.edu");
 
   // Put plugin dir on the library path so image plugins can be found
-  // Replace the default path so we don't get anything from our own Qt install
+  // Replace the default path so we don't get anything from our own Qt install,
+  // Unless we are running an IMOD installation without an imageformats directory
   plugdir = getenv("IMOD_PLUGIN_DIR");
   if (plugdir)
     strList << plugdir;
   plugdir = getenv("IMOD_DIR");
   if (plugdir)
     strList << QString(plugdir) + QString("/lib/imodplug");
-  if (strList.count())
+  for (i = 0; i < strList.count(); i++)
+    if (QFile::exists(strList[i] + "/imageformats"))
+      break;
+  if (strList.count() && i < strList.count())
     QApplication::setLibraryPaths(strList);
 
   // Set the default values
@@ -138,6 +143,13 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->autoConAtStartDflt = 1;
   prefs->attachToOnObjDflt = true;
   prefs->slicerNewSurfDflt = true;
+  mNewObjPropsDflt.flags = 0;
+  mNewObjPropsDflt.pdrawsize = 0;
+  mNewObjPropsDflt.symbol = IOBJ_SYM_NONE;
+  mNewObjPropsDflt.symsize = 3;
+  mNewObjPropsDflt.linewidth2 = 1;
+  mNewObjPropsDflt.symflags = 0;
+  mNewObjPropsDflt.pointLimit = 0;
   prefs->bwStepDflt = 3;
   prefs->pageStepDflt = 10;
   prefs->iconifyImodvDlgDflt = 1;
@@ -292,6 +304,19 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   // If no geometries were found, stop classic slicer warning
   if (!readin)
     mClassicWarned = true;
+
+  // Get new object properties
+  mNewObjPropsChgd= settings->contains("newObjectProps");
+  if (mNewObjPropsChgd) {
+    str = settings->value("newObjectProps").toString();
+    sscanf(LATIN1(str), "%u,%d,%d,%d,%d,%d,%d", &mNewObjProps.flags, 
+           &mNewObjProps.pdrawsize, &mNewObjProps.symbol, &mNewObjProps.symsize,
+           &mNewObjProps.linewidth2, &mNewObjProps.symflags, &mNewObjProps.pointLimit);
+    B3DCLAMP(mNewObjProps.pdrawsize, 0, 999);
+    B3DCLAMP(mNewObjProps.symbol, 0, IOBJ_SYM_LAST);
+    B3DCLAMP(mNewObjProps.symsize, 0, 100);
+    B3DCLAMP(mNewObjProps.linewidth2, 0, 10);
+  }
 
   // Get multi Z window geometry and params
   if (settings->contains("geomMultiZwindow")) {
@@ -548,6 +573,14 @@ void ImodPreferences::saveSettings(int modvAlone)
   WRITE_IF_CHANGED(isoHighThresh);
   WRITE_IF_CHANGED(isoBoxLimit);
   WRITE_IF_CHANGED(isoBoxInitial);
+
+  if (mNewObjPropsChgd) {
+    str.sprintf("%u,%d,%d,%d,%d,%d,%d,%d,%d,%d", mNewObjProps.flags,
+                mNewObjProps.pdrawsize, mNewObjProps.symbol, mNewObjProps.symsize,
+                mNewObjProps.linewidth2, mNewObjProps.symflags, mNewObjProps.pointLimit,
+                0,0,0);
+    settings->setValue("newObjectProps", str);
+  }
 
   if (prefs->zoomsChgd) {
     for (i = 0; i < MAXZOOMS; i++) {
@@ -1076,6 +1109,28 @@ bool ImodPreferences::getRoundedStyle()
   return index >= 0;
 }
 
+// Set the default new object properties from the current object
+void ImodPreferences::setDefaultObjProps()
+{
+  Iobj *obj = imodObjectGet(App->cvi->imod);
+  if (!obj)
+    return;
+  mNewObjProps.flags = obj->flags;
+  mNewObjProps.pdrawsize = obj->pdrawsize;
+  mNewObjProps.symbol = obj->symbol;
+  mNewObjProps.symsize = obj->symsize;
+  mNewObjProps.linewidth2 = obj->linewidth2;
+  mNewObjProps.symflags = obj->symflags;
+  mNewObjProps.pointLimit = obj->extra[IOBJ_EX_PNT_LIMIT];
+  mNewObjPropsChgd = true;
+}
+
+// restore default new object properties
+void ImodPreferences::restoreDefaultObjProps()
+{
+  mNewObjProps = mNewObjPropsDflt;
+  mNewObjPropsChgd = true;
+}
 
 // Set the geometry for the info window that matches current image or
 // fall back to last one used
@@ -1109,7 +1164,7 @@ void ImodPreferences::setInfoGeometry()
   yy = mGeomInfoWin[indSave].y();
   diaLimitWindowPos(ImodInfoWin->width(), ImodInfoWin->height(), xx, yy);
   imod_info_input();
-  ImodInfoWin->move(xx, yy);
+  ImodInfoWin->doOrSetupMove(xx, yy);
 }
 
 // Return the geometry for the zap window that matches current image
