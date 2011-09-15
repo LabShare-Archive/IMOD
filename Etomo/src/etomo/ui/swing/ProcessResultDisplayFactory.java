@@ -372,6 +372,7 @@ public final class ProcessResultDisplayFactory implements
     //gen
     genTilt.addDependentDisplay(useTrialTomogram);
     sirtsetup.addDependentDisplay(useSirt);
+    deleteAlignedStack.addDependentDisplay(fullAlignedStack);
     //combination
     combine.addFailureDisplay(restartCombine);
     combine.addSuccessDisplay(restartCombine);
