@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  * 
  * $Id$
- * Log at end
  */
 
 #include "form_info.h"
@@ -160,7 +159,7 @@ void InfoControls::hideLowHighGrid()
   imod_info_input();
   setMinimumHeight(minimumHeight() - delta);
   //imodPrintStderr("Win before %d  delta %d\n", ImodInfoWin->height(), delta);
-  ImodInfoWin->resizeToHeight(ImodInfoWin->height() - delta);
+  ImodInfoWin->resizeToHeight(ImodInfoWin->getResizedHeight() - delta);
 }
 
 // Set a minimum width for spin boxes to keep arrows big
@@ -525,18 +524,3 @@ void InfoControls::setShowPoint( int state )
   mShowPoint =  state != 0;
   diaSetChecked(showCheckBox, mShowPoint);
 }
-
-/*
-
-$Log$
-Revision 4.3  2010/05/28 17:14:00  mast
-Fixed short labels going into big label line
-
-Revision 4.2  2010/04/01 02:29:56  mast
-Put model name on a new line when it is too long
-
-Revision 4.1  2009/01/15 16:33:17  mast
-Qt 4 port
-
-
-*/
