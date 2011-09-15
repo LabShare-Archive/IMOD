@@ -170,8 +170,8 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include <qcompleter.h>
-#include "../../imod/pegged.xpm"
-#include "../../imod/unpegged.xpm"
+#include "../../3dmod/pegged.xpm"
+#include "../../3dmod/unpegged.xpm"
 
 #include "_common_functions.h"
 #include "customdialog.h"

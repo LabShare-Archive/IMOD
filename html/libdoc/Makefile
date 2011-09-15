@@ -7,7 +7,7 @@ IMD = ../../libimod
 CFD = ../../libcfshr
 IIMD = ../../libiimod
 QTD = ../../libdiaqt
-PLD = ../../imod
+PLD = ../../3dmod
 
 HTMLS = $(LHD)/libimod.html $(LHD)/libiimod.html $(LHD)/imodel.html \
 $(LHD)/iobj.html $(LHD)/icont.html $(LHD)/ipoint.html $(LHD)/imesh.html \

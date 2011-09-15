@@ -58,7 +58,7 @@ set tilt_dir        = flib/tilt
 set fbpswitch       = fbpswitch-def.inc
 set midas_dir       = midas
 set sendevent_dir   = sendevent
-set imod_dir        = imod
+set imod_dir        = 3dmod
 set qtassist_dir    = qtassist
 set sourcedoc_dir   = sourcedoc
 set ctfplot_dir     = ctfplotter
@@ -70,7 +70,7 @@ set etomo_dir       = Etomo
 set pysrc_dir       = pysrc
 set scripts_dir     = scripts
 set midas_qconf     = midas/qconfigure
-set imod_qconf      = imod/qconfigure
+set imod_qconf      = 3dmod/qconfigure
 set sendevent_qconf = sendevent/qconfigure
 set qtassist_qconf  = qtassist/qconfigure
 set sourcedoc_qconf = sourcedoc/qconfigure
@@ -344,8 +344,7 @@ end
 #
 set qdir = ($sendevent_dir $qtassist_dir $ctfplot_dir $prochunk_dir \
   $midas_dir $imod_dir $sourcedoc_dir)
-set qprog = (imodsendevent imodqtassist ctfplotter processchunks midas imod \
-  sourcedoc)
+set qprog = (imodsendevent imodqtassist ctfplotter processchunks midas 3dmod sourcedoc)
 set qconf = ($sendevent_qconf $qtassist_qconf $ctfplot_qconf $prochunk_qconf \
   $midas_qconf $imod_qconf $sourcedoc_qconf)
 
