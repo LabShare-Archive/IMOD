@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 #include "form_object_edit.h"
 #include "imod.h"
@@ -191,6 +190,33 @@ void ioew_pointLimit(int value)
   obj->extra[IOBJ_EX_PNT_LIMIT] = value;
 }
 
+void ioewCopyObj(int value)
+{
+  Iobj *obj = getObjectOrClose();
+  Iobj *fromObj;
+  if (!obj)
+    return;
+  if (value < 1 || value > Model->objsize) {
+    wprint("\aObject number to copy to is out of range\n");
+    return;
+  }
+  if (value == Model->cindex.object) {
+    wprint("\aSelect an object different from the current one.\n");
+    return;
+  }
+  fromObj = &Model->obj[value-1];
+  App->cvi->undo->objectPropChg();
+  obj->flags = fromObj->flags;
+  obj->symbol = fromObj->symbol;
+  obj->symsize = fromObj->symsize;
+  obj->symflags = fromObj->symflags;
+  obj->pdrawsize = fromObj->pdrawsize;
+  obj->linewidth2 = fromObj->linewidth2;
+  obj->extra[IOBJ_EX_PNT_LIMIT] = fromObj->extra[IOBJ_EX_PNT_LIMIT];
+  App->cvi->undo->finishUnit();
+  imodDraw(App->cvi, IMOD_DRAW_MOD);
+}
+
 /* 
  * Open the object edit dialog
  */
@@ -242,6 +268,7 @@ int imod_object_edit_draw(void)
   if (!obj)
     return (-1);
 
+  Ioew_dialog->setCopyObjLimit(Model->objsize);
   Ioew_dialog->setObjectName(obj->name);
   Ioew_dialog->setDrawBox(!(obj->flags & IMOD_OBJFLAG_OFF));
 
@@ -430,106 +457,3 @@ void ImodObjColor::keyReleaseSlot ( QKeyEvent * e )
 {
   ivwControlKey(1, e);
 }
-
-/*
-$Log$
-Revision 4.22  2009/03/22 19:54:25  mast
-Show with new geometry adjust routine for Mac OS X 10.5/cocoa
-
-Revision 4.21  2009/01/15 16:33:17  mast
-Qt 4 port
-
-Revision 4.20  2008/07/16 04:30:23  mast
-Added contour point limit
-
-Revision 4.19  2007/07/08 16:48:29  mast
-Fixed some sync problems and added sync calls for new properties in model view
-
-Revision 4.18  2007/06/08 04:50:00  mast
-Added planar flag support
-
-Revision 4.17  2006/09/12 15:45:16  mast
-Update model view object edit window on type change
-
-Revision 4.16  2006/07/17 15:03:32  mast
-Added adjustSize after creating window
-
-Revision 4.15  2006/06/09 22:27:10  mast
-Converted help
-
-Revision 4.14  2006/06/09 20:25:39  mast
-Added ability to display spheres on center section only
-
-Revision 4.13  2005/03/20 19:55:36  mast
-Eliminating duplicate functions
-
-Revision 4.12  2004/11/20 05:05:27  mast
-Changes for undo/redo capability
-
-Revision 4.11  2004/11/04 23:30:55  mast
-Changes for rounded button style
-
-Revision 4.10  2004/09/21 20:30:07  mast
-Added calls to synchronize on/off and name changes to model view windows
-
-Revision 4.9  2004/05/31 23:35:26  mast
-Switched to new standard error functions for all debug and user output
-
-Revision 4.8  2004/05/31 02:16:49  mast
-Added call to imodv object edit window if point size changes
-
-Revision 4.7  2004/01/05 18:23:29  mast
-Add explanation of point size being in unbinned size to help.
-
-Revision 4.6  2003/04/28 04:02:36  mast
-Rearranged and clarified point sphere radius
-
-Revision 4.5  2003/04/25 03:28:32  mast
-Changes for name change to 3dmod
-
-Revision 4.4  2003/04/17 18:43:38  mast
-adding parent to window creation
-
-Revision 4.3  2003/03/26 23:23:15  mast
-switched from hotslider.h to preferences.h
-
-Revision 4.2  2003/02/27 19:40:06  mast
-Add parentheses to fix call to set symbol properties
-
-Revision 4.1  2003/02/10 20:29:00  mast
-autox.cpp
-
-Revision 1.1.2.10  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.9  2003/01/23 20:08:26  mast
-change name of include for form class
-
-Revision 1.1.2.8  2003/01/14 21:51:42  mast
-Register with dialog manager
-
-Revision 1.1.2.7  2003/01/13 01:15:43  mast
-changes for Qt version of info window
-
-Revision 1.1.2.6  2003/01/06 18:58:59  mast
-eliminate warning
-
-Revision 1.1.2.5  2003/01/06 15:45:21  mast
-New object color class and code
-
-Revision 1.1.2.4  2002/12/13 06:03:47  mast
-moving imod_object_edit declaration to include file and removing argument
-
-Revision 1.1.2.3  2002/12/09 17:49:57  mast
-Getting the object type buttons right
-
-Revision 1.1.2.2  2002/12/07 01:22:02  mast
-Taking care of window title
-
-Revision 1.1.2.1  2002/12/05 16:30:58  mast
-Qt version
-
-Revision 3.1  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-*/

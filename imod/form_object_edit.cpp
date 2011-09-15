@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  * 
  * $Id$
- * Log at end
  */
 
 #include "form_object_edit.h"
@@ -26,6 +25,7 @@
 #include "control.h"
 #include "imod_object_edit.h"
 #include "dia_qtutils.h"
+#include "preferences.h"
 
 /*
  *  Constructs a objectEditForm as a child of 'parent', with the
@@ -50,6 +50,10 @@ objectEditForm::objectEditForm(QWidget* parent, Qt::WindowFlags fl)
   surfaceButtonGroup->addButton(insideButton, 1);
   connect(surfaceButtonGroup, SIGNAL(buttonClicked(int)), this,
           SLOT(selectedSurface(int)));
+
+  connect(copyObjButton, SIGNAL(clicked()), this, SLOT(copyClicked()));
+  connect(setDefaultsButton, SIGNAL(clicked()), this, SLOT(setDefaultsClicked()));
+  connect(restoreDefaultsButton, SIGNAL(clicked()), this, SLOT(restoreClicked()));
 }
 
 /*
@@ -153,6 +157,21 @@ void objectEditForm::toggledPlanar( bool state )
   ioew_planar(state ? 1 : 0);
 }
 
+void objectEditForm::copyClicked()
+{
+  ioewCopyObj(copyObjSpinBox->value());
+}
+
+void objectEditForm::setDefaultsClicked()
+{
+  ImodPrefs->setDefaultObjProps();
+}
+
+void objectEditForm::restoreClicked()
+{
+  ImodPrefs->restoreDefaultObjProps();
+}
+
 // Set the state of the widgets initially or when a new object is selected
 void objectEditForm::setSymbolProperties( int which, bool fill, bool markEnds, int size )
 {
@@ -163,6 +182,15 @@ void objectEditForm::setSymbolProperties( int which, bool fill, bool markEnds, i
   QString str;
   str.sprintf("%d", size);
   sizeLabel->setText(str);
+}
+
+  
+void objectEditForm::setCopyObjLimit( int value )
+{
+  int curval = copyObjSpinBox->value();
+  curval = B3DMIN(curval, value);
+  diaSetSpinMMVal(copyObjSpinBox, 1, value, curval);
+  copyObjSpinBox->setEnabled(value > 1);
 }
 
 void objectEditForm::setDrawBox( bool state )
@@ -238,12 +266,3 @@ void objectEditForm::keyReleaseEvent( QKeyEvent * e )
 {
   ivwControlKey(1, e);
 }
-
-/*
-
-$Log$
-Revision 4.1  2009/01/15 16:33:17  mast
-Qt 4 port
-
-
-*/
