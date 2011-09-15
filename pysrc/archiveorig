@@ -83,6 +83,7 @@ if os.getenv('IMOD_DIR') != None:
 else:
    sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
    sys.exit(1)
+os.environ['PIP_PRINT_ENTRIES'] = '0'
 
 #
 # load IMOD Libraries
