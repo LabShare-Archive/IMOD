@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/15/11: In eTomo - Join xfalign was failing to run.(Bug# 1550)
+
 9/15/11: In eTomo - Final Aligned Tomogram, unselecting the "Create Full
 Aligned Stack" button when its corresponding file is deleted.(Bug# 1151)
 
