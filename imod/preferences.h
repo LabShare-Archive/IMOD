@@ -5,7 +5,6 @@
  *   Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  No more Log
  */                                                                           
 
 #ifndef IMOD_PREFERENCES_H
@@ -51,6 +50,18 @@ int hotSliderKey();
 
 // Define this to use a list of styles to exclude rather than ones to include
 //#define EXCLUDE_STYLES
+
+// The structure for new (default) object properties
+typedef struct new_obj_props
+{
+  unsigned int    flags;
+  int     pdrawsize;
+  int     symbol;
+  int     symsize;
+  int     linewidth2;
+  int     symflags;
+  int     pointLimit;
+} NewObjectProps;
 
 // The structure of preferences.
 // For each parameter, there is a default (Dflt) and a flag for whether
@@ -151,6 +162,9 @@ class ImodPreferences : public QObject
   bool classicWarned();
   bool attachToOnObj() {return mCurrentPrefs.attachToOnObj;};
   bool slicerNewSurf() {return mCurrentPrefs.slicerNewSurf;};
+  NewObjectProps *newObjectProps() {return &mNewObjProps;};
+  void setDefaultObjProps();
+  void restoreDefaultObjProps();
   int actualButton(int logicalButton);
   int actualModvButton(int logicalButton);
   QString autosaveDir();
@@ -212,6 +226,7 @@ class ImodPreferences : public QObject
   int mGeomImageYsize[MAX_GEOMETRIES];
   QRect mGeomInfoWin[MAX_GEOMETRIES];
   QRect mGeomZapWin[MAX_GEOMETRIES];
+  TRIPLET(NewObjectProps, mNewObjProps); // new object properties
   QRect mRecordedZapGeom;
   int mGeomLastSaved;
   QRect mMultiZgeom;
