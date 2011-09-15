@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/15/11: In eTomo - Final Aligned Tomogram, unselecting the "Create Full
+Aligned Stack" button when its corresponding file is deleted.(Bug# 1151)
+
 9/15/11: In 3dmod, added buttons to Edit-Object-Type to copy properties from
 another object, set set current object's properties as default for new
 objects, and restore the defaults.
