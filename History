@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/15/11: In 3dmod, added buttons to Edit-Object-Type to copy properties from
+another object, set set current object's properties as default for new
+objects, and restore the defaults.
+
+9/15/11: Fixed resizing and placement of Info window on RHEL6.
+
 9/15/11: In eTomo - Clean Up, fixed a problem where eTomo doesn't recognize a
 successful archiveorig run.(Bug# 1549)
 
