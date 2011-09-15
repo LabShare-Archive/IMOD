@@ -312,9 +312,9 @@ csrc : ALWAYS
 	lib*/*.[ch] lib*/*.cpp lib[icmw]*/Makefile libdiaqt/Makefile.dummy \
 	libdiaqt/Makefile.unix lib*/*.dsp lib*/*.vcproj libimod/libimod.dsw \
 	sysdep/*/* \
-	imod/*.[ch] imod/*.cpp imod/*.ui imod/imod.pro \
-	imod/*.bits imod/*.png imod/*.xpm imod/*.qrc \
-	imod/3dmod.dsw imod/Makefile.dummy imod/b3dicon.i* \
+	3dmod/*.[ch] 3dmod/*.cpp 3dmod/*.ui 3dmod/3dmod.pro \
+	3dmod/*.bits 3dmod/*.png 3dmod/*.xpm 3dmod/*.qrc \
+	3dmod/3dmod.dsw 3dmod/Makefile.dummy 3dmod/b3dicon.i* \
 	imodutil/*.[ch] imodutil/Makefile \
 	mrc/*.[ch] mrc/*.cpp   mrc/Makefile \
 	clip/*.[ch]   clip/Makefile \
@@ -347,7 +347,7 @@ fsrc :
 	cp -r flib/man $(ARCDIR)_src/flib/
 	(cd flib; tar cBf - \
 	*/Makefile */*/Makefile \
-	*/*.[chfs] */*.cu */*/*.[chfs] */*/*.cpp */*.inc */*/*.inc */*/README)\
+	*/*.[chfs] */*.cu */*/*.[chfs] */*/*.cpp */*.inc */*/README)\
 	| (cd $(ARCDIR)_src/flib; tar xBf -)
 
 #
