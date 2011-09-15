@@ -6,7 +6,6 @@
  *   Colorado.  See implementation file for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */                                                                           
 #ifndef IMOD_INFO_H
 #define IMOD_INFO_H
@@ -75,6 +74,8 @@ class InfoWindow : public QMainWindow
   void setupAutoContrast();
   void setInitialHeights();
   void resizeToHeight(int newHeight);
+  int getResizedHeight() {return mResizedHeight;};
+  void doOrSetupMove(int x, int y);
 
   public slots:
   void fileSlot(int item);
@@ -106,9 +107,13 @@ class InfoWindow : public QMainWindow
   bool mMinimized;
   int mTopTimerID;
   int mAutoTimerID;
+  int mInfoTimerID;
   int mOldFontHeight;
   QProcess *mTrimvolProcess;
   QString mTrimvolOutput;
+  int mResizedHeight;
+  int mTargetHeight;
+  int mTargetMoveX, mTargetMoveY;
 };
 
 /* GLOBAL FUNCTIONS */
