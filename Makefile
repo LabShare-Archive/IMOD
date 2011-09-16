@@ -66,7 +66,7 @@ default : all
 all : configure clibs
 	cd Etomo      ; $(MAKE) all
 	cd flib       ; $(MAKE) all
-	cd imod       ; $(MAKE) all
+	cd 3dmod      ; $(MAKE) all
 	cd imodutil   ; $(MAKE) all
 	cd sendevent  ; $(MAKE) all
 	cd qtassist   ; $(MAKE) all
@@ -95,7 +95,7 @@ install : configure man sourcedoc
 	cd libdiaqt   ; $(MAKE) $@
 	cd libcfft    ; $(MAKE) $@
 	cd libwarp    ; $(MAKE) $@
-	cd imod       ; $(MAKE) $@
+	cd 3dmod      ; $(MAKE) $@
 	cd imodutil   ; $(MAKE) $@
 	cd sendevent  ; $(MAKE) $@
 	cd qtassist   ; $(MAKE) $@
@@ -154,7 +154,7 @@ clean : configure ALWAYS
 	cd libdiaqt   ; $(MAKE) $@
 	cd libcfft    ; $(MAKE) $@
 	cd libwarp    ; $(MAKE) $@
-	cd imod       ; $(MAKE) $@
+	cd 3dmod      ; $(MAKE) $@
 	cd imodutil   ; $(MAKE) $@
 	cd sendevent  ; $(MAKE) $@
 	cd qtassist   ; $(MAKE) $@
@@ -200,7 +200,7 @@ cleanlibs : cleanclibs
 cleanqt : configure ALWAYS
 	cd libdiaqt   ; $(MAKE) clean
 	cd plugs      ; $(MAKE) clean
-	cd imod       ; $(MAKE) clean
+	cd 3dmod      ; $(MAKE) clean
 	cd midas      ; $(MAKE) clean
 	cd sendevent  ; $(MAKE) clean
 	cd qtassist   ; $(MAKE) clean
@@ -251,7 +251,7 @@ flibs: configure
 3dmod : configure clibs
 	cd flib      ;  $(MAKE) configure
 	cd flib/subrs  ; $(MAKE) track
-	cd imod      ; $(MAKE) all
+	cd 3dmod     ; $(MAKE) all
 
 #
 # Make the full software distribution.  Use the options from last setup
@@ -312,9 +312,9 @@ csrc : ALWAYS
 	lib*/*.[ch] lib*/*.cpp lib[icmw]*/Makefile libdiaqt/Makefile.dummy \
 	libdiaqt/Makefile.unix lib*/*.dsp lib*/*.vcproj libimod/libimod.dsw \
 	sysdep/*/* \
-	imod/*.[ch] imod/*.cpp imod/*.ui imod/imod.pro \
-	imod/*.bits imod/*.png imod/*.xpm imod/*.qrc \
-	imod/3dmod.dsw imod/Makefile.dummy imod/b3dicon.i* \
+	3dmod/*.[ch] 3dmod/*.cpp 3dmod/*.ui 3dmod/3dmod.pro \
+	3dmod/*.bits 3dmod/*.png 3dmod/*.xpm 3dmod/*.qrc \
+	3dmod/3dmod.dsw 3dmod/Makefile.dummy 3dmod/b3dicon.i* \
 	imodutil/*.[ch] imodutil/Makefile \
 	mrc/*.[ch] mrc/*.cpp   mrc/Makefile \
 	clip/*.[ch]   clip/Makefile \
@@ -347,7 +347,7 @@ fsrc :
 	cp -r flib/man $(ARCDIR)_src/flib/
 	(cd flib; tar cBf - \
 	*/Makefile */*/Makefile \
-	*/*.[chfs] */*.cu */*/*.[chfs] */*/*.cpp */*.inc */*/*.inc */*/README)\
+	*/*.[chfs] */*.cu */*/*.[chfs] */*/*.cpp */*.inc */*/README)\
 	| (cd $(ARCDIR)_src/flib; tar xBf -)
 
 #
