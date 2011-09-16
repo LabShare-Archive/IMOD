@@ -206,6 +206,7 @@ copy.file = %{dataset}2.rec
 copy.file = %{dataset}3.rec
 set.param = --autoclose3dmod
 set.param = --ignoreloc
+#set.param = --debug
 set.interface.Join=
 
 [Test = join-test-gui]
