@@ -15,10 +15,12 @@ Etomo/scripts   Has the eTomo startup script
 Etomo/src       Top of source tree
 Etomo/src/etomo All java source is under here
   .../comscript Command script classes
+  .../logic     
   .../process   Process-running classes
   .../storage   File-related classes
   .../type      Classes to handle specific data items
   .../ui        Dialog classes
+  .../uitest    Classes for the UI testing
   .../util      Utility functions
 Etomo/src/images  Has icons
 flib		Fortran program source tree
@@ -58,7 +60,7 @@ html/etomoImages Images for etomo tutorial
 html/joinImages  Images for join tutorial
 html/libdoc     Framework files for library documentation
 html/midasHelp  Help files for midas
-imod		Source for 3dmod program
+3dmod		Source for 3dmod program
 imodutil	Source for utility programs for working with IMOD models
 include		Include files for IMOD programs
 libcfft         Source for C version of FFT library
@@ -67,24 +69,30 @@ libdiaqt        Source for Qt dialog and utility library
 libiimod        Source for IMOD image library
 libimod         Source for IMOD model library
 libmesh         Source for meshing library
+libwarp         Source for warping library, includes natural neighbor 
+                       interpolation and Delaunay triangulation code
 machines	Machine-specific files included by setup script
 manpages	Master source for man pages of C programs, in nroff format
 midas		Source for midas program
 mrc		Source for various programs manipulating MRC image files
 plugs		Source tree for imod plugins
-plugs/beadfix	Source for old version of bead fixer plugin used to test build
-plugs/beadhelper   Source for Andrew Noske's bead helper plugin
+plugs/analysistools  Source for Andrew Noske's analysis tools plugin
+plugs/beadfix	   Source for old version of bead fixer plugin used to test build
+plugs/beadhelper   Source for Noske's bead helper plugin
 plugs/drawingtools Source for Noske's drawing tools plugin
+plugs/interpolator Source for Noske's interpolator plugin
+plugs/namewizard   Source for Noske's namewizard plugin
 plugs/noskecommon  Source for common files for Noske's plugins
+processchunks   Source for processchunks program
 pysrc           Python scripts
 qtassist        Source for imodqtassist program
+raptor          Source for RAPTOR
 scripts		Shell scripts
 sendevent       Source for imodsendevent program
 sourcedoc       Source for sourcedoc program (Qt-based)
 sysdep          System dependent files needed for builds
 sysdep/mac      Files for OS X build - not currently needed
-sysdep/win      Files for Windows build - currently Tiff-related files
-USFFTlib	Static libraries for USFFT in machine-specific subdirectories
+sysdep/win      Files for Windows build - Tiff-related files and manifests
 
 
 After doing a "make" and default "make install", you will have:
@@ -96,14 +104,13 @@ html/libhelp    Processed library documentation files
 bin		Installation directory for executable programs and scripts
 lib		Installation directory for libraries (old 32-bit on SGI)
 lib/imodplug	Installation directory for imod plugins
-lib32		Installation directory for n32 libraries on an SGI
 pylib           Installation directory for Python modules
 
 Other files in top directory:
+BUILDING        Details for building IMOD on all platforms
 History         Has the complete history of changes
 installqtlib    Does post-install copying of libraries and startup files
 Makefile        Master Makefile for build
-original_dates  Has the dates of all files before incorporation into CVS
 packMacApps     For a Mac install, puts Qt programs into .app directories
 setup           Starting script for configuring for build
 setup2          Real configure script; setup runs dos2unix on it in Cygwin
