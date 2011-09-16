@@ -66,8 +66,8 @@
 #include <fstream>      // for input/output of binary files
 
 
-#include "../../imod/pegged.xpm"
-#include "../../imod/unpegged.xpm"
+#include "../../3dmod/pegged.xpm"
+#include "../../3dmod/unpegged.xpm"
 
 #include "_common_functions.h"
 #include "customdialog.h"
@@ -1458,7 +1458,7 @@ void NameWizard::deleteSelected()
 //-- 
 //-- NOTE: To move all contours from the current object to another David uses
 //--       "imodMoveAllContours(ImodView, int obNew)" to call "imod_contour_move(obNew)"
-//--       See: file://localhost/Users/a.noske/Documents/MACMOD/imod/imod_edit.cpp
+//--       See: file://localhost/Users/a.noske/Documents/MACMOD/3dmod/imod_edit.cpp
 
 
 void NameWizard::mergeSelected()

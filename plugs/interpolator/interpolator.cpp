@@ -57,8 +57,8 @@
 #include <qmessagebox.h>
 #include <qinputdialog.h>
 #include <qtoolbutton.h>
-#include "../../imod/pegged.xpm"
-#include "../../imod/unpegged.xpm"
+#include "../../3dmod/pegged.xpm"
+#include "../../3dmod/unpegged.xpm"
 
 #include <qdatetime.h>
 
@@ -4482,7 +4482,7 @@ void test_showInterpolationBetweenConts()
 
 // tired:   glLineStipple(3, 0xAAAA);
 //          #include <qgl.h>
-//          #include "../../imod/b3dgfx.h"
+//          #include "../../3dmod/b3dgfx.h"
 
 
 void test_showInterpolatedContoursNicely()
