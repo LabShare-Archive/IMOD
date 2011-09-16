@@ -66,7 +66,7 @@ xflistfile = PipGetInOutFile('OutputTransformFile', 1)
 if not xflistfile:
    exitError('Output file for transforms must be entered')
 
-newsize = PipGetTwoIntegers('SizeToExtract', 0, 0)
+newsize = PipGetTwoIntegers('SizeToAnalyze', 0, 0)
 ifsize = 1 - PipGetErrNo()
 newcen = PipGetTwoIntegers('OffsetToSubarea', 0, 0)
 filterparam = PipGetFloatArray('FilterParameters', 4)
