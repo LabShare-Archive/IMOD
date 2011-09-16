@@ -43,8 +43,8 @@
 #include <qmessagebox.h>
 #include <qinputdialog.h>
 #include <qtoolbutton.h>
-#include "../../imod/pegged.xpm"
-#include "../../imod/unpegged.xpm"
+#include "../../3dmod/pegged.xpm"
+#include "../../3dmod/unpegged.xpm"
 
 #include <QWheelEvent>
 #include <QMouseEvent>
