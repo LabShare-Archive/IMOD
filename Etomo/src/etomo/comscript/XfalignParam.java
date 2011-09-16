@@ -150,7 +150,7 @@ import etomo.type.Transform;
 public class XfalignParam implements Command {
   public static final String rcsid = "$Id$";
 
-  private static final int commandSize = 3;
+  private static final int commandSize = 4;
   private static final String commandName = "xfalign";
   private static final String outputFileExtension = "_auto.xf";
 
@@ -174,9 +174,9 @@ public class XfalignParam implements Command {
     ArrayList options = genOptions();
     commandArray = new String[options.size() + commandSize];
     commandArray[0] = "bash";
-    commandArray[2] = BaseManager.getIMODBinPath() + "runpyscript";
-    commandArray[1] = "-P";
-    commandArray[2] = commandName;
+    commandArray[1] = BaseManager.getIMODBinPath() + "runpyscript";
+    commandArray[2] = "-P";
+    commandArray[3] = commandName;
     for (int i = 0; i < options.size(); i++) {
       commandArray[i + commandSize] = (String) options.get(i);
     }
