@@ -426,7 +426,7 @@ end
 # set QMAKESPEC here for msvc, now that real makefiles are done
 #
 setenv QMAKESPEC win32-msvc
-set newer = `\find $imod_dir -name 3dmod.dsp -newer $imod_dir/imod.pro \
+set newer = `\find $imod_dir -name 3dmod.dsp -newer $imod_dir/3dmod.pro \
  -exec echo newer \;`
 if ($newer != newer) then
     (cd $imod_dir ; qmake -t vcapp -o 3dmod.dsp 3dmod.pro)
