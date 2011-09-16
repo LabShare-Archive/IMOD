@@ -12,20 +12,14 @@ c
 c       David Mastronarde, January 2000
 c       5/20/01: Added analysis of single file with multiple time indexes
 c       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
-c       Log at end
+c       $Id$
 c       
       implicit none
       include 'smallmodel.inc'
       integer limtot
       parameter (limtot=500)
 C       
-      CHARACTER*120 FILIN
+      CHARACTER*320 FILIN
 C	
       logical readSmallMod,usetimes
       integer getimodhead,getimodmaxes,getimodtimes,getimodscales
@@ -528,8 +522,9 @@ c
 102   format(' slope =',f8.4,': to make level, add',f6.1,
      &    ' to total angle offset')
       call findshift(' rotated ',yy,thkmid,ifuse,nspots, shiftAdd)
+      thetaAdd = ang
 c       
-      if(doxtilt.eq.0.)return
+      if(doxtilt.eq.0. .or. nspots .le. 2)return
 c       
       nd=0
       do i=1,nspots
@@ -598,60 +593,3 @@ c
      &    f6.1,', set to',i5)
       return
       end
-
-c       $Log$
-c       Revision 3.17  2010/07/26 21:57:42  mast
-c       Give better error message when error reading model
-c
-c       Revision 3.16  2009/03/19 05:50:43  mast
-c       Fix bug when contours are drawn in opposite direction and overlap in Z
-c
-c       Revision 3.15  2008/07/15 18:19:54  mast
-c       Fixed error messages to come out on one line on Windows
-c
-c       Revision 3.14  2006/06/29 05:09:43  mast
-c       Switched to use small model
-c
-c       Revision 3.13  2006/05/02 19:41:21  mast
-c       Added options to enter old values and get sums for output
-c
-c       Revision 3.12  2005/10/11 21:37:30  mast
-c       Updated fallback PIP options
-c	
-c       Revision 3.11  2005/02/03 17:23:38  mast
-c       Stopped swapping Y and Z of Y was long dimension, this made it fail
-c       for very thick whole tomogram
-c	
-c       Revision 3.10  2004/06/15 05:44:33  mast
-c       Generated an error messagewith more than 2 points per contour for
-c       whole tomogram
-c	
-c       Revision 3.9  2004/05/21 20:09:48  mast
-c       Added "added" to X-axis tilt report
-c	
-c       Revision 3.8  2003/11/14 00:49:51  mast
-c       convert to PIP input, add whole-tomogram options for modeling
-c	
-c       Revision 3.7  2003/10/14 23:14:04  mast
-c       More terminology changes
-c	
-c       Revision 3.6  2003/10/03 00:59:35  mast
-c       Changed terminology to refered to tilt angle offset
-c	
-c       Revision 3.5  2002/07/21 19:31:11  mast
-c       *** empty log message ***
-c	
-c       Revision 3.4  2002/07/21 19:30:50  mast
-c       Standardized error output and made model coordinates get scaled
-c       correctly
-c	
-c       Revision 3.3  2002/06/25 15:25:18  mast
-c       Adjusted sample coordinates to be centered around zero to correct
-c       problem with computation of shift with X-axis tilt.
-c	
-c       Revision 3.2  2002/05/21 03:12:17  mast
-c       Remove ; at end of two lines, declare lnblnk
-c	
-c       Revision 3.1  2002/05/20 15:42:47  mast
-c       Added analysis of single file with multiple time indexes
-c	
