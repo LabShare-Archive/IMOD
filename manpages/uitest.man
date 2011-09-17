@@ -33,7 +33,12 @@ The IMOD environment that allows Etomo to be run must be in place.
 
 .TP 4
 .B IMOD_UITEST_DATA
-Should be set to the directory where file that will be copied into a test
+Should be set to the directory where files that will be copied into a test
+dataset are stored.
+
+.TP 4
+.B IMOD_UITEST_IMAGE_DATA
+Should be set to the directory where images files that will be copied into a test
 dataset are stored.
 
 .TP 4
@@ -559,10 +564,12 @@ set.param = BB.edf
 .P
 Required.  Only valid in \fBuitest.adoc\fR.  The section that describes the
 dataset settings and files that will be copied into the directory where the
-suite of tests will be run.  \fIDataset_dir\fR is the directory containing files
-that can be copied to the \fItest_directory\fR (see \fBset.testdir\fR under Test
-Section).  The \fIdataset_dir\fR should be placed in the directory pointed to by
-the environment variable \fBIMOD_UITEST_DATA\fR.  Order counts in this section.
+suite of tests will be run.  \fIDataset_dir\fR is a set of two directories containing
+files that can be copied to the \fItest_directory\fR (see \fBset.testdir\fR under Test
+Section).  One directory (the directory pointed to by the environment variable
+\fBIMOD_UITEST_IMAGE_DATA\fR) contains the image files.  The other directory (the
+directory pointed to by the environment variable \fBIMOD_UITEST_DATA\fR) contains
+non-image files.  Order counts in this section.
 For best results order the commands as they are ordered in this man page.
 
 .TP 4
