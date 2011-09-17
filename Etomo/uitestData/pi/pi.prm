@@ -1,0 +1,158 @@
+
+# fnVolume: The file names of tomograms
+fnVolume = {'/home/sueh/current data/UITests/peet-test-gui/pi-a.rec', '/home/sueh/current data/UITests/peet-test-gui/pi-b.rec', '/home/sueh/current data/UITests/peet-test-gui/pi-a.rec'}
+
+# fnModParticle: The file names of IMOD models corresponding to each tomogram.
+fnModParticle = {'/home/sueh/current data/UITests/peet-test-gui/pi-a.mod', '/home/sueh/current data/UITests/peet-test-gui/pi-b.mod', '/home/sueh/current data/UITests/peet-test-gui/pi-a.mod'}
+
+# initMOTL: A code specifying how to construct the initial motive list:
+# 0: Set all rotational values to zero
+# 
+# 1: Use the particle model and reference index to
+#    initialize theta (rotation around the z axis), be sure
+#    the points are sorted along a direction of interest
+# 
+# 2: Use the particle model and reference index to initialize
+#    theta and psi (rotation around the z axis and x axis)
+# 
+# or a string array to specify the filenames to load, must end in 1.em
+initMOTL = 0
+
+# tiltRange: The tilt range used to acquire the tilt series [min max].
+# This will compenstate  for the missing wedge in generating
+# the alignment and the averages.  A empty array, [] or {}, specifies
+# not to account for the missing wedge (and use more efficient
+# space domain averaging).
+tiltRange = {}
+
+# relativeOrient: Specify the slicer angles in degrees needed to rotate particles in each tomogram to the
+# reference orientation.  For the first iteration, those angles are combined with a particle's
+# angles in the motive list to determine the rotation needed to align the particle with the
+# reference.  It is only applied before the first iteration.
+relativeOrient = {[0, 0, 0], [-38, -21, 40.5], [0, 0, 0]}
+
+# dPhi: Phi is the rotation around the  Y-axis specified above by the parameter "yaxis".
+# From this Y-axis, the corresponding X-axis and Z-axis are deduced.
+dPhi = {-20:4:20}
+
+# dTheta: Theta is around the corresponding Z-axis. dTheta is the increment.
+dTheta = {-20:4:20}
+
+# dPsi: Psi is around the corresponding X-axis. dPsi is the increment.
+dPsi = {-20:4:20}
+
+# searchRadius: The number of pixels to search in each dimension
+# searchRadius={4, 5} is equivalent to searchRadius={[4 4 4],[5 5 5]}
+searchRadius = {[5]}
+
+# lowCutoff: The frequency domain cutoff parameters for prefiltering the
+# particles and reference lowCutoff =< 0 prevents low frequency
+# filtering, hiCutoff >= 0.866 prevents high frequency filtering.
+# An optional second parameter defines the transition width.
+lowCutoff = {[0]}
+
+# hiCutoff: The frequency domain cutoff parameters for prefiltering the
+# particles and reference lowCutoff =< 0 prevents low frequency
+# filtering, hiCutoff >= 0.866 prevents high frequency filtering.
+# An optional second parameter defines the transition width.
+hiCutoff = {[0.5, 0.05]}
+
+# refThreshold: The threshold to generate the reference particle at each stage
+# If this is less than 1 it specifies a cross correlation
+# coefficient threshold, if it is greater than 1 it specfies the
+# number of particles to use
+refThreshold = {4}
+
+# reference: If it is a string it should specify the name of an MRC file containing
+# the reference volume.  If it is [i  j]. It specifies the reference to be the
+# jth particle of the ith tomogram.
+reference = [1, 2]
+
+# fnOutput: The base name of the output files for the average volumes, the
+# reference volumes, and the transformation parameters
+fnOutput = 'pi'
+
+# szVol: The size of the volume around each particle to average
+# if reference is filename, this parameter is ignored. the reference size dictates "szVol".
+szVol = [80, 80, 80]
+
+# CCMode: The cross correlation measure to use.
+# 0: Local energy normalized cross correlation (default)
+# 1: True local correlation coefficient
+CCMode = 1
+
+# meanFill: If any particles are partially out of the volume fill with the
+# mean of the existant data (default: 0).
+meanFill = 1
+
+# flgMeanFill: If any particles are partially out of the volume fill with the
+# mean of the existant data (default: 0).
+flgMeanFill = 1
+
+# alignedBaseName: The basename for the aligned particle MRC files (default: '').
+alignedBaseName = ''
+
+# debugLevel: How much debugging info to print {0|1|2|3}
+debugLevel = 3
+
+# lstThresholds: The list of thresholds to use for computing the final volumes.
+# An average volume is generated for each value in this vector.
+# The format of the average volume file name is
+# fnOutout_AvgVol_navg_thresh_iteration.mrc
+lstThresholds = [3:3:9]
+
+# refFlagAllTom: 1: use particles with best correlation scores among all particles of all tomos;
+# 0: use equal number of particles from each tomo;
+refFlagAllTom = 0
+
+# lstFlagAllTom: 1: use particles with best correlation scores among all particles of all tomos;
+# 0: use equal number of particles from each tomo;
+lstFlagAllTom = 0
+
+# particlePerCPU: Specify how to distribute workload among all CPUs.  # of particles per CPU for each
+# run.
+particlePerCPU = 1
+
+# yaxisType: 0: use original Y axis as the twisting yaxis;
+# 1: use particle model points to determine the twisting yaxis; It is computed point to point.
+# 2: end points of the contour specified by the "yaxisContour" parameter.
+yaxisType = 0
+
+# flgWedgeWeight: Apply missing wedge compensation to the alignment search
+flgWedgeWeight = 0
+
+# sampleSphere: If This is set to 'full' or 'half', for the fisrt iteration, dTheta and dPsi will be ignored and
+# 'dPhi' and 'sampleInterval' will be used.
+# if it does not exist or is set to 'none', it will search over the range specified by dPhi, dTheta, dPsi.
+sampleSphere = 'none'
+
+# sampleInterval: The interval in degrees at which the spherical surface is sampled.
+sampleInterval = NaN
+
+# maskType: If it is set to 'sphere' or 'cylinder', it will use 'insideMaskRadius' and
+# 'outsideMaskRadius' to create a mask.
+# If it is set to a string other than 'sphere', 'cylinder', or 'none', the
+# string is assumed to be a filename of a stack whose voxels of zero value
+# specify voxels that will be masked out, whose voxels of nonzero value
+# specify voxels that will be included.
+# If it does not exist or is set to 'none', there will be no masking.
+maskType = 'none'
+
+# maskModelPts: It specifies which model and which point of that model will be used to create a
+# 'cylinder' mask. The format is [i j].
+# It specifies the jth point of the ith model will be used.
+# It is used only when reference is specified as a filename and
+# maskType='cylinder'.
+# When reference is specified as [ii jj], the [ii jj] will be used.
+maskModelPts = []
+
+# insideMaskRadius: radius in pixels. Voxels residing inside this radius is masked out;
+# for .77 virus tomo;
+# insideMaskRadius=28
+insideMaskRadius = NaN
+
+# outsideMaskRadius: radius in pixels. Voxels residing outside this radius is masked out;
+# for .77 virus tomo;
+# outsideMaskRadius=36
+outsideMaskRadius = NaN
+flgRemoveDuplicates = 0
