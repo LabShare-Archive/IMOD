@@ -61,9 +61,17 @@ wait.file-chooser.open=%{dataset}-b.rec
 wait.file-chooser.open=%{dataset}-b.mod
 mb.volume-table-3-vol-#=
 bn.move-up=
-tf.volume-table-2-rel-orient=-38
-tf.volume-table-2-rel-orient.1=-21
-tf.volume-table-2-rel-orient.2=40.5
+#set motive list
+rb.use-files=
+mb.volume-table-1-vol-#=
+bn.set-initial-motive-list-file=
+wait.file-chooser.open=%{dataset}-a-initMOTL.csv
+mb.volume-table-2-vol-#=
+bn.set-initial-motive-list-file=
+wait.file-chooser.open=%{dataset}-b-initMOTL.csv
+mb.volume-table-3-vol-#=
+bn.set-initial-motive-list-file=
+wait.file-chooser.open=%{dataset}-a-initMOTL.csv
 [[if = test-gui]]
 	#test move up and move down
 	mb.volume-table-3-vol-#=
@@ -396,22 +404,9 @@ tf.volume-table-2-tilt-range==-20
 tf.volume-table-2-tilt-range.1==20
 tf.volume-table-3-tilt-range==-10
 tf.volume-table-3-tilt-range.1==10
-#enable initial MOTL
-rb.use-files==
-mb.volume-table-1-vol-#==
-bn.set-initial-motive-list-file==
-wait.file-chooser.open==%{dataset}_MOTL_Tom1_Iter0.csv
-mb.volume-table-2-vol-#==
-bn.set-initial-motive-list-file==
-wait.file-chooser.open==%{dataset}_MOTL_Tom2_Iter0.csv
-mb.volume-table-3-vol-#==
-bn.set-initial-motive-list-file==
-wait.file-chooser.open==%{dataset}_MOTL_Tom3_Iter0.csv
 save==
-assert.contains.file==pi.prm|initMOTL = {'*pi_MOTL_Tom1_Iter0.csv', '*pi_MOTL_Tom2_Iter0.csv', '*pi_MOTL_Tom3_Iter0.csv'}
 assert.contains.file==pi.prm|tiltRange = {[-10, 10], [-20, 20], [-10, 10]}
 cb.use-tilt-range-in-averaging==off
-rb.set-all-rotational-values-to-zero==
 
 
 [function == reference-check-prm]
@@ -483,7 +478,8 @@ rb.uniform-random-rotations==
 save==
 assert.contains.file==pi.prm|initMOTL = 3
 #use files is tested in volume-table-check-prm
-rb.set-all-rotational-values-to-zero==
+rb.use-files==
+assert.contains.file==pi.prm|initMOTL = {'*pi-a-initMOTL.csv', '*pi-b-initMOTL.csv', '*pi-a-initMOTL.csv'}
 
 
 [function == y-axis-type-check-prm]
