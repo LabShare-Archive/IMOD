@@ -54,12 +54,13 @@ extern "C" {
   /* DOC_CODE Raw mode codes */
   /* Yet another set of mode values, which define the order for radio buttons
      in a raw type selector dialog */
-#define RAW_MODE_BYTE          0
-#define RAW_MODE_SHORT         1
-#define RAW_MODE_USHORT        2
-#define RAW_MODE_FLOAT         3
-#define RAW_MODE_COMPLEX_FLOAT 4
-#define RAW_MODE_RGB           5
+#define RAW_MODE_SBYTE         0
+#define RAW_MODE_BYTE          1
+#define RAW_MODE_SHORT         2
+#define RAW_MODE_USHORT        3
+#define RAW_MODE_FLOAT         4
+#define RAW_MODE_COMPLEX_FLOAT 5
+#define RAW_MODE_RGB           6
 /* END_CODE */
 
 #define IIAXIS_X 1
@@ -135,6 +136,7 @@ extern "C" {
     int allMatch;       /* Flag that all files match, used internally */
     int sectionSkip;    /* Padding after each section - there may be no padding
                            after last section */
+    int yInverted;      /* Lines are inverted in Y */
   } RawImageInfo;
 /* END_CODE */
 
