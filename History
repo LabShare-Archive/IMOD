@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/17/11: IMOD_4-2-26
 9/16/11: Made Tomopitch not hang and give correct tilt angle offset when there
 are lines at only one sample.
 
