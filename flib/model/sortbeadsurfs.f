@@ -6,7 +6,6 @@ c       combine objects for a model from tiltalign.  It is a preprocessor for
 c       using such models in flattenwarp.
 c
 c       $Id$
-c       Log at end of file
 c       
       implicit none
       include 'smallmodel.inc'
@@ -31,7 +30,6 @@ c
       integer*4 PipGetInOutFile, PipGetLogical
       real*4 xyz(3,max_pt), xyzfit(3,max_pt), tiltdum
       integer*4 igroup(max_pt), igrfit(max_pt), imodObjOrig(max_pt)
-
 c       
 c       fallbacks from ../../manpages/autodoc2man -2 2  sortbeadsurfs
 c       
@@ -155,13 +153,11 @@ c
 c       If points are already sorted, look at the object colors to deduce this
 c       the sorting, unless the one surface option is given
       if (oneSurface) then
-        print *,'here ones'
         do i = 1, n_point
           igroup(i) = 1
         enddo
         
       else if (already) then
-        print *,'here'
         numColors = 0
         do iobj = 1, max_mod_obj
           if (npt_in_obj(iobj) .gt. 0) then
@@ -355,20 +351,3 @@ c       rebuild the model, make it one point per contour
 c       
       call exit(0)
       end
-c
-c       $Log$
-c       Revision 3.4  2010/06/01 19:57:09  mast
-c       Fixed another initialization, added option to check input model
-c
-c       Revision 3.3  2010/05/10 20:18:09  mast
-c       Fixed initialization of all logicals
-c
-c       Revision 3.2  2010/04/02 03:21:39  mast
-c       Added option for one surface and multiple objects
-c
-c       Revision 3.1  2009/12/09 01:33:33  mast
-c       Added to package
-c
-c       Revision 3.23  2009/12/02 05:42:47  mast
-c       *** empty log message ***
-c

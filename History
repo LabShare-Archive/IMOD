@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/16/11: Made Tomopitch not hang and give correct tilt angle offset when there
+are lines at only one sample.
+
 9/15/11: In eTomo - Join xfalign was failing to run.(Bug# 1550)
 Also, the script needed to be fixed to run at all.
 
