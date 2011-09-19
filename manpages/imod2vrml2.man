@@ -1,0 +1,62 @@
+.na
+.nh
+.TH imod2vrml2 1 2.00 BL3DEMC
+.SH NAME
+imod2vrml2 \- Make a VRML2.0 model from an IMOD model file.
+.SH SYNOPSIS
+imod2vrml2 [options] <IMOD model> <wml file>
+.SH DESCRIPTION
+Convert an IMOD model file to the VRML 2.0 file format used by VRML
+viewers and as a common format for interchange of 3D models by
+3D animation and CAD programs.  The model will generally 
+have similar attributes to those set in 3dmodv before the conversion.
+Specifically, objects that are turned off will not
+be included in the VRML file.  Scattered points will always display
+as shaded spheres ('geometry Sphere' objects), regardless of options
+are selected and all meshes should convert across as 'IndexedFaceSet'
+objects in the VRML/WML file. If object fill is off points should
+be generated using a 'PointSet' object, although these don't
+render in all VRML viewers.
+.P
+For shaded surfaces, the intensity levels may be quite different
+in the VRML viewer than in 3dmodv, depending on the settings in the viewer.
+If you are generating files for a particular VRML viewer, you can adjust
+the Material
+properties in 3dmodv to get the desired appearance in the viewer.  
+The Ambient setting will have no effect, so adjust intensity primarily with
+the Diffuse setting, and then with the Specular and Shininess settings.
+Transparency may also need to be set higher to achieve the desired level, as
+well to minimize artifacts from overlapping transparent
+surfaces which become more evident at some orientations.
+.SS Options
+.TP 
+.B -l
+Use low-resolution meshes, if any are available.  The default is to use the
+highest resolution meshes contained in the model.  Low resolution meshes can
+be produced with the 
+.B -l
+option to imodmesh(1).
+.TP 
+.B -a
+Output all objects (by default those switched off are omitted).
+.TP 
+.B -r
+Groups all objects together in an 'imod_model' object and rotates this such
+that the Z axis become up in Y. This feature is useful when exporting to
+animation programs
+.TP 
+.B -g
+Don't assign names to child geometries (by default they get DEF names in
+the form 'obj1_mesh' or 'cont2_pt1').
+.TP 
+.B -n
+Output normals (off by default as most 3d programs which import VRML2 can
+generate their own normals if missing).
+.B -c
+Show all contour lines (across all objects) in output VRML file.
+.SH AUTHORS
+Andrew Noske, based on "imod2vrml" by Jim Kremer and David Mastronarde
+.SH SEE ALSO
+3dmodv(1), imodmesh(1), imod2vrml(1)
+.SH BUGS
+Email bug reports to mast@colorado.edu, and CC to andrew_noske<AT>yahoo<DOT>com.
