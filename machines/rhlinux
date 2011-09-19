@@ -7,10 +7,18 @@
 #
 set c_includes = ""
 set ccompFlags = ""
+set Ltifflib = ""
 
 # DNM 8/27/01: Needed for large files to work right.  Use a -D define instead
 # of #define in imodconfig because it must precede all system includes.
 set defines = '-D_FILE_OFFSET_BITS=64'
+
+# If TIFF 4 exists, adjust the include path and
+#
+if ($?TIFF4_DIR) then
+    set c_includes = "-I${TIFF4_DIR}/include"
+    set Ltifflib = "-L${TIFF4_DIR}/lib"
+endif
 
 # Set default compiler to intel if the fortran compiler is on the path
 #
@@ -48,7 +56,7 @@ if ($compiler == intel) then
     endif
     \rm -f icc.tmp
     if ($openmp == true) set openmpFlags = "-openmp"
-    echo 'LDFLAGS = -L$(LIBDIR)'" $dynamic $openmpFlags" >> $configure
+    echo 'LDFLAGS = -L$(LIBDIR)'" $dynamic $openmpFlags $Ltifflib" >> $configure
 
 else
     echo "CC        = gcc"              >> $configure
@@ -83,7 +91,7 @@ else
         if ($fortvers[1] == 4 && $minorvers == 0) set openmp = false
         if ($openmp == true) set openmpFlags = "-fopenmp"
     endif
-    echo 'LDFLAGS = -L$(LIBDIR)'" $openmpFlags" >> $configure
+    echo 'LDFLAGS = -L$(LIBDIR)'" $openmpFlags $Ltifflib" >> $configure
     if ($QMAKESPEC == "linux-icc") unsetenv QMAKESPEC
 endif
 
@@ -276,12 +284,13 @@ endif
 cat << EOF  >! $midas_qconf
 DEFINES	+= _FILE_OFFSET_BITS=64
 INCLUDEPATH += $midasglinc/QtOpenGL
+LIBS += $Ltifflib
 EOF
 
 cat << EOF >! $imod_qconf
 SOURCES += linegui.cpp
 HEADERS += linegui.h
-LIBS += -L$lib_dir -liimod -limesh -limod -ltrack -lcfshr -ldiaqt -lifft -ltiff
+LIBS += -L$lib_dir $Ltifflib -liimod -limesh -limod -ltrack -lcfshr -ldiaqt -lifft -ltiff
 LIBS += -lm
 DEFINES	+= _FILE_OFFSET_BITS=64
 QMAKE_LFLAGS_DEBUG += -Wl,-E
@@ -382,6 +391,15 @@ if ($?CUDA_DIR) then
     echo "DLLSTOCOPY$dllnum = libcudart libcufft" >> $configure
     echo "DLLSOURCEDIR$dllnum = $cudalibdir" >> $configure
     set cudalibs = "-L$cudalibdir -lcudart -lcufft"
+    @ dllnum++
+endif
+
+# Set up to copy libtiff 4 library
+#
+if ($?TIFF4_DIR) then
+    if ($dllnum == 1) echo "DLLDESTDIR = lib" >> $configure 
+    echo "DLLSTOCOPY$dllnum = libtiff" >> $configure 
+    echo "DLLSOURCEDIR$dllnum = $TIFF4_DIR/lib" >> $configure
 endif
 
 if ($packqt == true) then
