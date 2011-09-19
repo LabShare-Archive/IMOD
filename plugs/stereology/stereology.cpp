@@ -1261,7 +1261,7 @@ bool GridSetObj::setupPts( bool applySubRectsIfOn )
 	if( subRectsApplied && grids > 0 && ptsize() > 0 )
 	{
 		ptsPerGridSetup = pts.size() / grids;
-		ptsPerRowSetup  = sqrt( ptsize() );
+		ptsPerRowSetup  = sqrt( (double)ptsize() );
 		float yFirstPt  = pts[0].pos.y;
 		for( long p=1; p<(long)pts.size(); p++ )
 			if( pts[p].pos.y != yFirstPt )
@@ -6847,7 +6847,7 @@ void Stereology::finalizeGrid()
 	float totEstimatedSecs = fDiv( g->maxPts, plug.ptsPerSecondEst );
 	QString estimatedTime = formatApproxTime( totEstimatedSecs );
 	
-	float estDev        = (g->maxPts > 1) ? (1.0f / sqrt(g->maxPts)) : 1.0f;
+	float estDev        = (g->maxPts > 1) ? (1.0f / sqrt((double)g->maxPts)) : 1.0f;
 	float estDevPercent = roundDecimals( estDev*100.0f, 2 );
 	
 	QString sumStr;			// summary string
