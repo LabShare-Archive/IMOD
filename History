@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/19/11: Andrew Noske added a Stereology plugin.
+
 9/19/11: Switched all packages to using version 4 of libtiff to support large
 files, and fixed mrc2tif problem writing a large tiff stack.
 
