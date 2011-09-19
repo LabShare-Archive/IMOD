@@ -351,6 +351,11 @@ c
               if (numobj .eq. 2) iobj2 = iobj
             endif
           enddo
+          if (numobj .gt. 2) then
+            write(*, '(/,a,a,i3)')'ERROR: TOMOPITCH - THERE ARE MORE THAN TWO ',
+     &          'CONTOURS AT TIME INDEX',ifile
+            call exit(1)
+          endif
           write(message,'(a,i3)')'time index',ifile
         else
 c           
