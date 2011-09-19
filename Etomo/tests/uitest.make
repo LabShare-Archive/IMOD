@@ -1,7 +1,7 @@
 all: single dual single-test-gui dual-test-gui single-fidless single-simple-align single-patch-tracking single-patch-tracking-test-gui single-montage dual-montage single-montage-test-gui dual-montage-test-gui dual-montage-patch-tracking join join-test-gui generic nad peet peet-test-gui flatten-volume flatten-volume-test-gui
 midzone2: single-montage dual-montage single-montage-test-gui dual-montage-test-gui dual-montage-patch-tracking
 proc: single dual single-fidless single-simple-align single-patch-tracking single-montage dual-montage dual-montage-patch-tracking join generic nad peet flatten-volume 
-temp: single-montage dual-montage dual-montage-patch-tracking join generic nad peet flatten-volume 
+temp: 
 single: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest single
 dual: dummy
