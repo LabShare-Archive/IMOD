@@ -7,7 +7,7 @@ bn.add-section=
 wait.file-chooser.choose-a-section=%{dataset}1.rec
 [[if = test-gui]]
   bn.make-samples=
-  wait.popup.entry-error=OK
+  wait.popup.makejoincom-terminated=OK
 [[]]
 tf.section-table-1-sample-slices.2=46
 tf.section-table-1-sample-slices.3=49
