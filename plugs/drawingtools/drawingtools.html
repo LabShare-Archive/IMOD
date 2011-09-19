@@ -22,125 +22,179 @@ video tutorial</a></b></i>
 --------------------------<br>
 <ol>
 <li><b>Normal</b> - lets you use normal contour drawing behavior.</li>
-<li><b>Sculpt</b> - lets you quickly draw contours by holding the point 
-addition mouse button <i>[second_button]</i> and pushing the contour 
-outwards or inwards with the sculpt circle. Holding down <i>[shift]</i> 
-as well lets you will pinch contours toward the center instead.</li>
-<li><b>Join</b> - is similar to Sculpt, but also allows you to merge 
-two contours by pushing one contour over another or split a contour 
-by pushing a gap through the middle. Using [thrid_button] lets 
-you join or split contours using a rectangle. </li>
-<li><b>Transform</b> - allows you to move <i>[second_button]</i>, 
-<i>scale [third_button]</i>, rotate <i>[shift+second_button]</i> or 
-stretch <i>[shift+third_button]</i> the currently selected contour.</li>
-<li><b>Eraser</b> - allows you to delete contours <i>[second_button]</i> 
-or points <i>[third_button]</i> touching the sculpt circle. 
-Holding <i>[shift+second_button]</i> lets you break apart contours.</li>
 <li><b>Warp</b> - allows you to quickly correct bad regions of contour
-by warping <i>[second_button]</i> or warp-and-smoothing <i>[third_button]</i>
-the contour points closest to (if you click on a contour) or within (if you 
+by warping <i>[second_button]</i> or warp-and-smoothing <i>[third_button]</i> the contour points closest to (if you click on a contour) or within (if you 
 click near a contour) the sculpt circle.
 Holding <i>[shift+third_button]</i> lets you break apart contours.</li>
+<li><b>Sculpt</b> - lets you quickly draw contours by holding the point 
+  addition mouse button <i>[second_button]</i> and pushing the contour 
+  outwards or inwards with the sculpt circle. Holding down <i>[shift]</i> 
+  as well lets you will pinch contours toward the center instead.</li>
+<li><b>Join</b> - is similar to Sculpt, but also allows you to merge 
+two contours by pushing one contour over another or split a contour 
+by pushing a gap through the middle. Using <em>[third_button]</em> lets 
+you join or split contours using a rectangle.</li>
+<li><strong>LiveWire</strong> - an edge detection tool to help you quickly trace around dark membranes, similar to the &quot;magnetic lasso&quot; tool in Photoshop.</li>
+<li><b>Eraser</b> - allows you to delete contours <i>[second_button]</i> or points <i>[third_button]</i> touching the sculpt circle. 
+  Holding <i>[shift+second_button]</i> lets you break apart contours.</li>
+<li><b>Transform</b> - allows you to move <i>[second_button]</i>, 
+  <i>scale [third_button]</i>, rotate <i>[shift+second_button]</i> or 
+stretch <i>[shift+third_button]</i> the currently selected contour.</li>
 <li><b>Curve</b> - allows you to draw a smooth contour by clicking a sequence
-of points <i>[second_button]</i> and then end the contour by pressing
-[space] or connecting the end of the contour to the beginning. To disconnect
-from the selected contour without adjustment press [n].</li>
+  of points <i>[second_button]</i> and then end the contour by pressing
+  [space] or connecting the end of the contour to the beginning. To disconnect
+  from the selected contour without adjustment press [n].</li>
 <li><b>Measure</b> - allows you to draw a straight line between any 
-two points <i>[second_button]</i> and displays the distance between these 
-points in the relevant units.</li>
+  two points <i>[second_button]</i> and displays the distance between these 
+  points in the relevant units.</li>
 </ol>
 <p>
 <br>
 <b>Hot Key Summary</b><br>
----------------------<br>
-<b>[1]-[5]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Select corresponding draw mode (see above)<br>
-<br>
-<b>[w]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Increase size of sculpt circle (hold shift to go faster)<br>
-<b>[q]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Decrease size of sculpt circle (hold shift to go faster)<br>
-<br>
-<b>[r]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Reduce current contour<br>
-<b>[e]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Smooth current contour without moving existing points<br>
-<b>[E]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Smooth current contour by moving points<br>
-<br>
-<b>[a]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Find next intersecting contour edge<br>
-<b>[i]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Invert points in current contour<br>
-<b>[I]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Reorder points in current contour to start at selected point<br>
-<br>
-<b>[y]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Go to next largest value using find property
-(see: More Actions - find points/contours)<br>
-<b>[Y]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Go to next smallest value using find property<br>
-<b>[l]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Recalculate values of contours/points using find property
-and select the smallest<br>
-<b>[L]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Recalculate values of contours/points using find property
-and select the largest<br>
-<br>
-<b>[ctrl+x]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Cut current contour<br>
-<b>[ctrl+c]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Copy current contour<br>
-<b>[ctrl+v]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Paste contour into current slice and object, centered on mouse<br>
-<b>[ctrl+V]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Paste contour into current slice and object in same XY position<br>
-<br>
-<b>[space]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Copy current contour to current slice (use also [?])<br>
-<b>[shift]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Hold Shift down to alter the behavior of certain draw modes<br>
-<br>
-<br>
-<br>
-<b>Tips</b><br>
----------------------<br>
-<br>
-Holding and dragging <b>[shift+first_button]</b> allows you to quickly
-scroll up and down through the slices.<br>
-<br>
-Be warned that the sculpt and join tool were designed for 2D 
-closed contours and so I would not recommend using these tools 
-with open or scattered contours which span multiple slices.<br>
-<br>
-If you select a contour using the "transform" tool, you can
-copy it to nearby slices by simply scrolling to a different
-slice and mouse clicking [second_button]. In this way transform can
-be useful to quickly mark-up simple shapes.
-<br>
-The join tool and, to a lesser extent, the sculpt tool can become
-sluggish for objects with numerous contours. 
-To improve performance you should consider adding an extra object and 
-then use <i>'edit > object > move'</i> to merge the contours into the 
-desired object periodically.<br> 
-<br>
-Another way to improve performance can be to reduce contours. Use
-<b>'Reduce Contour'</b> to reduce the current contours, by selectively
-removing points,  or <b>'Reduce Object'</b> to reduce ALL contours
-in the current object. Use <b>'Smooth Contour'</b> to smooth the
-current contours, by adding points, or <b>'Smooth Object'</b> to
-smooth ALL contours in the current object. <br>
-Reducing objects can often substantially reduce the number of points in 
-the model, but be very careful you don't lose information in
-the process.<br>
-<br>
-Under <b>More Actions</b> are a number of other options to sort, transform,
-move, copy, expand and modify contours. These have been listed in more 
-detail below and it's recommended you read about them all - especially 
-the 'crop contours' feature.<br>
-<br>
-In 3dmod (without the drawing tool plugin) there are several 
-useful drawing tools you might not know about:
+---------------------
+<table width="100%" border="0" cellpadding="1" cellspacing="0">
+  <tr>
+    <td width="10%"><b>[1]-[9] </b></td>
+    <td width="90%">Select corresponding draw mode (see above)</td>
+  </tr>
+  <tr>
+    <td><b>[w]</b></td>
+    <td>Increase size of sculpt circle (hold shift to go faster)</td>
+  </tr>
+  <tr>
+    <td><strong>[q]</strong></td>
+    <td>Decrease size of  point painter circle.</td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><b>[r]</b></td>
+    <td>Reduce current contour</td>
+  </tr>
+  <tr>
+    <td><b>[e]</b></td>
+    <td>Smooth current contour by moving points</td>
+  </tr>
+  <tr>
+    <td><b>[E]</b></td>
+    <td>Smooth current contour  without moving existing points</td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><b>[a]</b></td>
+    <td>Find next intersecting contour edge</td>
+  </tr>
+  <tr>
+    <td><b>[i]</b></td>
+    <td>Invert points in current contour</td>
+  </tr>
+  <tr>
+    <td><b>[I]</b></td>
+    <td>Reorder points in current contour to start at selected point</td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><strong>[y]</strong></td>
+    <td>Go to next largest value using find property
+  (see: More Actions - find points/contours)</td>
+  </tr>
+  <tr>
+    <td><strong>[Y]</strong></td>
+    <td>Go to next smallest value using find property</td>
+  </tr>
+  <tr>
+    <td><strong>[l]</strong></td>
+    <td>Recalculate values of contours/points using find property
+  and select the smallest</td>
+  </tr>
+  <tr>
+    <td><strong>[L]</strong></td>
+    <td>Recalculate values of contours/points using find property
+  and select the largest</td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><b>[ctrl+x]</b></td>
+    <td>Cut current contour</td>
+  </tr>
+  <tr>
+    <td><b>[ctrl+c]</b></td>
+    <td>Copy current contour</td>
+  </tr>
+  <tr>
+    <td><b>[ctrl+v]</b></td>
+    <td>Paste contour into current slice and object, centered on mouse</td>
+  </tr>
+  <tr>
+    <td><b>[ctrl+V]</b></td>
+    <td>Paste contour into current slice and object in same XY position</td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><strong>[space]</strong></td>
+    <td>Copy current contour to current slice (use also [?])</td>
+  </tr>
+  <tr>
+    <td><strong>[shift]</strong></td>
+    <td>Hold Shift down to alter the behavior of certain draw modes</td>
+  </tr>
+</table>
+<p><br>
+  <br>
+  <br>
+  <br>
+  <b>Tips</b><br>
+  ---------------------<br>
+  <br>
+  Holding and dragging <b>[shift+first_button]</b> allows you to quickly
+  scroll up and down through the slices.<br>
+  <br>
+  Be warned that the sculpt and join tool were designed for 2D 
+  closed contours and so I would not recommend using these tools 
+  with open or scattered contours which span multiple slices.<br>
+  <br>
+  If you select a contour using the "transform" tool, you can
+  copy it to nearby slices by simply scrolling to a different
+  slice and mouse clicking [second_button]. In this way transform can
+  be useful to quickly mark-up simple shapes.
+  <br>
+  The join tool and, to a lesser extent, the sculpt tool can become
+  sluggish for objects with numerous contours. 
+  To improve performance you should consider adding an extra object and 
+  then use <i>'edit > object > move'</i> to merge the contours into the 
+  desired object periodically.<br> 
+  <br>
+  Another way to improve performance can be to reduce contours. Use
+  <b>'Reduce Contour'</b> to reduce the current contours, by selectively
+  removing points,  or <b>'Reduce Object'</b> to reduce ALL contours
+  in the current object. Use <b>'Smooth Contour'</b> to smooth the
+  current contours, by adding points, or <b>'Smooth Object'</b> to
+  smooth ALL contours in the current object. <br>
+  Reducing objects can often substantially reduce the number of points in 
+  the model, but be very careful you don't lose information in
+  the process.<br>
+  <br>
+  Under <b>More Actions</b> are a number of other options to sort, transform,
+  move, copy, expand and modify contours. These have been listed in more 
+  detail below and it's recommended you read about them all - especially 
+  the 'crop contours' feature.<br>
+  <br>
+  In 3dmod (without the drawing tool plugin) there are several 
+  useful drawing tools you might not know about:
 <ol>
 <li>You can select multiple contours by holding
 [ctrl+first_button].</li>
@@ -238,10 +292,16 @@ to default.</li>
 ---------------------<br>
 <br>
 This plugin was created by <b>Andrew Noske</b>
-(<u>a.noske@imb.uq.edu.au</u>).<br>
+(<u>andrew_noske AT yahoo.com</u>).<br>
 <i>If you encounter bugs please e-mail me before e-mailing the
 IMOD group (to reduce traffic). <br>
 In your e-mail please tell me exactly how and when the problem
 occurred and attach the model file you were using with
 enough information that I can replicate the error/crash.
-</body>
+<p><i>NOTE: Maintaining this plugin is part of the is part of the
+  &quot;<a href="http://www.slashsegmentation.com/">SLASH segmententation</a>&quot;
+  initiative. Please contact me for citation information.</i><br>
+<hr>
+<p><font size="2"> <b>Acknowledgements:</b> <i>Brad Marsh</i> at the Institute for Molecular Bioscience (www.imb.uq.edu.au) for helping  encourage this work - without this nor any of my other plugins would exist. <i>Jeffrey Bush </i>at the  The National Center for
+  Microscopy and Imaging Research (www.ncmir.ucsd.edu) for helping me add the amazing LiveWire code, and <em>Mark Ellisman</em> for encouraging us to give back to IMOD.<i> David Mastronarde</i> and the team at The Boulder Lab for 3-D Electron Microscopy
+  (bio3d.colorado.edu) for their wonderful support of all my plugins.</font></body>

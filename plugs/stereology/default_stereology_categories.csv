@@ -1,0 +1,10 @@
+#LIST OF CATEGORIES FOR IMOD STEREOLOGY PLUGIN:,,,,,,,,,,,
+#Name,Red,Green,Blue,Hyperlink,UniqueID,Description,Super Category,Synonym(s),,Sphere Size,Line Width
+,,,,,,,,,,,
+# NOTE: This file is used by IMOD's ""Stereology"" plugin to quickly load in a default set of categories;  including name; color; sphere size; a description and extra fields pertaining to the ""Name Wizard"" plugin.",,,,,,,,,,,
+# You can can easily change this file in Excel or a text editor to include your own colors and names - as long as you keep the format: ""Name;Red;Green;Blue;Hyperlink;UniqueID;Description;Super-Category;Synonym(s);;Sphere Size;Line Width"" (using commas to separate vales)",,,,,,,,,,,
+,,,,,,,,,,,
+#DEFAULT CATEGROIES:,,,,,,,,,,,
+NO_CATEGORY,50,50,50,http://www.andrewnoske.com/wiki/index.php?title=Stereology,,"A value you might want to use if you use the ""Stereology"" plugin (pending release) and want to denote a point which doesn't satisfy any of your categories",,, ,3,1
+Mitochondrion,0,255,0,http://www.neurolex.org/wiki/Category:Mitochondrion,sao1860313010,A semiautonomous; self replicating organelle that occurs in varying numbers; shapes; and sizes in the cytoplasm of virtually all eukaryotic cells. It is notably the site of tissue respiration (Gene Ontology).,Membrane Bound Organelle, ,,6,2
+Mature Insulin Granule,0,0,255,http://www.neurolex.org/wiki/Category:Mature_Insulin_Granule,nlx_13590,Insulin secretory granule which occurs inside pancreatic beta cells and contain a large electron-dense core of tightly clustered insulin hexamers. Mature insulin granules are typically ~200-300 nm in diameter; and each contain 150000-280000 insulin molecules in mouse. The precursor of a mature insulin granule is an immature insulin granule; which is also known as a pale granule; as it lacks an electron dense core and is pale in appearance.,Insulin Granule,Dense core granule; Mature granule,,5,1

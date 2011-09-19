@@ -39,12 +39,14 @@ class Interpolator : public DialogFrame
 	~Interpolator() {};
 	
  public slots:
-	void buttonPressed(int);
+	
   void loadSettings();
   void saveSettings();
   void keepOnTop(bool state);
   
 	void interpolateContour();
+	void interpolateContourBtn();
+	void interpolateLinearWithLastContour();
   void deleteNearbyInterpolatedContours();
   void findNextIsolatedContour();
   void findNextBiggestHoleBetweenKeyConts();
@@ -70,12 +72,14 @@ class Interpolator : public DialogFrame
 	void changeSurfaceMethod( int value );
 	void changeMinDist( int value );
 	void changeOverlap( int value );
+	void buttonPressed(int);
 	
  protected:
+	void helpPluginHelp();
 	void closeEvent ( QCloseEvent * e );
 	void keyPressEvent ( QKeyEvent * e );
 	void keyReleaseEvent ( QKeyEvent * e );
- 
+	
  private:
 	
 	QButtonGroup *typeButtonGroup;
@@ -157,9 +161,11 @@ struct InterpolatorData
   bool deselectAfterEnter;    // wether the current contour is deselected after [Enter]
   int selectedAction;         // the last selected action under "More Actions"
   
+	int contIdxLastInterp;			// the contour index of the last contour interpolated
+	int objIdxLastInterp;				// the object  index of the last contour interpolated
+	
   bool initialized;           // is set to true after values have been set
   int xsize, ysize, zsize;    // size of the image / tomogram
-  
   
   int extraObjExtraCircleXX;    //|
   int extraObjExtraBlueXX;      //|-- stores reference to extra objects //%%%%%%%

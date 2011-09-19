@@ -44,7 +44,6 @@ public:
   ~DrawingTools() {};
   
 public slots:
-  void buttonPressed(int);
   void initValues();
   void loadSettings();
   void saveSettings();
@@ -60,8 +59,10 @@ public slots:
   void printModelPointInfo();
   void printObjectDetailedInfo();
   void printContourDetailedInfo();
+	
   void moreActions();
   void moreSettings();
+	void showLiveWireOptions();
   void keyboardSettings();
   void sortContours();
   void findContours();
@@ -83,10 +84,12 @@ public slots:
   
   void changeType( int value );
   void changeTypeSelected( int newType );
-  void changeSculptCircleRadius( float value, bool accel=false );
+  void changeSculptCircleRadius( float value, bool slowDown=false );
   void clearExtraObj();
-  
+  void buttonPressed(int);
+	
 protected:
+	void helpPluginHelp();
   void closeEvent ( QCloseEvent * e );
   void keyPressEvent ( QKeyEvent * e );
   void keyReleaseEvent ( QKeyEvent * e );
@@ -119,8 +122,8 @@ private:
 //-------------------------------
 //## CONSTANTS:
 
-enum drawmodes      { DM_NORMAL, DM_SCULPT, DM_JOIN, DM_TRANSFORM, DM_ERASER,
-                      DM_WARP, DM_CURVE, DM_MEASURE, DM_CIRCLE };
+enum drawmodes      { DM_NORMAL, DM_WARP, DM_SCULPT, DM_JOIN, DM_LIVEWIRE,
+	                    DM_ERASER, DM_TRANSFORM, DM_CURVE, DM_MEASURE, DM_CIRCLE };
 enum smoothmodes    { RD_TOL, RD_MINAREA };
 enum wheelbehaviour { WH_NONE, WH_SCULPTCIRCLE, WH_SLICES, WH_CONTS, WH_PTS, WH_PTSIZE };
 enum dkeybehavior   { DK_NONE, DK_TOEND, DK_NEARESTEND, DK_DELETEPT, DK_DELETECONT,
@@ -128,7 +131,7 @@ enum dkeybehavior   { DK_NONE, DK_TOEND, DK_NEARESTEND, DK_DELETEPT, DK_DELETECO
 enum ekeybehavior   { EK_ADDONLY, EK_MOVEPTS, EK_REDUCEANDMOVE };
 enum warpbehavior   { WB_AUTO, WB_LINE, WB_AREA };
 
-enum sculptresize   { SR_STAGGERED, SR_LINEAR, SR_LOG };
+enum sculptresize   { SR_STAGGERED, SR_LINEAR, SR_LOG, SR_FAST };
 
 enum sortcriteria   { SORT_SURFACENUM,
                       SORT_NUMPTS, SORT_LENGTH, SORT_AREA, SORT_CLOCKWISEAREA,
@@ -227,9 +230,11 @@ struct DrawingToolsData   // contains all local plugin data
   bool   useArrowKeys;          // if true: up & down arrow keys are intercepted
                                 //  to page up/down
   
-  //int    numSavedAction;        // is set to NUM_SAVED_VALS and helps ensure correct
-  //                              //  number of values are saved/loaded
-  
+  int    liveWOpt;							// 
+  bool   liveWSmooth;						// 
+	int    liveWSmoothIts;				// 
+	bool   liveWDontShowAgain;		// 
+	
   //## MOUSE:
   
   Ipoint mouse;         // the current tomogram coordinates of the mouse
@@ -255,7 +260,9 @@ struct DrawingToolsData   // contains all local plugin data
   bool shiftDown;       // set to true when the SHIFT button is down
   Ipoint centerPt;      // the center of the currently selected contour
   bool contortInProgress;   // used in DM_WARP when user clicks close to contour edge
-  
+  bool newContStarted;	// set to true or false during DM_SCULPT if a new contour 
+												//  was started during "edit_executeSculptStart()"
+	
   vector<IdxToSort> sortVals; // stores a idx and float for each contour after
                               // "sort contours" is run
   vector<IdxToSort> sortPtVals; // stores a idx and float for each contour after
@@ -268,8 +275,9 @@ struct DrawingToolsData   // contains all local plugin data
   
   bool initialized;           // is set to true after values have been set
   int xsize, ysize, zsize;    // size of the image / tomogram
-  int extraObjNum;            // stores a reference to the extra object
-  int extraObjNum2;           // stores a reference to a 2nd extra object (used for text)
+  int extraObjNum;            //|- stores a number reference to an extra object 
+  int extraObjText;           //|  used to render drawing tools, text and 
+	int extraObjLW;							//|  livewire lines, respectively
 };
 
 
@@ -310,9 +318,10 @@ void edit_executeSculpt();
 void edit_executeSculptPush( Ipoint center, float radius );
 void edit_executeSculptPinch( Ipoint center, float radius );
 void edit_executeSculptEnd();
-void edit_executeJoinEnd();
 
-void edit_executeJoinLineStart();
+//void edit_executeJoinEnd();
+//void edit_executeJoinLineStart();
+
 void edit_executeJoinEnd();
 void edit_executeJoinRectEnd();
 
@@ -358,5 +367,7 @@ bool edit_goToContNextBiggestFindVal( bool findNextSmallest, bool recalc,
 float edit_getSortValue( int sortCriteria, Iobj *obj, Icont *cont, int ptIdx=0 );
 void edit_reorderConts( int sortCriteria, int minCont, int maxCont,        
                      bool calcValsOnly, bool reverse, bool printVals );
+
+bool edit_isSimpleWithinCircle( Icont *cont, Ipoint *center, float radius );
 
 //############################################################

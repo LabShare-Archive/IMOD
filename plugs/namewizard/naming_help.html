@@ -47,7 +47,7 @@ cellpadding="3" rules="all" style="width: 450px">
 
 <tr bgcolor="#F3F3FF">
 <th colspan="6">
-<p>Standard Names and Colors for Beta Cell Segmenation
+<p>Standard Names and Colors for Beta Cell Segmentation
 </p>
 </th></tr>
 <tr bgcolor="#CACACA">
@@ -157,7 +157,7 @@ overwritten when IMOD is reinstalled)</i>. By default there are just over
 200 entries which were taken from the 
 <a href="http://www.neurolex.org/wiki/Subcellular_Parts_Table" 
 title="http://www.neurolex.org/wiki/Subcellular_Parts_Table">
-NeuroLex "Subcellular Parts Table"</a>, and you can open these cvs files 
+NeuroLex "Subcellular Parts Table"</a>, and you can open these csv files 
 to modify them or create your own entries. In addition to auto-complete, 
 this plugin helps rapidly enter and verify that all names match the entries 
 in the csv file. There are also options here to manage objects by 
@@ -165,18 +165,11 @@ reordering, deleting, merging or splitting. Thus, if you are serious about
 making your group use consistent labels, I recommending installing the same "standard_names_persistent.csv" and installing Name Wizard on all computers 
 in your group.
 <ul><li> <b>Installation Instructions</b>
-<ul><li> Name Wizard was created Jan 2010, so it may take while before it's 
-part of the standard IMOD release... in the meantime you can install Name 
-Wizard manually by downloading the latest version (which matches your platform) 
-from: <a href="ftp://bio3d.colorado.edu/latestIMOD/alpha/plugins/" 
-title="ftp://bio3d.colorado.edu/latestIMOD/alpha/plugins/">
-ftp://bio3d.colorado.edu/latestIMOD/alpha/plugins/</a>. Copy this file 
-+ "standard_names.csv" + "namewizard.html" to your 
-<b>$IMOD_CALIB_DIR/plugins/</b> directory, and the next time you start 
-3dmod you should be able the see and start the plugin under 
-<b>"Special > Name Wizard"</b>. E-mail me at andrew_noske[AT_SIGN]yahoo.com 
-if you have any problems.
-</li></ul>
+<ul>
+  <li> Name Wizard was created Jan 2011, and become part of the IMOD standard beta release by mid 2011 in IMOD version 4.2.12. If you have this version or later IMOD should appear... if not you can download the latest version beta version from: <a href="ftp://bio3d.colorado.edu/latestIMOD/" 
+title="ftp://bio3d.colorado.edu/latestIMOD/">
+ftp://bio3d.colorado.edu/latestIMOD/</a> . E-mail me at andrew_noske[AT_SIGN]yahoo.com 
+if you have any problems.</li></ul>
 </li></ul>
 <br>
 <br><i>Click here to see the <b>
@@ -391,11 +384,12 @@ cellpadding="3" rules="all" style="width: 100%">
 <td> <b>POINTS OF INTEREST</b>
 </td><td>255 </td><td>0 </td><td>255 </td><td style="background: #FF00FF"> 
 purple
-</td><td>When segmenting a cellular tomogram it's not uncommon to find 
+</td>
+<td>When segmenting a cellular tomogram it's not uncommon to find 
 interesting/unusual features which you want to show other people. To flag 
 these interesting areas I recommend creating an object of type 
 <b>"scattered points"</b>, which you should call "POINTS OF INTEREST", set 
-<i>sphere size</i> to about 20 and <i>points per contor</i> to <b>1</b>. You 
+<i>sphere size</i> to about 20 and <i>points per contour</i> to <b>1</b>. You 
 may also want to add a label to each contour (to comment on what you see) by 
 going <b>Edit &gt; Contour &gt; Type...</b> then enter a label. Next time your 
 supervisor is around you can then use [c] to iterate through these points of 
@@ -447,12 +441,13 @@ your objects/contours are  gold particles.</i>
 <tr>
 <td> <b>IMMUNOGOLD</b>
 </td><td>255 </td><td>200 </td><td>0 </td><td style="background: #FFC800"> gold
-</td><td>Immunogold labelling or Immunogold staining (IGS) is a staining 
+</td>
+<td>Immunogold labelling or Immunogold staining (IGS) is a staining 
 technique used in electron microscopy. Colloidal gold particles are most 
 often attached to secondary antibodies which are in turn attached to primary 
 antibodies designed to bind a specific protein or other cell component. It 
 can also be attached to protein A or protein G instead of a secondary 
-antibody, as these proteins bind mammalian IgG Fc regions in a non-specic way. 
+antibody, as these proteins bind mammalian IgG Fc regions in a nonspecific way. 
 Gold is used for its high electron density which increases electron scatter 
 to give high contrast "dark spots". To segment these, use a 
 <b>scattered point</b> object, with a <i>small sphere size</i> of about 1-5 

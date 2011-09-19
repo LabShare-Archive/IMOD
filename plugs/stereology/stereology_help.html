@@ -1,0 +1,58 @@
+<head>
+<title>Object Naming Help</title>
+</head>
+<body>
+<h3>About Stereology</h3><br>
+--------------------------<br>
+<br>
+<h3><b>What is Stereology</b>?</h3>
+	<br>
+<p>	Stereology - originally defied as a &quot;<em>the spatial interpretation of sections</em>&quot; - is a technique for 3D interpretation of (2D) planar sections of materials or tissues. To achieve this, stereology uses a random sampling and systematic approach to provide unbiased quantitative data. Put another way: stereology exploits the fact that many 3D quantities can be determined without 3D reconstruction - for example, the 3D volume of any object can be determined from the 2D areas of its plane sections.</p>
+<p>In the fields of cell biology and electron microscopy, stereology allows scientists to estimate the volume, number and (in some cases) size of cellular compartments by looking at a relatively small number of 2D slices and, unlike the notoriously slow techniques of 3D reconstruction and segmentation, allows scientists to attain these estimates very fast. As such, stereology is is a technique all cell biologists should know or (better yet) become familiar and experienced with! Due to it's rapid nature (one day of counting is often enough to generate an entire table of results), and the fact that stereology can be done live on a microscope (no saving or storing of images required), or using existing 2D and/or 3D images of cells (images which have already been collected),  stereology is a brilliant compliment to slower methods of 3D analysis.</p>
+<p>--------------------------</p>
+<h3><b><a name="point_couting_stereology"></a>Stereology at it's Easiest: Point Counting Stereology</b></h3>
+<p>There are several types of stereology, but instead of talking about all of these (which is the subject of books) this page will get you started with  the most common and simplest form of stereology: &quot;<strong>Point Counting Stereology</strong>&quot;. In point counting stereology you typically project a uniform grid of points over an image, and then simply count how many points fall inside  the particular compartments you're interested in quantifying the volume of (eg: Mitochondria, Nucleus).  After counting ~1000 points (which should take under one hour) you can make estimates such as the &quot;fraction of non-nuclear cell volume occupied by mitochondria&quot; for a wild-type mouse (as averaged over a large area). In biology, a good stereologists would repeat this for three wild-type mice, and then three mutant mice... and at that stage the results should have enough accuracy to compare the conditions with good statistical accuracy and publish the results - results which may either support or reject the hypothesis that there's an increase or decrease of mitochondrial volume in the mutant mouse. If the stereology results support the hypothesis the biologist may like to then look deeper into the issue using other techniques (such as segmentation)... or if the results appear similar, the biologist will know that he may have to find another hypothesis - thankful that he only wasted a couple of days of counting points, rather than months (or years!) of analysis.</p>
+<p>The Stereology plugin specializes in point counting stereology, but if used wisely, can also project different types of grids and be used for estimating surface area by the number of times membranes intersect vertical lines. For more information on stereology you can read more by the author of this plugin <a href="http://www.andrewnoske.com/wiki/index.php?title=Stereology">here</a>, or I recommend the following two excellent books:</p>
+<ul>
+  <li><em><a href="http://books.google.com/books?id=i7sT_nauz5gC&printsec=frontcover&source=gbs_ge_summary_r&cad=0#v=onepage&q&f=false"><strong>Practical Stereology</strong></a> by Russ, J.C..</em></li>
+  <li><em><a href="http://books.google.com/books?id=lm9ZzK9F6EsC&printsec=frontcover&dq=Unbiased+stereology#v=onepage&q&f=false"><strong>Unbiased stereology</strong></a> by Howard, C.V.</em><br>
+  </li>
+</ul>
+
+<p><br>
+--------------------------</p>
+<p><b>How Stereology Differs from Segmentation</b><br>
+</p>
+<p>Stereology can, in *some* ways, be considered a method of &quot;low resolution segmentation&quot;, over a large area. For detailed analysis  it's very common for scientists to image 3D volumes (whether it be via 3D tomography or reconstructing thinly cut slices) then segment these volumes at high fidelity into 3D triangular mesh models.  In the case of EM images, the pictures are typically too noisy <em>(ie: too blurry and/or grainy)</em> for automatic segmentation so it's very common to segment images by manually by tracing 2D contours on planar sections so they can be meshed together. Although these models provide amazing insights into spatial relationships and &quot;structure-function relationships&quot;, the segmentation  process can take weeks per GB (depending what needs to be segmented) and thus it's almost impossible for manual segmentation to keep pace with the gigantic volumes (multiple GB) coming from modern electron microscopes. By contrast, stereology scales linearly and can take just a few hours for just  any sized data set -  the time it takes depends primarily on the total number of points you counts.</p>
+<p>--------------------------</p>
+<p><b>Stereology vs. Segmentation: and why they belong together </b><br>
+</p>
+<p>Below shows the comparison of segmentation and stereology and shows why they are the perfect as complimentary techniques.</p>
+<ul>
+  <li><strong>(1) Segmentation and 3D Spatial Analysis</strong>
+    <ul>
+      <li><em>pro</em>: allows detailed analysis of individual 3D compartments <em>(eg: volume, surface area, proximity to other surfaces etc)</em>.</li>
+      <li><em>con</em>: typically requires manual tracing/correction of lines and is notoriously slow (<strong>weeks-months</strong>) - making it almost impossible to segment/analyze large volumes and get accurate averages.</li>
+    </ul>
+  </li>
+  <li> <strong>(2) Stereology analysis</strong>
+    <ul>
+      <li><em>pro</em>: very  fast (<strong>hours</strong>) to get accurate averages over large volumes <em>(especially volume estimates, but includes techniques for estimating surface area and numbers too)</em>.</li>
+      <li><em>con</em>: only provides averages, an doesn't allowed detailed analysis of individual compartments.</li>
+    </ul>
+  </li>
+</ul>
+<p>&nbsp;</p>
+--------------------------<br>
+<br>
+<br>
+<h3>Summary</h3>
+<p>In this article we've explained a few basic concepts in stereology and how it can be used to compliment high fidelity segmentation / spatial analysis. I hope this has convinced you to learn more about stereology and use the &quot;<a href="stereology.html">Stereology plugin</a>&quot; in IMOD - a tool which lets you combine manual segmentation and stereology into the same model file, applied to the same data set.<br><br>
+You can find the more information about stereology including pictures at: <a 
+href='http://www.andrewnoske.com/wiki/index.php?title=Stereology'>
+http://www.andrewnoske.com/wiki/index.php?title=Stereology</a>.
+<br>
+<br>
+<br>
+</p>
+</body>

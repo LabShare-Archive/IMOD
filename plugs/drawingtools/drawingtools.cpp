@@ -14,7 +14,10 @@
 
     $Revision$
 
-    $Log$
+    $Log: drawingtools.cpp,v $
+    Revision 1.51  2011/02/09 23:44:09  tempuser
+    Added arrow key option
+
     Revision 1.50  2011/01/12 02:52:49  tempuser
     Minor
 
@@ -247,7 +250,7 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       plug.window->reduceCurrentContour();
       break;
     case Qt::Key_E:
-      plug.window->smoothCurrentContour(shift);
+      plug.window->smoothCurrentContour( !shift );
       break;
       
     case Qt::Key_D:
@@ -432,26 +435,29 @@ void imodPlugExecute(ImodView *inImodView)
   
   //## INITIALIZE EXTRA OBJECT:
   
-  plug.extraObjNum2 = ivwGetFreeExtraObjectNumber(plug.view);
-  Iobj *xobj2 = ivwGetAnExtraObject(plug.view, plug.extraObjNum2);
-  imodObjectSetColor(xobj2, 0.0, 0.0, 0.0);
-  imodObjectSetValue(xobj2, IobjLineWidth2, 2);
-  imodObjectSetValue(xobj2, IobjFlagClosed, 1);
-  ivwClearAnExtraObject(plug.view, plug.extraObjNum2);  
-  
+  plug.extraObjText = ivwGetFreeExtraObjectNumber(plug.view);
+  Iobj *xobjT = ivwGetAnExtraObject(plug.view, plug.extraObjText);
+  imodObjectSetColor(xobjT, 0.0f, 0.0f, 0.0f);		// white
+  imodObjectSetValue(xobjT, IobjLineWidth2, 2);
+  imodObjectSetValue(xobjT, IobjFlagClosed, 1);
   
   plug.extraObjNum = ivwGetFreeExtraObjectNumber(plug.view);
   Iobj *xobj = ivwGetAnExtraObject(plug.view, plug.extraObjNum);
-  imodObjectSetColor(xobj, 1.0, 0.0, 0.0);
+  imodObjectSetColor(xobj, 1.0f, 0.0f, 0.0f);			// red
   imodObjectSetValue(xobj, IobjLineWidth2, plug.lineDisplayWidth);
   imodObjectSetValue(xobj, IobjFlagClosed, 1);
-  ivwClearAnExtraObject(plug.view, plug.extraObjNum);
   
-  
+	plug.extraObjLW = ivwGetFreeExtraObjectNumber(plug.view);
+  Iobj *xobjL = ivwGetAnExtraObject(plug.view, plug.extraObjLW);
+  imodObjectSetColor(xobjL, 1.0f, 1.0f, 0.0f);		// yellow
+  imodObjectSetValue(xobjL, IobjLineWidth2, 2);
+  imodObjectSetValue(xobjL, IobjFlagClosed, 0); 
+	
   //## CREATE THE PLUGIN WINDOW:
   
   plug.window  = new DrawingTools(imodDialogManager.parent(IMOD_DIALOG),"Drawing Tools");
-  
+  plug.window->setWindowTitle("Drawing Tools (*by SLASH*)");		// to help with our grant
+	
   imodDialogManager.add((QWidget *)plug.window, IMOD_DIALOG);
   adjustGeometryAndShow((QWidget *)plug.window, IMOD_DIALOG );
   
@@ -500,19 +506,20 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
     
     //## SMART POINT RESIZE MODE:
     
-    if ( plug.smartPtResizeMode )
+    if ( plug.smartPtResizeMode && isCurrPtValid() )
     {
       Imod *imod  = ivwGetModel(plug.view);
       Iobj *obj   = getCurrObj();
       Icont *cont = getCurrCont();
-      if( cont && obj && !isObjClosed(obj) && imodPointGet(imod)!=NULL)
+      if( cont!=NULL && obj!=NULL && !isObjClosed(obj) && imodPointGet(imod)!=NULL)
       {
         int objIdx, contIdx, ptIdx;
         imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
         float ptSize = imodPointGetSize(obj,cont,ptIdx);
         ptSize = MAX(0.0f, ptSize+(0.1f*scrollAmount));
-        imodPointSetSize(cont,ptIdx,ptSize);
-        plug.window->drawExtraObject(false);
+				if( ptIdx >= 0 && ptIdx<psize(cont) )
+					imodPointSetSize(cont,ptIdx,ptSize);
+        //plug.window->drawExtraObject(false);
         ivwRedraw(plug.view);
         return (1);
       }
@@ -586,8 +593,9 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
         imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
         float ptSize = imodPointGetSize(obj,cont,ptIdx);
         ptSize = MAX(0.0f, ptSize+scrollAmount);
-        imodPointSetSize(cont,ptIdx,ptSize);
-        plug.window->drawExtraObject(false);
+				if( ptIdx >= 0 && ptIdx<psize(cont) )
+					imodPointSetSize(cont,ptIdx,ptSize);
+        //plug.window->drawExtraObject(false);
         ivwRedraw(plug.view);
         return 1;
         break;
@@ -878,7 +886,7 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
     
     default:    // DM_NORMAL
     {
-      if( plug.smartPtResizeMode && plug.but2Pressed )
+      if( plug.smartPtResizeMode && plug.but2Pressed && isCurrPtValid() )
       {
         Imod *imod  = ivwGetModel(plug.view);
         Iobj *obj   = getCurrObj();
@@ -896,10 +904,12 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
         
         undoPointAdditionCC( plug.view, ptIdx+1 );        // REGISTER UNDO
         imodPointAdd( cont, &plug.mouse, ptIdx+1 );
-        imodSetIndex(imod, objIdx, contIdx, ptIdx+1);
+				if( (ptIdx+1) >= 0 && (ptIdx+1)<psize(cont) )
+					imodSetIndex(imod, objIdx, contIdx, ptIdx+1);
         undoFinishUnit( plug.view );                      // FINISH UNDO
         
-        imodPointSetSize(cont, ptIdx+1, prevPtSize);
+				if( (ptIdx+1) >= 0 && (ptIdx+1)<psize(cont) )
+					imodPointSetSize(cont, ptIdx+1, prevPtSize);
         imodPointSetSize(cont, ptIdx,   prevPtSize);
         
         ivwDraw( plug.view, IMOD_DRAW_MOD | IMOD_DRAW_NOSYNC );    
@@ -929,16 +939,27 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
 
 //## WINDOW CLASS CONSTRUCTOR:
 
-static char *buttonLabels[] = {(char*)"Done", (char *)"Help"};
-static char *buttonTips[] = {(char*)"Close Drawing Tools", (char*)"Open help window"};
+static char *buttonLabels[] = {(char*)"Done", (char*)"Video", (char *)"Help"};
+static char *buttonTips[]   = {(char*)"Close this plugin window",
+	                             (char*)"See SLASH help videos showing \n"
+															   			"how to use this plugin",
+														   (char*)"Open help window"};
 
 DrawingTools::DrawingTools(QWidget *parent, const char *name) :
-  DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Drawing Tools", "", name)
+  DialogFrame(parent, 3, buttonLabels, buttonTips, true, "Drawing Tools", "", name)
 {
   const int LAY_MARGIN   = 4;
   const int LAY_SPACING  = 4;
   const int GROUP_MARGIN    = 1;
   
+	//## RECOLOR MIDDLE "Video" BUTTON:
+	
+	mButtons[1]->setStyleSheet("color: rgb(150, 180, 255);");
+	mButtons[1]->setFlat( true );
+	mButtons[1]->setCursor( Qt::PointingHandCursor );
+	mButtons[2]->setCursor( Qt::PointingHandCursor );
+	
+	
   //## Type:
   
   QGroupBox *typeGbox = new QGroupBox("Drawing Mode:", this);
@@ -946,40 +967,44 @@ DrawingTools::DrawingTools(QWidget *parent, const char *name) :
   QVBoxLayout *gbLayout = new QVBoxLayout(typeGbox);
   gbLayout->setSpacing(0);
   gbLayout->setContentsMargins(2, 2, 2, 2);
-  //typeButtonGroup->setMargin(GROUP_MARGIN);
+  
   connect(typeButtonGroup, SIGNAL(buttonClicked(int)), this, SLOT(changeType(int)));
   
   typeRadio_Normal = diaRadioButton
-    ("Normal        [1]", typeGbox, typeButtonGroup, gbLayout, 0,
+    ("Normal        [1]", typeGbox, typeButtonGroup, gbLayout, DM_NORMAL,
      "Contours are drawn normally");
   
+	typeRadio_Warp = diaRadioButton
+	  ("Warp           [2]", typeGbox, typeButtonGroup, gbLayout, DM_WARP,
+	   "Quickly correct bad regions of contour by dragging/warping the edges");
+	
   typeRadio_Sculpt = diaRadioButton
-    ("Sculpt         [2]", typeGbox, typeButtonGroup, gbLayout, 1, 
-     "Draw and modify closed contours "
-     "quickly using the sculpt circle to push or pinch lines");
+    ("Sculpt         [3]", typeGbox, typeButtonGroup, gbLayout, DM_SCULPT, 
+     "Draw and modify closed contours quickly using"
+     "the sculpt circle to push or pinch lines");
   
   typeRadio_Join = diaRadioButton
-    ("Join             [3]", typeGbox, typeButtonGroup, gbLayout, 2, 
+    ("Join             [4]", typeGbox, typeButtonGroup, gbLayout, DM_JOIN, 
      "Join or split contours quickly by making overlaps");
   
-  typeRadio_Transform = diaRadioButton
-    ("Transform  [4]", typeGbox, typeButtonGroup, gbLayout, 3, 
-     "Allows you to move, rotate and scale the selected contour");
-  
-  typeRadio_Eraser = diaRadioButton
-    ("Eraser         [5]", typeGbox, typeButtonGroup, gbLayout, 4,
-     "Erase contours instantly by clicking them");
-  
-  typeRadio_Warp = diaRadioButton
-    ("Warp           [6]", typeGbox, typeButtonGroup, gbLayout, 5,
-     "Quickly correct bad regions of contour by dragging/warping the edges");
-  
   typeRadio_Curve = diaRadioButton
-    ("Curve          [7]", typeGbox, typeButtonGroup, gbLayout, 6,
-     "Quickly correct bad regions of contour by dragging/warping the edges");
+	("LiveWire      [5]", typeGbox, typeButtonGroup, gbLayout, DM_LIVEWIRE,
+	 "An edge detection tool to help you quickly trace around dark membranes");
+	
+  typeRadio_Eraser = diaRadioButton
+    ("Eraser         [6]", typeGbox, typeButtonGroup, gbLayout, DM_ERASER,
+     "Erase contours instantly by clicking them");
+	
+	typeRadio_Transform = diaRadioButton
+	  ("Transform  [7]", typeGbox, typeButtonGroup, gbLayout, DM_TRANSFORM, 
+	   "Allows you to move, rotate and scale the selected contour");
   
+	typeRadio_Curve = diaRadioButton
+	  ("Curve          [8]", typeGbox, typeButtonGroup, gbLayout, DM_CURVE,
+	   "Quickly correct bad regions of contour by dragging/warping the edges");
+	
   typeRadio_Measure = diaRadioButton
-    ("Measure       [8]", typeGbox, typeButtonGroup, gbLayout, 7,
+    ("Measure       [9]", typeGbox, typeButtonGroup, gbLayout, DM_MEASURE,
      "Quickly measure the distance between two points");
   
   changeTypeSelected( plug.drawMode );
@@ -1007,7 +1032,7 @@ DrawingTools::DrawingTools(QWidget *parent, const char *name) :
   toolBut->setFixedWidth(hint.width());
   toolBut->setFixedHeight(hint.height());
   connect(toolBut, SIGNAL(toggled(bool)), this, SLOT(keepOnTop(bool)));
-  toolBut->setToolTip("Keep bead fixer window on top");
+  toolBut->setToolTip("Keep drawing tools window on top");
   
   pinLay->setAlignment( Qt::AlignTop );
   pinLay->addWidget(toolBut);
@@ -1095,15 +1120,21 @@ bool DrawingTools::drawExtraObject( bool redraw )
   
   //## CLEAR EXTRA OBJECT:
   
-  Iobj *xobj = ivwGetAnExtraObject(plug.view, plug.extraObjNum);
-  Iobj *xobj2 = ivwGetAnExtraObject(plug.view, plug.extraObjNum2);
-  if ( !xobj || !xobj2 )
+  Iobj *xobj  = ivwGetAnExtraObject(plug.view, plug.extraObjNum);
+  Iobj *xobjT = ivwGetAnExtraObject(plug.view, plug.extraObjText);
+	Iobj *xobjL = ivwGetAnExtraObject(plug.view, plug.extraObjLW);
+	
+  if ( !xobj || !xobjT || !xobjL )
     return false;
-  imodObjectSetValue(xobj, IobjFlagExtraInModv, (plug.showMouseInModelView)?1:0);
-  imodObjectSetValue(xobj2, IobjFlagExtraInModv, (plug.showMouseInModelView)?1:0);
+  imodObjectSetValue(xobj,  IobjFlagExtraInModv, (plug.showMouseInModelView)?1:0);
+  imodObjectSetValue(xobjT, IobjFlagExtraInModv, (plug.showMouseInModelView)?1:0);
+	imodObjectSetValue(xobjL, IobjFlagExtraInModv, (plug.showMouseInModelView)?1:0);
+	
   ivwClearAnExtraObject(plug.view, plug.extraObjNum);
-  ivwClearAnExtraObject(plug.view, plug.extraObjNum2);
-  Icont *xcont   = imodContourNew();    // primary closed contour used in extra object
+  ivwClearAnExtraObject(plug.view, plug.extraObjText);
+	ivwClearAnExtraObject(plug.view, plug.extraObjLW);
+	
+  Icont *xcont  = imodContourNew();    // primary closed contour used in extra object
   Icont *xcont2 = imodContourNew();    // open   contour used in extra object
   Icont *xcont3 = imodContourNew();    // open   contour used in extra object
                                            // NOTE: it's rare to use all these at once
@@ -1240,126 +1271,14 @@ bool DrawingTools::drawExtraObject( bool redraw )
   
   switch( plug.drawMode )
   {
-  case (DM_NORMAL ):            // draw a tiny verticle line:
+  case (DM_NORMAL):            // draw a tiny verticle line:
     {
       imodPointAppendXYZ( xcont, x, y, z );
       imodPointAppendXYZ( xcont, x, y+1, z );
       break;
     }
-  case(DM_SCULPT):            // draw sculpt circle:
-    {
-      cont_generateCircle( xcont, radius, 100, plug.mouse, true );
-      
-      if( plug.scupltBut3Warp && plug.but3Down )
-        setInterpolated( xcont, 1 );
-      
-      if( plug.shiftDown )      // draw pinch lines:
-      {
-        imodPointAppendXYZ( xcont2, x+hRadius, y+qRadius, z );
-        imodPointAppendXYZ( xcont2, x+qRadius, y, z );
-        imodPointAppendXYZ( xcont2, x+hRadius, y-qRadius, z );
-        
-        imodPointAppendXYZ( xcont3, x-hRadius, y-qRadius, z );
-        imodPointAppendXYZ( xcont3, x-qRadius, y, z );
-        imodPointAppendXYZ( xcont3, x-hRadius, y+qRadius, z );
-      }
-      
-      break;
-    }
-  case(DM_JOIN):              // draw sculpt circle with plus sign in middle:
-    {
-      if( !plug.but3Down )
-      {
-        cont_generateCircle( xcont, radius, 100, plug.mouse, true );
-        
-        imodPointAppendXYZ( xcont2, x+hRadius,   y,      z );
-        imodPointAppendXYZ( xcont2, x-hRadius,   y,      z );
-        imodPointAppendXYZ( xcont3, x,           y+hRadius,  z );
-        imodPointAppendXYZ( xcont3, x,           y-hRadius,  z );
-      }
-      else                      // draw line and rectangle from where user clicked down:
-      {
-        float xS = plug.mouseDownPt.x;
-        float yS = plug.mouseDownPt.y;
-        
-        imodPointAppendXYZ( xcont2, xS, yS, z );
-        imodPointAppendXYZ( xcont2, x,  y,  z );
-        
-        float xDiff = xS - x;
-        float yDiff = yS - y;
-        float dist  = sqrt( (xDiff*xDiff) + (yDiff*yDiff) );
-        float sideScale = fDiv( radius , dist );
-        
-        imodPointAppendXYZ( xcont, x +(yDiff*sideScale), y -(xDiff*sideScale), z );
-        imodPointAppendXYZ( xcont, x -(yDiff*sideScale), y +(xDiff*sideScale), z );
-        imodPointAppendXYZ( xcont, xS-(yDiff*sideScale), yS+(xDiff*sideScale), z );
-        imodPointAppendXYZ( xcont, xS+(yDiff*sideScale), yS-(xDiff*sideScale), z );
-      }
-      
-      break;
-    }
-  case(DM_TRANSFORM):         // draw rectangle around current contour or next to mouse 
-    {
-      Icont *cont = imodContourGet(imod);
-      if( isContValid(cont) )
-      {
-        Ipoint ll, ur;
-        imodContourGetBBox( cont, &ll, &ur);
-        cont_generateBox( xcont, ll, ur, false );
-        
-        if( (!plug.shiftDown && plug.but3Down) || (plug.shiftDown && plug.but2Down) )
-        {                          // draw crosshair and vertical line from clicked:
-          imodPointAppendXYZ( xcont2, plug.centerPt.x,      plug.centerPt.y, z );
-          imodPointAppendXYZ( xcont2, plug.centerPt.x+4*sc, plug.centerPt.y, z );
-          imodPointAppendXYZ( xcont2, plug.centerPt.x-4*sc, plug.centerPt.y, z );
-          imodPointAppendXYZ( xcont2, plug.centerPt.x,      plug.centerPt.y, z );
-          imodPointAppendXYZ( xcont2, plug.centerPt.x, plug.centerPt.y+4*sc, z );
-          imodPointAppendXYZ( xcont2, plug.centerPt.x, plug.centerPt.y-4*sc, z );
-          
-          imodPointAppendXYZ( xcont3, plug.mouseDownPt.x, plug.mouseDownPt.y, z );
-          imodPointAppendXYZ( xcont3, plug.mouseDownPt.x, y, z );
-          if(!plug.transformBut3Unif && plug.but3Down)
-            imodPointAppendXYZ( xcont3, x, y, z );
-        }
-        else if(plug.but2Down)      // draw line from point clicked to mouse:
-        {
-          imodPointAppendXYZ( xcont2, plug.mouseDownPt.x, plug.mouseDownPt.y, z );
-          imodPointAppendXYZ( xcont2, x, y, z );
-        }
-        else if(plug.but3Down)    // draw line from center of contour to mouse:
-        {
-          imodPointAppendXYZ( xcont2, plug.centerPt.x, plug.centerPt.y, z );
-          imodPointAppendXYZ( xcont2, x, y, z );
-        }
-      }
-      else
-      {
-        float rectLen = 10.0 * sc;
-        cont_generateBox( xcont, x+rectLen, y+rectLen, rectLen, 0.5*rectLen, z );
-      }
-      
-      break;
-    }
-  case(DM_ERASER):            // draw sculpt circle with a diagonal line through it:
-    {
-      if( plug.but2Down || plug.but3Down )  {
-        cont_generateCircle( xcont, radius*0.99f, 100, plug.mouse, true );
-        cont_generateCircle( xcont, radius*0.98f, 100, plug.mouse, true );
-      }
-      cont_generateCircle( xcont, radius, 100, plug.mouse, true );
-      imodPointAppendXYZ( xcont2, x+hRadius, y+hRadius, z );
-      imodPointAppendXYZ( xcont2, x-hRadius, y-hRadius, z );
-      
-      if( plug.shiftDown )              // draw extra arrows on diagonal line:
-      {
-        imodPointAppendXYZ( xcont3, x+hRadius, y+qRadius, z );
-        imodPointAppendXYZ( xcont3, x+hRadius, y+hRadius, z );
-        imodPointAppendXYZ( xcont3, x-hRadius, y-hRadius, z );
-        imodPointAppendXYZ( xcont3, x-hRadius, y-qRadius, z );
-      }
-      break;
-    }
-  case(DM_WARP):            // draw warp area:
+			
+	case(DM_WARP):            // draw warp area:
     {
       float warpRadius = plug.warpRadius;
       bool ptInContortRange = false;
@@ -1458,6 +1377,190 @@ bool DrawingTools::drawExtraObject( bool redraw )
       
       break;
     }
+			
+  case(DM_SCULPT):            // draw sculpt circle:
+    {
+      cont_generateCircle( xcont, radius, 100, plug.mouse, true );
+      
+      if( plug.scupltBut3Warp && plug.but3Down )
+        setInterpolated( xcont, 1 );
+      
+      if( plug.shiftDown )      // draw pinch lines:
+      {
+        imodPointAppendXYZ( xcont2, x+hRadius, y+qRadius, z );
+        imodPointAppendXYZ( xcont2, x+qRadius, y, z );
+        imodPointAppendXYZ( xcont2, x+hRadius, y-qRadius, z );
+        
+        imodPointAppendXYZ( xcont3, x-hRadius, y-qRadius, z );
+        imodPointAppendXYZ( xcont3, x-qRadius, y, z );
+        imodPointAppendXYZ( xcont3, x-hRadius, y+qRadius, z );
+      }
+      
+      break;
+    }
+			
+  case(DM_JOIN):              // draw sculpt circle with plus sign in middle:
+    {
+      if( !plug.but3Down )
+      {
+        cont_generateCircle( xcont, radius, 100, plug.mouse, true );
+        
+        imodPointAppendXYZ( xcont2, x+hRadius,   y,      z );
+        imodPointAppendXYZ( xcont2, x-hRadius,   y,      z );
+        imodPointAppendXYZ( xcont3, x,           y+hRadius,  z );
+        imodPointAppendXYZ( xcont3, x,           y-hRadius,  z );
+      }
+      else                      // draw line and rectangle from where user clicked down:
+      {
+        float xS = plug.mouseDownPt.x;
+        float yS = plug.mouseDownPt.y;
+        
+        imodPointAppendXYZ( xcont2, xS, yS, z );
+        imodPointAppendXYZ( xcont2, x,  y,  z );
+        
+        float xDiff = xS - x;
+        float yDiff = yS - y;
+        float dist  = sqrt( (xDiff*xDiff) + (yDiff*yDiff) );
+        float sideScale = fDiv( radius , dist );
+        
+        imodPointAppendXYZ( xcont, x +(yDiff*sideScale), y -(xDiff*sideScale), z );
+        imodPointAppendXYZ( xcont, x -(yDiff*sideScale), y +(xDiff*sideScale), z );
+        imodPointAppendXYZ( xcont, xS-(yDiff*sideScale), yS+(xDiff*sideScale), z );
+        imodPointAppendXYZ( xcont, xS+(yDiff*sideScale), yS-(xDiff*sideScale), z );
+      }
+      
+      break;
+    }
+			
+	case(DM_LIVEWIRE):         // draw a line from selected point to  
+    {
+			// NOTE: To get single grey values (but not RBG quickly) you can use:
+			//       ivwGetFileValue( plug.view, pt.x,pt.y,pt.z );
+			//       see also: file:///Users/andrew_noske/Documents/MACMOD/html/libhelp/3dmodplug.html#ivwCopyImageToByteBuffer
+			//       and: MACMOD/imod/imodview.cpp for actual functions.
+			// 
+			// To efficiently get large area of slice will probably need to use
+			// "Islice" (aka "MRCSlice") structure which lives in: MACMOD/include/mrcslice.h
+			// The plugin interface has some functions for working with Islice structures here:
+			// file:///Users/andrew_noske/Documents/MACMOD/html/libhelp/mrcslice.html
+			
+			
+      Icont *cont = imodContourGet(imod);
+      if( isCurrPtValid() )
+      {
+				Ipoint *currPt = getCurrPt();
+				Ipoint pt;
+				setPt( &pt, currPt->x, currPt->y, currPt->z );
+				
+				float currDist = imodPointDistance( currPt, &plug.mouse );
+				int maxSteps   = 8 * currDist;
+				
+				
+				Icont *xcontL  = imodContourNew();
+				setOpenFlag(xcontL, 1);
+				
+				for( int i=0; i<maxSteps && currDist>1.0f; i++ )
+				{
+					imodPointAppendXYZ( xcontL, pt.x, pt.y, pt.z );
+					int distX = plug.mouse.x - pt.x;
+					int distY = plug.mouse.y - pt.y;
+					
+					float greyVal = ivwGetFileValue( plug.view, pt.x,pt.y,pt.z );
+					
+					cout << " grey value =" << greyVal << "  at (" << (int)pt.x << "," << (int)pt.y << ")" << endl;
+					
+					int randInt1 = randIntInclusive( 0, 10 );
+					if(randInt1==0)	pt.x += 1;
+					else if(randInt1==1)	pt.x += -1;
+					else if(randInt1==2)	pt.y += 1;
+					else if(randInt1==3)	pt.y += -1;
+					else
+					{
+						int randInt     = randIntInclusive( 0, ABS(distX)+ABS(distY) );
+						bool changeHorz = randInt <= ABS(distX);
+						
+						if( changeHorz )
+							pt.x += (distX>0) ? 1 : -1;
+						else
+							pt.y += (distY>0) ? 1 : -1;
+					}
+					
+					currDist = imodPointDistance( &pt, &plug.mouse );
+				}
+				
+				imodPointAppendXYZ( xcontL, plug.mouse.x, plug.mouse.y, plug.mouse.z );
+				//setInterpolated( xcontL, 1 );
+				
+				imodObjectAddContour(xobjL, xcontL);
+				free(xcontL);
+      }
+      
+      break;
+    }
+			
+  case(DM_TRANSFORM):         // draw rectangle around current contour or next to mouse 
+    {
+      Icont *cont = imodContourGet(imod);
+      if( isContValid(cont) )
+      {
+        Ipoint ll, ur;
+        imodContourGetBBox( cont, &ll, &ur);
+        cont_generateBox( xcont, ll, ur, false );
+        
+        if( (!plug.shiftDown && plug.but3Down) || (plug.shiftDown && plug.but2Down) )
+        {                          // draw crosshair and vertical line from clicked:
+          imodPointAppendXYZ( xcont2, plug.centerPt.x,      plug.centerPt.y, z );
+          imodPointAppendXYZ( xcont2, plug.centerPt.x+4*sc, plug.centerPt.y, z );
+          imodPointAppendXYZ( xcont2, plug.centerPt.x-4*sc, plug.centerPt.y, z );
+          imodPointAppendXYZ( xcont2, plug.centerPt.x,      plug.centerPt.y, z );
+          imodPointAppendXYZ( xcont2, plug.centerPt.x, plug.centerPt.y+4*sc, z );
+          imodPointAppendXYZ( xcont2, plug.centerPt.x, plug.centerPt.y-4*sc, z );
+          
+          imodPointAppendXYZ( xcont3, plug.mouseDownPt.x, plug.mouseDownPt.y, z );
+          imodPointAppendXYZ( xcont3, plug.mouseDownPt.x, y, z );
+          if(!plug.transformBut3Unif && plug.but3Down)
+            imodPointAppendXYZ( xcont3, x, y, z );
+        }
+        else if(plug.but2Down)      // draw line from point clicked to mouse:
+        {
+          imodPointAppendXYZ( xcont2, plug.mouseDownPt.x, plug.mouseDownPt.y, z );
+          imodPointAppendXYZ( xcont2, x, y, z );
+        }
+        else if(plug.but3Down)    // draw line from center of contour to mouse:
+        {
+          imodPointAppendXYZ( xcont2, plug.centerPt.x, plug.centerPt.y, z );
+          imodPointAppendXYZ( xcont2, x, y, z );
+        }
+      }
+      else
+      {
+        float rectLen = 10.0 * sc;
+        cont_generateBox( xcont, x+rectLen, y+rectLen, rectLen, 0.5*rectLen, z );
+      }
+      
+      break;
+    }
+			
+  case(DM_ERASER):            // draw sculpt circle with a diagonal line through it:
+    {
+      if( plug.but2Down || plug.but3Down )  {
+        cont_generateCircle( xcont, radius*0.99f, 100, plug.mouse, true );
+        cont_generateCircle( xcont, radius*0.98f, 100, plug.mouse, true );
+      }
+      cont_generateCircle( xcont, radius, 100, plug.mouse, true );
+      imodPointAppendXYZ( xcont2, x+hRadius, y+hRadius, z );
+      imodPointAppendXYZ( xcont2, x-hRadius, y-hRadius, z );
+      
+      if( plug.shiftDown )              // draw extra arrows on diagonal line:
+      {
+        imodPointAppendXYZ( xcont3, x+hRadius, y+qRadius, z );
+        imodPointAppendXYZ( xcont3, x+hRadius, y+hRadius, z );
+        imodPointAppendXYZ( xcont3, x-hRadius, y-hRadius, z );
+        imodPointAppendXYZ( xcont3, x-hRadius, y-qRadius, z );
+      }
+      break;
+    }
+			
   case (DM_CURVE):            // draw curve
     {
       Icont *cont = imodContourGet(imod);
@@ -1485,7 +1588,7 @@ bool DrawingTools::drawExtraObject( bool redraw )
       break;
     }
     
-    case (DM_MEASURE):            // measure distance
+	case (DM_MEASURE):            // measure distance
     {
       float fontSize = 12 * sc;
       
@@ -1548,7 +1651,7 @@ bool DrawingTools::drawExtraObject( bool redraw )
         if( slicesSpanned )
           text += "\n spanning " + toString( slicesSpanned ) + " slices";
         
-        cont_generateTextAreaAsConts( xobj2, text, textPos, fontSize, TA_LEFT, TV_CENTER,
+        cont_generateTextAreaAsConts( xobjT, text, textPos, fontSize, TA_LEFT, TV_CENTER,
                                       true, 4 );
       }
       else if( isCurrPtValid() && getCurrPt()->z == z )
@@ -1574,7 +1677,7 @@ bool DrawingTools::drawExtraObject( bool redraw )
         if( text.length() == 0 )
         {
           text = "WARNING: this object is unlabelled";
-          cont_generateTextAsConts( xobj2, text, textPos, fontSize, textAlign, true );
+          cont_generateTextAsConts( xobjT, text, textPos, fontSize, textAlign, true );
         }
         
         cont_generateTextAsConts( xobj, text, textPos, fontSize, textAlign, true );
@@ -1586,7 +1689,7 @@ bool DrawingTools::drawExtraObject( bool redraw )
           float lengthClosed = imodContourLength( cont, closed ) * pixelSize;
           string extraText = (closed) ? "CLOSED LENGTH: " : "OPEN LENGTH: ";
           extraText += toString(lengthClosed)+ " " + toString( unitsChs );
-          cont_generateTextAsConts( xobj2, extraText, textPos, fontSize, textAlign, true );
+          cont_generateTextAsConts( xobjT, extraText, textPos, fontSize, textAlign, true );
         }
         
         /*
@@ -1643,21 +1746,21 @@ void DrawingTools::clearExtraObj()
 
 void DrawingTools::initValues()
 {
-  plug.drawMode               = DM_SCULPT;
+  plug.drawMode               = DM_WARP;
   plug.reducePts              = 0;
-  plug.reducePtsTol           = 0.05;
-  plug.reducePtsMinArea       = 0.5;
+  plug.reducePtsTol           = 0.05f;
+  plug.reducePtsMinArea       = 0.5f;
   plug.reducePtsOpt           = RD_MINAREA;
   plug.smoothMinDist          = 5;
-  plug.smoothTensileFract     = 0.5;
+  plug.smoothTensileFract     = 0.5f;
   plug.smoothReduceFirst      = false;
   plug.smoothMoveIts          = 0;
-  plug.smoothMoveFract        = 0.25;
-  plug.smoothMoveMinDist      = 0.20;
+  plug.smoothMoveFract        = 0.25f;
+  plug.smoothMoveMinDist      = 0.20f;
   plug.printSmoothResults     = true;
    
-  plug.sculptRadius           = 30.0;
-  plug.warpRadius             = 30.0;
+  plug.sculptRadius           = 30.0f;
+  plug.warpRadius             = 30.0f;
   plug.diffWarpSize           = false;
   plug.sculptResizeScheme     = SR_STAGGERED;
   plug.warpBehavior           = WB_AUTO;
@@ -1677,9 +1780,9 @@ void DrawingTools::initValues()
   plug.selectedAction         = 0;
   plug.sortCriteria           = SORT_NUMPTS;
   plug.findCriteria           = SORT_NUMPTS;
-  plug.minObjsNameWarning     = 3;
+  plug.minObjsNameWarning     = 5;
   plug.drawZhint              = 0;
-  plug.useArrowKeys           = false;
+  plug.useArrowKeys           = true;
   
   plug.sortCriteriaOfVals     = -1;
 }
@@ -1744,7 +1847,7 @@ void DrawingTools::loadSettings()
 
 //------------------------
 //-- Saves most of the settings within DrawingToolsData in user preferences
-//-- so they will load next time Bead Helper is started
+//-- so they will load next time the plugin is started
 
 void DrawingTools::saveSettings()
 {
@@ -2918,7 +3021,7 @@ void DrawingTools::keyboardSettings()
                   "else they will scale seperately in X and Y." );
   ds.addCheckBox( "show mouse in model view", 
                   &plug.showMouseInModelView,
-                  "Will show the mouse in any Model View "
+                  "Will show the mouse in the Model View "
                   "windows as you move it in the ZAP window. \n"
                   "WARNING: This will reduce performance!");
  
@@ -2968,7 +3071,7 @@ void DrawingTools::keyboardSettings()
                   " you have a laptop without PageUp/PageDown keys"
                   "\n"
                   "WARNING: Having this on may (unfortunately) have side-effects \n"
-                  "wherebe if you're editing text it does silly things ");
+                  "whereby it does silly things while you're editing text");
   
   ds.addLabel   ( "\n--- SCULPT CIRCLE ---" );
   ds.addCheckBox( "mark contours as key after sculpt", 
@@ -2981,7 +3084,7 @@ void DrawingTools::keyboardSettings()
                   "If off: the size of the warp circle will always be equal"
                   "\nto the size of the sculpt circle." );
   ds.addLineEditF( "sculpt circle radius:",
-                   0.01, 200, &plug.sculptRadius, 3,
+                   0.01f, 1000.0f, &plug.sculptRadius, 3,
                    "The radius (in pixels) of the circle used "
                    "in sculpt and join drawing mode. \n"
                    "NOTE: Change this using [q] and [w] or (better yet) use the \n"
@@ -2989,14 +3092,16 @@ void DrawingTools::keyboardSettings()
   ds.addComboBox( "sculpt resize scheme:",
                   "normal|"
                   "linear|"
-                  "log",
+                  "log|"
+									"fast",
                   &plug.sculptResizeScheme,
                   "The method used to resize the sculpt circle using the mouse wheel \n"
                   "or [q] and [w].\n"
                   "\n"
-                  " > normal - staggered approach \n"
+                  " > normal - staggered approach (default) \n"
                   " > linear - tends to be fast as circle gets small \n"
                   " > log    - tends to be fast when circle is large \n"
+								  " > fast   - three times faster than linear \n"
                   "\n"
                   "TIP: Adjust 'wheel resistant' to make the circle reize "
                   "    faster or slower as you scroll the mouse" );
@@ -3134,6 +3239,60 @@ void DrawingTools::moreSettings()
 }
 
 
+//------------------------
+//-- Allows user to change options for livewire.
+
+void DrawingTools::showLiveWireOptions()
+{
+	
+	
+  //## GET USER INPUT FROM CUSTOM DIALOG:
+  
+	CustomDialog ds("LiveWire Options", this);
+  
+	ds.addHtmlLabel( "Help livewire by selecting from these options." );
+	ds.setStylePrev("background-color: rgb(150, 150, 150);");			// grey
+	
+	ds.addLabel( "---" );
+  //ds.addLabel   ( "--- LIVEWIRE OPTIONS ---" );
+  ds.addRadioGrp( "what are you tracing around?",
+							    "(a) the middle of a dark membrane|"
+							    "(b) the middle of a light membrane|"
+								  "(c) a color image",
+							    &plug.liveWOpt,
+								  ".....",
+								  "choose this if ...... |"
+								  "or choose this if ...... |"
+								  "......... " );
+	
+  //ds.addCheckBox( "allow smoothing", &plug.liveWSmooth,
+	//							 "Will automatically apply 'contour smoothing' \n"
+	//							 "to any lines you draw." );
+	
+	ds.addSpinBox ( "smoothing iterations:",
+								 1, 50, &plug.liveWSmoothIts, 1,
+								 "The thickness of lines used to display "
+								 "contours as lines" );
+	
+	ds.addCheckPrev("apply smoothing iterations: ", &plug.liveWSmooth, CB_NONE, true,
+									"Will automatically apply 'contour smoothing' \n"
+									"to any lines you draw." );
+	
+	ds.addHtmlLabel( "<font size='2.5'>This algorithm was developed by "
+									 "<b>Jeffrey Bush</b>.<br>"
+									 "<a href='http://www.coderforlife.com/'>Click here</a> "
+									 "for video demo & source code.</fontsize>","" );
+	ds.setStylePrev("background-color: rgb(100, 255, 100);");			// light green
+	
+	ds.addCheckBox( "do not show again (I know what I'm doing)", &plug.liveWDontShowAgain,
+								 "NOTE: You can access this via 'Something > Something'." );
+	ds.setStylePrev("background-color: rgb(150, 150, 150);");			// grey
+	
+	ds.exec();
+	if( ds.wasCancelled() )
+		return;
+	
+}
 
 //------------------------
 //-- Prompts for a criteria for reordering, and reorderes specified range of contours
@@ -4622,7 +4781,7 @@ void DrawingTools::checkForNamelessObjects( bool forceMessageBox )
   ds.addLabel   ( "" );
   ds.addLabel   ( "It's important to label objects with PROPER names\n"
                   "(e.g. 'Microtubules', 'Nucleus', etc) so others\n"
-                  "can analyze, understand and reuse your models.");
+                  "can analyze, understand and reuse your models." );
   ds.addLabel   ( "-----" );
   ds.addRadioGrp( "action:",
                   "let me fix this now|"
@@ -4633,16 +4792,17 @@ void DrawingTools::checkForNamelessObjects( bool forceMessageBox )
                   "them names, one at a time.|"
                   "Takes you to the short webpage with information about good \n"
                   "naming protocol and a list of common organelles to help you \n"
-                  "correctly identify and name of subcellular compoments."
-                  );
+                  "correctly identify and name of subcellular compoments." );
   ds.addSpinBox ( "do not check for missing names unless there are\n"
-                  "at least this many objects in the model:", 3, 100,
+                  "at least this many objects in the model:", 3, 500,
                   &plug.minObjsNameWarning, 1,
                   "When you open Drawing Tools, this window will only appear if \n"
                   "you have more than this many objects in your model and one or \n"
                   "of those objects have empty names.\n\n"
                   "NOTE: You can still access this window and change this value via \n"
                   "'More Actions > clean model and fix contours'" );
+	ds.setStylePrev("background-color: rgb(200, 200, 200);");			// grey
+	
   ds.exec();
   if( ds.wasCancelled() )
     return;
@@ -4884,11 +5044,29 @@ int DrawingTools::promptRenameObject( int objIdx )
     << "Mature Insulin Granule"
     << "Golgi Trans-most Cisternae"
     
-    << "UNKNOWN"
-    << "GOLD FIDUCIALS"
-    << "POINT OF INTEREST"
-    << "RULER"
-    << "TOMOGRAM BOUNDARIES";
+		<< "UNKNOWN"
+		<< "GOLD FIDUCIALS"
+		<< "POINT OF INTEREST"
+		<< "RULER"
+		<< "TOMOGRAM BOUNDARIES"
+		
+		//## STEREOLOGY-SPECIFIC LABELS:
+		<< "STEREOLOGY"
+		<< "STEREOLOGY_SETTINGS"
+		<< "STEREOLOGY_GRID"
+		<< "NO_CATEGORY"
+		<< "NOTHING"
+		<< "0_INTERSECTIONS"
+		<< "1_INTERSECTIONS"
+		<< "2_INTERSECTIONS"
+		<< "3_INTERSECTIONS"
+		<< "4_INTERSECTIONS"
+		<< "5_INTERSECTIONS"
+		<< "6_INTERSECTIONS"
+		<< "7_INTERSECTIONS"
+		<< "8_INTERSECTIONS"
+		<< "9_INTERSECTIONS"
+		<< "10_INTERSECTIONS";
   }
   
   //## CHECK OBJECT EXISTS:
@@ -5145,14 +5323,18 @@ int  DrawingTools::copyCurrContToView(bool smartSize)
 //## BASIC METHODS TO CHANGE PLUG DATA:
 
 //------------------------
-//-- Change the drawMode
+//-- Change "plug.drawMode"
 
 void DrawingTools::changeType( int value ) {
-  plug.drawMode = value;
+	
+	if( plug.drawMode!=value && value==DM_LIVEWIRE && !plug.liveWDontShowAgain )
+		showLiveWireOptions();
+	
+	plug.drawMode = value;
 }
 
 //------------------------
-//-- Change drawMode and set appropriate radio button
+//-- Change "plug.drawMode" and set appropriate radio button
 
 void DrawingTools::changeTypeSelected( int newType) {
   plug.drawMode = newType;
@@ -5161,11 +5343,13 @@ void DrawingTools::changeTypeSelected( int newType) {
 }
 
 //------------------------
-//-- Change changeSculptCircleRadius
+//-- Change "plug.warpRadius" by "value" using the selected
+//-- "plug.sculptResizeScheme". NOTE that if "slowDown" is true
+//-- value is reduced to 1/5 it's value.
 
-void DrawingTools::changeSculptCircleRadius( float value, bool accel )
+void DrawingTools::changeSculptCircleRadius( float value, bool slowDown )
 {
-  if(accel)
+  if(slowDown)
     value *= 0.2;
   
   if( plug.drawMode == DM_WARP && plug.diffWarpSize )
@@ -5178,21 +5362,30 @@ void DrawingTools::changeSculptCircleRadius( float value, bool accel )
     {
       case(SR_STAGGERED):                     // staggered
       {
-        if( plug.sculptRadius < 5.0f ) 
-          value *= 0.15;
-        else if( plug.sculptRadius < 50.0f )
-          value *= 0.25;
-        else if( plug.sculptRadius < 100.0f )
-          value *= 0.5;
+        if     ( plug.sculptRadius < 2.0f   )     value *= 0.2f;
+        else if( plug.sculptRadius < 5.0f   )     value *= 0.5f;
+				else if( plug.sculptRadius < 10.0f  )     value *= 0.75f;
+				else if( plug.sculptRadius < 20.0f  )     value *= 1.0f;
+				else if( plug.sculptRadius < 50.0f  )     value *= 2.0f;
+        else if( plug.sculptRadius < 100.0f )     value *= 3.0f;
+				else if( plug.sculptRadius < 200.0f )     value *= 5.0f;
+				else																			value *= 10.0f;
+				plug.sculptRadius += value;
+        break;
       }
       case(SR_LINEAR):                        // linear
       {
         plug.sculptRadius += value;
         break;
       }
-      case(SR_LOG):                            // log
+      case(SR_LOG):                           // log
       {
-        plug.sculptRadius *= (1 + (value*0.01) ); 
+        plug.sculptRadius *= (1.0f + (value*0.02f) ); 
+        break;
+      }
+			case(SR_FAST):                          // fast
+      {
+        plug.sculptRadius += 3.0f*value;
         break;
       }
     }
@@ -5201,29 +5394,38 @@ void DrawingTools::changeSculptCircleRadius( float value, bool accel )
       plug.warpRadius = plug.sculptRadius;
   }
   
-  keepWithinRange( plug.warpRadius,   1.0f, 500.0f );
-  keepWithinRange( plug.sculptRadius, 1.0f, 500.0f );
+  keepWithinRange( plug.warpRadius,   1.0f, 1000.0f );
+  keepWithinRange( plug.sculptRadius, 1.0f, 1000.0f );
 }
 
 
-//## PROTECTED:
+//############################################################
+//## PROTECTED SLOTS:
 
 
 //------------------------
-//-- Called to display help window.
+//-- Displays a (html) help page with information about the plugin
+
+void DrawingTools::helpPluginHelp()
+{
+  QString str = QString(getenv("IMOD_DIR")) + QString("/lib/imodplug/drawingtools.html");
+  imodShowHelpPage((const char *)str.toLatin1());
+}
+
+
+//------------------------
+//-- Callback for the buttons at the bottom
 
 void DrawingTools::buttonPressed(int which)
 {
-  if (!which)
+  if      (which==0)
     close();
-  else
-  {
-    QString str = QString(getenv("IMOD_DIR"));
-    str += QString("/lib/imodplug/drawingtools.html");
-    
-    imodShowHelpPage((const char *)str.toLatin1());
-  }
+  else if (which==1)
+		openUrl( "http://www.slashsegmentation.com/tools/drawingtools-plugin.htm" );
+	else if (which==2)
+    helpPluginHelp();
 }
+
 
 //------------------------
 //-- Window closing event handler - removes this pluging from the imod dialog manager
@@ -5233,7 +5435,9 @@ void DrawingTools::closeEvent ( QCloseEvent * e )
   imodDialogManager.remove((QWidget *)plug.window);
   clearExtraObj();
   ivwFreeExtraObject(plug.view, plug.extraObjNum);
-  ivwFreeExtraObject(plug.view, plug.extraObjNum2);
+  ivwFreeExtraObject(plug.view, plug.extraObjText);
+	ivwFreeExtraObject(plug.view, plug.extraObjLW);
+	
   ivwTrackMouseForPlugs(plug.view, 0);
   //ivwEnableStipple( plug.view, 0 );
   
@@ -5624,7 +5828,7 @@ bool edit_selectVisiblePtNearCoords( Ipoint *mouse, float distScreenPix)
     int oIdx  = (o+objIdx) % osize(imod);    // search current object first
     Iobj *obj = getObj( imod, oIdx );
     bool objClosed = isObjClosed( obj );
-    if( !isObjectValidAndShown(obj) )
+    if (!isObjectValidAndShown(obj))		// if object no visible: skip
       continue;
     
     for( int c=0; c<csize(obj); c++ )    // for each contour:
@@ -5695,6 +5899,7 @@ bool edit_copiedContIfDiffSlice( bool selectNewCont )
 
 void edit_executeSculptStart()
 {
+	plug.newContStarted = false;
     
 //## DETERMINE IF USER IS TRYING TO EDIT THE CURRENT CONTOUR,
 //## A DIFFERENT CONTOUR, OR START A NEW CONTOUR:
@@ -5724,12 +5929,14 @@ void edit_executeSculptStart()
   
   else
   {
+		int segments  = (radius <= 32) ? 16 : radius/2.0f;
     Icont *newCont = imodContourNew();
-    cont_generateCircle(newCont, radius, 16, plug.mouse, false);
+    cont_generateCircle(newCont, radius, segments, plug.mouse, false);
     int newContPos = edit_addContourToObj(obj, newCont, true);
     int objIdx, contIdx, ptIdx;
     imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
     imodSetIndex(imod, objIdx, newContPos, 0);
+		plug.newContStarted = true;
   }
   
 }
@@ -5939,12 +6146,26 @@ void edit_executeSculptPinch( Ipoint center, float radius )
 
 void edit_executeSculptEnd()
 {
-  edit_makeCurrContSimple();
-  edit_deleteCurrContIfTooSmall();
-  
+	if( !isCurrContValid() )
+		return;
+		
   if (plug.reducePts)
     edit_reduceCurrContour();
+	
+	bool makeContSimple = psize(getCurrCont()) < 500
+	  || !edit_isSimpleWithinCircle( getCurrCont(), &plug.mouse, plug.sculptRadius*2.0f );
+	
+	if( makeContSimple )		//  or new contour started "edit_executeSculptStart()"
+	{
+		edit_makeCurrContSimple();			// makes contour simple (this step is slow!)
+  }
+
+	
+	edit_deleteCurrContIfTooSmall();
   
+	if (plug.reducePts)
+    edit_reduceCurrContour();
+	
   if( plug.markTouchedContsAsKey && isCurrContValid() && isInterpolated( getCurrCont() ) )
   {
     undoContourPropChgCC( plug.view );        // REGISTER UNDO
@@ -6041,7 +6262,7 @@ void edit_executeJoinRectEnd()
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   int startContIdx = contIdx;
   Icont *startCont = imodContourGet(imod);
-  bool isStartPtInsideCont = imodPointInsideCont( getCont(obj,contIdx), &plug.mouseDownPt );
+  bool isStartPtInsideCont = imodPointInsideCont(getCont(obj,contIdx),&plug.mouseDownPt );
   
   if( !edit_selectNearPtInCurrObj(&plug.mouse, 200, 1, true) )
     return;
@@ -6620,7 +6841,7 @@ bool edit_doesBBoxTouchCircle( Ipoint *ll, Ipoint *ur, Ipoint *center, float rad
 
 
 //------------------------
-//-- Erases all contours in the given radius and returns the
+//-- Erases all visible contours in the given radius and returns the
 //-- number of contours removed, and creates undo if contours
 //-- were removed.
 
@@ -6639,7 +6860,7 @@ int edit_eraseContsInCircle( Ipoint center, float radius )
     imodSetIndex( imod, o, 1, 1);
     Iobj *obj  = imodObjectGet(imod);
     
-    if (!isObjectValidAndShown(obj))
+    if (!isObjectValidAndShown(obj))		// if object no visible: skip
       continue;
     
     for(int c=0; c<csize(obj); c++)    // for each contour:
@@ -6677,7 +6898,7 @@ int edit_eraseContsInCircle( Ipoint center, float radius )
 
 
 //------------------------
-//-- Erases all points in the given radius, returns the number of
+//-- Erases all visible points in the given radius, returns the number of
 //-- points removed and creates undo if points were removed.
 
 int edit_erasePointsInCircle( Ipoint center, float radius )
@@ -6695,6 +6916,9 @@ int edit_erasePointsInCircle( Ipoint center, float radius )
     imodSetIndex( imod, o, 1, 1);
     Iobj *obj  = imodObjectGet(imod);
     
+    if (!isObjectValidAndShown(obj))		// if object no visible: skip
+      continue;
+		
     for(int c=0; c<csize(obj); c++)    // for each contour:
     {
       Icont *cont = getCont(obj, c);
@@ -6739,7 +6963,7 @@ int edit_erasePointsInCircle( Ipoint center, float radius )
 
 
 //------------------------
-//-- Finds the first contour withing the circle, removes any of it's
+//-- Finds the first visible contour within the circle, removes any of it's
 //-- points within the circle and breaks the contour apart either side,
 //-- and if any changes was made it creates an undo and returs true.
 
@@ -6758,6 +6982,9 @@ bool edit_breakPointsInCircle( Ipoint center, float radius )
     imodSetIndex( imod, o, 1, 1);
     Iobj *obj  = imodObjectGet(imod);
     
+    if (!isObjectValidAndShown(obj))		// if object no visible: skip
+      continue;
+		
     for(int c=0; c<csize(obj); c++)    // for each contour:
     {
       Icont *cont = getCont(obj, c);
@@ -6882,12 +7109,8 @@ void edit_breakCurrContIntoSimpleContsAndDeleteSmallest ()
 
 void edit_makeCurrContSimple ()
 {
-  Imod  *imod = ivwGetModel(plug.view);
-  Iobj  *obj  = imodObjectGet(imod);
-  Icont *cont = imodContourGet(imod);
-  
-  if( isContValid(cont) ) {
-    cont_makeSimple( cont );
+  if( isCurrContValid() ) {
+    cont_makeSimple( getCurrCont() );
   }
 }
 
@@ -7832,4 +8055,63 @@ void edit_reorderConts( int sortCriteria, int minCont, int maxCont,
     wprint("\n%d contours have been reordered\n", numContsChanged);
   }
 }
+
+
+
+
+//------------------------
+//-- Returns true if, within the specified circle, the contour
+//-- has no line segmentes which overlap other line segments.
+//-- This function is used to avoid the more expensive "cont_isSimple()"
+//-- which runs a check of wether a contour is simple over all points O(n^2).
+
+bool edit_isSimpleWithinCircle( Icont *cont, Ipoint *center, float radius )
+{
+	float radSq = (radius*radius);
+	
+	vector<bool> ptInside;							// tracks if each point is inside the circle
+	ptInside.resize( psize(cont)+1 );
+	
+	int minIdx = psize(cont);						// index of the first point found inside the circle
+	int maxIdx = 0;											// index of the last  point found inside the circle
+	int upperBound = MIN( psize(cont)+1, (int)ptInside.size() );
+	
+	//## FOR EACH POINT IN CONTOUR: RECORD IF INSIDE OR OUTSIDE CIRCLE:
+	
+	for(int p=0; p<upperBound; p++ )
+	{
+		float dist1Sq = line_sqDistBetweenPts2D( center, getPt(cont,p) );
+		ptInside[p]   = (dist1Sq <= radSq);
+		if( ptInside[p] )
+		{
+			updateMin( minIdx, p );
+			updateMax( maxIdx, p );
+		}
+	}
+	
+	minIdx = MAX( minIdx-1, 0 );
+	maxIdx = MIN( maxIdx+1, psize(cont) );
+	
+	//## BETWEEN FIRST AND LAST POINT INSIDE CIRCLE: CHECK IF ANY PROCEEDING LINE SEGMENT
+	//## INSIDE THE CIRCLE OVERLAPS WITH THIS LINE SEGMENG:
+	
+  for(int i=minIdx; i<maxIdx; i++ )
+	{
+		if( !ptInside[i] && !ptInside[i+1] )
+			continue;
+		
+    for(int j=i+2; j<maxIdx; j++ )
+		{
+			if( !ptInside[j] && !ptInside[j+1] )
+				continue;
+						
+      if(imodPointIntersect(getPt(cont,i),getPt(cont,i+1),getPt(cont,j),getPt(cont,j+1))
+         && !( i == 0 && j == psize(cont)-1 ) )
+        return false;
+		}
+	}
+	
+  return true;
+}
+
 

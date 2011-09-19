@@ -60,7 +60,7 @@ const double DEGS_TO_RADS = PI/180.0;
 
 
 const long MAX_LONG			= (long)2147483647; 			// largest negative value of a long
-const long MIN_LONG			= (long)2147483648;       // largest positive value of a long
+const long MIN_LONG			= (long)2147483648;				// largest positive value of a long
 
 const int MAX_INT			= (int)32767; 			// largest negative value of a (singed) int
 const int MIN_INT			= (int)32768;				// largest positive value of a (signed) int
@@ -153,7 +153,7 @@ inline double randHighResCoef();
 inline double randHighResCoefOneNotInclusive();
 inline double randDbl(double min, double max);
 inline int randIntInclusive(int min, int max);
-
+inline float randFlt(float min, float max);
 
 //## TIME FUNCTIONS:
 
@@ -759,7 +759,9 @@ inline double randDbl(double min, double max) {		//-- Returns a high resolution 
 inline int randIntInclusive(int min, int max) {		//-- Returns a high resolution random integer between min and max inclusive
   return int( ( randHighResCoefOneNotInclusive() * double(max-min+1) ) + double(min) );
 }
-
+inline float randFlt(float min, float max) {		//-- Returns a low resolution random float between min and max (NOTE: if max is 2, then it won't return a value higher than 2)
+	return float(min + ( (rand()/RAND_MAX_D) * (max - min) ));
+}
 
 
 //--------------------------------------------------------------------------------------------------

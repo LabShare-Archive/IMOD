@@ -396,8 +396,6 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
         
        
         
-        
-        
         plug.window->drawExtraObject(true);
         return 1;
       }
@@ -453,11 +451,14 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
 
 //## WINDOW CLASS CONSTRUCTOR:
 
-static char *buttonLabels[] = {(char*)"Done", (char*)"Help"};
-static char *buttonTips[] = {(char*)"Close Bead Helper", (char*)"Open help window"};
+static char *buttonLabels[] = {(char*)"Done", (char*)"Video", (char *)"Help"};
+static char *buttonTips[]   = {(char*)"Close this plugin window",
+	                             (char*)"See SLASH help videos showing \n"
+	                                    "how to use this plugin",
+	                             (char*)"Open help window"};
 
 BeadHelper::BeadHelper(QWidget *parent, const char *name) :
-      DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Bead Helper", "", name)
+      DialogFrame(parent, 3, buttonLabels, buttonTips, true, "Bead Helper", "", name)
 {
   const int LAY_MARGIN   = 4;
   const int LAY_SPACING  = 4;
@@ -466,7 +467,14 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   
   QString toolStr;
   
-
+	//## RECOLOR MIDDLE "Video" BUTTON:
+	
+	mButtons[1]->setStyleSheet("color: rgb(150, 180, 255);");
+	mButtons[1]->setFlat( true );
+	mButtons[1]->setCursor( Qt::PointingHandCursor );
+	mButtons[2]->setCursor( Qt::PointingHandCursor );
+	
+	
   //## Actions:
   
   grpActions = new QGroupBox("Actions:", this);
@@ -550,7 +558,7 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   toolBut->setFixedWidth(hint.width());
   toolBut->setFixedHeight(hint.height());
   connect(toolBut, SIGNAL(toggled(bool)), this, SLOT(keepOnTop(bool)));
-  toolBut->setToolTip("Keep bead fixer window on top");
+  toolBut->setToolTip("Keep bead helper window on top");
   topLay->addWidget(showEstimatedPosCheckbox);
   topLay->addWidget(toolBut);
   
@@ -827,7 +835,7 @@ void cont_makeContShowingMissingPoints( Icont *to, Icont *from, int view, float 
 
 //------------------------
 //-- Adds a contour with two points to the given object
-
+/*
 void cont_addLineToObj( Iobj *obj,
                         float x1, float y1, float z1,
                         float x2, float y2, float z2,
@@ -857,7 +865,7 @@ void cont_addPtToObj( Iobj *obj,
     imodContourSetFlag( cont, ICONT_DRAW_ALLZ, 1 );
   imodObjectAddContour( obj, cont );
   free(cont);
-}
+}*/
 
 
 //------------------------
@@ -3831,24 +3839,31 @@ void BeadHelper::changeEstPosMethod(int value) {
 }
 
 
-
-//## PROTECTED:
+//############################################################
+//## PROTECTED SLOTS:
 
 
 //------------------------
-//-- Called to display help window.
+//-- Displays a (html) help page with information about the plugin
+
+void BeadHelper::helpPluginHelp()
+{
+  QString str = QString(getenv("IMOD_DIR")) + QString("/lib/imodplug/beadhelper.html");
+  imodShowHelpPage((const char *)str.toLatin1());
+}
+
+
+//------------------------
+//-- Callback for the buttons at the bottom
 
 void BeadHelper::buttonPressed(int which)
 {
-  if (!which)
+  if      (which==0)
     close();
-  else
-  {
-    QString str = QString(getenv("IMOD_DIR"));
-    str += QString("/lib/imodplug/beadhelper.html");
-    
-    imodShowHelpPage((const char *)str.toLatin1());
-  }
+  else if (which==1)
+		openUrl( "http://www.slashsegmentation.com/tools/beadhelper-plugin.htm" );
+	else if (which==2)
+    helpPluginHelp();
 }
 
 //------------------------

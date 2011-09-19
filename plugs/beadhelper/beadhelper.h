@@ -1,5 +1,4 @@
 #include "dialog_frame.h"
-//Added by qt3to4:
 #include <QKeyEvent>
 #include <QLabel>
 #include <QEvent>
@@ -28,6 +27,37 @@ using namespace std;
 
 
 //############################################################
+//## CONSTANTS:
+
+const int NO_POINT = -1;
+
+enum estimationmethod { EM_BESTTWO, EM_SMARTTWO, EM_NEARESTTWO, EM_PREVTWO,
+                        EM_QUADRATIC, EM_LOCALQUADRATIC, EM_LASTTHREE, EM_LASTSIX };
+
+enum contsortcriteria { SORT_YJUMPS, SORT_DEV, SORT_AVG_GREY, SORT_DIST_FROM_MIDDLE,
+												SORT_MISSING_PTS, SORT_UNCHECKED, SORT_RANDOM };
+
+enum contdisplay      { LD_OFF, LD_ALL, LD_OBJ, LD_CURRENT, LD_CURRMISSING,
+                        LD_RESULTSMOOTH, LD_SLICE_RESID, LD_BEST_FIT };
+enum tiltaxisdisplay  { TD_OFF, TD_TILTAXIS, TD_TILTAXISSEED, TD_TILTAXISPT,
+                        TD_TILTSEGS, TD_HGRID };
+enum expptdisplay     { ED_CROSS, ED_DIAMOND, ED_ARROW };
+
+enum searchcont       { SC_ALL, SC_UNCHECKED, SC_CHECKED };
+enum dkeybehavior     { DK_NONE, DK_OPPOSITEMIDDLE, DK_NEARESTEND, DK_SELECTEDRANGE };
+enum mkeybehavior     { MK_NORMAL, MK_GOTOMIDDLE, MK_SMOOTHLOCAL, MK_SMOOTHLOCALY };
+enum ukeybehavior     { UK_PRINTINFO, UK_TOGGLEPTCHECKED, UK_TOGGLEALLPTSCHECKED };
+
+enum wheelbehavior    { WH_NONE, WH_POINTS, WH_SLICES, WH_SMART };
+enum enterbehavior    { EN_NONE, EN_NEXTUNCHECKED, EN_PREVUNCHECKED, EN_NEXTCHECKED,
+                        EN_NEXTCONT };
+
+const char DEGREE_SIGN = 0x00B0;      // degree sign
+const int NUM_SAVED_VALS = 44;
+
+//############################################################
+
+
 
 
 //-------------------------------
@@ -42,7 +72,7 @@ class BeadHelper : public DialogFrame
   ~BeadHelper() {};
   
  public slots:
-  void buttonPressed(int);
+	
   void initValues();
   void loadSettings();
   void saveSettings();
@@ -94,26 +124,15 @@ class BeadHelper : public DialogFrame
   void changeEstPosMethod(int value);
   
   void clearExtraObj();
-    
+	void buttonPressed(int);
+	
  protected:
+	void helpPluginHelp();
   void closeEvent ( QCloseEvent * e );
   void keyPressEvent ( QKeyEvent * e );
   void keyReleaseEvent ( QKeyEvent * e );
   
  private:
-  
-  /*
-  QGroupBox   *grpRange;
-  QGridLayout *gridLayout1;
-  QLabel      *lblViews;
-  QSpinBox    *viewMinSpinner;
-  QLabel      *lblViewsTo;
-  QSpinBox    *viewMaxSpinner;
-  QLabel      *lblContours;
-  QSpinBox    *contMinSpinner;
-  QLabel      *lblContoursTo;
-  QSpinBox    *contMaxSpinner;
-  */
     
   QGroupBox   *grpActions;
   QVBoxLayout *vboxLayout1;
@@ -142,36 +161,6 @@ class BeadHelper : public DialogFrame
   QPushButton *moreSettingsButton;
   QPushButton *keyboardSettingsButton;
 };
-
-
-//-------------------------------
-//## CONSTANTS:
-
-const int NO_POINT = -1;
-
-enum estimationmethod { EM_BESTTWO, EM_SMARTTWO, EM_NEARESTTWO, EM_PREVTWO,
-                        EM_QUADRATIC, EM_LOCALQUADRATIC, EM_LASTTHREE, EM_LASTSIX };
-
-enum contsortcriteria { SORT_YJUMPS, SORT_DEV, SORT_AVG_GREY, SORT_DIST_FROM_MIDDLE,
-                        SORT_MISSING_PTS, SORT_UNCHECKED, SORT_RANDOM };
-
-enum contdisplay      { LD_OFF, LD_ALL, LD_OBJ, LD_CURRENT, LD_CURRMISSING,
-                        LD_RESULTSMOOTH, LD_SLICE_RESID, LD_BEST_FIT };
-enum tiltaxisdisplay  { TD_OFF, TD_TILTAXIS, TD_TILTAXISSEED, TD_TILTAXISPT,
-                        TD_TILTSEGS, TD_HGRID };
-enum expptdisplay     { ED_CROSS, ED_DIAMOND, ED_ARROW };
-
-enum searchcont       { SC_ALL, SC_UNCHECKED, SC_CHECKED };
-enum dkeybehavior     { DK_NONE, DK_OPPOSITEMIDDLE, DK_NEARESTEND, DK_SELECTEDRANGE };
-enum mkeybehavior     { MK_NORMAL, MK_GOTOMIDDLE, MK_SMOOTHLOCAL, MK_SMOOTHLOCALY };
-enum ukeybehavior     { UK_PRINTINFO, UK_TOGGLEPTCHECKED, UK_TOGGLEALLPTSCHECKED };
-
-enum wheelbehavior    { WH_NONE, WH_POINTS, WH_SLICES, WH_SMART };
-enum enterbehavior    { EN_NONE, EN_NEXTUNCHECKED, EN_PREVUNCHECKED, EN_NEXTCHECKED,
-                        EN_NEXTCONT };
-
-const char DEGREE_SIGN = 0x00B0;      // degree sign
-const int NUM_SAVED_VALS = 44;
 
 
 //-------------------------------
@@ -248,7 +237,7 @@ struct BeadHelperData   // contains all local plugin data
   bool wCurrContOnly;         // if true: pressiong "w" searches current contour only
   int  wWeightedDiv;          // weighted_dev = distance_to_expected_pt / 
                               //                (distance_nearest_pts + wWeightedDiv)
-  int uKeyBehav;             // the action when "U" is pressed (see: ukeybehavior)
+  int uKeyBehav;							// the action when "U" is pressed (see: ukeybehavior)
   
   int enterAction;            // the action performed when enter is pressed
   int minPtsEnter;            // the minimum number of points a contour must have to be

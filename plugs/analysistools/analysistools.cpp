@@ -14,7 +14,10 @@
 
     $Revision$
 
-    $Log$
+    $Log: analysistools.cpp,v $
+    Revision 1.4  2011/01/08 01:03:37  tempuser
+    *** empty log message ***
+
     Revision 1.3  2010/10/18 22:41:56  tempuser
     Minor changes only
 
