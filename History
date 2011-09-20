@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/20/11: Added Fixgradtable to adjust a mag gradient table for a change in
+crossover intensity.
+
 9/20/11: In Beadfixer, added ability to iterate moving all points by residual.
 
 9/19/11: In eTomo graying out parallel processing row checkbox, when there is
