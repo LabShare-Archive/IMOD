@@ -404,7 +404,8 @@ public final class MatlabParam {
   private final ParsedNumber sampleInterval = ParsedNumber
       .getMatlabInstance(EtomoNumber.Type.FLOAT);
   private final ParsedQuotedString maskType = ParsedQuotedString.getInstance();
-  private final ParsedArray maskModelPts = ParsedArray.getMatlabInstance();
+  private final ParsedArray maskModelPts = ParsedArray
+      .getMatlabInstance(EtomoNumber.Type.FLOAT);
   private final ParsedNumber insideMaskRadius = ParsedNumber.getMatlabInstance();
   private final ParsedNumber outsideMaskRadius = ParsedNumber.getMatlabInstance();
   private final ParsedNumber nWeightGroup = ParsedNumber.getMatlabInstance();
