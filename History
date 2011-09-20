@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/20/11: Fixed function wrapper which caused wrong sign in rotation output of
+xf2rotmagstr and also affected tiltalign transforms with projection skew,
+makegradtable with transforms aligning different Z heights, and mtlengths with
+alignment files (broken since 3.12.23).
+
 9/20/11: Added Fixgradtable to adjust a mag gradient table for a change in
 crossover intensity.
 
