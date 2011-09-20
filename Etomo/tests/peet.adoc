@@ -74,7 +74,6 @@ bn.set-initial-motive-list-file=
 wait.file-chooser.open=%{dataset}-a-initMOTL.csv
 [[if = test-gui]]
 	#test move up and move down
-	mb.volume-table-3-vol-#=
 	#check enable/disable for bottom row
 	assert.enabled.bn.move-up=
 	assert.disabled.bn.move-down=
