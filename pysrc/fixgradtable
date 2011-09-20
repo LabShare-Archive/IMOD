@@ -1,0 +1,66 @@
+#!/usr/bin/python -u
+# fixgradtable - to adjust a mag gradient table for a new crossover value
+#
+# Author: David Mastronarde
+#
+# $Id$
+
+progname = 'fixgradtable'
+prefix = 'ERROR: ' + progname + ' - '
+
+# load System Libraries
+import sys, os, os.path
+
+#
+# Setup runtime environment (bare minimum)
+if os.getenv('IMOD_DIR') != None:
+   sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import exitError, setExitPrefix
+setExitPrefix(prefix)
+
+if len(sys.argv) < 4:
+   prnstr("Usage: fixgradtable new_crossover current_table new_table")
+   prnstr("  Adjusts entries in a mag gradient table for a new crossover value")
+   sys.exit(1)
+
+try:
+   newcross = float(sys.argv[1])
+except:
+   exitError("Converting first argument, " + sys.argv[1] + ", to floating point number")
+gradlines = readTextFile(sys.argv[2])
+
+try:
+   version = int(gradlines[0])
+   if version < 2:
+      exitError("The current mag gradient table does not contain the crossover intensity")
+   oldcross = float(gradlines[1])
+except:
+   exitError("Reading version number or old crossover value from gradient table")
+
+newlines = [fmtstr("  {}", version), fmtstr("{:10.5f}", newcross)]
+for line in gradlines[2:]:
+   lsplit = line.split()
+   try:
+      oldint = float(lsplit[0])
+      pct = float(lsplit[1])
+      rot = float(lsplit[2])
+   except:
+      exitError("Converting existingtable entries to floats")
+   newlines.append(fmtstr("{:10.5f}{:9.3f}{:9.3f}", oldint + newcross - oldcross, pct,
+                          rot))
+
+makeBackupFile(sys.argv[3])
+writeTextFile(sys.argv[3], newlines)
+sys.exit(0)
+
+
+
+      
+          
