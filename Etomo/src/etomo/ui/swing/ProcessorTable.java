@@ -176,7 +176,7 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
     buildTable();
     rootPanel.add(tablePanel);
     rootPanel.add(viewport.getPagingPanel());
-    //configure
+    // configure
     UIHarness.INSTANCE.repaintWindow(manager);
   }
 
@@ -185,44 +185,44 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
         manager.getPropertyUserDir());
     memoryUnits = CpuAdoc.INSTANCE.getMemoryUnits(manager, axisID,
         manager.getPropertyUserDir());
-    //loop through the nodes
+    // loop through the nodes
     EtomoNumber number = new EtomoNumber();
-    //loop on nodes
+    // loop on nodes
     int size = getSize();
     for (int i = 0; i < size; i++) {
-      //get the node
+      // get the node
       Node node = getNode(i);
-      //exclude any node with the "exclude-interface" attribute set to the
-      //current interface
+      // exclude any node with the "exclude-interface" attribute set to the
+      // current interface
       if (node != null && !node.isExcludedInterface(manager.getInterfaceType())
           && (!node.isExcludedUser(System.getProperty("user.name")))
           && !isExcludeNode(node)) {
-        //get the number attribute
-        //set numberColumn to true if an number attribute is returned
+        // get the number attribute
+        // set numberColumn to true if an number attribute is returned
         number.set(node.getNumber());
         if (!number.isDefault()) {
           numberColumn = true;
         }
-        //get the type attribute
-        //set typeColumn to true if an type attribute is returned
+        // get the type attribute
+        // set typeColumn to true if an type attribute is returned
         typeColumn = !node.isTypeEmpty();
-        //get the speed attribute
-        //set speedColumn to true if an speed attribute is returned
+        // get the speed attribute
+        // set speedColumn to true if an speed attribute is returned
         speedColumn = !node.isSpeedEmpty();
-        //get the memory attribute
-        //set memoryColumn to true if an memory attribute is returned
+        // get the memory attribute
+        // set memoryColumn to true if an memory attribute is returned
         memoryColumn = !node.isMemoryEmpty();
-        //get the os attribute
-        //set osColumn to true if an os attribute is returned
+        // get the os attribute
+        // set osColumn to true if an os attribute is returned
         osColumn = !node.isOsEmpty();
-        //create the row
+        // create the row
         ProcessorTableRow row = createProcessorTableRow(this, node, number);
         initRow(row);
-        //add the row to the rows HashedArray
+        // add the row to the rows HashedArray
         rowList.add(row);
       }
     }
-    //set custom header text
+    // set custom header text
     header1Computer.setText(getHeader1ComputerText());
     if (speedColumn) {
       header2Speed.setText(speedUnits);
@@ -230,17 +230,15 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
     if (memoryColumn) {
       header2RAM.setText(memoryUnits);
     }
-    //  try {
+    // try {
     ParameterStore parameterStore = EtomoDirector.INSTANCE.getParameterStore();
     parameterStore.load(this);
-    /*  }
-      catch (LogFile.LockException e) {
-        UIHarness.INSTANCE.openMessageDialog(manager, "Unable to load parameters.\n"
-            + e.getMessage(), "Etomo Error", axisID);
-      }*/
+    /* } catch (LogFile.LockException e) { UIHarness.INSTANCE.openMessageDialog(manager,
+     * "Unable to load parameters.\n" + e.getMessage(), "Etomo Error", axisID); } */
     setToolTipText();
     if (rowList.size() == 1) {
       rowList.setSelected(0, true);
+      rowList.enableSelectionField(0, false);
     }
   }
 
@@ -253,14 +251,14 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
     tablePanel = new JPanel();
     layout = new GridBagLayout();
     constraints = new GridBagConstraints();
-    //build table
+    // build table
     tablePanel.setLayout(layout);
     constraints.fill = GridBagConstraints.BOTH;
-    //header row 1
+    // header row 1
     constraints.anchor = GridBagConstraints.CENTER;
-    //constraints.weightx = 1.0;
+    // constraints.weightx = 1.0;
     constraints.weightx = 0.0;
-    //constraints.weighty = 1.0;
+    // constraints.weighty = 1.0;
     constraints.weighty = 0.0;
     constraints.gridheight = 1;
     constraints.gridwidth = 1;
@@ -287,7 +285,7 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
     header1Finished.add(tablePanel, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     header1Failure.add(tablePanel, layout, constraints);
-    //header row 2
+    // header row 2
     constraints.anchor = GridBagConstraints.CENTER;
     constraints.weightx = 0.0;
     constraints.weighty = 0.0;
@@ -316,7 +314,7 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
     header2Finished.add(tablePanel, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     header2Failure.add(tablePanel, layout, constraints);
-    //add rows to the table
+    // add rows to the table
     viewport.msgViewableChanged();
     rowList.display(expanded, viewport);
   }
@@ -463,10 +461,8 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
    * process associated with this ParallelProgressDisplay
    * @param ParallelProcessMonitor
    */
-  /*  public void setParallelProcessMonitor(
-   final ParallelProcessMonitor parallelProcessMonitor) {
-   parent.setParallelProcessMonitor(parallelProcessMonitor);
-   }*/
+  /* public void setParallelProcessMonitor( final ParallelProcessMonitor
+   * parallelProcessMonitor) { parent.setParallelProcessMonitor(parallelProcessMonitor); } */
 
   public void endLoad() {
     stopped = true;
@@ -615,7 +611,7 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
 
   private static final class RowList {
     private final List list = new ArrayList();
-    //Contracted index for use when the table is not expanded..
+    // Contracted index for use when the table is not expanded..
     private final List contractedIndex = new ArrayList();
 
     private RowList() {
@@ -630,8 +626,8 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
         return;
       }
       for (int i = 0; i < list.size(); i++) {
-        //First unselect a computer.  Then select the computer if it is in
-        //computerMap.
+        // First unselect a computer. Then select the computer if it is in
+        // computerMap.
         ProcessorTableRow row = get(i);
         row.setSelected(false);
         String key = row.getComputer();
@@ -709,6 +705,10 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
 
     private void setSelected(final int index, final boolean selected) {
       get(index).setSelected(selected);
+    }
+
+    private void enableSelectionField(final int index, final boolean enabled) {
+      get(index).enableSelectionField(enabled);
     }
 
     private void resetResults() {

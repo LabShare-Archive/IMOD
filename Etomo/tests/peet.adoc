@@ -74,7 +74,6 @@ bn.set-initial-motive-list-file=
 wait.file-chooser.open=%{dataset}-a-initMOTL.csv
 [[if = test-gui]]
 	#test move up and move down
-	mb.volume-table-3-vol-#=
 	#check enable/disable for bottom row
 	assert.enabled.bn.move-up=
 	assert.disabled.bn.move-down=
@@ -365,7 +364,7 @@ run.function.volume-table-check-prm==
 run.function.reference-check-prm==
 run.function.missing-wedge-compensation-check-prm==
 run.function.masking-check-prm==
-run.function.cylinder-orientation-check-prm==
+run.function.manual-cylinder-orientation-check-prm==
 run.function.initial-motive-list-check-prm==
 run.function.y-axis-type-check-prm==
 

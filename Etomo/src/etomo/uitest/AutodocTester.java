@@ -361,6 +361,7 @@ final class AutodocTester extends Assert implements VariableList {
 
   private static final int REDRAW_WAIT = 4;
   private static final int MAX_FORMAT = 4;
+  private static final int FORMAT_WAIT = 655;
 
   private final ReadOnlyAutodoc autodoc;
   private final JFCTestHelper helper;
@@ -2034,7 +2035,7 @@ final class AutodocTester extends Assert implements VariableList {
     System.err.println("Formatting application");
     UIHarness.INSTANCE.pack(axisID, EtomoDirector.INSTANCE.getCurrentManagerForTest());
     try {
-      Thread.sleep(650);
+      Thread.sleep(FORMAT_WAIT);
     }
     catch (InterruptedException e) {
     }

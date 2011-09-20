@@ -252,12 +252,12 @@ final class ProcessorTableRow implements Storable {
     if (!viewport.inViewport(index)) {
       return;
     }
-    //create row
+    // create row
     JPanel panel = table.getTablePanel();
     GridBagLayout layout = table.getTableLayout();
     GridBagConstraints constraints = table.getTableConstraints();
     constraints.weighty = 0.0;
-    //constraints.weightx = 1.0;
+    // constraints.weightx = 1.0;
     constraints.weightx = 0.0;
     constraints.gridheight = 1;
     constraints.gridwidth = 1;
@@ -314,7 +314,7 @@ final class ProcessorTableRow implements Storable {
     if (!displayQueues) {
       return;
     }
-    //handle radio button changes
+    // handle radio button changes
     updateSelected(cellComputer.isSelected());
   }
 
@@ -328,6 +328,10 @@ final class ProcessorTableRow implements Storable {
   public void setSelected(boolean selected) {
     cellComputer.setSelected(selected);
     updateSelected(selected);
+  }
+
+  public void enableSelectionField(final boolean enabled) {
+    cellComputer.setEnabled(enabled);
   }
 
   public void setCPUsSelected(String cpusSelected) {
@@ -490,8 +494,8 @@ final class ProcessorTableRow implements Storable {
     setSelectedError();
     cellFailureReason.setValue(reason);
     cellFailureReason.setToolTipText(tooltip);
-    //cellFailureReason.setToolTipText("Unable to get the " + loadName
-    //    + " for this computer.");
+    // cellFailureReason.setToolTipText("Unable to get the " + loadName
+    // + " for this computer.");
   }
 
   /**
@@ -528,41 +532,15 @@ final class ProcessorTableRow implements Storable {
     return cellComputer.getLabel();
   }
 
-  /*
-   final int getWidth() {
-   int width = 0;
-   width += cellComputer.getWidth();
-   width += cellCPUsSelected.getWidth();
-   if (numberColumn) {
-   width += cellNumberCpus.getWidth();
-   }
-   if (Utilities.isWindowsOS()) {
-   width += cellCPUUsage.getWidth();
-   }
-   else {
-   width += cellLoad1.getWidth();
-   width += cellLoad5.getWidth();
-   if (usersColumn) {
-   width += cellUsers.getWidth();
-   }
-   }
-   if (typeColumn) {
-   width += cellCPUType.getWidth();
-   }
-   if (speedColumn) {
-   width += cellSpeed.getWidth();
-   }
-   if (memoryColumn) {
-   width += cellMemory.getWidth();
-   }
-   if (osColumn) {
-   width += cellOS.getWidth();
-   }
-   width += cellRestarts.getWidth();
-   width += cellSuccesses.getWidth();
-   width += cellFailureReason.getWidth();
-   return width + 3;
-   }*/
+  /*final int getWidth() { int width = 0; width += cellComputer.getWidth(); width +=
+   * cellCPUsSelected.getWidth(); if (numberColumn) { width += cellNumberCpus.getWidth();
+   * } if (Utilities.isWindowsOS()) { width += cellCPUUsage.getWidth(); } else { width +=
+   * cellLoad1.getWidth(); width += cellLoad5.getWidth(); if (usersColumn) { width +=
+   * cellUsers.getWidth(); } } if (typeColumn) { width += cellCPUType.getWidth(); } if
+   * (speedColumn) { width += cellSpeed.getWidth(); } if (memoryColumn) { width +=
+   * cellMemory.getWidth(); } if (osColumn) { width += cellOS.getWidth(); } width +=
+   * cellRestarts.getWidth(); width += cellSuccesses.getWidth(); width +=
+   * cellFailureReason.getWidth(); return width + 3; } */
 
   private class ProcessorTableRowActionListener implements ActionListener {
     ProcessorTableRow adaptee;
