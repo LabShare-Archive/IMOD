@@ -165,7 +165,10 @@ residuals from the next local alignment.
 be used to move all remaining points with big residuals in the current local 
 area.  Without local alignments, the button is labeled <B>Move All Points by
 Residual</B> and will move all remaining points in the big residual list
-by their residuals.  
+by their residuals.  In this case, holding down the Shift key while pressing
+this button will cause the program to iterate on this operation by saving the
+model, running Tiltalign, reloading the log, and moving points by their
+residual; this process repeats until there are no points left to move.
 In either case, points that would ordinarily be skipped over because they have
 been examined already will not be moved.  This approach should be used with
 caution; see the section below on <A HREF = "#MovingResid">Moving All Points by
@@ -173,7 +176,10 @@ Residual</A>
 <LI> When local alignments were used, <B>Move in All Local Areas</B> can be
 used to move the remaining points in the current local area, and all points in 
 the following local areas, by their residuals.  Again, points that have been
-examined before will be skipped if appropriate.
+examined before will be skipped if appropriate.  Also, holding down the Shift
+key while pressing this button will cause the program to iterate on this
+operation, rerunning the alignment and moving points in local areas until
+there are no more points to move.
 <LI> Select the <B>Back Up to Last Point</B> button if you want to go back to 
 the last residual that you examined.  This will not necessarily be the 
 previous residual in the file, if you skipped over points by going to 
