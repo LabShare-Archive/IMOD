@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/9/11:In eTomo - PEET allowing floats in maskModelPts.(Bug# 1507)
+
 9/19/11: In eTomo graying out parallel processing row checkbox, when there is
 only one row.(Bug# 1406)
 
