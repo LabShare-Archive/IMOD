@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/19/11: In eTomo, grayed out parallel processing row checkbox when there is
+only one row.(Bug# 1406)
+
 9/16/11: Made Tomopitch not hang and give correct tilt angle offset when there
 are lines at only one sample.
 
