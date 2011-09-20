@@ -53,6 +53,11 @@ DDEESSCCRRIIPPTTIIOONN
      intensity   %_mag_change_per_micron  degrees_rotation_per_micron
      ...
 
+  The table becomes incorrect when the microscope alignments are updated in a
+  way that changes the crossover intensity.  When this happens, you can use
+  Fixgradtable(1) to make a new table with the entries adjusted for the change
+  in crossover.
+
   Makegradtable uses the PIP package for input exclusively (see the manual
   page for pip(1)).  The following options can be specified either as command
   line arguments (with the -) or one per line in a command file or parameter
