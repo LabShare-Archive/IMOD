@@ -1,6 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-9/9/11:In eTomo - PEET allowing floats in maskModelPts.(Bug# 1507)
+9/20/11:In eTomo - PEET allowing floats in maskModelPts.(Bug# 1507)
 
 9/20/11: Fixed function wrapper which caused wrong sign in rotation output of
 xf2rotmagstr and also affected tiltalign transforms with projection skew,
