@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/20/11: In Beadfixer, added ability to iterate moving all points by residual.
+
 9/19/11: In eTomo graying out parallel processing row checkbox, when there is
 only one row.(Bug# 1406)
 
