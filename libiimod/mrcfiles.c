@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end
  */
 
 #include <stdio.h>
@@ -92,6 +91,7 @@ int mrc_head_read(FILE *fin, MrcHeader *hdata)
   /* Set other run-time data and adjust min/max/mean up for signed bytes */
   hdata->headerSize = 1024;
   hdata->sectionSkip = 0;
+  hdata->yInverted = 0;
   hdata->headerSize += hdata->next;
   hdata->bytesSigned = readBytesSigned(hdata->imodStamp, hdata->imodFlags, hdata->mode,
                                        hdata->amin, hdata->amax);
@@ -434,6 +434,7 @@ void mrcInitOutputHeader(MrcHeader *hdata)
   mrc_set_cmap_stamp(hdata);
   hdata->headerSize = 1024;
   hdata->sectionSkip = 0;
+  hdata->yInverted = 0;
   hdata->bytesSigned = writeBytesSigned();
   hdata->next = 0;
   hdata->nint = 0;
@@ -2325,166 +2326,3 @@ void mrc_swap_floats(fb3dFloat *data, int amt)
 #endif
 #endif
 
-
-/*
-$Log$
-Revision 3.50  2011/07/25 02:39:52  mast
-Changes for working with signed bytes
-
-Revision 3.49  2011/07/12 03:45:51  mast
-Fixed parallel writing routine for new return value from properties routine
-
-Revision 3.48  2011/05/16 14:36:17  mast
-adding const
-
-Revision 3.47  2011/03/14 22:50:38  mast
-cleanup; initialize li->ramp
-
-Revision 3.46  2011/03/08 19:52:47  mast
-Changed map routines to return a short map if outmax is large
-
-Revision 3.44  2010/03/27 19:22:23  mast
-Made stamp CCP4-compliant
-
-Revision 3.43  2009/04/01 03:52:02  mast
-Cleanup some warnings
-
-Revision 3.42  2009/02/16 06:16:58  mast
-Add parallel write routine
-
-Revision 3.41  2009/01/02 05:18:43  mast
-const char * for Qt 4 port
-
-Revision 3.40  2008/11/02 13:43:08  mast
-Added functions for reading float slice
-
-Revision 3.39  2008/05/31 03:09:32  mast
-Added scaling routine so callers can use mrcsec with same scaling
-
-Revision 3.38  2008/05/23 23:03:47  mast
-Switched to NTSC RGB to gray scaling
-
-Revision 3.37  2008/04/02 02:56:06  mast
-Made mrc_head_read and mrc_read_byte use b3d routines to avoid seeking and
-rewinding on stdin
-
-Revision 3.36  2008/03/26 20:57:16  mast
-Removed debugging statement
-
-Revision 3.35  2008/01/11 17:18:22  mast
-Mac warning cleanup
-
-Revision 3.34  2007/09/25 15:21:36  mast
-Made mrc_read_byte retain pixel size when it resets the header to new area
-
-Revision 3.33  2007/06/13 22:52:37  mast
-Modifications for reading with intersection section skip
-
-Revision 3.32  2007/06/13 17:12:55  sueh
-bug# 1019 In mrc_head_new and mrc_head_read, setting hdata->sectionSkip to 0.
-
-Revision 3.31  2007/04/26 19:47:27  mast
-Fix doc
-
-Revision 3.30  2006/11/22 18:54:16  mast
-Eliminate a warning in VC6
-
-Revision 3.29  2006/09/28 21:15:01  mast
-Changes to work with > 2Gpix and > 4 Gpix images as much as possible
-
-Revision 3.28  2006/08/27 23:45:58  mast
-Moved fgetline to b3dutil
-
-Revision 3.27  2006/08/04 21:04:03  mast
-Add documentation
-
-Revision 3.26  2005/11/11 22:15:23  mast
-Changes for unsigned file mode
-
-Revision 3.25  2005/08/19 22:38:41  mast
-Added status output to mrc_read_byte periodically during big images
-
-Revision 3.24  2005/05/09 15:16:05  mast
-Documentation - not finished
-
-Revision 3.23  2005/02/11 01:42:33  mast
-Warning cleanup: implicit declarations, main return type, parentheses, etc.
-
-Revision 3.22  2005/01/17 17:12:21  mast
-Switched to header typedef, fixed initialization of min/max
-
-Revision 3.21  2005/01/06 17:57:54  mast
-Made label copy set label number, fixed label adding function to work on
-all platforms using only time.h functions and strftime, and to replace the
-last label when label list is full
-
-Revision 3.20  2004/12/02 21:53:27  mast
-Removed setting of header size to min of 1024 so raw reader can use
-
-Revision 3.19  2004/11/04 17:10:27  mast
-libiimod.def
-
-Revision 3.18  2004/09/10 21:33:52  mast
-Eliminated long variables
-
-Revision 3.17  2004/04/22 19:14:19  mast
-Added error checks when writing header
-
-Revision 3.16  2004/01/21 00:56:57  mast
-Stopped freeing map from byte_map
-
-Revision 3.15  2004/01/17 20:37:03  mast
-Remove b3d file i/o routines and mrc_big_seek to b3dutil, and add a
-define for rewind
-
-Revision 3.14  2004/01/12 17:27:00  mast
-Change complex min max routine from float to void
-
-Revision 3.13  2004/01/08 06:40:52  mast
-Fixed complex scaling and rewrote mrc_read_byte to split into cases just for
-processing each line
-
-Revision 3.12  2004/01/05 17:39:08  mast
-Split off memory allocation by mrc_read_byte into a separate routine
-that 3dmod could use for alternate loading; moved the shifting of
-load-in coordinates by piece list offset to mrc_fix_li, and renamed
-imin/imax to outmin/outmax
-
-Revision 3.11  2003/11/18 19:20:18  mast
-changes for 2GB problem on Windows
-
-Revision 3.10  2003/11/01 16:42:16  mast
-changed to use new error processing routine
-
-Revision 3.9  2003/03/28 05:08:02  mast
-Use new unique little endian flag
-
-Revision 3.8  2003/03/26 01:51:27  mast
-Do not have mrc_read_byte decide when to load non-contiguous, but have it drop
-back to non-contiguous when contiguous fails
-
-Revision 3.7  2003/03/12 03:50:28  mast
-Avoid trying to allocate more than 2 GB of contiguous memory, add error
-message in contiguous allocation
-
-Revision 3.6  2002/09/27 20:51:25  rickg
-Added include of time.h to fix call to ctime.
-
-Revision 3.5  2002/09/14 00:58:41  mast
-Invert sense of scale factors in mrc_set_scale and mrc_get_scale to conform
-to usage
-
-Revision 3.4  2002/08/02 17:18:19  mast
-Fixed bug in reading swapped files, standardized error outputs
-
-Revision 3.3  2002/07/31 17:34:44  mast
-Changes to accommodate new header format for origin values
-
-Revision 3.2  2002/06/26 17:06:37  mast
-Added type casts to calls to mrc_swap_shorts and _floats
-
-Revision 3.1  2002/06/26 16:52:38  mast
-Added ability to write header back to byte-swapped file, and to write
-data to byte-swapped file with mrc_data_new and mrc_write_slice
-
-*/

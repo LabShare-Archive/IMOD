@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end
  */
 
 #include <stdio.h>
@@ -191,6 +190,7 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
   float kscale = mrcGetComplexScale();
      
   unsigned int pindex = 0;
+  int deltaYsign = 1;
   int pixel, i, j;
   int pixSize = 1;
   int needData = 0;
@@ -343,6 +343,26 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
   }
   usmap = (b3dUInt16 *)map;
 
+  /* If Y is inverted, adjust the Y load, adjust output pointers to last line and set sign
+   for incrementing pointers at end of line, in order to fill output array backwards */
+  if (hdata->yInverted) {
+    if (li->mirrorFFT) {
+      b3dError(stderr, "ERROR: mrcReadSectionAny - cannot mirror FFT with inverted Y "
+               "data.");
+      return 1;
+    }
+    j = ny - 1 - lly;
+    lly = ny - 1 - ury;
+    ury = j;
+    j = (ury - lly) * xsize;
+    bdata += pixSize * j;
+    pindex += j;
+    bufp += j;
+    usbufp += j;
+    fbufp += j;
+    deltaYsign = -1;
+  }
+
   /* Get the supplemental data array, set all pointers to it */
   if (needData) {
     bdata = (unsigned char *)malloc(pixSize * xsize);
@@ -409,11 +429,11 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
           if (doscale || mapSbytes)
             for (i = 0; i < xsize; i++)
               bdata[i] = map[bdata[i]];
-          bdata += xsize;
+          bdata += xsize * deltaYsign;
         } else {
           for (i = 0; i < xsize; i++)
             usbufp[i] = usmap[bdata[i]];
-          usbufp += xsize;
+          usbufp += xsize * deltaYsign;
         }
         break;
         
@@ -422,12 +442,12 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
         if (byte) {
           for (i = 0; i < xsize; i++)
             bufp[i] = map[usdata[i]];
-          bufp += xsize;
+          bufp += xsize * deltaYsign;
         } else {
           if (doscale || hdata->mode == MRC_MODE_SHORT)
             for (i = 0; i < xsize; i++)
               usbufp[i] = usmap[usbufp[i]];
-          usbufp += xsize;
+          usbufp += xsize * deltaYsign;
           bdata = (unsigned char *)usbufp;
         }
         break;
@@ -441,7 +461,7 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
             fpixel += 0.11 * *inptr++;
             bufp[i] = (int)(fpixel + 0.5f);
           }
-          bufp += xsize;
+          bufp += xsize * deltaYsign;
         } else {
           for (i = 0; i < xsize; i++) {
             fpixel = 255. * 0.3 * *inptr++;
@@ -449,7 +469,7 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
             fpixel += 255. * 0.11 * *inptr++;
             usbufp[i] = (int)(fpixel + 0.5f);
           }
-          usbufp += xsize;
+          usbufp += xsize * deltaYsign;
         }
         break;
         
@@ -475,7 +495,7 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
               bufp[i] = B3DMIN(outmax, fpixel) + 0.5f;
             }
           }
-          bufp += xsize;
+          bufp += xsize * deltaYsign;
         } else {
           if (li->ramp == MRC_RAMP_LOG || li->ramp == MRC_RAMP_EXP) {
             for (i = 0; i < xsize; i++){
@@ -493,7 +513,7 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
               usbufp[i] = B3DMIN(outmax, fpixel) + 0.5f;
             }
           }
-          usbufp += xsize;
+          usbufp += xsize * deltaYsign;
         }
         break;
 
@@ -601,7 +621,9 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
                seek_endline); */
           }
           /* fflush(stderr); */
-        }        
+        } else {
+          pindex += xsize * (deltaYsign - 1);
+        }
         break;
       }
 
@@ -631,7 +653,7 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
           fbufp[i] = usdata[i];
         break;
       }
-      fbufp += xsize;
+      fbufp += xsize * deltaYsign;
 
     } else {
 
@@ -651,7 +673,7 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
         default:
           break;
       }
-      bdata += xsize * pixSize;
+      bdata += xsize * deltaYsign * pixSize;
     }
 
     /* End loop on Y */
@@ -666,58 +688,3 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
     free(map);
   return 0;
 }
-
-/*
-$Log$
-Revision 3.18  2011/03/14 22:55:48  mast
-Changes for scaling to ushorts
-
-Revision 3.17  2008/11/02 13:43:08  mast
-Added functions for reading float slice
-
-Revision 3.16  2008/05/31 03:48:52  mast
-Fixed the log and exp scaling
-
-Revision 3.15  2008/05/31 03:10:19  mast
-Added nonlinear ramps and rounding to allow mrcbyte to use this
-
-Revision 3.14  2008/05/23 23:04:04  mast
-Switched to NTSC RGB to gray scaling
-
-Revision 3.13  2007/06/13 22:52:16  mast
-Modifications for reading with intersection section skip
-
-Revision 3.12  2006/09/28 21:15:02  mast
-Changes to work with > 2Gpix and > 4 Gpix images as much as possible
-
-Revision 3.11  2006/08/04 21:04:03  mast
-Add documentation
-
-Revision 3.10  2005/11/11 22:15:23  mast
-Changes for unsigned file mode
-
-Revision 3.9  2005/02/11 01:42:33  mast
-Warning cleanup: implicit declarations, main return type, parentheses, etc.
-
-Revision 3.8  2004/12/02 21:53:27  mast
-Removed setting of header size to min of 1024 so raw reader can use
-
-Revision 3.7  2004/11/12 15:22:36  mast
-Changed to use new min/max functions
-
-Revision 3.6  2004/11/04 17:10:27  mast
-libiimod.def
-
-Revision 3.5  2004/01/21 00:57:04  mast
-Stopped freeing map from byte_map
-
-Revision 3.4  2004/01/17 20:38:07  mast
-Convert to calling b3d I/O routines explicitly
-
-Revision 3.3  2004/01/08 06:42:19  mast
-Fixed reading of complex data and got scale factor from mrcfiles routines
-
-Revision 3.2  2004/01/05 17:37:12  mast
-Rewrote as a single input routine that branches for processing each line
-
-*/

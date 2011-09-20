@@ -104,6 +104,7 @@ int iiLikeMRCCheck(ImodImageFile *inFile)
 
   info.swapBytes = 0;
   info.sectionSkip = 0;
+  info.yInverted = 0;
 
   if (!inFile) 
     return IIERR_BAD_CALL;
@@ -136,8 +137,8 @@ int iiLikeMRCCheck(ImodImageFile *inFile)
 /*!
  * Creates an MRC header and fills it and the items in [inFile] from the
  * information in [info]; specifically the {nx}, {ny}, {nz}, {swapBytes},
- * {headerSize}, {sectionSkip}, and {type} members.  Returns IOERR_MEMORY_ERR
- * for error allocating header.
+ * {headerSize}, {sectionSkip}, {yInverted}, and {type} members.
+ * Returns IOERR_MEMORY_ERR for error allocating header.
  */
 int iiSetupRawHeaders(ImodImageFile *inFile, RawImageInfo *info)
 {
@@ -156,7 +157,8 @@ int iiSetupRawHeaders(ImodImageFile *inFile, RawImageInfo *info)
   hdr->swapped = info->swapBytes;
   hdr->headerSize = info->headerSize;
   hdr->sectionSkip = info->sectionSkip;
-  hdr->bytesSigned = 0;
+  hdr->yInverted = info->yInverted;
+  hdr->bytesSigned = info->type == RAW_MODE_SBYTE ? 1 : 0;
   hdr->fp = inFile->fp;
 
   /* Set flags for type of data */
@@ -165,6 +167,10 @@ int iiSetupRawHeaders(ImodImageFile *inFile, RawImageInfo *info)
     hdr->mode = MRC_MODE_BYTE;
     inFile->format = IIFORMAT_LUMINANCE;
     inFile->type   = IITYPE_UBYTE;
+  case RAW_MODE_SBYTE:
+    hdr->mode = MRC_MODE_BYTE;
+    inFile->format = IIFORMAT_LUMINANCE;
+    inFile->type   = IITYPE_BYTE;
     break;
   case RAW_MODE_SHORT:
     hdr->mode = MRC_MODE_SHORT;
@@ -412,6 +418,9 @@ static int checkDM3(FILE *fp, char *filename, RawImageInfo *info)
     return err;
 
   switch (dmtype) {
+  case 9:
+    info->type = RAW_MODE_SBYTE;
+    break;
   case 6:
     info->type = RAW_MODE_BYTE;
     break;
@@ -595,6 +604,7 @@ int analyzeDM3(FILE *fp, char *filename, int dmformat, RawImageInfo *info, int *
   info->ny = ysize;
   info->nz = zsize;
   info->headerSize = offset;
+  info->yInverted = 1;
   *dmtype = type;
 #ifdef B3D_LITTLE_ENDIAN
   info->swapBytes = 0;
@@ -662,47 +672,3 @@ static int checkEM(FILE *fp, char *filename, RawImageInfo *info)
   info->amax = 0.;
   return 0;
 }
-
-/*  
-
-$Log$
-Revision 3.12  2011/07/25 02:39:01  mast
-initialize header as unsigned bytes
-
-Revision 3.11  2011/03/14 22:55:48  mast
-Changes for scaling to ushorts
-
-Revision 3.10  2009/08/04 15:51:08  mast
-Made it handle stack DM files and increased buffer size to accommodate
-larger distance of data string from start.
-
-Revision 3.9  2009/04/30 16:16:16  mast
-Fix DM3 scanning to not get fooled by unsupported image type or its size
-
-Revision 3.8  2008/11/24 23:58:33  mast
-Changes to stop leaks in SerialEM
-
-Revision 3.7  2008/01/11 17:19:22  mast
-Mac warning cleanup
-
-Revision 3.6  2007/06/13 19:40:42  sueh
-bug# 1019 Fixed header reading problems in checkPif.  Checking htype.
-
-Revision 3.5  2007/06/13 17:10:54  sueh
-bug# 1019 Added checkPif to recognize .pif files.  In iiLikeMRCCheck,
-initialing info.sectionSkip.  In iiSetupRawHeaders, copying sectionSkip
-from RawImageInfo to MrcHeader.
-
-Revision 3.4  2006/09/21 22:25:05  mast
-Needed to set the mode in the iifile
-
-Revision 3.3  2006/09/12 19:54:56  mast
-Add proper returns to check functions
-
-Revision 3.2  2006/09/03 22:20:14  mast
-Reorganized, provided generic check function list and added DM3 support
-
-Revision 3.1  2006/09/03 00:00:56  mast
-Initial creation
-
-*/

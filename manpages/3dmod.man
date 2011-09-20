@@ -50,7 +50,7 @@ with various kinds of compression can be read, depending on the
 capabilities of the libraries on the system.  
 Raw files can be read if their dimensions, data type, and header size are
 defined.  This information can be provided with the options
-.B -r, -t,
+.B -r, -t, -w, -ri,
 and
 .B -H
 or through a dialog box that is brought up when a 
@@ -338,13 +338,16 @@ Specify the type of raw files using a value corresponding to an MRC mode:
 0 for unsigned bytes, 1 for signed
 16-bit integers, 2 for 32-bit floating point, 4 for complex (pairs of floating
 point numbers), 6 for unsigned 16-bit integers, or 16 for color files stored
-as R-G-B triplets of bytes.
+as R-G-B triplets of bytes; or, enter -1 for signed bytes.
 .TP
 .B -H <value>
 Set the size of the header to be skipped, in bytes, for raw image files.
 .TP
 .B -w
 Swap bytes when reading raw image files.
+.TP
+.B -ri
+Invert images in Y when reading raw files.
 .TP
 .B -f
 Load file as individual frames, overriding montage information in the image

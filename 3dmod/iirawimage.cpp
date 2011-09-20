@@ -7,7 +7,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  * $Id$
- * Log at end of file
  */
 
 #include <qlabel.h>
@@ -20,7 +19,7 @@
 #include "form_rawimage.h"
 
 // Resident info structure
-static RawImageInfo info = {0, 64, 64, 1, 0, 0, 1, 0., 255., 0};
+static RawImageInfo info = {0, 64, 64, 1, 0, 0, 0., 255., 1, 0, 0, 0};
 
 /*
  * Routines to modify the structure from command line
@@ -36,6 +35,9 @@ void iiRawSetSize(int nx, int ny, int nz)
 int iiRawSetMode(int mode)
 {
   switch (mode) {
+  case -1:
+    info.type = RAW_MODE_SBYTE;
+    break;
   case MRC_MODE_BYTE:
     info.type = RAW_MODE_BYTE;
     break;
@@ -70,6 +72,11 @@ void iiRawSetSwap()
   info.swapBytes = 1;
 }
 
+void iiRawSetInverted()
+{
+  info.yInverted = 1;
+}
+
 void iiRawSetScale(float smin, float smax)
 {
   info.amin = smin;
@@ -82,7 +89,6 @@ void iiRawSetScale(float smin, float smax)
  */
 int iiRawCheck(ImodImageFile *inFile)
 {
-  struct MRCheader *hdr;
   int ind, err;
   QString str;
 
@@ -147,6 +153,7 @@ int iiRawScan(ImodImageFile *inFile)
   if (hdr->mode == MRC_MODE_BYTE && info.scanMinMax) {
     amin = 0;
     amax = 255;
+    
   }
 
   // Scan through file to find min and max if flag set and not RGB
@@ -228,26 +235,3 @@ int iiRawScan(ImodImageFile *inFile)
 
   return 0;
 }
-
-/*
-
-$Log$
-Revision 4.6  2008/11/12 03:44:49  mast
-Added some calls to make splash screen show up a little more
-
-Revision 4.5  2006/09/03 21:35:57  mast
-Switched to proper error codes
-
-Revision 4.4  2006/09/03 21:31:15  mast
-Fixed logic with not scanning bytes, changed call to iiSetupRawHeaders
-
-Revision 4.3  2006/09/02 23:53:26  mast
-Reorganized, moved header creation to MRC-like routine in library
-
-Revision 4.2  2005/11/11 23:04:29  mast
-Changes for unsigned integers
-
-Revision 4.1  2004/12/02 21:40:08  mast
-Addition to program
-
-*/

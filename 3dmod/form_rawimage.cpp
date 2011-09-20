@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  * 
  * $Id$
- * Log at end
  */
 
 #include "form_rawimage.h"
@@ -36,12 +35,13 @@ RawImageForm::RawImageForm(QWidget* parent, bool modal, Qt::WindowFlags fl)
   setAttribute(Qt::WA_AlwaysShowToolTips);
   
   dataTypeGroup = new QButtonGroup(this);
-  dataTypeGroup->addButton(byteButton, 0);
-  dataTypeGroup->addButton(intButton, 1);
-  dataTypeGroup->addButton(uintButton, 2);
-  dataTypeGroup->addButton(floatButton, 3);
-  dataTypeGroup->addButton(complexButton, 4);
-  dataTypeGroup->addButton(RGBButton, 5);
+  dataTypeGroup->addButton(sbyteButton, 0);
+  dataTypeGroup->addButton(byteButton, 1);
+  dataTypeGroup->addButton(intButton, 2);
+  dataTypeGroup->addButton(uintButton, 3);
+  dataTypeGroup->addButton(floatButton, 4);
+  dataTypeGroup->addButton(complexButton, 5);
+  dataTypeGroup->addButton(RGBButton, 6);
   connect(dataTypeGroup, SIGNAL(buttonClicked(int)), this,
           SLOT(manageState()));
 }
@@ -81,6 +81,7 @@ void RawImageForm::load(QString fileName, RawImageInfo *info )
   zSizeSpinBox->setValue(info->nz);
   headerSpinBox->setValue(info->headerSize);
   swapCheckBox->setChecked(info->swapBytes);
+  invertCheckBox->setChecked(info->yInverted);
   matchCheckBox->setChecked(info->allMatch);
   scanCheckBox->setChecked(info->scanMinMax);
   str.sprintf("%f", info->amin);
@@ -102,6 +103,7 @@ void RawImageForm::unload( RawImageInfo *info )
   info->nz = zSizeSpinBox->value();
   info->headerSize = headerSpinBox->value();
   info->swapBytes = swapCheckBox->isChecked();
+  info->yInverted = invertCheckBox->isChecked();
   info->allMatch = matchCheckBox->isChecked();
   info->scanMinMax = scanCheckBox->isChecked();
   info->amin = minLineEdit->text().toFloat();
@@ -115,20 +117,11 @@ void RawImageForm::manageState()
   which = dataTypeGroup->checkedId();
   if (which < 0)
     return;
-  bool enab = which !=5 && !scanCheckBox->isChecked();
-  swapCheckBox->setEnabled(which && which != 5);
-  scanCheckBox->setEnabled(which != 5);
+  bool enab = which !=6 && !scanCheckBox->isChecked();
+  swapCheckBox->setEnabled(which && which != 6);
+  scanCheckBox->setEnabled(which != 6);
   minLabel->setEnabled(enab);
   minLineEdit->setEnabled(enab);
   maxLabel->setEnabled(enab);
   maxLineEdit->setEnabled(enab);
 }
-
-/*
-
-$Log$
-Revision 4.1  2009/01/15 16:33:17  mast
-Qt 4 port
-
-
-*/
