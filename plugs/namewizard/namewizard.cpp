@@ -4,8 +4,8 @@
  */
 
 /*****************************************************************************
- *   Copyright (C) 2007 by Andrew Noske from the Institute for Molecular     *
- *   Bioscience at the University of Queensland (Australia)                  *
+ *   Copyright (C) 2010 by Andrew Noske - work done while at The National    *
+ *   Center for Microscopy and Imaging Research at UCSD                      *
  *****************************************************************************/
 
 /*  $Author$
@@ -46,8 +46,6 @@
 #include <QKeyEvent>
 #include <QEvent>
 #include <qtoolbutton.h>
-#include <QDesktopServices>
-#include <QUrl>
 #include <QStringList>
 #include <QListView>
 #include <qfile.h>
@@ -90,7 +88,11 @@ static NameWizardData plug = { 0, 0 };
 //
 //----------------------------------------------------------------------------
 
-
+//--
+//-- NOTE: Neither "imodPlugKeys" or "imodPlugMouse" are implemented here
+//--       because this plugin doesn't need to do any special key
+//--       interception or drawing.
+//--
 
 //------------------------
 //-- MAPPED FUNCTION: Called by the imod plugin load function
@@ -104,31 +106,6 @@ char *imodPlugInfo(int *type)
   return("Name Wizard");
 }
 
-//------------------------
-//-- MAPPED FUNCTION: Grab hotkey input. return 1 if we handle the key.
- 
-/*
-int imodPlugKeys(ImodView *vw, QKeyEvent *event)
-{
-  int keyhandled = 1;
-  
-  if (!plug.view)          // if plugin window isn't open: don't grab keys
-    return 0;
-  
-  int keysym  = event->key();            // key value (Key_A, Key_Space... etc)
-  int ctrl    = event->modifiers() & Qt::ControlModifier;   // ctrl modifier
-  int shift   = event->modifiers() & Qt::ShiftModifier;     // shift modifier
-  
-  switch(keysym)
-  {
-    default:
-      keyhandled = 0;
-      break;
-  }
-  
-  return keyhandled;
-}
-*/
 
 //------------------------
 //-- MAPPED FUNCTION: Called when plugin window is started.
@@ -158,7 +135,8 @@ void imodPlugExecute(ImodView *inImodView)
   //## CREATE THE PLUGIN WINDOW:
   
   plug.window  = new NameWizard(imodDialogManager.parent(IMOD_DIALOG),"Name Wizard");
-  
+  plug.window->setWindowTitle("Name Wizard (*by SLASH*)");		// to help with our grant
+	
   imodDialogManager.add((QWidget *)plug.window, IMOD_DIALOG);
   adjustGeometryAndShow((QWidget *)plug.window, IMOD_DIALOG );
 }
@@ -172,41 +150,6 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
   return 0;
 }
 
-//------------------------
-//-- MAPPED FUNCTION: Process a mouse event: An example of a circular cursor  
-//-- with radius specified in image coordinates
-
-/*
-     Mouse event callback function to be defined by plugins with the
-     IMOD_PLUG_MOUSE bit set.  ^
-     This function can be used to override 3dmod mouse actions in the Zap 
-     window.  [imx] and [imy] will contain the image position, and [but1], 
-     [but2], and [but3] will indicate the state of the 3 buttons as mapped by 
-     user preferences.  The return value should be the sum of two values: 
-     ^  1 if the plugin handled the mouse event, indicating that no other action
-     should be taken with the event itself by the 3dmod program.
-     ^  2 if the specific calling window should draw itself, without issuing a
-     general program redraw.  If this is not sufficient, the plugin should call
-     ivwRedraw instead of setting this bit.
-     ^  A zero return value indicates that 3dmod should process the event as usual.
-     ^This function is called only when a mouse button is down, unless mouse
-     tracking is enabled with ivwTrackMouseForPlugs.
-    
-    BUTTON KEY: (using my setup)
-        LEFT   = but2 ********
-        MIDDLE = but3
-        RIGHT  = but1
-*/
-
-int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
-                  int but1, int but2, int but3)
-{
-                      // if plugin is not open or imod isn't in "model mode": do nothing
-  if( !plug.window || !ivwGetMovieModelMode(plug.view) )
-    return (0);
-  
-  return (0);
-}
 
 
 //############################################################
@@ -239,11 +182,14 @@ QAction *NameWizard::addAction( QMenu *menu, const char *member,
 
 //## WINDOW CLASS CONSTRUCTOR:
 
-static char *buttonLabels[] = {(char*)"Done", (char *)"Help"};
-static char *buttonTips[] = {(char*)"Close Name Wizard", (char*)"Open help window"};
+static char *buttonLabels[] = {(char*)"Done", (char*)"Video", (char *)"Help"};
+static char *buttonTips[]   = {(char*)"Close this plugin window",
+	                             (char*)"See SLASH help videos showing \n"
+	                                    "how to use this plugin",
+	                             (char*)"Open help window"};
 
 NameWizard::NameWizard(QWidget *parent, const char *name) :
-  DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Name Wizard", "", name)
+  DialogFrame(parent, 3, buttonLabels, buttonTips, true, "Name Wizard", "", name)
 {
   const int LAY_MARGIN   = 3;
   const int LAY_SPACING  = 3;
@@ -251,6 +197,13 @@ NameWizard::NameWizard(QWidget *parent, const char *name) :
   QFont smallFont;
   smallFont.setPixelSize(12);
   
+	//## RECOLOR MIDDLE "Video" BUTTON:
+	
+	mButtons[1]->setStyleSheet("color: rgb(150, 180, 255);");
+	mButtons[1]->setFlat( true );
+	mButtons[1]->setCursor( Qt::PointingHandCursor );
+	mButtons[2]->setCursor( Qt::PointingHandCursor );
+	
   //## CREATE HEADER:
   
   QWidget *widHeader = new QWidget();
@@ -346,7 +299,8 @@ NameWizard::NameWizard(QWidget *parent, const char *name) :
   widgetBtns->setLayout(layButtons);
   
   refreshListButton = new QPushButton("Refresh List", widgetBtns);
-  connect(refreshListButton, SIGNAL(clicked()), this, SLOT(refresh()));
+	refreshListButton->setFocusPolicy(Qt::StrongFocus);
+  connect(refreshListButton, SIGNAL(clicked()), this, SLOT(refreshObjList()));
   refreshListButton->setToolTip( "Refreshes the list of objects above.... \n"
                                  "useful if you've modified/deleted or added \n"
                                  "objects outside of this plugin");
@@ -425,9 +379,20 @@ NameWizard::NameWizard(QWidget *parent, const char *name) :
              "Deselect/uncheck all objects which have been ticked." );
   addAction( selectionMenu, SLOT(selectRange()),             "Select Range",
              "Select/deselect objects within a given the range of objects." );
-  addAction( selectionMenu, SLOT(selectMatching()),           "Select Matching Names",
+  addAction( selectionMenu, SLOT(selectMatching()),          "Find and Select Names",
              "Select/deselect objects matching a string you enter." );
-  
+	selectionMenu->addSeparator();
+  addAction( selectionMenu, SLOT(batchRecolorSelected()),    "Recolor Selected Objects",
+						 "Allows you to set a color for all selected objects. \n\n"
+						 "NOTE: The preferred way to do this is to go into the .cvs \n"
+						 "file and change the color for a particular name, so the \n"
+						 "correct colors will be applied when you click 'Match Colors'" );
+  addAction( selectionMenu, SLOT(randomlyRecolor()),         "Apply Random Colors",
+						 "Give random colors to the objects you've selected.\n"
+						 "This feature can be useful to see if contours in different \n "
+						 "objects belong in the same object in cases where you're \n"
+						 "attempting to have only one surface per object." );
+	
   selectionButton->setMenu( selectionMenu );
   
   
@@ -499,8 +464,6 @@ QString NameWizard::getFirstValidFilePath()
 
 void NameWizard::resizeEvent ( QResizeEvent * event )
 {
-  //scrollArea->setWidgetResizable( true );   // not ideal as resizes vertically too.
-  
   if( this->width() > 460 + 20 )
   {
     widList->setGeometry( 0, 0, this->width()-40, widList->height() );
@@ -532,6 +495,8 @@ void NameWizard::initValues()
                        + QString("/standard_names_persistent.csv");
   plug.secondaryFilePath = QString(getenv("IMOD_DIR"))
                        + QString("/lib/imodplug/standard_names.csv");
+	
+	plug.shiftDown = false;
 }
 
 //------------------------
@@ -547,33 +512,34 @@ void NameWizard::loadSettings()
   {
     wprint("NameWizard: Could not load saved values");
     int result = QMessageBox::information( this, "-- Documentation --",
-                              "Would you like to view help? \n\n"
                               "If this is your first time using 'Name Wizard' \n"
                               "we HIGHLY recommended you click 'Help' \n"
                               "(at bottom of the plugin) to learn how it works! \n\n"
-                              "                                   -- Andrew Noske",
+                              "                                   -- Andrew Noske\n"
+															"\n"
+															"NOTE: This plugin was possible thanks to\n"
+															"the Neuroscience Information Framework",
                               QMessageBox::Yes, QMessageBox::No );
     if( result == QMessageBox::Yes )
       helpPluginHelp();
-    return;
   }
-  
-  plug.rightColIdx         = savedValues[0];
-  plug.showNagPersitentCsv = savedValues[1];
-  plug.showStatusLabel     = savedValues[2];
-  
+  else
+	{
+		plug.rightColIdx         = savedValues[0];
+		plug.showNagPersitentCsv = savedValues[1];
+		plug.showStatusLabel     = savedValues[2];
+	}
+	
+	//## CHECK IF CSV FOUND: IF SO THEN LOAD IT!
   if( plug.showNagPersitentCsv && !QFile::exists( plug.defaultFilePath ) )
-  {
     showNagScreenPersistentCsv();
-  }
-  
   loadNamesFromFile( getFirstValidFilePath() );
 }
 
 
 //------------------------
 //-- Saves most of the settings within NameWizardData in user preferences
-//-- so they will load next time Bead Helper is started.
+//-- so they will load next time the plugin is started.
 
 void NameWizard::saveSettings()
 {
@@ -816,9 +782,11 @@ void NameWizard::alertIfRefreshNeeded()
   {
     if(numWarnings > 10)
       return;
-    MsgBox( "Changes to the object list outside of this plugin have "
-            "been detected\n\n"
-            "Please hit 'Refresh List' before you continue" );
+		if( !refreshListButton->hasFocus() )
+			MsgBox( "Changes to the object list outside of this plugin have "
+						  "been detected\n\n"
+              "Please hit 'Refresh List' before you continue" );
+		refreshListButton->setFocus( Qt::OtherFocusReason );
     numWarnings++;
   }
 }
@@ -841,8 +809,10 @@ void NameWizard::nameModified()
     if( item.prevName != item.txtObjName->text() )
     {
       if( i>=osize(imod) ) {
-        MsgBox("This object has been deleted outside the plugin \n"
-               "Please click 'Refresh List' and then continue.");
+				if( !refreshListButton->hasFocus() )
+					MsgBox("This object has been deleted outside the plugin \n"
+								 "Please click 'Refresh List' and then continue.");
+				refreshListButton->setFocus( Qt::OtherFocusReason );
         return;
       }
       refreshObjItem(i);
@@ -858,6 +828,78 @@ void NameWizard::nameModified()
     updateStatusLabel();
     imodUpdateObjectDialogs();
   }
+}
+
+//------------------------
+//-- A callback function for whenever a checkbox is clicked. This function
+//-- records which checkbox was checked/unchecked on the last call, and if the
+//-- shift is held down, it will click it will check or uncheck the entire
+//-- selection between the previously click and currently clicked checkbox.
+
+void NameWizard::checkClicked()
+{
+	Imod *imod  = ivwGetModel(plug.view);
+	
+	static int  prevChkClicked = -1;			// |-- used to record the index of the last 
+	static bool prevChkChecked = false;		// |   checkbox clicked and it's value the last 
+																				// |   time this function was called
+	
+	int  currChkClicked = -1;							// |-- will be set to the index of the checkbox
+	bool currChkChecked = false;					// |   and it's value during this function call
+	
+	
+	//## DETERMINE WHICH INDEX WAS CLICKED:
+	
+	for (int i=0; i<(int)lineItem.size(); i++)
+		if( QObject::sender() == lineItem[i].chkObj )
+		{
+			currChkClicked = i;
+			currChkChecked = lineItem[i].chkObj->isChecked();
+			break;
+		}
+	if( currChkClicked == -1 )		// if couldn't find valid index: exit early
+		return;
+	
+	//## IF SHIFT KEY IS NOT DOWN: RECORD INDEX, SHOW HELPFUL TOOLTIPS AND EXIT:
+	
+	if(!plug.shiftDown)
+	{
+		prevChkClicked = currChkClicked;
+		prevChkChecked = currChkChecked;
+		
+		for (int i=0; i<(int)lineItem.size(); i++)
+			if( i<currChkChecked+20 && i>currChkChecked-20 )
+			{
+				if( currChkChecked )
+					lineItem[i].chkObj->setToolTip("Hold [shift] and click to <br>"
+																				 "<b>select</b> objects " +
+																				 QStr(currChkClicked+1) + " to " + QStr(i+1) );
+				else
+					lineItem[i].chkObj->setToolTip("Hold [shift] and click to <br>"
+																				 "<b>deselect</b> objects<br>" +
+																				 QStr(currChkClicked+1) + " to " + QStr(i+1) );
+			}
+		return;
+	}
+	
+	for (int i=0; i<(int)lineItem.size(); i++)		// remove tooltips from all checkboxes
+		if( lineItem[i].chkObj->toolTip() != "" )
+			lineItem[i].chkObj->setToolTip( "" );
+	
+	//## IF PREVIOUS INDEX REGISTERED CHECKE VALUES MATCH:
+	//## CHECK ALL BOXES IN BETWEEN AND RESET INDEX
+	
+	if( prevChkClicked != -1 )
+	{
+		int minIdx = MAX( MIN( currChkClicked, prevChkClicked ), 0 );
+		int maxIdx = MIN( MAX( currChkClicked, prevChkClicked ), (int)lineItem.size()-1 );
+		
+		for( int i=minIdx; i<=maxIdx; i++ )
+			lineItem[i].chkObj->setChecked( prevChkChecked );
+		
+		prevChkClicked = -1;
+		prevChkChecked = false;
+	}
 }
 
 
@@ -891,16 +933,6 @@ void NameWizard::changeCols( int i )
 }
 
 //------------------------
-//-- Calls "refreshObjList()" twice.
-//-- for some reason if called once it often doesn't size all the lines correctly.
-
-void NameWizard::refresh()
-{
-  refreshObjList();
-  refreshObjList();
-}
-
-//------------------------
 //-- Refreshes/regenerates the main list of object names displayed in the plugin.
 //-- it achieves this by enlarging/reducing the "lineItem" array (to match the
 //-- current number of objects), initializing/setting up widgets in a table
@@ -914,13 +946,21 @@ void NameWizard::refreshObjList()
   
   //## HIDE AND REMOVE ANY EXISTING LINES:
   
-  for( int i=0; i<(int)lineItem.size(); i++ )
+	int prevSize = (int)lineItem.size();
+	
+	for( int i=numObjs; i<(int)lineItem.size(); i++ )	// hide and remove superfluous lines
+	{
+		lineItem[i].widLine->setVisible( false );
+		layList->removeWidget( lineItem[i].widLine );
+	}
+	
+  /*for( int i=0; i<(int)lineItem.size(); i++ )
   {
     lineItem[i].widLine->setVisible( false );  
       // had strange artifact where if I added, then deleted then added an object
       // an old line would get left in the background, so I make invisible first
     layList->removeWidget( lineItem[i].widLine );
-  }
+  }*/
   
   lineItem.resize( numObjs );
   
@@ -957,22 +997,24 @@ void NameWizard::refreshObjList()
     
     if( !item.setup )
     {
-      item.widLine       = new QWidget();
+      item.widLine       = new QWidget(widList);
       item.layLine       = new QHBoxLayout( item.widLine );
       item.layLine->setSpacing(4);
       item.layLine->setContentsMargins(2, 2, 2, 2);
       
-      item.chkObj        = new QCheckBox();
+      item.chkObj        = new QCheckBox(item.widLine);
       item.chkObj->setFixedWidth(15);
-      
-      item.lblObjNum     = new QLabel();
+			item.chkObj->setToolTip("Use [shift] to select a range of points");
+      connect( item.chkObj,SIGNAL(clicked()), this,SLOT(checkClicked()) );		// NEW
+			
+      item.lblObjNum     = new QLabel(item.widLine);
       item.lblObjNum->setFixedWidth(20);
       
       item.btnColor      = new ColorButton( item.prevColor, item.widLine);
       connect( item.btnColor, SIGNAL(released()), this, SLOT(updateColors()) );    
                 // CONNECTION
       
-      item.txtObjName    = new QLineEdit();
+      item.txtObjName    = new QLineEdit(item.widLine);
       item.txtObjName->setMinimumWidth( 200 );
       item.txtObjName->setCompleter(completer);
       connect( item.txtObjName,SIGNAL(textEdited(QString)), this,SLOT(nameModified()) );
@@ -980,14 +1022,14 @@ void NameWizard::refreshObjList()
       connect( item.txtObjName,SIGNAL(textEdited(QString)), this,SLOT(alertIfRefreshNeeded()) );
                 // CONNECTION
       
-      item.lblLink       = new QLabel();
+      item.lblLink       = new QLabel(item.widLine);
       item.lblLink->setTextFormat( Qt::RichText );
       item.lblLink->setOpenExternalLinks(true);
       item.lblLink->setFont( smallFont );
       item.lblLink->setFixedWidth( 50 );
       item.lblLink->setAlignment( Qt::AlignHCenter | Qt::AlignVCenter );
       
-      item.txtIdentifier = new QLineEdit();
+      item.txtIdentifier = new QLineEdit(item.widLine);
       item.txtIdentifier->setFont( smallerFont );
       item.txtIdentifier->setStyleSheet( "color: rgb(100, 100, 100); background-color: rgba(255,255,255,20);" );
       item.txtIdentifier->setReadOnly( true );
@@ -1016,13 +1058,25 @@ void NameWizard::refreshObjList()
     refreshObjItem(o);
   }
   
+	//## MAKE NEW LINES VISIBLE AND RESIZE:
+	
+	for( int i=prevSize; i<(int)lineItem.size(); i++ )	// show and add all new lines
+	{
+		lineItem[i].widLine->setVisible( true );
+		layList->addWidget( lineItem[i].widLine );
+	}
+	
+	int LINE_HEIGHT = 30;
+	widList->setFixedHeight( LINE_HEIGHT * (int)lineItem.size() + 4 );
+	
+	
   //## REPOPULATE AND MAKE LINES VISIBLE:
   
-  for(int o=0; (int)o<lineItem.size() && o<osize(imod); o++)
+  /*for(int o=0; (int)o<lineItem.size() && o<osize(imod); o++)
   {
     lineItem[o].widLine->setVisible( true );
     layList->addWidget( lineItem[o].widLine );
-  }
+  }*/
   
   updateStatusLabel();
   resizeEvent( NULL );
@@ -1108,13 +1162,15 @@ void NameWizard::refreshObjItem( int itemIdx )
   if( plug.rightColIdx == 1)
     item.txtIdentifier->setText( item.numContsStr );
   
-  //## GET OBJECT NAME, GET RID OF ANYTHING AFTER DOT, AND CHECK IF EMPTY:
+  //## GET OBJECT NAME, GET RID OF ANYTHING AFTER DOT OR HASH, AND CHECK IF EMPTY:
   
   QString redObjName = item.txtObjName->text();
   
   if( redObjName.contains(".") )
     redObjName = redObjName.mid( 0, redObjName.indexOf(".") );
-  
+  else if( redObjName.contains("#") )
+    redObjName = redObjName.mid( 0, redObjName.indexOf("#") );
+	
   if( redObjName.length() == 0 )
   {
     item.lblLink->setText( "<b>EMPTY</b>" );
@@ -1180,9 +1236,9 @@ void NameWizard::refreshObjItem( int itemIdx )
     
     QString info = "<b>Name:</b> " + redObjName + "<br>"
                    "<b>Color:</b> " + colorStr + "<br>"
-                   "<b>Description:</b>" + description + "<br><br>"
-                   "<b>Super-category:</b>" + superCat + "<br>"
-                   "<b>Synonyms:</b>" + synonyms;
+                   "<b>Description:</b> " + description + "<br><br>"
+                   "<b>Super-category:</b> " + superCat + "<br>"
+                   "<b>Synonyms:</b> " + synonyms;
     item.txtObjName->setToolTip( info );
     item.lblLink->setToolTip( info );
   }
@@ -1338,7 +1394,8 @@ void NameWizard::editStandardNamesFile()
 
 //------------------------
 //-- Iterates through all the color buttons and updates the color of any objects
-//-- which don't match.
+//-- which don't match. During this process it returns the number of
+//-- unmatched colors.
 
 int NameWizard::updateColors()
 {
@@ -1578,7 +1635,7 @@ void NameWizard::mergeSelected()
   
   undoFinishUnit( plug.view );          // FINISH UNDO
   
-  refresh();
+  refreshObjList();
   imodUpdateObjectDialogs();
   ivwRedraw( plug.view );
 }
@@ -1680,7 +1737,7 @@ void NameWizard::duplicateSelected()
   
   undoFinishUnit( plug.view );                      // FINISH UNDO     
   
-  refresh();
+  refreshObjList();
   imodUpdateObjectDialogs();
   ivwRedraw( plug.view );
 }
@@ -1938,23 +1995,198 @@ void NameWizard::selectMatching()
   MsgBox( toString(matches) + " matches were found" );
 }
 
-//------------------------
-//-- Displays a html help page with information about the Name Wizard plugin
-
-void NameWizard::helpPluginHelp()
-{
-  QString str = QString(getenv("IMOD_DIR")) + QString("/lib/imodplug/namewizard.html");
-  imodShowHelpPage((const char *)str.toLatin1());
-}
 
 //------------------------
-//-- Displays a html help page with information about "naming objects in IMOD"
+//-- Allows error free creation of a QColor by taking three float values
+//-- for "red", "green" and "blue", then making sure each of these values
+//-- is between 0 and 255.
 
-void NameWizard::helpNamingHelp()
+QColor NameWizard::makeQColor( float red, float green, float blue )
 {
-  QString str = QString(getenv("IMOD_DIR")) + QString("/lib/imodplug/naming_help.html");
-  imodShowHelpPage((const char *)str.toLatin1());
+	keepWithinRange( red,   0.0f, 255.0f );
+	keepWithinRange( green, 0.0f, 255.0f );
+	keepWithinRange( blue,  0.0f, 255.0f );
+	
+	return QColor( (int)red, (int)green, (int)blue, 100 );			// %%%% REMOVE ALPHA
 }
+
+
+//------------------------
+//-- Brings up a dialog which allows the user to select a color to apply
+//-- to all selected objects in Name Wizard's object list. If the user
+//-- chooses, he can also tick an option which will allow him to chose
+//-- a second colors and "gradient steps" such that each selected object
+//-- (in order) will step through this gradient.
+
+void NameWizard::batchRecolorSelected()
+{
+	//## COUNT THE NUMBER OF OBJECTS SELECTED
+	int numSelectedObjs = 0;
+	QColor newColor(0,0,0);
+	
+	for(int i=(int)lineItem.size()-1; i>=0; i-- )
+  {
+    if( lineItem[i].chkObj->isChecked() )
+    {
+			numSelectedObjs++;
+			newColor = lineItem[i].btnColor->getColor();
+		}
+  }
+	
+	static QColor otherColor(100,100,100);
+	
+	//## PRINT ERROR IF NO OBJECTS SELECTED:
+	
+  if( numSelectedObjs==0 )
+	{
+		MsgBox( "You have not selected any objects yet" );
+    return;
+	}
+	
+	//## GET CUSTOM INPUT FROM USER:
+  
+	QString msgStr = "pick a new color for the \n";
+	msgStr        += QStr(numSelectedObjs) + " selected objects:";
+	
+	static bool varyColor = false;
+	int colorSteps = numSelectedObjs;
+	
+	CustomDialog ds("Recolor Selected Objects",this);
+  ds.addLabel   ( msgStr );
+  ds.addColorSel( "new color:", &newColor, "Click here to select a new color" );
+	ds.beginGroupBox("color change:", false );
+	ds.addCheckPrev( "add color variation", &varyColor, CB_SHOW, false, "" );
+	ds.addColorSel( "other color:", &otherColor, "Click here to select a new color" );
+	ds.addSpinBox ( "gradient steps:", 2, 20000, &colorSteps, 1,
+								 "The number of colours in between to use... \n"
+								 "if smaller than the number of contours it will cycle" );
+	ds.endGroupBox();
+	
+  ds.exec();
+	if( ds.wasCancelled() )
+		return;
+	
+	//## RECOLOR ALL OBJECTS TO SELECTED COLOR
+	
+	float colorChangeSteps = (colorSteps==0) ? 0 : 1.0f / (float)colorSteps;
+	float diffR = otherColor.red()   - newColor.red();
+	float diffG = otherColor.green() - newColor.green();
+	float diffB = otherColor.blue()  - newColor.blue();
+	
+	Imod *imod = ivwGetModel(plug.view);
+  int numColorsSet = 0;
+	for(int i=0; i<(int)lineItem.size() && i<osize(imod); i++ )
+  {
+    if( lineItem[i].chkObj->isChecked() )
+		{
+			lineItem[i].btnColor->setColor( newColor );
+			if(varyColor)
+			{
+				float vary = fMod(colorChangeSteps * (float)numColorsSet, 1.001f);
+				QColor diffColor = makeQColor( newColor.red()  + vary*diffR,
+												               newColor.green()+ vary*diffG,
+												               newColor.blue() + vary*diffB );
+				lineItem[i].btnColor->setColor( diffColor );
+				numColorsSet++;
+			}
+		}
+  }
+  updateColors();
+}
+
+
+//------------------------
+//-- Brings up a small dialog giving the user options to apply random
+//-- colors to selected objects or (if chosen) all objects. Within
+//-- this dialog the user can also opt to limit the randomly
+//-- chosen min-and-max color values for red green and blue.
+//-- Applying random colors in this way can be useful to 
+//-- see which contours placed in different object may actually belong
+//-- to the same surface (and thus object).
+
+void NameWizard::randomlyRecolor()
+{
+	//## COUNT THE NUMBER OF OBJECTS SELECTED
+	int numSelectedObjs = 0;
+	for(int i=0; i<(int)lineItem.size(); i++ )
+    if( lineItem[i].chkObj->isChecked() )
+			numSelectedObjs++;
+	
+	
+	//## GET CUSTOM INPUT FROM USER:
+  
+	int applyTo = (numSelectedObjs==0) ? 1 : 0;
+	static bool limitRand = false;
+	static int minR = 0;
+	static int maxR = 255;
+	static int minG = 0;
+	static int maxG = 255;
+	static int minB = 0;
+	static int maxB = 255;
+	
+	CustomDialog ds("Randomly Color Objects",this);
+	ds.addComboBox( "apply random color to:",
+								 "selected objects|"
+								 "all objects",
+								 &applyTo, "What objects do you want to randomly color?" );
+	
+	
+	ds.beginGroupBox("limit between these values:", false, "", true, &limitRand );
+	
+	ds.addMinMaxSpinBoxPair("red:   ... min", " max ", -1000, 1255, &minR, &maxR, 5,
+													"Set the min and max values for red" );
+	ds.addMinMaxSpinBoxPair("green: ... min", " max ", -1000, 1255, &minG, &maxG, 5,
+													"Set the min and max values for green" );
+	ds.addMinMaxSpinBoxPair("blue:  ... min", " max ", -1000, 1255, &minB, &maxB, 5,
+													"Set the min and max values for blue" );
+	
+	ds.endGroupBox();
+	
+  ds.exec();
+	if( ds.wasCancelled() )
+		return;
+	
+	//## RECOLOR ALL OBJECTS USING RANDOMLY CHOSEN COLOR:
+	
+	if( applyTo==0 && numSelectedObjs==0 )
+	{
+		MsgBox( "You must select one or more objects before running this option" );
+    return;
+	}
+	if( applyTo==1 )
+	{
+		if( !MsgBoxYesNo( this, "Are you sure you want to randomly recolor ALL objects?" ) )
+			 return;
+	}
+	
+	//## RECOLOR ALL OBJECTS USING RANDOMLY CHOSEN COLOR:
+	
+	seedRandom();
+	
+	float rMin = (limitRand) ? -50.0f : (float)minR;
+	float rMax = (limitRand) ? 300.0f : (float)maxR;
+	float gMin = (limitRand) ? -50.0f : (float)minG;
+	float gMax = (limitRand) ? 300.0f : (float)maxG;
+	float bMin = (limitRand) ? -50.0f : (float)minB;
+	float bMax = (limitRand) ? 300.0f : (float)maxB;
+	
+	Imod *imod = ivwGetModel(plug.view);
+  for(int i=0; i<(int)lineItem.size() && i<osize(imod); i++ )
+  {
+		if( applyTo == 0 && !lineItem[i].chkObj->isChecked() )		// if object not selected
+			continue;
+		
+		QColor randColor = makeQColor( randFlt(rMin,rMax),
+																	 randFlt(gMin,gMax),
+																	 randFlt(bMin,bMax) );
+		
+    lineItem[i].btnColor->setColor( randColor );
+  }
+	
+  updateColors();
+}
+
+
 
 
 //------------------------
@@ -2001,22 +2233,40 @@ void NameWizard::moreSettings()
 
 
 
-
-//## PROTECTED:
+//############################################################
+//## PROTECTED SLOTS:
 
 
 //------------------------
-//-- Called to display help window.
+//-- Displays a (html) help page with information about the plugin
+
+void NameWizard::helpPluginHelp()
+{
+  QString str = QString(getenv("IMOD_DIR")) + QString("/lib/imodplug/namewizard.html");
+  imodShowHelpPage((const char *)str.toLatin1());
+}
+
+//------------------------
+//-- Displays a html help page with information about "naming objects in IMOD"
+
+void NameWizard::helpNamingHelp()
+{
+  QString str = QString(getenv("IMOD_DIR")) + QString("/lib/imodplug/naming_help.html");
+  imodShowHelpPage((const char *)str.toLatin1());
+}
+
+
+//------------------------
+//-- Callback for the buttons at the bottom
 
 void NameWizard::buttonPressed(int which)
 {
-  if (!which)
+  if      (which==0)
     close();
-  else
-  {
-    QString str = QString(getenv("IMOD_DIR")) + QString("/lib/imodplug/namewizard.html");
-    imodShowHelpPage((const char *)str.toLatin1());
-  }
+  else if (which==1)
+		openUrl( "https://sites.google.com/site/slashsegmentation/tools/imod/name-wizard-plugin" );
+	else if (which==2)
+    helpPluginHelp();
 }
 
 //------------------------
@@ -2042,6 +2292,9 @@ void NameWizard::closeEvent ( QCloseEvent * e )
 
 void NameWizard::keyPressEvent ( QKeyEvent * e )
 {
+	if( e->key() == Qt::Key_Shift )
+		plug.shiftDown = true;
+	
   if (e->key() == Qt::Key_Escape)
     close();
   else
@@ -2053,195 +2306,13 @@ void NameWizard::keyPressEvent ( QKeyEvent * e )
 
 void NameWizard::keyReleaseEvent ( QKeyEvent * e )
 {
+	if( e->key() == Qt::Key_Shift )
+		plug.shiftDown = false;
+	
   ivwControlKey(1, e);
 }
 
 
 //############################################################
-
-
-
-
-
-
-
-
-
-
-
-//----------------------------------------------------------------------------
-//
-//          SIMPLE FUNCTIONS:
-//
-//----------------------------------------------------------------------------
-
-
-
-//---------------------------------
-//-- Returns a pointer to the currently selected object.
-
-Iobj *getCurrObj()
-{
-  Imod *imod  = ivwGetModel(plug.view);
-  return ( imodObjectGet(imod) );
-}
-
-
-//---------------------------------
-//-- Returns a pointer to the currently selected contour.
-
-Icont *getCurrCont()
-{
-  Imod *imod  = ivwGetModel(plug.view);
-  return ( imodContourGet(imod) );
-}
-
-
-//---------------------------------
-//-- Returns a pointer to the currently selected point.
-
-Ipoint *getCurrPt()
-{
-  Imod *imod = ivwGetModel(plug.view);
-  return ( imodPointGet(imod) );
-}
-
-
-//---------------------------------
-//-- Returns true if the object is valid and has it's draw flag on.
-
-bool isCurrObjValidAndShown()
-{
-  Iobj *obj = getCurrObj();
-  return isObjectValidAndShown(obj);
-}
-
-
-//---------------------------------
-//-- Returns true is a valid contour is selected.
-
-bool isCurrContValid()
-{
-  return ( isContValid( getCurrCont() ) );
-}
-
-//---------------------------------
-//-- Returns true is a valid point is selected.
-
-bool isCurrPtValid()
-{
-  Ipoint *pt = getCurrPt();
-  return (pt!=NULL);
-}
-
-
-
-
-//------------------------
-//-- Removes all contours in the object which have their delete flag set to 1
-
-int removeAllDeleteFlaggedContoursFromObj( Iobj *obj, int objIdx )
-{
-	Icont *cont;
-	int numRemoved = 0;
-	for( int c=csize(obj)-1; c>=0; c-- )
-	{
-		cont = getCont(obj, c);
-		if( isDeleteFlag( cont ) && isInterpolated( cont ) )
-		{
-      //undoContourRemovalCO( plug.view, objIdx, c );              // REGISTER UNDO
-			undoContourRemoval( plug.view, objIdx, c );              // REGISTER UNDO
-			imodObjectRemoveContour( obj, c );
-			numRemoved++;
-		}
-	}
-	return numRemoved;
-}
-
-
-//----------------------------------------------------------------------------
-//
-//          EDITING FUNCTIONS:
-//
-//----------------------------------------------------------------------------
-
-
-
-//------------------------
-//-- Gets the slice value of the top Zap window or returns -1 if no Zap
-
-int edit_getZOfTopZap()
-{
-  int currSlice = -1;
-  int noZap = ivwGetTopZapZslice(plug.view, &currSlice);   // gets current slice
-  if (noZap == 1)   // if no top ZAP window:
-    return (-1);
-  return (currSlice);
-}
-
-
-//------------------------
-//-- Sets the top ZAP window to focus on the selected point and slice.
-
-int edit_setZapLocation( float x, int y, int z, bool redraw )
-{
-  ivwSetLocation( plug.view, x, y, z );
-  if( redraw )
-    ivwDraw( plug.view, IMOD_DRAW_MOD | IMOD_DRAW_NOSYNC );
-  return z;
-}
-
-
-//------------------------
-//-- Changes the Z slice by calling page up or page down
-
-int edit_changeSelectedSlice( int changeZ, bool redraw, bool snapToEnds )
-{
-  int ix, iy, iz;
-  ivwGetLocation( plug.view, &ix, &iy, &iz );
-  int newZ = iz+changeZ;
-  if( !snapToEnds && newZ < 0 /*|| newZ >= plug.zsize*/ )
-    return iz;
-  edit_setZapLocation( ix, iy, newZ, redraw );
-  return newZ;
-}
-
-
-
-//------------------------
-//-- Adds a new contour to the specified object
-
-int edit_addContourToObj( Iobj *obj, Icont *cont, bool enableUndo )
-{
-  Icont *newCont = imodContourDup( cont );    // malloc new contour and don't delele it
-  int numConts = csize(obj);
-  if(enableUndo)
-    undoContourAdditionCO( plug.view, numConts );    // REGISTER UNDO
-  int newContPos = imodObjectAddContour( obj, newCont );
-  free(newCont);
-  return newContPos;
-}
-
-
-//------------------------
-//-- Removes all contours in the object which have their delete flag set to 1
-
-int edit_removeAllFlaggedContoursFromObj( Iobj *obj )
-{
-  Icont *cont;
-  int numRemoved = 0;
-  for( int c=csize(obj)-1; c>=0; c-- )
-  {
-    cont = getCont(obj, c);
-    if( isDeleteFlag( cont ) )
-    {
-      undoContourRemovalCO( plug.view, c );
-      imodObjectRemoveContour( obj, c );
-      numRemoved++;
-    }
-  }
-  return numRemoved;
-}
-
 
 

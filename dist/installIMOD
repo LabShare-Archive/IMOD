@@ -506,6 +506,7 @@ if ($os == linux) then
     set packhas = `\find lib -maxdepth 1 -name '*libg2c.so*' -print`
     set hasgfort = `\find lib -maxdepth 1 -name 'libgfortran.so*' -print`
     set hasintel = `\find qtlib -maxdepth 1 -name 'libintlc.so*' -print`
+    set hastiff = `\find qtlib -maxdepth 1 -name 'libtiff.so*' -print`
     set needg2c = 1
     if ("$hasgfort" != "" || "$hasintel" != "") set needg2c = 0
 
@@ -563,7 +564,7 @@ if ($os == linux) then
     # Manage link to libtiff.so.4 if it exists and so.3 does not
     set libtiff = "$g2cdir/libtiff.so"
     set alttiff = "$g2cdir/x86_64-linux-gnu/libtiff.so"
-    if (! -e "$libtiff.3" && ! -e "$alttiff.3") then
+    if ("$hastiff" == "" && (! -e "$libtiff.3") && (! -e "$alttiff.3")) then
         if (-e "$libtiff.4") then
             ln -s "$libtiff.4" lib/libtiff.so.3
         else if (-e "$alttiff.4") then

@@ -48,8 +48,10 @@ Routines for computing some statistical functions were adapted from
 S. J. Zhang and J. M. Jin, Computation of Special Functions. New York: John
 Wiley & Sons, 1996 and are copyrighted by the authors and publisher.
 
-Andrew Noske at the University of Queensland, Australia contributed the
-beadhelper, drawingtools, interpolator, and namewizard plugins.
+Andrew Noske (originally at the University of Queensland, Australia, now at
+the University of California, San Diego) contributed the beadhelper,
+drawingtools, interpolator, namewizard, and stereology plugins.  See the help
+displayed by those plugins for acknowledgements of funding for his work.
 
 The isosurface display in 3dmod uses contouring and surface smoothing
 modules from Chimera, developed at the Resource for Biocomputing,

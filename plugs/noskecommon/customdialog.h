@@ -94,6 +94,7 @@
 using namespace std;
 
 #include <qdialog.h>
+#include <qobject.h>
 #include <qvariant.h>
 #include <qaction.h>
 #include <qapplication.h>
@@ -107,6 +108,8 @@ using namespace std;
 #include <qspinbox.h>
 #include <qlayout.h>
 #include <qgroupbox.h>
+#include <qtextedit.h>
+#include <qprogressbar.h>
 #include <qtooltip.h>
 #include <qstringlist.h>
 #include <qmessagebox.h>
@@ -116,16 +119,23 @@ using namespace std;
 #include <QLabel>
 #include <QVBoxLayout>
 
+#include <QDesktopServices>
+#include <QDir>
+#include <QUrl>
+
 //############################################################
 
 //## CONSTANTS:
 
 enum DlgType { DLG_LABEL, DLG_CHECKBOX, DLG_LINEEDIT, DLG_FLOATEDIT,
-               DLG_SPINBOX, DLG_DBLSPINBOX,
-               DLG_COMBOBOX, DLG_RADIOGRP, DLG_GRPBOX, DLG_COLOR, DGL_ALL };
+	DLG_SPINBOX, DLG_DBLSPINBOX, DLG_MINMAXSPIN,
+	DLG_COMBOBOX, DLG_RADIOGRP, DLG_GRPBOX, DLG_COLOR, DLG_TEXTEDIT, DGL_ALL };
 
-enum chkbehaviour { CB_NONE, CB_DISABLE, CB_ENABLE,
-                    CB_HIDE, CB_SHOW };
+enum chkbehav { CB_NONE, CB_DISABLE, CB_ENABLE, CB_HIDE, CB_SHOW };
+
+enum btnset   { BS_CANCEL_OKAY, BS_OKAY_ONLY, BS_NO_YES, BS_CUSTOM };
+
+enum btnbehav { BB_ACCEPT, BB_REJECT, BB_DISABLED, BB_POPUP, BB_OPENURL };
 
 //############################################################
 
@@ -137,12 +147,13 @@ class ColorButton : public QPushButton    // used to create a "pick colour" butt
   
 public:
   QColor color;
-  ColorButton(QColor _color, QWidget *parent=0);
+  ColorButton(QColor _color, QWidget *parent=0 );
   void setColor(QColor _color);
-public slots:
+	QColor getColor();
+	public slots:
   void pickColor();
-//public signals:
-//  void valueChanged() {};
+	//public signals:
+	//  void valueChanged() {};
 };
 
 //############################################################
@@ -153,28 +164,41 @@ public slots:
 
 struct DialogElement
 {
-  string  *returnString;
-  int     *returnInt;
-  bool    *returnBool;
-  float   *returnFloat;
-  QColor  *returnColor;
-  bool    *returnChkExtra;
-  
-  DlgType type;
-  bool    extraChkAdded;
-  
-  QLabel         *label;
+  DlgType type;									// the "type" of dialog element displayed this row
+  bool    extraChkAdded;				// set true if a special extra checkbox is added
+	//  using CustomDialog.addCheckPrev()
+	
+	//** POINTERS USE TO PASS BACK ANY CHANGED VALUES:
+	
+  string  *returnString;				// for DLG_LINEEDIT
+  int     *returnInt;						// for DLG_SPINBOX, DLG_COMBOBOX & DLG_RADIOGRP
+	int     *returnInt2;					// for DLG_DBLSPINBOX
+  bool    *returnBool;					// for DLG_CHECKBOX
+  float   *returnFloat;					// for DLG_FLOATEDIT & DLG_DBLSPINBOX
+  QColor  *returnColor;					// for DLG_COLOR
+  bool    *returnChkExtra;			// used if extraChkAdded is true
+	
+	bool readOnly;								// if set to true, user cannot change the text.
+	
+  //** FORM ELEMENTS TO DISPLAY (DEPENDING ON TYPE):
+	
+	QWidget        *wid;
+	QHBoxLayout    *layout;
+	
+  QLabel         *label;				
+	QLabel         *label2;
   QCheckBox      *chkBox;
   QLineEdit      *lineEdit;
   QSpinBox       *spnBox;
-  QDoubleSpinBox *dblSpnBox;
+  QSpinBox       *spnBox2;
+	QDoubleSpinBox *dblSpnBox;
   QComboBox      *cmbBox;
   ColorButton    *btnColor;
   vector<QRadioButton*> radBtn;
   QGroupBox      *grpBox;
-  
+  QTextEdit      *textEdit;
+	
   QCheckBox      *chkExtra;
-  QHBoxLayout    *layout;
 };
 
 //############################################################
@@ -183,44 +207,66 @@ struct DialogElement
 //** GuiDialogCustomizable is used to present a customizable gui
 //** dialog and retrieve user input with minimal code!
 
-class CustomDialog : public QDialog                                              
+class CustomDialog : public QDialog                                             
 {
   Q_OBJECT
   
 public:     //## METHODS:
   
-  CustomDialog(QString title, QWidget *parent = 0);
+  CustomDialog(QString title, QWidget *parent = 0, btnset=BS_CANCEL_OKAY );
   ~CustomDialog() {};
   bool setDialogElements();
   bool wasCancelled();
   
+	bool addCustomButton( QString buttonStr, btnbehav buttonBehav=BB_ACCEPT, QString tooltip="" );
+	//void createCustomButtons( QString b1Str, btnbehav b1Behav=BB_ACCEPT, QString b1Tooltip="", QString b2Str="", btnbehav b2Behav=BB_ACCEPT, QString b2Tooltip="", QString b3Str="", btnbehav b3Behav=BB_ACCEPT, QString b3Tooltip="" );
+	
+	
   DialogElement& addNewElement(DlgType _type, QString caption, QString tooltip, bool makeLabel);
   int addLabel( QString caption, bool bold=false, QString tooltip=0 );
   int addHtmlLabel( QString caption, QString tooltip=0 );
   int addCheckBox( QString caption, bool *checked, QString tooltip=0 );
   int addLineEdit( QString caption, string *stringValue, QString tooltip=0 );
-  int addLineEditF( QString caption, float min, float max, float *value, float decimals,  QString tooltip=0 );
+  int addReadOnlyLineEdit( QString caption, QString text, QString tooltip=0 );
+	int addLineEditF( QString caption, float min, float max, float *value, float decimals,  QString tooltip=0, QString unitsStr=0 );
   int addSpinBox( QString caption, int min, int max, int *value, int step, QString tooltip=0 );
   int addDblSpinBoxF( QString caption, float min, float max, float *value, int decimals, float step=0.1, QString tooltip=0 );
   int addComboBox( QString caption, QString barSepList, int *selIdx, QString tooltip=0 );
   int addRadioGrp( QString caption, QString barSepList, int *selIdx, QString tooltip=0, QString tooltipArr=0, bool checkable=false, bool *checked=0 );
   int addColorSel( QString caption, QColor *color, QString tooltip=0 );
-  int beginGroupBox( QString caption, bool flat, QString tooltip=0, bool checkable=false, bool *checked=0 );
+	int addMinMaxSpinBoxPair( QString caption, QString middleCaption, int min, int max, int *minValue, int *maxValue, int step=1, QString tooltip=0 );
+	int addTextEdit( string *text, bool richText, bool readOnly, int minHeight=90, QString tooltip=0 );
+	int addReadOnlyTextEdit( QString text, bool richText, int minHeight=90, QString tooltip=0 );
+	int addProgressBar( QString caption, int percent, int width, bool showValue, QString tooltip=0 );
+	int addPercentBar( QString caption, QString valueLabel, float percent, int width, QColor colorBar, QString tooltip=0, QFrame::Shape shape = QFrame::StyledPanel, QFrame::Shadow shadow = QFrame::Sunken );
+	int addVSpacer( int minHeight=0 );
+	
+	int beginGroupBox( QString caption, bool flat=false, QString tooltip=0, bool checkable=false, bool *checked=0 );
   void endGroupBox();
-  int addCheckPrev( QString caption, bool *checked, chkbehaviour chkBeh, bool removeLabel, QString tooltip=0 );
-  int addAutoCompletePrev( QStringList wordList, bool caseSensitive=false );
+  
+	int addCheckPrev( QString caption, bool *checked, chkbehav chkBeh, bool removeLabel, QString tooltip=0 );
+	int addAutoCompletePrev( QStringList wordList, bool caseSensitive=false );
   bool setStyleElem( int idx, string styleStr, bool bold=false );
-  int setStylePrev( string styleStr, bool bold=false );
-  //int setStyleElem( string styleStr, DlgType=DLG_ALL, int startIdx=0, int endIdx=INT_MAX );
+  void setStylePrev( string styleStr, bool bold=false );
   
-private:    //## DATA:
-  
-  vector<DialogElement> elements;
-  
-  bool nextItemCheck;
-  QPushButton *cancelButton;
-  QPushButton *okButton;
+	bool setEnabledElem( int idx, bool enabled );
+	void setEnabledPrev( bool enabled );
+	void setEnabledAll( bool enabled );
+	
+	
+	
+public:		   //## DATA:
+	
+	vector<DialogElement> elements;			// the vector of GUI elements used to display
+																			//  and change the values
+	int customBtnClicked;								// set to the index of the button
+																			//  "customBtn" clicked
+	
+private: 
+	
+	vector<QPushButton*> customBtn;			// vector of buttons down the button of the GUI
   QVBoxLayout *vboxLayout;
+	QHBoxLayout *hbtnLayout;
   
   bool addToGroupBox;
   QVBoxLayout *groupBoxLayout;
@@ -228,28 +274,126 @@ private:    //## DATA:
   
 public slots:   //## SLOTS:
   
+  void customBtnAccept();
+	void customBtnReject();
+	void customBtnMessage();
+	void customBtnOpenUrl();
+	void updateBtnClicked( QObject *btnClicked );
   void resizeMe();
-  void accept();
   int exec();
 };
 
 
 //############################################################
 
-//-------------------------------
-//## SMALL GUI FUNCTIONS:
 
-string qStringToString( QString qstr );
+//-------------------------------
+//## SMALL MESSAGE BOX FUNCTIONS:
+
 void MsgBox( string str );
+void MsgBox( QWidget *parent, QString title, QString str );
 bool MsgBoxYesNo( QWidget *parent, string str );
 string InputBoxString( QWidget *parent, string title, string label, string defaultStr );
-QString QStr( int number );
-QString QStr( float number );
-void setBold( QWidget *wid, bool bold );
-void setTextColor( QWidget *wid, int r, int g, int b );
-void setDefaultColorAndFont( QWidget *wid );
+
+//-------------------------------
+//## SMALL INLINE GUI FUNCTIONS:
+
+inline QString QStr( int number   );
+inline QString QStr( long number  );
+inline QString QStr( float number );
+inline QString QStr( double number );
+inline string qStringToString( QString qstr );
+inline QString nbsp( int numSpaces );
+inline void setBold( QWidget *wid, bool bold );
+inline void setTextColor( QWidget *wid, int r, int g, int b );
+inline void setDefaultColorAndFont( QWidget *wid );
+inline void openUrl( QString urlString, bool addFilePrefix=false );
 
 //############################################################
+
+//----------------------------------------------------------------------------
+//
+//          SMALL INLINE GUI FUNCTIONS:
+//
+//----------------------------------------------------------------------------
+
+
+
+
+//---------
+//-- Short function name for converting numbers to a QString.
+
+inline QString QStr( int number )			{  return QString::number( number );	}
+inline QString QStr( long number )		{  return QString::number( number );	}
+inline QString QStr( float number )		{  return QString::number( number );	}
+inline QString QStr( double number )	{  return QString::number( number );	}
+
+//---------
+//-- Converts a QString to a standard string
+
+inline string qStringToString( QString qstr )
+{
+  string str = "";
+  for( int i=0; i<qstr.length(); i++ )
+    str +=  qstr.at(i).toLatin1();
+  return str;
+}
+
+//---------
+//-- Converts a QString to a standard string
+
+inline QString nbsp( int numSpaces )
+{
+  QString str = "";
+  for( int i=0; i<numSpaces; i++ )
+    str +=  "&nbsp;";
+  return str;
+}
+
+//---------
+//-- Short function name for taking any widget and making the text in it bold.
+
+inline void setBold( QWidget *wid, bool bold )
+{
+  QFont font;
+  font.setBold(bold);
+  wid->setFont( font );
+}
+
+//---------
+//-- Short function name for setting the text (forground) color of a widget.
+
+inline void setTextColor( QWidget *wid, int r, int g, int b )
+{
+  wid->setStyleSheet( "color: rgb(" + QStr(r) + "," + QStr(g) + "," + QStr(b) + ");" );
+}
+
+
+//---------
+//-- Short function which sets the font to default, the foreground/text color to black
+//-- and background to transparent. This function is useful for when you might apply a
+//-- stylesheet to a container object, but you don't want those changes to apply to 
+//-- (heirarchially) to widgets within it.
+
+inline void setDefaultColorAndFont( QWidget *wid )
+{
+  wid->setFont( QFont() );
+  wid->setStyleSheet("color: rgb(0, 0, 0); background-color: rgba(255, 255, 255, 0);");
+}
+
+//---------
+//-- Opens the given URL ("urlString") in the default web browser.
+//-- If ("addFilePrefix") is true, the string "file://" is added to the
+//-- front and, in most operating systems (including OSX), this will
+//-- mean the specified file on the computer should be opened
+//-- in the default program (eg: a .xls file open in Excel) instead.
+
+inline void openUrl( QString urlString, bool addFilePrefix )
+{
+	if( addFilePrefix )
+		urlString = "file://" + urlString;
+	QDesktopServices::openUrl( QUrl( urlString ) );  
+}
 
 #endif
 

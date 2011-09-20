@@ -1,0 +1,214 @@
+<head>
+<title>Name Wizard Plugin Help</title>
+</head>
+<body>
+<h3>Stereology Plugin Help</h3>
+<p><br>
+  --------------------------<br><br>
+The IMOD Stereology plugin provides an interface for performing rapid stereology on tomographic volumes and/or stacks of images. To achieve this, the Stereology plugin allows you to customize and project a set of grid over desired sections. There are a dozen different types of grids to choose from, including grids appropriate for volume density, surface area density, length and number density. Point counting stereology is often a process where points are manually counted and recorded on paper. The Stereology plugin takes this a step further by allowing you to setup a list of categories, and then set each points as belonging to one (or in some cases more) categories... and take care of the counting for you by generating the numbers at the end. Points in different categories are marked in different colors and saved into special labelled &quot;STEREOLOGY&quot; objects within the imod model file - so that the user can come back to these models later to check points and/or add points to the grid. To further speedup the process of counting points, faster than is possible with manual counting/recording of points, the plugin allows you to classify points using shortcut keys, navigate the grid with arrow keys and also has a special &quot;Point Painter&quot; where you can quickly paint regions of points a particular color. In addition to this you can apply &quot;rules&quot; or use closed contours to apply &quot;masks&quot; change the value of multiple points or automatically add &quot;interception points&quot; for estimating surface area with test lines. Although   not originally designed for stereology, the advantages of using  IMOD's 3dmod interface to segment perform stereology is that 3dmod has a great set of tools for viewing and navigating 3D images and you are able to show and perform surface segmentation and point counting within the same model. Before using this tool however, you should make sure you understand the <a href="stereology_help.html">Basics of Stereology</a> (click to read). The Stereology plugin specializes in point counting stereology, but if used wisely, can also project different types of grids and be used for estimating surface area by the number of times membranes intersect vertical lines. On this page we focus on the plugin itself.</p>
+<p>&nbsp;</p>
+<p><b>Hot Key Summary</b><br>
+---------------------</p>
+<table width="100%" border="0" cellpadding="3" cellspacing="0">
+  <tr>
+    <td width="10%"><b>[1]-[9]  </b></td>
+    <td width="90%">Apply corresponding category to currently selected point or - if &quot;Pt Painter&quot; selected - to all point in paint radius</td>
+  </tr>
+  <tr>
+    <td><b>[arrow keys]</b></td>
+    <td>Navigate the grid by moving the currently selected point <strong>[left]</strong>, <strong>[right]</strong>, <strong>[up]</strong> and <strong>[down]</strong>. If you hold <strong>[shift]</strong>, the left and right keys will skip any checked points, and the up/down arrows will take you to the next/previous grid.</td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><b>[,]</b></td>
+    <td>Go to previous grid</td>
+  </tr>
+  <tr>
+    <td><b>[.]</b></td>
+    <td>Go to next grid</td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><b>[tab]</b></td>
+    <td>Select the very first unchecked point in the grids.</td>
+  </tr>
+  <tr>
+    <td><b>[enter]</b></td>
+    <td>Jump to the next unchecked point in the grid (equivalent of pressing &quot;Next&quot; button).</td>
+  </tr>
+  <tr>
+    <td><b>[space]</b></td>
+    <td>Toggle wether the currently selected point is checked.</td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td><strong>[mouse wheel]</strong></td>
+    <td>Adjust the size/radius of the point painter (used to quickly classify regions of points).</td>
+  </tr>
+  <tr>
+    <td><strong>[w]</strong></td>
+    <td>Increase size of  point painter circle.</td>
+  </tr>
+  <tr>
+    <td><strong>[q]</strong></td>
+    <td>Decrease size of  point painter circle.</td>
+  </tr>
+</table>
+<p><br>
+  <br>
+  <b>How it Works</b><br>
+  --------------------------<br>
+When this plugin is first launched (via: <strong>Special &gt; Stereology</strong>) it starts by
+checking for any &quot;STEREOLOGY&quot; objects already setup in the model.
+If none are found it prompts the user to setup the grid and then setup and &quot;Finalize&quot; two or more different &quot;categories&quot;. Once the user hits okay new 
+objects will be setup and named as per this example:</p>
+<ul>
+  <li>name: <strong>STEREOLOGY.SETTINGS  #grid_set=1#type=pts# </strong>
+    <ul>
+      <li><font size="2">label: &quot;<strong>STEREOLOGY.SETTINGS  #grid_set=1#type=pts#spacing=50,50,5#x=10,1014#y=10,1014#z=9,189#(DONT_RENAME)#</strong>&quot;</font size></li>
+      <li><font size="2"><i>NOTE: This first object, starting &quot;STEREOLOGY.SETTINGS&quot; represents the grid settings and keeps track of &quot;checked&quot; points. In this case the object's label (something generally hidden from the user) tells the plugin to setup a grid with 50x50 pixel squares (the x and y spacing) on every 5th section (the z spacing)... starting on the 10th section and going to up to section 190. Grid lines/points are placed between the x and y min and max values shown.</i></font size><br>
+        <br>
+      </li>
+    </ul>
+  </li>
+  <li><strong>  NOTHING.         #(STEREOLOGY)#grid_set=1#</strong></li>
+  <li><strong>Nucleus.         #(STEREOLOGY)#grid_set=1#</strong></li>
+  <li><strong>Mitochondrion.   #(STEREOLOGY)#grid_set=1#</strong></li>
+  <li><strong>Vesicle.         #(STEREOLOGY)#grid_set=1#</strong>
+<ul>
+      <li><font size="2"><i>And each label will match..</i></font size></li>
+      <li><font size="2"><i>NOTE: All objects containing &quot;(STEREOLOGY)&quot; in their label represent a &quot;category&quot; and store the points in that category. For example, the last object (&quot;Vesicle&quot;) is most likely used to mark any points falling in vesicles, and each stereology point which is inside a vesicle will be represented as a contour point in this object. Notice also that all these objects are in &quot;grid_set=1&quot;, which ties them to the &quot;STEREOLOGY.SETTINGS&quot; object. It is thus possible to have multiple grids per model file, although in most cases you'll only want or need one.</i></font size></li>
+    </ul>
+  </li>
+</ul>
+ <p> All of these objects are set to scattered points with a single contour.<br>
+   <br>
+The &quot;<strong>STEREOLOGY.SETTINGS</strong>&quot; object is the most important one - and it's 
+label contains/stores instructions about how the grid is setup.  
+As the user click &quot;Next&quot; to go to a new points, the ZAP window jumps to 
+center on the next &quot;unchecked&quot; position in the grid (left to right then down)
+and a point is added to the &quot;STEREOLOGY.SETTINGS&quot; object. The number of points
+in &quot;STEREOLOGY.SETTINGS&quot; is thus is equal to the the number of points the user has gone though.<br>
+<br>
+The &quot;<strong>(STEREOLOGY)</strong>&quot; objects each represent a &quot;category&quot; and each is tied
+to the &quot;STEREOLOGY.SETTING&quot; by their &quot;grid_set&quot; id. As each point is selected
+the user can then use shortcut keys [1]-[9] or click the appropriate buttons
+to select what category each point is in, and it it will advance to the next.
+Each time a category is &quot;assigned&quot; to a point, that point is added to the
+corresponding object... hence the number of points in each object corresponds
+to the point in that category.<br>
+<br>
+By default, each point should be assigned one and ONLY one category,
+however when the user clicks &quot;Finalize Categories&quot; there is an option to &quot;allow point
+to be assigned multiple categories&quot;. Another option sometimes presented during this finalize step is &quot;allow intercepts&quot; whereby, the user can enter a &quot;Intercept&quot; mode and draw points wherever their surface of interest intercepts test lines. If either of these
+options are chosen the string &quot;multi_cats&quot; or &quot;allow_intercepts&quot; will be included
+in the label of the &quot;STEREOLOGY.SETTINGS&quot; object.<br>
+<br>
+NOTE: By default each object has is points represented with spheres, however it possible to go &quot;Edit &gt; Object &gt; Type&quot; to change sphere size and the representation of points in each object/category.
+As for the grid display: the &quot;Grid Setup&quot; tab contains a couple of options
+to change the way the grid is drawn, but many more options can be found under &quot;Options &gt; Display Options&quot; and under &quot;Options &gt; Grid Settings&quot; you can change several other grid-related values including the default values used to set up new grids.</p>
+ <p>This  plugin   relies heavily on object labels to store grid parameters because, unlike object names, they are fairly hidden from the user and thus hard to accidentally change or delete outside of the plugin. To see and/or  modify the object labels you can use &quot;Options &gt; Modify grid settings/labels&quot;. Ideally you should get your grid settings right the first time (before you click &quot;Finalize&quot;), but if you do decide you suddenly want/need a finer grid the safest option is to &quot;override&quot; values in the label by changing the object's name. In the example above, the user could halve the spacing of points in x and change  the grid type to lines and  by  renaming the grid setting object to: &quot;<em>STEREOLOGY.SETTINGS #grid_set=1#type=lines#xspacing=25#</em>&quot; and then would click &quot;Options &gt; Load/reload grid from model&quot; to make these changes take effect - and hopefully the points he has marked up will still be loaded (since he has exactly halved the spacing). If the user then deleted the changes and/or the whole object name and reloaded it again, the original grid settings (when the user clicked &quot;Finalize Categories&quot;) should be restored.<br>
+</p>
+ <p><br>
+  <br>
+  <b>Saving/Loading a List of Categories</b><br>
+   ---------------------<br>
+&quot;Options &gt; Settings&quot;, however lists of categories must be loaded and saved via a special comma separated value (csv) text file. Whenever you start a new grid, the default set of categories is loaded from the following location:</p>
+ <ul>
+   <li>The "<i>IMOD_PLUGIN_DIR</i>": 
+"<b>$IMOD_DIR/lib/imodplug/standard_names.csv</b>"</li>
+ </ul>
+ <p>This folder is typically found under &quot;/Applications/IMOD/lib/...&quot; on Mac or &quot;C:/cygwin/usr/local/IMOD/lib/...&quot; on Windows. The format for this file is:</p>
+<blockquote><b>(1)Name, (2)Red, (3)Green, (4)Blue, (5)Hyperlink, (6)UniqueID, 
+(7)Description, (8)Super Category, (9)Synonym(s)</b>,<strong> (10)Sphere Size, (11)Line Width.</strong></blockquote>
+<p>This file format is based on the same &quot;<strong>standard names and colors csv file</strong>&quot; format used by the &quot;<strong>Name Wizard</strong>&quot; plugin, which you can read about <a href="namewizard.html">here</a>. Used in the &quot;Stereology&quot; plugin the category name is entered into the first field, the red, and blue values are entered as integers between 0 and 255 into the next three fields, and the last two field (specific to this plugin) can be used to store the sphere size in pixels and line width in pixels. Notice that commas delimit the separation between each field. If you chose to edit one of these files manually by a spreadsheet or text edit application you can add a hyperlink and description of the category, but make sure you save in Windows .csv format and use commas correctly. The safer option is to click the little down arrow below the category list (available only before you click &quot;Finalize&quot;) and here you have options to save the current list of categories to file... or load a different set of categories from file.</p>
+<p>&nbsp;</p>
+<p><b>Types of Grids</b><br>
+---------------------</p>
+<p>
+
+The very first option in the &quot;Grid Setup&quot; tab is to select a &quot;grid type&quot;. It's a good idea to understand what each of these grids is useful for:
+<ul>
+  <li><b>lines</b> - show all horizontal and vertical grid lines...<em> use this for VOLUME estimates over large areas.</em></li>
+  <li><b>crosshairs</b> - show a small crosshair over every stereology point.. <em>recommended for VOLUME estimates using &lt;10,000 points.</em></li>
+  <li><strong>arrows</strong> - show a tiny arrow over every point... <em>same as above, but using tiny arrows, not crosshairs.</em></li>
+  <li><strong>off pts</strong> - shows points which are offset/staggered every second row... <em>similar to above but maximizes distance between points</em>.</li>
+  <li><b>rand</b> - allows you to randomly add any number of points to your grid... <em>use this for quick-and-dirty VOLUME estimates - this is not a standard or reproducible stereology method.</em><br>
+    <br>
+  </li>
+  <li><b>vert lines</b> - show vertical grid lines only... <em>use this for SURFACE AREA estimations, but tallying the number of intersecting lines/membranes per line</em>.</li>
+  <li><b>horz lines</b> - show horizontal grid lines only... <em>as above, but using horizontal lines.</em></li>
+  <li><strong>diag up</strong> - projects diagonal lines which slope upward to the right and slope can be adjusted by adjusting with x and y spacing separately... <em>similar effect as above</em>.</li>
+  <li><strong>diag down</strong> - projects diagonal lines which slope down to the right... <em>same idea as above</em>.</li>
+  <li><b>line pairs</b> - spaced out horz lines staggered on alternate rows... <em>a popular stereology technique for estimating SURFACE AREA by the number of intersections per line</em>.</li>
+  <li><b>cycloids</b> -  evenly spaced cycloid lines which are distorted by the values of x and y spacing... <em>used for SURFACE AREA estimation and by using these curves instead of straight lines can help capture more intersections</em>.</li>
+  <li><b>cycloids alt</b> - as above, but with every second cycloid facing down (&quot;alternating&quot;) ... <em>similar to above</em>.</li>
+  <li><strong>cycloids long</strong> - shows continuous cycloid lines and, unlike above options, these are true cycloids in that they are not stretched or squashed by any y spacing value... <em>can be used in LENGTH estimation of string like filaments, but only if you know what you're doing</em>.<br>
+    <br>
+  </li>
+  <li><b>rectangles 1:2</b> - projects rectangles which are half the length of the x and y spacing respectively... <em>possible to use for NUMBER estimation (number of surfaces per volume), but preferred method is to use forbidden squares</em>.</li>
+  <li><b>forbidden squares</b> <strong>1:2</strong> - shows special 'forbidden squares' structures used for counting surfaces per area. The side of each square is set to half the x spacing or y spacing - whichever is shorter.</li>
+  <li><strong>forbidden squares 1:4</strong> - as above, but side length 1/4 of minimum spacing.</li>
+  <li><strong>forbidden squares 1:8</strong> - as above, but side length 1/8 of minimum spacing.</li>
+  <li><strong>none</strong> - shows no grid.... an option you may want to chose if you have turned on &quot;subsample rectangles&quot; and are using these as custom sized forbidden squares.</li>
+</ul>
+<p>Notice that the first four grid types are used for estimating <strong>VOLUME DENSITY (V<sub>V</sub>)</strong> using &quot;<a href="stereology_help.html#point_counting_stereology">point counting stereology</a>&quot;. If you choose one of these techniques you should setup each category representing a different type of structure and each point should be classified into one of these categories. The &quot;<strong>rand</strong>&quot; option is quite unique in that it is not really a grid. If you choose this option you will have to click the &quot;<strong>Random Pts+</strong>&quot; button to generate as many randomly positioned points as you want. The advantage of this is you can add as many points as you want, but the disadvantage is that it's not a &quot;supported&quot; stereology technique - it's impossible to reproduce or write up in a paper.</p>
+<p>The next several grid types (vert lines, cycloids) should be used for estimating <strong>SURFACE AREA DENSITY</strong><strong> (S<sub>V</sub>)</strong> . If you choose one of these techniques you should setup categories differently.... and the easiest method is to let the plugin add as categories: &quot;0.INTERSECTIONS&quot;, &quot;1.INTERSECTIONS&quot;, &quot;2.INTERSECTIONS&quot; etc. Using this system you can quickly click the matching number keys [0]-[9] to show how many times each &quot;<strong>test line</strong>&quot; is intersected by the edge of a particular type of surface. If the test line doesn't touch any surface you should choose [0]. If you want to count intersections for more than one type of surface at once an alternative approach is to setup categories as normal (eg: &quot;NOTHING&quot;, &quot;MITOCHODRION, &quot;VESICLE&quot;, etc) and make sure you tick the &quot;allow intersections&quot; options when you click &quot;Finalize Categories&quot;. This option enables an &quot;<strong>Intercept</strong>&quot; mode button which, when selected, allows you to click points along each test line which intercept each surface type, and use the numbers to change/add points in the different categories.</p>
+<p>The final few grid types (rectangles and forbidden squares) can be used for estimating <strong>NUMBER DENSITY (S<sub>N</sub>)</strong> . In the forbidden squares system, the number of surfaces in each square are counted, but any surface touching the solid lines (along the left side and bottom) should be omitted - if a surface touches the dotted line (but not the solid line) it should be counted and also counted if it's completely inside the box without touching any lines. This system is specially setup such that even if all your forbidden squares were touching, you wouldn't double count any surfaces. If you want to setup a custom size for forbidden squares, you should tick the &quot;subsample&quot; rectangles option in the &quot;Grid Setup&quot; tab and will probably want to check &quot;show grid on every slice&quot; if using the 3D &quot;Physical Dissector&quot; method to count the number of surfaces in a 3D volume (instead of 2D plane).</p>
+<p>Please note that for both surface area and number measurements, it's important you setup the right pixel size and units under &quot;<strong>Edit &gt; Model &gt; Header</strong>&quot; - so that the scale of the image is known and thus you can get a measure for S<sub>V</sub> or S<sub>N</sub>. When you click &quot;Options &gt; Calculate Results&quot;, the plugin should detect this and, if your categories are labelled  &quot;1.INTERSECTIONS&quot;, &quot;2.INTERSECTIONS&quot; etc, should add the total number of intersections appropriately. If you've used the &quot;allow intercepts&quot; approach it should just add the number of points in that category... or you can do this yourself using the main 3dmod window to see how many points are in each object.</p>
+<p>&nbsp;</p>
+<p><b>Options</b><br>
+---------------------<br>
+<br>
+In addition to the options on the main Stereology plugin interface, a large number of 
+additional tools are available when you click the "<strong>Options</strong>" button.
+A small description of each is written below.</p>
+<ul>
+  <li><b>Set/view grid spacing in units</b> - Allows you to view and/or set grid spacing in whatever metric unit is specified in the model header (typically 'nm').</li>
+  <li> <b>Load/reload grid from model</b> - Will search the currently open IMOD model for 'STEREOLOGY' objects and if it find any, gives you options to load the grid settings, categories and points from one of these grids.</li>
+  <li><strong>Start new grid (wizard)</strong> - Allows you to start a new grid using a wizard to decide what type of grid and method you want to use.</li>
+  <li><strong>Modify grid settings/labels</strong> - Allows you to modify a grid which has already been finalized by changing object labels.... something you should ONLY do if you have read the documentation and know what you're doing.<br>
+    --<br>
+  </li>
+  <li><b>Apply mask to points</b> - Allows you to change the classification of stereology points inside and/or outside a set of closed contour within a closed (non-stereology) object.</li>
+  <li><strong>Add intersection points</strong> - Allows you to automatically add &quot;intersection&quot; points where test lines intersect closed or open contours within your model.</li>
+  <li><b>Change point values</b> - Allows you to apply a set of *rules* to change the classification of points which meet a set criteria. As one example: you could change only unchecked points on the current grid/section to be category 1 and checked.</li>
+  <li> <b>Validate point values</b> - Will validate your grid points by finding any unchecked points without a category, or points with more than one category (in cases where the &quot;allow multiple categories&quot; option was not checked).
+    <br>
+    --</li>
+  <li><b>Check progress</b> - Quickly shows how many points you have checked and how many points fall in each category. </li>
+  <li><b>Calculate results!</b> - Calculates and outputs results from your selected point-counting stereology grids. Results can be output in various formats for easy copy and paste easily into a spreadsheet, and you can also choose to omit certain points and/or categories from calculation.<br>
+  --</li>
+  <li><b>Settings</b> - Lets you modify settings associated with this plugin including default values for grid settings and extra grid appearance options.</li>
+</ul>
+<p><br>
+---------------------<br>
+<br>
+This plugin was created by <b>Andrew Noske</b> (<u>andrew_noske AT yahoo.com</u>).<br>
+<br>
+If you encounter bugs please e-mail me before e-mailing the
+  IMOD group (to reduce traffic). <br>
+In your e-mail please tell me exactly how and when the problem
+  occurred and attach the model file you were using with
+  enough information that I can replicate the error/crash.
+<p><i>NOTE: This plugin is now part of the is part of the
+  &quot;<a href="http://www.slashsegmentation.com/">SLASH segmententation</a>&quot;
+  initiative. Please contact me for citation information.</i><br>
+  <br>
+<hr>
+<p><font size="2">
+<b>Acknowledgements:</b> <i>Mark Ellisman</i> and The National Center for
+Microscopy and Imaging Research (www.ncmir.ucsd.edu) for helping sponsor
+and encourage this work. <i>Guy Perkins </i>and <i>Keun-Young Kim (Christine) </i>from my lab for helping advocate and beta test this plugin. <i>David Mastronarde</i> and the team at The Boulder Lab for 3-D Electron Microscopy
+(bio3d.colorado.edu) for their wonderful support of all my plugins.</font>
+<font size="2"></font>
+</body>

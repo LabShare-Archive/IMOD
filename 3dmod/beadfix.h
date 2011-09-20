@@ -83,6 +83,7 @@ class BeadFixer : public DialogFrame
   QCheckBox *overlayBox;
   int    mLastob;
   ToolEdit *skipEdit;
+  int mIteratingMoveAll;
 
   public slots:
   void buttonPressed(int which);
@@ -132,6 +133,7 @@ class BeadFixer : public DialogFrame
   void keyPressEvent ( QKeyEvent * e );
   void keyReleaseEvent ( QKeyEvent * e );
   void timerEvent(QTimerEvent *e);
+  void mouseMoveEvent ( QMouseEvent * e );
   void fontChange( const QFont & oldFont );
 
  private:
@@ -145,6 +147,7 @@ class BeadFixer : public DialogFrame
   void manageDoneLabel();
   void reportContRes();
   int moveToCont(int idir);
+  void iterateMoveAll();
 
   int    mIfdidgap;
   int    mLastco, mLastpt, mLastbefore;
@@ -219,6 +222,7 @@ class BeadFixer : public DialogFrame
   int mExtraObj;
   bool mStayOnTop;
   bool mRunningAlign;
+  bool mShiftDown;
   int mTopTimerID;
   QProcess *mAlignProcess;
   int mPeakMin, mPeakMax;

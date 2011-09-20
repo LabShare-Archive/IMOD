@@ -14,7 +14,10 @@
 
     $Revision$
 
-    $Log$
+    $Log: icontextra.cpp,v $
+    Revision 1.23  2011/01/08 01:03:37  tempuser
+    *** empty log message ***
+
     Revision 1.22  2010/11/03 06:53:14  tempuser
     Uncommented Q_OBJECT although still not working on my machine
 
@@ -1669,6 +1672,43 @@ int cont_addTwoPointContourToObj( Iobj *obj, Ipoint p1, Ipoint p2, int open )
   return newContPos;
 }
 
+//------------------------
+//-- Adds a contour with two points to the given object
+
+int cont_addLineToObj( Iobj *obj,
+											 float x1, float y1, float z1,
+											 float x2, float y2, float z2,
+											 bool drawAllZ, bool interploated )
+{
+  Icont *cont = imodContourNew();
+  imodPointAppendXYZ( cont, x1, y1, z1 );
+  imodPointAppendXYZ( cont, x2, y2, z2 );
+  if(drawAllZ)
+    imodContourSetFlag( cont, ICONT_DRAW_ALLZ, 1 );
+  if(interploated)
+    imodContourSetFlag( cont, ICONT_STIPPLED, 1 );
+  int newContPos = imodObjectAddContour( obj, cont );
+  free(cont);
+	return (newContPos);
+}
+
+//------------------------
+//-- Adds a contour with one points to the given object
+
+int cont_addPtToObj( Iobj *obj,
+										 float x, float y, float z,
+										 bool drawAllZ )
+{
+  Icont *cont = imodContourNew();
+  imodPointAppendXYZ( cont, x, y, z );
+  if(drawAllZ)
+    imodContourSetFlag( cont, ICONT_DRAW_ALLZ, 1 );
+  int newContPos = imodObjectAddContour( obj, cont );
+  free(cont);
+	return (newContPos);
+}
+
+
 
 
 
@@ -2916,6 +2956,8 @@ void cont_makeSimple( Icont *cont )
   int numIntersects = 0;
   imodContourUnique( cont );
   
+	Ipoint intersectPt;
+	
   findIntersect:            // LABEL (see "goto findIntersect")
   
   for(int i=0; i<psize(cont); i++ )
@@ -2923,7 +2965,6 @@ void cont_makeSimple( Icont *cont )
     {
       if( i == 0 && j == psize(cont)-1 ) continue;
       
-      Ipoint intersectPt;
       bool intersectionFound =
         line_doLinesCrossAndWhere( getPt(cont,i),getPt(cont,i+1),
                                    getPt(cont,j),getPt(cont,j+1),&intersectPt );
@@ -4136,7 +4177,45 @@ int cont_addPtsAtIntersection( Icont *cont1, Icont *cont2 )
 }
 
 
+//------------------------
+//-- Adds points to "intercepts" at any place where the two given contours
+//-- "cont1" and "cont2" intersect each other.
+//-- Returns the number of points added (equal to the number of intersections
+//-- found
 
+int cont_addPtsAtIntersections( Icont *cont1, Icont *cont2,
+															  bool cont1Closed, bool cont2Closed,
+															  Icont *intercepts, bool clearIntercepts )
+{
+	if( clearIntercepts )
+		imodContourClearPoints( intercepts );
+	
+  int ptsBefore = psize(intercepts);
+  Ipoint intercept;     // fed into "line_doLinesCrossAndWhere" function
+  
+	int cont1MaxPt = (cont1Closed) ? psize(cont1) : psize(cont1)-1;
+	int cont2MaxPt = (cont2Closed) ? psize(cont2) : psize(cont2)-1;
+	
+  for (int i=0; i<cont1MaxPt;i++)                // for each point/line in cont1:
+  {
+    for (int j=0; j<cont2MaxPt;j++)                // for each point/line in cont2:
+    {
+      if( line_doLinesCrossAndWhere( getPt(cont1,i), getPt(cont1,i+1),
+																	   getPt(cont2,j), getPt(cont2,j+1), &intercept ) )
+      {
+				if( psize( intercepts ) > 0 &&
+					  ptsEqual( getLastPt(intercepts), &intercept ) )
+					continue;
+        
+        imodPointAppend( intercepts, &intercept );    // add the intercept to "intercepts"
+      }
+    }
+  }
+  
+	imodContourUnique( intercepts );
+	
+  return ( psize(intercepts) - ptsBefore );
+}
 
 
 //------------------------

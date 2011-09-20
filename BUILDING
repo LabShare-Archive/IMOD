@@ -16,7 +16,8 @@ subsequently disabled conditionally to allow it to build with Qt 4.3 (colored
 error messages in the 3dmod Info window).  Higher levels of Qt,
 up to 4.6.2, have been used for 64-bit builds under Mac OS X.  If you have Qt
 4.3 on your system already you can safely build with that.  If you need to
-build Qt, it is probably safe to use 4.6 on any architecture.
+build Qt, it is safe to use 4.6 on any architecture.  However, IMOD will not
+yet build with Qt 4.7, because the assistant_adp help system was eliminated.
 
 Several strategies were used when building Qt.  One was to build in a local
 directory and then run "make install".  With later versions on Mac, this
@@ -40,22 +41,26 @@ program directory.
 In order to build with CUDA support, environment variable CUDA_DIR must be
 defined to point to the directory where the CUDA toolkit is installed.  The
 build computer itself need not be CUDA-capable or have drivers supporting
-CUDA.  So far, CUDA 2.1, 2.2, 2.3, and 3.1 have been used on various systems;
-3.1 required some nvcc compiler flag changes and library location changes.
-These changes have been made for Mac OS X in IMOD 4.1, but not until IMOD
-4.2.5 for 64-bit Linux.  CUDA support for 64-bit Mac can be built only with
-CUDA 3.1 and only under OS X 10.6.
+CUDA.  So far, CUDA 2.1 - 2.3, 3.1 - 3.3, and 4.0 have been used on various
+systems; 3.1 required some nvcc compiler flag changes and library location
+changes.  These changes have been made for Mac OS X in IMOD 4.1, but not until
+IMOD 4.2.5 for 64-bit Linux.  CUDA support for 64-bit Mac can be built only
+with CUDA 3.1 and only under OS X 10.6.
 
 The setup scripts automatically configure to use OpenMP in cases where they
 think it is available.
 
-You need a Sun/Oracle version of the Java Development Kit to build eTomo.
-Version 1.5 or higher is required and there should be no problems using the
-latest version.  On a 64-bit system, it does not matter if this is 32 or
-64-bit. This will already be available on Mac; it may be available in some
-versions of Linux, otherwise you will have to install a package from Sun; and
-on Windows you will have to install a package from Sun.  You must place the
-bin of the JDK on your path.
+You need a Sun/Oracle or OpenJDK version of the Java Development Kit to build
+eTomo. Version 1.5 or higher is required and there should be no problems using
+the latest version.  On a 64-bit system, it does not matter if this is 32 or
+64-bit. This will already be available on Mac (except in OS X 10.7); it may be
+available in some versions of Linux, otherwise you will have to install a
+package from Sun/Oracle; and on Windows you will have to install a package
+from Sun/Oracle.  You must place the bin of the JDK on your path.
+
+As of 4.2.25, IMOD is built with version 4 of libtiff to support large files,
+specifically tiff-4.0.0beta7.  Source for this or earlier versions is obtained
+from http://www.remotesensing.org/libtiff/.
 
 setup has a number of options that can be listed with "setup -h".  Currently
 the main body of the setup code is in setup2 because that needed to be
@@ -84,18 +89,28 @@ make install
 Qt 4.3 has been used on both Fedora 11 and Ubuntu 8.1.  setup will detect the
 lack of a QTDIR/include and set its Qt include variable to /usr/include (the
 location on FC11) if /usr/include/Qt exists, otherwise to /usr/include/qt4
-(location on Ubuntu).
+(location on Ubuntu).  The arrangement on RHEL6 is also handled correctly.
 
 QTDIR must be defined, $QTDIR/bin must be on the path, and $QT_DIR/lib must
 be on the LD_LIBRARY_PATH.
 
 The compilers can be either gcc and gfortran, or the Intel C++ and Fortran
-compilers (only version 10 has been configured so far).  If the 
-Intel compilers are on the path, they will be used by default; this can be
-overriden with the "-c gnu" or "-c gfortran" setup option.  Either way will
-support OpenMP and CUDA for "current" compilers (e.g., gcc 4.1.2 in RHEL5).
+compilers (version 10 or 11 can be used).  If the Intel compilers are on the
+path, they will be used by default; this can be overriden with the "-c gnu" or
+"-c gfortran" setup option.  Either way will support OpenMP and CUDA for
+"current" compilers (e.g., gcc 4.1.2 in RHEL5).
 
-To build and install for general use:
+To build version 4 TIFF libraries, unpack the libtiff distribution and decide
+on a directory to install to.  Build with:
+./configure --prefix=install_directory
+make [-jn]        (parallel make works fine)
+make install
+
+Then define an environment variable TIFF4_DIR to point to the install
+directory.
+
+
+To build and install IMOD for general use:
 
 1. "./setup -i [install directory]" to set the install directory.
 
@@ -109,7 +124,7 @@ To build and install for general use:
    will also copy the Qt library.
 
 The last step can be skipped for a personal installation in the source
-directory.
+directory, as long as all libraries used are on your LD_LIBRARY_PATH.
 
 
 BUILDING ON MAC OS X
@@ -149,9 +164,7 @@ TIFF and other libraries for Mac OSX
 
 You should build and install TIFF libraries from source; installing JPEG is
 optional to allow JPEG compression to be used in TIFF files (libz is on the
-Mac already).
-http://www.remotesensing.org/libtiff/ is the right site to go to for TIFF;
-We are now using tiff-3.9.4 and jpeg-8b from http://www.ijg.org/.
+Mac already).  We use jpeg-8b from http://www.ijg.org/.
 We use static libraries which are linked into libiimod.dylib.  When we
 tried to use dynamic libraries, 3dmod and etomo would not run because a system
 library tried to call back into the libtiff and libjpeg that we had placed on 
@@ -179,9 +192,8 @@ make
 sudo make install
 
 For TIFF,
-and CXXFLAGS
 ./configure --with-jpeg-include-dir=/usr/local/include \
---with-jpeg-lib-dir=/usr/local/lib
+--with-jpeg-lib-dir=/usr/local/lib -without-x
 make
 sudo make install
 
@@ -281,9 +293,9 @@ installqtlib will not run.  For 32-bit, you can just install TIFF libraries
 from GnuWin32: http://gnuwin32.sourceforge.net/packages/tiff.htm You want the
 ordinary version rather than the one using the Win32 API.  You can get the
 TIFF binaries in the "Complete packages, except sources".  Version 3.5.7 is
-the source of the import library packaged in the IMOD.
+the source of the import library packaged in the IMOD source.
 
-As of version 4.2.9, IMOD is built with tiff-3.9.4 from
+As of version 4.2.9, IMOD is built with libtiff from
 http://www.remotesensing.org/libtiff/, jpeg-8b from http://www.ijg.org/, and
 zlib-1.2.5 from http://www.zlib.net/.  These packages should all be unpacked
 in a common directory without spaces in its path.  For each package, either

@@ -42,7 +42,8 @@ struct ObjectLineItem
   bool         matchHasColor;
   bool         colorsMatch;
   bool         setup;
-  
+  bool         checked;
+	
   QCheckBox    *chkObj;
   QWidget      *widLine;
   QHBoxLayout  *layLine;
@@ -70,7 +71,7 @@ struct ObjectLineItem
 };
 
 //-------------------------------
-//## INTERPOLATOR WINDOW:
+//## NAME WIZARD WINDOW:
 
 class NameWizard : public DialogFrame
 {
@@ -85,7 +86,7 @@ public:
   void resizeEvent ( QResizeEvent * event );
   
 public slots:
-  void buttonPressed(int);
+	
   void initValues();
   void loadSettings();
   void saveSettings();
@@ -93,12 +94,12 @@ public slots:
   
   bool ifRefreshNeeded();
   void alertIfRefreshNeeded();
+	void checkClicked();
   void nameModified();
   void changeCols( int i );
   void changeColsIdx0() { changeCols(0); }
   void changeColsIdx1() { changeCols(1); }
   
-  void refresh();
   void refreshObjList();
   void refreshObjItem( int itemIdx );
   void updateStatusLabel();
@@ -119,13 +120,16 @@ public slots:
   void deselectAll();
   void selectRange();
   void selectMatching();
-  
+	QColor makeQColor( float r, float g, float b );
+  void batchRecolorSelected();
+	void randomlyRecolor();
+	
+  void moreSettings();
+  void buttonPressed(int);
+	
+protected:
   void helpPluginHelp();
   void helpNamingHelp();
-  
-  void moreSettings();
-  
-protected:
   void closeEvent ( QCloseEvent * e );
   void keyPressEvent ( QKeyEvent * e );
   void keyReleaseEvent ( QKeyEvent * e );
@@ -133,8 +137,10 @@ protected:
   
 private:
   
-  QLabel       *lblIdentifier;
-  QPushButton  *btnChangeCol;
+	QLabel      *lblStatusLabel;			// changes color and shows # of bad matches etc
+	
+  QLabel       *lblIdentifier;			// set to "UniqueID" or "Contours"
+  QPushButton  *btnChangeCol;				// tiny drop down button to change above value
   
   QWidget      *widList;
   QVBoxLayout  *layList;
@@ -150,8 +156,6 @@ private:
   QPushButton  *selectionButton;
   QPushButton  *editNameTableButton;
   QPushButton  *matchColorsButton;
-  
-  QLabel      *lblStatusLabel;
 };
 
 
@@ -194,7 +198,7 @@ struct NameWizardData   // contains all local plugin data
   vector<NameEntry> nameList;
   
   
-  //## SETTINGS:
+  //## SAVED SETTINGS:
   
   int rightColIdx;            // used to change the right-most column to show
                               //  either "UniqueId" or "Contours"
@@ -202,35 +206,13 @@ struct NameWizardData   // contains all local plugin data
                               //  "secondaryFilePath" has no file
   bool showStatusLabel;       // if true, shows "lblStatusLabel".
   
-  bool initialized;
+	//## OTHER SETTINGS:
+	
+  bool initialized;						// set to true once plugin is initialized
+	bool shiftDown;							// set to true when the shift key is down
 };
 
 
 
 //############################################################
 
-
-//-------------------------------
-//## SMALL FUNCTIONS:
-
-Iobj *getCurrObj();
-Icont *getCurrCont();
-Ipoint *getCurrPt();
-bool isCurrObjValidAndShown();
-bool isCurrContValid();
-bool isCurrPtValid();
-
-int removeAllDeleteFlaggedContoursFromObj( Iobj *obj, int objIdx );
-
-
-//-------------------------------
-//## EDITING FUNCTIONS:
-
-int edit_getZOfTopZap();
-int edit_setZapLocation( float x, int y, int z, bool redraw );
-int edit_changeSelectedSlice( int changeZ, bool redraw, bool snapToEnds=true );
-
-int edit_addContourToObj( Iobj *obj, Icont *cont, bool enableUndo );
-int edit_removeAllFlaggedContoursFromObj( Iobj *obj );
-
-//############################################################

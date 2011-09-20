@@ -62,7 +62,7 @@ OFFSET  SIZE DATA    NAME	Description
                                       * 2**((sign of s2) * (|s2|/256))
 128 200  2   short   nint;       Number of integers per section (Agard format) or
                                  number of bytes per section (SerialEM format)
-130 202  2   short   nreal;      Number of reals per section (Agard format) or
+130 202  2   short   nreal;      Number of reals per section (Agard format) or bit
                                  flags for which types of short data (SerialEM format):
                                  1 = tilt angle * 100  (2 bytes)
                                  2 = piece coordinates for montage  (6 bytes)
@@ -79,8 +79,8 @@ OFFSET  SIZE DATA    NAME	Description
 132 204  20  ---     extra data (not used)
 
 152 230  4   int     imodStamp   1146047817 indicates that file was created by IMOD or 
-                                 other software that uses flags in the following field
-156 234  4   int     imodFlags   Flags:
+                                 other software that uses bit flags in the following field
+156 234  4   int     imodFlags   Bit flags:
                                  1 = bytes are stored as signed
 
                               Explanation of type of data.

@@ -1,10 +1,29 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/20/11: Fixed function wrapper which caused wrong sign in rotation output of
+xf2rotmagstr and also affected tiltalign transforms with projection skew,
+makegradtable with transforms aligning different Z heights, and mtlengths with
+alignment files (broken since 3.12.23).
+
+9/20/11: Added Fixgradtable to adjust a mag gradient table for a change in
+crossover intensity.
+
+9/20/11: In Beadfixer, added ability to iterate moving all points by residual.
+
+9/19/11: In eTomo graying out parallel processing row checkbox, when there is
+only one row.(Bug# 1406)
+
+9/19/11: Andrew Noske added a Stereology plugin.
+
+9/19/11: Switched all packages to using version 4 of libtiff to support large
+files, and fixed mrc2tif problem writing a large tiff stack.
+
+9/19/11: IMOD_4-2-25  to synchronize tags with TomoData/ImodTests
 9/18/11: Added ability to read MRC-like files that are inverted in Y, so DM
 images will now be displayed correctly; added support for signed bytes in raw
 and MRC-like files.
 
-9/17/11: IMOD_4-2-26
+9/17/11: IMOD_4-2-24
 9/16/11: Made Tomopitch not hang and give correct tilt angle offset when there
 are lines at only one sample.
 

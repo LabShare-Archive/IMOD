@@ -14,7 +14,10 @@
 
     $Revision$
 
-    $Log$
+    $Log: interpolator.cpp,v $
+    Revision 1.5  2010/10/18 22:41:56  tempuser
+    Minor changes only
+
     Revision 1.4  2010/10/18 19:38:32  tempuser
     improved dialog control
 
@@ -110,7 +113,10 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
   {
     case Qt::Key_Enter: 
     case Qt::Key_Return: 
-      plug.window->interpolateContour();
+			if(shift)
+				plug.window->interpolateLinearWithLastContour();
+			else
+				plug.window->interpolateContour();
       break;
       
     case Qt::Key_T:                  // temporary testing purposes - comment out
@@ -187,6 +193,9 @@ void imodPlugExecute(ImodView *inImodView)
     plug.deselectAfterEnter       = true;
     plug.selectedAction           = 0;
     
+		plug.contIdxLastInterp        = -1;
+		plug.objIdxLastInterp         = 0;
+		
     plug.window->loadSettings();
     
     plug.initialized = true;
@@ -198,10 +207,10 @@ void imodPlugExecute(ImodView *inImodView)
 	//## CREATE THE PLUGIN WINDOW:
   
 	plug.window	= new Interpolator(imodDialogManager.parent(IMOD_DIALOG), "Interpolator");
-
+	plug.window->setWindowTitle("Interpolator (*by SLASH*)");		// to help with our grant
+	
 	imodDialogManager.add((QWidget *)plug.window, IMOD_DIALOG);
   adjustGeometryAndShow((QWidget *)plug.window, IMOD_DIALOG );
-	//plug.window->show();
 }
 
 
@@ -217,18 +226,28 @@ void imodPlugExecute(ImodView *inImodView)
 
 //## THE WINDOW CLASS CONSTRUCTOR
 
-static char *buttonLabels[] = {(char*)"Done", (char*)"Help"};
-static char *buttonTips[] = {(char*)"Close Interpolator", (char*)"Open help window"};
+static char *buttonLabels[] = {(char*)"Done", (char*)"Video", (char *)"Help"};
+static char *buttonTips[]   = {(char*)"Close this plugin window",
+	                             (char*)"See SLASH help videos showing \n"
+	                                    "how to use this plugin",
+														   (char*)"Open help window"};
 
 Interpolator::Interpolator(QWidget *parent, const char *name)
-	: DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Interpolator", "", name)
+	: DialogFrame(parent, 3, buttonLabels, buttonTips, true, "Interpolator", "", name)
 {
 	const int LAY_MARGIN = 4;
 	const int LAY_SPACING = 4;
 	const int GROUP_MARGIN = 1;
 	const int SPACER_HEIGHT   = 15;
   
-  
+	//## RECOLOR MIDDLE "Video" BUTTON:
+	
+	mButtons[1]->setStyleSheet("color: rgb(150, 180, 255);");
+	mButtons[1]->setFlat( true );
+	mButtons[1]->setCursor( Qt::PointingHandCursor );
+	mButtons[2]->setCursor( Qt::PointingHandCursor );
+	
+	
 	//## Type:
 	
 	QGroupBox *typeGbox = new QGroupBox("Interpolation Type:", this);
@@ -241,7 +260,7 @@ Interpolator::Interpolator(QWidget *parent, const char *name)
 	
 	typeRadio_None = diaRadioButton("None", typeGbox, typeButtonGroup, gbLayout, 0, 
 					"No interpolation is applied");
-	//typeRadio_None->setChecked(true);
+	
 	typeRadio_Linear = diaRadioButton("Linear", typeGbox, typeButtonGroup, gbLayout, 1, 
 					  "Interpolated contours are generated in straight "
 					  "lines between connected key contours");
@@ -257,9 +276,7 @@ Interpolator::Interpolator(QWidget *parent, const char *name)
 					  "But may be buggy");
   
 	changeTypeSelected( plug.interType );
-  
-	//mLayout->addWidget(typeGbox);
-	
+  	
   
   //## Pin-to-top Button:
   QHBoxLayout* topLay = new QHBoxLayout();
@@ -282,7 +299,7 @@ Interpolator::Interpolator(QWidget *parent, const char *name)
   toolBut->setFixedWidth(hint.width());
   toolBut->setFixedHeight(hint.height());
   connect(toolBut, SIGNAL(toggled(bool)), this, SLOT(keepOnTop(bool)));
-  toolBut->setToolTip("Keep bead fixer window on top");
+  toolBut->setToolTip("Keep interpolator window on top");
   
   pinLay->setAlignment( Qt::AlignTop );
   pinLay->addWidget(toolBut);
@@ -346,9 +363,13 @@ Interpolator::Interpolator(QWidget *parent, const char *name)
                                              grpActions);
 	applyInterpolationButton->setFocusPolicy(Qt::NoFocus);
 	connect(applyInterpolationButton, SIGNAL(clicked()), this,
-          SLOT(interpolateContour()));
-	applyInterpolationButton->setToolTip("Generates interpolated contours "
-                "either side of the current contour");
+          SLOT(interpolateContourBtn()));
+	applyInterpolationButton->setToolTip
+	  ( "Generates interpolated contours either side  <br>"
+	    "of the current contour <br><br>"
+	    "<b>TIP</b>: Use the <b>[enter]</b> key to perform this quickly<br>"
+	    "and hold [shift]+[enter] to force linear interpolation <br>"
+	    "with the last contour you interpolated" );																			
 	vboxLayout1->addWidget(applyInterpolationButton);
   
   
@@ -357,7 +378,7 @@ Interpolator::Interpolator(QWidget *parent, const char *name)
 	connect(clearAllInterpButton, SIGNAL(clicked()), this,
           SLOT(clearInterpolatedContours()));
 	clearAllInterpButton->setToolTip("Deletes all interpolated from "
-                "the selected object");
+                                   "the selected object");
 	vboxLayout1->addWidget(clearAllInterpButton);
 	
   
@@ -366,7 +387,7 @@ Interpolator::Interpolator(QWidget *parent, const char *name)
 	connect(regenerateInterpButton, SIGNAL(clicked()), this,
           SLOT(regenerateInterpolation()));
 	regenerateInterpButton->setToolTip("Re-interpolates every key contour in "
-                "the current object");
+                                     "the current object");
 	vboxLayout1->addWidget(regenerateInterpButton);
   
 	
@@ -550,7 +571,7 @@ void Interpolator::loadSettings()
 
 //------------------------
 //-- Saves most of the settings within InterpolatorData in user preferences
-//-- so they will load next time Bead Helper is started
+//-- so they will load next time the plugin is started
 
 void Interpolator::saveSettings()
 {
@@ -634,9 +655,85 @@ void Interpolator::interpolateContour()
   if(plug.deselectAfterEnter)
     imodSetIndex(imod, objIdx, -1, -1 );					// deselects current contour
 	
+	plug.contIdxLastInterp = contIdx;		// |- recorded for use in
+	plug.objIdxLastInterp  = objIdx;		// |  "interpolateLinearWithLastContour()"
+	
   ivwRedraw( plug.view );
 }
 
+//------------------------
+//-- Called when the "Interpolate" button is pressed.
+//-- Executes interpolation on selected contour and displays
+//-- a message on the 10th time the button is pressed.
+
+void Interpolator::interpolateContourBtn()
+{
+	static int numTimesPressed = 0;
+	numTimesPressed++;
+	
+	if( numTimesPressed == 10 )
+	{
+		MsgBox( this, "...", "You do realize you can press [enter] \n"
+					               "to interpolate right?! \n\n"
+					               "Read the 'help' page for more info.");
+	}
+	
+	interpolateContour();
+}
+
+//------------------------
+//-- Executes linear interpolation between the currently selected
+//-- contour and whatever contour was last interpolated
+//-- as recorded in the variables "plug.contIdxLastInterp" and 
+//-- "plug.objIdxLastInterp". Note that this will ignore
+//-- the values of zBridge and interType - and interpolated
+//-- linearly between any two contours so long as they're in
+//-- the same object
+
+void Interpolator::interpolateLinearWithLastContour()
+{
+	Imod *imod = ivwGetModel(plug.view);
+	Iobj *obj  = imodObjectGet(imod);
+	Icont *cont = imodContourGet(imod);
+	
+	int objIdx, contIdx, ptIdx;
+	imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+	
+	if( !isContValid(cont) || isEmpty(cont)  )
+	{
+		wprint("\aHave not selected valid contour\n");
+		return;
+	}
+	
+	if( plug.objIdxLastInterp != objIdx || plug.contIdxLastInterp == contIdx
+	 || plug.contIdxLastInterp < 0      || plug.contIdxLastInterp >= csize(obj) )
+	{
+		wprint("\aWith shift down must interpolate to last interpolated "
+					 "contour in same object\n");
+		
+		plug.contIdxLastInterp = contIdx;		// |- recorded for use in
+		plug.objIdxLastInterp  = objIdx;		// |  "interpolateLinearWithLastContour()"
+		
+		return;
+	}
+	
+	if( isInterpolated(cont) )
+	{
+		undoContourPropChgCC( plug.view );            // REGISTER UNDO
+		setInterpolated( cont, 0 );
+		undoFinishUnit( plug.view );                  // FINISH UNDO
+	}
+	
+	ie.interp_Linear_BetweenTwoConts( contIdx, plug.contIdxLastInterp );
+	
+  if(plug.deselectAfterEnter)
+    imodSetIndex(imod, objIdx, -1, -1 );					// deselects current contour
+	
+	plug.contIdxLastInterp = contIdx;		// |- recorded for use in
+	plug.objIdxLastInterp  = objIdx;		// |  "interpolateLinearWithLastContour()"
+	
+  ivwRedraw( plug.view );
+}
 
 //------------------------
 //-- Deletes any (same surface) interpolated contours either side of the
@@ -1565,23 +1662,32 @@ void Interpolator::changeOverlap( int value ) {
 }
 
 
-//## SLOTS:
+
+//############################################################
+//## PROTECTED SLOTS:
 
 
 //------------------------
-//-- Called to display help window.
+//-- Displays a (html) help page with information about the plugin
+
+void Interpolator::helpPluginHelp()
+{
+  QString str = QString(getenv("IMOD_DIR")) + QString("/lib/imodplug/interpolator.html");
+  imodShowHelpPage((const char *)str.toLatin1());
+}
+
+
+//------------------------
+//-- Callback for the buttons at the bottom
 
 void Interpolator::buttonPressed(int which)
 {
-  if (!which)
+  if      (which==0)
     close();
-  else
-  {
-    QString str = QString(getenv("IMOD_DIR"))
-                  + QString("/lib/imodplug/interpolator.html");
-    
-    imodShowHelpPage((const char *)str.toLatin1());
-  }
+  else if (which==1)
+		openUrl( "http://www.slashsegmentation.com/tools/interpolator-plugin" );
+	else if (which==2)
+    helpPluginHelp();
 }
 
 

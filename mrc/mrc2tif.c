@@ -250,8 +250,8 @@ int main(int argc, char *argv[])
   /* Open new file for stack */
   if (stack) {
     sprintf(iname, "%s", argv[iarg]);
-    fpTiff = openEitherWay(iifile, iname, progname, oldcode);
     iifile->nz = zmax + 1 - zmin;
+    fpTiff = openEitherWay(iifile, iname, progname, oldcode);
   }    
 
   printf("Writing TIFF images. ");

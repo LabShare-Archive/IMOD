@@ -131,6 +131,7 @@ inline void eraseContour( vector<IcontPtr> &conts, int idx );
 
 inline Icont* getCont( Iobj *obj, int idx );
 inline Icont* getLastCont( Iobj *obj );
+inline Icont* getFirstCont( Iobj *obj, bool createIfNotExists );
 inline int csize( Iobj *obj );
 inline int osize( Imod *imod );
 
@@ -216,6 +217,8 @@ int cont_generateTextAsConts( Iobj *obj, string text, Ipoint pos, float fontSize
 int cont_generateTextAreaAsConts( Iobj *obj, string text, Ipoint pos, float fontSize, int alignHoriz=TA_LEFT, int alignVert=TV_LEADING, bool smallCaps=false, float lineSpacing=4 );
 int cont_addTwoPointContourToObj( Iobj *obj, float p1x, float p1y, float p2x, float p2y, float z, int open=1 );
 int cont_addTwoPointContourToObj( Iobj *obj, Ipoint p1, Ipoint p2, int open=1 );
+int cont_addLineToObj( Iobj *obj, float x1, float y1, float z1, float x2, float y2, float z2, bool drawAllZ=false, bool interploated=false );		// NEW
+int cont_addPtToObj( Iobj *obj, float x, float y, float z, bool drawAllZ=false );		// NEW
 
 int  cont_isEqual( Icont *cont1, Icont *cont2 );
 int  cont_doesPtExistInCont( Icont *cont, Ipoint *pt );
@@ -293,6 +296,7 @@ int cont_breakContByZValue( Icont *contOrig, vector<IcontPtr> &contSegs, int zVa
 int cont_breakOpenContAtZValue( Icont *contOrig, vector<IcontPtr> &contSegs, int zValueToBreak );               // NEW
 int cont_breakContByCircle( Icont *contOrig, vector<IcontPtr> &contSegs, Ipoint *center, float radius );        // NEW
 int cont_addPtsAtIntersection( Icont *cont1, Icont *cont2 );                                                    // NEW
+int cont_addPtsAtIntersections( Icont *cont1, Icont *cont2, bool cont1Closed, bool cont2Closed, Icont *intercepts, bool clearIntercepts );					// VERY NEW
 int cont_getIntersectingSegments( Icont *cont1, Icont *cont2, vector<IcontPtr> &cont1Segs, vector<IcontPtr> &cont2Segs  );   // MODIFY
 int cont_getIntersectingSegmentsSafe( Icont *cont1, Icont *cont2, vector<IcontPtr> &cont1Segs, vector<IcontPtr> &cont2Segs  );   // MODIFY
 int cont_getIntersectingPolygons( vector<IcontPtr> &finalConts, Icont *cont1, Icont *cont2 );                      
@@ -694,6 +698,22 @@ inline Icont* getLastCont( Iobj *obj )
   if(!obj)
     return (NULL);
   return imodObjectGetContour(obj, csize(obj)-1 );
+}
+
+
+//------------------------
+//-- Returns the first contour and creates it if doesn't already
+//-- exist (so long as 'createIfNotExists' is true)
+
+inline Icont* getFirstCont( Iobj *obj, bool createIfNotExists )
+{
+	if( createIfNotExists && imodObjectGetMaxContour(obj)==0 )
+	{
+		Icont *newCont = imodContourNew();    // malloc new contour and don't delele it
+		imodObjectAddContour( obj, newCont );
+		free(newCont); 
+	}
+  return imodObjectGetContour(obj, 0);
 }
 
 

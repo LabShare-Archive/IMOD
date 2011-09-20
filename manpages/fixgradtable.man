@@ -1,0 +1,22 @@
+.na
+.nh
+.TH fixgradtable 1 4.2.23 BL3DEMC
+.SH NAME
+fixgradtable -\ Adjust magnification gradient table for new crossover value
+.SH SYNOPSIS
+fixgradtable new_crossover old_grad_table new_grad_table
+.SH DESCRIPTION
+Ths Python script adjusts all of the intensity values in a magnification
+gradient table produced by Findmaggrad(1) for a change in the crossover
+intensity.  Since the gradient depends on the distance between the
+intensity value and crossover, the table is corrected simply by adding the
+difference between the new and old crossover values.
+.P
+Enter three arguments: the new crossover intensity, the existing gradient
+table file, and a name for a new file with the adjusted intensities.  For an
+FEI microscope, the intensity must be the value used internally, which is
+different from what appears in the user interface.  The value can be obtained
+from the SerialEMcalibrations.txt file after calibration crossover in
+SerialEM.
+.P AUTHOR
+David Mastronarde (mast@colorado.edu)

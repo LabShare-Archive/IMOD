@@ -13,12 +13,14 @@ all : ALWAYS
 	cd interpolator   ;    $(MAKE) $@
 	cd analysistools  ;    $(MAKE) $@
 	cd namewizard     ;    $(MAKE) $@
+	cd stereology     ;    $(MAKE) $@
 
 install : 
 	cd beadhelper     ;    $(MAKE) $@
 	cd drawingtools   ;    $(MAKE) $@
 	cd interpolator   ;    $(MAKE) $@
 	cd namewizard     ;    $(MAKE) $@
+	cd stereology     ;    $(MAKE) $@
 
 clean : ALWAYS
 	cd beadfix        ;    $(MAKE) $@
@@ -28,6 +30,7 @@ clean : ALWAYS
 	cd interpolator   ;    $(MAKE) $@
 	cd analysistools  ;    $(MAKE) $@
 	cd namewizard     ;    $(MAKE) $@
+	cd stereology     ;    $(MAKE) $@
 
 ALWAYS:
 

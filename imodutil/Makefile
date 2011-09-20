@@ -12,7 +12,7 @@ IILIBS    = $(LIIMOD) $(LIMOD) $(LCFSHR) $(TIFFLIBS)
 MODLIBS   = $(LIMOD) $(LCFSHR)
 
 PROGS = imodauto$(E) imodinfo$(E) imodmesh$(E) imodtrans$(E) imodmop$(E) \
- rec2imod$(E) imod2rib$(E) imod2vrml$(E) imod2meta$(E) \
+ rec2imod$(E) imod2rib$(E) imod2vrml$(E) imod2vrml2$(E) imod2meta$(E) \
  wmod2imod$(E) imodjoin$(E) imodextract$(E) imodsortsurf$(E) imodexplode$(E) \
  patch2imod$(E) imod2patch$(E) echo2$(E) imodfillin$(E) imodcurvature$(E) \
  imodfindbeads$(E) point2model$(E) flattenwarp$(E) $(IMODWINCPU)
@@ -44,6 +44,12 @@ imod2rib$(E): imod2rib.$(O)
 
 imod2vrml$(E) : imod2vrml.$(O)
 	$(CC) -o imod2vrml imod2vrml.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
+
+imod2vrml2$(E) : imod2vrml2.$(O)
+	$(CC) -o imod2vrml2 imod2vrml2.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
+
+imod2ccdbxml $(E) : imod2ccdbxml.$(O)
+	$(CC) -o imod2ccdbxml imod2ccdbxml.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 imod2meta$(E) : imod2meta.$(O)
 	$(CC) -o imod2meta imod2meta.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)

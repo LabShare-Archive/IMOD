@@ -2,16 +2,6 @@
  * amat_to_rotmagstr.c : to convert 2x2 matrix to natural transformation
  * 
  * $Id$
-
- * $Log$
- * Revision 1.1  2008/11/18 22:42:37  mast
- * Moved to libcfshr
- *
- * Revision 3.2  2006/05/20 16:07:24  mast
- * Fixed to handle negative stretch/mirroring
- *
- * David Mastronarde 12/29/88, vastly improved 2/5/92
- * ported to C, 11/29/00, for new midas program
  */
 
 #include <math.h>
@@ -172,12 +162,12 @@ void amatToRotmagstr(float a11, float a12, float a21, float a22,
 
 /*!
  * Fortran wrapper to @amatToRotmagstr, where [amat] is dimensioned (2,*)
- * or otherwise has elements in the order [a11], [a12], [a21], [a22].
+ * or otherwise has elements in the order [a11], [a21], [a12], [a22].
  */
 void amat_to_rotmagstr(float *amat, float *theta, float *smag, float *str,
 		       float *phi)
 {
-  amatToRotmagstr(amat[0], amat[1], amat[2], amat[3], theta, smag, str, phi);
+  amatToRotmagstr(amat[0], amat[2], amat[1], amat[3], theta, smag, str, phi);
 }
 
 /*!
@@ -210,11 +200,11 @@ void rotmagstrToAmat(float theta, float smag, float str, float phi, float *a11,
 
 /*!
  * Fortran wrapper to @rotmagstrToAmat, where [amat] is dimensioned (2,*)
- * or otherwise has elements in the order [a11], [a12], [a21], [a22].
+ * or otherwise has elements in the order [a11], [a21], [a12], [a22].
  */
 void rotmagstr_to_amat(float *theta, float *smag, float *str, float *phi,
                        float *amat)
 {
-  rotmagstrToAmat(*theta, *smag, *str, *phi, amat, amat+1, amat+2, amat+3);
+  rotmagstrToAmat(*theta, *smag, *str, *phi, amat, amat+2, amat+1, amat+3);
 }
 

@@ -11,10 +11,10 @@ Giving ALL objects consistent and PROPER names
 <i>(that is, names taken from a "shared vocabulary")</i> is critical,
 because without this nobody in your group (let alone any computer/database or 
 collaborator outside your group) will be able to identify, compare, understand, 
-analyze, datamine, or share your model file - and odds are your 
+analyze, data mine, or share your model file - and odds are your 
 model will be deleted after you leave. 
 This plugin can also be used to reorder, merge, delete and duplicate objects, 
-however it's main advantage is that it can autocomplete and verify names. 
+however it's main advantage is that it can auto-complete and verify names. 
 To learn more about the important of using standard names read this article on 
 <a href='naming_help.html'>naming objects in IMOD</a>.
 <br>
@@ -69,7 +69,7 @@ sure all your models pass the Name Wizard test.
 <br>
 <b>The Standard Names and Colors CSV Table</b><br>
 ---------------------<br>
-The current format for the <b>standard names and colors cvs file</b> is:<br>
+The current format for the <b>standard names and colors csv file</b> is:<br>
 <blockquote><b>(1)Name, (2)Red, (3)Green, (4)Blue, (5)Hyperlink, (6)UniqueID, 
 (7)Description, (8)Super Category, (9)Synonym(s)</b></blockquote>
 Notice commas delimit the separation between each field. Below I've explained 
@@ -91,7 +91,8 @@ the compartment.</li>
 <li><b>UniqueID</b> - A string which uniquely identifies your compartment, and 
 is linked to an authority such as those listed above. Even if two different 
 groups/countries use different names/synonyms, these UniqueIDs help ensure 
-they map to the same thing, and tie into the context of larger rule-based <a href='naming_help.html#ontologies'>ontologies</a>.</li>
+they map to the same thing, and tie into the context of larger rule-based 
+<a href='naming_help.html#ontologies'>ontologies</a>.</li>
 <li><b>Description</b> - Here you can copy the description from an authority, 
 or may chose to include your own description of what the organelle looks like, 
 so that other people in your group can help identify them. Note you can 
@@ -133,11 +134,11 @@ and you may also consider typing in the "<b>Super Category</b>" <i>(helping
 identify what the object is/the next level up)</i>, and finally any commonly 
 used "<b>Synonym(s)</b>" (common expressions/abbreviation you might use for 
 this object). Whenever an object name matches an entry, all the fields are 
-displayed in the tooltip when you hover your mouse over the green box which 
+displayed in the tool tip when you hover your mouse over the green box which 
 appears. If you click the "match" it will open the provided hyperlink - hence 
 this hyperlink represents a valuable learning resource for students.<br>
 <br>
-<b>TIP:</b> Since CVS files use commas (,) to separate fields, remember to 
+<b>TIP:</b> Since CSV files use commas (,) to separate fields, remember to 
 replace any commas you have within sentences with a semicolon (;).. otherwise 
 your text will load into the wrong field. Synonyms in the "Synonym(s)" field 
 should also be separated by semicolons, as demonstrated in the second example 
@@ -154,8 +155,8 @@ wish to perform a "Selection" action
 (eg: "Delete") you can select multiple objects using the check boxes. If you 
 click "Match Colors" all objects which have a match will change to the standard 
 color for that name (if one exists). This can be a handy time saver!</li>
-<li><b>Object Name</b> - Notice that as you type it should autocomplete with 
-the full list of names from the standard names and colors CVS file/table. 
+<li><b>Object Name</b> - Notice that as you type it should auto-complete with 
+the full list of names from the standard names and colors CSV file/table. 
 Whenever a name matches one of these entries a "match" will appear. If you 
 want to preserve the match, but add extra information use a full stop (.). 
 This allows you, for example, to unique identify individual 
@@ -167,7 +168,7 @@ many find it easier to manage to segment all axons in a single object
 green when you have a match. The "goal" is to try and have ALL your objects 
 match. Note that if it's light green then it matches a standard name, but 
 not the color. You can correct the color by holding your mouse over it to 
-see the red, green and blue values listed for that name (in the tooltip), 
+see the red, green and blue values listed for that name (in the tool tip), 
 then clicking the color box to match these colors... or you can simply click 
 the "Match Colors" button at the bottom. If a hyperlink is provided for that 
 entry, then you can click "match" to open a URL matching the compartment 
@@ -199,22 +200,41 @@ multiple new objects with the same properties (name, color etc) and can also
 copy contours (if specified). <i>NOTE: To split surfaces into new objects use 
 'imodsortsurf -s'</i>.</li>
 <li><b>Move/Reorder Selected</b> - Used to quickly reorder objects, by moving 
-all selected objects together and down/up to the number you specify.</li>
+all selected objects together and down/up to the number you specify.<br>
+----
+</li>
 <li><b>Batch Rename (.001, .002, etc)</b> - Batch renames all selected objects 
 and includes the option to append numbers to the end (NewName.001, NewName.002, 
-etc)..</li>
+etc)..<br>
+----
+</li>
 <li><b>Deselect/Uncheck All</b> - Deselect/uncheck all objects which have been 
 ticked.</li>
 <li><b>Select Range</b> - Select/deselect objects within a given the range of 
-objects.</li>
+objects. Keep in mind however, you can also do this  holding the [shift] key to 
+select or deselect a range of objects, starting from the last object 
+selected/deselected without [shift].</li>
 <li><b>Select Matching Names</b> - Select/deselect objects matching a string 
-you enter..</li>
+you enter.</li>
+<li><b>Select Range</b> - Select/deselect objects within a given the range of 
+objects.</li>
+<li><b>Find and Select Names</b> - Select/deselect objects matching a string 
+you enter.<br> 
+----
+</li>
+<li><strong>Recolor Selected Objects</strong> - Allows you to quickly set all 
+selected objects  to a single color or a progressive gradient between two 
+colors.</li>
+<li><strong>Apply Random Colors</strong> - Give random colors to the objects 
+you've selected. This feature can be useful to see if contours in different 
+objects belong in the same object in cases where you're attempting to have 
+only one surface per object.</li>
 </ul>
 <li><b>Match Colors</b> - Click this to change the color of all correctly 
 named objects to match the color of their matching entry (if a color has 
 been specified).</li>
 <li><b>Standard Names</b> - Includes information about the <b>standard names 
-and colors cvs file</b>, plus the option to reload this file. If you wish to 
+and colors csv file</b>, plus the option to reload this file. If you wish to 
 edit this file (to add your own entries) you should be able to click the first 
 option and chose to launch a text editor or spreadsheet program... although 
 it's probably just as easy to open it yourself by finding it in 
@@ -224,11 +244,26 @@ Finder/Explorer.</li>
 <br>
 ---------------------<br>
 <br>
-This plugin was created by <b>Andrew Noske</b>
-(<u>a.noske@imb.uq.edu.au</u>).<br>
-<i>If you encounter bugs please e-mail me before e-mailing the
-IMOD group (to reduce traffic). <br>
-In your e-mail please tell me exactly how and when the problem
-occurred and attach the model file you were using with
-enough information that I can replicate the error/crash.
+<p>This plugin was created by <b>Andrew Noske</b> (<u>andrew_noske AT yahoo.com</u>).<br>
+  <br>
+  If you encounter bugs please e-mail me before e-mailing the
+  IMOD group (to reduce traffic). <br>
+  In your e-mail please tell me exactly how and when the problem
+  occurred and attach the model file you were using with
+  enough information that I can replicate the error/crash.
+<p><i>NOTE: This plugin is part of the is part of the
+&quot;<a href="http://www.slashsegmentation.com/">SLASH segmententation</a>&quot;
+initiative. Please contact me for citation information.</i>
+<br>
+<br>
+<br>
+<hr>
+<p><font size="2">
+<b>Acknowledgements:</b> <i>Mark Ellisman</i> and The National Center for
+Microscopy and Imaging Research (www.ncmir.ucsd.edu) for helping sponsor
+and encourage this work. <i>Maryann Martone</i> and the Neuroscience Information
+Framework (www.neuinfo.org) for support and access to their ontologies.
+<i>David Mastronarde</i> and the team at The Boulder Lab for 3-D Electron Microscopy
+(bio3d.colorado.edu) for their wonderful support of all my plugins.</font>
+<font size="2"></font>
 </body>

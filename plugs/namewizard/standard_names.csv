@@ -105,7 +105,7 @@ Mitochondrial Membrane,,,,http://www.neurolex.org/wiki/Category:Mitochondrial_Me
 Mitochondrial Membrane Inner,255,170,0,http://www.neurolex.org/wiki/Category:Mitochondrial_Membrane_Inner,sao1371347282,The inner membrane of the mitochondria. It is highly folded to form cristae (Gene Ontology). The inner membrane of the mitochondria. It is highly folded to form cristae (Gene Ontology).,Mitochondrial Membrane,inner mitochondrial membrane
 Mitochondrial Membrane Outer,0,150,0,http://www.neurolex.org/wiki/Category:Mitochondrial_Membrane_Outer,sao1289741256,The membrane on the outer surface of the mitochondrion; interfacing with the cell cytoplasm (Gene Ontology).,Mitochondrial Membrane,
 Mitochondrial Subcomponent,,,,http://www.neurolex.org/wiki/Category:Mitochondrial_Subcomponent,sao666410040,,Cellular Subcomponent,
-Mitochondrion,,,,http://www.neurolex.org/wiki/Category:Mitochondrion,sao1860313010,A semiautonomous; self replicating organelle that occurs in varying numbers; shapes; and sizes in the cytoplasm of virtually all eukaryotic cells. It is notably the site of tissue respiration (Gene Ontology).,Membrane Bound Organelle,
+Mitochondrion,0,155,0,http://www.neurolex.org/wiki/Category:Mitochondrion,sao1860313010,A semiautonomous; self replicating organelle that occurs in varying numbers; shapes; and sizes in the cytoplasm of virtually all eukaryotic cells. It is notably the site of tissue respiration (Gene Ontology).,Membrane Bound Organelle,
 Multivesicular Body,255,155,0,http://www.neurolex.org/wiki/Category:Multivesicular_Body,sao2045955158,A type of late endosome in which regions of the limiting endosomal membrane invaginate to form internal vesicles; membrane proteins that enter the internal vesicles are sequestered from the cytoplasm (Gene Ontology).,Membrane Bound Organelle,
 ,,,,,,,,
 #N,,,,,,,,
@@ -216,7 +216,10 @@ TEST,,,,http://www.andrewnoske.com/wiki/index.php?title=IMOD_-_naming_objects#Na
 MBR,,,,http://www.andrewnoske.com/wiki/index.php?title=IMOD_-_naming_objects#Naming_Non-Standard_Objects_in_Capitals,,"MBR is short for ""minimum bounding rectangle"".",,
 AUTOSEG,255,255,255,http://www.andrewnoske.com/wiki/index.php?title=IMOD_-_naming_objects#Naming_Non-Standard_Objects_in_Capitals,,Use this name for contours you have generated using autosegmentation and may require manual touch up and/or classification.,,
 WATERSHED,,,,http://coan.burnham.org/publications,,The 3D watershed method is an automatic segmentation method which produces far better results than any thresholding techniques - especially when combined with a Medial filter. Click 'match' to see some papers by Niels Volkmann and Peter van der Heide on these topics.,,
-,,,,,,,,
+NOTHING,100,100,100,http://www.andrewnoske.com/wiki/index.php?title=Stereology,,"A value you might want to use if you use the ""Stereology"" plugin (pending release) and want to denote a point which doesn't satisfy any of your categories",,
+NO_CATEGORY,50,50,50,http://www.andrewnoske.com/wiki/index.php?title=Stereology,,"A value you might want to use if you use the ""Stereology"" plugin (pending release) and want to denote a point which doesn't satisfy any of your categories",,
+STEREOLOGY,255,255,255,http://www.andrewnoske.com/wiki/index.php?title=Stereology,,"A value use by the ""Stereology"" plugin in the form ""STEREOLOGY.SETTINGS #grid_set=1#grid_spacing=50;50#x=10;7000#y=10;6000#z=10;700#z_spacing=5#DO_NOT_RENAME_THIS_EVER#"" (replacing the semi-colons with commas)",,
+STEREOLOGY_SETTINGS,255,255,255,http://www.andrewnoske.com/wiki/index.php?title=Stereology,,"A value use by the ""Stereology""#grid_set=1#grid_spacing=50;50#x=10;7000#y=10;6000#z=10;700#z_spacing=5#DO_NOT_RENAME_THIS_EVER#"" (replacing the semi-colons with commas)",,
 ,,,,,,,,
 ,,,,,,,,
 #EXAMPLE TABLE FROM BRAD MARSH'S GROUP - WHO SEGMENTS PANCREATIC BETA CELLS (see: http://www.andrewnoske.com/wiki/index.php?title=IMOD_-_segmentation_standards#Brad_Marsh_Group_-_Beta_Cells),,,,,,,,
@@ -228,20 +231,20 @@ Golgi C4,80,80,80,,,4th cisternae of Golgi (from cis-to-trans),Golgi Subcomponen
 Golgi C5,70,70,70,,,5th cisternae of Golgi (from cis-to-trans),Golgi Subcomponent,
 Golgi C6,60,60,60,,,6th cisternae of Golgi (from cis-to-trans),Golgi Subcomponent,
 Golgi C7,50,50,50,,,7th cisternae of Golgi (from cis-to-trans),Golgi Subcomponent,
-Golgi C8,40,40,40,,,8th cisternae of Golgi (from cis-to-trans)… although it's rare for this many cisternae to exist!,Golgi Subcomponent,
+Golgi C8,40,40,40,,,8th cisternae of Golgi (from cis-to-trans)É although it's rare for this many cisternae to exist!,Golgi Subcomponent,
 Immature Insulin Granule,70,170,255,http://www.neurolex.org/wiki/Category:Immature_Insulin_Granule,nlx_12553,"A proinsulin-containing secretory vesicle which occurs within pancreatic beta cells. Immature insulin are also called ""pale granules"" due to their pale appearance under an transmission electron microscope. Immature insulin granules bud off the trans-most Golgi cisternae as part of the insulin synthesis process. When the proinsulin in converted to a mature form of insulin and clusters into an electron dense core; it is said to become an mature insulin granule.",Insulin Granule,Pale granule
 Mature Insulin Granule,0,0,255,http://www.neurolex.org/wiki/Category:Mature_Insulin_Granule,nlx_13590,Insulin secretory granule which occurs inside pancreatic beta cells and contain a large electron-dense core of tightly clustered insulin hexamers. Mature insulin granules are typically ~200-300 nm in diameter; and each contain 150000-280000 insulin molecules in mouse. The precursor of a mature insulin granule is an immature insulin granule; which is also known as a pale granule; as it lacks an electron dense core and is pale in appearance.,Insulin Granule,Dense core granule; Mature granule
 Golgi Trans-most Cisternae,255,0,0,,,,,
-
-
+,,,,,,,,
+,,,,,,,,
 ,,,,,,,,
 #EXAMPLE TABLE FROM STEVEN FISHER'S GROUP - WHO SEGMENTS RETINAL CELLS (see: http://www.andrewnoske.com/wiki/index.php?title=IMOD_-_segmentation_standards#Steven_Fisher_Group_-_Retinal_Cells),,,,,,,,
 Plasma Membrane,0,255,255,http://www.neurolex.org/wiki/Category:Plasma_Membrane,sao1663586795,The membrane surrounding a cell that separates the cell from its external environment. It consists of a phospholipid bilayer and associated proteins (Gene Ontology).,Cellular Membrane,
 Synaptic Vesicle,0,127,255,http://neurolex.org/wiki/Category:Synaptic_Vesicle,sao1071221672,Secretory organelles; some 50 nm in diameter; of pre-synaptic nerve terminals; accumulate high concentrations of neurotransmitters and secrete these into the synaptic cleft by fusion with the 'active zone' of the pre-synaptic plasma membrane (Gene Ontology).,Vesicle,
-Post-synaptic Vesicle,153,10,225,http://neurolex.org/wiki/Category:Post-synaptic_Vesicle,nlx_28005,A synaptic vesicle which has undergone fusion with the membrane of the presynaptic terminal (at the end of an axon) and released its neurotransmitters into the synaptic cleft.,Synaptic Vesicle
-Large vesicles,255,0,0,Your own hyperlink (or just leave blank),,Your own descritpion here,
-Cytoplasmic Cisternae,255,0,0,,,,
-Mitochondrial Membrane Outer,85,255,0,http://www.neurolex.org/wiki/Category:Mitochondrial_Membrane_Outer,sao1289741256,The membrane on the outer surface of the mitochondrion; interfacing with the cell cytoplasm (Gene Ontology).,Mitochondrial Membrane
-Mitochondrial Membrane Inner,255,170,0,http://www.neurolex.org/wiki/Category:Mitochondrial_Membrane_Inner,sao1371347282,The inner membrane of the mitochondria. It is highly folded to form cristae (Gene Ontology). The inner membrane of the mitochondria. It is highly folded to form cristae (Gene Ontology).,Mitochondrial Membrane
-Postsynaptic Processes,0,0,255,,,Your own description here,
-Multivesicular Body,0,60,25,http://www.neurolex.org/wiki/Category:Multivesicular_Body,sao2045955158,A type of late endosome in which regions of the limiting endosomal membrane invaginate to form internal vesicles; membrane proteins that enter the internal vesicles are sequestered from the cytoplasm (Gene Ontology).,Membrane Bound Organelle
+Post-synaptic Vesicle,153,10,225,http://neurolex.org/wiki/Category:Post-synaptic_Vesicle,nlx_28005,A synaptic vesicle which has undergone fusion with the membrane of the presynaptic terminal (at the end of an axon) and released its neurotransmitters into the synaptic cleft.,Synaptic Vesicle,
+Large vesicles,255,0,0,Your own hyperlink (or just leave blank),,Your own descritpion here,,
+Cytoplasmic Cisternae,255,0,0,,,,,
+Mitochondrial Membrane Outer,85,255,0,http://www.neurolex.org/wiki/Category:Mitochondrial_Membrane_Outer,sao1289741256,The membrane on the outer surface of the mitochondrion; interfacing with the cell cytoplasm (Gene Ontology).,Mitochondrial Membrane,
+Mitochondrial Membrane Inner,255,170,0,http://www.neurolex.org/wiki/Category:Mitochondrial_Membrane_Inner,sao1371347282,The inner membrane of the mitochondria. It is highly folded to form cristae (Gene Ontology). The inner membrane of the mitochondria. It is highly folded to form cristae (Gene Ontology).,Mitochondrial Membrane,
+Postsynaptic Processes,0,0,255,,,Your own description here,,
+Multivesicular Body,0,60,25,http://www.neurolex.org/wiki/Category:Multivesicular_Body,sao2045955158,A type of late endosome in which regions of the limiting endosomal membrane invaginate to form internal vesicles; membrane proteins that enter the internal vesicles are sequestered from the cytoplasm (Gene Ontology).,Membrane Bound Organelle,

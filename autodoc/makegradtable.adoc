@@ -35,7 +35,7 @@ type = FN
 usage = Output file for raw, smoothed, and extrapolated data
 tooltip = 
 manpage = Output file for raw, smoothed, and extrapolated data.  If this
-option is not entered, the same data will be printed to stadard output.  
+option is not entered, the same data will be printed to standard output.  
 The columns in this output are: a type identifier (1 for measured and 2 for
 extrapolated data), intensity, transformed intensity, the raw and smoothed
 percent magnification change per micron, and the raw and smoothed degrees of
@@ -44,9 +44,12 @@ rotation per micron.
 [Field = CrossoverIntensity]
 short = crossover 
 type = F
-usage = Intensity value at crossover (required)
+usage = Underlying intensity value at crossover (required)
 tooltip = 
-manpage = 
+manpage = Underlying intensity value at crossover.  For an FEI microscope,
+this is not the intensity value that appears in the user interface but the
+intensity used internally, which is saved in SerialEMcalibrations.txt when
+crossover is calibrated in SerialEM.  This entry is required.
 
 [Field = MicronsMoved]
 short = microns
