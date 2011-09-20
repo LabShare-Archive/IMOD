@@ -256,6 +256,7 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, Qt::WFlags f)
   // Get the status window 
   mStatusEdit = new QTextEdit(central);
   cenlay->addWidget(mStatusEdit);
+  cenlay->setStretchFactor(mStatusEdit, 100);
   setFontDependentWidths();
   mOldFontHeight = fontMetrics().height();
 
