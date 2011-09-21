@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/21/11: Improved reliability of drawing from Fortran graphics programs.
+
 9/20/11: Fixed problems with sda subdividing triangles too much.
 
 9/20/11: Modified Sirtsetup to give output files a different rootname when
