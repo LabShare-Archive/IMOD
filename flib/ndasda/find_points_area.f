@@ -2,9 +2,9 @@
      &    nclip, xyzlim,indlim,nlim,ndiv,poreinreg,vertinreg,npnts,
      &    ninclass,areainreg)
       include 'sda.inc'
-      integer*4 itypcrosind(*),ninclass(*),indlim(*),indsub(3,200)
-      real*4 clip(4,*),xyzlim(*),subvert(3,200),centroid(3)
-      logical*1 vertinreg(*),poreinreg(*),subinreg(200)
+      integer*4 itypcrosind(*),ninclass(*),indlim(*),indsub(3,800)
+      real*4 clip(4,*),xyzlim(*),subvert(3,800),centroid(3)
+      logical*1 vertinreg(*),poreinreg(*),subinreg(800)
       parameter (limtyp=50,itypall=999)
       logical inregion
       real*8 areatmp

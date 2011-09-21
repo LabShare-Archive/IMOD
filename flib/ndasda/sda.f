@@ -1140,7 +1140,7 @@ c
         endif
 c         
         if(ifangdiff.eq.0)then
-          ndiv=max(1,nint(0.5+2.*trisize/delr))
+          ndiv=min(19,max(1,nint(0.5+2.*trisize/delr)))
           irbas=(ireg-1)*ngraph+1
           call surfden(vertinreg,poreinreg,ndiv,delr,nbins,
      &        ngraph,nreftyp(irbas),nneightyp(irbas),itypref(1,irbas),

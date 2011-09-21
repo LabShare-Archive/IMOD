@@ -1,5 +1,4 @@
-      parameter (maxverts=1000000,maxtri=maxverts,maxpoly=10000,
-     &    maxpore=10000)
+      parameter (maxverts=1000000,maxtri=maxverts,maxpoly=10000, maxpore=10000)
       real*4 verts(3,maxverts)                  !normal-vertex array
       real*4 vertout(3,maxverts)                !normal-vertex array for output
       integer*4 listvert(maxverts/2)            !list of indexes of vertices
@@ -22,8 +21,7 @@
       real*4 trisize                            !mean "size" of triangle
       real*4 triszsq                            !mean "size" squared
       real*4 volsize                            !largest extent of volume
-      common /sdacom/npoly,ntriang,npore,nvert,trisize,triszsq,
-     &    volsize,verts,indvert,indnorm,
-     &    indedge,numedge,coeff,triarea,ninpoly,istrpoly,pore,itype,
+      common /sdacom/npoly,ntriang,npore,nvert,trisize,triszsq, volsize,verts,indvert,
+     &    indnorm, indedge,numedge,coeff,triarea,ninpoly,istrpoly,pore,itype,
      &    itripore,itypore,listvert,vertout
 
