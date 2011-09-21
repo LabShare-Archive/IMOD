@@ -380,17 +380,17 @@ tf.iteration-table-1-duplicate.1==2
 tf.iteration-table-2-duplicate==0
 tf.iteration-table-2-duplicate.1==0
 save==
-assert.contains.file==pi.prm|flgRemoveDuplicates = 1
-assert.contains.file==pi.prm|duplicateShiftTolerance = [1, 0]
-assert.contains.file==pi.prm|duplicateAngularTolerance = [2, 0]
+assert.contains.file==%{dataset}.prm|flgRemoveDuplicates = 1
+assert.contains.file==%{dataset}.prm|duplicateShiftTolerance = [1, 0]
+assert.contains.file==%{dataset}.prm|duplicateAngularTolerance = [2, 0]
 cb.remove-duplicates==off
 #flgAlignAverages is always saved
-assert.contains.file==pi.prm|flgAlignAverages = 0
+assert.contains.file==%{dataset}.prm|flgAlignAverages = 0
 #aligned base name
 mb.run.1==A
 tf.aligned-base-name==bob
 save==
-assert.contains.file==pi.prm|alignedBaseName = 'bob'
+assert.contains.file==%{dataset}.prm|alignedBaseName = 'bob'
 mb.run.1==B
 
 
@@ -404,16 +404,16 @@ tf.volume-table-2-tilt-range.1==20
 tf.volume-table-3-tilt-range==-10
 tf.volume-table-3-tilt-range.1==10
 save==
-assert.contains.file==pi.prm|tiltRange = {[-10, 10], [-20, 20], [-10, 10]}
+assert.contains.file==%{dataset}.prm|tiltRange = {[-10, 10], [-20, 20], [-10, 10]}
 cb.use-tilt-range-in-averaging==off
 
 
 [function == reference-check-prm]
 rb.reference-file==
 bn.reference-file==
-wait.file-chooser.open==unMaskedpi_Ref1.mrc
+wait.file-chooser.open==unMasked%{dataset}_Ref1.mrc
 save==
-assert.contains.file==pi.prm|reference = '*unMaskedpi_Ref1.mrc'
+assert.contains.file==%{dataset}.prm|reference = '*unMasked%{dataset}_Ref1.mrc'
 rb.volume-#==
 
 
@@ -422,10 +422,10 @@ cb.use-tilt-range-in-averaging==on
 cb.use-tilt-range-in-alignment==on
 cb.#-of-weight-groups-for-equalizing-cccs==on
 save==
-assert.contains.file==pi.prm|tiltRange = {[-10, 10], [-20, 20], [-10, 10]}
-assert.contains.file==pi.prm|edgeShift = 2
-assert.contains.file==pi.prm|nWeightGroup = 8
-assert.contains.file==pi.prm|flgWedgeWeight = 1
+assert.contains.file==%{dataset}.prm|tiltRange = {[-10, 10], [-20, 20], [-10, 10]}
+assert.contains.file==%{dataset}.prm|edgeShift = 2
+assert.contains.file==%{dataset}.prm|nWeightGroup = 8
+assert.contains.file==%{dataset}.prm|flgWedgeWeight = 1
 cb.use-tilt-range-in-alignment==off
 cb.use-tilt-range-in-averaging==off
 
@@ -434,17 +434,17 @@ cb.use-tilt-range-in-averaging==off
 #test volume
 rb.volume==
 bn.volume==
-wait.file-chooser.open==unMaskedpi_Ref1.mrc
+wait.file-chooser.open==unMasked%{dataset}_Ref1.mrc
 save==
-assert.contains.file==pi.prm|maskType = '*unMaskedpi_Ref1.mrc'
+assert.contains.file==%{dataset}.prm|maskType = '*unMasked%{dataset}_Ref1.mrc'
 #test sphere
 rb.sphere==
 tf.inner==10
 tf.outer==20
 save==
-assert.contains.file==pi.prm|maskType = 'sphere'
-assert.contains.file==pi.prm|insideMaskRadius = 10
-assert.contains.file==pi.prm|outsideMaskRadius = 20
+assert.contains.file==%{dataset}.prm|maskType = 'sphere'
+assert.contains.file==%{dataset}.prm|insideMaskRadius = 10
+assert.contains.file==%{dataset}.prm|outsideMaskRadius = 20
 rb.none==
 
 
@@ -452,13 +452,13 @@ rb.none==
 #test cylinder
 rb.cylinder==
 save==
-assert.contains.file==pi.prm|maskType = 'cylinder'
+assert.contains.file==%{dataset}.prm|maskType = 'cylinder'
 #test cylinder with rotations
 tf.z-rotation==15
 tf.y-rotation==30.1
 save==
-assert.contains.file==pi.prm|maskType = 'cylinder'
-assert.contains.file==pi.prm|maskModelPts = [15, 30.1]
+assert.contains.file==%{dataset}.prm|maskType = 'cylinder'
+assert.contains.file==%{dataset}.prm|maskModelPts = [15, 30.1]
 rb.volume-#==
 rb.none==
 
@@ -467,33 +467,34 @@ rb.none==
 #test initialize Z axis
 rb.initialize-z-axis==
 save==
-assert.contains.file==pi.prm|initMOTL = 1
+assert.contains.file==%{dataset}.prm|initMOTL = 1
 #test initialize X and Z axes
 rb.initialize-x-and-z-axes==
 save==
-assert.contains.file==pi.prm|initMOTL = 2
+assert.contains.file==%{dataset}.prm|initMOTL = 2
 #test uniform random rotations
 rb.uniform-random-rotations==
 save==
-assert.contains.file==pi.prm|initMOTL = 3
+assert.contains.file==%{dataset}.prm|initMOTL = 3
 #use files is tested in volume-table-check-prm
 rb.use-files==
-assert.contains.file==pi.prm|initMOTL = {'*pi-a-initMOTL.csv', '*pi-b-initMOTL.csv', '*pi-a-initMOTL.csv'}
+save==
+assert.contains.file==%{dataset}.prm|initMOTL = {'*%{dataset}-a-initMOTL.csv', '*%{dataset}-b-initMOTL.csv', '*%{dataset}-a-initMOTL.csv'}
 
 
 [function == y-axis-type-check-prm]
 #test particle model points
 rb.particle-model-points==
 save==
-assert.contains.file==pi.prm|yaxisType = 1
+assert.contains.file==%{dataset}.prm|yaxisType = 1
 #test end ponts of contour
 rb.end-points-of-contour==
 tf.object-#==2
 tf.contour-#==3
 save==
-assert.contains.file==pi.prm|yaxisType = 2
-assert.contains.file==pi.prm|yaxisObjectNum = 2
-assert.contains.file==pi.prm|yaxisContourNum = 3
+assert.contains.file==%{dataset}.prm|yaxisType = 2
+assert.contains.file==%{dataset}.prm|yaxisObjectNum = 2
+assert.contains.file==%{dataset}.prm|yaxisContourNum = 3
 rb.original-y-axis==
 
 
@@ -502,9 +503,9 @@ cb.remove-duplicates==on
 mb.iteration-table-1-duplicate==2
 mb.iteration-table-1-duplicate.1==3
 save==
-assert.contains.file==pi.prm|flgRemoveDuplicates = 1
-assert.contains.file==pi.prm|duplicateShiftTolerance = {2}
-assert.contains.file==pi.prm|duplicateAngularTolerance = {3}
+assert.contains.file==%{dataset}.prm|flgRemoveDuplicates = 1
+assert.contains.file==%{dataset}.prm|duplicateShiftTolerance = {2}
+assert.contains.file==%{dataset}.prm|duplicateAngularTolerance = {3}
 cb.remove-duplicates==off
 
 [function == spherical-sampling-for-theta-and-psi-check-prm]
@@ -512,25 +513,25 @@ cb.remove-duplicates==off
 rb.full-sphere==
 tf.sample-interval==3
 save==
-assert.contains.file==pi.prm|sampleSphere = 'full'
-assert.contains.file==pi.prm|sampleInterval = 3
+assert.contains.file==%{dataset}.prm|sampleSphere = 'full'
+assert.contains.file==%{dataset}.prm|sampleInterval = 3
 #test half sphere
 rb.half-sphere==
 save==
-assert.contains.file==pi.prm|sampleSphere = 'half'
-assert.contains.file==pi.prm|sampleInterval = 3
+assert.contains.file==%{dataset}.prm|sampleSphere = 'half'
+assert.contains.file==%{dataset}.prm|sampleInterval = 3
 rb.none==
 
 
 [function == number-of-particles-in-averages-check-prm]
 tf.additional-numbers==4
 save==
-assert.contains.file==pi.prm|lstThresholds = [3:3:9, 4]
+assert.contains.file==%{dataset}.prm|lstThresholds = [3:3:9, 4]
 
 
 [function == cross-correlation-measure-check-prm]
 rb.local-energy-normalized-cross-correlation==
 save==
-assert.contains.file==pi.prm|CCMode = 0
+assert.contains.file==%{dataset}.prm|CCMode = 0
 rb.normalized-cross-correlation==
 KeyValueDelimiter == =
