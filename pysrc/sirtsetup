@@ -267,8 +267,14 @@ if shiftArr != None and len(shiftArr) > 1:
 
 lastslice = aliy * binning - 1
 
-# Get starting reconstruction #: first look for 3 digit ones, then two
+# Get the setname and adjust it to add _sub or substitute this for _full
 setname = (os.path.splitext(recfile))[0]
+if doSubarea:
+   if setname.endswith('_full'):
+      setname = setname[0:len(setname)-5]
+   setname += '_sub'
+   
+# Get starting reconstruction #: first look for 3 digit ones, then two
 lastnum = 0
 if not startfirst:
    basename = setname + '.' + sirtext

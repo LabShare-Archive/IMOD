@@ -39,7 +39,6 @@
 #else
 
 #ifdef G77__HACK
-/* add HACK for gnu FORTRAN...  __  7/20/00 CER   */
 #define plax_open     p_start__
 #define plax_close    p_end__
 #define plax_flush    p_b_flush__
@@ -122,7 +121,12 @@ class PlaxWindow : public QWidget
     void closeEvent ( QCloseEvent * e );
     void paintEvent ( QPaintEvent * );
     void resizeEvent ( QResizeEvent * );
+    void timerEvent(QTimerEvent *e);
 
+ private:
+    int mTimerID;
+    int mRedrawCount;
+    int mNumRedraws;
 };
 
 class PlaxThread : public QThread

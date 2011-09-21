@@ -128,6 +128,12 @@ a command file, add a line
 .br
 at the beginning of the file.
 .TP
+.B PLAX_REDRAWS
+If there is trouble with the "plax" window used by Fortran graphics programs
+not updating properly, set this variable to the number of times for it be
+drawn (try 2 or 3).  These programs include nda, sda, mtk, genhstplt,
+mtoverlap, mtpairing, avgstatplot, and filterplot.
+.TP
 .B RAPTOR_BIN
 Directory where alternative RAPTOR executables are located; leave this
 undefined to run the executables in IMOD.

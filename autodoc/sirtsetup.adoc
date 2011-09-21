@@ -90,14 +90,17 @@ solving for beam tilt.
 short = cl
 type = B
 usage = Remove all existing reconstructions past the starting point of this run
-tooltip =
+tooltip = Remove all existing reconstructions past the starting point of this
+run, for the kind of reconstruction currently being done (subarea or full).
 manpage = Remove all existing reconstructions past the starting point of this
-run; namely, files with extensions containing .srec, .sint, and .strm.
-Sirtsetup does not remove the files; rather, it places 
-a command to remove them into the first command file to be run and outputs a
-list of the files that will be deleted.  If you resume at, say, iteration 5,
-hen the list will include all files numbered 06 and above.  If you restart at
-the beginning, the list will include all existing files.
+run, for the kind of reconstruction currently being done (subarea or full).
+Specifically, this includes files with extensions containing .srec, .sint, and
+.strm and with a root name matching the root name used for subarea or full
+reconstructions (see FILES).  Sirtsetup does not remove the files; rather, it
+places a command to remove them into the first command file to be run and
+outputs a list of the files that will be deleted.  If you resume at, say,
+iteration 5, then the list will include all files numbered 06 and above.  If
+you restart at the beginning, the list will include all existing files.
 
 [Field = SubareaSize]
 short = su
@@ -107,7 +110,8 @@ tooltip = Size in X and Y of subarea to use from aligned stack, in binned
 pixels if the aligned stack is binned.
 manpage = Size in X and Y of a subarea to use from the aligned stack, in
 actual pixels of that stack, which might be binned relative to the original
-tilt series.
+tilt series.  When a subarea is specified, output files are named differently
+(see FILES).
 
 [Field = YOffsetOfSubarea]
 short = yo

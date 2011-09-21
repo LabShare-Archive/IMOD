@@ -402,8 +402,7 @@ c
       inlast = in5
       if (in5 .ne. 5) close(in5)
       in5 = 5
-      write(*,*) 'Enter name of file with commands,',
-     &    ' or Return for input from keyboard'	
+      write(*,*) 'Enter name of file with commands, or Return for input from keyboard'
       read(inlast,'(a)',err=10,end=10)comfile
       if(comfile.eq.' ')return
 c       
@@ -458,7 +457,7 @@ c
       log =0
       if(valmax.ne.0)log=min(nchar-2,max(0,int(alog10(abs(valmax)))))
       mdig=(nchar-2)-log
-      if(val.lt.0.)mdig=min(mdig,nchar-3)
+      if(valmax.lt.0.)mdig=min(mdig,nchar-3)
       write(formt,101)nchar,mdig
 101   format('(f',i2,'.',i2,')')
       return

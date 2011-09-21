@@ -67,7 +67,10 @@ Sirtsetup does allow you to reconstruct a subarea that can be
 offset in Y (along the tilt axis) but must be centered in X.  It extracts the
 specified subarea from the full aligned stack into a new stack that is used
 for the reconstruction, and adjusts the SUBSETSTART entry in the tilt command
-file to indicate the starting coordinates of this subarea.
+file to indicate the starting coordinates of this subarea.  Note that with
+this subarea option, the reconstruction and intermediate files are named
+differently so that they are distinct from files for a full reconstruction
+(see FILES).
 
 Displacing a subset laterally is more complicated because it would require:
 1) running Tiltalign(1) with the AxisXShift option specifying the offset;
@@ -125,12 +128,14 @@ INSERT OPTION TEXT HERE
 .B -StandardInput
 Read parameter entries from standard input
 
-.SH EXAMPLE
+.SH EXAMPLE OF COMMAND LINE USE
 It is important that the reconstruction include all significant
 material, including gold fiducials on both sides of a section, if any.  Thus,
 in Tomogram Positioning, you need to draw contours that include all of the
 fiducials.
 
+A convenient interface for Sirtsetup now exists in eTomo.  The rest of this
+section provides an example based on use at the command line.
 If the number of desired iterations is not known in advance, a subarea can be
 reconstructed with the following steps:
 
@@ -153,14 +158,9 @@ If storage space is an issue, also use "-sc -20000,20000".
 Run processchunks on "tilt_sirt".
 
 Load the trial reconstructions into 3dmod
-   3dmod -Y setname.srec*
-.br
-for one axis of a dual axis set, or for a single axis set:
-   3dmod -Y setname_full.srec*
+   3dmod -Y setname_sub.srec*
 
 If you need to do more iterations, just rerun sirtsetup and process some more.
-Once you have decided on the right number of iterations, you should 
-rename any of the .srec and/or .sint files that you want to keep.
 
 Turn local alignments back on if they were turned off.
 Generate a reconstruction by standard back-projection if desired.  If not, be
@@ -168,10 +168,9 @@ sure to press Postpone or Done in the Tomogram Generation panel to ensure that
 tilt.com is saved.
 
 Run sirtsetup with the needed number of iterations, e.g.,
-   sirtsetup -st -it 17 -cl tilt.com
+   sirtsetup -st -it 17 tilt.com
 
-The "-st" option makes it start from the beginning and the "-cl" option will
-remove all the previous trial reconstructions.
+The "-st" option makes it start from the beginning.
 
 If you still want to leave more than one iteration, then disk space becomes a
 serious issue.  For a single axis data set, the best approach would be to run
@@ -188,18 +187,22 @@ run Trimvol in eTomo, use "-sc -20000,20000" instead of the "-tr" option.
 
 .SH FILES
 This procedure creates many large files, so it generally purges a previous
-version of each file before a new one is created.  The files produced
-during the procedure are:
+version of each file before a new one is created.  The names of files produced
+during the procedure depend on whether a subarea is being done or not.  In the
+following, aliname is the root name of aligned stack, and recname is the root
+name of reconstruction in the original command file when no subarea is being
+done.  With a subarea, recname is either the root name plus "_sub", or the
+root name with "_sub" substituted for "_root" if it ends in "_full".
 .nf
-setname.alisub      Subarea of aligned stack if any
-setname.alilog10    Log of projections if the tilt command file contains
+aliname.alisub      Subarea of aligned stack if any
+aliname.alilog10    Log of projections if the tilt command file contains
                          a LOG entry
-setname.srec00      Initial reconstruction
-setname.srecnn      Numbered iterative reconstructions
-setname.diff        Difference of reprojection and original projections
-setname.sintnn      Iterative reconstruction scaled to integers
-setname.strmnn      Iterative reconstruction run through Trimvol(1)
-setname.vsrnn       Vertical slice file used with internal iterations
+recname.srec00      Initial reconstruction
+recname.srecnn      Numbered iterative reconstructions
+recname.diff        Difference of reprojection and original projections
+recname.sintnn      Iterative reconstruction scaled to integers
+recname.strmnn      Iterative reconstruction run through Trimvol(1)
+recname.vsrnn       Vertical slice file used with internal iterations
 .fi
 .br
 When SIRT is done internally, only setname.srecnn, setname.sintnn, 
