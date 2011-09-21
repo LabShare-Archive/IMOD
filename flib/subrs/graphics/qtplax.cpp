@@ -1,11 +1,11 @@
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-Log at end
-*/
+/*  qtplax.cpp - Qt-based graphics routines for Fortran programs
+ *
+ *  Copyright (C) 1995-2011 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -131,6 +131,12 @@ PlaxWindow::PlaxWindow(QWidget *parent, Qt::WFlags fl) :
   QPalette palette;
   palette.setColor(backgroundRole(), "black");
   setPalette(palette);
+  mTimerID = 0;
+  mRedrawCount = 0;
+  mNumRedraws = 1;
+  if (getenv("PLAX_REDRAWS"))
+    mNumRedraws = atoi(getenv("PLAX_REDRAWS"));
+  B3DCLAMP(mNumRedraws, 1, 10);
 }
 
 // Ignore close events
@@ -163,10 +169,22 @@ void PlaxWindow::resizeEvent ( QResizeEvent * )
   OutListInd = 0;
 }
 
+void PlaxWindow::timerEvent(QTimerEvent *)
+{
+  static int widthInc = 1;
+  resize(PlaxWidth + widthInc, PlaxHeight);
+  widthInc = -widthInc;
+  mRedrawCount++;
+  if (mRedrawCount < mNumRedraws)
+    return;
+  killTimer(mTimerID);
+  mTimerID = 0;
+  mRedrawCount = 0;
+}
+
 // Redraw signal is sent for showing, hiding, or drawing
 void PlaxWindow::redrawSlot()
 {
-  static int widthInc = 1;
   // Printing this seems to solve problems, so let's just flush both streams
   //puts("Got signal");
   fflush(stdout);
@@ -179,9 +197,12 @@ void PlaxWindow::redrawSlot()
   } else {
 
     // Qt4 insists on this going through a paint event, which requires complete
-    // erasure anyway.  This works, it complained about the other two ways!
-    resize(PlaxWidth + widthInc, PlaxHeight);
-    widthInc = -widthInc;
+    // erasure anyway.  Doin a resize works, it complained about the other two ways!
+    // But 9/21/11: Switched to delayed redraws and provided possibility of multiple 
+    // redraws
+    if (!mTimerID)
+      mTimerID = startTimer(10);
+    mRedrawCount = 0;
     /* QCoreApplication::postEvent(PlaxWidget, new QPaintEvent
        (QRect(0, 0, PlaxWidth, PlaxHeight))); */
     /* QPaintEvent event = QPaintEvent(QRect(0, 0, PlaxWidth, PlaxHeight));
@@ -831,60 +852,3 @@ static void plax_set_brush(int color, int closed)
   PlaxBrushColor = color;
   PlaxBrushClosed = closed;
 }  
-
-/*
-$Log$
-Revision 1.18  2009/03/20 00:15:48  mast
-Changed q3pointarray to qpolygon
-
-Revision 1.17  2009/01/15 16:32:58  mast
-Qt 4 port
-
-Revision 1.16  2006/05/12 14:28:29  mast
-Use the resize trick everywhere to get draws to work reliably on Linux
-
-Revision 1.15  2005/11/19 17:00:45  mast
-Have it call fortran routine to call getarg/iargc since these can be intrinsic
-
-Revision 1.14  2005/02/11 01:42:32  mast
-Warning cleanup: implicit declarations, main return type, parentheses, etc.
-
-Revision 1.13  2004/07/07 19:25:31  mast
-Changed exit(-1) to exit(3) for Cygwin
-
-Revision 1.12  2004/04/08 17:06:12  mast
-Used a separate define for killing process at exit
-
-Revision 1.11  2003/10/26 05:34:23  mast
-add resize workaround for Windows
-
-Revision 1.10  2003/10/24 03:43:18  mast
-provide capitalized versions of Fortran funcs, add sizes for Windows
-
-Revision 1.9  2003/10/14 21:30:23  mast
-raise widget after showing it
-
-Revision 1.8  2003/09/24 23:04:43  mast
-Reinstate resident QPainter for single thread case, flush painter at end
-
-Revision 1.7  2003/09/24 20:41:41  mast
-Made it compilable without multi-thread support
-
-Revision 1.6  2003/09/23 21:08:33  mast
-Made the painter be created and destroyed on each draw instead of being
-resident, eliminated code for SECOND_THREAD, and made Mac window only a
-bit smaller now that it is resizable.
-
-Revision 1.5  2003/08/29 16:59:45  mast
-Created multithreaded can of worms
-
-Revision 1.4  2003/08/13 20:02:25  mast
-Eliminate empty #define statement
-
-Revision 1.3  2003/08/12 23:52:11  mast
-Make window size smaller for Mac only
-
-Revision 1.2  2003/08/12 21:44:36  mast
-Changes to try to help text drawingon the Mac
-
-*/
