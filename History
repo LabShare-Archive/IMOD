@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/20/11: Modified Sirtsetup to give output files a different rootname when
+doing a subarea.
+
 9/20/11:In eTomo - PEET allowing floats in maskModelPts.(Bug# 1507)
 
 9/20/11: Fixed function wrapper which caused wrong sign in rotation output of
