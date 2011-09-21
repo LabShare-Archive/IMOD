@@ -204,7 +204,7 @@ c
 c       
 c       
 35    if(ifangdiff.eq.0)then
-        ndiv=max(1,nint(0.5+2.*trisize/delr))
+        ndiv = min(19,max(1,nint(0.5+2.*trisize/delr)))
         write(*,1035)ndiv
 1035    format('Triangles will be subdivided',i3,' times')
         nregbas=(nregion-1)*ngraph+1

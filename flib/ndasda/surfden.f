@@ -30,7 +30,7 @@ c
       real*4 fracsum(limbins,limgraphs)
       integer*4 igraphref(limgraphs)
       logical*1 neighpt(limptxgrf)
-      real*4 distvert(maxverts),subdist(200),subvert(3,200)
+      real*4 distvert(maxverts),subdist(600),subvert(3,600)
       integer*4 indsub(3,200)
 c       
       if(ngraph.eq.0)return

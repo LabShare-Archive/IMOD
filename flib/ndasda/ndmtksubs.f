@@ -402,8 +402,7 @@ c
       inlast = in5
       if (in5 .ne. 5) close(in5)
       in5 = 5
-      write(*,*) 'Enter name of file with commands,',
-     &    ' or Return for input from keyboard'	
+      write(*,*) 'Enter name of file with commands, or Return for input from keyboard'
       read(inlast,'(a)',err=10,end=10)comfile
       if(comfile.eq.' ')return
 c       
