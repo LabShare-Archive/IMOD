@@ -193,9 +193,13 @@ public final class FileType {
   // Template for .sintnn
   public static final FileType SIRT_SCALED_OUTPUT_TEMPLATE = FileType
       .getDerivedTemplateInstance(TILT_OUTPUT, ".sint", ImodManager.SIRT_KEY);
+  public static final FileType SIRT_SUBAREA_SCALED_OUTPUT_TEMPLATE = FileType
+  .getTemplateInstance(true, true, "_sub", ".sint");
   // Template for .srecnn
   public static final FileType SIRT_OUTPUT_TEMPLATE = FileType
       .getDerivedTemplateInstance(TILT_OUTPUT, ".srec", ImodManager.SIRT_KEY);
+  public static final FileType SIRT_SUBAREA_OUTPUT_TEMPLATE = FileType
+      .getTemplateInstance(true, true, "_sub", ".srec");
   public static final FileType MODELED_JOIN = FileType.getImodInstance(true, false,
       "_modeled", ".join", ImodManager.MODELED_JOIN_KEY);
   public static final FileType MTF_FILTER_COMSCRIPT = FileType.getInstance(false, true,
@@ -283,6 +287,12 @@ public final class FileType {
     if (!unnamed) {
       namedFileTypeList.add(this);
     }
+  }
+  
+  private static FileType getTemplateInstance(final boolean usesDataset,
+      final boolean usesAxisID, final String typeString, final String extension) {
+    return new FileType(usesDataset, usesAxisID, typeString, extension, null, null, null,
+        false, false, null, null, null, false, true);
   }
 
   /**
