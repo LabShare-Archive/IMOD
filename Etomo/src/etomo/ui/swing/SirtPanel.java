@@ -123,6 +123,9 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
   private final RadialPanel radiusAndSigmaPanel;
   private final PanelHeader sirtSetupParamsHeader;
 
+  private int numFiles = 0;
+  private boolean differentFromCheckpointFlag = false;
+
   private SirtPanel(final ApplicationManager manager, final AxisID axisID,
       final DialogType dialogType, final GlobalExpandButton globalAdvancedButton,
       final TomogramGenerationDialog parent) {
@@ -154,7 +157,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
   }
 
   private void createPanel() {
-    //initialize
+    // initialize
     SpacedPanel pnlSubarea = SpacedPanel.getInstance();
     JPanel pnlSizeAndOffset = new JPanel();
     JPanel pnlSirtsetupParams = new JPanel();
@@ -170,28 +173,28 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     btnSirt.setDeferred3dmodButton(btn3dmodSirt);
     btn3dmodSirt.setSize();
     btnUseSirt.setSize();
-    //root panel
+    // root panel
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.add(pnlSubarea.getContainer());
     pnlRoot.add(pnlSirtsetupParams);
     pnlRoot.add(pnlButtons);
-    //SIRT panel
-    //Subarea panel
+    // SIRT panel
+    // Subarea panel
     pnlSubarea.setBoxLayout(BoxLayout.Y_AXIS);
     pnlSubarea.setBorder(BorderFactory.createEtchedBorder());
     pnlSubarea.setComponentAlignmentX(Component.LEFT_ALIGNMENT);
     pnlSubarea.add(cbSubarea);
     pnlSubarea.add(pnlSizeAndOffset);
-    //Offset and size panel
+    // Offset and size panel
     pnlSizeAndOffset.setLayout(new BoxLayout(pnlSizeAndOffset, BoxLayout.X_AXIS));
     pnlSizeAndOffset.add(ltfSubareaSize.getContainer());
     pnlSizeAndOffset.add(ltfYOffsetOfSubarea.getContainer());
-    //SIRT params panel
+    // SIRT params panel
     pnlSirtsetupParams.setLayout(new BoxLayout(pnlSirtsetupParams, BoxLayout.Y_AXIS));
     pnlSirtsetupParams.setBorder(BorderFactory.createEtchedBorder());
     pnlSirtsetupParams.add(sirtSetupParamsHeader.getContainer());
     pnlSirtsetupParams.add(pnlSirtsetupParamsBody.getContainer());
-    //SIRT params body panel
+    // SIRT params body panel
     pnlSirtsetupParamsBody.setBoxLayout(BoxLayout.Y_AXIS);
     pnlSirtsetupParamsBody.add(radiusAndSigmaPanel.getRoot());
     pnlSirtsetupParamsBody.add(ltfLeaveIterations);
@@ -199,46 +202,45 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     pnlSirtsetupParamsBody.add(pnlCleanUpPastStart);
     pnlSirtsetupParamsBody.add(ltfFlatFilterFraction);
     pnlSirtsetupParamsBody.add(pnlStartFrom);
-    //ScaleToInteger panel
+    // ScaleToInteger panel
     pnlScaleToInteger.setLayout(new BoxLayout(pnlScaleToInteger, BoxLayout.X_AXIS));
     pnlScaleToInteger.setAlignmentX(Box.CENTER_ALIGNMENT);
     pnlScaleToInteger.add(cbScaleToInteger);
     pnlScaleToInteger.add(Box.createHorizontalGlue());
-    //CleanUpPastStart panel
+    // CleanUpPastStart panel
     pnlCleanUpPastStart.setLayout(new BoxLayout(pnlCleanUpPastStart, BoxLayout.X_AXIS));
     pnlCleanUpPastStart.setAlignmentX(Box.CENTER_ALIGNMENT);
     pnlCleanUpPastStart.add(cbCleanUpPastStart);
     pnlCleanUpPastStart.add(Box.createHorizontalGlue());
-    //start from panel
+    // start from panel
     pnlStartFrom.setLayout(new BoxLayout(pnlStartFrom, BoxLayout.Y_AXIS));
     pnlStartFrom.add(pnlStartFromZero);
     pnlStartFrom.add(pnlResumeFromLastIteration);
     pnlStartFrom.add(pnlResumeFromIteration);
-    //StartFromZero panel
+    // StartFromZero panel
     pnlStartFromZero.setLayout(new BoxLayout(pnlStartFromZero, BoxLayout.X_AXIS));
     pnlStartFromZero.setAlignmentX(Box.CENTER_ALIGNMENT);
     pnlStartFromZero.add(rbStartFromZero.getComponent());
     pnlStartFromZero.add(Box.createHorizontalGlue());
-    //ResumeFromLastIteration panel
+    // ResumeFromLastIteration panel
     pnlResumeFromLastIteration.setLayout(new BoxLayout(pnlResumeFromLastIteration,
         BoxLayout.X_AXIS));
     pnlResumeFromLastIteration.setAlignmentX(Box.CENTER_ALIGNMENT);
     pnlResumeFromLastIteration.add(rbResumeFromLastIteration.getComponent());
     pnlResumeFromLastIteration.add(Box.createHorizontalGlue());
-    //Resume from iteration panel
+    // Resume from iteration panel
     pnlResumeFromIteration.setLayout(new BoxLayout(pnlResumeFromIteration,
         BoxLayout.X_AXIS));
     pnlResumeFromIteration.add(rbResumeFromIteration.getComponent());
     pnlResumeFromIteration.add(cmbResumeFromIteration);
-    //Buttons panel
+    // Buttons panel
     pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
     pnlButtons.add(btnSirt.getComponent());
     pnlButtons.add(btn3dmodSirt.getComponent());
     pnlButtons.add(btnUseSirt.getComponent());
-    //defaults
+    // defaults
     rbStartFromZero.setSelected(true);
     cbCleanUpPastStart.setSelected(true);
-    loadResumeFrom();
     updateDisplay();
   }
 
@@ -260,37 +262,38 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     resumeChanged();
   }
 
-  private void msgFieldChanged() {
-    updateDisplay(!isDifferentFromCheckpoint());
-  }
-
   public void msgFieldChanged(final boolean differentFromCheckpoint) {
-    updateDisplay(!differentFromCheckpoint && !isDifferentFromCheckpoint());
+    differentFromCheckpointFlag = differentFromCheckpoint;
+    updateDisplay();
   }
 
   private void updateDisplay() {
-    boolean resume = isResume();
+    // Update checkpointed fields - disabled fields are not checked for checkpoint
+    // difference.
     boolean subarea = cbSubarea.isSelected();
-    cbSubarea.setEnabled(!resume);
+    ltfSubareaSize.setEnabled(subarea);
+    ltfYOffsetOfSubarea.setEnabled(subarea);
+    // Enable resume if there are files to resume from and this class has no checkpoint
+    // differences, and classes that this class is observing have no checkpoint
+    // differences.
+    boolean enableResume = numFiles > 0 && !isDifferentFromCheckpoint()
+        && !differentFromCheckpointFlag;
+    rbResumeFromLastIteration.setEnabled(enableResume);
+    rbResumeFromIteration.setEnabled(enableResume);
+    cmbResumeFromIteration.setEnabled(enableResume && rbResumeFromIteration.isSelected());
+    // Don't allow the resume radio buttons to be selected when they are disabled
+    if (!enableResume
+        && (rbResumeFromLastIteration.isSelected() || rbResumeFromIteration.isSelected())) {
+      rbStartFromZero.setSelected(true);
+      resumeChanged();
+    }
+    boolean resume = isResume();
+    // Correct checkpointed fields now that resume is available
     ltfSubareaSize.setEnabled(subarea && !resume);
     ltfYOffsetOfSubarea.setEnabled(subarea && !resume);
     radiusAndSigmaPanel.setEnabled(!resume);
     cmbResumeFromIteration.setEnabled(rbResumeFromIteration.isEnabled()
         && rbResumeFromIteration.isSelected());
-  }
-
-  private void updateDisplay(final boolean resumeEnabled) {
-    rbResumeFromLastIteration.setEnabled(resumeEnabled);
-    rbResumeFromIteration.setEnabled(resumeEnabled);
-    cmbResumeFromIteration
-        .setEnabled(resumeEnabled && rbResumeFromIteration.isSelected());
-    //Don't allow the resume radio buttons to be selected when they are disabled
-    if (!resumeEnabled
-        && (rbResumeFromLastIteration.isSelected() || rbResumeFromIteration.isSelected())) {
-      rbStartFromZero.setSelected(true);
-      resumeChanged();
-    }
-    updateDisplay();
   }
 
   private Boolean isResumeEnabled() {
@@ -336,6 +339,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     cbSubarea.setSelected(metaData.isGenSubarea(axisID));
     ltfSubareaSize.setText(metaData.getGenSubareaSize(axisID));
     ltfYOffsetOfSubarea.setText(metaData.getGenYOffsetOfSubarea(axisID));
+    loadResumeFrom();
   }
 
   public boolean getParameters(final SirtsetupParam param) {
@@ -412,7 +416,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     else {
       rbResumeFromLastIteration.setSelected(true);
     }
-    updateDisplay(isResumeEnabled());
+    updateDisplay();
   }
 
   /**
@@ -420,14 +424,29 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
    * the digits in the ResumeFromIteration pulldown list.
    */
   private void loadResumeFrom() {
-    //Clear pulldown list.
+    // Clear pulldown list.
     cmbResumeFromIteration.removeAllItems();
-    //Get file names.
-    String[] fileNameList = new File(manager.getPropertyUserDir())
-        .list(new SirtOutputFileFilter(manager, axisID, false));
-    //Extract iteration numbers, sort them, and add them to the pulldown list.
+    // Get file names.
+    boolean subarea = cbSubarea.isSelected();
+    SirtOutputFileFilter filter;
+    if (subarea) {
+      filter = SirtOutputFileFilter.getSubareaInstance(manager, axisID, false);
+    }
+    else {
+      filter = SirtOutputFileFilter.getFullInstance(manager, axisID, false);
+    }
+    String[] fileNameList = new File(manager.getPropertyUserDir()).list(filter);
+    // Extract iteration numbers, sort them, and add them to the pulldown list.
     int[] fileNumberList = null;
-    String templateExt = FileType.SIRT_OUTPUT_TEMPLATE.getExtension(manager);
+    //Ignore .sint## files - they cannot be resumed from.
+    FileType fileType;
+    if (subarea) {
+      fileType = FileType.SIRT_SUBAREA_OUTPUT_TEMPLATE;
+    }
+    else {
+      fileType = FileType.SIRT_OUTPUT_TEMPLATE;
+    }
+    String templateExt = fileType.getExtension(manager);
     if (fileNameList != null && fileNameList.length > 0) {
       fileNumberList = new int[fileNameList.length];
       for (int i = 0; i < fileNumberList.length; i++) {
@@ -435,12 +454,12 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
         fileNumber.set(fileNameList[i]
             .substring(fileNameList[i].lastIndexOf(templateExt)).substring(
                 templateExt.length()));
-        //SirtOutputFileFilter only accepts files the end in a valid integer, so assume
-        //the number is valid.
+        // SirtOutputFileFilter only accepts files that end in a valid integer, so assume
+        // the number is valid.
         fileNumberList[i] = fileNumber.getInt();
       }
       Arrays.sort(fileNumberList);
-      //Add sorted numbers to the pulldown list.
+      // Add sorted numbers to the pulldown list.
       for (int i = fileNumberList.length - 1; i >= 0; i--) {
         EtomoNumber fileNumber = new EtomoNumber();
         fileNumber.set(fileNumberList[i]);
@@ -457,7 +476,14 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     else {
       rbResumeFromLastIteration.setText(RESUME_FROM_LAST_ITERATION_LABEL);
     }
-    updateDisplay(fileNumberList != null && fileNumberList.length != 0);
+    // Keep numFiles up to date
+    if (fileNumberList == null || fileNumberList.length == 0) {
+      numFiles = 0;
+    }
+    else {
+      numFiles = fileNumberList.length;
+    }
+    updateDisplay();
   }
 
   /**
@@ -466,9 +492,9 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
    * @param run3dmodMenuOptions
    */
   private void openFilesInImod(final Run3dmodMenuOptions run3dmodMenuOptions) {
-    //Don't open the file chooser if there is only one file to choose
+    // Don't open the file chooser if there is only one file to choose
     SirtOutputFileFilter sirtOutputFileFilter = new SirtOutputFileFilter(manager, axisID,
-        true);
+        true, true, true);
     File[] fileList = new File(manager.getPropertyUserDir())
         .listFiles((FilenameFilter) sirtOutputFileFilter);
     if (fileList == null || fileList.length != 1) {
@@ -495,7 +521,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
    */
   public void useSirt() {
     SirtOutputFileFilter sirtOutputFileFilter = new SirtOutputFileFilter(manager, axisID,
-        true);
+        true, true, true);
     File[] fileList = new File(manager.getPropertyUserDir())
         .listFiles((FilenameFilter) sirtOutputFileFilter);
     if (fileList != null && fileList.length == 1) {
@@ -554,17 +580,10 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     }
   }
 
-  private void fieldChangeAction() {
-    msgFieldChanged();
-  }
-
   void checkpoint(TomogramState state) {
-    String subareaSize = state.getGenSirtsetupSubareaSize(axisID);
-    //Subarea was used if the size was set
-    cbSubarea.checkpoint(!subareaSize.matches("\\s*"));
-    ltfSubareaSize.checkpoint(subareaSize);
+    ltfSubareaSize.checkpoint(state.getGenSirtsetupSubareaSize(axisID));
     ltfYOffsetOfSubarea.checkpoint(state.getGenSirtsetupyOffsetOfSubarea(axisID));
-    fieldChangeAction();
+    updateDisplay();
   }
 
   /**
@@ -574,8 +593,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
    * @return
    */
   boolean isDifferentFromCheckpoint() {
-    if (cbSubarea.isDifferentFromCheckpoint()
-        || ltfSubareaSize.isDifferentFromCheckpoint()
+    if (ltfSubareaSize.isDifferentFromCheckpoint()
         || ltfYOffsetOfSubarea.isDifferentFromCheckpoint()) {
       return true;
     }
@@ -608,16 +626,14 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
         || actionCommand.equals(rbResumeFromLastIteration.getActionCommand())
         || actionCommand.equals(rbResumeFromIteration.getActionCommand())) {
       updateDisplay();
-      resumeChanged();
     }
     else if (actionCommand.equals(cbSubarea.getActionCommand())) {
-      updateDisplay();
-      fieldChangeAction();
+      loadResumeFrom();
     }
   }
 
   private void documentAction() {
-    fieldChangeAction();
+    updateDisplay();
   }
 
   private void setToolTipText() {
