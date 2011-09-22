@@ -390,7 +390,7 @@ static void zapDraw_cb(ImodView *vi, void *client, int drawflag)
     }
           
     if (!(drawflag & IMOD_DRAW_ACTIVE) && !(drawflag & IMOD_DRAW_NOSYNC))
-      zap->syncImage();
+      zap->syncImage(false);
 
     /* DNM 1/29/03: no more worry about multiple calls */
     zap->draw();
@@ -817,13 +817,13 @@ int ZapFuncs::startMovieCheckSnap(int dir)
 #define BORDER_MIN_MULTIZ  20
 #define BORDER_MAX  125
 
-void ZapFuncs::syncImage()
+void ZapFuncs::syncImage(bool toImagePt)
 {
   int syncborder, wposition, wsize, tripshift;
   int trytrans, trydraws, tryborder, trystart, borderMin;
   ImodView *vi = mVi;
   if ((!mLock) && 
-      ((vi->imod->mousemode == IMOD_MMODEL && mVi->imod->cindex.point >= 0)
+      ((vi->imod->mousemode == IMOD_MMODEL && mVi->imod->cindex.point >= 0) || toImagePt
        || (mNumXpanels && mKeepcentered))) {
     borderMin = mNumXpanels ? BORDER_MIN_MULTIZ : BORDER_MIN;
 
@@ -1155,7 +1155,7 @@ void ZapFuncs::stateToggled(int index, int state)
     mLock = state ? 2 : 0;
     if (!mLock) {
       flushImage();
-      syncImage();
+      syncImage(false);
       draw();
     }
     break;
@@ -1164,7 +1164,7 @@ void ZapFuncs::stateToggled(int index, int state)
     mKeepcentered = state;
     if (state) {
       flushImage();
-      syncImage();
+      syncImage(true);
       draw();
     }
     break;
@@ -1855,6 +1855,8 @@ void ZapFuncs::mouseRelease(QMouseEvent *event)
     }
     sFirstDrag = 0;
 
+    if (imodDebug('m'))
+      imodPrintStderr("Down time %d msec  %d\n", sBut1downt.elapsed(), mHqgfxsave);
     if (sBut1downt.elapsed() > 250) {
       if (mHqgfxsave || ifdraw)
         draw();
@@ -2470,6 +2472,7 @@ int ZapFuncs::b1Drag(int x, int y)
   // For zooms less than one, move image along with mouse; for higher zooms,
   // Translate 1 image pixel per mouse pixel (accelerated)
   double transFac = mZoom < 1. ? 1. / mZoom : 1.;
+  bool cancelHQ = mLastHqDrawTime > sHqDrawTimeCrit;
 
   if (mShiftingCont) {
     shiftContour(x, y, 1, 0);
@@ -2523,12 +2526,12 @@ int ZapFuncs::b1Drag(int x, int y)
     mYtrans -= (int)floor(transFac * (y - mLmy) + 0.5);
   }
 
-  if (mLastHqDrawTime > sHqDrawTimeCrit) {
+  if (cancelHQ) {
     mHqgfxsave = mHqgfx;
     mHqgfx = 0;
   }
   draw();
-  if (mLastHqDrawTime > sHqDrawTimeCrit)
+  if (cancelHQ)
     mHqgfx = mHqgfxsave;
   return 1;
 }
@@ -2628,6 +2631,7 @@ int ZapFuncs::b2Drag(int x, int y, int controlDown)
   float ix, iy, idx, idy;
   double dist;
   int pt, iz;
+  bool cancelHQ = mLastHqDrawTime > sHqDrawTimeCrit;
      
   if (mNumXpanels)
     return 0;
@@ -2653,12 +2657,12 @@ int ZapFuncs::b2Drag(int x, int y, int controlDown)
     idy = (mLmy - y) / mZoom;
     shiftRubberband(idx, idy);
 
-    if (mLastHqDrawTime > sHqDrawTimeCrit) {
+    if (cancelHQ) {
       mHqgfxsave = mHqgfx;
       mHqgfx = 0;
     }
     draw();
-    if (mLastHqDrawTime > sHqDrawTimeCrit)
+    if (cancelHQ)
       mHqgfx = mHqgfxsave;
     mBandChanged = 1;
     return 1;
