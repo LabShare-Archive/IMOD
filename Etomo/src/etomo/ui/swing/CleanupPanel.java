@@ -184,13 +184,13 @@ final class CleanupPanel {
 
   private CleanupPanel(final ApplicationManager appMgr) {
     applicationManager = appMgr;
-    //  Set the button sizes
+    // Set the button sizes
     btnDelete.setSize();
     btnRescanDir.setSize();
 
-    //  Create the filechooser
+    // Create the filechooser
     String datasetName = applicationManager.getMetaData().getDatasetName();
-    //Collect the file filters
+    // Collect the file filters
     FileFilterCollection fileFilterCollection = new FileFilterCollection();
     IntermediateFileFilter intermediateFileFilter = new IntermediateFileFilter(
         datasetName);
@@ -200,15 +200,15 @@ final class CleanupPanel {
     fileFilterCollection.addFileFilter(intermediateFileFilter);
     if (appMgr.getMetaData().getAxisType() == AxisType.DUAL_AXIS) {
       fileFilterCollection.addFileFilter(new SirtOutputFileFilter(appMgr, AxisID.FIRST,
-          true));
+          true, true, true));
       fileFilterCollection.addFileFilter(new SirtOutputFileFilter(appMgr, AxisID.SECOND,
-          true));
+          true, true, true));
     }
     else {
       fileFilterCollection.addFileFilter(new SirtOutputFileFilter(appMgr, AxisID.ONLY,
-          true));
+          true, true, true));
     }
-    //Setup the file chooser
+    // Setup the file chooser
     fileChooser.setDialogType(JFileChooser.CUSTOM_DIALOG);
     fileChooser.setFileFilter(fileFilterCollection);
     fileChooser.setMultiSelectionEnabled(true);
@@ -282,7 +282,7 @@ final class CleanupPanel {
         deletedAll = false;
       }
     }
-    //if (deletedAll) {
+    // if (deletedAll) {
     fileChooser.rescanCurrentDirectory();
     fileChooser.setSelectedFile(new File(""));
     if (!deletedAll) {
