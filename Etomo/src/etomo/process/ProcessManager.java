@@ -2280,11 +2280,13 @@ public class ProcessManager extends BaseProcessManager {
             commandDetails.getBooleanValue(BeadtrackParam.Field.LIGHT_BEADS));
       }
       else if (processName == ProcessName.SIRTSETUP) {
+        if (processDetails.getBooleanValue(SirtsetupParam.Field.SUBAREA)) {
+          state.setGenSirtsetupSubareaSize(script.getAxisID(),
+              processDetails.getString(SirtsetupParam.Field.SUBAREA_SIZE));
+          state.setGenSirtsetupyOffsetOfSubarea(script.getAxisID(),
+              processDetails.getIntValue(SirtsetupParam.Field.Y_OFFSET_OF_SUBSET));
+        }
         appManager.msgSirtsetupSucceeded(axisID);
-        state.setGenSirtsetupSubareaSize(script.getAxisID(),
-            processDetails.getString(SirtsetupParam.Field.SUBAREA_SIZE));
-        state.setGenSirtsetupyOffsetOfSubarea(script.getAxisID(),
-            processDetails.getIntValue(SirtsetupParam.Field.Y_OFFSET_OF_SUBSET));
       }
       else {
         // For processes that can also be done with processchunks.
