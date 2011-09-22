@@ -299,6 +299,9 @@ public final class SirtsetupParam implements CommandParam, CommandDetails {
   }
 
   public boolean getBooleanValue(final etomo.comscript.FieldInterface fieldInterface) {
+    if (fieldInterface == Field.SUBAREA) {
+      return !subareaSize.isNull();
+    }
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
@@ -345,6 +348,7 @@ public final class SirtsetupParam implements CommandParam, CommandDetails {
   }
 
   public static final class Field implements etomo.comscript.FieldInterface {
+    public static final Field SUBAREA = new Field();
     public static final Field SUBAREA_SIZE = new Field();
     public static final Field Y_OFFSET_OF_SUBSET = new Field();
 
