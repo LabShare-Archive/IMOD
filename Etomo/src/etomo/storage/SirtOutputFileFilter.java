@@ -39,12 +39,26 @@ public final class SirtOutputFileFilter extends FileFilter implements FilenameFi
   private final BaseManager manager;
   private final AxisID axisID;
   private final boolean includeScaledOutput;
+  private final boolean subarea;
+  private final boolean full;
 
   public SirtOutputFileFilter(final BaseManager manager, final AxisID axisID,
-      final boolean includeScaledOutput) {
+      final boolean includeScaledOutput, final boolean subarea, final boolean full) {
     this.manager = manager;
     this.axisID = axisID;
     this.includeScaledOutput = includeScaledOutput;
+    this.subarea = subarea;
+    this.full = full;
+  }
+
+  public static SirtOutputFileFilter getSubareaInstance(final BaseManager manager,
+      final AxisID axisID, final boolean includeScaledOutput) {
+    return new SirtOutputFileFilter(manager, axisID, includeScaledOutput, true, false);
+  }
+
+  public static SirtOutputFileFilter getFullInstance(final BaseManager manager,
+      final AxisID axisID, final boolean includeScaledOutput) {
+    return new SirtOutputFileFilter(manager, axisID, includeScaledOutput, false, true);
   }
 
   @Override
@@ -60,14 +74,32 @@ public final class SirtOutputFileFilter extends FileFilter implements FilenameFi
     if (fileName.endsWith("~")) {
       return false;
     }
-    String template = FileType.SIRT_OUTPUT_TEMPLATE.getTemplate(manager, axisID);
-    if (fileName.startsWith(template)) {
-      return acceptTemplate(fileName, template);
-    }
-    if (includeScaledOutput) {
-      template = FileType.SIRT_SCALED_OUTPUT_TEMPLATE.getTemplate(manager, axisID);
+    String template;
+    if (full) {
+      template = FileType.SIRT_OUTPUT_TEMPLATE.getTemplate(manager, axisID);
       if (fileName.startsWith(template)) {
         return acceptTemplate(fileName, template);
+      }
+    }
+    if (subarea) {
+      template = FileType.SIRT_SUBAREA_OUTPUT_TEMPLATE.getTemplate(manager, axisID);
+      if (fileName.startsWith(template)) {
+        return acceptTemplate(fileName, template);
+      }
+    }
+    if (includeScaledOutput) {
+      if (full) {
+        template = FileType.SIRT_SCALED_OUTPUT_TEMPLATE.getTemplate(manager, axisID);
+        if (fileName.startsWith(template)) {
+          return acceptTemplate(fileName, template);
+        }
+      }
+      if (subarea) {
+        template = FileType.SIRT_SUBAREA_SCALED_OUTPUT_TEMPLATE.getTemplate(manager,
+            axisID);
+        if (fileName.startsWith(template)) {
+          return acceptTemplate(fileName, template);
+        }
       }
     }
     return false;
