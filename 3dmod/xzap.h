@@ -56,7 +56,7 @@ class ZapFuncs
   void setCursor(int mode, bool setAnyway = false);
   void setMouseTracking();
   void shiftRubberband(float idx, float idy);
-  void syncImage();
+  void syncImage(bool toImagePt);
   void toggleRubberband(bool draw = true);
   bool getLowHighSection(int &low, int &high);
   B3dCIImage *zoomedDownImage(int subset, int &nxim, int &nyim, int &ixStart,
