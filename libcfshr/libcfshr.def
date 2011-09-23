@@ -30,6 +30,7 @@ EXPORTS
 	PARWRTGETREGION
 	convexBound
 	PIPNUMBEROFARGS
+	CHECKLIST
 	cblas_ddot
 	PipGetInOutFile
 	PipReadNextLine
@@ -160,6 +161,7 @@ EXPORTS
 	ADOCSETTHREEFLOATS
 	WRITEBYTESSIGNED
 	zoomWithFilter
+	adjustPieceOverlap
 	AdocGetThreeIntegers
 	conjugateProduct
 	XCorrSetCTFnoScl
@@ -259,6 +261,7 @@ EXPORTS
 	XCorrSetCTF
 	PipParseInput
 	AdocGetThreeFloats
+	checkPieceList
 	PIPDONE
 	AMOEBA
 	ilistAppend
@@ -352,6 +355,7 @@ EXPORTS
 	INCOMPBETA
 	SCALEDSOBEL
 	AdocAddSection
+	ADJUSTPIECEOVERLAP
 	cblas_daxpy
 	selectZoomFilter
 	PIPGETSTRING
