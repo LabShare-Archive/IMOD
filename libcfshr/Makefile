@@ -15,7 +15,7 @@ UTILOBJS = b3dutil.$(O) ilist.$(O) parselist.$(O) amoeba.$(O) \
 	scaledsobel.$(O) filtxcorr.$(O) taperpad.$(O) circlefit.$(O) \
 	insidecontour.$(O) islice.$(O) taperatfill.$(O) histogram.$(O) \
 	simplestat.$(O) amat_to_rotmagstr.$(O) percentile.$(O) beadutil.$(O) \
-	lsqr.$(O) lsqrblas.$(O) sparselsqr.$(O) parallelwrite.$(O) \
+	lsqr.$(O) lsqrblas.$(O) sparselsqr.$(O) parallelwrite.$(O) piecefuncs.$(O) \
 	robuststat.$(O) convexbound.$(O) statfuncs.$(O) surfacesort.$(O) \
 	gaussj.$(O) find_piece_shifts.$(O) zoomdown.$(O) pctstretch.$(O) linearxforms.$(O)
 
