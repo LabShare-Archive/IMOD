@@ -76,7 +76,7 @@ public class IntermediateFileFilter extends FileFilter {
   public boolean accept(File f) {
     String[] endsWith = { "~", "matchcheck.rec", ".mat", ".ali", ".preali", "bot.rec",
         "bota.rec", "botb.rec", "mid.rec", "mida.rec", "midb.rec", "top.rec", "topa.rec",
-        "topb.rec", "volcombine.log", ".bl", ".dcst", ".alisub", ".alilog10" };
+        "topb.rec", "volcombine.log", ".bl", ".dcst", ".alilog10" };
     String[] pretrimmedTomograms = { "sum.rec", "full.rec" };
     if (f.isFile()) {
       //.rec.mat1659344 and .rec.wrp0905524
