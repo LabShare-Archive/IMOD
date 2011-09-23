@@ -4,6 +4,8 @@ c	  end of file.  NPCLIST has the number of coordinates, or 0 if the
 c	  file name is blank.
 c
       subroutine read_piece_list(filpcl,ixpclist,iypclist,izpclist, npclist)
+      implicit none
+      character*(*) filpcl
       integer*4 ixpclist(*),iypclist(*),izpclist(*), npclist
       call read_piece_list2(filpcl,ixpclist,iypclist,izpclist, npclist, 0)
       return
