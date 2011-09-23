@@ -132,8 +132,8 @@ void imod_usage(char *name)
 int main( int argc, char *argv[])
 {
   ImodApp app;
-  struct ViewInfo vi;
-  struct LoadInfo li;
+  ImodView vi;
+  IloadInfo li;
   FILE *fin        = NULL;
   FILE *mfin       = NULL;
   char *plistfname = NULL;
@@ -147,6 +147,7 @@ int main( int argc, char *argv[])
   int new_model_created = FALSE;
   int i      = 0;
   int nx, ny, nz, mode;
+  int minxpiece, numXpieces, xoverlap, minypiece, numYpieces, yoverlap;
   int namelen;
   int frames = 0;
   int firstfile = 0;
@@ -742,6 +743,26 @@ int main( int argc, char *argv[])
       iiClose(vi.image);
     }
           
+    // If an overlap was entered and there were piece coordinates, adjust the overlap
+    if (vi.li->plist && !nframex && !nframey && overEntered) {
+      if (checkPieceList(vi.li->pcoords, 3, vi.li->plist, 1, vi.hdr->nx, &minxpiece, 
+                         &numXpieces, &xoverlap) || 
+          checkPieceList(vi.li->pcoords + 1, 3, vi.li->plist, 1, vi.hdr->ny, &minypiece,
+                         &numYpieces, &yoverlap)) {
+        imodError(NULL, "3dmod: Piece coordinates are not on a regular grid so overlap"
+                  " cannot be adjusted.\n");
+        exit (12);
+      }
+      if (numXpieces > 1)
+        adjustPieceOverlap(vi.li->pcoords, 3, vi.li->plist, vi.hdr->nx, minxpiece,
+                           xoverlap, overx);
+      if (numYpieces > 1)
+        adjustPieceOverlap(vi.li->pcoords + 1, 3, vi.li->plist, vi.hdr->ny, minypiece,
+                           yoverlap, overy);
+      vi.li->px = (vi.hdr->nx - overx) * (numXpieces - 1) + vi.hdr->nx;
+      vi.li->py = (vi.hdr->ny - overy) * (numYpieces - 1) + vi.hdr->ny;
+    }
+
     /* DNM 1/2/04: move adjusting of loading coordinates to fix_li call,
        and move that call into list processing */
     /* Only need to say it is not flippable unless cache full */
