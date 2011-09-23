@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end
  */
 
 #include <stdlib.h>
@@ -85,9 +84,11 @@ void usage(void)
   fprintf(stderr, "\t[-ox #]  [-oy #]  [-oz #]  output sizes.\n");
   fprintf(stderr, "\t[-a] Append output to file.\n");
   fprintf(stderr, "\t[-ov #] Overwrite output starting at section #\n");
-  fprintf(stderr, "\t[-m (mode#)] output data mode.\n");
-  fprintf(stderr, "\t[-p (pad#)] pad empty data value.\n");
+  fprintf(stderr, "\t[-m (mode#)] Output data mode.\n");
+  fprintf(stderr, "\t[-p (pad#)] Pad empty data value.\n");
   fprintf(stderr, "\t[-1] Number Z values from 1 instead of 0.\n");
+  fprintf(stderr, "\t[-P file] Name of piece list file for stats on a montage.\n");
+  fprintf(stderr, "\t[-O #,#]  Overlaps in X and Y in displayed montage.\n");
   fprintf(stderr, "\n");
 }
 
@@ -136,6 +137,9 @@ void default_options(ClipOptions *opt)
   opt->ocanchmode = TRUE;
   opt->fromOne = FALSE;
   opt->ofname = NULL;
+  opt->plname = NULL;
+  opt->newXoverlap = IP_DEFAULT;
+  opt->newYoverlap = IP_DEFAULT;
 }
 
 
@@ -343,7 +347,7 @@ int main( int argc, char *argv[] )
         /*case 'z': case 'Z':
           sscanf(argv[++i], "%f%*c%f", &(opt.z), &(opt.z2)); break; */
 
-      case 'o': case 'O':
+      case 'o':
         switch (argv[i][2]){
         case 0x00:
         case ' ':
@@ -393,6 +397,14 @@ int main( int argc, char *argv[] )
           fprintf(stderr, "%s: invalid option %s.\n", progname, argv[i]);
           exit(3);
         }
+        break;
+
+      case 'P':
+        opt.plname = strdup(argv[++i]);
+        break;
+
+      case 'O':
+        sscanf(argv[++i], "%d%*c%d", &opt.newXoverlap, &opt.newYoverlap);
         break;
 
       default:
@@ -685,91 +697,3 @@ int *clipMakeSecList(char *clst, int *nofsecs)
   return(secs);
 }
 
-/*
-$Log$
-Revision 3.29  2011/07/25 02:44:58  mast
-Add option for controlling byte output, changes for that
-
-Revision 3.28  2011/07/13 19:14:43  mast
-Fix usage statement
-
-Revision 3.27  2011/03/05 03:32:01  mast
-Allow environment variable to prevent backing up file
-
-Revision 3.26  2011/02/28 17:36:30  mast
-Add unwrap option
-
-Revision 3.25  2011/02/24 00:12:26  mast
-Set MAP stamp for new file header
-
-Revision 3.24  2011/02/23 22:19:26  mast
-Add volume combining and truncation options, deal with -x and -y properly
-
-Revision 3.23  2011/02/19 15:28:07  mast
-Added variance and standev options
-
-Revision 3.22  2009/11/21 22:10:04  mast
-Added -1 option for numbering Z from 1.
-
-Revision 3.21  2008/07/04 21:30:42  mast
-Fixed splitrgb the right way this time
-
-Revision 3.20  2008/01/10 05:19:38  mast
-Fixed double close of file with splitrgb
-
-Revision 3.19  2007/11/23 01:05:39  mast
-Added usage line for smoothing options
-
-Revision 3.18  2007/06/13 17:04:43  sueh
-bug# 1019 Setting hout.sectionSkip in main.
-
-Revision 3.17  2007/02/04 21:19:48  mast
-Eliminated mrcspectral includes
-
-Revision 3.16  2006/06/23 17:12:02  mast
-Added rotx option
-
-Revision 3.15  2005/01/28 05:42:22  mast
-Set low to IP_DEFAULT so default would work for diffusion
-
-Revision 3.14  2005/01/27 05:55:17  mast
-Added anisotropic diffusion option
-
-Revision 3.13  2005/01/17 17:07:15  mast
-Removed rotate, translate, zoom; used new typedefs
-
-Revision 3.12  2005/01/07 23:54:25  mast
-Fix brightness listing in usage
-
-Revision 3.11  2005/01/07 20:06:52  mast
-Added various filters including simple 3dmod ones and median filter
-
-Revision 3.10  2004/11/04 17:04:21  mast
-Switched to producing and using non-mirrored FFTs
-
-Revision 3.9  2004/07/07 19:25:29  mast
-Changed exit(-1) to exit(3) for Cygwin
-
-Revision 3.8  2004/04/22 19:07:56  mast
-Zeroed out number of extra header bytes in output file to fixe problems
-with headers that have extra data that is not being copied.
-
-Revision 3.7  2004/01/16 18:09:02  mast
-Added splitrgb and joinrgb options
-
-Revision 3.6  2003/10/24 03:09:26  mast
-open as binary, strip program name and/or use routine for backup file
-
-Revision 3.5  2002/11/05 23:25:26  mast
-*** empty log message ***
-
-Revision 3.4  2002/11/05 23:24:46  mast
-Change to call copyright function
-
-Revision 3.3  2002/07/31 20:11:27  mast
-Changed copyright to use defined variable
-
-Revision 3.2  2002/06/26 16:47:22  mast
-Allowed writing to swapped files
-
-*/

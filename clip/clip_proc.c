@@ -1908,7 +1908,8 @@ struct zstats {
 int clip_stat(MrcHeader *hin, ClipOptions *opt)
 {
   int i, j, k, iz, di, dj, nsum, length, kk, outlast;
-  int xmax, ymax, xmin, ymin, zmin, zmax;
+  int xmax, ymax, xmin, ymin, zmin, zmax, izo, xmaxo, ymaxo;
+  int minxpiece, xoverlap, numXpieces, minypiece, yoverlap, numYpieces;
   Islice *slice;
   float min, max, m, ptnum;
   double mean, std, sumsq, vmean, vsumsq, cx, cy, data[3][3];
@@ -1916,23 +1917,50 @@ int clip_stat(MrcHeader *hin, ClipOptions *opt)
   float vmin, vmax, kcrit = 2.24f;
   char starmin, starmax;
   b3dInt16 *sdata;
+  IloadInfo li;
+  int viewAdd = opt->fromOne ? 1 : 0;
   struct zstats *stats;
   float *allmins, *allmaxes, *ifdrop;
   int outliers = (opt->val != IP_DEFAULT || opt->low != IP_DEFAULT) ? 1 : 0;
 
-  /*     if (opt->dim == 3){
-         v = grap_volume_read(hin, opt);
-         clip_stat3d(v);
-         grap_volume_free(v);
-         return(0);
-         }
-  */
+  /* Try to get a piece list from file and adjust it for overlaps */
+  mrc_init_li(&li, NULL);
+  if (opt->plname && mrc_plist_li(&li, hin, opt->plname)) {
+    show_error("stat: error reading piece list file");
+    return -1;
+  }
+  if (li.plist) {
+    if (li.plist < hin->nz) {
+      show_error("stat: not enough piece coordinates in file");
+      return -1;
+    }
+    if (opt->newXoverlap == IP_DEFAULT)
+      opt->newXoverlap = 0;
+    if (opt->newYoverlap == IP_DEFAULT)
+      opt->newYoverlap = 0;
+    if (checkPieceList(li.pcoords, 3, li.plist, 1, hin->nx, &minxpiece, &numXpieces,
+                       &xoverlap) || 
+        checkPieceList(li.pcoords + 1, 3, li.plist, 1, hin->ny, &minypiece, &numYpieces,
+                       &yoverlap)) {
+      show_error("stat: piece coordinates are not regularly spaced");
+      return -1;
+    }
+    if (numXpieces > 1)
+      adjustPieceOverlap(li.pcoords, 3, li.plist, hin->nx, minxpiece, xoverlap, 
+                         opt->newXoverlap);
+    if (numYpieces > 1)
+      adjustPieceOverlap(li.pcoords + 1, 3, li.plist, hin->ny, minypiece, yoverlap,
+                         opt->newYoverlap);
+    printf("piece|   min   |(   x,  %s)|    max  |(   x,  %s)|   mean\n",
+           opt->fromOne ? "y, view" : " y,   z", opt->fromOne ? "y, view" : " y,   z");
+    printf("-----|---------|----------------|---------|----------------|---------\n");
+  } else {
 
-  /* printf("headersize %d\n", hin->headerSize); */
-
-  printf("%s|   min   |(   x,   y)|    max  |(      x,      y)|   mean    |  "
-         "std dev.\n", opt->fromOne ? "view " : "slice");
-  printf("-----|---------|-----------|---------|-----------------|-----------|----------\n");
+    printf("%s|   min   |(   x,   y)|    max  |(      x,      y)|   mean    |  "
+           "std dev.\n", opt->fromOne ? "view " : "slice");
+    printf("-----|---------|-----------|---------|-----------------|-----------|--"
+           "--------\n");
+  }
      
   set_input_options(opt, hin);
   stats = (struct zstats *)malloc(opt->nofsecs * sizeof(struct zstats));
@@ -2079,9 +2107,19 @@ int clip_stat(MrcHeader *hin, ClipOptions *opt)
     stats[k].y = y;
     stats[k].mean = mean;
     stats[k].std = std;
-    if (!outliers)
-      printf("%4d  %9.4f (%4d,%4d) %9.4f (%7.2f,%7.2f) %9.4f  %9.4f\n", iz + 
-             (opt->fromOne ? 1 : 0), min, xmin, ymin, max, x, y, mean, std);
+    if (!outliers) {
+      if (li.plist) {
+        xmin += li.pcoords[3*iz] + viewAdd;
+        ymin += li.pcoords[3*iz+1] + viewAdd;
+        xmaxo = B3DNINT(x) + li.pcoords[3*iz] + viewAdd;
+        ymaxo = B3DNINT(y) + li.pcoords[3*iz+1] + viewAdd;
+        printf("%4d  %9.4f (%4d,%4d,%4d) %9.4f (%4d,%4d,%4d) %9.4f\n", iz + viewAdd, min,
+               xmin, ymin, li.pcoords[3*iz+2] + viewAdd, max, xmaxo, ymaxo,
+               li.pcoords[3*iz+2] + viewAdd, mean);
+      } else
+        printf("%4d  %9.4f (%4d,%4d) %9.4f (%7.2f,%7.2f) %9.4f  %9.4f\n", iz + viewAdd,
+               min, xmin + viewAdd, ymin + viewAdd, max, x, y, mean, std);
+    }
     else if (k >= length - 1) {
       for (kk = outlast + 1; kk <= k; kk++) {
         starmin = ' ';
@@ -2103,8 +2141,19 @@ int clip_stat(MrcHeader *hin, ClipOptions *opt)
           starmax = '*';
           stats[kk].outlier = 1;
         }
+
+      if (li.plist) {
+        xmin = stats[kk].xmin + li.pcoords[3*iz] + viewAdd;
+        ymin = stats[kk].ymin + li.pcoords[3*iz+1] + viewAdd;
+        xmaxo = B3DNINT(stats[kk].x) + li.pcoords[3*iz] + viewAdd;
+        ymaxo = B3DNINT(stats[kk].y) + li.pcoords[3*iz+1] + viewAdd;
+        izo = li.pcoords[3*opt->secs[kk] + 2] + viewAdd;
+        printf("%4d  %9.4f (%4d,%4d,%4d) %9.4f (%4d,%4d,%4d) %9.4f\n",
+               opt->secs[kk] + viewAdd, min, xmin, ymin, izo, max, xmaxo, ymaxo, izo,
+               mean);
+      } else
         printf("%4d  %9.4f%c(%4d,%4d) %9.4f%c(%7.2f,%7.2f) %9.4f  %9.4f\n", 
-               opt->secs[kk]+ (opt->fromOne ? 1 : 0), allmins[kk], starmin,
+               opt->secs[kk]+ viewAdd, allmins[kk], starmin,
                stats[kk].xmin, stats[kk].ymin, allmaxes[kk], starmax,
                stats[kk].x, stats[kk].y, stats[kk].mean, stats[kk].std);
         outlast = kk;
