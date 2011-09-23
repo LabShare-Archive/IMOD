@@ -82,7 +82,7 @@ static char *toggleTips[] = {
   "Toggle between regular and high-resolution (interpolated) image",
   "Lock window at current section unless section is changed in this window",
   "Toggle between centering when model point nears edge and keeping model"
-  " point centered",
+  " point centered\nIn movie mode, toggle on and off to center current image point",
   "Toggle between inserting points after or before current point",
   "Toggle rubberband on or off (resize with first mouse, move with second)",
   "Lock window at current time unless time is changed in this window"};

@@ -23,7 +23,7 @@ pixels enclosed by the rubber band if it is on.  This is the size of image that
 will be produced when taking a snapshot.
 <LI>The <B>checkerboard</B> button toggles between fast rendering and 
 slower but higher quality interpolated image rendering.  When the zoom is
-below 0.75, the higher quality display uses a filter to remove aliased
+below 0.8, the higher quality display uses a filter to remove aliased
 information, which often appears as extra noise.
 The smaller the zoom, the slower the filtering is, so the display may become
 quite slow for very large images.  The high quality display is on by default
@@ -35,9 +35,12 @@ When locked, the Z value of a Zap window can be changed with
 controls or hot keys in the window, but that will not change the current
 Z value of other windows in the program.
 <LI>The <B>centering</B> button toggles between having the image always 
-centered 
-on the current model point, and recentering the image only when 
-the current point comes near an edge (the default).
+centered on the current model point, and recentering the image only when 
+the current point comes near an edge (the default).  When the button is first
+  pressed, it will center the current image point if there is no current model
+  point (i.e., if you are in movie mode or there is no current point in model
+  mode).  Thus, you can find or center the current image point by toggling
+  this button or off.
 <LI>The <B>modeling direction</B> button toggles between inserting new 
 points after the current point (when pointing up) or before 
 the current point (when pointing down).

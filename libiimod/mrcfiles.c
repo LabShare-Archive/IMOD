@@ -1863,8 +1863,8 @@ void mrcMirrorSource(int nx, int ny, int imageX, int imageY, int *fileX,
 /*!
  * Initialize the @@IloadInfo structure@ [li] with some sensible default values
  * if [hd] is NULL; otherwise it just calls @mrc_fix_li with the sizes defined
- * in the header [hd].  For full initialization, this function should be called
- * twice, not just once with a header. Returns -1 if [hd] is NULL.
+ * in the header [hd].  For proper initialization, this function must be called once with
+ * a [hd] NULL, then again with a header if needed. Returns -1 if [hd] is NULL.
  */
 int mrc_init_li(IloadInfo *li, MrcHeader *hd)
 {

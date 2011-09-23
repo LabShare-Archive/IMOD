@@ -363,10 +363,13 @@ if cleanup:
 # Get proper name of the input aligned stack after processing
 aliuse = alifile
 makeLog = logbase != None and not simpleBP
+densin = alifile
+if doSubarea:
+   (aliroot, aliext) = os.path.splitext(alifile)
+   aliuse = aliroot + '_sub' + aliext
+   densin = aliuse
 if makeLog:
-   aliuse = alifile + 'log10'
-elif doSubarea:
-   aliuse = alifile + 'sub'
+   aliuse += 'log10'
 
 # Make sure modified input stack exists and has right size if restarting
 if not startfirst and aliuse != alifile:
@@ -462,9 +465,7 @@ if cleanlist != "" or (startfirst and (makeLog or doSubarea)):
       action = 'Writing to'
       if cleanlist:
          prnstr('$b3dremove ' + cleanlist, file=comf)
-      densin = alifile
       if startfirst and doSubarea:
-         densin = alifile + 'sub'
          prnstr('$b3dremove ' + densin, file=comf)
          prnstr(fmtstr('$newstack -size {},{} -off 0,{} {} {}', alix, aliy,
                        subOffset, alifile, densin), file=comf)
