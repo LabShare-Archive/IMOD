@@ -316,7 +316,13 @@ option, set the overlap between pieces to
 in the X direction and
 .I ny
 in the Y direction.  Enter negative numbers to get space (gutters) between
-the pieces.
+the pieces.  If this option is used together with an existing piece list
+(either in the image file header or entered with the
+.B -p
+or
+.B -M
+options), then the overlaps in the piece list will be adjusted to the given
+values.  This allows one to see all the image data in a montage.
 .TP
 .B -a <filename>
 Specify a file with angles to be shown in the Zap window toolbar.  The angles
