@@ -35,7 +35,7 @@ c       Keep isdim synchronized to limpatch, mxd sync'd to cleanarea mxd
       integer*4 ixout(limptout),iyout(limptout),izout(limptout)
       integer*4 indPatch(limpatchout)
       integer*4, allocatable :: iobjline(:),iobjdoall(:), iobjBound(:), iobjCircle(:)
-      integer*4, allocatable :: indSize(:)
+      integer*4, allocatable :: indSize(:), ixpclist(:),iypclist(:),izpclist(:)
       real*4, allocatable :: xbound(:), ybound(:), sizes(:), array(:)
       real*4, allocatable :: betterRadius(:),betterIn(:)
       logical*4, allocatable :: objTaper(:)
@@ -49,7 +49,7 @@ c
       integer*4 ifincadj,iobj,ibase,itype,imodobj,imodcont,ip,ipt,jtype,jobj
       real*4 dmin,dmax,dmean,tmin,tmax,tsum,dmint,dmaxt,dmeant,tmean
       real*4 zmin,zmax,xmin,xmax,ymin,ymax,diamMerge
-      integer*4 izsect,nfix,linefix,ip1,ip2,ix1,ix2,iy1,iy2,kti,ninobj
+      integer*4 izsect,nfix,linefix,ip1,ip2,ix1,ix2,iy1,iy2,kti,ninobj,limpcl
       integer*4 ierr,ierr2,numPtOut, numPatchOut,numObjOrig,ifMerge
       real*4 critMain, critGrow, critScan, critDiff, radiusMax, outerRadius
       real*4 scanOverlap, annulusWidth, radSq, sizemax, size, xcen, ycen, dist
@@ -59,7 +59,9 @@ c
       integer*4 nobjBound, nobjCircle, numBetterIn, numCircleObj, numExpandIter
       integer*4 indfree, indcont, numSizes, loopst, loopnd, loop, numConSize
       integer*4 ixfmin, ixfmax, iyfmin, iyfmax, numGrowIter, taperedPatchCrit
-      integer*4 maxSizes, limSizes, maxBound, ntapering
+      integer*4 maxSizes, limSizes, maxBound, ntapering, npclist,minxpiece, nxpieces
+      integer*4 nxoverlap, minypiece, nypieces, nyoverlap,newXoverlap,newYoverlap
+      integer*4 indx, indy, indz, ipcx, ipcy, ipcz
       logical*4 circleCont, allSecCont, contOnSecOrAllSec
       logical readw_or_imod, typeonlist, nearby
       integer*4 getImodObjSize,getImodSizes
@@ -69,7 +71,7 @@ c
       logical pipinput
       integer*4 numOptArg, numNonOptArg
       integer*4 PipGetInteger,PipGetBoolean
-      integer*4 PipGetString,PipGetFloat,PipGetFloatArray
+      integer*4 PipGetString,PipGetFloat,PipGetFloatArray, PipGetTwoIntegers
       integer*4 PipGetNonOptionArg, PipGetInOutFile
 c       
 c       fallbacks from ../../manpages/autodoc2man -2 2  ccderaser
@@ -117,6 +119,9 @@ c
       maxObjectsOut = 4
       numExpandIter = 0
       taperedPatchCrit = 1000
+      limpcl = 10000
+      newXoverlap = 0
+      newYoverlap = 0
       call date(dat)
       call time(tim)
 c       
@@ -163,7 +168,26 @@ c
       max_mod_obj = 0
       n_point = 0
       ibase_free = 0
+      npclist = 0
       if (pipinput) then
+        ierr = PipGetString('PieceListFile', ptfile)
+        ierr = PipGetTwoIntegers('OverlapsForModel', newXoverlap, newYoverlap)
+        limpcl = max(limpcl, nz + 10)
+        allocate(ixpclist(limpcl), iypclist(limpcl), izpclist(limpcl), stat=ierr)
+        call memoryError(ierr, 'ARRAYS FOR PIECE COORDINATES')
+        call read_piece_list2(ptfile, ixpclist,iypclist,izpclist, npclist, limpcl)
+        if (npclist .gt. 0) then
+          if (npclist .lt. nz) call exitError('NOT ENOUGH PIECE COORDINATES IN FILE')
+          call checklist(ixpclist,npclist, 1, nx, minxpiece, nxpieces, nxoverlap)
+          call checklist(iypclist,npclist, 1, ny, minypiece, nypieces, nyoverlap)
+          if (nxpieces .lt. 1 .or. nypieces .lt. 1) call exitError(
+     &        'PIECE COORDINATES ARE NOT REGULARLY SPACED APART')
+          call adjustPieceOverlap(ixpclist, npclist, nx, minxpiece, nxoverlap,
+     &        newXoverlap)
+          call adjustPieceOverlap(iypclist, npclist, ny, minypiece, nyoverlap,
+     &        newYoverlap)
+        endif
+
         ierr = PipGetString('ModelFile', ptfile)
       else
         write(*,'(1x,a,$)')'Model file: '
@@ -173,6 +197,25 @@ c
       if (.not. pipinput .or. ierr .eq. 0) then
         if(.not.readw_or_imod(ptfile)) call exitError('READING MODEL FILE')
         call scaleModelToImage(1, 0)
+c         
+c         Convert model coordinates to coordinates within each piece
+        if (npclist .gt. 0) then
+          do ipt = 1, n_point
+            indx = p_coord(1, ipt)
+            indy = p_coord(2, ipt)
+            indz = nint(p_coord(3, ipt))
+            call lookup_piece(ixpclist, iypclist, izpclist, npclist, nx, ny, indx, indy,
+     &          indz, ipcx, ipcy, ipcz)
+            if (ipcx .lt. 0) then
+              write(ptfile, '(a, 3i6, a)')'THE MODEL POINT AT', indx+1, indy+1, indz + 1,
+     &            ' IS NOT LOCATED WITHIN A PIECE'
+              call exitError(ptfile)
+            endif
+            p_coord(1, ipt) = ipcx + p_coord(1, ipt) - indx
+            p_coord(2, ipt) = ipcy + p_coord(2, ipt) - indy
+            p_coord(3, ipt) = ipcz
+          enddo
+        endif
         limobj = getImodObjSize() + 10
       endif
       numObjOrig = max_mod_obj
@@ -808,10 +851,6 @@ c
       enddo
 c       
       tmean=tsum/nz
-c       
-c       7/7/00 CER: remove the encodes
-c       
-c       encode(80,109,title)
       write(titlech,109)dat,tim
       read(titlech,'(20a4)')(title(kti),kti=1,20)
 109   format('CCDERASER: Bad points replaced with interpolated values'
@@ -835,6 +874,22 @@ c
             obj_color(2, i) = obj_color(2, iobj)
             npt_in_obj(i) = npt_in_obj(iobj)
             ibase_obj(i) = ibase_obj(iobj)
+          enddo
+          max_mod_obj = max_mod_obj - numObjOrig
+        endif
+c         
+c         Convert to montage coordinates
+c         Have to shift montage coordinates to 0 because it is a new model
+        if (npclist .gt. 0) then
+          do iobj = 1, max_mod_obj
+            ibase = ibase_obj(iobj)
+            do ip = 1, npt_in_obj(iobj)
+              ipt = object(ibase + ip)
+              i = nint(p_coord(3, ipt)) + 1
+              p_coord(1, ipt) = p_coord(1, ipt) + ixpclist(i) - minxpiece
+              p_coord(2, ipt) = p_coord(2, ipt) + iypclist(i) - minypiece
+              p_coord(3, ipt) = izpclist(i)
+            enddo
           enddo
         endif
 c         
@@ -1787,105 +1842,3 @@ c             If it is close to contour, get pixel on other side
       typeonlist=.false.
       return
       end
-
-      
-c       
-c       $Log$
-c       Revision 3.29  2010/09/26 04:57:17  mast
-c       Doubled array sizes, made it eliminate duplicate points when merging,
-c       and fallback to taking mean when too many points for a fit.
-c
-c       Revision 3.28  2010/06/26 18:09:03  mast
-c       Fixed radMaxSq not being defined for difference search if it never got
-c       defined in the peak search
-c
-c       Revision 3.27  2010/02/05 15:44:33  mast
-c       Ring SD needed to be computed with doubles
-c
-c       Revision 3.26  2008/12/09 16:04:36  mast
-c       Added an imposn before reading data to get this off bug list
-c
-c       Revision 3.25  2008/07/15 17:29:15  mast
-c       Allowed order 0 to take mean of border points instead of fitting
-c
-c       Revision 3.24  2008/03/04 21:27:34  mast
-c       Fixed dimension for fitting array to match max # of patches, fixed 
-c       merging of circles, increased maximum linear extent of patch
-c
-c       Revision 3.23  2008/01/10 15:32:47  mast
-c       Scale incoming model to current image file, not file it was built on
-c
-c       Revision 3.22  2007/12/09 21:25:57  mast
-c       Added ability to remove points within boundary and in circles around
-c       points
-c
-c       Revision 3.21  2006/03/02 00:26:42  mast
-c       Moved polyterm to library
-c
-c       Revision 3.20  2006/02/01 00:42:56  mast
-c       Made it handle adjacent lines properly
-c
-c       Revision 3.19  2005/12/09 04:43:27  mast
-c       gfortran: .xor., continuation, format tab continuation or byte fixes
-c
-c       Revision 3.18  2005/12/07 18:07:11  mast
-c       Added patches to output model after each slice, thus allowing the
-c       biggest possible output without more huge arrays, and added option
-c       to merge patches so point model could be edited and used.
-c       
-c       Revision 3.17  2005/12/05 23:12:11  mast
-c       Allowed space for as many patches as model.inc will allow, and 25
-c       points per patch
-c       
-c       Revision 3.16  2005/05/26 04:35:01  mast
-c       Made sums args for iclavgsd real*8
-c       
-c       Revision 3.15  2005/03/24 20:26:25  mast
-c       Fixed problem with erasing points right on edge
-c       
-c       Revision 3.14  2004/06/15 04:58:00  mast
-c       Added option to specify annulus width instead of outer radius
-c       
-c       Revision 3.13  2003/11/03 23:37:53  mast
-c       Made it put out an empty model if there are no points to replace
-c       
-c       Revision 3.12  2003/10/30 06:32:24  mast
-c       Limited number of pixels in difference patches to avoid erasing gold
-c       particles in binned-down images.
-c       
-c       Revision 3.11  2003/10/10 20:42:23  mast
-c       Used new subroutine for getting input/output files
-c       
-c       Revision 3.10  2003/10/09 02:33:42  mast
-c       converted to use autodoc
-c       
-c       Revision 3.9  2003/06/20 23:55:37  mast
-c       Converted to using one lone string for options
-c       
-c       Revision 3.8  2003/06/20 22:08:46  mast
-c       Replaced option initialization with assignments to make SGI happy
-c       
-c       Revision 3.7  2003/06/20 20:20:29  mast
-c       Renamed two options
-c       
-c       Revision 3.6  2003/06/11 20:36:57  mast
-c       Reorganize and rename a few options
-c       
-c       Revision 3.5  2003/06/10 20:42:07  mast
-c       New version with automatic peak detection and PIP input
-c       
-c       Revision 3.4  2002/09/09 21:36:00  mast
-c       Eliminate stat_source: and nimp_source: from all includes
-c       
-c       Revision 3.3  2002/07/21 19:43:39  mast
-c       Moved big array into a common block to avoid stack size limit on SGI
-c       
-c       Revision 3.2  2002/07/21 19:31:59  mast
-c       Standardized error outputs
-c       
-c       Revision 3.1  2002/07/07 20:14:16  mast
-c       Modified to use scale factors from model file instead of from image
-c       file to get back to index coordinates.  Made it exit with error
-c       status on all errors, made it insert a proper title, and implemented
-c       implicit none.
-c       
