@@ -1,5 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/22/11: To allow easier fixing of X-rays in montages, modified 3dmod to
+display a montage with an adjusted overlap specified with -o; added -P option
+to clip stat so that it could output min and max coordinates in such a
+displayed montage; added options to Ccderaser so it could take in and produce
+models compatible with that display.
+
+9/22/11: In Zap window, made centering button center on current image point
+when pressed, and fixed problem with dropping out of HQ when panning.
+
 9/21/11: Improved reliability of drawing from Fortran graphics programs.
 
 9/20/11: Fixed problems with sda subdividing triangles too much.
