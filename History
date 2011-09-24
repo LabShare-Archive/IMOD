@@ -1,8 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/23/11: In eTomo - Tomogram Generation distinguishing between full SIRT
+output files and subarea output files.(Bug# 1537)
+
 9/22/11: To allow easier fixing of X-rays in montages, modified 3dmod to
 display a montage with an adjusted overlap specified with -o; added -P option
 to clip stat so that it could output min and max coordinates in such a
+
 displayed montage; added options to Ccderaser so it could take in and produce
 models compatible with that display.
 
