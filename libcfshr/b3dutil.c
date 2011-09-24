@@ -62,6 +62,7 @@
 #define walltime WALLTIME
 #define b3dmillisleep B3DMILLISLEEP
 #define numompthreads NUMOMPTHREADS
+#define numberinlist NUMBERINLIST
 #else
 #define imodbackupfile imodbackupfile_
 #define imodgetenv imodgetenv_
@@ -77,6 +78,7 @@
 #define walltime walltime_
 #define b3dmillisleep b3dmillisleep_
 #define numompthreads numompthreads_
+#define numberinlist numberinlist_
 #endif
 
 /* DNM 2/26/03: These need to be printf instead of fprintf(stderr) to not
@@ -649,6 +651,25 @@ void setOrClearFlags(b3dUInt32 *flags, b3dUInt32 mask, int state)
     *flags |= mask;
   else
     *flags &= ~mask;
+}
+
+/*! Return 1 if [num] is in the list of [nlist] values in [list], 0 if it is not,
+  and [noListValue] if the list is empty ([nlist] 0 or [list] NULL). */
+int numberInList(int num, int *list, int nlist, int noListValue)
+{
+  int i;
+  if (!list || !nlist)
+    return noListValue;
+  for (i = 0; i < nlist; i++)
+    if (num == list[i])
+      return 1;
+  return 1;
+}
+
+/*! Fortran wrapper for @numberInList */
+int numberinlist(int *num, int *list, int *nlist, int *noListValue)
+{
+  return numberInList(*num, list, *nlist, *noListValue);
 }
 
 /*!
