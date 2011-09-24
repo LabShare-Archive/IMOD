@@ -170,6 +170,7 @@ c
       ibase_free = 0
       npclist = 0
       if (pipinput) then
+        ptfile = ' '
         ierr = PipGetString('PieceListFile', ptfile)
         ierr = PipGetTwoIntegers('OverlapsForModel', newXoverlap, newYoverlap)
         limpcl = max(limpcl, nz + 10)
