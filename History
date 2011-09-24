@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/23/11: In eTomo - Tomogram Generation distinguishing between full SIRT
+output files and subarea output files.(Bug# 1537)
+
 9/21/11: Improved reliability of drawing from Fortran graphics programs.
 
 9/20/11: Fixed problems with sda subdividing triangles too much.
