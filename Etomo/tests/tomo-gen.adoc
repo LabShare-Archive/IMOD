@@ -339,38 +339,23 @@ mb.tilt=-
 [[]]
 # subarea
 [[if = montage]]
-  cb.reconstruct-subarea=on
-  tf.size-in-x-and-y=256,256
+  run.function.run-sirt-subarea=
+[[]]
+[[ifnot = montage]]
+  if.var.simple-align.return=
+  run.function.run-sirt-full=
 [[]]
 [[if = simple-align]]
-  cb.reconstruct-subarea=on
-  tf.size-in-x-and-y=256,256
+  if.var.montage.return=
+  run.function.run-sirt-both=
 [[]]
-# SIRT
-tf.iteration-#'s-to-retain=2,4
-cb.scale-retained-volumes-to-integers=on
-bn.run-sirt=
-wait.process.processchunks-tilt%{axis}_sirt=done
-cb.scale-retained-volumes-to-integers=off
-tf.iteration-#'s-to-retain=6,8
-rb.resume-from-last-iteration=
-bn.run-sirt=
-wait.process.processchunks-tilt%{axis}_sirt=done
-tf.iteration-#'s-to-retain=7
-rb.go-back,-resume-from-iteration=
-[[if = test-gui]]
-  assert.enabled.cbb.go-back,-resume-from-iteration=
-[[]]
-bn.run-sirt=
-wait.process.processchunks-tilt%{axis}_sirt=done
+# create a single output file and use tomogram
 rb.start-from-beginning=
+cb.scale-retained-volumes-to-integers=off
 cb.delete-existing-reconstructions-after-starting-point=on
 tf.iteration-#'s-to-retain=1
 bn.run-sirt=
 wait.process.processchunks-tilt%{axis}_sirt=done
-[[if = test-gui]]
-  assert.cbb.go-back,-resume-from-iteration=1
-[[]]
 bn.view-tomogram-in-3dmod=
 bn.use-sirt-output-file=
 wait.popup.etomo-question=Yes
@@ -383,6 +368,211 @@ cb.use-the-gpu=off
 [[]]
 mb.tilt=-
 rb.back-projection=
+
+
+[function = run-sirt-full]
+cb.reconstruct-subarea=off
+cb.scale-retained-volumes-to-integers=on
+cb.delete-existing-reconstructions-after-starting-point=on
+tf.iteration-#'s-to-retain=1,2
+bn.run-sirt=
+wait.process.processchunks-tilt%{axis}_sirt=done
+[[if = test-gui]]
+  assert.enabled.rb.resume-from-last-iteration=
+  assert.enabled.rb.cbb.go-back,-resume-from-iteration=
+  assert.cbb.go-back,-resume-from-iteration=2
+  assert.exists.file=%{dataset}%{axis}_sirt-rpbound.info
+  assert.exists.file=%{dataset}%{axis}_sirt-bound.info
+  assert.exists.file=tilt%{axis}.com
+  assert.exists.file=sirtsetup%{axis}.com
+  assert.exists.file=tilt%{axis}_sirt-finish.com
+  assert.exists.file=tilt%{axis}_for_sirt.com
+  assert.exists.file=sirtsetup%{axis}.log
+  assert.exists.file=processchunks%{axis}.csh
+  assert.exists.file=%{dataset}%{axis}.alilog10
+  assert.exists.file=tilt%{axis}_sirt.log
+  assert.exists.file=%{dataset}%{axis}.sint01
+  assert.exists.file=%{dataset}%{axis}.srec02
+  assert.exists.file=%{dataset}%{axis}.sint02
+  assert.exists.file=tilt%{axis}_sirt-finish.log
+  assert.exists.file=processchunks%{axis}.out
+[[]]
+cb.delete-existing-reconstructions-after-starting-point=off
+tf.iteration-#'s-to-retain=3
+rb.resume-from-last-iteration=
+bn.run-sirt=
+wait.process.processchunks-tilt%{axis}_sirt=done
+[[if = test-gui]]
+  assert.enabled.rb.resume-from-last-iteration=
+  assert.enabled.rb.cbb.go-back,-resume-from-iteration=
+  assert.cbb.go-back,-resume-from-iteration=3
+  assert.exists.file=tilt%{axis}_for_sirt.com~
+  assert.exists.file=sirtsetup%{axis}.log~
+  assert.exists.file=tilt%{axis}_sirt.log~
+  assert.exists.file=%{dataset}%{axis}.sint01
+  assert.exists.file=%{dataset}%{axis}.sint02
+  assert.exists.file=%{dataset}%{axis}.srec03
+  assert.exists.file=%{dataset}%{axis}.sint03
+  assert.exists.file=processchunks%{axis}.out~
+[[]]
+cb.scale-retained-volumes-to-integers=off
+tf.iteration-#'s-to-retain=4
+rb.go-back,-resume-from-iteration=
+bn.run-sirt=
+wait.process.processchunks-tilt%{axis}_sirt=done
+[[if = test-gui]]
+  assert.enabled.rb.resume-from-last-iteration=
+  assert.enabled.rb.cbb.go-back,-resume-from-iteration=
+  assert.enabled.cbb.go-back,-resume-from-iteration=
+  assert.cbb.go-back,-resume-from-iteration=4
+  assert.exists.file=%{dataset}%{axis}.sint01
+  assert.exists.file=%{dataset}%{axis}.sint02
+  assert.exists.file=%{dataset}%{axis}.sint03
+  assert.exists.file=%{dataset}%{axis}.srec04
+[[]]
+
+
+[function = run-sirt-subarea]
+cb.reconstruct-subarea=on
+cb.scale-retained-volumes-to-integers=on
+cb.delete-existing-reconstructions-after-starting-point=on
+tf.iteration-#'s-to-retain=1,2
+bn.run-sirt=
+wait.process.processchunks-tilt%{axis}_sirt=done
+[[if = test-gui]]
+  assert.enabled.rb.resume-from-last-iteration=
+  assert.enabled.rb.cbb.go-back,-resume-from-iteration=
+  assert.cbb.go-back,-resume-from-iteration=2
+  assert.exists.file=%{dataset}%{axis}_sirt-rpbound.info
+  assert.exists.file=%{dataset}%{axis}_sirt-bound.info
+  assert.exists.file=tilt%{axis}.com
+  assert.exists.file=sirtsetup%{axis}.com
+  assert.exists.file=tilt%{axis}_sirt-finish.com
+  assert.exists.file=tilt%{axis}_for_sirt.com
+  assert.exists.file=sirtsetup%{axis}.log
+  assert.exists.file=processchunks%{axis}.csh
+  assert.exists.file=%{dataset}%{axis}_sub.ali
+  assert.exists.file=%{dataset}%{axis}_sub.alilog10
+  assert.exists.file=tilt%{axis}_sirt.log
+  assert.exists.file=%{dataset}%{axis}_sub.sint01
+  assert.exists.file=%{dataset}%{axis}_sub.srec02
+  assert.exists.file=%{dataset}%{axis}_sub.sint02
+  assert.exists.file=tilt%{axis}_sirt-finish.log
+  assert.exists.file=processchunks%{axis}.out
+[[]]
+cb.delete-existing-reconstructions-after-starting-point=off
+tf.iteration-#'s-to-retain=3
+rb.resume-from-last-iteration=
+bn.run-sirt=
+wait.process.processchunks-tilt%{axis}_sirt=done
+[[if = test-gui]]
+  assert.enabled.rb.resume-from-last-iteration=
+  assert.enabled.rb.cbb.go-back,-resume-from-iteration=
+  assert.cbb.go-back,-resume-from-iteration=3
+  assert.exists.file=tilt%{axis}_for_sirt.com~
+  assert.exists.file=sirtsetup%{axis}.log~
+  assert.exists.file=tilt%{axis}_sirt.log~
+  assert.exists.file=%{dataset}%{axis}_sub.sint01
+  assert.exists.file=%{dataset}%{axis}_sub.sint02
+  assert.exists.file=%{dataset}%{axis}_sub.srec03
+  assert.exists.file=%{dataset}%{axis}_sub.sint03
+  assert.exists.file=processchunks%{axis}.out~
+[[]]
+cb.scale-retained-volumes-to-integers=off
+tf.iteration-#'s-to-retain=4
+rb.go-back,-resume-from-iteration=
+bn.run-sirt=
+wait.process.processchunks-tilt%{axis}_sirt=done
+[[if = test-gui]]
+  assert.enabled.rb.resume-from-last-iteration=
+  assert.enabled.rb.cbb.go-back,-resume-from-iteration=
+  assert.enabled.cbb.go-back,-resume-from-iteration=
+  assert.cbb.go-back,-resume-from-iteration=4
+  assert.exists.file=%{dataset}%{axis}_sub.sint01
+  assert.exists.file=%{dataset}%{axis}_sub.sint02
+  assert.exists.file=%{dataset}%{axis}_sub.sint03
+  assert.exists.file=%{dataset}%{axis}_sub.srec04
+[[]]
+
+
+[function = run-sirt-both]
+cb.reconstruct-subarea=off
+cb.scale-retained-volumes-to-integers=on
+cb.delete-existing-reconstructions-after-starting-point=on
+tf.iteration-#'s-to-retain=1,3
+bn.run-sirt=
+wait.process.processchunks-tilt%{axis}_sirt=done
+[[if = test-gui]]
+  assert.enabled.rb.resume-from-last-iteration=
+  assert.enabled.rb.cbb.go-back,-resume-from-iteration=
+  assert.cbb.go-back,-resume-from-iteration=3
+  assert.exists.file=%{dataset}%{axis}_sirt-rpbound.info
+  assert.exists.file=%{dataset}%{axis}_sirt-bound.info
+  assert.exists.file=tilt%{axis}.com
+  assert.exists.file=sirtsetup%{axis}.com
+  assert.exists.file=tilt%{axis}_sirt-finish.com
+  assert.exists.file=tilt%{axis}_for_sirt.com
+  assert.exists.file=sirtsetup%{axis}.log
+  assert.exists.file=processchunks%{axis}.csh
+  assert.exists.file=%{dataset}%{axis}.alilog10
+  assert.exists.file=tilt%{axis}_sirt.log
+  assert.exists.file=%{dataset}%{axis}.sint01
+  assert.exists.file=%{dataset}%{axis}.srec03
+  assert.exists.file=%{dataset}%{axis}.sint03
+  assert.exists.file=tilt%{axis}_sirt-finish.log
+  assert.exists.file=processchunks%{axis}.out
+[[]]
+cb.reconstruct-subarea=on
+[[if = test-gui]]
+  assert.disabled.rb.resume-from-last-iteration=
+  assert.disabled.rb.cbb.go-back,-resume-from-iteration=
+  assert.cbb.go-back,-resume-from-iteration=
+[[]]
+tf.iteration-#'s-to-retain=2
+rb.resume-from-last-iteration=
+bn.run-sirt=
+wait.process.processchunks-tilt%{axis}_sirt=done
+[[if = test-gui]]
+  assert.enabled.rb.resume-from-last-iteration=
+  assert.enabled.rb.cbb.go-back,-resume-from-iteration=
+  # only sees subarea output
+  assert.cbb.go-back,-resume-from-iteration=2
+  assert.exists.file=tilt%{axis}_for_sirt.com~
+  assert.exists.file=sirtsetup%{axis}.log~
+  assert.exists.file=tilt%{axis}_sirt.log~
+  # full output unchanged
+  assert.exists.file=%{dataset}%{axis}.sint01
+  assert.exists.file=%{dataset}%{axis}.srec03
+  assert.exists.file=%{dataset}%{axis}.sint03
+  assert.exists.file=%{dataset}%{axis}_sub.srec02
+  assert.exists.file=%{dataset}%{axis}_sub.sint02
+  assert.exists.file=processchunks%{axis}.out~
+[[]]
+cb.reconstruct-subarea=off
+[[if = test-gui]]
+  assert.enabled.rb.resume-from-last-iteration=
+  assert.enabled.rb.cbb.go-back,-resume-from-iteration=
+  assert.cbb.go-back,-resume-from-iteration=3
+[[]]
+cb.scale-retained-volumes-to-integers=off
+cb.delete-existing-reconstructions-after-starting-point=off
+tf.iteration-#'s-to-retain=4
+rb.go-back,-resume-from-iteration=
+bn.run-sirt=
+wait.process.processchunks-tilt%{axis}_sirt=done
+[[if = test-gui]]
+  assert.enabled.rb.resume-from-last-iteration=
+  assert.enabled.rb.cbb.go-back,-resume-from-iteration=
+  assert.enabled.cbb.go-back,-resume-from-iteration=
+  assert.cbb.go-back,-resume-from-iteration=4
+  assert.exists.file=%{dataset}%{axis}.sint01
+  assert.exists.file=%{dataset}%{axis}.sint02
+  assert.exists.file=%{dataset}%{axis}.sint03
+  assert.exists.file=%{dataset}%{axis}.srec04
+  # sub unchanged
+  assert.exists.file=%{dataset}%{axis}_sub.srec02
+  assert.exists.file=%{dataset}%{axis}_sub.sint02
+[[]]
 
 
 [function = turn-on-use-the-gpu]
