@@ -241,6 +241,33 @@ the default is all views.
 manpage = Starting and ending view numbers, numbered from 1, for doing 
 a subset of views.
 
+[Field = SkipViews]
+short = skip
+type = LI
+usage = List of views to skip, aligning across skipped views (ranges OK)
+tooltip =
+manpage = List of views to skip, while maintaining alignment across skipped
+views.  The program will not find the transform for aligning a listed view to
+the previous one.  When a view is skipped, the following view will be aligned
+to the last unskipped view and a unit transform will be output for the skipped
+view.  With patch tracking, no model points will be placed on the skipped
+views.  Comma-separated ranges of views (numbered from 1) can be entered.  The
+default is to use all of the views.
+
+[Field = BreakAtViews]
+short = break
+type = LI
+usage = List of views to break alignment at (ranges OK)
+tooltip =
+manpage = List of views to break alignment at.  This option is like
+"-skip"
+in that no transform is found for aligning a listed view to
+the previous one and a unit transform is written for the listed view.
+However, the following view will be aligned to the
+listed view, and nothing will be aligned to the previous view.  This
+breaks the chain of alignment through the series of views.  This option
+cannon be used with patch tracking.
+
 [Field = CumulativeCorrelation]
 short = cumulative
 type = B
@@ -365,6 +392,13 @@ tooltip =
 manpage = Specify a filename with this option to have two padded, tapered
 images and the cross-correlation saved for every pair of images that are 
 correlated. 
+
+[Field = VerboseOutput]
+short = verbose
+type = B
+usage = Output diagnostic information
+tooltip =
+manpage = 
 
 [Field = ParameterFile]
 short = param
