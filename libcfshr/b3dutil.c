@@ -663,7 +663,7 @@ int numberInList(int num, int *list, int nlist, int noListValue)
   for (i = 0; i < nlist; i++)
     if (num == list[i])
       return 1;
-  return 1;
+  return 0;
 }
 
 /*! Fortran wrapper for @numberInList */
