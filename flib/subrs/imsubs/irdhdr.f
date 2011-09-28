@@ -40,7 +40,6 @@ c       DNM 7/21/11: It's now clear that officially nbsym is where it is but it
 c       was an Agard extension to allow it to be other than 0 or 80.
 c       
 c       $Id$
-c       Log at end
 c
 c       
       SUBROUTINE IRDHDR(ISTREAM,INXYZ,MXYZ,IMODE,DMIN,DMAX,DMEAN)
@@ -124,6 +123,15 @@ c
         call move(idat,stuff(1,j),2)
         ispg = idat(1)
         nbs = istuff(2,j)
+c         
+c         11/27/11: if the map indexes are wrong just fix them
+        if ((mapcrs(1,j) + 2) /3 .ne. 1 .or. (mapcrs(2,j) + 2) /3 .ne. 1 .or.
+     &      (mapcrs(3,j) + 2) /3 .ne. 1) then
+          write(6,'(/,9x,a)')'This file has invalid axis indices, adjusting them to 1,2,3'
+          do k = 1, 3
+            mapcrs(k,j) = k
+          enddo
+        endif
       else
 c         
 c         for SPIDER file, read first 9 words, get file dimensions and
@@ -1314,80 +1322,3 @@ c
       return
       end
 
-c       $Log$
-c       Revision 3.22  2011/07/25 02:40:17  mast
-c       Changes for working with signed bytes
-c
-c       Revision 3.21  2010/06/26 18:04:14  mast
-c       allow format for -180. for all tilt angles
-c
-c       Revision 3.20  2010/03/27 19:22:44  mast
-c       Made stamp CCP4 compliant
-c
-c       Revision 3.19  2009/09/10 21:49:42  mast
-c       Make origin not run together
-c
-c       Revision 3.18  2009/06/22 20:19:46  mast
-c       Switch to module, add mode label output
-c
-c       Revision 3.17  2009/03/25 23:54:55  mast
-c       Switched to writing integer into character variable for testing Fei, it
-c       seems safer and corresponds to what is done when printing the labels
-c
-c       Revision 3.16  2007/12/25 16:00:09  mast
-c       Added extra header size to test of FEI #int bug
-c
-c       Revision 3.15  2006/10/04 22:57:08  mast
-c       Fixed qseek accidentally deleted in itrextra
-c
-c       Revision 3.14  2006/09/28 21:23:22  mast
-c       Changes for brief output and new qseek call
-c
-c       
-c       Revision 3.13  2005/12/09 04:39:44  mast
-c       gfortran: .xor., continuation, byte, or open fixes
-c       
-c       Revision 3.12  2005/11/11 22:36:22  mast
-c       Changes for unsigned mode
-c       
-c       Revision 3.11  2004/06/10 22:48:14  mast
-c       Added workaround to FEI bug in nint-nreal definition
-c       
-c       Revision 3.10  2003/06/05 00:15:00  mast
-c       Add (Angstroms) to pixel spacing output
-c       
-c       Revision 3.9  2002/08/17 05:38:39  mast
-c       Added entries to return and alter the rms value
-c       
-c       Revision 3.8  2002/07/31 17:43:38  mast
-c       *** empty log message ***
-c       
-c       Revision 3.7  2002/07/31 17:41:28  mast
-c       Changed internal data definitions to correspond to MRC image2000
-c       standard, eliminating wavelength entries and associated routines.
-c       Made it able to read old or new headers, and put out new headers.
-c       Did implicit none!
-c       
-c       Revision 3.6  2002/07/21 19:17:43  mast
-c       Standardized error output to ERROR: ROUTINE
-c       
-c       Revision 3.5  2002/06/26 16:54:54  mast
-c       Fixed bug in transferring extra header bytes from a swapped file
-c       Need implicit none!
-c       
-c       Revision 3.4  2002/06/26 00:27:01  mast
-c       Added ability to write a header back to a byte-swapped file, except
-c       for extra header stuff.  Changed STOP's to call exit(1)
-c       
-c       Revision 3.3  2002/04/18 20:04:21  mast
-c       Made itrhdr/itrextra swap bytes correctly for integer/real extra
-c       header data; also stopped irtsym from swapping 4 times too much data
-c       
-c       Revision 3.2  2002/02/26 23:04:01  mast
-c       *** empty log message ***
-c       
-c       Revision 3.1  2002/02/26 23:03:37  mast
-c       When supplying extended header data, use the values of nint and nreal
-c       to test whether it consists of shorts or ints and reals, and swap
-c       appropriately
-c       
