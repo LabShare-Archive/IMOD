@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/28/11: Fixed Vmstopy with use of environment variable; added error message
+if such a variable is undefined.
+
 9/27/11: Fixed drawing of transparent items in model view with Z inverted.
 
 9/23/11: In eTomo - Tomogram Generation distinguishing between full SIRT
