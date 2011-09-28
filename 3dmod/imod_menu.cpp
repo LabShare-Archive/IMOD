@@ -550,9 +550,8 @@ void InfoWindow::editObjectSlot(int item)
     imodvObjedNewView();
     break;
 
-  case EOBJECT_MENU_INFO: /* stats: eliminated 3/31/10 */
-    wprint("\aUse imodinfo -h or imodinfo -o %d for measurements of object "
-           "properties\n", imod->cindex.object + 1);
+  case EOBJECT_MENU_INFO: /* stats: eliminated 3/31/10; run imodinfo 9/28/11 */
+    objectInfo();
     break;
 
   case EOBJECT_MENU_CLEAN: /* Clean: delete empty contours */

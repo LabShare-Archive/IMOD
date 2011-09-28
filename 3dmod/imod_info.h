@@ -91,6 +91,9 @@ class InfoWindow : public QMainWindow
   void pluginSlot(int item);
   void helpSlot(int item);
   void trimvolExited(int exitCode, QProcess::ExitStatus exitStatus);
+  void trimvolError(QProcess::ProcessError error);
+  void imodinfoExited(int exitCode, QProcess::ExitStatus exitStatus);
+  void imodinfoError(QProcess::ProcessError error);
 
  protected:
     void keyPressEvent ( QKeyEvent * e );
@@ -102,6 +105,7 @@ class InfoWindow : public QMainWindow
 
  private:
   void extract();
+  void objectInfo();
   QAction *mActions[LAST_MENU_ID];
   QTextEdit *mStatusEdit;
   bool mMinimized;
@@ -111,6 +115,7 @@ class InfoWindow : public QMainWindow
   int mOldFontHeight;
   QProcess *mTrimvolProcess;
   QString mTrimvolOutput;
+  QProcess *mImodinfoProcess;
   int mResizedHeight;
   int mTargetHeight;
   int mTargetMoveX, mTargetMoveY;
