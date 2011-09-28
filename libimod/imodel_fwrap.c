@@ -11,7 +11,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  * $Id$
- * Log at end of file
  */
 
 #include <stdio.h>
@@ -205,6 +204,7 @@ static int numNames_put = 0;
 #define USE_VALUE_FLAGS  7
 #define VAL_BLACKWHITE_FLAG  8
 #define PNT_ON_SEC_FLAG 9
+#define THICKEN_CONT_FLAG 10
 
 #define FLAG_VALUE_SHIFT 8
 
@@ -1354,7 +1354,12 @@ int writeimod(char *fname, int fsize)
       case PNT_ON_SEC_FLAG:
         obj->flags |= IMOD_OBJFLAG_PNT_ON_SEC;
         if (objview)
-          objview->pdrawsize = obj->pdrawsize;
+          objview->flags = obj->flags;
+        break;
+      case THICKEN_CONT_FLAG:
+        obj->flags |= IMOD_OBJFLAG_THICK_CONT;
+        if (objview)
+          objview->flags = obj->flags;
         break;
 
       }
@@ -1788,7 +1793,8 @@ int putimodmaxes(int *xmax, int *ymax, int *zmax)
  * Specifies a flag or value for object [objnum]; in external calls [flag]
  * should be 0 for closed contour, 1 for open contour, 2 for scattered points,
  * 7 to set IMOD_OBJFLAG_USE_VALUE in {flags} and MATFLAGS2_CONSTANT and 
- * MATFLAGS2_SKIP_LOW in {matflags2}, and 9 to set IMOD_OBJFLAG_PNT_ON_SEC.
+ * MATFLAGS2_SKIP_LOW in {matflags2}, 9 to set IMOD_OBJFLAG_PNT_ON_SEC, and 10 to set 
+ * IMOD_OBJFLAG_THICK_CONT.
  */
 void putimodflag(int *objnum, int *flag)
 {
@@ -2074,132 +2080,3 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
 
   return FWRAP_NOERROR;
 }
-
-/*
-$Log$
-Revision 3.41  2011/02/28 00:33:51  mast
-Increased model size
-
-Revision 3.40  2010/03/03 05:51:01  mast
-Added calls for model name
-
-Revision 3.39  2010/03/01 15:02:27  mast
-Added function to set object name
-
-Revision 3.38  2009/12/10 15:12:55  mast
-Added object color call
-
-Revision 3.37  2008/12/14 00:20:46  mast
-Fixed inconsistency in getting mincolor when there are empty objects
-
-Revision 3.36  2008/12/10 16:21:08  mast
-Add defines for getimodheado -it's useful if all you need is pixel size
-
-Revision 3.35  2008/11/14 17:18:37  mast
-A few more functions
-
-Revision 3.34  2008/11/12 03:41:25  mast
-Added functions for getting/setting values and related flags and setting
-image reference values from origin values
-
-Revision 3.33  2008/04/04 21:20:51  mast
-Free contour after adding to object
-
-Revision 3.32  2007/09/20 02:44:11  mast
-Needed string include for memcpy
-
-Revision 3.31  2007/01/06 23:54:03  mast
-Added functions for getting and putting back contour point sizes
-
-Revision 3.30  2006/09/12 15:22:15  mast
-renamed cont type to time
-
-Revision 3.29  2006/09/04 19:32:26  mast
-Rename contour clearing function
-
-Revision 3.28  2006/06/29 04:42:57  mast
-Added function to allow different size models
-
-Revision 3.27  2006/05/01 20:44:59  mast
-Distinguished vectors from normals and shifted mesh back on output
-
-Revision 3.26  2006/05/01 18:55:11  mast
-Shifted mesh to full volume index coordinates
-
-Revision 3.25  2005/12/07 21:25:03  mast
-Increased max # of objects
-
-Revision 3.24  2005/09/20 04:37:28  mast
-Fixed getimodnesting cleanup when there are empty contours
-
-Revision 3.23  2005/09/11 19:11:54  mast
-Changed getimodverts for new mesh style
-
-Revision 3.22  2005/05/26 20:10:55  mast
-Fixed problem of not calling with pointers, added some declarations
-
-Revision 3.21  2005/05/25 15:28:13  mast
-Fixed use of *ninList
-
-Revision 3.20  2005/05/24 18:00:34  mast
-Implemented partial reading/writing mode
-
-Revision 3.19  2005/05/20 06:06:13  mast
-Fixed limits on number of points to match model.inc
-
-Revision 3.18  2005/04/12 20:12:05  mast
-Added function to set object color
-
-Revision 3.17  2005/04/04 22:41:54  mast
-Fixed problem with argument order to imdContourGetBBox
-
-Revision 3.16  2005/03/20 19:56:49  mast
-Eliminating duplicate functions
-
-Revision 3.15  2005/01/30 17:44:39  mast
-Make scanlines contours only when needed for nesting analysis
-
-Revision 3.14  2005/01/29 20:26:19  mast
-Added routine to return information on nested contours
-
-Revision 3.13  2004/09/21 20:11:26  mast
-Changes for new clipping plane structure
-
-Revision 3.12  2004/06/17 17:48:12  mast
-Added calls to set zscale and rotation
-
-Revision 3.11  2003/10/24 03:03:04  mast
-change to use correct f-to-c string converter
-
-Revision 3.10  2003/08/08 16:25:17  mast
-Added functions to get object name and # of objects
-
-Revision 3.9  2003/07/31 22:07:42  mast
-Complete set of object views before writing so new objects have the same
-properties in all views
-
-Revision 3.8  2003/07/17 14:27:24  mast
-Set point size and object flags in current view as well as object itself
-
-Revision 3.7  2003/06/10 23:20:38  mast
-Add call to set symbol size and type
-
-Revision 3.6  2003/02/21 23:58:10  mast
-Open files in binary mode
-
-Revision 3.5  2002/07/20 23:25:46  mast
-Make getimodhead return image origin values so that programs can get
-back to index coordinates of full-sized volume
-
-Revision 3.4  2002/07/07 20:10:57  mast
-Added getimodscales to return scaling factors for getting between model
-and index coordinates
-
-Revision 3.3  2002/05/20 15:53:39  mast
-Added ability to set scattered point size, and get arrays of contour
-time and surface values
-
-Revision 3.2  2001/12/05 15:59:19  mast
-Provide a function so that Wimp model reading routines can read VMS floats
-
-*/
