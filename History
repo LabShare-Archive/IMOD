@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/27/11: Fixed drawing of transparent items in model view with Z inverted.
+
 9/23/11: In eTomo - Tomogram Generation distinguishing between full SIRT
 output files and subarea output files.(Bug# 1537)
 
