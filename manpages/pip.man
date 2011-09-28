@@ -100,7 +100,8 @@ directory.  The PIP package and Fortran-callable wrappers are in the
 
 Fortran-callable wrappers to the C functions have been given the same name as 
 the C functions, although internally they are all lower case with an
-underscore appended.  The function calls from Fortran are case-insensitive but
+underscore appended, or all uppercase in Windows.  
+The function calls from Fortran are case-insensitive but
 they are shown with mixed case here for clarity.
 
 PIP can also be used from Python by importing the pip module in the IMOD/pylib
