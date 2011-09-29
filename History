@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/29/11: In eTomo Pre-processing, display montage views together, separated by
+a negative overlap.  Clip stats and ccderaser are now being run with the same
+overlap, so the model can be brought up this way as well.(Bug# 1530)
+
 9/29/11: In eTomo - Settings dialog, added a default for GPU processing.
 (Bug# 1467)
 
