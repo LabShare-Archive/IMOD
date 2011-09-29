@@ -27,6 +27,7 @@ Version = 1.2
 	assert.exists.file=eraser%{axis}.log
 	assert.exists.file=%{dataset}%{axis}_peak.mod
 	assert.exists.file=%{dataset}%{axis}_fixed.st
+	run.function.test-gui-montage=
 	# Fail with manual
 	bn.advanced=
 	cb.manual-replacement=on
@@ -75,6 +76,12 @@ bn.done=
 #for datasets where the use button wasn't pressed
 wait.popup.entry-warning=OK
 [[]]
+
+
+[function = test-gui-montage]
+if.not.var.montage.return=
+assert.contains.file=eraser%{axis}.com|PieceListFile*%{dataset}%{axis}.pl
+assert.contains.file=eraser%{axis}.com|OverlapsForModel*-10,-10
 
 
 [function = use-fixed-stack]
