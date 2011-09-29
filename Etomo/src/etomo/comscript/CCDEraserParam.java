@@ -3,12 +3,14 @@ package etomo.comscript;
 import java.io.File;
 import java.util.ArrayList;
 
+import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
+import etomo.type.ViewType;
 import etomo.ui.swing.UIHarness;
 
 /**
@@ -117,11 +119,11 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
   private String[] commandArray = null;
   private boolean debug = true;
 
-  private final BaseManager manager;
+  private final ApplicationManager manager;
   private final AxisID axisID;
   private final CommandMode mode;
 
-  public CCDEraserParam(final BaseManager manager, final AxisID axisID,
+  public CCDEraserParam(final ApplicationManager manager, final AxisID axisID,
       final CommandMode mode) {
     this.manager = manager;
     this.axisID = axisID;
@@ -416,7 +418,8 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
     }
 
     // Always add these when erasing X-rays
-    if (mode == Mode.X_RAYS || mode == Mode.X_RAYS_TRIAL) {
+    if (manager.getConstMetaData().getViewType() == ViewType.MONTAGE
+        && (mode == Mode.X_RAYS || mode == Mode.X_RAYS_TRIAL)) {
       scriptCommand.setValue("PieceListFile", manager.getBaseMetaData().getDatasetName()
           + axisID.getExtension() + ".pl");
       scriptCommand.setValue("OverlapsForModel", Utilities.MONTAGE_SEPARATION + ","

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
+import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
@@ -15,6 +16,7 @@ import etomo.type.ConstIntKeyList;
 import etomo.type.FileType;
 import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
+import etomo.type.ViewType;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
 
@@ -74,14 +76,17 @@ public final class ClipParam implements CommandDetails {
   private String[] commandArray;
   private boolean debug = true;
 
+  private final ApplicationManager applicationManager;
   private final BaseManager manager;
   private final AxisID axisID;
   private final Mode mode;
   private final File inputFile;
 
-  public ClipParam(BaseManager manager, AxisID axisID, File inputFile, File workingDir,
-      Mode mode) {
+  private ClipParam(final BaseManager manager,
+      final ApplicationManager applicationManager, final AxisID axisID,
+      final File inputFile, File workingDir, final Mode mode) {
     this.manager = manager;
+    this.applicationManager = applicationManager;
     this.axisID = axisID;
     this.mode = mode;
     this.inputFile = inputFile;
@@ -99,21 +104,38 @@ public final class ClipParam implements CommandDetails {
     }
   }
 
+  public static ClipParam getRotxInstance(final BaseManager manager, final AxisID axisID,
+      final File inputFile, final File workingDir) {
+    return new ClipParam(manager, null, axisID, inputFile, workingDir, Mode.ROTX);
+  }
+
+  public static ClipParam getStatsInstance(final ApplicationManager manager,
+      final AxisID axisID, final File inputFile, final File workingDir) {
+    return new ClipParam(manager, manager, axisID, inputFile, workingDir, Mode.STATS);
+  }
+
   public AxisID getAxisID() {
     return AxisID.ONLY;
   }
 
-  private ArrayList genOptions(File inputFile, File workingDir) {
+  private ArrayList genOptions(final File inputFile, final File workingDir) {
     ArrayList options = new ArrayList(3);
     // Add process.
     options.add(mode.toString());
     // Add options.
     if (mode == Mode.STATS) {
-      options.add("-p");
-      options.add(manager.getBaseMetaData().getDatasetName() + axisID.getExtension()
-          + ".pl");
-      options.add("-O");
-      options.add(Utilities.MONTAGE_SEPARATION+","+Utilities.MONTAGE_SEPARATION);
+      if (applicationManager == null) {
+        System.err
+            .println("Warning: Unable to get the view type.  Coordinates may be incorrect "
+                + "if this is a montage.");
+      }
+      else if (applicationManager.getConstMetaData().getViewType() == ViewType.MONTAGE) {
+        options.add("-p");
+        options.add(manager.getBaseMetaData().getDatasetName() + axisID.getExtension()
+            + ".pl");
+        options.add("-O");
+        options.add(Utilities.MONTAGE_SEPARATION + "," + Utilities.MONTAGE_SEPARATION);
+      }
       // Put a * on the outliers.
       options.add("-n");
       options.add("2.5");
@@ -273,7 +295,7 @@ public final class ClipParam implements CommandDetails {
   }
 
   public static final class Mode implements CommandMode {
-    public static final Mode ROTX = new Mode("rotx");
+    private static final Mode ROTX = new Mode("rotx");
     public static final Mode STATS = new Mode("stats");
 
     private final String process;
