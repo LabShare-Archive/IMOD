@@ -414,33 +414,33 @@ import etomo.type.Run3dmodMenuOptions;
 public final class ImodState {
   public static final String rcsid = "$$Id$$";
 
-  //public constants
-  //mode
+  // public constants
+  // mode
   public static final int MODEL_MODE = -1;
   public static final int MOVIE_MODE = -2;
-  //modelView
+  // modelView
   public static final int MODEL_VIEW = -3;
-  //useModv
+  // useModv
   public static final int MODV = -4;
 
-  //unchanging state information
+  // unchanging state information
   private boolean modelView = false;
   private boolean useModv = false;
   private AxisID axisID;
 
-  //current state information
-  //reset to initial state
+  // current state information
+  // reset to initial state
   private String modelName;
   private int mode;
   private boolean swapYZ;
-  //reset to default state
+  // reset to default state
   private boolean preserveContrast;
   private boolean openBeadFixer;
   private boolean openContours;
   private boolean startNewContoursAtNewZ = false;
   private int pointLimit = -1;
 
-  //sent with open bead fixer
+  // sent with open bead fixer
   private boolean setAutoCenter = false;
   private boolean autoCenter = false;
   private boolean newContours = false;
@@ -448,20 +448,20 @@ public final class ImodState {
   private ImodProcess.BeadFixerMode beadfixerMode = null;
   private String skipList = null;
 
-  //signals that a state variable has been changed at least once, so the
-  //corrosponding message must always be sent
+  // signals that a state variable has been changed at least once, so the
+  // corrosponding message must always be sent
   private boolean usingMode = false;
 
-  //don't reset
+  // don't reset
   private boolean allowMenuBinningInZ = false;
   private boolean noMenuOptions = false;
 
-  //reset values
-  //initial state information
+  // reset values
+  // initial state information
   private String initialModelName = "";
   private int initialMode = MOVIE_MODE;
   private boolean initialSwapYZ = false;
-  //default state information
+  // default state information
   private static final boolean defaultOpenWithModel = false;
   private static final boolean defaultPreserveContrast = false;
   private static final boolean defaultOpenBeadFixer = false;
@@ -469,27 +469,27 @@ public final class ImodState {
   private static final boolean defaultFrames = false;
   private static final int defaultBinning = 1;
 
-  //internal state information
+  // internal state information
   private final ImodProcess process;
   private String[] fileNameArray = null;
   private File[] fileList = null;
   private boolean warnedStaleFile = false;
-  //initial state information
+  // initial state information
   boolean initialModeSet = false;
   boolean initialSwapYZSet = false;
   private final BaseManager manager;
 
   private String logName = null;
   private boolean debug = false;
-  //Should be turned off after each use.  This is because it is rarely used and
-  //should not be on for most situations.  This way I don't have to keep track
-  //of when it is on.
+  // Should be turned off after each use. This is because it is rarely used and
+  // should not be on for most situations. This way I don't have to keep track
+  // of when it is on.
   private EtomoBoolean2 deleteAllSections = null;
   private String fileName = null;
 
-  //constructors
-  //they can set final state variables
-  //they can also set initialModelName
+  // constructors
+  // they can set final state variables
+  // they can also set initialModelName
 
   /**
    * Use this constructor to create an instance of ImodProcess using
@@ -681,16 +681,16 @@ public final class ImodState {
     menuOptions.setNoOptions(noMenuOptions);
     menuOptions.orGlobalOptions();
     menuOptions.setAllowBinningInZ(allowMenuBinningInZ);
-    //process is not running
+    // process is not running
     if (!process.isRunning()) {
-      //open
+      // open
       process.open(menuOptions);
       warnedStaleFile = false;
-      //model will be opened
+      // model will be opened
       if (modelName != null && modelName.matches("\\S+") && preserveContrast) {
         process.setOpenModelPreserveContrastMessage(modelName);
       }
-      //This message can only be sent after opening the model
+      // This message can only be sent after opening the model
       if (openContours) {
         process.setNewContoursMessage(true);
       }
@@ -700,7 +700,7 @@ public final class ImodState {
       if (pointLimit != -1) {
         process.setPointLimitMessage(pointLimit);
       }
-      //open bead fixer
+      // open bead fixer
       if (openBeadFixer) {
         process.setOpenBeadFixerMessage();
         if (setAutoCenter) {
@@ -729,15 +729,15 @@ public final class ImodState {
       }
     }
     else {
-      //process is running
-      //raise 3dmod
+      // process is running
+      // raise 3dmod
       if (!modelView && !useModv) {
         process.setOpenZapWindowMessage();
       }
       else {
         process.setRaise3dmodMessage();
       }
-      //reopen model
+      // reopen model
       if (!useModv && modelName != null && modelName.matches("\\S+")) {
         if (preserveContrast) {
           process.setOpenModelPreserveContrastMessage(modelName);
@@ -746,11 +746,11 @@ public final class ImodState {
           process.setOpenModelMessage(modelName);
         }
       }
-      //This message can only be sent after opening the model
+      // This message can only be sent after opening the model
       if (openContours) {
         process.setNewContoursMessage(true);
       }
-      //open bead fixer
+      // open bead fixer
       if (openBeadFixer) {
         process.setOpenBeadFixerMessage();
         if (setAutoCenter) {
@@ -776,7 +776,7 @@ public final class ImodState {
         process.setSkipList(skipList);
       }
     }
-    //set mode
+    // set mode
     if (usingMode) {
       if (mode == MODEL_MODE) {
         process.setModelModeMessage();
@@ -868,11 +868,11 @@ public final class ImodState {
   }
 
   void reset() {
-    //reset to initial state
+    // reset to initial state
     setModelName(initialModelName);
     mode = initialMode;
     swapYZ = initialSwapYZ;
-    //reset to default state
+    // reset to default state
     preserveContrast = defaultPreserveContrast;
     process.setOpenWithModel(!preserveContrast);
     openBeadFixer = defaultOpenBeadFixer;
@@ -928,7 +928,7 @@ public final class ImodState {
     return true;
   }
 
-  //unchanging state information
+  // unchanging state information
 
   /**
    * 
@@ -945,7 +945,7 @@ public final class ImodState {
     return useModv;
   }
 
-  //current state information
+  // current state information
   /**
    * @return modelName
    */
@@ -957,7 +957,7 @@ public final class ImodState {
     this.modelName = modelName;
     process.setModelName(modelName);
   }
-  
+
   void setLoadAsIntegers() {
     process.setLoadAsIntegers();
   }
@@ -1076,6 +1076,10 @@ public final class ImodState {
     process.setPieceListFileName(pieceListFileName);
   }
 
+  public void setMontageSeparation() {
+    process.setMontageSeparation();
+  }
+
   /**
    * @return openBeadFixer
    */
@@ -1133,7 +1137,7 @@ public final class ImodState {
     manageNewContours = true;
   }
 
-  //initial state information
+  // initial state information
   /**
    * @return initialModelName
    */
@@ -1184,7 +1188,7 @@ public final class ImodState {
     initialSwapYZSet = true;
   }
 
-  //default state information
+  // default state information
 
   public boolean isDefaultOpenWithModel() {
     return defaultOpenWithModel;
@@ -1194,7 +1198,7 @@ public final class ImodState {
     return defaultPreserveContrast;
   }
 
-  //user controlled state information - pass through to ImodProcess
+  // user controlled state information - pass through to ImodProcess
   /**
    * @return true if process is running
    */
@@ -1240,7 +1244,7 @@ public final class ImodState {
     process.setContinuousListenerTarget(continuousListenerTarget);
   }
 
-  //internal state sets and gets
+  // internal state sets and gets
   /**
    * @returns warnedStaleFile
    */

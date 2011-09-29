@@ -3,12 +3,14 @@ package etomo.comscript;
 import java.io.File;
 import java.util.ArrayList;
 
+import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
+import etomo.type.ViewType;
 import etomo.ui.swing.UIHarness;
 
 /**
@@ -117,11 +119,11 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
   private String[] commandArray = null;
   private boolean debug = true;
 
-  private final BaseManager manager;
+  private final ApplicationManager manager;
   private final AxisID axisID;
   private final CommandMode mode;
 
-  public CCDEraserParam(final BaseManager manager, final AxisID axisID,
+  public CCDEraserParam(final ApplicationManager manager, final AxisID axisID,
       final CommandMode mode) {
     this.manager = manager;
     this.axisID = axisID;
@@ -172,7 +174,7 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
     options.add("-" + POLYNOMIAL_ORDER_KEY);
     options.add(polynomialOrder);
     if (expandCircleIterations.matches("\\S+")) {
-      options.add("-"+EXPAND_CIRCLE_ITERATIONS_KEY);
+      options.add("-" + EXPAND_CIRCLE_ITERATIONS_KEY);
       options.add(expandCircleIterations);
     }
     options.add("-MergePatches");
@@ -199,7 +201,7 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
       throws BadComScriptException, InvalidParameterException {
 
-    //  Check to be sure that it is a ccderaser command
+    // Check to be sure that it is a ccderaser command
     if (!scriptCommand.getCommand().equals("ccderaser")) {
       throw (new BadComScriptException("Not a ccderaser command"));
     }
@@ -229,7 +231,7 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
       borderPixels = scriptCommand.getValue(BORDER_SIZE_KEY);
       polynomialOrder = scriptCommand.getValue(POLYNOMIAL_ORDER_KEY);
       includeAdjacentPoints = !scriptCommand.hasKeyword("ExcludeAdjacent");
-      //handle out-of-date parameters
+      // handle out-of-date parameters
       outerRadius = scriptCommand.getValue("OuterRadius");
       if (!outerRadius.equals("")) {
         convertOuterRadius();
@@ -246,7 +248,7 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
       polynomialOrder = inputArgs[6].getArgument();
       includeAdjacentPoints = inputArgs[7].getArgument().matches("\\s*1\\s*");
 
-      //  Turn on the automatic mode with the defaults from the new com script
+      // Turn on the automatic mode with the defaults from the new com script
       findPeaks = true;
       String junk[] = inputFile.split("\\.st");
       String datasetName = junk[0];
@@ -269,11 +271,11 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
    */
   public void updateComScriptCommand(ComScriptCommand scriptCommand)
       throws BadComScriptException {
-    //  Check to be sure that it is a ccderaser xommand
+    // Check to be sure that it is a ccderaser xommand
     if (!scriptCommand.getCommand().equals("ccderaser")) {
       throw (new BadComScriptException("Not a ccderaser command"));
     }
-    //  Switch to keyword/value pairs
+    // Switch to keyword/value pairs
     scriptCommand.useKeywordValue();
 
     scriptCommand.setValue(INPUT_FILE_KEY, inputFile);
@@ -410,9 +412,18 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
       scriptCommand.deleteKey(TRIAL_MODE_KEY);
     }
 
-    //remove out-of-date parameters
+    // remove out-of-date parameters
     if (!outerRadius.equals("")) {
       scriptCommand.deleteKey("OuterRadius");
+    }
+
+    // Always add these when erasing X-rays
+    if (manager.getConstMetaData().getViewType() == ViewType.MONTAGE
+        && (mode == Mode.X_RAYS || mode == Mode.X_RAYS_TRIAL)) {
+      scriptCommand.setValue("PieceListFile", manager.getBaseMetaData().getDatasetName()
+          + axisID.getExtension() + ".pl");
+      scriptCommand.setValue("OverlapsForModel", Utilities.MONTAGE_SEPARATION + ","
+          + Utilities.MONTAGE_SEPARATION);
     }
   }
 
@@ -427,7 +438,7 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
    * annulusWidth = outerRadius - maximumWidth.
    */
   protected void convertOuterRadius() {
-    //if annulusWidth already set then return
+    // if annulusWidth already set then return
     if (!annulusWidth.equals("") || outerRadius.equals("") || maximumRadius.equals("")) {
       return;
     }

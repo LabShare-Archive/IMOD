@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
+import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
@@ -15,6 +16,7 @@ import etomo.type.ConstIntKeyList;
 import etomo.type.FileType;
 import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
+import etomo.type.ViewType;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
 
@@ -74,18 +76,20 @@ public final class ClipParam implements CommandDetails {
   private String[] commandArray;
   private boolean debug = true;
 
+  private final ApplicationManager applicationManager;
   private final BaseManager manager;
   private final AxisID axisID;
   private final Mode mode;
   private final File inputFile;
 
-  public ClipParam(BaseManager manager, AxisID axisID, File inputFile, File workingDir,
-      Mode mode) {
+  private ClipParam(final BaseManager manager,
+      final ApplicationManager applicationManager, final AxisID axisID,
+      final File inputFile, File workingDir, final Mode mode) {
     this.manager = manager;
+    this.applicationManager = applicationManager;
     this.axisID = axisID;
     this.mode = mode;
     this.inputFile = inputFile;
-    //TODO use array for command string
     ArrayList options = genOptions(inputFile, workingDir);
     commandArray = new String[options.size() + commandSize];
     commandArray[0] = BaseManager.getIMODBinPath() + PROCESS_NAME.toString();
@@ -100,36 +104,58 @@ public final class ClipParam implements CommandDetails {
     }
   }
 
+  public static ClipParam getRotxInstance(final BaseManager manager, final AxisID axisID,
+      final File inputFile, final File workingDir) {
+    return new ClipParam(manager, null, axisID, inputFile, workingDir, Mode.ROTX);
+  }
+
+  public static ClipParam getStatsInstance(final ApplicationManager manager,
+      final AxisID axisID, final File inputFile, final File workingDir) {
+    return new ClipParam(manager, manager, axisID, inputFile, workingDir, Mode.STATS);
+  }
+
   public AxisID getAxisID() {
     return AxisID.ONLY;
   }
 
-  private ArrayList genOptions(File inputFile, File workingDir) {
+  private ArrayList genOptions(final File inputFile, final File workingDir) {
     ArrayList options = new ArrayList(3);
-    //Add process.
+    // Add process.
     options.add(mode.toString());
-    //Add options.
+    // Add options.
     if (mode == Mode.STATS) {
-      //Put a * on the outliers.
+      if (applicationManager == null) {
+        System.err
+            .println("Warning: Unable to get the view type.  Coordinates may be incorrect "
+                + "if this is a montage.");
+      }
+      else if (applicationManager.getConstMetaData().getViewType() == ViewType.MONTAGE) {
+        options.add("-p");
+        options.add(manager.getBaseMetaData().getDatasetName() + axisID.getExtension()
+            + ".pl");
+        options.add("-O");
+        options.add(Utilities.MONTAGE_SEPARATION + "," + Utilities.MONTAGE_SEPARATION);
+      }
+      // Put a * on the outliers.
       options.add("-n");
       options.add("2.5");
-      //The length should be 1/4 of Z, but between 15 and 30.
+      // The length should be 1/4 of Z, but between 15 and 30.
       options.add("-l");
       int length;
       int min = 15;
       int max = 30;
-      MRCHeader header = MRCHeader.getInstanceFromFileName(manager, axisID, inputFile
-          .getName());
+      MRCHeader header = MRCHeader.getInstanceFromFileName(manager, axisID,
+          inputFile.getName());
       try {
         header.read(manager);
         length = header.getNSections();
       }
       catch (InvalidParameterException e) {
-        //Pick a midrange number if the header can't be read.
+        // Pick a midrange number if the header can't be read.
         length = max * 2;
       }
       catch (IOException e) {
-        //Pick a midrange number if the header can't be read.
+        // Pick a midrange number if the header can't be read.
         length = max * 2;
       }
       length /= 4;
@@ -140,12 +166,12 @@ public final class ClipParam implements CommandDetails {
         length = max;
       }
       options.add(String.valueOf(length));
-      //Display the views starting from 1 instead of 0.
+      // Display the views starting from 1 instead of 0.
       options.add("-1");
     }
-    //Add input files.
+    // Add input files.
     options.add(inputFile.getAbsolutePath());
-    //Add output files.
+    // Add output files.
     if (mode == Mode.ROTX) {
       int index = inputFile.getName().lastIndexOf('.');
       StringBuffer clipFileName = new StringBuffer();
@@ -155,8 +181,8 @@ public final class ClipParam implements CommandDetails {
       else {
         clipFileName.append(inputFile.getName().substring(0, index));
       }
-      //Still using .flip for the output name for clip rotx, since we used to flip
-      //instead of rotate.
+      // Still using .flip for the output name for clip rotx, since we used to flip
+      // instead of rotate.
       outputFile = new File(workingDir, clipFileName + ".flip");
       options.add(outputFile.getAbsolutePath());
     }
@@ -269,7 +295,7 @@ public final class ClipParam implements CommandDetails {
   }
 
   public static final class Mode implements CommandMode {
-    public static final Mode ROTX = new Mode("rotx");
+    private static final Mode ROTX = new Mode("rotx");
     public static final Mode STATS = new Mode("stats");
 
     private final String process;
