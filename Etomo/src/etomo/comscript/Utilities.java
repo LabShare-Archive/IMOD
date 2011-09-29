@@ -37,9 +37,11 @@ import etomo.util.Montagesize;
  * <p> getGoodframeFromMontageSize.
  * <p> </p>
  */
-final class Utilities {
+public final class Utilities {
   public static final String rcsid = "$Id$";
 
+  public static final String MONTAGE_SEPARATION = "-10";
+  
   static boolean is90DegreeImageRotation(double imageRotation) {
     return (imageRotation > 45 && imageRotation < 135)
         || (imageRotation < -45 && imageRotation > -135);
