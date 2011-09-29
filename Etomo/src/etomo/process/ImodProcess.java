@@ -638,10 +638,10 @@ public class ImodProcess {
   public static final String STOP_LISTENING_REQUEST = "STOP LISTENING";
   private static final int defaultBinning = 1;
   public static final String IMOD_SEND_EVENT_STRING = "imodsendevent returned:";
-  //static final String CONTINUOUS_TAG = "ETOMO INFO:";
+  // static final String CONTINUOUS_TAG = "ETOMO INFO:";
   static final String CONTINUOUS_TAG = "ETOMO INFO:";
 
-  //Get stderr messages only through this member variable.
+  // Get stderr messages only through this member variable.
   private final Stderr stderr = new Stderr();
   private final ContinuousListener continuousListener;
 
@@ -671,12 +671,13 @@ public class ImodProcess {
   private ArrayList windowOpenOptionList = null;
   private boolean debug = false;
   private String subdirName = null;
-  //Zap opens by default.  OpenZap is only necessary when model view is in use.
+  // Zap opens by default. OpenZap is only necessary when model view is in use.
   private boolean openZap = false;
   private String tiltFile = null;
   private ContinuousListenerTarget continuousListenerTarget = null;
   private File[] fileList = null;
   private boolean loadAsIntegers = false;
+  private boolean montageSeparation = false;
 
   /**
    * If true, run 3dmod with -L.  This means that imodsentevent will not be used
@@ -791,6 +792,10 @@ public class ImodProcess {
     this.pieceListFileName = pieceListFileName;
   }
 
+  public void setMontageSeparation() {
+    this.montageSeparation = true;
+  }
+
   /**
    * Specify or change the model name
    * 
@@ -850,10 +855,10 @@ public class ImodProcess {
     commandOptions.add(ApplicationManager.getIMODBinPath() + "3dmod");
     // Collect the command line options
 
-    //3/22/09
-    //On Mac never run with -D, -W, and not -L.  This will crash 3dmod by
-    //copying the clipboard onto the message area.  3dmod will crash if there is
-    //something big in the clipboard.
+    // 3/22/09
+    // On Mac never run with -D, -W, and not -L. This will crash 3dmod by
+    // copying the clipboard onto the message area. 3dmod will crash if there is
+    // something big in the clipboard.
 
     if (outputWindowID) {
       commandOptions.add("-W");
@@ -867,6 +872,12 @@ public class ImodProcess {
     }
     if (frames) {
       commandOptions.add("-f");
+    }
+
+    if (montageSeparation) {
+      commandOptions.add("-o");
+      commandOptions.add(etomo.comscript.Utilities.MONTAGE_SEPARATION + ","
+          + etomo.comscript.Utilities.MONTAGE_SEPARATION);
     }
 
     if (pieceListFileName != null && pieceListFileName.matches("\\S+")) {
@@ -981,9 +992,9 @@ public class ImodProcess {
     if (continuousListenerTarget != null) {
       continuousListener.startThread(imodThread, continuousListenerTarget);
     }
-    //Synchronized on stderr.quickListenerQueue to keep other threads from
-    //from causing a response to appear on this queue before start up messages
-    //are processed.
+    // Synchronized on stderr.quickListenerQueue to keep other threads from
+    // from causing a response to appear on this queue before start up messages
+    // are processed.
     synchronized (stderr.quickListenerQueue) {
 
       // Check the stderr of the 3dmod process for the windowID and the
@@ -1356,10 +1367,8 @@ public class ImodProcess {
     if (sendArguments.size() == 0) {
       return;
     }
-    /*
-     * for (int i = 0; i < sendArguments.size(); i++) {
-     * System.out.print(sendArguments.get(i) + " "); } System.out.println();
-     */
+    /* for (int i = 0; i < sendArguments.size(); i++) {
+     * System.out.print(sendArguments.get(i) + " "); } System.out.println(); */
     String[] argArray = (String[]) sendArguments
         .toArray(new String[sendArguments.size()]);
     if (!listenToStdin) {
@@ -1370,9 +1379,9 @@ public class ImodProcess {
     }
     sendArguments.clear();
 
-    //The 3dmod process may have started without a continuous listener target.
-    //If a target has been added and the continuous listener thread is not
-    //running, start the continuous listener thread.
+    // The 3dmod process may have started without a continuous listener target.
+    // If a target has been added and the continuous listener thread is not
+    // running, start the continuous listener thread.
     if (isRunning() && continuousListenerTarget != null && !continuousListener.isAlive()) {
       continuousListener.startThread(imodThread, continuousListenerTarget);
     }
@@ -1413,8 +1422,8 @@ public class ImodProcess {
       return null;
     }
     imodSendEvent(args, results);
-    //3dmod sends the results before it returns 
-    //the exit value to imodSendEvent - no waiting
+    // 3dmod sends the results before it returns
+    // the exit value to imodSendEvent - no waiting
     if (imod == null) {
       return results;
     }
@@ -1423,7 +1432,7 @@ public class ImodProcess {
     if (line == null) {
       return results;
     }
-    //Currently assuming results can only be on one line.
+    // Currently assuming results can only be on one line.
     boolean foundError = false;
     do {
       if (!parseError(line, results)) {
@@ -1444,8 +1453,8 @@ public class ImodProcess {
   }
 
   protected boolean parseError(String line, Vector errorMessage) {
-    //Currently assuming that an error or warning message will be only one
-    //line and contain ERROR_STRING or WARNING_STRING.
+    // Currently assuming that an error or warning message will be only one
+    // line and contain ERROR_STRING or WARNING_STRING.
     int index = line.indexOf(ProcessMessages.ERROR_TAG);
     if (index != -1) {
       errorMessage.add(line.substring(index));
@@ -1481,8 +1490,8 @@ public class ImodProcess {
       String[] command = new String[2 + args.length];
       command[0] = ApplicationManager.getIMODBinPath() + "imodsendevent";
       command[1] = windowID;
-      //String command = ApplicationManager.getIMODBinPath() + "imodsendevent "
-      //    + windowID + " ";
+      // String command = ApplicationManager.getIMODBinPath() + "imodsendevent "
+      // + windowID + " ";
       for (int i = 0; i < args.length; i++) {
         command[i + 2] = args[i];
       }
@@ -1492,7 +1501,7 @@ public class ImodProcess {
       InteractiveSystemProgram imodSendEvent = new InteractiveSystemProgram(manager,
           command, axisID);
 
-      //  Start the imodSendEvent program thread and wait for it to finish
+      // Start the imodSendEvent program thread and wait for it to finish
       Thread sendEventThread = new Thread(imodSendEvent);
       sendEventThread.start();
       try {
@@ -1895,7 +1904,7 @@ public class ImodProcess {
         ContinuousListenerTarget continuousListenerTarget) {
       this.imodThread = imodThread;
       target = continuousListenerTarget;
-      //If thread has ended create and start a new thread
+      // If thread has ended create and start a new thread
       if (continuousListenerThread == null || !continuousListenerThread.isAlive()) {
         continuousListenerThread = new Thread(this);
         continuousListenerThread.start();
@@ -2026,7 +2035,7 @@ public class ImodProcess {
             break;
           }
           // if the response is not OK or an error message meant for the user
-          // then it may be a requested return string.  Otherwise it is some
+          // then it may be a requested return string. Otherwise it is some
           // 3dmod output that etomo can ignore.
           if (!parseUserMessages(response, userMessage) && imodReturnValues != null
               && !failure && !response.startsWith("imodExecuteMessage:")) {

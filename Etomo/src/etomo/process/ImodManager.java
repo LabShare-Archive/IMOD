@@ -561,7 +561,7 @@ public class ImodManager {
   private boolean metaDataSet = false;
   private boolean debug = false;
 
-  //public keys
+  // public keys
 
   public static final String RAW_STACK_KEY = new String("raw stack");
   public static final String ERASED_STACK_KEY = new String("erased stack");
@@ -611,7 +611,7 @@ public class ImodManager {
       "Flatten tool output file");
   public static final String SIRT_KEY = new String("SIRT output files");
 
-  //private keys - used with imodMap
+  // private keys - used with imodMap
   private static final String rawStackKey = RAW_STACK_KEY;
   private static final String erasedStackKey = ERASED_STACK_KEY;
   private static final String coarseAlignedKey = COARSE_ALIGNED_KEY;
@@ -657,23 +657,23 @@ public class ImodManager {
   private final BaseManager manager;
   private ImodRequestHandler requestHandler = null;
 
-  //constructors
+  // constructors
 
   /**
    */
   public ImodManager(BaseManager manager) {
     this.manager = manager;
     imodMap = new HashMap();
-    //Only run the request handler when necesary.  In Windows when 3dmod is
-    //listening to stdin and it wants to exit, it sends a request to stderr to
-    //ask that the stdin receive a stop listening command.  This is because
-    //3dmod in Windows can't exit when it is listening to stdin.
+    // Only run the request handler when necesary. In Windows when 3dmod is
+    // listening to stdin and it wants to exit, it sends a request to stderr to
+    // ask that the stdin receive a stop listening command. This is because
+    // 3dmod in Windows can't exit when it is listening to stdin.
     if (Utilities.isWindowsOS() && EtomoDirector.INSTANCE.getArguments().isListen()) {
       requestHandler = ImodRequestHandler.getInstance(this);
     }
   }
 
-  //Interface
+  // Interface
 
   /**
    * for running 3dmod from the SetupDialog
@@ -689,9 +689,9 @@ public class ImodManager {
   }
 
   public void setMetaData(ConstMetaData metaData) {
-    //if metaDataSet is true and the axisType is changing from dual to single,
-    //combinedTomograms will not be retrievable.  However the global isOpen()
-    //and quit() functions will work on them.
+    // if metaDataSet is true and the axisType is changing from dual to single,
+    // combinedTomograms will not be retrievable. However the global isOpen()
+    // and quit() functions will work on them.
     metaDataSet = true;
     axisType = metaData.getAxisType();
     datasetName = metaData.getDatasetName();
@@ -844,15 +844,15 @@ public class ImodManager {
   public void open(String key, Run3dmodMenuOptions menuOptions) throws AxisTypeException,
       SystemProcessException, IOException {
     open(key, null, null, menuOptions);
-    //used for:
-    //openCombinedTomogram
+    // used for:
+    // openCombinedTomogram
   }
 
   public void open(String key, String model, Run3dmodMenuOptions menuOptions)
       throws AxisTypeException, SystemProcessException, IOException {
     open(key, null, model, menuOptions);
-    //used for:
-    //openCombinedTomogram
+    // used for:
+    // openCombinedTomogram
   }
 
   public void open(String key, AxisID axisID, Run3dmodMenuOptions menuOptions)
@@ -976,12 +976,12 @@ public class ImodManager {
       newImod(key, axisID);
       imodState = get(key, axisID);
     }
-    //TEMP
+    // TEMP
     System.err.println("key=" + key + ",axis=" + imodState.getAxisID());
     if (imodState != null) {
       imodState.open(model, modelMode, menuOptions);
     }
-    //    rawStack.model(modelName, modelMode);
+    // rawStack.model(modelName, modelMode);
   }
 
   /**
@@ -1002,7 +1002,7 @@ public class ImodManager {
       newImod(key, file);
       imodState = get(key);
     }
-    //TEMP
+    // TEMP
     System.err.println("key=" + key + ",axis=" + imodState.getAxisID());
     if (imodState != null) {
       imodState.open(model, modelMode, menuOptions);
@@ -1526,6 +1526,18 @@ public class ImodManager {
     }
   }
 
+  public void setMontageSeparation(String key, AxisID axisID) throws AxisTypeException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      newImod(key, axisID);
+      imodState = get(key, axisID);
+    }
+    if (imodState != null) {
+      imodState.setMontageSeparation();
+    }
+  }
+
   public void setWorkingDirectory(String key, AxisID axisID, int vectorIndex,
       File workingDirectory) throws AxisTypeException {
     key = getPrivateKey(key);
@@ -1560,7 +1572,7 @@ public class ImodManager {
     return false;
   }
 
-  //protected methods
+  // protected methods
 
   protected Vector newVector(ImodState imodState) {
     Vector vector = new Vector(1);
@@ -2065,7 +2077,7 @@ public class ImodManager {
   }
 
   private ImodState newFineAligned3dFind(AxisID axisID) {
-    //FileType.NEWST_3D_FIND_OUTPUT is the same as FileType.BLEND_3D_FIND_OUTPUT.
+    // FileType.NEWST_3D_FIND_OUTPUT is the same as FileType.BLEND_3D_FIND_OUTPUT.
     ImodState imodState = new ImodState(manager, axisID,
         FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT.getFileName(manager, axisID));
     return imodState;
@@ -2208,7 +2220,7 @@ public class ImodManager {
       if (isDualAxisOnly(key)) {
         throw new AxisTypeException(key + " cannot be found in " + axisType.toString());
       }
-      //Correct axis
+      // Correct axis
       if (axisID == AxisID.FIRST) {
         axisID = AxisID.ONLY;
       }
