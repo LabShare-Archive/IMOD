@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/29/11: In eTomo - Settings dialog, added a default for GPU processing.
+(Bug# 1467)
+
 9/23/11: In eTomo - Tomogram Generation distinguishing between full SIRT
 output files and subarea output files.(Bug# 1537)
 
