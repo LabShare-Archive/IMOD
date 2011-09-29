@@ -735,7 +735,9 @@ public final class ApplicationManager extends BaseManager implements
     String eraseModelName = metaData.getDatasetName() + axisID.getExtension() + ".erase";
     try {
       if (metaData.getViewType() == ViewType.MONTAGE) {
-        imodManager.setFrames(ImodManager.RAW_STACK_KEY, axisID, true);
+        imodManager.setMontageSeparation(ImodManager.RAW_STACK_KEY, axisID);
+        imodManager.setPieceListFileName(ImodManager.RAW_STACK_KEY, axisID,
+            metaData.getDatasetName() + axisID.getExtension() + ".pl");
       }
       imodManager.open(ImodManager.RAW_STACK_KEY, axisID, eraseModelName, true,
           menuOptions);
@@ -847,7 +849,9 @@ public final class ApplicationManager extends BaseManager implements
     try {
       imodManager.setPreserveContrast(ImodManager.RAW_STACK_KEY, axisID, true);
       if (metaData.getViewType() == ViewType.MONTAGE) {
-        imodManager.setFrames(ImodManager.RAW_STACK_KEY, axisID, true);
+        imodManager.setMontageSeparation(ImodManager.RAW_STACK_KEY, axisID);
+        imodManager.setPieceListFileName(ImodManager.RAW_STACK_KEY, axisID,
+            metaData.getDatasetName() + axisID.getExtension() + ".pl");
       }
       imodManager.open(ImodManager.RAW_STACK_KEY, axisID, xRayModel, menuOptions);
     }
@@ -875,9 +879,9 @@ public final class ApplicationManager extends BaseManager implements
     }
     try {
       if (metaData.getViewType() == ViewType.MONTAGE) {
-        // imodManager.setPieceListFileName(ImodManager.ERASED_STACK_KEY, axisID,
-        // metaData.getDatasetName() + axisID.getExtension() + ".pl");
-        imodManager.setFrames(ImodManager.ERASED_STACK_KEY, axisID, true);
+        imodManager.setMontageSeparation(ImodManager.ERASED_STACK_KEY, axisID);
+        imodManager.setPieceListFileName(ImodManager.ERASED_STACK_KEY, axisID,
+            metaData.getDatasetName() + axisID.getExtension() + ".pl");
       }
       File tiltFile = DatasetFiles.getRawTiltFile(this, axisID);
       if (tiltFile.exists()) {
