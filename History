@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/28/11: IMOD_4-2-26
 9/28/11: Made Edit-Object-Info run imodinfo with -o option and report output.
 
 9/28/11: Fixed Vmstopy with use of environment variable; added error message
