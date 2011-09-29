@@ -1598,9 +1598,8 @@ public final class ApplicationManager extends BaseManager implements
 
   public void clipStats(AxisID axisID, FileType inputFileType,
       ConstProcessSeries processSeries) {
-    ClipParam clipParam = new ClipParam(this, axisID,
-        inputFileType.getFile(this, axisID), new File(getPropertyUserDir()),
-        ClipParam.Mode.STATS);
+    ClipParam clipParam = ClipParam.getStatsInstance(this, axisID,
+        inputFileType.getFile(this, axisID), new File(getPropertyUserDir()));
     String threadName;
     try {
       threadName = processMgr.clipStats(clipParam, axisID, processSeries);

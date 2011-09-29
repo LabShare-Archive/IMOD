@@ -557,11 +557,11 @@ public final class JoinManager extends BaseManager {
 
   private final LogPanel logPanel = LogPanel.getInstance(this);
 
-  //  Process dialog references
+  // Process dialog references
   private JoinDialog joinDialog = null;
 
-  //variables cast from base class variables
-  //initialized in create function
+  // variables cast from base class variables
+  // initialized in create function
   private MainJoinPanel mainPanel;
   private final JoinMetaData metaData;
   private JoinProcessManager processMgr;
@@ -1005,8 +1005,8 @@ public final class JoinManager extends BaseManager {
     }
     if (workingDirName.endsWith(" ")) {
       uiHarness.openMessageDialog(this, "The directory, " + workingDirName
-          + ", cannot be used because it ends with a space.",
-          "Unusable Directory Name", AxisID.ONLY);
+          + ", cannot be used because it ends with a space.", "Unusable Directory Name",
+          AxisID.ONLY);
       return false;
     }
     propertyUserDir = workingDirName;
@@ -1017,11 +1017,11 @@ public final class JoinManager extends BaseManager {
       processMgr.createNewFile(paramFile.getAbsolutePath());
     }
     loadedParamFile = true;
-    //initializeUIParameters(paramFile, AxisID.ONLY, false);
-    //if (loadedParamFile) {
-    //imodManager.setMetaData(metaData);
-    //mainPanel.setStatusBarText(paramFile, metaData, logPanel);
-    //}
+    // initializeUIParameters(paramFile, AxisID.ONLY, false);
+    // if (loadedParamFile) {
+    // imodManager.setMetaData(metaData);
+    // mainPanel.setStatusBarText(paramFile, metaData, logPanel);
+    // }
     mainPanel.setStatusBarText(paramFile, metaData, logPanel);
     return true;
   }
@@ -1062,8 +1062,9 @@ public final class JoinManager extends BaseManager {
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, "Can't run initial xfalign\n"
-          + except.getMessage(), "SystemProcessException", AxisID.ONLY);
+      uiHarness.openMessageDialog(this,
+          "Can't run initial xfalign\n" + except.getMessage(), "SystemProcessException",
+          AxisID.ONLY);
       joinDialog.enableMidas();
       return;
     }
@@ -1096,9 +1097,9 @@ public final class JoinManager extends BaseManager {
     String rootName = metaData.getDatasetName();
     String xfFileName = rootName + ".xf";
     File newXfFile = Utilities.mostRecentFile(propertyUserDir, xfFileName, rootName
-        + MidasParam.getOutputFileExtension(), rootName
-        + XfalignParam.getOutputFileExtension(), rootName + "_empty.xf");
-    //If the most recent .xf file is not root.xf, copy it to root.xf
+        + MidasParam.getOutputFileExtension(),
+        rootName + XfalignParam.getOutputFileExtension(), rootName + "_empty.xf");
+    // If the most recent .xf file is not root.xf, copy it to root.xf
     if (!newXfFile.getName().equals(xfFileName)) {
       File xfFile = new File(propertyUserDir, xfFileName);
       try {
@@ -1171,19 +1172,19 @@ public final class JoinManager extends BaseManager {
    * @return
    */
   public boolean setMode(String workingDirName) {
-    //get a non-shared copy of doneMode
+    // get a non-shared copy of doneMode
     int doneMode = state.getDoneMode();
-    //only check done mode when we first set the mode
+    // only check done mode when we first set the mode
     state.clearDoneMode();
     if (!metaData.isValid(workingDirName)) {
       joinDialog.setMode(JoinDialog.SETUP_MODE);
       return false;
     }
     if (!state.isSampleProduced() || doneMode == JoinDialog.CHANGING_SAMPLE_MODE) {
-      //either the sample was not produced, or the user had been changing the
-      //sample when they exited the join dialog.  If the done mode is
-      //CHANGING_SAMPLE_MODE, then the sample values are not valid and the
-      //original sample values have been lost.
+      // either the sample was not produced, or the user had been changing the
+      // sample when they exited the join dialog. If the done mode is
+      // CHANGING_SAMPLE_MODE, then the sample values are not valid and the
+      // original sample values have been lost.
       joinDialog.setMode(JoinDialog.SAMPLE_NOT_PRODUCED_MODE);
     }
     else {
@@ -1372,8 +1373,9 @@ public final class JoinManager extends BaseManager {
       }
       catch (SystemProcessException except) {
         except.printStackTrace();
-        uiHarness.openMessageDialog(this, "Can't run " + buttonText + "\n"
-            + except.getMessage(), "SystemProcessException", AxisID.ONLY);
+        uiHarness.openMessageDialog(this,
+            "Can't run " + buttonText + "\n" + except.getMessage(),
+            "SystemProcessException", AxisID.ONLY);
         return;
       }
       mainPanel.startProgressBar("Finishjoin: " + buttonText, AxisID.ONLY,
@@ -1398,12 +1400,12 @@ public final class JoinManager extends BaseManager {
       parameterStore.save(metaData);
     }
     catch (LogFile.LockException e) {
-      uiHarness.openMessageDialog(this, "Cannot save or write to metaData.\n"
-          + e.getMessage(), "Etomo Error");
+      uiHarness.openMessageDialog(this,
+          "Cannot save or write to metaData.\n" + e.getMessage(), "Etomo Error");
     }
     catch (IOException e) {
-      uiHarness.openMessageDialog(this, "Cannot save or write to metaData.\n"
-          + e.getMessage(), "Etomo Error");
+      uiHarness.openMessageDialog(this,
+          "Cannot save or write to metaData.\n" + e.getMessage(), "Etomo Error");
     }
     return true;
   }
@@ -1423,8 +1425,8 @@ public final class JoinManager extends BaseManager {
   }
 
   public void rotx(File tomogram, File workingDir, ConstProcessSeries processSeries) {
-    ClipParam clipParam = new ClipParam(this, AxisID.ONLY, tomogram, workingDir,
-        ClipParam.Mode.ROTX);
+    ClipParam clipParam = ClipParam.getRotxInstance(this, AxisID.ONLY, tomogram,
+        workingDir);
     try {
       threadNameA = processMgr.rotx(clipParam, processSeries);
     }
@@ -1463,7 +1465,7 @@ public final class JoinManager extends BaseManager {
    */
   public void setParamFile(File paramFile) {
     this.paramFile = paramFile;
-    //  Update main window information and status bar
+    // Update main window information and status bar
     mainPanel.setStatusBarText(paramFile, metaData, logPanel);
   }
 
