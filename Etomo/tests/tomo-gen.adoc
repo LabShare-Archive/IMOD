@@ -278,28 +278,6 @@ mb.tilt=-
   assert.tf.flat-filter-fraction=
   mb.sirt.1=B
   # check enabled/disabled
-  rb.resume-from-last-iteration=
-  mb.tilt=+
-  mb.tilt.1=A
-  assert.disabled.cb.take-logarithm-of-densities-with-offset=
-  assert.disabled.tf.logarithm-density-scaling-factor=
-  assert.disabled.tf.offset=
-  assert.disabled.tf.linear-density-scaling-factor=
-  assert.disabled.tf.offset.1=
-  assert.disabled.tf.tomogram-thickness-in-z=
-  assert.disabled.tf.z-shift=
-  assert.disabled.tf.x-axis-tilt=
-  assert.disabled.tf.tilt-angle-offset=
-  assert.disabled.tf.extra-views-to-exclude=
-  assert.disabled.cb.use-local-alignments=
-  assert.disabled.cb.use-z-factors=
-  mb.tilt.1=B
-  mb.tilt=-
-  assert.disabled.cb.reconstruct-subarea=
-  assert.disabled.tf.radial-filter-cutoff=
-  assert.disabled.tf.falloff=
-  rb.start-from-beginning=
-  #
   assert.enabled.cb.reconstruct-subarea=
   assert.disabled.tf.size-in-x-and-y=
   assert.disabled.tf.offset-in-y=
@@ -309,8 +287,8 @@ mb.tilt=-
   assert.enabled.cb.scale-retained-volumes-to-integers=
   assert.enabled.cb.delete-existing-reconstructions-after-starting-point=
   assert.enabled.rb.start-from-beginning=
-  assert.enabled.rb.resume-from-last-iteration=
-  assert.enabled.rb.go-back,-resume-from-iteration=
+  assert.disabled.rb.resume-from-last-iteration=
+  assert.disabled.rb.go-back,-resume-from-iteration=
   assert.disabled.cbb.go-back,-resume-from-iteration=
   assert.enabled.bn.run-sirt=
   assert.enabled.bn.view-tomogram-in-3dmod=
@@ -429,6 +407,17 @@ wait.process.processchunks-tilt%{axis}_sirt=done
   assert.exists.file=%{dataset}%{axis}.sint02
   assert.exists.file=%{dataset}%{axis}.sint03
   assert.exists.file=%{dataset}%{axis}.srec04
+  assert.disabled.tf.linear-density-scaling-factor=
+  assert.disabled.tf.offset.1=
+  assert.disabled.tf.tomogram-thickness-in-z=
+  assert.disabled.tf.z-shift=
+  assert.disabled.tf.x-axis-tilt=
+  assert.disabled.tf.tilt-angle-offset=
+  assert.disabled.tf.extra-views-to-exclude=
+  assert.disabled.cb.use-local-alignments=
+  assert.disabled.cb.use-z-factors=
+  mb.tilt.1=B
+  mb.tilt=-
 [[]]
 
 
