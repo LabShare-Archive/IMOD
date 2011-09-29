@@ -144,7 +144,7 @@ public final class SetupDialogExpert {
    */
   public void doAutomation() {
     Arguments arguments = EtomoDirector.INSTANCE.getArguments();
-    //build and set dataset
+    // build and set dataset
     StringBuffer buffer = new StringBuffer();
     String dir = arguments.getDir();
     if (dir != null && !dir.equals(".")) {
@@ -161,7 +161,7 @@ public final class SetupDialogExpert {
     if (buffer.length() != 0) {
       dialog.setDataset(buffer.toString());
     }
-    //check radio buttons
+    // check radio buttons
     AxisType axis = arguments.getAxis();
     if (axis == AxisType.SINGLE_AXIS) {
       dialog.setSingleAxis(true);
@@ -173,16 +173,16 @@ public final class SetupDialogExpert {
     if (frame != null) {
       setViewType(frame);
     }
-    //fill in fields
+    // fill in fields
     ConstEtomoNumber fiducial = arguments.getFiducial();
     if (!fiducial.isNull()) {
       dialog.setFiducialDiameter(fiducial.getDouble());
     }
-    //scan header
+    // scan header
     if (arguments.isScan()) {
       scanHeaderAction();
     }
-    //complete the dialog
+    // complete the dialog
     if (arguments.isCreate()) {
       dialog.buttonExecuteAction();
     }
@@ -343,9 +343,9 @@ public final class SetupDialogExpert {
           + " cannot be used as a dataset name.", errorMessageTitle, AxisID.ONLY);
       return false;
     }
-    //validate image distortion field file name
-    //optional
-    //file must exist
+    // validate image distortion field file name
+    // optional
+    // file must exist
     String distortionFileText = dialog.getDistortionFile();
     if (!distortionFileText.equals("")) {
       File distortionFile = new File(distortionFileText);
@@ -356,9 +356,9 @@ public final class SetupDialogExpert {
         return false;
       }
     }
-    //validate mag gradient field file name
-    //optional
-    //file must exist
+    // validate mag gradient field file name
+    // optional
+    // file must exist
     String magGradientFileText = dialog.getMagGradientFile();
     if (!magGradientFileText.equals("")) {
       File magGradientFile = new File(magGradientFileText);
@@ -387,11 +387,11 @@ public final class SetupDialogExpert {
     if (dialog.isSingleViewSelected()) {
       try {
         montagesize.read(manager);
-        //not supposed to be a montage
-        //OK if its a 1x1 montage
+        // not supposed to be a montage
+        // OK if its a 1x1 montage
         MRCHeader header = readMRCHeader();
         if (header == null) {
-          //File does not exist
+          // File does not exist
           return false;
         }
         if (montagesize.getX().getInt() > header.getNColumns()
@@ -435,7 +435,7 @@ public final class SetupDialogExpert {
     MetaData metaData = new MetaData(manager);
     metaData.setAxisType(getAxisType());
 
-    //  The dataset name needs to be set after the axis type so the metadata
+    // The dataset name needs to be set after the axis type so the metadata
     // object modifies the ending correctly
     if (dialog.getDataset().startsWith("/")) {
       metaData.setDatasetName(dialog.getDataset());
@@ -518,19 +518,20 @@ public final class SetupDialogExpert {
           + metaData.getDatasetName();
       dialog.setDataset(canonicalPath);
     }
-    //Parallel processing is optional in tomogram reconstruction, so only use it
-    //if the user set it up.
-    boolean validAutodoc = Network.isParallelProcessingEnabled(manager, AxisID.ONLY,
-        manager.getPropertyUserDir());
-    if (validAutodoc && !userConfig.getNoParallelProcessing()) {
+    // Parallel processing is optional in tomogram reconstruction, so only use it
+    // if the user set it up.
+    boolean parallelProcessingEnabled = Network.isParallelProcessingEnabled(manager,
+        AxisID.ONLY, manager.getPropertyUserDir());
+    if (parallelProcessingEnabled && !userConfig.getNoParallelProcessing()) {
       dialog.setParallelProcess(true);
     }
-    else if (!validAutodoc) {
+    else if (!parallelProcessingEnabled) {
       dialog.setParallelProcessEnabled(false);
     }
-
-    dialog.setGpuProcessingEnabled(Network.isLocalHostGpuProcessingEnabled(manager,
-        AxisID.ONLY, manager.getPropertyUserDir()));
+    boolean gpuProcessingEnabled = Network.isGpuParallelProcessingEnabled(manager,
+        AxisID.ONLY, manager.getPropertyUserDir());
+    dialog.setGpuProcessingEnabled(gpuProcessingEnabled);
+    dialog.setGpuProcessing(gpuProcessingEnabled && userConfig.getGpuProcessingDefault());
     dialog.setBackupDirectory(metaData.getBackupDirectory());
     dialog.setDistortionFile(metaData.getDistortionFile());
     dialog.setMagGradientFile(metaData.getMagGradientFile());
@@ -595,7 +596,7 @@ public final class SetupDialogExpert {
   }
 
   String getCurrentBackupDirectory() {
-    //Open up the file chooser in the working directory
+    // Open up the file chooser in the working directory
     String currentBackupDirectory = dialog.getBackupDirectory();
     if (currentBackupDirectory.equals("")) {
       currentBackupDirectory = EtomoDirector.INSTANCE.getOriginalUserDir();
@@ -604,8 +605,8 @@ public final class SetupDialogExpert {
   }
 
   String getCurrentDistortionDir() {
-    //Open up the file chooser in the calibration directory, if available,
-    //otherwise open in the working directory
+    // Open up the file chooser in the calibration directory, if available,
+    // otherwise open in the working directory
     String currentDistortionDir = dialog.getDistortionFile();
     if (currentDistortionDir.equals("")) {
       File calibrationDir = EtomoDirector.INSTANCE.getIMODCalibDirectory();
@@ -621,8 +622,8 @@ public final class SetupDialogExpert {
   }
 
   String getCurrentMagGradientDir() {
-    //Open up the file chooser in the calibration directory, if available,
-    //otherwise open in the working directory
+    // Open up the file chooser in the calibration directory, if available,
+    // otherwise open in the working directory
     String currentMagGradientDir = dialog.getMagGradientFile();
     if (currentMagGradientDir.equals("")) {
       File calibrationDir = EtomoDirector.INSTANCE.getIMODCalibDirectory();
@@ -748,7 +749,7 @@ public final class SetupDialogExpert {
           "Missing dataset name", AxisID.ONLY);
       return null;
     }
-    //  Add the appropriate extension onto the filename if necessary 
+    // Add the appropriate extension onto the filename if necessary
     if (!datasetName.endsWith(".st")) {
       if (dialog.isDualAxisSelected()) {
         datasetName = datasetName + "a.st";
@@ -845,7 +846,7 @@ public final class SetupDialogExpert {
     }
   }
 
-  //  View type radio button
+  // View type radio button
   void setViewType(ViewType viewType) {
     if (viewType == ViewType.SINGLE_VIEW) {
       dialog.setSingleView(true);
