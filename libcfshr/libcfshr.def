@@ -221,6 +221,7 @@ EXPORTS
 	b3dIMin
 	CCCOEFFICIENT
 	ilistDelete
+	numberInList
 	ilistShift
 	sliceModeIfReal
 	AVGSD
@@ -260,6 +261,7 @@ EXPORTS
 	PIPGETINTEGERARRAY
 	XCorrSetCTF
 	PipParseInput
+	NUMBERINLIST
 	AdocGetThreeFloats
 	checkPieceList
 	PIPDONE

@@ -678,8 +678,7 @@ Object
                  object.
    Combine    Combine all objects in which a contour is selected
                  into one object and delete the other objects.
-   Info       Print object information: currently just says to run
-                 imodinfo(1).
+   Info       Print object information: runs imodinfo(1) -o
    Clean      Delete empty contours in the current object.
    Break by Z Break every contour in the object at every change in
                  Z, creating as many contours as necessary so that 

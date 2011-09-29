@@ -26,6 +26,34 @@ model to the correct location unless it knows the dimensions of the other
 image file.  If these dimensions differ from those of the original image
 file, enter them with the
 .B -n
+option.  With the dimensions known, the program will translate from the middle
+of the original volume to the middle of the new one, and you can specify
+additional transformations if that center-to-center mapping is not
+appropriate.
+.P
+The situation may be more complicated when the original and new volumes have
+different pixel sizes in their headers.  3dmod(1) takes a change in pixel size
+into account when a model is loaded onto a volume, unless coordinate scaling
+is overridden with the 
+.B -n
+option to 3dmod(1).  If you scale a volume in 2D with newstack(1) by binning,
+expansion, or squeezing, or in 3D with binvol(1) or squeezevol(1), a model
+will display correctly on the scaled volume with no need to run imodtrans on
+it.  When it is saved from 3dmod, it will be written with coordinates that
+match the new volume.  If you need to transform a model into those
+coordinates without having to load it into 3dmod, use imodtrans with the 
+.B -i
+option and the name of the scaled image file, instead of using the 
+.B -sx, -sy, -sz,
+and
+.B -n 
+options. The transformed model will have the scaled coordinates and will also
+load correctly in 3dmod.  If for some reason you do use the scaling and new
+size options instead, do not use the 
+.B -i
+option.  The resulting model will have the new coordinates, but it will not load
+correctly into 3dmod without the 
+.B -m
 option.
 .P
 For 3-D transformations, however they are specified, all contour points are 
