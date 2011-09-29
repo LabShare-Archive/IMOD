@@ -85,7 +85,6 @@ public final class ClipParam implements CommandDetails {
     this.axisID = axisID;
     this.mode = mode;
     this.inputFile = inputFile;
-    //TODO use array for command string
     ArrayList options = genOptions(inputFile, workingDir);
     commandArray = new String[options.size() + commandSize];
     commandArray[0] = BaseManager.getIMODBinPath() + PROCESS_NAME.toString();
@@ -106,30 +105,35 @@ public final class ClipParam implements CommandDetails {
 
   private ArrayList genOptions(File inputFile, File workingDir) {
     ArrayList options = new ArrayList(3);
-    //Add process.
+    // Add process.
     options.add(mode.toString());
-    //Add options.
+    // Add options.
     if (mode == Mode.STATS) {
-      //Put a * on the outliers.
+      options.add("-p");
+      options.add(manager.getBaseMetaData().getDatasetName() + axisID.getExtension()
+          + ".pl");
+      options.add("-O");
+      options.add(Utilities.MONTAGE_SEPARATION+","+Utilities.MONTAGE_SEPARATION);
+      // Put a * on the outliers.
       options.add("-n");
       options.add("2.5");
-      //The length should be 1/4 of Z, but between 15 and 30.
+      // The length should be 1/4 of Z, but between 15 and 30.
       options.add("-l");
       int length;
       int min = 15;
       int max = 30;
-      MRCHeader header = MRCHeader.getInstanceFromFileName(manager, axisID, inputFile
-          .getName());
+      MRCHeader header = MRCHeader.getInstanceFromFileName(manager, axisID,
+          inputFile.getName());
       try {
         header.read(manager);
         length = header.getNSections();
       }
       catch (InvalidParameterException e) {
-        //Pick a midrange number if the header can't be read.
+        // Pick a midrange number if the header can't be read.
         length = max * 2;
       }
       catch (IOException e) {
-        //Pick a midrange number if the header can't be read.
+        // Pick a midrange number if the header can't be read.
         length = max * 2;
       }
       length /= 4;
@@ -140,12 +144,12 @@ public final class ClipParam implements CommandDetails {
         length = max;
       }
       options.add(String.valueOf(length));
-      //Display the views starting from 1 instead of 0.
+      // Display the views starting from 1 instead of 0.
       options.add("-1");
     }
-    //Add input files.
+    // Add input files.
     options.add(inputFile.getAbsolutePath());
-    //Add output files.
+    // Add output files.
     if (mode == Mode.ROTX) {
       int index = inputFile.getName().lastIndexOf('.');
       StringBuffer clipFileName = new StringBuffer();
@@ -155,8 +159,8 @@ public final class ClipParam implements CommandDetails {
       else {
         clipFileName.append(inputFile.getName().substring(0, index));
       }
-      //Still using .flip for the output name for clip rotx, since we used to flip
-      //instead of rotate.
+      // Still using .flip for the output name for clip rotx, since we used to flip
+      // instead of rotate.
       outputFile = new File(workingDir, clipFileName + ".flip");
       options.add(outputFile.getAbsolutePath());
     }
