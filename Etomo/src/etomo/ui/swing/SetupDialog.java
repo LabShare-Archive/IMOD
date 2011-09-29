@@ -224,7 +224,9 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   void setGpuProcessingEnabled(final boolean input) {
     cbGpuProcessing.setEnabled(input);
   }
-
+  void setGpuProcessing(final boolean input) {
+    cbGpuProcessing.setSelected(input);
+  }
   void setBackupDirectory(final String input) {
     ltfBackupDirectory.setText(input);
   }
