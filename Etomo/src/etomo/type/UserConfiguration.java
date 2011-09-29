@@ -103,6 +103,8 @@ public final class UserConfiguration implements Storable {
   private static final String SINGLE_AXIS_KEY = DEFAULTS_KEY + ".SingleAxis";
   private static final String NO_PARALLEL_PROCESSING_KEY = DEFAULTS_KEY
       + ".NoParallelProcessing";
+  private static final String GPU_PROCESSING_DEFAULT_KEY = DEFAULTS_KEY
+      + ".GpuProcessingDefault";
   private static final String SWAP_Y_AND_Z_KEY = DEFAULTS_KEY + ".SwapYAndZ";
   private static final String TILT_ANGLES_RAWTLT_FILE_KEY = DEFAULTS_KEY
       + ".TiltAnglesRawtltFile";
@@ -136,6 +138,7 @@ public final class UserConfiguration implements Storable {
   private EtomoBoolean2 parallelProcessing = null;
   private EtomoBoolean2 singleAxis = null;
   private EtomoBoolean2 noParallelProcessing = null;
+  private EtomoBoolean2 gpuProcessingDefault = null;
   private EtomoBoolean2 swapYAndZ = null;
   private EtomoBoolean2 tiltAnglesRawtltFile = null;
 
@@ -190,6 +193,7 @@ public final class UserConfiguration implements Storable {
     EtomoBoolean2.store(singleAxis, props, prepend, SINGLE_AXIS_KEY);
     EtomoBoolean2.store(montage, props, prepend, MONTAGE_KEY);
     EtomoBoolean2.store(noParallelProcessing, props, prepend, NO_PARALLEL_PROCESSING_KEY);
+    EtomoBoolean2.store(gpuProcessingDefault, props, prepend, GPU_PROCESSING_DEFAULT_KEY);
     EtomoBoolean2
         .store(tiltAnglesRawtltFile, props, prepend, TILT_ANGLES_RAWTLT_FILE_KEY);
     EtomoBoolean2.store(swapYAndZ, props, prepend, SWAP_Y_AND_Z_KEY);
@@ -261,6 +265,8 @@ public final class UserConfiguration implements Storable {
     singleAxis = EtomoBoolean2.load(singleAxis, SINGLE_AXIS_KEY, props, prepend);
     noParallelProcessing = EtomoBoolean2.load(noParallelProcessing,
         NO_PARALLEL_PROCESSING_KEY, props, prepend);
+    gpuProcessingDefault = EtomoBoolean2.load(gpuProcessingDefault,
+        GPU_PROCESSING_DEFAULT_KEY, props, prepend);
     parallelTableSize.load(props, prepend);
     swapYAndZ = EtomoBoolean2.load(swapYAndZ, SWAP_Y_AND_Z_KEY, props, prepend);
     cpus.load(props, prepend);
@@ -629,6 +635,13 @@ public final class UserConfiguration implements Storable {
     return noParallelProcessing.is();
   }
 
+  public boolean getGpuProcessingDefault() {
+    if (gpuProcessingDefault == null) {
+      return false;
+    }
+    return gpuProcessingDefault.is();
+  }
+
   public boolean getSingleAxis() {
     if (singleAxis == null) {
       return false;
@@ -693,6 +706,13 @@ public final class UserConfiguration implements Storable {
       noParallelProcessing = new EtomoBoolean2(NO_PARALLEL_PROCESSING_KEY);
     }
     noParallelProcessing.set(input);
+  }
+
+  public void setGpuProcessingDefault(boolean input) {
+    if (gpuProcessingDefault == null) {
+      gpuProcessingDefault = new EtomoBoolean2(GPU_PROCESSING_DEFAULT_KEY);
+    }
+    gpuProcessingDefault.set(input);
   }
 
   public void setSingleAxis(boolean input) {
