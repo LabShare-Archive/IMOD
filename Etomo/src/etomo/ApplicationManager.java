@@ -185,7 +185,7 @@ import etomo.util.Utilities;
 public final class ApplicationManager extends BaseManager implements
     ContinuousListenerTarget {
   public static final String rcsid = "$Id$";
-//test
+  
   private final LogPanel logPanel = LogPanel.getInstance(this);
 
   // Process dialog references
