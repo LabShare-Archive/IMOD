@@ -266,7 +266,7 @@ the previous one and a unit transform is written for the listed view.
 However, the following view will be aligned to the
 listed view, and nothing will be aligned to the previous view.  This
 breaks the chain of alignment through the series of views.  This option
-cannon be used with patch tracking.
+cannot be used with patch tracking.
 
 [Field = CumulativeCorrelation]
 short = cumulative
@@ -383,6 +383,27 @@ by at least the given amount.  If the centers of the tracked areas wander
 enough to give a bad fit when the resulting model is used in Tiltalign(1),
 then breaking the contours into overlapping pieces might improve the fit.
 Some overlap is needed to use the model in Tiltalign (1).  
+
+[Field = PrealignmentTransformFile]
+short = prexf
+type = FN
+usage = File with transforms used to align images for patch tracking
+tooltip = 
+manpage = File with transformations applied to align the images being used for
+patch tracking.  With the shift information in these transforms, each patch is
+evaluated for whether it contains blank image area because of the shifting.
+Patches that are more than 30% blank will not be tracked further, and patches
+with some blank area less than this amount will be tapered down to the edge of
+the blank area.
+
+[Field = ImagesAreBinned]
+short = imagebinned
+type = I
+usage = The current binning of the images relative to raw stack
+tooltip = 
+manpage = The current binning of the images relative to the unaligned stack.
+This entry is needed to scale the transforms supplied with the -prexf option
+if the binning is not 1.
 
 [Field = TestOutput]
 short = test
