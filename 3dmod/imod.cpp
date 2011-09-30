@@ -905,7 +905,7 @@ int main( int argc, char *argv[])
 
   nx = ImodPrefs->autoConAtStart();
   if (!vi.fakeImage && !vi.rgbStore && 
-      (nx > 1 || (nx && new_model_created)))
+      (nx > 1 || (nx && (new_model_created || (Model->flags & IMODF_NEW_TO_3DMOD)))))
     ImodInfoWin->setupAutoContrast();
 
   loopStarted = 1;
