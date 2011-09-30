@@ -83,14 +83,16 @@ Ilabel *imodLabelDup(Ilabel *label)
 }
 
 /*!
- * Give [label] the title in [val], i.e., set the {name} element of the 
- * @@Ilabel structure@.  Returns 2 for memory allocation error.
+ * Give [label] the title in [val], i.e., set the {name} element of the
+ * @@Ilabel structure@.  Returns 1 for [label] or [val] NULL, or 2 for memory allocation 
+ * error.
  */
 int imodLabelName(Ilabel *label, const char *val)
 {
   int len;
 
-  if ((!label) || (!val)) return;
+  if ((!label) || (!val)) 
+    return 1;
   len = strlen(val);
      
   if (!(label->name)){
@@ -363,7 +365,7 @@ int imodLabelWrite(Ilabel *lab, b3dUInt32 tag, FILE *fout)
 {
   b3dUInt32 id;
   b3dInt32 l, len, pad, lpad;
-  b3dInt32 bgnpos, endpos, datasize;
+  b3dInt32 bgnpos;
 
   if (!lab) return -1;
 

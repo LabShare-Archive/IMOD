@@ -376,6 +376,7 @@ static void setSavedModelState(Imod *mod)
   mod->zmax = App->cvi->zUnbinSize;
   mod->xybin = App->cvi->xybin;
   mod->zbin = App->cvi->zbin;
+  setOrClearFlags(&mod->flags, IMODF_NEW_TO_3DMOD, 0);
 }
 
 /* 
@@ -550,7 +551,7 @@ static void initModelData(Imod *newModel, bool keepBW)
   Model = App->cvi->imod = newModel;
 
   /* DNM 6/3/04: avoid two draws by keeping levels in the first place */
-  if (!keepBW) {
+  if (!keepBW && !(newModel->flags & IMODF_NEW_TO_3DMOD)) {
     ivwSetBlackWhiteFromModel(App->cvi);
   }
 

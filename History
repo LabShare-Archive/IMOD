@@ -1,5 +1,17 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/30/11: Beadtrack and some other programs will now avoid scaling an input
+model inappropriately when it lacks image reference coordinate information.
+
+9/30/11: Tiltxcorr can now take lists of views to skip or break alignment at,
+and if it is given a prealignment transform file, patch tracking will skip
+views where a patch has too much blank area or taper the image edge down to a
+blank area.  Xfalign now passes its skip or break lists to Tiltxcorr.
+
+9/29/11: Added flag to new IMOD model (such as produced by patch tracking) so
+loading such a model will not prevent autocontrast at start or set contrast
+back to 0-255.
+
 9/29/11: In eTomo Pre-processing, display montage views together, separated by
 a negative overlap.  Clip stats and ccderaser are now being run with the same
 overlap, so the model can be brought up this way as well.(Bug# 1530)

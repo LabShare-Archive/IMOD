@@ -50,7 +50,7 @@ c       !
 c       Will undo or redo the scaling from image index coordinates to model
 c       coordinates performed by imodel_fwrap, using the header information of
 c       the image file open on unit [iunit].  The resulting index coordinates
-c       will fit those of this image  rather than the image file the model was
+c       will fit those of this image rather than the image file the model was
 c       last loaded on. ^
 c       Set [idir] to 0 to undo the scaling, for working in index coordinates ^
 c       Set [idir] to 1 to redo the scaling before saving the model back out.
@@ -58,16 +58,19 @@ c       !
       subroutine scaleModelToImage(iunit, idir)
       implicit none
       include 'model.inc'
-      integer*4  idir, i, iunit, j
+      integer*4  idir, i, iunit, j, imodHasImageRef, putImageRef
       real*4 orig(3), delt(3)
 c       
+c
       call irtorg(iunit, orig(1), orig(2), orig(3))
       call irtdel(iunit, delt)
 
       if (idir .eq. 0) then
 c	  
-c         shift the data to index coordinates before working with it
-c         
+c         shift the data to index coordinates before working with it, but only if the
+c         it got shifted in the first place
+        if (imodHasImageRef() .le. 0) return
+c
         do i=1,n_point
           do j = 1, 3
             p_coord(j,i)=(p_coord(j,i) + orig(j)) / delt(j)
@@ -75,8 +78,8 @@ c
         enddo
       else
 c	  
-c         shift the data back for saving
-c         
+c         shift the data back for saving, but first set an image ref if there is none 
+        if (imodHasImageRef() .le. 0) i = putImageRef(delt, orig)
         do i=1,n_point
           do j = 1, 3
             p_coord(j,i)=p_coord(j,i) * delt(j) - orig(j)
