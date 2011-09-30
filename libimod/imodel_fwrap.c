@@ -90,6 +90,7 @@
 #define getimodobjlist  GETIMODOBJLIST
 #define getimodobjrange GETIMODOBJRANGE
 #define imodarraylimits IMODARRAYLIMITS
+#define imodhasimageref IMODHASIMAGEREF
 #else
 #define newimod      newimod_
 #define deleteimod   deleteimod_
@@ -142,6 +143,7 @@
 #define getimodobjlist  getimodobjlist_
 #define getimodobjrange getimodobjrange_
 #define imodarraylimits imodarraylimits_
+#define imodhasimageref imodhasimageref_
 #endif
 
 /* Declare anything that is going to be called internally! */
@@ -1671,6 +1673,17 @@ int putimageref(float *delta, float *origin)
   iref->ctrans.y = origin[1];
   iref->ctrans.z = origin[2];
   return FWRAP_NOERROR;
+}
+
+/*!
+ * Returns 1 if a model has image reference information, 0 if it does not, or -5
+ * for no model.
+ */
+int imodhasimageref()
+{
+  if (!Fimod)
+    return(FWRAP_ERROR_NO_MODEL);
+  return Fimod->refImage ? 1 : 0;
 }
 
 /*!
