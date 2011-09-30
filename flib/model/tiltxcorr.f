@@ -28,9 +28,9 @@ c
       integer*4 NX,NY,NZ,nxs,nys,nzs
       COMMON //NX,NY,NZ,nxs,nys,nzs
 C       
-      integer*4 NXYZ(3),MXYZ(3),nxyzs(3),mxyzs(3) ,label(20,20)
+      integer*4 NXYZ(3),MXYZ(3),nxyzs(3)
       real*4 title(20),tmprray(lenTemp), delta(3), origin(3)
-      real*4 ctfa(8193),ctfb(8193),ctfp(8193),sumray(idim2),crray(idim2)
+      real*4 ctfp(8193),sumray(idim2),crray(idim2)
       real*4 array(idim2),brray(idim2)
 C       
       EQUIVALENCE (NX,NXYZ),(nxs,nxyzs)
@@ -43,7 +43,7 @@ c
       character*8 tim
       character*80 titlech
       character*70 titstr
-      character*7 fltrdp/' '/
+      character*10 fltrdp/' '/
 
       real*4, allocatable :: f(:,:,:), tilt(:), dxpre(:), dypre(:)
       integer*4, allocatable :: ixpclist(:),iypclist(:),izpclist(:)
@@ -63,12 +63,12 @@ c
       integer*4 izst,iznd,kk,nout,izlast,izcur,idir,iztmp, imagesBinned
       real*4 dmsum,dmax,dmin,stretch,streak,xpeak,ypeak,usdx,usdy
       real*4 dmean, radius1, radius2, sigma1, sigma2, tiltAtMin, cosview
-      integer*4 jx,iv,iview,kti,isout, ierr, ivStart, ivEnd, loopDir, ifReadXfs
+      integer*4 iv,iview,kti,isout, ierr, ivStart, ivEnd, loopDir, ifReadXfs
       integer*4 iloop, nloops, minTilt, ifAbsStretch, ivRef, ifLeaveAxis, ivRefBase
       integer*4 nbin,maxbinsize,nxusebin,nyusebin, ifcumulate, ifNoStretch, maxTrackGap
       integer*4 ixst, ixnd, iyst, iynd, ivCur, maxBinning, iz, ivSkip
       integer*4 ixBoxCur, iyBoxCur, ixBoxRef,iyBoxRef,lenContour,minContOverlap
-      integer*4 ixstCen, ixndCen, iystCen, iyndCen, lastCont,iter,niter
+      integer*4 ixstCen, ixndCen, iystCen, iyndCen, iter,niter
       integer*4 laptot, laprem, j, ivbase, lapbase, numCont, nxPatch, nyPatch
       real*4 xBoxOfs, yBoxOfs, cosphi, sinphi, x0, y0, xshift, yshift
       real*4 usemin, usemax, usemean, cumXshift, cumYshift, cumXrot, xAdjust
@@ -710,7 +710,7 @@ c       Report axis offset if leaving axis at box
      &    ' The tilt axis is being left at a shift of',
      &    xBoxOfs * cosphi + yboxOfs * sinphi,' pixels from center'
 
-c	print *,xBoxOfs,yBoxOfs,ixstCen,ixndCen,iystCen,iyndCen
+c       print *,xBoxOfs,yBoxOfs,ixstCen,ixndCen,iystCen,iyndCen
 c       
 c       set up for one forward loop through data - modified by case below
 c       
@@ -1505,7 +1505,7 @@ c
       real*4 xpeak,ypeak,radexcl,rotangle,streak
       real*4 array(nxplus,nyrot)
       integer*4 nxrot,ix,iy,idx,idy,lower,ixpeak,iypeak,limitShiftX, limitShiftY
-      real*4 peak,xrot,yrot,cx,y1,y2,y3,denom,cy,costh,sinth
+      real*4 peak,xrot,yrot,cx,y1,y2,y3,cy,costh,sinth
       real*4 cosd,sind
       integer*4 indmap
       real*8 parabolicFitPosition
@@ -1555,7 +1555,7 @@ c
           endif
         enddo
       enddo
-c	print *,ixpeak,iypeak
+c       print *,ixpeak,iypeak
 c       
       if (ixpeak .gt. 0) then
 c
@@ -1576,7 +1576,7 @@ c
         xpeak=ixpeak+cx-1.
         ypeak=iypeak+cy-1.
       endif
-c	print *,xpeak,ypeak
+c       print *,xpeak,ypeak
       if(xpeak.gt.nxrot/2)xpeak=xpeak-nxrot
       if(ypeak.gt.nyrot/2)ypeak=ypeak-nyrot
       return
