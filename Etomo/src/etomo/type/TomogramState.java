@@ -190,7 +190,7 @@ public class TomogramState extends BaseState {
   private static final String B_AXIS_KEY = "B";
   private static final String TOMOGRAM_SIZE_KEY = "tomogramSize";
 
-  //Dialog keys
+  // Dialog keys
   private static final String PRE_KEY = "Pre";
   private static final String TRACK_KEY = "Track";
   private static final String STACK_KEY = "Stack";
@@ -262,8 +262,20 @@ public class TomogramState extends BaseState {
   private final ApplicationManager manager;
   private String firstAxisGroup = null;
   private String secondAxisGroup = null;
+  /**
+   * @deprecated Eventually this should be completely replaced by
+   * tomogramSizeColumns/Rows/SectionsA. Keeping deprecated field because there is no way
+   * to do backwards compatibility with the replacements.   Deprecated field should not be
+   * stored.
+   */
   private EtomoNumber tomogramSizeA = new EtomoNumber(EtomoNumber.Type.LONG, A_AXIS_KEY
       + "." + TOMOGRAM_SIZE_KEY);
+  /**
+   * @deprecated Eventually this should be completely replaced by
+   * tomogramSizeColumns/Rows/SectionsB. Keeping deprecated field because there is no way
+   * to do backwards compatibility with the replacements.   Deprecated field should not be
+   * stored.
+   */
   private EtomoNumber tomogramSizeB = new EtomoNumber(EtomoNumber.Type.LONG, B_AXIS_KEY
       + "." + TOMOGRAM_SIZE_KEY);
   private final EtomoBoolean2 adjustOriginA = new EtomoBoolean2(A_AXIS_KEY + "."
@@ -318,10 +330,23 @@ public class TomogramState extends BaseState {
       + "." + A_AXIS_KEY + ".SirtsetupSubareaSize");
   private final StringProperty genSirtsetupSubareaSizeB = new StringProperty(GEN_KEY
       + "." + B_AXIS_KEY + ".SirtsetupSubareaSize");
-  private final EtomoNumber genSirtsetupyOffsetOfSubareaA = new EtomoNumber(GEN_KEY
-      + "." + A_AXIS_KEY + ".SirtsetupyOffsetOfSubarea");
+  private final EtomoNumber genSirtsetupyOffsetOfSubareaA = new EtomoNumber(GEN_KEY + "."
+      + A_AXIS_KEY + ".SirtsetupyOffsetOfSubarea");
   private final EtomoNumber genSirtsetupyOffsetOfSubareaB = new EtomoNumber(GEN_KEY + "."
       + B_AXIS_KEY + ".SirtsetupyOffsetOfSubarea");
+
+  private EtomoNumber tomogramSizeColumnsA = new EtomoNumber(A_AXIS_KEY + "."
+      + TOMOGRAM_SIZE_KEY + ".Columns");
+  private EtomoNumber tomogramSizeColumnsB = new EtomoNumber(B_AXIS_KEY + "."
+      + TOMOGRAM_SIZE_KEY + ".Columns");
+  private EtomoNumber tomogramSizeRowsA = new EtomoNumber(A_AXIS_KEY + "."
+      + TOMOGRAM_SIZE_KEY + ".Rows");
+  private EtomoNumber tomogramSizeRowsB = new EtomoNumber(B_AXIS_KEY + "."
+      + TOMOGRAM_SIZE_KEY + ".Rows");
+  private EtomoNumber tomogramSizeSectionsA = new EtomoNumber(A_AXIS_KEY + "."
+      + TOMOGRAM_SIZE_KEY + ".Sections");
+  private EtomoNumber tomogramSizeSectionsB = new EtomoNumber(B_AXIS_KEY + "."
+      + TOMOGRAM_SIZE_KEY + ".Sections");
 
   public TomogramState(ApplicationManager manager) {
     this.manager = manager;
@@ -392,8 +417,6 @@ public class TomogramState extends BaseState {
     fixedFiducialsB.store(props, prepend);
     seedingDoneA.store(props, prepend);
     seedingDoneB.store(props, prepend);
-    tomogramSizeA.store(props, prepend);
-    tomogramSizeB.store(props, prepend);
     adjustOriginA.store(props, prepend);
     adjustOriginB.store(props, prepend);
     postProcTrimVolInputNColumns.store(props, prepend);
@@ -422,8 +445,13 @@ public class TomogramState extends BaseState {
     genSirtsetupSubareaSizeB.store(props, prepend);
     genSirtsetupyOffsetOfSubareaA.store(props, prepend);
     genSirtsetupyOffsetOfSubareaB.store(props, prepend);
-
-    //backwards compatibility
+    tomogramSizeColumnsA.store(props, prepend);
+    tomogramSizeColumnsB.store(props, prepend);
+    tomogramSizeRowsA.store(props, prepend);
+    tomogramSizeRowsB.store(props, prepend);
+    tomogramSizeSectionsA.store(props, prepend);
+    tomogramSizeSectionsB.store(props, prepend);
+    // backwards compatibility
     props.remove(COMBINE_MATCH_MODE_BACK_KEY);
     if (combineMatchMode == null) {
       props.remove(prepend + "." + COMBINE_MATCH_MODE_KEY);
@@ -432,7 +460,7 @@ public class TomogramState extends BaseState {
       props.setProperty(prepend + "." + COMBINE_MATCH_MODE_KEY,
           combineMatchMode.toString());
     }
-    //backwards compatibility
+    // backwards compatibility
     props.remove(COMBINE_SCRIPTS_CREATED_BACK_KEY);
     combineScriptsCreated.store(props, prepend);
     EtomoBoolean2.store(sampleFiducialessA, props, prepend, firstAxisGroup
@@ -456,7 +484,7 @@ public class TomogramState extends BaseState {
 
   public void load(Properties props, String prepend) {
     super.load(props, prepend);
-    //reset
+    // reset
     trimvolFlipped.reset();
     squeezevolFlipped.reset();
     madeZFactorsA.reset();
@@ -519,7 +547,13 @@ public class TomogramState extends BaseState {
     genSirtsetupSubareaSizeB.reset();
     genSirtsetupyOffsetOfSubareaA.reset();
     genSirtsetupyOffsetOfSubareaB.reset();
-    //load
+    tomogramSizeColumnsA.reset();
+    tomogramSizeColumnsB.reset();
+    tomogramSizeRowsA.reset();
+    tomogramSizeRowsB.reset();
+    tomogramSizeSectionsA.reset();
+    tomogramSizeSectionsB.reset();
+    // load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
     setAxisPrepends(manager.getMetaData());
@@ -581,9 +615,15 @@ public class TomogramState extends BaseState {
     genSirtsetupSubareaSizeB.load(props, prepend);
     genSirtsetupyOffsetOfSubareaA.load(props, prepend);
     genSirtsetupyOffsetOfSubareaB.load(props, prepend);
+    tomogramSizeColumnsA.load(props, prepend);
+    tomogramSizeColumnsB.load(props, prepend);
+    tomogramSizeRowsA.load(props, prepend);
+    tomogramSizeRowsB.load(props, prepend);
+    tomogramSizeSectionsA.load(props, prepend);
+    tomogramSizeSectionsB.load(props, prepend);
     combineMatchMode = MatchMode.getInstance(props.getProperty(prepend + "."
         + COMBINE_MATCH_MODE_KEY));
-    //backwards compatibility
+    // backwards compatibility
     if (combineMatchMode == null) {
       String backCombineMatchMode = props.getProperty(COMBINE_MATCH_MODE_BACK_KEY);
       if (backCombineMatchMode != null) {
@@ -593,7 +633,7 @@ public class TomogramState extends BaseState {
     }
     combineScriptsCreated.load(props, prepend);
     if (combineScriptsCreated.isNull()) {
-      //backwards compatibility
+      // backwards compatibility
       String backCombineScriptsCreated = props
           .getProperty(COMBINE_SCRIPTS_CREATED_BACK_KEY);
       if (backCombineScriptsCreated != null) {
@@ -643,12 +683,30 @@ public class TomogramState extends BaseState {
     return this.squeezevolFlipped.set(squeezevolFlipped);
   }
 
-  public void setTomogramSize(AxisID axisID, long input) {
+  public void setTomogramSizeColumns(final AxisID axisID, final int input) {
     if (axisID == AxisID.SECOND) {
-      tomogramSizeB.set(input);
+      tomogramSizeColumnsB.set(input);
     }
     else {
-      tomogramSizeA.set(input);
+      tomogramSizeColumnsA.set(input);
+    }
+  }
+
+  public void setTomogramSizeRows(final AxisID axisID, final int input) {
+    if (axisID == AxisID.SECOND) {
+      tomogramSizeRowsB.set(input);
+    }
+    else {
+      tomogramSizeRowsA.set(input);
+    }
+  }
+
+  public void setTomogramSizeSections(final AxisID axisID, final int input) {
+    if (axisID == AxisID.SECOND) {
+      tomogramSizeSectionsB.set(input);
+    }
+    else {
+      tomogramSizeSectionsA.set(input);
     }
   }
 
@@ -864,7 +922,7 @@ public class TomogramState extends BaseState {
     }
     return genSirtsetupSubareaSizeA.toString();
   }
-  
+
   public String getGenSirtsetupyOffsetOfSubarea(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return genSirtsetupyOffsetOfSubareaB.toString();
@@ -900,6 +958,27 @@ public class TomogramState extends BaseState {
       return tomogramSizeB;
     }
     return tomogramSizeA;
+  }
+
+  public ConstEtomoNumber getTomogramSizeColumns(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return tomogramSizeColumnsB;
+    }
+    return tomogramSizeColumnsA;
+  }
+
+  public ConstEtomoNumber getTomogramSizeRows(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return tomogramSizeRowsB;
+    }
+    return tomogramSizeRowsA;
+  }
+
+  public ConstEtomoNumber getTomogramSizeSections(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return tomogramSizeSectionsB;
+    }
+    return tomogramSizeSectionsA;
   }
 
   public ConstEtomoNumber setMadeZFactors(AxisID axisID, boolean madeZFactors) {
@@ -1180,8 +1259,8 @@ public class TomogramState extends BaseState {
    * @return
    */
   public boolean getBackwardCompatibleTrimvolFlipped() {
-    //If trimvol has not been run, then assume that the tomogram has not been
-    //flipped.
+    // If trimvol has not been run, then assume that the tomogram has not been
+    // flipped.
     EtomoDirector etomoDirector = EtomoDirector.INSTANCE;
     String datasetName = manager.getName();
     File trimvolFile = new File(manager.getPropertyUserDir(),
