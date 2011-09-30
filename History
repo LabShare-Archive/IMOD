@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/30/11: Tiltxcorr can now take lists of views to skip or break alignment at,
+and if it is given a prealignment transform file, patch tracking will skip
+views where a patch has too much blank area or taper the image edge down to a
+blank area.
+
 9/29/11: Added flag to new IMOD model (such as produced by patch tracking) so
 loading such a model will not prevent autocontrast at start or set contrast
 back to 0-255.
