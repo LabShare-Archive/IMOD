@@ -169,8 +169,6 @@ public final class DatasetFiles {
 
   public static File getDatasetFileFromFileName(BaseManager manager, AxisID axisID,
       String fileName) {
-    BaseMetaData metaData = manager.getBaseMetaData();
-    axisID = correctAxisID(metaData, axisID);
     return new File(manager.getPropertyUserDir(), fileName);
   }
 
