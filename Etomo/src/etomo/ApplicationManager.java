@@ -6,11 +6,8 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Toolkit;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.channels.FileChannel;
 import java.util.List;
 
 import etomo.comscript.ArchiveorigParam;
@@ -67,6 +64,7 @@ import etomo.comscript.TrimvolParam;
 import etomo.comscript.WarpVolParam;
 import etomo.comscript.XfmodelParam;
 import etomo.comscript.XfproductParam;
+import etomo.logic.TomogramSize;
 import etomo.logic.TrimvolInputFileState;
 import etomo.process.BaseProcessManager;
 import etomo.process.ContinuousListenerTarget;
@@ -185,7 +183,7 @@ import etomo.util.Utilities;
 public final class ApplicationManager extends BaseManager implements
     ContinuousListenerTarget {
   public static final String rcsid = "$Id$";
-  
+
   private final LogPanel logPanel = LogPanel.getInstance(this);
 
   // Process dialog references
@@ -5353,21 +5351,6 @@ public final class ApplicationManager extends BaseManager implements
     sendMsgProcessSucceeded(processResultDisplay);
   }
 
-  public long getTomogramSize(AxisID axisID) {
-    long size = 0;
-    FileInputStream stream;
-    try {
-      stream = new FileInputStream(DatasetFiles.getTomogram(this, axisID));
-      FileChannel fileChannel = stream.getChannel();
-      size = fileChannel.size();
-    }
-    catch (FileNotFoundException e) {
-    }
-    catch (IOException e) {
-    }
-    return size;
-  }
-
   /**
    * Open the tomogram combination dialog
    */
@@ -5398,8 +5381,8 @@ public final class ApplicationManager extends BaseManager implements
       CombineParams combineParams = new CombineParams(metaData.getCombineParams());
       if (!combineParams.isPatchBoundarySet()) {
         // The first time combine is opened for this dataset, set tomogram size
-        state.setTomogramSize(AxisID.FIRST, getTomogramSize(AxisID.FIRST));
-        state.setTomogramSize(AxisID.SECOND, getTomogramSize(AxisID.SECOND));
+        TomogramSize.saveTomogramSize(this, AxisID.FIRST, AxisID.ONLY);
+        TomogramSize.saveTomogramSize(this, AxisID.SECOND, AxisID.ONLY);
         String recFileName;
         MatchMode matchMode = combineParams.getMatchMode();
         if (matchMode == null || matchMode == MatchMode.B_TO_A) {
@@ -5800,8 +5783,8 @@ public final class ApplicationManager extends BaseManager implements
     loadVolcombine();
     loadCombineComscript();
     mainPanel.stopProgressBar(AxisID.ONLY);
-    state.setTomogramSize(AxisID.FIRST, getTomogramSize(AxisID.FIRST));
-    state.setTomogramSize(AxisID.SECOND, getTomogramSize(AxisID.SECOND));
+    TomogramSize.saveTomogramSize(this, AxisID.FIRST, AxisID.ONLY);
+    TomogramSize.saveTomogramSize(this, AxisID.SECOND, AxisID.ONLY);
     return true;
   }
 
