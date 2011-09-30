@@ -47,7 +47,7 @@ int imodDefault(Imod *model)
   char *newmodname = "IMOD-NewModel";
 
   model->objsize  = 0;
-  model->flags = 0;
+  model->flags = IMODF_NEW_TO_3DMOD;
   for (i = 0; i < 13; i++)
     model->name[i] = newmodname[i];
   model->name[i]    = 0x00;
@@ -1434,7 +1434,7 @@ int imodChecksum(Imod *imod)
   sum += imod->units;
   sum += imod->pixsize;
   sum += imod->viewsize;
-  sum += imod->flags & ~IMODF_FLIPYZ;
+  sum += imod->flags & ~IMODF_FLIPYZ & ~IMODF_NEW_TO_3DMOD;
 
   for (i = 0; i < ilistSize(imod->slicerAng); i++) {
     slanp = (SlicerAngles *)ilistItem(imod->slicerAng, i);
