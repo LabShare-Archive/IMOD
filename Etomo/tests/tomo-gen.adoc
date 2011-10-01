@@ -330,21 +330,23 @@ mb.tilt=-
 [[ifnot = montage]]
   if.var.simple-align.return=
   run.function.run-sirt-full=
+  # create a single output file and use tomogram
+  cb.scale-retained-volumes-to-integers=off
+  cb.delete-existing-reconstructions-after-starting-point=on
+  rb.start-from-beginning=
+  tf.iteration-#'s-to-retain=1
+  # create the single rec to be opened, etc
+  cb.reconstruct-subarea=off
+  bn.run-sirt=
+  wait.process.processchunks-tilt%{axis}_sirt=done
+  bn.view-tomogram-in-3dmod=
+  bn.use-sirt-output-file=
+  wait.popup.etomo-question=Yes
 [[]]
 [[if = simple-align]]
   if.var.montage.return=
   run.function.run-sirt-both=
 [[]]
-# create a single output file and use tomogram
-rb.start-from-beginning=
-cb.scale-retained-volumes-to-integers=off
-cb.delete-existing-reconstructions-after-starting-point=on
-tf.iteration-#'s-to-retain=1
-bn.run-sirt=
-wait.process.processchunks-tilt%{axis}_sirt=done
-bn.view-tomogram-in-3dmod=
-bn.use-sirt-output-file=
-wait.popup.etomo-question=Yes
 # put things back the way they where for tilt
 mb.tilt=+
 cb.use-the-gpu=off
@@ -434,6 +436,7 @@ wait.process.processchunks-tilt%{axis}_sirt=done
 
 [function = run-sirt-subarea]
 cb.reconstruct-subarea=on
+tf.size-in-x-and-y=250,250
 cb.scale-retained-volumes-to-integers=on
 cb.delete-existing-reconstructions-after-starting-point=on
 tf.iteration-#'s-to-retain=1,2
@@ -524,6 +527,7 @@ wait.process.processchunks-tilt%{axis}_sirt=done
   assert.exists.file=processchunks%{axis}.out
 [[]]
 cb.reconstruct-subarea=on
+tf.size-in-x-and-y=250,250
 [[if = test-gui]]
   assert.disabled.rb.resume-from-last-iteration=
   assert.disabled.rb.go-back,-resume-from-iteration=
