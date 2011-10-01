@@ -113,6 +113,8 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
   private final ComboBox cmbResumeFromIteration = new ComboBox(
       rbResumeFromIteration.getText());
   private final List<ResumeObserver> resumeObservers = new ArrayList();
+  private CheckBox cbSkipVertSliceOutput = new CheckBox(
+      "Do not make vertical slice output files used for resuming");
 
   private final AxisID axisID;
   private final ApplicationManager manager;
@@ -162,6 +164,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     JPanel pnlSizeAndOffset = new JPanel();
     JPanel pnlSirtsetupParams = new JPanel();
     JPanel pnlScaleToInteger = new JPanel();
+    JPanel pnlSkipVertSliceOutput = new JPanel();
     JPanel pnlCleanUpPastStart = new JPanel();
     JPanel pnlStartFrom = new JPanel();
     JPanel pnlStartFromZero = new JPanel();
@@ -199,6 +202,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     pnlSirtsetupParamsBody.add(radiusAndSigmaPanel.getRoot());
     pnlSirtsetupParamsBody.add(ltfLeaveIterations);
     pnlSirtsetupParamsBody.add(pnlScaleToInteger);
+    pnlSirtsetupParamsBody.add(pnlSkipVertSliceOutput);
     pnlSirtsetupParamsBody.add(pnlCleanUpPastStart);
     pnlSirtsetupParamsBody.add(ltfFlatFilterFraction);
     pnlSirtsetupParamsBody.add(pnlStartFrom);
@@ -207,6 +211,11 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     pnlScaleToInteger.setAlignmentX(Box.CENTER_ALIGNMENT);
     pnlScaleToInteger.add(cbScaleToInteger);
     pnlScaleToInteger.add(Box.createHorizontalGlue());
+    // SkipVertSliceOutput panel
+    pnlSkipVertSliceOutput.setLayout(new BoxLayout(pnlSkipVertSliceOutput, BoxLayout.X_AXIS));
+    pnlSkipVertSliceOutput.setAlignmentX(Box.CENTER_ALIGNMENT);
+    pnlSkipVertSliceOutput.add(cbSkipVertSliceOutput);
+    pnlSkipVertSliceOutput.add(Box.createHorizontalGlue());
     // CleanUpPastStart panel
     pnlCleanUpPastStart.setLayout(new BoxLayout(pnlCleanUpPastStart, BoxLayout.X_AXIS));
     pnlCleanUpPastStart.setAlignmentX(Box.CENTER_ALIGNMENT);
@@ -367,6 +376,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
       radiusAndSigmaPanel.getParameters(param);
       param.setCleanUpPastStart(cbCleanUpPastStart.isSelected());
       param.setFlatFilterFraction(ltfFlatFilterFraction.getText());
+      param.setSkipVertSliceOutput(cbSkipVertSliceOutput.isSelected());
     }
     catch (FortranInputSyntaxException e) {
       UIHarness.INSTANCE.openMessageDialog(manager, ltfSubareaSize.getLabel()
@@ -407,6 +417,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     radiusAndSigmaPanel.setParameters(param);
     cbCleanUpPastStart.setSelected(param.isCleanUpPastStart());
     ltfFlatFilterFraction.setText(param.getFlatFilterFraction());
+    cbSkipVertSliceOutput.setSelected(param.isSkipVertSliceOutput());
     if (param.isStartFromZero()) {
       rbStartFromZero.setSelected(true);
     }
@@ -665,6 +676,8 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
         .setToolTipText("Opens a file chooser for picker SIRT iteration files to bring up in 3dmod");
     cbCleanUpPastStart.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         SirtsetupParam.CLEAN_UP_PAST_START_KEY));
+    cbSkipVertSliceOutput.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        SirtsetupParam.SKIP_VERT_SLICE_OUTPUT_KEY));
     rbStartFromZero.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         SirtsetupParam.START_FROM_ZERO_KEY));
     rbResumeFromLastIteration

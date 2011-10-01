@@ -71,17 +71,17 @@ public class IntermediateFileFilter extends FileFilter {
   }
 
   /* (non-Javadoc)
-   * @see javax.swing.filechooser.FileFilter#accept(java.io.File)
-   */
+   * @see javax.swing.filechooser.FileFilter#accept(java.io.File) */
   public boolean accept(File f) {
     String[] endsWith = { "~", "matchcheck.rec", ".mat", ".ali", ".preali", "bot.rec",
         "bota.rec", "botb.rec", "mid.rec", "mida.rec", "midb.rec", "top.rec", "topa.rec",
-        "topb.rec", "volcombine.log", ".bl", ".dcst", ".alilog10" };
+        "topb.rec", "volcombine.log", ".bl", ".dcst", ".alilog10", ".vsr" };
     String[] pretrimmedTomograms = { "sum.rec", "full.rec" };
     if (f.isFile()) {
-      //.rec.mat1659344 and .rec.wrp0905524
+      // .rec.mat1659344 and .rec.wrp0905524
       String name = f.getName();
-      if (name.matches("\\S+"+Pattern.quote(".rec.mat")+"\\S+")||name.matches("\\S+"+Pattern.quote(".rec.wrp")+"\\S+")) {
+      if (name.matches("\\S+" + Pattern.quote(".rec.mat") + "\\S+")
+          || name.matches("\\S+" + Pattern.quote(".rec.wrp") + "\\S+")) {
         return true;
       }
       String path = f.getAbsolutePath();
@@ -103,7 +103,7 @@ public class IntermediateFileFilter extends FileFilter {
       if (path.endsWith(datasetName + "b.rec")) {
         return true;
       }
-      //handle split... and processchunks files
+      // handle split... and processchunks files
       if (name.matches(datasetName + "[ab]?-\\d\\d\\d\\.rec")) {
         return true;
       }
@@ -124,8 +124,7 @@ public class IntermediateFileFilter extends FileFilter {
   }
 
   /* (non-Javadoc)
-   * @see javax.swing.filechooser.FileFilter#getDescription()
-   */
+   * @see javax.swing.filechooser.FileFilter#getDescription() */
   public String getDescription() {
     return "Intermediate files";
   }

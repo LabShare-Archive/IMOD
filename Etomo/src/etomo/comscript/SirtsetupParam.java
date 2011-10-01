@@ -52,6 +52,7 @@ public final class SirtsetupParam implements CommandParam, CommandDetails {
   public static final String SUBAREA_SIZE_KEY = "SubareaSize";
   public static final String Y_OFFSET_OF_SUBAREA_KEY = "YOffsetOfSubarea";
   public static final String FLAT_FILTER_FRACTION_KEY = "FlatFilterFraction";
+  public static final String SKIP_VERT_SLICE_OUTPUT_KEY = "SkipVertSliceOutput";
 
   private final StringParameter commandFile = new StringParameter("CommandFile");
   private final ScriptParameter numberOfProcessors = new ScriptParameter(
@@ -73,6 +74,9 @@ public final class SirtsetupParam implements CommandParam, CommandDetails {
       CLEAN_UP_PAST_START_KEY);
   private final ScriptParameter flatFilterFraction = new ScriptParameter(
       EtomoNumber.Type.DOUBLE, FLAT_FILTER_FRACTION_KEY);
+  private final EtomoBoolean2 skipVertSliceOutput = new EtomoBoolean2(
+      SKIP_VERT_SLICE_OUTPUT_KEY);
+
   private final AxisID axisID;
   private final BaseManager manager;
 
@@ -90,7 +94,7 @@ public final class SirtsetupParam implements CommandParam, CommandDetails {
   public void parseComScriptCommand(final ComScriptCommand scriptCommand)
       throws BadComScriptException, InvalidParameterException,
       FortranInputSyntaxException {
-    //reset
+    // reset
     startFromZero.reset();
     resumeFromIteration.reset();
     leaveIterations.reset();
@@ -99,7 +103,8 @@ public final class SirtsetupParam implements CommandParam, CommandDetails {
     scaleToInteger.reset();
     cleanUpPastStart.reset();
     flatFilterFraction.reset();
-    //parse
+    skipVertSliceOutput.reset();
+    // parse
     startFromZero.parse(scriptCommand);
     resumeFromIteration.parse(scriptCommand);
     leaveIterations.parse(scriptCommand);
@@ -109,6 +114,7 @@ public final class SirtsetupParam implements CommandParam, CommandDetails {
     scaleToInteger.validateAndSet(scriptCommand);
     cleanUpPastStart.parse(scriptCommand);
     flatFilterFraction.parse(scriptCommand);
+    skipVertSliceOutput.parse(scriptCommand);
   }
 
   public void updateComScriptCommand(final ComScriptCommand scriptCommand)
@@ -125,6 +131,7 @@ public final class SirtsetupParam implements CommandParam, CommandDetails {
     scaleToInteger.updateScriptParameter(scriptCommand);
     cleanUpPastStart.updateComScript(scriptCommand);
     flatFilterFraction.updateComScript(scriptCommand);
+    skipVertSliceOutput.updateComScript(scriptCommand);
   }
 
   public void initializeDefaults() {
@@ -138,8 +145,16 @@ public final class SirtsetupParam implements CommandParam, CommandDetails {
     startFromZero.set(input);
   }
 
+  public void setSkipVertSliceOutput(final boolean input) {
+    skipVertSliceOutput.set(input);
+  }
+
   public boolean isStartFromZero() {
     return startFromZero.is();
+  }
+
+  public boolean isSkipVertSliceOutput() {
+    return skipVertSliceOutput.is();
   }
 
   public void resetResumeFromIteration() {
@@ -257,7 +272,7 @@ public final class SirtsetupParam implements CommandParam, CommandDetails {
   }
 
   public String getCommandName() {
-    //In this case the .com file name and the command in the .com file are the same.
+    // In this case the .com file name and the command in the .com file are the same.
     return ProcessName.SIRTSETUP.toString();
   }
 
