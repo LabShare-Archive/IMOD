@@ -1323,12 +1323,14 @@ c               If hit point for start of overlap, record position
           enddo
         enddo
 c         
-c         Set model properties: open contours, thicken current contour
+c         Set model properties: open contours, thicken current contour, etc.
         ierr = putModelName('Patch Tracking Model')
         call putImodFlag(1, 1)
         call putImodFlag(1, 10)
         call putSymType(1, 0)
         call putSymSize(1, 7)
+        call putLineWidth(1, 2)
+        call putObjColor(1, 255, 0, 255)
         call putImodZscale(max(1., min(10., (0.3 * (nx + ny)) / nz)))
         call irtdel(1, delta)
         call irtorg(1,origin(1),origin(2),origin(3))
