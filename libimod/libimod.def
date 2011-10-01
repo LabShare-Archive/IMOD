@@ -342,6 +342,7 @@ EXPORTS
 	substr
 	imodInsertPoint
 	imodPlaneSetFromClips
+	IMODHASIMAGEREF
 	PUTMODELNAME
 	imodCloseFile
 	imodObjectDup
