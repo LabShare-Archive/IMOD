@@ -66,6 +66,8 @@
 #define putscatsize  PUTSCATSIZE
 #define putsymsize   PUTSYMSIZE
 #define putsymtype   PUTSYMTYPE
+#define putsymflags  PUTSYMFLAGS
+#define putlinewidth PUTLINEWIDTH
 #define getobjcolor GETOBJCOLOR
 #define putobjcolor PUTOBJCOLOR
 #define getpointvalue GETPOINTVALUE
@@ -119,6 +121,8 @@
 #define putscatsize  putscatsize_
 #define putsymsize   putsymsize_
 #define putsymtype   putsymtype_
+#define putsymflags  putsymflags_
+#define putlinewidth putlinewidth_
 #define getobjcolor getobjcolor_
 #define putobjcolor putobjcolor_
 #define getpointvalue getpointvalue_
@@ -207,6 +211,8 @@ static int numNames_put = 0;
 #define VAL_BLACKWHITE_FLAG  8
 #define PNT_ON_SEC_FLAG 9
 #define THICKEN_CONT_FLAG 10
+#define SYMBOL_FLAGS_FLAG 11
+#define SYMBOL_WIDTH_FLAG 12
 
 #define FLAG_VALUE_SHIFT 8
 
@@ -1327,6 +1333,12 @@ int writeimod(char *fname, int fsize)
       case SYMBOL_TYPE_FLAG:
         obj->symbol = value;
         break;
+      case SYMBOL_FLAGS_FLAG:
+        obj->symflags = value;
+        break;
+      case SYMBOL_WIDTH_FLAG:
+        obj->linewidth2 = value;
+        break;
       case OBJECT_COLOR_FLAG:
         obj->red = (value & 255) / 255.;
         obj->green = ((value >> 8) & 255) / 255.;
@@ -1881,6 +1893,25 @@ void putscatsize(int *objnum, int *size)
 void putsymtype(int *objnum, int *type)
 {
   int flag = (*type << FLAG_VALUE_SHIFT) + SYMBOL_TYPE_FLAG;
+  putimodflag(objnum, &flag);
+}
+
+/*!
+ * Sets the symbol flags of object [objnum] to [flags], the sumof 1 for filled symbols and
+ * 2 for marked ends.
+ */
+void putsymflags(int *objnum, int *flags)
+{
+  int flag = (*flags << FLAG_VALUE_SHIFT) + SYMBOL_FLAGS_FLAG;
+  putimodflag(objnum, &flag);
+}
+
+/*!
+ * Sets the 2D line width for [objnum] to [width]
+ */
+void putlinewidth(int *objnum, int *width)
+{
+  int flag = (*width << FLAG_VALUE_SHIFT) + SYMBOL_WIDTH_FLAG;
   putimodflag(objnum, &flag);
 }
 
