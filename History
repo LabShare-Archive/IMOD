@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/30/11: In Etomo - Tomogram Combination checking the size of the tomogram by
+looking at its X, Y, and Z dimensions rather then its physical file size.
+(Bug# 1479)
+
 9/21/11: Improved reliability of drawing from Fortran graphics programs.
 
 9/20/11: Fixed problems with sda subdividing triangles too much.
