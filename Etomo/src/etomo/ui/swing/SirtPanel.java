@@ -285,8 +285,8 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     if (!enableResume
         && (rbResumeFromLastIteration.isSelected() || rbResumeFromIteration.isSelected())) {
       rbStartFromZero.setSelected(true);
-      resumeChanged();
     }
+    resumeChanged();
     boolean resume = isResume();
     // Correct checkpointed fields now that resume is available
     ltfSubareaSize.setEnabled(subarea && !resume);
@@ -438,7 +438,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     String[] fileNameList = new File(manager.getPropertyUserDir()).list(filter);
     // Extract iteration numbers, sort them, and add them to the pulldown list.
     int[] fileNumberList = null;
-    //Ignore .sint## files - they cannot be resumed from.
+    // Ignore .sint## files - they cannot be resumed from.
     FileType fileType;
     if (subarea) {
       fileType = FileType.SIRT_SUBAREA_OUTPUT_TEMPLATE;
