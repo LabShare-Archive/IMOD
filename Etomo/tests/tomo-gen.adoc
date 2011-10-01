@@ -319,6 +319,10 @@ mb.tilt=-
   set.var.full-ext=_full
   return.var.full-ext=
 [[]]
+[[if = dual]]
+  set.var.full-ext=
+  return.var.full-ext=
+[[]]
 # subarea
 [[if = montage]]
   run.function.run-sirt-subarea=
