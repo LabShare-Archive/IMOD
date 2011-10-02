@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/1/11: Fixed clip stat output with montaging and outlier detection.
+
 9/30/11: Beadtrack and some other programs will now avoid scaling an input
 model inappropriately when it lacks image reference coordinate information.
 
