@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/2/11: In eTomo - Preprocessing, fixed the clip stats command, which wasn't
+setting the piecelist file correctly.(Bug# 1530)
+
 10/1/11: In eTomo - Tomogram Generation added a checkbox for sirtsetup
 parameter SkipVertSliceOutput.(Bug# 1508)
 

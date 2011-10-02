@@ -130,7 +130,7 @@ public final class ClipParam implements CommandDetails {
                 + "if this is a montage.");
       }
       else if (applicationManager.getConstMetaData().getViewType() == ViewType.MONTAGE) {
-        options.add("-p");
+        options.add("-P");
         options.add(manager.getBaseMetaData().getDatasetName() + axisID.getExtension()
             + ".pl");
         options.add("-O");
