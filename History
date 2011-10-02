@@ -1,6 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-9/30/11: In Etomo - Tomogram Combination checking the size of the tomogram by
+10/2/11: In eTomo - Preprocessing, fixed the clip stats command, which wasn't
+setting the piecelist file correctly.(Bug# 1530)
+
+9/30/11: In eTomo - Tomogram Combination checking the size of the tomogram by
 looking at its X, Y, and Z dimensions rather then its physical file size.
 (Bug# 1479)
 
