@@ -170,11 +170,12 @@ button (\fBbn\fR) is to push it.
 .TP 4
 .I action
 .B assert\fR, \fBcopy\fR, \fBend\fR, \fBformat\fR, \fBif\fR, \fBgoto\fR, \fBopen\fR,
-\fBreturn\fR, \fBrun\fR, \fBset\fR, \fBskipto\fR, \fBsleep\fR, \fBstart\fR, \fBwait
+\fBreturn\fR, \fBrun\fR, \fBset\fR, \fBskipto\fR, \fBsleep\fR, \fBstart\fR, \fBunset\fR,
+\fBwait
 
 .TP 4
 .I subcommand_action
-.B assert\fR, \fBreturn\fR, \fBrun\fR, \fBset, \fBwait
+.B assert\fR, \fBreturn\fR, \fBrun\fR, \fBset\fR, \fBwait
 
 .TP 4
 .I modifier
@@ -352,8 +353,8 @@ or autodocs that are run from them.
 
 
 .SS Variables
-Variable are created by the \fBset\fR command - \fBset.var.\fIvariable_name\fB =
-\fIvariable_value\fR.  They are refered to with the format
+Variable are created by the \fBset.var\fR command and removed by the
+\fBunset.var\fR command.  They are refered to with the format
 \fB%{\fIvariable_name\fB}\fR.  Variables set in \fBuitest.adoc\fR are global,
 except for variables in the dataset that have axis a or b in the their subject;
 these variables are global but limited to a single axis.
@@ -1064,6 +1065,11 @@ referred to with index.  See Naming above.
 .B tf.\fItext_field_name\fR[\fB.\fIindex\fR]\fB = \fR[\fItext\fR|\fInumber\fR]
 Write value to a text field called \fItext_field_name\fR.  If there are multiple
 text fields of the same name, use \fIindex\fR.  See Naming above.
+
+.TP 4
+.B unset.var.\fIvariable_name\fB = 
+Removes a variable called \fIvariable_name\fR.  A variable can only be removed in
+the scope where it was created.
 
 .TP 4
 .B wait.file-chooser.\fIfile_chooser_name\fB = \fIfile
