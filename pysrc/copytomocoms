@@ -213,6 +213,20 @@ else:
    stackname = rootname + "a.st"
    piecename = rootname + "a.pl"
 
+# On Windows, make sure the current directory is rxw, first try the cygwin command
+# then use the system command and warn if it fails.  Windows python may be useless at this
+# When the directory is set -rwx, its running of chmod gives permission denied, it sees
+# 777 from os.stat and os.chmod has no effect
+if sys.platform.find('win32') >= 0 or sys.platform.find('cygwin') >= 0:
+   try:
+      runcmd('chmod u+rwx .')
+   except ImodpyError:
+      mode = stat.S_IMODE(os.stat('.')[stat.ST_MODE])
+      try:
+         os.chmod('.', mode | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
+      except:
+         warning('Error running command to make current directory writable')
+
 # Copy a distortion file to the current directory if it is elsewhere
 if distort:
    distort = distort.replace('\\', '/')
@@ -251,20 +265,6 @@ else:
    boxsize = 8 * int((2 * beadsize + 26) / 8)
    boxsize = min(100, boxsize)
    eraserad = 3.6
-
-   # On Windows, make sure the current directory is rxw, first try the cygwin command
-   # then use the system command and warn if it fails
-if sys.platform.find('win32') >= 0 or sys.platform.find('cygwin') >= 0:
-   try:
-      runcmd('chmod u+rwx .')
-   except ImodpyError:
-      try:
-         mode = stat.S_IMODE(os.stat('.')[stat.ST_MODE])
-         wantmode = stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR
-         if mode & wantmode != wantmode:
-            os.chmod('.', mode | wantmode)
-      except:
-         warning('Error running command to make current directory writable')
 
 # LOOP ON THE AXES
 for iaxis in range(naxis):
