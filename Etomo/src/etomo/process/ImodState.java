@@ -739,6 +739,10 @@ public final class ImodState {
       if (!modelView && !useModv) {
         process.setOpenZapWindowMessage();
       }
+      if (interpolation != null) {
+        process.setInterpolation(interpolation.is());
+        interpolation = null;
+      }
       else {
         process.setRaise3dmodMessage();
       }
