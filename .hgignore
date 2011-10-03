@@ -7,6 +7,7 @@ syntax: glob
 *.dll
 *.lib
 *.exe
+*.exp
 *.mod
 *.dylib
 *.pyc
@@ -63,6 +64,11 @@ plugs/*/control.h
 plugs/[abdisn][nerat]*/customdialog.h
 plugs/[abdisn][nerat]*/_common_functions.h
 plugs/[abdisn][nerat]*/icontextra.h
+3dmod/3dmod.dsp
+3dmod/3dmod.res
+include/tiff.h
+include/tiffio.h
+midas/midas.dsp
 recentChanges.txt
 
 3dmod/3dmod
