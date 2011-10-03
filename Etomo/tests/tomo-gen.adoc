@@ -1,6 +1,8 @@
 Version = 1.2
 
 [function = main]
+#temp
+set.var.test-gui=
 [[if = run_sirt]]
   run.function.sirt=
 [[]]
@@ -307,16 +309,8 @@ mb.tilt=-
   cb.reconstruct-subarea=off
 [[]]
 mb.tilt=+
-if.enabled.cb.use-the-gpu.run.function.turn-on-use-the-gpu=
+cb.use-the-gpu=on
 mb.tilt=-
-# tilt
-[[if = montage]]
-  mb.tilt=+
-  # assuming they are on - turning them off
-  if.enabled.cb.use-local-alignments.run.function.change-use-local-alignments=
-  if.enabled.cb.use-z-factors.run.function.change-use-z-factors=
-  mb.tilt=-
-[[]]
 [[if = single]]
   set.var.full-ext=_full
   return.var.full-ext=
@@ -352,10 +346,6 @@ mb.tilt=-
 # put things back the way they where for tilt
 mb.tilt=+
 cb.use-the-gpu=off
-[[if = montage]]
-  if.enabled.cb.use-local-alignments.run.function.change-use-local-alignments=
-  if.enabled.cb.use-z-factors.run.function.change-use-z-factors=
-[[]]
 mb.tilt=-
 rb.back-projection=
 
@@ -433,9 +423,14 @@ wait.process.processchunks-tilt%{axis}_sirt=done
   mb.tilt.1=B
   mb.tilt=-
 [[]]
+rb.start-from-beginning=
 
 
 [function = run-sirt-subarea]
+mb.tilt=+
+cb.use-local-alignments=off
+cb.use-z-factors=off
+mb.tilt=-
 cb.reconstruct-subarea=on
 tf.size-in-x-and-y=250,250
 cb.scale-retained-volumes-to-integers=on
@@ -455,7 +450,6 @@ wait.process.processchunks-tilt%{axis}_sirt=done
   assert.exists.file=sirtsetup%{axis}.log
   assert.exists.file=processchunks%{axis}.csh
   assert.exists.file=%{dataset}%{axis}_sub.ali
-  assert.exists.file=%{dataset}%{axis}_sub.alilog10
   assert.exists.file=tilt%{axis}_sirt.log
   assert.exists.file=%{dataset}%{axis}_sub.sint01
   assert.exists.file=%{dataset}%{axis}_sub.srec02
@@ -497,6 +491,11 @@ wait.process.processchunks-tilt%{axis}_sirt=done
   assert.exists.file=%{dataset}%{axis}_sub.srec03
   assert.exists.file=%{dataset}%{axis}_sub.srec04
 [[]]
+rb.start-from-beginning=
+mb.tilt=+
+cb.use-local-alignments=on
+cb.use-z-factors=on
+mb.tilt=-
 
 
 [function = run-sirt-both]
@@ -578,15 +577,5 @@ wait.process.processchunks-tilt%{axis}_sirt=done
   assert.exists.file=%{dataset}%{axis}_sub.srec02
   assert.exists.file=%{dataset}%{axis}_sub.sint02
 [[]]
+rb.start-from-beginning=
 
-
-[function = turn-on-use-the-gpu]
-cb.use-the-gpu=on
-
-
-[function = change-use-local-alignments]
-cb.use-local-alignments=
-
-
-[function = change-use-z-factors]
-cb.use-z-factors=

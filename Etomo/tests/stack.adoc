@@ -1,8 +1,8 @@
 Version = 1.2
 
 [function = main]
-# bug# 1269
-if.var.simple-align.set.var.test-gui=
+if.var.quick.run.function.quick=
+if.var.quick.return=
 # Created by copytomocoms when missing
 assert.exists.file=ctfplotter%{axis}.com
 assert.exists.file=ctfcorrection%{axis}.com
@@ -20,6 +20,15 @@ if.not.var.montage.wait.process.creating-aligned-stack = done
 if.var.montage.wait.process.full-alignment = done
 bn.done =
 if.var.fidless.return=
+
+
+[function = quick]
+mb.%{final-align-command}=A
+tf.size-to-output=%{size-to-output-x},%{size-to-output-y}
+bn.create-full-aligned-stack=
+if.not.var.montage.wait.process.creating-aligned-stack = done
+if.var.montage.wait.process.full-alignment = done
+bn.done=
 
 
 ## Create tab

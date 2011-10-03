@@ -1,6 +1,8 @@
 Version = 1.2
 
 [function = main]
+if.var.quick.run.function.quick=
+if.var.quick.return=
 # Only test values if keep is off.
 [[if = test-gui]]
 	if.not.var.keep-dataset-dir.set.var.test-values=
@@ -76,6 +78,14 @@ bn.done=
 #for datasets where the use button wasn't pressed
 wait.popup.entry-warning=OK
 [[]]
+
+
+[function = quick]
+if.not.var.needs-pre-proc.return=
+bn.create-fixed-stack=
+wait.process.ccd-eraser=done
+bn.use-fixed-stack=
+bn.done=
 
 
 [function = test-gui-montage]

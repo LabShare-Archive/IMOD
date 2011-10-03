@@ -1,6 +1,8 @@
 Version = 1.2
 
 [function = build]
+if.var.quick.run.function.quick=
+if.var.quick.return=
 [[if = test-gui]]
 	run.function.test-create-sample-tomograms=
 	run.function.copy=
@@ -13,7 +15,16 @@ Version = 1.2
 	run.function.compute-z-shift-&-pitch-angles=
 	if.not.var.fidless.run.function.create-final-alignment=
 [[]]
-bn.done =
+bn.done=
+
+
+[function = quick]
+bn.create-sample-tomograms =
+wait.process.creating-sample-tomogram = done
+run.function.copy=
+run.function.compute-z-shift-&-pitch-angles=
+run.function.create-final-alignment=
+bn.done=
 
 
 [function = create-sample-tomograms]
@@ -44,9 +55,12 @@ wait.process.creating-sample-tomogram = done
 [function = compute-z-shift-&-pitch-angles]
 bn.compute-z-shift-&-pitch-angles =
 wait.process.finding-sample-position = done
+
+
 [function = create-final-alignment]
 bn.create-final-alignment =
 wait.process.calculating-final-alignment = done
+
 
 [function = test-create-sample-tomograms]
 # check whole tomogram

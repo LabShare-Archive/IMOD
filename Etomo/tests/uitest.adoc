@@ -164,6 +164,7 @@ set.var.single=
 set.var.montage=
 set.var.run_sirt=
 set.var.test-gui=
+#set.var.quick=
 
 [Test = dual-montage-test-gui]
 set.testdir = dual-montage-test-gui

@@ -1,9 +1,21 @@
 Version = 1.2
 
 [function = main]
+if.var.quick.run.function.quick=
+if.var.quick.return=
 if.var.test-gui.run.function.test-gui=
 run.function.compute-alignment=
 format.bn.done=
+
+
+[function = quick]
+if.var.patch-tracking.run.function.compute-with-patch-tracking-quick=
+if.var.simple-align.run.function.compute-with-simple-align-quick=
+[[ifnot = patch-tracking]]
+  if.not.var.simple-align.run.function.compute=
+[[]]
+run.function.copy=
+bn.done=
 
 
 [function = compute-alignment]
@@ -63,11 +75,27 @@ bn.compute-alignment=
 wait.process.aligning-stack=done
 
 
+[function = compute-with-simple-align-quick]
+bn.compute-alignment=
+wait.process.aligning-stack=done
+
+
 [function = compute-with-patch-tracking]
 tb.general.1=
 rb.fixed-tilt-angles=
 bn.compute-alignment=
 wait.process.aligning-stack=done
+tb.general=
+cb.enable-local-alignments=on
+tb.general.2=
+cb.enable.2=off
+bn.compute-alignment=
+wait.process.aligning-stack=done
+
+
+[function = compute-with-patch-tracking-quick]
+tb.general.1=
+rb.fixed-tilt-angles=
 tb.general=
 cb.enable-local-alignments=on
 tb.general.2=
@@ -83,6 +111,15 @@ tb.general.1=
 rb.full-solution=
 bn.compute-alignment=
 wait.process.aligning-stack=done
+tb.general=
+cb.enable-local-alignments=on
+bn.compute-alignment=
+wait.process.aligning-stack=done
+
+
+[function = compute-quick]
+tb.general.1=
+rb.full-solution=
 tb.general=
 cb.enable-local-alignments=on
 bn.compute-alignment=

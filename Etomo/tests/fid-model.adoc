@@ -1,7 +1,37 @@
 Version = 1.2
 
 [function = main]
+if.var.quick.run.function.quick=
+if.var.quick.return=
 run.function.fiducial-model-generation=
+bn.done=
+
+
+[function = quick]
+[[ifnot = patch-tracking]]
+  run.function.transfer-fiducials-quick=
+[[]]
+if.equals.var.axis.return=b
+[[ifnot = patch-tracking]]
+  copy.file=%{dataset}%{axis}.seed
+  bn.track-seed-model=
+  wait.process.tracking-fiducials=done
+  copy.file=%{dataset}%{axis}.fid
+[[]]
+[[if = patch-tracking]]
+  tf.size-of-patches=200,200
+  cb.use-boundary-model=
+  copy.file=%{dataset}%{axis}_ptbound.mod
+  bn.track-patches=
+  wait.process.cross-correlating-stack=done
+[[]]
+bn.done=
+
+
+[function = transfer-fiducials-quick]
+if.not-equals.var.axis.return = b
+bn.transfer-fiducials-from-other-axis =
+wait.process.transferring-fiducials = done
 bn.done=
 
 
@@ -9,7 +39,7 @@ bn.done=
 rb.use-patch-tracking-to-make-fiducial-model=
 run.function.patch-tracking=
 if.var.patch-tracking.return=
- set.var.seed-button=view-seed-model
+set.var.seed-button=view-seed-model
 [[if = axis]]
 	if.equals.var.axis.return=b
 	if.exists.rb.run-raptor-and-fix.run.function.run-raptor=
@@ -274,7 +304,7 @@ mb.beadtracker.1=B
 	assert.disabled.tf.break-contours-into-pieces=
 [[]]
 run.function.patch-layout=
-#patch tracking is slow so avoid running patch-tracking is set
+#patch tracking is slow so avoid running if patch-tracking isn't set
 if.not.var.patch-tracking.return=
 #assuming that this is midzone2
 tf.size-of-patches=200,200

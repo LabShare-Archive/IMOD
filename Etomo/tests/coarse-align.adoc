@@ -1,6 +1,8 @@
 Version = 1.2
 
 [function = main]
+if.var.quick.run.function.quick=
+if.var.quick.return=
 #starting gui test
 if.var.test-gui.run.function.test1=
 #tiltxcorr
@@ -40,6 +42,18 @@ run.function.test2=
 assert.same.file=xcorr%{axis}.com
 [[]]
 bn.done =
+
+
+[function = quick]
+[[ifnot = montage]]
+  run.function.tiltxcorr=
+  fun.function.newstack=
+[[]]
+[[if = montage]]
+  run.function.tiltxcorr-blendmont=
+  run.function.blendmont=
+[[]]
+bn.done=
 
 
 [function = tiltxcorr]

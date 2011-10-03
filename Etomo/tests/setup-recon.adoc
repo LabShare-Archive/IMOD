@@ -1,6 +1,8 @@
 Version = 1.2
 
 [function = main]
+if.var.quick.run.function.quick=
+if.var.quick.return=
 [[if = test-gui]]
 	#check values
 	assert.tf.dataset-name=
@@ -57,6 +59,20 @@ rb.single-frame=
 	bn.view-raw-image-stack=
 	if.not.var.single.bn.view-raw-image-stack.1=
 [[]]
+bn.create-com-scripts=
+
+
+[function = quick]
+tf.dataset-name=%{dataset}
+run.function.data-type=
+[[ifnot = montage]]
+  bn.scan-header=
+[[]]
+[[if = montage]]
+  tf.pixel-size = %{pixel-size}
+  tf.image-rotation = %{image-rotation}
+[[]]
+tf.fiducial-diameter = %{fiducial-diameter}
 bn.create-com-scripts=
 
 
