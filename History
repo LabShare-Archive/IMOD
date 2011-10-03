@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/3/11: Added IMOD/lib to library path in wrapper scripts to protect against
+screwed up LIBRARY_PATH variables.
+
 10/1/11: Fixed clip stat output with montaging and outlier detection.
 
 9/30/11: Beadtrack and some other programs will now avoid scaling an input
