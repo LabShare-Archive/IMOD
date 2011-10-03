@@ -732,6 +732,7 @@ public final class ApplicationManager extends BaseManager implements
       DialogType dialogType) {
     String eraseModelName = metaData.getDatasetName() + axisID.getExtension() + ".erase";
     try {
+      imodManager.setInterpolation(ImodManager.RAW_STACK_KEY, axisID, false);
       if (metaData.getViewType() == ViewType.MONTAGE) {
         imodManager.setMontageSeparation(ImodManager.RAW_STACK_KEY, axisID);
         imodManager.setPieceListFileName(ImodManager.RAW_STACK_KEY, axisID,
