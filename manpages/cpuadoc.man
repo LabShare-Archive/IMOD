@@ -230,10 +230,10 @@ official path to the directory is.  This is the path that eTomo will see on
 the local machine, so you need to work out how this needs to be translated
 so that it can be accessed on the remote machines.
 
-As a simple example, the Linux machines in the BL3DEMC each have a directory
-named \fB/localscratch\fR which is accessed from any machine as
+As a simple example, each Linux machine in the BL3DEMC used to have a directory
+named \fB/localscratch\fR which was accessed from any machine as
 \fB/scratch/\fIcomputer_name\fR (where \fIcomputer_name\fR is the name of a
-machine, without any domain).  The required mount rules are entered as:
+machine, without any domain).  The required mount rules were entered as:
 
 .B mountrule.1.local = \fB/localscratch
 .br
@@ -244,13 +244,13 @@ for the appropriate mount name.  In our example, the mount name is just the
 computer name, but a mount name different from the computer name can be 
 entered for an individual computer using the \fBmountname\fR attribute.
 
-For a complicated example, we have a Macintosh running OSX 10.4, and it mounts
+For a complicated example, we had a Macintosh running OSX 10.4, and it mounted
 our Linux home directories (\fB/home\fR, \fB/home1\fR, \fB/home2\fR) under the
-same names.  It mounts the Linux machine scratch directories under
-\fB/scratch/\fIcomputer_name\fR.  However, when we are running on the Mac and
-\fBcd\fR to a user's home directory and enter \fBpwd\fR, we get, e.g.,
-\fB/private/var/automount/home1/\fIusername\fR.  When we \fBcd\fR to a Linux
-scratch directory and enter \fBpwd\fR, we get
+same names.  It mounted the Linux machine scratch directories under
+\fB/scratch/\fIcomputer_name\fR.  However, when we were running on the Mac and
+\fBcd'd\fR to a user's home directory and entered \fBpwd\fR, we got, e.g.,
+\fB/private/var/automount/home1/\fIusername\fR.  When we \fBcd'd\fR to a Linux
+scratch directory and entered \fBpwd\fR, we got
 \fB/private/var/automount/\fIcomputer_name\fR.
 
 .br
@@ -269,10 +269,12 @@ The numbers specify the order in which the rules are applied.  Note that it is
 important to apply the rule for home first to avoid having
 \fB/private/var/automount/home\fR get translated to \fB /scratch/home\fR.  Also
 note that this one rule works for \fB/home\fR, \fB/home1\fR, and \fB/home2\fR.
+The automount names no longer do this on OSX 10.5 and higher, but the example
+is still good for illustrating how to deal with complex situations.
 
-Our Linux machines can also access the home directories under \fB/Users\fR on
+Our Linux machines also used to access the home directories under \fB/Users\fR on
 the Mac, by mounting these directories as
-\fB/\fIcomputer_name\fB/\fIusername\fR.  So we have another mount rule:
+\fB/\fIcomputer_name\fB/\fIusername\fR.  So we had another mount rule:
 
 .B mountrule.4.local = /Users
 .br
