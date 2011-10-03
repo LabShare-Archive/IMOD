@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/3/11: Made Copytomocoms try to set directory writable on Window only and
+drop back to native command if chmod fails.
+
 10/3/11: Added IMOD/lib to library path in wrapper scripts to protect against
 screwed up LIBRARY_PATH variables.
 
