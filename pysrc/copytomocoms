@@ -4,7 +4,6 @@
 # Author: David Mastronarde
 #
 # $Id$
-# Log at end
 #
 progname = 'copytomocoms'
 prefix = 'ERROR: ' + progname + ' - '
@@ -253,10 +252,19 @@ else:
    boxsize = min(100, boxsize)
    eraserad = 3.6
 
-try:
-   runcmd('chmod u+rwx .')
-except ImodpyError:
-   warning('Error running command to make current directory writable')
+   # On Windows, make sure the current directory is rxw, first try the cygwin command
+   # then use the system command and warn if it fails
+if sys.platform.find('win32') >= 0 or sys.platform.find('cygwin') >= 0:
+   try:
+      runcmd('chmod u+rwx .')
+   except ImodpyError:
+      try:
+         mode = stat.S_IMODE(os.stat('.')[stat.ST_MODE])
+         wantmode = stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR
+         if mode & wantmode != wantmode:
+            os.chmod('.', mode | wantmode)
+      except:
+         warning('Error running command to make current directory writable')
 
 # LOOP ON THE AXES
 for iaxis in range(naxis):
@@ -883,7 +891,7 @@ if backup:
          needChmod = False
       except ImodpyError:
          pass
-
+      
    # If it fails fall through to using python method.  Note that if cygwin does not exist
    # vmstopy will run savework explicitly with python
    if needChmod:
@@ -896,28 +904,3 @@ if backup:
 # Skip all the verbiage at the end
 prnstr("All command files successfully created")
 sys.exit(0)
-   
-
-#
-# $Log$
-# Revision 1.9  2011/07/07 02:34:42  mast
-# Do not copy idf files if doing ctf only or it already exists
-#
-# Revision 1.8  2011/03/23 17:58:51  mast
-# Added fmtstr to printInfo calls
-#
-# Revision 1.7  2011/03/07 16:32:35  mast
-# Corrected the running of goodframe
-#
-# Revision 1.6  2011/03/06 15:24:14  mast
-# Add parentesis
-#
-# Revision 1.5  2011/03/05 17:41:53  mast
-# Run goodframe properly with two numbers!
-#
-# Revision 1.4  2011/03/01 18:09:08  mast
-# Needed to import stat, error messages were suppressed by being in try block
-#
-# Revision 1.3  2011/03/01 17:45:58  mast
-# reinstating the log, it lost its $
-#
