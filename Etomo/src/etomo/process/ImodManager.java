@@ -1538,6 +1538,19 @@ public class ImodManager {
     }
   }
 
+  public void setInterpolation(String key, final AxisID axisID,
+      final boolean interpolation) throws AxisTypeException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      newImod(key, axisID);
+      imodState = get(key, axisID);
+    }
+    if (imodState != null) {
+      imodState.setInterpolation(interpolation);
+    }
+  }
+
   public void setWorkingDirectory(String key, AxisID axisID, int vectorIndex,
       File workingDirectory) throws AxisTypeException {
     key = getPrivateKey(key);
