@@ -768,9 +768,7 @@ public final class LogFile {
   }
 
   private void createBackupFile() {
-    if (backupFile != null) {
-      return;
-    }
+    //recreate the backup file each time (Windows)
     backupFile = new File(fileAbsolutePath + DatasetFiles.BACKUP_CHAR);
   }
 
