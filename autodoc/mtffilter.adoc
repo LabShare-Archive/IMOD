@@ -44,8 +44,9 @@ high-frequency Gaussian roll-off to 0.0.  (The default is no filtering)
 manpage = Cutoff radius and sigma for a low pass filter that imposes a
 high-frequency Gaussian roll-off to 0.0.
 The default is no high-frequency filtering.  These entries correspond to the
-Radius2 and Sigma2 entries to Enhance(1) and other programs; see the Enhance(1)
-man page for a full explanation of the effects of changing the sign of 
+Radius2 and Sigma2 entries to Enhance(1) and other programs; see the
+Enhance(1) or Filterplot(1)
+man pages for a full explanation of the effects of changing the sign of 
 the Sigma2 or the Sigma1 and Radius1 parameters entered with the next two
 options.
 
@@ -63,7 +64,7 @@ to get a band-pass filter based on the second derivative of a Gaussian.
 [Field = FilterRadius1]
 short = radius1
 type = F
-usage = Cutoff radius for a high-pass filter that decays with Sigma2
+usage = Cutoff radius for a high-pass filter that decays with the -lowpass sigma
 tooltip = 
 manpage = Cutoff radius for a high-pass filter that is 1.0 at this radius and
 falls off as a Gaussian to the left of this point with sigma equal to the
