@@ -1,8 +1,6 @@
 Version = 1.2
 
 [function = main]
-#temp
-set.var.test-gui=
 [[if = run_sirt]]
   run.function.sirt=
 [[]]
