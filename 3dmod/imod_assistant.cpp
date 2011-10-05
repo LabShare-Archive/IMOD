@@ -46,6 +46,18 @@ ImodAssistant::ImodAssistant(const char *path, const char *adpFile,
 
   // Get IMOD_DIR or fallback if necessary
   mImodDir = IMOD_DIR_or_default(&mAssumedIMOD);
+#ifdef _WIN32
+
+  // Check for alternate locations for standalone IMOD/3dmod directories
+  if (mAssumedIMOD && !QFile::exists(mImodDir)) {
+    char *PF3dmod = "C:\\Program Files\\3dmod";
+    char *PFIMOD = "C:\\Program Files\\IMOD";
+    if (QFile::exists(PFIMOD))
+      mImodDir = PFIMOD;
+    else if (QFile::exists(PF3dmod))
+      mImodDir = PF3dmod;
+  }
+#endif
 
   // Set up path to help files; either absolute or under IMOD_DIR
   if (absolute) {
@@ -86,11 +98,14 @@ int ImodAssistant::showPage(const char *page)
   if (!mAssistant) {
 
     // Open the assistant in qtlib if one exists, otherwise take the one on
-    // path.  Need to check for .app on Mac, and in /bin on Windows
+    // path.  Need to check for .app on Mac, and in /bin or IMOD_DIR itself on Windows
 #ifdef _WIN32
     assPath = QDir::cleanPath(mImodDir + sep + "bin");
     if (!QFile::exists(assPath + sep + "assistant_adp.exe")) 
-      assPath = "";
+      if (QFile::exists(mImodDir + sep + "assistant_adp.exe"))
+        assPath = mImodDir;
+      else
+        assPath = "";
 #else
     assPath = QDir::cleanPath(mImodDir + sep + "qtlib");
     if (!QFile::exists(assPath + sep + "assistant_adp") && 
