@@ -1,5 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/5/11: Added commands to Alterheader for converting a mode 4 file to mode 2
+and back so that individual components can be seen in 3dmod.
+
+10/5/11: Modified plugin and help loading code to handle standalone 3dmod 
+package for Windows.
+
+10/5/11: Made Xfsimplex object to warp file as initial transform file.
+
 10/3/11: Made Copytomocoms try to set directory writable on Window only and
 drop back to native command if chmod fails.
 
