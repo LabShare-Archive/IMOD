@@ -50,8 +50,12 @@ static int numInternal;
 /* Return the number we have loaded. */
 int imodPlugInit(void)
 {
-
-  char *defdir3 = "/usr/freeware/lib/imodplugs/";
+#ifdef _WIN32
+  char *defdir3 = "C:/Program Files/IMOD/lib/imodplug";
+  char *defdir4 = "C:/Program Files/3dmod/lib/imodplug";
+#else
+  char *defdir3 = usr/freeware/lib/imodplugs/
+#endif
   char *defdir2 = "/usr/local/IMOD/plugins";
   char *envdir2 = getenv("IMOD_CALIB_DIR");
   char *envdir = getenv("IMOD_PLUGIN_DIR");
@@ -84,6 +88,9 @@ int imodPlugInit(void)
   /* load system plugins. */
   imodPlugLoadDir(defdir2);
   imodPlugLoadDir(defdir3);
+#ifdef _WIN32
+  imodPlugLoadDir(defdir4);
+#endif
 
   maxPlug = ilistSize(plugList);
   return(maxPlug);
