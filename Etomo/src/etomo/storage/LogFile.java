@@ -214,7 +214,7 @@ public final class LogFile {
     // don't delete backup file unless the file to be backed up exists
     if (backupFile.exists()) {
       Utilities.debugPrint(backupFile.getAbsolutePath() + " exists, deleting");
-      if (!backupFile.delete()) {
+      if (!delete(backupFile)) {
         System.err.println("Unable to delete backup log file: "
             + backupFile.getAbsolutePath());
         if (backupFile.exists()) {
@@ -263,6 +263,28 @@ public final class LogFile {
       e.printStackTrace();
     }
     return success;
+  }
+
+  /**
+   * Delete a file, allowing up to 10 tries.
+   * @param file
+   * @return
+   */
+  private boolean delete(final File file) {
+    for (int i = 0; i < 10; i++) {
+      if (file.delete()) {
+        if (i > 0) {
+          System.err.println("It took " + i + " tries to remove " + file.getName());
+        }
+        return true;
+      }
+      try {
+        Thread.sleep(100);
+      }
+      catch (InterruptedException e) {
+      }
+    }
+    return false;
   }
 
   /**
@@ -768,7 +790,9 @@ public final class LogFile {
   }
 
   private void createBackupFile() {
-    //recreate the backup file each time (Windows)
+    if (backupFile != null) {
+      return;
+    }
     backupFile = new File(fileAbsolutePath + DatasetFiles.BACKUP_CHAR);
   }
 
