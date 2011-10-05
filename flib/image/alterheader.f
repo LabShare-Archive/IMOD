@@ -6,11 +6,10 @@ c
 c       David Mastronarde 10/24/88
 c       
 c       $Id$
-c       Log at end of file
 C       
       implicit none
       integer nfunc,idim,nx,ny,nz,maxextra
-      parameter (nfunc=20)
+      parameter (nfunc=22)
       parameter (idim=2100, maxextra = idim*idim * 4)
       integer*4 NXYZ(3),MXYZ(3),NXYZST(3),mcrs(3),listdel(1000)
       real*4 delt(3),tilt(3), TITLE(20,10),cell(6),array(idim*idim)
@@ -20,9 +19,9 @@ C
       CHARACTER*320 FILIN
       character*20 funcin,funcup
       character*9 param(nfunc)
-      data param/'ORG','CEL','DAT','DEL','MAP','SAM','TLT'
-     &    ,'TLT_ORIG','TLT_ROT','LAB','MMM','RMS','FIXPIXEL',
-     &    'FIXEXTRA','FIXMODE','SETMMM','FEIPIXEL','INVERTORG','HELP','DONE'/
+      data param/'ORG','CEL','DAT','DEL','MAP','SAM','TLT' ,'TLT_ORIG','TLT_ROT','LAB',
+     &    'MMM','RMS','FIXPIXEL', 'FIXEXTRA','FIXMODE','SETMMM','FEIPIXEL','INVERTORG',
+     &    'REAL', 'FFT', 'HELP','DONE'/
 C       
 C       
       DATA NXYZST/0,0,0/
@@ -47,7 +46,7 @@ C
 30    write(*,102)
 102   format(1x,'Options: org, cel, dat, del, map, sam, tlt, ',
      &    'tlt_orig, tlt_rot, lab, mmm,',/, ' rms, fixpixel, feipixel, ',
-     &    'fixextra, fixmode, invertorg, setmmm, help, OR done')
+     &    'fixextra, fixmode, invertorg, setmmm, real, fft,',/,' help, OR done')
       write(*,'(1x,a,$)')'Enter option: '
       read(5,101)funcin
 101   FORMAT(A)
@@ -56,7 +55,7 @@ C
       do i=1,nfunc
         if(funcup.eq.param(i))iwhich=i
       enddo
-      go to(1,2,3,4,5,6,7,8,9,10,11,16,12,13,17,18,19,20,14,15),iwhich
+      go to(1,2,3,4,5,6,7,8,9,10,11,16,12,13,17,18,19,20,21,22,14,15),iwhich
       print *,'Not a legal entry, try again'
       go to 30
 C       
@@ -412,6 +411,31 @@ c       INVERTORG  - invert the sign of the origin
 120   format('Inverting sign of origin: new origin = ',3g13.6)
       call ialorg(2, origx, origy, origz)
       go to 30
+c       
+c       REAL: make an FFT real
+21    if (mode .ne. 4) then
+        print *,'Must be mode 4 to change file to real'
+        go to 30
+      endif
+      call ialmod(2, 2)
+      mode = 2
+      nxyz(1) = nxyz(1) * 2
+      call ialsiz(2, nxyz, nxyzst)
+      write(*,221)mode,nxyz(1)
+221   format('Changing mode to ',i1,' and X size to ',i6)
+      go to 30
+c       
+c       FFT: restore a real file
+22    if (mode .ne. 2 .or. mod(nx, 2) .ne. 0 .or. mod(nx/2, 2) .ne. 1) then
+        print *,'Must be mode 2 and NX must (odd #) * 2 to change file to fft'
+        go to 30
+      endif
+      call ialmod(2, 4)
+      mode = 4
+      nxyz(1) = nxyz(1) / 2
+      call ialsiz(2, nxyz, nxyzst)
+      write(*,221)mode,nxyz(1)
+      go to 30
 c
 14    write(*,201)
 201   format(/,' org = change x,y,z origin',
@@ -438,6 +462,8 @@ c
      &    /,' fixmode = change mode from 6 to 1 (unsigned to signed ',
      &    'integer) or 1 to 6',
      &    /,' setmmm = set min, max, mean to entered values',
+     &    /,' real = change mode 4 file to mode 2 and change X size',
+     &    /,' fft = change compatible-sized mode 2 file back to mode 4',
      &    /,' help = type this again',
      &    /,' done = exit',/)
       go to 30
@@ -450,30 +476,3 @@ c
       print *,'ERROR: ALTERHEADER - reading file'
       call exit(1)
       END
-c       
-c       $Log$
-c       Revision 3.8  2009/02/16 06:32:18  mast
-c       Added invertorg and feipixel
-c
-c       Revision 3.7  2006/09/28 21:44:30  mast
-c       Turn off brief header, read data in chunks for mmm/rms
-c       
-c       Revision 3.6  2006/03/25 06:10:04  mast
-c       Added option to set min/max/mean
-c       
-c       Revision 3.5  2005/11/11 22:53:01  mast
-c       Added switch between 1 and 6 modes (not really needed now)
-c       
-c       Revision 3.4  2005/05/26 04:35:58  mast
-c       Used double precision to get rms correct
-c       
-c       Revision 3.3  2002/08/18 23:13:28  mast
-c       Changed to cal iclavgsd in library
-c       
-c       Revision 3.2  2002/08/17 05:45:50  mast
-c       Moved big array to common to avoid stack size problem on SGI
-c       
-c       Revision 3.1  2002/08/17 05:37:29  mast
-c       Made mmm compute rms, and added rms option to do same thing.
-c       Also made declarations for implicit none, standardized error exit
-c       
