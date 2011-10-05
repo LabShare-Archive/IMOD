@@ -47,7 +47,7 @@ c
       parameter (lenTemp = 32000*64)
       integer*4 MXYZ(3),NXYZST(3), nxyz2(3)
 C       
-      CHARACTER*320 FILIN1,FILIN2,DATOUT,xfinfile
+      CHARACTER*320 FILIN1,FILIN2,DATOUT,xfinfile, strntmp
 C       
       real*4 temp(lenTemp)
       data NXYZST/0,0,0/
@@ -89,7 +89,7 @@ c
       integer*4 ifXminmax, ifYminmax
       real*4 scale,dadd,window,valscl,dstnc,DELMIN,ptfac,tmp
       real*4 sigma1,sigma2,radius1,radius2, deltac
-      integer*4 niceframe
+      integer*4 niceframe, readCheckWarpFile
 c
       logical pipinput
       integer*4 numOptArg, numNonOptArg
@@ -230,6 +230,14 @@ c
 c       if reading in a transform, get it and convert to natural if necessary
 c       
       if(xfinfile.ne.' ')then
+        ierr = readCheckWarpFile(xfinfile, 0, 0, idx, idy, itmp, i, deltac, jj, strntmp)
+        if (ierr .ge. 0) call exitError(
+     &      'THE INITIAL TRANSFORM FILE CONTAINS WARPING TRANSFORMS')
+        if (ierr .ne. -1) then
+          write(*, '(/,a)')'ERROR: A PROBLEM OCCURRED TESTING WHETHER THE INITIAL'//
+     &        ' TRANSFORM FILE HAD WARPINGS'
+          call exitError(strntmp)
+        endif
         call dopen(1,xfinfile,'old','f')
         do i = 0, lineuse
           read(1,*,err=94,end=95)((amat(ii,jj),jj=1,2),ii=1,2),a(1),a(2)
