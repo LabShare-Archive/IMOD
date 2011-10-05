@@ -812,8 +812,7 @@ find their locations in the rest of the tilt series.  The second involves
 tracking small patches of the image through the series by cross-correlating
 each patch from one view to the next with 
 <A HREF = "man/tiltxcorr.html">Tiltxcorr</A>.  The third method involves using
-the RAPTOR program to find beads automatically; it requires the RAPTOR program
-to be available.
+<A HREF = "man/raptor.html">RAPTOR</A>  to find beads automatically.
 </P>
 <H4><A NAME = "TrackingSeed"></A>
 6.1. Tracking Gold from a Seed Model
@@ -1145,14 +1144,14 @@ Patch tracking is controlled by the following settings:
   The default length is based on the number of views in the tilt series.
 <LI> <B>Trimming area to analyze</B> The <B>Pixels to trim</B> and
   the <B>Min</B> and <B>Max</B> entries for X and Y provide an alternative to
-  using a boundary model for restricting the area to analyze.  In addition,
-  these entries can be used to avoid correlating with portions of the
-  prealigned stack that contain no image data (are filled with gray).  It is
-  recommended that you examine the prealigned stack at low angles (up to
-  ~20 degrees) to find the places where the gray border is widest on each
-  side, and make sure that the default trimming is enough to exclude these
-  borders.  Otherwise, make an entry for both the <B>Min</B> and
-  the <B>Max</B> on the relevant axis.
+  using a boundary model for restricting the area to analyze.  It is no longer
+  necessary to set these limits in order to avoid correlating with portions of the
+  prealigned stack that contain no image data (are filled with gray).
+  <A HREF = "man/tiltxcorr.html">Tiltxcorr</A> will use the transforms applied
+  in building the coarse aligned stack to determine where the gray areas are;
+  It will skip patches that have too little usable image data and, for other
+  patches with gray area, it will taper the data down to the gray area to
+  minimize correlation artifacts.
 </UL>
 Press <B>Track Patches</B> to start the tracking, and when it finishes, press 
 <B>Open Tracked Patches</B> to see the patch positions on the prealigned
@@ -1176,14 +1175,12 @@ since there are no corresponding fiducials.
 6.5. Using RAPTOR to Make a Fiducial Model 
 </H4>
 <P>
-If the RAPTOR program from Stanford is installed on your system, there will be
-an option to use this program, provided either that it is installed in
-/usr/local/RAPTOR or that the environment variable RAPTOR_BIN points to the
-directory where the RAPTOR executables are located.  However, the option is
-currently available only for the first axis of a dual-axis data set. 
-See the documentation
-that came with RAPTOR for details on its operation.  To use it within IMOD,
-first decide whether to run it on the raw stack or the prealigned stack.
+The <A HREF = "man/raptor.html">RAPTOR</A> program from Stanford is now part
+of IMOD and the option to use this program is available, but only for the
+first axis of a dual-axis data set. See the 
+<A HREF = "man/raptor.html">RAPTOR man page</A> for
+details on its operation.
+First decide whether to run it on the raw stack or the prealigned stack.
 The latter case allows tighter tolerances for some distance parameters and is
 usually more successful.  Decide on the number of beads to find per view and
 enter that

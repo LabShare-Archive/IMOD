@@ -4,6 +4,18 @@ Serial Section Alignment with IMOD
 
 <body>
 <H2 ALIGN=center>Serial Section Alignment with IMOD</H2>
+<HR>
+<BR><A HREF = "#Linear">Linear Transformations</A>
+<BR><A HREF = "#FandG">F and G Transforms</A>
+<BR><A HREF = "#Automatic">Automatic alignment</A>
+<BR><A HREF = "#Fiducial">Generating or Editing an Alignment with Fiducial Points</A>
+<BR><A HREF = "#Manual">Manually Editing an Alignment and Adding Warping with Midas</A>
+<BR><A HREF = "#FtoG2">Converting from an F List to a G List</A>
+<BR><A HREF = "#Images">Creating Transformed Images</A>
+<BR><A HREF = "#Montages">Working with Montaged Images</A>
+<BR><A HREF = "#Realigning">Realigning Images and Models</A>
+<BR><A HREF = "#Handedness">Stacking Order and Handedness of Structures</A>
+<HR>
 <P>
 This document gives an overview and some background information on the
 tools available in IMOD for aligning images from serial sections.  First there
@@ -14,7 +26,7 @@ align serial images.  Three ways of obtaining transformations are then
 described, followed by more detailed explanations of the options for
 processing transformations for particular kinds of data sets.
 
-<H3>Linear Transformations</H3>
+<H3><A NAME = "Linear"></A>Linear Transformations</H3>
 <P>
 Two images can be aligned by applying a coordinate transformation to
 one image to make the transformed image match the other image as well as
@@ -80,7 +92,7 @@ line of the file specifies:
 The program <A HREF = "man/xf2rotmagstr.html">Xf2rotmagstr</A> can be used to
 convert the transforms in a file into natural parameters.
 
-<h3>F and G Transforms</h3>
+<h3><A NAME = "FandG"></A>F and G Transforms</h3>
 Whenever there are more than two images, a series of transforms will be
 needed to align the whole stack of images.  This series is obtained in two
 stages.  First, each successive pair of images is considered separately, and a
@@ -127,7 +139,7 @@ adjustment of transformation parameters while viewing the two sections.  The
 latter methods were developed because the automated method is not usually
 sufficient.
 
-<H3>Automatic alignment</H3>
+<H3><A NAME = "Automatic"></A>Automatic alignment</H3>
 The Python script <A HREF = "man/xfalign.html">Xfalign</A> will do automated
 alignment of a set of serial sections.  The main tool that it runs is the
 program <A HREF = "man/xfsimplex.html">Xfsimplex</A>, which varies the six
@@ -199,9 +211,11 @@ produced by <A HREF = "man/midas.html">Midas</A> are in the file
      xfalign -in sections.prexf sections.st sections.xf
 </pre>
 
-<H3>Generating or Editing an Alignment with Fiducial Points</H3>
-The program <A HREF = "man/xfmodel.html">Xfmodel</A> can solve for the parameters of a transformation
-between sections from the locations of points that are known or assumed to
+<H3><A NAME = "Fiducial"></A>
+Generating or Editing an Alignment with Fiducial Points</H3>
+The program <A HREF = "man/xfmodel.html">Xfmodel</A> can solve for the
+parameters of a transformation between sections from the locations of points
+that are known or assumed to
 correspond between the sections.  <A HREF = "man/xfmodel.html">Xfmodel</A>
 works with a model of connected fiducial points built in 3dmod.  In the
 simplest case, if you built a model
@@ -221,7 +235,8 @@ sections only, and replace those transforms in the existing list.
 <A HREF = "man/xfmodel.html">Xfmodel</A> can also be used to transform a model
 to a new alignment (see below). 
 
-<h3>Manually Editing an Alignment</H3>
+<h3><A NAME = "Manual"></A>
+Manually Editing an Alignment and Adding Warping with Midas</H3>
 The program <A HREF = "man/midas.html">Midas</A> provides for interactive
 visualization and manual adjustment of the alignment between two images.  It
 can be used to edit a list of <b>f</b> transforms.  By using 
@@ -250,10 +265,18 @@ At each location, you shift the image locally into alignment.  See the section
 <b>Warping Images</b> in the <A HREF = "man/midas.html">Midas man page</A> for
 more details.
 <P>
-Once you have introduced warping in midas, the transformation files become
-much more complex than the single line per section described above.
+Once you have introduced warping in <A HREF = "man/midas.html">Midas</A>, 
+the transformation files become
+much more complex than the single line per section described above.  However,
+all of the programs described below will read these warping transform
+files interchangeably with simple linear transform files and operate
+appropriately, which means that all of the operations described below work
+with warping and require no special options.  Two
+limitations are that a warping transform file cannot be used with the
+"-initial" option to <A HREF = "man/xalign.html">Xfalign</A> or as an existing
+transform file to be edited by <A HREF = "man/xfmodel.html">Xfmodel</A>.
 
-<h3>Converting from an F List to a G List</h3>
+<h3><A NAME = "FtoG2"></A>Converting from an F List to a G List</h3>
 As discussed above, to get from the list of <b>f</b> transforms to a useful
 stack of aligned images, one must first convert them to <b>g</b> transforms using the
 program <A HREF = "man/xftoxg.html">Xftoxg</A>.  This will produce transforms
@@ -366,7 +389,7 @@ alignment, the alignment will contain a progressive rotation that should be
 preserved.  Use the "-m 2" option to retain rotation trends or "-m 3" to
 eliminate them.
 
-<h3>Creating Transformed Images</h3>
+<h3><A NAME = "Images"></A>Creating Transformed Images</h3>
 Given a list of <b>g</b> transforms, the program 
 <A HREF = "man/newstack.html">Newstack</A> will transform the
 images to create an aligned stack.  This program can also "float" the images
@@ -383,7 +406,7 @@ Here, "sections.xg" is your file of <b>g</b> transforms produced by
 specifies floating to mean, "sections.st" is your input stack of unaligned
 images, and "sections.ali" is your output stack of aligned images.
 
-<h3>Working with Montaged Images</h3>
+<h3><A NAME = "Montages"></A>Working with Montaged Images</h3>
 If you have serial images each consisting of a montage of overlapping
 frames, as can be acquired with SerialEM, then you need to follow different
 procedures for getting an initial stack to align, and for getting an aligned
@@ -456,7 +479,7 @@ transform file ("sections.xg").  Then rerun sloppyblend, and you will get an
 aligned stack.
 </OL>
 
-</H3>Realigning Images and Models</H3>
+<H3><A NAME = "Realigning"></A>Realigning Images and Models</H3>
 Sometimes one will find after modeling on a set of images that the
 alignment needs to be improved.  There are several tools that can be used to
 get a better alignment.  The operations to run depend first on whether you
@@ -500,16 +523,19 @@ transforming the model is easy:
     xfmodel -xf sections.xg2 sections.mod sections.newmod
 </pre>
 However, to get a new aligned stack, you should go back to the raw stack
-instead of applying a second transformation to the aligned stack.  To do this,
+instead of applying a second transformation to the aligned stack, in order to
+avoid interpolating the data any more times than you have to (each
+interpolation step potentially degrades the images).  To do this,
 you need to multiply the first and second set of <b>g</b> transforms and apply the
 product:
 <pre>
     xfproduct sections.xg sections.xg2 sections.prod
     newstack -xf sections.prod sections.st sections.newali
 </pre>
-However, if you have a montage, instead of running 
+If you have a montage, instead of running 
 <A HREF = "man/newstack.html">Newstack</A>, edit
-sloppyblend.com to change "sections.xg" to "sections.prod" and rerun Blendmont.
+sloppyblend.com to change "sections.xg" to "sections.prod" and rerun 
+<A HREF = "man/blendmont.html">Blendmont</A>.
 <P>
 There are several ways that you could work from an existing model to get
 a refined alignment.  One way is to take Tiff snapshots of the Zap window in
@@ -540,7 +566,7 @@ can be given a limited number of sections over which to find the alignment,
 and it will properly handle the transitions between the regions being
 realigned and those being left as they were.
 
-<H3>Stacking Order and Handedness of Structures</H3>
+<H3><A NAME = "Handedness"></A>Stacking Order and Handedness of Structures</H3>
 The order in which your images are stacked affects whether structures in your
 reconstruction have the correct handedness.  Handedness matters if you are
 reconstructing structures such as microtubule bundles that may twist,
@@ -548,8 +574,12 @@ axonemes, or basal bodies.  Note that as sections come off of the block, they
 represent slices from the top down, when viewing the block face from the outside.
 Assuming that sections do not get flipped before being loaded onto a grid, the
 top side of each section faces up and the bottom is against the grid.
-The handedness of a serial section reconstruction then
-depends on the product of a sequence of factors:
+Handedness will be preserved if the images of the sections represent views
+from the top of the sections, and if the volume is stacked in order from
+bottom (deeper in the block) to top.  More generally,
+the handedness of a serial section reconstruction
+depends on the product of a sequence of factors, each of which you should be
+able to control or assess:
 <UL>
 <LI> Whether the grid is loaded into the rod with the sections facing up (+1)
   or down (-1).
