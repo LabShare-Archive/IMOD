@@ -5,7 +5,6 @@
  *   Colorado.  See implementation file for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */                                                                           
 
 #include <string.h>
@@ -54,7 +53,7 @@ int imodPlugInit(void)
   char *defdir3 = "C:/Program Files/IMOD/lib/imodplug";
   char *defdir4 = "C:/Program Files/3dmod/lib/imodplug";
 #else
-  char *defdir3 = usr/freeware/lib/imodplugs/
+  char *defdir3 = "usr/freeware/lib/imodplugs";
 #endif
   char *defdir2 = "/usr/local/IMOD/plugins";
   char *envdir2 = getenv("IMOD_CALIB_DIR");
@@ -521,70 +520,3 @@ static void *ipGetFunction(PlugData *pd, int which)
   }
   return NULL;
 }
-
-
-/*
-
-$Log$
-Revision 4.17  2009/01/15 16:33:17  mast
-Qt 4 port
-
-Revision 4.16  2008/01/21 05:55:19  mast
-Added function to open all plugins
-
-Revision 4.15  2007/12/21 19:54:49  mast
-Switched /usr/IMOD/plugins to ImodCalib/plugins
-
-Revision 4.14  2007/12/04 18:53:04  mast
-Added event handling call, removed clean, fixed the treatment of Execute
-versus ExecuteType for the plug opening call.
-
-Revision 4.13  2006/02/13 05:09:57  mast
-Added mouse capability
-
-Revision 4.12  2004/12/17 16:43:02  mast
-Added a load call before resolving first symbol to get better diagnostics
-
-Revision 4.11  2004/09/24 18:08:11  mast
-Added ability to pass a message for execution
-
-Revision 4.10  2004/06/01 01:30:52  mast
-Eliminate unused variable
-
-Revision 4.9  2004/05/31 23:26:17  mast
-Switched to QDir and QLibrary and thus was able to use plugins in Windows
-
-Revision 4.8  2003/10/25 16:17:34  mast
-added linetrack as special module, conditionally
-
-Revision 4.7  2003/10/02 01:31:11  mast
-Added ability to open a plugin by name
-
-Revision 4.6  2003/10/01 19:38:59  mast
-Simply code, add function for getting functions
-
-Revision 4.5  2003/10/01 05:13:28  mast
-Changes to use special internal modules
-
-Revision 4.4  2003/04/17 19:09:33  mast
-plugs OK on Mac now
-
-Revision 4.3  2003/03/28 05:49:16  mast
-No plugs for Mac either
-
-Revision 4.2  2003/02/27 19:41:15  mast
-No plugs in windows yet
-
-Revision 4.1  2003/02/10 20:29:00  mast
-autox.cpp
-
-Revision 1.1.2.2  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.1  2003/01/13 01:19:04  mast
-Qt versions
-
-Revision 3.1  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-*/
