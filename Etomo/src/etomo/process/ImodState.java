@@ -486,6 +486,7 @@ public final class ImodState {
   // of when it is on.
   private EtomoBoolean2 deleteAllSections = null;
   private String fileName = null;
+  private EtomoBoolean2 interpolation = null;
 
   // constructors
   // they can set final state variables
@@ -697,6 +698,10 @@ public final class ImodState {
       if (startNewContoursAtNewZ) {
         process.setStartNewContoursAtNewZ();
       }
+      if (interpolation != null) {
+        process.setInterpolation(interpolation.is());
+        interpolation = null;
+      }
       if (pointLimit != -1) {
         process.setPointLimitMessage(pointLimit);
       }
@@ -733,6 +738,10 @@ public final class ImodState {
       // raise 3dmod
       if (!modelView && !useModv) {
         process.setOpenZapWindowMessage();
+      }
+      if (interpolation != null) {
+        process.setInterpolation(interpolation.is());
+        interpolation = null;
       }
       else {
         process.setRaise3dmodMessage();
@@ -1078,6 +1087,13 @@ public final class ImodState {
 
   public void setMontageSeparation() {
     process.setMontageSeparation();
+  }
+
+  public void setInterpolation(final boolean input) {
+    if (interpolation == null) {
+      interpolation = new EtomoBoolean2();
+    }
+    interpolation.set(input);
   }
 
   /**

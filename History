@@ -2,6 +2,9 @@ IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 10/5/11: In eTomo fixing a problem in Windows where files cannot be backed up.
 
+10/3/11: In eTomo - Preprocessing, turned off the High-res button when the
+manual model is opened.(Bug# 1535)
+
 10/2/11: In eTomo - Preprocessing, fixed the clip stats command, which wasn't
 setting the piecelist file correctly.(Bug# 1530)
 

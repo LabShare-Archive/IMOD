@@ -615,6 +615,7 @@ public class ImodProcess {
   public static final String MESSAGE_SLICER_ANGLES = "13";
   public static final String MESSAGE_PLUGIN_MESSAGE = "14";
   public static final String MESSAGE_MORE_OBJ_PROPERTIES = "16";
+  public static final String MESSAGE_INTERPOLATION = "18";
   public static final String BEAD_FIXER_PLUGIN = "Bead Fixer";
   public static final String BF_MESSAGE_OPEN_LOG = "1";
   public static final String BF_MESSAGE_REREAD_LOG = "2";
@@ -1145,6 +1146,11 @@ public class ImodProcess {
 
   public void setStartNewContoursAtNewZ() {
     setMoreObjectPropertiesMessage(1, -1, 1, -1);
+  }
+  
+  public void setInterpolation(final boolean input) {
+    sendArguments.add(MESSAGE_INTERPOLATION);
+    sendArguments.add(input ? TRUE : FALSE);
   }
 
   /**
