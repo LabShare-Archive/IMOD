@@ -271,7 +271,8 @@ public final class LogFile {
    * @return
    */
   private boolean delete(final File file) {
-    for (int i = 0; i < 10; i++) {
+    int i;
+    for (i = 0; i < 20; i++) {
       if (file.delete()) {
         if (i > 0) {
           System.err.println("It took " + i + " tries to remove " + file.getName());
@@ -284,6 +285,7 @@ public final class LogFile {
       catch (InterruptedException e) {
       }
     }
+    System.err.println("Unable to remove " + file.getName() + " after " + i + " tries.");
     return false;
   }
 
