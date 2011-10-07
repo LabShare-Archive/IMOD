@@ -375,6 +375,9 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\linearxforms.c">
+			</File>
+			<File
 				RelativePath=".\lsqr.c">
 			</File>
 			<File
@@ -424,7 +427,13 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\pctstretch.c">
+			</File>
+			<File
 				RelativePath=".\percentile.c">
+			</File>
+			<File
+				RelativePath=".\piecefuncs.c">
 			</File>
 			<File
 				RelativePath="pip_fwrap.c">
@@ -577,6 +586,9 @@
 						PreprocessorDefinitions=""
 						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\zoomdown.c">
 			</File>
 		</Filter>
 		<Filter
