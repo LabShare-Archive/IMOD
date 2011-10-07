@@ -234,6 +234,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   private final FortranInputString contrastBlackWhite = new FortranInputString(2);
   private final FortranInputString testLimits = new FortranInputString(2);
   private final EtomoNumber imageRotation = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+  private final FortranInputString taper = new FortranInputString(2);
 
   private ProcessName processName = ProcessName.NEWST;
   /**
@@ -274,6 +275,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     userSizeToOutputInXandY.setIntegerType(allIntegerType);
     contrastBlackWhite.setIntegerType(allIntegerType);
     testLimits.setIntegerType(allIntegerType);
+    taper.setIntegerType(allIntegerType);
     reset();
   }
 
@@ -324,6 +326,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
     reset();
     for (int i = 0; i < cmdLineArgs.length; i++) {
+      System.out.println("D:cmdLineArgs[i]:"+cmdLineArgs[i]);
       // Is it an argument or filename
       if (cmdLineArgs[i].startsWith("-")) {
         if (cmdLineArgs[i].toLowerCase().startsWith("-in")) {
@@ -422,6 +425,11 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
         else if (cmdLineArgs[i].toLowerCase().startsWith("-or")) {
           adjustOrigin.set(true);
         }
+        else if (cmdLineArgs[i].toLowerCase().startsWith("-taper")) {
+          i++;
+          taper.validateAndSet(cmdLineArgs[i]);
+          System.out.println("A:taper:" + taper.toString());
+        }
         else {
           String message = "Unknown argument: " + cmdLineArgs[i];
           throw new InvalidParameterException(message);
@@ -449,7 +457,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
       throws BadComScriptException {
     // Create a new command line argument array
 
-    ArrayList cmdLineArgs = new ArrayList(20);
+    ArrayList cmdLineArgs = new ArrayList(21);
     for (Iterator i = inputFile.iterator(); i.hasNext();) {
       cmdLineArgs.add("-input");
       cmdLineArgs.add((String) i.next());
@@ -544,6 +552,11 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     }
     if (adjustOrigin.is()) {
       cmdLineArgs.add("-origin");
+    }
+    System.out.println("B:taper:" + taper.toString());
+    if (taper.valuesSet() && (!taper.isDefault())) {
+      cmdLineArgs.add("-taper");
+      cmdLineArgs.add(String.valueOf(taper.toString()));
     }
     int nArgs = cmdLineArgs.size();
     scriptCommand.setCommandLineArgs((String[]) cmdLineArgs.toArray(new String[nArgs]));
