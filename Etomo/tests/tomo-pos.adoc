@@ -79,7 +79,6 @@ assert.exists.file = sample%{axis}.log~
 run.function.compute-z-shift-&-pitch-angles=
 assert.exists.file = tomopitch%{axis}.log
 run.function.compute-z-shift-&-pitch-angles=
-assert.exists.file = tomopitch%{axis}.log~
 
 [function = test-create-final-alignment]
 run.function.create-final-alignment=
