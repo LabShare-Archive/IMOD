@@ -611,6 +611,8 @@ for iaxis in range(naxis):
              fmtstr("/^{}/s/[ 	].*/	{}/", tiltIncText, tiltInc),
              fmtstr("/^{}/d", incDelText),
              fmtstr("/^RotationAngle/s/[ 	].*/	{}/", axisangle),
+             fmtstr("/^#*SkipViews.*/s//SkipViews	{}/", excludelist),
+             fmtstr("/^#*{}/d", wipeskip),
              fmtstr("s/{}.st/{}/", setname, xcsrc)]
    sedlines = pysed(sedcom, srcfile, None)
    dstlines.extend(sedlines)
