@@ -121,11 +121,9 @@
 package etomo.process;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import etomo.ApplicationManager;
 import etomo.comscript.ConstNewstParam;
-import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
 import etomo.util.InvalidParameterException;
@@ -143,54 +141,6 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
       ProcessName processName, ConstNewstParam newstParam) {
     super(appMgr, id, processName);
     this.newstParam = newstParam;
-  }
-
-  /**
-   * Set gettingStatusFromLog to true and return true if mrctaper is being run
-   */
-  boolean gotStatusFromLog() {
-    //log already in use, return true
-    if (gotStatusFromLog) {
-      return true;
-    }
-    //read the lines available in the log and look for a line shows that
-    //mrctaper started
-    String line;
-    LogFile.ReaderId logReaderId = null;
-    try {
-      logReaderId = getLogFile().openReader();
-    }
-    catch (LogFile.LockException e) {
-      return false;
-    }
-    catch (FileNotFoundException e) {
-      return false;
-    }
-    try {
-      while ((line = getLogFile().readLine(logReaderId)) != null) {
-        if (line.startsWith("Doing section")) {
-          //mrctaper started
-          applicationManager.getMainPanel().setProgressBarValue(0, "mrctaper", axisID);
-          gotStatusFromLog = true;
-          getLogFile().closeReader(logReaderId);
-          logReaderId = null;
-          return true;
-        }
-      }
-    }
-    //there is a problem with the log
-    catch (LogFile.LockException e) {
-      return false;
-    }
-    catch (IOException e) {
-      return false;
-    }
-    if (logReaderId != null && !logReaderId.isEmpty()) {
-      getLogFile().closeReader(logReaderId);
-      logReaderId = null;//added this
-    }
-    //did not find a line shows that mrctaper started
-    return false;
   }
 
   /* (non-Javadoc)

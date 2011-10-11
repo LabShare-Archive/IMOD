@@ -3911,11 +3911,6 @@ public final class ApplicationManager extends BaseManager implements
           "Unable to update newst 3dfind com:  " + e.getMessage(), "Etomo Error", axisID);
       return null;
     }
-    // Update mrctaper
-    MrcTaperParam mrcTaperParam = comScriptMgr.getMrcTaperParamFromNewst3dFind(axisID);
-    mrcTaperParam.setInputFile(FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT.getFileName(this,
-        axisID));
-    comScriptMgr.saveNewst3dFind(mrcTaperParam, axisID);
     return newstParam;
   }
 
