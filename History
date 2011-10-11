@@ -2,8 +2,22 @@ IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 10/5/11: In eTomo fixing a problem in Windows where files cannot be backed up.
 
+10/5/11: Added commands to Alterheader for converting a mode 4 file to mode 2
+and back so that individual components can be seen in 3dmod.
+
+10/5/11: Modified plugin and help loading code to handle standalone 3dmod 
+package for Windows.
+
+10/5/11: Made Xfsimplex object to warp file as initial transform file.
+
 10/3/11: In eTomo - Preprocessing, turned off the High-res button when the
 manual model is opened.(Bug# 1535)
+
+10/3/11: Made Copytomocoms try to set directory writable on Window only and
+drop back to native command if chmod fails.
+
+10/3/11: Added IMOD/lib to library path in wrapper scripts to protect against
+screwed up LIBRARY_PATH variables.
 
 10/2/11: In eTomo - Preprocessing, fixed the clip stats command, which wasn't
 setting the piecelist file correctly.(Bug# 1530)
@@ -11,9 +25,50 @@ setting the piecelist file correctly.(Bug# 1530)
 10/1/11: In eTomo - Tomogram Generation added a checkbox for sirtsetup
 parameter SkipVertSliceOutput.(Bug# 1508)
 
+10/1/11: Fixed clip stat output with montaging and outlier detection.
+
 9/30/11: In eTomo - Tomogram Combination checking the size of the tomogram by
 looking at its X, Y, and Z dimensions rather then its physical file size.
 (Bug# 1479)
+
+9/30/11: Beadtrack and some other programs will now avoid scaling an input
+model inappropriately when it lacks image reference coordinate information.
+
+9/30/11: Tiltxcorr can now take lists of views to skip or break alignment at,
+and if it is given a prealignment transform file, patch tracking will skip
+views where a patch has too much blank area or taper the image edge down to a
+blank area.  Xfalign now passes its skip or break lists to Tiltxcorr.
+
+9/29/11: Added flag to new IMOD model (such as produced by patch tracking) so
+loading such a model will not prevent autocontrast at start or set contrast
+back to 0-255.
+
+9/29/11: In eTomo Pre-processing, display montage views together, separated by
+a negative overlap.  Clip stats and ccderaser are now being run with the same
+overlap, so the model can be brought up this way as well.(Bug# 1530)
+
+9/29/11: In eTomo - Settings dialog, added a default for GPU processing.
+(Bug# 1467)
+
+9/28/11: IMOD_4-2-26
+9/28/11: Made Edit-Object-Info run imodinfo with -o option and report output.
+
+9/28/11: Fixed Vmstopy with use of environment variable; added error message
+if such a variable is undefined.
+
+9/27/11: Fixed drawing of transparent items in model view with Z inverted.
+
+9/23/11: In eTomo - Tomogram Generation distinguishing between full SIRT
+output files and subarea output files.(Bug# 1537)
+
+9/22/11: To allow easier fixing of X-rays in montages, modified 3dmod to
+display a montage with an adjusted overlap specified with -o; added -P option
+to clip stat so that it could output min and max coordinates in such a
+displayed montage; added options to Ccderaser so it could take in and produce
+models compatible with that display.
+
+9/22/11: In Zap window, made centering button center on current image point
+when pressed, and fixed problem with dropping out of HQ when panning.
 
 9/21/11: Improved reliability of drawing from Fortran graphics programs.
 

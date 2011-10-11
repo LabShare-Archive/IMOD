@@ -62,6 +62,8 @@ typedef struct Grap_options
   int   ocanchmode;  /* output mode can be changed. */
   int   fromOne;     /* Number Z from 1 not 0 */
   char *ofname;
+  char *plname;
+  int   newXoverlap, newYoverlap;
 } ClipOptions;
 
 

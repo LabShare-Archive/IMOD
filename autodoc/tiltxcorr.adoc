@@ -241,6 +241,33 @@ the default is all views.
 manpage = Starting and ending view numbers, numbered from 1, for doing 
 a subset of views.
 
+[Field = SkipViews]
+short = skip
+type = LI
+usage = List of views to skip, aligning across skipped views (ranges OK)
+tooltip =
+manpage = List of views to skip, while maintaining alignment across skipped
+views.  The program will not find the transform for aligning a listed view to
+the previous one.  When a view is skipped, the following view will be aligned
+to the last unskipped view and a unit transform will be output for the skipped
+view.  With patch tracking, no model points will be placed on the skipped
+views.  Comma-separated ranges of views (numbered from 1) can be entered.  The
+default is to use all of the views.
+
+[Field = BreakAtViews]
+short = break
+type = LI
+usage = List of views to break alignment at (ranges OK)
+tooltip =
+manpage = List of views to break alignment at.  This option is like
+"-skip"
+in that no transform is found for aligning a listed view to
+the previous one and a unit transform is written for the listed view.
+However, the following view will be aligned to the
+listed view, and nothing will be aligned to the previous view.  This
+breaks the chain of alignment through the series of views.  This option
+cannot be used with patch tracking.
+
 [Field = CumulativeCorrelation]
 short = cumulative
 type = B
@@ -357,6 +384,27 @@ enough to give a bad fit when the resulting model is used in Tiltalign(1),
 then breaking the contours into overlapping pieces might improve the fit.
 Some overlap is needed to use the model in Tiltalign (1).  
 
+[Field = PrealignmentTransformFile]
+short = prexf
+type = FN
+usage = File with transforms used to align images for patch tracking
+tooltip = 
+manpage = File with transformations applied to align the images being used for
+patch tracking.  With the shift information in these transforms, each patch is
+evaluated for whether it contains blank image area because of the shifting.
+Patches that are more than 30% blank will not be tracked further, and patches
+with some blank area less than this amount will be tapered down to the edge of
+the blank area.
+
+[Field = ImagesAreBinned]
+short = imagebinned
+type = I
+usage = The current binning of the images relative to raw stack
+tooltip = 
+manpage = The current binning of the images relative to the unaligned stack.
+This entry is needed to scale the transforms supplied with the -prexf option
+if the binning is not 1.
+
 [Field = TestOutput]
 short = test
 type = FN
@@ -365,6 +413,13 @@ tooltip =
 manpage = Specify a filename with this option to have two padded, tapered
 images and the cross-correlation saved for every pair of images that are 
 correlated. 
+
+[Field = VerboseOutput]
+short = verbose
+type = B
+usage = Output diagnostic information
+tooltip =
+manpage = 
 
 [Field = ParameterFile]
 short = param

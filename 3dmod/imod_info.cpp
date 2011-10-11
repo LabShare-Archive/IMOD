@@ -36,6 +36,7 @@
 #include <QCloseEvent>
 #include "imod_info.h"
 #include "imod.h"
+#include "imod_io.h"
 #include "imod_info_cb.h"
 #include "imodv_objed.h"
 #include "imodplug.h"
@@ -76,6 +77,8 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, Qt::WFlags f)
   mAutoTimerID = 0;
   mTopTimerID = 0;
   mInfoTimerID = 0;
+  mTrimvolProcess = NULL;
+  mImodinfoProcess = NULL;
   mTargetMoveX = mTargetMoveY = -1;
   setAttribute(Qt::WA_DeleteOnClose);
   setAttribute(Qt::WA_AlwaysShowToolTips);
@@ -461,6 +464,8 @@ void InfoWindow::extract()
   char *imodDir = getenv("IMOD_DIR");
   char *cshell = "python";
   QStringList arguments;
+  delete mTrimvolProcess;
+  mTrimvolProcess = NULL;
   if (App->cvi->rgbStore != 0 || App->cvi->fakeImage != 0 ||
       App->cvi->multiFileZ > 0||App->cvi->image->file != IIFILE_MRC ||
       sliceModeIfReal(mrchead->mode) < 0) {
@@ -513,6 +518,8 @@ void InfoWindow::extract()
   wprint("\n");
   connect(mTrimvolProcess, SIGNAL(finished(int, QProcess::ExitStatus)), this,
           SLOT(trimvolExited(int, QProcess::ExitStatus )));
+  connect(mTrimvolProcess, SIGNAL(error(QProcess::ProcessError)), this,
+          SLOT(trimvolError(QProcess::ProcessError )));
   mTrimvolProcess->start(cshell, arguments);
 }
 
@@ -520,7 +527,7 @@ void InfoWindow::extract()
 void InfoWindow::trimvolExited(int exitCode, QProcess::ExitStatus exitStatus) 
 {
   mActions[FILE_MENU_EXTRACT]->setEnabled(true);
-  if (mTrimvolProcess == 0) {
+  if (mTrimvolProcess == NULL) {
     return;
   }
   if (!exitCode && exitStatus == QProcess::NormalExit) {
@@ -544,7 +551,78 @@ void InfoWindow::trimvolExited(int exitCode, QProcess::ExitStatus exitStatus)
     wprint("err:\n%s\n", mTrimvolProcess->readLine().constData());
   }
   delete mTrimvolProcess;
-  mTrimvolProcess = 0;
+  mTrimvolProcess = NULL;
+}
+
+// If an error occurs, test for failed to start and report that
+void InfoWindow::trimvolError(QProcess::ProcessError error)
+{
+  if (error != QProcess::FailedToStart)
+    return;
+  wprint("\aCould not start trimvol - is python on the PATH?\n");
+  mActions[FILE_MENU_EXTRACT]->setEnabled(true);
+  
+  // Cannot delete the qprocess from this slot; just delete it if it runs again
+}
+
+// Run imodinfo to get object info
+void InfoWindow::objectInfo()
+{
+  QStringList arguments;
+  char *filename;
+  delete mImodinfoProcess;
+  mImodinfoProcess = NULL;
+  filename = currentSavedModelFile();
+  if (!filename) {
+    wprint("\aCannot run imodinfo - no current model file exists.\n");
+    return;
+  }
+  mImodinfoProcess = new QProcess();
+  arguments << "-o" << QString("%1").arg(App->cvi->imod->cindex.object + 1) << filename;
+  connect(mImodinfoProcess, SIGNAL(finished(int, QProcess::ExitStatus)), this,
+          SLOT(imodinfoExited(int, QProcess::ExitStatus )));
+  connect(mImodinfoProcess, SIGNAL(error(QProcess::ProcessError)), this,
+          SLOT(imodinfoError(QProcess::ProcessError )));
+  mImodinfoProcess->start("imodinfo", arguments);
+  mActions[EOBJECT_MENU_INFO]->setEnabled(false);
+  wprint("Running imodinfo on current object\n");
+}
+
+// Reports result when imodinfo finishes
+void InfoWindow::imodinfoExited(int exitCode, QProcess::ExitStatus exitStatus) 
+{
+  QString out;
+  mActions[EOBJECT_MENU_INFO]->setEnabled(true);
+  if (!mImodinfoProcess)
+    return;
+
+  if (exitCode || exitStatus != QProcess::NormalExit)
+    wprint("\aimodinfo failed.\n");
+
+  // Print everything but comments and blank lines and unneeded things
+  mImodinfoProcess->setReadChannel(QProcess::StandardOutput);
+  while (mImodinfoProcess->canReadLine()) {
+    out = mImodinfoProcess->readLine();
+    if (! out.trimmed().isEmpty() && !out.startsWith('#') && !out.contains("Light") &&
+        !out.contains("Color") && !out.contains("Contours =") && 
+        !out.contains("Shininess"))
+      wprint(LATIN1((out.trimmed() + "\n")));
+  }
+  mImodinfoProcess->setReadChannel(QProcess::StandardError);
+  while (mImodinfoProcess->canReadLine()) {
+    wprint("err:\n%s\n", mImodinfoProcess->readLine().constData());
+  }
+  delete mImodinfoProcess;
+  mImodinfoProcess = NULL;
+}
+
+// If an error occurs, test for failed to start and report that
+void InfoWindow::imodinfoError(QProcess::ProcessError error)
+{
+  if (error != QProcess::FailedToStart)
+    return;
+  wprint("\aCould not start imodinfo.\n");
+  mActions[EOBJECT_MENU_INFO]->setEnabled(true);
 }
 
 // Start a timer for initial autocontrast

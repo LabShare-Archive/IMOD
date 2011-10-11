@@ -821,9 +821,10 @@ only copy the file if it is not already in the \fItest_directory\fR.
 .TP 4
 .B end =
 The function of \fBend\fR depends on where it is placed.  In a top level
-function for axis A the single axis, it ends the test immediately.  In a top
-level function ends the B axis test.  In a lower level function it stops the
-test for the axis.  This last option lets both axes get to the same place.
+function in a single axis test, it ends the test immediately.  In a top
+level function running the B axis test, it ends the B axis test.  In a lower level
+function it stops the test for the axis.  This last option lets both axes get to the same
+place.
 
 .TP 4
 .B format.\fIfield =
@@ -952,7 +953,7 @@ Press a radio button called \fIradio_button_name\fR.  If there are multiple
 radio buttons of the same name, use \fIindex\fR.  See Naming above.
 
 .TP 4
-.B return\fR[\fB.var.\fIvariable_name\fB =
+.B return\fR[\fB.var.\fIvariable_name\fR]\fB =
 Closes the current scope.  If the return is used in a Dialog Section, the
 current Dialog Section will end and the Autodoc Tester will go on to the next
 Dialog section.  If the return is used in function section, the Autodoc Tester

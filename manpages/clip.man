@@ -301,6 +301,18 @@ Green value; Range is (0.0 - 1.0) Default is 1.0.
 .TP
 .B -b <value>
 Blue value;  Range is (0.0 - 1.0) Default is 1.0.
+.TP
+.B -P <file>
+Name of piece list file, in order to have coordinates in statistics converted
+to position in a montage displayed with adjusted overlap.  The overlap in the
+display is assumed to be zero, unless overlap is specified with the
+.B -O
+option.
+.TP
+.B -O <value,value>
+Overlap values in X and Y to be used when printing coordinates corresponding
+to positions in a displayed montage.  Negative values correspond to spaces
+between the displayed pieces.
 
 .SH PROCESSES
 

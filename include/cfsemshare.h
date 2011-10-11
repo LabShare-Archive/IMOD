@@ -6,7 +6,6 @@
  *   Colorado.
  *
  *   $Id$
- *   No more Log
  */                                                                           
 
 #ifndef CFSEMSHARE_H
@@ -215,6 +214,12 @@ extern "C" {
   void xfInvert(float *f, float *finv, int rows);
   void xfApply(float *f, float xcen, float ycen, float x, float y, float *xp, float *yp,
                int rows);
+
+  /* piecefuncs.c */
+  int checkPieceList(int *pclist, int stride, int npclist, int redfac, int nframe,
+                     int *minpiece, int *npieces, int *noverlap);
+  void adjustPieceOverlap(int *pclist, int stride, int npclist, int nframe, int minpiece,
+                          int noverlap, int newOverlap);
 
 #ifdef __cplusplus
 }

@@ -75,7 +75,11 @@ DDEESSCCRRIIPPTTIIOONN
   Pixel, boundary, and line objects can be applied either on the section
   where they are drawn, or on all sections.  For example, one might have two
   different pixel objects, one for patches to be replaced on a single
-  section and one for patches to be replaced on all sections.
+  section and one for patches to be replaced on all sections.  Note that if
+  you are working with a montage, "all sections" means "all pieces".  If you
+  are modeling on images displayed as a montage with no overlap between the
+  pieces, you only need to draw a patch on one of the pieces to have it erased
+  on all the pieces at each view.
 
   TO set up a pixel object, make the object type be scattered points, and
   turn on drawing of circles, but leave the sphere radius at zero.  To

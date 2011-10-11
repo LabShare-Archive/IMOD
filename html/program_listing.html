@@ -97,6 +97,7 @@ along lines; optionally reproject a tilt series of the image data.
 
 <LI><b><A HREF="man/imod2rib.html">imod2rib</a></b>,
 <b><A HREF="man/imod2vrml.html">imod2vrml</A></b> and
+<b><A HREF="man/imod2vrml2.html">imod2vrml2</A></b> and
 <b><A HREF="man/imod2meta.html">imod2meta</A></b>
 : Convert IMOD models to other model formats.
 </UL>
@@ -216,11 +217,11 @@ radius2.
 <LI><b><A HREF="man/montagesize.html">montagesize</a></b>
 : Report actual X, Y, and Z dimensions of a montaged image file.
 <LI><b><A HREF="man/mtffilter.html">mtffilter</a></b>
-: Apply low pass and/or inverse MTF filter to 2D images or 3D FFTs.
+: Apply high or low pass and/or inverse MTF filter to 2D images or 3D FFTs.
+<LI><b><A HREF="man/edgemtf.html">edgemtf</a></b>
+: Measure MTF curve for camera from image of an edge.
 <LI><b><A HREF="man/newstack.html">newstack</a></b>
 : Create a new MRC image stack from existing MRC file(s).
-<LI><B><A HREF="man/newst.html">newst</A></B>
-: Old command line front end to the newstack program (no longer needed).
 <LI><B><A HREF="man/numericdiff.html">numericdiff</A></B>
 : Compare numeric entries between two text files.
 <LI><b><A HREF="man/recombine.html">recombine</a></b>
@@ -279,8 +280,6 @@ X, Y, or Z axis.
 : Searches for best transformation between two images.
 <LI><b><A HREF="man/xftoxg.html">xftoxg</a></b>
 : Converts transforms between sections into alignment transforms.
-<LI><b>xf2xg</b>
-: Old command line front end to xftoxg (no longer needed).
 </UL>
 
 <P>
@@ -341,7 +340,7 @@ post-processing of such volumes.
 : Track fiducial gold particles through a tilt series.
 <LI><B><A HREF="man/combinefft.html">combinefft</A></B>
 : Combine FFTs of tomograms from a double-axis tilt series.
-<LI><B>copytomocoms</B>
+<LI><B><A HREF="man/copytomocoms.html"></A>copytomocoms</B>
 : Generate command files needed for processing a tilt series.
 <LI><B><A HREF="man/corrsearch3d.html">corrsearch3d</A></B>
 : Search for displacements between two volumes at an array of positions.
@@ -370,7 +369,7 @@ overlapping tomograms.
 lines or points on surfaces.
 <LI><B>goodframe</B>
 : Only used as a call from scripts.
-<LI><B>makejoincom</B>
+<LI><B><A HREF="man/makejoincom.html"></A>makejoincom</B>
 : Generate command file for initial steps in joining tomograms from serial 
 sections.
 <LI><B><A HREF="man/matchorwarp.html">matchorwarp</A></B>
@@ -385,15 +384,13 @@ sections.
 : Cross-correlate patches between two volumes at an array of positions.
 <LI><B><A HREF="man/patchcrawl3d.html">patchcrawl3d</A></B>
 : Search for displacements between two volumes at an array of positions using <b><A HREF="man/corrsearch3d.html">corrsearch3d</a></b>.
+<LI><B><A HREF="man/raptor.html">RAPTOR</A></B>
+: Automatically find fiducials in tilt series images.
 <LI><B><A HREF="man/refinematch.html">refinematch</A></B>
 : Solve for a refined match between two tomograms.
 <LI><B><A HREF="man/repackseed.html">repackseed</A></B>
 : Eliminate empty contours from seed model produced by <b><A HREF="man/transferfid.html">transferfid</a></b>.
-<LI><B>reduceby2</B>
-: Bin image stack down by 2 or more in X and Y with <b><A
-HREF="man/reducemont.html">reducemont</a></b> (no longer needed, use newstack
-or binvol).
-<LI><B>setupcombine</B>
+<LI><B><A HREF="man/setupcombine.html">setupcombine</A></B>
 : Generate command file for combining two tomograms.
 <LI><B><A HREF="man/sirtsetup.html">sirtsetup</A></B>
 : Set up multiple command files for simultaneous iterative reconstruction
@@ -415,6 +412,8 @@ the actual image.
 image inside the edges.
 <LI><b><A HREF="man/tilt.html">tilt</a></b>
 : Calculate 3-D tomographic reconstruction from a tilt series.
+<LI><b><A HREF="man/gputilttest.html">gputilttest</a></b>
+: Test whether a GPU is reliable for computing reconstructions with the tilt program.
 <LI><b><A HREF="man/tiltalign.html">tiltalign</a></b>
 : Align a tilt series using fiducial points.
 <LI><b><A HREF="man/tiltxcorr.html">tiltxcorr</a></b>
@@ -448,6 +447,8 @@ image inside the edges.
 : Produce command files for running volcombine in parallel.
 <LI><B><A HREF="man/splitcorrection.html">splitcorrection</A></B>
 : Produce command files for running ctfphaseflip in parallel.
+<LI><B><A HREF="man/splitblend.html">splitblend</A></B>
+: Produce command files for running blendmont in parallel.
 </UL>
 
 <P>
@@ -502,7 +503,7 @@ properties.
 
 </UL>
 <HR>
-<I>Last updated: April 1, 2010</I>
+<I>Last updated: October 3, 2011</I>
 [<A HREF="http://bio3d.colorado.edu/imod/index.html">IMOD Home Page</A>] 
 [<A HREF="http://bio3d.colorado.edu/index.html">BL3DEMC Home Page</A>]
 </body>

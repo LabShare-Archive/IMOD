@@ -92,6 +92,7 @@ EXPORTS
 	imodContourFitPlane
 	NEWIMOD
 	imodContZDirection
+	PUTSYMFLAGS
 	imodSetIndex
 	imodMatRotateVector
 	imodContourSort3D
@@ -305,6 +306,7 @@ EXPORTS
 	objGroupListWrite
 	imodel_maxpt
 	istoreCountObjectItems
+	PUTLINEWIDTH
 	imodPointContDistance
 	imodContourGetFlag
 	imodLabelDup
@@ -342,6 +344,7 @@ EXPORTS
 	substr
 	imodInsertPoint
 	imodPlaneSetFromClips
+	IMODHASIMAGEREF
 	PUTMODELNAME
 	imodCloseFile
 	imodObjectDup

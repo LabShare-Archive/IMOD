@@ -211,11 +211,29 @@ int imod_autosave(Imod *mod)
     wprint("Saved autosave file %s\n", timestr);
   }
 
-  last_checksum = new_checksum;
+  // 9/28/11: get a new checksum, it may have just changed
+  last_checksum = imodChecksum(mod);
   imod_draw_window();
   fclose(tfilep);
   free(convname);
   return(IMOD_IO_SUCCESS);
+}
+
+/*
+ * Return name of valid file with saved model: either the main filename if it is
+ * current, or the autosave file, doing an autosave if necessary
+ */
+char *currentSavedModelFile(void)
+{
+  Imod *mod = App->cvi->imod;
+  int new_checksum = imodChecksum(mod);
+  if (new_checksum == mod->csum && Imod_filename[0])
+    return Imod_filename;
+  if (new_checksum == last_checksum && autosave_filename[0])
+    return autosave_filename;
+  if (imod_autosave(mod) == IMOD_IO_SUCCESS)
+    return autosave_filename;
+  return NULL;
 }
 
 /* DNM 12/2/02: eliminated SaveModelQuit - SaveModel is fine and allows user
@@ -358,6 +376,7 @@ static void setSavedModelState(Imod *mod)
   mod->zmax = App->cvi->zUnbinSize;
   mod->xybin = App->cvi->xybin;
   mod->zbin = App->cvi->zbin;
+  setOrClearFlags(&mod->flags, IMODF_NEW_TO_3DMOD, 0);
 }
 
 /* 
@@ -532,7 +551,7 @@ static void initModelData(Imod *newModel, bool keepBW)
   Model = App->cvi->imod = newModel;
 
   /* DNM 6/3/04: avoid two draws by keeping levels in the first place */
-  if (!keepBW) {
+  if (!keepBW && !(newModel->flags & IMODF_NEW_TO_3DMOD)) {
     ivwSetBlackWhiteFromModel(App->cvi);
   }
 

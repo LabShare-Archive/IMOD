@@ -172,6 +172,19 @@ if prexcorr:
    if ifsize:
       tiltcom += [fmtstr('XMinAndMax {},{}', xmin, xmax),
                   fmtstr('YMinAndMax {},{}', ymin, ymax)]
+
+   # Add the skip or break list, adding 1 to get from sections to views
+   if skipList or breakList:
+      if skipList:
+         nlist = skipList
+         opt = 'SkipViews'
+      else:
+         nlist = breakList
+         opt = 'BreakAtViews'
+      for num in nlist:
+         opt += ' ' + str(num + 1)
+      tiltcom.append(opt)
+      
    try:
       runcmd('tiltxcorr -StandardInput', tiltcom)
    except ImodpyError:

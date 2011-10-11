@@ -109,9 +109,11 @@ scale the data (distances will be in pixels and densities in points per square
 pixel), 1 to scale the data to microns (densities will be points per square
 micron), or -1 to specify some other scaling.
 
-  IF you entered 1, next make two entries:
+  IF you entered 1, next make two entries.  For data digitized from film, enter:
       Magnification of the negatives, e.g. 15500
-      Scale during digitization, in microns per pixel, as reported by VIDS.
+      Scale during digitization, in microns per pixel
+    For data acquired from CCD, enter 1000 for the magnification and the pixel
+      size on the specimen in nanometers
 
   IF you entered -1, instead enter the desired multiplicative scaling factor.
 
@@ -126,12 +128,13 @@ section, without using a model contour to specify the boundary.  (Enter -1,0
 at this point to loop back and read a different model file.)
 
   IF you entered 0,0, the next line asks for two entries: the Z value of the
-  section; and either 0 to use the smallest rectangle that encloses all of
-  the points on the section, or 1 to select some special options that would
-  provide a fancier boundary than this, or -1 to use special options selected
-  previously.  The default for the Z value is one more than the Z value of the
-  last area analyzed, so it is possibly to analyze a series of sequential
-  sections quickly by using , or / to take this default value.
+  section, numbered from 0; and either 0 to use the smallest rectangle that
+  encloses all of the points on the section, or 1 to select some special
+  options that would provide a fancier boundary than this, or -1 to use
+  special options selected previously.  The default for the Z value is one
+  more than the Z value of the last area analyzed, so it is possible to
+  analyze a series of sequential sections quickly by using , or / to take this
+  default value.
 
      IF you enter 1 to select some special options, next make the following
      entries:
@@ -162,7 +165,8 @@ Next you must specify the bin width and extent of the density graphs.
    For radial graphs, enter the bin width (the increment of radial distance
    over which a single value of density is computed) and the number of bins.
    The total radial extent of the graph is the product of the bin width and
-   number of bins.
+   number of bins.  The bin width should be in microns if the model file had
+   a pixel size defined, or if you entered a pixel size as described above.
 
    For angular graphs, the extent of the graph is always 180 degrees.  Enter
    the number of bins to divide this range into, and the inner and outer radii

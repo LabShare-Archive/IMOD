@@ -116,6 +116,7 @@
 #define IMODF_OTRANS_ORIGIN (1l << 14)  /* otrans has image origin values */
 #define IMODF_MAT1_IS_BYTES (1l << 13)  /* mat1 and mat3 are stored as bytes */
 #define IMODF_MULTIPLE_CLIP (1l << 12)  /* multiple clip planes possible */
+#define IMODF_NEW_TO_3DMOD  (1l << 11)  /* Model has not been written by 3dmod yet */
 
 /****************************** Structures ***********************************/
 

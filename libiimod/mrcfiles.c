@@ -884,7 +884,7 @@ int mrc_read_slice(void *buf, FILE *fin, MrcHeader *hdata, int slice, char axis)
     data = (unsigned char *)buf;
     for (j = 0; j < sysize; j++)
       for (k = 0; k < sxsize; k++)
-        *data++ = (unsigned char *)(*sbbuf++ + 128);
+        *data++ = (unsigned char)(*sbbuf++ + 128);
   }
 
   fflush(fin);

@@ -4,7 +4,6 @@
 # Author: David Mastronarde
 #
 # $Id$
-# Log at end
 #
 
 # load System Libraries
@@ -33,7 +32,7 @@ def quoteSubstitute(lin):
       envar = re.search('%\{([A-Z0-9_]+)\}', lin)
       regvar = re.search('.*%(\w+)', lin)
       if envar:
-         lin = re.sub('%\{([A-Z0-9_]+)\}', r'""" + os.environ("\1") + """', lin, 1)
+         lin = re.sub('%\{([A-Z0-9_]+)\}', r'""" + os.environ["\1"] + """', lin, 1)
       elif regvar:
          lin = re.sub('%(\w+)', r'""" + str(\1) + """', lin, 1)
       else:
@@ -483,10 +482,12 @@ while ind < len(lines):
    elif line:
       closeErrorExit("Expected command or Python line: " + line)
 
+prnstr("except KeyError:", file=out)
+prnstr("  prnstr('ERROR: Environment variable not defined: ' +  str(sys.exc_info()[1]), file=log)", file=out)
+prnstr("  closeExit(1)", file=out)
 prnstr("except Exception:", file=out)
 prnstr("  prnstr('ERROR: Unknown error running commands: ' +  str(sys.exc_info()[1]), file=log)", file=out)
-prnstr("  log.close()", file=out)
-prnstr("  sys.exit(1)", file=out)
+prnstr("  closeExit(1)", file=out)
 prnstr("closeExit(0)", file=out)
 if closeout:
    out.close()
@@ -516,10 +517,14 @@ try:
       if not quiet:
          prnstr("DONE!")
 except ImodpyError:
+   nolines = True
    for l in getErrStrings():
       if l.find(outfile) < 0:
          prnstr(l, end='')
+         nolines  = False
    retval = 1
+   if nolines and not quiet:
+      prnstr("ERROR: vmstopy - Executing the script; see log for error")
 
 try:
    if usetemp:
@@ -529,40 +534,3 @@ except Exception:
    retval = 1   
 
 sys.exit(retval)
-
-
-#
-#  $Log$
-#  Revision 1.9  2011/09/04 13:21:47  mast
-#  Output PID; provide error function to call if $status tested after command;
-#  eliminate nonomatch, matchshifts, sync on Windows; fix quoting for setenv and
-#  set with non-numeric values; fix bare excepts; handle vmstocsh; substitute
-#  variables in echo; run a script command with interpreter on Windows; handle
-#  exit n properly; substitute b3dremove for rm, b3dcopy for cp, makeBackupFile
-#  for mv x x~; quote command input with """
-#
-#  Revision 1.8  2011/08/11 18:19:06  mast
-#  Fixed problem with setting library path and with closing stdout, added setenv
-#  and b3dremove translations
-#
-#  Revision 1.7  2010/12/02 00:37:12  mast
-#  Changes for python 2/3 compatibility
-#
-#  Revision 1.6  2009/12/04 20:48:56  mast
-#  Set entry printing variable, added succes statement at end
-#
-#  Revision 1.5  2008/02/28 00:27:34  mast
-#  Oops, to use imodpy, have to put the pylib on the path
-#
-#  Revision 1.4  2008/01/05 17:20:41  mast
-#  Execute script with runcmd(python -u ...) to avoid error on good exit
-#
-#  Revision 1.3  2007/11/20 20:29:35  mast
-#  Added IMOD_QTLIBDIR to LD_LIBRARY_PATH if both defined
-#
-#  Revision 1.2  2006/10/01 13:37:06  mast
-#  Used backup file function
-#
-#  Revision 1.1  2006/09/26 23:02:48  mast
-#  Added to package
-#

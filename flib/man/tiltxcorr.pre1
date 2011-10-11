@@ -114,7 +114,16 @@ DDEESSCCRRIIPPTTIIOONN
   Note that patches smaller than 1180 pixels will be correlated without
   binning by default, whereas the whole image will typically be binned for
   correlation.  As a result, the patch correlations may be noisier and may
-  require either more high-frequency filtering or explicit binning.
+  require either more high-frequency filtering or explicit binning.  If views
+  are skipped, there will be no model points on those views and positions will
+  be tracked between the views before and after a skipped view.  If the
+  transforms used for preliminary alignment of the input stack are supplied,
+  then the program will be able to detect when patches contain blank image
+  area.  It will either skip a patch when it has too much blank area (more
+  that 30%), or it will taper the image data down to the edge of the blank
+  area to minimize correlation artifacts.  When a patch is skipped on a view,
+  the tracking will be resumed on the next view where the patch has usable
+  image data, unless more than 5 views have been skipped.
 
   Boundary contours: Boundary contours may be used to constrain the region
   being correlated for alignment or the locations tracked by correlation.

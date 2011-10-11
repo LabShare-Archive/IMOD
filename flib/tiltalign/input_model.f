@@ -4,7 +4,6 @@ c       the analysis, and converts the coordinates to "index" coordinates
 c       with the origin at the center of the section
 c       
 c       $Id$
-c       Log at end
 c       
       subroutine input_model(xx,yy,isecview,maxprojpt,maxreal,
      &    irealstr,ninreal, imodobj, imodcont,nview, nprojpt,nrealpt,
@@ -103,8 +102,7 @@ c
         ninobj=npt_in_obj(iobject)
         if(ninobj.gt.1)then
           do ipt=1,ninobj
-            iz=nint((p_coord(3,object(ipt+ibase_obj(iobject))) + 
-     &          zorig) / delta(3))
+            iz=nint((p_coord(3,object(ipt+ibase_obj(iobject))) +  zorig) / delta(3))
             do i=1,nzlist
               if(iz.eq.listz(i))go to 20
             enddo
@@ -113,7 +111,9 @@ c
 20        enddo
         endif
       enddo
-      if (nzlist .eq. 0) call errorexit('THE FIDUCIAL MODEL IS EMPTY', 0)
+      if (n_point .eq. 0) call errorexit('THE FIDUCIAL MODEL IS EMPTY', 0)
+      if (nzlist .eq. 0) call errorexit(
+     &    'THE FIDUCIAL MODEL HAS NO CONTOURS WITH MORE THAN ONE POINT', 0)
       if (nzlist .eq. 1) call errorexit(
      &    'THE FIDUCIAL MODEL HAS POINTS ON ONLY ONE VIEW', 0)
 c       
@@ -530,73 +530,3 @@ c
       deallocate(imodObjSize, mapImodObj, numGroup1)
       return
       end
-
-c       
-c       $Log$
-c       Revision 3.20  2009/11/21 22:18:39  mast
-c       Report two point numbers for duplicate point
-c
-c       Revision 3.19  2008/12/12 00:46:49  mast
-c       Stop inverting points for output; add error if no points or points on
-c       only one view
-c
-c       Revision 3.18  2007/11/18 04:57:10  mast
-c       Redeclared concat at 320
-c
-c       Revision 3.17  2006/06/29 04:53:36  mast
-c       Set up to use small model
-c
-c       Revision 3.16  2005/12/09 04:45:32  mast
-c       gfortran: .xor., continuation, or byte fixes
-c       
-c       Revision 3.15  2005/11/13 23:06:26  mast
-c       Fixed format
-c       
-c       Revision 3.14  2005/04/12 20:12:33  mast
-c       Made it set object colors to standard colors when there are two groups
-c       
-c       Revision 3.13  2004/10/24 22:49:34  mast
-c       fixed line length and lnblnk declaration problems
-c       
-c       Revision 3.12  2004/10/24 22:29:25  mast
-c       Changes for pip input and residual file options
-c       
-c       Revision 3.11  2004/09/16 16:14:23  mast
-c       Had it pass point file name out instead of opening it; made it give
-c       error when a contour has two points on a view.
-c       
-c       Revision 3.10  2004/06/17 17:47:56  mast
-c       Reset zscale and rotation of 3d fiducial model
-c       
-c       Revision 3.9  2004/06/10 05:39:35  mast
-c       Return a pixel size to main program
-c       
-c       Revision 3.8  2004/05/05 05:44:49  mast
-c       Output the 3D model with inverted Z to match tomogram
-c       
-c       Revision 3.7  2003/01/30 20:55:11  mast
-c       Fixed xyz model output (again)
-c       
-c       Revision 3.6  2003/01/18 00:02:52  mast
-c       Fixed bug in model output when there are many contours with one point
-c       
-c       Revision 3.5  2002/12/21 00:02:38  mast
-c       Add option for getting both residual and 3D model output
-c       
-c       Revision 3.4  2002/07/28 22:54:03  mast
-c       Applied scaling to 3-D model output
-c       
-c       Revision 3.3  2002/07/28 22:37:52  mast
-c       Made it scale model coordinates correctly and get scaling/origin
-c       information from model file if image file not given.  Also
-c       standardized error output and had it exit rather than loop on
-c       model file reading error.
-c       
-c       Revision 3.2  2002/05/20 15:55:04  mast
-c       Fixed model output so that it works properly with points assigned to
-c       two surfaces, and with multiple objects; also had it set object type
-c       to scattered points and set point size appropriately.
-c       
-c       Revision 3.1  2002/05/07 02:07:12  mast
-c       Changes to make things work well with a subset of views
-c       

@@ -21,6 +21,26 @@ name on the command line.  If no output file is specified and the program
 is not run in trial mode, pixels will be replaced in the input file.
 USE REPLACEMENT OPTION WITH CAUTION.
 
+[Field = PieceListFile]
+short = piece
+type = FN
+usage = File with piece coordinates for a montaged image file
+tooltip = Input image file.
+manpage = File with piece coordinates for a montaged image file.  With this
+entry, the program will assume that an input model was drawn on a display of
+the montage with overlaps adjusted to be either 0,0 or the amount indicated by
+the -overlaps option.  The output model file with points found will also be
+formatted to fit on such a display.
+
+[Field = OverlapsForModel]
+short = overlaps
+type = IP
+usage = Overlaps in X and Y at which montaged image is being viewed (default 0,0)
+tooltip = 
+manpage = Overlaps in X and Y at which a montaged image is being viewed both when
+producing an input model and viewing the output model of pixels being
+replaced.  The same values should be used as are provided to the -o option of
+3dmod.  The default is 0,0, which represents no overlap between images.
 
 [Field = FindPeaks]
 short = find

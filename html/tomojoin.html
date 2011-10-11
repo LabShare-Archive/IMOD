@@ -372,7 +372,23 @@ stepping between slices, consult the right side
 of the section table, which shows the range
 of slices that can validly be used as reference and current sections
 for a given current chunk.
-
+<P>
+In <A href="man/midas.html">Midas</A>, you can also align slices with a
+nonlinear transform, i.e., warping, if the linear transformation is
+inadequate.  Essentially, after aligning as much you wish with a linear
+transformation, you select the option to add warping points.  You then add a
+series of points at locations where there are features that can be aligned.
+At each location, you shift the image locally into alignment.  See the section
+<b>Warping Images</b> in the <A HREF = "man/midas.html">Midas man page</A> for
+more details.  Note that you can also use the warping functionality with just
+three points as an alternative way to stretch an image, and you still have a
+linear transformation.
+<P>
+Once you have introduced warping, the programs for transforming images and
+models will work with warping transforms instead of linear transforms.  You
+can reopen <A href="man/midas.html">Midas</A> with the warping transforms and
+adjust.  However, you cannot use <B>Refine Auto Alignment</B> to refine the
+alignment automatically once there are warping transforms.
 <P>
 <H4><A NAME = "AutoAlignment"></A>
 3.2. Automatic Alignment with Xfalign
@@ -523,6 +539,13 @@ bottom of the next.  If there are enough data from trajectories, it is even
 possible to determine the proper spacing between sections.  See the 
 <A href="man/xfjointomo.html">Xfjointomo man page</A> for complete details on
 how the program works.  
+<P>
+You can still refine the alignment if you used warping for the initial
+alignment, but <A href="man/xfjointomo.html">Xfjointomo</A> will (thus far)
+solve only for a linear refining transformation.  The final transformations
+applied in rejoining the volumes will still be warping transforms, since they
+are obtained by multiplying the initial warping transforms with the refining
+transforms.
 <P>
 <H3><A NAME = "RefineModel"></A>
 5.1. Making a Fiducial Model

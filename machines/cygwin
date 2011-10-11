@@ -21,6 +21,7 @@ set fcompFlags = ""
 set fcmpldFlags = ""
 set openmpFlags = ""
 set ccompFlags = ""
+set fcmpNoportFlags = ""
 
 if ($compiler == intel) then
     set c_includes =  

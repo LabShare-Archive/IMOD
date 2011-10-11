@@ -192,7 +192,7 @@ xfproduct$(E): xfproduct.$(O)
 	$(FC) -o xfproduct xfproduct.$(O) $(LDFLG) $(IMLIBS) $(LIWARP) $(LIBS)
 
 xfsimplex$(E): xfsimplex.$(O)
-	$(FC) -o xfsimplex xfsimplex.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+	$(FC) -o xfsimplex xfsimplex.$(O) $(LDFLG) $(IMLIBS) $(LIWARP) $(LIBS)
 
 xftoxg$(E): xftoxg.$(O)
 	$(FC) -o xftoxg xftoxg.$(O) $(LDFLG) $(IMLIBS) $(LIWARP) $(LIBS)

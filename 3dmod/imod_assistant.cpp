@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <stdlib.h>
@@ -46,6 +45,18 @@ ImodAssistant::ImodAssistant(const char *path, const char *adpFile,
 
   // Get IMOD_DIR or fallback if necessary
   mImodDir = IMOD_DIR_or_default(&mAssumedIMOD);
+#ifdef _WIN32
+
+  // Check for alternate locations for standalone IMOD/3dmod directories
+  if (mAssumedIMOD && !QFile::exists(mImodDir)) {
+    char *PF3dmod = "C:\\Program Files\\3dmod";
+    char *PFIMOD = "C:\\Program Files\\IMOD";
+    if (QFile::exists(PFIMOD))
+      mImodDir = PFIMOD;
+    else if (QFile::exists(PF3dmod))
+      mImodDir = PF3dmod;
+  }
+#endif
 
   // Set up path to help files; either absolute or under IMOD_DIR
   if (absolute) {
@@ -86,11 +97,14 @@ int ImodAssistant::showPage(const char *page)
   if (!mAssistant) {
 
     // Open the assistant in qtlib if one exists, otherwise take the one on
-    // path.  Need to check for .app on Mac, and in /bin on Windows
+    // path.  Need to check for .app on Mac, and in /bin or IMOD_DIR itself on Windows
 #ifdef _WIN32
     assPath = QDir::cleanPath(mImodDir + sep + "bin");
     if (!QFile::exists(assPath + sep + "assistant_adp.exe")) 
-      assPath = "";
+      if (QFile::exists(mImodDir + sep + "assistant_adp.exe"))
+        assPath = mImodDir;
+      else
+        assPath = "";
 #else
     assPath = QDir::cleanPath(mImodDir + sep + "qtlib");
     if (!QFile::exists(assPath + sep + "assistant_adp") && 
@@ -121,9 +135,11 @@ int ImodAssistant::showPage(const char *page)
 #endif
   }
 
-  // Get full path name and clean it
+  // Get full path name and clean it; fix up call from plugin in standalone case
   if (QDir::isRelativePath(page))
     fullPath = mPath + sep + page;
+  else if (QString(page).startsWith("/lib/imodplug"))
+    fullPath = mImodDir + page;
   else
     fullPath = page;
   fullPath = QDir::cleanPath(fullPath);
@@ -139,7 +155,7 @@ int ImodAssistant::showPage(const char *page)
     fileOnly = QString("Cannot find help file: ") + fileOnly;
     if (mAssumedIMOD)
       fileOnly += QString("\nThis is probably because IMOD_DIR is not defined"
-                          "\nand was assumed to be") + mImodDir;
+                          "\nand was assumed to be ") + mImodDir;
     if (!mTitle.isEmpty())
       QMessageBox::warning(0, mTitle, fileOnly, QMessageBox::Ok,
                            QMessageBox::NoButton, QMessageBox::NoButton);
@@ -162,51 +178,3 @@ void ImodAssistant::assistantError(const QString &msg)
   QMessageBox::warning(0, mTitle, fullMsg, QMessageBox::Ok,
                        QMessageBox::NoButton, QMessageBox::NoButton);
 }
-
-/*
-
-$Log$
-Revision 1.12  2009/01/15 16:33:17  mast
-Qt 4 port
-
-Revision 1.11  2006/06/18 23:42:09  mast
-Added constructor argument and ability to keep sidebar
-
-Revision 1.10  2005/02/24 22:29:44  mast
-Added fallback for IMOD_DIR and enhanced error message if fallback used
-
-Revision 1.9  2004/12/24 02:11:05  mast
-Have it take determine if page is an absolute path instead of requiring
-argument
-
-Revision 1.8  2004/12/22 23:15:17  mast
-Have it determine if adp file not found and give a different return code
-instead of generating the error signal
-
-Revision 1.7  2004/12/06 04:39:19  mast
-Made truly standalone, took out of library back into 3dmod
-
-Revision 1.2  2004/12/04 19:22:38  mast
-Converted path to absolute before call assistant, RH 9.0 seemed to need
-
-Revision 1.1  2004/12/04 02:07:13  mast
-Added to libdiaqt, added argument to control error reporting, fixed for
-Windows if assistant in IMOD_DIR/bin is not on path
-
-Revision 1.5  2004/11/24 18:30:02  mast
-Add the adp file if Qt version supports it
-
-Revision 1.4  2004/11/22 18:07:22  mast
-Changed to work on Mac and to get assistant object on first time instead
-of upon construction
-
-Revision 1.3  2004/11/22 04:30:50  mast
-; on include
-
-Revision 1.2  2004/11/22 03:58:58  mast
-Got it working in Windows/Qt 3.3; added check for file existence
-
-Revision 1.1  2004/11/22 00:21:32  mast
-Addition to program
-
-*/

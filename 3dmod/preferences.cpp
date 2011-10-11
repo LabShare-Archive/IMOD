@@ -124,6 +124,13 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   plugdir = getenv("IMOD_DIR");
   if (plugdir)
     strList << QString(plugdir) + QString("/lib/imodplug");
+
+  // Add these for standalone 3dmod package
+#ifdef _WIN32
+  else
+    strList << QString("C:/Program Files/IMOD/lib/imodplug") << 
+      QString("C:/Program Files/3dmod/lib/imodplug");
+#endif
   for (i = 0; i < strList.count(); i++)
     if (QFile::exists(strList[i] + "/imageformats"))
       break;

@@ -70,10 +70,11 @@ public final class TomopitchLog {
     if (logFile != null) {
       return;
     }
-    logFile = new File(manager.getPropertyUserDir(), DatasetFiles
-        .getTomopitchLogFileName(manager, axisID));
+    logFile = new File(manager.getPropertyUserDir(),
+        DatasetFiles.getTomopitchLogFileName(manager, axisID));
+    BufferedReader reader = null;
     try {
-      BufferedReader reader = new BufferedReader(new FileReader(logFile));
+      reader = new BufferedReader(new FileReader(logFile));
       String line;
       while ((line = reader.readLine()) != null) {
         line = line.trim();
@@ -112,8 +113,17 @@ public final class TomopitchLog {
           }
         }
       }
+      reader.close();
     }
     catch (IOException e) {
+      if (reader != null) {
+        try {
+          reader.close();
+        }
+        catch (IOException e1) {
+          e1.printStackTrace();
+        }
+      }
       e.printStackTrace();
     }
   }

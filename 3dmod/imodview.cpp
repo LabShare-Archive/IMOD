@@ -357,7 +357,7 @@ void ivwReadZ(ImodView *vi, unsigned char *buf, int cz)
     bxy = nxbin * nybin;
 
     /* Clear image buffer we will write to. */
-    memset(buf, 0, mxy * pixSize);
+    memset(buf, 127, mxy * pixSize);
 
     /* Setup load buffer. */
     if (plistBufSize == -1){

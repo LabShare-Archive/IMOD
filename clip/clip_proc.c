@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end
  */
 
 #include <limits.h>
@@ -1908,7 +1907,8 @@ struct zstats {
 int clip_stat(MrcHeader *hin, ClipOptions *opt)
 {
   int i, j, k, iz, di, dj, nsum, length, kk, outlast;
-  int xmax, ymax, xmin, ymin, zmin, zmax;
+  int xmax, ymax, xmin, ymin, zmin, zmax, izo, xmaxo, ymaxo;
+  int minxpiece, xoverlap, numXpieces, minypiece, yoverlap, numYpieces;
   Islice *slice;
   float min, max, m, ptnum;
   double mean, std, sumsq, vmean, vsumsq, cx, cy, data[3][3];
@@ -1916,23 +1916,50 @@ int clip_stat(MrcHeader *hin, ClipOptions *opt)
   float vmin, vmax, kcrit = 2.24f;
   char starmin, starmax;
   b3dInt16 *sdata;
+  IloadInfo li;
+  int viewAdd = opt->fromOne ? 1 : 0;
   struct zstats *stats;
   float *allmins, *allmaxes, *ifdrop;
   int outliers = (opt->val != IP_DEFAULT || opt->low != IP_DEFAULT) ? 1 : 0;
 
-  /*     if (opt->dim == 3){
-         v = grap_volume_read(hin, opt);
-         clip_stat3d(v);
-         grap_volume_free(v);
-         return(0);
-         }
-  */
+  /* Try to get a piece list from file and adjust it for overlaps */
+  mrc_init_li(&li, NULL);
+  if (opt->plname && mrc_plist_li(&li, hin, opt->plname)) {
+    show_error("stat: error reading piece list file");
+    return -1;
+  }
+  if (li.plist) {
+    if (li.plist < hin->nz) {
+      show_error("stat: not enough piece coordinates in file");
+      return -1;
+    }
+    if (opt->newXoverlap == IP_DEFAULT)
+      opt->newXoverlap = 0;
+    if (opt->newYoverlap == IP_DEFAULT)
+      opt->newYoverlap = 0;
+    if (checkPieceList(li.pcoords, 3, li.plist, 1, hin->nx, &minxpiece, &numXpieces,
+                       &xoverlap) || 
+        checkPieceList(li.pcoords + 1, 3, li.plist, 1, hin->ny, &minypiece, &numYpieces,
+                       &yoverlap)) {
+      show_error("stat: piece coordinates are not regularly spaced");
+      return -1;
+    }
+    if (numXpieces > 1)
+      adjustPieceOverlap(li.pcoords, 3, li.plist, hin->nx, minxpiece, xoverlap, 
+                         opt->newXoverlap);
+    if (numYpieces > 1)
+      adjustPieceOverlap(li.pcoords + 1, 3, li.plist, hin->ny, minypiece, yoverlap,
+                         opt->newYoverlap);
+    printf("piece|   min   |(   x,  %s)|    max  |(   x,  %s)|   mean\n",
+           opt->fromOne ? "y, view" : " y,   z", opt->fromOne ? "y, view" : " y,   z");
+    printf("-----|---------|----------------|---------|----------------|---------\n");
+  } else {
 
-  /* printf("headersize %d\n", hin->headerSize); */
-
-  printf("%s|   min   |(   x,   y)|    max  |(      x,      y)|   mean    |  "
-         "std dev.\n", opt->fromOne ? "view " : "slice");
-  printf("-----|---------|-----------|---------|-----------------|-----------|----------\n");
+    printf("%s|   min   |(   x,   y)|    max  |(      x,      y)|   mean    |  "
+           "std dev.\n", opt->fromOne ? "view " : "slice");
+    printf("-----|---------|-----------|---------|-----------------|-----------|--"
+           "--------\n");
+  }
      
   set_input_options(opt, hin);
   stats = (struct zstats *)malloc(opt->nofsecs * sizeof(struct zstats));
@@ -2079,9 +2106,19 @@ int clip_stat(MrcHeader *hin, ClipOptions *opt)
     stats[k].y = y;
     stats[k].mean = mean;
     stats[k].std = std;
-    if (!outliers)
-      printf("%4d  %9.4f (%4d,%4d) %9.4f (%7.2f,%7.2f) %9.4f  %9.4f\n", iz + 
-             (opt->fromOne ? 1 : 0), min, xmin, ymin, max, x, y, mean, std);
+    if (!outliers) {
+      if (li.plist) {
+        xmin += li.pcoords[3*iz] + viewAdd;
+        ymin += li.pcoords[3*iz+1] + viewAdd;
+        xmaxo = B3DNINT(x) + li.pcoords[3*iz] + viewAdd;
+        ymaxo = B3DNINT(y) + li.pcoords[3*iz+1] + viewAdd;
+        printf("%4d  %9.4f (%4d,%4d,%4d) %9.4f (%4d,%4d,%4d) %9.4f\n", iz + viewAdd, min,
+               xmin, ymin, li.pcoords[3*iz+2] + viewAdd, max, xmaxo, ymaxo,
+               li.pcoords[3*iz+2] + viewAdd, mean);
+      } else
+        printf("%4d  %9.4f (%4d,%4d) %9.4f (%7.2f,%7.2f) %9.4f  %9.4f\n", iz + viewAdd,
+               min, xmin + viewAdd, ymin + viewAdd, max, x, y, mean, std);
+    }
     else if (k >= length - 1) {
       for (kk = outlast + 1; kk <= k; kk++) {
         starmin = ' ';
@@ -2103,8 +2140,19 @@ int clip_stat(MrcHeader *hin, ClipOptions *opt)
           starmax = '*';
           stats[kk].outlier = 1;
         }
+
+      if (li.plist) {
+        xmin = stats[kk].xmin + li.pcoords[3*kk] + viewAdd;
+        ymin = stats[kk].ymin + li.pcoords[3*kk+1] + viewAdd;
+        xmaxo = B3DNINT(stats[kk].x) + li.pcoords[3*kk] + viewAdd;
+        ymaxo = B3DNINT(stats[kk].y) + li.pcoords[3*kk+1] + viewAdd;
+        izo = li.pcoords[3*opt->secs[kk] + 2] + viewAdd;
+        printf("%4d  %9.4f%c(%4d,%4d,%4d) %9.4f%c(%4d,%4d,%4d) %9.4f  %9.4f\n", 
+               opt->secs[kk]+ viewAdd, allmins[kk], starmin, xmin, ymin, izo, 
+               allmaxes[kk], starmax, xmaxo, ymaxo, izo, stats[kk].mean, stats[kk].std);
+      } else
         printf("%4d  %9.4f%c(%4d,%4d) %9.4f%c(%7.2f,%7.2f) %9.4f  %9.4f\n", 
-               opt->secs[kk]+ (opt->fromOne ? 1 : 0), allmins[kk], starmin,
+               opt->secs[kk]+ viewAdd, allmins[kk], starmin,
                stats[kk].xmin, stats[kk].ymin, allmaxes[kk], starmax,
                stats[kk].x, stats[kk].y, stats[kk].mean, stats[kk].std);
         outlast = kk;
@@ -2123,7 +2171,8 @@ int clip_stat(MrcHeader *hin, ClipOptions *opt)
          vmin, zmin, vmax, zmax, vmean, std);
 
   if (outliers) {
-    printf("\n%s with %sextreme values:", opt->fromOne ? "Views" : "Slices",
+    printf("\n%s with %sextreme values:", 
+           li.plist ? "Pieces" : (opt->fromOne ? "Views" : "Slices"),
            opt->low != IP_DEFAULT ? "locally " : "");
     nsum = 0;
     length = 28 + (opt->low != IP_DEFAULT ? 8 : 0);
@@ -2209,108 +2258,4 @@ int free_vol(Islice **vol, int z)
   #endif
 
   }
-*/
-/*
-
-$Log$
-Revision 3.35  2011/07/25 02:54:03  mast
-Fix name of byte shifting function
-
-Revision 3.34  2011/07/25 02:44:58  mast
-Add option for controlling byte output, changes for that
-
-Revision 3.33  2011/03/05 03:34:52  mast
-Allow environment variable to prevent backing up file
-
-Revision 3.32  2011/02/28 17:36:31  mast
-Add unwrap option
-
-Revision 3.31  2011/02/23 22:21:48  mast
-Add multiply, add, divide, subtract, and truncate options.  Add scaling to the
-average,sd, variance options.  Made 2D averaging happen based on number of
-input files, not -2d flag, and added 2D sd/variance to that routine.
-
-Revision 3.30  2011/02/19 18:49:17  mast
-Adjust stat coordinates for a subarea offset
-
-Revision 3.29  2011/02/19 15:32:39  mast
-Added variance/standev maps
-
-Revision 3.28  2009/11/21 22:10:20  mast
-Added outlier report for stats
-
-Revision 3.27  2009/03/24 02:33:32  mast
-Switch from centroid to parabolic fit for stat 2d
-
-Revision 3.26  2008/12/11 23:51:15  mast
-Remove diagnostic output
-
-Revision 3.25  2008/11/15 00:49:56  mast
-Fixed bug in flipz of an odd file, made flipyz/rotx use up to 2x memory
-for a big file
-
-Revision 3.24  2007/11/23 01:05:58  mast
-Added iterations for smoothing
-
-Revision 3.23  2007/11/22 20:48:30  mast
-Added gaussian kernel smoothing
-
-Revision 3.22  2007/08/30 20:14:16  mast
-Made flipyz/rotx go in chunks, much faster
-
-Revision 3.21  2007/06/13 17:03:25  sueh
-bug# 1019 Setting hdr.sectionSkip in clip_splitrgb.
-
-Revision 3.20  2007/02/04 21:21:29  mast
-Eliminated mrcspectral includes
-
-Revision 3.19  2007/02/04 21:19:48  mast
-Eliminated mrcspectral includes
-
-Revision 3.18  2007/02/04 21:10:15  mast
-Function name changes from mrcslice cleanup
-
-Revision 3.17  2006/08/04 21:04:50  mast
-Made clip stat a little faster for ints and added min location
-
-Revision 3.16  2006/06/23 17:13:19  mast
-Added rotx option and adjusted header as in rotatevol
-
-Revision 3.15  2005/11/15 19:55:28  mast
-Fixed initialization of grand sum for stat
-
-Revision 3.14  2005/11/11 22:14:56  mast
-Changes for unsigned file mode
-
-Revision 3.13  2005/05/23 23:31:29  mast
-Switched mean and SD computation to use doubles
-
-Revision 3.12  2005/02/11 01:42:32  mast
-Warning cleanup: implicit declarations, main return type, parentheses, etc.
-
-Revision 3.11  2005/01/28 05:43:08  mast
-Changed defaults for diffusion to match 3dmod
-
-Revision 3.10  2005/01/27 05:55:17  mast
-Added anisotropic diffusion option
-
-Revision 3.9  2005/01/17 17:11:02  mast
-Changes for new typedefs and 2D processing scheme
-
-Revision 3.8  2005/01/07 20:13:59  mast
-Fixed problems with filtering and scaling, added many filtering operations
-
-
-Revision 3.7  2004/09/21 22:31:13  mast
-Added return 0 for split_rgb and join_rgb functions
-
-Revision 3.6  2004/04/22 19:08:45  mast
-Added error checks and returns on mrc I/O calls
-
-Revision 3.5  2004/01/17 20:32:33  mast
-Remove unneeded rewind
-
-Revision 3.4  2004/01/16 18:09:52  mast
-Added functions to split and join rgb images
-
 */
