@@ -15,3 +15,4 @@ RotationAngle	0.
 FilterSigma1	0.03
 FilterRadius2	0.25
 FilterSigma2	0.05
+#SkipViews
