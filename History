@@ -1,6 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-10/5/11: In eTomo fixing a problem in Windows where files cannot be backed up.
+10/12/11: In eTomo fixing a problem in Windows where the tomopitch.log file
+cannot be backed up.(Bug# 1557)
 
 10/5/11: Added commands to Alterheader for converting a mode 4 file to mode 2
 and back so that individual components can be seen in 3dmod.
