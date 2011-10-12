@@ -1791,8 +1791,12 @@ public final class ApplicationManager extends BaseManager implements
    * @param fromParam
    * @param toParam
    */
-  private void syncTiltxcorrParam(TiltxcorrParam fromParam, TiltxcorrParam toParam) {
+  private void syncTiltxcorrParam(final TiltxcorrParam fromParam,
+      final TiltxcorrParam toParam, final boolean init) {
     toParam.setAngleOffset(fromParam.getAngleOffset());
+    if (init) {
+      toParam.setSkipViews(fromParam.getSkipViews());
+    }
   }
 
   /**
@@ -1826,7 +1830,7 @@ public final class ApplicationManager extends BaseManager implements
         return null;
       }
       if (toParam != null) {
-        syncTiltxcorrParam(tiltXcorrParam, toParam);
+        syncTiltxcorrParam(tiltXcorrParam, toParam, false);
       }
       if (panelId == PanelId.CROSS_CORRELATION) {
         comScriptMgr.saveXcorr(tiltXcorrParam, axisID);
@@ -2015,7 +2019,7 @@ public final class ApplicationManager extends BaseManager implements
       comScriptMgr.loadXcorr(axisID);
       tiltXcorrPtParam = comScriptMgr.getTiltxcorrParamFromXcorrPt(axisID);
       TiltxcorrParam tiltXcorrParam = comScriptMgr.getTiltxcorrParam(axisID);
-      syncTiltxcorrParam(tiltXcorrParam, tiltXcorrPtParam);
+      syncTiltxcorrParam(tiltXcorrParam, tiltXcorrPtParam, true);
       tiltXcorrPtParam.setPartialSave(true);
       comScriptMgr.saveXcorrPt(tiltXcorrPtParam, axisID);
     }
