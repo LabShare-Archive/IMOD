@@ -175,4 +175,6 @@ public interface ConstTiltxcorrParam extends Command {
   public boolean isFilterSigma1Set();
 
   public boolean isFilterSigma2Set();
+
+  public String getSkipViews();
 }
