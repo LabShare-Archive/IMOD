@@ -157,6 +157,7 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
   public static final String FILTER_SIGMA_1_DEFAULT = "0.03";
   public static final String FILTER_RADIUS_2_DEFAULT = "0.25";
   public static final String FILTER_SIGMA_2_DEFAULT = "0.05";
+  public static final String SKIP_VIEWS_KEY = "SkipViews";
 
   // PIP and sequential input
   private String inputFile;
@@ -211,6 +212,11 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
   private final FortranInputString lengthAndOverlap;
   private final StringParameter boundaryModel = new StringParameter(BOUNDARY_MODEL_KEY);
   private final ProcessName processName;
+  private final StringParameter skipViews = new StringParameter(SKIP_VIEWS_KEY);
+  private final StringParameter prealignmentTransformFile = new StringParameter(
+      "PrealignmentTransformFile");
+  private ScriptParameter imagesAreBinned = new ScriptParameter(EtomoNumber.Type.LONG,
+      "ImagesAreBinned");
 
   private boolean partialSave = false;
   private boolean validate = false;
@@ -360,6 +366,9 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
     iterateCorrelations.reset();
     shiftLimitsXandY.setDefault();
     lengthAndOverlap.setDefault();
+    skipViews.reset();
+    prealignmentTransformFile.reset();
+    imagesAreBinned.reset();
   }
 
   public void resetBoundaryModel() {
@@ -480,6 +489,9 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
       shiftLimitsXandY.validateAndSet(scriptCommand);
       lengthAndOverlap.validateAndSet(scriptCommand);
       boundaryModel.parse(scriptCommand);
+      skipViews.parse(scriptCommand);
+      prealignmentTransformFile.parse(scriptCommand);
+      imagesAreBinned.parse(scriptCommand);
       return;
     }
 
@@ -594,6 +606,9 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
     shiftLimitsXandY.updateScriptParameter(scriptCommand);
     lengthAndOverlap.updateScriptParameter(scriptCommand);
     boundaryModel.updateComScript(scriptCommand);
+    skipViews.updateComScript(scriptCommand);
+    prealignmentTransformFile.updateComScript(scriptCommand);
+    imagesAreBinned.updateComScript(scriptCommand);
   }
 
   public void initializeDefaults() {
@@ -785,12 +800,8 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
    * Return a multiline string describing the class attributes.
    */
   public String toString() {
-    return "Input file: " + inputFile + "\n" + "Piece list file: " + pieceListFile + "\n"
-        + "Output file: " + outputFile + "\n" + "Exclude central peak : "
-        + String.valueOf(excludeCentralPeak) + "\n" + "Borders In X and Y: "
-        + bordersInXandY + "\n" + "Pads In X and Y: " + padsInXandY + "\n"
-        + "Tapers In X and Y: " + tapersInXandY + "\n" + "Starting Ending Views: "
-        + startingEndingViews + "\n";
+    return "[skipViews:" + skipViews + ",prealignmentTransformFile:"
+        + prealignmentTransformFile + ",imagesAreBinned:" + imagesAreBinned + "]";
   }
 
   /**
@@ -924,6 +935,22 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
 
   public String getTaperPercentString() {
     return tapersInXandY.toString(true);
+  }
+
+  public String getSkipViews() {
+    return skipViews.toString();
+  }
+
+  public void setSkipViews(final String input) {
+    skipViews.set(input);
+  }
+
+  public void setPrealignmentTransformFileDefault() {
+    prealignmentTransformFile.set(FileType.PRE_XG.getFileName(manager, axisID));
+  }
+
+  public void setImagesAreBinned(long input) {
+    imagesAreBinned.set(input);
   }
 
   public boolean isCumulativeCorrelation() {
