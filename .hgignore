@@ -16,6 +16,7 @@ syntax: glob
 *.\#*
 \#*\#
 .project
+*.manifest
 
 bin
 lib
@@ -34,6 +35,7 @@ VERSION
 3dmod/3dmodv
 3dmod/Makefile
 Etomo/.classpath
+Etomo/JUnitTests
 configure
 ctfplotter/Makefile
 [cmq]*/imod_assistant.cpp
@@ -41,6 +43,8 @@ ctfplotter/Makefile
 include/endian.inc
 include/imodconfig.h
 include/recl_bytes.inc
+include/tiffconf.h
+include/tiffvers.h
 libdiaqt/Makefile
 midas/Makefile
 plugs/Makefile
