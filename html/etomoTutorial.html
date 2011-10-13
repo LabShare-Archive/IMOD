@@ -562,7 +562,7 @@ to add the point in the center of the gold particle. It is useful to
 increase the magnification of the image with the &#8216;+&#8217; key and adjust the
 contrast on the sections, especially at high tilt. Repeat <b>&#8216;Go
 to&nbsp; Next Gap&#8217;</b> until the message, &#8216;<span
- style="font-weight: bold;">no more gaps are found</span>&#8217; comes up in
+ style="font-weight: bold;">No more gaps found</span>&#8217; comes up in
 the main 3dmod window. Save the model file,&nbsp; and hit the <span
  style="font-weight: bold;">Done</span> button to advance to the fine
 alignment step.</p>
@@ -724,7 +724,7 @@ Access the aligna.log file and go to the Surface Angles tab.<br>
 </p>
 <p class="MsoNormal">Note the Total tilt angle change near the bottom (in
 my example,
-this value was -0.05). Put this value in the <span
+this value was -0.09). Put this value in the <span
  style="font-weight: bold;">Fine Alignment Volume Position Parameters</span>
 box under <span style="font-weight: bold;">Total tilt angle offset</span>.
 Press the&nbsp; Compute Alignment button again, then select &#8216;Reread log
@@ -766,7 +766,7 @@ eTomo, as long as you haven't changed any parameters in eTomo. After a
 few runs of running the alignment and
 checking model points in 3dmod, the final mean residual should come
 down to 0.2-0.4.&nbsp;&nbsp; In my example, the final Residual error
-mean was 0.321.</p>
+mean was 0.318.</p>
 <p class="MsoNormal"><br>
 </p>
 <div style="text-align: center;"><img src="etomoImages/finalAerror.png"
@@ -1018,13 +1018,13 @@ file from my example is:&nbsp;<br>
 <h1><span style="font-weight: normal;">The transferfid log file
 will list the fiducial correspondence between the first and second
 axes. Do not worry if a few fiducials failed to transfer.
-In this example, all 25 fiducials correspond:</span></h1>
+In this example, all 27 fiducials correspond:</span></h1>
 <h1><span style="font-weight: normal;"><o:p></o:p></span></h1>
 <p class="MsoNormal"></p>
 <h1><code style="font-weight: normal;">&nbsp;&nbsp; &nbsp; Points in A:
-1-25</code><code><b>&nbsp;</b></code></h1>
+1-27</code><code><b>&nbsp;</b></code></h1>
 <h1><code><b>&nbsp; &nbsp; &nbsp;</b><span style="font-weight: normal;">Points
-in B: 1-25</span></code><br>
+in B: 1-27</span></code><br>
 </h1>
 <h1><br>
 <span style="font-weight: normal;"></span></h1>
@@ -1059,6 +1059,8 @@ generation steps. </span></p>
 <p class="MsoNormal">&nbsp;<o:p></o:p></p>
 <h1>Proceed with 'Tomogram Positioning' as outlined above for the A
 Axis.&nbsp;</h1>
+<p class="MsoNormal"><b>Proceed with 'Final Aligned Stack' steps as
+outlined above for the A Axis.</b></p>
 <p class="MsoNormal"><b>Proceed with 'Tomogram Generation' steps as
 outlined above for the A Axis.</b></p>
 <p class="MsoNormal"><br>
@@ -1117,10 +1119,10 @@ defaults were kept for the X and Y axis.</p>
 <p class="MsoNormal"><o:p></o:p></p><br>
 <p class="MsoNormal">In this example <b>Z axis min</b> and <b>Z axis max</b>
 where set to the first and last slices where about half the material in the slice
-is not blurry (15 and 66).</p><br>
+is not blurry (18 and 69).</p><br>
 <p class="MsoNormal" align="center">&nbsp;<img
- src="etomoImages/volA1.png" title="" alt=""><img
- src="etomoImages/volA2.png" title="" alt="">&nbsp;<span style=""> </span><o:p></o:p></p>
+ src="etomoImages/volA1.jpg" title="" alt=""><img
+ src="etomoImages/volA2.jpg" title="" alt="">&nbsp;<span style=""> </span><o:p></o:p></p>
 <p class="MsoNormal">
 Sometimes, this will not eliminate &#8220;empty&#8221;
 regions well enough to allow the two axes to combine.&nbsp; In that case, you have to
@@ -1186,10 +1188,10 @@ you press <span style="font-weight: bold;">Get XYZ Volume Range from
 3dmod,</span> eTomo will retrieve the X and Y values of the rubberband (and Z values if they are set)
 from 3dmod. &nbsp;In this example, the default ranges for X and Y
 are used. &nbsp;The Z axis (in the flipped tomogram) range has been set from
-a Z min of 17 to a Z max of 64 to exclude non-cellular material.&nbsp;
+a Z min of 19 to a Z max of 67 to exclude non-cellular material.&nbsp;
 Finally a scaling range is set to find the range of slices that exclude
 the gold beads. &nbsp;In this example, the scaling is section based and has a
-range between slices 24 and 66 (see below to enter these numbers using 3dmod).</p>
+range between slices 24 and 70 (see below to enter these numbers using 3dmod).</p>
 <br>
 <p class="MsoNormal">Sometimes it is not possible to find a range of slices that contain no
 gold.&nbsp;  For example, the sample used here contains some gold particles on the
@@ -1207,9 +1209,9 @@ the rubberband toggle to the left of the Z slider.</p><br>
 <br><p class="MsoNormal">Press the left mouse button over the upper left corner of
 the desired area, and drag the mouse to the lower right corner.&nbsp;  Then
 move the Z slider to lower part of the scaling range (24) and press 
-<b>Lo</b>.&nbsp;  Move the Z slider to the upper part of the scaling range (66) and press <b>Hi</b>.</p><br>
+<b>Lo</b>.&nbsp;  Move the Z slider to the upper part of the scaling range (70) and press <b>Hi</b>.</p><br>
 <p class="MsoNormal" align="center">&nbsp;<img
- src="etomoImages/rubberband2.png" title="" alt="">&nbsp;<span style=""> </span><o:p></o:p></p>
+ src="etomoImages/rubberband2.jpg" title="" alt="">&nbsp;<span style=""> </span><o:p></o:p></p>
 <p class="MsoNormal">Go to the <b>Scaling</b> box in eTomo and press the
 <b>Get XYZ Sub-Area From 3dmod</b> button.  This will cause the eTomo to retrieve
 X, Y, and Z values you selected.&nbsp; Press the <b>Trim Volume</b> button
