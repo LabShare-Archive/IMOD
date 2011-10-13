@@ -265,6 +265,7 @@ mb.beadtracker.1=B
 	assert.tf.pixels-to-taper=
 	assert.tf.test-output=
 	assert.tf.view-range=
+	assert.tf.views-to-skip=
 	bn.basic=
 	#Test enabled/disabled
 	assert.enabled.tf.size-of-patches=
@@ -290,6 +291,7 @@ mb.beadtracker.1=B
 	assert.enabled.tf.pixels-to-taper=
 	assert.enabled.tf.test-output=
 	assert.enabled.tf.view-range=
+	assert.enabled.tf.views-to-skip=
 	bn.basic=
 	#Test gui behavior
 	#Boundary model
