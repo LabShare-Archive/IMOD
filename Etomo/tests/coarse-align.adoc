@@ -95,6 +95,7 @@ assert.cb.no-cosine-stretch = off
 assert.cb.exclude-central-peak-due-to-fixed-pattern-noise = off
 assert.tf.test-output =
 assert.tf.view-range =
+assert.tf.views-to-skip =
 # enabled
 assert.enabled.tf.low-frequency-rolloff-sigma = 
 assert.enabled.tf.high-frequency-cutoff-radius =
@@ -112,6 +113,7 @@ assert.enabled.cb.no-cosine-stretch =
 assert.enabled.cb.exclude-central-peak-due-to-fixed-pattern-noise =
 assert.enabled.tf.test-output =
 assert.enabled.tf.view-range =
+assert.enabled.tf.views-to-skip =
 assert.enabled.bn.calculate-cross-correlation = 
 # enable/disable
 #   enabling/disabling Absolute cosine stretch
