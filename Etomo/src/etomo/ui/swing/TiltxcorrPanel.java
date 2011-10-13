@@ -286,6 +286,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       "Tilt angle offset: ");
   private final CrossCorrelationActionListener actionListener = new CrossCorrelationActionListener(
       this);
+  private final LabeledTextField ltfSkipViews = new LabeledTextField("Views to skip: ");
 
   // Patch tracking
   private final LabeledTextField ltfSizeOfPatchesXandY = new LabeledTextField(
@@ -316,6 +317,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
   private final ApplicationManager applicationManager;
   private final PanelId panelId;
   final ContextMenu contextMenu;
+  private String skipViews = null;
 
   private TiltxcorrPanel(final ApplicationManager applicationManager, final AxisID id,
       final DialogType dialogType, final GlobalExpandButton globalAdvancedButton,
@@ -393,6 +395,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       UIUtilities.addWithYSpace(pnlAdvanced, cbExcludeCentralPeak);
       UIUtilities.addWithYSpace(pnlAdvanced, ltfTestOutput.getContainer());
       UIUtilities.addWithYSpace(pnlAdvanced, ltfViewRange.getContainer());
+      UIUtilities.addWithYSpace(pnlAdvanced, ltfSkipViews.getContainer());
 
       pnlBody.setLayout(new BoxLayout(pnlBody, BoxLayout.Y_AXIS));
       pnlBody.add(Box.createRigidArea(FixedDim.x0_y5));
@@ -469,6 +472,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       UIUtilities.addWithYSpace(pnlAdvanced, ltfTaperPercent.getContainer());
       UIUtilities.addWithYSpace(pnlAdvanced, ltfTestOutput.getContainer());
       UIUtilities.addWithYSpace(pnlAdvanced, ltfViewRange.getContainer());
+      UIUtilities.addWithYSpace(pnlAdvanced, ltfSkipViews.getContainer());
       // button panel
       pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
       pnlButtons.add(Box.createHorizontalGlue());
@@ -571,6 +575,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
     ltfTaperPercent.setText(tiltXcorrParams.getTaperPercentString());
     ltfTestOutput.setText(tiltXcorrParams.getTestOutput());
     ltfViewRange.setText(tiltXcorrParams.getStartingEndingViews());
+    ltfSkipViews.setText(tiltXcorrParams.getSkipViews());
     if (tiltXcorrParams.isFilterSigma1Set()) {
       ltfFilterSigma1.setText(tiltXcorrParams.getFilterSigma1String());
     }
@@ -704,6 +709,8 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       tiltXcorrParams.setTapersInXandY(ltfTaperPercent.getText());
       currentParam = ltfViewRange.getLabel();
       tiltXcorrParams.setStartingEndingViews(ltfViewRange.getText());
+      currentParam = ltfSkipViews.getLabel();
+      tiltXcorrParams.setSkipViews(ltfSkipViews.getText());
       currentParam = ltfFilterSigma1.getLabel();
       tiltXcorrParams.setFilterSigma1(ltfFilterSigma1.getText());
       currentParam = ltfFilterRadius2.getLabel();
@@ -747,6 +754,9 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
         else {
           tiltXcorrParams.resetLengthAndOverlap();
         }
+        tiltXcorrParams.setPrealignmentTransformFileDefault();
+        tiltXcorrParams.setImagesAreBinned(UIExpertUtilities.INSTANCE.getStackBinning(
+            applicationManager, axisID, ".preali"));
       }
     }
     catch (FortranInputSyntaxException except) {
@@ -876,6 +886,8 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
         "AbsoluteCosineStretch"));
     cbNoCosineStretch.setToolTipText(EtomoAutodoc.getTooltip(autodoc, "NoCosineStretch"));
     ltfViewRange.setToolTipText(EtomoAutodoc.getTooltip(autodoc, "StartingEndingViews"));
+    ltfSkipViews.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        TiltxcorrParam.SKIP_VIEWS_KEY));
     cbExcludeCentralPeak.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         "ExcludeCentralPeak"));
     ltfAngleOffset.setToolTipText(EtomoAutodoc.getTooltip(autodoc, "AngleOffset"));
