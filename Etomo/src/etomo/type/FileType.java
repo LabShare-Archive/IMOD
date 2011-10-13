@@ -141,6 +141,8 @@ public final class FileType {
       true, false, "", ".nad", ImodManager.ANISOTROPIC_DIFFUSION_VOLUME_KEY);
   public static final FileType PREALIGNED_STACK = FileType.getImodInstance(true, true,
       "", ".preali", ImodManager.COARSE_ALIGNED_KEY);
+  public static final FileType PRE_XG = FileType.getImodInstance(true, true, "",
+      ".prexg", null);
   public static final FileType RAW_TILT_ANGLES = FileType.getInstance(true, true, "",
       ".rawtlt");
   public static final FileType TRIM_VOL_OUTPUT = FileType.getImodInstance(true, false,
@@ -194,7 +196,7 @@ public final class FileType {
   public static final FileType SIRT_SCALED_OUTPUT_TEMPLATE = FileType
       .getDerivedTemplateInstance(TILT_OUTPUT, ".sint", ImodManager.SIRT_KEY);
   public static final FileType SIRT_SUBAREA_SCALED_OUTPUT_TEMPLATE = FileType
-  .getTemplateInstance(true, true, "_sub", ".sint");
+      .getTemplateInstance(true, true, "_sub", ".sint");
   // Template for .srecnn
   public static final FileType SIRT_OUTPUT_TEMPLATE = FileType
       .getDerivedTemplateInstance(TILT_OUTPUT, ".srec", ImodManager.SIRT_KEY);
@@ -288,7 +290,7 @@ public final class FileType {
       namedFileTypeList.add(this);
     }
   }
-  
+
   private static FileType getTemplateInstance(final boolean usesDataset,
       final boolean usesAxisID, final String typeString, final String extension) {
     return new FileType(usesDataset, usesAxisID, typeString, extension, null, null, null,
