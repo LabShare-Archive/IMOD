@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/14/11: In eTomo added the taper parameter to newst.com.(Bug# 1548).
+
 10/12/11: In eTomo added SkipViews to xcorr.com and xcorr_pt.com
 (corresponding fields added to Coarse Alignment - Cross Correlation and
 Fiducial Model - Patch Tracking).  Also added PrealignmentTransformFile and
