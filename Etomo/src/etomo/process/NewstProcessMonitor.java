@@ -121,9 +121,11 @@
 package etomo.process;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import etomo.ApplicationManager;
 import etomo.comscript.ConstNewstParam;
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
 import etomo.util.InvalidParameterException;
@@ -132,9 +134,9 @@ import etomo.util.MRCHeader;
 final class NewstProcessMonitor extends FileSizeProcessMonitor {
   public static final String rcsid = "$Id$";
 
-  //private BufferedReader logReader = null;
+  // private BufferedReader logReader = null;
   private boolean gotStatusFromLog = false;
-  //NewstParam must be passed in because it can be loaded from more then one com file.
+  // NewstParam must be passed in because it can be loaded from more then one com file.
   private final ConstNewstParam newstParam;
 
   public NewstProcessMonitor(ApplicationManager appMgr, AxisID id,
@@ -143,17 +145,66 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
     this.newstParam = newstParam;
   }
 
-  /* (non-Javadoc)
-   * @see etomo.process.FileSizeProcessMonitor#calcFileSize()
+  /**
+   * Set gettingStatusFromLog to true and return true if mrctaper is being run
+   * This is for backward compatibility since mrctaper has been replace by the -taper
+   * newstack parameter.
    */
+  boolean gotStatusFromLog() {
+    // log already in use, return true
+    if (gotStatusFromLog) {
+      return true;
+    }
+    // read the lines available in the log and look for a line shows that
+    // mrctaper started
+    String line;
+    LogFile.ReaderId logReaderId = null;
+    try {
+      logReaderId = getLogFile().openReader();
+    }
+    catch (LogFile.LockException e) {
+      return false;
+    }
+    catch (FileNotFoundException e) {
+      return false;
+    }
+    try {
+      while ((line = getLogFile().readLine(logReaderId)) != null) {
+        if (line.startsWith("Tapering over")) {
+          // mrctaper started
+          applicationManager.getMainPanel().setProgressBarValue(0, "mrctaper", axisID);
+          gotStatusFromLog = true;
+          getLogFile().closeReader(logReaderId);
+          logReaderId = null;
+          return true;
+        }
+      }
+    }
+    // there is a problem with the log
+    catch (LogFile.LockException e) {
+      return false;
+    }
+    catch (IOException e) {
+      return false;
+    }
+    if (logReaderId != null && !logReaderId.isEmpty()) {
+      getLogFile().closeReader(logReaderId);
+      logReaderId = null;// added this
+    }
+    // did not find a line shows that mrctaper started
+    return false;
+  }
+
+  /* (non-Javadoc)
+   * @see etomo.process.FileSizeProcessMonitor#calcFileSize() */
   boolean calcFileSize() throws InvalidParameterException, IOException {
     int nX;
     int nY;
     int nZ;
     int modeBytes = 1;
 
-    // Get the depth, mode, any mods to the X and Y size from the tilt 
-    // command script and the input and output filenames. 
+    // Get the depth, mode, any mods to the X and Y size from the tilt
+    // command script and the input and output filenames.
     // Get the header from the raw stack to calculate the aligned stack stize
     String rawStackFilename = applicationManager.getPropertyUserDir() + "/"
         + newstParam.getInputFile();
@@ -184,7 +235,7 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
     }
 
     // Assumption: newst will write the output file with the same mode as the
-    // the input file 
+    // the input file
     long fileSize = 1024 + ((long) nX * nY) * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
     applicationManager.getMainPanel().setProgressBar("Creating aligned stack", nKBytes,
@@ -194,7 +245,7 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
 
   void reloadWatchedFile() {
     // Create a file object describing the file to be monitored
-    watchedFile = new File(applicationManager.getPropertyUserDir(), newstParam
-        .getOutputFile());
+    watchedFile = new File(applicationManager.getPropertyUserDir(),
+        newstParam.getOutputFile());
   }
 }
