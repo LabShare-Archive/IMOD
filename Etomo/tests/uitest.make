@@ -1,6 +1,7 @@
 all: test proc
 test: single-test-gui dual-test-gui single-patch-tracking-test-gui single-montage-test-gui dual-montage-test-gui join-test-gui peet-test-gui flatten-volume-test-gui
-proc: single dual single-fidless single-simple-align single-patch-tracking single-montage dual-montage dual-montage-patch-tracking join generic nad peet flatten-volume
+proc: single-fidless single-simple-align dual-montage-patch-tracking generic nad
+other: single dual single-patch-tracking single-montage dual-montage join peet flatten-volume
 temp: 
 
 single: dummy
