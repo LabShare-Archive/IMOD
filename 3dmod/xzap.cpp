@@ -140,8 +140,8 @@ ZapFuncs *getTopZapWindow(bool withBand, int type)
   if (!objList.count())
     return NULL;
 
-  // Loop through the control list and find the first window that is a zap
-  // with a viable rubberband if required.  
+  // Loop through the control list and find the first window that is a zap with a viable
+  // rubberband if required, which is either a drawn band or Z limits set & starting band
   // It is best to save and restore ctrlist current item
   topOne = -1;
   curSave = App->cvi->ctrlist->list->current;
@@ -149,7 +149,9 @@ ZapFuncs *getTopZapWindow(bool withBand, int type)
     ctrlPtr = (ImodControl *)ilistItem(App->cvi->ctrlist->list, j);
     for (i = 0; i < objList.count(); i++) {
       zap = ((ZapWindow *)objList.at(i))->mZap;
-      if (ctrlPtr->id == zap->mCtrl && (!withBand || zap->mRubberband)) {
+      if (ctrlPtr->id == zap->mCtrl && 
+          (!withBand || zap->mRubberband || 
+           (zap->mStartingBand && zap->getLowHighSection(ixl, ixr)))) {
         if (zap->mRubberband) {
           ixl = (int)floor(zap->mRbImageX0 + 0.5);
           ixr = (int)floor(zap->mRbImageX1 - 0.5);
@@ -179,20 +181,28 @@ void zapReportRubberband()
 {
   ZapFuncs *zap;
   int ixl, ixr, iyb, iyt, bin;
-
+  int lowSection, highSection;
 
   zap = getTopZapWindow(true);
   if (!zap) {
-    imodPrintStderr("ERROR: No Zap window has usable rubberband coordinates"
-                    "\n");
+    imodPrintStderr("ERROR: No Zap window has usable rubberband coordinates\n");
     return;
   }
 
   bin = zap->mVi->xybin;
-  ixl = (int)floor(zap->mRbImageX0 + 0.5);
-  ixr = (int)floor(zap->mRbImageX1 - 0.5);
-  iyb = (int)floor(zap->mRbImageY0 + 0.5);
-  iyt = (int)floor(zap->mRbImageY1 - 0.5);
+  if (zap->mRubberband) {
+    ixl = (int)floor(zap->mRbImageX0 + 0.5);
+    ixr = (int)floor(zap->mRbImageX1 - 0.5);
+    iyb = (int)floor(zap->mRbImageY0 + 0.5);
+    iyt = (int)floor(zap->mRbImageY1 - 0.5);
+  } else {
+
+    // If band is just statring, report the full area
+    ixl = 0;
+    iyb = 0;
+    ixr = zap->mVi->xsize - 1;
+    iyt = zap->mVi->ysize - 1;
+  }
   
   if (ixl < 0)
     ixl = 0;
@@ -206,7 +216,6 @@ void zapReportRubberband()
   iyb *= bin;
   ixr = ixr * bin + bin - 1;
   iyt = iyt * bin + bin - 1;
-  int lowSection, highSection;
   if (zap->getLowHighSection(lowSection, highSection)) {
     imodPrintStderr("Rubberband: %d %d %d %d %d %d\n", ixl + 1, iyb + 1,
                     ixr + 1, iyt + 1, zap->mVi->zbin * (lowSection - 1) + 1,

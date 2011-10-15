@@ -480,12 +480,15 @@ void InfoWindow::extract()
   if (!zap) {
     zap = getTopZapWindow(false);
     if (zap)
-      wprint("\aExtracting region visible in top zap window.\n");
+      wprint("\aExtracting region visible in top Zap window.\n");
     else {
-      wprint("\aThere is no zap window with or without a rubberband.\n");
+      wprint("\aThere is no Zap window with or without a rubberband.\n");
       return;
     }
-  }
+  } else if (zap->mStartingBand)
+    wprint("\aExtracting volume visible in Zap window with rubberband on but not "
+           "drawn.\n");
+
   mTrimvolOutput = QFileDialog::getSaveFileName
     (this, "MRC File to extract to:");
   if (mTrimvolOutput.isEmpty())
