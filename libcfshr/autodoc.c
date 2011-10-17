@@ -456,7 +456,7 @@ static int writeFile(FILE *afile, int writeAll)
 
     /* dump comments before section */
     comInd = 0;
-    while (comInd < sect->numComments && sect->comIndex[comInd] == -1)
+    while (write && comInd < sect->numComments && sect->comIndex[comInd] == -1)
       if (write)
         fprintf(afile, "%s\n", sect->comments[comInd++]);
 
@@ -468,7 +468,7 @@ static int writeFile(FILE *afile, int writeAll)
     for (k = 0; k < sect->numKeys; k++) {
 
       /* dump comments associated with this index */
-      while (comInd < sect->numComments && sect->comIndex[comInd] == k)
+      while (write && comInd < sect->numComments && sect->comIndex[comInd] == k)
         if (write)
           fprintf(afile, "%s\n", sect->comments[comInd++]);
 
