@@ -711,10 +711,10 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
       ltfLinearDensityScaleOffset.setText(tiltParam.getScaleFLevel());
       ltfLinearDensityScaleFactor.setText(tiltParam.getScaleCoeff());
     }
-    if (initialize) {
+    if (initialize && log) {
       EtomoNumber logScale = new EtomoNumber(EtomoNumber.Type.FLOAT);
       logScale.set(ltfLogDensityScaleFactor.getText());
-      if (!logScale.isNull() && logScale.isValid()) {
+      if (log && !logScale.isNull() && logScale.isValid()) {
         ltfLinearDensityScaleFactor
             .setText(Math.round(logScale.getFloat() / 5000. * 10.) / 10.);
       }
