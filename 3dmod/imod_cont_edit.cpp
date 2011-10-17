@@ -15,7 +15,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <qspinbox.h>
@@ -426,7 +425,7 @@ void ContourBreak::buttonPressed(int which)
     break;
 
   case 2: 
-    imodShowHelpPage("contourBreak.html");
+    imodShowHelpPage("contourBreak.html#TOP");
     break;
   }
 }
@@ -1952,145 +1951,3 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 {
   ivwControlKey(1, e);
 }
-
-/*
-
-$Log$
-Revision 4.41  2011/02/07 16:12:39  mast
-Convert zap structure to class, most functions to members
-
-Revision 4.40  2011/01/13 20:32:16  mast
-Only warn about labels on join if they are meaningful
-
-Revision 4.39  2010/04/01 02:41:48  mast
-Called function to test for closing keys, or warning cleanup
-
-Revision 4.38  2009/11/11 19:28:20  mast
-Added break at current point and external call for hot key
-
-Revision 4.37  2009/03/22 19:54:25  mast
-Show with new geometry adjust routine for Mac OS X 10.5/cocoa
-
-Revision 4.36  2009/03/10 04:35:50  mast
-Made open-closed toggle change multiple contours
-
-Revision 4.35  2009/02/26 20:04:04  mast
-Turn off keyboard tracking of spin boxes
-
-Revision 4.34  2009/01/15 16:33:17  mast
-Qt 4 port
-
-Revision 4.33  2008/09/23 15:13:44  mast
-Added mouse wheel scrolling of point size
-
-Revision 4.32  2008/04/04 21:22:03  mast
-Free contour after adding to object
-
-Revision 4.31  2008/01/19 22:19:11  mast
-Fixed problems when no objects
-
-Revision 4.30  2008/01/13 22:25:45  mast
-Call top slicer to toggle shifting mode
-
-Revision 4.29  2007/10/03 19:29:17  sueh
-bug# 1038 Replacing help strings with an .html file.
-
-Revision 4.28  2006/09/12 15:34:53  mast
-Handled contour member renames
-
-Revision 4.27  2006/02/27 19:46:16  mast
-Moved go to surface functionality to imod_input, needed from finegrain too
-
-Revision 4.26  2005/10/06 19:51:43  mast
-Fixed undo/redo for moving surface to new object
-
-Revision 4.25  2005/09/22 17:44:36  mast
-Applied proper Z scale when assessing distance between ends for
-concatenating contours
-
-Revision 4.24  2005/06/29 05:38:40  mast
-Changes to manipulate fine grain properties and do undos correctly
-
-Revision 4.23  2005/06/26 19:40:38  mast
-Changed break routine to call library routine and handle storage lists
-
-Revision 4.22  2005/06/06 14:39:09  mast
-Allowed move up/down in Z even when only one object
-
-Revision 4.21  2005/05/27 23:00:19  mast
-Allowed contour to be moved to a new surface
-
-Revision 4.20  2005/03/23 16:52:30  mast
-Fix multiple contour deletion
-
-Revision 4.19  2005/02/24 22:33:15  mast
-Allowed contours from multiple objects to be moved in Z
-
-Revision 4.18  2005/02/09 01:10:02  mast
-Adjusted text for contour shifting, migrated help for contour Move
-
-Revision 4.17  2004/11/24 05:08:19  mast
-Implemented multiple contour join and control over method of joining
-
-Revision 4.16  2004/11/20 05:05:27  mast
-Changes for undo/redo capability
-
-Revision 4.15  2004/11/09 00:37:27  mast
-Fixed escaping of quote in help
-
-Revision 4.14  2004/11/04 23:30:55  mast
-Changes for rounded button style
-
-Revision 4.13  2004/11/04 17:02:41  mast
-Changes for switching to shifting contour as a mode that is turned on
-
-Revision 4.12  2004/11/01 23:36:44  mast
-Added conversion of point to circles and uses of multiple selections
-
-Revision 4.11  2004/09/21 20:18:21  mast
-Added surface labels
-
-Revision 4.10  2004/07/11 18:23:45  mast
-Changes for more ghost flags
-
-Revision 4.9  2004/01/22 19:12:43  mast
-changed from pressed() to clicked() or accomodated change to actionClicked
-
-Revision 4.8  2004/01/05 18:25:07  mast
-Improved explanation of point display; made conversion from contour to
-point multiply by the binning in X and Y.
-
-Revision 4.7  2004/01/05 18:21:19  mast
-Add explanation of point size being in unbinned size to help.
-
-Revision 4.6  2003/04/28 04:02:05  mast
-Fix help texton hot key
-
-Revision 4.5  2003/04/25 03:28:32  mast
-Changes for name change to 3dmod
-
-Revision 4.4  2003/04/17 18:43:38  mast
-adding parent to window creation
-
-Revision 4.3  2003/03/26 06:30:56  mast
-adjusting to font changes
-
-Revision 4.2  2003/03/03 22:14:34  mast
-cleanup
-
-Revision 4.1  2003/02/10 20:28:59  mast
-autox.cpp
-
-Revision 1.1.2.2  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.1  2003/01/23 19:57:06  mast
-Qt version
-
-Revision 3.1.2.1  2002/12/19 04:37:12  mast
-Cleanup of unused global variables and defines
-
-Revision 3.1  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-*/

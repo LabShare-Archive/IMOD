@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include "form_autox.h"
@@ -46,7 +45,7 @@ static AutoxWindow *autoWindow = NULL;
  */
 void autoxHelp()
 {
-  imodShowHelpPage("autox.html");
+  imodShowHelpPage("autox.html#TOP");
 }
 
 void autoxSlider(int which, int value)
@@ -843,66 +842,3 @@ static void autox_clear(Autox *ax, unsigned char bit)
     for(i = 0; i < ax->vw->xysize; i++)
       ax->data[i] &= ~bit;
 }
-
-/*
-
-$Log$
-Revision 4.14  2009/03/22 19:54:24  mast
-Show with new geometry adjust routine for Mac OS X 10.5/cocoa
-
-Revision 4.13  2009/01/15 16:33:17  mast
-Qt 4 port
-
-Revision 4.12  2008/05/28 00:14:10  mast
-Made it check if image processing busy and then get it to process the
-section when doing Next
-
-Revision 4.11  2008/05/27 22:48:58  mast
-Added function to synchronize color ramp changes
-
-Revision 4.10  2008/05/27 05:32:28  mast
-Changed to call routine that uses interpolation
-
-Revision 4.9  2007/09/14 21:56:07  sueh
-bug# 1038 Switching from calling dia_vasmsg() to opening an .html file for help.
-
-Revision 4.8  2005/03/20 19:55:36  mast
-Eliminating duplicate functions
-
-Revision 4.7  2004/11/20 05:05:27  mast
-Changes for undo/redo capability
-
-Revision 4.6  2004/07/11 18:25:39  mast
-Made it preserve time and surface and use existing empty contour
-
-Revision 4.5  2003/09/16 02:08:43  mast
-Changed to access image data using new line pointers
-
-Revision 4.4  2003/05/08 05:16:34  mast
-Expanding help with a introductory list of steps
-
-Revision 4.3  2003/04/17 18:43:38  mast
-adding parent to window creation
-
-Revision 4.2  2003/02/14 01:13:08  mast
-cleanup unused variables
-
-Revision 4.1  2003/02/10 20:42:02  mast
-Merge Qt source
-
-Revision 1.1.2.2  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.1  2003/01/14 21:39:49  mast
-qt version
-
-Revision 3.2.2.1  2003/01/13 01:15:42  mast
-changes for Qt version of info window
-
-Revision 3.2  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.1  2001/12/17 18:41:51  mast
-Add calls for smooth and next section to be done from hotkeys
-
-*/

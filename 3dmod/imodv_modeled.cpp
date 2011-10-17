@@ -41,8 +41,7 @@ static void updateWorkArea(void);
 
 void imodvModeledHelp()
 {
-  imodShowHelpPage("modvModelEdit.html");
-  return;
+  imodShowHelpPage("modvModelEdit.html#TOP");
 }
 
 // Done: tell the box to close

@@ -8,7 +8,6 @@
 *  Colorado.  See dist/COPYRIGHT for full copyright notice.
 *
 *  $Id$
-*  Log at end of file
 */
 
 #include <algorithm> //std::sort
@@ -2097,7 +2096,7 @@ void ImodvIsosurface::showDefinedArea(float x0, float x1, float y0, float y1, bo
 void ImodvIsosurface::buttonPressed(int which)
 {
   if (which == 2)
-    imodShowHelpPage("modvIsosurface.html");
+    imodShowHelpPage("modvIsosurface.html#TOP");
   else if (which == 1)
     close();
   else if (which == 0) {
@@ -2687,84 +2686,3 @@ void ImodvIsosurface::dumpVolume(char *filename)
 }
 
 
-
-/*
-
-$Log$
-Revision 4.27  2011/02/19 15:20:10  mast
-Preferences for default and maximum isosurface volume and threshold polarity
-
-Revision 4.26  2011/02/09 05:35:36  mast
-Uncommented openmp in painting routine
-
-Revision 4.25  2011/02/02 21:31:44  mast
-Fixed initialization in removing outer pixels
-
-Revision 4.24  2011/02/01 20:15:37  mast
-Keep center of sphere at slider positions if possible
-
-Revision 4.23  2011/01/31 06:25:50  mast
-Added painting with scattered points and made current contour/point mask
-work only with closed contour objects
-
-Revision 4.22  2011/01/21 18:12:33  mast
-Do not set some layout spacings for Aqua (rounded) style; it is way too close then
-
-Revision 4.21  2011/01/21 17:36:27  mast
-Added ability to set outer limit on values, closing of open faces on edge of
-box, and masking by current contour, object, or ellipsoid; reorganized into
-two columns, fixed memory leaks, problems with link to global XYZ off, and
-some crashes when flipping data.
-
-Revision 4.20  2010/04/05 18:12:03  mast
-Fixed bug in limiting ideal thread count to MAX
-
-Revision 4.19  2010/04/01 02:41:48  mast
-Called function to test for closing keys, or warning cleanup
-
-Revision 4.18  2010/03/30 02:21:29  mast
-Made the merging of results from multiple threads run faster and used
-OpenMP for big array copies - turned on multithreading with ideal thread
-count limited to 4
-
-Revision 4.17  2009/03/22 19:54:25  mast
-Show with new geometry adjust routine for Mac OS X 10.5/cocoa
-
-Revision 4.16  2009/01/15 16:33:18  mast
-Qt 4 port
-
-Revision 4.15  2008/12/19 00:42:46  mast
-Change color again, change the names for saved object, scale down
-automatically selected color for saved object
-
-Revision 4.14  2008/12/16 00:00:01  mast
-Set a color and material properties to reduce washout
-
-Revision 4.13  2008/12/09 23:26:57  mast
-Changed flag from line to noline
-
-Revision 4.12  2008/11/15 22:03:25  mast
-Added object names to show up in object edit window
-
-Revision 4.11  2008/11/12 18:56:07  xiongq
-call setFocus() for slots of spinners
-
-Revision 4.10  2008/11/07 23:48:53  xiongq
-seperate threshold for each stack
-
-Revision 4.9  2008/10/02 16:27:00  xiongq
-add small piece filter, binning, and local XYZ functions
-
-Revision 4.8  2008/08/19 15:17:16  mast
-Changed for loop declarations for old intel compiler
-
-Revision 4.7  2008/05/27 16:41:01  xiongq
-add Use Rubber Band button
-
-Revision 4.6  2008/05/23 19:23:32  xiongq
-Use multithreads to compute isosurface. Move the calling of imodvIsosurfaceUpdate() from 
-imod_info_cb.cpp to imod_display.cpp.
-
-Revision 4.5  2008/05/03 00:47:31  mast
-Fixed mOrigMesh memory leak
-*/

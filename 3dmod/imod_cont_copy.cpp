@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <math.h>
@@ -556,7 +555,7 @@ void ContourCopy::buttonPressed(int which)
     break;
 
   case 2:
-    imodShowHelpPage("contourCopy.html");
+    imodShowHelpPage("contourCopy.html#TOP");
     break;
   }
 }
@@ -588,98 +587,3 @@ void ContourCopy::keyReleaseEvent ( QKeyEvent * e )
 {
     ivwControlKey(1, e);
 }
-
-/*
-
-$Log$
-Revision 4.23  2011/08/11 04:23:36  mast
-Fixed updating of spin box so it didn't keep going to max value
-
-Revision 4.22  2011/03/01 18:38:26  mast
-Added hot ky to apply tool tip
-
-Revision 4.21  2010/04/01 02:35:32  mast
-Added update call, and call for closing keys
-
-Revision 4.20  2009/03/22 19:54:25  mast
-Show with new geometry adjust routine for Mac OS X 10.5/cocoa
-
-Revision 4.19  2009/02/26 20:04:04  mast
-Turn off keyboard tracking of spin boxes
-
-Revision 4.18  2009/01/15 16:33:17  mast
-Qt 4 port
-
-Revision 4.17  2008/12/10 01:05:15  mast
-Added hot key for contour copy
-
-Revision 4.16  2008/04/04 21:22:03  mast
-Free contour after adding to object
-
-Revision 4.15  2007/09/14 21:56:38  sueh
-bug# 1038 Switching from calling dia_vasmsg() to opening an .html file for help.
-
-Revision 4.14  2006/09/12 15:34:54  mast
-Handled contour member renames
-
-Revision 4.13  2005/06/29 05:38:40  mast
-Changes to manipulate fine grain properties and do undos correctly
-
-Revision 4.12  2005/05/27 23:00:45  mast
-Remove debugging statement
-
-Revision 4.11  2005/05/27 22:59:10  mast
-Set focus on button press so typed-in value without return is used
-
-Revision 4.10  2004/11/30 18:59:09  mast
-Switch to different combo box style to get better size behavior on Mac
-
-Revision 4.9  2004/11/20 05:05:27  mast
-Changes for undo/redo capability
-
-Revision 4.8  2004/11/04 23:30:55  mast
-Changes for rounded button style
-
-Revision 4.7  2003/04/25 03:28:32  mast
-Changes for name change to 3dmod
-
-Revision 4.6  2003/04/17 18:43:38  mast
-adding parent to window creation
-
-Revision 4.5  2003/04/11 21:47:28  mast
-adding tooltips
-
-Revision 4.4  2003/03/03 22:14:34  mast
-cleanup
-
-Revision 4.3  2003/02/27 19:31:35  mast
-remove include of unistd.h for windows
-
-Revision 4.2  2003/02/14 01:14:06  mast
-Add error report if duplication fails
-
-Revision 4.1  2003/02/10 20:28:59  mast
-autox.cpp
-
-Revision 1.1.2.4  2003/02/07 01:03:23  mast
-a little cleanup
-
-Revision 1.1.2.3  2003/01/31 01:01:22  mast
-Fixed spin box focus policy and combo box initial setting
-
-Revision 1.1.2.2  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.1  2003/01/23 19:57:06  mast
-Qt version
-
-Revision 3.3  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.2  2002/09/26 21:28:55  rickg
-Removed empty string sprintf formats and unused variables.
-
-Revision 3.1  2002/09/13 20:56:01  mast
-Changed include of libgen.h to be on sun only
-
-*/

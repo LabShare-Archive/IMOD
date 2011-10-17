@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <math.h>
@@ -449,7 +448,7 @@ void ImodvStereo::deltaChanged(int value)
 void ImodvStereo::buttonPressed(int which)
 {
   if (which)
-    imodShowHelpPage("modvStereo.html");
+    imodShowHelpPage("modvStereo.html#TOP");
   else
     close();
 }
@@ -523,106 +522,3 @@ void ImodvStereo::keyReleaseEvent ( QKeyEvent * e )
   imodvKeyRelease(e);
 }
 
-
-/*
-
-$Log$
-Revision 4.21  2011/01/19 21:15:49  mast
-Try again
-
-Revision 4.20  2011/01/19 18:50:52  mast
-Fixed enabling of angle slider
-
-Revision 4.19  2010/12/18 17:36:44  mast
-Changes for stereo image display
-
-Revision 4.18  2010/04/01 02:41:48  mast
-Called function to test for closing keys, or warning cleanup
-
-Revision 4.17  2009/03/22 19:54:25  mast
-Show with new geometry adjust routine for Mac OS X 10.5/cocoa
-
-Revision 4.16  2009/01/15 16:33:18  mast
-Qt 4 port
-
-Revision 4.15  2008/12/15 21:23:53  mast
-Changes for using separate widgets for stereo
-
-Revision 4.14  2008/10/02 22:45:19  mast
-Made geometry change conditional on SGI, set up for proper clearing
-after leaving stereo
-
-Revision 4.13  2007/10/03 19:30:44  sueh
-bug# 1038 Replacing help strings with an .html file.
-
-Revision 4.12  2007/07/08 16:04:49  mast
-Used new hot slider function
-
-Revision 4.11  2006/03/01 19:13:06  mast
-Moved window size/position routines from xzap to dia_qtutils
-
-Revision 4.10  2004/11/04 23:30:55  mast
-Changes for rounded button style
-
-Revision 4.9  2004/09/24 18:15:31  mast
-Made it fix window geometry if going from T/B to S/S.
-
-Revision 4.8  2004/06/09 05:38:20  mast
-Got top/bottom mode to work with double-scan setups, and really got SGI
-to work by incorporating old SGI-specific calls.
-
-Revision 4.7  2004/06/06 21:27:47  mast
-Cleanup and changes to get it working on SGI
-
-Revision 4.6  2004/05/31 23:35:26  mast
-Switched to new standard error functions for all debug and user output
-
-Revision 4.5  2004/01/22 19:12:43  mast
-changed from pressed() to clicked() or accomodated change to actionClicked
-
-Revision 4.4  2003/04/25 03:28:32  mast
-Changes for name change to 3dmod
-
-Revision 4.3  2003/04/17 18:43:38  mast
-adding parent to window creation
-
-Revision 4.2  2003/03/26 23:23:15  mast
-switched from hotslider.h to preferences.h
-
-Revision 4.1  2003/02/10 20:29:02  mast
-autox.cpp
-
-Revision 1.1.2.9  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.8  2003/01/18 00:58:37  mast
-add tooltips to dialogframe call
-
-Revision 1.1.2.7  2003/01/13 07:21:38  mast
-Changes to use new dialog manager class
-
-Revision 1.1.2.6  2003/01/01 05:45:42  mast
-Qt version
-
-Revision 1.1.2.5  2002/12/18 04:49:31  mast
-Don't require sgi-only stereo to be only standalone
-
-Revision 1.1.2.4  2002/12/18 04:15:14  mast
-new includes for imodv modules
-
-Revision 1.1.2.3  2002/12/17 22:28:21  mast
-cleanup of unused variables and SGI errors
-
-Revision 1.1.2.2  2002/12/17 18:31:30  mast
-preliminary changes for Qt
-
-Revision 1.1.2.1  2002/12/15 21:14:02  mast
-conversion to cpp
-
-Revision 3.2  2002/12/01 16:51:34  mast
-Changes to eliminate warnings on SGI
-
-Revision 3.1  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-*/

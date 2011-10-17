@@ -7,7 +7,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  * 
  * $Id$
- * Log at end
  */
 
 #include <stdlib.h>
@@ -346,7 +345,7 @@ void imodMovieConDialog(ImodView *vw)
 
 void imcHelp()
 {
-  imodShowHelpPage("imageMovie.html");
+  imodShowHelpPage("imageMovie.html#TOP");
 }
 
 /* Buttons pressed */
@@ -438,65 +437,3 @@ void imcIncrementRate(int dir)
 {
   imcSetMovierate(view, view->movierate + dir);
 }
-
-/*
-$Log$
-Revision 4.10  2009/03/22 19:54:25  mast
-Show with new geometry adjust routine for Mac OS X 10.5/cocoa
-
-Revision 4.9  2009/01/15 16:33:17  mast
-Qt 4 port
-
-Revision 4.8  2008/12/08 17:24:04  mast
-Increased interface for montage snapshots
-
-Revision 4.7  2005/09/15 14:25:25  mast
-Added zap montage factor functions
-
-Revision 4.6  2004/11/29 19:25:21  mast
-Changes to do QImage instead of RGB snapshots
-
-Revision 4.5  2003/12/18 22:43:50  mast
-Changes for keeping track of which window started movie and for doing
-movie from current point
-
-Revision 4.4  2003/04/25 03:28:32  mast
-Changes for name change to 3dmod
-
-Revision 4.3  2003/04/17 18:43:38  mast
-adding parent to window creation
-
-Revision 4.2  2003/02/27 23:08:35  mast
-Change to Qt time function
-
-Revision 4.1  2003/02/10 20:29:00  mast
-autox.cpp
-
-Revision 1.1.2.7  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.6  2003/01/14 22:00:26  mast
-fix aberrant character
-
-Revision 1.1.2.5  2003/01/14 21:37:55  mast
-revised help, cleaned up unused variables
-
-Revision 1.1.2.4  2003/01/14 17:05:17  mast
-Qt version
-
-Revision 1.1.2.3  2002/12/17 21:39:14  mast
-include imodconfig so NO_SYS_TIMES canbe defined
-
-Revision 1.1.2.2  2002/12/17 18:40:24  mast
-Changes and new includes with Qt version of imodv
-
-Revision 1.1.2.1  2002/12/15 21:14:02  mast
-conversion to cpp
-
-Revision 3.2  2002/12/01 16:51:34  mast
-Changes to eliminate warnings on SGI
-
-Revision 3.1  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-*/

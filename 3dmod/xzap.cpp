@@ -738,9 +738,9 @@ ZapFuncs::ZapFuncs(ImodView *vi, int wintype)
 void ZapFuncs::help()
 {
   if (mNumXpanels)
-    imodShowHelpPage("multizap.html");
+    imodShowHelpPage("multizap.html#TOP");
   else
-    imodShowHelpPage("zap.html");
+    imodShowHelpPage("zap.html#TOP");
 }
 
 /*

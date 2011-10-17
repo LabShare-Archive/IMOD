@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  * 
  * $Id$
- * Log at end
  */
 
 #include "form_startup.h"
@@ -633,20 +632,5 @@ void StartupForm::setValues( ImodView *vi, char * *argv, int firstfile, int argc
 
 void StartupForm::helpClicked()
 {
-  imodShowHelpPage("startup.html");
+  imodShowHelpPage("startup.html#TOP");
 }
-
-/*
-
-$Log$
-Revision 4.3  2011/03/14 23:39:13  mast
-Changes for ushort loading
-
-Revision 4.2  2009/01/17 00:09:30  mast
-Don't delete on close
-
-Revision 4.1  2009/01/15 16:33:17  mast
-Qt 4 port
-
-
-*/

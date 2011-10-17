@@ -11,7 +11,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <stdio.h>
@@ -114,7 +113,7 @@ void imodvAutoStoreView(ImodvApp *a)
 
 void imodvViewsHelp()
 {
-  imodShowHelpPage("modvViewEdit.html");
+  imodShowHelpPage("modvViewEdit.html#TOP");
   return;
 }
 
@@ -360,70 +359,3 @@ static void build_list(ImodvApp *a)
   for(i = 1; i < a->imod->viewsize; i++)
     ved->dia->addItem(a->imod->view[i].label);
 }
-
-/*
-
-    $Log$
-    Revision 4.16  2010/12/20 03:29:20  mast
-    Added flag and menu item to invert model in Z
-
-    Revision 4.15  2009/03/22 19:54:25  mast
-    Show with new geometry adjust routine for Mac OS X 10.5/cocoa
-
-    Revision 4.14  2009/01/15 16:33:18  mast
-    Qt 4 port
-
-    Revision 4.13  2008/06/10 02:07:04  mast
-    Set up lighting flag only when view changes
-
-    Revision 4.12  2007/11/30 06:51:50  mast
-    Changes for linking slicer to model view
-
-    Revision 4.11  2007/10/03 19:31:10  sueh
-    bug# 1038 Replacing help strings with an .html file.
-
-    Revision 4.10  2005/10/13 20:08:00  mast
-    Add bin scaling argument (1)
-
-    Revision 4.9  2004/11/21 06:07:49  mast
-    Changes for undo/redo
-
-    Revision 4.8  2003/11/01 18:12:17  mast
-    changed to put out virtually all error messages to a window
-
-    Revision 4.7  2003/08/01 00:12:57  mast
-    Fix some bugs from the new numbering mismatch between indexes in list box
-    and the actual views, free object views when view is deleted
-
-    Revision 4.6  2003/06/27 20:00:07  mast
-    Added a function to initialize views and make sure view 1 is always present;
-    changed indices, etc. to eliminate the "default view"
-
-    Revision 4.5  2003/04/28 04:01:26  mast
-    Fix hotkey text
-
-    Revision 4.4  2003/04/25 03:28:32  mast
-    Changes for name change to 3dmod
-
-    Revision 4.3  2003/04/17 18:43:38  mast
-    adding parent to window creation
-
-    Revision 4.2  2003/03/04 21:41:29  mast
-    Refresh the imod windows when the view changes
-
-    Revision 4.1  2003/02/10 20:29:02  mast
-    autox.cpp
-
-    Revision 1.1.2.8  2003/01/18 01:10:17  mast
-    add include of dia_qtutils
-
-    Revision 1.1.2.7  2003/01/13 07:21:38  mast
-    Changes to use new dialog manager class
-
-    Revision 1.1.2.6  2002/12/30 06:40:24  mast
-    Prevent multiple draws, adapt to dialog-widget control
-
-    Revision 1.1.2.5  2002/12/27 17:45:01  mast
-    clean up unused variable
-
-*/

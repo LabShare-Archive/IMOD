@@ -9,15 +9,9 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #include <qgl.h>
 #include "formv_depthcue.h"
@@ -39,7 +33,7 @@ static struct{
 
 void imodvDepthcueHelp()
 {
-  imodShowHelpPage("depthcue.html");
+  imodShowHelpPage("depthcue.html#TOP");
 }
 
 // Send the values to the form; make sure they are within limits
@@ -134,49 +128,3 @@ void imodvDepthcueToggle(int state)
 
   imodvDraw(a);
 }
-
-/*
-$Log$
-Revision 4.6  2009/01/15 16:33:17  mast
-Qt 4 port
-
-Revision 4.5  2004/11/22 00:22:17  mast
-Changed to use help page in Qt Assistant
-
-Revision 4.4  2004/11/21 06:07:49  mast
-Changes for undo/redo
-
-Revision 4.3  2003/04/17 18:43:38  mast
-adding parent to window creation
-
-Revision 4.2  2003/02/27 17:39:06  mast
-Had to include qgl.h instead of GL/gl.h under windows
-
-Revision 4.1  2003/02/10 20:29:01  mast
-autox.cpp
-
-Revision 1.1.2.7  2003/01/18 01:10:17  mast
-add include of dia_qtutils
-
-Revision 1.1.2.6  2003/01/13 07:21:38  mast
-Changes to use new dialog manager class
-
-Revision 1.1.2.5  2002/12/30 06:49:50  mast
-rationalizing dialogs as widgets and using dialog list
-
-Revision 1.1.2.4  2002/12/23 04:51:22  mast
-Qt version
-
-Revision 1.1.2.3  2002/12/18 04:15:14  mast
-new includes for imodv modules
-
-Revision 1.1.2.2  2002/12/17 18:33:19  mast
-using new includes for imodv compoennts
-
-Revision 1.1.2.1  2002/12/15 21:14:02  mast
-conversion to cpp
-
-Revision 3.1  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-*/
