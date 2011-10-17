@@ -1,6 +1,6 @@
 <html><head> <title>IMOD Tomography Guide</title> </head>
 <body>
-<H2 ALIGN=center>Tomography Guide for IMOD Version 4.1<BR>
+<H2 ALIGN=center>Tomography Guide for IMOD Version 4.3<BR>
 </H2>
 <H3 ALIGN=center>Boulder Laboratory for 3-D Electron Microscopy of Cells</H3>
 <HR>
@@ -76,31 +76,12 @@
 </UL>
 <HR>
 <P><H3><A NAME = "WHATSNEW"></A>
-0. WHAT'S NEW IN IMOD 4.1
+0. WHAT'S NEW IN IMOD 4.3
 </H3>
 <P>
 This section lists significant changes or additions to this guide from the
-3.13 version.
+4.1 version.
 <UL>
-<LI> Information on getting statistics on the raw and X-ray corrected stack,
- in <A HREF = "#PRE-PROCESSING">PRE-PROCESSING: REMOVING X-RAYS</A>
-<LI> Instructions on using tracking of local patches of image data to generate
-  a model to use for fiducial-like alignment, in 
-<A HREF = "#PatchTracking">Local Patch Tracking</A> and 
-<A HREF = "#AligningPatchModel">Aligning with a Patch Tracking Model</A>
-<LI> Directions on using the RAPTOR program from Stanford through eTomo, in
-<A HREF = "#UsingRaptor">Using RAPTOR to Make a Fiducial Model</A>
-<LI> Advice on moving points by residuals with Bead Fixer, in 
-<A HREF = "#Running Tiltalign">Running Tiltalign</A>
-<LI> Instructions for using the new interface in eTomo for erasing all gold
-  particles after finding them in 3D, in 
-<A HREF = "#ErasingFinding3D">Erasing Gold by Finding It in a Tomogram and
-  Projecting It</A>
-<LI> Information about scaling when not taking the logarithm, in 
-<A HREF = "#Building Tomogram">Building the Tomogram</A>
-<LI> Directions for using the interface for flattening a tomogram in
-Post-processing, in 
-<A HREF = "#Flattening">Flattening a Tomogram</A>
 </UL>
 
 </P>
@@ -605,7 +586,11 @@ program.  Views with locally extreme values of the minimum or maximum will be
 marked by stars and listed at the bottom.  This marking of outliers is of
 limited value with the raw stack because all views generally have X-rays that
 increase the maximum; but with the fixed stack this listing will often reveal
-the subset of views that still have sizable uncorrected X-rays.
+the subset of views that still have sizable uncorrected X-rays.  If you have
+trouble finding a position, you can type the X and Y coordinates into the spin
+boxes in the <A HREF = "3dmodHelp/infowin.html">3dmod Info Window</A> then
+toggle the centering button inthe Zap window toolbar on then off to center on
+the position that you typed in.
 <P>
 If your images have other features that do not get corrected by the
 automatic X-ray removal, you can specify the pixels to erase in a
@@ -619,11 +604,17 @@ line contours in the <B>Line replacement list</B> text box.  If you want to
 draw contours as boundaries around large patches to be replaced, list objects
 with such contours in the <B>Boundary replacement list</B> text box.
 <P>
-With a montaged data set, when you view the X-ray model, the images
-will be loaded into <A HREF = "man/3dmod.html">3dmod</A> as single
-frames instead of as a montage, so that all parts of every frame can be
-viewed.  However, this feature does make it difficult to page through
-the images.
+With a montaged data set, when you view the X-ray model or the fixed stack, the images
+will be loaded into <A HREF = "man/3dmod.html">3dmod</A> with no overlap and
+spaced apart by a few pixels, so that all parts of every frame can be
+viewed.  The statisics outputs will list the minimum and maximum for each piece
+in the stack, but their locations will be translated into coordinates on the
+relevant view so that you can find them in the display.  A
+manual replacement model is also drawn on a montaged display with no overlap; 
+<A HREF = "man/ccderaser.html">Ccderaser</A> will translate the coordinates
+from this display into coordinates in the appropriate frame in the file.  A
+feature to be replaced on all sections needs to be modeled on only one piece
+in the montage (any piece).
 </P>
 <H3><A NAME = "COARSE ALIGNMENT"></A>
 5. COARSE ALIGNMENT BY CROSS-CORRELATION
@@ -2045,11 +2036,9 @@ the operation and press the button to use that stack.
 First select linear interpolation if desired for this step.
 Notice that you can also select a binning of the aligned stack at this stage.
 In Advanced mode, there is also an option to set the size of the aligned
-stack.  There are two uses for this.  One is to make an aligned stack that
-contains a centered subarea of the original images; this can be useful when
-testing a SIRT reconstruction (see <A HREF =
-"man/sirtsetup.html">Sirtsetup</A>).  The other is to make an over-sized
-aligned stack
+stack.  This feature is not needed to get a reconstruction of a subarea
+because there are options for setting the range of a reconstruction.  
+Its main use is to make an over-sized aligned stack
 that contains all of the original image data after the rotation that brings
 the tilt axis to vertical.  This rotation can lose significant, usable
 portions of the reconstruction if the rotation is more than ~15 degrees (or
@@ -2318,7 +2307,26 @@ under the assumption that the distortion solution in the fine alignment will
 usually reflect changes in the specimen rather than stretches during
 imaging.  However, in situations where imaging is a more likely source of
 stretch, the option should be turned off.  
-
+</P>
+<H4><A NAME = "SIRT Tomogram"></A>
+11.4. Making a Reconstruction with SIRT
+</H4>
+<P>
+SIRT stands for Simultaneous Iterative Reconstruction Technique.  It
+involves starting with a trial tomogram, reprojecting it at the original tilt
+angles, and adjusting the tomogram for the differences between the
+reprojection and the original projection images.  This operation is iterated
+until it converges or it reaches a desired balance between image detail and
+noise.  The process starts out dominated by low frequencies and the higher
+frequency information is added in as the iterations proceed, along with some
+of the high frequency noise.  A set of command files for doing SIRT is
+produced by running <A HREF = "man/sirtsetup.html">Sirtsetup</A>; see that man
+page for more details about this operation.  SIRT can be done, with either the 
+CPU or the GPU, for any kind of tilt series aligned in eTomo; but there is a
+fundamental difference between simple and more complicated alignments.  If
+you solved for distortion, local alignments, or beam tilt, then on each
+iteration, the entire set of reprojections must be produced, then the entire
+reconstruction.
 </P>
 <H3><A NAME = "TOMOGRAM COMBINATION"></A>
 12. COMBINING TWO TOMOGRAMS
