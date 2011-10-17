@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  * 
  * $Id$
- * Log at end
  */
 
 #include "form_scalebar.h"
@@ -235,7 +234,7 @@ void ScaleBarForm::keyReleaseEvent( QKeyEvent * e )
 
 void ScaleBarForm::helpPressed()
 {
-  imodShowHelpPage("scalebar.html");
+  imodShowHelpPage("scalebar.html#TOP");
 }
 
 void ScaleBarForm::closeEvent( QCloseEvent * e )
@@ -244,11 +243,3 @@ void ScaleBarForm::closeEvent( QCloseEvent * e )
   e->accept();
 }
 
-/*
-
-$Log$
-Revision 4.1  2009/01/15 16:33:17  mast
-Qt 4 port
-
-
-*/

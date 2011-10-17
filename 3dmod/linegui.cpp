@@ -6,7 +6,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 
@@ -683,7 +682,7 @@ void LineTrack::buttonPressed(int which)
     close();
     break;
   case 5:
-    imodShowHelpPage("lineTracker.html");
+    imodShowHelpPage("lineTracker.html#TOP");
     break;
   }
 }
@@ -741,88 +740,3 @@ void LineTrack::keyReleaseEvent ( QKeyEvent * e )
 {
   ivwControlKey(1, e);
 }
-
-/*
-
-$Log$
-Revision 1.19  2010/04/01 02:41:48  mast
-Called function to test for closing keys, or warning cleanup
-
-Revision 1.18  2009/03/22 19:54:25  mast
-Show with new geometry adjust routine for Mac OS X 10.5/cocoa
-
-Revision 1.17  2009/01/15 16:33:18  mast
-Qt 4 port
-
-Revision 1.16  2008/05/27 04:18:49  mast
-Prevented it from opening on color data.
-
-Revision 1.15  2007/10/03 19:31:28  sueh
-bug# 1038 Replacing help strings with an .html file.
-
-Revision 1.14  2006/07/18 00:09:18  mast
-Made completion be shift as well as ctrl space due to conflict on Mac
-
-Revision 1.13  2006/03/01 19:13:06  mast
-Moved window size/position routines from xzap to dia_qtutils
-
-Revision 1.12  2005/06/29 05:38:40  mast
-Changes to manipulate fine grain properties and do undos correctly
-
-Revision 1.11  2005/05/25 15:45:03  mast
-Fixed test for whether contour is on adjacent section for copy
-
-Revision 1.10  2005/03/20 19:55:37  mast
-Eliminating duplicate functions
-
-Revision 1.9  2004/11/20 05:05:27  mast
-Changes for undo/redo capability
-
-Revision 1.8  2004/11/09 01:19:16  mast
-Fixed problem in not allocating big enough copy array in contour copy
-
-Revision 1.7  2004/11/05 19:08:12  mast
-Include local files with quotes, not brackets
-
-Revision 1.6  2004/11/04 23:30:55  mast
-Changes for rounded button style
-
-Revision 1.5  2004/07/11 18:26:30  mast
-Made it set contour time correctly when copying
-
-Revision 1.4  2004/06/23 03:34:14  mast
-Added ability to save and restore all settings, and a button to restore
-defaults
-
-Revision 1.3  2004/01/22 19:12:43  mast
-changed from pressed() to clicked() or accomodated change to actionClicked
-
-Revision 1.2  2003/11/27 06:08:01  mast
-Fixed bug in copying image that made it work only for square images
-
-Revision 1.1  2003/10/25 16:16:06  mast
-convert from plugin to internal module
-
-Revision 3.5  2003/09/16 02:07:24  mast
-Changed to copy image data into a buffer using new line pointers
-
-Revision 3.4  2003/05/12 19:13:06  mast
-Fix hot key spelling
-
-Revision 3.3  2003/04/17 18:34:29  mast
-adding parent to window creation
-
-Revision 3.2  2003/03/26 15:56:46  mast
-Change lostFocus to focusLost
-
-Revision 3.1  2003/02/10 20:55:40  mast
-Merge Qt source
-
-Revision 1.1.2.1  2003/01/27 00:35:53  mast
-Qt version
-
-Revision 3.1  2002/08/22 05:54:47  mast
-Allocated and passed a working array to conttrack to prevent crashes,
-added a Copy button.
-
-*/

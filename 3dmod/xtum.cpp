@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <math.h>
@@ -349,7 +348,7 @@ void TumblerWindow::sizeChanged(int which)
 
 void TumblerWindow::help()
 {
-  imodShowHelpPage("tumbler.html");
+  imodShowHelpPage("tumbler.html#TOP");
 }
 
 // Respond to change in one of the toggle buttons
@@ -1261,121 +1260,3 @@ void TumblerGL::paintGL()
   mTum->dialog->drawBBox(mTum);
   mTum->dialog->drawBorder(mTum);
 }
-
-/*
-$Log$
-Revision 4.33  2010/04/01 02:41:48  mast
-Called function to test for closing keys, or warning cleanup
-
-Revision 4.32  2009/03/22 19:54:25  mast
-Show with new geometry adjust routine for Mac OS X 10.5/cocoa
-
-Revision 4.31  2009/01/15 16:33:18  mast
-Qt 4 port
-
-Revision 4.30  2008/08/19 20:01:40  mast
-Made it zoom with + as well as =
-
-Revision 4.29  2007/12/04 18:49:36  mast
-Moved control include down
-
-Revision 4.28  2007/07/08 16:04:50  mast
-Used new hot slider function
-
-Revision 4.27  2007/06/26 21:54:52  sueh
-bug# 1021 Removed win_support.
-
-Revision 4.26  2007/06/26 17:05:18  sueh
-bug# 1021 Moved BM_HEIGHT and _WIDTH to win_support.
-
-Revision 4.25  2007/05/29 16:13:12  mast
-Fix stupid bug
-
-Revision 4.24  2007/05/29 14:45:12  mast
-Rearrange incldes and add time argument tofast setup
-
-Revision 4.23  2007/03/29 04:55:49  mast
-Fixed crash bug when closing window while focus is in edit/spinbox
-
-Revision 4.22  2006/10/05 17:09:41  mast
-Converted help page
-
-Revision 4.21  2006/10/05 15:41:32  mast
-Provided for primary and second non-TIFF snapshot format
-
-Revision 4.20  2004/11/05 19:08:12  mast
-Include local files with quotes, not brackets
-
-Revision 4.19  2004/11/04 23:30:55  mast
-Changes for rounded button style
-
-Revision 4.18  2004/09/10 02:31:03  mast
-replaced long with int
-
-Revision 4.17  2004/05/31 23:35:26  mast
-Switched to new standard error functions for all debug and user output
-
-Revision 4.16  2004/05/03 02:34:20  mast
-fix wobble due to truncation error near zero degrees
-
-Revision 4.15  2004/03/12 19:27:43  mast
-Fixed bug in Z size changes; it was taking Y value
-
-Revision 4.14  2004/01/22 19:12:43  mast
-changed from pressed() to clicked() or accomodated change to actionClicked
-
-Revision 4.13  2003/09/16 02:11:18  mast
-Changed to access image data using new line pointers
-
-Revision 4.12  2003/04/28 04:01:40  mast
-Fx hot key text
-
-Revision 4.11  2003/04/25 03:28:33  mast
-Changes for name change to 3dmod
-
-Revision 4.10  2003/04/18 20:16:39  mast
-Rename meta test function
-
-Revision 4.9  2003/04/18 20:06:21  mast
-Reject the Ctrl (meta) key on the Mac
-
-Revision 4.8  2003/04/17 18:43:38  mast
-adding parent to window creation
-
-Revision 4.7  2003/03/26 23:23:15  mast
-switched from hotslider.h to preferences.h
-
-Revision 4.6  2003/03/26 17:15:30  mast
-Adjust sizes for font changes
-
-Revision 4.5  2003/03/24 17:56:46  mast
-Register with dialogManager so it can be parked with info window
-
-Revision 4.4  2003/03/13 01:20:08  mast
-Convert numlock keypad keys so num lock can be on
-
-Revision 4.3  2003/03/12 21:35:23  mast
-Test if no CIImage is returned and give error message
-
-Revision 4.2  2003/02/27 19:40:46  mast
-remove slow floor() calls
-
-Revision 4.1  2003/02/10 20:29:02  mast
-autox.cpp
-
-Revision 1.1.2.3  2003/01/29 01:34:08  mast
-implement colormaps
-
-Revision 1.1.2.2  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.1  2003/01/10 23:47:49  mast
-Qt version and many general fixes and enhancements
-
-Revision 3.2  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.1  2002/01/28 16:53:10  mast
-Added slice argument to calls to b3dDrawGreyScalePixelsSubArea
-
-*/

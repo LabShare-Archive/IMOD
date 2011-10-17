@@ -194,7 +194,7 @@ void ModelHeaderWindow::buttonPressed(int which)
   if (!which)
     close();
   else
-    imodShowHelpPage("modelHeader.html");
+    imodShowHelpPage("modelHeader.html#TOP");
 }
 
 // Key press, lost focus, or window closing: unload the tool edits

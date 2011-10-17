@@ -58,7 +58,7 @@ static void setstep(int index, int frame, int loLim, int hiLim, float *start,
 
 void imodvMovieHelp()
 {
-  imodShowHelpPage("modelMovie.html");
+  imodShowHelpPage("modelMovie.html#TOP");
 }
 
 static void xinput(void)

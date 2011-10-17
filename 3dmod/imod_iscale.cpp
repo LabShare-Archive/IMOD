@@ -8,15 +8,8 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *  $Id$
  */
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-Log at end of file
-*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -156,7 +149,7 @@ void ImageScaleWindow::buttonPressed(int which)
     break;
 
   case 3: // Help
-    imodShowHelpPage("imageScale.html");
+    imodShowHelpPage("imageScale.html#TOP");
     break;
   }
 }
@@ -339,77 +332,3 @@ void ImageScaleWindow::keyReleaseEvent ( QKeyEvent * e )
 {
   ivwControlKey(1, e);
 }
-
-/*
-$Log$
-Revision 4.19  2011/03/14 23:39:13  mast
-Changes for ushort loading
-
-Revision 4.18  2010/04/01 02:41:48  mast
-Called function to test for closing keys, or warning cleanup
-
-Revision 4.17  2009/03/22 19:54:25  mast
-Show with new geometry adjust routine for Mac OS X 10.5/cocoa
-
-Revision 4.16  2009/01/15 16:33:17  mast
-Qt 4 port
-
-Revision 4.15  2006/08/24 21:30:27  mast
-Fixed (?) test for multi file sections
-
-Revision 4.14  2005/12/08 05:56:04  mast
-Flush the cache only for the current time, not all files.
-
-Revision 4.13  2004/11/04 23:30:55  mast
-Changes for rounded button style
-
-Revision 4.12  2004/07/07 19:25:29  mast
-Changed exit(-1) to exit(3) for Cygwin
-
-Revision 4.11  2004/01/22 19:12:43  mast
-changed from pressed() to clicked() or accomodated change to actionClicked
-
-Revision 4.10  2004/01/09 15:55:32  mast
-Use image smin/msax instead of li values when updating
-
-Revision 4.9  2004/01/08 06:42:45  mast
-Fixed treatment of complex data
-
-Revision 4.8  2004/01/05 18:41:38  mast
-Changed to deal with cache full mode, added error exits, prevented it
-from operating while loading is underway, and cleanup up a bit (vw to vi)
-
-Revision 4.7  2003/12/30 06:40:10  mast
-Changes for multi-file section display, to change all files when apply
-
-Revision 4.6  2003/11/01 18:12:17  mast
-changed to put out virtually all error messages to a window
-
-Revision 4.5  2003/06/04 23:30:55  mast
-Add timer to prevent crash if window closed before reload done
-
-Revision 4.4  2003/04/25 03:28:32  mast
-Changes for name change to 3dmod
-
-Revision 4.3  2003/04/17 18:43:38  mast
-adding parent to window creation
-
-Revision 4.2  2003/03/03 22:14:34  mast
-cleanup
-
-Revision 4.1  2003/02/10 20:29:00  mast
-autox.cpp
-
-Revision 1.1.2.2  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.1  2003/01/23 19:57:06  mast
-Qt version
-
-Revision 3.1.2.1  2003/01/13 01:15:42  mast
-changes for Qt version of info window
-
-Revision 3.1  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-*/

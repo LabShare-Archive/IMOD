@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end
  */
 
 #include <qlabel.h>
@@ -1070,7 +1069,7 @@ void IProcWindow::buttonClicked(int which)
     break;
 
   case 6: // Help
-    imodShowHelpPage("imageProc.html");
+    imodShowHelpPage("imageProc.html#TOP");
     break;
   }
 }
@@ -1278,114 +1277,3 @@ void IProcThread::run()
   proc_data[proc.procnum].cb();
 }
 #endif
-
-/*
-
-    $Log$
-    Revision 4.30  2011/03/14 23:39:13  mast
-    Changes for ushort loading
-
-    Revision 4.29  2010/04/01 02:41:48  mast
-    Called function to test for closing keys, or warning cleanup
-
-    Revision 4.28  2010/03/30 05:28:23  mast
-    Stopped scroll bars from appearing on list box in Windows
-
-    Revision 4.27  2009/03/22 19:54:25  mast
-    Show with new geometry adjust routine for Mac OS X 10.5/cocoa
-
-    Revision 4.26  2009/01/15 16:33:18  mast
-    Qt 4 port
-
-    Revision 4.25  2008/05/28 00:09:41  mast
-    Added callback function that can be called immediately or when thread finishes
-
-    Revision 4.24  2008/05/27 05:28:27  mast
-    Added autoapply and option to not scale the smoothing
-
-    Revision 4.23  2007/11/23 01:13:32  mast
-    Added pixels label to kernel sigma
-
-    Revision 4.22  2007/11/22 20:49:44  mast
-    Added gaussian kernel smoothing
-
-    Revision 4.21  2007/06/09 00:22:06  mast
-    Only allocate diffusion arrays when needed
-
-    Revision 4.20  2006/06/24 16:04:23  mast
-    Added button to report frequency
-
-    Revision 4.19  2005/03/23 18:46:37  mast
-    Added a and b hot keys, consolidated grow and shrink in threshold
-
-    Revision 4.18  2005/03/09 21:20:12  mast
-    converted diffusion to floats
-
-    Revision 4.17  2005/02/12 01:36:18  mast
-    Made call to save bwfloat data on every apply, rearranged list
-
-    Revision 4.16  2005/02/10 00:12:00  mast
-    Fixed allocation of diffusion arrays to be right when not square
-
-    Revision 4.15  2005/01/28 05:39:59  mast
-    Added anisotropic diffusion
-
-    Revision 4.14  2005/01/07 21:59:01  mast
-    Added median filter, converted help page
-
-    Revision 4.13  2004/11/11 15:55:34  mast
-    Changes to do FFT in a subarea
-
-    Revision 4.12  2004/11/09 17:54:24  mast
-    Fixed problem in running non-threaded, changed Qt version cutoff for
-    setting thread priority
-
-    Revision 4.11  2004/11/08 06:03:10  mast
-    Needed to make some more thread items conditional
-
-    Revision 4.10  2004/11/08 05:41:52  mast
-    Needed to make priority on starting thread conditional on Qt version
-
-    Revision 4.9  2004/11/07 23:05:24  mast
-    Execute in thread, added FFT and fourier filter, fixed scaling problems
-
-    Revision 4.8  2004/11/04 23:30:55  mast
-    Changes for rounded button style
-
-    Revision 4.7  2004/02/12 00:16:18  mast
-    Changed the setSizePolicy calls to be compatible to Qt 3.0.5
-
-    Revision 4.6  2004/01/22 19:09:38  mast
-    Added a button to toggle between processed and original image, and changed
-    geometry management to resize to the widget so large panels can be inserted
-
-    Revision 4.5  2004/01/05 18:04:56  mast
-    Prevented operating on images while data being loaded; renamed vw to vi
-
-    Revision 4.4  2003/09/16 02:10:26  mast
-    Changed to make a working copy of the image data using the new line
-    pointers, operate on the working copy, and save back into the display
-    data as needed.
-
-    Revision 4.3  2003/04/25 03:28:32  mast
-    Changes for name change to 3dmod
-
-    Revision 4.2  2003/04/17 18:43:38  mast
-    adding parent to window creation
-
-    Revision 4.1  2003/02/10 20:29:02  mast
-    autox.cpp
-
-    Revision 1.1.2.2  2003/01/27 00:30:07  mast
-    Pure Qt version and general cleanup
-
-    Revision 1.1.2.1  2003/01/23 19:57:06  mast
-    Qt version
-
-    Revision 3.2.2.1  2003/01/13 01:15:43  mast
-    changes for Qt version of info window
-
-    Revision 3.2  2002/12/01 15:34:41  mast
-    Changes to get clean compilation with g++
-
-*/

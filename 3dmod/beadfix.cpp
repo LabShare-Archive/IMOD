@@ -2597,7 +2597,7 @@ void BeadFixer::buttonPressed(int which)
   if (!which)
     close();
   else
-    imodShowHelpPage("beadfix.html");
+    imodShowHelpPage("beadfix.html#TOP");
 }
 
 // Change to flag to keep on top or run timer as for info window

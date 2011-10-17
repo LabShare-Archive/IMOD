@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <qcheckbox.h>
@@ -920,7 +919,7 @@ void ImodvImage::falseToggled(bool state)
 void ImodvImage::buttonPressed(int which)
 {
   if (which)
-    imodShowHelpPage("modvImage.html");
+    imodShowHelpPage("modvImage.html#TOP");
   else
     close();
 }
@@ -962,122 +961,3 @@ void ImodvImage::keyReleaseEvent ( QKeyEvent * e )
   }
   imodvKeyRelease(e);
 }
-
-/*
-
-$Log$
-Revision 4.26  2011/09/07 15:55:07  mast
-Switch to linear display and using much larger texture patches
-
-Revision 4.25  2011/03/14 23:39:13  mast
-Changes for ushort loading
-
-Revision 4.24  2011/01/13 20:27:08  mast
-warning cleanup
-
-Revision 4.23  2010/12/18 17:36:44  mast
-Changes for stereo image display
-
-Revision 4.22  2010/08/23 02:55:43  mast
-Try setting max slices to 1024
-
-Revision 4.21  2010/04/01 02:41:48  mast
-Called function to test for closing keys, or warning cleanup
-
-Revision 4.20  2009/03/22 19:54:25  mast
-Show with new geometry adjust routine for Mac OS X 10.5/cocoa
-
-Revision 4.19  2009/01/15 16:33:17  mast
-Qt 4 port
-
-Revision 4.18  2008/05/27 02:48:43  mast
-Fixed multiple plane drawing of X and Y planes
-
-Revision 4.17  2007/07/08 16:04:49  mast
-Used new hot slider function
-
-Revision 4.16  2007/06/22 00:54:21  mast
-Converted help to html
-
-Revision 4.15  2006/08/28 05:22:35  mast
-Changes for colormapped images
-
-Revision 4.14  2004/11/04 23:30:55  mast
-Changes for rounded button style
-
-Revision 4.13  2004/06/15 01:14:55  mast
-Added functions to allow transparency and number of slices to be varied
-during movie-making
-
-Revision 4.12  2004/05/16 20:17:04  mast
-Made it draw solid and transparent planes separately to interact better
-with object transparency; added sliders to set display size; rewrote
-drawing code with properly named variables for each dimension
-
-Revision 4.11  2004/05/15 21:52:11  mast
-Computed alpha factors correctly for the multiple slice display
-
-Revision 4.10  2004/05/03 19:18:26  mast
-Added ability to display multiple slices and X, Y, or Z planes
-
-Revision 4.9  2004/01/22 19:12:43  mast
-changed from pressed() to clicked() or accomodated change to actionClicked
-
-Revision 4.8  2003/10/27 04:57:22  mast
-Fixed problem with reverse contrast
-
-Revision 4.7  2003/09/16 02:09:14  mast
-Changed to access image data using new line pointers
-
-Revision 4.6  2003/04/25 03:28:32  mast
-Changes for name change to 3dmod
-
-Revision 4.5  2003/04/17 18:43:38  mast
-adding parent to window creation
-
-Revision 4.4  2003/03/28 05:01:50  mast
-Needed to remove include of glu.h for Mac
-
-Revision 4.3  2003/03/26 23:23:15  mast
-switched from hotslider.h to preferences.h
-
-Revision 4.2  2003/02/27 17:24:33  mast
-Had to include qgl.h instead of GL/gl.h under windows
-
-Revision 4.1  2003/02/10 20:29:01  mast
-autox.cpp
-
-Revision 1.1.2.10  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.9  2003/01/18 00:58:37  mast
-add tooltips to dialogframe call
-
-Revision 1.1.2.8  2003/01/13 07:21:38  mast
-Changes to use new dialog manager class
-
-Revision 1.1.2.7  2003/01/01 05:43:44  mast
-rationalizing toplevel versus dialog style
-
-Revision 1.1.2.6  2002/12/30 17:32:42  mast
-eliminate unused variables
-
-Revision 1.1.2.5  2002/12/30 06:40:53  mast
-Qt version
-
-Revision 1.1.2.4  2002/12/19 04:37:13  mast
-Cleanup of unused global variables and defines
-
-Revision 1.1.2.3  2002/12/18 04:15:14  mast
-new includes for imodv modules
-
-Revision 1.1.2.2  2002/12/17 18:33:19  mast
-using new includes for imodv compoennts
-
-Revision 1.1.2.1  2002/12/15 21:14:02  mast
-conversion to cpp
-
-Revision 3.1  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-*/

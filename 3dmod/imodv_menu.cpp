@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <qfiledialog.h>
@@ -101,15 +100,15 @@ void imodvHelpMenu(int item)
 {
   switch(item) {
   case VHELP_MENU_MENUS:
-    imodShowHelpPage("modvMenus.html");
+    imodShowHelpPage("modvMenus.html#TOP");
     break;
 
   case VHELP_MENU_KEYBOARD:
-    imodShowHelpPage("modvKeyboard.html");
+    imodShowHelpPage("modvKeyboard.html#TOP");
     break;
   
   case VHELP_MENU_MOUSE:
-    imodShowHelpPage("modvMouse.html");
+    imodShowHelpPage("modvMouse.html#TOP");
     break;
 
   case VHELP_MENU_ABOUT:
@@ -656,153 +655,3 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 {
   imodvKeyRelease(e);
 }
-
-/*
-
-$Log$
-Revision 4.35  2010/12/28 03:45:21  mast
-Call to set invert Z menu item
-
-Revision 4.34  2010/12/20 03:29:20  mast
-Added flag and menu item to invert model in Z
-
-Revision 4.33  2009/03/22 19:54:25  mast
-Show with new geometry adjust routine for Mac OS X 10.5/cocoa
-
-Revision 4.32  2009/01/24 00:24:31  mast
-*** empty log message ***
-
-Revision 4.31  2009/01/15 16:33:18  mast
-Qt 4 port
-
-Revision 4.30  2008/12/15 21:28:00  mast
-Changes to call for switching buffering
-
-Revision 4.29  2008/12/09 23:27:05  mast
-Changed flag from line to noline
-
-Revision 4.28  2008/11/28 06:43:13  mast
-Added bounding box and current point
-
-Revision 4.27  2008/04/29 18:13:20  xiongq
-add isosurface dialog
-
-Revision 4.26  2008/01/25 20:22:58  mast
-Changes for new scale bar
-
-Revision 4.25  2008/01/21 17:47:40  mast
-Added include for new listobj module
-
-Revision 4.24  2007/11/10 04:07:10  mast
-Changes for setting snapshot directory
-
-Revision 4.23  2007/10/03 19:30:22  sueh
-bug# 1038 Replacing help strings with an .html file.
-
-Revision 4.22  2007/07/08 16:57:00  mast
-Added to mouse help
-
-Revision 4.21  2006/10/11 23:52:44  mast
-Changed RGB to NonT in menu
-
-Revision 4.20  2006/09/12 15:47:34  mast
-Handled contour member renames
-
-Revision 4.19  2006/09/01 20:48:46  mast
-Added mouse help for selection
-
-Revision 4.18  2004/12/03 00:07:50  mast
-Fixed ambiguity in ? : statement
-
-Revision 4.17  2004/11/29 19:25:21  mast
-Changes to do QImage instead of RGB snapshots
-
-Revision 4.16  2004/11/22 21:02:24  mast
-Added image window to selection
-
-Revision 4.15  2004/11/21 06:07:49  mast
-Changes for undo/redo
-
-Revision 4.14  2004/11/04 23:30:55  mast
-Changes for rounded button style
-
-Revision 4.13  2004/05/15 21:24:31  mast
-Added hot key Z to help list
-
-Revision 4.12  2004/04/28 05:28:52  mast
-Changes for drawing current contour thicker
-
-Revision 4.11  2003/11/04 04:43:16  mast
-DOcumentation for new rotation speed and throwing
-
-Revision 4.10  2003/10/24 04:01:57  mast
-delete files before renaming, renaming only if necessary for Windows/Intel
-
-Revision 4.9  2003/06/27 20:03:30  mast
-Initial views using new scheme when reading in a model
-
-Revision 4.8  2003/05/05 15:07:10  mast
-Fix hotkey list
-
-Revision 4.7  2003/04/25 03:28:32  mast
-Changes for name change to 3dmod
-
-Revision 4.6  2003/04/17 19:27:48  mast
-adding ctrl string
-
-Revision 4.5  2003/04/14 15:31:02  mast
-fixing documentation
-
-Revision 4.4  2003/03/26 23:23:15  mast
-switched from hotslider.h to preferences.h
-
-Revision 4.3  2003/02/27 17:38:02  mast
-Convert filenames with Qt routines
-
-Revision 4.2  2003/02/21 23:20:55  mast
-Open model save file in binary mode
-
-Revision 4.1  2003/02/10 20:29:01  mast
-autox.cpp
-
-Revision 1.1.2.11  2003/01/29 01:44:29  mast
-exit by closing window
-
-Revision 1.1.2.10  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.9  2003/01/18 01:13:44  mast
-add include of dia_qtutils
-
-Revision 1.1.2.8  2003/01/13 07:21:38  mast
-Changes to use new dialog manager class
-
-Revision 1.1.2.7  2003/01/06 15:53:07  mast
-eliminate unused varaiables
-
-Revision 1.1.2.6  2003/01/01 19:12:31  mast
-changes to start Qt application in standalone mode
-
-Revision 1.1.2.5  2002/12/30 06:49:50  mast
-rationalizing dialogs as widgets and using dialog list
-
-Revision 1.1.2.4  2002/12/27 01:23:56  mast
-New background color selector
-
-Revision 1.1.2.3  2002/12/18 04:15:14  mast
-new includes for imodv modules
-
-Revision 1.1.2.2  2002/12/17 22:28:21  mast
-cleanup of unused variables and SGI errors
-
-Revision 1.1.2.1  2002/12/17 18:43:58  mast
-Qt version
-
-Revision 3.2  2002/12/01 15:31:41  mast
-Changes to compile with g++; also made only one background color window
-be open at any one time.
-
-Revision 3.1  2002/11/05 23:27:46  mast
-Changed copyright notice to use defined lab name and years
-
-*/

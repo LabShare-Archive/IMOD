@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <qcursor.h>
@@ -177,7 +176,7 @@ void LocatorWindow::closeEvent ( QCloseEvent * e )
 
 void LocatorWindow::help()
 {
-  imodShowHelpPage("locator.html");
+  imodShowHelpPage("locator.html#TOP");
 }
 
 void LocatorWindow::zoomUp()
@@ -433,38 +432,3 @@ void LocatorGL::mouseMoveEvent ( QMouseEvent * e )
   mMouseY = ey;
   zapSetImageOrBandCenter(imx, imy, true);
 }
-
-/*
-$Log$
-Revision 1.10  2010/04/01 02:41:48  mast
-Called function to test for closing keys, or warning cleanup
-
-Revision 1.9  2009/03/30 18:26:20  mast
-Call function to raise on mouse press if needed
-
-Revision 1.8  2009/03/22 19:54:25  mast
-Show with new geometry adjust routine for Mac OS X 10.5/cocoa
-
-Revision 1.7  2009/03/05 00:59:16  mast
-Flush mouse move events to get to most recent one when appropriate
-
-Revision 1.6  2009/01/15 16:33:18  mast
-Qt 4 port
-
-Revision 1.5  2008/08/19 20:01:40  mast
-Made it zoom with + as well as =
-
-Revision 1.4  2008/07/12 03:02:02  mast
-Fixed zoom resize bug
-
-Revision 1.3  2008/01/25 20:21:40  mast
-Added return value
-
-Revision 1.2  2007/08/13 20:29:51  mast
-Added a few tools at the top
-
-Revision 1.1  2007/08/13 16:05:25  mast
-Added to program
-
-
-*/

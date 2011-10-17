@@ -38,7 +38,7 @@ static ImodObjColor *colorObjects[MAX_COLOR_SELECTORS];
 
 void ioew_help(void)
 {
-  imodShowHelpPage("objectEdit.html");
+  imodShowHelpPage("objectEdit.html#TOP");
 }
 
 static void setObjectFlag(bool state, int symflag, b3dUInt32 flag)
