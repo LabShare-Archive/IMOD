@@ -132,7 +132,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   public static final String rcsid = "$Id$";
 
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
-  //Keep components with listeners private.
+  // Keep components with listeners private.
   private final Run3dmodButton btn3dmodTomogram = Run3dmodButton.get3dmodInstance(
       "View Tomogram In 3dmod", this);
   private final ActionListener actionListener = new TiltActionListener(this);
@@ -188,7 +188,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   final AxisID axisID;
   final DialogType dialogType;
   private final TrialTiltPanel trialTiltPanel;
-  //Keep components with listeners private.
+  // Keep components with listeners private.
   private final Run3dmodButton btnTilt;
   private final MultiLineButton btnDeleteStack;
   private final PanelId panelId;
@@ -210,8 +210,8 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   abstract void imodTomogramAction(final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions);
 
-  //backward compatibility functionality - if the metadata binning is missing
-  //get binning from newst
+  // backward compatibility functionality - if the metadata binning is missing
+  // get binning from newst
   AbstractTiltPanel(final ApplicationManager manager, final AxisID axisID,
       final DialogType dialogType, final GlobalExpandButton globalAdvancedButton,
       final PanelId panelId, final boolean listenForFieldChanges) {
@@ -246,22 +246,22 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   }
 
   void createPanel() {
-    //Initialize
+    // Initialize
     initializePanel();
     ltfLinearDensityScaleFactor.setText(TiltParam.LINEAR_SCALE_FACTOR_DEFAULT);
     ltfLinearDensityScaleOffset.setText(TiltParam.LINEAR_SCALE_OFFSET_DEFAULT);
-    //local panels
+    // local panels
     JPanel pnlLogDensity = new JPanel();
     JPanel pnlLinearDensity = new JPanel();
     JPanel pnlOffset = new JPanel();
     JPanel pnlCheckBox = new JPanel();
-    //Root panel
+    // Root panel
     pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRoot.setBorder(BorderFactory.createEtchedBorder());
     pnlRoot.add(header);
     pnlRoot.add(pnlBody);
     UIUtilities.alignComponentsX(pnlRoot.getContainer(), Component.LEFT_ALIGNMENT);
-    //Body panel
+    // Body panel
     pnlBody.setLayout(new BoxLayout(pnlBody, BoxLayout.Y_AXIS));
     pnlBody.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlBody.add(cbParallelProcess);
@@ -282,37 +282,37 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     pnlBody.add(trialPanel.getContainer());
     pnlBody.add(pnlButton.getContainer());
     UIUtilities.alignComponentsX(pnlBody, Component.LEFT_ALIGNMENT);
-    //Log density panel
+    // Log density panel
     pnlLogDensity.setLayout(new BoxLayout(pnlLogDensity, BoxLayout.X_AXIS));
     pnlLogDensity.add(ltfLogDensityScaleFactor.getContainer());
     pnlLogDensity.add(ltfLogDensityScaleOffset.getContainer());
     UIUtilities.alignComponentsX(pnlLogDensity, Component.LEFT_ALIGNMENT);
-    //Linear density panel
+    // Linear density panel
     pnlLinearDensity.setLayout(new BoxLayout(pnlLinearDensity, BoxLayout.X_AXIS));
     pnlLinearDensity.add(ltfLinearDensityScaleFactor.getContainer());
     pnlLinearDensity.add(ltfLinearDensityScaleOffset.getContainer());
     UIUtilities.alignComponentsX(pnlLinearDensity, Component.LEFT_ALIGNMENT);
-    //Slices in Y panel
+    // Slices in Y panel
     pnlSlicesInY.setLayout(new BoxLayout(pnlSlicesInY, BoxLayout.X_AXIS));
     pnlSlicesInY.add(ltfSliceStart.getContainer());
     pnlSlicesInY.add(ltfSliceStop.getContainer());
     pnlSlicesInY.add(lblInY.getContainer());
     UIUtilities.alignComponentsX(pnlSlicesInY, Component.LEFT_ALIGNMENT);
-    //Offset panel
+    // Offset panel
     pnlOffset.setLayout(new BoxLayout(pnlOffset, BoxLayout.X_AXIS));
     pnlOffset.add(ltfXShift.getContainer());
     pnlOffset.add(ltfZShift.getContainer());
     UIUtilities.alignComponentsX(pnlOffset, Component.LEFT_ALIGNMENT);
-    //Check box panel
+    // Check box panel
     pnlCheckBox.setLayout(new BoxLayout(pnlCheckBox, BoxLayout.Y_AXIS));
     pnlCheckBox.add(cbUseLocalAlignment);
     pnlCheckBox.add(cbUseZFactors);
     UIUtilities.alignComponentsX(pnlCheckBox, Component.LEFT_ALIGNMENT);
-    //Trial panel
+    // Trial panel
     trialPanel.setBoxLayout(BoxLayout.X_AXIS);
     trialPanel.add(trialTiltPanel.getComponent());
     trialPanel.alignComponentsX(Component.LEFT_ALIGNMENT);
-    //Button panel
+    // Button panel
     pnlButton.setBoxLayout(BoxLayout.X_AXIS);
     pnlButton.add(btnTilt);
     pnlButton.add(btn3dmodTomogram);
@@ -355,8 +355,8 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     cbParallelProcess.addActionListener(actionListener);
     cbUseGpu.addActionListener(actionListener);
     ctfLog.addActionListener(actionListener);
-    //If the child class has field listeners, it must set listenForFieldChanges to true.
-    //Otherwise changes in these fields will be ignored.
+    // If the child class has field listeners, it must set listenForFieldChanges to true.
+    // Otherwise changes in these fields will be ignored.
     if (listenForFieldChanges) {
       cbUseLocalAlignment.addActionListener(actionListener);
       cbUseZFactors.addActionListener(actionListener);
@@ -451,7 +451,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     lblInY.setVisible(advanced);
     ltfSliceIncr.setVisible(advanced && backProjection);
     ltfXShift.setVisible(advanced && backProjection);
-    //Z shift is not always an advanced field.
+    // Z shift is not always an advanced field.
     ltfTiltAngleOffset.setVisible(advanced);
     radialPanel.setVisible(backProjection);
     ltfExtraExcludeList.setVisible(advanced);
@@ -508,9 +508,9 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
         && (backProjection || !resume));
     cbUseZFactors.setEnabled(madeZFactors && !newstFiducialessAlignment
         && (backProjection || !resume));
-    //A local GPU installed on this computer means that GPU processing is available
-    //with or without parallel processing.  Non-local GPU(s) installed in the network mean
-    //that GPU processing is available with parallel processing.
+    // A local GPU installed on this computer means that GPU processing is available
+    // with or without parallel processing. Non-local GPU(s) installed in the network mean
+    // that GPU processing is available with parallel processing.
     cbUseGpu.setEnabled((((gpusAvailable || localGpuAvailable) && (cbParallelProcess
         .isSelected() || isSirt())) || (localGpuAvailable
         && !cbParallelProcess.isSelected() && !isSirt()))
@@ -577,18 +577,18 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   }
 
   final void setParameters(final ConstMetaData metaData) {
-    //Parallel processing is optional in tomogram reconstruction, so only use it
-    //if the user set it up.
+    // Parallel processing is optional in tomogram reconstruction, so only use it
+    // if the user set it up.
     boolean validAutodoc = Network.isParallelProcessingEnabled(manager, axisID,
         manager.getPropertyUserDir());
-    //Use GPU
+    // Use GPU
     gpusAvailable = Network.isGpuParallelProcessingEnabled(manager, axisID,
         manager.getPropertyUserDir());
     localGpuAvailable = Network.isLocalHostGpuProcessingEnabled(manager, axisID,
         manager.getPropertyUserDir());
     cbUseGpu.setSelected(metaData.getDefaultGpuProcessing().is());
-    //updateUseGpu();
-    //Parallel processing
+    // updateUseGpu();
+    // Parallel processing
     cbParallelProcess.setEnabled(validAutodoc);
     ConstEtomoNumber tiltParallel = metaData.getTiltParallel(axisID, panelId);
     if (tiltParallel == null) {
@@ -623,7 +623,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
   }
 
   public ProcessingMethod getProcessingMethod() {
-    //SIRT must use parallel processing.
+    // SIRT must use parallel processing.
     boolean parallelProcess = (cbParallelProcess.isEnabled() && cbParallelProcess
         .isSelected()) || isSirt();
     if (parallelProcess) {
@@ -699,7 +699,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     radialPanel.setParameters(tiltParam);
     ctfLog.setSelected(tiltParam.hasLogOffset());
     boolean log = tiltParam.hasLogOffset();
-    //If initialize is true, get defaults from tilt.com
+    // If initialize is true, get defaults from tilt.com
     if (log || initialize) {
       ctfLog.setText(tiltParam.getLogShift());
     }
@@ -711,10 +711,18 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
       ltfLinearDensityScaleOffset.setText(tiltParam.getScaleFLevel());
       ltfLinearDensityScaleFactor.setText(tiltParam.getScaleCoeff());
     }
+    if (initialize) {
+      EtomoNumber logScale = new EtomoNumber(EtomoNumber.Type.FLOAT);
+      logScale.set(ltfLogDensityScaleFactor.getText());
+      if (!logScale.isNull() && logScale.isValid()) {
+        ltfLinearDensityScaleFactor
+            .setText(Math.round(logScale.getFloat() / 5000. * 10.) / 10.);
+      }
+    }
     if (!initialize) {
-      //During initialization the value should coming from setup
+      // During initialization the value should coming from setup
       cbUseGpu.setSelected(tiltParam.isUseGpu());
-      //updateUseGpu();
+      // updateUseGpu();
     }
     MetaData metaData = manager.getMetaData();
     cbUseLocalAlignment.setSelected(metaData.getUseLocalAlignments(axisID));
@@ -767,7 +775,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     try {
       badParameter = "IMAGEBINNED";
       tiltParam.setImageBinned();
-      //Do not manage full image size.  It is coming from copytomocoms.  
+      // Do not manage full image size. It is coming from copytomocoms.
       if (ltfTomoWidth.getText().matches("\\S+")) {
         badParameter = ltfTomoWidth.getLabel();
         tiltParam.setWidth(Integer.parseInt(ltfTomoWidth.getText()));
@@ -776,7 +784,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
         tiltParam.resetWidth();
       }
 
-      //set Z Shift
+      // set Z Shift
       if (isZShiftSet()) {
         badParameter = ltfZShift.getLabel();
         tiltParam.setZShift(ltfZShift.getText());
@@ -784,7 +792,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
       else {
         tiltParam.resetZShift();
       }
-      //set X Shift
+      // set X Shift
       if (ltfXShift.getText().matches("\\S+")) {
         badParameter = ltfXShift.getLabel();
         tiltParam.setXShift(Float.parseFloat(ltfXShift.getText()));
@@ -890,8 +898,8 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
         tiltParam.setLocalAlignFile("");
       }
       metaData.setUseLocalAlignments(axisID, isUseLocalAlignment());
-      //TiltParam.fiducialess is based on whether final alignment was run
-      //fiducialess.
+      // TiltParam.fiducialess is based on whether final alignment was run
+      // fiducialess.
       // newstFiducialessAlignment
       boolean newstFiducialessAlignment = false;
       TomogramState state = manager.getState();
