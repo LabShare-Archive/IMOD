@@ -1,7 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-10/17/11: In eTomo - Tomogram Generation initializing linear scaling from log
-scaling.(Bug# 1564)
+10/17/11: Made Sirtsetup adjust scaling by 5000 after taking log of data so
+numbers will stay in a comparable range.
+
+10/17/11: Fixed all help files opened by 3dmod, Midas, and Ctfplotter so that
+they open at the top with the Assistant in Qt 4.6.
+
+10/17/11: In eTomo - Tomogram Generation initializing linear scaling to be the
+log scaling divided by 5000.(Bug# 1564)
 
 10/14/11: IMOD_4-2-27
 10/14/11: In eTomo added the taper parameter to newst.com.(Bug# 1548).
