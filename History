@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/18/11: Added #TOP anchor to manpages in the right-click menu.(Bug# 1572)
+
 10/17/11: Made Sirtsetup adjust scaling by 5000 after taking log of data so
 numbers will stay in a comparable range.
 
