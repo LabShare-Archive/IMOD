@@ -630,7 +630,7 @@ c       necessary
         dmin = max(0., dmin)
         dmax = min(255., dmax)
       else if (newmode .eq. 1) then
-        extremes = useGPU .and. max(abs(dmin), abs(dmax)) .gt. 3e5
+        extremes = useGPU .and. max(abs(dmin), abs(dmax)) .gt. effectiveScale * 3.e5
         truncations = dmin .lt. -32768. .or. dmax .gt. 32768.
         dmin = max(-32768., dmin)
         dmax = min(32767., dmax)
@@ -702,9 +702,9 @@ C
      &    //,1X,78('-'))
 911   format(/,'WARNING: TILT - EXTREMELY LARGE VALUES OCCURRED AND VALUES ',
      &    'WERE TRUNCATED WHEN OUTPUT TO FILE; THERE COULD BE ERRORS IN GPU ',
-     &    'COMPUTATION',/)
+     &    'COMPUTATION.  RUN gputilttest',/)
 912   format(/,'WARNING: TILT - SOME VALUES WERE TRUNCATED WHEN OUTPUT TO THE',
-     &    ' FILE; CHECK THE OUTPUT SCALING',/)
+     &    ' FILE; CHECK THE OUTPUT SCALING FACTOR',/)
 920   FORMAT(//' ERROR: TILT -  reading in view',I3,' for slice'
      &    ,I5,/)
 930   FORMAT(//' Header on ',a,' file'/
@@ -2685,6 +2685,13 @@ c
      &        (maxTotSlice + imageBinned - 1) / imageBinned))
         endif
       endif
+c       
+c       Set up an effective scaling factor for non-log scaling to test output
+c       The equation in ( ) is based on fitting to the amplification of the range 
+c       with linear scaling for different input sizes
+      effectiveScale = 1.
+      if (iflog .eq. 0) effectiveScale = scale * (0.011 * npxyz(1) + 6) / 2.
+c
       if (recReproj) then
         if (debug) print *,minTotSlice,maxTotSlice,minZreproj,maxZreproj,nrxyz(3)
         if ((minTotSlice .le. 0 .and. (minZreproj .le. 0 .or. maxZreproj .gt.
