@@ -78,7 +78,7 @@ c
 c       
       integer*4, allocatable :: maskedge(:,:)
 c       
-      real*4 FLEVL,SCALE,baseFlevl, baseScale
+      real*4 FLEVL,SCALE,baseFlevl, baseScale, effectiveScale
 c       
       real*4, allocatable :: sbet(:),cbet(:),SAL(:),CAL(:), alpha(:)
       integer*4 ifalpha
