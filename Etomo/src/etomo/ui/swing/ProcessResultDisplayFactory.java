@@ -139,7 +139,7 @@ public final class ProcessResultDisplayFactory implements
   private final ProcessResultDisplay sirtsetup = Run3dmodButton
       .getDeferredToggle3dmodInstance("Run SIRT", DialogType.TOMOGRAM_GENERATION);
   private final ProcessResultDisplay useSirt = MultiLineButton.getToggleButtonInstance(
-      "Use SIRT output file", DialogType.TOMOGRAM_GENERATION);
+      "Use SIRT Output File", DialogType.TOMOGRAM_GENERATION);
 
   //combination
 

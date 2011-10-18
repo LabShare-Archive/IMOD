@@ -673,7 +673,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     ltfFlatFilterFraction.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         SirtsetupParam.FLAT_FILTER_FRACTION_KEY));
     btn3dmodSirt
-        .setToolTipText("Opens a file chooser for picker SIRT iteration files to bring up in 3dmod");
+        .setToolTipText("Opens a file chooser for picking SIRT iteration files to open together in 3dmod");
     cbCleanUpPastStart.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         SirtsetupParam.CLEAN_UP_PAST_START_KEY));
     cbSkipVertSliceOutput.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
@@ -688,7 +688,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     cmbResumeFromIteration.setToolTipText(tooltip);
     btnSirt
         .setToolTipText("Run sirtsetup, and then run the resulting .com files with processchunks.");
-    btnUseSirt.setToolTipText("Use a SIRT result as the tomogram");
+    btnUseSirt.setToolTipText("Use a SIRT result as the tomogram (change the extension to .rec).");
 
   }
 
