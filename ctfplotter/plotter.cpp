@@ -212,7 +212,7 @@ void Plotter::printIt()
 
 void Plotter::ctfHelp()
 {
-  ctfShowHelpPage("ctfHelp/ctfguide.html");
+  ctfShowHelpPage("ctfHelp/ctfguide.html#TOP");
 }
 
 void Plotter::setCurveData(int id, const QVector<QPointF> &data)

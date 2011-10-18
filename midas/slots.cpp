@@ -568,13 +568,13 @@ void MidasSlots::slotHelpmenu(int item)
 {
   switch(item){
   case HELP_MENU_CONTROLS: 
-     showHelpPage("midasHelp/controls.html");
+     showHelpPage("midasHelp/controls.html#TOP");
     break;
   case HELP_MENU_HOTKEYS:
-    showHelpPage("midasHelp/keyboard.html");
+    showHelpPage("midasHelp/keyboard.html#TOP");
     break;
   case HELP_MENU_MOUSE:
-     showHelpPage("midasHelp/mouse.html");
+     showHelpPage("midasHelp/mouse.html#TOP");
     break;
   case HELP_MENU_MANPAGE:
     showHelpPage("man/midas.html");
