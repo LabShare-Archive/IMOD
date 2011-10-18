@@ -1,22 +1,7 @@
-/*  $Author$
+/* 
+ *  $Id$
+ */
 
-$Date$
-
-$Revision$
-
-$Log$
-Revision 3.3  2006/02/10 02:52:32  mast
-Added program list include, line buffering, and replacement of
-program(1) with a hyperlink to man page
-
-Revision 3.2  2004/12/24 02:23:00  mast
-Completely rewrote to work right with bold and italics and special
-characters
-
-Revision 3.1  2003/10/08 17:22:16  mast
-Added a return value at the end fo main
-
-*/
 #include <stdio.h>
 #include <string.h>
 #include "proglist.h"
@@ -41,7 +26,7 @@ int main(int argc , char **argv)
   if (argc > 1)
     htitle = argv[1];
 
-  printf("<html><head><title>%s</title></head><body><pre>\n", htitle);
+  printf("<html><head><title>%s</title></head><body><a name=\"TOP\"></a><pre>\n", htitle);
 
   while (last != EOF) {
     c = nextchar();

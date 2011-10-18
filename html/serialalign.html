@@ -3,6 +3,7 @@ Serial Section Alignment with IMOD
 </title>
 
 <body>
+<A NAME = "TOP"></A>
 <H2 ALIGN=center>Serial Section Alignment with IMOD</H2>
 <HR>
 <BR><A HREF = "#Linear">Linear Transformations</A>
@@ -89,7 +90,7 @@ line of the file specifies:
 <pre>
    A11   A12   A21   A22   DX  DY
 </pre>
-The program <A HREF = "man/xf2rotmagstr.html">Xf2rotmagstr</A> can be used to
+The program <A HREF = "man/xf2rotmagstr.html#TOP">Xf2rotmagstr</A> can be used to
 convert the transforms in a file into natural parameters.
 
 <h3><A NAME = "FandG"></A>F and G Transforms</h3>
@@ -140,9 +141,9 @@ latter methods were developed because the automated method is not usually
 sufficient.
 
 <H3><A NAME = "Automatic"></A>Automatic alignment</H3>
-The Python script <A HREF = "man/xfalign.html">Xfalign</A> will do automated
+The Python script <A HREF = "man/xfalign.html#TOP">Xfalign</A> will do automated
 alignment of a set of serial sections.  The main tool that it runs is the
-program <A HREF = "man/xfsimplex.html">Xfsimplex</A>, which varies the six
+program <A HREF = "man/xfsimplex.html#TOP">Xfsimplex</A>, which varies the six
 transformation parameters until it finds the best "fit" between two images.
 Its primary method of measuring fit is with a difference measure, which
 is just the sum of the absolute values of pixel-by-pixel differences
@@ -150,28 +151,28 @@ between the two images.  This measure can lead to success if the features that
 correspond between the two images are relatively large or comprise a
 substantial fraction of the image area. 
 Two important factors governing the success
-of <A HREF = "man/xfsimplex.html">Xfsimplex</A> are: 1) appropriate
+of <A HREF = "man/xfsimplex.html#TOP">Xfsimplex</A> are: 1) appropriate
 pre-processing of the images to emphasize features that correspond; 
 and 2) proper choice of the
-parameters for <A HREF = "man/xfsimplex.html">Xfsimplex</A>, particularly
+parameters for <A HREF = "man/xfsimplex.html#TOP">Xfsimplex</A>, particularly
 how much to reduce the size of images in X and Y.  
-See the man pages for <A HREF = "man/xfalign.html">Xfalign</A> and 
-<A HREF = "man/xfsimplex.html">Xfsimplex</A> for more guidance on these points.
-<A HREF = "man/xfsimplex.html">Xfsimplex</A> provides low-pass and high-pass
+See the man pages for <A HREF = "man/xfalign.html#TOP">Xfalign</A> and 
+<A HREF = "man/xfsimplex.html#TOP">Xfsimplex</A> for more guidance on these points.
+<A HREF = "man/xfsimplex.html#TOP">Xfsimplex</A> provides low-pass and high-pass
 Fourier filtering, controlled by four parameters specifying the location and
 width of Gaussian functions.  These are the same parameters used by numerous
 other IMOD programs.  You can experiment with simple low- and high-pass filters
-in the image processing window of <A HREF = "man/3dmod.html">3dmod</A>; the
+in the image processing window of <A HREF = "man/3dmod.html#TOP">3dmod</A>; the
 low-frequency sigma, high-frequency cutoff and high-frequency falloff there
 correspond to the sigma1, radius2, and sigma2 entries to the "-filter" option
-of <A HREF = "man/xfalign.html">Xfalign</A>.  You can visualize the filter
+of <A HREF = "man/xfalign.html#TOP">Xfalign</A>.  You can visualize the filter
 functions for the full range of possible filters with 
-<A HREF = "man/filterplot.html">Filterplot</A>; see that man page for a
+<A HREF = "man/filterplot.html#TOP">Filterplot</A>; see that man page for a
 description of all the effects of the parameters.  You can use the same
-four parameters with <A HREF = "man/mtffilter.html">Mtffilter</A> to see how more
+four parameters with <A HREF = "man/mtffilter.html#TOP">Mtffilter</A> to see how more
 complicated filters treat your data.
 <P>
-<A HREF = "man/xfsimplex.html">Xfsimplex</A> will normally search for the
+<A HREF = "man/xfsimplex.html#TOP">Xfsimplex</A> will normally search for the
 values of the six formal transformation parameters, but one can select a
 mode in which it will search
 for the six semi-natural parameters or selected subsets of them.  Unless one
@@ -179,33 +180,33 @@ wishes to vary only a subset of parameters (e.g. displacement only or
 displacement, rotation, and uniform magnification only), the semi-natural
 parameters seem to present no advantage.
 <P>
-In the simplest case, one would invoke <A HREF = "man/xfalign.html">Xfalign</A> with 
+In the simplest case, one would invoke <A HREF = "man/xfalign.html#TOP">Xfalign</A> with 
 <pre>
     xfalign sections.st sections.xf
 </pre>
 which would find search for alignments between the images in "sections.st"
 and output the <b>f</b> transforms into the file "sections.xf".
 <P>
-Because <A HREF = "man/xfsimplex.html">Xfsimplex</A> does an iterative search
+Because <A HREF = "man/xfsimplex.html#TOP">Xfsimplex</A> does an iterative search
 for a local optimum in the fitting measure, it cannot find the right alignment
 if there is a big initial
-displacement between the images.  <A HREF = "man/xfalign.html">Xfalign</A> has
+displacement between the images.  <A HREF = "man/xfalign.html#TOP">Xfalign</A> has
 an option to do an initial cross-correlationusing 
-<A HREF = "man/tiltxcorr.html">Tiltxcorr</A>, which
+<A HREF = "man/tiltxcorr.html#TOP">Tiltxcorr</A>, which
 will find the displacement that gives a global optimum in the correlation
 between the images.  These displacements are then
-passed to <A HREF = "man/xfsimplex.html">Xfsimplex</A>, which searches with
+passed to <A HREF = "man/xfsimplex.html#TOP">Xfsimplex</A>, which searches with
 them as a starting point.  This option can be invoked with 
 <pre>
      xfalign -pr sections.st sections.xf
 </pre>
 Another alternative, if cross-correlations do not work well, is to run 
-<A HREF = "man/midas.html">Midas</A>
+<A HREF = "man/midas.html#TOP">Midas</A>
 initially (see below) and use it to quickly shift the images into approximate
-alignment.  <A HREF = "man/xfalign.html">Xfalign</A> can then be told to use
+alignment.  <A HREF = "man/xfalign.html#TOP">Xfalign</A> can then be told to use
 these initial alignments, rather than trying to find initial alignments by
 correlation.  If the <b>f</b> transforms
-produced by <A HREF = "man/midas.html">Midas</A> are in the file
+produced by <A HREF = "man/midas.html#TOP">Midas</A> are in the file
 "sections.prexf", then this option can be invoked with
 <pre>
      xfalign -in sections.prexf sections.st sections.xf
@@ -213,10 +214,10 @@ produced by <A HREF = "man/midas.html">Midas</A> are in the file
 
 <H3><A NAME = "Fiducial"></A>
 Generating or Editing an Alignment with Fiducial Points</H3>
-The program <A HREF = "man/xfmodel.html">Xfmodel</A> can solve for the
+The program <A HREF = "man/xfmodel.html#TOP">Xfmodel</A> can solve for the
 parameters of a transformation between sections from the locations of points
 that are known or assumed to
-correspond between the sections.  <A HREF = "man/xfmodel.html">Xfmodel</A>
+correspond between the sections.  <A HREF = "man/xfmodel.html#TOP">Xfmodel</A>
 works with a model of connected fiducial points built in 3dmod.  In the
 simplest case, if you built a model
 of fiducial points named "sections.fid", you would just enter
@@ -227,20 +228,20 @@ to compute a list of <b>f</b> transforms.  By default, it will solve for the ful
 linear transformation, but there are also options to solve for translations
 only, translations and rotations, or translations, rotations, and
 magnifications.  Although it is most common to use this method to align an
-entire image stack, one can also use <A HREF = "man/xfmodel.html">Xfmodel</A>
+entire image stack, one can also use <A HREF = "man/xfmodel.html#TOP">Xfmodel</A>
 to "edit" an existing list of f
 transforms.  That is, if one enters fiducial points for a subset of
 troublesome sections, the program will solve for the transforms for those
 sections only, and replace those transforms in the existing list.
-<A HREF = "man/xfmodel.html">Xfmodel</A> can also be used to transform a model
+<A HREF = "man/xfmodel.html#TOP">Xfmodel</A> can also be used to transform a model
 to a new alignment (see below). 
 
 <h3><A NAME = "Manual"></A>
 Manually Editing an Alignment and Adding Warping with Midas</H3>
-The program <A HREF = "man/midas.html">Midas</A> provides for interactive
+The program <A HREF = "man/midas.html#TOP">Midas</A> provides for interactive
 visualization and manual adjustment of the alignment between two images.  It
 can be used to edit a list of <b>f</b> transforms.  By using 
-<A HREF = "man/midas.html">Midas</A>, it is not necessary to build an aligned
+<A HREF = "man/midas.html#TOP">Midas</A>, it is not necessary to build an aligned
 stack to assess the quality of transforms produced by automatic alignment.
 The program will take the unaligned images, apply any existing transforms,
 such as those generated by automatic or fiducial alignment, and allow the user
@@ -254,7 +255,7 @@ already-existing file of <b>f</b> transforms, you can then edit the transforms i
 that file; if the file does not exist, it will be defined as the output file
 into which transforms will be saved.
 <P>
-<A HREF = "man/midas.html">Midas</A> allows one to use a nonlinear
+<A HREF = "man/midas.html#TOP">Midas</A> allows one to use a nonlinear
 transformation, or warping, to align any pair of sections.  Warping becomes
 important for very large images where nonlinearities make it difficult to line
 them up everywhere with a single linear transformation.
@@ -262,10 +263,10 @@ Essentially, after aligning as much you wish with a linear
 transformation, you select the option to add warping points.  You then add a
 series of points at locations where there are features that can be aligned.
 At each location, you shift the image locally into alignment.  See the section
-<b>Warping Images</b> in the <A HREF = "man/midas.html">Midas man page</A> for
+<b>Warping Images</b> in the <A HREF = "man/midas.html#TOP">Midas man page</A> for
 more details.
 <P>
-Once you have introduced warping in <A HREF = "man/midas.html">Midas</A>, 
+Once you have introduced warping in <A HREF = "man/midas.html#TOP">Midas</A>, 
 the transformation files become
 much more complex than the single line per section described above.  However,
 all of the programs described below will read these warping transform
@@ -273,15 +274,15 @@ files interchangeably with simple linear transform files and operate
 appropriately, which means that all of the operations described below work
 with warping and require no special options.  Two
 limitations are that a warping transform file cannot be used with the
-"-initial" option to <A HREF = "man/xalign.html">Xfalign</A> or as an existing
-transform file to be edited by <A HREF = "man/xfmodel.html">Xfmodel</A>.
+"-initial" option to <A HREF = "man/xalign.html#TOP">Xfalign</A> or as an existing
+transform file to be edited by <A HREF = "man/xfmodel.html#TOP">Xfmodel</A>.
 
 <h3><A NAME = "FtoG2"></A>Converting from an F List to a G List</h3>
 As discussed above, to get from the list of <b>f</b> transforms to a useful
 stack of aligned images, one must first convert them to <b>g</b> transforms using the
-program <A HREF = "man/xftoxg.html">Xftoxg</A>.  This will produce transforms
+program <A HREF = "man/xftoxg.html#TOP">Xftoxg</A>.  This will produce transforms
 that can be used to transform each section into a common alignment.  
-<A HREF = "man/xftoxg.html">Xftoxg</A> has several different ways
+<A HREF = "man/xftoxg.html#TOP">Xftoxg</A> has several different ways
 of doing this, depending on whether you want to preserve or eliminate trends
 in the data.  The following series of examples will illustrate the treatment
 of trends.  Suppose we have sections with a progressive shift of positions:
@@ -293,12 +294,12 @@ of trends.  Suppose we have sections with a progressive shift of positions:
 </pre>
 To get <b>g</b> transforms that will align all of the images to a single average
 position, and eliminate the progressive shift, run
-<A HREF = "man/xftoxg.html">Xftoxg</A> with the option "-n 0" as follows:
+<A HREF = "man/xftoxg.html#TOP">Xftoxg</A> with the option "-n 0" as follows:
 <pre>
    xftoxg -n 0 sections.xf
 </pre>
 This entry takes advantage of a feature of 
-<A HREF = "man/xftoxg.html">Xftoxg</A>: you do not have to enter
+<A HREF = "man/xftoxg.html#TOP">Xftoxg</A>: you do not have to enter
 an output file name if the input file name ends in "f".  This command produces 
 a file "sections.xg" of <b>g</b> transforms, which when applied to the images, would
 give:
@@ -318,7 +319,7 @@ problems, it is possible to have each section aligned to a "local" average
 alignment based on a linear fit to trends in the transformations for the
 nearby sections.  This procedure will retain the trends but align adjacent
 sections as well as possible by eliminating deviations from the trends.  This
-is the default mode of operation of <A HREF = "man/xftoxg.html">Xftoxg</A>, invoked by
+is the default mode of operation of <A HREF = "man/xftoxg.html#TOP">Xftoxg</A>, invoked by
 <pre>
    xftoxg sections.xf
 </pre>
@@ -332,7 +333,7 @@ and the resulting transforms in sections.xg would give:
 The situation is more complex if there are trends in rotation or size.
 Rotation trends can occur because of curvature of the ribbon of sections, or
 because of progressive rotation of the features used for alignment.  Trends in
-size can easily occur when using <A HREF = "man/xfalign.html">Xfalign</A>, if
+size can easily occur when using <A HREF = "man/xfalign.html#TOP">Xfalign</A>, if
 the features that govern the alignment change size progressively through the
 series.  Here is a series of sections with such a size change:
 <pre>
@@ -353,7 +354,7 @@ expands them at the other:
 Aligning to a single central position tends to convert features of interest
 into a right cylinder, regardless of their true geometry.  Again, we can avoid
 this problem and retain all trends with the default entry to 
-<A HREF = "man/xftoxg.html">Xftoxg</A>, with the following result:
+<A HREF = "man/xftoxg.html#TOP">Xftoxg</A>, with the following result:
 <pre>
  3  --+--x--+-----------
  2  _--+---x---+--------
@@ -391,18 +392,18 @@ eliminate them.
 
 <h3><A NAME = "Images"></A>Creating Transformed Images</h3>
 Given a list of <b>g</b> transforms, the program 
-<A HREF = "man/newstack.html">Newstack</A> will transform the
+<A HREF = "man/newstack.html#TOP">Newstack</A> will transform the
 images to create an aligned stack.  This program can also "float" the images
 to have a common range or mean of intensity, change the size of the images, or
 extract a portion of the images.  See the man page for 
-<A HREF = "man/newstack.html">Newstack</A> for more information or enter
+<A HREF = "man/newstack.html#TOP">Newstack</A> for more information or enter
 "newstack -h". A simple example, which will float the images to the same mean
 intensity and contrast, is
 <pre>
     newstack -xf sections.xg -fl 2 sections.st sections.ali
 </pre>
 Here, "sections.xg" is your file of <b>g</b> transforms produced by 
-<A HREF = "man/xftoxg.html">Xftoxg</A>, "-fl 2"
+<A HREF = "man/xftoxg.html#TOP">Xftoxg</A>, "-fl 2"
 specifies floating to mean, "sections.st" is your input stack of unaligned
 images, and "sections.ali" is your output stack of aligned images.
 
@@ -417,7 +418,7 @@ Z coordinates for each frame, called a piece list.  Do this with
 </pre>
 <P>
 Next, get a copy of a command file for running the program 
-<A HREF = "man/blendmont.html">Blendmont</A>, which
+<A HREF = "man/blendmont.html#TOP">Blendmont</A>, which
 can analyze the overlapping image area between adjacent frames and compose a
 single image for each section.  Do:
 <pre>
@@ -432,11 +433,11 @@ shifts instead of image shift, you should change the entry "SloppyMontage" to
     subm sloppyblend
 </pre>
 <P>
-<A HREF = "man/blendmont.html">Blendmont</A> will run in the background, and a
+<A HREF = "man/blendmont.html#TOP">Blendmont</A> will run in the background, and a
 message will be printed when it finishes. The output file is named
-sections.bl.  Open this in <A HREF = "man/3dmod.html">3dmod</A> and see if the
+sections.bl.  Open this in <A HREF = "man/3dmod.html#TOP">3dmod</A> and see if the
 frames appear to have fused properly.  Also, unless you have a 1 by n or n by 1
-montage, examine the log from <A HREF = "man/blendmont.html">Blendmont</A>, in
+montage, examine the log from <A HREF = "man/blendmont.html#TOP">Blendmont</A>, in
 the file sloppyblend.log:
 <pre>
     less sloppyblend.log
@@ -455,12 +456,12 @@ to fix the alignment between pieces:
     midas -b 0  -p sections.pl sections.st sections.ecd 
 </pre>
 <P>
-In <A HREF = "man/midas.html">Midas</A>, you can go to each troublesome
+In <A HREF = "man/midas.html#TOP">Midas</A>, you can go to each troublesome
 section and examine each of the overlap zones, adjusting the ones where the
 pieces do not line up.  See the
-section "Fixing Montage Overlaps" in the <A HREF = "man/midas.html">Midas</A>
+section "Fixing Montage Overlaps" in the <A HREF = "man/midas.html#TOP">Midas</A>
 man page.  (Beware: sections are numbered from zero in sloppyblend.log but
-from 1 in <A HREF = "man/midas.html">Midas</A>.)  After fixing
+from 1 in <A HREF = "man/midas.html#TOP">Midas</A>.)  After fixing
 overlaps, save the shifts (this saves a new copy of sections.ecd).  Then edit
 sloppyblend.com and change the 0 to a 1 on the line "ReadInXcorrs".  Rerun
 the program with subm.
@@ -486,18 +487,18 @@ get a better alignment.  The operations to run depend first on whether you
 are going to go back to the original data or operate on the aligned data.
 <P>
 1) You can go back to the original data and modify the <b>f</b> transforms, or
-rerun <A HREF = "man/xtftoxg.html">Xtftoxg</A> with different parameters to
+rerun <A HREF = "man/xtftoxg.html#TOP">Xtftoxg</A> with different parameters to
 get different <b>g</b> transforms. First make a copy of the xf file:
 <pre>
     cp sections.xf sections.newxf
 </pre>
 If you want to fix <b>f</b> transforms, you would probably do this by running 
-<A HREF = "man/midas.html">Midas</A> on the raw stack:
+<A HREF = "man/midas.html#TOP">Midas</A> on the raw stack:
 <pre>
     midas sections.st sections.newxf
 </pre>
 After adjusting the alignment or not, you would rerun 
-<A HREF = "man/xftoxg.html">Xftoxg</A> (using whatever
+<A HREF = "man/xftoxg.html#TOP">Xftoxg</A> (using whatever
 parameters you used before, or new ones if appropriate), for example:
 <pre>
     xftoxg sections.newxf
@@ -509,7 +510,7 @@ images, run
 <pre>
     xfmodel -pre sections.xg -xf sections.newxg sections.mod sections.newmod
 </pre>
-The "-pre" argument tells <A HREF = "man/xfmodel.html">Xfmodel</A> to
+The "-pre" argument tells <A HREF = "man/xfmodel.html#TOP">Xfmodel</A> to
 back-transform the model by the old <b>g</b> transforms, which aligns it to the raw
 images, before transforming it by the
 new transforms.
@@ -533,20 +534,20 @@ product:
     newstack -xf sections.prod sections.st sections.newali
 </pre>
 If you have a montage, instead of running 
-<A HREF = "man/newstack.html">Newstack</A>, edit
+<A HREF = "man/newstack.html#TOP">Newstack</A>, edit
 sloppyblend.com to change "sections.xg" to "sections.prod" and rerun 
-<A HREF = "man/blendmont.html">Blendmont</A>.
+<A HREF = "man/blendmont.html#TOP">Blendmont</A>.
 <P>
 There are several ways that you could work from an existing model to get
 a refined alignment.  One way is to take Tiff snapshots of the Zap window in
-<A HREF = "man/3dmod.html">3dmod</A> through the entire set of sections, with
+<A HREF = "man/3dmod.html#TOP">3dmod</A> through the entire set of sections, with
 either the model displayed on the images or just the model showing on a black
 background.  (You can take such snapshots automatically with the Edit-Movies
 dialog box.)  Stack the Tiff files into a single color MRC file:
 <pre>
     tif2mrc zap*.tif zapstack.mrc
 </pre>
-<A HREF = "man/midas.html">Midas</A> can read this file and display the colors
+<A HREF = "man/midas.html#TOP">Midas</A> can read this file and display the colors
 in gray scale, allowing you to adjust the alignment based on model features:
 <pre>
     midas zapstack.mrc sections.xf2
@@ -558,7 +559,7 @@ For example,
 <pre>
     xfmodel sections.mod sections.xf2
 </pre>
-There is a script, <A HREF = "man/selfalign.html">Selfalign</A>, that will do
+There is a script, <A HREF = "man/selfalign.html#TOP">Selfalign</A>, that will do
 this operation as well as realign the model, producing new <b>f</b> transforms in a
 ".selfxf" file, new <b>g</b> transforms in a ".selfxg" file, and a new model ending
 in ".selfmod".  Aside from convenience, the script has the advantage that it

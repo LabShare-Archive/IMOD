@@ -4,6 +4,7 @@
   <title>IMOD User's Guide</title>
 </head>
 <body>
+<A NAME = "TOP"></A>
 <h1 align="center">IMOD User's Guide for Version 4.1 </h1>
 <h3 align="center">Boulder Laboratory for 3-D Electron Microscopy of
 Cells</h3>
@@ -39,9 +40,9 @@ Information</a> </li>
   <li><a href="#OtherOutput">Output to Other Model Formats</a> </li>
   <li><a href="#Special">Special Help Topics</a> </li>
 </ul>
-<p> An <a href="3dmodguide.html">introduction to 3dmod</a>, the image
+<p> An <a href="3dmodguide.html#TOP">introduction to 3dmod</a>, the image
 display and modeling program in IMOD, is now a separate document. </p>
-<p> There is also a <a href="program_listing.html">reference guide</a>
+<p> There is also a <a href="program_listing.html#TOP">reference guide</a>
 that gives a description of each IMOD program and a link to its man
 page. </p>
 <hr>
@@ -770,7 +771,7 @@ download driver 2.3.1a if you are on OS X 10.6 or have a Quadro FX 4800 or
 GeForce GTX 285; otherwise download driver 2.3.0a.</li>
 </ul>
 <p> The GPU can be enabled for use through eTomo in one of two ways.&nbsp; If you
-have a <a href="man/cpuadoc.html">cpu.adoc</a> file to specify machines
+have a <a href="man/cpuadoc.html#TOP">cpu.adoc</a> file to specify machines
 available for parallel processing, then you need to add a line
 <pre>
     gpu = 1
@@ -858,11 +859,11 @@ IMOD startup scripts.
   <hr><a name="GettingStarted">
   <h3>Getting Started</h3>
   </a></dt>
-<dt>You will want to go through the <a href="3dmodguide.html">Introduction
+<dt>You will want to go through the <a href="3dmodguide.html#TOP">Introduction
 to 3dmod</a> because <code>3dmod</code> is the central graphical tool
 of
 the IMOD package.&nbsp; If you are doing tomography, you should start with the 
-<a href="etomoTutorial.html">eTomo tutorial</a>.&nbsp; For access to the
+<a href="etomoTutorial.html#TOP">eTomo tutorial</a>.&nbsp; For access to the
 complete IMOD documentation, just enter <code>imodhelp</code> at the command
 line to open it in the Qt Assistant, where it can be browsed and
 searched.&nbsp; Beyond this, your initial problem may be getting
@@ -880,7 +881,7 @@ TIFF, PNG, and BMP; it recognizes several specialized image formats
 (DigitalMicrograph, EM, Hanspeter Winkler's NFF, PIF files from Bsoft);
 and it has a dialog
 box and options for specifying how to read raw data.
-    <p> Use the program <a href="man/tif2mrc.html">tif2mrc</a> to
+    <p> Use the program <a href="man/tif2mrc.html#TOP">tif2mrc</a> to
 convert a series of TIFF image files into a single MRC image file. The <code>tif2mrc</code>
 program has an option for converting 24-bit color to 8-bit grayscale
 images, and options for dealing with unsigned 16 bit images, which are
@@ -890,19 +891,19 @@ potential problem because the standard MRC format supports only signed
 images. The following example will create a MRC file from a list of
 TIFF files (cell01.tif, cell02.tif ...). </p>
     <p><code> tif2mrc cell*.tif cell.mrc </code> </p>
-    <p>See the <a href="man/tif2mrc.html">tif2mrc manual page</a>
+    <p>See the <a href="man/tif2mrc.html#TOP">tif2mrc manual page</a>
 for
 more information on how to use <code>tif2mrc</code>.</p>
   </dd>
   <dd>If you already have a series of MRC files, with one image per
 file, you can combine them into a single stack easily with the program
-&nbsp;<a href="man/newstack.html">newstack</a>.&nbsp; For example, enter</dd>
+&nbsp;<a href="man/newstack.html#TOP">newstack</a>.&nbsp; For example, enter</dd>
   <dd><br>
   </dd>
   <dd><code>newstack cell*.mrc cell.st&nbsp;</code></dd>
   <dd><br>
   </dd>
-  <dd>The program <a href="man/raw2mrc.html">raw2mrc</a> is used to
+  <dd>The program <a href="man/raw2mrc.html#TOP">raw2mrc</a> is used to
 convert raw image data into the mrc format. This program can take a
 file of 8, 16,or 32 bit integers, IEEE float values, or 24-bit RGB
 triplets and convert them into an MRC image file. In MRC files, the
@@ -930,7 +931,7 @@ types and swapping. &nbsp;If you do not know the header size, convert
 one file without the -o option, load it into 3dmod, and try to see
 where the image data start. If the final MRC image is upside down use
 the -f option in the initial conversion or use the program <a
- href="man/clip.html">clip</a> to flip the image back.</p>
+ href="man/clip.html#TOP">clip</a> to flip the image back.</p>
   </dd>
   <dd>
     <p>When <code>3dmod</code> is started with an image file that it
@@ -950,10 +951,10 @@ displayed with:</p>
     <p> If you already have a 3-D model and wish to view it within
 the IMOD model viewing program, <code>3dmodv</code>, you will need to
 convert the file into the IMOD format. See the IMOD model file
-format <a href="asciispec.html">ASCII</a> and <a href="binspec.html">binary
+format <a href="asciispec.html#TOP">ASCII</a> and <a href="binspec.html#TOP">binary
 specifications</a> if you wish to write your own conversion program.
 Model files from the HVEM3D program can be converted to the IMOD
-model format using the <a href="man/rec2imod.html">rec2imod</a>
+model format using the <a href="man/rec2imod.html#TOP">rec2imod</a>
 program. </p>
     <p> The IMOD model format can be either binary or ASCII.
 Currently
@@ -961,7 +962,7 @@ supported machines can all read and write binary model files
 interchangeably, so the main use of the ASCII format would be to
 access the data for analysis or conversion by other programs. To
 convert a binary IMOD file (binary.imod) to an ASCII IMOD file
-(ascii.imod) use the <a href="man/imodinfo.html">imodinfo</a> command
+(ascii.imod) use the <a href="man/imodinfo.html#TOP">imodinfo</a> command
 : </p>
     <p><code>imodinfo -a binary.imod &gt; ascii.imod</code> <br>
 or <br>
@@ -970,8 +971,8 @@ will both create an ASCII model file from the binary.imod model.&nbsp;
 The ASCII format preserves many but not all possible features in the
 model.&nbsp; It is moderately complex and may not be the most
 convenient format to use for exporting or importing data.&nbsp; There
-are also two programs,&nbsp;<a href="man/model2point.html">model2point</a>
-and&nbsp;<a href="man/point2model.html">point2model</a>, that can be
+are also two programs,&nbsp;<a href="man/model2point.html#TOP">model2point</a>
+and&nbsp;<a href="man/point2model.html#TOP">point2model</a>, that can be
 used to convert an IMOD model to or from a simple list of point
 coordinates.<br>
     </p>
@@ -1015,22 +1016,22 @@ automated search for the best fit between two images. </p>
   </dd>
   <dd> <a name="ManualAlignment">
     <h4>Manual Image Alignment</h4>
-    </a> The program <a href="man/midas.html">midas</a> is used for
+    </a> The program <a href="man/midas.html#TOP">midas</a> is used for
 manual alignment or manual adjustments to automated alignment of
 images. <code>Midas</code>
 can be used to create a transform list or to edit an existing list; it
 can work with either "f" or "g" transform lists. To get a "g" transform
-list from an "f" transform list use the <a href="man/xftoxg.html">xftoxg</a>
+list from an "f" transform list use the <a href="man/xftoxg.html#TOP">xftoxg</a>
 program. <code>xftoxg</code> has options to leave long term trends in
 the data, which are invoked by default when you run the program with
 command-line arguments. </dd>
   <dd> <a name="FiducialAlignment"> </a>
     <h4>Image Alignment using Fiducial Markers.</h4>
-The program <a href="man/xfmodel.html">xfmodel</a> will create a list
+The program <a href="man/xfmodel.html#TOP">xfmodel</a> will create a list
 of xf
 transforms
 from a model containing fiducial points. See the <a
- href="3dmodguide.html">Introduction to 3dmod</a> to see how to make
+ href="3dmodguide.html#TOP">Introduction to 3dmod</a> to see how to make
 models.
     <p> Steps and Programs used in fiducial marker alignment. </p>
     <ul>
@@ -1052,11 +1053,11 @@ long term trends in the data. </li>
     <h4>Automatic Image Alignment</h4>
 Several programs are used for
 automated image alignment. The programs used are <a
- href="man/xfalign.html">xfalign</a>, <a href="man/xftoxg.html">xftoxg</a>,<a
- href="man/midas.html"> midas</a> and <a href="man/newstack.html">newstack</a>.
+ href="man/xfalign.html#TOP">xfalign</a>, <a href="man/xftoxg.html#TOP">xftoxg</a>,<a
+ href="man/midas.html#TOP"> midas</a> and <a href="man/newstack.html#TOP">newstack</a>.
 Xfalign is a csh script that generates a "f" transform list using the <a
- href="man/xfsimplex.html">xfsimplex</a> program. It can prefilter
-images using the <a href="man/enhance.html">enhance</a> program. It
+ href="man/xfsimplex.html#TOP">xfsimplex</a> program. It can prefilter
+images using the <a href="man/enhance.html#TOP">enhance</a> program. It
 also
 has an option to get an initial alignment of the images by
 cross-correlation, in case images are not already roughly aligned.
@@ -1069,7 +1070,7 @@ to compute. The file, cell.xf, will contain information on how to align
 adjacent images to one another. </li>
       <li>The next step is to analyze the the file cell.xf and the
 transforms needed to bring all of the images in alignment with on
-another. Use<code></code> <a href="man/xftoxg.html">xftoxg</a> to
+another. Use<code></code> <a href="man/xftoxg.html#TOP">xftoxg</a> to
 create a global "g"
 transform list from the "f" transform list:
         <p> <code> xftoxg cell.xf </code> </p>
@@ -1077,7 +1078,7 @@ transform list from the "f" transform list:
       </li>
       <li>The output file from that command, cell.xg, should contain
 all of the information needed to make new aligned images from the old
-unaligned images. Use the <a href="man/newstack.html">newstack</a>
+unaligned images. Use the <a href="man/newstack.html#TOP">newstack</a>
 program to create the new aligned images. The
 following example will create an aligned file newcell.mrc from the
 old cell.mrc image file.
@@ -1085,7 +1086,7 @@ old cell.mrc image file.
         </p>
         <p> If the automatic alignment is not always correct, it can
 be
-adjusted with the <a href="man/midas.html">midas</a> program. Start
+adjusted with the <a href="man/midas.html#TOP">midas</a> program. Start
 the
 program with: </p>
         <p><code> midas test.mrc test.xf </code> </p>
@@ -1097,19 +1098,19 @@ program. Then rerun the <code>xftoxg</code> and <code>newstack</code>
 commands shown above. </p>
       </li>
     </ul>
-    <p>Note that <a href="man/newstack.html"><code>newstack</code></a>
+    <p>Note that <a href="man/newstack.html#TOP"><code>newstack</code></a>
 and some of the other programs will not work with 24-bit color
-images.&nbsp; Use the "-g" option to <a href="man/tif2mrc.html"><code>tif2mrc</code></a>
+images.&nbsp; Use the "-g" option to <a href="man/tif2mrc.html#TOP"><code>tif2mrc</code></a>
 to convert to gray scale when making the MRC stack.&nbsp; If you do
 need to preserve the color information, then you can split the color
 into three separate byte-mode files with the&nbsp; <code><a
- href="man/clip.html">clip</a></code> program, determine the alignment
+ href="man/clip.html#TOP">clip</a></code> program, determine the alignment
 with one color channel, apply the trasnformations to each of the 3
 files separately, then merge the data again with <code><a
- href="man/clip.html">clip</a>.<br>
+ href="man/clip.html#TOP">clip</a>.<br>
     </code><br>
 For more background and explanation of the topics in this
-section, see the <a href="serialalign.txt">guide</a> to serial section
+section, see the <a href="serialalign.html#TOP">guide</a> to serial section
 alignment. </p>
     <p> </p>
   </dd>
@@ -1124,7 +1125,7 @@ to 3dmod</a>&nbsp;for an explanation of how to do this. Selecting the
 Edit-&gt;Contour-&gt;Info menu item from
 the 3dmod Information Window will cause some quantitative
 information to be printed out in the bottom panel of the window.
-  <p> Use the <a href="man/imodinfo.html">imodinfo</a> command to
+  <p> Use the <a href="man/imodinfo.html#TOP">imodinfo</a> command to
 get
 basic information from a model and print it out to a terminal or file.
 For example:</p>
@@ -1137,47 +1138,47 @@ For example:</p>
 The formats and the programs used to convert to them are listed
 below.
   <ul>
-    <li><a href="man/imod2vrml.html">imod2vrml</a> converts to the
+    <li><a href="man/imod2vrml.html#TOP">imod2vrml</a> converts to the
 Virtual Reality Modeling Language 1.0, see the <a
  href="http://www.web3d.org/vrml/vrml.htm">VRML Repository</a> for more
 information.&nbsp;<br>
     </li>
-    <li><a href="man/imod2rib.html">imod2rib</a> converts to the RIB
+    <li><a href="man/imod2rib.html#TOP">imod2rib</a> converts to the RIB
 format used by Renderman. There is a set of public domain rendering
 tools at the <a href="http://www.bmrt.org"> Blue Moon Rendering Tools</a>
 Home Page. <br>
       <i>The Renderman (R) Interface Procedures and RIB Protocol are:
 Copyright 1988,1989, Pixar. All rights reserved. RenderMan (R) is a
 registered trademark of Pixar.</i> </li>
-    <li><a href="man/imod.html">3dmod</a> can write files in the SYNU
+    <li><a href="man/3dmod.html#TOP">3dmod</a> can write files in the SYNU
 format used by the synuview program available from the <a
  href="http://www-ncmir.ucsd.edu/"> National Center for Microscopy and
 Imaging Research</a> (NCMIR). See the <a
  href="http://www-sdmir.ucsd.edu/SYNU.html">Synuview FAQ</a> </li>
-    <li><a href="man/imod.html">3dmod</a> can write files in the NFF
+    <li><a href="man/3dmod.html#TOP">3dmod</a> can write files in the NFF
 format used by <a
  href="http://www.scri.fsu.edu/%7Elyons/scian/Description.html">scian</a>.</li>
   </ul>
-  <p><i>See also</i>: Manual pages for <code><a href="man/imodv.html">3dmodv</a></code>,<code><a
- href="man/imodmesh.html">imodmesh</a></code>, and <code><a
- href="man/imodinfo.html">imodinfo</a></code>. </p>
+  <p><i>See also</i>: Manual pages for <code><a href="man/3dmodv.html#TOP">3dmodv</a></code>,<code><a
+ href="man/imodmesh.html#TOP">imodmesh</a></code>, and <code><a
+ href="man/imodinfo.html#TOP">imodinfo</a></code>. </p>
   <a name="Special">
   <hr>
   <h3>Special Help Topics</h3>
   </a>
   <ul>
-    <li><a href="3dmodguide.html">Introduction to 3dmod.</a> </li>
-    <li> <a href="tomoguide.html"> Tomography guide.</a></li>
-    <li><a href="UsingEtomo.html">Using Etomo</a>.<br>
+    <li><a href="3dmodguide.html#TOP">Introduction to 3dmod.</a> </li>
+    <li> <a href="tomoguide.html#TOP"> Tomography guide.</a></li>
+    <li><a href="UsingEtomo.html#TOP">Using Etomo</a>.<br>
     </li>
-    <li> A <a href="etomoTutorial.html">tutorial</a> on building
+    <li> A <a href="etomoTutorial.html#TOP">tutorial</a> on building
 tomograms with eTomo, including a sample data set.</li>
-    <li> <a href="tomojoin.html"> Guide for joining tomograms from
+    <li> <a href="tomojoin.html#TOP"> Guide for joining tomograms from
 serial sections.</a> </li>
-    <li> A <a href="JoinTutorial.html">tutorial</a> for joining serial
+    <li> A <a href="JoinTutorial.html#TOP">tutorial</a> for joining serial
 section
 tomograms with eTomo, including a sample data set.</li>
-    <li> <a href="serialalign.txt">Guide to serial section alignment.</a></li>
+    <li> <a href="serialalign.html#TOP">Guide to serial section alignment.</a></li>
     <li><a href="libraries.html">IMOD library documentation</a>.<br>
     </li>
     <br>

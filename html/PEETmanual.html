@@ -6,6 +6,7 @@
 </head>
 
 <BODY>
+<A NAME = "TOP"></A>
 
 <h2 ALIGN=CENTER>Guide to Particle Estimation for Electron Tomography (PEET)</h2>
 
@@ -340,7 +341,7 @@ particle from one tomogram as the reference.&nbsp;
 However, if you specify a file as the reference, the search will not work
 unless you also rotate the the chosen reference into the new
 orientation.&nbsp; You can do this with the IMOD
-program <a href="man/rotatevol.html">rotatevol</a>, e.g, 
+program <a href="man/rotatevol.html#TOP">rotatevol</a>, e.g, 
 with "rotatevol -ang Z,Y,X input_file output_file",
 where X, Y, and Z are the slicer angles entered as the relative orientation
 for the tomogram from which the reference was taken.</p>
@@ -491,7 +492,7 @@ of the majority of the 8 corner voxels of the mask volume.&nbsp
 be zero outside the volume;&nbsp; conversely, if 4 or fewer corners are
 zero, the mask will be one outside the mask volume.)&nbsp;  
 A convenient way to generate a mask
-volume is to use the IMOD program <a href="man/imodmop.html">imodmop</a>,
+volume is to use the IMOD program <a href="man/imodmop.html#TOP">imodmop</a>,
 which can be used to
 retain pixels inside of spheres and cylinders as well as inside of
 closed contours.&nbsp;  For this purpose, it does not matter that this
@@ -628,8 +629,8 @@ how many processors on each system are to be used.&nbsp; See the
 <a href="UsingEtomo.html#ParallelProcessing">eTomo User's Guide</a> for
 details on the controls in this section and on how to configure parallel
 processing on your system(s).  For information on how to use a cluster queue,
-see the man pages for <a href="man/processchunks.html">processchunks</a> and
-the <a href="man/cpuadoc.html">cpu.adoc</a> file.
+see the man pages for <a href="man/processchunks.html#TOP">processchunks</a> and
+the <a href="man/cpuadoc.html#TOP">cpu.adoc</a> file.
 </p>
 
 <H4><A NAME="Iteration Table"></A>3.2. Iteration Table</H4>
@@ -688,7 +689,7 @@ with standard deviation given by the <b>Sigma</b> field.&nbsp;
 Both the reference and the particle are filtered separately, so the
 correlation is essentially filtered twice.&nbsp;  One way to see what
 a reference or particle looks like with a particular filter is apply
-the same filter to a file with the IMOD program <a href="man/mtffilter.html">
+the same filter to a file with the IMOD program <a href="man/mtffilter.html#TOP">
 mtffilter</a>, e.g., with
 the command "mtffilter -3d -low cutoff,sigma input_file output_file".&nbsp;
 You can do this with the reference particle
