@@ -215,7 +215,7 @@ public class ContextPopup {
     anchor = tomoAnchor;
     calcImodURL();
 
-    //  Instantiate a new ActionListener to handle the menu selection
+    // Instantiate a new ActionListener to handle the menu selection
     actionListener = new ActionListener() {
       public void actionPerformed(ActionEvent actionEvent) {
         String tomoGuideLocation = "tomoguide.html";
@@ -257,7 +257,7 @@ public class ContextPopup {
     anchor = tomoAnchor;
     calcImodURL();
 
-    //  Instantiate a new ActionListener to handle the menu selection
+    // Instantiate a new ActionListener to handle the menu selection
     actionListener = new ActionListener() {
       public void actionPerformed(ActionEvent actionEvent) {
         String guideLocation = guideToAnchor;
@@ -275,7 +275,7 @@ public class ContextPopup {
 
         globalItemAction(actionEvent, guideLocation, guideToAnchor, manager, axisID);
 
-        //  Close the menu
+        // Close the menu
         setVisible(false);
       }
     };
@@ -300,7 +300,7 @@ public class ContextPopup {
     anchor = tomoAnchor;
     calcImodURL();
 
-    //  Instantiate a new ActionListener to handle the menu selection
+    // Instantiate a new ActionListener to handle the menu selection
     actionListener = new ActionListener() {
       public void actionPerformed(ActionEvent actionEvent) {
         String guideLocation = guideToAnchor;
@@ -309,7 +309,7 @@ public class ContextPopup {
           guideLocation += "#" + anchor;
         }
         globalItemAction(actionEvent, guideLocation, guideToAnchor, manager, axisID);
-        //  Close the menu
+        // Close the menu
         setVisible(false);
       }
     };
@@ -361,7 +361,7 @@ public class ContextPopup {
     anchor = tomoAnchor;
     calcImodURL();
 
-    //  Instantiate a new ActionListener to handle the menu selection
+    // Instantiate a new ActionListener to handle the menu selection
     actionListener = new ActionListener() {
       public void actionPerformed(ActionEvent actionEvent) {
         String guideLocation = guideToAnchor;
@@ -372,15 +372,14 @@ public class ContextPopup {
         JMenuItem[] manPageItem = getManPageItem();
         for (int i = 0; i < manPageItem.length; i++) {
           if (actionEvent.getActionCommand() == manPageItem[i].getText()) {
-            /*HTMLPageWindow manpage = new HTMLPageWindow();
-             manpage.openURL(getImodURL() + "man/" + getManPageName()[i]);
-             manpage.setVisible(true);*/
+            /* HTMLPageWindow manpage = new HTMLPageWindow(); manpage.openURL(getImodURL()
+             * + "man/" + getManPageName()[i]); manpage.setVisible(true); */
             ImodqtassistProcess.INSTANCE.open(manager, "man/" + getManPageName()[i],
                 axisID);
           }
         }
 
-        //  Search the logfile items
+        // Search the logfile items
         JMenuItem[] logFileItem = getLogFileItem();
         for (int i = 0; i < logFileItem.length; i++) {
           if (actionEvent.getActionCommand() == logFileItem[i].getText()) {
@@ -390,10 +389,10 @@ public class ContextPopup {
           }
         }
 
-        //  Search the standard items
+        // Search the standard items
         globalItemAction(actionEvent, guideLocation, guideToAnchor, manager, axisID);
 
-        //  Close the  the menu
+        // Close the the menu
         setVisible(false);
       }
     };
@@ -440,7 +439,7 @@ public class ContextPopup {
     anchor = tomoAnchor;
     calcImodURL();
 
-    //  Instantiate a new ActionListener to handle the menu selection
+    // Instantiate a new ActionListener to handle the menu selection
     actionListener = new ActionListener() {
       public void actionPerformed(ActionEvent actionEvent) {
         String guideLocation = guideToAnchor;
@@ -451,15 +450,14 @@ public class ContextPopup {
         JMenuItem[] manPageItem = getManPageItem();
         for (int i = 0; i < manPageItem.length; i++) {
           if (actionEvent.getActionCommand() == manPageItem[i].getText()) {
-            /*HTMLPageWindow manpage = new HTMLPageWindow();
-             manpage.openURL(getImodURL() + "man/" + getManPageName()[i]);
-             manpage.setVisible(true);*/
+            /* HTMLPageWindow manpage = new HTMLPageWindow(); manpage.openURL(getImodURL()
+             * + "man/" + getManPageName()[i]); manpage.setVisible(true); */
             ImodqtassistProcess.INSTANCE.open(manager, "man/" + getManPageName()[i],
                 axisID);
           }
         }
 
-        //  Search the logfile items
+        // Search the logfile items
         JMenuItem[] logFileItem = getLogFileItem();
         for (int i = 0; i < logFileItem.length; i++) {
           if (actionEvent.getActionCommand() == logFileItem[i].getText()) {
@@ -470,10 +468,10 @@ public class ContextPopup {
           }
         }
 
-        //  Search the standard items
+        // Search the standard items
         globalItemAction(actionEvent, guideLocation, guideToAnchor, manager, axisID);
 
-        //  Close the  the menu
+        // Close the the menu
         setVisible(false);
       }
     };
@@ -517,22 +515,21 @@ public class ContextPopup {
     this.mouseEvent = mouseEvent;
     calcImodURL();
 
-    //  Instantiate a new ActionListener to handle the menu selection
+    // Instantiate a new ActionListener to handle the menu selection
     actionListener = new ActionListener() {
       public void actionPerformed(ActionEvent actionEvent) {
         String anchor = getAnchor();
         JMenuItem[] manPageItem = getManPageItem();
         for (int i = 0; i < manPageItem.length; i++) {
           if (actionEvent.getActionCommand() == manPageItem[i].getText()) {
-            /*HTMLPageWindow manpage = new HTMLPageWindow();
-             manpage.openURL(getImodURL() + "man/" + getManPageName()[i]);
-             manpage.setVisible(true);*/
+            /* HTMLPageWindow manpage = new HTMLPageWindow(); manpage.openURL(getImodURL()
+             * + "man/" + getManPageName()[i]); manpage.setVisible(true); */
             ImodqtassistProcess.INSTANCE.open(manager, "man/" + getManPageName()[i],
                 axisID);
           }
         }
 
-        //  Search the logfile items
+        // Search the logfile items
         JMenuItem[] logFileItem = getLogFileItem();
         for (int i = 0; i < logFileItem.length; i++) {
           if (actionEvent.getActionCommand() == logFileItem[i].getText()) {
@@ -542,10 +539,10 @@ public class ContextPopup {
           }
         }
 
-        //  Search the standard items
+        // Search the standard items
         globalItemAction(actionEvent, null, null, manager, axisID);
 
-        //  Close the  the menu
+        // Close the the menu
         setVisible(false);
       }
     };
@@ -596,7 +593,7 @@ public class ContextPopup {
     anchor = tomoAnchor;
     calcImodURL();
 
-    //  Instantiate a new ActionListener to handle the menu selection
+    // Instantiate a new ActionListener to handle the menu selection
     actionListener = new ActionListener() {
 
       public void actionPerformed(ActionEvent actionEvent) {
@@ -613,13 +610,13 @@ public class ContextPopup {
           }
         }
 
-        //  Search the logfile items
+        // Search the logfile items
         for (int i = 0; i < getLogFileItem().length; i++) {
           if (actionEvent.getActionCommand() == getLogFileItem()[i].getText()) {
             if (actionEvent.getActionCommand().startsWith(updateLogCommandName)) {
               applicationManager.updateLog(updateLogCommandName, axisID);
             }
-            //  Create full path to the appropriate log file items
+            // Create full path to the appropriate log file items
             String[] logFileList = (String[]) logFile.get(i);
             String[] logFileFullPath = new String[logFileList.length];
             String path = applicationManager.getPropertyUserDir() + File.separator;
@@ -657,10 +654,10 @@ public class ContextPopup {
             }
           }
         }
-        //  Search the standard items
+        // Search the standard items
         globalItemAction(actionEvent, tomoGuideLocation, applicationManager, axisID);
 
-        //  Close the  the menu
+        // Close the the menu
         setVisible(false);
       }
     };
@@ -677,7 +674,7 @@ public class ContextPopup {
    *
    */
   private void addStandardMenuItems(boolean addPeetGuide) {
-    //  Construct the context menu
+    // Construct the context menu
     if (addPeetGuide) {
       contextMenu.add(peetGuideItem);
       peetGuideItem.addActionListener(actionListener);
@@ -707,7 +704,7 @@ public class ContextPopup {
       manPageItem[i].setText(manPageLabel[i] + " man page ...");
       manPageItem[i].addActionListener(actionListener);
       contextMenu.add(manPageItem[i]);
-      manPageName[i] = manPage[i];
+      manPageName[i] = manPage[i] + "#TOP";
     }
   }
 
@@ -724,14 +721,9 @@ public class ContextPopup {
   protected void globalItemAction(ActionEvent actionEvent, String guideLocation,
       String guide, BaseManager manager, AxisID axisID) {
     if (actionEvent.getActionCommand() == tomoGuideItem.getText()) {
-      /*HTMLPageWindow manpage = new HTMLPageWindow();
-       if (guide.equals(TOMO_GUIDE)) {
-       manpage.openURL(imodURL + guideLocation);
-       }
-       else {
-       manpage.openURL(imodURL + TOMO_GUIDE);
-       }
-       manpage.setVisible(true);*/
+      /* HTMLPageWindow manpage = new HTMLPageWindow(); if (guide.equals(TOMO_GUIDE)) {
+       * manpage.openURL(imodURL + guideLocation); } else { manpage.openURL(imodURL +
+       * TOMO_GUIDE); } manpage.setVisible(true); */
       if (guide != null && guide.equals(TOMO_GUIDE)) {
         ImodqtassistProcess.INSTANCE.open(manager, guideLocation, axisID);
       }
@@ -741,35 +733,27 @@ public class ContextPopup {
     }
 
     if (actionEvent.getActionCommand() == modelGuideItem.getText()) {
-      /*HTMLPageWindow manpage = new HTMLPageWindow();
-       manpage.openURL(imodURL + "guide.html");
-       manpage.setVisible(true);*/
+      /* HTMLPageWindow manpage = new HTMLPageWindow(); manpage.openURL(imodURL +
+       * "guide.html"); manpage.setVisible(true); */
       ImodqtassistProcess.INSTANCE.open(manager, "guide.html", axisID);
     }
 
     if (actionEvent.getActionCommand() == it3dmodGuide.getText()) {
-      /*HTMLPageWindow manpage = new HTMLPageWindow();
-       manpage.openURL(imodURL + "3dmodguide.html");
-       manpage.setVisible(true);*/
+      /* HTMLPageWindow manpage = new HTMLPageWindow(); manpage.openURL(imodURL +
+       * "3dmodguide.html"); manpage.setVisible(true); */
       ImodqtassistProcess.INSTANCE.open(manager, "3dmodguide.html", axisID);
     }
 
     if (actionEvent.getActionCommand() == etomoGuideItem.getText()) {
-      /*HTMLPageWindow manpage = new HTMLPageWindow();
-       manpage.openURL(imodURL + "UsingEtomo.html");
-       manpage.setVisible(true);*/
+      /* HTMLPageWindow manpage = new HTMLPageWindow(); manpage.openURL(imodURL +
+       * "UsingEtomo.html"); manpage.setVisible(true); */
       ImodqtassistProcess.INSTANCE.open(manager, "UsingEtomo.html", axisID);
     }
 
     if (actionEvent.getActionCommand() == joinGuideItem.getText()) {
-      /*HTMLPageWindow manpage = new HTMLPageWindow();
-       if (guide.equals(JOIN_GUIDE)) {
-       manpage.openURL(imodURL + guideLocation);
-       }
-       else {
-       manpage.openURL(imodURL + JOIN_GUIDE);
-       }
-       manpage.setVisible(true);*/
+      /* HTMLPageWindow manpage = new HTMLPageWindow(); if (guide.equals(JOIN_GUIDE)) {
+       * manpage.openURL(imodURL + guideLocation); } else { manpage.openURL(imodURL +
+       * JOIN_GUIDE); } manpage.setVisible(true); */
       if (guide != null && guide.equals(JOIN_GUIDE)) {
         ImodqtassistProcess.INSTANCE.open(manager, guideLocation, axisID);
       }
