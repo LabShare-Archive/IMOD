@@ -410,8 +410,11 @@ int main(int argc, char *argv[])
               }
 
               // For non-comment, just put out string
-            } else
+            } else {
+              str.replace("<", "&lt;");
+              str.replace(">", "&gt;");
               descList << str;
+            }
               
             // Now if not in comment and code not out yet, put it out
             if (!codeOut && !inComment) {
@@ -476,6 +479,8 @@ static void convertSpecialCodes(QString &str, char *progname, int debug)
   QString str2, funcName, href;
   int ind1, ind2, ind, ind0, ind3;
 
+  str.replace("<", "&lt;");
+  str.replace(">", "&gt;");
   str.replace(QRegExp(CAPTURE_NONBS"\\["), "\\1<B>");
   str.replace(QRegExp("^\\["), "<B>");
             
