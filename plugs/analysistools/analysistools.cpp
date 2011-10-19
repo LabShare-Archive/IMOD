@@ -2187,9 +2187,7 @@ void AnalysisTools::buttonPressed(int which)
     close();
   else
   {
-    QString str = QString(getenv("IMOD_DIR"));
-    str += QString("/lib/imodplug/analysistools.html");
-    
+    QString str = QString(getenv("IMOD_DIR")) + ("/lib/imodplug/analysistools.html#TOP");
     imodShowHelpPage((const char *)str.toLatin1());
   }
 }
