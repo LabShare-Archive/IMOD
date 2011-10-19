@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <stdlib.h>
@@ -421,7 +420,7 @@ void PixelView::convertToggled(bool state)
 
 void PixelView::helpClicked(void)
 {
-  imodShowHelpPage("pixelview.html");
+  imodShowHelpPage("pixelview.html#TOP");
 }
 
 // Show or hide the grid of buttons
@@ -497,95 +496,3 @@ void PixelView::keyReleaseEvent ( QKeyEvent * e )
   ivwControlKey(1, e);
 }
 
-
-/*
-
-$Log$
-Revision 4.18  2010/04/01 02:41:48  mast
-Called function to test for closing keys, or warning cleanup
-
-Revision 4.17  2009/03/22 19:50:28  mast
-Changed buttons to a "conventional" style on Mac to avoid color problem
-with rounded buttons
-
-Revision 4.16  2009/01/15 16:33:18  mast
-Qt 4 port
-
-Revision 4.15  2008/05/27 05:34:12  mast
-Added display of rgb values with option to show as gray, added option to
-show grid from memory, added help.
-
-Revision 4.14  2008/04/02 04:38:42  mast
-Fixed tooltips on buttons
-
-Revision 4.13  2008/04/02 04:11:42  mast
-Disable file button if no readable image
-
-Revision 4.12  2006/12/29 22:51:21  mast
-Fixed pixel view continuous display for non-file value
-
-Revision 4.11  2006/09/18 15:46:34  mast
-Moved mouse line to top and added show/hide for the grid
-
-Revision 4.10  2006/09/17 18:15:34  mast
-Added mouse position/value report line
-
-Revision 4.9  2005/11/11 23:04:29  mast
-Changes for unsigned integers
-
-Revision 4.8  2004/11/04 23:30:55  mast
-Changes for rounded button style
-
-Revision 4.7  2004/01/22 19:12:43  mast
-changed from pressed() to clicked() or accomodated change to actionClicked
-
-Revision 4.6  2003/12/31 05:32:07  mast
-Identify whether floats or not after getting first pixel so file is set
-
-Revision 4.5  2003/04/25 03:28:32  mast
-Changes for name change to 3dmod
-
-Revision 4.4  2003/04/17 18:43:38  mast
-adding parent to window creation
-
-Revision 4.3  2003/03/26 06:30:56  mast
-adjusting to font changes
-
-Revision 4.2  2003/03/24 17:56:46  mast
-Register with dialogManager so it can be parked with info window
-
-Revision 4.1  2003/02/10 20:29:02  mast
-autox.cpp
-
-Revision 1.1.2.4  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.3  2003/01/06 15:49:46  mast
-Use imodCaption
-
-Revision 1.1.2.2  2003/01/04 03:48:41  mast
-Qt version
-
-Revision 1.1.2.1  2003/01/02 15:45:09  mast
-changes for new controller key callback
-
-Revision 3.3.2.1  2002/12/12 01:22:09  mast
-*** empty log message ***
-
-Revision 3.4  2002/12/10 21:07:44  mast
-Changed the flag that it tested on so that it would draw when time changed
-and float option was on
-
-Revision 3.3  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.2  2002/11/27 03:23:00  mast
-Changed argument 3 of draw_cb and close_cb from long to int to avoid 
-warnings
-
-Revision 3.1  2002/11/25 19:24:49  mast
-Made it add itself to list of controls to be redraw to prevent excessive
-redraws; restructured calls for external drawing and closing accordingly,
-and made it raise itself when it redraws
-
-*/

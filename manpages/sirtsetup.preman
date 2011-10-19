@@ -192,7 +192,7 @@ during the procedure depend on whether a subarea is being done or not.  In the
 following, aliname is the root name of aligned stack, and recname is the root
 name of reconstruction in the original command file when no subarea is being
 done.  With a subarea, recname is either the root name plus "_sub", or the
-root name with "_sub" substituted for "_root" if it ends in "_full".
+root name with "_sub" substituted for "_full" if it ends in "_full".
 .nf
 aliname_sub.ali     Subarea of aligned stack if any
 aliname.alilog10    Log of projections if the tilt command file contains

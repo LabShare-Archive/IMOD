@@ -640,7 +640,7 @@ void SlicerFuncs::externalDraw(ImodView *vi, int drawflag)
  */
 void SlicerFuncs::help()
 {
-  imodShowHelpPage("slicer.html");
+  imodShowHelpPage("slicer.html#TOP");
 }
 
 /*

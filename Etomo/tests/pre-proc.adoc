@@ -81,6 +81,7 @@ wait.popup.entry-warning=OK
 
 
 [function = quick]
+if.not.var.needs-pre-proc.bn.done=
 if.not.var.needs-pre-proc.return=
 bn.create-fixed-stack=
 wait.process.ccd-eraser=done

@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <qscrollarea.h>
@@ -392,7 +391,7 @@ void ImodvOlist::donePressed()
 
 void ImodvOlist::helpPressed()
 {
-  imodShowHelpPage("objectList.html");
+  imodShowHelpPage("objectList.html#TOP");
 }
 
 void ImodvOlist::actionButtonClicked(int which)
@@ -631,34 +630,3 @@ void ImodvOlist::keyReleaseEvent ( QKeyEvent * e )
 {
   imodvKeyRelease(e);
 }
-
-/*
-
-$Log$
-Revision 4.8  2009/03/27 05:35:14  mast
-Fixed horrible behavior when adding/subtracting group checkboxes with
-many objects and sped up other changes a bit with hide/show
-
-Revision 4.7  2009/03/22 19:54:25  mast
-Show with new geometry adjust routine for Mac OS X 10.5/cocoa
-
-Revision 4.6  2009/02/16 06:47:55  mast
-Fixed some geometry problems
-
-Revision 4.5  2009/01/15 16:33:18  mast
-Qt 4 port
-
-Revision 4.4  2008/05/22 15:42:18  mast
-Added Others On button; fixed for extra object editability
-
-Revision 4.3  2008/01/28 19:25:03  mast
-Fixed crash on calling imodvOlistUpdateGroups with no window open
-
-Revision 4.2  2008/01/27 06:22:05  mast
-Added multiple object group controls
-
-Revision 4.1  2008/01/21 17:48:54  mast
-Split into new module, added provisional grouping capability
-
-
-*/

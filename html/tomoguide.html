@@ -1,13 +1,13 @@
 <html><head> <title>IMOD Tomography Guide</title> </head>
 <body>
-<H2 ALIGN=center>Tomography Guide for IMOD Version 4.1<BR>
+<H2 ALIGN=center>Tomography Guide for IMOD Version 4.3<BR>
 </H2>
 <H3 ALIGN=center>Boulder Laboratory for 3-D Electron Microscopy of Cells</H3>
 <HR>
-<H3>Table of Contents</H3>
+<A NAME = "TOP"><H3>Table of Contents</H3></A>
 
 <UL>
-<BR><A HREF = "#WHATSNEW">0. WHAT'S NEW IN IMOD 4.1</A>
+<BR><A HREF = "#WHATSNEW">0. WHAT'S NEW IN IMOD 4.3</A>
 <BR><A HREF = "#BACKGROUND">1. BACKGROUND</A>
 <BR><A HREF = "#Program Names">1.1. Program Names</A>
 <BR><A HREF = "#Command Files">1.2. Command Files</A>
@@ -59,6 +59,8 @@
 <BR><A HREF = "#Building Tomogram">11.1. Building the Tomogram</A>
 <BR><A HREF = "#Making Trial Tomograms">11.2. Making Trial Tomograms</A>
 <BR><A HREF = "#Z factors">11.3. Using Z Factors in the Backprojection</A>
+<BR><A HREF = "#SIRTtomogram">11.4. Making a Reconstruction with SIRT</A>
+<BR><A HREF = "#ScalingProblems">11.5. Problems with Output Density Scaling</A>
 <BR><A HREF = "#TOMOGRAM COMBINATION">12. COMBINING TWO TOMOGRAMS</A>
 <BR><A HREF = "#Setting Up">12.1. Setting Up</A>
 <BR><A HREF = "#Temporary Combining Storage">12.2. Using Temporary Storage for Combining</A>
@@ -76,31 +78,27 @@
 </UL>
 <HR>
 <P><H3><A NAME = "WHATSNEW"></A>
-0. WHAT'S NEW IN IMOD 4.1
+0. WHAT'S NEW IN IMOD 4.3
 </H3>
 <P>
 This section lists significant changes or additions to this guide from the
-3.13 version.
+4.1 version.
 <UL>
-<LI> Information on getting statistics on the raw and X-ray corrected stack,
- in <A HREF = "#PRE-PROCESSING">PRE-PROCESSING: REMOVING X-RAYS</A>
-<LI> Instructions on using tracking of local patches of image data to generate
-  a model to use for fiducial-like alignment, in 
-<A HREF = "#PatchTracking">Local Patch Tracking</A> and 
-<A HREF = "#AligningPatchModel">Aligning with a Patch Tracking Model</A>
-<LI> Directions on using the RAPTOR program from Stanford through eTomo, in
-<A HREF = "#UsingRaptor">Using RAPTOR to Make a Fiducial Model</A>
-<LI> Advice on moving points by residuals with Bead Fixer, in 
-<A HREF = "#Running Tiltalign">Running Tiltalign</A>
-<LI> Instructions for using the new interface in eTomo for erasing all gold
-  particles after finding them in 3D, in 
-<A HREF = "#ErasingFinding3D">Erasing Gold by Finding It in a Tomogram and
-  Projecting It</A>
-<LI> Information about scaling when not taking the logarithm, in 
-<A HREF = "#Building Tomogram">Building the Tomogram</A>
-<LI> Directions for using the interface for flattening a tomogram in
-Post-processing, in 
-<A HREF = "#Flattening">Flattening a Tomogram</A>
+<LI> Changes to reflect the ability to load data into 3dmod as integers in
+<A HREF = "#Intensity Problems">Problems with Intensities in 3dmod</A>.
+<LI> Information on the new display of montaged images with no overlap in and of
+how to center on a selected coordinate in 3dmod in 
+<A HREF = "#PRE-PROCESSING">PRE-PROCESSING: REMOVING X-RAYS</A>.
+<LI> A description of how views are now skipped and elimination of the need to
+  set boundaries to avoid gray areas in some images, in 
+<A HREF = "#PatchTracking">Local Patch Tracking</A>.
+<LI> Changes reflecting the fact that RAPTOR is now in IMOD in 
+<A HREF = "#UsingRaptor">Using RAPTOR to Make a Fiducial Model</A>.
+<LI> A new section on 
+<A HREF = "#SIRTtomogram">Making a Reconstruction with SIRT</A>
+<LI> A new section on 
+<A HREF = "#ScalingProblems">Problems with Output Density Scaling</A>
+in tomogram generation.
 </UL>
 
 </P>
@@ -111,7 +109,7 @@ Post-processing, in
 This is a guide to building single and dual axis tomograms with IMOD using
 the eTomo interface.  It contains sufficient detail to serve as a reference
 guide, which makes it less suitable when starting out.  The recommended
-approach is to work through our <A HREF = "etomoTutorial.html">tutorial</A>
+approach is to work through our <A HREF = "etomoTutorial.html#TOP">tutorial</A>
 with a sample data set before trying
 to use this guide to process your own data.
 </P>
@@ -170,7 +168,7 @@ be aware of this problem.
 When a program refers to "view numbers", these are always numbered from
 1; but when a program refers to "section numbers" or "Z values", there
 is a good chance that they are numbered from 0.  The most important
-example is the program <A HREF = "man/newstack.html">Newstack</A>, which is
+example is the program <A HREF = "man/newstack.html#TOP">Newstack</A>, which is
 often used for rearranging or extracting sections from a stack.
 
 </P>
@@ -238,15 +236,35 @@ model for a while).
 <P>
 X-rays and other artifacts from the CCD camera can produce extreme intensity
 values in the raw tilt series.  These effects can result in the images
-looking terrible when loaded into
-<A HREF = "man/3dmod.html">3dmod</A>, because the data are stored 
-internally as bytes and the image features of interest occupy a very small
-fraction of the whole dynamic range of the data.  Successful removal of
-these artifacts will solve this problem (see <A HREF =
-"#PRE-PROCESSING">PRE-PROCESSING: REMOVING X-RAYS</A>), but there are
-also several remedies until that point is reached.
+looking terrible when loaded into <A HREF = "man/3dmod.html#TOP">3dmod</A> in the
+default way, with the data stored internally as bytes.  When the image
+features of interest occupy a very small fraction of the whole dynamic range
+of the data, there are only a few gray levels left to represent them out of the
+256 levels.  Successful removal of these artifacts will solve this problem
+(see <A HREF = "#PRE-PROCESSING">PRE-PROCESSING: REMOVING X-RAYS</A>).  Before
+the artifacts are removed, one can use the "-I 1" option when starting
+<A HREF = "man/3dmod.html#TOP">3dmod</A> to make it load the data
+as integers.  It will then provide four rather than two sliders for contrast
+control, so that the small part of the dynamic range occupied by true image
+features can be displayed with good intensity resolution (many gray levels).  
 <P>
-Once the data are opened in <A HREF = "man/3dmod.html">3dmod</A>, adjust the
+The tilt series will automatically be loaded as integers when opened with the 
+<B>View Raw Image Stack</B> button on the eTomo Tomogram Setup page, or with 
+the <B>View X-Ray Model</B> button in the PreProcessing page.  Thereafter, if
+you still have contrast problems, you can open 
+<A HREF = "man/3dmod.html#TOP">3dmod</A>
+with the Startup dialog by right clicking on the viewing button, and then
+selecting <B>Load non-byte data as 16-bit integers</B>.  You can make 
+<A HREF = "man/3dmod.html#TOP">3dmod</A> load data as integers by default by
+selecting the menu entry <B>Edit-Options</B>, opening the <B>Behavior</B> tab, and
+turning on <B>Load non-byte data into program as 16-bit integers</B>.  You
+should do this only if you are confident that you will not run out of computer
+memory when processing tilt series.
+<P>
+There is another procedure available if you do not want to reopen
+<A HREF = "man/3dmod.html#TOP">3dmod</A>
+with the integer loading option, or do not have enough memory to do so.
+Use the <B>Auto</B> button or adjust the
 Black and White sliders until the image features are visible in an
 appropriate
 contrast range.  Then use the menu entry <B>Edit-Image-Reload</B> to open a
@@ -255,34 +273,7 @@ reloaded with the scaling indicated in the <B>Lower limit</B> and <B>Upper
 limit</b> text boxes, and the Black and White sliders will be set to values
 that allow the contrast to be decreased as well as increased.  Now that you
 can see the images better, you can repeat this process if necessary - adjust
-the contrast again, then press <B>Calc</B> then <B>Apply</B>.  Make a note
-of the final values for the lower and upper limits.
-<P>
-Next time you need to load the data, press the relevant 3dmod-opening button
-with the right instead of the left mouse button and select <B>Open with
-Startup Window</B>.  In the Startup window, enter the lower and upper limits
-from the rescaling dialog
-in the <B>Scale intensities</B> text boxes.
-<P>
-If you cannot visualize the data at all in <A HREF =
-"man/3dmod.html">3dmod</A>, then you need to look at the intensities in the
-individual images with
-<BR><CODE>
-clip stat -2d setname.st
-<BR></CODE>
-(This output can also be obtained by pressing the <B>Show Min/Max for Raw
-  Stack</B> button in the <B>Pre-Processing</B> panel in eTomo.)
-Look at the minimum and maximum values for the sections.  You should see that 
-some of them have extreme minima or maxima, while others have more
-reasonable values.  Use the typical or reasonable minimum and maximum values
-as the lower and upper scaling limits when loading the data into 
-<A HREF = "man/3dmod.html">3dmod</A>.  If all sections show extreme minima
-and maxima, possibly due to a bad column or row near the edge, use
-<BR><CODE>
-clip stat -2d -ix nx -iy ny setname.st
-<BR></CODE>
-where "nx" and "ny" are smaller than the full X and Y dimensions of the
-data.  This will provide statistics over a subarea of the images.
+the contrast again, then press <B>Calc</B> then <B>Apply</B>.
 <P>
 Finally, if you can not get good dynamic range even after removing X-rays,
 you should prevent the coarse aligned stack from being converted to bytes.
@@ -305,7 +296,7 @@ by the detector.  This is the case if images are recorded directly by CCD
 camera or if film is digitized in optical density units.  The logarithm of
 such values should then be proportional to projected mass density for imaging
 dominated by amplitude (aperture) contrast.  Because of this, the
-backprojection program, <A HREF = "man/tilt.html">Tilt</A>,
+backprojection program, <A HREF = "man/tilt.html#TOP">Tilt</A>,
 has an option to take the logarithm
 of the numbers after adding a base value (originally designed to specify the
 fog level of film but also useful if the data are offset from zero). 
@@ -326,7 +317,7 @@ subtracted from them for storage as signed integers in the MRC file, the
 programs will try to detect this and set the base to 32768.
 <P>
      If electron density appears as white in your images, 
-<A HREF = "man/beadtrack.html">Beadtrack</A> will
+<A HREF = "man/beadtrack.html#TOP">Beadtrack</A> will
 fail to track your fiducials properly with the default settings.
 Simply check <B>Light fiducial markers</B> in Advanced mode 
 in the <B>Fiducial Model Generation Panel</B>.  Also, check <B>Light</B> in
@@ -354,7 +345,7 @@ the <B>Separate view groups</B> fields.
 In some cases there appears to be a change in the
 X-axis tilt of the specimen between the two directions of tilting.  It is
 possible to correct for this effect by solving for a single change in X-axis
-tilt in <A HREF = "man/tiltalign.html">Tiltalign</A>; see
+tilt in <A HREF = "man/tiltalign.html#TOP">Tiltalign</A>; see
 <A HREF = "tomoExtra.html#Bidirectional X Tilt">
 Correcting for X-axis Tilt in Bidirectional Tilt Series</A> in the Extra 
 Topics section.
@@ -393,7 +384,7 @@ Agard's extended header format, which is also used in the FEI
 tomography acquisition software.
 
 <LI><B> Pixel size and Fiducial diameter:</B> These values are used by
-<A HREF = "man/beadtrack.html">Beadtrack</A> and when setting the default
+<A HREF = "man/beadtrack.html#TOP">Beadtrack</A> and when setting the default
 diameter for erasing gold particles from images.  If you do not know the
 pixel size, you can enter 1, and the measured diameter of the gold
 particles in pixels.
@@ -413,7 +404,7 @@ parallel processing is enabled when you reach a panel where it can be used.
 
 <LI><B> Graphics card processing:</B> This option sets the default for whether
 processing with the GPU is enabled when you reach a panel where it can be
-used.  See <A HREF = "UsingEtomo.html">Using Etomo</A> for instructions on
+used.  See <A HREF = "UsingEtomo.html#TOP">Using Etomo</A> for instructions on
 setting up parallel processing and enabling the use of a GPU.
 
 <LI><B> Image distortion field file:</B> Use this to select a distortion field 
@@ -440,9 +431,9 @@ dataset, which is stored in "setname.maggrad".  These gradients will
 be used when generating the coarse aligned and final aligned stacks.
 
 <LI><B> Tilt angles:</B> eTomo provides three choices for getting the initial
-tilt angles that are needed by <A HREF = "man/beadtrack.html">Beadtrack</A>,
-<A HREF = "man/tiltalign.html">Tiltalign</A>, and
-<A HREF = "man/tiltxcorr.html">Tiltxcorr</A>.  First, the angles can be
+tilt angles that are needed by <A HREF = "man/beadtrack.html#TOP">Beadtrack</A>,
+<A HREF = "man/tiltalign.html#TOP">Tiltalign</A>, and
+<A HREF = "man/tiltxcorr.html#TOP">Tiltxcorr</A>.  First, the angles can be
 extracted from the extended header in the image file.  This will
 work with files produced by SerialEM, as well as with files using the
 Agard extended header format.
@@ -471,35 +462,35 @@ data.  For a data set consisting of single frames, the files are as follows:
 
 <UL>
 <LI><B>Preprocessing</B>: uses eraser.com to run
-<A HREF = "man/ccderaser.html">Ccderaser</A> to erase X-rays from images
+<A HREF = "man/ccderaser.html#TOP">Ccderaser</A> to erase X-rays from images
 <LI><B>Coarse Alignment</B>: uses xcorr.com to run
-<A HREF = "man/tiltxcorr.html">Tiltxcorr</A> to get an initial
+<A HREF = "man/tiltxcorr.html#TOP">Tiltxcorr</A> to get an initial
 alignment by correlation
 <BR>
-  uses prenewst.com to run <A HREF = "man/xftoxg.html">Xftoxg</A> and 
-<A HREF = "man/newstack.html">Newstack</A> to get a temporary pre-aligned stack
+  uses prenewst.com to run <A HREF = "man/xftoxg.html#TOP">Xftoxg</A> and 
+<A HREF = "man/newstack.html#TOP">Newstack</A> to get a temporary pre-aligned stack
 <LI><B>Fiducial Model Generation</B>: uses track.com to run
-<A HREF = "man/beadtrack.html">Beadtrack</A> to generate a fiducial model
+<A HREF = "man/beadtrack.html#TOP">Beadtrack</A> to generate a fiducial model
 <LI><B>Fine Alignment</B>: uses align.com to run
-<A HREF = "man/tiltalign.html">Tiltalign</A> to get the alignment
+<A HREF = "man/tiltalign.html#TOP">Tiltalign</A> to get the alignment
 <LI><B>Tomogram Positioning</B>: uses sample.com to run
-<A HREF = "man/newstack.html">Newstack</A> and the
-<A HREF = "man/tilt.html">Tilt</A> command file on three regions 
+<A HREF = "man/newstack.html#TOP">Newstack</A> and the
+<A HREF = "man/tilt.html#TOP">Tilt</A> command file on three regions 
 <BR>
- uses tomopitch.com to run <A HREF = "man/tomopitch.html">Tomopitch</A>
+ uses tomopitch.com to run <A HREF = "man/tomopitch.html#TOP">Tomopitch</A>
 to find the pitch of the section from a model on the three regions
 <LI><B>Final Aligned Stack</B>: uses newst.com to run 
-<A HREF = "man/newstack.html">Newstack</A> to make an aligned stack;
+<A HREF = "man/newstack.html#TOP">Newstack</A> to make an aligned stack;
 <BR>
 optionally uses ctfplotter.com to run 
-<A HREF = "man/ctfplotter.html">Ctfplotter</A> and ctfcorrection.com to run
-<A HREF = "man/ctfphaseflip.html">Ctfphaseflip</A> for correction of
+<A HREF = "man/ctfplotter.html#TOP">Ctfplotter</A> and ctfcorrection.com to run
+<A HREF = "man/ctfphaseflip.html#TOP">Ctfphaseflip</A> for correction of
 the microscope CTF;
 <BR>
  optionally uses mtffilter.com to run <A HREF =
-"man/mtffilter.html">Mtffilter</A> to filter the aligned stack.
+"man/mtffilter.html#TOP">Mtffilter</A> to filter the aligned stack.
 <LI><B>Tomogram Generation</B>: 
- uses tilt.com to run <A HREF = "man/tilt.html">Tilt</A> to generate a tomogram
+ uses tilt.com to run <A HREF = "man/tilt.html#TOP">Tilt</A> to generate a tomogram
 </UL>
 
 <P>
@@ -531,20 +522,20 @@ different, as follows:
 <UL>
 <LI><B>Coarse Alignment</B>: uses a different version of xcorr.com
 that first runs
-<A HREF = "man/blendmont.html">Blendmont</A> to generate a blended
+<A HREF = "man/blendmont.html#TOP">Blendmont</A> to generate a blended
 stack that contains a subarea of the montage, up to 2K by 2K pixels.
 This file, "setname.bl", will be used to get the
 initial alignment by correlation
 <BR>
-  uses preblend.com to run <A HREF = "man/xftoxg.html">Xftoxg</A> and 
-<A HREF = "man/blendmont.html">Blendmont</A>
+  uses preblend.com to run <A HREF = "man/xftoxg.html#TOP">Xftoxg</A> and 
+<A HREF = "man/blendmont.html#TOP">Blendmont</A>
 to get the pre-aligned stack.
 <LI><B>Tomogram Positioning</B>: uses a different version of sample.com to run
-<A HREF = "man/blendmont.html">Blendmont</A>
+<A HREF = "man/blendmont.html#TOP">Blendmont</A>
 and the
-<A HREF = "man/tilt.html">Tilt</A> command file on three regions 
+<A HREF = "man/tilt.html#TOP">Tilt</A> command file on three regions 
 <LI><B>Tomogram Generation</B>: uses blend.com to run 
-<A HREF = "man/blendmont.html">Blendmont</A>
+<A HREF = "man/blendmont.html#TOP">Blendmont</A>
 to make an aligned stack
 </UL>
 </P>
@@ -554,9 +545,9 @@ to make an aligned stack
 <P>
 As mentioned above, X-rays and other flaws in CCD camera images can produce
 extreme low or high values that ruin the contrast when you view the images
-in <A HREF = "man/3dmod.html">3dmod</A>,
+in <A HREF = "man/3dmod.html#TOP">3dmod</A>,
 and they can also give undesirable artifacts in the reconstruction.  These
-defects can be wiped out with <A HREF = "man/ccderaser.html">Ccderaser</A>,
+defects can be wiped out with <A HREF = "man/ccderaser.html#TOP">Ccderaser</A>,
 which finds X-rays in two ways.  It looks for "peaks", or pixels whose
 intensity deviate from the surrounding pixels
 by a certain number of standard deviations, which is
@@ -564,7 +555,7 @@ specified in the <B>Peak criterion</B> text box.  It also looks for
 pixel-to-pixel differences that exceed background by a certain number
 of SDs, specified in the <B>Difference criterion</B> text box.
 <P>
-When <A HREF = "man/ccderaser.html">Ccderaser</A> runs, it produces an 
+When <A HREF = "man/ccderaser.html#TOP">Ccderaser</A> runs, it produces an 
 IMOD model marking the pixels that
 were found.  Press the <B>View X-ray Model</B> button to see this
 model.  Points are sorted into different objects based on how much they
@@ -584,7 +575,7 @@ program will analyze images and produce a model without writing an
 output image stack.
 <P>
 When you press the <B>Create Fixed Stack</B> button, 
-<A HREF = "man/ccderaser.html">Ccderaser</A> writes the corrected
+<A HREF = "man/ccderaser.html#TOP">Ccderaser</A> writes the corrected
 images into a file named "setname_fixed.st".  If you are satisfied
 with the result, press the <B>Use Fixed Stack</B> button to rename
 the original file to "setname_orig.st" and replace it with the fixed stack.
@@ -600,18 +591,22 @@ with the result.
 <P>
 You can see the minimum and maximum values and their locations for each view
 by pressing <B>Show Min/Max for Raw Stack</B> or <B>Show Min/Max for Fixed
-Stack</B>.  You will see the statistics output from the <A HREF = "man/clip.html">clip</A>
+Stack</B>.  You will see the statistics output from the <A HREF = "man/clip.html#TOP">clip</A>
 program.  Views with locally extreme values of the minimum or maximum will be
 marked by stars and listed at the bottom.  This marking of outliers is of
 limited value with the raw stack because all views generally have X-rays that
 increase the maximum; but with the fixed stack this listing will often reveal
-the subset of views that still have sizable uncorrected X-rays.
+the subset of views that still have sizable uncorrected X-rays.  If you have
+trouble finding a position, you can type the X and Y coordinates into the spin
+boxes in the <A HREF = "3dmodHelp/infowin.html#TOP">3dmod Info Window</A> then
+toggle the centering button inthe Zap window toolbar on then off to center on
+the position that you typed in.
 <P>
 If your images have other features that do not get corrected by the
 automatic X-ray removal, you can specify the pixels to erase in a
 model file.  Press the <B>Advanced</B> button to reveal the controls
 for this option, and see the man page for 
-<A HREF = "man/ccderaser.html">Ccderaser</A> for
+<A HREF = "man/ccderaser.html#TOP">Ccderaser</A> for
 details on how to construct the model file.  By default, model objects are
 assumed to have contours consisting of a single point on each pixel to be
 erased.  If you want to erase pixels along lines, list objects with such 
@@ -619,11 +614,17 @@ line contours in the <B>Line replacement list</B> text box.  If you want to
 draw contours as boundaries around large patches to be replaced, list objects
 with such contours in the <B>Boundary replacement list</B> text box.
 <P>
-With a montaged data set, when you view the X-ray model, the images
-will be loaded into <A HREF = "man/3dmod.html">3dmod</A> as single
-frames instead of as a montage, so that all parts of every frame can be
-viewed.  However, this feature does make it difficult to page through
-the images.
+With a montaged data set, when you view the X-ray model or the fixed stack, the images
+will be loaded into <A HREF = "man/3dmod.html#TOP">3dmod</A> with no overlap and
+spaced apart by a few pixels, so that all parts of every frame can be
+viewed.  The statistics outputs will list the minimum and maximum for each piece
+in the stack, but their locations will be translated into coordinates on the
+relevant view so that you can find them in the display.  A
+manual replacement model is also drawn on a montaged display with no overlap; 
+<A HREF = "man/ccderaser.html#TOP">Ccderaser</A> will translate the coordinates
+from this display into coordinates in the appropriate frame in the file.  A
+feature to be replaced on all sections needs to be modeled on only one piece
+in the montage (any piece).
 </P>
 <H3><A NAME = "COARSE ALIGNMENT"></A>
 5. COARSE ALIGNMENT BY CROSS-CORRELATION
@@ -635,7 +636,7 @@ parameters to adjust, so you proceed by pushing the top three buttons
 in sequence.  
 <UL>
 <LI><B>Calculate cross-correlation</B> uses <A HREF =
-"man/tiltxcorr.html">Tiltxcorr</A> to determine the X and Y
+"man/tiltxcorr.html#TOP">Tiltxcorr</A> to determine the X and Y
 translations needed to align each image with the previous one.
 <LI><B>Generate coarse aligned stack</B> converts these translations
 from one view to the next into translations that will bring all of the
@@ -650,13 +651,13 @@ high tilt, you do not need to adjust for this.
 <P>
 Press <B>Fix Alignment with Midas</B> only if you need to adjust some
 of the alignments.  This will start <A HREF =
-"man/midas.html">Midas</A> on the raw image stack, with the alignment
+"man/midas.html#TOP">Midas</A> on the raw image stack, with the alignment
 transformations determined on the first step.  Go to the pairs of
 views that showed problems, and use the left mouse button to translate
 each pair of images into alignment.  When you toggle between a pair of
 images, you should see the section appear to tilt around an axis in
 the middle.  The tilt axis should appear to be vertical because 
-<A HREF = "man/midas.html">Midas</A> applies a global rotation to the images,
+<A HREF = "man/midas.html#TOP">Midas</A> applies a global rotation to the images,
 starting with the value in the <B>Tilt axis rotation</B> text box on 
 the <B>Coarse Alignment</B> panel.
 If you have a big magnification change, you could also
@@ -727,7 +728,7 @@ back and do the fiducial alignment procedure.
 <P>
 For a montaged data set, the <B>Coarse Alignment</B> panel also
 provides controls for fixing errors in the displacements between
-frames.  <A HREF = "man/blendmont.html">Blendmont</A> analyzes the overlap
+frames.  <A HREF = "man/blendmont.html#TOP">Blendmont</A> analyzes the overlap
 regions between adjacent pieces and determines how to shift the pieces into
 registration.  Sometimes this analysis fails and a few of the shifts are
 wrong.  It is important to fix these errors before going on to build the
@@ -738,10 +739,10 @@ There are two ways to tell if there are shifts that need fixing.
 <LI>For a montage with more than one piece in each direction, you can
 examine the registration errors in the xcorr.log file.  The beginning part
 of this file shows the output from 
-<A HREF = "man/blendmont.html">Blendmont</A>.  For each section
+<A HREF = "man/blendmont.html#TOP">Blendmont</A>.  For each section
 in the file, you will see a line giving the "mean, max error before ... after
 ...".  These errors are the amounts of image displacement that 
-<A HREF = "man/blendmont.html">Blendmont</A> thinks
+<A HREF = "man/blendmont.html#TOP">Blendmont</A> thinks
 are present in the overlap zones between adjacent pieces of the montage.  The
 error before shifting the pieces around will generally be large (a few to
 many pixels).  The error
@@ -753,11 +754,11 @@ than 0.5 pixels.  Otherwise, the error may increase gradually from a
 fraction of a pixel at low tilt to several pixels at high tilt.  Look
 through the list of errors for sections where the error is abnormally high
 relative to the nearby sections.  These are the sections where
-<A HREF = "man/blendmont.html">Blendmont</A> was probably not able to
+<A HREF = "man/blendmont.html#TOP">Blendmont</A> was probably not able to
 measure one or more image displacements accurately enough.  Note which
 sections need to be fixed and add 1, since
 sections are numbered from 0 in this output but from 1 in 
-<A HREF = "man/midas.html">Midas</A>.
+<A HREF = "man/midas.html#TOP">Midas</A>.
 <LI> You can also see edge displacement errors by building a coarse aligned 
 stack and looking at it carefully while riffling through the views.
 If there is an error, you should see one frame of a picture shift out of
@@ -771,10 +772,10 @@ correcting for magnification gradients or image distortion fields,
 you will first have to press <B>Make Distortion Corrected Stack</B>.  
 This step is necessary because you need to
 visualize overlaps in the same images that 
-<A HREF = "man/blendmont.html">Blendmont</A> is analyzing, namely
+<A HREF = "man/blendmont.html#TOP">Blendmont</A> is analyzing, namely
 distortion-corrected images.
 <P>
-When <A HREF = "man/midas.html">Midas</A> starts,
+When <A HREF = "man/midas.html#TOP">Midas</A> starts,
 enter the view number of a section with a large error in the Current
 Section text box.  The control panel has push-buttons for the four edges with
 the worst errors; use these to select the edge with the worst error.  Toggle
@@ -782,7 +783,7 @@ between the two pieces to visualize the registration in the overlap zone.  If
 it looks bad, shift the Current piece into alignment (the Apply Leave-out
 Error button can be a useful shortcut if this is the only piece with an error
 -- see the 
-<A HREF = "man/midas.html">Midas</A>
+<A HREF = "man/midas.html#TOP">Midas</A>
  man page for explanation.)  If the overlap looks fine, simply
 go on to another edge; you will probably find the error there.  This
 potentially confusing situation may be quite frequent, because whenever a bad
@@ -795,8 +796,8 @@ rearrange and show new maximum errors.  Once the maximum error is down to 0.3,
 you can go on to another section.  When you are done, save the edge
 correlation displacement file and exit.  Your corrected displacements will
 automatically be used when 
-<A HREF = "man/blendmont.html">Blendmont</A> is run again, and 
-<A HREF = "man/blendmont.html">Blendmont</A> will 
+<A HREF = "man/blendmont.html#TOP">Blendmont</A> is run again, and 
+<A HREF = "man/blendmont.html#TOP">Blendmont</A> will 
 build new edge functions on its next run, because the edge functions depend
 partly on the displacements that you just modified.
 
@@ -807,12 +808,12 @@ partly on the displacements that you just modified.
 <P>
 There are two or three ways to get a model that can be used to align the tilt
 series.  The first is the classical method of marking gold beads on the
-zero-degree view and using <A HREF = "man/beadtrack.html">Beadtrack</A> to
+zero-degree view and using <A HREF = "man/beadtrack.html#TOP">Beadtrack</A> to
 find their locations in the rest of the tilt series.  The second involves
 tracking small patches of the image through the series by cross-correlating
 each patch from one view to the next with 
-<A HREF = "man/tiltxcorr.html">Tiltxcorr</A>.  The third method involves using
-<A HREF = "man/raptor.html">RAPTOR</A>  to find beads automatically.
+<A HREF = "man/tiltxcorr.html#TOP">Tiltxcorr</A>.  The third method involves using
+<A HREF = "man/raptor.html#TOP">RAPTOR</A>  to find beads automatically.
 </P>
 <H4><A NAME = "TrackingSeed"></A>
 6.1. Tracking Gold from a Seed Model
@@ -820,8 +821,8 @@ each patch from one view to the next with
 <P>
      The first step is to set up a seed model.  Press
 <B>Seed Fiducial Model Using 3dmod</B> to open the prealigned stack and
-an empty model in <A HREF = "man/3dmod.html">3dmod</A>.
-The <A HREF = "3dmodHelp/beadfix.html">Bead Fixer</A> module will also open 
+an empty model in <A HREF = "man/3dmod.html#TOP">3dmod</A>.
+The <A HREF = "3dmodHelp/beadfix.html#TOP">Bead Fixer</A> module will also open 
 in a mode that has features to help with
 the seeding process.  These features are:
 <OL>
@@ -832,7 +833,7 @@ the bead.  For beads lighter than background, select <B>Light</B>.
 <LI> <B>Automatic new contour</B>, which makes a new contour
 when you pick a new bead.  This is helpful because each bead must be in a
 separate contour; 
-<A HREF = "man/beadtrack.html">Beadtrack</A>
+<A HREF = "man/beadtrack.html#TOP">Beadtrack</A>
 will try to extend each contour through the tilt series.  
 Once you turn this option on, it will stay on between
 Bead Fixer sessions.
@@ -850,7 +851,7 @@ Pick a view near zero tilt that has good images of the
 beads.  Put one point in the center of each desired bead.
 Beads too
 close to the edges are not trackable by 
-<A HREF = "man/beadtrack.html">Beadtrack</A> but could be tracked by hand
+<A HREF = "man/beadtrack.html#TOP">Beadtrack</A> but could be tracked by hand
 if necessary.  Try to have at least 8 beads well distributed over the area,
 and well distributed between the two sides if they are on two surfaces.
 The more beads you have, the better the alignment will be, up to a point, but
@@ -866,7 +867,7 @@ acquired with a CCD camera, or
 <A HREF = "#Using Local Alignments">Using Local Alignments</A>.)
 Save the seed model when you are done.
 <P>
-<A HREF = "man/beadtrack.html">Beadtrack</A>
+<A HREF = "man/beadtrack.html#TOP">Beadtrack</A>
 proceeds from one view to the next, tracking as many beads as
 possible on the new view.  Once it has bead positions on enough views, it runs
 a simplified tilt alignment to get improved predictions of where beads should
@@ -875,7 +876,7 @@ small data sets, but may perform poorly when the data included in the tilt
 alignment do not give a good fit.  The data can fit poorly when they are
 from a large area or when the tilt series includes very high angles.  To
 address this problem, 
-<A HREF = "man/beadtrack.html">Beadtrack</A> provides two ways to restrict
+<A HREF = "man/beadtrack.html#TOP">Beadtrack</A> provides two ways to restrict
 the data so it fits the alignment better:
 1) the tracking can be done over a series of overlapping subareas, so that
 the fit to the data is similar to that available when using local
@@ -884,7 +885,7 @@ number of views included in the tilt alignment can be restricted, so that
 high angle data from both ends of the tilt series are not included in the
 same fits.  For particularly difficult data, both methods can be used.
 <P>
-Most standard entries to <A HREF = "man/beadtrack.html">Beadtrack</A>
+Most standard entries to <A HREF = "man/beadtrack.html#TOP">Beadtrack</A>
 should work well, so in Basic mode eTomo shows only a few of the many
 parameters.
 <OL>
@@ -938,7 +939,7 @@ If several beads fail to track past a particular view, you might want to
 add that view to the list of views to be skipped and rerun the tracking.
 <P>
 Next press <B>Fix Fiducial Model</B> to read the new
-fiducial model into <A HREF = "man/3dmod.html">3dmod</A>.  The Bead Fixer
+fiducial model into <A HREF = "man/3dmod.html#TOP">3dmod</A>.  The Bead Fixer
 dialog box will appear in the gap-filling mode.
 It will allow you to jump from one gap in
 the data to the next and fill in missing points if appropriate.  It is
@@ -956,19 +957,19 @@ and allow Beadtrack to track those beads as far as possible.
 </H4>
 <P>
 Sometimes you will want to have <A HREF =
-"man/beadtrack.html">Beadtrack</A>
+"man/beadtrack.html#TOP">Beadtrack</A>
 start with an existing
 fiducial model instead of a seed model.  This is especially helpful when there
 are a large number of beads that failed to track.  For example, you might
 extend some fiducials past a view where they failed to track then try to get
-<A HREF = "man/beadtrack.html">Beadtrack</A> to track them the rest
+<A HREF = "man/beadtrack.html#TOP">Beadtrack</A> to track them the rest
 of the way,
 or you might want to add fiducials when you realize that you
 need to use local alignments.  To use the existing fiducial model as a seed for
 another run, press <B>Track with Fiducial Model as Seed</B>.
 Your original seed model will be renamed to setname_orig.seed the first time
 that you do this.  Then press <B>Fix Fiducial Model</B> to read the retracked
-model into <A HREF = "man/3dmod.html">3dmod</A>.  You can repeat this
+model into <A HREF = "man/3dmod.html#TOP">3dmod</A>.  You can repeat this
 operation as many times as needed. This procedure will tend to fill in gaps in
 the model, which is usually
 appropriate.  However, if you have already left some gaps in the model
@@ -981,7 +982,7 @@ because of ambiguities, you should uncheck <B>Fill seed model gaps</B>.
 <P>
 If you are doing a double-tilt series, at least some (8-10) of the beads
 that you track must be the same in the two series.  The shell script 
-<A HREF = "man/transferfid.html">Transferfid</A> will help ensure this
+<A HREF = "man/transferfid.html#TOP">Transferfid</A> will help ensure this
 by making a seed model for the second axis based on the fiducial model
 for the first axis.  To use this tool, complete your fiducial model
 for the
@@ -994,7 +995,7 @@ tilt angles are not in ".rawtlt" files, you also must fill in the view
 numbers of the zero-tilt views in the <B>Center view</B> text boxes
 (visible in Advanced mode).
 Press <B>Transfer Fiducials from Other Axis</B> to begin the operation.
-<A HREF = "man/transferfid.html">Transferfid</A>
+<A HREF = "man/transferfid.html#TOP">Transferfid</A>
 will search for the pair of views in the two series
 that correspond the best, then transfer the fiducials from the first
 series to make the seed model for the second series.  At the end, the
@@ -1002,21 +1003,21 @@ program indicates the number of fiducials that failed to transfer and how
 the contour numbers correspond between the first fiducial model and the new
 seed model.  This information is saved in a 
 transferfid.log file.  
-<A HREF = "man/transferfid.html">Transferfid</A> also creates a file called
+<A HREF = "man/transferfid.html#TOP">Transferfid</A> also creates a file called
 "transferfid.coord" with the information needed for the first stage of the
 tomogram combining procedure to determine how fiducials correspond between the
 two tilt series.  As long as this information is available, you can add and
 delete fiducials from either tilt series after doing the transfer, and
 the combining procedure will still be able to tell which fiducials correspond.
 <P>
-If <A HREF = "man/transferfid.html">Transferfid</A> fails to work
+If <A HREF = "man/transferfid.html#TOP">Transferfid</A> fails to work
 on the first attempt (as indicated by an unusually large number of fiducials
 that failed to transfer or a seed model that contains incorrect model
 points), you may need to set the translational and
 rotational alignment between the two series manually with 
-<A HREF = "man/midas.html">Midas</A>.  To do this, just check 
+<A HREF = "man/midas.html#TOP">Midas</A>.  To do this, just check 
 <B>Run midas</B> and run the transfer again.  
-<A HREF = "man/midas.html">Midas</A> will start up with the center
+<A HREF = "man/midas.html#TOP">Midas</A> will start up with the center
 views from the two tilt series.  Adjust the alignment with translation
 and
 rotation (left and middle mouse buttons).  Do not be alarmed if you
@@ -1031,15 +1032,15 @@ proceed using this starting alignment.
 <P>
 The Advanced mode allows you to indicate that mirroring is needed, so if you
 know that the sample was inverted, you can select just this option and run the
-operation without having to run <A HREF = "man/midas.html">Midas</A>.
+operation without having to run <A HREF = "man/midas.html#TOP">Midas</A>.
 In Advanced, you can also specify the views to search around 
 and limit or expand the number of views in the search.  As a last
 resort, you could set the <B>Number of views in the search</B> to 1
 and set the alignment as well as possible in <A HREF =
-"man/midas.html">Midas</A>, including a magnification change and stretch.
+"man/midas.html#TOP">Midas</A>, including a magnification change and stretch.
 <P>
 If the transfer operation still fails, you
-can run <A HREF = "man/3dmod.html">3dmod</A>
+can run <A HREF = "man/3dmod.html#TOP">3dmod</A>
 on both stacks at once and add some initial points to the second seed
 model in the same order that they occur in the first fiducial model.  It
 is helpful to open one of the images in the Slicer window and rotate
@@ -1147,8 +1148,8 @@ Patch tracking is controlled by the following settings:
   using a boundary model for restricting the area to analyze.  It is no longer
   necessary to set these limits in order to avoid correlating with portions of the
   prealigned stack that contain no image data (are filled with gray).
-  <A HREF = "man/tiltxcorr.html">Tiltxcorr</A> will use the transforms applied
-  in building the coarse aligned stack to determine where the gray areas are;
+  <A HREF = "man/tiltxcorr.html#TOP">Tiltxcorr</A> will use the transforms applied
+  in building the coarse aligned stack to determine where the gray areas are.
   It will skip patches that have too little usable image data and, for other
   patches with gray area, it will taper the data down to the gray area to
   minimize correlation artifacts.
@@ -1175,10 +1176,10 @@ since there are no corresponding fiducials.
 6.5. Using RAPTOR to Make a Fiducial Model 
 </H4>
 <P>
-The <A HREF = "man/raptor.html">RAPTOR</A> program from Stanford is now part
+The <A HREF = "man/raptor.html#TOP">RAPTOR</A> program from Stanford is now part
 of IMOD and the option to use this program is available, but only for the
 first axis of a dual-axis data set. See the 
-<A HREF = "man/raptor.html">RAPTOR man page</A> for
+<A HREF = "man/raptor.html#TOP">RAPTOR man page</A> for
 details on its operation.
 First decide whether to run it on the raw stack or the prealigned stack.
 The latter case allows tighter tolerances for some distance parameters and is
@@ -1197,7 +1198,7 @@ rename the model to the standard name for a fiducial model.  At this point,
 you can press <B>Fix Fiducial Model</B> to open the model in 3dmod with the
 Bead Fixer in gap filling mode, and you can also use <B>Track with Fiducial
     Model as Seed</B> to track addition points in the model in the
-conventional way with <A HREF = "man/beadtrack.html">Beadtrack</A>.
+conventional way with <A HREF = "man/beadtrack.html#TOP">Beadtrack</A>.
 </P>
 <H3><A NAME = "FINAL ALIGNMENT"></A>
 7. FINE ALIGNMENT
@@ -1229,7 +1230,7 @@ settings in the <B>General</B> parameter page:
 <LI> <B>Separate view groups</B>.  Specify one or more lists of views
 that should be kept out of groupings with adjacent
 views.  See the discussion of the corresponding entry to 
-<A HREF = "man/beadtrack.html">Beadtrack</A> under
+<A HREF = "man/beadtrack.html#TOP">Beadtrack</A> under
 <A HREF = "#Getting Fiducial"> Fiducial Model Generation </A>.
 <LI> <B>List of views to exclude</B>.  Add to or adjust the views to be
 excluded, if necessary, in this text box.  Again, if you entered 
@@ -1288,7 +1289,7 @@ change in tilt angles that would make the beads lie in a
 horizontal plane. 
 Make the recommended
 change at least after the first run of 
-<A HREF = "man/tiltalign.html">Tiltalign</A> by taking the value
+<A HREF = "man/tiltalign.html#TOP">Tiltalign</A> by taking the value
 shown for "Total tilt angle change" on the last line and using it in the 
 <B>Total tilt angle offset</B> text box.
 It is not necessary to do
@@ -1298,7 +1299,7 @@ in a later processing step.
 You can open the <B>Large Residual</B> page to see the list of
 fiducials with the largest errors, but it is easier to deal with this
 information from the Bead Fixer dialog in
-<A HREF = "man/3dmod.html">3dmod</A>, which is opened in big residual mode 
+<A HREF = "man/3dmod.html#TOP">3dmod</A>, which is opened in big residual mode 
 when you press
 <B>View/Edit Fiducial Model</B>.  The Bead Fixer is told what log file to
 read, so you can proceed without pressing
@@ -1308,7 +1309,7 @@ button (or the apostrophe hot key), paying particular attention to ones with
 errors greater than 2 pixels.  Adjust point positions in the
 model, if appropriate.  When you want to recompute the alignment after fixing
 some points, you can press <B>Save & Run Tiltalign</B>, which will save the
-model, rerun <A HREF = "man/tiltalign.html">Tiltalign</A>, and read in the new
+model, rerun <A HREF = "man/tiltalign.html#TOP">Tiltalign</A>, and read in the new
 log file.  There is one trap to this convenience button: Bead Fixer has no way
 of knowing if you have changed parameters in eTomo, so when you do change
 alignment parameters, you must compute the alignment through the button in
@@ -1339,7 +1340,7 @@ mean residual in the fit for each fiducial.  It is easier to
 visualize these points in 3dmodv by pressing the <B>View 3D Model</B>
 button on the <B>Fine Alignment</B> panel.  If you indicated that points are
 on two surfaces, then the points will be sorted into two objects based on
-which surface <A HREF = "man/tiltalign.html">Tiltalign</A> thought they were
+which surface <A HREF = "man/tiltalign.html#TOP">Tiltalign</A> thought they were
 on.  This is a good way to assess whether the points are well enough
 distributed on both surfaces to support solving for distortion, particularly
 when local alignments are to be used.
@@ -1530,7 +1531,7 @@ tilt angles with a group size of 5.
 In some cases, distortions may occur because of stretching
 along an axis during the projection of the images, instead of from
 changes in the specimen.  To accommodate this situation, 
-<A HREF = "man/tiltalign.html">Tiltalign</A> can solve for a skew between
+<A HREF = "man/tiltalign.html#TOP">Tiltalign</A> can solve for a skew between
 the axes that occurs in all images.  This is much easier than solving
 for a specimen distortion that changes through the tilt series, and does not
 require fiducials distributed in Z.  In Advanced mode, check <B>Solve for
@@ -1586,7 +1587,7 @@ alignment of other data sets from that microscope.
 montaging, then you may need to solve for local tilt alignments to get the
 same quality of alignment and resulting resolution as you would with a smaller
 area.
-<A HREF = "man/tiltalign.html">Tiltalign</A>
+<A HREF = "man/tiltalign.html#TOP">Tiltalign</A>
 first finds a global solution with all of the fiducials, then it adjusts the
 solution to fit the fiducials in each of a series of overlapping subareas,
 referred to as local patches.  A target size for the patches is specified as
@@ -1652,7 +1653,7 @@ surface to 0 and disable the local distortion solution.
 <LI> When doing local alignments, you should examine
 the points with the largest residuals in the local solutions and ignore the
 global residuals.  The Bead
-Fixer in <A HREF = "man/3dmod.html">3dmod</A> will allow you to step from one
+Fixer in <A HREF = "man/3dmod.html#TOP">3dmod</A> will allow you to step from one
 local area to the next and bring up each point with a large residual.  With
 the <B>Examine points once</B> feature turned on, a point will be seen only
 once, even if it appears in the large residual list for several overlapping
@@ -1728,12 +1729,12 @@ reconstruction.
 7.10. Residual Model Output
 </H4>
 <P>
-<A HREF = "man/tiltalign.html">Tiltalign</A> produces a text file
+<A HREF = "man/tiltalign.html#TOP">Tiltalign</A> produces a text file
 with the residuals for each point, and <A HREF =
-"man/patch2imod.html">Patch2imod</A> converts this into
+"man/patch2imod.html#TOP">Patch2imod</A> converts this into
 a model of the residual vectors in a file named setname.resmod.  Press
 the <B>View Residual Vectors</B> button to 
-load this model into <A HREF = "man/3dmod.html">3dmod</A> on top
+load this model into <A HREF = "man/3dmod.html#TOP">3dmod</A> on top
 of the images, in place of the fiducial model, to look for patterns in
 the direction of the vectors.  The vectors are exaggerated in length
 by a factor of 10.  The start and end of a vector is marked by a green
@@ -1765,15 +1766,18 @@ entirely or almost all on one surface, or if the surface analysis in the
 alignment log file indicated a big tilt around the X-axis (e.g., more than 2
 degrees), you may need double the expected section thickness.
 <LI> Press <B>Create Sample Tomograms</B>.  Three samples will be generated,
-named top.rec, mid.rec, and bot.rec (or topa.rec, etc.)
+named top.rec, mid.rec, and bot.rec (or topa.rec, etc.)  
 <LI> Press <B>Create Boundary Models</B>.  This will 
-load all 3 sample tomograms into <A HREF = "man/3dmod.html">3dmod</A> and set 
-up the proper filename for the boundary model.
+load all 3 sample tomograms into <A HREF = "man/3dmod.html#TOP">3dmod</A> and set 
+up the proper filename for the boundary model. If you
+see severe contrast problems or got a warning about output scaling when these
+were being computed, see the section on 
+<A HREF = "ScalingProblems">Problems with Output Density Scaling</A>.
 Model each edge of the section by drawing a line along
 the boundary in one of the slices for a tomogram sample.
 Just use two points, one on the left and one on the right side
 of the tomogram.  You do not need to go all the way to the left and right 
-edges since <A HREF = "man/tomopitch.html">Tomopitch</A> will extrapolate
+edges since <A HREF = "man/tomopitch.html#TOP">Tomopitch</A> will extrapolate
 from the line segment that you draw.  
 Put the lines for the top and bottom edges in separate
 contours.  Use the "1" and "2" keys to switch between samples, and model
@@ -1785,7 +1789,7 @@ specify the thickness of an additional border on the top and bottom.
 This capability means that you can model right along the surface of
 the section instead of allowing for a border in the model.
 <LI> Press <B>Compute Pitch Angles & Z Shift</B> to run 
-<A HREF = "man/tomopitch.html">Tomopitch</A>.  The screen will morph so that
+<A HREF = "man/tomopitch.html#TOP">Tomopitch</A>.  The screen will morph so that
 it shows the <B>original</B> positioning parameters that were in effect when
 the samples were made, the <B>added</B> values implied by the boundary model,
 and
@@ -1797,7 +1801,7 @@ whether you need a little more thickness; see the "thickness... set to" value
 on the line above the "Pitch between samples can be corrected..." line.
 <LI> Next press
 <B>Create Final Alignment</B>, which will run <A HREF =
-"man/tiltalign.html">Tiltalign</A> with these parameters.  The remaining
+"man/tiltalign.html#TOP">Tiltalign</A> with these parameters.  The remaining
 parameters shown on this screen are used in making the reconstruction and 
 will be carried forward to the <B>Tomogram Generation</B> panel.
 </OL>
@@ -1814,7 +1818,7 @@ happen when fiducials are on only one surface or there is a large X-axis tilt.
 In such a case, you can draw a model with estimated lines and press 
 <B>Compute Pitch Angles & Z Shift</B>.  Then use <B>Create Sample
 Tomograms</B> to make new samples at the estimated position.  Make sure that
-the <A HREF = "man/3dmod.html">3dmod</A> with the previous samples is closed,
+the <A HREF = "man/3dmod.html#TOP">3dmod</A> with the previous samples is closed,
 and press <B>Create Boundary Models</B>.  Delete the existing contours
 (e.g., press "Shift-D" 6 times) and make new ones.  This time, when you
 press <B>Compute Pitch Angles & Z Shift</B>, new positioning values will be 
@@ -1835,7 +1839,7 @@ You now need to create pairs of lines delineating
 the top and bottom of the specimen in at least 2 (preferably 3) locations in
 Y.  The lines do not need to be perfectly horizontal (i.e., confined to one
 plane in Y) and the two lines of a pair do not need to be at identical
-locations.  See the man page for <A HREF = "man/tomopitch.html">Tomopitch</A>
+locations.  See the man page for <A HREF = "man/tomopitch.html#TOP">Tomopitch</A>
 for more details on acceptable boundary lines.
 You have 3 options:
 <OL>
@@ -2045,11 +2049,9 @@ the operation and press the button to use that stack.
 First select linear interpolation if desired for this step.
 Notice that you can also select a binning of the aligned stack at this stage.
 In Advanced mode, there is also an option to set the size of the aligned
-stack.  There are two uses for this.  One is to make an aligned stack that
-contains a centered subarea of the original images; this can be useful when
-testing a SIRT reconstruction (see <A HREF =
-"man/sirtsetup.html">Sirtsetup</A>).  The other is to make an over-sized
-aligned stack
+stack.  This feature is not needed to get a reconstruction of a subarea
+because there are options for setting the range of a reconstruction.  
+Its main use is to make an over-sized aligned stack
 that contains all of the original image data after the rotation that brings
 the tilt axis to vertical.  This rotation can lose significant, usable
 portions of the reconstruction if the rotation is more than ~15 degrees (or
@@ -2069,7 +2071,7 @@ aberration</B> entries are correct for your microscope.  Also, fill in the
 positive).
 <P>
 You can use
-<A HREF = "man/ctfplotter.html">Ctfplotter</A> to estimate the defocus of the
+<A HREF = "man/ctfplotter.html#TOP">Ctfplotter</A> to estimate the defocus of the
 tilt series; this program requires a set of noise image files for the camera
 being used. 
 It allows you to estimate a single value of defocus for the whole
@@ -2079,12 +2081,12 @@ store these defocus estimates in a file "setname.defocus".
 Press <B>Run CTF Plotter</B> to run this program.
 <P>
 If you are not able to run
-<A HREF = "man/ctfplotter.html">Ctfplotter</A>, you can run the correction
+<A HREF = "man/ctfplotter.html#TOP">Ctfplotter</A>, you can run the correction
 with the 
 single defocus value in <B>Expected defocus</B> by checking 
 <B>Use expected defocus instead of ctfplotter output</B>.  A file named
 "setname_simple.defocus" will be created in the right format to specify this
-defocus value to <A HREF = "man/ctfphaseflip.html">Ctfphaseflip</A>.
+defocus value to <A HREF = "man/ctfphaseflip.html#TOP">Ctfphaseflip</A>.
 <P>
 Press <B>Correct CTF</B> to correct the phases in the aligned stack.
 After the computation is finished, press <B>Use CTF Correction</B> to replace 
@@ -2094,7 +2096,7 @@ the aligned stack.
 10.3. Erasing Gold Particles Using a Fiducial Model
 </H4>
 <P>
-<A HREF = "man/ccderaser.html">Ccderaser</A> can erase a circular region
+<A HREF = "man/ccderaser.html#TOP">Ccderaser</A> can erase a circular region
 around every point in an object.  This allows the fiducial gold markers to be
 removed from images, which will reduce the artifacts cast by these markers in
 the reconstruction but might produce other artifacts.  You can use the
@@ -2134,13 +2136,13 @@ When the erasure appears acceptable, replace the aligned stack by pressing
 10.4. Erasing Gold by Finding It in a Tomogram and Projecting It
 </H4>
 <P>
-In this approach, you use <A HREF = "man/findbeads3d.html">Findbeads3d</A> to
-find the gold particles in a tomogram and <A HREF = "man/tilt.html">Tilt</A>
+In this approach, you use <A HREF = "man/findbeads3d.html#TOP">Findbeads3d</A> to
+find the gold particles in a tomogram and <A HREF = "man/tilt.html#TOP">Tilt</A>
 to get a model of the positions of the beads on the aligned images.  You can
 and should use a binned tomogram for finding the gold, as long as the bead
 size in the binned tomogram is at least 5 pixels.  When run with default
 parameters, 
-<A HREF = "man/findbeads3d.html">Findbeads3d</A> finds beads with these steps:
+<A HREF = "man/findbeads3d.html#TOP">Findbeads3d</A> finds beads with these steps:
 it finds peaks of local
 density in the volume and scales a measure of peak strength to go from 0 to 1;
 it analyzes a histogram of the peak strength values to find a dip between two
@@ -2160,7 +2162,7 @@ will result in beads of at least 4-5 pixels in diameter. The tomogram
 generation and bead finding will both run much faster with binning.
 <LI>Note the thickness and added Z shift entries, which are in unbinned
   pixels.  If you had fiducials on two surfaces, then the output from 
-<A HREF = "man/tiltalign.html">Tiltalign</A> contains information on the distance
+<A HREF = "man/tiltalign.html#TOP">Tiltalign</A> contains information on the distance
 between the two layers of beads and on the shift in Z needed to center the
 beads in the tomogram.  That distance is shown in the <B>Center to center
   thickness</B> field, and 3 bead diameters are added to that to obtain the
@@ -2217,7 +2219,7 @@ high tilt, you would need to increase the diameter to be erased.
   finding by selecting <B>Set threshold for storing</B> and entering a
   positive value (either a relative peak strength or a number of peaks) for
   the threshold in the text field.  See the <A HREF =
-  "man/findbeads3d.html">man page</A> for more guidance.
+  "man/findbeads3d.html#TOP">man page</A> for more guidance.
 
 </P>
 <H4><A NAME = "Filtering2D"></A>
@@ -2241,7 +2243,7 @@ with the filtered version.
 <P>
 In the <B>Tilt Parameters</B> section, the values for 
 <B>Tomogram thickness</B> and <B>X-axis tilt</B> were inserted when you ran  
-<A HREF = "man/tomopitch.html">Tomopitch</A>; correct them if necessary.
+<A HREF = "man/tomopitch.html#TOP">Tomopitch</A>; correct them if necessary.
 Adjust the radial filter parameters as appropriate.  If you did 2D filtering,
 you can set the cutoff higher (e.g., 0.45) to avoid double-filtering the 
 data.  Decide whether you want to take the logarithm of the data, which may
@@ -2307,10 +2309,10 @@ characteristic artifacts in the reconstruction.  This effect can be
 corrected by varying the
 location that voxels in the reconstruction backproject from systematically
 as a function of their Z-height.  Since IMOD 3.4.17, 
-<A HREF = "man/tiltalign.html">Tiltalign</A>
+<A HREF = "man/tiltalign.html#TOP">Tiltalign</A>
 can output the factors needed to adjust the backprojection position when
 distortion is solved for, and
-<A HREF = "man/tilt.html">Tilt</A> can use them when computing the
+<A HREF = "man/tilt.html#TOP">Tilt</A> can use them when computing the
 reconstruction.  These factors will be used if present when the
 <B>Use Z factors</B> box is checked in the <B>Tilt Parameters</B> section
 of the <B>Tomogram Generation</B> panel.  The box is checked by default,
@@ -2318,7 +2320,215 @@ under the assumption that the distortion solution in the fine alignment will
 usually reflect changes in the specimen rather than stretches during
 imaging.  However, in situations where imaging is a more likely source of
 stretch, the option should be turned off.  
-
+</P>
+<H4><A NAME = "SIRTtomogram"></A>
+11.4. Making a Reconstruction with SIRT
+</H4>
+<P>
+SIRT stands for Simultaneous Iterative Reconstruction Technique.  It is sometimes
+preferred over back-projection because it can produce a reconstruction with
+significantly less noise.  It
+involves starting with a trial tomogram, reprojecting it at the original tilt
+angles, and adjusting the tomogram for the differences between the
+reprojection and the original projection images.  This operation is iterated
+until it converges or it reaches a desired balance between image detail and
+noise.  The process starts out dominated by low frequencies and the higher
+frequency information is added in as the iterations proceed, along with some
+of the high frequency noise.  Thus, it does not intrinsically produce a
+reconstruction where the relative magnitudes of the different spatial frequencies
+are correct, as back-projection does.  In other words, the tomogram will look
+blurry in early iterations, and more iterations are needed to bring out the
+fine details.  The trick in using SIRT is to find the number of iterations
+where the fine details are adequately visible but the noise is still less
+than from back-projection.
+<P>
+A set of command files for doing SIRT is
+produced by running <A HREF = "man/sirtsetup.html#TOP">Sirtsetup</A>; see that man
+page for more details about this operation. 
+<P>
+SIRT can be done, with either the 
+CPU or the GPU, for any kind of tilt series aligned in eTomo; but there is a
+fundamental difference between simple and more complicated alignments.  If
+you solved for distortion, local alignments, or beam tilt, then on each
+iteration, the entire set of reprojections must be produced, then the entire
+reconstruction.  Otherwise, the iterations can be done internally on one run
+of <A HREF = "man/tilt.html#TOP">Tilt</A> because each slice and its reprojections
+can be computed independently.
+<P>
+When you make a SIRT reconstruction, it will be run through the parallel
+processing interface because a sequence of command files need to be run, even
+if only one command file can be run at a time (e.g., on a single GPU).
+<P>
+Because SIRT compares the reconstruction with the input images, it is
+important for the reconstruction to contain as much of the material that
+projects into the images as possible.  To avoid artifacts from features
+missing from the reconstruction, such as gold beads on the other side of the
+support film from the section, the tomogram should be made thicker to contain
+all such features.  If you know that you are going to be using SIRT, you can
+be sure to include all gold beads in the positioning step.
+<P>
+SIRT can be quite time-consuming, and the right number of iterations may not
+be known in advance.  To ease 
+these difficulties, the interface in eTomo allows you to reconstruct a subarea,
+to examine the output at a series of iterations, and to resume from any
+iteration where a file was output.  If you do not know from previous
+experience how many iterations you want, the sequence of steps to follow would
+be:
+<OL>
+<LI> Decide on what subarea to reconstruct.  The subarea must be centered in X
+  in the aligned stack, but may be positioned anywhere in Y.  It should be
+  substantially wider than the thickness of the tomogram to minimize edge
+  effects.  Its extent in Y should not matter so much.  Select
+  the <B>Reconstruct subarea</B> option and insert the size of the
+  subarea as two numbers in the <B>Size in X and Y</B> text box and the
+  location in Y relative to the center (positive above the center) in
+  the <B>Offset in Y</B> text box.  If your aligned stack is binned, both of
+  these entries are in binned pixels, unlike the entries to the 
+  <A HREF = "man/tilt.html#TOP">Tilt</A> parameters.
+<LI> Decide which iterations to retain for examination.  The desired number of
+  iterations is usually in the range of 8-15 for cryotomograms and 15-25 for
+  plastic section tomograms.  Enter a comma-separated list (such as 5,7,10,13)
+  in the text box for <B>Iteration #s to retain</B>.
+<LI> Press <B>Run SIRT</B> to run <A HREF = "man/sirtsetup.html#TOP">Sirtsetup</A>
+  and start running the command files.  
+<LI> When it is done, press <B>View Tomogram(s) in 3dmod</B> and select all the
+  reconstruction files to load them together for comparison.  The tomograms are named
+  "setname_sub.srecnn", where "nn" is the iteration number (eg, 05, 07, 10, 13).
+<LI> If you want to run more iterations, select the <B>Resume from last
+    iteration</B> option and change the <B>Iteration #s to retain</B> entry to
+    list the new iterations.  The iteration numbers do not start at one when
+    you resume but from where you left off; thus, you might enter "15,17" to
+    resume from iteration 13.  Press <B>Run SIRT</B>.
+<LI> If you want to fill in a gap between some iterations, select the <B>Go
+    back, resume from iteration</B> option and the desired iteration number
+    from the selection box.  Change the <B>Iteration #s to retain</B> entry.
+    In our example, you might resume from iteration 10 and list 12 and 15.
+    Iteration 13 will still be present when this run is done, but only if 
+  <B>Delete existing reconstructions after starting point</B> is not checked.
+  Press <B>Run SIRT</B>.
+<LI> Once you have determined the desired number of iterations, uncheck
+  <B>Reconstruct subarea</B> and place that number in the <B>Iteration
+    #s to retain</B> box.  Press <B>Run SIRT</B> to make the full
+    reconstruction.  It will be named "setname.srecnn" where "nn" is the
+    iteration number.
+<LI> Once the reconstruction is done, press <B>View Tomogram(s) in 3dmod</B>
+  to see the reconstruction.  The file chooser will show all subarea and
+  full-sized SIRT reconstructions available.
+<LI> To rename a selected file to "setname.rec" and use it for further
+  processing in eTomo, press the <B>Use SIRT Output File</B> button.  A file
+  chooser will open, again showing all available subarea and full-sized
+  reconstructions, letting you pick the file to rename.
+</OL>
+<P>
+You may notice that once you choose an option to resume, you cannot modify the
+parameters to <A HREF = "man/tilt.html#TOP">Tilt</A> or the subarea.  Conversely,
+once you modify one of these parameters, the options to resume are not
+enabled.  These restrictions maintain consistency among all the files needed
+for resuming.
+<P>
+Disk usage may be a concern if you retain several iterations of the full
+tomogram.  Also, the output files from SIRT are in floating point (4 bytes per
+pixel) instead of the usual 2-byte integers.  There are several options for
+controlling disk usage.
+<UL>
+<LI> With <B>Scale retained volumes to integers</B> checked, each retained
+  volume will be reduced to half the size, with the resulting file named
+  "setname.sintnn".  The floating point volume will be deleted except for the
+  last iteration, where it is kept to allow resuming.  With this option, it
+  is possible to resume only from the last iteration.
+<LI> The option <B>Do not make vertical slice output files used for
+    resuming</B> is relevant only when your data have a simple alignment with a
+    non-zero X-axis tilt, where iterations are done internally.  In this case,
+    a file with slices not corrected for X-axis tilt is output at each retained
+    iteration, thus doubling the storage needs.  These files are used to
+    resume from each retained iteration without incurring artifacts and
+    blurring from interpolation.  When you do the full reconstruction and
+    retain only the final iteration, it is safe to turn this option on, as
+    long as there is little chance that you would want to do more iterations.
+<LI> With <B>Delete existing reconstructions after starting point</B> checked,
+  all files past the iteration at which you are starting will be deleted,
+  which saves space and also helps reduce confusion if you change parameters
+  and restart from the beginning.  The deletion is specific to the kind of
+  area that you are running: subarea files when doing a subarea, or full
+  reconstruction files when doing the full volume.
+</UL>
+<P>
+Filtering of high frequencies in the projection lines that are compared with
+reprojections is controlled by the <B>Radial filter cutoff</B>
+and <B>Falloff</B> entries on the SIRT panel.  The default is a mild filter
+that will cut out only the highest frequencies.  If you have already filtered
+the images in 2D, or if your data are particularly noise-free, you could set
+the cutoff to 0.5.
+</P>
+<H4><A NAME = "ScalingProblems"></A>
+11.5. Problems with Output Density Scaling
+</H4>
+<P>
+Sometimes the contrast in a reconstruction appears strange, with extreme
+saturation or very stretched contrast.
+Sometimes <A HREF = "man/tilt.html#TOP">Tilt</A> will issue the warning
+<I>SOME VALUES WERE TRUNCATED WHEN OUTPUT TO THE FILE; CHECK THE OUTPUT 
+SCALING</I>.  In the past, with the option set to take the logarithm of
+the input data, the most common source of these problems was a
+failure to offset the values properly when using data acquired with FEI
+software.  IMOD 4.3 should do a better job of setting the offset
+automatically, so this may no longer be the most likely cause of problems.
+When this is not the source of the problem, the log file from 
+<A HREF = "man/tilt.html#TOP">Tilt</A>, offered in the right-click menu of
+ eTomo, contains information for setting the
+scaling.  However, if you used parallel processing this log file is based on only
+the first chunk, at the bottom of the tomogram. If that chunk might not be
+representative (e.g., lacks any gold particles), then the scaling values
+suggested in this first log are likely to be misleading and not solve the problem.
+<P>
+<I>If you are taking the logarithm of the input data</I>, follow these steps:
+<OL>
+<LI> Open the "tilt.log" file.  At
+  the top will be the header output from the aligned stack.  If the minimum
+  density value is significantly negative or the first title indicates that the data are
+  from FEI software, there needs to be an entry of 32768 in the text box after
+  <B>Take logarithm of densities with offset</B>.
+<LI> If the offset is already correct and you get the message about truncated
+  values, then you need to go to Advanced mode and change the value in the 
+  <B>Logarithm density scaling factor</B> box.  If the scaling values in the
+    log file are likely to be representative of the whole volume,
+    look at the end of the log for the line <I>To scale output to
+    -15000 to 15000, use SCALE to add</I>.  Insert the value after "scale by"
+    in the <B>scaling factor</B> box and the value after "add" in
+    the <B>Offset</B> box.
+<LI> If these scaling values might not be representative, then it is safer simply to
+  reduce the <B>scaling factor</B> entry by a factor of 2.
+</OL>
+<I>If you are NOT taking the logarithm of the input data</I>, follow these
+steps:
+<OL>
+<LI> Go to Advanced mode to see the scaling entries.  In IMOD 4.3, the value
+  for <B>Linear density scaling factor</B> gets initialized by dividing the
+  value for <B>Logarithm density scaling factor</B> by 5000, so you should see
+  a value of 0.2 or less.  If not (e.g., if data were initially processed in
+  an earlier version), divide the <B>Logarithm density scaling factor</B> by 5000,
+  insert the value in the <B>Linear density scaling factor</B>, and try
+  building the tomogram again.  However, the factor of 5000 is a conservative
+  one to avoid compressing the dynamic range of the output from typical data.
+  If your data occupy a large fraction of the 16-bit range, then go to the
+  next steps.
+<LI> If the scaling values in the
+    log file are likely to be representative of the whole volume, open the log and
+    look at the end of the log for the line <I>To scale output to
+    -15000 to 15000, use SCALE to add</I>.  Insert the value after "scale by"
+    in the <B>Linear density scaling factor</B> box and the value after "add" in
+    the <B>Offset</B> box.
+<LI>If these scaling values might not be representative, then it is safer
+  simply to reduce the <B>scaling factor</B> entry by a factor of 3.  
+</OL>
+<P>
+Finally, if you are using a GPU and get the warning <I>EXTREMELY LARGE VALUES
+  OCCURRED AND VALUES WERE TRUNCATED WHEN OUTPUT TO FILE; THERE COULD BE
+  ERRORS IN GPU COMPUTATION. RUN gputilttest</I>, this is very bad news.  You
+  should run <A HREF = "man/gputilttest.html#TOP">Gputiltest</A> at the command
+  line.  No options are needed; the default is a one-minute test which is
+  sufficient to detect problems.  If errors occur, contact the IMOD developers
+  for advice.
 </P>
 <H3><A NAME = "TOMOGRAM COMBINATION"></A>
 12. COMBINING TWO TOMOGRAMS
@@ -2335,41 +2545,40 @@ to deal with the problems when things do not go well.
 The main programs or shell scripts being run, and the essential
 steps in combining are:
 <UL>
-<LI> <A HREF = "man/solvematch.html">Solvematch</A>:
+<LI> <A HREF = "man/solvematch.html#TOP">Solvematch</A>:
 Use the coordinates of the fiducials from tilt alignment
 to determine the 3-D rotation, distortion, and shift between the two tomograms.
 This operation is run by solvematch.com.
-<LI> <A HREF = "man/matchvol.html">Matchvol</A>:
+<LI> <A HREF = "man/matchvol.html#TOP">Matchvol</A>:
  Using this initial alignment, generate an initial matching
 volume from one of the tomograms.  This operation is run by matchvol1.com
-<LI> <A HREF = "man/corrsearch3d.html">Corrsearch3d</A>:
+<LI> <A HREF = "man/corrsearch3d.html#TOP">Corrsearch3d</A>:
  Extract small patches from a regular 3-D array of
 positions in the two volumes (one original, one transformed to match), and
 use 3-D cross-correlation to determine the error (displacement) between the
 two volumes at each position.  This operation is run by patchcorr.com.
-<LI> <A HREF = "man/matchorwarp.html">Matchorwarp</A>:
+<LI> <A HREF = "man/matchorwarp.html#TOP">Matchorwarp</A>:
  Analyze the displacements with 
-<A HREF = "man/refinematch.html">Refinematch</A>, and if they
+<A HREF = "man/refinematch.html#TOP">Refinematch</A>, and if they
 fit well enough to a single linear transformation, use 
-<A HREF = "man/matchvol.html">Matchvol</A> with this
+<A HREF = "man/matchvol.html#TOP">Matchvol</A> with this
 refining transformation to produce the final matching volume.  If they do
-not, run <A HREF = "man/findwarp.html">Findwarp</A>
+not, run <A HREF = "man/findwarp.html#TOP">Findwarp</A>
  to find the best warping between the volumes automatically,
-then run <A HREF = "man/warpvol.html">Warpvol</A>
+then run <A HREF = "man/warpvol.html#TOP">Warpvol</A>
  to produce a final matching volume with a series of linear
 transformations.  Warping is done by solving for a series of local 3-D
 transformations and making a gradual transition from one to another in the
 plane of the section.  All of these operations are run by matchorwarp.com.
 <LI> Match the density between the two volumes 
-(<A HREF = "man/densmatch.html">Densmatch</A>), then take
-Fourier transforms of each (<A HREF = "man/fftrans.html">Fftrans</A>),
- combine the Fourier transforms
-(<A HREF = "man/combinefft.html">Combinefft</A>),
- and back-transform.  Larger volumes are broken into pieces
-(<A HREF = "man/taperoutvol.html">Taperoutvol</A>)
-and recombined (<A HREF = "man/assemblevol.html">Assemblevol</A>),
-because it is much faster to take Fourier transforms of these pieces.
-All of these operations are run by volcombine.com.
+(<A HREF = "man/densmatch.html#TOP">Densmatch</A>), then take
+Fourier transforms of each, combine the Fourier transforms
+ and back-transform (<A HREF = "man/combinefft.html#TOP">Combinefft</A>).
+Larger volumes are processed in pieces by 
+<A HREF = "man/combinefft.html#TOP">Combinefft</A> 
+and recombined (<A HREF = "man/assemblevol.html#TOP">Assemblevol</A>),
+because it requires much less memory and is faster to take Fourier transforms
+of these pieces.  All of these operations are run by volcombine.com.
 </UL>
 <P>
 It is possible to import tomograms built in other software for combining in
@@ -2402,7 +2611,7 @@ Combining Tomograms with Few or No Fiducials</A> in the Advanced Topics
 section.  You must make such matching models if you aligned with patch
 tracking models.
 <LI> 
-If you used <A HREF = "man/transferfid.html">Transferfid</A> successfully
+If you used <A HREF = "man/transferfid.html#TOP">Transferfid</A> successfully
 to make a second seed model, then the coordinate file
 produced by this operation will be used to determine corresponding points, and
 you do not need to enter anything for <B>Starting points to use from A</B>.
@@ -2410,7 +2619,7 @@ Otherwise, you need to enter lists of corresponding fiducial points in the
 <B>Corresponding fiducial list</B> text boxes.  Specifically, enter a list of
 points from "a" which have are known to have corresponding points in "b", and
 the list of corresponding points in "b".  
-<A HREF = "man/solvematch.html">Solvematch</A>
+<A HREF = "man/solvematch.html#TOP">Solvematch</A>
 can be given a small list of fiducials that are known to
 correspond and it will find the remaining correspondences.  There are two
 restrictions on this ability: you must give it at least 4 correspondences to
@@ -2433,7 +2642,7 @@ not be used for correlating the tomograms because they are either empty of
 material or contain reconstruction of poor quality.  You can exclude such
 areas from consideration in two ways.  One way is to set more restrictive
 lower and upper limits in X and Y on the region from which patches will be
-extracted by <A HREF = "man/patchcrawl3d.html">Patchcrawl3d</A>.
+extracted by <A HREF = "man/patchcrawl3d.html#TOP">Patchcrawl3d</A>.
 Take note of the coordinates in X and Y beyond
 which the image is unreliable in the tomogram being matched TO, and adjust
 the entries in the X or Y axis min or max text boxes.
@@ -2443,10 +2652,10 @@ model</B> and press the <B>Create/Edit Patch Region Model</B> button.  This
 will open the tomogram being matched to and define an appropriate file name
 for the patch region model.
 See the man page for
-<A HREF = "man/refinematch.html">Refinematch</A>
+<A HREF = "man/refinematch.html#TOP">Refinematch</A>
 for details.  Do not worry about identifying regions in this
 tomogram that are outside the bounds of the other tomogram; 
-<A HREF = "man/patchcrawl3d.html">Patchcrawl3d</A> will
+<A HREF = "man/patchcrawl3d.html#TOP">Patchcrawl3d</A> will
 take care of this limitation.
 <LI> Examine the tomogram being matched TO and determine the first and last
 slices that contain useful information for cross-correlating the tomograms
@@ -2473,7 +2682,7 @@ estimate of the realtionships in Z.
 <P>
 If you have noisy tomograms, you should probably use linear interpolation
 (instead of the default quadratic) for making the final matching volume with
-<A HREF = "man/matchorwarp.html">Matchorwarp</A>.  To do this, go to Advanced
+<A HREF = "man/matchorwarp.html#TOP">Matchorwarp</A>.  To do this, go to Advanced
 mode on the <B>Final Match</B> page and select <B>Use linear interpolation</B>.
 </P>
 <H4><A NAME = "Temporary Combining Storage"></A>
@@ -2483,15 +2692,13 @@ mode on the <B>Final Match</B> page and select <B>Use linear interpolation</B>.
 It is possible to use temporary disk space when combining two tomograms;
 this is useful if you want to run the combine operation on a machine different
 from the one where the two tomograms are located.  Combining creates a large
-number of temporary files, and considerable time can be saved by placing these
+number of temporary files, and some time can be saved by placing these
 files on a local disk instead of writing and reading them across a network.
 To use this feature, make an entry in the <B>Temporary directory</B> text
 box (/tmp, /usr/tmp,
 or other appropriate scratch directory).  If you may need to access this
 directory from other machines, do not use /tmp or /usr/tmp, and specify the
 scratch directory in a way that will be recognized from another machine.
-(In the BL3DEMC, that means using /scratch/machine_name instead of
-/localscratch).  
 Whatever directory you specify must exist already and you must
 have permission to write to it.  By default,
 the command files will build the final
@@ -2533,13 +2740,13 @@ operation has been running for a minute,
 check the matchorwarp.log file to see how good the registration between the two
 volumes is.
 You
-will see <A HREF = "man/refinematch.html">Refinematch</A>'s
+will see <A HREF = "man/refinematch.html#TOP">Refinematch</A>'s
 report on the mean and maximum deviation at the various
 locations after applying a single linear transformation.  Then there will be
-either a message that <A HREF = "man/matchvol.html">Matchvol</A>
+either a message that <A HREF = "man/matchvol.html#TOP">Matchvol</A>
  is being run, or a message that warping is
 needed.  Just above a
-message that <A HREF = "man/warpvol.html">Warpvol</A>
+message that <A HREF = "man/warpvol.html#TOP">Warpvol</A>
  is being run next will be a report on the mean and
 maximum of the mean residuals.  If the mean is reasonable but the maximum is
 quite high (1 or more), 
@@ -2560,10 +2767,10 @@ they have been optimally aligned.  There are three different situations to be
 considered:
 <OL>
 <LI> <I>A bad fit when corresponding fiducial coordinates are available from
-<A HREF = "man/transferfid.html">Transferfid</A>.</I>  Here, an incorrect
+<A HREF = "man/transferfid.html#TOP">Transferfid</A>.</I>  Here, an incorrect
 correspondence between points is ruled out and the bad fit must arise from
 nonlinear distortions between the volumes.  Only very large distortions should
-cause <A HREF = "man/solvematch.html">Solvematch</A> to stop with an error,
+cause <A HREF = "man/solvematch.html#TOP">Solvematch</A> to stop with an error,
 because in addition to the fit to all the data points, it does
 a series of local fits to subsets of the data.  If a very high proportion of
 those fits give residuals less than the limit, then the overall solution is
@@ -2595,14 +2802,14 @@ if some of the local fits are good while others are much worse,
 this is a sign that there is a bad correspondence between points.  Usually
 the mean residual will be relatively low, but if there are many points out
 of correspondence, it could be very large.
-<A HREF = "man/solvematch.html">Solvematch</A> can eliminate some bad
+<A HREF = "man/solvematch.html#TOP">Solvematch</A> can eliminate some bad
 pairs of points, but not more than 10% of the points.
 When this happens, 
 you should change the <B>Corresponding fiducial lists</B> 
 so that they specify only a few points which you are sure correspond.
 
 <LI> <I>Large center shift between aligned volumes.</I>  <A HREF =
-"man/solvematch.html">Solvematch</A> uses local fitting to estimate the
+"man/solvematch.html#TOP">Solvematch</A> uses local fitting to estimate the
 displacement at the center of the volumes after the second one
 is transformed to match using the transformation determined from a global fit.
 When this shift is large there are two risks: 1) that the initial transformed
@@ -2639,7 +2846,7 @@ there is significant warping between the two volumes and not a good enough
 distribution of points in Z, then the best fit between the points may occur
 with a transform that collapses the Z dimension.  This can happen if there are
 very few fidicuals on one surface relative to the other.  <A HREF =
-"man/solvematch.html">Solvematch</A> will try to detect this situation and
+"man/solvematch.html#TOP">Solvematch</A> will try to detect this situation and
 issue a warning if the scaling along the Z axis is more than 10% different
 from the scaling along the other two axes.  (In the log file, the smaller
 scaling factor will appear for the Y axis, since the tomogram is still
@@ -2649,12 +2856,12 @@ This is indeed the solution to this problem.
 <P>
 If you have a data set where the alignment was run on an older version
 of IMOD (before 3.2.21), solvematch.com will run a script,
-<A HREF = "man/matchshifts.html">Matchshifts</A>
+<A HREF = "man/matchshifts.html#TOP">Matchshifts</A>
 to find the shift
 between the two tomograms.  This operation can fail.  If so, the easiest thing
 to do is to rerun the fine alignment for both axes, so that
 the fiducial coordinate files will contain the information that 
-<A HREF = "man/solvematch.html">Solvematch</A> needs to find the shifts
+<A HREF = "man/solvematch.html#TOP">Solvematch</A> needs to find the shifts
 directly.
 
 </P>
@@ -2663,15 +2870,15 @@ directly.
 </H4>
 <P>
 If combine.com exits because neither 
-<A HREF = "man/refinematch.html">Refinematch</A>
- nor <A HREF = "man/findwarp.html">Findwarp</A> could find
+<A HREF = "man/refinematch.html#TOP">Refinematch</A>
+ nor <A HREF = "man/findwarp.html#TOP">Findwarp</A> could find
 a fit to the patch displacements with a sufficiently low mean residual, then
 there are several possible reasons.  The patches could be too
 small or noisy, leading to widespread random errors.  There could be local
 regions in the volume where a relatively high proportion of patches have large
 errors, a
 situation that the outlier elimination algorithm in 
-<A HREF = "man/findwarp.html">Findwarp</A> cannot handle.
+<A HREF = "man/findwarp.html#TOP">Findwarp</A> cannot handle.
 Finally, there could be inaccurate displacements only along one or more edges
 of the volume.  To assess this situation, the first step is to 
 examine the model of the patch displacements by pressing 
@@ -2731,11 +2938,11 @@ model with contours enclosing the regions with good patches, or to modify
 such a model if you have already made one.  To do this while looking at the
 patch vector model, press <B>Create/Edit Patch Region Model</B>, which
 will load the tomogram being matched to into
-a separate <A HREF = "man/3dmod.html">3dmod</A>,
+a separate <A HREF = "man/3dmod.html#TOP">3dmod</A>,
 and try to correlate positions between the tomogram and the patch vector model.
 Be sure to check <B>Use Patch Region Model</B>, then press 
 <B>Restart at Matchorwarp</B>.  If <A HREF =
-"man/findwarp.html">Findwarp</A> still fails, you probably need to edit
+"man/findwarp.html#TOP">Findwarp</A> still fails, you probably need to edit
 patches as described next.  Note that if you have just added a patch
 region model, the patch vector model will still show bad patches outside of
 the region contours (and thus not a problem) unless you rerun patchcorr to
@@ -2780,12 +2987,12 @@ text box to be higher than the value shown in this message.  Press
 <B>Restart at Matchorwarp</B> and the combine should run to completion.
 
 <LI> <I>Run Findwarp interactively.</I>  If all else fails, it may help to run 
-<A HREF = "man/findwarp.html">Findwarp</A>
+<A HREF = "man/findwarp.html#TOP">Findwarp</A>
 interactively.  This will allow you to explore omitting
 columns or rows of patches as well as select the number of patches that will
 be used in each local fit.
 See the man page for 
-<A HREF = "man/findwarp.html">Findwarp</A>.
+<A HREF = "man/findwarp.html#TOP">Findwarp</A>.
 When running the program, examine results with
 transformations based on various subsets of patches, but no fewer than 3 by 3
 by 2 or 4 by 2 by 2.  Try to retain all of the rows and columns if possible.
@@ -2824,7 +3031,7 @@ in combined FFT</B>.  A value of 1 should improve the linen pattern;
 smaller
 or larger values will give less or more reduction.
 See the man page for 
-<A HREF = "man/combinefft.html">Combinefft</A> for more details.
+<A HREF = "man/combinefft.html#TOP">Combinefft</A> for more details.
 Press <B>Restart at Volcombine</B> to recompute the combined volume.
 <P>
 If the text box is disabled, you have an older version of
@@ -2857,21 +3064,21 @@ try them first then use a higher value if necessary.
 </H4>
 <P>
 The <B>Volume Trimming</B> section of the <B>Post-processing</B> panel
-uses <A HREF = "man/trimvol.html">Trimvol</A> to
+uses <A HREF = "man/trimvol.html#TOP">Trimvol</A> to
 trim a volume and convert it to
 bytes.  This shell script can run 
-<A HREF = "man/findcontrast.html">Findcontrast</A>
+<A HREF = "man/findcontrast.html#TOP">Findcontrast</A>
 to find optimal contrast settings for
 converting it to bytes, runs Newstack to make the final byte file, and can
 also use "clip flipyz" or "clip rotx" to reorient the data, which
-will make the final volume easier to work with in <A HREF = "man/3dmod.html">3dmod</A>.  All of these
+will make the final volume easier to work with in <A HREF = "man/3dmod.html#TOP">3dmod</A>.  All of these
 operations are performed with the default settings when you open the panel.
 <P>
 If you want to trim the volume in X and Y, you can use the rubberband feature
 in the Zap window to draw a box around the region of interest and then have
 eTomo collect this information.  
 Press <B>3dmod Full Volume</B> to load the tomogram into <A HREF = 
-"man/3dmod.html">3dmod</A>.  In <A HREF = "man/3dmod.html">3dmod</A>, 
+"man/3dmod.html#TOP">3dmod</A>.  In <A HREF = "man/3dmod.html#TOP">3dmod</A>, 
 press the
 dotted rectangle in the Zap toolbar to turn on the rubberband.  Press the
 first mouse button at the upper left corner of the desired area, and hold it
@@ -2887,18 +3094,18 @@ The scaling of the tomogram to bytes requires some attention.  If you
 simply convert a tomogram to bytes without a contrast setting, then the
 contrast range for features of interest can be quite compressed and it can be
 difficult to adjust contrast for viewing in <A HREF =
-"man/3dmod.html">3dmod</A>.  You can avoid this problem
+"man/3dmod.html#TOP">3dmod</A>.  You can avoid this problem
 by saturating the intensities of gold particles (and other irrelevant features
 like stain precipitate) when converting to bytes.  There are two different
 methods for determining a good contrast scaling.
 <P>
-First, load the tomogram into <A HREF = "man/3dmod.html">3dmod</A> to
+First, load the tomogram into <A HREF = "man/3dmod.html#TOP">3dmod</A> to
 determine the starting and ending slices of a range that excludes features
 whose intensity can be saturated.  
 Select the <B>Find scaling from sections</B> radio button and 
 enter these slice numbers into the associated <B>Z min</B> and <B>Z max</B>
 text boxes in the <B>Scaling</B> section.  <A HREF =
-"man/findcontrast.html">Findcontrast</A> will ignore areas
+"man/findcontrast.html#TOP">Findcontrast</A> will ignore areas
 within 10% of the edges of these slices.  Sometimes this is not good enough to
 exclude all the features that can be saturated.  If this is the case, then use
 the rubberband to enclose an area that excludes all the extra-dense material
@@ -2911,15 +3118,15 @@ section.
 Do not be satisfied if the trimmed volume does not have a good dynamic range
 for specimen features, e.g., if it
 requires Black and White sliders settings less than 100 units apart to get good
-contrast in <A HREF = "man/3dmod.html">3dmod</A>.  This can happen if there
+contrast in <A HREF = "man/3dmod.html#TOP">3dmod</A>.  This can happen if there
 is gold or stain precipitate in the sampled slices.  When this happens, first
 go back and set up a sub-area for scaling, as just described, or check the
 area and make it smaller if you have already used one.  This should work, but
 if not, there is an alternative approach: select
 the <B>Scale to match contrast</B> radio button instead and find the
-appropriate settings in <A HREF = "man/3dmod.html">3dmod</A>.
+appropriate settings in <A HREF = "man/3dmod.html#TOP">3dmod</A>.
 The simplest
-way to do this is to adjust the Black and White sliders in <A HREF = "man/3dmod.html">3dmod</A> to
+way to do this is to adjust the Black and White sliders in <A HREF = "man/3dmod.html#TOP">3dmod</A> to
 give the desired brightness and contrast
 and enter the values in the <B>black</B> and <B>white</B> text boxes.  
 However, this could truncate intensities inappropriately.  
@@ -2940,7 +3147,7 @@ limits into the <B>black</B> and <B>white</B> text boxes.
 <P>
 A final choice in the trimming step is how to reorient the volume.  Swapping Y
 and Z dimensions will reproduce the flipping that 
-<A HREF = "man/3dmod.html">3dmod</A> does
+<A HREF = "man/3dmod.html#TOP">3dmod</A> does
 when it loads the untrimmed volumes that you have been looking at so far.
 However, it will invert the handedness of structures relative to their
 handedness in the untrimmed volume.  Rotating about X will preserve the
@@ -2986,10 +3193,10 @@ eTomo, you can get the same interface by choosing <B>Flatten</B> from the
 <B>Tools</B> menu.) 
 Flattening involves four steps: drawing a model of contours along the surface
 of the section; running the program <A HREF =
-"man/flattenwarp.html">Flattenwarp</A> in a trial mode to determine how much
+"man/flattenwarp.html#TOP">Flattenwarp</A> in a trial mode to determine how much
 smoothing to apply to the model; running the same program to determine the
 warping transformations that will make the volume flat; and then running 
-<A HREF = "man/warpvol.html">Warpvol</A> to flatten the volume.
+<A HREF = "man/warpvol.html#TOP">Warpvol</A> to flatten the volume.
 </P>
 <P>
 <OL>
@@ -3000,7 +3207,7 @@ they can all be on one surface instead of both; in this case you should check
 <B>Contours are all on one surface</B>.  For instructions and advice 
 on how to draw the contours, read the four paragraphs starting with 
 "To prepare a contour model" in the <A HREF =
-"man/flattenwarp.html">Flattenwarp man page</A>.  
+"man/flattenwarp.html#TOP">Flattenwarp man page</A>.  
 <LI> Smoothing the model is recommended, and is essential if you are going
 to be stitching together laterally adjacent tomograms that have been
 flattened.  Smoothing is done by fitting a surface called a thin plate
@@ -3023,7 +3230,7 @@ small-scale bumps in the surface without causing consistent deviations
 of the surface from the contours. See the
 paragraph starting with "It is recommended that you try the TPS smoothing" in
 the <A HREF =
-"man/flattenwarp.html">Flattenwarp man page</A> for more details.
+"man/flattenwarp.html#TOP">Flattenwarp man page</A> for more details.
 <LI> To compute the warping transformations, press <B>Run Flattenwarp</B>
 after inserting your chosen lambda, if any, in the <B>Smoothing factor</B>
 text field just above that button.  Output from this operation will appear in
@@ -3038,7 +3245,7 @@ the <B>Output thickness in Z</B> field.  If access to files in
 the working directory is relatively slow, you can speed up the process by
 selecting a directory for
 temporary files where there is fast local access.  Press <B>Flatten</B> to run
-<A HREF = "man/warpvol.html">Warpvol</A>.  The output file has the extension
+<A HREF = "man/warpvol.html#TOP">Warpvol</A>.  The output file has the extension
 .flat.
 </OL>
 </P>
@@ -3049,11 +3256,11 @@ not set
 up to create such models, it can be used to do flattening
 with them in the most common cases.  Read the two paragraphs starting with
 "A scattered point model can be based on either the 3D fiducial model
-that is output from <A HREF = "man/tiltalign.html">Tiltalign</A>, or a model
-of bead positions from <A HREF = "man/findbeads3d.html">Findbeads3d</A>" in the
-<A HREF = "man/flattenwarp.html">Flattenwarp man page</A>.  If you have a dual
+that is output from <A HREF = "man/tiltalign.html#TOP">Tiltalign</A>, or a model
+of bead positions from <A HREF = "man/findbeads3d.html#TOP">Findbeads3d</A>" in the
+<A HREF = "man/flattenwarp.html#TOP">Flattenwarp man page</A>.  If you have a dual
 axis data set, you should use the model from the axis that was matched to.
-Here are sample <A HREF = "man/sortbeadsurfs.html">Sortbeadsurfs</A> commands
+Here are sample <A HREF = "man/sortbeadsurfs.html#TOP">Sortbeadsurfs</A> commands
 if the A axis was matched to (use "setname" instead of "setnamea" for a
 single-axis set).  For a 3D fiducial model, use:
 <BR>
@@ -3073,7 +3280,7 @@ where "bin" is the binning used to make the tomogram where beads were found.
 In both of these, "-recbin" would be added with another binning if the
 reconstruction being flattened is binned, and "-prebin bin -rescale" can be
 omitted if binning was applied nowhere.  Other options to <A HREF =
-"man/sortbeadsurfs.html">Sortbeadsurfs</A> may be needed for more complicated
+"man/sortbeadsurfs.html#TOP">Sortbeadsurfs</A> may be needed for more complicated
 situations.
 </P>
 <H4><A NAME = "Squeezing"></A>
@@ -3086,7 +3293,7 @@ considerably with no perceptible loss of image detail.
 The <B>Squeeze Volume</B> tab of the <B>Post-processing</B> panel
 provides an easy interface for scaling a volume down by
 interpolation using 
-<A HREF = "man/matchvol.html">Matchvol</A>.  The squeezing is specified
+<A HREF = "man/matchvol.html#TOP">Matchvol</A>.  The squeezing is specified
 by two reduction factors, one applied in X and Y, the other applied in Z.
 The default values are the same, but
 since resolution is worse in the 
@@ -3119,7 +3326,7 @@ squeezed volume with the original thickness at which the section was cut, then
 you need to make an entry in the <B>Total Z-scale</B> with a Z-scale computed
 from the squeezed thickness.  Taking all factors into account if possible (see
 the explanation in the 3dmod
-<a href="3dmodHelp/modelHeader.html">Model Header help page</a>), the complete
+<a href="3dmodHelp/modelHeader.html#TOP">Model Header help page</a>), the complete
 formula would be:
 <pre>
    Z-scale = S * O / (Mn + (Ts * P))
@@ -3154,11 +3361,11 @@ to bytes and float the intensities with:
      newstack -mo 0 -fl 2 setname.ali name_of_tilt_series_file
 <BR></CODE>
 <P>
-Finally, archive and delete the raw image stacks.  If you lack the
-ability to burn DVDs or your files are too big for a DVD, the shell script
-<A HREF = "man/splitmrc.html">Splitmrc</A>
+Finally, archive and delete the raw image stacks.  If your files are too big
+ for a DVD, the shell script
+<A HREF = "man/splitmrc.html#TOP">Splitmrc</A>
 can be used to divide a very 
 large MRC file into pieces that will fit
-on multiple volumes; <A HREF = "man/recombine.html">Recombine</A>
+on multiple volumes; <A HREF = "man/recombine.html#TOP">Recombine</A>
 can be used later to put the pieces back together, or you can just stack them
-back together with <A HREF = "man/newstack.html">Newstack</A>.
+back together with <A HREF = "man/newstack.html#TOP">Newstack</A>.

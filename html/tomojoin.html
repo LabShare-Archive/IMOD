@@ -1,4 +1,5 @@
 <html><head><title>Tomogram Joining</title></head><body>
+<A NAME = "TOP"></A>
 <H2 ALIGN=center>Joining Tomograms from Serial Sections for IMOD 3.11<BR>
 </H2>
 <H3 ALIGN=center>Boulder Laboratory for 3-D Electron Microscopy of Cells</H3>
@@ -34,7 +35,7 @@
 </H3>
 This document describes how to join tomograms from serial sections into one
 volume, using the interface in eTomo.  It is advisable to go through
-the <A HREF = "JoinTutorial.html">Join Tutorial</A> before trying to join
+the <A HREF = "JoinTutorial.html#TOP">Join Tutorial</A> before trying to join
 your own data.
 The interface is organized into 
 five panels or tabs
@@ -61,13 +62,13 @@ information to run the
 program Makejoincom, which produces a command file, "startjoin.com", that
 eTomo then runs to accomplish steps 2 and 3.
 Step 4 in done with the <B>Align</B> panel, where you use 
-<A href="man/midas.html">Midas</A> for manual alignment and you can also try
-<A href="man/xfalign.html">Xfalign</A>
+<A href="man/midas.html#TOP">Midas</A> for manual alignment and you can also try
+<A href="man/xfalign.html#TOP">Xfalign</A>
 for automated alignment.  Step 5 is done with the <B>Join</B> panel, which 
-runs the program <A href="man/finishjoin.html">Finishjoin</A>.
+runs the program <A href="man/finishjoin.html#TOP">Finishjoin</A>.
 Step 6 is done with the <B>Model</B> panel, which runs the program
-<A href="man/xfjointomo.html">Xfjointomo</A>.  Step 7 is done with the
-<B>Rejoin</B> panel, which runs <A href="man/finishjoin.html">Finishjoin</A>
+<A href="man/xfjointomo.html#TOP">Xfjointomo</A>.  Step 7 is done with the
+<B>Rejoin</B> panel, which runs <A href="man/finishjoin.html#TOP">Finishjoin</A>
 again.
 
 <P>
@@ -200,7 +201,7 @@ that slice numbers will not vary with binning.
 2.3. Rotating a Section
 </H4>
 It is possible to rotate a tomogram
-before joining, using <A href="man/rotatevol.html">Rotatevol</A>.  
+before joining, using <A href="man/rotatevol.html#TOP">Rotatevol</A>.  
 There are three reasons to use rotations.  
 <OL>
 <LI> If
@@ -229,7 +230,7 @@ will then not require any interpolations.  Similarly, if you need to turn a
 volume upside down, rotate by 180 degrees unless a different angle is needed
 to correct a pitch in the reconstruction.
 <P>
-If you want to use <A href="man/rotatevol.html">Rotatevol</A> to adjust
+If you want to use <A href="man/rotatevol.html#TOP">Rotatevol</A> to adjust
 the orientation of a section, then load the tomogram into 3dmod.  Open a
 Slicer window and adjust the angles to achieve the desired rotation.  It may
 take only a few tenths of a degree to correct significant pitch in the
@@ -292,7 +293,7 @@ section as the reference using the
 <P>
 When all entries have been made, press <B>Make Samples</B>.  The
 program will first determine the density scaling.  It will then run
-<A href="man/rotatevol.html">Rotatevol</A> on any
+<A href="man/rotatevol.html#TOP">Rotatevol</A> on any
 sections that have rotation angles, producing a file with extension
 ".rot" in the working directory.  Finally, it will
 extract the sample slices into "rootname.sample" and average them
@@ -351,10 +352,10 @@ buttons to perform the different kinds of alignment.
 <H4><A NAME = "ManualAlignment"></A>
 3.1. Manual Alignment with Midas 
 </H4>
-<A href="man/midas.html">Midas</A> can be used exclusively to align the
+<A href="man/midas.html#TOP">Midas</A> can be used exclusively to align the
 sections manually, or it can be used to check and refine the results
 from automatic alignment.
-The sample slices are aligned in <A href="man/midas.html">Midas</A> using a
+The sample slices are aligned in <A href="man/midas.html#TOP">Midas</A> using a
 special "chunk" alignment
 mode, in which you can adjust the alignment between chunks of slices while
 viewing any pair of slices from the chunks.
@@ -373,20 +374,20 @@ of the section table, which shows the range
 of slices that can validly be used as reference and current sections
 for a given current chunk.
 <P>
-In <A href="man/midas.html">Midas</A>, you can also align slices with a
+In <A href="man/midas.html#TOP">Midas</A>, you can also align slices with a
 nonlinear transform, i.e., warping, if the linear transformation is
 inadequate.  Essentially, after aligning as much you wish with a linear
 transformation, you select the option to add warping points.  You then add a
 series of points at locations where there are features that can be aligned.
 At each location, you shift the image locally into alignment.  See the section
-<b>Warping Images</b> in the <A HREF = "man/midas.html">Midas man page</A> for
+<b>Warping Images</b> in the <A HREF = "man/midas.html#TOP">Midas man page</A> for
 more details.  Note that you can also use the warping functionality with just
 three points as an alternative way to stretch an image, and you still have a
 linear transformation.
 <P>
 Once you have introduced warping, the programs for transforming images and
 models will work with warping transforms instead of linear transforms.  You
-can reopen <A href="man/midas.html">Midas</A> with the warping transforms and
+can reopen <A href="man/midas.html#TOP">Midas</A> with the warping transforms and
 adjust.  However, you cannot use <B>Refine Auto Alignment</B> to refine the
 alignment automatically once there are warping transforms.
 <P>
@@ -394,25 +395,25 @@ alignment automatically once there are warping transforms.
 3.2. Automatic Alignment with Xfalign
 </H4>
 In some cases, automatic alignment of the sample averages with 
-<A href="man/xfalign.html">Xfalign</A> may produce
+<A href="man/xfalign.html#TOP">Xfalign</A> may produce
 an adequate alignment.  The interface provides for using 
-<A href="man/xfalign.html">Xfalign</A> in two different scenarios:
+<A href="man/xfalign.html#TOP">Xfalign</A> in two different scenarios:
 getting an initial alignment that might need refinement by hand, or
 refining an approximate alignment that you have made with Midas.
 <OL>
 <LI>Use <B>Initial Auto Alignment</B> to do an automatic alignment
 from scratch, ignoring any previous alignment.
-<A href="man/xfalign.html">Xfalign</A> will do a
+<A href="man/xfalign.html#TOP">Xfalign</A> will do a
 cross-correlation before starting a local search for the best
 alignment, in order to handle large displacements between sections.  
-When you run <A href="man/midas.html">Midas</A> to check the alignment
+When you run <A href="man/midas.html#TOP">Midas</A> to check the alignment
 after this operation, 
 you may find that some or all of the transformations are
 useless.  If so, use the entry "Reset to unit transform" in the
 "Edit" menu to get rid
 of a bad transformation, and realign manually.  Alternatively, you can
 press <B>Revert to No Transforms</B> then either restart <A
-href="man/midas.html">Midas</A> or load "rootname.xf" using "Load transforms"
+href="man/midas.html#TOP">Midas</A> or load "rootname.xf" using "Load transforms"
 in the "File" menu.
 <LI>Use <B>Refine Auto Alignment</B> to do an automatic alignment that
 starts from the existing alignment.  (This button label is a bit
@@ -423,15 +424,15 @@ find it difficult to correct for stretching in Midas, you can try
 using Xfalign to refine the transformation after you have gotten it
 approximately
 correct.  After running this function, you should always check the
-alignment in <A href="man/midas.html">Midas</A> again.  If the refinement is not
+alignment in <A href="man/midas.html#TOP">Midas</A> again.  If the refinement is not
 successful, you can get back to the last transforms written from 
-<A href="man/midas.html">Midas</A> by pressing <B>Revert to Midas Alignment</B>.
-Again, you would have to restart <A href="man/midas.html">Midas</A> or reload
+<A href="man/midas.html#TOP">Midas</A> by pressing <B>Revert to Midas Alignment</B>.
+Again, you would have to restart <A href="man/midas.html#TOP">Midas</A> or reload
 "rootname.xf" to work with these transforms.  There is no easy way to take
 some of the refined transformations but not others; to do this you could
 read "rootname.xf" into a text editor and substitute lines from
 "rootname_midas.xf" for the sections that have a better alignment from 
-<A href="man/midas.html">Midas</A>.
+<A href="man/midas.html#TOP">Midas</A>.
 </OL>
 
 <P>
@@ -449,8 +450,8 @@ rotation and translation.  These are options to try before giving up on
 automatic alignment.
 <P>
 The filtering parameters control the degree of filtering that is applied to
-the images.  <A href="man/xfalign.html">Xfalign</A> passes the filtered images
-to <A href="man/xfsimplex.html">Xfsimplex</A>, which
+the images.  <A href="man/xfalign.html#TOP">Xfalign</A> passes the filtered images
+to <A href="man/xfsimplex.html#TOP">Xfsimplex</A>, which
 searches for a transformation that minimizes a pixel-to-pixel difference
 between the images, summed over all pixels.  This minimization is sensitive
 to noise, so some high-frequency filtering is appropriate.  You might want
@@ -481,7 +482,7 @@ modeled on one section, or if you are adding another section to an existing
 set of serial sections.  Note that if you have some sections that are rotated
 by large angles (90 or 180 degrees) relative to the rest, it is no longer
 necessary to set one section as a reference.  The program 
-<A href="man/xftoxg.html">Xftoxg</A> will determine the most common orientation in
+<A href="man/xftoxg.html#TOP">Xftoxg</A> will determine the most common orientation in
 the set of sections and compute the average alignment position from the
 sections at that orientation.
 <P>
@@ -531,17 +532,17 @@ files should be kept for future reference.
 </H3>
 Once you have a joined volume, it is possible to model some of the features in
 the volume and use those features as fiducials for refining the alignment with 
-<A href="man/xfjointomo.html">Xfjointomo</A>.  The model can contain pairs of
+<A href="man/xfjointomo.html#TOP">Xfjointomo</A>.  The model can contain pairs of
 points that should correspond between two sections.  It can also contain
 features such as oblique microtubules that are otherwise hard to use for
 alignment because their position shifts between the top of one section and the
 bottom of the next.  If there are enough data from trajectories, it is even
 possible to determine the proper spacing between sections.  See the 
-<A href="man/xfjointomo.html">Xfjointomo man page</A> for complete details on
+<A href="man/xfjointomo.html#TOP">Xfjointomo man page</A> for complete details on
 how the program works.  
 <P>
 You can still refine the alignment if you used warping for the initial
-alignment, but <A href="man/xfjointomo.html">Xfjointomo</A> will (thus far)
+alignment, but <A href="man/xfjointomo.html#TOP">Xfjointomo</A> will (thus far)
 solve only for a linear refining transformation.  The final transformations
 applied in rejoining the volumes will still be warping transforms, since they
 are obtained by multiplying the initial warping transforms with the refining
@@ -564,7 +565,7 @@ need to load the volume with binning,
 right-click on the <B>Make Refining Model</B> button to see the options for
 loading the volume binned by 2 and for opening 3dmod via the Startup dialog.
 <P>
-Here are the relevant points from the <A href="man/xfjointomo.html">Xfjointomo
+Here are the relevant points from the <A href="man/xfjointomo.html#TOP">Xfjointomo
 man page</A> on preparing the model:
 <P>
 <I>Modeling trajectories:</I>  
@@ -600,7 +601,7 @@ fit to find the transformation at a boundary.
 After making and saving the model, you are ready to set the parameters for
 finding transformations.  By default, the same parameters will be used for all
 section boundaries.  However, if necessary, you can run 
-<A href="man/xfjointomo.html">Xfjointomo</A> on a subset of the boundaries,
+<A href="man/xfjointomo.html#TOP">Xfjointomo</A> on a subset of the boundaries,
 then change the parameters and run on other boundaries.  For example,
 if you run on all boundaries and get good
 results with some but not with others, you can change parameters and rerun only
@@ -618,7 +619,7 @@ in a small fraction of the area, these transformations are liable to misalign
 features that are far from the fiducial positions, and you may have to
 drop back to solving only for rotations.  If you have much less data on some
 boundaries than on others, you may have to run <A
-href="man/xfjointomo.html">Xfjointomo</A> several
+href="man/xfjointomo.html#TOP">Xfjointomo</A> several
 times with different specifications for the different boundaries.
 <LI> To run on all boundaries, leave <B>Boundaries to analyze</B> empty;
 otherwise insert a list of boundary numbers, which can include comma-separated
@@ -626,7 +627,7 @@ ranges.
 <LI> To include all objects, leave <B>Objects to include</B> empty; otherwise 
 insert a list of the objects that have fiducial data in them.
 <LI>If <B>Try gaps</B> is checked, 
-<A href="man/xfjointomo.html">Xfjointomo</A> will do multiple fits with
+<A href="man/xfjointomo.html#TOP">Xfjointomo</A> will do multiple fits with
 different assumed gaps between the sections, as specified by the starting,
 ending and increment gap size.  The gap size that gives the minimum error
 will be shown in the Boundary Table.  A positive gap means the spacing between

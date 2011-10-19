@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <math.h>
@@ -342,7 +341,7 @@ void GraphWindow::zoomDown()
 
 void GraphWindow::help()
 {
-  imodShowHelpPage("graph.html");
+  imodShowHelpPage("graph.html#TOP");
 }
 
 // Toggle button
@@ -1037,82 +1036,3 @@ static void makeBoundaryPoint(Ipoint pt1, Ipoint pt2, int ix1, int ix2,
   newpt->z = tmax * (pt2.z - pt1.z) + pt1.z;
 }
 
-
-/*
-    $Log$
-    Revision 4.19  2010/07/26 21:47:38  mast
-    Fixed rounding of mouse position and drawing of all Z planes
-
-    Revision 4.18  2010/04/01 02:41:48  mast
-    Called function to test for closing keys, or warning cleanup
-
-    Revision 4.17  2009/03/30 18:26:20  mast
-    Call function to raise on mouse press if needed
-
-    Revision 4.16  2009/03/22 19:51:22  mast
-    Added spacer between mean and help button for cocoa in Aqua style
-
-    Revision 4.15  2009/03/22 19:49:46  mast
-    wrong message
-
-    Revision 4.14  2009/01/15 16:33:18  mast
-    Qt 4 port
-
-    Revision 4.13  2008/08/19 20:01:40  mast
-    Made it zoom with + as well as =
-
-    Revision 4.12  2008/04/02 04:12:21  mast
-    Disable high res button i fno readable image
-
-    Revision 4.11  2007/06/26 21:54:40  sueh
-    bug# 1021 Removed win_support.
-
-    Revision 4.10  2007/06/26 17:05:07  sueh
-    bug# 1021 Moved BM_HEIGHT and _WIDTH to win_support.
-
-    Revision 4.9  2007/03/29 04:55:49  mast
-    Fixed crash bug when closing window while focus is in edit/spinbox
-
-    Revision 4.8  2006/08/25 14:31:51  mast
-    SGI did not like bad declaration
-
-    Revision 4.7  2006/08/24 21:33:19  mast
-    Added averaging over multiple lines, mean output, rubberband control
-
-    Revision 4.6  2005/11/11 23:04:29  mast
-    Changes for unsigned integers
-
-    Revision 4.5  2003/09/16 02:15:37  mast
-    Changed to access image data using new line pointers
-
-    Revision 4.4  2003/04/25 03:28:33  mast
-    Changes for name change to 3dmod
-
-    Revision 4.3  2003/04/17 18:43:38  mast
-    adding parent to window creation
-
-    Revision 4.2  2003/03/24 17:56:46  mast
-    Register with dialogManager so it can be parked with info window
-
-    Revision 4.1  2003/02/10 20:29:02  mast
-    autox.cpp
-
-    Revision 1.1.2.4  2003/01/29 01:34:31  mast
-    implement colormaps
-
-    Revision 1.1.2.3  2003/01/27 00:30:07  mast
-    Pure Qt version and general cleanup
-
-    Revision 1.1.2.2  2003/01/10 23:41:28  mast
-    clean up warnings
-
-    Revision 1.1.2.1  2003/01/02 15:45:09  mast
-    changes for new controller key callback
-
-    Revision 3.1.2.1  2002/12/19 04:37:13  mast
-    Cleanup of unused global variables and defines
-
-    Revision 3.1  2002/12/01 15:34:41  mast
-    Changes to get clean compilation with g++
-
-*/

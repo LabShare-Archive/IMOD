@@ -1,7 +1,7 @@
 <head>
 <title>Image Processing</title>
 </head>
-<H3>Image Processing</H3>
+<A NAME = "TOP"><H3>Image Processing</H3></A>
 <P>
 
 
@@ -9,13 +9,13 @@ Various kinds of simple filters can be applied with these
 controls.  The filter will always be applied to the current 
 section.  Note that many of these filters can be applied to a whole image
 stack through the
-<A HREF = "../man/clip.html">Clip</A> program.
+<A HREF = "../man/clip.html#TOP">Clip</A> program.
 <P>
 <P>
 Image data are always analyzed as 8-bit bytes, even when they have been loaded
 into the program as 16-bit integers.  In the latter case, the current setting
 of the <B>Low</B> and <B>High</B> sliders in
-the <A HREF="infowin.html">Information window</A> determines how data are
+the <A HREF="infowin.html#TOP">Information window</A> determines how data are
 scaled to bytes.  For best results, be sure that the <B>Low</B>
 and <B>High</B> sliders are set so that images have a good contrast with a
 fairly wide range between the <B>Black</B> and <b>White</b> sliders.
@@ -122,7 +122,7 @@ The <B>Rescale to match min/max</B> makes the rescaling that happens after
 many kinds of filtering optional for smoothing.  This rescaling may make the
 intensities vary from section to section, since it is based on the minimum and
 maximum rather than a more robust measure like standard deviation.  Such
-variation can be a problem when using the <A HREF = "autox.html">
+variation can be a problem when using the <A HREF = "autox.html#TOP">
 Edit - Contour - Auto window</A> because it would make the threshold vary
 unpredictably, so it is recommended that this option be turned off if
 smoothing is used with autocontouring.
@@ -145,14 +145,14 @@ method, based on a program by Alejandro Canterero.  The gradients in this
 method are simply pixel-to-pixel differences.  The ratio between these
 pixel-to-pixel differences and the threshold <B>K</B> determines how much
 diffusion is allowed between pixels.  Note that much better results will
-generally be achieved with <A HREF = "../man/nad_eed_3d.html">Nad_eed_3d</A>,
+generally be achieved with <A HREF = "../man/nad_eed_3d.html#TOP">Nad_eed_3d</A>,
 There is an interface for using that method in eTomo, available
 through the <B>File-Parallel Processing</B> menu entry.
 <P>
 The <B>Edge Stopping Function</B> radio buttons allow you to choose
 between the <B>Rational edge</B> stopping function and the <B>Tukey
 biweight</B> stopping function, which correspond to options <B>-cc 2</B> and
-<B>-cc 3</B>, respectively, in <A HREF = "../man/clip.html">Clip</A>.
+<B>-cc 3</B>, respectively, in <A HREF = "../man/clip.html#TOP">Clip</A>.
 The Tukey biweight will preserve more
 local structure than the rational edge stopping function.
 <P>
@@ -166,10 +166,10 @@ The <B>K</B> entry sets a threshold for the edge stopping function; when the
 number is too low virtually nothing will happen.  The rational edge function
 may require smaller values than the Tukey biweight.  The <B>unscaled</B>
 value is the number that should be specified with the <B>-k</B> option
-in <A HREF = "../man/clip.html">Clip</A> to achieve the same filtering on the
+in <A HREF = "../man/clip.html#TOP">Clip</A> to achieve the same filtering on the
 raw data from the image file as is seen on the scaled byte data in 3dmod.
 <P>
 The <B>Lambda</B> value controls the so-called time-step; if images become
 noisier this probably needs to be reduced.
 <P>
-<A HREF="index.html">Help Index<A>
+<A HREF="index.html#TOP">Help Index<A>

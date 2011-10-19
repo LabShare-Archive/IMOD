@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT file for full copyright notice. 
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <stdio.h>
@@ -620,7 +619,7 @@ void ImodCacheFill::buttonPressed(int which)
     close();
     break;
   case 2:
-    imodShowHelpPage("cachefill.html");
+    imodShowHelpPage("cachefill.html#TOP");
     break;
   }
 }
@@ -676,66 +675,3 @@ void ImodCacheFill::keyReleaseEvent ( QKeyEvent * e )
 {
   ivwControlKey(1, e);
 }
-
-/*
-
-$Log$
-Revision 4.14  2010/04/01 02:41:48  mast
-Called function to test for closing keys, or warning cleanup
-
-Revision 4.13  2009/03/22 19:54:25  mast
-Show with new geometry adjust routine for Mac OS X 10.5/cocoa
-
-Revision 4.12  2009/01/15 16:33:17  mast
-Qt 4 port
-
-Revision 4.11  2007/09/14 21:56:16  sueh
-bug# 1038 Switching from calling dia_vasmsg() to opening an .html file for help.
-
-Revision 4.10  2004/11/04 23:30:55  mast
-Changes for rounded button style
-
-Revision 4.9  2004/05/31 23:35:26  mast
-Switched to new standard error functions for all debug and user output
-
-Revision 4.8  2004/01/22 19:12:43  mast
-changed from pressed() to clicked() or accomodated change to actionClicked
-
-Revision 4.7  2004/01/06 16:54:33  mast
-Needed to save axis flag before starting to load data in case it changes
-
-Revision 4.6  2004/01/05 18:08:45  mast
-Changes to use new cache index, to avoid loading while other loading
-is going on, and to use ivwReadBinned.  Renamed vw to vi.
-
-Revision 4.5  2003/04/25 00:15:26  mast
-Display image after filling cache, change program name
-
-Revision 4.4  2003/04/18 20:08:48  mast
-Process events while loading to allow messages and exit
-
-Revision 4.3  2003/04/17 18:43:38  mast
-adding parent to window creation
-
-Revision 4.2  2003/02/27 17:40:55  mast
-Use Qt routines for directory operations
-
-Revision 4.1  2003/02/10 20:28:59  mast
-autox.cpp
-
-Revision 1.1.2.3  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.2  2003/01/23 20:02:57  mast
-switch from button pressed to clicked
-
-Revision 1.1.2.1  2003/01/18 01:12:20  mast
-qt version
-
-Revision 3.2  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.1  2001/12/17 18:44:38  mast
-Initial version of module
-
-*/

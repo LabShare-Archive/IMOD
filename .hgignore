@@ -17,11 +17,17 @@ syntax: glob
 \#*\#
 .project
 *.manifest
+./IMOD-*sh
+./linklibs-mac
+./mac.cshrc
+./mac.profile
 
 bin
 lib
 pylib
 buildlib
+qtlib
+bk--
 man
 html/man
 html/libhelp
@@ -74,6 +80,22 @@ include/tiff.h
 include/tiffio.h
 midas/midas.dsp
 recentChanges.txt
+.DS_store
+runimod
+runimodv
+runctfplotter
+runmidas
+runprocesschunks
+runqtassist
+runavgstatplot
+runfilterplot
+rungenhstplt
+runmtk
+runmtoverlap
+runmtpairing
+runnda
+runsda
+runsendevent
 
 3dmod/3dmod
 clip/clip

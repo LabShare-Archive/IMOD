@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  * 
  * $Id$
- * Log at end
  */
 
 #include "form_slicerangle.h"
@@ -420,7 +419,7 @@ void SlicerAngleForm::copyChanged( int value )
 // HELP
 void SlicerAngleForm::helpClicked()
 {
-  imodShowHelpPage("slicerAngles.html");    
+  imodShowHelpPage("slicerAngles.html#TOP");
 }
 
 // When a cell changes, process it

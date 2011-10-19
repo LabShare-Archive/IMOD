@@ -47,7 +47,7 @@ bn.done =
 [function = quick]
 [[ifnot = montage]]
   run.function.tiltxcorr=
-  fun.function.newstack=
+  run.function.newstack=
 [[]]
 [[if = montage]]
   run.function.tiltxcorr-blendmont=
