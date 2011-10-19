@@ -182,6 +182,7 @@ public class ContextPopup {
 
   public static final String TOMO_GUIDE = "tomoguide.html";
   public static final String JOIN_GUIDE = "tomojoin.html";
+  private static final String TOP_ANCHOR = Constants.TOP_ANCHOR;
 
   private JPopupMenu contextMenu = new JPopupMenu("Help Documents");
   private JMenuItem[] manPageItem;
@@ -704,7 +705,7 @@ public class ContextPopup {
       manPageItem[i].setText(manPageLabel[i] + " man page ...");
       manPageItem[i].addActionListener(actionListener);
       contextMenu.add(manPageItem[i]);
-      manPageName[i] = manPage[i] + "#TOP";
+      manPageName[i] = manPage[i] + TOP_ANCHOR;
     }
   }
 
@@ -718,8 +719,13 @@ public class ContextPopup {
    * @param actionEvent
    * @param tomoGuideLocation
    */
-  protected void globalItemAction(ActionEvent actionEvent, String guideLocation,
-      String guide, BaseManager manager, AxisID axisID) {
+  protected void globalItemAction(final ActionEvent actionEvent, String guideLocation,
+      final String guide, final BaseManager manager, final AxisID axisID) {
+    // Add TOP anchor when no anchor has been set.
+    if (guideLocation != null && !guideLocation.matches("\\s*")
+        && guideLocation.indexOf("#") == -1) {
+      guideLocation += TOP_ANCHOR;
+    }
     if (actionEvent.getActionCommand() == tomoGuideItem.getText()) {
       /* HTMLPageWindow manpage = new HTMLPageWindow(); if (guide.equals(TOMO_GUIDE)) {
        * manpage.openURL(imodURL + guideLocation); } else { manpage.openURL(imodURL +
@@ -728,26 +734,26 @@ public class ContextPopup {
         ImodqtassistProcess.INSTANCE.open(manager, guideLocation, axisID);
       }
       else {
-        ImodqtassistProcess.INSTANCE.open(manager, TOMO_GUIDE, axisID);
+        ImodqtassistProcess.INSTANCE.open(manager, TOMO_GUIDE + TOP_ANCHOR, axisID);
       }
     }
 
     if (actionEvent.getActionCommand() == modelGuideItem.getText()) {
       /* HTMLPageWindow manpage = new HTMLPageWindow(); manpage.openURL(imodURL +
        * "guide.html"); manpage.setVisible(true); */
-      ImodqtassistProcess.INSTANCE.open(manager, "guide.html", axisID);
+      ImodqtassistProcess.INSTANCE.open(manager, "guide.html"+TOP_ANCHOR, axisID);
     }
 
     if (actionEvent.getActionCommand() == it3dmodGuide.getText()) {
       /* HTMLPageWindow manpage = new HTMLPageWindow(); manpage.openURL(imodURL +
        * "3dmodguide.html"); manpage.setVisible(true); */
-      ImodqtassistProcess.INSTANCE.open(manager, "3dmodguide.html", axisID);
+      ImodqtassistProcess.INSTANCE.open(manager, "3dmodguide.html"+TOP_ANCHOR, axisID);
     }
 
     if (actionEvent.getActionCommand() == etomoGuideItem.getText()) {
       /* HTMLPageWindow manpage = new HTMLPageWindow(); manpage.openURL(imodURL +
        * "UsingEtomo.html"); manpage.setVisible(true); */
-      ImodqtassistProcess.INSTANCE.open(manager, "UsingEtomo.html", axisID);
+      ImodqtassistProcess.INSTANCE.open(manager, "UsingEtomo.html"+TOP_ANCHOR, axisID);
     }
 
     if (actionEvent.getActionCommand() == joinGuideItem.getText()) {
@@ -758,12 +764,12 @@ public class ContextPopup {
         ImodqtassistProcess.INSTANCE.open(manager, guideLocation, axisID);
       }
       else {
-        ImodqtassistProcess.INSTANCE.open(manager, JOIN_GUIDE, axisID);
+        ImodqtassistProcess.INSTANCE.open(manager, JOIN_GUIDE + TOP_ANCHOR, axisID);
       }
     }
 
     if (actionEvent.getActionCommand() == peetGuideItem.getText()) {
-      ImodqtassistProcess.INSTANCE.open(manager, "PEETmanual.html", axisID);
+      ImodqtassistProcess.INSTANCE.open(manager, "PEETmanual.html"+TOP_ANCHOR, axisID);
     }
   }
 

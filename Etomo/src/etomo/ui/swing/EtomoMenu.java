@@ -47,6 +47,7 @@ final class EtomoMenu {
   static final String PEET_LABEL = "PEET";
 
   private static final int nMRUFileMax = 10;
+  private static final String TOP_ANCHOR = Constants.TOP_ANCHOR;
 
   private final JMenuBar menuBar = new JMenuBar();
 
@@ -110,21 +111,21 @@ final class EtomoMenu {
   }
 
   private void initMenus(AbstractFrame abstractFrame, boolean forManagerFrame) {
-    //  Mnemonics for the main menu bar
+    // Mnemonics for the main menu bar
     menuTools.setMnemonic(KeyEvent.VK_T);
     menuView.setMnemonic(KeyEvent.VK_V);
     menuOptions.setMnemonic(KeyEvent.VK_O);
     menuHelp.setMnemonic(KeyEvent.VK_H);
-    //Mnomonics for the file menu
+    // Mnomonics for the file menu
     menuNew.setMnemonic(KeyEvent.VK_N);
 
-    //  Accelerators
+    // Accelerators
     menuSettings.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S,
         ActionEvent.CTRL_MASK));
     menuFitWindow.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F,
         ActionEvent.CTRL_MASK));
 
-    //  Bind the menu items to their listeners
+    // Bind the menu items to their listeners
     ToolsActionListener toolsActionListener = new ToolsActionListener(abstractFrame);
     menuFlattenVolume.addActionListener(toolsActionListener);
 
@@ -146,9 +147,9 @@ final class EtomoMenu {
     menuHelpAbout.addActionListener(helpActionListener);
 
     if (!forManagerFrame) {
-      //  Mnemonics for the main menu bar
+      // Mnemonics for the main menu bar
       menuFile.setMnemonic(KeyEvent.VK_F);
-      //  Accelerators
+      // Accelerators
       menuAxisA.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A,
           ActionEvent.CTRL_MASK));
       menuAxisB.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_B,
@@ -158,7 +159,7 @@ final class EtomoMenu {
       menuLogWindow.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L,
           ActionEvent.CTRL_MASK));
 
-      //  Bind the menu items to their listeners
+      // Bind the menu items to their listeners
       FileActionListener fileActionListener = new FileActionListener(abstractFrame);
       menuNewTomogram.addActionListener(fileActionListener);
       menuNewJoin.addActionListener(fileActionListener);
@@ -185,7 +186,7 @@ final class EtomoMenu {
   void createMenus(final EtomoFrame frame) {
     initMenus(frame, false);
 
-    //  File menu
+    // File menu
     menuFile.add(menuNew);
     menuFile.add(menuOpen);
     menuFile.add(menuSave);
@@ -203,7 +204,7 @@ final class EtomoMenu {
     menuNew.add(menuNewGenericParallel);
     menuNew.add(menuNewPeet);
 
-    //  Initialize all of the MRU file menu items
+    // Initialize all of the MRU file menu items
     FileMRUListActionListener fileMRUListActionListener = new FileMRUListActionListener(
         frame);
     for (int i = 0; i < nMRUFileMax; i++) {
@@ -213,7 +214,7 @@ final class EtomoMenu {
       menuFile.add(menuMRUList[i]);
     }
 
-    //Tool menu
+    // Tool menu
     menuTools.add(menuFlattenVolume);
 
     // View menu
@@ -239,7 +240,7 @@ final class EtomoMenu {
     }
     menuHelp.add(menuHelpAbout);
 
-    //  Construct menu bar
+    // Construct menu bar
     menuBar.add(menuFile);
     menuBar.add(menuTools);
     menuBar.add(menuView);
@@ -250,7 +251,7 @@ final class EtomoMenu {
   void createMenus(final ManagerFrame frame) {
     initMenus(frame, true);
 
-    //Tool menu
+    // Tool menu
     menuTools.add(menuFlattenVolume);
 
     // View menu
@@ -270,7 +271,7 @@ final class EtomoMenu {
     }
     menuHelp.add(menuHelpAbout);
 
-    //  Construct menu bar
+    // Construct menu bar
     menuBar.add(menuTools);
     menuBar.add(menuView);
     menuBar.add(menuOptions);
@@ -355,8 +356,8 @@ final class EtomoMenu {
    * Handle help menu actions
    * @param event
    */
-  public void menuHelpAction(BaseManager manager, AxisID axisID, JFrame frame,
-      ActionEvent event) {
+  public void menuHelpAction(final BaseManager manager, final AxisID axisID,
+      final JFrame frame, final ActionEvent event) {
     // Get the URL to the IMOD html directory
     String imodURL = "";
     try {
@@ -371,31 +372,30 @@ final class EtomoMenu {
     }
 
     if (equalsTomoGuide(event)) {
-      //TODO
-      /*HTMLPageWindow manpage = new HTMLPageWindow();
-       manpage.openURL(imodURL + "tomoguide.html");
-       manpage.setVisible(true);*/
-      ImodqtassistProcess.INSTANCE.open(manager, "tomoguide.html", axisID);
+      // TODO
+      /* HTMLPageWindow manpage = new HTMLPageWindow(); manpage.openURL(imodURL +
+       * "tomoguide.html"); manpage.setVisible(true); */
+      ImodqtassistProcess.INSTANCE.open(manager, "tomoguide.html" + TOP_ANCHOR, axisID);
     }
 
     if (equalsImodGuide(event)) {
-      ImodqtassistProcess.INSTANCE.open(manager, "guide.html", axisID);
+      ImodqtassistProcess.INSTANCE.open(manager, "guide.html" + TOP_ANCHOR, axisID);
     }
 
     if (equals3dmodGuide(event)) {
-      ImodqtassistProcess.INSTANCE.open(manager, "3dmodguide.html", axisID);
+      ImodqtassistProcess.INSTANCE.open(manager, "3dmodguide.html" + TOP_ANCHOR, axisID);
     }
 
     if (equalsEtomoGuide(event)) {
-      ImodqtassistProcess.INSTANCE.open(manager, "UsingEtomo.html", axisID);
+      ImodqtassistProcess.INSTANCE.open(manager, "UsingEtomo.html" + TOP_ANCHOR, axisID);
     }
 
     if (equalsJoinGuide(event)) {
-      ImodqtassistProcess.INSTANCE.open(manager, "tomojoin.html", axisID);
+      ImodqtassistProcess.INSTANCE.open(manager, "tomojoin.html" + TOP_ANCHOR, axisID);
     }
 
     if (equalsPeetGuide(event)) {
-      ImodqtassistProcess.INSTANCE.open(manager, "PEETmanual.html", axisID);
+      ImodqtassistProcess.INSTANCE.open(manager, "PEETmanual.html" + TOP_ANCHOR, axisID);
     }
 
     if (equalsHelpAbout(event)) {
@@ -570,7 +570,7 @@ final class EtomoMenu {
     return menuItem.getActionCommand().equals(event.getActionCommand());
   }
 
-  //  File menu action listener
+  // File menu action listener
   private static final class FileActionListener implements ActionListener {
     private AbstractFrame adaptee;
 
@@ -583,7 +583,7 @@ final class EtomoMenu {
     }
   }
 
-  //  Tools menu action listener
+  // Tools menu action listener
   private static final class ToolsActionListener implements ActionListener {
     private AbstractFrame adaptee;
 
@@ -596,7 +596,7 @@ final class EtomoMenu {
     }
   }
 
-  //  MRU file list action listener
+  // MRU file list action listener
   private static final class FileMRUListActionListener implements ActionListener {
     private EtomoFrame adaptee;
 
