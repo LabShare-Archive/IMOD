@@ -26,15 +26,29 @@ install : $(PLUGS)
 	$(CP) -f $(PLUGS) naming_help.html $(IMOD_PLUGIN_DIR)
 
 $(PLUGS) : $(CONTEXTRA).$(O) $(QTDIALOG).$(O) $(MODULE).$(O) \
-	moc_$(MODULE).$(O) $(COMMINCLUDES) $(QTDLGMOC).$(O)
+	moc_$(MODULE).$(O) $(COMMINCLUDES) $(QTDLGMOC).$(O) \
+	livewire/LivewireCalculator.$(O) livewire/PointPriorityQueue.$(O) livewire/Threaded.$(O) livewire/moc_Threaded.$(O) livewire/WeightCalculator.$(O)
 	$(MAKELIBSO)$(PLUGS) $(CONTEXTRA).$(O) $(QTDIALOG).$(O) \
-	$(MODULE).$(O) moc_$(MODULE).$(O) $(QTDLGMOC).$(O)
+	$(MODULE).$(O) moc_$(MODULE).$(O) $(QTDLGMOC).$(O) \
+	livewire/LivewireCalculator.$(O) livewire/PointPriorityQueue.$(O) livewire/Threaded.$(O) livewire/moc_Threaded.$(O) livewire/WeightCalculator.$(O)
 
 
 moc_$(MODULE).cpp : $(MODULE).h
 	$(MOC) $(MODULE).h -o moc_$(MODULE).cpp
 
 $(MODULE).$(O) : $(IMODINCLUDES) $(COMMINCLUDES) $(MODULE).cpp $(MODULE).h 
+
+livewire/moc_Threaded.cpp : livewire/Threaded.h
+	$(MOC) livewire/Threaded.h -o livewire/moc_Threaded.cpp
+
+livewire/LivewireCalculator.$(O) : livewire/LivewireCalculator.cpp
+
+livewire/PointPriorityQueue.$(O) : livewire/PointPriorityQueue.cpp
+
+livewire/moc_Threaded.$(O)       : livewire/moc_Threaded.cpp
+
+livewire/WeightCalculator.$(O)   : livewire/WeightCalculator.cpp
+
 
 # Build common object files in common directory
 #
