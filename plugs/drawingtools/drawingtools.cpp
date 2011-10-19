@@ -161,6 +161,7 @@
 #include <qstringlist.h>
 #include <qmessagebox.h>
 #include <qinputdialog.h>
+#include <QTime>
 #include <QVBoxLayout>
 #include <QWheelEvent>
 #include <QMouseEvent>
@@ -289,12 +290,12 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
         return plug.window->copyCurrContToView(shift);
       break;
       
-    case Qt::Key_T:                  // temporary testing purposes - comment out
+    //case Qt::Key_T:                  // temporary testing purposes - comment out
     //  if(ctrl)
     //    plug.window->test();
     //  else
-        return 0;
-      break;
+    //    return 0;
+    //  break;
       
     case Qt::Key_X:
       if(ctrl)
@@ -357,30 +358,14 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
         edit_changeSelectedSlice( -plug.pgUpDownInc,false, false );
       break;
       
-    case Qt::Key_1:
-      plug.window->changeTypeSelected( DM_NORMAL ); 
-      break;
-    case Qt::Key_2:
-      plug.window->changeTypeSelected( DM_SCULPT ); 
-      break;
-    case Qt::Key_3:
-      plug.window->changeTypeSelected( DM_JOIN ); 
-      break;
-    case Qt::Key_4:
-      plug.window->changeTypeSelected( DM_TRANSFORM ); 
-      break;
-    case Qt::Key_5:
-      plug.window->changeTypeSelected( DM_ERASER ); 
-      break;
-    case Qt::Key_6:
-      plug.window->changeTypeSelected( DM_WARP ); 
-      break;
-    case Qt::Key_7:
-      plug.window->changeTypeSelected( DM_CURVE ); 
-      break;
-    case Qt::Key_8:
-      plug.window->changeTypeSelected( DM_MEASURE ); 
-      break;
+    case Qt::Key_1:      plug.window->changeTypeSelected( 0 );       break;
+    case Qt::Key_2:      plug.window->changeTypeSelected( 1 );       break;
+    case Qt::Key_3:      plug.window->changeTypeSelected( 2 );       break;
+    case Qt::Key_4:      plug.window->changeTypeSelected( 3 );       break;
+    case Qt::Key_5:      plug.window->changeTypeSelected( 4 );       break;
+    case Qt::Key_6:      plug.window->changeTypeSelected( 5 );       break;
+    case Qt::Key_7:      plug.window->changeTypeSelected( 6 );       break;
+    case Qt::Key_8:      plug.window->changeTypeSelected( 7 );       break;
       
     default:
       keyhandled = 0;
@@ -439,19 +424,37 @@ void imodPlugExecute(ImodView *inImodView)
   Iobj *xobjT = ivwGetAnExtraObject(plug.view, plug.extraObjText);
   imodObjectSetColor(xobjT, 0.0f, 0.0f, 0.0f);		// white
   imodObjectSetValue(xobjT, IobjLineWidth2, 2);
-  imodObjectSetValue(xobjT, IobjFlagClosed, 1);
+  imodObjectSetValue(xobjT, IobjFlagClosed, 0);		// open
   
   plug.extraObjNum = ivwGetFreeExtraObjectNumber(plug.view);
   Iobj *xobj = ivwGetAnExtraObject(plug.view, plug.extraObjNum);
   imodObjectSetColor(xobj, 1.0f, 0.0f, 0.0f);			// red
   imodObjectSetValue(xobj, IobjLineWidth2, plug.lineDisplayWidth);
-  imodObjectSetValue(xobj, IobjFlagClosed, 1);
+  imodObjectSetValue(xobj, IobjFlagClosed, 1);		// closed
   
 	plug.extraObjLW = ivwGetFreeExtraObjectNumber(plug.view);
   Iobj *xobjL = ivwGetAnExtraObject(plug.view, plug.extraObjLW);
   imodObjectSetColor(xobjL, 1.0f, 1.0f, 0.0f);		// yellow
   imodObjectSetValue(xobjL, IobjLineWidth2, 2);
-  imodObjectSetValue(xobjL, IobjFlagClosed, 0); 
+  imodObjectSetValue(xobjL, IobjFlagClosed, 1); 	// open
+	
+	plug.extraObjLWPts = ivwGetFreeExtraObjectNumber(plug.view);
+  Iobj *xobjP = ivwGetAnExtraObject(plug.view, plug.extraObjLWPts);
+  imodObjectSetColor(xobjP, 1.0f, 0.0f, 0.0f);		// red
+	imodObjectSetValue(xobjP, IobjFlagConnected, 0);		// scattered point object
+	imodObjectSetValue(xobjP, IobjPointSize, 2);				// sphere size
+  imodObjectSetValue(xobjP, IobjLineWidth2, 2);
+	imodObjectSetValue(xobjP, IobjSymType, 1);
+	imodObjectSetValue(xobjP, IobjSymSize, 4);
+	
+	plug.extraObjWPts = ivwGetFreeExtraObjectNumber(plug.view);
+  Iobj *xobjWP = ivwGetAnExtraObject(plug.view, plug.extraObjWPts);
+  imodObjectSetColor(xobjWP, 1.0f, 0.0f, 0.0f);			// red
+	imodObjectSetValue(xobjWP, IobjFlagConnected, 0);	// scattered point object
+	imodObjectSetValue(xobjWP, IobjPointSize, 0);			// zero sphere size
+  imodObjectSetValue(xobjWP, IobjLineWidth2, 1);		// square
+	imodObjectSetValue(xobjWP, IobjSymType, 2);
+	imodObjectSetValue(xobjWP, IobjSymSize, 1);
 	
   //## CREATE THE PLUGIN WINDOW:
   
@@ -509,8 +512,8 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
     if ( plug.smartPtResizeMode && isCurrPtValid() )
     {
       Imod *imod  = ivwGetModel(plug.view);
-      Iobj *obj   = getCurrObj();
-      Icont *cont = getCurrCont();
+      Iobj *obj   = imodObjectGet(imod);
+      Icont *cont = imodContourGet(imod);
       if( cont!=NULL && obj!=NULL && !isObjClosed(obj) && imodPointGet(imod)!=NULL)
       {
         int objIdx, contIdx, ptIdx;
@@ -532,7 +535,8 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
       case(WH_SCULPTCIRCLE):
       {
         if( plug.drawMode == DM_SCULPT
-            || plug.drawMode == DM_JOIN
+            || plug.drawMode == DM_WAND
+					  || plug.drawMode == DM_JOIN
             || plug.drawMode == DM_ERASER
             || plug.drawMode == DM_WARP )
         {
@@ -555,7 +559,7 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
         if( !isCurrObjValidAndShown() )
           return 0;
         Imod *imod  = ivwGetModel(plug.view);
-        Iobj *obj   = getCurrObj();
+        Iobj *obj   = imodObjectGet(imod);
         int objIdx, contIdx, ptIdx;
         imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
         cycleIntWithinRange( contIdx, 0, csize(obj)-1, scrollAmountInt );
@@ -571,7 +575,7 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
         if( !isCurrContValid() )
           return 0;
         Imod *imod  = ivwGetModel(plug.view);
-        Icont *cont = getCurrCont();
+        Icont *cont = imodContourGet(imod);
         int objIdx, contIdx, ptIdx;
         imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
         cycleIntWithinRange( ptIdx, 0, psize(cont)-1, scrollAmountInt );
@@ -587,8 +591,8 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
         Imod *imod  = ivwGetModel(plug.view);
         if( !isCurrObjValidAndShown() || imodPointGet(imod)==NULL )
           return 0;
-        Iobj *obj   = getCurrObj();
-        Icont *cont = getCurrCont();
+        Iobj *obj   = imodObjectGet(imod);
+        Icont *cont = imodContourGet(imod);
         int objIdx, contIdx, ptIdx;
         imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
         float ptSize = imodPointGetSize(obj,cont,ptIdx);
@@ -682,10 +686,13 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
     edit_changeSelectedSlice( plug.changeY * zapZoom, true );
     return (1);
   }
-  
-  if( plug.but1Down && !plug.but2Down && !plug.but3Down )
+	
+  if( plug.but1Down && !plug.but2Down && !plug.but3Down &&
+		  !(plug.but1Pressed && plug.drawMode==DM_LIVEWIRE) )
     return (0);         // to fix Pete's problem.
   
+	
+	
   //## IF ANY BUTTON WAS JUST PRESSED: GET THE CENTROID OF THE CURRENT CONTOUR
   
   if ( plug.but3Pressed || plug.but2Pressed || plug.but1Pressed )
@@ -705,12 +712,15 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
   bool but2Used = plug.but2Pressed || plug.but2Down  || plug.but2Released;
   bool but3Used = plug.but3Pressed || plug.but3Down  || plug.but3Released;
   
-  bool actionNeeded = but2Used || (but3Used &&
+  bool actionNeeded = but2Used ||
+										 (plug.but1Pressed && plug.drawMode==DM_LIVEWIRE) ||
+	                   (but3Used &&
                               ( (plug.drawMode==DM_SCULPT && plug.scupltBut3Warp)
                               || plug.drawMode==DM_JOIN
                               || plug.drawMode==DM_TRANSFORM
                               || plug.drawMode==DM_ERASER  
                               || plug.drawMode==DM_WARP
+															|| plug.drawMode==DM_CIRCLE
                               || plug.drawMode==DM_MEASURE) );
   
   if ( !(actionNeeded) )            // if no action is needed: do nothing
@@ -821,6 +831,37 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
       break;
     }
     
+		case(DM_LIVEWIRE):
+		{
+			if( plug.but2Pressed )							// execute livewire
+			{
+				edit_executeLivewireClick();
+			}
+			else if( plug.but1Pressed )							// execute livewire
+			{
+				if (plug.livewire==NULL || edit_executeLivewireSelectPt() == false);
+					return (2);
+			}
+			break;
+		}
+		
+		case(DM_WAND):
+		{
+			if( plug.but2Down )							// execute livewire
+			{
+				if( plug.but2Pressed )
+				{
+					plug.wandAvgGrayVal = ivwGetValue( plug.view, plug.mouse.x,
+																						 plug.mouse.y, plug.mouse.z );
+				}
+				else
+				{
+					//edit_addWandPtsToCont();
+				}
+			}
+			break;
+		}
+			
     case (DM_ERASER):
     {
       if( !plug.shiftDown )
@@ -865,7 +906,33 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
       }
       break;
     }
-    
+			
+		case (DM_CIRCLE):
+    {
+      if( plug.but2Released ) {
+        edit_executeCircleEnd();
+      }
+			else
+			{
+				Icont *cont = imodContourGet( ivwGetModel(plug.view) );
+				if( isContValid(cont) && plug.but3Down )   // strech currently selected contour
+				{
+					float distMovedAway = line_distBetweenPts2D(&plug.centerPt,&plug.mouse) -
+					line_distBetweenPts2D(&plug.centerPt,&plug.mousePrev);
+					float stretchFactor = 1.0 + (fDiv((distMovedAway),
+															(line_distBetweenPts2D(&plug.centerPt,&plug.mouse)+0.1f)));
+					float angle = line_getAngle2D( &plug.centerPt, &plug.mouse );
+					undoContourDataChgCC( plug.view );
+					cont_stretchAlongAngle( cont, &plug.centerPt, angle, stretchFactor );
+				}
+				else if ( plug.but3Released )
+				{
+					undoFinishUnit( plug.view );          // FINISH UNDO
+				}
+			}
+      break;
+    } 
+		
     case (DM_MEASURE):
     {
       if( plug.but2Released )
@@ -875,7 +942,7 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
         float pixelSize = imodGetPixelSize(imod);
         char *unitsChs = imodUnits(imod);
         Ipoint scalePt;        setPt( &scalePt, 1,1, imodGetZScale(imod) );
-        float dist = imodPoint3DScaleDistance( &plug.mouseDownPt, &plug.mouse, &scalePt );
+        float dist = imodPoint3DScaleDistance(&plug.mouseDownPt, &plug.mouse, &scalePt);
         float unitDist = dist * pixelSize;
         
         wprint( "LENGTH = %f pixels\n", dist );
@@ -889,8 +956,8 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
       if( plug.smartPtResizeMode && plug.but2Pressed && isCurrPtValid() )
       {
         Imod *imod  = ivwGetModel(plug.view);
-        Iobj *obj   = getCurrObj();
-        Iobj *cont  = getCurrCont();
+        Iobj *obj   = imodObjectGet(imod);
+        Iobj *cont  = imodContourGet(imod);
         int objIdx, contIdx, ptIdx;
         imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
         
@@ -960,7 +1027,7 @@ DrawingTools::DrawingTools(QWidget *parent, const char *name) :
 	mButtons[2]->setCursor( Qt::PointingHandCursor );
 	
 	
-  //## Type:
+  //## Drawing Mode:
   
   QGroupBox *typeGbox = new QGroupBox("Drawing Mode:", this);
   typeButtonGroup = new QButtonGroup(this);
@@ -970,44 +1037,62 @@ DrawingTools::DrawingTools(QWidget *parent, const char *name) :
   
   connect(typeButtonGroup, SIGNAL(buttonClicked(int)), this, SLOT(changeType(int)));
   
-  typeRadio_Normal = diaRadioButton
-    ("Normal        [1]", typeGbox, typeButtonGroup, gbLayout, DM_NORMAL,
-     "Contours are drawn normally");
-  
-	typeRadio_Warp = diaRadioButton
-	  ("Warp           [2]", typeGbox, typeButtonGroup, gbLayout, DM_WARP,
-	   "Quickly correct bad regions of contour by dragging/warping the edges");
+	typeLabel[DM_NORMAL]    = "Normal";
+	typeLabel[DM_WARP]      = "Warp";
+	typeLabel[DM_SCULPT]    = "Sculpt";
+	typeLabel[DM_JOIN]      = "Join";
+	typeLabel[DM_LIVEWIRE]  = "Livewire";
+	typeLabel[DM_ERASER]    = "Eraser";
+	typeLabel[DM_TRANSFORM] = "Transform";
+	typeLabel[DM_MEASURE]   = "Measure";
+	typeLabel[DM_CURVE]     = "Curve";
+	typeLabel[DM_CIRCLE]    = "Circle";
+	typeLabel[DM_WAND]      = "The Wand";
 	
-  typeRadio_Sculpt = diaRadioButton
-    ("Sculpt         [3]", typeGbox, typeButtonGroup, gbLayout, DM_SCULPT, 
-     "Draw and modify closed contours quickly using"
-     "the sculpt circle to push or pinch lines");
-  
-  typeRadio_Join = diaRadioButton
-    ("Join             [4]", typeGbox, typeButtonGroup, gbLayout, DM_JOIN, 
-     "Join or split contours quickly by making overlaps");
-  
-  typeRadio_Curve = diaRadioButton
-	("LiveWire      [5]", typeGbox, typeButtonGroup, gbLayout, DM_LIVEWIRE,
-	 "An edge detection tool to help you quickly trace around dark membranes");
+	typeTooltip[DM_NORMAL]    = "Contours are drawn normally";
+	typeTooltip[DM_WARP]      = "Quickly correct bad regions of contour by "
+															"dragging/warping the edges";
+	typeTooltip[DM_SCULPT]    = "Draw and modify closed contours quickly using "
+															"the sculpt circle to push or pinch lines";
+	typeTooltip[DM_JOIN]      = "Join or split contours quickly by making overlaps";
+	typeTooltip[DM_LIVEWIRE]  = "An edge detection tool to help you quickly "
+															"trace around dark membranes";
+	typeTooltip[DM_ERASER]    = "Erase contours instantly by clicking them";
+	typeTooltip[DM_TRANSFORM] = "Lets you move, rotate and scale the selected contour";
+	typeTooltip[DM_MEASURE]   = "Quickly measure the distance between two points";
+	typeTooltip[DM_CURVE]     = "Click points and then have these stright lines turn into "
+															"a curve when you connect back to the first point";
+	typeTooltip[DM_CIRCLE]    = "Quickly draw a circle by dragging point to point";
+	typeTooltip[DM_WAND]      = "Click and drag to auto-contour a small";
 	
-  typeRadio_Eraser = diaRadioButton
-    ("Eraser         [6]", typeGbox, typeButtonGroup, gbLayout, DM_ERASER,
-     "Erase contours instantly by clicking them");
 	
-	typeRadio_Transform = diaRadioButton
-	  ("Transform  [7]", typeGbox, typeButtonGroup, gbLayout, DM_TRANSFORM, 
-	   "Allows you to move, rotate and scale the selected contour");
-  
-	typeRadio_Curve = diaRadioButton
-	  ("Curve          [8]", typeGbox, typeButtonGroup, gbLayout, DM_CURVE,
-	   "Quickly correct bad regions of contour by dragging/warping the edges");
+	for(int i=0; i<NUM_TOOLS_SHOWN; i++)
+	{
+		widType[i] = new QWidget( this );
+		layType[i] = new QHBoxLayout( widType[i] );
+		layType[i]->setSpacing(0);
+		layType[i]->setContentsMargins(0, 0, 0, 0);
+		widType[i]->setLayout( layType[i] );
+		
+		radType[i] = new QRadioButton(typeGbox);
+		radType[i]->setText( typeLabel[i] );
+		radType[i]->setFixedHeight(20);
+		typeButtonGroup->addButton( radType[i], i);								
+		
+		btnType[i] = new QPushButton( this );
+		btnType[i]->setText( "["  + QStr(i+1) + "]" );
+		btnType[i]->setFixedSize(30,20);
+		btnType[i]->setFlat(true);
+		
+		layType[i]->addWidget( radType[i] );
+		layType[i]->addWidget( btnType[i] );
+		
+		gbLayout->addWidget( widType[i] );
+	}
 	
-  typeRadio_Measure = diaRadioButton
-    ("Measure       [9]", typeGbox, typeButtonGroup, gbLayout, DM_MEASURE,
-     "Quickly measure the distance between two points");
-  
-  changeTypeSelected( plug.drawMode );
+	changeRadioOptions();
+	changeTypeSelected( plug.drawMode );
+	
   
   
   //## Pin-to-top Button:
@@ -1104,6 +1189,46 @@ DrawingTools::DrawingTools(QWidget *parent, const char *name) :
   connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
 }
 
+//------------------------
+//-- Used to set the radio buttons representing option types in the order
+//-- specified by the user.
+
+void DrawingTools::changeRadioOptions()
+{
+	for(int i=0; i<NUM_TOOLS_SHOWN; i++)
+	{
+		if( plug.modeOrder[i] < 0 || plug.modeOrder[i] >= NUM_TOOLS )
+			plug.modeOrder[i] = i;
+		
+		int newMode = plug.modeOrder[i];
+		radType[i]->setText( typeLabel[newMode] );
+		
+		bool hasOptions = ( newMode==DM_LIVEWIRE || newMode==DM_WAND );
+		btnType[i]->setFlat( !hasOptions );
+		disconnect( btnType[i], 0, 0, 0);			// disconnect anything already connected.
+		
+		if( newMode==DM_LIVEWIRE )
+		{
+			connect( btnType[i], SIGNAL(clicked()), this, SLOT( showLiveWireOptions() ) );
+			btnType[i]->setToolTip( "Change livewire settings" );
+		}
+		else if( newMode==DM_WAND )
+		{
+			connect( btnType[i], SIGNAL(clicked()), this, SLOT( showWandOptions()) );
+			btnType[i]->setToolTip( "Change wand settings" );
+		}
+		else
+		{
+			connect( btnType[i], SIGNAL(clicked()), this, SLOT( customizeToolOrder() ) );
+			btnType[i]->setToolTip( "Click to change what tools appear" );
+		}
+		
+		bool hideRow = (newMode==DM_NORMAL && i>0);
+		widType[i]->setVisible( !hideRow );
+	}
+}
+
+
 
 //## SLOTS:
 
@@ -1123,16 +1248,22 @@ bool DrawingTools::drawExtraObject( bool redraw )
   Iobj *xobj  = ivwGetAnExtraObject(plug.view, plug.extraObjNum);
   Iobj *xobjT = ivwGetAnExtraObject(plug.view, plug.extraObjText);
 	Iobj *xobjL = ivwGetAnExtraObject(plug.view, plug.extraObjLW);
+	Iobj *xobjP = ivwGetAnExtraObject(plug.view, plug.extraObjLWPts);
+	Iobj *xobjW = ivwGetAnExtraObject(plug.view, plug.extraObjWPts);
 	
-  if ( !xobj || !xobjT || !xobjL )
+  if ( !xobj || !xobjT || !xobjL || !xobjP || !xobjW )
     return false;
   imodObjectSetValue(xobj,  IobjFlagExtraInModv, (plug.showMouseInModelView)?1:0);
   imodObjectSetValue(xobjT, IobjFlagExtraInModv, (plug.showMouseInModelView)?1:0);
 	imodObjectSetValue(xobjL, IobjFlagExtraInModv, (plug.showMouseInModelView)?1:0);
+	imodObjectSetValue(xobjP, IobjFlagExtraInModv, (plug.showMouseInModelView)?1:0);
+	imodObjectSetValue(xobjW, IobjFlagExtraInModv, 0);
 	
   ivwClearAnExtraObject(plug.view, plug.extraObjNum);
   ivwClearAnExtraObject(plug.view, plug.extraObjText);
 	ivwClearAnExtraObject(plug.view, plug.extraObjLW);
+	ivwClearAnExtraObject(plug.view, plug.extraObjLWPts);
+	ivwClearAnExtraObject(plug.view, plug.extraObjWPts);
 	
   Icont *xcont  = imodContourNew();    // primary closed contour used in extra object
   Icont *xcont2 = imodContourNew();    // open   contour used in extra object
@@ -1140,8 +1271,9 @@ bool DrawingTools::drawExtraObject( bool redraw )
                                            // NOTE: it's rare to use all these at once
   
   imodContourSetFlag(xcont, ICONT_CURSOR_LIKE | ICONT_MMODEL_ONLY, 1);
-  setOpenFlag(xcont2, 1);
-  setOpenFlag(xcont3, 2);
+  setOpenFlag(xcont,  0);
+	setOpenFlag(xcont2, 1);
+  setOpenFlag(xcont3, 1);
   
   
   //## GET Z VALUE:
@@ -1307,7 +1439,7 @@ bool DrawingTools::drawExtraObject( bool redraw )
       if( showContort )    // draw contort area (instead of warp circle)
       {
                               // draw thick circle around closest (current) point
-        Ipoint *currPt = getCurrPt();
+        Ipoint *currPt = imodPointGet(imod);
         Icont *xcontCircle = imodContourNew();
         cont_generateCircle( xcontCircle, 4.0f*sc, 100, *currPt, true );
         cont_generateCircle( xcontCircle, 4.5f*sc, 100, *currPt, true );
@@ -1316,8 +1448,8 @@ bool DrawingTools::drawExtraObject( bool redraw )
                               // draw warp area
         
         Imod *imod  = ivwGetModel(plug.view);
-        Iobj  *obj  = getCurrObj();
-        Icont *cont = getCurrCont();
+        Iobj  *obj  = imodObjectGet(imod);
+        Icont *cont = imodContourGet(imod);
         int objIdx, contIdx, ptIdx;
         imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
         bool closed = isContClosed(obj,cont);
@@ -1431,70 +1563,16 @@ bool DrawingTools::drawExtraObject( bool redraw )
       
       break;
     }
-			
-	case(DM_LIVEWIRE):         // draw a line from selected point to  
+	
+	case(DM_LIVEWIRE):         // draw a livewire line from selected point
     {
-			// NOTE: To get single grey values (but not RBG quickly) you can use:
-			//       ivwGetFileValue( plug.view, pt.x,pt.y,pt.z );
-			//       see also: file:///Users/andrew_noske/Documents/MACMOD/html/libhelp/3dmodplug.html#ivwCopyImageToByteBuffer
-			//       and: MACMOD/imod/imodview.cpp for actual functions.
-			// 
-			// To efficiently get large area of slice will probably need to use
-			// "Islice" (aka "MRCSlice") structure which lives in: MACMOD/include/mrcslice.h
-			// The plugin interface has some functions for working with Islice structures here:
-			// file:///Users/andrew_noske/Documents/MACMOD/html/libhelp/mrcslice.html
-			
-			
-      Icont *cont = imodContourGet(imod);
-      if( isCurrPtValid() )
-      {
-				Ipoint *currPt = getCurrPt();
-				Ipoint pt;
-				setPt( &pt, currPt->x, currPt->y, currPt->z );
-				
-				float currDist = imodPointDistance( currPt, &plug.mouse );
-				int maxSteps   = 8 * currDist;
-				
-				
-				Icont *xcontL  = imodContourNew();
-				setOpenFlag(xcontL, 1);
-				
-				for( int i=0; i<maxSteps && currDist>1.0f; i++ )
-				{
-					imodPointAppendXYZ( xcontL, pt.x, pt.y, pt.z );
-					int distX = plug.mouse.x - pt.x;
-					int distY = plug.mouse.y - pt.y;
-					
-					float greyVal = ivwGetFileValue( plug.view, pt.x,pt.y,pt.z );
-					
-					cout << " grey value =" << greyVal << "  at (" << (int)pt.x << "," << (int)pt.y << ")" << endl;
-					
-					int randInt1 = randIntInclusive( 0, 10 );
-					if(randInt1==0)	pt.x += 1;
-					else if(randInt1==1)	pt.x += -1;
-					else if(randInt1==2)	pt.y += 1;
-					else if(randInt1==3)	pt.y += -1;
-					else
-					{
-						int randInt     = randIntInclusive( 0, ABS(distX)+ABS(distY) );
-						bool changeHorz = randInt <= ABS(distX);
-						
-						if( changeHorz )
-							pt.x += (distX>0) ? 1 : -1;
-						else
-							pt.y += (distY>0) ? 1 : -1;
-					}
-					
-					currDist = imodPointDistance( &pt, &plug.mouse );
-				}
-				
-				imodPointAppendXYZ( xcontL, plug.mouse.x, plug.mouse.y, plug.mouse.z );
-				//setInterpolated( xcontL, 1 );
-				
-				imodObjectAddContour(xobjL, xcontL);
-				free(xcontL);
-      }
-      
+			drawExtraObjectLivewire(false);
+      break;
+    }
+	
+	case(DM_WAND):         // draw a livewire line from selected point
+    {
+			drawExtraObjectWand(false);
       break;
     }
 			
@@ -1540,7 +1618,7 @@ bool DrawingTools::drawExtraObject( bool redraw )
       
       break;
     }
-			
+	
   case(DM_ERASER):            // draw sculpt circle with a diagonal line through it:
     {
       if( plug.but2Down || plug.but3Down )  {
@@ -1560,7 +1638,7 @@ bool DrawingTools::drawExtraObject( bool redraw )
       }
       break;
     }
-			
+	
   case (DM_CURVE):            // draw curve
     {
       Icont *cont = imodContourGet(imod);
@@ -1587,6 +1665,24 @@ bool DrawingTools::drawExtraObject( bool redraw )
       
       break;
     }
+			
+	case (DM_CIRCLE):            // draw circle
+    {
+			if( plug.but2Down && !plug.but2Released )
+			{
+				float distDragged = line_distBetweenPts2D( &plug.mouseDownPt, &plug.mouse );
+				Ipoint centerPt   = line_getPtHalfwayBetween( &plug.mouseDownPt, &plug.mouse );
+				cont_generateCircle( xcont, distDragged / 2.0f, 120, centerPt, false );
+      }
+			else if(plug.but3Down)    // draw line from center of contour to mouse:
+			{
+				imodPointAppendXYZ( xcont2, plug.centerPt.x, plug.centerPt.y, z );
+				imodPointAppendXYZ( xcont2, x, y, z );
+			}
+      
+      break;
+    }	
+
     
 	case (DM_MEASURE):            // measure distance
     {
@@ -1654,10 +1750,10 @@ bool DrawingTools::drawExtraObject( bool redraw )
         cont_generateTextAreaAsConts( xobjT, text, textPos, fontSize, TA_LEFT, TV_CENTER,
                                       true, 4 );
       }
-      else if( isCurrPtValid() && getCurrPt()->z == z )
+      else if( isCurrPtValid() && imodPointGet(imod)->z == z )
       {
-        Ipoint *pt   = getCurrPt();
-        Icont  *cont = getCurrCont();
+        Ipoint *pt   = imodPointGet(imod);
+        Icont  *cont = imodContourGet(imod);
                 
         float lineLenHoriz = 15*sc;
         float lineLenVert  = 15*sc;
@@ -1672,7 +1768,7 @@ bool DrawingTools::drawExtraObject( bool redraw )
                                       pt->x+lineLenHoriz, pt->y+lineLenVert, z );
 
         
-        char *objName    = imodObjectGetName( getCurrObj() ); 
+        char *objName    = imodObjectGetName( imodObjectGet(imod) ); 
         string text = toString( objName );
         if( text.length() == 0 )
         {
@@ -1685,7 +1781,7 @@ bool DrawingTools::drawExtraObject( bool redraw )
         if( imodPointDistance( pt, &plug.mouse ) < 30.0 )
         {
           textPos.y -= (fontSize + 15)*sc;
-          bool closed = isContClosed( getCurrCont(), cont);
+          bool closed = isContClosed( getCurrObj(), cont);
           float lengthClosed = imodContourLength( cont, closed ) * pixelSize;
           string extraText = (closed) ? "CLOSED LENGTH: " : "OPEN LENGTH: ";
           extraText += toString(lengthClosed)+ " " + toString( unitsChs );
@@ -1696,7 +1792,7 @@ bool DrawingTools::drawExtraObject( bool redraw )
         //## PRINT ANY LABEL ATTACHED TO THE CONTOUR
         //## WON'T YET WORK AS NO WAY TO ACCESS LABEL'S TITLE?! : 
         //## SEE: file:///Users/a.noske/Documents/MACMOD/html/libhelp/ilabel.html
-        Ilabel *label = imodContourGetLabel( getCurrCont() );
+        Ilabel *label = imodContourGetLabel( imodContourGet(imod) );
         if(label && imodLabelItemGet(label,0)!=NULL )
         {
           char *labelText = imodLabelItemGet( label, 0 );
@@ -1724,6 +1820,237 @@ bool DrawingTools::drawExtraObject( bool redraw )
 }
 
 
+
+
+
+//------------------------
+//-- Accesses some of the extra object and draw an active livewire line
+//-- as a thick yellow contour extendging from the the mouse to the 
+//-- last livewire point. Livewire points are drawing as red squares
+//-- and a black box is drawn near the mouse to show progress of
+//-- "plug.weights" and the active livewire thread(s) "plug.livewire"
+//-- and/or "plug.livewireF".
+
+bool DrawingTools::drawExtraObjectLivewire( bool redraw )
+{
+  if ( !plug.window )
+    return false;
+  
+  //## CLEAR EXTRA OBJECT:
+  
+  Iobj *xobjT = ivwGetAnExtraObject(plug.view, plug.extraObjText);
+	Iobj *xobjL = ivwGetAnExtraObject(plug.view, plug.extraObjLW);
+	Iobj *xobjP = ivwGetAnExtraObject(plug.view, plug.extraObjLWPts);
+	
+  if ( !xobjT || !xobjL || !xobjP )
+    return false;
+	
+  imodObjectSetValue(xobjT, IobjFlagExtraInModv, (plug.showMouseInModelView)?1:0);
+	imodObjectSetValue(xobjL, IobjFlagExtraInModv, (plug.showMouseInModelView)?1:0);
+	imodObjectSetValue(xobjP, IobjFlagExtraInModv, (plug.showMouseInModelView)?1:0);
+	
+	if( plug.drawMode != DM_LIVEWIRE )
+		return false;
+	
+	
+  //## GET Z VALUE:
+  
+  Imod *imod  = ivwGetModel(plug.view);
+  int ix, iy,iz;
+  ivwGetLocation(plug.view, &ix, &iy, &iz);
+  plug.mouse.z = iz;
+  
+  float x = plug.mouse.x;
+  float y = plug.mouse.y;
+  float z = plug.mouse.z;
+  
+  float zapZoom = 1.0f;                 // gets the zoom of the top-most zap window
+  int noZap = ivwGetTopZapZoom(plug.view, &zapZoom); 
+  float sc = fDiv( 1.0f, zapZoom);			// tomogram distance for one screen pixel 
+	
+	
+	
+	//## DRAW LIVEWIRE FROM SELECTED POINT:
+	
+	uint w = plug.xsize, h = plug.ysize;
+	int mX = (int)plug.mouse.x;		keepWithinRange( mX, 2, (int)w-1);
+	int mY = (int)plug.mouse.y;		keepWithinRange( mY, 2, (int)h-1);
+	int mZ = (int)plug.mouse.z;
+	
+	bool addLivewireSegment = isCurrPtValid() && ( (int)imodPointGet(imod)->z == mZ);
+	
+	if( addLivewireSegment )
+	{
+		//## WORK OUT WHAT LINES TO DRAW:
+		
+		int numLiveWirePts      = plug.lwPts==NULL ? 0 : psize(plug.lwPts);
+		bool finishContour      = false;
+		if( numLiveWirePts >= 3 )
+		{
+			float distFirstLWPt = line_distBetweenPts2D(getFirstPt(plug.lwPts),&plug.mouse);
+			float distLastLWPt  = line_distBetweenPts2D(getLastPt(plug.lwPts), &plug.mouse);
+			if( distFirstLWPt <= LW_SNAP_DIST || distLastLWPt <= LW_SNAP_DIST )
+				finishContour = true;
+		}
+		QPoint qptEnd = QPoint( mX, mY );
+		
+		//## GENERATE CONTOUR FROM LIVEWIRE POINTS:
+		
+		if( plug.livewire!=NULL && numLiveWirePts > 1 )
+		{
+			Icont *xcontL  = imodContourNew();
+			setOpenFlag(xcontL, 1);
+			edit_addLivewirePtsToCont( xcontL, -1, plug.livewire, qptEnd, mZ );
+			imodObjectAddContour(xobjL, xcontL);
+			free(xcontL);
+		}
+		
+		if( plug.livewireF!=NULL )
+		{
+			bool showSolid = numLiveWirePts==1 || finishContour;
+			Icont *xcontL  = imodContourNew();
+			setOpenFlag(xcontL, 1);
+			imodContourSetFlag( xcontL, ICONT_STIPPLED, (showSolid) ? 0 : 1 );
+			edit_addLivewirePtsToCont( xcontL, -1, plug.livewireF, qptEnd, mZ );
+			imodObjectAddContour(xobjL, xcontL);
+			free(xcontL);
+		}
+		
+		if( plug.lwPts!=NULL )
+		{
+			Icont *xcontP  = imodContourDup( plug.lwPts );
+			imodObjectAddContour(xobjP, xcontP);
+			free( xcontP );
+		}
+		
+	}
+	
+	
+	//## DRAW PERCENTAGE BAR:
+	
+	if( plug.lwWeightProgress > 0 )
+	{
+		float barH = 6*sc;				// |-- height and width of progress bar
+		float barW = 102*sc;			// |
+		float barX = x-(50*sc);		// |-- bottom left corner of progress bar
+		float barY = y+(20*sc);		// |
+		
+		float progW = ((float)plug.lwWeightProgress / 100.f) * barW;
+		
+		Icont *xcontB  = imodContourNew();
+		imodPointAppendXYZ( xcontB, barX,      barY,      z );
+		imodPointAppendXYZ( xcontB, barX+barW, barY,      z );
+		imodPointAppendXYZ( xcontB, barX+barW, barY+barH, z );
+		imodPointAppendXYZ( xcontB, barX,      barY+barH, z );
+		imodObjectAddContour(xobjT, xcontB);
+		free(xcontB);
+		
+		Icont *xcontP  = imodContourNew();
+		imodPointAppendXYZ( xcontP, barX,       barY+(0.5*barH), z );
+		imodPointAppendXYZ( xcontP, barX+progW, barY+(0.5*barH), z );
+		imodObjectAddContour(xobjT, xcontB);
+		free(xcontP);
+	}
+	
+	
+	
+	
+	//## REDRAW (IF NEEDED) AND RETURN TRUE:
+	
+	if( redraw )
+    ivwDraw( plug.view, IMOD_DRAW_MOD | IMOD_DRAW_NOSYNC );
+  
+  return true;
+}
+
+
+
+//------------------------
+//-- Accesses some of the extra object to draw the "wand" area, whereby
+//-- an area is filled using an adaptive flood fill algorithm, and points
+//-- within this area are shown as red square pixels.
+
+bool DrawingTools::drawExtraObjectWand( bool redraw )
+{
+  if ( !plug.window )
+    return false;
+  
+  //## CLEAR EXTRA OBJECT:
+	
+  Iobj *xobj  = ivwGetAnExtraObject(plug.view, plug.extraObjNum);
+	Iobj *xobjW = ivwGetAnExtraObject(plug.view, plug.extraObjWPts);
+	
+  if ( !xobj && !xobjW )
+    return false;
+	
+	imodObjectSetValue(xobj,  IobjFlagExtraInModv, 0);
+	imodObjectSetValue(xobjW, IobjFlagExtraInModv, 0);
+	
+	if( plug.drawMode != DM_WAND )
+		return false;
+	
+	
+	
+  //## GET Z VALUE:
+  
+  Imod *imod  = ivwGetModel(plug.view);
+  int ix, iy,iz;
+  ivwGetLocation(plug.view, &ix, &iy, &iz);
+  plug.mouse.z = iz;
+  
+  float x = plug.mouse.x;
+  float y = plug.mouse.y;
+  float z = plug.mouse.z;
+  
+  float zapZoom = 1.0f;                 // gets the zoom of the top-most zap window
+  int noZap = ivwGetTopZapZoom(plug.view, &zapZoom); 
+  float sc = fDiv( 1.0f, zapZoom);			// tomogram distance for one screen pixel 
+	
+	float radius = plug.sculptRadius;
+	
+	
+	
+	//## DRAW SCULPT CIRCLE OVER MOUSE TO REPRESENT
+	//## AREA OF INFLUENCE / BOUNDING AREA FOR WAND:
+	
+	
+	
+	Icont *xcont  = imodContourNew();    // primary closed contour used in extra object
+	cont_generateCircle( xcont, radius, 100,
+											(plug.but2Down) ? plug.mouseDownPt : plug.mouse, true );
+	if( plug.but2Down )
+		setInterpolated( xcont, 1 );
+	imodObjectAddContour(xobj, xcont);
+	free(xcont);
+	
+	
+	//## IF BUTTON DOWN: DRAW WAND AREA
+	
+	if( plug.but2Down )
+	{
+		float tolerance = line_distBetweenPts2D( &plug.mouseDownPt, &plug.mouse );
+		
+		Icont *xcontP  = imodContourNew();    // primary closed contour used in extra object
+		edit_addWandPtsToCont( xcontP, plug.mouseDownPt, (int)radius,
+													 plug.wandAvgGrayVal, tolerance, false );
+		
+		imodObjectAddContour(xobjW, xcontP);
+		free(xcontP);
+	}
+	
+	
+	
+	//## REDRAW (IF NEEDED) AND RETURN TRUE:
+	
+	if( redraw )
+    ivwDraw( plug.view, IMOD_DRAW_MOD | IMOD_DRAW_NOSYNC );
+  
+  return true;
+}
+
+
+
+
 //------------------------
 //-- Clears all the contents of the extra object.
 
@@ -1739,7 +2066,6 @@ void DrawingTools::clearExtraObj()
     imodObjectRemoveContour(obj, co);
   imodContoursDelete(cont, ncont);          // free the contour data
 }
-
 
 //------------------------
 //-- Used to initialize default values into DrawingToolsData.
@@ -1784,6 +2110,27 @@ void DrawingTools::initValues()
   plug.drawZhint              = 0;
   plug.useArrowKeys           = true;
   
+	plug.modeOrder[0]           = DM_NORMAL;
+	plug.modeOrder[1]           = DM_SCULPT;
+	plug.modeOrder[2]           = DM_JOIN;
+	plug.modeOrder[3]           = DM_TRANSFORM;
+	plug.modeOrder[4]           = DM_ERASER;
+	plug.modeOrder[5]           = DM_WARP;
+	plug.modeOrder[6]           = DM_CURVE;
+	plug.modeOrder[7]           = DM_MEASURE;
+		
+	plug.lwOpt									= LW_DARK_MEMBRANE;
+	plug.lwSmooth								= false;
+	plug.lwSmoothIts						= 2;
+	plug.lwUseWrap							= true;
+	plug.lwDontShowAgain				= false;
+	plug.waDontShowAgain				= false;
+	
+	plug.lwWeightZVal						= -1;
+	plug.lwWeightProgress       = 0;                 
+	
+	plug.wandAvgGrayVal         = 0;
+	
   plug.sortCriteriaOfVals     = -1;
 }
 
@@ -1842,6 +2189,22 @@ void DrawingTools::loadSettings()
   plug.minObjsNameWarning         = savedValues[30];
   plug.drawZhint                  = savedValues[31];
   plug.useArrowKeys               = savedValues[32];
+	
+	plug.modeOrder[0]               = savedValues[33];
+	plug.modeOrder[1]               = savedValues[34];
+	plug.modeOrder[2]               = savedValues[35];
+	plug.modeOrder[3]               = savedValues[36];
+	plug.modeOrder[4]               = savedValues[37];
+	plug.modeOrder[5]               = savedValues[38];
+	plug.modeOrder[6]               = savedValues[39];
+	plug.modeOrder[7]               = savedValues[40];
+	
+	plug.lwOpt                      = savedValues[41];
+	plug.lwSmooth                   = savedValues[42];
+	plug.lwSmoothIts                = savedValues[43];
+	plug.lwUseWrap                  = savedValues[44];
+	plug.lwDontShowAgain            = savedValues[45];
+	plug.waDontShowAgain            = savedValues[46];
 }
 
 
@@ -1888,6 +2251,22 @@ void DrawingTools::saveSettings()
   saveValues[31]  = plug.drawZhint;
   saveValues[32]  = plug.useArrowKeys;
   
+	saveValues[33]  = plug.modeOrder[0];
+	saveValues[34]  = plug.modeOrder[1];
+	saveValues[35]  = plug.modeOrder[2];
+	saveValues[36]  = plug.modeOrder[3];
+	saveValues[37]  = plug.modeOrder[4];
+	saveValues[38]  = plug.modeOrder[5];
+	saveValues[39]  = plug.modeOrder[6];
+	saveValues[40]  = plug.modeOrder[7];
+	
+	saveValues[41]  = plug.lwOpt;
+	saveValues[42]  = plug.lwSmooth;
+	saveValues[43]  = plug.lwSmoothIts;
+	saveValues[44]  = plug.lwUseWrap;
+	saveValues[45]  = plug.lwDontShowAgain;
+	saveValues[46]  = plug.waDontShowAgain;
+	
   prefSaveGenericSettings("DrawingTools",NUM_SAVED_VALS,saveValues);
 }
 
@@ -1895,6 +2274,7 @@ void DrawingTools::saveSettings()
 
 //------------------------
 //-- Change to flag to keep on top or run timer as for info window
+
 void DrawingTools::keepOnTop(bool state)
 {
 #ifdef STAY_ON_TOP_HACK
@@ -1994,8 +2374,8 @@ void DrawingTools::reduceConts()
     return;
   }
   
-  Imod *imod  = ivwGetModel(plug.view);
-  Iobj *obj  = getCurrObj();
+  Imod *imod = ivwGetModel(plug.view);
+  Iobj *obj  = imodObjectGet(imod);
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   int nConts = csize(obj);
@@ -2123,7 +2503,7 @@ void DrawingTools::smoothConts()
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
   Imod *imod  = ivwGetModel(plug.view);
-  Iobj *obj  = getCurrObj();
+  Iobj *obj  = imodObjectGet(imod);
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   int nConts = csize(obj);
@@ -2264,11 +2644,11 @@ bool DrawingTools::executeDAction()
   //## GET INFORMATION:
   
   Imod *imod = ivwGetModel(plug.view);
-  Iobj *obj  = getCurrObj();
+  Iobj *obj  = imodObjectGet(imod);
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   
-  Icont *cont = getCurrCont();
+  Icont *cont = imodContourGet(imod);
   int numPts = psize( cont );
   undoContourDataChgCC( plug.view );            // REGISTER UNDO
   
@@ -2373,7 +2753,7 @@ void DrawingTools::selectNextOverlappingContour()
   }
   
   Imod *imod  = ivwGetModel(plug.view);
-  Iobj *obj   = getCurrObj();
+  Iobj *obj   = imodObjectGet(imod);
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   int nConts = csize(obj);
@@ -2521,7 +2901,7 @@ void DrawingTools::selectNextOverlappingContour()
 void DrawingTools::printObjectDetailedInfo()
 {
   Imod *imod  = ivwGetModel(plug.view);
-  Iobj *obj  = getCurrObj();
+  Iobj *obj  = imodObjectGet(imod);
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   int nConts = csize(obj);
@@ -2646,7 +3026,7 @@ void DrawingTools::printContourDetailedInfo()
   }
   
   Imod *imod  = ivwGetModel(plug.view);
-  Iobj *obj   = getCurrObj();
+  Iobj *obj   = imodObjectGet(imod);
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   int nConts = csize(obj);
@@ -3244,8 +3624,6 @@ void DrawingTools::moreSettings()
 
 void DrawingTools::showLiveWireOptions()
 {
-	
-	
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
 	CustomDialog ds("LiveWire Options", this);
@@ -3254,27 +3632,23 @@ void DrawingTools::showLiveWireOptions()
 	ds.setStylePrev("background-color: rgb(150, 150, 150);");			// grey
 	
 	ds.addLabel( "---" );
-  //ds.addLabel   ( "--- LIVEWIRE OPTIONS ---" );
+  
   ds.addRadioGrp( "what are you tracing around?",
 							    "(a) the middle of a dark membrane|"
 							    "(b) the middle of a light membrane|"
 								  "(c) a color image",
-							    &plug.liveWOpt,
+							    &plug.lwOpt,
 								  ".....",
 								  "choose this if ...... |"
 								  "or choose this if ...... |"
 								  "......... " );
-	
-  //ds.addCheckBox( "allow smoothing", &plug.liveWSmooth,
-	//							 "Will automatically apply 'contour smoothing' \n"
-	//							 "to any lines you draw." );
-	
+		
 	ds.addSpinBox ( "smoothing iterations:",
-								 1, 50, &plug.liveWSmoothIts, 1,
+								 1, 50, &plug.lwSmoothIts, 1,
 								 "The thickness of lines used to display "
 								 "contours as lines" );
 	
-	ds.addCheckPrev("apply smoothing iterations: ", &plug.liveWSmooth, CB_NONE, true,
+	ds.addCheckPrev("apply smoothing iterations: ", &plug.lwSmooth, CB_NONE, true,
 									"Will automatically apply 'contour smoothing' \n"
 									"to any lines you draw." );
 	
@@ -3282,15 +3656,63 @@ void DrawingTools::showLiveWireOptions()
 									 "<b>Jeffrey Bush</b>.<br>"
 									 "<a href='http://www.coderforlife.com/'>Click here</a> "
 									 "for video demo & source code.</fontsize>","" );
-	ds.setStylePrev("background-color: rgb(100, 255, 100);");			// light green
+	ds.setStylePrev( "background-color: rgb(100, 255, 100);");			// light green
 	
-	ds.addCheckBox( "do not show again (I know what I'm doing)", &plug.liveWDontShowAgain,
-								 "NOTE: You can access this via 'Something > Something'." );
+	ds.addCheckBox( "do not show again (I know what I'm doing)", &plug.lwDontShowAgain,
+								  "NOTE: You can still access this via 'Something > Something'." );
 	ds.setStylePrev("background-color: rgb(150, 150, 150);");			// grey
 	
 	ds.exec();
 	if( ds.wasCancelled() )
 		return;
+	
+	//## CHANGE LIVEWIRE SETTINGS OF WEIGHT CALCULATOR:
+	
+	
+	
+}
+
+//------------------------
+//-- Allows user to change options for the wand.
+
+void DrawingTools::showWandOptions()
+{
+  //## GET USER INPUT FROM CUSTOM DIALOG:
+  
+	CustomDialog ds("The Wand Options", this);
+  
+	ds.addHtmlLabel( "Help the wand by selecting from these options." );
+	ds.setStylePrev("background-color: rgb(150, 150, 150);");			// grey
+	
+	ds.addLabel( "---" );
+	
+	ds.addSpinBox ( "smoothing iterations:",
+								 1, 50, &plug.lwSmoothIts, 1,
+								 "The thickness of lines used to display "
+								 "contours as lines" );
+	
+	ds.addCheckPrev("apply smoothing iterations: ", &plug.lwSmooth, CB_NONE, true,
+									"Will automatically apply 'contour smoothing' \n"
+									"to any lines you draw." );
+	
+	ds.addHtmlLabel( "<font size='2.5'>This algorithm was developed by "
+									"<b>Andrew Huynh</b><br>"
+									"and <b>Jeffrey Bush</b>."
+									"<a href='http://www.slashsegmentation.com/'>Click here</a> <br>"
+									"for video demo & source code.</fontsize>","" );
+	ds.setStylePrev( "background-color: rgb(100, 255, 100);");			// light green
+	
+	ds.addCheckBox( "do not show again (I know what I'm doing)", &plug.waDontShowAgain,
+								 "NOTE: You can still access this via 'Something > Something'." );
+	ds.setStylePrev("background-color: rgb(150, 150, 150);");			// grey
+	
+	ds.exec();
+	if( ds.wasCancelled() )
+		return;
+	
+	//## CHANGE LIVEWIRE SETTINGS OF WEIGHT CALCULATOR:
+	
+	
 	
 }
 
@@ -3476,7 +3898,7 @@ void DrawingTools::modifyRangeContours()
   
   
   Imod  *imod  = ivwGetModel(plug.view);
-  Iobj  *obj   = getCurrObj();
+  Iobj  *obj   = imodObjectGet(imod);
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   
@@ -3651,7 +4073,7 @@ void DrawingTools::deleteRangeContours()
   }
   
   Imod  *imod  = ivwGetModel(plug.view);
-  Iobj  *obj   = getCurrObj();
+  Iobj  *obj   = imodObjectGet(imod);
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   
@@ -3736,7 +4158,9 @@ void DrawingTools::deleteRangeContours()
     ds1.addSpinBox ( "min:", -10, plug.zsize, &sliceMin, 1 );
     ds1.addSpinBox ( "max:", 1, plug.zsize+10, &sliceMax, 1 );
     ds1.addCheckBox( "ignore top and bottom slice", &sliceIgnoreEnds );
-    ds1.addCheckBox( "skip every Nth slice", &sliceSkipN );
+    ds1.addCheckBox( "skip every Nth slice", &sliceSkipN,
+										 "Example: if you enter 10 then 9 in 10 slices will \n"
+										 "get cleared, and 1 in 10 will be left alone" );
     ds1.addSpinBox ( "  where N = ", 2, 100, &sliceN, 1 );
     ds1.exec();
     if( ds1.wasCancelled() )
@@ -3843,7 +4267,7 @@ void DrawingTools::cropRangeContours()
   }
   
   Imod  *imod  = ivwGetModel(plug.view);
-  Iobj  *obj   = getCurrObj();
+  Iobj  *obj   = imodObjectGet(imod);
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   
@@ -4005,7 +4429,7 @@ void DrawingTools::copyOrMoveContourRange()
   }
   
   Imod  *imod  = ivwGetModel(plug.view);
-  Iobj  *obj   = getCurrObj();
+  Iobj  *obj   = imodObjectGet(imod);
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   
@@ -4172,8 +4596,8 @@ void DrawingTools::tranformContourRange()
   }
   
   Imod  *imod  = ivwGetModel(plug.view);
-  Iobj  *obj   = getCurrObj();
-  Icont *cont  = getCurrCont();
+  Iobj  *obj   = imodObjectGet(imod);
+  Icont *cont  = imodContourGet(imod);
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   
@@ -4301,9 +4725,9 @@ void DrawingTools::movePoint()
   }
   
   Imod  *imod = ivwGetModel(plug.view);
-  Iobj  *obj  = getCurrObj();
-  Icont *cont = getCurrCont();
-  Ipoint *pt  = getCurrPt();
+  Iobj  *obj  = imodObjectGet(imod);
+  Icont *cont = imodContourGet(imod);
+  Ipoint *pt  = imodPointGet(imod);
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   
@@ -4416,8 +4840,8 @@ void DrawingTools::expandContourRange()
   }
   
   Imod *imod  = ivwGetModel(plug.view);
-  Iobj *obj   = getCurrObj();
-  Icont *cont = getCurrCont();
+  Iobj *obj   = imodObjectGet(imod);
+  Icont *cont = imodContourGet(imod);
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   
@@ -4823,8 +5247,7 @@ void DrawingTools::checkForNamelessObjects( bool forceMessageBox )
   }
   else if( action == 1 )
   {
-    QString str = QString(getenv("IMOD_DIR"));
-    str += QString("/lib/imodplug/naming_help.html");
+    QString str = QString(getenv("IMOD_DIR")) + ("/lib/imodplug/naming_help.html#TOP");
     imodShowHelpPage((const char *)str.toLatin1());
   }
 }
@@ -5128,45 +5551,6 @@ void DrawingTools::test()
     return;
   }
   
-  
-  /*
-  int ptsAdded = cont_addPtsAtIntersection( getCont(obj,0), getCont(obj,1) );
-  wprint("%d points added\n", ptsAdded);
-  
-  if( csize(obj) < 3 )
-  {
-    Icont *horzLine =  imodContourNew();
-    imodPointAppendXYZ( horzLine, -100, 50, 0 );
-    imodPointAppendXYZ( horzLine, 100, 50, 0 );
-    edit_addContourToObj( obj, horzLine, true );
-    imodContourDelete(horzLine);
-    
-    Icont *vertLine =  imodContourNew();
-    imodPointAppendXYZ( vertLine, 0, 0, 0 );
-    imodPointAppendXYZ( vertLine, 0, 512, 0 );
-    edit_addContourToObj( obj, vertLine, true );
-    imodContourDelete(vertLine);
-    
-    Icont *ptLine =  imodContourNew();
-    imodPointAppendXYZ( horzLine, 0, 0, 0 );
-    edit_addContourToObj( obj, ptLine, true );
-    imodContourDelete(ptLine);
-  }
-  
-  Icont *cont1 = getCont(obj,0);
-  Icont *cont2 = getCont(obj,1);
-  Icont *cont3 = getCont(obj,2);
-  
-  bool cross = line_doLinesCrossAndWhere( getPt(cont1,0), getPt(cont1,1),
-                                          getPt(cont2,0), getPt(cont2,1),
-                                          getPt(cont3,0) );
-  
-  bool imodCross = imodPointIntersect( getPt(cont1,0), getPt(cont1,1),
-                                       getPt(cont2,0), getPt(cont2,1) );
-  
-  (cross) ? wprint("INTERCEPT\n") : wprint("no intercept\n");
-  (imodCross) ? wprint("IMODCROSS\n") : wprint("no imodcross\n");
-  */
   ivwRedraw( plug.view );
 }
 
@@ -5286,7 +5670,7 @@ int  DrawingTools::copyCurrContToView(bool smartSize)
   }
   
   Imod *imod  = ivwGetModel(plug.view);
-  Icont *cont = getCurrCont();
+  Icont *cont = imodContourGet(imod);
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   
@@ -5307,7 +5691,7 @@ int  DrawingTools::copyCurrContToView(bool smartSize)
     cont_getCenterOfMBR( cont, &centerMBR );
     float diffZ = ABS(contZ - currZ);
     float scaleXY = pow( 0.95f, diffZ );
-    cout << scaleXY << endl;
+    //cout << scaleXY << endl;
     cont_scaleAboutPtXY( contNew, &centerMBR, scaleXY, scaleXY );
   }
   int newContPos = edit_addContourToObj( getCurrObj(), contNew, true );
@@ -5320,25 +5704,213 @@ int  DrawingTools::copyCurrContToView(bool smartSize)
 
 
 
+
+//############################################################
+//## FUNCTIONS FOR LIVEWIRE EVENTS:
+
+
+
+//------------------------
+//-- Instantiates the livewire objects "plug.weights" and "plug.livewire"
+//-- for the image size specified by "w" and "h".
+
+void DrawingTools::setupLivewire( int w, int h )
+{	
+	//## IF NOT ALREADY: SETUP THE LIVEWIRE OBJECTS:
+	
+	if( plug.weights == NULL )
+	{
+		plug.weights = new Livewire::WeightCalculator(w, h,
+											   Livewire::WeightCalculator::GrayScaleSettings);
+		plug.window->connect(plug.weights, SIGNAL(ProgressChanged(int)),
+												 plug.window, SLOT(weightsProgress(int)));
+		plug.window->connect(plug.weights, SIGNAL(finished()),
+												 plug.window, SLOT(weightsFinished()));
+	}
+	if( plug.livewire == NULL )
+	{
+		plug.livewire = new Livewire::LivewireCalculator(w, h,
+																										 plug.weights->GetWeights());
+		plug.window->connect(plug.livewire, SIGNAL(ProgressChanged(int)),
+												 plug.window, SLOT(livewireProgress(int)));
+		plug.window->connect(plug.livewire, SIGNAL(finished()),
+												 plug.window, SLOT(livewireFinished()));
+		
+		//setPt( &plug.livewirePt, -1,-1,-1 );
+	}
+	if( plug.livewireF == NULL )
+	{
+		plug.livewireF = new Livewire::LivewireCalculator(w, h,
+																												 plug.weights->GetWeights());
+		plug.window->connect(plug.livewireF, SIGNAL(ProgressChanged(int)),
+												 plug.window, SLOT(livewireProgress(int)));
+		plug.window->connect(plug.livewireF, SIGNAL(finished()),
+												 plug.window, SLOT(livewireFinished()));
+		
+		//setPt( &plug.livewireFPt, -1,-1,-1 );
+	}
+	if( plug.lwPts == NULL )
+	{
+		plug.lwPts = imodContourNew();
+	}
+	
+	plug.lwRedrawTime.start();
+}
+
+//------------------------
+//-- Call back functions for livewire:
+
+void DrawingTools::weightsProgress(int progress)
+{
+	int msSinceLWRedraw = plug.lwRedrawTime.elapsed();	// milliseconds since last redraw
+	if( msSinceLWRedraw > 500 )
+		return;
+	
+	int percProgress = (progress * 100) / plug.weights->GetTotalProgress();
+	if ( plug.lwWeightProgress != percProgress )
+	{
+		plug.lwWeightProgress = percProgress;
+		drawExtraObjectLivewire( true );
+		plug.lwRedrawTime.restart();
+	}
+	//printf("Weights at %d%%\n", progress * 100 / plug.weights->GetTotalProgress());
+}
+
+void DrawingTools::weightsFinished()
+{
+	plug.lwWeightProgress = 100;
+	drawExtraObjectLivewire( true );
+	plug.lwRedrawTime.restart();
+	//printf("Weights finished\n");
+}
+
+void DrawingTools::livewireProgress(int progress)
+{
+	//drawExtraObjectLivewire( true );
+	//printf("Livewire at %d%%\n", progress * 100 / plug.livewire->GetTotalProgress());
+}
+
+void DrawingTools::livewireFinished()
+{
+	//drawExtraObjectLivewire( true );
+	//printf("Livewire finished\n");
+}
+
+
+
+//############################################################
 //## BASIC METHODS TO CHANGE PLUG DATA:
 
 //------------------------
-//-- Change "plug.drawMode"
+//-- Brings up a custom dialog allowing the user to change what
+//-- tools apppear and the order of these tools shown in the main
+//-- plugin window.
 
-void DrawingTools::changeType( int value ) {
+void DrawingTools::customizeToolOrder()
+{
+	int preset = 0;
+	QString modeList = "--none-- (hide)|Warp|Sculpt|Join|Livewire|"
+	                   "Eraser|Transform|Measure|Curve|Circle|Wand";
 	
-	if( plug.drawMode!=value && value==DM_LIVEWIRE && !plug.liveWDontShowAgain )
+	//## GET USER INPUT FROM CUSTOM DIALOG:
+		
+	CustomDialog ds("Customize Drawing Modes", this);
+	
+	ds.addHtmlLabel( "Change which drawing modes you<br>"
+									 "want to appear and in what order.<br>"
+									 "Note that the numbers correspond<br>"
+									 "to shortcut keys." );
+	ds.setStylePrev( "background-color: rgb(150, 150, 150);" );			// grey
+	
+	ds.addLabel( "---" );
+	
+	ds.addLabel( "          [1]:  Normal  (fixed)" );
+	
+	for(int i=1; i<NUM_TOOLS_SHOWN;i++)
+		ds.addComboBox( "          ["+QStr(i+1)+"]:  ", modeList, &plug.modeOrder[i] );
+	
+	ds.addLabel( "---" );
+	
+	ds.addComboBox( "preset:  ",
+								 "custom (values above)|"
+								 "default: W,S,J,L,E..|"
+								 "auto:    L,TW,W,S..|"
+								 "old:    S,J,T,E,W..", &preset,
+								 "Lets you choose from a bunch of easy presets" );
+	ds.setStylePrev("background-color: rgb(150, 150, 150);");			// grey
+	
+	ds.exec();
+	if( ds.wasCancelled() )
+		return;
+	
+	//## CHANGE ORDER OF TOOLS:
+	
+	if( preset == 1)				//	"default"
+	{
+		plug.modeOrder[0] = DM_NORMAL;
+		plug.modeOrder[1] = DM_WARP;
+		plug.modeOrder[2] = DM_SCULPT;
+		plug.modeOrder[3] = DM_JOIN;
+		plug.modeOrder[4] = DM_LIVEWIRE;
+		plug.modeOrder[5] = DM_ERASER;
+		plug.modeOrder[6] = DM_TRANSFORM;
+		plug.modeOrder[7] = DM_MEASURE;
+	}
+	else if( preset == 2)		//	"auto"
+	{
+		plug.modeOrder[0] = DM_NORMAL;
+		plug.modeOrder[1] = DM_LIVEWIRE;
+		plug.modeOrder[2] = DM_WAND;
+		plug.modeOrder[3] = DM_WARP;
+		plug.modeOrder[4] = DM_SCULPT;
+		plug.modeOrder[5] = DM_CIRCLE;
+		plug.modeOrder[6] = DM_ERASER;
+		plug.modeOrder[7] = DM_MEASURE;
+	}
+	else if( preset == 3)		//	"old"
+	{
+		plug.modeOrder[0] = DM_NORMAL;
+		plug.modeOrder[1] = DM_SCULPT;
+		plug.modeOrder[2] = DM_JOIN;
+		plug.modeOrder[3] = DM_TRANSFORM;
+		plug.modeOrder[4] = DM_ERASER;
+		plug.modeOrder[5] = DM_WARP;
+		plug.modeOrder[6] = DM_CURVE;
+		plug.modeOrder[7] = DM_MEASURE;
+	}
+	
+	changeRadioOptions();
+}
+
+
+//------------------------
+//-- Change "plug.drawMode" to the tool maching the "modeIdx"
+//-- provided
+
+void DrawingTools::changeType( int modeIdx )
+{
+	if(modeIdx < 0 || modeIdx   >= NUM_TOOLS_SHOWN)	modeIdx   = 0;
+	int newMode = plug.modeOrder[ modeIdx ];
+	
+	if( plug.drawMode!=newMode && newMode==DM_LIVEWIRE && !plug.lwDontShowAgain )
 		showLiveWireOptions();
 	
-	plug.drawMode = value;
+	if( plug.drawMode!=newMode && newMode==DM_WAND && !plug.waDontShowAgain )
+		showWandOptions();
+	
+	plug.drawMode = newMode;
 }
 
 //------------------------
 //-- Change "plug.drawMode" and set appropriate radio button
 
-void DrawingTools::changeTypeSelected( int newType) {
-  plug.drawMode = newType;
-  diaSetGroup(typeButtonGroup, plug.drawMode);
+void DrawingTools::changeTypeSelected( int modeIdx )
+{
+	if(modeIdx < 0 || modeIdx   >= NUM_TOOLS_SHOWN)	modeIdx   = 0;
+	int newMode = plug.modeOrder[ modeIdx ];
+	
+  plug.drawMode = newMode;
+  diaSetGroup(typeButtonGroup, modeIdx);
   plug.window->drawExtraObject(true);
 }
 
@@ -5408,7 +5980,7 @@ void DrawingTools::changeSculptCircleRadius( float value, bool slowDown )
 
 void DrawingTools::helpPluginHelp()
 {
-  QString str = QString(getenv("IMOD_DIR")) + QString("/lib/imodplug/drawingtools.html");
+  QString str = QString(getenv("IMOD_DIR")) + ("/lib/imodplug/drawingtools.html#TOP");
   imodShowHelpPage((const char *)str.toLatin1());
 }
 
@@ -5421,7 +5993,7 @@ void DrawingTools::buttonPressed(int which)
   if      (which==0)
     close();
   else if (which==1)
-		openUrl( "http://www.slashsegmentation.com/tools/drawingtools-plugin.htm" );
+		openUrl( "http://www.slashsegmentation.com/tools/imod/drawing-tools-plugin" );
 	else if (which==2)
     helpPluginHelp();
 }
@@ -5437,6 +6009,8 @@ void DrawingTools::closeEvent ( QCloseEvent * e )
   ivwFreeExtraObject(plug.view, plug.extraObjNum);
   ivwFreeExtraObject(plug.view, plug.extraObjText);
 	ivwFreeExtraObject(plug.view, plug.extraObjLW);
+	ivwFreeExtraObject(plug.view, plug.extraObjLWPts);
+	ivwFreeExtraObject(plug.view, plug.extraObjWPts);
 	
   ivwTrackMouseForPlugs(plug.view, 0);
   //ivwEnableStipple( plug.view, 0 );
@@ -5789,7 +6363,7 @@ bool edit_selectContourPtNearCoordsCurrObj(float x, float y, int z, float distTo
 //-- NOTE: This function is called when the user right-clicks the ZAP
 //--       window to select a different point.
 
-bool edit_selectVisiblePtNearCoords( Ipoint *mouse, float distScreenPix)
+bool edit_selectVisiblePtNearCoords( Ipoint *mouse, float distScreenPix )
 {
   Imod *imod = ivwGetModel(plug.view);
   
@@ -5876,7 +6450,7 @@ bool edit_copiedContIfDiffSlice( bool selectNewCont )
     cont_translate( contNew, &shift );
     int objIdx, contIdx, ptIdx;
     imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
-    int newContPos = edit_addContourToObj( getCurrObj(), contNew, true );
+    int newContPos = edit_addContourToObj( imodObjectGet(imod), contNew, true );
     imodSetIndex(imod, objIdx, newContPos, 0);
     imodContourDelete(contNew);
     
@@ -6653,7 +7227,7 @@ void edit_executeWarp()
 }
 
 //------------------------
-//-- Compleles a warp action by reducing points.
+//-- Completes a warp action by reducing points.
 
 void edit_executeWarpEnd()
 {
@@ -6673,7 +7247,9 @@ void edit_executeWarpEnd()
 
 
 //------------------------
-//-- Decides wether to add a new point .
+//-- Executes a curbe action by creating a new contour (if none selected)
+//-- or, if the user is completing the contour it generates the contour
+//-- into a smoother "curve" using cardinal spline algorightm.
 
 void edit_executeCurve( bool forceEndContour )
 {
@@ -6742,8 +7318,38 @@ void edit_executeCurve( bool forceEndContour )
 
 
 
+//------------------------
+//-- Executes a circle action by adding a new contour in the shape
+//-- of the circle which spans between the mouse coordinates
+//-- and the last point clicked.
 
-
+void edit_executeCircleEnd()
+{
+  Imod  *imod  = ivwGetModel(plug.view);
+  Iobj  *obj   = imodObjectGet(imod);
+  int objIdx, contIdx, ptIdx;
+  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  
+  if( !obj )
+    return;
+  
+  //## IF USER HAS DRAGGED SUFFICENT DISTANCE, GENERATE CIRCLE:
+  
+	float distDragged = line_distBetweenPts2D( &plug.mouseDownPt, &plug.mouse );
+	
+	if( distDragged >= 3.0f )
+	{
+		Icont *newCont = imodContourNew();
+		Ipoint centerPt = line_getPtHalfwayBetween( &plug.mouseDownPt, &plug.mouse );
+		cont_generateCircle( newCont, distDragged / 2.0f, 120, centerPt, false );
+		
+		edit_addContourToObj( obj, newCont, true );
+		imodSetIndex(imod, objIdx, csize(obj)-1, 0);
+		undoFinishUnit( plug.view );            // FINISH UNDO
+	}
+	
+	plug.window->drawExtraObject(true);
+}
 
 
 
@@ -7514,6 +8120,14 @@ string edit_getSortValString(int sortCriteria)
 
 //------------------------
 //-- Returns the grey scale value in memory of the pixel nearest to the given point
+//-- NOTE: To get single grey values (but not RBG quickly) you can use:
+//--     ivwGetFileValue( plug.view, pt.x,pt.y,pt.z );
+//--     and see: MACMOD/imod/imodview.cpp for actual functions.
+//--
+//-- To efficiently get large area of slice will probably need to use
+//-- "Islice" (aka "MRCSlice") structure which lives in: MACMOD/include/mrcslice.h
+//-- The plugin interface has some functions for working with Islice structures here:
+//-- file:///Users/andrew_noske/Documents/MACMOD/html/libhelp/mrcslice.html
 
 float edit_getGreyValue( Ipoint *pt )
 {
@@ -8115,3 +8729,483 @@ bool edit_isSimpleWithinCircle( Icont *cont, Ipoint *center, float radius )
 }
 
 
+
+
+
+
+
+
+
+//------------------------
+//-- Executes a livewire operation (DM_LIVEWIRE) by first making sure livewire 
+//-- objects are setup, then checking if the user is has selected a valid 
+//-- point and is adding a livewire segment - in which case the segment
+//-- is first added and possibly the contour finished/deselected.
+//-- 
+//-- If no segments were added, the agorithm checks if a new slice/area
+//-- was clicked - and if the weighting over the currenly slice is calculated
+//-- using the "plugs.weight" thread.
+//-- 
+//-- Regardless of wether segments were added, the last step is to execute
+//-- livewire is over the weighted image, starting at the mouse position
+//-- clicked, and using the "plug.livewire" thread and/or "plug.livewireF"
+//-- thread, depending on wether "lwUseWrap" is on, and what livewire point
+//-- the user may have just added (a first, last or intermediate livewire).
+
+void edit_executeLivewireClick()
+{
+	//## IF NOT ALREADY, MAKE SURE LIVEWIRE IS SETUP:
+	
+	uint w = plug.xsize, h = plug.ysize;
+	plug.window->setupLivewire( plug.xsize, plug.ysize );
+	
+	
+	//## DETERMINE LOCATION OF MOUSE CLICK INSIDE THE TOMOGRAM:
+	
+	Imod *imod  = ivwGetModel(plug.view);
+	Icont *cont = imodContourGet(imod);
+	int objIdx, contIdx, ptIdx;
+  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+	
+	int mX = (int)plug.mouse.x;		keepWithinRange( mX, 0, (int)w-1);
+	int mY = (int)plug.mouse.y;		keepWithinRange( mY, 0, (int)h-1);
+	int mZ = (int)plug.mouse.z;
+	//Ipoint ptRounded;							setPt( &ptRounded, (float)mX, (float)mY, (float)mZ );
+	
+	
+	
+	//## DETERMINE IF WE NEED TO ADD LIVEWIRE SEGMENT(S):
+	
+	bool addLivewireSegment = isCurrPtValid() && ( (int)imodPointGet(imod)->z == mZ);
+	
+	
+	//## IF WE NEED TO ADD A LIVEWIRE SEGMENT(S) ADD POINTS TO CURRENT CONTOUR:
+																						
+	if( addLivewireSegment )
+	{
+		//## DETERMINE WHERE SEGMENTS SHOULD BE ADDED:
+		
+		int numLiveWirePts      = plug.lwPts==NULL ? 0 : psize(plug.lwPts);
+		bool firstSegment       = (numLiveWirePts == 1);
+		bool finishContour      = false;
+		if( numLiveWirePts >= 3 )
+		{
+			float distFirstLWPt = line_distBetweenPts2D( getFirstPt(plug.lwPts), &plug.mouse);
+			float distLastLWPt  = line_distBetweenPts2D( getLastPt(plug.lwPts),  &plug.mouse);
+			if( distFirstLWPt <= LW_SNAP_DIST || distLastLWPt <= LW_SNAP_DIST )
+				finishContour = true;
+		}
+		
+		imodPointAppendXYZ( plug.lwPts, (float)mX, (float)mY, (float)mZ );
+		
+		
+		
+		//## ADD POINTS TO APPROPRIATE POSITIONS:
+		
+		int ptsAdded = 0;
+		QPoint qptEnd = QPoint( mX, mY );
+				
+		if( !firstSegment )
+		{
+			ptsAdded += edit_addLivewirePtsToCont( cont, -1, plug.livewire, qptEnd, mZ,
+																						 true, true );
+		}
+		if( firstSegment )
+		{
+			ptsAdded += edit_addLivewirePtsToCont( cont, -1, plug.livewireF, qptEnd, mZ,
+																						 true, true );
+		}
+		if( finishContour )
+		{
+			ptsAdded += edit_addLivewirePtsToCont( cont, -1, plug.livewireF, qptEnd, mZ,
+																						 true, false );
+		}
+		
+		imodSetIndex(imod, objIdx, contIdx, ptIdx+ptsAdded);
+		
+		if( finishContour )
+			imodSetIndex(imod, objIdx, -1, 0);
+		
+		undoFinishUnit( plug.view );          // FINISH UNDO
+		//cout << "new segment was added with " << ptsAdded << " points" << endl;
+	}
+	
+	//## ELSE (IF NO SEGMENT ADDED), ADD A NEW POINT AT THE CURRENT POSITION:
+	
+  else
+	{		
+		imodContourClearPoints( plug.lwPts );
+		imodPointAppendXYZ( plug.lwPts, (float)mX, (float)mY, (float)mZ );
+		
+		Icont *newCont = imodContourNew();
+    imodPointAppendXYZ( newCont, (float)mX, (float)mY, (float)mZ );
+    int newContPos = edit_addContourToObj( imodObjectGet(imod), newCont, true );
+    imodSetIndex(imod, objIdx, newContPos, 0);
+		
+		undoFinishUnit( plug.view );          // FINISH UNDO
+		//cout << "new point was added" << endl;
+	}
+	
+	//## START LIVEWIRE FROM NEW POINT:
+	
+	bool useLivewireStart = !addLivewireSegment;
+	edit_startLivewireFromPt( mX, mY, mZ, useLivewireStart );
+	
+	
+	//cout << "TEST" << endl;			//%%%%%%%%%%%
+	//flush(cout);								//%%%%%%%%%%%
+	//plug.window->drawExtraObject( true );		// does not work
+}
+
+
+//------------------------
+//-- This function is used to insert or append livewire points to
+//-- a given contour ("cont"). The livewire points start at the origion
+//-- of the given livewire thread ("livewire") and extends to the designated
+//-- end point ("qptEnd") via the lowest weight path. If the livewire thread
+//-- has not calculated this far yet, no points are added. If a path
+//-- is found, points are inserted to the contour starting at the given
+//-- point index ("startIdx").
+//-- 
+//-- If you wish to add points to the end (which is usually the case)
+//-- you can set "startIdx" to -1. If "startIdx" is -1 (or any other invalid
+//-- index for that matter), points are appended rather than inserted. The
+//-- input value "z" specifies what slice to add point, "reverse" can be used
+//-- to reverse the order which points are added, and "addUndo" should be
+//-- called if making a change to a model contour (as opposed to an extra
+//-- contour) that the user may wish to undo.
+
+int edit_addLivewirePtsToCont( Icont *cont, int startIdx,
+															 Livewire::LivewireCalculator *livewire,
+															 QPoint qptEnd, int z, bool addUndo, bool reverse )
+{
+	int ptsAdded = 0;		// tracks how many new points we add
+	Ipoint newPt;				// used to store each new point we add
+	
+	bool append = (startIdx < 0) || (startIdx >= psize(cont));
+	
+	
+	//## IF WEIGHTS HAS FINISHED, GET LIVEWIRE POINTS FROM THE INPUT
+	//## LIVEWIRECALCULATOR TO THE DEFINED END POINT:
+	
+	
+	if( plug.weights!=NULL && !plug.weights->IsExecuting() && livewire!=NULL )
+	{
+		QVector<QPoint> qpts = livewire->GetTrace( qptEnd );		// get livewire line
+		//cout<< "qpts.size = " << qpts.size()  << endl;
+		
+		//## FOR EACH LIVEWIRE POINT, ADD IT TO THE SPECIFIED LOCATION IN THE CONTOUR:
+		
+		uint nLWPts = qpts.size();
+		for( int p=(nLWPts-1); p>0; p-- )
+		{
+			int idx = (reverse) ? p : nLWPts-1-p;
+			setPt( &newPt, (float)qpts[idx].x(), (float)qpts[idx].y(), z );
+			
+			if( append )
+			{
+				if(addUndo)
+					undoPointAdditionCC( plug.view, psize(cont) );			// REGISTER UNDO
+				imodPointAppend( cont, &newPt );
+			}
+			else
+			{
+				if(addUndo)
+					undoPointAdditionCC( plug.view, startIdx+ptsAdded );        // REGISTER UNDO
+				imodPointAdd( cont, &newPt, startIdx+ptsAdded );
+			}
+			ptsAdded++;
+		}
+	}
+	
+	//## IF NO POINTS WERE ADDED, OR THE LAST POINT ADDED WAS NOT THE 
+	//## DEFINED END POINT, ADD THE END POINT:
+	
+	if( ptsAdded==0 )
+	{
+		if( append )
+		{
+			if(addUndo)
+				undoPointAdditionCC( plug.view, psize(cont) );			// REGISTER UNDO
+			imodPointAppend( cont, &newPt );
+			ptsAdded++;
+		}
+		else
+		{
+			if(addUndo)
+				undoPointAdditionCC( plug.view, startIdx+ptsAdded );        // REGISTER UNDO
+			imodPointAdd( cont, &newPt, startIdx+ptsAdded );
+			ptsAdded++;
+		}
+	}
+	
+	return ptsAdded;
+}
+
+
+//------------------------
+//-- Starts a new livewire thread starting from the given coordinates (x,y,z)
+//-- using either "plug.livewire" or "plug.livewireF", depending on the
+//-- value of "useLivewireF". Importantly, before the livewire thread is
+//-- started, "plug.weights" is first checked to see if it has calculated
+//-- weights over this XY area and on the same slice "plug.lwWeightZVal". 
+//-- If the point is in a new area or slice, then "plug.weights" is 
+//-- started over this area and the livewire thread waits until this
+//-- finishes to commence. Note that both "plug.livewire" and "plug.livewireF"
+//-- rely on "plug.weights" to finish before they can begin.
+
+bool edit_startLivewireFromPt( int x, int y, int z, bool useLivewireF )
+{	
+	//## MAKE SURE POINT IS WITHIN IMAGE BOUNDARIES:
+	
+	if( x < 0 ) x = 0;		if( x >= plug.xsize ) x = plug.xsize-1;
+	if( y < 0 ) y = 0;		if( y >= plug.ysize ) y = plug.ysize-1;
+	if( z < 0 ) z = 0;		if( z >= plug.zsize ) z = plug.zsize-1;
+	
+	//## IF THE SLICE CLICKED IS NOT THE SLICE IN "plug.weight",
+	//## USE THIS THREAD TO CALCULATE THE WEIGHT OF THIS SLICE:
+	
+	if( plug.lwWeightZVal != z )
+	{
+		plug.lwWeightZVal = z;
+		
+		unsigned char **data = ivwGetCurrentZSection( plug.view );
+		int mode = ivwGetImageStoreMode( plug.view );
+		
+		Livewire::WeightCalculator::DataFormat format;
+		if     (mode==0)								format = Livewire::WeightCalculator::GrayscaleByte;
+		else if(mode==MRC_MODE_USHORT)	format = Livewire::WeightCalculator::GrayscaleUShort;
+		else														format = Livewire::WeightCalculator::RGB;
+		
+		uint stride = data[1] - data[0];
+		
+		plug.weights->Start(data[0], format, data[1] - data[0]);
+		//printf("Starting weights from %p with format %d and stride %d\n",
+		//       data[0], format, stride);
+		//printf("Waiting...\n");
+	}
+	plug.weights->wait();
+	
+	
+	//## RESTART LIVEWIRE THREAD FROM POINT CLICKED USING
+	//## EITHER "plug.livewireF" OR "plug.livewire": 
+	
+	if( useLivewireF )
+	{
+		//printf("Starting livewireF from (%d,%d)\n", x, y);
+		plug.livewireF->Start( QPoint(x,y) );
+		//setPt( plug.livewireFPt, (float)x,(float)y,(float)z );
+	}
+	else
+	{
+		//printf("Starting livewire from (%d,%d)\n", x, y);
+		plug.livewire->Start( QPoint(x,y) );
+		//setPt( plug.livewirePt, (float)x,(float)y,(float)z );
+	}
+	
+	return true;
+}
+
+
+
+
+//------------------------
+//-- Executes a "livewire select" whereby the user pushes but2
+//-- (the middle mouse for me) to select a point, and we want 
+//-- livewire generated between the closest livewire points.
+//-- To determine if there are livewire point, this function
+//-- calls "edit_getNextAndPrevLivewirePts()" and if no livewire
+//-- points are found, livewire just begins on the selected point.
+//-- Returns true if livewire is started, or false if no point
+//-- was/is selected and thus livewire is not restarted.
+
+bool edit_executeLivewireSelectPt()
+{
+	//## SELECT ANY VISIBLE POINT NEAR WHERE THE USER CLICKED
+	//## OR RETURN FALSE IF NO NEARBY POINT FOUND
+	
+	bool newPtFound = edit_selectVisiblePtNearCoords( &plug.mouse, 20.0f );
+	//cout << "newPtFound = " << newPtFound << endl;
+	if( !newPtFound )
+		return false;
+	
+	
+	//## DETERMINE IF SELECTED POINT BELONGS TO A CONTOUR WITH ACTIVE 
+	//## LIVEWIRE POINTS AND, IF SO, THEN BEGIN LIVEWIRE FROM THE 
+	//## CLOSEST LIVEWIRE POINTS BEFORE AND/OR AFTER THAT POINT:
+	
+	int prevLWPt, nextLWPt;
+	bool isPtOnLivewireCont = edit_getNextAndPrevLivewirePts( prevLWPt, nextLWPt );
+	
+	Imod *imod     = ivwGetModel(plug.view);
+	Icont *cont    = imodContourGet(imod);
+	Ipoint *currPt = imodPointGet(imod);
+	
+	if( cont == NULL || currPt == NULL )
+		return (false);
+	
+	
+	if( isPtOnLivewireCont )
+	{
+		if( prevLWPt != -1 )
+		{
+			Ipoint *prevPt = getPt( cont, prevLWPt );
+			edit_startLivewireFromPt( (int)prevPt->x, (int)prevPt->y, (int)prevPt->z, false );
+		}
+		if( nextLWPt != -1 )
+		{
+			Ipoint *nextPt = getPt( cont, nextLWPt );
+			edit_startLivewireFromPt( (int)nextPt->x, (int)nextPt->y, (int)nextPt->z, true );
+		}
+	}
+	else {
+		edit_startLivewireFromPt( (int)currPt->x, (int)currPt->y, (int)currPt->z, false );
+	}
+
+	return true;
+}
+
+
+
+//------------------------
+//-- Determines if the contours belonging to the currently selected
+//-- contour has livewire points. If so, it will return true and the
+//-- value of "prevLWPt" and "nextLWPt" set the the point index
+//-- in the current contour of the closest livewire point before and
+//-- after the currently selected point.
+//-- If there is no livewire point before or after, these values
+//-- get set to -1, and if there are no livewire points at all
+//-- (or no valid point selected) then false is returned.
+
+bool edit_getNextAndPrevLivewirePts( int &prevLWPt, int &nextLWPt )
+{
+	//## IF NOT ALREADY, MAKE SURE LIVEWIRE IS SETUP:
+	
+	uint w = plug.xsize, h = plug.ysize;
+	plug.window->setupLivewire( plug.xsize, plug.ysize );
+	
+	
+	//## IF NO POINT SELECTED, EXIT EARLY:
+	
+	prevLWPt = -1;
+	nextLWPt = -1;
+	
+	Imod *imod     = ivwGetModel(plug.view);
+	Icont *cont    = imodContourGet(imod);
+	Ipoint *currPt = imodPointGet(imod);
+	
+	if( currPt == NULL )
+		return (false);
+	
+	//## IF SELECTED POINT ON DIFFERENT SLICE THAN LIVEWIRE POINTS 
+	//## (plug.lwPts), START LIVEWIRE FROM SELECTED POINT:
+	
+	Ipoint currPtRounded;
+	setPt( &currPtRounded, (int)currPt->x, (int)currPt->y, (int)currPt->z );
+	
+	if( plug.lwPts == NULL || getZInt(plug.lwPts) != (int)currPt->z
+		  || psize(plug.lwPts) <= 0 || psize(cont) <= 1 )
+	{
+		return false;
+	}
+	
+	
+	//## CHECK IF THE CURRENTLY SELECTED PT IS ON LIVEWIRE CONTOUR:
+	
+	int objIdx, contIdx, ptIdx;
+  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+	
+	bool currPtOnLivewirePt   = false;
+	bool currPtOnLivewireCont = false;
+	
+	
+	for( int p=ptIdx; p>=0; p-- )								// for each point before current point:
+	{
+		if( cont_doesPtExistInCont( plug.lwPts, getPt(cont,p) ) )		// if livewire pt:
+		{
+			prevLWPt = p;																										// record position
+			break;
+		}
+	}
+	
+	for( int p=ptIdx+1; p<psize(cont); p++ )		// for each point after current point:
+	{
+		if( cont_doesPtExistInCont( plug.lwPts, getPt(cont,p) ) )		// if livewire pt:
+		{
+			nextLWPt = p;																										// record position
+			break;
+		}
+	}
+	
+	return ( prevLWPt!=-1 || nextLWPt!=0 );
+}
+
+
+
+
+
+//------------------------
+//-- This function is not yet implemented properly, but the idea is
+//-- that an adaptive flood fill is used to add points within
+//-- "radius" of the given point ("centerPt") and with a gray value
+//-- that's within a distance "threshold" of the "targetGray".
+//-- Such points are added to the given contour "cont" in a
+//-- "scan line" order.
+//--
+//-- NOTE: THIS FUNCTION NOT YET IMPLEMENTED PROPERLY.
+
+int edit_addWandPtsToCont( Icont *cont, Ipoint centerPt, int radius, 
+													 float targetGray, float tolerance, bool allPts )
+{
+	//## CHECK VALID RADIUS AND DETEMINE AREA TO CHECK:
+	
+	if( cont==NULL || radius<=0 )
+		return 0;
+	
+	int ptsAdded = 0;		// tracks how many new points we add
+	Ipoint pt;					// used to add new points
+	
+	int minX = MAX( (int)centerPt.x - radius, 0 );
+	int maxX = MIN( (int)centerPt.x + radius, plug.xsize );
+	int minY = MAX( (int)centerPt.y - radius, 0 );
+	int maxY = MIN( (int)centerPt.y + radius, plug.ysize );
+	int z    = (int)centerPt.z;
+	
+	unsigned char **data = ivwGetCurrentZSection( plug.view );
+	const float RADIUS_ADJUST = 0.1f * 255.0f;
+	
+	
+	//## WITHIN THE DESIGNATED CIRCULAR REGION, CHECK ALL PIXELS:
+	
+	for(int y=minY; y<maxY; y++)
+	for(int x=minX; x<maxX; x++)
+	{
+		setPt( &pt, x, y, z );
+		bool pointAdded = false;
+		
+		float dist = line_distBetweenPts2D( &centerPt, &pt );
+		
+		if( dist < radius )
+		{
+			float fractDist = dist / radius;
+			int grayValue = data[y][x];
+			
+			int grayValueDiff = ABS( targetGray - grayValue ) + (fractDist*RADIUS_ADJUST);
+			
+			if( grayValueDiff <= tolerance )
+			{
+				imodPointAppendXYZ( cont, (float)x,(float)y,(float)z );
+				pointAdded = true;
+				ptsAdded++;
+			}
+		}
+		
+		if( !pointAdded && allPts )
+		{
+			imodPointAppendXYZ( cont, (float)x,(float)y,-1 );
+		}
+		
+	}
+	
+	return ptsAdded;
+}
