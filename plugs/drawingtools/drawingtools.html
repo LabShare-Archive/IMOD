@@ -2,6 +2,7 @@
 <title>Drawing Tools Plugin Help</title>
 </head>
 <body>
+<a name="TOP"></a>
 <h3>Drawing Tools Plugin Help</h3><br>
 --------------------------<br><br>
 This plugin provides a set of <b>drawing tools</b> which allows you to 
@@ -18,40 +19,60 @@ video tutorial</a></b></i>
 <br>
 <br>
 <br>
-<b>List of Drawing Modes</b><br>
+<b>List of Default Drawing Modes</b><br>
 --------------------------<br>
 <ol>
 <li><b>Normal</b> - lets you use normal contour drawing behavior.</li>
-<li><b>Warp</b> - allows you to quickly correct bad regions of contour
-by warping <i>[second_button]</i> or warp-and-smoothing <i>[third_button]</i> the contour points closest to (if you click on a contour) or within (if you 
-click near a contour) the sculpt circle.
-Holding <i>[shift+third_button]</i> lets you break apart contours.</li>
+<li><strong>LiveWire</strong> - an edge detection tool to help you quickly trace around 
+  dark membranes, similar to the &quot;magnetic lasso&quot; tool in Photoshop.</li>
+<li><b>Warp</b> - allows you to quickly correct bad regions of contour 
+  by warping <i>[second_button]</i> or warp-and-smoothing <i>[third_button]</i> the contour 
+  points closest to (if you click on a contour) or within (if you click near a contour) 
+  the sculpt circle. Holding <i>[shift+third_button]</i> lets you break apart contours.</li>
 <li><b>Sculpt</b> - lets you quickly draw contours by holding the point 
   addition mouse button <i>[second_button]</i> and pushing the contour 
   outwards or inwards with the sculpt circle. Holding down <i>[shift]</i> 
   as well lets you will pinch contours toward the center instead.</li>
 <li><b>Join</b> - is similar to Sculpt, but also allows you to merge 
-two contours by pushing one contour over another or split a contour 
-by pushing a gap through the middle. Using <em>[third_button]</em> lets 
-you join or split contours using a rectangle.</li>
-<li><strong>LiveWire</strong> - an edge detection tool to help you quickly trace around dark membranes, similar to the &quot;magnetic lasso&quot; tool in Photoshop.</li>
-<li><b>Eraser</b> - allows you to delete contours <i>[second_button]</i> or points <i>[third_button]</i> touching the sculpt circle. 
-  Holding <i>[shift+second_button]</i> lets you break apart contours.</li>
+  two contours by pushing one contour over another or split a contour 
+  by pushing a gap through the middle. Using <em>[third_button]</em> lets 
+  you join or split contours using a rectangle.</li>
+<li><b>Eraser</b> - allows you to delete contours <i>[second_button]</i> or points
+  <i>[third_button]</i> touching the sculpt circle. Holding <i>[shift+second_button]</i>
+  lets you break apart contours.</li>
 <li><b>Transform</b> - allows you to move <i>[second_button]</i>, 
   <i>scale [third_button]</i>, rotate <i>[shift+second_button]</i> or 
-stretch <i>[shift+third_button]</i> the currently selected contour.</li>
-<li><b>Curve</b> - allows you to draw a smooth contour by clicking a sequence
-  of points <i>[second_button]</i> and then end the contour by pressing
-  [space] or connecting the end of the contour to the beginning. To disconnect
-  from the selected contour without adjustment press [n].</li>
+  stretch <i>[shift+third_button]</i> the currently selected contour.</li>
 <li><b>Measure</b> - allows you to draw a straight line between any 
   two points <i>[second_button]</i> and displays the distance between these 
   points in the relevant units.</li>
 </ol>
+<p>&nbsp;</p>
+<p><b>Extra Drawing Modes</b><br>
+--------------------------</p>
+<p>NOTE: The list above shows the default order of drawing tools, but by clicking any of
+  the numbers it's possible to change the order and/or add to the list one of these other
+  modes:</p>
+
+<ul>
+<li><b>The Wand</b> - a adaptive flood filling algorithm where you can click and 
+  drag <i>[second_button]</i> to rapidly fill in an area within a boundary....
+  <i>(*FEATURE NOT YET IMPLEMENTED*)</i>.</li>
+<li><b>Curve</b> - allows you to draw a smooth contour by clicking a sequence
+  of points <i>[second_button]</i> and then end the contour by pressing
+  [space] or connecting the end of the contour to the beginning. To disconnect
+  from the selected contour without adjustment press [n].</li>
+<li><b>Circle</b> - allows you to rapidly draw circles by clicking and dragging 
+  the mouse <i>[second_button]</i> from one edge of the circle to the far edge. 
+  Using the <i>[third_button]</i>, you can also quickly stretch/squash the
+  circle (or whatever contour is selected) into shape (to make ovals).</li>
+</ul>
+
+<p>&nbsp;</p>
 <p>
-<br>
-<b>Hot Key Summary</b><br>
----------------------
+  <br>
+  <b>Hot Key Summary</b><br>
+  ---------------------
 <table width="100%" border="0" cellpadding="1" cellspacing="0">
   <tr>
     <td width="10%"><b>[1]-[9] </b></td>
