@@ -2242,7 +2242,7 @@ void NameWizard::moreSettings()
 
 void NameWizard::helpPluginHelp()
 {
-  QString str = QString(getenv("IMOD_DIR")) + QString("/lib/imodplug/namewizard.html");
+  QString str = QString(getenv("IMOD_DIR")) + ("/lib/imodplug/namewizard.html#TOP");
   imodShowHelpPage((const char *)str.toLatin1());
 }
 
@@ -2251,7 +2251,7 @@ void NameWizard::helpPluginHelp()
 
 void NameWizard::helpNamingHelp()
 {
-  QString str = QString(getenv("IMOD_DIR")) + QString("/lib/imodplug/naming_help.html");
+  QString str = QString(getenv("IMOD_DIR")) + ("/lib/imodplug/naming_help.html#TOP");
   imodShowHelpPage((const char *)str.toLatin1());
 }
 
@@ -2264,7 +2264,7 @@ void NameWizard::buttonPressed(int which)
   if      (which==0)
     close();
   else if (which==1)
-		openUrl( "https://sites.google.com/site/slashsegmentation/tools/imod/name-wizard-plugin" );
+		openUrl( "http://www.slashsegmentation.com/tools/imod/name-wizard-plugin" );
 	else if (which==2)
     helpPluginHelp();
 }
