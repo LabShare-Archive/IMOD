@@ -3848,7 +3848,8 @@ void BeadHelper::changeEstPosMethod(int value) {
 
 void BeadHelper::helpPluginHelp()
 {
-  QString str = QString(getenv("IMOD_DIR")) + QString("/lib/imodplug/beadhelper.html");
+  QString str = QString(getenv("IMOD_DIR"))
+	            + QString("/lib/imodplug/beadhelper.html#TOP");
   imodShowHelpPage((const char *)str.toLatin1());
 }
 
@@ -3861,7 +3862,7 @@ void BeadHelper::buttonPressed(int which)
   if      (which==0)
     close();
   else if (which==1)
-		openUrl( "http://www.slashsegmentation.com/tools/beadhelper-plugin.htm" );
+		openUrl( "http://www.slashsegmentation.com/tools/imod/bead-helper-plugin" );
 	else if (which==2)
     helpPluginHelp();
 }
