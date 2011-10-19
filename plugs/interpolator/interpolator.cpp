@@ -1672,7 +1672,7 @@ void Interpolator::changeOverlap( int value ) {
 
 void Interpolator::helpPluginHelp()
 {
-  QString str = QString(getenv("IMOD_DIR")) + QString("/lib/imodplug/interpolator.html");
+  QString str = QString(getenv("IMOD_DIR")) + ("/lib/imodplug/interpolator.html#TOP");
   imodShowHelpPage((const char *)str.toLatin1());
 }
 
@@ -1685,7 +1685,7 @@ void Interpolator::buttonPressed(int which)
   if      (which==0)
     close();
   else if (which==1)
-		openUrl( "http://www.slashsegmentation.com/tools/interpolator-plugin" );
+		openUrl( "http://www.slashsegmentation.com/tools/imod/interpolator-plugin" );
 	else if (which==2)
     helpPluginHelp();
 }
