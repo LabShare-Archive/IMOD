@@ -1,84 +1,85 @@
-<ui version="4.0" >
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
  <class>MovieController</class>
- <widget class="QWidget" name="MovieController" >
-  <property name="geometry" >
+ <widget class="QWidget" name="MovieController">
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>218</width>
-    <height>561</height>
+    <width>242</width>
+    <height>568</height>
    </rect>
   </property>
-  <property name="windowTitle" >
+  <property name="windowTitle">
    <string>3dmod Movie Controller</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_5" >
+  <layout class="QVBoxLayout" name="verticalLayout_5">
    <item>
-    <widget class="QGroupBox" name="groupBox" >
-     <property name="title" >
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
       <string>Axis to Control</string>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout" >
-      <property name="leftMargin" >
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="leftMargin">
        <number>5</number>
       </property>
-      <property name="topMargin" >
+      <property name="topMargin">
        <number>2</number>
       </property>
-      <property name="rightMargin" >
+      <property name="rightMargin">
        <number>5</number>
       </property>
-      <property name="bottomMargin" >
+      <property name="bottomMargin">
        <number>5</number>
       </property>
       <item>
-       <widget class="QRadioButton" name="xRadioButton" >
-        <property name="focusPolicy" >
+       <widget class="QRadioButton" name="xRadioButton">
+        <property name="focusPolicy">
          <enum>Qt::NoFocus</enum>
         </property>
-        <property name="toolTip" >
+        <property name="toolTip">
          <string>Control X axis range and increment</string>
         </property>
-        <property name="text" >
+        <property name="text">
          <string>X</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QRadioButton" name="yRadioButton" >
-        <property name="focusPolicy" >
+       <widget class="QRadioButton" name="yRadioButton">
+        <property name="focusPolicy">
          <enum>Qt::NoFocus</enum>
         </property>
-        <property name="toolTip" >
+        <property name="toolTip">
          <string>Control Y axis range and increment</string>
         </property>
-        <property name="text" >
+        <property name="text">
          <string>Y</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QRadioButton" name="zRadioButton" >
-        <property name="focusPolicy" >
+       <widget class="QRadioButton" name="zRadioButton">
+        <property name="focusPolicy">
          <enum>Qt::NoFocus</enum>
         </property>
-        <property name="toolTip" >
+        <property name="toolTip">
          <string>Control Z axis range and increment</string>
         </property>
-        <property name="text" >
+        <property name="text">
          <string>Z</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QRadioButton" name="timeRadioButton" >
-        <property name="focusPolicy" >
+       <widget class="QRadioButton" name="timeRadioButton">
+        <property name="focusPolicy">
          <enum>Qt::NoFocus</enum>
         </property>
-        <property name="toolTip" >
+        <property name="toolTip">
          <string>Control Time axis range and increment</string>
         </property>
-        <property name="text" >
+        <property name="text">
          <string>Time</string>
         </property>
        </widget>
@@ -87,105 +88,105 @@
     </widget>
    </item>
    <item>
-    <widget class="QFrame" name="sliderFrame" >
-     <property name="frameShape" >
+    <widget class="QFrame" name="sliderFrame">
+     <property name="frameShape">
       <enum>QFrame::Panel</enum>
      </property>
-     <property name="frameShadow" >
+     <property name="frameShadow">
       <enum>QFrame::Plain</enum>
      </property>
-     <property name="lineWidth" >
+     <property name="lineWidth">
       <number>0</number>
      </property>
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="rateLayout" >
-     <property name="spacing" >
+    <layout class="QHBoxLayout" name="rateLayout">
+     <property name="spacing">
       <number>6</number>
      </property>
-     <property name="margin" >
+     <property name="margin">
       <number>0</number>
      </property>
      <item>
-      <widget class="QLabel" name="TextLabel1" >
-       <property name="text" >
+      <widget class="QLabel" name="TextLabel1">
+       <property name="text">
         <string>Rate:</string>
        </property>
-       <property name="alignment" >
+       <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
        </property>
-       <property name="wordWrap" >
+       <property name="wordWrap">
         <bool>false</bool>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="upButton" >
-       <property name="focusPolicy" >
+      <widget class="QToolButton" name="upButton">
+       <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
        </property>
-       <property name="toolTip" >
+       <property name="toolTip">
         <string>Increase movie rate</string>
        </property>
-       <property name="text" >
+       <property name="text">
         <string/>
        </property>
-       <property name="icon" >
+       <property name="icon">
         <iconset>
          <normaloff>:/uparrow.png</normaloff>:/uparrow.png</iconset>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="downButton" >
-       <property name="focusPolicy" >
+      <widget class="QToolButton" name="downButton">
+       <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
        </property>
-       <property name="toolTip" >
+       <property name="toolTip">
         <string>Decrease movie rate</string>
        </property>
-       <property name="text" >
+       <property name="text">
         <string/>
        </property>
-       <property name="icon" >
+       <property name="icon">
         <iconset>
          <normaloff>:/downarrow.png</normaloff>:/downarrow.png</iconset>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="rateLineEdit" >
-       <property name="focusPolicy" >
+      <widget class="QLineEdit" name="rateLineEdit">
+       <property name="focusPolicy">
         <enum>Qt::ClickFocus</enum>
        </property>
-       <property name="toolTip" >
+       <property name="toolTip">
         <string>Enter a nominal rate in frames/second</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="TextLabel2" >
-       <property name="text" >
+      <widget class="QLabel" name="TextLabel2">
+       <property name="text">
         <string>FPS</string>
        </property>
-       <property name="alignment" >
+       <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
        </property>
-       <property name="wordWrap" >
+       <property name="wordWrap">
         <bool>false</bool>
        </property>
       </widget>
      </item>
      <item>
-      <spacer name="Spacer5" >
-       <property name="orientation" >
+      <spacer name="Spacer5">
+       <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
-       <property name="sizeType" >
+       <property name="sizeType">
         <enum>QSizePolicy::Expanding</enum>
        </property>
-       <property name="sizeHint" stdset="0" >
+       <property name="sizeHint" stdset="0">
         <size>
          <width>5</width>
          <height>0</height>
@@ -196,58 +197,58 @@
     </layout>
    </item>
    <item>
-    <widget class="QLabel" name="actualLabel" >
-     <property name="text" >
+    <widget class="QLabel" name="actualLabel">
+     <property name="text">
       <string>Actual:</string>
      </property>
-     <property name="alignment" >
+     <property name="alignment">
       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
      </property>
-     <property name="wordWrap" >
+     <property name="wordWrap">
       <bool>false</bool>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox_2" >
-     <property name="title" >
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="title">
       <string>Looping</string>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_2" >
-      <property name="leftMargin" >
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <property name="leftMargin">
        <number>5</number>
       </property>
-      <property name="topMargin" >
+      <property name="topMargin">
        <number>2</number>
       </property>
-      <property name="rightMargin" >
+      <property name="rightMargin">
        <number>5</number>
       </property>
-      <property name="bottomMargin" >
+      <property name="bottomMargin">
        <number>5</number>
       </property>
       <item>
-       <widget class="QRadioButton" name="roundTripButton" >
-        <property name="focusPolicy" >
+       <widget class="QRadioButton" name="roundTripButton">
+        <property name="focusPolicy">
          <enum>Qt::NoFocus</enum>
         </property>
-        <property name="toolTip" >
+        <property name="toolTip">
          <string>Loop from start to end then back to start</string>
         </property>
-        <property name="text" >
+        <property name="text">
          <string>Round trip</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QRadioButton" name="oneWayTripButton" >
-        <property name="focusPolicy" >
+       <widget class="QRadioButton" name="oneWayTripButton">
+        <property name="focusPolicy">
          <enum>Qt::NoFocus</enum>
         </property>
-        <property name="toolTip" >
+        <property name="toolTip">
          <string>Loop from start to end only</string>
         </property>
-        <property name="text" >
+        <property name="text">
          <string>One way</string>
         </property>
        </widget>
@@ -256,76 +257,76 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_3" >
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
-      <widget class="QGroupBox" name="groupBox_3" >
-       <property name="title" >
+      <widget class="QGroupBox" name="groupBox_3">
+       <property name="title">
         <string>Snapshot</string>
        </property>
-       <layout class="QVBoxLayout" name="verticalLayout_2" >
-        <property name="spacing" >
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <property name="spacing">
          <number>1</number>
         </property>
-        <property name="leftMargin" >
+        <property name="leftMargin">
          <number>5</number>
         </property>
-        <property name="topMargin" >
+        <property name="topMargin">
          <number>2</number>
         </property>
-        <property name="rightMargin" >
+        <property name="rightMargin">
          <number>5</number>
         </property>
-        <property name="bottomMargin" >
+        <property name="bottomMargin">
          <number>5</number>
         </property>
         <item>
-         <widget class="QRadioButton" name="noneRadioButton" >
-          <property name="focusPolicy" >
+         <widget class="QRadioButton" name="noneRadioButton">
+          <property name="focusPolicy">
            <enum>Qt::NoFocus</enum>
           </property>
-          <property name="toolTip" >
+          <property name="toolTip">
            <string>Do not take snapshots during movie</string>
           </property>
-          <property name="text" >
+          <property name="text">
            <string>None</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QRadioButton" name="tiffRadioButton" >
-          <property name="focusPolicy" >
+         <widget class="QRadioButton" name="tiffRadioButton">
+          <property name="focusPolicy">
            <enum>Qt::NoFocus</enum>
           </property>
-          <property name="toolTip" >
+          <property name="toolTip">
            <string>Take TIFF snapshots of movie</string>
           </property>
-          <property name="text" >
+          <property name="text">
            <string>TIFF</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QRadioButton" name="rgbRadioButton" >
-          <property name="focusPolicy" >
+         <widget class="QRadioButton" name="rgbRadioButton">
+          <property name="focusPolicy">
            <enum>Qt::NoFocus</enum>
           </property>
-          <property name="toolTip" >
+          <property name="toolTip">
            <string>Take snapshots of movie in current non-TIFF format</string>
           </property>
-          <property name="text" >
+          <property name="text">
            <string>RGB</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QRadioButton" name="pngRadioButton" >
-          <property name="focusPolicy" >
+         <widget class="QRadioButton" name="pngRadioButton">
+          <property name="focusPolicy">
            <enum>Qt::NoFocus</enum>
           </property>
-          <property name="toolTip" >
+          <property name="toolTip">
            <string>Take snapshots of movie in current non-TIFF format</string>
           </property>
-          <property name="text" >
+          <property name="text">
            <string>PNG</string>
           </property>
          </widget>
@@ -334,48 +335,64 @@
       </widget>
      </item>
      <item>
-      <widget class="QGroupBox" name="groupBox_4" >
-       <property name="title" >
+      <widget class="QGroupBox" name="groupBox_4">
+       <property name="title">
         <string>Start at</string>
        </property>
-       <layout class="QVBoxLayout" name="verticalLayout" >
-        <property name="leftMargin" >
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <property name="spacing">
+         <number>1</number>
+        </property>
+        <property name="leftMargin">
          <number>5</number>
         </property>
-        <property name="topMargin" >
+        <property name="topMargin">
          <number>2</number>
         </property>
-        <property name="rightMargin" >
+        <property name="rightMargin">
          <number>5</number>
         </property>
-        <property name="bottomMargin" >
+        <property name="bottomMargin">
          <number>5</number>
         </property>
         <item>
-         <widget class="QRadioButton" name="endRadioButton" >
-          <property name="focusPolicy" >
+         <widget class="QRadioButton" name="endRadioButton">
+          <property name="focusPolicy">
            <enum>Qt::NoFocus</enum>
           </property>
-          <property name="toolTip" >
+          <property name="toolTip">
            <string>Start snapshots at starting or ending limit for axis</string>
           </property>
-          <property name="text" >
+          <property name="text">
            <string>Start/end</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QRadioButton" name="hereRadioButton" >
-          <property name="focusPolicy" >
+         <widget class="QRadioButton" name="hereRadioButton">
+          <property name="focusPolicy">
            <enum>Qt::NoFocus</enum>
           </property>
-          <property name="toolTip" >
+          <property name="toolTip">
            <string>Start snapshots at current coordinates</string>
           </property>
-          <property name="text" >
+          <property name="text">
            <string>Current pt</string>
           </property>
          </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>10</height>
+           </size>
+          </property>
+         </spacer>
         </item>
        </layout>
       </widget>
@@ -383,59 +400,59 @@
     </layout>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox_5" >
-     <property name="title" >
+    <widget class="QGroupBox" name="groupBox_5">
+     <property name="title">
       <string>Zap montage snapshots</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_3" >
-      <property name="spacing" >
+     <layout class="QVBoxLayout" name="verticalLayout_3">
+      <property name="spacing">
        <number>2</number>
       </property>
-      <property name="leftMargin" >
+      <property name="leftMargin">
        <number>5</number>
       </property>
-      <property name="topMargin" >
+      <property name="topMargin">
        <number>2</number>
       </property>
-      <property name="rightMargin" >
+      <property name="rightMargin">
        <number>5</number>
       </property>
-      <property name="bottomMargin" >
+      <property name="bottomMargin">
        <number>5</number>
       </property>
       <item>
-       <layout class="QHBoxLayout" >
+       <layout class="QHBoxLayout">
         <item>
-         <widget class="QCheckBox" name="montageCheckBox" >
-          <property name="focusPolicy" >
+         <widget class="QCheckBox" name="montageCheckBox">
+          <property name="focusPolicy">
            <enum>Qt::StrongFocus</enum>
           </property>
-          <property name="toolTip" >
+          <property name="toolTip">
            <string>Make snapshot of Zap window that is montage of zoomed image</string>
           </property>
-          <property name="text" >
+          <property name="text">
            <string>Montage        by</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="montageSpinBox" >
-          <property name="focusPolicy" >
+         <widget class="QSpinBox" name="montageSpinBox">
+          <property name="focusPolicy">
            <enum>Qt::ClickFocus</enum>
           </property>
-          <property name="toolTip" >
+          <property name="toolTip">
            <string>Factor to zoom by in composing montage snapshot</string>
           </property>
-          <property name="specialValueText" >
+          <property name="specialValueText">
            <string/>
           </property>
-          <property name="keyboardTracking" >
+          <property name="keyboardTracking">
            <bool>false</bool>
           </property>
-          <property name="minimum" >
+          <property name="minimum">
            <number>2</number>
           </property>
-          <property name="maximum" >
+          <property name="maximum">
            <number>50</number>
           </property>
          </widget>
@@ -443,51 +460,51 @@
        </layout>
       </item>
       <item>
-       <widget class="QCheckBox" name="wholeCheckBox" >
-        <property name="focusPolicy" >
+       <widget class="QCheckBox" name="wholeCheckBox">
+        <property name="focusPolicy">
          <enum>Qt::NoFocus</enum>
         </property>
-        <property name="toolTip" >
+        <property name="toolTip">
          <string>Snapshot entire image at zoom of 1</string>
         </property>
-        <property name="text" >
+        <property name="text">
          <string>Whole image at 1:1 zoom</string>
         </property>
        </widget>
       </item>
       <item>
-       <layout class="QHBoxLayout" >
+       <layout class="QHBoxLayout">
         <item>
-         <widget class="QCheckBox" name="scaleCheckBox" >
-          <property name="focusPolicy" >
+         <widget class="QCheckBox" name="scaleCheckBox">
+          <property name="focusPolicy">
            <enum>Qt::NoFocus</enum>
           </property>
-          <property name="toolTip" >
+          <property name="toolTip">
            <string>Increase line thickness and symbol sizes for montage snapshot</string>
           </property>
-          <property name="text" >
+          <property name="text">
            <string>Scale sizes by</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="scaleSpinBox" >
-          <property name="focusPolicy" >
+         <widget class="QSpinBox" name="scaleSpinBox">
+          <property name="focusPolicy">
            <enum>Qt::ClickFocus</enum>
           </property>
-          <property name="toolTip" >
+          <property name="toolTip">
            <string>Amount to scale sizes by (Auto is montage factor, or zoom * factor for zoom &lt; 1)</string>
           </property>
-          <property name="specialValueText" >
+          <property name="specialValueText">
            <string>Auto</string>
           </property>
-          <property name="keyboardTracking" >
+          <property name="keyboardTracking">
            <bool>false</bool>
           </property>
-          <property name="minimum" >
+          <property name="minimum">
            <number>1</number>
           </property>
-          <property name="maximum" >
+          <property name="maximum">
            <number>30</number>
           </property>
          </widget>
@@ -498,59 +515,59 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox_6" >
-     <property name="title" >
+    <widget class="QGroupBox" name="groupBox_6">
+     <property name="title">
       <string>Slicer montage snapshots</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_4" >
-      <property name="spacing" >
+     <layout class="QVBoxLayout" name="verticalLayout_4">
+      <property name="spacing">
        <number>2</number>
       </property>
-      <property name="leftMargin" >
+      <property name="leftMargin">
        <number>5</number>
       </property>
-      <property name="topMargin" >
+      <property name="topMargin">
        <number>2</number>
       </property>
-      <property name="rightMargin" >
+      <property name="rightMargin">
        <number>5</number>
       </property>
-      <property name="bottomMargin" >
+      <property name="bottomMargin">
        <number>5</number>
       </property>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_4" >
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
         <item>
-         <widget class="QCheckBox" name="slicerMontCheckBox" >
-          <property name="focusPolicy" >
+         <widget class="QCheckBox" name="slicerMontCheckBox">
+          <property name="focusPolicy">
            <enum>Qt::NoFocus</enum>
           </property>
-          <property name="toolTip" >
+          <property name="toolTip">
            <string>Make snapshot of Slicer window that is montage of zoomed image</string>
           </property>
-          <property name="text" >
+          <property name="text">
            <string>Montage        by</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="slicerMontSpinBox" >
-          <property name="focusPolicy" >
+         <widget class="QSpinBox" name="slicerMontSpinBox">
+          <property name="focusPolicy">
            <enum>Qt::ClickFocus</enum>
           </property>
-          <property name="toolTip" >
+          <property name="toolTip">
            <string>Factor to zoom by in composing slicer montage snapshot</string>
           </property>
-          <property name="specialValueText" >
+          <property name="specialValueText">
            <string/>
           </property>
-          <property name="keyboardTracking" >
+          <property name="keyboardTracking">
            <bool>false</bool>
           </property>
-          <property name="minimum" >
+          <property name="minimum">
            <number>2</number>
           </property>
-          <property name="maximum" >
+          <property name="maximum">
            <number>30</number>
           </property>
          </widget>
@@ -558,38 +575,38 @@
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_5" >
+       <layout class="QHBoxLayout" name="horizontalLayout_5">
         <item>
-         <widget class="QCheckBox" name="slicerScaleCheckBox" >
-          <property name="focusPolicy" >
+         <widget class="QCheckBox" name="slicerScaleCheckBox">
+          <property name="focusPolicy">
            <enum>Qt::NoFocus</enum>
           </property>
-          <property name="toolTip" >
+          <property name="toolTip">
            <string>Increase line thickness for slicer montage snapshot</string>
           </property>
-          <property name="text" >
+          <property name="text">
            <string>Scale thickness by</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="slicerScaleSpinBox" >
-          <property name="focusPolicy" >
+         <widget class="QSpinBox" name="slicerScaleSpinBox">
+          <property name="focusPolicy">
            <enum>Qt::ClickFocus</enum>
           </property>
-          <property name="toolTip" >
+          <property name="toolTip">
            <string>Amount to scale line thickness by (Auto is montage factor, or zoom * factor for zoom &lt; 1)</string>
           </property>
-          <property name="specialValueText" >
+          <property name="specialValueText">
            <string>Auto</string>
           </property>
-          <property name="keyboardTracking" >
+          <property name="keyboardTracking">
            <bool>false</bool>
           </property>
-          <property name="minimum" >
+          <property name="minimum">
            <number>1</number>
           </property>
-          <property name="maximum" >
+          <property name="maximum">
            <number>30</number>
           </property>
          </widget>
@@ -600,91 +617,91 @@
     </widget>
    </item>
    <item>
-    <widget class="QFrame" name="Frame16" >
-     <property name="frameShape" >
+    <widget class="QFrame" name="Frame16">
+     <property name="frameShape">
       <enum>QFrame::HLine</enum>
      </property>
-     <property name="frameShadow" >
+     <property name="frameShadow">
       <enum>QFrame::Sunken</enum>
      </property>
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" >
-     <property name="spacing" >
+    <layout class="QHBoxLayout">
+     <property name="spacing">
       <number>6</number>
      </property>
-     <property name="margin" >
+     <property name="margin">
       <number>0</number>
      </property>
      <item>
-      <widget class="QPushButton" name="resetButton" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+      <widget class="QPushButton" name="resetButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>54</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
        </property>
-       <property name="toolTip" >
+       <property name="toolTip">
         <string>Set all axes to full range and increment 1</string>
        </property>
-       <property name="text" >
+       <property name="text">
         <string>Reset</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="doneButton" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+      <widget class="QPushButton" name="doneButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>54</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
        </property>
-       <property name="toolTip" >
+       <property name="toolTip">
         <string>Close dialog box</string>
        </property>
-       <property name="text" >
+       <property name="text">
         <string>Done</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="helpButton" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+      <widget class="QPushButton" name="helpButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="maximumSize" >
+       <property name="maximumSize">
         <size>
          <width>54</width>
          <height>32767</height>
         </size>
        </property>
-       <property name="focusPolicy" >
+       <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
        </property>
-       <property name="text" >
+       <property name="text">
         <string>Help</string>
        </property>
       </widget>
@@ -693,7 +710,7 @@
    </item>
   </layout>
  </widget>
- <layoutdefault spacing="6" margin="11" />
+ <layoutdefault spacing="6" margin="11"/>
  <resources/>
  <connections>
   <connection>
@@ -702,11 +719,11 @@
    <receiver>MovieController</receiver>
    <slot>rateEntered()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -718,11 +735,11 @@
    <receiver>MovieController</receiver>
    <slot>donePressed()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -734,11 +751,11 @@
    <receiver>MovieController</receiver>
    <slot>resetPressed()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -750,11 +767,11 @@
    <receiver>MovieController</receiver>
    <slot>helpPressed()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -766,11 +783,11 @@
    <receiver>MovieController</receiver>
    <slot>upPressed()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -782,11 +799,11 @@
    <receiver>MovieController</receiver>
    <slot>downPressed()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -798,11 +815,11 @@
    <receiver>MovieController</receiver>
    <slot>montageToggled(bool)</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -814,11 +831,11 @@
    <receiver>MovieController</receiver>
    <slot>newMontageValue(int)</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -830,11 +847,11 @@
    <receiver>MovieController</receiver>
    <slot>scaleThickToggled(bool)</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -846,11 +863,11 @@
    <receiver>MovieController</receiver>
    <slot>scalingChanged(int)</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -862,11 +879,11 @@
    <receiver>MovieController</receiver>
    <slot>wholeImageToggled(bool)</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
