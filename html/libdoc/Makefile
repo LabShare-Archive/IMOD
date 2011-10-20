@@ -113,8 +113,7 @@ $(LHD)/libifft.html: libifft.html ../../libcfft/odfft.c \
 
 $(LHD)/libdiaqt.html: libdiaqt.html $(QTD)/arrowbutton.cpp \
 	$(QTD)/colorselector.cpp $(QTD)/dia_qtutils.cpp \
-	$(QTD)/dialog_frame.cpp \
-	$(QTD)/multislider.cpp $(QTD)/tooledit.cpp
+	$(QTD)/dialog_frame.cpp $(QTD)/multislider.cpp $(QTD)/tooledit.cpp
 	$(SDEXE) -d $(QTD) libdiaqt.html $(LHD)/libdiaqt.html
 
 
