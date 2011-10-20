@@ -45,6 +45,7 @@
         extension (such as .mrc), you just need to rename the file to have the 
         extension .st instead.
       </p>
+      <p>&nbsp;</p>
       <H2>II.&nbsp; eTomo Setup</H2>
       <p>To start eTomo, type:</p>
       <p>
@@ -122,8 +123,8 @@
       <p>It is useful to look at the raw tilt series files in order to 
         make decisions about preprocessing steps or to see if there are any particular 
         views
-        <span style="COLOR: black">that have poor
-image quality, and that you want to exclude from </span>the<span style="COLOR: black"> alignment and reconstruction.</span>&nbsp;</p>
+        that have poor
+image quality, and that you want to exclude from the alignment and reconstruction.&nbsp;</p>
       <P>To determine if you have views that have poor image quality 
         (poor focus, etc.), open the raw stack(s) by pressing the <b>View Raw Image Stack</b>
         button(s). &nbsp;Movie through the raw tilt series images by clicking the 
@@ -132,25 +133,25 @@ image quality, and that you want to exclude from </span>the<span style="COLOR: b
         and reconstruction.&nbsp; In this sample data set, there are no images that 
         need to be excluded.
       </P>
-      <P>
-        &nbsp;</P>
+      <P> &nbsp;</P>
       <div align="center"><img src="etomoImages/setupwindow2.png" title="" alt="">&nbsp;
         <br>
       </div>
-      <p><br>
+      <p>&nbsp;</p>
+      <p>
         Details specific for the tutorial sample data set are shown above. For this 
         sample data set, the
         <B>Dataset name</B>
         is BBa.st; it is a dual axis set. The pixel size is 2.02 nm, the fiducial 
         diameter is 10 nm and the image rotation is -12.5 degrees. Tilt angles for this 
-        data set are stored and extracted from the data file.&nbsp;<span></span>
+        data set are stored and extracted from the data file.&nbsp;
       </p>
-      <P><br>
+      <P>
         Press the
         <B>Create Com Scripts</B>
         button to move on to generating the tomograms.
-        <br>
-        <H2>III.&nbsp; eTomo Main Window</H2>
+      <p>&nbsp;</p>
+      <H2>III.&nbsp; eTomo Main Window</H2>
       <p>
         If you need to exit eTomo before finishing this tutorial, you can continue 
         where you left off by going to the 
@@ -169,11 +170,12 @@ image quality, and that you want to exclude from </span>the<span style="COLOR: b
         which allow you to move between Axis A and Axis B. The Main Window is currently 
         open to Axis A<br><br>
       </p>
+      <p>&nbsp;</p>
       <div align="center"><img src="etomoImages/mainwindow.png" title="" alt="">&nbsp;
         <br>
       </div>
+      <p>&nbsp;</p>
       <p>
-        <br>
         The Process Control Buttons are arranged in the suggested order of processing 
         from top to bottom.&nbsp; The buttons are color coded to signify the stage of 
         the process, where red indicates that the process has not been started, magenta 
@@ -187,8 +189,8 @@ image quality, and that you want to exclude from </span>the<span style="COLOR: b
         order they should be executed, much like a flow chart.&nbsp; When you execute a 
         process (by pressing a button on one of the Process Panels) the Process Monitor 
         will indicate what the process is doing and when it is complete.
-        <br>
       </p>
+      <p>&nbsp;</p>
       <H2>IV.&nbsp; Pre-Processing</H2>
       <P>If images were collected on the microscope using a CCD camera, 
         random x-rays hitting the CCD camera during collection of the initial dark 
@@ -240,8 +242,9 @@ image quality, and that you want to exclude from </span>the<span style="COLOR: b
       </UL>
       <p>
         For details on this operation, refer to the <a href="tomoguide.html#PRE-PROCESSING">
-          Pre-Processing: Removing X-Rays</a> section of the Tomography Guide.
+          PRE-PROCESSING: REMOVING X-RAYS</a> section of the Tomography Guide.
       </p>
+      <p>&nbsp;</p>
       <H2>V. Coarse alignment.</H2>
       <p>
         Press the
@@ -285,6 +288,7 @@ alignment</B>
           Correlation Alignment</a> in the Tomography Guide for details.&nbsp; Once 
         you are satisfied with the prealigned stack, press the <b>Done</b> button to 
         proceed to the next step.</p>
+      <p>&nbsp;</p>
       <H2>VI.&nbsp; Creating a fiducial model based
         on the position of gold particles.</h2>
       <p>&nbsp;</p>
@@ -380,6 +384,7 @@ alignment</B>
         up in the main 3dmod window. Save the model file,&nbsp; and hit the
         <B>Done</B>
         button to advance to the fine alignment step.</p>
+      <p>&nbsp;</p>
       <H2>VII.&nbsp; Alignment of serial tilts</h2>
       <p align="left">The <b>Fine Alignment</b> panel is organized with 
         a set of three tabs to solve for various alignment parameters. A general 
@@ -409,19 +414,18 @@ alignment</B>
         and short sections from this log file. In my example, the first
         <B>Compute
 Alignment</B>
-        run gave a Residual error mean of 0.375<br>
+        run gave a Residual error mean of 0.364<br>
         <br>
       </p>
       <p align="center"><img src="etomoImages/alignlogerrors.png" title="" alt=""><br>
       </p>
-      <p><br>
-      </p>
+      <p>&nbsp;</p>
       <p>The goal of the fine alignment step is to reduce the Residual 
         error mean to 0.2- 0.5 for the pixel size of this tutorial data set. Data sets 
         with smaller pixel sizes will have larger&nbsp;residual error means.&nbsp;
         <br>
       </p>
-      <p><br>
+      <p>
         The Tiltalign program also creates two model files that provide useful 
         information about the fiducial model.<span>&nbsp; </span>The first (BBa.3dmod) 
         displays a
@@ -430,18 +434,17 @@ the fiducials based on their solved positions. </span>Fiducials that are present
         the two surfaces are assigned 2 different colors; pink spheres on one side and 
         green spheres on the other. Examine this model by hitting the <b>View 3D Model</b>
         button on the bottom of the <b>Fine Alignment</b> box:</p>
-      <p><b>&nbsp;</b><br>
-      </p>
+      <p>&nbsp;</p>
       <p align="center">&nbsp;<img src="etomoImages/3Dmodel1.png" title="" alt=""><img src="etomoImages/3Dmodel2.png" title="" alt="">&nbsp;<span></span></p>
-      <p><br>
+      <p>&nbsp;</p>
+      <p>
         You should see a nice distribution of pink and green spheres across the field 
         of view. Rotate the model to view edge-on by holding down the number 8 key on 
         the keypad. You will see the separation of the two surfaces with this view. 
         Avoid using models that have a cluster of fiducials in any one particular 
         region because this will skew the alignment. Close the 3dmodv window.
-        <br>
       </p>
-      <p><br>
+      <p>
         The second model Tiltalign produces is a residual vector model. &nbsp;Press the 
         '<b>View Residual Vectors</b>' button at the bottom of the <b>Fine Alignment</b>
         box. This will open the prealigned stack in 3dmod and display the residual 
@@ -465,15 +468,15 @@ the fiducials based on their solved positions. </span>Fiducials that are present
         Fixer dialog box in <b>Fix big residuals</b> mode and load the aligna.log file.</p>
       <h4>The following
 iterative steps involve fixing fiducial points with large residuals.</h4>
+      <p>&nbsp;</p>
       <p align="center"><img src="etomoImages/3dmod.png" alt="">&nbsp;&nbsp; 
         &nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; 
         &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &nbsp;<img src="etomoImages/beadfixer2.png" title="" alt="">
         &nbsp;</p>
-      <p><br>
+      <p>&nbsp;</p>
+      <p>
         Click<span>&nbsp; </span>'<b>Go to Next Big Residual</b>' in the <b>Bead Fixer</b>
         dialog box.</p>
-      <p><br>
-      </p>
       <p>The model point that had the big residual will have a red 
         arrow pointing in the direction of the recommended move. You'll probably be 
         able to see that the model point is not centered properly on the gold. &nbsp;<span>&nbsp; </span>If 
@@ -481,29 +484,25 @@ iterative steps involve fixing fiducial points with large residuals.</h4>
         it will move the model point by the recommended amount. This works most of the 
         time, but if the recommendation looks wrong, you can move it by hand by 
         centering the cursor over the middle of the gold bead and then clicking the 
-        right mouse button.<br>
-        <br>
+        right mouse button.
       </p>
+      <p>&nbsp;</p>
       <p align="center"><img src="etomoImages/beadfixer4.png" title="" alt="">&nbsp;&nbsp;&nbsp; 
         &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; <img src="etomoImages/beadfixer5.png" title="" alt=""><br>
       </p>
-      <p><br>
-      </p>
+      <p>&nbsp;</p>
       <p>Repeat selecting '<b>Go to Next Big Residual</b>' and '<b>Move 
           Point by Residual</b>' until no residuals are found. The hot key <b>' </b>will 
         cycle to the next residual and the hot key<b> ;</b> will move point by 
         residual. Save the model file and leave the file open.
-        <br>
       </p>
       <p>
         Access the aligna.log file and go to the Surface Angles tab.<br>
-        <br>
       </p>
+      <p>&nbsp;</p>
       <div align="center"><img src="etomoImages/alignlogsurface.png" title="" alt=""><br>
       </div>
-      <p></p>
-      <p><br>
-      </p>
+      <p>&nbsp;</p>
       <p>Note the Total tilt angle change near the bottom (in my 
         example, this value was -0.09). Put this value in the
         <B>Fine Alignment Volume Position Parameters</B>
@@ -512,9 +511,6 @@ iterative steps involve fixing fiducial points with large residuals.</h4>
         Compute Alignment button again, then select 'Reread log file' in the Bead Fixer 
         dialog window. Proceed in fixing model points with large residuals. Save the 
         model.&nbsp;
-        <br>
-      </p>
-      <p><br>
       </p>
       <p>
         If your data set has a good distribution of gold on both surfaces, you can 
@@ -523,22 +519,18 @@ Variables</B>' tab in the
         <B>Fine
 Alignment</B>
         box:&nbsp;</p>
-      <p><br>
-      </p>
+      <p>&nbsp;</p>
       <p align="center"><img src="etomoImages/finealignAglobal.png" title="" alt="">&nbsp;
         <br>
       </p>
-      <p></p>
-      <p><br>
-        <span></span></p>
-      <p><span>Select the </span><span> '<B>Full solution</B>' &nbsp;</span><span>option
+      <p>&nbsp;</p>
+      <p>Select the&nbsp; '<B>Full solution</B>' &nbsp;option
 in the <B>Distortion Solution Type</B>
 area at the bottom of the panel. This will activate solving for two
 types of distortion: X-axis stretch and Skew. Keep the default group
 size and hit the '<B>Compute Alignment</B>'
-button to run the alignment.  3dmod will re-read the log file when <b>Compute Alignment</b> is done.<br>
-</span><b></b></p>
-      <p><br>
+button to run the alignment.  3dmod will re-read the log file when <b>Compute Alignment</b> is done.</p>
+      <p>
         Return to the 3dmod windows and repeat fixing the new residuals that Tiltalign 
         came up with after solving for distortion. Then press the
         <B>Save &amp; Run Tiltalign</B>
@@ -548,11 +540,13 @@ button to run the alignment.  3dmod will re-read the log file when <b>Compute Al
         running the alignment and checking model points in 3dmod, the final mean 
         residual should come down to 0.2-0.4.&nbsp;&nbsp; In my example, the final 
         Residual error mean was 0.318.</p>
-      <p><br>
+      <p>
+      <p>&nbsp;</p>
       </p>
       <div align="center"><img src="etomoImages/finalAerror.png" title="" alt=""><br>
       </div>
-      <h2>VIII.&nbsp; </span>Sampling the data set to create 3 small reconstructions</h2>
+      <p>&nbsp;</p>
+      <h2>VIII.&nbsp; Sampling the data set to create 3 small reconstructions</h2>
       <p>The goal of the next step is to shift and rotate your 
         reconstruction so that it is as flat as possible and will fit into the smallest 
         volume. This is done by sampling three regions of the tomogram, ones computed 
@@ -565,36 +559,32 @@ button to run the alignment.  3dmod will re-read the log file when <b>Compute Al
         make the section come out at the same Z height throughout the length of the 
         tomogram.<br>
       </p>
-      <p><br>
+      <p>
         Increase the Sample tomogram thickness to 200.&nbsp; This will create a 
         reconstruction that is much thicker than the original section.</p>
-      <p><b>&nbsp;</b><br>
-        <B> Press Create Sample Tomograms</B></p>
+      <h4> Press Create Sample Tomograms</h4>
       <p>&nbsp;</p>
       <div align="center"><img src="etomoImages/TomopositionA2.png" title="" alt="">&nbsp;
         <br>
-        <br>
       </div>
+      <p>&nbsp;</p>
       <p>This command file first extracts and aligns a 60 pixel sliver 
         from the top, middle, and bottom of the image stack. The program then uses 
         these samples to create 10 slices of the reconstruction from the top, middle, 
         and bottom of the aligned stack. These output files are named topa.rec, 
         mida.rec, bota.rec. Press <b>Create Boundary Models</b></p>
-      <p><b>&nbsp;</b><br>
-        <B>This step involves creating a model to
-define the top and bottom surfaces of each reconstruction.</B>
-      </p>
-      <p>&nbsp;</p>
-      <p>When&nbsp; the '<B>Create
+        <H4>This step involves creating a model to
+define the top and bottom surfaces of each reconstruction.</H4>
+      <p>When the '<B>Create
 Boundary Models</B>' is pressed, 3dmod will read in all three reconstructions at once, with 
         the topa.rec displayed first and viewed edge on. 3dmod will also start with an 
-        empty model, named tomopitcha.mod.<br>
-        <br>
+        empty model, named tomopitcha.mod.
       </p>
+      <p>&nbsp;</p>
       <div align="center"><img src="etomoImages/TomopositionA4.png" title="" alt="">&nbsp;
         <br>
       </div>
-      <p><br>
+      <p>
         The top bar of the Zap window has a feature '4<sup>th</sup> D' and a backward 
         and forward arrow. If you click the forward arrow, you can cycle through to the 
         mida.rec and bota.rec reconstructions, respectively. Start with the topa.rec. 
@@ -615,8 +605,7 @@ Boundary Models</B>' is pressed, 3dmod will read in all three reconstructions at
         the lines that you draw.&nbsp; You can adjust the entry in <b>Added border 
           thickness</b> to accomplish this.&nbsp; The default value of 5 will make 
         the tomogram 10 pixels thicker; change it to 10 to make it 20 pixels thicker.</p>
-      <p>&nbsp;</p>
-      <p><b>&nbsp;Press 'Compute Z Shift and Pitch Angles'</b></p>
+      <h4>Press 'Compute Z Shift and Pitch Angles'</h4>
       <p>Based on these model contours, tomopitch determines 
         parameters to make the reconstruction as flat as possible and to fit in the 
         smallest volume as possible.&nbsp;&nbsp;These offsets are automatically added to 
@@ -625,65 +614,72 @@ Boundary Models</B>' is pressed, 3dmod will read in all three reconstructions at
         the tomopitch log.&nbsp;<BR>&nbsp;</p>
       <P align="center">&nbsp;<img src="etomoImages/TomopositionA5.png" title="" alt="">
       </P>
+      <p>&nbsp;</p>
       <h2>IX.&nbsp; The final runs to create the full-size tomogram</h2>
       <P>Press the
         <B>Create Final Alignment</B>
         button. &nbsp; After the final alignment transforms are created, press the
         <B>Done</B>
-        button to advance to the next step.<br>
+        button to advance to the next step.
       </P>
       <P>&nbsp;</P>
       <div align="center"><img src="etomoImages/TomopositionA7.png" title="" alt="">&nbsp;
         <br>
       </div>
+      <p>&nbsp;</p>
       <h3>Press 'Create Full Aligned Stack'</h3>
-      <p><b></b>This command will apply the alignment transforms to the 
+      <p>This command will apply the alignment transforms to the 
         full-sized image for the final, aligned stack. The output file is named BBa.ali
-        <br>
       </p>
+      <p>&nbsp;</p>
       <div align="center"><img src="etomoImages/FullAlignedStackA1.png" title="" alt="">&nbsp;
         <br>
       </div>
+      <p>&nbsp;</p>
       <p>The full aligned stack may be
 viewed by pressing <B>View Full Aligned
 Stack</B>, although this is not necessary.&nbsp; There are
 optional steps for CTF correction, erasing fiducials, and filtering the
 aligned stack, which are also not needed
 here.&nbsp; Press the <B>Done</B> button to advance to the next
-step.<br></P>
+step.</P>
       <p>The default filtering parameters in the
         <B>Tilt Parameters</B>
         section are appropriate for many cases, but can be changed, or the aligned 
         stack can be filtered, to reduce noise in the reconstruction (see the <a href="tomoguide.html/#TOMOGRAM GENERATION">
           TOMOGRAM GENERATION</a> section of the Tomography Guide for details).&nbsp;</p>
+      <p>&nbsp;</p>
       <div align="center"><img src="etomoImages/TomogenA1.png"
-                                           title="" alt="">&nbsp;
+                               title="" alt="">&nbsp;
       </div>
       <p>&nbsp;</p>
       <h3>Press 'Generate Tomogram'</h3>
-      <p>When the tomogram is computed,&nbsp; examine it by pressing
+      <p>When the tomogram is computed, examine it by pressing
         <B>View Tomogram in 3dmod</B>. You may also 
         choose to
-        <B>Delete Intermediate
-Image Stacks</B>
+        <B>Delete Intermediate Image Stacks</B>
         at this point to save space.
-        <br>
+      </P>
+      <p>
         Movie through the reconstruction by hitting the middle mouse button to step 
         through serial, tomographic slices from the top surface of the tomogram to the 
         bottom surface.&nbsp;</p>
+      <p>&nbsp;</p>
       <H2>X. On to the second axis (Axis B):</H2>
-      <p><br>
+      <p>&nbsp;</p>
+      <p>
         <div align="center"><img src="etomoImages/axisButtonsA1.png" title="" alt="">&nbsp;
           <br>
         </div>
-      <p><br>
+      <p>&nbsp;</p>
+      <p>
         To see the B Axis, press the <b>Axis B</b> button at the top of the Etomo 
         window. This will bring up another set of process buttons which can be used to 
         perform the operations for aligning the Axis B tilt series and calculating the 
         tomogram. To prevent confusion, Axis A has a blue background and Axis B has a 
         green background.
       </p>
-      <p><br>
+      <p>
         On the right-hand side of the eTomo main window are the process buttons to 
         perform the operations for aligning the <b>Axis B</b> tilt series and 
         calculating the tomogram. Again, the Pre-processing step is not required for 
@@ -691,40 +687,33 @@ Image Stacks</B>
         above for Axis A.<br>
       </p>
       <p>&nbsp;</p>
-      <p><b>
-          </b></p>
-      <p><b></b></p>
       <p align="center"><img src="etomoImages/coarseB1.png" title="" alt="">&nbsp;&nbsp; 
         &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;</p>
-      <br>
+      <p>&nbsp;</p>
       <p align="center"><img src="etomoImages/coarseB2.png" title="" alt="">
         &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
         <br>
       </p>
-      <p align="center"><b>
-          </b></p>
-      <p>&nbsp;
-      </p>
-      <p><span style="FONT-WEIGHT: normal">After the coarse-aligned stack has been
+      <p>&nbsp;</p>
+      <p>After the coarse-aligned stack has been
 generated, press <B>Done</B> to
 advance
 to the next step. <br>
-In order to combine both tilt axes <span style="COLOR: black">at
+In order to combine both tilt axes at
 least some (8-10) of the beads that you track must be the same in the
-two series. </span>To accomplish this, use the program Transferfid.</span></p>
+two series. To accomplish this, use the program Transferfid.</p>
+      <h3>Press 'Transfer Fiducials From Other Axis'</h3>
       <p>&nbsp;</p>
-      <h3>&nbsp;Press 'Transfer Fiducials From Other Axis'</h3>
-      <br>
-      <div align="center"><span style="COLOR: black"><img src="etomoImages/transferfid.png" title="" alt="">&nbsp; </span><br>
-        <span style="COLOR: black"></span></div>
-      <br>
-      <p><span style="COLOR: black">&nbsp;Pressing the <B>Transfer Fiducials From Other Axis</B>
+      <div align="center"><img src="etomoImages/transferfid.png" title="" alt="">&nbsp;<br>
+        </div>
+      <p>&nbsp;</p>
+      <p>Pressing the <B>Transfer Fiducials From Other Axis</B>
 button will run a program, Transferfid, that creates a seed model for the second axis based on the fiducial model from the
-first axis.<span>&nbsp; </span>The program will search for the pair of views 
+first axis.&nbsp; The program will search for the pair of views 
 in the two series that correspond the best, then transfer the fiducials from the 
 first series to make the seed model for the second series. At the end, the 
 program will list the fiducial correspondence between the first and second axes 
-and will report this in the Project log window.</span></p>
+and will report this in the Project log window.</p>
       <p> Do not worry if a few fiducials failed to transfer.
 In this example, all 27 fiducials correspond:</p>
       <p><code><font size=+1>&nbsp;&nbsp; &nbsp; Points in A: 1-27</font></code></p>
@@ -732,13 +721,14 @@ In this example, all 27 fiducials correspond:</p>
       <p>The output file of transferfid
 is the seed model for the second axis. In this example, the model is
 named BBb.seed. Proceed to <B>Track
-Fiducial Seed Model</B> in the Axis B window. <br>
+Fiducial Seed Model</B> in the Axis B window.
 </p>
+      <p>&nbsp;</p>
       <div align="center"><br>
         <img src="etomoImages/trackB.png" title="" alt="">&nbsp;
         <br>
       </div>
-      <br>
+      <p>&nbsp;</p>
       <p>This will automatically track
 the fiducials for the 'B' set. Fix the gaps in the BBb.fid file by
 pressing the <b>Fix Fiducial Model Using Bead Fixer</b> as outlined
@@ -749,56 +739,53 @@ steps.</p>
       <p>&nbsp;</p>
       <p>You will now proceed with the same steps following the same 
         procedure as outlined above for the Axis A set. Briefly:</p>
-      <h3>&nbsp;Press 'Compute Alignment' for General and Global variable tabs in the 
+      <h3>Press 'Compute Alignment' for General and Global variable tabs in the 
         Fine Alignment box.</h3>
       <p>At this point, you will start&nbsp; the iterative alignment 
         procedure as you did for the 'A' set by&nbsp; editing model points with large 
-        residuals, saving the model, and computing the alignment.<span> When the alignment is complete, press <B>Done</B> and proceed with the tomogram
-generation steps. </span></p>
-      <p>&nbsp;</p>
+        residuals, saving the model, and computing the alignment. When the alignment is complete, press <B>Done</B> and proceed with the tomogram
+generation steps.</p>
       <h4>Proceed with 'Tomogram Positioning' as outlined above for the A Axis.&nbsp;</h4>
       <p><b>Proceed with 'Final Aligned Stack' steps as outlined above for 
           the A Axis.</b></p>
       <p><b>Proceed with 'Tomogram Generation' steps as outlined above for 
           the A Axis.</b></p>
-      <p><br>
-      </p>
+      <p>&nbsp;</p>
       <h2>XI.&nbsp; Combining the two axes</h2>
-      <p><br>
-        <div align="center"><img src="etomoImages/axisButtonsB1.png" title="" alt="">&nbsp;
-          <br>
-        </div>
+      <p>&nbsp;</p>
+      <div align="center"><img src="etomoImages/axisButtonsB1.png" title="" alt="">&nbsp;
+        <br>
+      </div>
+      <p>&nbsp;</p>
       <p>Go back to the A Axis by pressing the <b>Axis A</b> button.</p>
       <p>To combine the two tomograms press the <b>Tomogram Combination</b>
         process button.</p>
       <P>&nbsp;</P>
-      <div align="center">&nbsp;<img src="etomoImages/combine.png" title="" alt="">
+      <div align="center">&nbsp;<img src="etomoImages/combine.png" title="" alt=""><br>
       </div>
+      <p>&nbsp;</p>
       <h3>Tomogram Combination Panel</h3>
       <p>The <B>Tomogram Combination Panel</B>
         is organized with 3 tabs:
         <B>Setup</B>,
         <B>Initial Match</B>, and
         <B>Final Match</B>.
-        <br>
       </p>
-      <p><br>
+      <p>
         The
         <B>Setup</B>
         window is where information is given about the particular data set. The first 
         section describes the
         <B>Tomogram Matching
-Relationship</B>. It is most common to match the B tomogram to A.<br>
+Relationship</B>. It is most common to match the B tomogram to A.
       </p>
-      <p><br>
+      <p>
         The
         <B>Solvematch Parameters</B>
         box asks for information on the fiducial marker distribution. In this example, 
         fiducials are on both sides. For this data set, the programs will have no 
         trouble fitting to all of the points at once, so it is not necessary to fill 
         out <b>Starting points to use from A</b>.&nbsp;</p>
-      <p><br>
-      </p>
       <p>The next section contains information for
         <B>Patch Parameters for Refining the Alignment</B>
         using local 3D cross-correlations.&nbsp; Select <b>Small patches</b>.&nbsp; 
@@ -816,14 +803,12 @@ Relationship</B>. It is most common to match the B tomogram to A.<br>
         through the images and decide what range of the X axis, Y axis and Z axis 
         contains useful information for matching up the volumes. In this example, 
         defaults were kept for the X and Y axis.</p>
-      <p></p>
-      <br>
       <p>In this example <b>Z axis min</b> and <b>Z axis max</b> where 
         set to the first and last slices where about half the material in the slice is 
         not blurry (18 and 69).</p>
-      <br>
+      <p>&nbsp;</p>
       <P align="center">&nbsp;<img src="etomoImages/volA1.jpg" title="" alt=""><img src="etomoImages/volA2.jpg" title="" alt="">&nbsp;</P>
-      <P align="center"><span></span>&nbsp;</P>
+      <p>&nbsp;</p>
       <p>
         Sometimes, this will not eliminate &quot;empty&quot; regions well enough to allow the two 
         axes to combine.&nbsp; In that case, you have to make a patch region model. 
@@ -838,7 +823,7 @@ Relationship</B>. It is most common to match the B tomogram to A.<br>
         useful when reconstructing data sets that have large amounts of resin or open 
         areas in the images.&nbsp; This example data set does not need a patch region 
         model.&nbsp;</p>
-      <p><br>
+      <p>
         When the parameters for the
         <B>Setup
 panel</B>
@@ -852,33 +837,33 @@ Combine Scripts</B>
         automatically advance &nbsp;to the
         <B>Initial Match </B>and finally the
         <B>Final Match</B>
-        tabs as various programs are being run. &nbsp;<br>
+        tabs as various programs are being run. &nbsp;
         </p>
-      <p><br>
+      <p>
         After tomogram combination is complete, press
         <B>Open Combined Volume</B>
         to view the final tomogram. Press
         <B>Done</B>
-        to advance to the final steps.<br>
+        to advance to the final steps.
       </p>
+      <p>&nbsp;</p>
       <h2>XII. &nbsp;Post-Processing and Clean-up of intermediate files.</h2>
-      <P style="Z-INDEX: 0">Post-processing involves a volume trimming 
+      <P>Post-processing involves a volume trimming 
         and byte scaling step, followed by deletion of intermediate files.&nbsp; There 
         are also options to flatten the volume and to create a squeezed down volume; 
         both of these can be useful when working with very large data sets, and the 
         flattening is particularly helpful when reconstructing serial 
         sections.&nbsp;&nbsp;A description of their use can be found in the <A href="tomoguide.html#POST-PROCESSING">
-          POST-PROCESSING</A></P>
-      <P style="Z-INDEX: 0">section of the Tomography Guide.&nbsp;</P>
-      <P style="Z-INDEX: 0">&nbsp;</P>
-      <P style="Z-INDEX: 0" align="center"><img src="etomoImages/trim.png" title="" alt="" style="Z-INDEX: 0" id="IMG1"></P>
-      <br>
+          POST-PROCESSING</A> section of the Tomography Guide.&nbsp;</P>
+      <p>&nbsp;</p>
+      <P align="center"><img src="etomoImages/trim.png" title="" alt="" id="IMG1"></P>
+      <p>&nbsp;</p>
       <p>
         The final reconstruction of the two axes combined into one will always be 
         called sum.rec.&nbsp; (If you have a single axis data set, the name of the 
         reconstruction file at this point will be the data set name followed by 
         _full.rec.)&nbsp; Open the sum.rec reconstruction by pressing <b>3dmod Full Volume</b>.
-        <span style="COLOR: black">Step
+        Step
 through the reconstruction and determine the &nbsp;X,Y and Z ranges
 for the final volume. &nbsp;A convenient way to set the X and Y range is to
 turn on the rubberband with the dashed rectangle in the toolbar of the
@@ -895,7 +880,6 @@ you press <B>Get XYZ Volume Range from
         scaling range is set to find the range of slices that exclude the gold beads. 
         &nbsp;In this example, the scaling is section based and has a range between 
         slices 24 and 70 (see below to enter these numbers using 3dmod).</p>
-      <br>
       <p>Sometimes it is not possible to find a range of slices that 
         contain no gold.&nbsp; For example, the sample used here contains some gold 
         particles on the plastic resin outside the cell that show up in the same slices 
@@ -905,16 +889,16 @@ you press <B>Get XYZ Volume Range from
         Window.&nbsp; Go to a slice which shows gold particles and put a rubberband 
         around an area that excludes them.&nbsp; To do this, press the rubberband 
         toggle to the left of the Z slider.</p>
-      <br>
-      <p align="center">&nbsp;<img src="etomoImages/rubberband1.png" title="" alt="">&nbsp;<span></span></p>
-      <br>
+      <p>&nbsp;</p>
+      <p align="center">&nbsp;<img src="etomoImages/rubberband1.png" title="" alt="">&nbsp;</p>
+      <p>&nbsp;</p>
       <p>Press the left mouse button over the upper left corner of the 
         desired area, and drag the mouse to the lower right corner.&nbsp; Then move the 
         Z slider to lower part of the scaling range (24) and press <b>Lo</b>.&nbsp; 
         Move the Z slider to the upper part of the scaling range (70) and press <b>Hi</b>.</p>
-      <br>
+      <p>&nbsp;</p>
       <P align="center">&nbsp;<img src="etomoImages/rubberband2.jpg" title="" alt="">&nbsp;</P>
-      <P align="center"><span></span>&nbsp;</P>
+      <p>&nbsp;</p>
       <p>Go to the <b>Scaling</b> box in eTomo and press the <b>Get XYZ 
           Sub-Area From 3dmod</b> button. This will cause the eTomo to retrieve X, Y, 
         and Z values you selected.&nbsp; The default reorientation option&nbsp;will 
@@ -924,12 +908,12 @@ you press <B>Get XYZ Volume Range from
         trimming a volume and converting it to bytes.&nbsp; Finally, view the final, 
         trimmed volume (named BB.rec) by pressing <b>3dmod Trimmed Volume</b>.&nbsp; 
         Press
-        <B>Done </B>to proceed to file cleanup. </SPAN>
+        <B>Done </B>to proceed to file cleanup.
         <h3>Cleanup of intermediate files:</h3>
       <p>&nbsp;</p>
       <div align="center"><img src="etomoImages/delete.png" title="" alt=""><br>
       </div>
-      <br>
+      <p>&nbsp;</p>
       <p>Cleaning up of your files is very important!&nbsp; The 
       tomogram generation process creates many large, intermediate files. &nbsp;The
       <B>Intermediate file cleanup</B>
@@ -938,7 +922,6 @@ you press <B>Get XYZ Volume Range from
       you can select by highlighting the intermediate files and hitting the
       <B>Delete Selected</B>
       button.</p>
-    <br>
     <p>The final, dual-axis tomogram is named BB.rec and can be 
       viewed outside of eTomo using the command, 3dmod BB.rec.&nbsp; Refer to the <a href="3dmodguide.html#TOP">
         Introduction to 3dmod</a> for information about modeling the many cellular 
