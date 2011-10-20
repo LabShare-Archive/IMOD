@@ -149,10 +149,8 @@ Point 4 </td>
     </tbody>
   </table>
   </center>
-</p>
-  <p>
+</p><br>
   <h3><a name="Starting3dmod"></a> Starting 3dmod</h3>
-</p>
 <p>To create a model for a MRC image file called <code>example.mrc</code>
 run the following 3dmod command.
 This command will cause a new model to be created, ready to edit.
@@ -202,8 +200,7 @@ model.
 The "Show point" button will be explained in a moment.
 </p>
 <p>Below these buttons are a set of controls called spin boxes, which
-are
-now used extensively in 3dmod. A spin box shows a current value of some
+are used extensively in 3dmod. A spin box shows a current value of some
 parameter, and lets you change that parameter either by increasing or
 decreasing it with the up and down arrow buttons, or by typing in a
 new value. The three spin boxes on the left
@@ -272,7 +269,9 @@ constant contrast and brightness between the images. </li>
 you
 press it the program will adjust the black and white sliders so that
 the
-displayed image has a defined mean and standard deviation. The settings
+displayed image has a defined mean and standard deviation. When it starts up,
+    the program will set the contrast in this way for the first image that it
+    displays. The settings
 for the target mean and standard deviation can be changed in the
 3dmod Preferences dialog box, available from the Edit-Options menu
 entry.
@@ -340,10 +339,10 @@ two different slices show, a separate contour is drawn in each section
 where the feature appears. You can draw as many separate contours as
 necessary to enclose the feature belonging to an object on one section.
 After you have drawn
-the model, you run a separate program, <a href="man/imodmesh.html#TOP">imodmesh</a>,
-to connect the contours across the sections and create a surface that
-can be viewed. Closed contours without point symbols are the default
-when a
+the model, you can
+connect the contours across the sections and create a surface that
+can be viewed; this operation is described below. Closed contours without
+point symbols are the default when a
 new object is created. The contour in section 16 does have some
 circles drawn on it because it is the current contour. The first and
 last points
@@ -414,6 +413,10 @@ right is a box for the scattered point object used to model small
 vesicles;
 here no symbol is
 selected but the sphere radius for points has been set to 14.
+Several other properties can be set with this dialog.  In addition, there is a
+button at the top to copy the properties of an object from another object, and
+a button at the bottom to set the properties of the current object as the
+default for new objects.
 </p>
 <p>
 <h3><a name="ModelinginZap"></a>Modeling in the Zap Window</h3>
@@ -507,11 +510,13 @@ to enter any arbitrary zoom.
   <li>The numbers next to the zoom text box show the size of the
 window, or of the area enclosed by the rubberband, in pixels in the
 screen.&nbsp; This could be useful for taking a snapshot of an area of
-a particular size.<br>
-  </li>
+a particular size.</li>
   <li>The Checkerboard button will toggle between fast drawing and
-slower, high-resolution drawing with pixel smoothing when the zoom is
-greater than 1. </li>
+slower, high-resolution drawing, which is now on by default.  With
+    high-resolution on, pixels are smoothed by interpolation when the zoom is
+greater than 1, and the image is filtered before subsampling to avoid 
+    artifacts when the zoom is
+    less than 1. </li>
   <li>The Lock button is used to keep the image from centering on the
 current
 point and to allow different Zap windows to display different
@@ -526,14 +531,13 @@ does
 not happen when the current point is selected or added by a mouse
 button. </li>
   <li>The Centering button toggles between two centering modes. In one
-mode,
-the image will be centered on the current model point only if it falls near
-the
-edge of the window, that is, outside of a central box. (Thus, the icon
-shows
-one box inside another.) In the other mode, the
-image will be recentered on the current point each time you change the
-current point. (The icon shows a point inside the outer box.) </li>
+    mode, the image will be centered on the current model point only if it
+    falls near the edge of the window, that is, outside of a central
+    box. (Thus, the icon shows one box inside another.) In the other mode, the
+    image will be recentered on the current model point each time you change
+    the current point. (The icon shows a point inside the outer box.) In Movie
+    mode, the image will be recentered on the current image point when you
+    turn the button on.  </li>
   <li>The Insert, or Modeling Direction, button toggles between
 inserting points before and inserting points after the current model
 point.
@@ -562,7 +566,7 @@ all
 features of the Zap window. All image windows and dialog boxes
 have a Help button to provide window-specific information.&nbsp; The
 help system consists of a set of html files that are
-browseable.&nbsp; Here is the <a href="3dmodHelp/zap.html#TOP">help page</a>
+browsable.&nbsp; Here is the <a href="3dmodHelp/zap.html#TOP">help page</a>
 for the Zap window, and here is an <a href="3dmodHelp/index.html#TOP">index</a>
 to all help pages.<br>
   </li>
@@ -611,7 +615,7 @@ image panel. In the figure on the left, you can see the large modeled
 vesicle in the XZ (top)
 plane, and
 an oblique slice through the microtubule marked by the small yellow
-cross in the YZ (right) plane.<br>
+cross in the YZ (right) plane.
 </p>
 <p>When an XYZ Window is first opened, the window size, the zoom, and
 the division of the window among the three view boxes are set so that
@@ -626,7 +630,7 @@ will always show the same feature.&nbsp; If you find that the top and
 side view boxes are too narrow, which can easily be the case after
 zooming up, then you can reapportion the window area among the three
 boxes by dragging the light blue square diagonally with the left mouse
-button.<br>
+button.
 </p>
 <p>The toolbar of the XYZ Window has zoom controls, a low/high
 resolution button, and a lock button as in the Zap Window.&nbsp; There is a
@@ -634,7 +638,7 @@ centering button for bringing the current point as near to the center of the
 view boxes as possible.&nbsp; In movie mode, it will center the current
 image point marked by the yellow crosses; in model mode it will center
 the current model point.&nbsp; The toolbar also has sliders for
-riffling through the X, Y, or Z coordinate.<br>
+riffling through the X, Y, or Z coordinate.
 </p>
 <p>The colored marker lines in the margins of the images also
 indicate the current point coordinates. They contain small handles
@@ -699,7 +703,7 @@ the left mouse button, just as for other windows.&nbsp; You can step
 through slices in the direction perpendicular to the displayed slice
 using the PageUp and PageDown hot keys.&nbsp; The center of the window
 is marked by a red cross; this is the center of rotation when the slice
-angles are changed.<br>
+angles are changed.
 </p>
 <p>There is an alternative method of changing the slice angles which
 can often be more convenient and intuitive than adjusting the
@@ -714,7 +718,7 @@ button.&nbsp; The Shift key also converts the numeric keypad hot keys
 from operating on an individual axis angle to rotating the volume
 around X, Y or Z axes relative to the current slice; in the latter
 case, these keys operate the same as for the model view window shown
-below.<br>
+below.
 </p>
 <p>The most useful items in the Slicer toolbars are the following.
 </p>
@@ -723,7 +727,7 @@ below.<br>
 displays the current zoom and allows a custom zoom to be entered. </li>
   <li>The checkerboard allows you to toggle between rapid,
 low-resolution drawing using nearest-neighbor interpolation, and
-high resolution drawing using quadratic and cubic
+high resolution drawing using cubic
 interpolation. The latter may be considerably slower, but it will
 also be more accurate as well as giving a smoother image. </li>
   <li>The lock button will prevent the slice position from being moved.
@@ -739,12 +743,12 @@ for recentering on the current image or model point, by pushing the
 button on then off.</li>
   <li>The Sh button turns on a Shift Lock mode, in which the mouse and
 keypad can be used to rotate the model as described above without
-having to hold down the Shift key.<br>
+having to hold down the Shift key.
   </li>
   <li>The IM/FT button toggles between showing an image and a Fourier
 transform of the image.</li>
-  <li>The C button shows the slice in which the current contour will
-appear flat.<br>
+  <li>The C button changes the angles to show the slice in which the current contour will
+appear flat.
   </li>
   <li>The box to the right of the sliders portrays the portion of the
 slice being viewed as a red plane inside of a representation of the
@@ -782,7 +786,7 @@ for the more details. <br>
 that we have seen where the computation time can easily make the
 display unacceptably slow. Display time depends on four factors:
 image thickness, high versus low resolution, image size, and the number
-of processors available. The program will take advantage of up to 4
+of processors available. The program will take advantage of all
 processors automatically.&nbsp; If you
 need to average through many slices with a high resolution display, be
 sure to make the image as small as possible. If you must work with a
@@ -804,8 +808,8 @@ not), and whether it is drawn in the other panels.
 This window is a variant of the Zap window
 and the first toolbar has a subset of the features in the standard Zap toolbar.
 </p>
-<p>
   <h3><a name="SettingZ-scale"></a>Setting Z-scale and Pixel Size</h3>
+<p>
 In order for your model to look right in 3D, you may need to set a
 property
 called the "Z-scale" correctly. Both the Z-scale and the pixel size
@@ -832,15 +836,15 @@ by the shrinkage factor (e.g., 0.9 for 10% shrinkage).  For tomography, the
 factor should also be adjusted for lost material if you have an estimate
 of that; see the
 <a
- href="3dmodHelp/modelHeader.html#TOP">Model Header help page</a> for a formula.<br>
+ href="3dmodHelp/modelHeader.html#TOP">Model Header help page</a> for a formula.
 </p>
 <p>The Pixel Size field should contain both a value for the size of the
 pixel in the digitized data, and the units for that value.
 Units can be one of the following; A, nm, um, mm, m, km. For example,
 you could enter "0.015 um" or "15 nm".
 </p>
-<p>
   <h3><a name="ViewingModel"></a>Viewing the Model in 3D</h3>
+<p>
 <table align="center" border="0">
   <tbody>
     <tr>
@@ -951,11 +955,9 @@ default.
 The sphere drawing quality can also be controlled in the "Points"
 panel, which allows one to change the global quality setting (just as
 with the "g" and "G" hot keys) as well as set a quality for individual
-objects.<br>
+objects.
 </p>
-<p>
   <h3><a name="ViewingImage3D"></a>Viewing Image Data in 3D</h3>
-</p>
 <p>When the Model View window is opened from 3dmod, it is possible to
 display the image data in 3D in this window in two different ways.&nbsp;
 One way is to draw one or more planes of the image along with the model.&nbsp;
@@ -964,9 +966,9 @@ of this image
 projection.&nbsp; Multiple planes are drawn with enough transparency so that
 you can see through to the rearmost image plane; you can add more transparency
 to see the model through the images as well.&nbsp; The following pictures show
-an example of this display.<br> 
+an example of this display.
 </p>
-<p><br>
+<p>
 <table align="center" border="0">
   <tbody>
     <tr>
@@ -1034,7 +1036,7 @@ The display properties of the isosurface can be adjusted from the Edit-Objects
 dialog just as for actual objects in the model.&nbsp; The isosurface is kept in
 something called an "extra object" and it is assigned a number higher than the
 number of actual objects.&nbsp; The isosurface will disappear when you close
-the dialog, but you can use the <span style="font-weight: bold;">Save</span>
+the dialog, but you can use the <span style="font-weight: bold;">Save to Object</span>
 button to move it into a new actual object in the model.
 </p>
 <p>
@@ -1053,7 +1055,7 @@ model: with the <a href="man/imodmesh.html#TOP">imodmesh</a> program, and
 with the Meshing panel of the Objects dialog box.&nbsp; Using imodmesh
 provides a wide range of
 options for controlling the meshing; whereas the Meshing panel provides
-a more intuitive interface with the most important options.<br>
+a more intuitive interface with the most important options.
 </p>
 <p>To skin the example model, this command was used:
 <br>
@@ -1072,8 +1074,9 @@ did this because of the
 "-t" option, which is followed by a list of open contour object numbers
 that should be given tubular meshes
 (here, just object 1).&nbsp; The "-d" option is then used to specify the
-diameter of the tubes, in pixels (10).<br>
+diameter of the tubes, in pixels (10).
 </p>
+<p>
 Sometimes the mesh data structure can get so large that interactive
 viewing is very slow.&nbsp; There are two ways to make a mesh with a lower
 resolution, the "-R" option to skip points within contours and
@@ -1082,12 +1085,10 @@ points that are within a certain distance of the line segments between
 the remaining points, thus preserving the shape of
 curves.&nbsp; For example,
 <br>
-<p><code>imodmesh -C -o 4 -R 0.75 -i 2 example.mod</code>
-<br>
-Here, a new mesh is created only for object 4 (-o 4), and
-points will
-be skipped, but the surface defined by the mesh will always be within
-0.75
+<code>imodmesh -C -o 4 -R 0.75 -i 2 example.mod</code>
+</p>
+<p>Here, a new mesh is created only for object 4 (-o 4), and points will
+be skipped, but the surface defined by the mesh will always be within 0.75
 pixel of the original data (-R 0.75). In addition, the "-i 2" makes
 imodmesh connect every other Z plane (i.e., at intervals of 2 in Z),
 reducing the mesh size by 2.
@@ -1104,7 +1105,7 @@ low-resolution mode then switched to high-resolution mode for studying
 details.
 Other commonly needed options are -s and -P to connect contours across
 gaps; see the <a href="man/imodmesh.html#TOP">imodmesh</a> man page for
-details.<br>
+details.
 </p>
 <p>All the options just mentioned are presented in the interface in the
 Meshing panel:<br>
@@ -1136,12 +1137,12 @@ the
 diameter are shown for the microtubule object.&nbsp; When the "Make
 Mesh" button is pressed, the meshing process is started in a separate
 thread so that you can continue working in 3dmod while the mesh is
-being computed.<br>
+being computed.
 </p>
 <p>If you do mesh with imodmesh while you are modeling in 3dmod,
 be sure to save the model, run imodmesh, then immediately load the
 model back into 3dmod with the Reload Model entry in the File
-menu.<br>
+menu.
 </p>
 <h3><a name="ScaleBars"></a>Drawing Scale Bars</h3>
 <p>To display a scale bar in any of the image windows, or in the Model View
@@ -1201,7 +1202,7 @@ currently displayed section (<span style="font-weight: bold;">Current pt</span>)
 To get a series of pictures, select one of the file formats in the <span
  style="font-weight: bold;">Snapshot</span> box and start a movie in a
 Zap or Slicer window with the middle or right mouse button.&nbsp; The
-window will stop movieing when the set of pictures is finished.<br>
+window will stop movieing when the set of pictures is finished.
 </p>
 <p>On the right is the corresponding dialog for movies, opened with
 File-Movies from the Model View Window menu.&nbsp; In the most general
@@ -1217,7 +1218,7 @@ buttons <span style="font-weight: bold;">Full 360 X</span> and <span
 through its sequence of positions.&nbsp; If it is doing the right
 thing, select a file format and check <span style="font-weight: bold;">Write
 files</span>, then press <span style="font-weight: bold;">Make</span>
-again.<br>
+again.
 </p>
 <p>The different image formats differ in their degree and type of
 compression.&nbsp; TIFF files are uncompressed and can be quite large,
@@ -1232,18 +1233,19 @@ movies.&nbsp; If there is a model overlay, you need 90% or higher
 quality to make it look decent in the individual snapshots (images here
 were shot at 90% quality).&nbsp; It might be preferable to take such
 snapshots as PNG's and let your movie software take care of the
-compression.<br>
+compression.
 </p>
 <p>Note that both of these dialogs have a montage option for capturing
 high-resolution snapshots that are larger than the image window
 itself.&nbsp; In each case, the program zooms up the display and pans
 around to capture a montage of images, then assembles these into a
 single image and writes a TIFF file.&nbsp; A movie of such montaged
-snapshots can be saved from the Zap window, but only a single frame can
-be saved in high-resolution mode from the model view window.<br>
+snapshots can be saved from the Zap window or from the Slicer, but only a
+  single frame can be saved in high-resolution mode from the Model View
+  window.
 </p>
-<p>
   <h3><a name="AdvancedTopics"></a>Advanced Topics</h3>
+<p>
 This section is to make you aware of some other features in 3dmod,
 so
 that you can
@@ -1253,6 +1255,7 @@ man page, for more details.
 The first few items are related to
 the Surface/Contour/Point window, shown here on the left.
 </p>
+<p>
 <center>
 <div style="text-align: center;"> </div>
 <table style="text-align: left; width: 850px; height: 629px;" border="1"
@@ -1341,10 +1344,14 @@ in points
 between two points placed along the feature, or by copying a contour
 from one section to the next and adjusting its position to fit changes
 in the boundary or the object. </li>
-  <li><b>Drawing Tools and Other Plugins.</b> Andrew Noske from the University
-of Queensland has contributed two plugins to 3dmod.  Plugins are opened from
-the Special menu of 3dmod.  One of his plugins is a set of tools to assist
-with drawing; the other helps with fixing fiducial models for large data sets.
+  <li><b>Drawing Tools, Interpolator, and Other Plugins.</b> Andrew Noske,
+    originally at the University
+of Queensland and now at the National Center for Microscopy and Imaging
+    research, has contributed several plugins to 3dmod.  Plugins are opened from
+the Special menu of 3dmod.  His plugins provide tools to assist
+with drawing, tools for making measurements with stereology,
+help with fixing fiducial models for large data sets,
+and help managing and assigning standardized names to objects.
 </li>
   <li><b>Pixel View window.</b> Use the Image-Pixel View menu entry to
 open a
@@ -1416,7 +1423,9 @@ advanced
 editing features, including ones to move or copy contours from one
 object to another, and ones to break and
 join contours (see the help for <a href="3dmodHelp/contourMove.html#TOP">contour
-moving</a> and <a href="3dmodHelp/contourJoin.html#TOP">contour joining</a>).</li>
+moving</a>, <a href="3dmodHelp/contourJoin.html#TOP">contour joining</a>, 
+<a href="3dmodHelp/contourBreak.html#TOP">contour breaking</a>, and
+<a href="3dmodHelp/contourCopy.html#TOP">contour copying</a>).</li>
   <li><b>Multiple selected contours.</b>&nbsp; It is possible to select
 more
 than one contour;
