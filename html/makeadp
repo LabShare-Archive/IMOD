@@ -30,7 +30,7 @@ foreach i ($instdir/man/*.html)
         if ("$file" == "$j") set include = 0
     end
     if ($include) cat <<EOF >> $adpout
-    <section ref ="./man/$file.html" title="$file"/>
+    <section ref ="./man/$file.html#TOP" title="$file"/>
 EOF
 end
 
@@ -42,7 +42,7 @@ foreach i (libhelp/*.html)
     if ("$title" == "") set title = $file
     
     cat <<EOF >> $adpout
-    <section ref ="./libhelp/$file.html" title="$title"/>
+    <section ref ="./libhelp/$file.html#TOP" title="$title"/>
 EOF
 end
 
