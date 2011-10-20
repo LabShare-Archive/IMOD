@@ -213,10 +213,10 @@ image quality, and that you want to exclude from </span>the<span style="COLOR: b
         are lurking somewhere in the data set and a preprocessing step is needed to 
         remove them, then you would press the <B>Pre-processing</B>
       button to open this panel:</p>
+      <p> &nbsp;</p>
       <div align="center"><img src="etomoImages/preprocessing.png" title="" alt=""><br>
         </div>
-      <p>
-        &nbsp;</p>
+      <p> &nbsp;</p>
       <P>The basic steps involved in pre-processing (again, not needed 
         for the tutorial data set) are:</P>
       <UL>
@@ -248,17 +248,13 @@ image quality, and that you want to exclude from </span>the<span style="COLOR: b
         <B>Coarse
 Alignment</B>
         Process Control Button to proceed with creating a coarse-aligned stack.</p>
-      <p></p>
-      <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+      <p>&nbsp;</p>
       <div align="center"><img src="etomoImages/coarseA1.png" title="" alt=""><br>
-        <br>
       </div>
-      <p><br>
-      </p>
+      <p>&nbsp;</p>
       <div align="center"><img src="etomoImages/coarseA2.png" title="" alt=""><br>
       </div>
-      <p><br>
-      </p>
+      <p>&nbsp;</p>
       <p>
         Pressing the <b>Calculate Cross-Correlation</b> button runs the program, 
         Tiltxcorr. The program uses cross-correlation to find an initial translational 
@@ -266,13 +262,11 @@ Alignment</B>
         y). The output file, BBa.prexf, contains a list of transforms (or recommended 
         shifts) that will be applied to the image data in the next step.<span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><br>
       </p>
-      <p><br>
-      </p>
+      <p>&nbsp;</p>
       <div align="center"><img src="etomoImages/coarseA3.png" title="" alt=""><br>
       </div>
-      <p><br>
-      </p>
-      <p><br>
+      <p>&nbsp;</p>
+      <p>
         Pressing the <b>Generate Coarse Aligned Stack </b>button will run 2 programs.<span> &nbsp;</span>
         Xftoxg takes the transforms created by Tiltxcorr to obtain a single consistent, 
         or 'global' set of alignments. These new transforms are then applied to the 
@@ -291,13 +285,14 @@ alignment</B>
           Correlation Alignment</a> in the Tomography Guide for details.&nbsp; Once 
         you are satisfied with the prealigned stack, press the <b>Done</b> button to 
         proceed to the next step.</p>
-      <H2>VI.&nbsp Creating a fiducial model based 
-            on the position of gold particles.</h2>
+      <H2>VI.&nbsp; Creating a fiducial model based
+        on the position of gold particles.</h2>
+      <p>&nbsp;</p>
       <div align="center"><img src="etomoImages/fiducialA1.png" title="" alt="">&nbsp;
         <br>
       </div>
-      <P style="Z-INDEX: 0">&nbsp;</P>
-      <P style="Z-INDEX: 0">There are three options available to 
+      <p>&nbsp;</p>
+      <P>There are three options available to 
         generate a fiducial model. The most common is to <B>Make seed and track</B>
         a number of gold fiducial markers.&nbsp; The option, <B>Use patch tracking to 
           make fiducial model, </B>can be&nbsp;used&nbsp;if the data 
@@ -305,10 +300,9 @@ alignment</B>
         fiducials.&nbsp;<B>Run RAPTOR and fix</B> will use a program to 
         automatically find and track gold fiducial markers through the tilt series. See 
         the <A href="tomoguide.html#GETTING FIDUCIAL">FIDUCIAL MODEL GENERATION</A> section 
-        of the Tomography Guide for details.<BR>
-        <B>&nbsp;</B></P>
-      <P><B>Press the 'Seed Fiducial Model' button. </B>
-      </P>
+        of the Tomography Guide for details.
+        </P>
+      <H4>Press the 'Seed Fiducial Model' button. </H4>
       <p>This will open BBa.preali in 3dmod and create an empty model 
         file named BBa.seed. It will also bring up the Bead Fixer dialog box in <b>Make 
           seed</b> mode with <b>Autocenter</b>&nbsp; and <B>Automatic new contour</B>
@@ -327,7 +321,6 @@ alignment</B>
       <div align="center">&nbsp;&nbsp; &nbsp;
         <br>
       </div>
-      <p></p>
       <p>In the Zap (image) window, place a model point in the center 
         of 20-40<span>&nbsp; </span>gold particles by centering the cursor in the 
         middle of the gold particle and pressing the middle mouse button. Because <B>Automatic 
@@ -341,17 +334,11 @@ alignment</B>
         contains model points on only one section. The next step uses this model as a 
         seed from which a complete fiducial model is built.
       </p>
-      <p align="center"><br>
-        &nbsp;
-      </p>
-      <p><b>Press the 'Track Seed Model' process button.</b><br>
-        <br>
-        <b></b>
-      </p>
+      <h4>Press the 'Track Seed Model' process button.</h4>
+      <p>&nbsp;</p>
       <P align="center">&nbsp;<img src="etomoImages/fiducialA2.png" title="" alt="">
       </P>
-      <P align="center">
-        &nbsp;</P>
+      <p>&nbsp;</p>
       <p>This will run the Beadtrack program to find the gold on all 
         other sections. The output file created by tracka.com is BBa.fid, which is the 
         completed fiducial model. This computer-generated model is not perfect, and 
@@ -361,34 +348,25 @@ alignment</B>
         the tracking program with the fiducial model as the seed. If points are still 
         missing, the next procedure involves an iterative process to edit this fiducial 
         model.</p>
-      <p align="center"><br>
-        &nbsp;
-      </p>
-      <p><b>Press the 'Fix Fiducial Model' process button.
-        </b>
-        <br>
-        <br>
-        <b></b>
-      <P></P>
+      <h4>Press the 'Fix Fiducial Model' process button.</h4>
+      <p>&nbsp;</p>
       <p align="center"><img src="etomoImages/fiducialA3.png" title="" alt="">&nbsp;
         </p>
       <p><br>
         This procedure will open the prealigned stack (BBa.preali) and the fiducial 
         model file (BBa.fid) in 3dmod.
       </p>
-      <p><br>
-        <br>
-        <b></b>
-      </p>
+      <p>&nbsp;</p>
       <div align="center"><img src="etomoImages/3dmodmain.png" title="" alt=""> &nbsp;&nbsp;&nbsp; 
         &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; 
         &nbsp; &nbsp; <img src="etomoImages/beadfixer.png" title="" alt="">&nbsp;
         <br>
       </div>
-      <p><br>
+      <p>&nbsp;</p>
+      <p>
         The Bead Fixer dialog box will come up in <b>Fill gaps</b> mode. The Bead Fixer 
         facilitates editing the fiducial model.</p>
-      <p><br>
+      <p>
         Hit<b> 'Go to Next Gap'</b> by clicking on the button using the left mouse 
         button, or by using the spacebar as a hot key.&nbsp; This will attach to a 
         point (highlighted with a yellow circle) that has a missing model point on an 
@@ -407,13 +385,13 @@ alignment</B>
         a set of three tabs to solve for various alignment parameters. A general 
         alignment is first done by pressing the <b>Compute alignment</b> button at the 
         bottom of the<b> Fine Alignment</b> box.
-        <br>
-        <br>
       </p>
+      <p>&nbsp;</p>
       <div align="center"><img src="etomoImages/finealignment1.png" title="" alt="">&nbsp;
         <br>
       </div>
-      <p><br>
+      <p>&nbsp;</p>
+      <p>
         This command file runs the program, Tiltalign, to solve for the displacements, 
         rotations, tilts and magnification differences in the tilted views. The program 
         uses the position of the gold particles in the fiducial model and a variable 
