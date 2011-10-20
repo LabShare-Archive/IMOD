@@ -414,7 +414,9 @@ In addition to being done on multiple processors, tomogram generation can now
 be done on the graphics processing unit (GPU) of an NVIDIA graphics card.  See
 the 
 <a href="guide.html#UsingGPU">IMOD User's Guide</a/> for instructions on
-setting up a machine to use the GPU.
+setting up a machine to use the GPU.  Reconstructions can also be done in
+parallel using GPUs on several computers, although it is not yet possible to
+use more than one GPU on a single computer.
 <br>
 <h1 class="western"><a name="Other_Interfaces"></a>Other Interfaces in
 Etomo</h1>
@@ -485,13 +487,16 @@ bugs</h1>
 users; this includes bug reports, suggestions for enhancements and
 general comments on what ideas or use models do or do not work.&nbsp;
 It is often not initially
-obvious to either you or us whether a problem is occuring because of
+obvious to either you or us whether a problem is occurring because of
 bug in eTomo, a bug in the rest of IMOD, or other difficulties with a
 particular dataset.&nbsp; To help diagnose problems, we have developed
 a script, tomosnapshot, that will collect system information and
 package up many of the small files that reflect the state of the
-processing.&nbsp; The best way to run this is to cd to the directory
-where the data are, start eTomo with the .edf file for the given data
+processing.&nbsp; This script is now able to collect files for all of the
+kinds of projects that have a saved state (i.e, joining, PEET, NAD as well as
+  tomogram generation).
+The best way to run this is to cd to the directory
+where the data are, start eTomo with the project file for the given data
 set, repeat the series of actions that give the error (if this is
 reasonably fast), then select the menu item <span
  style="font-weight: bold;">File/Run Tomosnapshot</span>.&nbsp; You can
