@@ -808,7 +808,7 @@ public final class MatlabParam {
     tiltRangeEmpty = false;
     flgRemoveDuplicates.clear();
     flgAlignAverages.clear();
-    flgFairReference.clear();
+    flgFairReference.setRawString(false);
   }
 
   public void clearEdgeShift() {
