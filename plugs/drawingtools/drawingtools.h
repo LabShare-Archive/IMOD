@@ -37,7 +37,7 @@ using namespace std;
 
 enum drawmodes      { DM_NORMAL, DM_WARP, DM_SCULPT, DM_JOIN, DM_LIVEWIRE,
 	                    DM_ERASER, DM_TRANSFORM, DM_MEASURE, DM_CURVE, DM_CIRCLE,
-	                    DM_WAND };
+	                    DM_WAND, DM_CORRECT };
 enum smoothmodes    { RD_TOL, RD_MINAREA };
 enum wheelbehaviour { WH_NONE, WH_SCULPTCIRCLE, WH_SLICES, WH_CONTS, WH_PTS, WH_PTSIZE };
 enum dkeybehavior   { DK_NONE, DK_TOEND, DK_NEARESTEND, DK_DELETEPT, DK_DELETECONT,
@@ -59,13 +59,16 @@ enum sortcriteria   { SORT_SURFACENUM,
 enum zhints         { ZH_NONE, ZH_ABOVE, ZH_BELOW, ZH_BOX };
 
 enum livewireopt    { LW_DARK_MEMBRANE, LW_LIGHT_MEMBRANE,
-	                    LW_OTHER };		// not yet complete
+	                    LW_OTHER };		// not yet implemented
+
+enum pixneigh { PX_E, PX_NE, PX_N, PX_NW, PX_W, PX_SW, PX_S, PX_SE, PX_EIGHT };
 
 
-const float LW_SNAP_DIST = 10.0f;
-const int NUM_TOOLS       = 11;
-const int NUM_TOOLS_SHOWN = 8;
-const int NUM_SAVED_VALS  = 47;
+const float LW_SNAP_DIST  = 10.0f;
+const int NUM_TOOLS       = 12;
+const int NUM_TOOLS_SHOWN = 9;
+const int NUM_SAVED_VALS  = 51;
+const int PIX_OFF         = -1;
 
 //############################################################
 
@@ -134,8 +137,9 @@ public:
 	//void livewireFFinished();
 	
 	void customizeToolOrder();
-  void changeType( int value );
-  void changeTypeSelected( int newType );
+  void changeMode( int modeIdx );
+  void changeModeSelected( int modeIdx );
+	bool changeRadioToMatchMode( int desiredDrawMode );
   void changeSculptCircleRadius( float value, bool slowDown=false );
   void clearExtraObj();
   void buttonPressed(int);
@@ -265,9 +269,15 @@ struct DrawingToolsData   // contains all local plugin data
 	bool   lwUseWrap;							// if true: "livewireF" is used to show the livewire
 	                              //  wrapping from the last livewire pt back to the first
 	bool   lwDontShowAgain;				// if true: the livewire option popup won't appear
-	                              //  whenever the "Livewire" radio buttion is clicked.
+	                              //  whenever the "Livewire" radio buttion is clicked
+	
+	bool   waSmooth;							// if true: livewire line is smoothed when finished
+	int    waSmoothIts;						// iterations of smoothing is "lwSmooth" is true
+	float  waDistBias;						// a cooefficient used to make points less likely to
+																//  be selected the further they are from the middle
+																//  of the wand circle
 	bool   waDontShowAgain;				// if true: the wand option popup won't appear
-																//  whenever the "Want" radio buttion is clicked.
+																//  whenever the "Want" radio buttion is clicked
 	
 	
 	//## LIVEWIRE OBJECTS:
@@ -290,10 +300,10 @@ struct DrawingToolsData   // contains all local plugin data
 																//  on the current contour, as shown by red dots
 	int lwWeightProgress;					// stores the progress of the "weights" out of 100
 	QTime lwRedrawTime;						// time object used to ensure redraw isn't called 
-																//  too frequently as to slow down IMOD.
+																//  too frequently as to slow down IMOD
 	
 	float wandAvgGrayVal;					// the average gray value around where the user last
-																//  clicked while using the Wand tool.
+																//  clicked while using the Wand tool
 	
 	
   //## MOUSE:
@@ -301,6 +311,7 @@ struct DrawingToolsData   // contains all local plugin data
   Ipoint mouse;         // the current tomogram coordinates of the mouse
   Ipoint mousePrev;     // the mosue coordinates before it's last move
   Ipoint mouseDownPt;   // the mouse coordinates when the mouse button was last pressed
+	Ipoint mouseDownPrev; // the mouse coordinates the time before last when button clicked
   float changeX;        // the distance (in tomogram pixels) of the last mouse move in X
   float changeY;        // the distance (in tomogram pixels) of the last mouse move in Y
   
@@ -384,6 +395,7 @@ void edit_executeSculpt();
 void edit_executeSculptPush(Ipoint center, float radius);
 void edit_executeSculptPinch(Ipoint center, float radius);
 void edit_executeSculptEnd();
+void edit_executeMinorCorrectEnd( float radius );
 
 void edit_executeJoinEnd();
 void edit_executeJoinRectEnd();
@@ -442,7 +454,37 @@ bool edit_startLivewireFromPt(int x, int y, int z, bool useLivewireF);
 bool edit_executeLivewireSelectPt();
 bool edit_getNextAndPrevLivewirePts(int &startPt, int &endPt);
 
+void edit_executeWandAdd();
 int edit_addWandPtsToCont( Icont *cont, Ipoint centerPt, int minDist, 
-													float targetGray, float tolerance, bool allPts );
+													 float targetGray, float tolerance,
+													 float distBiasCoefficient, bool allPts );
+int edit_scanContFill( Icont *cont, Icont *contOut,
+											 Ipoint centerPt, int radius, int minPts );
+int edit_scanContShrink( Icont *cont, int radius, int iterations, bool erodeAllEdgePts );
+
+int edit_contCorrectCircle( Icont *cont, Ipoint centerPt, int radius,
+													  int minPts, Ipoint includePt );
+
+
+
+
+//############################################################
+
+//## INLINE FUNCTIONS:
+
+inline int edit_getPixNeigh( Icont *cont, int pixN[8], int x, int y, int w, int h )
+{
+	int ptIdx = y*w + x;
+	
+	pixN[PX_N]  = (getPt( cont, ptIdx+w   )->z == PIX_OFF) ? 0 : 1;
+	pixN[PX_S]  = (getPt( cont, ptIdx-w   )->z == PIX_OFF) ? 0 : 1;
+	pixN[PX_E]  = (getPt( cont, ptIdx  +1 )->z == PIX_OFF) ? 0 : 1;
+	pixN[PX_W]  = (getPt( cont, ptIdx  -1 )->z == PIX_OFF) ? 0 : 1;
+	pixN[PX_NE] = (getPt( cont, ptIdx+w+1 )->z == PIX_OFF) ? 0 : 1;
+	pixN[PX_SE] = (getPt( cont, ptIdx-w+1 )->z == PIX_OFF) ? 0 : 1;
+	pixN[PX_NW] = (getPt( cont, ptIdx+w-1 )->z == PIX_OFF) ? 0 : 1;
+	pixN[PX_SW] = (getPt( cont, ptIdx-w-1 )->z == PIX_OFF) ? 0 : 1;
+}
+
 
 //############################################################
