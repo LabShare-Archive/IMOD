@@ -119,12 +119,12 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
 				plug.window->interpolateContour();
       break;
       
-    case Qt::Key_T:                  // temporary testing purposes - comment out
-      if( ctrl && shift )
-        plug.window->test();
-      else
-        return 0;
-      break;
+    //case Qt::Key_T:                  // temporary testing purposes - comment out
+    //  if( ctrl && shift )
+    //    plug.window->test();
+    //  else
+    //    return 0;
+    //  break;
       
     case Qt::Key_X:
       if(!ctrl && !shift )
@@ -178,10 +178,10 @@ void imodPlugExecute(ImodView *inImodView)
   if( !plug.initialized )
   {
     plug.interType          = INT_SPHERICAL;
-    plug.tilingMethod       = TM_CONSERVE_LENGTH;
+    plug.tilingMethod       = TM_AUTO;
+    plug.surfResolveMethod	= SR_AUTO;
     plug.branchingMethod    = BR_BRANCHING_OFF;
-    plug.surfResolveMethod	= SR_CENTER_OVERLAP;
-    plug.ptResolveMethod    = PT_FOUR_PTS;
+		plug.ptResolveMethod    = PT_FOUR_PTS;
     
     plug.zBridge                 = 50;
     plug.interSepDistBetweenConts = 5.0;
@@ -192,7 +192,8 @@ void imodPlugExecute(ImodView *inImodView)
     
     plug.deselectAfterEnter       = true;
     plug.selectedAction           = 0;
-    
+    plug.hideSurfSettings         = false;
+		
 		plug.contIdxLastInterp        = -1;
 		plug.objIdxLastInterp         = 0;
 		
@@ -412,6 +413,8 @@ Interpolator::Interpolator(QWidget *parent, const char *name)
     "(i.e. part of same surface). "
     "\nTwo adjacent key contours with < 'Z Bridge' slices between them are connected if: "
     "\n"
+	  "\n > auto - will choose the most appropriate option based on "
+	    "which interpolation type you've selected [*****] <-- RECOMMENDED "
     "\n > touching - they touch (in XY) [***] "
     "\n > centroid - the centroid (center of mass) of either falls inside the "
       "other [****] "
@@ -432,7 +435,8 @@ Interpolator::Interpolator(QWidget *parent, const char *name)
 	surfaceCombo = new QComboBox(grpSurface);
 	surfaceCombo->setFocusPolicy(Qt::NoFocus);
   surfaceCombo->clear();
-  surfaceCombo->addItem("touching");
+  surfaceCombo->addItem("auto");
+	surfaceCombo->addItem("touching");
   surfaceCombo->addItem("center");
   surfaceCombo->addItem("max dist");
   surfaceCombo->addItem("overlap");
@@ -447,10 +451,12 @@ Interpolator::Interpolator(QWidget *parent, const char *name)
   QString tilingStr =
     "The method used to connect points between connected key contours. "
     "\n"
-    "\n > length - matches pts eqivalent percentage length along "
-      "contour from the closest point [*****] <-- fastest "
+	  "\n > auto - will choose the most appropriate option based on "
+	    "which interpolation type you've selected [*****] <-- RECOMMENDED "
+	  "\n > length - matches pts eqivalent percentage length along "
+      "contour from the closest point <-- fastest "
     "\n > min area - connects points in the configuration which minimizes the "
-      "surfaces area of the results triangluar mesh [*] <-- slowest "
+      "surfaces area of the results triangluar mesh <-- slower, but more accurate "
     "\n > feature - attempts to match any cavities in the shape [NOT IMPLEMENTED] ";
   
   lblTilingMethod = new QLabel("tiling method:", grpSurface);
@@ -460,6 +466,7 @@ Interpolator::Interpolator(QWidget *parent, const char *name)
   
 	tilingMethodCombo = new QComboBox(grpSurface);
 	tilingMethodCombo->setFocusPolicy(Qt::NoFocus);
+	tilingMethodCombo->addItem("auto");
 	tilingMethodCombo->addItem("length");
 	tilingMethodCombo->addItem("min area");
   tilingMethodCombo->addItem("feature");
@@ -501,7 +508,9 @@ Interpolator::Interpolator(QWidget *parent, const char *name)
   
 	mLayout->addWidget(grpSurface);
 	
+	grpSurface->setVisible( !plug.hideSurfSettings );
   
+	
   //## Extra Buttons
   
   widget1 = new QWidget(this);
@@ -556,9 +565,9 @@ void Interpolator::loadSettings()
   
   plug.interType                  = savedValues[0];
   plug.tilingMethod               = savedValues[1];
-  plug.branchingMethod            = savedValues[2];
-  plug.surfResolveMethod          = savedValues[3];
-  plug.ptResolveMethod            = savedValues[4]; 
+  plug.surfResolveMethod          = savedValues[2];
+  plug.branchingMethod            = savedValues[3];
+	plug.ptResolveMethod            = savedValues[4]; 
   plug.zBridge                    = savedValues[5];
   plug.interSepDistBetweenConts   = savedValues[6];
   plug.interFractOverlap          = savedValues[7];
@@ -566,6 +575,7 @@ void Interpolator::loadSettings()
   plug.minHoleSize                = savedValues[9];
   plug.maxGapSize                 = savedValues[10];
   plug.selectedAction             = savedValues[11];
+	plug.hideSurfSettings           = savedValues[12];
 }
 
 
@@ -579,9 +589,9 @@ void Interpolator::saveSettings()
   
   saveValues[0]  = plug.interType;
   saveValues[1]  = plug.tilingMethod;
-  saveValues[2]  = plug.branchingMethod;
-  saveValues[3]  = plug.surfResolveMethod;
-  saveValues[4]  = plug.ptResolveMethod; 
+  saveValues[2]  = plug.surfResolveMethod;
+  saveValues[3]  = plug.branchingMethod;
+	saveValues[4]  = plug.ptResolveMethod; 
   saveValues[5]  = plug.zBridge;
   saveValues[6]  = plug.interSepDistBetweenConts;
   saveValues[7]  = plug.interFractOverlap;
@@ -589,7 +599,8 @@ void Interpolator::saveSettings()
   saveValues[9]  = plug.minHoleSize;
   saveValues[10] = plug.maxGapSize;
   saveValues[11] = plug.selectedAction;
-  
+  saveValues[12] = plug.hideSurfSettings;
+	
   prefSaveGenericSettings("Interpolator",NUM_SAVED_VALS,saveValues);
 }
 
@@ -1505,10 +1516,17 @@ void Interpolator::moreSettings()
                   "you ready to immediately draw another contour. \n"
                   "\nRECOMMENDED VALUE: on" );
   
+	ds.addCheckBox( "hide surface settings",
+								  &plug.hideSurfSettings,
+								  "If true, will hide the surface settings area. \n"
+								  "\nRECOMMENDED VALUE: on" );
+	
 	ds.exec();
 	if( ds.wasCancelled() )
 		return;
   
+	
+	plug.window->grpSurface->setVisible( !plug.hideSurfSettings );
   plug.interFractOverlap         = (float)interFractOverlap / 100.0f;
   plug.interSepDistBetweenConts  = interSepDistBetweenConts;
   
@@ -1522,66 +1540,7 @@ void Interpolator::moreSettings()
 
 void Interpolator::test()
 {  
-  //test_showInterpolationBetweenConts();
-  
-  
-  test_selector();
-  
-  //cont_makeConvex( getCurrCont() );
-  
-	/*
-  Imod *imod  = ivwGetModel(plug.view);
-	Iobj *obj   = imodObjectGet(imod);
-	Icont *cont = imodContourGet(imod);
-  
-	if( !isContValid(cont) )
-	{
-		wprint("\aHave not selected valid contour\n");
-		return;
-	}
-	*/
-  
-	//## MODIFY CONTOURS:
-  /*
-	Icont *cont1 = getCont( obj, 0 );
-	Icont *cont2 = getCont( obj, 1 );
-	Icont *new1 = imodContourNew();
-	Icont *new2 = imodContourNew();
-	printCont( cont1 );
-	printCont( cont2 );
-	modifyKeyContsForInterp( cont1, cont2, new1, new2, true, true );
-	wprint("new1: "); printCont( new1 );
-	wprint("new2: "); printCont( new2 );
-	cont_copyPts( new1, cont1, true );
-  cont_copyPts( new2, cont2, true );
-  */
-  
-	//## ADD INTERPOLATED CONTOUR:
-	/*
-	Icont *copy = imodContourDup( cont );
-	printCont( cont );
-	addInterpolatedContToObj( obj, copy );
-	*/
-	
-	//## CHANGE START POS:
-	/*
-	cont_reorderPtsToStartAtIdx( cont, 3 );
-	*/
-	
-	//## ADD CONTOUR:
-	/*
-	Icont copyC;
-	Icont *copy = &copyC;
-	copy = imodContourDup( cont );
-	Ipoint *pt = getPt ( copy, 3 );
-	setInterpolated( copy, 1 );
-	imodPointAppend( copy, pt );
-	//printCont( copy );
-	imodObjectAddContour( obj, copy );
-	free(copy);
-	*/
-	
-	//ivwRedraw( plug.view );
+  //test_selector();
 	//wprint("TEST EXECUTED\n");
 }
 
@@ -1661,6 +1620,39 @@ void Interpolator::changeOverlap( int value ) {
 	plug.interFractOverlap = (float)value / 100.0f;	
 }
 
+
+//------------------------
+//-- Returns the type of surface resolving method which should be used.
+//-- Typically this is the same value as "plug.surfResolveMethod",
+//-- unless "SR_AUTO" is selected and then it depends on "plug.interType".
+
+int Interpolator::getSurfaceResolveMethod()
+{
+	if( plug.surfResolveMethod == SR_AUTO )
+	{
+		if      ( plug.interType==INT_LINEAR    )		return (SR_WITHIN_MIN_DIST);
+		else if ( plug.interType==INT_SPHERICAL )		return (SR_CENTER_OVERLAP);
+		else																				return (SR_TOUCHING);
+	}
+	return ( plug.surfResolveMethod );
+}
+
+//------------------------
+//-- Returns the type of tiling method which should be used.
+//-- Typically this is the same value as "plug.tilingMethod",
+//-- unless "TM_AUTO" is selected and then it depends on "plug.interType".
+
+int Interpolator::getTilingMethod()
+{
+	if( plug.tilingMethod == TM_AUTO )
+	{
+		if      ( plug.interType==INT_LINEAR    )		return (TM_MIN_SA);
+		else if ( plug.interType==INT_SPHERICAL )		return (TM_CONSERVE_LENGTH);
+		if      ( plug.interType==INT_SMOOTH    )		return (TM_CONSERVE_LENGTH);
+		else																				return (TM_MIN_SA);
+	}
+	return ( plug.tilingMethod );
+}
 
 
 //############################################################
@@ -2080,7 +2072,9 @@ contoursSameSurf( int c1Idx, int c2Idx )
   bool mbrsTouch = mbr_doBBoxesOverlap2D( getLL(c1Idx), getUR(c1Idx),
                                           getLL(c2Idx), getUR(c2Idx) );
   
-	switch (plug.surfResolveMethod)
+	int surfMethod = plug.window->getSurfaceResolveMethod();
+	
+	switch (surfMethod)
 	{
 		case( SR_TOUCHING ):
     {
@@ -2160,7 +2154,10 @@ contoursSameSurfSlow( Icont *cont1, Icont *cont2 )
   bool mbrsTouch = mbr_doBBoxesOverlap2D( &cont1ll, &cont1ur,
                                           &cont2ll, &cont2ur );
   
-	switch (plug.surfResolveMethod)
+	
+	int surfMethod = plug.window->getSurfaceResolveMethod();
+	
+	switch (surfMethod)
 	{
 		case( SR_TOUCHING ):
     {
@@ -2871,21 +2868,24 @@ modifyKeyContsForInterp( int clIdx, int cuIdx,
 {
   //## APPLY USER SELECTED TILING ALGORITHM:
   
-	switch(plug.tilingMethod)
+	int tilingMethod = plug.window->getTilingMethod();
+	
+	switch(tilingMethod)
   {
     case(TM_CONSERVE_LENGTH):
     {
       modifyKeyContsForInterp_LineConservation( getC(clIdx), getC(cuIdx),
                                                 contLNew, contUNew, closeContours,
                                                 findCoorrespondingPtsAndMakeClockwise );
-    }
-      break;
-      
+			break;
+		}
+		
     case(TM_MIN_SA):
     {
       modifyKeyContsForInterp_MinimumAreaCost( clIdx, cuIdx, contLNew, contUNew );
+			break;
     }
-      break;
+      
   }
 }
 
@@ -3005,16 +3005,14 @@ modifyKeyContsForInterp_MinimumAreaCost( int cbIdx, int ctIdx,
   Icont *contB = getC(cbIdx);               // bottom contour
   Icont *contT = getC(ctIdx);               // top contour
   
-  bool inside = 1;
+  bool inside = 0;
   
   Ipoint scalePt;
   setPt( &scalePt, 1, 1, 1 );
   
-  
   Imesh *mesh = NULL;             // stores a mesh with index connections between
                                   // the verticies in contB amd contT
   mesh = imeshContoursCost( obj, contB, contT, &scalePt, inside, cbIdx, ctIdx  );
-                          //%%%%%% NOT IMPLEMENTED IN MAIN CODE YET
   
   int numVert = imodMeshGetMaxVert(mesh);   // number of vertexes
   int numIndx = imodMeshGetMaxIndex(mesh);  // number of indexes
@@ -3054,7 +3052,7 @@ modifyKeyContsForInterp_MinimumAreaCost( int cbIdx, int ctIdx,
     }
   
   if( firstVertT != psize(contB)+1 )
-    wprint("\aWARNING: modifyKeyContsForInterp_MinimumAreaCost - unexpecte # points\n");
+    wprint("\aWARNING: modifyKeyContsForInterp_MinimumAreaCost - unexpected # points\n");
   
   
   //## MATCH THE VERTEXES TO THE TWO ORIGINAL CONTOURS:
@@ -3098,7 +3096,11 @@ modifyKeyContsForInterp_MinimumAreaCost( int cbIdx, int ctIdx,
   vector<IntAndInt> conn;           // stores a list of connections matching 
                                     // a point index in contB to a point index in contT
   
-  for(int i=1; i<imodMeshGetMaxIndex(mesh); i++ )
+	//int increment = (numVert>1000) ? 6 : 3;
+	//int increment = 1;
+	
+	
+  for(int i=1; i<imodMeshGetMaxIndex(mesh); i+=1 )
   {
     int vIdx1 = imodMeshGetIndex(mesh, i-1);      // first  vertex index in edge
     int vIdx2 = imodMeshGetIndex(mesh, i);        // second vertex index in edge
@@ -3130,7 +3132,7 @@ modifyKeyContsForInterp_MinimumAreaCost( int cbIdx, int ctIdx,
   
   //## CREATE MATCHING CONTOURS:
   
-  for(int i=0; i<(int)conn.size(); i++ )
+  for(int i=0; i<(int)conn.size(); i+=3 )
   {
     int idxB = conn[i].idx1;
     int idxT = conn[i].idx2;
@@ -3144,7 +3146,13 @@ modifyKeyContsForInterp_MinimumAreaCost( int cbIdx, int ctIdx,
     imodPointAppend( contTNew, imodMeshGetVert(mesh,idxT)  );
   }
   
-  
+  /*
+	for(int p=psize(contBNew); p<psize(contBNew); p--)
+	{
+		
+	}*/
+	
+	
   //## IF FIRST POINT OF BOTH CONTOURS IS REPEATED AT THE END: REMOVE IT
   
   if(    imodPointIsEqual( getFirstPt(contBNew), getLastPt(contBNew)  )
@@ -3714,12 +3722,14 @@ interp_Spherical( int baseContIdx, int maxDist )
 	Imod *imod = ivwGetModel(plug.view);
 	float modScaleZ = imodGetZScale(imod);
 	
-	if ( plug.surfResolveMethod != SR_CENTER_OVERLAP ) {
+	int surfMethod = plug.window->getSurfaceResolveMethod();
+	
+	if ( surfMethod != SR_CENTER_OVERLAP ) {
 		wprint( "NOTE: Am changing surface resolution method to "
             "'centroid overlap' for spherical interpolation" );
 		plug.surfResolveMethod = SR_CENTER_OVERLAP;
 	}
-	  
+	
 	vector<int> idxInSurf =
     findIdxsAllKeyContsNoBranching(baseContIdx,maxDist);
   
@@ -4396,7 +4406,7 @@ vector<float> calcCardinalSplineFractsEachSlice( Ipoint p0, Ipoint p1,
 //
 //----------------------------------------------------------------------------
 
-
+/*
 //------------------------
 //-- Prompts the user with a list of test functions he can run
 
@@ -5005,15 +5015,12 @@ void test_makeContSegmentsEqualDistance()
   
   //## PERFORM ACTION:
   
-  /*
-  for(int i=contMin; i<contMax && i<csize(obj); i++)
-  {
-    undoContourDataChgCC( plug.view );                // REGISTER UNDO
-    test_makeContSetNumPointsCrude( cont, numPts );
-  }
-  
-  undoFinishUnit( plug.view );                      // FINISH UNDO
-  */
+  //for(int i=contMin; i<contMax && i<csize(obj); i++)
+  //{
+  //  undoContourDataChgCC( plug.view );                // REGISTER UNDO
+  //  test_makeContSetNumPointsCrude( cont, numPts );
+  //}
+  //undoFinishUnit( plug.view );                      // FINISH UNDO
 }
 
 
@@ -6605,4 +6612,6 @@ void test_testTimesTilingMethodsDiffConts()
     cout << "TOO MANY CONTOURS DISQUALIFIED" << endl;
   }
 }
+
+ */
 
