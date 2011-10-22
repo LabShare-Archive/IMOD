@@ -357,7 +357,6 @@ public final class MatlabParam {
   public static final String YAXIS_CONTOUR_KEY = "yaxisContour";
   public static final String YAXIS_OBJECT_NUM_KEY = "yaxisObjectNum";
   public static final String YAXIS_CONTOUR_NUM_KEY = "yaxisContourNum";
-  public static final boolean REFERENCE_FILE_DEFAULT = false;
   public static final String FLG_WEDGE_WEIGHT_KEY = "flgWedgeWeight";
   public static final boolean FLG_WEDGE_WEIGHT_DEFAULT = false;
   public static final String SAMPLE_SPHERE_KEY = "sampleSphere";
@@ -373,6 +372,7 @@ public final class MatlabParam {
   public static final String DUPLICATE_SHIFT_TOLERANCE_KEY = "duplicateShiftTolerance";
   public static final String DUPLICATE_ANGULAR_TOLERANCE_KEY = "duplicateAngularTolerance";
   public static final String FLG_ALIGN_AVERAGES_KEY = "flgAlignAverages";
+  public static final String FLG_FAIR_REFERENCE_KEY = "flgFairReference";
 
   private static final int VOLUME_INDEX = 0;
   private static final int PARTICLE_INDEX = 1;
@@ -411,11 +411,12 @@ public final class MatlabParam {
   private final ParsedNumber nWeightGroup = ParsedNumber.getMatlabInstance();
   private final ParsedNumber flgRemoveDuplicates = ParsedNumber.getMatlabInstance();
   private final ParsedNumber flgAlignAverages = ParsedNumber.getMatlabInstance();
+  private final ParsedNumber flgFairReference = ParsedNumber.getMatlabInstance();
 
   private String lowCutoff = LOW_CUTOFF_DEFAULT;
   private InitMotlCode initMotlCode = InitMotlCode.DEFAULT;
   private CCMode ccMode = CCMode.DEFAULT;
-  private boolean useReferenceFile = REFERENCE_FILE_DEFAULT;
+  private boolean useReferenceFile = false;
   private YAxisType yAxisType = YAxisType.DEFAULT;
   private boolean useNWeightGroup = false;
   private boolean tiltRangeEmpty = false;
@@ -493,6 +494,7 @@ public final class MatlabParam {
     try {
       commentAutodoc = AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM,
           AxisID.ONLY);
+      System.out.println("E:commentAutodoc:"+commentAutodoc);
     }
     catch (IOException e) {
       System.err.println("Problem with " + AutodocFactory.PEET_PRM
@@ -683,8 +685,16 @@ public final class MatlabParam {
     return flgAlignAverages.getRawBoolean();
   }
 
+  public boolean isFlgFairReference() {
+    return flgFairReference.getRawBoolean();
+  }
+
   public void setFlgAlignAverages(final boolean input) {
     flgAlignAverages.setRawString(input);
+  }
+
+  public void setFlgFairReference(final boolean input) {
+    flgFairReference.setRawString(input);
   }
 
   public String getLstFlagAllTom() {
@@ -707,9 +717,13 @@ public final class MatlabParam {
     this.alignedBaseName.setRawString(alignedBaseName);
   }
 
-  public void setReferenceVolume(final Number referenceVolume) {
+  public void setReferenceVolume(final Number input) {
+    setReferenceVolume(input.toString());
+  }
+
+  public void setReferenceVolume(final String input) {
     useReferenceFile = false;
-    reference.setRawString(VOLUME_INDEX, referenceVolume.toString());
+    reference.setRawString(VOLUME_INDEX, input);
   }
 
   public void setNWeightGroup(final Number input) {
@@ -794,6 +808,7 @@ public final class MatlabParam {
     tiltRangeEmpty = false;
     flgRemoveDuplicates.clear();
     flgAlignAverages.clear();
+    flgFairReference.clear();
   }
 
   public void clearEdgeShift() {
@@ -916,6 +931,11 @@ public final class MatlabParam {
   public void setReferenceParticle(final String referenceParticle) {
     useReferenceFile = false;
     reference.setRawString(PARTICLE_INDEX, referenceParticle);
+  }
+
+  public void setReferenceParticle(final Number input) {
+    useReferenceFile = false;
+    reference.setRawString(PARTICLE_INDEX, input.toString());
   }
 
   public void setMaskModelPtsYRotation(final String input) {
@@ -1078,6 +1098,8 @@ public final class MatlabParam {
     flgRemoveDuplicates.parse(autodoc.getAttribute(FLG_REMOVE_DUPLICATES_KEY));
     // flgAlignAverages
     flgAlignAverages.parse(autodoc.getAttribute(FLG_ALIGN_AVERAGES_KEY));
+    // flgFairReference
+    flgFairReference.parse(autodoc.getAttribute(FLG_FAIR_REFERENCE_KEY));
   }
 
   /**
@@ -1248,6 +1270,7 @@ public final class MatlabParam {
     }
     valueMap.put(FLG_REMOVE_DUPLICATES_KEY, flgRemoveDuplicates.getParsableString());
     valueMap.put(FLG_ALIGN_AVERAGES_KEY, flgAlignAverages.getParsableString());
+    valueMap.put(FLG_FAIR_REFERENCE_KEY, flgFairReference.getParsableString());
   }
 
   /**
@@ -1423,6 +1446,8 @@ public final class MatlabParam {
         (String) valueMap.get(FLG_REMOVE_DUPLICATES_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, FLG_ALIGN_AVERAGES_KEY,
         (String) valueMap.get(FLG_ALIGN_AVERAGES_KEY), commentMap);
+    setNameValuePairValue(manager, autodoc, FLG_FAIR_REFERENCE_KEY,
+        (String) valueMap.get(FLG_FAIR_REFERENCE_KEY), commentMap);
   }
 
   /**
