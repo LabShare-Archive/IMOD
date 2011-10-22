@@ -26,6 +26,23 @@ using namespace std;
 
 //############################################################
 
+//-------------------------------
+//## CONSTANTS:
+
+enum intmodes			    { INT_NO_INTERPOLATE, INT_LINEAR, INT_SPHERICAL, INT_SMOOTH,
+	                      INT_SMOOTH_PTS, INT_TUBULAR, INT_DEW_DROP, INT_NUM_INT_MODES };
+
+enum tilingmethod		  { TM_AUTO, TM_CONSERVE_LENGTH, TM_MIN_SA, TM_FEATURE_RECOG };
+enum surfacemethod		{ SR_AUTO, SR_TOUCHING, SR_CENTER_OVERLAP, SR_WITHIN_MIN_DIST,
+	                      SR_FRACTION_OVERLAP, SR_MBR_TOUCH, SR_USER_DEFINED };
+enum branchingmethod	{ BR_BRANCHING_OFF, BR_MERGE_CONTS, BR_BRIDGE_GAPS, BR_PT_BELOW };
+
+enum ptmethod         { PT_FOUR_PTS, PT_CONVEX_PTS };
+
+const float TENSILE_FRACT = 1.0f;
+
+const int NUM_SAVED_VALS = 13;
+
 
 //-------------------------------
 //## INTERPOLATOR WINDOW:
@@ -72,6 +89,8 @@ class Interpolator : public DialogFrame
 	void changeSurfaceMethod( int value );
 	void changeMinDist( int value );
 	void changeOverlap( int value );
+	int  getSurfaceResolveMethod();
+	int  getTilingMethod();
 	void buttonPressed(int);
 	
  protected:
@@ -117,22 +136,6 @@ class Interpolator : public DialogFrame
 
 
 //-------------------------------
-//## CONSTANTS:
-
-enum intmodes			    { INT_NO_INTERPOLATE, INT_LINEAR, INT_SPHERICAL, INT_SMOOTH,
-                        INT_SMOOTH_PTS, INT_TUBULAR, INT_DEW_DROP, INT_NUM_INT_MODES };
-enum surfacemethod		{ SR_TOUCHING, SR_CENTER_OVERLAP, SR_WITHIN_MIN_DIST,
-                        SR_FRACTION_OVERLAP, SR_MBR_TOUCH, SR_USER_DEFINED };
-enum tilingmethod		  { TM_CONSERVE_LENGTH, TM_MIN_SA, TM_FEATURE_RECOG };
-enum branchingmethod	{ BR_BRANCHING_OFF, BR_MERGE_CONTS, BR_BRIDGE_GAPS, BR_PT_BELOW };
-
-enum ptmethod         { PT_FOUR_PTS, PT_CONVEX_PTS };
-
-const float TENSILE_FRACT = 1.0f;
-
-const int NUM_SAVED_VALS = 12;
-
-//-------------------------------
 //## INTERPOLATOR DATA STRUCTURE:
 
    // contains all local plugin data
@@ -155,7 +158,8 @@ struct InterpolatorData
 	bool interLineTracker;          // if 1, then line tracker is applied to generated/interpolated contours ( %%%%%%%%%%% NOT YET IMPLEMENTED %%%%%%%%%%% )
   int minHoleSize;                // minimum hole size to find when [h] is pressed
   int maxGapSize;                 // maximum distance used in "edit_findNextIsolatedContour"
-  
+	bool hideSurfSettings;					// if true: will hide surface settings area
+	
   //** OTHER:
   
   bool deselectAfterEnter;    // wether the current contour is deselected after [Enter]
@@ -166,10 +170,6 @@ struct InterpolatorData
 	
   bool initialized;           // is set to true after values have been set
   int xsize, ysize, zsize;    // size of the image / tomogram
-  
-  int extraObjExtraCircleXX;    //|
-  int extraObjExtraBlueXX;      //|-- stores reference to extra objects //%%%%%%%
-  int extraObjExtraRedXX;       //|
 };
 
 
@@ -300,40 +300,7 @@ struct InterpolationEvent
   void interp_SmoothPointwise( int baseContIdx, int maxDist );
   
   
-  
-  //** TESTING METHODS:
-  
-  
-  
-  
   //** SIMPLE INLINE ACCESSORS:
-  
-  /*
-  inline int numKeyContsAtZ(int z)        
-  {  
-    if( z<0 || z>=(int)ztableKey.size() )
-    { cout << "ERROR: numKeyContsAtZ() ->" << z << endl; flush(std::cout); }
-    return (int)ztableKey[z].idxs.size();
-  }
-  inline int numIntContsAtZ(int z)        
-  {  
-    if( z<0 || z>=(int)ztableInt.size() )
-    { cout << "ERROR: numIntContsAtZ() ->" << z << endl; flush(std::cout); }
-    return (int)ztableInt[z].idxs.size();
-  }
-  
-  inline int idxKeyContZ(int z, int i)      
-  {  
-    if( z<0 || z>=(int)ztableKey.size() )
-    { cout << "ERROR: idxKeyContZ() ->" << z << endl; flush(std::cout); }
-    return ztableKey[z].idxs[i];
-  }
-  inline int idxIntContZ(int z, int i) 
-  {  
-    if( z<0 || z>=(int)ztableInt.size() )
-    { cout << "ERROR: idxIntContZ() ->" << z << endl; flush(std::cout); }
-    return ztableInt[z].idxs[i];
-  }*/
   
   inline int numKeyContsAtZ(int z)         {  return (int)ztableKey[z].idxs.size(); }
   inline int numIntContsAtZ(int z)         {  return (int)ztableInt[z].idxs.size(); }
@@ -387,7 +354,9 @@ vector<float> calcCardinalSplineFractsEachSlice( Ipoint p0, Ipoint p1, Ipoint p2
 
 //-------------------------------
 //## TESTING FUNCTIONS:                 // DELETE
-
+				// all these functions following are used to test performance,
+				// so should be commented out in any actual IMOD releases.
+/*
 void test_selector();
 void test_makeContSetNumPoints();
 void test_makeContSetNumPointsCrude( Icont *cont, int targetPts );
@@ -404,3 +373,4 @@ void test_outputAnalysisOfBranches();
 void test_outputAnalysisOfTubes();
 void test_testTimesTilingMethodsNPoints();
 void test_testTimesTilingMethodsDiffConts();
+*/
