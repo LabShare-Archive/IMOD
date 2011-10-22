@@ -5,7 +5,7 @@ MODULE = drawingtools
 include ../../configure
 
 O     = $(OBJEXT)
-CXXFLAGS = $(LIBCFLAGS)  $(QTFLAGS)
+CXXFLAGS = -D IMOD_PLUGIN $(LIBCFLAGS) $(QTFLAGS)
 
 PLUGS = $(MODULE).$(DLLEXT)
 
