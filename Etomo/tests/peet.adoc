@@ -109,12 +109,12 @@ wait.file-chooser.open=%{dataset}-a-initMOTL.csv
 [function = reference]
 #check empty particle # error
 run.function.setup-test-run-error=
-tf.particle-#=2
+tf.particle=2
 #check empty reference file error
 [[if = test-values]]
-	rb.reference-file=
+	rb.user-supplied-file=
 	run.function.setup-test-run-error=
-	rb.volume-#=
+	rb.particle=
 [[]]
 
 
@@ -164,7 +164,7 @@ rb.none=
 	assert.tf.y-rotation=
 [[]]
 #check enabled/disabled
-rb.volume-#=
+rb.particle=
 assert.disabled.tf.z-rotation=
 assert.disabled.tf.y-rotation=
 rb.cylinder=
@@ -362,6 +362,7 @@ run.function.runtab-check-prm==
 tb.setup==
 run.function.volume-table-check-prm==
 run.function.reference-check-prm==
+run.function.multiparticle-check-prm==
 run.function.missing-wedge-compensation-check-prm==
 run.function.masking-check-prm==
 run.function.manual-cylinder-orientation-check-prm==
@@ -409,12 +410,22 @@ cb.use-tilt-range-in-averaging==off
 
 
 [function == reference-check-prm]
-rb.reference-file==
-bn.reference-file==
+rb.user-supplied-file==
+bn.user-supplied-file==
 wait.file-chooser.open==unMasked%{dataset}_Ref1.mrc
 save==
 assert.contains.file==%{dataset}.prm|reference = '*unMasked%{dataset}_Ref1.mrc'
-rb.volume-#==
+rb.particle==
+
+
+[function == multiparticle-check-prm]
+rb.multiparticle-reference=
+tf.multiparticle-reference=15
+tf.groups-of=10
+save==
+assert.contains.file==%{dataset}.prm|flgFairReference = 1
+assert.contains.file==%{dataset}.prm|reference = [15, 10]
+rb.particle==
 
 
 [function == missing-wedge-compensation-check-prm]
@@ -459,7 +470,7 @@ tf.y-rotation==30.1
 save==
 assert.contains.file==%{dataset}.prm|maskType = 'cylinder'
 assert.contains.file==%{dataset}.prm|maskModelPts = [15, 30.1]
-rb.volume-#==
+rb.particle==
 rb.none==
 
 
