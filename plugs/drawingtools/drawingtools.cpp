@@ -358,14 +358,14 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
         edit_changeSelectedSlice( -plug.pgUpDownInc,false, false );
       break;
       
-    case Qt::Key_1:      plug.window->changeTypeSelected( 0 );       break;
-    case Qt::Key_2:      plug.window->changeTypeSelected( 1 );       break;
-    case Qt::Key_3:      plug.window->changeTypeSelected( 2 );       break;
-    case Qt::Key_4:      plug.window->changeTypeSelected( 3 );       break;
-    case Qt::Key_5:      plug.window->changeTypeSelected( 4 );       break;
-    case Qt::Key_6:      plug.window->changeTypeSelected( 5 );       break;
-    case Qt::Key_7:      plug.window->changeTypeSelected( 6 );       break;
-    case Qt::Key_8:      plug.window->changeTypeSelected( 7 );       break;
+    case Qt::Key_1:      plug.window->changeModeSelected( 0 );       break;
+    case Qt::Key_2:      plug.window->changeModeSelected( 1 );       break;
+    case Qt::Key_3:      plug.window->changeModeSelected( 2 );       break;
+    case Qt::Key_4:      plug.window->changeModeSelected( 3 );       break;
+    case Qt::Key_5:      plug.window->changeModeSelected( 4 );       break;
+    case Qt::Key_6:      plug.window->changeModeSelected( 5 );       break;
+    case Qt::Key_7:      plug.window->changeModeSelected( 6 );       break;
+    case Qt::Key_8:      plug.window->changeModeSelected( 7 );       break;
       
     default:
       keyhandled = 0;
@@ -426,6 +426,15 @@ void imodPlugExecute(ImodView *inImodView)
   imodObjectSetValue(xobjT, IobjLineWidth2, 2);
   imodObjectSetValue(xobjT, IobjFlagClosed, 0);		// open
   
+	plug.extraObjWPts = ivwGetFreeExtraObjectNumber(plug.view);
+  Iobj *xobjWP = ivwGetAnExtraObject(plug.view, plug.extraObjWPts);
+  imodObjectSetColor(xobjWP, 0.0f, 0.0f, 1.0f);			// blue
+	imodObjectSetValue(xobjWP, IobjFlagConnected, 0);	// scattered point object
+	imodObjectSetValue(xobjWP, IobjPointSize, 0);			// zero sphere size
+  imodObjectSetValue(xobjWP, IobjLineWidth2, 1);		// square
+	imodObjectSetValue(xobjWP, IobjSymType, 2);
+	imodObjectSetValue(xobjWP, IobjSymSize, 1);
+	
   plug.extraObjNum = ivwGetFreeExtraObjectNumber(plug.view);
   Iobj *xobj = ivwGetAnExtraObject(plug.view, plug.extraObjNum);
   imodObjectSetColor(xobj, 1.0f, 0.0f, 0.0f);			// red
@@ -446,15 +455,6 @@ void imodPlugExecute(ImodView *inImodView)
   imodObjectSetValue(xobjP, IobjLineWidth2, 2);
 	imodObjectSetValue(xobjP, IobjSymType, 1);
 	imodObjectSetValue(xobjP, IobjSymSize, 4);
-	
-	plug.extraObjWPts = ivwGetFreeExtraObjectNumber(plug.view);
-  Iobj *xobjWP = ivwGetAnExtraObject(plug.view, plug.extraObjWPts);
-  imodObjectSetColor(xobjWP, 1.0f, 0.0f, 0.0f);			// red
-	imodObjectSetValue(xobjWP, IobjFlagConnected, 0);	// scattered point object
-	imodObjectSetValue(xobjWP, IobjPointSize, 0);			// zero sphere size
-  imodObjectSetValue(xobjWP, IobjLineWidth2, 1);		// square
-	imodObjectSetValue(xobjWP, IobjSymType, 2);
-	imodObjectSetValue(xobjWP, IobjSymSize, 1);
 	
   //## CREATE THE PLUGIN WINDOW:
   
@@ -535,10 +535,11 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
       case(WH_SCULPTCIRCLE):
       {
         if( plug.drawMode == DM_SCULPT
-            || plug.drawMode == DM_WAND
+            || plug.drawMode == DM_WARP
 					  || plug.drawMode == DM_JOIN
-            || plug.drawMode == DM_ERASER
-            || plug.drawMode == DM_WARP )
+					  || plug.drawMode == DM_ERASER
+					  || plug.drawMode == DM_CORRECT
+					  || plug.drawMode == DM_JOIN )
         {
           plug.window->changeSculptCircleRadius( scrollAmount, plug.shiftDown );
           plug.window->drawExtraObject(true);
@@ -703,7 +704,8 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
       imodContourGetBBox(cont, &ll, &ur);
       plug.centerPt = line_getPtHalfwayBetween( &ll, &ur );
     }
-    plug.mouseDownPt = plug.mouse;
+    plug.mouseDownPrev = plug.mouseDownPt;
+		plug.mouseDownPt   = plug.mouse;
   }
   
   
@@ -720,6 +722,7 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
                               || plug.drawMode==DM_TRANSFORM
                               || plug.drawMode==DM_ERASER  
                               || plug.drawMode==DM_WARP
+															|| plug.drawMode==DM_WAND
 															|| plug.drawMode==DM_CIRCLE
                               || plug.drawMode==DM_MEASURE) );
   
@@ -727,6 +730,10 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
     return (2);
   
   
+	
+	Imod *imod  = ivwGetModel(plug.view);
+	Icont *cont = imodContourGet(imod);
+	
   //## PERFORM ACTION:
   
   switch( plug.drawMode )
@@ -778,7 +785,6 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
     
     case (DM_TRANSFORM):
     {
-      Icont *cont = imodContourGet( ivwGetModel(plug.view) );
       if( isContValid(cont) )
       {
         if( !plug.shiftDown )
@@ -837,7 +843,7 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
 			{
 				edit_executeLivewireClick();
 			}
-			else if( plug.but1Pressed )							// execute livewire
+			else if( plug.but1Pressed )					// execute livewire select
 			{
 				if (plug.livewire==NULL || edit_executeLivewireSelectPt() == false);
 					return (2);
@@ -847,21 +853,31 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
 		
 		case(DM_WAND):
 		{
-			if( plug.but2Down )							// execute livewire
+			if( plug.but2Down && plug.but2Pressed )		// execute wand click
 			{
-				if( plug.but2Pressed )
-				{
-					plug.wandAvgGrayVal = ivwGetValue( plug.view, plug.mouse.x,
-																						 plug.mouse.y, plug.mouse.z );
-				}
-				else
-				{
-					//edit_addWandPtsToCont();
-				}
+				plug.wandAvgGrayVal = ivwGetValue( plug.view, plug.mouse.x,
+																					 plug.mouse.y, plug.mouse.z );
 			}
+			else if( plug.but2Released )							// execute wand complete
+			{
+				edit_executeWandAdd();
+			}
+			
+			if( isCurrContValid() && but3Used )				// little correct circle
+			{
+				float correctCircleRadius = MAX(plug.sculptRadius / 5.0f, 5.0f);
+				
+				if( plug.but3Pressed )
+					undoContourDataChgCC( plug.view );      // REGISTER UNDO
+				if ( plug.but3Down )
+					edit_executeSculptPush( plug.mouse, correctCircleRadius );
+				else if( plug.but3Released )
+					edit_executeMinorCorrectEnd( correctCircleRadius );
+			}
+			
 			break;
 		}
-			
+		
     case (DM_ERASER):
     {
       if( !plug.shiftDown )
@@ -906,7 +922,7 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
       }
       break;
     }
-			
+		
 		case (DM_CIRCLE):
     {
       if( plug.but2Released ) {
@@ -914,7 +930,6 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
       }
 			else
 			{
-				Icont *cont = imodContourGet( ivwGetModel(plug.view) );
 				if( isContValid(cont) && plug.but3Down )   // strech currently selected contour
 				{
 					float distMovedAway = line_distBetweenPts2D(&plug.centerPt,&plug.mouse) -
@@ -933,12 +948,54 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
       break;
     } 
 		
+		case (DM_CORRECT):
+    {
+      if( plug.but2Pressed && isCurrContValid() )
+			{
+				float correctCircleRadius = MAX(plug.sculptRadius / 5.0f, 5.0f);
+				float distMouseCurrPt = (cont==NULL) ? FLOAT_MAX
+				                      : cont_minDistPtAndContourPts2D( &plug.mouse, cont, true );
+				bool isMouseInRange = distMouseCurrPt < (correctCircleRadius*2.0f);
+				
+				if( isMouseInRange )
+				{
+					Icont *newCont  = imodContourDup( cont );
+					int ptsAfterCorrection = edit_contCorrectCircle( newCont, plug.mouse,
+																													 correctCircleRadius, 10,
+																													 plug.mouseDownPrev );
+					if( ptsAfterCorrection > 10 )
+					{
+						undoContourDataChgCC( plug.view );        // REGISTER UNDO
+						cont_copyPts( newCont, cont, true );
+						ivwRedraw( plug.view );
+					}
+					free(newCont);
+				}
+				
+				
+        edit_executeCircleEnd();
+				undoFinishUnit( plug.view );          // FINISH UNDO
+			}
+			
+			else if( isCurrContValid() && but3Used )				// little correct circle
+			{
+				float correctCircleRadius = MAX(plug.sculptRadius / 5.0f, 5.0f);
+				
+				if( plug.but3Pressed )
+					undoContourDataChgCC( plug.view );      // REGISTER UNDO
+				if ( plug.but3Down )
+					edit_executeSculptPush( plug.mouse, correctCircleRadius );
+				else if( plug.but3Released )
+					edit_executeMinorCorrectEnd( correctCircleRadius );
+			}
+			
+      break;
+    } 
+		
     case (DM_MEASURE):
     {
       if( plug.but2Released )
       {
-        Imod  *imod = ivwGetModel(plug.view);
-        
         float pixelSize = imodGetPixelSize(imod);
         char *unitsChs = imodUnits(imod);
         Ipoint scalePt;        setPt( &scalePt, 1,1, imodGetZScale(imod) );
@@ -955,9 +1012,7 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
     {
       if( plug.smartPtResizeMode && plug.but2Pressed && isCurrPtValid() )
       {
-        Imod *imod  = ivwGetModel(plug.view);
         Iobj *obj   = imodObjectGet(imod);
-        Iobj *cont  = imodContourGet(imod);
         int objIdx, contIdx, ptIdx;
         imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
         
@@ -1035,7 +1090,7 @@ DrawingTools::DrawingTools(QWidget *parent, const char *name) :
   gbLayout->setSpacing(0);
   gbLayout->setContentsMargins(2, 2, 2, 2);
   
-  connect(typeButtonGroup, SIGNAL(buttonClicked(int)), this, SLOT(changeType(int)));
+  connect(typeButtonGroup, SIGNAL(buttonClicked(int)), this, SLOT(changeMode(int)));
   
 	typeLabel[DM_NORMAL]    = "Normal";
 	typeLabel[DM_WARP]      = "Warp";
@@ -1048,6 +1103,7 @@ DrawingTools::DrawingTools(QWidget *parent, const char *name) :
 	typeLabel[DM_CURVE]     = "Curve";
 	typeLabel[DM_CIRCLE]    = "Circle";
 	typeLabel[DM_WAND]      = "The Wand";
+	typeLabel[DM_CORRECT]   = "Correct";
 	
 	typeTooltip[DM_NORMAL]    = "Contours are drawn normally";
 	typeTooltip[DM_WARP]      = "Quickly correct bad regions of contour by "
@@ -1064,6 +1120,8 @@ DrawingTools::DrawingTools(QWidget *parent, const char *name) :
 															"a curve when you connect back to the first point";
 	typeTooltip[DM_CIRCLE]    = "Quickly draw a circle by dragging point to point";
 	typeTooltip[DM_WAND]      = "Click and drag to auto-contour a small";
+	typeTooltip[DM_CORRECT]   = "Allows you to quickly delete segments of a contour "
+	                            "within, or cut off by the circle";
 	
 	
 	for(int i=0; i<NUM_TOOLS_SHOWN; i++)
@@ -1091,7 +1149,7 @@ DrawingTools::DrawingTools(QWidget *parent, const char *name) :
 	}
 	
 	changeRadioOptions();
-	changeTypeSelected( plug.drawMode );
+	changeRadioToMatchMode( plug.drawMode );
 	
   
   
@@ -1447,7 +1505,6 @@ bool DrawingTools::drawExtraObject( bool redraw )
         
                               // draw warp area
         
-        Imod *imod  = ivwGetModel(plug.view);
         Iobj  *obj  = imodObjectGet(imod);
         Icont *cont = imodContourGet(imod);
         int objIdx, contIdx, ptIdx;
@@ -1575,7 +1632,7 @@ bool DrawingTools::drawExtraObject( bool redraw )
 			drawExtraObjectWand(false);
       break;
     }
-			
+	
   case(DM_TRANSFORM):         // draw rectangle around current contour or next to mouse 
     {
       Icont *cont = imodContourGet(imod);
@@ -1679,11 +1736,38 @@ bool DrawingTools::drawExtraObject( bool redraw )
 				imodPointAppendXYZ( xcont2, plug.centerPt.x, plug.centerPt.y, z );
 				imodPointAppendXYZ( xcont2, x, y, z );
 			}
+      break;
+    }
+		
+	case (DM_CORRECT):            // draw little correct circle:
+    {
+			Icont *cont = imodContourGet(imod);
+			float correctCircleRadius = MAX(radius / 5.0f, 5.0f);
+			float distMouseCurrPt = (cont==NULL) ? FLOAT_MAX
+			                      : cont_minDistPtAndContourPts2D( &plug.mouse, cont, true );
+			bool isMouseInRange = distMouseCurrPt < (correctCircleRadius*2.0f);
+			bool drawLittleCorrectCircle = !plug.but2Down && isMouseInRange;
+			
+			Icont *xcont  = imodContourNew();
+			cont_generateCircle( xcont, correctCircleRadius, 50,
+													(plug.but2Down) ? plug.mouseDownPt : plug.mouse, true );
+			imodObjectAddContour(xobj, xcont);
+			free(xcont);
+			
+			if( drawLittleCorrectCircle )		// show correction which would be applied
+			{
+				 Icont *xcont2  = imodContourDup( cont );
+				 int ptsAfterCorrection = edit_contCorrectCircle( xcont2, plug.mouse,
+																													correctCircleRadius, 10,
+				 plug.mouseDownPt );
+				 if( ptsAfterCorrection > 10 )
+				 imodObjectAddContour(xobj, xcont2);
+				 free(xcont2);
+			}
       
       break;
-    }	
-
-    
+    }
+			
 	case (DM_MEASURE):            // measure distance
     {
       float fontSize = 12 * sc;
@@ -1994,6 +2078,7 @@ bool DrawingTools::drawExtraObjectWand( bool redraw )
   //## GET Z VALUE:
   
   Imod *imod  = ivwGetModel(plug.view);
+	Icont *cont = imodContourGet(imod);
   int ix, iy,iz;
   ivwGetLocation(plug.view, &ix, &iy, &iz);
   plug.mouse.z = iz;
@@ -2010,18 +2095,47 @@ bool DrawingTools::drawExtraObjectWand( bool redraw )
 	
 	
 	
+	//## IF MOUSE IS NEAR CURRENTLY SELECTED CONTOUR,
+	//## DRAW A LITTLE CORRECT CIRCLE:
+	
+	
+	float correctCircleRadius = MAX(radius / 5.0f, 5.0f);
+	float distMouseCurrPt = (cont==NULL) ? FLOAT_MAX
+	                      : cont_minDistPtAndContourPts2D( &plug.mouse, cont, true );
+	bool isMouseInRange = distMouseCurrPt < (correctCircleRadius*2.0f);
+	bool drawLittleCorrectCircle = !plug.but2Down && isMouseInRange;
+	
+	if( drawLittleCorrectCircle )
+	{
+		Icont *xcont  = imodContourNew();
+		cont_generateCircle( xcont, correctCircleRadius, 50,
+												(plug.but2Down) ? plug.mouseDownPt : plug.mouse, true );
+		imodObjectAddContour(xobj, xcont);
+		free(xcont);
+		
+		
+		/*Icont *xcont2  = imodContourDup( cont );
+		int ptsAfterCorrection = edit_contCorrectCircle( xcont2, plug.mouse,
+																				             correctCircleRadius, 10,
+																										 plug.mouseDownPt );
+		if( ptsAfterCorrection > 10 )
+			imodObjectAddContour(xobj, xcont2);
+		free(xcont2);*/
+	}
+	
+	
+	
 	//## DRAW SCULPT CIRCLE OVER MOUSE TO REPRESENT
 	//## AREA OF INFLUENCE / BOUNDING AREA FOR WAND:
 	
-	
-	
-	Icont *xcont  = imodContourNew();    // primary closed contour used in extra object
+	Icont *xcont  = imodContourNew();
 	cont_generateCircle( xcont, radius, 100,
 											(plug.but2Down) ? plug.mouseDownPt : plug.mouse, true );
-	if( plug.but2Down )
+	if( plug.but2Down || correctCircleRadius )
 		setInterpolated( xcont, 1 );
 	imodObjectAddContour(xobj, xcont);
 	free(xcont);
+	
 	
 	
 	//## IF BUTTON DOWN: DRAW WAND AREA
@@ -2030,14 +2144,20 @@ bool DrawingTools::drawExtraObjectWand( bool redraw )
 	{
 		float tolerance = line_distBetweenPts2D( &plug.mouseDownPt, &plug.mouse );
 		
-		Icont *xcontP  = imodContourNew();    // primary closed contour used in extra object
+		Icont *xcontP  = imodContourNew();    // used to draw points in wand area
+		Icont *xcontF  = imodContourNew();		// used to draw contour around area
+		
 		edit_addWandPtsToCont( xcontP, plug.mouseDownPt, (int)radius,
-													 plug.wandAvgGrayVal, tolerance, false );
+													 plug.wandAvgGrayVal, tolerance, plug.waDistBias, true );
+		edit_scanContShrink( xcontP, (int)radius, 5, true );
+		edit_scanContFill(xcontP, xcontF, plug.mouseDownPt, (int)radius, 6 );
+		
 		
 		imodObjectAddContour(xobjW, xcontP);
+		imodObjectAddContour(xobj, xcontF);
 		free(xcontP);
+		free(xcontF);
 	}
-	
 	
 	
 	//## REDRAW (IF NEEDED) AND RETURN TRUE:
@@ -2118,19 +2238,23 @@ void DrawingTools::initValues()
 	plug.modeOrder[5]           = DM_WARP;
 	plug.modeOrder[6]           = DM_CURVE;
 	plug.modeOrder[7]           = DM_MEASURE;
-		
+	plug.modeOrder[8]           = DM_NORMAL;
+	
 	plug.lwOpt									= LW_DARK_MEMBRANE;
 	plug.lwSmooth								= false;
-	plug.lwSmoothIts						= 2;
+	plug.lwSmoothIts						= 8;
 	plug.lwUseWrap							= true;
 	plug.lwDontShowAgain				= false;
+	
+	plug.waSmooth								= true;
+	plug.waSmoothIts						= 8;
+	plug.waDistBias             = 0.2f;
 	plug.waDontShowAgain				= false;
 	
 	plug.lwWeightZVal						= -1;
 	plug.lwWeightProgress       = 0;                 
 	
 	plug.wandAvgGrayVal         = 0;
-	
   plug.sortCriteriaOfVals     = -1;
 }
 
@@ -2198,13 +2322,18 @@ void DrawingTools::loadSettings()
 	plug.modeOrder[5]               = savedValues[38];
 	plug.modeOrder[6]               = savedValues[39];
 	plug.modeOrder[7]               = savedValues[40];
+	plug.modeOrder[8]               = savedValues[41];
 	
-	plug.lwOpt                      = savedValues[41];
-	plug.lwSmooth                   = savedValues[42];
-	plug.lwSmoothIts                = savedValues[43];
-	plug.lwUseWrap                  = savedValues[44];
-	plug.lwDontShowAgain            = savedValues[45];
-	plug.waDontShowAgain            = savedValues[46];
+	plug.lwOpt                      = savedValues[42];
+	plug.lwSmooth                   = savedValues[43];
+	plug.lwSmoothIts                = savedValues[44];
+	plug.lwUseWrap                  = savedValues[45];
+	plug.lwDontShowAgain            = savedValues[46];
+	
+	plug.waSmooth                   = savedValues[47];
+	plug.waSmoothIts                = savedValues[48];
+	plug.waDistBias                 = savedValues[49];
+	plug.waDontShowAgain            = savedValues[50];
 }
 
 
@@ -2259,13 +2388,18 @@ void DrawingTools::saveSettings()
 	saveValues[38]  = plug.modeOrder[5];
 	saveValues[39]  = plug.modeOrder[6];
 	saveValues[40]  = plug.modeOrder[7];
+	saveValues[41]  = plug.modeOrder[8];
 	
-	saveValues[41]  = plug.lwOpt;
-	saveValues[42]  = plug.lwSmooth;
-	saveValues[43]  = plug.lwSmoothIts;
-	saveValues[44]  = plug.lwUseWrap;
-	saveValues[45]  = plug.lwDontShowAgain;
-	saveValues[46]  = plug.waDontShowAgain;
+	saveValues[42]  = plug.lwOpt;
+	saveValues[43]  = plug.lwSmooth;
+	saveValues[44]  = plug.lwSmoothIts;
+	saveValues[45]  = plug.lwUseWrap;
+	saveValues[46]  = plug.lwDontShowAgain;
+	
+	saveValues[47]  = plug.waSmooth;
+	saveValues[48]  = plug.waSmoothIts;
+	saveValues[49]  = plug.waDistBias;
+	saveValues[50]  = plug.waDontShowAgain;
 	
   prefSaveGenericSettings("DrawingTools",NUM_SAVED_VALS,saveValues);
 }
@@ -3645,8 +3779,8 @@ void DrawingTools::showLiveWireOptions()
 		
 	ds.addSpinBox ( "smoothing iterations:",
 								 1, 50, &plug.lwSmoothIts, 1,
-								 "The thickness of lines used to display "
-								 "contours as lines" );
+								 "The number of times to apply reduce and smooth upon "
+								 "finishing a contour" );
 	
 	ds.addCheckPrev("apply smoothing iterations: ", &plug.lwSmooth, CB_NONE, true,
 									"Will automatically apply 'contour smoothing' \n"
@@ -3687,11 +3821,11 @@ void DrawingTools::showWandOptions()
 	ds.addLabel( "---" );
 	
 	ds.addSpinBox ( "smoothing iterations:",
-								 1, 50, &plug.lwSmoothIts, 1,
-								 "The thickness of lines used to display "
-								 "contours as lines" );
+								 1, 50, &plug.waSmoothIts, 1,
+								 "The number of times to apply reduce and smooth upon "
+								 "finishing a contour" );
 	
-	ds.addCheckPrev("apply smoothing iterations: ", &plug.lwSmooth, CB_NONE, true,
+	ds.addCheckPrev("apply smoothing iterations: ", &plug.waSmooth, CB_NONE, true,
 									"Will automatically apply 'contour smoothing' \n"
 									"to any lines you draw." );
 	
@@ -3702,6 +3836,12 @@ void DrawingTools::showWandOptions()
 									"for video demo & source code.</fontsize>","" );
 	ds.setStylePrev( "background-color: rgb(100, 255, 100);");			// light green
 	
+	ds.addDblSpinBoxF( "distance bias:", 0, 2.0f, &plug.waDistBias, 2, 0.05,
+										 "A coefficient representing a bias for points further away \n"
+										 "from where you clicked (but inside the circle) to be less \n"
+										 "likely to get selected. \n"
+										 "RECOMMENDED VALUE: 0.2" );
+	
 	ds.addCheckBox( "do not show again (I know what I'm doing)", &plug.waDontShowAgain,
 								 "NOTE: You can still access this via 'Something > Something'." );
 	ds.setStylePrev("background-color: rgb(150, 150, 150);");			// grey
@@ -3709,11 +3849,6 @@ void DrawingTools::showWandOptions()
 	ds.exec();
 	if( ds.wasCancelled() )
 		return;
-	
-	//## CHANGE LIVEWIRE SETTINGS OF WEIGHT CALCULATOR:
-	
-	
-	
 }
 
 //------------------------
@@ -5810,7 +5945,7 @@ void DrawingTools::customizeToolOrder()
 {
 	int preset = 0;
 	QString modeList = "--none-- (hide)|Warp|Sculpt|Join|Livewire|"
-	                   "Eraser|Transform|Measure|Curve|Circle|Wand";
+	                   "Eraser|Transform|Measure|Curve|Circle|Wand|Correct";
 	
 	//## GET USER INPUT FROM CUSTOM DIALOG:
 		
@@ -5852,9 +5987,10 @@ void DrawingTools::customizeToolOrder()
 		plug.modeOrder[2] = DM_SCULPT;
 		plug.modeOrder[3] = DM_JOIN;
 		plug.modeOrder[4] = DM_LIVEWIRE;
-		plug.modeOrder[5] = DM_ERASER;
-		plug.modeOrder[6] = DM_TRANSFORM;
+		plug.modeOrder[5] = DM_WAND;
+		plug.modeOrder[6] = DM_ERASER;
 		plug.modeOrder[7] = DM_MEASURE;
+		plug.modeOrder[8] = DM_NORMAL;
 	}
 	else if( preset == 2)		//	"auto"
 	{
@@ -5866,6 +6002,7 @@ void DrawingTools::customizeToolOrder()
 		plug.modeOrder[5] = DM_CIRCLE;
 		plug.modeOrder[6] = DM_ERASER;
 		plug.modeOrder[7] = DM_MEASURE;
+		plug.modeOrder[8] = DM_NORMAL;
 	}
 	else if( preset == 3)		//	"old"
 	{
@@ -5877,6 +6014,7 @@ void DrawingTools::customizeToolOrder()
 		plug.modeOrder[5] = DM_WARP;
 		plug.modeOrder[6] = DM_CURVE;
 		plug.modeOrder[7] = DM_MEASURE;
+		plug.modeOrder[8] = DM_NORMAL;
 	}
 	
 	changeRadioOptions();
@@ -5885,9 +6023,9 @@ void DrawingTools::customizeToolOrder()
 
 //------------------------
 //-- Change "plug.drawMode" to the tool maching the "modeIdx"
-//-- provided
+//-- provided:
 
-void DrawingTools::changeType( int modeIdx )
+void DrawingTools::changeMode( int modeIdx )
 {
 	if(modeIdx < 0 || modeIdx   >= NUM_TOOLS_SHOWN)	modeIdx   = 0;
 	int newMode = plug.modeOrder[ modeIdx ];
@@ -5902,9 +6040,9 @@ void DrawingTools::changeType( int modeIdx )
 }
 
 //------------------------
-//-- Change "plug.drawMode" and set appropriate radio button
+//-- Change "plug.drawMode" and set appropriate radio button:
 
-void DrawingTools::changeTypeSelected( int modeIdx )
+void DrawingTools::changeModeSelected( int modeIdx )
 {
 	if(modeIdx < 0 || modeIdx   >= NUM_TOOLS_SHOWN)	modeIdx   = 0;
 	int newMode = plug.modeOrder[ modeIdx ];
@@ -5912,6 +6050,30 @@ void DrawingTools::changeTypeSelected( int modeIdx )
   plug.drawMode = newMode;
   diaSetGroup(typeButtonGroup, modeIdx);
   plug.window->drawExtraObject(true);
+}
+
+//------------------------
+//-- Tries to select the mode radio button matching "desiredDrawMode"
+//-- but if this mode is not on the list then it defaults to 0
+//-- and "plug.drawMode" changed to the corresponding value:
+
+bool DrawingTools::changeRadioToMatchMode( int desiredDrawMode )
+{
+	for( int i=0; i<NUM_TOOLS_SHOWN; i++ )
+	{
+		if( plug.modeOrder[i] == desiredDrawMode)
+		{
+			diaSetGroup(typeButtonGroup, i);
+			plug.drawMode = desiredDrawMode;
+			return (true);
+		}
+	}
+	
+	//## IF MODE NOT FOUND, DEFAULT TO NORMAL MODE:
+	
+	diaSetGroup(typeButtonGroup, 0);
+	plug.drawMode = DM_NORMAL;
+	return (false);
 }
 
 //------------------------
@@ -6715,7 +6877,7 @@ void edit_executeSculptPinch( Ipoint center, float radius )
 
 
 //------------------------
-//-- Compleles a sculpt action by making the contour simple
+//-- Completes a sculpt action by making the contour simple
 //-- (so it doesn't cross itself) and reducing points if specified
 
 void edit_executeSculptEnd()
@@ -6723,31 +6885,72 @@ void edit_executeSculptEnd()
 	if( !isCurrContValid() )
 		return;
 		
+	
+	//cout << "TEST0" << endl; flush(cout);		//%%%%%%%%
+	
   if (plug.reducePts)
     edit_reduceCurrContour();
 	
+	
+	//cout << "TEST1" << endl; flush(cout);		//%%%%%%%%
+	
 	bool makeContSimple = psize(getCurrCont()) < 500
-	  || !edit_isSimpleWithinCircle( getCurrCont(), &plug.mouse, plug.sculptRadius*2.0f );
+		|| !edit_isSimpleWithinCircle( getCurrCont(), &plug.mouse, plug.sculptRadius*2.0f );
+	
+	//cout << "TEST2" << endl; flush(cout);		//%%%%%%%%
 	
 	if( makeContSimple )		//  or new contour started "edit_executeSculptStart()"
 	{
 		edit_makeCurrContSimple();			// makes contour simple (this step is slow!)
   }
-
+	
+	//cout << "TEST3" << endl; flush(cout);		//%%%%%%%%
 	
 	edit_deleteCurrContIfTooSmall();
   
 	if (plug.reducePts)
     edit_reduceCurrContour();
 	
-  if( plug.markTouchedContsAsKey && isCurrContValid() && isInterpolated( getCurrCont() ) )
+  if( plug.markTouchedContsAsKey && isCurrContValid() && isInterpolated(getCurrCont()) )
   {
     undoContourPropChgCC( plug.view );        // REGISTER UNDO
     setInterpolated( getCurrCont(), 0 );
   }
   
+	//cout << "TEST4" << endl; flush(cout);		//%%%%%%%%
+	
   undoFinishUnit( plug.view );        // FINISH UNDO
   ivwDraw( plug.view, IMOD_DRAW_MOD | IMOD_DRAW_NOSYNC );
+	
+	
+	//cout << "TEST5" << endl; flush(cout);		//%%%%%%%%
+}
+
+
+//------------------------
+//-- 
+
+void edit_executeMinorCorrectEnd( float radius )
+{
+	if( !isCurrContValid() )
+		return;
+	
+  if (plug.reducePts)
+    edit_reduceCurrContour();
+	
+	bool makeContSimple = psize(getCurrCont()) < 500
+	  || !edit_isSimpleWithinCircle( getCurrCont(), &plug.mouse, radius*2.0f );
+	
+	if( makeContSimple )		//  or new contour started "edit_executeSculptStart()"
+		edit_makeCurrContSimple();			// makes contour simple (this step is slow!)
+	
+	if (plug.reducePts)
+    edit_reduceCurrContour();
+	  
+  undoFinishUnit( plug.view );        // FINISH UNDO
+  ivwDraw( plug.view, IMOD_DRAW_MOD | IMOD_DRAW_NOSYNC );
+	
+	//cout << "TEST5" << endl; flush(cout);		//%%%%%%%%
 }
 
 //------------------------
@@ -7835,7 +8038,7 @@ float edit_selectClosestPtInCurrCont( Ipoint *givenPt )
 { 
   Imod  *imod = ivwGetModel(plug.view);
   Icont *cont = imodContourGet(imod);
-  if( !isContValid(cont) || psize(cont) < 0 )
+  if( cont == NULL || psize(cont) <= 0 )
     return 0;
   
   float closestDist;
@@ -7866,7 +8069,7 @@ int edit_addPtsCurrContInRadius( Ipoint *centerPt, float radius, float maxDistPt
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   
-  if( !isContValid(cont) || psize(cont) <= 1 )
+  if( cont == NULL || psize(cont) <= 1 )
     return 0;
   
   int pointsBefore = psize(cont);
@@ -8707,7 +8910,7 @@ bool edit_isSimpleWithinCircle( Icont *cont, Ipoint *center, float radius )
 	maxIdx = MIN( maxIdx+1, psize(cont) );
 	
 	//## BETWEEN FIRST AND LAST POINT INSIDE CIRCLE: CHECK IF ANY PROCEEDING LINE SEGMENT
-	//## INSIDE THE CIRCLE OVERLAPS WITH THIS LINE SEGMENG:
+	//## INSIDE THE CIRCLE OVERLAPS WITH THIS LINE SEGMENT:
 	
   for(int i=minIdx; i<maxIdx; i++ )
 	{
@@ -9037,8 +9240,8 @@ bool edit_executeLivewireSelectPt()
 	int prevLWPt, nextLWPt;
 	bool isPtOnLivewireCont = edit_getNextAndPrevLivewirePts( prevLWPt, nextLWPt );
 	
-	Imod *imod     = ivwGetModel(plug.view);
-	Icont *cont    = imodContourGet(imod);
+	Imod   *imod   = ivwGetModel(plug.view);
+	Icont  *cont   = imodContourGet(imod);
 	Ipoint *currPt = imodPointGet(imod);
 	
 	if( cont == NULL || currPt == NULL )
@@ -9144,68 +9347,534 @@ bool edit_getNextAndPrevLivewirePts( int &prevLWPt, int &nextLWPt )
 
 
 
-//------------------------
-//-- This function is not yet implemented properly, but the idea is
-//-- that an adaptive flood fill is used to add points within
-//-- "radius" of the given point ("centerPt") and with a gray value
-//-- that's within a distance "threshold" of the "targetGray".
-//-- Such points are added to the given contour "cont" in a
-//-- "scan line" order.
-//--
-//-- NOTE: THIS FUNCTION NOT YET IMPLEMENTED PROPERLY.
 
-int edit_addWandPtsToCont( Icont *cont, Ipoint centerPt, int radius, 
-													 float targetGray, float tolerance, bool allPts )
+
+
+
+
+
+
+//------------------------
+//-- Executes a wand operation (DM_WAND) by adding a new contour
+//-- around the area the user has just dragged out.
+
+void edit_executeWandAdd()
 {
-	//## CHECK VALID RADIUS AND DETEMINE AREA TO CHECK:
+	//## DETERMINE CONTOUR AROUND WAND AREA:
+	
+	int radiusInt   = (int)plug.sculptRadius;
+	float tolerance = line_distBetweenPts2D( &plug.mouseDownPt, &plug.mouse );
+	
+	Icont *xcontP   = imodContourNew();    // used to draw points in wand area
+	Icont *newCont  = imodContourNew();		 // used to draw contour around area
+	
+	edit_addWandPtsToCont( xcontP, plug.mouseDownPt, radiusInt,
+												plug.wandAvgGrayVal, tolerance, plug.waDistBias, true );
+	edit_scanContShrink( xcontP, radiusInt, 5, true );
+	edit_scanContFill( xcontP, newCont, plug.mouseDownPt, radiusInt, 6 );
+		
+	free(xcontP);
+	
+	//## IF CONTOUR HAS NO POINT: DO NOTHING
+	
+	if( psize(newCont)==0 )
+	{
+		free(newCont);
+		return;
+	}
+	
+	
+	//## ADD THE NEW CONTOUR:
+	
+	Imod *imod  = ivwGetModel(plug.view);
+	int objIdx, contIdx, ptIdx;
+  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+	
+	int newContPos = edit_addContourToObj( imodObjectGet(imod), newCont, true );
+	imodSetIndex(imod, objIdx, newContPos, 0);
+	
+	undoFinishUnit( plug.view );          // FINISH UNDO
+	
+	
+	//## IF SPECIFIED, SMOOTH THE CONTOUR:
+	
+	if (plug.waSmooth)
+	{
+		undoContourDataChgCC( plug.view );        // REGISTER UNDO
+		
+		Icont *cont = getCurrCont();
+		Iobj  *obj  = getCurrObj();
+		bool contClosed = isContClosed(obj,cont);
+		
+		for(int i=0; i<plug.waSmoothIts; i++)
+		{
+			cont_reducePtsMinArea( cont, 1.0f, contClosed );
+			cont_avgPtsPos( cont, plug.smoothMoveFract,
+											plug.smoothMoveMinDist, contClosed, true );
+		}
+		undoFinishUnit( plug.view );        // FINISH UNDO
+	}
+}
+
+
+//------------------------
+//-- This function represents a crude "adaptive flood fill algorithm"
+//-- used to determine which image pixels are within "radius" distance
+//-- of the given center point ("centerPt") and with have a gray value
+//-- within the specified "threshold" of the given target value "targetGray".
+//-- The function returns the number of points which meet this criteria
+//-- and appends these points to the given contour "cont" in a
+//-- "scan line" order (left to right, top to bottom).
+//-- 
+//-- The "distBiasCoefficient" is a value which can be increased from 
+//-- zero in order to make points less likely to be selected the
+//-- further they are from the center point. Using a value of 0.5,
+//-- a pixel which is half the radius away but exactly the same gray
+//-- value as "targetGray" still needs the tolerance to be > 64 to
+//-- be turned on (0.5*0.5*255=64).
+//-- 
+//-- If "allPts" is true, points fail the test are also appended to the 
+//-- contour but are given a z value of "PIX_OFF" (-1). Since pixels are 
+//-- assessed in a minimum square around the boundary, if "allPts" is true 
+//-- the total points in the contour (assuming it started empty) will be
+//-- equal to ((2*radius+1)^2), and a point at x,y relative to the bottom
+//-- of the bounding square will be at "getPt(cont, y*(2*radius+1)+x )" -
+//-- which is useful in other functions.
+
+int edit_addWandPtsToCont( Icont *cont, Ipoint centerPt, int radius,
+													 float targetGray, float tolerance,
+													 float distBiasCoefficient, bool allPts )
+{
+	//## DETEMINE A BOUNDING SQUARE AROUND THE SPECIFIED WAND CIRCLE:
 	
 	if( cont==NULL || radius<=0 )
+	{
+		cerr << "edit_addWandPtsToCont() - invalid contour or radius" << endl;
 		return 0;
+	}
+	setPt(&centerPt, floor(centerPt.x), floor(centerPt.y), floor(centerPt.z) );
 	
-	int ptsAdded = 0;		// tracks how many new points we add
+	int ptsOn = 0;			// tracks how many new points/pixels are "on"
 	Ipoint pt;					// used to add new points
 	
-	int minX = MAX( (int)centerPt.x - radius, 0 );
-	int maxX = MIN( (int)centerPt.x + radius, plug.xsize );
-	int minY = MAX( (int)centerPt.y - radius, 0 );
-	int maxY = MIN( (int)centerPt.y + radius, plug.ysize );
-	int z    = (int)centerPt.z;
+	int minX = (int)centerPt.x - radius;		// |-- represents a bounding square around the
+	int maxX = (int)centerPt.x + radius;		// |   bounding circle - all pixels in this
+	int minY = (int)centerPt.y - radius;		// |   square are tested if they are inside
+	int maxY = (int)centerPt.y + radius;		// |   the circle and grayscale threshold
 	
 	unsigned char **data = ivwGetCurrentZSection( plug.view );
-	const float RADIUS_ADJUST = 0.1f * 255.0f;
+	
+	float distBias = distBiasCoefficient * 255.0f;		// used to bias points furt
 	
 	
 	//## WITHIN THE DESIGNATED CIRCULAR REGION, CHECK ALL PIXELS:
 	
-	for(int y=minY; y<maxY; y++)
-	for(int x=minX; x<maxX; x++)
+	for(int y=minY; y<=maxY; y++)
+	for(int x=minX; x<=maxX; x++)
 	{
-		setPt( &pt, x, y, z );
+		//## CHECK IF POINT IS OUTSIDE TOMOGRAM:
+		
+		if( y<0 || y >= plug.ysize || x<0 || x >= plug.xsize )
+		{
+			if(allPts)
+				imodPointAppendXYZ( cont, (float)x,(float)y, PIX_OFF );
+			continue;
+		}
+		
+		
+		//## DETERMING IF POINT IS OUTSIDE WAND CIRCLE:
+		
+		setPt( &pt, x, y, centerPt.z );
 		bool pointAdded = false;
 		
 		float dist = line_distBetweenPts2D( &centerPt, &pt );
 		
-		if( dist < radius )
+		if( dist < radius )			// if point is inside wand circle:
 		{
-			float fractDist = dist / radius;
-			int grayValue = data[y][x];
+			int grayValue    = data[y][x];									// determine it's gray value
+			float distOffset = distBias*(dist / radius);		// an offset bias bad on distance 
 			
-			int grayValueDiff = ABS( targetGray - grayValue ) + (fractDist*RADIUS_ADJUST);
+			int grayValueDiff = ABS( targetGray - grayValue ) + distOffset;
 			
-			if( grayValueDiff <= tolerance )
+			if( grayValueDiff <= tolerance )		// if within tolerance value:
 			{
-				imodPointAppendXYZ( cont, (float)x,(float)y,(float)z );
+				imodPointAppendXYZ( cont, (float)x,(float)y,centerPt.z );		// add point
 				pointAdded = true;
-				ptsAdded++;
+				ptsOn++;
 			}
 		}
 		
-		if( !pointAdded && allPts )
-		{
-			imodPointAppendXYZ( cont, (float)x,(float)y,-1 );
-		}
+		//## IF POINT DIDN'T MEET CRITERIA, APPEND POINT AT "PIX_OFF" 
+		//## Z VALUE (IF THIS OPTION IS TURNED ON)
 		
+		if( !pointAdded && allPts )
+			imodPointAppendXYZ( cont, (float)x,(float)y, PIX_OFF );
 	}
 	
-	return ptsAdded;
+	//cout << "ptsAdded=" << ptsAdded << endl;
+	return ptsOn;
 }
+
+
+
+//------------------------
+//-- Treats the contour like an image and uses "erosion" to help remove isolated
+//-- points. This function is similar to "autox_shrink()" in "3dmod/auotx.cpp",
+//-- however the intput/output in the form of a single "scan line" contour in a
+//-- perfect square with side length "side" equal to "2*radius+1". Each point
+//-- should be locatable by "getPt( cont, y*side+x)", and points with a z value
+//-- equal to "PIX_OFF" (-1) are considered off - all other contours are considered
+//-- on. This function goes through the specified number of "iterations" and
+//-- points which don't have the required number of pixels on within their
+//-- 4 AND 8 pixel neighborhood are eroded by changing their z value to PIX_OFF.
+//-- In addition to changing the input contour ("cont") the function returns
+//-- the number of pixels changed/eroded.
+//-- 
+//-- To reduce processing time, points on the edge are not processed, and if
+//-- "erodeAllEdgePts" is true then all edge points are turned off, but not
+//-- included in the final returned value.
+
+int edit_scanContShrink( Icont *cont, int radius, int iterations, bool erodeAllEdgePts )
+{
+	//## CHECK CONTOUR IS CORRECT SIZE TO MATCH BOUNDING SQUARE:
+	
+	int ptsEroded = 0;								// tracks the number of points changed / eroded
+	int nPts      = psize(cont);
+	int side = (radius * 2) + 1;			// the width and height of the bounding square
+	
+	if( nPts != (side*side)  )
+	{
+		cerr << "edit_scanContShrink() - wrong size" << endl;
+		return 0;
+	}
+	
+	
+	//## IF SPECIFIED: TURN OFF ALL POINTS AROUND THE EDGES OF THE BOUNDING SQUARE
+	
+	if(erodeAllEdgePts)
+	{	
+		int ptIdxTopRow = (side-1) * side;
+		for(int i=0; i<side; i++)
+		{
+			getPt( cont, 0 +      i             )->z = -1;		// bottom-most row
+			getPt( cont, 0 +      i+ptIdxTopRow )->z = -1;		// top-most    row
+			getPt( cont, i*side + 0             )->z = -1;		// left-most   column
+			getPt( cont, i*side + side-1        )->z = -1;		// right-most  column
+		}
+	}
+	
+	
+	//## RUN ITERATIONS OF ERODE, WHERE EACH PIXELS WHICH IS ON
+	//## (EXLUDING PIXELS ON THE EDGES) IS ERODED IF TOO FEW
+	//## OF IT'S NEIGHBORS ARE ON:
+	
+	int pixN[8];						// used to store on/off values for the 8 pixel neighborhood
+	
+	for( int i=0; i<iterations; i++ )
+	{
+		for(int y=1; y<side-1; y++)
+		for(int x=1; x<side-1; x++)
+		{
+			int ptIdx = y*side + x;
+			
+			Ipoint *pt = getPt( cont, ptIdx );
+			if( pt->z == PIX_OFF)								// if pixel already off:
+				continue;														// skip it
+			
+			edit_getPixNeigh( cont, pixN, x, y, side, side );	// outputs which pixels in the
+			// 8 pixel neighborhood are on
+			// into the "pixN" array
+			
+			int totalOnIn4Neigh = pixN[PX_N ] + pixN[PX_S ] + pixN[PX_E ] + pixN[PX_W ];
+			int totalOnIn8Neigh = pixN[PX_NE] + pixN[PX_NW] + pixN[PX_SE] + pixN[PX_SW]
+			+ totalOnIn4Neigh;
+			// tally the number of pixels on in the 4 and 8 pixel neighborhood
+			
+			if( totalOnIn8Neigh <= 3 || totalOnIn4Neigh <=1 )		// if too few neighbors on:
+				pt->z = -2;																					// flag pt for erosion
+		}
+		
+		for(int i=0; i<nPts; i++)		// for each point in contour:
+		{
+			if( getPt(cont,i)->z == -2 )		// if flagged for erosion
+			{
+				getPt(cont,i)->z = PIX_OFF;			// mark pixel as off
+				ptsEroded++;
+			}
+		}
+	}
+	
+	//cout << "ptEroded=" << ptEroded << endl;
+	return (ptsEroded);
+}
+
+
+
+//------------------------
+//-- Inputs a contour ("cont") which is in the form of a square scanline,
+//-- and uses a marching square like algorithm to generate and output
+//-- a single contour ("contOut") representing the path around the middle-most
+//-- area of the scanline contour with points that are "on".
+//-- 
+//-- This function is similar to "autoxFill()" in "3dmod/auotx.cpp", except
+//-- the intput/output in the form of a single "scan line" contour in a
+//-- perfect square with side length "side" equal to "2*radius+1". Each point
+//-- should be locatable by "getPt( cont, y*side+x)", and points with a z value
+//-- equal to "PIX_OFF" (-1) are considered off - all other contours are considered
+//-- on.
+//--
+//-- In addition to the output contour, the function also returns the number
+//-- of points added to this contour. If however, the resulting contour has
+//-- less than a specified minimum ("minPts") number of points, the output
+//-- contour is made empty and the function returns 0.
+//-- 
+//-- This function could use improvements. For example, when trying to decide 
+//-- a starting points for the output contour it tries to find the first
+//-- point right of "centerPt" which is off, and thus sometimes finds a hole.
+
+
+int edit_scanContFill( Icont *cont, Icont *contOut,
+											Ipoint centerPt, int radius, int minPts )
+{
+	//## CHECK CONTOUR IS CORRECT SIZE TO MATCH BOUNDING SQUARE:
+	
+	int ptRemoved = 0;
+	int nPts      = psize(cont);
+	int side = (radius * 2) + 1;
+	
+	if( nPts != (side*side)  )
+	{
+		cerr << "edit_scanContFill() - wrong size" << endl;
+		return 0;
+	}
+	setPt(&centerPt, floor(centerPt.x), floor(centerPt.y), floor(centerPt.z) );
+	
+	
+	//## USING DIFFERENT STARTING POINTS, TRY AND GENERATE A CONTOUR
+	//## AROUND AN AREA OF PIXELS UNTIL AND AREA IS GENERATED
+	//## THAT INCLUDES THE ORIGIONAL ON POINT:
+	
+	
+	float xOffset = float(centerPt.x-radius)+0.5f;		// |-- represents the bottom corner
+	float yOffset = float(centerPt.y-radius)+0.5f;		// |   of the bounding square
+	
+	bool endFound       = false;	// set true if algorithm finds a path back to the start 
+	bool isCenterInside = false;	// set true if "contOut" includes "centerPt"
+	
+	int ptStartX  = radius;				// |-- represents the point to start searching for
+	int ptStartY  = radius;				// |   the first pixel which is off
+	
+	for (int attempt=0; attempt<5 && (!isCenterInside); attempt++ )
+	{
+		int x = ptStartX;
+		int y = ptStartY;
+		
+		//## IF THIS IS NOT THE FIRST PASS, CLEAR "contOut" AND ITERATE
+		//## "ptStartX" RIGHT UNTIL FINDING THE FIRST PIXEL WHICH IS ON:
+		
+		if(attempt>0)
+		{
+			imodContourClearPoints( contOut );
+			
+			for(x = ptStartX+1; x<side; x++)
+			{
+				Ipoint *pt = getPt( cont, y*side + x );
+				if( pt->z != PIX_OFF )
+					break;
+			}
+			if(x==side)		return 0;
+			else					ptStartX = x;
+		}
+		
+		//## START AT STARTING POINT AND ITERATE RIGHT UNTIL FINDING
+		//## THE FIRST PIXEL WHICH IS OFF:
+		
+		for(; x<side; x++)
+		{
+			Ipoint *pt = getPt( cont, y*side + x );
+			if( pt->z == PIX_OFF )
+				break;
+		}
+		x--;
+		ptStartX  = x;
+		
+		//## USING THE STARTING POINT ABOVE, APPLY A MARCHING-SQUARES
+		//## LIKE ALGORITHM TO GO ANTI-CLOCKWISE AROUND THE OUTER EDGE OF 
+		//## OF THE ON AREA, AND OUTPUT THESE EDGE POINTS TO "contOut".
+		
+		int pixN[8];								// used to store on/off values for the 8 pixel neighborhood
+		int endFound = false;				// set true if the algorithm finds a path back to the start 
+		int lastMoveDir = PX_N;			// tracks the direction of the last move
+		
+		
+		for(int i=0; i<(side*40) && (!endFound); i++)
+		{
+			//## ADD THIS POINT TO "contOut" AND GET IT'S 8 PIXEL NEIGHBORHOOD VALUES:
+			
+			imodPointAppendXYZ(contOut, float(x) + xOffset, float(y) + yOffset, centerPt.z);
+			edit_getPixNeigh( cont, pixN, x, y, side, side );
+			
+			
+			//## SEARCH AROUND THE CURRENT POINT'S NEIGHBORHOOD IN ANTI-CLOCKWISE ORDER 
+			//## FOR THE FIRST POINT THAT IS ON:
+			
+			int startDir = (lastMoveDir-2+8)%8;		// direction from the current pt to check first
+			int currDir;
+			
+			for(int i=0; i<8; i+=1)
+			{
+				currDir = (startDir+i)%8;
+				if( pixN[currDir]==1 )
+					break;
+			}
+			
+			//## UPDATE THE X, Y AND DIRECTION VALUES TO USE FOR THE NEXT POINT:
+			
+			switch( currDir )
+			{
+				case(PX_N):		{	y += 1;							break;		}
+				case(PX_S):		{	y -= 1;							break;		}
+				case(PX_E):		{						x	+= 1;		break;		}
+				case(PX_W):		{						x -= 1;		break;		}
+				case(PX_NE):	{	y += 1;		x += 1;		break;		}
+				case(PX_SE):	{	y -= 1;		x += 1;		break;		}
+				case(PX_NW):	{	y += 1;		x -= 1;		break;		}
+				case(PX_SW):	{	y -= 1;		x -= 1;		break;		}
+			}
+			lastMoveDir = currDir;
+			
+			//## IF THE NEXT POINT IS THE FIRST, THEN FINISH THE CONTOUR:
+			
+			endFound = ( x==ptStartX && y==ptStartY );
+			if( endFound )
+				break;
+		}
+		
+		//## CHECK IF THE GENERATED CONTOUR CONTAINS THE POINT
+		//## IN THE MIDDLE OF THE BOUNDING SQUARE: IF NOT TRY
+		//## A NEW STARTING POINT FOR THIS ALGORITHM
+		
+		isCenterInside = imodPointInsideCont( contOut, &centerPt );
+		if( isCenterInside )
+			break;
+	}
+	
+	
+	
+	//## CHECK RESULTS AND OUTPUT ERROR MESSAGE IF APPLICABLE:
+	
+	bool decentRadius = (ptStartX>radius+10);	// was last start point resonable size?
+	
+	//if(!endFound && decentRadius)				// if starting point not found:
+	//	cerr << "edit_scanContFill() - end not found" << endl;
+	
+	//if(!isCenterInside && decentRadius)	// if encompassing contour not found:
+	//	cerr << "edit_scanContFill() - containing contour not found" << endl;
+	
+	if( psize(contOut) < minPts )
+		imodContourClearPoints( contOut );
+	
+	int ptsAdded = psize(contOut);
+	//cout << "ptsAdded=" << ptsAdded << endl; flush(cout);
+	return (ptsAdded);
+}
+
+
+
+
+
+
+
+
+//------------------------
+//-- Takes an input contour ("cont") and uses an input circle described
+//-- by "centerPt" and "radius", by removing points in the circle.
+//-- If the circle divides the contour into multiple segments, then
+//-- only the biggest segment and/or the segment containing the specified
+//-- "includePt" is remains.
+//-- 
+//-- If the remaining contour has less than a specified minimum of points
+//-- "minPts", no change is made to the contour. This function will return
+//-- the number of points in the new contour, or zero if no change was made
+//-- to the contour.
+//--
+//-- NOTE: This tool is useful for removing automatic unwanted regions from 
+//-- a contour which are often added by segmentation algorithms (undersegmentation).
+
+int edit_contCorrectCircle( Icont *cont, Ipoint centerPt, int radius, int minPts,
+													  Ipoint includePt )
+{
+	//## LOCATE THE POINT CLOSEST TO THE CENTER OF THE CIRCLE:
+	
+	float radSq = (radius*radius);
+	
+	int closestPtIdxInside  = -1;
+	float minDistSq = radSq;
+	
+	for( int p=0; p<psize(cont); p++ )
+	{
+		float dist1Sq = line_sqDistBetweenPts2D( &centerPt, getPt(cont,p) );
+		if( dist1Sq <= minDistSq )
+		{
+			minDistSq = dist1Sq;
+			closestPtIdxInside = p;
+		}
+	}
+	
+	//## EXIT EARLY IF NOT ENOUGH POINTS OR ALL POINT ARE OUTSIDE CIRCLE
+	//## ELSE REORDER CONTOUR TO START AT MIDDLE-MOST POINT:
+	
+	if( closestPtIdxInside==-1 || psize(cont) < minPts )
+		return 0;
+	
+	cont_reorderPtsToStartAtIdx( cont, closestPtIdxInside );
+	
+	
+	
+	//## SPLIT CONTOUR INTO SEGMENTS USING THE CIRCLE TO DELETE 
+	//## POINTS AND THEN LEAVE ONLY THE SEGMENT WHICH HAS THE MOST 
+	//## POINTS AND/OR CONTAINS THE LAST MOUSE DOWN POSITION
+	
+	
+	vector<IcontPtr> contSegments;
+	cont_breakContByCircle(cont,contSegments,&centerPt,radius);
+	
+	//cout << "contSegments.size()=" << contSegments.size() << endl;		//%%%%
+	
+	if( contSegments.size() == 0 )
+	{
+		deleteContours(contSegments);
+		return 0;
+	}
+	
+	int maxPts = 0;
+	int idxLongestSeg = 0;
+	for( int i=0; i<contSegments.size(); i++ )
+	{
+		int numPtsFragment = psize( contSegments[i].cont );
+		if ( imodPointInsideCont( contSegments[i].cont, &includePt ) )
+			numPtsFragment *= 5;
+		
+		if( numPtsFragment > maxPts )
+		{
+			maxPts = numPtsFragment;
+			idxLongestSeg = i;
+		}
+	}
+	
+	
+	//## IF LARGEST SEGMENT DOESN'T HAVE ENOUGH POINTS THEN EXIT,
+	//## OTHERWISE COPY THE SEGMENT POINTS INTO CONTOUR FOR OUTPUT:
+	
+	if( maxPts < minPts )
+	{
+		return 0;
+		deleteContours(contSegments);
+	}
+	
+	cont_copyPts( contSegments[idxLongestSeg].cont, cont, true );
+	deleteContours(contSegments);
+	
+	return psize(cont);
+}
+
