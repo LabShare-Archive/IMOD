@@ -79,6 +79,7 @@ plugs/[abdisn][nerat]*/icontextra.h
 include/tiff.h
 include/tiffio.h
 midas/midas.dsp
+gpubp.linkinfo
 recentChanges.txt
 .DS_store
 runimod

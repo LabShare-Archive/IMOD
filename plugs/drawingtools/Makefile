@@ -39,15 +39,22 @@ moc_$(MODULE).cpp : $(MODULE).h
 $(MODULE).$(O) : $(IMODINCLUDES) $(COMMINCLUDES) $(MODULE).cpp $(MODULE).h 
 
 livewire/moc_Threaded.cpp : livewire/Threaded.h
-	$(MOC) livewire/Threaded.h -o livewire/moc_Threaded.cpp
+	(cd livewire ; $(MAKE) moc_Threaded.cpp)
 
 livewire/LivewireCalculator.$(O) : livewire/LivewireCalculator.cpp
+	(cd livewire ; $(MAKE) LivewireCalculator.$(O))
 
 livewire/PointPriorityQueue.$(O) : livewire/PointPriorityQueue.cpp
+	(cd livewire ; $(MAKE) PointPriorityQueue.$(O))
 
 livewire/moc_Threaded.$(O)       : livewire/moc_Threaded.cpp
+	(cd livewire ; $(MAKE) moc_Threaded.$(O))
+
+livewire/Threaded.$(O)       : livewire/Threaded.cpp
+	(cd livewire ; $(MAKE) Threaded.$(O))
 
 livewire/WeightCalculator.$(O)   : livewire/WeightCalculator.cpp
+	(cd livewire ; $(MAKE) WeightCalculator.$(O))
 
 
 # Build common object files in common directory

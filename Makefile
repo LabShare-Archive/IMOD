@@ -292,7 +292,7 @@ cleansrc : ALWAYS
 	\find libdiaqt -type f -name "moc_*.cpp" -exec rm "{}" \;
 	\find sendevent -type f -name "moc_*.cpp" -exec rm "{}" \;
 	\find qtassist -type f -name "moc_*.cpp" -exec rm "{}" \;
-	\find plugs -type f -name "moc_*.cpp" -exec rm "{}" \;
+	(cd plugs ; make clean)
 	(cd raptor ; make clean)
 	(cd pysrc ; make clean)
 	(cd manpages ; make clean)
@@ -336,6 +336,8 @@ csrc : ALWAYS
 	raptor dist scripts pysrc com manpages autodoc \
 	plugs/*/*.[chf] plugs/*/*.cpp plugs/*/*.html plugs/*/*.csv plugs/*/Makefile \
 	plugs/*/*.png plugs/Makefile.unix plugs/Makefile.dummy \
+	plugs/drawingtools/livewire/*.h plugs/drawingtools/livewire/*.cpp \
+	plugs/drawingtools/livewire/Makefile \
 	include/*.h include/*.inc | (cd $(ARCDIR)_src; tar xBf -)
 
 #

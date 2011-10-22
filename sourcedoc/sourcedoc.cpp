@@ -328,7 +328,7 @@ int main(int argc, char *argv[])
                 str2 = "<H3><A NAME=\"" + funcName + "\"></A>";
               str2 += funcList[ui];
               if (ui == funcList.count() - 1)
-                str2 += "</H3>";
+                str2 += "</H3><P>";
               descList << str2;
             }
           } else {
@@ -348,6 +348,7 @@ int main(int argc, char *argv[])
             convertSpecialCodes(str, progname, debug);
             descList << str;
           }
+          descList << QString("</P>\n");
 
         } else if (doCode && str.contains(codeString)) {
 
@@ -410,8 +411,12 @@ int main(int argc, char *argv[])
               }
 
               // For non-comment, just put out string
-            } else
+            } else {
+              str.replace("&", "&amp;");
+              str.replace("<", "&lt;");
+              str.replace(">", "&gt;");
               descList << str;
+            }
               
             // Now if not in comment and code not out yet, put it out
             if (!codeOut && !inComment) {
@@ -476,6 +481,9 @@ static void convertSpecialCodes(QString &str, char *progname, int debug)
   QString str2, funcName, href;
   int ind1, ind2, ind, ind0, ind3;
 
+  str.replace("&", "&amp;");
+  str.replace("<", "&lt;");
+  str.replace(">", "&gt;");
   str.replace(QRegExp(CAPTURE_NONBS"\\["), "\\1<B>");
   str.replace(QRegExp("^\\["), "<B>");
             
@@ -485,7 +493,6 @@ static void convertSpecialCodes(QString &str, char *progname, int debug)
   str.replace(QRegExp(CAPTURE_NONBS"\\}"), "\\1</I>");
   str.replace(QRegExp(CAPTURE_NONBS"\\^"), "\\1<BR>");
   str.replace(QRegExp("^\\^"), "<BR>");
-  str.replace("&", "&amp;");
 
   // Replace multiple spaces with ;nbsp
   if (str.indexOf("  ") >= 0) {
