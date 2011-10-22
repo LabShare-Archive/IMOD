@@ -419,9 +419,9 @@ rb.particle==
 
 
 [function == multiparticle-check-prm]
-rb.multiparticle-reference=
-tf.multiparticle-reference=15
-tf.groups-of=10
+rb.multiparticle-reference==
+tf.multiparticle-reference==15
+tf.groups-of==10
 save==
 assert.contains.file==%{dataset}.prm|flgFairReference = 1
 assert.contains.file==%{dataset}.prm|reference = [15, 10]
