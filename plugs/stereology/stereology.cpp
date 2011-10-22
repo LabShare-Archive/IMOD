@@ -6312,7 +6312,7 @@ bool Stereology::setupImodObjsFromGridAndCats( bool skipIfExists, bool overwrite
 		
 		imodObjectSetName( obj, (char *)newObjName.toStdString().c_str() );
 		
-		if( setObjLabel( obj, newObjLabel )==false );
+		if( setObjLabel( obj, newObjLabel )==false )
 			cout << "Error setting label for object " << (g->objIdx+1) << endl;
 	}
 	
@@ -6368,7 +6368,7 @@ bool Stereology::setupImodObjsFromGridAndCats( bool skipIfExists, bool overwrite
 		
 		imodObjectSetName( obj, (char *)newObjName.toStdString().c_str() ); 
 		
-		if( setObjLabel( obj, newObjName )==false );
+		if( setObjLabel( obj, newObjName )==false )
 			cout << "Error setting label for object " << (catObj.objIdx+1) << endl;
   }
 	
@@ -6425,7 +6425,7 @@ QString Stereology::getObjName( int objIdx )
 bool Stereology::setObjLabel( Iobj *obj, QString newLabelStr )
 {	
 	Ilabel *newLabel = imodObjectNewLabel( obj );
-	return ( !imodLabelName( newLabel, (char *)newLabelStr.toStdString().c_str() ) );
+	return ( imodLabelName( newLabel, (char *)newLabelStr.toStdString().c_str()) != 2 );
 }
 
 //------------------------
@@ -8072,6 +8072,8 @@ void Stereology::startCounting()
 		
 		updateGuiToMatchCountingStarted();
 	}
+	ivwDraw(plug.view, IMOD_DRAW_MOD);	// redraw window to reflect new number of objects
+	
 	
 	//## PRINT RESULTS:
 	
