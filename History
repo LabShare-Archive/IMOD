@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/22/11: Made Gputilttest run tilt with debug output and leave log file if
+the GUP fails.
+
 10/20/11: Fixed etomo tutorial to display correctly in Qt Assistant.
 
 10/19/11: Added #TOP anchor to manpages in the right-click menu and Help menu.
