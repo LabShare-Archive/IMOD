@@ -77,7 +77,7 @@ public interface ConstPeetMetaData {
 
   public ConstEtomoNumber getReferenceVolume();
 
-  public String getEdgeShift();
+  public ConstEtomoNumber getEdgeShift();
 
   public boolean isFlgWedgeWeight();
 
@@ -88,8 +88,6 @@ public interface ConstPeetMetaData {
   public String getMaskTypeVolume();
 
   public ConstEtomoNumber getNWeightGroup();
-
-  public boolean isUseNWeightGroup();
 
   public boolean isTiltRange();
 
