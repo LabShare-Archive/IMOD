@@ -199,7 +199,10 @@ etomoFile = PipGetInOutFile('EtomoFile', 0)
 inputDir = ''
 if etomoFile:
    etomoFile = etomoFile.replace('\\', '/')
-   inputDir = os.path.dirname(etomoFile) + os.sep
+   inputDir = os.path.dirname(etomoFile)
+   if not inputDir:
+      inputDir = '.'
+   inputDir += os.sep
 
 writeableDir = PipGetString('WriteableDirectory', '.')
 
