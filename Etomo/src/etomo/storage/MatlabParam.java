@@ -330,7 +330,9 @@ public final class MatlabParam {
   public static final String REF_THRESHOLD_KEY = "refThreshold";
   public static final String REF_FLAG_ALL_TOM_KEY = "refFlagAllTom";
   public static final String EDGE_SHIFT_KEY = "edgeShift";
-  public static final int EDGE_SHIFT_DEFAULT = 2;
+  public static final int EDGE_SHIFT_DEFAULT = 1;
+  public static final int EDGE_SHIFT_MIN = 0;
+  public static final int EDGE_SHIFT_MAX = 3;
   public static final String LST_THRESHOLDS_KEY = "lstThresholds";
   public static final String LST_FLAG_ALL_TOM_KEY = "lstFlagAllTom";
   /**
@@ -367,7 +369,8 @@ public final class MatlabParam {
   public static final String OUTSIDE_MASK_RADIUS_KEY = "outsideMaskRadius";
   public static final String N_WEIGHT_GROUP_KEY = "nWeightGroup";
   public static final int N_WEIGHT_GROUP_DEFAULT = 8;
-  public static final int N_WEIGHT_GROUP_MIN = 2;
+  public static final int N_WEIGHT_GROUP_MIN = 0;
+  public static final int N_WEIGHT_GROUP_MAX = 32;
   public static final String FLG_REMOVE_DUPLICATES_KEY = "flgRemoveDuplicates";
   public static final String DUPLICATE_SHIFT_TOLERANCE_KEY = "duplicateShiftTolerance";
   public static final String DUPLICATE_ANGULAR_TOLERANCE_KEY = "duplicateAngularTolerance";
@@ -418,7 +421,6 @@ public final class MatlabParam {
   private CCMode ccMode = CCMode.DEFAULT;
   private boolean useReferenceFile = false;
   private YAxisType yAxisType = YAxisType.DEFAULT;
-  private boolean useNWeightGroup = false;
   private boolean tiltRangeEmpty = false;
 
   private boolean newFile;
@@ -430,6 +432,9 @@ public final class MatlabParam {
     nWeightGroup.setDefault(N_WEIGHT_GROUP_DEFAULT);
     nWeightGroup.setFloor(N_WEIGHT_GROUP_MIN);
     flgMeanFill.setDefault(FLG_MEAN_FILL_DEFAULT);
+    flgFairReference.setDefault(false);
+    edgeShift.setDefault(EDGE_SHIFT_DEFAULT);
+    edgeShift.setFloor(EDGE_SHIFT_MIN);
   }
 
   /**
@@ -494,7 +499,6 @@ public final class MatlabParam {
     try {
       commentAutodoc = AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM,
           AxisID.ONLY);
-      System.out.println("E:commentAutodoc:"+commentAutodoc);
     }
     catch (IOException e) {
       System.err.println("Problem with " + AutodocFactory.PEET_PRM
@@ -730,10 +734,6 @@ public final class MatlabParam {
     nWeightGroup.setRawString(input);
   }
 
-  public void setUseNWeightGroup(final boolean input) {
-    useNWeightGroup = input;
-  }
-
   public void setMaskModelPtsZRotation(final String input) {
     maskModelPts.setRawString(Z_ROTATION_INDEX, input);
   }
@@ -770,7 +770,7 @@ public final class MatlabParam {
     return maskType.getRawString();
   }
 
-  public void setEdgeShift(final String edgeShift) {
+  public void setEdgeShift(final Number edgeShift) {
     this.edgeShift.setRawString(edgeShift);
   }
 
@@ -804,7 +804,6 @@ public final class MatlabParam {
     insideMaskRadius.clear();
     outsideMaskRadius.clear();
     nWeightGroup.clear();
-    useNWeightGroup = false;
     tiltRangeEmpty = false;
     flgRemoveDuplicates.clear();
     flgAlignAverages.clear();
@@ -815,8 +814,8 @@ public final class MatlabParam {
     edgeShift.clear();
   }
 
-  public String getEdgeShift() {
-    return edgeShift.getRawString();
+  public ParsedElement getEdgeShift() {
+    return edgeShift;
   }
 
   public String getSampleInterval() {
@@ -1265,9 +1264,7 @@ public final class MatlabParam {
     valueMap.put(MASK_MODEL_PTS_KEY, maskModelPts.getParsableString());
     valueMap.put(INSIDE_MASK_RADIUS_KEY, insideMaskRadius.getParsableString());
     valueMap.put(OUTSIDE_MASK_RADIUS_KEY, outsideMaskRadius.getParsableString());
-    if (useNWeightGroup) {
-      valueMap.put(N_WEIGHT_GROUP_KEY, nWeightGroup.getParsableString());
-    }
+    valueMap.put(N_WEIGHT_GROUP_KEY, nWeightGroup.getParsableString());
     valueMap.put(FLG_REMOVE_DUPLICATES_KEY, flgRemoveDuplicates.getParsableString());
     valueMap.put(FLG_ALIGN_AVERAGES_KEY, flgAlignAverages.getParsableString());
     valueMap.put(FLG_FAIR_REFERENCE_KEY, flgFairReference.getParsableString());
@@ -1435,13 +1432,8 @@ public final class MatlabParam {
         (String) valueMap.get(INSIDE_MASK_RADIUS_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, OUTSIDE_MASK_RADIUS_KEY,
         (String) valueMap.get(OUTSIDE_MASK_RADIUS_KEY), commentMap);
-    if (useNWeightGroup) {
-      setNameValuePairValue(manager, autodoc, N_WEIGHT_GROUP_KEY,
-          (String) valueMap.get(N_WEIGHT_GROUP_KEY), commentMap);
-    }
-    else {
-      removeNameValuePair(autodoc, N_WEIGHT_GROUP_KEY);
-    }
+    setNameValuePairValue(manager, autodoc, N_WEIGHT_GROUP_KEY,
+        (String) valueMap.get(N_WEIGHT_GROUP_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, FLG_REMOVE_DUPLICATES_KEY,
         (String) valueMap.get(FLG_REMOVE_DUPLICATES_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, FLG_ALIGN_AVERAGES_KEY,
