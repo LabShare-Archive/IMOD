@@ -434,10 +434,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
   private static final String LST_THRESHOLD_INCREMENT_TITLE = "Incr.";
   private static final String LST_THRESHOLD_END_TITLE = "End";
   private static final String LST_THRESHOLD_ADDITIONAL_NUMBERS_TITLE = "Additional numbers";
-  private static final String PARTICLE_VOLUME_LABEL = "Particle volume";
-  private static final String X_LABEL = "X";
-  private static final String Y_LABEL = "Y";
-  private static final String Z_LABEL = "Z";
   private static final String LST_THRESHOLDS_LABEL = "Number of Particles in Averages";
 
   private final EtomoPanel rootPanel = new EtomoPanel();
@@ -445,10 +441,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
   private final LabeledTextField ltfFnOutput = new LabeledTextField(FN_OUTPUT_LABEL
       + ": ");
   private final SpacedPanel pnlSetupBody = SpacedPanel.getInstance();
-  private final LabeledTextField ltfSzVolX = new LabeledTextField(PARTICLE_VOLUME_LABEL
-      + " " + X_LABEL + ": ");
-  private final LabeledTextField ltfSzVolY = new LabeledTextField(Y_LABEL + ": ");
-  private final LabeledTextField ltfSzVolZ = new LabeledTextField(Z_LABEL + ": ");
   private final LabeledTextField ltfAlignedBaseName = new LabeledTextField(
       "Aligned base name: ");
   private final LabeledTextField ltfLowCutoff = new LabeledTextField(
@@ -542,7 +534,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     phRun = PanelHeader.getAdvancedBasicInstance(RUN_LABEL, this, DIALOG_TYPE);
     volumeTable = VolumeTable.getInstance(manager, this);
     iterationTable = IterationTable.getInstance(manager, this);
-    //panels
+    // panels
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(new BeveledBorder("PEET").getBorder());
     rootPanel.add(tabPane);
@@ -665,9 +657,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
   public boolean fixIncorrectPath(FileTextField fileTextField, boolean choosePath) {
     File newFile = null;
     while (newFile == null || !newFile.exists()) {
-      //Have the user choose the location of the file if they haven't chosen
-      //before or they want to choose most of the files individuallly, otherwise
-      //just use the current correctPath.
+      // Have the user choose the location of the file if they haven't chosen
+      // before or they want to choose most of the files individuallly, otherwise
+      // just use the current correctPath.
       if (correctPath == null || choosePath || (newFile != null && !newFile.exists())) {
         JFileChooser fileChooser = getFileChooserInstance();
         fileChooser.setSelectedFile(fileTextField.getFile());
@@ -791,9 +783,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     else if (initMotlCode == MatlabParam.InitMotlCode.RANDOM_ROTATIONS) {
       rbInitMotlRandomRotations.setSelected(true);
     }
-    ltfSzVolX.setText(matlabParam.getSzVolX());
-    ltfSzVolY.setText(matlabParam.getSzVolY());
-    ltfSzVolZ.setText(matlabParam.getSzVolZ());
     MatlabParam.CCMode ccMode = matlabParam.getCcMode();
     if (ccMode == MatlabParam.CCMode.NORMALIZED) {
       rbCcModeNormalized.setSelected(true);
@@ -813,7 +802,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     lsParticlePerCPU.setValue(matlabParam.getParticlePerCPU());
     yAxisTypePanel.setParameters(matlabParam, parametersOnly);
     volumeTable.setParameters(matlabParam, parametersOnly, rbInitMotlFiles.isSelected(),
-        missingWedgeCompensationPanel.isTiltRangeSelected(), importDir);
+        missingWedgeCompensationPanel.isTiltRangeRequired(), importDir);
     sphericalSamplingForThetaAndPsiPanel.setParameters(matlabParam);
     maskingPanel.setParameters(matlabParam, parametersOnly);
     cbFlgRemoveDuplicates.setSelected(matlabParam.isFlgRemoveDuplicates());
@@ -831,9 +820,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     matlabParam
         .setInitMotlCode(((RadioButton.RadioButtonModel) bgInitMotl.getSelection())
             .getEnumeratedType());
-    matlabParam.setSzVolX(ltfSzVolX.getText());
-    matlabParam.setSzVolY(ltfSzVolY.getText());
-    matlabParam.setSzVolZ(ltfSzVolZ.getText());
     matlabParam.setCcMode(((RadioButton.RadioButtonModel) bgCcMode.getSelection())
         .getEnumeratedType());
     matlabParam.setAlignedBaseName(ltfAlignedBaseName.getText());
@@ -907,9 +893,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
   public void reset() {
     referencePanel.reset();
     missingWedgeCompensationPanel.reset();
-    ltfSzVolX.clear();
-    ltfSzVolY.clear();
-    ltfSzVolZ.clear();
     ltfAlignedBaseName.clear();
     ltfLowCutoff.clear();
     cbRefFlagAllTom.setSelected(false);
@@ -996,17 +979,12 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     cbFlgRemoveDuplicates
         .setToolTipText("Remove mulitple references to the same particle after"
             + "each iteration.");
-    String tooltip = "The size of the volume around each particle to excise and "
-        + "average.";
-    ltfSzVolX.setToolTipText(tooltip);
-    ltfSzVolY.setToolTipText(tooltip);
-    ltfSzVolZ.setToolTipText(tooltip);
     cbLstFlagAllTom
         .setToolTipText("If checked, prefer equal number of particles from each "
             + "tomogram for averaging, rather than simply choosing particles "
             + "based on correlation score with no regard for the tomogram in "
             + "which they occur.");
-    tooltip = "Start, Incr, and End determine the numbers of particles in an "
+    String tooltip = "Start, Incr, and End determine the numbers of particles in an "
         + "arithmetic sequence for which averages will be created.  I.e. "
         + "averages will be created containing Start particles, Start + Incr, "
         + "and so on up to End.";
@@ -1034,12 +1012,12 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
   }
 
   private void createSetupPanel() {
-    //project
+    // project
     JPanel pnlProject = new JPanel();
     pnlProject.setLayout(new BoxLayout(pnlProject, BoxLayout.X_AXIS));
     pnlProject.add(ftfDirectory.getContainer());
     pnlProject.add(ltfFnOutput.getContainer());
-    //reference and missing wedge compensation
+    // reference and missing wedge compensation
     JPanel pnlReferenceAndMissingWedgeCompensation = new JPanel();
     pnlReferenceAndMissingWedgeCompensation.setLayout(new BoxLayout(
         pnlReferenceAndMissingWedgeCompensation, BoxLayout.X_AXIS));
@@ -1047,7 +1025,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     pnlReferenceAndMissingWedgeCompensation.add(Box.createRigidArea(FixedDim.x20_y0));
     pnlReferenceAndMissingWedgeCompensation.add(missingWedgeCompensationPanel
         .getComponent());
-    //init MOTL
+    // init MOTL
     pnlInitMotl.setLayout(new BoxLayout(pnlInitMotl, BoxLayout.Y_AXIS));
     pnlInitMotl.setBorder(new EtchedBorder("Initial Motive List").getBorder());
     pnlInitMotl.add(rbInitMotlZero.getComponent());
@@ -1055,14 +1033,14 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     pnlInitMotl.add(rbInitMotlXAndZAxis.getComponent());
     pnlInitMotl.add(rbInitMotlRandomRotations.getComponent());
     pnlInitMotl.add(rbInitMotlFiles.getComponent());
-    //init MOTL and Y axis type
+    // init MOTL and Y axis type
     JPanel pnlInitMotlAndYAxisType = new JPanel();
     pnlInitMotlAndYAxisType.setLayout(new BoxLayout(pnlInitMotlAndYAxisType,
         BoxLayout.X_AXIS));
     pnlInitMotlAndYAxisType.add(pnlInitMotl);
     pnlInitMotlAndYAxisType.add(Box.createRigidArea(FixedDim.x20_y0));
     pnlInitMotlAndYAxisType.add(yAxisTypePanel.getComponent());
-    //body
+    // body
     pnlSetupBody.setBoxLayout(BoxLayout.Y_AXIS);
     pnlSetupBody.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     pnlSetupBody.add(pnlProject);
@@ -1072,22 +1050,16 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     pnlSetupBody.add(pnlReferenceAndMissingWedgeCompensation);
     pnlSetupBody.add(maskingPanel.getComponent());
     pnlSetupBody.add(pnlInitMotlAndYAxisType);
-    //main panel
+    // main panel
     pnlSetup.setBoxLayout(BoxLayout.Y_AXIS);
     pnlSetup.setBorder(BorderFactory.createEtchedBorder());
     pnlSetup.add(phSetup);
   }
 
   private void createRunPanel() {
-    //initialize
+    // initialize
     btnAverageAll.setSize();
-    //szVol
-    SpacedPanel pnlSzVol = SpacedPanel.getInstance();
-    pnlSzVol.setBoxLayout(BoxLayout.X_AXIS);
-    pnlSzVol.add(ltfSzVolX.getContainer());
-    pnlSzVol.add(ltfSzVolY.getContainer());
-    pnlSzVol.add(ltfSzVolZ.getContainer());
-    //lstThresholds
+    // lstThresholds
     SpacedPanel pnlLstThresholds = SpacedPanel.getInstance();
     pnlLstThresholds.setBoxLayout(BoxLayout.X_AXIS);
     pnlLstThresholds.setBorder(new EtchedBorder(LST_THRESHOLDS_LABEL).getBorder());
@@ -1095,29 +1067,29 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     pnlLstThresholds.add(ltfLstThresholdsIncrement.getContainer());
     pnlLstThresholds.add(ltfLstThresholdsEnd.getContainer());
     pnlLstThresholds.add(ltfLstThresholdsAdditional.getContainer());
-    //CCMode
+    // CCMode
     pnlCcMode.setLayout(new BoxLayout(pnlCcMode, BoxLayout.Y_AXIS));
     pnlCcMode.setBorder(new EtchedBorder("Cross correlation measure").getBorder());
     pnlCcMode.add(rbCcModeLocal.getComponent());
     pnlCcMode.add(rbCcModeNormalized.getComponent());
-    //ParticlePerCPU
+    // ParticlePerCPU
     JPanel pnlParticlePerCPU = new JPanel();
     pnlParticlePerCPU.setLayout(new BoxLayout(pnlParticlePerCPU, BoxLayout.X_AXIS));
     pnlParticlePerCPU.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlParticlePerCPU.add(lsParticlePerCPU.getContainer());
     pnlParticlePerCPU.add(Box.createHorizontalGlue());
-    //advanced right panel
+    // advanced right panel
     JPanel pnlAdvancedRight = new JPanel();
     pnlAdvancedRight.setLayout(new BoxLayout(pnlAdvancedRight, BoxLayout.Y_AXIS));
     pnlAdvancedRight.add(ltfAlignedBaseName.getContainer());
     pnlAdvancedRight.add(ltfLowCutoff.getContainer());
     pnlAdvancedRight.add(lsDebugLevel.getContainer());
-    //advanced panel
+    // advanced panel
     pnlAdvanced.setLayout(new BoxLayout(pnlAdvanced, BoxLayout.X_AXIS));
     pnlAdvanced.add(pnlCcMode);
     pnlAdvanced.add(Box.createRigidArea(FixedDim.x40_y0));
     pnlAdvanced.add(pnlAdvancedRight);
-    //button panel
+    // button panel
     JPanel pnlButton = new JPanel();
     pnlButton.setLayout(new BoxLayout(pnlButton, BoxLayout.X_AXIS));
     btnRun.setSize();
@@ -1130,7 +1102,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     pnlButton.add(btnRef.getComponent());
     pnlButton.add(Box.createRigidArea(FixedDim.x5_y0));
     pnlButton.add(btnAverageAll.getComponent());
-    //body
+    // body
     pnlRunBody.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRunBody.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     pnlRunBody.add(iterationTable.getContainer());
@@ -1142,22 +1114,21 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     pnlFlgRemoveDuplicates.add(cbFlgRemoveDuplicates);
     pnlFlgRemoveDuplicates.add(Box.createHorizontalGlue());
     pnlRunBody.add(pnlFlgRemoveDuplicates);
-    pnlRunBody.add(pnlSzVol);
     JPanel pnlRefFlagAllTom = new JPanel();
-    pnlRefFlagAllTom.setLayout(new BoxLayout(pnlRefFlagAllTom,BoxLayout.X_AXIS));
+    pnlRefFlagAllTom.setLayout(new BoxLayout(pnlRefFlagAllTom, BoxLayout.X_AXIS));
     pnlRefFlagAllTom.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlRefFlagAllTom.add(cbRefFlagAllTom);
     pnlRefFlagAllTom.add(Box.createHorizontalGlue());
     pnlRunBody.add(pnlRefFlagAllTom);
     pnlRunBody.add(pnlLstThresholds);
     JPanel pnlLstFlagAllTom = new JPanel();
-    pnlLstFlagAllTom.setLayout(new BoxLayout(pnlLstFlagAllTom,BoxLayout.X_AXIS));
+    pnlLstFlagAllTom.setLayout(new BoxLayout(pnlLstFlagAllTom, BoxLayout.X_AXIS));
     pnlLstFlagAllTom.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlLstFlagAllTom.add(cbLstFlagAllTom);
     pnlLstFlagAllTom.add(Box.createHorizontalGlue());
     pnlRunBody.add(pnlLstFlagAllTom);
     JPanel pnlflgAlignAverages = new JPanel();
-    pnlflgAlignAverages.setLayout(new BoxLayout(pnlflgAlignAverages,BoxLayout.X_AXIS));
+    pnlflgAlignAverages.setLayout(new BoxLayout(pnlflgAlignAverages, BoxLayout.X_AXIS));
     pnlflgAlignAverages.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlflgAlignAverages.add(cbflgAlignAverages);
     pnlflgAlignAverages.add(Box.createHorizontalGlue());
@@ -1165,7 +1136,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     pnlRunBody.add(pnlParticlePerCPU);
     pnlRunBody.add(pnlAdvanced);
     pnlRunBody.add(pnlButton);
-    //main panel
+    // main panel
     pnlRun.setLayout(new BoxLayout(pnlRun, BoxLayout.Y_AXIS));
     pnlRun.setBorder(BorderFactory.createEtchedBorder());
     pnlRun.add(phRun);
@@ -1207,102 +1178,85 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
   }
 
   private boolean validateRun() {
-    //Setup tab
-    //Must have a directory
+    // Setup tab
+    // Must have a directory
     if (ftfDirectory.isEmpty()) {
       gotoSetupTab();
       UIHarness.INSTANCE.openMessageDialog(manager, "Please set the "
           + PeetDialog.DIRECTORY_LABEL + " field.", "Entry Error");
       return false;
     }
-    //Must have an output name
+    // Must have an output name
     if (ltfFnOutput.isEmpty()) {
       gotoSetupTab();
       UIHarness.INSTANCE.openMessageDialog(manager, "Please set the "
           + PeetDialog.FN_OUTPUT_LABEL + " field.", "Entry Error");
       return false;
     }
-    //Validate volume table
+    // Validate volume table
     String errorMessage = volumeTable.validateRun(missingWedgeCompensationPanel
-        .isTiltRangeSelected()
-        || missingWedgeCompensationPanel.isFlgWedgeWeightSelected());
+        .isTiltRangeRequired());
     if (errorMessage != null) {
       gotoSetupTab();
       UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, "Entry Error");
       return false;
     }
-    //Must either have a volume and particle or a reference file.
+    // Must either have a volume and particle or a reference file.
     errorMessage = referencePanel.validateRun();
     if (errorMessage != null) {
       gotoSetupTab();
       UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, "Entry Error");
       return false;
     }
-    //Validate missing wedge compensation panel
+    // Validate missing wedge compensation panel
     errorMessage = missingWedgeCompensationPanel.validateRun();
     if (errorMessage != null) {
       gotoSetupTab();
       UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, "Entry Error");
       return false;
     }
-    //Validate masking
+    // Validate masking
     errorMessage = maskingPanel.validateRun();
     if (errorMessage != null) {
       gotoSetupTab();
       UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, "Entry Error");
       return false;
     }
-    //validate Y axis type
+    // validate Y axis type
     errorMessage = yAxisTypePanel.validateRun();
     if (errorMessage != null) {
       gotoSetupTab();
       UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, "Entry Error");
       return false;
     }
-    //Run tab
+    // Run tab
     if (!iterationTable.validateRun()) {
       return false;
     }
-    //spherical sampling for theta and psi:
+    // spherical sampling for theta and psi:
     if (!sphericalSamplingForThetaAndPsiPanel.validateRun()) {
       return false;
     }
-    //particle volume
-    if (ltfSzVolX.isEmpty()) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "In " + PARTICLE_VOLUME_LABEL + ", "
-          + X_LABEL + " is required.", "Entry Error");
-      return false;
-    }
-    if (ltfSzVolY.isEmpty()) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "In " + PARTICLE_VOLUME_LABEL + ", "
-          + Y_LABEL + " is required.", "Entry Error");
-      return false;
-    }
-    if (ltfSzVolZ.isEmpty()) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "In " + PARTICLE_VOLUME_LABEL + ", "
-          + Z_LABEL + " is required.", "Entry Error");
-      return false;
-    }
-    //Number of particles
+    // Number of particles
     boolean startIsEmpty = ltfLstThresholdsStart.isEmpty();
     boolean incrementIsEmpty = ltfLstThresholdsIncrement.isEmpty();
     boolean endIsEmpty = ltfLstThresholdsEnd.isEmpty();
     boolean additionalIsEmpty = ltfLstThresholdsAdditional.isEmpty();
     if (startIsEmpty && incrementIsEmpty) {
-      //lst thesholds is required
+      // lst thesholds is required
       if (additionalIsEmpty) {
         UIHarness.INSTANCE.openMessageDialog(manager, LST_THRESHOLDS_LABEL
             + " is required.", "Entry Error");
         return false;
       }
-      //check empty list descriptor
+      // check empty list descriptor
       if (!endIsEmpty) {
         UIHarness.INSTANCE.openMessageDialog(manager, "In " + LST_THRESHOLDS_LABEL
             + ", invalid list description.", "Entry Error");
         return false;
       }
     }
-    //check list descriptor
+    // check list descriptor
     else if (startIsEmpty || endIsEmpty) {
       UIHarness.INSTANCE.openMessageDialog(manager, "In " + LST_THRESHOLDS_LABEL
           + ", invalid list description.", "Entry Error");
@@ -1337,24 +1291,19 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
    * Enabled/disables fields.  Calls updateDisplay() in subordinate panels.
    */
   public void updateDisplay() {
-    //tilt range
-    rbCcModeNormalized.setEnabled(!missingWedgeCompensationPanel
-        .isFlgWedgeWeightSelected());
-    if (missingWedgeCompensationPanel.isFlgWedgeWeightSelected()) {
-      rbCcModeLocal.setSelected(true);
-    }
+    // tilt range
     boolean volumeRows = volumeTable.size() > 0;
     referencePanel.updateDisplay();
     missingWedgeCompensationPanel.updateDisplay();
     yAxisTypePanel.updateDisplay();
     sphericalSamplingForThetaAndPsiPanel.updateDisplay();
-    //iteration table - spherical sampling and FlgRemoveDuplicates
+    // iteration table - spherical sampling and FlgRemoveDuplicates
     iterationTable.updateDisplay(
         !sphericalSamplingForThetaAndPsiPanel.isSampleSphereNoneSelected(),
         cbFlgRemoveDuplicates.isSelected());
-    //volume table
+    // volume table
     volumeTable.updateDisplay(rbInitMotlFiles.isSelected(),
-        missingWedgeCompensationPanel.isTiltRangeSelected());
+        missingWedgeCompensationPanel.isTiltRangeRequired());
     maskingPanel.updateDisplay();
     cbflgAlignAverages
         .setEnabled(yAxisTypePanel.getYAxisType() != MatlabParam.YAxisType.Y_AXIS);
