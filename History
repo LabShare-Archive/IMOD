@@ -5,8 +5,6 @@ a rotation angle <= -100 degrees (In 4.3).
 
 10/24/11: Fixed tomosnapshot, broken when run from eTomo (In 4.3).
 
-10/24/11: Fixed tomosnapshot, broken when run from eTomo.
-
 10/23/11: IMOD_4-4-0 and branch to IMOD_4-3-0
 10/22/11: Made Gputilttest run tilt with debug output and leave log file if
 the GUP fails.
