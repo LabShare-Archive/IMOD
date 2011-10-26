@@ -45,10 +45,10 @@ final class MissingWedgeCompensationPanel {
   private final LabeledTextField ltfVolumeSizeY = new LabeledTextField("Y: ");
   private final LabeledTextField ltfVolumeSizeZ = new LabeledTextField("Z: ");
   private final CheckBox cbMissingWedgeCompensation = new CheckBox("Enabled");
-  private final Spinner sEdgeShift = Spinner.getInstance("Edge shift: ",
+  private final Spinner sEdgeShift = Spinner.getLabeledInstance("Edge shift: ",
       MatlabParam.EDGE_SHIFT_DEFAULT, MatlabParam.EDGE_SHIFT_MIN,
       MatlabParam.EDGE_SHIFT_MAX);
-  private final Spinner sNWeightGroup = Spinner.getInstance("Weight groups: ",
+  private final Spinner sNWeightGroup = Spinner.getLabeledInstance("Weight groups: ",
       MatlabParam.N_WEIGHT_GROUP_DEFAULT, MatlabParam.N_WEIGHT_GROUP_MIN,
       MatlabParam.N_WEIGHT_GROUP_MAX);
   /**
