@@ -29,6 +29,7 @@ tf.root-name-for-output=%{dataset}
 run.function.volume-table=
 run.function.reference=
 [[if = test-gui]]
+  run.function.volume-size=
 	run.function.missing-wedge-compensation=
 	run.function.masking=
 	run.function.manual-cylinder-orientation=
@@ -118,18 +119,24 @@ tf.particle=2
 [[]]
 
 
+[function = volume-size]
+#check particle volume x empty error
+run.function.setup-test-run-error=
+tf.x=%{particle-volume}
+#check particle volume y empty error
+run.function.setup-test-run-error=
+tf.y=%{particle-volume}
+#check particle volume z empty error
+run.function.setup-test-run-error=
+tf.z=%{particle-volume}
+
+
 [function = missing-wedge-compensation]
 if.not.var.test-values.return=
 #check empty tilt range error
 #tilt range required with averaging
-cb.use-tilt-range-in-averaging=on
+cb.enabled=on
 run.function.setup-test-run-error=
-#tilt range required with alignment alone (bug# 1234)
-cb.use-tilt-range-in-alignment=on
-cb.use-tilt-range-in-averaging=off
-run.function.setup-test-run-error=
-cb.use-tilt-range-in-averaging=on
-cb.use-tilt-range-in-alignment=off
 tf.volume-table-1-tilt-range=-10
 tf.volume-table-1-tilt-range.1=10
 run.function.setup-test-run-error=
@@ -142,11 +149,7 @@ tf.volume-table-2-tilt-range=
 tf.volume-table-2-tilt-range.1=
 tf.volume-table-3-tilt-range=
 tf.volume-table-3-tilt-range.1=
-#check empty edge shift error
-tf.edge-shift=
-run.function.setup-test-run-error=
-tf.edge-shift=2
-cb.use-tilt-range-in-averaging=off
+cb.enabled=off
 
 
 [function = masking]
@@ -211,15 +214,6 @@ run.function.iteration-table=
 [[if = test-gui]]
 	run.function.spherical-sampling-for-theta-and-psi=
 [[]]
-#check particle volume x empty error
-run.function.test-run-error=
-tf.particle-volume-x=%{particle-volume}
-#check particle volume y empty error
-run.function.test-run-error=
-tf.y=%{particle-volume}
-#check particle volume z empty error
-run.function.test-run-error=
-tf.z=%{particle-volume}
 cb.use-equal-numbers-of-particles-from-all-tomograms-for-new-reference=on
 run.function.number-of-particles-in-averages=
 cb.use-equal-numbers-of-particles-from-all-tomograms-for-averages=on
@@ -397,7 +391,7 @@ mb.run.1==B
 
 [function == volume-table-check-prm]
 #enable tilt range
-cb.use-tilt-range-in-averaging==on
+cb.enabled==on
 tf.volume-table-1-tilt-range==-10
 tf.volume-table-1-tilt-range.1==10
 tf.volume-table-2-tilt-range==-20
@@ -406,7 +400,7 @@ tf.volume-table-3-tilt-range==-10
 tf.volume-table-3-tilt-range.1==10
 save==
 assert.contains.file==%{dataset}.prm|tiltRange = {[-10, 10], [-20, 20], [-10, 10]}
-cb.use-tilt-range-in-averaging==off
+cb.enabled==off
 
 
 [function == reference-check-prm]
@@ -429,16 +423,15 @@ rb.particle==
 
 
 [function == missing-wedge-compensation-check-prm]
-cb.use-tilt-range-in-averaging==on
-cb.use-tilt-range-in-alignment==on
-cb.#-of-weight-groups-for-equalizing-cccs==on
+cb.enabled==on
+assert.sp.weight-groups==0
+sp.weight-groups==8
 save==
 assert.contains.file==%{dataset}.prm|tiltRange = {[-10, 10], [-20, 20], [-10, 10]}
-assert.contains.file==%{dataset}.prm|edgeShift = 2
+assert.contains.file==%{dataset}.prm|edgeShift = 1
 assert.contains.file==%{dataset}.prm|nWeightGroup = 8
 assert.contains.file==%{dataset}.prm|flgWedgeWeight = 1
-cb.use-tilt-range-in-alignment==off
-cb.use-tilt-range-in-averaging==off
+cb.enabled==off
 
 
 [function == masking-check-prm]
