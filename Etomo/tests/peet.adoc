@@ -424,8 +424,6 @@ rb.particle==
 
 [function == missing-wedge-compensation-check-prm]
 cb.enabled==on
-assert.sp.weight-groups==0
-sp.weight-groups==8
 save==
 assert.contains.file==%{dataset}.prm|tiltRange = {[-10, 10], [-20, 20], [-10, 10]}
 assert.contains.file==%{dataset}.prm|edgeShift = 1
