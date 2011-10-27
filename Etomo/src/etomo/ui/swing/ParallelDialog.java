@@ -43,8 +43,7 @@ public final class ParallelDialog implements AbstractParallelDialog, ProcessInte
       .getSystemResource("images/openFile.gif"));
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
   private final SpacedPanel pnlProcessName = SpacedPanel.getInstance();
-  private final SimpleButton btnChunkComscript = new SimpleButton(iconFolder);
-  private final LabeledTextField ltfProcessName = new LabeledTextField(PROCESS_NAME_LABEL);
+  private final FileTextField ftfProcessName = new FileTextField(PROCESS_NAME_LABEL);
   private final MultiLineButton btnRunProcess = MultiLineButton
       .getToggleButtonInstance("Run Parallel Process");
 
@@ -62,12 +61,8 @@ public final class ParallelDialog implements AbstractParallelDialog, ProcessInte
     this.axisID = axisID;
     mediator = manager.getProcessingMethodMediator(axisID);
     //process name panel
-    btnChunkComscript.setName(PROCESS_NAME_LABEL);
     pnlProcessName.setBoxLayout(BoxLayout.X_AXIS);
-    ltfProcessName.setTextPreferredWidth(125);
-    pnlProcessName.add(ltfProcessName);
-    btnChunkComscript.setPreferredSize(FixedDim.folderButton);
-    pnlProcessName.add(btnChunkComscript);
+    pnlProcessName.add(ftfProcessName);
     //root panel
     pnlRoot.setBorder(new BeveledBorder("Parallel Process").getBorder());
     pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
@@ -102,7 +97,7 @@ public final class ParallelDialog implements AbstractParallelDialog, ProcessInte
   }
 
   private void addListeners() {
-    btnChunkComscript.addActionListener(new ChunkComscriptActionListener(this));
+    ftfProcessName.addActionListener(new ChunkComscriptActionListener(this));
     btnRunProcess.addActionListener(actionListener);
   }
 
@@ -129,7 +124,7 @@ public final class ParallelDialog implements AbstractParallelDialog, ProcessInte
   }
 
   public void setParameters(ParallelMetaData metaData) {
-    ltfProcessName.setText(metaData.getRootName());
+    ftfProcessName.setText(metaData.getRootName());
   }
 
   public void getParameters(BaseScreenState screenState) {
@@ -138,21 +133,21 @@ public final class ParallelDialog implements AbstractParallelDialog, ProcessInte
   }
 
   public void getParameters(ParallelMetaData metaData) {
-    metaData.setRootName(ltfProcessName.getText());
+    metaData.setRootName(ftfProcessName.getText());
   }
 
   public void getParameters(ParallelParam param) {
   }
 
   public void updateDisplay(boolean setupMode) {
-    ltfProcessName.setEditable(setupMode);
-    btnChunkComscript.setEnabled(setupMode);
+    ftfProcessName.setFieldEditable(setupMode);
+    ftfProcessName.setButtonEnabled(setupMode);
   }
 
   void action(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnRunProcess.getText())) {
-      manager.processchunks(btnRunProcess, null, ltfProcessName.getText(), null, mediator
+      manager.processchunks(btnRunProcess, null, ftfProcessName.getText(), null, mediator
           .getRunMethodForProcessInterface(getProcessingMethod()));
     }
   }
@@ -162,7 +157,7 @@ public final class ParallelDialog implements AbstractParallelDialog, ProcessInte
     if (chunkComscript != null) {
       try {
         String comFileName = chunkComscript.getName();
-        ltfProcessName.setText(comFileName.substring(0, comFileName.lastIndexOf("-0")));
+        ftfProcessName.setText(comFileName.substring(0, comFileName.lastIndexOf("-0")));
         workingDir = chunkComscript.getParentFile();
       }
       catch (Exception e) {
@@ -172,10 +167,10 @@ public final class ParallelDialog implements AbstractParallelDialog, ProcessInte
   }
 
   private void setToolTipText() {
-    ltfProcessName
-        .setToolTipText("The process name is based on the name of the first comscript (-001.com or -001-sync.com).");
-    btnChunkComscript
-        .setToolTipText("Selects the first comscript (-001.com or -001-sync.com).");
+    ftfProcessName
+        .setFieldToolTipText("The process name is based on the name of the first comscript (-001.com or -001-sync.com).");
+    ftfProcessName
+        .setButtonToolTipText("Selects the first comscript (-001.com or -001-sync.com).");
     btnRunProcess.setToolTipText("Runs the process.");
   }
 
