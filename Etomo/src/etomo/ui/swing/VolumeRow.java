@@ -424,9 +424,7 @@ final class VolumeRow implements Highlightable {
     }
     if (tiltRangeRequired && (tiltRangeMin.isEmpty() || tiltRangeMax.isEmpty())) {
       return VolumeTable.LABEL + ":  In row " + number.getText() + ", "
-          + VolumeTable.TILT_RANGE_HEADER1_LABEL + " is required when either "
-          + MissingWedgeCompensationPanel.TILT_RANGE_LABEL + " or "
-          + MissingWedgeCompensationPanel.FLG_WEDGE_WEIGHT_LABEL + " is checked.";
+          + VolumeTable.TILT_RANGE_HEADER1_LABEL + " is required.";
     }
     return null;
   }

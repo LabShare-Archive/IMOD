@@ -9,6 +9,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import etomo.BaseManager;
@@ -52,23 +53,23 @@ import etomo.type.PeetMetaData;
 final class ReferencePanel {
   public static final String rcsid = "$Id$";
 
-  private static final String REFERENCE_VOLUME_LABEL = "Volume #";
-  static final String REFERENCE_FILE_LABEL = "Reference file";
-  private static final String PARTICLE_LABEL = "Particle #";
-  private static final String REFERENCE_LABEL = "Reference";
+  private static final String TITLE = "Reference";
+  private static final String REFERENCE_FILE_LABEL = "User supplied file: ";
+  private static final String MULTIPARTICLE_REFERENCE_LABEL = "Multiparticle reference ";
 
   private final EtomoPanel pnlRoot = new EtomoPanel();
   private final ButtonGroup bgReference = new ButtonGroup();
-  private final RadioButton rbReferenceParticle = new RadioButton(REFERENCE_VOLUME_LABEL
-      + ": ", bgReference);
-  private final Spinner sReferenceVolume = Spinner.getInstance(REFERENCE_VOLUME_LABEL
-      + ": ");
-  private final RadioButton rbReferenceFile = new RadioButton(
-      REFERENCE_FILE_LABEL + " :", bgReference);
-  private final LabeledTextField ltfReferenceParticle = new LabeledTextField(
-      PARTICLE_LABEL + ": ");
-  private final FileTextField ftfReferenceFile = FileTextField
-      .getUnlabeledInstance(REFERENCE_FILE_LABEL + " :");
+  private final RadioTextField rtfParticle = RadioTextField.getInstance("Particle ",
+      bgReference);
+  private final Spinner sVolume = Spinner.getLabeledInstance("in Volume: ");
+  private final RadioButton rbFile = new RadioButton(REFERENCE_FILE_LABEL, bgReference);
+  private final FileTextField ftfFile = FileTextField
+      .getUnlabeledInstance(REFERENCE_FILE_LABEL);
+  private final RadioTextField rtfMultiparticleGroups = RadioTextField.getInstance(
+      "Multiparticle reference ", bgReference);
+  private final LabeledTextField ltfMultiparticleParticles = new LabeledTextField(
+      "Groups of: ");
+  private final JLabel lMultiparticle = new JLabel("particles");
 
   private final ReferenceParent parent;
   private final BaseManager manager;
@@ -76,7 +77,7 @@ final class ReferencePanel {
   private ReferencePanel(final ReferenceParent parent, final BaseManager manager) {
     this.parent = parent;
     this.manager = manager;
-    ftfReferenceFile.setFieldWidth(UIParameters.INSTANCE.getFileWidth());
+    ftfFile.setFieldWidth(UIParameters.INSTANCE.getFileWidth());
   }
 
   static ReferencePanel getInstance(final ReferenceParent parent,
@@ -90,31 +91,42 @@ final class ReferencePanel {
 
   private void addListeners() {
     ActionListener actionListener = new ReferenceActionListener(this);
-    rbReferenceParticle.addActionListener(actionListener);
-    rbReferenceFile.addActionListener(actionListener);
-    ftfReferenceFile.addActionListener(new ReferenceFileActionListener(this));
+    rtfParticle.addActionListener(actionListener);
+    rbFile.addActionListener(actionListener);
+    rtfMultiparticleGroups.addActionListener(actionListener);
+    ftfFile.addActionListener(new ReferenceFileActionListener(this));
   }
 
   private void createPanel() {
-    //local panels
-    JPanel pnlVolumeReference = new JPanel();
-    JPanel pnlVolumeFile = new JPanel();
-    //initalization
-    //Root
+    // local panels
+    JPanel pnlParticle = new JPanel();
+    JPanel pnlFile = new JPanel();
+    JPanel pnlMultiparticle = new JPanel();
+    // initalization
+    // Root
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
-    pnlRoot.setBorder(new EtchedBorder(REFERENCE_LABEL).getBorder());
-    pnlRoot.add(pnlVolumeReference);
-    pnlRoot.add(pnlVolumeFile);
-    //volume reference panel
-    pnlVolumeReference.setLayout(new BoxLayout(pnlVolumeReference, BoxLayout.X_AXIS));
-    pnlVolumeReference.add(rbReferenceParticle.getComponent());
-    pnlVolumeReference.add(sReferenceVolume.getContainer());
-    pnlVolumeReference.add(Box.createRigidArea(FixedDim.x5_y0));
-    pnlVolumeReference.add(ltfReferenceParticle.getContainer());
-    //volume file panel
-    pnlVolumeFile.setLayout(new BoxLayout(pnlVolumeFile, BoxLayout.X_AXIS));
-    pnlVolumeFile.add(rbReferenceFile.getComponent());
-    pnlVolumeFile.add(ftfReferenceFile.getContainer());
+    pnlRoot.setBorder(new EtchedBorder(TITLE).getBorder());
+    pnlRoot.add(pnlParticle);
+    pnlRoot.add(pnlFile);
+    pnlRoot.add(pnlMultiparticle);
+    // particle panel
+    pnlParticle.setLayout(new BoxLayout(pnlParticle, BoxLayout.X_AXIS));
+    pnlParticle.add(rtfParticle.getContainer());
+    pnlParticle.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlParticle.add(sVolume.getContainer());
+    pnlParticle.add(Box.createHorizontalGlue());
+    // file panel
+    pnlFile.setLayout(new BoxLayout(pnlFile, BoxLayout.X_AXIS));
+    pnlFile.add(rbFile.getComponent());
+    pnlFile.add(ftfFile.getContainer());
+    pnlFile.add(Box.createHorizontalGlue());
+    // multiparticle panel
+    pnlMultiparticle.setLayout(new BoxLayout(pnlMultiparticle, BoxLayout.X_AXIS));
+    pnlMultiparticle.add(rtfMultiparticleGroups.getContainer());
+    pnlMultiparticle.add(Box.createRigidArea(FixedDim.x3_y0));
+    pnlMultiparticle.add(ltfMultiparticleParticles.getContainer());
+    pnlMultiparticle.add(Box.createRigidArea(FixedDim.x3_y0));
+    pnlMultiparticle.add(lMultiparticle);
   }
 
   Component getComponent() {
@@ -122,7 +134,7 @@ final class ReferencePanel {
   }
 
   boolean isIncorrectPaths() {
-    return !ftfReferenceFile.isEmpty() && !ftfReferenceFile.exists();
+    return !ftfFile.isEmpty() && !ftfFile.exists();
   }
 
   /**
@@ -134,7 +146,7 @@ final class ReferencePanel {
    */
   boolean fixIncorrectPaths(final boolean choosePathEveryRow) {
     if (isIncorrectPaths()) {
-      return parent.fixIncorrectPath(ftfReferenceFile, choosePathEveryRow);
+      return parent.fixIncorrectPath(ftfFile, choosePathEveryRow);
     }
     return true;
   }
@@ -144,9 +156,11 @@ final class ReferencePanel {
    * @param metaData
    */
   void getParameters(final PeetMetaData metaData) {
-    metaData.setReferenceVolume(sReferenceVolume.getValue());
-    metaData.setReferenceParticle(ltfReferenceParticle.getText());
-    metaData.setReferenceFile(ftfReferenceFile.getText());
+    metaData.setReferenceVolume(sVolume.getValue());
+    metaData.setReferenceParticle(rtfParticle.getText());
+    metaData.setReferenceFile(ftfFile.getText());
+    metaData.setReferenceMultiparticleGroups(rtfMultiparticleGroups.getText());
+    metaData.setReferenceMultiparticleParticles(ltfMultiparticleParticles.getText());
   }
 
   /**
@@ -155,9 +169,11 @@ final class ReferencePanel {
    */
   void setParameters(final ConstPeetMetaData metaData, boolean parametersOnly) {
     if (!parametersOnly) {
-      ftfReferenceFile.setText(metaData.getReferenceFile());
-      sReferenceVolume.setValue(metaData.getReferenceVolume());
-      ltfReferenceParticle.setText(metaData.getReferenceParticle());
+      ftfFile.setText(metaData.getReferenceFile());
+      sVolume.setValue(metaData.getReferenceVolume());
+      rtfParticle.setText(metaData.getReferenceParticle());
+      rtfMultiparticleGroups.setText(metaData.getReferenceMultiparticleGroups());
+      ltfMultiparticleParticles.setText(metaData.getReferenceMultiparticleParticles());
     }
   }
 
@@ -168,13 +184,18 @@ final class ReferencePanel {
   void setParameters(final MatlabParam matlabParam, boolean parametersOnly) {
     if (!parametersOnly) {
       if (matlabParam.useReferenceFile()) {
-        rbReferenceFile.setSelected(true);
-        ftfReferenceFile.setText(matlabParam.getReferenceFile());
+        rbFile.setSelected(true);
+        ftfFile.setText(matlabParam.getReferenceFile());
+      }
+      else if (matlabParam.isFlgFairReference()) {
+        rtfMultiparticleGroups.setSelected(true);
+        rtfMultiparticleGroups.setText(matlabParam.getReferenceVolume());
+        ltfMultiparticleParticles.setText(matlabParam.getReferenceParticle());
       }
       else {
-        rbReferenceParticle.setSelected(true);
-        sReferenceVolume.setValue(matlabParam.getReferenceVolume());
-        ltfReferenceParticle.setText(matlabParam.getReferenceParticle());
+        rtfParticle.setSelected(true);
+        sVolume.setValue(matlabParam.getReferenceVolume());
+        rtfParticle.setText(matlabParam.getReferenceParticle());
       }
     }
   }
@@ -184,12 +205,17 @@ final class ReferencePanel {
    * @param matlabParam
    */
   void getParameters(final MatlabParam matlabParam) {
-    if (rbReferenceParticle.isSelected()) {
-      matlabParam.setReferenceVolume(sReferenceVolume.getValue());
-      matlabParam.setReferenceParticle(ltfReferenceParticle.getText());
+    if (rtfParticle.isSelected()) {
+      matlabParam.setReferenceVolume(sVolume.getValue());
+      matlabParam.setReferenceParticle(rtfParticle.getText());
     }
-    else if (rbReferenceFile.isSelected()) {
-      matlabParam.setReferenceFile(ftfReferenceFile.getText());
+    else if (rbFile.isSelected()) {
+      matlabParam.setReferenceFile(ftfFile.getText());
+    }
+    else if (rtfMultiparticleGroups.isSelected()) {
+      matlabParam.setFlgFairReference(true);
+      matlabParam.setReferenceVolume(rtfMultiparticleGroups.getText());
+      matlabParam.setReferenceParticle(ltfMultiparticleParticles.getText());
     }
   }
 
@@ -197,21 +223,21 @@ final class ReferencePanel {
    * @return true if rbReferenceFile is selected.
    */
   boolean isReferenceFileSelected() {
-    return rbReferenceFile.isSelected();
+    return rbFile.isSelected();
   }
 
   /**
    * @return true if rbReferenceParticle is selected.
    */
   boolean isReferenceParticleSelected() {
-    return rbReferenceParticle.isSelected();
+    return rtfParticle.isSelected();
   }
 
   /**
    * Action in response to ftfReferenceFile's file chooser being pressed.
    */
   private void referenceFileAction() {
-    chooseReferenceFile(ftfReferenceFile);
+    chooseReferenceFile(ftfFile);
   }
 
   private void chooseReferenceFile(FileTextField fileTextField) {
@@ -225,8 +251,9 @@ final class ReferencePanel {
   }
 
   private void action(final String actionCommand) {
-    if (actionCommand.equals(rbReferenceParticle.getActionCommand())
-        || actionCommand.equals(rbReferenceFile.getActionCommand())) {
+    if (actionCommand.equals(rtfParticle.getActionCommand())
+        || actionCommand.equals(rbFile.getActionCommand())
+        || actionCommand.equals(rtfMultiparticleGroups.getActionCommand())) {
       parent.updateDisplay();
     }
   }
@@ -236,49 +263,45 @@ final class ReferencePanel {
    * @return error string if invalid
    */
   String validateRun() {
-    //Must either have a volume and particle or a reference file.
-    //Must have particle number if volume is selected
-    if (rbReferenceParticle.isSelected() && ltfReferenceParticle.isEmpty()) {
-      return "In " + REFERENCE_LABEL + ", " + PARTICLE_LABEL + " is required when "
-          + REFERENCE_VOLUME_LABEL + " is selected.";
+    // Must either have a volume and particle or a reference file.
+    // Must have particle number if volume is selected
+    if (rtfParticle.isSelected() && rtfParticle.isEmpty()) {
+      return "In " + TITLE + ", " + rtfParticle.getLabel() + " is required when "
+          + sVolume.getLabel() + " is selected.";
     }
-    //Must have a reference file if reference file is selected
-    if (rbReferenceFile.isSelected() && ftfReferenceFile.isEmpty()) {
-      return "In " + REFERENCE_LABEL + ", " + REFERENCE_FILE_LABEL + " is required when "
-          + REFERENCE_FILE_LABEL + " is selected.";
+    // Must have a reference file if reference file is selected
+    if (rbFile.isSelected() && ftfFile.isEmpty()) {
+      return "In " + TITLE + ", a file is required when " + rbFile.getText()
+          + " is selected.";
     }
     return null;
   }
 
   /**
-   * Reset values and set defaults.
+   * Reset values.
    */
   void reset() {
-    ltfReferenceParticle.clear();
-    ftfReferenceFile.clear();
-    rbReferenceParticle.setSelected(false);
-    sReferenceVolume.reset();
-    rbReferenceFile.setSelected(false);
+    rtfParticle.setSelected(false);
+    sVolume.reset();
+    rbFile.setSelected(false);
+    ftfFile.clear();
+    rtfMultiparticleGroups.setSelected(false);
+    rtfMultiparticleGroups.setText("");
+    ltfMultiparticleParticles.clear();
   }
 
   void setDefaults() {
-    if (MatlabParam.REFERENCE_FILE_DEFAULT) {
-      rbReferenceFile.setSelected(true);
-    }
-    else {
-      rbReferenceParticle.setSelected(true);
-    }
+    rtfParticle.setSelected(true);
   }
 
   void updateDisplay() {
-    int size = parent.getVolumeTableSize();
-    //reference
-    boolean volumeRows = size > 0;
-    rbReferenceParticle.setEnabled(volumeRows);
-    sReferenceVolume.setEnabled(volumeRows && rbReferenceParticle.isSelected());
-    sReferenceVolume.setMax(size);
-    ltfReferenceParticle.setEnabled(volumeRows && rbReferenceParticle.isSelected());
-    ftfReferenceFile.setEnabled(volumeRows && rbReferenceFile.isSelected());
+    rtfParticle.setEnabled(parent.getVolumeTableSize() > 0);
+    sVolume.setEnabled(rtfParticle.isSelected());
+    sVolume.setMax(parent.getVolumeTableSize());
+    ftfFile.setEnabled(rbFile.isSelected());
+    boolean enable = rtfMultiparticleGroups.isSelected();
+    ltfMultiparticleParticles.setEnabled(rtfMultiparticleGroups.isSelected());
+    lMultiparticle.setEnabled(rtfMultiparticleGroups.isSelected());
   }
 
   /**
@@ -286,15 +309,17 @@ final class ReferencePanel {
    * @param tooltip
    */
   private void setTooltips() {
-    sReferenceVolume.setToolTipText("The number of the volume containing the reference.");
-    rbReferenceParticle
-        .setToolTipText("Specify the reference by volume and particle numbers.");
-    ltfReferenceParticle
-        .setToolTipText("The number of the particle to use as the reference.");
-    rbReferenceFile.setToolTipText("Specify the reference by filename.");
-    ftfReferenceFile
-        .setToolTipText("The name of the file containing the MRC volume to use "
-            + "as the reference.");
+    sVolume.setToolTipText("The number of the volume containing the reference.");
+    rtfParticle
+        .setRadioButtonToolTipText("Specify the reference by volume and particle numbers.");
+    rtfParticle
+        .setTextFieldToolTipText("The number of the particle to use as the reference.");
+    rbFile.setToolTipText("Specify the reference by filename.");
+    ftfFile.setToolTipText("The name of the file containing the MRC volume to use "
+        + "as the reference.");
+    rtfMultiparticleGroups.setRadioButtonToolTipText("Need a tooltip");
+    rtfMultiparticleGroups.setTextFieldToolTipText("Need a tooltip");
+    ltfMultiparticleParticles.setToolTipText("Need a tooltip");
   }
 
   private static final class ReferenceActionListener implements ActionListener {
