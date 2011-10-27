@@ -1033,13 +1033,13 @@ final class AutodocTester extends Assert implements VariableList {
       assertNull("field not used with this actionType (" + command + ")", field);
       assertNull("value not used with this actionType (" + command + ")", value);
       try {
-        Thread.sleep(20);
+        Thread.sleep(1000);
       }
       catch (InterruptedException e) {
       }
       UIHarness.INSTANCE.save(axisID);
       try {
-        Thread.sleep(500);
+        Thread.sleep(1000);
       }
       catch (InterruptedException e) {
       }
