@@ -1039,7 +1039,7 @@ final class AutodocTester extends Assert implements VariableList {
       }
       UIHarness.INSTANCE.save(axisID);
       try {
-        Thread.sleep(40);
+        Thread.sleep(500);
       }
       catch (InterruptedException e) {
       }
