@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/26/11: In eTomo - PEET moved the volume size panel to the Setup tab.
+(Bug# 1566)
+
+10/26/11: In eTomo - PEET upgraded the Missing Wedge Compensation panel.
+(Bug# 1567)
+
 10/25/11: Fixed formatting in Xfsimplex to keep Transferfid from failing with
 a rotation angle <= -100 degrees (In 4.3).
 
