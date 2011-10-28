@@ -390,7 +390,7 @@ public final class JoinProcessManager extends BaseProcessManager {
           || mode == FinishjoinParam.Mode.FINISH_JOIN) {
         if (processDetails != null) {
           boolean trial = mode == FinishjoinParam.Mode.TRIAL;
-          state.setJoinAlignmentRefSection(true, processDetails
+          state.setJoinAlignmentRefSection(trial, processDetails
               .getEtomoNumber(FinishjoinParam.Fields.ALIGNMENT_REF_SECTION));
           state.setJoinSizeInX(trial, processDetails
               .getEtomoNumber(FinishjoinParam.Fields.SIZE_IN_X));
