@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/27/11: In eTomo - PEET improved the file chooser button.(Bug# 1562)
+
 10/21/11: In eTomo - PEET upgraded the Reference panel.(Bug# 1565)
 
 10/17/11: In eTomo - Tomogram Generation initializing linear scaling from log
