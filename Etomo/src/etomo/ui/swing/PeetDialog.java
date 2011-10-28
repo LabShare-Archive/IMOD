@@ -435,7 +435,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
   private static final String LST_THRESHOLD_END_TITLE = "End";
   private static final String LST_THRESHOLD_ADDITIONAL_NUMBERS_TITLE = "Additional numbers";
   private static final String LST_THRESHOLDS_LABEL = "Number of Particles in Averages";
-
+  private static final String SETUP_TAB_LABEL = "Setup";
+  private static final String RUN_TAB_LABEL = "Run";
   private final EtomoPanel rootPanel = new EtomoPanel();
   private final FileTextField ftfDirectory = new FileTextField(DIRECTORY_LABEL + ": ");
   private final LabeledTextField ltfFnOutput = new LabeledTextField(FN_OUTPUT_LABEL
@@ -530,8 +531,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     fixPathsPanel = FixPathsPanel.getInstance(this, manager, axisID, DIALOG_TYPE);
     sphericalSamplingForThetaAndPsiPanel = SphericalSamplingForThetaAndPsiPanel
         .getInstance(manager, this);
-    phSetup = PanelHeader.getInstance("Setup", this, DIALOG_TYPE);
-    phRun = PanelHeader.getAdvancedBasicInstance(RUN_LABEL, this, DIALOG_TYPE);
+    phSetup = PanelHeader.getUntitledInstance(SETUP_TAB_LABEL, this, DIALOG_TYPE);
+    phRun = PanelHeader
+        .getUntitledAdvancedBasicInstance(RUN_TAB_LABEL, this, DIALOG_TYPE);
     volumeTable = VolumeTable.getInstance(manager, this);
     iterationTable = IterationTable.getInstance(manager, this);
     // panels
@@ -540,8 +542,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     rootPanel.add(tabPane);
     createSetupPanel();
     createRunPanel();
-    tabPane.add("Setup", pnlSetup.getContainer());
-    tabPane.add(RUN_LABEL, pnlRun);
+    tabPane.add(SETUP_TAB_LABEL, pnlSetup.getContainer());
+    tabPane.add(RUN_TAB_LABEL, pnlRun);
     tabPane.addMouseListener(new GenericMouseAdapter(this));
     changeTab();
     setDefaults();
