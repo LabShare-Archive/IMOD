@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/28/11: In eTomo - Join, fixed the finishjoin rejoin function, which was
+missing the -ref parameter (In 4.3).(Bug# 1574)
+
 10/26/11: In eTomo - PEET moved the volume size panel to the Setup tab.
 (Bug# 1566)
 
