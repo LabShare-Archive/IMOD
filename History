@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/28/11: In eTomo - Join, fixed the finishjoin rejoin function, which was
+missing the -ref parameter (In 4.3).(Bug# 1574)
+
 10/25/11: Fixed formatting in Xfsimplex to keep Transferfid from failing with
 a rotation angle <= -100 degrees (In 4.3).
 
