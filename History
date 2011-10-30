@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/29/11: Fixed the way Nda finds points inside the boundary to reject only
+points in closed coplanar contours (In 4.3).
+
 10/28/11: In eTomo - Join, fixed the finishjoin rejoin function, which was
 missing the -ref parameter (In 4.3).(Bug# 1574)
 
