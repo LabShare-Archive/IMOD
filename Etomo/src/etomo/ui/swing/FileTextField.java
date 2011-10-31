@@ -97,7 +97,7 @@ import etomo.type.ConstStringParameter;
 final class FileTextField {
   public static final String rcsid = "$Id$";
 
-  private final static Dimension FOLDER_BUTTON_SIZE = new Dimension(25, 25);
+  private final static Dimension FOLDER_BUTTON_SIZE = FixedDim.folderButton;
 
   private final SimpleButton button = new SimpleButton(new ImageIcon(
       ClassLoader.getSystemResource("images/openFile.gif")));

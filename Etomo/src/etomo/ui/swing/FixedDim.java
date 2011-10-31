@@ -77,4 +77,5 @@ public class FixedDim {
   public final static Dimension x0_y10 = new Dimension(0, 10);
   public final static Dimension x0_y20 = new Dimension(0, 20);
   public final static Dimension x0_y40 = new Dimension(0, 40);
+  public final static Dimension folderButton = new Dimension(25, 25);
 }
