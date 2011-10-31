@@ -1180,6 +1180,11 @@ final class AutodocTester extends Assert implements VariableList {
         assertNotNull("unable to find button to close popup - " + value + " (" + command
             + ")", button);
         helper.enterClickAndLeave(new MouseEventData(testRunner, button));
+        try {
+          Thread.sleep(REDRAW_WAIT);
+        }
+        catch (InterruptedException e) {
+        }
         wait = false;
         if (wait) {
           return true;
