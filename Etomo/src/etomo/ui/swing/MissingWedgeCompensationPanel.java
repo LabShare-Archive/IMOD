@@ -147,7 +147,7 @@ final class MissingWedgeCompensationPanel {
    * correct.
    * @param metaData
    */
-  public void setParameters(final ConstPeetMetaData metaData, boolean parametersOnly) {
+  public void setParameters(final ConstPeetMetaData metaData) {
     cbTiltRange.setSelected(metaData.isTiltRange());
     cbFlgWedgeWeight.setSelected(metaData.isFlgWedgeWeight());
     sEdgeShift.setValue(metaData.getEdgeShift());

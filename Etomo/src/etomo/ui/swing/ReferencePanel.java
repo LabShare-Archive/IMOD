@@ -167,36 +167,32 @@ final class ReferencePanel {
    * Load data from ConstPeetMetaData.
    * @param metaData
    */
-  void setParameters(final ConstPeetMetaData metaData, boolean parametersOnly) {
-    if (!parametersOnly) {
-      ftfFile.setText(metaData.getReferenceFile());
-      sVolume.setValue(metaData.getReferenceVolume());
-      rtfParticle.setText(metaData.getReferenceParticle());
-      rtfMultiparticleGroups.setText(metaData.getReferenceMultiparticleGroups());
-      ltfMultiparticleParticles.setText(metaData.getReferenceMultiparticleParticles());
-    }
+  void setParameters(final ConstPeetMetaData metaData) {
+    ftfFile.setText(metaData.getReferenceFile());
+    sVolume.setValue(metaData.getReferenceVolume());
+    rtfParticle.setText(metaData.getReferenceParticle());
+    rtfMultiparticleGroups.setText(metaData.getReferenceMultiparticleGroups());
+    ltfMultiparticleParticles.setText(metaData.getReferenceMultiparticleParticles());
   }
 
   /**
    * Load active data from MatlabParam.
    * @param matlabParam
    */
-  void setParameters(final MatlabParam matlabParam, boolean parametersOnly) {
-    if (!parametersOnly) {
-      if (matlabParam.useReferenceFile()) {
-        rbFile.setSelected(true);
-        ftfFile.setText(matlabParam.getReferenceFile());
-      }
-      else if (matlabParam.isFlgFairReference()) {
-        rtfMultiparticleGroups.setSelected(true);
-        rtfMultiparticleGroups.setText(matlabParam.getReferenceVolume());
-        ltfMultiparticleParticles.setText(matlabParam.getReferenceParticle());
-      }
-      else {
-        rtfParticle.setSelected(true);
-        sVolume.setValue(matlabParam.getReferenceVolume());
-        rtfParticle.setText(matlabParam.getReferenceParticle());
-      }
+  void setParameters(final MatlabParam matlabParam) {
+    if (matlabParam.useReferenceFile()) {
+      rbFile.setSelected(true);
+      ftfFile.setText(matlabParam.getReferenceFile());
+    }
+    else if (matlabParam.isFlgFairReference()) {
+      rtfMultiparticleGroups.setSelected(true);
+      rtfMultiparticleGroups.setText(matlabParam.getReferenceVolume());
+      ltfMultiparticleParticles.setText(matlabParam.getReferenceParticle());
+    }
+    else {
+      rtfParticle.setSelected(true);
+      sVolume.setValue(matlabParam.getReferenceVolume());
+      rtfParticle.setText(matlabParam.getReferenceParticle());
     }
   }
 
