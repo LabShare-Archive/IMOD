@@ -359,7 +359,7 @@ import etomo.util.Utilities;
 final class AutodocTester extends Assert implements VariableList {
   public static final String rcsid = "$Id$";
 
-  private static final int REDRAW_WAIT = 10;
+  private static final int REDRAW_WAIT = 20;
   private static final int MAX_FORMAT = 4;
   private static final int FORMAT_WAIT = 670;
 
