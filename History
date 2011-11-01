@@ -1,6 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-10/31/11: In eTomo - PEET, removed the "Use Existing Project" panel and replaced it with one button - "Copy existing project".(Bug# 1560)
+10/31/11: In eTomo - PEET, removed the "Use Existing Project" panel and
+replaced it with one button - "Copy existing project".(Bug# 1560)
+
+10/29/11: Fixed the way Nda finds points inside the boundary to reject only
+points in closed coplanar contours (In 4.3).
+
+10/28/11: In eTomo - Join, fixed the finishjoin rejoin function, which was
+missing the -ref parameter (In 4.3).(Bug# 1574)
 
 10/28/11: In eTomo - Join, fixed the finishjoin rejoin function, which was
 missing the -ref parameter (In 4.3).(Bug# 1574)

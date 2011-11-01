@@ -89,7 +89,7 @@ c
      &    itype,npnts,ninclass)
       include 'model.inc'
       logical inside
-      parameter (limtyp=50,itypall=999)
+      parameter (limtyp=1024,itypall=999)
       real*4 bx(*),by(*)
       integer*4 itypcrosind(-256:256),itype(*),ninclass(*)
       real*4 sx(*),sy(*)
@@ -183,11 +183,19 @@ c       value (which must be the same throughout the object).
 c       
       subroutine get_boundary_obj(iobjbound,bx,by,nvert,zz,itype,
      &    ntypbound,padbound,ifconvex,fracomit,sx,sy,maxverts)
+      implicit none
       include 'model.inc'
+      integer itypall,limtyp
+      parameter (itypall=999,limtyp=1024)
       real*4 bx(*),by(*)
-      integer*4 itype(*)
-      real*4 sx(*),sy(*)
+      integer*4 itype(*),iobjbound,ifconvex,maxverts,ntypbound,nvert
+      real*4 sx(*),sy(*),zz,padbound,fracomit
+      integer*4 i,ipnt,nconsid,iobj,ifconsid,ityobj,ifinplane,notclosed
+      real*4 xmin,xmax,ymin,ymax,ztmp,padx,pady,xcen,ycen
+      integer*4 iobjflag(limtyp)
+      integer*4 getimodflags
 c       
+      i = getimodflags(iobjflag,limtyp)
       if(iobjbound.gt.0)then
         nvert=0
         if(npt_in_obj(iobjbound).lt.3)then
@@ -224,13 +232,21 @@ c
         nconsid=0
         do iobj=1,max_mod_obj
           if(npt_in_obj(iobj).gt.0)then
+            ifinplane=0
+            notclosed=1
+c             
+c             See if this contour should be considered
             ifconsid=0
             ityobj=256-obj_color(2,iobj)
+            if(ityobj.le.limtyp .and. ityobj.gt.0)notclosed=mod(iobjflag(ityobj),4)
             if(obj_color(1,iobj).eq.0)ityobj=-ityobj
             do i=1,ntypbound
               if(ityobj.eq.itype(i).or.itype(i).eq.itypall)ifconsid=1
             enddo
-            if(ifconsid.ne.0)then
+c             
+c             for closed contour with more than one point, look through to make sure it
+c             is not in one plane
+            if (ifconsid.ne.0 .and. notclosed .eq. 0  .and. npt_in_obj(iobj).gt.1)then
               ztmp=p_coord(3,abs(object(ibase_obj(iobj)+1)))
               i=1
               ifinplane=1
@@ -240,7 +256,9 @@ c
                 i=i+1
               enddo
             endif
-            if(ifconsid.ne.0.and.ifinplane.eq.0)then
+c             
+c             Add points for a non coplanar contour
+            if (ifconsid.ne.0.and.ifinplane.eq.0)then
               do i=1,npt_in_obj(iobj)
                 ipnt=abs(object(ibase_obj(iobj)+i))
                 if(abs(p_coord(3,ipnt)-zz).lt.0.5)then
