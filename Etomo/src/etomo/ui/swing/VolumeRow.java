@@ -13,6 +13,7 @@ import etomo.storage.MatlabParam;
 import etomo.type.ConstPeetMetaData;
 import etomo.type.PeetMetaData;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.util.FilePath;
 
 /**
  * <p>Description: </p>
@@ -190,19 +191,19 @@ final class VolumeRow implements Highlightable {
   }
 
   void setNames() {
-    btnHighlighter.setHeaders(VolumeTable.LABEL, number, table
-        .getVolumeNumberHeaderCell());
+    btnHighlighter.setHeaders(VolumeTable.LABEL, number,
+        table.getVolumeNumberHeaderCell());
     fnVolume.setHeaders(VolumeTable.LABEL, number, table.getFnVolumeHeaderCell());
-    fnModParticle.setHeaders(VolumeTable.LABEL, number, table
-        .getFnModParticleHeaderCell());
+    fnModParticle.setHeaders(VolumeTable.LABEL, number,
+        table.getFnModParticleHeaderCell());
     tiltRangeMin.setHeaders(VolumeTable.LABEL, number, table.getTiltRangeHeaderCell());
     tiltRangeMax.setHeaders(VolumeTable.LABEL, number, table.getTiltRangeHeaderCell());
-    relativeOrientX.setHeaders(VolumeTable.LABEL, number, table
-        .getRelativeOrientHeaderCell());
-    relativeOrientY.setHeaders(VolumeTable.LABEL, number, table
-        .getRelativeOrientHeaderCell());
-    relativeOrientZ.setHeaders(VolumeTable.LABEL, number, table
-        .getRelativeOrientHeaderCell());
+    relativeOrientX.setHeaders(VolumeTable.LABEL, number,
+        table.getRelativeOrientHeaderCell());
+    relativeOrientY.setHeaders(VolumeTable.LABEL, number,
+        table.getRelativeOrientHeaderCell());
+    relativeOrientZ.setHeaders(VolumeTable.LABEL, number,
+        table.getRelativeOrientHeaderCell());
   }
 
   public void highlight(final boolean highlight) {
@@ -323,9 +324,9 @@ final class VolumeRow implements Highlightable {
   private boolean fixIncorrectPath(FieldCell fieldCell, boolean choosePath, boolean expand) {
     File newFile = null;
     while (newFile == null || !newFile.exists()) {
-      //Have the user choose the location of the file if they haven't chosen
-      //before or they want to choose most of the files individuallly, otherwise
-      //just use the current correctPath.
+      // Have the user choose the location of the file if they haven't chosen
+      // before or they want to choose most of the files individuallly, otherwise
+      // just use the current correctPath.
       if (table.isCorrectPathNull() || choosePath
           || (newFile != null && !newFile.exists())) {
         JFileChooser fileChooser = table.getFileChooserInstance();
@@ -409,8 +410,8 @@ final class VolumeRow implements Highlightable {
   }
 
   void imodVolume(Run3dmodMenuOptions menuOptions) {
-    imodIndex = manager.imodOpen(ImodManager.TOMOGRAM_KEY, imodIndex, fnVolume
-        .getExpandedValue(), fnModParticle.getExpandedValue(), menuOptions);
+    imodIndex = manager.imodOpen(ImodManager.TOMOGRAM_KEY, imodIndex,
+        fnVolume.getExpandedValue(), fnModParticle.getExpandedValue(), menuOptions);
   }
 
   /**
@@ -430,7 +431,7 @@ final class VolumeRow implements Highlightable {
   }
 
   private void setExpandableValues(final FieldCell fieldCell, final String fileName) {
-    //Don't override existing values with null value.
+    // Don't override existing values with null value.
     if (fileName == null || fileName.matches("\\s*")) {
       return;
     }
@@ -438,11 +439,12 @@ final class VolumeRow implements Highlightable {
   }
 
   private void setExpandableValues(final FieldCell fieldCell, final File file) {
-    //Don't override existing values with null value.
+    // Don't override existing values with null value.
     if (file == null) {
       return;
     }
     fieldCell.setExpandableValues(file.getName(), file.getAbsolutePath());
+    FilePath.getRelativePath(manager.getPropertyUserDir(), file.getAbsolutePath());
   }
 
   void setInitMotlFile(File initMotlFile) {
