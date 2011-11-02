@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/2/11: Fixed problem with Edgepatches/Tomostitch when there are tabs in the
+info file (In 4.3).
+
 11/2/11: Changed Tilt to work around bug in Intel compilers for Mac that
 showed up with SIRT on large slices (In 4.3).
 
