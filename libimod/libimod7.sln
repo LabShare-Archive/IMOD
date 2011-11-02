@@ -1,0 +1,63 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "diaqt", "..\libdiaqt\libdiaqt7.vcproj", "{6CF42E9A-0572-4E51-8A0C-655E249A1BA5}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libcfft", "..\libcfft\libcfft7.vcproj", "{5C5B723D-E923-434B-B01D-72135EE430B0}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libiimod", "..\libiimod\libiimod7.vcproj", "{BA66BA74-2EBC-431E-92D2-F47861DC9B13}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libimod", "libimod7.vcproj", "{662DE9A1-63ED-42FB-8740-14F0414985D8}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libmesh", "..\libmesh\libmesh7.vcproj", "{4F54EB8E-9501-4C4D-BC4F-47B3E6D2FC43}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libcfshr", "..\libcfshr\libcfshr7.vcproj", "{6EA62F67-0E85-4C56-80F6-F79A13B02476}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectDependencies) = postSolution
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{6CF42E9A-0572-4E51-8A0C-655E249A1BA5}.Debug.ActiveCfg = Debug|Win32
+		{6CF42E9A-0572-4E51-8A0C-655E249A1BA5}.Debug.Build.0 = Debug|Win32
+		{6CF42E9A-0572-4E51-8A0C-655E249A1BA5}.Release.ActiveCfg = Release|Win32
+		{6CF42E9A-0572-4E51-8A0C-655E249A1BA5}.Release.Build.0 = Release|Win32
+		{5C5B723D-E923-434B-B01D-72135EE430B0}.Debug.ActiveCfg = Debug|Win32
+		{5C5B723D-E923-434B-B01D-72135EE430B0}.Debug.Build.0 = Debug|Win32
+		{5C5B723D-E923-434B-B01D-72135EE430B0}.Release.ActiveCfg = Release|Win32
+		{5C5B723D-E923-434B-B01D-72135EE430B0}.Release.Build.0 = Release|Win32
+		{BA66BA74-2EBC-431E-92D2-F47861DC9B13}.Debug.ActiveCfg = Debug|Win32
+		{BA66BA74-2EBC-431E-92D2-F47861DC9B13}.Debug.Build.0 = Debug|Win32
+		{BA66BA74-2EBC-431E-92D2-F47861DC9B13}.Release.ActiveCfg = Release|Win32
+		{BA66BA74-2EBC-431E-92D2-F47861DC9B13}.Release.Build.0 = Release|Win32
+		{662DE9A1-63ED-42FB-8740-14F0414985D8}.Debug.ActiveCfg = Debug|Win32
+		{662DE9A1-63ED-42FB-8740-14F0414985D8}.Debug.Build.0 = Debug|Win32
+		{662DE9A1-63ED-42FB-8740-14F0414985D8}.Release.ActiveCfg = Release|Win32
+		{662DE9A1-63ED-42FB-8740-14F0414985D8}.Release.Build.0 = Release|Win32
+		{4F54EB8E-9501-4C4D-BC4F-47B3E6D2FC43}.Debug.ActiveCfg = Debug|Win32
+		{4F54EB8E-9501-4C4D-BC4F-47B3E6D2FC43}.Debug.Build.0 = Debug|Win32
+		{4F54EB8E-9501-4C4D-BC4F-47B3E6D2FC43}.Release.ActiveCfg = Release|Win32
+		{4F54EB8E-9501-4C4D-BC4F-47B3E6D2FC43}.Release.Build.0 = Release|Win32
+		{6EA62F67-0E85-4C56-80F6-F79A13B02476}.Debug.ActiveCfg = Debug|Win32
+		{6EA62F67-0E85-4C56-80F6-F79A13B02476}.Debug.Build.0 = Debug|Win32
+		{6EA62F67-0E85-4C56-80F6-F79A13B02476}.Release.ActiveCfg = Release|Win32
+		{6EA62F67-0E85-4C56-80F6-F79A13B02476}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

@@ -359,9 +359,9 @@ import etomo.util.Utilities;
 final class AutodocTester extends Assert implements VariableList {
   public static final String rcsid = "$Id$";
 
-  private static final int REDRAW_WAIT = 4;
+  private static final int REDRAW_WAIT = 40;
   private static final int MAX_FORMAT = 4;
-  private static final int FORMAT_WAIT = 660;
+  private static final int FORMAT_WAIT = 670;
 
   private final ReadOnlyAutodoc autodoc;
   private final JFCTestHelper helper;
@@ -1033,11 +1033,16 @@ final class AutodocTester extends Assert implements VariableList {
       assertNull("field not used with this actionType (" + command + ")", field);
       assertNull("value not used with this actionType (" + command + ")", value);
       try {
-        Thread.sleep(20);
+        Thread.sleep(1000);
       }
       catch (InterruptedException e) {
       }
       UIHarness.INSTANCE.save(axisID);
+      try {
+        Thread.sleep(1000);
+      }
+      catch (InterruptedException e) {
+      }
     }
     // SET
     else if (actionType == UITestActionType.SET) {
@@ -1175,6 +1180,11 @@ final class AutodocTester extends Assert implements VariableList {
         assertNotNull("unable to find button to close popup - " + value + " (" + command
             + ")", button);
         helper.enterClickAndLeave(new MouseEventData(testRunner, button));
+        try {
+          Thread.sleep(REDRAW_WAIT);
+        }
+        catch (InterruptedException e) {
+        }
         wait = false;
         if (wait) {
           return true;
