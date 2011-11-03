@@ -657,7 +657,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
    * @param choosePathEveryRow
    * @return false if the user cancels the file selector, otherwise true
    */
-  public boolean fixIncorrectPath(FileTextField fileTextField, boolean choosePath) {
+  public boolean fixIncorrectPath(FileTextFieldInterface fileTextField, boolean choosePath) {
     File newFile = null;
     while (newFile == null || !newFile.exists()) {
       // Have the user choose the location of the file if they haven't chosen
