@@ -481,7 +481,7 @@ assert.contains.file==%{dataset}.prm|initMOTL = 3
 #use files is tested in volume-table-check-prm
 rb.use-files==
 save==
-assert.contains.file==%{dataset}.prm|initMOTL = {'*%{dataset}-a-initMOTL.csv', '*%{dataset}-b-initMOTL.csv', '*%{dataset}-a-initMOTL.csv'}
+assert.contains.file==%{dataset}.prm|initMOTL = {'%{dataset}-a-initMOTL.csv', '%{dataset}-b-initMOTL.csv', '%{dataset}-a-initMOTL.csv'}
 
 
 [function == y-axis-type-check-prm]
