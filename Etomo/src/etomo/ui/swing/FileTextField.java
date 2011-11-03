@@ -94,7 +94,7 @@ import etomo.type.ConstStringParameter;
  * <p> can be shared.
  * <p> </p>
  */
-final class FileTextField {
+final class FileTextField implements FileTextFieldInterface {
   public static final String rcsid = "$Id$";
 
   private final static Dimension FOLDER_BUTTON_SIZE = FixedDim.folderButton;
@@ -293,11 +293,11 @@ final class FileTextField {
     return file.exists();
   }
 
-  void setFile(final File file) {
+  public void setFile(final File file) {
     setInternalValues(file);
   }
 
-  File getFile() {
+  public File getFile() {
     updateInternalValues();
     return file;
   }
