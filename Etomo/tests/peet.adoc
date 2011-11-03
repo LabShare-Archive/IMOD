@@ -114,6 +114,7 @@ tf.particle=2
 #check empty reference file error
 [[if = test-values]]
 	rb.user-supplied-file=
+	assert.enabled.tf.user-supplied-file=
 	run.function.setup-test-run-error=
 	rb.particle=
 [[]]
@@ -407,8 +408,9 @@ cb.enabled==off
 rb.user-supplied-file==
 bn.user-supplied-file==
 wait.file-chooser.open==unMasked%{dataset}_Ref1.mrc
+assert.tf.user-supplied-file==unMasked%{dataset}_Ref1.mrc
 save==
-assert.contains.file==%{dataset}.prm|reference = '*unMasked%{dataset}_Ref1.mrc'
+assert.contains.file==%{dataset}.prm|reference = 'unMasked%{dataset}_Ref1.mrc'
 rb.particle==
 
 
