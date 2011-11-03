@@ -3,8 +3,8 @@ IMOD History
 11/2/11: Fixed problem with Edgepatches/Tomostitch when there are tabs in the
 info file (In 4.3).
 
-11/2/11: Changed Tilt to work around bug in Intel compilers for Mac that
-showed up with SIRT on large slices (In 4.3).
+11/2/11: Changed compiler flags to keep programs like Tilt from crashing on
+Mac when doing large vector operations (In 4.3).
 
 10/29/11: Fixed the way Nda finds points inside the boundary to reject only
 points in closed coplanar contours (In 4.3).
