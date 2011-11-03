@@ -388,12 +388,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
       userDir = System.setProperty("user.dir", importDir.getAbsolutePath());
     }
     for (int i = 0; i < matlabParamFile.getVolumeListSize(); i++) {
-      File fnModParticleFile = null;
-      String fnModParticle = matlabParamFile.getFnModParticle(i);
-      if (!fnModParticle.matches("\\s*")) {
-        fnModParticleFile = new File(fnModParticle);
-      }
-      VolumeRow row = addRow(new File(matlabParamFile.getFnVolume(i)), fnModParticleFile);
+      VolumeRow row = addRow(matlabParamFile.getFnVolume(i), matlabParamFile.getFnModParticle(i));
       row.setParameters(matlabParamFile, useInitMotlFile, useTiltRange);
       row.expandInitMotlFile(initMotlFileIsExpanded);
     }
@@ -781,6 +776,14 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     row.expandFnModParticle(btnExpandFnModParticle.isExpanded());
     return row;
   }
+  
+  private VolumeRow addRow(final String fnVolume, final String fnModParticle) {
+    VolumeRow row = rowList.add(manager, fnVolume, fnModParticle, this, pnlTable, layout,
+        constraints, initMotlFileColumn, tiltRangeColumn);
+    row.expandFnVolume(btnExpandFnVolume.isExpanded());
+    row.expandFnModParticle(btnExpandFnModParticle.isExpanded());
+    return row;
+  }
 
   /**
    * Copy volume, model, initial motl, and tilt range.  Don't copy the rel.
@@ -792,7 +795,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
         initMotlFileColumn, tiltRangeColumn);
     row.expandFnVolume(btnExpandFnVolume.isExpanded());
     row.expandFnModParticle(btnExpandFnModParticle.isExpanded());
-    row.setInitMotlFile(fromRow.getInitMotlFile());
+    row.setInitMotlFile(fromRow.getExpandedInitMotlFile());
     row.expandInitMotlFile(btnExpandInitMotlFile.isExpanded());
     row.setTiltRangeMin(fromRow.getTiltRangeMin());
     row.setTiltRangeMax(fromRow.getTiltRangeMax());
@@ -912,6 +915,23 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
 
     private synchronized VolumeRow add(final BaseManager manager, final File fnVolume,
         final File fnModParticle, final VolumeTable table, final JPanel panel,
+        final GridBagLayout layout, final GridBagConstraints constraints,
+        Column initMotlFileColumn, Column tiltRangeColumn) {
+      VolumeRow row = VolumeRow.getInstance(manager, fnVolume, fnModParticle,
+          list.size(), table, panel, layout, constraints);
+      list.add(row);
+      row.registerInitMotlFileColumn(initMotlFileColumn);
+      row.registerTiltRangeColumn(tiltRangeColumn);
+      row.setNames();
+      // When this function is used to load from the .epe and .prm files,
+      // metadata must be set before MatlabParamFile data. Wait until row is
+      // added, then set from metadata.
+      row.setParameters(metaData);
+      return row;
+    }
+    
+    private synchronized VolumeRow add(final BaseManager manager, final String fnVolume,
+        final String fnModParticle, final VolumeTable table, final JPanel panel,
         final GridBagLayout layout, final GridBagConstraints constraints,
         Column initMotlFileColumn, Column tiltRangeColumn) {
       VolumeRow row = VolumeRow.getInstance(manager, fnVolume, fnModParticle,
