@@ -402,19 +402,17 @@ public class Utilities {
   }
 
   /**
-   * Gets a File instance of filePath, if filePath is an absolute path.  Otherwise gets a
-   * File instance of propertyUserDir/filePath.
+   * Gets a File instance of filePath, if filePath is an absolute path or dir is empty.
+   * Otherwise gets a File instance of dir/filePath.
    * @param filePath
    * @return
    */
-  public static File getFileFromPath(BaseManager manager, final String filePath) {
+  public static File getFileFromPath(final String dir, final String filePath) {
     File file = new File(filePath);
-    if (file.isAbsolute()) {
-      System.out.println("A");
+    if (file.isAbsolute() || dir == null || dir.matches("\\s*")) {
       return file;
     }
-    System.out.println("B");
-    return new File(manager.getPropertyUserDir(), filePath);
+    return new File(dir, filePath);
   }
 
   /**
