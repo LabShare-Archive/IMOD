@@ -37,7 +37,9 @@ if ($compiler == intel) then
     set rgbprogs = 
     set fcmpNoportFlags = "/C90"
     set fcomp = ifl
-    set fcompFlags = "/4L132 /Qvec-report:0"
+    #
+    # The heap-arrays flag may not be needed with the /F66000000 below, but play it safe
+    set fcompFlags = "/4L132 /Qvec-report:0 /heap-arrays:1000"
     set ccompFlags = "/Qvec-report:0 -D_CRT_SECURE_NO_WARNINGS"
     set nnvulnflags = '/fp:source'
     

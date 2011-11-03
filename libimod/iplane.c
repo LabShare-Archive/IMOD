@@ -144,6 +144,24 @@ void   imodClipsInitialize(IclipPlanes *clips)
 }
 
 /*!
+ * Copies the clip planes and parameters of the clip plane set in [fromClips] to 
+ * [toClips].
+ */
+void imodClipsCopy(IclipPlanes *fromClips, IclipPlanes *toClips)
+{
+  int i;
+  imodClipsInitialize(toClips);
+  toClips->count = fromClips->count;
+  toClips->flags = fromClips->flags;
+  toClips->trans = fromClips->trans;
+  toClips->plane = fromClips->plane;
+  for (i = 0; i < fromClips->count; i++) {
+    toClips->normal[i] = fromClips->normal[i];
+    toClips->point[i] = fromClips->point[i];
+  }
+}
+
+/*!
  * Reads all the clip planes of a set into [clips] from the model file in 
  * [fin]; the number of vectors and normals read is based on the size of the
  * data chunk 

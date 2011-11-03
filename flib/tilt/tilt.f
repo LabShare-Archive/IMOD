@@ -8,6 +8,7 @@ c
 c       See man page for details
 C       
 c       $Id$
+c       Log at end of file
 c       
       use tiltvars
       implicit none
@@ -266,12 +267,8 @@ c               Load reconstruction for projections
 c                 
 c                 Undo the scaling that was used to write, and apply a
 c                 scaling that will make the data close for projecting
-c                 Reinstate loop due to Mac OSX bug
-                do i = 0, ithwid-1
-                  array(ibase+i) = (array(ibase+i) / scale - flevl) / filterScale
-                enddo
-c                array(ibase:ibase+ithwid-1) = (array(ibase:ibase+ithwid-1) /
-c     &              scale - flevl) / filterScale
+                array(ibase:ibase+ithwid-1) = (array(ibase:ibase+ithwid-1) /
+     &              scale - flevl) / filterScale
                 ibase = ibase + iplane
               enddo
             endif
@@ -375,13 +372,7 @@ c
 c                 Backproject and mask/taper edges
                 call project(iworkPlane, lslice)
                 if (mask) call maskSlice(imap, ithick)
-c                 
-c                 This loop is required because the vector operation fails on Mac OSX
-c                 with compilers up to 12.1.0 (2011 update 8)
-                do i = 0, ithwid-1
-                  array(ibaseSIRT+i) = array(imap+i) / recscale
-                enddo
-c                array(ibaseSIRT:ibaseSIRT+ithwid-1) = array(imap:mapEnd) / recscale
+                array(ibaseSIRT:ibaseSIRT+ithwid-1) = array(imap:mapEnd) / recscale
                 iset = 2
                 if (ifoutSirtRec .eq. 3) then
                   print *,'writing zero iteration slice',lslice
@@ -513,22 +504,12 @@ c
 c                 Backproject the difference
                 call project(iworkPlane, lslice)
                 if (isirt .eq. numSIRTiter .and. ifoutSirtRec .eq. 1) then
-c                   
-c                   More loops because of MAC OS X bug
-                  do i = 0, ithwid-1
-                    array(imap+i) = (array(imap+i)  + flevl *
-     &                  recscale) * (scale / recscale)
-                  enddo
-c                    array(imap:mapEnd) = (array(imap:mapEnd)  + flevl *
-c     &                recscale) * (scale / recscale)
+                  array(imap:mapEnd) = (array(imap:mapEnd)  + flevl *
+     &                recscale) * (scale / recscale)
                   print *,'writing bp difference',lslice
                   call writeInternalSlice(5, imap)
-                  do i = 0, ithwid-1
-                    array(imap+i) = array(imap+i) / (scale / recscale)
-     &                  - flevl * recscale
-                  enddo
-c                  array(imap:mapEnd) = array(imap:mapEnd) / (scale / recscale)
-c     &                - flevl * recscale
+                  array(imap:mapEnd) = array(imap:mapEnd) / (scale / recscale)
+     &                - flevl * recscale
                 endif
 c                 
 c                 Accumulate report values
@@ -541,26 +522,13 @@ c                 for output by 1 / nviews and the fact that input slice was
 c                 descaled by 1/filterScale
                 i = ibaseSIRT + ithwid - 1
                 if (isignConstraint .eq. 0) then
-c                   
-c                   Another loop needed due to bug on Mac OS X
-                  do i = 0, ithwid-1
-                    array(ibaseSIRT+i) = array(ibaseSIRT+i) - array(imap+i) / recscale
-                  enddo
-c                  array(ibaseSIRT:i) = array(ibaseSIRT:i) - array(imap:mapEnd) / recscale
+                  array(ibaseSIRT:i) = array(ibaseSIRT:i) - array(imap:mapEnd) / recscale
                 else if (isignConstraint .lt. 0) then
-                  do i = 0, ithwid-1
-                    array(ibaseSIRT+i) = min(0., array(ibaseSIRT+i) - array(imap+i) /
-     &                  recscale)
-                  enddo
-c                  array(ibaseSIRT:i) = min(0., array(ibaseSIRT:i) - 
-c     &                array(imap:mapEnd) / recscale)
+                  array(ibaseSIRT:i) = min(0., array(ibaseSIRT:i) - 
+     &                array(imap:mapEnd) / recscale)
                 else
-                  do i = 0, ithwid-1
-                    array(ibaseSIRT+i) = max(0., array(ibaseSIRT+i) - array(imap+i) /
-     &                  recscale)
-                  enddo
-c                  array(ibaseSIRT:i) = max(0., array(ibaseSIRT:i) - 
-c     &                array(imap:mapEnd) / recscale)
+                  array(ibaseSIRT:i) = max(0., array(ibaseSIRT:i) - 
+     &                array(imap:mapEnd) / recscale)
                 endif
                 if (mask) call maskSlice(ibaseSIRT, ithick)
                 if (isirt .eq. numSIRTiter - 2 .and. ifoutSirtRec .eq. 2) then
@@ -5429,3 +5397,209 @@ c       Set to open contour, show values etc., and show sphere on section only
       call exit(0)
       end
 
+c       
+c       $Log$
+c       Revision 3.63  2011/07/09 18:22:31  mast
+c       Added ability to read and write vertical slices for internal SIRT
+c
+c       Revision 3.62  2011/02/18 22:56:56  mast
+c       Removed limit on views and made reprojections work with all angles
+c
+c       Revision 3.61  2010/09/15 22:50:08  mast
+c       Fixed problems at tilt near 90 with X axis offsets
+c
+c       Revision 3.60  2010/08/17 18:32:43  mast
+c       Fixed memory allocation for fewer than 10 slices
+c
+c       Revision 3.59  2010/06/20 19:29:12  mast
+c       Use unit 6 for boundary info to avoid conflict with debug output
+c
+c       Revision 3.58  2010/06/14 18:53:19  mast
+c       Added warnings about truncated output and about extreme values from GPU
+c
+c       Revision 3.57  2010/05/24 21:33:15  mast
+c       Changed scaling messages
+c
+c       Revision 3.56  2010/05/24 19:50:44  mast
+c       Fixed centering of vertical slices with a yoffset, provided separate
+c       fill value for compose and held slices to be filled until it is set
+c
+c       Revision 3.55  2010/02/26 16:55:36  mast
+c       New options for internal subtractions for SIRT, and for statistics.
+c
+c       Revision 3.54  2010/02/22 06:04:19  mast
+c       Implemented internal SIRT iterations, reprojection on GPU with local
+c       alignments, fixed bugs in local alignment CPU reprojection, changed 
+c       masking to do a tapering with specified number of extra pixels
+c
+c       Revision 3.53  2010/02/02 02:19:26  mast
+c       Fixed allocataion of warping data for reprojecting rec
+c
+c       Revision 3.52  2010/01/10 17:19:24  mast
+c       Pass args to limit GPU allocation error messages, limit request for
+c       projection array to 32760 lines
+c
+c       Revision 3.51  2010/01/04 15:50:44  mast
+c       Fix format
+c
+c       Revision 3.50  2009/12/31 20:40:34  mast
+c       Implemented all backprojection and reprojection without local alignments
+c       on GPU.  Switched to smart allocation of stack array to get an amount
+c       similar to what was used before.  Eliminated fast backprojection,
+c       replication, and negative increments.
+c
+c       Revision 3.49  2009/11/06 05:51:49  mast
+c       Change format string from (i) to * for gfortran 4.4
+c
+c       Revision 3.48  2009/10/19 19:06:09  mast
+c       Make it able to do incremental projection with vertical slices
+c
+c       Revision 3.47  2009/10/16 04:40:41  mast
+c       Fixed reprojection from model when there are X axis tilts and no Z
+c       factor/local alignments; made it treat fixed alpha in xtilt file like
+c       regular x axis tilt
+c
+c       Revision 3.46  2009/06/26 05:17:08  mast
+c       Memory allocation with environment variable to control it
+c
+c       Revision 3.45  2009/05/22 22:53:07  mast
+c       Switch to using full-sized model, protect against dividing by cos 90
+c
+c       Revision 3.44  2009/02/16 06:22:30  mast
+c       Modified to use new parallel write stuff
+c
+c       Revision 3.43  2008/12/12 16:40:21  mast
+c       Fixes for 180 degree tilting: modify angles to be 0.05 degree away from
+c       +/-90; disable cosine stretching of data above 80, and swap left and
+c       right limits of valid backprojection when needed
+c
+c       Revision 3.42  2008/11/14 06:32:25  mast
+c       Added projection from model
+c
+c       Revision 3.41  2008/11/02 14:45:38  mast
+c       Added options for incremental reconstructions
+c
+c       Revision 3.40  2008/05/30 04:05:57  mast
+c       Fixed scaling recommendation for 10 to 245, added one for -15000 to 15000
+c
+c       Revision 3.39  2007/12/06 20:43:16  mast
+c       Added option for adjusting origin for all relevant changes
+c
+c       Revision 3.38  2007/09/08 20:57:58  mast
+c       Fixed reading of SHIFT, REPROJECT, and some other entries
+c
+c       Revision 3.37  2007/07/19 02:46:41  mast
+c       Removed debugging output
+c
+c       Revision 3.36  2007/07/17 15:20:07  mast
+c       Fix int/float mismatch in min statement
+c
+c       Revision 3.35  2007/07/16 05:11:05  mast
+c       Added reprojection from tomogram with local alignments, etc.
+c
+c       Revision 3.34  2007/06/22 05:04:34  mast
+c       Converted to PIP
+c
+c       Revision 3.33  2007/03/08 23:50:28  mast
+c       Give error if there are less than 2 local areas in each direction
+c
+c       Revision 3.32  2007/03/08 20:12:26  mast
+c       Only put out message about x tilt angles from file if non-zero
+c
+c       Revision 3.31  2006/06/21 06:26:45  mast
+c       Removed a debugging output
+c
+c       Revision 3.30  2006/06/20 22:10:59  mast
+c       Added ability to reproject at multiple angles
+c
+c       Revision 3.29  2006/06/06 17:17:38  mast
+c       Changes mmm/pixel output to formatted write to keep it on one line
+c
+c       Revision 3.28  2006/04/09 00:11:49  mast
+c       Commented out debugging statement
+c
+c       Revision 3.27  2006/03/24 23:11:03  mast
+c       Added ability for parallel runs to write directly to an existing
+c       output file
+c
+c       Revision 3.26  2006/03/21 06:27:57  mast
+c       Made it work with aligned stack bigger than "FULLIMAGE"
+c
+c       Revision 3.25  2005/12/09 04:43:27  mast
+c       gfortran: .xor., continuation, format tab continuation or byte fixes
+c
+c       Revision 3.24  2005/10/08 20:10:06  mast
+c       Fixed computation of ending slice with binning
+c       
+c       Revision 3.23  2005/06/07 22:12:42  mast
+c       Added IMAGEBINNED option so dimensions can be scaled automatically
+c       
+c       Revision 3.22  2004/10/22 13:39:14  mast
+c       Declared lnblnk for SGI
+c       
+c       Revision 3.21  2004/10/22 03:29:31  mast
+c       Added z factor corrections and declarations for all routines
+c       
+c       Revision 3.20  2004/10/13 05:49:32  mast
+c       Fixed bug in Y positioning when falling back to old-style X tilting,
+c       Fixed fallback strategies to go to old-style with cosine stretch,
+c       new-style without cosine stretch, then old-style w/o stretch and 
+c       fixed bug in evaluating slices needed at that stage.
+c       
+c       Revision 3.19  2004/10/11 05:15:28  mast
+c       Fixed integer truncation of pixel size from local file
+c       
+c       Revision 3.18  2004/09/24 18:24:52  mast
+c       Incorporated reprojection capability from old code
+c       
+c       Revision 3.17  2004/07/19 04:10:54  mast
+c       Needed to declare inum external for Intel/Windows
+c       
+c       Revision 3.16  2004/07/16 23:38:13  mast
+c       Made it determine local scale from pixel sizes if present; fixed a bug
+c       that was setting log base 0 after read the fullimage line; added
+c       a EXCLUDELIST2 option
+c       
+c       Revision 3.15  2004/04/01 01:44:23  mast
+c       Used input file range to avoid taking logs of very small numbers
+c       
+c       Revision 3.14  2003/12/09 00:11:49  mast
+c       Have card reader accept blank lines in case sed in new sample.com
+c       creates one
+c       
+c       Revision 3.13  2003/10/24 03:44:56  mast
+c       took out flush call for Windows/Intel
+c       
+c       Revision 3.12  2003/10/16 20:38:32  mast
+c       Adding to option documentation
+c       
+c       Revision 3.11  2003/08/02 22:36:49  mast
+c       Revert from the version that padded thickness for x-axis tilting now
+c       that fbp takes care of this.
+c       Limit stack usage so that when loaded data is bigger than a certain
+c       size, only enough is loaded to reconstruct 10 output slices.
+c       
+c       Revision 3.8  2003/04/29 23:33:54  mast
+c       Set default for radial filter and increase thickness limit
+c       
+c       Revision 3.7  2002/07/28 00:03:40  mast
+c       Made it preserve pixel spacings in output file
+c       
+c       Revision 3.6  2002/07/26 19:19:04  mast
+c       Added machine-specific switch-points for not doing fast
+c       backprojection
+c       
+c       Revision 3.5  2002/07/21 19:37:25  mast
+c       Replaced STOP with call exit(1) and standardized error outputs
+c       
+c       Revision 3.4  2002/05/07 02:02:53  mast
+c       Added EXCLUDELIST option
+c       
+c       Revision 3.3  2002/02/01 15:27:31  mast
+c       Made it write extra data periodically with PARALLEL option to 
+c       partially demangle the output file and prevent very slow reading
+c       under Linux.
+c       
+c       Revision 1.2  2001/11/22 00:41:57  mast
+c       Fixed computation of mean for files > 2 GPixels
+c       

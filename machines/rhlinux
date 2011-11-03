@@ -41,7 +41,7 @@ if ($compiler == intel) then
     echo "CXX       = icpc"              >> $configure
     set fcomp = "ifort"
     set lapackopt = '-nofor-main'
-    set fcompFlags = '-132 -assume bscc -vec-report0'
+    set fcompFlags = '-132 -assume bscc -vec-report0 -heap-arrays 100'
     set ccompFlags = '-vec-report0'
     echo "      parameter (nbytes_recl_item=4)" >! $endian_dir/recl_bytes.inc
     set nnvulnflags = '-fp-model source'
