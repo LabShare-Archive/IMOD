@@ -14,6 +14,7 @@ import etomo.type.ConstPeetMetaData;
 import etomo.type.PeetMetaData;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.util.FilePath;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -284,30 +285,36 @@ final class VolumeRow implements Highlightable {
    * @return true if one or more paths are incorrect.
    */
   boolean isIncorrectPaths() {
-    if (!fnVolume.isEmpty() && !new File(fnVolume.getExpandedValue()).exists()) {
+    if (!fnVolume.isEmpty()
+        && !Utilities.getFileFromPath(manager, fnVolume.getExpandedValue()).exists()) {
       return true;
     }
-    if (!fnModParticle.isEmpty() && !new File(fnModParticle.getExpandedValue()).exists()) {
+    if (!fnModParticle.isEmpty()
+        && !Utilities.getFileFromPath(manager, fnModParticle.getExpandedValue()).exists()) {
       return true;
     }
-    if (!initMotlFile.isEmpty() && !new File(initMotlFile.getExpandedValue()).exists()) {
+    if (!initMotlFile.isEmpty()
+        && !Utilities.getFileFromPath(manager, initMotlFile.getExpandedValue()).exists()) {
       return true;
     }
     return false;
   }
 
   boolean fixIncorrectPaths(boolean choosePathEveryRow) {
-    if (!fnVolume.isEmpty() && !new File(fnVolume.getExpandedValue()).exists()) {
+    if (!fnVolume.isEmpty()
+        && !Utilities.getFileFromPath(manager, fnVolume.getExpandedValue()).exists()) {
       if (!fixIncorrectPath(fnVolume, choosePathEveryRow, table.isFnVolumeExpanded())) {
         return false;
       }
     }
-    if (!fnModParticle.isEmpty() && !new File(fnModParticle.getExpandedValue()).exists()) {
+    if (!fnModParticle.isEmpty()
+        && !Utilities.getFileFromPath(manager, fnModParticle.getExpandedValue()).exists()) {
       if (!fixIncorrectPath(fnModParticle, false, table.isFnModParticleExpanded())) {
         return false;
       }
     }
-    if (!initMotlFile.isEmpty() && !new File(initMotlFile.getExpandedValue()).exists()) {
+    if (!initMotlFile.isEmpty()
+        && !Utilities.getFileFromPath(manager, initMotlFile.getExpandedValue()).exists()) {
       if (!fixIncorrectPath(initMotlFile, false, table.isInitMotlFileExpanded())) {
         return false;
       }
@@ -330,7 +337,8 @@ final class VolumeRow implements Highlightable {
       if (table.isCorrectPathNull() || choosePath
           || (newFile != null && !newFile.exists())) {
         JFileChooser fileChooser = table.getFileChooserInstance();
-        fileChooser.setSelectedFile(new File(fieldCell.getExpandedValue()));
+        fileChooser.setSelectedFile(Utilities.getFileFromPath(manager,
+            fieldCell.getExpandedValue()));
         fileChooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         int returnVal = fileChooser.showOpenDialog(table.getContainer());
@@ -443,8 +451,8 @@ final class VolumeRow implements Highlightable {
     if (file == null) {
       return;
     }
-    fieldCell.setExpandableValues(file.getName(), file.getAbsolutePath());
-    FilePath.getRelativePath(manager.getPropertyUserDir(), file.getAbsolutePath());
+    fieldCell.setExpandableValues(file.getName(),
+        FilePath.getRelativePath(manager.getPropertyUserDir(), file.getAbsolutePath()));
   }
 
   void setInitMotlFile(File initMotlFile) {
@@ -455,21 +463,21 @@ final class VolumeRow implements Highlightable {
     if (initMotlFile.isEmpty()) {
       return null;
     }
-    return new File(initMotlFile.getExpandedValue());
+    return Utilities.getFileFromPath(manager, initMotlFile.getExpandedValue());
   }
 
   File getFnVolumeFile() {
     if (fnVolume.isEmpty()) {
       return null;
     }
-    return new File(fnVolume.getExpandedValue());
+    return Utilities.getFileFromPath(manager, fnVolume.getExpandedValue());
   }
 
   File getFnModParticleFile() {
     if (fnModParticle.isEmpty()) {
       return null;
     }
-    return new File(fnModParticle.getExpandedValue());
+    return Utilities.getFileFromPath(manager, fnModParticle.getExpandedValue());
   }
 
   void setFnModParticle(File input) {
