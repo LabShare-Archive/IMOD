@@ -175,9 +175,33 @@ final class VolumeRow implements Highlightable {
     instance.setTooltips();
     return instance;
   }
+  
+  static VolumeRow getInstance(final BaseManager manager, final String fnVolume,
+      final String fnModParticle, final int index, final VolumeTable table,
+      final JPanel panel, final GridBagLayout layout, final GridBagConstraints constraints) {
+    VolumeRow instance = new VolumeRow(manager, fnVolume, fnModParticle, index, table,
+        panel, layout, constraints);
+    instance.setTooltips();
+    return instance;
+  }
 
   private VolumeRow(final BaseManager manager, final File fnVolumeFile,
       final File fnModParticleFile, final int index, final VolumeTable table,
+      final JPanel panel, final GridBagLayout layout, final GridBagConstraints constraints) {
+    this.manager = manager;
+    this.index = index;
+    this.table = table;
+    this.panel = panel;
+    this.layout = layout;
+    this.constraints = constraints;
+    setExpandableValues(fnVolume, fnVolumeFile);
+    setExpandableValues(fnModParticle, fnModParticleFile);
+    btnHighlighter = HighlighterButton.getInstance(this, table);
+    number.setText(String.valueOf(index + 1));
+  }
+  
+  private VolumeRow(final BaseManager manager, final String fnVolumeFile,
+      final String fnModParticleFile, final int index, final VolumeTable table,
       final JPanel panel, final GridBagLayout layout, final GridBagConstraints constraints) {
     this.manager = manager;
     this.index = index;
@@ -438,14 +462,27 @@ final class VolumeRow implements Highlightable {
     return null;
   }
 
-  private void setExpandableValues(final FieldCell fieldCell, final String fileName) {
+  /**
+   * Sets the contracted and expanded values of the fieldCell while preserving the
+   * filePath string.
+   * @param fieldCell
+   * @param filePath
+   */
+  private void setExpandableValues(final FieldCell fieldCell, final String filePath) {
     // Don't override existing values with null value.
-    if (fileName == null || fileName.matches("\\s*")) {
+    if (filePath == null || filePath.matches("\\s*")) {
       return;
     }
-    setExpandableValues(fieldCell, new File(fileName));
+    //Preserve the text of the filePath.
+    fieldCell.setExpandableValues(new File(filePath).getName(),filePath);
   }
 
+  /**
+   * Sets the contracted and expanded values of the fieldCell with the file name and a
+   * relative path from propertyUserDir to the file.
+   * @param fieldCell
+   * @param file
+   */
   private void setExpandableValues(final FieldCell fieldCell, final File file) {
     // Don't override existing values with null value.
     if (file == null) {
@@ -454,16 +491,20 @@ final class VolumeRow implements Highlightable {
     fieldCell.setExpandableValues(file.getName(),
         FilePath.getRelativePath(manager.getPropertyUserDir(), file.getAbsolutePath()));
   }
+  
+  void setInitMotlFile(String initMotlFile) {
+    setExpandableValues(this.initMotlFile, initMotlFile);
+  }
 
   void setInitMotlFile(File initMotlFile) {
     setExpandableValues(this.initMotlFile, initMotlFile);
   }
 
-  File getInitMotlFile() {
+  String getExpandedInitMotlFile() {
     if (initMotlFile.isEmpty()) {
       return null;
     }
-    return Utilities.getFileFromPath(manager, initMotlFile.getExpandedValue());
+    return initMotlFile.getExpandedValue();
   }
 
   File getFnVolumeFile() {
