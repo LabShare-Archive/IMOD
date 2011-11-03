@@ -54,9 +54,12 @@ public final class FilePath {
    * @param toAbsolutePath
    * @return
    */
-  public static String getRelativePath(final String fromAbsolutePath, final String toAbsolutePath) {
+  public static String getRelativePath(final String fromAbsolutePath, final File toFile) {
     FilePath fromPath = new FilePath(fromAbsolutePath);
-    FilePath toPath = new FilePath(toAbsolutePath);
+    if (toFile == null) {
+      return null;
+    }
+    FilePath toPath = new FilePath(toFile.getAbsolutePath());
     return fromPath.getRelativePathTo(toPath);
   }
 
