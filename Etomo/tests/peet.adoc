@@ -439,8 +439,9 @@ cb.enabled==off
 rb.volume==
 bn.volume==
 wait.file-chooser.open==unMasked%{dataset}_Ref1.mrc
+assert.enabled.tf.volume=
 save==
-assert.contains.file==%{dataset}.prm|maskType = '*unMasked%{dataset}_Ref1.mrc'
+assert.contains.file==%{dataset}.prm|maskType = 'unMasked%{dataset}_Ref1.mrc'
 #test sphere
 rb.sphere==
 tf.inner==10
