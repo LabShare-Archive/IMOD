@@ -11,6 +11,7 @@ import java.io.File;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import etomo.BaseManager;
@@ -43,18 +44,28 @@ final class FileTextField2 implements FileTextFieldInterface {
 
   private final TextField field;
   private final String propertyUserDir;
-  private final String name;
+  private final JLabel label;
+  private final boolean labeled;
 
   private String currentDirectory = null;
 
-  private FileTextField2(final BaseManager manager, final String name) {
-    field = new TextField(name);
-    this.name = name;
+  private FileTextField2(final BaseManager manager, final String label,
+      final boolean labeled) {
+    field = new TextField(label);
+    this.label = new JLabel(label);
     propertyUserDir = manager.getPropertyUserDir();
+    this.labeled = labeled;
   }
 
+  static FileTextField2 getUnlabeledInstance(final BaseManager manager, final String name) {
+    FileTextField2 instance = new FileTextField2(manager, name, false);
+    instance.createPanel();
+    instance.addListeners();
+    return instance;
+  }
+  
   static FileTextField2 getInstance(final BaseManager manager, final String name) {
-    FileTextField2 instance = new FileTextField2(manager, name);
+    FileTextField2 instance = new FileTextField2(manager, name, true);
     instance.createPanel();
     instance.addListeners();
     return instance;
@@ -64,7 +75,7 @@ final class FileTextField2 implements FileTextFieldInterface {
     // init
     field.setTextPreferredSize(new Dimension(250 * Math.round(UIParameters.INSTANCE
         .getFontSizeAdjustment()), FixedDim.folderButton.height));
-    button.setName(name);
+    button.setName(label.getText());
     button.setPreferredSize(FixedDim.folderButton);
     button.setMaximumSize(FixedDim.folderButton);
     // panel
@@ -74,6 +85,10 @@ final class FileTextField2 implements FileTextFieldInterface {
     constraints.weighty = 0.0;
     constraints.gridheight = 1;
     constraints.gridwidth = 1;
+    if (labeled) {
+      layout.setConstraints(label, constraints);
+      panel.add(label);
+    }
     constraints.insets = new Insets(0, 0, 0, -1);
     layout.setConstraints(field.getComponent(), constraints);
     panel.add(field.getComponent());
@@ -93,7 +108,7 @@ final class FileTextField2 implements FileTextFieldInterface {
   private void action() {
     JFileChooser chooser = new FileChooser(new File(
         currentDirectory == null ? propertyUserDir : currentDirectory));
-    chooser.setDialogTitle(name);
+    chooser.setDialogTitle(label.getText());
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     int returnVal = chooser.showOpenDialog(panel);
     if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -137,7 +152,7 @@ final class FileTextField2 implements FileTextFieldInterface {
     field.setEnabled(enabled);
     button.setEnabled(enabled);
   }
-  
+
   void setToolTipText(String text) {
     field.setToolTipText(text);
     text = TooltipFormatter.INSTANCE.format(text);
