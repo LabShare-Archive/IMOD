@@ -3,12 +3,10 @@ package etomo.ui.swing;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
-import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 
 import etomo.BaseManager;
@@ -67,8 +65,7 @@ final class MaskingPanel implements CylinderOrientationParent,
       MatlabParam.MaskType.SPHERE, bgMaskType);
   private final RadioButton rbMaskTypeCylinder = new RadioButton(
       MASK_TYPE_CYLINDER_LABEL, MatlabParam.MaskType.CYLINDER, bgMaskType);
-  private final FileTextField ftfMaskTypeVolume = new FileTextField(
-      MASK_TYPE_VOLUME_LABEL + ": ");
+  private final FileTextField2 ftfMaskTypeVolume;
 
   private final CylinderOrientationPanel cylinderOrientationPanel;
   private final MaskingParent parent;
@@ -80,6 +77,8 @@ final class MaskingPanel implements CylinderOrientationParent,
     this.parent = parent;
     cylinderOrientationPanel = CylinderOrientationPanel.getInstance(manager, this);
     radiiOfSphereOrCylinderPanel = RadiiOfSphereOrCylinderPanel.getInstance(this);
+    ftfMaskTypeVolume = FileTextField2
+        .getInstance(manager, MASK_TYPE_VOLUME_LABEL + ": ");
   }
 
   static MaskingPanel getInstance(BaseManager manager, MaskingParent parent) {
@@ -91,7 +90,6 @@ final class MaskingPanel implements CylinderOrientationParent,
   }
 
   private void addListeners() {
-    ftfMaskTypeVolume.addActionListener(new MaskTypeVolumeActionListener(this));
     MaskingActionListener actionListener = new MaskingActionListener(this);
     rbMaskTypeNone.addActionListener(actionListener);
     rbMaskTypeVolume.addActionListener(actionListener);
@@ -121,7 +119,7 @@ final class MaskingPanel implements CylinderOrientationParent,
     pnlMaskType.add(rbMaskTypeCylinder.getComponent());
     // mask type volume and sphere details
     pnlMaskVolumeRadii.setLayout(new BoxLayout(pnlMaskVolumeRadii, BoxLayout.Y_AXIS));
-    pnlMaskVolumeRadii.add(ftfMaskTypeVolume.getContainer());
+    pnlMaskVolumeRadii.add(ftfMaskTypeVolume.getRootPanel());
     pnlMaskVolumeRadii.add(radiiOfSphereOrCylinderPanel.getComponent());
   }
 
@@ -238,16 +236,6 @@ final class MaskingPanel implements CylinderOrientationParent,
     return rbMaskTypeCylinder.isSelected();
   }
 
-  private void chooseMaskTypeVolume(FileTextField fileTextField) {
-    JFileChooser chooser = new FileChooser(new File(manager.getPropertyUserDir()));
-    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
-    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    int returnVal = chooser.showOpenDialog(pnlRoot);
-    if (returnVal == JFileChooser.APPROVE_OPTION) {
-      fileTextField.setText(chooser.getSelectedFile().getAbsolutePath());
-    }
-  }
-
   /**
    * Validate for running.
    * @return null if valid, error message if invalid.
@@ -283,10 +271,6 @@ final class MaskingPanel implements CylinderOrientationParent,
     }
   }
 
-  private void maskTypeVolumeAction() {
-    chooseMaskTypeVolume(ftfMaskTypeVolume);
-  }
-
   private void setTooltips() {
     rbMaskTypeNone.setToolTipText("No reference masking");
     rbMaskTypeVolume.setToolTipText("Mask the reference using a specified file");
@@ -309,18 +293,6 @@ final class MaskingPanel implements CylinderOrientationParent,
 
     public void actionPerformed(final ActionEvent event) {
       maskingPanel.action(event.getActionCommand(), null);
-    }
-  }
-
-  private static final class MaskTypeVolumeActionListener implements ActionListener {
-    private final MaskingPanel maskingPanel;
-
-    private MaskTypeVolumeActionListener(final MaskingPanel maskingPanel) {
-      this.maskingPanel = maskingPanel;
-    }
-
-    public void actionPerformed(final ActionEvent event) {
-      maskingPanel.maskTypeVolumeAction();
     }
   }
 }
