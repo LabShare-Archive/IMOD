@@ -56,7 +56,7 @@ def changeExtension(name, newext):
 
 # Function to convert a value to an array of numbers
 def convertValues(line, value, numVal, func, defaultLast):
-   value = re.sub(' +', ' ', value.strip()).split(' ')
+   value = value.split()
    if len(value) < numVal - 1 or (not defaultLast and len(value) < numVal):
       prnstr(fmtstr("{} Too few values in entry: {}", smpref, line))
       sys.exit(1)
@@ -134,8 +134,8 @@ def readMontInfo(filename, predata, slices, pieces, edges):
       prnstr(fmtstr("{} Opening {}: {}", smpref, filename, sys.exc_info()[1]))
       sys.exit(1)
       
-   secMatch = re.compile('^\[(\S+) *= *(.*\S) *\]')
-   keyMatch = re.compile('^(\S+) *= *(.*\S) *$')
+   secMatch = re.compile('^\[(\S+)\s*=\s*(.*\S)\s*\]')
+   keyMatch = re.compile('^(\S+)\s*=\s*(.*\S)\s*$')
    nozvals = "0"
    if kNoZvals in predata:
       nozvals = predata[kNoZvals] 

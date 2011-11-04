@@ -1,5 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/3/11: Added ability to have global clip planes change position during movie
+making in Model View.
+
+11/2/11: Fixed problem with Edgepatches/Tomostitch when there are tabs in the
+info file (In 4.3).
+
+11/2/11: Changed compiler flags to keep programs like Tilt from crashing on
+Mac when doing large vector operations (In 4.3).
+
 10/31/11: In eTomo - PEET, removed the "Use Existing Project" panel and
 replaced it with one button - "Copy existing project".(Bug# 1560)
 

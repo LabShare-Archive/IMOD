@@ -361,7 +361,7 @@ final class AutodocTester extends Assert implements VariableList {
 
   private static final int REDRAW_WAIT = 40;
   private static final int MAX_FORMAT = 5;
-  private static final int FORMAT_WAIT = 670;
+  private static final int FORMAT_WAIT = 680;
 
   private final ReadOnlyAutodoc autodoc;
   private final JFCTestHelper helper;
@@ -2028,11 +2028,7 @@ final class AutodocTester extends Assert implements VariableList {
       }
       helper.enterClickAndLeave(new JTabbedPaneMouseEventData(testRunner, tabbedPane,
           index, 1));
-      try {
-        Thread.sleep(REDRAW_WAIT);
-      }
-      catch (InterruptedException e) {
-      }
+      formatApplication();
     }
     // TEXT FIELD
     else if (fieldType == UITestFieldType.TEXT_FIELD) {
