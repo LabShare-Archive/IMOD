@@ -2028,11 +2028,7 @@ final class AutodocTester extends Assert implements VariableList {
       }
       helper.enterClickAndLeave(new JTabbedPaneMouseEventData(testRunner, tabbedPane,
           index, 1));
-      try {
-        Thread.sleep(REDRAW_WAIT);
-      }
-      catch (InterruptedException e) {
-      }
+      formatApplication();
     }
     // TEXT FIELD
     else if (fieldType == UITestFieldType.TEXT_FIELD) {
