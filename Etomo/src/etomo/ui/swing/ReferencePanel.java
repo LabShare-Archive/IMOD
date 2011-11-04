@@ -74,7 +74,7 @@ final class ReferencePanel {
   private ReferencePanel(final ReferenceParent parent, final BaseManager manager) {
     this.parent = parent;
     this.manager = manager;
-    ftfFile = FileTextField2.getInstance(manager, REFERENCE_FILE_LABEL);// unlabeled
+    ftfFile = FileTextField2.getUnlabeledInstance(manager, REFERENCE_FILE_LABEL);// unlabeled
     ftfFile.setFieldWidth(UIParameters.INSTANCE.getFileWidth());
   }
 
