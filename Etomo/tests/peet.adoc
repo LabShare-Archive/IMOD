@@ -45,6 +45,7 @@ mb.parallel-processing=-
 bn.run=
 wait.popup.entry-error=OK
 #error message sends it back to setup tab
+format=
 
 
 [function = volume-table]

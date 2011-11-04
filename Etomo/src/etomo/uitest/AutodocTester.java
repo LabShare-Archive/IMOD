@@ -867,7 +867,10 @@ final class AutodocTester extends Assert implements VariableList {
     // FORMAT
     else if (actionType == UITestActionType.FORMAT) {
       formatApplication();
-      executeField(command);
+      // format.field
+      if (field != null) {
+        executeField(command);
+      }
     }
     // IF
     else if (actionType == UITestActionType.IF) {
@@ -2028,7 +2031,11 @@ final class AutodocTester extends Assert implements VariableList {
       }
       helper.enterClickAndLeave(new JTabbedPaneMouseEventData(testRunner, tabbedPane,
           index, 1));
-      formatApplication();
+      try {
+        Thread.sleep(REDRAW_WAIT);
+      }
+      catch (InterruptedException e) {
+      }
     }
     // TEXT FIELD
     else if (fieldType == UITestFieldType.TEXT_FIELD) {
