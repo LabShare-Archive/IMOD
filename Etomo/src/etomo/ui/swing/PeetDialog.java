@@ -24,6 +24,7 @@ import etomo.comscript.AverageAllParam;
 import etomo.comscript.ParallelParam;
 import etomo.comscript.ProcesschunksParam;
 import etomo.storage.MatlabParam;
+import etomo.storage.PeetAndMatlabParamFileFilter;
 import etomo.type.AxisID;
 import etomo.type.ConstPeetMetaData;
 import etomo.type.ConstPeetScreenState;
@@ -500,13 +501,14 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
   private final MultiLineButton btnAverageAll = new MultiLineButton(AVERAGE_ALL_LABEL);
   private final CheckBox cbflgAlignAverages = new CheckBox(
       "Align averages to have their Y axes vertical");
+  private final SimpleButton btnCopyProject = new SimpleButton(
+      "Copy existing project");
 
   private final SphericalSamplingForThetaAndPsiPanel sphericalSamplingForThetaAndPsiPanel;
   private final YAxisTypePanel yAxisTypePanel;
   private final MaskingPanel maskingPanel;
   private final MissingWedgeCompensationPanel missingWedgeCompensationPanel;
   private final ReferencePanel referencePanel;
-  private final UseExistingProjectPanel useExistingProjectPanel;
   private final PanelHeader phRun;
   private final PanelHeader phSetup;
   private final VolumeTable volumeTable;
@@ -523,7 +525,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     this.manager = manager;
     this.axisID = axisID;
     mediator = manager.getProcessingMethodMediator(axisID);
-    useExistingProjectPanel = UseExistingProjectPanel.getInstance(manager, this);
     referencePanel = ReferencePanel.getInstance(this, manager);
     missingWedgeCompensationPanel = MissingWedgeCompensationPanel.getInstance(this);
     maskingPanel = MaskingPanel.getInstance(manager, this);
@@ -593,7 +594,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
    */
   public void updateDisplay(final boolean paramFileSet) {
     ftfDirectory.setEditable(!paramFileSet);
-    useExistingProjectPanel.updateDisplay(paramFileSet);
+    btnCopyProject.setEnabled(!paramFileSet);
     ltfFnOutput.setEditable(!paramFileSet);
     btnRun.setEnabled(paramFileSet);
   }
@@ -743,12 +744,12 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
    * correct.
    * @param metaData
    */
-  public void setParameters(final ConstPeetMetaData metaData, boolean parametersOnly) {
+  public void setParameters(final ConstPeetMetaData metaData) {
     ltfFnOutput.setText(metaData.getName());
-    volumeTable.setParameters(metaData, parametersOnly);
-    referencePanel.setParameters(metaData, parametersOnly);
-    missingWedgeCompensationPanel.setParameters(metaData, parametersOnly);
-    maskingPanel.setParameters(metaData, parametersOnly);
+    volumeTable.setParameters(metaData);
+    referencePanel.setParameters(metaData);
+    missingWedgeCompensationPanel.setParameters(metaData);
+    maskingPanel.setParameters(metaData);
   }
 
   /**
@@ -764,10 +765,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
    * @param importDir directory of original .prm file.  May need to set the absolute path of files from .prm file
    * @param paramatersOnly 
    */
-  public void setParameters(final MatlabParam matlabParam, File importDir,
-      boolean parametersOnly) {
+  public void setParameters(final MatlabParam matlabParam, File importDir) {
     iterationTable.setParameters(matlabParam);
-    referencePanel.setParameters(matlabParam, parametersOnly);
+    referencePanel.setParameters(matlabParam);
     missingWedgeCompensationPanel.setParameters(matlabParam);
     MatlabParam.InitMotlCode initMotlCode = matlabParam.getInitMotlCode();
     if (initMotlCode == null) {
@@ -802,11 +802,11 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     cbRefFlagAllTom.setSelected(!matlabParam.isRefFlagAllTom());
     cbLstFlagAllTom.setSelected(!matlabParam.isLstFlagAllTom());
     lsParticlePerCPU.setValue(matlabParam.getParticlePerCPU());
-    yAxisTypePanel.setParameters(matlabParam, parametersOnly);
-    volumeTable.setParameters(matlabParam, parametersOnly, rbInitMotlFiles.isSelected(),
+    yAxisTypePanel.setParameters(matlabParam);
+    volumeTable.setParameters(matlabParam, rbInitMotlFiles.isSelected(),
         missingWedgeCompensationPanel.isTiltRangeRequired(), importDir);
     sphericalSamplingForThetaAndPsiPanel.setParameters(matlabParam);
-    maskingPanel.setParameters(matlabParam, parametersOnly);
+    maskingPanel.setParameters(matlabParam);
     cbFlgRemoveDuplicates.setSelected(matlabParam.isFlgRemoveDuplicates());
     cbflgAlignAverages.setSelected(matlabParam.isFlgAlignAverages());
     updateDisplay();
@@ -997,6 +997,10 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
         .setToolTipText("Additional numbers of particles for which averages are "
             + "desired.  Values must be listed in increasing order and must be "
             + "larger than End.");
+    btnCopyProject
+        .setToolTipText("Create a new PEET project from an existing parameter or "
+            + "project file, duplicating all parameters except root name and "
+            + "location.");
   }
 
   private void updateAdvanceRunParameters(boolean advanced) {
@@ -1019,6 +1023,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     pnlProject.setLayout(new BoxLayout(pnlProject, BoxLayout.X_AXIS));
     pnlProject.add(ftfDirectory.getContainer());
     pnlProject.add(ltfFnOutput.getContainer());
+    pnlProject.add(Box.createHorizontalStrut(20));
+    pnlProject.add(btnCopyProject);
     // reference and missing wedge compensation
     JPanel pnlReferenceAndMissingWedgeCompensation = new JPanel();
     pnlReferenceAndMissingWedgeCompensation.setLayout(new BoxLayout(
@@ -1046,7 +1052,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     pnlSetupBody.setBoxLayout(BoxLayout.Y_AXIS);
     pnlSetupBody.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     pnlSetupBody.add(pnlProject);
-    pnlSetupBody.add(useExistingProjectPanel.getComponent());
     pnlSetupBody.add(fixPathsPanel.getRootComponent());
     pnlSetupBody.add(volumeTable.getContainer());
     pnlSetupBody.add(pnlReferenceAndMissingWedgeCompensation);
@@ -1176,6 +1181,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     }
     else if (actionCommand.equals(btnAverageAll.getActionCommand())) {
       manager.averageAll(null, DIALOG_TYPE);
+    }
+    else if (actionCommand.equals(btnCopyProject.getActionCommand())) {
+      copyDataset();
     }
   }
 
@@ -1335,6 +1343,35 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     btnRef.addActionListener(actionListener);
     cbFlgRemoveDuplicates.addActionListener(actionListener);
     btnAverageAll.addActionListener(actionListener);
+    btnCopyProject.addActionListener(actionListener);
+  }
+
+  private void copyDataset() {
+    String path = getDirectory().getText();
+    if (path == null || path.matches("\\s*")) {
+      UIHarness.INSTANCE.openMessageDialog(manager, "Please set the "
+          + PeetDialog.DIRECTORY_LABEL + " field before importing a .prm file.",
+          "Entry Error");
+      return;
+    }
+    File dir = new File(getDirectory().getText());
+    if (!dir.exists()) {
+      UIHarness.INSTANCE.openMessageDialog(manager,
+          "Please create " + dir.getAbsolutePath() + " before importing a file.",
+          "Entry Error");
+      return;
+    }
+    File file = null;
+    JFileChooser chooser = new FileChooser(dir);
+    chooser.setFileFilter(new PeetAndMatlabParamFileFilter());
+    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+    int returnVal = chooser.showOpenDialog(rootPanel);
+    if (returnVal != JFileChooser.APPROVE_OPTION) {
+      return;
+    }
+    file = chooser.getSelectedFile();
+    manager.copyDataset(file);
   }
 
   private static final class PDActionListener implements ActionListener {

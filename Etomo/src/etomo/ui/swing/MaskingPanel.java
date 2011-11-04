@@ -170,11 +170,9 @@ final class MaskingPanel implements CylinderOrientationParent,
    * correct.
    * @param metaData
    */
-  public void setParameters(final ConstPeetMetaData metaData, boolean parametersOnly) {
-    if (!parametersOnly) {
-      ftfMaskTypeVolume.setText(metaData.getMaskTypeVolume());
-    }
-    cylinderOrientationPanel.setParameters(metaData, parametersOnly);
+  public void setParameters(final ConstPeetMetaData metaData) {
+    ftfMaskTypeVolume.setText(metaData.getMaskTypeVolume());
+    cylinderOrientationPanel.setParameters(metaData);
   }
 
   /**
@@ -188,7 +186,7 @@ final class MaskingPanel implements CylinderOrientationParent,
    * @param matlabParamFile
    * @param paramatersOnly 
    */
-  public void setParameters(final MatlabParam matlabParam, boolean parametersOnly) {
+  public void setParameters(final MatlabParam matlabParam) {
     String maskTypeValue = matlabParam.getMaskType();
     MatlabParam.MaskType maskType = MatlabParam.MaskType.getInstance(maskTypeValue);
     if (maskType == MatlabParam.MaskType.NONE) {
@@ -196,9 +194,7 @@ final class MaskingPanel implements CylinderOrientationParent,
     }
     else if (maskType == MatlabParam.MaskType.VOLUME) {
       rbMaskTypeVolume.setSelected(true);
-      if (!parametersOnly) {
-        ftfMaskTypeVolume.setText(maskTypeValue);
-      }
+      ftfMaskTypeVolume.setText(maskTypeValue);
     }
     else if (maskType == MatlabParam.MaskType.SPHERE) {
       rbMaskTypeSphere.setSelected(true);
@@ -206,7 +202,7 @@ final class MaskingPanel implements CylinderOrientationParent,
     else if (maskType == MatlabParam.MaskType.CYLINDER) {
       rbMaskTypeCylinder.setSelected(true);
     }
-    cylinderOrientationPanel.setParameters(matlabParam, parametersOnly);
+    cylinderOrientationPanel.setParameters(matlabParam);
     radiiOfSphereOrCylinderPanel.setParameters(matlabParam);
   }
 
