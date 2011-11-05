@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/4/11: In eTomo - PEET, defaulting reference in the .prm file to 10,10 when
+flgFairReference is on.(Bug# 1565)
+
 11/4/11: In eTomo - PEET, defaulting to relative directory paths.  Continuing
 to allow absolute directory paths.(Bug# 1575)
 

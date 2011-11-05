@@ -114,6 +114,8 @@ run.function.setup-test-run-error=
 tf.particle=2
 #check empty reference file error
 [[if = test-values]]
+  assert.tf.multiparticle-reference=10
+  assert.tf.groups-of=10
 	rb.user-supplied-file=
 	assert.enabled.tf.user-supplied-file=
 	run.function.setup-test-run-error=
@@ -414,8 +416,6 @@ assert.tf.user-supplied-file==unMasked%{dataset}_Ref1.mrc
 save==
 assert.contains.file==%{dataset}.prm|reference = 'unMasked%{dataset}_Ref1.mrc'
 rb.multiparticle-reference==
-tf.multiparticle-reference==10
-tf.groups-of==10
 save==
 assert.contains.file==%{dataset}.prm|flgFairReference = 1
 assert.contains.file==%{dataset}.prm|reference = [10, 10]
