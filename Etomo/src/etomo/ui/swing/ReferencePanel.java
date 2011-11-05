@@ -3,12 +3,10 @@ package etomo.ui.swing;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -62,8 +60,7 @@ final class ReferencePanel {
       bgReference);
   private final Spinner sVolume = Spinner.getLabeledInstance("in Volume: ");
   private final RadioButton rbFile = new RadioButton(REFERENCE_FILE_LABEL, bgReference);
-  private final FileTextField ftfFile = FileTextField
-      .getUnlabeledInstance(REFERENCE_FILE_LABEL);
+  private final FileTextField2 ftfFile;
   private final RadioTextField rtfMultiparticleGroups = RadioTextField.getInstance(
       "Multiparticle reference ", bgReference);
   private final LabeledTextField ltfMultiparticleParticles = new LabeledTextField(
@@ -76,6 +73,7 @@ final class ReferencePanel {
   private ReferencePanel(final ReferenceParent parent, final BaseManager manager) {
     this.parent = parent;
     this.manager = manager;
+    ftfFile = FileTextField2.getUnlabeledInstance(manager, REFERENCE_FILE_LABEL);// unlabeled
     ftfFile.setFieldWidth(UIParameters.INSTANCE.getFileWidth());
   }
 
@@ -93,7 +91,6 @@ final class ReferencePanel {
     rtfParticle.addActionListener(actionListener);
     rbFile.addActionListener(actionListener);
     rtfMultiparticleGroups.addActionListener(actionListener);
-    ftfFile.addActionListener(new ReferenceFileActionListener(this));
   }
 
   private void createPanel() {
@@ -122,7 +119,7 @@ final class ReferencePanel {
     // file panel
     pnlFile.setLayout(new BoxLayout(pnlFile, BoxLayout.X_AXIS));
     pnlFile.add(rbFile.getComponent());
-    pnlFile.add(ftfFile.getContainer());
+    pnlFile.add(ftfFile.getRootPanel());
     pnlFile.add(Box.createHorizontalGlue());
     // multiparticle panel
     pnlMultiparticle.setLayout(new BoxLayout(pnlMultiparticle, BoxLayout.X_AXIS));
@@ -233,23 +230,6 @@ final class ReferencePanel {
     return rtfParticle.isSelected();
   }
 
-  /**
-   * Action in response to ftfReferenceFile's file chooser being pressed.
-   */
-  private void referenceFileAction() {
-    chooseReferenceFile(ftfFile);
-  }
-
-  private void chooseReferenceFile(FileTextField fileTextField) {
-    JFileChooser chooser = new FileChooser(new File(manager.getPropertyUserDir()));
-    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
-    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    int returnVal = chooser.showOpenDialog(pnlRoot);
-    if (returnVal == JFileChooser.APPROVE_OPTION) {
-      fileTextField.setText(chooser.getSelectedFile().getAbsolutePath());
-    }
-  }
-
   private void action(final String actionCommand) {
     if (actionCommand.equals(rtfParticle.getActionCommand())
         || actionCommand.equals(rbFile.getActionCommand())
@@ -323,26 +303,14 @@ final class ReferencePanel {
   }
 
   private static final class ReferenceActionListener implements ActionListener {
-    private final ReferencePanel panel;
-
-    private ReferenceActionListener(final ReferencePanel panel) {
-      this.panel = panel;
-    }
-
-    public void actionPerformed(final ActionEvent event) {
-      panel.action(event.getActionCommand());
-    }
-  }
-
-  private static final class ReferenceFileActionListener implements ActionListener {
     private final ReferencePanel referencePanel;
 
-    private ReferenceFileActionListener(final ReferencePanel referencePanel) {
+    private ReferenceActionListener(final ReferencePanel referencePanel) {
       this.referencePanel = referencePanel;
     }
 
     public void actionPerformed(final ActionEvent event) {
-      referencePanel.referenceFileAction();
+      referencePanel.action(event.getActionCommand());
     }
   }
 }

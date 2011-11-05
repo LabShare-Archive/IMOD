@@ -32,8 +32,7 @@ public class UtilTests {
     suite.addTestSuite(MRCHeaderTest.class);
     suite.addTestSuite(CircularBufferTest.class);
     suite.addTestSuite(RemotePathTest.class);
-
-    //suite.addTest(new RemotePathTest("test_getRemotePath_globalRules"));
+    suite.addTestSuite(FilePathTest.class);
     //$JUnit-END$
     return suite;
   }
