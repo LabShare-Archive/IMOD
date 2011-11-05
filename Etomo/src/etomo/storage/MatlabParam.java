@@ -309,6 +309,8 @@ public final class MatlabParam {
   public static final String rcsid = "$Id$";
 
   public static final String REFERENCE_KEY = "reference";
+  public static final int REFERENCE_FLG_FAIR_REFERENCE_GROUPS_DEFAULT = 10;
+  public static final int REFERENCE_FLG_FAIR_REFERENCE_PARTICLES_DEFAULT = 10;
   public static final String FN_VOLUME_KEY = "fnVolume";
   public static final String FN_MOD_PARTICLE_KEY = "fnModParticle";
   public static final String INIT_MOTL_KEY = "initMOTL";
