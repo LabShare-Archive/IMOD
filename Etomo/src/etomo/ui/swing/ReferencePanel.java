@@ -55,7 +55,6 @@ final class ReferencePanel {
 
   private static final String TITLE = "Reference";
   private static final String REFERENCE_FILE_LABEL = "User supplied file: ";
-  private static final String MULTIPARTICLE_REFERENCE_LABEL = "Multiparticle reference ";
 
   private final EtomoPanel pnlRoot = new EtomoPanel();
   private final ButtonGroup bgReference = new ButtonGroup();
@@ -98,6 +97,11 @@ final class ReferencePanel {
   }
 
   private void createPanel() {
+    // Init
+    rtfMultiparticleGroups
+        .setText(MatlabParam.REFERENCE_FLG_FAIR_REFERENCE_GROUPS_DEFAULT);
+    ltfMultiparticleParticles
+        .setText(MatlabParam.REFERENCE_FLG_FAIR_REFERENCE_PARTICLES_DEFAULT);
     // local panels
     JPanel pnlParticle = new JPanel();
     JPanel pnlFile = new JPanel();
