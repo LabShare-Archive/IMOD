@@ -154,8 +154,6 @@ final class FieldCell extends InputCell {
   private final boolean editable;
   private final ParsedElementType parsedElementType;
 
-  private String hiddenValue = null;
-  private boolean hideValue = false;
   private boolean range = false;
   private int endValue = EtomoNumber.INTEGER_NULL_VALUE;
   private String contractedValue = null;
@@ -166,11 +164,11 @@ final class FieldCell extends InputCell {
   private FieldCell(boolean editable, ParsedElementType parsedElementType) {
     this.editable = editable;
     this.parsedElementType = parsedElementType;
-    //construction
+    // construction
     textField = new JTextField();
-    //field
+    // field
     textField.setBorder(BorderFactory.createEtchedBorder());
-    //color
+    // color
     setBackground();
     setForeground();
     setFont();
@@ -235,7 +233,7 @@ final class FieldCell extends InputCell {
   }
 
   void setEditable(boolean editable) {
-    //if this is not an editable instance, it can't be made editable
+    // if this is not an editable instance, it can't be made editable
     if (!this.editable && editable) {
       return;
     }
@@ -266,23 +264,6 @@ final class FieldCell extends InputCell {
     this.expandedValue = expandedValue;
   }
 
-  void setHideValue(final boolean hideValue) {
-    if (this.hideValue == hideValue) {
-      return;
-    }
-    this.hideValue = hideValue;
-    if (hiddenValue == null) {
-      return;
-    }
-    if (hideValue) {
-      hiddenValue = textField.getText();
-      textField.setText("");
-    }
-    else {
-      textField.setText(hiddenValue);
-    }
-  }
-
   boolean isEmpty() {
     String value = textField.getText();
     return value == null || value.matches("\\s*");
@@ -294,10 +275,7 @@ final class FieldCell extends InputCell {
 
   private void setValue(String value, boolean range) {
     this.range = range;
-    hiddenValue = value;
-    if (!hideValue) {
-      textField.setText(value);
-    }
+    textField.setText(value);
   }
 
   void setValue(String value) {
