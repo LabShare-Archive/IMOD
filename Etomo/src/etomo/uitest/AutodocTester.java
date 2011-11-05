@@ -2273,8 +2273,10 @@ final class AutodocTester extends Assert implements VariableList {
       else {
         // assert.tf.text_field_label = value
         if (value != null) {
-          assertTrue("field text is not equal to value - " + textField.getText() + ","
-              + value + " (" + command + ")", textField.getText().equals(value));
+          assertTrue(
+              "field text is not equal to value: " + value + " - " + textField.getName()
+                  + ":" + textField.getText() + "," + " (" + command + ")", textField
+                  .getText().equals(value));
         }
         // assert.tf.text_field_label =
         else {
