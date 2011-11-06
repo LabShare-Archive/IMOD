@@ -75,6 +75,7 @@ EXPORTS
 	imodViewModelNew
 	imodViewNew
 	GETIMODOBJNAME
+	imodClipsCopy
 	istoreEndChange
 	PUTIMODFLAG
 	GETMODELNAME

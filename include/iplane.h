@@ -29,6 +29,7 @@ extern "C" {
   int     imodPlaneClip(Iplane *plane, Ipoint *pnt);
   int     imodPlanesClip(Iplane *plane, int nplanes, Ipoint *pnt);
   void    imodClipsInitialize(IclipPlanes *clips);
+  void    imodClipsCopy(IclipPlanes *fromClips, IclipPlanes *toClips);
   void    imodClipsFixCount(IclipPlanes *clips, b3dUInt32 flags);
   int     imodClipsRead(IclipPlanes *clips, FILE *fin);
   void    imodPlaneSetFromClips(IclipPlanes *objClips, IclipPlanes *glbClips,
