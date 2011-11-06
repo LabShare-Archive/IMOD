@@ -39,7 +39,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #ifndef PROCESSCHUNKS_H
@@ -181,7 +180,7 @@ private:
   void setupComFileJobs();
   void probeMachines(QStringList &machineNameList);
   bool readCheckFile();
-  void exitIfDropped(const int minFail, const int failTot, const int assignTot);
+  bool exitIfDropped(const int minFail, const int failTot, const int assignTot);
   bool handleChunkDone(MachineHandler &machine, ProcessHandler *process,
       const int jobIndex);
   bool
@@ -243,46 +242,3 @@ private:
 };
 
 #endif /* PROCESSCHUNKS_H_ */
-
-/*
- $Log$
- Revision 1.34  2011/02/19 04:00:48  mast
- This time really do include <typeinfo> for fedora 12 compile
-
- Revision 1.33  2011/02/03 23:40:17  sueh
- bug# 1426 return the correct exit code.
-
- Revision 1.32  2011/02/02 00:09:25  sueh
- bug# 1426 Removed unused variables and commented-out code.
-
- Revision 1.31  2011/02/01 23:02:40  sueh
- bug# 1426 Added restartKillTimer.
-
- Revision 1.30  2011/02/01 22:38:39  sueh
- bug# 1426 Removing old method of killing.
-
- Revision 1.29  2011/01/31 19:47:13  sueh
- bug# 1426 Counting kills instead of pipes.
-
- Revision 1.28  2011/01/27 22:54:30  sueh
- bug# 1426 Switching to QCoreApplication, which is for console applications.
-
- Revision 1.27  2011/01/27 03:51:55  sueh
- bug# 1426 Removes const from simple variable return values (int, char,
- bool, long) because they cause a warning in the intel compiler.  Moved the
- the kill message for queues to the machine handler so it will only print
- once.
-
- Revision 1.26  2011/01/25 07:15:22  sueh
- bug# 1426 Added mNumMachinesDropped.
-
- Revision 1.25  2011/01/21 00:18:12  sueh
- bug# 1426 Adding decrementPipes, incrementPipes, pipesAvailable,
- initMachineList, killSignal, setupComFileJobs.
-
- Revision 1.24  2011/01/05 20:50:22  sueh
- bug# 1426 Moved one-line functions to .h file.  Creating on instance of
- ComFileJobs instead of an array of ComFileJob instances.  Moved the array
- into ComFileJobs.  Fixed the includes.
-
- */

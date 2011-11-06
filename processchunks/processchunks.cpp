@@ -8,8 +8,7 @@
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
- *  $Id$
- *  Log at end of file
+ *  $Id: processchunks.cpp,v e5ab12a1256a 2011/08/23 05:58:24 sueh 
  */
 
 #include "processchunks.h"
@@ -295,7 +294,9 @@ int Processchunks::startLoop() {
   mSyncing = 0;
   mAnyDone = false;
   mNextSyncIndex = mSizeJobArray + 2 - 1;
-  mHoldCrit = (mNumCpus + 1) / 2;
+
+  // Change from script: base this on number of CPU's not # of machines
+  mHoldCrit = (mMachineListSize + 1) / 2;
   //Error messages from inside the event loop must using QApplication functionality
   PipDone();
   startTimers();
@@ -350,6 +351,8 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
   int numCpus = 0;
   bool noChunks = false;
   for (i = 0; i < mMachineListSize; i++) {
+    // Change from script: neither chunkErrTot nor failTot is incremented for each cpu,
+    // only per machine
     failCount = mMachineList[i].getFailureCount();
     if (failCount != 0) {
       failTot++;
@@ -357,18 +360,19 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
     if (failCount < minFail) {
       minFail = failCount;
     }
+    if (mMachineList[i].isChunkErred()) {
+      chunkErrTot++;
+    }
     numCpus = mMachineList[i].getNumCpus();
     for (cpuIndex = 0; cpuIndex < numCpus; cpuIndex++) {
-      //chunkerrtot must be incremented for each cpu.
-      if (mMachineList[i].isChunkErred()) {
-        chunkErrTot++;
-      }
       if (mMachineList[i].isJobValid(cpuIndex)) {
         assignTot++;
       }
     }
   }
-  exitIfDropped(minFail, failTot, assignTot);
+  if (exitIfDropped(minFail, failTot, assignTot)) {
+    return;
+  }
 
   //Loop on machines and CPUs, if they have an assignment check if it is done
   i = -1;
@@ -398,7 +402,10 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
           }
           else {
             if (!mQueue && process->isPausing()) {
-              return;
+              // DNM: changed from return to continue.  When 30 jobs crash right away,
+              // it can take a long time to get through them if you have to get through
+              // successive pauses on each one
+              continue;
             }
             //otherwise set flag to redo it
             dropout = true;
@@ -491,6 +498,7 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
   }
   if (mSingleFile && mNumDone > 0) {
     cleanupAndExit();
+    return;
   }
 }
 
@@ -666,6 +674,7 @@ void Processchunks::killSignal() {
         *mOutStream << "ERROR: A START, FINISH, OR SYNC CHUNK HAS FAILED" << endl;
       }
       cleanupAndExit(4);
+      return;
     }
     //Handle drop and pause by resuming processesing
     if ((mAns == 'D' && mMachineListSize > mNumMachinesDropped) || mAns == 'P') {
@@ -679,6 +688,7 @@ void Processchunks::killSignal() {
         << "When you rerun with a different set of machines, be sure to use" << endl
         << "the -r flag to retain the existing results" << endl;
     cleanupAndExit(2);
+    return;
   }
 }
 
@@ -1153,7 +1163,7 @@ bool Processchunks::readCheckFile() {
 }
 
 //Stop if all have now been dropped out or all have failed and none done
-void Processchunks::exitIfDropped(const int minFail, const int failTot,
+bool Processchunks::exitIfDropped(const int minFail, const int failTot,
     const int assignTot) {
   if (isVerbose(mDecoratedClassName, __func__, 2)) {
     *mOutStream << mDecoratedClassName << ":" << __func__ << ":minFail=" << minFail
@@ -1165,7 +1175,9 @@ void Processchunks::exitIfDropped(const int minFail, const int failTot,
   if (minFail >= mDropCrit) {
     *mOutStream << "ERROR: ALL MACHINES HAVE BEEN DROPPED DUE TO FAILURES" << endl;
     if (!mQueue) {
+      // DNM: this function does return, so we need to return with true if exiting
       cleanupAndExit(1);
+      return true;
     }
     else {
       mAns = 'E';
@@ -1176,28 +1188,19 @@ void Processchunks::exitIfDropped(const int minFail, const int failTot,
     *mOutStream << "All previously running chunks are done - exiting as requested"
         << endl << "Rerun with -r to resume and retain existing results" << endl;
     cleanupAndExit(2);
+    return true;
   }
   if (assignTot == 0 && mNumDone == 0) {
-    if (failTot == mNumCpus) {
+    // DNM: needed to compare with mMachineListSize not mNumCpus, but then the tests
+    // for failure of first sync were not reached, so those tests are included in this 
+    // one test, since they all took the same actions
+    if (failTot == mMachineListSize && (!mSyncing || !mQueue || minFail == mQueue)) {
       *mOutStream << "ERROR: NO CHUNKS HAVE WORKED AND EVERY MACHINE HAS FAILED" << endl;
       cleanupAndExit(1);
-    }
-    //Handle the case where the start.com cannot be run.
-    else if (mSyncing) {
-      if (!mQueue) {
-        if (failTot == mMachineListSize) {
-          *mOutStream << "ERROR: NO CHUNKS HAVE WORKED AND EVERY MACHINE HAS FAILED"
-              << endl;
-          cleanupAndExit(1);
-        }
-      }
-      else if (failTot == 1 && minFail == mQueue) {
-        *mOutStream << "ERROR: NO CHUNKS HAVE WORKED AND EVERY MACHINE HAS FAILED"
-            << endl;
-        cleanupAndExit(1);
-      }
+      return true;
     }
   }
+  return false;
 }
 
 //Handle chunk done: deassign, get rid of chunk errors,
@@ -1409,9 +1412,10 @@ bool Processchunks::checkChunk(int &runFlag, bool &noChunks, int &undoneIndex,
     foundChunks = true;
     //Skip a chunk if it has errored, if this machine has given chunk
     //error, and not all machines have done so
+    // Change from script: chunkErrTot is based on number of machines not # of cpus
     chunkOk = true;
     if (mComFileJobs->getNumChunkErr(jobIndex) > 0 && machine.isChunkErred()
-        && chunkErrTot < mNumCpus) {
+        && chunkErrTot < mMachineListSize) {
       chunkOk = false;
       if (mSyncing) {
         return false;
@@ -1612,281 +1616,3 @@ bool Processchunks::isVerbose(const QString &verboseClass, const QString verbose
   }
   return false;
 }
-
-/*
- $Log$
- Revision 1.75  2011/08/13 02:24:39  sueh
- Bug# 1528 Deleted most of the verbose prints.
-
- Revision 1.74  2011/07/29 04:18:55  sueh
- Bug# 1492 In timerEvent change the verbosity level to 2 for an output
- which goes out when the timer goes off.
-
- Revision 1.73  2011/07/29 00:20:58  sueh
- Bug# 1492 In setupMachineList assigning mQueuej to mNumCpus.
-
- Revision 1.72  2011/07/22 22:04:34  sueh
- Bug# 1521 In handleChunkDone pass machine name to ProcessHandler.printWarnings.
-
- Revision 1.71  2011/03/01 22:56:52  mast
- Switch to PID-printing function
-
- Revision 1.70  2011/02/05 00:51:02  sueh
- bug# 1426 Allowing small letters in the check file.
-
- Revision 1.69  2011/02/03 23:40:07  sueh
- bug# 1426 return the correct exit code.
-
- Revision 1.68  2011/02/03 00:17:11  sueh
- bug# 1426 In cleanupAndExit calling the QT exit.  Added exit to the main function.
-
- Revision 1.67  2011/02/02 23:39:22  sueh
- bug# 1426 In cleanupAndExit calling the standard exit instead of the QT one.
-
- Revision 1.66  2011/02/02 22:43:10  sueh
- bug# 1426 In cleanupAndExit called MachineHandler::killQProcesses.
-
- Revision 1.65  2011/02/02 00:09:14  sueh
- bug# 1426 Removed unused variables and commented-out code.
-
- Revision 1.64  2011/02/01 23:02:31  sueh
- bug# 1426 Added restartKillTimer.
-
- Revision 1.63  2011/02/01 22:38:27  sueh
- bug# 1426 Removing old method of killing.
-
- Revision 1.62  2011/02/01 01:22:03  sueh
- bug# 1426 In cleanupAndExit, always exiting with 0.
-
- Revision 1.61  2011/01/31 20:01:59  sueh
- bug# 1426 In timerEvent fixed unnecessary failCount redeclaration.
-
- Revision 1.60  2011/01/31 19:47:02  sueh
- bug# 1426 Counting kills instead of pipes.  For Windows, which has
- another (smaller) limit, set mMaxKills differently.
-
- Revision 1.59  2011/01/27 22:54:21  sueh
- bug# 1426 Switching to QCoreApplication, which is for console applications.
-
- Revision 1.58  2011/01/27 03:44:17  sueh
- bug# 1426 Removes const from simple variable return values (int, char,
- bool, long) because they cause a warning in the intel compiler.
-
- Revision 1.57  2011/01/26 06:48:14  sueh
- bug# 1426 In loadParams freeing a local variable.  In setupMachineList
- setting mQueueCommand before running MachineHandler.setup.
-
- Revision 1.56  2011/01/25 07:15:00  sueh
- bug# 1426 Incrementing/checking mNumMachinesDropped and checking
- MachineHandler.isDropped().
-
- Revision 1.55  2011/01/24 18:46:09  sueh
- bug# 1426 Removed sighup from the Windows compile.  In
- setupMachineList corrected the index used.
-
- Revision 1.54  2011/01/21 04:55:45  sueh
- bug# 1426 In probeMachines and setupMachineList fixed problems which
- prevented application from handling failed probes.
-
- Revision 1.53  2011/01/21 00:15:57  sueh
- bug# 1426 Changed mMachineList to an array.  Divided setupMachineList
- to initMachineList and setupMachineList.  Added killSignal and
- setupComFilesJobs.
-
- Revision 1.52  2011/01/05 20:49:42  sueh
- bug# 1426 Moved one-line functions to .h file.  Creating on instance of
- ComFileJobs instead of an array of ComFileJob instances.  Moved the array
- into ComFileJobs.  Removed the extra looping on sync'ing because it is
- unnecessary.
-
- Revision 1.51  2011/01/02 20:49:10  sueh
- bug# 1426 Removed unistd.h include, which is unnecessary and isn't
- available in Windows.
-
- Revision 1.50  2010/12/30 19:19:18  sueh
- bug# 1426 Added a temporary -m mMillisecSleep parameter.  Added
- mJobArray to store information related to the chunks.  Process related data
- has been broken up into small arrays and placed under the
- MachineHandler.  In killProcessOnNextMachine, call clean up when
- mAllKillProcessesHaveStarted is set to true.  Only set
- mAllKillProcessesHaveStarted to true once.
-
- Revision 1.49  2010/12/16 19:10:01  sueh
- bug# 1427 Added #include <typeinfo>.
-
- Revision 1.48  2010/12/15 23:48:54  sueh
- bug# 1426 Roll back kill functions to a previous version.  Moved vmstocsh
- call from ProcessHandler to Processchunks.
-
- Revision 1.47  2010/12/08 22:56:17  sueh
- bug# 1423 Deleting new'd objects.
-
- Revision 1.46  2010/12/02 05:46:08  sueh
- bug# 1418 Moving cleanup on an empty kill request array behind a 2
- second wait because of the lag in filling this array.
-
- Revision 1.45  2010/12/02 05:06:24  sueh
- bug# 1418 In killProcessOnNextMachine once all processes have started
- check the kill request array and cleanup if it is empty.
-
- Revision 1.44  2010/11/10 16:29:10  sueh
- bug# 1364 Changed runProcessAndOutputLines to runGenericProcess.
- Probe machines in Windows.  In probeMachines use imodwincpu to probe
- machines in Windows.  Check the OS type of remote computers and
- probe them with the appropriate command.
-
- Revision 1.43  2010/11/09 18:07:02  sueh
- bug# 1364 Defaulting -c in every OS.
-
- Revision 1.42  2010/11/09 01:48:54  sueh
- bug# 1364 Changed processchunksinput to processchunks.input.
-
- Revision 1.41  2010/11/09 01:13:25  sueh
- bug# 1364 Changed killProcessOnNextMachines to
- killProcessOnNextMachine.  Fixed comments.
-
- Revision 1.40  2010/10/31 03:45:33  sueh
- bug# 1364 Removing mEnv and setupEnvironment.
-
- Revision 1.39  2010/10/31 03:14:48  sueh
- bug# 1364 Using QT::QString should be fine.
-
- Revision 1.38  2010/10/30 00:49:26  sueh
- bug# In setupEnvironment avoid the buffer overflow vulnerability and add "bin" onto the end of IMOD_DIR in the path.
-
- Revision 1.37  2010/10/30 00:20:32  sueh
- bug# 1364 Fixed Windows warning.
-
- Revision 1.36  2010/10/30 00:19:02  sueh
- bug# 1364 Making a copy of the output of getenv before using it.
-
- Revision 1.35  2010/10/29 23:55:49  sueh
- bug# 1364 Improved isVerbose.
-
- Revision 1.34  2010/10/29 23:42:39  sueh
- bug# 1364 Exclude isVerbose print when ? is not used.
-
- Revision 1.33  2010/10/29 21:51:15  sueh
- bug# 1363 In printOsInformation improved Windows message.
-
- Revision 1.32  2010/10/29 16:42:37  sueh
- bug# 1364 Added a ? option for the -V parameter.
-
- Revision 1.31  2010/10/29 01:00:10  sueh
- bug# 1364 In probeMachines remove check file in Windows.
-
- Revision 1.30  2010/10/29 00:53:23  sueh
- bug# 1363 In printOsInformation improved Windows message.
-
- Revision 1.29  2010/10/29 00:46:24  sueh
- bug# 1363 In printOsInformation improved Windows message.
-
- Revision 1.28  2010/10/28 00:17:55  sueh
- bug# 1364 In isVerbose handling window - the function description is
- different there.
-
- Revision 1.27  2010/10/27 21:45:08  sueh
- bug# 1364 Only call askGo if not on Windows.
-
- Revision 1.26  2010/10/27 21:33:44  sueh
- bug# 1364 Don't probe machines on Windows.
-
- Revision 1.25  2010/10/20 22:36:31  sueh
- bug# 1364 Removing convert from localscratch to scratch/host.  This was
- in the old processchunks to solve a problem that doesn't exist anymore.
-
- Revision 1.24  2010/10/20 20:38:39  sueh
- bug# 1364 In setup replacing localscratch with scratch/hostname in
- mRemoteDir.
-
- Revision 1.23  2010/10/19 18:29:43  sueh
- bug# 1364 In escapeEntered returning 0 if no character read.
-
- Revision 1.22  2010/10/18 23:17:11  sueh
- bug# 1364 Changed printVersionWarning to printOsInformation.  Using
- INFORMATION: instead of WARNING: for a message that is always printed.
-
- Revision 1.21  2010/10/18 04:37:04  sueh
- bug# 1364 Fixed options print.
-
- Revision 1.20  2010/10/13 22:01:14  sueh
- bug# 1364 In timerEvent pausing a for a count of ten when the process finishes but the chunk does not.  In runProcess reset the pause counter.
-
- Revision 1.19  2010/10/08 23:41:46  sueh
- bug# 1364 Added handlerError.  Check for error where the stderr has a
- PID and the stdout doesn't.
-
- Revision 1.18  2010/10/08 05:15:27  sueh
- bug# 1364 In timerEvent incrementing chunkErrTot inside of cpuIndex
- loop to match the old processchunks.  In checkChunk checking against
- the number of CPUs to match the old processchunks.
-
- Revision 1.17  2010/10/06 05:41:31  sueh
- bug# 1364 Make the D interrupt command unavailable for queues.
-
- Revision 1.16  2010/10/05 16:32:17  sueh
- bug# 1364 Fixing a Windows-only syntax error.
-
- Revision 1.15  2010/10/04 23:55:49  sueh
- bug# 1364 In checkChunk fixed bug which prevented a machine from
- running a failing chunk more then once.
-
- Revision 1.14  2010/10/04 16:34:42  sueh
- bug# 1364 Fixing a Windows-only syntax error.
-
- Revision 1.13  2010/10/04 05:15:56  sueh
- bug# 1364 Added escapeEntered to replace the Ctrl-C interrupt.  Warn the
- user that escapeEntered doesn't work on Windows.  Make a default check
- file on Windows.  Don't print "all done - ... reassemble" when single file is
- set.
-
- Revision 1.12  2010/09/28 22:24:52  sueh
- bug# 1364 Added -V - verbose instructions.  Put checkQueueProcessDone functionality into new function killProcessTimeout.  Starting cluster kill timeout after all kill requests have gone out.  In exitIfDropped when a queue is being used and minFail>=mDropCrit, killProcesses must be called because the queue represents multiple machines which may contain running processes.  In checkChunk corrected chunk skipping functionality.
-
- Revision 1.11  2010/09/20 22:05:04  sueh
- bug# 1364 In checkQueueProcessesDone prevent the kill counter from
- starting until all kill requests have gone out.  Increase kill timeout to 150.
- This handles queue that aren't killing properly.  The sync command is
- being taken out of queuechunk, so this may not be necessary.  But its
- important that processchunks being very unlikely to end until the chunks
- are either killed or have finished.
-
- Revision 1.10  2010/09/16 03:45:05  sueh
- bug# 1364 Added verbosity level to -V parameter.  In exitIfDropped
- handling the situation with start.com fails and the number of machines is
- less then 5.
-
- Revision 1.9  2010/09/13 19:59:48  sueh
- bug# 1364 In probeMachines removing check file unconditionally.
-
- Revision 1.8  2010/09/10 06:11:10  sueh
- bug# 1364 Improved verbose functionality.  Fixed drop message bug - dropcrit was being reset.
-
- Revision 1.7  2010/09/04 00:08:44  sueh
- bug# 1364 Making sure that the timer doesn't go off.  Using join() to print
- QStringList.
-
- Revision 1.6  2010/09/01 00:53:11  sueh
- bug# 1364 Duplicate changes in processchunks (script) to fix the problem
- that nochunks can be set even when chunks have been found.  Also fix
- problems with syncing.  Get the last line of stdout and stderr when no log
- is available.
-
- Revision 1.5  2010/08/26 22:56:34  sueh
- bug# 1364 Got -r and -w working.  Fixed problems will killing when a
- computer is dead.  Other fixes.
-
- Revision 1.4  2010/08/20 21:37:14  sueh
- bug# 1364
-
- Revision 1.3  2010/06/27 17:30:08  sueh
- bug# 1364 Added MachineHandler.
-
- Revision 1.2  2010/06/23 20:17:27  sueh
- bug# 1364 Moved most setup functionality into one function.  Changed
- QTprocesschunks to Processchunks.
-
- Revision 1.1  2010/06/23 16:22:33  sueh
- bug# 1364 First checkin for QT version of processchunks.
-
- */
