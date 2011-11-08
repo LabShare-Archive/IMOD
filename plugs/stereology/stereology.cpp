@@ -7717,7 +7717,7 @@ void Stereology::addExtraGridCategoriesToImodModel()
 	
 	//## SHOW CUSTOM DIALOG WITH FIELDS TO ADD NEW CATEGORIES:
 	
-	int MAX_NEW_OBJECTS = 4;
+	const int MAX_NEW_OBJECTS = 4;
 	string newCatName [MAX_NEW_OBJECTS];
 	bool   addCat     [MAX_NEW_OBJECTS];
 	
