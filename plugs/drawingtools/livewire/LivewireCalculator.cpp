@@ -1,6 +1,29 @@
+/**
+
+Livewire - Core code for running the Livewire algorithm
+Copyright (C) 2011  Jeffrey Bush  jeff@coderforlife.com
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+**/
+
 #include "LivewireCalculator.h"
 
+#ifndef IMOD_PLUGIN
 //#define SAVE_SCORE_IMAGE
+#endif
 
 #ifdef SAVE_SCORE_IMAGE
 #include "BitmapWriter.h"
@@ -12,55 +35,53 @@
 
 using namespace Livewire;
 
-LivewireCalculator::LivewireCalculator(uint w, uint h, byte *weights) : Threaded("Livewire Calculator"),
-	_weights(weights),  _w(w), _h(h), _wh(w*h), _data(new Pixel[_wh]), _edge(w, h)
-	{ this->SetTotalProgress(_wh); }
-LivewireCalculator::~LivewireCalculator() { delete[] this->_data; }
+LivewireCalculator::LivewireCalculator(WeightCalculator *weights) : Threaded("Livewire Calculator"),
+	_weights_calc(weights), _weights(weights->GetWeights()), _w(weights->GetReducedWidth()), _h(weights->GetReducedHeight()), _scale(weights->GetScale()),
+	_status((byte*)malloc(_w*_h)), _trace((uint*)malloc(_w*_h*sizeof(uint))), _edge(_w, _h)
+	{ this->SetTotalProgress(_w*_h); }
+LivewireCalculator::~LivewireCalculator() { free(this->_status); free(this->_trace); }
 
-void LivewireCalculator::Start(QPoint start)
+void LivewireCalculator::Start(uint x, uint y)
 {
 	// TODO: Have a maximum window for the livewire data
-
-	this->_start = start;
-	this->_x = start.x();
-	this->_y = start.y();
+	this->_x = x / this->_scale;
+	this->_y = y / this->_scale;
 	this->_I = I(this->_x, this->_y);
 	Threaded::Start();
 }
 
 void LivewireCalculator::Run()
 {
-	// TODO: Optimize more
+	// TODO: Optimize more?
 
-	const uint w = this->_w, w1 = w - 1, h = this->_h, h1 = h - 1, wh = this->_wh;
+	const uint w = this->_w, w1 = w - 1, h = this->_h, h1 = h - 1;
 
 	// Reset data structures
-	memset(this->_data, 0, wh * sizeof(Pixel));
+	memset(this->_status, STATUS_UNVISITED, w*h);
 	this->_edge.Clear();
 
 #ifdef SAVE_SCORE_IMAGE
-	uint *scores = (uint*)memset(malloc(wh*sizeof(uint)), 0, wh*sizeof(uint));
+	uint *scores = (uint*)memset(malloc(w*h*sizeof(uint)), 0, w*h*sizeof(uint));
 #endif
 
 	// Start with just the start point
 	uint X, Y, I = this->_I, S;
 	this->_edge.Enqueue(this->_x, this->_y, I, 0);
-	//this->_data[I].status = inEdge; // not necessary, immediately set to visited
-	this->_data[I].traceI = UINT_MAX; // it points to off-screen
+	//this->_status[I] = STATUS_IN_EDGE; // not necessary, immediately set to visited
+	this->_trace[I] = UINT_MAX;
 
 	// Loop until there are no more points
 	while (this->IsExecuting() && this->_edge.Dequeue(X, Y, I, S))
 	{
 		// Get the best-scoring point and mark it as visited (done being calculated)
-		this->_data[I].status = visited;
+		this->_status[I] = STATUS_VISITED;
 #ifdef SAVE_SCORE_IMAGE
 		scores[I] = S;
 #endif
 
-#define CALC_POINT(dx, dy, diag)	this->CalcPoint(X + dx, Y + dy, I + dy*w + dx, diag, I, S)
-
 		if (X && X < w1 && Y && Y < h1)
 		{
+#define CALC_POINT(dx, dy, diag)	this->CalcPoint(X + dx, Y + dy, I + dy*w + dx, diag, I, S)
 			// entire 3x3 neighborhood
 			CALC_POINT(-1, -1, true );
 			CALC_POINT( 0, -1, false);
@@ -69,7 +90,8 @@ void LivewireCalculator::Run()
 			CALC_POINT(+1,  0, false);
 			CALC_POINT(-1, +1, true );
 			CALC_POINT( 0, +1, false);
-			CALC_POINT(+1, +1, true );
+			CALC_POINT(+1, +1, true );			
+#undef CALC_POINT
 		}
 		else
 		{
@@ -97,7 +119,7 @@ void LivewireCalculator::Run()
 		double dist = 0;
 		while (I != this->_I && I != 0 && dist < 10000)
 		{
-			uint i = this->_data[I].traceI, y = i / w, x = i - y * w;
+			uint i = this->_trace[I], y = i / w, x = i - y * w;
 			bool diagonal = ((((X-x) + (Y-y)) & 1) == 0);
 			dist += diagonal ? SQRT2 : 1;
 			I = IW(X = x, Y = y, w);
@@ -114,59 +136,67 @@ void LivewireCalculator::Run()
 inline void LivewireCalculator::CalcPoint(const uint x, const uint y, const uint i, const bool diagonal, const uint I, const uint S)
 {
 	// Make sure the point isn't already done
-	const Status s = this->_data[i].status;
-	if (s != visited)
+	const byte status = this->_status[i];
+	if (status != STATUS_VISITED)
 	{
 		// Calculate the score for this point
-		const uint score = S + (diagonal ? (uint)(SQRT2 * this->_weights[i]) : this->_weights[i]);
+		const uint s = S + (diagonal ? (uint)(SQRT2 * this->_weights[i]) : this->_weights[i]);
 
 		// Add the point to the edge or update its score
-		if (s == unvisited)
+		if (status == STATUS_UNVISITED)
 		{
-			this->_edge.Enqueue(x, y, i, score);
-			this->_data[i].status = inEdge;
-			this->_data[i].traceI = I;
+			this->_edge.Enqueue(x, y, i, s);
+			this->_status[i] = STATUS_IN_EDGE;
+			this->_trace[i] = I;
 		}
-		else if (this->_edge.DescreaseScore(i, score))
+		else if (this->_edge.DescreaseScore(i, s))
 		{
-			this->_data[i].traceI = I;
+			this->_trace[i] = I;
 		}
 	}
 }
 
-QVector<QPoint> LivewireCalculator::GetTrace(QPoint end)
+QVector<QPoint> LivewireCalculator::GetTrace(uint x, uint y)
 {
-	uint I = I(end.x(), end.y());
-	if (this->_data[I].status == visited) // The endpoint has been solved, so we can actually draw the livewire
+	const uint scale = this->_scale, s2 = scale / 2;
+	QVector<QPoint> pts;
+	uint I = I(x / scale, y / scale);
+	if (this->_status[I] == STATUS_VISITED) // The endpoint has been solved, so we can actually draw the livewire
+	{
+		// Get every point from end to start by looping through the trace data
+		do
+		{
+			pts.push_back(QPoint(I % this->_w * scale + s2, I / this->_w * scale + s2));
+		}
+		while ((I = this->_trace[I]) != UINT_MAX); // (I = this->_trace[I]) != this->_I
+	}
+	return pts;
+}
+
+#ifndef IMOD_PLUGIN
+void LivewireCalculator::DrawTrace(uint x, uint y, QPainter &g)
+{
+	const uint scale = this->_scale, s2 = scale / 2;
+	uint I = I(x / scale, y / scale);
+	if (this->_status[I] == STATUS_VISITED) // The endpoint has been solved, so we can actually draw the livewire
 	{
 		// Get every point from end to start by looping through the trace data
 		QVector<QPoint> pts;
 		do
 		{
-			pts.push_back(QPoint(I % this->_w, I / this->_w));
+			QPoint p = QPoint(I % this->_w * scale + s2, I / this->_w * scale + s2);
+			pts.push_back(p);
+			pts.push_back(p);
 		}
-		while ((I = this->_data[I].traceI) != UINT_MAX); // (I = this->_data[I].traceI) != this->_I
-		return pts;
-	}
-	return QVector<QPoint>();
-}
-
-
-void LivewireCalculator::DrawTrace(QPoint end, QPainter &g)
-{
-	uint I = I(end.x(), end.y());
-	if (this->_data[I].status == visited) // The endpoint has been solved, so we can actually draw the livewire
-	{
-		// Get every point from end to start by looping through the trace data
-		QVector<QPoint> pts;
-		do
-		{
-			pts.push_back(QPoint(I % this->_w, I / this->_w));
-		}
-		while ((I = this->_data[I].traceI) != UINT_MAX); // (I = this->_data[I].traceI) != this->_I
+		while ((I = this->_trace[I]) != UINT_MAX); // (I = this->_trace[I]) != this->_I
 
 		// Draw the points
-		if (pts.size() >= 2)
+		if (pts.size() >= 4)
+		{
+			pts.pop_back();
+			pts.pop_front();
 			g.drawLines(pts);
+		}
 	}
 }
+#endif
