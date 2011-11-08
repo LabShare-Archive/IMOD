@@ -16,6 +16,7 @@ tltname = rootname + '.tlt'
 aliname = rootname + '.ali'
 recname = rootname + '.rec'
 rawname = rootname + '.raw'
+logname = rootname + '.log'
 localuu = ''
 angles = ''
 
@@ -110,7 +111,8 @@ def runTests():
                  'PERPENDICULAR',
                  'MODE 2',
                  fmtstr('UseGPU  {}', gpunum),
-                 'ActionIfGPUFails 2 2']
+                 'ActionIfGPUFails 2 2',
+                 'DebugOutput']
 
    loclines = copy.deepcopy(noloclines)
    loclines.append('localfile ' + localname)
@@ -131,9 +133,18 @@ def runTests():
             if not goOn:
                break
             for run in range(11):
-            
-               runcmd('tilt -StandardInput', comlines)
-
+               try:
+                  logfile = open(logname, 'w')
+               except:
+                  cleanup()
+                  exitError('Could not open file for log: ' + logname)
+                     
+               runcmd('tilt -StandardInput', comlines, logfile)
+               try:
+                  logfile.close()
+                  os.remove(logname)
+               except Exception:
+                  pass
                if run:
                   sublines = runcmd('subimage ' + recname)
                   lastline = sublines[len(sublines) - 1]
@@ -161,6 +172,7 @@ def runTests():
 
    except ImodpyError:
       cleanup()
+      prnstr('ERROR: Log from this Tilt run is in ' + logname)
       exitFromImodError(progname)
    except KeyboardInterrupt:
       cleanup()
@@ -201,6 +213,7 @@ if os.getenv('IMOD_DIR') != None:
    os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
                         os.pathsep + os.environ['PATH']
    sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+   os.environ['PIP_PRINT_ENTRIES'] = '1'
 else:
    sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
    sys.exit(1)

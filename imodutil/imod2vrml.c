@@ -52,9 +52,10 @@ int main( int argc, char *argv[])
   FILE *fout;
   Imod *imod;
   int flags = 0;
+  char *progname = imodProgName(argv[0]);
 
   if (argc < 2) {
-    imodVersion(argv[0]);
+    imodVersion(progname);
     imodCopyright();
     usage(0);
   }

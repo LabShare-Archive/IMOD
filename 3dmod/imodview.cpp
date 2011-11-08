@@ -3140,6 +3140,11 @@ void imodUpdateObjectDialogs()
   imod_info_setobjcolor();
 }
 
+int ivwGetContrastReversed(ImodView *inImodView)
+{
+  return (inImodView->cramp->reverse);
+}
+
 int ivwOverlayOK(ImodView *inImodView)
 {
   return (App->rgba == 1 && !App->cvi->rawImageStore);

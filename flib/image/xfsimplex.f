@@ -650,7 +650,7 @@ c       DEPENDENCY: transferfid expects two lines with natural params
       PRINT *,' FINAL VALUES'
       if (ifCCC .ne. 0) deltmin = 1 - deltmin
       write(*,72)ntrial,deltmin,(a(ii),ii=3,6),rds*a(1),rds*a(2)
-72    format(i5,f14.7,4f10.5,2f10.3)
+72    format(i4,f14.7,1x,4f10.5,2f10.3)
 C       
       if(natural.ne.0)then 
         call rotmag_to_amat(a(3),a(6),a(4),a(5),amat)

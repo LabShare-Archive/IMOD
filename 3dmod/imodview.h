@@ -232,6 +232,9 @@ int DLL_EX_IM ivwGetMovieModelMode(ImodView *vw);
  */
 void DLL_EX_IM ivwSetMovieModelMode(ImodView *inImodView, int mode);
 
+/*! Returns non-zero if contrast is reversed, otherwise returns 0 */
+int DLL_EX_IM ivwGetContrastReversed(ImodView *inImodView);
+
 /*!
  * Return true if it is possible to display images in overlay mode in the Zap
  * window.

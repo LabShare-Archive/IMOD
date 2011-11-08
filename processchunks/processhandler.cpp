@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include "processchunks.h"
@@ -390,11 +389,21 @@ bool ProcessHandler::isChunkDone() {
   return done;
 }
 
+// DNM Note: isPausing could test on the exit code if it was made reliable by removing
+// the rm for remote jobs and removing csh files unconditionally below.
+// isChunkDone could easily look for ERROR: in the last 512 chars and give extra 
+// confidence that there is no need to pause in case of an exit with error
+
+// Pause occurs if process is done but CHUNK DONE not found
+// Start a timer on first call and do not return false until enough time is elapsed
 bool ProcessHandler::isPausing() {
-  if (mPausing > 10) {
-    return false;
+  if (mPausing) {
+    return mPauseTime.elapsed() <= 1000;
   }
-  mPausing++;
+  else {
+    mPausing++;
+    mPauseTime.start();
+  }
   return true;
 }
 
@@ -616,6 +625,7 @@ void ProcessHandler::runProcess(MachineHandler &machine) {
       //Escape spaces in the directory path
       //Escaping the single quote shouldn't be necessary because this is not
       //being run from a shell.
+      // DNM Note: the rm prevents the ssh from passing on the exit status of the script
       QString param = QString("\"cd %1 && (csh -ef < %2 ; \\rm -f %3)\"").arg(
           mEscapedRemoteDirPath,
           mProcesschunks->getComFileJobs()->getCshFileName(mComFileJobIndex),
@@ -985,83 +995,3 @@ void ProcessHandler::stopProcess(const QString &pid) {
   paramList.append(pid);
   ps.execute(command, paramList);
 }
-
-/*
- $Log$
- Revision 1.53  2011/08/12 17:08:12  sueh
- Bug# 1527 In isComProcessDone do not return true for killed processes.
-
- Revision 1.52  2011/07/29 04:20:27  sueh
- Bug# 1492 In killSignal don't check for available pipes.  MaxKills is only set for non-queue.
-
- Revision 1.51  2011/07/22 23:07:32  sueh
- Bug# 1521 In printWarnings, use trimmed to strip eol, instead of index of and mid.
-
- Revision 1.50  2011/07/22 22:49:03  sueh
- Bug# 1521 In printWarnings, stripping the end-of-line character(s) from the MESSAGE-tagged line,
- and adding an endl after the machine name.
-
- Revision 1.49  2011/07/22 22:09:26  sueh
- Bug# 1521 In printWarnings, appending the machine name to the MESSAGE-tagged line.
-
- Revision 1.48  2011/07/22 20:59:04  sueh
- Bug# 1521 In printWarnings, printing MESSAGE:-tagged lines.
-
- Revision 1.47  2011/06/01 03:07:48  sueh
- Bug# 1491 In getErrorMessageFromLog added a space between error messages.
-
- Revision 1.46  2011/02/05 00:51:17  sueh
- bug# 1426 Preventing a lockup when the PID cannot be gotten and
- processchunks thinks that the process is running.
-
- Revision 1.45  2011/02/02 22:43:22  sueh
- bug# 1426 Added killQProcesses.
-
- Revision 1.44  2011/02/02 00:09:37  sueh
- bug# 1426 Removed unused variables and commented-out code.
-
- Revision 1.43  2011/02/01 22:38:49  sueh
- bug# 1426 Removing old method of killing.
-
- Revision 1.42  2011/02/01 20:20:52  sueh
- bug# 1426 Fixing killSignal comments.
-
- Revision 1.41  2011/02/01 01:29:12  sueh
- bug# 1426 In killLocalProcessAndDescendents kill all the collected PIDs at
- once.
-
- Revision 1.40  2011/01/31 20:02:31  sueh
- bug# 1426 Removed unused const static pidTag.
-
- Revision 1.39  2011/01/31 19:45:10  sueh
- bug# 1426 Counting kills instead of pipes.
-
- Revision 1.38  2011/01/27 03:52:10  sueh
- bug# 1426 Removes const from simple variable return values (int, char,
- bool, long) because they cause a warning in the intel compiler.  Moved the
- the kill message for queues to the machine handler so it will only print
- once.
-
- Revision 1.37  2011/01/26 06:50:11  sueh
- bug# 1426 Stop checking for the pid during the kill for queue.  Always
- clear the param list during setJob.
-
- Revision 1.36  2011/01/25 07:16:22  sueh
- bug# 1426 Setting mIgnoreKill in startKill() and checking it in killSignal().
-
- Revision 1.35  2011/01/24 18:46:59  sueh
- bug# 1426 Removed const from timerEvent(QtimerEvent) to avoid a
- compiler warning.
-
- Revision 1.34  2011/01/21 04:56:25  sueh
- bug# 1426 In setup, calling isQueue from the parameter.
-
- Revision 1.33  2011/01/21 00:20:24  sueh
- bug# 1426 Added isPidEmpty, killSignal, resetKill, setJobNotDone, startKill.
-
- Revision 1.32  2011/01/05 20:52:50  sueh
- bug# 1426 Instead of getting a ComFileJob instance, get an index and
- refer to the ComFileJobs instance in Processchunks.  Moved one-line
- functions to the header.  Added isJobValid.
-
- */
