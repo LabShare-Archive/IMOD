@@ -1,5 +1,28 @@
+/**
+
+Livewire - Core code for running the Livewire algorithm
+Copyright (C) 2011  Jeffrey Bush  jeff@coderforlife.com
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+**/
+
 #ifndef COLORS_H
 #define COLORS_H
+
+#include <stddef.h>
 
 typedef unsigned char byte;
 typedef unsigned int uint;
@@ -30,7 +53,7 @@ typedef unsigned int uint;
 //				HSL: S = C*255 / ((Mm <= 255) ? Mm : (510 - Mm));
 //				HSI: S = 255*(1-m/I) = 255 - m*765 / RGB = ~(m*765/RGB)
 
-inline static void RGBtoHSV(byte R, byte G, byte B, byte& H, byte& S, byte& V)
+void RGBtoHSV(byte R, byte G, byte B, byte& H, byte& S, byte& V)
 {
 	byte M, m;
 	uint C;
@@ -46,7 +69,7 @@ inline static void RGBtoHSV(byte R, byte G, byte B, byte& H, byte& S, byte& V)
 	V = M;
 }
 
-inline static void RGBtoHSL(byte R, byte G, byte B, byte& H, byte& S, byte& L)
+void RGBtoHSL(byte R, byte G, byte B, byte& H, byte& S, byte& L)
 {
 	byte M, m;
 	uint C, Mm;
@@ -62,7 +85,7 @@ inline static void RGBtoHSL(byte R, byte G, byte B, byte& H, byte& S, byte& L)
 	L = Mm / 2;
 }
 
-inline static void RGBtoHSI(byte R, byte G, byte B, byte& H, byte& S, byte& I)
+void RGBtoHSI(byte R, byte G, byte B, byte& H, byte& S, byte& I)
 {
 	byte M, m;
 	uint C, RGB = (uint)R+G+B;
