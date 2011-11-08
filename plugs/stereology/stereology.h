@@ -47,10 +47,11 @@ enum ptchange    { SEL_NA, SEL_ON, SEL_OFF, SEL_TOGGLE };
 enum rangeopts   { RG_CURR, RG_ALL, RG_CUSTOM };
 
 enum gridlabels  { GL_OFF, GL_NUMS, GL_LETTERS_NUMS };
-const int NUM_SAVED_VALS = 39;
+const int NUM_SAVED_VALS = 40;
 
+const float PT_PREC        = 0.001f;		// used by 'ptsEqualXYZ' function
 const char  PLUSMINUS_SIGN = 0x00B1;		// plus minus sign
-const int   ARCPOINTS = 12;							// number points used in cycloid
+const int   ARCPOINTS = 12;							// number of points used in cycloid
 const float INTERCEPT_DIST = 2.0f;			// pixels distance between intercept points
 const float INTERCEPT_SNAP = 5.0f;			// pixels mouse must be to snap to intercept pt
 
@@ -288,7 +289,7 @@ public:
 	Ipoint getPos( long ptIdx );
 	long getPtIdx( int xIdx, int yIdx, int zIdx );
 	Spoint *getSPtByIdx( int xIdx, int yIdx, int zIdx );
-	Spoint *getSPtByPt( Ipoint *pt, bool checkAllPts=true );
+	Spoint *getSPtByPt( Ipoint *pt, bool checkAllPts );
 	Spoint *getCurrSPt();
 	bool isGridOnSlice( int sliceIdx );
 	vector<long> getIdxPtsInRadius( Ipoint *center, float radius );
@@ -424,6 +425,8 @@ public slots:
 	void finalizeGrid();
 	void startNewGrid();
 	void modifyExistingGridViaObjectLabels();
+	void addExtraGridCategoriesToImodModel();
+	void makeGridFiner();
 	
 	void changeTabSelected( int newValue );
 	void changeShowGridDisplayChk();
@@ -630,9 +633,11 @@ struct StereologyData   // contains all local plugin data
 	bool changeDefLimits;				// if true: user can see spin boxes to change grid limits
 	float defSpacingX;					// |
 	float defSpacingY;					// |-- default spacing in X,Y,Z to use when plugin loads
-	int  defSpacingZ;						// |
+	int   defSpacingZ;					// |
 	int limitDefaultInset;			// the default amount to inset X and Y in "limits" 
 															//  when "changeDefLimits" is true
+	bool showChangeDefOpt;			// if true: shows a big crosshair when "Intercept" mode
+	                            //  is on (paintMode == PM_INTERCEPTS)
 	
 	bool showGridDisplayOpts;		// if true: grid display options appear in first tab
 	bool showGridInModelView;		// if true: the grid is drawn in the model view
@@ -682,9 +687,9 @@ struct StereologyData   // contains all local plugin data
 	bool resultsAvgAllGrids;		// if true: all grids are used when calculating results,
 															//  if false: user can specify a min and max section #
 	
-	float ptsPerSecondEst;			// rough estimate of how many points can be classified
-															//  per second - a value used to estimate time remaining
-															//  and it's default value is 1.
+	float secsPerPt;			      // rough estimate of the average number of seconds to 
+															//  classify each point - a value used to estimate time 
+															//  remaining and it's default value is 3.
 	
 	
 	bool showLoadingInConsole;	// if true: will always display results of trying to load
@@ -708,7 +713,6 @@ struct StereologyData   // contains all local plugin data
 	
 	bool showBigIntercCH;				// if true: shows a big crosshair when "Intercept" mode
 															//  is on (paintMode == PM_INTERCEPTS)
-	
 	
 	
 	//## OTHER:
