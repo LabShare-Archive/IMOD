@@ -621,6 +621,10 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
       tiltFile = FileType.RAW_TILT_ANGLES.getFileName(manager, axisID);
     }
   }
+  
+  public TiltAngleSpec getTiltAngleSpec() {
+    return tiltAngleSpec;
+  }
 
   private void sequentialInputToPip() {
     // LIST is not implemented and EXTRACT isn't used with tiltxcorr
