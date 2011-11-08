@@ -173,9 +173,21 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
       + ".YRotation");
   private final StringProperty maskTypeVolume = new StringProperty("MastType."
       + VOLUME_KEY);
+  /**
+   * @deprecated
+   * Need to continue to update this in the file because it is being used for backwards
+   * compatibility.
+   * !useNWeighGroup => (nWeightGroup = 0)
+   * !nWeightGroup => (useNWeightGroup = false)
+   */
   private final EtomoBoolean2 useNWeightGroup = new EtomoBoolean2("UseNWeightGroup");
   private final EtomoNumber nWeightGroup = new EtomoNumber("NWeightGroup");
   private final EtomoBoolean2 tiltRange = new EtomoBoolean2("TiltRange");
+
+  private final EtomoNumber referenceMultiparticleGroups = new EtomoNumber(REFERENCE_KEY
+      + ".Multiparticle.Groups");
+  private final EtomoNumber referenceMultiparticleParticles = new EtomoNumber(
+      REFERENCE_KEY + ".Multiparticle.Particles");
 
   public PeetMetaData() {
     fileExtension = DatasetFiles.PEET_DATA_FILE_EXT;
@@ -202,6 +214,8 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     nWeightGroup.set(input.nWeightGroup);
     tiltRange.set(input.tiltRange);
     revisionNumber.set(input.revisionNumber);
+    referenceMultiparticleGroups.set(input.referenceMultiparticleGroups);
+    referenceMultiparticleParticles.set(input.referenceMultiparticleParticles);
   }
 
   public String getMetaDataFileName() {
@@ -267,6 +281,8 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     nWeightGroup.reset();
     tiltRange.reset();
     revisionNumber.reset();
+    referenceMultiparticleGroups.reset();
+    referenceMultiparticleParticles.reset();
     // load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -276,6 +292,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     tiltRangeMax.load(props, prepend);
     referenceVolume.load(props, prepend);
     referenceParticle.load(props, prepend);
+    referenceMultiparticleParticles.load(props, prepend);
     referenceFile.load(props, prepend);
     edgeShift.load(props, prepend);
     flgWedgeWeight.load(props, prepend);
@@ -285,6 +302,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     useNWeightGroup.load(props, prepend);
     nWeightGroup.load(props, prepend);
     tiltRange.load(props, prepend);
+    referenceMultiparticleGroups.load(props, prepend);
 
     revisionNumber.load(props, prepend);
     if (revisionNumber.isNull() || revisionNumber.lt(LATEST_VERSION)) {
@@ -332,6 +350,8 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     nWeightGroup.store(props, prepend);
     tiltRange.store(props, prepend);
     revisionNumber.store(props, prepend);
+    referenceMultiparticleGroups.store(props, prepend);
+    referenceMultiparticleParticles.store(props, prepend);
   }
 
   public void setRootName(final String input) {
@@ -366,11 +386,11 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     return maskTypeVolume.toString();
   }
 
-  public String getEdgeShift() {
-    return edgeShift.toString();
+  public ConstEtomoNumber getEdgeShift() {
+    return edgeShift;
   }
 
-  public void setEdgeShift(final String edgeShift) {
+  public void setEdgeShift(final Number edgeShift) {
     this.edgeShift.set(edgeShift);
   }
 
@@ -418,15 +438,22 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     return referenceParticle;
   }
 
+  public String getReferenceMultiparticleParticles() {
+    return referenceMultiparticleParticles.toString();
+  }
+
   public ConstEtomoNumber getReferenceVolume() {
     return referenceVolume;
   }
 
-  public boolean isUseNWeightGroup() {
-    return useNWeightGroup.is();
+  public String getReferenceMultiparticleGroups() {
+    return referenceMultiparticleGroups.toString();
   }
 
   public ConstEtomoNumber getNWeightGroup() {
+    if (!useNWeightGroup.is()) {
+      nWeightGroup.set(0);
+    }
     return nWeightGroup;
   }
 
@@ -458,12 +485,19 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     this.referenceVolume.set(referenceVolume);
   }
 
-  public void setUseNWeightGroup(final boolean input) {
-    useNWeightGroup.set(input);
+  public void setReferenceMultiparticleGroups(final String input) {
+    referenceMultiparticleGroups.set(input);
+  }
+
+  public void setReferenceMultiparticleParticles(final String input) {
+    referenceMultiparticleParticles.set(input);
   }
 
   public void setNWeightGroup(final Number input) {
     nWeightGroup.set(input);
+    if (nWeightGroup.equals(0)) {
+      useNWeightGroup.set(false);
+    }
   }
 
   String createPrepend(final String prepend) {

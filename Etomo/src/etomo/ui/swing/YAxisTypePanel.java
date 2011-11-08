@@ -83,16 +83,16 @@ final class YAxisTypePanel {
   }
 
   private void createPanel() {
-    //local panels
+    // local panels
     JPanel pnlYAxisContour = new JPanel();
-    //YaxisType
+    // YaxisType
     pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRoot.setBorder(new EtchedBorder(Y_AXIS_TYPE_LABEL).getBorder());
     pnlRoot.setComponentAlignmentX(Component.LEFT_ALIGNMENT);
     pnlRoot.add(rbYAxisTypeYAxis);
     pnlRoot.add(rbYAxisTypeParticleModel);
     pnlRoot.add(pnlYAxisContour);
-    //YaxisContour
+    // YaxisContour
     pnlYAxisContour.setLayout(new BoxLayout(pnlYAxisContour, BoxLayout.X_AXIS));
     pnlYAxisContour.add(rbYAxisTypeContour.getComponent());
     ltfYaxisObjectNum.setTextPreferredWidth(UIParameters.INSTANCE.getIntegerWidth());
@@ -126,7 +126,7 @@ final class YAxisTypePanel {
    * @param matlabParamFile
    * @param paramatersOnly 
    */
-  void setParameters(final MatlabParam matlabParam, boolean parametersOnly) {
+  void setParameters(final MatlabParam matlabParam) {
     MatlabParam.YAxisType yaxisType = matlabParam.getYAxisType();
     if (yaxisType == MatlabParam.YAxisType.Y_AXIS) {
       rbYAxisTypeYAxis.setSelected(true);
@@ -137,10 +137,8 @@ final class YAxisTypePanel {
     else if (yaxisType == MatlabParam.YAxisType.CONTOUR) {
       rbYAxisTypeContour.setSelected(true);
     }
-    if (!parametersOnly) {
-      ltfYaxisObjectNum.setText(matlabParam.getYaxisObjectNum());
-      ltfYaxisContourNum.setText(matlabParam.getYaxisContourNum());
-    }
+    ltfYaxisObjectNum.setText(matlabParam.getYaxisObjectNum());
+    ltfYaxisContourNum.setText(matlabParam.getYaxisContourNum());
   }
 
   void getParameters(final MatlabParam matlabParam) {
@@ -168,7 +166,7 @@ final class YAxisTypePanel {
    * @return null if valid, error message if invalid
    */
   String validateRun() {
-    //If end points of contour is checked, must have object # and contour#
+    // If end points of contour is checked, must have object # and contour#
     if (rbYAxisTypeContour.isSelected()
         && ((ltfYaxisObjectNum.isEnabled() && ltfYaxisObjectNum.getText().matches("\\s*")) || (ltfYaxisContourNum
             .isEnabled() && ltfYaxisContourNum.getText().matches("\\s*")))) {
