@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/9/11: IMOD_4-3-1
+11/9/11: In Bedafixer, fixed extra redraws when moving by residual in all 
+local areas (In 4.3).
+
 11/8/11: In eTomo - Fiducial Model, pulling the tilt angle specs from
 xcorr.com into xcorr_pt.com (In 4.3).(Bug# 1547)
 
