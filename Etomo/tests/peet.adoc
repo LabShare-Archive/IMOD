@@ -45,6 +45,7 @@ mb.parallel-processing=-
 bn.run=
 wait.popup.entry-error=OK
 #error message sends it back to setup tab
+format=
 
 
 [function = volume-table]
@@ -113,7 +114,10 @@ run.function.setup-test-run-error=
 tf.particle=2
 #check empty reference file error
 [[if = test-values]]
+  assert.tf.multiparticle-reference=10
+  assert.tf.groups-of=10
 	rb.user-supplied-file=
+	assert.enabled.tf.user-supplied-file=
 	run.function.setup-test-run-error=
 	rb.particle=
 [[]]
@@ -156,6 +160,7 @@ cb.enabled=off
 if.not.var.test-values.return=
 #check empty volume masking volume
 rb.volume=
+assert.enabled.tf.volume=
 run.function.setup-test-run-error=
 rb.none=
 
@@ -222,7 +227,7 @@ bn.run=
 wait.process.processchunks-%{dataset}=done
 [[if = test-gui]]
 	#test remake averages
-	bn.remake-averaged-volumes=
+  bn.remake-averaged-volumes=
 	wait.process.running-averageall=done
 	bn.open-averaged-volumes-in-3dmod=
 [[]]
@@ -356,7 +361,6 @@ run.function.runtab-check-prm==
 tb.setup==
 run.function.volume-table-check-prm==
 run.function.reference-check-prm==
-run.function.multiparticle-check-prm==
 run.function.missing-wedge-compensation-check-prm==
 run.function.masking-check-prm==
 run.function.manual-cylinder-orientation-check-prm==
@@ -406,19 +410,15 @@ cb.enabled==off
 [function == reference-check-prm]
 rb.user-supplied-file==
 bn.user-supplied-file==
-wait.file-chooser.open==unMasked%{dataset}_Ref1.mrc
+wait.file-chooser.user-supplied-file==unMasked%{dataset}_Ref1.mrc
+sleep==2000
+assert.tf.user-supplied-file==unMasked%{dataset}_Ref1.mrc
 save==
-assert.contains.file==%{dataset}.prm|reference = '*unMasked%{dataset}_Ref1.mrc'
-rb.particle==
-
-
-[function == multiparticle-check-prm]
+assert.contains.file==%{dataset}.prm|reference = 'unMasked%{dataset}_Ref1.mrc'
 rb.multiparticle-reference==
-tf.multiparticle-reference==15
-tf.groups-of==10
 save==
 assert.contains.file==%{dataset}.prm|flgFairReference = 1
-assert.contains.file==%{dataset}.prm|reference = [15, 10]
+assert.contains.file==%{dataset}.prm|reference = [10, 10]
 rb.particle==
 
 
@@ -436,9 +436,11 @@ cb.enabled==off
 #test volume
 rb.volume==
 bn.volume==
-wait.file-chooser.open==unMasked%{dataset}_Ref1.mrc
+wait.file-chooser.volume==unMasked%{dataset}_Ref1.mrc
+sleep==2000
+assert.tf.volume==unMasked%{dataset}_Ref1.mrc
 save==
-assert.contains.file==%{dataset}.prm|maskType = '*unMasked%{dataset}_Ref1.mrc'
+assert.contains.file==%{dataset}.prm|maskType = 'unMasked%{dataset}_Ref1.mrc'
 #test sphere
 rb.sphere==
 tf.inner==10
@@ -481,7 +483,7 @@ assert.contains.file==%{dataset}.prm|initMOTL = 3
 #use files is tested in volume-table-check-prm
 rb.use-files==
 save==
-assert.contains.file==%{dataset}.prm|initMOTL = {'*%{dataset}-a-initMOTL.csv', '*%{dataset}-b-initMOTL.csv', '*%{dataset}-a-initMOTL.csv'}
+assert.contains.file==%{dataset}.prm|initMOTL = {'%{dataset}-a-initMOTL.csv', '%{dataset}-b-initMOTL.csv', '%{dataset}-a-initMOTL.csv'}
 
 
 [function == y-axis-type-check-prm]
