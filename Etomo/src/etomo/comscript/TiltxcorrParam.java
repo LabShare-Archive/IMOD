@@ -221,6 +221,13 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
   private boolean partialSave = false;
   private boolean validate = false;
 
+  /**
+   * Return a multiline string describing the class attributes.
+   */
+  public String toString() {
+    return "[tiltFile:" + tiltFile + ",iterateCorrelations:" + iterateCorrelations + "]";
+  }
+
   public TiltxcorrParam(final BaseManager manager, final AxisID axisID,
       ProcessName processName) {
     this.manager = manager;
@@ -614,14 +621,13 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
   public void initializeDefaults() {
   }
 
-  public void setTiltAngleSpec(TiltAngleSpec input) {
+  public void setTiltAngleSpec(final TiltAngleSpec input) {
     tiltAngleSpec.set(input);
-    sequentialInputToPip();
     if (tiltAngleSpec.getType() == TiltAngleType.EXTRACT) {
       tiltFile = FileType.RAW_TILT_ANGLES.getFileName(manager, axisID);
     }
   }
-  
+
   public TiltAngleSpec getTiltAngleSpec() {
     return tiltAngleSpec;
   }
@@ -798,14 +804,6 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
 
   public void setAngleOffset(final String input) {
     angleOffset.set(input);
-  }
-
-  /**
-   * Return a multiline string describing the class attributes.
-   */
-  public String toString() {
-    return "[skipViews:" + skipViews + ",prealignmentTransformFile:"
-        + prealignmentTransformFile + ",imagesAreBinned:" + imagesAreBinned + "]";
   }
 
   /**
