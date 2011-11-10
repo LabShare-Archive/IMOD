@@ -1,6 +1,7 @@
 package etomo.util;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
 * <p>Description: </p>
@@ -47,9 +48,37 @@ public final class FilePath {
     pathArray = tempPath.split("\\s*" + File.separator + "\\s*");
   }
 
+  public static boolean isPath(final String name) {
+    try {
+      new File(name).getCanonicalFile();
+    }
+    catch (IOException e) {
+      // Not a valid file name or path
+      return false;
+    }
+    return name.indexOf(File.separator) != -1
+        || (Utilities.isWindowsOS() && name.indexOf(":") != -1);
+  }
+
+  public static String getFileName(final String path) {
+    if (isPath(path)) {
+      return new File(path).getName();
+    }
+    return path;
+  }
+
+  public static String replaceName(String path, final String name) {
+    System.err.println("ReplaceName:in:path:"+path+",name:"+name);
+    if (!isPath(path)) {
+      return name;
+    }
+    String retval = new File(new File(path).getParent(), name).getPath();
+    System.err.println("ReplaceName:out:"+retval);
+    return retval;
+  }
+
   /**
-   * Returns a relative path going from fromAbsolutePath to toAbsolutePath.  If this is
-   * impossible, returns toAbsolutePath.
+   * Returns a relative path going from fromAbsolutePath to toFile.
    * @param fromAbsoluteDirPath
    * @param toAbsolutePath
    * @return
@@ -61,6 +90,10 @@ public final class FilePath {
     }
     FilePath toPath = new FilePath(toFile.getAbsolutePath());
     return fromPath.getRelativePathTo(toPath);
+  }
+
+  static void setDebug(final boolean input) {
+    debug = input;
   }
 
   /**
@@ -111,9 +144,5 @@ public final class FilePath {
       }
     }
     return buffer.toString();
-  }
-
-  static void setDebug(final boolean input) {
-    debug = input;
   }
 }
