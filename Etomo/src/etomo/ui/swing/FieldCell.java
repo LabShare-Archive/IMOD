@@ -259,10 +259,8 @@ final class FieldCell extends InputCell {
   void setValue(final File file) {
     if (rootDir == null) {
       setValue(file.getAbsoluteFile());
-    }
     else {
       setValue(FilePath.getRelativePath(rootDir, file));
-    }
   }
 
   /**
@@ -275,16 +273,11 @@ final class FieldCell extends InputCell {
     if (expanded || !FilePath.isPath(value)) {
       // Set value as is, unless the field is contracted and its a file path.
       textField.setText(value);
-    }
-    else {
       // Set a contracted file path.
       textField.setText(FilePath.getFileName(value));
     }
     if (!expanded) {
       path = value;
-    }
-  }
-
   String getContractedValue() {
     if (!expanded) {
       return textField.getText();
@@ -302,10 +295,9 @@ final class FieldCell extends InputCell {
   void expand(final boolean expand) {
     if (expanded == expand) {
       return;
-    }
+  }
     expanded = expand;
     setExpanded();
-  }
 
   /**
    * When expand is true, show the file path.  When expand is false, show the file name.
