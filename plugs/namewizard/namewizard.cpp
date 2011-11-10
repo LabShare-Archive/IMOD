@@ -381,7 +381,9 @@ NameWizard::NameWizard(QWidget *parent, const char *name) :
              "Select/deselect objects within a given the range of objects." );
   addAction( selectionMenu, SLOT(selectMatching()),          "Find and Select Names",
              "Select/deselect objects matching a string you enter." );
+	
 	selectionMenu->addSeparator();
+	
   addAction( selectionMenu, SLOT(batchRecolorSelected()),    "Recolor Selected Objects",
 						 "Allows you to set a color for all selected objects. \n\n"
 						 "NOTE: The preferred way to do this is to go into the .cvs \n"
@@ -392,6 +394,14 @@ NameWizard::NameWizard(QWidget *parent, const char *name) :
 						 "This feature can be useful to see if contours in different \n "
 						 "objects belong in the same object in cases where you're \n"
 						 "attempting to have only one surface per object." );
+	
+	selectionMenu->addSeparator();
+	
+	addAction( selectionMenu, SLOT(batchLabelChange()),        "Change Object Labels",
+						 "Provides options which allow you to change the object's labels \n"
+						 "to match the object hyperlink or uniqueId. Object labels are usually \n"
+						 "hidden from the user, but can be useful in conversion programs such as \n"
+						 "'imod2ccdbxml'." );
 	
   selectionButton->setMenu( selectionMenu );
   
@@ -487,10 +497,11 @@ void NameWizard::resizeEvent ( QResizeEvent * event )
 
 void NameWizard::initValues()
 {
-  plug.rightColIdx   = 0;
+  plug.rightColIdx         = 0;
   plug.showNagPersitentCsv = true;
-  plug.showStatusLabel = true;
-  
+  plug.showStatusLabel     = true;
+  plug.addIdToObjLabels    = false;
+	
   plug.defaultFilePath = QString(getenv("IMOD_CALIB_DIR"))
                        + QString("/standard_names_persistent.csv");
   plug.secondaryFilePath = QString(getenv("IMOD_DIR"))
@@ -528,6 +539,7 @@ void NameWizard::loadSettings()
 		plug.rightColIdx         = savedValues[0];
 		plug.showNagPersitentCsv = savedValues[1];
 		plug.showStatusLabel     = savedValues[2];
+		plug.addIdToObjLabels    = savedValues[3];
 	}
 	
 	//## CHECK IF CSV FOUND: IF SO THEN LOAD IT!
@@ -548,7 +560,8 @@ void NameWizard::saveSettings()
   saveValues[0]   = plug.rightColIdx;
   saveValues[1]   = plug.showNagPersitentCsv;
   saveValues[2]   = plug.showStatusLabel;
-  
+	saveValues[3]   = plug.addIdToObjLabels;
+	
   prefSaveGenericSettings("NameWizard",NUM_SAVED_VALS,saveValues);
 }
 
@@ -1197,6 +1210,8 @@ void NameWizard::refreshObjItem( int itemIdx )
   
   if( item.hasMatch )
   {
+		item.nameEntry = match;
+		
     item.lblLink->setText( "match" );
     if( match.hyperlink.length() )
       item.lblLink->setText( "<a href='" + match.hyperlink + "'>match</a>" );
@@ -2188,6 +2203,132 @@ void NameWizard::randomlyRecolor()
 
 
 
+//------------------------
+//-- Gives options to batch change the labels of objects to
+//-- the matching uniqueId and or hyperlinks.
+
+void NameWizard::batchLabelChange()
+{
+  Imod *imod  = ivwGetModel(plug.view);
+  string objListStr = "";
+  int numSelectedObjs = countSelectedObjs( &objListStr );
+	
+  //## GET CUSTOM INPUT FROM USER:
+  
+	static int applyToOpt   = (numSelectedObjs==0) ? 0 : 1;
+  static int changeOpt    = 0;
+	static bool makeBlank   = true;
+	static bool leaveStereo = true;
+	static bool writeOut    = true;
+	if(numSelectedObjs==0)
+		applyToOpt = 0;
+	
+  CustomDialog ds("Batch Label Change",this);
+  
+	ds.addRadioGrp( "change the label of:",
+								  "all objects|"
+								  "selected objects only",
+								  &applyToOpt );
+	
+	ds.addRadioGrp( "change object's label to:",
+								  "any matching uniqueId|"
+								  "any matching hyperlink|"
+								  "any matching name",
+								  &changeOpt );
+	
+	ds.addCheckBox( "if no name match, make label empty", &makeBlank );
+	ds.addCheckBox( "skip any labels with the keyword \n"
+								  "'STEREOLOGY'    (recommended)", &leaveStereo );
+	ds.addCheckBox( "write out all object labels at end", &writeOut,
+									"If true: all object labels will be written out into the \n"
+								  "console window after you hit 'ok'.");
+	ds.exec();
+	if( ds.wasCancelled() )
+		return;
+  
+  //## CHANGE LABELS OF SELECTED OBJECTS:
+  
+  int objectsChanged = 0;
+  for (int i=0; i<(int)lineItem.size() && i<osize(imod); i++)
+  {
+    ObjectLineItem &item = lineItem[i];
+		if ( applyToOpt==1 && !item.chkObj->isChecked() )
+			continue;
+		
+		//## DETERMINE DESIRED VALUE FOR LABEL BASED ON OPTIONS:
+		
+		Iobj *obj = getObj(imod, i);
+		QString newLabelVal = "";
+		if( item.hasMatch )
+		{
+			if(changeOpt==0)		newLabelVal = item.nameEntry.identifier;
+			if(changeOpt==1)		newLabelVal = item.nameEntry.hyperlink;
+			if(changeOpt==2)		newLabelVal = item.nameEntry.name;
+		}
+		
+		if( !makeBlank && !item.hasMatch )
+			continue;
+		
+		QString currLabelVal = getObjLabel(obj);
+		
+		//## MAKE SURE WE DON'T OVERWRITE STEREOLOGY OBJECTS:
+		if(leaveStereo)
+		{
+			QString objName = (QString)imodObjectGetName(obj);
+			if ( currLabelVal.contains( "STEREOLOGY" ) || objName.contains( "STEREOLOGY" ) )
+				continue;
+		}
+		
+		//## IF LABEL CHANGE NEEDED: CHANGE LABEL:
+		if( currLabelVal != newLabelVal )
+		{
+			undoObjectPropChg( plug.view, i );                 // REGISTER UNDO
+			setObjLabel(obj, newLabelVal);
+			objectsChanged++;
+		}
+  }
+	
+  MsgBox( toString(objectsChanged) + " objects labels changed" );
+  if(objectsChanged > 0)
+		undoFinishUnit( plug.view );          // FINISH UNDO
+	
+	if(writeOut)
+	{
+		cout << endl << "LIST OF LABELS FOR EACH OBJECT:" << endl;
+		for (int i=0; i<osize(imod); i++)
+		{
+			Iobj *obj = getObj(imod, i);
+			cout << "object " << (i+1) << ":\t" << getObjLabel(obj).toStdString() << endl;
+		}
+		cout << endl;
+	}
+}
+
+//------------------------
+//-- Set's the label of the specified object ("obj") to the
+//-- specified string ("newLabelStr"). Returns true if successful
+//-- or false if there was a problem assigning the memory.
+
+bool NameWizard::setObjLabel( Iobj *obj, QString newLabelStr )
+{	
+	Ilabel *newLabel = imodObjectNewLabel( obj );
+	return ( imodLabelName( newLabel, (char *)newLabelStr.toStdString().c_str()) != 2 );
+}
+
+//------------------------
+//-- Returns the the label of the specified object ("obj") as a
+//-- string. If the object has no label it returns an empty string instead.
+
+QString NameWizard::getObjLabel( Iobj *obj )
+{
+	Ilabel *label = imodObjectGetLabel(obj);
+	if(label==NULL)
+		return "";
+	
+	return (QString)( imodLabelNameGet(label) );
+}
+
+
 
 //------------------------
 //-- Allows user to change other plugin values/settings.
@@ -2221,7 +2362,15 @@ void NameWizard::moreSettings()
                   "               then shows the UniqueID for this entry \n"
                   "               (if it exists).\n"
                   " > Contours - shows how many (and what type) of contours \n"
-                  "              are in each object" );
+								  "              are in each object" );
+	//ds.addCheckBox( "auto-add IDs to object labels", 
+	//							 &plug.addIdToObjLabels,
+	//							 "If true, then each time you change an object name in NameWizard \n"
+	//							 "it will add any uniqueId of the matching name entry into the \n"
+	//							 "object's main label. This label is hidden from the user, but can \n"
+	//							 "be is useful in file conversion programs like 'imod2ccdbxml'. \n"
+	//							 "NOTE: This feature not yet implemented" );
+	
 	ds.exec();
 	if( ds.wasCancelled() )
 		return;

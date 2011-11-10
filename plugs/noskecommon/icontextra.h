@@ -113,6 +113,7 @@ inline void copyPt(Ipoint *to, Ipoint *from);
 inline Ipoint newPt( float x, float y, float z );
 inline bool ptsEqual( Ipoint *pt1, Ipoint *pt2 );
 inline bool ptsApproxEqual( Ipoint *pt1, Ipoint *pt2, float prec );
+inline bool ptsEqualXYZ( Ipoint *pt1, Ipoint *pt2, float prec=0.001f );
 inline void removePtsSize( Icont *cont );
 inline void removePtSize( Icont *cont, int idx );
 inline bool isDefaultSize( Iobj *obj, Icont *cont, int idx );
@@ -501,6 +502,18 @@ inline bool ptsApproxEqual( Ipoint *pt1, Ipoint *pt2, float prec )
 {
   return   (pt1->x >= pt2->x-prec && pt1->x <= pt2->x+prec )
         && (pt1->y >= pt2->y-prec && pt1->y <= pt2->y+prec ); 
+}
+
+
+//------------------------
+//-- Returns true if two points are with plus or minus "prec"
+//-- of each other in X, Y and Z
+
+inline bool ptsEqualXYZ( Ipoint *pt1, Ipoint *pt2, float prec )
+{
+  return   ( fabs(pt1->x - pt2->x ) <= prec )
+	      && ( fabs(pt1->y - pt2->y ) <= prec )
+	      && ( fabs(pt1->z - pt2->z ) <= prec );
 }
 
 

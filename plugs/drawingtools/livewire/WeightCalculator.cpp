@@ -1,3 +1,24 @@
+/**
+
+Livewire - Core code for running the Livewire algorithm
+Copyright (C) 2011  Jeffrey Bush  jeff@coderforlife.com
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+**/
+
 #include "WeightCalculator.h"
 
 #include "Colors.h"
@@ -7,7 +28,9 @@
 #include <stdlib.h>
 #include <math.h>
 
+#ifndef IMOD_PLUGIN
 //#define SAVE_WEIGHT_IMAGE
+#endif
 
 #ifdef SAVE_WEIGHT_IMAGE
 #include "BitmapWriter.h"
@@ -23,12 +46,14 @@ using namespace Livewire;
 #pragma region Filter Helpers
 
 typedef byte PixelFilterCB(byte p, void *param);
-inline static void PixelFilter(const uint w, const uint h, const byte *in, byte *out, PixelFilterCB *cb, void *param)
+inline static void PixelFilter(const uint w, const uint h, byte *data, PixelFilterCB *cb, void *param)
 {
 	const uint wh = w*h;
 	for (uint I = 0; I < wh; ++I)
-		out[I] = cb(in[I], param);
+		data[I] = cb(data[I], param);
 }
+
+template<uint windowSize> struct Filter { /*static const uint Matrix[windowSize][windowSize], Total;*/ };
 
 typedef byte WindowFilterCBFull(const byte **window, void *param);
 typedef byte WindowFilterCB(const byte **window, uint w, uint h, uint cx, uint cy, void *param);
@@ -38,13 +63,13 @@ static void WindowFilter(const uint w, const uint h, const byte *in, byte *out, 
 	// Make sure that the window size is >1 and odd
 	CASSERT(windowSize != 1 && (windowSize & 1) == 1);
 
-	static const uint ws2 = windowSize * windowSize, WS1 = windowSize - 1, ws = (windowSize - 1) / 2, ws1 = ws + 1;
-	const uint w1 = w - 1, w_ws = w - ws, ws_w = w + ws, h1 = h - 1, h_ws = h - ws, ws_h = h + ws;
+	static const uint WS1 = windowSize - 1, ws = windowSize / 2, ws1 = ws + 1;
+	const uint w1 = w - 1, w_ws = w - ws, ws_w = w + ws, /*h1 = h - 1,*/ h_ws = h - ws, ws_h = h + ws;
 	const byte *window[windowSize];
 
 	uint X, Y, Yw, I;
 
-	// TODO: Optimize
+	// TODO: Optimize more?
 
 #define ADVANCE_X(N) for (uint y = 0; y < N; ++y) ++window[y];
 
@@ -87,18 +112,14 @@ static void WindowFilter(const uint w, const uint h, const byte *in, byte *out, 
 	// missing right columns and bottom rows
 	for (/*X = w_ws*/; X < w1; ++X)	{ for (Y = h_ws, I = X+Yw; Y < h; ++Y, I += w) out[I] = cb(window, ws_w-X, ws_h-Y, ws, ws, param);		ADVANCE_X(WS1); }
 	/*X = w1*/ for (Y = h_ws, I = w1+Yw; Y < h; ++Y, I += w) out[I] = cb(window, ws1, ws_h-Y, ws, ws, param);
+
+#undef ADVANCE_X
 }
-//template <>
-//static void WindowFilter<1>(uint w, uint h, const byte *in, byte *out, WindowFilterCBFull *cb_full, WindowFilterCB *cb, void *param)
-//{
-//	PixelFilter(w, h, in, out, cb_full, param);
-//}
 template <>
 static void WindowFilter<3>(const uint w, const uint h, const byte *in, byte *out, WindowFilterCBFull *cb_full, WindowFilterCB *cb, void *param)
 {
 	// Specialize the most common and smallest window filter
 
-	static const uint ws2 = 9, ws = 1;
 	const uint w1 = w - 1, h1 = h - 1;
 	const byte *window[3];
 
@@ -124,10 +145,53 @@ static void WindowFilter<3>(const uint w, const uint h, const byte *in, byte *ou
 	window[1] = in + Yw;
 	out[I++] = cb(window, 2, 2, 0, 1, param);																	// missing left columns and bottom rows
 	for (X = 1; X < w1; ++X) { out[I++] = cb(window, 3, 2, 1, 1, param); ++window[0]; ++window[1]; }			// missing no columns and bottom rows
-	out[I++] = cb(window, 2, 2, 1, 1, param);																	// missing right columns and bottom rows
+	out[I  ] = cb(window, 2, 2, 1, 1, param);																	// missing right columns and bottom rows
 }
 
-template<uint windowSize> struct Filter { /*static const uint Matrix[windowSize][windowSize], Total;*/ };
+template <uint windowSize> // windowSize must be greater than 0
+static void WindowBinning(const uint W, const uint H, const byte *in, byte *out, WindowFilterCBFull *cb_full, WindowFilterCB *cb, void *param)
+{
+	// Make sure that the window size is >0
+	CASSERT(windowSize > 0);
+
+	// W and H are the raw width and height (in)
+	// w and h are the binned width and height (out)
+
+	static const uint ws = windowSize / 2; // WS1 = windowSize - 1
+
+	const uint w_f =  W        / windowSize, h_f =  H        / windowSize; // the number of full bins
+	//const uint w   = (W + WS1) / windowSize, h   = (H + WS1) / windowSize; // binned size
+	const uint w_r =  W - w_f  * windowSize, h_r =  H - h_f  * windowSize; // the remainder that doesn't fit in a full bin
+
+	const byte *window[windowSize];
+
+#define ADVANCE_X(N) for (uint y = 0; y < N; ++y) window[y] += windowSize;
+
+	uint I = 0, Yw = 0;
+	for (uint Y = 0; Y < h_f; ++Y)
+	{
+		for (uint y = 0; y < windowSize; ++y, Yw += W) window[y] = in + Yw;
+
+		// full neighborhood
+		for (uint X = 0; X < w_f; ++X)	{ out[I++] = cb_full(window, param); ADVANCE_X(windowSize); }
+
+		// missing right columns and no rows
+		if (w_r)						{ out[I++] = cb(window, w_r, windowSize, ws, ws, param); }
+	}
+
+	if (h_r)
+	{
+		for (uint y = 0; y < h_r; ++y, Yw += W) window[y] = in + Yw;
+
+		// missing no columns and bottom rows
+		for (uint X = 0; X < w_f; ++X)	{ out[I++] = cb(window, windowSize, h_r, ws, ws, param); ADVANCE_X(h_r); }
+		
+		// missing right columns and bottom rows
+		if (w_r)						{ out[I] = cb(window, w_r, h_r, ws, ws, param); }
+	}
+
+#undef ADVANCE_X
+}
 
 #pragma endregion
 
@@ -140,7 +204,6 @@ static void CoalesceChannel(const uint w, const uint h, const uint stride, const
 	for (const byte *out_end = out + w*h; out < out_end; out += w, in += _stride)
 		for (uint x = 0; x < w; ++x)
 			out[x] = (in[x] >> shift) & 0xFF;
-
 }
 #define CoalesceRed(w, h, stride, in, out)		CoalesceChannel<2>(w, h, stride, in, out)
 #define CoalesceGreen(w, h, stride, in, out)	CoalesceChannel<1>(w, h, stride, in, out)
@@ -162,7 +225,6 @@ static void CoalesceWeightedAvgRGB(const uint w, const uint h, const uint stride
 #define CoalesceLuma601(w, h, stride, in, out)		CoalesceWeightedAvgRGB< 299, 587, 114>(w, h, stride, in, out)
 #define CoalesceLumaSMPTE(w, h, stride, in, out)	CoalesceWeightedAvgRGB< 212, 701,  87>(w, h, stride, in, out)
 
-/*
 template <void conv(byte R, byte G, byte B, byte& H, byte& S, byte& X)>
 static void CoalesceWeightedHSX(const uint w, const uint h, const uint stride, const QRgb *in, byte *out)
 {
@@ -179,11 +241,10 @@ static void CoalesceWeightedHSX(const uint w, const uint h, const uint stride, c
 #define CoalesceWeightedHSV(w, h, stride, in, out)	CoalesceWeightedHSX<RGBtoHSV>(w, h, stride, in, out)
 #define CoalesceWeightedHSL(w, h, stride, in, out)	CoalesceWeightedHSX<RGBtoHSL>(w, h, stride, in, out)
 #define CoalesceWeightedHSI(w, h, stride, in, out)	CoalesceWeightedHSX<RGBtoHSI>(w, h, stride, in, out)
-*/
 
 #pragma endregion
 
-#pragma region Noise Reduction Functions
+#pragma region Binning and Noise Reduction Functions
 int byte_comp(const void *a, const void *b) { return *(byte*)a-*(byte*)b; }
 template <uint windowSize>
 static byte MedianFilterCBFull(const byte **window, void *param)
@@ -195,7 +256,7 @@ static byte MedianFilterCBFull(const byte **window, void *param)
 	qsort(list, ws2, 1, &byte_comp);
 	return list[ws2_2];
 }
-static byte MedianFilterCB(const byte **window, uint w, uint h, uint cx, uint cy, void *param)
+static byte MedianFilterCB(const byte **window, uint w, uint h, uint, uint, void *param)
 {
 	const uint count = w*h, half = count / 2;
 	byte *list = (byte*)param;
@@ -212,6 +273,13 @@ inline static void RunMedianFilter(const uint w, const uint h, const byte *in, b
 	byte list[ws2];
 	WindowFilter<windowSize>(w, h, in, out, &MedianFilterCBFull<windowSize>, &MedianFilterCB, list);
 }
+template <uint windowSize>
+inline static void RunMedianBinning(const uint W, const uint H, const byte *in, byte *out)
+{
+	static const uint ws2 = windowSize * windowSize;
+	byte list[ws2];
+	WindowBinning<windowSize>(W, H, in, out, &MedianFilterCBFull<windowSize>, &MedianFilterCB, list);
+}
 
 template<uint windowSize>
 static byte MeanFilterCBFull(const byte **window, void*)
@@ -223,7 +291,7 @@ static byte MeanFilterCBFull(const byte **window, void*)
 			v += window[y][x];
 	return (byte)(v / ws2);
 }
-static byte MeanFilterCB(const byte **window, uint w, uint h, uint cx, uint cy, void*)
+static byte MeanFilterCB(const byte **window, uint w, uint h, uint, uint, void*)
 {
 	uint v = 0;
 	for (uint y = 0; y < h; ++y)
@@ -236,26 +304,39 @@ inline static void RunMeanFilter(const uint w, const uint h, const byte *in, byt
 {
 	WindowFilter<windowSize>(w, h, in, out, &MeanFilterCBFull<windowSize>, &MeanFilterCB, NULL);
 }
-
+template<uint windowSize>
+inline static void RunMeanBinning(const uint W, const uint H, const byte *in, byte *out)
+{
+	WindowBinning<windowSize>(W, H, in, out, &MeanFilterCBFull<windowSize>, &MeanFilterCB, NULL);
+}
 
 // Gaussian Filter Generator in Python:
+//from numpy import *
 //def G(x,y,sigma): return exp(-(multiply(x,x)+multiply(y,y))/(2.0*sigma*sigma))/(2.0*pi*sigma*sigma)
-//def X(l): return ones((l, l))*[x for x in range(-floor(l/2.0),ceil(l/2.0))]
-//def Y(l): return ones((l, l))*[[x] for x in range(floor(l/2.0),-ceil(l/2.0),-1)]
+//def X(l): return ones((l, l))*[x for x in range(-int(floor(l/2.0)),int(ceil(l/2.0)))]
+//def Y(l): return ones((l, l))*[[x] for x in range(int(floor(l/2.0)),-int(ceil(l/2.0)),-1)]
 //def GF(l,sigma): M = G(X(l),Y(l),sigma); M = around(M/M[0,0]).astype(int); return M,sum(M);
-// Use it like GF(3,1) to make a 3x3 filter with stddev=1
+// Use it like GF(3,1) to make a 3x3 filter with stddev=1. Only works for odd-sized windows
 // Recommendations:
 //  need at most 3*sigma boxes from the origin (or ceil(6*sigma) window size)
 
-/*
+
 template<uint windowSize> struct GaussianFilter : Filter<windowSize> { static const uint Matrix[windowSize][windowSize], Total; };
 
-#define GAUSSIAN_FILTER(N, T) const uint GaussianFilter<N>::Total = T, GaussianFilter<N>::Matrix[N][N]
+#define GAUSSIAN_FILTER(N, T) template<> const uint GaussianFilter<N>::Total = T; template<> const uint GaussianFilter<N>::Matrix[N][N]
+
+// Gaussian 2x2 with any stddev is equivalent to mean filter
 
 // Gaussian 3x3 with stddev = 1
 GAUSSIAN_FILTER(3, 15) =	  {	{ 1,  2,  1},
 								{ 2,  3,  2},
 								{ 1,  2,  1}, };
+
+// Gaussian 4x4 with stddev = 1
+GAUSSIAN_FILTER(4, 56) =	  {	{ 1,  3,  3,  1},
+								{ 3,  7,  7,  3},
+								{ 3,  7,  7,  3},
+								{ 1,  3,  3,  1}, };
 
 // Gaussian 5x5 with stddev = 1
 GAUSSIAN_FILTER(5, 331) =	  {	{ 1,  4,  7,  4,  1},
@@ -263,7 +344,7 @@ GAUSSIAN_FILTER(5, 331) =	  {	{ 1,  4,  7,  4,  1},
 								{ 7, 33, 55, 33,  7},
 								{ 4, 20, 33, 20,  4},
 								{ 1,  4,  7,  4,  1}, };
-*/
+
 // Gaussian 7x7 with stddev = 1
 //GAUSSIAN_FILTER(7, 50887) = {	{  1,   12,   55,   90,   55,   12,  1},
 //								{ 12,  148,  665, 1097,  665,  148, 12},
@@ -336,7 +417,7 @@ GAUSSIAN_FILTER(15, 10) = //99272
  {   3,    8,   19,   40,   69,  104,  132,  143,  132,  104,   69,   40,   19,    8,    3},
  {   1,    3,    7,   14,   25,   37,   47,   50,   47,   37,   25,   14,    7,    3,    1}};
 */
-/*template<uint windowSize>
+template<uint windowSize>
 static byte GaussianFilterCBFull(const byte **window, void*)
 {
 	// TODO: There are faster ways? http://homepages.inf.ed.ac.uk/rbf/HIPR2/gsmooth.htm http://en.wikipedia.org/wiki/Gaussian_blur#Mechanics
@@ -366,7 +447,17 @@ template<uint windowSize>
 inline static void RunGaussianFilter(const uint w, const uint h, const byte *in, byte *out)
 {
 	WindowFilter<windowSize>(w, h, in, out, &GaussianFilterCBFull<windowSize>, &GaussianFilterCB<windowSize>, NULL);
-}*/
+}
+template<uint windowSize>
+inline static void RunGaussianBinning(const uint W, const uint H, const byte *in, byte *out)
+{
+	WindowBinning<windowSize>(W, H, in, out, &GaussianFilterCBFull<windowSize>, &GaussianFilterCB<windowSize>, NULL);
+}
+template<>
+inline static void RunGaussianBinning<2>(const uint W, const uint H, const byte *in, byte *out)
+{
+	RunMeanBinning<2>(W, H, in, out);
+}
 
 #pragma endregion
 
@@ -430,40 +521,65 @@ inline static byte sigmoid(byte x, void*) { return sigmoid(x, 128, 255, 0.05); }
 //inline static double sigmoid(float x, double halfmax_x, double max_y, double slope) { return max_y / (1 + exp(slope * (halfmax_x - x))); }
 //inline static double sigmoid(float x) { return sigmoid(x, 0.5, 1.0, 10.0); }
 
-static void RunSigmoidAccentuation(const uint w, const uint h, const byte *in, byte *out)
+static void RunSigmoidAccentuation(const uint w, const uint h, byte *data)
 {
-	PixelFilter(w, h, in, out, &sigmoid, NULL);
+	PixelFilter(w, h, data, &sigmoid, NULL);
 }
 #pragma endregion
 
+inline static byte invert(byte x, void*) { return ~x; }
+static void RunInvert(const uint w, const uint h, byte *data) { PixelFilter(w, h, data, &invert, NULL); }
+
 inline static void Swap(byte *&a, byte *&b) { byte *x = a; a = b; b = x; }
 
-WeightCalculator::Settings::Settings(CoalescingMethod Method, NoiseReductionMethod NoiseReduction, EdgeDetectionMethod EdgeDetection, AccentuationMethod Accentuation, bool Invert) :
-	Method(Method), NoiseReduction(NoiseReduction), EdgeDetection(EdgeDetection), Accentuation(Accentuation), Invert(Invert) {}
+/*static uint WindowSize(WeightCalculator::NoiseReductionMethod m)
+{
+	switch (m)
+	{
+	case WeightCalculator::MedianFilter3pxWindow: case WeightCalculator::MeanFilter3pxWindow: case WeightCalculator::GaussianFilter3pxWindow: return 3;
+	case WeightCalculator::MedianFilter5pxWindow: case WeightCalculator::MeanFilter5pxWindow: case WeightCalculator::GaussianFilter5pxWindow: return 5;
+	case WeightCalculator::NoNoiseReductionMethod: default: return 1;
+	}
+}*/
 
-//const WeightCalculator::Settings WeightCalculator::GrayScaleSettings;
+#define WINDOW_SIZE(m) ((m) & 0xF) // works for PixelReductionMethod and NoiseReductionMethod
 
-const WeightCalculator::Settings WeightCalculator::GrayScaleSettings(WeightCalculator::BlueChannel,
-	WeightCalculator::NoNoiseReductionMethod, WeightCalculator::NoEdgeDetection, WeightCalculator::NoAccentuation, false);
+inline static uint ScaleBack(uint x, uint scale) { return (x + scale - 1) / scale; }
 
-const WeightCalculator::Settings WeightCalculator::ColorSettings(WeightCalculator::WeightedHSV, WeightCalculator::MedianFilter3pxWindow, WeightCalculator::Sobel, WeightCalculator::NoAccentuation, false);
+WeightCalculator::Settings::Settings(CoalescingMethod Method, PixelReductionMethod PixelReduction, NoiseReductionMethod NoiseReduction, EdgeDetectionMethod EdgeDetection, AccentuationMethod Accentuation, bool Invert) :
+	Method(Method), PixelReduction(PixelReduction), NoiseReduction(NoiseReduction), EdgeDetection(EdgeDetection), Accentuation(Accentuation), Invert(Invert) {}
+
+const WeightCalculator::Settings WeightCalculator::GrayScaleSettings;
+
+//const WeightCalculator::Settings WeightCalculator::GrayScaleSettings(WeightCalculator::BlueChannel,
+//	WeightCalculator::NoPixelReduction, WeightCalculator::NoNoiseReduction, WeightCalculator::NoEdgeDetection, WeightCalculator::NoAccentuation, false);
+
+const WeightCalculator::Settings WeightCalculator::ColorSettings(WeightCalculator::WeightedHSV, WeightCalculator::Mean3pxWindow, WeightCalculator::NoNoiseReduction, WeightCalculator::Sobel, WeightCalculator::NoAccentuation, false);
 
 WeightCalculator::WeightCalculator(uint w, uint h, Settings settings) : Threaded("Weight Calculator"),
-	_settings(settings), _width(w), _height(h), _data_raw(NULL), _data(new byte[w*h]), _data_tmp(new byte[w*h])
-	{ this->SetTotalProgress(w); }
-WeightCalculator::~WeightCalculator() { delete[] this->_data; delete[] this->_data_tmp; }
+	_data_raw(NULL), _stride(0), _format(GrayscaleByte),
+	_settings(settings), _scale(WINDOW_SIZE(settings.PixelReduction)),
+	_width_raw(w), _height_raw(h),
+	_width(ScaleBack(w, WINDOW_SIZE(settings.PixelReduction))), _height(ScaleBack(h, WINDOW_SIZE(settings.PixelReduction)))
+{
+	this->SetTotalProgress(this->_width);
+	this->_data = (byte*)malloc(this->_width*this->_height);
+}
+WeightCalculator::~WeightCalculator() { free(this->_data); }
 
-byte *WeightCalculator::GetWeights() { return this->_data; }
+const byte *WeightCalculator::GetWeights() const { return this->_data;       }
+uint WeightCalculator::GetScale()          const { return this->_scale;      }
+uint WeightCalculator::GetOriginalWidth()  const { return this->_width_raw;  }
+uint WeightCalculator::GetOriginalHeight() const { return this->_height_raw; }
+uint WeightCalculator::GetReducedWidth()   const { return this->_width;      }
+uint WeightCalculator::GetReducedHeight()  const { return this->_height;     }
 
 void WeightCalculator::Start(const byte* imageData, DataFormat format, uint stride)
 {
-	if (format == GrayscaleUShort) // TODO: NOT SUPPORTED YET!
-		return;
-
+	//assert(this->_data_raw == NULL);
 	this->_stride = stride;
 	this->_format = format;
 	this->_data_raw = imageData;
-
 	Threaded::Start();
 }
 
@@ -471,70 +587,103 @@ void WeightCalculator::Run()
 {
 	// TODO: make multi-threaded
 	// TODO: incorporate this->IsExecuting() and this->IncProgress()
-	
-	const uint w = this->_width, h = this->_height;
-	
+
+	// Example: Loop through all cells calculating the weights for each
+	/*for (uint x = 0; x < w && this->IsExecuting(); ++x)
+	{
+		for (uint y = 0; y < h; ++y) { ... }
+		this->IncProgress();
+	}*/
+
+	//assert(this->_data_raw != NULL);
+
+	const uint W = this->_width_raw, H = this->_height_raw;
+	const uint w = this->_width,     h = this->_height;
+
+	byte *out_a = (byte*)malloc(W*H), *out_b = (byte*)malloc(w*h);
+
 	if (this->_format == GrayscaleByte)
 	{
+		const uint stride = this->_stride;
 		const byte *in = this->_data_raw;
-		byte *out = this->_data;
-		for (const byte *out_end = out + w*h; out < out_end; out += w, in += this->_stride)
-			memcpy(out, in, w);
+		byte *out = out_a;
+		for (const byte *out_end = out + W*H; out < out_end; out += W, in += stride)
+			memcpy(out, in, W);
+	}
+	else if (this->_format == GrayscaleUShort)
+	{
+		const uint stride = this->_stride / sizeof(unsigned short);
+		const unsigned short *in = (unsigned short*)this->_data_raw;
+		byte *out = out_a;
+		for (const byte *out_end = out + W*H; out < out_end; out += W, in += stride)
+			for (uint x = 0; x < W; ++x)
+				out[x] = (in[x] >> 8) & 0xFF;
 	}
 	else if (this->_format == RGB)
 	{
 		const QRgb *in = (QRgb*)this->_data_raw;
 		switch (this->_settings.Method)
 		{
-			case RedChannel:	CoalesceRed			(w, h, this->_stride, in, this->_data); break;
-			case GreenChannel:	CoalesceGreen		(w, h, this->_stride, in, this->_data); break;
-			case BlueChannel:	CoalesceBlue		(w, h, this->_stride, in, this->_data); break;
-			case AvgRGB:		CoalesceAvgRGB		(w, h, this->_stride, in, this->_data); break;
-			case Luma:			CoalesceLuma		(w, h, this->_stride, in, this->_data); break;
-			case Luma601:		CoalesceLuma601		(w, h, this->_stride, in, this->_data); break;
-			case LumaSMPTE:		CoalesceLumaSMPTE	(w, h, this->_stride, in, this->_data); break;
-			//case WeightedHSV:	CoalesceWeightedHSV	(w, h, this->_stride, in, this->_data); break; // TODO: test
-			//case WeightedHSL:	CoalesceWeightedHSL	(w, h, this->_stride, in, this->_data); break; // TODO: test
-			//case WeightedHSI:	CoalesceWeightedHSI	(w, h, this->_stride, in, this->_data); break; // TODO: test
+		case RedChannel:	CoalesceRed			(W, H, this->_stride, in, out_a); break;
+		case GreenChannel:	CoalesceGreen		(W, H, this->_stride, in, out_a); break;
+		case BlueChannel:	CoalesceBlue		(W, H, this->_stride, in, out_a); break;
+		case AvgRGB:		CoalesceAvgRGB		(W, H, this->_stride, in, out_a); break;
+		case Luma:			CoalesceLuma		(W, H, this->_stride, in, out_a); break;
+		case Luma601:		CoalesceLuma601		(W, H, this->_stride, in, out_a); break;
+		case LumaSMPTE:		CoalesceLumaSMPTE	(W, H, this->_stride, in, out_a); break;
+		case WeightedHSV:	CoalesceWeightedHSV	(W, H, this->_stride, in, out_a); break; // TODO: test
+		case WeightedHSL:	CoalesceWeightedHSL	(W, H, this->_stride, in, out_a); break; // TODO: test
+		case WeightedHSI:	CoalesceWeightedHSI	(W, H, this->_stride, in, out_a); break; // TODO: test
 		}
 	}
-	
+
+	this->_data_raw = NULL;
+
+	switch (this->_settings.PixelReduction)
+	{
+	case NoPixelReduction: break; // do nothing
+	case Median2pxWindow:	RunMedianBinning<2>		(W, H, out_a, out_b); Swap(out_a, out_b); break; // TODO: test
+	case Median3pxWindow:	RunMedianBinning<3>		(W, H, out_a, out_b); Swap(out_a, out_b); break;
+	case Median4pxWindow:	RunMedianBinning<4>		(W, H, out_a, out_b); Swap(out_a, out_b); break; // TODO: test
+	case Median5pxWindow:	RunMedianBinning<5>		(W, H, out_a, out_b); Swap(out_a, out_b); break; // TODO: test
+	case Mean2pxWindow:		RunMeanBinning<2>		(W, H, out_a, out_b); Swap(out_a, out_b); break; // TODO: test
+	case Mean3pxWindow:		RunMeanBinning<3>		(W, H, out_a, out_b); Swap(out_a, out_b); break;
+	case Mean4pxWindow:		RunMeanBinning<4>		(W, H, out_a, out_b); Swap(out_a, out_b); break; // TODO: test
+	case Mean5pxWindow:		RunMeanBinning<5>		(W, H, out_a, out_b); Swap(out_a, out_b); break;
+	case Gaussian3pxWindow:	RunGaussianBinning<3>	(W, H, out_a, out_b); Swap(out_a, out_b); break; // TODO: test
+	case Gaussian4pxWindow:	RunGaussianBinning<4>	(W, H, out_a, out_b); Swap(out_a, out_b); break; // TODO: test
+	case Gaussian5pxWindow:	RunGaussianBinning<5>	(W, H, out_a, out_b); Swap(out_a, out_b); break; // TODO: test
+	}
+
 	switch (this->_settings.NoiseReduction)
 	{
-		case NoNoiseReductionMethod: break; // do nothing
-		case MedianFilter3pxWindow:		RunMedianFilter<3>		(w, h, this->_data, this->_data_tmp); Swap(this->_data, this->_data_tmp); break;
-		case MedianFilter5pxWindow:		RunMedianFilter<5>		(w, h, this->_data, this->_data_tmp); Swap(this->_data, this->_data_tmp); break;
-		case MeanFilter3pxWindow:		RunMeanFilter<3>		(w, h, this->_data, this->_data_tmp); Swap(this->_data, this->_data_tmp); break;
-		case MeanFilter5pxWindow:		RunMeanFilter<5>		(w, h, this->_data, this->_data_tmp); Swap(this->_data, this->_data_tmp); break;
-		//case GaussianFilter3pxWindow:	RunGaussianFilter<3>	(w, h, this->_data, this->_data_tmp); Swap(this->_data, this->_data_tmp); break;
-		//case GaussianFilter5pxWindow:	RunGaussianFilter<5>	(w, h, this->_data, this->_data_tmp); Swap(this->_data, this->_data_tmp); break;
+	case NoNoiseReduction: break; // do nothing
+	case MedianFilter3pxWindow:		RunMedianFilter<3>		(w, h, out_a, out_b); Swap(out_a, out_b); break;
+	case MedianFilter5pxWindow:		RunMedianFilter<5>		(w, h, out_a, out_b); Swap(out_a, out_b); break;
+	case MeanFilter3pxWindow:		RunMeanFilter<3>		(w, h, out_a, out_b); Swap(out_a, out_b); break;
+	case MeanFilter5pxWindow:		RunMeanFilter<5>		(w, h, out_a, out_b); Swap(out_a, out_b); break;
+	case GaussianFilter3pxWindow:	RunGaussianFilter<3>	(w, h, out_a, out_b); Swap(out_a, out_b); break;
+	case GaussianFilter5pxWindow:	RunGaussianFilter<5>	(w, h, out_a, out_b); Swap(out_a, out_b); break;
 	}
 
 	switch (this->_settings.EdgeDetection)
 	{
-		case NoEdgeDetection: break; // do nothing
-		case Sobel: RunSobelEdgeDetection(w, h, this->_data, this->_data_tmp); Swap(this->_data, this->_data_tmp); break;
+	case NoEdgeDetection: break; // do nothing
+	case Sobel:		RunSobelEdgeDetection(w, h, out_a, out_b); Swap(out_a, out_b); break;
 	}
-	
+
 	switch (this->_settings.Accentuation)
 	{
-		case NoAccentuation: break; // do nothing
-		case Sigmoid: RunSigmoidAccentuation(w, h, this->_data, this->_data_tmp); Swap(this->_data, this->_data_tmp); break;
+	case NoAccentuation: break; // do nothing
+	case Sigmoid:	RunSigmoidAccentuation(w, h, out_a); break;
 	}
-
-	// Loop through all cells calculating the weights for each
-	/*for (uint x = 0; x < w && this->IsExecuting(); ++x)
-	{
-		for (uint y = 0; y < h; ++y) {}
-		this->IncProgress();
-	}*/
 
 	if (this->_settings.Invert)
-	{
-		const uint wh = w*h;
-		for (uint I = 0; I < wh; ++I)
-			this->_data[I] = ~this->_data[I];
-	}
+		RunInvert(w, h, out_a);
+
+	memcpy(this->_data, out_a, w*h);
+	free(out_a);
+	free(out_b);
 
 #ifdef SAVE_WEIGHT_IMAGE
 	this->Checkpoint("saving weights image");
