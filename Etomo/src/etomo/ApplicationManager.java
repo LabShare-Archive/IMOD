@@ -1794,6 +1794,7 @@ public final class ApplicationManager extends BaseManager implements
   private void syncTiltxcorrParam(final TiltxcorrParam fromParam,
       final TiltxcorrParam toParam, final boolean init) {
     toParam.setAngleOffset(fromParam.getAngleOffset());
+    toParam.setTiltAngleSpec(fromParam.getTiltAngleSpec());
     if (init) {
       toParam.setSkipViews(fromParam.getSkipViews());
     }

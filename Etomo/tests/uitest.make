@@ -1,6 +1,8 @@
-all: single-test-gui single-fidless single-simple-align dual-test-gui single-patch-tracking-test-gui single-montage-test-gui dual-montage-test-gui dual-montage-patch-tracking join-test-gui peet-test-gui nad generic flatten-volume-test-gui
-sub: single-fidless single-simple-align dual-test-gui single-patch-tracking-test-gui single-montage-test-gui join-test-gui peet-test-gui nad generic flatten-volume-test-gui
+all: single-test-gui single-patch-tracking-test-gui single-fidless single-simple-align dual-test-gui single-montage-test-gui dual-montage-test-gui dual-montage-patch-tracking join-test-gui peet-test-gui nad generic flatten-volume-test-gui
+sub: single-patch-tracking-test-gui single-fidless single-simple-align dual-test-gui single-montage-test-gui join-test-gui peet-test-gui nad generic flatten-volume-test-gui
 temp: 
+
+pt: single-patch-tracking-test-gui single-patch-tracking dual-montage-patch-tracking
 
 single: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest single

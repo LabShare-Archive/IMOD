@@ -11,7 +11,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #ifndef PROCESSHANDLER_H_
@@ -123,6 +122,7 @@ private:
   //or when the kill timeout is handled.
   bool mStartingProcess;
   int mPausing, mComFileJobIndex;
+  QTime mPauseTime;
   QByteArray mStderr;
   QTextStream *mJobFileTextStream, *mQidFileTextStream;
   QString mPid, mEscapedRemoteDirPath, mDecoratedClassName, mCommand;//queue or local command
@@ -143,42 +143,3 @@ private:
 };
 
 #endif /* PROCESSHANDLER_H_ */
-
-/*
- $Log$
- Revision 1.24  2011/02/05 00:51:27  sueh
- bug# 1426 Preventing a lockup when the PID cannot be gotten and
- processchunks thinks that the process is running.
-
- Revision 1.23  2011/02/02 22:43:32  sueh
- bug# 1426 Added killQProcesses.
-
- Revision 1.22  2011/02/02 00:09:49  sueh
- bug# 1426 Removed unused variables and commented-out code.
-
- Revision 1.21  2011/02/01 22:39:01  sueh
- bug# 1426 Removing old method of killing.
-
- Revision 1.20  2011/02/01 01:29:42  sueh
- bug# 1426 Removed unnecessary killProcess(QString).
-
- Revision 1.19  2011/01/27 03:52:25  sueh
- bug# 1426 Removes const from simple variable return values (int, char,
- bool, long) because they cause a warning in the intel compiler.
-
- Revision 1.18  2011/01/25 07:16:49  sueh
- bug# 1426 Added mIgnoreKill.
-
- Revision 1.17  2011/01/24 18:47:13  sueh
- bug# 1426 Removed const from timerEvent(QtimerEvent) to avoid a
- compiler warning.
-
- Revision 1.16  2011/01/21 00:20:35  sueh
- bug# 1426 Added isPidEmpty, killSignal, resetKill, setJobNotDone, startKill.
-
- Revision 1.15  2011/01/05 20:53:28  sueh
- bug# 1426 Instead of getting a ComFileJob instance, get an index and
- refer to the ComFileJobs instance in Processchunks.  Moved one-line
- functions to the header.  Added mValidJob.
-
- */

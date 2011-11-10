@@ -329,6 +329,9 @@ if.equals.var.axis.return=b
 cb.break-contours-into-pieces=on
 bn.track-patches=
 wait.process.cross-correlating-stack=done
+[[if = test-gui]]
+  assert.contains.file=xcorr_pt.com|TiltFile*%{dataset}%{axis}.rawtlt
+[[]]
 
 
 [function = patch-layout]
