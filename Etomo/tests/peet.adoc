@@ -106,6 +106,10 @@ wait.file-chooser.open=%{dataset}-a-initMOTL.csv
 	mb.volume-table-1-vol-#=
 	assert.disabled.bn.move-up=
 	assert.disabled.bn.move-down=
+	#check expand/contract
+	mb.volume-table-volume=>
+	tf.volume-table-1-volume=%{dataset}-a.rec
+	mb.volume-table-volume=<
 [[]]
 
 [function = reference]
