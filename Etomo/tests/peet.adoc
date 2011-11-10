@@ -107,10 +107,16 @@ wait.file-chooser.open=%{dataset}-a-initMOTL.csv
 	assert.disabled.bn.move-up=
 	assert.disabled.bn.move-down=
 	#check expand/contract
-	mb.volume-table-volume=>
+	mb.volume=>
+	assert.tf.volume-table-1-volume=%{dataset}-a.rec
+	tf.volume-table-1-volume=%{dataset}-c.rec
+	assert.tf.volume-table-1-volume=%{dataset}-c.rec
+	mb.volume=<
+	assert.tf.volume-table-1-volume=%{dataset}-c.rec
 	tf.volume-table-1-volume=%{dataset}-a.rec
-	mb.volume-table-volume=<
+	assert.tf.volume-table-1-volume=%{dataset}-a.rec
 [[]]
+
 
 [function = reference]
 #check empty particle # error
