@@ -225,7 +225,9 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     Viewable {
   public static final String rcsid = "$Id$";
 
+  static final String FN_VOLUME_HEADER1 = "Volume";
   static final String FN_MOD_PARTICLE_HEADER1 = "Model";
+  static final String INIT_MOTL_FILE_HEADER1 = "Initial";
   static final String LABEL = "Volume Table";
   static final String TILT_RANGE_HEADER1_LABEL = "Tilt Range";
 
@@ -240,9 +242,9 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
   private final MultiLineButton btnReadTiltFile = new MultiLineButton("Read Tilt File");
   private final Run3dmodButton r3bVolume;
   private final HeaderCell header1VolumeNumber = new HeaderCell("Vol #");
-  private final HeaderCell header1FnVolume = new HeaderCell("Volume");
+  private final HeaderCell header1FnVolume = new HeaderCell("FN_VOLUME_HEADER1");
   private final HeaderCell header1FnModParticle = new HeaderCell(FN_MOD_PARTICLE_HEADER1);
-  private final HeaderCell header1InitMotlFile = new HeaderCell("Initial");
+  private final HeaderCell header1InitMotlFile = new HeaderCell(INIT_MOTL_FILE_HEADER1);
   private final HeaderCell header1TiltRange = new HeaderCell(TILT_RANGE_HEADER1_LABEL);
   private final HeaderCell header1RelativeOrient = new HeaderCell("Rel. Orient.");
   private final HeaderCell header2VolumeNumber = new HeaderCell();
@@ -287,8 +289,11 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     viewport = new Viewport(this, EtomoDirector.INSTANCE.getUserConfiguration()
         .getPeetTableSize().getInt(), parent.getSetupJComponent(), null, null, "Volume");
     btnExpandFnVolume = ExpandButton.getInstance(this, ExpandButton.Type.MORE);
+    btnExpandFnVolume.setName(FN_VOLUME_HEADER1);
     btnExpandFnModParticle = ExpandButton.getInstance(this, ExpandButton.Type.MORE);
+    btnExpandFnModParticle.setName(FN_MOD_PARTICLE_HEADER1);
     btnExpandInitMotlFile = ExpandButton.getInstance(this, ExpandButton.Type.MORE);
+    btnExpandFnModParticle.setName(INIT_MOTL_FILE_HEADER1);
     r3bVolume = Run3dmodButton.get3dmodInstance("Open in 3dmod", this);
     createTable();
     updateDisplay();
@@ -388,7 +393,8 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
       userDir = System.setProperty("user.dir", importDir.getAbsolutePath());
     }
     for (int i = 0; i < matlabParamFile.getVolumeListSize(); i++) {
-      VolumeRow row = addRow(matlabParamFile.getFnVolume(i), matlabParamFile.getFnModParticle(i));
+      VolumeRow row = addRow(matlabParamFile.getFnVolume(i),
+          matlabParamFile.getFnModParticle(i));
       row.setParameters(matlabParamFile, useInitMotlFile, useTiltRange);
       row.expandInitMotlFile(initMotlFileIsExpanded);
     }
@@ -776,7 +782,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     row.expandFnModParticle(btnExpandFnModParticle.isExpanded());
     return row;
   }
-  
+
   private VolumeRow addRow(final String fnVolume, final String fnModParticle) {
     VolumeRow row = rowList.add(manager, fnVolume, fnModParticle, this, pnlTable, layout,
         constraints, initMotlFileColumn, tiltRangeColumn);
@@ -929,7 +935,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
       row.setParameters(metaData);
       return row;
     }
-    
+
     private synchronized VolumeRow add(final BaseManager manager, final String fnVolume,
         final String fnModParticle, final VolumeTable table, final JPanel panel,
         final GridBagLayout layout, final GridBagConstraints constraints,
