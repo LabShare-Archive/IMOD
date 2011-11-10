@@ -13,7 +13,6 @@ import etomo.storage.MatlabParam;
 import etomo.type.ConstPeetMetaData;
 import etomo.type.PeetMetaData;
 import etomo.type.Run3dmodMenuOptions;
-import etomo.util.FilePath;
 import etomo.util.Utilities;
 
 /**
@@ -148,9 +147,7 @@ final class VolumeRow implements Highlightable {
   public static final String rcsid = "$Id$";
 
   private final HeaderCell number = new HeaderCell();
-  private final FieldCell fnModParticle = FieldCell.getExpandableInstance();
-  private final FieldCell fnVolume = FieldCell.getExpandableInstance();
-  private final FieldCell initMotlFile = FieldCell.getExpandableInstance();
+
   private final FieldCell tiltRangeMin = FieldCell.getEditableMatlabInstance();
   private final FieldCell tiltRangeMax = FieldCell.getEditableMatlabInstance();
   private final FieldCell relativeOrientX = FieldCell.getEditableMatlabInstance();
@@ -158,6 +155,9 @@ final class VolumeRow implements Highlightable {
   private final FieldCell relativeOrientZ = FieldCell.getEditableMatlabInstance();
   private final HighlighterButton btnHighlighter;
 
+  private final FieldCell fnModParticle;
+  private final FieldCell fnVolume;
+  private final FieldCell initMotlFile;
   private final VolumeTable table;
   private final JPanel panel;
   private final GridBagLayout layout;
@@ -175,7 +175,7 @@ final class VolumeRow implements Highlightable {
     instance.setTooltips();
     return instance;
   }
-  
+
   static VolumeRow getInstance(final BaseManager manager, final String fnVolume,
       final String fnModParticle, final int index, final VolumeTable table,
       final JPanel panel, final GridBagLayout layout, final GridBagConstraints constraints) {
@@ -194,12 +194,16 @@ final class VolumeRow implements Highlightable {
     this.panel = panel;
     this.layout = layout;
     this.constraints = constraints;
-    setExpandableValues(fnVolume, fnVolumeFile);
-    setExpandableValues(fnModParticle, fnModParticleFile);
+    String rootDir = manager.getPropertyUserDir();
+    fnModParticle = FieldCell.getExpandableInstance(rootDir);
+    fnVolume = FieldCell.getExpandableInstance(rootDir);
+    initMotlFile = FieldCell.getExpandableInstance(rootDir);
+    setValue(fnVolume, fnVolumeFile);
+    setValue(fnModParticle, fnModParticleFile);
     btnHighlighter = HighlighterButton.getInstance(this, table);
     number.setText(String.valueOf(index + 1));
   }
-  
+
   private VolumeRow(final BaseManager manager, final String fnVolumeFile,
       final String fnModParticleFile, final int index, final VolumeTable table,
       final JPanel panel, final GridBagLayout layout, final GridBagConstraints constraints) {
@@ -209,8 +213,12 @@ final class VolumeRow implements Highlightable {
     this.panel = panel;
     this.layout = layout;
     this.constraints = constraints;
-    setExpandableValues(fnVolume, fnVolumeFile);
-    setExpandableValues(fnModParticle, fnModParticleFile);
+    String rootDir = manager.getPropertyUserDir();
+    fnModParticle = FieldCell.getExpandableInstance(rootDir);
+    fnVolume = FieldCell.getExpandableInstance(rootDir);
+    initMotlFile = FieldCell.getExpandableInstance(rootDir);
+    setValue(fnVolume, fnVolumeFile);
+    setValue(fnModParticle, fnModParticleFile);
     btnHighlighter = HighlighterButton.getInstance(this, table);
     number.setText(String.valueOf(index + 1));
   }
@@ -310,15 +318,18 @@ final class VolumeRow implements Highlightable {
    */
   boolean isIncorrectPaths() {
     if (!fnVolume.isEmpty()
-        && !Utilities.getFileFromPath(manager.getPropertyUserDir(), fnVolume.getExpandedValue()).exists()) {
+        && !Utilities.getFileFromPath(manager.getPropertyUserDir(),
+            fnVolume.getExpandedValue()).exists()) {
       return true;
     }
     if (!fnModParticle.isEmpty()
-        && !Utilities.getFileFromPath(manager.getPropertyUserDir(), fnModParticle.getExpandedValue()).exists()) {
+        && !Utilities.getFileFromPath(manager.getPropertyUserDir(),
+            fnModParticle.getExpandedValue()).exists()) {
       return true;
     }
     if (!initMotlFile.isEmpty()
-        && !Utilities.getFileFromPath(manager.getPropertyUserDir(), initMotlFile.getExpandedValue()).exists()) {
+        && !Utilities.getFileFromPath(manager.getPropertyUserDir(),
+            initMotlFile.getExpandedValue()).exists()) {
       return true;
     }
     return false;
@@ -326,19 +337,22 @@ final class VolumeRow implements Highlightable {
 
   boolean fixIncorrectPaths(boolean choosePathEveryRow) {
     if (!fnVolume.isEmpty()
-        && !Utilities.getFileFromPath(manager.getPropertyUserDir(), fnVolume.getExpandedValue()).exists()) {
+        && !Utilities.getFileFromPath(manager.getPropertyUserDir(),
+            fnVolume.getExpandedValue()).exists()) {
       if (!fixIncorrectPath(fnVolume, choosePathEveryRow, table.isFnVolumeExpanded())) {
         return false;
       }
     }
     if (!fnModParticle.isEmpty()
-        && !Utilities.getFileFromPath(manager.getPropertyUserDir(), fnModParticle.getExpandedValue()).exists()) {
+        && !Utilities.getFileFromPath(manager.getPropertyUserDir(),
+            fnModParticle.getExpandedValue()).exists()) {
       if (!fixIncorrectPath(fnModParticle, false, table.isFnModParticleExpanded())) {
         return false;
       }
     }
     if (!initMotlFile.isEmpty()
-        && !Utilities.getFileFromPath(manager.getPropertyUserDir(), initMotlFile.getExpandedValue()).exists()) {
+        && !Utilities.getFileFromPath(manager.getPropertyUserDir(),
+            initMotlFile.getExpandedValue()).exists()) {
       if (!fixIncorrectPath(initMotlFile, false, table.isInitMotlFileExpanded())) {
         return false;
       }
@@ -361,8 +375,8 @@ final class VolumeRow implements Highlightable {
       if (table.isCorrectPathNull() || choosePath
           || (newFile != null && !newFile.exists())) {
         JFileChooser fileChooser = table.getFileChooserInstance();
-        fileChooser.setSelectedFile(Utilities.getFileFromPath(manager.getPropertyUserDir(),
-            fieldCell.getExpandedValue()));
+        fileChooser.setSelectedFile(Utilities.getFileFromPath(
+            manager.getPropertyUserDir(), fieldCell.getExpandedValue()));
         fileChooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         int returnVal = fileChooser.showOpenDialog(table.getContainer());
@@ -372,14 +386,14 @@ final class VolumeRow implements Highlightable {
         newFile = fileChooser.getSelectedFile();
         if (newFile != null && newFile.exists()) {
           table.setCorrectPath(newFile.getParent());
-          setExpandableValues(fieldCell, newFile);
+          setValue(fieldCell, newFile);
           fieldCell.expand(expand);
         }
       }
       else if (!table.isCorrectPathNull()) {
         newFile = new File(table.getCorrectPath(), fieldCell.getContractedValue());
         if (newFile.exists()) {
-          setExpandableValues(fieldCell, newFile);
+          setValue(fieldCell, newFile);
           fieldCell.expand(expand);
         }
       }
@@ -396,7 +410,7 @@ final class VolumeRow implements Highlightable {
     if (metaData == null) {
       return;
     }
-    setExpandableValues(initMotlFile, metaData.getInitMotlFile(index));
+    setValue(initMotlFile, metaData.getInitMotlFile(index));
     setTiltRangeMin(metaData.getTiltRangeMin(index));
     setTiltRangeMax(metaData.getTiltRangeMax(index));
   }
@@ -417,7 +431,7 @@ final class VolumeRow implements Highlightable {
       boolean useTiltRange) {
     MatlabParam.Volume volume = matlabParam.getVolume(index);
     if (useInitMotlFile) {
-      setExpandableValues(initMotlFile, volume.getInitMotlString());
+      setValue(initMotlFile, volume.getInitMotlString());
     }
     if (useTiltRange) {
       setTiltRangeMin(volume.getTiltRangeStart());
@@ -429,7 +443,7 @@ final class VolumeRow implements Highlightable {
   }
 
   void clearInitMotlFile() {
-    initMotlFile.clearExpandableValues();
+    initMotlFile.setValue();
   }
 
   void registerInitMotlFileColumn(Column column) {
@@ -468,13 +482,13 @@ final class VolumeRow implements Highlightable {
    * @param fieldCell
    * @param filePath
    */
-  private void setExpandableValues(final FieldCell fieldCell, final String filePath) {
+  private void setValue(final FieldCell fieldCell, final String filePath) {
     // Don't override existing values with null value.
     if (filePath == null || filePath.matches("\\s*")) {
       return;
     }
-    //Preserve the text of the filePath.
-    fieldCell.setExpandableValues(new File(filePath).getName(),filePath);
+    // Preserve the text of the filePath.
+    fieldCell.setValue(filePath);
   }
 
   /**
@@ -483,21 +497,20 @@ final class VolumeRow implements Highlightable {
    * @param fieldCell
    * @param file
    */
-  private void setExpandableValues(final FieldCell fieldCell, final File file) {
+  private void setValue(final FieldCell fieldCell, final File file) {
     // Don't override existing values with null value.
     if (file == null) {
       return;
     }
-    fieldCell.setExpandableValues(file.getName(),
-        FilePath.getRelativePath(manager.getPropertyUserDir(), file));
+    fieldCell.setValue(file);
   }
-  
+
   void setInitMotlFile(String initMotlFile) {
-    setExpandableValues(this.initMotlFile, initMotlFile);
+    setValue(this.initMotlFile, initMotlFile);
   }
 
   void setInitMotlFile(File initMotlFile) {
-    setExpandableValues(this.initMotlFile, initMotlFile);
+    setValue(this.initMotlFile, initMotlFile);
   }
 
   String getExpandedInitMotlFile() {
@@ -511,18 +524,20 @@ final class VolumeRow implements Highlightable {
     if (fnVolume.isEmpty()) {
       return null;
     }
-    return Utilities.getFileFromPath(manager.getPropertyUserDir(), fnVolume.getExpandedValue());
+    return Utilities.getFileFromPath(manager.getPropertyUserDir(),
+        fnVolume.getExpandedValue());
   }
 
   File getFnModParticleFile() {
     if (fnModParticle.isEmpty()) {
       return null;
     }
-    return Utilities.getFileFromPath(manager.getPropertyUserDir(), fnModParticle.getExpandedValue());
+    return Utilities.getFileFromPath(manager.getPropertyUserDir(),
+        fnModParticle.getExpandedValue());
   }
 
   void setFnModParticle(File input) {
-    setExpandableValues(fnModParticle, input);
+    setValue(fnModParticle, input);
   }
 
   void setTiltRangeMin(final String input) {
