@@ -242,7 +242,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
   private final MultiLineButton btnReadTiltFile = new MultiLineButton("Read Tilt File");
   private final Run3dmodButton r3bVolume;
   private final HeaderCell header1VolumeNumber = new HeaderCell("Vol #");
-  private final HeaderCell header1FnVolume = new HeaderCell("FN_VOLUME_HEADER1");
+  private final HeaderCell header1FnVolume = new HeaderCell(FN_VOLUME_HEADER1);
   private final HeaderCell header1FnModParticle = new HeaderCell(FN_MOD_PARTICLE_HEADER1);
   private final HeaderCell header1InitMotlFile = new HeaderCell(INIT_MOTL_FILE_HEADER1);
   private final HeaderCell header1TiltRange = new HeaderCell(TILT_RANGE_HEADER1_LABEL);
