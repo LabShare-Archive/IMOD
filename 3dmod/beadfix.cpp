@@ -451,7 +451,7 @@ int BeadFixer::reread()
   Imod *imod = ivwGetModel(sView);
   FILE   *fp;
   ResidPt *rpt;
-  QString globalResLine, localResLine;
+  QString globalResLine, localResLine, tip;
   QStringList strList;
 
   mLastLogError = "";
@@ -672,6 +672,11 @@ int BeadFixer::reread()
   setCurArea(0);
   moveAllBut->setText(mNumAreas > 1 ? "Move All in Local Area" :
                       "Move All by Residual");
+  
+  tip = "Move all remaining points in current area by residual - Hot key: colon";
+  if (mNumAreas == 1)
+    tip += " - OR Shift click to iterate";
+  moveAllBut->setToolTip(QString(tip));
   nextResBut->setEnabled(mNumResid);
   movePointBut->setEnabled(false);    
   backUpBut->setEnabled(false);    
@@ -734,6 +739,7 @@ void BeadFixer::nextRes()
   Ipoint tpt;
   float headLen = 2.5;
   ResidPt *rpt;
+  bool outputResid = false;
   Imod *imod = ivwGetModel(sView);
 
   // Copy and reset the bell flag
@@ -807,7 +813,7 @@ void BeadFixer::nextRes()
   if (rpt->area != mCurArea) {
     if (mMovingAll && mIteratingMoveAll <= 0)
       wprint("Moved %d points\n", mNumAllMoved);
-    mMovingAll = false;
+    outputResid = true;
     numToSee = mAreaList[rpt->area].numPts;
     if (mLookonce) {
       numToSee = 1;
@@ -901,7 +907,7 @@ void BeadFixer::nextRes()
       resval = sqrt((double)(xr*xr + yr*yr));
       if (bell > 0)
         wprint("\aResidual =%6.2f (%5.1f,%5.1f),%5.2f SDs\n", resval, xr, yr, rpt->sd);
-      else if (!mMovingAll && mIteratingMoveAll <= 0)
+      else if ((outputResid || !mMovingAll) && mIteratingMoveAll <= 0)
         wprint("Residual =%6.2f (%5.1f,%5.1f),%5.2f SDs\n", resval, xr, yr, rpt->sd);
 
       mIndlook = mCurrentRes;

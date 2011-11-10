@@ -67,7 +67,7 @@ enum pixneigh { PX_E, PX_NE, PX_N, PX_NW, PX_W, PX_SW, PX_S, PX_SE, PX_EIGHT };
 const float LW_SNAP_DIST  = 10.0f;
 const int NUM_TOOLS       = 12;
 const int NUM_TOOLS_SHOWN = 9;
-const int NUM_SAVED_VALS  = 51;
+const int NUM_SAVED_VALS  = 54;
 const int PIX_OFF         = -1;
 
 //############################################################
@@ -107,7 +107,8 @@ public:
 	
   void moreActions();
   void moreSettings();
-	void showLiveWireOptions();
+	void showLivewireOptions();
+	void setupLivewireOptions();
 	void showWandOptions();
   void keyboardSettings();
   void sortContours();
@@ -119,6 +120,7 @@ public:
   void tranformContourRange();
   void movePoint();
   void expandContourRange();
+	void roundPoints();
   void cleanModelAndFixContours();
   void checkForNamelessObjects( bool forceMessageBox );
   int  promptRenameObject( int objIdx );
@@ -128,7 +130,7 @@ public:
   void paste(bool centerOnMouse);
   int  copyCurrContToView(bool smartSize);
   
-	void setupLivewire( int w, int h );
+	void initLivewire( int w, int h );
 	void weightsProgress(int progress);
 	void weightsFinished();
 	void livewireProgress(int progress);
@@ -268,6 +270,13 @@ struct DrawingToolsData   // contains all local plugin data
 	int    lwSmoothIts;						// iterations of smoothing is "lwSmooth" is true
 	bool   lwUseWrap;							// if true: "livewireF" is used to show the livewire
 	                              //  wrapping from the last livewire pt back to the first
+	
+	int    lwAreaSize;						// list of sizes for a box limit for livewire as:
+																//  512x512, 1024x1024, 2048x2048 or 4096x4096 px
+	int    lwBinning;							// the amount of binning to use in livewire as either:
+																//  0, bin-by-2, bin-by-3, bin-by-4 or bin-by-5
+	int    lwNoiseRed;						// the type of noise reduction to use as either:
+																//  median, mean or gaussian
 	bool   lwDontShowAgain;				// if true: the livewire option popup won't appear
 	                              //  whenever the "Livewire" radio buttion is clicked
 	
@@ -282,6 +291,9 @@ struct DrawingToolsData   // contains all local plugin data
 	
 	//## LIVEWIRE OBJECTS:
 	
+	Livewire::WeightCalculator::Settings *lwSettings;		// current settings used by the
+																											//  livewire image "weights" thread
+	
 	Livewire::WeightCalculator *weights;			// the thread which inputs an area of image
 																						//  and creates a filtered version made
 	                                          //  for use by a "LivewireCalculator"
@@ -295,6 +307,7 @@ struct DrawingToolsData   // contains all local plugin data
 																						//   mouse back to this first pt OR next
 																						//   livewire pt if adding intermediates.
 	
+	bool lwInit;									// set to true after livewire is successfully initialized
 	int lwWeightZVal;							// the Z value of the slice currently stored in "weights"
 	Icont *lwPts;									// stores the active livewire points (points clicked)
 																//  on the current contour, as shown by red dots

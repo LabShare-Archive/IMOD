@@ -538,6 +538,7 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
             || plug.drawMode == DM_WARP
 					  || plug.drawMode == DM_JOIN
 					  || plug.drawMode == DM_ERASER
+					  || plug.drawMode == DM_WAND
 					  || plug.drawMode == DM_CORRECT
 					  || plug.drawMode == DM_JOIN )
         {
@@ -1267,7 +1268,7 @@ void DrawingTools::changeRadioOptions()
 		
 		if( newMode==DM_LIVEWIRE )
 		{
-			connect( btnType[i], SIGNAL(clicked()), this, SLOT( showLiveWireOptions() ) );
+			connect( btnType[i], SIGNAL(clicked()), this, SLOT( showLivewireOptions() ) );
 			btnType[i]->setToolTip( "Change livewire settings" );
 		}
 		else if( newMode==DM_WAND )
@@ -1967,9 +1968,9 @@ bool DrawingTools::drawExtraObjectLivewire( bool redraw )
 	{
 		//## WORK OUT WHAT LINES TO DRAW:
 		
-		int numLiveWirePts      = plug.lwPts==NULL ? 0 : psize(plug.lwPts);
+		int numLivewirePts      = plug.lwPts==NULL ? 0 : psize(plug.lwPts);
 		bool finishContour      = false;
-		if( numLiveWirePts >= 3 )
+		if( numLivewirePts >= 3 )
 		{
 			float distFirstLWPt = line_distBetweenPts2D(getFirstPt(plug.lwPts),&plug.mouse);
 			float distLastLWPt  = line_distBetweenPts2D(getLastPt(plug.lwPts), &plug.mouse);
@@ -1980,7 +1981,7 @@ bool DrawingTools::drawExtraObjectLivewire( bool redraw )
 		
 		//## GENERATE CONTOUR FROM LIVEWIRE POINTS:
 		
-		if( plug.livewire!=NULL && numLiveWirePts > 1 )
+		if( plug.livewire!=NULL && numLivewirePts > 1 )
 		{
 			Icont *xcontL  = imodContourNew();
 			setOpenFlag(xcontL, 1);
@@ -1991,7 +1992,7 @@ bool DrawingTools::drawExtraObjectLivewire( bool redraw )
 		
 		if( plug.livewireF!=NULL )
 		{
-			bool showSolid = numLiveWirePts==1 || finishContour;
+			bool showSolid = numLivewirePts==1 || finishContour;
 			Icont *xcontL  = imodContourNew();
 			setOpenFlag(xcontL, 1);
 			imodContourSetFlag( xcontL, ICONT_STIPPLED, (showSolid) ? 0 : 1 );
@@ -2244,6 +2245,10 @@ void DrawingTools::initValues()
 	plug.lwSmooth								= false;
 	plug.lwSmoothIts						= 8;
 	plug.lwUseWrap							= true;
+	
+	plug.lwAreaSize				      = 1;
+	plug.lwBinning				      = 1;
+	plug.lwNoiseRed				      = 0;
 	plug.lwDontShowAgain				= false;
 	
 	plug.waSmooth								= true;
@@ -2251,6 +2256,7 @@ void DrawingTools::initValues()
 	plug.waDistBias             = 0.2f;
 	plug.waDontShowAgain				= false;
 	
+	plug.lwInit									= false;
 	plug.lwWeightZVal						= -1;
 	plug.lwWeightProgress       = 0;                 
 	
@@ -2328,12 +2334,15 @@ void DrawingTools::loadSettings()
 	plug.lwSmooth                   = savedValues[43];
 	plug.lwSmoothIts                = savedValues[44];
 	plug.lwUseWrap                  = savedValues[45];
-	plug.lwDontShowAgain            = savedValues[46];
+	plug.lwAreaSize                 = savedValues[46];
+	plug.lwBinning                  = savedValues[47];
+	plug.lwNoiseRed                 = savedValues[48];
+	plug.lwDontShowAgain            = savedValues[49];
 	
-	plug.waSmooth                   = savedValues[47];
-	plug.waSmoothIts                = savedValues[48];
-	plug.waDistBias                 = savedValues[49];
-	plug.waDontShowAgain            = savedValues[50];
+	plug.waSmooth                   = savedValues[50];
+	plug.waSmoothIts                = savedValues[51];
+	plug.waDistBias                 = savedValues[52];
+	plug.waDontShowAgain            = savedValues[53];
 }
 
 
@@ -2394,12 +2403,15 @@ void DrawingTools::saveSettings()
 	saveValues[43]  = plug.lwSmooth;
 	saveValues[44]  = plug.lwSmoothIts;
 	saveValues[45]  = plug.lwUseWrap;
-	saveValues[46]  = plug.lwDontShowAgain;
+	saveValues[46]  = plug.lwAreaSize;
+	saveValues[47]  = plug.lwBinning;
+	saveValues[48]  = plug.lwNoiseRed;
+	saveValues[49]  = plug.lwDontShowAgain;
 	
-	saveValues[47]  = plug.waSmooth;
-	saveValues[48]  = plug.waSmoothIts;
-	saveValues[49]  = plug.waDistBias;
-	saveValues[50]  = plug.waDontShowAgain;
+	saveValues[50]  = plug.waSmooth;
+	saveValues[51]  = plug.waSmoothIts;
+	saveValues[52]  = plug.waDistBias;
+	saveValues[53]  = plug.waDontShowAgain;
 	
   prefSaveGenericSettings("DrawingTools",NUM_SAVED_VALS,saveValues);
 }
@@ -3388,6 +3400,7 @@ void DrawingTools::moreActions()
                   "modify contours|"
                   "move point|"
                   "expand contours|"
+								  "round points|"
                   "print basic model info|"
                   "print detailed object info|"
                   "print detailed contour info|"
@@ -3423,7 +3436,9 @@ void DrawingTools::moreActions()
                     "contour to a precise position|"
                   "Use this to expand a ring around a range of \n"
                     "open or closed contours within the current object|"
-                  "Prints some basic information about the current \n"
+								  "Use this to round all points to an integer and/or multiple of \n"
+								   "a decimal value in x, y and/or z|"
+								  "Prints some basic information about the current \n"
                     "object including the average distance between \n"
                     "points; average points contour; and number of \n"
                     "empty contours|"
@@ -3473,16 +3488,19 @@ void DrawingTools::moreActions()
     case(10):      // expand contours
       expandContourRange();
       break;
-    case(11):      // print basic model info
+    case(11):      // round points
+      roundPoints();
+      break;
+		case(12):      // print basic model info
       printModelPointInfo();
       break;
-    case(12):      // print detailed object info
+    case(13):      // print detailed object info
       printObjectDetailedInfo();
       break;
-    case(13):      // print detailed contour info
+    case(14):      // print detailed contour info
       printContourDetailedInfo();
       break;
-    case(14):      // reset values
+    case(15):      // reset values
       if( !MsgBoxYesNo(this, "Restore all default settings for this plugin?" ) )
         return;
       plug.window->initValues();
@@ -3756,11 +3774,11 @@ void DrawingTools::moreSettings()
 //------------------------
 //-- Allows user to change options for livewire.
 
-void DrawingTools::showLiveWireOptions()
+void DrawingTools::showLivewireOptions()
 {
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
-	CustomDialog ds("LiveWire Options", this);
+	CustomDialog ds("Livewire Options", this);
   
 	ds.addHtmlLabel( "Help livewire by selecting from these options." );
 	ds.setStylePrev("background-color: rgb(150, 150, 150);");			// grey
@@ -3776,12 +3794,42 @@ void DrawingTools::showLiveWireOptions()
 								  "choose this if ...... |"
 								  "or choose this if ...... |"
 								  "......... " );
-		
+	
+	ds.addComboBox( "livewire area:",
+								 "512 x 512 px|"
+								 "1024 x 1024 px|"
+								 "2048 x 2048 px|"
+								 "4096 x 4096 px", &plug.lwAreaSize,
+								 "Determines the maximum area over which livewire will calculate \n"
+								 "paths at one time. The larger this area, the further you can place \n"
+								 "points apart without extra clicks... but larger area also means \n"
+								 "slower processing time to calculate paths." );
+	
+	ds.addComboBox( "binning:",
+								 "none|"
+								 "bin by 2|"
+								 "bin by 3|"
+								 "bin by 4|"
+								 "bin by 5", &plug.lwBinning,
+								 "Used to reduce the resolution of the image and output contour \n"
+								 "by averaging pixels in either a 3x3 or 5x5 area. Increasing this \n"
+								 "value should also speedup how fast livewire runs." );
+	
+	ds.addComboBox( "noise reduction:",
+								 "median|"
+								 "mean|"
+								 "gaussian", &plug.lwNoiseRed,
+								 "The method used to reduce noise. We recommend 'median' noise \n"
+								 "reduction - 'mean' is a tiny bit faster, but results in blurry \n"
+								 "images versus the other two options." );
+	
+	ds.addLabel( "---" );
+	
 	ds.addSpinBox ( "smoothing iterations:",
 								 1, 50, &plug.lwSmoothIts, 1,
 								 "The number of times to apply reduce and smooth upon "
 								 "finishing a contour" );
-	
+		
 	ds.addCheckPrev("apply smoothing iterations: ", &plug.lwSmooth, CB_NONE, true,
 									"Will automatically apply 'contour smoothing' \n"
 									"to any lines you draw." );
@@ -3793,7 +3841,7 @@ void DrawingTools::showLiveWireOptions()
 	ds.setStylePrev( "background-color: rgb(100, 255, 100);");			// light green
 	
 	ds.addCheckBox( "do not show again (I know what I'm doing)", &plug.lwDontShowAgain,
-								  "NOTE: You can still access this via 'Something > Something'." );
+								  "NOTE: You can still access this by clicking the numbered button." );
 	ds.setStylePrev("background-color: rgb(150, 150, 150);");			// grey
 	
 	ds.exec();
@@ -3802,8 +3850,122 @@ void DrawingTools::showLiveWireOptions()
 	
 	//## CHANGE LIVEWIRE SETTINGS OF WEIGHT CALCULATOR:
 	
+	initLivewire( plug.xsize, plug.ysize );		// if not already, make sure livewire
+																						//  variables are initialized
+	setupLivewireOptions();										// change livewire settings
+}
+
+//------------------------
+//-- Sets up the livewire settings ("plug.lwSettings") used by the weights
+//-- calculator ("plug.weights") based on the values of "plug.lwOpt",
+//-- "plug.lwAreaSize", "plug.lwBinning" and "plug.lwNoiseRed".
+
+void DrawingTools::setupLivewireOptions()
+{
+	if( plug.lwSettings == NULL || plug.weights == NULL )
+		return;
 	
 	
+	return;
+	
+	//## CHANGE LIVEWIRE SETTINGS OF WEIGHT CALCULATOR:
+	
+	initLivewire( plug.xsize, plug.ysize );		// if not already, make sure livewire
+																						//  variables are initialized.
+	
+	Livewire::WeightCalculator::CoalescingMethod     setMethod;
+	Livewire::WeightCalculator::PixelReductionMethod setPixelRed;
+	Livewire::WeightCalculator::NoiseReductionMethod setNoiseRed;
+	Livewire::WeightCalculator::EdgeDetectionMethod  setEdgeDetect;
+	Livewire::WeightCalculator::AccentuationMethod   setAccentuation;
+	
+	//** COALESCING METHOD:
+	
+	setMethod = Livewire::WeightCalculator::BlueChannel;
+	if(plug.lwOpt == 3)
+		setMethod = Livewire::WeightCalculator::WeightedHSV;
+	
+	//** NOISE-REDUCTION / BINNING METHOD:
+	
+	setPixelRed = Livewire::WeightCalculator::NoPixelReduction;
+	setNoiseRed = Livewire::WeightCalculator::NoNoiseReduction;
+	
+	if( plug.lwBinning==0 )				// "none":
+	{
+		if     ( plug.lwNoiseRed==0 )
+			setNoiseRed = Livewire::WeightCalculator::MedianFilter3pxWindow;
+		else if( plug.lwNoiseRed==1 )
+			setNoiseRed = Livewire::WeightCalculator::MeanFilter3pxWindow;
+		else if( plug.lwNoiseRed==2 )
+			setNoiseRed = Livewire::WeightCalculator::GaussianFilter3pxWindow;
+	}
+	if( plug.lwBinning==1 )				// "bin by 2":
+	{
+		if     ( plug.lwNoiseRed==0 )
+			setPixelRed = Livewire::WeightCalculator::Median2pxWindow;
+		else if( plug.lwNoiseRed==1 )
+			setPixelRed = Livewire::WeightCalculator::Mean2pxWindow;
+		else if( plug.lwNoiseRed==2 )
+			setPixelRed = Livewire::WeightCalculator::Mean2pxWindow;
+	}
+	if( plug.lwBinning==2 )				// "bin by 3":
+	{
+		if     ( plug.lwNoiseRed==0 )
+			setPixelRed = Livewire::WeightCalculator::Median3pxWindow;
+		else if( plug.lwNoiseRed==1 )
+			setPixelRed = Livewire::WeightCalculator::Mean3pxWindow;
+		else if( plug.lwNoiseRed==2 )
+			setPixelRed = Livewire::WeightCalculator::Gaussian3pxWindow;
+	}
+	if( plug.lwBinning==3 )				// "bin by 4":
+	{
+		if     ( plug.lwNoiseRed==0 )
+			setPixelRed = Livewire::WeightCalculator::Median4pxWindow;
+		else if( plug.lwNoiseRed==1 )
+			setPixelRed = Livewire::WeightCalculator::Mean4pxWindow;
+		else if( plug.lwNoiseRed==2 )
+			setPixelRed = Livewire::WeightCalculator::Gaussian4pxWindow;
+	}
+	if( plug.lwBinning==4 )				// "bin by 5":
+	{
+		if     ( plug.lwNoiseRed==0 )
+			setPixelRed = Livewire::WeightCalculator::Median5pxWindow;
+		else if( plug.lwNoiseRed==1 )
+			setPixelRed = Livewire::WeightCalculator::Mean5pxWindow;
+		else if( plug.lwNoiseRed==2 )
+			setPixelRed = Livewire::WeightCalculator::Gaussian5pxWindow;
+	}
+	
+	
+	//** EDGE DETECT AND ACCENTUATION SETTING:
+	
+	setEdgeDetect   = Livewire::WeightCalculator::NoEdgeDetection;
+	setAccentuation = Livewire::WeightCalculator::Sigmoid;
+	
+	//** INVERTED SETTING:
+	
+	bool isImageInverted = false;//ivwImageInverted();	// has user has inverted the image
+	bool setInvert = (plug.lwOpt == 2) ? !isImageInverted : isImageInverted;
+	
+	
+	//** UPDATE THE SETTINGS OF "plug.weights" WITH NEW VALUES:
+	
+	bool wasChanges =   plug.lwSettings->Method          != setMethod
+	                 || plug.lwSettings->PixelReduction  != setPixelRed
+	                 || plug.lwSettings->NoiseReduction  != setNoiseRed
+									 || plug.lwSettings->EdgeDetection   != setEdgeDetect
+									 || plug.lwSettings->EdgeDetection   != setAccentuation
+	                 || plug.lwSettings->Invert          != setInvert;
+	
+	if( wasChanges )
+	{
+		plug.lwSettings =
+	   new Livewire::WeightCalculator::Settings(setMethod, setPixelRed, setNoiseRed,
+																							setEdgeDetect, setAccentuation, setInvert);
+		
+		plug.weights    =
+		 new Livewire::WeightCalculator( plug.xsize, plug.ysize, *plug.lwSettings );
+	}
 }
 
 //------------------------
@@ -3829,10 +3991,9 @@ void DrawingTools::showWandOptions()
 									"Will automatically apply 'contour smoothing' \n"
 									"to any lines you draw." );
 	
-	ds.addHtmlLabel( "<font size='2.5'>This algorithm was developed by "
-									"<b>Andrew Huynh</b><br>"
-									"and <b>Jeffrey Bush</b>."
-									"<a href='http://www.slashsegmentation.com/'>Click here</a> <br>"
+	ds.addHtmlLabel( "<font size='2.5'>This algorithm was based on code by <br>"
+									"<b>Andrew Huynh</b> and <b>Jeffrey Bush</b>.<br>"
+									"<a href='http://www.slashsegmentation.com/'>Click here</a> "
 									"for video demo & source code.</fontsize>","" );
 	ds.setStylePrev( "background-color: rgb(100, 255, 100);");			// light green
 	
@@ -3843,7 +4004,7 @@ void DrawingTools::showWandOptions()
 										 "RECOMMENDED VALUE: 0.2" );
 	
 	ds.addCheckBox( "do not show again (I know what I'm doing)", &plug.waDontShowAgain,
-								 "NOTE: You can still access this via 'Something > Something'." );
+								  "NOTE: You can still access this by clicking the numbered button." );
 	ds.setStylePrev("background-color: rgb(150, 150, 150);");			// grey
 	
 	ds.exec();
@@ -4393,6 +4554,10 @@ void DrawingTools::deleteRangeContours()
 
 
 
+//------------------------
+//-- Provides options to crop a range of contours by the boundaries of the tomogram,
+//-- and/or other x,y and z boundary window provided by the user. Cropped contours
+//-- are cut open and, if specified, the regions outside are deleted.
 
 void DrawingTools::cropRangeContours()
 {
@@ -5060,6 +5225,109 @@ void DrawingTools::expandContourRange()
 
 
 
+//------------------------
+//-- Allows the user to specify a range of objects and a value to round
+//-- points to in x, y and or z. All points in the object range that
+//-- are not evenly divisible by the specified values will be shifted to the
+//-- nearest value.
+
+void DrawingTools::roundPoints()
+{
+	Imod *imod  = ivwGetModel(plug.view);
+	int nObjects = osize(imod);
+	int objIdx, contIdx, ptIdx;
+  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+	
+	//## GET USER INPUT FROM CUSTOM DIALOG:
+	
+	int         objMin         = contIdx+1;
+	int         objMax         = contIdx+1;
+	
+	static bool roundX				 = true;
+	static bool roundY				 = true;
+	static bool roundZ				 = true;
+	static float xDivisor      = 1.0f;
+	static float yDivisor      = 1.0f;
+	static float zDivisor      = 1.0f;
+	
+	//static bool showSummaryFirst = true;
+	
+	
+	CustomDialog ds("Clean Model Options",this);
+	ds.addLabel    ("object range:" );
+	ds.addSpinBox  ("min object:", 1, nObjects, &objMin, 1 );
+	ds.addSpinBox  ("max object:", 1, nObjects, &objMax, 1 );
+	ds.addLabel    ("-----" );
+	
+	ds.addLineEditF("", 0.000001f, 10000.0f, &xDivisor, 6, "Divisor for x." );
+	ds.addCheckPrev("round x to nearest: ", &roundX, CB_NONE, true,
+									"If true: each point will be rounded to this value in x.\n" );	
+	ds.addLineEditF("", 0.000001f, 10000.0f, &yDivisor, 6, "Divisor for y." );
+	ds.addCheckPrev("round y to nearest: ", &roundY, CB_NONE, true,
+									"If true: each point will be rounded to this value in y.\n" );
+	ds.addLineEditF("", 0.000001f, 10000.0f, &zDivisor, 6, "Divisor for z." );
+	ds.addCheckPrev("round z to nearest: ", &roundX, CB_NONE, true,
+									"If true: each point will be rounded to this value in z.\n" );
+	
+	ds.addLabel    ("WARNING: Please save first, as you \n"
+									"         cannot undo this operation." );
+	ds.setStylePrev("background-color: rgb(255, 40, 40);");			// red
+	
+	ds.exec();
+  if( ds.wasCancelled() )
+    return;
+  
+	
+	//## VALIDATE RESULTS:
+	
+	int objMinIdx = MAX( 0,          objMin-1);
+	int objMaxIdx = MIN( nObjects-1, objMax-1);
+	
+	if( xDivisor <=0 || xDivisor <=0 || xDivisor <=0 )
+	{
+		MsgBox("Bad divisor values");
+		return;
+	}
+	
+	float halfXDiv = 0.5f * xDivisor;
+	float halfYDiv = 0.5f * yDivisor;
+	float halfZDiv = 0.5f * zDivisor;
+	
+	
+	//## PERFORM ROUNDING OF POINTS:
+	
+	long numPtsMoved = 0;
+	
+	for (int o=objMinIdx; o<=objMaxIdx; o++)
+	{
+		Iobj *obj = getObj(imod, o);
+		for( int c=0; c<csize(obj); c++ )
+		{
+			Icont *cont = getCont(obj,c);
+			for( long p=0; p<psize(cont); p++)
+			{
+				Ipoint *pt  = getPt( cont, p );
+				float x = ( floor((pt->x+halfXDiv)/xDivisor) )*xDivisor;
+				float y = ( floor((pt->y+halfYDiv)/yDivisor) )*yDivisor;
+				float z = ( floor((pt->z+halfZDiv)/zDivisor) )*zDivisor;
+				
+				bool pointChanged = false;
+				
+				if( roundX && pt->x != x )	{		pt->x = x;	pointChanged = true;	}
+				if( roundY && pt->y != y )	{		pt->y = y;	pointChanged = true;	}
+				if( roundZ && pt->z != z )	{		pt->z = z;	pointChanged = true;	}
+				
+				if(pointChanged)
+					numPtsMoved++;
+			}
+		}
+	}
+	
+	QMessageBox::information( this, "Results", QStr(numPtsMoved) + " points were moved");
+	
+	wprint("%d contours were movoed\n", numPtsMoved );
+	
+}
 
 //------------------------
 //-- Provides options to clean objects and make contours clockwise etc.
@@ -5849,14 +6117,23 @@ int  DrawingTools::copyCurrContToView(bool smartSize)
 //-- Instantiates the livewire objects "plug.weights" and "plug.livewire"
 //-- for the image size specified by "w" and "h".
 
-void DrawingTools::setupLivewire( int w, int h )
-{	
+void DrawingTools::initLivewire( int w, int h )
+{
+	if( plug.lwInit == false )
+		return;
+	
+	
 	//## IF NOT ALREADY: SETUP THE LIVEWIRE OBJECTS:
+	
+	if( plug.lwSettings == NULL )
+	{
+		plug.lwSettings = new Livewire::WeightCalculator::Settings();
+	}
 	
 	if( plug.weights == NULL )
 	{
-		plug.weights = new Livewire::WeightCalculator(w, h,
-											   Livewire::WeightCalculator::GrayScaleSettings);
+		plug.weights = new Livewire::WeightCalculator(w, h, *plug.lwSettings );
+											   //Livewire::WeightCalculator::GrayScaleSettings);
 		plug.window->connect(plug.weights, SIGNAL(ProgressChanged(int)),
 												 plug.window, SLOT(weightsProgress(int)));
 		plug.window->connect(plug.weights, SIGNAL(finished()),
@@ -5864,31 +6141,27 @@ void DrawingTools::setupLivewire( int w, int h )
 	}
 	if( plug.livewire == NULL )
 	{
-		plug.livewire = new Livewire::LivewireCalculator(w, h,
-																										 plug.weights->GetWeights());
+		plug.livewire = new Livewire::LivewireCalculator(plug.weights);
 		plug.window->connect(plug.livewire, SIGNAL(ProgressChanged(int)),
 												 plug.window, SLOT(livewireProgress(int)));
 		plug.window->connect(plug.livewire, SIGNAL(finished()),
 												 plug.window, SLOT(livewireFinished()));
-		
-		//setPt( &plug.livewirePt, -1,-1,-1 );
 	}
 	if( plug.livewireF == NULL )
 	{
-		plug.livewireF = new Livewire::LivewireCalculator(w, h,
-																												 plug.weights->GetWeights());
+		plug.livewireF = new Livewire::LivewireCalculator(plug.weights);
 		plug.window->connect(plug.livewireF, SIGNAL(ProgressChanged(int)),
 												 plug.window, SLOT(livewireProgress(int)));
 		plug.window->connect(plug.livewireF, SIGNAL(finished()),
 												 plug.window, SLOT(livewireFinished()));
-		
-		//setPt( &plug.livewireFPt, -1,-1,-1 );
 	}
 	if( plug.lwPts == NULL )
 	{
 		plug.lwPts = imodContourNew();
 	}
 	
+	plug.lwInit = true;
+	setupLivewireOptions();			// change livewire settings if appropriate
 	plug.lwRedrawTime.start();
 }
 
@@ -6031,7 +6304,7 @@ void DrawingTools::changeMode( int modeIdx )
 	int newMode = plug.modeOrder[ modeIdx ];
 	
 	if( plug.drawMode!=newMode && newMode==DM_LIVEWIRE && !plug.lwDontShowAgain )
-		showLiveWireOptions();
+		showLivewireOptions();
 	
 	if( plug.drawMode!=newMode && newMode==DM_WAND && !plug.waDontShowAgain )
 		showWandOptions();
@@ -8960,7 +9233,7 @@ void edit_executeLivewireClick()
 	//## IF NOT ALREADY, MAKE SURE LIVEWIRE IS SETUP:
 	
 	uint w = plug.xsize, h = plug.ysize;
-	plug.window->setupLivewire( plug.xsize, plug.ysize );
+	plug.window->initLivewire( plug.xsize, plug.ysize );
 	
 	
 	//## DETERMINE LOCATION OF MOUSE CLICK INSIDE THE TOMOGRAM:
@@ -8988,10 +9261,10 @@ void edit_executeLivewireClick()
 	{
 		//## DETERMINE WHERE SEGMENTS SHOULD BE ADDED:
 		
-		int numLiveWirePts      = plug.lwPts==NULL ? 0 : psize(plug.lwPts);
-		bool firstSegment       = (numLiveWirePts == 1);
+		int numLivewirePts      = plug.lwPts==NULL ? 0 : psize(plug.lwPts);
+		bool firstSegment       = (numLivewirePts == 1);
 		bool finishContour      = false;
-		if( numLiveWirePts >= 3 )
+		if( numLivewirePts >= 3 )
 		{
 			float distFirstLWPt = line_distBetweenPts2D( getFirstPt(plug.lwPts), &plug.mouse);
 			float distLastLWPt  = line_distBetweenPts2D( getLastPt(plug.lwPts),  &plug.mouse);
@@ -9094,7 +9367,7 @@ int edit_addLivewirePtsToCont( Icont *cont, int startIdx,
 	
 	if( plug.weights!=NULL && !plug.weights->IsExecuting() && livewire!=NULL )
 	{
-		QVector<QPoint> qpts = livewire->GetTrace( qptEnd );		// get livewire line
+		QVector<QPoint> qpts = livewire->GetTrace( qptEnd.x(), qptEnd.y() );		// get livewire line
 		//cout<< "qpts.size = " << qpts.size()  << endl;
 		
 		//## FOR EACH LIVEWIRE POINT, ADD IT TO THE SPECIFIED LOCATION IN THE CONTOUR:
@@ -9196,13 +9469,13 @@ bool edit_startLivewireFromPt( int x, int y, int z, bool useLivewireF )
 	if( useLivewireF )
 	{
 		//printf("Starting livewireF from (%d,%d)\n", x, y);
-		plug.livewireF->Start( QPoint(x,y) );
+		plug.livewireF->Start(x,y);
 		//setPt( plug.livewireFPt, (float)x,(float)y,(float)z );
 	}
 	else
 	{
 		//printf("Starting livewire from (%d,%d)\n", x, y);
-		plug.livewire->Start( QPoint(x,y) );
+		plug.livewire->Start(x,y);
 		//setPt( plug.livewirePt, (float)x,(float)y,(float)z );
 	}
 	
@@ -9285,7 +9558,7 @@ bool edit_getNextAndPrevLivewirePts( int &prevLWPt, int &nextLWPt )
 	//## IF NOT ALREADY, MAKE SURE LIVEWIRE IS SETUP:
 	
 	uint w = plug.xsize, h = plug.ysize;
-	plug.window->setupLivewire( plug.xsize, plug.ysize );
+	plug.window->initLivewire( plug.xsize, plug.ysize );
 	
 	
 	//## IF NO POINT SELECTED, EXIT EARLY:

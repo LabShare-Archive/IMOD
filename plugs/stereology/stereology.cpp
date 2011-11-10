@@ -401,6 +401,7 @@ bool GridSetObj::calcVals()
 {
 	if( xSpacing==0 || ySpacing == 0 || zSpacing == 0 )
 		return false;
+	
 	cols   = (xMax - xMin) / xSpacing;
 	rows   = (yMax - yMin) / ySpacing;
 	grids  = ((zMax - zMin) / zSpacing) + 1;
@@ -950,22 +951,33 @@ Spoint *GridSetObj::getSPtByPt( Ipoint *pt, bool checkAllPts )
 	int xIdx = (int)fDiv(  (pt->x - xMin), xSpacing) - 1;
 	int yIdx = (int)fDiv( -(pt->y - yMax), ySpacing) - 1;
 	int zIdx = (int)fDiv(  (pt->z - zMin), zSpacing);
-		
+	
 	Spoint *sptFirstGuess = getSPtByIdx(xIdx,yIdx,zIdx);
+	
 	if( sptFirstGuess != NULL
-		 && imodPointIsEqual( &sptFirstGuess->pos, pt ) )	// if point matches: return it
+		 && ptsEqualXYZ( &sptFirstGuess->pos,pt,PT_PREC ) )	// if point matches: return it
 	{
-		return sptFirstGuess;
+		return sptFirstGuess;												
 	}
 	
-	//## TAKE A SECOND GUESS AT THE NEXT POINT IN ORDER
+	
+	//## TAKE A SECOND GUESS AS THE PREV POINT IN ORDER
 	//## (USEFUL IF "gridType" = GD_LINEPAIR):
 	
 	Spoint *sptSecondGuess = getSPtByIdx(xIdx-1,yIdx,zIdx);
 	if( sptSecondGuess != NULL
-		 && imodPointIsEqual( &sptSecondGuess->pos, pt ) )	// if point matches: return it
+		 && ptsEqualXYZ( &sptSecondGuess->pos,pt,PT_PREC ) )	// if point matches: return it
 	{
 		return sptSecondGuess;
+	}
+	
+	//## TAKE A THIRD GUESS AS THE NEXT POINT IN ORDER:
+	
+	Spoint *sptThirdGuess = getSPtByIdx(xIdx+1,yIdx,zIdx);
+	if( sptThirdGuess != NULL
+		 && ptsEqualXYZ( &sptThirdGuess->pos,pt,PT_PREC ) )	// if point matches: return it
+	{
+		return sptThirdGuess;
 	}
 	
 	//## IF SPECIFIED: CHECK ALL POINTS FOR A MATCH
@@ -974,7 +986,7 @@ Spoint *GridSetObj::getSPtByPt( Ipoint *pt, bool checkAllPts )
 	{
 		for( long p=0; p<(long)pts.size(); p++ )
 		{
-			if( imodPointIsEqual( &pts[p].pos, pt ) )		// if match found: return it
+			if( ptsEqualXYZ( &pts[p].pos,pt,PT_PREC ) )		// if match found: return it
 				return &pts[p];
 		}
 	}
@@ -2228,7 +2240,7 @@ QString GridSetObj::toString( bool includeCats )
 	outStr += " spacing \t= x:" + QStr(xSpacing) + ",";
 	outStr +=             " y:" + QStr(ySpacing) + ",";
 	outStr +=             " z:" + QStr(zSpacing) + "\n";
-	outStr += " limits  \t= x:" + QStr(xMin) + "-" + QStr(zMax) + ",";
+	outStr += " limits  \t= x:" + QStr(xMin) + "-" + QStr(xMax) + ",";
 	outStr +=             " y:" + QStr(yMin) + "-" + QStr(yMax) + ",";
 	outStr +=             " z:" + QStr(zMin) + "-" + QStr(zMax) + "\n";
 	outStr += " pts in grid  \t= " + QStr( cols ) + " cols * " + QStr( cols ) + " rows * ";
@@ -2422,7 +2434,8 @@ void imodPlugExecute(ImodView *inImodView)
   {
     plug.window->initValues();
     plug.window->loadSettings();
-    
+    plug.window->addGrid( true );		// adds a default grid
+		
     plug.initialized = true;
   }
   
@@ -2470,7 +2483,7 @@ void imodPlugExecute(ImodView *inImodView)
   //## CREATE THE PLUGIN WINDOW:
   
   plug.window  = new Stereology(imodDialogManager.parent(IMOD_DIALOG),"Stereology");
-	plug.window->setWindowTitle("Stereology_ (*by SLASH*)");		// to help with our grant
+	plug.window->setWindowTitle("Stereology (*by SLASH*)");		// to help with our grant
 	
   imodDialogManager.add((QWidget *)plug.window, IMOD_DIALOG);
   adjustGeometryAndShow((QWidget *)plug.window, IMOD_DIALOG );
@@ -3619,7 +3632,7 @@ Stereology::Stereology(QWidget *parent, const char *name) :
 						"Allows you to start a new grid using a wizard to decide<br>"
 						"what type of grid and method you want to use." );
 	addAction( optionsMenu, SLOT(modifyExistingGridViaObjectLabels()),
-						"Modify grid settings/labels",
+						"Modify grid setup/labels",
 						"Allows you to modify a grid which has already been finalized <br>"
 						"by changing object labels.... something you should ONLY do if <br>"
 						"you have read the documentation and know what you're doing." );
@@ -3653,7 +3666,7 @@ Stereology::Stereology(QWidget *parent, const char *name) :
 						"easily into a spreadsheet, and you can also choose to omit certain\n"
 						"points and/or categories from calculation" );
 	optionsMenu->addSeparator();
-	addAction( optionsMenu, SLOT(gridSettings()), "Grid Settings",
+	addAction( optionsMenu, SLOT(gridSettings()), "Grid Settings (defaults)",
 						"Lets you modify settings default values used to setup new grids." );
 	addAction( optionsMenu, SLOT(displayOptions()), "Display Options",
 						"Lets you modify settings associated with this plugin including default\n"
@@ -4699,6 +4712,7 @@ void Stereology::initValues()
   plug.defSpacingY         = 50;
   plug.defSpacingZ         = 30;
 	plug.limitDefaultInset   = 20;
+	plug.showChangeDefOpt    = true;
 	
 	plug.showGridDisplayOpts = true;
 	plug.showGridInModelView = true;
@@ -4729,7 +4743,7 @@ void Stereology::initValues()
 	plug.resultsOutputOpt    = 1;
 	plug.resultsAvgAllGrids  = true;
 	
-	plug.ptsPerSecondEst     = 1.0f;
+	plug.secsPerPt           = 3.0f;
 	
 	
 	plug.showLoadingInConsole = true;
@@ -4749,7 +4763,6 @@ void Stereology::initValues()
 											        + "/lib/imodplug/default_stereology_categories.csv";
 	plug.interceptCat         = -1;
 	
-	addGrid( true );		// adds a default grid
 	loadWordList();
 }
 
@@ -4786,45 +4799,46 @@ void Stereology::loadSettings()
 		plug.defSpacingY         = savedValues[4];
 		plug.defSpacingZ         = savedValues[5];
 		plug.limitDefaultInset   = savedValues[6];
+		plug.showChangeDefOpt    = savedValues[7];
 		
-		plug.showGridDisplayOpts = savedValues[7];
-		plug.showGridInModelView = savedValues[8];
-		plug.gridDisplayOpt      = savedValues[9];
-		plug.gridSymbolSize      = savedValues[10];
-		plug.gridColorR          = savedValues[11];
-		plug.gridColorG          = savedValues[12];
-		plug.gridColorB          = savedValues[13];
-		plug.gridLineThickness   = savedValues[14];
-		plug.gridLabels          = savedValues[15];
-		plug.selPtDisplay        = savedValues[16];
-		plug.showDashes          = savedValues[17];
+		plug.showGridDisplayOpts = savedValues[8];
+		plug.showGridInModelView = savedValues[9];
+		plug.gridDisplayOpt      = savedValues[10];
+		plug.gridSymbolSize      = savedValues[11];
+		plug.gridColorR          = savedValues[12];
+		plug.gridColorG          = savedValues[13];
+		plug.gridColorB          = savedValues[14];
+		plug.gridLineThickness   = savedValues[15];
+		plug.gridLabels          = savedValues[16];
+		plug.selPtDisplay        = savedValues[17];
+		plug.showDashes          = savedValues[18];
 		
-		plug.lockForbiddenSqXY   = savedValues[18];
-		plug.subRectDisplayOpt   = savedValues[19];
+		plug.lockForbiddenSqXY   = savedValues[19];
+		plug.subRectDisplayOpt   = savedValues[20];
 		
-		plug.autoProgress        = savedValues[20];
-		plug.centerOnEachPt      = savedValues[21];
-		plug.blackVisitedPts     = savedValues[22];
+		plug.autoProgress        = savedValues[21];
+		plug.centerOnEachPt      = savedValues[22];
+		plug.blackVisitedPts     = savedValues[23];
 		
-		plug.paintRadius         = savedValues[23];
-		plug.paintMode           = savedValues[24];
+		plug.paintRadius         = savedValues[24];
+		plug.paintMode           = savedValues[25];
 		
-		plug.resultsTranspose    = savedValues[25];
-		plug.resultsSepGrids     = savedValues[26];
-		plug.resultsSepCharIdx   = savedValues[27];
-		plug.resultsOutputOpt    = savedValues[28];
-		plug.resultsAvgAllGrids  = savedValues[29];
+		plug.resultsTranspose    = savedValues[26];
+		plug.resultsSepGrids     = savedValues[27];
+		plug.resultsSepCharIdx   = savedValues[28];
+		plug.resultsOutputOpt    = savedValues[29];
+		plug.resultsAvgAllGrids  = savedValues[30];
 		
-		plug.ptsPerSecondEst     = savedValues[30];
+		plug.secsPerPt           = savedValues[31];
 		
-		plug.showLoadingInConsole = savedValues[31];
-		plug.maxContsRend         = savedValues[32];
-		plug.numRandPtsToAdd      = savedValues[33];
-		plug.jumpToGridOnUpdate   = savedValues[34];
-		plug.targetNumPts         = savedValues[35];
-		plug.randomSymbols        = savedValues[36];
-		plug.agreeFinalizeDlg     = savedValues[37];
-		plug.showBigIntercCH      = savedValues[38];
+		plug.showLoadingInConsole = savedValues[32];
+		plug.maxContsRend         = savedValues[33];
+		plug.numRandPtsToAdd      = savedValues[34];
+		plug.jumpToGridOnUpdate   = savedValues[35];
+		plug.targetNumPts         = savedValues[36];
+		plug.randomSymbols        = savedValues[37];
+		plug.agreeFinalizeDlg     = savedValues[38];
+		plug.showBigIntercCH      = savedValues[39];
 		
 		if(plug.paintRadius <= 0)
 			plug.paintRadius = 10.0f;
@@ -4842,6 +4856,36 @@ void Stereology::loadSettings()
 
 void Stereology::saveSettings()
 {
+
+	//## CHECK IF GRID SPACINGS ARE DIFFERENT FROM DEFAULTS - IF SO
+	//## THEN GIVE THE USER THE OPTION TO CHANGE THESE TO THE NEW 
+	//## DEFAULTS (FOR NEXT TIME):
+	
+	GridSetObj *g = getCurrGridSetObj();
+	
+	if( plug.showChangeDefOpt && g!=NULL &&
+		             (   g->xSpacing != plug.defSpacingX
+								  || g->ySpacing != plug.defSpacingY 
+									|| g->zSpacing != plug.defSpacingZ ) )
+	{
+		CustomDialog ds("Change Defaults", this, BS_NO_YES );
+		ds.addHtmlLabel ( "Would you like to set <b>" + QStr(g->xSpacing) + "x"
+									+ QStr(g->ySpacing) + "</b> and z spacing=<b>" + QStr(g->zSpacing)
+									+ "</b><br>as the new grid spacing defaults?" );
+		ds.addHtmlLabel( "<font size='2.5'>NOTE: To avoid seeing this message again "
+										"go to <b>Options > Grid Settings</b>.</fontsize>","" );
+		ds.setStylePrev("background-color: rgb(150, 150, 150);");			// grey
+		ds.exec();
+		if( !ds.wasCancelled() )
+		{
+			plug.defSpacingX = g->xSpacing;
+			plug.defSpacingY = g->ySpacing;
+			plug.defSpacingZ = g->zSpacing;
+		}
+	}
+	
+	
+	
   double saveValues[NUM_SAVED_VALS];
   
   saveValues[0]  = plug.sameXYSpacing;
@@ -4852,45 +4896,46 @@ void Stereology::saveSettings()
   saveValues[4]  = plug.defSpacingY;
   saveValues[5]  = plug.defSpacingZ;
 	saveValues[6]  = plug.limitDefaultInset;
+	saveValues[7]  = plug.showChangeDefOpt;
 	
-	saveValues[7]  = plug.showGridDisplayOpts;
-	saveValues[8]  = plug.showGridInModelView;
-	saveValues[9]  = plug.gridDisplayOpt;
-	saveValues[10] = plug.gridSymbolSize;
-	saveValues[11] = plug.gridColorR;
-	saveValues[12] = plug.gridColorG;
-	saveValues[13] = plug.gridColorB;
-	saveValues[14] = plug.gridLineThickness;
-	saveValues[15] = plug.gridLabels;
-	saveValues[16] = plug.selPtDisplay;
-	saveValues[17] = plug.showDashes;
+	saveValues[8]  = plug.showGridDisplayOpts;
+	saveValues[9]  = plug.showGridInModelView;
+	saveValues[10]  = plug.gridDisplayOpt;
+	saveValues[11] = plug.gridSymbolSize;
+	saveValues[12] = plug.gridColorR;
+	saveValues[13] = plug.gridColorG;
+	saveValues[14] = plug.gridColorB;
+	saveValues[15] = plug.gridLineThickness;
+	saveValues[16] = plug.gridLabels;
+	saveValues[17] = plug.selPtDisplay;
+	saveValues[18] = plug.showDashes;
 	
-	saveValues[18] = plug.lockForbiddenSqXY;
-	saveValues[19] = plug.subRectDisplayOpt;
+	saveValues[19] = plug.lockForbiddenSqXY;
+	saveValues[20] = plug.subRectDisplayOpt;
 	
-	saveValues[20] = plug.autoProgress;
-	saveValues[21] = plug.centerOnEachPt;
-	saveValues[22] = plug.blackVisitedPts;
+	saveValues[21] = plug.autoProgress;
+	saveValues[22] = plug.centerOnEachPt;
+	saveValues[23] = plug.blackVisitedPts;
 	
-	saveValues[23] = plug.paintRadius;
-	saveValues[24] = plug.paintMode;
+	saveValues[24] = plug.paintRadius;
+	saveValues[25] = plug.paintMode;
 	
-	saveValues[25] = plug.resultsTranspose;
-	saveValues[26] = plug.resultsSepGrids;
-	saveValues[27] = plug.resultsSepCharIdx;
-	saveValues[28] = plug.resultsOutputOpt;
-	saveValues[29] = plug.resultsAvgAllGrids;
+	saveValues[26] = plug.resultsTranspose;
+	saveValues[27] = plug.resultsSepGrids;
+	saveValues[28] = plug.resultsSepCharIdx;
+	saveValues[29] = plug.resultsOutputOpt;
+	saveValues[30] = plug.resultsAvgAllGrids;
 	
-	saveValues[30] = plug.ptsPerSecondEst;
+	saveValues[31] = plug.secsPerPt;
 	
-	saveValues[31] = plug.showLoadingInConsole;
-	saveValues[32] = plug.maxContsRend;
-	saveValues[33] = plug.numRandPtsToAdd;
-	saveValues[34] = plug.jumpToGridOnUpdate;
-	saveValues[35] = plug.targetNumPts;
-	saveValues[36] = plug.randomSymbols;
-	saveValues[37] = plug.agreeFinalizeDlg;
-	saveValues[38] = plug.showBigIntercCH;
+	saveValues[32] = plug.showLoadingInConsole;
+	saveValues[33] = plug.maxContsRend;
+	saveValues[34] = plug.numRandPtsToAdd;
+	saveValues[35] = plug.jumpToGridOnUpdate;
+	saveValues[36] = plug.targetNumPts;
+	saveValues[37] = plug.randomSymbols;
+	saveValues[38] = plug.agreeFinalizeDlg;
+	saveValues[39] = plug.showBigIntercCH;
 	
   prefSaveGenericSettings("Stereology",NUM_SAVED_VALS,saveValues);
 }
@@ -5595,17 +5640,18 @@ bool Stereology::loadGridFromImodModel( bool repressPopupIfNoGrids )
 	
 	plug.grid        = plug.gridList;
 	plug.currGridIdx = gridIdxToLoad;
+	getCurrGridSetObj()->calcVals();
+	updateGridGuiFromGrid( true );		// update the grid GUI
 	
 	if( loadPts )
 	{
-		long numContPtsLoaded = 0;
-		long numCheckedPts    = 0;
-		long numUnmatchedPts  = 0;
-		bool makeSureGridSetup = !( getCurrGridSetObj()->allowRandomPts() );
+		long numContPtsLoaded  = 0;
+		long numCheckedPts     = 0;
+		long numUnmatchedPts   = 0;
+		bool makeSureGridSetup = !getCurrGridSetObj()->allowRandomPts();
 		
 		loadGridPtsFromImodObjs( getCurrGridSetObj(), makeSureGridSetup, true, true,
 														 &numContPtsLoaded, &numCheckedPts, &numUnmatchedPts );
-		
 		
 		CustomDialog dsL( "Points Loaded:",this, BS_OKAY_ONLY);
 		
@@ -6063,9 +6109,9 @@ bool Stereology::loadGridPtsFromImodObjs( GridSetObj *g, bool makeSureGridSetup,
 	
 	if( makeSureGridSetup )
 	{
-		g->setupPts( useSubRectsIfOn );
+		if( g->setupPts( useSubRectsIfOn ) == false )
+			cerr << "ERROR: loadGridPtsFromImodObjs() - couldn't set up grid points" << endl;
 	}
-	
 	
 	
 	//## IF POINTS ARE SETUP, USE "STEREOLOGY.GRID" OBJECT TO MARK WHICH ARE CHECKED:
@@ -6073,6 +6119,11 @@ bool Stereology::loadGridPtsFromImodObjs( GridSetObj *g, bool makeSureGridSetup,
 	{
 		if( isStereologyObj(g->objIdx) )
 		{
+			if( g->pts.size() > 0 )
+			{
+				cout << g->pts[0].pos.x << "," << g->pts[0].pos.y << "," << g->pts[0].pos.z << "," << endl;
+			}
+			
 			badPtsInObj  = 0;
 			goodPtsInObj = 0;
 			
@@ -6082,7 +6133,8 @@ bool Stereology::loadGridPtsFromImodObjs( GridSetObj *g, bool makeSureGridSetup,
 				for( int p=0; p<psize( getCont(obj,c) ); p++)
 				{
 					Ipoint *pt  = getPt( getCont(obj,c), p );
-					Spoint *spt = g->getSPtByPt( pt );
+					Spoint *spt = g->getSPtByPt( pt, true );
+					
 					if( spt!=NULL )
 					{
 						spt->checked = true;			// set as checked
@@ -6158,7 +6210,7 @@ bool Stereology::loadGridPtsFromImodObjs( GridSetObj *g, bool makeSureGridSetup,
 				for( int p=0; p<psize( getCont(obj,c) ); p++)
 				{
 					Ipoint *pt = getPt( getCont(obj,c), p );
-					Spoint *spt = g->getSPtByPt( pt );
+					Spoint *spt = g->getSPtByPt( pt, true );
 					if( spt!=NULL )
 					{
 						spt->setCatOn(j,true);
@@ -6648,9 +6700,9 @@ void Stereology::updateGridGuiFromGrid( bool setCheckBoxesIntelligently )
 //-- Updates the values of the current grid based on the values in the
 //-- "Grid Setup" interface and does a redraw.
 //-- Note that if "plug.disableGuiUpdates" is turned on or the current grid
-//-- has already strated counting, no changes are made and it returns false,
-//-- otherwise it updates almost all of the objects in the current GridSetObj
-//-- and returns true.
+//-- has already started counting only display changes are made and it returns 
+//-- false, otherwise it updates almost all of the objects in the current 
+//-- GridSetObj and returns true.
 //-- 
 //-- If "checkCheckboxes" is true, the checkboxes in the tab are checked
 //-- and relevant elements are shown/hidden and a readjustment of size attempted.
@@ -6666,7 +6718,23 @@ bool Stereology::updateGridFromGridGui( bool checkCheckboxes, bool updatePtSelSp
 	GridSetObj *g = getCurrGridSetObj();
 	
 	if( g->countingStarted )
+	{
+		//## DISPLAY OPTIONS:
+		
+		plug.gridSymbolSize    = spnGridSymbolSize->value();
+		plug.gridLineThickness = spnLineWidth->value();
+		plug.gridColorR        = colGridColor->getColor().red();
+		plug.gridColorB        = colGridColor->getColor().blue();
+		plug.gridColorG        = colGridColor->getColor().green();
+		plug.showDashes        = chkShowDashes->isChecked();
+		plug.subRectDisplayOpt = cmbSubRectDisplay->currentIndex();
+		
+		plug.window->drawGridObject(false);
+		plug.window->drawSubsampleRects(true);
+		
 		return (false);
+	}
+	
 	
 	//## GET CHECKBOX VALUES AND SHOW/HIDE RELEVANT ELEMENTS
 	
@@ -6728,16 +6796,6 @@ bool Stereology::updateGridFromGridGui( bool checkCheckboxes, bool updatePtSelSp
 	g->rXGap  = spnRectXGap->value();
 	g->rYGap  = (plug.lockForbiddenSqXY) ? g->rXGap : spnRectYGap->value();
 	
-	
-	//## DISPLAY OPTIONS:
-	
-	plug.gridSymbolSize    = spnGridSymbolSize->value();
-	plug.gridLineThickness = spnLineWidth->value();
-	plug.gridColorR        = colGridColor->getColor().red();
-	plug.gridColorB        = colGridColor->getColor().blue();
-	plug.gridColorG        = colGridColor->getColor().green();
-	plug.showDashes        = chkShowDashes->isChecked();
-	plug.subRectDisplayOpt = cmbSubRectDisplay->currentIndex();
 	
 	//## CALCULATE NEW GRID PARAMETERS AND UPDATE LABEL:
 	
@@ -6844,8 +6902,8 @@ void Stereology::finalizeGrid()
 	QString sY = QStr(g->yMax-g->yMin) +" px | "+ distToUnitsStr((g->yMax-g->yMin),1);
 	QString sZ = QStr(g->zMax-g->zMin) +" px | "+ distToUnitsStr((g->zMax-g->zMin)*scalePt.z,1);
 	
-	float totEstimatedSecs = fDiv( g->maxPts, plug.ptsPerSecondEst );
-	QString estimatedTime = formatApproxTime( totEstimatedSecs );
+	float totEstimatedSecs = g->maxPts * plug.secsPerPt;
+	QString estimatedTime  = formatApproxTime( totEstimatedSecs );
 	
 	float estDev        = (g->maxPts > 1) ? (1.0f / sqrt((double)g->maxPts)) : 1.0f;
 	float estDevPercent = roundDecimals( estDev*100.0f, 2 );
@@ -6894,7 +6952,7 @@ void Stereology::finalizeGrid()
 										"Represents a time estimate to classify all <b>"
 										+ QStr(g->maxPts) + "</b> points. "
 										"This estimate is based on a speed of '<b>"
-										+ QStr(plug.ptsPerSecondEst) + " point/second</b>'. "
+										+ QStr(plug.secsPerPt) + " seconds/point</b>'. "
 										"Depending on the data and the number of classification "
 										"you have, you may be able to go faster than this - especially "
 										"if you have a small number of classifications and can make "
@@ -7450,6 +7508,43 @@ void Stereology::modifyExistingGridViaObjectLabels()
 	//## COMPILE TWO VECTORS WITH OBJECT NAMES AND LABELS FOR EACH CATEGORY
 	//## AND SHOW ERROR MESSAGE IF ANY OF THE "objIdx" VALUES ARE INVALID:
 	
+	static int action = 0;
+	
+	CustomDialog dsA("Modification options:", this );
+	
+	dsA.addRadioGrp( "choose an action:",
+									"modify existing categories and/or grid settings|"
+									"double the number of points|"
+									"add new categories",
+									&action, "",
+									"Select this if you want to make custom modifications to \n"
+									"grid settings or categories by changing their label values|"
+									"Will quickly increase the number of points in your grid \n"
+									"by ~2x by halving the grid spacing along x, y or z \n"
+									"(depending on which option you choose) and updating the \n"
+									"grid settings label for you."
+									"Select this if you're realized you need/want additional \n"
+									"categories (can add up to four at a time)" );
+	
+	dsA.exec();
+	if( dsA.wasCancelled() )
+		return;
+	
+	if( action==1  )
+	{
+		makeGridFiner();
+		return;
+	}
+	else if( action==2  )
+	{
+		addExtraGridCategoriesToImodModel();
+		return;
+	}
+	
+	
+	//## COMPILE TWO VECTORS WITH OBJECT NAMES AND LABELS FOR EACH CATEGORY
+	//## AND SHOW ERROR MESSAGE IF ANY OF THE "objIdx" VALUES ARE INVALID:
+	
 	int invalidObjs = 0;
 	
 	string gridName  = getObjName(g->objIdx).toStdString();
@@ -7458,7 +7553,7 @@ void Stereology::modifyExistingGridViaObjectLabels()
 	if( g->objIdx < 0 || g->objIdx >= osize(imod) )
 	{
 		MsgBox( "No matching object was found for the grid setting object... \n"
-					 "maybe you deleted it? If so please reload the grid from the model." );
+					  "maybe you deleted it? If so please reload the grid from the model." );
 		return;
 	}
 	
@@ -7472,7 +7567,7 @@ void Stereology::modifyExistingGridViaObjectLabels()
 		if( catObjIdx < 0 || catObjIdx >= osize(imod) )
 		{
 			MsgBox( "No matching object was found for one of your category objects... \n"
-						 "maybe you deleted it? If so please reload the grid from the model." );
+						  "maybe you deleted it? If so please reload the grid from the model." );
 			return;
 		}
 		
@@ -7516,12 +7611,11 @@ void Stereology::modifyExistingGridViaObjectLabels()
                   "   #y=10,1014#z=10,190#(DONT_RENAME)#");
 	ds.setStylePrev("background-color: rgb(255, 230, 110);");			// yellowish
 	
-	ds.addHtmlLabel ( "<b>WARNING</b>: to make a finer grid you can halve spacing <br>"
-										"values pretty easily.... but please only change labels (yellow)<br>"
-										"if you know what you're doing and have saved a backup! <br>"
-										"In cases where parameters in the name are not recognized <br>"
-										"(or don't exist), labels are used, so must contain all the <br>"
-										"correct keywords.<br>" );
+	ds.addHtmlLabel("<b>WARNING</b>: to make a finer grid you can halve spacing values<br>"
+									"pretty easily.... but please only change labels (yellow) if you<br>"
+									"know what you're doing and have saved a backup! In cases where <br>"
+									"parameters in the name are not recognized (or don't exist), labels<br>"
+									"are used, so must contain all the correct keywords.<br>" );
 	
 	ds.addHtmlLabel( "<b><u>Category objects</u>:</b>" );
 	
@@ -7608,73 +7702,185 @@ void Stereology::modifyExistingGridViaObjectLabels()
 	
 	loadGridFromImodModel( false );
 	
+}
+
+
+
+//------------------------
+//-- Has options for adding categories to a grid which is already setup.
+
+void Stereology::addExtraGridCategoriesToImodModel()
+{
+	GridSetObj *g = getCurrGridSetObj();
+	Imod *imod  = ivwGetModel(plug.view);
 	
 	
+	//## SHOW CUSTOM DIALOG WITH FIELDS TO ADD NEW CATEGORIES:
 	
-	//## IF USER OPTED TO ADD NEW CATEGORIES
-	//## SHOW DIALOG WITH FIELDS TO ADD NEW CATEGORIES:
+	const int MAX_NEW_OBJECTS = 4;
+	string newCatName [MAX_NEW_OBJECTS];
+	bool   addCat     [MAX_NEW_OBJECTS];
 	
-	if( addNewCategories )
+	for( int c=0; c<MAX_NEW_OBJECTS; c++ )
 	{
-		vector<string> newCatName;
-		vector<bool>   addCat;
-		
-		for(int i=0; i<4; i++)
-		{
-			newCatName.push_back("");
-			addCat.push_back( false );
-		}
-		
-		CustomDialog dsE("Add Extra Categories:", this, BS_CUSTOM );
-		
-		dsE.addCustomButton( "Cancel", BB_REJECT   );
-		dsE.addCustomButton( "Add and Reload", BB_ACCEPT,
-												"Will add the objects you've ticked and then reload this\n"
-												"grid from the model (so it should reflect changes");
-		
-		for( int c=0; c<(int)newCatName.size(); c++ )
-		{
-			dsE.addCheckBox( "add this new category:", 
-											&addNewCategories,
-											"Allows you to add up to three extra categories at a time" );
-			
-			dsE.addLineEdit( "   ... category name:", 
-											&catName[c],
-											"");
-			dsE.addAutoCompletePrev( plug.wordList, false );
-			
-			dsE.setStylePrev("background-color: rgb(255, 230, 110);");			// yellowish
-		}
-		
-		dsE.exec();
-		
-		if( ds.wasCancelled() )
-			return;
-		
-		//## ADD NEW CATEGORIES TO CURRENT GRID:
-		
-		for( int c=0; c<(int)newCatName.size(); c++ )
-		{
-			if( addCat[c] )
-			{
-				addCategory();
-				g->catObj.back().categoryName = (QString)(newCatName[c].c_str());
-			}
-		}
-		
-		int numObjsAdded   = 0;
-		int numObjsChanged = 0;
-		setupImodObjsFromGridAndCats( false, true, &numObjsAdded, &numObjsChanged );
-		
-		QMessageBox::information( this, "Summary of change made:",
-														 " > " + QStr(numObjsAdded)  + " object were added \n"
-														 " > " + QStr(numObjsChanged) + " objects were changed \n\n"
-														 "Now you should try and reload and hope for the best" );
-		
-		loadGridFromImodModel( false );
+		newCatName[c] = "";
+		addCat[c]     = (c == 1);
 	}
 	
+	CustomDialog ds("Add Extra Categories:", this, BS_CUSTOM );
+	
+	ds.addCustomButton( "Cancel", BB_REJECT   );
+	ds.addCustomButton( "Add and Reload", BB_ACCEPT,
+											"Will add the objects you've ticked and then reload this\n"
+											"grid from the model (so it should reflect changes");
+	
+	for( int c=0; c<MAX_NEW_OBJECTS; c++ )
+	{
+		ds.addLineEdit( "   ... category name:", 
+										 &newCatName[c], "Enter here the name of the new category");
+		ds.addAutoCompletePrev( plug.wordList, false );
+		
+		ds.addCheckPrev( "add this new category:", 
+											&addCat[c], CB_NONE, true,
+										  "Allows you to add up to three extra categories at a time" );
+		
+		ds.setStylePrev("background-color: rgb(255, 230, 110);");			// yellowish
+	}
+	
+	ds.exec();
+	
+	if( ds.wasCancelled() )
+		return;
+	
+	
+	//## ADD NEW CATEGORIES TO CURRENT GRID:
+	
+	for( int c=0; c<MAX_NEW_OBJECTS; c++ )
+	{
+		if( addCat[c] )
+		{
+			addCategory();
+			g->catObj.back().categoryName = (QString)(newCatName[c].c_str());
+		}
+	}
+	
+	int numObjsAdded   = 0;
+	int numObjsChanged = 0;
+	setupImodObjsFromGridAndCats( false, true, &numObjsAdded, &numObjsChanged );
+	
+	QMessageBox::information( this, "Summary of change:",
+													 QStr(numObjsAdded)  + " new objects were added \n"
+													 "We will now try and reload and hope for the best" );
+	
+	loadGridFromImodModel( false );
 }
+
+
+//------------------------
+//-- Has options for doubling the number of points in the grid by halving
+//-- the grid spacing along x, y or z.
+
+void Stereology::makeGridFiner()
+{
+	GridSetObj *g = getCurrGridSetObj();
+	Imod *imod  = ivwGetModel(plug.view);
+	
+	//## DETERMINE WHICH AXIS CAN AND CANNOT BE HALVED:
+	
+	int halfX = (g->xSpacing / 2);
+	int halfY = (g->ySpacing / 2);
+	int halfZ = (g->zSpacing / 2);
+	
+	bool canHalfX = 2.0f*halfX == g->xSpacing;
+	bool canHalfY = 2.0f*halfY == g->ySpacing;
+	bool canHalfZ = 2.0f*halfZ == g->zSpacing;
+	
+	QString xSpNew = (canHalfX) ? QStr(halfX) : " NOT APPLICABLE";
+	QString ySpNew = (canHalfY) ? QStr(halfY) : " NOT APPLICABLE";
+	QString zSpNew = (canHalfZ) ? QStr(halfZ) : " NOT APPLICABLE";
+	
+	//## IF NONE OF THE AXIS CAN BE HALVED: EXIT EARLY
+	
+	if (!canHalfX && !canHalfY && !canHalfZ)
+	{
+		MsgBox("Sorry, none of your spacings (x,y or z) \n"
+					 "are evenly divisible by 2. Try the modify labels \n"
+					 "option and read the help file and you should \n"
+					 "be able to divide by some other amount instead \n"
+					 "and change the grid setting label by hand");
+		return;
+	}
+	
+	//## SHOW CUSTOM DIALOG WITH OPTION TO HALVE X, Y OR Z SPACING:
+	
+	int axisToHalve = (canHalfX) ? 0 : (canHalfY) ? 1 : 2;
+	
+	CustomDialog ds("Increase grid fidelity:", this, BS_CUSTOM );
+	
+	ds.addCustomButton( "Cancel", BB_REJECT   );
+	ds.addCustomButton( "Apply and Reload", BB_ACCEPT,
+										 "Will apply your changes then reload this grid from\n"
+										 "the model (so it should reflect changes");
+	ds.addHtmlLabel ( "double the number of points by \n"
+										"having the grid spacing along: ");
+	ds.addRadioGrp( "",
+									"x --> from " + QStr(g->xSpacing) + " to " + xSpNew + "|"
+		 							"y --> from " + QStr(g->ySpacing) + " to " + ySpNew + "|"
+		  						"z --> from " + QStr(g->zSpacing) + " to " + zSpNew,
+									&axisToHalve, "",
+									"select this to half the x spacing|"
+									"select this to half the y spacing|"
+									"select this to half the z spacing - meaning twice as many grids");
+	
+	ds.addHtmlLabel ( "<b>WARNING</b>: You cannot undo this operation! <br>"
+									  "It's recommended you save before you hit okay." );
+	ds.setStylePrev("background-color: rgb(255, 40, 40);");			// red
+	
+	ds.exec();
+	
+	if( ds.wasCancelled() )
+		return;
+	
+	//## CHECK HALVING SELECTED AXIS IS POSSIBLE:
+	
+	if(   (axisToHalve == 0 && !halfX )
+		 || (axisToHalve == 1 && !halfY )
+		 || (axisToHalve == 2 && !halfZ ) )
+	{
+		QMessageBox::information( this, "...",
+														 "Sorry you cannot half the spacing along this axis - "
+														 "it is not evenly divisible by two." );
+		return;
+	}
+	
+	//## ADD NEW CATEGORIES TO CURRENT GRID:
+	
+	if     ( axisToHalve == 0 )	{	g->xSpacing = halfX;	}
+	else if( axisToHalve == 1 )	{	g->ySpacing = halfY;	}
+	else if( axisToHalve == 2 )	{	g->zSpacing = halfZ;	}
+	
+	int numObjsAdded   = 0;
+	int numObjsChanged = 0;
+	setupImodObjsFromGridAndCats( false, true, &numObjsAdded, &numObjsChanged );
+	
+	if( numObjsChanged > 0 )
+	{
+		QMessageBox::information( this, "Summary of changes:",
+		  											  "The grid setting object was changed. \n"
+			  										  "We will now try and reload and hope for the best" );
+	}
+	else
+	{
+		QMessageBox::information( this, "Fail", "Was unable to make changes... \n"
+														  "try changing labels manually instead");
+	}
+	
+	loadGridFromImodModel( false );
+}
+
+
+
+
 
 
 //------------------------
@@ -8557,11 +8763,11 @@ void Stereology::jumpToUncheckedPt( bool startAtCurrPt, bool backwards )
 		}
 		else
 		{
-			MsgBox( this, "Grids Finished!", ( g->allowRandomPts() ) ?
-						        "All points have been checked! \n"
-										"Click 'Options > Results' to see results." : 
+			MsgBox( this, "Grids Finished!", g->allowRandomPts() ?
 						        "No unchecked point found \n"
-						        "Click 'Random Pts+' to add more." );
+						        "Click 'Random Pts+' to add more." : 
+										"All points have been checked! \n"
+						        "Click 'Options > Results' to see results." );
 		}
 	}
 	else
@@ -9068,7 +9274,7 @@ bool Stereology::addOrRemoveSinglePtFromObj( int objIdx, Ipoint newPt, bool turn
 	{
 		Icont *cont = getFirstCont(obj,true);				// gets the first contour
 																								//  (and creates it if necessary)
-		imodPointAppend( cont, &newPt );					// add point to end
+		imodPointAppend( cont, &newPt );						// add point to end
 	}
 	else						// else: find and delete first matching point in any contour
 	{
@@ -9078,7 +9284,7 @@ bool Stereology::addOrRemoveSinglePtFromObj( int objIdx, Ipoint newPt, bool turn
 			for(long p=psize(cont)-1; p>=0; p-- )		// search points from end:
 			{
 				Ipoint *pt = getPt(cont,p);
-				if( newPt.x == pt->x && newPt.y == pt->y && newPt.z == pt->z  )
+				if( ptsEqualXYZ( &newPt,pt,PT_PREC ) )
 				{
 					imodPointDelete( cont, p );
 					return true;
@@ -10478,8 +10684,8 @@ void Stereology::checkProgress()
 	}
 	
 	
-	float totEstimatedSecs = fDiv( ptsUnchecked, plug.ptsPerSecondEst );
-	QString estimatedTime = formatApproxTime( totEstimatedSecs );
+	float totEstimatedSecs = ptsUnchecked * plug.secsPerPt;
+	QString estimatedTime  = formatApproxTime( totEstimatedSecs );
 	
 	
 	//## COUNT NUMBER OF POINTS IN EACH CATEGORY:
@@ -10503,8 +10709,8 @@ void Stereology::checkProgress()
 	if( !g->countingFinished )
 	{
 		ds.addHtmlLabel  ( "Estimated time remaining: &nbsp; <b>~" + estimatedTime + "</b>",
-											 "Based on the estimate of <b>" + QStr(plug.ptsPerSecondEst) +
-											 "  point / second</b>. <br><br>"
+											 "Based on the estimate of <b>" + QStr(plug.secsPerPt) +
+											 "  seconds / point</b>. <br><br>"
 											 "TIP: If it needs adjusting can change this estimated "
 											 "     rate via '<b>Options > Settings</b>'" );
 		ds.setStylePrev("background-color: rgb(100, 255, 100);");			// light green
@@ -10690,7 +10896,7 @@ void Stereology::calculateResults()
 	
 	if( !g->validateAllPtValues() )
 	{
-		dsI.addHtmlLabel  ( "Some of your point values appear invalid! <br>"
+		dsI.addHtmlLabel  ( "WARNING: Some of your point values appear invalid. <br>"
 											  "Please run 'Options > Validate point values' <br>"
 											  "to fix this" );
 		dsI.setStylePrev("background-color: rgb(255, 40, 40);");			// red
@@ -11216,6 +11422,14 @@ void Stereology::gridSettings()
 								 "The default inset to apply to x and y grid limits\n"
 								 "when the model loads" );
 	
+	ds.addCheckBox( "show the option to change default grid\n"
+								  "settings when I close this plugin",
+								  &plug.showChangeDefOpt,
+								  "NOTE: If left off, then a yes/no dialog appears "
+								  "when you close the Stereology plugin and/or 3dmod "
+								  "if your current x,y or z spacing is different from "
+								  "the default values above." );
+	
 	ds.addLabel   ( "" );
 	ds.addLabel   ( "--- CATEGORY SELECTION SETTINGS ---", true );
 	
@@ -11234,18 +11448,18 @@ void Stereology::gridSettings()
 								 "is in the center of the screen as you progress through points.");
 	
 	ds.addLineEditF( "estimated speed", 0.01f, 10000.0f,
-									&plug.ptsPerSecondEst, 6,
-									"This value represents the approximate number of points <br>"
-									"per second you can classify/check and is used by <br>"
+									&plug.secsPerPt, 6,
+									"This value represents the approximate number of seconds <br>"
+									"it takes you to classify/check each point, and is used by <br>"
 									"'<b>Options > Progress' to help estimate how much time <br>"
 									"you have left to finish your grid(s). <br>"
-									"By default this value is set to '1 point/sec' (360 points/hr),<br>"
+									"By default this value is set to '3 secs/point' (~1200 points/hr),<br>"
 									"but unless you have complex images you'll probably average<br>"
-									"<b>much faster</b> (eg: 2 points/sec)..... especially if<br>"
-									"you master the '<b>Pt Paint</b>' tool and can make good use of<br>"
-									"options like 'Change point values' and 'Apply mask to points'.<br>"
+									"<b>faster</b> (eg: 2 secs/point)..... especially if you master<br>"
+									"the '<b>Pt Paint</b>' tool and can make good use of options<br>"
+									"like 'Change point values' and 'Apply mask to points'.<br>"
 									"<br>"
-									"<i>DEFAULT VALUE: 1 point/sec</i>", " points/sec");
+									"<i>DEFAULT VALUE: 3 seconds/point</i>", " secs/point");
 	
 	ds.addLabel   ( "" );
 	ds.addLabel   ( "--- OTHER SETTINGS ---", true );
@@ -11277,9 +11491,9 @@ void Stereology::gridSettings()
   
 	
 	//## CHECK NEW GRID SETTINGS ARE VALID:
-		
-	if( plug.ptsPerSecondEst <= 0.0f )
-		plug.ptsPerSecondEst = 1.0f;
+	
+	if( plug.secsPerPt <= 0.0f )
+		plug.secsPerPt = 3.0f;
 }
 
 
