@@ -37,7 +37,7 @@ public class FilePathTest extends TestCase {
     String relZPath = "z";
     String relUp1 = "..";
     String relUp3 = ".." + File.separator + ".." + File.separator + "..";
-    if (Utilities.isWindowsOS()) {
+    /*if (Utilities.isWindowsOS()) {
       assertTrue("Should return the to-path when the drives are different", FilePath
           .getRelativePath(xyzPath, new File(xyzPathWithADrive))
           .equals(xyzPathWithADrive));
@@ -46,7 +46,7 @@ public class FilePathTest extends TestCase {
       assertTrue("Should return the to-path when the drives are different",
           FilePath.getRelativePath(xyzPathWithADrive, new File(xyzPathWithBDrive))
               .equals(xyzPathWithBDrive));
-    }
+    }*/
     assertTrue("Should return the to-path when the from-path is empty", FilePath
         .getRelativePath(null, new File(xyzPath)).equals(xyzPath));
     assertTrue("Should return the to-path when the from-path is empty", FilePath
