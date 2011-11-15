@@ -149,8 +149,9 @@ import etomo.util.FilePath;
  * <p> field is disabled).
  * <p> </p>
  */
-final class FieldCell extends InputCell {
+final class FieldCell extends InputCell implements ButtonTarget {
   public static final String rcsid = "$Id$";
+
   private final JTextField textField;
   private final boolean editable;
   private final ParsedElementType parsedElementType;
@@ -177,6 +178,19 @@ final class FieldCell extends InputCell {
     setExpanded();
   }
 
+  static FieldCell getInstance(final FieldCell fieldCell) {
+    FieldCell instance = new FieldCell(fieldCell.editable, fieldCell.parsedElementType,
+        fieldCell.rootDir);
+    instance.endValue = fieldCell.endValue;
+    instance.path = fieldCell.path;
+    instance.inUse = fieldCell.inUse;
+    instance.expanded = fieldCell.expanded;
+    instance.setValue(fieldCell.getExpandedValue());
+    instance.addListeners();
+    instance.setToolTipText(fieldCell.textField.getToolTipText());
+    return instance;
+  }
+
   static FieldCell getEditableInstance() {
     FieldCell instance = new FieldCell(true, ParsedElementType.NON_MATLAB_NUMBER, null);
     instance.addListeners();
@@ -192,14 +206,6 @@ final class FieldCell extends InputCell {
   static FieldCell getIneditableInstance() {
     FieldCell instance = new FieldCell(false, ParsedElementType.NON_MATLAB_NUMBER, null);
     instance.setEditable(false);
-    instance.addListeners();
-    return instance;
-  }
-
-  static FieldCell getIneditableInstance(String value) {
-    FieldCell instance = new FieldCell(false, ParsedElementType.NON_MATLAB_NUMBER, null);
-    instance.setEditable(false);
-    instance.setValue(value);
     instance.addListeners();
     return instance;
   }
@@ -255,6 +261,10 @@ final class FieldCell extends InputCell {
     return textField;
   }
 
+  public void setFile(final File file) {
+    setValue(file);
+  }
+
   void setValue(final File file) {
     if (rootDir == null) {
       setValue(file.getAbsoluteFile());
@@ -292,7 +302,7 @@ final class FieldCell extends InputCell {
   }
 
   String getExpandedValue() {
-    if (expanded) {
+    if (expanded || path == null) {
       return textField.getText();
     }
     return path;
