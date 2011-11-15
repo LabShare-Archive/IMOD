@@ -49,6 +49,9 @@ public final class FilePath {
   }
 
   public static boolean isPath(final String name) {
+    if (name==null||name.matches("\\s*")) {
+      return false;
+    }
     try {
       new File(name).getCanonicalFile();
     }
