@@ -234,11 +234,11 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
 
   private final RowList rowList = new RowList();
   private final JPanel rootPanel = new JPanel();
-  private final MultiLineButton btnAddFnVolume = new MultiLineButton("Insert");
-   //private final MultiLineButton btnChangeFnModParticle = new MultiLineButton(
+  private final MultiLineButton btnInsertRow = new MultiLineButton("Insert");
+  // private final MultiLineButton btnChangeFnModParticle = new MultiLineButton(
   // "Change Model");
-   private final MultiLineButton btnSetInitMotlFile = new MultiLineButton(
-   "Set Initial Motive List File");
+  private final MultiLineButton btnSetInitMotlFile = new MultiLineButton(
+      "Set Initial Motive List File");
   private final MultiLineButton btnReadTiltFile = new MultiLineButton("Read tilt file");
   private final Run3dmodButton r3bVolume;
   private final HeaderCell header1VolumeNumber = new HeaderCell("Vol #");
@@ -465,7 +465,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     pnlSideButtons.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlSideButtons.add(btnMoveDown.getComponent());
     pnlSideButtons.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlSideButtons.add(btnAddFnVolume.getComponent());
+    pnlSideButtons.add(btnInsertRow.getComponent());
     pnlSideButtons.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlSideButtons.add(btnCopyRow.getComponent());
     pnlSideButtons.add(Box.createRigidArea(FixedDim.x0_y5));
@@ -484,8 +484,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     pnlButtonsBottom.setLayout(new GridLayout(1, 3, 0, 0));
     // btnChangeFnModParticle.setSize();
     // pnlButtons1.add(btnChangeFnModParticle.getComponent());
-    // btnSetInitMotlFile.setSize();
-    pnlButtonsBottom.add(btnSetInitMotlFile.getComponent());
+    // pnlButtonsBottom.add(btnSetInitMotlFile.getComponent());
     pnlButtonsBottom.add(Box.createHorizontalGlue());
     pnlButtonsBottom.add(r3bVolume.getComponent());
     pnlButtonsBottom.add(Box.createHorizontalGlue());
@@ -567,12 +566,12 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
   }
 
   private void action(final String command, final Run3dmodMenuOptions run3dmodMenuOptions) {
-    if (command.equals(btnAddFnVolume.getActionCommand())) {
+    if (command.equals(btnInsertRow.getActionCommand())) {
       addVolumeRow();
     }
-     else if (command.equals(btnSetInitMotlFile.getActionCommand())) {
-     setInitMotlFile();
-     }
+    else if (command.equals(btnSetInitMotlFile.getActionCommand())) {
+      setInitMotlFile();
+    }
     else if (command.equals(btnReadTiltFile.getActionCommand())) {
       openTiltFile();
     }
@@ -614,13 +613,13 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
   }
 
   private void setToolTipText() {
-    btnAddFnVolume.setToolTipText("Add a new row to table and select volume and model "
+    btnInsertRow.setToolTipText("Add a new row to table and select volume and model "
         + "files.");
     // btnChangeFnModParticle
     // .setToolTipText("Select a new model file for the highlighted row.");
-     btnSetInitMotlFile
-     .setToolTipText("Select a .csv file with initial orientations and shifts "
-     + "for the highlighted row.");
+    btnSetInitMotlFile
+        .setToolTipText("Select a .csv file with initial orientations and shifts "
+            + "for the highlighted row.");
     btnReadTiltFile.setToolTipText("Fill in the tilt range for the highlighted row by "
         + "selecting a file with tilt angles.");
     r3bVolume.setToolTipText("Open the volume and model for the highlighted row in "
@@ -653,49 +652,35 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     if (!manager.setParamFile()) {
       UIHarness.INSTANCE.openMessageDialog(manager, "Please set the "
           + PeetDialog.DIRECTORY_LABEL + " and " + PeetDialog.FN_OUTPUT_LABEL
-          + " fields before adding tomograms.", "Entry Error");
+          + " fields before adding rows.", "Entry Error");
       return;
     }
-    File fnVolume = null;
-    JFileChooser chooser = parent.getFileChooserInstance();
-    chooser.setFileFilter(tomogramFileFilter);
-    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
-    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    int returnVal = chooser.showOpenDialog(rootPanel);
-    if (returnVal != JFileChooser.APPROVE_OPTION) {
-      // The tomogram is required. Exist if one wasn't chosen.
-      return;
-    }
-    fnVolume = chooser.getSelectedFile();
-    if (fnVolume != null) {
-      parent.setLastLocation(fnVolume.getParentFile());
-    }
-    chooser = parent.getFileChooserInstance();
-    chooser.setFileFilter(new ModelFileFilter());
-    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
-    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    returnVal = chooser.showOpenDialog(rootPanel);
-    File fnModParticle = null;
-    if (returnVal == JFileChooser.APPROVE_OPTION) {
-      fnModParticle = chooser.getSelectedFile();
-      parent.setLastLocation(fnModParticle.getParentFile());
-    }
-    if (fnVolume == null) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "Please choose a tomogram",
-          "Entry Error");
-    }
-    else {
-      // Add any unusual file extensions to the file filter so that the files are
-      // easier to open in the next row.
-      tomogramFileFilter.addExtension(fnVolume);
-      addRow(fnVolume, fnModParticle);
-      viewport.adjustViewport(rowList.size() - 1);
-      rowList.remove();
-      rowList.display(viewport);
-      updateDisplay();
-      parent.msgVolumeTableSizeChanged();
-      UIHarness.INSTANCE.pack(manager);
-    }
+    /* File fnVolume = null; JFileChooser chooser = parent.getFileChooserInstance();
+     * chooser.setFileFilter(tomogramFileFilter);
+     * chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+     * chooser.setFileSelectionMode(JFileChooser.FILES_ONLY); int returnVal =
+     * chooser.showOpenDialog(rootPanel); if (returnVal != JFileChooser.APPROVE_OPTION) {
+     * // The tomogram is required. Exist if one wasn't chosen. return; } fnVolume =
+     * chooser.getSelectedFile(); if (fnVolume != null) {
+     * parent.setLastLocation(fnVolume.getParentFile()); } chooser =
+     * parent.getFileChooserInstance(); chooser.setFileFilter(new ModelFileFilter());
+     * chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+     * chooser.setFileSelectionMode(JFileChooser.FILES_ONLY); returnVal =
+     * chooser.showOpenDialog(rootPanel); File fnModParticle = null; if (returnVal ==
+     * JFileChooser.APPROVE_OPTION) { fnModParticle = chooser.getSelectedFile();
+     * parent.setLastLocation(fnModParticle.getParentFile()); } if (fnVolume == null) {
+     * UIHarness.INSTANCE.openMessageDialog(manager, "Please choose a tomogram",
+     * "Entry Error"); } else { // Add any unusual file extensions to the file filter so
+     * that the files are // easier to open in the next row.
+     * tomogramFileFilter.addExtension(fnVolume); */
+    addRow(/* fnVolume, fnModParticle */);
+    viewport.adjustViewport(rowList.size() - 1);
+    rowList.remove();
+    rowList.display(viewport);
+    updateDisplay();
+    parent.msgVolumeTableSizeChanged();
+    UIHarness.INSTANCE.pack(manager);
+    // }
   }
 
   private void setInitMotlFile() {
@@ -780,6 +765,14 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
         row.setTiltRangeMax(tiltFile.getMaxAngle().toString());
       }
     }
+  }
+
+  private VolumeRow addRow() {
+    VolumeRow row = rowList.add(manager, this, pnlTable, layout, constraints,
+        initMotlFileColumn, tiltRangeColumn, tomogramFileFilter);
+    row.expandFnVolume(btnExpandFnVolume.isExpanded());
+    row.expandFnModParticle(btnExpandFnModParticle.isExpanded());
+    return row;
   }
 
   private VolumeRow addRow(final File fnVolume, final File fnModParticle) {
@@ -867,7 +860,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     btnExpandFnVolume.setEnabled(enable);
     btnExpandFnModParticle.setEnabled(enable);
     btnExpandInitMotlFile.setEnabled(enable);
-     btnSetInitMotlFile.setEnabled(enable && highlighted && useInitMotlFile);
+    btnSetInitMotlFile.setEnabled(enable && highlighted && useInitMotlFile);
     // btnChangeFnModParticle.setEnabled(enable && highlighted);
     btnReadTiltFile.setEnabled(enable && highlighted && useTiltRange);
     r3bVolume.setEnabled(enable && highlighted);
@@ -880,8 +873,8 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
 
   private void addListeners() {
     VTActionListener actionListener = new VTActionListener(this);
-    btnAddFnVolume.addActionListener(actionListener);
-     btnSetInitMotlFile.addActionListener(actionListener);
+    btnInsertRow.addActionListener(actionListener);
+    btnSetInitMotlFile.addActionListener(actionListener);
     btnReadTiltFile.addActionListener(actionListener);
     r3bVolume.addActionListener(actionListener);
     btnDeleteRow.addActionListener(actionListener);
@@ -930,6 +923,23 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
       row.registerInitMotlFileColumn(initMotlFileColumn);
       row.registerTiltRangeColumn(tiltRangeColumn);
       row.setNames();
+      return row;
+    }
+
+    private synchronized VolumeRow add(final BaseManager manager,
+        final VolumeTable table, final JPanel panel, final GridBagLayout layout,
+        final GridBagConstraints constraints, final Column initMotlFileColumn,
+        final Column tiltRangeColumn, final TomogramFileFilter tomogramFileFilter) {
+      VolumeRow row = VolumeRow.getInstance(manager, list.size(), table, panel, layout,
+          constraints, tomogramFileFilter);
+      list.add(row);
+      row.registerInitMotlFileColumn(initMotlFileColumn);
+      row.registerTiltRangeColumn(tiltRangeColumn);
+      row.setNames();
+      // When this function is used to load from the .epe and .prm files,
+      // metadata must be set before MatlabParamFile data. Wait until row is
+      // added, then set from metadata.
+      row.setParameters(metaData);
       return row;
     }
 
