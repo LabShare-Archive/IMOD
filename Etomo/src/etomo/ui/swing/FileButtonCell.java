@@ -39,7 +39,7 @@ final class FileButtonCell extends InputCell {
   private final CurrentDirectory currentDirectory;
 
   // Field that this button is associated with:
-  private ButtonTarget buttonTarget = null;
+  private ActionTarget actionTarget = null;
   private String label = "Open File";
   private FileFilter fileFilter = null;
 
@@ -83,8 +83,8 @@ final class FileButtonCell extends InputCell {
     button.addActionListener(new FileButtonActionListener(this));
   }
 
-  void setTarget(final ButtonTarget input) {
-    buttonTarget = input;
+  void setActionTarget(final ActionTarget input) {
+    actionTarget = input;
   }
 
   void setHeaders(String tableHeader, HeaderCell rowHeader, HeaderCell columnHeader) {
@@ -125,12 +125,12 @@ final class FileButtonCell extends InputCell {
     }
     int returnVal = chooser.showOpenDialog(button.getParent());
     if (returnVal == JFileChooser.APPROVE_OPTION) {
-      if (buttonTarget != null) {
-        File file = chooser.getSelectedFile();
-        if (file != null) {
-          buttonTarget.setFile(file);
-          currentDirectory.setCurrentDirectory(file.getParentFile());
-        }
+      File file = chooser.getSelectedFile();
+      if (actionTarget != null) {
+        actionTarget.setTargetFile(file);
+      }
+      if (currentDirectory != null && file != null) {
+        currentDirectory.setCurrentDirectory(file.getParentFile());
       }
     }
   }
