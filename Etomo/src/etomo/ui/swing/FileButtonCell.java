@@ -2,12 +2,17 @@ package etomo.ui.swing;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 
+import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
+import javax.swing.JPanel;
+import javax.swing.border.BevelBorder;
 import javax.swing.filechooser.FileFilter;
 
 import etomo.storage.ExtensibleFileFilter;
@@ -33,7 +38,7 @@ final class FileButtonCell extends InputCell {
 
   private final CurrentDirectory currentDirectory;
 
-  //Field that this button is associated with:
+  // Field that this button is associated with:
   private ButtonTarget buttonTarget = null;
   private String label = "Open File";
   private FileFilter fileFilter = null;
@@ -41,39 +46,44 @@ final class FileButtonCell extends InputCell {
   private final SimpleButton button = new SimpleButton(new ImageIcon(
       ClassLoader.getSystemResource("images/openFile.gif")));
 
-  FileButtonCell(final CurrentDirectory currentDirectory) {
+  // private final SimpleButton button = new SimpleButton(">");
+
+  private FileButtonCell(final CurrentDirectory currentDirectory) {
     this.currentDirectory = currentDirectory;
+    button.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
+    Dimension size = button.getPreferredSize();
+    if (size.width < size.height) {
+      size.width = size.height;
+    }
+    button.setSize(size);
   }
 
   static FileButtonCell getInstance(final FileButtonCell fileButtonCell) {
     FileButtonCell instance = new FileButtonCell(fileButtonCell.currentDirectory);
     instance.label = fileButtonCell.label;
     instance.fileFilter = fileButtonCell.fileFilter;
-    instance.init();
     instance.addListeners();
     return instance;
   }
 
-  static FileButtonCell getInstance(final CurrentDirectory currentDirectory,
-      final String label) {
+  static FileButtonCell getInstance(final CurrentDirectory currentDirectory) {
     FileButtonCell instance = new FileButtonCell(currentDirectory);
-    instance.init();
     instance.addListeners();
     return instance;
   }
 
-  private void init() {
-    int size = 18;
-    Dimension dim = new Dimension(size, size);
-    button.setPreferredSize(dim);
-    button.setMaximumSize(dim);
+  public void add(JPanel panel, GridBagLayout layout, GridBagConstraints constraints) {
+    double oldWeightx = constraints.weightx;
+    constraints.weightx = 0.0;
+    super.add(panel, layout, constraints);
+    constraints.weightx = oldWeightx;
   }
 
   private void addListeners() {
     button.addActionListener(new FileButtonActionListener(this));
   }
 
-  void addTarget(final ButtonTarget input) {
+  void setTarget(final ButtonTarget input) {
     buttonTarget = input;
   }
 
