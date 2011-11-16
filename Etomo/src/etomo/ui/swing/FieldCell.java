@@ -149,7 +149,7 @@ import etomo.util.FilePath;
  * <p> field is disabled).
  * <p> </p>
  */
-final class FieldCell extends InputCell implements ButtonTarget {
+final class FieldCell extends InputCell implements ActionTarget {
   public static final String rcsid = "$Id$";
 
   private final JTextField textField;
@@ -259,6 +259,10 @@ final class FieldCell extends InputCell implements ButtonTarget {
 
   Component getComponent() {
     return textField;
+  }
+
+  public void setTargetFile(final File file) {
+    setFile(file);
   }
 
   public void setFile(final File file) {
