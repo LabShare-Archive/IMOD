@@ -51,14 +51,14 @@ format=
 [function = volume-table]
 #check empty table error
 run.function.setup-test-run-error=
-bn.add-volume-and-model=
+bn.insert=
 wait.file-chooser.open=%{dataset}-a.rec
 wait.file-chooser.open=%{dataset}-a.mod
 #highlight the first row
 mb.volume-table-1-vol-#=
 #copy the highlighted row
-bn.copy-row=
-bn.add-volume-and-model=
+bn.duplicate=
+bn.insert=
 wait.file-chooser.open=%{dataset}-b.rec
 wait.file-chooser.open=%{dataset}-b.mod
 mb.volume-table-3-vol-#=
