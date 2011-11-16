@@ -170,13 +170,23 @@ final class VolumeRow implements Highlightable {
   private int imodIndex = -1;
   private int index;
 
+  static VolumeRow getInstance(final BaseManager manager, final int index,
+      final VolumeTable table, final JPanel panel, final GridBagLayout layout,
+      final GridBagConstraints constraints, final TomogramFileFilter tomogramFileFilter) {
+    VolumeRow instance = new VolumeRow(manager, index, table, panel, layout, constraints,
+        tomogramFileFilter);
+    instance.addActionTargets();
+    instance.setTooltips();
+    return instance;
+  }
+
   static VolumeRow getInstance(final BaseManager manager, final File fnVolume,
       final File fnModParticle, final int index, final VolumeTable table,
       final JPanel panel, final GridBagLayout layout,
       final GridBagConstraints constraints, final TomogramFileFilter tomogramFileFilter) {
     VolumeRow instance = new VolumeRow(manager, fnVolume, fnModParticle, index, table,
         panel, layout, constraints, tomogramFileFilter);
-    instance.addTargets();
+    instance.addActionTargets();
     instance.setTooltips();
     return instance;
   }
@@ -187,16 +197,44 @@ final class VolumeRow implements Highlightable {
       final GridBagConstraints constraints, final TomogramFileFilter tomogramFileFilter) {
     VolumeRow instance = new VolumeRow(manager, fnVolume, fnModParticle, index, table,
         panel, layout, constraints, tomogramFileFilter);
-    instance.addTargets();
+    instance.addActionTargets();
     instance.setTooltips();
     return instance;
   }
 
   static VolumeRow getInstance(final VolumeRow volumeRow, final int index) {
     VolumeRow instance = new VolumeRow(volumeRow, index);
-    instance.addTargets();
+    instance.addActionTargets();
     instance.setTooltips();
     return instance;
+  }
+
+  private VolumeRow(final BaseManager manager, final int index, final VolumeTable table,
+      final JPanel panel, final GridBagLayout layout,
+      final GridBagConstraints constraints, final TomogramFileFilter tomogramFileFilter) {
+    this.manager = manager;
+    this.index = index;
+    this.table = table;
+    this.panel = panel;
+    this.layout = layout;
+    this.constraints = constraints;
+    number.setText(String.valueOf(index + 1));
+    btnHighlighter = HighlighterButton.getInstance(this, table);
+    String rootDir = manager.getPropertyUserDir();
+    fnVolume = FieldCell.getExpandableInstance(rootDir);
+    // setValue(fnVolume, fnVolumeFile);
+    fbFnVolume = FileButtonCell.getInstance(table);
+    fbFnVolume.setFileFilter(tomogramFileFilter);
+    fnModParticle = FieldCell.getExpandableInstance(rootDir);
+    // setValue(fnModParticle, fnModParticleFile);
+    fbFnModParticle = FileButtonCell.getInstance(table);
+    fbFnModParticle.setFileFilter(new ModelFileFilter());
+    initMotlFile = FieldCell.getExpandableInstance(rootDir);
+    tiltRangeMin = FieldCell.getEditableMatlabInstance();
+    tiltRangeMax = FieldCell.getEditableMatlabInstance();
+    relativeOrientX = FieldCell.getEditableMatlabInstance();
+    relativeOrientY = FieldCell.getEditableMatlabInstance();
+    relativeOrientZ = FieldCell.getEditableMatlabInstance();
   }
 
   private VolumeRow(final VolumeRow volumeRow, final int index) {
@@ -279,16 +317,16 @@ final class VolumeRow implements Highlightable {
     relativeOrientZ = FieldCell.getEditableMatlabInstance();
   }
 
-  private void addTargets() {
-    fbFnVolume.setTarget(fnVolume);
-    fbFnModParticle.setTarget(fnModParticle);
+  private void addActionTargets() {
+    fbFnVolume.setActionTarget(fnVolume);
+    fbFnModParticle.setActionTarget(fnModParticle);
   }
 
   void setNames() {
     btnHighlighter.setHeaders(VolumeTable.LABEL, number,
         table.getVolumeNumberHeaderCell());
-    setHeaders(fnVolume,fbFnVolume,table.getFnVolumeHeaderCell());
-    setHeaders(fnModParticle,fbFnModParticle,table.getFnModParticleHeaderCell());
+    setHeaders(fnVolume, fbFnVolume, table.getFnVolumeHeaderCell());
+    setHeaders(fnModParticle, fbFnModParticle, table.getFnModParticleHeaderCell());
     tiltRangeMin.setHeaders(VolumeTable.LABEL, number, table.getTiltRangeHeaderCell());
     tiltRangeMax.setHeaders(VolumeTable.LABEL, number, table.getTiltRangeHeaderCell());
     relativeOrientX.setHeaders(VolumeTable.LABEL, number,
@@ -322,6 +360,7 @@ final class VolumeRow implements Highlightable {
     fnVolume.remove();
     fbFnVolume.remove();
     fnModParticle.remove();
+    fbFnModParticle.remove();
     initMotlFile.remove();
     tiltRangeMin.remove();
     tiltRangeMax.remove();
