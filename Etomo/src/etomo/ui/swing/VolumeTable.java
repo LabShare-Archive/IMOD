@@ -484,7 +484,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     pnlButtonsBottom.setLayout(new GridLayout(1, 3, 0, 0));
     // btnChangeFnModParticle.setSize();
     // pnlButtons1.add(btnChangeFnModParticle.getComponent());
-    // pnlButtonsBottom.add(btnSetInitMotlFile.getComponent());
+     pnlButtonsBottom.add(btnSetInitMotlFile.getComponent());
     pnlButtonsBottom.add(Box.createHorizontalGlue());
     pnlButtonsBottom.add(r3bVolume.getComponent());
     pnlButtonsBottom.add(Box.createHorizontalGlue());
