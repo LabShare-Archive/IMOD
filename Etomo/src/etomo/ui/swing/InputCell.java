@@ -52,7 +52,7 @@ abstract class InputCell implements Cell {
 
   abstract void setToolTipText(String toolTipText);
 
-  public final void add(JPanel panel, GridBagLayout layout, GridBagConstraints constraints) {
+  public  void add(JPanel panel, GridBagLayout layout, GridBagConstraints constraints) {
     layout.setConstraints(getComponent(), constraints);
     panel.add(getComponent());
     jpanelContainer = panel;
