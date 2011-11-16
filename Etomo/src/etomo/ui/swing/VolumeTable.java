@@ -3,13 +3,14 @@ package etomo.ui.swing;
 import java.awt.Container;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
@@ -233,11 +234,12 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
 
   private final RowList rowList = new RowList();
   private final JPanel rootPanel = new JPanel();
-  private final MultiLineButton btnChangeFnModParticle = new MultiLineButton(
-      "Change Model");
-  private final MultiLineButton btnSetInitMotlFile = new MultiLineButton(
-      "Set Initial Motive List File");
-  private final MultiLineButton btnReadTiltFile = new MultiLineButton("Read Tilt File");
+  private final MultiLineButton btnAddFnVolume = new MultiLineButton("Insert");
+   //private final MultiLineButton btnChangeFnModParticle = new MultiLineButton(
+  // "Change Model");
+   private final MultiLineButton btnSetInitMotlFile = new MultiLineButton(
+   "Set Initial Motive List File");
+  private final MultiLineButton btnReadTiltFile = new MultiLineButton("Read tilt file");
   private final Run3dmodButton r3bVolume;
   private final HeaderCell header1VolumeNumber = new HeaderCell("Vol #");
   private final HeaderCell header1FnVolume = new HeaderCell(FN_VOLUME_HEADER1);
@@ -264,11 +266,11 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
   private final GridBagConstraints constraints = new GridBagConstraints();
   private final Column initMotlFileColumn = new Column();
   private final Column tiltRangeColumn = new Column();
-  private final MultiLineButton btnDeleteRow = new MultiLineButton("Delete Row");
+  private final MultiLineButton btnDeleteRow = new MultiLineButton("Delete");
   private final TomogramFileFilter tomogramFileFilter = new TomogramFileFilter();
-  private final MultiLineButton btnMoveUp = new MultiLineButton("Move Up");
-  private final MultiLineButton btnMoveDown = new MultiLineButton("Move Down");
-  private final MultiLineButton btnCopyRow = new MultiLineButton("Copy Row");
+  private final MultiLineButton btnMoveUp = new MultiLineButton("Move up");
+  private final MultiLineButton btnMoveDown = new MultiLineButton("Move down");
+  private final MultiLineButton btnCopyRow = new MultiLineButton("Duplicate");
 
   private Viewport viewport;
   private final ExpandButton btnExpandFnVolume;
@@ -438,11 +440,6 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
   }
 
   private void createTable() {
-    // initialize
-    btnCopyRow.setSize();
-    btnMoveUp.setSize();
-    btnMoveDown.setSize();
-    btnDeleteRow.setSize();
     // columns
     initMotlFileColumn.add(header1InitMotlFile);
     initMotlFileColumn.add(header2InitMotlFile);
@@ -459,34 +456,48 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     // border
     EtomoPanel pnlBorder = new EtomoPanel();
     pnlBorder.setLayout(new BoxLayout(pnlBorder, BoxLayout.X_AXIS));
-    pnlBorder.setBorder(new EtchedBorder(LABEL).getBorder());
     pnlBorder.add(pnlTable);
     pnlBorder.add(viewport.getPagingPanel());
-    // buttons 1
-    JPanel pnlButtons1 = new JPanel();
-    pnlButtons1.setLayout(new BoxLayout(pnlButtons1, BoxLayout.X_AXIS));
-    btnChangeFnModParticle.setSize();
-    pnlButtons1.add(btnChangeFnModParticle.getComponent());
-    btnSetInitMotlFile.setSize();
-    pnlButtons1.add(btnSetInitMotlFile.getComponent());
-    btnReadTiltFile.setSize();
-    pnlButtons1.add(btnReadTiltFile.getComponent());
-    pnlButtons1.add(r3bVolume.getComponent());
-    // buttons 2
-    JPanel pnlButtons2 = new JPanel();
-    pnlButtons2.setLayout(new BoxLayout(pnlButtons2, BoxLayout.X_AXIS));
-    r3bVolume.setSize();
-    pnlButtons2.add(btnCopyRow.getComponent());
-    pnlButtons2.add(btnMoveUp.getComponent());
-    pnlButtons2.add(btnMoveDown.getComponent());
-    pnlButtons2.add(btnDeleteRow.getComponent());
-
+    // buttons -side
+    JPanel pnlSideButtons = new JPanel();
+    pnlSideButtons.setLayout(new BoxLayout(pnlSideButtons, BoxLayout.Y_AXIS));
+    pnlSideButtons.add(btnMoveUp.getComponent());
+    pnlSideButtons.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlSideButtons.add(btnMoveDown.getComponent());
+    pnlSideButtons.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlSideButtons.add(btnAddFnVolume.getComponent());
+    pnlSideButtons.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlSideButtons.add(btnCopyRow.getComponent());
+    pnlSideButtons.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlSideButtons.add(btnDeleteRow.getComponent());
+    pnlSideButtons.add(Box.createVerticalGlue());
+    // Table and side buttons
+    JPanel pnlTableButtons = new JPanel();
+    pnlTableButtons.setLayout(new BoxLayout(pnlTableButtons, BoxLayout.X_AXIS));
+    pnlTableButtons.add(Box.createRigidArea(FixedDim.x10_y0));
+    pnlTableButtons.add(pnlBorder);
+    pnlTableButtons.add(Box.createRigidArea(FixedDim.x20_y0));
+    pnlTableButtons.add(pnlSideButtons);
+    pnlTableButtons.add(Box.createRigidArea(FixedDim.x20_y0));
+    // buttons - bottom
+    JPanel pnlButtonsBottom = new JPanel();
+    pnlButtonsBottom.setLayout(new GridLayout(1, 3, 0, 0));
+    // btnChangeFnModParticle.setSize();
+    // pnlButtons1.add(btnChangeFnModParticle.getComponent());
+    // btnSetInitMotlFile.setSize();
+    pnlButtonsBottom.add(btnSetInitMotlFile.getComponent());
+    pnlButtonsBottom.add(Box.createHorizontalGlue());
+    pnlButtonsBottom.add(r3bVolume.getComponent());
+    pnlButtonsBottom.add(Box.createHorizontalGlue());
+    pnlButtonsBottom.add(btnReadTiltFile.getComponent());
+    pnlButtonsBottom.add(Box.createHorizontalGlue());
     // root
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
-    rootPanel.setBorder(BorderFactory.createEtchedBorder());
-    rootPanel.add(pnlBorder);
-    rootPanel.add(pnlButtons1);
-    rootPanel.add(pnlButtons2);
+    rootPanel.setBorder(new EtchedBorder(LABEL).getBorder());
+    rootPanel.add(pnlTableButtons);
+    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+    rootPanel.add(pnlButtonsBottom);
+    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
   }
 
   private void imodVolume(Run3dmodMenuOptions menuOptions) {
@@ -498,41 +509,31 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
   }
 
   private void display() {
-    constraints.weighty = 0.0;
+    constraints.weighty = 1.0;
     // First header row
-    constraints.weightx = 0.0;
+    constraints.weightx = 1.0;
     constraints.gridwidth = 2;
     header1VolumeNumber.add(pnlTable, layout, constraints);
     constraints.gridwidth = 1;
-    constraints.weightx = 0.1;
     header1FnVolume.add(pnlTable, layout, constraints);
-    constraints.weightx = 0.0;
     btnExpandFnVolume.add(pnlTable, layout, constraints);
-    constraints.weightx = 0.1;
     header1FnModParticle.add(pnlTable, layout, constraints);
-    constraints.weightx = 0.0;
     btnExpandFnModParticle.add(pnlTable, layout, constraints);
-    constraints.weightx = 0.1;
     header1InitMotlFile.add(pnlTable, layout, constraints);
-    constraints.weightx = 0.0;
     btnExpandInitMotlFile.add(pnlTable, layout, constraints);
-    constraints.weightx = 0.1;
     constraints.gridwidth = 2;
     header1TiltRange.add(pnlTable, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     header1RelativeOrient.add(pnlTable, layout, constraints);
     // Second header row
-    constraints.weightx = 0.0;
     constraints.gridwidth = 2;
     header2VolumeNumber.add(pnlTable, layout, constraints);
-    constraints.weightx = 0.1;
     header2FnVolume.add(pnlTable, layout, constraints);
     header2FnModParticle.add(pnlTable, layout, constraints);
     header2InitMotlFile.add(pnlTable, layout, constraints);
     constraints.gridwidth = 1;
     header2TiltRangeStart.add(pnlTable, layout, constraints);
     header2TiltRangeEnd.add(pnlTable, layout, constraints);
-    constraints.gridwidth = 1;
     header2RelativeOrientX.add(pnlTable, layout, constraints);
     header2RelativeOrientY.add(pnlTable, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -566,18 +567,21 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
   }
 
   private void action(final String command, final Run3dmodMenuOptions run3dmodMenuOptions) {
-    if (command.equals(btnSetInitMotlFile.getActionCommand())) {
-      setInitMotlFile();
+    if (command.equals(btnAddFnVolume.getActionCommand())) {
+      addVolumeRow();
     }
+     else if (command.equals(btnSetInitMotlFile.getActionCommand())) {
+     setInitMotlFile();
+     }
     else if (command.equals(btnReadTiltFile.getActionCommand())) {
       openTiltFile();
     }
     else if (command.equals(btnDeleteRow.getActionCommand())) {
       deleteRow(rowList.getHighlightedRow());
     }
-    else if (command.equals(btnChangeFnModParticle.getActionCommand())) {
-      setFnModParticle();
-    }
+    // else if (command.equals(btnChangeFnModParticle.getActionCommand())) {
+    // setFnModParticle();
+    // }
     else if (command.equals(r3bVolume.getActionCommand())) {
       imodVolume(run3dmodMenuOptions);
     }
@@ -610,13 +614,13 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
   }
 
   private void setToolTipText() {
-    // btnAddFnVolume.setToolTipText("Add a new row to table and select volume and model "
-    // + "files.");
-    btnChangeFnModParticle
-        .setToolTipText("Select a new model file for the highlighted row.");
-    btnSetInitMotlFile
-        .setToolTipText("Select a .csv file with initial orientations and shifts "
-            + "for the highlighted row.");
+    btnAddFnVolume.setToolTipText("Add a new row to table and select volume and model "
+        + "files.");
+    // btnChangeFnModParticle
+    // .setToolTipText("Select a new model file for the highlighted row.");
+     btnSetInitMotlFile
+     .setToolTipText("Select a .csv file with initial orientations and shifts "
+     + "for the highlighted row.");
     btnReadTiltFile.setToolTipText("Fill in the tilt range for the highlighted row by "
         + "selecting a file with tilt angles.");
     r3bVolume.setToolTipText("Open the volume and model for the highlighted row in "
@@ -863,8 +867,8 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     btnExpandFnVolume.setEnabled(enable);
     btnExpandFnModParticle.setEnabled(enable);
     btnExpandInitMotlFile.setEnabled(enable);
-    btnSetInitMotlFile.setEnabled(enable && highlighted && useInitMotlFile);
-    btnChangeFnModParticle.setEnabled(enable && highlighted);
+     btnSetInitMotlFile.setEnabled(enable && highlighted && useInitMotlFile);
+    // btnChangeFnModParticle.setEnabled(enable && highlighted);
     btnReadTiltFile.setEnabled(enable && highlighted && useTiltRange);
     r3bVolume.setEnabled(enable && highlighted);
     btnDeleteRow.setEnabled(enable && highlighted);
@@ -876,11 +880,12 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
 
   private void addListeners() {
     VTActionListener actionListener = new VTActionListener(this);
-    btnSetInitMotlFile.addActionListener(actionListener);
+    btnAddFnVolume.addActionListener(actionListener);
+     btnSetInitMotlFile.addActionListener(actionListener);
     btnReadTiltFile.addActionListener(actionListener);
     r3bVolume.addActionListener(actionListener);
     btnDeleteRow.addActionListener(actionListener);
-    btnChangeFnModParticle.addActionListener(actionListener);
+    // btnChangeFnModParticle.addActionListener(actionListener);
     btnMoveUp.addActionListener(actionListener);
     btnMoveDown.addActionListener(actionListener);
     btnCopyRow.addActionListener(actionListener);
