@@ -138,6 +138,7 @@ tf.particle=2
 
 
 [function = volume-size]
+tb.setup=
 #check particle volume x empty error
 run.function.setup-test-run-error=
 tf.x=%{particle-volume}
