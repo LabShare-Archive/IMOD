@@ -52,18 +52,18 @@ format=
 #check empty table error
 run.function.setup-test-run-error=
 bn.insert=
-mb.volume-table-1-volume=
+bn.volume-table-1-volume=
 wait.file-chooser.open=%{dataset}-a.rec
-mb.volume-table-1-model=
+bn.volume-table-1-model=
 wait.file-chooser.open=%{dataset}-a.mod
 #highlight the first row
 mb.volume-table-1-vol-#=
 #copy the highlighted row
 bn.duplicate=
 bn.insert=
-mb.volume-table-3-volume=
+bn.volume-table-3-volume=
 wait.file-chooser.open=%{dataset}-b.rec
-mb.volume-table-3-model=
+bn.volume-table-3-model=
 wait.file-chooser.open=%{dataset}-b.mod
 mb.volume-table-3-vol-#=
 bn.move-up=
