@@ -15,7 +15,9 @@ import javax.swing.JPanel;
 import javax.swing.border.BevelBorder;
 import javax.swing.filechooser.FileFilter;
 
+import etomo.EtomoDirector;
 import etomo.storage.ExtensibleFileFilter;
+import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.UITestFieldType;
 
 /**
@@ -91,6 +93,16 @@ final class FileButtonCell extends InputCell {
     label = columnHeader.getText();
     super.setHeaders(tableHeader, rowHeader, columnHeader);
   }
+  
+  void setName() {
+    String name = convertLabelToName();
+    button.setName(name);
+    if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
+      System.out.println(getComponent().getName() + ' '
+          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+    }
+  }
+
 
   void setFileFilter(final FileFilter input) {
     fileFilter = input;
