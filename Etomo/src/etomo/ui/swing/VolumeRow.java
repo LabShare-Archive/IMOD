@@ -384,6 +384,8 @@ final class VolumeRow implements Highlightable {
     initMotlFile.add(panel, layout, constraints);
     constraints.gridwidth = 1;
     tiltRangeMin.add(panel, layout, constraints);
+    /*constraints.gridwidth = GridBagConstraints.REMAINDER;
+    tiltRangeMax.add(panel, layout, constraints); */   
     tiltRangeMax.add(panel, layout, constraints);
     relativeOrientX.add(panel, layout, constraints);
     relativeOrientY.add(panel, layout, constraints);
