@@ -96,19 +96,17 @@ final class CylinderOrientationPanel {
    * Set parameters from metaData.
    * @param metaData
    */
-  void setParameters(final ConstPeetMetaData metaData, final boolean parametersOnly) {
-    if (!parametersOnly) {
-      ltfZRotation.setText(metaData.getMaskModelPtsZRotation());
-      ltfYRotation.setText(metaData.getMaskModelPtsYRotation());
-    }
+  void setParameters(final ConstPeetMetaData metaData) {
+    ltfZRotation.setText(metaData.getMaskModelPtsZRotation());
+    ltfYRotation.setText(metaData.getMaskModelPtsYRotation());
   }
 
   /**
    * Load data from MatlabParamFile.
    * @param matlabParamFile
    */
-  void setParameters(final MatlabParam matlabParam, final boolean parametersOnly) {
-    if (!parametersOnly && !matlabParam.isMaskModelPtsEmpty()) {
+  void setParameters(final MatlabParam matlabParam) {
+    if (!matlabParam.isMaskModelPtsEmpty()) {
       ltfZRotation.setText(matlabParam.getMaskModelPtsZRotation());
       ltfYRotation.setText(matlabParam.getMaskModelPtsYRotation());
     }

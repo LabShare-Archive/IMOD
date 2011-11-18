@@ -13,6 +13,8 @@ import etomo.storage.MatlabParam;
 import etomo.type.ConstPeetMetaData;
 import etomo.type.PeetMetaData;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.util.FilePath;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -173,6 +175,15 @@ final class VolumeRow implements Highlightable {
     instance.setTooltips();
     return instance;
   }
+  
+  static VolumeRow getInstance(final BaseManager manager, final String fnVolume,
+      final String fnModParticle, final int index, final VolumeTable table,
+      final JPanel panel, final GridBagLayout layout, final GridBagConstraints constraints) {
+    VolumeRow instance = new VolumeRow(manager, fnVolume, fnModParticle, index, table,
+        panel, layout, constraints);
+    instance.setTooltips();
+    return instance;
+  }
 
   private VolumeRow(final BaseManager manager, final File fnVolumeFile,
       final File fnModParticleFile, final int index, final VolumeTable table,
@@ -188,21 +199,36 @@ final class VolumeRow implements Highlightable {
     btnHighlighter = HighlighterButton.getInstance(this, table);
     number.setText(String.valueOf(index + 1));
   }
+  
+  private VolumeRow(final BaseManager manager, final String fnVolumeFile,
+      final String fnModParticleFile, final int index, final VolumeTable table,
+      final JPanel panel, final GridBagLayout layout, final GridBagConstraints constraints) {
+    this.manager = manager;
+    this.index = index;
+    this.table = table;
+    this.panel = panel;
+    this.layout = layout;
+    this.constraints = constraints;
+    setExpandableValues(fnVolume, fnVolumeFile);
+    setExpandableValues(fnModParticle, fnModParticleFile);
+    btnHighlighter = HighlighterButton.getInstance(this, table);
+    number.setText(String.valueOf(index + 1));
+  }
 
   void setNames() {
-    btnHighlighter.setHeaders(VolumeTable.LABEL, number, table
-        .getVolumeNumberHeaderCell());
+    btnHighlighter.setHeaders(VolumeTable.LABEL, number,
+        table.getVolumeNumberHeaderCell());
     fnVolume.setHeaders(VolumeTable.LABEL, number, table.getFnVolumeHeaderCell());
-    fnModParticle.setHeaders(VolumeTable.LABEL, number, table
-        .getFnModParticleHeaderCell());
+    fnModParticle.setHeaders(VolumeTable.LABEL, number,
+        table.getFnModParticleHeaderCell());
     tiltRangeMin.setHeaders(VolumeTable.LABEL, number, table.getTiltRangeHeaderCell());
     tiltRangeMax.setHeaders(VolumeTable.LABEL, number, table.getTiltRangeHeaderCell());
-    relativeOrientX.setHeaders(VolumeTable.LABEL, number, table
-        .getRelativeOrientHeaderCell());
-    relativeOrientY.setHeaders(VolumeTable.LABEL, number, table
-        .getRelativeOrientHeaderCell());
-    relativeOrientZ.setHeaders(VolumeTable.LABEL, number, table
-        .getRelativeOrientHeaderCell());
+    relativeOrientX.setHeaders(VolumeTable.LABEL, number,
+        table.getRelativeOrientHeaderCell());
+    relativeOrientY.setHeaders(VolumeTable.LABEL, number,
+        table.getRelativeOrientHeaderCell());
+    relativeOrientZ.setHeaders(VolumeTable.LABEL, number,
+        table.getRelativeOrientHeaderCell());
   }
 
   public void highlight(final boolean highlight) {
@@ -283,30 +309,36 @@ final class VolumeRow implements Highlightable {
    * @return true if one or more paths are incorrect.
    */
   boolean isIncorrectPaths() {
-    if (!fnVolume.isEmpty() && !new File(fnVolume.getExpandedValue()).exists()) {
+    if (!fnVolume.isEmpty()
+        && !Utilities.getFileFromPath(manager.getPropertyUserDir(), fnVolume.getExpandedValue()).exists()) {
       return true;
     }
-    if (!fnModParticle.isEmpty() && !new File(fnModParticle.getExpandedValue()).exists()) {
+    if (!fnModParticle.isEmpty()
+        && !Utilities.getFileFromPath(manager.getPropertyUserDir(), fnModParticle.getExpandedValue()).exists()) {
       return true;
     }
-    if (!initMotlFile.isEmpty() && !new File(initMotlFile.getExpandedValue()).exists()) {
+    if (!initMotlFile.isEmpty()
+        && !Utilities.getFileFromPath(manager.getPropertyUserDir(), initMotlFile.getExpandedValue()).exists()) {
       return true;
     }
     return false;
   }
 
   boolean fixIncorrectPaths(boolean choosePathEveryRow) {
-    if (!fnVolume.isEmpty() && !new File(fnVolume.getExpandedValue()).exists()) {
+    if (!fnVolume.isEmpty()
+        && !Utilities.getFileFromPath(manager.getPropertyUserDir(), fnVolume.getExpandedValue()).exists()) {
       if (!fixIncorrectPath(fnVolume, choosePathEveryRow, table.isFnVolumeExpanded())) {
         return false;
       }
     }
-    if (!fnModParticle.isEmpty() && !new File(fnModParticle.getExpandedValue()).exists()) {
+    if (!fnModParticle.isEmpty()
+        && !Utilities.getFileFromPath(manager.getPropertyUserDir(), fnModParticle.getExpandedValue()).exists()) {
       if (!fixIncorrectPath(fnModParticle, false, table.isFnModParticleExpanded())) {
         return false;
       }
     }
-    if (!initMotlFile.isEmpty() && !new File(initMotlFile.getExpandedValue()).exists()) {
+    if (!initMotlFile.isEmpty()
+        && !Utilities.getFileFromPath(manager.getPropertyUserDir(), initMotlFile.getExpandedValue()).exists()) {
       if (!fixIncorrectPath(initMotlFile, false, table.isInitMotlFileExpanded())) {
         return false;
       }
@@ -323,13 +355,14 @@ final class VolumeRow implements Highlightable {
   private boolean fixIncorrectPath(FieldCell fieldCell, boolean choosePath, boolean expand) {
     File newFile = null;
     while (newFile == null || !newFile.exists()) {
-      //Have the user choose the location of the file if they haven't chosen
-      //before or they want to choose most of the files individuallly, otherwise
-      //just use the current correctPath.
+      // Have the user choose the location of the file if they haven't chosen
+      // before or they want to choose most of the files individuallly, otherwise
+      // just use the current correctPath.
       if (table.isCorrectPathNull() || choosePath
           || (newFile != null && !newFile.exists())) {
         JFileChooser fileChooser = table.getFileChooserInstance();
-        fileChooser.setSelectedFile(new File(fieldCell.getExpandedValue()));
+        fileChooser.setSelectedFile(Utilities.getFileFromPath(manager.getPropertyUserDir(),
+            fieldCell.getExpandedValue()));
         fileChooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         int returnVal = fileChooser.showOpenDialog(table.getContainer());
@@ -409,8 +442,8 @@ final class VolumeRow implements Highlightable {
   }
 
   void imodVolume(Run3dmodMenuOptions menuOptions) {
-    imodIndex = manager.imodOpen(ImodManager.TOMOGRAM_KEY, imodIndex, fnVolume
-        .getExpandedValue(), fnModParticle.getExpandedValue(), menuOptions);
+    imodIndex = manager.imodOpen(ImodManager.TOMOGRAM_KEY, imodIndex,
+        fnVolume.getExpandedValue(), fnModParticle.getExpandedValue(), menuOptions);
   }
 
   /**
@@ -424,52 +457,68 @@ final class VolumeRow implements Highlightable {
     }
     if (tiltRangeRequired && (tiltRangeMin.isEmpty() || tiltRangeMax.isEmpty())) {
       return VolumeTable.LABEL + ":  In row " + number.getText() + ", "
-          + VolumeTable.TILT_RANGE_HEADER1_LABEL + " is required when either "
-          + MissingWedgeCompensationPanel.TILT_RANGE_LABEL + " or "
-          + MissingWedgeCompensationPanel.FLG_WEDGE_WEIGHT_LABEL + " is checked.";
+          + VolumeTable.TILT_RANGE_HEADER1_LABEL + " is required.";
     }
     return null;
   }
 
-  private void setExpandableValues(final FieldCell fieldCell, final String fileName) {
-    //Don't override existing values with null value.
-    if (fileName == null || fileName.matches("\\s*")) {
+  /**
+   * Sets the contracted and expanded values of the fieldCell while preserving the
+   * filePath string.
+   * @param fieldCell
+   * @param filePath
+   */
+  private void setExpandableValues(final FieldCell fieldCell, final String filePath) {
+    // Don't override existing values with null value.
+    if (filePath == null || filePath.matches("\\s*")) {
       return;
     }
-    setExpandableValues(fieldCell, new File(fileName));
+    //Preserve the text of the filePath.
+    fieldCell.setExpandableValues(new File(filePath).getName(),filePath);
   }
 
+  /**
+   * Sets the contracted and expanded values of the fieldCell with the file name and a
+   * relative path from propertyUserDir to the file.
+   * @param fieldCell
+   * @param file
+   */
   private void setExpandableValues(final FieldCell fieldCell, final File file) {
-    //Don't override existing values with null value.
+    // Don't override existing values with null value.
     if (file == null) {
       return;
     }
-    fieldCell.setExpandableValues(file.getName(), file.getAbsolutePath());
+    fieldCell.setExpandableValues(file.getName(),
+        FilePath.getRelativePath(manager.getPropertyUserDir(), file));
+  }
+  
+  void setInitMotlFile(String initMotlFile) {
+    setExpandableValues(this.initMotlFile, initMotlFile);
   }
 
   void setInitMotlFile(File initMotlFile) {
     setExpandableValues(this.initMotlFile, initMotlFile);
   }
 
-  File getInitMotlFile() {
+  String getExpandedInitMotlFile() {
     if (initMotlFile.isEmpty()) {
       return null;
     }
-    return new File(initMotlFile.getExpandedValue());
+    return initMotlFile.getExpandedValue();
   }
 
   File getFnVolumeFile() {
     if (fnVolume.isEmpty()) {
       return null;
     }
-    return new File(fnVolume.getExpandedValue());
+    return Utilities.getFileFromPath(manager.getPropertyUserDir(), fnVolume.getExpandedValue());
   }
 
   File getFnModParticleFile() {
     if (fnModParticle.isEmpty()) {
       return null;
     }
-    return new File(fnModParticle.getExpandedValue());
+    return Utilities.getFileFromPath(manager.getPropertyUserDir(), fnModParticle.getExpandedValue());
   }
 
   void setFnModParticle(File input) {
