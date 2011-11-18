@@ -49,7 +49,7 @@ public final class FilePath {
   }
 
   public static boolean isPath(final String name) {
-    if (name==null||name.matches("\\s*")) {
+    if (name == null || name.matches("\\s*")) {
       return false;
     }
     try {
@@ -71,12 +71,12 @@ public final class FilePath {
   }
 
   public static String replaceName(String path, final String name) {
-    System.err.println("ReplaceName:in:path:"+path+",name:"+name);
+    System.err.println("ReplaceName:in:path:" + path + ",name:" + name);
     if (!isPath(path)) {
       return name;
     }
     String retval = new File(new File(path).getParent(), name).getPath();
-    System.err.println("ReplaceName:out:"+retval);
+    System.err.println("ReplaceName:out:" + retval);
     return retval;
   }
 
@@ -87,12 +87,19 @@ public final class FilePath {
    * @return
    */
   public static String getRelativePath(final String fromAbsolutePath, final File toFile) {
+    if (debug) {
+      System.out.println("fromAbsolutePath:" + fromAbsolutePath + "\ntoFile:" + toFile);
+    }
     FilePath fromPath = new FilePath(fromAbsolutePath);
     if (toFile == null) {
       return null;
     }
     FilePath toPath = new FilePath(toFile.getAbsolutePath());
-    return fromPath.getRelativePathTo(toPath);
+    String output = fromPath.getRelativePathTo(toPath);
+    if (debug) {
+      System.out.println("output:" + output);
+    }
+    return output;
   }
 
   static void setDebug(final boolean input) {
@@ -101,7 +108,7 @@ public final class FilePath {
 
   /**
    * Returns a relative path going from this to toPath.  If this is impossible, returns
-   * the path in toPath.
+   * the absolute path in toPath.
    * @param toPath
    * @return
    */
