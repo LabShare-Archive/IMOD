@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/17/11: In eTomo - PEET, upgraded the volume table with an improved format
+and embedded file buttons.(Bug# 1561)
+
 11/9/11: In eTomo - Fiducial Model, fixed failure in patch tracking when the
 there is an existing tilt file (In 4.3).(Bug# 1547)
 
