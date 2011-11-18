@@ -83,6 +83,7 @@ wait.file-chooser.initial-motl=%{dataset}-a-initMOTL.csv
   assert.enabled.bn.volume-table-1-initial=
 	#test move up and move down
 	#check enable/disable for bottom row
+	mb.volume-table-3-vol-#=
 	assert.enabled.bn.move-up=
 	assert.disabled.bn.move-down=
 	bn.move-up=
