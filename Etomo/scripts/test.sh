@@ -70,12 +70,12 @@ make -f uitest.make $TARGET
 ret=$?
 if [ ! $ret -eq 0 ] ; then
     if [ ! $ret -eq 130 ] ; then
-	touch nada
+	ll -rt|tail>nada
 	mail -s "uitest $TARGET on $REPOSITORY failed on `hostname` error: $ret" sueh@colorado.edu < nada
 	return
     fi
 fi
 if [ ! $ret -eq 130 ] ; then
-    touch nada
+    ll -rt|tail>nada
     mail -s "uitest $TARGET on $REPOSITORY succeeded on `hostname`" sueh@colorado.edu < nada
 fi
