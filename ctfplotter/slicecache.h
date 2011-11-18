@@ -25,6 +25,7 @@ class SliceCache
    SliceCache(int cacheSize);
    void initCache(const char *fnStack, int dim, int hyper,
                   int tSize, int& nx, int &ny, int &nz);
+   void setDataOffset(float inval) {mDataOffset = inval;};
    float readAngle(int whichSlice);
    void whatIsNeeded(float lowLimit, float highLimit, int &startSliceNum, int&
        endSliceNum); 
@@ -33,6 +34,7 @@ class SliceCache
    float   getAngle(int whichSlice);
    void clearAndSetSize(int dim, int hyper, int tSize);
    int *getFreqCount() {return mFreqCount;};
+   MrcHeader *getHeader() {return &mHeader;};
       
   private:
    int mMaxCacheSize; // in megs;
@@ -41,6 +43,7 @@ class SliceCache
    MrcHeader mHeader;
    int mSliceMode;
    float *mSliceData;
+   float mDataOffset;
    int numXtiles, mNumYtiles;
    int mCurSlice;
    int mNDim;
