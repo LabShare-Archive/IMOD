@@ -87,6 +87,8 @@ class MyApp : public QApplication
     Ilist *getSavedList() {return mSaved;};
     void setSaveModified() {mSaveModified = true;};
     bool getSaveModified() {return mSaveModified;};
+    SliceCache *getCache() {return &mCache;};
+    
     MyApp(int &argc, char *argv[], int volt, double pSize, 
           double ampRatio, float cs, char *defFn, int dim, int hyper, 
           double focusTol, int tSize, double tAxisAngle, double lAngle,

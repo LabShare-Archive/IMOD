@@ -27,11 +27,21 @@ counts near 100, 150, 225, etc., up to 2210.  With a 1 nm pixel size, these
 noise files could be used with images where the dose recorded at the camera
 ranged from 0.1 to 2.2 electrons per square Angstrom.  If you need files for
 analyzing both unbinned and binned data, you can take one set of unbinned
-noise images and then bin them with Newstack(1).
+noise images and then bin them with a Newstack(1) command like this:
+   newstack -bin 2 -mult 4,0  input_file output_file
+
+The multiplication by 4 (the square of the binning factor) is necessary to make
+the counts be the same as they would be for binned images from the microscope
+with the same exposure.
 
 If there are significant numbers of X-rays in the noise images, you should
 clean them with Ccderaser(1), such as with:
    ccderaser -find -peak 8 -diff 6  input_file output_file
+
+The noise files must have positive means; i.e., their values should be
+proportion to the recorded electrons.  If they are acquired with software
+that subtracts 32768 before storing as signed integers, then you need to add
+this offset back to the data in order to use them as noise files.
 
 When you start the program, it will first load and analyze all of the noise
 files.  Then it will read in the images within the specified initial angular
