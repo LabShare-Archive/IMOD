@@ -11,6 +11,7 @@ import etomo.BaseManager;
 import etomo.process.ImodManager;
 import etomo.storage.MatlabParam;
 import etomo.storage.ModelFileFilter;
+import etomo.storage.MotlFileFilter;
 import etomo.storage.TomogramFileFilter;
 import etomo.type.ConstPeetMetaData;
 import etomo.type.PeetMetaData;
@@ -156,11 +157,9 @@ final class VolumeRow implements Highlightable {
   private final FieldCell fnModParticle;
   private final FileButtonCell fbFnModParticle;
   private final FieldCell initMotlFile;
+  private final FileButtonCell fbInitMotlFile;
   private final FieldCell tiltRangeMin;
   private final FieldCell tiltRangeMax;
-  private final FieldCell relativeOrientX;
-  private final FieldCell relativeOrientY;
-  private final FieldCell relativeOrientZ;
   private final VolumeTable table;
   private final JPanel panel;
   private final GridBagLayout layout;
@@ -230,11 +229,10 @@ final class VolumeRow implements Highlightable {
     fbFnModParticle = FileButtonCell.getInstance(table);
     fbFnModParticle.setFileFilter(new ModelFileFilter());
     initMotlFile = FieldCell.getExpandableInstance(rootDir);
+    fbInitMotlFile = FileButtonCell.getInstance(table);
+    fbInitMotlFile.setFileFilter(new MotlFileFilter());
     tiltRangeMin = FieldCell.getEditableMatlabInstance();
     tiltRangeMax = FieldCell.getEditableMatlabInstance();
-    relativeOrientX = FieldCell.getEditableMatlabInstance();
-    relativeOrientY = FieldCell.getEditableMatlabInstance();
-    relativeOrientZ = FieldCell.getEditableMatlabInstance();
   }
 
   private VolumeRow(final VolumeRow volumeRow, final int index) {
@@ -252,11 +250,9 @@ final class VolumeRow implements Highlightable {
     fnModParticle = FieldCell.getInstance(volumeRow.fnModParticle);
     fbFnModParticle = FileButtonCell.getInstance(volumeRow.fbFnModParticle);
     initMotlFile = FieldCell.getInstance(volumeRow.initMotlFile);
+    fbInitMotlFile = FileButtonCell.getInstance(volumeRow.fbInitMotlFile);
     tiltRangeMin = FieldCell.getInstance(volumeRow.tiltRangeMin);
     tiltRangeMax = FieldCell.getInstance(volumeRow.tiltRangeMax);
-    relativeOrientX = FieldCell.getInstance(volumeRow.relativeOrientX);
-    relativeOrientY = FieldCell.getInstance(volumeRow.relativeOrientY);
-    relativeOrientZ = FieldCell.getInstance(volumeRow.relativeOrientZ);
   }
 
   private VolumeRow(final BaseManager manager, final File fnVolumeFile,
@@ -281,11 +277,10 @@ final class VolumeRow implements Highlightable {
     fbFnModParticle = FileButtonCell.getInstance(table);
     fbFnModParticle.setFileFilter(new ModelFileFilter());
     initMotlFile = FieldCell.getExpandableInstance(rootDir);
+    fbInitMotlFile = FileButtonCell.getInstance(table);
+    fbInitMotlFile.setFileFilter(new MotlFileFilter());
     tiltRangeMin = FieldCell.getEditableMatlabInstance();
     tiltRangeMax = FieldCell.getEditableMatlabInstance();
-    relativeOrientX = FieldCell.getEditableMatlabInstance();
-    relativeOrientY = FieldCell.getEditableMatlabInstance();
-    relativeOrientZ = FieldCell.getEditableMatlabInstance();
   }
 
   private VolumeRow(final BaseManager manager, final String fnVolumeFile,
@@ -310,16 +305,16 @@ final class VolumeRow implements Highlightable {
     fbFnModParticle = FileButtonCell.getInstance(table);
     fbFnModParticle.setFileFilter(new ModelFileFilter());
     initMotlFile = FieldCell.getExpandableInstance(rootDir);
+    fbInitMotlFile = FileButtonCell.getInstance(table);
+    fbInitMotlFile.setFileFilter(new MotlFileFilter());
     tiltRangeMin = FieldCell.getEditableMatlabInstance();
     tiltRangeMax = FieldCell.getEditableMatlabInstance();
-    relativeOrientX = FieldCell.getEditableMatlabInstance();
-    relativeOrientY = FieldCell.getEditableMatlabInstance();
-    relativeOrientZ = FieldCell.getEditableMatlabInstance();
   }
 
   private void addActionTargets() {
     fbFnVolume.setActionTarget(fnVolume);
     fbFnModParticle.setActionTarget(fnModParticle);
+    fbInitMotlFile.setActionTarget(initMotlFile);
   }
 
   void setNames() {
@@ -327,14 +322,11 @@ final class VolumeRow implements Highlightable {
         table.getVolumeNumberHeaderCell());
     setHeaders(fnVolume, fbFnVolume, table.getFnVolumeHeaderCell());
     setHeaders(fnModParticle, fbFnModParticle, table.getFnModParticleHeaderCell());
+    setHeaders(initMotlFile, fbInitMotlFile, table.getInitMotlFileHeaderCell());
+    fbInitMotlFile.setLabel(VolumeTable.INIT_MOTL_FILE_HEADER1 + " "
+        + VolumeTable.INIT_MOTL_FILE_HEADER2);
     tiltRangeMin.setHeaders(VolumeTable.LABEL, number, table.getTiltRangeHeaderCell());
     tiltRangeMax.setHeaders(VolumeTable.LABEL, number, table.getTiltRangeHeaderCell());
-    relativeOrientX.setHeaders(VolumeTable.LABEL, number,
-        table.getRelativeOrientHeaderCell());
-    relativeOrientY.setHeaders(VolumeTable.LABEL, number,
-        table.getRelativeOrientHeaderCell());
-    relativeOrientZ.setHeaders(VolumeTable.LABEL, number,
-        table.getRelativeOrientHeaderCell());
   }
 
   void setHeaders(final FieldCell fieldCell, final FileButtonCell fileButtonCell,
@@ -349,9 +341,6 @@ final class VolumeRow implements Highlightable {
     initMotlFile.setHighlight(highlight);
     tiltRangeMin.setHighlight(highlight);
     tiltRangeMax.setHighlight(highlight);
-    relativeOrientX.setHighlight(highlight);
-    relativeOrientY.setHighlight(highlight);
-    relativeOrientZ.setHighlight(highlight);
   }
 
   void remove() {
@@ -362,11 +351,9 @@ final class VolumeRow implements Highlightable {
     fnModParticle.remove();
     fbFnModParticle.remove();
     initMotlFile.remove();
+    fbInitMotlFile.remove();
     tiltRangeMin.remove();
     tiltRangeMax.remove();
-    relativeOrientX.remove();
-    relativeOrientY.remove();
-    relativeOrientZ.remove();
   }
 
   void display(int index, Viewport viewport) {
@@ -380,17 +367,11 @@ final class VolumeRow implements Highlightable {
     fbFnVolume.add(panel, layout, constraints);
     fnModParticle.add(panel, layout, constraints);
     fbFnModParticle.add(panel, layout, constraints);
-    constraints.gridwidth = 2;
     initMotlFile.add(panel, layout, constraints);
-    constraints.gridwidth = 1;
+    fbInitMotlFile.add(panel, layout, constraints);
     tiltRangeMin.add(panel, layout, constraints);
-    /*constraints.gridwidth = GridBagConstraints.REMAINDER;
-    tiltRangeMax.add(panel, layout, constraints); */   
-    tiltRangeMax.add(panel, layout, constraints);
-    relativeOrientX.add(panel, layout, constraints);
-    relativeOrientY.add(panel, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
-    relativeOrientZ.add(panel, layout, constraints);
+    tiltRangeMax.add(panel, layout, constraints);
   }
 
   void expandFnVolume(final boolean expanded) {
@@ -529,9 +510,6 @@ final class VolumeRow implements Highlightable {
     volume.setInitMotl(initMotlFile.getExpandedValue());
     volume.setTiltRangeStart(tiltRangeMin.getValue());
     volume.setTiltRangeEnd(tiltRangeMax.getValue());
-    volume.setRelativeOrientX(relativeOrientX.getValue());
-    volume.setRelativeOrientY(relativeOrientY.getValue());
-    volume.setRelativeOrientZ(relativeOrientZ.getValue());
   }
 
   void setParameters(final MatlabParam matlabParam, boolean useInitMotlFile,
@@ -544,9 +522,6 @@ final class VolumeRow implements Highlightable {
       setTiltRangeMin(volume.getTiltRangeStart());
       setTiltRangeMax(volume.getTiltRangeEnd());
     }
-    relativeOrientX.setValue(volume.getRelativeOrientX());
-    relativeOrientY.setValue(volume.getRelativeOrientY());
-    relativeOrientZ.setValue(volume.getRelativeOrientZ());
   }
 
   void clearInitMotlFile() {
@@ -555,6 +530,7 @@ final class VolumeRow implements Highlightable {
 
   void registerInitMotlFileColumn(Column column) {
     column.add(initMotlFile);
+    column.add(fbInitMotlFile);
   }
 
   void registerTiltRangeColumn(Column column) {
@@ -669,38 +645,24 @@ final class VolumeRow implements Highlightable {
     tiltRangeMax.setValue(input);
   }
 
-  void setRelativeOrientX(final String input) {
-    relativeOrientX.setValue(input);
-  }
-
-  void setRelativeOrientY(final String input) {
-    relativeOrientY.setValue(input);
-  }
-
-  void setRelativeOrientZ(final String input) {
-    relativeOrientZ.setValue(input);
-  }
-
   boolean isHighlighted() {
     return btnHighlighter.isHighlighted();
   }
 
   private void setTooltips() {
     fnVolume.setToolTipText("The filename of the tomogram in MRC format.");
+    fbFnVolume.setToolTipText("Select a filename of the tomogram in MRC format.");
     fnModParticle.setToolTipText("The filename of the IMOD model specifying particle "
+        + "positions in the tomogram.");
+    fbFnModParticle.setToolTipText("Select a filename of the IMOD model specifying particle "
         + "positions in the tomogram.");
     initMotlFile.setToolTipText("The name of a .csv file containing an initial motive "
         + "list with orientations and shifts.");
+    fbInitMotlFile.setToolTipText("Select a .csv file with initial orientations and shifts");
     String tooltip = "The minimum and maximum tilt angle (in degrees) used "
         + "during image acquisition for this tomogram.  Used only if missing "
         + "wedge compensation is enabled.";
     tiltRangeMin.setToolTipText(tooltip);
     tiltRangeMax.setToolTipText(tooltip);
-    relativeOrientX.setToolTipText("The Slicer X axis rotation required to rotate this "
-        + "tomogram to to a common orientation with the other tomograms.");
-    relativeOrientY.setToolTipText("The Slicer Y axis rotation required to rotate this "
-        + "tomogram to to a common orientation with the other tomograms.");
-    relativeOrientZ.setToolTipText("The Slicer Z axis rotation required to rotate this "
-        + "tomogram to to a common orientation with the other tomograms.");
   }
 }
