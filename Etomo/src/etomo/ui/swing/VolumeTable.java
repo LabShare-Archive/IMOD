@@ -1,6 +1,8 @@
 package etomo.ui.swing;
 
+import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -271,6 +273,9 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
   private final MultiLineButton btnMoveUp = new MultiLineButton("Move up");
   private final MultiLineButton btnMoveDown = new MultiLineButton("Move down");
   private final MultiLineButton btnCopyRow = new MultiLineButton("Duplicate");
+  private final JPanel pnlTableButtons = new JPanel();
+  private final JPanel pnlBottomButtons = new JPanel();
+  private final Component rigidArea2 = Box.createRigidArea(FixedDim.x0_y10);
 
   private Viewport viewport;
   private final ExpandButton btnExpandFnVolume;
@@ -282,6 +287,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
   private boolean useInitMotlFile = true;
   private boolean useTiltRange = true;
   private File currentDirectory = null;
+  private Component rigidArea1 = null;
 
   private VolumeTable(final PeetManager manager, final PeetDialog parent) {
     this.manager = manager;
@@ -407,6 +413,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
           matlabParamFile.getFnModParticle(i));
       row.setParameters(matlabParamFile, useInitMotlFile, useTiltRange);
       row.expandInitMotlFile(initMotlFileIsExpanded);
+      refreshPadding();
     }
     if (importDir != null) {
       System.setProperty("user.dir", userDir);
@@ -471,32 +478,47 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     pnlSideButtons.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlSideButtons.add(btnDeleteRow.getComponent());
     pnlSideButtons.add(Box.createVerticalGlue());
-    // Table and side buttons
-    JPanel pnlTableButtons = new JPanel();
-    pnlTableButtons.setLayout(new BoxLayout(pnlTableButtons, BoxLayout.X_AXIS));
-    pnlTableButtons.add(Box.createRigidArea(FixedDim.x10_y0));
-    pnlTableButtons.add(pnlBorder);
-    pnlTableButtons.add(Box.createRigidArea(FixedDim.x20_y0));
-    pnlTableButtons.add(pnlSideButtons);
-    pnlTableButtons.add(Box.createRigidArea(FixedDim.x20_y0));
+    pnlSideButtons.add(Box.createRigidArea(FixedDim.x0_y5));
     // buttons - bottom
-    JPanel pnlButtonsBottom = new JPanel();
-    pnlButtonsBottom.setLayout(new GridLayout(1, 3, 0, 0));
+    pnlBottomButtons.setLayout(new GridLayout(1, 3, 0, 0));
     // btnChangeFnModParticle.setSize();
     // pnlButtons1.add(btnChangeFnModParticle.getComponent());
-     pnlButtonsBottom.add(btnSetInitMotlFile.getComponent());
-    pnlButtonsBottom.add(Box.createHorizontalGlue());
-    pnlButtonsBottom.add(r3bVolume.getComponent());
-    pnlButtonsBottom.add(Box.createHorizontalGlue());
-    pnlButtonsBottom.add(btnReadTiltFile.getComponent());
-    pnlButtonsBottom.add(Box.createHorizontalGlue());
+    pnlBottomButtons.add(btnSetInitMotlFile.getComponent());
+    pnlBottomButtons.add(Box.createHorizontalGlue());
+    pnlBottomButtons.add(r3bVolume.getComponent());
+    pnlBottomButtons.add(Box.createHorizontalGlue());
+    pnlBottomButtons.add(btnReadTiltFile.getComponent());
+    pnlBottomButtons.add(Box.createHorizontalGlue());
+    // Table and side buttons
+    pnlTableButtons.setLayout(new BoxLayout(pnlTableButtons, BoxLayout.Y_AXIS));
+    pnlTableButtons.add(pnlBorder);
+    refreshPadding();
     // root
-    rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
+    rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.X_AXIS));
     rootPanel.setBorder(new EtchedBorder(LABEL).getBorder());
+    rootPanel.add(Box.createRigidArea(FixedDim.x10_y0));
     rootPanel.add(pnlTableButtons);
-    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
-    rootPanel.add(pnlButtonsBottom);
-    rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
+    rootPanel.add(Box.createRigidArea(FixedDim.x20_y0));
+    rootPanel.add(pnlSideButtons);
+    rootPanel.add(Box.createRigidArea(FixedDim.x20_y0));
+  }
+
+  private void refreshPadding() {
+    int size = rowList.size();
+    int noPadding = 3;
+    if (size > noPadding) {
+      return;
+    }
+    if (rigidArea1 != null) {
+      pnlTableButtons.remove(rigidArea1);
+      pnlTableButtons.remove(pnlBottomButtons);
+      pnlTableButtons.remove(rigidArea2);
+    }
+    int height = 10 + (noPadding - size) * 20;
+    rigidArea1 = Box.createRigidArea(new Dimension(0, height));
+    pnlTableButtons.add(rigidArea1);
+    pnlTableButtons.add(pnlBottomButtons);
+    pnlTableButtons.add(rigidArea2);
   }
 
   private void imodVolume(Run3dmodMenuOptions menuOptions) {
@@ -520,6 +542,8 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     btnExpandFnModParticle.add(pnlTable, layout, constraints);
     header1InitMotlFile.add(pnlTable, layout, constraints);
     btnExpandInitMotlFile.add(pnlTable, layout, constraints);
+    /*constraints.gridwidth = GridBagConstraints.REMAINDER;
+    header1TiltRange.add(pnlTable, layout, constraints);*/
     constraints.gridwidth = 2;
     header1TiltRange.add(pnlTable, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -532,6 +556,8 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     header2InitMotlFile.add(pnlTable, layout, constraints);
     constraints.gridwidth = 1;
     header2TiltRangeStart.add(pnlTable, layout, constraints);
+    /*constraints.gridwidth = GridBagConstraints.REMAINDER;
+    header2TiltRangeEnd.add(pnlTable, layout, constraints);*/
     header2TiltRangeEnd.add(pnlTable, layout, constraints);
     header2RelativeOrientX.add(pnlTable, layout, constraints);
     header2RelativeOrientY.add(pnlTable, layout, constraints);
@@ -608,6 +634,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     int index = rowList.delete(row, this, pnlTable, layout, constraints);
     viewport.adjustViewport(index);
     rowList.display(viewport);
+    refreshPadding();
     updateDisplay();
     UIHarness.INSTANCE.pack(manager);
   }
@@ -639,6 +666,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     viewport.adjustViewport(rowList.size() - 1);
     rowList.remove();
     rowList.display(viewport);
+    refreshPadding();
     updateDisplay();
     parent.msgVolumeTableSizeChanged();
     UIHarness.INSTANCE.pack(manager);
@@ -677,6 +705,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     viewport.adjustViewport(rowList.size() - 1);
     rowList.remove();
     rowList.display(viewport);
+    refreshPadding();
     updateDisplay();
     parent.msgVolumeTableSizeChanged();
     UIHarness.INSTANCE.pack(manager);
@@ -825,6 +854,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     viewport.adjustViewport(index - 1);
     rowList.remove();
     rowList.display(viewport);
+    refreshPadding();
     rowList.reindex(index - 1);
     updateDisplay();
     manager.getMainPanel().repaint();
