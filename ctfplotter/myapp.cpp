@@ -827,8 +827,8 @@ void MyApp::setNoiseForMean(double mean)
   }
   lowMean = mNoiseMeans[highInd - 1];
   highMean = mNoiseMeans[highInd];
-  //printf("For mean %f  noise index %d noise means %f %f\n", mean, highInd-1,
-  //     lowMean, highMean);
+  printf("For mean %f  noise index %d noise means %f %f\n", mean, highInd-1,
+       lowMean, highMean);
   lowPs = mAllNoisePS + mNoiseIndexes[highInd - 1] * mDim;
   highPs = mAllNoisePS + mNoiseIndexes[highInd] * mDim;
   for (i = 0; i < mDim; i++)

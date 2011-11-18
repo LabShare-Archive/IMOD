@@ -138,6 +138,9 @@ run.function.ctf-phase-flip=
 	# check values
 	assert.tf.config-file=
 	assert.tf.expected-defocus=8000.0
+	mb.ctf-correction=A
+  assert.tf.offset-to-add-to-image-values=
+  mb.ctf-correction=B
 	# check enabled/disabled
 	cb.use-expected-defocus-instead-of-ctfplotter-output=off
 	assert.enabled.tf.config-file=
@@ -147,6 +150,9 @@ run.function.ctf-phase-flip=
 	assert.disabled.tf.config-file=
 	assert.disabled.bn.run-ctf-plotter=
 	cb.use-expected-defocus-instead-of-ctfplotter-output=off
+	mb.ctf-correction=A
+	assert.enabled.tf.offset-to-add-to-image-values=
+	mb.ctf-correction=B
 [[]]
 
 

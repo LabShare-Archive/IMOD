@@ -1,7 +1,15 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/18/11: In eTomo - Final Aligned Stack, added OffsetToAdd to the Ctfplotter
+dialog (In 4.3).(Bug# 1581)
+
 11/17/11: In eTomo - PEET, upgraded the volume table with an improved format
 and embedded file buttons.(Bug# 1561)
+
+11/17/11: Added option to Ctfplotter to specify a data offset, and made it
+detect need for offset automatically with FEI data (In 4.3).
+
+11/17/11: Fixed Rotatevol problem when run on a volume with NZ = 1 (In 4.3).
 
 11/9/11: In eTomo - Fiducial Model, fixed failure in patch tracking when the
 there is an existing tilt file (In 4.3).(Bug# 1547)
