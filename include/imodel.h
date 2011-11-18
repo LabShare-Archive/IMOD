@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  No more Log
  */
 
 #ifndef IMODEL_H
@@ -586,6 +585,8 @@ extern "C" {
   int imodSetRefImage(Imod *imod, MrcHeader *hdata);
   int imodTransFromRefImage(Imod *imod, IrefImage *iref, Ipoint binScale);
   void imodTransFromMats(Imod *imod, Imat *mat, Imat *matNorm, Imat *matClip);
+  void imodTransModel3D(Imod *model, Imat *mat, Imat *normMat, Ipoint newCen,
+                        float zscale, int doflip);
 
   int   imodNewContour(Imod *imod);
   int   imodPrevContour(Imod *imod);
