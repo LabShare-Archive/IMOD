@@ -42,7 +42,7 @@ final class FileButtonCell extends InputCell {
 
   // Field that this button is associated with:
   private ActionTarget actionTarget = null;
-  private String label = "Open File";
+  private String label = null;
   private FileFilter fileFilter = null;
 
   private final SimpleButton button = new SimpleButton(new ImageIcon(
@@ -90,10 +90,12 @@ final class FileButtonCell extends InputCell {
   }
 
   void setHeaders(String tableHeader, HeaderCell rowHeader, HeaderCell columnHeader) {
-    label = columnHeader.getText();
+    if (label == null) {
+      label = columnHeader.getText();
+    }
     super.setHeaders(tableHeader, rowHeader, columnHeader);
   }
-  
+
   void setName() {
     String name = convertLabelToName();
     button.setName(name);
@@ -103,6 +105,9 @@ final class FileButtonCell extends InputCell {
     }
   }
 
+  void setLabel(final String input) {
+    label = input;
+  }
 
   void setFileFilter(final FileFilter input) {
     fileFilter = input;
@@ -130,8 +135,9 @@ final class FileButtonCell extends InputCell {
 
   private void action() {
     JFileChooser chooser = new FileChooser(currentDirectory.getCurrentDirectory());
-    chooser.setDialogTitle(label);
+    chooser.setDialogTitle(label == null ? "Open File" : label);
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     if (fileFilter != null) {
       chooser.setFileFilter(fileFilter);
     }
