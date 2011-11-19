@@ -50,7 +50,7 @@ public final class AutodocTest extends TestCase {
         manager.getPropertyUserDir(), "IMOD_UITEST_SOURCE", AxisID.ONLY));
   }
 
-  //Vectors
+  // Vectors
 
   public void testSimple() throws LogFile.LockException, IOException,
       SystemProcessException, InvalidParameterException {
@@ -60,18 +60,18 @@ public final class AutodocTest extends TestCase {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, TestUtilites.INSTANCE
         .copyTestFile(AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
             "simple.adoc"));
-    //only use with getTestInstance
-    //autodoc.runInternalTest(AutodocFactory.InternalTestType.PARSER,false,false);
-    //only use with getInstance
-    //autodoc.printStoredData();
-    assertTrue(autodoc != null && !autodoc.isError());
+    // only use with getTestInstance
+    // autodoc.runInternalTest(AutodocFactory.InternalTestType.PARSER,false,false);
+    // only use with getInstance
+    // autodoc.printStoredData();
+    assertFalse(autodoc.isError());
   }
 
-  //Standard autodocs
+  // Standard autodocs
 
   public void testBeadtrack() throws FileNotFoundException, IOException,
       LogFile.LockException {
-    //TEMP
+    // TEMP
     if (Utilities.isWindowsOS()) {
       return;
     }
@@ -178,7 +178,7 @@ public final class AutodocTest extends TestCase {
     assertFalse(autodoc.isError());
   }
 
-  //cpu adoc
+  // cpu adoc
 
   public void testCpu() throws LogFile.LockException, IOException,
       SystemProcessException, InvalidParameterException {
@@ -188,10 +188,10 @@ public final class AutodocTest extends TestCase {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, TestUtilites.INSTANCE
         .copyTestFile(AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
             "cpu.adoc"));
-    assertTrue(autodoc != null && !autodoc.isError());
+    assertFalse(autodoc.isError());
   }
 
-  //matlab param
+  // matlab param
 
   public void testMatlabParamFile() throws LogFile.LockException, IOException,
       SystemProcessException, InvalidParameterException {
@@ -201,14 +201,14 @@ public final class AutodocTest extends TestCase {
     ReadOnlyAutodoc autodoc = AutodocFactory.getMatlabInstance(manager,
         TestUtilites.INSTANCE.copyTestFile(AutodocTests.TEST_ROOT_DIR.getAbsolutePath(),
             TEST_DIR_NAME, "master.prm"));
-    //only use with getTestInstance
-    //autodoc.runInternalTest(AutodocFactory.INSTANCE.InternalTestType.PARSER,false,false);
-    //only use with getInstance
-    //autodoc.printStoredData();
-    assertTrue(autodoc != null && !autodoc.isError());
+    // only use with getTestInstance
+    // autodoc.runInternalTest(AutodocFactory.INSTANCE.InternalTestType.PARSER,false,false);
+    // only use with getInstance
+    // autodoc.printStoredData();
+    assertFalse(autodoc.isError());
   }
 
-  //uitest autodocs
+  // uitest autodocs
 
   public void testUitest() throws LogFile.LockException, IOException,
       SystemProcessException, InvalidParameterException {
@@ -217,8 +217,10 @@ public final class AutodocTest extends TestCase {
     if (!file.exists() || !file.canRead()) {
       file = new File(new File(new File("."), "tests"), fileName);
     }
+    System.out.println("A:file:" + file.getAbsolutePath());
+    System.err.println("A:file:" + file.getAbsolutePath());
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
-    assertTrue(autodoc != null && !autodoc.isError());
+    assertFalse(autodoc.isError());
   }
 
   public void testTests() throws LogFile.LockException, IOException,
@@ -229,10 +231,10 @@ public final class AutodocTest extends TestCase {
       file = new File(new File(new File("."), "tests"), fileName);
     }
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
-    assertTrue(autodoc != null && !autodoc.isError());
+    assertFalse(autodoc.isError());
   }
 
-  //Reconstruction autodocs
+  // Reconstruction autodocs
 
   public void testRecon() throws LogFile.LockException, IOException,
       SystemProcessException, InvalidParameterException {
@@ -242,7 +244,7 @@ public final class AutodocTest extends TestCase {
       file = new File(new File(new File("."), "tests"), fileName);
     }
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
-    assertTrue(autodoc != null && !autodoc.isError());
+    assertFalse(autodoc.isError());
   }
 
   public void testSetupRecon() throws LogFile.LockException, IOException,
@@ -253,7 +255,7 @@ public final class AutodocTest extends TestCase {
       file = new File(new File(new File("."), "tests"), fileName);
     }
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
-    assertTrue(autodoc != null && !autodoc.isError());
+    assertFalse(autodoc.isError());
   }
 
   public void testPreProc() throws LogFile.LockException, IOException,
@@ -264,7 +266,7 @@ public final class AutodocTest extends TestCase {
       file = new File(new File(new File("."), "tests"), fileName);
     }
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
-    assertTrue(autodoc != null && !autodoc.isError());
+    assertFalse(autodoc.isError());
   }
 
   public void testCoarseAlign() throws LogFile.LockException, IOException,
@@ -275,7 +277,7 @@ public final class AutodocTest extends TestCase {
       file = new File(new File(new File("."), "tests"), fileName);
     }
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
-    assertTrue(autodoc != null && !autodoc.isError());
+    assertFalse(autodoc.isError());
   }
 
   public void testFidModel() throws LogFile.LockException, IOException,
@@ -286,7 +288,7 @@ public final class AutodocTest extends TestCase {
       file = new File(new File(new File("."), "tests"), fileName);
     }
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
-    assertTrue(autodoc != null && !autodoc.isError());
+    assertFalse(autodoc.isError());
   }
 
   public void testFineAlign() throws LogFile.LockException, IOException,
@@ -297,11 +299,11 @@ public final class AutodocTest extends TestCase {
       file = new File(new File(new File("."), "tests"), fileName);
     }
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
-    //only use with getTestInstance
-    //autodoc.runInternalTest(AutodocFactory.InternalTestType.PARSER,false,false);
-    //only use with getInstance
-    //autodoc.printStoredData();
-    assertTrue(autodoc != null && !autodoc.isError());
+    // only use with getTestInstance
+    // autodoc.runInternalTest(AutodocFactory.InternalTestType.PARSER,false,false);
+    // only use with getInstance
+    // autodoc.printStoredData();
+    assertFalse(autodoc.isError());
   }
 
   public void testTomoPos() throws LogFile.LockException, IOException,
@@ -312,7 +314,7 @@ public final class AutodocTest extends TestCase {
       file = new File(new File(new File("."), "tests"), fileName);
     }
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
-    assertTrue(autodoc != null && !autodoc.isError());
+    assertFalse(autodoc.isError());
   }
 
   public void testStack() throws LogFile.LockException, IOException,
@@ -323,7 +325,7 @@ public final class AutodocTest extends TestCase {
       file = new File(new File(new File("."), "tests"), fileName);
     }
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
-    assertTrue(autodoc != null && !autodoc.isError());
+    assertFalse(autodoc.isError());
   }
 
   public void testTomoGen() throws LogFile.LockException, IOException,
@@ -334,7 +336,7 @@ public final class AutodocTest extends TestCase {
       file = new File(new File(new File("."), "tests"), fileName);
     }
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
-    assertTrue(autodoc != null && !autodoc.isError());
+    assertFalse(autodoc.isError());
   }
 
   public void testCombine() throws LogFile.LockException, IOException,
@@ -345,7 +347,7 @@ public final class AutodocTest extends TestCase {
       file = new File(new File(new File("."), "tests"), fileName);
     }
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
-    assertTrue(autodoc != null && !autodoc.isError());
+    assertFalse(autodoc.isError());
   }
 
   public void testPostProc() throws LogFile.LockException, IOException,
@@ -356,7 +358,7 @@ public final class AutodocTest extends TestCase {
       file = new File(new File(new File("."), "tests"), fileName);
     }
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
-    assertTrue(autodoc != null && !autodoc.isError());
+    assertFalse(autodoc.isError());
   }
 
   public void testCleanUp() throws LogFile.LockException, IOException,
@@ -367,10 +369,10 @@ public final class AutodocTest extends TestCase {
       file = new File(new File(new File("."), "tests"), fileName);
     }
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
-    assertTrue(autodoc != null && !autodoc.isError());
+    assertFalse(autodoc.isError());
   }
 
-  //Join autodocs
+  // Join autodocs
 
   public void testJoin() throws LogFile.LockException, IOException,
       SystemProcessException, InvalidParameterException {
@@ -380,7 +382,7 @@ public final class AutodocTest extends TestCase {
       file = new File(new File(new File("."), "tests"), fileName);
     }
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
-    assertTrue(autodoc != null && !autodoc.isError());
+    assertFalse(autodoc.isError());
   }
 
   public void testJoinSetup() throws LogFile.LockException, IOException,
@@ -391,7 +393,7 @@ public final class AutodocTest extends TestCase {
       file = new File(new File(new File("."), "tests"), fileName);
     }
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
-    assertTrue(autodoc != null && !autodoc.isError());
+    assertFalse(autodoc.isError());
   }
 
   public void testJoinAlign() throws LogFile.LockException, IOException,
@@ -402,7 +404,7 @@ public final class AutodocTest extends TestCase {
       file = new File(new File(new File("."), "tests"), fileName);
     }
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
-    assertTrue(autodoc != null && !autodoc.isError());
+    assertFalse(autodoc.isError());
   }
 
   public void testJoinModel() throws LogFile.LockException, IOException,
@@ -413,7 +415,7 @@ public final class AutodocTest extends TestCase {
       file = new File(new File(new File("."), "tests"), fileName);
     }
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
-    assertTrue(autodoc != null && !autodoc.isError());
+    assertFalse(autodoc.isError());
   }
 
   public void testJoinRejoin() throws LogFile.LockException, IOException,
@@ -424,7 +426,7 @@ public final class AutodocTest extends TestCase {
       file = new File(new File(new File("."), "tests"), fileName);
     }
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
-    assertTrue(autodoc != null && !autodoc.isError());
+    assertFalse(autodoc.isError());
   }
 }
 /**
