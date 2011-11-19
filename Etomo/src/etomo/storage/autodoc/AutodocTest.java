@@ -217,9 +217,9 @@ public final class AutodocTest extends TestCase {
     if (!file.exists() || !file.canRead()) {
       file = new File(new File(new File("."), "tests"), fileName);
     }
-    System.out.println("A:file:" + file.getAbsolutePath());
-    System.err.println("A:file:" + file.getAbsolutePath());
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
+    // The file come from ./tests, so the working directory should be the default for
+    // tests run from eclipse.
     assertFalse(autodoc.isError());
   }
 
