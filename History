@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/18/11: IMOD_4-4-1
 11/18/11: In eTomo - Final Aligned Stack, added OffsetToAdd to the Ctfplotter
 dialog (In 4.3).(Bug# 1581)
 
