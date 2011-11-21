@@ -11,7 +11,7 @@ E = $(BINEXT)
 IILIBS    = $(LIIMOD) $(LIMOD) $(LCFSHR) $(TIFFLIBS)
 MODLIBS   = $(LIMOD) $(LCFSHR)
 
-PROGS = imodauto$(E) imodclone(E) imodinfo$(E) imodmesh$(E) imodtrans$(E) \
+PROGS = imodauto$(E) imodclone$(E) imodinfo$(E) imodmesh$(E) imodtrans$(E) \
  imodmop$(E) rec2imod$(E) imod2rib$(E) imod2vrml$(E) imod2vrml2$(E) \
  imod2meta$(E) wmod2imod$(E) imodjoin$(E) imodextract$(E) imodsortsurf$(E) \
  imodexplode$(E) patch2imod$(E) imod2patch$(E) echo2$(E) imodfillin$(E) \

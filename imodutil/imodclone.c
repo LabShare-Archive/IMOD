@@ -10,13 +10,11 @@
  *
  * $Id$
  */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <float.h>
 #include "imodel.h"
-#include "imodtrans.h"
 #include "b3dutil.h"
 #include "mrcfiles.h"
 #include "parse_params.h"
@@ -27,14 +25,13 @@
 int main( int argc, char *argv[])
 {
   Imod *inModel, *outModel, *tmpModel;
-  Iobj *obj;
-  Ipoint point;
-  FILE *coordFP;
+  FILE *coordFP, *outFP;
   char *line = NULL;
   int lineSz = 0;
+  char msg[8256];
   char *progname = imodProgName(argv[0]);
   char *inFile, *outFile, *coordFile;
-  int err, numOptArgs, numNonOptArgs;
+  int numOptArgs, numNonOptArgs;
   float xMin, xMax, yMin, yMax, zMin, zMax;
 
   int numOptions = 4;
@@ -55,32 +52,32 @@ int main( int argc, char *argv[])
     xMin = 0.0F;
     xMax = FLT_MAX;
   }
-  if (PipGetTwoFloats("YRange", &xMin, &xMax)) {
-    xMin = 0.0F;
-    xMax = FLT_MAX;
+  if (PipGetTwoFloats("YRange", &yMin, &yMax)) {
+    yMin = 0.0F;
+    yMax = FLT_MAX;
   }
-  if (PipGetTwoFloats("ZRange", &xMin, &xMax)) {
-    xMin = 0.0F;
-    xMax = FLT_MAX;
+  if (PipGetTwoFloats("ZRange", &zMin, &zMax)) {
+    zMin = 0.0F;
+    zMax = FLT_MAX;
   }
   PipDone();
 
   /* Open the csv location/orientation file and skip the header line */
   coordFP = fopen(coordFile, "r");
   if (!coordFP) {
-    sprintf(&line, "Error opening location/orientation file %s", coordFile);
+    sprintf(&msg, "Error opening location/orientation file:\n%s", coordFile);
     exitError(line);
   }
   free(coordFile);
   if (getline(&line, &lineSz, coordFP) == -1) {
-    sprintf(&line, "Error reading location/orientation file %s", coordFile);
+    sprintf(&msg, "Error reading location/orientation file :\n%s", coordFile);
     exitError(line);
   }
 
   /* Read the input model (to be cloned) */
   inModel = imodRead(inFile);
   if (!inModel) {
-    sprintf(&line, "Error reading input model %s", inFile);   
+    sprintf(&msg, "Error reading input model:\n%s", inFile);   
     exitError(line);
     free(inFile);
   }
@@ -88,8 +85,13 @@ int main( int argc, char *argv[])
   /* Create new output and temporary models */
   outModel = imodNew();
   tmpModel = imodNew();
+  /* Set tmpModel max coords. Rotation center will be midpoint */
+  tmpModel->xmax = inModel->xmax;
+  tmpModel->ymax = inModel->ymax;
+  tmpModel->zmax = inModel->zmax;
 
   /* Loop over points in the coordinate file */
+  int iOutObj = 0;
   Imat *xform = imodMatNew(3);
   while (getline(&line, &lineSz, coordFP) != -1) {
     int contour;
@@ -98,40 +100,58 @@ int main( int argc, char *argv[])
                &xAngle, &yAngle, &zAngle) != 7)
       exitError("Error parsing location/orientation file");
     if (x >= xMin && x <= xMax && y >= yMin && y <= yMax && 
-        z <= zMin && z >= zMax) {
+        z >= zMin && z <= zMax) {
 
-        
+      /* Copy all the objects from the input to the temp model */        
       Iobj *obj = imodObjectGetFirst(inModel);
       int i = 0;
       while (obj != NULL) {
         imodNewObject(tmpModel);
-        Iobj *tmpobj = imodObjectDup(obj);        
+        Iobj *tmpobj = imodObjectDup(obj);
         imodObjectCopy(tmpobj, &(tmpModel->obj[i++]));
         free(tmpobj);
         obj = imodObjectGetNext(inModel);
       }
-  
-      int nObjects = i;
-      float newCenter[3] = {x, y, z};
+
+      Ipoint newCenter;
+      newCenter.x = x;
+      newCenter.y = y;
+      newCenter.z = z;
       /* Construct the rotation matrix for this point */
+      /* Minus signs seems to be required becaues of differing PEET */
+      /* and IMOD conventions. Need to check into this. */
       imodMatId(xform);
-      imodMatRot(xform, zAngle, b3dZ);
-      imodMatRot(xform, yAngle, b3dY);
-      imodMatRot(xform, xAngle, b3dX);
-      trans_model_3d(tmpModel, xform, NULL, newCenter, 1.0, 0);
+      imodMatRot(xform, -zAngle, b3dZ);
+      imodMatRot(xform, -yAngle, b3dY);
+      imodMatRot(xform, -xAngle, b3dX);
+
+      /* Transform the temp model */
+      imodTransModel3D(tmpModel, xform, NULL, newCenter, 1.0, 0);
 
       /* Copy the transformed objects to the output model */
-      for (i=0; i < nObjects; i++) {
+      obj = imodObjectGetFirst(tmpModel);
+      while (obj != NULL) {
         imodNewObject(outModel);
-        imodObjectCopy(&tmpModel->obj[i], &outModel->obj[i]);
-        free(&(tmpModel->obj[i]));
+        imodObjectCopy(obj, &outModel->obj[iOutObj++]);
+        obj = imodObjectGetNext(tmpModel);
       }
+      /* Prepare temp model for reuse */
       free(tmpModel->obj);
       tmpModel->obj = NULL;
       tmpModel->objsize = 0;
     }
    
   }
+  fclose(coordFP);
+  imodMatDelete(xform);
+
+  outFP = fopen(outFile, "w");
+  if (!outFP) {
+    sprintf(msg, "Error writing output file:\n%s", outFile);
+    exitError(msg);
+  }
+  imodWrite(outModel, outFP);
+  fclose(outFP);
 
   exit(0);
 }
