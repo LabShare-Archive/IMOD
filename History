@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/18/11: IMOD_4-4-1
+11/18/11: In eTomo - Final Aligned Stack, added OffsetToAdd to the Ctfplotter
+dialog (In 4.3).(Bug# 1581)
+
+11/17/11: In eTomo - PEET, upgraded the volume table with an improved format
+and embedded file buttons.(Bug# 1561)
+
 11/17/11: Added option to Ctfplotter to specify a data offset, and made it
 detect need for offset automatically with FEI data (In 4.3).
 

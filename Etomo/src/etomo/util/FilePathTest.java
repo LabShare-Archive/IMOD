@@ -37,37 +37,50 @@ public class FilePathTest extends TestCase {
     String relZPath = "z";
     String relUp1 = "..";
     String relUp3 = ".." + File.separator + ".." + File.separator + "..";
-    /*assertTrue("Should return the to-path when the drives are different", FilePath
-     * .getRelativePath(xyzPath, new File(xyzPathWithADrive)) .equals(xyzPathWithADrive));
-     * assertTrue("Should return the to-path when the drives are different", FilePath
-     * .getRelativePath(xyzPathWithADrive, new File(xyzPath)).equals(xyzPath));
-     * assertTrue("Should return the to-path when the drives are different",
-     * FilePath.getRelativePath(xyzPathWithADrive, new File(xyzPathWithBDrive))
-     * .equals(xyzPathWithBDrive)); */
-    if (!Utilities.isWindowsOS()) {
-      assertTrue("Should return the to-path when the from-path is empty", FilePath
-          .getRelativePath(null, new File(xyzPath)).equals(xyzPath));
-      assertTrue("Should return the to-path when the from-path is empty", FilePath
-          .getRelativePath("", new File(xyzPath)).equals(xyzPath));
-      assertTrue("Should return the to-path when the from-path is empty", FilePath
-          .getRelativePath(" ", new File(xyzPath)).equals(xyzPath));
+    String drive = "";
+    if (Utilities.isWindowsOS()) {
+      drive = "C:";
       assertTrue(
-          "Should remove the from-path when it is a subset of the to-path, and return a relative path",
-          FilePath.getRelativePath(xyPath, new File(xyzPath)).equals(relZPath));
-      FilePath.setDebug(true);
-      assertTrue("Should go up the from-path where it is not equal", FilePath
-          .getRelativePath(xyzPath, new File(abcPath)).equals(relUp3 + abcPath));
-      FilePath.setDebug(false);
+          "Should return the absolute to-path when the drives are different",
+          FilePath.getRelativePath(xyzPath, new File(xyzPathWithADrive)).equals(
+              xyzPathWithADrive));
       assertTrue(
-          "Should strip parts from the start of the path that are the same and then go up the remaining from-path where it is not equal",
-          FilePath.getRelativePath(xyzPath, new File(xyPath + abcPath)).equals(
-              relUp1 + abcPath));
-      assertTrue(
-          "Should strip parts from only the start of the path that are the same and then go up the remaining from-path where it is not equal",
-          FilePath.getRelativePath(xyzPath, new File(abcPath + xyzPath)).equals(
-              relUp3 + abcPath + xyzPath));
-      assertTrue("Should go up the from-path where it is not equal", FilePath
-          .getRelativePath(xPath, new File(aPath)).equals(relUp1 + aPath));
+          "Should return the absolute to-path when the drives are different",
+          FilePath.getRelativePath(xyzPathWithADrive, new File(xyzPath)).equals(
+              new File(xyzPath).getAbsolutePath()));
+      assertTrue("Should return the absolute to-path when the drives are different",
+          FilePath.getRelativePath(xyzPathWithADrive, new File(xyzPathWithBDrive))
+              .equals(xyzPathWithBDrive));
     }
+    assertTrue(
+        "Should return the absolute to-path when the from-path is empty",
+        FilePath.getRelativePath(null, new File(xyzPath)).equals(
+            new File(xyzPath).getAbsolutePath()));
+    assertTrue(
+        "Should return the absolute to-path when the from-path is empty",
+        FilePath.getRelativePath("", new File(xyzPath)).equals(
+            new File(xyzPath).getAbsolutePath()));
+    assertTrue(
+        "Should return the absolute to-path when the from-path is empty",
+        FilePath.getRelativePath(" ", new File(xyzPath)).equals(
+            new File(xyzPath).getAbsolutePath()));
+    assertTrue(
+        "Should remove the from-path when it is a subset of the to-path, and return a relative path",
+        FilePath.getRelativePath(drive + xyPath, new File(drive + xyzPath)).equals(
+            relZPath));
+    assertTrue(
+        "Should go up the from-path where it is not equal",
+        FilePath.getRelativePath(drive + xyzPath, new File(drive + abcPath)).equals(
+            relUp3 + abcPath));
+    assertTrue(
+        "Should strip parts from the start of the path that are the same and then go up the remaining from-path where it is not equal",
+        FilePath.getRelativePath(drive + xyzPath, new File(drive + xyPath + abcPath))
+            .equals(relUp1 + abcPath));
+    assertTrue(
+        "Should strip parts from only the start of the path that are the same and then go up the remaining from-path where it is not equal",
+        FilePath.getRelativePath(drive + xyzPath, new File(drive + abcPath + xyzPath))
+            .equals(relUp3 + abcPath + xyzPath));
+    assertTrue("Should go up the from-path where it is not equal", FilePath
+        .getRelativePath(drive + xPath, new File(drive + aPath)).equals(relUp1 + aPath));
   }
 }
