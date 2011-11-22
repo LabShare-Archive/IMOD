@@ -2,12 +2,17 @@ package etomo.ui.swing;
 
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
+import javax.swing.JPanel;
 
 import etomo.BaseManager;
 import etomo.ParallelManager;
@@ -42,11 +47,13 @@ public final class ParallelDialog implements AbstractParallelDialog, ProcessInte
   private final ImageIcon iconFolder = new ImageIcon(ClassLoader
       .getSystemResource("images/openFile.gif"));
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
-  private final SpacedPanel pnlProcessName = SpacedPanel.getInstance();
+  private final JPanel pnlProcessName = new JPanel();
   private final SimpleButton btnChunkComscript = new SimpleButton(iconFolder);
   private final LabeledTextField ltfProcessName = new LabeledTextField(PROCESS_NAME_LABEL);
   private final MultiLineButton btnRunProcess = MultiLineButton
       .getToggleButtonInstance("Run Parallel Process");
+  private final GridBagLayout layout = new GridBagLayout();
+  private final GridBagConstraints constraints = new GridBagConstraints();
 
   private final ParallelActionListener actionListener;
   private final ParallelManager manager;
@@ -61,14 +68,26 @@ public final class ParallelDialog implements AbstractParallelDialog, ProcessInte
     this.manager = manager;
     this.axisID = axisID;
     mediator = manager.getProcessingMethodMediator(axisID);
-    //process name panel
+    // process name panel
     btnChunkComscript.setName(PROCESS_NAME_LABEL);
-    pnlProcessName.setBoxLayout(BoxLayout.X_AXIS);
+   //pnlProcessName.setBoxLayout(BoxLayout.X_AXIS);
+    pnlProcessName.setLayout(layout);
+    constraints.fill = GridBagConstraints.BOTH;
+    constraints.weightx = 0.0;
+    constraints.weighty = 0.0;
+    constraints.gridheight = 1;
+    constraints.gridwidth = 1;
+    ltfProcessName.setTextPreferredSize(new Dimension(125 * Math.round(UIParameters.INSTANCE
+        .getFontSizeAdjustment()), FixedDim.folderButton.height));
+    constraints.insets = new Insets(0, 0, 0, -1);
+    layout.setConstraints(ltfProcessName.getContainer(), constraints);
     ltfProcessName.setTextPreferredWidth(125);
-    pnlProcessName.add(ltfProcessName);
+    pnlProcessName.add(ltfProcessName.getContainer());
     btnChunkComscript.setPreferredSize(FixedDim.folderButton);
+    constraints.insets = new Insets(0, -1, 0, 0);
+    layout.setConstraints(btnChunkComscript, constraints);
     pnlProcessName.add(btnChunkComscript);
-    //root panel
+    // root panel
     pnlRoot.setBorder(new BeveledBorder("Parallel Process").getBorder());
     pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRoot.add(pnlProcessName);

@@ -37,20 +37,30 @@ import etomo.type.PeetMetaData;
 final class MissingWedgeCompensationPanel {
   public static final String rcsid = "$Id$";
 
+  private static final String VOLUME_SIZE_LABEL = "Volume Size";
   private static final String MISSING_WEDGE_COMPENSATION_LABEL = "Missing Wedge Compensation";
-  static final String TILT_RANGE_LABEL = "Use tilt range in averaging";
-  private static final String EDGE_SHIFT_LABEL = "Edge shift";
-  static final String FLG_WEDGE_WEIGHT_LABEL = "Use tilt range in alignment";
-  private static final String N_WEIGHT_GROUP_LABEL = "# of weight groups for equalizing CCCs: ";
 
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
-  private final CheckBox cbTiltRange = new CheckBox(TILT_RANGE_LABEL);
-  private final LabeledTextField ltfEdgeShift = new LabeledTextField(EDGE_SHIFT_LABEL
-      + ": ");
-  private final CheckBox cbFlgWedgeWeight = new CheckBox(FLG_WEDGE_WEIGHT_LABEL);
-  private final CheckBox cbNWeightGroup = new CheckBox(N_WEIGHT_GROUP_LABEL);
-  private final Spinner sNWeightGroup = Spinner.getInstance(N_WEIGHT_GROUP_LABEL,
-      MatlabParam.N_WEIGHT_GROUP_DEFAULT, MatlabParam.N_WEIGHT_GROUP_MIN, 20);
+  private final LabeledTextField ltfVolumeSizeX = new LabeledTextField("X: ");
+  private final LabeledTextField ltfVolumeSizeY = new LabeledTextField("Y: ");
+  private final LabeledTextField ltfVolumeSizeZ = new LabeledTextField("Z: ");
+  private final CheckBox cbMissingWedgeCompensation = new CheckBox("Enabled");
+  private final Spinner sEdgeShift = Spinner.getLabeledInstance("Edge shift: ",
+      MatlabParam.EDGE_SHIFT_DEFAULT, MatlabParam.EDGE_SHIFT_MIN,
+      MatlabParam.EDGE_SHIFT_MAX);
+  private final Spinner sNWeightGroup = Spinner.getLabeledInstance("Weight groups: ",
+      MatlabParam.N_WEIGHT_GROUP_DEFAULT, MatlabParam.N_WEIGHT_GROUP_MIN,
+      MatlabParam.N_WEIGHT_GROUP_MAX);
+  /**
+   * @deprecated
+   * Replaced by cbMissingWedgeCompensation
+   */
+  private final CheckBox cbTiltRange = new CheckBox("Use tilt range in averaging");
+  /**
+   * @deprecated
+   * Replaced by cbMissingWedgeCompensation
+   */
+  private final CheckBox cbFlgWedgeWeight = new CheckBox("Use tilt range in alignment");
 
   private final MissingWedgeCompensationParent parent;
 
@@ -68,39 +78,47 @@ final class MissingWedgeCompensationPanel {
 
   private void addListeners() {
     ActionListener actionListener = new MissingWedgeCompensationActionListener(this);
+    cbMissingWedgeCompensation.addActionListener(actionListener);
     cbTiltRange.addActionListener(actionListener);
     cbFlgWedgeWeight.addActionListener(actionListener);
-    cbNWeightGroup.addActionListener(actionListener);
   }
 
   private void createPanel() {
-    //local panels
-    SpacedPanel pnlTiltRange = SpacedPanel.getInstance();
-    SpacedPanel pnlFlgWedgeWeight = SpacedPanel.getInstance();
-    SpacedPanel pnlNWeightGroup = SpacedPanel.getInstance();
-    //Root panel
+    // init
+    cbTiltRange.setVisible(false);
+    cbFlgWedgeWeight.setVisible(false);
+    // local panels
+    SpacedPanel pnlVolumeSize = SpacedPanel.getInstance();
+    SpacedPanel pnlMissingWedgeCompensation = SpacedPanel.getInstance();
+    SpacedPanel pnlEnabled = SpacedPanel.getInstance();
+    // Root panel
     pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
-    pnlRoot.setBorder(new EtchedBorder(MISSING_WEDGE_COMPENSATION_LABEL).getBorder());
     pnlRoot.setComponentAlignmentX(Component.LEFT_ALIGNMENT);
-    pnlRoot.add(pnlTiltRange);
-    pnlRoot.add(pnlFlgWedgeWeight);
-    pnlRoot.add(pnlNWeightGroup);
-    //tiltRange and edgeShift
-    pnlTiltRange.setBoxLayout(BoxLayout.X_AXIS);
-    pnlTiltRange.setComponentAlignmentX(Component.LEFT_ALIGNMENT);
-    pnlTiltRange.add(cbTiltRange);
-    pnlTiltRange.addRigidArea(FixedDim.x20_y0);
-    ltfEdgeShift.setTextPreferredWidth(UIParameters.INSTANCE.getIntegerWidth());
-    pnlTiltRange.add(ltfEdgeShift.getContainer());
-    //flgWedgeWeight
-    pnlFlgWedgeWeight.setBoxLayout(BoxLayout.X_AXIS);
-    pnlFlgWedgeWeight.setComponentAlignmentX(Component.LEFT_ALIGNMENT);
-    pnlFlgWedgeWeight.add(cbFlgWedgeWeight);
-    pnlFlgWedgeWeight.addHorizontalGlue();
-    //nWeightGroup panel
-    pnlNWeightGroup.setBoxLayout(BoxLayout.X_AXIS);
-    pnlNWeightGroup.add(cbNWeightGroup);
-    pnlNWeightGroup.add(sNWeightGroup.getContainer());
+    pnlRoot.add(pnlVolumeSize);
+    pnlRoot.add(pnlMissingWedgeCompensation);
+    // pnlVolumeSize
+    pnlVolumeSize.setBoxLayout(BoxLayout.X_AXIS);
+    pnlVolumeSize
+        .setBorder(new EtchedBorder(VOLUME_SIZE_LABEL + " (Voxels)").getBorder());
+    pnlVolumeSize.add(ltfVolumeSizeX.getContainer());
+    pnlVolumeSize.add(ltfVolumeSizeY.getContainer());
+    pnlVolumeSize.add(ltfVolumeSizeZ.getContainer());
+    // pnlMissingWedgeCompensation
+    pnlMissingWedgeCompensation.setBoxLayout(BoxLayout.Y_AXIS);
+    pnlMissingWedgeCompensation.setBorder(new EtchedBorder(
+        MISSING_WEDGE_COMPENSATION_LABEL).getBorder());
+    pnlMissingWedgeCompensation.setComponentAlignmentX(Component.RIGHT_ALIGNMENT);
+    pnlMissingWedgeCompensation.add(pnlEnabled);
+    pnlMissingWedgeCompensation.add(cbTiltRange);
+    pnlMissingWedgeCompensation.add(cbFlgWedgeWeight);
+    // enabled
+    pnlEnabled.setBoxLayout(BoxLayout.X_AXIS);
+    pnlEnabled.setComponentAlignmentX(Component.LEFT_ALIGNMENT);
+    pnlEnabled.add(cbMissingWedgeCompensation);
+    pnlEnabled.addRigidArea(FixedDim.x3_y0);
+    pnlEnabled.add(sEdgeShift.getContainer());
+    pnlEnabled.addRigidArea(FixedDim.x3_y0);
+    pnlEnabled.add(sNWeightGroup.getContainer());
   }
 
   Component getComponent() {
@@ -108,11 +126,17 @@ final class MissingWedgeCompensationPanel {
   }
 
   public void getParameters(final PeetMetaData metaData) {
-    metaData.setEdgeShift(ltfEdgeShift.getText());
-    metaData.setFlgWedgeWeight(cbFlgWedgeWeight.isSelected());
-    metaData.setUseNWeightGroup(cbNWeightGroup.isSelected());
-    metaData.setNWeightGroup(sNWeightGroup.getValue());
-    metaData.setTiltRange(cbTiltRange.isSelected());
+    metaData.setEdgeShift(sEdgeShift.getValue());
+    int nWeightGroup = metaData.getNWeightGroup().getInt();
+    metaData.setNWeightGroup(nWeightGroup);
+    if (cbTiltRange.isVisible()) {
+      metaData.setTiltRange(cbTiltRange.isSelected());
+      metaData.setFlgWedgeWeight(cbFlgWedgeWeight.isSelected());
+    }
+    else {
+      metaData.setTiltRange(cbMissingWedgeCompensation.isSelected());
+      metaData.setFlgWedgeWeight(cbMissingWedgeCompensation.isSelected());
+    }
   }
 
   /**
@@ -123,22 +147,11 @@ final class MissingWedgeCompensationPanel {
    * correct.
    * @param metaData
    */
-  public void setParameters(final ConstPeetMetaData metaData, boolean parametersOnly) {
-    if (!parametersOnly) {
-      cbFlgWedgeWeight.setSelected(metaData.isFlgWedgeWeight());
-    }
-    ltfEdgeShift.setText(metaData.getEdgeShift());
-    cbNWeightGroup.setSelected(metaData.isUseNWeightGroup());
-    //backwards compatibility - raised nWeightGroup minimum from 0 to 2
-    int nWeightGroup = metaData.getNWeightGroup().getInt();
-    if (nWeightGroup < MatlabParam.N_WEIGHT_GROUP_MIN) {
-      nWeightGroup = MatlabParam.N_WEIGHT_GROUP_MIN;
-    }
-    sNWeightGroup.setValue(nWeightGroup);
-    //Distinguish between what is set in the tilt range numbers and the check
-    //box by saving them separately.  This works better then trying to tell the
-    //difference between [] and {} in the .prm file.
+  public void setParameters(final ConstPeetMetaData metaData) {
     cbTiltRange.setSelected(metaData.isTiltRange());
+    cbFlgWedgeWeight.setSelected(metaData.isFlgWedgeWeight());
+    sEdgeShift.setValue(metaData.getEdgeShift());
+    sNWeightGroup.setValue(metaData.getNWeightGroup());
   }
 
   /**
@@ -146,78 +159,112 @@ final class MissingWedgeCompensationPanel {
    * @param matlabParamFile
    */
   public void setParameters(final MatlabParam matlabParam) {
-    //Backwards compatibility:  if the tilt range has numbers in it, then check
-    //cbTiltRange.  If not, rely on the new variable in MetaData.
+    ltfVolumeSizeX.setText(matlabParam.getSzVolX());
+    ltfVolumeSizeY.setText(matlabParam.getSzVolY());
+    ltfVolumeSizeZ.setText(matlabParam.getSzVolZ());
+    // the new checkbox is selected when when tiltRange and flgWedgeWeight are both
+    // selected. Expose the tiltRange and flgWedgeWeight checkboxes if one of them is
+    // selected.
     if (!matlabParam.isTiltRangeEmpty()) {
       cbTiltRange.setSelected(true);
-    }
-    if (cbTiltRange.isSelected()) {
-      ltfEdgeShift.setText(matlabParam.getEdgeShift());
       cbFlgWedgeWeight.setSelected(matlabParam.isFlgWedgeWeight());
     }
-    if (isFlgWedgeWeightEnabled()) {
-      cbNWeightGroup.setSelected(!matlabParam.isNWeightGroupEmpty());
+    cbMissingWedgeCompensation.setSelected(cbTiltRange.isSelected()
+        && cbFlgWedgeWeight.isSelected());
+    if (!cbMissingWedgeCompensation.isSelected()) {
+      if (cbTiltRange.isSelected() || cbFlgWedgeWeight.isSelected()) {
+        cbTiltRange.setVisible(true);
+        cbFlgWedgeWeight.setVisible(true);
+      }
     }
-    if (isFlgWedgeWeightEnabled() && cbNWeightGroup.isSelected()) {
+    if (cbMissingWedgeCompensation.isSelected()
+        || (cbTiltRange.isVisible() && cbTiltRange.isSelected())) {
+      sEdgeShift.setValue(matlabParam.getEdgeShift());
+    }
+    if (cbMissingWedgeCompensation.isSelected()
+        || (cbTiltRange.isVisible() && cbFlgWedgeWeight.isSelected())) {
       sNWeightGroup.setValue(matlabParam.getNWeightGroup());
     }
+    updateDisplay();
   }
 
-  private boolean isFlgWedgeWeightEnabled() {
-    return !parent.isVolumeTableEmpty() && cbTiltRange.isSelected()
-        && cbFlgWedgeWeight.isSelected() && parent.isReferenceParticleSelected();
-  }
-
-  boolean isTiltRangeSelected() {
-    return cbTiltRange.isSelected();
+  boolean isTiltRangeRequired() {
+    return cbMissingWedgeCompensation.isSelected()
+        || (cbTiltRange.isVisible() && cbTiltRange.isSelected());
   }
 
   public void getParameters(final MatlabParam matlabParam) {
-    //If cbTiltRange is off, this overrides what was set in the volumeTable.
-    if (!cbTiltRange.isSelected()) {
+    matlabParam.setSzVolX(ltfVolumeSizeX.getText());
+    matlabParam.setSzVolY(ltfVolumeSizeY.getText());
+    matlabParam.setSzVolZ(ltfVolumeSizeZ.getText());
+    // If cbTiltRange is off, this overrides what was set in the volumeTable.
+    if (!cbMissingWedgeCompensation.isSelected()
+        && (!cbTiltRange.isVisible() || !cbTiltRange.isSelected())) {
       matlabParam.setTiltRangeEmpty();
     }
-    if (ltfEdgeShift.isEnabled()) {
-      matlabParam.setEdgeShift(ltfEdgeShift.getText());
-    }
-    if (cbFlgWedgeWeight.isEnabled()) {
-      matlabParam.setFlgWedgeWeight(cbFlgWedgeWeight.isSelected());
+    matlabParam.setFlgWedgeWeight(cbMissingWedgeCompensation.isSelected()
+        || (cbTiltRange.isVisible() && cbTiltRange.isSelected() && cbFlgWedgeWeight
+            .isSelected()));
+    if (sEdgeShift.isEnabled()) {
+      matlabParam.setEdgeShift(sEdgeShift.getValue());
     }
     if (sNWeightGroup.isEnabled()) {
-      matlabParam.setUseNWeightGroup(true);
       matlabParam.setNWeightGroup(sNWeightGroup.getValue());
-    }
-    else {
-      matlabParam.setUseNWeightGroup(false);
     }
   }
 
   public void updateDisplay() {
-    //tilt range
-    ltfEdgeShift.setEnabled(cbTiltRange.isSelected());
+    sEdgeShift.setEnabled(cbMissingWedgeCompensation.isSelected()
+        || (cbTiltRange.isVisible() && cbTiltRange.isSelected()));
+    sNWeightGroup.setEnabled(cbMissingWedgeCompensation.isSelected()
+        || (cbTiltRange.isVisible() && !parent.isVolumeTableEmpty()
+            && cbTiltRange.isSelected() && cbFlgWedgeWeight.isSelected()
+            && parent.isReferenceParticleSelected() && cbFlgWedgeWeight.isSelected()));
+    //Get the new checkbox and the old backward compatibility checkboxes to sync to each other.
+    if (cbMissingWedgeCompensation.isSelected()) {
+      cbTiltRange.setSelected(true);
+      cbFlgWedgeWeight.setSelected(true);
+    }
+    else if (cbTiltRange.isSelected() && cbFlgWedgeWeight.isSelected()) {
+      cbTiltRange.setSelected(false);
+      cbFlgWedgeWeight.setSelected(false);
+    }
     cbFlgWedgeWeight.setEnabled(cbTiltRange.isSelected());
-    cbNWeightGroup.setEnabled(isFlgWedgeWeightEnabled());
-    sNWeightGroup.setEnabled(isFlgWedgeWeightEnabled() && cbNWeightGroup.isSelected());
   }
 
-  boolean isFlgWedgeWeightSelected() {
-    return cbFlgWedgeWeight.isSelected();
+  /**
+   * Called when the old checkboxes are changed.
+   */
+  public void updateDisplayBackwardCompatibility() {
+    cbMissingWedgeCompensation.setSelected(cbTiltRange.isVisible()
+        && cbTiltRange.isSelected() && cbFlgWedgeWeight.isSelected());
+    parent.updateDisplay();
   }
 
   String validateRun() {
-    //Edge shift cannot be empty if use tilt range in averaging is checked.
-    if (cbTiltRange.isSelected() && ltfEdgeShift.getText().matches("\\s*")) {
-      return "In " + MISSING_WEDGE_COMPENSATION_LABEL + ", " + EDGE_SHIFT_LABEL
-          + " is required when " + TILT_RANGE_LABEL + " is selected.";
+    // particle volume
+    if (ltfVolumeSizeX.isEmpty()) {
+      return "In " + VOLUME_SIZE_LABEL + ", " + ltfVolumeSizeX.getLabel()
+          + " is required.";
+    }
+    if (ltfVolumeSizeY.isEmpty()) {
+      return "In " + VOLUME_SIZE_LABEL + ", " + ltfVolumeSizeY.getLabel()
+          + " is required.";
+    }
+    if (ltfVolumeSizeZ.isEmpty()) {
+      return "In " + VOLUME_SIZE_LABEL + ", " + ltfVolumeSizeZ.getLabel()
+          + " is required.";
     }
     return null;
   }
 
   private void action(final String actionCommand) {
-    if (actionCommand.equals(cbTiltRange.getActionCommand())
-        || actionCommand.equals(cbFlgWedgeWeight.getActionCommand())
-        || actionCommand.equals(cbNWeightGroup.getActionCommand())) {
+    if (actionCommand.equals(cbMissingWedgeCompensation.getActionCommand())) {
       parent.updateDisplay();
+    }
+    if (actionCommand.equals(cbTiltRange.getActionCommand())
+        || actionCommand.equals(cbFlgWedgeWeight.getActionCommand())) {
+      updateDisplayBackwardCompatibility();
     }
   }
 
@@ -225,32 +272,41 @@ final class MissingWedgeCompensationPanel {
    * Reset values and set defaults.
    */
   public void reset() {
+    ltfVolumeSizeX.clear();
+    ltfVolumeSizeY.clear();
+    ltfVolumeSizeZ.clear();
+    cbMissingWedgeCompensation.setSelected(false);
     cbTiltRange.setSelected(false);
-    ltfEdgeShift.clear();
+    sEdgeShift.reset();
     cbFlgWedgeWeight.setSelected(false);
-    cbNWeightGroup.setSelected(false);
     sNWeightGroup.reset();
   }
 
   void setDefaults() {
-    ltfEdgeShift.setText(MatlabParam.EDGE_SHIFT_DEFAULT);
+    sEdgeShift.setValue(MatlabParam.EDGE_SHIFT_DEFAULT);
     sNWeightGroup.setValue(MatlabParam.N_WEIGHT_GROUP_DEFAULT);
   }
 
   private void setTooltips() {
+    String tooltip = "The size of the volume around each particle to excise and "
+        + "average.";
+    ltfVolumeSizeX.setToolTipText(tooltip);
+    ltfVolumeSizeY.setToolTipText(tooltip);
+    ltfVolumeSizeZ.setToolTipText(tooltip);
     cbTiltRange.setToolTipText("Use the tilt range(s) specified in the volume table for "
         + "missing wedge compensation during averaging.");
     cbFlgWedgeWeight
         .setToolTipText("Use the tilt range(s) specified in the volume table for "
             + "missing wedge compensation during alignment.");
-    cbNWeightGroup.setToolTipText("Divide particles into groups by wedge weight and "
-        + "equalize median cross-correlation coefficient between groups, in "
-        + "order to reduce bias introduced by imperfect missing wedge " + "compensation");
+    cbMissingWedgeCompensation
+        .setToolTipText("Use the tilt range(s) specified in the volume table for "
+            + "missing wedge compensation during averaging.  Use the tilt range(s) "
+            + "specified in the volume table for missing wedge compensation during "
+            + "alignment.");
     sNWeightGroup.setToolTipText("Number of groups to use for equalizing median cross-"
-        + "correlation coefficient between groups.");
-    ltfEdgeShift
-        .setToolTipText("Number of pixels to shift the edge of the wedge mask to "
-            + "include frequency information just inside the missing wedge.");
+        + "correlation coefficient between groups.  Set to 0 or 1 to turn off.");
+    sEdgeShift.setToolTipText("Number of pixels to shift the edge of the wedge mask to "
+        + "include frequency information just inside the missing wedge.");
   }
 
   private static final class MissingWedgeCompensationActionListener implements

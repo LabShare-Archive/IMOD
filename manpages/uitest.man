@@ -827,8 +827,8 @@ function it stops the test for the axis.  This last option lets both axes get to
 place.
 
 .TP 4
-.B format.\fIfield =
-Has eTomo format itself, and then executes the field command as usual.
+.B format\fR[\fB.\fIfield\fR]\fB =
+Has eTomo format itself and then, optionally, executes \fIfield\fR.
 
 .P
 .B [[if\fR[\fBnot\fR]\fB = \fIvariable_name\fB]]
