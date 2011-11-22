@@ -4,18 +4,25 @@
 # Author: David Mastronarde
 #
 # $Id$
-# Log at end
 #
 
 import sys, re
 from imodpy import *
 escslash = '#escSlash^'
 
-# A function to swap \( and (, and \) and ), before compiling a regexp
+# A function to swap \( and (, and \) and ), and take care of escaping other characters,
+# before compiling a regexp
 def swapParenCompile(pattern, flags):
+   global caretMatch, dollarMatch
+
+   # Escape any ^ except one at the start or after [, and any $ except one at the end
+   # Also escape any + because that is not supported by sed
    pat = pattern
+   pat = re.sub(caretMatch, r'\1\\^', pattern)
+   pat = re.sub(dollarMatch, r'\\$\1', pat)
+   pat = pat.replace('+', '\+')
    if pat.find('(') >= 0:
-      pat = pattern.replace('\(', escslash)
+      pat = pat.replace('\(', escslash)
       pat = pat.replace('(', '\(')
       pat = pat.replace(escslash, '(')
       # print 'replacement 1:', pattern, pat
@@ -50,11 +57,14 @@ In other words, actions can be s, d, a, or p, and an expression can have a
 g (global) or p (print) modifier.
 The append action is completely non-standard to provide a convenient way to add
 a line after a matched line.
-As of IMOD 4.2.16, it will yet handle groups and parentheses in sed format by
+As of IMOD 4.2.16, it will handle groups and parentheses in sed format by
 converting \( and \) to ( and ) while escaping unescaped ( and ).  The replacement
 reference can be in the form \\1 (\1 in a raw string) or \\g<1> to isolate from
-numbers that follow.
+numbers that follow.  As of IMOD 4.4.2, when constructing a pattern-matching
+string, it will escape ^ except at the start of the string or after [, $
+except at the end, and + anywhere in the string, for compatibility with sed.
 """
+   global caretMatch, dollarMatch
 
    # Set error prefix and try to open input and output files
    try:
@@ -85,7 +95,7 @@ numbers that follow.
       sedregs = (sedregsIn, )
    else:
       sedregs = sedregsIn
-   
+      
    # Initialize lists to be built up
    action = []
    numsub = []
@@ -96,6 +106,8 @@ numbers that follow.
    flags = 0
    if nocase:
       flags = re.IGNORECASE
+   caretMatch = re.compile(r'([^\\\[])\^')
+   dollarMatch = re.compile(r'\$(.)')
 
    # Loop on expressions, parsing them for action, pattern, etc
    for i in range(len(sedregs)):
@@ -222,19 +234,3 @@ numbers that follow.
       sedout.close()
       return None
    return outlines
-
-#
-#  $Log$
-#  Revision 1.5  2010/12/01 21:01:39  mast
-#  Modifications for python 2/3 compatibility
-#
-#  Revision 1.3  2010/02/22 06:21:28  mast
-#  Added ability to pass in strings instead of filename and flag for
-#  case-insensitivity, fixed append to handle multiple lines
-#
-#  Revision 1.2  2009/10/22 05:47:22  mast
-#  Fixed writing to file
-#
-#  Revision 1.1  2006/09/26 23:02:48  mast
-#  Added to package
-#
