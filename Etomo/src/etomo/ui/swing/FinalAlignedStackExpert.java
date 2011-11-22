@@ -830,6 +830,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     }
     dialog.setConfigFile(param.getConfigFile());
     dialog.setExpectedDefocus(param.getExpectedDefocus());
+    dialog.setOffsetToAdd(param.getOffsetToAdd()); 
   }
 
   private void getParameters(CtfPlotterParam param) {
@@ -841,6 +842,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     param.setInvertTiltAngles(dialog.getInvertTiltAngles());
     param.setAmplitudeContrast(dialog.getAmplitudeContrast());
     param.setExpectedDefocus(dialog.getExpectedDefocus());
+    param.setOffsetToAdd(dialog.getOffsetToAdd());
     param.setConfigFile(dialog.getConfigFile());
   }
 

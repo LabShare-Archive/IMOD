@@ -23,4 +23,5 @@ public interface ConstCtfPlotterParam {
   
   public ConstStringParameter getConfigFile();
   public ConstEtomoNumber getExpectedDefocus();
+  public ConstEtomoNumber getOffsetToAdd();
 }
