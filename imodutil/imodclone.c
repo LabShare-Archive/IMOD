@@ -26,9 +26,9 @@ int main( int argc, char *argv[])
 {
   Imod *inModel, *outModel, *tmpModel;
   FILE *coordFP, *outFP;
-  char *line = NULL;
-  int lineSz = 0;
-  char msg[8256];
+  int lineSz = 1024;
+  char line[lineSz];
+  char msg[256];
   char *progname = imodProgName(argv[0]);
   char *inFile, *outFile, *coordFile;
   int numOptArgs, numNonOptArgs;
@@ -65,20 +65,20 @@ int main( int argc, char *argv[])
   /* Open the csv location/orientation file and skip the header line */
   coordFP = fopen(coordFile, "r");
   if (!coordFP) {
-    sprintf(&msg, "Error opening location/orientation file:\n%s", coordFile);
-    exitError(line);
+    sprintf(msg, "Error opening location/orientation file:\n%s", coordFile);
+    exitError(msg);
   }
   free(coordFile);
-  if (getline(&line, &lineSz, coordFP) == -1) {
-    sprintf(&msg, "Error reading location/orientation file :\n%s", coordFile);
-    exitError(line);
+  if (fgets(line, lineSz, coordFP) == NULL) {
+    sprintf(msg, "Error reading location/orientation file :\n%s", coordFile);
+    exitError(msg);
   }
 
   /* Read the input model (to be cloned) */
   inModel = imodRead(inFile);
   if (!inModel) {
-    sprintf(&msg, "Error reading input model:\n%s", inFile);   
-    exitError(line);
+    sprintf(msg, "Error reading input model:\n%s", inFile);   
+    exitError(msg);
     free(inFile);
   }
 
@@ -93,7 +93,7 @@ int main( int argc, char *argv[])
   /* Loop over points in the coordinate file */
   int iOutObj = 0;
   Imat *xform = imodMatNew(3);
-  while (getline(&line, &lineSz, coordFP) != -1) {
+  while (fgets(line, lineSz, coordFP)) {
     int contour;
     float x, y, z, xAngle, yAngle, zAngle;
     if (sscanf(line, "%d,%g,%g,%g,%g,%g,%g", &contour, &x, &y, &z, 
