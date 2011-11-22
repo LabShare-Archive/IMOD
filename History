@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/22/11: Fixed pysed.py to allow ^ and + in filenames again (In 4.3).
+
 11/17/11: Added option to Ctfplotter to specify a data offset, and made it
 detect need for offset automatically with FEI data (In 4.3).
 
