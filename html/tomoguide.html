@@ -200,7 +200,16 @@ dataSetNameb.st.  These names are just conventions and do not correspond to a
 separate file format.
 The data set name can contain ".", "-", and "_" as
 separators but must not contain spaces or other characters that could
-confuse a Unix shell.
+confuse a Unix shell or the IMOD processing tools.  Specifically, the
+following characters are known to give problems:
+<pre>
+   ` ' " ! # $ % & * ( ) { } [ ; < > / ? \ |
+</pre>
+It appears that all of these characters can be used safely in filenames
+(although colon is not allowed in Windows):
+<pre>
+~ @ ^ _ - = + ] , . :
+</pre>
 <P>
 If you are supplying your own file of raw tilt angles, they must be named with
 the data set name followed by ".rawtlt" (or "a.rawtlt" and "b.rawtlt" for a
