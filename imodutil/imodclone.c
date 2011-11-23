@@ -26,13 +26,14 @@ int main( int argc, char *argv[])
 {
   Imod *inModel, *outModel, *tmpModel;
   FILE *coordFP, *outFP;
-  int lineSz = 1024;
+  const int lineSz = 1024;
   char line[lineSz];
   char msg[256];
   char *progname = imodProgName(argv[0]);
   char *inFile, *outFile, *coordFile;
-  int numOptArgs, numNonOptArgs;
+  int iOutObj = 0, numOptArgs, numNonOptArgs;
   float xMin, xMax, yMin, yMax, zMin, zMax;
+  Imat *xform;
 
   int numOptions = 4;
   char *options[] = {
@@ -91,8 +92,7 @@ int main( int argc, char *argv[])
   tmpModel->zmax = inModel->zmax;
 
   /* Loop over points in the coordinate file */
-  int iOutObj = 0;
-  Imat *xform = imodMatNew(3);
+  xform = imodMatNew(3);
   while (fgets(line, lineSz, coordFP)) {
     int contour;
     float x, y, z, xAngle, yAngle, zAngle;
@@ -104,6 +104,7 @@ int main( int argc, char *argv[])
 
       /* Copy all the objects from the input to the temp model */        
       Iobj *obj = imodObjectGetFirst(inModel);
+      Ipoint newCenter;
       int i = 0;
       while (obj != NULL) {
         imodNewObject(tmpModel);
@@ -113,17 +114,14 @@ int main( int argc, char *argv[])
         obj = imodObjectGetNext(inModel);
       }
 
-      Ipoint newCenter;
       newCenter.x = x;
       newCenter.y = y;
       newCenter.z = z;
       /* Construct the rotation matrix for this point */
-      /* Minus signs seems to be required becaues of differing PEET */
-      /* and IMOD conventions. Need to check into this. */
       imodMatId(xform);
-      imodMatRot(xform, -zAngle, b3dZ);
-      imodMatRot(xform, -yAngle, b3dY);
-      imodMatRot(xform, -xAngle, b3dX);
+      imodMatRot(xform, zAngle, b3dZ);
+      imodMatRot(xform, yAngle, b3dY);
+      imodMatRot(xform, xAngle, b3dX);
 
       /* Transform the temp model */
       imodTransModel3D(tmpModel, xform, NULL, newCenter, 1.0, 0);
