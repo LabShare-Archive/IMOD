@@ -118,12 +118,10 @@ int main( int argc, char *argv[])
       newCenter.y = y;
       newCenter.z = z;
       /* Construct the rotation matrix for this point */
-      /* Minus signs seems to be required becaues of differing PEET */
-      /* and IMOD conventions. Need to check into this. */
       imodMatId(xform);
-      imodMatRot(xform, -zAngle, b3dZ);
-      imodMatRot(xform, -yAngle, b3dY);
-      imodMatRot(xform, -xAngle, b3dX);
+      imodMatRot(xform, zAngle, b3dZ);
+      imodMatRot(xform, yAngle, b3dY);
+      imodMatRot(xform, xAngle, b3dX);
 
       /* Transform the temp model */
       imodTransModel3D(tmpModel, xform, NULL, newCenter, 1.0, 0);
