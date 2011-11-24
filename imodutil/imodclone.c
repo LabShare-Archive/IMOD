@@ -22,11 +22,11 @@
 /* 
  * Main entry
  */
+#define lineSz 1024
 int main( int argc, char *argv[])
 {
   Imod *inModel, *outModel, *tmpModel;
   FILE *coordFP, *outFP;
-  const int lineSz = 1024;
   char line[lineSz];
   char msg[256];
   char *progname = imodProgName(argv[0]);
@@ -107,8 +107,8 @@ int main( int argc, char *argv[])
       Ipoint newCenter;
       int i = 0;
       while (obj != NULL) {
-        imodNewObject(tmpModel);
         Iobj *tmpobj = imodObjectDup(obj);
+        imodNewObject(tmpModel);
         imodObjectCopy(tmpobj, &(tmpModel->obj[i++]));
         free(tmpobj);
         obj = imodObjectGetNext(inModel);
