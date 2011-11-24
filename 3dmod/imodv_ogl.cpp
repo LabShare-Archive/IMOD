@@ -14,8 +14,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include <limits.h>
-
+#define GL_GLEXT_PROTOTYPES
 #include <qgl.h>
+#include <GL/glext.h>
 #include "imodv_image.h"
 #include "imod.h"
 #include "imodv.h"
@@ -1920,6 +1921,7 @@ static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj, int drawTrans)
   }
   return;
 }
+#define BUFFER_OFFSET(bytes) ((GLubyte*) NULL + (bytes))
 
 /* draws mesh with lighting model */
 static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj, 
@@ -1935,6 +1937,8 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
   int nextChange, stateFlags, changeFlags, nextItemIndex, defTrans;
   int handleFlags = ((obj->flags & IMOD_OBJFLAG_FCOLOR) ? HANDLE_MESH_FCOLOR :
     HANDLE_MESH_COLOR) | HANDLE_TRANS;
+  static GLuint ebo = 0, vbo = 0;
+    static int numInd = 0, numVert = 0;
 
   if (!mesh)
     return;
@@ -1969,6 +1973,60 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
 
   stateFlags = 0;
   nextItemIndex = nextChange = istoreFirstChangeIndex(mesh->store);
+
+  if (!vbo) {
+    GLfloat *verts;
+    GLuint *inds;
+    unsigned int li;
+    GLint buf, sbuf;
+    glGetIntegerv(GL_SAMPLE_BUFFERS, &buf);
+    printf("number of sample buffers is %d\n", buf);
+    glGetIntegerv(GL_SAMPLES, &sbuf);
+    printf("number of samples is %d\n", sbuf);
+    glEnable(GL_MULTISAMPLE);
+    
+    glGenBuffers(1, &vbo);
+    glGenBuffers(1, &ebo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ARRAY_BUFFER, 3 * mesh->vsize * sizeof(GLfloat), NULL,GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh->lsize * sizeof(GLuint), NULL,
+                 GL_STATIC_DRAW);
+    verts = B3DMALLOC(GLfloat, 3 * mesh->vsize * sizeof(GLfloat));
+    inds = B3DMALLOC(GLuint, mesh->lsize * sizeof(GLuint));
+    while (mesh->list[i] != IMOD_MESH_END) {
+      if (mesh->list[i] ==  IMOD_MESH_BGNPOLYNORM2) {
+        i++;
+        while (mesh->list[i] != IMOD_MESH_ENDPOLY) {
+          inds[numInd++] = list[i++] / 2;
+        }
+      }
+      i++;
+    }
+    for (i = 0; i < mesh->vsize; i += 2) {
+      verts[numVert++] = vert[i + 1].x;
+      verts[numVert++] = vert[i + 1].y;
+      verts[numVert++] = vert[i + 1].z;
+      verts[numVert++] = vert[i].x;
+      verts[numVert++] = vert[i].y;
+      verts[numVert++] = vert[i].z * z;
+    }
+    glBufferSubData(GL_ARRAY_BUFFER, 0, numVert * sizeof(GLfloat), verts);
+    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, numInd * sizeof(GLuint), inds);
+    glInterleavedArrays(GL_N3F_V3F, 0, BUFFER_OFFSET(0));
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+  } 
+
+
+  // Now draw with the theoretically loaded stuff
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+  glDrawElements(GL_TRIANGLES, numInd, GL_UNSIGNED_INT, BUFFER_OFFSET(0));
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  return;
 
   for(i = 0; i < mesh->lsize; i++){
     switch(mesh->list[i]){
