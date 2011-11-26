@@ -381,7 +381,7 @@ for iaxis in range(naxis):
       if ifextract:
          if stackExists:
             try:
-               extractlines = runcmd(fmtstr("extracttilts -warn '{}' '{}'", stackname,
+               extractlines = runcmd(fmtstr('extracttilts -warn "{}" "{}"', stackname,
                                             tiltspec))
             except ImodpyError:
                exitFromImodError(progname)
@@ -400,7 +400,7 @@ for iaxis in range(naxis):
          if stackExists:
             prnstr("Extracting piece list file from the image file...")
             try:
-               extractlines = runcmd(fmtstr('extractpieces {} {}', stackname, piecename))
+               extractlines = runcmd(fmtstr('extractpieces "{}" "{}"', stackname, piecename))
             except ImodpyError:
                exitFromImodError(progname)
             if len(extractlines):
@@ -504,7 +504,7 @@ for iaxis in range(naxis):
 
                # Look for the Fei title, if it started
                # as an FEI file and min is still negative, assume it is needs a base
-               headout = runcmd("header '" + stackname + "'")
+               headout = runcmd('header "' + stackname + '"')
             except ImodpyError:
                exitFromImodError(progname)
 
