@@ -60,7 +60,8 @@ int ifgHandleMeshChange(Iobj *obj, Ilist *list, DrawProps *defProps,
                         DrawProps *curProps, int *nextItemIndex, int curIndex, 
                         int *stateFlags, int *changeFlags, int handleFlags);
 void ifgHandleColorTrans(Iobj *obj, float r, float g, float b, int trans);
-int ifgMeshTransMatch(Imesh *mesh, int defTrans, int drawTrans, int *meshInd);
+int ifgMeshTransMatch(Imesh *mesh, int defTrans, int drawTrans, int *meshInd, 
+                      int skipEnds);
 int ifgContTransMatch(Iobj *obj, Icont *cont, int *matchPt, int drawTrans,
                       DrawProps *contProps, DrawProps *ptProps,
                       int *stateFlags, int *allChanges, int handleFlags);
