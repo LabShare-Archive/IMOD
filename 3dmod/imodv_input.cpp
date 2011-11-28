@@ -281,6 +281,10 @@ void imodvKeyPress(QKeyEvent *event)
   case Qt::Key_V:
     if (shifted)
       imodvViewEditDialog(a, 1);
+    else {
+      a->vertBufOK = 1 - a->vertBufOK;
+      imodvDraw(a);
+    }
     break;
 
   case Qt::Key_1:
