@@ -127,6 +127,10 @@ typedef struct Mod_Point
 }Ipoint;
 
 #ifndef IMODELP_H
+/* This structure will hold dynamic data for displaying with vertex buffer objects
+   and the definition is provided only for routines that need it in 3dmod */
+typedef struct Vert_Buf_Data  VertBufData;
+
 typedef struct Mod_Mesh
 {
   struct Mod_Point *vert;   /* list of points */
@@ -137,6 +141,7 @@ typedef struct Mod_Mesh
   b3dInt16        time;     /* Time value */
   b3dInt16        surf;     /* Surface  */
   Ilist          *store;
+  VertBufData    *vertBuf;
 }Imesh;
 #endif
 
@@ -358,7 +363,6 @@ typedef struct Mod_Contour
   Ilabel      *label;
   Ilist       *store;
 }Icont;
-
 
 /* An Object is an array of contours */
 typedef struct Mod_Object

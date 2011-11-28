@@ -52,6 +52,7 @@ Imesh *imodMeshesNew(int size)
     mesh[sh].time  = 0;
     mesh[sh].surf  = 0;
     mesh[sh].store = NULL;
+    mesh[sh].vertBuf = NULL;
   }
   return(mesh);
 }

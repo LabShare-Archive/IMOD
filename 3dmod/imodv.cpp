@@ -176,6 +176,7 @@ static int imodv_init(ImodvApp *a, struct Mod_Draw *md)
   a->linkSlicerCenter = 1;
   a->boundBoxExtraObj = 0;
   a->curPointExtraObj = 0;
+  a->vertBufOK = 1;
 
   // DNM 6/6/04: Get rid of stereo command initialization
 
