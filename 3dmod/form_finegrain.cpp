@@ -363,7 +363,7 @@ void FineGrainForm::lastLineColor()
 
 void FineGrainForm::lastFillColor()
 {
-  ifgFillColorChanged(mLastRed, mLastGreen, mLastBlue);
+  ifgFillColorChanged(mLastFillRed, mLastFillGreen, mLastFillBlue);
 }
 
 void FineGrainForm::lastTrans()
