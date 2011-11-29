@@ -28,7 +28,7 @@ interface MaskingParent {
 
   public int getVolumeTableSize();
 
-  public boolean fixIncorrectPath(FileTextField fileTextField, boolean choosePath);
+  public boolean fixIncorrectPath(FileTextFieldInterface fileTextField, boolean choosePath);
 
   public void updateDisplay();
 }

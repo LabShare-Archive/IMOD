@@ -28,6 +28,19 @@ the value of the tilt axis rotation angle are such that reconstructions are
 generated with inverted handedness, then this option is needed to keep power 
 spectra for off-center tiles from being shifted in the wrong direction.
 
+[Field = OffsetToAdd]
+short = offset
+type = F
+usage = Add this value to the data in the input stack
+tooltip =
+manpage = The program must analyze data values where 0 corresponds to no
+electrons recorded.  Use this option to specify a value to add to your input
+stack that will make values positive and proportional to recorded electrons.
+The value will not be added to noise files; they are required to be positive.
+The program automatically sets this value to 32768 if it recognizes a file from
+FEI data acquisition software with a minimum below 0, or if the minimum and
+mean of a non-FEI file are sufficiently negative.
+
 [Field = ConfigFile]
 short = config
 type = FN

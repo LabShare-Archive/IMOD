@@ -344,14 +344,7 @@ final class ProcessorTableRow implements Storable {
   }
 
   private void updateSelected(boolean selected) {
-    if (cellCPUsSelected instanceof SpinnerCell) {
-      SpinnerCell cell = (SpinnerCell) cellCPUsSelected;
-      cell.setEnabled(selected);
-    }
-    else {
-      FieldCell cell = (FieldCell) cellCPUsSelected;
-      cell.setHideValue(!selected);
-    }
+    cellCPUsSelected.setEnabled(selected);
     setSelectedError();
     table.msgCPUsSelectedChanged();
   }
@@ -532,7 +525,7 @@ final class ProcessorTableRow implements Storable {
     return cellComputer.getLabel();
   }
 
-  /*final int getWidth() { int width = 0; width += cellComputer.getWidth(); width +=
+  /* final int getWidth() { int width = 0; width += cellComputer.getWidth(); width +=
    * cellCPUsSelected.getWidth(); if (numberColumn) { width += cellNumberCpus.getWidth();
    * } if (Utilities.isWindowsOS()) { width += cellCPUUsage.getWidth(); } else { width +=
    * cellLoad1.getWidth(); width += cellLoad5.getWidth(); if (usersColumn) { width +=

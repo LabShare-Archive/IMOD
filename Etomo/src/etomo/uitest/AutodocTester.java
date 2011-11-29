@@ -361,7 +361,7 @@ final class AutodocTester extends Assert implements VariableList {
 
   private static final int REDRAW_WAIT = 40;
   private static final int MAX_FORMAT = 5;
-  private static final int FORMAT_WAIT = 680;
+  private static final int FORMAT_WAIT = 700;
 
   private final ReadOnlyAutodoc autodoc;
   private final JFCTestHelper helper;
@@ -867,7 +867,10 @@ final class AutodocTester extends Assert implements VariableList {
     // FORMAT
     else if (actionType == UITestActionType.FORMAT) {
       formatApplication();
-      executeField(command);
+      // format.field
+      if (field != null) {
+        executeField(command);
+      }
     }
     // IF
     else if (actionType == UITestActionType.IF) {
@@ -2270,8 +2273,10 @@ final class AutodocTester extends Assert implements VariableList {
       else {
         // assert.tf.text_field_label = value
         if (value != null) {
-          assertTrue("field text is not equal to value - " + textField.getText() + ","
-              + value + " (" + command + ")", textField.getText().equals(value));
+          assertTrue(
+              "field text is not equal to value: " + value + " - " + textField.getName()
+                  + ":" + textField.getText() + "," + " (" + command + ")", textField
+                  .getText().equals(value));
         }
         // assert.tf.text_field_label =
         else {

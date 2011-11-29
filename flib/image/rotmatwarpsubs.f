@@ -2,8 +2,6 @@ c       rotmatwarpsubs.f  - contains subroutines for Rotatevol, Matchvol, and
 c       Warpvol
 c       
 c       $Id$
-c       Log at end
-c       
 c
 c       SETUP_CUBES_SCRATCH determines the needed size of the scratch files
 c       opens the scratch files, and sets up tables for which cubes use
@@ -20,7 +18,7 @@ c
       character*(*) tim
       logical*4 warping
       integer*4 nxyzcubas(3),nxyzscr(3),nbigcube(3),nExtra, nloctot
-      integer*4 i, ind, j, ix, iy,iz,inmin(3),inmax(3),ival
+      integer*4 i, ind, j, ix, iy,iz,inmin(3),inmax(3),ival,nzExtra
       character*320 temp_filename
       character*320 tempname
       real*8 memSize8
@@ -103,7 +101,7 @@ c         last aspect ratio (if any) and use that one
      &      ((ncubes(iyAxis) .gt. 1 .and. nxyzcubas(iyAxis) .lt. minYZsize).or.
      &      (ncubes(izAxis) .gt. 1 .and. nxyzcubas(izAxis) .lt. minYZsize))))
      &      then
-          print *,efficiency / cubeEfficiency
+          if (iVerbose .gt. 0) print *,'Efficiency ratio', efficiency / cubeEfficiency
           if (aspect .gt. 1.) then
             aspect = aspect - delAspect
             call findSizesForAspect()
@@ -144,6 +142,7 @@ c                 Adding 2 instead of 1 may be overkill but gives extra safety
      &    write(*,'(a,3i6)')'Input size adjusted for actual cubes:', inpDim
       arraySize8 = inpDim(1)
       arraySize8 = (arraySize8 * inpDim(2)) * inpDim(3)
+      nzExtra = 0
 c       
 c       now compute sizes of nearly equal sized near cubes to fill output
 c       volume, store the starting index coordinates
@@ -166,16 +165,24 @@ c
         enddo
         nxyzscr(i)=nxyzcubas(i)+1
       enddo
-      if (nxout * (nxyzcubas(2) + 1.) .ge. arraySize8) then
-        print *,inpdim, nxout, nxyzcubas(2), nxout * (nxyzcubas(2) + 1.),
-     &      arraySize8
-        call exiterror('OUTPUT IMAGE TOO WIDE FOR ARRAYS')
-      endif
+c       
+c       This was originally a test that could fail - and it failed for nz = 1, so
+c       increase the number of planes allocated as needed to hold output row
+      do while (nxout * (nxyzcubas(2) + 1.) .ge. arraySize8)
+        nzExtra = nzExtra + 1
+        arraySize8 = inpDim(1)
+        arraySize8 = (arraySize8 * inpDim(2)) * (inpDim(3) + nzExtra)
+        if (arraySize8 .gt. 2 * memSize8) then
+          print *,inpdim, nxout, nxyzcubas(2), nxout * (nxyzcubas(2) + 1.),
+     &        arraySize8,nzExtra,memSize8
+          call exiterror('SOMETHING IS WRONG TRYING TO MAKE ARRAY BIG ENOUGH FOR OUTPUT')
+        endif
+      enddo
 c
       if (filein .eq. ' ') return
 c       
 c       Allocate memory
-      allocate (array(inpdim(1),inpdim(2),inpdim(3)),
+      allocate (array(inpdim(1),inpdim(2),inpdim(3)+nzExtra),
      &    brray(idimOut(1)*idimOut(2)*maxZout),
      &    ifile(ncubes(1), ncubes(2)),
      &    izinfile(ncubes(1), ncubes(2), nxyzscr(3)), stat = j)
@@ -867,41 +874,3 @@ c
       call iwrsec(6,array(1,1,iz))
       return
       end
-
-
-c       
-c       $Log$
-c       Revision 3.10  2010/01/05 18:46:00  mast
-c       Fixed setting of input array sizes to ignore initial estimate which can
-c       be too small
-c
-c       Revision 3.9  2009/06/14 22:29:02  mast
-c       Changes for Fortran 95, module, allocating memory, determining optimal
-c       arrangement of input and output sizes, recomposing more efficiently,
-c       and openmp parallelization of the main loops
-c
-c       Revision 3.8  2007/11/18 04:53:46  mast
-c       Increased filename limits to 320
-c
-c       Revision 3.7  2007/08/30 20:13:38  mast
-c       Change izinfile from i*2 3d to i*4 1D array
-c	
-c       Revision 3.6  2006/06/01 14:16:00  mast
-c       Switched to exiterror, added different error message for warpvol
-c	
-c       Revision 3.5  2006/01/23 19:31:22  mast
-c       Increased format for status output from i4 to i6
-c	
-c       Revision 3.4  2004/11/10 02:06:03  mast
-c       Rearranged setup_cubes to allow it to be called twice from warpvol
-c       and to provide a factor for extra pixels needed in input
-c	
-c       Revision 3.3  2004/07/24 17:35:38  mast
-c       Added progress output
-c	
-c       Revision 3.2  2004/06/22 19:57:48  mast
-c       Fixed computation of mean
-c	
-c       Revision 3.1  2003/10/11 00:20:59  mast
-c       Creation of file
-c	

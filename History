@@ -1,7 +1,39 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/28/11: Fixed Last Fill Color button in finegrain dialog (In 4.3).
+
+11/22/11: Fixed pysed.py to allow ^ and + in filenames again (In 4.3).
+
+11/18/11: IMOD_4-4-1
+11/18/11: In eTomo - Final Aligned Stack, added OffsetToAdd to the Ctfplotter
+dialog (In 4.3).(Bug# 1581)
+
+11/17/11: In eTomo - PEET, upgraded the volume table with an improved format
+and embedded file buttons.(Bug# 1561)
+
+11/17/11: Added option to Ctfplotter to specify a data offset, and made it
+detect need for offset automatically with FEI data (In 4.3).
+
+11/17/11: Fixed Rotatevol problem when run on a volume with NZ = 1 (In 4.3).
+
+11/9/11: In eTomo - Fiducial Model, fixed failure in patch tracking when the
+there is an existing tilt file (In 4.3).(Bug# 1547)
+
+11/9/11: IMOD_4-3-1
+11/9/11: In Beadfixer, fixed extra redraws when moving by residual in all 
+local areas (In 4.3).
+
+11/8/11: In eTomo - Fiducial Model, pulling the tilt angle specs from
+xcorr.com into xcorr_pt.com (In 4.3).(Bug# 1547)
+
 11/5/11: In Processchunks, fixed very long delay when many chunks fail right
 away and problem recognizing when all machines have failed (In 4.3).
+
+11/4/11: In eTomo - PEET, defaulting reference in the .prm file to 10,10 when
+flgFairReference is on.(Bug# 1565)
+
+11/4/11: In eTomo - PEET, defaulting to relative directory paths.  Continuing
+to allow absolute directory paths.(Bug# 1575)
 
 11/3/11: Added ability to have global clip planes change position during movie
 making in Model View.

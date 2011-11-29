@@ -39,6 +39,7 @@ public final class CtfPlotterParam implements ConstCtfPlotterParam, CommandParam
   public static final String COMMAND = "ctfplotter";
   public static final String CONFIG_FILE_OPTION = "ConfigFile";
   public static final String EXPECTED_DEFOCUS_OPTION = "ExpectedDefocus";
+  public static final String OFFSET_TO_ADD_OPTION = "OffsetToAdd";
 
   private final ScriptParameter voltage = new ScriptParameter(
       CtfPhaseFlipParam.VOLTAGE_OPTION);
@@ -51,6 +52,8 @@ public final class CtfPlotterParam implements ConstCtfPlotterParam, CommandParam
   private final StringParameter configFile = new StringParameter(CONFIG_FILE_OPTION);
   private final ScriptParameter expectedDefocus = new ScriptParameter(
       EtomoNumber.Type.FLOAT, EXPECTED_DEFOCUS_OPTION);
+  private final ScriptParameter offsetToAdd = new ScriptParameter(EtomoNumber.Type.FLOAT,
+      OFFSET_TO_ADD_OPTION);
 
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
       throws BadComScriptException, InvalidParameterException,
@@ -62,6 +65,7 @@ public final class CtfPlotterParam implements ConstCtfPlotterParam, CommandParam
     amplitudeContrast.parse(scriptCommand);
     configFile.parse(scriptCommand);
     expectedDefocus.parse(scriptCommand);
+    offsetToAdd.parse(scriptCommand);
   }
 
   public void updateComScriptCommand(ComScriptCommand scriptCommand)
@@ -72,6 +76,7 @@ public final class CtfPlotterParam implements ConstCtfPlotterParam, CommandParam
     amplitudeContrast.updateComScript(scriptCommand);
     configFile.updateComScript(scriptCommand);
     expectedDefocus.updateComScript(scriptCommand);
+    offsetToAdd.updateComScript(scriptCommand);
   }
 
   public void initializeDefaults() {
@@ -83,6 +88,7 @@ public final class CtfPlotterParam implements ConstCtfPlotterParam, CommandParam
     invertTiltAngles.reset();
     amplitudeContrast.reset();
     expectedDefocus.reset();
+    offsetToAdd.reset();
   }
 
   public void setVoltage(String input) {
@@ -113,7 +119,15 @@ public final class CtfPlotterParam implements ConstCtfPlotterParam, CommandParam
     expectedDefocus.set(input);
   }
 
+  public void setOffsetToAdd(String input) {
+    offsetToAdd.set(input);
+  }
+
   public ConstEtomoNumber getExpectedDefocus() {
     return expectedDefocus;
+  }
+
+  public ConstEtomoNumber getOffsetToAdd() {
+    return offsetToAdd;
   }
 }

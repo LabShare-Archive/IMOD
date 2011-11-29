@@ -1,8 +1,8 @@
-all: test proc
-test: single-test-gui dual-test-gui single-patch-tracking-test-gui single-montage-test-gui dual-montage-test-gui join-test-gui peet-test-gui flatten-volume-test-gui
-proc: single-fidless single-simple-align dual-montage-patch-tracking generic nad
-other: single dual single-patch-tracking single-montage dual-montage join peet flatten-volume
+all: peet-test-gui single-test-gui single-patch-tracking-test-gui single-fidless single-simple-align dual-test-gui single-montage-test-gui dual-montage-test-gui dual-montage-patch-tracking join-test-gui nad generic flatten-volume-test-gui
+sub: peet peet-test-gui single-patch-tracking-test-gui single-fidless single-simple-align dual-test-gui single-montage-test-gui join-test-gui nad generic flatten-volume-test-gui
 temp: 
+
+pt: single-patch-tracking-test-gui single-patch-tracking dual-montage-patch-tracking
 
 single: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest single

@@ -49,6 +49,7 @@ void SliceCache::initCache(const char *fnStack, int dim,
                            int hyper, int tSize, int &nx, int &ny, int &nz)
 {
   int dsize, csize;
+  mDataOffset = 0.;
   if(mFpStack)
     fclose(mFpStack); 
   if( (mFpStack=fopen(fnStack, "rb"))==0 )
@@ -282,6 +283,43 @@ float *SliceCache::getHyperPS(int tileX, int tileY, int whichSlice,
   if (mCurSlice != whichSlice) {
     if (mrc_read_slice(mSliceData, mFpStack, &mHeader, whichSlice, 'Z'))
       exitError("Reading slice %d", whichSlice);
+
+    // Apply offset if needed
+    if (mDataOffset) {
+      unsigned char *bdata = (unsigned char *)mSliceData;
+      b3dUInt16 *usdata = (b3dUInt16 *)mSliceData;
+      b3dInt16 *sdata = (b3dInt16 *)mSliceData;
+
+      // The first time this happens, reallocate the array to be larger for floats
+      if (mSliceMode != MRC_MODE_FLOAT) {
+        free(mSliceData);
+        mSliceData = (float *)malloc(mHeader.nx * mHeader.ny * 4);
+        if (!mSliceData)
+          exitError("Allocating memory for floating point image slice");
+        mSliceMode = MRC_MODE_FLOAT;
+      }
+
+      // Add the offset and put result into floats since we have no idea if shorts
+      // would stay in range
+      switch (mHeader.mode) {
+      case MRC_MODE_BYTE:
+        for (ii = mHeader.nx * mHeader.ny - 1; ii >= 0; ii--)
+          mSliceData[ii] = bdata[ii] + mDataOffset;
+        break;
+      case MRC_MODE_USHORT:
+        for (ii = mHeader.nx * mHeader.ny - 1; ii >= 0; ii--)
+          mSliceData[ii] = usdata[ii] + mDataOffset;
+        break;
+      case MRC_MODE_SHORT:
+        for (ii = mHeader.nx * mHeader.ny - 1; ii >= 0; ii--)
+          mSliceData[ii] = sdata[ii] + mDataOffset;
+        break;
+      case MRC_MODE_FLOAT:
+        for (ii = 0; ii < mHeader.nx * mHeader.ny; ii++)
+          mSliceData[ii] += mDataOffset;
+        break;
+      }
+    }
     mCurSlice = whichSlice;
   }
 

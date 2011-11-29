@@ -37,26 +37,27 @@ int main(int argc, char *argv[])
 {
   // Fallbacks from   ../manpages/autodoc2man 2 1 ctfplotter
   int numOptArgs, numNonOptArgs;
-  int numOptions = 20;
+  int numOptions = 21;
   char *options[] = {
-    "input:InputStack:FN:", "angleFn:AngleFile:FN:",
-    "invert:InvertTiltAngles:B:", "config:ConfigFile:FN:",
-    "defFn:DefocusFile:FN:", "aAngle:AxisAngle:F:", "psRes:PSResolution:I:",
-    "tileSize:TileSize:I:", "volt:Voltage:I:", "cache:MaxCacheSize :I:",
-    "debug:DebugLevel :I:", "cs:SphericalAberration:F:",
+    "input:InputStack:FN:", "angleFn:AngleFile:FN:", "invert:InvertTiltAngles:B:",
+    "offset:OffsetToAdd:F:", "config:ConfigFile:FN:", "defFn:DefocusFile:FN:",
+    "aAngle:AxisAngle:F:", "psRes:PSResolution:I:", "tileSize:TileSize:I:",
+    "volt:Voltage:I:", "cache:MaxCacheSize :I:", "cs:SphericalAberration:F:",
     "defTol:DefocusTol:I:", "pixelSize:PixelSize:F:",
     "ampContrast:AmplitudeContrast:F:", "expDef:ExpectedDefocus:F:",
-    "leftTol:LeftDefTol:F:", "rightTol:RightDefTol:F:",
-    "range:AngleRange:FP:", "param:Parameter:PF:"};
+    "leftTol:LeftDefTol:F:", "rightTol:RightDefTol:F:", "range:AngleRange:FP:",
+    "debug:DebugLevel :I:", "param:Parameter:PF:"};
 
   char *cfgFn, *stackFn, *angleFn, *defFn;
   float tiltAxisAngle;
   int volt, nDim, tileSize, cacheSize;
   float defocusTol, pixelSize, lowAngle, highAngle;
   float expectedDef, leftDefTol, rightDefTol;
-  float ampContrast, cs;
-  int invertAngles = 0;
+  float ampContrast, cs, dataOffset = 0.;
+  int invertAngles = 0, ifOffset = 0;
   QString noiseCfgDir, noiseFile;
+  SliceCache *cache;
+  MrcHeader *header;
 
   // This amount of hyperresolution in the stored PS gave < 0.1% difference
   // in the final PS from ones computed directly from summed FFTs for 
@@ -116,6 +117,7 @@ int main(int argc, char *argv[])
   if(PipGetTwoFloats("AngleRange", &lowAngle, &highAngle))
     exitError("No AngleRange specified");
   PipGetBoolean("InvertTiltAngles", &invertAngles);
+  ifOffset = 1 - PipGetFloat("OffsetToAdd", &dataOffset);
  
   double *rAvg=(double *)malloc(nDim*sizeof(double));
 
@@ -202,6 +204,10 @@ int main(int argc, char *argv[])
     for (i = 0; i < nDim; i++)
       noisePs[noiseFileCounter*nDim + i] = currPS[i];
     noiseMean[noiseFileCounter]=app.getStackMean();
+    if (noiseMean[noiseFileCounter] < 0.)
+      exitError("The mean of noise file %d is negative.  All noise files must have "
+                "positive means, with 0 mean corresponding to 0 exposure",
+                noiseFileCounter + 1);
     noiseFileCounter++;
   }
   for(i=0;i<noiseFileCounter;i++){
@@ -236,6 +242,42 @@ int main(int argc, char *argv[])
   app.setLowAngle(lowAngle);
   app.setHighAngle(highAngle);
   app.setSlice(stackFn, angleFn);
+
+  // Now determine and set data offset if necessary
+  cache = app.getCache();
+  if (!ifOffset) {
+    header = cache->getHeader();
+    if (strstr(header->labels[0], "Fei Company")) {
+      if (header->amin < 0.) {
+        ifOffset = 1;
+      } else {
+        QMessageBox::warning (0, "Warning: Data Offset May Be Needed", 
+           "The image stack originated from FEI software,\nbut the usual offset of "
+           "32768 is not being added\nbecause the minimum of the file is positive.\n\n"
+           "You may need to specify an offset to make the\n"
+           "values be proportional to recorded electrons.",
+           QMessageBox::Ok, QMessageBox::NoButton, QMessageBox::NoButton);
+        qApp->processEvents();
+      }
+    } else {
+      if (header->amin < -20000 && header->amean < -1000) {
+        ifOffset = 1;
+        QMessageBox::warning (0, "Warning: Data Offset Assumed", 
+           "The image stack contains negative values\nunder -20000 and has a negative "
+           "mean,\nso an offset of 32768 is being added.\n\n"
+           "You may need to specify a different offset to make\n"
+           "the values be proportional to recorded electrons.",
+           QMessageBox::Ok, QMessageBox::NoButton, QMessageBox::NoButton);
+        qApp->processEvents();
+      } else if (header->amean < 0)
+        exitError("The mean of the input stack is negative.  You need to specify an "
+                  "offset to add to make values be proportional to recorded electrons");
+    }
+    if (ifOffset)
+      dataOffset = 32768;
+  }
+  if (ifOffset)
+    cache->setDataOffset(dataOffset);
   app.computeInitPS();
 
   // Removed setting of stack mean and noise files from here

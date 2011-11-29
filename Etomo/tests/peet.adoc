@@ -28,12 +28,11 @@ run.function.setup-test-run-error=
 tf.root-name-for-output=%{dataset}
 run.function.volume-table=
 run.function.reference=
+run.function.volume-size=
 [[if = test-gui]]
-  run.function.volume-size=
 	run.function.missing-wedge-compensation=
 	run.function.masking=
 	run.function.manual-cylinder-orientation=
-	run.function.initial-motive-list=
 	run.function.y-axis-type=
 [[]]
 
@@ -45,37 +44,46 @@ mb.parallel-processing=-
 bn.run=
 wait.popup.entry-error=OK
 #error message sends it back to setup tab
+format=
 
 
 [function = volume-table]
 #check empty table error
 run.function.setup-test-run-error=
-bn.add-volume-and-model=
-wait.file-chooser.open=%{dataset}-a.rec
-wait.file-chooser.open=%{dataset}-a.mod
+bn.insert=
+bn.volume-table-1-volume=
+wait.file-chooser.volume=%{dataset}-a.rec
+bn.volume-table-1-model=
+wait.file-chooser.model=%{dataset}-a.mod
 #highlight the first row
 mb.volume-table-1-vol-#=
 #copy the highlighted row
-bn.copy-row=
-bn.add-volume-and-model=
-wait.file-chooser.open=%{dataset}-b.rec
-wait.file-chooser.open=%{dataset}-b.mod
+bn.duplicate=
+bn.insert=
+bn.volume-table-3-volume=
+wait.file-chooser.volume=%{dataset}-b.rec
+bn.volume-table-3-model=
+wait.file-chooser.model=%{dataset}-b.mod
 mb.volume-table-3-vol-#=
 bn.move-up=
 #set motive list
-rb.use-files=
-mb.volume-table-1-vol-#=
-bn.set-initial-motive-list-file=
-wait.file-chooser.open=%{dataset}-a-initMOTL.csv
-mb.volume-table-2-vol-#=
-bn.set-initial-motive-list-file=
-wait.file-chooser.open=%{dataset}-b-initMOTL.csv
-mb.volume-table-3-vol-#=
-bn.set-initial-motive-list-file=
-wait.file-chooser.open=%{dataset}-a-initMOTL.csv
 [[if = test-gui]]
+  assert.disabled.tf.volume-table-1-initial=
+  assert.disabled.bn.volume-table-1-initial=
+[[]]
+rb.use-files=
+bn.volume-table-1-initial=
+wait.file-chooser.initial-motl=%{dataset}-a-initMOTL.csv
+bn.volume-table-2-initial=
+wait.file-chooser.initial-motl=%{dataset}-b-initMOTL.csv
+bn.volume-table-3-initial=
+wait.file-chooser.initial-motl=%{dataset}-a-initMOTL.csv
+[[if = test-gui]]
+  assert.enabled.tf.volume-table-1-initial=
+  assert.enabled.bn.volume-table-1-initial=
 	#test move up and move down
 	#check enable/disable for bottom row
+	mb.volume-table-3-vol-#=
 	assert.enabled.bn.move-up=
 	assert.disabled.bn.move-down=
 	bn.move-up=
@@ -84,15 +92,11 @@ wait.file-chooser.open=%{dataset}-a-initMOTL.csv
 	assert.enabled.bn.move-down=
 	assert.tf.volume-table-2-volume=%{dataset}-a.rec
 	assert.tf.volume-table-2-model=%{dataset}-a.mod
-	assert.tf.volume-table-2-rel-orient=
-	assert.tf.volume-table-2-rel-orient.1=
-	assert.tf.volume-table-2-rel-orient.2=
+	assert.tf.volume-table-2-initial=%{dataset}-a-initMOTL.csv
 	bn.move-down=
 	assert.tf.volume-table-3-volume=%{dataset}-a.rec
 	assert.tf.volume-table-3-model=%{dataset}-a.mod
-	assert.tf.volume-table-3-rel-orient=
-	assert.tf.volume-table-3-rel-orient.1=
-	assert.tf.volume-table-3-rel-orient.2=
+  assert.tf.volume-table-3-initial=%{dataset}-a-initMOTL.csv
 	#check enable/disable for middle row
 	mb.volume-table-2-vol-#=
 	assert.enabled.bn.move-up=
@@ -105,7 +109,17 @@ wait.file-chooser.open=%{dataset}-a-initMOTL.csv
 	mb.volume-table-1-vol-#=
 	assert.disabled.bn.move-up=
 	assert.disabled.bn.move-down=
+	#check expand/contract
+	mb.volume=>
+	assert.tf.volume-table-1-volume=%{dataset}-a.rec
+	tf.volume-table-1-volume=%{dataset}-c.rec
+	assert.tf.volume-table-1-volume=%{dataset}-c.rec
+	mb.volume=<
+	assert.tf.volume-table-1-volume=%{dataset}-c.rec
+	tf.volume-table-1-volume=%{dataset}-a.rec
+	assert.tf.volume-table-1-volume=%{dataset}-a.rec
 [[]]
+
 
 [function = reference]
 #check empty particle # error
@@ -113,7 +127,10 @@ run.function.setup-test-run-error=
 tf.particle=2
 #check empty reference file error
 [[if = test-values]]
+  assert.tf.multiparticle-reference=10
+  assert.tf.groups-of=10
 	rb.user-supplied-file=
+	assert.enabled.tf.user-supplied-file=
 	run.function.setup-test-run-error=
 	rb.particle=
 [[]]
@@ -135,6 +152,10 @@ tf.z=%{particle-volume}
 if.not.var.test-values.return=
 #check empty tilt range error
 #tilt range required with averaging
+[[if = test-gui]]
+  assert.disabled.tf.volume-table-2-tilt-range=
+  assert.disabled.tf.volume-table-2-tilt-range.1=
+[[]]
 cb.enabled=on
 run.function.setup-test-run-error=
 tf.volume-table-1-tilt-range=-10
@@ -149,6 +170,10 @@ tf.volume-table-2-tilt-range=
 tf.volume-table-2-tilt-range.1=
 tf.volume-table-3-tilt-range=
 tf.volume-table-3-tilt-range.1=
+[[if = test-gui]]
+  assert.enabled.tf.volume-table-2-tilt-range=
+  assert.enabled.tf.volume-table-2-tilt-range.1=
+[[]]
 cb.enabled=off
 
 
@@ -156,6 +181,7 @@ cb.enabled=off
 if.not.var.test-values.return=
 #check empty volume masking volume
 rb.volume=
+assert.enabled.tf.volume=
 run.function.setup-test-run-error=
 rb.none=
 
@@ -180,8 +206,6 @@ assert.enabled.tf.y-rotation=
 	tf.z-rotation=
 [[]]
 rb.none=
-
-[function = initial-motive-list]
 
 
 [function = y-axis-type]
@@ -222,7 +246,7 @@ bn.run=
 wait.process.processchunks-%{dataset}=done
 [[if = test-gui]]
 	#test remake averages
-	bn.remake-averaged-volumes=
+  bn.remake-averaged-volumes=
 	wait.process.running-averageall=done
 	bn.open-averaged-volumes-in-3dmod=
 [[]]
@@ -347,193 +371,188 @@ run.function.test-run-error=
 tf.end=9
 
 [function = check-prm]
-KeyValueDelimiter = ==
-run.function.setup-check-prm==
-run.function.runtab-check-prm==
+run.function.setup-check-prm=
+run.function.runtab-check-prm=
 
 
-[function == setup-check-prm]
-tb.setup==
-run.function.volume-table-check-prm==
-run.function.reference-check-prm==
-run.function.multiparticle-check-prm==
-run.function.missing-wedge-compensation-check-prm==
-run.function.masking-check-prm==
-run.function.manual-cylinder-orientation-check-prm==
-run.function.initial-motive-list-check-prm==
-run.function.y-axis-type-check-prm==
+[function = setup-check-prm]
+tb.setup=
+run.function.volume-table-check-prm=
+run.function.reference-check-prm=
+run.function.missing-wedge-compensation-check-prm=
+run.function.masking-check-prm=
+run.function.manual-cylinder-orientation-check-prm=
+run.function.initial-motive-list-check-prm=
+run.function.y-axis-type-check-prm=
 
 
-[function == runtab-check-prm]
-tb.setup.1==
-run.function.spherical-sampling-for-theta-and-psi-check-prm==
+[function = runtab-check-prm]
+tb.setup.1=
+run.function.spherical-sampling-for-theta-and-psi-check-prm=
 #check remove duplicates
-cb.remove-duplicates==on
-bn.add-row==
-tf.iteration-table-1-duplicate==1
-tf.iteration-table-1-duplicate.1==2
-tf.iteration-table-2-duplicate==0
-tf.iteration-table-2-duplicate.1==0
-save==
-assert.contains.file==%{dataset}.prm|flgRemoveDuplicates = 1
-assert.contains.file==%{dataset}.prm|duplicateShiftTolerance = [1, 0]
-assert.contains.file==%{dataset}.prm|duplicateAngularTolerance = [2, 0]
-cb.remove-duplicates==off
+cb.remove-duplicates=on
+bn.add-row=
+tf.iteration-table-1-duplicate=1
+tf.iteration-table-1-duplicate.1=2
+tf.iteration-table-2-duplicate=0
+tf.iteration-table-2-duplicate.1=0
+save=
+assert.contains.file=%{dataset}.prm|flgRemoveDuplicates = 1
+assert.contains.file=%{dataset}.prm|duplicateShiftTolerance = [1, 0]
+assert.contains.file=%{dataset}.prm|duplicateAngularTolerance = [2, 0]
+cb.remove-duplicates=off
 #flgAlignAverages is always saved
-assert.contains.file==%{dataset}.prm|flgAlignAverages = 0
+assert.contains.file=%{dataset}.prm|flgAlignAverages = 0
 #aligned base name
-mb.run.1==A
-tf.aligned-base-name==bob
-save==
-assert.contains.file==%{dataset}.prm|alignedBaseName = 'bob'
-mb.run.1==B
+mb.run.1=A
+tf.aligned-base-name=bob
+save=
+assert.contains.file=%{dataset}.prm|alignedBaseName = 'bob'
+mb.run.1=B
 
 
-[function == volume-table-check-prm]
+[function = volume-table-check-prm]
 #enable tilt range
-cb.enabled==on
-tf.volume-table-1-tilt-range==-10
-tf.volume-table-1-tilt-range.1==10
-tf.volume-table-2-tilt-range==-20
-tf.volume-table-2-tilt-range.1==20
-tf.volume-table-3-tilt-range==-10
-tf.volume-table-3-tilt-range.1==10
-save==
-assert.contains.file==%{dataset}.prm|tiltRange = {[-10, 10], [-20, 20], [-10, 10]}
-cb.enabled==off
+cb.enabled=on
+tf.volume-table-1-tilt-range=-10
+tf.volume-table-1-tilt-range.1=10
+tf.volume-table-2-tilt-range=-20
+tf.volume-table-2-tilt-range.1=20
+tf.volume-table-3-tilt-range=-10
+tf.volume-table-3-tilt-range.1=10
+save=
+assert.contains.file=%{dataset}.prm|tiltRange = {[-10, 10], [-20, 20], [-10, 10]}
+cb.enabled=off
 
 
-[function == reference-check-prm]
-rb.user-supplied-file==
-bn.user-supplied-file==
-wait.file-chooser.open==unMasked%{dataset}_Ref1.mrc
-save==
-assert.contains.file==%{dataset}.prm|reference = '*unMasked%{dataset}_Ref1.mrc'
-rb.particle==
+[function = reference-check-prm]
+rb.user-supplied-file=
+bn.user-supplied-file=
+wait.file-chooser.user-supplied-file=unMasked%{dataset}_Ref1.mrc
+sleep=2000
+assert.tf.user-supplied-file=unMasked%{dataset}_Ref1.mrc
+save=
+assert.contains.file=%{dataset}.prm|reference = 'unMasked%{dataset}_Ref1.mrc'
+rb.multiparticle-reference=
+save=
+assert.contains.file=%{dataset}.prm|flgFairReference = 1
+assert.contains.file=%{dataset}.prm|reference = [10, 10]
+rb.particle=
 
 
-[function == multiparticle-check-prm]
-rb.multiparticle-reference==
-tf.multiparticle-reference==15
-tf.groups-of==10
-save==
-assert.contains.file==%{dataset}.prm|flgFairReference = 1
-assert.contains.file==%{dataset}.prm|reference = [15, 10]
-rb.particle==
+[function = missing-wedge-compensation-check-prm]
+cb.enabled=on
+save=
+assert.contains.file=%{dataset}.prm|tiltRange = {[-10, 10], [-20, 20], [-10, 10]}
+assert.contains.file=%{dataset}.prm|edgeShift = 1
+assert.contains.file=%{dataset}.prm|nWeightGroup = 8
+assert.contains.file=%{dataset}.prm|flgWedgeWeight = 1
+cb.enabled=off
 
 
-[function == missing-wedge-compensation-check-prm]
-cb.enabled==on
-save==
-assert.contains.file==%{dataset}.prm|tiltRange = {[-10, 10], [-20, 20], [-10, 10]}
-assert.contains.file==%{dataset}.prm|edgeShift = 1
-assert.contains.file==%{dataset}.prm|nWeightGroup = 8
-assert.contains.file==%{dataset}.prm|flgWedgeWeight = 1
-cb.enabled==off
-
-
-[function == masking-check-prm]
+[function = masking-check-prm]
 #test volume
-rb.volume==
-bn.volume==
-wait.file-chooser.open==unMasked%{dataset}_Ref1.mrc
-save==
-assert.contains.file==%{dataset}.prm|maskType = '*unMasked%{dataset}_Ref1.mrc'
+rb.volume=
+bn.volume=
+wait.file-chooser.volume=unMasked%{dataset}_Ref1.mrc
+sleep=2000
+assert.tf.volume=unMasked%{dataset}_Ref1.mrc
+save=
+assert.contains.file=%{dataset}.prm|maskType = 'unMasked%{dataset}_Ref1.mrc'
 #test sphere
-rb.sphere==
-tf.inner==10
-tf.outer==20
-save==
-assert.contains.file==%{dataset}.prm|maskType = 'sphere'
-assert.contains.file==%{dataset}.prm|insideMaskRadius = 10
-assert.contains.file==%{dataset}.prm|outsideMaskRadius = 20
-rb.none==
+rb.sphere=
+tf.inner=10
+tf.outer=20
+save=
+assert.contains.file=%{dataset}.prm|maskType = 'sphere'
+assert.contains.file=%{dataset}.prm|insideMaskRadius = 10
+assert.contains.file=%{dataset}.prm|outsideMaskRadius = 20
+rb.none=
 
 
-[function == manual-cylinder-orientation-check-prm]
+[function = manual-cylinder-orientation-check-prm]
 #test cylinder
-rb.cylinder==
-save==
-assert.contains.file==%{dataset}.prm|maskType = 'cylinder'
+rb.cylinder=
+save=
+assert.contains.file=%{dataset}.prm|maskType = 'cylinder'
 #test cylinder with rotations
-tf.z-rotation==15
-tf.y-rotation==30.1
-save==
-assert.contains.file==%{dataset}.prm|maskType = 'cylinder'
-assert.contains.file==%{dataset}.prm|maskModelPts = [15, 30.1]
-rb.particle==
-rb.none==
+tf.z-rotation=15
+tf.y-rotation=30.1
+save=
+assert.contains.file=%{dataset}.prm|maskType = 'cylinder'
+assert.contains.file=%{dataset}.prm|maskModelPts = [15, 30.1]
+rb.particle=
+rb.none=
 
 
-[function == initial-motive-list-check-prm]
+[function = initial-motive-list-check-prm]
 #test initialize Z axis
-rb.initialize-z-axis==
-save==
-assert.contains.file==%{dataset}.prm|initMOTL = 1
+rb.initialize-z-axis=
+save=
+assert.contains.file=%{dataset}.prm|initMOTL = 1
 #test initialize X and Z axes
-rb.initialize-x-and-z-axes==
-save==
-assert.contains.file==%{dataset}.prm|initMOTL = 2
+rb.initialize-x-and-z-axes=
+save=
+assert.contains.file=%{dataset}.prm|initMOTL = 2
 #test uniform random rotations
-rb.uniform-random-rotations==
-save==
-assert.contains.file==%{dataset}.prm|initMOTL = 3
+rb.uniform-random-rotations=
+save=
+assert.contains.file=%{dataset}.prm|initMOTL = 3
 #use files is tested in volume-table-check-prm
-rb.use-files==
-save==
-assert.contains.file==%{dataset}.prm|initMOTL = {'*%{dataset}-a-initMOTL.csv', '*%{dataset}-b-initMOTL.csv', '*%{dataset}-a-initMOTL.csv'}
+rb.use-files=
+save=
+assert.contains.file=%{dataset}.prm|initMOTL = {'%{dataset}-a-initMOTL.csv', '%{dataset}-b-initMOTL.csv', '%{dataset}-a-initMOTL.csv'}
 
 
-[function == y-axis-type-check-prm]
+[function = y-axis-type-check-prm]
 #test particle model points
-rb.particle-model-points==
-save==
-assert.contains.file==%{dataset}.prm|yaxisType = 1
+rb.particle-model-points=
+save=
+assert.contains.file=%{dataset}.prm|yaxisType = 1
 #test end ponts of contour
-rb.end-points-of-contour==
-tf.object-#==2
-tf.contour-#==3
-save==
-assert.contains.file==%{dataset}.prm|yaxisType = 2
-assert.contains.file==%{dataset}.prm|yaxisObjectNum = 2
-assert.contains.file==%{dataset}.prm|yaxisContourNum = 3
-rb.original-y-axis==
+rb.end-points-of-contour=
+tf.object-#=2
+tf.contour-#=3
+save=
+assert.contains.file=%{dataset}.prm|yaxisType = 2
+assert.contains.file=%{dataset}.prm|yaxisObjectNum = 2
+assert.contains.file=%{dataset}.prm|yaxisContourNum = 3
+rb.original-y-axis=
 
 
-[function == iteration-table-check-prm]
-cb.remove-duplicates==on
-mb.iteration-table-1-duplicate==2
-mb.iteration-table-1-duplicate.1==3
-save==
-assert.contains.file==%{dataset}.prm|flgRemoveDuplicates = 1
-assert.contains.file==%{dataset}.prm|duplicateShiftTolerance = {2}
-assert.contains.file==%{dataset}.prm|duplicateAngularTolerance = {3}
-cb.remove-duplicates==off
+[function = iteration-table-check-prm]
+cb.remove-duplicates=on
+mb.iteration-table-1-duplicate=2
+mb.iteration-table-1-duplicate.1=3
+save=
+assert.contains.file=%{dataset}.prm|flgRemoveDuplicates = 1
+assert.contains.file=%{dataset}.prm|duplicateShiftTolerance = {2}
+assert.contains.file=%{dataset}.prm|duplicateAngularTolerance = {3}
+cb.remove-duplicates=off
 
-[function == spherical-sampling-for-theta-and-psi-check-prm]
+[function = spherical-sampling-for-theta-and-psi-check-prm]
 #test full sphere
-rb.full-sphere==
-tf.sample-interval==3
-save==
-assert.contains.file==%{dataset}.prm|sampleSphere = 'full'
-assert.contains.file==%{dataset}.prm|sampleInterval = 3
+rb.full-sphere=
+tf.sample-interval=3
+save=
+assert.contains.file=%{dataset}.prm|sampleSphere = 'full'
+assert.contains.file=%{dataset}.prm|sampleInterval = 3
 #test half sphere
-rb.half-sphere==
-save==
-assert.contains.file==%{dataset}.prm|sampleSphere = 'half'
-assert.contains.file==%{dataset}.prm|sampleInterval = 3
-rb.none==
+rb.half-sphere=
+save=
+assert.contains.file=%{dataset}.prm|sampleSphere = 'half'
+assert.contains.file=%{dataset}.prm|sampleInterval = 3
+rb.none=
 
 
-[function == number-of-particles-in-averages-check-prm]
-tf.additional-numbers==4
-save==
-assert.contains.file==%{dataset}.prm|lstThresholds = [3:3:9, 4]
+[function = number-of-particles-in-averages-check-prm]
+tf.additional-numbers=4
+save=
+assert.contains.file=%{dataset}.prm|lstThresholds = [3:3:9, 4]
 
 
-[function == cross-correlation-measure-check-prm]
-rb.local-energy-normalized-cross-correlation==
-save==
-assert.contains.file==%{dataset}.prm|CCMode = 0
-rb.normalized-cross-correlation==
-KeyValueDelimiter == =
+[function = cross-correlation-measure-check-prm]
+rb.local-energy-normalized-cross-correlation=
+save=
+assert.contains.file=%{dataset}.prm|CCMode = 0
+rb.normalized-cross-correlation=

@@ -262,6 +262,8 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
       "Amplitude contrast: ");
   private final LabeledTextField ltfExpectedDefocus = new LabeledTextField(
       "Expected defocus (nm): ");
+  private final LabeledTextField ltfOffsetToAdd = new LabeledTextField(
+  "Offset to add to image values: ");
   private final LabeledTextField ltfInterpolationWidth = new LabeledTextField(
       "Interpolation width (pixels): ");
   private final CheckBox cbParallelProcess = new CheckBox(ParallelPanel.FIELD_LABEL);
@@ -432,6 +434,9 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
   void setExpectedDefocus(ConstEtomoNumber input) {
     ltfExpectedDefocus.setText(input);
   }
+  void setOffsetToAdd(ConstEtomoNumber input) {
+    ltfOffsetToAdd.setText(input);
+  }
 
   String getDefocusTol() {
     return ltfDefocusTol.getText();
@@ -445,6 +450,9 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     return ltfExpectedDefocus.getText();
   }
 
+  String getOffsetToAdd() {
+    return ltfOffsetToAdd.getText();
+  }
   void setUseFilterEnabled(boolean enable) {
     btnUseFilter.setEnabled(enable);
   }
@@ -652,6 +660,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     ltfAmplitudeContrast.setVisible(advanced);
     ltfDefocusTol.setVisible(advanced);
     cbInvertTiltAngles.setVisible(advanced);
+    ltfOffsetToAdd.setVisible(advanced);
   }
 
   void setParameters(ConstMetaData metaData) {
@@ -759,6 +768,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     ctfCorrectionBodyPanel.add(ctfPlotterPanel);
     ctfPlotterPanel.add(ftfConfigFile);
     ctfPlotterPanel.add(ltfExpectedDefocus);
+    ctfPlotterPanel.add(ltfOffsetToAdd);
     ctfPlotterPanel.add(btnCtfPlotter);
     //ctf phase flip
     SpacedPanel ctfCorrectionPanel = SpacedPanel.getInstance();
@@ -1190,6 +1200,8 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
           + CtfPhaseFlipParam.COMMAND + ".");
       ltfExpectedDefocus.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           CtfPlotterParam.EXPECTED_DEFOCUS_OPTION));
+      ltfOffsetToAdd.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          CtfPlotterParam.OFFSET_TO_ADD_OPTION));
     }
     btnCtfPlotter.setToolTipText("Run ctfplotter");
     try {
