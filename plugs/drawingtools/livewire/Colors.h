@@ -22,10 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef COLORS_H
 #define COLORS_H
 
-#include <stddef.h>
-
-typedef unsigned char byte;
-typedef unsigned int uint;
+#include "general.h"
 
 // For color-space conversion, the following variables and equations are used:
 
@@ -68,7 +65,6 @@ void RGBtoHSV(byte R, byte G, byte B, byte& H, byte& S, byte& V)
 
 	V = M;
 }
-
 void RGBtoHSL(byte R, byte G, byte B, byte& H, byte& S, byte& L)
 {
 	byte M, m;
@@ -84,7 +80,6 @@ void RGBtoHSL(byte R, byte G, byte B, byte& H, byte& S, byte& L)
 
 	L = Mm / 2;
 }
-
 void RGBtoHSI(byte R, byte G, byte B, byte& H, byte& S, byte& I)
 {
 	byte M, m;

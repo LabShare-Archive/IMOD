@@ -19,12 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 **/
 
-/*
- * Inspired by a min-heap priority queue by Alexey Kurakin (http://www.codeproject.com/KB/threads/PriorityQueueGeneric.aspx)
- */
-
-#include <stdlib.h>
-#include <string.h>
+// Inspired by a min-heap priority queue by Alexey Kurakin (http://www.codeproject.com/KB/threads/PriorityQueueGeneric.aspx)
 
 #include "PointPriorityQueue.h"
 
@@ -32,10 +27,44 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 using namespace Livewire;
 
-PointPriorityQueue::Entry::Entry(uint s, size_t i, uint x, uint y, uint I) : score(s), index(new size_t(i)), x(x), y(y), I(I) {}
+struct PointPriorityQueue::Entry
+{
+	uint score;
+	size_t index;
+	/*const*/ uint x, y, I;
 
-#define IW(x, y, w)	((x) + (y) * (w))
-#define I(x, y)		IW(x, y, this->_width)
+private:
+	static vector<Entry*> avail;
+	static vector<void*> blocks;
+
+public:
+	inline static Entry *Get(uint s, size_t idx, uint x, uint y, uint I)
+	{
+		if (avail.size() == 0)
+		{
+			// Allocate a bunch at a time
+			Entry *mem = (Entry*)malloc(0x1000*sizeof(Entry));
+			blocks.push_back(mem);
+			avail.reserve(0x1000);
+			for (size_t i = 0; i < 0x1000; ++i)
+				avail.push_back(mem+i);
+		}
+		Entry *e = avail.pop_back();
+		e->score = s; e->index = idx; e->x = x; e->y = y; e->I = I;
+		return e;
+	}
+	inline static void Return(Entry *e) { avail.push_back(e); }
+	//inline void Return() { Return(this); }
+	inline static void Clear() // TODO: call this function somewhere
+	{
+		for (size_t i = 0; i < blocks.size(); ++i)
+			free(blocks[i]);
+		blocks.reset();
+		avail.reset();
+	}
+};
+vector<PointPriorityQueue::Entry*> PointPriorityQueue::Entry::avail;
+vector<void*> PointPriorityQueue::Entry::blocks;
 
 #ifdef ENABLE_CHECKING
 #ifdef _MSC_VER
@@ -47,47 +76,44 @@ PointPriorityQueue::Entry::Entry(uint s, size_t i, uint x, uint y, uint I) : sco
 #include <assert.h>
 #endif
 #define ASSERT(B)	assert(B)
-#define CHECK(O)	Check(O, this->_heap, this->_count, this->_map, this->_width, this->_height)
-static void Check(const bool cHO, /*const*/ PointPriorityQueue::Entry **heap, const uint count, /*const*/ size_t** map, const uint w, const uint h)
+#define CHECK(O)	Check(O, this->_heap, this->_map, this->_width, this->_height)
+static void Check(const bool cHO, const vector<PointPriorityQueue::Entry*>& heap, const SparseMatrix<size_t>& map, const uint w, const uint h)
 {
-	for (size_t i = 1; i < count; ++i)
+	for (size_t i = 0; i < heap.size(); ++i)
 	{
 		const PointPriorityQueue::Entry *e = heap[i];
 		assert(i == *e->index);
-		if (cHO)
+		if (i && cHO)
 			assert(e->score >= heap[(i-1)/2]->score);
 		assert(e->I == IW(e->x, e->y, w));
-		assert(e->index == map[e->I]);
+		assert(&e->index == map.Get(e->x, e->y));
 	}
-	const size_t wh = w * h;
+	/*const size_t wh = w * h;
 	for (uint I = 0; I < wh; ++I)
 	{
+		// TODO: update for new map format
 		const size_t *index = map[I];
 		size_t i;
-		assert(index == NULL || ((i = *index) < count && heap[i]->I == I));
-	}
+		assert(index == NULL || ((i = *index) < heap.size() && heap[i]->I == I));
+	}*/
 }
 #else
 #define ASSERT(B)	
 #define CHECK(O)	
 #endif
 
-PointPriorityQueue::PointPriorityQueue(uint w, uint h) :
-	_width(w), _height(h), _count(0), _heap_capacity(w+w+h+h),
-	_map((size_t**)memset(malloc(w*h*sizeof(size_t*)), NULL, w*h*sizeof(size_t*))),
-	_heap((Entry**)malloc((w+w+h+h)*sizeof(Entry*))) { }
-
-PointPriorityQueue::~PointPriorityQueue() { this->Clear(); free(this->_map); }
+PointPriorityQueue::PointPriorityQueue(uint w, uint h) : _width(w), _height(h), _heap(), _map(w, h) { const uint perim = w+w+h+h; this->_heap.reserve(perim > 0x4000 ? 0x4000 : perim); }
+PointPriorityQueue::~PointPriorityQueue() { this->Clear(); }
 
 #pragma region Priority queue operations
 
 //void PointPriorityQueue::Enqueue(uint I, uint score) { this->Insert(I % this->_width, I / this->_width, I, score); }
-//void PointPriorityQueue::Enqueue(uint x, uint y, uint score) { this->Insert(x, y, I(x,y), score); }
+//void PointPriorityQueue::Enqueue(uint x, uint y, uint score) { this->Insert(x, y, x + y * this->_width, score); }
 void PointPriorityQueue::Enqueue(uint x, uint y, uint I, uint score) { this->Insert(x, y, I, score); }
 
 bool PointPriorityQueue::Dequeue(uint& x, uint& y, uint& I, uint& score)
 {
-	if (this->_count == 0) return false;
+	if (this->_heap.empty()) return false;
 	//this->Peek(x, y, I, score);
 	Entry *e = this->_heap[0];
 	I = e->I; x = e->x; y = e->y; score = e->score;
@@ -97,42 +123,34 @@ bool PointPriorityQueue::Dequeue(uint& x, uint& y, uint& I, uint& score)
 
 //bool PointPriorityQueue::Peek(uint& x, uint& y, uint& I, uint& score) const
 //{
-//	if (this->_count == 0) return false;
+//	if (this->_heap.empty()) return false;
 //	Entry *e = this->_heap[0];
 //	I = e->I; x = e->x; y = e->y; score = e->score;
 //	return true;
 //}
 
-//bool PointPriorityQueue::IsEmpty() const { return this->_count == 0; }
-//size_t PointPriorityQueue::Size() const { return this->_count; }
+//bool PointPriorityQueue::IsEmpty() const { return this->_heap.empty(); }
+//size_t PointPriorityQueue::Size() const { return this->_heap.size(); }
 
 void PointPriorityQueue::Clear()
 {
-	for (size_t i = 0; i < this->_count; ++i)
-	{
-		Entry *e = this->_heap[i];
-		this->_map[e->I] = NULL;
-		delete e->index;
-		delete e;
-	}
-	this->_count = 0;
+	const size_t count = this->_heap.size();
+	for (size_t i = 0; i < count; ++i)
+		Entry::Return(this->_heap[i]);
+	this->_heap.clear();
+	this->_map.Clear();
 	CHECK(true);
 }
 
 #pragma endregion
 
-#pragma region Advanced priority queue operations (added by Jeff)
+#pragma region Advanced priority queue operations (added by Jeff) - These require the _map variable and is the only place that variable is used
 
-//bool PointPriorityQueue::Contains(uint x, uint y) const { return this->_map[I(x, y)] != NULL; }
-//bool PointPriorityQueue::UpdateScore(uint x, uint y, uint score) { return this->UpdateScore(I(x,y), score); }
-//bool PointPriorityQueue::DescreaseScore(uint x, uint y, uint score) { return this->DescreaseScore(I(x,y), score); }
-//bool PointPriorityQueue::IncreaseScore(uint x, uint y, uint score) { return this->IncreaseScore(I(x,y), score); }
-
-//bool PointPriorityQueue::Contains(uint I) const { return this->_map[I] != NULL; }
-//bool PointPriorityQueue::UpdateScore(uint I, uint score)
+bool PointPriorityQueue::Contains(uint x, uint y) const { return this->_map.Get(x, y) != NULL; }
+//bool PointPriorityQueue::UpdateScore(uint x, uint y, uint score)
 //{
-//	ASSERT(this->_map[I] != NULL);
-//	size_t i = *this->_map[I];
+//	ASSERT(this->_map.Get(x, y));
+//	size_t i = *this->_map.Get(x, y);
 //	uint s = this->_heap[i]->score;
 //	if (score == s) return false;
 //	this->_heap[i]->score = score;
@@ -140,24 +158,44 @@ void PointPriorityQueue::Clear()
 //	else			this->HeapifyFromEndToBeginning(i); // priority is smaller, heapify
 //	return true;
 //}
-bool PointPriorityQueue::DescreaseScore(uint I, uint score)
+bool PointPriorityQueue::DescreaseScore(uint x, uint y, uint score)
 {
-	ASSERT(this->_map[I] != NULL);
-	size_t i = *this->_map[I];
+	ASSERT(this->_map.Get(x, y));
+	size_t i = *this->_map.Get(x, y);
 	if (score >= this->_heap[i]->score) return false;
 	this->_heap[i]->score = score;
 	this->HeapifyFromEndToBeginning(i);
 	return true;
 }
-//bool PointPriorityQueue::IncreaseScore(uint I, uint score)
+//bool PointPriorityQueue::IncreaseScore(uint x, uint y, uint score)
 //{
-//	ASSERT(this->_map[I] != NULL);
-//	size_t i = *this->_map[I];
+//	ASSERT(this->_map.Get(x, y));
+//	size_t i = *this->_map.Get(x, y);
 //	if (score <= this->_heap[i]->score) return false;
 //	this->_heap[i]->score = score;
 //	this->HeapifyFromBeginningToEnd(i);
 //	return true;
 //}
+
+//bool PointPriorityQueue::Contains(uint I) const { ... }
+//bool PointPriorityQueue::UpdateScore(uint I, uint score) { ... }
+//bool PointPriorityQueue::DescreaseScore(uint I, uint score) { ... }
+//bool PointPriorityQueue::IncreaseScore(uint I, uint score) { ...; }
+
+void PointPriorityQueue::UpdateAllScores(CalcScore f, const void *param)
+{
+	const size_t count = this->_heap.size();
+
+	for (size_t i = 0; i < count; ++i)
+	{
+		Entry *e = this->_heap[i];
+		e->score = f(e->x, e->y, e->I, param);
+	}
+
+	// Runs in linear time
+	for (ptrdiff_t i = count / 2 - 1; i >= 0; --i)
+		this->HeapifyFromBeginningToEnd(i);
+}
 
 #pragma endregion
 
@@ -165,24 +203,20 @@ bool PointPriorityQueue::DescreaseScore(uint I, uint score)
 void PointPriorityQueue::ExchangeElements(size_t a, size_t b)
 {
 	Entry *e = this->_heap[a];
-	*(this->_heap[a] = this->_heap[b])->index = a;
-	*(this->_heap[b] = e)->index = b;
+	(this->_heap[a] = this->_heap[b])->index = a;
+	(this->_heap[b] = e)->index = b;
 	CHECK(false);
 }
 
 void PointPriorityQueue::Insert(uint x, uint y, uint I, uint score)
 {
 	ASSERT(x < this->_width && y < this->_height);
-	ASSERT(this->_map[I] == NULL);
-
-	const size_t count = this->_count;
-	if (count >= this->_heap_capacity)
-		this->_heap = (Entry**)realloc(this->_heap, (this->_heap_capacity *= 2) * sizeof(Entry*));
-
-	Entry *e = new Entry(score, count, x, y, I);
-	this->_heap[count] = e;
-	++this->_count;
-	this->_map[I] = e->index;
+	ASSERT(!this->_map.Get(x,y));
+	
+	const size_t count = this->_heap.size();
+	Entry *e = Entry::Get(score, count, x, y, I);
+	this->_heap.push_back(e);
+	this->_map.Set(x, y, &e->index);
 	CHECK(false);
 
 	// heapify after insert, from end to beginning
@@ -190,7 +224,7 @@ void PointPriorityQueue::Insert(uint x, uint y, uint I, uint score)
 }
 void PointPriorityQueue::HeapifyFromEndToBeginning(size_t pos)
 {
-	ASSERT(pos < this->_count); 
+	ASSERT(pos < this->_heap.size()); 
 
 	while (pos > 0) {
 		// heap[i] have children heap[2*i + 1] and heap[2*i + 2] and parent heap[(i-1)/ 2];
@@ -207,14 +241,14 @@ void PointPriorityQueue::HeapifyFromEndToBeginning(size_t pos)
 
 void PointPriorityQueue::DeleteRoot()
 {
-	ASSERT(this->_count > 0); 
+	ASSERT(this->_heap.size() > 0); 
 
-	Entry *e = this->_heap[0];
-	this->_map[e->I] = NULL;
+	Entry *e = this->_heap[0], *E = this->_heap.pop_back();
+	this->_map.Set(e->x, e->y, NULL);
 
-	if (--this->_count > 0)
+	if (e != E)
 	{
-		*(this->_heap[0] = this->_heap[this->_count])->index = 0;
+		(this->_heap[0] = E)->index = 0;
 	
 		CHECK(false);
 	
@@ -222,12 +256,11 @@ void PointPriorityQueue::DeleteRoot()
 		this->HeapifyFromBeginningToEnd(0);
 	}
 
-	delete e->index;
-	delete e;
+	Entry::Return(e);
 }
 void PointPriorityQueue::HeapifyFromBeginningToEnd(size_t pos)
 {
-	const size_t count = this->_count;
+	const size_t count = this->_heap.size();
 
 	ASSERT(pos < count); 
 

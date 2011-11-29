@@ -22,12 +22,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef WEIGHT_CALCULATOR_H
 #define WEIGHT_CALCULATOR_H
 
-typedef unsigned char byte;
-typedef unsigned int uint;
+#include "general.h"
 
-#include <stddef.h>
+#include <QMutex>
+#include <QWaitCondition>
+
+#include <QPoint>
+#include <QVector>
 
 #include "Threaded.h"
+#include "PointPriorityQueue.h"
 
 namespace Livewire
 {
@@ -68,8 +72,8 @@ namespace Livewire
 		};
 		enum EdgeDetectionMethod
 		{
-			NoEdgeDetection,
-			Sobel,
+			NoEdgeDetection = 0x01,
+			Sobel = 0x13,
 			// TODO: Canny, // http://en.wikipedia.org/wiki/Canny_edge_detector http://homepages.inf.ed.ac.uk/rbf/HIPR2/canny.htm
 		};
 		enum AccentuationMethod
@@ -81,12 +85,12 @@ namespace Livewire
 
 		struct Settings
 		{
-			const CoalescingMethod Method;
-			const PixelReductionMethod PixelReduction;
-			const NoiseReductionMethod NoiseReduction;
-			const EdgeDetectionMethod EdgeDetection;
-			const AccentuationMethod Accentuation;
-			const bool Invert;
+			CoalescingMethod Method;
+			PixelReductionMethod PixelReduction;
+			NoiseReductionMethod NoiseReduction;
+			EdgeDetectionMethod EdgeDetection;
+			AccentuationMethod Accentuation;
+			bool Invert;
 
 			Settings(
 				CoalescingMethod Method = BlueChannel,
@@ -102,7 +106,8 @@ namespace Livewire
 		static const Settings ColorSettings;
 
 	private:
-		const Settings _settings;
+		Settings _settings;
+		uint _filter_overflow;
 
 		const uint _width_raw, _height_raw;
 		uint _stride;
@@ -110,13 +115,38 @@ namespace Livewire
 		const byte *_data_raw;
 
 		const uint _width, _height, _scale;
-		byte *_data;
+		byte **_data;
+
+		const uint _width_status, _height_status, _last_col_width;
+		byte *_status;
+		PointPriorityQueue _block_queue;
+
+		QMutex _queue_lock, _status_lock;
+		QWaitCondition _blocks_queued, _block_finished;
+
+		// prevent copying
+		WeightCalculator(const WeightCalculator&);
+		WeightCalculator& operator=(const WeightCalculator&);
 
 	public:
-		WeightCalculator(uint w, uint h, Settings settings);
+		WeightCalculator(uint w, uint h, const Settings& settings);
 		~WeightCalculator();
 
-		const byte *GetWeights() const;
+		void ChangeSettings(const Settings& settings);
+
+		// points in the original size, not reduced
+		// points are of the upper-left corner of each calculated block
+		// the return value is the size of the blocks
+		uint GetBlocksCalculated(QVector<QPoint>& done, QVector<QPoint>& doing, QVector<QPoint>& not_done) const;
+
+		// Gets a weight
+		// All indices are of the reduced size
+		// x = x coord
+		// y = y coord
+		// w = (out) the weight
+		// returns true if the point is obtainable, false if the point is out of bounds of the calculation region
+		// if the requested point is not yet calculated but has been requested this function will block until it is ready
+		bool Get(uint x, uint y, byte* w) /*const*/;
 
 		uint GetScale() const;
 
@@ -126,10 +156,15 @@ namespace Livewire
 		uint GetReducedWidth() const;
 		uint GetReducedHeight() const;
 
-		void Start(const byte* imageData, DataFormat format, uint stride);
-
+		void SetImage(const byte* imageData, DataFormat format, uint stride);
+		void CalculateRegion(uint x, uint y, uint min_room); // indices of the reduced size
+		virtual void Stop();
 	protected:
 		void Run();
+
+	private:
+		void CalcBlock(uint x, uint y, uint I);
+
 	};
 }
 

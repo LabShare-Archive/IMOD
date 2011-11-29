@@ -63,7 +63,7 @@ void Threaded::Checkpoint(char *info)
 
 void Threaded::Start()
 {
-	this->Stop();
+	this->Stop(true);
 
 	this->_lock.lock();
 	this->_isExecuting = true;
@@ -79,18 +79,25 @@ void Threaded::run()
 	this->_timer.start();
 #endif
 	this->Run();
-	this->_isExecuting = false;
+	if (this->_isExecuting)
+	{
+		this->_lock.lock();
+		this->_isExecuting = false;
+		this->_lock.unlock();
+	}
 #ifdef _DEBUG
 	qDebug("%s thread took %f secs to complete", this->_name.toAscii().data(), this->_timer.elapsed() / 1000.0);
 #endif
 }
-void Threaded::Stop()
+void Threaded::Stop(bool wait)
 {
-	this->_lock.lock();
 	if (this->_isExecuting)
 	{
+		this->_lock.lock();
 		this->_isExecuting = false;
-		this->wait();
+		this->_lock.unlock();
 	}
-	this->_lock.unlock();
+	if (wait)
+		this->wait();
 }
+void Threaded::Stop() { this->Stop(false); }

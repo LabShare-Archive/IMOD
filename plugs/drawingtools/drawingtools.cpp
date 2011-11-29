@@ -395,13 +395,6 @@ void imodPlugExecute(ImodView *inImodView)
   if( !plug.initialized )
   {
     plug.window->initValues();
-    
-    Ipoint origin;
-    setPt( &origin, 0,0,0);
-    plug.copiedCont = imodContourNew();
-    cont_generateCircle( plug.copiedCont, 40.0f, 500, origin, false );
-        // puts a circle in copiedCont until the user copies his own contour
-    
     plug.window->loadSettings();
     
     if( plug.sculptRadius <=0 || plug.warpRadius <=0 )
@@ -413,6 +406,17 @@ void imodPlugExecute(ImodView *inImodView)
     
     plug.initialized = true;
   }
+	
+	if( plug.copiedCont==NULL )
+	{
+		Ipoint origin;
+    setPt( &origin, 0,0,0);
+		plug.copiedCont = imodContourNew();
+    cont_generateCircle( plug.copiedCont, 40.0f, 500, origin, false );
+		// puts a circle in copiedCont until the user copies his own contour
+	}
+	
+	
   plug.view = inImodView;
   ivwTrackMouseForPlugs(plug.view, 1);
   ivwEnableStipple( plug.view, 1 );     // enables the display of stippled lines
@@ -1941,6 +1945,8 @@ bool DrawingTools::drawExtraObjectLivewire( bool redraw )
   //## GET Z VALUE:
   
   Imod *imod  = ivwGetModel(plug.view);
+	Icont *cont = imodContourGet(imod);
+	Ipoint *pt  = imodPointGet(imod);
   int ix, iy,iz;
   ivwGetLocation(plug.view, &ix, &iy, &iz);
   plug.mouse.z = iz;
@@ -1954,7 +1960,6 @@ bool DrawingTools::drawExtraObjectLivewire( bool redraw )
   float sc = fDiv( 1.0f, zapZoom);			// tomogram distance for one screen pixel 
 	
 	
-	
 	//## DRAW LIVEWIRE FROM SELECTED POINT:
 	
 	uint w = plug.xsize, h = plug.ysize;
@@ -1962,7 +1967,7 @@ bool DrawingTools::drawExtraObjectLivewire( bool redraw )
 	int mY = (int)plug.mouse.y;		keepWithinRange( mY, 2, (int)h-1);
 	int mZ = (int)plug.mouse.z;
 	
-	bool addLivewireSegment = isCurrPtValid() && ( (int)imodPointGet(imod)->z == mZ);
+	bool addLivewireSegment = (pt != NULL) && ( (int)imodPointGet(imod)->z == mZ);
 	
 	if( addLivewireSegment )
 	{
@@ -1979,9 +1984,14 @@ bool DrawingTools::drawExtraObjectLivewire( bool redraw )
 		}
 		QPoint qptEnd = QPoint( mX, mY );
 		
+		int objIdx, contIdx, ptIdx;
+		imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+		bool lastPtSelected     = (ptIdx >= psize(cont)-1);
+		
+		
 		//## GENERATE CONTOUR FROM LIVEWIRE POINTS:
 		
-		if( plug.livewire!=NULL && numLivewirePts > 1 )
+		if( plug.livewire!=NULL && (numLivewirePts > 1 || !lastPtSelected) )
 		{
 			Icont *xcontL  = imodContourNew();
 			setOpenFlag(xcontL, 1);
@@ -1990,7 +2000,7 @@ bool DrawingTools::drawExtraObjectLivewire( bool redraw )
 			free(xcontL);
 		}
 		
-		if( plug.livewireF!=NULL )
+		if( plug.livewireF!=NULL && lastPtSelected )
 		{
 			bool showSolid = numLivewirePts==1 || finishContour;
 			Icont *xcontL  = imodContourNew();
@@ -2008,11 +2018,32 @@ bool DrawingTools::drawExtraObjectLivewire( bool redraw )
 			free( xcontP );
 		}
 		
+		if( !lastPtSelected )
+		{
+			float dist = line_distBetweenPts2D( &plug.mouse, pt );
+			if( psize(cont) > 10 && dist > 5.0f )
+			{
+				Ipoint closestPt;
+				float closestDist;
+				int closestPtIdx;
+				cont_findClosestPtInContToGivenPt( &plug.mouse, cont, &closestDist,
+																					 &closestPt, &closestPtIdx );
+				bool removePts = (closestDist <= LW_SNAP_DIST) && abs(closestPtIdx-ptIdx) >= 3;
+				
+				if(removePts)
+				{
+					Icont *xcontP   = imodContourNew();
+					imodPointAppendXYZ( xcontP, closestPt.x, closestPt.y, closestPt.z );
+					imodObjectAddContour(xobjP, xcontP);
+					free( xcontP );
+				}
+			}
+		}
 	}
 	
 	
 	//## DRAW PERCENTAGE BAR:
-	
+	/*
 	if( plug.lwWeightProgress > 0 )
 	{
 		float barH = 6*sc;				// |-- height and width of progress bar
@@ -2035,7 +2066,7 @@ bool DrawingTools::drawExtraObjectLivewire( bool redraw )
 		imodPointAppendXYZ( xcontP, barX+progW, barY+(0.5*barH), z );
 		imodObjectAddContour(xobjT, xcontB);
 		free(xcontP);
-	}
+	}*/
 	
 	
 	
@@ -2257,8 +2288,7 @@ void DrawingTools::initValues()
 	plug.waDontShowAgain				= false;
 	
 	plug.lwInit									= false;
-	plug.lwWeightZVal						= -1;
-	plug.lwWeightProgress       = 0;                 
+	plug.lwWeightZVal						= -1;               
 	
 	plug.wandAvgGrayVal         = 0;
   plug.sortCriteriaOfVals     = -1;
@@ -3862,16 +3892,10 @@ void DrawingTools::showLivewireOptions()
 
 void DrawingTools::setupLivewireOptions()
 {
-	if( plug.lwSettings == NULL || plug.weights == NULL )
+	if( plug.weights == NULL )
 		return;
 	
-	
-	return;
-	
 	//## CHANGE LIVEWIRE SETTINGS OF WEIGHT CALCULATOR:
-	
-	initLivewire( plug.xsize, plug.ysize );		// if not already, make sure livewire
-																						//  variables are initialized.
 	
 	Livewire::WeightCalculator::CoalescingMethod     setMethod;
 	Livewire::WeightCalculator::PixelReductionMethod setPixelRed;
@@ -3944,27 +3968,26 @@ void DrawingTools::setupLivewireOptions()
 	
 	//** INVERTED SETTING:
 	
-	bool isImageInverted = false;//ivwImageInverted();	// has user has inverted the image
+	bool isImageInverted = false;
+			//TODO: ivwGetContrastReversed(plug.view);		// true if user toggle F11
 	bool setInvert = (plug.lwOpt == 2) ? !isImageInverted : isImageInverted;
 	
 	
 	//** UPDATE THE SETTINGS OF "plug.weights" WITH NEW VALUES:
 	
-	bool wasChanges =   plug.lwSettings->Method          != setMethod
-	                 || plug.lwSettings->PixelReduction  != setPixelRed
-	                 || plug.lwSettings->NoiseReduction  != setNoiseRed
-									 || plug.lwSettings->EdgeDetection   != setEdgeDetect
-									 || plug.lwSettings->EdgeDetection   != setAccentuation
-	                 || plug.lwSettings->Invert          != setInvert;
+	bool wasChanges =   plug.lwSettings.Method          != setMethod
+	                 || plug.lwSettings.PixelReduction  != setPixelRed
+	                 || plug.lwSettings.NoiseReduction  != setNoiseRed
+									 || plug.lwSettings.EdgeDetection   != setEdgeDetect
+									 || plug.lwSettings.EdgeDetection   != setAccentuation
+	                 || plug.lwSettings.Invert          != setInvert;
 	
 	if( wasChanges )
 	{
-		plug.lwSettings =
-	   new Livewire::WeightCalculator::Settings(setMethod, setPixelRed, setNoiseRed,
-																							setEdgeDetect, setAccentuation, setInvert);
-		
-		plug.weights    =
-		 new Livewire::WeightCalculator( plug.xsize, plug.ysize, *plug.lwSettings );
+		plug.lwSettings = Livewire::WeightCalculator::Settings(
+												setMethod, setPixelRed, setNoiseRed,
+												setEdgeDetect, setAccentuation, setInvert);
+		plug.weights->ChangeSettings(plug.lwSettings);
 	}
 }
 
@@ -6119,39 +6142,24 @@ int  DrawingTools::copyCurrContToView(bool smartSize)
 
 void DrawingTools::initLivewire( int w, int h )
 {
-	if( plug.lwInit == false )
+	if( plug.lwInit == true )
 		return;
-	
 	
 	//## IF NOT ALREADY: SETUP THE LIVEWIRE OBJECTS:
 	
-	if( plug.lwSettings == NULL )
-	{
-		plug.lwSettings = new Livewire::WeightCalculator::Settings();
-	}
-	
 	if( plug.weights == NULL )
 	{
-		plug.weights = new Livewire::WeightCalculator(w, h, *plug.lwSettings );
-											   //Livewire::WeightCalculator::GrayScaleSettings);
-		plug.window->connect(plug.weights, SIGNAL(ProgressChanged(int)),
-												 plug.window, SLOT(weightsProgress(int)));
-		plug.window->connect(plug.weights, SIGNAL(finished()),
-												 plug.window, SLOT(weightsFinished()));
+		plug.weights = new Livewire::WeightCalculator(w, h, plug.lwSettings );
 	}
 	if( plug.livewire == NULL )
 	{
 		plug.livewire = new Livewire::LivewireCalculator(plug.weights);
-		plug.window->connect(plug.livewire, SIGNAL(ProgressChanged(int)),
-												 plug.window, SLOT(livewireProgress(int)));
 		plug.window->connect(plug.livewire, SIGNAL(finished()),
 												 plug.window, SLOT(livewireFinished()));
 	}
 	if( plug.livewireF == NULL )
 	{
 		plug.livewireF = new Livewire::LivewireCalculator(plug.weights);
-		plug.window->connect(plug.livewireF, SIGNAL(ProgressChanged(int)),
-												 plug.window, SLOT(livewireProgress(int)));
 		plug.window->connect(plug.livewireF, SIGNAL(finished()),
 												 plug.window, SLOT(livewireFinished()));
 	}
@@ -6162,46 +6170,14 @@ void DrawingTools::initLivewire( int w, int h )
 	
 	plug.lwInit = true;
 	setupLivewireOptions();			// change livewire settings if appropriate
-	plug.lwRedrawTime.start();
 }
 
 //------------------------
-//-- Call back functions for livewire:
-
-void DrawingTools::weightsProgress(int progress)
-{
-	int msSinceLWRedraw = plug.lwRedrawTime.elapsed();	// milliseconds since last redraw
-	if( msSinceLWRedraw > 500 )
-		return;
-	
-	int percProgress = (progress * 100) / plug.weights->GetTotalProgress();
-	if ( plug.lwWeightProgress != percProgress )
-	{
-		plug.lwWeightProgress = percProgress;
-		drawExtraObjectLivewire( true );
-		plug.lwRedrawTime.restart();
-	}
-	//printf("Weights at %d%%\n", progress * 100 / plug.weights->GetTotalProgress());
-}
-
-void DrawingTools::weightsFinished()
-{
-	plug.lwWeightProgress = 100;
-	drawExtraObjectLivewire( true );
-	plug.lwRedrawTime.restart();
-	//printf("Weights finished\n");
-}
-
-void DrawingTools::livewireProgress(int progress)
-{
-	//drawExtraObjectLivewire( true );
-	//printf("Livewire at %d%%\n", progress * 100 / plug.livewire->GetTotalProgress());
-}
+//-- Call back function for livewire finishing:
 
 void DrawingTools::livewireFinished()
 {
-	//drawExtraObjectLivewire( true );
-	//printf("Livewire finished\n");
+	drawExtraObjectLivewire( true );
 }
 
 
@@ -6435,7 +6411,7 @@ void DrawingTools::buttonPressed(int which)
 
 
 //------------------------
-//-- Window closing event handler - removes this pluging from the imod dialog manager
+//-- Window closing event handler - removes this plugin from the imod dialog manager
 
 void DrawingTools::closeEvent ( QCloseEvent * e )
 {
@@ -6448,9 +6424,22 @@ void DrawingTools::closeEvent ( QCloseEvent * e )
 	ivwFreeExtraObject(plug.view, plug.extraObjWPts);
 	
   ivwTrackMouseForPlugs(plug.view, 0);
-  //ivwEnableStipple( plug.view, 0 );
   
-  //imodContourDelete( plug.copiedCont );   // caused a crash on second close of plugin
+	if(plug.copiedCont != NULL)
+	{
+		imodContourDelete( plug.copiedCont );   // caused a crash on second close of plugin
+		plug.copiedCont = NULL;
+	}
+	
+	
+	//for some reason none of this code below does not work  :-/ 
+	//
+	//plug.lwInit = false;
+	//if( plug.weights!=NULL )		{ delete plug.weights;   plug.weights = NULL;   }
+	//if( plug.livewire!=NULL )		{ delete plug.livewire;  plug.livewire = NULL;  }
+	//if( plug.livewireF!=NULL )	{ delete plug.livewireF; plug.livewireF = NULL; }
+	//if( plug.lwPts!=NULL )			{ imodContourDelete(plug.lwPts); plug.livewireF = NULL; }
+	
   plug.window->saveSettings();
   
   ivwDraw( plug.view, IMOD_DRAW_MOD | IMOD_DRAW_NOSYNC );
@@ -6964,7 +6953,7 @@ void edit_executeSculpt()
     edit_executeSculptPinch( plug.mouse, radius );
     return;
   }
-  else                  // push
+  else										// push
   {
     float mouseMoveDist = imodPointDistance( &plug.mousePrev, &plug.mouse );       
             // the distance the mouse moved from its previously recorded position 
@@ -7157,27 +7146,17 @@ void edit_executeSculptEnd()
 {
 	if( !isCurrContValid() )
 		return;
-		
-	
-	//cout << "TEST0" << endl; flush(cout);		//%%%%%%%%
 	
   if (plug.reducePts)
     edit_reduceCurrContour();
 	
-	
-	//cout << "TEST1" << endl; flush(cout);		//%%%%%%%%
-	
 	bool makeContSimple = psize(getCurrCont()) < 500
 		|| !edit_isSimpleWithinCircle( getCurrCont(), &plug.mouse, plug.sculptRadius*2.0f );
-	
-	//cout << "TEST2" << endl; flush(cout);		//%%%%%%%%
 	
 	if( makeContSimple )		//  or new contour started "edit_executeSculptStart()"
 	{
 		edit_makeCurrContSimple();			// makes contour simple (this step is slow!)
   }
-	
-	//cout << "TEST3" << endl; flush(cout);		//%%%%%%%%
 	
 	edit_deleteCurrContIfTooSmall();
   
@@ -7189,14 +7168,9 @@ void edit_executeSculptEnd()
     undoContourPropChgCC( plug.view );        // REGISTER UNDO
     setInterpolated( getCurrCont(), 0 );
   }
-  
-	//cout << "TEST4" << endl; flush(cout);		//%%%%%%%%
 	
   undoFinishUnit( plug.view );        // FINISH UNDO
   ivwDraw( plug.view, IMOD_DRAW_MOD | IMOD_DRAW_NOSYNC );
-	
-	
-	//cout << "TEST5" << endl; flush(cout);		//%%%%%%%%
 }
 
 
@@ -7222,8 +7196,6 @@ void edit_executeMinorCorrectEnd( float radius )
 	  
   undoFinishUnit( plug.view );        // FINISH UNDO
   ivwDraw( plug.view, IMOD_DRAW_MOD | IMOD_DRAW_NOSYNC );
-	
-	//cout << "TEST5" << endl; flush(cout);		//%%%%%%%%
 }
 
 //------------------------
@@ -7266,39 +7238,6 @@ void edit_executeJoinEnd()
 void edit_executeJoinRectEnd()
 {   
   //## DETERMINE NEAREST CONTOUR TO START AND END POINT:
-    
-  /*
-  int z = (int)plug.mouse.z;
-  Imod *imod  = ivwGetModel(plug.view);
-  Iobj *obj   = imodObjectGet(imod);
-  
-  bool isStartPtInsideCont = false;
-  bool isEndPtInsideCont   = false;
-  int startContIdx = -1;
-  int endContIdx   = -1;
-  
-  for(int c=0; c<csize(obj); c++)
-  {
-    Icont *cont = getCont(obj,c);
-    if( getZInt(cont) == z && imodPointInsideCont( cont, &plug.mouseDownPt ) )
-    {
-      startContIdx = c;
-      isStartPtInsideCont = true;
-      break;
-    }
-  }
-  
-  for(int c=0; c<csize(obj); c++)
-  {
-    Icont *cont = getCont(obj,c);
-    if( getZInt(cont) == z && imodPointInsideCont( cont, &plug.mouse ) )
-    {
-      endContIdx = c;
-      isEndPtInsideCont = true;
-      break;
-    }
-  }
-  */
   
   bool changeMade = false;
   
@@ -7350,9 +7289,7 @@ void edit_executeJoinRectEnd()
       wprint("\aYou must span between the inside of two seperate contours\n");
       return;
     }
-    //wprint(" startContIdx: %d \n", startContIdx);
-    //wprint(" endContIdx:   %d \n", endContIdx);
-    
+		
     vector<IcontPtr> cont1Segs;
     int n1Segs = cont_breakContourByContour( cont1Segs, startCont, contR, radius*0.5f );
    
@@ -9236,80 +9173,28 @@ void edit_executeLivewireClick()
 	plug.window->initLivewire( plug.xsize, plug.ysize );
 	
 	
+	
 	//## DETERMINE LOCATION OF MOUSE CLICK INSIDE THE TOMOGRAM:
 	
 	Imod *imod  = ivwGetModel(plug.view);
 	Icont *cont = imodContourGet(imod);
+	Ipoint *pt  = imodPointGet(imod);
 	int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
 	
 	int mX = (int)plug.mouse.x;		keepWithinRange( mX, 0, (int)w-1);
 	int mY = (int)plug.mouse.y;		keepWithinRange( mY, 0, (int)h-1);
 	int mZ = (int)plug.mouse.z;
-	//Ipoint ptRounded;							setPt( &ptRounded, (float)mX, (float)mY, (float)mZ );
 	
 	
+	//## IF NO POINT SELECTED OR IS ON A DIFFERENT SLICE,
+	//## ADD A NEW CONTOUR POINT AND START LIVEWIRE
+	//## AT THIS NEW POSITION:
 	
-	//## DETERMINE IF WE NEED TO ADD LIVEWIRE SEGMENT(S):
-	
-	bool addLivewireSegment = isCurrPtValid() && ( (int)imodPointGet(imod)->z == mZ);
-	
-	
-	//## IF WE NEED TO ADD A LIVEWIRE SEGMENT(S) ADD POINTS TO CURRENT CONTOUR:
-																						
-	if( addLivewireSegment )
+	bool startNew = (pt==NULL) || ( (int)imodPointGet(imod)->z != mZ);
+		
+  if( startNew )
 	{
-		//## DETERMINE WHERE SEGMENTS SHOULD BE ADDED:
-		
-		int numLivewirePts      = plug.lwPts==NULL ? 0 : psize(plug.lwPts);
-		bool firstSegment       = (numLivewirePts == 1);
-		bool finishContour      = false;
-		if( numLivewirePts >= 3 )
-		{
-			float distFirstLWPt = line_distBetweenPts2D( getFirstPt(plug.lwPts), &plug.mouse);
-			float distLastLWPt  = line_distBetweenPts2D( getLastPt(plug.lwPts),  &plug.mouse);
-			if( distFirstLWPt <= LW_SNAP_DIST || distLastLWPt <= LW_SNAP_DIST )
-				finishContour = true;
-		}
-		
-		imodPointAppendXYZ( plug.lwPts, (float)mX, (float)mY, (float)mZ );
-		
-		
-		
-		//## ADD POINTS TO APPROPRIATE POSITIONS:
-		
-		int ptsAdded = 0;
-		QPoint qptEnd = QPoint( mX, mY );
-				
-		if( !firstSegment )
-		{
-			ptsAdded += edit_addLivewirePtsToCont( cont, -1, plug.livewire, qptEnd, mZ,
-																						 true, true );
-		}
-		if( firstSegment )
-		{
-			ptsAdded += edit_addLivewirePtsToCont( cont, -1, plug.livewireF, qptEnd, mZ,
-																						 true, true );
-		}
-		if( finishContour )
-		{
-			ptsAdded += edit_addLivewirePtsToCont( cont, -1, plug.livewireF, qptEnd, mZ,
-																						 true, false );
-		}
-		
-		imodSetIndex(imod, objIdx, contIdx, ptIdx+ptsAdded);
-		
-		if( finishContour )
-			imodSetIndex(imod, objIdx, -1, 0);
-		
-		undoFinishUnit( plug.view );          // FINISH UNDO
-		//cout << "new segment was added with " << ptsAdded << " points" << endl;
-	}
-	
-	//## ELSE (IF NO SEGMENT ADDED), ADD A NEW POINT AT THE CURRENT POSITION:
-	
-  else
-	{		
 		imodContourClearPoints( plug.lwPts );
 		imodPointAppendXYZ( plug.lwPts, (float)mX, (float)mY, (float)mZ );
 		
@@ -9319,19 +9204,160 @@ void edit_executeLivewireClick()
     imodSetIndex(imod, objIdx, newContPos, 0);
 		
 		undoFinishUnit( plug.view );          // FINISH UNDO
-		//cout << "new point was added" << endl;
+		
+		edit_startLivewireFromPt( mX, mY, mZ, true );
+		return;
 	}
 	
+	
+	//## DETERMINE WHERE SEGMENTS SHOULD BE ADDED TO
+	//## CURRENTLY SELECTED CONTOUR:
+	
+	int numLivewirePts      = psize(plug.lwPts);
+	bool firstSegment       = (numLivewirePts == 1);
+	bool finishContour      = false;
+	bool lastPtSelected     = (ptIdx >= psize(cont)-1);
+	int ptsAdded = 0;
+	QPoint qptEnd = QPoint( mX, mY );
+	
+	if( numLivewirePts >= 3 && lastPtSelected )
+	{
+		float distFirstLWPt = line_distBetweenPts2D( getFirstPt(plug.lwPts), &plug.mouse);
+		float distLastLWPt  = line_distBetweenPts2D( getLastPt(plug.lwPts),  &plug.mouse);
+		if( distFirstLWPt <= LW_SNAP_DIST || distLastLWPt <= LW_SNAP_DIST )
+			finishContour = true;
+	}
+	
+	imodPointAppendXYZ( plug.lwPts, (float)mX, (float)mY, (float)mZ );
+	
+	
+	//## IF THE LAST CONTOUR POINT SELECTED ADD POINTS TO
+	//## THE END FROM THE APPROPRIATE LIVEWIRE THREAD(S):
+	
+	if(lastPtSelected)
+	{
+		if( !firstSegment )
+		{
+			ptsAdded += edit_addLivewirePtsToCont( cont, -1, plug.livewire, qptEnd, mZ,
+																						true, true );
+		}
+		if( firstSegment )
+		{
+			ptsAdded += edit_addLivewirePtsToCont( cont, -1, plug.livewireF, qptEnd, mZ,
+																						true, true );
+		}
+		if( finishContour )
+		{
+			ptsAdded += edit_addLivewirePtsToCont( cont, -1, plug.livewireF, qptEnd, mZ,
+																						true, false );
+		}
+	}
+	
+	//## ELSE ADD POINTS TO APPROPRIATE POSITION:
+	
+	else
+	{
+		int insertPt = ptIdx+1;
+		bool reverse = true;
+		
+		//## IF NEW POINT IS CLOSE TO ORIGIONAL CONTOUR THEN
+		//## DELETE POINTS IN BETWEEN:
+		
+		float dist = line_distBetweenPts2D( &plug.mouse, pt );
+		if( psize(cont) > 10 && dist > 5.0f )
+		{
+			Ipoint closestPt;
+			float closestDist;
+			int closestPtIdx;
+			cont_findClosestPtInContToGivenPt( &plug.mouse, cont, &closestDist,
+																				 &closestPt, &closestPtIdx );
+			
+			int  ptDiff    = closestPtIdx-ptIdx;
+			bool removePts = (closestDist <= LW_SNAP_DIST) && abs(ptDiff) >= 3;
+			
+			if(removePts)
+			{
+				int minIdx = MIN(ptIdx,closestPtIdx);
+				int maxIdx = MAX(ptIdx,closestPtIdx);
+				
+				//cout << "DELETING BETWEEN " << minIdx << " and " << maxIdx << endl;
+				reverse = (ptDiff > 0);
+				insertPt = minIdx+1;
+				
+				undoContourDataChgCC( plug.view );            // REGISTER UNDO
+				for(int i=(maxIdx-1); i>minIdx; i--)
+					imodPointDelete(cont, i);
+			}
+		}
+		
+		ptsAdded += edit_addLivewirePtsToCont( cont, insertPt, plug.livewire, qptEnd, mZ,
+																					 true, reverse );
+	}
+	
+	//## MAKE SURE THE LAST POINT FROM NEWLY ADDED 
+	//## POINTS IS SELECTED:
+	
+	imodSetIndex(imod, objIdx, contIdx, ptIdx+ptsAdded);
+	undoFinishUnit( plug.view );          // FINISH UNDO
+	
+	
+	//## IF CONTOUR NOW FINISHED, APPLY SMOOTING 
+	//## (IF NECESSARY) AND DESELECT ELSE
 	//## START LIVEWIRE FROM NEW POINT:
 	
-	bool useLivewireStart = !addLivewireSegment;
-	edit_startLivewireFromPt( mX, mY, mZ, useLivewireStart );
-	
-	
-	//cout << "TEST" << endl;			//%%%%%%%%%%%
-	//flush(cout);								//%%%%%%%%%%%
-	//plug.window->drawExtraObject( true );		// does not work
+	if(finishContour)
+		edit_finishLivewireOnCurrCont( true );
+	else 
+		edit_startLivewireFromPt( mX, mY, mZ, false );
 }
+
+
+//------------------------
+//-- Finishes livewire on the current contour by applying
+//-- smoothing (if specified) and deselecting the
+//-- contour if "deselect" is true.
+
+
+bool edit_finishLivewireOnCurrCont(bool deselect)
+{
+	Imod *imod  = ivwGetModel(plug.view);
+	Iobj  *obj  = imodObjectGet(imod);
+	Icont *cont = imodContourGet(imod);
+	
+	if(cont==NULL)
+		return false;
+	
+	//## IF SPECIFIED, SMOOTH THE CONTOUR:
+	
+	if (plug.lwSmooth)
+	{
+		undoContourDataChgCC( plug.view );        // REGISTER UNDO
+		bool contClosed = isContClosed(obj,cont);
+		
+		for(int i=0; i<plug.lwSmoothIts; i++)
+		{
+			cont_reducePtsMinArea( cont, 1.0f, contClosed );
+			cont_avgPtsPos( cont, plug.smoothMoveFract,
+										 plug.smoothMoveMinDist, contClosed, true );
+		}
+		
+		undoFinishUnit( plug.view );          // FINISH UNDO
+	}
+	
+	//## IF SPECIFIED, DESELECT THE CURRENT CONTOUR:
+	
+	if(deselect)
+	{
+		int objIdx, contIdx, ptIdx;
+		imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+		imodSetIndex(imod, objIdx, -1, -1);
+	}
+	
+	return true;
+}
+
+
+
 
 
 //------------------------
@@ -9365,32 +9391,37 @@ int edit_addLivewirePtsToCont( Icont *cont, int startIdx,
 	//## LIVEWIRECALCULATOR TO THE DEFINED END POINT:
 	
 	
-	if( plug.weights!=NULL && !plug.weights->IsExecuting() && livewire!=NULL )
+	if( plug.weights!=NULL && livewire!=NULL )
 	{
-		QVector<QPoint> qpts = livewire->GetTrace( qptEnd.x(), qptEnd.y() );		// get livewire line
+		QVector<QPoint> qpts = livewire->GetTrace(qptEnd.x(),qptEnd.y());	
+																														// get livewire line
 		//cout<< "qpts.size = " << qpts.size()  << endl;
 		
 		//## FOR EACH LIVEWIRE POINT, ADD IT TO THE SPECIFIED LOCATION IN THE CONTOUR:
 		
-		uint nLWPts = qpts.size();
-		for( int p=(nLWPts-1); p>0; p-- )
+		int nLWPts = (int)qpts.size();
+		
+		if( nLWPts >= 2 )
 		{
-			int idx = (reverse) ? p : nLWPts-1-p;
-			setPt( &newPt, (float)qpts[idx].x(), (float)qpts[idx].y(), z );
-			
-			if( append )
+			for( int p=(nLWPts-1); p>0; p-- )
 			{
-				if(addUndo)
-					undoPointAdditionCC( plug.view, psize(cont) );			// REGISTER UNDO
-				imodPointAppend( cont, &newPt );
+				int idx = (reverse) ? p : nLWPts-1-p;
+				setPt( &newPt, (float)qpts[idx].x(), (float)qpts[idx].y(), z );
+				
+				if( append )
+				{
+					if(addUndo)
+						undoPointAdditionCC( plug.view, psize(cont) );			// REGISTER UNDO
+					imodPointAppend( cont, &newPt );
+				}
+				else
+				{
+					if(addUndo)
+						undoPointAdditionCC( plug.view, startIdx+ptsAdded );        // REGISTER UNDO
+					imodPointAdd( cont, &newPt, startIdx+ptsAdded );
+				}
+				ptsAdded++;
 			}
-			else
-			{
-				if(addUndo)
-					undoPointAdditionCC( plug.view, startIdx+ptsAdded );        // REGISTER UNDO
-				imodPointAdd( cont, &newPt, startIdx+ptsAdded );
-			}
-			ptsAdded++;
 		}
 	}
 	
@@ -9431,7 +9462,7 @@ int edit_addLivewirePtsToCont( Icont *cont, int startIdx,
 //-- rely on "plug.weights" to finish before they can begin.
 
 bool edit_startLivewireFromPt( int x, int y, int z, bool useLivewireF )
-{	
+{
 	//## MAKE SURE POINT IS WITHIN IMAGE BOUNDARIES:
 	
 	if( x < 0 ) x = 0;		if( x >= plug.xsize ) x = plug.xsize-1;
@@ -9443,46 +9474,59 @@ bool edit_startLivewireFromPt( int x, int y, int z, bool useLivewireF )
 	
 	if( plug.lwWeightZVal != z )
 	{
-		plug.lwWeightZVal = z;
-		
-		unsigned char **data = ivwGetCurrentZSection( plug.view );
-		int mode = ivwGetImageStoreMode( plug.view );
-		
-		Livewire::WeightCalculator::DataFormat format;
-		if     (mode==0)								format = Livewire::WeightCalculator::GrayscaleByte;
-		else if(mode==MRC_MODE_USHORT)	format = Livewire::WeightCalculator::GrayscaleUShort;
-		else														format = Livewire::WeightCalculator::RGB;
-		
-		uint stride = data[1] - data[0];
-		
-		plug.weights->Start(data[0], format, data[1] - data[0]);
-		//printf("Starting weights from %p with format %d and stride %d\n",
-		//       data[0], format, stride);
-		//printf("Waiting...\n");
+		edit_setLivewireImage( z );
 	}
-	plug.weights->wait();
 	
+	
+	int area = 1024;
+	
+	switch(plug.lwAreaSize)
+	{
+		// half of displayed size because that is what LivewireCalculator needs
+		case 0:				area = 256;  break;
+		case 1:				area = 512;  break;
+		case 2:			  area = 1024; break;
+		case 3:				area = 2048; break;
+	}
 	
 	//## RESTART LIVEWIRE THREAD FROM POINT CLICKED USING
 	//## EITHER "plug.livewireF" OR "plug.livewire": 
 	
 	if( useLivewireF )
 	{
-		//printf("Starting livewireF from (%d,%d)\n", x, y);
-		plug.livewireF->Start(x,y);
-		//setPt( plug.livewireFPt, (float)x,(float)y,(float)z );
+		plug.livewireF->Start(x,y, area);
 	}
 	else
 	{
-		//printf("Starting livewire from (%d,%d)\n", x, y);
-		plug.livewire->Start(x,y);
-		//setPt( plug.livewirePt, (float)x,(float)y,(float)z );
+		plug.livewire->Start(x,y, area);
 	}
 	
 	return true;
 }
 
 
+//------------------------
+//-- Sets or resets the image used by "plug.weights" to the specified
+//-- slice. This function should be called whenever a new image/slice
+//-- is clicked, or when the weight settings are changed.
+
+bool edit_setLivewireImage( int z )
+{	
+	if( z < 0 )
+		z = 0;
+	plug.lwWeightZVal = z;
+	
+	unsigned char **data = ivwGetCurrentZSection( plug.view );
+	int mode = ivwGetImageStoreMode( plug.view );
+	
+	Livewire::WeightCalculator::DataFormat format;
+	if     (mode==0)								format = Livewire::WeightCalculator::GrayscaleByte;
+	else if(mode==MRC_MODE_USHORT)	format = Livewire::WeightCalculator::GrayscaleUShort;
+	else														format = Livewire::WeightCalculator::RGB;
+	
+	uint stride = data[1] - data[0];
+	plug.weights->SetImage(data[0], format, stride);
+}
 
 
 //------------------------
@@ -9506,39 +9550,57 @@ bool edit_executeLivewireSelectPt()
 		return false;
 	
 	
+	//## IF NOT ALREADY, MAKE SURE LIVEWIRE IS SETUP:
+	
+	uint w = plug.xsize, h = plug.ysize;
+	plug.window->initLivewire( plug.xsize, plug.ysize );
+	
+	
+	//## IF ALLOW LIVEWIRE MODIFY IF OFF START LIVEWIRE FROM
+	//## NEW POINT:
+	
+	
+	Imod   *imod   = ivwGetModel(plug.view);
+	Ipoint *currPt = imodPointGet(imod);
+	if( currPt!=NULL )
+	{
+		edit_startLivewireFromPt( (int)currPt->x, (int)currPt->y, (int)currPt->z, false );
+		return true;
+	}
+	
+	
 	//## DETERMINE IF SELECTED POINT BELONGS TO A CONTOUR WITH ACTIVE 
 	//## LIVEWIRE POINTS AND, IF SO, THEN BEGIN LIVEWIRE FROM THE 
 	//## CLOSEST LIVEWIRE POINTS BEFORE AND/OR AFTER THAT POINT:
-	
-	int prevLWPt, nextLWPt;
-	bool isPtOnLivewireCont = edit_getNextAndPrevLivewirePts( prevLWPt, nextLWPt );
-	
-	Imod   *imod   = ivwGetModel(plug.view);
-	Icont  *cont   = imodContourGet(imod);
-	Ipoint *currPt = imodPointGet(imod);
-	
-	if( cont == NULL || currPt == NULL )
-		return (false);
-	
-	
-	if( isPtOnLivewireCont )
-	{
-		if( prevLWPt != -1 )
-		{
-			Ipoint *prevPt = getPt( cont, prevLWPt );
-			edit_startLivewireFromPt( (int)prevPt->x, (int)prevPt->y, (int)prevPt->z, false );
-		}
-		if( nextLWPt != -1 )
-		{
-			Ipoint *nextPt = getPt( cont, nextLWPt );
-			edit_startLivewireFromPt( (int)nextPt->x, (int)nextPt->y, (int)nextPt->z, true );
-		}
-	}
-	else {
-		edit_startLivewireFromPt( (int)currPt->x, (int)currPt->y, (int)currPt->z, false );
-	}
-
-	return true;
+	//
+	//int prevLWPt, nextLWPt;
+	//bool isPtOnLivewireCont = edit_getNextAndPrevLivewirePts( prevLWPt, nextLWPt );
+	//
+	//Imod   *imod   = ivwGetModel(plug.view);
+	//Icont  *cont   = imodContourGet(imod);
+	//Ipoint *currPt = imodPointGet(imod);
+	//
+	//if( cont == NULL || currPt == NULL )
+	//	return (false);
+	//
+	//if( isPtOnLivewireCont )
+	//{
+	//	if( prevLWPt != -1 )
+	//	{
+	//		Ipoint *prevPt = getPt( cont, prevLWPt );
+	//		edit_startLivewireFromPt( (int)prevPt->x, (int)prevPt->y, (int)prevPt->z, false );
+	//	}
+	//	if( nextLWPt != -1 )
+	//	{
+	//		Ipoint *nextPt = getPt( cont, nextLWPt );
+	//		edit_startLivewireFromPt( (int)nextPt->x, (int)nextPt->y, (int)nextPt->z, true );
+	//	}
+	//}
+	//else {
+	//	edit_startLivewireFromPt( (int)currPt->x, (int)currPt->y, (int)currPt->z, false );
+	//}
+	//
+	//return true;
 }
 
 
@@ -9552,7 +9614,7 @@ bool edit_executeLivewireSelectPt()
 //-- If there is no livewire point before or after, these values
 //-- get set to -1, and if there are no livewire points at all
 //-- (or no valid point selected) then false is returned.
-
+/*
 bool edit_getNextAndPrevLivewirePts( int &prevLWPt, int &nextLWPt )
 {
 	//## IF NOT ALREADY, MAKE SURE LIVEWIRE IS SETUP:
@@ -9614,7 +9676,7 @@ bool edit_getNextAndPrevLivewirePts( int &prevLWPt, int &nextLWPt )
 	}
 	
 	return ( prevLWPt!=-1 || nextLWPt!=0 );
-}
+}*/
 
 
 
@@ -9784,7 +9846,6 @@ int edit_addWandPtsToCont( Icont *cont, Ipoint centerPt, int radius,
 			imodPointAppendXYZ( cont, (float)x,(float)y, PIX_OFF );
 	}
 	
-	//cout << "ptsAdded=" << ptsAdded << endl;
 	return ptsOn;
 }
 
@@ -9854,14 +9915,14 @@ int edit_scanContShrink( Icont *cont, int radius, int iterations, bool erodeAllE
 			if( pt->z == PIX_OFF)								// if pixel already off:
 				continue;														// skip it
 			
-			edit_getPixNeigh( cont, pixN, x, y, side, side );	// outputs which pixels in the
-			// 8 pixel neighborhood are on
-			// into the "pixN" array
+			edit_getPixNeigh( cont, pixN, x, y, side, side );		// outputs which pixels in the
+																													// 8 pixel neighborhood are on
+																													// into the "pixN" array
 			
 			int totalOnIn4Neigh = pixN[PX_N ] + pixN[PX_S ] + pixN[PX_E ] + pixN[PX_W ];
 			int totalOnIn8Neigh = pixN[PX_NE] + pixN[PX_NW] + pixN[PX_SE] + pixN[PX_SW]
-			+ totalOnIn4Neigh;
-			// tally the number of pixels on in the 4 and 8 pixel neighborhood
+														+ totalOnIn4Neigh;
+									// tally the number of pixels on in the 4 and 8 pixel neighborhood
 			
 			if( totalOnIn8Neigh <= 3 || totalOnIn4Neigh <=1 )		// if too few neighbors on:
 				pt->z = -2;																					// flag pt for erosion
@@ -10038,12 +10099,6 @@ int edit_scanContFill( Icont *cont, Icont *contOut,
 	
 	bool decentRadius = (ptStartX>radius+10);	// was last start point resonable size?
 	
-	//if(!endFound && decentRadius)				// if starting point not found:
-	//	cerr << "edit_scanContFill() - end not found" << endl;
-	
-	//if(!isCenterInside && decentRadius)	// if encompassing contour not found:
-	//	cerr << "edit_scanContFill() - containing contour not found" << endl;
-	
 	if( psize(contOut) < minPts )
 		imodContourClearPoints( contOut );
 	
@@ -10111,8 +10166,6 @@ int edit_contCorrectCircle( Icont *cont, Ipoint centerPt, int radius, int minPts
 	
 	vector<IcontPtr> contSegments;
 	cont_breakContByCircle(cont,contSegments,&centerPt,radius);
-	
-	//cout << "contSegments.size()=" << contSegments.size() << endl;		//%%%%
 	
 	if( contSegments.size() == 0 )
 	{

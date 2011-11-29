@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef THREADED_H
 #define THREADED_H
 
-#include <stddef.h>
+#include "general.h"
 
 #include <QThread>
 #include <QMutex>
@@ -46,8 +46,9 @@ namespace Livewire
 		bool _isExecuting;
 		int _progress, _partialProgress, _inc, _totalProgress;
 
-	protected: Threaded(char *name);
-	protected: ~Threaded();
+	protected:
+		Threaded(char *name);
+		~Threaded();
 
 	protected:
 		void SetProgress(int value);
@@ -66,8 +67,9 @@ namespace Livewire
 		void Start();
 		void run();
 		virtual void Run() = 0;
+		void Stop(bool wait);
 	public:
-		void Stop();
+		virtual void Stop();
 
 	signals:
 		void ProgressChanged(int value);

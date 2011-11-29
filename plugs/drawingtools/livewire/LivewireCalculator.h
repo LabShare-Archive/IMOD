@@ -22,10 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef LIVEWIRE_H
 #define LIVEWIRE_H
 
-typedef unsigned char byte;
-typedef unsigned int uint;
-
-#include <stddef.h>
+#include "general.h"
 
 #include "PointPriorityQueue.h"
 #include "Threaded.h"
@@ -43,13 +40,6 @@ namespace Livewire
 	class LivewireCalculator : public Threaded
 	{
 	private:
-/// The livewire algorithm has not reached the pixel</summary>
-#define STATUS_UNVISITED	0
-/// The livewire algorithm has reached the pixel but not finished calculating it</summary>
-#define STATUS_IN_EDGE		1
-/// The livewire algorithm has finished calculating the pixel</summary>
-#define STATUS_VISITED		2
-
 		/// <summary>The width of the data</summary>
 		const uint _w;
 
@@ -58,30 +48,27 @@ namespace Livewire
 
 		/// <summary>The scale of the data (amount of binning)</summary>
 		const uint _scale;
-
-		/// <summary>The weight calculator backing this livewire calculator</summary>
-		const WeightCalculator *_weights_calc;
-
-		/// <summary>The weights used in the livewire algorithm</summary>
-		const byte *_weights;
 		
+		/// <summary>The weight calculator backing this livewire calculator</summary>
+		WeightCalculator *_weights;
+
 		/// <summary>The X coordinate of the point at which the livewire data is calculated for</summary>
 		uint _x;
 		
 		/// <summary>The Y coordinate of the point at which the livewire data is calculated for</summary>
 		uint _y;
 
-		/// <summary>The point at which the livewire data is calculated for (in the form x+y*w)</summary>
-		uint _I;
+		/// <summary>The minimum amount of room to have weights calculated for</summary>
+		uint _min_room;
 
-		/// <summary>The livewire algorithm status for every pixel</summary>
-		byte *_status;
+		/// <summary>True if the livewire algorithm has reached a given pixel</summary>
+		SparseMatrix<bool> _visited;
+
+		/// <summary>The priority queue representing the points in the edge while running the algorithm</summary>
+		PointPriorityQueue _edge;
 
 		/// <summary>The livewire algorithm trace: the point which led to the pixel's best score (in the form x+y*w)</summary>
-		uint *_trace;
-
-		/// <summary>The priority queue representing the "InEdge" points used for calculating the data, which we only want to allocated once</summary>
-		PointPriorityQueue _edge;
+		SparseMatrix<uint> _trace;
 
 	public:
 		/// <summary>Create a livewire calculator object from the given weights.</summary>
@@ -107,14 +94,15 @@ namespace Livewire
 		/// <summary>Starts the livewire-calculating thread for the given point, see prepareLivewire for the function that actually does the work</summary>
 		/// <param name="x">The X coordinate at which to calculate the livewire data for, it is given a score of 0</param>
 		/// <param name="y">The Y coordinate at which to calculate the livewire data for, it is given a score of 0</param>
-		void Start(uint x, uint y);
+		/// <param name="y">The minimum amount of room around the point for which weights should be calculating</param>
+		void Start(uint x, uint y, uint min_room);
 
 	protected:
 		/// <summary>Run the livewire LivewireCalculator</summary>
 		void Run();
 
 	private:
-		void CalcPoint(const uint x, const uint y, const uint i, const bool diagonal, const uint I, const uint S);
+		inline void CalcPoint(const uint x, const uint y, const uint i, const bool diagonal, const uint I, const uint S);
 	};
 }
 

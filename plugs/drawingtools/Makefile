@@ -5,7 +5,7 @@ MODULE = drawingtools
 include ../../configure
 
 O     = $(OBJEXT)
-CXXFLAGS = -D IMOD_PLUGIN $(LIBCFLAGS) $(QTFLAGS)
+CXXFLAGS = -DIMOD_PLUGIN $(LIBCFLAGS) $(QTFLAGS)
 
 PLUGS = $(MODULE).$(DLLEXT)
 
@@ -27,10 +27,10 @@ install : $(PLUGS)
 
 $(PLUGS) : $(CONTEXTRA).$(O) $(QTDIALOG).$(O) $(MODULE).$(O) \
 	moc_$(MODULE).$(O) $(COMMINCLUDES) $(QTDLGMOC).$(O) \
-	livewire/LivewireCalculator.$(O) livewire/PointPriorityQueue.$(O) livewire/Threaded.$(O) livewire/moc_Threaded.$(O) livewire/WeightCalculator.$(O)
+	livewire/LivewireCalculator.$(O) livewire/PointPriorityQueue.$(O) livewire/Threaded.$(O) livewire/moc_Threaded.$(O) livewire/WeightCalculator.$(O) livewire/general.$(O)
 	$(MAKELIBSO)$(PLUGS) $(CONTEXTRA).$(O) $(QTDIALOG).$(O) \
 	$(MODULE).$(O) moc_$(MODULE).$(O) $(QTDLGMOC).$(O) \
-	livewire/LivewireCalculator.$(O) livewire/PointPriorityQueue.$(O) livewire/Threaded.$(O) livewire/moc_Threaded.$(O) livewire/WeightCalculator.$(O)
+	livewire/LivewireCalculator.$(O) livewire/PointPriorityQueue.$(O) livewire/Threaded.$(O) livewire/moc_Threaded.$(O) livewire/WeightCalculator.$(O) livewire/general.$(O)
 
 
 moc_$(MODULE).cpp : $(MODULE).h
@@ -56,6 +56,8 @@ livewire/Threaded.$(O)       : livewire/Threaded.cpp
 livewire/WeightCalculator.$(O)   : livewire/WeightCalculator.cpp
 	(cd livewire ; $(MAKE) WeightCalculator.$(O))
 
+livewire/general.$(O)   : livewire/general.cpp
+	(cd livewire ; $(MAKE) general.$(O))
 
 # Build common object files in common directory
 #

@@ -131,12 +131,11 @@ public:
   int  copyCurrContToView(bool smartSize);
   
 	void initLivewire( int w, int h );
-	void weightsProgress(int progress);
-	void weightsFinished();
-	void livewireProgress(int progress);
 	void livewireFinished();
-	//void livewireFProgress(int progress);
-	//void livewireFFinished();
+	//void livewireProgress(int progress);	// livewire now seems sufficiently   
+	//void void weightsFinished();					// fast that draing a progress bar 
+	//void weightsProgress(int progress);		// is not necessary
+	
 	
 	void customizeToolOrder();
   void changeMode( int modeIdx );
@@ -291,7 +290,7 @@ struct DrawingToolsData   // contains all local plugin data
 	
 	//## LIVEWIRE OBJECTS:
 	
-	Livewire::WeightCalculator::Settings *lwSettings;		// current settings used by the
+	Livewire::WeightCalculator::Settings lwSettings;		// current settings used by the
 																											//  livewire image "weights" thread
 	
 	Livewire::WeightCalculator *weights;			// the thread which inputs an area of image
@@ -311,9 +310,6 @@ struct DrawingToolsData   // contains all local plugin data
 	int lwWeightZVal;							// the Z value of the slice currently stored in "weights"
 	Icont *lwPts;									// stores the active livewire points (points clicked)
 																//  on the current contour, as shown by red dots
-	int lwWeightProgress;					// stores the progress of the "weights" out of 100
-	QTime lwRedrawTime;						// time object used to ensure redraw isn't called 
-																//  too frequently as to slow down IMOD
 	
 	float wandAvgGrayVal;					// the average gray value around where the user last
 																//  clicked while using the Wand tool
@@ -463,9 +459,11 @@ int edit_addLivewirePtsToCont(Icont *cont, int startIdx,
 															Livewire::LivewireCalculator *livewire,
 															QPoint qptEnd, int z, bool addUndo=false, bool 
 															reverse=true);
+bool edit_finishLivewireOnCurrCont(bool deselect = true);
 bool edit_startLivewireFromPt(int x, int y, int z, bool useLivewireF);
+bool edit_setLivewireImage( int z );
 bool edit_executeLivewireSelectPt();
-bool edit_getNextAndPrevLivewirePts(int &startPt, int &endPt);
+//bool edit_getNextAndPrevLivewirePts(int &startPt, int &endPt);
 
 void edit_executeWandAdd();
 int edit_addWandPtsToCont( Icont *cont, Ipoint centerPt, int minDist, 

@@ -2,6 +2,7 @@
 #include <QKeyEvent>
 #include <QLabel>
 #include <QEvent>
+#include <QTime>
 #include <QCloseEvent>
 class QPushButton;
 class QCheckBox;
@@ -47,7 +48,7 @@ enum ptchange    { SEL_NA, SEL_ON, SEL_OFF, SEL_TOGGLE };
 enum rangeopts   { RG_CURR, RG_ALL, RG_CUSTOM };
 
 enum gridlabels  { GL_OFF, GL_NUMS, GL_LETTERS_NUMS };
-const int NUM_SAVED_VALS = 40;
+const int NUM_SAVED_VALS = 41;
 
 const float PT_PREC        = 0.001f;		// used by 'ptsEqualXYZ' function
 const char  PLUSMINUS_SIGN = 0x00B1;		// plus minus sign
@@ -143,6 +144,7 @@ public:
 	bool includeInResults;		// temp value used to include/omit category during analysis
 	long numPtsOn;						// updated and used during analysis (using "calcResults()")
 	float volumeDensity;			// used to store the volume density (Vv)
+	float stDev;							// used to store the standard deviation
 	long numCounts;						// updated during analysis (using "calcSurfAreaDensity()")
 														//  by multiplying "numPtsOn" by calcTotCountUsingName()
 	
@@ -311,7 +313,7 @@ public:
 	bool validateAllPtValues();
 	long calcResults( bool includeAllCats, bool onlyIncludeChecked, long *catHits, int minZVal, int maxZVal, bool tallyCounts=false );
 	void calcIntercepts( bool includeAllCats, Imod *imod, int minZVal, int maxZVal );
-	QString printResults( bool includeAllCats, bool transpose, QString sepChar, bool includeHeader=true );
+	QString printResults( bool includeAllCats, bool transpose, QString sepChar, bool includeHeader=true, bool includeStDev=false );
 	QString printSurfAreaDensityResults( QString sepChar, long numPtsForCalc, float pixelSize, QString units, bool shortVersion );
 	QString printLengthDensityResults( QString sepChar, long numPtsForCalc, float pixelSize, QString units );
 	QString printNumberDensityResults( QString sepChar, float pixelSize, QString units, float zScale, int zMinUsed, int zMaxUsed );
@@ -473,6 +475,7 @@ public slots:
 	void changePtCheckedClicked();
 	void toggleCategory( int catIdx );
 	void catToggleBtnPushed();
+	void updateTimeWorked();
 	bool updatePtCat( long ptIdx, int catIdx, bool newVal, bool redraw=true, bool updateGui=true );
 	bool changePtCatAndUpdateObj( Spoint *spt, int catIdx, bool newVal );
 	bool changePtCheckedAndUpdateObj( Spoint *spt, bool turnCheckedOn );
@@ -686,6 +689,8 @@ struct StereologyData   // contains all local plugin data
 	
 	bool resultsAvgAllGrids;		// if true: all grids are used when calculating results,
 															//  if false: user can specify a min and max section #
+	bool resultsShowStDev;			// if true: will output an extra column/row showing 
+															//  standard deviation for each category based on (n)
 	
 	float secsPerPt;			      // rough estimate of the average number of seconds to 
 															//  classify each point - a value used to estimate time 
@@ -716,6 +721,13 @@ struct StereologyData   // contains all local plugin data
 	
 	
 	//## OTHER:
+	
+	QTime timeLastClick;				// used to track time since counting was started
+	//int msecElapLastClick;			// stores the number of milliseconds elapsed the
+	//														//  last time the user clicked
+	float numMinutesWorked;			// stores the number of minutes the user has spent
+															//  classifying points, and is only incremented if
+															//  there was less than 60 seconds between clicks
 	
 	bool disableGuiUpdates;			// used to temporarily disable certain functions
 															//  such as "updateGridGuiFromGrid()" while gui
