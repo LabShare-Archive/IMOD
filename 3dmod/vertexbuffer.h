@@ -23,6 +23,8 @@ typedef struct Vert_Buf_Data {
   Ilist *remnantStore;     // List of Istores that go with remnant indices
   float zscale;            // Z scale at which vertices were loaded
   int handleFlags;         // Change flags that were handled
+  b3dUInt32 defaultRGBT;   // RGBT of the default drawing
+  double checksum;         // Checksum of the store
 } VertBufData;
 
 void vbPackRGBT(float red, float green, float blue, int trans, b3dUInt32 &rgbtVal);
@@ -36,6 +38,7 @@ void vbDataClear(VertBufData *vbd);
 void vbDataDelete(VertBufData *vbd);
 void vbCleanupVBD(Imesh *mesh);
 void vbCleanupVBD(Iobj *obj);
+void vbCleanupVBD(Imod *mod);
 int vbLoadVertexNormalArray(Imesh *mesh, float zscale);
 int vbAnalyzeMesh(Imesh *mesh, float zscale, DrawProps *defProps, int handleFlags,
                   int nonVboFlags);

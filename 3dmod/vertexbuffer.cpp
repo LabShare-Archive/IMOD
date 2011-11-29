@@ -77,6 +77,14 @@ void vbCleanupVBD(Iobj *obj)
     vbCleanupVBD(&obj->mesh[m]);
 }
 
+void vbCleanupVBD(Imod *imod)
+{
+  if (!imod)
+    return;
+  for (int ob = 0; ob < imod->objsize; ob++)
+    vbCleanupVBD(&imod->obj[ob]);
+}
+
 int vbAnalyzeMesh(Imesh *mesh, float zscale, DrawProps *defProps, int handleFlags,
                   int nonVboFlags)
 {
@@ -86,34 +94,63 @@ int vbAnalyzeMesh(Imesh *mesh, float zscale, DrawProps *defProps, int handleFlag
   pair<RGBTmap::iterator,bool> mapret;
   RGBTmap::iterator mapit;
   GLenum error;
-  VertBufData *vbd;
+  VertBufData *vbd = mesh->vertBuf;
   Istore *stp;
   Istore store;
   GLuint *inds;
+  int *mlist = mesh->list;
   DrawProps curProps;
   int i, j, cumInd, defInd, nextItemIndex, stateFlags, vertDflt, changeFlags, firstDflt;
   b3dUInt32 vertRGBT, firstRGBT;
   int remInd, curSave, curNext;
   int numDefaultTri = 0, numMixedTri = 0;
+  int useFill = handleFlags & CHANGED_FCOLOR;
 
+  // Check if there is a current VBO and it is all still valid 
+  vbPackRGBT(defProps, useFill, firstRGBT);
+  if (vbd && vbd->vbObj && 
+      (!ilistSize(mesh->store) || 
+       (vbd->handleFlags == handleFlags && vbd->defaultRGBT == firstRGBT)) &&
+      vbd->checksum == istoreChecksum(mesh->store)) {
+
+    // If Z-scale still valid, return a -1; if have to fix the Z-scale, do it, return -2
+    if (fabs((double)(zscale - vbd->zscale)) < 1.e-4)
+      return -1;
+    glBindBuffer(GL_ARRAY_BUFFER, vbd->vbObj);
+    if (vbLoadVertexNormalArray(mesh, zscale))
+      return 1;
+    vbd->zscale = zscale;
+    return -2;
+  }
+
+  // Now proceed to full analysis
   nextItemIndex = istoreFirstChangeIndex(mesh->store);
   
   for (i = 0; i < mesh->lsize && valid; i++) {
-    switch (mesh->list[i]) {
+    switch (mlist[i]) {
 
     case IMOD_MESH_BGNTRI:
     case IMOD_MESH_ENDTRI:
     case IMOD_MESH_BGNPOLY:
     case IMOD_MESH_NORMAL:
-    case IMOD_MESH_BGNPOLYNORM:
     case IMOD_MESH_BGNBIGPOLY:
     case IMOD_MESH_SWAP:
       valid = false;
       break;
 
+    case IMOD_MESH_BGNPOLYNORM:
+      i++;
+      while (mlist[i] != IMOD_MESH_ENDPOLY && valid) {
+        valid = (mlist[i] == mlist[i+1] + 1) && (mlist[i+2] == mlist[i+3] + 1) && 
+          (mlist[i+4] == mlist[i+5] + 1);
+        i += 6;
+        numDefaultTri++;
+      }
+      break;
+
     case IMOD_MESH_BGNPOLYNORM2:
       i++;
-      while (mesh->list[i] != IMOD_MESH_ENDPOLY) {
+      while (mlist[i] != IMOD_MESH_ENDPOLY) {
         if (nextItemIndex < i || nextItemIndex > i + 2) {
           
           // Count a default triangle if no changes in this range
@@ -131,7 +168,7 @@ int vbAnalyzeMesh(Imesh *mesh, float zscale, DrawProps *defProps, int handleFlag
                                                &stateFlags, &changeFlags);
               if (stateFlags & handleFlags) {
                 vertDflt = 0;
-                vbPackRGBT(&curProps, handleFlags & CHANGED_FCOLOR, vertRGBT);
+                vbPackRGBT(&curProps, useFill, vertRGBT);
               }
 
               // Take triangle as mixed if it has unhandleable flags
@@ -271,6 +308,7 @@ int vbAnalyzeMesh(Imesh *mesh, float zscale, DrawProps *defProps, int handleFlag
   } else 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbd->ebObj);
         
+  imodTrace('b',"vbObj %d  ebObj %d", vbd->vbObj, vbd->ebObj);
   // Load the vertices and finish with buffer for now
   if (vbLoadVertexNormalArray(mesh, zscale)) {
     vbCleanupVBD(mesh);
@@ -279,6 +317,8 @@ int vbAnalyzeMesh(Imesh *mesh, float zscale, DrawProps *defProps, int handleFlag
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   vbd->zscale = zscale;
   vbd->handleFlags = handleFlags;
+  vbPackRGBT(defProps, useFill, vbd->defaultRGBT);
+  vbd->checksum = istoreChecksum(mesh->store);
 
   // Get temporary array for indexes
   inds = B3DMALLOC(GLuint,  cumInd);
@@ -291,11 +331,18 @@ int vbAnalyzeMesh(Imesh *mesh, float zscale, DrawProps *defProps, int handleFlag
   defInd = 0;
   if (!mesh->store) {
     i = 0;
-    while (mesh->list[i] != IMOD_MESH_END) {
-      if (mesh->list[i] ==  IMOD_MESH_BGNPOLYNORM2) {
+    while (mlist[i] != IMOD_MESH_END) {
+      if (mlist[i] ==  IMOD_MESH_BGNPOLYNORM) {
         i++;
-        while (mesh->list[i] != IMOD_MESH_ENDPOLY) {
-          inds[defInd++] = mesh->list[i++] / 2;
+        while (mlist[i] != IMOD_MESH_ENDPOLY) {
+          i++;
+          inds[defInd++] = mlist[i++] / 2;
+        }
+      }
+      else if (mlist[i] ==  IMOD_MESH_BGNPOLYNORM2) {
+        i++;
+        while (mlist[i] != IMOD_MESH_ENDPOLY) {
+          inds[defInd++] = mlist[i++] / 2;
         }
       }
       i++;
@@ -306,10 +353,10 @@ int vbAnalyzeMesh(Imesh *mesh, float zscale, DrawProps *defProps, int handleFlag
     nextItemIndex = istoreFirstChangeIndex(mesh->store);
     remInd = 1;
     for (i = 0; i < mesh->lsize; i++) {
-      switch (mesh->list[i]) {
+      switch (mlist[i]) {
       case IMOD_MESH_BGNPOLYNORM2:
         i++;
-        while (mesh->list[i] != IMOD_MESH_ENDPOLY) {
+        while (mlist[i] != IMOD_MESH_ENDPOLY) {
           
           // Repeat the analysis to determine default, special, or mixed triangle
           curSave = mesh->store->current;
@@ -327,7 +374,7 @@ int vbAnalyzeMesh(Imesh *mesh, float zscale, DrawProps *defProps, int handleFlag
                                                  &stateFlags, &changeFlags);
                 if (stateFlags & handleFlags) {
                   vertDflt = 0;
-                  vbPackRGBT(&curProps, handleFlags & CHANGED_FCOLOR, vertRGBT);
+                  vbPackRGBT(&curProps, useFill, vertRGBT);
                 }
                 if (stateFlags & nonVboFlags) {
                   firstDflt = -1;
@@ -348,14 +395,14 @@ int vbAnalyzeMesh(Imesh *mesh, float zscale, DrawProps *defProps, int handleFlag
           
           // Save indexes for default or special triangles
           if (firstDflt > 0) {
-            inds[defInd++] = mesh->list[i++] / 2;
-            inds[defInd++] = mesh->list[i++] / 2;
-            inds[defInd++] = mesh->list[i++] / 2;
+            inds[defInd++] = mlist[i++] / 2;
+            inds[defInd++] = mlist[i++] / 2;
+            inds[defInd++] = mlist[i++] / 2;
           } else if (firstDflt == 0) {
             mapit = colors.find(firstRGBT);
-            inds[mapit->second++] = mesh->list[i++] / 2;
-            inds[mapit->second++] = mesh->list[i++] / 2;
-            inds[mapit->second++] = mesh->list[i++] / 2;
+            inds[mapit->second++] = mlist[i++] / 2;
+            inds[mapit->second++] = mlist[i++] / 2;
+            inds[mapit->second++] = mlist[i++] / 2;
           } else {
 
             // For mixed triangle, save the current pointer, copy the index for each 
@@ -363,7 +410,7 @@ int vbAnalyzeMesh(Imesh *mesh, float zscale, DrawProps *defProps, int handleFlag
             // to the remnant store, changing the index to the new value
             curNext = mesh->store->current;
             for (j = 0; j < 3; j++) {
-              vbd->remnantIndList[remInd] = mesh->list[i];
+              vbd->remnantIndList[remInd] = mlist[i];
               while (curSave < curNext) {
                 stp = istoreItem(mesh->store, curSave);
                 if (stp->index.i == i) {
@@ -425,7 +472,6 @@ int vbLoadVertexNormalArray(Imesh *mesh, float zscale)
     verts[numVert++] = vert[i].z * zscale;
   }
   glBufferSubData(GL_ARRAY_BUFFER, 0, numVert * sizeof(GLfloat), verts);
-  glInterleavedArrays(GL_N3F_V3F, 0, BUFFER_OFFSET(0));
   free(verts);
   return 0;
 }

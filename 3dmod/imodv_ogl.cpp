@@ -1704,6 +1704,11 @@ static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj, int drawTrans)
   int firstTrans, defTrans;
   int skipEnds = !((Imodv->current_subset == SUBSET_SURF_ONLY || Imodv->current_subset ==
                     SUBSET_SURF_OTHER) && cursurf >= 0) || mesh->surf > 0 ? 1 : 0;
+  static GLuint ebo = 0, vbo = 0;
+  static int numInd = 0, numVert = 0, numTri = 0;
+  static GLuint *inds;
+  static GLvoid **offsets;
+  static GLsizei *counts;
 
   if (ifgSetupValueDrawing(obj, GEN_STORE_MINMAX1))
     handleFlags |= HANDLE_VALUE1;
@@ -1744,6 +1749,59 @@ static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj, int drawTrans)
 
   stateFlags = 0;
   nextItemIndex = nextChange = istoreFirstChangeIndex(mesh->store);
+
+  if (!vbo) {
+    GLfloat *verts;
+    glGenBuffers(1, &vbo);
+    glGenBuffers(1, &ebo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ARRAY_BUFFER, (3 * mesh->vsize * sizeof(GLfloat)) / 2, NULL,
+                                   GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh->lsize * sizeof(GLuint), NULL,
+                 GL_STATIC_DRAW);
+    verts = B3DMALLOC(GLfloat, 3 * mesh->vsize);
+    inds = B3DMALLOC(GLuint, mesh->lsize);
+    i = 0;
+    while (mesh->list[i] != IMOD_MESH_END) {
+      if (mesh->list[i] ==  IMOD_MESH_BGNPOLYNORM2) {
+        i++;
+        while (mesh->list[i] != IMOD_MESH_ENDPOLY) {
+          inds[numInd++] = mesh->list[i++] / 2;
+        }
+      }
+      i++;
+    }
+    for (i = 0; i < mesh->vsize; i += 2) {
+      verts[numVert++] = mesh->vert[i].x;
+      verts[numVert++] = mesh->vert[i].y;
+      verts[numVert++] = mesh->vert[i].z;
+    }
+    glBufferSubData(GL_ARRAY_BUFFER, 0, numVert * sizeof(GLfloat), verts);
+    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, numInd * sizeof(GLuint), inds);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    free(verts);
+    free(inds);
+    numTri = numInd / 3;
+  }
+
+  /*  // Now draw with the theoretically loaded stuff
+  offsets = B3DMALLOC(GLvoid *, numTri);
+  counts = B3DMALLOC(GLsizei, numTri);
+  for (i = 0; i < numTri; i++) {
+    counts[i] = 3;
+    offsets[i] = BUFFER_OFFSET(i * 12);
+  }
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+  glMultiDrawElements(normStyle, counts, GL_UNSIGNED_INT, offsets, numTri);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  free(counts);
+  free(offsets);
+  return;
+  */
 
   for (i  = 0; i < mesh->lsize; i++) {
     switch(mesh->list[i]){
@@ -1972,20 +2030,12 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
   vert = mesh->vert;
 
   // first time in, try to set up vertex buffer drawing if no value drawing
-  if (!drawTrans && vbOK && (!mesh->vertBuf || !mesh->vertBuf->vbObj || 
-                             mesh->vertBuf->handleFlags != vbHandleFlags)) {
+  if (!drawTrans && vbOK) {
     i = vbAnalyzeMesh(mesh, z, &defProps, vbHandleFlags, 0);
-    imodTrace('b', "vbAnalyzeMesh returned %d", i);
+    if (i != -1)
+      imodTrace('b', "vbAnalyzeMesh returned %d", i);
   }
-
   vbd = mesh->vertBuf;
-
-  // Fix the Z scaling if needed
-  if (vbd && vbd->vbObj && fabs((double)(z - vbd->zscale) > 1.e-4)) {
-    glBindBuffer(GL_ARRAY_BUFFER, vbd->vbObj);
-    if (vbLoadVertexNormalArray(mesh, z))
-      vbd = NULL;
-  }
 
   // Do vertex buffer drawing
   if (vbd && vbd->vbObj) {
@@ -2013,6 +2063,7 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
 
     glBindBuffer(GL_ARRAY_BUFFER, vbd->vbObj);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbd->ebObj);
+    glInterleavedArrays(GL_N3F_V3F, 0, BUFFER_OFFSET(0));
     
     // Draw default if it matches trans state
     if (vbd->numIndDefault) {
