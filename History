@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/29/11: In eTomo - PEET improved the error messages.(Bug# 1563)
+
 11/28/11: Fixed Last Fill Color button in finegrain dialog (In 4.3).
 
 11/22/11: Fixed pysed.py to allow ^ and + in filenames again (In 4.3).
