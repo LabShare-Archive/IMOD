@@ -10750,10 +10750,10 @@ void Stereology::checkProgress()
 	float totEstimatedSecs = ptsUnchecked * plug.secsPerPt;
 	QString estTimeLeft    = formatApproxTime( totEstimatedSecs );
 	
-	float totSecsWorked = plug.numMinutesWorked * 60.0f;
+	float totSecsWorked = (float)(int)(plug.numMinutesWorked * 60.0f);
 	QString approxTimeWorked = formatApproxTime( totSecsWorked );
 	float averageSecsPerPt   = (ptsChecked==0) ? 0 : fDiv( totSecsWorked, ptsChecked );
-	averageSecsPerPt = ((int)averageSecsPerPt*100.0f) / 100.0f
+	averageSecsPerPt = (float)((int)(averageSecsPerPt*100.0f)) / 100.0f;
 	
 	//## COUNT NUMBER OF POINTS IN EACH CATEGORY:
 	
@@ -10774,7 +10774,7 @@ void Stereology::checkProgress()
 		ds.setStylePrev("background-color: rgb(0, 255, 0);");				// green
 	
 	ds.addHtmlLabel  ( "Approx. time spend: &nbsp; <b>~" + approxTimeWorked + "</b>",
-										"This represents approximately how much time you have spend<br>"
+										"This represents ~how much time you have spend<br>"
 										"<b>classifying points during this 3dmod session</b>. <br>"
 										"This value will only update during each minute interval<br>"
 										"in which you classify a point so time you may have spend<br>"
