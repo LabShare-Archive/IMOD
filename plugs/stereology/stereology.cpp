@@ -109,6 +109,7 @@
 #include <qfile.h>
 #include <QTextStream>
 #include <QMenu>
+#include <QTime>
 
 #include <qcompleter.h>
 
@@ -1745,6 +1746,7 @@ long GridSetObj::calcResults( bool includeAllCats, bool onlyIncludeChecked,
 	{
 		catObj[c].numPtsOn      = 0;
 		catObj[c].volumeDensity = 0.0f;
+		catObj[c].stDev         = 0.0f;
 		catObj[c].numCounts     = 0;
 	}
 	
@@ -1780,7 +1782,8 @@ long GridSetObj::calcResults( bool includeAllCats, bool onlyIncludeChecked,
 			totPtsWithCatOn++;
 	}
 	
-	//## CALCULATE THE VOLUME DENSITY FOR EACH INCLUDED CATEGORY:
+	//## CALCULATE THE VOLUME DENSITY AND STANDARD DEVIATION 
+	//## FOR EACH INCLUDED CATEGORY:
 	
 	for( int c=0; c<csize; c++ )
 	{
@@ -1788,6 +1791,10 @@ long GridSetObj::calcResults( bool includeAllCats, bool onlyIncludeChecked,
 			continue;
 		
 		catObj[c].volumeDensity = fDiv( catObj[c].numPtsOn, totPtsWithCatOn );
+		
+		//see: http://en.wikipedia.org/wiki/Binomial_distribution#Normal_approximation :
+		float topPart = catObj[c].volumeDensity * (1.0f - catObj[c].volumeDensity);
+		catObj[c].stDev = sqrt( fDiv( topPart, totPtsWithCatOn ) );
 	}
 	
 	
@@ -1877,7 +1884,7 @@ void GridSetObj::calcIntercepts( bool includeAllCats, Imod *imod,
 //-- included as the default.
 
 QString GridSetObj::printResults( bool includeAllCats, bool transpose, QString sepChar,
-																  bool includeHeader )
+																  bool includeHeader, bool includeStDev )
 {
 	QString outStr = "";
 	QString SEP = (QString)sepChar;
@@ -1885,7 +1892,10 @@ QString GridSetObj::printResults( bool includeAllCats, bool transpose, QString s
 	if( !transpose )
 	{
 		if(includeHeader)
-			outStr += "CAT #"+SEP+"CATEGORY NAME"+SEP+"# POINTS"+SEP+"FRACTION TOTAL (Vv)\n";
+		{
+			outStr += "CAT #"+SEP+"CATEGORY NAME"+SEP+"# POINTS"+SEP+"FRACTION TOTAL (Vv)";
+			outStr += ((includeStDev) ? (SEP+"STDEV") : ("")) +"\n";
+		}
 		for( int c=0; c<(int)catObj.size(); c++ )
 		{
 			if( !includeAllCats && !catObj[c].includeInResults )
@@ -1894,7 +1904,10 @@ QString GridSetObj::printResults( bool includeAllCats, bool transpose, QString s
 			outStr += QStr(c) + SEP;
 			outStr += catObj[c].categoryName + SEP;
 			outStr += QStr( catObj[c].numPtsOn ) + SEP;
-			outStr += QStr( catObj[c].volumeDensity ) + "\n";
+			outStr += QStr( catObj[c].volumeDensity );
+			if(includeStDev)
+				outStr += SEP + QStr( catObj[c].stDev );
+			outStr += "\n";
 		}
 	}
 	else
@@ -1918,6 +1931,16 @@ QString GridSetObj::printResults( bool includeAllCats, bool transpose, QString s
 		for( int c=0; c<(int)catObj.size(); c++ )
 			if( includeAllCats || catObj[c].includeInResults )
 				outStr += QStr( catObj[c].volumeDensity ) + SEP;
+		
+		if(includeStDev)
+		{
+			outStr += "\n";
+			if(includeHeader)
+				outStr += "STDEV:" + SEP;
+			for( int c=0; c<(int)catObj.size(); c++ )
+				if( includeAllCats || catObj[c].includeInResults )
+					outStr += QStr( catObj[c].stDev ) + SEP;
+		}
 	}
 	
 	return (outStr);
@@ -4742,6 +4765,7 @@ void Stereology::initValues()
 	plug.resultsSepCharIdx   = 0;
 	plug.resultsOutputOpt    = 1;
 	plug.resultsAvgAllGrids  = true;
+	plug.resultsShowStDev    = false;
 	
 	plug.secsPerPt           = 3.0f;
 	
@@ -4759,6 +4783,7 @@ void Stereology::initValues()
 	
 	//## TRANSIENT VALUES:
 	
+	plug.numMinutesWorked     = 0.0f;
   plug.defaultFilePath      = QString(getenv("IMOD_DIR"))
 											        + "/lib/imodplug/default_stereology_categories.csv";
 	plug.interceptCat         = -1;
@@ -4828,17 +4853,31 @@ void Stereology::loadSettings()
 		plug.resultsSepCharIdx   = savedValues[28];
 		plug.resultsOutputOpt    = savedValues[29];
 		plug.resultsAvgAllGrids  = savedValues[30];
+		plug.resultsShowStDev    = savedValues[31];
 		
-		plug.secsPerPt           = savedValues[31];
+		plug.secsPerPt           = savedValues[32];
 		
-		plug.showLoadingInConsole = savedValues[32];
-		plug.maxContsRend         = savedValues[33];
-		plug.numRandPtsToAdd      = savedValues[34];
-		plug.jumpToGridOnUpdate   = savedValues[35];
-		plug.targetNumPts         = savedValues[36];
-		plug.randomSymbols        = savedValues[37];
-		plug.agreeFinalizeDlg     = savedValues[38];
-		plug.showBigIntercCH      = savedValues[39];
+		plug.showLoadingInConsole = savedValues[33];
+		plug.maxContsRend         = savedValues[34];
+		plug.numRandPtsToAdd      = savedValues[35];
+		plug.jumpToGridOnUpdate   = savedValues[36];
+		plug.targetNumPts         = savedValues[37];
+		plug.randomSymbols        = savedValues[38];
+		plug.agreeFinalizeDlg     = savedValues[39];
+		plug.showBigIntercCH      = savedValues[40];
+		
+		
+		if( plug.defSpacingX==50 && plug.defSpacingY==50 && plug.defSpacingZ==30
+		 && plug.gridSymbolSize==5 )		// if original values:
+		{
+			if( plug.ysize > 2000 && plug.ysize > 2000 )		// if big image:
+			{
+				plug.defSpacingX = 500;
+				plug.defSpacingY = 500;
+				plug.gridSymbolSize = 20;
+			}
+		}
+		
 		
 		if(plug.paintRadius <= 0)
 			plug.paintRadius = 10.0f;
@@ -4925,17 +4964,18 @@ void Stereology::saveSettings()
 	saveValues[28] = plug.resultsSepCharIdx;
 	saveValues[29] = plug.resultsOutputOpt;
 	saveValues[30] = plug.resultsAvgAllGrids;
+	saveValues[31] = plug.resultsShowStDev;
 	
-	saveValues[31] = plug.secsPerPt;
+	saveValues[32] = plug.secsPerPt;
 	
-	saveValues[32] = plug.showLoadingInConsole;
-	saveValues[33] = plug.maxContsRend;
-	saveValues[34] = plug.numRandPtsToAdd;
-	saveValues[35] = plug.jumpToGridOnUpdate;
-	saveValues[36] = plug.targetNumPts;
-	saveValues[37] = plug.randomSymbols;
-	saveValues[38] = plug.agreeFinalizeDlg;
-	saveValues[39] = plug.showBigIntercCH;
+	saveValues[33] = plug.showLoadingInConsole;
+	saveValues[34] = plug.maxContsRend;
+	saveValues[35] = plug.numRandPtsToAdd;
+	saveValues[36] = plug.jumpToGridOnUpdate;
+	saveValues[37] = plug.targetNumPts;
+	saveValues[38] = plug.randomSymbols;
+	saveValues[39] = plug.agreeFinalizeDlg;
+	saveValues[40] = plug.showBigIntercCH;
 	
   prefSaveGenericSettings("Stereology",NUM_SAVED_VALS,saveValues);
 }
@@ -7717,7 +7757,7 @@ void Stereology::addExtraGridCategoriesToImodModel()
 	
 	//## SHOW CUSTOM DIALOG WITH FIELDS TO ADD NEW CATEGORIES:
 	
-	int MAX_NEW_OBJECTS = 4;
+	const int MAX_NEW_OBJECTS = 4;
 	string newCatName [MAX_NEW_OBJECTS];
 	bool   addCat     [MAX_NEW_OBJECTS];
 	
@@ -9111,7 +9151,28 @@ void Stereology::catToggleBtnPushed()
 }
 
 
+//------------------------
+//-- Used to keep track of the number of minutes the user has worked
+//-- by updating the value of "plug.numMinutesWorked" and reseting
+//-- "plug.timeLastClick". The value of "plug.numMinutesWorked" is only 
+//-- increased (by the appropriate fraction) if less than a minute
+//-- has elapsed since the last time this function was called - meaning
+//-- that if you click once then two minutes later, no change occurs.
 
+void Stereology::updateTimeWorked()
+{
+	if( plug.timeLastClick.isNull() )
+	{
+		plug.timeLastClick.start();
+		return;
+	}
+	
+	int msecsElapsed = plug.timeLastClick.elapsed();
+	if( msecsElapsed <= 60000 )
+		plug.numMinutesWorked += ((float)msecsElapsed / (60.0f*1000.0f));
+	
+	plug.timeLastClick.restart();	
+}
 
 
 //------------------------
@@ -9139,6 +9200,8 @@ bool Stereology::updatePtCat( long ptIdx, int catIdx, bool turnOn,
 	if( spt->isCatOn(catIdx) == turnOn )			// if no change needed: early exit
 		return true;
 	
+	
+	updateTimeWorked();		// update the number of minutes worked
 	
 	//## IF TURNED ON AND CATEGORIES ARE MUTUALLY EXCLUSIVE:
 	//## SET POINT AS CHECKED AND TURN OFF ANY OTHER CATEGORIES:
@@ -10685,8 +10748,12 @@ void Stereology::checkProgress()
 	
 	
 	float totEstimatedSecs = ptsUnchecked * plug.secsPerPt;
-	QString estimatedTime  = formatApproxTime( totEstimatedSecs );
+	QString estTimeLeft    = formatApproxTime( totEstimatedSecs );
 	
+	float totSecsWorked = plug.numMinutesWorked * 60.0f;
+	QString approxTimeWorked = formatApproxTime( totSecsWorked );
+	float averageSecsPerPt   = (ptsChecked==0) ? 0 : fDiv( totSecsWorked, ptsChecked );
+	averageSecsPerPt = ((int)averageSecsPerPt*100.0f) / 100.0f
 	
 	//## COUNT NUMBER OF POINTS IN EACH CATEGORY:
 	
@@ -10706,11 +10773,22 @@ void Stereology::checkProgress()
 	if( g->countingFinished )
 		ds.setStylePrev("background-color: rgb(0, 255, 0);");				// green
 	
+	ds.addHtmlLabel  ( "Approx. time spend: &nbsp; <b>~" + approxTimeWorked + "</b>",
+										"This represents approximately how much time you have spend<br>"
+										"<b>classifying points during this 3dmod session</b>. <br>"
+										"This value will only update during each minute interval<br>"
+										"in which you classify a point so time you may have spend<br>"
+										"doing anything else shouldn't be included. Assuming you<br>"
+										"have just started this dataset, you are averaging: <br><br>"
+										" &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "
+										"~<b>" + QStr(averageSecsPerPt) + " seconds/point</b>" );
+	
 	if( !g->countingFinished )
 	{
-		ds.addHtmlLabel  ( "Estimated time remaining: &nbsp; <b>~" + estimatedTime + "</b>",
-											 "Based on the estimate of <b>" + QStr(plug.secsPerPt) +
-											 "  seconds / point</b>. <br><br>"
+		ds.addHtmlLabel  ( "Estimated time remaining: &nbsp; <b>~" + estTimeLeft + "</b>",
+											 "This is based on the estimate of <br>"
+											 " &nbsp; &nbsp; <b>" + QStr(plug.secsPerPt) +
+											 " seconds/point</b>. <br><br>"
 											 "TIP: If it needs adjusting can change this estimated "
 											 "     rate via '<b>Options > Settings</b>'" );
 		ds.setStylePrev("background-color: rgb(100, 255, 100);");			// light green
@@ -10998,6 +11076,14 @@ void Stereology::calculateResults()
 								 "but you may also use a comma so you can create a CSV \n"
 								 "(comma seperated value) file." );
 	
+	dsI.addCheckBox( "output standard deviation", 
+									&plug.resultsShowStDev,
+									"Outputs a standard deviation for each category  \n"
+									"based on the formulae for the standard deviation   \n"
+									"of a binomial distribution assuming normal   \n"
+									"approximation: \n"
+									"   o = sqrt(P(P-1)/n)" );
+	
 	dsI.addLabel   ( "" );
 	dsI.addLabel   ( "--- RANGE SETTINGS ---", true );
 	
@@ -11189,7 +11275,8 @@ void Stereology::calculateResults()
 	}
 	
 	
-	outStr += g->printResults( false, plug.resultsTranspose, sepC, true );
+	outStr += g->printResults( false, plug.resultsTranspose, sepC, true,
+														 plug.resultsShowStDev );
 	
 	//## IF CLUSTERED OPTION SET: OUTPUT RESULTS WITHIN EACH RANGE
 	
@@ -11207,7 +11294,8 @@ void Stereology::calculateResults()
 			
 			outStr += "\n\n> Z RANGE (sections):" + sepC;
 			outStr += QStr(minZ+1) + "to" + QStr(maxZ+1) + "\n";
-			outStr += g->printResults( false, plug.resultsTranspose, sepC, true );
+			outStr += g->printResults( false, plug.resultsTranspose, sepC, true,
+																 plug.resultsShowStDev );
 		}
 	}
 	
