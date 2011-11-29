@@ -1,6 +1,8 @@
 /*   vertexbuffer.h  -  declarations for vertexbuffer.cpp and definition of VertBufData
  *  $Id$
  */
+#define GL_GLEXT_PROTOTYPES
+#include <qgl.h>
 
 #define BUFFER_OFFSET(bytes) ((GLubyte*) NULL + (bytes))
 
@@ -22,7 +24,8 @@ typedef struct Vert_Buf_Data {
   int numRemnant;          // Number in list
   Ilist *remnantStore;     // List of Istores that go with remnant indices
   float zscale;            // Z scale at which vertices were loaded
-  int handleFlags;         // Change flags that were handled
+  int fillType;            // Whether it is for fill draw or not
+  int useFillColor;        // Which kind of color was used
   b3dUInt32 defaultRGBT;   // RGBT of the default drawing
   double checksum;         // Checksum of the store
 } VertBufData;
@@ -39,8 +42,11 @@ void vbDataDelete(VertBufData *vbd);
 void vbCleanupVBD(Imesh *mesh);
 void vbCleanupVBD(Iobj *obj);
 void vbCleanupVBD(Imod *mod);
-int vbLoadVertexNormalArray(Imesh *mesh, float zscale);
-int vbAnalyzeMesh(Imesh *mesh, float zscale, DrawProps *defProps, int handleFlags,
-                  int nonVboFlags);
-
+int vbLoadVertexNormalArray(Imesh *mesh, float zscale, int fillType);
+int vbAnalyzeMesh(Imesh *mesh, float zscale, int fillType, int useFillColor,
+                  DrawProps *defProps);
+void vbClearTempArrays();
+const GLsizei *vbGetCounts(int numTri);
+const GLvoid **vbGetOffsets(int numTri, int startInd);
+int vbCheckAllTrans(Iobj *obj, VertBufData *vbd, int &remnantMatchesTrans);
 

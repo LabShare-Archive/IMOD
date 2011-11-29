@@ -17,6 +17,17 @@
 #include <map>
 using namespace std;
 
+// Static arrays to minimize multiple allocations during a draw
+static GLuint *sInds = NULL;
+static int sIndSize = 0;
+static GLfloat *sVerts = NULL;
+static int sVertSize = 0;
+static GLvoid **sOffsets = NULL;
+static GLsizei *sCounts = NULL;
+static int sCountSize = 0;
+
+
+
 VertBufData *vbDataNew()
 {
   VertBufData *vbd;
@@ -85,8 +96,8 @@ void vbCleanupVBD(Imod *imod)
     vbCleanupVBD(&imod->obj[ob]);
 }
 
-int vbAnalyzeMesh(Imesh *mesh, float zscale, DrawProps *defProps, int handleFlags,
-                  int nonVboFlags)
+int vbAnalyzeMesh(Imesh *mesh, float zscale, int fillType, int useFillColor,
+                  DrawProps *defProps)
 {
   typedef map<b3dUInt32,int> RGBTmap;
   bool valid = true;
@@ -97,27 +108,33 @@ int vbAnalyzeMesh(Imesh *mesh, float zscale, DrawProps *defProps, int handleFlag
   VertBufData *vbd = mesh->vertBuf;
   Istore *stp;
   Istore store;
-  GLuint *inds;
   int *mlist = mesh->list;
   DrawProps curProps;
   int i, j, cumInd, defInd, nextItemIndex, stateFlags, vertDflt, changeFlags, firstDflt;
   b3dUInt32 vertRGBT, firstRGBT;
   int remInd, curSave, curNext;
   int numDefaultTri = 0, numMixedTri = 0;
-  int useFill = handleFlags & CHANGED_FCOLOR;
+  int handleFlags, nonVboFlags = 0;
+  if (fillType)
+    handleFlags = (useFillColor ? CHANGED_FCOLOR : CHANGED_COLOR) | CHANGED_TRANS;
+  else {
+    handleFlags = CHANGED_COLOR | CHANGED_TRANS;
+    nonVboFlags = CHANGED_3DWIDTH;
+  }
+
 
   // Check if there is a current VBO and it is all still valid 
-  vbPackRGBT(defProps, useFill, firstRGBT);
-  if (vbd && vbd->vbObj && 
+  vbPackRGBT(defProps, useFillColor, firstRGBT);
+  if (vbd && vbd->vbObj && fillType == vbd->fillType && 
       (!ilistSize(mesh->store) || 
-       (vbd->handleFlags == handleFlags && vbd->defaultRGBT == firstRGBT)) &&
+       (vbd->useFillColor == useFillColor && vbd->defaultRGBT == firstRGBT)) &&
       vbd->checksum == istoreChecksum(mesh->store)) {
 
     // If Z-scale still valid, return a -1; if have to fix the Z-scale, do it, return -2
     if (fabs((double)(zscale - vbd->zscale)) < 1.e-4)
       return -1;
     glBindBuffer(GL_ARRAY_BUFFER, vbd->vbObj);
-    if (vbLoadVertexNormalArray(mesh, zscale))
+    if (vbLoadVertexNormalArray(mesh, zscale, fillType))
       return 1;
     vbd->zscale = zscale;
     return -2;
@@ -168,7 +185,7 @@ int vbAnalyzeMesh(Imesh *mesh, float zscale, DrawProps *defProps, int handleFlag
                                                &stateFlags, &changeFlags);
               if (stateFlags & handleFlags) {
                 vertDflt = 0;
-                vbPackRGBT(&curProps, useFill, vertRGBT);
+                vbPackRGBT(&curProps, useFillColor, vertRGBT);
               }
 
               // Take triangle as mixed if it has unhandleable flags
@@ -310,21 +327,28 @@ int vbAnalyzeMesh(Imesh *mesh, float zscale, DrawProps *defProps, int handleFlag
         
   imodTrace('b',"vbObj %d  ebObj %d", vbd->vbObj, vbd->ebObj);
   // Load the vertices and finish with buffer for now
-  if (vbLoadVertexNormalArray(mesh, zscale)) {
+  if (vbLoadVertexNormalArray(mesh, zscale, fillType)) {
     vbCleanupVBD(mesh);
     return 1;
   }
   glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+  // Set the identifiers of this vb data
   vbd->zscale = zscale;
-  vbd->handleFlags = handleFlags;
-  vbPackRGBT(defProps, useFill, vbd->defaultRGBT);
+  vbd->fillType = fillType;
+  vbd->useFillColor = useFillColor;
+  vbPackRGBT(defProps, useFillColor, vbd->defaultRGBT);
   vbd->checksum = istoreChecksum(mesh->store);
 
-  // Get temporary array for indexes
-  inds = B3DMALLOC(GLuint,  cumInd);
-  if (!inds) {
-    vbCleanupVBD(mesh);
-    return 1;
+  // Get or use temporary array for indexes
+  if (cumInd > sIndSize) {
+    sIndSize = cumInd;
+    sInds = B3DMALLOC(GLuint,  cumInd);
+    if (!sInds) {
+      sIndSize = 0;
+      vbCleanupVBD(mesh);
+      return 1;
+    }
   }
 
   // No fine grain: copy all the indices into index array
@@ -336,13 +360,13 @@ int vbAnalyzeMesh(Imesh *mesh, float zscale, DrawProps *defProps, int handleFlag
         i++;
         while (mlist[i] != IMOD_MESH_ENDPOLY) {
           i++;
-          inds[defInd++] = mlist[i++] / 2;
+          sInds[defInd++] = mlist[i++] / 2;
         }
       }
       else if (mlist[i] ==  IMOD_MESH_BGNPOLYNORM2) {
         i++;
         while (mlist[i] != IMOD_MESH_ENDPOLY) {
-          inds[defInd++] = mlist[i++] / 2;
+          sInds[defInd++] = mlist[i++] / 2;
         }
       }
       i++;
@@ -374,7 +398,7 @@ int vbAnalyzeMesh(Imesh *mesh, float zscale, DrawProps *defProps, int handleFlag
                                                  &stateFlags, &changeFlags);
                 if (stateFlags & handleFlags) {
                   vertDflt = 0;
-                  vbPackRGBT(&curProps, useFill, vertRGBT);
+                  vbPackRGBT(&curProps, useFillColor, vertRGBT);
                 }
                 if (stateFlags & nonVboFlags) {
                   firstDflt = -1;
@@ -395,14 +419,14 @@ int vbAnalyzeMesh(Imesh *mesh, float zscale, DrawProps *defProps, int handleFlag
           
           // Save indexes for default or special triangles
           if (firstDflt > 0) {
-            inds[defInd++] = mlist[i++] / 2;
-            inds[defInd++] = mlist[i++] / 2;
-            inds[defInd++] = mlist[i++] / 2;
+            sInds[defInd++] = mlist[i++] / 2;
+            sInds[defInd++] = mlist[i++] / 2;
+            sInds[defInd++] = mlist[i++] / 2;
           } else if (firstDflt == 0) {
             mapit = colors.find(firstRGBT);
-            inds[mapit->second++] = mlist[i++] / 2;
-            inds[mapit->second++] = mlist[i++] / 2;
-            inds[mapit->second++] = mlist[i++] / 2;
+            sInds[mapit->second++] = mlist[i++] / 2;
+            sInds[mapit->second++] = mlist[i++] / 2;
+            sInds[mapit->second++] = mlist[i++] / 2;
           } else {
 
             // For mixed triangle, save the current pointer, copy the index for each 
@@ -417,7 +441,6 @@ int vbAnalyzeMesh(Imesh *mesh, float zscale, DrawProps *defProps, int handleFlag
                   store = *stp;
                   store.index.i = remInd;
                   if (istoreInsert(&vbd->remnantStore, &store)) {
-                    free(inds);
                     vbCleanupVBD(mesh);
                     return 1;
                   }
@@ -442,10 +465,9 @@ int vbAnalyzeMesh(Imesh *mesh, float zscale, DrawProps *defProps, int handleFlag
     vbd->remnantIndList[remInd++] = IMOD_MESH_ENDPOLY;
     vbd->remnantIndList[remInd++] = IMOD_MESH_END;
   }
-  glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, cumInd * sizeof(GLuint), inds);
+  glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, cumInd * sizeof(GLuint), sInds);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-  free(inds);
   return 0;
 }
 
@@ -453,26 +475,38 @@ int vbAnalyzeMesh(Imesh *mesh, float zscale, DrawProps *defProps, int handleFlag
  * Packs the vertex/normal array into a temporary array, scaling by the given Z scale,
  * and loads this into GL_ARRAY_BUFFER, which must already be bound
  */
-int vbLoadVertexNormalArray(Imesh *mesh, float zscale)
+int vbLoadVertexNormalArray(Imesh *mesh, float zscale, int fillType)
 {
   // Temporary array for vertices
   int i, numVert = 0;
   Ipoint *vert = mesh->vert;
-  GLfloat *verts = B3DMALLOC(GLfloat, 3 * mesh->vsize);
-  if (!verts)
-    return 1;
+  if (3 * mesh->vsize > sVertSize) {
+    sVertSize = 3 * mesh->vsize;
+    sVerts = B3DMALLOC(GLfloat, sVertSize);
+    if (!sVerts) {
+      sVertSize = 0;
+      return 1;
+    }
+  }
   
   // Load the vertices and finish with buffer for now
-  for (i = 0; i < mesh->vsize; i += 2) {
-    verts[numVert++] = vert[i + 1].x;
-    verts[numVert++] = vert[i + 1].y;
-    verts[numVert++] = vert[i + 1].z;
-    verts[numVert++] = vert[i].x;
-    verts[numVert++] = vert[i].y;
-    verts[numVert++] = vert[i].z * zscale;
+  if (fillType) {
+    for (i = 0; i < mesh->vsize; i += 2) {
+      sVerts[numVert++] = vert[i + 1].x;
+      sVerts[numVert++] = vert[i + 1].y;
+      sVerts[numVert++] = vert[i + 1].z;
+      sVerts[numVert++] = vert[i].x;
+      sVerts[numVert++] = vert[i].y;
+      sVerts[numVert++] = vert[i].z * zscale;
+    }
+  } else {
+    for (i = 0; i < mesh->vsize; i += 2) {
+      sVerts[numVert++] = vert[i].x;
+      sVerts[numVert++] = vert[i].y;
+      sVerts[numVert++] = vert[i].z * zscale;
+    }
   }
-  glBufferSubData(GL_ARRAY_BUFFER, 0, numVert * sizeof(GLfloat), verts);
-  free(verts);
+  glBufferSubData(GL_ARRAY_BUFFER, 0, numVert * sizeof(GLfloat), sVerts);
   return 0;
 }
 
@@ -519,3 +553,89 @@ void vbUnpackRGBT(b3dUInt32 rgbtVal, int useFill, DrawProps *props)
     vbUnpackRGBT(rgbtVal, props->red, props->green, props->blue, props->trans);
 }
 
+void vbClearTempArrays()
+{
+  B3DFREE(sInds);
+  B3DFREE(sVerts);
+  B3DFREE(sOffsets);
+  B3DFREE(sCounts);
+  sInds = NULL;
+  sIndSize = 0;
+  sVerts = NULL;
+  sVertSize = 0;
+  sOffsets = NULL;
+  sCounts = NULL;
+  sCountSize = 0;
+}
+
+int vbCountsAndOffsets(int numTri, GLsizei **counts, GLvoid ***offsets)
+{
+  if (numTri > sCountSize) {
+    sOffsets = B3DMALLOC(GLvoid *, numTri);
+    sCounts = B3DMALLOC(GLsizei, numTri);
+    if (!sCounts || !sOffsets) {
+      sCountSize = 0;
+      B3DFREE(sOffsets);
+      B3DFREE(sCounts);
+      return 1;
+    }
+    sCountSize = numTri;
+    for (int i = 0; i < numTri; i++) {
+      sCounts[i] = 3;
+      sOffsets[i] = BUFFER_OFFSET(i * 12);
+    }
+  }
+  *counts = sCounts;
+  *offsets = sOffsets;
+  return 0;
+}
+
+const GLsizei *vbGetCounts(int numTri)
+{
+  if (numTri > sCountSize) {
+    sOffsets = B3DMALLOC(GLvoid *, numTri);
+    sCounts = B3DMALLOC(GLsizei, numTri);
+    if (!sCounts || !sOffsets) {
+      sCountSize = 0;
+      B3DFREE(sOffsets);
+      B3DFREE(sCounts);
+      return NULL;
+    }
+    sCountSize = numTri;
+    for (int i = 0; i < numTri; i++)
+      sCounts[i] = 3;
+  }
+  return sCounts;
+}
+
+const GLvoid **vbGetOffsets(int numTri, int startInd)
+{
+  for (int i = 0; i < numTri; i++)
+    sOffsets[i] = 4 * startInd + BUFFER_OFFSET(12 * i);
+  return (const GLvoid **)sOffsets;
+}
+
+// When drawing nontrans and default is trans, call this to check the remnants;
+// if it is all trans, then check all the special sets for any non-trans;
+// If everything is trans, set flag and give nonzero return
+int vbCheckAllTrans(Iobj *obj, VertBufData *vbd, int &remnantMatchesTrans)
+{
+  float red, green, blue;
+  int trans, j, specialNonTrans = 0;
+
+  remnantMatchesTrans = istoreTransStateMatches(vbd->remnantStore, 0);
+  if (!remnantMatchesTrans) {
+    for (j = 0; j < vbd->numSpecialSets; j++) {
+      vbUnpackRGBT(vbd->rgbtSpecial[j], red, green, blue, trans);
+      if (!trans) {
+        specialNonTrans = 1;
+        break;
+      }
+    }
+    if (!specialNonTrans) {
+      obj->flags |= IMOD_OBJFLAG_TEMPUSE;
+      return 1;
+    }
+  }
+  return 0;
+}

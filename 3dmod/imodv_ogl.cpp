@@ -689,7 +689,6 @@ static void imodvSetObject(Imod *imod, Iobj *obj, int style, int drawTrans)
     if (!(obj->flags & IMOD_OBJFLAG_TWO_SIDE))
       glEnable(GL_CULL_FACE);
   }
-
   return;
 }
 
@@ -1697,18 +1696,25 @@ static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj, int drawTrans)
   int i, j;
   GLenum polyStyle, normStyle;
   DrawProps defProps, curProps;
+  Ipoint *vert;
+  int    *mlist;
   int nextChange, stateFlags, changeFlags, nextItemIndex;
+  float red, green, blue;
+  int trans, cumInd, remnantMatchesTrans;
   int handleFlags = HANDLE_MESH_COLOR | HANDLE_3DWIDTH | HANDLE_TRANS;
   float *firstPt;
   float firstRed, firstGreen, firstBlue;
+  bool vbOK;
+  VertBufData *vbd;
+  Imesh meshCopy;
   int firstTrans, defTrans;
   int skipEnds = !((Imodv->current_subset == SUBSET_SURF_ONLY || Imodv->current_subset ==
                     SUBSET_SURF_OTHER) && cursurf >= 0) || mesh->surf > 0 ? 1 : 0;
-  static GLuint ebo = 0, vbo = 0;
-  static int numInd = 0, numVert = 0, numTri = 0;
-  static GLuint *inds;
-  static GLvoid **offsets;
-  static GLsizei *counts;
+  const GLvoid **offsets;
+  const GLsizei *counts;
+
+  if (!mesh || !mesh->lsize)
+    return;
 
   if (ifgSetupValueDrawing(obj, GEN_STORE_MINMAX1))
     handleFlags |= HANDLE_VALUE1;
@@ -1722,96 +1728,139 @@ static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj, int drawTrans)
     polyStyle = GL_LINE_STRIP;
     normStyle   = GL_LINE_LOOP;
     break;
-  case DRAW_FILL:   // Unused
-    polyStyle = GL_POLYGON;
-    normStyle   = GL_TRIANGLES;
-    break;
   }
 
-  if (!mesh)
-    return;
-  if (!mesh->lsize)
-    return;
+  // Can use vertex buffer if no surface subset, not value, and it is not being used
+  // for fill
+  vbOK = skipEnds && !(handleFlags & HANDLE_VALUE1) && Imodv->vertBufOK && 
+    !iobjFill(obj->flags);
 
-  ifgHandleSurfChange(obj, mesh->surf, &defProps, &curProps, &stateFlags,
-                      handleFlags);
+  // Clean up unless it is being used for fill
+  if (!vbOK && !iobjFill(obj->flags))
+    vbCleanupVBD(mesh);
+
+  ifgHandleSurfChange(obj, mesh->surf, &defProps, &curProps, &stateFlags, handleFlags);
   defTrans = defProps.trans ? 1 : 0;
-
-  // First time in, if the trans state does not match the draw state, and the 
-  // storage list does not have a change to a matching state, return
-  if (!drawTrans && defTrans &&
-      !istoreTransStateMatches(mesh->store, 0)) {
-    obj->flags |= IMOD_OBJFLAG_TEMPUSE;
-    return;
+  vert = mesh->vert;
+  
+  // first time in, try to set up vertex buffer drawing if it is OK
+  if (!drawTrans && vbOK) {
+    i = vbAnalyzeMesh(mesh, 1., 0, 0, &defProps);
+    if (i != -1)
+      imodTrace('b', "vbAnalyzeMesh returned %d", i);
   }
+  vbd = vbOK ? mesh->vertBuf : NULL;
+      
+  // Do vertex buffer drawing
+  if (vbd && vbd->vbObj) {
+
+    // First time in, If everything is trans, set flag and skip out
+    if (!drawTrans && defTrans && vbCheckAllTrans(obj, vbd, remnantMatchesTrans))
+      return;
+
+    // Get maximum size of counts/offsets needed
+    if (style == DRAW_LINES) {
+      cumInd = vbd->numIndDefault;
+      for (j = 0; j < vbd->numSpecialSets; j++)
+        cumInd = B3DMAX(cumInd, vbd->numIndSpecial[j]);
+      counts = vbGetCounts(cumInd / 3);
+      if (!counts) 
+        vbd = NULL;
+    }
+  }
+
+  if (vbd && vbd->vbObj) {
+    glBindBuffer(GL_ARRAY_BUFFER, vbd->vbObj);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbd->ebObj);
+    glInterleavedArrays(GL_V3F, 0, BUFFER_OFFSET(0));
+    //if (style == DRAW_LINES) {
+      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+      //glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 1);
+      glDisable(GL_CULL_FACE);
+      light_off();
+      //}
+    
+    // Draw default if it matches trans state
+    if (vbd->numIndDefault) {
+      if (drawTrans == defTrans) {
+        imodTrace('v', "VB default, %s  %d %u %u", drawTrans ? "trans" : "solid", 
+                  vbd->numIndDefault, vbd->vbObj, vbd->ebObj);
+        /*if (style == DRAW_LINES) {
+          offsets = vbGetOffsets(vbd->numIndDefault / 3, 0);
+          glMultiDrawElements(normStyle, counts, GL_UNSIGNED_INT, offsets, 
+                              vbd->numIndDefault / 3);
+                              } else*/
+        glDrawElements(style == DRAW_LINES ? GL_TRIANGLES : normStyle, 
+                       vbd->numIndDefault, GL_UNSIGNED_INT, BUFFER_OFFSET(0));
+      } else
+        obj->flags |= IMOD_OBJFLAG_TEMPUSE;
+    }
+    cumInd = vbd->numIndDefault;
+
+    // Draw special sets, keeping cumulative index for offset
+    for (j = 0; j < vbd->numSpecialSets; j++) {
+      vbUnpackRGBT(vbd->rgbtSpecial[j], red, green, blue, trans);
+      if ((trans ? 1 : 0) == drawTrans) {
+        imodTrace('v', "VB special %d, %s, %.2f %.2f %.2f %d", j, 
+                  drawTrans ? "trans" : "solid", red, green, blue, trans);
+        glColor4f(red, green, blue, 1.0f - (trans * 0.01f));
+        /* if (style == DRAW_LINES) {
+          offsets = vbGetOffsets(vbd->numIndSpecial[j] / 3, cumInd);
+          glMultiDrawElements(normStyle, counts, GL_UNSIGNED_INT, offsets, 
+                              vbd->numIndSpecial[j] / 3);
+        } else */
+          glDrawElements(style == DRAW_LINES ? GL_TRIANGLES : normStyle,
+                         vbd->numIndSpecial[j], GL_UNSIGNED_INT,
+                         BUFFER_OFFSET(cumInd * sizeof(GLuint)));
+      } else
+        obj->flags |= IMOD_OBJFLAG_TEMPUSE;
+      cumInd += vbd->numIndSpecial[j];
+    }
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    // Set up for remnant drawing unless it is all trans the first time
+    if (!(!drawTrans && defTrans && !remnantMatchesTrans)) {
+      imodMeshCopy(mesh, &meshCopy);
+      mesh = &meshCopy;
+      mesh->list = vbd->remnantIndList;
+      
+      mesh->lsize = vbd->numRemnant;
+      mesh->store = vbd->remnantStore;
+      imodTrace('v', "Remnant %s", drawTrans ? "trans" : "solid");
+      ifgHandleSurfChange(obj, mesh->surf, &defProps, &curProps, &stateFlags, 
+                          handleFlags);
+    } else {
+      glFlush();
+      obj->flags |= IMOD_OBJFLAG_TEMPUSE;
+      return;
+    }
+  } else {
+
+    // First time in, if the trans state does not match the draw state, and the 
+    // storage list does not have a change to a matching state, return
+    if (!drawTrans && defTrans && !istoreTransStateMatches(mesh->store, 0)) {
+      obj->flags |= IMOD_OBJFLAG_TEMPUSE;
+      return;
+    }
+  }
+
   if (imodDebug('v'))
     imodPrintStderr("draw mesh lines %s\n", drawTrans ? "trans" : "solid");
 
+  mlist = mesh->list;
   stateFlags = 0;
   nextItemIndex = nextChange = istoreFirstChangeIndex(mesh->store);
 
-  if (!vbo) {
-    GLfloat *verts;
-    glGenBuffers(1, &vbo);
-    glGenBuffers(1, &ebo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glBufferData(GL_ARRAY_BUFFER, (3 * mesh->vsize * sizeof(GLfloat)) / 2, NULL,
-                                   GL_STATIC_DRAW);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh->lsize * sizeof(GLuint), NULL,
-                 GL_STATIC_DRAW);
-    verts = B3DMALLOC(GLfloat, 3 * mesh->vsize);
-    inds = B3DMALLOC(GLuint, mesh->lsize);
-    i = 0;
-    while (mesh->list[i] != IMOD_MESH_END) {
-      if (mesh->list[i] ==  IMOD_MESH_BGNPOLYNORM2) {
-        i++;
-        while (mesh->list[i] != IMOD_MESH_ENDPOLY) {
-          inds[numInd++] = mesh->list[i++] / 2;
-        }
-      }
-      i++;
-    }
-    for (i = 0; i < mesh->vsize; i += 2) {
-      verts[numVert++] = mesh->vert[i].x;
-      verts[numVert++] = mesh->vert[i].y;
-      verts[numVert++] = mesh->vert[i].z;
-    }
-    glBufferSubData(GL_ARRAY_BUFFER, 0, numVert * sizeof(GLfloat), verts);
-    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, numInd * sizeof(GLuint), inds);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    free(verts);
-    free(inds);
-    numTri = numInd / 3;
-  }
-
-  /*  // Now draw with the theoretically loaded stuff
-  offsets = B3DMALLOC(GLvoid *, numTri);
-  counts = B3DMALLOC(GLsizei, numTri);
-  for (i = 0; i < numTri; i++) {
-    counts[i] = 3;
-    offsets[i] = BUFFER_OFFSET(i * 12);
-  }
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-  glMultiDrawElements(normStyle, counts, GL_UNSIGNED_INT, offsets, numTri);
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-  free(counts);
-  free(offsets);
-  return;
-  */
-
   for (i  = 0; i < mesh->lsize; i++) {
-    switch(mesh->list[i]){
+    switch(mlist[i]){
     case IMOD_MESH_BGNPOLY:
     case IMOD_MESH_BGNBIGPOLY:
       if (skipNonCurrentSurface(mesh, &i, obj))
         break;
       glBegin(polyStyle);
-      while(mesh->list[++i] != IMOD_MESH_ENDPOLY){
-        glVertex3fv( (float *)&(mesh->vert[mesh->list[i]]));
+      while(mlist[++i] != IMOD_MESH_ENDPOLY){
+        glVertex3fv( (float *)&(vert[mlist[i]]));
       }
       glEnd();
       break;
@@ -1820,14 +1869,14 @@ static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj, int drawTrans)
       if (skipNonCurrentSurface(mesh, &i, obj))
         break;
       i++;
-      while (mesh->list[i] != IMOD_MESH_ENDPOLY) {
+      while (mlist[i] != IMOD_MESH_ENDPOLY) {
         glBegin(normStyle);
 
-        glVertex3fv( (float *)&(mesh->vert[mesh->list[++i]]));
+        glVertex3fv( (float *)&(vert[mlist[++i]]));
         i+=2;
-        glVertex3fv( (float *)&(mesh->vert[mesh->list[i]]));
+        glVertex3fv( (float *)&(vert[mlist[i]]));
         i+=2;
-        glVertex3fv( (float *)&(mesh->vert[mesh->list[i++]]));
+        glVertex3fv( (float *)&(vert[mlist[i++]]));
                     
         glEnd();
         /*
@@ -1856,14 +1905,14 @@ static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj, int drawTrans)
         if (imodDebug('v'))
           imodPrintStderr("Skipped from start to %d\n", i);
       }
-      while (mesh->list[i] != IMOD_MESH_ENDPOLY) {
+      while (mlist[i] != IMOD_MESH_ENDPOLY) {
         if (nextChange < i || nextChange > i + 2) {
           glBegin(normStyle);
 
-          // Why oh why does this not require Z scaling?
-          glVertex3fv( (float *)&(mesh->vert[mesh->list[i++]]));
-          glVertex3fv( (float *)&(mesh->vert[mesh->list[i++]]));
-          glVertex3fv( (float *)&(mesh->vert[mesh->list[i++]]));
+          // This does not require Z scaling because it is in the transformation matrix
+          glVertex3fv( (float *)&(vert[mlist[i++]]));
+          glVertex3fv( (float *)&(vert[mlist[i++]]));
+          glVertex3fv( (float *)&(vert[mlist[i++]]));
           glEnd();
         } else {
           if (stateFlags || i == nextChange) {
@@ -1895,14 +1944,14 @@ static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj, int drawTrans)
                   (obj, mesh->store, &defProps, &curProps, &nextItemIndex, i,
                    &stateFlags, &changeFlags, handleFlags);
               glBegin(normStyle);
-              glVertex3fv( (float *)&(mesh->vert[mesh->list[i++]]));
+              glVertex3fv( (float *)&(vert[mlist[i++]]));
               glEnd();
             }
 
           } else {
 
             glBegin(GL_LINE_STRIP);
-            firstPt = (float *)&(mesh->vert[mesh->list[i++]]);
+            firstPt = (float *)&(vert[mlist[i++]]);
             glVertex3fv(firstPt);
             firstRed = curProps.red;
             firstGreen =curProps.green;
@@ -1915,12 +1964,12 @@ static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj, int drawTrans)
                 nextChange = ifgHandleMeshChange
                   (obj, mesh->store, &defProps, &curProps, &nextItemIndex, i,
                    &stateFlags, &changeFlags, HANDLE_MESH_COLOR);
-              glVertex3fv( (float *)&(mesh->vert[mesh->list[i++]]));
+              glVertex3fv( (float *)&(vert[mlist[i++]]));
               if (changeFlags & CHANGED_3DWIDTH) {
                 glEnd();
                 glLineWidth((GLfloat)curProps.linewidth);
                 glBegin(GL_LINE_STRIP);
-                glVertex3fv( (float *)&(mesh->vert[mesh->list[i - 1]]));
+                glVertex3fv( (float *)&(vert[mlist[i - 1]]));
               }
             }
 
@@ -1942,11 +1991,11 @@ static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj, int drawTrans)
           // Reset if not in default state and the next positive change will
           // not be in the next triangle
           if (stateFlags && (nextItemIndex < i || nextItemIndex > i + 2 || 
-                             mesh->list[i] == IMOD_MESH_ENDPOLY)) {
+                             mlist[i] == IMOD_MESH_ENDPOLY)) {
             nextChange = ifgHandleMeshChange
               (obj, mesh->store, &defProps, &curProps, &nextItemIndex, i,
                &stateFlags, &changeFlags, handleFlags);
-            if (mesh->list[i] != IMOD_MESH_ENDPOLY && 
+            if (mlist[i] != IMOD_MESH_ENDPOLY && 
                 (curProps.trans ? 1 : 0) != drawTrans) {
               if (imodDebug('v'))
                 imodPrintStderr("Drew to %d\n", i);
@@ -1974,8 +2023,8 @@ static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj, int drawTrans)
       return;
 
     default:
-      if ((mesh->list[i] < mesh->vsize) && (mesh->list[i] > -1))
-        glVertex3fv( (float *)&(mesh->vert[mesh->list[i]])  );
+      if ((mlist[i] < mesh->vsize) && (mlist[i] > -1))
+        glVertex3fv( (float *)&(vert[mlist[i]])  );
       break;
     }
   }
@@ -2001,8 +2050,6 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
   int nextChange, stateFlags, changeFlags, nextItemIndex, defTrans, remnantMatchesTrans;
   int handleFlags = ((obj->flags & IMOD_OBJFLAG_FCOLOR) ? HANDLE_MESH_FCOLOR :
     HANDLE_MESH_COLOR) | HANDLE_TRANS;
-  int vbHandleFlags = ((obj->flags & IMOD_OBJFLAG_FCOLOR) ? CHANGED_FCOLOR :
-                       CHANGED_COLOR) | CHANGED_TRANS;
   // Skipends is 0 if current surface only is being drawn and it is not done with surface
   // numbers in mesh
   int skipEnds = !((Imodv->current_subset == SUBSET_SURF_ONLY || Imodv->current_subset ==
@@ -2029,37 +2076,20 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
   defTrans = defProps.trans ? 1 : 0;
   vert = mesh->vert;
 
-  // first time in, try to set up vertex buffer drawing if no value drawing
+  // first time in, try to set up vertex buffer drawing if it is OK
   if (!drawTrans && vbOK) {
-    i = vbAnalyzeMesh(mesh, z, &defProps, vbHandleFlags, 0);
+    i = vbAnalyzeMesh(mesh, z, 1, obj->flags & IMOD_OBJFLAG_FCOLOR, &defProps);
     if (i != -1)
       imodTrace('b', "vbAnalyzeMesh returned %d", i);
   }
-  vbd = mesh->vertBuf;
+  vbd = vbOK ? mesh->vertBuf : NULL;
 
   // Do vertex buffer drawing
   if (vbd && vbd->vbObj) {
-    if (!drawTrans && defTrans) {
 
-      // First time in, if default is trans, check the remnants; if it is all trans, then
-      // check all the special sets for any non-trans;
-      // If everything is trans, set flag and skip out
-      remnantMatchesTrans = istoreTransStateMatches(vbd->remnantStore, 0);
-      if (!remnantMatchesTrans) {
-        int specialNonTrans = 0;
-        for (j = 0; j < vbd->numSpecialSets; j++) {
-          vbUnpackRGBT(vbd->rgbtSpecial[j], red, green, blue, trans);
-          if (!trans) {
-            specialNonTrans = 1;
-            break;
-          }
-        }
-        if (!specialNonTrans) {
-          obj->flags |= IMOD_OBJFLAG_TEMPUSE;
-          return;
-        }
-      }
-    }
+    // First time in, If everything is trans, set flag and skip out
+    if (!drawTrans && defTrans && vbCheckAllTrans(obj, vbd, remnantMatchesTrans))
+      return;
 
     glBindBuffer(GL_ARRAY_BUFFER, vbd->vbObj);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbd->ebObj);
@@ -2068,7 +2098,8 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
     // Draw default if it matches trans state
     if (vbd->numIndDefault) {
       if (drawTrans == defTrans) {
-        imodTrace('v', "VB default, %s  %d %u %u", drawTrans ? "trans" : "solid", vbd->numIndDefault, vbd->vbObj, vbd->ebObj);
+        imodTrace('v', "VB default, %s  %d %u %u", drawTrans ? "trans" : "solid", 
+                  vbd->numIndDefault, vbd->vbObj, vbd->ebObj);
         glDrawElements(GL_TRIANGLES, vbd->numIndDefault, GL_UNSIGNED_INT,
                        BUFFER_OFFSET(0));
       } else
@@ -2082,7 +2113,7 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
       if ((trans ? 1 : 0) == drawTrans) {
         imodTrace('v', "VB special %d, %s, %.2f %.2f %.2f %d", j, 
                   drawTrans ? "trans" : "solid", red, green, blue, trans);
-        light_adjust(obj, red, green, blue, trans);
+        ifgHandleColorTrans(obj, red, green, blue, trans);
         glDrawElements(GL_TRIANGLES, vbd->numIndSpecial[j], GL_UNSIGNED_INT,
                        BUFFER_OFFSET(cumInd * sizeof(GLuint)));
       } else
