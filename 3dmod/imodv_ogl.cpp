@@ -1757,40 +1757,26 @@ static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj, int drawTrans)
     // First time in, If everything is trans, set flag and skip out
     if (!drawTrans && defTrans && vbCheckAllTrans(obj, vbd, remnantMatchesTrans))
       return;
-
-    // Get maximum size of counts/offsets needed
-    if (style == DRAW_LINES) {
-      cumInd = vbd->numIndDefault;
-      for (j = 0; j < vbd->numSpecialSets; j++)
-        cumInd = B3DMAX(cumInd, vbd->numIndSpecial[j]);
-      counts = vbGetCounts(cumInd / 3);
-      if (!counts) 
-        vbd = NULL;
-    }
   }
 
   if (vbd && vbd->vbObj) {
     glBindBuffer(GL_ARRAY_BUFFER, vbd->vbObj);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbd->ebObj);
     glInterleavedArrays(GL_V3F, 0, BUFFER_OFFSET(0));
-    //if (style == DRAW_LINES) {
+
+    // These changes are needed to draw lines as triangles
+    if (style == DRAW_LINES) {
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-      //glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 1);
       glDisable(GL_CULL_FACE);
       light_off();
-      //}
-    
+    }
+
     // Draw default if it matches trans state
     if (vbd->numIndDefault) {
       if (drawTrans == defTrans) {
         imodTrace('v', "VB default, %s  %d %u %u", drawTrans ? "trans" : "solid", 
                   vbd->numIndDefault, vbd->vbObj, vbd->ebObj);
-        /*if (style == DRAW_LINES) {
-          offsets = vbGetOffsets(vbd->numIndDefault / 3, 0);
-          glMultiDrawElements(normStyle, counts, GL_UNSIGNED_INT, offsets, 
-                              vbd->numIndDefault / 3);
-                              } else*/
-        glDrawElements(style == DRAW_LINES ? GL_TRIANGLES : normStyle, 
+        glDrawElements(style == DRAW_LINES ? GL_TRIANGLES : GL_POINTS, 
                        vbd->numIndDefault, GL_UNSIGNED_INT, BUFFER_OFFSET(0));
       } else
         obj->flags |= IMOD_OBJFLAG_TEMPUSE;
@@ -1804,14 +1790,9 @@ static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj, int drawTrans)
         imodTrace('v', "VB special %d, %s, %.2f %.2f %.2f %d", j, 
                   drawTrans ? "trans" : "solid", red, green, blue, trans);
         glColor4f(red, green, blue, 1.0f - (trans * 0.01f));
-        /* if (style == DRAW_LINES) {
-          offsets = vbGetOffsets(vbd->numIndSpecial[j] / 3, cumInd);
-          glMultiDrawElements(normStyle, counts, GL_UNSIGNED_INT, offsets, 
-                              vbd->numIndSpecial[j] / 3);
-        } else */
-          glDrawElements(style == DRAW_LINES ? GL_TRIANGLES : normStyle,
-                         vbd->numIndSpecial[j], GL_UNSIGNED_INT,
-                         BUFFER_OFFSET(cumInd * sizeof(GLuint)));
+        glDrawElements(style == DRAW_LINES ? GL_TRIANGLES : GL_POINTS,
+                       vbd->numIndSpecial[j], GL_UNSIGNED_INT,
+                       BUFFER_OFFSET(cumInd * sizeof(GLuint)));
       } else
         obj->flags |= IMOD_OBJFLAG_TEMPUSE;
       cumInd += vbd->numIndSpecial[j];
@@ -1835,6 +1816,8 @@ static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj, int drawTrans)
       obj->flags |= IMOD_OBJFLAG_TEMPUSE;
       return;
     }
+
+    // Now do or continue with regular line by line drawing
   } else {
 
     // First time in, if the trans state does not match the draw state, and the 

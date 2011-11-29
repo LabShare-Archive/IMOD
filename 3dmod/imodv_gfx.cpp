@@ -34,6 +34,7 @@
 #include "imodv_input.h"
 #include "imodv_light.h"
 #include "imodv_stereo.h"
+#include "vertexbuffer.h"
 
 Ipoint ImodvCurModLight;
 
@@ -270,6 +271,7 @@ void imodvPaintGL()
     break;
   }
 
+  vbClearTempArrays();
   b3dResizeViewportXY(a->winx, a->winy);
   if (a->drawLight)
     drawLightVector(a);

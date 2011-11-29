@@ -35,18 +35,11 @@ void vbPackRGBT(DrawProps *props, int useFill, b3dUInt32 &rgbtVal);
 void vbUnpackRGBT(b3dUInt32 rgbtVal, float &red, float &green, float &blue, int &trans);
 void vbUnpackRGBT(b3dUInt32 rgbtVal, int useFill, DrawProps *props);
 
-VertBufData *vbDataNew();
-void vbDataInit(VertBufData *vbd);
-void vbDataClear(VertBufData *vbd);
-void vbDataDelete(VertBufData *vbd);
 void vbCleanupVBD(Imesh *mesh);
 void vbCleanupVBD(Iobj *obj);
 void vbCleanupVBD(Imod *mod);
-int vbLoadVertexNormalArray(Imesh *mesh, float zscale, int fillType);
 int vbAnalyzeMesh(Imesh *mesh, float zscale, int fillType, int useFillColor,
                   DrawProps *defProps);
 void vbClearTempArrays();
-const GLsizei *vbGetCounts(int numTri);
-const GLvoid **vbGetOffsets(int numTri, int startInd);
 int vbCheckAllTrans(Iobj *obj, VertBufData *vbd, int &remnantMatchesTrans);
 

@@ -22,11 +22,12 @@ static GLuint *sInds = NULL;
 static int sIndSize = 0;
 static GLfloat *sVerts = NULL;
 static int sVertSize = 0;
-static GLvoid **sOffsets = NULL;
-static GLsizei *sCounts = NULL;
-static int sCountSize = 0;
 
-
+static VertBufData *vbDataNew();
+static void vbDataInit(VertBufData *vbd);
+static void vbDataClear(VertBufData *vbd);
+static void vbDataDelete(VertBufData *vbd);
+static int vbLoadVertexNormalArray(Imesh *mesh, float zscale, int fillType);
 
 VertBufData *vbDataNew()
 {
@@ -557,63 +558,12 @@ void vbClearTempArrays()
 {
   B3DFREE(sInds);
   B3DFREE(sVerts);
-  B3DFREE(sOffsets);
-  B3DFREE(sCounts);
   sInds = NULL;
   sIndSize = 0;
   sVerts = NULL;
   sVertSize = 0;
-  sOffsets = NULL;
-  sCounts = NULL;
-  sCountSize = 0;
 }
 
-int vbCountsAndOffsets(int numTri, GLsizei **counts, GLvoid ***offsets)
-{
-  if (numTri > sCountSize) {
-    sOffsets = B3DMALLOC(GLvoid *, numTri);
-    sCounts = B3DMALLOC(GLsizei, numTri);
-    if (!sCounts || !sOffsets) {
-      sCountSize = 0;
-      B3DFREE(sOffsets);
-      B3DFREE(sCounts);
-      return 1;
-    }
-    sCountSize = numTri;
-    for (int i = 0; i < numTri; i++) {
-      sCounts[i] = 3;
-      sOffsets[i] = BUFFER_OFFSET(i * 12);
-    }
-  }
-  *counts = sCounts;
-  *offsets = sOffsets;
-  return 0;
-}
-
-const GLsizei *vbGetCounts(int numTri)
-{
-  if (numTri > sCountSize) {
-    sOffsets = B3DMALLOC(GLvoid *, numTri);
-    sCounts = B3DMALLOC(GLsizei, numTri);
-    if (!sCounts || !sOffsets) {
-      sCountSize = 0;
-      B3DFREE(sOffsets);
-      B3DFREE(sCounts);
-      return NULL;
-    }
-    sCountSize = numTri;
-    for (int i = 0; i < numTri; i++)
-      sCounts[i] = 3;
-  }
-  return sCounts;
-}
-
-const GLvoid **vbGetOffsets(int numTri, int startInd)
-{
-  for (int i = 0; i < numTri; i++)
-    sOffsets[i] = 4 * startInd + BUFFER_OFFSET(12 * i);
-  return (const GLvoid **)sOffsets;
-}
 
 // When drawing nontrans and default is trans, call this to check the remnants;
 // if it is all trans, then check all the special sets for any non-trans;
