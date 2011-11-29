@@ -69,7 +69,7 @@ final class ProcesschunksVolcombineMonitor extends ProcesschunksProcessMonitor {
 
   public ProcesschunksVolcombineMonitor(BaseManager manager, AxisID axisID,
       String rootName, Map computerMap) {
-    super(manager, axisID, rootName, computerMap);
+    super(manager, axisID, rootName, computerMap, false);
   }
 
   boolean updateState() throws LogFile.LockException, FileNotFoundException, IOException {

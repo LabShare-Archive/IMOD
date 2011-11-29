@@ -128,12 +128,12 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       if (process.getSubprocessName() == ProcessName.TILT) {
         processchunks(manager, dialog, processResultDisplay, processSeries,
             ProcessName.TILT.toString() + axisID.getExtension(),
-            process.getOutputImageFileType(), process.getProcessingMethod());
+            process.getOutputImageFileType(), process.getProcessingMethod(), false);
       }
       else {
         processchunks(manager, dialog, processResultDisplay, processSeries,
             ProcessName.TILT.toString() + axisID.getExtension() + "_sirt",
-            process.getOutputImageFileType(), process.getProcessingMethod());
+            process.getOutputImageFileType(), process.getProcessingMethod(), false);
       }
     }
     else if (process.equals(SIRT_DONE)) {
