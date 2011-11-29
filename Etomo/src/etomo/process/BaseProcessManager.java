@@ -572,9 +572,9 @@ public abstract class BaseProcessManager {
 
   public final boolean reconnectProcesschunks(final AxisID axisID,
       final ProcessData processData, final ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries) {
+      final ConstProcessSeries processSeries, final boolean multiLineMessages) {
     ProcesschunksProcessMonitor monitor = ProcesschunksProcessMonitor
-        .getReconnectInstance(manager, axisID, processData);
+        .getReconnectInstance(manager, axisID, processData, multiLineMessages);
     monitor.setSubdirName(processData.getSubDirName());
     boolean ret;
     try {
@@ -608,8 +608,9 @@ public abstract class BaseProcessManager {
   public final String processchunks(final AxisID axisID, final ProcesschunksParam param,
       final ParallelProgressDisplay parallelProgressDisplay,
       final ProcessResultDisplay processResultDisplay,
-      final ConstProcessSeries processSeries, boolean popupChunkWarnings,
-      final ProcessingMethod processingMethod) throws SystemProcessException {
+      final ConstProcessSeries processSeries, final boolean popupChunkWarnings,
+      final ProcessingMethod processingMethod, final boolean multiLineMessages)
+      throws SystemProcessException {
     // Instantiate the process monitor
     ProcesschunksProcessMonitor monitor;
     if (param.equalsRootName(ProcessName.VOLCOMBINE, axisID)) {
@@ -618,7 +619,7 @@ public abstract class BaseProcessManager {
     }
     else {
       monitor = new ProcesschunksProcessMonitor(manager, axisID, param.getRootName(),
-          param.getComputerMap());
+          param.getComputerMap(), multiLineMessages);
     }
     BackgroundProcess process;
     if (param.isSubdirNameEmpty()) {
@@ -1057,7 +1058,7 @@ public abstract class BaseProcessManager {
       throw new SystemProcessException(
           "A process is already executing in the current axis");
     }
-    //check for running processes that are not managed by Etomo because the user
+    // check for running processes that are not managed by Etomo because the user
     // exited and then reran Etomo
     ProcessData savedProcessData = getSavedProcessData(axisID);
     if (savedProcessData.isRunning()) {
@@ -1275,7 +1276,7 @@ public abstract class BaseProcessManager {
     SystemProgram killShell = new SystemProgram(manager, manager.getPropertyUserDir(),
         new String[] { "kill", signal, processID }, axisID);
     killShell.run();
-    //"kill " + signal + " " + processID + " at " + killShell.getRunTimestamp());
+    // "kill " + signal + " " + processID + " at " + killShell.getRunTimestamp());
     Utilities.debugPrint("kill " + signal + " " + processID + " at "
         + killShell.getRunTimestamp());
   }
@@ -1760,13 +1761,10 @@ public abstract class BaseProcessManager {
     startSystemProgramThread(sysProgram, manager);
   }
 
-  /*
-   protected void startSystemProgramThread(String command, AxisID axisID) {
-   // Initialize the SystemProgram object
-   SystemProgram sysProgram = new SystemProgram(getManager()
-   .getPropertyUserDir(), command, axisID);
-   startSystemProgramThread(sysProgram);
-   }*/
+  /* protected void startSystemProgramThread(String command, AxisID axisID) { //
+   * Initialize the SystemProgram object SystemProgram sysProgram = new
+   * SystemProgram(getManager() .getPropertyUserDir(), command, axisID);
+   * startSystemProgramThread(sysProgram); } */
 
   private static void startSystemProgramThread(final SystemProgram sysProgram,
       BaseManager manager) {

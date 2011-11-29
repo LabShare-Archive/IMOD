@@ -258,7 +258,7 @@ public final class ParallelPanel implements Expandable, Storable {
     if (command == btnResume.getActionCommand()) {
       manager.resume(axisID, processchunksParam, processResultDisplay, null, rootPanel,
           null, popupChunkWarnings,
-          mediator.getRunMethodForParallelPanel(getProcessingMethod()));
+          mediator.getRunMethodForParallelPanel(getProcessingMethod()), false);
     }
     else if (command == btnPause.getActionCommand()) {
       manager.pause(axisID);

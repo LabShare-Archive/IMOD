@@ -928,7 +928,7 @@ public final class PeetManager extends BaseManager {
   private void openProcessingPanel() {
     mainPanel.showProcessingPanel(AxisType.SINGLE_AXIS);
     setPanel();
-    reconnect(processMgr.getSavedProcessData(AxisID.ONLY), AxisID.ONLY);
+    reconnect(processMgr.getSavedProcessData(AxisID.ONLY), AxisID.ONLY, true);
   }
 
   /**
@@ -1000,6 +1000,6 @@ public final class PeetManager extends BaseManager {
     }
     // param should never be set to resume
     parallelPanel.getParallelProgressDisplay().resetResults();
-    processchunks(AxisID.ONLY, param, null, processSeries, false, processingMethod);
+    processchunks(AxisID.ONLY, param, null, processSeries, false, processingMethod, true);
   }
 }
