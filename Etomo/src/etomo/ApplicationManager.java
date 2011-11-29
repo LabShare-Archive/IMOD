@@ -582,7 +582,7 @@ public final class ApplicationManager extends BaseManager implements
    * @return true if a reconnect was attempted.
    */
   public boolean reconnect(ProcessData processData, AxisID axisID) {
-    if (super.reconnect(processData, axisID)) {
+    if (super.reconnect(processData, axisID, false)) {
       return true;
     }
     if (isReconnectRun(axisID)) {
@@ -7910,7 +7910,7 @@ public final class ApplicationManager extends BaseManager implements
       }
     }
     super.resume(axisID, param, processResultDisplay, processSeries, root,
-        subcommandDetails, popupChunkWarnings, processingMethod);
+        subcommandDetails, popupChunkWarnings, processingMethod, false);
   }
 
   public boolean useSirt(final ProcessResultDisplay processResultDisplay,
@@ -8069,7 +8069,7 @@ public final class ApplicationManager extends BaseManager implements
     // param should never be set to resume
     parallelPanel.resetResults();
     processchunks(axisID, param, processResultDisplay, processSeries, true,
-        processingMethod);
+        processingMethod, false);
   }
 
   public BaseProcessManager getProcessManager() {

@@ -427,9 +427,11 @@ void ProcessHandler::getErrorMessageFromLog(QString &errorMess) {
     stream.seek(size - sizeToCheck);
   }
   QString line;
+  bool errorFound = false;
   do {
     line = stream.readLine();
-    if (line.indexOf("ERROR:") != -1) {
+    if (errorFound || line.indexOf("ERROR:") != -1) {
+    	errorFound = true;
       errorMess.append(line);
       errorMess.append(" ");
     }

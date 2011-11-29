@@ -333,7 +333,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     if (process.equals(ProcessName.PROCESSCHUNKS.toString())) {
       processchunks(manager, dialog, processResultDisplay, processSeries, process
           .getSubprocessName().toString() + axisID.getExtension(),
-          process.getOutputImageFileType(), process.getProcessingMethod());
+          process.getOutputImageFileType(), process.getProcessingMethod(), false);
     }
     else if (process.equals(ProcessName.TILT_3D_FIND.toString())) {
       manager.tilt3dFindAction(processResultDisplay, processSeries, null, null,

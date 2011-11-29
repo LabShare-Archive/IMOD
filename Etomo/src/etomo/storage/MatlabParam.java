@@ -315,7 +315,10 @@ public final class MatlabParam {
   public static final String FN_MOD_PARTICLE_KEY = "fnModParticle";
   public static final String INIT_MOTL_KEY = "initMOTL";
   public static final String TILT_RANGE_KEY = "tiltRange";
-  public static final String RELATIVE_ORIENT_KEY = "relativeOrient";
+  /**
+   * @deprecated
+   */
+  private static final String RELATIVE_ORIENT_KEY = "relativeOrient";
   public static final String SZ_VOL_KEY = "szVol";
   public static final int X_INDEX = 0;
   public static final int Y_INDEX = 1;
@@ -381,7 +384,6 @@ public final class MatlabParam {
 
   private static final int VOLUME_INDEX = 0;
   private static final int PARTICLE_INDEX = 1;
-  private static final int RELATIVE_ORIENT_DEFAULT = 0;
   private static final int Z_ROTATION_INDEX = 0;
   private static final int Y_ROTATION_INDEX = 1;
 
@@ -1110,11 +1112,6 @@ public final class MatlabParam {
   private void parseVolumeData(final ReadOnlyAutodoc autodoc) {
     volumeList.clear();
     int size = 0;
-    // relativeOrient
-    ParsedList relativeOrient = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
-    relativeOrient.setDefault(RELATIVE_ORIENT_DEFAULT);
-    relativeOrient.parse(autodoc.getAttribute(RELATIVE_ORIENT_KEY));
-    size = Math.max(size, relativeOrient.size());
     // fnVolume
     ParsedList fnVolume = ParsedList.getStringInstance();
     fnVolume.parse(autodoc.getAttribute(FN_VOLUME_KEY));
@@ -1142,7 +1139,6 @@ public final class MatlabParam {
     // Add elements to volumeList
     for (int i = 0; i < size; i++) {
       Volume volume = new Volume();
-      volume.setRelativeOrient(relativeOrient.getElement(i));
       volume.setFnVolume(fnVolume.getElement(i));
       volume.setFnModParticle(fnModParticle.getElement(i));
       if (initMotlCode == null) {
@@ -1285,8 +1281,6 @@ public final class MatlabParam {
       initMotlFile = ParsedList.getStringInstance();
     }
     ParsedList tiltRange = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
-    ParsedList relativeOrient = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
-    relativeOrient.setDefault(RELATIVE_ORIENT_DEFAULT);
     // build the lists
     for (int i = 0; i < volumeList.size(); i++) {
       Volume volume = (Volume) volumeList.get(i);
@@ -1296,7 +1290,6 @@ public final class MatlabParam {
         initMotlFile.addElement(volume.getInitMotl());
       }
       tiltRange.addElement(volume.getTiltRange());
-      relativeOrient.addElement(volume.getRelativeOrient());
     }
     valueMap.put(FN_VOLUME_KEY, fnVolume.getParsableString());
     valueMap.put(FN_MOD_PARTICLE_KEY, fnModParticle.getParsableString());
@@ -1307,7 +1300,6 @@ public final class MatlabParam {
       tiltRange.clear();
     }
     valueMap.put(TILT_RANGE_KEY, tiltRange.getParsableString());
-    valueMap.put(RELATIVE_ORIENT_KEY, relativeOrient.getParsableString());
   }
 
   /**
@@ -1460,8 +1452,6 @@ public final class MatlabParam {
         (String) valueMap.get(INIT_MOTL_KEY), commentMap);
     setNameValuePairValue(manager, autodoc, TILT_RANGE_KEY,
         (String) valueMap.get(TILT_RANGE_KEY), commentMap);
-    setNameValuePairValue(manager, autodoc, RELATIVE_ORIENT_KEY,
-        (String) valueMap.get(RELATIVE_ORIENT_KEY), commentMap);
   }
 
   /**
@@ -1838,14 +1828,11 @@ public final class MatlabParam {
     private static final int END_INDEX = 1;
     private final ParsedArray tiltRange = ParsedArray
         .getMatlabInstance(EtomoNumber.Type.FLOAT);
-    private final ParsedArray relativeOrient = ParsedArray
-        .getMatlabInstance(EtomoNumber.Type.FLOAT);
     private final ParsedQuotedString fnVolume = ParsedQuotedString.getInstance();
     private final ParsedQuotedString fnModParticle = ParsedQuotedString.getInstance();
     private final ParsedQuotedString initMotl = ParsedQuotedString.getInstance();
 
     private Volume() {
-      relativeOrient.setDefault(RELATIVE_ORIENT_DEFAULT);
     }
 
     public void setFnVolume(final ParsedElement fnVolume) {
@@ -1900,30 +1887,6 @@ public final class MatlabParam {
       tiltRange.setRawString(END_INDEX, tiltRangeEnd);
     }
 
-    public String getRelativeOrientX() {
-      return relativeOrient.getRawString(X_INDEX);
-    }
-
-    public void setRelativeOrientX(final String relativeOrientX) {
-      relativeOrient.setRawString(X_INDEX, relativeOrientX);
-    }
-
-    public String getRelativeOrientY() {
-      return relativeOrient.getRawString(Y_INDEX);
-    }
-
-    public void setRelativeOrientY(final String relativeOrientY) {
-      relativeOrient.setRawString(Y_INDEX, relativeOrientY);
-    }
-
-    public String getRelativeOrientZ() {
-      return relativeOrient.getRawString(Z_INDEX);
-    }
-
-    public void setRelativeOrientZ(final String relativeOrientZ) {
-      relativeOrient.setRawString(Z_INDEX, relativeOrientZ);
-    }
-
     private ParsedQuotedString getFnVolume() {
       return fnVolume;
     }
@@ -1944,16 +1907,8 @@ public final class MatlabParam {
       return tiltRange;
     }
 
-    private ParsedArray getRelativeOrient() {
-      return relativeOrient;
-    }
-
     private void setTiltRange(final ParsedElement tiltRange) {
       this.tiltRange.set(tiltRange);
-    }
-
-    private void setRelativeOrient(final ParsedElement relativeOrient) {
-      this.relativeOrient.set(relativeOrient);
     }
   }
 
