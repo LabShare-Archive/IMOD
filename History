@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/29/11: In eTomo - PEET improved the error messages.(Bug# 1563)
+
 11/29/11: Fixed crash when current surface only is selected in Model View Edit
 Objects window and there are empty contours (In 4.3).
 
