@@ -11,7 +11,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <stdlib.h>
@@ -209,7 +208,15 @@ void imodvPaintGL()
   ImodvApp *a = Imodv;
   static int drawcount = 0;
   int color;
-  float scale;
+  float scale, glVersion;
+
+  // First time in, find the OpenGL version and set vertBufOK to -1 or 1
+  if (a->vertBufOK < -1) {
+    glVersion = atof((const char *)glGetString(GL_VERSION));
+    if (Imod_debug)
+      imodPrintStderr("GL version %f\n", glVersion);
+    a->vertBufOK = glVersion >= 1.5 ? 1 : -1;
+  }
 
   //if (Imod_debug)
   //  imodPrintStderr("drawing %d\n", drawcount++);
@@ -500,126 +507,3 @@ static int imodv_snapshot(ImodvApp *a, QString fname)
   fclose(fout);
   return(0);
 }
-
-/*
-
-$Log$
-Revision 4.27  2011/01/13 20:28:40  mast
-warning cleanup
-
-Revision 4.26  2009/03/03 15:53:55  mast
-Screwed up commenting out
-
-Revision 4.25  2009/03/02 20:28:11  mast
-Take out double swap on Mac
-
-Revision 4.24  2009/01/15 16:33:17  mast
-Qt 4 port
-
-Revision 4.23  2009/01/06 23:58:47  mast
-Swap twice on Mac to avoid losing display
-
-Revision 4.22  2008/12/17 17:51:25  mast
-change in call to set widget
-
-Revision 4.21  2008/12/15 21:25:29  mast
-Chnages for swapping between stereo and non stereo as well as db/sb widgets
-
-Revision 4.20  2008/10/02 22:46:04  mast
-Made single-buffer drawing work for stereo, cleared properly after stereo
-
-Revision 4.19  2008/06/12 22:49:18  mast
-Made lighting vector come out on top
-
-Revision 4.18  2008/06/10 05:58:03  mast
-Added drawing of lighting vector after all models drawn
-
-Revision 4.17  2008/05/27 05:45:38  mast
-Adapting to changes in snapshot calls
-
-Revision 4.16  2008/01/25 20:22:58  mast
-Changes for new scale bar
-
-Revision 4.15  2007/11/30 06:51:50  mast
-Changes for linking slicer to model view
-
-Revision 4.14  2007/11/10 04:07:10  mast
-Changes for setting snapshot directory
-
-Revision 4.13  2007/08/08 03:05:21  mast
-Avoid setting context after entering selection mode
-
-Revision 4.12  2004/11/29 19:25:21  mast
-Changes to do QImage instead of RGB snapshots
-
-Revision 4.11  2004/06/08 15:40:45  mast
-Restore clears for stereo drawing, needed for SGI
-
-Revision 4.10  2004/06/06 21:28:44  mast
-Eliminated stereo clears in hardware stereo case
-
-Revision 4.9  2004/06/01 01:31:09  mast
-Add include of errno.h
-
-Revision 4.8  2004/05/31 23:35:26  mast
-Switched to new standard error functions for all debug and user output
-
-Revision 4.7  2003/12/30 06:32:59  mast
-Use new routine to get snapshot name
-
-Revision 4.6  2003/12/04 06:13:45  mast
-Fix crash when snapping as... by not freeing name
-
-Revision 4.5  2003/06/04 23:30:15  mast
-Change to not overwriting modv snapshot files.
-
-Revision 4.4  2003/04/25 03:28:32  mast
-Changes for name change to 3dmod
-
-Revision 4.3  2003/02/27 17:39:24  mast
-Convert filenames with Qt routines
-
-Revision 4.2  2003/02/21 23:21:41  mast
-Open snapshot file in binary mode
-
-Revision 4.1  2003/02/10 20:29:01  mast
-autox.cpp
-
-Revision 1.1.2.8  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.7  2003/01/01 19:12:31  mast
-changes to start Qt application in standalone mode
-
-Revision 1.1.2.6  2003/01/01 05:46:29  mast
-changes for qt version of stereo
-
-Revision 1.1.2.5  2002/12/23 04:57:07  mast
-Defer swapping buffers when taking a snapshot
-
-Revision 1.1.2.4  2002/12/18 04:15:14  mast
-new includes for imodv modules
-
-Revision 1.1.2.3  2002/12/17 22:28:21  mast
-cleanup of unused variables and SGI errors
-
-Revision 1.1.2.2  2002/12/17 17:39:52  mast
-Qt version
-
-Revision 1.1.2.1  2002/12/15 21:14:02  mast
-conversion to cpp
-
-Revision 3.4  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.3  2002/09/04 00:25:34  mast
-Pass GLw the visuals that have been chosen already.  Rationalize single
-buffer versus double code a bit.
-
-Revision 3.2  2002/06/20 00:39:09  mast
-Making GLw use that visual didn't work under Linux, remove the change
-
-Revision 3.1  2002/06/20 00:26:58  mast
-Force GLw to use the already chosen visual when getting a drawing area
-
-*/
