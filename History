@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/29/11: Fixed crash when current surface only is selected in Model View Edit
+Objects window and there are empty contours (In 4.3).
+
 11/29/11: Fixed initial height of Info window when there is a long filename
 (In 4.3).
 
