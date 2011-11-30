@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/30/11: Used vector buffer objects to speed up model view graphics for
+lighted surfaces and wireframe meshes.  Turned on multisampling (full-scene
+antialiasing) in model view to give smoother lines and polygon edges.
+
 11/29/11: In eTomo - PEET improved the error messages.(Bug# 1563)
 
 11/29/11: Fixed crash when current surface only is selected in Model View Edit
