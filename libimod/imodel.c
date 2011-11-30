@@ -182,7 +182,7 @@ void imodSetIndex(Imod *imod, int object, int contour, int point)
    model; also actually stop on first point (3/18/05). */
 
 /*!
- * Returns the maximum coordinates of the model [imod] in [pnt], or -1,-1,-1
+ * Returns the maximum coordinates of contour points in model [imod] in [pnt], or -1,-1,-1
  * if there are no points 
  */
 void imodel_maxpt(Imod *imod, Ipoint *pnt)
@@ -230,9 +230,10 @@ void imodel_maxpt(Imod *imod, Ipoint *pnt)
   return;
 }
 
+/* DMN 11/29/11: Change this to return real limits of contourless models with meshes */
 /*!
- * Returns the minimum coordinates of the model [imod] in [pnt], or -1,-1,-1
- * if there are no points
+ * Returns the minimum coordinates of contour points in the model [imod] in [pnt], or 
+ * -1,-1,-1 if there are no points
  */
 void imodel_minpt(Imod *imod, Ipoint *pnt)
 {
@@ -281,58 +282,34 @@ void imodel_minpt(Imod *imod, Ipoint *pnt)
 
 /*!
  * Returns the minimum and maximum coordinates of the model [imod] in [min] 
- * and [max], or -1,-1,-1 if there are no points 
+ * and [max], based either on the coordinates of points in contours, or on mesh vertices 
+ * for objects with no contours.  Returns -1,-1,-1 if there are no points or meshes.
  */
 void imodGetBoundingBox(Imod *imod, Ipoint *min, Ipoint *max)
 {
-  int ob, co, pt;
-  Iobj *obj;
-  Icont *cont;
+  int ob;
+  Ipoint obmin, obmax;
   int gotOne = 0;
 
   min->x = min->y = min->z = -1.;
   max->x = max->y = max->z = -1.;
      
-  /* Get first point */
-  for (ob = 0; ob < imod->objsize; ob++){
-    obj = &(imod->obj[ob]);
-    for(co = 0; co < obj->contsize; co++){
-      cont = &(obj->cont[co]);
-      if (cont->psize) {
-        min->x = max->x = cont->pts->x;
-        min->y = max->y = cont->pts->y;
-        min->z = max->z = cont->pts->z;
-        co = obj->contsize;
-        ob = imod->objsize;
+  for (ob = 0; ob < imod->objsize; ob++) {
+    if (imodObjectGetBBox(&(imod->obj[ob]), &obmin, &obmax) >= 0) {
+      if (gotOne) {
+        min->x = B3DMIN(min->x, obmin.x);
+        min->y = B3DMIN(min->y, obmin.y);
+        min->z = B3DMIN(min->z, obmin.z);
+        max->x = B3DMAX(max->x, obmax.x);
+        max->y = B3DMAX(max->y, obmax.y);
+        max->z = B3DMAX(max->z, obmax.z);
+      } else {
+        *min = obmin;
+        *max = obmax;
         gotOne = 1;
-        break;
-      }
-    }
-    if (gotOne)
-      break;
-  }
-
-  for (ob = 0; ob < imod->objsize; ob++){
-    obj = &(imod->obj[ob]);
-    for(co = 0; co < obj->contsize; co++){
-      cont = &(obj->cont[co]);
-      for (pt = 0; pt < cont->psize; pt++){
-        if (cont->pts[pt].x < min->x)
-          min->x = cont->pts[pt].x;
-        if (cont->pts[pt].y < min->y)
-          min->y = cont->pts[pt].y;
-        if (cont->pts[pt].z < min->z)
-          min->z = cont->pts[pt].z;
-        if (cont->pts[pt].x > max->x)
-          max->x = cont->pts[pt].x;
-        if (cont->pts[pt].y > max->y)
-          max->y = cont->pts[pt].y;
-        if (cont->pts[pt].z > max->z)
-          max->z = cont->pts[pt].z;
       }
     }
   }
-  return;
 }
 
 /* Returns distance of current point from origin - unused and unsafe */

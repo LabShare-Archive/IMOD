@@ -49,6 +49,7 @@
 #include "imodv_input.h"
 #include "imodv_menu.h"
 #include "imodv_window.h"
+#include "vertexbuffer.h"
 #include "preferences.h"
 #include "control.h"
 
@@ -2383,6 +2384,7 @@ static int finishMesh()
 
     // Clear out this resolution in the existing mesh and transfer new one
     obj = &Imodv->mod[meshedModNum]->obj[meshedObjNum];
+    vbCleanupVBD(obj);
     if (obj->meshsize)
       imodMeshesDeleteRes(&obj->mesh, &obj->meshsize, resol);
     for (int m = 0; m < meshDupObj->meshsize; m++) {
