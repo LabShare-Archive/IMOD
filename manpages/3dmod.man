@@ -434,7 +434,8 @@ put 3dmod in the background automatically.
 Run in debug mode with diagnostic output and without becoming a background
 process.  Key letters can be added after the D (but with no intervening
 spaces) to turn on specific debugging output; e.g., u for undo, z for zap,
-c for control, k for keystrokes, v for model view, U for isosurface.
+c for control, k for keystrokes, v for model view, U for isosurface.  Also the
+M key letter will turn off multisample antialiasing in Model View.
 
 .SH User Interface Features
 A large number of dialog boxes can be opened from the menus of the Information
