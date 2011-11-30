@@ -280,6 +280,8 @@ void InfoWindow::setInitialHeights()
   // The height may be less than the hint, but things look crammed together then
   QSize hint = ImodInfoWidget->sizeHint();
   int delWidget = B3DMAX(0, ImodInfoWidget->height() - hint.height());
+  imodTrace('i', "edith %d newh %d hint %d delWi %d curh", editHeight, newEdit, 
+            hint.height(), delWidget, height());
   ImodInfoWidget->setMinimumHeight(hint.height());
   mStatusEdit->setMinimumHeight(newEdit);
   mInfoTimerID = startTimer(10);
@@ -293,7 +295,9 @@ void InfoWindow::resizeToHeight(int newHeight)
   int i;
   if (mInfoTimerID) {
     mTargetHeight = newHeight;
+    imodTrace('i', "Setting target height %d", newHeight);
   } else {
+    imodTrace('i', "resizing to height %d", newHeight);
     for (i = 0; i < 5; i++) {
       resize(width(), newHeight);
       imod_info_input();
@@ -336,6 +340,7 @@ void InfoWindow::fontChange( const QFont & oldFont )
   int editDelta = B3DNINT(nlines * mOldFontHeight) - mStatusEdit->height();
   mStatusEdit->setMinimumHeight(B3DNINT(INFO_MIN_LINES * mOldFontHeight));
   ImodInfoWidget->setMinimumHeight(widgetHi);
+  imodTrace('i', "Font change resize");
   resizeToHeight(height() + widgDelta + editDelta);
 }
 
@@ -681,6 +686,7 @@ void InfoWindow::timerEvent(QTimerEvent *e)
     // Info window timeout: now go set the target height and position
     killTimer(mInfoTimerID);
     mInfoTimerID = 0;
+    imodTrace('i', "Info timer fired and killed");
     if (mTargetHeight > 0)
       resizeToHeight(mTargetHeight);
     mTargetHeight = 0;

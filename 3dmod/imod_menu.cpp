@@ -50,6 +50,7 @@
 #include "autox.h"
 #include "locator.h"
 #include "finegrain.h"
+#include "vertexbuffer.h"
 #include "preferences.h"
 #include "undoredo.h"
 #include "scalebar.h"
@@ -444,6 +445,7 @@ void InfoWindow::editObjectSlot(int item)
     for (ob = maxOb; ob >= minOb; ob--) {
       if (imodSelectionListQuery(vi, ob, -1) > -2 || ob == obOld) {
         vi->undo->objectRemoval(ob);
+        vbCleanupVBD(&imod->obj[ob]);
         imodDeleteObject(imod, ob);
       }
     }
@@ -535,6 +537,7 @@ void InfoWindow::editObjectSlot(int item)
         imod->cindex.object = ob;
         imodMoveAllContours(vi, minOb);
         vi->undo->objectRemoval(ob);
+        vbCleanupVBD(&imod->obj[ob]);
         imodDeleteObject(imod, ob);
       }
     }
