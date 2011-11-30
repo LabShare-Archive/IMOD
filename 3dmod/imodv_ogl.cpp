@@ -683,6 +683,10 @@ static void imodvSetObject(Imod *imod, Iobj *obj, int style, int drawTrans)
      back faces of the transparent object unless two-sided lighting is
      used.  This works regardless of alpha planes, so there is no need
      to request alpha */
+  /* DNM 11/29/11: Now that there is alpha turned on just to get transparent backgrounds,
+     and multisampling, tried glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, 
+     GL_ONE_MINUS_DST_ALPHA, GL_ONE) as used in Chimera, with an alphaVisual.  Saw 
+     NO difference in the display itself. */
   if (drawTrans){
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1732,7 +1736,7 @@ static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj, int drawTrans)
 
   // Can use vertex buffer if no surface subset, not value, and it is not being used
   // for fill
-  vbOK = skipEnds && !(handleFlags & HANDLE_VALUE1) && Imodv->vertBufOK && 
+  vbOK = skipEnds && !(handleFlags & HANDLE_VALUE1) && Imodv->vertBufOK > 0 && 
     !iobjFill(obj->flags);
 
   // Clean up unless it is being used for fill
@@ -1762,7 +1766,9 @@ static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj, int drawTrans)
   if (vbd && vbd->vbObj) {
     glBindBuffer(GL_ARRAY_BUFFER, vbd->vbObj);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbd->ebObj);
-    glInterleavedArrays(GL_V3F, 0, BUFFER_OFFSET(0));
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glVertexPointer(3, GL_FLOAT, 3 * sizeof(GLfloat), BUFFER_OFFSET(0));
+
 
     // These changes are needed to draw lines as triangles
     if (style == DRAW_LINES) {
@@ -1797,6 +1803,7 @@ static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj, int drawTrans)
         obj->flags |= IMOD_OBJFLAG_TEMPUSE;
       cumInd += vbd->numIndSpecial[j];
     }
+    glDisableClientState(GL_VERTEX_ARRAY);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
@@ -2044,7 +2051,7 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
   if (ifgSetupValueDrawing(obj, GEN_STORE_MINMAX1))
     handleFlags |= HANDLE_VALUE1;
 
-  vbOK = skipEnds && !(handleFlags & HANDLE_VALUE1) && Imodv->vertBufOK;
+  vbOK = skipEnds && !(handleFlags & HANDLE_VALUE1) && Imodv->vertBufOK > 0;
 
   if (!vbOK)
     vbCleanupVBD(mesh);
@@ -2074,9 +2081,13 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
     if (!drawTrans && defTrans && vbCheckAllTrans(obj, vbd, remnantMatchesTrans))
       return;
 
+    // set up to use the VBO.  glInterleavedArrays is easier but apparently not used much
     glBindBuffer(GL_ARRAY_BUFFER, vbd->vbObj);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbd->ebObj);
-    glInterleavedArrays(GL_N3F_V3F, 0, BUFFER_OFFSET(0));
+    glEnableClientState(GL_NORMAL_ARRAY);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glNormalPointer(GL_FLOAT, 6 * sizeof(GLfloat), BUFFER_OFFSET(0));
+    glVertexPointer(3, GL_FLOAT, 6 * sizeof(GLfloat), BUFFER_OFFSET(3 * sizeof(GLfloat)));
     
     // Draw default if it matches trans state
     if (vbd->numIndDefault) {
@@ -2103,6 +2114,8 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
         obj->flags |= IMOD_OBJFLAG_TEMPUSE;
       cumInd += vbd->numIndSpecial[j];
     }
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_NORMAL_ARRAY);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
