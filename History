@@ -2,6 +2,14 @@ IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 11/29/11: In eTomo - PEET improved the error messages.(Bug# 1563)
 
+11/29/11: Fixed crash when current surface only is selected in Model View Edit
+Objects window and there are empty contours (In 4.3).
+
+11/29/11: Fixed initial height of Info window when there is a long filename
+(In 4.3).
+
+11/29/11: Changes to Noske plugins; livewire works in blocks (In 4.3).
+
 11/28/11: Fixed Last Fill Color button in finegrain dialog (In 4.3).
 
 11/22/11: Fixed pysed.py to allow ^ and + in filenames again (In 4.3).

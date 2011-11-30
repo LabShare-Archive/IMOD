@@ -507,7 +507,7 @@ void InfoControls::setModelName( char *name )
   }
   if (delHeight) {
     setMinimumHeight(minimumHeight() + delHeight);
-    ImodInfoWin->resizeToHeight(ImodInfoWin->height() + delHeight);
+    ImodInfoWin->resizeToHeight(ImodInfoWin->getResizedHeight() + delHeight);
   }
 }
 
