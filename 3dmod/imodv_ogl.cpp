@@ -14,11 +14,10 @@
 #include <stdlib.h>
 #include <math.h>
 #include <limits.h>
-#define GL_GLEXT_PROTOTYPES
-#include <qgl.h>
-#include "imodv_image.h"
 #include "imod.h"
+#include "vertexbuffer.h"
 #include "imodv.h"
+#include "imodv_image.h"
 #include "imod_edit.h"
 #include "imodv_gfx.h"
 #include "imodv_ogl.h"
@@ -29,7 +28,6 @@
 #include "imodv_stereo.h"
 #include "istore.h"
 #include "finegrain.h"
-#include "vertexbuffer.h"
 
 #define DRAW_POINTS 1
 #define DRAW_LINES  2
@@ -1764,8 +1762,8 @@ static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj, int drawTrans)
   }
 
   if (vbd && vbd->vbObj) {
-    glBindBuffer(GL_ARRAY_BUFFER, vbd->vbObj);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbd->ebObj);
+    b3dBindBuffer(GL_ARRAY_BUFFER, vbd->vbObj);
+    b3dBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbd->ebObj);
     glEnableClientState(GL_VERTEX_ARRAY);
     glVertexPointer(3, GL_FLOAT, 3 * sizeof(GLfloat), BUFFER_OFFSET(0));
 
@@ -1804,8 +1802,8 @@ static void imodvDraw_mesh(Imesh *mesh, int style, Iobj *obj, int drawTrans)
       cumInd += vbd->numIndSpecial[j];
     }
     glDisableClientState(GL_VERTEX_ARRAY);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    b3dBindBuffer(GL_ARRAY_BUFFER, 0);
+    b3dBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     // Set up for remnant drawing unless it is all trans the first time
     if (!(!drawTrans && defTrans && !remnantMatchesTrans)) {
@@ -2082,8 +2080,8 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
       return;
 
     // set up to use the VBO.  glInterleavedArrays is easier but apparently not used much
-    glBindBuffer(GL_ARRAY_BUFFER, vbd->vbObj);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbd->ebObj);
+    b3dBindBuffer(GL_ARRAY_BUFFER, vbd->vbObj);
+    b3dBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbd->ebObj);
     glEnableClientState(GL_NORMAL_ARRAY);
     glEnableClientState(GL_VERTEX_ARRAY);
     glNormalPointer(GL_FLOAT, 6 * sizeof(GLfloat), BUFFER_OFFSET(0));
@@ -2116,8 +2114,8 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
     }
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    b3dBindBuffer(GL_ARRAY_BUFFER, 0);
+    b3dBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     // Set up for remnant drawing unless it is all trans the first time
     if (!(!drawTrans && defTrans && !remnantMatchesTrans)) {

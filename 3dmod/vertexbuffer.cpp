@@ -10,8 +10,6 @@
  * $Id$
  */
 
-#define GL_GLEXT_PROTOTYPES
-#include <qgl.h>
 #include "imod.h"
 #include "vertexbuffer.h"
 #include <map>
@@ -57,9 +55,9 @@ void vbDataInit(VertBufData *vbd)
 void vbDataClear(VertBufData *vbd)
 {
   if (vbd->vbObj)
-    glDeleteBuffers(1, &vbd->vbObj);
+    b3dDeleteBuffers(1, &vbd->vbObj);
   if (vbd->ebObj)
-    glDeleteBuffers(1, &vbd->ebObj);
+    b3dDeleteBuffers(1, &vbd->ebObj);
   B3DFREE(vbd->numIndSpecial);
   B3DFREE(vbd->rgbtSpecial);
   B3DFREE(vbd->remnantIndList);
@@ -134,7 +132,7 @@ int vbAnalyzeMesh(Imesh *mesh, float zscale, int fillType, int useFillColor,
     // If Z-scale still valid, return a -1; if have to fix the Z-scale, do it, return -2
     if (fabs((double)(zscale - vbd->zscale)) < 1.e-4)
       return -1;
-    glBindBuffer(GL_ARRAY_BUFFER, vbd->vbObj);
+    b3dBindBuffer(GL_ARRAY_BUFFER, vbd->vbObj);
     if (vbLoadVertexNormalArray(mesh, zscale, fillType))
       return 1;
     vbd->zscale = zscale;
@@ -299,32 +297,33 @@ int vbAnalyzeMesh(Imesh *mesh, float zscale, int fillType, int useFillColor,
   if (!vbd->vbObj || 3 * mesh->vsize > vbd->vboSize) {
     vbd->vboSize = 3 * mesh->vsize;
     if (vbd->vbObj)
-      glDeleteBuffers(1, &vbd->vbObj);
-    glGenBuffers(1, &vbd->vbObj);
-    glBindBuffer(GL_ARRAY_BUFFER, vbd->vbObj);
-    glBufferData(GL_ARRAY_BUFFER, 3 * mesh->vsize * sizeof(GLfloat), NULL,GL_STATIC_DRAW);
+      b3dDeleteBuffers(1, &vbd->vbObj);
+    b3dGenBuffers(1, &vbd->vbObj);
+    b3dBindBuffer(GL_ARRAY_BUFFER, vbd->vbObj);
+    b3dBufferData(GL_ARRAY_BUFFER, 3 * mesh->vsize * sizeof(GLfloat), NULL,
+                  GL_STATIC_DRAW);
     error = glGetError();
     if (error) {
       vbCleanupVBD(mesh);
       return 1;
     }
   } else 
-    glBindBuffer(GL_ARRAY_BUFFER, vbd->vbObj);
+    b3dBindBuffer(GL_ARRAY_BUFFER, vbd->vbObj);
 
   if (!vbd->ebObj || cumInd > vbd->eboSize) {
     vbd->eboSize = cumInd; 
     if (vbd->ebObj)
-      glDeleteBuffers(1, &vbd->ebObj);
-    glGenBuffers(1, &vbd->ebObj);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbd->ebObj);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,  cumInd * sizeof(GLuint), NULL,GL_STATIC_DRAW);
+      b3dDeleteBuffers(1, &vbd->ebObj);
+    b3dGenBuffers(1, &vbd->ebObj);
+    b3dBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbd->ebObj);
+    b3dBufferData(GL_ELEMENT_ARRAY_BUFFER,  cumInd * sizeof(GLuint), NULL,GL_STATIC_DRAW);
     error = glGetError();
     if (error) {
       vbCleanupVBD(mesh);
       return 1;
     }
   } else 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbd->ebObj);
+    b3dBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbd->ebObj);
         
   imodTrace('b',"vbObj %d  ebObj %d", vbd->vbObj, vbd->ebObj);
   // Load the vertices and finish with buffer for now
@@ -332,7 +331,7 @@ int vbAnalyzeMesh(Imesh *mesh, float zscale, int fillType, int useFillColor,
     vbCleanupVBD(mesh);
     return 1;
   }
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  b3dBindBuffer(GL_ARRAY_BUFFER, 0);
 
   // Set the identifiers of this vb data
   vbd->zscale = zscale;
@@ -466,8 +465,8 @@ int vbAnalyzeMesh(Imesh *mesh, float zscale, int fillType, int useFillColor,
     vbd->remnantIndList[remInd++] = IMOD_MESH_ENDPOLY;
     vbd->remnantIndList[remInd++] = IMOD_MESH_END;
   }
-  glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, cumInd * sizeof(GLuint), sInds);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  b3dBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, cumInd * sizeof(GLuint), sInds);
+  b3dBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
   return 0;
 }
@@ -507,7 +506,7 @@ int vbLoadVertexNormalArray(Imesh *mesh, float zscale, int fillType)
       sVerts[numVert++] = vert[i].z * zscale;
     }
   }
-  glBufferSubData(GL_ARRAY_BUFFER, 0, numVert * sizeof(GLfloat), sVerts);
+  b3dBufferSubData(GL_ARRAY_BUFFER, 0, numVert * sizeof(GLfloat), sVerts);
   return 0;
 }
 

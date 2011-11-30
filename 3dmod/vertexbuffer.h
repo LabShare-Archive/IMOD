@@ -1,8 +1,7 @@
 /*   vertexbuffer.h  -  declarations for vertexbuffer.cpp and definition of VertBufData
  *  $Id$
  */
-#define GL_GLEXT_PROTOTYPES
-#include <qgl.h>
+#include "b3dgfx.h"
 
 #define BUFFER_OFFSET(bytes) ((GLubyte*) NULL + (bytes))
 

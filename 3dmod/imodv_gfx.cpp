@@ -18,11 +18,11 @@
 #include <limits.h>
 #include <errno.h>
 #include <qdir.h>
+#include "b3dgfx.h"
 #include "imodv_window.h"
 
 #include "imod.h"
 #include "preferences.h"
-#include "b3dgfx.h"
 #include "b3dfile.h"
 #include "imodv.h"
 #include "sslice.h"
@@ -212,10 +212,8 @@ void imodvPaintGL()
 
   // First time in, find the OpenGL version and set vertBufOK to -1 or 1
   if (a->vertBufOK < -1) {
-    glVersion = atof((const char *)glGetString(GL_VERSION));
-    if (Imod_debug)
-      imodPrintStderr("GL version %f\n", glVersion);
-    a->vertBufOK = glVersion >= 1.5 ? 1 : -1;
+    color = b3dInitializeGL();
+    a->vertBufOK = (color & B3DGLEXT_VERTBUF) ? 1 : -1;
   }
 
   //if (Imod_debug)
