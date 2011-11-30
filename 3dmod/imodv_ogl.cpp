@@ -2365,7 +2365,7 @@ static int skipNonCurrentSurface(Imesh *mesh, int *ip, Iobj *obj)
       
       // If contour is not wild and Z is different, or if surface doesn't match
       // then skip the contour
-      if (!(cont->flags & ICONT_WILD) && zz != cont->pts->z)
+      if (!cont->psize || (!(cont->flags & ICONT_WILD) && zz != cont->pts->z))
         continue;
       if (cont->surf != cursurf)
         continue;
