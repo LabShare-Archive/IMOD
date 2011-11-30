@@ -252,6 +252,8 @@ ImodvGL *ImodvWindow::addGLWidgetToStack(QGLFormat *glFormat, bool db,
   glFormat->setDepth(enableDepth > 0);
   glFormat->setStereo(stereo);
   glFormat->setAlpha(alpha);
+  if (!imodDebug('M'))
+    glFormat->setSampleBuffers(true);
   GLw = new ImodvGL(*glFormat, mStack);
   id = mStack->addWidget(GLw);
   if (Imod_debug)
