@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  No more Log
  */
 
 #ifndef IMODP_H
@@ -61,6 +60,7 @@ typedef struct imod_application
   int closing;      // Flag that widows are being closed on exit
   int exiting;      // Flag that application exit has been called
   int listening;    // Flag that it was started with -L or -W
+  int glInitialized;  // Flag that OpenGL version was gotten, and extensions for windows
 
 }ImodApp;
 
