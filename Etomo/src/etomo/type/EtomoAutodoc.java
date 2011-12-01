@@ -105,7 +105,7 @@ public class EtomoAutodoc {
   public static String getTooltip(ReadOnlySection section, String enumValueName) {
     try {
       String enumTooltip = section.getAttribute("enum").getAttribute(
-          enumValueName).getAttribute(TOOLTIP_ATTRIBUTE_NAME).getValue();
+          enumValueName).getAttribute(TOOLTIP_ATTRIBUTE_NAME).getMultiLineValue();
       if (enumTooltip == null) {
         return getTooltip(section);
       }
