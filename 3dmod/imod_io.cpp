@@ -39,6 +39,7 @@
 #include "sslice.h"
 #include "imod_io.h"
 #include "imodv_views.h"
+#include "vertexbuffer.h"
 #include "preferences.h"
 
 //  Module private functions
@@ -546,6 +547,7 @@ static void initModelData(Imod *newModel, bool keepBW)
   /* DNM: no longer causes a crash once we notify imodv of the new model.
      10/13/05: but we have to invalidate imodv's model until all is ready */
   imodv_new_model(NULL);
+  vbCleanupVBD(App->cvi->imod);
   imodDelete(App->cvi->imod);
 	       
   Model = App->cvi->imod = newModel;
@@ -629,6 +631,7 @@ int createNewModel(const char *modelFilename)
   mode = App->cvi->imod->mousemode;
 
   /* DNM 1/23/03: no longer free or allocate object colors */
+  vbCleanupVBD(App->cvi->imod);
   imodDelete(App->cvi->imod);
   
   //  Allocate the new model

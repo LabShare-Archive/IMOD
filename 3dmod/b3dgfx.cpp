@@ -8,19 +8,18 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <stdlib.h>
 #include <math.h>
 #include <errno.h>
-#include <qglcolormap.h>
 #include <qdir.h>
 #include <qfiledialog.h>
+#include "b3dgfx.h"
 #include <qimage.h>
+#include <qglcolormap.h>
 #include "imod.h"
 #include "imodv.h"
-#include "b3dgfx.h"
 #include "b3dfile.h"
 #include "xcramp.h"
 #include "preferences.h"
@@ -46,24 +45,89 @@ typedef struct cubic_factors
 } cubicFactors;
 
 
-static int          CurWidth;
-static int          CurHeight;
-static float        CurXZoom;
-static bool         StippleNextLine = false;
-static float        zoomDownCrit = 0.8f;
+static int     sCurWidth;
+static int     sCurHeight;
+static float   sCurXZoom;
+static bool    sStippleNextLine = false;
+static float   sZoomDownCrit = 0.8f;
+static int     sExtFlags = 0;
+
+#ifdef _WIN32
+static PFNGLDELETEBUFFERSPROC sGlDeleteBuffers;
+static PFNGLGENBUFFERSPROC sGlGenBuffers;
+static PFNGLBINDBUFFERPROC sGlBindBuffer;
+static PFNGLBUFFERDATAPROC sGlBufferData;
+static PFNGLBUFFERSUBDATAPROC sGlBufferSubData;
+#endif
+
+// "Initialization" function to determine OpenGL version and resolve extension pointers
+// on Windows.  Must be called from inside an OpenGL context
+int b3dInitializeGL()
+{
+  float glVersion;
+  if (App->glInitialized)
+    return sExtFlags;
+  
+  glVersion = atof((const char *)glGetString(GL_VERSION));
+  if (Imod_debug)
+    imodPrintStderr("GL version %f\n", glVersion);
+  if (glVersion >= 1.5)
+    sExtFlags |= B3DGLEXT_VERTBUF;
+#ifdef _WIN32
+  sGlDeleteBuffers = (PFNGLDELETEBUFFERSPROC)wglGetProcAddress("glDeleteBuffers");
+  sGlGenBuffers = (PFNGLGENBUFFERSPROC)wglGetProcAddress("glGenBuffers");
+  sGlBindBuffer = (PFNGLBINDBUFFERPROC)wglGetProcAddress("glBindBuffer");
+  sGlBufferData = (PFNGLBUFFERDATAPROC)wglGetProcAddress("glBufferData");
+  sGlBufferSubData = (PFNGLBUFFERSUBDATAPROC)wglGetProcAddress("glBufferSubData");
+  if (!sGlDeleteBuffers || !sGlGenBuffers || !sGlBindBuffer || !sGlBufferData ||
+      !sGlBufferSubData) 
+    sExtFlags &= ~B3DGLEXT_VERTBUF;
+#endif
+  App->glInitialized = 1;
+  return sExtFlags;
+}
+
+#ifdef _WIN32
+void b3dDeleteBuffers(GLsizei n, const GLuint *buffers)
+{
+  (sGlDeleteBuffers)(n, buffers);
+}
+
+void b3dGenBuffers(GLsizei n, GLuint *buffers)
+{
+  (sGlGenBuffers)(n, buffers);
+}
+
+void b3dBindBuffer(GLenum target, GLuint buffer)
+{
+  (sGlBindBuffer)(target, buffer);
+}
+
+void b3dBufferData(GLenum target, GLsizeiptr size, const GLvoid *data, GLenum usage)
+{
+  sGlBufferData(target, size, data, usage);
+}
+
+void b3dBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, 
+                        const GLvoid *data)
+{
+  sGlBufferSubData(target, offset, size, data);
+}
+#endif
+
 
 /* Set a current window size for the drawing routines */
 void b3dSetCurSize(int width, int height)
 {
-  CurWidth = width;
-  CurHeight = height;
+  sCurWidth = width;
+  sCurHeight = height;
 }
 
-float b3dGetCurXZoom() { return CurXZoom;}
+float b3dGetCurXZoom() { return sCurXZoom;}
 
 void b3dStippleNextLine(bool value)
 {
-  StippleNextLine = value;
+  sStippleNextLine = value;
 }
 
 /*
@@ -265,15 +329,15 @@ void b3dDrawFilledCircle(int x, int y, int radius)
 
 void b3dDrawLine(int x1, int y1, int x2, int y2)
 {
-  if (StippleNextLine)
+  if (sStippleNextLine)
     glEnable(GL_LINE_STIPPLE);
   glBegin(GL_LINES);
   glVertex2i(x1, y1);
   glVertex2i(x2, y2);
   glEnd();
-  if (StippleNextLine)
+  if (sStippleNextLine)
     glDisable(GL_LINE_STIPPLE);
-  StippleNextLine = false;
+  sStippleNextLine = false;
 }
 
 void b3dDrawSquare(int x, int y, int size)
@@ -337,13 +401,13 @@ void b3dDrawBoxout(int llx, int lly, int urx, int ury)
   b3dColorIndex(App->background);
      
   if (lly > 0)
-    b3dDrawFilledRectangle(0,0,CurWidth,lly);
-  if ((CurHeight - ury) > 0)
-    b3dDrawFilledRectangle(0, ury, CurWidth, CurHeight);
+    b3dDrawFilledRectangle(0,0,sCurWidth,lly);
+  if ((sCurHeight - ury) > 0)
+    b3dDrawFilledRectangle(0, ury, sCurWidth, sCurHeight);
   if (llx > 0)
     b3dDrawFilledRectangle(0, lly, llx, ury - lly);
-  if ((CurWidth - urx) > 0)
-    b3dDrawFilledRectangle(urx, lly, CurWidth, ury - lly);
+  if ((sCurWidth - urx) > 0)
+    b3dDrawFilledRectangle(urx, lly, sCurWidth, ury - lly);
 
   glIndexi(cur_color);
 
@@ -445,7 +509,7 @@ void b3dFreeCIImage(B3dCIImage *image)
 
 B3dCIImage *b3dGetNewCIImage(B3dCIImage *image, int depth)
 {
-  return(b3dGetNewCIImageSize(image, depth, (int)CurWidth, (int)CurHeight));
+  return(b3dGetNewCIImageSize(image, depth, (int)sCurWidth, (int)sCurHeight));
 }
 
 /* Sets up a second temporary image buffer - used by zap window (11/1/00) */
@@ -523,7 +587,7 @@ B3dCIImage *b3dGetNewCIImageSize(B3dCIImage *image, int depth,
 
 float b3dZoomDownCrit()
 {
-  return zoomDownCrit;
+  return sZoomDownCrit;
 }
 
 /* 1/28/03: eliminated unused b3dPutCIImage and  b3dFillGreyScalePixels */
@@ -769,7 +833,7 @@ void b3dDrawGreyScalePixels(unsigned char **dataPtrs,  /* input data      */
   GLint  unpack = b3dGetImageType(&type, &format);
   unsigned int *cindex = App->cvi->cramp->ramp;
   unsigned char *bindex = App->cvi->cramp->bramp;
-  CurXZoom = zoom;
+  sCurXZoom = zoom;
 
   /*     imodPrintStderr("unpack = %d\n", unpack);
          for(i = 0; i < 256; i++)
@@ -847,7 +911,7 @@ void b3dDrawGreyScalePixels(unsigned char **dataPtrs,  /* input data      */
     }
 
     /* imodPrintStderr("Draw wx %d wy %d width %d height %d window %d %d\n",
-       wx, wy, width, height, CurWidth, CurHeight); */
+       wx, wy, width, height, sCurWidth, sCurHeight); */
     glPixelZoom((GLfloat)zoom, (GLfloat)zoom);
 #ifndef CHUNKDRAW_HACK   
     glRasterPos2f((float)wx, (float)wy);
@@ -914,8 +978,8 @@ static void b3dDrawGreyScalePixels15
   sh = (int)(((float)height * 1.5f));
 
   /* DNM: limit the pixels to the existing display and to the subarea array*/
-  sh = B3DMIN(CurHeight - wy, B3DMIN(image->height, sh));
-  sw = B3DMIN(CurWidth - wx, B3DMIN(image->width, sw));
+  sh = B3DMIN(sCurHeight - wy, B3DMIN(image->height, sh));
+  sw = B3DMIN(sCurWidth - wx, B3DMIN(image->width, sw));
 
   if (!dataPtrs){
     b3dDrawFilledRectangle(wx, wy, sw, sh);
@@ -1069,7 +1133,7 @@ static void b3dDrawGreyScalePixels15
     }
   }
   /*imodPrintStderr("1.5 wx %d wy %d sw %d sh %d window %d %d\n",
-    wxdraw, wy, drawwidth, sh, CurWidth, CurHeight); */
+    wxdraw, wy, drawwidth, sh, sCurWidth, sCurHeight); */
 
   glPixelZoom((GLfloat)1.0f, (GLfloat)1.0f);
 
@@ -1131,7 +1195,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
   int ibase;
   int drawwidth;
   int wxdraw, nyi2;
-  CurXZoom = zoom;
+  sCurXZoom = zoom;
   cubicFactors *cubFacs, *cf;
   cubicFactors nullFacs;
   unsigned char *yptr;
@@ -1184,8 +1248,8 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
     }
   }
 
-  dwidth = B3DMIN(CurWidth, B3DMIN(image->width, dwidth));
-  dheight = B3DMIN(CurHeight, B3DMIN(image->height, dheight));
+  dwidth = B3DMIN(sCurWidth, B3DMIN(image->width, dwidth));
+  dheight = B3DMIN(sCurHeight, B3DMIN(image->height, dheight));
 
   if (App->depth == 8){
     rbase = 0;
@@ -1207,7 +1271,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
 
     bdata = (unsigned char *)sdata;
     idata = (unsigned int  *)sdata;
-    if (quality > 0 && rgba > 0 && rgba < 4 && zoom <= zoomDownCrit) {
+    if (quality > 0 && rgba > 0 && rgba < 4 && zoom <= sZoomDownCrit) {
 
       // Here for quality zoom down with antialias filters
       // Select the biggest filter that does not give too many lines, normalized to a
@@ -1395,7 +1459,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
       if (izs - zs > 0.002 || izs - zs < -0.002)
         izs = 0;
       else
-        CurXZoom = 1. / izs;
+        sCurXZoom = 1. / izs;
 
       /* DNM 7/6/07: Need an integer stopping value for integer steps */
       xistop = (int)(xoffset + trans + 0.5) + dwidth * izs;
@@ -1518,7 +1582,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
     //imodPrintStderr("Array fill time %.4f\n", wallTime() - wallstart);
   }
   /*imodPrintStderr("HQ wx %d wy %d dwidth %d dheight %d window %d %d\n",
-    wxdraw, wy, drawwidth, dheight, CurWidth, CurHeight);*/
+    wxdraw, wy, drawwidth, dheight, sCurWidth, sCurHeight);*/
 
   glPixelZoom((GLfloat)1.0f, (GLfloat)1.0f); 
 #ifndef CHUNKDRAW_HACK
@@ -1799,8 +1863,8 @@ int b3dSnapshot_NonTIF(QString fname, int rgbmode, int *limits,
   bool transBkgd = fname.startsWith("modv") && Imodv->transBkgd;
   int rpx = 0; 
   int rpy = 0;
-  int rpWidth = CurWidth;
-  int rpHeight = CurHeight;
+  int rpWidth = sCurWidth;
+  int rpHeight = sCurHeight;
   QString format = ImodPrefs->snapFormat();
   int resolution = B3DNINT(DpiScaling * ImodPrefs->snapDPI() / 0.0254);
 
@@ -1990,8 +2054,8 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
   int ci;
   int rpx = 0; 
   int rpy = 0;
-  int rpWidth = CurWidth;
-  int rpHeight = CurHeight;
+  int rpWidth = sCurWidth;
+  int rpHeight = sCurHeight;
 
   errno = 0;
   fout = fopen(LATIN1(QDir::convertSeparators(fname)), "wb");
@@ -2287,213 +2351,3 @@ int b3dSnapshot(QString fname)
   else
     return(b3dSnapshot_TIF(fname, App->rgba, NULL, NULL, false));
 }
-
-
-/*
-$Log$
-Revision 4.51  2011/06/01 19:54:28  mast
-Set criteerion for filtered zoom to 0.8
-
-Revision 4.50  2011/03/14 23:39:13  mast
-Changes for ushort loading
-
-Revision 4.49  2011/02/12 04:42:52  mast
-Select a series of filters of decreasing complexity
-
-Revision 4.48  2011/02/10 05:35:23  mast
-Parallelized array filling for HQ, made it work for color images, and called
-new zoomdown routines for HQ zoom below 0.75.
-
-Revision 4.47  2011/01/13 19:43:51  mast
-Function to stipple next line only; fixed depth setting in TIFF snapshot
-
-Revision 4.46  2010/12/18 05:32:17  mast
-Made TIFF snapshots work up to 4GB limit
-
-Revision 4.45  2010/12/15 06:14:41  mast
-Changes for setting resolution in image snapshots
-
-Revision 4.44  2010/01/06 16:57:58  mast
-Shifted subarea viewport too
-
-Revision 4.43  2010/01/06 01:19:00  mast
-Shift viewport a bit to avoid lines being drawn in wrong place
-
-Revision 4.42  2009/01/15 16:33:17  mast
-Qt 4 port
-
-Revision 4.41  2008/12/07 05:22:14  mast
-Made images be drawn in window when they fit exactly in window
-
-Revision 4.40  2008/08/01 15:38:47  mast
-Fixed rounding bug with large non-integer zooms and nonHQ display
-
-Revision 4.39  2008/05/27 05:37:56  mast
-Added ability to snapshot RGB as gray-scale
-
-Revision 4.38  2008/05/23 04:31:21  mast
-Changed to allow nontiff montage snapshots
-
-Revision 4.37  2007/12/13 03:20:17  mast
-Fixed panning offset getting stuck at negative end
-
-Revision 4.36  2007/11/27 04:56:06  mast
-Limit drawing to defined width/height of image array, needed for XYZ subareas
-
-Revision 4.35  2007/11/10 15:21:14  mast
-Snap dir fixes for windows: get short name correctly, start in current dir
-
-Revision 4.34  2007/11/10 04:07:10  mast
-Changes for setting snapshot directory
-
-Revision 4.33  2007/09/17 04:58:40  mast
-Switched from quadratic to cubic for HQ drawing
-
-Revision 4.32  2007/07/12 17:31:47  mast
-Added subarea viewport function and added fill flag to offset routine
-
-Revision 4.31  2007/07/07 05:30:20  mast
-Fixed limits for filling draw array, which were overrunning array
-
-Revision 4.30  2007/05/06 03:25:35  mast
-Do not check snapshot file numbers from 0 when movieing
-
-Revision 4.29  2006/10/05 15:41:31  mast
-Provided for primary and second non-TIFF snapshot format
-
-Revision 4.28  2006/07/03 04:14:21  mast
-Changes for beadfixer overlay mode
-
-Revision 4.27  2005/10/21 23:58:41  mast
-Fixed for gcc 4.0 on Mac
-
-Revision 4.26  2005/03/26 00:39:50  mast
-Tested limits in HQ display to prevent crash
-
-Revision 4.25  2004/11/29 19:25:21  mast
-Changes to do QImage instead of RGB snapshots
-
-Revision 4.24  2004/11/02 20:14:10  mast
-Switch to get named colors from preferences
-
-Revision 4.23  2004/11/02 00:51:59  mast
-Fixed tiff writing to allow proper numbmber of bytes after image
-
-Revision 4.22  2004/10/04 18:29:01  mast
-Changed snapshot functions to give error returnd
-
-Revision 4.21  2004/09/10 02:31:03  mast
-replaced long with int
-
-Revision 4.20  2004/06/01 01:31:42  mast
-Add include of errno.h
-
-Revision 4.19  2004/05/31 23:35:26  mast
-Switched to new standard error functions for all debug and user output
-
-Revision 4.18  2004/03/09 15:18:02  mast
-Fixed problem that was making offset images creep
-
-Revision 4.17  2003/12/30 06:34:24  mast
-Make snapshot name in a single routine, and change snapshotting from
-an array to take 3 or 4 byte data
-
-Revision 4.16  2003/09/16 05:54:32  mast
-Ditto!
-
-Revision 4.15  2003/09/16 05:52:23  mast
-Forgot to comment out diagnostic output
-
-Revision 4.14  2003/09/16 03:52:46  mast
-Fixed test for integer zoom to not fail on 0.01, and fixed bug in 1.5 zoom
-
-Revision 4.13  2003/09/16 03:01:26  mast
-Changed pixel drawing routines to take image data as line pointers
-Added faster fractional zoom drawing when fraction is near 1/integer
-
-Revision 4.12  2003/09/12 22:02:20  mast
-Fixed float/double problem with zooming under Windows
-
-Revision 4.11  2003/06/04 23:28:50  mast
-Simplify auto snapshot numbering code
-
-Revision 4.10  2003/05/05 15:06:21  mast
-Copy-fill top and right of array when drawing non-integer nonHQ zooms
-
-Revision 4.9  2003/04/17 19:02:59  mast
-adding hack for GL-context dependent gluQuadric
-
-Revision 4.8  2003/03/28 05:08:23  mast
-*** empty log message ***
-
-Revision 4.7  2003/03/24 17:58:09  mast
-Changes for new preferences capability
-
-Revision 4.6  2003/03/12 21:34:19  mast
-Made b3dGetNewCIImageSize return null if there is failure to get memory for
-image, and made pixel drawing routines test for null image, all to protect
-against memory errors.
-
-Revision 4.5  2003/03/04 23:23:07  mast
-Fixed bug in accessing non-existent data with zoomed down images
-
-Revision 4.4  2003/02/27 17:36:58  mast
-Convert filenames with Qt routines
-
-Revision 4.3  2003/02/21 23:56:34  mast
-open snapshot files in binary mode
-
-Revision 4.2  2003/02/14 01:13:43  mast
-cleanup unused variables
-
-Revision 4.1  2003/02/10 20:28:59  mast
-autox.cpp
-
-Revision 1.1.2.4  2003/02/07 01:03:23  mast
-a little cleanup
-
-Revision 1.1.2.3  2003/01/29 01:42:35  mast
-Changes for color index snapshotting
-
-Revision 1.1.2.2  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.1  2003/01/23 23:05:54  mast
-conversion to cpp
-
-Revision 3.4.2.6  2003/01/13 01:12:37  mast
-Fixed bug in drawboxout with negative coordinates
-
-Revision 3.4.2.5  2003/01/10 23:57:23  mast
-questionable change to display routine used by tumbler
-
-Revision 3.4.2.4  2003/01/06 15:40:11  mast
-Add call to resize viewport given x and Y arguments
-
-Revision 3.4.2.3  2002/12/17 18:14:26  mast
-remove unused iput functions
-
-Revision 3.4.2.2  2002/12/12 01:20:32  mast
-When setting fonts, take application display if CurDisplay not defined
-
-Revision 3.4.2.1  2002/12/09 17:49:19  mast
-changes to get Zap as a Qt window
-
-Revision 3.4  2002/12/01 15:32:27  mast
-Changes to compile under g++; also eliminated all non openGL code
-
-Revision 3.3  2002/07/28 16:18:58  mast
-Added three new fractional zooms below 1.0 to make steps be 1.4-1.6
-
-Revision 3.2  2002/01/28 16:40:45  mast
-Also added button 1 up to list of standard translations; xyz window needed.
-
-Revision 3.1  2002/01/28 16:38:46  mast
-Modified drawing routines to accept a slice number and pass it on to
-routine that checks for identity of temporary buffer, instead of assuming
-current Z.  Modified buffer matching routine so that it would recognize a
-buffer match even when there is only a single buffer in use.  Fixed logic
-for recognizing a match with fractional zooms.  Removed factor of two 
-excess in sizing of temporary buffers.
-
-*/

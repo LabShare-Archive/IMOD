@@ -30,15 +30,17 @@ int main( int argc, char *argv[])
   char line[lineSz];
   char msg[256];
   char *progname = imodProgName(argv[0]);
-  char *inFile, *outFile, *coordFile;
+  char *inFile, *outFile, *coordFile, *listString;
   int iOutObj = 0, numOptArgs, numNonOptArgs;
+  int *contourList = NULL, numContours = 0;
   float xMin, xMax, yMin, yMax, zMin, zMax;
   Imat *xform;
 
-  int numOptions = 4;
+  int numOptions = 7;
   char *options[] = {
     "at:AtPoints:FN:", "x:XRange:IP:", "y:YRange:IP:", "z:ZRange:IP:",
-    "input:InputFile:FN:", "output:OutputFile:FN:"};
+    "input:InputFile:FN:", "output:OutputFile:FN:", 
+    "contours:ContourNumbers:LI:"};
 
   /* Parse parameters */
   PipReadOrParseOptions(argc, argv, options, numOptions, progname, 3, 1, 1,
@@ -60,6 +62,10 @@ int main( int argc, char *argv[])
   if (PipGetTwoFloats("ZRange", &zMin, &zMax)) {
     zMin = 0.0F;
     zMax = FLT_MAX;
+  }
+  if (!PipGetString("ContourNumbers", &listString)) {
+    contourList = parselist(listString, &numContours);
+    free(listString);
   }
   PipDone();
 
@@ -96,12 +102,15 @@ int main( int argc, char *argv[])
   while (fgets(line, lineSz, coordFP)) {
     int contour;
     float x, y, z, xAngle, yAngle, zAngle;
+    int contourOk, inRange;
     if (sscanf(line, "%d,%g,%g,%g,%g,%g,%g", &contour, &x, &y, &z, 
                &xAngle, &yAngle, &zAngle) != 7)
       exitError("Error parsing location/orientation file");
-    if (x >= xMin && x <= xMax && y >= yMin && y <= yMax && 
-        z >= zMin && z <= zMax) {
-
+    contourOk = (numContours == 0 || 
+                 numberInList(contour, contourList, numContours, 0));
+    inRange = (x >= xMin && x <= xMax && y >= yMin && y <= yMax && 
+               z >= zMin && z <= zMax);
+    if (contourOk && inRange) {
       /* Copy all the objects from the input to the temp model */        
       Iobj *obj = imodObjectGetFirst(inModel);
       Ipoint newCenter;
@@ -142,6 +151,8 @@ int main( int argc, char *argv[])
   }
   fclose(coordFP);
   imodMatDelete(xform);
+  if (contourList)
+    free(contourList);
 
   outFP = fopen(outFile, "w");
   if (!outFP) {
