@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/30/11: Changed Corrsearch3d to scale boundary models to image file
+coordinates, so a model from unbinned data can be used on binned data in
+Edgepatches.
+
 11/30/11: Used vector buffer objects to speed up model view graphics for
 lighted surfaces and wireframe meshes.  Turned on multisampling (full-scene
 antialiasing) in model view to give smoother lines and polygon edges.
