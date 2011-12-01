@@ -258,9 +258,9 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
   private final Column tiltRangeColumn = new Column();
   private final MultiLineButton btnDeleteRow = new MultiLineButton("Delete");
   private final TomogramFileFilter tomogramFileFilter = new TomogramFileFilter();
-  private final MultiLineButton btnMoveUp = new MultiLineButton("Move up");
-  private final MultiLineButton btnMoveDown = new MultiLineButton("Move down");
-  private final MultiLineButton btnCopyRow = new MultiLineButton("Duplicate");
+  private final MultiLineButton btnMoveUp = new MultiLineButton("Up");
+  private final MultiLineButton btnMoveDown = new MultiLineButton("Down");
+  private final MultiLineButton btnCopyRow = new MultiLineButton("Dup");
   private final JPanel pnlTableButtons = new JPanel();
   private final JPanel pnlBottomButtons = new JPanel();
   private final Component rigidArea2 = Box.createRigidArea(FixedDim.x0_y10);
@@ -462,9 +462,9 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     pnlSideButtons.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlSideButtons.add(btnInsertRow.getComponent());
     pnlSideButtons.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlSideButtons.add(btnCopyRow.getComponent());
-    pnlSideButtons.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlSideButtons.add(btnDeleteRow.getComponent());
+    pnlSideButtons.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlSideButtons.add(btnCopyRow.getComponent());
     pnlSideButtons.add(Box.createVerticalGlue());
     pnlSideButtons.add(Box.createRigidArea(FixedDim.x0_y5));
     // buttons - bottom
@@ -483,9 +483,9 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     rootPanel.setBorder(new EtchedBorder(LABEL).getBorder());
     rootPanel.add(Box.createRigidArea(FixedDim.x10_y0));
     rootPanel.add(pnlTableButtons);
-    rootPanel.add(Box.createRigidArea(FixedDim.x20_y0));
+    rootPanel.add(Box.createRigidArea(FixedDim.x40_y0));
     rootPanel.add(pnlSideButtons);
-    rootPanel.add(Box.createRigidArea(FixedDim.x20_y0));
+    rootPanel.add(Box.createRigidArea(FixedDim.x40_y0));
   }
 
   private void refreshPadding() {
