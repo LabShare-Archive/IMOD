@@ -55,9 +55,9 @@ void vbDataInit(VertBufData *vbd)
 void vbDataClear(VertBufData *vbd)
 {
   if (vbd->vbObj)
-    b3dDeleteBuffers(1, &vbd->vbObj);
+    b3dDeleteBuffers(1, (GLuint *)&vbd->vbObj);
   if (vbd->ebObj)
-    b3dDeleteBuffers(1, &vbd->ebObj);
+    b3dDeleteBuffers(1, (GLuint *)&vbd->ebObj);
   B3DFREE(vbd->numIndSpecial);
   B3DFREE(vbd->rgbtSpecial);
   B3DFREE(vbd->remnantIndList);
@@ -297,8 +297,8 @@ int vbAnalyzeMesh(Imesh *mesh, float zscale, int fillType, int useFillColor,
   if (!vbd->vbObj || 3 * mesh->vsize > vbd->vboSize) {
     vbd->vboSize = 3 * mesh->vsize;
     if (vbd->vbObj)
-      b3dDeleteBuffers(1, &vbd->vbObj);
-    b3dGenBuffers(1, &vbd->vbObj);
+      b3dDeleteBuffers(1, (GLuint *)&vbd->vbObj);
+    b3dGenBuffers(1, (GLuint *)&vbd->vbObj);
     b3dBindBuffer(GL_ARRAY_BUFFER, vbd->vbObj);
     b3dBufferData(GL_ARRAY_BUFFER, 3 * mesh->vsize * sizeof(GLfloat), NULL,
                   GL_STATIC_DRAW);
@@ -313,8 +313,8 @@ int vbAnalyzeMesh(Imesh *mesh, float zscale, int fillType, int useFillColor,
   if (!vbd->ebObj || cumInd > vbd->eboSize) {
     vbd->eboSize = cumInd; 
     if (vbd->ebObj)
-      b3dDeleteBuffers(1, &vbd->ebObj);
-    b3dGenBuffers(1, &vbd->ebObj);
+      b3dDeleteBuffers(1, (GLuint *)&vbd->ebObj);
+    b3dGenBuffers(1, (GLuint *)&vbd->ebObj);
     b3dBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbd->ebObj);
     b3dBufferData(GL_ELEMENT_ARRAY_BUFFER,  cumInd * sizeof(GLuint), NULL,GL_STATIC_DRAW);
     error = glGetError();
