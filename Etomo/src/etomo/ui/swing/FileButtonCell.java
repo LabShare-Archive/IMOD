@@ -46,13 +46,14 @@ final class FileButtonCell extends InputCell {
   private FileFilter fileFilter = null;
 
   private final SimpleButton button = new SimpleButton(new ImageIcon(
-      ClassLoader.getSystemResource("images/openFile.gif")));
+      ClassLoader.getSystemResource("images/openFilePeet.png")));
 
   // private final SimpleButton button = new SimpleButton(">");
 
   private FileButtonCell(final CurrentDirectory currentDirectory) {
     this.currentDirectory = currentDirectory;
     button.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
+    //button.setBorder(BorderFactory.createEtchedBorder());
     Dimension size = button.getPreferredSize();
     if (size.width < size.height) {
       size.width = size.height;
