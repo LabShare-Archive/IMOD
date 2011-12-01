@@ -5,6 +5,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,8 +16,12 @@ import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 
 import etomo.BaseManager;
+import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
+import etomo.storage.autodoc.AutodocFactory;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
+import etomo.type.EtomoAutodoc;
 
 /**
  * <p>Description: </p>
@@ -178,8 +184,8 @@ final class IterationTable implements Highlightable {
       UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header1SearchRadius = new HeaderCell(SEARCH_RADIUS_HEADER1);
   private final HeaderCell header2SearchRadius = new HeaderCell(SEARCH_RADIUS_HEADER2);
-  private final HeaderCell header3SearchRadius = new HeaderCell(UIParameters.INSTANCE
-      .getIntegerTripletWidth());
+  private final HeaderCell header3SearchRadius = new HeaderCell(
+      UIParameters.INSTANCE.getIntegerTripletWidth());
   private final HeaderCell header1Cutoff = new HeaderCell(CUTOFF_HEADER1);
   private final HeaderCell header2Cutoff = new HeaderCell(CUTOFF_HEADER2);
   private final HeaderCell header3HiCutoff = new HeaderCell(HI_CUTOFF_HEADER3,
@@ -256,12 +262,12 @@ final class IterationTable implements Highlightable {
   }
 
   void setParameters(final MatlabParam matlabParamFile) {
-    //overwrite existing rows
+    // overwrite existing rows
     int rowListSize = rowList.size();
     for (int i = 0; i < rowListSize; i++) {
       rowList.getRow(i).setParameters(matlabParamFile);
     }
-    //add new rows
+    // add new rows
     for (int j = rowListSize; j < matlabParamFile.getIterationListSize(); j++) {
       IterationRow row = addRow();
       row.setParameters(matlabParamFile);
@@ -282,6 +288,24 @@ final class IterationTable implements Highlightable {
   }
 
   private void setToolTipText() {
+    ReadOnlyAutodoc autodoc = null;
+    try {
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM, AxisID.ONLY);
+    }
+    catch (FileNotFoundException except) {
+      except.printStackTrace();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+    }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+    }
+    header3DuplicateShiftTolerance.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        MatlabParam.DUPLICATE_SHIFT_TOLERANCE_KEY));
+    header3DuplicateAngularTolerance.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        MatlabParam.DUPLICATE_ANGULAR_TOLERANCE_KEY));
+    
     btnAddRow.setToolTipText("Add a new iteration row to the table.");
     btnCopyRow.setToolTipText("Create a new row that is a duplicate of the highlighted "
         + "row.");
@@ -396,23 +420,23 @@ final class IterationTable implements Highlightable {
   }
 
   private void createTable() {
-    //initialize
+    // initialize
     btnMoveUp.setSize();
     btnMoveDown.setSize();
-    //local panels
+    // local panels
     JPanel pnlButtons2 = new JPanel();
-    //table
+    // table
     pnlTable.setLayout(layout);
     pnlTable.setBorder(LineBorder.createBlackLineBorder());
     constraints.fill = GridBagConstraints.BOTH;
     constraints.anchor = GridBagConstraints.CENTER;
     constraints.gridheight = 1;
-    //button panel
+    // button panel
     JPanel pnlButtons = new JPanel();
     pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
     btnAddRow.setSize();
     pnlButtons.add(btnAddRow.getComponent());
-    //button panel 2
+    // button panel 2
     pnlButtons2.setLayout(new BoxLayout(pnlButtons2, BoxLayout.X_AXIS));
     btnCopyRow.setSize();
     pnlButtons2.add(btnCopyRow.getComponent());
@@ -420,12 +444,12 @@ final class IterationTable implements Highlightable {
     pnlButtons2.add(btnMoveDown.getComponent());
     btnDeleteRow.setSize();
     pnlButtons2.add(btnDeleteRow.getComponent());
-    //border
+    // border
     SpacedPanel pnlBorder = SpacedPanel.getInstance();
     pnlBorder.setBoxLayout(BoxLayout.Y_AXIS);
     pnlBorder.setBorder(new EtchedBorder(LABEL).getBorder());
     pnlBorder.add(pnlTable);
-    //root
+    // root
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(BorderFactory.createEtchedBorder());
     rootPanel.add(pnlBorder.getContainer());
@@ -435,7 +459,7 @@ final class IterationTable implements Highlightable {
 
   private void display() {
     constraints.weighty = 0.0;
-    //first header row
+    // first header row
     constraints.weightx = 0.0;
     constraints.gridwidth = 2;
     header1IterationNumber.add(pnlTable, layout, constraints);
@@ -450,7 +474,7 @@ final class IterationTable implements Highlightable {
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     header1DuplicateTolerance.add(pnlTable, layout, constraints);
 
-    //Second header row
+    // Second header row
     constraints.weightx = 0.0;
     constraints.gridwidth = 2;
     header2IterationNumber.add(pnlTable, layout, constraints);
@@ -466,7 +490,7 @@ final class IterationTable implements Highlightable {
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     header2DuplicateTolerance.add(pnlTable, layout, constraints);
 
-    //Third header row
+    // Third header row
     constraints.weightx = 0.0;
     constraints.gridwidth = 2;
     header3IterationNumber.add(pnlTable, layout, constraints);

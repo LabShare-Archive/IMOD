@@ -6,6 +6,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -23,12 +25,17 @@ import etomo.ProcessingMethodMediator;
 import etomo.comscript.AverageAllParam;
 import etomo.comscript.ParallelParam;
 import etomo.comscript.ProcesschunksParam;
+import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
 import etomo.storage.PeetAndMatlabParamFileFilter;
+import etomo.storage.autodoc.AutodocFactory;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
+import etomo.storage.autodoc.ReadOnlySection;
 import etomo.type.AxisID;
 import etomo.type.ConstPeetMetaData;
 import etomo.type.ConstPeetScreenState;
 import etomo.type.DialogType;
+import etomo.type.EtomoAutodoc;
 import etomo.type.PeetMetaData;
 import etomo.type.PeetScreenState;
 import etomo.type.ProcessingMethod;
@@ -501,8 +508,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
   private final MultiLineButton btnAverageAll = new MultiLineButton(AVERAGE_ALL_LABEL);
   private final CheckBox cbflgAlignAverages = new CheckBox(
       "Align averages to have their Y axes vertical");
-  private final SimpleButton btnCopyProject = new SimpleButton(
-      "Copy existing project");
+  private final SimpleButton btnCopyProject = new SimpleButton("Copy existing project");
 
   private final SphericalSamplingForThetaAndPsiPanel sphericalSamplingForThetaAndPsiPanel;
   private final YAxisTypePanel yAxisTypePanel;
@@ -528,7 +534,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     referencePanel = ReferencePanel.getInstance(this, manager);
     missingWedgeCompensationPanel = MissingWedgeCompensationPanel.getInstance(this);
     maskingPanel = MaskingPanel.getInstance(manager, this);
-    yAxisTypePanel = YAxisTypePanel.getInstance(this);
+    yAxisTypePanel = YAxisTypePanel.getInstance(manager, this);
     fixPathsPanel = FixPathsPanel.getInstance(this, manager, axisID, DIALOG_TYPE);
     sphericalSamplingForThetaAndPsiPanel = SphericalSamplingForThetaAndPsiPanel
         .getInstance(manager, this);
@@ -929,6 +935,44 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
   }
 
   private void setTooltipText() {
+    ReadOnlyAutodoc autodoc = null;
+    try {
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM, axisID);
+    }
+    catch (FileNotFoundException except) {
+      except.printStackTrace();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+    }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+    }
+    pnlInitMotl.setToolTipText(EtomoAutodoc
+        .getTooltip(autodoc, MatlabParam.INIT_MOTL_KEY));
+    ReadOnlySection section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
+        MatlabParam.INIT_MOTL_KEY);
+    rbInitMotlZero.setToolTipText(section);
+    rbInitMotlZAxis.setToolTipText(section);
+    rbInitMotlXAndZAxis.setToolTipText(section);
+    rbInitMotlRandomRotations.setToolTipText(section);
+
+    section = autodoc
+        .getSection(EtomoAutodoc.FIELD_SECTION_NAME, MatlabParam.CC_MODE_KEY);
+    rbCcModeNormalized.setToolTipText(section);
+    rbCcModeLocal.setToolTipText(section);
+
+    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
+        MatlabParam.REF_FLAG_ALL_TOM_KEY);
+    cbRefFlagAllTom.setToolTipText(section, "0");
+
+    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
+        MatlabParam.LST_FLAG_ALL_TOM_KEY);
+    cbLstFlagAllTom.setToolTipText(section, "0");
+
+    cbflgAlignAverages.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        MatlabParam.FLG_ALIGN_AVERAGES_KEY));
+
     ftfDirectory.setToolTipText("The directory which will contain the parameter and "
         + "project files, logs, intermediate files, and results. Data files "
         + "can also be located in this directory, but are not required to be.");
@@ -938,37 +982,12 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     btnAvgVol.setToolTipText("Open the computed averages in 3dmod.");
     btnRef.setToolTipText("Open the references in 3dmod.");
     btnAverageAll.setToolTipText("Recompute the averaged volumes");
-    rbInitMotlZero.setToolTipText("Do not reorient particles prior to the 1st alignment "
-        + "search.");
-    rbInitMotlZAxis
-        .setToolTipText("Rotate each particle about its Z axis to align its Y "
-            + "axis with that of the reference prior to the 1st alignment search.");
-    rbInitMotlXAndZAxis
-        .setToolTipText("Rotate each particle about its X and Z axes to align "
-            + "its Y axis with that of the reference prior to the 1st alignment "
-            + "search.");
-    rbInitMotlRandomRotations.setToolTipText("Uniform random rotations");
     rbInitMotlFiles
         .setToolTipText("Use the Initial MOTL file(s) specified in the Volume "
             + "Table.");
-    cbRefFlagAllTom
-        .setToolTipText("If checked, attempt to use the same number of particles "
-            + "from each tomogram when forming the reference for the next "
-            + "alignment iteration.  If not, the particles with the highest "
-            + "cross-correlation will be used, regardless of which tomograms "
-            + "they are drawn from.");
-    cbflgAlignAverages
-        .setToolTipText("Align averages to have their Y axes approximately "
-            + "vertical.");
     lsParticlePerCPU
         .setToolTipText("Specifies the maximum number of particles to distribute "
             + "to each CPU selected in the Parallel Processing table.");
-    rbCcModeNormalized
-        .setToolTipText("An approximation to normalized cross-correlation.  In "
-            + "earlier versions, this method, while less accurate, was "
-            + "significantly faster.  This is no longer the case, and use of "
-            + "this measure is no longer recommended.");
-    rbCcModeLocal.setToolTipText("Use normalized cross-correlation (default)");
     ltfAlignedBaseName.setToolTipText("The base from which output filenames will be "
         + "constructed.");
     ltfLowCutoff.setToolTipText("Two numbers to control low frequency filtering: 1) The "
@@ -981,11 +1000,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     cbFlgRemoveDuplicates
         .setToolTipText("Remove mulitple references to the same particle after"
             + "each iteration.");
-    cbLstFlagAllTom
-        .setToolTipText("If checked, prefer equal number of particles from each "
-            + "tomogram for averaging, rather than simply choosing particles "
-            + "based on correlation score with no regard for the tomogram in "
-            + "which they occur.");
     String tooltip = "Start, Incr, and End determine the numbers of particles in an "
         + "arithmetic sequence for which averages will be created.  I.e. "
         + "averages will be created containing Start particles, Start + Incr, "
