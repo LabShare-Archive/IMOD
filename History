@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/30/11: IMOD_4-4-2
 11/30/11: Changed Corrsearch3d to scale boundary models to image file
 coordinates, so a model from unbinned data can be used on binned data in
 Edgepatches.
@@ -37,7 +38,7 @@ detect need for offset automatically with FEI data (In 4.3).
 11/9/11: In eTomo - Fiducial Model, fixed failure in patch tracking when the
 there is an existing tilt file (In 4.3).(Bug# 1547)
 
-11/9/11: IMOD_4-3-1
+11/9/11: IMOD_4-3-1 released
 11/9/11: In Beadfixer, fixed extra redraws when moving by residual in all 
 local areas (In 4.3).
 
