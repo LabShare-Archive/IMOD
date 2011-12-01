@@ -82,7 +82,7 @@ comment = specifies the particle's Y axis.
 enum.0.tooltip = use volume's Y axis as the particle Y axis.
 enum.1.tooltip = use vector between neighboring model points as the particle Y axis.
 enum.2.tooltip = use end points of the contour containing the particle as the particle
-^Y axis.
+Y axis.
 
 [Field = particlePerCPU]
 comment = controls how the workload is distributed when multiple
@@ -205,8 +205,8 @@ keyValueDelimiter == =
 comment = How much debugging info to print < 0 | 1 | 2 | 3 >
 
 [Field = flgAlignAverages]
-comment = f non-zero, align particles to have their Y axes
-# approximately vertical in the final average.
+comment = If non-zero, align particles to have their Y axes
+ approximately vertical in the final average.
 tooltip = Align averages to have the particle's Y axis approximately vertical.
 
 [Field = flgRemoveDuplicates]
