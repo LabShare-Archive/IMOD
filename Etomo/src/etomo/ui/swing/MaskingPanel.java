@@ -78,7 +78,7 @@ final class MaskingPanel implements CylinderOrientationParent,
     cylinderOrientationPanel = CylinderOrientationPanel.getInstance(manager, this);
     radiiOfSphereOrCylinderPanel = RadiiOfSphereOrCylinderPanel.getInstance(this);
     ftfMaskTypeVolume = FileTextField2
-        .getInstance(manager, MASK_TYPE_VOLUME_LABEL + ": ");
+        .getPeetInstance(manager, MASK_TYPE_VOLUME_LABEL + ": ");
   }
 
   static MaskingPanel getInstance(BaseManager manager, MaskingParent parent) {
