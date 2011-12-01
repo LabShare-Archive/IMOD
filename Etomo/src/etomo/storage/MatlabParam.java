@@ -378,7 +378,7 @@ public final class MatlabParam {
   public static final int N_WEIGHT_GROUP_MAX = 32;
   public static final String FLG_REMOVE_DUPLICATES_KEY = "flgRemoveDuplicates";
   public static final String DUPLICATE_SHIFT_TOLERANCE_KEY = "duplicateShiftTolerance";
-  public static final String DUPLICATE_ANGULAR_TOLERANCE_KEY = "flgDuplicateAngularTolerance";
+  public static final String DUPLICATE_ANGULAR_TOLERANCE_KEY = "duplicateAngularTolerance";
   public static final String FLG_ALIGN_AVERAGES_KEY = "flgAlignAverages";
   public static final String FLG_FAIR_REFERENCE_KEY = "flgFairReference";
 
