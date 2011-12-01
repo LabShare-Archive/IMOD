@@ -225,7 +225,7 @@ comment =  an integer array giving the maximum distances in pixels at
 tooltip = The maximum distance in pixels at which particles can be
 considered duplicates.
 
-[Field = flgDuplicateAngularTolerance]
+[Field = duplicateAngularTolerance]
 comment =  an array giving the maximum angle (in degrees) between orientations
 ^at which particles can be considered duplicates at each iteration.
 tooltip = The maximum orientation difference in degrees at which particles 
