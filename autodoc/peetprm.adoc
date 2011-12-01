@@ -239,8 +239,8 @@ comment =  If 1 (default), maximize the absolute value of the cross-correlation
 ^of some  highly repetitive patterns (e.g. checkerboard or zebra
 ^stripe patterns) in which in which in- and  out-of-phase alignments
 ^become indistinguishable.
-enum.0.tooltip = maximize absolute value of cross-correlation
-enum.1.tooltip = maximize cross-correlation
+enum.0.tooltip = maximize cross-correlation
+enum.1.tooltip = maximize absolute value of cross-correlation
 
 [Field = flgStrictSearchLimits]
 comment = If 0 (default) or missing, radial and
