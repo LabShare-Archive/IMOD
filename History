@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/1/11: Fixed 3dmod crash when deleting object with no current contour is set
+(In 4.3).
+
 11/29/11: Fixed crash when current surface only is selected in Model View Edit
 Objects window and there are empty contours (In 4.3).
 
