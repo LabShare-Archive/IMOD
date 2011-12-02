@@ -93,8 +93,7 @@ UndoRedo::UndoRedo(ImodView *vi)
   mRejectChanges = false;
   mUnitOpen = false;
   mMaxUnits = 1000;
-  mMaxBytes = 50000;
-  //mMaxBytes = 5000000;
+  mMaxBytes = 5000000;
   mUndoIndex = -1;
   mNumFreedInPool = 0;
 }
