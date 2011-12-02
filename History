@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/1/11: Fixed 3dmod crash when deleting object with no current contour is set
+(In 4.3).
+
 11/30/11: IMOD_4-4-2
 11/30/11: Changed Corrsearch3d to scale boundary models to image file
 coordinates, so a model from unbinned data can be used on binned data in
