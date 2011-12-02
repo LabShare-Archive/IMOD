@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/2/11: Fixed test for whether copying from current object in object edit 
+dialog (In 4.3).
+
 12/2/11: Fixed explosion of memory usage in undo-redo module when combining
 objects or moving all contours from one to another (In 4.3).
 
