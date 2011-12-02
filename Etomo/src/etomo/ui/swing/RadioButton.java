@@ -38,8 +38,10 @@ import etomo.util.Utilities;
 final class RadioButton implements RadioButtonInterface {
   public static final String rcsid = "$Id$";
 
-  final JRadioButton radioButton;
+  private final JRadioButton radioButton;
   private final EnumeratedType enumeratedType;
+
+  private boolean debug = false;
 
   RadioButton(final String text) {
     this(text, null, null);
@@ -121,20 +123,23 @@ final class RadioButton implements RadioButtonInterface {
     return this.enumeratedType == enumeratedType;
   }
 
+  public void setDebug(final boolean input) {
+    debug = input;
+  }
+
   /**
-   * Sets a formated tooltip.  If enumeratedType is set, retrieves an enum
-   * tooltip from the autodoc
+   * Sets a tooltip from a section using the enumeratedType, if it exists.
    * @param section
-   * @return the unformatted tooltip
    */
-  String setToolTipText(ReadOnlySection section) {
+  void setToolTipText(ReadOnlySection section) {
+    String text;
     if (enumeratedType == null) {
-      setToolTipText((String) null);
-      return null;
+      text = EtomoAutodoc.getTooltip(section);
     }
-    String text = EtomoAutodoc.getTooltip(section, enumeratedType.toString());
-    radioButton.setToolTipText(TooltipFormatter.INSTANCE.format(text));
-    return text;
+    else {
+      text = EtomoAutodoc.getTooltip(section, enumeratedType.toString());
+    }
+    setToolTipText(text);
   }
 
   void setToolTipText(final String text) {
