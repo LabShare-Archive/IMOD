@@ -3,25 +3,9 @@
  *   Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
  */                                                                           
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-Revision 4.3  2007/11/27 18:00:00  mast
-Added exposed functions usable from plugin
-
-Revision 4.2  2004/11/21 05:54:02  mast
-Changes for working from model view
-
-Revision 4.1  2004/11/20 05:04:40  mast
-initial addition
-
-*/
 #ifndef UNDOREDO_H
 #define UNDOREDO_H
 
@@ -172,10 +156,10 @@ extern "C" {
 class DLL_EX_IM UndoRedo 
 {
  public:
-  enum ChangeTypes {ContourData, ContourProperty, ContourRemoved, 
-                    ContourAdded, ContourMoved, ObjectChanged, ObjectRemoved,
-                    ObjectAdded, ObjectMoved, ModelChanged, PointsAdded,
-                    PointsRemoved, PointShifted, ModelShifted, ViewChanged};
+  enum ChangeTypes {ContourData, ContourProperty, ContourRemoved, ContourAdded, 
+                    ContourMoved, ObjectChanged, ObjectRemoved, ObjectAdded, ObjectMoved,
+                    ModelChanged, PointsAdded, PointsRemoved, PointShifted, ModelShifted,
+                    ViewChanged};
   enum ItemTypes {Model, Object, Contour, Points};
   enum ErrorTypes {NoError = 0, NoneAvailable, StateMismatch, MemoryError,
                    NoBackupItem};
@@ -227,6 +211,7 @@ class DLL_EX_IM UndoRedo
 
   void contourMove(int object, int contour, int object2, int contour2)
     {contourChange(ContourMoved, object, contour, object2, contour2);};
+  void allContourMove(int object, int object2);
 
   void objectPropChg() {objectChange(ObjectChanged);};
   void objectPropChg(int object) {objectChange(ObjectChanged, object);};
