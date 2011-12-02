@@ -200,7 +200,7 @@ void ioewCopyObj(int value)
     wprint("\aObject number to copy to is out of range\n");
     return;
   }
-  if (value == Model->cindex.object) {
+  if (value - 1 == Model->cindex.object) {
     wprint("\aSelect an object different from the current one.\n");
     return;
   }
