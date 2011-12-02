@@ -114,6 +114,7 @@ typedef struct __imodv_struct
   int  fullscreen; /* open full sized screen with no border.   */
   int  standalone; /* type of program being used.              */
   Iview view;
+  int vertBufOK;   /* Temporary? flag for turning off vertex buffers */
 
   /* texture mapping */
   int    texMap;

@@ -33,6 +33,7 @@ html/man
 html/libhelp
 Etomo/Makefile
 Etomo/jar_dir
+Etomo/jar
 flib/subrs/smallmodel
 html/IMOD.adp
 .distname
@@ -222,6 +223,7 @@ imodutil/imod2rib
 imodutil/imod2vrml
 imodutil/imod2vrml2
 imodutil/imodauto
+imodutil/imodclone
 imodutil/imodcurvature
 imodutil/imodexplode
 imodutil/imodextract

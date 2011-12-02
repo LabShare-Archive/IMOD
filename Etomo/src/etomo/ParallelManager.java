@@ -270,7 +270,7 @@ public final class ParallelManager extends BaseManager {
   private void openProcessingPanel() {
     mainPanel.showProcessingPanel(AxisType.SINGLE_AXIS);
     setPanel();
-    reconnect(processMgr.getSavedProcessData(AxisID.ONLY), AxisID.ONLY);
+    reconnect(processMgr.getSavedProcessData(AxisID.ONLY), AxisID.ONLY, false);
   }
 
   private void openParallelChooser() {
@@ -349,19 +349,19 @@ public final class ParallelManager extends BaseManager {
     }
     parallelPanel.getParallelProgressDisplay().resetResults();
     processchunks(AxisID.ONLY, param, processResultDisplay, processSeries, true,
-        processingMethod);
+        processingMethod, false);
   }
 
   public boolean setNewParamFile(final File file) {
     if (loadedParamFile) {
       return true;
     }
-    //set paramFile and propertyUserDir
-    String parentDirPath =  file.getParentFile().getAbsolutePath();
+    // set paramFile and propertyUserDir
+    String parentDirPath = file.getParentFile().getAbsolutePath();
     if (parentDirPath.endsWith(" ")) {
       uiHarness.openMessageDialog(this, "The directory, " + parentDirPath
-          + ", cannot be used because it ends with a space.",
-          "Unusable Directory Name", AxisID.ONLY);
+          + ", cannot be used because it ends with a space.", "Unusable Directory Name",
+          AxisID.ONLY);
       return false;
     }
     propertyUserDir = parentDirPath;
@@ -444,8 +444,8 @@ public final class ParallelManager extends BaseManager {
 
   public void imodVaryingKValue(final String key, final Run3dmodMenuOptions menuOptions,
       final String subdirName, final String testVolumeName, final boolean flip) {
-    List fileNameList = AnisotropicDiffusionParam.getTestFileNameList(this, state
-        .getTestKValueList(), state.getTestIteration(), testVolumeName);
+    List fileNameList = AnisotropicDiffusionParam.getTestFileNameList(this,
+        state.getTestKValueList(), state.getTestIteration(), testVolumeName);
     imod(key, menuOptions, subdirName, fileNameList, flip);
   }
 
@@ -456,8 +456,8 @@ public final class ParallelManager extends BaseManager {
   public void imodVaryingIteration(final String key,
       final Run3dmodMenuOptions menuOptions, final String subdirName,
       final String testVolumeName, final boolean flip) {
-    List fileNameList = AnisotropicDiffusionParam.getTestFileNameList(state
-        .getTestKValue(), state.getTestIterationList(), testVolumeName);
+    List fileNameList = AnisotropicDiffusionParam.getTestFileNameList(
+        state.getTestKValue(), state.getTestIterationList(), testVolumeName);
     imod(key, menuOptions, subdirName, fileNameList, flip);
   }
 
@@ -657,7 +657,7 @@ public final class ParallelManager extends BaseManager {
       return;
     }
     parallelPanel.resetResults();
-    processchunks(AxisID.ONLY, param, null, processSeries, true, processingMethod);
+    processchunks(AxisID.ONLY, param, null, processSeries, true, processingMethod, false);
   }
 
   /**
@@ -671,15 +671,17 @@ public final class ParallelManager extends BaseManager {
    * @return False if test volume is too big.
    */
   private boolean validateTestVolume(AnisotropicDiffusionParam param) {
-    MRCHeader testVolumeHeader = MRCHeader.getInstance(new File(propertyUserDir, param
-        .getSubdirName()).getAbsolutePath(), param.getInputFileName(), AxisID.ONLY);
+    MRCHeader testVolumeHeader = MRCHeader.getInstance(
+        new File(propertyUserDir, param.getSubdirName()).getAbsolutePath(),
+        param.getInputFileName(), AxisID.ONLY);
     try {
       testVolumeHeader.read(this);
       long size = Math.round(testVolumeHeader.getNColumns() / 1024.0
           * testVolumeHeader.getNRows() * testVolumeHeader.getNSections()
           * ChunksetupParam.MEMORY_TO_VOXEL / 1024.0);
       if (size > 0 && size > anisotropicDiffusionDialog.getMemoryPerChunk().intValue()) {
-        UIHarness.INSTANCE.openMessageDialog(this,
+        UIHarness.INSTANCE.openMessageDialog(
+            this,
             "Processing this test volume would require " + size
                 + " MB of memory, more than the limit of "
                 + anisotropicDiffusionDialog.getMemoryPerChunk()
@@ -751,7 +753,7 @@ public final class ParallelManager extends BaseManager {
     }
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     parallelPanel.resetResults();
-    processchunks(AxisID.ONLY, param, null, processSeries, true, processingMethod);
+    processchunks(AxisID.ONLY, param, null, processSeries, true, processingMethod, false);
   }
 
   /**
@@ -789,12 +791,12 @@ public final class ParallelManager extends BaseManager {
     if (loadedParamFile) {
       return true;
     }
-    //set paramFile and propertyUserDir
-    String workingDir =  parallelDialog.getWorkingDir().getAbsolutePath();
+    // set paramFile and propertyUserDir
+    String workingDir = parallelDialog.getWorkingDir().getAbsolutePath();
     if (workingDir.endsWith(" ")) {
       uiHarness.openMessageDialog(this, "The directory, " + workingDir
-          + ", cannot be used because it ends with a space.",
-          "Unusable Directory Name", AxisID.ONLY);
+          + ", cannot be used because it ends with a space.", "Unusable Directory Name",
+          AxisID.ONLY);
       return false;
     }
     propertyUserDir = workingDir;

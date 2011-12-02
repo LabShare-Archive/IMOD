@@ -5,37 +5,34 @@ c       It extracts the planar points into XVERT, YVERT, where INDVERT is an
 c       index to the start of each contour, NVERT contains the number of
 c       points in each contour, ZCONT is the contour Y or Z value, NCONT is
 c       the number of contours.  LIMCONT and LIMVERT specify the limiting
-c       dimensions for contours and vertices.  
+c       dimensions for contours and vertices.  If IMUNIT is greater than 0
+c       the model is scaled to the index coordinates of the image file open 
+c       on that unit
 c
 c       If contours are not planar in either direction it issues a warning
 c       using PROGNAME as the program name and and adopts the flip value
 c       from the model header, which is not necessarily correct.
 c
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
-c       $Log$
-c       Revision 3.1  2006/08/16 23:46:47  mast
-c       Split out from corrsearch3d to use in findwarp
-c
+c       $Id$
 c
       subroutine get_region_contours(modelfile, progname, xvert, yvert, nvert,
-     &    indvert, zcont,  ncont, ifflip, limcont, limvert)
+     &    indvert, zcont,  ncont, ifflip, limcont, limvert, imunit)
       implicit none
       include 'smallmodel.inc'
       character*(*) modelfile, progname
       real*4 xvert(*), yvert(*), zcont(*)
-      integer*4 nvert(*), indvert(*), ncont, ifflip, limcont, limvert
+      integer*4 nvert(*), indvert(*), ncont, ifflip, limcont, limvert, imunit
       integer*4 ip, ipt, iobj,iy,iz, indy, indz, indcur,ierr,getimodhead
       logical*4 exist, readSmallMod, zplanar, yplanar
       real*4 xyscal,zscal,xofs,yofs,zofs
 c
       exist=readSmallMod(modelfile)
       if(.not.exist)call exitError('ERROR READING MODEL')
-      call scale_model(0)
+      if (imunit .gt. 0) then
+        call scaleModelToImage(imunit, 0)
+      else
+        call scale_model(0)
+      endif
       ncont = 0
 c       
 c       figure out if all contours are coplanar Z or Y

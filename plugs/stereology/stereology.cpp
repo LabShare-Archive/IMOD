@@ -4771,7 +4771,7 @@ void Stereology::initValues()
 	
 	
 	plug.showLoadingInConsole = true;
-	plug.maxContsRend         = 10000;
+	plug.maxContsRend         = 100000;
 	plug.numRandPtsToAdd			= 1000;
 	plug.jumpToGridOnUpdate   = true;
 	
@@ -4779,6 +4779,16 @@ void Stereology::initValues()
 	plug.randomSymbols        = false;
 	plug.agreeFinalizeDlg     = false;
 	plug.showBigIntercCH      = false;
+	
+	
+	//## IF BIG IMAGE THEN INCREASE DEFAULT SIZE
+	
+	if( plug.xsize > 2000 && plug.ysize > 2000 )		// if big image:
+	{
+		plug.defSpacingX = 500;
+		plug.defSpacingY = 500;
+		plug.gridSymbolSize = 20;
+	}
 	
 	
 	//## TRANSIENT VALUES:
@@ -4865,18 +4875,6 @@ void Stereology::loadSettings()
 		plug.randomSymbols        = savedValues[38];
 		plug.agreeFinalizeDlg     = savedValues[39];
 		plug.showBigIntercCH      = savedValues[40];
-		
-		
-		if( plug.defSpacingX==50 && plug.defSpacingY==50 && plug.defSpacingZ==30
-		 && plug.gridSymbolSize==5 )		// if original values:
-		{
-			if( plug.ysize > 2000 && plug.ysize > 2000 )		// if big image:
-			{
-				plug.defSpacingX = 500;
-				plug.defSpacingY = 500;
-				plug.gridSymbolSize = 20;
-			}
-		}
 		
 		
 		if(plug.paintRadius <= 0)
@@ -6757,23 +6755,23 @@ bool Stereology::updateGridFromGridGui( bool checkCheckboxes, bool updatePtSelSp
 	
 	GridSetObj *g = getCurrGridSetObj();
 	
+	
+	//## DISPLAY OPTIONS:
+	
+	plug.gridSymbolSize    = spnGridSymbolSize->value();
+	plug.gridLineThickness = spnLineWidth->value();
+	plug.gridColorR        = colGridColor->getColor().red();
+	plug.gridColorB        = colGridColor->getColor().blue();
+	plug.gridColorG        = colGridColor->getColor().green();
+	plug.showDashes        = chkShowDashes->isChecked();
+	plug.subRectDisplayOpt = cmbSubRectDisplay->currentIndex();
+	
+	plug.window->drawGridObject(false);
+	plug.window->drawSubsampleRects(true);
+	
+	
 	if( g->countingStarted )
-	{
-		//## DISPLAY OPTIONS:
-		
-		plug.gridSymbolSize    = spnGridSymbolSize->value();
-		plug.gridLineThickness = spnLineWidth->value();
-		plug.gridColorR        = colGridColor->getColor().red();
-		plug.gridColorB        = colGridColor->getColor().blue();
-		plug.gridColorG        = colGridColor->getColor().green();
-		plug.showDashes        = chkShowDashes->isChecked();
-		plug.subRectDisplayOpt = cmbSubRectDisplay->currentIndex();
-		
-		plug.window->drawGridObject(false);
-		plug.window->drawSubsampleRects(true);
-		
 		return (false);
-	}
 	
 	
 	//## GET CHECKBOX VALUES AND SHOW/HIDE RELEVANT ELEMENTS
