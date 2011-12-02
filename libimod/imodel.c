@@ -508,15 +508,13 @@ int imodDeleteObject(Imod *mod, int index)
     if (mod->cindex.contour >= mod->obj[mod->cindex.object].contsize)
       mod->cindex.contour = mod->obj[mod->cindex.object].contsize - 1;
       
-    if ((!tobj->contsize) || (tobj->cont == NULL)){
+    if ((!tobj->contsize) || (tobj->cont == NULL) || mod->cindex.contour < 0) {
       mod->cindex.point = -1;
       mod->cindex.contour = -1;
-    }
-    else
-      if (mod->cindex.point >= tobj->cont[mod->cindex.contour].psize)
-        mod->cindex.point  = tobj->cont[mod->cindex.contour].psize  - 1;
+    } else if (mod->cindex.point >= tobj->cont[mod->cindex.contour].psize)
+      mod->cindex.point  = tobj->cont[mod->cindex.contour].psize  - 1;
 
-  } else{
+  } else {
 
     /* Delete last object in model */
     free(mod->obj);
