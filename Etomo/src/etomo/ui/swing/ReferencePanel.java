@@ -21,6 +21,7 @@ import etomo.type.AxisID;
 import etomo.type.ConstPeetMetaData;
 import etomo.type.EtomoAutodoc;
 import etomo.type.PeetMetaData;
+import etomo.util.FilePath;
 
 /**
  * <p>Description: </p>
@@ -139,6 +140,21 @@ final class ReferencePanel {
 
   Component getComponent() {
     return pnlRoot;
+  }
+
+  /**
+   * Make the copied path relative to this dataset, preserving the location of the files
+   * that the old dataset was using.  So if the file was in the original dataset
+   * directory, the new path will point (with a relative path if possible) to the file in
+   * the original dataset directory.  If the file path is absolute, don't change it.
+   * @param rootOfCopiedFilePaths
+   */
+  void convertCopiedPaths(final String origDatasetDir) {
+    String propertyUserDir = manager.getPropertyUserDir();
+    if (!ftfFile.isEmpty()) {
+      ftfFile.setText(FilePath.getRerootedRelativePath(origDatasetDir, propertyUserDir,
+          ftfFile.getText()));
+    }
   }
 
   boolean isIncorrectPaths() {
