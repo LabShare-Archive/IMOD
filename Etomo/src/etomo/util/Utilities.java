@@ -402,20 +402,6 @@ public class Utilities {
   }
 
   /**
-   * Gets a File instance of filePath, if filePath is an absolute path or dir is empty.
-   * Otherwise gets a File instance of dir/filePath.
-   * @param filePath
-   * @return
-   */
-  public static File getFileFromPath(final String dir, final String filePath) {
-    File file = new File(filePath);
-    if (file.isAbsolute() || dir == null || dir.matches("\\s*")) {
-      return file;
-    }
-    return new File(dir, filePath);
-  }
-
-  /**
    * Creates a file name and a file.  If the file doesn't exist and mustExist is
    * true, it complains and returns null, otherwise it returns the file.
    * @param mustExist
