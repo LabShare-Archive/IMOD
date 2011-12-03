@@ -14,6 +14,7 @@ import etomo.storage.MatlabParam;
 import etomo.type.ConstPeetMetaData;
 import etomo.type.PeetMetaData;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.util.FilePath;
 
 /**
  * <p>Description: </p>
@@ -77,8 +78,8 @@ final class MaskingPanel implements CylinderOrientationParent,
     this.parent = parent;
     cylinderOrientationPanel = CylinderOrientationPanel.getInstance(manager, this);
     radiiOfSphereOrCylinderPanel = RadiiOfSphereOrCylinderPanel.getInstance(this);
-    ftfMaskTypeVolume = FileTextField2
-        .getPeetInstance(manager, MASK_TYPE_VOLUME_LABEL + ": ");
+    ftfMaskTypeVolume = FileTextField2.getPeetInstance(manager, MASK_TYPE_VOLUME_LABEL
+        + ": ");
   }
 
   static MaskingPanel getInstance(BaseManager manager, MaskingParent parent) {
@@ -135,6 +136,21 @@ final class MaskingPanel implements CylinderOrientationParent,
     ftfMaskTypeVolume.setEnabled(rbMaskTypeVolume.isSelected());
     radiiOfSphereOrCylinderPanel.updateDisplay();
     cylinderOrientationPanel.updateDisplay();
+  }
+
+  /**
+   * Make the copied path relative to this dataset, preserving the location of the files
+   * that the old dataset was using.  So if the file was in the original dataset
+   * directory, the new path will point (with a relative path if possible) to the file in
+   * the original dataset directory.  If the file path is absolute, don't change it.
+   * @param rootOfCopiedFilePaths
+   */
+  void convertCopiedPaths(final String origDatasetDir) {
+    String propertyUserDir = manager.getPropertyUserDir();
+    if (!ftfMaskTypeVolume.isEmpty()) {
+      ftfMaskTypeVolume.setText(FilePath.getRerootedRelativePath(origDatasetDir,
+          propertyUserDir, ftfMaskTypeVolume.getText()));
+    }
   }
 
   public boolean isIncorrectPaths() {
