@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 /* DOC_CODE Essay on Undo/Redo */
@@ -242,6 +241,49 @@ void UndoRedo::contourChange(int type, int object, int contour,
   }
 
   finishChange(unit, &change);
+}
+
+// Process a move of all contours from object to object2.  Assume object property
+// change has already been recorded in advance
+void UndoRedo::allContourMove(int object, int object2)
+{
+  UndoUnit *unit;
+  UndoChange change;
+  BackupItem item;
+  Icont *cont = NULL;
+  int co;
+
+  unit = getOpenUnit();
+  if (!unit)
+    return;
+  if (imodDebug('u'))
+    imodPrintStderr("Move all contours ob1 %d ob2 %d\n", object, object2);
+  for (co = 0; co < mVi->imod->obj[object].contsize; co++) {
+    cont = &mVi->imod->obj[object].cont[co];
+
+    // Each contour is marked as contour zero because each one is 0 when it is actually
+    // moved over to the other object
+    initChange(change, ContourMoved, object, 0, object2, 
+               mVi->imod->obj[object2].contsize + co);
+    item.type = Contour;
+    item.ID = -1;
+    item.p.cont = imodContourDup(cont);
+    if (!item.p.cont) {
+      memoryError();
+      return;
+    }
+
+    // Add item to pool; clean up contour if fails
+    item.ID = mID++;
+    change.ID = item.ID;
+    change.bytes = contourBytes(item.p.cont);
+    if (ilistAppend(mItemPool, &item)) {
+      imodContourDelete(item.p.cont);
+      memoryError();
+      return;
+    }
+    finishChange(unit, &change);
+  }
 }
 
 // Process an object change
@@ -1385,49 +1427,3 @@ void undoFinishUnit(ImodView *vi) {
 void undoFlushUnit(ImodView *vi) {
   vi->undo->flushUnit();
 }
-
- 
-/*
-  $Log$
-  Revision 4.13  2008/12/01 15:42:01  mast
-  Changes for undo/redo and selection in 3dmodv standalone
-
-  Revision 4.12  2008/01/27 06:21:32  mast
-  Changes for object group component of model
-
-  Revision 4.11  2007/12/04 22:05:48  mast
-  Made the essay accessible from sourcedoc
-
-  Revision 4.10  2007/11/27 18:00:18  mast
-  Added exposed functions usable from plugin
-
-  Revision 4.9  2007/05/25 05:28:16  mast
-  Changes for addition of slicer angle storage
-
-  Revision 4.8  2006/09/12 15:45:49  mast
-  Changes for mesh parameters
-  
-  Revision 4.7  2006/03/01 18:19:04  mast
-  Made backup unit list quantum be 32, and pruned 1/10 of list at a time
-  when the limit is reached to reduce overhead
-  
-  Revision 4.6  2005/10/24 18:35:53  mast
-  Added some info on store size to debug output
-  
-  Revision 4.5  2005/06/29 05:37:52  mast
-  Changes for fine grain properties
-  
-  Revision 4.4  2005/03/20 19:55:37  mast
-  Eliminating duplicate functions
-  
-  Revision 4.3  2005/02/24 22:31:06  mast
-  Added some debugging output
-  
-  Revision 4.2  2004/11/21 05:54:41  mast
-  Changes for working from model view; essay added
-  
-  Revision 4.1  2004/11/20 05:04:55  mast
-  Initial addition to program
-
-*/
-

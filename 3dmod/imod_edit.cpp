@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <math.h>
@@ -234,7 +233,7 @@ static float imod_distance( float *x, float *y, Ipoint *pnt)
   return(retval);
 }
 
-/* This is called when moving all contours in an object */
+/* This used to be called when moving all contours in an object but not anymore */
 void imod_contour_move(int ob)
 {
   /* DNM2/13/03: remove oldpt, co, cont */
@@ -288,20 +287,31 @@ void imodMoveAllContours(ImodView *vi, int obNew)
   Imod *imod = vi->imod;
   Iobj *obj = imodObjectGet(imod);
 
+  // Just record an object property change since there may be max surface number changes
+  // as well as the store info
+  vi->undo->objectPropChg();
+  vi->undo->objectPropChg(obNew);
+
+  // Move all the fine grain information over then delete the store
   if (ilistSize(obj->store)) {
-    vi->undo->objectPropChg();
-    vi->undo->objectPropChg(obNew);
-    for (co = 0; co <= obj->surfsize; co++) {
+    for (co = 0; co <= obj->surfsize; co++)
+      istoreCopyContSurfItems(obj->store, &imod->obj[obNew].store, co, co, 1);
+    for (co = 0; co < obj->contsize; co++)
       istoreCopyContSurfItems(obj->store, &imod->obj[obNew].store, co, 
-                              co, 1);
-      istoreDeleteContSurf(obj->store, co, 1);
-    }
+                                    imod->obj[obNew].contsize + co, 0);
+    ilistDelete(obj->store);
+    obj->store = NULL;
   }
+
+  // Record all contours as moving
+  vi->undo->allContourMove(imod->cindex.object, obNew);
+
   /* DNM: need to set contour inside loop because each deletion
      sets it to -1; and need to not increment counter!  */
   for (co = 0; co < (int)obj->contsize; ) {
     imod->cindex.contour = 0;
-    imod_contour_move(obNew);
+    imodObjectAddContour(&imod->obj[obNew], &obj->cont[co]);
+    imodObjectRemoveContour(obj, co);
   }
 }
 
@@ -444,60 +454,3 @@ void imodSelectionNewCurPoint(ImodView *vi, Imod *imod, Iindex indSave,
     // But if Ctrl not down, clear out the list
     imodSelectionListClear(vi);
 }
-
-/*
-$Log$
-Revision 4.12  2008/09/24 02:38:51  mast
-Added function for finding nearest point in all objects (on or not)
-
-Revision 4.11  2007/07/08 16:45:23  mast
-Added functions to count number of selected objects and move all contours in
-object to new object
-
-Revision 4.10  2007/06/04 15:03:45  mast
-Made nearest point function operate on rotated points if matrix supplied
-
-Revision 4.9  2006/09/12 15:36:33  mast
-Handled contour member renames
-
-Revision 4.8  2006/08/31 23:27:44  mast
-Changes for stored value display
-
-Revision 4.7  2005/06/29 05:38:40  mast
-Changes to manipulate fine grain properties and do undos correctly
-
-Revision 4.6  2005/02/24 22:34:39  mast
-Switched to allowing multiple-object selections
-
-Revision 4.5  2004/11/21 05:50:34  mast
-Switch from int to float for nearest point distance measurement
-
-Revision 4.4  2004/11/01 23:21:57  mast
-Allowed 3D point selection, added selection list functions
-
-Revision 4.3  2003/10/01 05:05:54  mast
-change to rationalize location of ivw functions
-
-Revision 4.2  2003/02/14 01:14:30  mast
-cleanup unused variables
-
-Revision 4.1  2003/02/10 20:29:00  mast
-autox.cpp
-
-Revision 1.1.2.2  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.1  2003/01/23 23:06:00  mast
-conversion to cpp
-
-Revision 3.2.2.1  2002/12/09 17:42:32  mast
-remove include of zap
-
-Revision 3.2  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-Revision 3.1  2002/01/28 16:45:25  mast
-Removed imod_nearest function, which was used only by xyz window and did
-not work
-
-*/

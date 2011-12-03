@@ -655,10 +655,9 @@ static void mkFourFilt_cb(IProcWindow *win, QWidget *parent,
   layout->addLayout(slider->getLayout());
   slider->getSlider(0)->setToolTip("Sigma for inverted Gaussian"
                 " high-pass filter (0 at origin)");
-  slider->getSlider(1)->setToolTip("Cutoff radius for Gaussian"
-                " low-pass filter");
-  slider->getSlider(0)->setToolTip("Sigma for Gaussian"
-                "low-pass filter starting at cutoff");
+  slider->getSlider(1)->setToolTip("Cutoff radius for Gaussian low-pass filter");
+  slider->getSlider(2)->setToolTip("Sigma for Gaussian low-pass filter starting at cutoff"
+                                   );
 }
 
 static void mkFFT_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout)
