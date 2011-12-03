@@ -281,7 +281,6 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     this.manager = manager;
     this.parent = parent;
     // construction
-    currentDirectory = new File(manager.getPropertyUserDir());
     viewport = new Viewport(this, EtomoDirector.INSTANCE.getUserConfiguration()
         .getPeetTableSize().getInt(), parent.getSetupJComponent(), null, null, "Volume");
     btnExpandFnVolume = ExpandButton.getInstance(this, ExpandButton.Type.MORE);
@@ -318,6 +317,9 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
   }
 
   public File getCurrentDirectory() {
+    if (currentDirectory == null) {
+      return new File(manager.getPropertyUserDir());
+    }
     return currentDirectory;
   }
 
@@ -363,6 +365,10 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
 
   void setParameters(final ConstPeetMetaData metaData) {
     rowList.setParameters(metaData);
+  }
+
+  void convertCopiedPaths(final String origDatasetDir) {
+    rowList.convertCopiedPaths(origDatasetDir);
   }
 
   boolean isIncorrectPaths() {
@@ -552,7 +558,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
   HeaderCell getFnModParticleHeaderCell() {
     return header1FnModParticle;
   }
-  
+
   HeaderCell getInitMotlFileHeaderCell() {
     return header1InitMotlFile;
   }
@@ -905,6 +911,12 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
       // added, then set from metadata.
       row.setParameters(metaData);
       return row;
+    }
+
+    private void convertCopiedPaths(final String origDatasetDir) {
+      for (int i = 0; i < list.size(); i++) {
+        ((VolumeRow) list.get(i)).convertCopiedPaths(origDatasetDir);
+      }
     }
 
     private boolean isIncorrectPaths() {
