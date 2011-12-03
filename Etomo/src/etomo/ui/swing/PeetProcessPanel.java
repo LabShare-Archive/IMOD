@@ -47,7 +47,6 @@ public class PeetProcessPanel extends AxisProcessPanel {
   }
 
   void showBothAxis() {
-    setBackground(Colors.getBackgroundPeet());
   }
 
   private void setBackground(Color color) {

@@ -22,25 +22,24 @@ comment = A code specifying how to construct the initial motive list:
 ^
 ^or a cell array of strings specify the filenames to load
 tooltip = A code specifying how to construct the initial motive list 
-^or a cell array of strings specifying the filenames to load
+or a cell array of strings specifying the filenames to load
 enum.0.tooltip = Set all rotational values to zero
 enum.1.tooltip = Use the particle and reference model to align axes by
-^rotation around the particle z axis only.
+rotation around the particle z axis only.
 enum.2.tooltip = Use the particle and reference model to align axes by
-^rotation around particle x and z axes. 
+rotation around particle x and z axes. 
 enum.3.tooltip = Initialize with uniform random rotations.
 enum.4.tooltip = Random axial rotations around the particle y axis.
 
 [Field = flgFairReference]
 comment = If 1, create a multi-particle reference. Otherwise, choose a single
 ^particle reference or use the user-specified volume.
-enum.0.tooltip = Generate a single-particle or use a user-specified reference.
-enum.1.tooltip =  Generate a multi-particle reference.
+tooltip =  Generate a multi-particle reference.
 
 [Field = reference]
 KeyValueDelimiter = ==
 comment == If flgFairReference = 1, a pair of integers [m, n] specifying
-^m groups, each with n particles, be used to geneate a multi-particle
+^m groups, each with n particles, be used to generate a multi-particle
 ^reference. Otherwise, if a string, the name of an MRC file containing 
 ^the reference volume, or if [i  j], specifies that the jth particle of 
 ^the ith volume will be used as the initial reference.
@@ -83,7 +82,7 @@ comment = specifies the particle's Y axis.
 enum.0.tooltip = use volume's Y axis as the particle Y axis.
 enum.1.tooltip = use vector between neighboring model points as the particle Y axis.
 enum.2.tooltip = use end points of the contour containing the particle as the particle
-^Y axis.
+Y axis.
 
 [Field = particlePerCPU]
 comment = controls how the workload is distributed when multiple
@@ -159,9 +158,9 @@ comment = Controls particle selection during reference generation.
 ^0: prefer equal numbers of particles from each tomogram
 ^   when creating new references.
 enum.1.tooltip =use particles with the best correlation scores among all
-^particles of all tomos when creating new references.
+particles of all tomos when creating new references.
 enum.0.tooltip = prefer equal numbers of particles from each tomogram
-^when creating new references.
+when creating new references.
 
 [Field = tiltRange]
 comment = The tilt angles used to acquire the tilt series [min max].
@@ -192,7 +191,7 @@ comment = Controls particle selection during final averaging.
 ^0: prefer equal number of particles from each tomo when creating 
 ^   final averages.
 enum.1.tooltip =: use particles with best correlation scores among all particles
-^of all tomos when creating final averages.
+of all tomos when creating final averages.
 enum.0.tooltip = prefer equal number of particles from each tomo when creating 
 final averages.
 
@@ -206,8 +205,8 @@ keyValueDelimiter == =
 comment = How much debugging info to print < 0 | 1 | 2 | 3 >
 
 [Field = flgAlignAverages]
-comment = f non-zero, align particles to have their Y axes
-# approximately vertical in the final average.
+comment = If non-zero, align particles to have their Y axes
+ approximately vertical in the final average.
 tooltip = Align averages to have the particle's Y axis approximately vertical.
 
 [Field = flgRemoveDuplicates]
@@ -229,7 +228,7 @@ considered duplicates.
 comment =  an array giving the maximum angle (in degrees) between orientations
 ^at which particles can be considered duplicates at each iteration.
 tooltip = The maximum orientation difference in degrees at which particles 
-^can be considered duplicates.
+can be considered duplicates.
 
 [Field = flgAbsValue]
 comment =  If 1 (default), maximize the absolute value of the cross-correlation

@@ -3,6 +3,8 @@ package etomo.ui.swing;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -11,8 +13,13 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import etomo.BaseManager;
+import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
+import etomo.storage.autodoc.AutodocFactory;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
+import etomo.type.AxisID;
 import etomo.type.ConstPeetMetaData;
+import etomo.type.EtomoAutodoc;
 import etomo.type.PeetMetaData;
 
 /**
@@ -73,7 +80,7 @@ final class ReferencePanel {
   private ReferencePanel(final ReferenceParent parent, final BaseManager manager) {
     this.parent = parent;
     this.manager = manager;
-    ftfFile = FileTextField2.getUnlabeledInstance(manager, REFERENCE_FILE_LABEL);// unlabeled
+    ftfFile = FileTextField2.getUnlabeledPeetInstance(manager, REFERENCE_FILE_LABEL);// unlabeled
     ftfFile.setFieldWidth(UIParameters.INSTANCE.getFileWidth());
   }
 
@@ -289,6 +296,19 @@ final class ReferencePanel {
    * @param tooltip
    */
   private void setTooltips() {
+    ReadOnlyAutodoc autodoc = null;
+    try {
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM, AxisID.ONLY);
+    }
+    catch (FileNotFoundException except) {
+      except.printStackTrace();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+    }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+    }
     sVolume.setToolTipText("The number of the volume containing the reference.");
     rtfParticle
         .setRadioButtonToolTipText("Specify the reference by volume and particle numbers.");
@@ -297,9 +317,14 @@ final class ReferencePanel {
     rbFile.setToolTipText("Specify the reference by filename.");
     ftfFile.setToolTipText("The name of the file containing the MRC volume to use "
         + "as the reference.");
-    rtfMultiparticleGroups.setRadioButtonToolTipText("Need a tooltip");
-    rtfMultiparticleGroups.setTextFieldToolTipText("Need a tooltip");
-    ltfMultiparticleParticles.setToolTipText("Need a tooltip");
+    rtfMultiparticleGroups.setRadioButtonToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        MatlabParam.FLG_FAIR_REFERENCE_KEY));
+    rtfMultiparticleGroups
+        .setTextFieldToolTipText("Number of groups to be used to generate a multi-particle "
+            + "reference");
+    ltfMultiparticleParticles
+        .setToolTipText("Number of particles to be used to generate a multi-particle "
+            + "reference.");
   }
 
   private static final class ReferenceActionListener implements ActionListener {

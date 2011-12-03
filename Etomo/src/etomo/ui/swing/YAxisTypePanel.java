@@ -3,13 +3,22 @@ package etomo.ui.swing;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 
+import etomo.BaseManager;
+import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
+import etomo.storage.autodoc.AutodocFactory;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
+import etomo.storage.autodoc.ReadOnlySection;
+import etomo.type.AxisID;
 import etomo.type.EnumeratedType;
+import etomo.type.EtomoAutodoc;
 import etomo.type.Run3dmodMenuOptions;
 
 /**
@@ -62,13 +71,16 @@ final class YAxisTypePanel {
       + YAXIS_CONTOUR_NUM_LABEL + ": ");
 
   private final YAxisTypeParent parent;
+  private final BaseManager manager;
 
-  private YAxisTypePanel(YAxisTypeParent parent) {
+  private YAxisTypePanel(final BaseManager manager, final YAxisTypeParent parent) {
+    this.manager = manager;
     this.parent = parent;
   }
 
-  static YAxisTypePanel getInstance(YAxisTypeParent parent) {
-    YAxisTypePanel instance = new YAxisTypePanel(parent);
+  static YAxisTypePanel getInstance(final BaseManager manager,
+      final YAxisTypeParent parent) {
+    YAxisTypePanel instance = new YAxisTypePanel(manager, parent);
     instance.createPanel();
     instance.setTooltips();
     instance.addListeners();
@@ -187,14 +199,27 @@ final class YAxisTypePanel {
   }
 
   private void setTooltips() {
+    ReadOnlyAutodoc autodoc = null;
+    try {
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM, AxisID.ONLY);
+    }
+    catch (FileNotFoundException except) {
+      except.printStackTrace();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+    }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+    }
+    ReadOnlySection section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
+        MatlabParam.YAXIS_TYPE_KEY);
     rbYAxisTypeYAxis
-        .setToolTipText("Use volume's Y axis as particle's Y axis (the phi axis of the search).");
+        .setToolTipText(section);
     rbYAxisTypeParticleModel
-        .setToolTipText("Use the vector between neighboring model points as the "
-            + "particle's Y axis (the phi axis of the search).");
+        .setToolTipText(section);
     rbYAxisTypeContour
-        .setToolTipText("Use the end points of the specified contour in each "
-            + "volume as the particle's Y axis (the phi axis of the search).");
+        .setToolTipText(section);
     ltfYaxisObjectNum.setToolTipText("The number of the object used to determine the "
         + "particle's Y axis in each volume.");
     ltfYaxisContourNum.setToolTipText("The number of the contour used to determine the "

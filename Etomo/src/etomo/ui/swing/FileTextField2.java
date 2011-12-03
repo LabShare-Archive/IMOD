@@ -39,9 +39,9 @@ final class FileTextField2 implements FileTextFieldInterface {
   private final JPanel panel = new JPanel();
   private final GridBagLayout layout = new GridBagLayout();
   private final GridBagConstraints constraints = new GridBagConstraints();
-  private final SimpleButton button = new SimpleButton(new ImageIcon(
-      ClassLoader.getSystemResource("images/openFile.gif")));
+  private final boolean peet;
 
+  private final SimpleButton button;
   private final TextField field;
   private final String propertyUserDir;
   private final JLabel label;
@@ -50,7 +50,16 @@ final class FileTextField2 implements FileTextFieldInterface {
   private String currentDirectory = null;
 
   private FileTextField2(final BaseManager manager, final String label,
-      final boolean labeled) {
+      final boolean labeled, final boolean peet) {
+    this.peet = peet;
+    if (!peet) {
+      button = new SimpleButton(new ImageIcon(
+          ClassLoader.getSystemResource("images/openFile.gif")));
+    }
+    else {
+      button = new SimpleButton(new ImageIcon(
+          ClassLoader.getSystemResource("images/openFilePeet.png")));
+    }
     field = new TextField(label);
     this.label = new JLabel(label);
     propertyUserDir = manager.getPropertyUserDir();
@@ -58,14 +67,29 @@ final class FileTextField2 implements FileTextFieldInterface {
   }
 
   static FileTextField2 getUnlabeledInstance(final BaseManager manager, final String name) {
-    FileTextField2 instance = new FileTextField2(manager, name, false);
+    FileTextField2 instance = new FileTextField2(manager, name, false, false);
     instance.createPanel();
     instance.addListeners();
     return instance;
   }
-  
+
+  static FileTextField2 getUnlabeledPeetInstance(final BaseManager manager,
+      final String name) {
+    FileTextField2 instance = new FileTextField2(manager, name, false, true);
+    instance.createPanel();
+    instance.addListeners();
+    return instance;
+  }
+
   static FileTextField2 getInstance(final BaseManager manager, final String name) {
-    FileTextField2 instance = new FileTextField2(manager, name, true);
+    FileTextField2 instance = new FileTextField2(manager, name, true, false);
+    instance.createPanel();
+    instance.addListeners();
+    return instance;
+  }
+
+  static FileTextField2 getPeetInstance(final BaseManager manager, final String name) {
+    FileTextField2 instance = new FileTextField2(manager, name, true, true);
     instance.createPanel();
     instance.addListeners();
     return instance;
