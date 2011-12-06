@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/5/11: Improved the appearance of eTomo - PEET.(Bug# 1583)
+
 12/2/11: Fixed test for whether copying from current object in object edit 
 dialog (In 4.3).
 
@@ -10,8 +12,6 @@ objects or moving all contours from one to another (In 4.3).
 (In 4.3).
 
 12/1/11: In eTomo - PEET, getting some tooltips from peetprm.adoc.(Bug# 1577)
-
-12/1/11: Improved the appearance of eTomo - PEET.(Bug# 1583)
 
 11/30/11: IMOD_4-4-2
 11/30/11: Changed Corrsearch3d to scale boundary models to image file
