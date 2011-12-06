@@ -329,6 +329,15 @@ final class VolumeRow implements Highlightable {
     tiltRangeMax.setHeaders(VolumeTable.LABEL, number, table.getTiltRangeHeaderCell());
   }
 
+  /**
+   * Return the text size, or an estimate or the minimum field text width of the three
+   * changeable field (volume, model, and MOTL).
+   */
+  int getTextSize() {
+    return Math.max(fnVolume.getValue().length(), 6) + Math.max(fnModParticle.getValue().length(), 5)
+        + Math.max(initMotlFile.getValue().length(), 5);
+  }
+
   void setHeaders(final FieldCell fieldCell, final FileButtonCell fileButtonCell,
       final HeaderCell headerCell) {
     fieldCell.setHeaders(VolumeTable.LABEL, number, headerCell);
@@ -654,11 +663,13 @@ final class VolumeRow implements Highlightable {
     fbFnVolume.setToolTipText("Select a filename of the tomogram in MRC format.");
     fnModParticle.setToolTipText("The filename of the IMOD model specifying particle "
         + "positions in the tomogram.");
-    fbFnModParticle.setToolTipText("Select a filename of the IMOD model specifying particle "
-        + "positions in the tomogram.");
+    fbFnModParticle
+        .setToolTipText("Select a filename of the IMOD model specifying particle "
+            + "positions in the tomogram.");
     initMotlFile.setToolTipText("The name of a .csv file containing an initial motive "
         + "list with orientations and shifts.");
-    fbInitMotlFile.setToolTipText("Select a .csv file with initial orientations and shifts");
+    fbInitMotlFile
+        .setToolTipText("Select a .csv file with initial orientations and shifts");
     String tooltip = "The minimum and maximum tilt angle (in degrees) used "
         + "during image acquisition for this tomogram.  Used only if missing "
         + "wedge compensation is enabled.";
