@@ -263,7 +263,9 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
   private final MultiLineButton btnCopyRow = new MultiLineButton("Dup");
   private final JPanel pnlTableButtons = new JPanel();
   private final JPanel pnlBottomButtons = new JPanel();
-  private final Component rigidArea2 = Box.createRigidArea(FixedDim.x0_y10);
+  private final Component verticalRigidArea2 = Box.createRigidArea(FixedDim.x0_y10);
+  private final Component horizontalRigidArea2 = Box.createRigidArea(FixedDim.x3_y0);
+  private final JPanel pnlSideButtons = new JPanel();
 
   private Viewport viewport;
   private final ExpandButton btnExpandFnVolume;
@@ -275,7 +277,8 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
   private boolean useInitMotlFile = true;
   private boolean useTiltRange = true;
   private File currentDirectory = null;
-  private Component rigidArea1 = null;
+  private Component verticalRigidArea1 = null;
+  private Component horizontalRigidArea1 = null;
 
   private VolumeTable(final PeetManager manager, final PeetDialog parent) {
     this.manager = manager;
@@ -335,6 +338,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     else if (button == btnExpandInitMotlFile) {
       rowList.expandInitMotl(btnExpandInitMotlFile.isExpanded());
     }
+    refreshHorizontalPadding();
     UIHarness.INSTANCE.pack(manager);
   }
 
@@ -401,8 +405,9 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
           matlabParamFile.getFnModParticle(i));
       row.setParameters(matlabParamFile, useInitMotlFile, useTiltRange);
       row.expandInitMotlFile(initMotlFileIsExpanded);
-      refreshPadding();
     }
+    refreshVerticalPadding();
+    refreshHorizontalPadding();
     if (importDir != null) {
       System.setProperty("user.dir", userDir);
     }
@@ -454,7 +459,6 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     pnlBorder.add(pnlTable);
     pnlBorder.add(viewport.getPagingPanel());
     // buttons -side
-    JPanel pnlSideButtons = new JPanel();
     pnlSideButtons.setLayout(new BoxLayout(pnlSideButtons, BoxLayout.Y_AXIS));
     pnlSideButtons.add(btnMoveUp.getComponent());
     pnlSideButtons.add(Box.createRigidArea(FixedDim.x0_y5));
@@ -477,33 +481,54 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     // Table and side buttons
     pnlTableButtons.setLayout(new BoxLayout(pnlTableButtons, BoxLayout.Y_AXIS));
     pnlTableButtons.add(pnlBorder);
-    refreshPadding();
+    refreshVerticalPadding();
     // root
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.X_AXIS));
     rootPanel.setBorder(new EtchedBorder(LABEL).getBorder());
-    rootPanel.add(Box.createRigidArea(FixedDim.x10_y0));
+    rootPanel.add(Box.createRigidArea(FixedDim.x3_y0));
     rootPanel.add(pnlTableButtons);
-    rootPanel.add(Box.createRigidArea(FixedDim.x40_y0));
-    rootPanel.add(pnlSideButtons);
-    rootPanel.add(Box.createRigidArea(FixedDim.x40_y0));
+    refreshHorizontalPadding();
   }
 
-  private void refreshPadding() {
+  private void refreshHorizontalPadding() {
+    if (horizontalRigidArea1 != null) {
+      rootPanel.remove(horizontalRigidArea2);
+      rootPanel.remove(pnlSideButtons);
+      rootPanel.remove(horizontalRigidArea1);
+    }
+    int maxRowTextSize = rowList.getMaxRowTextSize();
+    System.out.println("A:maxRowTextSize:"+maxRowTextSize);
+    if (maxRowTextSize <= 40) {
+      horizontalRigidArea1 = Box.createRigidArea(new Dimension(182, 0));
+    }
+    else if (maxRowTextSize == 41) {
+      horizontalRigidArea1 = Box.createRigidArea(new Dimension(181, 0));
+    }
+    else {
+      int dim = Math.max(181 - ((maxRowTextSize - 41) * 8), 5);
+      horizontalRigidArea1 = Box.createRigidArea(new Dimension(dim, 0));
+    }
+    rootPanel.add(horizontalRigidArea1);
+    rootPanel.add(pnlSideButtons);
+    rootPanel.add(horizontalRigidArea2);
+  }
+
+  private void refreshVerticalPadding() {
     int size = rowList.size();
     int noPadding = 3;
     if (size > noPadding) {
       return;
     }
-    if (rigidArea1 != null) {
-      pnlTableButtons.remove(rigidArea1);
+    if (verticalRigidArea1 != null) {
+      pnlTableButtons.remove(verticalRigidArea1);
       pnlTableButtons.remove(pnlBottomButtons);
-      pnlTableButtons.remove(rigidArea2);
+      pnlTableButtons.remove(verticalRigidArea2);
     }
     int height = 10 + (noPadding - size) * 20;
-    rigidArea1 = Box.createRigidArea(new Dimension(0, height));
-    pnlTableButtons.add(rigidArea1);
+    verticalRigidArea1 = Box.createRigidArea(new Dimension(0, height));
+    pnlTableButtons.add(verticalRigidArea1);
     pnlTableButtons.add(pnlBottomButtons);
-    pnlTableButtons.add(rigidArea2);
+    pnlTableButtons.add(verticalRigidArea2);
   }
 
   private void imodVolume(Run3dmodMenuOptions menuOptions) {
@@ -552,7 +577,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
   HeaderCell getFnModParticleHeaderCell() {
     return header1FnModParticle;
   }
-  
+
   HeaderCell getInitMotlFileHeaderCell() {
     return header1InitMotlFile;
   }
@@ -604,7 +629,8 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     int index = rowList.delete(row, this, pnlTable, layout, constraints);
     viewport.adjustViewport(index);
     rowList.display(viewport);
-    refreshPadding();
+    refreshVerticalPadding();
+    refreshHorizontalPadding();
     updateDisplay();
     UIHarness.INSTANCE.pack(manager);
   }
@@ -630,7 +656,8 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     viewport.adjustViewport(rowList.size() - 1);
     rowList.remove();
     rowList.display(viewport);
-    refreshPadding();
+    refreshVerticalPadding();
+    refreshHorizontalPadding();
     updateDisplay();
     parent.msgVolumeTableSizeChanged();
     UIHarness.INSTANCE.pack(manager);
@@ -651,7 +678,8 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     viewport.adjustViewport(rowList.size() - 1);
     rowList.remove();
     rowList.display(viewport);
-    refreshPadding();
+    refreshVerticalPadding();
+    refreshHorizontalPadding();
     updateDisplay();
     parent.msgVolumeTableSizeChanged();
     UIHarness.INSTANCE.pack(manager);
@@ -707,14 +735,6 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     return row;
   }
 
-  private VolumeRow addRow(final File fnVolume, final File fnModParticle) {
-    VolumeRow row = rowList.add(manager, fnVolume, fnModParticle, this, pnlTable, layout,
-        constraints, initMotlFileColumn, tiltRangeColumn, tomogramFileFilter);
-    row.expandFnVolume(btnExpandFnVolume.isExpanded());
-    row.expandFnModParticle(btnExpandFnModParticle.isExpanded());
-    return row;
-  }
-
   private VolumeRow addRow(final String fnVolume, final String fnModParticle) {
     VolumeRow row = rowList.add(manager, fnVolume, fnModParticle, this, pnlTable, layout,
         constraints, initMotlFileColumn, tiltRangeColumn, tomogramFileFilter);
@@ -756,7 +776,8 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     viewport.adjustViewport(index - 1);
     rowList.remove();
     rowList.display(viewport);
-    refreshPadding();
+    refreshVerticalPadding();
+    refreshHorizontalPadding();
     rowList.reindex(index - 1);
     updateDisplay();
     manager.getMainPanel().repaint();
@@ -860,24 +881,6 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
         final Column tiltRangeColumn, final TomogramFileFilter tomogramFileFilter) {
       VolumeRow row = VolumeRow.getInstance(manager, list.size(), table, panel, layout,
           constraints, tomogramFileFilter);
-      list.add(row);
-      row.registerInitMotlFileColumn(initMotlFileColumn);
-      row.registerTiltRangeColumn(tiltRangeColumn);
-      row.setNames();
-      // When this function is used to load from the .epe and .prm files,
-      // metadata must be set before MatlabParamFile data. Wait until row is
-      // added, then set from metadata.
-      row.setParameters(metaData);
-      return row;
-    }
-
-    private synchronized VolumeRow add(final BaseManager manager, final File fnVolume,
-        final File fnModParticle, final VolumeTable table, final JPanel panel,
-        final GridBagLayout layout, final GridBagConstraints constraints,
-        Column initMotlFileColumn, Column tiltRangeColumn,
-        final TomogramFileFilter tomogramFileFilter) {
-      VolumeRow row = VolumeRow.getInstance(manager, fnVolume, fnModParticle,
-          list.size(), table, panel, layout, constraints, tomogramFileFilter);
       list.add(row);
       row.registerInitMotlFileColumn(initMotlFileColumn);
       row.registerTiltRangeColumn(tiltRangeColumn);
@@ -1045,6 +1048,16 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
         }
       }
       return null;
+    }
+
+    // TODO
+    private int getMaxRowTextSize() {
+      int maxRowTextSize = 0;
+      for (int i = 0; i < list.size(); i++) {
+        maxRowTextSize = Math
+            .max(((VolumeRow) list.get(i)).getTextSize(), maxRowTextSize);
+      }
+      return maxRowTextSize;
     }
 
     private int getHighlightedRowIndex() {
