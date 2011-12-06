@@ -48,8 +48,6 @@ final class FileButtonCell extends InputCell {
   private final SimpleButton button = new SimpleButton(new ImageIcon(
       ClassLoader.getSystemResource("images/openFilePeet.png")));
 
-  // private final SimpleButton button = new SimpleButton(">");
-
   private FileButtonCell(final CurrentDirectory currentDirectory) {
     this.currentDirectory = currentDirectory;
     button.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
