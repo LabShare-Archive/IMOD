@@ -16,7 +16,7 @@ import etomo.storage.TomogramFileFilter;
 import etomo.type.ConstPeetMetaData;
 import etomo.type.PeetMetaData;
 import etomo.type.Run3dmodMenuOptions;
-import etomo.util.Utilities;
+import etomo.util.FilePath;
 
 /**
  * <p>Description: </p>
@@ -411,21 +411,44 @@ final class VolumeRow implements Highlightable {
   }
 
   /**
+   * Make the copied paths relative to this dataset, preserving the location of the files
+   * that the old dataset was using.  So if the files where in the original dataset
+   * directory, the new path will point (with a relative path if possible) to the file in
+   * the original dataset directory.  If a file path is absolute, don't change it.
+   * @param rootOfCopiedFilePaths
+   */
+  void convertCopiedPaths(final String origDatasetDir) {
+    String propertyUserDir = manager.getPropertyUserDir();
+    if (!fnVolume.isEmpty()) {
+      fnVolume.setValue(FilePath.getRerootedRelativePath(origDatasetDir, propertyUserDir,
+          fnVolume.getExpandedValue()));
+    }
+    if (!fnModParticle.isEmpty()) {
+      fnModParticle.setValue(FilePath.getRerootedRelativePath(origDatasetDir,
+          propertyUserDir, fnModParticle.getExpandedValue()));
+    }
+    if (!initMotlFile.isEmpty()) {
+      initMotlFile.setValue(FilePath.getRerootedRelativePath(origDatasetDir,
+          propertyUserDir, initMotlFile.getExpandedValue()));
+    }
+  }
+
+  /**
    * @return true if one or more paths are incorrect.
    */
   boolean isIncorrectPaths() {
     if (!fnVolume.isEmpty()
-        && !Utilities.getFileFromPath(manager.getPropertyUserDir(),
+        && !FilePath.getFileFromPath(manager.getPropertyUserDir(),
             fnVolume.getExpandedValue()).exists()) {
       return true;
     }
     if (!fnModParticle.isEmpty()
-        && !Utilities.getFileFromPath(manager.getPropertyUserDir(),
+        && !FilePath.getFileFromPath(manager.getPropertyUserDir(),
             fnModParticle.getExpandedValue()).exists()) {
       return true;
     }
     if (!initMotlFile.isEmpty()
-        && !Utilities.getFileFromPath(manager.getPropertyUserDir(),
+        && !FilePath.getFileFromPath(manager.getPropertyUserDir(),
             initMotlFile.getExpandedValue()).exists()) {
       return true;
     }
@@ -434,21 +457,21 @@ final class VolumeRow implements Highlightable {
 
   boolean fixIncorrectPaths(boolean choosePathEveryRow) {
     if (!fnVolume.isEmpty()
-        && !Utilities.getFileFromPath(manager.getPropertyUserDir(),
+        && !FilePath.getFileFromPath(manager.getPropertyUserDir(),
             fnVolume.getExpandedValue()).exists()) {
       if (!fixIncorrectPath(fnVolume, choosePathEveryRow, table.isFnVolumeExpanded())) {
         return false;
       }
     }
     if (!fnModParticle.isEmpty()
-        && !Utilities.getFileFromPath(manager.getPropertyUserDir(),
+        && !FilePath.getFileFromPath(manager.getPropertyUserDir(),
             fnModParticle.getExpandedValue()).exists()) {
       if (!fixIncorrectPath(fnModParticle, false, table.isFnModParticleExpanded())) {
         return false;
       }
     }
     if (!initMotlFile.isEmpty()
-        && !Utilities.getFileFromPath(manager.getPropertyUserDir(),
+        && !FilePath.getFileFromPath(manager.getPropertyUserDir(),
             initMotlFile.getExpandedValue()).exists()) {
       if (!fixIncorrectPath(initMotlFile, false, table.isInitMotlFileExpanded())) {
         return false;
@@ -472,7 +495,7 @@ final class VolumeRow implements Highlightable {
       if (table.isCorrectPathNull() || choosePath
           || (newFile != null && !newFile.exists())) {
         JFileChooser fileChooser = table.getFileChooserInstance();
-        fileChooser.setSelectedFile(Utilities.getFileFromPath(
+        fileChooser.setSelectedFile(FilePath.getFileFromPath(
             manager.getPropertyUserDir(), fieldCell.getExpandedValue()));
         fileChooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -616,7 +639,7 @@ final class VolumeRow implements Highlightable {
     if (fnVolume.isEmpty()) {
       return null;
     }
-    return Utilities.getFileFromPath(manager.getPropertyUserDir(),
+    return FilePath.getFileFromPath(manager.getPropertyUserDir(),
         fnVolume.getExpandedValue());
   }
 
@@ -624,7 +647,7 @@ final class VolumeRow implements Highlightable {
     if (fnModParticle.isEmpty()) {
       return null;
     }
-    return Utilities.getFileFromPath(manager.getPropertyUserDir(),
+    return FilePath.getFileFromPath(manager.getPropertyUserDir(),
         fnModParticle.getExpandedValue());
   }
 
