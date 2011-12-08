@@ -506,7 +506,7 @@ int BeadFixer::reread()
 
     // Look for ERROR: lines
     if (PipStartsWith(line, "ERROR:"))
-      mLastLogError = QString(line);
+      mLastLogError += QString(line);
 
     // Look for 3D coordinates with contour mean residuals
     if (strstr(line, " Z ") != NULL && strstr(line, " obj ") != NULL && 
@@ -2659,13 +2659,14 @@ void BeadFixer::runAlign()
   QStringList arguments;
   int dotPos;
   char *imodDir = getenv("IMOD_DIR");
-  char *cshell = getenv("IMOD_CSHELL");
   if (!imodDir) {
     wprint("\aCannot run tiltalign; IMOD_DIR not defined.\n");
     return;
   }
-  if (!cshell)
-    cshell = "tcsh";
+  vmsStr = "vmstopy";
+#ifdef _WIN32
+  vmsStr += ".cmd";
+#endif
   fileStr = sFilename;
   
   // Remove the leading path and the extension
@@ -2679,16 +2680,13 @@ void BeadFixer::runAlign()
   // 7/3/06: The old way was to run vmstocsh and pipe to tcsh in a "system"
   // command inside a thread - but in Windows it hung with -L listening to 
   // stdin.  This way worked through "system" call but QProcess is cleaner
-  vmsStr = QString(imodDir) + "/bin/submfg";
-  arguments << "-f";
-  arguments << LATIN1(QDir::convertSeparators(vmsStr));
-  arguments << "-q";
-  arguments << LATIN1(fileStr);
+  arguments << "-x" << "-q";
+  arguments << fileStr + ".com" << fileStr + ".log";
 
   mAlignProcess = new QProcess();
   connect(mAlignProcess, SIGNAL(finished(int, QProcess::ExitStatus)), this,
           SLOT(alignExited(int, QProcess::ExitStatus )));
-  mAlignProcess->start(cshell, arguments);
+  mAlignProcess->start(vmsStr, arguments);
 
   mRunningAlign = true;
   rereadBut->setEnabled(false);
