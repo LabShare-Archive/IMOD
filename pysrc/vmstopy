@@ -179,7 +179,9 @@ prnstr("  sys.exit(1)", file=out)
 
 #Set niceness if any
 if niceVal:
-   prnstr(fmtstr('imodNice({})', niceVal), file=out)
+   prnstr(fmtstr('if imodNice({}):', niceVal), file=out)
+   prnstr("  prnstr('INFO: Cannot change process priority; psutil is not installed', "
+          "file=log)", file=out)
 
 # Output the PID, flush stderr needed for Windows Python
 prnstr("PID = 'Python PID: ' + str(os.getpid()) + '\\n'", file=out)
