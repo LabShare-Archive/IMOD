@@ -14,7 +14,7 @@ short = output
 type = FN
 usage = Output model file to create
 tooltip = 
-manpage = Name to give the Output file containing cloned copies of the
+manpage = Name to give the output file containing cloned copies of the
 input model. If this option is not entered, the second non-option
 argument will be used.
 
