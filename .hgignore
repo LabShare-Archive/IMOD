@@ -215,6 +215,8 @@ flib/ndasda/nda
 flib/ndasda/sda
 flib/tilt/tilt
 flib/tiltalign/tiltalign
+imodutil/clonemodel
+imodutil/clonevolume
 imodutil/echo2
 imodutil/flattenwarp
 imodutil/imod2meta
@@ -223,7 +225,6 @@ imodutil/imod2rib
 imodutil/imod2vrml
 imodutil/imod2vrml2
 imodutil/imodauto
-imodutil/imodclone
 imodutil/imodcurvature
 imodutil/imodexplode
 imodutil/imodextract
