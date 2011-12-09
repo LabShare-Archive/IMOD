@@ -89,7 +89,7 @@ int main( int argc, char *argv[])
   /* Parse parameters */
   PipReadOrParseOptions(argc, argv, options, numOptions, progname, 4, 1, 
                         1, &numOptArgs, &numNonOptArgs, 
-                        (void *)imodUsageHeader);
+                        imodUsageHeader);
   if (PipGetInOutFile((char *)"InputFile", 0, &inFile))
     exitError("No input file specified");
   if (PipGetString("AtPoints", &coordFile))
