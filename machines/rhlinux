@@ -207,9 +207,9 @@ if ($compiler == intel) then
 else
     set optimization = "-O3 -w"
     if ($debug == true) then
-        set optimization = "-ggdb -O0 -Wall"
-        set ccompFlags = ($ccompFlags -Wno-unused-parameter)
+        set optimization = "-ggdb -O0 -Wall -pedantic"
         set qmcxxFlags = "-Wno-unused-parameter -Wno-sign-compare"
+        set ccompFlags = ($ccompFlags $qmcxxFlags)
     endif
 endif
 
