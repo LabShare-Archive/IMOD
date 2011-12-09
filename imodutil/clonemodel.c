@@ -49,7 +49,7 @@ int main( int argc, char *argv[])
   /* Parse parameters */
   PipReadOrParseOptions(argc, argv, options, numOptions, progname, 3, 1,
                         1, &numOptArgs, &numNonOptArgs, 
-                        (void *)imodUsageHeader);
+                        imodUsageHeader);
   if (PipGetInOutFile((char *)"InputFile", 0, &inFile))
     exitError("No input file specified");
   if (PipGetString("AtPoints", &coordFile))
@@ -116,15 +116,16 @@ int main( int argc, char *argv[])
     inRange = (x >= xMin && x <= xMax && y >= yMin && y <= yMax && 
                z >= zMin && z <= zMax);
     if (contourOk && inRange) {
+      Iobj *obj = imodObjectGetFirst(inModel);
+      Ipoint newCenter;
+      int i = 0;
+
       /* Remember max coords seen */
       maxCtrX = max(maxCtrX, x);
       maxCtrY = max(maxCtrY, y);
       maxCtrZ = max(maxCtrZ, z);
 
       /* Copy all the objects from the input to the temp model */        
-      Iobj *obj = imodObjectGetFirst(inModel);
-      Ipoint newCenter;
-      int i = 0;
       while (obj != NULL) {
         Iobj *tmpobj = imodObjectDup(obj);
         imodNewObject(tmpModel);
