@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/9/11: In eTomo - PEET upgraded the masking panel.(Bug# 1568)
+
 12/6/11: Fixed eTomo - PEET copy project functionality so that it continues to
 point to the same files.
 
