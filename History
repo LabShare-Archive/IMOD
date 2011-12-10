@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/9/11: Fixed problem with vmstopy when command line ends in a quote.
+
+12/9/11: Fixed problems with division by zero in routine that solves linear
+equations with outlier removal for solvematch, findwarp, and refinematch.
+
 12/8/11: Made processchunks run programs with python.  Added options to
 vmstopy for setting nice and environment variables.
 
