@@ -476,7 +476,12 @@ while ind < len(lines):
                comfile.close()
             except Exception:
                pass
-            
+
+         # Escape a terminal quote then wrap command in """
+         if line.endswith('"'):
+            linelen = len(line)
+            if linelen > 2 and line[linelen-2] != '\\':
+               line = line[:linelen-1] + '\\"'
          line = quoteSubstitute(line)
             
          prnstr("  " + indent + "command = " + line, file=out)
