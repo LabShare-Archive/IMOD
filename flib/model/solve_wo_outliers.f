@@ -108,7 +108,6 @@ c
       do jdrop = 1, maxdrop+1
         call do3multr(xr,ndat,ncol,ndat-jdrop,icolfix,a,dxyz,centmp,
      &      devavg, devsd, devmax, ipntmax, devxyzmax)
-
 c         
 c         estimate the sigma for the error distribution as the maximum of
 c         the values implied by the mean and the SD of the deviations
@@ -119,7 +118,11 @@ c
 
         nkeep=0
         do j=ndat-jdrop+1,ndat
-          z=xr(ncol+1,j)/sigma
+          if (sigma .lt. 0.1 * abs(xr(ncol+1,j)) .or. sigma .lt. 1.e-5) then
+            z = sign(10., xr(ncol+1,j))
+          else
+            z = xr(ncol+1,j) / sigma
+          endif
           prob=2*(gprob(z)-0.5)-sqrt(2./3.14159)*z*exp(-z**2/2.)
           if(prob.lt.probperpt)nkeep=nkeep+1
           if(prob.ge.absperpt) ndrop=min(maxdrop,max(ndrop,ndat+1-j))

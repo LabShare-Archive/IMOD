@@ -92,11 +92,13 @@ void ProcessHandler::setup(Processchunks &processchunks) {
   else {
     //Local host command
     //csh -ef < $cshname >& $pidname ; \rm -f $cshname &
+    /* CSH -> PY 
 #ifndef _WIN32
     mCommand = "csh";
 #else
     mCommand = "tcsh";
-#endif
+    #endif */
+    mCommand = "python";
   }
   initProcess();
 }
@@ -104,7 +106,7 @@ void ProcessHandler::setup(Processchunks &processchunks) {
 void ProcessHandler::setJob(const int jobIndex) {
   if (mValidJob) {
     mProcesschunks->getOutStream()
-        << "ERROR: Unable is set job, process handler already contains a runnable job:"
+        << "ERROR: Unable to set job, process handler already contains a runnable job:"
         << mProcesschunks->getComFileJobs()->getComFileName(mComFileJobIndex)
         << ",mComFileJobIndex:" << mComFileJobIndex << endl;
     return;
@@ -133,7 +135,9 @@ void ProcessHandler::setJob(const int jobIndex) {
         << "-a" << "R" << mProcesschunks->getComFileJobs()->getRoot(jobIndex);
   }
   else {
-    mParamList << "-ef" << mProcesschunks->getComFileJobs()->getCshFileName(jobIndex);
+    /* mParamList << "-ef" << mProcesschunks->getComFileJobs()->getCshFileName(jobIndex);
+       CSH -> PY */
+    mParamList << "-u" << mProcesschunks->getComFileJobs()->getCshFileName(jobIndex);
   }
 }
 
@@ -151,6 +155,7 @@ void ProcessHandler::resetSignalValues() {
   mExitCode = -1;
   mExitStatus = -1;
   mProcessError = -1;
+  mLogHasError = false;
 }
 
 int ProcessHandler::getFlag() {
@@ -375,9 +380,9 @@ bool ProcessHandler::isChunkDone() {
     return false;
   }
   int size = mLogFile->size();
-  int sizeToCheck = 25;
+  int sizeToCheck = 512;   // This was 25 before scanning for ERROR
   //Attempt to seek to the last line of the file (if the file is larger
-  //then 25 characters).  If the seek fails, the whole file will have to be
+  //then 512 characters).  If the seek fails, the whole file will have to be
   //looked at.
   if (size > sizeToCheck) {
     mLogFile->seek(size - sizeToCheck);
@@ -386,21 +391,20 @@ bool ProcessHandler::isChunkDone() {
   mLogFile->close();
   lastPartOfFile = lastPartOfFile.trimmed();
   bool done = lastPartOfFile.endsWith("CHUNK DONE");
+  bool mLogHasError = lastPartOfFile.contains("ERROR:");
   return done;
 }
 
-// DNM Note: isPausing could test on the exit code if it was made reliable by removing
-// the rm for remote jobs and removing csh files unconditionally below.
-// isChunkDone could easily look for ERROR: in the last 512 chars and give extra 
-// confidence that there is no need to pause in case of an exit with error
-
-// Pause occurs if process is done but CHUNK DONE not found
+// Pause occurs if process is done but CHUNK DONE not found, unless the exit code is
+// nonzero and ERROR: was found in the log
 // Start a timer on first call and do not return false until enough time is elapsed
 bool ProcessHandler::isPausing() {
   if (mPausing) {
     return mPauseTime.elapsed() <= 1000;
   }
   else {
+    if (mExitCode > 0 && mLogHasError)
+      return false;
     mPausing++;
     mPauseTime.start();
   }
@@ -582,6 +586,9 @@ void ProcessHandler::removeProcessFiles() {
   if (mProcesschunks->isQueue()) {
     mProcesschunks->getCurrentDir().remove(mJobFile->fileName());
     mProcesschunks->getCurrentDir().remove(mQidFile->fileName());
+    /* CSH -> PY  make sure there is no .csh file to confuse queuechunk */
+    mProcesschunks->getCurrentDir().remove
+      (mProcesschunks->getComFileJobs()->getRoot(mComFileJobIndex) + QString(".csh"));
   }
   else {
     mStderr.clear();
@@ -619,7 +626,7 @@ void ProcessHandler::runProcess(MachineHandler &machine) {
     //It is not working to run processes using csh on Windows.
     if (mMachine->getName() != mProcesschunks->getHostRoot() && mMachine->getName()
         != "localhost") {
-      //Create remove command
+
       //Original command:
       //ssh -x $sshopts $machname bash --login -c \'"cd $curdir && (csh -ef < $cshname >& $pidname ; \rm -f $cshname)"\' >&! $sshname &
       command = new QString("ssh");
@@ -628,9 +635,10 @@ void ProcessHandler::runProcess(MachineHandler &machine) {
       //Escaping the single quote shouldn't be necessary because this is not
       //being run from a shell.
       // DNM Note: the rm prevents the ssh from passing on the exit status of the script
-      QString param = QString("\"cd %1 && (csh -ef < %2 ; \\rm -f %3)\"").arg(
+      // So now processchunks removes .csh for nonlocal jobs too
+      /* CSH -> PY */
+      QString param = QString("\"cd %1 && python -u < %2\"").arg(
           mEscapedRemoteDirPath,
-          mProcesschunks->getComFileJobs()->getCshFileName(mComFileJobIndex),
           mProcesschunks->getComFileJobs()->getCshFileName(mComFileJobIndex));
       paramList = new QStringList();
       paramList->append("-x");
@@ -782,8 +790,8 @@ void ProcessHandler::killQProcesses() {
   mKillProcess->kill();
 }
 
-//Sets signal variables.  For a non-queue removes the .csh file on the local
-//machine.  If the process was killed, tell processchunks that its done.
+//Sets signal variables.  For a non-queue removes the .csh file.
+//If the process was killed, tell processchunks that its done.
 void ProcessHandler::handleFinished(const int exitCode,
     const QProcess::ExitStatus exitStatus) {
   if (mProcesschunks->isVerbose(mDecoratedClassName, __func__)) {
@@ -810,11 +818,8 @@ void ProcessHandler::handleFinished(const int exitCode,
   //to kill the chunk to the queue.  Don't use it to figure out the state of the
   //chunk.
   if (!mProcesschunks->isQueue()) {
-    if (mMachine->getName() == mProcesschunks->getHostRoot() || mMachine->getName()
-        == "localhost") {
-      mProcesschunks->getCurrentDir().remove(
+    mProcesschunks->getCurrentDir().remove(
           mProcesschunks->getComFileJobs()->getCshFileName(mComFileJobIndex));
-    }
     mProcesschunks->getCurrentDir().remove(
         QString("%1.stdout").arg(
             mProcesschunks->getComFileJobs()->getCshFileName(mComFileJobIndex)));

@@ -1,6 +1,6 @@
 /*
- *  imodclone.c - create a new model containing multiple copies of an input
- *                model at specified points / orientations. 
+ *  clonemodel.c - create a new model containing multiple copies of an input
+ *                 model at specified points / orientations. 
  *
  *  Author: John Heumann   email: heumannj@colorado.edu
  *
@@ -14,10 +14,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <float.h>
+
 #include "imodel.h"
 #include "b3dutil.h"
 #include "mrcfiles.h"
 #include "parse_params.h"
+
+#define max(a,b) ((a) > (b) ? (b) : (a))
 
 /* 
  * Main entry
@@ -34,6 +37,7 @@ int main( int argc, char *argv[])
   int iOutObj = 0, numOptArgs, numNonOptArgs;
   int *contourList = NULL, numContours = 0;
   float xMin, xMax, yMin, yMax, zMin, zMax;
+  int maxCtrX = 0, maxCtrY = 0, maxCtrZ = 0;
   Imat *xform;
 
   int numOptions = 7;
@@ -43,9 +47,10 @@ int main( int argc, char *argv[])
     "contours:ContourNumbers:LI:"};
 
   /* Parse parameters */
-  PipReadOrParseOptions(argc, argv, options, numOptions, progname, 3, 1, 1,
-                        &numOptArgs, &numNonOptArgs, imodUsageHeader);
-  if (PipGetInOutFile("InputFile", 0, &inFile))
+  PipReadOrParseOptions(argc, argv, options, numOptions, progname, 3, 1,
+                        1, &numOptArgs, &numNonOptArgs, 
+                        imodUsageHeader);
+  if (PipGetInOutFile((char *)"InputFile", 0, &inFile))
     exitError("No input file specified");
   if (PipGetString("AtPoints", &coordFile))
     exitError("No location/orientation file specified");
@@ -100,9 +105,9 @@ int main( int argc, char *argv[])
   /* Loop over points in the coordinate file */
   xform = imodMatNew(3);
   while (fgets(line, lineSz, coordFP)) {
-    int contour;
+    int contour, contourOk, inRange;
     float x, y, z, xAngle, yAngle, zAngle;
-    int contourOk, inRange;
+
     if (sscanf(line, "%d,%g,%g,%g,%g,%g,%g", &contour, &x, &y, &z, 
                &xAngle, &yAngle, &zAngle) != 7)
       exitError("Error parsing location/orientation file");
@@ -111,10 +116,16 @@ int main( int argc, char *argv[])
     inRange = (x >= xMin && x <= xMax && y >= yMin && y <= yMax && 
                z >= zMin && z <= zMax);
     if (contourOk && inRange) {
-      /* Copy all the objects from the input to the temp model */        
       Iobj *obj = imodObjectGetFirst(inModel);
       Ipoint newCenter;
       int i = 0;
+
+      /* Remember max coords seen */
+      maxCtrX = max(maxCtrX, x);
+      maxCtrY = max(maxCtrY, y);
+      maxCtrZ = max(maxCtrZ, z);
+
+      /* Copy all the objects from the input to the temp model */        
       while (obj != NULL) {
         Iobj *tmpobj = imodObjectDup(obj);
         imodNewObject(tmpModel);
@@ -154,6 +165,16 @@ int main( int argc, char *argv[])
   if (contourList)
     free(contourList);
 
+  /*
+   * Put some max coords in the output model for IMOD's benefit.
+   * These may be smaller than the actual volume limits, but will
+   * get corrected automatically if the model is opened on a volume 
+   */
+  outModel->xmax = maxCtrX + inModel->xmax / 2;
+  outModel->ymax = maxCtrY + inModel->ymax / 2;
+  outModel->zmax = maxCtrZ + inModel->zmax / 2;
+
+  /* Write the output model */
   outFP = fopen(outFile, "w");
   if (!outFP) {
     sprintf(msg, "Error writing output file:\n%s", outFile);
