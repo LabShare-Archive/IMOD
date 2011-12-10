@@ -258,15 +258,19 @@ int main( int argc, char *argv[])
         /* Process all the points in the clone's bounding box */
         for (ix = outBBox[iClone].xMin; ix <= outBBox[iClone].xMax; ix++) {
           for (iy = outBBox[iClone].yMin; iy <= outBBox[iClone].yMax; iy++) {
-            Ipoint inPt, outPt = {.x = ix, .y = iy, .z = iSlice};
+            Ipoint inPt, outPt;
+            outPt.x = ix;
+            outPt.y = iy;
+            outPt.z = iSlice;
             /* Tranform output/into coords back to the input */
             imodMatTransform3D(xform[iClone], &outPt, &inPt);
 
             /* If in range, combine current value with interpolated input */
             if (isInside(&inPt, &inBBox)) {
+              float inVal;
               if (sliceGetVal(slice, ix, iy, oldVal))
                 exitError("Error retrieving value from slice");
-              float inVal = trilinearInterpolation(
+              inVal = trilinearInterpolation(
                 inVol, &inHeader, inPt.x, inPt.y, inPt.z);
               newVal[0] = alpha * oldVal[0] + (1.0 - alpha) * inVal;
               if (slicePutVal(slice, ix, iy, newVal))
