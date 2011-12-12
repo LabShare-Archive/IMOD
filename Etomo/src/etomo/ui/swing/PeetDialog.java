@@ -627,6 +627,12 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     return DIALOG_TYPE;
   }
 
+  public void convertCopiedPaths(final String origDatasetDir) {
+    volumeTable.convertCopiedPaths(origDatasetDir);
+    referencePanel.convertCopiedPaths(origDatasetDir);
+    maskingPanel.convertCopiedPaths(origDatasetDir);
+  }
+
   public void checkIncorrectPaths() {
     boolean incorrectPaths = false;
     if (volumeTable.isIncorrectPaths()) {

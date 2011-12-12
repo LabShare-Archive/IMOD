@@ -1,6 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/6/11: Fixed eTomo - PEET copy project functionality so that it continues to
+point to the same files.
+
 12/9/11: Fixed problem with vmstopy when command line ends in a quote.
+
 
 12/9/11: Fixed problems with division by zero in routine that solves linear
 equations with outlier removal for solvematch, findwarp, and refinematch.

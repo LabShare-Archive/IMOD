@@ -472,7 +472,7 @@ public final class PeetManager extends BaseManager {
   /**
    * Copy the .prm file, and the .epe file if requested.  Modify them, and load the
    * dataset into the manager and the dialog.
-   * @param file
+   * @param file .epe or .prm file from an existing dataset
    * @param parametersOnly
    */
   public void copyDataset(final File file) {
@@ -603,6 +603,7 @@ public final class PeetManager extends BaseManager {
     peetDialog.updateDisplay(true);
     mainPanel.setStatusBarText(paramFile, metaData, logPanel);
     EtomoDirector.INSTANCE.renameCurrentManager(metaData.getName());
+    peetDialog.convertCopiedPaths(file.getParentFile().getAbsolutePath());
     peetDialog.checkIncorrectPaths();
   }
 
