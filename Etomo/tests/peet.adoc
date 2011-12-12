@@ -183,7 +183,7 @@ assert.rb.none=on
 assert.rb.sphere=off
 assert.rb.cylinder=off
 assert.rb.user-supplied-binary-file=off
-assert.tf.user-supplied-binary-file=off
+assert.tf.user-supplied-binary-file=
 assert.tf.inner-radius=
 assert.tf.outer-radius=
 assert.cb.manual-cylinder-orientation=off
@@ -494,7 +494,7 @@ assert.contains.file=%{dataset}.prm|maskModelPts = [15, 30.1]
 #test file
 rb.user-supplied-binary-file=
 bn.user-supplied-binary-file=
-wait.file-chooser.volume=unMasked%{dataset}_Ref1.mrc
+wait.file-chooser.user-supplied-binary-file=unMasked%{dataset}_Ref1.mrc
 sleep=2000
 assert.tf.user-supplied-binary-file=unMasked%{dataset}_Ref1.mrc
 save=
