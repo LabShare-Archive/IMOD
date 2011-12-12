@@ -139,8 +139,12 @@ final class FileTextField2 implements FileTextFieldInterface {
     }
   }
 
-  void setFieldWidth(final double width) {
-    field.setTextPreferredWidth(width);
+  /**
+   * Sets field width with font adjustment.
+   * @param width
+   */
+  void setAdjustedFieldWidth(final double width) {
+    field.setTextPreferredWidth(width * UIParameters.INSTANCE.getFontSizeAdjustment());
   }
 
   boolean isEmpty() {

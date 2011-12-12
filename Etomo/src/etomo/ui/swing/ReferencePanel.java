@@ -1,6 +1,7 @@
 package etomo.ui.swing;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
@@ -66,7 +67,7 @@ final class ReferencePanel {
   private final ButtonGroup bgReference = new ButtonGroup();
   private final RadioTextField rtfParticle = RadioTextField.getInstance("Particle ",
       bgReference);
-  private final Spinner sVolume = Spinner.getLabeledInstance("in Volume: ");
+  private final Spinner sVolume = Spinner.getLabeledInstance("In Volume: ");
   private final RadioButton rbFile = new RadioButton(REFERENCE_FILE_LABEL, bgReference);
   private final FileTextField2 ftfFile;
   private final RadioTextField rtfMultiparticleGroups = RadioTextField.getInstance(
@@ -82,7 +83,7 @@ final class ReferencePanel {
     this.parent = parent;
     this.manager = manager;
     ftfFile = FileTextField2.getUnlabeledPeetInstance(manager, REFERENCE_FILE_LABEL);// unlabeled
-    ftfFile.setFieldWidth(UIParameters.INSTANCE.getFileWidth());
+    ftfFile.setAdjustedFieldWidth(225);
   }
 
   static ReferencePanel getInstance(final ReferenceParent parent,
@@ -121,14 +122,14 @@ final class ReferencePanel {
     // particle panel
     pnlParticle.setLayout(new BoxLayout(pnlParticle, BoxLayout.X_AXIS));
     pnlParticle.add(rtfParticle.getContainer());
-    pnlParticle.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlParticle.add(Box.createRigidArea(FixedDim.x10_y0));
     pnlParticle.add(sVolume.getContainer());
-    pnlParticle.add(Box.createHorizontalGlue());
+    pnlParticle.add(Box.createRigidArea(new Dimension(130,0)));
     // file panel
     pnlFile.setLayout(new BoxLayout(pnlFile, BoxLayout.X_AXIS));
     pnlFile.add(rbFile.getComponent());
     pnlFile.add(ftfFile.getRootPanel());
-    pnlFile.add(Box.createHorizontalGlue());
+    pnlFile.add(Box.createRigidArea(FixedDim.x3_y0));
     // multiparticle panel
     pnlMultiparticle.setLayout(new BoxLayout(pnlMultiparticle, BoxLayout.X_AXIS));
     pnlMultiparticle.add(rtfMultiparticleGroups.getContainer());
