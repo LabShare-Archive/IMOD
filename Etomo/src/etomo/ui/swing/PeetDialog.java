@@ -2,6 +2,7 @@ package etomo.ui.swing;
 
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -475,16 +476,17 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
       MatlabParam.PARTICLE_PER_CPU_DEFAULT);
   private final IterationTable iterationTable;
   private final ButtonGroup bgInitMotl = new ButtonGroup();
-  private final RadioButton rbInitMotlZero = new RadioButton(
-      "Set all rotational values to zero", MatlabParam.InitMotlCode.ZERO, bgInitMotl);
-  private final RadioButton rbInitMotlZAxis = new RadioButton("Initialize Z axis",
-      MatlabParam.InitMotlCode.Z_AXIS, bgInitMotl);
-
-  private final RadioButton rbInitMotlXAndZAxis = new RadioButton(
-      "Initialize X and Z axes", MatlabParam.InitMotlCode.X_AND_Z_AXIS, bgInitMotl);
+  private final RadioButton rbInitMotlZero = new RadioButton("Set all angles to zero",
+      MatlabParam.InitMotlCode.ZERO, bgInitMotl);
+  private final RadioButton rbInitAlignParticleYAxes = new RadioButton(
+      "Align particle Y axes", MatlabParam.InitMotlCode.X_AND_Z_AXIS, bgInitMotl);
   private final RadioButton rbInitMotlRandomRotations = new RadioButton(
       "Uniform random rotations", MatlabParam.InitMotlCode.RANDOM_ROTATIONS, bgInitMotl);
-  private final RadioButton rbInitMotlFiles = new RadioButton("Use files", bgInitMotl);
+  private final RadioButton rbInitMotlRandomAxialRotations = new RadioButton(
+      "Random axial (Y) rotations", MatlabParam.InitMotlCode.RANDOM_AXIAL_ROTATIONS,
+      bgInitMotl);
+  private final RadioButton rbInitMotlFiles = new RadioButton("User supplied csv files",
+      bgInitMotl);
   private final ButtonGroup bgCcMode = new ButtonGroup();
   private final RadioButton rbCcModeNormalized = new RadioButton(
       "Local energy normalized cross-correlation", MatlabParam.CCMode.NORMALIZED,
@@ -788,14 +790,14 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     else if (initMotlCode == MatlabParam.InitMotlCode.ZERO) {
       rbInitMotlZero.setSelected(true);
     }
-    else if (initMotlCode == MatlabParam.InitMotlCode.Z_AXIS) {
-      rbInitMotlZAxis.setSelected(true);
-    }
     else if (initMotlCode == MatlabParam.InitMotlCode.X_AND_Z_AXIS) {
-      rbInitMotlXAndZAxis.setSelected(true);
+      rbInitAlignParticleYAxes.setSelected(true);
     }
     else if (initMotlCode == MatlabParam.InitMotlCode.RANDOM_ROTATIONS) {
       rbInitMotlRandomRotations.setSelected(true);
+    }
+    else if (initMotlCode == MatlabParam.InitMotlCode.RANDOM_AXIAL_ROTATIONS) {
+      rbInitMotlRandomAxialRotations.setSelected(true);
     }
     MatlabParam.CCMode ccMode = matlabParam.getCcMode();
     if (ccMode == MatlabParam.CCMode.NORMALIZED) {
@@ -917,9 +919,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     yAxisTypePanel.reset();
     cbLstFlagAllTom.setSelected(false);
     rbInitMotlZero.setSelected(false);
-    rbInitMotlZAxis.setSelected(false);
-    rbInitMotlXAndZAxis.setSelected(false);
+    rbInitAlignParticleYAxes.setSelected(false);
     rbInitMotlRandomRotations.setSelected(false);
+    rbInitMotlRandomAxialRotations.setSelected(false);
     rbInitMotlFiles.setSelected(false);
     rbCcModeNormalized.setSelected(false);
     rbCcModeLocal.setSelected(false);
@@ -959,9 +961,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     ReadOnlySection section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
         MatlabParam.INIT_MOTL_KEY);
     rbInitMotlZero.setToolTipText(section);
-    rbInitMotlZAxis.setToolTipText(section);
-    rbInitMotlXAndZAxis.setToolTipText(section);
+    rbInitAlignParticleYAxes.setToolTipText(section);
     rbInitMotlRandomRotations.setToolTipText(section);
+    rbInitMotlRandomAxialRotations.setToolTipText(section);
 
     section = autodoc
         .getSection(EtomoAutodoc.FIELD_SECTION_NAME, MatlabParam.CC_MODE_KEY);
@@ -1038,6 +1040,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
   }
 
   private void createSetupPanel() {
+    //panels
+    JPanel pnlInitMotlX = new JPanel();
     // project
     JPanel pnlProject = new JPanel();
     pnlProject.setLayout(new BoxLayout(pnlProject, BoxLayout.X_AXIS));
@@ -1052,21 +1056,25 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     pnlReferenceAndMissingWedgeCompensation.add(referencePanel.getComponent());
     pnlReferenceAndMissingWedgeCompensation.add(missingWedgeCompensationPanel
         .getComponent());
+    //init motl x
+    pnlInitMotlX.setLayout(new BoxLayout(pnlInitMotlX, BoxLayout.X_AXIS));
+    pnlInitMotlX.setBorder(new EtchedBorder("Initial Motive List").getBorder());
+    pnlInitMotlX.add(pnlInitMotl);
+    pnlInitMotlX.add(Box.createRigidArea(new Dimension(167,0)));
     // init MOTL
     pnlInitMotl.setLayout(new BoxLayout(pnlInitMotl, BoxLayout.Y_AXIS));
-    pnlInitMotl.setBorder(new EtchedBorder("Initial Motive List").getBorder());
     pnlInitMotl.add(rbInitMotlZero.getComponent());
-    pnlInitMotl.add(rbInitMotlZAxis.getComponent());
-    pnlInitMotl.add(rbInitMotlXAndZAxis.getComponent());
-    pnlInitMotl.add(rbInitMotlRandomRotations.getComponent());
+    pnlInitMotl.add(rbInitAlignParticleYAxes.getComponent());
     pnlInitMotl.add(rbInitMotlFiles.getComponent());
+    pnlInitMotl.add(rbInitMotlRandomRotations.getComponent());
+    pnlInitMotl.add(rbInitMotlRandomAxialRotations.getComponent());
     // init MOTL and Y axis type
     JPanel pnlInitMotlAndYAxisType = new JPanel();
     pnlInitMotlAndYAxisType.setLayout(new BoxLayout(pnlInitMotlAndYAxisType,
         BoxLayout.X_AXIS));
-    pnlInitMotlAndYAxisType.add(pnlInitMotl);
-    pnlInitMotlAndYAxisType.add(Box.createRigidArea(FixedDim.x20_y0));
     pnlInitMotlAndYAxisType.add(yAxisTypePanel.getComponent());
+    pnlInitMotlAndYAxisType.add(Box.createHorizontalGlue());
+    pnlInitMotlAndYAxisType.add(pnlInitMotlX);
     // body
     pnlSetupBody.setBoxLayout(BoxLayout.Y_AXIS);
     pnlSetupBody.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
@@ -1185,9 +1193,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
       }
     }
     else if (actionCommand.equals(rbInitMotlZero.getActionCommand())
-        || actionCommand.equals(rbInitMotlZAxis.getActionCommand())
-        || actionCommand.equals(rbInitMotlXAndZAxis.getActionCommand())
+        || actionCommand.equals(rbInitAlignParticleYAxes.getActionCommand())
         || actionCommand.equals(rbInitMotlRandomRotations.getActionCommand())
+        || actionCommand.equals(rbInitMotlRandomAxialRotations.getActionCommand())
         || actionCommand.equals(rbInitMotlFiles.getActionCommand())
         || actionCommand.equals(cbFlgRemoveDuplicates.getActionCommand())) {
       updateDisplay();
@@ -1246,13 +1254,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     }
     // Validate masking
     errorMessage = maskingPanel.validateRun();
-    if (errorMessage != null) {
-      gotoSetupTab();
-      UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, "Entry Error");
-      return false;
-    }
-    // validate Y axis type
-    errorMessage = yAxisTypePanel.validateRun();
     if (errorMessage != null) {
       gotoSetupTab();
       UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, "Entry Error");
@@ -1352,9 +1353,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     PDActionListener actionListener = new PDActionListener(this);
     ftfDirectory.addActionListener(actionListener);
     rbInitMotlZero.addActionListener(actionListener);
-    rbInitMotlZAxis.addActionListener(actionListener);
-    rbInitMotlXAndZAxis.addActionListener(actionListener);
+    rbInitAlignParticleYAxes.addActionListener(actionListener);
     rbInitMotlRandomRotations.addActionListener(actionListener);
+    rbInitMotlRandomAxialRotations.addActionListener(actionListener);
     rbInitMotlFiles.addActionListener(actionListener);
     btnRun.addActionListener(actionListener);
     tabPane.addChangeListener(new TabChangeListener(this));
