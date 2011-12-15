@@ -348,11 +348,17 @@ static void imodvMakeMovie(int frames)
     imodMatRotateVector(mati, delangle, &v);
   }
 
-  /* Return if nothing is going to change */
-  if (fabs((double)delangle) < 1.e-3 && !zstep && !xtstep && !ytstep &&
+  /* Evaluate whether clip planes change and return if nothing is going to change */
+  frame = 0;
+  for (pl = 0; pl < B3DMIN(sStartClips.count, sEndClips.count); pl++)
+    if (sEndClips.point[pl].x != sStartClips.point[pl].x ||
+        sEndClips.point[pl].y != sStartClips.point[pl].y ||
+        sEndClips.point[pl].z != sStartClips.point[pl].z)
+      frame = 1;
+
+  if (fabs((double)delangle) < 1.e-3 && !frame && !zstep && !xtstep && !ytstep &&
       !ztstep && !xImStep && !yImStep && !zImStep && !thickStep && !transpStep)
     return;
-
 
   sAbort = 0;
   for(frame = 1; frame <= frames; frame++){
