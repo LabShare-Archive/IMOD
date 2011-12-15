@@ -237,7 +237,7 @@ rb.none=
 [function = particle-y-axis]
 #check values
 assert.rb.tomogram-y-axis=on
-asert.rb.particle-model-points=off
+assert.rb.particle-model-points=off
 assert.rb.end-points-of-contour=off
 #check enabled/disabled
 assert.enabled.rb.tomogram-y-axis=
