@@ -32,7 +32,6 @@ run.function.volume-size=
 [[if = test-gui]]
 	run.function.missing-wedge-compensation=
 	run.function.masking=
-	run.function.manual-cylinder-orientation=
 	run.function.y-axis-type=
 [[]]
 
@@ -178,33 +177,59 @@ cb.enabled=off
 
 
 [function = masking]
-if.not.var.test-values.return=
-#check empty volume masking volume
-rb.volume=
-assert.enabled.tf.volume=
-run.function.setup-test-run-error=
-rb.none=
+if.not.var.test-gui.return=
+#check values
+assert.rb.none=on
+assert.rb.sphere=off
+assert.rb.cylinder=off
+assert.rb.user-supplied-binary-file=off
+assert.tf.user-supplied-binary-file=
+assert.tf.inner-radius=
+assert.tf.outer-radius=
+assert.cb.manual-cylinder-orientation=off
 
-
-[function = manual-cylinder-orientation]
-[[if = test-values]]
-	#check values
-	assert.tf.z-rotation=
-	assert.tf.y-rotation=
-[[]]
+assert.tf.z-rotation=
+assert.tf.y-rotation=
 #check enabled/disabled
-rb.particle=
+assert.enabled.rb.none=
+assert.enabled.rb.sphere=
+assert.enabled.rb.cylinder=
+assert.enabled.rb.user-supplied-binary-file=
+assert.disabled.tf.user-supplied-binary-file=
+assert.disabled.bn.user-supplied-binary-file=
+assert.disabled.tf.inner-radius=
+assert.disabled.tf.outer-radius=
+assert.disabled.cb.manual-cylinder-orientation=
 assert.disabled.tf.z-rotation=
 assert.disabled.tf.y-rotation=
+#check enabled/disabled - sphere
+rb.sphere=
+assert.enabled.tf.inner-radius=
+assert.enabled.tf.outer-radius=
+assert.enabled.cb.manual-cylinder-orientation=
+#check enabled/disabled - cylinder
 rb.cylinder=
+assert.enabled.tf.inner-radius=
+assert.enabled.tf.outer-radius=
+assert.enabled.cb.manual-cylinder-orientation=
+#check enabled/disabled - manual cylinder orientation
+cb.manual-cylinder-orientation=on
 assert.enabled.tf.z-rotation=
 assert.enabled.tf.y-rotation=
-[[if = test-values]]
-	#check bad Z rotation error
-	tf.z-rotation=120
-	run.function.setup-test-run-error=
-	tf.z-rotation=
-[[]]
+cb.manual-cylinder-orientation=off
+#check enabled/disabled - file
+rb.user-supplied-binary-file=
+assert.enabled.tf.user-supplied-binary-file=
+assert.enabled.bn.user-supplied-binary-file=
+#check bad Z rotation error
+rb.cylinder=
+cb.manual-cylinder-orientation=on
+tf.z-rotation=120
+run.function.setup-test-run-error=
+tf.z-rotation=
+#check empty file error
+rb.user-supplied-binary-file=
+run.function.setup-test-run-error=
 rb.none=
 
 
@@ -381,7 +406,6 @@ run.function.volume-table-check-prm=
 run.function.reference-check-prm=
 run.function.missing-wedge-compensation-check-prm=
 run.function.masking-check-prm=
-run.function.manual-cylinder-orientation-check-prm=
 run.function.initial-motive-list-check-prm=
 run.function.y-axis-type-check-prm=
 
@@ -451,37 +475,33 @@ cb.enabled=off
 
 
 [function = masking-check-prm]
-#test volume
-rb.volume=
-bn.volume=
-wait.file-chooser.volume=unMasked%{dataset}_Ref1.mrc
-sleep=2000
-assert.tf.volume=unMasked%{dataset}_Ref1.mrc
-save=
-assert.contains.file=%{dataset}.prm|maskType = 'unMasked%{dataset}_Ref1.mrc'
 #test sphere
 rb.sphere=
-tf.inner=10
-tf.outer=20
+tf.inner-radius=10
+tf.outer-radius=20
 save=
 assert.contains.file=%{dataset}.prm|maskType = 'sphere'
 assert.contains.file=%{dataset}.prm|insideMaskRadius = 10
 assert.contains.file=%{dataset}.prm|outsideMaskRadius = 20
-rb.none=
-
-
-[function = manual-cylinder-orientation-check-prm]
 #test cylinder
 rb.cylinder=
-save=
-assert.contains.file=%{dataset}.prm|maskType = 'cylinder'
-#test cylinder with rotations
+cb.manual-cylinder-orientation=on
 tf.z-rotation=15
 tf.y-rotation=30.1
 save=
 assert.contains.file=%{dataset}.prm|maskType = 'cylinder'
 assert.contains.file=%{dataset}.prm|maskModelPts = [15, 30.1]
-rb.particle=
+#test file
+rb.user-supplied-binary-file=
+bn.user-supplied-binary-file=
+wait.file-chooser.user-supplied-binary-file=unMasked%{dataset}_Ref1.mrc
+sleep=2000
+assert.tf.user-supplied-binary-file=unMasked%{dataset}_Ref1.mrc
+save=
+assert.contains.file=%{dataset}.prm|maskType = 'unMasked%{dataset}_Ref1.mrc'
+#reset
+rb.cylinder=
+cb.manual-cylinder-orientation=off
 rb.none=
 
 

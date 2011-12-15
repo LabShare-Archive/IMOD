@@ -1050,7 +1050,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     pnlReferenceAndMissingWedgeCompensation.setLayout(new BoxLayout(
         pnlReferenceAndMissingWedgeCompensation, BoxLayout.X_AXIS));
     pnlReferenceAndMissingWedgeCompensation.add(referencePanel.getComponent());
-    pnlReferenceAndMissingWedgeCompensation.add(Box.createRigidArea(FixedDim.x20_y0));
     pnlReferenceAndMissingWedgeCompensation.add(missingWedgeCompensationPanel
         .getComponent());
     // init MOTL

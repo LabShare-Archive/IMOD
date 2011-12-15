@@ -1,17 +1,27 @@
 package etomo.ui.swing;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 
 import etomo.BaseManager;
+import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
+import etomo.storage.autodoc.AutodocFactory;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
+import etomo.type.AxisID;
 import etomo.type.ConstPeetMetaData;
+import etomo.type.EtomoAutodoc;
+import etomo.type.EtomoNumber;
 import etomo.type.PeetMetaData;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.util.FilePath;
@@ -47,12 +57,14 @@ import etomo.util.FilePath;
  * <p> bug# 1286 Factored MaskingPanel out of PeetDialog.
  * <p> </p>
  */
-final class MaskingPanel implements CylinderOrientationParent,
-    RadiiOfSphereOrCylinderParent {
+final class MaskingPanel {
   public static final String rcsid = "$Id$";
 
+  private static final String INSIDE_MASK_RADIUS_LABEL = "Inner radius: ";
+  private static final String OUTSIDE_MASK_RADIUS_LABEL = "Outer radius: ";
+
   static final String MASK_TYPE_LABEL = "Masking";
-  private static final String MASK_TYPE_VOLUME_LABEL = "Volume";
+  private static final String MASK_TYPE_FILE_LABEL = "User supplied binary file:";
   static final String MASK_TYPE_SPHERE_LABEL = "Sphere";
   static final String MASK_TYPE_CYLINDER_LABEL = "Cylinder";
 
@@ -60,26 +72,30 @@ final class MaskingPanel implements CylinderOrientationParent,
   private final ButtonGroup bgMaskType = new ButtonGroup();
   private final RadioButton rbMaskTypeNone = new RadioButton("None",
       MatlabParam.MaskType.NONE, bgMaskType);
-  private final RadioButton rbMaskTypeVolume = new RadioButton(MASK_TYPE_VOLUME_LABEL,
+  private final RadioButton rbMaskTypeFile = new RadioButton(MASK_TYPE_FILE_LABEL,
       MatlabParam.MaskType.VOLUME, bgMaskType);
   private final RadioButton rbMaskTypeSphere = new RadioButton(MASK_TYPE_SPHERE_LABEL,
       MatlabParam.MaskType.SPHERE, bgMaskType);
   private final RadioButton rbMaskTypeCylinder = new RadioButton(
       MASK_TYPE_CYLINDER_LABEL, MatlabParam.MaskType.CYLINDER, bgMaskType);
-  private final FileTextField2 ftfMaskTypeVolume;
+  private final FileTextField2 ftfMaskTypeFile;
+  private final LabeledTextField ltfInsideMaskRadius = new LabeledTextField(
+      INSIDE_MASK_RADIUS_LABEL);
+  private final LabeledTextField ltfOutsideMaskRadius = new LabeledTextField(
+      OUTSIDE_MASK_RADIUS_LABEL);
+  private final LabeledTextField ltfZRotation = new LabeledTextField("Z Rotation: ");
+  private final LabeledTextField ltfYRotation = new LabeledTextField("Y Rotation: ");
+  private final CheckBox cbCylinderOrientation = new CheckBox(
+      "Manual Cylinder Orientation");
 
-  private final CylinderOrientationPanel cylinderOrientationPanel;
   private final MaskingParent parent;
-  private final RadiiOfSphereOrCylinderPanel radiiOfSphereOrCylinderPanel;
   private final BaseManager manager;
 
   private MaskingPanel(BaseManager manager, MaskingParent parent) {
     this.manager = manager;
     this.parent = parent;
-    cylinderOrientationPanel = CylinderOrientationPanel.getInstance(manager, this);
-    radiiOfSphereOrCylinderPanel = RadiiOfSphereOrCylinderPanel.getInstance(this);
-    ftfMaskTypeVolume = FileTextField2.getPeetInstance(manager, MASK_TYPE_VOLUME_LABEL
-        + ": ");
+    ftfMaskTypeFile = FileTextField2.getUnlabeledPeetInstance(manager,
+        MASK_TYPE_FILE_LABEL);
   }
 
   static MaskingPanel getInstance(BaseManager manager, MaskingParent parent) {
@@ -93,35 +109,100 @@ final class MaskingPanel implements CylinderOrientationParent,
   private void addListeners() {
     MaskingActionListener actionListener = new MaskingActionListener(this);
     rbMaskTypeNone.addActionListener(actionListener);
-    rbMaskTypeVolume.addActionListener(actionListener);
+    rbMaskTypeFile.addActionListener(actionListener);
     rbMaskTypeSphere.addActionListener(actionListener);
     rbMaskTypeCylinder.addActionListener(actionListener);
+    cbCylinderOrientation.addActionListener(actionListener);
   }
 
   private void createPanel() {
     // local panels
     JPanel pnlMaskType = new JPanel();
     JPanel pnlMaskVolumeRadii = new JPanel();
+    JPanel pnlFile = new JPanel();
+    JPanel pnlMaskTypeNone = new JPanel();
+    JPanel pnlMaskTypeSphere = new JPanel();
+    JPanel pnlMaskTypeCylinder = new JPanel();
+    JPanel pnlSphereCylinder = new JPanel();
+    JPanel pnlRadius = new JPanel();
+    JPanel pnlCylinderOrientation = new JPanel();
+    JPanel pnlCylinderRotation = new JPanel();
+    JPanel pnlCylinderOrientationCheckBox = new JPanel();
+    JPanel pnlCylinderOrientationX = new JPanel();
     // initalization
-    ftfMaskTypeVolume.setFieldWidth(UIParameters.INSTANCE.getFileWidth());
+    ftfMaskTypeFile.setAdjustedFieldWidth(190);
     // root panel
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.X_AXIS));
     pnlRoot.setBorder(new EtchedBorder(MASK_TYPE_LABEL).getBorder());
     pnlRoot.add(pnlMaskType);
-    pnlRoot.add(Box.createRigidArea(FixedDim.x10_y0));
-    pnlRoot.add(pnlMaskVolumeRadii);
-    pnlRoot.add(Box.createRigidArea(FixedDim.x10_y0));
-    pnlRoot.add(cylinderOrientationPanel.getComponent());
+    pnlRoot.add(pnlSphereCylinder);
     // mask type
     pnlMaskType.setLayout(new BoxLayout(pnlMaskType, BoxLayout.Y_AXIS));
-    pnlMaskType.add(rbMaskTypeNone.getComponent());
-    pnlMaskType.add(rbMaskTypeVolume.getComponent());
-    pnlMaskType.add(rbMaskTypeSphere.getComponent());
-    pnlMaskType.add(rbMaskTypeCylinder.getComponent());
-    // mask type volume and sphere details
-    pnlMaskVolumeRadii.setLayout(new BoxLayout(pnlMaskVolumeRadii, BoxLayout.Y_AXIS));
-    pnlMaskVolumeRadii.add(ftfMaskTypeVolume.getRootPanel());
-    pnlMaskVolumeRadii.add(radiiOfSphereOrCylinderPanel.getComponent());
+    pnlMaskType.add(pnlMaskTypeNone);
+    pnlMaskType.add(pnlMaskTypeSphere);
+    pnlMaskType.add(pnlMaskTypeCylinder);
+    pnlMaskType.add(pnlFile);
+    // SphereCylinder
+    pnlSphereCylinder.setLayout(new BoxLayout(pnlSphereCylinder, BoxLayout.Y_AXIS));
+    pnlSphereCylinder.setBorder(new EtchedBorder("Sphere / Cylinder Properties")
+        .getBorder());
+    pnlSphereCylinder.add(pnlRadius);
+    pnlSphereCylinder.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlSphereCylinder.add(pnlCylinderOrientationX);
+    pnlSphereCylinder.add(Box.createRigidArea(new Dimension(0, 3)));
+    // MaskTypeNone
+    pnlMaskTypeNone.setLayout(new BoxLayout(pnlMaskTypeNone, BoxLayout.X_AXIS));
+    pnlMaskTypeNone.setAlignmentX(Box.RIGHT_ALIGNMENT);
+    pnlMaskTypeNone.add(rbMaskTypeNone.getComponent());
+    pnlMaskTypeNone.add(Box.createHorizontalGlue());
+    // MaskTypeSphere
+    pnlMaskTypeSphere.setLayout(new BoxLayout(pnlMaskTypeSphere, BoxLayout.X_AXIS));
+    pnlMaskTypeSphere.setAlignmentX(Box.RIGHT_ALIGNMENT);
+    pnlMaskTypeSphere.add(rbMaskTypeSphere.getComponent());
+    pnlMaskTypeSphere.add(Box.createHorizontalGlue());
+    // MaskTypeCylinder
+    pnlMaskTypeCylinder.setLayout(new BoxLayout(pnlMaskTypeCylinder, BoxLayout.X_AXIS));
+    pnlMaskTypeCylinder.setAlignmentX(Box.RIGHT_ALIGNMENT);
+    pnlMaskTypeCylinder.add(rbMaskTypeCylinder.getComponent());
+    pnlMaskTypeCylinder.add(Box.createHorizontalGlue());
+    // File
+    pnlFile.setLayout(new BoxLayout(pnlFile, BoxLayout.X_AXIS));
+    pnlFile.add(rbMaskTypeFile.getComponent());
+    pnlFile.add(ftfMaskTypeFile.getRootPanel());
+    pnlFile.add(Box.createRigidArea(FixedDim.x10_y0));
+    // radius
+    pnlRadius.setLayout(new BoxLayout(pnlRadius, BoxLayout.X_AXIS));
+    pnlRadius.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlRadius.add(ltfInsideMaskRadius.getContainer());
+    pnlRadius.add(Box.createRigidArea(FixedDim.x40_y0));
+    pnlRadius.add(ltfOutsideMaskRadius.getContainer());
+    pnlRadius.add(Box.createRigidArea(FixedDim.x40_y0));
+    // CylinderOrientationX
+    pnlCylinderOrientationX.setLayout(new BoxLayout(pnlCylinderOrientationX,
+        BoxLayout.X_AXIS));
+    pnlCylinderOrientationX.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlCylinderOrientationX.add(pnlCylinderOrientation);
+    pnlCylinderOrientationX.add(Box.createRigidArea(new Dimension(30, 0)));
+    // CylinderOrientation
+    pnlCylinderOrientation.setLayout(new BoxLayout(pnlCylinderOrientation,
+        BoxLayout.Y_AXIS));
+    pnlCylinderOrientation.setBorder(BorderFactory.createEtchedBorder());
+    pnlCylinderOrientation.add(pnlCylinderOrientationCheckBox);
+    pnlCylinderOrientation.add(pnlCylinderRotation);
+    pnlCylinderOrientation.add(Box.createRigidArea(FixedDim.x0_y5));
+    // pnlCylinderOrientationCheckBox
+    pnlCylinderOrientationCheckBox.setLayout(new BoxLayout(
+        pnlCylinderOrientationCheckBox, BoxLayout.X_AXIS));
+    pnlCylinderOrientationCheckBox.setAlignmentX(Box.RIGHT_ALIGNMENT);
+    pnlCylinderOrientationCheckBox.add(cbCylinderOrientation);
+    pnlCylinderOrientationCheckBox.add(Box.createHorizontalGlue());
+    // cylinder rotation
+    pnlCylinderRotation.setLayout(new BoxLayout(pnlCylinderRotation, BoxLayout.X_AXIS));
+    pnlCylinderRotation.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlCylinderRotation.add(ltfZRotation.getContainer());
+    pnlCylinderRotation.add(Box.createRigidArea(FixedDim.x40_y0));
+    pnlCylinderRotation.add(ltfYRotation.getContainer());
+    pnlCylinderRotation.add(Box.createRigidArea(FixedDim.x10_y0));
   }
 
   Component getComponent() {
@@ -133,9 +214,16 @@ final class MaskingPanel implements CylinderOrientationParent,
    * updateDisplay() in subordinate panels.
    */
   void updateDisplay() {
-    ftfMaskTypeVolume.setEnabled(rbMaskTypeVolume.isSelected());
-    radiiOfSphereOrCylinderPanel.updateDisplay();
-    cylinderOrientationPanel.updateDisplay();
+    ftfMaskTypeFile.setEnabled(rbMaskTypeFile.isSelected());
+    boolean sphereCylinder = rbMaskTypeSphere.isSelected()
+        || rbMaskTypeCylinder.isSelected();
+    ltfInsideMaskRadius.setEnabled(sphereCylinder);
+    ltfOutsideMaskRadius.setEnabled(sphereCylinder);
+    cbCylinderOrientation.setEnabled(sphereCylinder);
+    boolean cylinder = cbCylinderOrientation.isEnabled()
+        && cbCylinderOrientation.isSelected();
+    ltfZRotation.setEnabled(cylinder);
+    ltfYRotation.setEnabled(cylinder);
   }
 
   /**
@@ -147,14 +235,14 @@ final class MaskingPanel implements CylinderOrientationParent,
    */
   void convertCopiedPaths(final String origDatasetDir) {
     String propertyUserDir = manager.getPropertyUserDir();
-    if (!ftfMaskTypeVolume.isEmpty()) {
-      ftfMaskTypeVolume.setText(FilePath.getRerootedRelativePath(origDatasetDir,
-          propertyUserDir, ftfMaskTypeVolume.getText()));
+    if (!ftfMaskTypeFile.isEmpty()) {
+      ftfMaskTypeFile.setText(FilePath.getRerootedRelativePath(origDatasetDir,
+          propertyUserDir, ftfMaskTypeFile.getText()));
     }
   }
 
   public boolean isIncorrectPaths() {
-    return !ftfMaskTypeVolume.isEmpty() && !ftfMaskTypeVolume.exists();
+    return !ftfMaskTypeFile.isEmpty() && !ftfMaskTypeFile.exists();
   }
 
   /**
@@ -166,14 +254,16 @@ final class MaskingPanel implements CylinderOrientationParent,
    */
   boolean fixIncorrectPaths(final boolean choosePathEveryRow) {
     if (isIncorrectPaths()) {
-      return parent.fixIncorrectPath(ftfMaskTypeVolume, choosePathEveryRow);
+      return parent.fixIncorrectPath(ftfMaskTypeFile, choosePathEveryRow);
     }
     return true;
   }
 
   public void getParameters(final PeetMetaData metaData) {
-    cylinderOrientationPanel.getParameters(metaData);
-    metaData.setMaskTypeVolume(ftfMaskTypeVolume.getText());
+    metaData.setMaskModelPtsZRotation(ltfZRotation.getText());
+    metaData.setMaskModelPtsYRotation(ltfYRotation.getText());
+    metaData.setMaskTypeVolume(ftfMaskTypeFile.getText());
+    metaData.setManualCylinderOrientation(cbCylinderOrientation.isSelected());
   }
 
   /**
@@ -185,8 +275,10 @@ final class MaskingPanel implements CylinderOrientationParent,
    * @param metaData
    */
   public void setParameters(final ConstPeetMetaData metaData) {
-    ftfMaskTypeVolume.setText(metaData.getMaskTypeVolume());
-    cylinderOrientationPanel.setParameters(metaData);
+    ftfMaskTypeFile.setText(metaData.getMaskTypeVolume());
+    ltfZRotation.setText(metaData.getMaskModelPtsZRotation());
+    ltfYRotation.setText(metaData.getMaskModelPtsYRotation());
+    cbCylinderOrientation.setSelected(metaData.isManualCylinderOrientation());
   }
 
   /**
@@ -207,8 +299,8 @@ final class MaskingPanel implements CylinderOrientationParent,
       rbMaskTypeNone.setSelected(true);
     }
     else if (maskType == MatlabParam.MaskType.VOLUME) {
-      rbMaskTypeVolume.setSelected(true);
-      ftfMaskTypeVolume.setText(maskTypeValue);
+      rbMaskTypeFile.setSelected(true);
+      ftfMaskTypeFile.setText(maskTypeValue);
     }
     else if (maskType == MatlabParam.MaskType.SPHERE) {
       rbMaskTypeSphere.setSelected(true);
@@ -216,40 +308,36 @@ final class MaskingPanel implements CylinderOrientationParent,
     else if (maskType == MatlabParam.MaskType.CYLINDER) {
       rbMaskTypeCylinder.setSelected(true);
     }
-    cylinderOrientationPanel.setParameters(matlabParam);
-    radiiOfSphereOrCylinderPanel.setParameters(matlabParam);
+    if (!matlabParam.isMaskModelPtsEmpty()) {
+      cbCylinderOrientation.isSelected();
+      ltfZRotation.setText(matlabParam.getMaskModelPtsZRotation());
+      ltfYRotation.setText(matlabParam.getMaskModelPtsYRotation());
+    }
+    ltfInsideMaskRadius.setText(matlabParam.getInsideMaskRadius());
+    ltfOutsideMaskRadius.setText(matlabParam.getOutsideMaskRadius());
   }
 
   public void getParameters(final MatlabParam matlabParam) {
-    if (rbMaskTypeVolume.isSelected()) {
-      matlabParam.setMaskType(ftfMaskTypeVolume.getText());
+    if (rbMaskTypeFile.isSelected()) {
+      matlabParam.setMaskType(ftfMaskTypeFile.getText());
     }
     else {
       matlabParam.setMaskType(((RadioButton.RadioButtonModel) bgMaskType.getSelection())
           .getEnumeratedType());
     }
-    cylinderOrientationPanel.getParameters(matlabParam);
-    radiiOfSphereOrCylinderPanel.getParameters(matlabParam);
+    if (cbCylinderOrientation.isEnabled() && cbCylinderOrientation.isSelected()) {
+      matlabParam.setMaskModelPtsZRotation(ltfZRotation.getText());
+      matlabParam.setMaskModelPtsYRotation(ltfYRotation.getText());
+    }
+    else {
+      matlabParam.clearMaskModelPts();
+    }
+    matlabParam.setInsideMaskRadius(ltfInsideMaskRadius.getText());
+    matlabParam.setOutsideMaskRadius(ltfOutsideMaskRadius.getText());
   }
 
   void setDefaults() {
     rbMaskTypeNone.setSelected(true);
-  }
-
-  public boolean isReferenceFileSelected() {
-    return parent.isReferenceFileSelected();
-  }
-
-  public int getVolumeTableSize() {
-    return parent.getVolumeTableSize();
-  }
-
-  public boolean isMaskTypeSphereSelected() {
-    return rbMaskTypeSphere.isSelected();
-  }
-
-  public boolean isMaskTypeCylinderSelected() {
-    return rbMaskTypeCylinder.isSelected();
   }
 
   /**
@@ -259,20 +347,44 @@ final class MaskingPanel implements CylinderOrientationParent,
   String validateRun() {
     // Masking
     // volume
-    if (rbMaskTypeVolume.isSelected() && ftfMaskTypeVolume.isEmpty()) {
-      return "In " + MaskingPanel.MASK_TYPE_LABEL + ", " + MASK_TYPE_VOLUME_LABEL
-          + " is required when " + MASK_TYPE_VOLUME_LABEL + " "
+    if (rbMaskTypeFile.isSelected() && ftfMaskTypeFile.isEmpty()) {
+      return "In " + MaskingPanel.MASK_TYPE_LABEL + ", " + MASK_TYPE_FILE_LABEL
+          + " is required when " + MASK_TYPE_FILE_LABEL + " "
           + MaskingPanel.MASK_TYPE_LABEL + " is selected. ";
     }
     // validate radii
-    String errorMessage = radiiOfSphereOrCylinderPanel.validateRun();
-    if (errorMessage != null) {
-      return errorMessage;
+    if (((rbMaskTypeSphere.isSelected() || rbMaskTypeCylinder.isSelected()))
+        && ltfInsideMaskRadius.isEnabled() && ltfInsideMaskRadius.isEmpty()
+        && ltfOutsideMaskRadius.isEnabled() && ltfOutsideMaskRadius.isEmpty()) {
+      return "In " + MaskingPanel.MASK_TYPE_LABEL + ", " + INSIDE_MASK_RADIUS_LABEL
+          + " and/or " + OUTSIDE_MASK_RADIUS_LABEL + " are required when either "
+          + MaskingPanel.MASK_TYPE_SPHERE_LABEL + " or "
+          + MaskingPanel.MASK_TYPE_CYLINDER_LABEL + " is selected.";
     }
     // validate cylinder orientation
-    errorMessage = cylinderOrientationPanel.validateRun();
-    if (errorMessage != null) {
-      return errorMessage;
+    EtomoNumber rotation = new EtomoNumber(EtomoNumber.Type.FLOAT);
+    // validate Z Rotation
+    if (ltfZRotation.isEnabled()) {
+      rotation.set(ltfZRotation.getText());
+      String description = ltfZRotation.getLabel() + " field in " + pnlRoot.getName();
+      if (!rotation.isValid()) {
+        return description + " must be numeric - " + rotation.getInvalidReason() + ".";
+
+      }
+      if (!rotation.isNull()) {
+        float fZRotation = Math.abs(rotation.getFloat());
+        if (fZRotation < 0 || fZRotation > 90) {
+          return "Valid values for " + description + " are 0 to 90.";
+        }
+      }
+    }
+    // validate Y Rotation
+    if (ltfZRotation.isEnabled()) {
+      rotation.set(ltfZRotation.getText());
+      if (!rotation.isValid()) {
+        return ltfYRotation.getLabel() + " field in " + pnlRoot.getName()
+            + " must be numeric - " + rotation.getInvalidReason() + ".";
+      }
     }
     return null;
   }
@@ -280,24 +392,44 @@ final class MaskingPanel implements CylinderOrientationParent,
   private void action(final String actionCommand,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (actionCommand.equals(rbMaskTypeNone.getActionCommand())
-        || actionCommand.equals(rbMaskTypeVolume.getActionCommand())
+        || actionCommand.equals(rbMaskTypeFile.getActionCommand())
         || actionCommand.equals(rbMaskTypeSphere.getActionCommand())
-        || actionCommand.equals(rbMaskTypeCylinder.getActionCommand())) {
+        || actionCommand.equals(rbMaskTypeCylinder.getActionCommand())
+        || actionCommand.equals(cbCylinderOrientation.getActionCommand())) {
       parent.updateDisplay();
     }
   }
 
   private void setTooltips() {
+    ReadOnlyAutodoc autodoc = null;
+    try {
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM, AxisID.ONLY);
+    }
+    catch (FileNotFoundException except) {
+      except.printStackTrace();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+    }
+    catch (LogFile.LockException except) {
+      except.printStackTrace();
+    }
+    String tooltip = EtomoAutodoc.getTooltip(autodoc, "maskModelPts");
+    ltfZRotation.setToolTipText(tooltip);
+    ltfYRotation.setToolTipText(tooltip);
     rbMaskTypeNone.setToolTipText("No reference masking");
-    rbMaskTypeVolume.setToolTipText("Mask the reference using a specified file");
+    rbMaskTypeFile.setToolTipText("Mask the reference using a specified file");
     rbMaskTypeSphere
         .setToolTipText("Mask the reference using inner and out spherical shells "
             + "of specified radii.");
     rbMaskTypeCylinder
         .setToolTipText("Mask the reference using inner and out cylindrical "
             + "shells of specified radii.");
-    ftfMaskTypeVolume
-        .setToolTipText("The name of file containing the binary mask in MRC " + "format.");
+    ftfMaskTypeFile.setToolTipText("The name of file containing the binary mask in MRC "
+        + "format.");
+    ltfInsideMaskRadius.setToolTipText("Inner radius of the mask region in pixels.");
+    ltfOutsideMaskRadius
+        .setToolTipText("Inner and outer radii of the mask region in pixels.");
   }
 
   private static final class MaskingActionListener implements ActionListener {

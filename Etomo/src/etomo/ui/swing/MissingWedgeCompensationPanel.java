@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 
 import etomo.storage.MatlabParam;
@@ -100,9 +101,13 @@ final class MissingWedgeCompensationPanel {
     pnlVolumeSize.setBoxLayout(BoxLayout.X_AXIS);
     pnlVolumeSize
         .setBorder(new EtchedBorder(VOLUME_SIZE_LABEL + " (Voxels)").getBorder());
+    pnlVolumeSize.add(Box.createRigidArea(FixedDim.x5_y0));
     pnlVolumeSize.add(ltfVolumeSizeX.getContainer());
+    pnlVolumeSize.add(Box.createRigidArea(FixedDim.x40_y0));
     pnlVolumeSize.add(ltfVolumeSizeY.getContainer());
+    pnlVolumeSize.add(Box.createRigidArea(FixedDim.x40_y0));
     pnlVolumeSize.add(ltfVolumeSizeZ.getContainer());
+    pnlVolumeSize.add(Box.createRigidArea(FixedDim.x40_y0));
     // pnlMissingWedgeCompensation
     pnlMissingWedgeCompensation.setBoxLayout(BoxLayout.Y_AXIS);
     pnlMissingWedgeCompensation.setBorder(new EtchedBorder(
