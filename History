@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/15/11: Made movie making work when only the clip planes change.
+
 12/6/11: Fixed eTomo - PEET copy project functionality so that it continues to
 point to the same files.
 
