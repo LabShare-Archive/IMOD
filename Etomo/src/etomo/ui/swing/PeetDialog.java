@@ -476,7 +476,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
       MatlabParam.PARTICLE_PER_CPU_DEFAULT);
   private final IterationTable iterationTable;
   private final ButtonGroup bgInitMotl = new ButtonGroup();
-  private final RadioButton rbInitMotlZero = new RadioButton("Set all angles to zero",
+  private final RadioButton rbInitMotlZero = new RadioButton("Set all angles to 0",
       MatlabParam.InitMotlCode.ZERO, bgInitMotl);
   private final RadioButton rbInitAlignParticleYAxes = new RadioButton(
       "Align particle Y axes", MatlabParam.InitMotlCode.X_AND_Z_AXIS, bgInitMotl);
