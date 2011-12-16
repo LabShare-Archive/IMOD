@@ -188,6 +188,8 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
       + ".Multiparticle.Groups");
   private final EtomoNumber referenceMultiparticleParticles = new EtomoNumber(
       REFERENCE_KEY + ".Multiparticle.Particles");
+  private final EtomoBoolean2 manualCylinderOrientation = new EtomoBoolean2(
+      "MaskType.ManualCylinderOrientation");
 
   public PeetMetaData() {
     fileExtension = DatasetFiles.PEET_DATA_FILE_EXT;
@@ -216,6 +218,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     revisionNumber.set(input.revisionNumber);
     referenceMultiparticleGroups.set(input.referenceMultiparticleGroups);
     referenceMultiparticleParticles.set(input.referenceMultiparticleParticles);
+    manualCylinderOrientation.set(input.manualCylinderOrientation);
   }
 
   public String getMetaDataFileName() {
@@ -303,6 +306,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     nWeightGroup.load(props, prepend);
     tiltRange.load(props, prepend);
     referenceMultiparticleGroups.load(props, prepend);
+    manualCylinderOrientation.load(props, prepend);
 
     revisionNumber.load(props, prepend);
     if (revisionNumber.isNull() || revisionNumber.lt(LATEST_VERSION)) {
@@ -352,6 +356,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     revisionNumber.store(props, prepend);
     referenceMultiparticleGroups.store(props, prepend);
     referenceMultiparticleParticles.store(props, prepend);
+    manualCylinderOrientation.store(props, prepend);
   }
 
   public void setRootName(final String input) {
@@ -374,6 +379,10 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     maskTypeVolume.set(input);
   }
 
+  public void setManualCylinderOrientation(final boolean input) {
+    manualCylinderOrientation.set(input);
+  }
+
   public ConstEtomoNumber getMaskModelPtsZRotation() {
     return maskModelPtsZRotation;
   }
@@ -384,6 +393,10 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
 
   public String getMaskTypeVolume() {
     return maskTypeVolume.toString();
+  }
+
+  public boolean isManualCylinderOrientation() {
+    return manualCylinderOrientation.is();
   }
 
   public ConstEtomoNumber getEdgeShift() {
