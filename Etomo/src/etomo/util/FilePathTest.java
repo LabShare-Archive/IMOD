@@ -221,7 +221,7 @@ public class FilePathTest extends TestCase {
     assertEquals(
         "Relative filePath is rerooted with a relative path to newRoot (same drive in windows)",
         FilePath.getRerootedRelativePath(drive + xyzPath, drive + abcPath, relZPath),
-        drive + relUp3 + xyzPath + File.separator + relZPath);
+        relUp3 + xyzPath + File.separator + relZPath);
     assertEquals(
         "..'s should be removed before the elative filePath is rerooted",
         FilePath.getRerootedRelativePath(drive + xyzPath, drive + abcPath, relUp3
