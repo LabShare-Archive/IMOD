@@ -18,8 +18,8 @@ The most common case requiring this is when the models
 have last been loaded on different subsets of the same image file.  The
 default assumption is that the models were loaded on either the same image
 file or image files with congruent coordinate systems.  For example, an image
-file produced by rotatevol(1) has its header entries adjusted so that its
-coordinate system is congruent with that of the original image file.
+file produced by Trimvol(1) or Rotatevol(1) has its header entries adjusted so
+that its coordinate system is congruent with that of the original image file.
 Squeezevol(1) also produces a file with a congruent coordinate system.
 When joining models coming from such files, the program will take all
 coordinate differences between the models into account: shifts, rotations, and
