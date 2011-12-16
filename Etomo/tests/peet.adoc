@@ -247,17 +247,17 @@ assert.enabled.rb.end-points-of-contour=
 
 [function = initial-motive-list]
 #check value
-assert.rb.set-all-angles-to-0=on
+assert.rb.set-all-angles-to-0=off
 assert.rb.align-particle-y-axes=off
-assert.rb.user-supplied-csv-files=off
+assert.rb.user-supplied-csv-files=on
 assert.rb.uniform-random-rotations=off
-assert.rb.random-axial=off
+assert.rb.random-axial-rotations=off
 #check enable/disabled
 assert.enabled.rb.set-all-angles-to-0=
 assert.enabled.rb.align-particle-y-axes=
 assert.enabled.rb.user-supplied-csv-files=
 assert.enabled.rb.uniform-random-rotations=
-assert.enabled.rb.random-axial=
+assert.enabled.rb.random-axial-rotations=
 
 
 [function = runtab]
@@ -537,13 +537,14 @@ rb.uniform-random-rotations=
 save=
 assert.contains.file=%{dataset}.prm|initMOTL = 3
 #test uniform random rotations
-rb.random-axial=
+rb.random-axial-rotations=
 save=
 assert.contains.file=%{dataset}.prm|initMOTL = 4
-rb.set-all-angles-to-0=
+rb.user-supplied-csv-files=
 
 
 [function = particle-y-axis-check-prm]
+rb.tomogram-y-axis=
 save=
 assert.contains.file=%{dataset}.prm|yaxisType = 0
 rb.particle-model-points=
