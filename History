@@ -4,6 +4,8 @@ IMOD History
 to another; multiple saved isosurface objects can be selected in Model view
 with Ctrl-right mouse; and Edit-Object-Combine will combine them.
 
+2/15/11: Made movie making work when only the clip planes change.
+
 12/9/11: Fixed problem with vmstopy when command line ends in a quote.
 
 12/9/11: Fixed problems with division by zero in routine that solves linear

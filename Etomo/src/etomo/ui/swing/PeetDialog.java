@@ -627,6 +627,12 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     return DIALOG_TYPE;
   }
 
+  public void convertCopiedPaths(final String origDatasetDir) {
+    volumeTable.convertCopiedPaths(origDatasetDir);
+    referencePanel.convertCopiedPaths(origDatasetDir);
+    maskingPanel.convertCopiedPaths(origDatasetDir);
+  }
+
   public void checkIncorrectPaths() {
     boolean incorrectPaths = false;
     if (volumeTable.isIncorrectPaths()) {
@@ -1044,7 +1050,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     pnlReferenceAndMissingWedgeCompensation.setLayout(new BoxLayout(
         pnlReferenceAndMissingWedgeCompensation, BoxLayout.X_AXIS));
     pnlReferenceAndMissingWedgeCompensation.add(referencePanel.getComponent());
-    pnlReferenceAndMissingWedgeCompensation.add(Box.createRigidArea(FixedDim.x20_y0));
     pnlReferenceAndMissingWedgeCompensation.add(missingWedgeCompensationPanel
         .getComponent());
     // init MOTL

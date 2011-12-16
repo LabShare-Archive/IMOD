@@ -16,7 +16,6 @@ import javax.swing.JPanel;
 
 import etomo.BaseManager;
 import etomo.util.FilePath;
-import etomo.util.Utilities;
 
 /**
 * <p>Description: Like FileTextField but handles relative paths</p>
@@ -43,9 +42,9 @@ final class FileTextField2 implements FileTextFieldInterface {
 
   private final SimpleButton button;
   private final TextField field;
-  private final String propertyUserDir;
   private final JLabel label;
   private final boolean labeled;
+  private final BaseManager manager;
 
   private String currentDirectory = null;
 
@@ -62,8 +61,8 @@ final class FileTextField2 implements FileTextFieldInterface {
     }
     field = new TextField(label);
     this.label = new JLabel(label);
-    propertyUserDir = manager.getPropertyUserDir();
     this.labeled = labeled;
+    this.manager = manager;
   }
 
   static FileTextField2 getUnlabeledInstance(final BaseManager manager, final String name) {
@@ -131,7 +130,7 @@ final class FileTextField2 implements FileTextFieldInterface {
 
   private void action() {
     JFileChooser chooser = new FileChooser(new File(
-        currentDirectory == null ? propertyUserDir : currentDirectory));
+        currentDirectory == null ? manager.getPropertyUserDir() : currentDirectory));
     chooser.setDialogTitle(label.getText());
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     int returnVal = chooser.showOpenDialog(panel);
@@ -140,8 +139,12 @@ final class FileTextField2 implements FileTextFieldInterface {
     }
   }
 
-  void setFieldWidth(final double width) {
-    field.setTextPreferredWidth(width);
+  /**
+   * Sets field width with font adjustment.
+   * @param width
+   */
+  void setAdjustedFieldWidth(final double width) {
+    field.setTextPreferredWidth(width * UIParameters.INSTANCE.getFontSizeAdjustment());
   }
 
   boolean isEmpty() {
@@ -149,15 +152,16 @@ final class FileTextField2 implements FileTextFieldInterface {
   }
 
   boolean exists() {
-    return Utilities.getFileFromPath(propertyUserDir, field.getText()).exists();
+    return FilePath.getFileFromPath(manager.getPropertyUserDir(), field.getText())
+        .exists();
   }
 
   public File getFile() {
-    return Utilities.getFileFromPath(propertyUserDir, field.getText());
+    return FilePath.getFileFromPath(manager.getPropertyUserDir(), field.getText());
   }
 
   public void setFile(final File file) {
-    field.setText(FilePath.getRelativePath(propertyUserDir, file));
+    field.setText(FilePath.getRelativePath(manager.getPropertyUserDir(), file));
   }
 
   String getText() {

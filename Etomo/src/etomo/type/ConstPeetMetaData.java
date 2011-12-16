@@ -94,4 +94,6 @@ public interface ConstPeetMetaData {
   public String getReferenceMultiparticleGroups();
 
   public String getReferenceMultiparticleParticles();
+
+  public boolean isManualCylinderOrientation();
 }
