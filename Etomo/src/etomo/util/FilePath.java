@@ -61,7 +61,12 @@ public final class FilePath {
     else {
       tempPath = path.toString();
     }
-    tempArray = tempPath.split(File.separator);
+    if (File.separator.equals("\\")) {
+      tempArray = tempPath.split("\\" + File.separator);
+    }
+    else {
+      tempArray = tempPath.split(File.separator);
+    }
     pathArray = new ArrayList(tempArray.length);
     for (int i = 0; i < tempArray.length; i++) {
       pathArray.add(tempArray[i]);
@@ -118,12 +123,59 @@ public final class FilePath {
    * @param name
    * @return
    */
-  public static String replaceName(String path, final String name) {
+  public static String replaceName(final String path, final String name) {
     if (!isPath(path)) {
       return name;
     }
-    String retval = new File(new File(path).getParent(), name).getPath();
-    return retval;
+    String newPath = new File(new File(path).getParent(), name).getPath();
+    if (Utilities.isWindowsOS() && FilePath.isRelative(path)) {
+      return FilePath.removeLeadingSeparator(newPath);
+    }
+    return newPath;
+  }
+
+  /**
+   * Returns true if path starts with the path separator.  If the OS is Windows, returns
+   * true if the path separator follows ":".
+   * @param path
+   * @return
+   */
+  private static boolean isRelative(final String path) {
+    return FilePath.getLeadingSeparatorIndex(path) == -1;
+  }
+
+  /**
+   * Returns the index of the path separator at the start of the path (or after ":" on
+   * windows), if it exists.  Otherwise returns -1.
+   * @param path
+   * @return
+   */
+  private static int getLeadingSeparatorIndex(final String path) {
+    int index = 0;
+    if (Utilities.isWindowsOS()) {
+      index = path.indexOf(":");
+      if (index == -1) {
+        index = 0;
+      }
+      else {
+        index++;
+      }
+    }
+    if (path.indexOf(File.separator) == index) {
+      return index;
+    }
+    return -1;
+  }
+
+  private static String removeLeadingSeparator(final String path) {
+    int index = FilePath.getLeadingSeparatorIndex(path);
+    if (index == -1) {
+      return path;
+    }
+    StringBuffer buffer = new StringBuffer();
+    buffer.append(path);
+    buffer.delete(index, index + 1);
+    return buffer.toString();
   }
 
   /**
@@ -143,6 +195,10 @@ public final class FilePath {
     }
     FilePath toPath = new FilePath(toAbsoluteFile.getAbsolutePath());
     return fromPath.getRelativePathTo(toPath);
+  }
+
+  public String toString() {
+    return path.toString();
   }
 
   /**
@@ -186,12 +242,13 @@ public final class FilePath {
    * @param filePath
    * @return
    */
-  private static File getAbsoluteFile(final String fromAbsolutePath, final String filePath) {
-    if (filePath == null || filePath.matches("\\s*")) {
+  private static File getAbsoluteFile(final String fromAbsolutePath,
+      final String toRelativePath) {
+    if (toRelativePath == null || toRelativePath.matches("\\s*")) {
       return new File(fromAbsolutePath);
     }
     FilePath fromPath = new FilePath(fromAbsolutePath);
-    FilePath toPath = new FilePath(filePath);
+    FilePath toPath = new FilePath(toRelativePath);
     String output = fromPath.getAbsolutePathTo(toPath);
     return new File(output);
   }
@@ -204,11 +261,10 @@ public final class FilePath {
    */
   private String getAbsolutePathTo(final FilePath toRelPath) {
     // Make sure that the drives are the same
-    if (drive != null || toRelPath.drive != null) {
-      if (drive == null || toRelPath.drive == null || !drive.equals(toRelPath.drive)) {
-        // Paths are too disimilar - return absolute to-path
-        return new File(toRelPath.path.toString()).getAbsolutePath();
-      }
+    if (Utilities.isWindowsOS() && toRelPath.drive != null && drive != null
+        && !drive.equals(toRelPath.drive)) {
+      // Paths are too dissimilar - return absolute to-path
+      return new File(toRelPath.path.toString()).getAbsolutePath();
     }
     if (pathArray == null || pathArray.size() == 0) {
       // No from-path - return absolute to-path
@@ -216,6 +272,11 @@ public final class FilePath {
     }
     // If the to path doesn't contain ..'s then use path/toRelPath.path.
     if (toRelPath.path.indexOf("..") == -1) {
+      if (debug) {
+        System.out
+            .println("A:new File(path.toString(), toRelPath.path.toString()).getAbsolutePath():"
+                + new File(path.toString(), toRelPath.path.toString()).getAbsolutePath());
+      }
       return new File(path.toString(), toRelPath.path.toString()).getAbsolutePath();
     }
     // Go up the from path by removing ..'s at the beginning of the to path.
