@@ -119,6 +119,7 @@ final class ReferencePanel {
     pnlRoot.add(pnlParticle);
     pnlRoot.add(pnlFile);
     pnlRoot.add(pnlMultiparticle);
+    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y15));
     // particle panel
     pnlParticle.setLayout(new BoxLayout(pnlParticle, BoxLayout.X_AXIS));
     pnlParticle.add(rtfParticle.getContainer());

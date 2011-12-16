@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.storage.AutodocFilter;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
@@ -316,6 +317,9 @@ public final class AutodocFactory {
     AutodocFilter filter = new AutodocFilter();
     if (!filter.accept(autodocFile)) {
       throw new IllegalArgumentException(autodocFile + " is not an autodoc.");
+    }
+    if (EtomoDirector.INSTANCE.getArguments().isTest()) {
+      System.err.println("autodoc file:" + autodocFile.getAbsolutePath());
     }
     Autodoc autodoc = getExistingUITestAxisAutodoc(autodocFile);
     if (autodoc != null) {

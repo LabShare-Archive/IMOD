@@ -32,7 +32,8 @@ run.function.volume-size=
 [[if = test-gui]]
 	run.function.missing-wedge-compensation=
 	run.function.masking=
-	run.function.y-axis-type=
+	run.function.particle-y-axis=
+	run.function.initial-motive-list=
 [[]]
 
 
@@ -70,7 +71,7 @@ bn.up=
   assert.disabled.tf.volume-table-1-initial=
   assert.disabled.bn.volume-table-1-initial=
 [[]]
-rb.use-files=
+rb.user-supplied-csv-files=
 bn.volume-table-1-initial=
 wait.file-chooser.initial-motl=%{dataset}-a-initMOTL.csv
 bn.volume-table-2-initial=
@@ -233,16 +234,30 @@ run.function.setup-test-run-error=
 rb.none=
 
 
-[function = y-axis-type]
-if.not.var.test-values.return=
-rb.end-points-of-contour=
-#check object empty error
-run.function.setup-test-run-error=
-tf.object-#=1
-#check contour empty error
-run.function.setup-test-run-error=
-tf.object-#=
-rb.original-y-axis=
+[function = particle-y-axis]
+#check values
+assert.rb.tomogram-y-axis=on
+assert.rb.particle-model-points=off
+assert.rb.end-points-of-contour=off
+#check enabled/disabled
+assert.enabled.rb.tomogram-y-axis=
+assert.enabled.rb.particle-model-points=
+assert.enabled.rb.end-points-of-contour=
+
+
+[function = initial-motive-list]
+#check value
+assert.rb.set-all-angles-to-0=off
+assert.rb.align-particle-y-axes=off
+assert.rb.user-supplied-csv-files=on
+assert.rb.uniform-random-rotations=off
+assert.rb.random-axial-rotations=off
+#check enable/disabled
+assert.enabled.rb.set-all-angles-to-0=
+assert.enabled.rb.align-particle-y-axes=
+assert.enabled.rb.user-supplied-csv-files=
+assert.enabled.rb.uniform-random-rotations=
+assert.enabled.rb.random-axial-rotations=
 
 
 [function = runtab]
@@ -406,8 +421,8 @@ run.function.volume-table-check-prm=
 run.function.reference-check-prm=
 run.function.missing-wedge-compensation-check-prm=
 run.function.masking-check-prm=
+run.function.particle-y-axis-check-prm=
 run.function.initial-motive-list-check-prm=
-run.function.y-axis-type-check-prm=
 
 
 [function = runtab-check-prm]
@@ -506,38 +521,39 @@ rb.none=
 
 
 [function = initial-motive-list-check-prm]
-#test initialize Z axis
-rb.initialize-z-axis=
+rb.set-all-angles-to-0=
 save=
-assert.contains.file=%{dataset}.prm|initMOTL = 1
+assert.contains.file=%{dataset}.prm|initMOTL = 0
 #test initialize X and Z axes
-rb.initialize-x-and-z-axes=
+rb.align-particle-y-axes=
 save=
 assert.contains.file=%{dataset}.prm|initMOTL = 2
+#use files is tested in volume-table-check-prm
+rb.user-supplied-csv-files=
+save=
+assert.contains.file=%{dataset}.prm|initMOTL = {'%{dataset}-a-initMOTL.csv', '%{dataset}-b-initMOTL.csv', '%{dataset}-a-initMOTL.csv'}
 #test uniform random rotations
 rb.uniform-random-rotations=
 save=
 assert.contains.file=%{dataset}.prm|initMOTL = 3
-#use files is tested in volume-table-check-prm
-rb.use-files=
+#test uniform random rotations
+rb.random-axial-rotations=
 save=
-assert.contains.file=%{dataset}.prm|initMOTL = {'%{dataset}-a-initMOTL.csv', '%{dataset}-b-initMOTL.csv', '%{dataset}-a-initMOTL.csv'}
+assert.contains.file=%{dataset}.prm|initMOTL = 4
+rb.user-supplied-csv-files=
 
 
-[function = y-axis-type-check-prm]
-#test particle model points
+[function = particle-y-axis-check-prm]
+rb.tomogram-y-axis=
+save=
+assert.contains.file=%{dataset}.prm|yaxisType = 0
 rb.particle-model-points=
 save=
 assert.contains.file=%{dataset}.prm|yaxisType = 1
-#test end ponts of contour
 rb.end-points-of-contour=
-tf.object-#=2
-tf.contour-#=3
 save=
 assert.contains.file=%{dataset}.prm|yaxisType = 2
-assert.contains.file=%{dataset}.prm|yaxisObjectNum = 2
-assert.contains.file=%{dataset}.prm|yaxisContourNum = 3
-rb.original-y-axis=
+rb.tomogram-y-axis=
 
 
 [function = iteration-table-check-prm]
