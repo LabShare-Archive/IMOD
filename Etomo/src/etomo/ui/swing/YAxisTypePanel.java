@@ -115,14 +115,6 @@ final class YAxisTypePanel {
   }
 
   /**
-   * Called from parent.updateDisplay(). Enabled/disables fields.
-   */
-  void updateDisplay() {
-    boolean volumeRows = !parent.isVolumeTableEmpty();
-    rbYAxisTypeContour.setEnabled(volumeRows);
-  }
-
-  /**
    * Load data from MatlabParamFile.  Load only active data after the meta data
    * has been loaded.
    * Do not rely on whether fields are enabled to make decisions in this
