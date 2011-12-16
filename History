@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/15/11: In eTomo - PEET, upgraded Y axis and initial motive list panels.
+(Bug# 1569)
+
 2/15/11: Made movie making work when only the clip planes change.
 
 12/9/11: Fixed problem with vmstopy when command line ends in a quote.
