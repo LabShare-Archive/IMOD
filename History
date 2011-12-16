@@ -1,20 +1,24 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-12/9/11: In eTomo - PEET upgraded the masking panel.(Bug# 1568)
+2/15/11: In eTomo - PEET, upgraded Y axis and initial motive list panels.
+(Bug# 1569)
 
-12/6/11: Fixed eTomo - PEET copy project functionality so that it continues to
-point to the same files.
+2/15/11: Made movie making work when only the clip planes change.
 
 12/9/11: Fixed problem with vmstopy when command line ends in a quote.
 
-
 12/9/11: Fixed problems with division by zero in routine that solves linear
 equations with outlier removal for solvematch, findwarp, and refinematch.
+
+12/9/11: In eTomo - PEET upgraded the masking panel.(Bug# 1568)
 
 12/8/11: Made processchunks run programs with python.  Added options to
 vmstopy for setting nice and environment variables.
 
 12/8/11: Made bead fixer run tiltalign with vmstopy.
+
+12/6/11: Fixed eTomo - PEET copy project functionality so that it continues to
+point to the same files.
 
 12/5/11: Improved the appearance of eTomo - PEET.(Bug# 1583)
 

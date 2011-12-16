@@ -1579,9 +1579,13 @@ public final class MatlabParam {
 
   public static final class InitMotlCode implements EnumeratedType {
     public static final InitMotlCode ZERO = new InitMotlCode(0);
+    /**
+     * @deprecated convert 1 to 2
+     */
     public static final InitMotlCode Z_AXIS = new InitMotlCode(1);
     public static final InitMotlCode X_AND_Z_AXIS = new InitMotlCode(2);
     public static final InitMotlCode RANDOM_ROTATIONS = new InitMotlCode(3);
+    public static final InitMotlCode RANDOM_AXIAL_ROTATIONS = new InitMotlCode(4);
     public static final InitMotlCode DEFAULT = ZERO;
 
     private final EtomoNumber value = new EtomoNumber();
@@ -1613,7 +1617,7 @@ public final class MatlabParam {
         return ZERO;
       }
       if (Z_AXIS.value.equals(value)) {
-        return Z_AXIS;
+        return X_AND_Z_AXIS;
       }
       if (X_AND_Z_AXIS.value.equals(value)) {
         return X_AND_Z_AXIS;
@@ -1622,6 +1626,9 @@ public final class MatlabParam {
     }
 
     public ConstEtomoNumber getValue() {
+      if (this == Z_AXIS) {
+        return X_AND_Z_AXIS.getValue();
+      }
       return value;
     }
   }
