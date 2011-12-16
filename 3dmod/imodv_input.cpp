@@ -635,7 +635,7 @@ void imodvScrollWheel(QWheelEvent *e)
 {
   double power = -e->delta() / 120.;
   double zoom = pow(1.05, power);
-  float wheelScale, scrnScale, size;
+  float scrnScale, size;
   int ob, co, pt;
   Imod *imod = Imodv->imod;
   if ((e->modifiers() & Qt::ShiftModifier) && (e->modifiers() & Qt::ControlModifier)) {
@@ -1289,6 +1289,7 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving,
   }
 
   // If there is mesh drawing, get the position in the mesh
+  indSave = a->imod->cindex;
   if (co >= obj->contsize) {
     co -= 1 + obj->contsize;
     
@@ -1314,8 +1315,20 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving,
           // for a real object, set the object index and update the info window
           if (ob >= 0) {
             imodSetIndex(a->imod, ob, -1, -1);
-            if (!a->standalone)
+            tpt = ilistSize(a->vi->selectionList);
+            if (!moving || imodSelectionListQuery(a->vi, ob, -1) < -1)
+              imodSelectionNewCurPoint(a->vi, a->imod, indSave, ctrlDown);
+            if (!a->standalone) {
               imod_setxyzmouse();
+              if (ilistSize(a->vi->selectionList) > 1 && 
+                  ilistSize(a->vi->selectionList) != tpt) {
+                wprint("Selected objs:");
+                for (tob = 0; tob < a->imod->objsize; tob++)
+                  if (imodSelectionListQuery(a->vi, tob, -1) > -2)
+                    wprint(" %d", tob + 1);
+                wprint("\n");
+              }
+            }
           } else
             imodSetIndex(a->imod, obsave, cosave, -1);
         }
@@ -1389,7 +1402,6 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving,
   }
 
   // Now process the indexable point whether from contour or mesh
-  indSave = a->imod->cindex;
   imodSetIndex(a->imod, ob, co, pt);     
   if (!moving || imodSelectionListQuery(a->vi, ob, co) < -1)
     imodSelectionNewCurPoint(a->vi, a->imod, indSave, ctrlDown);
