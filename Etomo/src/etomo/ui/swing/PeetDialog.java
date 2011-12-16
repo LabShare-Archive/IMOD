@@ -1325,7 +1325,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog, Ex
     boolean volumeRows = volumeTable.size() > 0;
     referencePanel.updateDisplay();
     missingWedgeCompensationPanel.updateDisplay();
-    yAxisTypePanel.updateDisplay();
     sphericalSamplingForThetaAndPsiPanel.updateDisplay();
     // iteration table - spherical sampling and FlgRemoveDuplicates
     iterationTable.updateDisplay(
