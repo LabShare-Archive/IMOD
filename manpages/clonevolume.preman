@@ -1,0 +1,40 @@
+.na
+.nh
+.TH clonevolume 1 4.4.1 BL3DEMC
+.SH NAME
+clonevolume \- clone copies of a volume (typically a PEET averaged
+subvolume) back to the aligned positions and orientations in a starting 
+volume.
+.SH SYNOPSIS
+clonevolume -at <csvFile> -into <intoVol> [options] <inVol> <outVol>
+
+.SH DESCRIPTION
+After aligning and averaging a set of subvolumes with PEET, it is often 
+useful to copy the averaged subvolume back into a copy of an input volume 
+at the positions and orientations of the individual aligned particles. 
+Clonevolume performs this operation. The <inVol> will be cloned
+into <intoVol> at locations and orientations specified by <csvFile>,
+and the output written to <outVol>. The comma-separated value 
+location/orientation file <csvFile> will typically have been created by
+PEET program createAlignedModel(1). The <outVol> will be silently 
+overwritten if it already exists. Neither <inVol>, <intoVol>
+nor <summaryFile> will be modified.
+
+The PEET alignment and corresponding average must have beem created
+with "Align Averages Vertically" disabled for proper orientations of the
+cloned subvolumes.
+
+While clonevolume is designed for use with a csv location file and an 
+input volume created by PEET, this is not required. See PEET program 
+createAlignedModel(1) for more information on the csv location file format.
+
+.SS Options
+Clonevolume uses the PIP package for input (see the manual page for pip(1)).
+Options can be specified either as command line arguments (with the -)
+or one per line in a command file (without the -):
+INSERT OPTION TEXT HERE
+
+.SH AUTHOR
+John Heumann  <heumannj@colorado.edu>
+.SH SEE ALSO
+createAlignedModel(1), clonemodel(1)
