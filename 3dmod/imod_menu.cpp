@@ -493,12 +493,20 @@ void InfoWindow::editObjectSlot(int item)
       obj_moveto = 1;
 
     if (imod->cindex.object > -1){
-      if (!diaQInput(&obj_moveto, 1, imod->objsize, 0,
+      ob = imod->cindex.object;
+      pt = (!imod->obj[ob].contsize && imod->obj[ob].meshsize) ? 1 : 0;
+      if (!diaQInput(&obj_moveto, 1, imod->objsize, 0, 
+                     pt ? "Move all meshes to selected object." :
                      "Move all contours to selected object."))
         break;
       obNew = obj_moveto - 1; 
 
-      if (obNew != imod->cindex.object) {
+      if (obNew != ob) {
+        if (pt != ((!imod->obj[obNew].contsize && imod->obj[obNew].meshsize) ? 1 : 0)) {
+          wprint("\aYou cannot combine isosurface objects (meshes and no contours) "
+                 "with regular contour-based objects.\n");
+          break;
+        }
         imodMoveAllContours(vi, obNew);
         imod->cindex.contour = -1;
         imod->cindex.point = -1;
@@ -517,11 +525,28 @@ void InfoWindow::editObjectSlot(int item)
 
   case EOBJECT_MENU_COMBINE: /* combine */
     num = imodNumSelectedObjects(vi, minOb, maxOb);
+    obOld = imod->cindex.object;
     if (num < 2) {
       wprint("\aYou must select contours in more than one object to combine "
              "objects.\n");
       break;
     }
+    
+    // Check that all objects are compatible
+    pt = (!imod->obj[minOb].contsize && imod->obj[minOb].meshsize) ? 1 : 0;
+    for (ob = maxOb; ob > minOb; ob--) {
+      if (imodSelectionListQuery(vi, ob, -1) > -2 || ob == obOld) {
+        if (((!imod->obj[ob].contsize && imod->obj[ob].meshsize) ? 1 : 0) != pt) {
+          wprint("\aYou cannot combine isosurface objects (meshes and no contours) "
+                 "with regular contour-based objects.\n");
+          pt = -1;
+          break;
+        }
+      }
+    }
+    if (pt < 0)
+      break;
+
     if (lastCombine < 2) {
       qstr.sprintf("Are you sure you want to combine these %d selected "
                    "objects into one?", num);
@@ -531,7 +556,6 @@ void InfoWindow::editObjectSlot(int item)
     } else
       wprint("Combined %d objects\n", num);
 
-    obOld = imod->cindex.object;
     for (ob = maxOb; ob > minOb; ob--) {
       if (imodSelectionListQuery(vi, ob, -1) > -2 || ob == obOld) {
         imod->cindex.object = ob;
