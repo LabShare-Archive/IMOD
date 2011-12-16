@@ -59,13 +59,18 @@ have been stored.
 the right mouse button will select the nearest, frontmost point in the model as
 the current model point.  This is mostly useful when using the Model View from
 3dmod, but it can be used to select and delete contours when running the
-program as 3dmodv.
+program as 3dmodv.  When 3dmod is in model mode, clicking on an object with a
+  saved isosurface will make that the current object.
 <DT>[Ctrl] + Right Mouse Button Click or Drag
 <DD>Multiple contours can be selected by holding the Ctrl key down; click on a
 contour to add it to the set of selected contours or to remove it from the set
-if it is already selected.  Dragging the mouse with the right button down and
+if it is already selected.   Dragging the mouse with the right button down and
 the Ctrl key down will add contours that are crossed by the mouse to the set of
-selected contours.  Note that Ctrl-A can also be used to select all contours
+selected contours.  When 3dmod is in model model, clicking on an object with a
+  saved isosurface will add that object to the list of selected objects.
+  Because there is no visible indicator of which objects are selected, the
+  list of selected objects will be printed in the Info window.
+Note that Ctrl-A can also be used to select all contours
 that are being drawn in the current object (excluding ones that are completely
 clipped).
 <DT>[Ctrl] + [Shift] + Right Mouse Button Click
