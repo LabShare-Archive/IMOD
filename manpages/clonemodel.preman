@@ -1,0 +1,39 @@
+.na
+.nh
+.TH clonemodel 1 4.4.1 BL3DEMC
+.SH NAME
+clonemodel \- clone copies of a model (e.g. an isosurface from a PEET average)
+back to the aligned positions and orientations.
+.SH SYNOPSIS
+clonemodel -at <csvFile> [options] <inputModel> <outputModel>
+
+.SH DESCRIPTION
+After aligning and averaging a set of subvolumes with PEET and creating an 
+isosurface model of the average, it is often useful to create 
+a new model containing multple copies of that isosurface reflecting the  
+positions and orientations of the individual aligned particles in the original 
+volume. Clonemodel performs this operation. The <inputModel> will be cloned
+at locations and orientations specified in <csvFile> and the output
+written to <outputModel>. The comma-separated value location/orientation file,
+<csvFile>, will typically have been created by running PEET program 
+createAlignedModel(1). The <outputModel> will be silently overwritten if it 
+already exists. Neither <inputModel> nor <summaryFile> will be modified.
+
+The PEET alignment and average must have been created with "Align Averages 
+Vertically" disabled for proper orientations of the cloned models.
+
+While clonemodel is designed for use with a csv location file created
+by PEET and a model containing an isosurface rendering of the PEET average,
+this is not required. See PEET program createAlignedModel(1) for more 
+information on the summary file format.
+
+.SS Options
+Clonemodel uses the PIP package for input (see the manual page for pip(1)).
+Options can be specified either as command line arguments (with the -)
+or one per line in a command file (without the -):
+INSERT OPTION TEXT HERE
+
+.SH AUTHOR
+John Heumann  <heumannj@colorado.edu>
+.SH SEE ALSO
+createAlignedModel(1), clonevolume(1)
