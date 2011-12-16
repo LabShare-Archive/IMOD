@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/15/11: Edit-Object-Move will move meshes from one saved isosurface object
+to another; multiple saved isosurface objects can be selected in Model view
+with Ctrl-right mouse; and Edit-Object-Combine will combine them.
+
 12/9/11: Fixed problem with vmstopy when command line ends in a quote.
 
 12/9/11: Fixed problems with division by zero in routine that solves linear
