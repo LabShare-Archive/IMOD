@@ -25,8 +25,11 @@ with "Align Averages Vertically" disabled for proper orientations of the
 cloned subvolumes.
 
 While clonevolume is designed for use with a csv location file and an 
-input volume created by PEET, this is not required. See PEET program 
-createAlignedModel(1) for more information on the csv location file format.
+input volume created by PEET, this is not required. Except for the first, 
+header line, which is always ignored, each line in the location file 
+must contain 7 comma-separated fields representing contour number, 
+X, Y, and Z center coordinates in pixels, and Z-Y-X Slicer angles in degrees, 
+respectively.
 
 .SS Options
 Clonevolume uses the PIP package for input (see the manual page for pip(1)).
