@@ -662,6 +662,19 @@ void imodPrintStderr(const char *format, ...)
 #endif
 }
 
+/* Prints the message if the debug key is set */
+void imodTrace(char key, const char *format, ...)
+{
+  if (!imodDebug(key))
+    return;
+  char errorMess[512];
+  va_list args;
+  va_start(args, format);
+  vsprintf(errorMess, format, args);
+  imodPuts(errorMess);
+  va_end(args);
+}
+
 /* Takes a message for "puts", adds newline, prints and flushes stderr */
 void imodPuts(const char *message)
 {

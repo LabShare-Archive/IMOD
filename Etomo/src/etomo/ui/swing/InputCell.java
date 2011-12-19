@@ -52,7 +52,7 @@ abstract class InputCell implements Cell {
 
   abstract void setToolTipText(String toolTipText);
 
-  public final void add(JPanel panel, GridBagLayout layout, GridBagConstraints constraints) {
+  public  void add(JPanel panel, GridBagLayout layout, GridBagConstraints constraints) {
     layout.setConstraints(getComponent(), constraints);
     panel.add(getComponent());
     jpanelContainer = panel;
@@ -167,13 +167,17 @@ abstract class InputCell implements Cell {
   public void msgLabelChanged() {
     setName();
   }
+  
+  String convertLabelToName() {
+    return Utilities.convertLabelToName(tableHeader, rowHeader != null ? rowHeader
+        .getText() : null, columnHeader != null ? columnHeader.getText() : null);
+  }
 
   /**
    * Build the name out of table header, row header, and column header.
    */
-  private void setName() {
-    String name = Utilities.convertLabelToName(tableHeader, rowHeader != null ? rowHeader
-        .getText() : null, columnHeader != null ? columnHeader.getText() : null);
+   void setName() {
+    String name = convertLabelToName();
     getComponent().setName(
         getFieldType().toString() + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {

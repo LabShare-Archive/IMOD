@@ -292,6 +292,14 @@ void imodMoveAllContours(ImodView *vi, int obNew)
   vi->undo->objectPropChg();
   vi->undo->objectPropChg(obNew);
 
+  // If object has mesh but no contours, transfers the meshes
+  if (!obj->contsize && obj->meshsize) {
+    for (co = 0; co < obj->meshsize; co++)
+      imod->obj[obNew].mesh = imodel_mesh_add(&obj->mesh[co], imod->obj[obNew].mesh,
+                                              &imod->obj[obNew].meshsize);
+    return;
+  }
+
   // Move all the fine grain information over then delete the store
   if (ilistSize(obj->store)) {
     for (co = 0; co <= obj->surfsize; co++)
@@ -305,13 +313,25 @@ void imodMoveAllContours(ImodView *vi, int obNew)
 
   // Record all contours as moving
   vi->undo->allContourMove(imod->cindex.object, obNew);
-
+  
   /* DNM: need to set contour inside loop because each deletion
      sets it to -1; and need to not increment counter!  */
   for (co = 0; co < (int)obj->contsize; ) {
     imod->cindex.contour = 0;
     imodObjectAddContour(&imod->obj[obNew], &obj->cont[co]);
     imodObjectRemoveContour(obj, co);
+  }
+}
+
+static void dumpSelectionList(ImodView *vi) 
+{
+  if (!imodDebug('S'))
+    return;
+  imodPrintStderr("%d on list:\n", ilistSize(vi->selectionList));
+  Iindex *index = (Iindex *)ilistFirst(vi->selectionList);
+  while (index) {
+    imodPrintStderr("%d %d %d\n", index->object, index->contour, index->point);
+    index = (Iindex *)ilistNext(vi->selectionList);
   }
 }
 
@@ -342,22 +362,16 @@ void imodSelectionListAdd(ImodView *vi, Iindex newIndex)
     if (index->object == newIndex.object && 
         index->contour == newIndex.contour) {
       index->point = newIndex.point;
-      /*imodPrintStderr("update %d %d %d\n", newIndex.object, newIndex.contour,
-        newIndex.point);*/
+      imodTrace('S', "update %d %d %d", newIndex.object, newIndex.contour,
+        newIndex.point);
       return;
     }
   }
 
   // Add index to list
-  /*imodPrintStderr("adding %d %d %d\n", newIndex.object, newIndex.contour,
-    newIndex.point); */
+  imodTrace('S', "adding %d %d %d", newIndex.object, newIndex.contour, newIndex.point);
   ilistAppend(vi->selectionList, &newIndex);
-  /*index = (Iindex *)ilistFirst(vi->selectionList);
-  while (index) {
-    imodPrintStderr("%d %d %d\n", index->object, index->contour, index->point);
-    index = (Iindex *)ilistNext(vi->selectionList);
-    } */
-
+  dumpSelectionList(vi);
 }
 
 // Clear the selection list: returns the number previously on the list
@@ -366,6 +380,7 @@ int imodSelectionListClear(ImodView *vi)
   int retval = ilistSize(vi->selectionList);
   ilistDelete(vi->selectionList);
   vi->selectionList = NULL;
+  imodTrace('S', "List cleared");
   return retval;
 }
 
@@ -379,7 +394,7 @@ int imodSelectionListQuery(ImodView *vi, int ob, int co)
   for (i = 0; i < ilistSize(vi->selectionList); i++) {
     index = (Iindex *)ilistItem(vi->selectionList, i);
     if (index->object == ob && (index->contour == co || co < 0)) {
-      //imodPrintStderr("Query returns %d\n", index->point);
+      imodTrace('S', "Query returns %d", index->point);
       return index->point;
     }
   }
@@ -414,8 +429,7 @@ void imodSelectionListRemove(ImodView *vi, int ob, int co)
     index = (Iindex *)ilistItem(vi->selectionList, i);
     if (index->object == ob && index->contour == co) {
       ilistRemove(vi->selectionList, i);
-      /* imodPrintStderr("Removing item %d, leaves %d\n", i, 
-         ilistSize(vi->selectionList)); */
+      imodTrace('S', "Removing item %d, leaves %d", i, ilistSize(vi->selectionList));
       return;
     }
   }
@@ -427,25 +441,25 @@ void imodSelectionNewCurPoint(ImodView *vi, Imod *imod, Iindex indSave,
                               int controlDown)
 {
   Iindex *indp;
+  bool contourless;
 
   // If ctrl-select, then manage selection list
   if (controlDown) {
+    contourless = indSave.object >= 0 && !vi->imod->obj[indSave.object].contsize && 
+      vi->imod->obj[indSave.object].meshsize;
     
     // First add previous point if list is empty
-    if (!ilistSize(vi->selectionList) && indSave.contour >= 0)
+    if (!ilistSize(vi->selectionList) && (indSave.contour >= 0 || contourless))
       imodSelectionListAdd(vi, indSave);
     
     // If point not on list, add it.  If point is on list, then remove
     // it and pop current point back to last item on list
-    if (imodSelectionListQuery(vi, imod->cindex.object, 
-                               imod->cindex.contour) < -1)
-          imodSelectionListAdd(vi, imod->cindex);
-    else {
-      imodSelectionListRemove(vi, imod->cindex.object, 
-                              imod->cindex.contour);
+    if (imodSelectionListQuery(vi, imod->cindex.object, imod->cindex.contour) < -1) {
+      imodSelectionListAdd(vi, imod->cindex);
+    } else {
+      imodSelectionListRemove(vi, imod->cindex.object, imod->cindex.contour);
       if (ilistSize(vi->selectionList)) {
-        indp = (Iindex *)ilistItem(vi->selectionList,
-                                   ilistSize(vi->selectionList) - 1); 
+        indp = (Iindex *)ilistItem(vi->selectionList, ilistSize(vi->selectionList) - 1); 
         imod->cindex = *indp;
       }
     }

@@ -7,6 +7,8 @@ import javax.swing.text.Document;
 
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
+import etomo.storage.autodoc.ReadOnlySection;
+import etomo.type.EtomoAutodoc;
 import etomo.type.EtomoBoolean2;
 import etomo.type.UITestFieldType;
 import etomo.util.Utilities;
@@ -179,6 +181,10 @@ final class CheckBox extends JCheckBox {
 
   public void setToolTipText(String text) {
     super.setToolTipText(TooltipFormatter.INSTANCE.format(text));
+  }
+
+  public void setToolTipText(final ReadOnlySection section, final String enumValue) {
+    setToolTipText(EtomoAutodoc.getTooltip(section, enumValue));
   }
 
   void printInfo() {

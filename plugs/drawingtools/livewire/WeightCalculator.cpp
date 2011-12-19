@@ -128,7 +128,7 @@ static void WindowFilter(const uint w, const uint h, const byte *in, byte *out, 
 }
 
 template <>
-static void WindowFilter<3>(const uint w, const uint h, const byte *in, byte *out, WindowFilterCBFull *cb_full, WindowFilterCB *cb, void *param)
+void WindowFilter<3>(const uint w, const uint h, const byte *in, byte *out, WindowFilterCBFull *cb_full, WindowFilterCB *cb, void *param)
 {
 	// Specialize the most common and smallest window filter
 
@@ -494,7 +494,7 @@ inline static void RunGaussianBinning(const uint W, const uint H, const byte *in
 	WindowBinning<windowSize>(W, H, in, out, &GaussianFilterCBFull<windowSize>, &GaussianFilterCB<windowSize>, NULL);
 }
 template<>
-inline static void RunGaussianBinning<2>(const uint W, const uint H, const byte *in, byte *out)
+inline void RunGaussianBinning<2>(const uint W, const uint H, const byte *in, byte *out)
 {
 	RunMeanBinning<2>(W, H, in, out);
 }

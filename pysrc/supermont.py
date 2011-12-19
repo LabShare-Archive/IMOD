@@ -257,9 +257,8 @@ def writeMontInfo(filename, predata, slices, pieces, edges):
          else:
             prnstr(fmtstr('{} = {}', key, val), file=out)
 
-   prnstr('', file=out)
-
    for piece in pieces:
+      prnstr('', file=out)
       prnstr(fmtstr('[Piece = {}]', piece['file']), file=out)
       for key in piece.keys():
          val = piece[key]
@@ -273,9 +272,8 @@ def writeMontInfo(filename, predata, slices, pieces, edges):
          else:
             prnstr(fmtstr('{} = {}', key, val), file=out)
 
-   prnstr('', file=out)
-
    for edge in edges:
+      prnstr('', file=out)
       prnstr(fmtstr('[Edge = {}]', edge['name']), file=out)
       for key in edge.keys():
          val = edge[key]

@@ -15,7 +15,6 @@ c
 c       David Mastronarde, 7/16/01
 c       
 c       $Id$
-c       Log at end of file
 c       
       implicit none
       integer idim,limvert,limcont,limpat,limwork
@@ -301,7 +300,7 @@ c
       ncont=0
       if (modelfile.ne.' ') then
         call get_region_contours(modelfile, 'CORRSEARCH3D', xvert, yvert,
-     &      nvert, indvert, zcont, ncont, ifflip, limcont, limvert)
+     &      nvert, indvert, zcont, ncont, ifflip, limcont, limvert, 1)
         
         if (ifdebug .gt.0) write(*,'(5(f7.0,f8.0))')
      &        (xvert(i), yvert(i),i = indvert(1), indvert(1) + nvert(1)-1)
@@ -331,7 +330,7 @@ c         then transform to coordinates in A volume native plane
 c         
         print *,'Processing model on source for second volume'
         call get_region_contours(bmodel, 'CORRSEARCH3D', xvertb, yvertb,
-     &      nvertb, indvertb, zcontb, ncontb, ifflipb, limcont, limvert)
+     &      nvertb, indvertb, zcontb, ncontb, ifflipb, limcont, limvert, 2)
         do j = 1, ncontb
           if (ifdebug .gt.0) write(*,'(5(f7.0,f8.0))')
      &        (xvertb(i), yvertb(i),i = indvertb(j), indvertb(j) + nvertb(j)-1)
@@ -1816,78 +1815,3 @@ c
       call imclose(4)
       return
       end
-
-
-
-c       $Log$
-c       Revision 3.21  2009/10/14 23:54:54  mast
-c       Make sure B corners are always transformed
-c
-c       Revision 3.20  2008/02/28 20:03:34  mast
-c       Increased main array size 40%
-c
-c       Revision 3.19  2008/02/28 19:19:02  mast
-c       Increased size of working array for 3D FFT 6-fold
-c
-c       Revision 3.18  2007/11/18 04:59:54  mast
-c       Redeclared concat at 320
-c
-c       Revision 3.17  2007/10/10 19:51:55  mast
-c       Handle volume shifts properly when volume sizes differ
-c
-c       Revision 3.16  2007/10/04 16:18:27  mast
-c       Called new parabolic fit function and protected correlation coefficient
-c       from numeric errors
-c
-c       Revision 3.15  2007/03/02 15:51:56  mast
-c       Increased string sizes from 80 to 160
-c
-c       Revision 3.14  2006/08/21 16:49:22  mast
-c       Changed initial offset to volume offset and provided for a separate
-c       initial offset
-c
-c       Revision 3.13  2006/08/18 14:34:53  mast
-c       Eliminated double declaration of indpat
-c
-c       Revision 3.12  2006/08/17 16:17:20  mast
-c       SGI insists statement function be after all declarations
-c
-c       Revision 3.11  2006/08/16 23:44:54  mast
-c       Converted to PIP, incorporated FFT correlations internally, added
-c       filtering, made it extract the B patches based on the local shift
-c       instead of using the same coordinates in both volumes, added model
-c       file for B and initial displacement, handled volumes in both
-c       orientations.
-c
-c       Revision 3.10  2005/10/19 16:43:17  mast
-c       Doubled image array size, put in common, and made patch limit 40000
-c       
-c       Revision 3.9  2004/06/16 17:55:55  mast
-c       Added some error checking on entries and logic to prevent patches
-c       too large and patches too close together
-c       
-c       Revision 3.8  2003/12/24 19:05:08  mast
-c       Changed to fit new form of get_nxyz
-c       
-c       Revision 3.7  2003/10/24 17:40:17  mast
-c       Removed -e flag from tcsh command
-c       
-c       Revision 3.6  2003/10/24 03:48:13  mast
-c       Use IMOD_DIR and IMOD_CSHELL to run onepatchcorr explicitly for 
-c       Windows
-c       
-c       Revision 3.5  2002/09/06 00:41:07  mast
-c       Needed to prevent negative spanning distances when transformed
-c       corners are very close to each other
-c       
-c       Revision 3.4  2002/07/26 19:20:05  mast
-c       Was taking min of an int and a real - Intel compiler caught it.
-c       
-c       Revision 3.3  2002/07/21 19:44:11  mast
-c       Added declaration of lnblnk
-c       
-c       Revision 3.2  2002/07/20 23:56:52  mast
-c       Added analysis of regions to exclude based on their positions in the
-c       source file for the second volume.  Standardized error outputs and
-c       added declarations for implicit none.
-c       

@@ -191,7 +191,14 @@ Suppress output messages about the progress of running the script.
 .TP
 .B -c
 Output "CHUNK DONE" to the log file after successful execution.
-
+.TP
+.B -e VAR=val
+Set the environment variable VAR to the given value at the beginning of the
+script.  If no value is needed, "-e VAR" can be entered.  This option can be
+entered as many times as needed.
+.TP
+.B -n #
+Increment the process niceness by the given # at the beginning of the script.
 .SH EXAMPLES
 .nf
 # Example 1: Command file to align an image stack
