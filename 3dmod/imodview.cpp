@@ -38,6 +38,7 @@
 #include "xzap.h"
 #include "xcramp.h"
 #include "imod_workprocs.h"
+#include "vertexbuffer.h"
 #include "preferences.h"
 #include "undoredo.h"
 
@@ -3016,6 +3017,7 @@ void ivwClearAnExtraObject(ImodView *inImodView, int objNum)
     imodContoursDelete(obj->cont, obj->contsize);
   obj->contsize = 0;
   obj->cont = NULL;
+  vbCleanupVBD(obj);
   if (obj->meshsize)
     imodMeshesDelete(obj->mesh, obj->meshsize);
   obj->meshsize = 0;

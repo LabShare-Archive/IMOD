@@ -14,7 +14,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #ifndef COMFILEJOB_H_
@@ -37,7 +36,8 @@ public:
   }
   ;
   inline const QString getCshFileName(const int index) {
-    return QString("%1.csh").arg(QString(mJobArray[index].root));
+    /* return QString("%1.csh").arg(QString(mJobArray[index].root)); CSH -> PY */
+    return QString("%1.py").arg(QString(mJobArray[index].root));
   }
   ;
   inline const QString getJobFileName(const int index) {
@@ -82,14 +82,3 @@ private:
 };
 
 #endif /* COMFILEJOB_H_ */
-
-/*
- $Log$
- Revision 1.2  2011/01/21 00:12:09  sueh
- bug# 1426 Saving the root instead of the .com file name.
-
- Revision 1.1  2011/01/05 20:47:07  sueh
- bug# 1426 ComFileJobs is lighter weight then ComFileJob.  Only one
- instance is created.
-
- */

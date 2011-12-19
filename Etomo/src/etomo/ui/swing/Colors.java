@@ -65,7 +65,7 @@ public final class Colors {
       102);
   static final ColorUIResource CELL_ERROR_BACKGROUND = new ColorUIResource(255, 204, 204);
   static final ColorUIResource CELL_ERROR_BACKGROUND_NOT_EDITABLE = new ColorUIResource(
-      230, 184, 184);//223,179,179?
+      230, 184, 184);// 223,179,179?
   static final ColorUIResource BACKGROUND = new ColorUIResource(255, 255, 255);
   static final ColorUIResource WARNING_BACKGROUND = new ColorUIResource(255, 255, 204);
   static final ColorUIResource WARNING_BACKGROUND_NOT_EDITABLE = new ColorUIResource(230,
@@ -88,50 +88,41 @@ public final class Colors {
   private static Color backgroundJoin = null;
   private static Color backgroundParallel = null;
   private static Color backgroundTools = null;
-  private static Color backgroundPeet = null;
   private static ColorUIResource cellNotEditableBackground = null;
 
   static Color getBackgroundA() {
     if (backgroundA == null) {
-      backgroundA = new Color(173, 199, 224);//saphire
+      backgroundA = new Color(173, 199, 224);// saphire
     }
     return backgroundA;
   }
 
   static Color getBackgroundB() {
     if (backgroundB == null) {
-      backgroundB = new Color(173, 224, 199);//jade
+      backgroundB = new Color(173, 224, 199);// jade
     }
     return backgroundB;
   }
 
   static Color getBackgroundJoin() {
     if (backgroundJoin == null) {
-      backgroundJoin = new Color(199, 173, 224);//violet
+      backgroundJoin = new Color(199, 173, 224);// violet
     }
     return backgroundJoin;
   }
 
   static Color getBackgroundParallel() {
     if (backgroundParallel == null) {
-      backgroundParallel = new Color(186, 224, 173);//lime
+      backgroundParallel = new Color(186, 224, 173);// lime
     }
     return backgroundParallel;
   }
 
   static Color getBackgroundTools() {
     if (backgroundTools == null) {
-      backgroundTools = new Color(173, 212, 224);//azure
+      backgroundTools = new Color(173, 212, 224);// azure
     }
     return backgroundTools;
-  }
-
-  static Color getBackgroundPeet() {
-    if (backgroundPeet == null) {
-      backgroundPeet = new Color(166 + BACKGROUND_ADJUSTMENT,
-          153 + BACKGROUND_ADJUSTMENT, 204 + BACKGROUND_ADJUSTMENT);//purple
-    }
-    return backgroundPeet;
   }
 
   static ColorUIResource getCellNotEditableBackground() {

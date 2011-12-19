@@ -1,0 +1,65 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputFile]
+short = input
+type = FN
+usage = Input model file to be cloned
+tooltip = 
+manpage = Input model file. If this option is not entered, 
+the first non-option argument will be used for the input file.
+
+[Field = OutputFile]
+short = output
+type = FN
+usage = Output model file to create
+tooltip = 
+manpage = Name to give the output file containing cloned copies of the
+input model. If this option is not entered, the second non-option
+argument will be used.
+
+[Field = AtPoints]
+short = at
+type = FN
+usage = location/orientation file (see PEET program createdAlignedModel)
+tooltip = 
+manpage = Name of the summary file giving coordinates and orientations
+at which clones are to be inserted.
+
+[Field = XRange]
+short = x
+type = IP
+usage = X coordinate range within which models will be cloned
+tooltip = 
+manpage =  The input model will not be cloned at points outside this range.
+
+[Field = YRange]
+short = y
+type = IP
+usage = X coordinate range within which models will be cloned
+tooltip = 
+manpage =  The input model will not be cloned at points outside this range.
+
+[Field = ZRange]
+short = z
+type = IP
+usage = X coordinate range within which models will be cloned
+tooltip = 
+manpage =  The input model will not be cloned at points outside this range.
+
+[Field = usage]
+short = help
+long = usage
+type = B
+usage = Print help output
+tooltip = 
+manpage = Print help output. 
+
+[Field = ContourNumbers]
+short = contours
+type = LI
+usage = Contours in the model of the original volume to include (default = all).
+tooltip =
+manpage = A comma and dash separated list of contour numbers. If entered, 
+clones will be created only at points belonging to one of the specified 
+contours in the model of the original volume.

@@ -6,7 +6,6 @@
  * Colorado.  See dist/COPYRIGHT for full notice.
  *
  * $Id$
- * Log at end of file
  */                                                                           
 
 #include "autodoc.h"
@@ -441,7 +440,7 @@ int AdocAppendSection(const char *filename)
 /* Function to actually write the file or last section only */
 static int writeFile(FILE *afile, int writeAll)
 {
-  int i,j,k, ind, comInd, write;
+  int i,j,k, ind, comInd, write, lastBlank;
   AdocCollection *coll;
   AdocSection *sect;
 
@@ -456,13 +455,17 @@ static int writeFile(FILE *afile, int writeAll)
 
     /* dump comments before section */
     comInd = 0;
+    lastBlank = 0;
     while (write && comInd < sect->numComments && sect->comIndex[comInd] == -1)
-      if (write)
+      if (write) {
+        lastBlank = sect->comments[comInd][0] == 0x00 ? 1 : 0;
         fprintf(afile, "%s\n", sect->comments[comInd++]);
+      }
 
     /* Write section name unless we're in global */
     if ((i || j || strcmp(sect->name, GLOBAL_NAME)) && write)
-      fprintf(afile, "\n[%s %s %s]\n", coll->name, valueDelim, sect->name);
+      fprintf(afile, "%s[%s %s %s]\n", lastBlank ? "" : "\n", coll->name, valueDelim,
+              sect->name);
 
     /* Loop on key-values */
     for (k = 0; k < sect->numKeys; k++) {
@@ -1209,34 +1212,3 @@ static int addComments(AdocSection *sect, char **comments, int *numComments,
   *numComments = 0;
   return 0;
 }
-
-/*
-  $Log$
-  Revision 1.7  2010/09/02 15:43:36  mast
-  Add proper include for stat for linux at least
-
-  Revision 1.6  2010/08/31 22:05:53  mast
-  New function to open image metadata
-
-  Revision 1.5  2010/08/28 05:17:52  mast
-  Added function to append last section
-
-  Revision 1.4  2010/08/27 22:17:24  mast
-  Add a line before a section starts
-
-  Revision 1.3  2010/08/27 20:54:35  mast
-  Added function to get number of keys
-
-  Revision 1.2  2009/04/13 05:08:44  mast
-  Changed to allow clearing and reuse of autodocs in the array
-
-  Revision 1.1  2007/09/20 02:43:08  mast
-  Moved to new library
-
-  Revision 3.2  2007/04/05 20:56:58  mast
-  Added Set functions for ints and floats
-
-  Revision 3.1  2006/10/17 18:15:22  mast
-  Added to package
-
-*/

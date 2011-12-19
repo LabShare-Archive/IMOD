@@ -66,6 +66,7 @@ import java.awt.Dimension;
 public class FixedDim {
   public static final String rcsid = "$Id$";
 
+  public final static Dimension x3_y0 = new Dimension(3, 0);
   public final static Dimension x5_y0 = new Dimension(5, 0);
   public final static Dimension x10_y0 = new Dimension(10, 0);
   public final static Dimension x20_y0 = new Dimension(20, 0);
@@ -74,7 +75,9 @@ public class FixedDim {
   public final static Dimension x200_y0 = new Dimension(200, 0);
   public final static Dimension x0_y5 = new Dimension(0, 5);
   public final static Dimension x0_y10 = new Dimension(0, 10);
+  public final static Dimension x0_y15 = new Dimension(0, 15);
   public final static Dimension x0_y20 = new Dimension(0, 20);
   public final static Dimension x0_y40 = new Dimension(0, 40);
-  public final static Dimension folderButton = new Dimension(32, 32);
+  public final static Dimension x0_y200 = new Dimension(0, 200);
+  public final static Dimension folderButton = new Dimension(25, 25);
 }

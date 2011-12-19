@@ -44,8 +44,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   private final EtomoNumber nChunks = new EtomoNumber();
   private final EtomoNumber chunksFinished = new EtomoNumber();
   private final String rootName;
-  private final ProcessMessages messages = ProcessMessages
-      .getInstanceForParallelProcessing();
+  private final ProcessMessages messages;
   private final ProcessingMethodMediator mediator;
   private String subdirName = null;
   private boolean setProgressBarTitle = false;// turn on to changed the progress bar title
@@ -72,24 +71,30 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   final BaseManager manager;
   final AxisID axisID;
   final Map computerMap;
+  private final boolean multiLineMessages;
   private int tcshErrorCountDown = NO_TCSH_ERROR;
   private ParallelProgressDisplay parallelProgressDisplay = null;
   private MessageReporter messageReporter = null;
 
-  ProcesschunksProcessMonitor(BaseManager manager, AxisID axisID, String rootName,
-      Map computerMap) {
+  ProcesschunksProcessMonitor(final BaseManager manager, final AxisID axisID,
+      final String rootName, final Map computerMap, final boolean multiLineMessages) {
     this.manager = manager;
     this.axisID = axisID;
     this.rootName = rootName;
     this.computerMap = computerMap;
+    this.multiLineMessages = multiLineMessages;
+    messages = ProcessMessages
+    .getInstanceForParallelProcessing(multiLineMessages);
     mediator = manager.getProcessingMethodMediator(axisID);
     debug = EtomoDirector.INSTANCE.getArguments().isDebug();
   }
 
-  public static ProcesschunksProcessMonitor getReconnectInstance(BaseManager manager,
-      AxisID axisID, ProcessData processData) {
+  public static ProcesschunksProcessMonitor getReconnectInstance(
+      final BaseManager manager, final AxisID axisID, final ProcessData processData,
+      final boolean multiLineMessages) {
     ProcesschunksProcessMonitor instance = new ProcesschunksProcessMonitor(manager,
-        axisID, processData.getSubProcessName(), processData.getComputerMap());
+        axisID, processData.getSubProcessName(), processData.getComputerMap(),
+        multiLineMessages);
     instance.reconnect = true;
     return instance;
   }

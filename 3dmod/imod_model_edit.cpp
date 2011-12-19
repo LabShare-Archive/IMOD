@@ -31,6 +31,7 @@
 #include "imod_info_cb.h"
 #include "imod_model_edit.h"
 #include "imodv_modeled.h"
+#include "vertexbuffer.h"
 #include "control.h"
 #include "preferences.h"
 #include "undoredo.h"
@@ -347,6 +348,7 @@ void imodTransXYZ(Imod *imod, Ipoint trans)
   Icont *cont;
   Imesh *mesh;
      
+  vbCleanupVBD(imod);
   for(ob = 0; ob < imod->objsize; ob++){
     obj = &(imod->obj[ob]);
     for(co = 0; co < obj->contsize; co++){

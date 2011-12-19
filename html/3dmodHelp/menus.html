@@ -59,8 +59,12 @@ bottom of the Info window to a file.
 <LI><B>Delete</B>:&emsp;Delete current object or all selected objects.
 <LI><B>Type...</B>:&emsp;Edit Object type.
 <LI><B>Color...</B>:&emsp;Opens requester for changing object color.
-<LI><B>Move...</B>:&emsp;Move all contours in object to a different object.
-<LI><B>Combine</B>:&emsp;Combine all selected objects into one object.
+<LI><B>Move...</B>:&emsp;Move all contours in object to a different object;
+  or, for an objects with a saved isosurface and no contoours, move the mesh
+  data into another object of the same kind.
+<LI><B>Combine</B>:&emsp;Combine all selected objects into one object.  This
+  can be used to combine objects with saved isosurfaces, but all objects being
+  combined must be of the same kind (regular versus saved isosurface).
 <LI><B>Info</B>:&emsp;Print information on object by running imodinfo with -o option.
 <LI><B>Clean</B>:&emsp;Delete empty contours from object.
 <LI><B>Break by Z</B>:&emsp;Break all contours in object into separate ones by 

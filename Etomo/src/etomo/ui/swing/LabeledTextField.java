@@ -472,6 +472,11 @@ final class LabeledTextField {
   public void addDocumentListener(final DocumentListener listener) {
     textField.getDocument().addDocumentListener(listener);
   }
+  
+  void setTextPreferredSize(final Dimension size) {
+    textField.setPreferredSize(size);
+    textField.setMaximumSize(size);
+  }
 
   void setTextPreferredWidth(final double minWidth) {
     Dimension prefSize = textField.getPreferredSize();

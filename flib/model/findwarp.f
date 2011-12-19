@@ -9,7 +9,6 @@ c
 c       See man page for details
 c
 c       $Id$
-c       Log at end
 c       
       implicit none
       include 'statsize.inc'
@@ -227,7 +226,7 @@ c
       ncont=0
       if(filename.ne.' ') then
         call get_region_contours(filename, 'FINDWARP', xvert, yvert, nvert,
-     &      indvert, zcont, ncont, ifflip, idim, limvert)
+     &      indvert, zcont, ncont, ifflip, idim, limvert, 0)
       else
         ifflip = 0
         if (npaty .lt. npatz) ifflip = 1
@@ -1017,83 +1016,3 @@ c
      &    a(1,3)*a(2,2)*a(3,1)-a(2,1)*a(1,2)*a(3,3)-a(1,1)*a(3,2)*a(2,3)
       return
       end
-
-c       
-c       $Log$
-c       Revision 3.20  2009/09/02 18:46:52  mast
-c       Fixed residual output; it was using cross-index in wrong direction
-c
-c       Revision 3.19  2009/06/05 18:24:07  mast
-c       Eliminate inferior filling in method and put out file with missing
-c       transforms
-c
-c       Revision 3.18  2009/03/30 22:24:25  mast
-c       Make sure there aren't too many points on any diagonal.  The determinant
-c       of the solution isn't good enough, need it from right in multr
-c
-c       Revision 3.17  2008/12/29 20:42:07  mast
-c       Adjusted measured/unknown ratio for one layer of patches, issued
-c       error if discount ratio is too low and eliminates all fits
-c
-c       Revision 3.16  2008/04/14 16:58:20  mast
-c       FIxed bizarre parentheses error that didn't trouble Intel compiler
-c
-c       Revision 3.15  2008/04/14 16:49:37  mast
-c       Used determinant to detect and eliminate degenerate solutions
-c
-c       Revision 3.14  2007/04/07 21:32:30  mast
-c       Increased dimensions, fixed possible initialization problem
-c
-c       Revision 3.13  2007/01/17 16:49:33  mast
-c       Fixed failure to initialize # of patches to exclude
-c
-c       Revision 3.12  2006/08/21 23:16:16  mast
-c       Needed to clear out filename before getting model name
-c
-c       Revision 3.11  2006/08/21 16:41:17  mast
-c       Converted to PIP, made it handle either orientation of volume, made
-c       automatic fitting more flexible in the thin dimension, changed outlier
-c       output to a summary, added option for patch and residual output,
-c       allowed 100000 patches
-c
-c       Revision 3.10  2006/06/22 01:08:19  mast
-c       Put big arrays in common for stack size problem on Intel Mac
-c
-c       Revision 3.9  2005/12/09 04:43:27  mast
-c       gfortran: .xor., continuation, format tab continuation or byte fixes
-c
-c       Revision 3.8  2005/10/19 16:43:52  mast
-c       Increased patch limit to 40000
-c       
-c       Revision 3.7  2003/12/24 19:04:02  mast
-c       Changed to fit new form of get_nxyz
-c       
-c       Revision 3.6  2003/10/24 03:47:17  mast
-c       fix bug of using maxdrop before setting it
-c       
-c       Revision 3.5  2002/10/23 15:41:44  mast
-c       Added ability to get solutions with only one layer of patches in Y,
-c       and to drop back to a solution that is fixed in Y when there are
-c       too few points on multiple levels in Y.
-c       
-c       Revision 3.4  2002/09/09 21:36:00  mast
-c       Eliminate stat_source: and nimp_source: from all includes
-c       
-c       Revision 3.3  2002/09/06 00:40:18  mast
-c       Had it exit with error if no patch arrangements will fit the minimum
-c       required measurement to unknown ratio in automatic mode
-c       
-c       Revision 3.2  2002/09/06 00:38:33  mast
-c       Wrong message!
-c       
-c       Revision 3.1  2002/07/21 00:05:00  mast
-c       Rearranged input order so that it was easier to run from Matchorwarp
-c       with columns or rows excluded.  Standardized error output and made
-c       declarations for implicit none.
-c       
-c       
-c       David Mastronarde, January 30, 1997
-c       12/24/98: added outlier elimination, integrated complex options.
-c       6/6/99: added ability to output single refining transformation.
-c       1/1/00: added model exclusion and automatic finding of best warp
-c       6/7/01: rewrote data input to handle data with missing patches

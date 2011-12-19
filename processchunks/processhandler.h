@@ -139,6 +139,7 @@ private:
 
   //Signal variables
   bool mErrorSignalReceived, mFinishedSignalReceived, mKillFinishedSignalReceived;
+  bool mLogHasError;
   int mProcessError, mExitCode, mExitStatus;
 };
 
