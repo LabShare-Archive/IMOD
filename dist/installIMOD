@@ -113,6 +113,9 @@ echo "Checking system and package types"
 set system = `uname -s`
 set defaultdir = /usr/local
 
+# This gives legacy behavior of passing on exit status of command in set var=`command`
+set anyerror
+
 switch ($system)
     case *IRIX*:
         set os = irix

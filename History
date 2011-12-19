@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/18/11: Fixed imodpsview and install script for change in tcsh behavior
+(In 4.3).
+
 12/2/11: Fixed test for whether copying from current object in object edit 
 dialog (In 4.3).
 

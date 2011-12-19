@@ -140,6 +140,10 @@ set float32         = "float"
 
 set inargv = ($argv)
 
+# This gives legacy behavior of passing on exit status of command in set var=`command`
+# Needed by macosx
+set anyerror
+
 #
 # Input options
 #
