@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/19/11: Added options to Genhstplt for dividing by column and loading new
+column while retaining X values in previous column.
+
 12/18/11: IMOD_4-3-2
 12/18/11: Fixed imodpsview and install script for change in tcsh behavior
 (In 4.3).
