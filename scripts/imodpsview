@@ -4,9 +4,9 @@
 
 # But first test for windows and call gsview32 there
 #
-set test = `which cygpath`
+which cygpath >& /dev/null
 if (! $status) then
-    set test = `which gsview32`
+    which gsview32 >& /dev/null
     if ($status) goto failed
     gsview32 $*
     exit 0
@@ -21,19 +21,19 @@ if ("$argv[1]" == '-p') then
 endif
 
 # 12/2/05: Needed two -- on the noanti.  Did it really work with 1 before?
-set test = `which gv`
+which gv >& /dev/null
 if (! $status) then
     gv --noanti $*
     exit 0
 endif
 
-set test = `which xpsview`
+which xpsview >& /dev/null
 if (! $status) then
     xpsview $*
     exit 0
 endif
 
-set test = `which gs`
+which gs >& /dev/null
 if (! $status) then
     echo " "
     echo "TYPE CTRL C TO EXIT THE GS PREVIEWER"

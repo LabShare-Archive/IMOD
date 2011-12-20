@@ -34,6 +34,7 @@ html/libhelp
 Etomo/Makefile
 Etomo/jar_dir
 Etomo/jar
+Etomo/.settings
 flib/subrs/smallmodel
 html/IMOD.adp
 .distname
