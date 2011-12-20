@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/19/11: IMOD_4-3-4
+12/19/11: Updated program list for hyperlinks in man page (In 4.3).
+
 12/19/11: IMOD_4-3-3
 12/18/11: IMOD_4-3-2
 12/18/11: Fixed imodpsview and install script for change in tcsh behavior
